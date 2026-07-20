@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Law, Business & Engineering Masterclass</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'Sarabun', 'sans-serif'] },
+                    colors: {
+                        primary: '#0f172a',
+                        secondary: '#3b82f6',
+                        accent: '#f59e0b',
+                        success: '#10b981',
+                        danger: '#ef4444'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body { background-color: #f8fafc; color: #1e293b; margin: 0; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script id="course-data" type="application/json">{"business": {"management": {"title": "หลักการจัดการ", "overview": "ศึกษาหน้าที่พื้นฐานของผู้บริหาร: การวางแผน (Planning) การจัดองค์การ (Organizing) การนำ (Leading) และการควบคุม (Controlling)", "keyConcepts": ["POLC (Planning, Organizing, Leading, Controlling)", "การวางแผนเชิงกลยุทธ์/เชิงปฏิบัติการ", "โครงสร้างองค์การ", "การมอบหมายงานและอำนาจหน้าที่"], "quiz": [{"q": "หน้าที่การจัดการ 4 ด้านตามแนวคิดคลาสสิกคืออะไร?", "options": ["Planning, Organizing, Leading, Controlling", "Selling, Buying, Hiring, Firing", "Input, Process, Output, Feedback", "Vision, Mission, Goal, Strategy"], "answer": 0}, {"q": "การกำหนดว่าใครรับผิดชอบงานใดในองค์การ เรียกว่าอะไร?", "options": ["Forecasting", "Organizing", "Auditing", "Budgeting"], "answer": 1}, {"q": "การเปรียบเทียบผลงานจริงกับเป้าหมายที่ตั้งไว้ อยู่ในหน้าที่ใด?", "options": ["Planning", "Leading", "Controlling", "Staffing"], "answer": 2}, {"q": "แผนที่กำหนดทิศทางระยะยาวขององค์การ เรียกว่า?", "options": ["แผนปฏิบัติการ", "แผนกลยุทธ์", "แผนงบประมาณ", "แผนฉุกเฉิน"], "answer": 1}]}, "hrm": {"title": "การบริหารทรัพยากรมนุษย์", "overview": "ศึกษาการสรรหา คัดเลือก ฝึกอบรม ประเมินผล และรักษาพนักงานให้สอดคล้องกับเป้าหมายองค์การ", "keyConcepts": ["การสรรหาและคัดเลือก (Recruitment & Selection)", "การฝึกอบรมและพัฒนา", "การประเมินผลการปฏิบัติงาน", "ค่าตอบแทนและสวัสดิการ"], "quiz": [{"q": "กระบวนการดึงดูดผู้สมัครงานเข้าสู่องค์การ เรียกว่า?", "options": ["Recruitment", "Termination", "Outsourcing", "Downsizing"], "answer": 0}, {"q": "การประเมินผลงานพนักงานมีจุดประสงค์หลักเพื่ออะไร?", "options": ["ลดจำนวนพนักงาน", "ใช้พัฒนาและตัดสินค่าตอบแทน/เลื่อนตำแหน่ง", "เพิ่มชั่วโมงทำงาน", "ยกเลิกสวัสดิการ"], "answer": 1}, {"q": "Onboarding หมายถึงอะไร?", "options": ["การปลดพนักงาน", "กระบวนการต้อนรับและปรับตัวพนักงานใหม่", "การลดเงินเดือน", "การประเมินคู่แข่ง"], "answer": 1}, {"q": "ข้อใดเป็นส่วนหนึ่งของค่าตอบแทนทางตรง?", "options": ["เงินเดือน", "วันลาพักร้อน", "ที่จอดรถฟรี", "ห้องพักผ่อน"], "answer": 0}]}, "marketing": {"title": "การตลาด", "overview": "ศึกษาการสร้างคุณค่าให้ลูกค้าผ่านส่วนผสมทางการตลาด (4Ps) และการวิเคราะห์พฤติกรรมผู้บริโภค", "keyConcepts": ["4Ps: Product, Price, Place, Promotion", "การแบ่งส่วนตลาด (Segmentation)", "การวางตำแหน่งสินค้า (Positioning)", "วงจรชีวิตผลิตภัณฑ์ (Product Life Cycle)"], "quiz": [{"q": "ส่วนผสมทางการตลาด 4Ps ประกอบด้วยอะไร?", "options": ["Product, Price, Place, Promotion", "People, Process, Physical, Profit", "Plan, Predict, Produce, Promote", "Product, Plan, Profit, Place"], "answer": 0}, {"q": "การแบ่งกลุ่มลูกค้าตามลักษณะที่คล้ายกัน เรียกว่า?", "options": ["Branding", "Segmentation", "Outsourcing", "Forecasting"], "answer": 1}, {"q": "ช่วงใดของวงจรชีวิตผลิตภัณฑ์ที่ยอดขายเติบโตเร็วที่สุด?", "options": ["Introduction", "Growth", "Maturity", "Decline"], "answer": 1}, {"q": "การกำหนดภาพลักษณ์สินค้าในใจผู้บริโภคเทียบกับคู่แข่ง เรียกว่า?", "options": ["Positioning", "Couponing", "Bundling", "Discounting"], "answer": 0}]}, "financial-accounting": {"title": "การบัญชีการเงิน", "overview": "ศึกษาการบันทึก จัดทำ และนำเสนองบการเงินตามมาตรฐานบัญชี เพื่อรายงานผลการดำเนินงานต่อผู้มีส่วนได้ส่วนเสีย", "keyConcepts": ["สมการบัญชี: สินทรัพย์ = หนี้สิน + ส่วนของเจ้าของ", "งบแสดงฐานะการเงิน (งบดุล)", "งบกำไรขาดทุน", "งบกระแสเงินสด"], "quiz": [{"q": "สมการบัญชีพื้นฐานคือ?", "options": ["สินทรัพย์ = หนี้สิน + ส่วนของเจ้าของ", "รายได้ = ต้นทุน + กำไร", "เงินสด = สินทรัพย์ - หนี้สิน", "กำไร = สินทรัพย์ x ดอกเบี้ย"], "answer": 0}, {"q": "งบการเงินใดแสดงรายได้และค่าใช้จ่ายในรอบระยะเวลา?", "options": ["งบดุล", "งบกำไรขาดทุน", "งบกระแสเงินสด", "หมายเหตุประกอบงบการเงิน"], "answer": 1}, {"q": "สินทรัพย์ที่เปลี่ยนเป็นเงินสดได้ภายใน 1 ปี เรียกว่า?", "options": ["สินทรัพย์ไม่หมุนเวียน", "สินทรัพย์หมุนเวียน", "หนี้สินระยะยาว", "ส่วนของเจ้าของ"], "answer": 1}, {"q": "ค่าเสื่อมราคา (Depreciation) เกี่ยวข้องกับอะไร?", "options": ["การกระจายต้นทุนสินทรัพย์ถาวรตามอายุการใช้งาน", "ดอกเบี้ยเงินกู้", "ภาษีมูลค่าเพิ่ม", "เงินปันผล"], "answer": 0}]}, "corporate-finance": {"title": "การเงินธุรกิจ", "overview": "ศึกษาการตัดสินใจลงทุน จัดหาเงินทุน และบริหารเงินทุนหมุนเวียนเพื่อเพิ่มมูลค่าให้ธุรกิจ", "keyConcepts": ["มูลค่าเงินตามเวลา (Time Value of Money)", "ต้นทุนของเงินทุน (Cost of Capital)", "การประเมินโครงการลงทุน (NPV, IRR)", "โครงสร้างทุน (Capital Structure)"], "quiz": [{"q": "แนวคิดที่ว่าเงิน 100 บาทวันนี้มีค่ามากกว่าเงิน 100 บาทในอนาคต เรียกว่า?", "options": ["Time Value of Money", "Opportunity Cost", "Diversification", "Liquidity Risk"], "answer": 0}, {"q": "NPV ที่มากกว่า 0 บ่งบอกว่าอย่างไร?", "options": ["โครงการขาดทุน", "โครงการคุ้มค่าต่อการลงทุน", "บริษัทล้มละลาย", "ไม่มีความเสี่ยง"], "answer": 1}, {"q": "โครงสร้างทุน (Capital Structure) หมายถึงอะไร?", "options": ["สัดส่วนหนี้สินต่อส่วนของเจ้าของที่ใช้จัดหาเงินทุน", "จำนวนพนักงานในบริษัท", "ราคาหุ้นในตลาด", "อัตราเงินเฟ้อ"], "answer": 0}, {"q": "IRR คืออัตราที่ทำให้ค่าใดเท่ากับศูนย์?", "options": ["กำไรสุทธิ", "NPV", "รายได้รวม", "ภาษี"], "answer": 1}]}, "business-economics": {"title": "เศรษฐศาสตร์ธุรกิจ", "overview": "ประยุกต์หลักเศรษฐศาสตร์จุลภาคและมหภาคมาใช้ตัดสินใจทางธุรกิจ เช่น อุปสงค์-อุปทาน และโครงสร้างตลาด", "keyConcepts": ["อุปสงค์และอุปทาน (Demand & Supply)", "ความยืดหยุ่นของอุปสงค์ (Elasticity)", "โครงสร้างตลาด (แข่งขันสมบูรณ์, ผูกขาด, กึ่งผูกขาด)", "ตัวชี้วัดเศรษฐกิจมหภาค (GDP, เงินเฟ้อ)"], "quiz": [{"q": "เมื่อราคาสินค้าสูงขึ้น โดยทั่วไปปริมาณความต้องการซื้อจะเป็นอย่างไร? (สมมติปัจจัยอื่นคงที่)", "options": ["เพิ่มขึ้น", "ลดลง", "ไม่เปลี่ยนแปลง", "เพิ่มขึ้นเสมอ"], "answer": 1}, {"q": "ตลาดที่มีผู้ขายเพียงรายเดียวและไม่มีสินค้าทดแทนใกล้เคียง เรียกว่า?", "options": ["ตลาดแข่งขันสมบูรณ์", "ตลาดผูกขาด", "ตลาดกึ่งแข่งขันกึ่งผูกขาด", "ตลาดเสรี"], "answer": 1}, {"q": "GDP ย่อมาจากอะไร?", "options": ["Gross Domestic Product", "General Demand Price", "Government Debt Plan", "Global Development Policy"], "answer": 0}, {"q": "ความยืดหยุ่นของอุปสงค์ (Elasticity) วัดอะไร?", "options": ["การเปลี่ยนแปลงของปริมาณซื้อเมื่อราคาเปลี่ยน", "จำนวนพนักงาน", "อัตราดอกเบี้ยธนาคาร", "มูลค่าหุ้น"], "answer": 0}]}, "strategic-management": {"title": "การจัดการเชิงกลยุทธ์", "overview": "ศึกษาการวิเคราะห์สภาพแวดล้อม กำหนดกลยุทธ์ และนำกลยุทธ์ไปปฏิบัติเพื่อสร้างความได้เปรียบในการแข่งขัน", "keyConcepts": ["การวิเคราะห์ SWOT", "Five Forces Model (Porter)", "กลยุทธ์ระดับองค์การ/ธุรกิจ/ปฏิบัติการ", "ความได้เปรียบทางการแข่งขัน (Competitive Advantage)"], "quiz": [{"q": "SWOT ย่อมาจากอะไร?", "options": ["Strengths, Weaknesses, Opportunities, Threats", "Sales, Workforce, Output, Tax", "Strategy, Work, Operation, Target", "Stock, Wealth, Owner, Trade"], "answer": 0}, {"q": "Five Forces Model ของ Porter ใช้วิเคราะห์อะไร?", "options": ["ความน่าดึงดูดและการแข่งขันในอุตสาหกรรม", "งบการเงินบริษัท", "พฤติกรรมพนักงาน", "อัตราแลกเปลี่ยน"], "answer": 0}, {"q": "กลยุทธ์ระดับองค์การ (Corporate Strategy) เกี่ยวข้องกับอะไรเป็นหลัก?", "options": ["ทิศทางรวมและธุรกิจที่องค์การจะเข้าไปแข่งขัน", "การจัดตารางพนักงานรายวัน", "การตั้งราคาสินค้าชิ้นเดียว", "การออกแบบโลโก้"], "answer": 0}, {"q": "ความได้เปรียบทางการแข่งขันที่ยั่งยืนมักมาจากอะไร?", "options": ["ทรัพยากร/ความสามารถที่คู่แข่งลอกเลียนได้ยาก", "ราคาที่ถูกที่สุดเสมอ", "จำนวนพนักงานที่มากที่สุด", "การโฆษณาบ่อยที่สุด"], "answer": 0}]}, "organizational-behavior": {"title": "พฤติกรรมองค์การ", "overview": "ศึกษาพฤติกรรมของบุคคลและกลุ่มในองค์การ เพื่อเข้าใจแรงจูงใจ การทำงานเป็นทีม และภาวะผู้นำ", "keyConcepts": ["ทฤษฎีแรงจูงใจ (Maslow, Herzberg)", "การทำงานเป็นทีม", "ภาวะผู้นำ (Leadership)", "วัฒนธรรมองค์การและความขัดแย้ง"], "quiz": [{"q": "ทฤษฎีลำดับขั้นความต้องการเป็นของใคร?", "options": ["Maslow", "Porter", "Drucker", "Kotler"], "answer": 0}, {"q": "ภาวะผู้นำแบบใดที่เน้นให้รางวัล/ลงโทษตามผลงาน?", "options": ["Transactional Leadership", "Laissez-faire Leadership", "Servant Leadership", "Charismatic Leadership"], "answer": 0}, {"q": "วัฒนธรรมองค์การ หมายถึงอะไร?", "options": ["ค่านิยม บรรทัดฐาน และความเชื่อร่วมในองค์การ", "โลโก้บริษัท", "จำนวนสาขา", "ราคาหุ้น"], "answer": 0}, {"q": "ความขัดแย้งในองค์การเสมอจะส่งผลเสียเท่านั้นหรือไม่?", "options": ["ใช่ เสียอย่างเดียว", "ไม่ใช่ บางครั้งช่วยกระตุ้นความคิดสร้างสรรค์ได้", "ไม่เกี่ยวข้องกับผลงาน", "เกิดขึ้นเฉพาะองค์การขนาดเล็ก"], "answer": 1}]}, "operations-management": {"title": "การจัดการการผลิตและการดำเนินงาน", "overview": "ศึกษาการออกแบบ วางแผน และควบคุมกระบวนการผลิตสินค้า/บริการให้มีประสิทธิภาพ", "keyConcepts": ["การพยากรณ์ความต้องการ (Forecasting)", "การจัดการสินค้าคงคลัง (Inventory Management)", "การวางแผนกำลังการผลิต", "การควบคุมคุณภาพ (Quality Control)"], "quiz": [{"q": "การจัดการสินค้าคงคลังมีจุดประสงค์หลักเพื่ออะไร?", "options": ["มีสินค้าพอเพียงโดยต้นทุนต่ำที่สุด", "เก็บสินค้าให้มากที่สุดเสมอ", "ไม่ต้องสั่งซื้อวัตถุดิบ", "ลดจำนวนลูกค้า"], "answer": 0}, {"q": "Just-In-Time (JIT) คือแนวคิดอะไร?", "options": ["ผลิต/ส่งมอบตามที่ต้องการพอดี ลดสต๊อกส่วนเกิน", "ผลิตให้มากที่สุดล่วงหน้า", "เก็บวัตถุดิบไว้นานที่สุด", "ไม่วางแผนการผลิต"], "answer": 0}, {"q": "การควบคุมคุณภาพ (Quality Control) เน้นเรื่องใด?", "options": ["ตรวจสอบสินค้า/บริการให้ตรงมาตรฐานที่กำหนด", "ลดจำนวนพนักงาน", "เพิ่มราคาสินค้า", "ลดเวลาทำงาน"], "answer": 0}, {"q": "การพยากรณ์ความต้องการ (Demand Forecasting) ช่วยในการตัดสินใจด้านใด?", "options": ["วางแผนการผลิตและสต๊อกล่วงหน้า", "กำหนดเงินเดือนพนักงาน", "ออกแบบโลโก้", "เลือกที่ตั้งสำนักงานใหญ่"], "answer": 0}]}, "financial-statement-analysis": {"title": "การวิเคราะห์งบการเงิน", "overview": "ศึกษาการใช้อัตราส่วนทางการเงินและเครื่องมือวิเคราะห์เพื่อประเมินสุขภาพทางการเงินของธุรกิจ", "keyConcepts": ["อัตราส่วนสภาพคล่อง (Liquidity Ratio)", "อัตราส่วนความสามารถในการทำกำไร (Profitability Ratio)", "อัตราส่วนหนี้สินต่อทุน (Debt-to-Equity)", "การวิเคราะห์แนวโน้ม (Trend Analysis)"], "quiz": [{"q": "Current Ratio คำนวณจากอะไร?", "options": ["สินทรัพย์หมุนเวียน / หนี้สินหมุนเวียน", "กำไรสุทธิ / รายได้รวม", "หนี้สินรวม / ส่วนของเจ้าของ", "ราคาหุ้น / กำไรต่อหุ้น"], "answer": 0}, {"q": "อัตราส่วนใดบอกความสามารถในการทำกำไรจากยอดขาย?", "options": ["Net Profit Margin", "Current Ratio", "Debt-to-Equity Ratio", "Inventory Turnover"], "answer": 0}, {"q": "Debt-to-Equity Ratio ที่สูงมากบ่งบอกถึงอะไร?", "options": ["บริษัทพึ่งพาหนี้สินสูงเมื่อเทียบกับทุน", "บริษัทไม่มีหนี้เลย", "บริษัทมีกำไรสูง", "บริษัทมีสินค้าคงคลังมาก"], "answer": 0}, {"q": "P/E Ratio ใช้เปรียบเทียบอะไร?", "options": ["ราคาหุ้นกับกำไรต่อหุ้น", "หนี้สินกับสินทรัพย์", "รายได้กับค่าใช้จ่าย", "เงินสดกับหนี้สินระยะสั้น"], "answer": 0}]}, "investment": {"title": "การลงทุนและตลาดการเงิน", "overview": "ศึกษาสินทรัพย์ลงทุนประเภทต่าง ๆ การประเมินมูลค่า และการบริหารพอร์ตการลงทุน", "keyConcepts": ["ความเสี่ยงและผลตอบแทน (Risk & Return)", "การกระจายความเสี่ยง (Diversification)", "ตลาดตราสารทุนและตราสารหนี้", "การประเมินมูลค่าหลักทรัพย์"], "quiz": [{"q": "หลักการพื้นฐานของการกระจายความเสี่ยงคืออะไร?", "options": ["ลงทุนกระจายในหลายสินทรัพย์เพื่อลดความเสี่ยงรวม", "ลงทุนหุ้นเดียวเพื่อกำไรสูงสุด", "ถือเงินสดอย่างเดียว", "ลงทุนทุกบาทในหุ้นเดียวกัน"], "answer": 0}, {"q": "โดยทั่วไปสินทรัพย์ที่มีความเสี่ยงสูงกว่า ควรให้ผลตอบแทนคาดหวังอย่างไร?", "options": ["สูงกว่า", "ต่ำกว่า", "เท่ากันเสมอ", "ไม่เกี่ยวข้องกัน"], "answer": 0}, {"q": "หุ้น (Stock) คือตราสารประเภทใด?", "options": ["ตราสารทุน", "ตราสารหนี้", "เงินฝากประจำ", "สินค้าโภคภัณฑ์"], "answer": 0}, {"q": "พันธบัตร (Bond) คือตราสารประเภทใด?", "options": ["ตราสารทุน", "ตราสารหนี้", "กองทุนรวม", "อนุพันธ์"], "answer": 1}]}, "entrepreneurship": {"title": "ผู้ประกอบการและการเริ่มต้นธุรกิจ", "overview": "ศึกษาแนวคิดการสร้างธุรกิจใหม่ การเขียนแผนธุรกิจ และการจัดตั้ง/บริหารบริษัทในระยะเริ่มต้น", "keyConcepts": ["แผนธุรกิจ (Business Plan)", "โมเดลธุรกิจ (Business Model Canvas)", "การจดทะเบียนจัดตั้งบริษัท", "แหล่งเงินทุนสำหรับ Startup (Bootstrapping, VC, สินเชื่อ)"], "quiz": [{"q": "Business Model Canvas ใช้เพื่ออะไร?", "options": ["สรุปภาพรวมโมเดลธุรกิจในหน้าเดียว", "คำนวณภาษีบริษัท", "จดทะเบียนเครื่องหมายการค้า", "ยื่นภาษีเงินได้บุคคล"], "answer": 0}, {"q": "Bootstrapping หมายถึงอะไร?", "options": ["การเริ่มธุรกิจด้วยเงินทุนของตัวเองโดยไม่พึ่งนักลงทุนภายนอก", "การกู้เงินจากธนาคารเท่านั้น", "การขายหุ้นทั้งหมดให้นักลงทุน", "การจดทะเบียนในตลาดหลักทรัพย์"], "answer": 0}, {"q": "Venture Capital (VC) คือใคร?", "options": ["นักลงทุนที่ให้เงินทุนแก่ Startup เพื่อแลกกับสัดส่วนการถือหุ้น", "หน่วยงานเก็บภาษี", "ธนาคารกลาง", "ผู้ตรวจสอบบัญชี"], "answer": 0}, {"q": "การจัดตั้งบริษัทจำกัดในไทยต้องมีผู้ถือหุ้นอย่างน้อยกี่คนตามกฎหมายปัจจุบัน (โดยทั่วไป)?", "options": ["1 คน", "2 คน", "3 คน", "7 คน"], "answer": 1}]}}, "law": [{"id": "civil-law", "title": "กฎหมายแพ่ง"}, {"id": "criminal-law", "title": "กฎหมายอาญา"}, {"id": "civil-procedure", "title": "กฎหมายวิธีพิจารณาความแพ่ง"}, {"id": "criminal-procedure", "title": "กฎหมายวิธีพิจารณาความอาญา"}, {"id": "evidence-law", "title": "กฎหมายลักษณะพยาน"}, {"id": "court-system", "title": "ระบบศาลและพระธรรมนูญศาลยุติธรรม"}, {"id": "constitutional-law", "title": "กฎหมายรัฐธรรมนูญ"}, {"id": "administrative-law", "title": "กฎหมายปกครอง"}, {"id": "labor-law", "title": "กฎหมายแรงงาน"}, {"id": "bankruptcy-law", "title": "กฎหมายล้มละลายและฟื้นฟูกิจการ"}, {"id": "insurance-law", "title": "กฎหมายประกันภัย"}, {"id": "ip-law", "title": "กฎหมายทรัพย์สินทางปัญญา"}, {"id": "tax-law", "title": "กฎหมายภาษีอากร"}, {"id": "consumer-law", "title": "กฎหมายคุ้มครองผู้บริโภค"}, {"id": "international-law", "title": "กฎหมายระหว่างประเทศ"}, {"id": "international-trade-law", "title": "กฎหมายการค้าระหว่างประเทศ"}], "engineering": [{"id": "civil-eng", "title": "วิศวกรรมโยธา"}, {"id": "electrical-eng", "title": "วิศวกรรมไฟฟ้า"}, {"id": "mechanical-eng", "title": "วิศวกรรมเครื่องกล"}, {"id": "industrial-eng", "title": "วิศวกรรมอุตสาหการ"}, {"id": "chemical-eng", "title": "วิศวกรรมเคมี"}, {"id": "computer-eng", "title": "วิศวกรรมคอมพิวเตอร์"}, {"id": "telecom-eng", "title": "วิศวกรรมโทรคมนาคม"}, {"id": "environmental-eng", "title": "วิศวกรรมสิ่งแวดล้อม"}, {"id": "automotive-eng", "title": "วิศวกรรมยานยนต์"}, {"id": "aerospace-eng", "title": "วิศวกรรมการบินและอวกาศ"}, {"id": "mining-eng", "title": "วิศวกรรมเหมืองแร่"}, {"id": "petroleum-eng", "title": "วิศวกรรมปิโตรเลียม"}, {"id": "biomedical-eng", "title": "วิศวกรรมชีวการแพทย์"}]}</script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+        const COURSE = JSON.parse(document.getElementById('course-data').textContent);
+
+        const Play = () => <i data-lucide="play-circle" className="w-5 h-5"></i>;
+        const Check = () => <i data-lucide="check-circle-2" className="w-5 h-5 text-success"></i>;
+        const Clock = () => <i data-lucide="clock" className="w-4 h-4"></i>;
+        const Bookmark = () => <i data-lucide="bookmark" className="w-4 h-4"></i>;
+        const Trophy = () => <i data-lucide="trophy" className="w-4 h-4 text-accent"></i>;
+        const Target = () => <i data-lucide="target" className="w-4 h-4"></i>;
+        const Scale = () => <i data-lucide="scale" className="w-4 h-4"></i>;
+        const Briefcase = () => <i data-lucide="briefcase" className="w-4 h-4"></i>;
+        const Wrench = () => <i data-lucide="wrench" className="w-4 h-4"></i>;
+        const ChevronDown = () => <i data-lucide="chevron-down" className="w-4 h-4"></i>;
+        const PenLine = () => <i data-lucide="pen-line" className="w-5 h-5"></i>;
+
+        // สร้างรายการบทเรียนทั้งหมดจากข้อมูลจริงของ OME (กฎหมาย 16 หัวข้อ, ธุรกิจ 12 หัวข้อ, วิศวกรรม 13 หัวข้อ)
+        const SUBJECTS = [
+            { id: 'law', label: 'กฎหมาย', icon: Scale, topics: COURSE.law.map(t => ({ id: t.id, title: t.title, kind: 'reflection' })) },
+            { id: 'business', label: 'ธุรกิจและการบริหาร', icon: Briefcase, topics: Object.entries(COURSE.business).map(([id, t]) => ({ id, title: t.title, kind: 'quiz', data: t })) },
+            { id: 'engineering', label: 'วิศวกรรม', icon: Wrench, topics: COURSE.engineering.map(t => ({ id: t.id, title: t.title, kind: 'reflection' })) },
+        ];
+
+        function reflectionPrompts(title) {
+            return [
+                `อธิบายหลักการสำคัญของ "${title}" ตามความเข้าใจของคุณ`,
+                `ยกตัวอย่างสถานการณ์จริงที่ต้องใช้ความรู้เรื่อง "${title}"`,
+            ];
+        }
+
+        function loadXp() {
+            try { return JSON.parse(localStorage.getItem('lbe:xp') || '1250'); } catch { return 1250; }
+        }
+        function saveXp(v) { localStorage.setItem('lbe:xp', JSON.stringify(v)); }
+
+        function loadWritten() {
+            try { return JSON.parse(localStorage.getItem('lbe:written') || '{}'); } catch { return {}; }
+        }
+        function saveWritten(v) { localStorage.setItem('lbe:written', JSON.stringify(v)); }
+
+        function App() {
+            const [activeSubject, setActiveSubject] = useState('business');
+            const [activeTopicId, setActiveTopicId] = useState(SUBJECTS[1].topics[0].id);
+            const [activeTab, setActiveTab] = useState('quiz');
+            const [openGroups, setOpenGroups] = useState({ law: false, business: true, engineering: false });
+            const [qIndex, setQIndex] = useState(0);
+            const [answerText, setAnswerText] = useState('');
+            const [revealed, setRevealed] = useState(false);
+            const [selfMark, setSelfMark] = useState(null); // 'correct' | 'wrong'
+            const [xp, setXp] = useState(loadXp());
+            const [written, setWritten] = useState(loadWritten());
+
+            useEffect(() => { lucide.createIcons(); });
+            useEffect(() => { saveXp(xp); }, [xp]);
+            useEffect(() => { saveWritten(written); }, [written]);
+
+            const subject = SUBJECTS.find(s => s.id === activeSubject);
+            const topic = subject.topics.find(t => t.id === activeTopicId) || subject.topics[0];
+
+            const questions = useMemo(() => {
+                if (topic.kind === 'quiz') {
+                    return topic.data.quiz.map(q => ({ q: q.q, refAnswer: q.options[q.answer], hasKey: true }));
+                }
+                return reflectionPrompts(topic.title).map(q => ({ q, refAnswer: null, hasKey: false }));
+            }, [topic]);
+
+            const level = Math.floor(xp / 250) + 1;
+
+            const selectTopic = (subjId, topicId) => {
+                setActiveSubject(subjId);
+                setActiveTopicId(topicId);
+                setActiveTab('quiz');
+                setQIndex(0);
+                setAnswerText('');
+                setRevealed(false);
+                setSelfMark(null);
+            };
+
+            const submitAnswer = () => {
+                if (!answerText.trim()) return;
+                setRevealed(true);
+                const key = `${topic.id}:${qIndex}`;
+                setWritten(w => ({ ...w, [key]: answerText.trim() }));
+                if (!questions[qIndex].hasKey) setXp(x => x + 50);
+            };
+
+            const markSelf = (correct) => {
+                setSelfMark(correct ? 'correct' : 'wrong');
+                if (correct) setXp(x => x + 100);
+            };
+
+            const nextQuestion = () => {
+                setQIndex(i => i + 1);
+                setAnswerText('');
+                setRevealed(false);
+                setSelfMark(null);
+            };
+
+            const restartTopic = () => {
+                setQIndex(0);
+                setAnswerText('');
+                setRevealed(false);
+                setSelfMark(null);
+            };
+
+            const isDone = qIndex >= questions.length;
+
+            return (
+                <div className="h-screen w-full flex flex-col bg-slate-50 font-sans">
+
+                    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-10">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">L</div>
+                            <h1 className="text-lg font-bold text-slate-800">Law, Business &amp; Eng <span className="text-slate-400 font-normal">| Masterclass</span></h1>
+                        </div>
+                        <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
+                                <Trophy />
+                                <span className="text-sm font-bold text-amber-600">Level {level}</span>
+                                <span className="text-xs text-amber-500 font-medium">({xp} XP)</span>
+                            </div>
+                            <a href="./index.html" className="text-xs font-semibold text-slate-400 hover:text-slate-700">&larr; กลับ OME</a>
+                        </div>
+                    </header>
+
+                    <div className="flex flex-1 overflow-hidden">
+
+                        <aside className="w-80 bg-white border-r border-slate-200 overflow-y-auto flex flex-col shrink-0 p-4">
+                            {SUBJECTS.map(s => (
+                                <div key={s.id} className="mb-2">
+                                    <button
+                                        onClick={() => setOpenGroups(g => ({ ...g, [s.id]: !g[s.id] }))}
+                                        className="w-full flex items-center justify-between px-2 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-700"
+                                    >
+                                        <span className="flex items-center gap-2"><s.icon /> {s.label} <span className="text-slate-300 font-normal normal-case">({s.topics.length})</span></span>
+                                        <span className={`transition-transform ${openGroups[s.id] ? 'rotate-180' : ''}`}><ChevronDown /></span>
+                                    </button>
+                                    {openGroups[s.id] && (
+                                        <div className="space-y-1 mt-1">
+                                            {s.topics.map(t => {
+                                                const active = activeSubject === s.id && activeTopicId === t.id;
+                                                return (
+                                                    <button
+                                                        key={t.id}
+                                                        onClick={() => selectTopic(s.id, t.id)}
+                                                        className={`w-full text-left p-2.5 rounded-xl border flex gap-2 text-sm ${active ? 'bg-blue-50 border-blue-100 text-secondary font-semibold shadow-sm' : 'border-transparent text-slate-600 hover:bg-slate-50'}`}
+                                                    >
+                                                        {active ? <Play className="shrink-0 mt-0.5" /> : <Clock className="shrink-0 mt-1 text-slate-300" />}
+                                                        <span className="leading-tight">{t.title}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </aside>
+
+                        <main className="flex-1 overflow-y-auto p-6 flex justify-center">
+                            <div className="w-full max-w-3xl">
+
+                                <div className="w-full aspect-video bg-slate-900 rounded-2xl shadow-lg relative mb-6">
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <Play className="text-white w-12 h-12 opacity-50" />
+                                    </div>
+                                    <div className="absolute bottom-3 left-4 text-slate-400 text-xs">วิดีโอประกอบบทเรียน (เร็วๆ นี้)</div>
+                                </div>
+
+                                <div className="flex gap-4 border-b border-slate-200 mb-6">
+                                    <button
+                                        onClick={() => setActiveTab('summary')}
+                                        className={`pb-3 px-2 text-sm font-semibold transition-colors ${activeTab === 'summary' ? 'text-secondary border-b-2 border-secondary' : 'text-slate-400 hover:text-slate-700'}`}
+                                    >
+                                        สรุปเนื้อหา
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('quiz')}
+                                        className={`pb-3 px-2 text-sm font-semibold flex items-center gap-2 transition-colors ${activeTab === 'quiz' ? 'text-secondary border-b-2 border-secondary' : 'text-slate-400 hover:text-slate-700'}`}
+                                    >
+                                        <Target /> แบบฝึกเขียนตอบ <span className="bg-accent text-white text-[10px] px-1.5 py-0.5 rounded-full">เขียนเอง ไม่ใช่ตัวเลือก</span>
+                                    </button>
+                                </div>
+
+                                {activeTab === 'summary' ? (
+                                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Bookmark /> {topic.title}</h3>
+                                        {topic.kind === 'quiz' ? (
+                                            <>
+                                                <p className="text-slate-600 mb-4">{topic.data.overview}</p>
+                                                <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">ประเด็นสำคัญ</h4>
+                                                <ul className="space-y-2">
+                                                    {topic.data.keyConcepts.map((k, i) => (
+                                                        <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                                                            <span className="text-secondary mt-1">&bull;</span> {k}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </>
+                                        ) : (
+                                            <p className="text-slate-600 leading-relaxed">
+                                                หัวข้อนี้ยังไม่มีเนื้อหาสรุปแบบมีโครงสร้างในระบบ — ใช้แท็บ "แบบฝึกเขียนตอบ"
+                                                เพื่อฝึกอธิบายหลักการของ "{topic.title}" ด้วยตัวเองแทนได้เลย
+                                            </p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
+
+                                        {!isDone ? (
+                                            <>
+                                                <div className="flex justify-between items-center mb-6">
+                                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">คำถามที่ {qIndex + 1} จาก {questions.length}</span>
+                                                    {questions[qIndex].hasKey && (
+                                                        <span className="text-xs font-bold bg-blue-50 text-secondary px-3 py-1 rounded-full">มีคำตอบอ้างอิงให้เทียบ</span>
+                                                    )}
+                                                </div>
+
+                                                <h3 className="text-xl font-bold text-slate-800 mb-6 leading-tight">
+                                                    {questions[qIndex].q}
+                                                </h3>
+
+                                                <textarea
+                                                    value={answerText}
+                                                    onChange={e => setAnswerText(e.target.value)}
+                                                    disabled={revealed}
+                                                    rows={5}
+                                                    placeholder="พิมพ์คำตอบของคุณที่นี่..."
+                                                    className="w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-none disabled:bg-slate-50"
+                                                />
+
+                                                <div className="mt-6">
+                                                    {!revealed ? (
+                                                        <button
+                                                            onClick={submitAnswer}
+                                                            disabled={!answerText.trim()}
+                                                            className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${answerText.trim() ? 'bg-primary text-white hover:bg-slate-800 shadow-md' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
+                                                        >
+                                                            ส่งคำตอบ
+                                                        </button>
+                                                    ) : (
+                                                        <div className="animate-fade-in-up">
+                                                            {questions[qIndex].hasKey ? (
+                                                                <div className="p-4 rounded-xl mb-4 border bg-blue-50 border-blue-100">
+                                                                    <h4 className="font-bold mb-1 text-secondary">คำตอบอ้างอิง</h4>
+                                                                    <p className="text-sm text-slate-700 leading-relaxed mb-4">{questions[qIndex].refAnswer}</p>
+                                                                    {selfMark === null ? (
+                                                                        <div className="flex gap-3">
+                                                                            <p className="text-xs text-slate-500 self-center mr-2">เทียบกับคำตอบคุณเองแล้ว ตรงไหม?</p>
+                                                                            <button onClick={() => markSelf(true)} className="px-4 py-2 rounded-lg bg-success text-white text-xs font-bold">ตอบถูก (+100 XP)</button>
+                                                                            <button onClick={() => markSelf(false)} className="px-4 py-2 rounded-lg bg-slate-200 text-slate-600 text-xs font-bold">ยังไม่ถูก</button>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <p className={`text-sm font-semibold ${selfMark === 'correct' ? 'text-success' : 'text-slate-500'}`}>
+                                                                            {selfMark === 'correct' ? '🎉 บันทึกว่าตอบถูกแล้ว' : '💡 ไม่เป็นไร ลองทบทวนประเด็นสำคัญด้านบนอีกครั้ง'}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="p-4 rounded-xl mb-4 border bg-emerald-50 border-emerald-200">
+                                                                    <h4 className="font-bold text-emerald-700 mb-1">✅ บันทึกคำตอบแล้ว (+50 XP)</h4>
+                                                                    <p className="text-sm text-slate-600">หัวข้อนี้ยังไม่มีคำตอบอ้างอิงในระบบ ลองนำคำตอบไปทบทวนกับเอกสาร/ผู้เชี่ยวชาญเพิ่มเติมได้</p>
+                                                                </div>
+                                                            )}
+                                                            {(questions[qIndex].hasKey ? selfMark !== null : true) && (
+                                                                <button
+                                                                    onClick={nextQuestion}
+                                                                    className="w-full py-3 bg-secondary text-white rounded-xl font-bold text-sm hover:bg-blue-600 shadow-md transition-all"
+                                                                >
+                                                                    {qIndex < questions.length - 1 ? 'ข้อต่อไป' : 'ดูสรุปผล'}
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="text-center py-12">
+                                                <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                    <Trophy className="w-12 h-12 text-accent" />
+                                                </div>
+                                                <h2 className="text-2xl font-bold text-slate-800 mb-2">เขียนตอบครบทุกข้อแล้ว!</h2>
+                                                <p className="text-slate-500 mb-8">หัวข้อ "{topic.title}" — {questions.length} ข้อ</p>
+                                                <button
+                                                    onClick={restartTopic}
+                                                    className="px-6 py-3 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors"
+                                                >
+                                                    ทำแบบฝึกอีกครั้ง
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
