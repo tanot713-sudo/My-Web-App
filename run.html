@@ -192,6 +192,7 @@ async function loadManifest(){
 
 const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
 const HOME = '/home/pyodide';
+const NOCACHE = '?v=' + Date.now();   // กันเบราว์เซอร์/CDN ใช้ไฟล์เก่า
 const $ = id => document.getElementById(id);
 const logEl = $('log');
 let pyodide = null, tool = null, ready = false, inBytes = null, inName = null;
@@ -266,7 +267,7 @@ async function boot(){
 
     stage(1); setStatus('กำลังโหลดสูตรคำนวณ…');
     for (const f of [...(tool.modules||[]), ...(tool.assets||[])]){
-      const r = await fetch(TOOLBASE + tool.dir + f);
+      const r = await fetch(TOOLBASE + tool.dir + f + NOCACHE);
       if (!r.ok) throw new Error('โหลด ' + f + ' ไม่ได้ (HTTP ' + r.status + ') — ตรวจว่าไฟล์อยู่ใน ' + tool.dir);
       pyodide.FS.writeFile(HOME + '/' + f, new Uint8Array(await r.arrayBuffer()));
     }
