@@ -4,119 +4,123 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>เครื่องมืองานเอกสาร | AMR Asia</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#0C1626;--navy:#12233F;--rail:#3C5A80;--signal:#0F8C91;--live:#17B26A;
-  --amber:#B5761B;--alarm:#C0392B;--steel:#6B7A90;--hair:#D5DBE4;--paper:#F4F6F9;--card:#FFF;
-  --sans:'IBM Plex Sans Thai',system-ui,-apple-system,sans-serif;
-  --mono:'IBM Plex Mono','IBM Plex Sans Thai',ui-monospace,monospace;
+  --bg:#F6F7FB; --card:#FFFFFF; --ink:#1F2430; --muted:#727C93; --line:#EAEDF5;
+  --brand:#12A594; --brand-dk:#0B7F72; --brand-sf:#E7F6F4;
+  --violet:#6C63D9; --amber:#F5A524; --rose:#EC5E8A; --sky:#3B9BEA;
+  --ok:#17B26A; --warn:#E08700; --err:#E5484D;
+  --f:'Prompt',system-ui,-apple-system,sans-serif;
+  --r:16px; --sh:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.06);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--sans);background:var(--paper);color:var(--ink);
-  line-height:1.65;font-size:15px;padding:0 20px 80px}
-.wrap{max-width:840px;margin:0 auto}
+body{font-family:var(--f);background:var(--bg);color:var(--ink);
+  line-height:1.7;font-size:15px;font-weight:400;padding:0 20px 80px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto}
 
-.crumb{padding:26px 0 0;font-family:var(--mono);font-size:12px;color:var(--steel)}
-.crumb a{color:var(--rail);text-decoration:none}
+.crumb{padding:24px 0 0;font-size:13px;color:var(--muted)}
+.crumb a{color:var(--brand);text-decoration:none;font-weight:500}
 .crumb a:hover{text-decoration:underline}
-.crumb span{margin:0 7px;color:var(--hair)}
+.crumb span.sep{margin:0 8px;color:#C9CEDC}
 
-header{padding:22px 0 32px;border-bottom:2px solid var(--navy)}
-.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--signal);font-weight:600;margin-bottom:12px}
-h1{font-size:clamp(26px,4.6vw,38px);font-weight:700;letter-spacing:-.02em;
-  line-height:1.18;color:var(--navy)}
-.sub{margin-top:13px;color:var(--steel);max-width:58ch}
+/* ── หัวเรื่องแบบไล่สี ── */
+.hero{margin-top:18px;border-radius:22px;padding:34px 34px 30px;
+  background:linear-gradient(120deg,#EAF4FF 0%,#F1EDFF 42%,#FFEDF4 100%);
+  position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;
+  border-radius:50%;background:rgba(255,255,255,.45)}
+.eyebrow{font-size:12px;letter-spacing:.06em;color:var(--brand-dk);font-weight:600;margin-bottom:8px}
+h1{font-size:clamp(24px,4.4vw,34px);font-weight:700;letter-spacing:-.01em;line-height:1.3;position:relative}
+.sub{margin-top:10px;color:#5A6479;max-width:56ch;font-size:14.5px;position:relative}
 
-/* แถบสถานะแบบเส้นทางรถไฟ */
-.line{margin:36px 0 6px;position:relative;padding:24px 0 4px}
-.track,.track-fill{position:absolute;top:36px;height:3px;border-radius:2px}
-.track{left:6%;right:6%;background:var(--hair)}
-.track-fill{left:6%;width:0;background:linear-gradient(90deg,var(--navy),var(--signal));
-  transition:width .55s cubic-bezier(.4,0,.2,1)}
+/* ── แถบสถานะ ── */
+.line{margin:26px 0 4px;position:relative;padding:20px 0 2px}
+.track,.track-fill{position:absolute;top:32px;height:4px;border-radius:3px}
+.track{left:7%;right:7%;background:#E4E8F2}
+.track-fill{left:7%;width:0;background:linear-gradient(90deg,var(--sky),var(--brand));
+  transition:width .5s cubic-bezier(.4,0,.2,1)}
 .stations{display:flex;justify-content:space-between;position:relative}
 .stn{flex:1;text-align:center}
-.dot{width:15px;height:15px;border-radius:50%;background:var(--card);border:3px solid var(--hair);
-  margin:5px auto 11px;transition:all .35s ease;position:relative;z-index:2}
-.stn.on .dot{border-color:var(--signal);box-shadow:0 0 0 5px rgba(15,140,145,.14)}
+.dot{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid #DDE2EE;
+  margin:4px auto 10px;transition:all .3s ease;position:relative;z-index:2}
+.stn.on .dot{border-color:var(--brand);box-shadow:0 0 0 6px var(--brand-sf)}
 .stn.on .dot::after{content:'';position:absolute;inset:2px;border-radius:50%;
-  background:var(--signal);animation:pulse 1.3s ease-in-out infinite}
-.stn.done .dot{border-color:var(--live);background:var(--live)}
-.stn.fail .dot{border-color:var(--alarm);background:var(--alarm)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-.stn-label{font-size:11.5px;color:var(--steel);font-weight:500;line-height:1.35;padding:0 3px}
-.stn.on .stn-label,.stn.done .stn-label{color:var(--navy);font-weight:600}
+  background:var(--brand);animation:pulse 1.3s ease-in-out infinite}
+.stn.done .dot{border-color:var(--ok);background:var(--ok)}
+.stn.fail .dot{border-color:var(--err);background:var(--err)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.stn-label{font-size:11.5px;color:var(--muted);font-weight:400}
+.stn.on .stn-label,.stn.done .stn-label{color:var(--ink);font-weight:600}
 @media(prefers-reduced-motion:reduce){.stn.on .dot::after{animation:none}.track-fill{transition:none}}
+.status{text-align:center;font-size:13.5px;color:var(--muted);margin-top:2px}
 
-.card{background:var(--card);border:1px solid var(--hair);border-radius:3px;padding:26px;margin-top:22px}
-.card h2{font-size:13px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;
-  color:var(--rail);font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:10px}
-.card h2::after{content:'';flex:1;height:1px;background:var(--hair)}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:26px;margin-top:18px}
+.card h2{font-size:15px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:9px}
+.card h2 .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  color:#fff;font-size:13px;flex-shrink:0}
 
-.drop{border:2px dashed var(--hair);border-radius:3px;padding:42px 24px;text-align:center;
-  cursor:pointer;transition:border-color .2s,background .2s;background:#FBFCFD}
-.drop:hover,.drop.over{border-color:var(--signal);background:#F2F9F9}
-.drop:focus-visible{outline:3px solid var(--signal);outline-offset:3px}
-.drop.has{border-style:solid;border-color:var(--live);background:#F3FBF6}
-.drop-icon{color:var(--rail);margin-bottom:12px}
-.drop-main{font-weight:600;color:var(--navy);font-size:16px}
-.drop-hint{font-size:13px;color:var(--steel);margin-top:6px}
-.file-name{font-family:var(--mono);font-size:13.5px;color:var(--navy);word-break:break-all}
+/* ── ช่องวางไฟล์ ── */
+.drop{border:2px dashed #D7DCEA;border-radius:14px;padding:40px 24px;text-align:center;
+  cursor:pointer;transition:.2s;background:#FBFCFF}
+.drop:hover,.drop.over{border-color:var(--brand);background:var(--brand-sf)}
+.drop:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+.drop.has{border-style:solid;border-color:var(--ok);background:#F1FBF6}
+.drop-icon{color:var(--brand);margin-bottom:10px}
+.drop-main{font-weight:600;font-size:16px}
+.drop-hint{font-size:13px;color:var(--muted);margin-top:6px}
+.file-name{font-size:14.5px;color:var(--brand-dk);word-break:break-all;font-weight:500}
 
-.btn{font-family:var(--sans);font-size:15px;font-weight:600;padding:13px 28px;border:none;
-  border-radius:2px;cursor:pointer;background:var(--navy);color:#fff;transition:background .18s;
-  display:inline-flex;align-items:center;gap:9px}
-.btn:hover:not(:disabled){background:#1B3357}
-.btn:disabled{background:#B8C2D0;cursor:not-allowed}
-.btn:focus-visible{outline:3px solid var(--signal);outline-offset:3px}
-.btn.ghost{background:transparent;color:var(--navy);border:1.5px solid var(--hair)}
-.btn.ghost:hover:not(:disabled){background:var(--paper);border-color:var(--rail)}
-.btn-row{margin-top:20px;display:flex;gap:12px;flex-wrap:wrap}
+.btn{font-family:var(--f);font-size:15px;font-weight:600;padding:13px 26px;border:none;
+  border-radius:12px;cursor:pointer;background:var(--brand);color:#fff;transition:.18s;
+  display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(18,165,148,.28)}
+.btn:hover:not(:disabled){background:var(--brand-dk);transform:translateY(-1px)}
+.btn:disabled{background:#C3CAD9;box-shadow:none;cursor:not-allowed}
+.btn:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+.btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+.btn.ghost:hover:not(:disabled){background:var(--bg);border-color:#D2D8E6}
+.btn-row{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
 
-.log{font-family:var(--mono);font-size:12.5px;line-height:1.75;background:var(--navy);
-  color:#C9D6E5;padding:18px 20px;border-radius:3px;max-height:340px;overflow-y:auto;
-  white-space:pre-wrap;word-break:break-word}
-.log:empty::before{content:'รอเริ่มทำงาน…';color:#5A7395}
-.log .ok{color:#5DD9A0}.log .warn{color:#E8B54D}.log .err{color:#F08A80}.log .dim{color:#7A90AB}
+.log{font-family:ui-monospace,'Cascadia Code',Menlo,monospace;font-size:12.5px;line-height:1.7;
+  background:#1B2030;color:#C2CBDD;padding:18px 20px;border-radius:12px;max-height:320px;
+  overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+.log:empty::before{content:'รอเริ่มทำงาน…';color:#5D6884}
+.log .ok{color:#5EE0A4}.log .warn{color:#F5C35C}.log .err{color:#FF8A87}.log .dim{color:#7C87A3}
 
 .result{display:none}.result.show{display:block}
-.dl{display:flex;align-items:center;gap:14px;padding:15px 18px;border:1px solid var(--hair);
-  border-radius:3px;margin-bottom:10px;text-decoration:none;color:var(--ink);
-  transition:border-color .18s,background .18s}
-.dl:hover{border-color:var(--signal);background:#F7FBFB}
-.dl:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
-.dl-ico{width:38px;height:38px;flex-shrink:0;border-radius:2px;background:var(--navy);color:#fff;
-  display:grid;place-items:center;font-family:var(--mono);font-size:10px;font-weight:600}
-.dl-ico.svg{background:var(--signal)}
+.dl{display:flex;align-items:center;gap:13px;padding:14px 16px;border:1.5px solid var(--line);
+  border-radius:12px;margin-bottom:9px;text-decoration:none;color:var(--ink);transition:.18s}
+.dl:hover{border-color:var(--brand);background:var(--brand-sf);transform:translateX(2px)}
+.dl:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.dl-ico{width:40px;height:40px;flex-shrink:0;border-radius:11px;background:var(--ok);color:#fff;
+  display:grid;place-items:center;font-size:10px;font-weight:600}
+.dl-ico.svg{background:var(--violet)}.dl-ico.png{background:var(--sky)}
 .dl-name{font-weight:600;font-size:14.5px;word-break:break-all}
-.dl-meta{font-family:var(--mono);font-size:11.5px;color:var(--steel)}
+.dl-meta{font-size:12px;color:var(--muted)}
 
-.note{border-left:3px solid var(--amber);background:#FDF8EF;padding:14px 18px;
-  font-size:13.5px;color:#6B4A0F;margin-top:18px;border-radius:0 2px 2px 0}
-.note.err{border-color:var(--alarm);background:#FDF3F2;color:#8C2B20}
-.note strong{display:block;margin-bottom:3px}
-.note ul{margin:6px 0 0 18px}
-footer{margin-top:42px;padding-top:19px;border-top:1px solid var(--hair);font-size:12.5px;color:var(--steel)}
-code{font-family:var(--mono);font-size:.92em;background:#EBEFF4;padding:1px 5px;border-radius:2px}
+.note{border-radius:12px;background:#FFF8EC;padding:15px 18px;font-size:13.5px;
+  color:#6B4A0F;margin-top:16px;border:1px solid #FBE7C2}
+.note.err{background:#FFF1F1;color:#9B2C2C;border-color:#F8D4D4}
+.note strong{display:block;margin-bottom:4px;font-weight:600}
+.note ul{margin:6px 0 0 18px}.note li{margin-bottom:3px}
+footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
+code{font-size:.9em;background:#EFF2F8;padding:2px 6px;border-radius:6px}
 @media(max-width:600px){
-  body{padding:0 16px 60px}.card{padding:20px}
-  .stn-label{font-size:10px}.track,.track-fill{left:8%;right:8%}
+  body{padding:0 14px 60px}.card{padding:20px}.hero{padding:26px 22px}
+  .stn-label{font-size:10px}.track,.track-fill{left:9%;right:9%}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<nav class="crumb"><a href="./">หน้าแรก</a><span>/</span><a href="documents.html">งานเอกสาร</a><span>/</span><span id="crumbName">…</span></nav>
+<nav class="crumb"><a href="./">หน้าแรก</a><span class="sep">/</span><a href="documents.html">งานเอกสาร</a><span class="sep">/</span><span id="crumbName">…</span></nav>
 
-<header>
+<div class="hero">
   <div class="eyebrow" id="scope">AMR Asia</div>
   <h1 id="title">กำลังโหลด…</h1>
   <p class="sub" id="desc"></p>
-</header>
+</div>
 
 <div class="line" aria-hidden="true">
   <div class="track"></div><div class="track-fill" id="fill"></div>
@@ -129,10 +133,10 @@ code{font-family:var(--mono);font-size:.92em;background:#EBEFF4;padding:1px 5px;
     <div class="stn" data-s="5"><div class="dot"></div><div class="stn-label">เสร็จ</div></div>
   </div>
 </div>
-<p class="sub" id="status" style="margin-top:4px" role="status" aria-live="polite">กำลังเตรียมระบบ…</p>
+<p class="status" id="status" role="status" aria-live="polite">กำลังเตรียมระบบ…</p>
 
 <div class="card">
-  <h2>ไฟล์ข้อมูล</h2>
+  <h2><span class="ic" style="background:var(--sky)">1</span>ไฟล์ข้อมูล</h2>
   <div class="drop" id="drop" tabindex="0" role="button" aria-label="เลือกไฟล์ข้อมูล">
     <div class="drop-icon">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -154,15 +158,15 @@ code{font-family:var(--mono);font-size:.92em;background:#EBEFF4;padding:1px 5px;
   </div>
 </div>
 
-<div class="card"><h2>บันทึกการทำงาน</h2><div class="log" id="log"></div></div>
+<div class="card"><h2><span class="ic" style="background:var(--violet)">2</span>บันทึกการทำงาน</h2><div class="log" id="log"></div></div>
 
 <div class="card result" id="result">
-  <h2>ไฟล์ที่ได้</h2>
+  <h2><span class="ic" style="background:var(--ok)">3</span>ไฟล์ที่ได้</h2>
   <div id="files"></div>
   <div class="note" id="notes" hidden></div>
 </div>
 
-<footer>ทำงานทั้งหมดในเบราว์เซอร์ของคุณ — ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ใด · Python ผ่าน Pyodide</footer>
+<footer>ทำงานในเบราว์เซอร์ของคุณทั้งหมด — ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ใด</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -349,7 +353,7 @@ $('run').addEventListener('click', async ()=>{
       const blob = new Blob([data], {type: TYPE[ext] || 'application/octet-stream'});
       const a = document.createElement('a');
       a.className = 'dl'; a.href = URL.createObjectURL(blob); a.download = name;
-      a.innerHTML = '<span class="dl-ico' + (ext==='svg'?' svg':'') + '">' + ext.toUpperCase() + '</span>' +
+      a.innerHTML = '<span class="dl-ico' + (ext==='svg'?' svg':ext==='png'?' png':'') + '">' + ext.toUpperCase() + '</span>' +
         '<span><span class="dl-name">' + name + '</span><br>' +
         '<span class="dl-meta">' + (data.length/1024).toFixed(0) + ' KB' +
         (i===0 ? ' · ไฟล์หลัก' : '') + '</span></span>';
