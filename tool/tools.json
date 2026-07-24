@@ -18,7 +18,9 @@
         "tool_run.py"
       ],
       "assets": [
-        "Est_Cost_MA_v5_clean.xlsx"
+        "Est_Cost_MA_v5_clean.xlsx",
+        "Sarabun-Regular.ttf",
+        "Sarabun-Bold.ttf"
       ],
       "accept": ".xlsx",
       "inputName": "input_data_*.xlsx",
