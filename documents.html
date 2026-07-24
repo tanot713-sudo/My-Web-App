@@ -1,101 +1,221 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ประเมินราคางาน PM/CM | OME</title>
-    <link rel="icon" type="image/svg+xml" href="/My-Web-App/favicon.svg" />
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #f5f3ef;
-            --text-h: #0a0a0a;
-            --text: #6b6375;
-            --accent: #3b6bff;
-            --border: #d9d4c9;
-            --code-bg: #eae7e1;
-        }
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg);
-            color: var(--text-h);
-            font-family: 'Kanit', system-ui, sans-serif;
-            padding: 24px;
-        }
-        .card {
-            width: 100%;
-            max-width: 480px;
-            background: linear-gradient(160deg, #ffffffd9, #eae7e1b3);
-            border: 1px solid #fff9;
-            border-radius: 26px;
-            box-shadow: inset 0 1px 1px #fffc, 0 12px 24px -8px #3848802e, 0 2px 6px #38488014;
-            padding: 40px 36px;
-            text-align: center;
-        }
-        .icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 20px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #1f3fd8, #3b6bff);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            color: #fff;
-        }
-        h1 {
-            font-size: 1.4em;
-            font-weight: 700;
-            margin: 0 0 10px;
-        }
-        .badge {
-            display: inline-block;
-            font-size: 0.75em;
-            font-weight: 600;
-            color: var(--accent);
-            background: #3b6bff1a;
-            border: 1px solid #3b6bff80;
-            border-radius: 999px;
-            padding: 4px 14px;
-            margin-bottom: 16px;
-        }
-        p {
-            color: var(--text);
-            line-height: 1.7;
-            margin: 0 0 28px;
-        }
-        a.back {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--accent);
-            color: #fff;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9em;
-            padding: 12px 24px;
-            border-radius: 999px;
-            transition: transform 0.15s;
-        }
-        a.back:hover { transform: translateY(-2px); }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>งานเอกสาร | AMR Asia</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F7FB; --card:#FFFFFF; --ink:#1F2430; --muted:#727C93; --line:#EAEDF5;
+  --brand:#12A594; --brand-dk:#0B7F72; --brand-sf:#E7F6F4;
+  --violet:#6C63D9; --amber:#F5A524; --rose:#EC5E8A; --sky:#3B9BEA;
+  --ok:#17B26A; --warn:#E08700; --err:#E5484D;
+  --f:'Prompt',system-ui,-apple-system,sans-serif;
+  --r:16px; --sh:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--f);background:var(--bg);color:var(--ink);
+  line-height:1.7;font-size:15px;font-weight:400;padding:0 20px 80px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto}
+
+.crumb{padding:24px 0 0;font-size:13px;color:var(--muted)}
+.crumb a{color:var(--brand);text-decoration:none;font-weight:500}
+.crumb a:hover{text-decoration:underline}
+.crumb span.sep{margin:0 8px;color:#C9CEDC}
+
+/* ── หัวเรื่องแบบไล่สี ── */
+.hero{margin-top:18px;border-radius:22px;padding:34px 34px 30px;
+  background:linear-gradient(120deg,#EAF4FF 0%,#F1EDFF 42%,#FFEDF4 100%);
+  position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;
+  border-radius:50%;background:rgba(255,255,255,.45)}
+.eyebrow{font-size:12px;letter-spacing:.06em;color:var(--brand-dk);font-weight:600;margin-bottom:8px}
+h1{font-size:clamp(24px,4.4vw,34px);font-weight:700;letter-spacing:-.01em;line-height:1.3;position:relative}
+.sub{margin-top:10px;color:#5A6479;max-width:56ch;font-size:14.5px;position:relative}
+
+/* ── แถบสถานะ ── */
+.line{margin:26px 0 4px;position:relative;padding:20px 0 2px}
+.track,.track-fill{position:absolute;top:32px;height:4px;border-radius:3px}
+.track{left:7%;right:7%;background:#E4E8F2}
+.track-fill{left:7%;width:0;background:linear-gradient(90deg,var(--sky),var(--brand));
+  transition:width .5s cubic-bezier(.4,0,.2,1)}
+.stations{display:flex;justify-content:space-between;position:relative}
+.stn{flex:1;text-align:center}
+.dot{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid #DDE2EE;
+  margin:4px auto 10px;transition:all .3s ease;position:relative;z-index:2}
+.stn.on .dot{border-color:var(--brand);box-shadow:0 0 0 6px var(--brand-sf)}
+.stn.on .dot::after{content:'';position:absolute;inset:2px;border-radius:50%;
+  background:var(--brand);animation:pulse 1.3s ease-in-out infinite}
+.stn.done .dot{border-color:var(--ok);background:var(--ok)}
+.stn.fail .dot{border-color:var(--err);background:var(--err)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.stn-label{font-size:11.5px;color:var(--muted);font-weight:400}
+.stn.on .stn-label,.stn.done .stn-label{color:var(--ink);font-weight:600}
+@media(prefers-reduced-motion:reduce){.stn.on .dot::after{animation:none}.track-fill{transition:none}}
+.status{text-align:center;font-size:13.5px;color:var(--muted);margin-top:2px}
+
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:26px;margin-top:18px}
+.card h2{font-size:15px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:9px}
+.card h2 .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  color:#fff;font-size:13px;flex-shrink:0}
+
+/* ── ช่องวางไฟล์ ── */
+.drop{border:2px dashed #D7DCEA;border-radius:14px;padding:40px 24px;text-align:center;
+  cursor:pointer;transition:.2s;background:#FBFCFF}
+.drop:hover,.drop.over{border-color:var(--brand);background:var(--brand-sf)}
+.drop:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+.drop.has{border-style:solid;border-color:var(--ok);background:#F1FBF6}
+.drop-icon{color:var(--brand);margin-bottom:10px}
+.drop-main{font-weight:600;font-size:16px}
+.drop-hint{font-size:13px;color:var(--muted);margin-top:6px}
+.file-name{font-size:14.5px;color:var(--brand-dk);word-break:break-all;font-weight:500}
+
+.btn{font-family:var(--f);font-size:15px;font-weight:600;padding:13px 26px;border:none;
+  border-radius:12px;cursor:pointer;background:var(--brand);color:#fff;transition:.18s;
+  display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(18,165,148,.28)}
+.btn:hover:not(:disabled){background:var(--brand-dk);transform:translateY(-1px)}
+.btn:disabled{background:#C3CAD9;box-shadow:none;cursor:not-allowed}
+.btn:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+.btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+.btn.ghost:hover:not(:disabled){background:var(--bg);border-color:#D2D8E6}
+.btn-row{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+
+.log{font-family:ui-monospace,'Cascadia Code',Menlo,monospace;font-size:12.5px;line-height:1.7;
+  background:#1B2030;color:#C2CBDD;padding:18px 20px;border-radius:12px;max-height:320px;
+  overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+.log:empty::before{content:'รอเริ่มทำงาน…';color:#5D6884}
+.log .ok{color:#5EE0A4}.log .warn{color:#F5C35C}.log .err{color:#FF8A87}.log .dim{color:#7C87A3}
+
+.result{display:none}.result.show{display:block}
+.dl{display:flex;align-items:center;gap:13px;padding:14px 16px;border:1.5px solid var(--line);
+  border-radius:12px;margin-bottom:9px;text-decoration:none;color:var(--ink);transition:.18s}
+.dl:hover{border-color:var(--brand);background:var(--brand-sf);transform:translateX(2px)}
+.dl:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.dl-ico{width:40px;height:40px;flex-shrink:0;border-radius:11px;background:var(--ok);color:#fff;
+  display:grid;place-items:center;font-size:10px;font-weight:600}
+.dl-ico.svg{background:var(--violet)}.dl-ico.png{background:var(--sky)}
+.dl-name{font-weight:600;font-size:14.5px;word-break:break-all}
+.dl-meta{font-size:12px;color:var(--muted)}
+
+.note{border-radius:12px;background:#FFF8EC;padding:15px 18px;font-size:13.5px;
+  color:#6B4A0F;margin-top:16px;border:1px solid #FBE7C2}
+.note.err{background:#FFF1F1;color:#9B2C2C;border-color:#F8D4D4}
+.note strong{display:block;margin-bottom:4px;font-weight:600}
+.note ul{margin:6px 0 0 18px}.note li{margin-bottom:3px}
+footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
+code{font-size:.9em;background:#EFF2F8;padding:2px 6px;border-radius:6px}
+@media(max-width:600px){
+  body{padding:0 14px 60px}.card{padding:20px}.hero{padding:26px 22px}
+  .stn-label{font-size:10px}.track,.track-fill{left:9%;right:9%}
+}
+
+/* ── รายการเครื่องมือ ── */
+.tools{margin-top:22px;display:grid;gap:14px}
+.tcard{display:block;background:var(--card);border-radius:var(--r);box-shadow:var(--sh);
+  padding:22px 24px;text-decoration:none;color:var(--ink);transition:.2s;border:1.5px solid transparent}
+a.tcard:hover{border-color:var(--brand);transform:translateY(-2px);
+  box-shadow:0 4px 10px rgba(24,31,54,.07),0 14px 34px rgba(24,31,54,.09)}
+a.tcard:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+.tool.soon .tcard{opacity:.6}
+.thead{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.tico{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;flex-shrink:0;
+  background:linear-gradient(135deg,var(--brand),#3FCBB7);color:#fff}
+.tool.soon .tico{background:#C7CDDC}
+.tname{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.badge{font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:20px;
+  background:var(--brand-sf);color:var(--brand-dk)}
+.badge.soon{background:#EEF0F6;color:var(--muted)}
+.tline{color:var(--brand-dk);font-weight:500;font-size:14px;margin-bottom:6px}
+.tdesc{color:var(--muted);font-size:13.5px}
+.tmeta{margin-top:13px;padding-top:12px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;
+  justify-content:space-between;align-items:center}
+.go{color:var(--brand);font-weight:600}
+.info{margin-top:26px;border-radius:12px;background:#F0F4FF;border:1px solid #DFE7FA;
+  padding:16px 20px;font-size:13px;color:#3C4A6B}
+.info strong{display:block;margin-bottom:4px;font-weight:600;color:var(--ink)}
+</style>
 </head>
 <body>
-    <div class="card">
-        <div class="icon">🏗️</div>
-        <span class="badge">กำลังพัฒนา</span>
-        <h1>ประเมินราคางาน PM/CM</h1>
-        <p>
-            หน้านี้อยู่ระหว่างการพัฒนา เร็วๆ นี้จะสามารถใช้ประเมินราคางาน
-            บริหารจัดการโครงการ (PM) และควบคุมงานก่อสร้าง (CM) ได้จากตรงนี้
-        </p>
-        <a class="back" href="/My-Web-App/">← กลับหน้าหลัก</a>
-    </div>
+<div class="wrap">
+
+<nav class="crumb"><a href="./">หน้าแรก</a><span class="sep">/</span>งานที่รับผิดชอบ<span class="sep">/</span>งานเอกสาร</nav>
+
+<div class="hero">
+  <div class="eyebrow">AMR Asia · งานวิศวกรรมและประมาณราคา</div>
+  <h1>งานเอกสาร</h1>
+  <p class="sub">วางไฟล์ข้อมูล รับเอกสารพร้อมใช้ — ทำงานในเบราว์เซอร์ของคุณทั้งหมด ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ใด</p>
+</div>
+
+<div class="tools" id="list"></div>
+
+<div class="info">
+  <strong>เพิ่มเครื่องมือใหม่</strong>
+  สร้างโฟลเดอร์ข้าง ๆ <code>tools.json</code> ใส่ <code>tool_run.py</code> ที่มีฟังก์ชัน <code>run(input_path, out_dir)</code>
+  แล้วเพิ่มอีก 1 บล็อกใน <code>tools.json</code> — หน้านี้กับหน้ารันจะรู้จักเครื่องมือใหม่เอง ไม่ต้องแก้ HTML
+</div>
+
+<footer>AMR Asia — งานวิศวกรรมและประมาณราคา</footer>
+</div>
+
+<script>
+// ฐาน path — ทำงานได้ทั้ง /My-Web-App/ และ root
+const BASE = location.pathname.replace(/[^/]*$/, '');
+
+// หา tools.json โดยลองหลายชื่อโฟลเดอร์ — ไม่ผูกกับชื่อ tools/ หรือ tool/
+const TOOL_DIRS = ['tools/', 'tool/', 'assets/tools/', ''];
+let TOOLBASE = null;
+async function loadManifest(){
+  const tried = [];
+  for (const d of TOOL_DIRS){
+    const url = BASE + d + 'tools.json?v=' + Date.now();
+    tried.push(url);
+    try{
+      const r = await fetch(url);
+      if (r.ok){ TOOLBASE = BASE + d; return await r.json(); }
+    }catch(e){ /* ลองตัวถัดไป */ }
+  }
+  throw new Error('ไม่พบ tools.json — ลองแล้วที่: ' + tried.join(' , '));
+}
+
+const STATUS = {
+  ready: {label:'พร้อมใช้', cls:''},
+  beta:  {label:'ทดลองใช้', cls:''},
+  soon:  {label:'กำลังพัฒนา', cls:'soon'}
+};
+
+loadManifest()
+  .then(cfg => {
+    const list = document.getElementById('list');
+    cfg.tools.forEach(t => {
+      const st = STATUS[t.status] || STATUS.soon;
+      const soon = t.status === 'soon';
+      const el = document.createElement('div');
+      el.className = 'tool' + (soon ? ' soon' : '');
+      const inner =
+        '<div class="thead">' +
+          '<span class="tico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/></svg></span>' +
+          '<span class="tname">' + t.name + '</span>' +
+          '<span class="badge ' + st.cls + '">' + st.label + '</span>' +
+        '</div>' +
+        '<div class="tline">' + (t.tagline || '') + '</div>' +
+        '<div class="tdesc">' + (t.desc || '') + '</div>' +
+        '<div class="tmeta"><span>' + (t.scope || '') + '</span>' +
+          (soon ? '' : '<span class="go">เปิดเครื่องมือ →</span>') + '</div>';
+      if (soon) {
+        el.innerHTML = '<div class="tcard">' + inner + '</div>';
+      } else {
+        el.innerHTML = '<a class="tcard" href="' + BASE + 'run.html?tool=' + encodeURIComponent(t.id) + '">' + inner + '</a>';
+      }
+      list.appendChild(el);
+    });
+  })
+  .catch(e => {
+    document.getElementById('list').innerHTML =
+      '<div class="tcard"><div class="tname">โหลดรายการเครื่องมือไม่ได้</div>' +
+      '<div class="tdesc" style="margin-top:6px">ตรวจว่ามีไฟล์ <code>tools.json</code> — ' + e.message + '</div></div>';
+  });
+</script>
 </body>
 </html>
