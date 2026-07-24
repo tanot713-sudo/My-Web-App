@@ -3,19 +3,27 @@
   "tools": [
     {
       "id": "est-cost",
-      "name": "ประมาณราคางานบำรุงรักษา (MA)",
+      "name": "ประเมินราคางาน PM/CM",
       "tagline": "จากรายการอุปกรณ์ → ไฟล์ประมาณราคาพร้อมยื่น",
       "desc": "คำนวณชั่วโมง PM ทั้งปี จัดตารางบำรุงรักษา 12 เดือนให้โหลดสม่ำเสมอ แบ่งกะกลางวัน/กลางคืน ประเมินกำลังคนพร้อม relief factor และวาดแผนเส้นทางเดินทางเป็นภาพ",
       "scope": "ระบบไฟฟ้าและเครื่องกล (E&M) งานรถไฟฟ้า",
       "status": "ready",
       "dir": "est-cost/",
-      "packages": ["openpyxl"],
-      "modules": ["routing.py", "generate_v5.py", "tool_run.py"],
-      "assets": ["Est_Cost_MA_v5_clean.xlsx"],
+      "packages": [
+        "openpyxl"
+      ],
+      "modules": [
+        "routing.py",
+        "generate_v5.py",
+        "tool_run.py"
+      ],
+      "assets": [
+        "Est_Cost_MA_v5_clean.xlsx"
+      ],
       "accept": ".xlsx",
       "inputName": "input_data_*.xlsx",
       "inputHint": "ต้องมีชีต PROJECT, EQUIPMENT, PM_PLAN, TOOLS_SPARE, PM_ACTIVITY, ROUTE, SHIFT, PARAM",
-      "outputHint": "ไฟล์ประมาณราคา 15 ชีต + ภาพเส้นทาง SVG",
+      "outputHint": "ไฟล์ประมาณราคา 16 ชีต (มีภาพเส้นทางฝังในไฟล์) + ภาพ SVG แยก",
       "hasCheck": true,
       "notes": [
         "ชีต PROJECT — จำนวนคนแต่ละตำแหน่ง ต้องแบ่งตามสัดส่วนของสายนั้น ไม่ใช่ตัวเลขรวมทุกสาย",
