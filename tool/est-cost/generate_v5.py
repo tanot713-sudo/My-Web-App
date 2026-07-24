@@ -1029,6 +1029,7 @@ def patch_routing_images(wb, cfg, out_dir):
 
     r = 3
     ok = 0
+    warned = False
     for i, (cid, c) in enumerate(circuits.items(), 1):
         # ── หัวข้อ ──
         h = ws.cell(row=r, column=2, value=f"PM Routing no.{i}")
@@ -1054,6 +1055,14 @@ def patch_routing_images(wb, cfg, out_dir):
                                 scale=1.6)
         if png is None:
             png = RT.render_png(svg, scale=1.6)      # สำรอง: cairosvg ถ้ามี
+        if png is None and not warned:
+            try:
+                import PIL  # noqa
+                why = "cairosvg ไม่มี และ Pillow วาดภาพไม่สำเร็จ"
+            except ImportError:
+                why = "ไม่พบ Pillow — เพิ่ม \"Pillow\" ในรายการ packages"
+            print(f"      ⚠️  ฝังภาพไม่ได้: {why}")
+            warned = True
         if png:
             img = XLImage(png)
             w0, h0 = img.width, img.height
