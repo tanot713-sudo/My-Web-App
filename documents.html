@@ -89,8 +89,8 @@ code{font-family:var(--mono);font-size:.92em;background:#E5EAF0;padding:1px 5px;
 
 <div class="info">
   <strong>เพิ่มเครื่องมือใหม่</strong>
-  สร้างโฟลเดอร์ใน <code>tools/</code> ใส่ <code>tool_run.py</code> ที่มีฟังก์ชัน <code>run(input_path, out_dir)</code>
-  แล้วเพิ่มอีก 1 บล็อกใน <code>tools/tools.json</code> — หน้านี้กับหน้ารันจะรู้จักเครื่องมือใหม่เอง ไม่ต้องแก้ HTML
+  สร้างโฟลเดอร์ข้าง ๆ <code>tools.json</code> ใส่ <code>tool_run.py</code> ที่มีฟังก์ชัน <code>run(input_path, out_dir)</code>
+  แล้วเพิ่มอีก 1 บล็อกใน <code>tools.json</code> — หน้านี้กับหน้ารันจะรู้จักเครื่องมือใหม่เอง ไม่ต้องแก้ HTML
 </div>
 
 <footer>AMR Asia — งานวิศวกรรมและประมาณราคา</footer>
@@ -99,14 +99,30 @@ code{font-family:var(--mono);font-size:.92em;background:#E5EAF0;padding:1px 5px;
 <script>
 // ฐาน path — ทำงานได้ทั้ง /My-Web-App/ และ root
 const BASE = location.pathname.replace(/[^/]*$/, '');
+
+// หา tools.json โดยลองหลายชื่อโฟลเดอร์ — ไม่ผูกกับชื่อ tools/ หรือ tool/
+const TOOL_DIRS = ['tools/', 'tool/', 'assets/tools/', ''];
+let TOOLBASE = null;
+async function loadManifest(){
+  const tried = [];
+  for (const d of TOOL_DIRS){
+    const url = BASE + d + 'tools.json';
+    tried.push(url);
+    try{
+      const r = await fetch(url);
+      if (r.ok){ TOOLBASE = BASE + d; return await r.json(); }
+    }catch(e){ /* ลองตัวถัดไป */ }
+  }
+  throw new Error('ไม่พบ tools.json — ลองแล้วที่: ' + tried.join(' , '));
+}
+
 const STATUS = {
   ready: {label:'พร้อมใช้', cls:''},
   beta:  {label:'ทดลองใช้', cls:''},
   soon:  {label:'กำลังพัฒนา', cls:'soon'}
 };
 
-fetch(BASE + 'tools/tools.json')
-  .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+loadManifest()
   .then(cfg => {
     const list = document.getElementById('list');
     cfg.tools.forEach(t => {
@@ -136,7 +152,7 @@ fetch(BASE + 'tools/tools.json')
   .catch(e => {
     document.getElementById('list').innerHTML =
       '<div class="tcard"><div class="tname">โหลดรายการเครื่องมือไม่ได้</div>' +
-      '<div class="tdesc" style="margin-top:6px">ตรวจว่ามีไฟล์ <code>tools/tools.json</code> — ' + e.message + '</div></div>';
+      '<div class="tdesc" style="margin-top:6px">ตรวจว่ามีไฟล์ <code>tools.json</code> — ' + e.message + '</div></div>';
   });
 </script>
 </body>

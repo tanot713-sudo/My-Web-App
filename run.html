@@ -169,6 +169,23 @@ code{font-family:var(--mono);font-size:.92em;background:#EBEFF4;padding:1px 5px;
 <script>
 // ฐาน path — ทำงานได้ทั้ง /My-Web-App/ และ root
 const BASE = location.pathname.replace(/[^/]*$/, '');
+
+// หา tools.json โดยลองหลายชื่อโฟลเดอร์ — ไม่ผูกกับชื่อ tools/ หรือ tool/
+const TOOL_DIRS = ['tools/', 'tool/', 'assets/tools/', ''];
+let TOOLBASE = null;
+async function loadManifest(){
+  const tried = [];
+  for (const d of TOOL_DIRS){
+    const url = BASE + d + 'tools.json';
+    tried.push(url);
+    try{
+      const r = await fetch(url);
+      if (r.ok){ TOOLBASE = BASE + d; return await r.json(); }
+    }catch(e){ /* ลองตัวถัดไป */ }
+  }
+  throw new Error('ไม่พบ tools.json — ลองแล้วที่: ' + tried.join(' , '));
+}
+
 const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
 const HOME = '/home/pyodide';
 const $ = id => document.getElementById(id);
@@ -205,12 +222,12 @@ function fail(title, msg){
 async function boot(){
   const id = new URLSearchParams(location.search).get('tool');
   try{
-    const cfg = await (await fetch(BASE + 'tools/tools.json')).json();
+    const cfg = await loadManifest();
     tool = cfg.tools.find(t => t.id === id) || cfg.tools[0];
     if (!tool) throw new Error('ไม่พบเครื่องมือ');
   }catch(e){
     $('title').textContent = 'ไม่พบเครื่องมือ';
-    $('desc').innerHTML = 'ตรวจว่ามีไฟล์ <code>tools/tools.json</code> และมีรายการ id นี้อยู่ — ' + e.message;
+    $('desc').innerHTML = 'ตรวจว่ามีไฟล์ <code>tools.json</code> และมีรายการ id นี้อยู่ — ' + e.message;
     setStatus('หยุดทำงาน'); stage(0,'fail'); return;
   }
 
@@ -245,7 +262,7 @@ async function boot(){
 
     stage(1); setStatus('กำลังโหลดสูตรคำนวณ…');
     for (const f of [...(tool.modules||[]), ...(tool.assets||[])]){
-      const r = await fetch(BASE + tool.dir + f);
+      const r = await fetch(TOOLBASE + tool.dir + f);
       if (!r.ok) throw new Error('โหลด ' + f + ' ไม่ได้ (HTTP ' + r.status + ') — ตรวจว่าไฟล์อยู่ใน ' + tool.dir);
       pyodide.FS.writeFile(HOME + '/' + f, new Uint8Array(await r.arrayBuffer()));
     }
