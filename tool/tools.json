@@ -18,9 +18,7 @@
         "tool_run.py"
       ],
       "assets": [
-        "Est_Cost_MA_v5_clean.xlsx",
-        "Sarabun-Regular.ttf",
-        "Sarabun-Bold.ttf"
+        "Est_Cost_MA_v5_clean.xlsx"
       ],
       "accept": ".xlsx",
       "inputName": "input_data_*.xlsx",
@@ -31,6 +29,10 @@
         "ชีต PROJECT — จำนวนคนแต่ละตำแหน่ง ต้องแบ่งตามสัดส่วนของสายนั้น ไม่ใช่ตัวเลขรวมทุกสาย",
         "PM_ACTIVITY คอลัมน์ Shift — ค่าตั้งต้นให้งานราย 3/6 เดือนและรายปีเป็นกลางคืน แก้เป็น D สำหรับงานที่ไม่ต้องลงราง",
         "ชีต ROUTE — สถานีที่ยังไม่เปิดใช้พิกัดประมาณ กรอกระยะจริงจาก Google Maps ในคอลัมน์ override ได้"
+      ],
+      "optionalAssets": [
+        "Sarabun-Regular.ttf",
+        "Sarabun-Bold.ttf"
       ]
     }
   ]
