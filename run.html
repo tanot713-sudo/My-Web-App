@@ -266,10 +266,19 @@ async function boot(){
     }
 
     stage(1); setStatus('กำลังโหลดสูตรคำนวณ…');
+    // ไฟล์ที่ขาดไม่ได้ — โมดูล Python และ template
     for (const f of [...(tool.modules||[]), ...(tool.assets||[])]){
       const r = await fetch(TOOLBASE + tool.dir + f + NOCACHE);
-      if (!r.ok) throw new Error('โหลด ' + f + ' ไม่ได้ (HTTP ' + r.status + ') — ตรวจว่าไฟล์อยู่ใน ' + tool.dir);
+      if (!r.ok) throw new Error('โหลด ' + f + ' ไม่ได้ (HTTP ' + r.status + ') — ตรวจว่าไฟล์อยู่ใน ' + TOOLBASE + tool.dir);
       pyodide.FS.writeFile(HOME + '/' + f, new Uint8Array(await r.arrayBuffer()));
+    }
+    // ไฟล์เสริม (เช่น ฟอนต์) — ขาดได้ แค่เตือน ไม่หยุดทำงาน
+    for (const f of (tool.optionalAssets||[])){
+      try{
+        const r = await fetch(TOOLBASE + tool.dir + f + NOCACHE);
+        if (r.ok) pyodide.FS.writeFile(HOME + '/' + f, new Uint8Array(await r.arrayBuffer()));
+        else log('ไม่มีไฟล์เสริม ' + f + ' — ทำงานต่อได้ แต่ข้อความไทยในภาพอาจไม่สวย', 'warn');
+      }catch(e){ log('ข้ามไฟล์เสริม ' + f, 'dim'); }
     }
     await pyodide.runPythonAsync(
       'import sys, os\nos.chdir("' + HOME + '")\nsys.path.insert(0, "' + HOME + '")\nimport tool_run\n');
