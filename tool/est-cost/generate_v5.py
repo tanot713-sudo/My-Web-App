@@ -1047,7 +1047,13 @@ def patch_routing_images(wb, cfg, out_dir):
 
         # ── ภาพ ──
         svg = RT.render_svg(cid, c, p, svg_dir, caption=False)
-        png = RT.render_png(svg, scale=1.6)
+        # วาด PNG ด้วย Pillow — ใช้ได้ทั้ง Colab และเบราว์เซอร์ (Pyodide)
+        # (cairosvg ต้องพึ่ง library ภาษา C จึงรันใน Pyodide ไม่ได้)
+        png = RT.render_png_pil(cid, c, p, svg_dir,
+                                font_dirs=[os.path.dirname(os.path.abspath(__file__))],
+                                scale=1.6)
+        if png is None:
+            png = RT.render_png(svg, scale=1.6)      # สำรอง: cairosvg ถ้ามี
         if png:
             img = XLImage(png)
             w0, h0 = img.width, img.height

@@ -281,3 +281,161 @@ def render_png(svg_path, scale=2.0):
     png = os.path.splitext(svg_path)[0] + ".png"
     cairosvg.svg2png(url=svg_path, write_to=png, scale=scale, background_color="white")
     return png
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  4) วาดภาพเป็น PNG ด้วย Pillow — ใช้ได้ทั้ง Colab และ Pyodide (เว็บ)
+#     (cairosvg ใช้ใน Pyodide ไม่ได้ เพราะต้องพึ่ง library ภาษา C)
+# ══════════════════════════════════════════════════════════════════════════════
+FONT_FILES = ("Sarabun-Regular.ttf", "Sarabun-Bold.ttf")
+
+
+def _find_font(name, size, search_dirs):
+    from PIL import ImageFont
+    for d in search_dirs:
+        p = os.path.join(d, name)
+        if os.path.exists(p):
+            return ImageFont.truetype(p, size)
+    for p in ("/usr/share/fonts/truetype/tlwg/Loma.ttf",
+              "/usr/share/fonts/truetype/tlwg/Loma-Bold.ttf"):
+        if os.path.exists(p):
+            return ImageFont.truetype(p, size)
+    return ImageFont.load_default()
+
+
+def _rgb(h):
+    h = h.lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def _office(d, x, y, s, c):
+    """ไอคอนอาคารสำนักงาน"""
+    W = lambda v: x + v * s
+    H = lambda v: y + v * s
+    d.rectangle([W(14), H(6), W(42), H(64)], fill=c)
+    d.rectangle([W(0), H(22), W(14), H(64)], fill=c)
+    d.rectangle([W(42), H(22), W(56), H(64)], fill=c)
+    for ry in (11, 21, 31, 41):
+        for rx in (19, 31):
+            d.rectangle([W(rx), H(ry), W(rx + 6), H(ry + 6)], fill="white")
+    for ry in (30, 42):
+        for rx in (4, 46):
+            d.rectangle([W(rx), H(ry), W(rx + 6), H(ry + 6)], fill="white")
+    d.rectangle([W(24), H(52), W(32), H(64)], fill="white")
+
+
+def _station(d, x, y, s, c):
+    """ไอคอนสถานี (หลังคาจั่ว + นาฬิกา + ประตูโค้ง)"""
+    W = lambda v: x + v * s
+    H = lambda v: y + v * s
+    d.polygon([(W(28), H(0)), (W(56), H(18)), (W(0), H(18))], fill=c)
+    d.rectangle([W(4), H(18), W(52), H(62)], fill=c)
+    d.rectangle([W(0), H(62), W(56), H(67)], fill=c)
+    d.ellipse([W(23), H(4), W(33), H(14)], fill="white")
+    d.line([W(28), H(6), W(28), H(9.4)], fill=c, width=max(1, int(1.6 * s)))
+    d.line([W(28), H(9.2), W(31), H(9.2)], fill=c, width=max(1, int(1.6 * s)))
+    d.rectangle([W(20), H(48), W(36), H(62)], fill="white")
+    d.pieslice([W(20), H(36), W(36), H(52)], 180, 360, fill="white")
+    for ry in (26, 42):
+        for rx in (9, 38):
+            d.rectangle([W(rx), H(ry), W(rx + 9), H(ry + 10)], fill="white")
+
+
+def _car(d, x, y, s, c):
+    """ไอคอนรถยนต์"""
+    W = lambda v: x + v * s
+    H = lambda v: y + v * s
+    d.rounded_rectangle([W(0), H(22), W(62), H(36)], radius=int(4 * s), fill=c)
+    d.polygon([(W(10), H(22)), (W(16), H(8)), (W(46), H(8)), (W(52), H(22))], fill=c)
+    d.polygon([(W(16), H(20)), (W(20), H(12)), (W(29), H(12)), (W(29), H(20))], fill="white")
+    d.polygon([(W(33), H(12)), (W(43), H(12)), (W(47), H(20)), (W(33), H(20))], fill="white")
+    for wx in (14, 46):
+        d.ellipse([W(wx - 6), H(30), W(wx + 6), H(42)], fill=c)
+        d.ellipse([W(wx - 2.5), H(33.5), W(wx + 2.5), H(38.5)], fill="white")
+
+
+def _chev(d, x1, x2, y, c, w=5):
+    """ลูกศรแบบเชฟรอน 3 หัว"""
+    d.line([x1, y, x2 - 12, y], fill=c, width=w)
+    for f in (0.42, 0.72, 1.0):
+        cx = x1 + (x2 - x1 - 12) * f
+        d.line([cx - 11, y - 9, cx + 1, y], fill=c, width=w, joint="curve")
+        d.line([cx + 1, y, cx - 11, y + 9], fill=c, width=w, joint="curve")
+
+
+def render_png_pil(cid, circuit, param, out_dir=".", font_dirs=None, filename=None, scale=1.0):
+    """วาดแผนผังเส้นทางเป็น PNG ด้วย Pillow — คืน path (None ถ้าไม่มี Pillow)"""
+    try:
+        from PIL import Image, ImageDraw
+    except ImportError:
+        return None
+
+    fd = list(font_dirs or []) + [os.path.dirname(os.path.abspath(__file__)), ".", "fonts"]
+    F_NAME = _find_font("Sarabun-Bold.ttf", int(30 * scale), fd)
+    F_INFO = _find_font("Sarabun-Regular.ttf", int(24 * scale), fd)
+
+    stops = circuit["stops"]
+    labels = [HQ_NAME] + [s.replace("สถานี", "") for s in stops]
+    n = len(stops)
+    navy, teal, gray = _rgb(NAVY), _rgb(TEAL), _rgb(GRAY)
+    ink = (34, 34, 34)
+
+    tmp = Image.new("RGB", (10, 10), "white")
+    td = ImageDraw.Draw(tmp)
+    tw = lambda t, f: td.textbbox((0, 0), t, font=f)[2]
+
+    S = scale
+    gap = int(165 * S)
+    node_w = [max(tw(t, F_NAME) + int(24 * S), int(130 * S)) for t in labels]
+    PAD = int(50 * S)
+    xs, x = [], PAD
+    for w_ in node_w:
+        xs.append(x)
+        x += w_ + gap
+    W = x - gap + PAD
+    H = int(600 * S)
+    icon_y, name_y = int(175 * S), int(74 * S)
+    cx = lambda i: xs[i] + node_w[i] / 2
+
+    img = Image.new("RGB", (int(W), H), "white")
+    d = ImageDraw.Draw(img)
+
+    for i, t in enumerate(labels):
+        d.text((cx(i), name_y), t, font=F_NAME, fill=ink, anchor="ms")
+        (_office if i == 0 else _station)(d, cx(i) - 45 * S, icon_y, 1.6 * S,
+                                          navy if i == 0 else gray)
+
+    for i in range(n):
+        x1 = xs[i] + node_w[i] + int(8 * S)
+        x2 = xs[i + 1] - int(8 * S)
+        _chev(d, x1, x2, icon_y + int(55 * S), navy if i == 0 else teal, max(1, int(5 * S)))
+        _, _, km, md, _ = circuit["legs"][i]
+        mid = (x1 + x2) / 2
+        d.text((mid, icon_y + 108 * S), f"ระยะทาง : {km:.1f} km.", font=F_INFO, fill=ink, anchor="ms")
+        d.text((mid, icon_y + 144 * S), f"เวลา : {md:.0f} min", font=F_INFO, fill=ink, anchor="ms")
+
+    _, _, bkm, bmd, _ = circuit["legs"][-1]
+    y_b = int(452 * S)
+    x_last, x_home = cx(n), cx(0)
+    lw = max(1, int(6 * S))
+    d.line([x_last, icon_y + 130 * S, x_last, y_b], fill=gray, width=lw)
+    d.line([x_last, y_b, x_home, y_b], fill=gray, width=lw)
+    d.line([x_home, y_b, x_home, icon_y + 134 * S], fill=gray, width=lw)
+    span = x_last - x_home
+    for f in (0.16, 0.42, 0.68, 0.94):
+        c0 = x_last - span * f
+        d.line([c0 + 12 * S, y_b - 11 * S, c0 - 1, y_b], fill=gray, width=lw)
+        d.line([c0 - 1, y_b, c0 + 12 * S, y_b + 11 * S], fill=gray, width=lw)
+    d.line([x_home + 13 * S, icon_y + 148 * S, x_home, icon_y + 132 * S], fill=gray, width=lw)
+    d.line([x_home, icon_y + 132 * S, x_home - 13 * S, icon_y + 148 * S], fill=gray, width=lw)
+
+    mid = (x_last + x_home) / 2
+    _car(d, mid - 32 * S, y_b - 108 * S, 1.5 * S, navy)
+    d.text((mid, y_b + 52 * S), f"ระยะทาง : {bkm:.1f} km.", font=F_INFO, fill=ink, anchor="ms")
+    d.text((mid, y_b + 88 * S), f"เวลา : {bmd:.0f} min", font=F_INFO, fill=ink, anchor="ms")
+
+    os.makedirs(out_dir, exist_ok=True)
+    safe = filename or ("route_" + "".join(c for c in cid if c not in '\\/:*?"<>|').strip())
+    path = os.path.join(out_dir, safe + ".png")
+    img.save(path, "PNG")
+    return path
