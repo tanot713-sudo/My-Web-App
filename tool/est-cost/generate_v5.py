@@ -991,6 +991,84 @@ def patch_shift_plan(wb, cfg, rows):
           f"→ ช่าง ~{grand:.0f} คน รวม relief)")
 
 
+# ---- Routing (ชีตภาพเส้นทาง) --------------------------------------------------
+def patch_routing_images(wb, cfg, out_dir):
+    """
+    ชีต 'Routing' — ภาพเส้นทางฝังในไฟล์ Excel เลย พร้อมหัวข้อและระยะทางรวม
+    ฟอร์แมตตามเอกสารอ้างอิงของ AMR:
+        PM Routing no.1        ระยะทางรวม : 209 km.
+                               เวลารวม : 176 min or 2.93 hr.
+        [ภาพเส้นทาง]
+    """
+    if not cfg["route"]:
+        return
+    from openpyxl.styles import Font, Alignment
+    try:
+        from openpyxl.drawing.image import Image as XLImage
+    except ImportError:
+        print("  ⏭️  Routing — ข้าม (openpyxl ไม่มีโมดูลรูปภาพ)")
+        return
+
+    p = cfg["param"]
+    circuits = RT.build_circuits(cfg["route"], p)
+    if not circuits:
+        return
+
+    if "Routing" in wb.sheetnames:
+        del wb["Routing"]
+    ws = wb.create_sheet("Routing")
+    ws.sheet_view.showGridLines = False
+    ws.column_dimensions["A"].width = 3
+    for col in "BCDE":
+        ws.column_dimensions[col].width = 14
+
+    IMG_H = 300                      # ความสูงภาพในชีต — ล็อกความสูงให้ทุกวงเท่ากัน
+    IMG_W_MAX = 1450                 # ถ้ากว้างเกินนี้ ย่อลงทั้งภาพ
+    ROW_PX = 20                      # ความสูงแถวมาตรฐาน
+    svg_dir = os.path.join(out_dir, "route_svg")
+
+    r = 3
+    ok = 0
+    for i, (cid, c) in enumerate(circuits.items(), 1):
+        # ── หัวข้อ ──
+        h = ws.cell(row=r, column=2, value=f"PM Routing no.{i}")
+        h.font = Font(size=18, bold=True, underline="single", color="1F3864")
+
+        # ── สรุประยะทาง/เวลา ──
+        hrs = c["min_day"] / 60
+        s1 = ws.cell(row=r, column=6, value=f'ระยะทางรวม : {c["km"]:.1f} km.')
+        s2 = ws.cell(row=r + 1, column=6, value=f'เวลารวม : {c["min_day"]:.0f} min or {hrs:.2f} hr.')
+        for s in (s1, s2):
+            s.font = Font(size=11, bold=True, color="1F3864")
+
+        # ── ชื่อวงเต็ม (บอกว่าครอบคลุมสถานีไหน) ──
+        n = ws.cell(row=r + 2, column=2, value=cid + "  •  " + " → ".join(c["stops"]))
+        n.font = Font(size=10, italic=True, color="595959")
+
+        # ── ภาพ ──
+        svg = RT.render_svg(cid, c, p, svg_dir, caption=False)
+        png = RT.render_png(svg, scale=1.6)
+        if png:
+            img = XLImage(png)
+            w0, h0 = img.width, img.height
+            h = IMG_H
+            w = h * w0 / h0
+            if w > IMG_W_MAX:                       # ภาพกว้างมาก (สถานีเยอะ) → ย่อทั้งภาพ
+                w, h = IMG_W_MAX, IMG_W_MAX * h0 / w0
+            img.width, img.height = int(w), int(h)
+            img.anchor = f"B{r + 4}"
+            ws.add_image(img)
+            rows_used = int(h / ROW_PX) + 3
+            ok += 1
+        else:
+            ws.cell(row=r + 4, column=2,
+                    value="(ไม่สามารถแปลงภาพได้ — ดูไฟล์ .svg ในโฟลเดอร์ route_svg)")
+            rows_used = 4
+        r += 4 + rows_used
+
+    print(f"  ✅ Routing  ({ok}/{len(circuits)} ภาพฝังในไฟล์)")
+
+
 # ---- PM Routing (ชีตใหม่) -----------------------------------------------------
 def patch_pm_routing(wb, cfg, rows, svg_dir=None):
     """ชีต 'PM Routing' — โมเดลเส้นทางมาตรฐาน + export ภาพ SVG ทุกวง"""
@@ -1219,6 +1297,7 @@ def main(template_path, input_path, output_dir="."):
     patch_abbreviation(wb, cfg, rows)
     patch_roster(wb, cfg)
     patch_shift_plan(wb, cfg, rows)
+    patch_routing_images(wb, cfg, output_dir)
     patch_pm_routing(wb, cfg, rows, svg_dir=os.path.join(output_dir, f'route_svg_{stem}'))
 
     wb.save(out)

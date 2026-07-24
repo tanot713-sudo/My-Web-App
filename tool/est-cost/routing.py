@@ -184,69 +184,100 @@ def _chevrons(x1, x2, y, color, w=5):
     return out
 
 
-def render_svg(cid, circuit, param, out_dir="."):
+def _text_w(s, size):
+    """ประมาณความกว้างข้อความ (ไทยกว้างกว่าละติน)"""
+    w = 0.0
+    for ch in str(s):
+        w += 0.95 if "\u0e00" <= ch <= "\u0e7f" else 0.55
+    return w * size
+
+
+def render_svg(cid, circuit, param, out_dir=".", caption=True, filename=None):
+    """วาด 1 วง → .svg  (ความกว้างปรับตามความยาวชื่อสถานี จึงไม่มีตัวอักษรขาด)"""
     stops = circuit["stops"]
+    labels = [HQ_NAME] + [s.replace("สถานี", "") for s in stops]
     n = len(stops)
-    node_w, gap = 190, 150
-    W = 60 + (n + 1) * node_w + n * gap + 60
-    H = 580
-    icon_y, name_y = 155, 68
-    xs = [60 + i * (node_w + gap) for i in range(n + 1)]
 
-    p = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
-         f'font-family="Tahoma, \'TH Sarabun New\', sans-serif">',
-         f'<rect width="{W}" height="{H}" fill="#ffffff"/>']
+    F_NAME, F_INFO = 30, 24
+    gap = 165                                   # ช่องว่างสำหรับลูกศร + ป้ายระยะ
+    # ความกว้างช่องของแต่ละโหนด = กว้างสุดระหว่างชื่อสถานี กับไอคอน
+    node_w = [max(_text_w(t, F_NAME) + 24, 130) for t in labels]
+    PAD = 50
 
-    p.append(f'<text x="{xs[0]+node_w/2}" y="{name_y}" text-anchor="middle" font-size="30" '
-             f'font-weight="bold" fill="#222">{html.escape(HQ_NAME)}</text>')
-    p.append(_OFFICE.format(x=xs[0] + node_w / 2 - 45, y=icon_y - 5, s=1.6, c=NAVY))
+    xs, x = [], PAD
+    for wdt in node_w:
+        xs.append(x)
+        x += wdt + gap
+    W = x - gap + PAD
+    H = 600
+    icon_y, name_y = 175, 74
+    cx = lambda i: xs[i] + node_w[i] / 2        # จุดกึ่งกลางโหนด
 
-    for i, s in enumerate(stops):
-        x = xs[i + 1]
-        label = s.replace("สถานี", "")
-        p.append(f'<text x="{x+node_w/2}" y="{name_y}" text-anchor="middle" font-size="30" '
-                 f'font-weight="bold" fill="#222">{html.escape(label)}</text>')
-        p.append(_STATION.format(x=x + node_w / 2 - 45, y=icon_y - 5, s=1.6, c=GRAY))
+    p = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W:.0f}" height="{H}" '
+         f'viewBox="0 0 {W:.0f} {H}" font-family="Sarabun, Tahoma, sans-serif">',
+         f'<rect width="{W:.0f}" height="{H}" fill="#ffffff"/>']
 
+    for i, t in enumerate(labels):
+        p.append(f'<text x="{cx(i):.0f}" y="{name_y}" text-anchor="middle" font-size="{F_NAME}" '
+                 f'font-weight="700" fill="#222">{html.escape(t)}</text>')
+        ico = _OFFICE if i == 0 else _STATION
+        p.append(ico.format(x=cx(i) - 45, y=icon_y, s=1.6, c=NAVY if i == 0 else GRAY))
+
+    # ลูกศรขาไป + ป้ายระยะ/เวลา
     for i in range(n):
-        x1, x2 = xs[i] + node_w - 5, xs[i + 1] + 5
-        p.append(_chevrons(x1, x2, icon_y + 50, NAVY if i == 0 else TEAL))
+        x1 = xs[i] + node_w[i] + 8
+        x2 = xs[i + 1] - 8
+        p.append(_chevrons(x1, x2, icon_y + 55, NAVY if i == 0 else TEAL))
         _, _, km, md, _ = circuit["legs"][i]
-        cx = (x1 + x2) / 2
-        p.append(f'<text x="{cx}" y="{icon_y+100}" text-anchor="middle" font-size="24" fill="#222">'
-                 f'ระยะทาง : {km:.1f} km.</text>')
-        p.append(f'<text x="{cx}" y="{icon_y+136}" text-anchor="middle" font-size="24" fill="#222">'
-                 f'เวลา : {md:.0f} min</text>')
+        mid = (x1 + x2) / 2
+        p.append(f'<text x="{mid:.0f}" y="{icon_y+108}" text-anchor="middle" font-size="{F_INFO}" '
+                 f'fill="#222">ระยะทาง : {km:.1f} km.</text>')
+        p.append(f'<text x="{mid:.0f}" y="{icon_y+144}" text-anchor="middle" font-size="{F_INFO}" '
+                 f'fill="#222">เวลา : {md:.0f} min</text>')
 
+    # ขากลับ
     _, _, bkm, bmd, _ = circuit["legs"][-1]
-    y_b = 440
-    x_last, x_home = xs[n] + node_w / 2, xs[0] + node_w / 2
-    p.append(f'<path d="M{x_last} {icon_y+125} V{y_b} H{x_home} V{icon_y+128}" fill="none" '
-             f'stroke="{GRAY}" stroke-width="6"/>')
+    y_b = 452
+    x_last, x_home = cx(n), cx(0)
+    p.append(f'<path d="M{x_last:.0f} {icon_y+130} V{y_b} H{x_home:.0f} V{icon_y+134}" '
+             f'fill="none" stroke="{GRAY}" stroke-width="6"/>')
     span = x_last - x_home
-    for f in (0.18, 0.45, 0.72, 0.95):
-        cx = x_last - span * f
-        p.append(f'<path d="M{cx+12} {y_b-11} L{cx-1} {y_b} L{cx+12} {y_b+11}" fill="none" '
+    for f in (0.16, 0.42, 0.68, 0.94):
+        c = x_last - span * f
+        p.append(f'<path d="M{c+12:.0f} {y_b-11} L{c-1:.0f} {y_b} L{c+12:.0f} {y_b+11}" fill="none" '
                  f'stroke="{GRAY}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>')
-    p.append(f'<path d="M{x_home+13} {icon_y+142} L{x_home} {icon_y+126} L{x_home-13} {icon_y+142}" '
-             f'fill="none" stroke="{GRAY}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>')
+    p.append(f'<path d="M{x_home+13:.0f} {icon_y+148} L{x_home:.0f} {icon_y+132} '
+             f'L{x_home-13:.0f} {icon_y+148}" fill="none" stroke="{GRAY}" stroke-width="6" '
+             f'stroke-linecap="round" stroke-linejoin="round"/>')
 
-    cx = (x_last + x_home) / 2
-    p.append(_CAR.format(x=cx - 32, y=y_b - 105, s=1.5, c=NAVY))
-    p.append(f'<text x="{cx}" y="{y_b+52}" text-anchor="middle" font-size="24" fill="#222">'
-             f'ระยะทาง : {bkm:.1f} km.</text>')
-    p.append(f'<text x="{cx}" y="{y_b+88}" text-anchor="middle" font-size="24" fill="#222">'
-             f'เวลา : {bmd:.0f} min</text>')
+    mid = (x_last + x_home) / 2
+    p.append(_CAR.format(x=mid - 32, y=y_b - 108, s=1.5, c=NAVY))
+    p.append(f'<text x="{mid:.0f}" y="{y_b+52}" text-anchor="middle" font-size="{F_INFO}" '
+             f'fill="#222">ระยะทาง : {bkm:.1f} km.</text>')
+    p.append(f'<text x="{mid:.0f}" y="{y_b+88}" text-anchor="middle" font-size="{F_INFO}" '
+             f'fill="#222">เวลา : {bmd:.0f} min</text>')
 
-    th = circuit["min_day"] / 60
-    p.append(f'<text x="40" y="{H-20}" font-size="22" fill="#555">'
-             f'{html.escape(cid)}  •  รวม {circuit["km"]:.1f} km / {circuit["min_day"]:.0f} min '
-             f'({th:.1f} ชม.)  •  กะ {param["day_shift_hours"]:.0f} ชม. → เหลือทำงานหน้างาน '
-             f'{param["day_shift_hours"]-th:.1f} ชม.</text>')
+    if caption:
+        th = circuit["min_day"] / 60
+        p.append(f'<text x="{PAD}" y="{H-22}" font-size="21" fill="#555">'
+                 f'{html.escape(cid)}  •  รวม {circuit["km"]:.1f} km / {circuit["min_day"]:.0f} min '
+                 f'({th:.1f} ชม.)  •  กะ {param["day_shift_hours"]:.0f} ชม. → '
+                 f'เหลือทำงานหน้างาน {param["day_shift_hours"]-th:.1f} ชม.</text>')
     p.append("</svg>")
 
     os.makedirs(out_dir, exist_ok=True)
-    safe = "".join(ch for ch in cid if ch not in '\\/:*?"<>|').strip()
-    path = os.path.join(out_dir, f"route_{safe}.svg")
+    safe = filename or ("route_" + "".join(c for c in cid if c not in '\\/:*?"<>|').strip())
+    path = os.path.join(out_dir, safe + ".svg")
     open(path, "w", encoding="utf-8").write("\n".join(p))
     return path
+
+
+def render_png(svg_path, scale=2.0):
+    """แปลง .svg → .png สำหรับฝังใน Excel (คืน None ถ้าไม่มี cairosvg)"""
+    try:
+        import cairosvg
+    except ImportError:
+        return None
+    png = os.path.splitext(svg_path)[0] + ".png"
+    cairosvg.svg2png(url=svg_path, write_to=png, scale=scale, background_color="white")
+    return png
