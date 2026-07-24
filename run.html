@@ -259,10 +259,16 @@ async function boot(){
     pyodide.setStderr({batched: t => log(t,'err')});
 
     if (tool.packages && tool.packages.length){
-      log('ติดตั้ง ' + tool.packages.join(', ') + '…', 'dim');
       await pyodide.loadPackage('micropip');
       const mp = pyodide.pyimport('micropip');
-      for (const p of tool.packages) await mp.install(p);
+      for (const p of tool.packages){
+        try{
+          log('ติดตั้ง ' + p + '…', 'dim');
+          await mp.install(p);
+        }catch(e){
+          log('ติดตั้ง ' + p + ' ไม่สำเร็จ: ' + (e.message || e), 'warn');
+        }
+      }
     }
 
     stage(1); setStatus('กำลังโหลดสูตรคำนวณ…');
