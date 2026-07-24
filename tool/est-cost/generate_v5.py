@@ -5,7 +5,7 @@ MA Cost Estimation Generator v5
   ★ เขียน "ทุก sheet" จาก input — ไม่มีข้อมูลเก่าของ template ค้างอีกต่อไป
       + Action            (v4 อ่านอย่างเดียว → ข้อมูลโรงพยาบาลค้าง 585 แถว)
       + PM Plan           (v4 ไม่แตะเลย → ค้าง 50 แถว)
-      + PM Schdule plan   (v4 ข้าม เพราะ LAYOUT เป็น None → ค้าง)
+      + PM Schedule plan   (v4 ข้าม เพราะ LAYOUT เป็น None → ค้าง)
       + Old/New Abbreviation (v4 ไม่แตะเลย)
       + Outsource         (v4 ไม่แตะเลย)
   ★ LAYOUT["pm"] ถอดโครงสร้างจริงแล้ว:
@@ -23,7 +23,7 @@ input ต้องมี 6 sheet: PROJECT, EQUIPMENT, PM_PLAN, TOOLS_SPARE, PM_A
     !python generate_v5.py Est_Cost_MA_v5_clean.xlsx input_data_RedLine_Dark.xlsx
     !python generate_v5.py --check input_data_RedLine_Dark.xlsx
     !python generate_v5.py --clean Est_Cost_MA_v3_final.xlsx Est_Cost_MA_v5_clean.xlsx
-    !python generate_v5.py --dump  Est_Cost_MA_v3_final.xlsx "PM Schdule plan"
+    !python generate_v5.py --dump  Est_Cost_MA_v3_final.xlsx "PM Schedule plan"
 """
 
 import sys, re, os, shutil
@@ -48,10 +48,9 @@ LAYOUT = {
         "mprate":   "Manpower rate",
         "action":   "Action",
         "sum":      "SUM",
-        "pm":       "PM Schdule plan",
+        "pm":       "PM Schedule plan",
         "pmplan":   "PM Plan",
-        "abbr_old": "Old Abbreviation",
-        "abbr_new": "New Abbreviation",
+        "abbr":     "Abbreviation",
         "roster":   "Roster design",
     },
 
@@ -73,7 +72,7 @@ LAYOUT = {
     },
 
     "itemlist": {   # ใช้ร่วมกัน Tools + Spares
-        "row_start": 3, "title_cell": "A1",
+        "row_start": 2, "title_cell": "A1",
         "c_name": 1, "c_qty": 2, "c_price": 3, "c_amount": 4, "c_system": 5,
         "total_label": "ราคารวม", "total_label_col": 3,
         "cols": (1, 5), "scan_to": 400,
@@ -123,7 +122,7 @@ LAYOUT = {
         "cols": (1, 14),
     },
 
-    # ─── PM Schdule plan — ถอดโครงสร้างจริงจาก template แล้ว ───────────────────
+    # ─── PM Schedule plan — ถอดโครงสร้างจริงจาก template แล้ว ───────────────────
     #  col A = Location (merge แนวตั้งต่อสถานี)
     #  เดือน m : คอลัมน์เริ่ม = 2 + (m-1)*12
     #  ในเดือนนั้น 6 ความถี่ อย่างละ 2 คอลัมน์ → SYS, TT (hr)
@@ -142,14 +141,10 @@ LAYOUT = {
         "cols": (1, 9),
     },
 
-    "abbr_old": {
+    "abbr": {
         "row_start": 2,
         "c_system": 1, "c_name_th": 2, "c_name_en": 3, "c_abbr": 4,
         "cols": (1, 4),
-    },
-
-    "abbr_new": {
-        "row_start": 2, "c_name_en": 1, "c_code": 2, "cols": (1, 2),
     },
 
     "roster": {
@@ -716,35 +711,51 @@ def patch_sum(wb, cfg, rows, action_map):
 
 
 # ---- PM Schedule -------------------------------------------------------------
-def patch_pm_schedule(wb, cfg, rows, sum_rowmap, month_totals):
+PM_VALUE_COL_WIDTH = 7.5   # คอลัมน์ SYS/TT แคบลง เหมาะกับตัวย่อ ≤4 ตัวและตัวเลขชั่วโมง
+
+def patch_pm_schedule(wb, cfg, rows, sum_rowmap, month_totals, abbr_map):
     L = LAYOUT["pm"]
     ws = wb[LAYOUT["sheets"]["pm"]]
     start, (c0, c1) = L["row_start"], L["cols"]
     old_last = max(ws.max_row, start)
+    center = Alignment(horizontal="center", vertical="center")
 
     unmerge_in(ws, start, old_last, c0=L["c_location"])
     styles = snapshot_styles(ws, L["style_row"], c0, min(c1, ws.max_column))
     clear_block(ws, start, old_last, c0, min(c1, ws.max_column))
 
+    # คอลัมน์ SYS/TT ทุกเดือน แคบลงให้เหมาะกับตัวย่อสั้นและตัวเลขชั่วโมง
+    for col in range(c0 + 1, min(c1, ws.max_column) + 1):
+        ws.column_dimensions[get_column_letter(col)].width = PM_VALUE_COL_WIDTH
+
     # เรียงตามลำดับเดิมของ EQUIPMENT → แถว PM ตรงกับแถว SUM แบบ 1:1
+    # พร้อมสะสมชั่วโมงต่อ (เดือน,ความถี่) และต่อ (สถานที่,เดือน) ไว้ทำแถว/ตาราง SUM ท้ายตาราง
     r = start
     loc_groups, cur_loc, loc_start = [], None, start
+    freq_month_totals = {f: {m: 0.0 for m in range(1, 13)} for f in L["freq_offset"]}
+    loc_month_totals = {}
     for idx, eq in enumerate(rows):
         if eq["location"] != cur_loc:
             if cur_loc is not None:
                 loc_groups.append((cur_loc, loc_start, r - 1))
             cur_loc, loc_start = eq["location"], r
+        loc_month_totals.setdefault(eq["location"], {m: 0.0 for m in range(1, 13)})
 
         apply_styles(ws, r, styles)
-        srow = sum_rowmap[idx]
+        abbr = abbr_map.get(eq["code"], eq["code"])
         for freq, off in L["freq_offset"].items():
             sched = eq["sched"].get(freq, {})
             for m, hrs in sched.items():
                 if not hrs:
                     continue
                 base = L["c_month_1"] + (m - 1) * L["month_width"] + off
-                w(ws, r, base,     f"=SUM!F{srow}")     # SYS = รหัสอุปกรณ์ (ผูกกับ SUM)
-                w(ws, r, base + 1, round(hrs, 2))       # TT (hr) ของเดือนนั้น
+                if w(ws, r, base, abbr):                # SYS = ตัวย่ออุปกรณ์ (จากชีต Abbreviation)
+                    ws.cell(row=r, column=base).alignment = center
+                hrs = round(hrs, 2)
+                if w(ws, r, base + 1, hrs):              # TT (hr) ของเดือนนั้น
+                    ws.cell(row=r, column=base + 1).alignment = center
+                freq_month_totals[freq][m] += hrs
+                loc_month_totals[eq["location"]][m] += hrs
         r += 1
     if cur_loc is not None:
         loc_groups.append((cur_loc, loc_start, r - 1))
@@ -754,12 +765,88 @@ def patch_pm_schedule(wb, cfg, rows, sum_rowmap, month_totals):
             ws.merge_cells(start_row=r0, start_column=1, end_row=r1, end_column=1)
         ws.cell(row=r0, column=1).value = loc
 
+    # ── แถว SUM ท้ายตารางหลัก (ต่อจากแถวสุดท้ายของสถานที่สุดท้าย) ──────────────
+    bold_center = Alignment(horizontal="center", vertical="center")
+    HDR_FILL = PatternFill("solid", start_color="FFD9E1F2", end_color="FFD9E1F2")
+
+    r += 1
+    # แถว 1: SUM ของแต่ละความถี่ (รอบ) ในแต่ละเดือน รวมทุกสถานที่
+    w(ws, r, L["c_location"], "รวมแต่ละรอบ/เดือน (ทุกสถานที่)")
+    ws.cell(row=r, column=L["c_location"]).font = Font(bold=True)
+    for freq, off in L["freq_offset"].items():
+        for m in range(1, 13):
+            base = L["c_month_1"] + (m - 1) * L["month_width"] + off
+            v = round(freq_month_totals[freq][m], 2)
+            cell = ws.cell(row=r, column=base + 1, value=v or None)
+            cell.alignment = bold_center
+            cell.font = Font(bold=True)
+            cell.fill = HDR_FILL
+    row_freq_sum = r
+    r += 1
+
+    # แถว 2: SUM รวมทุกความถี่ ต่อเดือน (1 ค่า/เดือน, merge ตลอดบล็อก 12 คอลัมน์ของเดือนนั้น)
+    w(ws, r, L["c_location"], "รวมทุกรอบ/เดือน (ทุกสถานที่)")
+    ws.cell(row=r, column=L["c_location"]).font = Font(bold=True)
+    for m in range(1, 13):
+        c_first = L["c_month_1"] + (m - 1) * L["month_width"]
+        c_last = c_first + L["month_width"] - 1
+        ws.merge_cells(start_row=r, start_column=c_first, end_row=r, end_column=c_last)
+        cell = ws.cell(row=r, column=c_first, value=round(month_totals.get(m, 0.0), 2))
+        cell.alignment = bold_center
+        cell.font = Font(bold=True)
+        cell.fill = HDR_FILL
+    r += 2   # เว้น 1 แถว
+
+    # ── ตาราง SUM ชั่วโมงรวมรายเดือน แยกสถานที่ (สถานที่ = แถว, เดือน = คอลัมน์) ──
+    w(ws, r, 1, "สรุปชั่วโมงรวมรายเดือนแยกสถานที่")
+    ws.cell(row=r, column=1).font = Font(bold=True, size=12)
+    r += 1
+    header_row = r
+    w(ws, r, 1, "สถานที่")
+    ws.cell(row=r, column=1).font = Font(bold=True)
+    ws.cell(row=r, column=1).fill = HDR_FILL
+    for m in range(1, 13):
+        cell = ws.cell(row=r, column=1 + m, value=f"เดือน {m}")
+        cell.font = Font(bold=True)
+        cell.alignment = bold_center
+        cell.fill = HDR_FILL
+    r += 1
+    loc_year_totals = {}
+    for loc, _, _ in loc_groups:
+        w(ws, r, 1, loc)
+        yr = 0.0
+        for m in range(1, 13):
+            v = round(loc_month_totals.get(loc, {}).get(m, 0.0), 2)
+            yr += v
+            cell = ws.cell(row=r, column=1 + m, value=v or None)
+            cell.alignment = center
+        loc_year_totals[loc] = round(yr, 2)
+        r += 1
+    r += 1   # เว้น 1 แถว
+
+    # ── ตาราง SUM ชั่วโมงรวมรายปี แยกสถานที่ ─────────────────────────────────
+    w(ws, r, 1, "สรุปชั่วโมงรวมรายปีแยกสถานที่")
+    ws.cell(row=r, column=1).font = Font(bold=True, size=12)
+    r += 1
+    w(ws, r, 1, "สถานที่")
+    w(ws, r, 2, "ชั่วโมงรวมทั้งปี")
+    for cc in (1, 2):
+        ws.cell(row=r, column=cc).font = Font(bold=True)
+        ws.cell(row=r, column=cc).fill = HDR_FILL
+    r += 1
+    for loc, _, _ in loc_groups:
+        w(ws, r, 1, loc)
+        cell = ws.cell(row=r, column=2, value=loc_year_totals.get(loc, 0.0))
+        cell.alignment = center
+        r += 1
+
     clear_block(ws, r, old_last, c0, min(c1, ws.max_column), reset_style=True)
 
     lo, hi = min(month_totals.values()), max(month_totals.values())
     avg = sum(month_totals.values()) / 12 or 1
-    print(f"  ✅ PM Schdule plan  ({len(rows)} แถว, {len(loc_groups)} สถานที่)")
+    print(f"  ✅ PM Schedule plan  ({len(rows)} แถว, {len(loc_groups)} สถานที่)")
     print(f"      โหลด/เดือน min={lo:,.0f} max={hi:,.0f} avg={avg:,.0f} → กระจาย ±{(hi-lo)/avg*100:.1f}%")
+    print(f"      + แถว SUM ท้ายตาราง (แถว {row_freq_sum}) และตารางสรุปรายเดือน/รายปีแยกสถานที่")
 
 
 # ---- PM Plan -----------------------------------------------------------------
@@ -802,10 +889,35 @@ def patch_pm_plan(wb, cfg, rows):
 
 
 # ---- Abbreviation ------------------------------------------------------------
+def make_short_abbr(source, used):
+    """
+    ตัวย่อ 3 ตัวอักษรจาก source (ตัดช่องว่าง + ตัวพิมพ์ใหญ่)
+    ถ้าตัวย่อ 3 ตัวชนกับที่มีอยู่แล้ว → ตัวที่มาทีหลังใช้ 4 ตัวแทน
+    (กรณีชนกันต่อแม้ 4 ตัว ซึ่งเกินกว่าที่ระบุไว้ ใช้เลขต่อท้ายเป็นทางออกสุดท้าย)
+    """
+    base = re.sub(r"[\s\-_]+", "", str(source or "")).upper()
+    for n in (3, 4, len(base)):
+        cand = base[:n] if n else base
+        if cand and cand not in used:
+            used.add(cand)
+            return cand
+    cand, i = f"{base[:4]}-2", 2
+    while cand in used:
+        i += 1
+        cand = f"{base[:4]}-{i}"
+    used.add(cand)
+    return cand
+
+
 def patch_abbreviation(wb, cfg, rows):
-    Lo = LAYOUT["abbr_old"]
-    ws = wb[LAYOUT["sheets"]["abbr_old"]]
-    start, (c0, c1) = Lo["row_start"], Lo["cols"]
+    """
+    เขียนชีต 'Abbreviation' (เดิมชื่อ Old Abbreviation, ลบ New Abbreviation ออกแล้ว)
+    คอลัมน์ D จำกัดไว้ 3 ตัวอักษร ยกเว้นชนกันจึงขยายเป็น 4 ตัวสำหรับตัวที่มาทีหลัง
+    คืน abbr_map[code] = ตัวย่อ ให้ patch_pm_schedule เอาไปใช้แสดงในคอลัมน์ SYS แทนโค้ดเต็ม
+    """
+    L = LAYOUT["abbr"]
+    ws = wb[LAYOUT["sheets"]["abbr"]]
+    start, (c0, c1) = L["row_start"], L["cols"]
     old_last = max(ws.max_row, start)
     unmerge_in(ws, start, old_last)
     styles = snapshot_styles(ws, start, c0, c1)
@@ -817,36 +929,39 @@ def patch_abbreviation(wb, cfg, rows):
             seen.add(eq["code"])
             uniq.append(eq)
 
+    center = Alignment(horizontal="center", vertical="center")
+    used_abbrs, abbr_map = set(), {}
     r, last_sys = start, None
     for eq in uniq:
         apply_styles(ws, r, styles)
         if eq["system"] != last_sys:
-            w(ws, r, Lo["c_system"], eq["system"])
+            w(ws, r, L["c_system"], eq["system"])
             last_sys = eq["system"]
-        w(ws, r, Lo["c_name_th"], eq["name_th"])
-        w(ws, r, Lo["c_name_en"], eq["name_en"])
-        w(ws, r, Lo["c_abbr"],    eq["old_code"] or eq["code"])
+        w(ws, r, L["c_name_th"], eq["name_th"])
+        w(ws, r, L["c_name_en"], eq["name_en"])
+        abbr = make_short_abbr(eq["old_code"] or eq["code"], used_abbrs)
+        abbr_map[eq["code"]] = abbr
+        if w(ws, r, L["c_abbr"], abbr):
+            ws.cell(row=r, column=L["c_abbr"]).alignment = center
         r += 1
     clear_block(ws, r, old_last, c0, c1, reset_style=True)
-
-    Ln = LAYOUT["abbr_new"]
-    ws2 = wb[LAYOUT["sheets"]["abbr_new"]]
-    s2, (d0, d1) = Ln["row_start"], Ln["cols"]
-    old2 = max(ws2.max_row, s2)
-    st2 = snapshot_styles(ws2, s2, d0, d1)
-    clear_block(ws2, s2, old2, d0, d1)
-    r2 = s2
-    for eq in uniq:
-        apply_styles(ws2, r2, st2)
-        w(ws2, r2, Ln["c_name_en"], eq["name_en"])
-        w(ws2, r2, Ln["c_code"],    eq["code"])
-        r2 += 1
-    clear_block(ws2, r2, old2, d0, d1, reset_style=True)
-    print(f"  ✅ Old/New Abbreviation  ({len(uniq)} code)")
+    print(f"  ✅ Abbreviation  ({len(uniq)} code)")
+    return abbr_map
 
 
 # ---- Roster ------------------------------------------------------------------
+# คำอธิบายตัวย่อที่อาจปรากฏในตาราง Roster — เพิ่ม/แก้ตรงนี้ที่เดียวเมื่อผูกกะจริง (A/B/C) เข้ากับ patch_shift_plan
+ROSTER_LEGEND = {
+    "M": {"desc": "วันทำงาน (Working day)",   "time": "",              "color": "C6EFCE"},
+    "X": {"desc": "วันหยุด (Day off)",         "time": "",              "color": "FFC7CE"},
+    "A": {"desc": "กะเช้า (Morning shift)",    "time": "08:00–16:00",  "color": "FCE4D6"},
+    "B": {"desc": "กะบ่าย (Afternoon shift)",  "time": "13:00–21:00",  "color": "FCE4D6"},
+    "C": {"desc": "กะดึก (Night shift)",       "time": "00:30–04:30",  "color": "D9D2E9"},
+}
+
+
 def patch_roster(wb, cfg):
+    from openpyxl.styles import Side
     L = LAYOUT["roster"]
     ws = wb[LAYOUT["sheets"]["roster"]]
     mp = cfg["manpower"]
@@ -863,16 +978,46 @@ def patch_roster(wb, cfg):
     clear_block(ws, start, old_last, c0, c1)
 
     pattern = ["M", "M", "M", "M", "M", "X", "X"]   # TODO: ใส่กะจริงเมื่อยืนยัน shift
+    used_codes = set()
     for n, name in enumerate(staff):
         r = start + n
         apply_styles(ws, r, styles)
         w(ws, r, L["c_no"],   n + 1)
         w(ws, r, L["c_name"], name)
         for d in range(L["n_days"]):
-            w(ws, r, L["c_day_1"] + d, pattern[(d + n) % 7])
+            code = pattern[(d + n) % 7]
+            w(ws, r, L["c_day_1"] + d, code)
+            used_codes.add(code)
 
+    last_staff_row = start + len(staff) - 1
     clear_block(ws, start + len(staff), old_last, c0, c1, reset_style=True)
-    print(f"  ✅ Roster design  ({len(staff)} คน x {L['n_days']} วัน)")
+
+    # ── คำอธิบายตัวย่อ (Legend) ใต้ตาราง Roster ──────────────────────────────
+    thin = Border(*[Side(style="thin")] * 4)
+    center = Alignment(horizontal="center", vertical="center")
+    legend_r = last_staff_row + 3
+    w(ws, legend_r, 1, "คำอธิบายตัวย่อ (Legend)")
+    ws.cell(row=legend_r, column=1).font = Font(bold=True, size=12)
+    legend_r += 1
+    for i, hdr in enumerate(["ตัวย่อ", "ความหมาย", "ช่วงเวลา"]):
+        c = ws.cell(row=legend_r, column=1 + i, value=hdr)
+        c.font = Font(bold=True)
+        c.fill = PatternFill("solid", start_color="D9E1F2", end_color="D9E1F2")
+        c.border = thin
+        c.alignment = center
+    legend_r += 1
+    for code in sorted(used_codes):
+        info = ROSTER_LEGEND.get(code, {"desc": "(ยังไม่ระบุ — เพิ่มได้ที่ ROSTER_LEGEND)", "time": "", "color": "F2F2F2"})
+        c_code = ws.cell(row=legend_r, column=1, value=code)
+        c_code.fill = PatternFill("solid", start_color=info["color"], end_color=info["color"])
+        c_code.alignment, c_code.border, c_code.font = center, thin, Font(bold=True)
+        c_desc = ws.cell(row=legend_r, column=2, value=info["desc"])
+        c_desc.border = thin
+        c_time = ws.cell(row=legend_r, column=3, value=info["time"] or "—")
+        c_time.border, c_time.alignment = thin, center
+        legend_r += 1
+
+    print(f"  ✅ Roster design  ({len(staff)} คน x {L['n_days']} วัน) + คำอธิบายตัวย่อ {len(used_codes)} รายการ")
 
 
 
@@ -1188,7 +1333,7 @@ def patch_pm_routing(wb, cfg, rows, svg_dir=None):
 # ══════════════════════════════════════════════════════════════════════════════
 CLEAN_MAP = [
     ("action",    "action"),   ("sum",     "sum"),     ("pm",       "pm"),
-    ("pmplan",    "pmplan"),   ("abbr_old","abbr_old"),("abbr_new", "abbr_new"),
+    ("pmplan",    "pmplan"),   ("abbr",    "abbr"),
     ("roster",    "roster"),
 ]
 
@@ -1307,9 +1452,9 @@ def main(template_path, input_path, output_dir="."):
     patch_mprate(wb, cfg)
     action_map = patch_action(wb, cfg, rows)
     sum_rowmap = patch_sum(wb, cfg, rows, action_map)
-    patch_pm_schedule(wb, cfg, rows, sum_rowmap, month_totals)
+    abbr_map = patch_abbreviation(wb, cfg, rows)
+    patch_pm_schedule(wb, cfg, rows, sum_rowmap, month_totals, abbr_map)
     patch_pm_plan(wb, cfg, rows)
-    patch_abbreviation(wb, cfg, rows)
     patch_roster(wb, cfg)
     patch_shift_plan(wb, cfg, rows)
     patch_routing_images(wb, cfg, output_dir)
