@@ -180,7 +180,7 @@ let TOOLBASE = null;
 async function loadManifest(){
   const tried = [];
   for (const d of TOOL_DIRS){
-    const url = BASE + d + 'tools.json';
+    const url = BASE + d + 'tools.json?v=' + Date.now();
     tried.push(url);
     try{
       const r = await fetch(url);
