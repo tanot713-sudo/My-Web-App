@@ -106,6 +106,14 @@ h1{font-size:clamp(24px,4.4vw,34px);font-weight:700;letter-spacing:-.01em;line-h
 .dl-name{font-weight:600;font-size:14.5px;word-break:break-all}
 .dl-meta{font-size:12px;color:var(--muted)}
 
+.sub-note{font-size:13px;color:var(--muted);margin-bottom:14px}
+.cmp-table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
+.cmp-table th,.cmp-table td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.cmp-table th{color:var(--muted);font-weight:600;font-size:11.5px}
+.cmp-table tr.cmp-flag{background:#FFF5F5}
+.cmp-table tr.cmp-flag td{color:#9B2C2C}
+.cmp-table tr.cmp-flag td:nth-child(5){font-weight:700}
+
 .note{border-radius:12px;background:#FFF8EC;padding:15px 18px;font-size:13.5px;
   color:#6B4A0F;margin-top:16px;border:1px solid #FBE7C2}
 .note.err{background:#FFF1F1;color:#9B2C2C;border-color:#F8D4D4}
@@ -164,6 +172,15 @@ code{font-size:.9em;background:#EFF2F8;padding:2px 6px;border-radius:6px}
     </button>
     <button class="btn ghost" id="check" disabled hidden>ตรวจข้อมูลก่อน</button>
   </div>
+</div>
+
+<div class="card" id="cmpCard" hidden>
+  <h2><span class="ic" style="background:var(--amber)">≈</span>เทียบกับข้อมูลเก่า (ไม่บังคับ)</h2>
+  <p class="sub-note">ค้นหาไฟล์ข้อมูลเก่าที่เคยบันทึกขึ้น Google Drive ที่มีรหัสอุปกรณ์ตรงกัน แล้วเทียบชั่วโมง PM/ปี
+    เพื่อช่วยตรวจสอบว่าข้อมูลที่กรอกใหม่ดูสมเหตุสมผลไหม (ต้องเคยบันทึกไฟล์ข้อมูลขึ้น Drive ไว้ก่อนอย่างน้อย 1 ครั้ง)</p>
+  <div class="btn-row"><button class="btn ghost" id="cmpBtn" disabled>ค้นหา &amp; เทียบกับข้อมูลเก่า</button></div>
+  <div class="drive-status" id="cmpStatus"></div>
+  <div id="cmpResult"></div>
 </div>
 
 <div class="card"><h2><span class="ic" style="background:var(--violet)">2</span>บันทึกการทำงาน</h2><div class="log" id="log"></div></div>
@@ -338,6 +355,7 @@ async function take(f){
   $('dropMain').innerHTML = '<span class="file-name">' + f.name + '</span>';
   $('dropHint').textContent = (f.size/1024).toFixed(0) + ' KB — คลิกเพื่อเปลี่ยนไฟล์';
   enable();
+  updateCmpBtnState();
 }
 
 $('check').addEventListener('click', async ()=>{
@@ -378,13 +396,13 @@ $('run').addEventListener('click', async ()=>{
     const TYPE = {xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                   svg:'image/svg+xml', pdf:'application/pdf', docx:
                   'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
-    pendingUpload = [{ name: inName, blob: new Blob([inBytes], {type: TYPE.xlsx}) }];
+    pendingUpload = [{ name: inName, blob: new Blob([inBytes], {type: TYPE.xlsx}), kind: 'estcost_input' }];
     paths.forEach((p,i)=>{
       const data = pyodide.FS.readFile(p);
       const name = p.split('/').pop();
       const ext = name.split('.').pop().toLowerCase();
       const blob = new Blob([data], {type: TYPE[ext] || 'application/octet-stream'});
-      pendingUpload.push({ name, blob });
+      pendingUpload.push({ name, blob, kind: 'estcost_output' });
       const a = document.createElement('a');
       a.className = 'dl'; a.href = URL.createObjectURL(blob); a.download = name;
       a.innerHTML = '<span class="dl-ico' + (ext==='svg'?' svg':ext==='png'?' png':'') + '">' + ext.toUpperCase() + '</span>' +
@@ -418,14 +436,24 @@ const DRIVE_CLIENT_ID = '';                 // ← ใส่ Client ID ที่
 const DRIVE_FOLDER_NAME = 'AMR_EstCost';    // โฟลเดอร์ปลายทางใน Drive (สร้างอัตโนมัติถ้ายังไม่มี)
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 
-let driveTokenClient = null, driveAccessToken = null, driveFolderId = null;
-let pendingUpload = [];   // [{name, blob}] — เติมทุกครั้งที่สร้างเอกสารเสร็จ (ไฟล์ input + output)
+let driveTokenClient = null, driveAccessToken = null, driveFolderId = null, driveAuthPurpose = null;
+let pendingUpload = [];   // [{name, blob, kind}] — เติมทุกครั้งที่สร้างเอกสารเสร็จ (ไฟล์ input + output)
 
 function driveSetStatus(text, cls){
   const el = $('driveStatus');
   if (!el) return;
   el.textContent = text;
   el.className = 'drive-status' + (cls ? ' ' + cls : '');
+}
+function cmpSetStatus(text, cls){
+  const el = $('cmpStatus');
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'drive-status' + (cls ? ' ' + cls : '');
+}
+function updateCmpBtnState(){
+  const btn = $('cmpBtn');
+  if (btn) btn.disabled = !inBytes;
 }
 
 function initDrive(){
@@ -434,6 +462,8 @@ function initDrive(){
     return;
   }
   $('driveRow').hidden = false;
+  $('cmpCard').hidden = false;
+  updateCmpBtnState();
   if (!window.google || !google.accounts || !google.accounts.oauth2){
     driveSetStatus('โหลด Google Identity Services ไม่สำเร็จ', 'err');
     $('driveBtn').disabled = true;
@@ -443,9 +473,14 @@ function initDrive(){
     client_id: DRIVE_CLIENT_ID,
     scope: DRIVE_SCOPE,
     callback: async (resp) => {
-      if (resp.error){ driveSetStatus('เชื่อมต่อไม่สำเร็จ: ' + resp.error, 'err'); return; }
+      const purpose = driveAuthPurpose; driveAuthPurpose = null;
+      if (resp.error){
+        (purpose === 'compare' ? cmpSetStatus : driveSetStatus)('เชื่อมต่อไม่สำเร็จ: ' + resp.error, 'err');
+        return;
+      }
       driveAccessToken = resp.access_token;
-      await uploadPendingToDrive();
+      if (purpose === 'compare') await runCompare();
+      else await uploadPendingToDrive();
     },
   });
 }
@@ -474,8 +509,9 @@ async function ensureDriveFolder(){
   return driveFolderId;
 }
 
-async function uploadFileToDrive(name, blob, folderId){
+async function uploadFileToDrive(name, blob, folderId, kind){
   const metadata = { name, parents: [folderId] };
+  if (kind) metadata.properties = { kind };
   const form = new FormData();
   form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
   form.append('file', blob);
@@ -498,7 +534,7 @@ async function uploadPendingToDrive(){
     let done = 0;
     for (const item of pendingUpload){
       driveSetStatus(`กำลังอัปโหลด (${done + 1}/${pendingUpload.length}) ${item.name}…`, '');
-      await uploadFileToDrive(item.name, item.blob, folderId);
+      await uploadFileToDrive(item.name, item.blob, folderId, item.kind);
       done++;
     }
     driveSetStatus(`✅ บันทึกขึ้น Google Drive แล้ว ${done} ไฟล์ (โฟลเดอร์ "${DRIVE_FOLDER_NAME}")`, 'ok');
@@ -512,7 +548,102 @@ async function uploadPendingToDrive(){
 $('driveBtn')?.addEventListener('click', () => {
   if (!driveTokenClient){ driveSetStatus('ยังไม่ได้ตั้งค่า Google Drive สำหรับเครื่องมือนี้', 'err'); return; }
   if (!pendingUpload.length){ driveSetStatus('ยังไม่มีไฟล์ให้บันทึก — สร้างเอกสารก่อน', 'err'); return; }
+  driveAuthPurpose = 'upload';
   driveTokenClient.requestAccessToken({ prompt: driveAccessToken ? '' : 'consent' });
+});
+
+// ── เทียบกับข้อมูลเก่า (ใช้ไฟล์ input เก่าที่เคยบันทึกขึ้นโฟลเดอร์ Drive เดียวกัน) ──────
+function esc(s){
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function listHistoryInputFiles(folderId){
+  const q = encodeURIComponent(
+    `'${folderId}' in parents and trashed=false and properties has { key='kind' and value='estcost_input' }`);
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc&pageSize=20`,
+    { headers: { Authorization: 'Bearer ' + driveAccessToken } });
+  if (!res.ok) throw new Error('ค้นหาไฟล์เก่าไม่สำเร็จ (HTTP ' + res.status + ')');
+  const data = await res.json();
+  return data.files || [];
+}
+
+async function downloadDriveFileBytes(fileId){
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+    { headers: { Authorization: 'Bearer ' + driveAccessToken } });
+  if (!res.ok) throw new Error('ดาวน์โหลดไฟล์เก่าไม่สำเร็จ (HTTP ' + res.status + ')');
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+function renderCompare(rows, fileCount){
+  if (!rows || !rows.length){
+    cmpSetStatus(`เทียบกับไฟล์เก่า ${fileCount} ไฟล์แล้ว — ไม่พบรหัสอุปกรณ์ที่ตรงกันในประวัติ`, '');
+    $('cmpResult').innerHTML = '';
+    return;
+  }
+  const flagged = rows.filter(r => r.flag).length;
+  cmpSetStatus(
+    `เทียบกับไฟล์เก่า ${fileCount} ไฟล์ — พบอุปกรณ์ที่มีประวัติ ${rows.length} รายการ` +
+    (flagged ? `, ผิดปกติ ${flagged} รายการ (ต่างจากค่าเฉลี่ยเก่าเกิน 25%)` : ', ไม่พบความผิดปกติ'),
+    flagged ? 'err' : 'ok');
+  let html = '<table class="cmp-table"><thead><tr>' +
+    '<th>รหัส</th><th>ชื่ออุปกรณ์</th><th>ชม./ปี (ไฟล์นี้)</th><th>ชม./ปี เฉลี่ยเก่า</th><th>ต่าง</th><th>จำนวนไฟล์เก่า</th>' +
+    '</tr></thead><tbody>';
+  rows.forEach(r => {
+    html += `<tr class="${r.flag ? 'cmp-flag' : ''}">` +
+      `<td>${esc(r.code)}</td><td>${esc(r.name)}</td><td>${r.current_hours}</td>` +
+      `<td>${r.history_avg_hours}</td><td>${r.deviation_pct > 0 ? '+' : ''}${r.deviation_pct}%</td>` +
+      `<td>${r.history_n}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  $('cmpResult').innerHTML = html;
+}
+
+async function runCompare(){
+  if (!inBytes){ cmpSetStatus('เลือกไฟล์ข้อมูลก่อน', 'err'); return; }
+  if (!ready){ cmpSetStatus('ระบบยังไม่พร้อม รอสักครู่แล้วลองใหม่', 'err'); return; }
+  $('cmpBtn').disabled = true;
+  $('cmpResult').innerHTML = '';
+  cmpSetStatus('กำลังค้นหาไฟล์เก่าใน Google Drive…', '');
+  try{
+    const folderId = await ensureDriveFolder();
+    const files = await listHistoryInputFiles(folderId);
+    if (!files.length){
+      cmpSetStatus('ยังไม่มีไฟล์ข้อมูลเก่าใน Drive ให้เทียบ (จะมีข้อมูลหลังบันทึกไฟล์ input ขึ้น Drive ในครั้งต่อๆ ไป)', '');
+      return;
+    }
+    pyodide.FS.writeFile(HOME + '/' + inName, inBytes);
+    const histArgs = [];
+    for (let n = 0; n < files.length; n++){
+      const f = files[n];
+      cmpSetStatus(`กำลังโหลดไฟล์เก่า (${n + 1}/${files.length}) ${f.name}…`, '');
+      const bytes = await downloadDriveFileBytes(f.id);
+      const fsPath = HOME + '/hist_' + n + '.xlsx';
+      pyodide.FS.writeFile(fsPath, bytes);
+      histArgs.push([f.name, fsPath]);
+    }
+    cmpSetStatus('กำลังเปรียบเทียบ…', '');
+    const res = await pyodide.runPythonAsync(
+      'import importlib, tool_run\nimportlib.reload(tool_run)\n' +
+      'tool_run.compare(' + JSON.stringify(inName) + ', ' + JSON.stringify(histArgs) + ')\n');
+    const rows = res.toJs({dict_converter: Object.fromEntries});
+    res.destroy();
+    renderCompare(rows, files.length);
+  }catch(e){
+    cmpSetStatus('❌ ' + (e.message || e), 'err');
+  }finally{
+    $('cmpBtn').disabled = false;
+  }
+}
+
+$('cmpBtn')?.addEventListener('click', () => {
+  if (!inBytes){ cmpSetStatus('เลือกไฟล์ข้อมูลก่อน', 'err'); return; }
+  if (!driveTokenClient){ cmpSetStatus('ยังไม่ได้ตั้งค่า Google Drive สำหรับเครื่องมือนี้', 'err'); return; }
+  if (driveAccessToken){ runCompare(); return; }
+  driveAuthPurpose = 'compare';
+  driveTokenClient.requestAccessToken({ prompt: 'consent' });
 });
 
 boot();

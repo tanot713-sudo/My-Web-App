@@ -401,6 +401,60 @@ def calc_equipment_hours(cfg):
     return out
 
 
+def compare_history(current_path, history_files, threshold=0.25):
+    """
+    เทียบชั่วโมง PM/ปี ของอุปกรณ์ในไฟล์ input ปัจจุบัน กับไฟล์ input เก่า (history_files)
+    จับคู่ด้วยรหัสอุปกรณ์ (code) หรือรหัสเดิม (old_code) ที่ตรงกัน — ใช้ช่วยตรวจว่าข้อมูล
+    ที่กรอกใหม่ดูสมเหตุสมผลเมื่อเทียบกับอุปกรณ์ประเภทเดียวกันที่เคยประเมินไว้ก่อนหน้า
+
+    history_files: list ของ (name, path) ไฟล์ .xlsx เก่า
+    คืน list of dict เรียงจากค่าที่ต่างจากประวัติมากไปน้อย
+    """
+    cur_eq = calc_equipment_hours(load_input(current_path))
+
+    history = {}   # code/old_code (str) -> list of {"source", "annual_hours"}
+    for name, path in history_files:
+        try:
+            hcfg = load_input(path)
+        except Exception:
+            continue
+        for eq in calc_equipment_hours(hcfg):
+            for key in filter(None, [eq.get("code"), eq.get("old_code")]):
+                history.setdefault(str(key).strip(), []).append(
+                    {"source": name, "annual_hours": eq["annual_hours"]})
+
+    rows = []
+    for eq in cur_eq:
+        keys = [str(k).strip() for k in [eq.get("code"), eq.get("old_code")] if k]
+        samples = []
+        seen_sources = set()
+        for k in keys:
+            for s in history.get(k, []):
+                if s["source"] in seen_sources:
+                    continue
+                seen_sources.add(s["source"])
+                samples.append(s)
+        if not samples:
+            continue
+        avg = sum(s["annual_hours"] for s in samples) / len(samples)
+        cur_hr = eq["annual_hours"]
+        if avg <= 0 and cur_hr <= 0:
+            continue
+        dev = ((cur_hr - avg) / avg) if avg else 1.0
+        rows.append({
+            "code": eq["code"], "name": eq["name_th"] or eq["name_en"] or "",
+            "location": eq["location"],
+            "current_hours": round(cur_hr, 2),
+            "history_avg_hours": round(avg, 2),
+            "history_n": len(samples),
+            "history_sources": sorted(seen_sources),
+            "deviation_pct": round(dev * 100, 1),
+            "flag": abs(dev) >= threshold,
+        })
+    rows.sort(key=lambda r: -abs(r["deviation_pct"]))
+    return rows
+
+
 def balance_months(rows, passes=40):
     """
     กระจาย M3/M6/Annually ลงเดือน 1–12 ให้สม่ำเสมอ (LPT greedy + local search)

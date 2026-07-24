@@ -31,3 +31,11 @@ def check(input_path):
     """ตรวจข้อมูลก่อนรัน — คืน (errors, warnings)"""
     cfg = generate_v5.load_input(input_path)
     return generate_v5.validate(cfg)
+
+
+def compare(input_path, history_files, threshold=0.25):
+    """
+    เทียบชั่วโมง PM/ปี ของอุปกรณ์ในไฟล์ input กับไฟล์ input เก่า (history_files)
+    history_files: list ของ (name, path) ไฟล์ .xlsx เก่า (เช่นที่ดาวน์โหลดมาจาก Google Drive)
+    """
+    return generate_v5.compare_history(input_path, history_files, threshold)
