@@ -88,6 +88,14 @@ h1{font-size:clamp(24px,4.4vw,34px);font-weight:700;letter-spacing:-.01em;line-h
 .log .ok{color:#5EE0A4}.log .warn{color:#F5C35C}.log .err{color:#FF8A87}.log .dim{color:#7C87A3}
 
 .result{display:none}.result.show{display:block}
+.drive-row{margin-top:16px;padding-top:16px;border-top:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.drive-status{font-size:13px;color:var(--muted)}
+.drive-status.ok{color:var(--ok);font-weight:600}
+.drive-status.err{color:var(--err);font-weight:600}
+.btn.drive{background:#fff;color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+.btn.drive:hover:not(:disabled){border-color:var(--brand);color:var(--brand-dk)}
+.btn.drive:disabled{opacity:.5;cursor:not-allowed}
 .dl{display:flex;align-items:center;gap:13px;padding:14px 16px;border:1.5px solid var(--line);
   border-radius:12px;margin-bottom:9px;text-decoration:none;color:var(--ink);transition:.18s}
 .dl:hover{border-color:var(--brand);background:var(--brand-sf);transform:translateX(2px)}
@@ -164,12 +172,20 @@ code{font-size:.9em;background:#EFF2F8;padding:2px 6px;border-radius:6px}
   <h2><span class="ic" style="background:var(--ok)">3</span>ไฟล์ที่ได้</h2>
   <div id="files"></div>
   <div class="note" id="notes" hidden></div>
+  <div class="drive-row" id="driveRow" hidden>
+    <button class="btn drive" id="driveBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.71 3.5 1.15 15l3.43 6h6.57L4.6 9.5zm8.58 0-3.43 6L19.42 21H23l-6.56-13.5zM8.85 21h6.3l3.15-6H12z"/></svg>
+      <span id="driveBtnLabel">บันทึกไฟล์ขึ้น Google Drive</span>
+    </button>
+    <span class="drive-status" id="driveStatus"></span>
+  </div>
 </div>
 
 <footer>ทำงานในเบราว์เซอร์ของคุณทั้งหมด — ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ใด</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer onload="initDrive()"></script>
 <script>
 // ฐาน path — ทำงานได้ทั้ง /My-Web-App/ และ root
 const BASE = location.pathname.replace(/[^/]*$/, '');
@@ -362,11 +378,13 @@ $('run').addEventListener('click', async ()=>{
     const TYPE = {xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                   svg:'image/svg+xml', pdf:'application/pdf', docx:
                   'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
+    pendingUpload = [{ name: inName, blob: new Blob([inBytes], {type: TYPE.xlsx}) }];
     paths.forEach((p,i)=>{
       const data = pyodide.FS.readFile(p);
       const name = p.split('/').pop();
       const ext = name.split('.').pop().toLowerCase();
       const blob = new Blob([data], {type: TYPE[ext] || 'application/octet-stream'});
+      pendingUpload.push({ name, blob });
       const a = document.createElement('a');
       a.className = 'dl'; a.href = URL.createObjectURL(blob); a.download = name;
       a.innerHTML = '<span class="dl-ico' + (ext==='svg'?' svg':ext==='png'?' png':'') + '">' + ext.toUpperCase() + '</span>' +
@@ -378,11 +396,123 @@ $('run').addEventListener('click', async ()=>{
     });
     stage(5,'done'); $('fill').style.width='88%';
     setStatus('สร้างเอกสารเสร็จแล้ว'); $('result').classList.add('show');
+    driveSetStatus('');
   }catch(e){
     stage(3,'fail'); setStatus('สร้างเอกสารไม่สำเร็จ');
     log(String(e.message || e), 'err');
     fail('สร้างเอกสารไม่สำเร็จ', 'ดูรายละเอียดในบันทึกการทำงานด้านบน แล้วแก้ไฟล์ข้อมูลก่อนลองใหม่');
   }finally{ $('run').disabled = false; $('check').disabled = false; }
+});
+
+// ── Google Drive (ไม่บังคับ) ───────────────────────────────────────────────
+// วิธีเปิดใช้งาน:
+//   1) https://console.cloud.google.com/ → สร้างหรือเลือกโปรเจกต์
+//   2) APIs & Services → Library → เปิดใช้ "Google Drive API"
+//   3) APIs & Services → OAuth consent screen → ตั้งค่าเบื้องต้น
+//      (เลือก External ได้ถ้ายังไม่ verify — เพิ่มอีเมลตัวเองเป็น Test user ก็ใช้งานได้)
+//   4) APIs & Services → Credentials → Create Credentials → OAuth client ID → Web application
+//      ใส่ Authorized JavaScript origins = https://tanot713-sudo.github.io
+//   5) คัดลอก Client ID (ลงท้ายด้วย .apps.googleusercontent.com) มาใส่ค่าด้านล่างนี้
+//   ถ้าไม่ใส่ค่า ปุ่ม "บันทึกขึ้น Google Drive" จะซ่อนไปเอง ไม่กระทบการใช้งานส่วนอื่น
+const DRIVE_CLIENT_ID = '';                 // ← ใส่ Client ID ที่นี่
+const DRIVE_FOLDER_NAME = 'AMR_EstCost';    // โฟลเดอร์ปลายทางใน Drive (สร้างอัตโนมัติถ้ายังไม่มี)
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+
+let driveTokenClient = null, driveAccessToken = null, driveFolderId = null;
+let pendingUpload = [];   // [{name, blob}] — เติมทุกครั้งที่สร้างเอกสารเสร็จ (ไฟล์ input + output)
+
+function driveSetStatus(text, cls){
+  const el = $('driveStatus');
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'drive-status' + (cls ? ' ' + cls : '');
+}
+
+function initDrive(){
+  if (!DRIVE_CLIENT_ID){
+    // ยังไม่ได้ตั้งค่า Client ID — ซ่อนปุ่มไปเลย ไม่รบกวนคนที่ยังไม่ใช้ฟีเจอร์นี้
+    return;
+  }
+  $('driveRow').hidden = false;
+  if (!window.google || !google.accounts || !google.accounts.oauth2){
+    driveSetStatus('โหลด Google Identity Services ไม่สำเร็จ', 'err');
+    $('driveBtn').disabled = true;
+    return;
+  }
+  driveTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: DRIVE_CLIENT_ID,
+    scope: DRIVE_SCOPE,
+    callback: async (resp) => {
+      if (resp.error){ driveSetStatus('เชื่อมต่อไม่สำเร็จ: ' + resp.error, 'err'); return; }
+      driveAccessToken = resp.access_token;
+      await uploadPendingToDrive();
+    },
+  });
+}
+
+async function ensureDriveFolder(){
+  if (driveFolderId) return driveFolderId;
+  const q = encodeURIComponent(
+    `name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const listRes = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
+    { headers: { Authorization: 'Bearer ' + driveAccessToken } });
+  if (!listRes.ok) throw new Error('ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP ' + listRes.status + ')');
+  const listData = await listRes.json();
+  if (listData.files && listData.files.length){
+    driveFolderId = listData.files[0].id;
+    return driveFolderId;
+  }
+  const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + driveAccessToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
+  });
+  if (!createRes.ok) throw new Error('สร้างโฟลเดอร์ไม่สำเร็จ (HTTP ' + createRes.status + ')');
+  const createData = await createRes.json();
+  driveFolderId = createData.id;
+  return driveFolderId;
+}
+
+async function uploadFileToDrive(name, blob, folderId){
+  const metadata = { name, parents: [folderId] };
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+  form.append('file', blob);
+  const res = await fetch(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',
+    { method: 'POST', headers: { Authorization: 'Bearer ' + driveAccessToken }, body: form });
+  if (!res.ok) throw new Error('อัปโหลด ' + name + ' ไม่สำเร็จ (HTTP ' + res.status + ')');
+  return res.json();
+}
+
+async function uploadPendingToDrive(){
+  if (!pendingUpload.length){
+    driveSetStatus('ยังไม่มีไฟล์ให้บันทึก — สร้างเอกสารก่อน', 'err');
+    return;
+  }
+  $('driveBtn').disabled = true;
+  driveSetStatus('กำลังเชื่อมต่อโฟลเดอร์…', '');
+  try{
+    const folderId = await ensureDriveFolder();
+    let done = 0;
+    for (const item of pendingUpload){
+      driveSetStatus(`กำลังอัปโหลด (${done + 1}/${pendingUpload.length}) ${item.name}…`, '');
+      await uploadFileToDrive(item.name, item.blob, folderId);
+      done++;
+    }
+    driveSetStatus(`✅ บันทึกขึ้น Google Drive แล้ว ${done} ไฟล์ (โฟลเดอร์ "${DRIVE_FOLDER_NAME}")`, 'ok');
+  }catch(e){
+    driveSetStatus('❌ ' + (e.message || e), 'err');
+  }finally{
+    $('driveBtn').disabled = false;
+  }
+}
+
+$('driveBtn')?.addEventListener('click', () => {
+  if (!driveTokenClient){ driveSetStatus('ยังไม่ได้ตั้งค่า Google Drive สำหรับเครื่องมือนี้', 'err'); return; }
+  if (!pendingUpload.length){ driveSetStatus('ยังไม่มีไฟล์ให้บันทึก — สร้างเอกสารก่อน', 'err'); return; }
+  driveTokenClient.requestAccessToken({ prompt: driveAccessToken ? '' : 'consent' });
 });
 
 boot();
