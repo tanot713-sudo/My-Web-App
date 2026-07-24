@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>งานเอกสาร | AMR Asia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0C1626;--navy:#12233F;--rail:#3C5A80;--signal:#0F8C91;--live:#17B26A;
+  --steel:#6B7A90;--hair:#D5DBE4;--paper:#F4F6F9;--card:#FFF;
+  --sans:'IBM Plex Sans Thai',system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono','IBM Plex Sans Thai',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);
+  line-height:1.65;font-size:15px;padding:0 20px 80px}
+.wrap{max-width:840px;margin:0 auto}
+a{color:inherit}
+
+.crumb{padding:26px 0 0;font-family:var(--mono);font-size:12px;color:var(--steel)}
+.crumb a{color:var(--rail);text-decoration:none}
+.crumb a:hover{text-decoration:underline}
+.crumb span{margin:0 7px;color:var(--hair)}
+
+header{padding:22px 0 34px;border-bottom:2px solid var(--navy)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--signal);font-weight:600;margin-bottom:12px}
+h1{font-size:clamp(28px,5vw,40px);font-weight:700;letter-spacing:-.02em;
+  line-height:1.15;color:var(--navy)}
+.sub{margin-top:13px;color:var(--steel);max-width:58ch}
+
+/* ── รายการเครื่องมือ: สถานีบนเส้นทาง ── */
+.tools{position:relative;margin-top:38px;padding-left:34px}
+.spine{position:absolute;left:7px;top:14px;bottom:14px;width:3px;
+  background:linear-gradient(180deg,var(--navy),var(--signal));border-radius:2px}
+.tool{position:relative;margin-bottom:16px}
+.tool::before{content:'';position:absolute;left:-33px;top:26px;width:15px;height:15px;
+  border-radius:50%;background:var(--card);border:3px solid var(--signal);z-index:2}
+.tool.soon::before{border-color:var(--hair)}
+.tcard{display:block;background:var(--card);border:1px solid var(--hair);border-radius:3px;
+  padding:22px 24px;text-decoration:none;transition:border-color .18s,transform .18s}
+a.tcard:hover{border-color:var(--signal);transform:translateX(3px)}
+a.tcard:focus-visible{outline:3px solid var(--signal);outline-offset:3px}
+.tool.soon .tcard{opacity:.62;cursor:default}
+.thead{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-bottom:5px}
+.tname{font-size:18px;font-weight:700;color:var(--navy);letter-spacing:-.01em}
+.badge{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  font-weight:600;padding:3px 8px;border-radius:2px;background:#E7F5F5;color:#0A6B70}
+.badge.soon{background:#EDF0F4;color:var(--steel)}
+.tline{color:var(--rail);font-weight:500;font-size:14.5px;margin-bottom:8px}
+.tdesc{color:var(--steel);font-size:14px}
+.tmeta{margin-top:12px;padding-top:11px;border-top:1px solid var(--hair);
+  font-family:var(--mono);font-size:11.5px;color:var(--steel);
+  display:flex;gap:16px;flex-wrap:wrap}
+.go{color:var(--signal);font-weight:600}
+
+.info{margin-top:34px;border-left:3px solid var(--rail);background:#F0F3F7;
+  padding:16px 20px;font-size:13.5px;color:#33445C;border-radius:0 2px 2px 0}
+.info strong{display:block;margin-bottom:4px;color:var(--navy)}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--hair);
+  font-size:12.5px;color:var(--steel)}
+code{font-family:var(--mono);font-size:.92em;background:#E5EAF0;padding:1px 5px;border-radius:2px}
+@media(max-width:600px){
+  body{padding:0 16px 60px}
+  .tools{padding-left:26px}.spine{left:4px}
+  .tool::before{left:-27px;top:22px;width:12px;height:12px}
+  .tcard{padding:18px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="crumb"><a href="./">หน้าแรก</a><span>/</span>งานที่รับผิดชอบ<span>/</span>งานเอกสาร</nav>
+
+<header>
+  <div class="eyebrow">AMR Asia · Engineering &amp; Estimation</div>
+  <h1>งานเอกสาร</h1>
+  <p class="sub">เครื่องมือสร้างเอกสารงานวิศวกรรม — วางไฟล์ข้อมูล รับเอกสารพร้อมใช้ ทำงานในเบราว์เซอร์ทั้งหมด ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ใด</p>
+</header>
+
+<div class="tools">
+  <div class="spine"></div>
+  <div id="list"></div>
+</div>
+
+<div class="info">
+  <strong>เพิ่มเครื่องมือใหม่</strong>
+  สร้างโฟลเดอร์ใน <code>tools/</code> ใส่ <code>tool_run.py</code> ที่มีฟังก์ชัน <code>run(input_path, out_dir)</code>
+  แล้วเพิ่มอีก 1 บล็อกใน <code>tools/tools.json</code> — หน้านี้กับหน้ารันจะรู้จักเครื่องมือใหม่เอง ไม่ต้องแก้ HTML
+</div>
+
+<footer>AMR Asia — งานวิศวกรรมและประมาณราคา</footer>
+</div>
+
+<script>
+// ฐาน path — ทำงานได้ทั้ง /My-Web-App/ และ root
+const BASE = location.pathname.replace(/[^/]*$/, '');
+const STATUS = {
+  ready: {label:'พร้อมใช้', cls:''},
+  beta:  {label:'ทดลองใช้', cls:''},
+  soon:  {label:'กำลังพัฒนา', cls:'soon'}
+};
+
+fetch(BASE + 'tools/tools.json')
+  .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(cfg => {
+    const list = document.getElementById('list');
+    cfg.tools.forEach(t => {
+      const st = STATUS[t.status] || STATUS.soon;
+      const soon = t.status === 'soon';
+      const el = document.createElement('div');
+      el.className = 'tool' + (soon ? ' soon' : '');
+      const inner =
+        '<div class="thead">' +
+          '<span class="tname">' + t.name + '</span>' +
+          '<span class="badge ' + st.cls + '">' + st.label + '</span>' +
+        '</div>' +
+        '<div class="tline">' + (t.tagline || '') + '</div>' +
+        '<div class="tdesc">' + (t.desc || '') + '</div>' +
+        '<div class="tmeta">' +
+          '<span>' + (t.scope || '') + '</span>' +
+          (soon ? '' : '<span class="go">เปิดเครื่องมือ →</span>') +
+        '</div>';
+      if (soon) {
+        el.innerHTML = '<div class="tcard">' + inner + '</div>';
+      } else {
+        el.innerHTML = '<a class="tcard" href="' + BASE + 'run.html?tool=' + encodeURIComponent(t.id) + '">' + inner + '</a>';
+      }
+      list.appendChild(el);
+    });
+  })
+  .catch(e => {
+    document.getElementById('list').innerHTML =
+      '<div class="tcard"><div class="tname">โหลดรายการเครื่องมือไม่ได้</div>' +
+      '<div class="tdesc" style="margin-top:6px">ตรวจว่ามีไฟล์ <code>tools/tools.json</code> — ' + e.message + '</div></div>';
+  });
+</script>
+</body>
+</html>

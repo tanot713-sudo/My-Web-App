@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>เครื่องมืองานเอกสาร | AMR Asia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0C1626;--navy:#12233F;--rail:#3C5A80;--signal:#0F8C91;--live:#17B26A;
+  --amber:#B5761B;--alarm:#C0392B;--steel:#6B7A90;--hair:#D5DBE4;--paper:#F4F6F9;--card:#FFF;
+  --sans:'IBM Plex Sans Thai',system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono','IBM Plex Sans Thai',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);
+  line-height:1.65;font-size:15px;padding:0 20px 80px}
+.wrap{max-width:840px;margin:0 auto}
+
+.crumb{padding:26px 0 0;font-family:var(--mono);font-size:12px;color:var(--steel)}
+.crumb a{color:var(--rail);text-decoration:none}
+.crumb a:hover{text-decoration:underline}
+.crumb span{margin:0 7px;color:var(--hair)}
+
+header{padding:22px 0 32px;border-bottom:2px solid var(--navy)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--signal);font-weight:600;margin-bottom:12px}
+h1{font-size:clamp(26px,4.6vw,38px);font-weight:700;letter-spacing:-.02em;
+  line-height:1.18;color:var(--navy)}
+.sub{margin-top:13px;color:var(--steel);max-width:58ch}
+
+/* แถบสถานะแบบเส้นทางรถไฟ */
+.line{margin:36px 0 6px;position:relative;padding:24px 0 4px}
+.track,.track-fill{position:absolute;top:36px;height:3px;border-radius:2px}
+.track{left:6%;right:6%;background:var(--hair)}
+.track-fill{left:6%;width:0;background:linear-gradient(90deg,var(--navy),var(--signal));
+  transition:width .55s cubic-bezier(.4,0,.2,1)}
+.stations{display:flex;justify-content:space-between;position:relative}
+.stn{flex:1;text-align:center}
+.dot{width:15px;height:15px;border-radius:50%;background:var(--card);border:3px solid var(--hair);
+  margin:5px auto 11px;transition:all .35s ease;position:relative;z-index:2}
+.stn.on .dot{border-color:var(--signal);box-shadow:0 0 0 5px rgba(15,140,145,.14)}
+.stn.on .dot::after{content:'';position:absolute;inset:2px;border-radius:50%;
+  background:var(--signal);animation:pulse 1.3s ease-in-out infinite}
+.stn.done .dot{border-color:var(--live);background:var(--live)}
+.stn.fail .dot{border-color:var(--alarm);background:var(--alarm)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.stn-label{font-size:11.5px;color:var(--steel);font-weight:500;line-height:1.35;padding:0 3px}
+.stn.on .stn-label,.stn.done .stn-label{color:var(--navy);font-weight:600}
+@media(prefers-reduced-motion:reduce){.stn.on .dot::after{animation:none}.track-fill{transition:none}}
+
+.card{background:var(--card);border:1px solid var(--hair);border-radius:3px;padding:26px;margin-top:22px}
+.card h2{font-size:13px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--rail);font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.card h2::after{content:'';flex:1;height:1px;background:var(--hair)}
+
+.drop{border:2px dashed var(--hair);border-radius:3px;padding:42px 24px;text-align:center;
+  cursor:pointer;transition:border-color .2s,background .2s;background:#FBFCFD}
+.drop:hover,.drop.over{border-color:var(--signal);background:#F2F9F9}
+.drop:focus-visible{outline:3px solid var(--signal);outline-offset:3px}
+.drop.has{border-style:solid;border-color:var(--live);background:#F3FBF6}
+.drop-icon{color:var(--rail);margin-bottom:12px}
+.drop-main{font-weight:600;color:var(--navy);font-size:16px}
+.drop-hint{font-size:13px;color:var(--steel);margin-top:6px}
+.file-name{font-family:var(--mono);font-size:13.5px;color:var(--navy);word-break:break-all}
+
+.btn{font-family:var(--sans);font-size:15px;font-weight:600;padding:13px 28px;border:none;
+  border-radius:2px;cursor:pointer;background:var(--navy);color:#fff;transition:background .18s;
+  display:inline-flex;align-items:center;gap:9px}
+.btn:hover:not(:disabled){background:#1B3357}
+.btn:disabled{background:#B8C2D0;cursor:not-allowed}
+.btn:focus-visible{outline:3px solid var(--signal);outline-offset:3px}
+.btn.ghost{background:transparent;color:var(--navy);border:1.5px solid var(--hair)}
+.btn.ghost:hover:not(:disabled){background:var(--paper);border-color:var(--rail)}
+.btn-row{margin-top:20px;display:flex;gap:12px;flex-wrap:wrap}
+
+.log{font-family:var(--mono);font-size:12.5px;line-height:1.75;background:var(--navy);
+  color:#C9D6E5;padding:18px 20px;border-radius:3px;max-height:340px;overflow-y:auto;
+  white-space:pre-wrap;word-break:break-word}
+.log:empty::before{content:'รอเริ่มทำงาน…';color:#5A7395}
+.log .ok{color:#5DD9A0}.log .warn{color:#E8B54D}.log .err{color:#F08A80}.log .dim{color:#7A90AB}
+
+.result{display:none}.result.show{display:block}
+.dl{display:flex;align-items:center;gap:14px;padding:15px 18px;border:1px solid var(--hair);
+  border-radius:3px;margin-bottom:10px;text-decoration:none;color:var(--ink);
+  transition:border-color .18s,background .18s}
+.dl:hover{border-color:var(--signal);background:#F7FBFB}
+.dl:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+.dl-ico{width:38px;height:38px;flex-shrink:0;border-radius:2px;background:var(--navy);color:#fff;
+  display:grid;place-items:center;font-family:var(--mono);font-size:10px;font-weight:600}
+.dl-ico.svg{background:var(--signal)}
+.dl-name{font-weight:600;font-size:14.5px;word-break:break-all}
+.dl-meta{font-family:var(--mono);font-size:11.5px;color:var(--steel)}
+
+.note{border-left:3px solid var(--amber);background:#FDF8EF;padding:14px 18px;
+  font-size:13.5px;color:#6B4A0F;margin-top:18px;border-radius:0 2px 2px 0}
+.note.err{border-color:var(--alarm);background:#FDF3F2;color:#8C2B20}
+.note strong{display:block;margin-bottom:3px}
+.note ul{margin:6px 0 0 18px}
+footer{margin-top:42px;padding-top:19px;border-top:1px solid var(--hair);font-size:12.5px;color:var(--steel)}
+code{font-family:var(--mono);font-size:.92em;background:#EBEFF4;padding:1px 5px;border-radius:2px}
+@media(max-width:600px){
+  body{padding:0 16px 60px}.card{padding:20px}
+  .stn-label{font-size:10px}.track,.track-fill{left:8%;right:8%}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="crumb"><a href="./">หน้าแรก</a><span>/</span><a href="documents.html">งานเอกสาร</a><span>/</span><span id="crumbName">…</span></nav>
+
+<header>
+  <div class="eyebrow" id="scope">AMR Asia</div>
+  <h1 id="title">กำลังโหลด…</h1>
+  <p class="sub" id="desc"></p>
+</header>
+
+<div class="line" aria-hidden="true">
+  <div class="track"></div><div class="track-fill" id="fill"></div>
+  <div class="stations">
+    <div class="stn" data-s="0"><div class="dot"></div><div class="stn-label">เตรียมระบบ</div></div>
+    <div class="stn" data-s="1"><div class="dot"></div><div class="stn-label">โหลดสูตร</div></div>
+    <div class="stn" data-s="2"><div class="dot"></div><div class="stn-label">อ่านข้อมูล</div></div>
+    <div class="stn" data-s="3"><div class="dot"></div><div class="stn-label">คำนวณ</div></div>
+    <div class="stn" data-s="4"><div class="dot"></div><div class="stn-label">เขียนไฟล์</div></div>
+    <div class="stn" data-s="5"><div class="dot"></div><div class="stn-label">เสร็จ</div></div>
+  </div>
+</div>
+<p class="sub" id="status" style="margin-top:4px" role="status" aria-live="polite">กำลังเตรียมระบบ…</p>
+
+<div class="card">
+  <h2>ไฟล์ข้อมูล</h2>
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="เลือกไฟล์ข้อมูล">
+    <div class="drop-icon">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/>
+        <path d="M3 15v3a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-3"/>
+      </svg>
+    </div>
+    <div class="drop-main" id="dropMain">ลากไฟล์มาวาง หรือคลิกเพื่อเลือก</div>
+    <div class="drop-hint" id="dropHint"></div>
+  </div>
+  <input type="file" id="file" hidden>
+  <div class="btn-row">
+    <button class="btn" id="run" disabled>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+      <span id="runLabel">สร้างเอกสาร</span>
+    </button>
+    <button class="btn ghost" id="check" disabled hidden>ตรวจข้อมูลก่อน</button>
+  </div>
+</div>
+
+<div class="card"><h2>บันทึกการทำงาน</h2><div class="log" id="log"></div></div>
+
+<div class="card result" id="result">
+  <h2>ไฟล์ที่ได้</h2>
+  <div id="files"></div>
+  <div class="note" id="notes" hidden></div>
+</div>
+
+<footer>ทำงานทั้งหมดในเบราว์เซอร์ของคุณ — ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ใด · Python ผ่าน Pyodide</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+// ฐาน path — ทำงานได้ทั้ง /My-Web-App/ และ root
+const BASE = location.pathname.replace(/[^/]*$/, '');
+const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+const HOME = '/home/pyodide';
+const $ = id => document.getElementById(id);
+const logEl = $('log');
+let pyodide = null, tool = null, ready = false, inBytes = null, inName = null;
+
+function log(msg, cls){
+  const s = document.createElement('span');
+  if (cls) s.className = cls;
+  s.textContent = msg + '\n';
+  logEl.appendChild(s); logEl.scrollTop = logEl.scrollHeight;
+}
+const pyline = t => log(t,
+  /❌|⛔|Error|Traceback/.test(t) ? 'err' :
+  /⚠️/.test(t) ? 'warn' :
+  /✅|🖼️/.test(t) ? 'ok' : '');
+function stage(n, state){
+  document.querySelectorAll('.stn').forEach(el=>{
+    const i = +el.dataset.s;
+    el.classList.remove('on','done','fail');
+    if (i < n) el.classList.add('done'); else if (i === n) el.classList.add(state || 'on');
+  });
+  $('fill').style.width = (n/5*88) + '%';
+}
+const setStatus = t => $('status').textContent = t;
+function fail(title, msg){
+  const n = document.createElement('div');
+  n.className = 'note err';
+  n.innerHTML = '<strong>' + title + '</strong>' + msg;
+  $('result').classList.add('show'); $('files').innerHTML = '';
+  $('files').appendChild(n); $('notes').hidden = true;
+}
+
+async function boot(){
+  const id = new URLSearchParams(location.search).get('tool');
+  try{
+    const cfg = await (await fetch(BASE + 'tools/tools.json')).json();
+    tool = cfg.tools.find(t => t.id === id) || cfg.tools[0];
+    if (!tool) throw new Error('ไม่พบเครื่องมือ');
+  }catch(e){
+    $('title').textContent = 'ไม่พบเครื่องมือ';
+    $('desc').innerHTML = 'ตรวจว่ามีไฟล์ <code>tools/tools.json</code> และมีรายการ id นี้อยู่ — ' + e.message;
+    setStatus('หยุดทำงาน'); stage(0,'fail'); return;
+  }
+
+  document.title = tool.name + ' | AMR Asia';
+  $('crumbName').textContent = tool.name;
+  $('title').textContent = tool.name;
+  $('desc').textContent = tool.desc || '';
+  $('scope').textContent = 'AMR Asia · ' + (tool.scope || 'งานเอกสาร');
+  $('dropHint').innerHTML = 'ไฟล์ <code>' + (tool.inputName || tool.accept) + '</code>' +
+    (tool.inputHint ? ' — ' + tool.inputHint : '');
+  $('file').accept = tool.accept || '';
+  if (tool.hasCheck) $('check').hidden = false;
+  if (tool.notes && tool.notes.length){
+    $('notes').hidden = false;
+    $('notes').innerHTML = '<strong>ตรวจก่อนนำไปใช้</strong><ul>' +
+      tool.notes.map(n => '<li>' + n + '</li>').join('') + '</ul>';
+  }
+
+  try{
+    stage(0);
+    log('โหลด Python runtime (ครั้งแรกใช้เวลาสักครู่)…', 'dim');
+    pyodide = await loadPyodide({indexURL: PYODIDE});
+    pyodide.setStdout({batched: pyline});
+    pyodide.setStderr({batched: t => log(t,'err')});
+
+    if (tool.packages && tool.packages.length){
+      log('ติดตั้ง ' + tool.packages.join(', ') + '…', 'dim');
+      await pyodide.loadPackage('micropip');
+      const mp = pyodide.pyimport('micropip');
+      for (const p of tool.packages) await mp.install(p);
+    }
+
+    stage(1); setStatus('กำลังโหลดสูตรคำนวณ…');
+    for (const f of [...(tool.modules||[]), ...(tool.assets||[])]){
+      const r = await fetch(BASE + tool.dir + f);
+      if (!r.ok) throw new Error('โหลด ' + f + ' ไม่ได้ (HTTP ' + r.status + ') — ตรวจว่าไฟล์อยู่ใน ' + tool.dir);
+      pyodide.FS.writeFile(HOME + '/' + f, new Uint8Array(await r.arrayBuffer()));
+    }
+    await pyodide.runPythonAsync(
+      'import sys, os\nos.chdir("' + HOME + '")\nsys.path.insert(0, "' + HOME + '")\nimport tool_run\n');
+
+    ready = true; stage(1,'done');
+    setStatus('พร้อมใช้งาน — เลือกไฟล์ข้อมูล');
+    log('พร้อมใช้งาน', 'ok');
+    enable();
+  }catch(e){
+    stage(0,'fail'); setStatus('เตรียมระบบไม่สำเร็จ');
+    log(String(e.message || e), 'err');
+    fail('เตรียมระบบไม่สำเร็จ', String(e.message || e));
+  }
+}
+function enable(){
+  if (ready && inBytes){ $('run').disabled = false; $('check').disabled = false; }
+}
+
+const drop = $('drop'), fileInput = $('file');
+drop.addEventListener('click', ()=>fileInput.click());
+drop.addEventListener('keydown', e=>{
+  if (e.key==='Enter'||e.key===' '){ e.preventDefault(); fileInput.click(); }});
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev, e=>{e.preventDefault(); drop.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev, e=>{e.preventDefault(); drop.classList.remove('over');}));
+drop.addEventListener('drop', e=>{ if(e.dataTransfer.files[0]) take(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', e=>{ if(e.target.files[0]) take(e.target.files[0]); });
+
+async function take(f){
+  const ext = (tool.accept || '').toLowerCase();
+  if (ext && !f.name.toLowerCase().endsWith(ext)){
+    $('dropHint').textContent = 'ต้องเป็นไฟล์ ' + ext + ' เท่านั้น'; return;
+  }
+  inName = f.name; inBytes = new Uint8Array(await f.arrayBuffer());
+  drop.classList.add('has');
+  $('dropMain').innerHTML = '<span class="file-name">' + f.name + '</span>';
+  $('dropHint').textContent = (f.size/1024).toFixed(0) + ' KB — คลิกเพื่อเปลี่ยนไฟล์';
+  enable();
+}
+
+$('check').addEventListener('click', async ()=>{
+  logEl.innerHTML = '';
+  pyodide.FS.writeFile(HOME + '/' + inName, inBytes);
+  log('ตรวจ ' + inName, 'dim');
+  try{
+    await pyodide.runPythonAsync(
+      'import importlib, tool_run\nimportlib.reload(tool_run)\n' +
+      'e, w = tool_run.check(' + JSON.stringify(inName) + ')\n' +
+      'for x in w: print("⚠️ " + x)\n' +
+      'for x in e: print("❌ " + x)\n' +
+      'if not e and not w: print("✅ ข้อมูลครบถ้วน")\n');
+  }catch(e){ log(String(e), 'err'); }
+});
+
+$('run').addEventListener('click', async ()=>{
+  $('run').disabled = true; $('check').disabled = true;
+  logEl.innerHTML = ''; $('result').classList.remove('show'); $('files').innerHTML = '';
+  try{
+    pyodide.FS.writeFile(HOME + '/' + inName, inBytes);
+    stage(2); setStatus('กำลังอ่านข้อมูล…');
+    await new Promise(r=>setTimeout(r,40));
+    stage(3); setStatus('กำลังคำนวณ…');
+    await new Promise(r=>setTimeout(r,40));
+
+    const res = await pyodide.runPythonAsync(
+      'import importlib, shutil, os, tool_run\n' +
+      'importlib.reload(tool_run)\n' +
+      'shutil.rmtree("' + HOME + '/out", ignore_errors=True)\n' +
+      'os.makedirs("' + HOME + '/out", exist_ok=True)\n' +
+      'tool_run.run(' + JSON.stringify(inName) + ', "' + HOME + '/out")\n');
+
+    stage(4); setStatus('กำลังเขียนไฟล์…');
+    const paths = res.toJs(); res.destroy();
+    if (!paths || !paths.length) throw new Error('ไม่มีไฟล์ผลลัพธ์ — ดูรายละเอียดในบันทึกการทำงาน');
+
+    const TYPE = {xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                  svg:'image/svg+xml', pdf:'application/pdf', docx:
+                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
+    paths.forEach((p,i)=>{
+      const data = pyodide.FS.readFile(p);
+      const name = p.split('/').pop();
+      const ext = name.split('.').pop().toLowerCase();
+      const blob = new Blob([data], {type: TYPE[ext] || 'application/octet-stream'});
+      const a = document.createElement('a');
+      a.className = 'dl'; a.href = URL.createObjectURL(blob); a.download = name;
+      a.innerHTML = '<span class="dl-ico' + (ext==='svg'?' svg':'') + '">' + ext.toUpperCase() + '</span>' +
+        '<span><span class="dl-name">' + name + '</span><br>' +
+        '<span class="dl-meta">' + (data.length/1024).toFixed(0) + ' KB' +
+        (i===0 ? ' · ไฟล์หลัก' : '') + '</span></span>';
+      $('files').appendChild(a);
+      if (i===0) setTimeout(()=>a.click(), 350);
+    });
+    stage(5,'done'); $('fill').style.width='88%';
+    setStatus('สร้างเอกสารเสร็จแล้ว'); $('result').classList.add('show');
+  }catch(e){
+    stage(3,'fail'); setStatus('สร้างเอกสารไม่สำเร็จ');
+    log(String(e.message || e), 'err');
+    fail('สร้างเอกสารไม่สำเร็จ', 'ดูรายละเอียดในบันทึกการทำงานด้านบน แล้วแก้ไฟล์ข้อมูลก่อนลองใหม่');
+  }finally{ $('run').disabled = false; $('check').disabled = false; }
+});
+
+boot();
+</script>
+</body>
+</html>
