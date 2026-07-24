@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ประเมินราคางาน PM/CM | OME</title>
+    <link rel="icon" type="image/svg+xml" href="/My-Web-App/favicon.svg" />
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5f3ef;
+            --text-h: #0a0a0a;
+            --text: #6b6375;
+            --accent: #3b6bff;
+            --border: #d9d4c9;
+            --code-bg: #eae7e1;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            color: var(--text-h);
+            font-family: 'Kanit', system-ui, sans-serif;
+            padding: 24px;
+        }
+        .card {
+            width: 100%;
+            max-width: 480px;
+            background: linear-gradient(160deg, #ffffffd9, #eae7e1b3);
+            border: 1px solid #fff9;
+            border-radius: 26px;
+            box-shadow: inset 0 1px 1px #fffc, 0 12px 24px -8px #3848802e, 0 2px 6px #38488014;
+            padding: 40px 36px;
+            text-align: center;
+        }
+        .icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #1f3fd8, #3b6bff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: #fff;
+        }
+        h1 {
+            font-size: 1.4em;
+            font-weight: 700;
+            margin: 0 0 10px;
+        }
+        .badge {
+            display: inline-block;
+            font-size: 0.75em;
+            font-weight: 600;
+            color: var(--accent);
+            background: #3b6bff1a;
+            border: 1px solid #3b6bff80;
+            border-radius: 999px;
+            padding: 4px 14px;
+            margin-bottom: 16px;
+        }
+        p {
+            color: var(--text);
+            line-height: 1.7;
+            margin: 0 0 28px;
+        }
+        a.back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent);
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9em;
+            padding: 12px 24px;
+            border-radius: 999px;
+            transition: transform 0.15s;
+        }
+        a.back:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">🏗️</div>
+        <span class="badge">กำลังพัฒนา</span>
+        <h1>ประเมินราคางาน PM/CM</h1>
+        <p>
+            หน้านี้อยู่ระหว่างการพัฒนา เร็วๆ นี้จะสามารถใช้ประเมินราคางาน
+            บริหารจัดการโครงการ (PM) และควบคุมงานก่อสร้าง (CM) ได้จากตรงนี้
+        </p>
+        <a class="back" href="/My-Web-App/">← กลับหน้าหลัก</a>
+    </div>
+</body>
+</html>
