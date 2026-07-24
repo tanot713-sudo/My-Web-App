@@ -10,7 +10,8 @@
       "status": "ready",
       "dir": "est-cost/",
       "packages": [
-        "openpyxl"
+        "openpyxl",
+        "Pillow"
       ],
       "modules": [
         "routing.py",
