@@ -97,6 +97,48 @@
             return out;
         }
 
+        // ── ตรวจคำตอบแบบใกล้เคียง (ไม่ต้องพิมพ์ตรง 100%) ───────────────────────
+        function normalizeAnswer(s) {
+            return String(s || '').toLowerCase().trim()
+                .replace(/[.,!?;:'"“”‘’、。？！ๆ]/g, '')
+                .replace(/\s+/g, ' ');
+        }
+        function levenshtein(a, b) {
+            const m = a.length, n = b.length;
+            if (!m) return n; if (!n) return m;
+            let prev = Array.from({ length: n + 1 }, (_, i) => i);
+            for (let i = 1; i <= m; i++) {
+                const cur = [i];
+                for (let j = 1; j <= n; j++) {
+                    cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+                }
+                prev = cur;
+            }
+            return prev[n];
+        }
+        function gradeAnswer(typed, target) {
+            const a = normalizeAnswer(typed), b = normalizeAnswer(target);
+            if (!a) return 'wrong';
+            if (a === b) return 'correct';
+            const sim = 1 - levenshtein(a, b) / Math.max(a.length, b.length);
+            return sim >= 0.9 ? 'correct' : sim >= 0.7 ? 'almost' : 'wrong';
+        }
+
+        // ── คิวคำที่ตอบผิด (โผล่บนหน้าสตรีมให้กลับมาฝึกซ้ำ) ─────────────────────
+        function loadWrong() {
+            try { return JSON.parse(localStorage.getItem('lang-practice:wrong') || '{}'); } catch { return {}; }
+        }
+        function saveWrong(v) { localStorage.setItem('lang-practice:wrong', JSON.stringify(v)); }
+        function mergeWrong(a, b) {
+            const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+            const out = {};
+            keys.forEach(k => {
+                const va = a && a[k], vb = b && b[k];
+                out[k] = !va ? vb : !vb ? va : ((va.count || 0) >= (vb.count || 0) ? va : vb);
+            });
+            return out;
+        }
+
         const ANNOUNCEMENTS = [
             { date: 'วันนี้', text: 'ยินดีต้อนรับสู่ Language Practice — เลือกภาษาที่สนใจในแท็บ "ฝึกฝน" แล้วเริ่มพิมพ์คำแปลได้เลย' },
             { date: 'เร็วๆ นี้', text: 'จะทยอยเพิ่มหมวดวลีใหม่ๆ และภาษาเพิ่มเติมเรื่อยๆ' },
@@ -202,10 +244,13 @@
             const [category, setCategory] = useState(Object.keys(LANGS[initialLang].phrases)[0]);
             const [index, setIndex] = useState(0);
             const [typed, setTyped] = useState('');
-            const [result, setResult] = useState(null); // 'correct' | 'wrong' | null
+            const [result, setResult] = useState(null); // 'correct' | 'almost' | 'wrong' | null
+            const [mode, setMode] = useState('translate'); // 'translate' | 'dictation' | 'flashcard'
+            const [flashFlipped, setFlashFlipped] = useState(false);
             const [xp, setXp] = useState(loadXp());
             const [progress, setProgress] = useState(loadProgress());
             const [notes, setNotes] = useState(loadNotes());
+            const [wrong, setWrong] = useState(loadWrong());
             const [syncing, setSyncing] = useState(false);
             const [syncStatus, setSyncStatus] = useState('');
             const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -215,6 +260,7 @@
             useEffect(() => { saveXp(xp); }, [xp]);
             useEffect(() => { saveProgress(progress); }, [progress]);
             useEffect(() => { saveNotes(notes); }, [notes]);
+            useEffect(() => { saveWrong(wrong); }, [wrong]);
 
             const updateNote = (text) => setNotes(n => ({ ...n, [langId]: { text, updatedAt: Date.now() } }));
 
@@ -231,13 +277,15 @@
                     const mergedXp = Math.max(xp, remote?.xp || 0);
                     const mergedProgress = mergeProgress(remote?.progress, progress);
                     const mergedNotes = mergeNotes(remote?.notes, notes);
+                    const mergedWrong = mergeWrong(remote?.wrong, wrong);
 
                     setXp(mergedXp);
                     setProgress(mergedProgress);
                     setNotes(mergedNotes);
+                    setWrong(mergedWrong);
 
                     await DriveSync.uploadFile(DRIVE_FILE_NAME, folderId, existing?.id,
-                        { xp: mergedXp, progress: mergedProgress, notes: mergedNotes, savedAt: new Date().toISOString() });
+                        { xp: mergedXp, progress: mergedProgress, notes: mergedNotes, wrong: mergedWrong, savedAt: new Date().toISOString() });
                     setSyncStatus('✅ ซิงก์สำเร็จ');
                 } catch (e) {
                     setSyncStatus('❌ ' + (e.message || e));
@@ -267,12 +315,13 @@
                 return { id, title: LANGS[id].title, done: cats.filter(c => isCategoryDone(id, c)).length, total: cats.length };
             });
 
-            const goPractice = (id, cat) => {
+            const resetQuestion = () => { setTyped(''); setResult(null); setFlashFlipped(false); };
+
+            const goPractice = (id, cat, idx) => {
                 setLangId(id);
                 setCategory(cat);
-                setIndex(0);
-                setTyped('');
-                setResult(null);
+                setIndex(idx || 0);
+                resetQuestion();
                 setView('practice');
                 setMobileNavOpen(false);
             };
@@ -281,8 +330,7 @@
                 setLangId(id);
                 setCategory(Object.keys(LANGS[id].phrases)[0]);
                 setIndex(0);
-                setTyped('');
-                setResult(null);
+                resetQuestion();
                 setView('practice');
                 setMobileNavOpen(false);
             };
@@ -290,30 +338,51 @@
             const selectCategory = (c) => {
                 setCategory(c);
                 setIndex(0);
-                setTyped('');
-                setResult(null);
+                resetQuestion();
             };
+
+            const selectMode = (m) => {
+                setMode(m);
+                resetQuestion();
+            };
+
+            const markProgress = (ok) => {
+                if (ok) setProgress(p => {
+                    const key = `${langId}:${category}`;
+                    const arr = (p[key] || []).slice();
+                    arr[index] = true;
+                    return { ...p, [key]: arr };
+                });
+            };
+            const wrongKey = `${langId}::${category}::${index}`;
+            const recordWrong = () => setWrong(w => ({
+                ...w, [wrongKey]: { langId, cat: category, idx: index, count: ((w[wrongKey] || {}).count || 0) + 1, last: Date.now() }
+            }));
+            const clearWrong = () => setWrong(w => {
+                if (!w[wrongKey]) return w;
+                const { [wrongKey]: _, ...rest } = w;
+                return rest;
+            });
 
             const checkAnswer = () => {
                 if (!typed.trim()) return;
-                const ok = typed.trim().toLowerCase() === current.target.trim().toLowerCase();
-                setResult(ok ? 'correct' : 'wrong');
-                if (ok) {
-                    setXp(x => x + 20);
-                    setProgress(p => {
-                        const key = `${langId}:${category}`;
-                        const arr = (p[key] || []).slice();
-                        arr[index] = true;
-                        return { ...p, [key]: arr };
-                    });
-                }
+                const grade = gradeAnswer(typed, current.target);
+                setResult(grade);
+                if (grade === 'correct') { setXp(x => x + 20); markProgress(true); clearWrong(); }
+                else if (grade === 'almost') { setXp(x => x + 10); }
+                else recordWrong();
+            };
+
+            const markFlashcard = (remembered) => {
+                if (remembered) { setXp(x => x + 10); markProgress(true); clearWrong(); }
+                else recordWrong();
+                nextPhrase();
             };
 
             const nextPhrase = () => {
                 setIndex(i => (i + 1) % list.length);
-                setTyped('');
-                setResult(null);
-                setTimeout(() => inputRef.current && inputRef.current.focus(), 0);
+                resetQuestion();
+                if (mode !== 'flashcard') setTimeout(() => inputRef.current && inputRef.current.focus(), 0);
             };
 
             return (
@@ -426,6 +495,30 @@
                                     ))}
                                 </div>
 
+                                {Object.keys(wrong).length > 0 && (
+                                    <div className="bg-white rounded-xl border border-gray-200 p-5">
+                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><XCircle /> คำที่เคยตอบผิด ({Object.keys(wrong).length})</h3>
+                                        <p className="text-xs text-gray-400 mb-4">แตะเพื่อกลับไปฝึกคำนั้นซ้ำ — ตอบถูกเมื่อไหร่จะหายจากลิสต์นี้</p>
+                                        <div className="space-y-1">
+                                            {Object.values(wrong)
+                                                .sort((a, b) => (b.count || 0) - (a.count || 0))
+                                                .slice(0, 6)
+                                                .map(w => {
+                                                    const phrase = (LANGS[w.langId] && LANGS[w.langId].phrases[w.cat] || [])[w.idx];
+                                                    if (!phrase) return null;
+                                                    return (
+                                                        <button key={`${w.langId}::${w.cat}::${w.idx}`}
+                                                            onClick={() => goPractice(w.langId, w.cat, w.idx)}
+                                                            className="w-full flex items-center justify-between gap-2 p-2.5 rounded-lg hover:bg-gray-50 text-left">
+                                                            <span className="text-sm text-gray-700 truncate">{phrase.target} <span className="text-gray-400">— {phrase.thai}</span></span>
+                                                            <span className="text-[10px] font-bold text-red-400 shrink-0">ผิด {w.count} ครั้ง · {LANGS[w.langId].title}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="bg-white rounded-xl border border-gray-200 p-5">
                                         <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><BookOpen /> หมวดที่ยังไม่เสร็จ</h3>
@@ -514,56 +607,110 @@
 
                             <div className="w-full md:w-1/2 md:h-full bg-white p-4 sm:p-8 md:overflow-y-auto">
                                 <div className="animate-fade-in">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <span className="bg-brandLight text-brand text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">พิมพ์คำแปล</span>
+                                    <div className="flex items-center justify-between gap-2 flex-wrap mb-6">
+                                        <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold">
+                                            <button onClick={() => selectMode('translate')}
+                                                className={`px-3 py-1.5 ${mode === 'translate' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>พิมพ์คำแปล</button>
+                                            <button onClick={() => selectMode('dictation')}
+                                                className={`px-3 py-1.5 ${mode === 'dictation' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>ฟังแล้วพิมพ์</button>
+                                            <button onClick={() => selectMode('flashcard')}
+                                                className={`px-3 py-1.5 ${mode === 'flashcard' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>การ์ดคำ</button>
+                                        </div>
                                         <span className="text-sm font-semibold text-gray-500">ข้อ {index + 1} จาก {list.length}</span>
                                     </div>
 
-                                    <h3 className="text-lg font-semibold text-gray-800 mb-2 leading-snug">
-                                        แปลประโยคนี้เป็นภาษา{lang.title}:
-                                    </h3>
-                                    <p className="text-2xl font-bold text-gray-900 mb-6">{current.thai}</p>
-
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <input
-                                            ref={inputRef}
-                                            type="text"
-                                            value={typed}
-                                            onChange={e => setTyped(e.target.value)}
-                                            onKeyDown={e => e.key === 'Enter' && !result && checkAnswer()}
-                                            disabled={result !== null}
-                                            placeholder={`พิมพ์คำตอบเป็นภาษา${lang.title}...`}
-                                            className="flex-1 border-2 border-gray-200 focus:border-brand outline-none rounded-xl px-4 py-3 text-base disabled:bg-gray-50"
-                                        />
-                                        <button onClick={() => speak(current.target, lang.code)} className="shrink-0 p-3 rounded-xl border-2 border-gray-200 text-brand hover:border-brand">
-                                            <Volume2 />
-                                        </button>
-                                    </div>
-
-                                    {result && (
-                                        <div className={`mt-6 p-5 rounded-xl border ${result === 'correct' ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
-                                            <h4 className={`font-bold mb-2 flex items-center gap-2 ${result === 'correct' ? 'text-green-700' : 'text-red-700'}`}>
-                                                {result === 'correct' ? <CheckCircle /> : <XCircle />}
-                                                {result === 'correct' ? 'ถูกต้อง! (+20 XP)' : 'ยังไม่ตรงเป๊ะ'}
-                                            </h4>
-                                            <p className="text-sm text-gray-700 leading-relaxed">
-                                                <strong>คำตอบที่ถูกต้องคือ:</strong> {current.target}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {!result ? (
-                                        <button
-                                            onClick={checkAnswer}
-                                            disabled={!typed.trim()}
-                                            className={`mt-8 w-full py-3 rounded-xl font-bold transition-all shadow-sm ${typed.trim() ? 'bg-gray-900 text-white hover:bg-black' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
-                                        >
-                                            ตรวจคำตอบ
-                                        </button>
+                                    {mode === 'flashcard' ? (
+                                        <>
+                                            <button
+                                                onClick={() => { if (!flashFlipped) { setFlashFlipped(true); speak(current.target, lang.code); } }}
+                                                className={`w-full min-h-[180px] rounded-2xl border-2 p-6 text-center transition-all ${flashFlipped ? 'border-brand bg-brandLight' : 'border-gray-200 hover:border-brand bg-gray-50'}`}
+                                            >
+                                                {!flashFlipped ? (
+                                                    <>
+                                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">แตะการ์ดเพื่อดูคำตอบ</p>
+                                                        <p className="text-2xl font-bold text-gray-900">{current.thai}</p>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <p className="text-2xl font-bold text-gray-900 mb-2">{current.target}</p>
+                                                        <p className="text-sm text-gray-500">{current.thai}</p>
+                                                    </>
+                                                )}
+                                            </button>
+                                            {flashFlipped && (
+                                                <div className="flex items-center gap-3 mt-6">
+                                                    <button onClick={() => speak(current.target, lang.code)} className="shrink-0 p-3 rounded-xl border-2 border-gray-200 text-brand hover:border-brand"><Volume2 /></button>
+                                                    <button onClick={() => markFlashcard(true)} className="flex-1 py-3 rounded-xl font-bold bg-green-500 text-white shadow-sm">จำได้ (+10 XP)</button>
+                                                    <button onClick={() => markFlashcard(false)} className="flex-1 py-3 rounded-xl font-bold bg-gray-200 text-gray-600">ยังไม่ได้</button>
+                                                </div>
+                                            )}
+                                        </>
                                     ) : (
-                                        <button onClick={nextPhrase} className="mt-6 w-full py-3 rounded-xl font-bold bg-brand text-white hover:bg-teal-700 transition-all shadow-sm">
-                                            ข้อต่อไป
-                                        </button>
+                                        <>
+                                            {mode === 'translate' ? (
+                                                <>
+                                                    <h3 className="text-lg font-semibold text-gray-800 mb-2 leading-snug">
+                                                        แปลประโยคนี้เป็นภาษา{lang.title}:
+                                                    </h3>
+                                                    <p className="text-2xl font-bold text-gray-900 mb-6">{current.thai}</p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <h3 className="text-lg font-semibold text-gray-800 mb-2 leading-snug">
+                                                        ฟังเสียงแล้วพิมพ์เป็นภาษา{lang.title} ตามที่ได้ยิน:
+                                                    </h3>
+                                                    <button onClick={() => speak(current.target, lang.code)}
+                                                        className="flex items-center gap-2 px-5 py-3 mb-6 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
+                                                        <Volume2 /> กดฟังเสียง (ฟังซ้ำได้)
+                                                    </button>
+                                                </>
+                                            )}
+
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <input
+                                                    ref={inputRef}
+                                                    type="text"
+                                                    value={typed}
+                                                    onChange={e => setTyped(e.target.value)}
+                                                    onKeyDown={e => e.key === 'Enter' && !result && checkAnswer()}
+                                                    disabled={result !== null}
+                                                    placeholder={`พิมพ์คำตอบเป็นภาษา${lang.title}...`}
+                                                    className="flex-1 border-2 border-gray-200 focus:border-brand outline-none rounded-xl px-4 py-3 text-base disabled:bg-gray-50"
+                                                />
+                                                {mode === 'translate' && (
+                                                    <button onClick={() => speak(current.target, lang.code)} className="shrink-0 p-3 rounded-xl border-2 border-gray-200 text-brand hover:border-brand">
+                                                        <Volume2 />
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {result && (
+                                                <div className={`mt-6 p-5 rounded-xl border ${result === 'correct' ? 'bg-green-50 border-green-100' : result === 'almost' ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100'}`}>
+                                                    <h4 className={`font-bold mb-2 flex items-center gap-2 ${result === 'correct' ? 'text-green-700' : result === 'almost' ? 'text-amber-700' : 'text-red-700'}`}>
+                                                        {result === 'correct' ? <CheckCircle /> : result === 'almost' ? <CheckCircle /> : <XCircle />}
+                                                        {result === 'correct' ? 'ถูกต้อง! (+20 XP)' : result === 'almost' ? 'เกือบถูก! ต่างแค่นิดเดียว (+10 XP)' : 'ยังไม่ถูก — คำนี้จะไปอยู่ในลิสต์ทบทวน'}
+                                                    </h4>
+                                                    <p className="text-sm text-gray-700 leading-relaxed">
+                                                        <strong>คำตอบที่ถูกต้องคือ:</strong> {current.target}
+                                                        {mode === 'dictation' && <span className="block text-gray-500 mt-1">ความหมาย: {current.thai}</span>}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {!result ? (
+                                                <button
+                                                    onClick={checkAnswer}
+                                                    disabled={!typed.trim()}
+                                                    className={`mt-8 w-full py-3 rounded-xl font-bold transition-all shadow-sm ${typed.trim() ? 'bg-gray-900 text-white hover:bg-black' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                                                >
+                                                    ตรวจคำตอบ
+                                                </button>
+                                            ) : (
+                                                <button onClick={nextPhrase} className="mt-6 w-full py-3 rounded-xl font-bold bg-brand text-white hover:bg-teal-700 transition-all shadow-sm">
+                                                    ข้อต่อไป
+                                                </button>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>
