@@ -176,20 +176,23 @@ function renderHighlightedText(container, text, matches, activeIndex, onClickMat
 /* ══════════════════════════════════════════════════════════════════
    UI wiring (ข้ามส่วนนี้เมื่อรันทดสอบ logic ล้วนๆ แบบ Node — ตรวจว่ามี document ก่อน)
    ══════════════════════════════════════════════════════════════════ */
-if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
+if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
   var state = {
-    filename: '', pages: [], correctedPages: [], pageIndex: 0, mode: 'type',
+    filename: '', pages: [], correctedPages: [], pageIndex: 0,
     lang: 'th', matchesByPage: {}, activeMatch: null, busy: false, speaking: false
   };
 
   var $ = function (id) { return document.getElementById(id); };
+  /* หน้าพิมพ์ข้อความเอง (doc-check.html) กับหน้าแนบไฟล์ (doc-check-file.html)
+     แยกกันแล้ว — แต่ละหน้ามีแค่ dropZone หรือ typeBox อย่างใดอย่างหนึ่ง
+     ตัวแปรที่ไม่มีในหน้านั้นจะเป็น null และถูก guard ไว้ทุกจุดที่ใช้ */
   var langSelect = $('langSelect'), dropZone = $('dropZone'), fileInput = $('fileInput'),
       toolbar = $('toolbar'), fileChipName = $('fileChipName'), replaceFileBtn = $('replaceFileBtn'),
       runBtn = $('runBtn'), applyFixBtn = $('applyFixBtn'), speakBtn = $('speakBtn'),
       downloadBtn = $('downloadBtn'), statusMsg = $('statusMsg'),
       workspace = $('workspace'), prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), pageIndicator = $('pageIndicator'),
       docText = $('docText'), issueCount = $('issueCount'), issueList = $('issueList'), issueEmpty = $('issueEmpty'),
-      emptyState = $('emptyState'), modeTabs = $('modeTabs'), typeBox = $('typeBox'),
+      emptyState = $('emptyState'), typeBox = $('typeBox'), modeTabs = $('modeTabs'),
       typeTextarea = $('typeTextarea'), useTypedTextBtn = $('useTypedTextBtn');
 
   var SPEAK_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
@@ -217,9 +220,9 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
   function render() {
     var hasFile = state.pages.length > 0;
     emptyState.style.display = hasFile ? 'none' : 'block';
-    modeTabs.style.display = hasFile ? 'none' : 'flex';
-    dropZone.style.display = (!hasFile && state.mode === 'file') ? 'block' : 'none';
-    typeBox.style.display = (!hasFile && state.mode === 'type') ? 'block' : 'none';
+    if (modeTabs) modeTabs.style.display = hasFile ? 'none' : 'flex';
+    if (dropZone) dropZone.style.display = hasFile ? 'none' : 'block';
+    if (typeBox) typeBox.style.display = hasFile ? 'none' : 'block';
     toolbar.style.display = hasFile ? 'flex' : 'none';
     workspace.style.display = hasFile ? 'grid' : 'none';
     runBtn.disabled = state.busy || !state.pages.length;
@@ -285,15 +288,6 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
     render();
   }
 
-  /* สลับแท็บ "พิมพ์ข้อความเอง" / "แนบไฟล์" (แสดงเฉพาะตอนยังไม่มีเอกสารโหลดอยู่) */
-  modeTabs.querySelectorAll('.dc-mode-tab').forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      state.mode = tab.dataset.mode;
-      modeTabs.querySelectorAll('.dc-mode-tab').forEach(function (t) { t.classList.toggle('active', t === tab); });
-      render();
-    });
-  });
-
   function loadPages(pages, label) {
     state.filename = label;
     state.pages = pages;
@@ -303,28 +297,11 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
     state.activeMatch = null;
   }
 
-  dropZone.addEventListener('click', function () { fileInput.click(); });
-  dropZone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
   replaceFileBtn.addEventListener('click', function (e) {
     e.stopPropagation();
     state.pages = []; state.matchesByPage = {}; state.activeMatch = null;
     setStatus('');
     render();
-  });
-  ['dragenter', 'dragover'].forEach(function (evt) {
-    dropZone.addEventListener(evt, function (e) { e.preventDefault(); dropZone.classList.add('over'); });
-  });
-  ['dragleave', 'drop'].forEach(function (evt) {
-    dropZone.addEventListener(evt, function (e) { e.preventDefault(); dropZone.classList.remove('over'); });
-  });
-  dropZone.addEventListener('drop', function (e) {
-    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if (file) handleFile(file);
-  });
-
-  fileInput.addEventListener('change', function (e) {
-    var file = e.target.files && e.target.files[0];
-    if (file) handleFile(file);
   });
 
   async function handleFile(file) {
@@ -341,14 +318,37 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
     }
   }
 
-  useTypedTextBtn.addEventListener('click', function () {
-    var text = typeTextarea.value;
-    if (!text.trim()) { typeTextarea.focus(); return; }
-    var pages = splitIntoPages(text);
-    loadPages(pages, 'ข้อความที่พิมพ์');
-    setStatus('ใช้ข้อความที่พิมพ์แล้ว — พบ ' + pages.length + ' หน้า');
-    render();
-  });
+  /* หน้าแนบไฟล์ (doc-check-file.html) เท่านั้นที่มี dropZone/fileInput */
+  if (dropZone && fileInput) {
+    dropZone.addEventListener('click', function () { fileInput.click(); });
+    dropZone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+    ['dragenter', 'dragover'].forEach(function (evt) {
+      dropZone.addEventListener(evt, function (e) { e.preventDefault(); dropZone.classList.add('over'); });
+    });
+    ['dragleave', 'drop'].forEach(function (evt) {
+      dropZone.addEventListener(evt, function (e) { e.preventDefault(); dropZone.classList.remove('over'); });
+    });
+    dropZone.addEventListener('drop', function (e) {
+      var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+    fileInput.addEventListener('change', function (e) {
+      var file = e.target.files && e.target.files[0];
+      if (file) handleFile(file);
+    });
+  }
+
+  /* หน้าพิมพ์ข้อความเอง (doc-check.html) เท่านั้นที่มี typeBox */
+  if (typeBox && useTypedTextBtn) {
+    useTypedTextBtn.addEventListener('click', function () {
+      var text = typeTextarea.value;
+      if (!text.trim()) { typeTextarea.focus(); return; }
+      var pages = splitIntoPages(text);
+      loadPages(pages, 'ข้อความที่พิมพ์');
+      setStatus('ใช้ข้อความที่พิมพ์แล้ว — พบ ' + pages.length + ' หน้า');
+      render();
+    });
+  }
 
   runBtn.addEventListener('click', async function () {
     var lang = langByCode(state.lang);
