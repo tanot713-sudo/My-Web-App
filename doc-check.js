@@ -8,24 +8,158 @@
 'use strict';
 
 var LANGUAGES = [
-  { code: 'th', label: 'ไทย', ltCode: null, speechLang: 'th-TH' },
-  { code: 'en', label: 'อังกฤษ', ltCode: 'en-US', speechLang: 'en-US' },
-  { code: 'ja', label: 'ญี่ปุ่น', ltCode: null, speechLang: 'ja-JP' },
-  { code: 'zh', label: 'จีน', ltCode: null, speechLang: 'zh-CN' },
-  { code: 'ko', label: 'เกาหลี', ltCode: null, speechLang: 'ko-KR' },
-  { code: 'de', label: 'เยอรมัน', ltCode: 'de-DE', speechLang: 'de-DE' },
-  { code: 'hi', label: 'อินเดีย (ฮินดี)', ltCode: null, speechLang: 'hi-IN' },
-  { code: 'fr', label: 'ฝรั่งเศส', ltCode: 'fr', speechLang: 'fr-FR' },
-  { code: 'it', label: 'อิตาลี', ltCode: 'it', speechLang: 'it-IT' },
-  { code: 'my', label: 'พม่า', ltCode: null, speechLang: 'my-MM' },
-  { code: 'km', label: 'กัมพูชา', ltCode: null, speechLang: 'km-KH' },
-  { code: 'lo', label: 'ลาว', ltCode: null, speechLang: 'lo-LA' },
-  { code: 'vi', label: 'เวียดนาม', ltCode: null, speechLang: 'vi-VN' },
-  { code: 'ms', label: 'มาเลเซีย', ltCode: null, speechLang: 'ms-MY' },
-  { code: 'ar', label: 'อาหรับ', ltCode: 'ar', speechLang: 'ar-SA' }
+  { code: 'th', label: 'ไทย', labelEn: 'Thai', ltCode: null, speechLang: 'th-TH' },
+  { code: 'en', label: 'อังกฤษ', labelEn: 'English', ltCode: 'en-US', speechLang: 'en-US' },
+  { code: 'ja', label: 'ญี่ปุ่น', labelEn: 'Japanese', ltCode: null, speechLang: 'ja-JP' },
+  { code: 'zh', label: 'จีน', labelEn: 'Chinese', ltCode: null, speechLang: 'zh-CN' },
+  { code: 'ko', label: 'เกาหลี', labelEn: 'Korean', ltCode: null, speechLang: 'ko-KR' },
+  { code: 'de', label: 'เยอรมัน', labelEn: 'German', ltCode: 'de-DE', speechLang: 'de-DE' },
+  { code: 'hi', label: 'อินเดีย (ฮินดี)', labelEn: 'Indian (Hindi)', ltCode: null, speechLang: 'hi-IN' },
+  { code: 'fr', label: 'ฝรั่งเศส', labelEn: 'French', ltCode: 'fr', speechLang: 'fr-FR' },
+  { code: 'it', label: 'อิตาลี', labelEn: 'Italian', ltCode: 'it', speechLang: 'it-IT' },
+  { code: 'my', label: 'พม่า', labelEn: 'Burmese', ltCode: null, speechLang: 'my-MM' },
+  { code: 'km', label: 'กัมพูชา', labelEn: 'Khmer', ltCode: null, speechLang: 'km-KH' },
+  { code: 'lo', label: 'ลาว', labelEn: 'Lao', ltCode: null, speechLang: 'lo-LA' },
+  { code: 'vi', label: 'เวียดนาม', labelEn: 'Vietnamese', ltCode: null, speechLang: 'vi-VN' },
+  { code: 'ms', label: 'มาเลเซีย', labelEn: 'Malay', ltCode: null, speechLang: 'ms-MY' },
+  { code: 'ar', label: 'อาหรับ', labelEn: 'Arabic', ltCode: 'ar', speechLang: 'ar-SA' }
 ];
 var PAGE_CHAR_LIMIT = 2500;
 var LT_ENDPOINT = 'https://api.languagetool.org/v2/check';
+
+/* ══════════════════════════════════════════════════════════════════
+   ภาษาที่ใช้แสดงผล UI (ไทย/อังกฤษ) — แยกจาก "ภาษาของเอกสาร" (state.lang) ด้านบน
+   เก็บด้วย localStorage คนละ key กับ ui-locale ของแอปหลัก เพราะหน้านี้แยกออกมา
+   ══════════════════════════════════════════════════════════════════ */
+var UI_LANG_KEY = 'tanot:doclang';
+
+function getUILang() {
+  try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; }
+  catch (e) { return 'th'; }
+}
+function setUILang(lang) {
+  try { localStorage.setItem(UI_LANG_KEY, lang); } catch (e) {}
+}
+
+var I18N = {
+  th: {
+    docTitleType: 'ตรวจสอบเอกสาร | Tanot',
+    docTitleFile: 'ตรวจสอบเอกสารจากไฟล์ | Tanot',
+    crumbResp: 'งานที่รับผิดชอบ',
+    crumbDocCheck: 'ตรวจสอบเอกสาร',
+    pageTitleType: 'ตรวจสอบเอกสาร: พิมพ์ข้อความเอง',
+    pageDescType: 'พิมพ์หรือวางข้อความที่ต้องการตรวจตรงนี้ เลือกภาษา แล้วให้ระบบตรวจคำผิด ไฮไลต์จุดที่ควรแก้ อ่านออกเสียง และดาวน์โหลดเป็นไฟล์ — ทำงานในเบราว์เซอร์ของคุณทั้งหมด',
+    pageTitleFile: 'ตรวจสอบเอกสาร: แนบไฟล์',
+    modeTabType: 'พิมพ์ข้อความเอง',
+    modeTabFile: 'แนบไฟล์',
+    typeTextareaPlaceholder: 'พิมพ์หรือวางข้อความที่ต้องการตรวจตรงนี้ — เช่น ประโยคที่ไม่แน่ใจว่าเขียนถูกไหม หรืออยากให้แนะนำสำนวนที่เป็นทางการกว่านี้',
+    useTypedTextBtn: 'ใช้ข้อความนี้',
+    dropMain: 'ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์',
+    dropHint: 'รองรับ .txt · .docx · .pdf · .png · .jpg (สแกน/ภาพถ่ายใช้ OCR อ่านให้อัตโนมัติ)',
+    dropZoneAriaLabel: 'แนบไฟล์เอกสาร',
+    replaceFileBtnTitleType: 'เริ่มใหม่',
+    replaceFileBtnTitleFile: 'เปลี่ยนไฟล์',
+    runBtn: 'ตรวจคำผิด',
+    speakBtnTitle: 'อ่านออกเสียงหน้านี้',
+    stopSpeakTitle: 'หยุดอ่าน',
+    downloadBtnTitle: 'ดาวน์โหลดไฟล์ที่แก้ไข',
+    prevBtn: 'หน้าก่อน',
+    nextBtn: 'หน้าถัดไป',
+    issuesFoundHeading: 'จุดที่พบ',
+    applyFixBtn: 'แก้ไขทั้งหมดในหน้านี้',
+    issueEmptyText: 'ไม่พบจุดที่ควรแก้ในหน้านี้',
+    emptyStateType: 'ยังไม่ได้พิมพ์ข้อความ — เริ่มจากกล่องด้านบน',
+    emptyStateFile: 'ยังไม่ได้แนบไฟล์ — เริ่มจากกล่องด้านบน',
+    footerText: 'Tanot — งานที่รับผิดชอบ',
+    badgeStyle: 'สไตล์/ความเป็นทางการ',
+    badgeSpelling: 'คำผิด/ไวยากรณ์',
+    langAiPending: ' (รอ AI ขั้นสูง)',
+    pageIndicator: 'หน้า {cur} / {total}',
+    langNotSupported: 'ภาษา "{lang}" ยังไม่มีบริการตรวจคำผิดสาธารณะที่แม่นยำพอ — ระบบจะเปิดให้ใช้การตรวจขั้นสูงในเฟสถัดไป',
+    noTextToCheck: 'ยังไม่มีข้อความในหน้านี้ให้ตรวจ — กรุณาแนบไฟล์ก่อน',
+    checking: 'กำลังตรวจคำผิด...',
+    checkedResult: 'ตรวจพบ {n} จุดที่ควรแก้ไขในหน้านี้',
+    checkError: 'เกิดข้อผิดพลาดระหว่างตรวจคำผิด: {msg}',
+    readingFile: 'กำลังอ่านไฟล์...',
+    fileReadSuccess: 'อ่านไฟล์สำเร็จ — พบ {n} หน้า',
+    fileReadError: 'เกิดข้อผิดพลาด: {msg}',
+    typedTextUsed: 'ใช้ข้อความที่พิมพ์แล้ว — พบ {n} หน้า',
+    typedTextLabel: 'ข้อความที่พิมพ์',
+    fixAllDone: 'แก้ไขคำผิดในหน้านี้ตามคำแนะนำแรกของแต่ละจุดแล้ว',
+    singleFixDone: 'แก้ "{old}" เป็น "{new}" แล้ว',
+    downloadError: 'ดาวน์โหลดไม่สำเร็จ: {msg}',
+    pdfNoTextPage: '(ไม่พบข้อความในหน้านี้ — อาจเป็นภาพสแกน)',
+    pdfGarbledPage: '(ข้อความในหน้านี้อ่านไม่ออก — ไฟล์นี้อาจใช้ font แบบพิเศษที่ไม่ใช่ Unicode มาตรฐาน)',
+    ocrNoText: '(ไม่พบข้อความในภาพ)',
+    unsupportedFileType: 'ไม่รองรับไฟล์ประเภทนี้ (รองรับ .txt .docx .pdf .png .jpg)',
+    ltServiceError: 'บริการตรวจคำผิดตอบกลับผิดพลาด ({status})'
+  },
+  en: {
+    docTitleType: 'Document Check | Tanot',
+    docTitleFile: 'Document Check from File | Tanot',
+    crumbResp: 'Responsibilities',
+    crumbDocCheck: 'Document Check',
+    pageTitleType: 'Document Check: Type Text',
+    pageDescType: 'Type or paste the text you want checked here, choose a language, then have the system check for spelling errors, highlight what should be fixed, read it aloud, and download it as a file — everything runs in your browser.',
+    pageTitleFile: 'Document Check: Attach File',
+    modeTabType: 'Type Text',
+    modeTabFile: 'Attach File',
+    typeTextareaPlaceholder: 'Type or paste the text you want checked here — e.g. a sentence you\'re not sure is correct, or one you\'d like a more formal alternative for.',
+    useTypedTextBtn: 'Use This Text',
+    dropMain: 'Drag a file here, or click to choose one',
+    dropHint: 'Supports .txt · .docx · .pdf · .png · .jpg (scans/photos are read automatically with OCR)',
+    dropZoneAriaLabel: 'Attach a document file',
+    replaceFileBtnTitleType: 'Start Over',
+    replaceFileBtnTitleFile: 'Change File',
+    runBtn: 'Check Spelling',
+    speakBtnTitle: 'Read This Page Aloud',
+    stopSpeakTitle: 'Stop Reading',
+    downloadBtnTitle: 'Download Corrected File',
+    prevBtn: 'Previous Page',
+    nextBtn: 'Next Page',
+    issuesFoundHeading: 'Issues Found',
+    applyFixBtn: 'Apply All Fixes on This Page',
+    issueEmptyText: 'No issues found on this page',
+    emptyStateType: 'No text yet — start with the box above',
+    emptyStateFile: 'No file attached yet — start with the box above',
+    footerText: 'Tanot — Responsibilities',
+    badgeStyle: 'Style/Formality',
+    badgeSpelling: 'Spelling/Grammar',
+    langAiPending: ' (advanced AI coming soon)',
+    pageIndicator: 'Page {cur} / {total}',
+    langNotSupported: 'The "{lang}" language doesn\'t have an accurate enough public spell-check service yet — advanced checking for it is coming in a future phase.',
+    noTextToCheck: 'There\'s no text on this page to check yet — please attach a file first.',
+    checking: 'Checking spelling...',
+    checkedResult: 'Found {n} issue(s) to fix on this page',
+    checkError: 'An error occurred while checking spelling: {msg}',
+    readingFile: 'Reading file...',
+    fileReadSuccess: 'File read successfully — found {n} page(s)',
+    fileReadError: 'An error occurred: {msg}',
+    typedTextUsed: 'Using the typed text — found {n} page(s)',
+    typedTextLabel: 'Typed text',
+    fixAllDone: 'Fixed all issues on this page using the first suggestion for each one',
+    singleFixDone: 'Changed "{old}" to "{new}"',
+    downloadError: 'Download failed: {msg}',
+    pdfNoTextPage: '(No text found on this page — it may be a scanned image)',
+    pdfGarbledPage: '(The text on this page is unreadable — this file may use a special non-Unicode font)',
+    ocrNoText: '(No text found in the image)',
+    unsupportedFileType: 'This file type is not supported (supports .txt .docx .pdf .png .jpg)',
+    ltServiceError: 'The spell-check service returned an error ({status})'
+  }
+};
+
+function t(key, vars) {
+  var lang = getUILang();
+  var str = (I18N[lang] && I18N[lang][key]) || I18N.th[key] || key;
+  if (vars) {
+    Object.keys(vars).forEach(function (k) {
+      str = str.replace('{' + k + '}', vars[k]);
+    });
+  }
+  return str;
+}
+
+function langLabel(l) { return getUILang() === 'en' ? l.labelEn : l.label; }
 
 function langByCode(code) {
   for (var i = 0; i < LANGUAGES.length; i++) if (LANGUAGES[i].code === code) return LANGUAGES[i];
@@ -79,7 +213,7 @@ async function checkSpelling(text, ltCode) {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: params
   });
-  if (!res.ok) throw new Error('บริการตรวจคำผิดตอบกลับผิดพลาด (' + res.status + ')');
+  if (!res.ok) throw new Error(t('ltServiceError', { status: res.status }));
   var data = await res.json();
   return (data.matches || []).map(function (m) {
     return {
@@ -113,8 +247,8 @@ async function readPdfFile(file) {
     var page = await doc.getPage(i);
     var content = await page.getTextContent();
     var text = content.items.map(function (it) { return it.str; }).join(' ').trim();
-    if (!text) pages.push('(ไม่พบข้อความในหน้านี้ — อาจเป็นภาพสแกน)');
-    else if (isGarbledText(text)) pages.push('(ข้อความในหน้านี้อ่านไม่ออก — ไฟล์นี้อาจใช้ font แบบพิเศษที่ไม่ใช่ Unicode มาตรฐาน)');
+    if (!text) pages.push(t('pdfNoTextPage'));
+    else if (isGarbledText(text)) pages.push(t('pdfGarbledPage'));
     else pages.push(text);
   }
   return pages.length ? pages : [''];
@@ -122,7 +256,7 @@ async function readPdfFile(file) {
 
 async function readImageFile(file) {
   var result = await window.Tesseract.recognize(file, 'eng+tha');
-  return splitIntoPages(result.data.text || '(ไม่พบข้อความในภาพ)');
+  return splitIntoPages(result.data.text || t('ocrNoText'));
 }
 
 async function readAnyFile(file) {
@@ -131,7 +265,7 @@ async function readAnyFile(file) {
   if (name.endsWith('.docx')) return { pages: await readDocxFile(file) };
   if (name.endsWith('.pdf')) return { pages: await readPdfFile(file) };
   if (/\.(png|jpe?g|webp|bmp)$/.test(name)) return { pages: await readImageFile(file) };
-  throw new Error('ไม่รองรับไฟล์ประเภทนี้ (รองรับ .txt .docx .pdf .png .jpg)');
+  throw new Error(t('unsupportedFileType'));
 }
 
 async function downloadAsDocx(pages, baseName) {
@@ -193,19 +327,54 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
       workspace = $('workspace'), prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), pageIndicator = $('pageIndicator'),
       docText = $('docText'), issueCount = $('issueCount'), issueList = $('issueList'), issueEmpty = $('issueEmpty'),
       emptyState = $('emptyState'), typeBox = $('typeBox'), modeTabs = $('modeTabs'),
-      typeTextarea = $('typeTextarea'), useTypedTextBtn = $('useTypedTextBtn');
+      typeTextarea = $('typeTextarea'), useTypedTextBtn = $('useTypedTextBtn'), langToggle = $('langToggle');
 
   var SPEAK_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
   var STOP_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
   speakBtn.innerHTML = SPEAK_ICON;
 
-  LANGUAGES.forEach(function (l) {
-    var opt = document.createElement('option');
-    opt.value = l.code;
-    opt.textContent = l.label + (l.ltCode ? '' : ' (รอ AI ขั้นสูง)');
-    langSelect.appendChild(opt);
-  });
+  /* ══ ภาษา UI (ไทย/อังกฤษ) — แปล element ที่มี data-i18n-* และสร้างตัวเลือกภาษาเอกสารใหม่ ══ */
+  function applyStaticI18n() {
+    var lang = getUILang();
+    document.documentElement.lang = lang;
+    var titleKey = document.body.getAttribute('data-doctitle-key');
+    if (titleKey) document.title = t(titleKey);
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+    document.querySelectorAll('[data-i18n-title]').forEach(function (el) { el.title = t(el.getAttribute('data-i18n-title')); });
+    document.querySelectorAll('[data-i18n-aria-label]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria-label'))); });
+    if (langToggle) {
+      langToggle.querySelectorAll('span').forEach(function (span) {
+        span.classList.toggle('active', span.getAttribute('data-lt') === lang);
+      });
+    }
+    if (!state.speaking) speakBtn.title = t('speakBtnTitle');
+  }
+
+  function buildLangOptions() {
+    var prevValue = langSelect.value || state.lang;
+    langSelect.innerHTML = '';
+    LANGUAGES.forEach(function (l) {
+      var opt = document.createElement('option');
+      opt.value = l.code;
+      opt.textContent = langLabel(l) + (l.ltCode ? '' : t('langAiPending'));
+      langSelect.appendChild(opt);
+    });
+    langSelect.value = prevValue;
+  }
+
+  applyStaticI18n();
+  buildLangOptions();
   langSelect.value = state.lang;
+
+  if (langToggle) {
+    langToggle.addEventListener('click', function () {
+      setUILang(getUILang() === 'en' ? 'th' : 'en');
+      applyStaticI18n();
+      buildLangOptions();
+      render();
+    });
+  }
 
   function setStatus(msg, isErr, showSpinner) {
     statusMsg.innerHTML = '';
@@ -233,7 +402,7 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
 
     if (!hasFile) return;
     fileChipName.textContent = state.filename;
-    pageIndicator.textContent = 'หน้า ' + (state.pageIndex + 1) + ' / ' + state.pages.length;
+    pageIndicator.textContent = t('pageIndicator', { cur: state.pageIndex + 1, total: state.pages.length });
     renderHighlightedText(docText, currentText(), currentMatches(), state.activeMatch, function (i) {
       state.activeMatch = i; render();
     });
@@ -253,8 +422,8 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
       }).join('');
       var kind = issueKind(m.category);
       var badgeHtml = kind === 'style'
-        ? '<span class="kind-badge style">สไตล์/ความเป็นทางการ</span>'
-        : '<span class="kind-badge spelling">คำผิด/ไวยากรณ์</span>';
+        ? '<span class="kind-badge style">' + t('badgeStyle') + '</span>'
+        : '<span class="kind-badge spelling">' + t('badgeSpelling') + '</span>';
       item.innerHTML = badgeHtml +
         '<div class="quote">"' + quoted.replace(/</g, '&lt;') + '"</div>' +
         '<div class="msg">' + m.message.replace(/</g, '&lt;') + '</div>' +
@@ -284,7 +453,7 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
     state.matchesByPage[state.pageIndex] = matches.filter(function (_, i) { return i !== matchIndex; })
       .map(function (mm) { return mm.offset > m.offset ? Object.assign({}, mm, { offset: mm.offset + delta }) : mm; });
     state.activeMatch = null;
-    setStatus('แก้ "' + text.slice(m.offset, m.offset + m.length) + '" เป็น "' + replacement + '" แล้ว');
+    setStatus(t('singleFixDone', { old: text.slice(m.offset, m.offset + m.length), new: replacement }));
     render();
   }
 
@@ -306,13 +475,13 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
 
   async function handleFile(file) {
     state.busy = true; render();
-    setStatus('กำลังอ่านไฟล์...', false, true);
+    setStatus(t('readingFile'), false, true);
     try {
       var result = await readAnyFile(file);
       loadPages(result.pages, file.name);
-      setStatus('อ่านไฟล์สำเร็จ — พบ ' + result.pages.length + ' หน้า');
+      setStatus(t('fileReadSuccess', { n: result.pages.length }));
     } catch (err) {
-      setStatus('เกิดข้อผิดพลาด: ' + err.message, true);
+      setStatus(t('fileReadError', { msg: err.message }), true);
     } finally {
       state.busy = false; render();
     }
@@ -344,8 +513,8 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
       var text = typeTextarea.value;
       if (!text.trim()) { typeTextarea.focus(); return; }
       var pages = splitIntoPages(text);
-      loadPages(pages, 'ข้อความที่พิมพ์');
-      setStatus('ใช้ข้อความที่พิมพ์แล้ว — พบ ' + pages.length + ' หน้า');
+      loadPages(pages, t('typedTextLabel'));
+      setStatus(t('typedTextUsed', { n: pages.length }));
       render();
     });
   }
@@ -353,19 +522,19 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
   runBtn.addEventListener('click', async function () {
     var lang = langByCode(state.lang);
     if (!lang.ltCode) {
-      setStatus('ภาษา "' + lang.label + '" ยังไม่มีบริการตรวจคำผิดสาธารณะที่แม่นยำพอ — ระบบจะเปิดให้ใช้การตรวจขั้นสูงในเฟสถัดไป', true);
+      setStatus(t('langNotSupported', { lang: langLabel(lang) }), true);
       return;
     }
-    if (!currentText().trim()) { setStatus('ยังไม่มีข้อความในหน้านี้ให้ตรวจ — กรุณาแนบไฟล์ก่อน', true); return; }
+    if (!currentText().trim()) { setStatus(t('noTextToCheck'), true); return; }
     state.busy = true; render();
-    setStatus('กำลังตรวจคำผิด...', false, true);
+    setStatus(t('checking'), false, true);
     try {
       var matches = await checkSpelling(currentText(), lang.ltCode);
       state.matchesByPage[state.pageIndex] = matches;
       state.activeMatch = null;
-      setStatus('ตรวจพบ ' + matches.length + ' จุดที่ควรแก้ไขในหน้านี้');
+      setStatus(t('checkedResult', { n: matches.length }));
     } catch (err) {
-      setStatus('เกิดข้อผิดพลาดระหว่างตรวจคำผิด: ' + err.message, true);
+      setStatus(t('checkError', { msg: err.message }), true);
     } finally {
       state.busy = false; render();
     }
@@ -379,7 +548,7 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
     state.pages[state.pageIndex] = fixed;
     state.matchesByPage[state.pageIndex] = [];
     state.activeMatch = null;
-    setStatus('แก้ไขคำผิดในหน้านี้ตามคำแนะนำแรกของแต่ละจุดแล้ว');
+    setStatus(t('fixAllDone'));
     render();
   });
 
@@ -388,18 +557,18 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
       window.speechSynthesis.cancel();
       state.speaking = false;
       speakBtn.innerHTML = SPEAK_ICON;
-      speakBtn.title = 'อ่านออกเสียงหน้านี้';
+      speakBtn.title = t('speakBtnTitle');
       return;
     }
     if (!currentText().trim()) return;
     window.speechSynthesis.cancel();
     var utter = new SpeechSynthesisUtterance(currentText());
     utter.lang = langByCode(state.lang).speechLang;
-    utter.onend = function () { state.speaking = false; speakBtn.innerHTML = SPEAK_ICON; speakBtn.title = 'อ่านออกเสียงหน้านี้'; };
-    utter.onerror = function () { state.speaking = false; speakBtn.innerHTML = SPEAK_ICON; speakBtn.title = 'อ่านออกเสียงหน้านี้'; };
+    utter.onend = function () { state.speaking = false; speakBtn.innerHTML = SPEAK_ICON; speakBtn.title = t('speakBtnTitle'); };
+    utter.onerror = function () { state.speaking = false; speakBtn.innerHTML = SPEAK_ICON; speakBtn.title = t('speakBtnTitle'); };
     state.speaking = true;
     speakBtn.innerHTML = STOP_ICON;
-    speakBtn.title = 'หยุดอ่าน';
+    speakBtn.title = t('stopSpeakTitle');
     window.speechSynthesis.speak(utter);
   });
 
@@ -407,7 +576,7 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
     try {
       await downloadAsDocx(state.correctedPages, (state.filename || 'corrected').replace(/\.[^.]+$/, '') || 'corrected');
     } catch (err) {
-      setStatus('ดาวน์โหลดไม่สำเร็จ: ' + err.message, true);
+      setStatus(t('downloadError', { msg: err.message }), true);
     }
   });
 

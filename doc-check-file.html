@@ -25,10 +25,15 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
   line-height:1.7;font-size:15px;font-weight:400;padding:0 20px 80px;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1080px;margin:0 auto}
 
-.crumb{padding:24px 0 0;font-size:13px;color:var(--muted)}
+.crumb-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:24px 0 0;flex-wrap:wrap}
+.crumb{font-size:13px;color:var(--muted)}
 .crumb a{color:var(--brand);text-decoration:none;font-weight:500}
 .crumb a:hover{text-decoration:underline}
 .crumb span.sep{margin:0 8px;color:#C9CEDC}
+.lang-toggle{display:inline-flex;align-items:center;gap:2px;background:var(--line);border:none;border-radius:20px;
+  padding:3px;cursor:pointer;font-family:var(--f);flex-shrink:0}
+.lang-toggle span{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:16px;color:var(--muted);transition:.15s}
+.lang-toggle span.active{background:var(--card);color:var(--brand-dk);box-shadow:0 1px 3px rgba(24,31,54,.08)}
 
 /* ── หัวเรื่อง ── */
 .dc-head{display:flex;align-items:flex-start;gap:16px;margin-top:16px}
@@ -133,35 +138,40 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 @media(max-width:600px){body{padding:0 14px 60px}.dc-viewer{padding:18px}.dc-toolbar{padding:12px}}
 </style>
 </head>
-<body class="ome-tool-page">
+<body class="ome-tool-page" data-doctitle-key="docTitleFile">
 <script src="auth-gate.js"></script>
 <div class="wrap">
-<nav class="crumb"><a href="app.html#/responsibilities">งานที่รับผิดชอบ</a><span class="sep">/</span>ตรวจสอบเอกสาร</nav>
+<div class="crumb-row">
+  <nav class="crumb"><a href="app.html#/responsibilities" data-i18n="crumbResp">งานที่รับผิดชอบ</a><span class="sep">/</span><span data-i18n="crumbDocCheck">ตรวจสอบเอกสาร</span></nav>
+  <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
+    <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
+  </button>
+</div>
 
 <div class="dc-head">
   <div class="dc-head-icon">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
   </div>
   <div>
-    <h1>ตรวจสอบเอกสาร: แนบไฟล์</h1>
+    <h1 data-i18n="pageTitleFile">ตรวจสอบเอกสาร: แนบไฟล์</h1>
   </div>
 </div>
 
 <div class="dc-mode-tabs" id="modeTabs">
   <a class="dc-mode-tab" href="doc-check.html">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-    พิมพ์ข้อความเอง
+    <span data-i18n="modeTabType">พิมพ์ข้อความเอง</span>
   </a>
   <a class="dc-mode-tab active" href="doc-check-file.html">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95L10.13 17.13a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-    แนบไฟล์
+    <span data-i18n="modeTabFile">แนบไฟล์</span>
   </a>
 </div>
 
-<div class="drop" id="dropZone" tabindex="0" role="button" aria-label="แนบไฟล์เอกสาร">
+<div class="drop" id="dropZone" tabindex="0" role="button" data-i18n-aria-label="dropZoneAriaLabel" aria-label="แนบไฟล์เอกสาร">
   <svg class="drop-icon" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
-  <div class="drop-main">ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์</div>
-  <div class="drop-hint">รองรับ .txt · .docx · .pdf · .png · .jpg (สแกน/ภาพถ่ายใช้ OCR อ่านให้อัตโนมัติ)</div>
+  <div class="drop-main" data-i18n="dropMain">ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์</div>
+  <div class="drop-hint" data-i18n="dropHint">รองรับ .txt · .docx · .pdf · .png · .jpg (สแกน/ภาพถ่ายใช้ OCR อ่านให้อัตโนมัติ)</div>
 </div>
 <input type="file" id="fileInput" accept=".txt,.docx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
 
@@ -169,20 +179,20 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   <div class="dc-file-chip">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 3v6h6"/></svg>
     <span id="fileChipName"></span>
-    <button id="replaceFileBtn" type="button" title="เปลี่ยนไฟล์" aria-label="เปลี่ยนไฟล์">
+    <button id="replaceFileBtn" type="button" data-i18n-title="replaceFileBtnTitleFile" data-i18n-aria-label="replaceFileBtnTitleFile" title="เปลี่ยนไฟล์" aria-label="เปลี่ยนไฟล์">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>
   </div>
   <select class="dc-lang-select" id="langSelect"></select>
   <button class="btn primary" id="runBtn" type="button">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    ตรวจคำผิด
+    <span data-i18n="runBtn">ตรวจคำผิด</span>
   </button>
   <div class="dc-spacer"></div>
-  <button class="btn icon-only" id="speakBtn" type="button" title="อ่านออกเสียงหน้านี้" aria-label="อ่านออกเสียงหน้านี้">
+  <button class="btn icon-only" id="speakBtn" type="button" data-i18n-title="speakBtnTitle" data-i18n-aria-label="speakBtnTitle" title="อ่านออกเสียงหน้านี้" aria-label="อ่านออกเสียงหน้านี้">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
   </button>
-  <button class="btn icon-only" id="downloadBtn" type="button" title="ดาวน์โหลดไฟล์ที่แก้ไข" aria-label="ดาวน์โหลดไฟล์ที่แก้ไข">
+  <button class="btn icon-only" id="downloadBtn" type="button" data-i18n-title="downloadBtnTitle" data-i18n-aria-label="downloadBtnTitle" title="ดาวน์โหลดไฟล์ที่แก้ไข" aria-label="ดาวน์โหลดไฟล์ที่แก้ไข">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
   </button>
 </div>
@@ -194,11 +204,11 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
     <div class="dc-pager">
       <button class="btn" id="prevBtn" type="button">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-        หน้าก่อน
+        <span data-i18n="prevBtn">หน้าก่อน</span>
       </button>
       <span class="page-ind" id="pageIndicator"></span>
       <button class="btn" id="nextBtn" type="button">
-        หน้าถัดไป
+        <span data-i18n="nextBtn">หน้าถัดไป</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
       </button>
     </div>
@@ -209,25 +219,25 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
     <div class="dc-side-head">
       <h2>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
-        จุดที่พบ
+        <span data-i18n="issuesFoundHeading">จุดที่พบ</span>
       </h2>
       <span class="dc-count" id="issueCount">0</span>
     </div>
     <button class="btn dc-fixall" id="applyFixBtn" type="button" style="display:none">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-      แก้ไขทั้งหมดในหน้านี้
+      <span data-i18n="applyFixBtn">แก้ไขทั้งหมดในหน้านี้</span>
     </button>
     <div id="issueList"></div>
     <div class="dc-side-empty" id="issueEmpty" style="display:none">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg><br>
-      ไม่พบจุดที่ควรแก้ในหน้านี้
+      <span data-i18n="issueEmptyText">ไม่พบจุดที่ควรแก้ในหน้านี้</span>
     </div>
   </aside>
 </div>
 
-<div class="dc-empty-state" id="emptyState">ยังไม่ได้แนบไฟล์ — เริ่มจากกล่องด้านบน</div>
+<div class="dc-empty-state" id="emptyState" data-i18n="emptyStateFile">ยังไม่ได้แนบไฟล์ — เริ่มจากกล่องด้านบน</div>
 
-<footer>Tanot — งานที่รับผิดชอบ</footer>
+<footer data-i18n="footerText">Tanot — งานที่รับผิดชอบ</footer>
 </div>
 
 <script type="module">
