@@ -1,0 +1,48 @@
+/* ══════════════════════════════════════════════════════════════════
+   Tanot — app-theme.css
+   Reskin ของ app.html (SPA เมนูทั้งหมด) ให้ตรงกับดีไซน์มิ้นต์ของทั้งเว็บ
+   โหลดหลัง index-Wjp15-l6.css เสมอ เพื่อให้ cascade ทับตัวแปรเดิมได้
+   โครงสร้าง rail nav (แถบใหญ่/แถบย่อย) ไม่แตะต้อง — แก้แค่สี/ขนาด/ฟอนต์
+   ══════════════════════════════════════════════════════════════════ */
+
+:root{
+  --text:#727C93; --text-h:#1F2430; --bg:#F6F7FB; --border:#EAEDF5;
+  --code-bg:#FFFFFF; --accent:#12A594; --accent-bg:#12A5941a; --accent-border:#12A59480;
+  --social-bg:#EAEDF580;
+  --shadow:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.06);
+  --neu-light:#ffffffd9; --neu-dark:#8b96c247;
+  --sans:'Prompt',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --heading:'Prompt',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+:root[data-theme=dark]{
+  --text:#8B94A8; --text-h:#E6EAF2; --bg:#12151C; --border:#2A3040;
+  --code-bg:#1B2030; --accent:#2BC4B2; --accent-bg:#2BC4B229; --accent-border:#2BC4B280;
+  --social-bg:#1B203099;
+}
+
+/* ── rail nav: ตัดเงาเข้ม/outline หนาแบบเดิม ให้บางเบาแบบมิ้นต์ ── */
+.rail-icon{box-shadow:none}
+.rail-item.active .rail-icon{outline:2px solid var(--accent);outline-offset:2px}
+.rail-item.active{color:var(--accent)}
+.rail-flyout-link.active{font-weight:600}
+
+/* ── hero banner ── */
+.hero-banner{background:linear-gradient(120deg,#EAF4FF 0%,#E9FBF7 45%,#FFF4E8 100%)}
+:root[data-theme=dark] .hero-banner{background:linear-gradient(120deg,#17222F 0%,#1D1B33 42%,#2A1B26 100%)}
+.hero-title{background:linear-gradient(90deg,#0B7F72,#12A594);-webkit-background-clip:text;background-clip:text}
+
+/* ── card: ตัด blur/gradient โปร่งใสแบบเดิม ให้แบนเรียบแบบมิ้นต์ ── */
+.card{
+  backdrop-filter:none; -webkit-backdrop-filter:none;
+  background:var(--code-bg); border:1px solid var(--border); border-radius:16px;
+  box-shadow:var(--shadow);
+}
+:root[data-theme=dark] .card{background:var(--code-bg);border-color:var(--border);box-shadow:var(--shadow)}
+
+/* ── ปุ่มแชท/มาสคอต + ปุ่มส่งข้อความ ── */
+.chat-mascot-btn{background:linear-gradient(135deg,#0B7F72,#12A594);box-shadow:0 10px 30px -6px #12A59459,var(--shadow)}
+.chat-bubble.user{background:linear-gradient(135deg,#12A594,#0B7F72);box-shadow:inset 0 1.5px 2px #ffffff59,0 6px 16px -6px #12A59466}
+.chat-input-row button{background:linear-gradient(135deg,#12A594,#0B7F72);box-shadow:inset 0 1.5px 2px #ffffff59,0 4px 12px -4px #12A59459}
+
+/* ── สรุปงบประมาณ ── */
+.budget-card-balance{background:linear-gradient(135deg,#0B7F72,#12A594)!important}
