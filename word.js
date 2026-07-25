@@ -78,8 +78,12 @@ var I18N = {
     linkModalTitle: 'แทรกลิงก์', linkUrlLabel: 'URL', modalCancel: 'ยกเลิก', modalInsert: 'แทรก', modalSave: 'บันทึก', modalClose: 'ปิด',
     tableModalTitle: 'แทรกตาราง', tableRowsLabel: 'แถว', tableColsLabel: 'คอลัมน์', tableHeaderRow: 'มีแถวหัวตาราง',
     footnoteModalTitle: 'แทรกเชิงอรรถ', footnoteTextLabel: 'ข้อความเชิงอรรถ',
-    headerFooterModalTitle: 'หัวกระดาษ / ท้ายกระดาษ', headerTextLabel: 'ข้อความหัวกระดาษ', footerTextLabel: 'ข้อความท้ายกระดาษ',
-    pageNumLabel: 'ใส่เลขหน้าที่ท้ายกระดาษ (เฉพาะไฟล์ Word)',
+    headerWord: 'หัวกระดาษ', footerWord: 'ท้ายกระดาษ', pageNumWord: 'เลขหน้า',
+    editHeaderTitle: 'แก้ไขหัวกระดาษ', editFooterTitle: 'แก้ไขท้ายกระดาษ', pageNumTitle: 'ใส่/เอาเลขหน้าออก (เฉพาะไฟล์ Word)', removeHFTitle: 'ลบหัว-ท้ายกระดาษ',
+    headerPh: 'หัวกระดาษ — แตะเพื่อพิมพ์ (เว้นว่างไว้ถ้าไม่ต้องการ)', footerPh: 'ท้ายกระดาษ — แตะเพื่อพิมพ์ (เว้นว่างไว้ถ้าไม่ต้องการ)',
+    pageNumNote: '↑ จะใส่เลขหน้าอัตโนมัติที่ท้ายกระดาษเมื่อดาวน์โหลดเป็นไฟล์ Word',
+    pageNumOn: 'เปิดใส่เลขหน้าที่ท้ายกระดาษ (จะปรากฏในไฟล์ Word)', pageNumOff: 'ปิดการใส่เลขหน้า',
+    headerFooterRemoved: 'ลบหัว-ท้ายกระดาษแล้ว',
     symbolModalTitle: 'แทรกสัญลักษณ์', wordCountModalTitle: 'จำนวนคำ',
     undoBtnTitle: 'เลิกทำ', redoBtnTitle: 'ทำซ้ำ', cutTitle: 'ตัด', copyTitle: 'คัดลอก', pasteTitle: 'วางแบบข้อความ',
     growFontTitle: 'ขยายตัวอักษร', shrinkFontTitle: 'ย่อตัวอักษร',
@@ -151,8 +155,12 @@ var I18N = {
     linkModalTitle: 'Insert Link', linkUrlLabel: 'URL', modalCancel: 'Cancel', modalInsert: 'Insert', modalSave: 'Save', modalClose: 'Close',
     tableModalTitle: 'Insert Table', tableRowsLabel: 'Rows', tableColsLabel: 'Columns', tableHeaderRow: 'Include header row',
     footnoteModalTitle: 'Insert Footnote', footnoteTextLabel: 'Footnote text',
-    headerFooterModalTitle: 'Header / Footer', headerTextLabel: 'Header text', footerTextLabel: 'Footer text',
-    pageNumLabel: 'Add page numbers to footer (Word file only)',
+    headerWord: 'Header', footerWord: 'Footer', pageNumWord: 'Page No.',
+    editHeaderTitle: 'Edit header', editFooterTitle: 'Edit footer', pageNumTitle: 'Toggle page numbers (Word file only)', removeHFTitle: 'Remove header & footer',
+    headerPh: 'Header — tap to type (leave blank if not needed)', footerPh: 'Footer — tap to type (leave blank if not needed)',
+    pageNumNote: '↑ Page numbers will be added to the footer automatically when you download as a Word file',
+    pageNumOn: 'Page numbers enabled in the footer (will appear in the Word file)', pageNumOff: 'Page numbers turned off',
+    headerFooterRemoved: 'Header and footer removed',
     symbolModalTitle: 'Insert Symbol', wordCountModalTitle: 'Word Count',
     undoBtnTitle: 'Undo', redoBtnTitle: 'Redo', cutTitle: 'Cut', copyTitle: 'Copy', pasteTitle: 'Paste as text',
     growFontTitle: 'Grow font', shrinkFontTitle: 'Shrink font',
@@ -588,12 +596,12 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     tableModal: $('tableModal'), tableRowsInput: $('tableRowsInput'), tableColsInput: $('tableColsInput'),
     tableHeaderCheck: $('tableHeaderCheck'), tableOkBtn: $('tableOkBtn'), tableCancelBtn: $('tableCancelBtn'),
     footnoteModal: $('footnoteModal'), footnoteTextInput: $('footnoteTextInput'), footnoteOkBtn: $('footnoteOkBtn'), footnoteCancelBtn: $('footnoteCancelBtn'),
-    headerFooterModal: $('headerFooterModal'), headerTextInput: $('headerTextInput'), footerTextInput: $('footerTextInput'),
-    pageNumCheck: $('pageNumCheck'), headerFooterOkBtn: $('headerFooterOkBtn'), headerFooterCancelBtn: $('headerFooterCancelBtn'),
     symbolModal: $('symbolModal'), symbolGrid: $('symbolGrid'), symbolCloseBtn: $('symbolCloseBtn'),
     wordCountModal: $('wordCountModal'), wordCountDetails: $('wordCountDetails'), wordCountCloseBtn: $('wordCountCloseBtn'),
     imageBtn: $('imageBtn'), linkBtn: $('linkBtn'), tableBtn: $('tableBtn'), hrBtn: $('hrBtn'),
-    symbolBtn: $('symbolBtn'), dateBtn: $('dateBtn'), pageBreakBtn: $('pageBreakBtn'), headerFooterBtn: $('headerFooterBtn'),
+    symbolBtn: $('symbolBtn'), dateBtn: $('dateBtn'), pageBreakBtn: $('pageBreakBtn'),
+    editHeaderBtn: $('editHeaderBtn'), editFooterBtn: $('editFooterBtn'), pageNumBtn: $('pageNumBtn'), removeHFBtn: $('removeHFBtn'),
+    docHeader: $('docHeader'), docFooter: $('docFooter'), pageNumNote: $('pageNumNote'),
     tocBtn: $('tocBtn'), tocUpdateBtn: $('tocUpdateBtn'), footnoteBtn: $('footnoteBtn'),
     textColorInput: $('textColorInput'), textColorSwatch: $('textColorSwatch'),
     hiliteColorInput: $('hiliteColorInput'), hiliteColorSwatch: $('hiliteColorSwatch'),
@@ -603,7 +611,6 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     styleSelect: $('styleSelect'), fontSelect: $('fontSelect'), sizeSelect: $('sizeSelect'), lineSpacingSelect: $('lineSpacingSelect'),
     pageSizeSelect: $('pageSizeSelect'), orientationSelect: $('orientationSelect'), marginSelect: $('marginSelect'),
     pageSizeStyle: $('pageSizeStyle'), page: $('page'),
-    headerStrip: $('headerStrip'), headerStripText: $('headerStripText'), footerStrip: $('footerStrip'), footerStripText: $('footerStripText'),
     printHeader: $('printHeader'), printFooter: $('printFooter'),
     footnotesArea: $('footnotesArea'), footnotesList: $('footnotesList'),
     ribbonTabs: $('ribbonTabs')
@@ -626,6 +633,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     document.querySelectorAll('[data-i18n-title]').forEach(function (el) { el.title = t(el.getAttribute('data-i18n-title')); });
     document.querySelectorAll('[data-i18n-aria-label]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria-label'))); });
     document.querySelectorAll('[data-i18n-dataplaceholder]').forEach(function (el) { el.setAttribute('data-placeholder', t(el.getAttribute('data-i18n-dataplaceholder'))); });
+    document.querySelectorAll('[data-i18n-dataph]').forEach(function (el) { el.setAttribute('data-ph', t(el.getAttribute('data-i18n-dataph'))); });
     if (els.langToggle) els.langToggle.querySelectorAll('span').forEach(function (s) { s.classList.toggle('active', s.getAttribute('data-lt') === lang); });
     if (!state.speaking) els.speakBtn.title = t('speakBtnTitle');
     if (!state.dictating) els.dictateBtn.title = t('dictateBtnTitle');
@@ -759,6 +767,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   els.newDocBtn.addEventListener('click', function () {
     if (!confirm(t('newDocConfirm'))) return;
     editor.innerHTML = '';
+    els.docHeader.textContent = ''; els.docFooter.textContent = '';
     state.matches = []; els.issueHint.dataset.shown = '0';
     state.header = ''; state.footer = ''; state.pageNum = false;
     renderIssues(); renderFootnotes(); updateHeaderFooterUI();
@@ -783,6 +792,9 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   });
   els.downloadBtn.addEventListener('click', async function () {
     if (!extractText(editor).trim()) { setStatus(t('downloadEmpty'), true); return; }
+    /* อ่านหัว-ท้ายสดจากกล่องในหน้าเอกสารตอนดาวน์โหลด (กันกรณี state ไม่ทัน) */
+    state.header = els.docHeader.textContent.trim();
+    state.footer = els.docFooter.textContent.trim();
     try {
       await downloadEditorAsDocx(editor.innerHTML, 'document', {
         pageSize: state.pageSize, orientation: state.orientation, margins: state.margins,
@@ -1003,7 +1015,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   function openModal(m) { els.modalBackdrop.classList.add('open'); m.classList.add('open'); }
   function closeModals() {
     els.modalBackdrop.classList.remove('open');
-    [els.linkModal, els.tableModal, els.footnoteModal, els.headerFooterModal, els.symbolModal, els.wordCountModal].forEach(function (m) { m.classList.remove('open'); });
+    [els.linkModal, els.tableModal, els.footnoteModal, els.symbolModal, els.wordCountModal].forEach(function (m) { m.classList.remove('open'); });
   }
   els.modalBackdrop.addEventListener('click', function (e) { if (e.target === els.modalBackdrop) closeModals(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModals(); });
@@ -1106,33 +1118,37 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   els.symbolBtn.addEventListener('click', function () { saveSelectionRange(); buildSymbolGrid(); openModal(els.symbolModal); });
   els.symbolCloseBtn.addEventListener('click', closeModals);
 
-  /* ── หัว-ท้ายกระดาษ ── */
+  /* ── หัว-ท้ายกระดาษ (แก้ไขในหน้าเอกสารได้เลยแบบ Word) ── */
   function updateHeaderFooterUI() {
-    els.headerStrip.classList.toggle('show', !!state.header);
-    els.footerStrip.classList.toggle('show', !!(state.footer || state.pageNum));
-    els.headerStripText.textContent = state.header;
-    els.footerStripText.textContent = state.footer + (state.pageNum ? (state.footer ? '   ' : '') + '#' : '');
+    /* sync ข้อความสำหรับตอนพิมพ์ + สถานะปุ่มเลขหน้า */
     els.printHeader.textContent = state.header;
-    els.printFooter.textContent = state.footer;
+    els.printFooter.textContent = state.footer + (state.pageNum ? (state.footer ? '    ' : '') + '#' : '');
+    els.pageNumBtn.classList.toggle('active', state.pageNum);
+    els.pageNumNote.classList.toggle('show', state.pageNum);
   }
-  els.headerFooterBtn.addEventListener('click', function () {
-    els.headerTextInput.value = state.header;
-    els.footerTextInput.value = state.footer;
-    els.pageNumCheck.checked = state.pageNum;
-    openModal(els.headerFooterModal);
-  });
-  els.headerFooterCancelBtn.addEventListener('click', closeModals);
-  els.headerFooterOkBtn.addEventListener('click', function () {
-    state.header = els.headerTextInput.value.trim();
-    state.footer = els.footerTextInput.value.trim();
-    state.pageNum = els.pageNumCheck.checked;
+  /* พิมพ์ในกล่องหัว/ท้ายโดยตรง → เก็บลง state ทันที */
+  els.docHeader.addEventListener('input', function () { state.header = els.docHeader.textContent.trim(); updateHeaderFooterUI(); scheduleAutosave(); });
+  els.docFooter.addEventListener('input', function () { state.footer = els.docFooter.textContent.trim(); updateHeaderFooterUI(); scheduleAutosave(); });
+  /* กด Enter ในหัว/ท้ายไม่ต้องขึ้นบรรทัดใหม่ (Word หัว-ท้ายเป็นบรรทัดเดียวพอ) */
+  function singleLineGuard(e) { if (e.key === 'Enter') e.preventDefault(); }
+  els.docHeader.addEventListener('keydown', singleLineGuard);
+  els.docFooter.addEventListener('keydown', singleLineGuard);
+
+  els.editHeaderBtn.addEventListener('click', function () { els.docHeader.scrollIntoView({ block: 'center', behavior: 'smooth' }); els.docHeader.focus(); });
+  els.editFooterBtn.addEventListener('click', function () { els.docFooter.scrollIntoView({ block: 'center', behavior: 'smooth' }); els.docFooter.focus(); });
+  els.pageNumBtn.addEventListener('click', function () {
+    state.pageNum = !state.pageNum;
     updateHeaderFooterUI();
-    closeModals();
-    setStatus(t('headerFooterSaved'));
+    setStatus(state.pageNum ? t('pageNumOn') : t('pageNumOff'));
     scheduleAutosave();
   });
-  els.headerStrip.addEventListener('click', function () { els.headerFooterBtn.click(); });
-  els.footerStrip.addEventListener('click', function () { els.headerFooterBtn.click(); });
+  els.removeHFBtn.addEventListener('click', function () {
+    els.docHeader.textContent = ''; els.docFooter.textContent = '';
+    state.header = ''; state.footer = ''; state.pageNum = false;
+    updateHeaderFooterUI();
+    setStatus(t('headerFooterRemoved'));
+    scheduleAutosave();
+  });
 
   /* ── ตั้งค่าหน้ากระดาษ ── */
   function applyPageSetup() {
@@ -1256,6 +1272,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
       if (saved && typeof saved.html === 'string') {
         editor.innerHTML = saved.html;
         state.header = saved.header || ''; state.footer = saved.footer || ''; state.pageNum = !!saved.pageNum;
+        els.docHeader.textContent = state.header; els.docFooter.textContent = state.footer;
         state.pageSize = saved.pageSize || 'A4'; state.orientation = saved.orientation || 'portrait'; state.margins = saved.margins || 'normal';
         setStatus(t('restoredDraft'));
       }

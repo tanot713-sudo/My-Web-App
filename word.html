@@ -121,11 +121,18 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 @media(max-width:900px){.wd-body{grid-template-columns:1fr}}
 
 .wd-page-wrap{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:8px;overflow-x:auto}
-.wd-doc-strip{font-size:12px;color:var(--muted);padding:7px 14px;background:var(--bg);border-radius:9px;
-  margin:6px;cursor:pointer;display:none;align-items:center;gap:8px}
-.wd-doc-strip.show{display:flex}
-.wd-doc-strip:hover{color:var(--sky-dk)}
-.wd-doc-strip .tag{font-size:10px;font-weight:700;background:var(--sky-sf);color:var(--sky-dk);padding:1px 7px;border-radius:10px}
+/* หัว-ท้ายกระดาษ: แก้ไขได้ในหน้าเอกสารเลยแบบ Word */
+.wd-doc-header,.wd-doc-footer{font-size:13.5px;color:var(--ink);padding:9px clamp(20px,5vw,64px);
+  outline:none;min-height:36px;border:1px dashed transparent;border-radius:6px;transition:.14s}
+.wd-doc-header{border-bottom:1px solid var(--line);margin-bottom:2px}
+.wd-doc-footer{border-top:1px solid var(--line);margin-top:2px}
+.wd-doc-header:hover,.wd-doc-footer:hover{background:#FBFCFF}
+.wd-doc-header:focus,.wd-doc-footer:focus{background:#FBFCFF;border-color:var(--sky)}
+.wd-doc-header:empty::before,.wd-doc-footer:empty::before{content:attr(data-ph);color:#C2C9D8;pointer-events:none}
+[data-theme="dark"] .wd-doc-header:hover,[data-theme="dark"] .wd-doc-footer:hover,
+[data-theme="dark"] .wd-doc-header:focus,[data-theme="dark"] .wd-doc-footer:focus{background:#171C28}
+.wd-pagenum-note{font-size:11px;color:var(--muted);text-align:center;padding:2px 0 6px;display:none}
+.wd-pagenum-note.show{display:block}
 .wd-page{margin:0 auto;background:var(--card)}
 .wd-editor{min-height:560px;padding:40px clamp(20px,5vw,64px);font-size:15.5px;line-height:1.9;outline:none}
 .wd-editor:focus-visible{outline:none}
@@ -226,7 +233,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
      ด้วย @page margin:0 — ระยะขอบจริงมาจาก padding ของ .wd-editor แทน */
   body{background:#fff;padding:0;margin:0}
   .crumb-row,.wd-head,.wd-filebar,.wd-ribbon-tabs,.wd-ribbon-body,.wd-status,.wd-side,
-  .wd-statusbar,footer,.wd-doc-strip,#shell-nav,.ome-nav,.wd-modal-backdrop{display:none!important}
+  .wd-statusbar,footer,.wd-doc-header,.wd-doc-footer,.wd-pagenum-note,#shell-nav,.ome-nav,.wd-modal-backdrop{display:none!important}
   .wd-body{display:block;margin:0}
   .wd-page-wrap{box-shadow:none;padding:0;overflow:visible;background:#fff}
   .wd-page{max-width:none!important;margin:0}
@@ -238,7 +245,29 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 }
 
 footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
-@media(max-width:600px){body{padding:0 14px 60px}.wd-editor{padding:24px 18px}.wd-filebar{padding:10px}}
+
+/* ── มือถือ: ให้เห็นเครื่องมือ + หน้าเอกสารง่ายขึ้น ── */
+@media screen and (max-width:640px){
+  body{padding:0 10px 60px}
+  .wd-filebar{padding:9px;gap:6px}
+  .wd-filebar .btn{font-size:12.5px;padding:8px 11px}
+  /* ribbon: ให้กลุ่มเครื่องมือขึ้นบรรทัดใหม่แทนการเลื่อนแนวนอน จะเห็นครบทุกปุ่ม */
+  .wd-ribbon-body{overflow-x:visible;padding:8px 6px}
+  .wd-ribbon-panel{flex-wrap:wrap;gap:2px 0;min-width:0}
+  .wd-rgroup{padding:2px 8px}
+  .wd-rgroup:not(:last-child){border-right:1px solid var(--line)}
+  .wd-ribbon-tab{padding:7px 12px;font-size:12.5px}
+  .wd-ribbon-tabs{gap:2px}
+  .wd-select.font-select{min-width:104px}
+  /* หน้าเอกสารเต็มความกว้างจอ + เริ่มพิมพ์ชิดซ้ายเหมือน Word มือถือ
+     (ระยะขอบกระดาษจริงยังใช้ตอนพิมพ์/ดาวน์โหลดไฟล์) */
+  .wd-page{max-width:none!important}
+  .wd-editor{padding:20px 16px!important;min-height:60vh}
+  .wd-doc-header,.wd-doc-footer{padding:9px 16px!important}
+}
+@media screen and (max-width:400px){
+  .wd-ribbon-tab{padding:6px 9px;font-size:12px}
+}
 </style>
 </head>
 <body class="ome-tool-page" data-doctitle-key="docTitle">
@@ -466,9 +495,20 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 
     <div class="wd-rgroup">
       <div class="wd-rgroup-body">
-        <button class="rb-btn wide" id="headerFooterBtn" type="button" data-i18n-title="headerFooterTitle" title="หัวกระดาษ / ท้ายกระดาษ">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="8" x2="21" y2="8"/><line x1="3" y1="16" x2="21" y2="16"/></svg>
-          <span class="lbl" data-i18n="headerFooterWord">หัว-ท้ายกระดาษ</span>
+        <button class="rb-btn wide" id="editHeaderBtn" type="button" data-i18n-title="editHeaderTitle" title="แก้ไขหัวกระดาษ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="8" x2="21" y2="8"/></svg>
+          <span class="lbl" data-i18n="headerWord">หัวกระดาษ</span>
+        </button>
+        <button class="rb-btn wide" id="editFooterBtn" type="button" data-i18n-title="editFooterTitle" title="แก้ไขท้ายกระดาษ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="16" x2="21" y2="16"/></svg>
+          <span class="lbl" data-i18n="footerWord">ท้ายกระดาษ</span>
+        </button>
+        <button class="rb-btn wide" id="pageNumBtn" type="button" data-i18n-title="pageNumTitle" title="เลขหน้า">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V6a2 2 0 0 1 2-2h1"/><path d="M9 4h11v15"/><text x="12" y="16" font-size="9" fill="currentColor" stroke="none">#</text></svg>
+          <span class="lbl" data-i18n="pageNumWord">เลขหน้า</span>
+        </button>
+        <button class="rb-btn" id="removeHFBtn" type="button" data-i18n-title="removeHFTitle" title="ลบหัว-ท้ายกระดาษ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
         </button>
       </div>
     </div>
@@ -593,15 +633,16 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 
 <div class="wd-body">
   <div class="wd-page-wrap">
-    <div class="wd-doc-strip" id="headerStrip"><span class="tag" data-i18n="headerTag">หัวกระดาษ</span><span id="headerStripText"></span></div>
     <div class="wd-page" id="page">
+      <div class="wd-doc-header" id="docHeader" contenteditable="true" data-i18n-dataph="headerPh" data-ph="หัวกระดาษ — แตะเพื่อพิมพ์ (เว้นว่างไว้ถ้าไม่ต้องการ)"></div>
       <div class="wd-editor" id="editor" contenteditable="true" data-placeholder="เริ่มพิมพ์เอกสารตรงนี้..." data-i18n-dataplaceholder="editorPlaceholder"></div>
       <div class="wd-footnotes" id="footnotesArea">
         <div class="wd-footnotes-title" data-i18n="footnotesHeading">เชิงอรรถ</div>
         <div id="footnotesList"></div>
       </div>
+      <div class="wd-doc-footer" id="docFooter" contenteditable="true" data-i18n-dataph="footerPh" data-ph="ท้ายกระดาษ — แตะเพื่อพิมพ์ (เว้นว่างไว้ถ้าไม่ต้องการ)"></div>
+      <div class="wd-pagenum-note" id="pageNumNote" data-i18n="pageNumNote">↑ จะใส่เลขหน้าอัตโนมัติที่ท้ายกระดาษเมื่อดาวน์โหลดเป็นไฟล์ Word</div>
     </div>
-    <div class="wd-doc-strip" id="footerStrip"><span class="tag" data-i18n="footerTag">ท้ายกระดาษ</span><span id="footerStripText"></span></div>
   </div>
 
   <aside class="wd-side">
@@ -674,21 +715,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
     <div class="wd-modal-actions">
       <button class="btn" id="footnoteCancelBtn" type="button" data-i18n="modalCancel">ยกเลิก</button>
       <button class="btn primary" id="footnoteOkBtn" type="button" data-i18n="modalInsert">แทรก</button>
-    </div>
-  </div>
-  <div class="wd-modal" id="headerFooterModal">
-    <h3 data-i18n="headerFooterModalTitle">หัวกระดาษ / ท้ายกระดาษ</h3>
-    <label for="headerTextInput" data-i18n="headerTextLabel">ข้อความหัวกระดาษ</label>
-    <input type="text" id="headerTextInput" placeholder="">
-    <label for="footerTextInput" data-i18n="footerTextLabel">ข้อความท้ายกระดาษ</label>
-    <input type="text" id="footerTextInput" placeholder="">
-    <div class="wd-modal-check">
-      <input type="checkbox" id="pageNumCheck">
-      <label for="pageNumCheck" data-i18n="pageNumLabel">ใส่เลขหน้าที่ท้ายกระดาษ (เฉพาะไฟล์ Word)</label>
-    </div>
-    <div class="wd-modal-actions">
-      <button class="btn" id="headerFooterCancelBtn" type="button" data-i18n="modalCancel">ยกเลิก</button>
-      <button class="btn primary" id="headerFooterOkBtn" type="button" data-i18n="modalSave">บันทึก</button>
     </div>
   </div>
   <div class="wd-modal wide" id="symbolModal">
