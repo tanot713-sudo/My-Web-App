@@ -221,16 +221,19 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 /* ── พิมพ์ / PDF: หัว-ท้ายกระดาษซ้ำทุกหน้า ── */
 .wd-print-only{display:none}
 @media print{
-  body{background:#fff;padding:0}
+  /* ให้ PDF ออกมาเหมือนแปลง Word เป็น PDF: ตัดทุกอย่างที่ไม่ใช่ตัวเอกสาร
+     และตัด header/footer อัตโนมัติของเบราว์เซอร์ (title/URL/วันที่/เลขหน้า)
+     ด้วย @page margin:0 — ระยะขอบจริงมาจาก padding ของ .wd-editor แทน */
+  body{background:#fff;padding:0;margin:0}
   .crumb-row,.wd-head,.wd-filebar,.wd-ribbon-tabs,.wd-ribbon-body,.wd-status,.wd-side,
-  .wd-statusbar,footer,.wd-doc-strip,#shell-nav,.ome-nav{display:none!important}
-  .wd-body{display:block}
-  .wd-page-wrap{box-shadow:none;padding:0}
-  .wd-editor{padding:0}
+  .wd-statusbar,footer,.wd-doc-strip,#shell-nav,.ome-nav,.wd-modal-backdrop{display:none!important}
+  .wd-body{display:block;margin:0}
+  .wd-page-wrap{box-shadow:none;padding:0;overflow:visible;background:#fff}
+  .wd-page{max-width:none!important;margin:0}
   .wd-print-only{display:block}
-  #printHeader{position:fixed;top:0;left:0;right:0;text-align:center;font-size:12px;color:#444;padding:8px 0}
-  #printFooter{position:fixed;bottom:0;left:0;right:0;text-align:center;font-size:12px;color:#444;padding:8px 0}
-  .wd-editor .wd-pagebreak{break-after:page;border:none}
+  #printHeader{position:fixed;top:0.55cm;left:0;right:0;text-align:center;font-size:10.5pt;color:#000}
+  #printFooter{position:fixed;bottom:0.55cm;left:0;right:0;text-align:center;font-size:10.5pt;color:#000}
+  .wd-editor .wd-pagebreak{break-after:page;border:none;height:0;margin:0}
   .wd-editor .wd-pagebreak::after{display:none}
 }
 
@@ -254,7 +257,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   </div>
   <div>
     <h1 data-i18n="pageTitle">งาน Word: พิมพ์และแก้ไขเอกสาร</h1>
-    <p data-i18n="pageDesc">พิมพ์เอกสารตั้งแต่หน้าว่าง หรือนำเข้าไฟล์ (.txt .docx .pdf .png .jpg) แล้วจัดรูปแบบด้วยเครื่องมือแบบ Word เต็มรูปแบบ — จัดหน้า, ตาราง, สัญลักษณ์, สารบัญ, เชิงอรรถ, หัว-ท้ายกระดาษ, พูดแล้วขึ้นข้อความ, ตรวจคำผิด แล้วดาวน์โหลดเป็น .docx — ทำงานในเบราว์เซอร์ของคุณทั้งหมด</p>
   </div>
 </div>
 
@@ -302,7 +304,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
         </button>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpUndo">เลิกทำ</div>
     </div>
 
     <div class="wd-rgroup">
@@ -317,7 +318,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
         </button>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpClipboard">คลิปบอร์ด</div>
     </div>
 
     <div class="wd-rgroup">
@@ -395,7 +395,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           </button>
         </div>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpFont">แบบอักษร</div>
     </div>
 
     <div class="wd-rgroup">
@@ -438,7 +437,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           </button>
         </div>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpParagraph">ย่อหน้า</div>
     </div>
 
     <div class="wd-rgroup">
@@ -451,7 +449,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           <option value="BLOCKQUOTE" data-i18n="styleQuote">คำพูดอ้างอิง</option>
         </select>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpStyles">สไตล์</div>
     </div>
   </div>
 
@@ -464,7 +461,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           <span class="lbl" data-i18n="tableWord">ตาราง</span>
         </button>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpTable">ตาราง</div>
     </div>
 
     <div class="wd-rgroup">
@@ -475,7 +471,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
         </button>
         <input type="file" id="imageInput" accept="image/*" style="display:none">
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpIllustration">ภาพประกอบ</div>
     </div>
 
     <div class="wd-rgroup">
@@ -485,7 +480,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           <span class="lbl" data-i18n="linkWord">ลิงก์</span>
         </button>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpLink">ลิงก์</div>
     </div>
 
     <div class="wd-rgroup">
@@ -495,7 +489,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           <span class="lbl" data-i18n="headerFooterWord">หัว-ท้ายกระดาษ</span>
         </button>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpHeaderFooter">หัว-ท้ายกระดาษ</div>
     </div>
 
     <div class="wd-rgroup">
@@ -515,7 +508,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6h12V3"/><path d="M6 21v-6h12v6"/><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="2 2"/></svg>
         </button>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpSymbols">สัญลักษณ์</div>
     </div>
   </div>
 
@@ -548,7 +540,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           </select>
         </div>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpPageSetup">ตั้งค่าหน้ากระดาษ</div>
     </div>
   </div>
 
@@ -565,7 +556,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           <span class="lbl" data-i18n="tocUpdateWord">อัปเดต</span>
         </button>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpTOC">สารบัญ</div>
     </div>
 
     <div class="wd-rgroup">
@@ -575,7 +565,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           <span class="lbl" data-i18n="footnoteWord">เชิงอรรถ</span>
         </button>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpFootnotes">เชิงอรรถ</div>
     </div>
   </div>
 
@@ -588,7 +577,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           <span class="lbl" data-i18n="runBtn">ตรวจคำผิด</span>
         </button>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpProofing">การพิสูจน์อักษร</div>
     </div>
 
     <div class="wd-rgroup">
@@ -602,7 +590,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           <span class="lbl" data-i18n="dictateWord">พูดเป็นข้อความ</span>
         </button>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpSpeech">เสียง</div>
     </div>
 
     <div class="wd-rgroup">
@@ -616,7 +603,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
           <span class="lbl" data-i18n="wordCountWord">จำนวนคำ</span>
         </button>
       </div>
-      <div class="wd-rgroup-label" data-i18n="grpTools">เครื่องมือ</div>
     </div>
   </div>
 </div>

@@ -1140,7 +1140,10 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     var mg = MARGINS[state.margins] || MARGINS.normal;
     els.page.style.maxWidth = Math.round(wMm * 96 / 25.4) + 'px';
     editor.style.padding = mg.css;
-    els.pageSizeStyle.textContent = '@page { size: ' + state.pageSize + ' ' + state.orientation + '; margin: ' + mg.css + '; }';
+    /* margin:0 บน @page ทำให้เบราว์เซอร์ไม่แทรก header/footer อัตโนมัติ (ชื่อหน้า/URL/
+       วันที่/เลขหน้า) เวลาสั่งพิมพ์ → PDF ออกมาสะอาดเหมือนแปลงจาก Word จริง
+       ระยะขอบกระดาษจริงมาจาก padding ของ editor แทน */
+    els.pageSizeStyle.textContent = '@page { size: ' + state.pageSize + ' ' + state.orientation + '; margin: 0; }';
     els.pageSizeSelect.value = state.pageSize;
     els.orientationSelect.value = state.orientation;
     els.marginSelect.value = state.margins;
