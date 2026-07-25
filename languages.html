@@ -51,6 +51,9 @@
         const CheckCircle = () => <i data-lucide="check-circle-2" className="w-5 h-5 text-green-500"></i>;
         const XCircle = () => <i data-lucide="x-circle" className="w-5 h-5 text-red-500"></i>;
         const Languages = () => <i data-lucide="languages" className="w-4 h-4"></i>;
+        const Menu = () => <i data-lucide="menu" className="w-5 h-5"></i>;
+        const CloseIcon = () => <i data-lucide="x" className="w-5 h-5"></i>;
+        const NotebookIcon = () => <i data-lucide="notebook-pen" className="w-4 h-4"></i>;
 
         function speak(text, langCode) {
             try {
@@ -178,6 +181,7 @@
             const [progress, setProgress] = useState(loadProgress());
             const [syncing, setSyncing] = useState(false);
             const [syncStatus, setSyncStatus] = useState('');
+            const [mobileNavOpen, setMobileNavOpen] = useState(false);
             const inputRef = useRef(null);
 
             useEffect(() => { lucide.createIcons(); });
@@ -238,6 +242,7 @@
                 setTyped('');
                 setResult(null);
                 setView('practice');
+                setMobileNavOpen(false);
             };
 
             const selectLang = (id) => {
@@ -247,6 +252,7 @@
                 setTyped('');
                 setResult(null);
                 setView('practice');
+                setMobileNavOpen(false);
             };
 
             const selectCategory = (c) => {
@@ -279,15 +285,20 @@
             };
 
             return (
-                <div className="h-screen w-full flex bg-gray-50 font-sans text-gray-800">
+                <div className="h-screen w-full flex bg-gray-50 font-sans text-gray-800 relative">
 
-                    <aside className="w-72 bg-white border-r border-gray-200 flex flex-col overflow-y-auto">
+                    {mobileNavOpen && (
+                        <div className="fixed inset-0 bg-black/30 z-30 md:hidden" onClick={() => setMobileNavOpen(false)}></div>
+                    )}
+
+                    <aside className={`fixed md:static inset-y-0 left-0 z-40 w-72 bg-white border-r border-gray-200 flex flex-col overflow-y-auto transform transition-transform duration-200 md:translate-x-0 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                         <div className="p-6 border-b border-gray-200 flex items-center gap-3">
                             <div className="bg-brand text-white p-2 rounded-lg"><BookOpen /></div>
-                            <div>
+                            <div className="flex-1">
                                 <h1 className="font-bold text-lg tracking-tight">Language Practice</h1>
                                 <p className="text-xs text-gray-400">ข้อมูลจริงจาก OME</p>
                             </div>
+                            <button onClick={() => setMobileNavOpen(false)} className="md:hidden p-1 text-gray-400 hover:text-gray-700" aria-label="ปิดเมนู"><CloseIcon /></button>
                         </div>
 
                         <div className="p-4 flex-1">
@@ -317,8 +328,11 @@
 
                     <main className="flex-1 flex flex-col h-full overflow-hidden relative">
 
-                        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
-                            <div className="flex items-center gap-6 h-full">
+                        <header className="min-h-[64px] bg-white border-b border-gray-200 flex items-center flex-wrap gap-y-2 justify-between px-4 sm:px-6 py-2 shrink-0">
+                            <div className="flex items-center gap-3 sm:gap-6 h-full">
+                                <button onClick={() => setMobileNavOpen(true)} className="md:hidden -ml-1 p-1.5 text-gray-500 hover:text-gray-800" aria-label="เปิดเมนูภาษา">
+                                    <Menu />
+                                </button>
                                 <button
                                     onClick={() => setView('stream')}
                                     className={`h-full flex items-center text-sm font-semibold border-b-2 transition-colors ${view === 'stream' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
@@ -332,23 +346,23 @@
                                     ฝึกฝน
                                 </button>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                                 <button
                                     onClick={syncNow}
                                     disabled={syncing}
                                     className="text-xs font-semibold text-gray-500 hover:text-brand border border-gray-200 hover:border-brand rounded-full px-3 py-1.5 disabled:opacity-50 transition-colors"
                                 >
-                                    {syncing ? 'กำลังซิงก์...' : 'ซิงก์ Google Drive'}
+                                    {syncing ? 'กำลังซิงก์...' : <>ซิงก์<span className="hidden sm:inline"> Google Drive</span></>}
                                 </button>
-                                {syncStatus && <span className="text-xs text-gray-400">{syncStatus}</span>}
+                                {syncStatus && <span className="hidden sm:inline text-xs text-gray-400">{syncStatus}</span>}
                                 <a href="./index.html" className="text-xs font-semibold text-gray-400 hover:text-gray-700">&larr; กลับ OME</a>
                             </div>
                         </header>
 
                         {view === 'stream' ? (
                         <div className="flex-1 overflow-y-auto bg-gray-50">
-                            <div className="max-w-4xl mx-auto p-6 space-y-6">
-                                <div className="rounded-2xl bg-gradient-to-br from-brand via-indigo-700 to-purple-700 p-8 text-white shadow-lg">
+                            <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
+                                <div className="rounded-2xl bg-gradient-to-br from-brand via-indigo-700 to-purple-700 p-6 sm:p-8 text-white shadow-lg">
                                     <p className="text-xs uppercase tracking-widest text-indigo-200 mb-2">Language Practice</p>
                                     <h2 className="text-2xl font-bold mb-2">ฝึกภาษาแบบพิมพ์คำแปล</h2>
                                     <p className="text-indigo-100 text-sm max-w-xl">รวม {LANG_IDS.length} ภาษา {totalCategories} หมวดวลี ฝึกพิมพ์คำแปลเพื่อสะสม XP</p>
@@ -412,9 +426,9 @@
                             </div>
                         </div>
                         ) : (
-                        <div className="flex-1 flex overflow-hidden">
+                        <div className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
 
-                            <div className="w-1/2 h-full border-r border-gray-200 bg-gray-100 p-6 overflow-y-auto">
+                            <div className="w-full md:w-1/2 md:h-full border-b md:border-b-0 md:border-r border-gray-200 bg-gray-100 p-4 sm:p-6 md:overflow-y-auto">
                                 <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 min-h-full">
                                     <div className="border-b border-gray-200 pb-4 mb-4">
                                         <h3 className="text-xl font-bold text-gray-900 mb-1">วลีสำหรับฝึก — {lang.title}</h3>
@@ -452,7 +466,7 @@
                                 </div>
                             </div>
 
-                            <div className="w-1/2 h-full bg-white p-8 overflow-y-auto">
+                            <div className="w-full md:w-1/2 md:h-full bg-white p-4 sm:p-8 md:overflow-y-auto">
                                 <div className="animate-fade-in">
                                     <div className="flex items-center justify-between mb-6">
                                         <span className="bg-brandLight text-brand text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">พิมพ์คำแปล</span>
