@@ -407,7 +407,9 @@ function styleFromElement(el) {
   var face = el.getAttribute && el.getAttribute('face');
   var colorAttr = el.getAttribute && el.getAttribute('color');
   var st = el.style || {};
-  if (face) add.font = face.replace(/['"]/g, '');
+  /* face/fontFamily อาจเป็น stack เช่น "'TH Sarabun New','Sarabun',sans-serif"
+     — เอาเฉพาะชื่อฟอนต์ตัวแรกไปใส่ในไฟล์ Word เพื่อให้ Word เปิดด้วยฟอนต์จริง */
+  if (face) add.font = face.replace(/['"]/g, '').split(',')[0].trim();
   if (st.fontFamily) add.font = st.fontFamily.replace(/['"]/g, '').split(',')[0].trim();
   if (colorAttr) add.color = colorAttr.replace('#', '');
   if (st.color) { var hx = cssColorToHex(st.color); if (hx) add.color = hx; }
