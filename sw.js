@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v7';
+const CACHE = 'ome-v8';
 const PRECACHE = [
   './',
   './index.html',
@@ -17,6 +17,8 @@ const PRECACHE = [
   './languages.html',
   './legal.html',
   './budget.html',
+  './doc-check.html',
+  './doc-check.js',
   './theme.css',
   './app-theme.css',
   './app-nav.js',

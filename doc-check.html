@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ตรวจสอบเอกสาร | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+:root{
+  --bg:#F6F7FB; --card:#FFFFFF; --ink:#1F2430; --muted:#727C93; --line:#EAEDF5;
+  --brand:#12A594; --brand-dk:#0B7F72; --brand-sf:#E7F6F4;
+  --violet:#6C63D9; --amber:#F5A524; --rose:#EC5E8A; --sky:#3B9BEA;
+  --ok:#17B26A; --warn:#E08700; --err:#E5484D;
+  --f:'Prompt',system-ui,-apple-system,sans-serif;
+  --r:16px; --sh:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--f);background:var(--bg);color:var(--ink);
+  line-height:1.7;font-size:15px;font-weight:400;padding:0 20px 80px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto}
+
+.crumb{padding:24px 0 0;font-size:13px;color:var(--muted)}
+.crumb a{color:var(--brand);text-decoration:none;font-weight:500}
+.crumb a:hover{text-decoration:underline}
+.crumb span.sep{margin:0 8px;color:#C9CEDC}
+
+h1{font-size:clamp(22px,4vw,30px);font-weight:700;letter-spacing:-.01em;margin-top:14px}
+.page-desc{margin-top:8px;color:var(--muted);max-width:70ch;font-size:14.5px}
+
+.dc-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:20px}
+.btn{font-family:var(--f);font-size:14px;font-weight:600;padding:10px 18px;border:1.5px solid var(--line);
+  border-radius:12px;cursor:pointer;background:var(--card);color:var(--ink);transition:.16s;
+  display:inline-flex;align-items:center;gap:7px}
+.btn:hover:not(:disabled){border-color:var(--brand);color:var(--brand-dk)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.btn.primary:hover:not(:disabled){background:var(--brand-dk);color:#fff}
+select.btn{padding-right:12px}
+
+.dc-status{margin-top:14px;font-size:13.5px;color:var(--brand-dk);font-weight:500}
+.dc-status.err{color:var(--err)}
+.dc-filename{margin-top:6px;font-size:13px;color:var(--muted)}
+
+.dc-pager{display:flex;gap:10px;margin-top:22px}
+
+.dc-viewer{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:26px;margin-top:14px}
+.dc-text{white-space:pre-wrap;line-height:1.9;font-size:15px;color:var(--ink)}
+.err-mark{background:#FFF0B3;color:var(--ink);border-radius:4px;padding:0 2px;cursor:pointer;transition:.15s}
+.err-mark:hover{background:#FFE180}
+.err-mark.active{background:var(--rose);color:#fff}
+[data-theme="dark"] .err-mark{background:#4A3D1E;color:#F3F1F8}
+[data-theme="dark"] .err-mark:hover{background:#5C4B26}
+
+.dc-error-list{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:22px 24px;margin-top:16px}
+.dc-error-list h3{font-size:15px;font-weight:700;margin-bottom:12px}
+.dc-error-list ul{list-style:none}
+.dc-error-item{padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13.5px;line-height:1.6;
+  border:1.5px solid transparent;margin-bottom:6px}
+.dc-error-item:hover{background:var(--bg)}
+.dc-error-item.active{background:var(--brand-sf);border-color:var(--brand)}
+.dc-error-item strong{color:var(--rose)}
+.dc-error-item .suggestion{color:var(--brand-dk);font-weight:500}
+
+.dc-empty{text-align:center;color:var(--muted);font-size:14px;padding:50px 20px}
+.note{border-radius:12px;background:#FFF8EC;padding:15px 18px;font-size:13.5px;
+  color:#6B4A0F;margin-top:16px;border:1px solid #FBE7C2}
+.note.err{background:#FFF1F1;color:#9B2C2C;border-color:#F8D4D4}
+footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
+@media(max-width:600px){body{padding:0 14px 60px}.dc-viewer,.dc-error-list{padding:18px}}
+</style>
+</head>
+<body class="ome-tool-page">
+<script src="auth-gate.js"></script>
+<div class="wrap">
+<nav class="crumb"><a href="app.html#/responsibilities">งานที่รับผิดชอบ</a><span class="sep">/</span>ตรวจสอบเอกสาร</nav>
+
+<h1>ตรวจสอบเอกสาร</h1>
+<p class="page-desc">แนบไฟล์เอกสาร (.txt .docx .pdf .png .jpg) เลือกภาษา แล้วให้ระบบตรวจคำผิด พร้อมเลื่อนดูทีละหน้า อ่านออกเสียง และดาวน์โหลดไฟล์ที่แก้ไขแล้ว</p>
+
+<div class="dc-toolbar">
+  <button class="btn" id="attachBtn" type="button">📎 แนบไฟล์</button>
+  <input type="file" id="fileInput" accept=".txt,.docx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
+  <select class="btn" id="langSelect"></select>
+  <button class="btn primary" id="runBtn" type="button" disabled>🔍 ตรวจคำผิด</button>
+  <button class="btn" id="applyFixBtn" type="button" disabled>✅ แก้ไขหน้านี้ตามคำแนะนำ</button>
+  <button class="btn" id="speakBtn" type="button" disabled>🔊 อ่านออกเสียงหน้านี้</button>
+  <button class="btn" id="downloadBtn" type="button" disabled>📥 ดาวน์โหลดไฟล์ที่แก้ไข</button>
+</div>
+
+<div class="dc-status" id="statusMsg"></div>
+<div class="dc-filename" id="filenameInfo" style="display:none"></div>
+
+<div id="pagerWrap" style="display:none">
+  <div class="dc-pager">
+    <button class="btn" id="prevBtn" type="button">◂ หน้าก่อน</button>
+    <button class="btn" id="nextBtn" type="button">หน้าถัดไป ▸</button>
+  </div>
+  <div class="dc-viewer"><p class="dc-text" id="docText"></p></div>
+  <div class="dc-error-list" id="errorListWrap" style="display:none">
+    <h3 id="errorListTitle">จุดที่พบ (0)</h3>
+    <ul id="errorList"></ul>
+  </div>
+</div>
+
+<div id="emptyState" class="dc-empty">ยังไม่ได้แนบไฟล์ — กด "แนบไฟล์" ด้านบนเพื่อเริ่ม</div>
+
+<div class="note">
+  <strong>หมายเหตุ</strong>
+  ใช้บริการตรวจคำผิดสาธารณะ (LanguageTool) รองรับเต็มรูปแบบ 5 ภาษา: อังกฤษ เยอรมัน ฝรั่งเศส อิตาลี อาหรับ —
+  ภาษาอื่นยังตรวจแบบเจาะจงไม่ได้ในตอนนี้ ไฟล์ทั้งหมดประมวลผลในเบราว์เซอร์ของคุณ ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ใด (ยกเว้นข้อความที่ส่งไป LanguageTool ตอนกดตรวจคำผิด)
+</div>
+
+<footer>Tanot — งานที่รับผิดชอบ</footer>
+</div>
+
+<script type="module">
+import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs';
+window.pdfjsLib = pdfjsLib;
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs';
+window.dispatchEvent(new Event('pdfjs-ready'));
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="doc-check.js"></script>
+</body>
+</html>
