@@ -38,9 +38,15 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .dc-head h1{font-size:clamp(21px,3.6vw,28px);font-weight:700;letter-spacing:-.01em}
 .dc-head p{margin-top:4px;color:var(--muted);max-width:64ch;font-size:14px}
 
+/* ── สลับโหมด: แนบไฟล์ / พิมพ์ข้อความเอง ── */
+.dc-mode-tabs{display:flex;gap:6px;margin-top:22px;background:var(--line);border-radius:12px;padding:4px;width:fit-content}
+.dc-mode-tab{font-family:var(--f);font-size:13.5px;font-weight:600;padding:9px 16px;border:none;border-radius:9px;
+  background:transparent;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.15s}
+.dc-mode-tab.active{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(24,31,54,.08)}
+
 /* ── โซนวางไฟล์ ── */
 .drop{border:2px dashed #D7DCEA;border-radius:18px;padding:44px 24px;text-align:center;
-  cursor:pointer;transition:.2s;background:#FBFCFF;margin-top:22px}
+  cursor:pointer;transition:.2s;background:#FBFCFF;margin-top:14px}
 .drop:hover,.drop.over{border-color:var(--brand);background:var(--brand-sf)}
 .drop:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
 .drop-icon{color:var(--brand);margin-bottom:12px}
@@ -48,6 +54,20 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .drop-hint{font-size:13px;color:var(--muted);margin-top:6px}
 [data-theme="dark"] .drop{background:#171C28}
 [data-theme="dark"] .drop:hover,[data-theme="dark"] .drop.over{background:#14261E}
+
+/* ── กล่องพิมพ์ข้อความเอง ── */
+.dc-type-box{margin-top:14px;background:var(--card);border-radius:18px;box-shadow:var(--sh);padding:18px}
+.dc-type-box textarea{width:100%;min-height:140px;font-family:var(--f);font-size:14.5px;line-height:1.7;
+  border:1.5px solid var(--line);border-radius:12px;padding:14px;color:var(--ink);background:var(--bg);resize:vertical}
+.dc-type-box textarea:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.dc-type-box-actions{display:flex;justify-content:flex-end;margin-top:12px}
+
+/* ── ป้ายประเภทจุดที่พบ ── */
+.kind-badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;margin-bottom:7px}
+.kind-badge.spelling{background:#FFE3EA;color:#B3325A}
+.kind-badge.style{background:#EDEBFB;color:#5B4FC7}
+[data-theme="dark"] .kind-badge.spelling{background:#3A2530;color:#F5A9BE}
+[data-theme="dark"] .kind-badge.style{background:#2A2650;color:#C4BEF0}
 
 /* ── แถบเครื่องมือหลังแนบไฟล์ ── */
 .dc-toolbar{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-top:20px;
@@ -133,11 +153,32 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   </div>
   <div>
     <h1>ตรวจสอบเอกสาร</h1>
-    <p>แนบไฟล์ (.txt .docx .pdf .png .jpg) เลือกภาษา แล้วให้ระบบตรวจคำผิด ไฮไลต์จุดที่ควรแก้ อ่านออกเสียง และดาวน์โหลดไฟล์ที่แก้ไขแล้ว — ทำงานในเบราว์เซอร์ของคุณทั้งหมด</p>
+    <p>พิมพ์ข้อความเอง หรือแนบไฟล์ (.txt .docx .pdf .png .jpg) เลือกภาษา แล้วให้ระบบตรวจคำผิด ไฮไลต์จุดที่ควรแก้ อ่านออกเสียง และดาวน์โหลดไฟล์ที่แก้ไขแล้ว — ทำงานในเบราว์เซอร์ของคุณทั้งหมด</p>
   </div>
 </div>
 
-<div class="drop" id="dropZone" tabindex="0" role="button" aria-label="แนบไฟล์เอกสาร">
+<div class="dc-mode-tabs" id="modeTabs">
+  <button class="dc-mode-tab active" data-mode="type" type="button">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+    พิมพ์ข้อความเอง
+  </button>
+  <button class="dc-mode-tab" data-mode="file" type="button">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95L10.13 17.13a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+    แนบไฟล์
+  </button>
+</div>
+
+<div class="dc-type-box" id="typeBox">
+  <textarea id="typeTextarea" placeholder="พิมพ์หรือวางข้อความที่ต้องการตรวจตรงนี้ — เช่น ประโยคที่ไม่แน่ใจว่าเขียนถูกไหม หรืออยากให้แนะนำสำนวนที่เป็นทางการกว่านี้"></textarea>
+  <div class="dc-type-box-actions">
+    <button class="btn primary" id="useTypedTextBtn" type="button">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      ใช้ข้อความนี้
+    </button>
+  </div>
+</div>
+
+<div class="drop" id="dropZone" tabindex="0" role="button" aria-label="แนบไฟล์เอกสาร" style="display:none">
   <svg class="drop-icon" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
   <div class="drop-main">ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์</div>
   <div class="drop-hint">รองรับ .txt · .docx · .pdf · .png · .jpg (สแกน/ภาพถ่ายใช้ OCR อ่านให้อัตโนมัติ)</div>
@@ -208,7 +249,9 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 
 <div class="note">
   <strong>หมายเหตุ</strong> ใช้บริการตรวจคำผิดสาธารณะ (LanguageTool) รองรับเต็มรูปแบบ 5 ภาษา: อังกฤษ เยอรมัน ฝรั่งเศส อิตาลี อาหรับ —
-  ภาษาอื่นยังตรวจแบบเจาะจงไม่ได้ในตอนนี้ ไฟล์ทั้งหมดประมวลผลในเบราว์เซอร์ของคุณ ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ใด (ยกเว้นข้อความที่ส่งไป LanguageTool ตอนกดตรวจคำผิด)
+  ภาษาอื่น (รวมถึงภาษาไทย) ยังตรวจแบบเจาะจงไม่ได้ในตอนนี้ สำหรับ 5 ภาษาที่รองรับ ระบบเปิดคำแนะนำเชิงสไตล์เพิ่มเติมให้ด้วย (ป้าย
+  "สไตล์/ความเป็นทางการ" ในจุดที่พบ) เช่น คำที่ไม่เป็นทางการหรือประโยคยืดยาด — แต่ยังไม่ใช่การ "แต่งประโยคใหม่ให้เป็นทางการ" แบบ AI เต็มรูปแบบ
+  ไฟล์และข้อความทั้งหมดประมวลผลในเบราว์เซอร์ของคุณ ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ใด (ยกเว้นข้อความที่ส่งไป LanguageTool ตอนกดตรวจคำผิด)
 </div>
 
 <footer>Tanot — งานที่รับผิดชอบ</footer>

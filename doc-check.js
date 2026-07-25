@@ -71,7 +71,9 @@ function applyFixes(text, matches) {
 
 async function checkSpelling(text, ltCode) {
   if (!text.trim()) return [];
-  var params = new URLSearchParams({ text: text, language: ltCode });
+  /* level:'picky' เปิดกฎเชิงสไตล์เพิ่ม (คำไม่เป็นทางการ ประโยคยืดยาด ฯลฯ)
+     นอกเหนือจากตรวจตัวสะกด/ไวยากรณ์พื้นฐาน — รองรับเฉพาะภาษาที่มี ltCode */
+  var params = new URLSearchParams({ text: text, language: ltCode, level: 'picky' });
   var res = await fetch(LT_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -83,9 +85,16 @@ async function checkSpelling(text, ltCode) {
     return {
       offset: m.offset, length: m.length, message: m.message,
       replacements: (m.replacements || []).slice(0, 5).map(function (r) { return r.value; }),
-      ruleId: m.rule && m.rule.id
+      ruleId: m.rule && m.rule.id,
+      category: m.rule && m.rule.category && m.rule.category.id
     };
   });
+}
+
+/* จัดกลุ่มหมวดของ LanguageTool ให้เหลือ 2 ป้ายที่เข้าใจง่าย */
+function issueKind(category) {
+  var styleCats = ['STYLE', 'REDUNDANCY', 'WORDINESS', 'REGISTER', 'COLLOQUIALISMS', 'BRITISH_ENGLISH', 'AMERICAN_ENGLISH_STYLE', 'CONFUSED_WORDS'];
+  return styleCats.indexOf(category) !== -1 ? 'style' : 'spelling';
 }
 
 async function readTxtFile(file) { return splitIntoPages(await file.text()); }
@@ -169,7 +178,7 @@ function renderHighlightedText(container, text, matches, activeIndex, onClickMat
    ══════════════════════════════════════════════════════════════════ */
 if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
   var state = {
-    filename: '', pages: [], correctedPages: [], pageIndex: 0,
+    filename: '', pages: [], correctedPages: [], pageIndex: 0, mode: 'type',
     lang: 'th', matchesByPage: {}, activeMatch: null, busy: false, speaking: false
   };
 
@@ -180,7 +189,8 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
       downloadBtn = $('downloadBtn'), statusMsg = $('statusMsg'),
       workspace = $('workspace'), prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), pageIndicator = $('pageIndicator'),
       docText = $('docText'), issueCount = $('issueCount'), issueList = $('issueList'), issueEmpty = $('issueEmpty'),
-      emptyState = $('emptyState');
+      emptyState = $('emptyState'), modeTabs = $('modeTabs'), typeBox = $('typeBox'),
+      typeTextarea = $('typeTextarea'), useTypedTextBtn = $('useTypedTextBtn');
 
   var SPEAK_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
   var STOP_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
@@ -207,7 +217,9 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
   function render() {
     var hasFile = state.pages.length > 0;
     emptyState.style.display = hasFile ? 'none' : 'block';
-    dropZone.style.display = hasFile ? 'none' : 'block';
+    modeTabs.style.display = hasFile ? 'none' : 'flex';
+    dropZone.style.display = (!hasFile && state.mode === 'file') ? 'block' : 'none';
+    typeBox.style.display = (!hasFile && state.mode === 'type') ? 'block' : 'none';
     toolbar.style.display = hasFile ? 'flex' : 'none';
     workspace.style.display = hasFile ? 'grid' : 'none';
     runBtn.disabled = state.busy || !state.pages.length;
@@ -236,7 +248,12 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
       var chipsHtml = (m.replacements || []).map(function (r, ri) {
         return '<button class="chip" data-ri="' + ri + '" type="button">' + r.replace(/</g, '&lt;') + '</button>';
       }).join('');
-      item.innerHTML = '<div class="quote">"' + quoted.replace(/</g, '&lt;') + '"</div>' +
+      var kind = issueKind(m.category);
+      var badgeHtml = kind === 'style'
+        ? '<span class="kind-badge style">สไตล์/ความเป็นทางการ</span>'
+        : '<span class="kind-badge spelling">คำผิด/ไวยากรณ์</span>';
+      item.innerHTML = badgeHtml +
+        '<div class="quote">"' + quoted.replace(/</g, '&lt;') + '"</div>' +
         '<div class="msg">' + m.message.replace(/</g, '&lt;') + '</div>' +
         (chipsHtml ? '<div class="chips">' + chipsHtml + '</div>' : '');
       item.addEventListener('click', function () { state.activeMatch = i; render(); });
@@ -268,9 +285,32 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
     render();
   }
 
+  /* สลับแท็บ "พิมพ์ข้อความเอง" / "แนบไฟล์" (แสดงเฉพาะตอนยังไม่มีเอกสารโหลดอยู่) */
+  modeTabs.querySelectorAll('.dc-mode-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      state.mode = tab.dataset.mode;
+      modeTabs.querySelectorAll('.dc-mode-tab').forEach(function (t) { t.classList.toggle('active', t === tab); });
+      render();
+    });
+  });
+
+  function loadPages(pages, label) {
+    state.filename = label;
+    state.pages = pages;
+    state.correctedPages = pages.slice();
+    state.pageIndex = 0;
+    state.matchesByPage = {};
+    state.activeMatch = null;
+  }
+
   dropZone.addEventListener('click', function () { fileInput.click(); });
   dropZone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
-  replaceFileBtn.addEventListener('click', function (e) { e.stopPropagation(); fileInput.click(); });
+  replaceFileBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    state.pages = []; state.matchesByPage = {}; state.activeMatch = null;
+    setStatus('');
+    render();
+  });
   ['dragenter', 'dragover'].forEach(function (evt) {
     dropZone.addEventListener(evt, function (e) { e.preventDefault(); dropZone.classList.add('over'); });
   });
@@ -292,12 +332,7 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
     setStatus('กำลังอ่านไฟล์...', false, true);
     try {
       var result = await readAnyFile(file);
-      state.filename = file.name;
-      state.pages = result.pages;
-      state.correctedPages = result.pages.slice();
-      state.pageIndex = 0;
-      state.matchesByPage = {};
-      state.activeMatch = null;
+      loadPages(result.pages, file.name);
       setStatus('อ่านไฟล์สำเร็จ — พบ ' + result.pages.length + ' หน้า');
     } catch (err) {
       setStatus('เกิดข้อผิดพลาด: ' + err.message, true);
@@ -305,6 +340,15 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
       state.busy = false; render();
     }
   }
+
+  useTypedTextBtn.addEventListener('click', function () {
+    var text = typeTextarea.value;
+    if (!text.trim()) { typeTextarea.focus(); return; }
+    var pages = splitIntoPages(text);
+    loadPages(pages, 'ข้อความที่พิมพ์');
+    setStatus('ใช้ข้อความที่พิมพ์แล้ว — พบ ' + pages.length + ' หน้า');
+    render();
+  });
 
   runBtn.addEventListener('click', async function () {
     var lang = langByCode(state.lang);
