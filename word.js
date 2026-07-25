@@ -64,7 +64,12 @@ var I18N = {
     grpTable: 'ตาราง', grpIllustration: 'ภาพประกอบ', grpLink: 'ลิงก์', grpHeaderFooter: 'หัว-ท้ายกระดาษ', grpSymbols: 'สัญลักษณ์',
     grpPageSetup: 'ตั้งค่าหน้ากระดาษ', grpTOC: 'สารบัญ', grpFootnotes: 'เชิงอรรถ',
     grpProofing: 'การพิสูจน์อักษร', grpSpeech: 'เสียง', grpTools: 'เครื่องมือ',
-    styleNormal: 'ปกติ', styleH1: 'หัวข้อ 1', styleH2: 'หัวข้อ 2', styleH3: 'หัวข้อ 3', styleQuote: 'คำพูดอ้างอิง',
+    styleNormal: 'ปกติ', styleNoSpacing: 'ไม่เว้นระยะ', styleTitle: 'ชื่อเรื่อง', styleSubtitle: 'ชื่อเรื่องรอง',
+    styleH1: 'หัวข้อ 1', styleH2: 'หัวข้อ 2', styleH3: 'หัวข้อ 3', styleH4: 'หัวข้อ 4', styleQuote: 'คำพูดอ้างอิง', styleIntenseQuote: 'อ้างอิงเข้ม',
+    findReplaceTitle: 'ค้นหาและแทนที่ (Ctrl+H)', findReplaceWord: 'ค้นหา/แทนที่', findReplaceModalTitle: 'ค้นหาและแทนที่',
+    findLabel: 'ค้นหา', replaceLabel: 'แทนที่ด้วย', matchCaseLabel: 'ตรงตามตัวพิมพ์ใหญ่-เล็ก',
+    replaceOneBtn: 'แทนที่', replaceAllBtn: 'แทนที่ทั้งหมด', findNextBtn: 'ค้นหาถัดไป',
+    findCountFound: 'พบ {n} จุด', findCountNone: 'ไม่พบคำที่ค้นหา', findCountPos: 'จุดที่ {i} จาก {n}', replacedN: 'แทนที่แล้ว {n} จุด',
     tableWord: 'ตาราง', imageWord: 'รูปภาพ', linkWord: 'ลิงก์', headerFooterWord: 'หัว-ท้ายกระดาษ', symbolWord: 'สัญลักษณ์', dateWord: 'วันที่',
     pageSizeLabel: 'ขนาดกระดาษ', orientationLabel: 'แนวกระดาษ', portrait: 'แนวตั้ง', landscape: 'แนวนอน',
     marginLabel: 'ขอบกระดาษ', marginNormal: 'ปกติ', marginNarrow: 'แคบ', marginWide: 'กว้าง',
@@ -141,7 +146,12 @@ var I18N = {
     grpTable: 'Table', grpIllustration: 'Illustrations', grpLink: 'Links', grpHeaderFooter: 'Header & Footer', grpSymbols: 'Symbols',
     grpPageSetup: 'Page Setup', grpTOC: 'Table of Contents', grpFootnotes: 'Footnotes',
     grpProofing: 'Proofing', grpSpeech: 'Speech', grpTools: 'Tools',
-    styleNormal: 'Normal', styleH1: 'Heading 1', styleH2: 'Heading 2', styleH3: 'Heading 3', styleQuote: 'Quote',
+    styleNormal: 'Normal', styleNoSpacing: 'No Spacing', styleTitle: 'Title', styleSubtitle: 'Subtitle',
+    styleH1: 'Heading 1', styleH2: 'Heading 2', styleH3: 'Heading 3', styleH4: 'Heading 4', styleQuote: 'Quote', styleIntenseQuote: 'Intense Quote',
+    findReplaceTitle: 'Find & Replace (Ctrl+H)', findReplaceWord: 'Find/Replace', findReplaceModalTitle: 'Find & Replace',
+    findLabel: 'Find', replaceLabel: 'Replace with', matchCaseLabel: 'Match case',
+    replaceOneBtn: 'Replace', replaceAllBtn: 'Replace All', findNextBtn: 'Find Next',
+    findCountFound: 'Found {n}', findCountNone: 'No matches found', findCountPos: 'Match {i} of {n}', replacedN: 'Replaced {n}',
     tableWord: 'Table', imageWord: 'Picture', linkWord: 'Link', headerFooterWord: 'Header/Footer', symbolWord: 'Symbol', dateWord: 'Date',
     pageSizeLabel: 'Page size', orientationLabel: 'Orientation', portrait: 'Portrait', landscape: 'Landscape',
     marginLabel: 'Margins', marginNormal: 'Normal', marginNarrow: 'Narrow', marginWide: 'Wide',
@@ -455,7 +465,7 @@ async function nodeToRuns(el, inherited) {
   }
   return runs;
 }
-var HEADING_TAGS = { H1: 'HEADING_1', H2: 'HEADING_2', H3: 'HEADING_3' };
+var HEADING_TAGS = { H1: 'HEADING_1', H2: 'HEADING_2', H3: 'HEADING_3', H4: 'HEADING_4' };
 function paragraphExtras(el) {
   var docx = window.docx;
   var opts = {};
@@ -471,7 +481,16 @@ function paragraphExtras(el) {
 async function elementToParagraph(el) {
   var docx = window.docx;
   var tag = el.tagName;
+  var cls = el.className || '';
   var base = paragraphExtras(el);
+  /* สไตล์แบบ Word: ชื่อเรื่อง/ชื่อเรื่องรอง/อ้างอิงเข้ม — คงลุคใกล้เคียงในไฟล์ Word */
+  if (/wd-title/.test(cls)) return new docx.Paragraph(Object.assign({ children: await nodeToRuns(el, { bold: true, size: 56 }), spacing: { after: 120 } }, base));
+  if (/wd-subtitle/.test(cls)) return new docx.Paragraph(Object.assign({ children: await nodeToRuns(el, { color: '727C93', size: 30 }), spacing: { after: 160 } }, base));
+  if (tag === 'BLOCKQUOTE') {
+    var qOpts = { children: await nodeToRuns(el, { italics: true }), indent: { left: 480 } };
+    if (/wd-intense/.test(cls)) { qOpts.children = await nodeToRuns(el, { italics: true, bold: true, color: '1E7DC4' }); qOpts.alignment = docx.AlignmentType ? docx.AlignmentType.CENTER : undefined; }
+    return new docx.Paragraph(Object.assign(qOpts, base));
+  }
   if (tag === 'LI') return new docx.Paragraph(Object.assign({ children: await nodeToRuns(el), bullet: { level: 0 } }, base));
   if (HEADING_TAGS[tag]) return new docx.Paragraph(Object.assign({ children: await nodeToRuns(el), heading: docx.HeadingLevel[HEADING_TAGS[tag]] }, base));
   return new docx.Paragraph(Object.assign({ children: await nodeToRuns(el) }, base));
@@ -609,6 +628,9 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     footnoteModal: $('footnoteModal'), footnoteTextInput: $('footnoteTextInput'), footnoteOkBtn: $('footnoteOkBtn'), footnoteCancelBtn: $('footnoteCancelBtn'),
     symbolModal: $('symbolModal'), symbolGrid: $('symbolGrid'), symbolCloseBtn: $('symbolCloseBtn'),
     wordCountModal: $('wordCountModal'), wordCountDetails: $('wordCountDetails'), wordCountCloseBtn: $('wordCountCloseBtn'),
+    findReplaceBtn: $('findReplaceBtn'), findReplaceModal: $('findReplaceModal'), findInput: $('findInput'), replaceInput: $('replaceInput'),
+    findMatchCase: $('findMatchCase'), findCount: $('findCount'), findCloseBtn: $('findCloseBtn'),
+    replaceOneBtn: $('replaceOneBtn'), replaceAllBtn: $('replaceAllBtn'), findNextBtn: $('findNextBtn'),
     imageBtn: $('imageBtn'), linkBtn: $('linkBtn'), tableBtn: $('tableBtn'), hrBtn: $('hrBtn'),
     symbolBtn: $('symbolBtn'), dateBtn: $('dateBtn'), pageBreakBtn: $('pageBreakBtn'),
     editHeaderBtn: $('editHeaderBtn'), editFooterBtn: $('editFooterBtn'), pageNumBtn: $('pageNumBtn'), removeHFBtn: $('removeHFBtn'),
@@ -701,13 +723,20 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     els.wordCountEl.firstChild.nodeValue = s.words + ' ';
     els.charCountEl.firstChild.nodeValue = s.charsWith + ' ';
   }
+  /* คืน HTML ของเนื้อหาโดยไม่มีไฮไลต์ผลค้นหา (mark.wd-find-hit เป็นแค่ UI ชั่วคราว) */
+  function cleanEditorHtml() {
+    if (!editor.querySelector('mark.wd-find-hit')) return editor.innerHTML;
+    var clone = editor.cloneNode(true);
+    clone.querySelectorAll('mark.wd-find-hit').forEach(function (m) { var p = m.parentNode; while (m.firstChild) p.insertBefore(m.firstChild, m); p.removeChild(m); });
+    return clone.innerHTML;
+  }
   function scheduleAutosave() {
     updateCounts();
     clearTimeout(autosaveTimer);
     autosaveTimer = setTimeout(function () {
       try {
         localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
-          html: editor.innerHTML, header: state.header, footer: state.footer, pageNum: state.pageNum,
+          html: cleanEditorHtml(), header: state.header, footer: state.footer, pageNum: state.pageNum,
           headerHtml: els.docHeader.innerHTML, footerHtml: els.docFooter.innerHTML,
           pageSize: state.pageSize, orientation: state.orientation, margins: state.margins, savedAt: Date.now()
         }));
@@ -816,7 +845,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     state.header = els.docHeader.textContent.trim();
     state.footer = els.docFooter.textContent.trim();
     try {
-      await downloadEditorAsDocx(editor.innerHTML, 'document', {
+      await downloadEditorAsDocx(cleanEditorHtml(), 'document', {
         pageSize: state.pageSize, orientation: state.orientation, margins: state.margins,
         headerText: state.header, footerText: state.footer, pageNum: state.pageNum,
         headerHtml: els.docHeader.innerHTML, footerHtml: els.docFooter.innerHTML,
@@ -848,6 +877,118 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     openModal(els.wordCountModal);
   });
   els.wordCountCloseBtn.addEventListener('click', closeModals);
+
+  /* ── ค้นหาและแทนที่ (แบบ Word) ── */
+  var findState = { current: -1 };
+  function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function clearFindHighlights() {
+    editor.querySelectorAll('mark.wd-find-hit').forEach(function (m) {
+      var parent = m.parentNode;
+      while (m.firstChild) parent.insertBefore(m.firstChild, m);
+      parent.removeChild(m);
+      parent.normalize();
+    });
+  }
+  function findTerm() { return els.findInput.value; }
+  function highlightAll() {
+    clearFindHighlights();
+    var term = findTerm();
+    if (!term) { els.findCount.textContent = ''; findState.current = -1; return 0; }
+    var re = new RegExp(escapeRe(term), els.findMatchCase.checked ? 'g' : 'gi');
+    var textNodes = [];
+    var walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null);
+    var node;
+    while ((node = walker.nextNode())) {
+      if (node.nodeValue && node.parentElement && !node.parentElement.closest('.wd-find-hit,.wd-toc,.wd-fnref,.wd-pagebreak')) textNodes.push(node);
+    }
+    var count = 0;
+    textNodes.forEach(function (tn) {
+      var text = tn.nodeValue; re.lastIndex = 0;
+      if (!re.test(text)) return;
+      re.lastIndex = 0;
+      var frag = document.createDocumentFragment();
+      var last = 0, m;
+      while ((m = re.exec(text)) !== null) {
+        if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+        var mark = document.createElement('mark');
+        mark.className = 'wd-find-hit';
+        mark.textContent = m[0];
+        frag.appendChild(mark);
+        last = m.index + m[0].length;
+        count++;
+        if (m[0].length === 0) re.lastIndex++;
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      tn.parentNode.replaceChild(frag, tn);
+    });
+    els.findCount.textContent = count ? t('findCountFound', { n: count }) : t('findCountNone');
+    findState.current = -1;
+    return count;
+  }
+  function gotoNext() {
+    var hits = editor.querySelectorAll('mark.wd-find-hit');
+    if (!hits.length) { if (highlightAll() === 0) return; hits = editor.querySelectorAll('mark.wd-find-hit'); }
+    if (!hits.length) return;
+    hits.forEach(function (h) { h.classList.remove('current'); });
+    findState.current = (findState.current + 1) % hits.length;
+    var cur = hits[findState.current];
+    cur.classList.add('current');
+    cur.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    els.findCount.textContent = t('findCountPos', { i: findState.current + 1, n: hits.length });
+  }
+  function replaceCurrent() {
+    var hits = editor.querySelectorAll('mark.wd-find-hit');
+    if (!hits.length) { gotoNext(); return; }
+    if (findState.current < 0) findState.current = 0;
+    var cur = hits[findState.current];
+    if (!cur) { findState.current = 0; cur = hits[0]; }
+    if (!cur) return;
+    var repl = document.createTextNode(els.replaceInput.value);
+    cur.parentNode.replaceChild(repl, cur);
+    editor.normalize();
+    scheduleAutosave();
+    findState.current = findState.current - 1;
+    highlightAll();
+    gotoNext();
+  }
+  function replaceAll() {
+    var term = findTerm();
+    if (!term) return;
+    clearFindHighlights();
+    var re = new RegExp(escapeRe(term), els.findMatchCase.checked ? 'g' : 'gi');
+    var repl = els.replaceInput.value;
+    var count = 0;
+    var textNodes = [];
+    var walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null);
+    var node;
+    while ((node = walker.nextNode())) {
+      if (node.parentElement && !node.parentElement.closest('.wd-toc,.wd-fnref,.wd-pagebreak')) textNodes.push(node);
+    }
+    textNodes.forEach(function (tn) {
+      var v = tn.nodeValue;
+      var nv = v.replace(re, function () { count++; return repl; });
+      if (nv !== v) tn.nodeValue = nv;
+    });
+    editor.normalize();
+    els.findCount.textContent = t('replacedN', { n: count });
+    if (count) { scheduleAutosave(); if (state.matches.length) { state.matches = []; renderIssues(); } }
+  }
+  function openFindReplace() {
+    openModal(els.findReplaceModal);
+    els.findInput.focus(); els.findInput.select();
+    if (els.findInput.value) highlightAll();
+  }
+  els.findReplaceBtn.addEventListener('click', openFindReplace);
+  els.findNextBtn.addEventListener('click', gotoNext);
+  els.replaceOneBtn.addEventListener('click', replaceCurrent);
+  els.replaceAllBtn.addEventListener('click', replaceAll);
+  els.findCloseBtn.addEventListener('click', function () { clearFindHighlights(); closeModals(); });
+  els.findInput.addEventListener('input', highlightAll);
+  els.findMatchCase.addEventListener('change', highlightAll);
+  els.findInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); gotoNext(); } });
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'h')) { e.preventDefault(); openFindReplace(); }
+  });
 
   /* ── อ่านออกเสียง ── */
   els.speakBtn.addEventListener('click', function () {
@@ -919,9 +1060,34 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
       scheduleAutosave();
     });
   });
+  /* ── สไตล์แบบ Word (ปกติ/ชื่อเรื่อง/หัวข้อ 1-4/คำพูดอ้างอิง ฯลฯ) ── */
+  var STYLE_MAP = {
+    normal:       { tag: 'p', cls: '' },
+    nospacing:    { tag: 'p', cls: 'wd-nospace' },
+    title:        { tag: 'p', cls: 'wd-title' },
+    subtitle:     { tag: 'p', cls: 'wd-subtitle' },
+    h1:           { tag: 'h1', cls: '' },
+    h2:           { tag: 'h2', cls: '' },
+    h3:           { tag: 'h3', cls: '' },
+    h4:           { tag: 'h4', cls: '' },
+    quote:        { tag: 'blockquote', cls: '' },
+    intensequote: { tag: 'blockquote', cls: 'wd-intense' }
+  };
+  function currentBlocks() {
+    /* บล็อกที่ selection คลุมอยู่ (ในพื้นที่ที่กำลังโฟกัส) */
+    var blocks = selectedBlocks();
+    return blocks;
+  }
   els.styleSelect.addEventListener('change', function () {
+    var spec = STYLE_MAP[els.styleSelect.value] || STYLE_MAP.normal;
     focusActive();
-    document.execCommand('formatBlock', false, '<' + els.styleSelect.value.toLowerCase() + '>');
+    document.execCommand('formatBlock', false, '<' + spec.tag + '>');
+    /* ใส่/ล้าง class ให้บล็อกที่เพิ่งจัด (title/subtitle/nospacing/intense) */
+    currentBlocks().forEach(function (b) {
+      b.classList.remove('wd-title', 'wd-subtitle', 'wd-nospace', 'wd-intense');
+      if (spec.cls) b.classList.add(spec.cls);
+    });
+    if (isHF()) syncHFFromRegions();
     scheduleAutosave();
   });
   els.fontSelect.addEventListener('change', function () {
@@ -1043,7 +1209,8 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   function openModal(m) { els.modalBackdrop.classList.add('open'); m.classList.add('open'); }
   function closeModals() {
     els.modalBackdrop.classList.remove('open');
-    [els.linkModal, els.tableModal, els.footnoteModal, els.symbolModal, els.wordCountModal].forEach(function (m) { m.classList.remove('open'); });
+    if (els.findReplaceModal.classList.contains('open')) clearFindHighlights();
+    [els.linkModal, els.tableModal, els.footnoteModal, els.symbolModal, els.wordCountModal, els.findReplaceModal].forEach(function (m) { m.classList.remove('open'); });
   }
   els.modalBackdrop.addEventListener('click', function (e) { if (e.target === els.modalBackdrop) closeModals(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModals(); });

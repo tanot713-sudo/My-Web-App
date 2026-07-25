@@ -139,9 +139,20 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .wd-editor :where(h1){font-size:26px;font-weight:700;margin:.6em 0 .3em;letter-spacing:-.01em}
 .wd-editor :where(h2){font-size:21px;font-weight:700;margin:.6em 0 .3em}
 .wd-editor :where(h3){font-size:17.5px;font-weight:700;margin:.6em 0 .3em}
+.wd-editor :where(h4){font-size:15.5px;font-weight:700;margin:.6em 0 .3em;color:var(--sky-dk)}
 .wd-editor :where(p){margin:.35em 0}
+/* ── สไตล์แบบ Word ── */
+.wd-editor .wd-title{font-size:32px;font-weight:700;letter-spacing:-.02em;margin:.2em 0 .1em;line-height:1.2}
+.wd-editor .wd-subtitle{font-size:19px;font-weight:400;color:var(--muted);margin:0 0 .5em;letter-spacing:.01em}
+.wd-editor .wd-nospace{margin:0}
+.wd-editor .wd-intense{border-left-width:0;text-align:center;font-style:italic;font-weight:600;color:var(--sky-dk);
+  border-top:1.5px solid var(--sky);border-bottom:1.5px solid var(--sky);padding:10px 20px}
 .wd-editor :where(ul,ol){margin:.35em 0 .35em 1.4em}
 .wd-editor :where(blockquote){margin:.5em 0;padding:4px 16px;border-left:3px solid var(--sky);color:var(--muted)}
+/* ไฮไลต์ผลค้นหา */
+.wd-editor .wd-find-hit{background:#FFE08A;color:#111;border-radius:2px}
+.wd-editor .wd-find-hit.current{background:#F5A524;color:#fff}
+.wd-find-count{font-size:13px;color:var(--muted);min-height:18px;margin-top:2px}
 .wd-editor :where(a){color:var(--sky-dk);text-decoration:underline}
 .wd-editor :where(mark){background:#FFF3B0}
 .wd-editor :where(table){border-collapse:collapse;margin:.5em 0;width:100%}
@@ -242,6 +253,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
   .wd-doc-header:empty::before,.wd-doc-footer:empty::before{content:none!important}
   .wd-editor .wd-pagebreak{break-after:page;border:none;height:0;margin:0}
   .wd-editor .wd-pagebreak::after{display:none}
+  .wd-editor .wd-find-hit{background:none!important;color:inherit!important}
 }
 
 footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
@@ -458,13 +470,27 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 
     <div class="wd-rgroup">
       <div class="wd-rgroup-body">
-        <select class="wd-select style-select" id="styleSelect" data-cmd="formatBlock">
-          <option value="P" data-i18n="styleNormal">ปกติ</option>
-          <option value="H1" data-i18n="styleH1">หัวข้อ 1</option>
-          <option value="H2" data-i18n="styleH2">หัวข้อ 2</option>
-          <option value="H3" data-i18n="styleH3">หัวข้อ 3</option>
-          <option value="BLOCKQUOTE" data-i18n="styleQuote">คำพูดอ้างอิง</option>
+        <select class="wd-select style-select" id="styleSelect">
+          <option value="normal" data-i18n="styleNormal">ปกติ</option>
+          <option value="nospacing" data-i18n="styleNoSpacing">ไม่เว้นระยะ</option>
+          <option value="title" data-i18n="styleTitle">ชื่อเรื่อง</option>
+          <option value="subtitle" data-i18n="styleSubtitle">ชื่อเรื่องรอง</option>
+          <option value="h1" data-i18n="styleH1">หัวข้อ 1</option>
+          <option value="h2" data-i18n="styleH2">หัวข้อ 2</option>
+          <option value="h3" data-i18n="styleH3">หัวข้อ 3</option>
+          <option value="h4" data-i18n="styleH4">หัวข้อ 4</option>
+          <option value="quote" data-i18n="styleQuote">คำพูดอ้างอิง</option>
+          <option value="intensequote" data-i18n="styleIntenseQuote">อ้างอิงเข้ม</option>
         </select>
+      </div>
+    </div>
+
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn wide" id="findReplaceBtn" type="button" data-i18n-title="findReplaceTitle" title="ค้นหาและแทนที่">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <span class="lbl" data-i18n="findReplaceWord">ค้นหา/แทนที่</span>
+        </button>
       </div>
     </div>
   </div>
@@ -717,6 +743,24 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
     <div class="wd-modal-actions">
       <button class="btn" id="footnoteCancelBtn" type="button" data-i18n="modalCancel">ยกเลิก</button>
       <button class="btn primary" id="footnoteOkBtn" type="button" data-i18n="modalInsert">แทรก</button>
+    </div>
+  </div>
+  <div class="wd-modal" id="findReplaceModal">
+    <h3 data-i18n="findReplaceModalTitle">ค้นหาและแทนที่</h3>
+    <label for="findInput" data-i18n="findLabel">ค้นหา</label>
+    <input type="text" id="findInput" autocomplete="off">
+    <label for="replaceInput" data-i18n="replaceLabel">แทนที่ด้วย</label>
+    <input type="text" id="replaceInput" autocomplete="off">
+    <div class="wd-modal-check">
+      <input type="checkbox" id="findMatchCase">
+      <label for="findMatchCase" data-i18n="matchCaseLabel">ตรงตามตัวพิมพ์ใหญ่-เล็ก</label>
+    </div>
+    <div id="findCount" class="wd-find-count"></div>
+    <div class="wd-modal-actions">
+      <button class="btn" id="findCloseBtn" type="button" data-i18n="modalClose">ปิด</button>
+      <button class="btn" id="replaceOneBtn" type="button" data-i18n="replaceOneBtn">แทนที่</button>
+      <button class="btn" id="replaceAllBtn" type="button" data-i18n="replaceAllBtn">แทนที่ทั้งหมด</button>
+      <button class="btn primary" id="findNextBtn" type="button" data-i18n="findNextBtn">ค้นหาถัดไป</button>
     </div>
   </div>
   <div class="wd-modal wide" id="symbolModal">
