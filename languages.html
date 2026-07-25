@@ -25,6 +25,7 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <style>
         body { background-color: #f3f4f6; margin: 0; }
@@ -76,6 +77,96 @@
             { date: 'เคล็ดลับ', text: 'กดปุ่มลำโพงเพื่อฟังเสียงอ่านประโยคต้นฉบับ ช่วยจำสำเนียงได้ดีขึ้น' },
         ];
 
+        // ── Google Drive sync (ไม่บังคับ) — ซิงก์ XP/ความคืบหน้าข้ามอุปกรณ์ ──────────
+        const DRIVE_CLIENT_ID = '497048581273-akpavakt6m34lhqbjf1irg3m8vl6u27u.apps.googleusercontent.com';
+        const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+        const DRIVE_FOLDER_NAME = 'OME_Progress';
+        const DRIVE_FILE_NAME = 'language-progress.json';
+
+        const DriveSync = {
+            tokenClient: null,
+            accessToken: null,
+            folderId: null,
+            ensureAuth() {
+                return new Promise((resolve, reject) => {
+                    if (!window.google || !google.accounts || !google.accounts.oauth2) {
+                        reject(new Error('โหลด Google Identity Services ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'));
+                        return;
+                    }
+                    if (!this.tokenClient) {
+                        this.tokenClient = google.accounts.oauth2.initTokenClient({
+                            client_id: DRIVE_CLIENT_ID,
+                            scope: DRIVE_SCOPE,
+                            callback: (resp) => {
+                                if (resp.error) { reject(new Error(resp.error)); return; }
+                                this.accessToken = resp.access_token;
+                                resolve(this.accessToken);
+                            },
+                        });
+                    }
+                    this.tokenClient.requestAccessToken({ prompt: this.accessToken ? '' : 'consent' });
+                });
+            },
+            async ensureFolder() {
+                if (this.folderId) return this.folderId;
+                const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+                const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
+                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
+                if (!res.ok) throw new Error('ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP ' + res.status + ')');
+                const data = await res.json();
+                if (data.files && data.files.length) { this.folderId = data.files[0].id; return this.folderId; }
+                const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+                    method: 'POST',
+                    headers: { Authorization: 'Bearer ' + this.accessToken, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }),
+                });
+                if (!createRes.ok) throw new Error('สร้างโฟลเดอร์ไม่สำเร็จ (HTTP ' + createRes.status + ')');
+                const createData = await createRes.json();
+                this.folderId = createData.id;
+                return this.folderId;
+            },
+            async findFile(name, folderId) {
+                const q = encodeURIComponent(`name='${name}' and '${folderId}' in parents and trashed=false`);
+                const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
+                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
+                if (!res.ok) throw new Error('ค้นหาไฟล์ไม่สำเร็จ (HTTP ' + res.status + ')');
+                const data = await res.json();
+                return (data.files && data.files[0]) || null;
+            },
+            async downloadFile(fileId) {
+                const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
+                if (!res.ok) throw new Error('ดาวน์โหลดไม่สำเร็จ (HTTP ' + res.status + ')');
+                return res.json();
+            },
+            async uploadFile(name, folderId, existingId, obj) {
+                const form = new FormData();
+                const metadata = existingId ? {} : { name, parents: [folderId] };
+                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                form.append('file', new Blob([JSON.stringify(obj)], { type: 'application/json' }));
+                const url = existingId
+                    ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`
+                    : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
+                const res = await fetch(url, { method: existingId ? 'PATCH' : 'POST',
+                    headers: { Authorization: 'Bearer ' + this.accessToken }, body: form });
+                if (!res.ok) throw new Error('บันทึกขึ้น Drive ไม่สำเร็จ (HTTP ' + res.status + ')');
+                return res.json();
+            },
+        };
+
+        function mergeProgress(a, b) {
+            const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+            const out = {};
+            keys.forEach(k => {
+                const la = (a && a[k]) || [], lb = (b && b[k]) || [];
+                const len = Math.max(la.length, lb.length);
+                const arr = [];
+                for (let i = 0; i < len; i++) arr[i] = !!(la[i] || lb[i]);
+                out[k] = arr;
+            });
+            return out;
+        }
+
         function App() {
             const [view, setView] = useState('stream'); // 'stream' | 'practice'
             const [langId, setLangId] = useState('lang-en');
@@ -85,11 +176,39 @@
             const [result, setResult] = useState(null); // 'correct' | 'wrong' | null
             const [xp, setXp] = useState(loadXp());
             const [progress, setProgress] = useState(loadProgress());
+            const [syncing, setSyncing] = useState(false);
+            const [syncStatus, setSyncStatus] = useState('');
             const inputRef = useRef(null);
 
             useEffect(() => { lucide.createIcons(); });
             useEffect(() => { saveXp(xp); }, [xp]);
             useEffect(() => { saveProgress(progress); }, [progress]);
+
+            const syncNow = async () => {
+                setSyncing(true);
+                setSyncStatus('กำลังเชื่อมต่อ Google...');
+                try {
+                    await DriveSync.ensureAuth();
+                    setSyncStatus('กำลังซิงก์...');
+                    const folderId = await DriveSync.ensureFolder();
+                    const existing = await DriveSync.findFile(DRIVE_FILE_NAME, folderId);
+                    const remote = existing ? await DriveSync.downloadFile(existing.id) : null;
+
+                    const mergedXp = Math.max(xp, remote?.xp || 0);
+                    const mergedProgress = mergeProgress(remote?.progress, progress);
+
+                    setXp(mergedXp);
+                    setProgress(mergedProgress);
+
+                    await DriveSync.uploadFile(DRIVE_FILE_NAME, folderId, existing?.id,
+                        { xp: mergedXp, progress: mergedProgress, savedAt: new Date().toISOString() });
+                    setSyncStatus('✅ ซิงก์สำเร็จ');
+                } catch (e) {
+                    setSyncStatus('❌ ' + (e.message || e));
+                } finally {
+                    setSyncing(false);
+                }
+            };
 
             const lang = LANGS[langId];
             const categories = Object.keys(lang.phrases);
@@ -213,7 +332,17 @@
                                     ฝึกฝน
                                 </button>
                             </div>
-                            <a href="./index.html" className="text-xs font-semibold text-gray-400 hover:text-gray-700">&larr; กลับ OME</a>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={syncNow}
+                                    disabled={syncing}
+                                    className="text-xs font-semibold text-gray-500 hover:text-brand border border-gray-200 hover:border-brand rounded-full px-3 py-1.5 disabled:opacity-50 transition-colors"
+                                >
+                                    {syncing ? 'กำลังซิงก์...' : 'ซิงก์ Google Drive'}
+                                </button>
+                                {syncStatus && <span className="text-xs text-gray-400">{syncStatus}</span>}
+                                <a href="./index.html" className="text-xs font-semibold text-gray-400 hover:text-gray-700">&larr; กลับ OME</a>
+                            </div>
                         </header>
 
                         {view === 'stream' ? (
