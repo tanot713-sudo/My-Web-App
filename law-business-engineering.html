@@ -82,7 +82,19 @@
         }
         function saveWritten(v) { localStorage.setItem('lbe:written', JSON.stringify(v)); }
 
+        function loadCompleted() {
+            try { return JSON.parse(localStorage.getItem('lbe:completed') || '{}'); } catch { return {}; }
+        }
+        function saveCompleted(v) { localStorage.setItem('lbe:completed', JSON.stringify(v)); }
+
+        const ANNOUNCEMENTS = [
+            { date: 'วันนี้', text: 'ยินดีต้อนรับสู่ Law, Business & Engineering Masterclass — เลือกหัวข้อที่สนใจในแท็บ "งานเรียน" แล้วเริ่มฝึกเขียนตอบได้เลย' },
+            { date: 'อัปเดตล่าสุด', text: 'เพิ่มหัวข้อกฎหมายทรัพย์สินทางปัญญาและกฎหมายการค้าระหว่างประเทศในหมวดกฎหมายแล้ว' },
+            { date: 'เคล็ดลับ', text: 'ทำแบบฝึกเขียนตอบให้ครบทุกหัวข้อในหมวดที่สนใจก่อน แล้วค่อยขยับไปหมวดถัดไป จะช่วยให้จำได้แม่นขึ้น' },
+        ];
+
         function App() {
+            const [view, setView] = useState('stream'); // 'stream' | 'classwork'
             const [activeSubject, setActiveSubject] = useState('business');
             const [activeTopicId, setActiveTopicId] = useState(SUBJECTS[1].topics[0].id);
             const [activeTab, setActiveTab] = useState('quiz');
@@ -93,10 +105,12 @@
             const [selfMark, setSelfMark] = useState(null); // 'correct' | 'wrong'
             const [xp, setXp] = useState(loadXp());
             const [written, setWritten] = useState(loadWritten());
+            const [completed, setCompleted] = useState(loadCompleted());
 
             useEffect(() => { lucide.createIcons(); });
             useEffect(() => { saveXp(xp); }, [xp]);
             useEffect(() => { saveWritten(written); }, [written]);
+            useEffect(() => { saveCompleted(completed); }, [completed]);
 
             const subject = SUBJECTS.find(s => s.id === activeSubject);
             const topic = subject.topics.find(t => t.id === activeTopicId) || subject.topics[0];
@@ -110,6 +124,16 @@
 
             const level = Math.floor(xp / 250) + 1;
 
+            const allTopics = useMemo(() => SUBJECTS.flatMap(s => s.topics.map(t => ({ subjId: s.id, subjLabel: s.label, ...t }))), []);
+            const totalTopics = allTopics.length;
+            const completedCount = allTopics.filter(t => completed[`${t.subjId}:${t.id}`]).length;
+            const todoTopics = allTopics.filter(t => !completed[`${t.subjId}:${t.id}`]);
+            const subjectStats = SUBJECTS.map(s => ({
+                ...s,
+                done: s.topics.filter(t => completed[`${s.id}:${t.id}`]).length,
+                total: s.topics.length,
+            }));
+
             const selectTopic = (subjId, topicId) => {
                 setActiveSubject(subjId);
                 setActiveTopicId(topicId);
@@ -118,6 +142,13 @@
                 setAnswerText('');
                 setRevealed(false);
                 setSelfMark(null);
+                setView('classwork');
+            };
+
+            const openSubject = (subjId) => {
+                setActiveSubject(subjId);
+                setOpenGroups(g => ({ ...g, [subjId]: true }));
+                setView('classwork');
             };
 
             const submitAnswer = () => {
@@ -149,6 +180,12 @@
 
             const isDone = qIndex >= questions.length;
 
+            useEffect(() => {
+                if (!isDone) return;
+                const key = `${activeSubject}:${topic.id}`;
+                if (!completed[key]) setCompleted(c => ({ ...c, [key]: true }));
+            }, [isDone, activeSubject, topic.id]);
+
             return (
                 <div className="h-screen w-full flex flex-col bg-slate-50 font-sans">
 
@@ -167,6 +204,88 @@
                         </div>
                     </header>
 
+                    <div className="h-11 bg-white border-b border-slate-200 flex items-center gap-6 px-6 shrink-0 z-10">
+                        <button
+                            onClick={() => setView('stream')}
+                            className={`h-full text-sm font-semibold border-b-2 transition-colors ${view === 'stream' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                        >
+                            สตรีม
+                        </button>
+                        <button
+                            onClick={() => setView('classwork')}
+                            className={`h-full text-sm font-semibold border-b-2 transition-colors ${view === 'classwork' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                        >
+                            งานเรียน
+                        </button>
+                    </div>
+
+                    {view === 'stream' ? (
+                    <div className="flex-1 overflow-y-auto">
+                        <div className="max-w-4xl mx-auto p-6 space-y-6">
+                            <div className="rounded-2xl bg-gradient-to-br from-primary via-slate-800 to-secondary p-8 text-white shadow-lg">
+                                <p className="text-xs uppercase tracking-widest text-slate-300 mb-2">Masterclass</p>
+                                <h2 className="text-2xl font-bold mb-2">Law, Business &amp; Engineering</h2>
+                                <p className="text-slate-300 text-sm max-w-xl">รวมหัวข้อกฎหมาย ธุรกิจ และวิศวกรรม {totalTopics} หัวข้อ ฝึกเขียนตอบเพื่อสะสม XP และไล่ระดับความเชี่ยวชาญ</p>
+                                <div className="mt-6 flex items-center gap-4 flex-wrap">
+                                    <div className="flex-1 min-w-[200px] max-w-xs">
+                                        <div className="flex justify-between text-xs text-slate-300 mb-1">
+                                            <span>ความคืบหน้ารวม</span><span>{completedCount}/{totalTopics}</span>
+                                        </div>
+                                        <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                                            <div className="h-full bg-accent rounded-full transition-all" style={{width: `${totalTopics ? (completedCount / totalTopics * 100) : 0}%`}}></div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full">
+                                        <Trophy /><span className="text-sm font-bold">Level {level}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                {subjectStats.map(s => (
+                                    <button key={s.id} onClick={() => openSubject(s.id)}
+                                        className="text-left bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow">
+                                        <div className="flex items-center gap-2 mb-3 text-slate-500"><s.icon /><span className="text-xs font-bold uppercase tracking-wide">{s.label}</span></div>
+                                        <div className="text-lg font-bold text-slate-800 mb-2">{s.done}/{s.total} หัวข้อ</div>
+                                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="h-full bg-secondary rounded-full" style={{width: `${s.total ? (s.done / s.total * 100) : 0}%`}}></div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-white rounded-xl border border-slate-200 p-5">
+                                    <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Target /> งานที่ยังไม่เสร็จ</h3>
+                                    {todoTopics.length === 0 ? (
+                                        <p className="text-sm text-slate-400">ทำครบทุกหัวข้อแล้ว เยี่ยมมาก!</p>
+                                    ) : (
+                                        <div className="space-y-1">
+                                            {todoTopics.slice(0, 6).map(t => (
+                                                <button key={`${t.subjId}:${t.id}`} onClick={() => selectTopic(t.subjId, t.id)}
+                                                    className="w-full flex items-center justify-between gap-2 p-2.5 rounded-lg hover:bg-slate-50 text-left">
+                                                    <span className="text-sm text-slate-700 leading-tight">{t.title}</span>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase shrink-0">{t.subjLabel}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="bg-white rounded-xl border border-slate-200 p-5">
+                                    <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Bookmark /> ประกาศ</h3>
+                                    <div className="space-y-4">
+                                        {ANNOUNCEMENTS.map((a, i) => (
+                                            <div key={i} className="text-sm">
+                                                <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">{a.date}</div>
+                                                <p className="text-slate-600 leading-relaxed">{a.text}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ) : (
                     <div className="flex flex-1 overflow-hidden">
 
                         <aside className="w-80 bg-white border-r border-slate-200 overflow-y-auto flex flex-col shrink-0 p-4">
@@ -189,7 +308,7 @@
                                                         onClick={() => selectTopic(s.id, t.id)}
                                                         className={`w-full text-left p-2.5 rounded-xl border flex gap-2 text-sm ${active ? 'bg-blue-50 border-blue-100 text-secondary font-semibold shadow-sm' : 'border-transparent text-slate-600 hover:bg-slate-50'}`}
                                                     >
-                                                        {active ? <Play className="shrink-0 mt-0.5" /> : <Clock className="shrink-0 mt-1 text-slate-300" />}
+                                                        {active ? <Play className="shrink-0 mt-0.5" /> : (completed[`${s.id}:${t.id}`] ? <Check className="shrink-0 mt-0.5" /> : <Clock className="shrink-0 mt-1 text-slate-300" />)}
                                                         <span className="leading-tight">{t.title}</span>
                                                     </button>
                                                 );
@@ -337,6 +456,7 @@
                             </div>
                         </main>
                     </div>
+                    )}
                 </div>
             );
         }
