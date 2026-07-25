@@ -1,0 +1,117 @@
+/* ══════════════════════════════════════════════════════════════════
+   OME Design System — โทเคนกลางของทั้งเว็บ (เฟส 1)
+   โหลดไฟล์นี้ + shell.js ในทุกหน้า เพื่อให้ nav/สี/ฟอนต์เหมือนกันหมด
+   สลับธีมด้วย attribute:  <html data-theme="light|dark">
+   ══════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* แกนสี — ธีมเขียวมิ้นต์ AMR */
+  --ome-bg:#F6F7FB; --ome-card:#FFFFFF; --ome-ink:#1F2430; --ome-muted:#727C93;
+  --ome-line:#EAEDF5; --ome-brand:#12A594; --ome-brand-dk:#0B7F72; --ome-brand-sf:#E7F6F4;
+  --ome-violet:#6C63D9; --ome-amber:#F5A524; --ome-rose:#EC5E8A; --ome-sky:#3B9BEA;
+  --ome-ok:#17B26A; --ome-warn:#E08700; --ome-err:#E5484D;
+  --ome-f:'Prompt',system-ui,-apple-system,sans-serif;
+  --ome-r:16px; --ome-sh:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.06);
+  --ome-nav-h:48px;
+}
+[data-theme="dark"]{
+  --ome-bg:#12151C; --ome-card:#1B2030; --ome-ink:#E6EAF2; --ome-muted:#8B94A8;
+  --ome-line:#2A3040; --ome-brand:#2BC4B2; --ome-brand-dk:#5EDCCB; --ome-brand-sf:#173832;
+  --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+
+/* ── แถบนำทางกลาง (ฉีดโดย shell.js) ─────────────────────────────── */
+.ome-nav{position:sticky;top:0;z-index:100;height:var(--ome-nav-h);
+  background:var(--ome-card);border-bottom:1px solid var(--ome-line);
+  display:flex;align-items:center;gap:4px;padding:0 14px;
+  font-family:var(--ome-f);font-size:13.5px;box-shadow:0 1px 3px rgba(24,31,54,.04)}
+.ome-nav a,.ome-nav button{font-family:var(--ome-f)}
+.ome-nav-logo{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--ome-ink);
+  text-decoration:none;margin-right:10px;font-size:14.5px;flex-shrink:0}
+.ome-nav-logo .dot{width:22px;height:22px;border-radius:7px;background:var(--ome-brand);
+  color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700}
+.ome-nav-links{display:flex;align-items:center;gap:2px;overflow-x:auto;flex:1;
+  scrollbar-width:none}
+.ome-nav-links::-webkit-scrollbar{display:none}
+.ome-nav-links a{color:var(--ome-muted);text-decoration:none;font-weight:500;
+  padding:6px 10px;border-radius:9px;white-space:nowrap;transition:.15s}
+.ome-nav-links a:hover{color:var(--ome-ink);background:var(--ome-bg)}
+.ome-nav-links a.active{color:var(--ome-brand-dk);background:var(--ome-brand-sf);font-weight:600}
+.ome-nav-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.ome-theme-btn{width:32px;height:32px;border-radius:9px;border:1px solid var(--ome-line);
+  background:var(--ome-card);color:var(--ome-muted);cursor:pointer;display:grid;
+  place-items:center;font-size:15px;transition:.15s}
+.ome-theme-btn:hover{color:var(--ome-ink);border-color:var(--ome-muted)}
+@media(max-width:640px){
+  .ome-nav{padding:0 10px}
+  .ome-nav-logo span.txt{display:none}
+}
+
+/* ── โหมดมืดสำหรับหน้าเครื่องมือ (documents.html / run.html ใช้ตัวแปรชุดเดิม) ── */
+[data-theme="dark"] body.ome-tool-page{
+  --bg:var(--ome-bg); --card:var(--ome-card); --ink:var(--ome-ink); --muted:var(--ome-muted);
+  --line:var(--ome-line); --brand:var(--ome-brand); --brand-dk:var(--ome-brand-dk);
+  --brand-sf:var(--ome-brand-sf); --sh:var(--ome-sh);
+}
+[data-theme="dark"] body.ome-tool-page .hero{
+  background:linear-gradient(120deg,#17222F 0%,#1D1B33 42%,#2A1B26 100%)}
+[data-theme="dark"] body.ome-tool-page .hero::after{background:rgba(255,255,255,.05)}
+[data-theme="dark"] body.ome-tool-page .drop{background:#171C28;border-color:#333B4E}
+[data-theme="dark"] body.ome-tool-page .drop.has{background:#14261E}
+[data-theme="dark"] body.ome-tool-page .note{background:#2A2415;color:#E8C88A;border-color:#4A3D1E}
+[data-theme="dark"] body.ome-tool-page .note.err{background:#301B1B;color:#F0A0A0;border-color:#573030}
+[data-theme="dark"] body.ome-tool-page .info{background:#1A2233;border-color:#2B3A57;color:#A9BEE4}
+[data-theme="dark"] body.ome-tool-page code{background:#242B3B}
+[data-theme="dark"] body.ome-tool-page .track{background:#2A3040}
+[data-theme="dark"] body.ome-tool-page .dot{background:var(--ome-card);border-color:#3A4258}
+[data-theme="dark"] body.ome-tool-page .btn.ghost,
+[data-theme="dark"] body.ome-tool-page .btn.drive{background:var(--ome-card);color:var(--ome-ink)}
+[data-theme="dark"] body.ome-tool-page .tcard{background:var(--ome-card)}
+[data-theme="dark"] body.ome-tool-page .cmp-table tr.cmp-flag{background:#2E1A1A}
+[data-theme="dark"] body.ome-tool-page .cmp-table tr.cmp-flag td{color:#F0A0A0}
+
+/* ── โหมดมืดสำหรับหน้า React+Tailwind (override utility ที่ใช้บ่อย) ── */
+[data-theme="dark"] body.ome-app-page{background:var(--ome-bg)!important}
+[data-theme="dark"] .ome-app-page .bg-white{background-color:#1B2030!important}
+[data-theme="dark"] .ome-app-page .bg-slate-50,
+[data-theme="dark"] .ome-app-page .bg-gray-50{background-color:#12151C!important}
+[data-theme="dark"] .ome-app-page .bg-slate-100,
+[data-theme="dark"] .ome-app-page .bg-gray-100{background-color:#171B26!important}
+[data-theme="dark"] .ome-app-page .bg-blue-50{background-color:#182236!important}
+[data-theme="dark"] .ome-app-page .bg-brandLight{background-color:#173832!important}
+[data-theme="dark"] .ome-app-page .border-blue-50,
+[data-theme="dark"] .ome-app-page .border-brand{border-color:#2BC4B2!important}
+[data-theme="dark"] .ome-app-page .bg-amber-50{background-color:#2A2415!important}
+[data-theme="dark"] .ome-app-page .bg-emerald-50,
+[data-theme="dark"] .ome-app-page .bg-green-50{background-color:#14261E!important}
+[data-theme="dark"] .ome-app-page .bg-red-50{background-color:#301B1B!important}
+[data-theme="dark"] .ome-app-page .text-slate-800,
+[data-theme="dark"] .ome-app-page .text-slate-900,
+[data-theme="dark"] .ome-app-page .text-gray-800,
+[data-theme="dark"] .ome-app-page .text-gray-900{color:#E6EAF2!important}
+[data-theme="dark"] .ome-app-page .text-slate-700,
+[data-theme="dark"] .ome-app-page .text-slate-600,
+[data-theme="dark"] .ome-app-page .text-gray-700,
+[data-theme="dark"] .ome-app-page .text-gray-600{color:#C2CBDD!important}
+[data-theme="dark"] .ome-app-page .text-slate-500,
+[data-theme="dark"] .ome-app-page .text-slate-400,
+[data-theme="dark"] .ome-app-page .text-gray-500,
+[data-theme="dark"] .ome-app-page .text-gray-400{color:#8B94A8!important}
+[data-theme="dark"] .ome-app-page .border-slate-100,
+[data-theme="dark"] .ome-app-page .border-slate-200,
+[data-theme="dark"] .ome-app-page .border-gray-100,
+[data-theme="dark"] .ome-app-page .border-gray-200{border-color:#2A3040!important}
+[data-theme="dark"] .ome-app-page .border-blue-100{border-color:#2B3A57!important}
+[data-theme="dark"] .ome-app-page .border-amber-100,
+[data-theme="dark"] .ome-app-page .border-amber-200{border-color:#4A3D1E!important}
+[data-theme="dark"] .ome-app-page .border-green-100,
+[data-theme="dark"] .ome-app-page .border-emerald-200{border-color:#1E4A35!important}
+[data-theme="dark"] .ome-app-page .border-red-100{border-color:#573030!important}
+[data-theme="dark"] .ome-app-page textarea,
+[data-theme="dark"] .ome-app-page input[type="text"]{
+  background-color:#12151C!important;color:#E6EAF2!important;border-color:#2A3040!important}
+[data-theme="dark"] .ome-app-page .hover\:bg-slate-50:hover,
+[data-theme="dark"] .ome-app-page .hover\:bg-gray-50:hover{background-color:#202635!important}
+[data-theme="dark"] .ome-app-page .shadow-sm,
+[data-theme="dark"] .ome-app-page .shadow-md,
+[data-theme="dark"] .ome-app-page .shadow-lg{box-shadow:var(--ome-sh)!important}
