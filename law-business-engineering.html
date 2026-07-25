@@ -65,26 +65,45 @@
         const { useState, useEffect, useMemo } = React;
         const COURSE = JSON.parse(document.getElementById('course-data').textContent);
 
-        const Play = () => <i data-lucide="play-circle" className="w-5 h-5"></i>;
-        const Check = () => <i data-lucide="check-circle-2" className="w-5 h-5 text-success"></i>;
-        const Clock = () => <i data-lucide="clock" className="w-4 h-4"></i>;
-        const Bookmark = () => <i data-lucide="bookmark" className="w-4 h-4"></i>;
-        const Trophy = () => <i data-lucide="trophy" className="w-4 h-4 text-accent"></i>;
-        const Target = () => <i data-lucide="target" className="w-4 h-4"></i>;
-        const Scale = () => <i data-lucide="scale" className="w-4 h-4"></i>;
-        const Briefcase = () => <i data-lucide="briefcase" className="w-4 h-4"></i>;
-        const Wrench = () => <i data-lucide="wrench" className="w-4 h-4"></i>;
-        const ChevronDown = () => <i data-lucide="chevron-down" className="w-4 h-4"></i>;
-        const PenLine = () => <i data-lucide="pen-line" className="w-5 h-5"></i>;
-        const Menu = () => <i data-lucide="menu" className="w-5 h-5"></i>;
-        const CloseIcon = () => <i data-lucide="x" className="w-5 h-5"></i>;
-        const NotebookIcon = () => <i data-lucide="notebook-pen" className="w-5 h-5"></i>;
+        // ไอคอน lucide ต้องห่อใน span ที่ React เป็นเจ้าของ — ไม่งั้นตอน lucide แทนที่ <i> ด้วย <svg>
+        // React จะ unmount ไม่ได้ (removeChild error) เวลาสลับหัวข้อ
+        const icon = (name, cls) => () => (
+            <span className="inline-flex" dangerouslySetInnerHTML={{ __html: `<i data-lucide="${name}" class="${cls}"></i>` }} />
+        );
+        const Play = icon('play-circle', 'w-5 h-5');
+        const Check = icon('check-circle-2', 'w-5 h-5 text-success');
+        const Clock = icon('clock', 'w-4 h-4');
+        const Bookmark = icon('bookmark', 'w-4 h-4');
+        const Trophy = icon('trophy', 'w-4 h-4 text-accent');
+        const Target = icon('target', 'w-4 h-4');
+        const Scale = icon('scale', 'w-4 h-4');
+        const Briefcase = icon('briefcase', 'w-4 h-4');
+        const Wrench = icon('wrench', 'w-4 h-4');
+        const ChevronDown = icon('chevron-down', 'w-4 h-4');
+        const PenLine = icon('pen-line', 'w-5 h-5');
+        const Menu = icon('menu', 'w-5 h-5');
+        const CloseIcon = icon('x', 'w-5 h-5');
+        const NotebookIcon = icon('notebook-pen', 'w-5 h-5');
 
         // สร้างรายการบทเรียนทั้งหมดจากข้อมูลจริงของ OME (กฎหมาย 16 หัวข้อ, ธุรกิจ 12 หัวข้อ, วิศวกรรม 13 หัวข้อ)
+        //
+        // ★ วิธีเพิ่มเนื้อหาให้หัวข้อกฎหมาย/วิศวกรรม: แก้ JSON ใน <script id="course-data"> ด้านบน
+        //   เปลี่ยนรายการจาก  {"id": "civil-law", "title": "กฎหมายแพ่ง"}
+        //   เป็น              {"id": "civil-law", "title": "กฎหมายแพ่ง",
+        //                      "overview": "สรุปภาพรวม...",
+        //                      "keyConcepts": ["ประเด็นที่ 1", "ประเด็นที่ 2"],
+        //                      "quiz": [{"q": "คำถาม?", "options": ["ก","ข","ค","ง"], "answer": 0}]}
+        //   ใส่แค่บางส่วนก็ได้ — มี overview/keyConcepts จะขึ้นในแท็บ "สรุปเนื้อหา" ทันที
+        //   ถ้ามี quiz หัวข้อนั้นจะกลายเป็นแบบฝึกมีเฉลย และเข้าระบบทบทวนเว้นช่วง + สอบรวมอัตโนมัติ
+        const enrich = t => ({
+            id: t.id, title: t.title,
+            kind: (t.quiz && t.quiz.length) ? 'quiz' : 'reflection',
+            data: t,
+        });
         const SUBJECTS = [
-            { id: 'law', label: 'กฎหมาย', icon: Scale, topics: COURSE.law.map(t => ({ id: t.id, title: t.title, kind: 'reflection' })) },
-            { id: 'business', label: 'ธุรกิจและการบริหาร', icon: Briefcase, topics: Object.entries(COURSE.business).map(([id, t]) => ({ id, title: t.title, kind: 'quiz', data: t })) },
-            { id: 'engineering', label: 'วิศวกรรม', icon: Wrench, topics: COURSE.engineering.map(t => ({ id: t.id, title: t.title, kind: 'reflection' })) },
+            { id: 'law', label: 'กฎหมาย', icon: Scale, topics: COURSE.law.map(enrich) },
+            { id: 'business', label: 'ธุรกิจและการบริหาร', icon: Briefcase, topics: Object.entries(COURSE.business).map(([id, t]) => enrich({ ...t, id })) },
+            { id: 'engineering', label: 'วิศวกรรม', icon: Wrench, topics: COURSE.engineering.map(enrich) },
         ];
 
         function reflectionPrompts(title) {
@@ -949,22 +968,27 @@
                                 ) : activeTab === 'summary' ? (
                                     <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                                         <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Bookmark /> {topic.title}</h3>
-                                        {topic.kind === 'quiz' ? (
+                                        {(topic.data && (topic.data.overview || (topic.data.keyConcepts || []).length)) ? (
                                             <>
-                                                <p className="text-slate-600 mb-4">{topic.data.overview}</p>
-                                                <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">ประเด็นสำคัญ</h4>
-                                                <ul className="space-y-2">
-                                                    {topic.data.keyConcepts.map((k, i) => (
-                                                        <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                                                            <span className="text-secondary mt-1">&bull;</span> {k}
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                                {topic.data.overview && <p className="text-slate-600 mb-4">{topic.data.overview}</p>}
+                                                {(topic.data.keyConcepts || []).length > 0 && (
+                                                    <>
+                                                        <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">ประเด็นสำคัญ</h4>
+                                                        <ul className="space-y-2">
+                                                            {topic.data.keyConcepts.map((k, i) => (
+                                                                <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                                                                    <span className="text-secondary mt-1">&bull;</span> {k}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </>
+                                                )}
                                             </>
                                         ) : (
                                             <p className="text-slate-600 leading-relaxed">
                                                 หัวข้อนี้ยังไม่มีเนื้อหาสรุปแบบมีโครงสร้างในระบบ — ใช้แท็บ "แบบฝึกเขียนตอบ"
                                                 เพื่อฝึกอธิบายหลักการของ "{topic.title}" ด้วยตัวเองแทนได้เลย
+                                                (เพิ่มเนื้อหาได้โดยแก้ข้อมูลใน course-data ของไฟล์นี้ — ดูตัวอย่างรูปแบบในคอมเมนต์ของโค้ด)
                                             </p>
                                         )}
                                     </div>

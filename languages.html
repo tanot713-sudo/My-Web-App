@@ -51,15 +51,20 @@
         const LANGS = JSON.parse(document.getElementById('lang-data').textContent);
         const LANG_IDS = Object.keys(LANGS);
 
-        const Brain = () => <i data-lucide="brain" className="w-5 h-5"></i>;
-        const BookOpen = () => <i data-lucide="book-open" className="w-5 h-5"></i>;
-        const Volume2 = () => <i data-lucide="volume-2" className="w-4 h-4"></i>;
-        const CheckCircle = () => <i data-lucide="check-circle-2" className="w-5 h-5 text-green-500"></i>;
-        const XCircle = () => <i data-lucide="x-circle" className="w-5 h-5 text-red-500"></i>;
-        const Languages = () => <i data-lucide="languages" className="w-4 h-4"></i>;
-        const Menu = () => <i data-lucide="menu" className="w-5 h-5"></i>;
-        const CloseIcon = () => <i data-lucide="x" className="w-5 h-5"></i>;
-        const NotebookIcon = () => <i data-lucide="notebook-pen" className="w-4 h-4"></i>;
+        // ไอคอน lucide ต้องห่อใน span ที่ React เป็นเจ้าของ — ไม่งั้นตอน lucide แทนที่ <i> ด้วย <svg>
+        // React จะ unmount ไม่ได้ (removeChild error) เวลาสลับภาษา/โหมด
+        const icon = (name, cls) => () => (
+            <span className="inline-flex" dangerouslySetInnerHTML={{ __html: `<i data-lucide="${name}" class="${cls}"></i>` }} />
+        );
+        const Brain = icon('brain', 'w-5 h-5');
+        const BookOpen = icon('book-open', 'w-5 h-5');
+        const Volume2 = icon('volume-2', 'w-4 h-4');
+        const CheckCircle = icon('check-circle-2', 'w-5 h-5 text-green-500');
+        const XCircle = icon('x-circle', 'w-5 h-5 text-red-500');
+        const Languages = icon('languages', 'w-4 h-4');
+        const Menu = icon('menu', 'w-5 h-5');
+        const CloseIcon = icon('x', 'w-5 h-5');
+        const NotebookIcon = icon('notebook-pen', 'w-4 h-4');
 
         function speak(text, langCode) {
             try {
