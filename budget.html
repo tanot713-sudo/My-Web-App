@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>รายรับรายจ่าย | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+:root{
+  --bg:#F6F7FB; --card:#FFFFFF; --ink:#1F2430; --muted:#727C93; --line:#EAEDF5;
+  --brand:#12A594; --brand-dk:#0B7F72; --brand-sf:#E7F6F4;
+  --violet:#6C63D9; --amber:#F5A524; --rose:#EC5E8A; --sky:#3B9BEA;
+  --ok:#17B26A; --warn:#E08700; --err:#E5484D;
+  --f:'Prompt',system-ui,-apple-system,sans-serif;
+  --r:16px; --sh:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.06);
+  /* Money Planner app colors — matched to the reference tool */
+  --mp-blue:#4F6EF5; --mp-blue-dk:#3E58D6;
+  --mp-income-1:#34D399; --mp-income-2:#059669;
+  --mp-expense-1:#F87171; --mp-expense-2:#C026D3;
+  --mp-balance-1:#4F6EF5; --mp-balance-2:#6D28D9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--f);background:var(--bg);color:var(--ink);
+  line-height:1.6;font-size:15px;font-weight:400;-webkit-font-smoothing:antialiased}
+[data-theme="dark"] body.ome-tool-page{background:var(--ome-bg,#12151C)}
+
+/* ── แถบแอป Money Planner (ใต้ nav หลักของเว็บ) ── */
+.mp-appbar{position:sticky;top:var(--ome-nav-h,48px);z-index:60;background:var(--mp-blue);color:#fff;
+  display:flex;align-items:center;gap:12px;padding:0 16px;height:56px;box-shadow:0 2px 10px rgba(79,110,245,.25)}
+.mp-hamburger{background:none;border:none;color:#fff;cursor:pointer;padding:8px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mp-hamburger:hover{background:rgba(255,255,255,.15)}
+.mp-appbar-title{font-weight:700;font-size:17px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mp-avatar{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.22);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+
+/* ── drawer ── */
+.mp-backdrop{position:fixed;inset:0;background:rgba(15,20,35,.42);z-index:148;opacity:0;pointer-events:none;transition:opacity .2s}
+.mp-backdrop.open{opacity:1;pointer-events:auto}
+.mp-drawer{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:82vw;background:var(--card);
+  z-index:149;transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;box-shadow:6px 0 30px rgba(20,25,45,.18)}
+.mp-drawer.open{transform:translateX(0)}
+.mp-drawer-head{background:var(--mp-blue);color:#fff;padding:18px 16px;display:flex;align-items:center;gap:10px}
+.mp-drawer-head .ttl{font-weight:700;font-size:18px;flex:1}
+.mp-drawer-head button{background:none;border:none;color:#fff;cursor:pointer;padding:4px;display:flex}
+.mp-drawer-nav{padding:10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.mp-drawer-nav a{display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:12px;
+  color:var(--ink);text-decoration:none;font-size:14.5px;font-weight:500;transition:.15s}
+.mp-drawer-nav a svg{flex-shrink:0;color:var(--muted)}
+.mp-drawer-nav a:hover{background:var(--bg)}
+.mp-drawer-nav a.active{background:var(--mp-blue);color:#fff}
+.mp-drawer-nav a.active svg{color:#fff}
+.mp-drawer-nav a.danger{color:#D7263D}
+.mp-drawer-nav a.danger svg{color:#D7263D}
+.mp-drawer-nav a.danger.active{color:#fff}
+.mp-drawer-nav a.danger.active svg{color:#fff}
+[data-theme="dark"] .mp-drawer-nav a:hover{background:#20263A}
+
+.mp-wrap{max-width:760px;margin:0 auto;padding:20px 20px 80px}
+.mp-connbar{background:#E3FCEF;color:#0F6B3F;border-radius:12px;padding:12px 16px;font-size:13.5px;
+  font-weight:500;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+[data-theme="dark"] .mp-connbar{background:#123024;color:#5EE0A4}
+.mp-h1{font-size:22px;font-weight:700;margin-bottom:2px}
+.mp-h1-sub{font-size:13.5px;color:var(--muted);margin-bottom:16px}
+
+.mp-select{font-family:var(--f);font-size:14.5px;padding:11px 14px;border:1.5px solid var(--line);
+  border-radius:12px;background:var(--card);color:var(--ink);width:100%;cursor:pointer}
+.mp-select:focus-visible{outline:2px solid var(--mp-blue);outline-offset:1px}
+.mp-row{display:flex;gap:10px;flex-wrap:wrap}
+.mp-row > *{flex:1;min-width:140px}
+
+.mp-card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:20px;margin-top:16px}
+.mp-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.mp-card-head h3{font-size:15.5px;font-weight:700}
+.mp-card-head .ic{color:var(--muted)}
+
+/* ── การ์ดสรุปไล่สี ── */
+.mp-sum{border-radius:18px;padding:22px 24px;color:#fff;margin-top:14px;position:relative;overflow:hidden}
+.mp-sum .lbl{font-size:14px;opacity:.92;margin-bottom:6px}
+.mp-sum .amt{font-size:28px;font-weight:700}
+.mp-sum .glyph{position:absolute;right:16px;top:50%;transform:translateY(-50%);opacity:.35}
+.mp-sum.income{background:linear-gradient(135deg,var(--mp-income-1),var(--mp-income-2))}
+.mp-sum.expense{background:linear-gradient(135deg,var(--mp-expense-1),var(--mp-expense-2))}
+.mp-sum.balance{background:linear-gradient(135deg,var(--mp-balance-1),var(--mp-balance-2))}
+
+/* ── โดนัทชาร์ต ── */
+.mp-donut-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.mp-donut{width:130px;height:130px;border-radius:50%;flex-shrink:0;background:var(--bg)}
+.mp-donut-legend{flex:1;min-width:160px;display:flex;flex-direction:column;gap:9px}
+.mp-leg-item{display:flex;align-items:center;gap:9px;font-size:13.5px}
+.mp-leg-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.mp-leg-name{flex:1;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mp-leg-amt{color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
+.mp-empty{text-align:center;color:var(--muted);font-size:13.5px;padding:26px 10px;display:flex;
+  flex-direction:column;align-items:center;gap:8px}
+.mp-empty svg{opacity:.5}
+
+/* ── งบประมาณคงเหลือ ── */
+.mp-budget-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.mp-budget-row:last-child{border-bottom:none}
+.mp-budget-row .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.mp-budget-row .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mp-budget-row .bar{width:80px;height:6px;border-radius:4px;background:var(--line);overflow:hidden;flex-shrink:0}
+.mp-budget-row .bar>i{display:block;height:100%;border-radius:4px}
+.mp-budget-row .val{font-variant-numeric:tabular-nums;font-weight:600;min-width:64px;text-align:right}
+
+/* ── กราฟแท่งรายปี ── */
+.mp-trend-legend{display:flex;gap:16px;align-items:center;font-size:12.5px;color:var(--muted);margin-bottom:14px;flex-wrap:wrap}
+.mp-trend-legend .sw{display:inline-flex;align-items:center;gap:6px}
+.mp-trend-legend .sw i{width:14px;height:9px;border-radius:2px;display:inline-block}
+.mp-trend{display:flex;align-items:flex-end;gap:6px;height:160px;padding:0 2px}
+.mp-trend-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;height:100%}
+.mp-trend-bars{flex:1;display:flex;align-items:flex-end;gap:2px;width:100%;justify-content:center}
+.mp-trend-bars b{width:40%;border-radius:3px 3px 0 0;min-height:2px;display:block}
+.mp-trend-bars b.in{background:var(--mp-income-1)}
+.mp-trend-bars b.ex{background:var(--mp-expense-1)}
+.mp-trend-mo{font-size:10.5px;color:var(--muted);margin-top:4px}
+
+/* ── ปฏิทิน ── */
+.mp-cal-head{display:flex;align-items:center;gap:12px;margin:14px 0}
+.mp-cal-nav{width:38px;height:38px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);
+  color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mp-cal-nav:hover{border-color:var(--mp-blue);color:var(--mp-blue)}
+.mp-cal-label{font-weight:700;font-size:17px;flex:1;text-align:center}
+.mp-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;background:var(--card);
+  border-radius:var(--r);box-shadow:var(--sh);padding:16px}
+.mp-cal-dow{text-align:center;font-size:12.5px;font-weight:700;color:var(--muted);padding-bottom:8px}
+.mp-cal-dow.sun{color:#E5484D}.mp-cal-dow.fri{color:var(--mp-blue)}
+.mp-cal-cell{aspect-ratio:1/1.05;border:1.5px solid var(--line);border-radius:10px;padding:4px 3px;
+  display:flex;flex-direction:column;align-items:center;font-size:12px;cursor:pointer;transition:.15s;min-height:0}
+.mp-cal-cell:hover{border-color:var(--mp-blue)}
+.mp-cal-cell.empty{visibility:hidden;cursor:default}
+.mp-cal-cell.today .num{background:var(--mp-blue);color:#fff;border-radius:50%}
+.mp-cal-cell.selected{background:var(--brand-sf);border-color:var(--mp-blue)}
+.mp-cal-cell .num{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:600}
+.mp-cal-cell .amts{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:1px;width:100%}
+.mp-cal-cell .amts span{font-size:8.5px;font-weight:700;line-height:1.3;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;max-width:100%}
+.mp-cal-cell .amts .in{color:#17B26A}
+.mp-cal-cell .amts .ex{color:#E5484D}
+.mp-cal-legend{display:flex;gap:18px;justify-content:center;margin-top:16px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.mp-cal-legend .sw{display:inline-flex;align-items:center;gap:6px}
+.mp-cal-legend .sw i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.mp-day-detail{margin-top:14px}
+.mp-day-detail h4{font-size:14px;margin-bottom:10px}
+
+/* ── ฟอร์ม/ตาราง ทั่วไป ── */
+.mp-field{margin-bottom:14px}
+.mp-field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:500}
+.mp-input,.mp-textarea{font-family:var(--f);font-size:14.5px;padding:11px 14px;border:1.5px solid var(--line);
+  border-radius:12px;background:var(--card);color:var(--ink);width:100%}
+.mp-input:focus-visible,.mp-textarea:focus-visible,.mp-select:focus-visible{outline:2px solid var(--mp-blue);outline-offset:1px}
+input[type=color].mp-input{padding:4px;height:44px;cursor:pointer}
+
+.mp-btn{font-family:var(--f);font-size:14.5px;font-weight:600;padding:12px 22px;border:none;
+  border-radius:12px;cursor:pointer;background:var(--mp-blue);color:#fff;transition:.18s;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.mp-btn:hover{background:var(--mp-blue-dk)}
+.mp-btn.ghost{background:var(--card);color:var(--ink);border:1.5px solid var(--line)}
+.mp-btn.ghost:hover{border-color:var(--mp-blue);color:var(--mp-blue)}
+.mp-btn.danger{background:#D7263D}
+.mp-btn.danger:hover{background:#B31E31}
+.mp-btn.block{width:100%}
+.mp-btn.sm{padding:8px 14px;font-size:13px;border-radius:10px}
+.mp-toggle-add{display:flex;align-items:center;gap:10px;justify-content:center;background:var(--mp-blue);
+  color:#fff;border:none;border-radius:14px;padding:16px;font-family:var(--f);font-size:15px;font-weight:600;
+  cursor:pointer;width:100%;margin-top:16px}
+.mp-toggle-add:hover{background:var(--mp-blue-dk)}
+
+.mp-entry-row{background:var(--bg);border-radius:14px;padding:16px;margin-bottom:12px;position:relative}
+.mp-entry-row .tag{display:inline-block;background:#4B5568;color:#fff;font-size:11.5px;font-weight:600;
+  padding:4px 10px;border-radius:7px;margin-bottom:12px}
+.mp-entry-row .rm{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);
+  cursor:pointer;padding:4px;display:flex}
+.mp-entry-row .rm:hover{color:#D7263D}
+.mp-entry-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.mp-entry-actions .mp-btn{flex:1}
+
+.mp-table-wrap{overflow-x:auto;margin-top:8px}
+.mp-table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+.mp-table th{text-align:left;color:var(--muted);font-weight:600;font-size:12.5px;padding:8px 10px;
+  border-bottom:1.5px solid var(--line);white-space:nowrap}
+.mp-table td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.mp-table tr:last-child td{border-bottom:none}
+.mp-table .amt-in{color:#17B26A;font-weight:700}
+.mp-table .amt-ex{color:#E5484D;font-weight:700}
+.mp-table .cat-pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px}
+.mp-table .cat-pill i{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mp-table .actions{display:flex;gap:6px}
+.mp-table .actions button{background:none;border:none;cursor:pointer;color:var(--muted);padding:5px;
+  border-radius:7px;display:flex}
+.mp-table .actions button:hover{background:var(--bg);color:var(--mp-blue)}
+.mp-table .actions button.del:hover{color:#D7263D}
+
+.mp-filter-panel{background:var(--bg);border-radius:12px;padding:14px;margin-top:12px;display:none}
+.mp-filter-panel.open{display:block}
+.mp-filter-panel .mp-row{margin-bottom:0}
+
+/* ── หมวดหมู่ ── */
+.mp-cat-tabs{display:flex;gap:20px;border-bottom:1.5px solid var(--line);margin-bottom:4px}
+.mp-cat-tab{background:none;border:none;padding:10px 2px;font-family:var(--f);font-size:14px;font-weight:600;
+  cursor:pointer;color:var(--muted);border-bottom:2.5px solid transparent;margin-bottom:-1.5px}
+.mp-cat-tab.income{color:#17B26A}
+.mp-cat-tab.expense{color:#E5484D}
+.mp-cat-tab.active{border-bottom-color:currentColor}
+.mp-cat-list{padding-top:10px}
+.mp-cat-item{display:flex;align-items:center;gap:11px;padding:10px 2px;border-bottom:1px solid var(--line)}
+.mp-cat-item:last-child{border-bottom:none}
+.mp-cat-item .dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.mp-cat-item .name{flex:1;font-size:14px}
+
+/* ── งบประมาณ ── */
+.mp-budget-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin:14px 0}
+.mp-budget-toolbar .mp-select{flex:1;min-width:110px}
+
+/* ── ตั้งค่า ── */
+.mp-warn-box{text-align:center;padding:20px 10px}
+.mp-warn-box svg{color:var(--warn);margin-bottom:12px}
+.mp-warn-box h3{font-size:17px;margin-bottom:8px}
+.mp-warn-box p{color:var(--muted);font-size:13.5px;line-height:1.6;margin-bottom:20px}
+
+.mp-view{display:none}
+.mp-view.active{display:block}
+
+@media(max-width:600px){
+  .mp-wrap{padding:16px 14px 80px}
+  .mp-sum .amt{font-size:24px}
+  .mp-cal-cell .amts span{font-size:7.5px}
+}
+</style>
+</head>
+<body class="ome-tool-page">
+<script src="auth-gate.js"></script>
+
+<div class="mp-appbar">
+  <button class="mp-hamburger" id="mpHamburger" aria-label="เมนู" type="button">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <div class="mp-appbar-title" id="mpTitle">ภาพรวม</div>
+  <div class="mp-avatar" id="mpAvatar">T</div>
+</div>
+
+<div class="mp-backdrop" id="mpBackdrop"></div>
+<nav class="mp-drawer" id="mpDrawer" aria-label="เมนู Money Planner">
+  <div class="mp-drawer-head">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2.5"/><path d="M2 10h20"/><circle cx="16.5" cy="14.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+    <span class="ttl">Money Planner</span>
+    <button id="mpDrawerClose" aria-label="ปิดเมนู" type="button">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="mp-drawer-nav" id="mpDrawerNav">
+    <a href="#dashboard" data-view="dashboard">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+      ภาพรวม (Dashboard)
+    </a>
+    <a href="#calendar" data-view="calendar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      ปฏิทินรายรับ-จ่าย
+    </a>
+    <a href="#record" data-view="record">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+      บันทึกรายการ
+    </a>
+    <a href="#categories" data-view="categories">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24H4a1 1 0 0 0-1 1v5.59c0 .53.21 1.04.59 1.42l9.58 9.58a2 2 0 0 0 2.83 0l4.59-4.59a2 2 0 0 0 0-2.83Z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/></svg>
+      จัดการหมวดหมู่
+    </a>
+    <a href="#budget" data-view="budget">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>
+      ตั้งงบประมาณ
+    </a>
+    <a href="#settings" data-view="settings" class="danger">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+      ตั้งค่า / ล้างข้อมูล
+    </a>
+  </div>
+</nav>
+
+<div class="mp-wrap">
+  <div class="mp-connbar">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    บันทึกอัตโนมัติในเครื่องนี้แล้ว
+  </div>
+
+  <!-- ═══════════ Dashboard ═══════════ -->
+  <section class="mp-view" id="view-dashboard">
+    <div class="mp-h1">ภาพรวมการเงิน</div>
+    <div class="mp-h1-sub" id="dashSubtitle">สรุปข้อมูลประจำเดือน</div>
+    <select class="mp-select" id="dashMonth"></select>
+
+    <div class="mp-sum income">
+      <div class="lbl">รายรับรวม</div>
+      <div class="amt" id="sumIncome">฿0</div>
+      <svg class="glyph" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>
+    </div>
+    <div class="mp-sum expense">
+      <div class="lbl">รายจ่ายรวม</div>
+      <div class="amt" id="sumExpense">฿0</div>
+      <svg class="glyph" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7 17 17M17 7v10H7"/></svg>
+    </div>
+    <div class="mp-sum balance">
+      <div class="lbl">คงเหลือสุทธิ</div>
+      <div class="amt" id="sumBalance">฿0</div>
+      <svg class="glyph" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="13" rx="2.5"/><path d="M2 11h20"/><circle cx="16.5" cy="15.5" r="1.2" fill="#fff" stroke="none"/></svg>
+    </div>
+
+    <div class="mp-card">
+      <div class="mp-card-head"><h3>สัดส่วนรายรับ</h3>
+        <svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+      </div>
+      <div id="donutIncome"></div>
+    </div>
+
+    <div class="mp-card">
+      <div class="mp-card-head"><h3>สัดส่วนรายจ่าย</h3>
+        <svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+      </div>
+      <div id="donutExpense"></div>
+    </div>
+
+    <div class="mp-card">
+      <div class="mp-card-head"><h3>งบประมาณคงเหลือ</h3></div>
+      <div id="budgetRemain"></div>
+    </div>
+
+    <div class="mp-card">
+      <div class="mp-card-head"><h3>แนวโน้มรายรับ-รายจ่าย ตลอดปี</h3></div>
+      <div class="mp-trend-legend">
+        <span class="sw"><i style="background:var(--mp-income-1)"></i>รายรับ</span>
+        <span class="sw"><i style="background:var(--mp-expense-1)"></i>รายจ่าย</span>
+      </div>
+      <div class="mp-trend" id="trendChart"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ Calendar ═══════════ -->
+  <section class="mp-view" id="view-calendar">
+    <div class="mp-h1">ปฏิทินการเงิน</div>
+    <div class="mp-h1-sub">ดูรายการรับ-จ่าย ในรูปแบบปฏิทิน</div>
+    <div class="mp-cal-head">
+      <button class="mp-cal-nav" id="calPrev" aria-label="เดือนก่อนหน้า" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="mp-cal-label" id="calLabel">กรกฎาคม 2569</div>
+      <button class="mp-cal-nav" id="calNext" aria-label="เดือนถัดไป" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+    <div class="mp-cal-grid" id="calGrid"></div>
+    <div class="mp-cal-legend">
+      <span class="sw"><i style="background:#17B26A"></i>รายรับ</span>
+      <span class="sw"><i style="background:#E5484D"></i>รายจ่าย</span>
+      <span class="sw"><i style="background:#6C63D9"></i>คงเหลือ</span>
+    </div>
+    <div class="mp-card mp-day-detail" id="dayDetail" style="display:none"></div>
+  </section>
+
+  <!-- ═══════════ Record entry ═══════════ -->
+  <section class="mp-view" id="view-record">
+    <div class="mp-h1">บันทึกรายการ</div>
+    <div class="mp-h1-sub">เพิ่มรายรับ-รายจ่ายใหม่ ทีละหลายรายการได้</div>
+
+    <button class="mp-toggle-add" id="toggleAddForm" type="button">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+      บันทึกรายการใหม่
+    </button>
+
+    <div id="entryForm" style="display:none;margin-top:14px">
+      <div id="entryRows"></div>
+      <div class="mp-entry-actions">
+        <button class="mp-btn ghost" id="addEntryRow" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          เพิ่มช่องกรอก
+        </button>
+        <button class="mp-btn" id="saveAllEntries" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+          บันทึกทั้งหมด
+        </button>
+      </div>
+    </div>
+
+    <div class="mp-card">
+      <div class="mp-card-head">
+        <h3><svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>ประวัติรายการล่าสุด</h3>
+        <button class="mp-btn ghost sm" id="toggleFilter" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+          ตัวกรอง
+        </button>
+      </div>
+      <div class="mp-filter-panel" id="filterPanel">
+        <div class="mp-row">
+          <select class="mp-select" id="filterType">
+            <option value="">ทุกประเภท</option>
+            <option value="income">รายรับ</option>
+            <option value="expense">รายจ่าย</option>
+          </select>
+          <select class="mp-select" id="filterCategory"><option value="">ทุกหมวดหมู่</option></select>
+          <input class="mp-input" type="month" id="filterMonth">
+        </div>
+      </div>
+      <div class="mp-table-wrap">
+        <table class="mp-table">
+          <thead><tr><th>วันที่</th><th>หมวดหมู่</th><th>รายละเอียด</th><th>จำนวนเงิน</th><th>จัดการ</th></tr></thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+      <div class="mp-empty" id="historyEmpty" style="display:none">ยังไม่มีรายการ</div>
+    </div>
+  </section>
+
+  <!-- ═══════════ Categories ═══════════ -->
+  <section class="mp-view" id="view-categories">
+    <div class="mp-h1">จัดการหมวดหมู่</div>
+    <div class="mp-h1-sub">เพิ่ม แก้ไข หรือลบหมวดหมู่รายรับ-รายจ่าย</div>
+
+    <div class="mp-card">
+      <div class="mp-card-head"><h3>
+        <svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" style="vertical-align:-3px;margin-right:5px"><path d="M12 5v14M5 12h14"/></svg>
+        เพิ่มหมวดหมู่</h3></div>
+      <div class="mp-field"><label>ชื่อหมวดหมู่</label><input class="mp-input" id="catName" placeholder="เช่น ค่าน้ำ, เงินเดือน"></div>
+      <div class="mp-field"><label>ประเภท</label>
+        <select class="mp-select" id="catType"><option value="expense">รายจ่าย</option><option value="income">รายรับ</option></select>
+      </div>
+      <div class="mp-field"><label>สี</label><input class="mp-input" type="color" id="catColor" value="#4F6EF5"></div>
+      <button class="mp-btn block" id="saveCategory" type="button">บันทึก</button>
+    </div>
+
+    <div class="mp-card">
+      <h3 style="margin-bottom:6px">รายการหมวดหมู่</h3>
+      <div class="mp-cat-tabs">
+        <button class="mp-cat-tab income active" data-type="income" type="button">รายรับ</button>
+        <button class="mp-cat-tab expense" data-type="expense" type="button">รายจ่าย</button>
+      </div>
+      <div class="mp-cat-list" id="catList"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ Budget ═══════════ -->
+  <section class="mp-view" id="view-budget">
+    <div class="mp-h1">ตั้งงบประมาณรายเดือน</div>
+    <div class="mp-h1-sub">กำหนดวงเงินแต่ละหมวดหมู่ต่อเดือน</div>
+    <div class="mp-budget-toolbar">
+      <select class="mp-select" id="budgetMonth"></select>
+      <select class="mp-select" id="budgetYear"></select>
+      <button class="mp-btn ghost" id="copyPrevMonth" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V4a2 2 0 0 1 2-2h10"/></svg>
+        คัดลอกเดือนก่อน
+      </button>
+    </div>
+    <div class="mp-card">
+      <div class="mp-table-wrap">
+        <table class="mp-table">
+          <thead><tr><th>หมวดหมู่</th><th>งบประมาณ</th><th>ใช้จริง</th><th>คงเหลือ</th></tr></thead>
+          <tbody id="budgetBody"></tbody>
+        </table>
+      </div>
+      <button class="mp-btn block" id="saveBudget" style="margin-top:16px" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+        บันทึกงบประมาณ
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══════════ Settings ═══════════ -->
+  <section class="mp-view" id="view-settings">
+    <div class="mp-h1">ตั้งค่าระบบ</div>
+    <div class="mp-h1-sub">สำรองข้อมูล หรือล้างข้อมูลทั้งหมด</div>
+
+    <div class="mp-card">
+      <h3 style="margin-bottom:14px">สำรอง / กู้คืนข้อมูล</h3>
+      <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">ข้อมูลทั้งหมดเก็บอยู่ในเครื่องนี้เท่านั้น (localStorage) แนะนำให้ส่งออกไฟล์สำรองเก็บไว้เป็นระยะ</p>
+      <div class="mp-row">
+        <button class="mp-btn ghost" id="exportData" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+          ส่งออกไฟล์สำรอง
+        </button>
+        <button class="mp-btn ghost" id="importDataBtn" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
+          นำเข้าไฟล์สำรอง
+        </button>
+        <input type="file" id="importDataInput" accept="application/json" style="display:none">
+      </div>
+    </div>
+
+    <div class="mp-card">
+      <div class="mp-warn-box">
+        <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+        <h3>จัดการข้อมูล</h3>
+        <p>การล้างข้อมูลจะทำให้ข้อมูลทั้งหมดหายไป<br>ไม่สามารถกู้คืนได้</p>
+        <button class="mp-btn danger" id="clearAllData" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"/></svg>
+          ล้างข้อมูลทั้งหมด
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ══════════════════ ข้อมูล ══════════════════ */
+var LS_CAT = 'budget:categories', LS_REC = 'budget:records', LS_BUD = 'budget:budgets';
+
+function loadJSON(key, fallback){
+  try { var v = JSON.parse(localStorage.getItem(key)); return v == null ? fallback : v; }
+  catch(e){ return fallback; }
+}
+function saveJSON(key, v){ localStorage.setItem(key, JSON.stringify(v)); }
+
+var DEFAULT_CATEGORIES = [
+  {id:'cat-salary', name:'เงินเดือน', type:'income', color:'#17B26A'},
+  {id:'cat-other-income', name:'รายได้อื่นๆ', type:'income', color:'#3BB8C4'},
+  {id:'cat-water', name:'ค่าน้ำ', type:'expense', color:'#3B6BFF'},
+  {id:'cat-cigarette', name:'ค่าบุหรี่', type:'expense', color:'#14251C'},
+  {id:'cat-alcohol', name:'ค่าเหล้า', type:'expense', color:'#7ED957'},
+  {id:'cat-rice', name:'ค่าข้าว', type:'expense', color:'#F5A524'},
+  {id:'cat-m150', name:'ค่าเครื่องดื่ม M-150', type:'expense', color:'#D946EF'},
+  {id:'cat-personal', name:'ซื้อของใช้ส่วนตัว', type:'expense', color:'#2DD4BF'},
+  {id:'cat-fuel', name:'เติมน้ำมัน', type:'expense', color:'#EAB308'},
+  {id:'cat-ice', name:'ค่าน้ำแข็ง', type:'expense', color:'#38BDF8'},
+  {id:'cat-parts', name:'ค่าอะไหล่', type:'expense', color:'#4F46E5'},
+  {id:'cat-shopping', name:'Shopping', type:'expense', color:'#22C55E'}
+];
+
+var categories = loadJSON(LS_CAT, null);
+if (!categories) { categories = DEFAULT_CATEGORIES.slice(); saveJSON(LS_CAT, categories); }
+var records = loadJSON(LS_REC, []);
+var budgets = loadJSON(LS_BUD, {});
+
+function persistCategories(){ saveJSON(LS_CAT, categories); }
+function persistRecords(){ saveJSON(LS_REC, records); }
+function persistBudgets(){ saveJSON(LS_BUD, budgets); }
+
+function catById(id){ for (var i=0;i<categories.length;i++) if (categories[i].id===id) return categories[i]; return null; }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function fmtMoney(n){ n = Math.round((n||0)*100)/100; return '฿' + n.toLocaleString('th-TH', {minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits:2}); }
+var THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+var THAI_MONTHS_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+var THAI_DOW = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+function beYear(y){ return y + 543; }
+function monthKey(y,m){ return y + '-' + String(m+1).padStart(2,'0'); }
+function todayYMD(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+/* ══════════════════ Drawer / นำทาง ══════════════════ */
+var $ = function(s,ctx){ return (ctx||document).querySelector(s); };
+var $$ = function(s,ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(s)); };
+
+var VIEW_TITLES = {
+  dashboard: 'ภาพรวม', calendar: 'ปฏิทินรายรับ-จ่าย', record: 'บันทึกรายการ',
+  categories: 'จัดการหมวดหมู่', budget: 'ตั้งงบประมาณ', settings: 'ตั้งค่าระบบ'
+};
+
+function openDrawer(){ $('#mpDrawer').classList.add('open'); $('#mpBackdrop').classList.add('open'); }
+function closeDrawer(){ $('#mpDrawer').classList.remove('open'); $('#mpBackdrop').classList.remove('open'); }
+$('#mpHamburger').addEventListener('click', openDrawer);
+$('#mpDrawerClose').addEventListener('click', closeDrawer);
+$('#mpBackdrop').addEventListener('click', closeDrawer);
+
+function setView(name){
+  if (!VIEW_TITLES[name]) name = 'dashboard';
+  $$('.mp-view').forEach(function(v){ v.classList.remove('active'); });
+  var el = $('#view-' + name);
+  if (el) el.classList.add('active');
+  $('#mpTitle').textContent = VIEW_TITLES[name];
+  $$('.mp-drawer-nav a').forEach(function(a){ a.classList.toggle('active', a.dataset.view === name); });
+  closeDrawer();
+  if (name === 'dashboard') renderDashboard();
+  else if (name === 'calendar') renderCalendar();
+  else if (name === 'record') { renderHistory(); populateFilterCategories(); }
+  else if (name === 'categories') renderCategoryList();
+  else if (name === 'budget') renderBudgetTable();
+}
+window.addEventListener('hashchange', function(){ setView(location.hash.slice(1)); });
+
+/* ══════════════════ Dashboard ══════════════════ */
+var dashYear, dashMonth; // 0-indexed month
+(function initDashMonth(){ var d=new Date(); dashYear=d.getFullYear(); dashMonth=d.getMonth(); })();
+
+function fillMonthSelect(sel, onChangeYear){
+  sel.innerHTML = '';
+  for (var m=0;m<12;m++){
+    var opt = document.createElement('option');
+    opt.value = m; opt.textContent = THAI_MONTHS[m];
+    sel.appendChild(opt);
+  }
+}
+
+function recordsForMonth(y,m){
+  var prefix = monthKey(y,m);
+  return records.filter(function(r){ return r.date && r.date.slice(0,7) === prefix; });
+}
+
+function renderDonut(containerId, items, total){
+  var el = $('#' + containerId);
+  if (!items.length || total <= 0){
+    el.innerHTML = '<div class="mp-empty">' +
+      '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>' +
+      'ยังไม่มีข้อมูลเดือนนี้</div>';
+    return;
+  }
+  var acc = 0, stops = [];
+  items.forEach(function(it){
+    var pct = it.amount / total * 100;
+    stops.push(it.color + ' ' + acc.toFixed(2) + '% ' + (acc+pct).toFixed(2) + '%');
+    acc += pct;
+  });
+  var legend = items.map(function(it){
+    var pct = Math.round(it.amount/total*100);
+    return '<div class="mp-leg-item"><span class="mp-leg-dot" style="background:'+it.color+'"></span>' +
+      '<span class="mp-leg-name">'+it.name+'</span><span class="mp-leg-amt">'+fmtMoney(it.amount)+' ('+pct+'%)</span></div>';
+  }).join('');
+  el.innerHTML = '<div class="mp-donut-wrap">' +
+    '<div class="mp-donut" style="background:conic-gradient(' + stops.join(',') + ')"></div>' +
+    '<div class="mp-donut-legend">' + legend + '</div></div>';
+}
+
+function groupByCategory(recs){
+  var map = {};
+  recs.forEach(function(r){
+    if (!map[r.categoryId]) map[r.categoryId] = 0;
+    map[r.categoryId] += Number(r.amount) || 0;
+  });
+  var out = [];
+  Object.keys(map).forEach(function(id){
+    var c = catById(id);
+    out.push({name: c ? c.name : 'ไม่ทราบหมวดหมู่', color: c ? c.color : '#999', amount: map[id]});
+  });
+  out.sort(function(a,b){ return b.amount - a.amount; });
+  return out;
+}
+
+function renderDashboard(){
+  var monthSel = $('#dashMonth');
+  if (!monthSel.dataset.init){
+    fillMonthSelect(monthSel);
+    monthSel.dataset.init = '1';
+    monthSel.addEventListener('change', function(){ dashMonth = Number(monthSel.value); renderDashboard(); });
+  }
+  monthSel.value = dashMonth;
+  $('#dashSubtitle').textContent = 'สรุปข้อมูลประจำเดือน ' + THAI_MONTHS_SHORT[dashMonth] + ' ' + beYear(dashYear);
+
+  var monthRecs = recordsForMonth(dashYear, dashMonth);
+  var inc = monthRecs.filter(function(r){ return r.type === 'income'; });
+  var exp = monthRecs.filter(function(r){ return r.type === 'expense'; });
+  var incTotal = inc.reduce(function(s,r){ return s + Number(r.amount||0); }, 0);
+  var expTotal = exp.reduce(function(s,r){ return s + Number(r.amount||0); }, 0);
+  $('#sumIncome').textContent = fmtMoney(incTotal);
+  $('#sumExpense').textContent = fmtMoney(expTotal);
+  $('#sumBalance').textContent = fmtMoney(incTotal - expTotal);
+
+  renderDonut('donutIncome', groupByCategory(inc), incTotal);
+  renderDonut('donutExpense', groupByCategory(exp), expTotal);
+
+  // งบประมาณคงเหลือ
+  var mk = monthKey(dashYear, dashMonth);
+  var bMap = budgets[mk] || {};
+  var bKeys = Object.keys(bMap).filter(function(k){ return Number(bMap[k]) > 0; });
+  var remainEl = $('#budgetRemain');
+  if (!bKeys.length){
+    remainEl.innerHTML = '<div class="mp-empty">' +
+      '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>' +
+      'ยังไม่มีการตั้งงบประมาณเดือนนี้</div>';
+  } else {
+    var actualByCategory = {};
+    exp.forEach(function(r){ actualByCategory[r.categoryId] = (actualByCategory[r.categoryId]||0) + Number(r.amount||0); });
+    remainEl.innerHTML = bKeys.map(function(cid){
+      var c = catById(cid); if (!c) return '';
+      var budget = Number(bMap[cid])||0, actual = actualByCategory[cid]||0;
+      var remain = budget - actual;
+      var pct = budget > 0 ? Math.min(100, Math.round(actual/budget*100)) : 0;
+      return '<div class="mp-budget-row"><span class="dot" style="background:'+c.color+'"></span>' +
+        '<span class="name">'+c.name+'</span>' +
+        '<span class="bar"><i style="width:'+pct+'%;background:'+(pct>=100?'#E5484D':c.color)+'"></i></span>' +
+        '<span class="val" style="color:'+(remain<0?'#E5484D':'#17B26A')+'">'+fmtMoney(remain)+'</span></div>';
+    }).join('');
+  }
+
+  // แนวโน้มรายปี
+  var trendEl = $('#trendChart');
+  var monthTotals = [];
+  var maxVal = 1;
+  for (var m=0;m<12;m++){
+    var mr = recordsForMonth(dashYear, m);
+    var mi = mr.filter(function(r){return r.type==='income';}).reduce(function(s,r){return s+Number(r.amount||0);},0);
+    var me = mr.filter(function(r){return r.type==='expense';}).reduce(function(s,r){return s+Number(r.amount||0);},0);
+    monthTotals.push({i:mi, e:me});
+    maxVal = Math.max(maxVal, mi, me);
+  }
+  trendEl.innerHTML = monthTotals.map(function(t,i){
+    var ih = Math.round(t.i/maxVal*100), eh = Math.round(t.e/maxVal*100);
+    return '<div class="mp-trend-col"><div class="mp-trend-bars">' +
+      '<b class="in" style="height:'+ih+'%" title="รายรับ '+fmtMoney(t.i)+'"></b>' +
+      '<b class="ex" style="height:'+eh+'%" title="รายจ่าย '+fmtMoney(t.e)+'"></b>' +
+      '</div><div class="mp-trend-mo">'+THAI_MONTHS_SHORT[i]+'</div></div>';
+  }).join('');
+}
+
+/* ══════════════════ Calendar ══════════════════ */
+var calYear, calMonth, calSelectedDate = null;
+(function initCal(){ var d=new Date(); calYear=d.getFullYear(); calMonth=d.getMonth(); })();
+
+function renderCalendar(){
+  $('#calLabel').textContent = THAI_MONTHS[calMonth] + ' ' + beYear(calYear);
+  var grid = $('#calGrid');
+  grid.innerHTML = '';
+  THAI_DOW.forEach(function(d,i){
+    var el = document.createElement('div');
+    el.className = 'mp-cal-dow' + (i===0?' sun':'') + (i===5?' fri':'');
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+  var firstDow = new Date(calYear, calMonth, 1).getDay();
+  var daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  var today = todayYMD();
+
+  var byDate = {};
+  recordsForMonth(calYear, calMonth).forEach(function(r){
+    if (!byDate[r.date]) byDate[r.date] = {i:0,e:0};
+    byDate[r.date][r.type==='income'?'i':'e'] += Number(r.amount||0);
+  });
+
+  for (var i=0;i<firstDow;i++){
+    var pad = document.createElement('div'); pad.className='mp-cal-cell empty'; grid.appendChild(pad);
+  }
+  for (var day=1; day<=daysInMonth; day++){
+    var ymd = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+    var cell = document.createElement('div');
+    cell.className = 'mp-cal-cell' + (ymd===today?' today':'') + (ymd===calSelectedDate?' selected':'');
+    var amts = byDate[ymd];
+    var amtsHtml = '';
+    if (amts){
+      if (amts.i) amtsHtml += '<span class="in">+'+Math.round(amts.i).toLocaleString('th-TH')+'</span>';
+      if (amts.e) amtsHtml += '<span class="ex">-'+Math.round(amts.e).toLocaleString('th-TH')+'</span>';
+    }
+    cell.innerHTML = '<span class="num">'+day+'</span><span class="amts">'+amtsHtml+'</span>';
+    cell.addEventListener('click', function(ymd2){ return function(){ calSelectedDate = ymd2; renderCalendar(); showDayDetail(ymd2); }; }(ymd));
+    grid.appendChild(cell);
+  }
+  if (calSelectedDate && calSelectedDate.slice(0,7) === monthKey(calYear,calMonth)) showDayDetail(calSelectedDate);
+  else $('#dayDetail').style.display = 'none';
+}
+$('#calPrev').addEventListener('click', function(){ calMonth--; if (calMonth<0){calMonth=11;calYear--;} renderCalendar(); });
+$('#calNext').addEventListener('click', function(){ calMonth++; if (calMonth>11){calMonth=0;calYear++;} renderCalendar(); });
+
+function showDayDetail(ymd){
+  var dayRecs = records.filter(function(r){ return r.date === ymd; });
+  var box = $('#dayDetail');
+  box.style.display = 'block';
+  var d = new Date(ymd+'T00:00:00');
+  var head = '<h4>รายการวันที่ ' + d.getDate() + ' ' + THAI_MONTHS[d.getMonth()] + ' ' + beYear(d.getFullYear()) + '</h4>';
+  if (!dayRecs.length){
+    box.innerHTML = head + '<div class="mp-empty" style="padding:14px 0">ไม่มีรายการวันนี้</div>';
+    return;
+  }
+  var rows = dayRecs.map(function(r){
+    var c = catById(r.categoryId);
+    return '<tr><td><span class="cat-pill"><i style="background:'+(c?c.color:'#999')+'"></i>'+(c?c.name:'-')+'</span></td>' +
+      '<td>'+(r.note||'-')+'</td><td class="'+(r.type==='income'?'amt-in':'amt-ex')+'">'+(r.type==='income'?'+':'-')+fmtMoney(Math.abs(r.amount)).slice(1)+'</td></tr>';
+  }).join('');
+  box.innerHTML = head + '<div class="mp-table-wrap"><table class="mp-table"><tbody>' + rows + '</tbody></table></div>';
+}
+
+/* ══════════════════ บันทึกรายการ ══════════════════ */
+var entryRowCount = 0;
+function makeEntryRow(){
+  entryRowCount++;
+  var id = 'row' + entryRowCount + '_' + uid();
+  var incomeCats = categories.filter(function(c){return c.type==='income';});
+  var expenseCats = categories.filter(function(c){return c.type==='expense';});
+  var wrap = document.createElement('div');
+  wrap.className = 'mp-entry-row';
+  wrap.dataset.rowId = id;
+  wrap.innerHTML =
+    '<span class="tag">รายการใหม่</span>' +
+    (entryRowCount>1 ? '<button class="rm" type="button" aria-label="ลบแถวนี้"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' : '') +
+    '<div class="mp-field"><label>วันที่</label><input class="mp-input f-date" type="date" value="'+todayYMD()+'"></div>' +
+    '<div class="mp-field"><label>ประเภท</label><select class="mp-select f-type"><option value="expense">รายจ่าย</option><option value="income">รายรับ</option></select></div>' +
+    '<div class="mp-field"><label>หมวดหมู่</label><select class="mp-select f-cat"></select></div>' +
+    '<div class="mp-field"><label>จำนวนเงิน</label><input class="mp-input f-amt" type="number" step="0.01" min="0" placeholder="0.00"></div>' +
+    '<div class="mp-field" style="margin-bottom:0"><input class="mp-input f-note" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"></div>';
+  var rm = wrap.querySelector('.rm');
+  if (rm) rm.addEventListener('click', function(){ wrap.remove(); });
+  var typeSel = wrap.querySelector('.f-type');
+  var catSel = wrap.querySelector('.f-cat');
+  function refreshCatOptions(){
+    var t = typeSel.value;
+    var list = t === 'income' ? incomeCats : expenseCats;
+    catSel.innerHTML = list.map(function(c){ return '<option value="'+c.id+'">'+c.name+'</option>'; }).join('');
+  }
+  typeSel.addEventListener('change', refreshCatOptions);
+  refreshCatOptions();
+  return wrap;
+}
+$('#toggleAddForm').addEventListener('click', function(){
+  var f = $('#entryForm');
+  var showing = f.style.display !== 'none';
+  if (showing) { f.style.display = 'none'; return; }
+  f.style.display = 'block';
+  if (!$('#entryRows').children.length){ $('#entryRows').appendChild(makeEntryRow()); }
+});
+$('#addEntryRow').addEventListener('click', function(){ $('#entryRows').appendChild(makeEntryRow()); });
+$('#saveAllEntries').addEventListener('click', function(){
+  var rows = $$('#entryRows .mp-entry-row');
+  var added = 0;
+  rows.forEach(function(row){
+    var amt = parseFloat(row.querySelector('.f-amt').value);
+    if (!amt || amt <= 0) return;
+    records.push({
+      id: uid(),
+      date: row.querySelector('.f-date').value || todayYMD(),
+      type: row.querySelector('.f-type').value,
+      categoryId: row.querySelector('.f-cat').value,
+      amount: amt,
+      note: row.querySelector('.f-note').value.trim()
+    });
+    added++;
+  });
+  if (added){
+    persistRecords();
+    $('#entryRows').innerHTML = '';
+    entryRowCount = 0;
+    $('#entryForm').style.display = 'none';
+    renderHistory();
+  }
+});
+
+var filterState = { type:'', category:'', month:'' };
+function populateFilterCategories(){
+  var sel = $('#filterCategory');
+  sel.innerHTML = '<option value="">ทุกหมวดหมู่</option>' +
+    categories.map(function(c){ return '<option value="'+c.id+'">'+c.name+'</option>'; }).join('');
+}
+$('#toggleFilter').addEventListener('click', function(){ $('#filterPanel').classList.toggle('open'); });
+$('#filterType').addEventListener('change', function(e){ filterState.type = e.target.value; renderHistory(); });
+$('#filterCategory').addEventListener('change', function(e){ filterState.category = e.target.value; renderHistory(); });
+$('#filterMonth').addEventListener('change', function(e){ filterState.month = e.target.value; renderHistory(); });
+
+function renderHistory(){
+  var list = records.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+  if (filterState.type) list = list.filter(function(r){ return r.type === filterState.type; });
+  if (filterState.category) list = list.filter(function(r){ return r.categoryId === filterState.category; });
+  if (filterState.month) list = list.filter(function(r){ return r.date.slice(0,7) === filterState.month; });
+  var body = $('#historyBody');
+  if (!list.length){
+    body.innerHTML = '';
+    $('#historyEmpty').style.display = 'block';
+    return;
+  }
+  $('#historyEmpty').style.display = 'none';
+  body.innerHTML = list.slice(0,200).map(function(r){
+    var c = catById(r.categoryId);
+    return '<tr><td>'+r.date+'</td>' +
+      '<td><span class="cat-pill"><i style="background:'+(c?c.color:'#999')+'"></i>'+(c?c.name:'-')+'</span></td>' +
+      '<td>'+(r.note||'-')+'</td>' +
+      '<td class="'+(r.type==='income'?'amt-in':'amt-ex')+'">'+(r.type==='income'?'+':'-')+fmtMoney(Math.abs(r.amount)).slice(1)+'</td>' +
+      '<td class="actions">' +
+        '<button class="del" data-id="'+r.id+'" aria-label="ลบ"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"/></svg></button>' +
+      '</td></tr>';
+  }).join('');
+  $$('#historyBody .del').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if (!confirm('ลบรายการนี้ใช่หรือไม่?')) return;
+      records = records.filter(function(r){ return r.id !== btn.dataset.id; });
+      persistRecords();
+      renderHistory();
+    });
+  });
+}
+
+/* ══════════════════ หมวดหมู่ ══════════════════ */
+var catTab = 'income';
+$$('.mp-cat-tab').forEach(function(tab){
+  tab.addEventListener('click', function(){
+    catTab = tab.dataset.type;
+    $$('.mp-cat-tab').forEach(function(t){ t.classList.remove('active'); });
+    tab.classList.add('active');
+    renderCategoryList();
+  });
+});
+$('#saveCategory').addEventListener('click', function(){
+  var name = $('#catName').value.trim();
+  if (!name) { $('#catName').focus(); return; }
+  categories.push({ id: 'cat-' + uid(), name: name, type: $('#catType').value, color: $('#catColor').value });
+  persistCategories();
+  $('#catName').value = '';
+  catTab = $('#catType').value;
+  $$('.mp-cat-tab').forEach(function(t){ t.classList.toggle('active', t.dataset.type === catTab); });
+  renderCategoryList();
+});
+function renderCategoryList(){
+  var list = categories.filter(function(c){ return c.type === catTab; });
+  var el = $('#catList');
+  if (!list.length){ el.innerHTML = '<div class="mp-empty">ยังไม่มีหมวดหมู่นี้</div>'; return; }
+  el.innerHTML = list.map(function(c){
+    return '<div class="mp-cat-item"><span class="dot" style="background:'+c.color+'"></span>' +
+      '<span class="name">'+c.name+'</span>' +
+      '<div class="actions"><button class="del" data-id="'+c.id+'" aria-label="ลบหมวดหมู่"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"/></svg></button></div></div>';
+  }).join('');
+  $$('#catList .del').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if (!confirm('ลบหมวดหมู่นี้ใช่หรือไม่? รายการเดิมที่ใช้หมวดหมู่นี้จะยังอยู่')) return;
+      categories = categories.filter(function(c){ return c.id !== btn.dataset.id; });
+      persistCategories();
+      renderCategoryList();
+    });
+  });
+}
+
+/* ══════════════════ งบประมาณ ══════════════════ */
+var budgetSelYear, budgetSelMonth;
+(function initBudgetSel(){ var d=new Date(); budgetSelYear=d.getFullYear(); budgetSelMonth=d.getMonth(); })();
+
+function renderBudgetTable(){
+  var mSel = $('#budgetMonth'), ySel = $('#budgetYear');
+  if (!mSel.dataset.init){
+    fillMonthSelect(mSel);
+    mSel.dataset.init = '1';
+    mSel.addEventListener('change', function(){ budgetSelMonth = Number(mSel.value); renderBudgetTable(); });
+    var curY = new Date().getFullYear();
+    for (var y=curY-1; y<=curY+1; y++){
+      var opt = document.createElement('option'); opt.value = y; opt.textContent = beYear(y);
+      ySel.appendChild(opt);
+    }
+    ySel.dataset.init = '1';
+    ySel.addEventListener('change', function(){ budgetSelYear = Number(ySel.value); renderBudgetTable(); });
+  }
+  mSel.value = budgetSelMonth; ySel.value = budgetSelYear;
+
+  var mk = monthKey(budgetSelYear, budgetSelMonth);
+  var bMap = budgets[mk] || {};
+  var expenseCats = categories.filter(function(c){ return c.type === 'expense'; });
+  var actual = {};
+  recordsForMonth(budgetSelYear, budgetSelMonth).filter(function(r){return r.type==='expense';})
+    .forEach(function(r){ actual[r.categoryId] = (actual[r.categoryId]||0) + Number(r.amount||0); });
+
+  $('#budgetBody').innerHTML = expenseCats.map(function(c){
+    var b = Number(bMap[c.id]) || 0;
+    var a = actual[c.id] || 0;
+    var remain = b - a;
+    return '<tr><td><span class="cat-pill"><i style="background:'+c.color+'"></i>'+c.name+'</span></td>' +
+      '<td><input class="mp-input" style="max-width:110px;padding:8px 10px" type="number" min="0" step="1" data-cat="'+c.id+'" class="b-input" value="'+(b||0)+'"></td>' +
+      '<td>'+fmtMoney(a)+'</td>' +
+      '<td style="color:'+(remain<0?'#E5484D':'#17B26A')+';font-weight:700">'+fmtMoney(remain)+'</td></tr>';
+  }).join('');
+  $$('#budgetBody input[data-cat]').forEach(function(inp){ inp.classList.add('b-input'); });
+}
+$('#copyPrevMonth').addEventListener('click', function(){
+  var pm = budgetSelMonth - 1, py = budgetSelYear;
+  if (pm < 0) { pm = 11; py--; }
+  var prevKey = monthKey(py, pm);
+  var curKey = monthKey(budgetSelYear, budgetSelMonth);
+  if (!budgets[prevKey]) { alert('ไม่มีงบประมาณของเดือนก่อนหน้าให้คัดลอก'); return; }
+  budgets[curKey] = Object.assign({}, budgets[prevKey]);
+  persistBudgets();
+  renderBudgetTable();
+});
+$('#saveBudget').addEventListener('click', function(){
+  var mk = monthKey(budgetSelYear, budgetSelMonth);
+  var map = {};
+  $$('#budgetBody input[data-cat]').forEach(function(inp){ map[inp.dataset.cat] = parseFloat(inp.value) || 0; });
+  budgets[mk] = map;
+  persistBudgets();
+  renderBudgetTable();
+  renderDashboard();
+});
+
+/* ══════════════════ ตั้งค่า ══════════════════ */
+$('#clearAllData').addEventListener('click', function(){
+  if (!confirm('ล้างข้อมูลทั้งหมดจริงหรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้')) return;
+  categories = DEFAULT_CATEGORIES.slice();
+  records = [];
+  budgets = {};
+  persistCategories(); persistRecords(); persistBudgets();
+  setView(location.hash.slice(1) || 'dashboard');
+  alert('ล้างข้อมูลเรียบร้อยแล้ว');
+});
+$('#exportData').addEventListener('click', function(){
+  var payload = { categories: categories, records: records, budgets: budgets, exportedAt: new Date().toISOString() };
+  var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'money-planner-backup-' + todayYMD() + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+$('#importDataBtn').addEventListener('click', function(){ $('#importDataInput').click(); });
+$('#importDataInput').addEventListener('change', function(e){
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    try {
+      var data = JSON.parse(reader.result);
+      if (!confirm('นำเข้าข้อมูลจะแทนที่ข้อมูลปัจจุบันทั้งหมด ดำเนินการต่อหรือไม่?')) return;
+      categories = Array.isArray(data.categories) ? data.categories : categories;
+      records = Array.isArray(data.records) ? data.records : records;
+      budgets = data.budgets && typeof data.budgets === 'object' ? data.budgets : budgets;
+      persistCategories(); persistRecords(); persistBudgets();
+      setView(location.hash.slice(1) || 'dashboard');
+      alert('นำเข้าข้อมูลเรียบร้อยแล้ว');
+    } catch(err) { alert('ไฟล์ไม่ถูกต้อง: ' + err.message); }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+/* ══════════════════ เริ่มต้น ══════════════════ */
+var initials = 'T';
+try {
+  var storedName = localStorage.getItem('tanot:displayName');
+  if (storedName) initials = storedName.trim().slice(0,1).toUpperCase();
+} catch(e){}
+$('#mpAvatar').textContent = initials;
+
+setView(location.hash.slice(1) || 'dashboard');
+})();
+</script>
+</body>
+</html>
