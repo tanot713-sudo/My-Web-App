@@ -1,9 +1,12 @@
 /* ══════════════════════════════════════════════════════════════════
    Tanot — word.js
-   งาน Word: แก้ไขเอกสารแบบ Word เต็มรูปแบบ (ตัวหนา/เอียง/ขีดเส้นใต้, หัวข้อ, สี,
-   จัดย่อหน้า, ลิสต์, ตาราง, ลิงก์, รูปภาพ) + นำเข้า/ส่งออก .docx จริง (คงรูปแบบ)
-   + พูดแล้วขึ้นข้อความ (Dictate) + ตรวจคำผิดด้วย LanguageTool + สรุปเนื้อหา
-   ประมวลผลทั้งหมดในเบราว์เซอร์ ไม่มีอะไรถูกอัปโหลดขึ้นเซิร์ฟเวอร์ของเรา
+   งาน Word: โปรแกรมประมวลผลคำแบบ Word เต็มรูปแบบ พร้อม ribbon แยกแท็บ
+   (หน้าแรก / แทรก / เค้าโครงหน้ากระดาษ / การอ้างอิง / ตรวจทาน)
+   จัดรูปแบบตัวอักษร/ย่อหน้า, ฟอนต์+ขนาด pt จริง, ตัวยก/ตัวห้อย, สี, ไฮไลต์,
+   ตาราง, รูปภาพ, ลิงก์, สัญลักษณ์, วันที่, เส้นคั่น, ขึ้นหน้าใหม่,
+   สารบัญอัตโนมัติ, เชิงอรรถ, หัว-ท้ายกระดาษ, ขนาด/แนว/ขอบกระดาษ,
+   พูดแล้วขึ้นข้อความ (Dictate), อ่านออกเสียง, ตรวจคำผิด, สรุปเนื้อหา,
+   นำเข้า/ส่งออก .docx จริง (คงรูปแบบ) — ทำงานในเบราว์เซอร์ทั้งหมด
    ══════════════════════════════════════════════════════════════════ */
 (function () {
 'use strict';
@@ -29,6 +32,20 @@ var LT_ENDPOINT = 'https://api.languagetool.org/v2/check';
 var AUTOSAVE_KEY = 'tanot:word:autosave';
 var UI_LANG_KEY = 'tanot:doclang';
 
+/* ── ขนาดกระดาษ: มิลลิเมตร (จอ) + twips (docx) ── */
+var PAGE_SIZES = {
+  A4:     { mmW: 210, mmH: 297, twW: 11906, twH: 16838 },
+  Letter: { mmW: 216, mmH: 279, twW: 12240, twH: 15840 },
+  Legal:  { mmW: 216, mmH: 356, twW: 12240, twH: 20160 },
+  A5:     { mmW: 148, mmH: 210, twW: 8391,  twH: 11906 }
+};
+var MARGINS = {
+  normal: { css: '2.54cm', tw: { top: 1440, right: 1440, bottom: 1440, left: 1440 } },
+  narrow: { css: '1.27cm', tw: { top: 720, right: 720, bottom: 720, left: 720 } },
+  wide:   { css: '2.54cm 5.08cm', tw: { top: 1440, right: 2160, bottom: 1440, left: 2160 } }
+};
+var SIZE_SCALE = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 72];
+
 function getUILang() {
   try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; }
   catch (e) { return 'th'; }
@@ -38,39 +55,51 @@ function setUILang(lang) { try { localStorage.setItem(UI_LANG_KEY, lang); } catc
 var I18N = {
   th: {
     docTitle: 'งาน Word | Tanot',
-    crumbResp: 'งานที่รับผิดชอบ',
-    crumbWord: 'งาน Word',
+    crumbResp: 'งานที่รับผิดชอบ', crumbWord: 'งาน Word',
     pageTitle: 'งาน Word: พิมพ์และแก้ไขเอกสาร',
-    pageDesc: 'พิมพ์เอกสารตั้งแต่หน้าว่าง หรือนำเข้าไฟล์ (.txt .docx .pdf .png .jpg) แล้วจัดรูปแบบด้วยเครื่องมือแบบ Word — ตัวหนา/ตัวเอียง, หัวข้อ, ตาราง, ลิงก์, พูดแล้วขึ้นข้อความ (Dictate), ตรวจคำผิด แล้วดาวน์โหลดเป็นไฟล์ .docx — ทำงานในเบราว์เซอร์ของคุณทั้งหมด',
+    pageDesc: 'พิมพ์เอกสารตั้งแต่หน้าว่าง หรือนำเข้าไฟล์ (.txt .docx .pdf .png .jpg) แล้วจัดรูปแบบด้วยเครื่องมือแบบ Word เต็มรูปแบบ — จัดหน้า, ตาราง, สัญลักษณ์, สารบัญ, เชิงอรรถ, หัว-ท้ายกระดาษ, พูดแล้วขึ้นข้อความ, ตรวจคำผิด แล้วดาวน์โหลดเป็น .docx — ทำงานในเบราว์เซอร์ของคุณทั้งหมด',
     newDocBtn: 'หน้าใหม่', importBtn: 'นำเข้าไฟล์', downloadBtn: 'ดาวน์โหลด Word', printBtn: 'พิมพ์ / PDF',
-    runBtn: 'ตรวจคำผิด', summarizeBtn: 'สรุปเนื้อหา',
+    tabHome: 'หน้าแรก', tabInsert: 'แทรก', tabLayout: 'เค้าโครงหน้ากระดาษ', tabRefs: 'การอ้างอิง', tabReview: 'ตรวจทาน',
+    grpUndo: 'เลิกทำ', grpClipboard: 'คลิปบอร์ด', grpFont: 'แบบอักษร', grpParagraph: 'ย่อหน้า', grpStyles: 'สไตล์',
+    grpTable: 'ตาราง', grpIllustration: 'ภาพประกอบ', grpLink: 'ลิงก์', grpHeaderFooter: 'หัว-ท้ายกระดาษ', grpSymbols: 'สัญลักษณ์',
+    grpPageSetup: 'ตั้งค่าหน้ากระดาษ', grpTOC: 'สารบัญ', grpFootnotes: 'เชิงอรรถ',
+    grpProofing: 'การพิสูจน์อักษร', grpSpeech: 'เสียง', grpTools: 'เครื่องมือ',
     styleNormal: 'ปกติ', styleH1: 'หัวข้อ 1', styleH2: 'หัวข้อ 2', styleH3: 'หัวข้อ 3', styleQuote: 'คำพูดอ้างอิง',
+    tableWord: 'ตาราง', imageWord: 'รูปภาพ', linkWord: 'ลิงก์', headerFooterWord: 'หัว-ท้ายกระดาษ', symbolWord: 'สัญลักษณ์', dateWord: 'วันที่',
+    pageSizeLabel: 'ขนาดกระดาษ', orientationLabel: 'แนวกระดาษ', portrait: 'แนวตั้ง', landscape: 'แนวนอน',
+    marginLabel: 'ขอบกระดาษ', marginNormal: 'ปกติ', marginNarrow: 'แคบ', marginWide: 'กว้าง',
+    tocWord: 'สารบัญ', tocUpdateWord: 'อัปเดต', footnoteWord: 'เชิงอรรถ',
+    runBtn: 'ตรวจคำผิด', speakWord: 'อ่านออกเสียง', dictateWord: 'พูดเป็นข้อความ', summarizeBtn: 'สรุปเนื้อหา', wordCountWord: 'จำนวนคำ',
     issuesFoundHeading: 'จุดที่พบ', applyFixBtn: 'แก้ไขทั้งหมดในเอกสาร', issueEmptyText: 'ไม่พบจุดที่ควรแก้',
     issueHint: 'กด "ตรวจคำผิด" เพื่อดูจุดที่ควรแก้ที่นี่',
+    headerTag: 'หัวกระดาษ', footerTag: 'ท้ายกระดาษ', footnotesHeading: 'เชิงอรรถ',
     wordsLabel: 'คำ', charsLabel: 'ตัวอักษร', autosaveIdle: 'พร้อมบันทึกอัตโนมัติ', autosaveSaved: 'บันทึกอัตโนมัติแล้ว',
     footerText: 'Tanot — งานที่รับผิดชอบ',
-    linkModalTitle: 'แทรกลิงก์', linkUrlLabel: 'URL', modalCancel: 'ยกเลิก', modalInsert: 'แทรก',
-    tableModalTitle: 'แทรกตาราง', tableRowsLabel: 'แถว', tableColsLabel: 'คอลัมน์',
-    speakBtnTitle: 'อ่านออกเสียงเอกสาร', stopSpeakTitle: 'หยุดอ่าน',
-    dictateBtnTitle: 'พูดแล้วขึ้นข้อความ (Dictate)', stopDictateTitle: 'หยุดฟัง',
-    undoBtnTitle: 'เลิกทำ', redoBtnTitle: 'ทำซ้ำ',
+    linkModalTitle: 'แทรกลิงก์', linkUrlLabel: 'URL', modalCancel: 'ยกเลิก', modalInsert: 'แทรก', modalSave: 'บันทึก', modalClose: 'ปิด',
+    tableModalTitle: 'แทรกตาราง', tableRowsLabel: 'แถว', tableColsLabel: 'คอลัมน์', tableHeaderRow: 'มีแถวหัวตาราง',
+    footnoteModalTitle: 'แทรกเชิงอรรถ', footnoteTextLabel: 'ข้อความเชิงอรรถ',
+    headerFooterModalTitle: 'หัวกระดาษ / ท้ายกระดาษ', headerTextLabel: 'ข้อความหัวกระดาษ', footerTextLabel: 'ข้อความท้ายกระดาษ',
+    pageNumLabel: 'ใส่เลขหน้าที่ท้ายกระดาษ (เฉพาะไฟล์ Word)',
+    symbolModalTitle: 'แทรกสัญลักษณ์', wordCountModalTitle: 'จำนวนคำ',
+    undoBtnTitle: 'เลิกทำ', redoBtnTitle: 'ทำซ้ำ', cutTitle: 'ตัด', copyTitle: 'คัดลอก', pasteTitle: 'วางแบบข้อความ',
+    growFontTitle: 'ขยายตัวอักษร', shrinkFontTitle: 'ย่อตัวอักษร',
     boldBtnTitle: 'ตัวหนา', italicBtnTitle: 'ตัวเอียง', underlineBtnTitle: 'ขีดเส้นใต้', strikeBtnTitle: 'ขีดฆ่า',
+    subTitle: 'ตัวห้อย', supTitle: 'ตัวยก',
     textColorTitle: 'สีตัวอักษร', highlightTitle: 'สีไฮไลต์', clearFormatTitle: 'ล้างรูปแบบ',
-    alignLeftTitle: 'ชิดซ้าย', alignCenterTitle: 'กึ่งกลาง', alignRightTitle: 'ชิดขวา', alignJustifyTitle: 'กระจายบรรทัด',
+    alignLeftTitle: 'ชิดซ้าย', alignCenterTitle: 'กึ่งกลาง', alignRightTitle: 'ชิดขวา', alignJustifyTitle: 'กระจายบรรทัด', lineSpacingTitle: 'ระยะห่างบรรทัด',
     ulBtnTitle: 'สัญลักษณ์หัวข้อย่อย', olBtnTitle: 'ลำดับเลข', outdentBtnTitle: 'ลดระยะเยื้อง', indentBtnTitle: 'เพิ่มระยะเยื้อง',
-    linkBtnTitle: 'แทรกลิงก์', imageBtnTitle: 'แทรกรูปภาพ', tableBtnTitle: 'แทรกตาราง', hrBtnTitle: 'เส้นคั่น',
+    tableBtnTitle: 'แทรกตาราง', imageBtnTitle: 'แทรกรูปภาพ', linkBtnTitle: 'แทรกลิงก์', headerFooterTitle: 'หัวกระดาษ / ท้ายกระดาษ',
+    symbolTitle: 'แทรกสัญลักษณ์', dateTitle: 'แทรกวันที่', hrBtnTitle: 'เส้นคั่น', pageBreakTitle: 'ขึ้นหน้าใหม่',
+    tocTitle: 'แทรกสารบัญ', tocUpdateTitle: 'ปรับปรุงสารบัญ', footnoteTitle: 'แทรกเชิงอรรถ',
+    speakBtnTitle: 'อ่านออกเสียงเอกสาร', stopSpeakTitle: 'หยุดอ่าน',
+    dictateBtnTitle: 'พูดแล้วขึ้นข้อความ (Dictate)', stopDictateTitle: 'หยุดฟัง', wordCountTitle: 'จำนวนคำ',
     editorPlaceholder: 'เริ่มพิมพ์เอกสารตรงนี้...',
     langAiPending: ' (รอ AI ขั้นสูง)',
-    readingFile: 'กำลังนำเข้าไฟล์...',
-    fileImported: 'นำเข้าไฟล์ "{name}" เรียบร้อย — เพิ่มเนื้อหาเข้าเอกสารแล้ว',
-    fileReadError: 'เกิดข้อผิดพลาด: {msg}',
-    unsupportedFileType: 'ไม่รองรับไฟล์ประเภทนี้ (รองรับ .txt .docx .pdf .png .jpg)',
-    ocrNoText: '(ไม่พบข้อความในภาพ)',
-    pdfNoTextPage: '(ไม่พบข้อความในหน้านี้ — อาจเป็นภาพสแกน)',
-    checking: 'กำลังตรวจคำผิด...',
-    checkedResult: 'ตรวจพบ {n} จุดที่ควรแก้ไข',
-    checkError: 'เกิดข้อผิดพลาดระหว่างตรวจคำผิด: {msg}',
-    ltServiceError: 'บริการตรวจคำผิดตอบกลับผิดพลาด ({status})',
+    readingFile: 'กำลังนำเข้าไฟล์...', fileImported: 'นำเข้าไฟล์ "{name}" เรียบร้อย — เพิ่มเนื้อหาเข้าเอกสารแล้ว',
+    fileReadError: 'เกิดข้อผิดพลาด: {msg}', unsupportedFileType: 'ไม่รองรับไฟล์ประเภทนี้ (รองรับ .txt .docx .pdf .png .jpg)',
+    ocrNoText: '(ไม่พบข้อความในภาพ)', pdfNoTextPage: '(ไม่พบข้อความในหน้านี้ — อาจเป็นภาพสแกน)',
+    checking: 'กำลังตรวจคำผิด...', checkedResult: 'ตรวจพบ {n} จุดที่ควรแก้ไข',
+    checkError: 'เกิดข้อผิดพลาดระหว่างตรวจคำผิด: {msg}', ltServiceError: 'บริการตรวจคำผิดตอบกลับผิดพลาด ({status})',
     langNotSupported: 'ภาษา "{lang}" ยังไม่มีบริการตรวจคำผิดสาธารณะที่แม่นยำพอ — ระบบจะเปิดให้ใช้การตรวจขั้นสูงในเฟสถัดไป',
     noTextToCheck: 'ยังไม่มีข้อความในเอกสารให้ตรวจ',
     fixAllDone: 'แก้ไขคำผิดแล้ว {n} จุด',
@@ -78,57 +107,72 @@ var I18N = {
     singleFixDone: 'แก้ "{old}" เป็น "{new}" แล้ว',
     fixSkipped: 'ไม่สามารถระบุตำแหน่งจุดนี้ได้แน่นอน (เอกสารอาจถูกแก้ไขหลังตรวจ) — ลองตรวจคำผิดใหม่',
     badgeStyle: 'สไตล์/ความเป็นทางการ', badgeSpelling: 'คำผิด/ไวยากรณ์',
-    newDocConfirm: 'ล้างเอกสารปัจจุบันและเริ่มหน้าใหม่? (ฉบับร่างที่บันทึกอัตโนมัติไว้จะถูกลบด้วย)',
-    clearedDoc: 'ล้างเอกสารแล้ว',
+    newDocConfirm: 'ล้างเอกสารปัจจุบันและเริ่มหน้าใหม่? (ฉบับร่างที่บันทึกอัตโนมัติไว้จะถูกลบด้วย)', clearedDoc: 'ล้างเอกสารแล้ว',
     summarizeEmpty: 'ยังไม่มีเนื้อหาให้สรุป',
-    summarized: 'เพิ่มสรุปเนื้อหาเบื้องต้นต่อท้ายเอกสารแล้ว (เลือกประโยคสำคัญด้วยกฎทางสถิติ)',
-    summaryHeading: '— สรุปเนื้อหาเบื้องต้น —',
-    downloadError: 'ดาวน์โหลดไม่สำเร็จ: {msg}',
-    downloadEmpty: 'ยังไม่มีเนื้อหาให้ดาวน์โหลด',
+    summarized: 'เพิ่มสรุปเนื้อหาเบื้องต้นต่อท้ายเอกสารแล้ว (เลือกประโยคสำคัญด้วยกฎทางสถิติ)', summaryHeading: '— สรุปเนื้อหาเบื้องต้น —',
+    downloadError: 'ดาวน์โหลดไม่สำเร็จ: {msg}', downloadEmpty: 'ยังไม่มีเนื้อหาให้ดาวน์โหลด',
     dictateUnsupported: 'เบราว์เซอร์นี้ไม่รองรับการพูดแล้วขึ้นข้อความ (ลองใช้ Chrome)',
-    dictateListening: 'กำลังฟัง... พูดได้เลย',
-    dictateListeningInterim: 'กำลังฟัง... "{text}"',
-    dictateError: 'เกิดข้อผิดพลาดขณะฟัง: {msg}',
-    dictateNoMic: 'ไม่ได้รับอนุญาตให้ใช้ไมโครโฟน — กรุณาอนุญาตการใช้งานไมค์ในเบราว์เซอร์',
+    dictateListening: 'กำลังฟัง... พูดได้เลย', dictateListeningInterim: 'กำลังฟัง... "{text}"',
+    dictateError: 'เกิดข้อผิดพลาดขณะฟัง: {msg}', dictateNoMic: 'ไม่ได้รับอนุญาตให้ใช้ไมโครโฟน — กรุณาอนุญาตการใช้งานไมค์ในเบราว์เซอร์',
     dictateStopped: 'หยุดฟังแล้ว',
-    linkNeedUrl: 'กรุณาใส่ URL ก่อนแทรกลิงก์',
-    restoredDraft: 'กู้คืนฉบับร่างล่าสุดที่บันทึกอัตโนมัติไว้'
+    linkNeedUrl: 'กรุณาใส่ URL ก่อนแทรกลิงก์', restoredDraft: 'กู้คืนฉบับร่างล่าสุดที่บันทึกอัตโนมัติไว้',
+    tocInserted: 'แทรกสารบัญจากหัวข้อในเอกสารแล้ว', tocUpdated: 'ปรับปรุงสารบัญแล้ว',
+    tocNoHeadings: 'ยังไม่มีหัวข้อ (หัวข้อ 1-3) ในเอกสาร — จัดข้อความเป็นหัวข้อก่อนแล้วค่อยแทรกสารบัญ',
+    tocNoExisting: 'ยังไม่มีสารบัญในเอกสาร — กด "สารบัญ" เพื่อแทรกก่อน',
+    tocDocTitle: 'สารบัญ',
+    footnoteInserted: 'แทรกเชิงอรรถที่ {n} แล้ว', footnoteEmpty: 'กรุณาพิมพ์ข้อความเชิงอรรถก่อน',
+    headerFooterSaved: 'บันทึกหัว-ท้ายกระดาษแล้ว', symbolInserted: 'แทรกสัญลักษณ์แล้ว',
+    pageSetupChanged: 'ปรับตั้งค่าหน้ากระดาษแล้ว',
+    pasteError: 'วางไม่สำเร็จ — เบราว์เซอร์ไม่อนุญาตให้อ่านคลิปบอร์ด (ลองกด Ctrl+V แทน)',
+    wcWords: 'จำนวนคำ', wcCharsWith: 'ตัวอักษร (รวมเว้นวรรค)', wcCharsNo: 'ตัวอักษร (ไม่รวมเว้นวรรค)', wcParagraphs: 'ย่อหน้า', wcFootnotes: 'เชิงอรรถ'
   },
   en: {
     docTitle: 'Word | Tanot',
-    crumbResp: 'Responsibilities',
-    crumbWord: 'Word',
+    crumbResp: 'Responsibilities', crumbWord: 'Word',
     pageTitle: 'Word: Write and Edit Documents',
-    pageDesc: 'Start typing from a blank page, or import a file (.txt .docx .pdf .png .jpg), then format it with Word-like tools — bold/italic, headings, tables, links, Dictate (speech-to-text), spell check, and download it as a .docx file — everything runs in your browser.',
+    pageDesc: 'Start typing from a blank page, or import a file (.txt .docx .pdf .png .jpg), then format it with full Word-like tools — page setup, tables, symbols, table of contents, footnotes, headers/footers, dictation, spell check, and download it as a .docx file — everything runs in your browser.',
     newDocBtn: 'New Page', importBtn: 'Import File', downloadBtn: 'Download Word', printBtn: 'Print / PDF',
-    runBtn: 'Check Spelling', summarizeBtn: 'Summarize',
+    tabHome: 'Home', tabInsert: 'Insert', tabLayout: 'Layout', tabRefs: 'References', tabReview: 'Review',
+    grpUndo: 'Undo', grpClipboard: 'Clipboard', grpFont: 'Font', grpParagraph: 'Paragraph', grpStyles: 'Styles',
+    grpTable: 'Table', grpIllustration: 'Illustrations', grpLink: 'Links', grpHeaderFooter: 'Header & Footer', grpSymbols: 'Symbols',
+    grpPageSetup: 'Page Setup', grpTOC: 'Table of Contents', grpFootnotes: 'Footnotes',
+    grpProofing: 'Proofing', grpSpeech: 'Speech', grpTools: 'Tools',
     styleNormal: 'Normal', styleH1: 'Heading 1', styleH2: 'Heading 2', styleH3: 'Heading 3', styleQuote: 'Quote',
+    tableWord: 'Table', imageWord: 'Picture', linkWord: 'Link', headerFooterWord: 'Header/Footer', symbolWord: 'Symbol', dateWord: 'Date',
+    pageSizeLabel: 'Page size', orientationLabel: 'Orientation', portrait: 'Portrait', landscape: 'Landscape',
+    marginLabel: 'Margins', marginNormal: 'Normal', marginNarrow: 'Narrow', marginWide: 'Wide',
+    tocWord: 'Contents', tocUpdateWord: 'Update', footnoteWord: 'Footnote',
+    runBtn: 'Check Spelling', speakWord: 'Read Aloud', dictateWord: 'Dictate', summarizeBtn: 'Summarize', wordCountWord: 'Word Count',
     issuesFoundHeading: 'Issues Found', applyFixBtn: 'Fix All in Document', issueEmptyText: 'No issues found',
     issueHint: 'Click "Check Spelling" to see issues here',
+    headerTag: 'Header', footerTag: 'Footer', footnotesHeading: 'Footnotes',
     wordsLabel: 'words', charsLabel: 'characters', autosaveIdle: 'Ready to autosave', autosaveSaved: 'Autosaved',
     footerText: 'Tanot — Responsibilities',
-    linkModalTitle: 'Insert Link', linkUrlLabel: 'URL', modalCancel: 'Cancel', modalInsert: 'Insert',
-    tableModalTitle: 'Insert Table', tableRowsLabel: 'Rows', tableColsLabel: 'Columns',
-    speakBtnTitle: 'Read Document Aloud', stopSpeakTitle: 'Stop Reading',
-    dictateBtnTitle: 'Dictate (Speech to Text)', stopDictateTitle: 'Stop Listening',
-    undoBtnTitle: 'Undo', redoBtnTitle: 'Redo',
+    linkModalTitle: 'Insert Link', linkUrlLabel: 'URL', modalCancel: 'Cancel', modalInsert: 'Insert', modalSave: 'Save', modalClose: 'Close',
+    tableModalTitle: 'Insert Table', tableRowsLabel: 'Rows', tableColsLabel: 'Columns', tableHeaderRow: 'Include header row',
+    footnoteModalTitle: 'Insert Footnote', footnoteTextLabel: 'Footnote text',
+    headerFooterModalTitle: 'Header / Footer', headerTextLabel: 'Header text', footerTextLabel: 'Footer text',
+    pageNumLabel: 'Add page numbers to footer (Word file only)',
+    symbolModalTitle: 'Insert Symbol', wordCountModalTitle: 'Word Count',
+    undoBtnTitle: 'Undo', redoBtnTitle: 'Redo', cutTitle: 'Cut', copyTitle: 'Copy', pasteTitle: 'Paste as text',
+    growFontTitle: 'Grow font', shrinkFontTitle: 'Shrink font',
     boldBtnTitle: 'Bold', italicBtnTitle: 'Italic', underlineBtnTitle: 'Underline', strikeBtnTitle: 'Strikethrough',
+    subTitle: 'Subscript', supTitle: 'Superscript',
     textColorTitle: 'Text Color', highlightTitle: 'Highlight Color', clearFormatTitle: 'Clear Formatting',
-    alignLeftTitle: 'Align Left', alignCenterTitle: 'Align Center', alignRightTitle: 'Align Right', alignJustifyTitle: 'Justify',
+    alignLeftTitle: 'Align Left', alignCenterTitle: 'Align Center', alignRightTitle: 'Align Right', alignJustifyTitle: 'Justify', lineSpacingTitle: 'Line Spacing',
     ulBtnTitle: 'Bulleted List', olBtnTitle: 'Numbered List', outdentBtnTitle: 'Decrease Indent', indentBtnTitle: 'Increase Indent',
-    linkBtnTitle: 'Insert Link', imageBtnTitle: 'Insert Image', tableBtnTitle: 'Insert Table', hrBtnTitle: 'Horizontal Rule',
+    tableBtnTitle: 'Insert Table', imageBtnTitle: 'Insert Picture', linkBtnTitle: 'Insert Link', headerFooterTitle: 'Header / Footer',
+    symbolTitle: 'Insert Symbol', dateTitle: 'Insert Date', hrBtnTitle: 'Horizontal Rule', pageBreakTitle: 'Page Break',
+    tocTitle: 'Insert Table of Contents', tocUpdateTitle: 'Update Table of Contents', footnoteTitle: 'Insert Footnote',
+    speakBtnTitle: 'Read Document Aloud', stopSpeakTitle: 'Stop Reading',
+    dictateBtnTitle: 'Dictate (Speech to Text)', stopDictateTitle: 'Stop Listening', wordCountTitle: 'Word Count',
     editorPlaceholder: 'Start typing your document here...',
     langAiPending: ' (advanced AI coming soon)',
-    readingFile: 'Importing file...',
-    fileImported: 'Imported "{name}" successfully — added to the document',
-    fileReadError: 'An error occurred: {msg}',
-    unsupportedFileType: 'This file type is not supported (supports .txt .docx .pdf .png .jpg)',
-    ocrNoText: '(No text found in the image)',
-    pdfNoTextPage: '(No text found on this page — it may be a scanned image)',
-    checking: 'Checking spelling...',
-    checkedResult: 'Found {n} issue(s) to fix',
-    checkError: 'An error occurred while checking spelling: {msg}',
-    ltServiceError: 'The spell-check service returned an error ({status})',
+    readingFile: 'Importing file...', fileImported: 'Imported "{name}" successfully — added to the document',
+    fileReadError: 'An error occurred: {msg}', unsupportedFileType: 'This file type is not supported (supports .txt .docx .pdf .png .jpg)',
+    ocrNoText: '(No text found in the image)', pdfNoTextPage: '(No text found on this page — it may be a scanned image)',
+    checking: 'Checking spelling...', checkedResult: 'Found {n} issue(s) to fix',
+    checkError: 'An error occurred while checking spelling: {msg}', ltServiceError: 'The spell-check service returned an error ({status})',
     langNotSupported: 'The "{lang}" language doesn\'t have an accurate enough public spell-check service yet — advanced checking for it is coming in a future phase.',
     noTextToCheck: 'There\'s no text in the document to check yet',
     fixAllDone: 'Fixed {n} issue(s)',
@@ -136,30 +180,31 @@ var I18N = {
     singleFixDone: 'Changed "{old}" to "{new}"',
     fixSkipped: 'Couldn\'t pinpoint this issue\'s exact position (the document may have changed since checking) — try checking again',
     badgeStyle: 'Style/Formality', badgeSpelling: 'Spelling/Grammar',
-    newDocConfirm: 'Clear the current document and start a new page? (The autosaved draft will be deleted too.)',
-    clearedDoc: 'Document cleared',
+    newDocConfirm: 'Clear the current document and start a new page? (The autosaved draft will be deleted too.)', clearedDoc: 'Document cleared',
     summarizeEmpty: 'There\'s no content to summarize yet',
-    summarized: 'Added a basic summary to the end of the document (key sentences picked using statistical rules)',
-    summaryHeading: '— Basic Summary —',
-    downloadError: 'Download failed: {msg}',
-    downloadEmpty: 'There\'s no content to download yet',
+    summarized: 'Added a basic summary to the end of the document (key sentences picked using statistical rules)', summaryHeading: '— Basic Summary —',
+    downloadError: 'Download failed: {msg}', downloadEmpty: 'There\'s no content to download yet',
     dictateUnsupported: 'This browser doesn\'t support Dictate (try Chrome)',
-    dictateListening: 'Listening... go ahead and speak',
-    dictateListeningInterim: 'Listening... "{text}"',
-    dictateError: 'An error occurred while listening: {msg}',
-    dictateNoMic: 'Microphone access was not granted — please allow microphone access in your browser',
+    dictateListening: 'Listening... go ahead and speak', dictateListeningInterim: 'Listening... "{text}"',
+    dictateError: 'An error occurred while listening: {msg}', dictateNoMic: 'Microphone access was not granted — please allow microphone access in your browser',
     dictateStopped: 'Stopped listening',
-    linkNeedUrl: 'Please enter a URL before inserting the link',
-    restoredDraft: 'Restored your last autosaved draft'
+    linkNeedUrl: 'Please enter a URL before inserting the link', restoredDraft: 'Restored your last autosaved draft',
+    tocInserted: 'Inserted a table of contents from the document headings', tocUpdated: 'Table of contents updated',
+    tocNoHeadings: 'There are no headings (Heading 1-3) in the document yet — format some text as a heading first, then insert a table of contents',
+    tocNoExisting: 'There\'s no table of contents in the document yet — click "Contents" to insert one first',
+    tocDocTitle: 'Table of Contents',
+    footnoteInserted: 'Inserted footnote {n}', footnoteEmpty: 'Please type the footnote text first',
+    headerFooterSaved: 'Header and footer saved', symbolInserted: 'Symbol inserted',
+    pageSetupChanged: 'Page setup updated',
+    pasteError: 'Paste failed — the browser wouldn\'t allow reading the clipboard (try pressing Ctrl+V instead)',
+    wcWords: 'Words', wcCharsWith: 'Characters (with spaces)', wcCharsNo: 'Characters (no spaces)', wcParagraphs: 'Paragraphs', wcFootnotes: 'Footnotes'
   }
 };
 
 function t(key, vars) {
   var lang = getUILang();
   var str = (I18N[lang] && I18N[lang][key]) || I18N.th[key] || key;
-  if (vars) {
-    Object.keys(vars).forEach(function (k) { str = str.replace('{' + k + '}', vars[k]); });
-  }
+  if (vars) Object.keys(vars).forEach(function (k) { str = str.replace('{' + k + '}', vars[k]); });
   return str;
 }
 function langLabel(l) { return getUILang() === 'en' ? l.labelEn : l.label; }
@@ -167,13 +212,9 @@ function langByCode(code) {
   for (var i = 0; i < LANGUAGES.length; i++) if (LANGUAGES[i].code === code) return LANGUAGES[i];
   return LANGUAGES[0];
 }
-
 function escapeHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
-/* ══════════════════════════════════════════════════════════════════
-   สรุปเนื้อหาแบบ extractive (เลือกประโยคสำคัญด้วยคะแนนความถี่คำ) — พอร์ตมาจาก
-   ฟังก์ชันเดิมในบันเดิล ทำงานล้วนๆ ด้วยข้อความ ไม่ต้องพึ่ง AI ภายนอก
-   ══════════════════════════════════════════════════════════════════ */
+/* ══ สรุปเนื้อหาแบบ extractive ══ */
 var SUMMARY_MAX_CHARS = 280;
 function splitSentences(text) {
   return text.replace(/\s+/g, ' ').split(/(?<=[.!?。！？])\s+|\n+/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 0; });
@@ -181,9 +222,7 @@ function splitSentences(text) {
 function wordFreq(sentences) {
   var freq = {};
   sentences.forEach(function (s) {
-    s.toLowerCase().split(/[^\p{L}\p{N}]+/u).forEach(function (w) {
-      if (w.length >= 2) freq[w] = (freq[w] || 0) + 1;
-    });
+    s.toLowerCase().split(/[^\p{L}\p{N}]+/u).forEach(function (w) { if (w.length >= 2) freq[w] = (freq[w] || 0) + 1; });
   });
   return freq;
 }
@@ -202,24 +241,17 @@ function summarizeText(text, n) {
   return truncateSummary(scored.map(function (x) { return x.s; }).join(' '));
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   ตรวจคำผิด (LanguageTool, level:picky) — เหมือน doc-check.js
-   ══════════════════════════════════════════════════════════════════ */
+/* ══ ตรวจคำผิด ══ */
 async function checkSpelling(text, ltCode) {
   if (!text.trim()) return [];
   var params = new URLSearchParams({ text: text, language: ltCode, level: 'picky' });
-  var res = await fetch(LT_ENDPOINT, {
-    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params
-  });
+  var res = await fetch(LT_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params });
   if (!res.ok) throw new Error(t('ltServiceError', { status: res.status }));
   var data = await res.json();
   return (data.matches || []).map(function (m) {
-    return {
-      offset: m.offset, length: m.length, message: m.message,
+    return { offset: m.offset, length: m.length, message: m.message,
       replacements: (m.replacements || []).slice(0, 5).map(function (r) { return r.value; }),
-      ruleId: m.rule && m.rule.id,
-      category: m.rule && m.rule.category && m.rule.category.id
-    };
+      ruleId: m.rule && m.rule.id, category: m.rule && m.rule.category && m.rule.category.id };
   });
 }
 function issueKind(category) {
@@ -227,18 +259,13 @@ function issueKind(category) {
   return styleCats.indexOf(category) !== -1 ? 'style' : 'spelling';
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   อ่านไฟล์นำเข้า — .docx ใช้ mammoth แปลงเป็น HTML (คงตัวหนา/หัวข้อ/ลิสต์)
-   .txt/.pdf/รูปภาพ ได้ข้อความล้วน (ไม่มีรูปแบบให้คง)
-   ══════════════════════════════════════════════════════════════════ */
+/* ══ อ่านไฟล์นำเข้า ══ */
 async function readTxtFile(file) { return { kind: 'text', content: await file.text() }; }
-
 async function readDocxFile(file) {
   var buf = await file.arrayBuffer();
   var result = await window.mammoth.convertToHtml({ arrayBuffer: buf });
   return { kind: 'html', content: result.value };
 }
-
 async function readPdfFile(file) {
   var buf = await file.arrayBuffer();
   var doc = await window.pdfjsLib.getDocument({ data: buf }).promise;
@@ -251,12 +278,10 @@ async function readPdfFile(file) {
   }
   return { kind: 'text', content: lines.join('\n\n') };
 }
-
 async function readImageFile(file) {
   var result = await window.Tesseract.recognize(file, 'eng+tha');
   return { kind: 'text', content: result.data.text || t('ocrNoText') };
 }
-
 async function readAnyFile(file) {
   var name = file.name.toLowerCase();
   if (name.endsWith('.txt')) return readTxtFile(file);
@@ -266,11 +291,13 @@ async function readAnyFile(file) {
   throw new Error(t('unsupportedFileType'));
 }
 
-/* กันไฟล์ .docx ที่แปลงมาไม่ให้มีแท็ก/แอตทริบิวต์อันตรายก่อนใส่ลง innerHTML */
-var SAFE_TAGS = { P: 1, DIV: 1, SPAN: 1, BR: 1, STRONG: 1, B: 1, EM: 1, I: 1, U: 1, S: 1, STRIKE: 1,
+/* กันแท็ก/แอตทริบิวต์อันตรายจาก .docx ที่แปลงมา */
+var SAFE_TAGS = { P: 1, DIV: 1, SPAN: 1, BR: 1, STRONG: 1, B: 1, EM: 1, I: 1, U: 1, S: 1, STRIKE: 1, SUP: 1, SUB: 1, FONT: 1,
   H1: 1, H2: 1, H3: 1, H4: 1, H5: 1, H6: 1, UL: 1, OL: 1, LI: 1, A: 1, IMG: 1,
   TABLE: 1, THEAD: 1, TBODY: 1, TR: 1, TD: 1, TH: 1, BLOCKQUOTE: 1, HR: 1, MARK: 1 };
-var SAFE_ATTRS = { A: ['href', 'target', 'rel'], IMG: ['src', 'alt', 'width', 'height'] };
+var SAFE_ATTRS = { A: ['href', 'target', 'rel'], IMG: ['src', 'alt', 'width', 'height'],
+  FONT: ['face', 'color', 'size'], SPAN: ['style'], P: ['style'], DIV: ['style'],
+  H1: ['style'], H2: ['style'], H3: ['style'], LI: ['style'], TD: ['style'], TH: ['style'] };
 function sanitizeHtml(html) {
   var doc = new DOMParser().parseFromString(html, 'text/html');
   (function walk(node) {
@@ -278,8 +305,7 @@ function sanitizeHtml(html) {
       if (child.nodeType === Node.ELEMENT_NODE) {
         if (!SAFE_TAGS[child.tagName]) {
           while (child.firstChild) node.insertBefore(child.firstChild, child);
-          node.removeChild(child);
-          return;
+          node.removeChild(child); return;
         }
         Array.from(child.attributes).forEach(function (attr) {
           var allowed = SAFE_ATTRS[child.tagName] || [];
@@ -287,49 +313,38 @@ function sanitizeHtml(html) {
           else if (/^(href|src)$/.test(attr.name) && /^\s*javascript:/i.test(attr.value)) child.removeAttribute(attr.name);
         });
         walk(child);
-      } else if (child.nodeType !== Node.TEXT_NODE) {
-        node.removeChild(child);
-      }
+      } else if (child.nodeType !== Node.TEXT_NODE) { node.removeChild(child); }
     });
   })(doc.body);
   return doc.body.innerHTML;
 }
-
-/* ══════════════════════════════════════════════════════════════════
-   แปลงข้อความล้วนเป็น <p> ต่อบรรทัด (สำหรับไฟล์ .txt/.pdf/OCR ที่ไม่มีรูปแบบ)
-   ══════════════════════════════════════════════════════════════════ */
 function textToParagraphsHtml(text) {
-  return text.split(/\n+/).map(function (line) {
-    return line.trim() ? '<p>' + escapeHtml(line) + '</p>' : '';
-  }).join('');
+  return text.split(/\n+/).map(function (line) { return line.trim() ? '<p>' + escapeHtml(line) + '</p>' : ''; }).join('');
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   ดึงข้อความล้วนจาก editor แบบมี \n คั่นระหว่างบล็อก (ใช้ทั้งตรวจคำผิดและ
-   map offset กลับเป็นตำแหน่งใน DOM) — ต้องใช้ตรรกะเดียวกันทั้งสองทาง
-   ══════════════════════════════════════════════════════════════════ */
+/* ══ ดึงข้อความล้วน + map offset กลับเป็นตำแหน่ง DOM (ข้ามเชิงอรรถ/สารบัญ/ตัวคั่นหน้า) ══ */
 var BLOCK_TAGS = { P: 1, DIV: 1, H1: 1, H2: 1, H3: 1, H4: 1, H5: 1, H6: 1, LI: 1, BLOCKQUOTE: 1, TR: 1 };
-
+function shouldSkipForText(el) {
+  if (el.nodeType !== Node.ELEMENT_NODE) return false;
+  var c = el.className || '';
+  return /(^|\s)(wd-fnref|wd-toc|wd-pagebreak)(\s|$)/.test(c);
+}
 function extractText(root) {
   var text = '';
   (function walk(node) {
     var child = node.firstChild;
     while (child) {
-      if (child.nodeType === Node.TEXT_NODE) {
-        text += child.nodeValue;
-      } else if (child.nodeType === Node.ELEMENT_NODE) {
+      if (child.nodeType === Node.TEXT_NODE) { text += child.nodeValue; }
+      else if (child.nodeType === Node.ELEMENT_NODE) {
+        if (shouldSkipForText(child)) { child = child.nextSibling; continue; }
         if (child.tagName === 'BR') { text += '\n'; }
-        else {
-          walk(child);
-          if (BLOCK_TAGS[child.tagName]) text += '\n';
-        }
+        else { walk(child); if (BLOCK_TAGS[child.tagName]) text += '\n'; }
       }
       child = child.nextSibling;
     }
   })(root);
   return text;
 }
-
 function rangeFromOffset(root, start, length) {
   var range = document.createRange();
   var pos = 0, startSet = false, endSet = false;
@@ -342,10 +357,9 @@ function rangeFromOffset(root, start, length) {
         if (startSet && !endSet && start + length <= pos + len) { range.setEnd(child, Math.max(0, start + length - pos)); endSet = true; return true; }
         pos += len;
       } else if (child.nodeType === Node.ELEMENT_NODE) {
-        if (child.tagName === 'BR') { pos += 1; }
-        else {
-          if (visit(child)) return true;
-          if (BLOCK_TAGS[child.tagName]) pos += 1;
+        if (!shouldSkipForText(child)) {
+          if (child.tagName === 'BR') { pos += 1; }
+          else { if (visit(child)) return true; if (BLOCK_TAGS[child.tagName]) pos += 1; }
         }
       }
       if (endSet) return true;
@@ -356,9 +370,6 @@ function rangeFromOffset(root, start, length) {
   visit(root);
   return (startSet && endSet) ? range : null;
 }
-
-/* แทนที่ข้อความช่วง [offset,offset+length) ด้วย replacement — ยืนยันว่าตำแหน่งยังตรงกับ
-   ตอนตรวจก่อนแก้จริง (matchedText) เพื่อกันแก้ผิดตำแหน่งถ้าเอกสารถูกแก้ไประหว่างทาง */
 function applyRangeFix(root, m, replacement) {
   var range = rangeFromOffset(root, m.offset, m.length);
   if (!range || range.toString() !== m.matchedText) return false;
@@ -367,10 +378,17 @@ function applyRangeFix(root, m, replacement) {
   return true;
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   HTML (เนื้อหา editor) → เอกสาร .docx จริง (คงตัวหนา/เอียง/ขีดเส้นใต้/ไฮไลต์/
-   หัวข้อ/ลิสต์/รูปภาพ/ตาราง) — พอร์ตมาจากฟังก์ชันเดิมในบันเดิลแล้วเพิ่มตาราง
-   ══════════════════════════════════════════════════════════════════ */
+/* ══ แปลงสี CSS เป็น hex (docx ต้องการ RRGGBB) ══ */
+function cssColorToHex(c) {
+  if (!c) return null;
+  c = c.trim();
+  if (c[0] === '#') return c.slice(1).length === 3 ? c.slice(1).split('').map(function (x) { return x + x; }).join('') : c.slice(1);
+  var m = c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+  if (m) return [m[1], m[2], m[3]].map(function (n) { return (+n).toString(16).padStart(2, '0'); }).join('');
+  return null;
+}
+
+/* ══ HTML → เอกสาร .docx จริง (คงรูปแบบ + หัว/ท้าย + เชิงอรรถ + ขนาดหน้า) ══ */
 async function imageRunFromSrc(src) {
   var docx = window.docx;
   var res = await fetch(src);
@@ -384,7 +402,18 @@ async function imageRunFromSrc(src) {
   var scale = dims.w > 400 ? 400 / dims.w : 1;
   return new docx.ImageRun({ data: data, transformation: { width: Math.round(dims.w * scale), height: Math.round(dims.h * scale) } });
 }
-
+function styleFromElement(el) {
+  var add = {};
+  var face = el.getAttribute && el.getAttribute('face');
+  var colorAttr = el.getAttribute && el.getAttribute('color');
+  var st = el.style || {};
+  if (face) add.font = face.replace(/['"]/g, '');
+  if (st.fontFamily) add.font = st.fontFamily.replace(/['"]/g, '').split(',')[0].trim();
+  if (colorAttr) add.color = colorAttr.replace('#', '');
+  if (st.color) { var hx = cssColorToHex(st.color); if (hx) add.color = hx; }
+  if (st.fontSize && /pt$/.test(st.fontSize)) add.size = Math.round(parseFloat(st.fontSize) * 2);
+  return add;
+}
 async function nodeToRuns(el, inherited) {
   var docx = window.docx;
   inherited = inherited || {};
@@ -396,14 +425,19 @@ async function nodeToRuns(el, inherited) {
     } else if (child.nodeType === Node.ELEMENT_NODE) {
       var tag = child.tagName;
       if (tag === 'IMG') {
-        runs.push(await imageRunFromSrc(child.getAttribute('src')));
+        try { runs.push(await imageRunFromSrc(child.getAttribute('src'))); } catch (e) {}
+      } else if (tag === 'SUP' && /wd-fnref/.test(child.className || '') && typeof docx.FootnoteReferenceRun === 'function') {
+        var idx = Number(child.getAttribute('data-num')) || 1;
+        runs.push(new docx.FootnoteReferenceRun(idx));
       } else {
-        var next = Object.assign({}, inherited);
+        var next = Object.assign({}, inherited, styleFromElement(child));
         if (tag === 'B' || tag === 'STRONG') next.bold = true;
         if (tag === 'I' || tag === 'EM') next.italics = true;
         if (tag === 'U') next.underline = {};
         if (tag === 'S' || tag === 'STRIKE') next.strike = true;
         if (tag === 'MARK') next.highlight = 'yellow';
+        if (tag === 'SUP') next.superScript = true;
+        if (tag === 'SUB') next.subScript = true;
         runs = runs.concat(await nodeToRuns(child, next));
       }
     }
@@ -411,17 +445,27 @@ async function nodeToRuns(el, inherited) {
   }
   return runs;
 }
-
 var HEADING_TAGS = { H1: 'HEADING_1', H2: 'HEADING_2', H3: 'HEADING_3' };
-
+function paragraphExtras(el) {
+  var docx = window.docx;
+  var opts = {};
+  var align = (el.style && el.style.textAlign) || el.getAttribute('align');
+  if (align && docx.AlignmentType) {
+    var map = { left: 'LEFT', center: 'CENTER', right: 'RIGHT', justify: 'JUSTIFIED' };
+    if (map[align]) opts.alignment = docx.AlignmentType[map[align]];
+  }
+  var lh = el.style && el.style.lineHeight;
+  if (lh && !isNaN(parseFloat(lh))) opts.spacing = { line: Math.round(parseFloat(lh) * 240), lineRule: 'auto' };
+  return opts;
+}
 async function elementToParagraph(el) {
   var docx = window.docx;
   var tag = el.tagName;
-  if (tag === 'LI') return new docx.Paragraph({ children: await nodeToRuns(el), bullet: { level: 0 } });
-  if (HEADING_TAGS[tag]) return new docx.Paragraph({ children: await nodeToRuns(el), heading: docx.HeadingLevel[HEADING_TAGS[tag]] });
-  return new docx.Paragraph({ children: await nodeToRuns(el) });
+  var base = paragraphExtras(el);
+  if (tag === 'LI') return new docx.Paragraph(Object.assign({ children: await nodeToRuns(el), bullet: { level: 0 } }, base));
+  if (HEADING_TAGS[tag]) return new docx.Paragraph(Object.assign({ children: await nodeToRuns(el), heading: docx.HeadingLevel[HEADING_TAGS[tag]] }, base));
+  return new docx.Paragraph(Object.assign({ children: await nodeToRuns(el) }, base));
 }
-
 async function tableToDocxTable(tableEl) {
   var docx = window.docx;
   var rows = Array.from(tableEl.querySelectorAll('tr'));
@@ -429,43 +473,84 @@ async function tableToDocxTable(tableEl) {
   for (var r = 0; r < rows.length; r++) {
     var cells = Array.from(rows[r].children).filter(function (c) { return c.tagName === 'TD' || c.tagName === 'TH'; });
     var docxCells = [];
-    for (var c = 0; c < cells.length; c++) {
-      docxCells.push(new docx.TableCell({ children: [new docx.Paragraph({ children: await nodeToRuns(cells[c]) })] }));
-    }
+    for (var c = 0; c < cells.length; c++) docxCells.push(new docx.TableCell({ children: [new docx.Paragraph({ children: await nodeToRuns(cells[c]) })] }));
     docxRows.push(new docx.TableRow({ children: docxCells }));
   }
   return new docx.Table({ rows: docxRows, width: { size: 100, type: docx.WidthType.PERCENTAGE } });
 }
-
-async function htmlToDocxBlob(html) {
+async function htmlToDocxBlob(html, opts) {
   var docx = window.docx;
+  opts = opts || {};
   var doc = new DOMParser().parseFromString('<body>' + html + '</body>', 'text/html');
+  /* ให้เลข data-num กับ footnote refs ตามลำดับใน DOM + เก็บข้อความไปทำ footnotes map */
+  var footnoteMap = {};
+  var refs = Array.from(doc.querySelectorAll('sup.wd-fnref'));
+  refs.forEach(function (ref, i) {
+    var num = i + 1;
+    ref.setAttribute('data-num', String(num));
+    footnoteMap[num] = { children: [new docx.Paragraph(ref.getAttribute('data-text') || '')] };
+  });
   var blockTags = ['P', 'DIV', 'H1', 'H2', 'H3', 'UL', 'OL', 'BLOCKQUOTE', 'HR', 'TABLE'];
-  var topLevel = Array.from(doc.body.children).filter(function (el) { return blockTags.indexOf(el.tagName) !== -1; });
+  var topLevel = Array.from(doc.body.children).filter(function (el) {
+    return blockTags.indexOf(el.tagName) !== -1 || /wd-pagebreak|wd-toc/.test(el.className || '');
+  });
   var blocks = [];
   if (!topLevel.length) {
     blocks.push(new docx.Paragraph({ children: await nodeToRuns(doc.body) }));
   } else {
     for (var i = 0; i < topLevel.length; i++) {
       var el = topLevel[i];
-      if (el.tagName === 'UL' || el.tagName === 'OL') {
+      if (/wd-pagebreak/.test(el.className || '')) {
+        blocks.push(new docx.Paragraph({ children: typeof docx.PageBreak === 'function' ? [new docx.PageBreak()] : [] }));
+      } else if (/wd-toc/.test(el.className || '')) {
+        var links = Array.from(el.querySelectorAll('a'));
+        blocks.push(new docx.Paragraph({ children: [new docx.TextRun({ text: el.querySelector('.wd-toc-title') ? el.querySelector('.wd-toc-title').textContent : t('tocDocTitle'), bold: true, size: 30 })] }));
+        links.forEach(function (a) { blocks.push(new docx.Paragraph({ text: a.textContent })); });
+      } else if (el.tagName === 'UL' || el.tagName === 'OL') {
         var items = Array.from(el.children);
         for (var j = 0; j < items.length; j++) blocks.push(await elementToParagraph(items[j]));
       } else if (el.tagName === 'TABLE') {
         blocks.push(await tableToDocxTable(el));
       } else if (el.tagName === 'HR') {
-        blocks.push(new docx.Paragraph({ text: '' }));
+        blocks.push(new docx.Paragraph({ text: '', border: { bottom: { color: 'CCCCCC', space: 1, style: 'single', size: 6 } } }));
       } else {
         blocks.push(await elementToParagraph(el));
       }
     }
   }
-  var docxDoc = new docx.Document({ sections: [{ children: blocks }] });
+
+  /* ── section properties: ขนาด/แนว/ขอบกระดาษ ── */
+  var ps = PAGE_SIZES[opts.pageSize] || PAGE_SIZES.A4;
+  var land = opts.orientation === 'landscape';
+  var mg = (MARGINS[opts.margins] || MARGINS.normal).tw;
+  var section = {
+    properties: {
+      page: {
+        size: { width: land ? ps.twH : ps.twW, height: land ? ps.twW : ps.twH,
+          orientation: docx.PageOrientation ? (land ? docx.PageOrientation.LANDSCAPE : docx.PageOrientation.PORTRAIT) : undefined },
+        margin: { top: mg.top, right: mg.right, bottom: mg.bottom, left: mg.left }
+      }
+    },
+    children: blocks
+  };
+
+  if (opts.headerText && typeof docx.Header === 'function') {
+    section.headers = { default: new docx.Header({ children: [new docx.Paragraph({ alignment: docx.AlignmentType ? docx.AlignmentType.CENTER : undefined, children: [new docx.TextRun(opts.headerText)] })] }) };
+  }
+  if ((opts.footerText || opts.pageNum) && typeof docx.Footer === 'function') {
+    var footerChildren = [];
+    if (opts.footerText) footerChildren.push(new docx.TextRun(opts.footerText + (opts.pageNum ? '    ' : '')));
+    if (opts.pageNum && docx.PageNumber) footerChildren.push(new docx.TextRun({ children: [docx.PageNumber.CURRENT] }));
+    section.footers = { default: new docx.Footer({ children: [new docx.Paragraph({ alignment: docx.AlignmentType ? docx.AlignmentType.CENTER : undefined, children: footerChildren })] }) };
+  }
+
+  var docOptions = { sections: [section] };
+  if (Object.keys(footnoteMap).length) docOptions.footnotes = footnoteMap;
+  var docxDoc = new docx.Document(docOptions);
   return docx.Packer.toBlob(docxDoc);
 }
-
-async function downloadEditorAsDocx(html, baseName) {
-  var blob = await htmlToDocxBlob(html);
+async function downloadEditorAsDocx(html, baseName, opts) {
+  var blob = await htmlToDocxBlob(html, opts);
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
@@ -477,36 +562,57 @@ async function downloadEditorAsDocx(html, baseName) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   UI wiring (ข้ามส่วนนี้เมื่อรันทดสอบ logic ล้วนๆ แบบ Node)
+   UI wiring
    ══════════════════════════════════════════════════════════════════ */
 if (typeof document !== 'undefined' && document.getElementById('editor')) {
   var $ = function (id) { return document.getElementById(id); };
   var editor = $('editor');
-  var state = { lang: 'th', matches: [], busy: false, speaking: false, dictating: false };
-  var recognition = null;
-  var savedRange = null;
-  var autosaveTimer = null;
+  var state = {
+    lang: 'th', matches: [], busy: false, speaking: false, dictating: false,
+    header: '', footer: '', pageNum: false,
+    pageSize: 'A4', orientation: 'portrait', margins: 'normal'
+  };
+  var recognition = null, savedRange = null, autosaveTimer = null;
 
-  var langSelect = $('langSelect'), fileInput = $('fileInput'), imageInput = $('imageInput'),
-      newDocBtn = $('newDocBtn'), importBtn = $('importBtn'), downloadBtn = $('downloadBtn'), printBtn = $('printBtn'),
-      runBtn = $('runBtn'), speakBtn = $('speakBtn'), dictateBtn = $('dictateBtn'), summarizeBtn = $('summarizeBtn'),
-      statusMsg = $('statusMsg'), issueCount = $('issueCount'), issueList = $('issueList'), issueEmpty = $('issueEmpty'),
-      issueHint = $('issueHint'), applyFixBtn = $('applyFixBtn'), langToggle = $('langToggle'),
-      wordCountEl = $('wordCount'), charCountEl = $('charCount'), autosaveStatusEl = $('autosaveStatus'),
-      modalBackdrop = $('modalBackdrop'), linkModal = $('linkModal'), linkUrlInput = $('linkUrlInput'),
-      linkOkBtn = $('linkOkBtn'), linkCancelBtn = $('linkCancelBtn'),
-      tableModal = $('tableModal'), tableRowsInput = $('tableRowsInput'), tableColsInput = $('tableColsInput'),
-      tableOkBtn = $('tableOkBtn'), tableCancelBtn = $('tableCancelBtn'), imageBtn = $('imageBtn'), linkBtn = $('linkBtn'),
-      tableBtn = $('tableBtn'), hrBtn = $('hrBtn'),
-      textColorInput = $('textColorInput'), textColorSwatch = $('textColorSwatch'),
-      hiliteColorInput = $('hiliteColorInput'), hiliteColorSwatch = $('hiliteColorSwatch'),
-      clearFormatBtn = $('clearFormatBtn'), undoBtn = $('undoBtn'), redoBtn = $('redoBtn'),
-      styleSelect = $('styleSelect'), fontSelect = $('fontSelect'), sizeSelect = $('sizeSelect');
+  var els = {
+    langSelect: $('langSelect'), fileInput: $('fileInput'), imageInput: $('imageInput'),
+    newDocBtn: $('newDocBtn'), importBtn: $('importBtn'), downloadBtn: $('downloadBtn'), printBtn: $('printBtn'),
+    runBtn: $('runBtn'), speakBtn: $('speakBtn'), dictateBtn: $('dictateBtn'), summarizeBtn: $('summarizeBtn'), wordCountBtn: $('wordCountBtn'),
+    statusMsg: $('statusMsg'), issueCount: $('issueCount'), issueList: $('issueList'), issueEmpty: $('issueEmpty'),
+    issueHint: $('issueHint'), applyFixBtn: $('applyFixBtn'), langToggle: $('langToggle'),
+    wordCountEl: $('wordCount'), charCountEl: $('charCount'), autosaveStatusEl: $('autosaveStatus'),
+    modalBackdrop: $('modalBackdrop'),
+    linkModal: $('linkModal'), linkUrlInput: $('linkUrlInput'), linkOkBtn: $('linkOkBtn'), linkCancelBtn: $('linkCancelBtn'),
+    tableModal: $('tableModal'), tableRowsInput: $('tableRowsInput'), tableColsInput: $('tableColsInput'),
+    tableHeaderCheck: $('tableHeaderCheck'), tableOkBtn: $('tableOkBtn'), tableCancelBtn: $('tableCancelBtn'),
+    footnoteModal: $('footnoteModal'), footnoteTextInput: $('footnoteTextInput'), footnoteOkBtn: $('footnoteOkBtn'), footnoteCancelBtn: $('footnoteCancelBtn'),
+    headerFooterModal: $('headerFooterModal'), headerTextInput: $('headerTextInput'), footerTextInput: $('footerTextInput'),
+    pageNumCheck: $('pageNumCheck'), headerFooterOkBtn: $('headerFooterOkBtn'), headerFooterCancelBtn: $('headerFooterCancelBtn'),
+    symbolModal: $('symbolModal'), symbolGrid: $('symbolGrid'), symbolCloseBtn: $('symbolCloseBtn'),
+    wordCountModal: $('wordCountModal'), wordCountDetails: $('wordCountDetails'), wordCountCloseBtn: $('wordCountCloseBtn'),
+    imageBtn: $('imageBtn'), linkBtn: $('linkBtn'), tableBtn: $('tableBtn'), hrBtn: $('hrBtn'),
+    symbolBtn: $('symbolBtn'), dateBtn: $('dateBtn'), pageBreakBtn: $('pageBreakBtn'), headerFooterBtn: $('headerFooterBtn'),
+    tocBtn: $('tocBtn'), tocUpdateBtn: $('tocUpdateBtn'), footnoteBtn: $('footnoteBtn'),
+    textColorInput: $('textColorInput'), textColorSwatch: $('textColorSwatch'),
+    hiliteColorInput: $('hiliteColorInput'), hiliteColorSwatch: $('hiliteColorSwatch'),
+    clearFormatBtn: $('clearFormatBtn'), undoBtn: $('undoBtn'), redoBtn: $('redoBtn'),
+    cutBtn: $('cutBtn'), copyBtn: $('copyBtn'), pasteBtn: $('pasteBtn'),
+    growFontBtn: $('growFontBtn'), shrinkFontBtn: $('shrinkFontBtn'),
+    styleSelect: $('styleSelect'), fontSelect: $('fontSelect'), sizeSelect: $('sizeSelect'), lineSpacingSelect: $('lineSpacingSelect'),
+    pageSizeSelect: $('pageSizeSelect'), orientationSelect: $('orientationSelect'), marginSelect: $('marginSelect'),
+    pageSizeStyle: $('pageSizeStyle'), page: $('page'),
+    headerStrip: $('headerStrip'), headerStripText: $('headerStripText'), footerStrip: $('footerStrip'), footerStripText: $('footerStripText'),
+    printHeader: $('printHeader'), printFooter: $('printFooter'),
+    footnotesArea: $('footnotesArea'), footnotesList: $('footnotesList'),
+    ribbonTabs: $('ribbonTabs')
+  };
 
-  var SPEAK_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
-  var STOP_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
-  var MIC_ICON = dictateBtn.innerHTML;
-  var MIC_OFF_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+  var SPEAK_ICON = els.speakBtn.querySelector('svg').outerHTML;
+  var STOP_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
+  var MIC_ICON = els.dictateBtn.querySelector('svg').outerHTML;
+  var MIC_OFF_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+  function setSpeakLabel(stop) { els.speakBtn.querySelector('svg').outerHTML = stop ? STOP_SVG : SPEAK_ICON; }
+  function setDictateLabel(stop) { els.dictateBtn.querySelector('svg').outerHTML = stop ? MIC_OFF_SVG : MIC_ICON; }
 
   /* ── i18n ── */
   function applyStaticI18n() {
@@ -518,108 +624,95 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     document.querySelectorAll('[data-i18n-title]').forEach(function (el) { el.title = t(el.getAttribute('data-i18n-title')); });
     document.querySelectorAll('[data-i18n-aria-label]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria-label'))); });
     document.querySelectorAll('[data-i18n-dataplaceholder]').forEach(function (el) { el.setAttribute('data-placeholder', t(el.getAttribute('data-i18n-dataplaceholder'))); });
-    if (langToggle) langToggle.querySelectorAll('span').forEach(function (s) { s.classList.toggle('active', s.getAttribute('data-lt') === lang); });
-    if (!state.speaking) speakBtn.title = t('speakBtnTitle');
-    if (!state.dictating) dictateBtn.title = t('dictateBtnTitle');
+    if (els.langToggle) els.langToggle.querySelectorAll('span').forEach(function (s) { s.classList.toggle('active', s.getAttribute('data-lt') === lang); });
+    if (!state.speaking) els.speakBtn.title = t('speakBtnTitle');
+    if (!state.dictating) els.dictateBtn.title = t('dictateBtnTitle');
     updateCounts();
   }
   function buildLangOptions() {
-    var prev = langSelect.value || state.lang;
-    langSelect.innerHTML = '';
+    var prev = els.langSelect.value || state.lang;
+    els.langSelect.innerHTML = '';
     LANGUAGES.forEach(function (l) {
       var opt = document.createElement('option');
       opt.value = l.code;
       opt.textContent = langLabel(l) + (l.ltCode ? '' : t('langAiPending'));
-      langSelect.appendChild(opt);
+      els.langSelect.appendChild(opt);
     });
-    langSelect.value = prev;
+    els.langSelect.value = prev;
   }
-  applyStaticI18n();
-  buildLangOptions();
-  langSelect.value = state.lang;
-  if (langToggle) {
-    langToggle.addEventListener('click', function () {
-      setUILang(getUILang() === 'en' ? 'th' : 'en');
-      applyStaticI18n();
-      buildLangOptions();
-      renderIssues();
+
+  /* ── สลับแท็บ ribbon ── */
+  els.ribbonTabs.querySelectorAll('.wd-ribbon-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      els.ribbonTabs.querySelectorAll('.wd-ribbon-tab').forEach(function (t2) { t2.classList.toggle('active', t2 === tab); });
+      document.querySelectorAll('.wd-ribbon-panel').forEach(function (p) { p.classList.toggle('active', p.getAttribute('data-panel') === tab.getAttribute('data-tab')); });
     });
-  }
+  });
 
   function setStatus(msg, isErr, showSpinner) {
-    statusMsg.innerHTML = '';
-    statusMsg.classList.toggle('err', !!isErr);
-    if (showSpinner) { var s = document.createElement('span'); s.className = 'spinner'; statusMsg.appendChild(s); }
-    if (msg) statusMsg.appendChild(document.createTextNode(msg));
+    els.statusMsg.innerHTML = '';
+    els.statusMsg.classList.toggle('err', !!isErr);
+    if (showSpinner) { var s = document.createElement('span'); s.className = 'spinner'; els.statusMsg.appendChild(s); }
+    if (msg) els.statusMsg.appendChild(document.createTextNode(msg));
   }
+  function focusEditor() { editor.focus(); }
 
-  /* ── ตัวนับคำ/ตัวอักษร + autosave ── */
-  function updateCounts() {
-    var text = editor.textContent || '';
+  /* ── นับคำ + autosave ── */
+  function docStats() {
+    var text = extractText(editor);
     var words = text.trim() ? text.trim().split(/\s+/).length : 0;
-    wordCountEl.firstChild.nodeValue = words + ' ';
-    charCountEl.firstChild.nodeValue = text.length + ' ';
+    var charsWith = text.replace(/\n/g, '').length;
+    var charsNo = text.replace(/\s/g, '').length;
+    var paragraphs = editor.querySelectorAll('p,h1,h2,h3,li,blockquote').length;
+    var footnotes = editor.querySelectorAll('sup.wd-fnref').length;
+    return { words: words, charsWith: charsWith, charsNo: charsNo, paragraphs: paragraphs, footnotes: footnotes };
+  }
+  function updateCounts() {
+    var s = docStats();
+    els.wordCountEl.firstChild.nodeValue = s.words + ' ';
+    els.charCountEl.firstChild.nodeValue = s.charsWith + ' ';
   }
   function scheduleAutosave() {
     updateCounts();
     clearTimeout(autosaveTimer);
     autosaveTimer = setTimeout(function () {
-      try { localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ html: editor.innerHTML, savedAt: Date.now() })); } catch (e) {}
-      var label = autosaveStatusEl.querySelector('[data-i18n]');
+      try {
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
+          html: editor.innerHTML, header: state.header, footer: state.footer, pageNum: state.pageNum,
+          pageSize: state.pageSize, orientation: state.orientation, margins: state.margins, savedAt: Date.now()
+        }));
+      } catch (e) {}
+      var label = els.autosaveStatusEl.querySelector('[data-i18n]');
       if (label) label.textContent = t('autosaveSaved');
     }, 800);
   }
-  (function restoreAutosave() {
-    try {
-      var raw = localStorage.getItem(AUTOSAVE_KEY);
-      if (!raw) return;
-      var saved = JSON.parse(raw);
-      if (saved && saved.html) { editor.innerHTML = saved.html; setStatus(t('restoredDraft')); updateCounts(); }
-    } catch (e) {}
-  })();
-
-  editor.addEventListener('input', function () {
-    if (state.matches.length) { state.matches = []; renderIssues(); }
-    scheduleAutosave();
-  });
 
   /* ── issue sidebar ── */
   function renderIssues() {
-    issueCount.textContent = state.matches.length;
-    issueCount.classList.toggle('zero', state.matches.length === 0);
-    applyFixBtn.style.display = state.matches.length ? 'flex' : 'none';
-    issueEmpty.style.display = state.matches.length === 0 && issueHint.dataset.shown === '1' ? 'block' : 'none';
-    issueHint.style.display = issueHint.dataset.shown === '1' ? 'none' : 'block';
-    issueList.innerHTML = '';
+    els.issueCount.textContent = state.matches.length;
+    els.issueCount.classList.toggle('zero', state.matches.length === 0);
+    els.applyFixBtn.style.display = state.matches.length ? 'flex' : 'none';
+    els.issueEmpty.style.display = state.matches.length === 0 && els.issueHint.dataset.shown === '1' ? 'block' : 'none';
+    els.issueHint.style.display = els.issueHint.dataset.shown === '1' ? 'none' : 'block';
+    els.issueList.innerHTML = '';
     state.matches.forEach(function (m, i) {
       var item = document.createElement('div');
       item.className = 'wd-issue';
-      var chipsHtml = (m.replacements || []).map(function (r, ri) {
-        return '<button class="chip" data-mi="' + i + '" data-ri="' + ri + '" type="button">' + escapeHtml(r) + '</button>';
-      }).join('');
+      var chipsHtml = (m.replacements || []).map(function (r, ri) { return '<button class="chip" data-mi="' + i + '" data-ri="' + ri + '" type="button">' + escapeHtml(r) + '</button>'; }).join('');
       var kind = issueKind(m.category);
-      var badgeHtml = kind === 'style'
-        ? '<span class="kind-badge style">' + t('badgeStyle') + '</span>'
-        : '<span class="kind-badge spelling">' + t('badgeSpelling') + '</span>';
-      item.innerHTML = badgeHtml +
-        '<div class="quote">"' + escapeHtml(m.matchedText) + '"</div>' +
-        '<div class="msg">' + escapeHtml(m.message) + '</div>' +
-        (chipsHtml ? '<div class="chips">' + chipsHtml + '</div>' : '');
-      issueList.appendChild(item);
+      var badgeHtml = kind === 'style' ? '<span class="kind-badge style">' + t('badgeStyle') + '</span>' : '<span class="kind-badge spelling">' + t('badgeSpelling') + '</span>';
+      item.innerHTML = badgeHtml + '<div class="quote">"' + escapeHtml(m.matchedText) + '"</div><div class="msg">' + escapeHtml(m.message) + '</div>' + (chipsHtml ? '<div class="chips">' + chipsHtml + '</div>' : '');
+      els.issueList.appendChild(item);
     });
-    issueList.querySelectorAll('.chip').forEach(function (chip) {
-      chip.addEventListener('click', function () {
-        acceptIssue(Number(chip.dataset.mi), Number(chip.dataset.ri));
-      });
+    els.issueList.querySelectorAll('.chip').forEach(function (chip) {
+      chip.addEventListener('click', function () { acceptIssue(Number(chip.dataset.mi), Number(chip.dataset.ri)); });
     });
   }
-
   function acceptIssue(matchIndex, replacementIndex) {
     var m = state.matches[matchIndex];
     if (!m || !m.replacements || !m.replacements[replacementIndex]) return;
     var replacement = m.replacements[replacementIndex];
-    var ok = applyRangeFix(editor, m, replacement);
-    if (!ok) { setStatus(t('fixSkipped'), true); return; }
+    if (!applyRangeFix(editor, m, replacement)) { setStatus(t('fixSkipped'), true); return; }
     var delta = replacement.length - m.length;
     var old = m.matchedText;
     state.matches = state.matches.filter(function (_, i) { return i !== matchIndex; })
@@ -628,8 +721,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     renderIssues();
     scheduleAutosave();
   }
-
-  applyFixBtn.addEventListener('click', function () {
+  els.applyFixBtn.addEventListener('click', function () {
     var sorted = state.matches.slice().sort(function (a, b) { return b.offset - a.offset; });
     var fixed = 0, skipped = 0;
     sorted.forEach(function (m) {
@@ -642,43 +734,38 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     scheduleAutosave();
   });
 
-  /* ── ตรวจคำผิด ── */
-  runBtn.addEventListener('click', async function () {
+  els.runBtn.addEventListener('click', async function () {
     var lang = langByCode(state.lang);
     if (!lang.ltCode) { setStatus(t('langNotSupported', { lang: langLabel(lang) }), true); return; }
     var text = extractText(editor);
     if (!text.trim()) { setStatus(t('noTextToCheck'), true); return; }
-    state.busy = true; runBtn.disabled = true;
+    state.busy = true; els.runBtn.disabled = true;
     setStatus(t('checking'), false, true);
     try {
       var matches = await checkSpelling(text, lang.ltCode);
       matches.forEach(function (m) { m.matchedText = text.slice(m.offset, m.offset + m.length); });
       state.matches = matches;
-      issueHint.dataset.shown = '1';
+      els.issueHint.dataset.shown = '1';
       renderIssues();
       setStatus(t('checkedResult', { n: matches.length }));
-    } catch (err) {
-      setStatus(t('checkError', { msg: err.message }), true);
-    } finally {
-      state.busy = false; runBtn.disabled = false;
-    }
+    } catch (err) { setStatus(t('checkError', { msg: err.message }), true); }
+    finally { state.busy = false; els.runBtn.disabled = false; }
   });
-  langSelect.addEventListener('change', function () { state.lang = langSelect.value; });
+  els.langSelect.addEventListener('change', function () { state.lang = els.langSelect.value; });
 
-  /* ── ไฟล์: ใหม่ / นำเข้า / ดาวน์โหลด / พิมพ์ ── */
-  newDocBtn.addEventListener('click', function () {
+  /* ── ไฟล์ ── */
+  els.newDocBtn.addEventListener('click', function () {
     if (!confirm(t('newDocConfirm'))) return;
     editor.innerHTML = '';
-    state.matches = [];
-    issueHint.dataset.shown = '0';
-    renderIssues();
+    state.matches = []; els.issueHint.dataset.shown = '0';
+    state.header = ''; state.footer = ''; state.pageNum = false;
+    renderIssues(); renderFootnotes(); updateHeaderFooterUI();
     try { localStorage.removeItem(AUTOSAVE_KEY); } catch (e) {}
     updateCounts();
     setStatus(t('clearedDoc'));
   });
-
-  importBtn.addEventListener('click', function () { fileInput.click(); });
-  fileInput.addEventListener('change', async function (e) {
+  els.importBtn.addEventListener('click', function () { els.fileInput.click(); });
+  els.fileInput.addEventListener('change', async function (e) {
     var file = e.target.files && e.target.files[0];
     if (!file) return;
     setStatus(t('readingFile'), false, true);
@@ -686,25 +773,25 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
       var result = await readAnyFile(file);
       var html = result.kind === 'html' ? sanitizeHtml(result.content) : textToParagraphsHtml(result.content);
       editor.innerHTML += html;
+      renderFootnotes();
       setStatus(t('fileImported', { name: file.name }));
       scheduleAutosave();
-    } catch (err) {
-      setStatus(t('fileReadError', { msg: err.message }), true);
-    } finally {
-      fileInput.value = '';
-    }
+    } catch (err) { setStatus(t('fileReadError', { msg: err.message }), true); }
+    finally { els.fileInput.value = ''; }
   });
-
-  downloadBtn.addEventListener('click', async function () {
-    if (!editor.textContent.trim()) { setStatus(t('downloadEmpty'), true); return; }
-    try { await downloadEditorAsDocx(editor.innerHTML, 'document'); }
-    catch (err) { setStatus(t('downloadError', { msg: err.message }), true); }
+  els.downloadBtn.addEventListener('click', async function () {
+    if (!extractText(editor).trim()) { setStatus(t('downloadEmpty'), true); return; }
+    try {
+      await downloadEditorAsDocx(editor.innerHTML, 'document', {
+        pageSize: state.pageSize, orientation: state.orientation, margins: state.margins,
+        headerText: state.header, footerText: state.footer, pageNum: state.pageNum
+      });
+    } catch (err) { setStatus(t('downloadError', { msg: err.message }), true); }
   });
-
-  printBtn.addEventListener('click', function () { window.print(); });
+  els.printBtn.addEventListener('click', function () { window.print(); });
 
   /* ── สรุปเนื้อหา ── */
-  summarizeBtn.addEventListener('click', function () {
+  els.summarizeBtn.addEventListener('click', function () {
     var text = extractText(editor).trim();
     if (!text) { setStatus(t('summarizeEmpty'), true); return; }
     var summary = summarizeText(text, 5);
@@ -713,38 +800,47 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     scheduleAutosave();
   });
 
+  /* ── จำนวนคำ (รายละเอียด) ── */
+  els.wordCountBtn.addEventListener('click', function () {
+    var s = docStats();
+    els.wordCountDetails.innerHTML =
+      '<div><strong>' + s.words + '</strong> — ' + t('wcWords') + '</div>' +
+      '<div><strong>' + s.charsWith + '</strong> — ' + t('wcCharsWith') + '</div>' +
+      '<div><strong>' + s.charsNo + '</strong> — ' + t('wcCharsNo') + '</div>' +
+      '<div><strong>' + s.paragraphs + '</strong> — ' + t('wcParagraphs') + '</div>' +
+      '<div><strong>' + s.footnotes + '</strong> — ' + t('wcFootnotes') + '</div>';
+    openModal(els.wordCountModal);
+  });
+  els.wordCountCloseBtn.addEventListener('click', closeModals);
+
   /* ── อ่านออกเสียง ── */
-  speakBtn.addEventListener('click', function () {
-    if (state.speaking) {
-      window.speechSynthesis.cancel();
-      state.speaking = false; speakBtn.innerHTML = SPEAK_ICON; speakBtn.title = t('speakBtnTitle');
-      return;
-    }
-    var text = editor.textContent.trim();
+  els.speakBtn.addEventListener('click', function () {
+    if (state.speaking) { window.speechSynthesis.cancel(); state.speaking = false; setSpeakLabel(false); els.speakBtn.title = t('speakBtnTitle'); return; }
+    var text = extractText(editor).trim();
     if (!text) return;
     window.speechSynthesis.cancel();
     var utter = new SpeechSynthesisUtterance(text);
     utter.lang = langByCode(state.lang).speechLang;
-    utter.onend = function () { state.speaking = false; speakBtn.innerHTML = SPEAK_ICON; speakBtn.title = t('speakBtnTitle'); };
-    utter.onerror = function () { state.speaking = false; speakBtn.innerHTML = SPEAK_ICON; speakBtn.title = t('speakBtnTitle'); };
-    state.speaking = true; speakBtn.innerHTML = STOP_ICON; speakBtn.title = t('stopSpeakTitle');
+    utter.onend = function () { state.speaking = false; setSpeakLabel(false); els.speakBtn.title = t('speakBtnTitle'); };
+    utter.onerror = utter.onend;
+    state.speaking = true; setSpeakLabel(true); els.speakBtn.title = t('stopSpeakTitle');
     window.speechSynthesis.speak(utter);
   });
 
-  /* ── พูดแล้วขึ้นข้อความ (Dictate) — รองรับทุกภาษาในรายการ (ไม่ได้จำกัดเฉพาะภาษาที่ LanguageTool รองรับ) ── */
+  /* ── Dictate ── */
   function stopDictate(statusText) {
     state.dictating = false;
-    dictateBtn.classList.remove('active');
-    dictateBtn.innerHTML = MIC_ICON;
-    dictateBtn.title = t('dictateBtnTitle');
+    els.dictateBtn.classList.remove('active');
+    setDictateLabel(false);
+    els.dictateBtn.title = t('dictateBtnTitle');
     if (recognition) { try { recognition.stop(); } catch (e) {} }
-    setStatus(statusText || '');
+    if (statusText !== undefined) setStatus(statusText);
   }
-  dictateBtn.addEventListener('click', function () {
+  els.dictateBtn.addEventListener('click', function () {
     if (state.dictating) { stopDictate(t('dictateStopped')); return; }
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { setStatus(t('dictateUnsupported'), true); return; }
-    editor.focus();
+    focusEditor();
     recognition = new SR();
     recognition.lang = langByCode(state.lang).speechLang;
     recognition.continuous = true;
@@ -756,7 +852,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
         if (res.isFinal) finalChunk += res[0].transcript; else interimChunk += res[0].transcript;
       }
       if (finalChunk) {
-        editor.focus();
+        focusEditor();
         document.execCommand('insertText', false, finalChunk);
         if (state.matches.length) { state.matches = []; renderIssues(); }
         scheduleAutosave();
@@ -765,23 +861,19 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     };
     recognition.onerror = function (e) {
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { setStatus(t('dictateNoMic'), true); stopDictate(); }
-      else if (e.error === 'no-speech' || e.error === 'aborted') { /* เงียบไปชั่วคราว ไม่ถือเป็น error */ }
+      else if (e.error === 'no-speech' || e.error === 'aborted') {}
       else { setStatus(t('dictateError', { msg: e.error }), true); }
     };
-    recognition.onend = function () {
-      if (state.dictating) { try { recognition.start(); } catch (e) {} }
-    };
+    recognition.onend = function () { if (state.dictating) { try { recognition.start(); } catch (e) {} } };
     state.dictating = true;
-    dictateBtn.classList.add('active');
-    dictateBtn.innerHTML = MIC_OFF_ICON;
-    dictateBtn.title = t('stopDictateTitle');
+    els.dictateBtn.classList.add('active');
+    setDictateLabel(true);
+    els.dictateBtn.title = t('stopDictateTitle');
     setStatus(t('dictateListening'));
     recognition.start();
   });
 
-  /* ── ริบบิ้นจัดรูปแบบ ── */
-  function focusEditor() { editor.focus(); }
-
+  /* ── ริบบิ้น: คำสั่ง execCommand ทั่วไป ── */
   document.querySelectorAll('.rb-btn[data-cmd]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       focusEditor();
@@ -790,43 +882,108 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
       scheduleAutosave();
     });
   });
-  document.querySelectorAll('.wd-select[data-cmd]').forEach(function (sel) {
-    sel.addEventListener('change', function () {
-      focusEditor();
-      var cmd = sel.dataset.cmd, val = sel.value;
-      if (cmd === 'formatBlock') val = '<' + val.toLowerCase() + '>';
-      document.execCommand(cmd, false, val);
-      scheduleAutosave();
-    });
+  els.styleSelect.addEventListener('change', function () {
+    focusEditor();
+    document.execCommand('formatBlock', false, '<' + els.styleSelect.value.toLowerCase() + '>');
+    scheduleAutosave();
   });
-  clearFormatBtn.addEventListener('click', function () {
+  els.fontSelect.addEventListener('change', function () {
+    focusEditor();
+    document.execCommand('fontName', false, els.fontSelect.value);
+    scheduleAutosave();
+  });
+
+  /* ── ขนาดฟอนต์ (pt จริง) ── */
+  function applyFontSizePt(pt) {
+    focusEditor();
+    document.execCommand('fontSize', false, '7');
+    editor.querySelectorAll('font[size="7"]').forEach(function (f) { f.removeAttribute('size'); f.style.fontSize = pt + 'pt'; });
+    scheduleAutosave();
+  }
+  els.sizeSelect.addEventListener('change', function () { applyFontSizePt(Number(els.sizeSelect.value)); });
+  function currentFontSizePt() {
+    var sel = window.getSelection();
+    var node = sel && sel.anchorNode;
+    if (node && node.nodeType === 3) node = node.parentElement;
+    if (!node || !editor.contains(node)) return Number(els.sizeSelect.value) || 14;
+    var px = parseFloat(getComputedStyle(node).fontSize);
+    return Math.round(px * 72 / 96);
+  }
+  function stepFont(dir) {
+    var cur = currentFontSizePt();
+    var idx = 0;
+    for (var i = 0; i < SIZE_SCALE.length; i++) { if (SIZE_SCALE[i] >= cur) { idx = i; break; } if (i === SIZE_SCALE.length - 1) idx = i; }
+    if (dir > 0 && SIZE_SCALE[idx] <= cur) idx++;
+    idx = Math.max(0, Math.min(SIZE_SCALE.length - 1, idx + (dir < 0 ? -1 : 0)));
+    applyFontSizePt(SIZE_SCALE[idx]);
+    els.sizeSelect.value = String(SIZE_SCALE[idx]);
+  }
+  els.growFontBtn.addEventListener('click', function () { stepFont(1); });
+  els.shrinkFontBtn.addEventListener('click', function () { stepFont(-1); });
+
+  /* ── สี ── */
+  els.textColorInput.addEventListener('input', function () {
+    focusEditor();
+    document.execCommand('foreColor', false, els.textColorInput.value);
+    els.textColorSwatch.style.background = els.textColorInput.value;
+    scheduleAutosave();
+  });
+  els.hiliteColorInput.addEventListener('input', function () {
+    focusEditor();
+    if (!document.execCommand('hiliteColor', false, els.hiliteColorInput.value)) document.execCommand('backColor', false, els.hiliteColorInput.value);
+    els.hiliteColorSwatch.style.background = els.hiliteColorInput.value;
+    scheduleAutosave();
+  });
+  els.clearFormatBtn.addEventListener('click', function () {
     focusEditor();
     document.execCommand('removeFormat', false, null);
     document.execCommand('formatBlock', false, '<p>');
-    styleSelect.value = 'P';
+    els.styleSelect.value = 'P';
     scheduleAutosave();
   });
-  undoBtn.addEventListener('click', function () { focusEditor(); document.execCommand('undo', false, null); scheduleAutosave(); });
-  redoBtn.addEventListener('click', function () { focusEditor(); document.execCommand('redo', false, null); scheduleAutosave(); });
+  els.undoBtn.addEventListener('click', function () { focusEditor(); document.execCommand('undo'); scheduleAutosave(); });
+  els.redoBtn.addEventListener('click', function () { focusEditor(); document.execCommand('redo'); scheduleAutosave(); });
 
-  textColorInput.addEventListener('input', function () {
+  /* ── คลิปบอร์ด ── */
+  els.cutBtn.addEventListener('click', function () { focusEditor(); document.execCommand('cut'); scheduleAutosave(); });
+  els.copyBtn.addEventListener('click', function () { focusEditor(); document.execCommand('copy'); });
+  els.pasteBtn.addEventListener('click', function () {
     focusEditor();
-    document.execCommand('foreColor', false, textColorInput.value);
-    textColorSwatch.style.background = textColorInput.value;
-    scheduleAutosave();
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      navigator.clipboard.readText().then(function (txt) { document.execCommand('insertText', false, txt); scheduleAutosave(); })
+        .catch(function () { setStatus(t('pasteError'), true); });
+    } else { setStatus(t('pasteError'), true); }
   });
-  hiliteColorInput.addEventListener('input', function () {
-    focusEditor();
-    if (!document.execCommand('hiliteColor', false, hiliteColorInput.value)) {
-      document.execCommand('backColor', false, hiliteColorInput.value);
+
+  /* ── ระยะห่างบรรทัด ── */
+  function selectedBlocks() {
+    var sel = window.getSelection();
+    if (!sel.rangeCount) return [];
+    var range = sel.getRangeAt(0);
+    var blocks = [];
+    editor.querySelectorAll('p,h1,h2,h3,li,blockquote,div').forEach(function (b) {
+      if (range.intersectsNode(b)) blocks.push(b);
+    });
+    if (!blocks.length) {
+      var node = sel.anchorNode;
+      if (node && node.nodeType === 3) node = node.parentElement;
+      while (node && node !== editor && !/^(P|H1|H2|H3|LI|BLOCKQUOTE|DIV)$/.test(node.tagName)) node = node.parentElement;
+      if (node && node !== editor) blocks.push(node);
     }
-    hiliteColorSwatch.style.background = hiliteColorInput.value;
+    return blocks;
+  }
+  els.lineSpacingSelect.addEventListener('change', function () {
+    focusEditor();
+    var blocks = selectedBlocks();
+    if (!blocks.length) { document.execCommand('formatBlock', false, '<p>'); blocks = selectedBlocks(); }
+    var val = els.lineSpacingSelect.value;
+    blocks.forEach(function (b) { b.style.lineHeight = val || ''; });
     scheduleAutosave();
   });
 
-  /* ── active state ของปุ่มจัดรูปแบบตามตำแหน่งเคอร์เซอร์ ── */
+  /* ── active state ปุ่ม ── */
   var STATE_CMDS = { boldBtn: 'bold', italicBtn: 'italic', underlineBtn: 'underline', strikeBtn: 'strikeThrough',
-    ulBtn: 'insertUnorderedList', olBtn: 'insertOrderedList',
+    subBtn: 'subscript', supBtn: 'superscript', ulBtn: 'insertUnorderedList', olBtn: 'insertOrderedList',
     alignLeftBtn: 'justifyLeft', alignCenterBtn: 'justifyCenter', alignRightBtn: 'justifyRight', alignJustifyBtn: 'justifyFull' };
   function updateToolbarState() {
     var sel = window.getSelection();
@@ -840,92 +997,285 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   editor.addEventListener('keyup', updateToolbarState);
   editor.addEventListener('mouseup', updateToolbarState);
 
-  /* ── modal ทั่วไป ── */
-  function openModal(modalEl) { modalBackdrop.classList.add('open'); modalEl.classList.add('open'); }
+  /* ── modal ── */
+  function openModal(m) { els.modalBackdrop.classList.add('open'); m.classList.add('open'); }
   function closeModals() {
-    modalBackdrop.classList.remove('open');
-    linkModal.classList.remove('open');
-    tableModal.classList.remove('open');
+    els.modalBackdrop.classList.remove('open');
+    [els.linkModal, els.tableModal, els.footnoteModal, els.headerFooterModal, els.symbolModal, els.wordCountModal].forEach(function (m) { m.classList.remove('open'); });
   }
-  modalBackdrop.addEventListener('click', function (e) { if (e.target === modalBackdrop) closeModals(); });
+  els.modalBackdrop.addEventListener('click', function (e) { if (e.target === els.modalBackdrop) closeModals(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModals(); });
-
   function saveSelectionRange() {
     var sel = window.getSelection();
-    if (sel.rangeCount && editor.contains(sel.anchorNode)) savedRange = sel.getRangeAt(0).cloneRange();
-    else savedRange = null;
+    savedRange = (sel.rangeCount && editor.contains(sel.anchorNode)) ? sel.getRangeAt(0).cloneRange() : null;
   }
   function restoreSelectionRange() {
     focusEditor();
     if (savedRange) { var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
   }
 
-  /* ── แทรกลิงก์ ── */
-  linkBtn.addEventListener('click', function () {
-    saveSelectionRange();
-    linkUrlInput.value = '';
-    openModal(linkModal);
-    linkUrlInput.focus();
-  });
-  linkCancelBtn.addEventListener('click', closeModals);
-  linkOkBtn.addEventListener('click', function () {
-    var url = linkUrlInput.value.trim();
-    if (!url) { linkUrlInput.focus(); return; }
+  /* ── ลิงก์ ── */
+  els.linkBtn.addEventListener('click', function () { saveSelectionRange(); els.linkUrlInput.value = ''; openModal(els.linkModal); els.linkUrlInput.focus(); });
+  els.linkCancelBtn.addEventListener('click', closeModals);
+  els.linkOkBtn.addEventListener('click', function () {
+    var url = els.linkUrlInput.value.trim();
+    if (!url) { els.linkUrlInput.focus(); return; }
     if (!/^[a-z][a-z0-9+.-]*:/i.test(url)) url = 'https://' + url;
     restoreSelectionRange();
     var sel = window.getSelection();
-    if (sel.rangeCount && !sel.getRangeAt(0).collapsed) {
-      document.execCommand('createLink', false, url);
-    } else {
-      document.execCommand('insertHTML', false, '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(url) + '</a>');
-    }
+    if (sel.rangeCount && !sel.getRangeAt(0).collapsed) document.execCommand('createLink', false, url);
+    else document.execCommand('insertHTML', false, '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(url) + '</a>');
     editor.querySelectorAll('a').forEach(function (a) { if (!a.target) { a.target = '_blank'; a.rel = 'noopener noreferrer'; } });
-    closeModals();
-    scheduleAutosave();
+    closeModals(); scheduleAutosave();
   });
 
-  /* ── แทรกรูปภาพ ── */
-  imageBtn.addEventListener('click', function () { saveSelectionRange(); imageInput.click(); });
-  imageInput.addEventListener('change', function (e) {
+  /* ── รูปภาพ ── */
+  els.imageBtn.addEventListener('click', function () { saveSelectionRange(); els.imageInput.click(); });
+  els.imageInput.addEventListener('change', function (e) {
     var file = e.target.files && e.target.files[0];
     if (!file) return;
     var reader = new FileReader();
-    reader.onload = function () {
-      restoreSelectionRange();
-      document.execCommand('insertImage', false, reader.result);
-      scheduleAutosave();
-    };
+    reader.onload = function () { restoreSelectionRange(); document.execCommand('insertImage', false, reader.result); scheduleAutosave(); };
     reader.readAsDataURL(file);
-    imageInput.value = '';
+    els.imageInput.value = '';
   });
 
-  /* ── แทรกตาราง ── */
-  tableBtn.addEventListener('click', function () { saveSelectionRange(); openModal(tableModal); });
-  tableCancelBtn.addEventListener('click', closeModals);
-  tableOkBtn.addEventListener('click', function () {
-    var rows = Math.max(1, Math.min(20, Number(tableRowsInput.value) || 1));
-    var cols = Math.max(1, Math.min(10, Number(tableColsInput.value) || 1));
+  /* ── ตาราง ── */
+  els.tableBtn.addEventListener('click', function () { saveSelectionRange(); openModal(els.tableModal); });
+  els.tableCancelBtn.addEventListener('click', closeModals);
+  els.tableOkBtn.addEventListener('click', function () {
+    var rows = Math.max(1, Math.min(20, Number(els.tableRowsInput.value) || 1));
+    var cols = Math.max(1, Math.min(10, Number(els.tableColsInput.value) || 1));
+    var withHead = els.tableHeaderCheck.checked;
     var html = '<table><tbody>';
     for (var r = 0; r < rows; r++) {
       html += '<tr>';
-      for (var c = 0; c < cols; c++) html += '<td><br></td>';
+      var cellTag = (withHead && r === 0) ? 'th' : 'td';
+      for (var c = 0; c < cols; c++) html += '<' + cellTag + '><br></' + cellTag + '>';
       html += '</tr>';
     }
     html += '</tbody></table><p><br></p>';
     restoreSelectionRange();
     document.execCommand('insertHTML', false, html);
-    closeModals();
+    closeModals(); scheduleAutosave();
+  });
+
+  /* ── เส้นคั่น + ขึ้นหน้าใหม่ + วันที่ ── */
+  els.hrBtn.addEventListener('click', function () { focusEditor(); document.execCommand('insertHorizontalRule'); scheduleAutosave(); });
+  els.pageBreakBtn.addEventListener('click', function () {
+    focusEditor();
+    document.execCommand('insertHTML', false, '<div class="wd-pagebreak" contenteditable="false"></div><p><br></p>');
+    scheduleAutosave();
+  });
+  els.dateBtn.addEventListener('click', function () {
+    focusEditor();
+    var lang = getUILang();
+    var str = new Date().toLocaleDateString(lang === 'en' ? 'en-US' : 'th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+    document.execCommand('insertText', false, str);
     scheduleAutosave();
   });
 
-  hrBtn.addEventListener('click', function () { focusEditor(); document.execCommand('insertHorizontalRule', false, null); scheduleAutosave(); });
+  /* ── สัญลักษณ์ ── */
+  var SYMBOL_SET = [
+    '© ® ™ § ¶ † ‡ • ‰ … ° ′ ″',
+    '± × ÷ ≈ ≠ ≤ ≥ ∞ √ ∑ ∏ ∫ ∆ π µ Ω',
+    '← → ↑ ↓ ↔ ⇒ ⇐ ⇔ ▲ ▼ ◀ ▶',
+    '€ £ ¥ ฿ ¢ ₩ ₫ ₽ $',
+    '½ ¼ ¾ ⅓ ⅔ ⅛',
+    '✓ ✗ ★ ☆ ♦ ♥ ♣ ♠ ☎ ✉ ✎ ⚠',
+    '“ ” ‘ ’ « » — – ๆ ฯ ๚ ๛'
+  ];
+  function buildSymbolGrid() {
+    els.symbolGrid.innerHTML = '';
+    SYMBOL_SET.forEach(function (row) {
+      var wrap = document.createElement('div');
+      wrap.className = 'wd-sym-grid';
+      row.split(' ').filter(function (s) { return s && s !== '☎' ? true : !!s; }).forEach(function (sym) {
+        if (!sym) return;
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = sym;
+        b.addEventListener('click', function () { restoreSelectionRange(); document.execCommand('insertText', false, sym); scheduleAutosave(); setStatus(t('symbolInserted')); });
+        wrap.appendChild(b);
+      });
+      els.symbolGrid.appendChild(wrap);
+    });
+  }
+  els.symbolBtn.addEventListener('click', function () { saveSelectionRange(); buildSymbolGrid(); openModal(els.symbolModal); });
+  els.symbolCloseBtn.addEventListener('click', closeModals);
 
+  /* ── หัว-ท้ายกระดาษ ── */
+  function updateHeaderFooterUI() {
+    els.headerStrip.classList.toggle('show', !!state.header);
+    els.footerStrip.classList.toggle('show', !!(state.footer || state.pageNum));
+    els.headerStripText.textContent = state.header;
+    els.footerStripText.textContent = state.footer + (state.pageNum ? (state.footer ? '   ' : '') + '#' : '');
+    els.printHeader.textContent = state.header;
+    els.printFooter.textContent = state.footer;
+  }
+  els.headerFooterBtn.addEventListener('click', function () {
+    els.headerTextInput.value = state.header;
+    els.footerTextInput.value = state.footer;
+    els.pageNumCheck.checked = state.pageNum;
+    openModal(els.headerFooterModal);
+  });
+  els.headerFooterCancelBtn.addEventListener('click', closeModals);
+  els.headerFooterOkBtn.addEventListener('click', function () {
+    state.header = els.headerTextInput.value.trim();
+    state.footer = els.footerTextInput.value.trim();
+    state.pageNum = els.pageNumCheck.checked;
+    updateHeaderFooterUI();
+    closeModals();
+    setStatus(t('headerFooterSaved'));
+    scheduleAutosave();
+  });
+  els.headerStrip.addEventListener('click', function () { els.headerFooterBtn.click(); });
+  els.footerStrip.addEventListener('click', function () { els.headerFooterBtn.click(); });
+
+  /* ── ตั้งค่าหน้ากระดาษ ── */
+  function applyPageSetup() {
+    var ps = PAGE_SIZES[state.pageSize] || PAGE_SIZES.A4;
+    var land = state.orientation === 'landscape';
+    var wMm = land ? ps.mmH : ps.mmW;
+    var mg = MARGINS[state.margins] || MARGINS.normal;
+    els.page.style.maxWidth = Math.round(wMm * 96 / 25.4) + 'px';
+    editor.style.padding = mg.css;
+    els.pageSizeStyle.textContent = '@page { size: ' + state.pageSize + ' ' + state.orientation + '; margin: ' + mg.css + '; }';
+    els.pageSizeSelect.value = state.pageSize;
+    els.orientationSelect.value = state.orientation;
+    els.marginSelect.value = state.margins;
+  }
+  els.pageSizeSelect.addEventListener('change', function () { state.pageSize = els.pageSizeSelect.value; applyPageSetup(); setStatus(t('pageSetupChanged')); scheduleAutosave(); });
+  els.orientationSelect.addEventListener('change', function () { state.orientation = els.orientationSelect.value; applyPageSetup(); setStatus(t('pageSetupChanged')); scheduleAutosave(); });
+  els.marginSelect.addEventListener('change', function () { state.margins = els.marginSelect.value; applyPageSetup(); setStatus(t('pageSetupChanged')); scheduleAutosave(); });
+
+  /* ── สารบัญ ── */
+  function slugify(s, i) { return 'h-' + i + '-' + (s || '').toLowerCase().replace(/[^a-z0-9ก-๛]+/g, '-').replace(/^-|-$/g, '').slice(0, 30); }
+  function buildTocHtml() {
+    var heads = Array.from(editor.querySelectorAll('h1,h2,h3')).filter(function (h) { return !h.closest('.wd-toc'); });
+    if (!heads.length) return null;
+    var items = heads.map(function (h, i) {
+      if (!h.id) h.id = slugify(h.textContent, i);
+      var lvl = h.tagName === 'H1' ? '' : h.tagName === 'H2' ? ' lvl2' : ' lvl3';
+      return '<a class="' + ('wd-toc-link' + lvl).trim() + '" href="#' + h.id + '">' + escapeHtml(h.textContent) + '</a>';
+    }).join('');
+    return '<div class="wd-toc" contenteditable="false"><div class="wd-toc-title">' + escapeHtml(t('tocDocTitle')) + '</div>' + items + '</div>';
+  }
+  els.tocBtn.addEventListener('click', function () {
+    var html = buildTocHtml();
+    if (!html) { setStatus(t('tocNoHeadings'), true); return; }
+    var existing = editor.querySelector('.wd-toc');
+    if (existing) { existing.outerHTML = html; }
+    else { focusEditor(); document.execCommand('insertHTML', false, html + '<p><br></p>'); }
+    setStatus(t('tocInserted'));
+    scheduleAutosave();
+  });
+  els.tocUpdateBtn.addEventListener('click', function () {
+    var existing = editor.querySelector('.wd-toc');
+    if (!existing) { setStatus(t('tocNoExisting'), true); return; }
+    var html = buildTocHtml();
+    if (!html) { setStatus(t('tocNoHeadings'), true); return; }
+    existing.outerHTML = html;
+    setStatus(t('tocUpdated'));
+    scheduleAutosave();
+  });
+  editor.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('.wd-toc a');
+    if (a) { e.preventDefault(); var tgt = editor.querySelector(a.getAttribute('href')); if (tgt) tgt.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
+
+  /* ── เชิงอรรถ ── */
+  function renderFootnotes() {
+    var refs = Array.from(editor.querySelectorAll('sup.wd-fnref'));
+    refs.forEach(function (ref, i) { ref.textContent = String(i + 1); });
+    els.footnotesList.innerHTML = '';
+    refs.forEach(function (ref, i) {
+      var item = document.createElement('div');
+      item.className = 'wd-fn-item';
+      item.innerHTML = '<span class="num">' + (i + 1) + '.</span><span class="txt"></span>' +
+        '<button class="del" type="button" title="ลบ" aria-label="ลบ"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
+      item.querySelector('.txt').textContent = ref.getAttribute('data-text') || '';
+      item.querySelector('.txt').addEventListener('click', function () { editFootnote(ref); });
+      item.querySelector('.del').addEventListener('click', function () { ref.remove(); renderFootnotes(); scheduleAutosave(); });
+      els.footnotesList.appendChild(item);
+    });
+    els.footnotesArea.classList.toggle('show', refs.length > 0);
+  }
+  function editFootnote(ref) {
+    els.footnoteTextInput.value = ref.getAttribute('data-text') || '';
+    savedRange = null;
+    els.footnoteModal.dataset.editing = '1';
+    els.footnoteModal._editRef = ref;
+    openModal(els.footnoteModal);
+    els.footnoteTextInput.focus();
+  }
+  els.footnoteBtn.addEventListener('click', function () {
+    saveSelectionRange();
+    els.footnoteTextInput.value = '';
+    els.footnoteModal.dataset.editing = '';
+    els.footnoteModal._editRef = null;
+    openModal(els.footnoteModal);
+    els.footnoteTextInput.focus();
+  });
+  els.footnoteCancelBtn.addEventListener('click', closeModals);
+  els.footnoteOkBtn.addEventListener('click', function () {
+    var txt = els.footnoteTextInput.value.trim();
+    if (!txt) { setStatus(t('footnoteEmpty'), true); els.footnoteTextInput.focus(); return; }
+    if (els.footnoteModal.dataset.editing === '1' && els.footnoteModal._editRef) {
+      els.footnoteModal._editRef.setAttribute('data-text', txt);
+    } else {
+      restoreSelectionRange();
+      var sup = '<sup class="wd-fnref" contenteditable="false" data-text="' + escapeHtml(txt).replace(/"/g, '&quot;') + '">0</sup>';
+      document.execCommand('insertHTML', false, sup);
+    }
+    closeModals();
+    renderFootnotes();
+    var n = editor.querySelectorAll('sup.wd-fnref').length;
+    setStatus(t('footnoteInserted', { n: n }));
+    scheduleAutosave();
+  });
+
+  /* ── editor input ── */
+  editor.addEventListener('input', function () {
+    if (state.matches.length) { state.matches = []; renderIssues(); }
+    if (editor.querySelectorAll('sup.wd-fnref').length !== els.footnotesList.children.length) renderFootnotes();
+    scheduleAutosave();
+  });
+
+  /* ── restore autosave ── */
+  (function restoreAutosave() {
+    try {
+      var raw = localStorage.getItem(AUTOSAVE_KEY);
+      if (!raw) return;
+      var saved = JSON.parse(raw);
+      if (saved && typeof saved.html === 'string') {
+        editor.innerHTML = saved.html;
+        state.header = saved.header || ''; state.footer = saved.footer || ''; state.pageNum = !!saved.pageNum;
+        state.pageSize = saved.pageSize || 'A4'; state.orientation = saved.orientation || 'portrait'; state.margins = saved.margins || 'normal';
+        setStatus(t('restoredDraft'));
+      }
+    } catch (e) {}
+  })();
+
+  /* ── init ── */
+  applyStaticI18n();
+  buildLangOptions();
+  els.langSelect.value = state.lang;
+  if (els.langToggle) {
+    els.langToggle.addEventListener('click', function () {
+      setUILang(getUILang() === 'en' ? 'th' : 'en');
+      applyStaticI18n(); buildLangOptions(); renderIssues(); renderFootnotes(); updateHeaderFooterUI();
+    });
+  }
+  applyPageSetup();
+  updateHeaderFooterUI();
+  renderFootnotes();
   renderIssues();
   updateCounts();
 }
 
-/* export ให้ทดสอบ logic ล้วนๆ ได้จาก Node โดยไม่ต้องมี browser */
+/* export ให้ทดสอบ logic ล้วนๆ จาก Node */
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { summarizeText: summarizeText, splitSentences: splitSentences, LANGUAGES: LANGUAGES, textToParagraphsHtml: textToParagraphsHtml };
+  module.exports = { summarizeText: summarizeText, splitSentences: splitSentences, LANGUAGES: LANGUAGES, textToParagraphsHtml: textToParagraphsHtml, PAGE_SIZES: PAGE_SIZES, MARGINS: MARGINS, cssColorToHex: cssColorToHex };
 }
 })();

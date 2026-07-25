@@ -8,9 +8,10 @@
 <meta name="theme-color" content="#3B9BEA">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Kanit:wght@300;400;500;600;700&family=Mitr:wght@300;400;500;600&family=Pridi:wght@300;400;500;600&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;600;700&family=Source+Code+Pro:wght@400;600&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
+<style id="pageSizeStyle"></style>
 <style>
 :root{
   --bg:#F6F7FB; --card:#FFFFFF; --ink:#1F2430; --muted:#727C93; --line:#EAEDF5;
@@ -23,7 +24,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--f);background:var(--bg);color:var(--ink);
   line-height:1.7;font-size:15px;font-weight:400;padding:0 20px 80px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1220px;margin:0 auto}
+.wrap{max-width:1240px;margin:0 auto}
 
 .crumb-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:24px 0 0;flex-wrap:wrap}
 .crumb{font-size:13px;color:var(--muted)}
@@ -53,41 +54,61 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .btn.primary:hover:not(:disabled){background:var(--sky-dk);color:#fff}
 .btn.icon-only{padding:9px;width:36px;height:36px;justify-content:center}
 .btn.active{background:var(--sky-sf);border-color:var(--sky);color:var(--sky-dk)}
-.btn.danger:hover:not(:disabled){border-color:var(--err);color:var(--err)}
 
-/* ── แถบไฟล์ (บรรทัดบน) ── */
+/* ── แถบไฟล์ (Quick access) ── */
 .wd-filebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:20px;
   background:var(--card);border-radius:14px;box-shadow:var(--sh);padding:12px 14px}
 .wd-lang-select{font-family:var(--f);font-size:13px;padding:8px 10px;border:1.5px solid var(--line);
   border-radius:9px;background:var(--card);color:var(--ink);cursor:pointer;max-width:150px}
 .wd-lang-select:focus-visible{outline:2px solid var(--sky);outline-offset:1px}
 .wd-spacer{flex:1}
-.wd-divider{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
 
-/* ── ริบบิ้นจัดรูปแบบ (บรรทัดล่าง) ── */
-.wd-ribbon{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;margin-top:8px;
-  background:var(--card);border-radius:14px;box-shadow:var(--sh);padding:10px 14px}
-.wd-group{display:flex;align-items:center;gap:4px}
-.wd-select{font-family:var(--f);font-size:13px;padding:7px 8px;border:1.5px solid var(--line);
-  border-radius:9px;background:var(--card);color:var(--ink);cursor:pointer}
+/* ── แท็บ ribbon ── */
+.wd-ribbon-tabs{display:flex;gap:3px;margin-top:12px;flex-wrap:wrap}
+.wd-ribbon-tab{font-family:var(--f);font-size:13.5px;font-weight:600;padding:9px 18px;border:none;
+  border-radius:11px 11px 0 0;background:transparent;color:var(--muted);cursor:pointer;transition:.14s;
+  display:inline-flex;align-items:center;gap:7px}
+.wd-ribbon-tab:hover{color:var(--sky-dk);background:var(--sky-sf)}
+.wd-ribbon-tab.active{background:var(--card);color:var(--sky-dk);box-shadow:0 -1px 6px rgba(24,31,54,.05)}
+
+.wd-ribbon-body{background:var(--card);border-radius:0 14px 14px 14px;box-shadow:var(--sh);
+  padding:10px 8px;overflow-x:auto}
+.wd-ribbon-panel{display:none;align-items:stretch;gap:0;min-width:min-content}
+.wd-ribbon-panel.active{display:flex}
+
+.wd-rgroup{display:flex;flex-direction:column;padding:2px 12px;border-right:1px solid var(--line);flex-shrink:0}
+.wd-rgroup:last-child{border-right:none}
+.wd-rgroup-body{display:flex;align-items:center;gap:4px;flex:1}
+.wd-rgroup-body.col{flex-direction:column;align-items:stretch;gap:4px}
+.wd-rgroup-body.wrap{flex-wrap:wrap;max-width:210px}
+.wd-rgroup-row{display:flex;align-items:center;gap:4px}
+.wd-rgroup-label{text-align:center;font-size:10px;color:var(--muted);margin-top:6px;white-space:nowrap;font-weight:500}
+
+.wd-select{font-family:var(--f);font-size:13px;padding:6px 7px;border:1.5px solid var(--line);
+  border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer}
 .wd-select:focus-visible{outline:2px solid var(--sky);outline-offset:1px}
-.wd-select.style-select{min-width:104px}
-.wd-select.font-select{min-width:118px}
-.wd-select.size-select{width:74px}
+.wd-select.style-select{min-width:112px}
+.wd-select.font-select{min-width:130px}
+.wd-select.size-select{width:66px}
+.wd-select.sm{font-size:12px;padding:5px 6px}
+
 .rb-btn{font-family:var(--f);border:1.5px solid transparent;border-radius:8px;background:transparent;
-  color:var(--ink);cursor:pointer;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;
-  transition:.13s;flex-shrink:0}
-.rb-btn:hover{background:var(--sky-sf);color:var(--sky-dk)}
+  color:var(--ink);cursor:pointer;min-width:32px;height:32px;padding:0 6px;display:inline-flex;align-items:center;
+  justify-content:center;gap:5px;transition:.13s;flex-shrink:0;white-space:nowrap}
+.rb-btn.wide{font-size:12.5px;font-weight:600}
+.rb-btn:hover:not(:disabled){background:var(--sky-sf);color:var(--sky-dk)}
+.rb-btn:disabled{opacity:.4;cursor:not-allowed}
 .rb-btn.active{background:var(--sky-sf);color:var(--sky-dk);border-color:var(--sky)}
 .rb-btn.letter{font-size:15px;font-weight:700}
 .rb-btn.letter.i{font-style:italic}
 .rb-btn.letter.u{text-decoration:underline}
 .rb-btn.letter.s{text-decoration:line-through}
+.rb-btn .lbl{font-size:12.5px;font-weight:600}
 .rb-color{position:relative;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;
   border-radius:8px;cursor:pointer;flex-shrink:0}
 .rb-color:hover{background:var(--sky-sf)}
 .rb-color input[type=color]{position:absolute;inset:0;opacity:0;cursor:pointer}
-.rb-color .swatch{position:absolute;bottom:5px;left:7px;right:7px;height:3px;border-radius:2px}
+.rb-color .swatch{position:absolute;bottom:4px;left:6px;right:6px;height:3px;border-radius:2px}
 
 .wd-status{display:flex;align-items:center;gap:9px;margin-top:12px;font-size:13.5px;color:var(--sky-dk);font-weight:500;min-height:20px}
 .wd-status.err{color:var(--err)}
@@ -99,7 +120,13 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .wd-body{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-top:16px;align-items:start}
 @media(max-width:900px){.wd-body{grid-template-columns:1fr}}
 
-.wd-page-wrap{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:8px}
+.wd-page-wrap{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:8px;overflow-x:auto}
+.wd-doc-strip{font-size:12px;color:var(--muted);padding:7px 14px;background:var(--bg);border-radius:9px;
+  margin:6px;cursor:pointer;display:none;align-items:center;gap:8px}
+.wd-doc-strip.show{display:flex}
+.wd-doc-strip:hover{color:var(--sky-dk)}
+.wd-doc-strip .tag{font-size:10px;font-weight:700;background:var(--sky-sf);color:var(--sky-dk);padding:1px 7px;border-radius:10px}
+.wd-page{margin:0 auto;background:var(--card)}
 .wd-editor{min-height:560px;padding:40px clamp(20px,5vw,64px);font-size:15.5px;line-height:1.9;outline:none}
 .wd-editor:focus-visible{outline:none}
 .wd-editor :where(h1){font-size:26px;font-weight:700;margin:.6em 0 .3em;letter-spacing:-.01em}
@@ -114,7 +141,26 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .wd-editor :where(td,th){border:1px solid var(--line);padding:7px 10px;min-width:40px}
 .wd-editor :where(hr){border:none;border-top:1.5px solid var(--line);margin:1em 0}
 .wd-editor img{max-width:100%;border-radius:6px}
+.wd-editor .wd-pagebreak{height:0;border-top:2px dashed #C7CEE0;margin:18px 0;position:relative}
+.wd-editor .wd-pagebreak::after{content:"↕ ขึ้นหน้าใหม่";position:absolute;top:-9px;left:50%;transform:translateX(-50%);
+  background:var(--card);padding:0 8px;font-size:10px;color:var(--muted)}
+.wd-editor .wd-fnref{color:var(--sky-dk);font-weight:700;cursor:pointer}
+.wd-editor .wd-toc{border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:10px 0;background:var(--bg)}
+.wd-editor .wd-toc-title{font-weight:700;font-size:15px;margin-bottom:8px}
+.wd-editor .wd-toc a{display:block;text-decoration:none;color:var(--ink);padding:2px 0;font-size:14px}
+.wd-editor .wd-toc a:hover{color:var(--sky-dk)}
+.wd-editor .wd-toc a.lvl2{padding-left:18px;font-size:13.5px}
+.wd-editor .wd-toc a.lvl3{padding-left:36px;font-size:13px;color:var(--muted)}
 .wd-editor:empty::before{content:attr(data-placeholder);color:#B7BECE;pointer-events:none}
+
+.wd-footnotes{margin:6px;padding:14px 18px;border-top:2px solid var(--line);display:none}
+.wd-footnotes.show{display:block}
+.wd-footnotes-title{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
+.wd-fn-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;margin-bottom:6px;line-height:1.6}
+.wd-fn-item .num{font-weight:700;color:var(--sky-dk);flex-shrink:0}
+.wd-fn-item .txt{flex:1;min-width:0}
+.wd-fn-item .del{background:none;border:none;color:var(--muted);cursor:pointer;flex-shrink:0;padding:2px;border-radius:5px}
+.wd-fn-item .del:hover{color:var(--err);background:#FDE8E8}
 
 .wd-statusbar{display:flex;align-items:center;gap:14px;justify-content:flex-end;margin-top:10px;
   font-size:12px;color:var(--muted);padding:0 6px;flex-wrap:wrap}
@@ -150,22 +196,46 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
   justify-content:center;z-index:200;padding:20px}
 .wd-modal-backdrop.open{display:flex}
 .wd-modal{background:var(--card);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.25);padding:22px;
-  width:100%;max-width:340px;display:none}
+  width:100%;max-width:360px;display:none}
+.wd-modal.wide{max-width:440px}
 .wd-modal.open{display:block}
 .wd-modal h3{font-size:16px;font-weight:700;margin-bottom:14px}
 .wd-modal label{display:block;font-size:13px;color:var(--muted);font-weight:600;margin-bottom:6px}
 .wd-modal label+label{margin-top:12px}
-.wd-modal input{width:100%;font-family:var(--f);font-size:14px;padding:9px 11px;border:1.5px solid var(--line);
-  border-radius:9px;color:var(--ink);background:var(--bg)}
-.wd-modal input:focus-visible{outline:2px solid var(--sky);outline-offset:1px}
+.wd-modal input,.wd-modal textarea{width:100%;font-family:var(--f);font-size:14px;padding:9px 11px;border:1.5px solid var(--line);
+  border-radius:9px;color:var(--ink);background:var(--bg);resize:vertical}
+.wd-modal input:focus-visible,.wd-modal textarea:focus-visible{outline:2px solid var(--sky);outline-offset:1px}
 .wd-modal-row{display:flex;gap:10px}
 .wd-modal-row label{flex:1}
+.wd-modal-check{display:flex;align-items:center;gap:8px;margin-top:12px}
+.wd-modal-check input{width:auto}
+.wd-modal-check label{margin:0;color:var(--ink)}
 .wd-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.wd-sym-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;max-height:260px;overflow-y:auto}
+.wd-sym-grid button{font-family:var(--f);font-size:18px;padding:6px 0;border:1.5px solid var(--line);border-radius:8px;
+  background:var(--card);cursor:pointer;transition:.12s}
+.wd-sym-grid button:hover{background:var(--sky-sf);border-color:var(--sky)}
+.wd-sym-cat{font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 6px}
+.wd-sym-cat:first-child{margin-top:0}
 
-.wd-interim{color:var(--muted);font-style:italic}
+/* ── พิมพ์ / PDF: หัว-ท้ายกระดาษซ้ำทุกหน้า ── */
+.wd-print-only{display:none}
+@media print{
+  body{background:#fff;padding:0}
+  .crumb-row,.wd-head,.wd-filebar,.wd-ribbon-tabs,.wd-ribbon-body,.wd-status,.wd-side,
+  .wd-statusbar,footer,.wd-doc-strip,#shell-nav,.ome-nav{display:none!important}
+  .wd-body{display:block}
+  .wd-page-wrap{box-shadow:none;padding:0}
+  .wd-editor{padding:0}
+  .wd-print-only{display:block}
+  #printHeader{position:fixed;top:0;left:0;right:0;text-align:center;font-size:12px;color:#444;padding:8px 0}
+  #printFooter{position:fixed;bottom:0;left:0;right:0;text-align:center;font-size:12px;color:#444;padding:8px 0}
+  .wd-editor .wd-pagebreak{break-after:page;border:none}
+  .wd-editor .wd-pagebreak::after{display:none}
+}
 
 footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
-@media(max-width:600px){body{padding:0 14px 60px}.wd-editor{padding:24px 18px}.wd-filebar,.wd-ribbon{padding:10px}}
+@media(max-width:600px){body{padding:0 14px 60px}.wd-editor{padding:24px 18px}.wd-filebar{padding:10px}}
 </style>
 </head>
 <body class="ome-tool-page" data-doctitle-key="docTitle">
@@ -184,10 +254,11 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   </div>
   <div>
     <h1 data-i18n="pageTitle">งาน Word: พิมพ์และแก้ไขเอกสาร</h1>
-    <p data-i18n="pageDesc">พิมพ์เอกสารตั้งแต่หน้าว่าง หรือนำเข้าไฟล์ (.txt .docx .pdf .png .jpg) แล้วจัดรูปแบบด้วยเครื่องมือแบบ Word — ตัวหนา/ตัวเอียง, หัวข้อ, ตาราง, ลิงก์, พูดแล้วขึ้นข้อความ (Dictate), ตรวจคำผิด แล้วดาวน์โหลดเป็นไฟล์ .docx — ทำงานในเบราว์เซอร์ของคุณทั้งหมด</p>
+    <p data-i18n="pageDesc">พิมพ์เอกสารตั้งแต่หน้าว่าง หรือนำเข้าไฟล์ (.txt .docx .pdf .png .jpg) แล้วจัดรูปแบบด้วยเครื่องมือแบบ Word เต็มรูปแบบ — จัดหน้า, ตาราง, สัญลักษณ์, สารบัญ, เชิงอรรถ, หัว-ท้ายกระดาษ, พูดแล้วขึ้นข้อความ, ตรวจคำผิด แล้วดาวน์โหลดเป็น .docx — ทำงานในเบราว์เซอร์ของคุณทั้งหมด</p>
   </div>
 </div>
 
+<!-- ── แถบไฟล์ (Quick Access) ── -->
 <div class="wd-filebar" id="fileBar">
   <button class="btn" id="newDocBtn" type="button">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
@@ -208,126 +279,345 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   </button>
   <div class="wd-spacer"></div>
   <select class="wd-lang-select" id="langSelect"></select>
-  <button class="btn" id="runBtn" type="button">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <span data-i18n="runBtn">ตรวจคำผิด</span>
-  </button>
-  <button class="btn icon-only" id="speakBtn" type="button" data-i18n-title="speakBtnTitle" data-i18n-aria-label="speakBtnTitle" title="อ่านออกเสียงเอกสาร" aria-label="อ่านออกเสียงเอกสาร">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-  </button>
-  <button class="btn icon-only" id="dictateBtn" type="button" data-i18n-title="dictateBtnTitle" data-i18n-aria-label="dictateBtnTitle" title="พูดแล้วขึ้นข้อความ (Dictate)" aria-label="พูดแล้วขึ้นข้อความ (Dictate)">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-  </button>
 </div>
 
-<div class="wd-ribbon" id="ribbon">
-  <div class="wd-group">
-    <button class="rb-btn" id="undoBtn" type="button" data-i18n-title="undoBtnTitle" title="เลิกทำ">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
-    </button>
-    <button class="rb-btn" id="redoBtn" type="button" data-i18n-title="redoBtnTitle" title="ทำซ้ำ">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
-    </button>
-  </div>
-  <div class="wd-divider"></div>
-  <div class="wd-group">
-    <select class="wd-select style-select" id="styleSelect" data-cmd="formatBlock">
-      <option value="P" data-i18n="styleNormal">ปกติ</option>
-      <option value="H1" data-i18n="styleH1">หัวข้อ 1</option>
-      <option value="H2" data-i18n="styleH2">หัวข้อ 2</option>
-      <option value="H3" data-i18n="styleH3">หัวข้อ 3</option>
-      <option value="BLOCKQUOTE" data-i18n="styleQuote">คำพูดอ้างอิง</option>
-    </select>
-    <select class="wd-select font-select" id="fontSelect" data-cmd="fontName">
-      <option value="Prompt">Prompt</option>
-      <option value="Sarabun">Sarabun</option>
-      <option value="Arial">Arial</option>
-      <option value="'Times New Roman'">Times New Roman</option>
-      <option value="Georgia">Georgia</option>
-      <option value="'Courier New'">Courier New</option>
-    </select>
-    <select class="wd-select size-select" id="sizeSelect" data-cmd="fontSize">
-      <option value="1">8pt</option>
-      <option value="2">10pt</option>
-      <option value="3" selected>12pt</option>
-      <option value="4">14pt</option>
-      <option value="5">18pt</option>
-      <option value="6">24pt</option>
-      <option value="7">36pt</option>
-    </select>
-  </div>
-  <div class="wd-divider"></div>
-  <div class="wd-group">
-    <button class="rb-btn letter" id="boldBtn" type="button" data-cmd="bold" data-i18n-title="boldBtnTitle" title="ตัวหนา">B</button>
-    <button class="rb-btn letter i" id="italicBtn" type="button" data-cmd="italic" data-i18n-title="italicBtnTitle" title="ตัวเอียง">I</button>
-    <button class="rb-btn letter u" id="underlineBtn" type="button" data-cmd="underline" data-i18n-title="underlineBtnTitle" title="ขีดเส้นใต้">U</button>
-    <button class="rb-btn letter s" id="strikeBtn" type="button" data-cmd="strikeThrough" data-i18n-title="strikeBtnTitle" title="ขีดฆ่า">S</button>
-    <div class="rb-color" data-i18n-title="textColorTitle" title="สีตัวอักษร">
-      <span style="font-weight:700;font-size:14px;pointer-events:none">A</span>
-      <span class="swatch" id="textColorSwatch" style="background:#E5484D"></span>
-      <input type="color" id="textColorInput" value="#E5484D">
+<!-- ── แท็บ ribbon ── -->
+<div class="wd-ribbon-tabs" id="ribbonTabs">
+  <button class="wd-ribbon-tab active" type="button" data-tab="home" data-i18n="tabHome">หน้าแรก</button>
+  <button class="wd-ribbon-tab" type="button" data-tab="insert" data-i18n="tabInsert">แทรก</button>
+  <button class="wd-ribbon-tab" type="button" data-tab="layout" data-i18n="tabLayout">เค้าโครงหน้ากระดาษ</button>
+  <button class="wd-ribbon-tab" type="button" data-tab="refs" data-i18n="tabRefs">การอ้างอิง</button>
+  <button class="wd-ribbon-tab" type="button" data-tab="review" data-i18n="tabReview">ตรวจทาน</button>
+</div>
+
+<div class="wd-ribbon-body">
+  <!-- ══ แท็บ: หน้าแรก ══ -->
+  <div class="wd-ribbon-panel active" data-panel="home">
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn" id="undoBtn" type="button" data-i18n-title="undoBtnTitle" title="เลิกทำ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+        </button>
+        <button class="rb-btn" id="redoBtn" type="button" data-i18n-title="redoBtnTitle" title="ทำซ้ำ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+        </button>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpUndo">เลิกทำ</div>
     </div>
-    <div class="rb-color" data-i18n-title="highlightTitle" title="สีไฮไลต์">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
-      <span class="swatch" id="hiliteColorSwatch" style="background:#FFF3B0"></span>
-      <input type="color" id="hiliteColorInput" value="#FFF3B0">
+
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn" id="cutBtn" type="button" data-i18n-title="cutTitle" title="ตัด">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+        </button>
+        <button class="rb-btn" id="copyBtn" type="button" data-i18n-title="copyTitle" title="คัดลอก">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <button class="rb-btn" id="pasteBtn" type="button" data-i18n-title="pasteTitle" title="วางแบบข้อความ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+        </button>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpClipboard">คลิปบอร์ด</div>
     </div>
-    <button class="rb-btn" id="clearFormatBtn" type="button" data-i18n-title="clearFormatTitle" title="ล้างรูปแบบ">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M15.5 8.5 6 18h5l3-3"/><path d="M8.5 4.5 19 15l-3 3"/></svg>
-    </button>
+
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body col">
+        <div class="wd-rgroup-row">
+          <select class="wd-select font-select" id="fontSelect" data-cmd="fontName">
+            <optgroup label="ไทย (เว็บฟอนต์)">
+              <option value="Prompt">Prompt</option>
+              <option value="Sarabun">Sarabun</option>
+              <option value="Kanit">Kanit</option>
+              <option value="Mitr">Mitr</option>
+              <option value="Pridi">Pridi</option>
+            </optgroup>
+            <optgroup label="ไทย (ฟอนต์ระบบ)">
+              <option value="'TH Sarabun New'">TH Sarabun New</option>
+              <option value="'Angsana New'">Angsana New</option>
+              <option value="'Cordia New'">Cordia New</option>
+              <option value="'Browallia New'">Browallia New</option>
+              <option value="'TH Niramit AS'">TH Niramit AS</option>
+            </optgroup>
+            <optgroup label="อังกฤษ (เว็บฟอนต์)">
+              <option value="Roboto">Roboto</option>
+              <option value="'Open Sans'">Open Sans</option>
+              <option value="Lora">Lora</option>
+              <option value="Merriweather">Merriweather</option>
+              <option value="'Playfair Display'">Playfair Display</option>
+              <option value="'Source Code Pro'">Source Code Pro</option>
+              <option value="Poppins">Poppins</option>
+            </optgroup>
+            <optgroup label="อังกฤษ (ฟอนต์ระบบ)">
+              <option value="Arial">Arial</option>
+              <option value="'Times New Roman'">Times New Roman</option>
+              <option value="Georgia">Georgia</option>
+              <option value="'Courier New'">Courier New</option>
+              <option value="Calibri">Calibri</option>
+              <option value="Cambria">Cambria</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Tahoma">Tahoma</option>
+              <option value="'Trebuchet MS'">Trebuchet MS</option>
+              <option value="Garamond">Garamond</option>
+              <option value="'Segoe UI'">Segoe UI</option>
+              <option value="Impact">Impact</option>
+              <option value="'Comic Sans MS'">Comic Sans MS</option>
+            </optgroup>
+          </select>
+          <select class="wd-select size-select" id="sizeSelect">
+            <option value="8">8</option><option value="9">9</option><option value="10">10</option>
+            <option value="11">11</option><option value="12">12</option><option value="14" selected>14</option>
+            <option value="16">16</option><option value="18">18</option><option value="20">20</option>
+            <option value="24">24</option><option value="28">28</option><option value="32">32</option>
+            <option value="36">36</option><option value="48">48</option><option value="72">72</option>
+          </select>
+          <button class="rb-btn" id="growFontBtn" type="button" data-i18n-title="growFontTitle" title="ขยายตัวอักษร"><span style="font-size:16px;font-weight:700">A</span><span style="font-size:11px">▲</span></button>
+          <button class="rb-btn" id="shrinkFontBtn" type="button" data-i18n-title="shrinkFontTitle" title="ย่อตัวอักษร"><span style="font-size:12px;font-weight:700">A</span><span style="font-size:11px">▼</span></button>
+        </div>
+        <div class="wd-rgroup-row">
+          <button class="rb-btn letter" id="boldBtn" type="button" data-cmd="bold" data-i18n-title="boldBtnTitle" title="ตัวหนา">B</button>
+          <button class="rb-btn letter i" id="italicBtn" type="button" data-cmd="italic" data-i18n-title="italicBtnTitle" title="ตัวเอียง">I</button>
+          <button class="rb-btn letter u" id="underlineBtn" type="button" data-cmd="underline" data-i18n-title="underlineBtnTitle" title="ขีดเส้นใต้">U</button>
+          <button class="rb-btn letter s" id="strikeBtn" type="button" data-cmd="strikeThrough" data-i18n-title="strikeBtnTitle" title="ขีดฆ่า">S</button>
+          <button class="rb-btn" id="subBtn" type="button" data-cmd="subscript" data-i18n-title="subTitle" title="ตัวห้อย"><span style="font-size:13px;font-weight:700">X</span><span style="font-size:10px;vertical-align:sub">2</span></button>
+          <button class="rb-btn" id="supBtn" type="button" data-cmd="superscript" data-i18n-title="supTitle" title="ตัวยก"><span style="font-size:13px;font-weight:700">X</span><span style="font-size:10px;vertical-align:super">2</span></button>
+          <div class="rb-color" data-i18n-title="textColorTitle" title="สีตัวอักษร">
+            <span style="font-weight:700;font-size:14px;pointer-events:none">A</span>
+            <span class="swatch" id="textColorSwatch" style="background:#E5484D"></span>
+            <input type="color" id="textColorInput" value="#E5484D">
+          </div>
+          <div class="rb-color" data-i18n-title="highlightTitle" title="สีไฮไลต์">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+            <span class="swatch" id="hiliteColorSwatch" style="background:#FFF3B0"></span>
+            <input type="color" id="hiliteColorInput" value="#FFF3B0">
+          </div>
+          <button class="rb-btn" id="clearFormatBtn" type="button" data-i18n-title="clearFormatTitle" title="ล้างรูปแบบ">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M15.5 8.5 6 18h5l3-3"/><path d="M8.5 4.5 19 15l-3 3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpFont">แบบอักษร</div>
+    </div>
+
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body col">
+        <div class="wd-rgroup-row">
+          <button class="rb-btn" id="alignLeftBtn" type="button" data-cmd="justifyLeft" data-i18n-title="alignLeftTitle" title="ชิดซ้าย">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+          </button>
+          <button class="rb-btn" id="alignCenterBtn" type="button" data-cmd="justifyCenter" data-i18n-title="alignCenterTitle" title="กึ่งกลาง">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
+          </button>
+          <button class="rb-btn" id="alignRightBtn" type="button" data-cmd="justifyRight" data-i18n-title="alignRightTitle" title="ชิดขวา">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg>
+          </button>
+          <button class="rb-btn" id="alignJustifyBtn" type="button" data-cmd="justifyFull" data-i18n-title="alignJustifyTitle" title="กระจายบรรทัด">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/></svg>
+          </button>
+          <select class="wd-select sm" id="lineSpacingSelect" data-i18n-title="lineSpacingTitle" title="ระยะห่างบรรทัด">
+            <option value="">↕</option>
+            <option value="1">1.0</option>
+            <option value="1.15">1.15</option>
+            <option value="1.5">1.5</option>
+            <option value="2">2.0</option>
+            <option value="2.5">2.5</option>
+            <option value="3">3.0</option>
+          </select>
+        </div>
+        <div class="wd-rgroup-row">
+          <button class="rb-btn" id="ulBtn" type="button" data-cmd="insertUnorderedList" data-i18n-title="ulBtnTitle" title="สัญลักษณ์หัวข้อย่อย">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
+          <button class="rb-btn" id="olBtn" type="button" data-cmd="insertOrderedList" data-i18n-title="olBtnTitle" title="ลำดับเลข">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+          </button>
+          <button class="rb-btn" id="outdentBtn" type="button" data-cmd="outdent" data-i18n-title="outdentBtnTitle" title="ลดระยะเยื้อง">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 8 7 12 11 16"/><line x1="15" y1="6" x2="21" y2="6"/><line x1="15" y1="12" x2="21" y2="12"/><line x1="15" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <button class="rb-btn" id="indentBtn" type="button" data-cmd="indent" data-i18n-title="indentBtnTitle" title="เพิ่มระยะเยื้อง">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 8 11 12 7 16"/><line x1="15" y1="6" x2="21" y2="6"/><line x1="15" y1="12" x2="21" y2="12"/><line x1="15" y1="18" x2="21" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpParagraph">ย่อหน้า</div>
+    </div>
+
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <select class="wd-select style-select" id="styleSelect" data-cmd="formatBlock">
+          <option value="P" data-i18n="styleNormal">ปกติ</option>
+          <option value="H1" data-i18n="styleH1">หัวข้อ 1</option>
+          <option value="H2" data-i18n="styleH2">หัวข้อ 2</option>
+          <option value="H3" data-i18n="styleH3">หัวข้อ 3</option>
+          <option value="BLOCKQUOTE" data-i18n="styleQuote">คำพูดอ้างอิง</option>
+        </select>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpStyles">สไตล์</div>
+    </div>
   </div>
-  <div class="wd-divider"></div>
-  <div class="wd-group">
-    <button class="rb-btn" id="alignLeftBtn" type="button" data-cmd="justifyLeft" data-i18n-title="alignLeftTitle" title="ชิดซ้าย">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
-    </button>
-    <button class="rb-btn" id="alignCenterBtn" type="button" data-cmd="justifyCenter" data-i18n-title="alignCenterTitle" title="กึ่งกลาง">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
-    </button>
-    <button class="rb-btn" id="alignRightBtn" type="button" data-cmd="justifyRight" data-i18n-title="alignRightTitle" title="ชิดขวา">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg>
-    </button>
-    <button class="rb-btn" id="alignJustifyBtn" type="button" data-cmd="justifyFull" data-i18n-title="alignJustifyTitle" title="กระจายบรรทัด">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/></svg>
-    </button>
+
+  <!-- ══ แท็บ: แทรก ══ -->
+  <div class="wd-ribbon-panel" data-panel="insert">
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn wide" id="tableBtn" type="button" data-i18n-title="tableBtnTitle" title="แทรกตาราง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span class="lbl" data-i18n="tableWord">ตาราง</span>
+        </button>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpTable">ตาราง</div>
+    </div>
+
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn wide" id="imageBtn" type="button" data-i18n-title="imageBtnTitle" title="แทรกรูปภาพ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <span class="lbl" data-i18n="imageWord">รูปภาพ</span>
+        </button>
+        <input type="file" id="imageInput" accept="image/*" style="display:none">
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpIllustration">ภาพประกอบ</div>
+    </div>
+
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn wide" id="linkBtn" type="button" data-i18n-title="linkBtnTitle" title="แทรกลิงก์">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 0 10h-3m-6 0H6a5 5 0 0 1 0-10h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          <span class="lbl" data-i18n="linkWord">ลิงก์</span>
+        </button>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpLink">ลิงก์</div>
+    </div>
+
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn wide" id="headerFooterBtn" type="button" data-i18n-title="headerFooterTitle" title="หัวกระดาษ / ท้ายกระดาษ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="8" x2="21" y2="8"/><line x1="3" y1="16" x2="21" y2="16"/></svg>
+          <span class="lbl" data-i18n="headerFooterWord">หัว-ท้ายกระดาษ</span>
+        </button>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpHeaderFooter">หัว-ท้ายกระดาษ</div>
+    </div>
+
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn wide" id="symbolBtn" type="button" data-i18n-title="symbolTitle" title="แทรกสัญลักษณ์">
+          <span style="font-size:16px;font-weight:700">Ω</span>
+          <span class="lbl" data-i18n="symbolWord">สัญลักษณ์</span>
+        </button>
+        <button class="rb-btn wide" id="dateBtn" type="button" data-i18n-title="dateTitle" title="แทรกวันที่">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span class="lbl" data-i18n="dateWord">วันที่</span>
+        </button>
+        <button class="rb-btn" id="hrBtn" type="button" data-i18n-title="hrBtnTitle" title="เส้นคั่น">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <button class="rb-btn" id="pageBreakBtn" type="button" data-i18n-title="pageBreakTitle" title="ขึ้นหน้าใหม่">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6h12V3"/><path d="M6 21v-6h12v6"/><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="2 2"/></svg>
+        </button>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpSymbols">สัญลักษณ์</div>
+    </div>
   </div>
-  <div class="wd-divider"></div>
-  <div class="wd-group">
-    <button class="rb-btn" id="ulBtn" type="button" data-cmd="insertUnorderedList" data-i18n-title="ulBtnTitle" title="สัญลักษณ์หัวข้อย่อย">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-    </button>
-    <button class="rb-btn" id="olBtn" type="button" data-cmd="insertOrderedList" data-i18n-title="olBtnTitle" title="ลำดับเลข">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
-    </button>
-    <button class="rb-btn" id="outdentBtn" type="button" data-cmd="outdent" data-i18n-title="outdentBtnTitle" title="ลดระยะเยื้อง">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 8 7 12 11 16"/><line x1="15" y1="6" x2="21" y2="6"/><line x1="15" y1="12" x2="21" y2="12"/><line x1="15" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <button class="rb-btn" id="indentBtn" type="button" data-cmd="indent" data-i18n-title="indentBtnTitle" title="เพิ่มระยะเยื้อง">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 8 11 12 7 16"/><line x1="15" y1="6" x2="21" y2="6"/><line x1="15" y1="12" x2="21" y2="12"/><line x1="15" y1="18" x2="21" y2="18"/></svg>
-    </button>
+
+  <!-- ══ แท็บ: เค้าโครงหน้ากระดาษ ══ -->
+  <div class="wd-ribbon-panel" data-panel="layout">
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body col">
+        <div class="wd-rgroup-row">
+          <span style="font-size:12px;color:var(--muted);min-width:64px" data-i18n="pageSizeLabel">ขนาดกระดาษ</span>
+          <select class="wd-select sm" id="pageSizeSelect">
+            <option value="A4">A4</option>
+            <option value="Letter">Letter</option>
+            <option value="Legal">Legal</option>
+            <option value="A5">A5</option>
+          </select>
+        </div>
+        <div class="wd-rgroup-row">
+          <span style="font-size:12px;color:var(--muted);min-width:64px" data-i18n="orientationLabel">แนวกระดาษ</span>
+          <select class="wd-select sm" id="orientationSelect">
+            <option value="portrait" data-i18n="portrait">แนวตั้ง</option>
+            <option value="landscape" data-i18n="landscape">แนวนอน</option>
+          </select>
+        </div>
+        <div class="wd-rgroup-row">
+          <span style="font-size:12px;color:var(--muted);min-width:64px" data-i18n="marginLabel">ขอบกระดาษ</span>
+          <select class="wd-select sm" id="marginSelect">
+            <option value="normal" data-i18n="marginNormal">ปกติ</option>
+            <option value="narrow" data-i18n="marginNarrow">แคบ</option>
+            <option value="wide" data-i18n="marginWide">กว้าง</option>
+          </select>
+        </div>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpPageSetup">ตั้งค่าหน้ากระดาษ</div>
+    </div>
   </div>
-  <div class="wd-divider"></div>
-  <div class="wd-group">
-    <button class="rb-btn" id="linkBtn" type="button" data-i18n-title="linkBtnTitle" title="แทรกลิงก์">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 0 10h-3m-6 0H6a5 5 0 0 1 0-10h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-    </button>
-    <button class="rb-btn" id="imageBtn" type="button" data-i18n-title="imageBtnTitle" title="แทรกรูปภาพ">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-    </button>
-    <input type="file" id="imageInput" accept="image/*" style="display:none">
-    <button class="rb-btn" id="tableBtn" type="button" data-i18n-title="tableBtnTitle" title="แทรกตาราง">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-    </button>
-    <button class="rb-btn" id="hrBtn" type="button" data-i18n-title="hrBtnTitle" title="เส้นคั่น">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    </button>
+
+  <!-- ══ แท็บ: การอ้างอิง ══ -->
+  <div class="wd-ribbon-panel" data-panel="refs">
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn wide" id="tocBtn" type="button" data-i18n-title="tocTitle" title="แทรกสารบัญ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="4" y2="6"/><line x1="3" y1="12" x2="4" y2="12"/><line x1="3" y1="18" x2="4" y2="18"/></svg>
+          <span class="lbl" data-i18n="tocWord">สารบัญ</span>
+        </button>
+        <button class="rb-btn wide" id="tocUpdateBtn" type="button" data-i18n-title="tocUpdateTitle" title="ปรับปรุงสารบัญ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          <span class="lbl" data-i18n="tocUpdateWord">อัปเดต</span>
+        </button>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpTOC">สารบัญ</div>
+    </div>
+
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn wide" id="footnoteBtn" type="button" data-i18n-title="footnoteTitle" title="แทรกเชิงอรรถ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h12"/><path d="M4 10h10"/><path d="M4 15h8"/><text x="17" y="12" font-size="9" fill="currentColor" stroke="none">1</text></svg>
+          <span class="lbl" data-i18n="footnoteWord">เชิงอรรถ</span>
+        </button>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpFootnotes">เชิงอรรถ</div>
+    </div>
   </div>
-  <div class="wd-divider"></div>
-  <div class="wd-group">
-    <button class="btn" id="summarizeBtn" type="button">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 3v6h6"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
-      <span data-i18n="summarizeBtn">สรุปเนื้อหา</span>
-    </button>
+
+  <!-- ══ แท็บ: ตรวจทาน ══ -->
+  <div class="wd-ribbon-panel" data-panel="review">
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn wide" id="runBtn" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span class="lbl" data-i18n="runBtn">ตรวจคำผิด</span>
+        </button>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpProofing">การพิสูจน์อักษร</div>
+    </div>
+
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn wide" id="speakBtn" type="button" data-i18n-title="speakBtnTitle" title="อ่านออกเสียงเอกสาร">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <span class="lbl" data-i18n="speakWord">อ่านออกเสียง</span>
+        </button>
+        <button class="rb-btn wide" id="dictateBtn" type="button" data-i18n-title="dictateBtnTitle" title="พูดแล้วขึ้นข้อความ (Dictate)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          <span class="lbl" data-i18n="dictateWord">พูดเป็นข้อความ</span>
+        </button>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpSpeech">เสียง</div>
+    </div>
+
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn wide" id="summarizeBtn" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 3v6h6"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+          <span class="lbl" data-i18n="summarizeBtn">สรุปเนื้อหา</span>
+        </button>
+        <button class="rb-btn wide" id="wordCountBtn" type="button" data-i18n-title="wordCountTitle" title="จำนวนคำ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="14" y2="17"/></svg>
+          <span class="lbl" data-i18n="wordCountWord">จำนวนคำ</span>
+        </button>
+      </div>
+      <div class="wd-rgroup-label" data-i18n="grpTools">เครื่องมือ</div>
+    </div>
   </div>
 </div>
 
@@ -335,7 +625,15 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 
 <div class="wd-body">
   <div class="wd-page-wrap">
-    <div class="wd-editor" id="editor" contenteditable="true" data-placeholder="เริ่มพิมพ์เอกสารตรงนี้..." data-i18n-dataplaceholder="editorPlaceholder"></div>
+    <div class="wd-doc-strip" id="headerStrip"><span class="tag" data-i18n="headerTag">หัวกระดาษ</span><span id="headerStripText"></span></div>
+    <div class="wd-page" id="page">
+      <div class="wd-editor" id="editor" contenteditable="true" data-placeholder="เริ่มพิมพ์เอกสารตรงนี้..." data-i18n-dataplaceholder="editorPlaceholder"></div>
+      <div class="wd-footnotes" id="footnotesArea">
+        <div class="wd-footnotes-title" data-i18n="footnotesHeading">เชิงอรรถ</div>
+        <div id="footnotesList"></div>
+      </div>
+    </div>
+    <div class="wd-doc-strip" id="footerStrip"><span class="tag" data-i18n="footerTag">ท้ายกระดาษ</span><span id="footerStripText"></span></div>
   </div>
 
   <aside class="wd-side">
@@ -368,6 +666,10 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 <footer data-i18n="footerText">Tanot — งานที่รับผิดชอบ</footer>
 </div>
 
+<!-- หัว-ท้ายกระดาษสำหรับพิมพ์ (ซ้ำทุกหน้า) -->
+<div class="wd-print-only" id="printHeader"></div>
+<div class="wd-print-only" id="printFooter"></div>
+
 <div class="wd-modal-backdrop" id="modalBackdrop">
   <div class="wd-modal" id="linkModal">
     <h3 data-i18n="linkModalTitle">แทรกลิงก์</h3>
@@ -388,9 +690,51 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
         <input type="number" id="tableColsInput" min="1" max="10" value="3">
       </label>
     </div>
+    <div class="wd-modal-check">
+      <input type="checkbox" id="tableHeaderCheck" checked>
+      <label for="tableHeaderCheck" data-i18n="tableHeaderRow">มีแถวหัวตาราง</label>
+    </div>
     <div class="wd-modal-actions">
       <button class="btn" id="tableCancelBtn" type="button" data-i18n="modalCancel">ยกเลิก</button>
       <button class="btn primary" id="tableOkBtn" type="button" data-i18n="modalInsert">แทรก</button>
+    </div>
+  </div>
+  <div class="wd-modal" id="footnoteModal">
+    <h3 data-i18n="footnoteModalTitle">แทรกเชิงอรรถ</h3>
+    <label for="footnoteTextInput" data-i18n="footnoteTextLabel">ข้อความเชิงอรรถ</label>
+    <textarea id="footnoteTextInput" rows="3" placeholder=""></textarea>
+    <div class="wd-modal-actions">
+      <button class="btn" id="footnoteCancelBtn" type="button" data-i18n="modalCancel">ยกเลิก</button>
+      <button class="btn primary" id="footnoteOkBtn" type="button" data-i18n="modalInsert">แทรก</button>
+    </div>
+  </div>
+  <div class="wd-modal" id="headerFooterModal">
+    <h3 data-i18n="headerFooterModalTitle">หัวกระดาษ / ท้ายกระดาษ</h3>
+    <label for="headerTextInput" data-i18n="headerTextLabel">ข้อความหัวกระดาษ</label>
+    <input type="text" id="headerTextInput" placeholder="">
+    <label for="footerTextInput" data-i18n="footerTextLabel">ข้อความท้ายกระดาษ</label>
+    <input type="text" id="footerTextInput" placeholder="">
+    <div class="wd-modal-check">
+      <input type="checkbox" id="pageNumCheck">
+      <label for="pageNumCheck" data-i18n="pageNumLabel">ใส่เลขหน้าที่ท้ายกระดาษ (เฉพาะไฟล์ Word)</label>
+    </div>
+    <div class="wd-modal-actions">
+      <button class="btn" id="headerFooterCancelBtn" type="button" data-i18n="modalCancel">ยกเลิก</button>
+      <button class="btn primary" id="headerFooterOkBtn" type="button" data-i18n="modalSave">บันทึก</button>
+    </div>
+  </div>
+  <div class="wd-modal wide" id="symbolModal">
+    <h3 data-i18n="symbolModalTitle">แทรกสัญลักษณ์</h3>
+    <div id="symbolGrid"></div>
+    <div class="wd-modal-actions">
+      <button class="btn" id="symbolCloseBtn" type="button" data-i18n="modalClose">ปิด</button>
+    </div>
+  </div>
+  <div class="wd-modal" id="wordCountModal">
+    <h3 data-i18n="wordCountModalTitle">จำนวนคำ</h3>
+    <div id="wordCountDetails" style="font-size:14px;line-height:2"></div>
+    <div class="wd-modal-actions">
+      <button class="btn primary" id="wordCountCloseBtn" type="button" data-i18n="modalClose">ปิด</button>
     </div>
   </div>
 </div>
