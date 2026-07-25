@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v2';
+const CACHE = 'ome-v3';
 const PRECACHE = [
   './',
   './index.html',
@@ -15,6 +15,7 @@ const PRECACHE = [
   './run.html',
   './law-business-engineering.html',
   './languages.html',
+  './legal.html',
   './theme.css',
   './shell.js',
   './manifest.json',

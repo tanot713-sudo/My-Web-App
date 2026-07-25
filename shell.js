@@ -27,6 +27,7 @@
   var LINKS = [
     { href: 'index.html',                    label: 'หน้าหลัก' },
     { href: 'documents.html',                label: 'งานเอกสาร' },
+    { href: 'legal.html',                    label: 'งานกฎหมาย' },
     { href: 'law-business-engineering.html', label: 'ห้องเรียน' },
     { href: 'languages.html',                label: 'ภาษา' },
     { href: 'app.html',                      label: 'เมนูทั้งหมด' }
