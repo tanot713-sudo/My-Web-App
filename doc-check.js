@@ -174,12 +174,17 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
   };
 
   var $ = function (id) { return document.getElementById(id); };
-  var langSelect = $('langSelect'), attachBtn = $('attachBtn'), fileInput = $('fileInput'),
+  var langSelect = $('langSelect'), dropZone = $('dropZone'), fileInput = $('fileInput'),
+      toolbar = $('toolbar'), fileChipName = $('fileChipName'), replaceFileBtn = $('replaceFileBtn'),
       runBtn = $('runBtn'), applyFixBtn = $('applyFixBtn'), speakBtn = $('speakBtn'),
-      downloadBtn = $('downloadBtn'), statusMsg = $('statusMsg'), filenameInfo = $('filenameInfo'),
-      pagerWrap = $('pagerWrap'), prevBtn = $('prevBtn'), nextBtn = $('nextBtn'),
-      docText = $('docText'), errorListWrap = $('errorListWrap'), errorListTitle = $('errorListTitle'),
-      errorList = $('errorList'), emptyState = $('emptyState');
+      downloadBtn = $('downloadBtn'), statusMsg = $('statusMsg'),
+      workspace = $('workspace'), prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), pageIndicator = $('pageIndicator'),
+      docText = $('docText'), issueCount = $('issueCount'), issueList = $('issueList'), issueEmpty = $('issueEmpty'),
+      emptyState = $('emptyState');
+
+  var SPEAK_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
+  var STOP_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
+  speakBtn.innerHTML = SPEAK_ICON;
 
   LANGUAGES.forEach(function (l) {
     var opt = document.createElement('option');
@@ -189,9 +194,11 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
   });
   langSelect.value = state.lang;
 
-  function setStatus(msg, isErr) {
-    statusMsg.textContent = msg || '';
+  function setStatus(msg, isErr, showSpinner) {
+    statusMsg.innerHTML = '';
     statusMsg.classList.toggle('err', !!isErr);
+    if (showSpinner) { var s = document.createElement('span'); s.className = 'spinner'; statusMsg.appendChild(s); }
+    if (msg) statusMsg.appendChild(document.createTextNode(msg));
   }
 
   function currentText() { return state.pages[state.pageIndex] || ''; }
@@ -200,44 +207,89 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
   function render() {
     var hasFile = state.pages.length > 0;
     emptyState.style.display = hasFile ? 'none' : 'block';
-    pagerWrap.style.display = hasFile ? 'block' : 'none';
-    filenameInfo.style.display = hasFile ? 'block' : 'none';
+    dropZone.style.display = hasFile ? 'none' : 'block';
+    toolbar.style.display = hasFile ? 'flex' : 'none';
+    workspace.style.display = hasFile ? 'grid' : 'none';
     runBtn.disabled = state.busy || !state.pages.length;
     speakBtn.disabled = state.busy || !state.pages.length;
     downloadBtn.disabled = state.busy || !state.pages.length;
-    applyFixBtn.disabled = !currentMatches().length;
-    attachBtn.disabled = state.busy;
     prevBtn.disabled = state.pageIndex === 0;
     nextBtn.disabled = state.pageIndex >= state.pages.length - 1;
 
-    if (hasFile) {
-      filenameInfo.textContent = 'ไฟล์: ' + state.filename + ' — หน้า ' + (state.pageIndex + 1) + ' / ' + state.pages.length;
-      renderHighlightedText(docText, currentText(), currentMatches(), state.activeMatch, function (i) {
-        state.activeMatch = i; render();
+    if (!hasFile) return;
+    fileChipName.textContent = state.filename;
+    pageIndicator.textContent = 'หน้า ' + (state.pageIndex + 1) + ' / ' + state.pages.length;
+    renderHighlightedText(docText, currentText(), currentMatches(), state.activeMatch, function (i) {
+      state.activeMatch = i; render();
+    });
+
+    var matches = currentMatches();
+    issueCount.textContent = matches.length;
+    issueCount.classList.toggle('zero', matches.length === 0);
+    applyFixBtn.style.display = matches.length ? 'flex' : 'none';
+    issueEmpty.style.display = matches.length ? 'none' : 'block';
+    issueList.innerHTML = '';
+    matches.forEach(function (m, i) {
+      var item = document.createElement('div');
+      item.className = 'dc-issue' + (i === state.activeMatch ? ' active' : '');
+      var quoted = currentText().slice(m.offset, m.offset + m.length);
+      var chipsHtml = (m.replacements || []).map(function (r, ri) {
+        return '<button class="chip" data-ri="' + ri + '" type="button">' + r.replace(/</g, '&lt;') + '</button>';
+      }).join('');
+      item.innerHTML = '<div class="quote">"' + quoted.replace(/</g, '&lt;') + '"</div>' +
+        '<div class="msg">' + m.message.replace(/</g, '&lt;') + '</div>' +
+        (chipsHtml ? '<div class="chips">' + chipsHtml + '</div>' : '');
+      item.addEventListener('click', function () { state.activeMatch = i; render(); });
+      item.querySelectorAll('.chip').forEach(function (chip) {
+        chip.addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          acceptSingleFix(i, Number(chip.dataset.ri));
+        });
       });
-      var matches = currentMatches();
-      errorListWrap.style.display = matches.length ? 'block' : 'none';
-      errorListTitle.textContent = 'จุดที่พบ (' + matches.length + ')';
-      errorList.innerHTML = '';
-      matches.forEach(function (m, i) {
-        var li = document.createElement('li');
-        li.className = 'dc-error-item' + (i === state.activeMatch ? ' active' : '');
-        var quoted = currentText().slice(m.offset, m.offset + m.length);
-        li.innerHTML = '<strong>"' + quoted.replace(/</g, '&lt;') + '"</strong> — ' + m.message +
-          (m.replacements && m.replacements.length ? ' <span class="suggestion">เสนอ: ' + m.replacements.join(', ') + '</span>' : '');
-        li.addEventListener('click', function () { state.activeMatch = i; render(); });
-        errorList.appendChild(li);
-      });
-    }
+      issueList.appendChild(item);
+    });
   }
 
-  attachBtn.addEventListener('click', function () { fileInput.click(); });
+  /* ยอมรับคำแนะนำแค่จุดเดียว (เพิ่มจากของเดิมที่มีแค่ "แก้ทั้งหมด") */
+  function acceptSingleFix(matchIndex, replacementIndex) {
+    var matches = currentMatches();
+    var m = matches[matchIndex];
+    if (!m || !m.replacements || !m.replacements[replacementIndex]) return;
+    var text = currentText();
+    var replacement = m.replacements[replacementIndex];
+    var fixed = text.slice(0, m.offset) + replacement + text.slice(m.offset + m.length);
+    state.pages[state.pageIndex] = fixed;
+    state.correctedPages[state.pageIndex] = fixed;
+    var delta = replacement.length - m.length;
+    state.matchesByPage[state.pageIndex] = matches.filter(function (_, i) { return i !== matchIndex; })
+      .map(function (mm) { return mm.offset > m.offset ? Object.assign({}, mm, { offset: mm.offset + delta }) : mm; });
+    state.activeMatch = null;
+    setStatus('แก้ "' + text.slice(m.offset, m.offset + m.length) + '" เป็น "' + replacement + '" แล้ว');
+    render();
+  }
 
-  fileInput.addEventListener('change', async function (e) {
+  dropZone.addEventListener('click', function () { fileInput.click(); });
+  dropZone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+  replaceFileBtn.addEventListener('click', function (e) { e.stopPropagation(); fileInput.click(); });
+  ['dragenter', 'dragover'].forEach(function (evt) {
+    dropZone.addEventListener(evt, function (e) { e.preventDefault(); dropZone.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (evt) {
+    dropZone.addEventListener(evt, function (e) { e.preventDefault(); dropZone.classList.remove('over'); });
+  });
+  dropZone.addEventListener('drop', function (e) {
+    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+
+  fileInput.addEventListener('change', function (e) {
     var file = e.target.files && e.target.files[0];
-    if (!file) return;
+    if (file) handleFile(file);
+  });
+
+  async function handleFile(file) {
     state.busy = true; render();
-    setStatus('กำลังอ่านไฟล์...');
+    setStatus('กำลังอ่านไฟล์...', false, true);
     try {
       var result = await readAnyFile(file);
       state.filename = file.name;
@@ -252,7 +304,7 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
     } finally {
       state.busy = false; render();
     }
-  });
+  }
 
   runBtn.addEventListener('click', async function () {
     var lang = langByCode(state.lang);
@@ -262,7 +314,7 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
     }
     if (!currentText().trim()) { setStatus('ยังไม่มีข้อความในหน้านี้ให้ตรวจ — กรุณาแนบไฟล์ก่อน', true); return; }
     state.busy = true; render();
-    setStatus('กำลังตรวจคำผิด...');
+    setStatus('กำลังตรวจคำผิด...', false, true);
     try {
       var matches = await checkSpelling(currentText(), lang.ltCode);
       state.matchesByPage[state.pageIndex] = matches;
@@ -291,17 +343,19 @@ if (typeof document !== 'undefined' && document.getElementById('fileInput')) {
     if (state.speaking) {
       window.speechSynthesis.cancel();
       state.speaking = false;
-      speakBtn.textContent = '🔊 อ่านออกเสียงหน้านี้';
+      speakBtn.innerHTML = SPEAK_ICON;
+      speakBtn.title = 'อ่านออกเสียงหน้านี้';
       return;
     }
     if (!currentText().trim()) return;
     window.speechSynthesis.cancel();
     var utter = new SpeechSynthesisUtterance(currentText());
     utter.lang = langByCode(state.lang).speechLang;
-    utter.onend = function () { state.speaking = false; speakBtn.textContent = '🔊 อ่านออกเสียงหน้านี้'; };
-    utter.onerror = function () { state.speaking = false; speakBtn.textContent = '🔊 อ่านออกเสียงหน้านี้'; };
+    utter.onend = function () { state.speaking = false; speakBtn.innerHTML = SPEAK_ICON; speakBtn.title = 'อ่านออกเสียงหน้านี้'; };
+    utter.onerror = function () { state.speaking = false; speakBtn.innerHTML = SPEAK_ICON; speakBtn.title = 'อ่านออกเสียงหน้านี้'; };
     state.speaking = true;
-    speakBtn.textContent = '⏹ หยุดอ่าน';
+    speakBtn.innerHTML = STOP_ICON;
+    speakBtn.title = 'หยุดอ่าน';
     window.speechSynthesis.speak(utter);
   });
 
