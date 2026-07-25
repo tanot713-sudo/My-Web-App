@@ -118,6 +118,10 @@ h1{font-size:clamp(24px,4.4vw,34px);font-weight:700;letter-spacing:-.01em;line-h
 .cmp-table tr.cmp-flag{background:#FFF5F5}
 .cmp-table tr.cmp-flag td{color:#9B2C2C}
 .cmp-table tr.cmp-flag td:nth-child(5){font-weight:700}
+.hist-act{font-family:var(--f);font-size:12px;font-weight:600;padding:5px 10px;margin:1px 0;
+  border:1.5px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer;transition:.15s}
+.hist-act:hover:not(:disabled){border-color:var(--brand);color:var(--brand-dk)}
+.hist-act:disabled{opacity:.5;cursor:wait}
 
 .note{border-radius:12px;background:#FFF8EC;padding:15px 18px;font-size:13.5px;
   color:#6B4A0F;margin-top:16px;border:1px solid #FBE7C2}
@@ -186,6 +190,14 @@ code{font-size:.9em;background:#EFF2F8;padding:2px 6px;border-radius:6px}
   <div class="btn-row"><button class="btn ghost" id="cmpBtn" disabled>ค้นหา &amp; เทียบกับข้อมูลเก่า</button></div>
   <div class="drive-status" id="cmpStatus"></div>
   <div id="cmpResult"></div>
+</div>
+
+<div class="card" id="histCard" hidden>
+  <h2><span class="ic" style="background:var(--rose)">⟲</span>ประวัติใน Google Drive</h2>
+  <p class="sub-note">ดูไฟล์ที่เคยบันทึกไว้ในโฟลเดอร์ Drive ดาวน์โหลดกลับมา หรือหยิบไฟล์ข้อมูลเก่ามาใช้เป็นไฟล์ตั้งต้นแล้วแก้ต่อได้ทันที</p>
+  <div class="btn-row"><button class="btn ghost" id="histBtn">โหลดประวัติ</button></div>
+  <div class="drive-status" id="histStatus"></div>
+  <div id="histList" style="overflow-x:auto"></div>
 </div>
 
 <div class="card"><h2><span class="ic" style="background:var(--violet)">2</span>บันทึกการทำงาน</h2><div class="log" id="log"></div></div>
@@ -273,6 +285,9 @@ async function boot(){
     $('desc').innerHTML = 'ตรวจว่ามีไฟล์ <code>tools.json</code> และมีรายการ id นี้อยู่ — ' + e.message;
     setStatus('หยุดทำงาน'); stage(0,'fail'); return;
   }
+
+  driveExtrasAllowed = (tool.id === 'est-cost');
+  applyDriveVisibility();
 
   document.title = tool.name + ' | AMR Asia';
   $('crumbName').textContent = tool.name;
@@ -461,14 +476,25 @@ function updateCmpBtnState(){
   if (btn) btn.disabled = !inBytes;
 }
 
+// การ์ดเทียบข้อมูลเก่า/ประวัติ ผูกกับโฟลเดอร์ est-cost — โชว์เฉพาะเมื่อ (1) ตั้งค่า Drive แล้ว
+// และ (2) เครื่องมือปัจจุบันคือ est-cost (เครื่องมืออื่นยังใช้ปุ่มบันทึกขึ้น Drive ได้ตามปกติ)
+let driveReady = false, driveExtrasAllowed = null;
+function applyDriveVisibility(){
+  if (!driveReady) return;
+  $('driveRow').hidden = false;
+  const show = driveExtrasAllowed === true;
+  $('cmpCard').hidden = !show;
+  $('histCard').hidden = !show;
+  if (show) updateCmpBtnState();
+}
+
 function initDrive(){
   if (!DRIVE_CLIENT_ID){
     // ยังไม่ได้ตั้งค่า Client ID — ซ่อนปุ่มไปเลย ไม่รบกวนคนที่ยังไม่ใช้ฟีเจอร์นี้
     return;
   }
-  $('driveRow').hidden = false;
-  $('cmpCard').hidden = false;
-  updateCmpBtnState();
+  driveReady = true;
+  applyDriveVisibility();
   if (!window.google || !google.accounts || !google.accounts.oauth2){
     driveSetStatus('โหลด Google Identity Services ไม่สำเร็จ', 'err');
     $('driveBtn').disabled = true;
@@ -480,11 +506,12 @@ function initDrive(){
     callback: async (resp) => {
       const purpose = driveAuthPurpose; driveAuthPurpose = null;
       if (resp.error){
-        (purpose === 'compare' ? cmpSetStatus : driveSetStatus)('เชื่อมต่อไม่สำเร็จ: ' + resp.error, 'err');
+        (purpose === 'compare' ? cmpSetStatus : purpose === 'history' ? histSetStatus : driveSetStatus)('เชื่อมต่อไม่สำเร็จ: ' + resp.error, 'err');
         return;
       }
       driveAccessToken = resp.access_token;
       if (purpose === 'compare') await runCompare();
+      else if (purpose === 'history') await renderHistory();
       else await uploadPendingToDrive();
     },
   });
@@ -649,6 +676,94 @@ $('cmpBtn')?.addEventListener('click', () => {
   if (driveAccessToken){ runCompare(); return; }
   driveAuthPurpose = 'compare';
   driveTokenClient.requestAccessToken({ prompt: 'consent' });
+});
+
+// ── ประวัติการรันจาก Google Drive ──────────────────────────────────────────
+let histFiles = [];
+
+function histSetStatus(text, cls){
+  const el = $('histStatus');
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'drive-status' + (cls ? ' ' + cls : '');
+}
+
+async function fetchHistoryFiles(){
+  const folderId = await ensureDriveFolder();
+  const q = encodeURIComponent(
+    `'${folderId}' in parents and trashed=false and mimeType!='application/vnd.google-apps.folder'`);
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=${q}&orderBy=modifiedTime desc&pageSize=30&fields=files(id,name,modifiedTime,properties)`,
+    { headers: { Authorization: 'Bearer ' + driveAccessToken } });
+  if (!res.ok) throw new Error('โหลดประวัติไม่สำเร็จ (HTTP ' + res.status + ')');
+  return (await res.json()).files || [];
+}
+
+async function renderHistory(){
+  $('histBtn').disabled = true;
+  histSetStatus('กำลังโหลดประวัติ…', '');
+  try{
+    histFiles = await fetchHistoryFiles();
+    if (!histFiles.length){
+      histSetStatus('ยังไม่มีไฟล์ในโฟลเดอร์ "' + DRIVE_FOLDER_NAME + '" — บันทึกผลการรันขึ้น Drive ก่อน แล้วประวัติจะโผล่ที่นี่', '');
+      $('histList').innerHTML = '';
+      return;
+    }
+    histSetStatus(`ไฟล์ล่าสุด ${histFiles.length} รายการในโฟลเดอร์ "${DRIVE_FOLDER_NAME}"`, 'ok');
+    let html = '<table class="cmp-table"><thead><tr><th>ไฟล์</th><th>ชนิด</th><th>บันทึกเมื่อ</th><th></th></tr></thead><tbody>';
+    histFiles.forEach((f, i) => {
+      const kind = f.properties && f.properties.kind;
+      const badge = kind === 'estcost_input' ? 'ไฟล์ข้อมูล' : kind === 'estcost_output' ? 'ผลลัพธ์' : '—';
+      html += `<tr><td>${esc(f.name)}</td><td>${badge}</td>` +
+        `<td>${new Date(f.modifiedTime).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}</td><td>` +
+        `<button class="hist-act" data-act="dl" data-i="${i}">ดาวน์โหลด</button>` +
+        (kind === 'estcost_input' ? ` <button class="hist-act" data-act="use" data-i="${i}">ใช้เป็นไฟล์ตั้งต้น</button>` : '') +
+        `</td></tr>`;
+    });
+    html += '</tbody></table>';
+    $('histList').innerHTML = html;
+  }catch(e){
+    histSetStatus('❌ ' + (e.message || e), 'err');
+  }finally{
+    $('histBtn').disabled = false;
+  }
+}
+
+$('histBtn')?.addEventListener('click', () => {
+  if (!driveTokenClient){ histSetStatus('ยังไม่ได้ตั้งค่า Google Drive สำหรับเครื่องมือนี้', 'err'); return; }
+  if (driveAccessToken){ renderHistory(); return; }
+  driveAuthPurpose = 'history';
+  driveTokenClient.requestAccessToken({ prompt: 'consent' });
+});
+
+$('histList')?.addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('.hist-act');
+  if (!btn) return;
+  const f = histFiles[+btn.dataset.i];
+  if (!f) return;
+  btn.disabled = true;
+  try{
+    const bytes = await downloadDriveFileBytes(f.id);
+    if (btn.dataset.act === 'dl'){
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([bytes]));
+      a.download = f.name;
+      a.click();
+    }else{
+      inName = f.name; inBytes = bytes;
+      drop.classList.add('has');
+      $('dropMain').innerHTML = '<span class="file-name">' + esc(f.name) + '</span>';
+      $('dropHint').textContent = (bytes.length / 1024).toFixed(0) + ' KB — โหลดจาก Google Drive แล้ว กด "สร้างเอกสาร" ได้เลย';
+      enable();
+      updateCmpBtnState();
+      histSetStatus('✅ ตั้ง "' + f.name + '" เป็นไฟล์ข้อมูลแล้ว', 'ok');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }catch(e){
+    histSetStatus('❌ ' + (e.message || e), 'err');
+  }finally{
+    btn.disabled = false;
+  }
 });
 
 boot();

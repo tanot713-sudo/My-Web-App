@@ -35,6 +35,28 @@
         "Sarabun-Regular.ttf",
         "Sarabun-Bold.ttf"
       ]
+    },
+    {
+      "id": "pdf-split",
+      "name": "แยกหน้า PDF + ดึงข้อความ",
+      "tagline": "PDF 1 ไฟล์ → แยกทีละหน้า พร้อมข้อความทั้งเล่ม",
+      "desc": "แยก PDF เป็นไฟล์รายหน้า (รวมเป็น .zip ไฟล์เดียว) และดึงข้อความทุกหน้าออกเป็น .txt สำหรับค้นหา/คัดลอกต่อ ทำงานในเบราว์เซอร์ทั้งหมด ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์",
+      "scope": "งานเอกสารทั่วไป",
+      "status": "ready",
+      "dir": "pdf-split/",
+      "packages": [
+        "pypdf"
+      ],
+      "modules": [
+        "tool_run.py"
+      ],
+      "assets": [],
+      "accept": ".pdf",
+      "inputName": "ไฟล์ .pdf ใดก็ได้",
+      "inputHint": "PDF สแกนภาพจะแยกหน้าได้ แต่ดึงข้อความไม่ได้ (ยังไม่มี OCR)",
+      "outputHint": "pages_*.zip (PDF รายหน้า) + text_*.txt (ข้อความทั้งเล่ม)",
+      "hasCheck": false,
+      "notes": []
     }
   ]
 }
