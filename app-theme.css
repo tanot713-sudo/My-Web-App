@@ -2,7 +2,9 @@
    Tanot — app-theme.css
    Reskin ของ app.html (SPA เมนูทั้งหมด) ให้ตรงกับดีไซน์มิ้นต์ของทั้งเว็บ
    โหลดหลัง index-Wjp15-l6.css เสมอ เพื่อให้ cascade ทับตัวแปรเดิมได้
-   โครงสร้าง rail nav (แถบใหญ่/แถบย่อย) ไม่แตะต้อง — แก้แค่สี/ขนาด/ฟอนต์
+   โครงสร้าง rail+flyout บนจอใหญ่ไม่แตะ — แก้สี/ขนาด/ฟอนต์ + เพิ่มสไตล์ให้
+   องค์ประกอบเปล่า (h1/button/select/input ที่ bundle ไม่ใส่ class มาให้)
+   บนมือถือ แปลง rail เป็นแถบซ่อนด้านซ้าย เปิด/ปิดด้วย app-nav.js
    ══════════════════════════════════════════════════════════════════ */
 
 :root{
@@ -26,10 +28,8 @@
 .rail-item.active{color:var(--accent)}
 .rail-flyout-link.active{font-weight:600}
 
-/* ── hero banner ── */
-.hero-banner{background:linear-gradient(120deg,#EAF4FF 0%,#E9FBF7 45%,#FFF4E8 100%)}
-:root[data-theme=dark] .hero-banner{background:linear-gradient(120deg,#17222F 0%,#1D1B33 42%,#2A1B26 100%)}
-.hero-title{background:linear-gradient(90deg,#0B7F72,#12A594);-webkit-background-clip:text;background-clip:text}
+/* ── หน้าหลัก: ตัดกล่อง "What would you like to do today" ทิ้ง — index.html ทำหน้าที่นี้อยู่แล้ว ── */
+.hero-banner{display:none!important}
 
 /* ── card: ตัด blur/gradient โปร่งใสแบบเดิม ให้แบนเรียบแบบมิ้นต์ ── */
 .card{
@@ -39,10 +39,8 @@
 }
 :root[data-theme=dark] .card{background:var(--code-bg);border-color:var(--border);box-shadow:var(--shadow)}
 
-/* ── ปุ่มแชท/มาสคอต + ปุ่มส่งข้อความ ── */
-.chat-mascot-btn{background:linear-gradient(135deg,#0B7F72,#12A594);box-shadow:0 10px 30px -6px #12A59459,var(--shadow)}
-.chat-bubble.user{background:linear-gradient(135deg,#12A594,#0B7F72);box-shadow:inset 0 1.5px 2px #ffffff59,0 6px 16px -6px #12A59466}
-.chat-input-row button{background:linear-gradient(135deg,#12A594,#0B7F72);box-shadow:inset 0 1.5px 2px #ffffff59,0 4px 12px -4px #12A59459}
+/* ── มาสคอต/แชท: เป็นแค่ของตกแต่ง ยังไม่ตอบจริง ตัดออก ── */
+.chat-mascot-btn,.chat-panel-floating{display:none!important}
 
 /* ── สรุปงบประมาณ ── */
 .budget-card-balance{background:linear-gradient(135deg,#0B7F72,#12A594)!important}
@@ -64,4 +62,104 @@
 .quick-action-desc{font-size:.78em; color:var(--text); line-height:1.4; font-weight:400}
 @media(max-width:640px){
   .quick-actions{grid-template-columns:1fr}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   เนื้อหาแต่ละเครื่องมือ (Document Check ฯลฯ) — องค์ประกอบเปล่าที่ไม่มี
+   class เกาะเลย (h1/button/select/input) เลยโผล่มาเป็นสไตล์ browser default
+   ใช้ :where() ให้ specificity เป็น 0 เสมอ — ถ้าองค์ประกอบไหนมี class/สไตล์
+   เฉพาะของตัวเองอยู่แล้ว (เช่น .doc-toolbar button, .research-sources li)
+   กฎเดิมจะชนะเสมอ ไม่ทับของที่ดีอยู่แล้ว
+   ══════════════════════════════════════════════════════════════════ */
+.page-content :where(h1){
+  font-family:var(--heading); font-size:clamp(21px,3.6vw,28px); font-weight:700;
+  color:var(--text-h); letter-spacing:-.01em; line-height:1.3;
+  margin:4px 0 12px; padding-bottom:14px; border-bottom:1px solid var(--border);
+}
+.page-content :where(h2){
+  font-size:18px; font-weight:700; color:var(--text-h); letter-spacing:-.005em;
+  margin:26px 0 10px; padding-top:18px; border-top:1px solid var(--border);
+}
+.page-content :where(h3){font-size:15.5px; font-weight:600; color:var(--text-h); margin:16px 0 8px}
+.page-content :where(p){color:var(--text); line-height:1.75; margin-bottom:10px; max-width:70ch}
+.page-content :where(button){
+  font-family:var(--sans); font-size:14px; font-weight:600; padding:10px 18px;
+  border:1.5px solid var(--border); border-radius:12px; background:var(--code-bg);
+  color:var(--text-h); cursor:pointer; transition:.16s; display:inline-flex;
+  align-items:center; gap:6px; margin:4px 8px 4px 0;
+}
+.page-content :where(button):hover:not(:disabled){border-color:var(--accent); color:var(--accent-dk,var(--accent))}
+.page-content :where(button):active:not(:disabled){transform:translateY(1px)}
+.page-content :where(button):disabled{opacity:.45; cursor:not-allowed}
+.page-content :where(select),
+.page-content :where(input[type=text]),.page-content :where(input[type=number]),
+.page-content :where(input[type=password]),.page-content :where(input[type=email]),
+.page-content :where(input[type=date]),.page-content :where(input[type=search]),
+.page-content :where(input[type=url]),.page-content :where(input:not([type])),
+.page-content :where(textarea){
+  font-family:var(--sans); font-size:14px; padding:10px 14px; border:1.5px solid var(--border);
+  border-radius:12px; background:var(--code-bg); color:var(--text-h); margin:2px 0;
+}
+.page-content :where(select):focus-visible,.page-content :where(input):focus-visible,
+.page-content :where(textarea):focus-visible,.page-content :where(button):focus-visible{
+  outline:2px solid var(--accent); outline-offset:1px;
+}
+.page-content :where(input[type=checkbox]),.page-content :where(input[type=radio]){
+  accent-color:var(--accent); width:16px; height:16px; margin:0 6px 0 0;
+}
+.page-content :where(label){display:inline-flex; align-items:center; gap:6px; cursor:pointer; color:var(--text-h)}
+.page-content :where(a){color:var(--accent)}
+.page-content :where(a):hover{text-decoration:underline}
+.page-content :where(ul),.page-content :where(ol){padding-left:22px; margin:8px 0; color:var(--text)}
+.page-content :where(li){line-height:1.7; margin-bottom:4px}
+
+/* ปุ่ม/select ที่มี wrapper class อยู่แล้ว (.doc-toolbar ฯลฯ) แต่ใช้สไตล์
+   neumorphic เดิม (พื้นหลังสีเดียวกับพื้นหน้า มองแทบไม่เห็นว่าเป็นปุ่ม) —
+   ให้คอนทราสต์จริงแบบเดียวกับปุ่มอื่นในเว็บ */
+.doc-toolbar button,.doc-toolbar select,
+.research-online-form button,.research-sources button,
+.ppt-editor-actions button{
+  background:var(--code-bg)!important; border:1.5px solid var(--border)!important;
+  box-shadow:none!important;
+}
+.doc-toolbar button:hover:not(:disabled),.research-online-form button:hover:not(:disabled),
+.research-sources button:hover:not(:disabled),.ppt-editor-actions button:hover:not(:disabled){
+  border-color:var(--accent)!important; color:var(--accent)!important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   นำทางบนมือถือ: แถบไอคอนแนวนอนด้านบนแบบเดิมดูรก → ซ่อนเป็นแถบข้าง
+   ซ้ายที่ซ่อนอยู่ (off-canvas) เปิด/ปิดด้วยปุ่ม ☰ เหมือนหน้า legal.html
+   บนจอใหญ่ (>768px) แถบข้างแสดงตลอดเหมือนเดิม ไม่เปลี่ยน
+   ══════════════════════════════════════════════════════════════════ */
+.app-nav-hamburger{display:none}
+.app-nav-backdrop{display:none}
+@media(max-width:768px){
+  .app-nav-hamburger{
+    display:flex; position:fixed; top:calc(var(--ome-nav-h,48px) + 10px); left:10px; z-index:130;
+    width:38px; height:38px; border-radius:10px; background:var(--code-bg);
+    border:1.5px solid var(--border); align-items:center; justify-content:center;
+    color:var(--text-h); cursor:pointer; box-shadow:var(--shadow);
+  }
+  .app-nav-backdrop{
+    display:block; position:fixed; inset:0; background:rgba(15,20,35,.42); z-index:128;
+    opacity:0; pointer-events:none; transition:opacity .2s;
+  }
+  html.app-nav-open .app-nav-backdrop{opacity:1; pointer-events:auto}
+  .sidebar-rail{
+    position:fixed!important; top:0; left:0; bottom:0; height:100vh!important; width:92px!important;
+    flex-direction:column!important; overflow-x:hidden!important; overflow-y:auto!important; padding:16px 0!important;
+    transform:translateX(-100%); transition:transform .25s cubic-bezier(.4,0,.2,1); z-index:129;
+  }
+  html.app-nav-open .sidebar-rail{transform:translateX(0)}
+  /* .rail-list ซ้อนอยู่ข้างในมี breakpoint เดิมพลิกเป็นแนวนอน ต้องดึงกลับเป็นแนวตั้งด้วย */
+  .rail-list{flex-direction:column!important; width:100%!important}
+  .rail-home{margin-bottom:12px!important}
+  .rail-item{width:74px!important}
+  .rail-flyout{
+    top:0!important; left:92px!important; height:100vh!important; width:min(240px,70vw)!important;
+    max-height:none!important; border-top:none!important; border-right:1px solid var(--border); z-index:129;
+  }
+  /* กันปุ่ม ☰ ลอยทับหัวข้อหน้า — ดันเนื้อหาลงมาให้พ้น */
+  .page-content{padding-top:calc(var(--ome-nav-h,48px) + 64px)!important}
 }
