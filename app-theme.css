@@ -46,3 +46,22 @@
 
 /* ── สรุปงบประมาณ ── */
 .budget-card-balance{background:linear-gradient(135deg,#0B7F72,#12A594)!important}
+
+/* ── ทางลัด (quick actions): จากไอคอนกลมเรียงกริดเล็ก ให้เป็นลิสต์การ์ดเต็มแถว
+   ไอคอนซ้าย + ชื่อ/คำอธิบายขวา แบบเดียวกับ "ทางลัด" ใน index.html ── */
+.quick-actions{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.quick-action{
+  flex-direction:row; text-align:left; align-items:flex-start; gap:14px;
+  background:var(--code-bg); border:1.5px solid var(--border); border-radius:16px;
+  padding:16px 18px; box-shadow:var(--shadow); font-size:1em; color:var(--text-h);
+  transition:.18s;
+}
+.quick-action:hover{border-color:var(--accent); transform:translateY(-2px)}
+.quick-action:hover .quick-action-icon{transform:none}
+.quick-action-icon{width:42px; height:42px; border-radius:12px; font-size:1.3em; flex-shrink:0; box-shadow:none}
+.quick-action-text{display:flex; flex-direction:column; gap:2px; min-width:0}
+.quick-action-label{font-weight:600; font-size:.95em}
+.quick-action-desc{font-size:.78em; color:var(--text); line-height:1.4; font-weight:400}
+@media(max-width:640px){
+  .quick-actions{grid-template-columns:1fr}
+}
