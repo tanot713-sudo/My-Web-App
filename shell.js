@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════
-   OME Shell — แถบนำทางกลาง + สลับธีมมืด/สว่าง + ลงทะเบียน PWA
+   Tanot Shell — แถบนำทางกลาง + สลับธีมมืด/สว่าง + ลงทะเบียน PWA
    ใช้คู่กับ theme.css — ใส่ <script src="shell.js" defer></script> ในทุกหน้า
    ══════════════════════════════════════════════════════════════════ */
 (function () {
@@ -37,12 +37,12 @@
     var here = location.pathname.split('/').pop() || 'index.html';
     var nav = document.createElement('nav');
     nav.className = 'ome-nav';
-    nav.setAttribute('aria-label', 'เมนูหลัก OME');
+    nav.setAttribute('aria-label', 'เมนูหลัก Tanot');
 
     var logo = document.createElement('a');
     logo.className = 'ome-nav-logo';
     logo.href = BASE + 'index.html';
-    logo.innerHTML = '<span class="dot">O</span><span class="txt">OME</span>';
+    logo.innerHTML = '<span class="dot">T</span><span class="txt">Tanot</span>';
     nav.appendChild(logo);
 
     var links = document.createElement('div');

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Law, Business & Engineering Masterclass</title>
+    <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#12A594">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -85,7 +86,7 @@
         const CloseIcon = icon('x', 'w-5 h-5');
         const NotebookIcon = icon('notebook-pen', 'w-5 h-5');
 
-        // สร้างรายการบทเรียนทั้งหมดจากข้อมูลจริงของ OME (กฎหมาย 16 หัวข้อ, ธุรกิจ 12 หัวข้อ, วิศวกรรม 13 หัวข้อ)
+        // สร้างรายการบทเรียนทั้งหมดจากข้อมูลจริงของ Tanot (กฎหมาย 16 หัวข้อ, ธุรกิจ 12 หัวข้อ, วิศวกรรม 13 หัวข้อ)
         //
         // ★ วิธีเพิ่มเนื้อหาให้หัวข้อกฎหมาย/วิศวกรรม: แก้ JSON ใน <script id="course-data"> ด้านบน
         //   เปลี่ยนรายการจาก  {"id": "civil-law", "title": "กฎหมายแพ่ง"}
@@ -550,7 +551,7 @@
                                 {syncing ? 'กำลังซิงก์...' : <>ซิงก์<span className="hidden sm:inline"> Google Drive</span></>}
                             </button>
                             {syncStatus && <span className="hidden sm:inline text-xs text-slate-400">{syncStatus}</span>}
-                            <a href="./index.html" className="text-xs font-semibold text-slate-400 hover:text-slate-700">&larr; กลับ OME</a>
+                            <a href="./index.html" className="text-xs font-semibold text-slate-400 hover:text-slate-700">&larr; กลับ Tanot</a>
                         </div>
                     </header>
 
