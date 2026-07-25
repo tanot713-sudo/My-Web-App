@@ -91,6 +91,23 @@
         }
         function saveCompleted(v) { localStorage.setItem('lbe:completed', JSON.stringify(v)); }
 
+        function loadNotes() {
+            try { return JSON.parse(localStorage.getItem('lbe:notes') || '{}'); } catch { return {}; }
+        }
+        function saveNotes(v) { localStorage.setItem('lbe:notes', JSON.stringify(v)); }
+
+        function mergeNotes(a, b) {
+            const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+            const out = {};
+            keys.forEach(k => {
+                const na = a && a[k], nb = b && b[k];
+                if (!na) { out[k] = nb; return; }
+                if (!nb) { out[k] = na; return; }
+                out[k] = (na.updatedAt || 0) >= (nb.updatedAt || 0) ? na : nb;
+            });
+            return out;
+        }
+
         const ANNOUNCEMENTS = [
             { date: 'วันนี้', text: 'ยินดีต้อนรับสู่ Law, Business & Engineering Masterclass — เลือกหัวข้อที่สนใจในแท็บ "งานเรียน" แล้วเริ่มฝึกเขียนตอบได้เลย' },
             { date: 'อัปเดตล่าสุด', text: 'เพิ่มหัวข้อกฎหมายทรัพย์สินทางปัญญาและกฎหมายการค้าระหว่างประเทศในหมวดกฎหมายแล้ว' },
@@ -187,6 +204,7 @@
             const [xp, setXp] = useState(loadXp());
             const [written, setWritten] = useState(loadWritten());
             const [completed, setCompleted] = useState(loadCompleted());
+            const [notes, setNotes] = useState(loadNotes());
             const [syncing, setSyncing] = useState(false);
             const [syncStatus, setSyncStatus] = useState('');
             const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -195,6 +213,7 @@
             useEffect(() => { saveXp(xp); }, [xp]);
             useEffect(() => { saveWritten(written); }, [written]);
             useEffect(() => { saveCompleted(completed); }, [completed]);
+            useEffect(() => { saveNotes(notes); }, [notes]);
 
             const syncNow = async () => {
                 setSyncing(true);
@@ -209,13 +228,15 @@
                     const mergedXp = Math.max(xp, remote?.xp || 0);
                     const mergedCompleted = { ...(remote?.completed || {}), ...completed };
                     const mergedWritten = { ...(remote?.written || {}), ...written };
+                    const mergedNotes = mergeNotes(remote?.notes, notes);
 
                     setXp(mergedXp);
                     setCompleted(mergedCompleted);
                     setWritten(mergedWritten);
+                    setNotes(mergedNotes);
 
                     await DriveSync.uploadFile(DRIVE_FILE_NAME, folderId, existing?.id,
-                        { xp: mergedXp, completed: mergedCompleted, written: mergedWritten, savedAt: new Date().toISOString() });
+                        { xp: mergedXp, completed: mergedCompleted, written: mergedWritten, notes: mergedNotes, savedAt: new Date().toISOString() });
                     setSyncStatus('✅ ซิงก์สำเร็จ');
                 } catch (e) {
                     setSyncStatus('❌ ' + (e.message || e));
@@ -235,6 +256,10 @@
             }, [topic]);
 
             const level = Math.floor(xp / 250) + 1;
+
+            const noteKey = `${activeSubject}:${topic.id}`;
+            const noteText = (notes[noteKey] && notes[noteKey].text) || '';
+            const updateNote = (text) => setNotes(n => ({ ...n, [noteKey]: { text, updatedAt: Date.now() } }));
 
             const allTopics = useMemo(() => SUBJECTS.flatMap(s => s.topics.map(t => ({ subjId: s.id, subjLabel: s.label, ...t }))), []);
             const totalTopics = allTopics.length;
@@ -474,9 +499,29 @@
                                     >
                                         <Target /> แบบฝึกเขียนตอบ <span className="bg-accent text-white text-[10px] px-1.5 py-0.5 rounded-full">เขียนเอง ไม่ใช่ตัวเลือก</span>
                                     </button>
+                                    <button
+                                        onClick={() => setActiveTab('notes')}
+                                        className={`pb-3 px-2 text-sm font-semibold flex items-center gap-2 transition-colors ${activeTab === 'notes' ? 'text-secondary border-b-2 border-secondary' : 'text-slate-400 hover:text-slate-700'}`}
+                                    >
+                                        <NotebookIcon /> โน้ตของฉัน {noteText && <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>}
+                                    </button>
                                 </div>
 
-                                {activeTab === 'summary' ? (
+                                {activeTab === 'notes' ? (
+                                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                                        <h3 className="text-xl font-bold mb-1 flex items-center gap-2"><NotebookIcon /> โน้ตของฉัน — {topic.title}</h3>
+                                        <p className="text-xs text-slate-400 mb-4">
+                                            {notes[noteKey] ? `บันทึกล่าสุด ${new Date(notes[noteKey].updatedAt).toLocaleString('th-TH')}` : 'ยังไม่มีโน้ตสำหรับหัวข้อนี้ — พิมพ์ด้านล่างได้เลย บันทึกอัตโนมัติ'}
+                                        </p>
+                                        <textarea
+                                            value={noteText}
+                                            onChange={e => updateNote(e.target.value)}
+                                            rows={10}
+                                            placeholder="จดสรุป คำจำกัดความ หรือประเด็นที่อยากจำไว้สำหรับหัวข้อนี้... (เหมือนสมุดโน้ตส่วนตัว)"
+                                            className="w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-y font-sans leading-relaxed"
+                                        />
+                                    </div>
+                                ) : activeTab === 'summary' ? (
                                     <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                                         <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Bookmark /> {topic.title}</h3>
                                         {topic.kind === 'quiz' ? (

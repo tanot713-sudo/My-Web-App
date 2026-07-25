@@ -74,6 +74,23 @@
         }
         function saveProgress(v) { localStorage.setItem('lang-practice:progress', JSON.stringify(v)); }
 
+        function loadNotes() {
+            try { return JSON.parse(localStorage.getItem('lang-practice:notes') || '{}'); } catch { return {}; }
+        }
+        function saveNotes(v) { localStorage.setItem('lang-practice:notes', JSON.stringify(v)); }
+
+        function mergeNotes(a, b) {
+            const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+            const out = {};
+            keys.forEach(k => {
+                const na = a && a[k], nb = b && b[k];
+                if (!na) { out[k] = nb; return; }
+                if (!nb) { out[k] = na; return; }
+                out[k] = (na.updatedAt || 0) >= (nb.updatedAt || 0) ? na : nb;
+            });
+            return out;
+        }
+
         const ANNOUNCEMENTS = [
             { date: 'วันนี้', text: 'ยินดีต้อนรับสู่ Language Practice — เลือกภาษาที่สนใจในแท็บ "ฝึกฝน" แล้วเริ่มพิมพ์คำแปลได้เลย' },
             { date: 'เร็วๆ นี้', text: 'จะทยอยเพิ่มหมวดวลีใหม่ๆ และภาษาเพิ่มเติมเรื่อยๆ' },
@@ -179,6 +196,7 @@
             const [result, setResult] = useState(null); // 'correct' | 'wrong' | null
             const [xp, setXp] = useState(loadXp());
             const [progress, setProgress] = useState(loadProgress());
+            const [notes, setNotes] = useState(loadNotes());
             const [syncing, setSyncing] = useState(false);
             const [syncStatus, setSyncStatus] = useState('');
             const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -187,6 +205,9 @@
             useEffect(() => { lucide.createIcons(); });
             useEffect(() => { saveXp(xp); }, [xp]);
             useEffect(() => { saveProgress(progress); }, [progress]);
+            useEffect(() => { saveNotes(notes); }, [notes]);
+
+            const updateNote = (text) => setNotes(n => ({ ...n, [langId]: { text, updatedAt: Date.now() } }));
 
             const syncNow = async () => {
                 setSyncing(true);
@@ -200,12 +221,14 @@
 
                     const mergedXp = Math.max(xp, remote?.xp || 0);
                     const mergedProgress = mergeProgress(remote?.progress, progress);
+                    const mergedNotes = mergeNotes(remote?.notes, notes);
 
                     setXp(mergedXp);
                     setProgress(mergedProgress);
+                    setNotes(mergedNotes);
 
                     await DriveSync.uploadFile(DRIVE_FILE_NAME, folderId, existing?.id,
-                        { xp: mergedXp, progress: mergedProgress, savedAt: new Date().toISOString() });
+                        { xp: mergedXp, progress: mergedProgress, notes: mergedNotes, savedAt: new Date().toISOString() });
                     setSyncStatus('✅ ซิงก์สำเร็จ');
                 } catch (e) {
                     setSyncStatus('❌ ' + (e.message || e));
@@ -462,6 +485,20 @@
                                                 </button>
                                             </div>
                                         ))}
+                                    </div>
+
+                                    <div className="mt-6 pt-4 border-t border-gray-200">
+                                        <h4 className="text-sm font-bold text-gray-700 mb-1 flex items-center gap-2"><NotebookIcon /> โน้ตของฉัน — {lang.title}</h4>
+                                        <p className="text-xs text-gray-400 mb-2">
+                                            {notes[langId] ? `บันทึกล่าสุด ${new Date(notes[langId].updatedAt).toLocaleString('th-TH')}` : 'จดคำศัพท์ ไวยากรณ์ หรือเทคนิคจำที่อยากบันทึกไว้ — บันทึกอัตโนมัติ'}
+                                        </p>
+                                        <textarea
+                                            value={(notes[langId] && notes[langId].text) || ''}
+                                            onChange={e => updateNote(e.target.value)}
+                                            rows={4}
+                                            placeholder="เช่น เทคนิคจำคำศัพท์ ไวยากรณ์ที่มักสับสน ฯลฯ"
+                                            className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm text-gray-700 resize-y font-sans leading-relaxed"
+                                        />
                                     </div>
                                 </div>
                             </div>
