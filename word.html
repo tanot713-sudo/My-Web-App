@@ -225,21 +225,21 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .wd-sym-cat{font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 6px}
 .wd-sym-cat:first-child{margin-top:0}
 
-/* ── พิมพ์ / PDF: หัว-ท้ายกระดาษซ้ำทุกหน้า ── */
-.wd-print-only{display:none}
 @media print{
   /* ให้ PDF ออกมาเหมือนแปลง Word เป็น PDF: ตัดทุกอย่างที่ไม่ใช่ตัวเอกสาร
      และตัด header/footer อัตโนมัติของเบราว์เซอร์ (title/URL/วันที่/เลขหน้า)
      ด้วย @page margin:0 — ระยะขอบจริงมาจาก padding ของ .wd-editor แทน */
   body{background:#fff;padding:0;margin:0}
   .crumb-row,.wd-head,.wd-filebar,.wd-ribbon-tabs,.wd-ribbon-body,.wd-status,.wd-side,
-  .wd-statusbar,footer,.wd-doc-header,.wd-doc-footer,.wd-pagenum-note,#shell-nav,.ome-nav,.wd-modal-backdrop{display:none!important}
+  .wd-statusbar,footer,.wd-pagenum-note,#shell-nav,.ome-nav,.wd-modal-backdrop{display:none!important}
   .wd-body{display:block;margin:0}
   .wd-page-wrap{box-shadow:none;padding:0;overflow:visible;background:#fff}
   .wd-page{max-width:none!important;margin:0}
-  .wd-print-only{display:block}
-  #printHeader{position:fixed;top:0.55cm;left:0;right:0;text-align:center;font-size:10.5pt;color:#000}
-  #printFooter{position:fixed;bottom:0.55cm;left:0;right:0;text-align:center;font-size:10.5pt;color:#000}
+  /* หัว-ท้ายกระดาษ: พิมพ์กล่องจริงในเนื้อหา (position:fixed ไม่ทำงานตอนพิมพ์บน iOS Safari)
+     — คงข้อความ + การจัดตำแหน่งที่ผู้ใช้ตั้งไว้ ตัดเส้น/พื้นหลัง/placeholder ออก */
+  .wd-doc-header,.wd-doc-footer{border:none!important;background:none!important;padding:6px clamp(20px,5vw,64px)!important;color:#000}
+  .wd-doc-header:empty,.wd-doc-footer:empty{display:none!important}
+  .wd-doc-header:empty::before,.wd-doc-footer:empty::before{content:none!important}
   .wd-editor .wd-pagebreak{break-after:page;border:none;height:0;margin:0}
   .wd-editor .wd-pagebreak::after{display:none}
 }
@@ -251,14 +251,20 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   body{padding:0 10px 60px}
   .wd-filebar{padding:9px;gap:6px}
   .wd-filebar .btn{font-size:12.5px;padding:8px 11px}
-  /* ribbon: ให้กลุ่มเครื่องมือขึ้นบรรทัดใหม่แทนการเลื่อนแนวนอน จะเห็นครบทุกปุ่ม */
-  .wd-ribbon-body{overflow-x:visible;padding:8px 6px}
-  .wd-ribbon-panel{flex-wrap:wrap;gap:2px 0;min-width:0}
-  .wd-rgroup{padding:2px 8px}
+  /* ribbon: ให้กลุ่มเครื่องมือขึ้นบรรทัดใหม่แทนการเลื่อนแนวนอน จะเห็นครบทุกปุ่ม
+     + ปุ่มใหญ่ขึ้นเล็กน้อยให้กดง่ายบนจอสัมผัส */
+  .wd-ribbon-body{overflow-x:visible;padding:9px 8px}
+  .wd-ribbon-panel{flex-wrap:wrap;gap:8px 0;min-width:0}
+  .wd-rgroup{padding:2px 9px}
   .wd-rgroup:not(:last-child){border-right:1px solid var(--line)}
+  .wd-rgroup-body{gap:5px}
+  .wd-rgroup-row{gap:5px}
+  .rb-btn{min-width:38px;height:38px}
+  .rb-color{width:38px;height:38px}
   .wd-ribbon-tab{padding:7px 12px;font-size:12.5px}
   .wd-ribbon-tabs{gap:2px}
-  .wd-select.font-select{min-width:104px}
+  .wd-select{padding:8px 7px;font-size:13px}
+  .wd-select.font-select{min-width:110px}
   /* หน้าเอกสารเต็มความกว้างจอ + เริ่มพิมพ์ชิดซ้ายเหมือน Word มือถือ
      (ระยะขอบกระดาษจริงยังใช้ตอนพิมพ์/ดาวน์โหลดไฟล์) */
   .wd-page{max-width:none!important}
@@ -674,10 +680,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 
 <footer data-i18n="footerText">Tanot — งานที่รับผิดชอบ</footer>
 </div>
-
-<!-- หัว-ท้ายกระดาษสำหรับพิมพ์ (ซ้ำทุกหน้า) -->
-<div class="wd-print-only" id="printHeader"></div>
-<div class="wd-print-only" id="printFooter"></div>
 
 <div class="wd-modal-backdrop" id="modalBackdrop">
   <div class="wd-modal" id="linkModal">

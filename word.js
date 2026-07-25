@@ -544,14 +544,25 @@ async function htmlToDocxBlob(html, opts) {
     children: blocks
   };
 
+  /* หัว-ท้ายกระดาษ: คงรูปแบบ (ตัวหนา/สี/ฟอนต์) + การจัดตำแหน่ง (ซ้าย/กลาง/ขวา) ตามที่ผู้ใช้ตั้ง */
+  function hfAlign(a) {
+    if (!docx.AlignmentType) return undefined;
+    var m = { left: 'LEFT', start: 'LEFT', center: 'CENTER', right: 'RIGHT', end: 'RIGHT', justify: 'JUSTIFIED' };
+    return docx.AlignmentType[m[a] || 'LEFT'];
+  }
+  async function hfParagraph(htmlStr, align, withPageNum) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = htmlStr || '';
+    var runs = await nodeToRuns(tmp);
+    if (withPageNum && docx.PageNumber) { if (runs.length) runs.push(new docx.TextRun('    ')); runs.push(new docx.TextRun({ children: [docx.PageNumber.CURRENT] })); }
+    if (!runs.length) runs = [new docx.TextRun('')];
+    return new docx.Paragraph({ alignment: hfAlign(align), children: runs });
+  }
   if (opts.headerText && typeof docx.Header === 'function') {
-    section.headers = { default: new docx.Header({ children: [new docx.Paragraph({ alignment: docx.AlignmentType ? docx.AlignmentType.CENTER : undefined, children: [new docx.TextRun(opts.headerText)] })] }) };
+    section.headers = { default: new docx.Header({ children: [await hfParagraph(opts.headerHtml, opts.headerAlign, false)] }) };
   }
   if ((opts.footerText || opts.pageNum) && typeof docx.Footer === 'function') {
-    var footerChildren = [];
-    if (opts.footerText) footerChildren.push(new docx.TextRun(opts.footerText + (opts.pageNum ? '    ' : '')));
-    if (opts.pageNum && docx.PageNumber) footerChildren.push(new docx.TextRun({ children: [docx.PageNumber.CURRENT] }));
-    section.footers = { default: new docx.Footer({ children: [new docx.Paragraph({ alignment: docx.AlignmentType ? docx.AlignmentType.CENTER : undefined, children: footerChildren })] }) };
+    section.footers = { default: new docx.Footer({ children: [await hfParagraph(opts.footerHtml, opts.footerAlign, opts.pageNum)] }) };
   }
 
   var docOptions = { sections: [section] };
@@ -611,7 +622,6 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     styleSelect: $('styleSelect'), fontSelect: $('fontSelect'), sizeSelect: $('sizeSelect'), lineSpacingSelect: $('lineSpacingSelect'),
     pageSizeSelect: $('pageSizeSelect'), orientationSelect: $('orientationSelect'), marginSelect: $('marginSelect'),
     pageSizeStyle: $('pageSizeStyle'), page: $('page'),
-    printHeader: $('printHeader'), printFooter: $('printFooter'),
     footnotesArea: $('footnotesArea'), footnotesList: $('footnotesList'),
     ribbonTabs: $('ribbonTabs')
   };
@@ -666,6 +676,15 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     if (msg) els.statusMsg.appendChild(document.createTextNode(msg));
   }
   function focusEditor() { editor.focus(); }
+  /* ── ติดตาม "พื้นที่แก้ไขที่กำลังโฟกัส" (เนื้อหา/หัวกระดาษ/ท้ายกระดาษ) เพื่อให้
+     ปุ่มจัดรูปแบบ (ตัวหนา, จัดชิดซ้าย/กลาง/ขวา, ฟอนต์, สี ฯลฯ) ทำงานกับกล่องที่
+     ผู้ใช้กำลังพิมพ์อยู่จริง ไม่ใช่ยิงไปที่เนื้อหาเสมอ ── */
+  var activeEditable = editor;
+  [editor, els.docHeader, els.docFooter].forEach(function (el) {
+    el.addEventListener('focus', function () { activeEditable = el; });
+  });
+  function focusActive() { activeEditable.focus(); }
+  function isHF() { return activeEditable === els.docHeader || activeEditable === els.docFooter; }
 
   /* ── นับคำ + autosave ── */
   function docStats() {
@@ -689,6 +708,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
       try {
         localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
           html: editor.innerHTML, header: state.header, footer: state.footer, pageNum: state.pageNum,
+          headerHtml: els.docHeader.innerHTML, footerHtml: els.docFooter.innerHTML,
           pageSize: state.pageSize, orientation: state.orientation, margins: state.margins, savedAt: Date.now()
         }));
       } catch (e) {}
@@ -798,7 +818,9 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     try {
       await downloadEditorAsDocx(editor.innerHTML, 'document', {
         pageSize: state.pageSize, orientation: state.orientation, margins: state.margins,
-        headerText: state.header, footerText: state.footer, pageNum: state.pageNum
+        headerText: state.header, footerText: state.footer, pageNum: state.pageNum,
+        headerHtml: els.docHeader.innerHTML, footerHtml: els.docFooter.innerHTML,
+        headerAlign: regionAlign(els.docHeader), footerAlign: regionAlign(els.docFooter)
       });
     } catch (err) { setStatus(t('downloadError', { msg: err.message }), true); }
   });
@@ -890,28 +912,31 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   /* ── ริบบิ้น: คำสั่ง execCommand ทั่วไป ── */
   document.querySelectorAll('.rb-btn[data-cmd]').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      focusEditor();
+      focusActive();
       document.execCommand(btn.dataset.cmd, false, null);
       updateToolbarState();
+      if (isHF()) syncHFFromRegions();
       scheduleAutosave();
     });
   });
   els.styleSelect.addEventListener('change', function () {
-    focusEditor();
+    focusActive();
     document.execCommand('formatBlock', false, '<' + els.styleSelect.value.toLowerCase() + '>');
     scheduleAutosave();
   });
   els.fontSelect.addEventListener('change', function () {
-    focusEditor();
+    focusActive();
     document.execCommand('fontName', false, els.fontSelect.value);
+    if (isHF()) syncHFFromRegions();
     scheduleAutosave();
   });
 
   /* ── ขนาดฟอนต์ (pt จริง) ── */
   function applyFontSizePt(pt) {
-    focusEditor();
+    focusActive();
     document.execCommand('fontSize', false, '7');
-    editor.querySelectorAll('font[size="7"]').forEach(function (f) { f.removeAttribute('size'); f.style.fontSize = pt + 'pt'; });
+    activeEditable.querySelectorAll('font[size="7"]').forEach(function (f) { f.removeAttribute('size'); f.style.fontSize = pt + 'pt'; });
+    if (isHF()) syncHFFromRegions();
     scheduleAutosave();
   }
   els.sizeSelect.addEventListener('change', function () { applyFontSizePt(Number(els.sizeSelect.value)); });
@@ -919,7 +944,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     var sel = window.getSelection();
     var node = sel && sel.anchorNode;
     if (node && node.nodeType === 3) node = node.parentElement;
-    if (!node || !editor.contains(node)) return Number(els.sizeSelect.value) || 14;
+    if (!node || !activeEditable.contains(node)) return Number(els.sizeSelect.value) || 14;
     var px = parseFloat(getComputedStyle(node).fontSize);
     return Math.round(px * 72 / 96);
   }
@@ -937,34 +962,36 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
 
   /* ── สี ── */
   els.textColorInput.addEventListener('input', function () {
-    focusEditor();
+    focusActive();
     document.execCommand('foreColor', false, els.textColorInput.value);
     els.textColorSwatch.style.background = els.textColorInput.value;
+    if (isHF()) syncHFFromRegions();
     scheduleAutosave();
   });
   els.hiliteColorInput.addEventListener('input', function () {
-    focusEditor();
+    focusActive();
     if (!document.execCommand('hiliteColor', false, els.hiliteColorInput.value)) document.execCommand('backColor', false, els.hiliteColorInput.value);
     els.hiliteColorSwatch.style.background = els.hiliteColorInput.value;
+    if (isHF()) syncHFFromRegions();
     scheduleAutosave();
   });
   els.clearFormatBtn.addEventListener('click', function () {
-    focusEditor();
+    focusActive();
     document.execCommand('removeFormat', false, null);
-    document.execCommand('formatBlock', false, '<p>');
-    els.styleSelect.value = 'P';
+    if (!isHF()) { document.execCommand('formatBlock', false, '<p>'); els.styleSelect.value = 'P'; }
+    if (isHF()) syncHFFromRegions();
     scheduleAutosave();
   });
-  els.undoBtn.addEventListener('click', function () { focusEditor(); document.execCommand('undo'); scheduleAutosave(); });
-  els.redoBtn.addEventListener('click', function () { focusEditor(); document.execCommand('redo'); scheduleAutosave(); });
+  els.undoBtn.addEventListener('click', function () { focusActive(); document.execCommand('undo'); if (isHF()) syncHFFromRegions(); scheduleAutosave(); });
+  els.redoBtn.addEventListener('click', function () { focusActive(); document.execCommand('redo'); if (isHF()) syncHFFromRegions(); scheduleAutosave(); });
 
   /* ── คลิปบอร์ด ── */
-  els.cutBtn.addEventListener('click', function () { focusEditor(); document.execCommand('cut'); scheduleAutosave(); });
-  els.copyBtn.addEventListener('click', function () { focusEditor(); document.execCommand('copy'); });
+  els.cutBtn.addEventListener('click', function () { focusActive(); document.execCommand('cut'); if (isHF()) syncHFFromRegions(); scheduleAutosave(); });
+  els.copyBtn.addEventListener('click', function () { focusActive(); document.execCommand('copy'); });
   els.pasteBtn.addEventListener('click', function () {
-    focusEditor();
+    focusActive();
     if (navigator.clipboard && navigator.clipboard.readText) {
-      navigator.clipboard.readText().then(function (txt) { document.execCommand('insertText', false, txt); scheduleAutosave(); })
+      navigator.clipboard.readText().then(function (txt) { document.execCommand('insertText', false, txt); if (isHF()) syncHFFromRegions(); scheduleAutosave(); })
         .catch(function () { setStatus(t('pasteError'), true); });
     } else { setStatus(t('pasteError'), true); }
   });
@@ -975,23 +1002,24 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     if (!sel.rangeCount) return [];
     var range = sel.getRangeAt(0);
     var blocks = [];
-    editor.querySelectorAll('p,h1,h2,h3,li,blockquote,div').forEach(function (b) {
+    activeEditable.querySelectorAll('p,h1,h2,h3,li,blockquote,div').forEach(function (b) {
       if (range.intersectsNode(b)) blocks.push(b);
     });
     if (!blocks.length) {
       var node = sel.anchorNode;
       if (node && node.nodeType === 3) node = node.parentElement;
-      while (node && node !== editor && !/^(P|H1|H2|H3|LI|BLOCKQUOTE|DIV)$/.test(node.tagName)) node = node.parentElement;
-      if (node && node !== editor) blocks.push(node);
+      while (node && node !== activeEditable && !/^(P|H1|H2|H3|LI|BLOCKQUOTE|DIV)$/.test(node.tagName)) node = node.parentElement;
+      if (node && node !== activeEditable) blocks.push(node);
     }
     return blocks;
   }
   els.lineSpacingSelect.addEventListener('change', function () {
-    focusEditor();
+    focusActive();
     var blocks = selectedBlocks();
     if (!blocks.length) { document.execCommand('formatBlock', false, '<p>'); blocks = selectedBlocks(); }
     var val = els.lineSpacingSelect.value;
     blocks.forEach(function (b) { b.style.lineHeight = val || ''; });
+    if (isHF()) syncHFFromRegions();
     scheduleAutosave();
   });
 
@@ -1001,7 +1029,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     alignLeftBtn: 'justifyLeft', alignCenterBtn: 'justifyCenter', alignRightBtn: 'justifyRight', alignJustifyBtn: 'justifyFull' };
   function updateToolbarState() {
     var sel = window.getSelection();
-    if (!sel.anchorNode || !editor.contains(sel.anchorNode)) return;
+    if (!sel.anchorNode || !activeEditable.contains(sel.anchorNode)) return;
     Object.keys(STATE_CMDS).forEach(function (id) {
       var btn = $(id);
       if (btn) { try { btn.classList.toggle('active', document.queryCommandState(STATE_CMDS[id])); } catch (e) {} }
@@ -1120,15 +1148,26 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
 
   /* ── หัว-ท้ายกระดาษ (แก้ไขในหน้าเอกสารได้เลยแบบ Word) ── */
   function updateHeaderFooterUI() {
-    /* sync ข้อความสำหรับตอนพิมพ์ + สถานะปุ่มเลขหน้า */
-    els.printHeader.textContent = state.header;
-    els.printFooter.textContent = state.footer + (state.pageNum ? (state.footer ? '    ' : '') + '#' : '');
     els.pageNumBtn.classList.toggle('active', state.pageNum);
     els.pageNumNote.classList.toggle('show', state.pageNum);
   }
+  /* อ่านข้อความหัว/ท้ายจากกล่องจริง (ใช้ทั้งเช็คว่าว่างไหม และตอนส่งออก) */
+  function syncHFFromRegions() {
+    state.header = els.docHeader.textContent.trim();
+    state.footer = els.docFooter.textContent.trim();
+    updateHeaderFooterUI();
+  }
+  /* หาการจัดตำแหน่งจริงของหัว/ท้าย — execCommand จัดชิดจะห่อ text-align ไว้ที่ div ข้างใน
+     ไม่ใช่ที่ตัว region เอง จึงต้องดูทั้ง style ของ region และของลูกที่มี text-align */
+  function regionAlign(el) {
+    if (el.style && el.style.textAlign) return el.style.textAlign;
+    var c = el.querySelector('[style*="text-align"]');
+    if (c && c.style.textAlign) return c.style.textAlign;
+    return getComputedStyle(el).textAlign;
+  }
   /* พิมพ์ในกล่องหัว/ท้ายโดยตรง → เก็บลง state ทันที */
-  els.docHeader.addEventListener('input', function () { state.header = els.docHeader.textContent.trim(); updateHeaderFooterUI(); scheduleAutosave(); });
-  els.docFooter.addEventListener('input', function () { state.footer = els.docFooter.textContent.trim(); updateHeaderFooterUI(); scheduleAutosave(); });
+  els.docHeader.addEventListener('input', function () { syncHFFromRegions(); scheduleAutosave(); });
+  els.docFooter.addEventListener('input', function () { syncHFFromRegions(); scheduleAutosave(); });
   /* กด Enter ในหัว/ท้ายไม่ต้องขึ้นบรรทัดใหม่ (Word หัว-ท้ายเป็นบรรทัดเดียวพอ) */
   function singleLineGuard(e) { if (e.key === 'Enter') e.preventDefault(); }
   els.docHeader.addEventListener('keydown', singleLineGuard);
@@ -1272,7 +1311,8 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
       if (saved && typeof saved.html === 'string') {
         editor.innerHTML = saved.html;
         state.header = saved.header || ''; state.footer = saved.footer || ''; state.pageNum = !!saved.pageNum;
-        els.docHeader.textContent = state.header; els.docFooter.textContent = state.footer;
+        els.docHeader.innerHTML = saved.headerHtml || (saved.header ? escapeHtml(saved.header) : '');
+        els.docFooter.innerHTML = saved.footerHtml || (saved.footer ? escapeHtml(saved.footer) : '');
         state.pageSize = saved.pageSize || 'A4'; state.orientation = saved.orientation || 'portrait'; state.margins = saved.margins || 'normal';
         setStatus(t('restoredDraft'));
       }
