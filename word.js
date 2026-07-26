@@ -124,6 +124,7 @@ var I18N = {
     summarized: 'เพิ่มสรุปเนื้อหาเบื้องต้นต่อท้ายเอกสารแล้ว (เลือกประโยคสำคัญด้วยกฎทางสถิติ)', summaryHeading: '— สรุปเนื้อหาเบื้องต้น —',
     downloadError: 'ดาวน์โหลดไม่สำเร็จ: {msg}', downloadEmpty: 'ยังไม่มีเนื้อหาให้ดาวน์โหลด',
     pdfGenerating: 'กำลังสร้างไฟล์ PDF…', pdfDone: 'สร้างไฟล์ PDF เรียบร้อยแล้ว', pdfError: 'สร้าง PDF ไม่สำเร็จ: {msg}',
+    pageXofY: 'หน้า {x} / {y}',
     dictateUnsupported: 'เบราว์เซอร์นี้ไม่รองรับการพูดแล้วขึ้นข้อความ (ลองใช้ Chrome)',
     dictateListening: 'กำลังฟัง... พูดได้เลย', dictateListeningInterim: 'กำลังฟัง... "{text}"',
     dictateError: 'เกิดข้อผิดพลาดขณะฟัง: {msg}', dictateNoMic: 'ไม่ได้รับอนุญาตให้ใช้ไมโครโฟน — กรุณาอนุญาตการใช้งานไมค์ในเบราว์เซอร์',
@@ -207,6 +208,7 @@ var I18N = {
     summarized: 'Added a basic summary to the end of the document (key sentences picked using statistical rules)', summaryHeading: '— Basic Summary —',
     downloadError: 'Download failed: {msg}', downloadEmpty: 'There\'s no content to download yet',
     pdfGenerating: 'Generating PDF…', pdfDone: 'PDF created successfully', pdfError: 'Couldn\'t create PDF: {msg}',
+    pageXofY: 'Page {x} / {y}',
     dictateUnsupported: 'This browser doesn\'t support Dictate (try Chrome)',
     dictateListening: 'Listening... go ahead and speak', dictateListeningInterim: 'Listening... "{text}"',
     dictateError: 'An error occurred while listening: {msg}', dictateNoMic: 'Microphone access was not granted — please allow microphone access in your browser',
@@ -652,7 +654,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     growFontBtn: $('growFontBtn'), shrinkFontBtn: $('shrinkFontBtn'),
     styleSelect: $('styleSelect'), fontSelect: $('fontSelect'), sizeSelect: $('sizeSelect'), lineSpacingSelect: $('lineSpacingSelect'),
     pageSizeSelect: $('pageSizeSelect'), orientationSelect: $('orientationSelect'), marginSelect: $('marginSelect'),
-    pageSizeStyle: $('pageSizeStyle'), page: $('page'),
+    pageSizeStyle: $('pageSizeStyle'), page: $('page'), pageScale: $('pageScale'), pageBg: $('pageBg'),
     footnotesArea: $('footnotesArea'), footnotesList: $('footnotesList'),
     ribbonTabs: $('ribbonTabs')
   };
@@ -734,13 +736,23 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   }
   /* คืน HTML ของเนื้อหาโดยไม่มีไฮไลต์ผลค้นหา (mark.wd-find-hit เป็นแค่ UI ชั่วคราว) */
   function cleanEditorHtml() {
-    if (!editor.querySelector('mark.wd-find-hit')) return editor.innerHTML;
+    var hasMark = editor.querySelector('mark.wd-find-hit');
+    var hasGap = editor.querySelector('[data-wd-gap]');
+    if (!hasMark && !hasGap) return editor.innerHTML;
     var clone = editor.cloneNode(true);
+    /* เอาไฮไลต์ผลค้นหาออก */
     clone.querySelectorAll('mark.wd-find-hit').forEach(function (m) { var p = m.parentNode; while (m.firstChild) p.insertBefore(m.firstChild, m); p.removeChild(m); });
+    /* เอา "ช่องว่างขึ้นหน้าใหม่" (margin-top ชั่วคราวของการจัดหน้าบนจอ) ออก
+       — ไม่ให้ระยะจัดหน้าติดไปในไฟล์/autosave/Word */
+    clone.querySelectorAll('[data-wd-gap]').forEach(function (b) {
+      b.style.marginTop = ''; b.removeAttribute('data-wd-gap');
+      if (b.getAttribute('style') !== null && b.getAttribute('style').trim() === '') b.removeAttribute('style');
+    });
     return clone.innerHTML;
   }
   function scheduleAutosave() {
     updateCounts();
+    schedulePaginate();          /* จัดหน้าใหม่ทุกครั้งที่เนื้อหา/รูปแบบเปลี่ยน (debounce ในตัว) */
     clearTimeout(autosaveTimer);
     autosaveTimer = setTimeout(function () {
       try {
@@ -870,25 +882,29 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     if (!extractText(editor).trim() && !els.docHeader.textContent.trim() && !els.docFooter.textContent.trim()) { setStatus(t('downloadEmpty'), true); return; }
     setStatus(t('pdfGenerating'), false, true);
     els.page.classList.add('wd-capturing');
+    var SCALE = 2;
     try {
-      var canvas = await window.html2canvas(els.page, { scale: 2, backgroundColor: '#ffffff', useCORS: true, windowWidth: els.page.scrollWidth });
+      /* จัดหน้าแบบ capture: หน้าต่อกันสนิท (ไม่มีช่องว่าง) + หัว-ท้ายสะท้อนทุกหน้า
+         → ตัดสไลซ์ตามความสูงหน้าเป๊ะ ได้ 1 แคนวาส = 1 หน้า A4 */
+      var pages = layoutPages(true);
+      var m = pageMetrics();
+      await new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); });
+      var canvas = await window.html2canvas(els.page, { scale: SCALE, backgroundColor: '#ffffff', useCORS: true, windowWidth: m.pageW, windowHeight: pages * m.pageH });
       var ps = PAGE_SIZES[state.pageSize] || PAGE_SIZES.A4;
       var land = state.orientation === 'landscape';
       var pwMm = land ? ps.mmH : ps.mmW, phMm = land ? ps.mmW : ps.mmH;
       var pdf = new jsPDFctor({ orientation: land ? 'landscape' : 'portrait', unit: 'mm', format: [pwMm, phMm] });
-      var pxPerMm = canvas.width / pwMm;
-      var pageHpx = Math.floor(phMm * pxPerMm);
-      var sy = 0, first = true;
-      while (sy < canvas.height - 1) {
-        var sliceHpx = Math.min(pageHpx, canvas.height - sy);
+      var sliceHpx = canvas.height / pages;         /* หนึ่งหน้าเท่าๆ กัน */
+      for (var k = 0; k < pages; k++) {
+        var sy = Math.round(k * sliceHpx);
+        var hpx = Math.round((k + 1) * sliceHpx) - sy;
         var c2 = document.createElement('canvas');
-        c2.width = canvas.width; c2.height = sliceHpx;
+        c2.width = canvas.width; c2.height = hpx;
         var ctx = c2.getContext('2d');
         ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c2.width, c2.height);
-        ctx.drawImage(canvas, 0, sy, canvas.width, sliceHpx, 0, 0, canvas.width, sliceHpx);
-        if (!first) pdf.addPage([pwMm, phMm], land ? 'landscape' : 'portrait');
-        pdf.addImage(c2.toDataURL('image/jpeg', 0.96), 'JPEG', 0, 0, pwMm, sliceHpx / pxPerMm);
-        sy += sliceHpx; first = false;
+        ctx.drawImage(canvas, 0, sy, canvas.width, hpx, 0, 0, canvas.width, hpx);
+        if (k > 0) pdf.addPage([pwMm, phMm], land ? 'landscape' : 'portrait');
+        pdf.addImage(c2.toDataURL('image/jpeg', 0.96), 'JPEG', 0, 0, pwMm, phMm);
       }
       pdf.save('document.pdf');
       setStatus(t('pdfDone'));
@@ -896,6 +912,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
       setStatus(t('pdfError', { msg: e.message }), true);
     } finally {
       els.page.classList.remove('wd-capturing');
+      layoutPages(false);        /* กลับสู่มุมมองหน้าจอปกติ (มีช่องว่างระหว่างหน้า + ย่อพอดีจอ) */
     }
   }
   els.printBtn.addEventListener('click', generatePdf);
@@ -1369,6 +1386,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     els.pageNumBtn.classList.toggle('active', state.pageNum);
     els.pageNumNote.classList.toggle('show', state.pageNum);
     markHFEmpty();
+    schedulePaginate();          /* หัว-ท้าย/เลขหน้าเปลี่ยน → วาด mirror ทุกหน้าใหม่ */
   }
   /* อ่านข้อความหัว/ท้ายจากกล่องจริง (ใช้ทั้งเช็คว่าว่างไหม และตอนส่งออก) */
   function syncHFFromRegions() {
@@ -1412,25 +1430,135 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     scheduleAutosave();
   });
 
-  /* ── ตั้งค่าหน้ากระดาษ ── */
-  function applyPageSetup() {
+  /* ══════════════════════════════════════════════════════════════════
+     โหมดหน้ากระดาษจริง (WYSIWYG pagination)
+     - แตกเนื้อหาเป็นหน้า A4 ทีละแผ่นบนจอ (เห็นขอบหน้า + ช่องว่างระหว่างหน้า)
+     - ดันบล็อกที่ล้นขอบล่างลงไปขึ้นหน้าใหม่ (margin-top ชั่วคราว ไม่แทรกโหนดในเนื้อหา
+       จึงไม่ติดไปในไฟล์/autosave)
+     - หัว-ท้ายกระดาษสะท้อนซ้ำทุกหน้า + เลขหน้า (ถ้าเปิด)
+     - ย่อทั้งหน้าให้พอดีจอมือถือด้วย transform โดยคงสัดส่วน A4 จริง
+     ══════════════════════════════════════════════════════════════════ */
+  var PAGE_GUTTER = 20;                     /* ช่องว่างระหว่างหน้าบนจอ (px) */
+  function pageMetrics() {
     var ps = PAGE_SIZES[state.pageSize] || PAGE_SIZES.A4;
     var land = state.orientation === 'landscape';
-    var wMm = land ? ps.mmH : ps.mmW;
-    var mg = MARGINS[state.margins] || MARGINS.normal;
-    els.page.style.maxWidth = Math.round(wMm * 96 / 25.4) + 'px';
-    editor.style.padding = mg.css;
-    /* margin:0 บน @page ทำให้เบราว์เซอร์ไม่แทรก header/footer อัตโนมัติ (ชื่อหน้า/URL/
-       วันที่/เลขหน้า) เวลาสั่งพิมพ์ → PDF ออกมาสะอาดเหมือนแปลงจาก Word จริง
-       ระยะขอบกระดาษจริงมาจาก padding ของ editor แทน */
+    var K = 96 / 25.4;                      /* mm → px (บนจอ 96dpi) */
+    var mmW = land ? ps.mmH : ps.mmW, mmH = land ? ps.mmW : ps.mmH;
+    var mg = (MARGINS[state.margins] || MARGINS.normal).tw;   /* twips; 1440tw = 1in = 96px → /15 */
+    var pageW = Math.round(mmW * K), pageH = Math.round(mmH * K);
+    var mt = Math.round(mg.top / 15), mb = Math.round(mg.bottom / 15);
+    var ml = Math.round(mg.left / 15), mr = Math.round(mg.right / 15);
+    return { pageW: pageW, pageH: pageH, mt: mt, mb: mb, ml: ml, mr: mr, contentH: pageH - mt - mb };
+  }
+  function bandHtml(el) { return el.textContent.trim() ? el.innerHTML : ''; }
+  function renderFrames(pages, m, gutter, capture) {
+    var bg = els.pageBg; bg.textContent = '';
+    var hAlign = regionAlign(els.docHeader), fAlign = regionAlign(els.docFooter);
+    var hHtml = bandHtml(els.docHeader), fHtml = bandHtml(els.docFooter);
+    for (var k = 0; k < pages; k++) {
+      var top = k * (m.pageH + gutter);
+      var pf = document.createElement('div'); pf.className = 'wd-pf';
+      pf.style.top = top + 'px'; pf.style.height = m.pageH + 'px';
+      bg.appendChild(pf);
+      var showHF = capture || k > 0;        /* หน้าแรกบนจอใช้กล่องแก้ไขจริง ไม่ต้องมี mirror */
+      if (showHF && hHtml) {
+        var hb = document.createElement('div'); hb.className = 'wd-pf-band';
+        hb.style.top = (top + Math.round(m.mt * 0.34)) + 'px';
+        hb.style.left = m.ml + 'px'; hb.style.right = m.mr + 'px';
+        hb.style.textAlign = hAlign; hb.innerHTML = hHtml; bg.appendChild(hb);
+      }
+      if (showHF && fHtml) {
+        var fb = document.createElement('div'); fb.className = 'wd-pf-band';
+        fb.style.top = (top + m.pageH - m.mb + Math.round(m.mb * 0.12)) + 'px';
+        fb.style.left = m.ml + 'px'; fb.style.right = m.mr + 'px';
+        fb.style.textAlign = fAlign; fb.innerHTML = fHtml; bg.appendChild(fb);
+      }
+      if (state.pageNum) {
+        var pn = document.createElement('div'); pn.className = 'wd-pf-num';
+        pn.style.top = (top + m.pageH - Math.round(m.mb * 0.55)) + 'px';
+        pn.textContent = t('pageXofY', { x: k + 1, y: pages });
+        bg.appendChild(pn);
+      }
+    }
+  }
+  function positionEditableHF(m) {
+    var H = els.docHeader, F = els.docFooter;
+    H.style.top = Math.round(m.mt * 0.34) + 'px'; H.style.left = m.ml + 'px'; H.style.right = m.mr + 'px';
+    H.style.minHeight = Math.round(m.mt * 0.46) + 'px'; H.style.padding = '2px 4px';
+    F.style.top = (m.pageH - m.mb + Math.round(m.mb * 0.12)) + 'px'; F.style.left = m.ml + 'px'; F.style.right = m.mr + 'px';
+    F.style.minHeight = Math.round(m.mb * 0.4) + 'px'; F.style.padding = '2px 4px';
+  }
+  function applyScale(m, totalH, capture) {
+    var scaler = els.pageScale;
+    if (capture) { scaler.style.transform = 'none'; els.page.style.transform = 'none';
+      scaler.style.width = m.pageW + 'px'; scaler.style.height = totalH + 'px'; return; }
+    var wrap = scaler.parentElement;
+    var avail = (wrap ? wrap.clientWidth : m.pageW) - 12;
+    var s = Math.min(1, avail / m.pageW);
+    els.page.style.transformOrigin = 'top left';
+    els.page.style.transform = s < 1 ? 'scale(' + s + ')' : 'none';
+    scaler.style.width = Math.round(m.pageW * s) + 'px';
+    scaler.style.height = Math.round(totalH * s) + 'px';
+  }
+  var lastPageCount = 1;
+  function layoutPages(capture) {
+    var m = pageMetrics();
+    var G = capture ? 0 : PAGE_GUTTER;
+    els.page.style.width = m.pageW + 'px';
+    editor.style.padding = m.mt + 'px ' + m.mr + 'px ' + m.mb + 'px ' + m.ml + 'px';
+    /* ล้างช่องว่างขึ้นหน้าใหม่ของรอบก่อน */
+    Array.prototype.forEach.call(editor.querySelectorAll('[data-wd-gap]'), function (b) {
+      b.style.marginTop = ''; b.removeAttribute('data-wd-gap');
+    });
+    var PT = m.mt, deadBand = m.mb + G + m.mt;
+    var pageBottom = PT + m.contentH, pages = 1, forceBreak = false;
+    var blocks = Array.prototype.filter.call(editor.children, function (el) { return el.nodeType === 1; });
+    for (var i = 0; i < blocks.length; i++) {
+      var b = blocks[i], top = b.offsetTop, h = b.offsetHeight;
+      /* บล็อกเริ่มเลยขอบล่างหน้าไปแล้ว (เพราะบล็อกก่อนหน้าสูงเกินหนึ่งหน้า) → ขยับนับหน้า */
+      var guard = 0;
+      while (top >= pageBottom - 1 && guard++ < 4000) { pageBottom += deadBand + m.contentH; pages++; }
+      var straddle = (top + h > pageBottom + 1 && top < pageBottom);
+      if ((forceBreak || straddle) && top > PT + 1) {
+        var target = pageBottom + deadBand, delta = target - top;
+        if (delta > 0) {
+          var cur = parseFloat(getComputedStyle(b).marginTop) || 0;
+          b.style.marginTop = (cur + delta) + 'px';
+          b.setAttribute('data-wd-gap', '1');
+        }
+        pageBottom = b.offsetTop + m.contentH; pages++;
+      }
+      forceBreak = /wd-pagebreak/.test(b.className || '');
+    }
+    var totalH = pages * m.pageH + (pages - 1) * G;
+    els.page.style.height = totalH + 'px';
+    editor.style.minHeight = totalH + 'px';
+    renderFrames(pages, m, G, capture);
+    positionEditableHF(m);
+    applyScale(m, totalH, capture);
+    lastPageCount = pages;
+    return pages;
+  }
+  var paginateTimer = null;
+  function schedulePaginate() {
+    clearTimeout(paginateTimer);
+    paginateTimer = setTimeout(function () { try { layoutPages(false); } catch (e) {} }, 120);
+  }
+
+  /* ── ตั้งค่าหน้ากระดาษ ── */
+  function applyPageSetup() {
+    /* @page margin:0 คงไว้เผื่อกรณีสำรอง (ถ้าไลบรารีสร้าง PDF โหลดไม่ได้แล้วใช้ window.print) */
     els.pageSizeStyle.textContent = '@page { size: ' + state.pageSize + ' ' + state.orientation + '; margin: 0; }';
     els.pageSizeSelect.value = state.pageSize;
     els.orientationSelect.value = state.orientation;
     els.marginSelect.value = state.margins;
+    layoutPages(false);
   }
   els.pageSizeSelect.addEventListener('change', function () { state.pageSize = els.pageSizeSelect.value; applyPageSetup(); setStatus(t('pageSetupChanged')); scheduleAutosave(); });
   els.orientationSelect.addEventListener('change', function () { state.orientation = els.orientationSelect.value; applyPageSetup(); setStatus(t('pageSetupChanged')); scheduleAutosave(); });
   els.marginSelect.addEventListener('change', function () { state.margins = els.marginSelect.value; applyPageSetup(); setStatus(t('pageSetupChanged')); scheduleAutosave(); });
+  var resizeTimer = null;
+  window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(function () { try { layoutPages(false); } catch (e) {} }, 160); });
 
   /* ── สารบัญ ── */
   function slugify(s, i) { return 'h-' + i + '-' + (s || '').toLowerCase().replace(/[^a-z0-9ก-๛]+/g, '-').replace(/^-|-$/g, '').slice(0, 30); }
@@ -1557,6 +1685,9 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   renderFootnotes();
   renderIssues();
   updateCounts();
+  /* จัดหน้าอีกครั้งหลังฟอนต์โหลดเสร็จ (ความสูงบรรทัดเปลี่ยน → ตำแหน่งแบ่งหน้าแม่นขึ้น) */
+  setTimeout(function () { try { layoutPages(false); } catch (e) {} }, 60);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { try { layoutPages(false); } catch (e) {} });
 }
 
 /* export ให้ทดสอบ logic ล้วนๆ จาก Node */

@@ -120,31 +120,38 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .wd-body{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-top:16px;align-items:start}
 @media(max-width:900px){.wd-body{grid-template-columns:1fr}}
 
-.wd-page-wrap{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:8px;overflow-x:auto}
-/* หัว-ท้ายกระดาษ: แก้ไขได้ในหน้าเอกสารเลยแบบ Word */
-.wd-doc-header,.wd-doc-footer{font-size:15px;color:var(--ink);padding:9px clamp(20px,5vw,64px);
-  outline:none;min-height:36px;border:1px dashed transparent;border-radius:6px;transition:.14s;
-  font-family:'TH Sarabun New','Sarabun',sans-serif}
-.wd-doc-header{margin-bottom:2px}
-.wd-doc-footer{margin-top:2px}
-/* เส้นแบ่งหัว/ท้ายจะโชว์เฉพาะเมื่อ "มีเนื้อหา" — ว่างเปล่าจะไม่มีเส้น ดูโล่งเหมือนไม่มีหัว-ท้าย */
-.wd-doc-header:not(.wd-hf-empty){border-bottom:1px solid var(--line)}
-.wd-doc-footer:not(.wd-hf-empty){border-top:1px solid var(--line)}
-/* กล่องว่าง (ยังไม่ได้พิมพ์) ทำให้เตี้ยลง + จางลง เป็นแค่ที่ให้แตะเพิ่ม ไม่เด่นเหมือนหัว-ท้ายจริง */
-.wd-doc-header.wd-hf-empty,.wd-doc-footer.wd-hf-empty{min-height:0;padding-top:6px;padding-bottom:6px;opacity:.55}
-.wd-doc-header:hover,.wd-doc-footer:hover{background:#FBFCFF;opacity:1}
-.wd-doc-header:focus,.wd-doc-footer:focus{background:#FBFCFF;border-color:var(--sky);opacity:1}
+/* พื้นที่ "โต๊ะวางกระดาษ" — สีพื้นหลังโชว์ช่องว่างระหว่างหน้า (gutter) ให้เห็นหน้าแยกเป็นแผ่นๆ */
+.wd-page-wrap{background:var(--bg);border-radius:var(--r);box-shadow:var(--sh);padding:16px 8px;overflow-x:auto}
+/* ── โหมดหน้ากระดาษจริง (WYSIWYG): แตกเป็นหน้า A4 ทีละแผ่น เห็นขอบหน้า หัว-ท้ายซ้ำทุกหน้า ── */
+/* ตัวย่อ/ขยายหน้ากระดาษให้พอดีจอ (โดยเฉพาะมือถือ) โดยคงสัดส่วน A4 จริง — เห็นทั้งหน้าแบบ Word */
+.wd-page-scale{margin:0 auto;transform-origin:top left}
+.wd-page{position:relative;margin:0;background:transparent;font-family:'TH Sarabun New','Sarabun',sans-serif}
+/* ชั้นวาดกรอบกระดาษ (แผ่นขาว + เงา) อยู่หลังตัวหนังสือ แตะไม่ได้ */
+.wd-pagebg{position:absolute;inset:0;z-index:0;pointer-events:none}
+.wd-pf{position:absolute;left:0;right:0;background:var(--card);border-radius:2px;
+  box-shadow:0 1px 8px rgba(20,30,60,.14)}
+[data-theme="dark"] .wd-pf{box-shadow:0 1px 10px rgba(0,0,0,.5);outline:1px solid #222A3A}
+/* หัว-ท้ายกระดาษที่ "สะท้อน" ไปทุกหน้า (อ่านอย่างเดียว) */
+.wd-pf-band{position:absolute;left:0;right:0;color:var(--ink);font-size:15px;overflow:hidden;
+  white-space:nowrap;text-overflow:ellipsis;font-family:'TH Sarabun New','Sarabun',sans-serif}
+.wd-pf-num{position:absolute;left:0;right:0;text-align:center;color:var(--muted);font-size:12.5px}
+/* ── หัว-ท้ายกระดาษที่ "แก้ไขได้" — วางทับแถบบน/ล่างของหน้าแรกแบบ Word ── */
+.wd-doc-header,.wd-doc-footer{position:absolute;z-index:2;font-size:15px;color:var(--ink);
+  outline:none;border:1px dashed transparent;border-radius:6px;transition:background .14s,border-color .14s;
+  font-family:'TH Sarabun New','Sarabun',sans-serif;overflow:hidden}
+.wd-doc-header:hover,.wd-doc-footer:hover{background:#FBFCFF;border-color:var(--line)}
+.wd-doc-header:focus,.wd-doc-footer:focus{background:#FBFCFF;border-color:var(--sky)}
 .wd-doc-header:empty::before,.wd-doc-footer:empty::before{content:attr(data-ph);color:#C2C9D8;pointer-events:none;font-size:12px}
 [data-theme="dark"] .wd-doc-header:hover,[data-theme="dark"] .wd-doc-footer:hover,
 [data-theme="dark"] .wd-doc-header:focus,[data-theme="dark"] .wd-doc-footer:focus{background:#171C28}
-.wd-pagenum-note{font-size:11px;color:var(--muted);text-align:center;padding:2px 0 6px;display:none}
+.wd-pagenum-note{font-size:11px;color:var(--muted);text-align:center;padding:8px 0 2px;display:none}
 .wd-pagenum-note.show{display:block}
-/* ตั้งฟอนต์ที่ "ตัวกระดาษ" เพื่อให้ทุกอย่างข้างใน (เนื้อหา/หัว/ท้าย/เชิงอรรถ/สารบัญ)
-   ใช้ TH Sarabun New เป็นค่าเริ่มต้น — ไม่มีตกไปใช้ Prompt ของหน้าเว็บ
-   (ฟอนต์ที่ผู้ใช้เลือกเองยัง override ได้ เพราะเป็นแค่ค่า default ที่สืบทอด) */
-.wd-page{margin:0 auto;background:var(--card);font-family:'TH Sarabun New','Sarabun',sans-serif}
-.wd-editor{min-height:560px;padding:40px clamp(20px,5vw,64px);font-size:17px;line-height:1.9;outline:none;
-  font-family:'TH Sarabun New','Sarabun',sans-serif}
+/* ตัวหนังสือลอยอยู่ชั้นบนสุด พื้นหลังโปร่งใสให้เห็นแผ่นกระดาษด้านหลัง
+   ระยะขอบ (padding) มาจาก margin ที่เลือก — กำหนดผ่าน JS เป็น 4 ด้านแยกกัน */
+.wd-editor{position:relative;z-index:1;background:transparent;min-height:560px;font-size:17px;line-height:1.9;
+  outline:none;font-family:'TH Sarabun New','Sarabun',sans-serif}
+/* ตัวคั่นหน้าอัตโนมัติ (ช่องว่างที่ดันเนื้อหาไปขึ้นหน้าใหม่) — โปร่งใส แตะไม่ได้ */
+.wd-auto-gap{display:block;height:0;pointer-events:none;-webkit-user-select:none;user-select:none}
 .wd-editor:focus-visible{outline:none}
 .wd-editor :where(h1){font-size:26px;font-weight:700;margin:.6em 0 .3em;letter-spacing:-.01em}
 .wd-editor :where(h2){font-size:21px;font-weight:700;margin:.6em 0 .3em}
@@ -246,11 +253,12 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .wd-sym-cat{font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 6px}
 .wd-sym-cat:first-child{margin-top:0}
 
-/* ── ตอนสร้างไฟล์ PDF เอง (html2canvas): ทำให้กระดาษสะอาด ตัดเส้น/พื้นหลัง/ไฮไลต์/กล่องว่าง ── */
-.wd-page.wd-capturing{box-shadow:none}
-.wd-page.wd-capturing .wd-doc-header,.wd-page.wd-capturing .wd-doc-footer{border:none!important;background:none!important;opacity:1!important}
-.wd-page.wd-capturing .wd-doc-header.wd-hf-empty,.wd-page.wd-capturing .wd-doc-footer.wd-hf-empty,.wd-page.wd-capturing .wd-pagenum-note{display:none!important}
-.wd-page.wd-capturing .wd-doc-header:empty::before,.wd-page.wd-capturing .wd-doc-footer:empty::before{content:none!important}
+/* ── ตอนสร้างไฟล์ PDF เอง (html2canvas): ── หน้าจริงแตกเป็นแผ่นๆ ต่อกันสนิท (ไม่มีช่องว่าง)
+   หัว-ท้ายกระดาษที่แก้ไขได้ถูกซ่อน แล้วใช้ "หัว-ท้ายที่สะท้อนทุกหน้า" (.wd-pf-band) แทน
+   เพื่อให้ทุกหน้ามีหัว-ท้ายเหมือนกัน และไฮไลต์ค้นหา/กล่องว่างไม่ติดไปในไฟล์ ── */
+.wd-page.wd-capturing .wd-pf{box-shadow:none!important;border-radius:0!important;outline:none!important}
+.wd-page.wd-capturing .wd-doc-header,.wd-page.wd-capturing .wd-doc-footer,
+.wd-page.wd-capturing .wd-pagenum-note,.wd-page.wd-capturing .wd-footnotes:empty{display:none!important}
 .wd-page.wd-capturing .wd-find-hit{background:none!important;color:inherit!important}
 
 @media print{
@@ -295,11 +303,9 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   .wd-select.size-select{width:74px;flex:0 0 auto}
   .wd-ribbon-tab{padding:7px 12px;font-size:12.5px}
   .wd-ribbon-tabs{gap:2px}
-  /* หน้าเอกสารเต็มความกว้างจอ + เริ่มพิมพ์ชิดซ้ายเหมือน Word มือถือ
-     (ระยะขอบกระดาษจริงยังใช้ตอนพิมพ์/ดาวน์โหลดไฟล์) */
-  .wd-page{max-width:none!important}
-  .wd-editor{padding:20px 16px!important;min-height:60vh}
-  .wd-doc-header,.wd-doc-footer{padding:9px 16px!important}
+  /* หน้าเอกสารเป็นหน้า A4 จริง แล้ว "ย่อให้พอดีจอ" ด้วย transform (ตั้งค่าใน JS)
+     — เห็นทั้งหน้าเหมือน Word มือถือ ระยะขอบกระดาษจริงคงไว้ (มาจาก padding ที่ JS กำหนด) */
+  .wd-page-wrap{overflow-x:hidden;padding:12px 4px}
   /* ปุ่มใน dialog: จัด 2 ปุ่มต่อแถว ไม่ให้ล้นจอ (เช่น ค้นหา/แทนที่ที่มี 4 ปุ่ม) */
   .wd-modal-actions{gap:8px}
   .wd-modal-actions .btn{flex:1 1 calc(50% - 4px);justify-content:center;padding:11px 10px}
@@ -686,16 +692,19 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 
 <div class="wd-body">
   <div class="wd-page-wrap">
+   <div class="wd-page-scale" id="pageScale">
     <div class="wd-page" id="page">
+      <div class="wd-pagebg" id="pageBg" aria-hidden="true"></div>
       <div class="wd-doc-header" id="docHeader" contenteditable="true" data-i18n-dataph="headerPh" data-ph="หัวกระดาษ — แตะเพื่อพิมพ์ (เว้นว่างไว้ถ้าไม่ต้องการ)"></div>
       <div class="wd-editor" id="editor" contenteditable="true" data-placeholder="เริ่มพิมพ์เอกสารตรงนี้..." data-i18n-dataplaceholder="editorPlaceholder"></div>
+      <div class="wd-doc-footer" id="docFooter" contenteditable="true" data-i18n-dataph="footerPh" data-ph="ท้ายกระดาษ — แตะเพื่อพิมพ์ (เว้นว่างไว้ถ้าไม่ต้องการ)"></div>
       <div class="wd-footnotes" id="footnotesArea">
         <div class="wd-footnotes-title" data-i18n="footnotesHeading">เชิงอรรถ</div>
         <div id="footnotesList"></div>
       </div>
-      <div class="wd-doc-footer" id="docFooter" contenteditable="true" data-i18n-dataph="footerPh" data-ph="ท้ายกระดาษ — แตะเพื่อพิมพ์ (เว้นว่างไว้ถ้าไม่ต้องการ)"></div>
-      <div class="wd-pagenum-note" id="pageNumNote" data-i18n="pageNumNote">↑ จะใส่เลขหน้าอัตโนมัติที่ท้ายกระดาษเมื่อดาวน์โหลดเป็นไฟล์ Word</div>
+      <div class="wd-pagenum-note" id="pageNumNote" data-i18n="pageNumNote">↑ ใส่เลขหน้าอัตโนมัติทุกหน้า (เปิด/ปิดที่ปุ่ม “เลขหน้า” ในแท็บ แทรก)</div>
     </div>
+   </div>
   </div>
 
   <aside class="wd-side">
