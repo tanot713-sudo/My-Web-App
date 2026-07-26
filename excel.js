@@ -62,10 +62,26 @@
   var $ = function (id) { return document.getElementById(id); };
 
   var els = {
-    langToggle: $('langToggle'), statusMsg: $('statusMsg'), loading: $('loading'),
+    langToggle: $('langToggle'), statusMsg: $('statusMsg'), loading: $('loading'), grid: $('luckysheet'),
     newBtn: $('newBtn'), importBtn: $('importBtn'), fileInput: $('fileInput'),
     exportXlsxBtn: $('exportXlsxBtn'), exportCsvBtn: $('exportCsvBtn'), printBtn: $('printBtn')
   };
+
+  /* ── ความสูงกริดคงที่ (พิกเซล) กันอาการกระตุกบนมือถือ ──
+     iOS Safari ซ่อน/โชว์แถบ URL ตอนเลื่อน → ถ้าใช้ vh ความสูงจะเปลี่ยนตลอด
+     Luckysheet จะวาดใหม่ทั้งกริดซ้ำๆ = กระตุก จึงตรึงเป็นพิกเซล และไม่วาดใหม่
+     เมื่อความสูงขยับเล็กน้อย (แถบ URL) จะรีเลย์เอาต์เฉพาะตอนหมุนจอ/เปลี่ยนจริง */
+  var gridTopVP = null, lastVW = 0, lastVH = 0;
+  function applyGridHeight(force) {
+    if (!els.grid) return;
+    if (gridTopVP == null) gridTopVP = els.grid.getBoundingClientRect().top; /* จับตอนเปิด (หน้าอยู่บนสุด) */
+    var vw = window.innerWidth, vh = window.innerHeight;
+    if (!force && vw === lastVW && Math.abs(vh - lastVH) < 120) return;  /* เพิกเฉยการขยับเล็กจากแถบ URL */
+    lastVW = vw; lastVH = vh;
+    var h = Math.max(360, Math.round(vh - gridTopVP - 14));
+    els.grid.style.height = h + 'px';
+    if (window.luckysheet && luckysheet.resize) { try { luckysheet.resize(); } catch (e) {} }
+  }
 
   function applyStaticI18n() {
     var lang = getUILang();
@@ -122,11 +138,14 @@
     /* ไม่ทับข้อความสถานะทันที (เช่น “นำเข้าไฟล์แล้ว”) — บันทึกเงียบๆ แล้วค่อยขึ้น “บันทึกอัตโนมัติแล้ว” */
     clearTimeout(saveTimer);
     saveTimer = setTimeout(function () {
-      try {
-        var sheets = luckysheet.getAllSheets();
-        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(sheets));
-        setStatus(t('autosaveSaved'));
-      } catch (e) {}
+      /* serialize ทั้งเวิร์กบุ๊กหนัก → ทำตอนเบราว์เซอร์ว่าง จะได้ไม่กระตุกระหว่างพิมพ์ */
+      var run = function () {
+        try {
+          localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(luckysheet.getAllSheets()));
+          setStatus(t('autosaveSaved'));
+        } catch (e) {}
+      };
+      if (window.requestIdleCallback) requestIdleCallback(run, { timeout: 2000 }); else run();
     }, 1200);
   }
 
@@ -167,6 +186,7 @@
   function hideLoading() { if (els.loading) els.loading.classList.add('hide'); }
   function createSheet(data) {
     if (!window.luckysheet) return;
+    applyGridHeight(true);          /* ตั้งความสูงพิกเซลก่อน เพื่อให้ Luckysheet วัดถูกตั้งแต่แรก */
     try { luckysheet.destroy(); } catch (e) {}
     luckysheet.create(baseOptions(data || defaultData()));
     setTimeout(hideLoading, 600);   /* สำรอง ถ้า hook ไม่ยิง */
@@ -272,6 +292,10 @@
   }
 
   /* ── init ── */
+  var rsz = null;
+  window.addEventListener('resize', function () { clearTimeout(rsz); rsz = setTimeout(function () { applyGridHeight(false); }, 200); });
+  window.addEventListener('orientationchange', function () { setTimeout(function () { applyGridHeight(true); }, 320); });
+
   function boot() {
     applyStaticI18n();
     var waited = 0;

@@ -43,8 +43,9 @@ body.ome-tool-page{margin:0}
 .xl-status.err{color:#E5484D}
 .xl-status .spin{width:14px;height:14px;border:2px solid #cbd5e1;border-top-color:var(--xl);border-radius:50%;animation:xlspin .7s linear infinite}
 @keyframes xlspin{to{transform:rotate(360deg)}}
-.xl-sheetwrap{position:relative;background:var(--card,#fff);border-radius:14px;box-shadow:var(--sh,0 2px 14px rgba(24,31,54,.06));overflow:hidden}
-#luckysheet{width:100%;height:72vh;min-height:460px}
+.xl-sheetwrap{position:relative;background:var(--card,#fff);border-radius:14px;box-shadow:var(--sh,0 2px 14px rgba(24,31,54,.06));overflow:hidden;overscroll-behavior:contain}
+/* ความสูงกริดกำหนดเป็นพิกเซลจริงผ่าน JS (กันการวาดซ้ำตอนแถบ URL ของ Safari ขยับ); ค่านี้เป็นแค่ fallback */
+#luckysheet{width:100%;height:600px;min-height:360px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .xl-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--card,#fff);color:var(--muted,#727C93);z-index:5}
 .xl-loading .spin{width:34px;height:34px;border:3px solid #dce3ee;border-top-color:var(--xl);border-radius:50%;animation:xlspin .8s linear infinite}
 .xl-loading.hide{display:none}
