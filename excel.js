@@ -71,7 +71,7 @@
      iOS Safari ซ่อน/โชว์แถบ URL ตอนเลื่อน → ถ้าใช้ vh ความสูงจะเปลี่ยนตลอด
      Luckysheet จะวาดใหม่ทั้งกริดซ้ำๆ = กระตุก จึงตรึงเป็นพิกเซล และไม่วาดใหม่
      เมื่อความสูงขยับเล็กน้อย (แถบ URL) จะรีเลย์เอาต์เฉพาะตอนหมุนจอ/เปลี่ยนจริง */
-  var gridTopVP = null, lastVW = 0, lastVH = 0;
+  var gridTopVP = null, lastVW = 0, lastVH = 0, sheetLive = false;
   function applyGridHeight(force) {
     if (!els.grid) return;
     if (gridTopVP == null) gridTopVP = els.grid.getBoundingClientRect().top; /* จับตอนเปิด (หน้าอยู่บนสุด) */
@@ -80,7 +80,9 @@
     lastVW = vw; lastVH = vh;
     var h = Math.max(360, Math.round(vh - gridTopVP - 14));
     els.grid.style.height = h + 'px';
-    if (window.luckysheet && luckysheet.resize) { try { luckysheet.resize(); } catch (e) {} }
+    /* เรียก resize ได้ "เฉพาะเมื่อสร้างเวิร์กบุ๊กแล้ว" — ถ้าเรียกก่อน create ครั้งแรก
+       Luckysheet จะอ่านตำแหน่งของชีตที่ยังไม่มี → error "reading 'left'" → ค้าง Loading… บน iOS */
+    if (sheetLive && window.luckysheet && luckysheet.resize) { try { luckysheet.resize(); } catch (e) {} }
   }
 
   function applyStaticI18n() {
@@ -151,34 +153,18 @@
 
   /* ── สร้าง/สร้างใหม่ Luckysheet ── */
   function baseOptions(data) {
+    /* ค่าเริ่มต้นของ Luckysheet เปิดเครื่องมือ "ครบทุกปุ่ม" อยู่แล้ว (แถบเครื่องมือเต็ม +
+       แถบสูตร + แถบสถิติ + แท็บชีต) — จึงไม่ต้องส่ง showtoolbarConfig เอง
+       สำคัญ: การส่ง showtoolbarConfig เป็นอ็อบเจกต์เองจะทำให้ Luckysheet init พัง
+       (error "reading 'left'") แล้วค้างที่ Loading… บน iOS — ปล่อยให้ใช้ค่าเริ่มต้นดีกว่า */
     return {
       container: 'luckysheet',
       lang: 'en',
       data: data,
       title: 'Tanot',
       showinfobar: false,
-      /* เปิดเครื่องมือ "ครบทุกปุ่ม" เท่ากับ Luckysheet เต็มรูปแบบ */
-      showtoolbar: true,
-      showtoolbarConfig: {
-        undoRedo: true, paintFormat: true, currencyFormat: true, percentageFormat: true,
-        numberDecrease: true, numberIncrease: true, moreFormats: true,
-        font: true, fontSize: true, bold: true, italic: true, strikethrough: true, underline: true,
-        textColor: true, fillColor: true, border: true, mergeCell: true,
-        horizontalAlignMode: true, verticalAlignMode: true, textWrapMode: true, textRotateMode: true,
-        image: true, link: true, chart: true, postil: true, pivotTable: true,
-        'function': true, frozenMode: true, sortAndFilter: true, conditionalFormat: true,
-        dataVerification: true, splitColumn: true, screenshot: true, findAndReplace: true,
-        protection: true, printFdT: true
-      },
-      showsheetbar: true,
-      showsheetbarConfig: { add: true, menu: true, sheet: true },
-      sheetFormulaBar: true,
-      showstatisticBar: true,
-      showstatisticBarConfig: { count: true, view: true, zoom: true },
-      enableAddRow: true, enableAddBackTop: true, allowCopy: true, allowEdit: true,
       hook: {
         updated: scheduleSave,
-        sheetActivate: function () {},
         workbookCreateAfter: function () { hideLoading(); }
       }
     };
@@ -186,9 +172,11 @@
   function hideLoading() { if (els.loading) els.loading.classList.add('hide'); }
   function createSheet(data) {
     if (!window.luckysheet) return;
-    applyGridHeight(true);          /* ตั้งความสูงพิกเซลก่อน เพื่อให้ Luckysheet วัดถูกตั้งแต่แรก */
+    sheetLive = false;              /* กันไม่ให้ applyGridHeight เรียก resize ก่อน create เสร็จ */
+    applyGridHeight(true);          /* ตั้งความสูงพิกเซลก่อน เพื่อให้ Luckysheet วัดถูกตั้งแต่แรก (ไม่ resize) */
     try { luckysheet.destroy(); } catch (e) {}
     luckysheet.create(baseOptions(data || defaultData()));
+    sheetLive = true;               /* จากนี้ resize เวลาหมุนจอได้ */
     setTimeout(hideLoading, 600);   /* สำรอง ถ้า hook ไม่ยิง */
   }
 
@@ -296,6 +284,14 @@
   window.addEventListener('resize', function () { clearTimeout(rsz); rsz = setTimeout(function () { applyGridHeight(false); }, 200); });
   window.addEventListener('orientationchange', function () { setTimeout(function () { applyGridHeight(true); }, 320); });
 
+  /* เรียก fn หลัง layout นิ่งจริง (โหลดหน้าเสร็จ + shell.js แทรกเมนูบนแล้ว + 2 เฟรม)
+     สำคัญมากบน iOS Safari: ถ้าเรียก luckysheet.create เร็วเกินไปตอน layout ยังไม่นิ่ง
+     Luckysheet จะอ่านตำแหน่ง element ที่ยังไม่มี → error "reading 'left'" → ค้างที่ Loading… */
+  function whenLayoutReady(fn) {
+    var fire = function () { requestAnimationFrame(function () { requestAnimationFrame(function () { setTimeout(fn, 60); }); }); };
+    if (document.readyState === 'complete') fire();
+    else window.addEventListener('load', fire, { once: true });
+  }
   function boot() {
     applyStaticI18n();
     var waited = 0;
@@ -306,8 +302,10 @@
           var raw = localStorage.getItem(AUTOSAVE_KEY);
           if (raw) { var saved = JSON.parse(raw); if (saved && saved.length) { data = saved; restored = true; } }
         } catch (e) {}
-        createSheet(data);
-        setStatus(restored ? t('restored') : t('autosaveReady'));
+        whenLayoutReady(function () {
+          createSheet(data);
+          setStatus(restored ? t('restored') : t('autosaveReady'));
+        });
         return;
       }
       waited += 200;
