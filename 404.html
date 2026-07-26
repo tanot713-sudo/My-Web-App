@@ -7,8 +7,13 @@
 <meta name="robots" content="noindex, nofollow">
 <script>
 // เส้นทางภายในของแอปหลัก (เช่นรีเฟรชหน้าย่อยของ app.html) ไม่มีไฟล์จริงบน GitHub Pages
-// พากลับหน้าหลักให้อัตโนมัติ
-location.replace('/My-Web-App/');
+// เครื่องมือเก่า excel-work / word-work → พาไปหน้าตัวใหม่แบบ standalone
+// ที่เหลือ → พากลับหน้าหลัก
+(function () {
+  var MAP = { 'excel-work': 'excel.html', 'word-work': 'word.html' };
+  var m = (location.pathname || '').match(/\/(excel-work|word-work)\/?$/);
+  location.replace('/My-Web-App/' + (m ? MAP[m[1]] : ''));
+})();
 </script>
 </head>
 <body>

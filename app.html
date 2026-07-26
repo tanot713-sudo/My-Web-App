@@ -14,6 +14,23 @@
     <script>
       if ('serviceWorker' in navigator) navigator.serviceWorker.register('/My-Web-App/sw.js').catch(function(){});
     </script>
+    <!-- เครื่องมือเก่าในแอป (excel-work / word-work) → เด้งไปหน้าตัวใหม่แบบ standalone
+         ทำงานทั้งตอนโหลด URL ตรงๆ และตอนกดลิงก์ในแอป (ดักผ่าน history API) -->
+    <script>
+      (function () {
+        var BASE = '/My-Web-App/';
+        var MAP = { 'excel-work': 'excel.html', 'word-work': 'word.html' };
+        function tgt() { var m = (location.pathname || '').match(/\/(excel-work|word-work)\/?$/); return m ? MAP[m[1]] : null; }
+        function go() { var t = tgt(); if (t) { location.replace(BASE + t); return true; } return false; }
+        if (!go()) {
+          ['pushState', 'replaceState'].forEach(function (k) {
+            var orig = history[k];
+            history[k] = function () { var r = orig.apply(this, arguments); try { go(); } catch (e) {} return r; };
+          });
+          window.addEventListener('popstate', go);
+        }
+      })();
+    </script>
     <script type="module" crossorigin src="/My-Web-App/assets/index-6vOO2kJd.js"></script>
     <link rel="modulepreload" crossorigin href="/My-Web-App/assets/rolldown-runtime-DAXXjFlN.js">
     <link rel="stylesheet" crossorigin href="/My-Web-App/assets/index-Wjp15-l6.css">
