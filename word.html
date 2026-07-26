@@ -118,7 +118,45 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 
 /* ── layout: กระดาษ | จุดที่พบ ── */
 .wd-body{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-top:16px;align-items:start}
-@media(max-width:900px){.wd-body{grid-template-columns:1fr}}
+.wd-body.nav-open{grid-template-columns:250px minmax(0,1fr) 300px}
+@media(max-width:900px){.wd-body,.wd-body.nav-open{grid-template-columns:1fr}}
+
+/* ── หน้าต่างนำทาง (Navigation Pane) ── */
+.wd-nav{position:sticky;top:calc(var(--ome-nav-h,48px) + 16px);max-height:calc(100vh - 76px);
+  display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.wd-nav[hidden]{display:none}
+.wd-nav-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line)}
+.wd-nav-head h2{font-size:14.5px;font-weight:700}
+.wd-nav-close{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;border-radius:6px;display:flex}
+.wd-nav-close:hover{background:var(--bg);color:var(--ink)}
+.wd-nav-search{display:flex;align-items:center;gap:8px;margin:10px 12px;padding:8px 10px;
+  border:1.5px solid var(--line);border-radius:9px;color:var(--muted)}
+.wd-nav-search input{border:none;background:none;outline:none;flex:1;font-family:var(--f);font-size:13.5px;color:var(--ink);min-width:0}
+.wd-nav-tabs{display:flex;gap:2px;padding:0 12px;border-bottom:1px solid var(--line)}
+.wd-nav-tab{flex:1;font-family:var(--f);font-size:12.5px;font-weight:600;padding:8px 4px;border:none;
+  background:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.wd-nav-tab.active{color:var(--sky-dk);border-bottom-color:var(--sky)}
+.wd-nav-list{overflow-y:auto;padding:8px 6px 14px;flex:1}
+.wd-nav-list[hidden]{display:none}
+.wd-nav-item{display:block;width:100%;text-align:left;font-family:var(--f);font-size:13px;color:var(--ink);
+  background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:7px;line-height:1.35;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wd-nav-item:hover{background:var(--sky-sf)}
+.wd-nav-item.active{background:var(--sky-sf);color:var(--sky-dk);font-weight:600}
+.wd-nav-lv1{font-weight:600}
+.wd-nav-lv2{padding-left:26px}
+.wd-nav-lv3{padding-left:42px;font-size:12.5px}
+.wd-nav-lv4{padding-left:58px;font-size:12.5px;color:var(--muted)}
+.wd-nav-empty{color:var(--muted);font-size:12.5px;text-align:center;padding:26px 14px;line-height:1.7}
+.wd-nav-backdrop{position:fixed;inset:0;background:rgba(15,20,35,.42);z-index:55}
+.wd-nav-backdrop[hidden]{display:none}
+@media(min-width:901px){.wd-nav-backdrop{display:none!important}}
+@media(max-width:900px){
+  /* drawer เริ่มใต้แถบเมนูเว็บ เพื่อให้หัว "การนำทาง" + ปุ่มปิด (X) กดได้ ไม่โดนบัง */
+  .wd-nav{position:fixed;top:calc(var(--ome-nav-h,52px));left:0;bottom:0;width:min(84vw,330px);max-height:none;
+    border-radius:0;border:none;z-index:60;box-shadow:2px 0 18px rgba(15,20,35,.25)}
+}
 
 /* พื้นที่ "โต๊ะวางกระดาษ" — สีพื้นหลังโชว์ช่องว่างระหว่างหน้า (gutter) ให้เห็นหน้าแยกเป็นแผ่นๆ */
 .wd-page-wrap{background:var(--bg);border-radius:var(--r);box-shadow:var(--sh);padding:16px 8px;overflow-x:auto}
@@ -267,6 +305,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
      ด้วย @page margin:0 — ระยะขอบจริงมาจาก padding ของ .wd-editor แทน */
   body{background:#fff;padding:0;margin:0}
   .crumb-row,.wd-head,.wd-filebar,.wd-ribbon-tabs,.wd-ribbon-body,.wd-status,.wd-side,
+  .wd-nav,.wd-nav-backdrop,
   .wd-statusbar,footer,.wd-pagenum-note,#shell-nav,.ome-nav,.wd-modal-backdrop{display:none!important}
   .wd-body{display:block;margin:0}
   .wd-page-wrap{box-shadow:none;padding:0;overflow:visible;background:#fff}
@@ -364,6 +403,7 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   <button class="wd-ribbon-tab" type="button" data-tab="layout" data-i18n="tabLayout">เค้าโครงหน้ากระดาษ</button>
   <button class="wd-ribbon-tab" type="button" data-tab="refs" data-i18n="tabRefs">การอ้างอิง</button>
   <button class="wd-ribbon-tab" type="button" data-tab="review" data-i18n="tabReview">ตรวจทาน</button>
+  <button class="wd-ribbon-tab" type="button" data-tab="view" data-i18n="tabView">มุมมอง</button>
 </div>
 
 <div class="wd-ribbon-body">
@@ -686,11 +726,43 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
       </div>
     </div>
   </div>
+
+  <!-- ══ แท็บ: มุมมอง ══ -->
+  <div class="wd-ribbon-panel" data-panel="view">
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn wide" id="navPaneBtn" type="button" data-i18n-title="navPaneTitle" title="หน้าต่างนำทาง — ข้ามไปยังหัวข้อ/หน้าได้เร็ว">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="18" rx="1.5"/><line x1="13" y1="7" x2="21" y2="7"/><line x1="13" y1="12" x2="21" y2="12"/><line x1="13" y1="17" x2="18" y2="17"/></svg>
+          <span class="lbl" data-i18n="navPaneBtn">หน้าต่างนำทาง</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="wd-status" id="statusMsg"></div>
 
 <div class="wd-body">
+  <!-- ══ หน้าต่างนำทาง (Navigation Pane) แบบ View ของ Word ══ -->
+  <aside class="wd-nav" id="navPane" hidden>
+    <div class="wd-nav-head">
+      <h2 data-i18n="navPaneTitle">การนำทาง</h2>
+      <button class="wd-nav-close" id="navCloseBtn" type="button" aria-label="ปิด" data-i18n-aria-label="modalClose">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="wd-nav-search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="navSearchInput" data-i18n-placeholder="navSearchPh" placeholder="ค้นหาในเอกสาร" autocomplete="off">
+    </div>
+    <div class="wd-nav-tabs" id="navTabs">
+      <button class="wd-nav-tab active" type="button" data-navtab="headings" data-i18n="navHeadings">หัวข้อ</button>
+      <button class="wd-nav-tab" type="button" data-navtab="pages" data-i18n="navPages">หน้า</button>
+    </div>
+    <div class="wd-nav-list" id="navHeadingsList" data-navpanel="headings"></div>
+    <div class="wd-nav-list" id="navPagesList" data-navpanel="pages" hidden></div>
+  </aside>
+  <div class="wd-nav-backdrop" id="navBackdrop" hidden></div>
   <div class="wd-page-wrap">
    <div class="wd-page-scale" id="pageScale">
     <div class="wd-page" id="page">

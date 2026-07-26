@@ -62,7 +62,11 @@ var I18N = {
     pageTitle: 'งาน Word: พิมพ์และแก้ไขเอกสาร',
     pageDesc: 'พิมพ์เอกสารตั้งแต่หน้าว่าง หรือนำเข้าไฟล์ (.txt .docx .pdf .png .jpg) แล้วจัดรูปแบบด้วยเครื่องมือแบบ Word เต็มรูปแบบ — จัดหน้า, ตาราง, สัญลักษณ์, สารบัญ, เชิงอรรถ, หัว-ท้ายกระดาษ, พูดแล้วขึ้นข้อความ, ตรวจคำผิด แล้วดาวน์โหลดเป็น .docx — ทำงานในเบราว์เซอร์ของคุณทั้งหมด',
     newDocBtn: 'หน้าใหม่', importBtn: 'นำเข้าไฟล์', downloadBtn: 'ดาวน์โหลด Word', printBtn: 'พิมพ์ / PDF',
-    tabHome: 'หน้าแรก', tabInsert: 'แทรก', tabLayout: 'เค้าโครงหน้ากระดาษ', tabRefs: 'การอ้างอิง', tabReview: 'ตรวจทาน',
+    tabHome: 'หน้าแรก', tabInsert: 'แทรก', tabLayout: 'เค้าโครงหน้ากระดาษ', tabRefs: 'การอ้างอิง', tabReview: 'ตรวจทาน', tabView: 'มุมมอง',
+    navPaneBtn: 'หน้าต่างนำทาง', navPaneTitle: 'การนำทาง', navHeadings: 'หัวข้อ', navPages: 'หน้า',
+    navSearchPh: 'ค้นหาในเอกสาร', navPageX: 'หน้า {n}',
+    navEmptyHeadings: 'ยังไม่มีหัวข้อ — ใช้สไตล์ “หัวข้อ 1 / 2 / 3” กับข้อความเพื่อสร้างโครงเรื่อง แล้วหัวข้อจะมาโผล่ตรงนี้ให้กดข้ามไปได้',
+    navNoResult: 'ไม่พบหัวข้อที่ตรงกับคำค้น',
     grpUndo: 'เลิกทำ', grpClipboard: 'คลิปบอร์ด', grpFont: 'แบบอักษร', grpParagraph: 'ย่อหน้า', grpStyles: 'สไตล์',
     grpTable: 'ตาราง', grpIllustration: 'ภาพประกอบ', grpLink: 'ลิงก์', grpHeaderFooter: 'หัว-ท้ายกระดาษ', grpSymbols: 'สัญลักษณ์',
     grpPageSetup: 'ตั้งค่าหน้ากระดาษ', grpTOC: 'สารบัญ', grpFootnotes: 'เชิงอรรถ',
@@ -146,7 +150,11 @@ var I18N = {
     pageTitle: 'Word: Write and Edit Documents',
     pageDesc: 'Start typing from a blank page, or import a file (.txt .docx .pdf .png .jpg), then format it with full Word-like tools — page setup, tables, symbols, table of contents, footnotes, headers/footers, dictation, spell check, and download it as a .docx file — everything runs in your browser.',
     newDocBtn: 'New Page', importBtn: 'Import File', downloadBtn: 'Download Word', printBtn: 'Print / PDF',
-    tabHome: 'Home', tabInsert: 'Insert', tabLayout: 'Layout', tabRefs: 'References', tabReview: 'Review',
+    tabHome: 'Home', tabInsert: 'Insert', tabLayout: 'Layout', tabRefs: 'References', tabReview: 'Review', tabView: 'View',
+    navPaneBtn: 'Navigation Pane', navPaneTitle: 'Navigation', navHeadings: 'Headings', navPages: 'Pages',
+    navSearchPh: 'Search document', navPageX: 'Page {n}',
+    navEmptyHeadings: 'No headings yet — apply the “Heading 1 / 2 / 3” styles to text to build an outline, then your headings show up here to jump to.',
+    navNoResult: 'No headings match your search',
     grpUndo: 'Undo', grpClipboard: 'Clipboard', grpFont: 'Font', grpParagraph: 'Paragraph', grpStyles: 'Styles',
     grpTable: 'Table', grpIllustration: 'Illustrations', grpLink: 'Links', grpHeaderFooter: 'Header & Footer', grpSymbols: 'Symbols',
     grpPageSetup: 'Page Setup', grpTOC: 'Table of Contents', grpFootnotes: 'Footnotes',
@@ -656,7 +664,10 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     pageSizeSelect: $('pageSizeSelect'), orientationSelect: $('orientationSelect'), marginSelect: $('marginSelect'),
     pageSizeStyle: $('pageSizeStyle'), page: $('page'), pageScale: $('pageScale'), pageBg: $('pageBg'),
     footnotesArea: $('footnotesArea'), footnotesList: $('footnotesList'),
-    ribbonTabs: $('ribbonTabs')
+    ribbonTabs: $('ribbonTabs'),
+    navPane: $('navPane'), navPaneBtn: $('navPaneBtn'), navCloseBtn: $('navCloseBtn'), navBackdrop: $('navBackdrop'),
+    navSearchInput: $('navSearchInput'), navTabs: $('navTabs'),
+    navHeadingsList: $('navHeadingsList'), navPagesList: $('navPagesList')
   };
 
   var SPEAK_ICON = els.speakBtn.querySelector('svg').outerHTML;
@@ -676,6 +687,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     document.querySelectorAll('[data-i18n-title]').forEach(function (el) { el.title = t(el.getAttribute('data-i18n-title')); });
     document.querySelectorAll('[data-i18n-aria-label]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria-label'))); });
     document.querySelectorAll('[data-i18n-dataplaceholder]').forEach(function (el) { el.setAttribute('data-placeholder', t(el.getAttribute('data-i18n-dataplaceholder'))); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
     document.querySelectorAll('[data-i18n-dataph]').forEach(function (el) { el.setAttribute('data-ph', t(el.getAttribute('data-i18n-dataph'))); });
     if (els.langToggle) els.langToggle.querySelectorAll('span').forEach(function (s) { s.classList.toggle('active', s.getAttribute('data-lt') === lang); });
     if (!state.speaking) els.speakBtn.title = t('speakBtnTitle');
@@ -1537,6 +1549,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     positionEditableHF(m);
     applyScale(m, totalH, capture);
     lastPageCount = pages;
+    if (!capture && navOpen) updateNav();
     return pages;
   }
   var paginateTimer = null;
@@ -1559,6 +1572,135 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   els.marginSelect.addEventListener('change', function () { state.margins = els.marginSelect.value; applyPageSetup(); setStatus(t('pageSetupChanged')); scheduleAutosave(); });
   var resizeTimer = null;
   window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(function () { try { layoutPages(false); } catch (e) {} }, 160); });
+
+  /* ══════════════════════════════════════════════════════════════════
+     หน้าต่างนำทาง (Navigation Pane) แบบ View ของ Word
+     - แท็บ "หัวข้อ": โครงเรื่องจากหัวข้อ (Heading 1–4 / Title / Subtitle) กดข้ามได้
+     - แท็บ "หน้า": รายการหน้า 1..N กดกระโดดไปหน้านั้น
+     - ช่องค้นหา: กรองรายการหัวข้อแบบเรียลไทม์
+     - ไฮไลต์หัวข้อที่กำลังอ่านอยู่ตามการเลื่อนจอ
+     ══════════════════════════════════════════════════════════════════ */
+  var navOpen = false, navTab = 'headings', navHeadingEls = [];
+  var HEADING_SEL = 'h1,h2,h3,h4,.wd-title,.wd-subtitle';
+  function headingLevel(el) {
+    if (el.classList.contains('wd-title')) return 1;
+    if (el.classList.contains('wd-subtitle')) return 2;
+    var tag = el.tagName;
+    if (tag === 'H1') return 1; if (tag === 'H2') return 2; if (tag === 'H3') return 3; if (tag === 'H4') return 4;
+    return 2;
+  }
+  function collectHeadings() {
+    navHeadingEls = Array.prototype.filter.call(editor.querySelectorAll(HEADING_SEL), function (el) {
+      return el.textContent.trim().length > 0;
+    });
+    return navHeadingEls;
+  }
+  function buildNavHeadings(filter) {
+    var box = els.navHeadingsList; box.textContent = '';
+    var list = collectHeadings();
+    var q = (filter || '').trim().toLowerCase();
+    var shown = 0;
+    list.forEach(function (el, idx) {
+      var text = el.textContent.trim();
+      if (q && text.toLowerCase().indexOf(q) === -1) return;
+      var lv = headingLevel(el);
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'wd-nav-item wd-nav-lv' + lv;
+      btn.textContent = text;
+      btn.title = text;
+      btn.setAttribute('data-nav-idx', idx);
+      btn.addEventListener('click', function () { jumpToEl(el); setActiveNavItem(btn); });
+      box.appendChild(btn);
+      shown++;
+    });
+    if (!shown) {
+      var em = document.createElement('div'); em.className = 'wd-nav-empty';
+      em.textContent = q ? t('navNoResult') : t('navEmptyHeadings');
+      box.appendChild(em);
+    }
+  }
+  function buildNavPages() {
+    var box = els.navPagesList; box.textContent = '';
+    for (var k = 0; k < lastPageCount; k++) {
+      (function (idx) {
+        var btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'wd-nav-item wd-nav-lv1';
+        btn.textContent = t('navPageX', { n: idx + 1 });
+        btn.addEventListener('click', function () {
+          var frame = els.pageBg.children[idx];
+          if (frame) jumpToEl(frame); else jumpToEl(els.page);
+          setActiveNavItem(btn);
+        });
+        box.appendChild(btn);
+      })(k);
+    }
+  }
+  function jumpToEl(el) {
+    try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { el.scrollIntoView(); }
+    if (window.innerWidth <= 900) closeNav();   /* มือถือ: ปิด drawer หลังกด */
+  }
+  function setActiveNavItem(btn) {
+    els.navHeadingsList.querySelectorAll('.wd-nav-item.active').forEach(function (b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+  }
+  function updateNav() {
+    buildNavHeadings(els.navSearchInput.value);
+    buildNavPages();
+    highlightCurrentHeading();
+  }
+  function switchNavTab(tab) {
+    navTab = tab;
+    els.navTabs.querySelectorAll('.wd-nav-tab').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-navtab') === tab); });
+    els.navHeadingsList.hidden = tab !== 'headings';
+    els.navPagesList.hidden = tab !== 'pages';
+  }
+  function openNav() {
+    navOpen = true;
+    els.navPane.hidden = false;
+    els.navBackdrop.hidden = false;
+    document.querySelector('.wd-body').classList.add('nav-open');
+    els.navPaneBtn.classList.add('active');
+    updateNav();
+  }
+  function closeNav() {
+    navOpen = false;
+    els.navPane.hidden = true;
+    els.navBackdrop.hidden = true;
+    document.querySelector('.wd-body').classList.remove('nav-open');
+    els.navPaneBtn.classList.remove('active');
+  }
+  function toggleNav() { navOpen ? closeNav() : openNav(); }
+  els.navPaneBtn.addEventListener('click', toggleNav);
+  els.navCloseBtn.addEventListener('click', closeNav);
+  els.navBackdrop.addEventListener('click', closeNav);
+  els.navTabs.querySelectorAll('.wd-nav-tab').forEach(function (b) {
+    b.addEventListener('click', function () { switchNavTab(b.getAttribute('data-navtab')); });
+  });
+  els.navSearchInput.addEventListener('input', function () {
+    if (navTab !== 'headings') switchNavTab('headings');
+    buildNavHeadings(els.navSearchInput.value);
+  });
+  /* ไฮไลต์หัวข้อที่อยู่ใกล้ยอดจอที่สุด (scroll spy) */
+  function highlightCurrentHeading() {
+    if (!navOpen || navTab !== 'headings' || !navHeadingEls.length) return;
+    var best = -1, bestTop = -Infinity;
+    for (var i = 0; i < navHeadingEls.length; i++) {
+      var top = navHeadingEls[i].getBoundingClientRect().top - 120;
+      if (top <= 0 && top > bestTop) { bestTop = top; best = i; }
+    }
+    if (best < 0) best = 0;
+    var btns = els.navHeadingsList.querySelectorAll('.wd-nav-item');
+    btns.forEach(function (b) {
+      b.classList.toggle('active', parseInt(b.getAttribute('data-nav-idx'), 10) === best);
+    });
+  }
+  var navSpyTimer = null;
+  window.addEventListener('scroll', function () {
+    if (!navOpen) return;
+    if (navSpyTimer) return;
+    navSpyTimer = requestAnimationFrame(function () { navSpyTimer = null; highlightCurrentHeading(); });
+  }, { passive: true });
 
   /* ── สารบัญ ── */
   function slugify(s, i) { return 'h-' + i + '-' + (s || '').toLowerCase().replace(/[^a-z0-9ก-๛]+/g, '-').replace(/^-|-$/g, '').slice(0, 30); }
