@@ -139,7 +139,10 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 [data-theme="dark"] .wd-doc-header:focus,[data-theme="dark"] .wd-doc-footer:focus{background:#171C28}
 .wd-pagenum-note{font-size:11px;color:var(--muted);text-align:center;padding:2px 0 6px;display:none}
 .wd-pagenum-note.show{display:block}
-.wd-page{margin:0 auto;background:var(--card)}
+/* ตั้งฟอนต์ที่ "ตัวกระดาษ" เพื่อให้ทุกอย่างข้างใน (เนื้อหา/หัว/ท้าย/เชิงอรรถ/สารบัญ)
+   ใช้ TH Sarabun New เป็นค่าเริ่มต้น — ไม่มีตกไปใช้ Prompt ของหน้าเว็บ
+   (ฟอนต์ที่ผู้ใช้เลือกเองยัง override ได้ เพราะเป็นแค่ค่า default ที่สืบทอด) */
+.wd-page{margin:0 auto;background:var(--card);font-family:'TH Sarabun New','Sarabun',sans-serif}
 .wd-editor{min-height:560px;padding:40px clamp(20px,5vw,64px);font-size:17px;line-height:1.9;outline:none;
   font-family:'TH Sarabun New','Sarabun',sans-serif}
 .wd-editor:focus-visible{outline:none}
