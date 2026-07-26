@@ -20,6 +20,7 @@
       loadingSheet: 'กำลังโหลดตารางคำนวณ…',
       toolHint: 'เครื่องมือครบชุด (แถบด้านบน): ฟอนต์ · สี/พื้น · เส้นขอบ · จัดชิด · ผสานเซลล์ · รูปแบบตัวเลข (฿, %, วันที่) · สูตร/ฟังก์ชัน · เรียง/กรอง · ตรึงแถว-คอลัมน์ · กราฟ · ตารางสรุป (Pivot) · จัดรูปแบบตามเงื่อนไข · ตรวจสอบข้อมูล (dropdown) · ค้นหา/แทนที่ · หลายชีต (แท็บล่าง) — ทำงานในเบราว์เซอร์ทั้งหมด ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์',
       footerText: 'Tanot — งานที่รับผิดชอบ', creditsLink: 'เครดิต & ลิขสิทธิ์',
+      rHome: 'หน้าแรก', rInsert: 'แทรก', rFormulas: 'สูตร', rData: 'ข้อมูล', rView: 'มุมมอง',
       autosaveReady: 'พร้อมใช้งาน', autosaveSaving: 'กำลังบันทึก…', autosaveSaved: 'บันทึกอัตโนมัติแล้ว',
       restored: 'เปิดงานล่าสุดที่บันทึกไว้',
       importing: 'กำลังนำเข้าไฟล์…', imported: 'นำเข้าไฟล์ “{name}” เรียบร้อยแล้ว',
@@ -40,6 +41,7 @@
       loadingSheet: 'Loading spreadsheet…',
       toolHint: 'Full toolbar (top bar): font · color/fill · borders · align · merge cells · number formats (฿, %, date) · formulas/functions · sort/filter · freeze rows-columns · charts · pivot tables · conditional formatting · data validation (dropdown) · find/replace · multiple sheets (bottom tabs) — all in your browser; files are never uploaded.',
       footerText: 'Tanot — Responsibilities', creditsLink: 'Credits & licenses',
+      rHome: 'Home', rInsert: 'Insert', rFormulas: 'Formulas', rData: 'Data', rView: 'View',
       autosaveReady: 'Ready', autosaveSaving: 'Saving…', autosaveSaved: 'Autosaved',
       restored: 'Restored your last saved work',
       importing: 'Importing file…', imported: 'Imported “{name}”',
@@ -63,6 +65,7 @@
 
   var els = {
     langToggle: $('langToggle'), statusMsg: $('statusMsg'), loading: $('loading'), grid: $('luckysheet'),
+    ribbon: $('xlRibbon'), ribTabs: $('xlrTabs'), ribPanels: $('xlrPanels'),
     newBtn: $('newBtn'), importBtn: $('importBtn'), fileInput: $('fileInput'),
     exportXlsxBtn: $('exportXlsxBtn'), exportCsvBtn: $('exportCsvBtn'), printBtn: $('printBtn')
   };
@@ -178,6 +181,88 @@
     luckysheet.create(baseOptions(data || defaultData()));
     sheetLive = true;               /* จากนี้ resize เวลาหมุนจอได้ */
     setTimeout(hideLoading, 600);   /* สำรอง ถ้า hook ไม่ยิง */
+    scheduleBuildRibbon();          /* ย้ายปุ่มของ Luckysheet เข้าริบบอนแบบ Excel */
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     ริบบอนแบบ Excel — ย้าย "ปุ่มจริง" ของ Luckysheet มาจัดเป็นแท็บ/กลุ่ม
+     (ย้ายทั้งโหนด → event handler + เมนู dropdown ยังทำงาน และเด้งถูกตำแหน่ง)
+     ══════════════════════════════════════════════════════════════════ */
+  var RIBBON = {
+    home:     [['undo', 'redo', 'paintformat'], ['fontFamily', 'fontSize'], ['bold', 'italic', 'underline', 'strikethrough'],
+               ['textColor', 'cellColor'], ['border'], ['merge'], ['align', 'valign', 'textwrap', 'rotation'],
+               ['currency', 'percent', 'decDec', 'decInc', 'fmtOther']],
+    insert:   [['image', 'link'], ['chart', 'comment', 'pivot']],
+    formulas: [['func']],
+    data:     [['sortfilter'], ['splitText', 'dataVerify'], ['condFormat'], ['findReplace']],
+    view:     [['freeze'], ['print', 'protect', 'screenshot']]
+  };
+  var IDMAP = {
+    undo: 'luckysheet-icon-undo', redo: 'luckysheet-icon-redo', paintformat: 'luckysheet-icon-paintformat',
+    fontFamily: 'luckysheet-icon-font-family', fontSize: 'luckysheet-icon-font-size',
+    bold: 'luckysheet-icon-bold', italic: 'luckysheet-icon-italic', underline: 'luckysheet-icon-underline', strikethrough: 'luckysheet-icon-strikethrough',
+    textColor: 'luckysheet-icon-text-color', cellColor: 'luckysheet-icon-cell-color',
+    border: 'luckysheet-icon-border-all', merge: 'luckysheet-icon-merge-button',
+    align: 'luckysheet-icon-align', valign: 'luckysheet-icon-valign', textwrap: 'luckysheet-icon-textwrap', rotation: 'luckysheet-icon-rotation',
+    currency: 'luckysheet-icon-currency', percent: 'luckysheet-icon-percent',
+    decDec: 'luckysheet-icon-fmt-decimal-decrease', decInc: 'luckysheet-icon-fmt-decimal-increase', fmtOther: 'luckysheet-icon-fmt-other',
+    image: 'luckysheet-insertImg-btn-title', link: 'luckysheet-insertLink-btn-title',
+    chart: 'luckysheet-chart-btn-title', comment: 'luckysheet-icon-postil', pivot: 'luckysheet-pivot-btn-title',
+    func: 'luckysheet-icon-function',
+    sortfilter: 'luckysheet-icon-autofilter', splitText: 'luckysheet-splitColumn-btn-title', dataVerify: 'luckysheet-dataVerification-btn-title',
+    condFormat: 'luckysheet-icon-conditionformat', findReplace: 'luckysheet-icon-seachmore',
+    freeze: 'luckysheet-freezen-btn-horizontal', print: 'luckysheet-icon-print', protect: 'luckysheet-icon-protection', screenshot: 'luckysheet-chart-btn-screenshot'
+  };
+  function toolbarItemOf(id) {
+    var el = document.getElementById(id);
+    if (!el) return null;
+    var it = el;
+    while (it.parentElement && !(it.parentElement.classList && it.parentElement.classList.contains('luckysheet-wa-editor'))) it = it.parentElement;
+    return (it.parentElement && it.parentElement.classList.contains('luckysheet-wa-editor')) ? it : null;
+  }
+  function buildRibbon() {
+    var tb = document.querySelector('.luckysheet-wa-editor');
+    if (!tb || !document.getElementById('luckysheet-icon-bold')) return false;  /* toolbar ยังไม่พร้อม */
+    var seen = {};
+    Object.keys(RIBBON).forEach(function (tab) {
+      var panel = els.ribPanels.querySelector('[data-rpanel="' + tab + '"]');
+      if (!panel) return;
+      panel.textContent = '';
+      RIBBON[tab].forEach(function (group, gi) {
+        var added = 0, frag = document.createDocumentFragment();
+        group.forEach(function (key) {
+          var id = IDMAP[key]; if (!id || seen[id]) return;
+          var item = toolbarItemOf(id); if (!item) return;
+          seen[id] = 1; frag.appendChild(item); added++;
+        });
+        if (added) {
+          if (panel.children.length) { var sep = document.createElement('span'); sep.className = 'xlr-sep'; panel.appendChild(sep); }
+          panel.appendChild(frag);
+        }
+      });
+    });
+    tb.classList.add('xlr-moved');       /* ซ่อนแถบเดิม */
+    els.ribbon.hidden = false;
+    applyGridHeight(true);               /* ปรับความสูง/ตำแหน่งกริดหลังริบบอนโผล่ */
+    return true;
+  }
+  var ribTries = 0;
+  function scheduleBuildRibbon() {
+    ribTries = 0;
+    (function wait() {
+      if (buildRibbon()) return;
+      if (ribTries++ > 60) return;
+      setTimeout(wait, 120);
+    })();
+  }
+  function switchRibbonTab(tab) {
+    els.ribTabs.querySelectorAll('.xlr-tab').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-rtab') === tab); });
+    els.ribPanels.querySelectorAll('.xlr-panel').forEach(function (p) { p.classList.toggle('on', p.getAttribute('data-rpanel') === tab); });
+  }
+  if (els.ribTabs) {
+    els.ribTabs.querySelectorAll('.xlr-tab').forEach(function (b) {
+      b.addEventListener('click', function () { switchRibbonTab(b.getAttribute('data-rtab')); });
+    });
   }
 
   /* ── นำเข้าไฟล์ ── */

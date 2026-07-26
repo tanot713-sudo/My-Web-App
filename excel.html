@@ -49,6 +49,23 @@ body.ome-tool-page{margin:0}
 .xl-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--card,#fff);color:var(--muted,#727C93);z-index:5}
 .xl-loading .spin{width:34px;height:34px;border:3px solid #dce3ee;border-top-color:var(--xl);border-radius:50%;animation:xlspin .8s linear infinite}
 .xl-loading.hide{display:none}
+/* ── ริบบอนแบบ Excel ── */
+.xlr{background:var(--card,#fff);border-radius:14px;box-shadow:var(--sh,0 2px 14px rgba(24,31,54,.06));margin-bottom:12px;overflow:hidden}
+.xlr[hidden]{display:none}
+.xlr-tabs{display:flex;gap:2px;padding:6px 8px 0;border-bottom:1px solid var(--line,#E4E9F2);overflow-x:auto}
+.xlr-tab{font-family:inherit;font-size:13.5px;font-weight:700;padding:9px 16px;border:none;background:none;color:#69728a;border-radius:9px 9px 0 0;cursor:pointer;white-space:nowrap}
+.xlr-tab.on{background:var(--xl-sf,#E7F3EC);color:var(--xl,#217346)}
+.xlr-panels{padding:9px 10px;min-height:52px}
+.xlr-panel{display:none;flex-wrap:wrap;align-items:center;gap:3px}
+.xlr-panel.on{display:flex}
+.xlr-sep{width:1px;height:26px;background:var(--line,#E4E9F2);margin:0 7px;display:inline-block;flex:0 0 auto}
+/* ปุ่ม Luckysheet ที่ย้ายเข้ามา — บังคับให้เรียงในแนวเดียวกัน (ยกเลิก float/absolute ของเดิม) */
+.xlr-panel .luckysheet-toolbar-button,.xlr-panel .luckysheet-toolbar-select,.xlr-panel .luckysheet-toolbar-menu-button,
+.xlr-panel [class*="luckysheet-toolbar"]{position:relative!important;top:auto!important;left:auto!important;float:none!important;
+  display:inline-flex!important;align-items:center;vertical-align:middle;margin:1px 0!important}
+.xlr-panel .luckysheet-toolbar-select .luckysheet-toolbar-menu-button-caret{position:static!important}
+/* ซ่อนแถบเครื่องมือเดิมของ Luckysheet หลังย้ายปุ่มออกแล้ว (ตั้งใน JS ด้วย เพื่อคงการวัด layout ตอน init) */
+.luckysheet-wa-editor.xlr-moved{display:none!important}
 .xl-hint{font-size:12.5px;color:var(--muted,#9AA3B8);margin:10px 2px 0;line-height:1.7}
 footer{margin-top:30px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--sky-dk);text-decoration:none;font-weight:600}
@@ -98,6 +115,24 @@ footer a{color:var(--sky-dk);text-decoration:none;font-weight:600}
     </button>
     <span class="xl-sp"></span>
     <span class="xl-status" id="statusMsg"><span data-i18n="autosaveReady">พร้อมใช้งาน</span></span>
+  </div>
+
+  <!-- ริบบอนแบบ Excel: ย้ายปุ่มจริงของ Luckysheet มาจัดเป็นแท็บ/กลุ่ม (ปุ่มยังทำงาน + เมนูเด้งถูกที่) -->
+  <div class="xlr" id="xlRibbon" hidden>
+    <div class="xlr-tabs" id="xlrTabs">
+      <button class="xlr-tab on" type="button" data-rtab="home" data-i18n="rHome">หน้าแรก</button>
+      <button class="xlr-tab" type="button" data-rtab="insert" data-i18n="rInsert">แทรก</button>
+      <button class="xlr-tab" type="button" data-rtab="formulas" data-i18n="rFormulas">สูตร</button>
+      <button class="xlr-tab" type="button" data-rtab="data" data-i18n="rData">ข้อมูล</button>
+      <button class="xlr-tab" type="button" data-rtab="view" data-i18n="rView">มุมมอง</button>
+    </div>
+    <div class="xlr-panels" id="xlrPanels">
+      <div class="xlr-panel on" data-rpanel="home"></div>
+      <div class="xlr-panel" data-rpanel="insert"></div>
+      <div class="xlr-panel" data-rpanel="formulas"></div>
+      <div class="xlr-panel" data-rpanel="data"></div>
+      <div class="xlr-panel" data-rpanel="view"></div>
+    </div>
   </div>
 
   <div class="xl-sheetwrap">
