@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ตารางคำนวณ | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#217346">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<!-- Luckysheet (สเปรดชีต) — MIT -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/luckysheet@2.1.13/dist/plugins/css/pluginsCss.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/luckysheet@2.1.13/dist/plugins/plugins.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/luckysheet@2.1.13/dist/css/luckysheet.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/luckysheet@2.1.13/dist/assets/iconfont/iconfont.css">
+<style>
+:root{--xl:#217346;--xl-dk:#1a5c38;--xl-sf:#E7F3EC;--sky-dk:#2563EB}
+*{box-sizing:border-box}
+body.ome-tool-page{margin:0}
+.wrap{max-width:1320px;margin:0 auto;padding:0 18px 40px}
+.crumb-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 0 0;flex-wrap:wrap}
+.crumb{font-size:13px;color:var(--muted,#727C93)}
+.crumb a{color:var(--xl);text-decoration:none;font-weight:600}
+.crumb a:hover{text-decoration:underline}
+.crumb .sep{margin:0 8px;color:#C9CEDC}
+.lang-toggle{display:inline-flex;align-items:center;gap:2px;background:#E9EEF7;border:none;border-radius:20px;padding:3px;cursor:pointer;font-family:inherit}
+.lang-toggle span{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:16px;color:#727C93}
+.lang-toggle span.active{background:#fff;color:var(--xl);box-shadow:0 1px 3px rgba(24,31,54,.08)}
+.xl-head{display:flex;align-items:center;gap:15px;margin:14px 0 14px}
+.xl-head-ic{width:54px;height:54px;border-radius:15px;flex-shrink:0;background:linear-gradient(135deg,#2fbf71,#178a4e);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(23,138,78,.3)}
+.xl-head h1{font-size:23px;font-weight:800;letter-spacing:-.01em;line-height:1.3}
+.xl-filebar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;background:var(--card,#fff);border-radius:14px;box-shadow:var(--sh,0 2px 14px rgba(24,31,54,.06));padding:12px 14px;margin-bottom:12px}
+.xl-btn{display:inline-flex;align-items:center;gap:7px;border:1.5px solid var(--line,#E4E9F2);background:#fff;border-radius:11px;padding:9px 14px;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink,#1F2733);cursor:pointer;transition:.14s}
+.xl-btn:hover{border-color:var(--xl);color:var(--xl)}
+.xl-btn.primary{background:var(--xl);border-color:var(--xl);color:#fff}
+.xl-btn.primary:hover{background:var(--xl-dk);color:#fff}
+.xl-btn svg{width:15px;height:15px}
+.xl-sp{flex:1}
+.xl-status{font-size:13px;color:var(--muted,#727C93);font-weight:600;display:flex;align-items:center;gap:7px}
+.xl-status.err{color:#E5484D}
+.xl-status .spin{width:14px;height:14px;border:2px solid #cbd5e1;border-top-color:var(--xl);border-radius:50%;animation:xlspin .7s linear infinite}
+@keyframes xlspin{to{transform:rotate(360deg)}}
+.xl-sheetwrap{position:relative;background:var(--card,#fff);border-radius:14px;box-shadow:var(--sh,0 2px 14px rgba(24,31,54,.06));overflow:hidden}
+#luckysheet{width:100%;height:72vh;min-height:460px}
+.xl-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--card,#fff);color:var(--muted,#727C93);z-index:5}
+.xl-loading .spin{width:34px;height:34px;border:3px solid #dce3ee;border-top-color:var(--xl);border-radius:50%;animation:xlspin .8s linear infinite}
+.xl-loading.hide{display:none}
+.xl-hint{font-size:12.5px;color:var(--muted,#9AA3B8);margin:10px 2px 0;line-height:1.7}
+footer{margin-top:30px;text-align:center;font-size:12.5px;color:#9AA3B8}
+footer a{color:var(--sky-dk);text-decoration:none;font-weight:600}
+@media (max-width:640px){
+  .wrap{padding:0 10px 50px}
+  .xl-head h1{font-size:19px}
+  .xl-filebar{padding:9px;gap:6px}
+  .xl-btn{font-size:12.5px;padding:8px 11px}
+  #luckysheet{height:64vh;min-height:380px}
+}
+</style>
+</head>
+<body class="ome-tool-page" data-doctitle-key="docTitle">
+<div class="wrap">
+  <div class="crumb-row">
+    <nav class="crumb"><a href="app.html#/responsibilities" data-i18n="crumbResp">งานที่รับผิดชอบ</a><span class="sep">/</span><span data-i18n="crumbSheet">ตารางคำนวณ</span></nav>
+    <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
+      <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
+    </button>
+  </div>
+
+  <div class="xl-head">
+    <div class="xl-head-ic">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+    </div>
+    <div><h1 data-i18n="pageTitle">ตารางคำนวณ: สร้างและแก้ไขสเปรดชีต (รองรับไฟล์ Excel .xlsx)</h1></div>
+  </div>
+
+  <div class="xl-filebar" id="fileBar">
+    <button class="xl-btn" id="newBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <span data-i18n="newBtn">ไฟล์ใหม่</span>
+    </button>
+    <button class="xl-btn" id="importBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
+      <span data-i18n="importBtn">นำเข้า Excel/CSV</span>
+    </button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
+    <button class="xl-btn primary" id="exportXlsxBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+      <span data-i18n="exportXlsxBtn">ดาวน์โหลด .xlsx</span>
+    </button>
+    <button class="xl-btn" id="exportCsvBtn" type="button"><span data-i18n="exportCsvBtn">ดาวน์โหลด .csv</span></button>
+    <button class="xl-btn" id="printBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      <span data-i18n="printBtn">พิมพ์ / PDF</span>
+    </button>
+    <span class="xl-sp"></span>
+    <span class="xl-status" id="statusMsg"><span data-i18n="autosaveReady">พร้อมใช้งาน</span></span>
+  </div>
+
+  <div class="xl-sheetwrap">
+    <div id="luckysheet"></div>
+    <div class="xl-loading" id="loading">
+      <div class="spin"></div>
+      <div data-i18n="loadingSheet">กำลังโหลดตารางคำนวณ…</div>
+    </div>
+  </div>
+  <div class="xl-hint" data-i18n="toolHint">เครื่องมือครบชุด (แถบด้านบน): ฟอนต์ · สี/พื้น · เส้นขอบ · จัดชิด · ผสานเซลล์ · รูปแบบตัวเลข (฿, %, วันที่) · สูตร · เรียง/กรอง · ตรึงแถว-คอลัมน์ · หลายชีต (แท็บล่าง) — ทำงานในเบราว์เซอร์ทั้งหมด ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์</div>
+
+  <footer><span data-i18n="footerText">Tanot — งานที่รับผิดชอบ</span> · <a href="credits.html" data-i18n="creditsLink">เครดิต &amp; ลิขสิทธิ์</a></footer>
+</div>
+
+<!-- ไลบรารี: SheetJS (อ่าน/เขียน .xlsx/.csv), LuckyExcel (แปลง .xlsx→สเปรดชีต), Luckysheet (กริด/สูตร) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luckyexcel@1.0.1/dist/luckyexcel.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luckysheet@2.1.13/dist/plugins/js/plugin.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luckysheet@2.1.13/dist/luckysheet.umd.js"></script>
+<script src="excel.js"></script>
+<script src="auth-gate.js"></script>
+</body>
+</html>
