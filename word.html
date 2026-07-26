@@ -217,6 +217,11 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .wd-editor .wd-pagebreak{height:0;border-top:2px dashed #C7CEE0;margin:18px 0;position:relative}
 .wd-editor .wd-pagebreak::after{content:"↕ ขึ้นหน้าใหม่";position:absolute;top:-9px;left:50%;transform:translateX(-50%);
   background:var(--card);padding:0 8px;font-size:10px;color:var(--muted)}
+/* ตัวแบ่งส่วน (Section break) — ขึ้นหน้าใหม่ + สลับแนวกระดาษของส่วนถัดไป */
+.wd-editor .wd-secbreak{height:0;border-top:2px dashed var(--sky);margin:20px 0;position:relative;
+  -webkit-user-select:none;user-select:none}
+.wd-editor .wd-secbreak::after{content:attr(data-label);position:absolute;top:-9px;left:50%;transform:translateX(-50%);
+  white-space:nowrap;background:var(--sky-sf);color:var(--sky-dk);padding:1px 10px;font-size:10px;font-weight:700;border-radius:8px}
 .wd-editor .wd-fnref{color:var(--sky-dk);font-weight:700;cursor:pointer}
 .wd-editor .wd-toc{border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:10px 0;background:var(--bg)}
 .wd-editor .wd-toc-title{font-weight:700;font-size:15px;margin-bottom:8px}
@@ -660,6 +665,18 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
             <option value="wide" data-i18n="marginWide">กว้าง</option>
           </select>
         </div>
+      </div>
+    </div>
+    <div class="wd-rgroup">
+      <div class="wd-rgroup-body">
+        <button class="rb-btn wide" id="secPortraitBtn" type="button" data-i18n-title="secPortraitTitle" title="แทรกส่วนใหม่แบบแนวตั้ง (ขึ้นหน้าใหม่)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="1.5"/></svg>
+          <span class="lbl" data-i18n="secPortraitWord">ส่วนแนวตั้ง</span>
+        </button>
+        <button class="rb-btn wide" id="secLandscapeBtn" type="button" data-i18n-title="secLandscapeTitle" title="แทรกส่วนใหม่แบบแนวนอน (ขึ้นหน้าใหม่) — เช่น หน้าตารางกว้าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="1.5"/></svg>
+          <span class="lbl" data-i18n="secLandscapeWord">ส่วนแนวนอน</span>
+        </button>
       </div>
     </div>
   </div>

@@ -67,6 +67,10 @@ var I18N = {
     navSearchPh: 'ค้นหาในเอกสาร', navPageX: 'หน้า {n}',
     navEmptyHeadings: 'ยังไม่มีหัวข้อ — ใช้สไตล์ “หัวข้อ 1 / 2 / 3” กับข้อความเพื่อสร้างโครงเรื่อง แล้วหัวข้อจะมาโผล่ตรงนี้ให้กดข้ามไปได้',
     navNoResult: 'ไม่พบหัวข้อที่ตรงกับคำค้น',
+    secPortraitWord: 'ส่วนแนวตั้ง', secLandscapeWord: 'ส่วนแนวนอน',
+    secPortraitTitle: 'แทรกส่วนใหม่แบบแนวตั้ง (ขึ้นหน้าใหม่)', secLandscapeTitle: 'แทรกส่วนใหม่แบบแนวนอน (ขึ้นหน้าใหม่) — เช่น หน้าตารางกว้าง',
+    secBreakPortrait: 'แบ่งส่วน • แนวตั้ง', secBreakLandscape: 'แบ่งส่วน • แนวนอน',
+    secInserted: 'แทรกตัวแบ่งส่วนแล้ว — เนื้อหาหลังจากนี้จะเป็น{orient}',
     grpUndo: 'เลิกทำ', grpClipboard: 'คลิปบอร์ด', grpFont: 'แบบอักษร', grpParagraph: 'ย่อหน้า', grpStyles: 'สไตล์',
     grpTable: 'ตาราง', grpIllustration: 'ภาพประกอบ', grpLink: 'ลิงก์', grpHeaderFooter: 'หัว-ท้ายกระดาษ', grpSymbols: 'สัญลักษณ์',
     grpPageSetup: 'ตั้งค่าหน้ากระดาษ', grpTOC: 'สารบัญ', grpFootnotes: 'เชิงอรรถ',
@@ -155,6 +159,10 @@ var I18N = {
     navSearchPh: 'Search document', navPageX: 'Page {n}',
     navEmptyHeadings: 'No headings yet — apply the “Heading 1 / 2 / 3” styles to text to build an outline, then your headings show up here to jump to.',
     navNoResult: 'No headings match your search',
+    secPortraitWord: 'Portrait section', secLandscapeWord: 'Landscape section',
+    secPortraitTitle: 'Insert a new portrait section (starts a new page)', secLandscapeTitle: 'Insert a new landscape section (starts a new page) — e.g. a wide table page',
+    secBreakPortrait: 'Section break • Portrait', secBreakLandscape: 'Section break • Landscape',
+    secInserted: 'Section break inserted — content after it is {orient}',
     grpUndo: 'Undo', grpClipboard: 'Clipboard', grpFont: 'Font', grpParagraph: 'Paragraph', grpStyles: 'Styles',
     grpTable: 'Table', grpIllustration: 'Illustrations', grpLink: 'Links', grpHeaderFooter: 'Header & Footer', grpSymbols: 'Symbols',
     grpPageSetup: 'Page Setup', grpTOC: 'Table of Contents', grpFootnotes: 'Footnotes',
@@ -536,47 +544,42 @@ async function htmlToDocxBlob(html, opts) {
   });
   var blockTags = ['P', 'DIV', 'H1', 'H2', 'H3', 'UL', 'OL', 'BLOCKQUOTE', 'HR', 'TABLE'];
   var topLevel = Array.from(doc.body.children).filter(function (el) {
-    return blockTags.indexOf(el.tagName) !== -1 || /wd-pagebreak|wd-toc/.test(el.className || '');
+    return blockTags.indexOf(el.tagName) !== -1 || /wd-pagebreak|wd-toc|wd-secbreak/.test(el.className || '');
   });
-  var blocks = [];
+  /* จัดกลุ่มเนื้อหาตามตัวแบ่งส่วน — แต่ละกลุ่มกลายเป็น section ใน docx ที่มีแนวกระดาษของตัวเอง
+     (Word รองรับหลาย section แนวตั้ง/แนวนอนปนกันในไฟล์เดียว) */
+  var groups = [{ orient: opts.orientation, blocks: [] }];
+  function curBlocks() { return groups[groups.length - 1].blocks; }
   if (!topLevel.length) {
-    blocks.push(new docx.Paragraph({ children: await nodeToRuns(doc.body) }));
+    curBlocks().push(new docx.Paragraph({ children: await nodeToRuns(doc.body) }));
   } else {
     for (var i = 0; i < topLevel.length; i++) {
       var el = topLevel[i];
-      if (/wd-pagebreak/.test(el.className || '')) {
-        blocks.push(new docx.Paragraph({ children: typeof docx.PageBreak === 'function' ? [new docx.PageBreak()] : [] }));
+      if (/wd-secbreak/.test(el.className || '')) {
+        groups.push({ orient: el.getAttribute('data-orient') === 'landscape' ? 'landscape' : 'portrait', blocks: [] });
+      } else if (/wd-pagebreak/.test(el.className || '')) {
+        curBlocks().push(new docx.Paragraph({ children: typeof docx.PageBreak === 'function' ? [new docx.PageBreak()] : [] }));
       } else if (/wd-toc/.test(el.className || '')) {
         var links = Array.from(el.querySelectorAll('a'));
-        blocks.push(new docx.Paragraph({ children: [new docx.TextRun({ text: el.querySelector('.wd-toc-title') ? el.querySelector('.wd-toc-title').textContent : t('tocDocTitle'), bold: true, size: 30 })] }));
-        links.forEach(function (a) { blocks.push(new docx.Paragraph({ text: a.textContent })); });
+        curBlocks().push(new docx.Paragraph({ children: [new docx.TextRun({ text: el.querySelector('.wd-toc-title') ? el.querySelector('.wd-toc-title').textContent : t('tocDocTitle'), bold: true, size: 30 })] }));
+        links.forEach(function (a) { curBlocks().push(new docx.Paragraph({ text: a.textContent })); });
       } else if (el.tagName === 'UL' || el.tagName === 'OL') {
         var items = Array.from(el.children);
-        for (var j = 0; j < items.length; j++) blocks.push(await elementToParagraph(items[j]));
+        for (var j = 0; j < items.length; j++) curBlocks().push(await elementToParagraph(items[j]));
       } else if (el.tagName === 'TABLE') {
-        blocks.push(await tableToDocxTable(el));
+        curBlocks().push(await tableToDocxTable(el));
       } else if (el.tagName === 'HR') {
-        blocks.push(new docx.Paragraph({ text: '', border: { bottom: { color: 'CCCCCC', space: 1, style: 'single', size: 6 } } }));
+        curBlocks().push(new docx.Paragraph({ text: '', border: { bottom: { color: 'CCCCCC', space: 1, style: 'single', size: 6 } } }));
       } else {
-        blocks.push(await elementToParagraph(el));
+        curBlocks().push(await elementToParagraph(el));
       }
     }
   }
+  groups.forEach(function (g) { if (!g.blocks.length) g.blocks.push(new docx.Paragraph('')); });
 
-  /* ── section properties: ขนาด/แนว/ขอบกระดาษ ── */
+  /* ── ขนาด/ขอบกระดาษ (แนวมาจากแต่ละ section) ── */
   var ps = PAGE_SIZES[opts.pageSize] || PAGE_SIZES.A4;
-  var land = opts.orientation === 'landscape';
   var mg = (MARGINS[opts.margins] || MARGINS.normal).tw;
-  var section = {
-    properties: {
-      page: {
-        size: { width: land ? ps.twH : ps.twW, height: land ? ps.twW : ps.twH,
-          orientation: docx.PageOrientation ? (land ? docx.PageOrientation.LANDSCAPE : docx.PageOrientation.PORTRAIT) : undefined },
-        margin: { top: mg.top, right: mg.right, bottom: mg.bottom, left: mg.left }
-      }
-    },
-    children: blocks
-  };
 
   /* หัว-ท้ายกระดาษ: คงรูปแบบ (ตัวหนา/สี/ฟอนต์) + การจัดตำแหน่ง (ซ้าย/กลาง/ขวา) ตามที่ผู้ใช้ตั้ง */
   function hfAlign(a) {
@@ -592,15 +595,31 @@ async function htmlToDocxBlob(html, opts) {
     if (!runs.length) runs = [new docx.TextRun('')];
     return new docx.Paragraph({ alignment: hfAlign(align), children: runs });
   }
-  if (opts.headerText && typeof docx.Header === 'function') {
-    section.headers = { default: new docx.Header({ children: [await hfParagraph(opts.headerHtml, opts.headerAlign, false)] }) };
-  }
-  if ((opts.footerText || opts.pageNum) && typeof docx.Footer === 'function') {
-    section.footers = { default: new docx.Footer({ children: [await hfParagraph(opts.footerHtml, opts.footerAlign, opts.pageNum)] }) };
+  /* สร้าง section หนึ่งชุดต่อหนึ่งกลุ่มแนวกระดาษ พร้อมหัว-ท้ายซ้ำทุกหน้า */
+  var sections = [];
+  for (var s = 0; s < groups.length; s++) {
+    var gl = groups[s].orient === 'landscape';
+    var sec = {
+      properties: {
+        page: {
+          size: { width: gl ? ps.twH : ps.twW, height: gl ? ps.twW : ps.twH,
+            orientation: docx.PageOrientation ? (gl ? docx.PageOrientation.LANDSCAPE : docx.PageOrientation.PORTRAIT) : undefined },
+          margin: { top: mg.top, right: mg.right, bottom: mg.bottom, left: mg.left }
+        }
+      },
+      children: groups[s].blocks
+    };
+    if (opts.headerText && typeof docx.Header === 'function') {
+      sec.headers = { default: new docx.Header({ children: [await hfParagraph(opts.headerHtml, opts.headerAlign, false)] }) };
+    }
+    if ((opts.footerText || opts.pageNum) && typeof docx.Footer === 'function') {
+      sec.footers = { default: new docx.Footer({ children: [await hfParagraph(opts.footerHtml, opts.footerAlign, opts.pageNum)] }) };
+    }
+    sections.push(sec);
   }
 
   var docOptions = {
-    sections: [section],
+    sections: sections,
     /* ตั้งฟอนต์+ขนาดเริ่มต้นของทั้งเอกสาร (ข้อความปกติ) — หัวข้อยังใช้ขนาดของหัวข้อเอง */
     styles: { default: { document: { run: { font: DEFAULT_DOC_FONT, size: DEFAULT_DOC_SIZE } } } }
   };
@@ -652,6 +671,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     replaceOneBtn: $('replaceOneBtn'), replaceAllBtn: $('replaceAllBtn'), findNextBtn: $('findNextBtn'),
     imageBtn: $('imageBtn'), linkBtn: $('linkBtn'), tableBtn: $('tableBtn'), hrBtn: $('hrBtn'),
     symbolBtn: $('symbolBtn'), dateBtn: $('dateBtn'), pageBreakBtn: $('pageBreakBtn'),
+    secPortraitBtn: $('secPortraitBtn'), secLandscapeBtn: $('secLandscapeBtn'),
     editHeaderBtn: $('editHeaderBtn'), editFooterBtn: $('editFooterBtn'), pageNumBtn: $('pageNumBtn'), removeHFBtn: $('removeHFBtn'),
     docHeader: $('docHeader'), docFooter: $('docFooter'), pageNumNote: $('pageNumNote'),
     tocBtn: $('tocBtn'), tocUpdateBtn: $('tocUpdateBtn'), footnoteBtn: $('footnoteBtn'),
@@ -749,15 +769,16 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   /* คืน HTML ของเนื้อหาโดยไม่มีไฮไลต์ผลค้นหา (mark.wd-find-hit เป็นแค่ UI ชั่วคราว) */
   function cleanEditorHtml() {
     var hasMark = editor.querySelector('mark.wd-find-hit');
-    var hasGap = editor.querySelector('[data-wd-gap]');
-    if (!hasMark && !hasGap) return editor.innerHTML;
+    var hasLay = editor.querySelector('[data-wd-lay]');
+    if (!hasMark && !hasLay) return editor.innerHTML;
     var clone = editor.cloneNode(true);
     /* เอาไฮไลต์ผลค้นหาออก */
     clone.querySelectorAll('mark.wd-find-hit').forEach(function (m) { var p = m.parentNode; while (m.firstChild) p.insertBefore(m.firstChild, m); p.removeChild(m); });
-    /* เอา "ช่องว่างขึ้นหน้าใหม่" (margin-top ชั่วคราวของการจัดหน้าบนจอ) ออก
+    /* เอาสไตล์จัดหน้าบนจอออก (ช่องว่างขึ้นหน้าใหม่ + ความกว้างต่อส่วน)
        — ไม่ให้ระยะจัดหน้าติดไปในไฟล์/autosave/Word */
-    clone.querySelectorAll('[data-wd-gap]').forEach(function (b) {
-      b.style.marginTop = ''; b.removeAttribute('data-wd-gap');
+    clone.querySelectorAll('[data-wd-lay]').forEach(function (b) {
+      b.style.marginTop = ''; b.style.maxWidth = ''; b.style.marginLeft = ''; b.style.marginRight = '';
+      b.removeAttribute('data-wd-lay'); b.removeAttribute('data-wd-gap');
       if (b.getAttribute('style') !== null && b.getAttribute('style').trim() === '') b.removeAttribute('style');
     });
     return clone.innerHTML;
@@ -897,26 +918,37 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     var SCALE = 2;
     try {
       /* จัดหน้าแบบ capture: หน้าต่อกันสนิท (ไม่มีช่องว่าง) + หัว-ท้ายสะท้อนทุกหน้า
-         → ตัดสไลซ์ตามความสูงหน้าเป๊ะ ได้ 1 แคนวาส = 1 หน้า A4 */
-      var pages = layoutPages(true);
-      var m = pageMetrics();
-      await new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); });
-      var canvas = await window.html2canvas(els.page, { scale: SCALE, backgroundColor: '#ffffff', useCORS: true, windowWidth: m.pageW, windowHeight: pages * m.pageH });
+         แต่ละหน้าอาจแนวตั้ง/แนวนอนต่างกัน → ครอปเฉพาะกรอบหน้านั้น (จัดกึ่งกลางใน maxW)
+         แล้วใส่ลงหน้า PDF ที่มีขนาด/แนวตรงกัน */
+      layoutPages(true);
       var ps = PAGE_SIZES[state.pageSize] || PAGE_SIZES.A4;
-      var land = state.orientation === 'landscape';
-      var pwMm = land ? ps.mmH : ps.mmW, phMm = land ? ps.mmW : ps.mmH;
-      var pdf = new jsPDFctor({ orientation: land ? 'landscape' : 'portrait', unit: 'mm', format: [pwMm, phMm] });
-      var sliceHpx = canvas.height / pages;         /* หนึ่งหน้าเท่าๆ กัน */
-      for (var k = 0; k < pages; k++) {
-        var sy = Math.round(k * sliceHpx);
-        var hpx = Math.round((k + 1) * sliceHpx) - sy;
+      var K = 96 / 25.4;
+      var orients = lastPageOrients.slice();
+      var dims = orients.map(function (o) {
+        var land = o === 'landscape';
+        return { land: land, wPx: Math.round((land ? ps.mmH : ps.mmW) * K), hPx: Math.round((land ? ps.mmW : ps.mmH) * K),
+          wMm: land ? ps.mmH : ps.mmW, hMm: land ? ps.mmW : ps.mmH };
+      });
+      var maxWpx = dims.reduce(function (mx, d) { return Math.max(mx, d.wPx); }, 0);
+      var totalHpx = dims.reduce(function (s, d) { return s + d.hPx; }, 0);
+      await new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); });
+      var canvas = await window.html2canvas(els.page, { scale: SCALE, backgroundColor: '#ffffff', useCORS: true, windowWidth: maxWpx, windowHeight: totalHpx });
+      var first = dims[0];
+      var pdf = new jsPDFctor({ orientation: first.land ? 'landscape' : 'portrait', unit: 'mm', format: [first.wMm, first.hMm] });
+      var yPx = 0;   /* ตำแหน่งบนสุดของหน้า k (พิกัด css px, gutter=0 ตอน capture) */
+      for (var k = 0; k < dims.length; k++) {
+        var d = dims[k];
+        var sx = Math.round(((maxWpx - d.wPx) / 2) * SCALE);   /* หน้าแคบจัดกึ่งกลาง → ครอปจากซ้ายที่เยื้อง */
+        var sy = Math.round(yPx * SCALE);
+        var sw = Math.round(d.wPx * SCALE), sh = Math.round(d.hPx * SCALE);
         var c2 = document.createElement('canvas');
-        c2.width = canvas.width; c2.height = hpx;
+        c2.width = sw; c2.height = sh;
         var ctx = c2.getContext('2d');
-        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c2.width, c2.height);
-        ctx.drawImage(canvas, 0, sy, canvas.width, hpx, 0, 0, canvas.width, hpx);
-        if (k > 0) pdf.addPage([pwMm, phMm], land ? 'landscape' : 'portrait');
-        pdf.addImage(c2.toDataURL('image/jpeg', 0.96), 'JPEG', 0, 0, pwMm, phMm);
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, sw, sh);
+        ctx.drawImage(canvas, sx, sy, sw, sh, 0, 0, sw, sh);
+        if (k > 0) pdf.addPage([d.wMm, d.hMm], d.land ? 'landscape' : 'portrait');
+        pdf.addImage(c2.toDataURL('image/jpeg', 0.96), 'JPEG', 0, 0, d.wMm, d.hMm);
+        yPx += d.hPx;
       }
       pdf.save('document.pdf');
       setStatus(t('pdfDone'));
@@ -1350,6 +1382,17 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     document.execCommand('insertHTML', false, '<div class="wd-pagebreak" contenteditable="false"></div><p><br></p>');
     scheduleAutosave();
   });
+  /* แทรกตัวแบ่งส่วน (Section break) — ขึ้นหน้าใหม่ + กำหนดแนวกระดาษของส่วนถัดไป */
+  function insertSectionBreak(orient) {
+    focusEditor();
+    var label = orient === 'landscape' ? t('secBreakLandscape') : t('secBreakPortrait');
+    var html = '<div class="wd-secbreak" contenteditable="false" data-orient="' + orient + '" data-label="' + label + '"></div><p><br></p>';
+    document.execCommand('insertHTML', false, html);
+    setStatus(t('secInserted', { orient: orient === 'landscape' ? t('landscape') : t('portrait') }));
+    scheduleAutosave();
+  }
+  els.secPortraitBtn.addEventListener('click', function () { insertSectionBreak('portrait'); });
+  els.secLandscapeBtn.addEventListener('click', function () { insertSectionBreak('landscape'); });
   els.dateBtn.addEventListener('click', function () {
     focusEditor();
     var lang = getUILang();
@@ -1451,106 +1494,146 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
      - ย่อทั้งหน้าให้พอดีจอมือถือด้วย transform โดยคงสัดส่วน A4 จริง
      ══════════════════════════════════════════════════════════════════ */
   var PAGE_GUTTER = 20;                     /* ช่องว่างระหว่างหน้าบนจอ (px) */
-  function pageMetrics() {
+  /* เมตริกของหน้าตาม "แนวกระดาษ" ที่ระบุ (margin เท่ากันทุกแนว จึงสลับแค่ กว้าง×สูง) */
+  function orientMetrics(orient) {
     var ps = PAGE_SIZES[state.pageSize] || PAGE_SIZES.A4;
-    var land = state.orientation === 'landscape';
+    var land = orient === 'landscape';
     var K = 96 / 25.4;                      /* mm → px (บนจอ 96dpi) */
     var mmW = land ? ps.mmH : ps.mmW, mmH = land ? ps.mmW : ps.mmH;
     var mg = (MARGINS[state.margins] || MARGINS.normal).tw;   /* twips; 1440tw = 1in = 96px → /15 */
     var pageW = Math.round(mmW * K), pageH = Math.round(mmH * K);
     var mt = Math.round(mg.top / 15), mb = Math.round(mg.bottom / 15);
     var ml = Math.round(mg.left / 15), mr = Math.round(mg.right / 15);
-    return { pageW: pageW, pageH: pageH, mt: mt, mb: mb, ml: ml, mr: mr, contentH: pageH - mt - mb };
+    return { orient: orient, pageW: pageW, pageH: pageH, mt: mt, mb: mb, ml: ml, mr: mr,
+      contentW: pageW - ml - mr, contentH: pageH - mt - mb };
   }
+  function pageMetrics() { return orientMetrics(state.orientation); }   /* ใช้ในที่อื่น (PDF ฯลฯ) */
+  function isSecbreak(b) { return /wd-secbreak/.test(b.className || ''); }
+  function secOrient(b) { return b.getAttribute('data-orient') === 'landscape' ? 'landscape' : 'portrait'; }
   function bandHtml(el) { return el.textContent.trim() ? el.innerHTML : ''; }
-  function renderFrames(pages, m, gutter, capture) {
+  /* วาดกรอบกระดาษทุกหน้า จาก descriptor tops[] (แต่ละหน้ามีแนว/ขนาดของตัวเอง)
+     หน้าที่แคบกว่าความกว้างสูงสุด (maxW) จะจัดกึ่งกลางแนวนอน */
+  function renderFrames(tops, maxW, capture) {
     var bg = els.pageBg; bg.textContent = '';
     var hAlign = regionAlign(els.docHeader), fAlign = regionAlign(els.docFooter);
     var hHtml = bandHtml(els.docHeader), fHtml = bandHtml(els.docFooter);
-    for (var k = 0; k < pages; k++) {
-      var top = k * (m.pageH + gutter);
+    for (var k = 0; k < tops.length; k++) {
+      var d = tops[k], m = d.m, top = d.top, left = Math.round((maxW - m.pageW) / 2);
       var pf = document.createElement('div'); pf.className = 'wd-pf';
-      pf.style.top = top + 'px'; pf.style.height = m.pageH + 'px';
+      pf.style.top = top + 'px'; pf.style.left = left + 'px'; pf.style.right = 'auto';
+      pf.style.width = m.pageW + 'px'; pf.style.height = m.pageH + 'px';
       bg.appendChild(pf);
       var showHF = capture || k > 0;        /* หน้าแรกบนจอใช้กล่องแก้ไขจริง ไม่ต้องมี mirror */
       if (showHF && hHtml) {
         var hb = document.createElement('div'); hb.className = 'wd-pf-band';
         hb.style.top = (top + Math.round(m.mt * 0.34)) + 'px';
-        hb.style.left = m.ml + 'px'; hb.style.right = m.mr + 'px';
+        hb.style.left = (left + m.ml) + 'px'; hb.style.right = 'auto'; hb.style.width = m.contentW + 'px';
         hb.style.textAlign = hAlign; hb.innerHTML = hHtml; bg.appendChild(hb);
       }
       if (showHF && fHtml) {
         var fb = document.createElement('div'); fb.className = 'wd-pf-band';
         fb.style.top = (top + m.pageH - m.mb + Math.round(m.mb * 0.12)) + 'px';
-        fb.style.left = m.ml + 'px'; fb.style.right = m.mr + 'px';
+        fb.style.left = (left + m.ml) + 'px'; fb.style.right = 'auto'; fb.style.width = m.contentW + 'px';
         fb.style.textAlign = fAlign; fb.innerHTML = fHtml; bg.appendChild(fb);
       }
       if (state.pageNum) {
         var pn = document.createElement('div'); pn.className = 'wd-pf-num';
         pn.style.top = (top + m.pageH - Math.round(m.mb * 0.55)) + 'px';
-        pn.textContent = t('pageXofY', { x: k + 1, y: pages });
+        pn.style.left = left + 'px'; pn.style.right = 'auto'; pn.style.width = m.pageW + 'px';
+        pn.textContent = t('pageXofY', { x: k + 1, y: tops.length });
         bg.appendChild(pn);
       }
     }
   }
-  function positionEditableHF(m) {
+  function positionEditableHF(first, maxW) {
+    var m = first.m, left = Math.round((maxW - m.pageW) / 2);
     var H = els.docHeader, F = els.docFooter;
-    H.style.top = Math.round(m.mt * 0.34) + 'px'; H.style.left = m.ml + 'px'; H.style.right = m.mr + 'px';
+    H.style.top = Math.round(m.mt * 0.34) + 'px'; H.style.left = (left + m.ml) + 'px'; H.style.right = 'auto'; H.style.width = m.contentW + 'px';
     H.style.minHeight = Math.round(m.mt * 0.46) + 'px'; H.style.padding = '2px 4px';
-    F.style.top = (m.pageH - m.mb + Math.round(m.mb * 0.12)) + 'px'; F.style.left = m.ml + 'px'; F.style.right = m.mr + 'px';
+    F.style.top = (m.pageH - m.mb + Math.round(m.mb * 0.12)) + 'px'; F.style.left = (left + m.ml) + 'px'; F.style.right = 'auto'; F.style.width = m.contentW + 'px';
     F.style.minHeight = Math.round(m.mb * 0.4) + 'px'; F.style.padding = '2px 4px';
   }
-  function applyScale(m, totalH, capture) {
+  function applyScale(maxW, totalH, capture) {
     var scaler = els.pageScale;
     if (capture) { scaler.style.transform = 'none'; els.page.style.transform = 'none';
-      scaler.style.width = m.pageW + 'px'; scaler.style.height = totalH + 'px'; return; }
+      scaler.style.width = maxW + 'px'; scaler.style.height = totalH + 'px'; return; }
     var wrap = scaler.parentElement;
-    var avail = (wrap ? wrap.clientWidth : m.pageW) - 12;
-    var s = Math.min(1, avail / m.pageW);
+    var avail = (wrap ? wrap.clientWidth : maxW) - 12;
+    var s = Math.min(1, avail / maxW);
     els.page.style.transformOrigin = 'top left';
     els.page.style.transform = s < 1 ? 'scale(' + s + ')' : 'none';
-    scaler.style.width = Math.round(m.pageW * s) + 'px';
+    scaler.style.width = Math.round(maxW * s) + 'px';
     scaler.style.height = Math.round(totalH * s) + 'px';
   }
-  var lastPageCount = 1;
+  var lastPageCount = 1, lastPageOrients = ['portrait'];
   function layoutPages(capture) {
-    var m = pageMetrics();
     var G = capture ? 0 : PAGE_GUTTER;
-    els.page.style.width = m.pageW + 'px';
-    editor.style.padding = m.mt + 'px ' + m.mr + 'px ' + m.mb + 'px ' + m.ml + 'px';
-    /* ล้างช่องว่างขึ้นหน้าใหม่ของรอบก่อน */
-    Array.prototype.forEach.call(editor.querySelectorAll('[data-wd-gap]'), function (b) {
-      b.style.marginTop = ''; b.removeAttribute('data-wd-gap');
-    });
-    var PT = m.mt, deadBand = m.mb + G + m.mt;
-    var pageBottom = PT + m.contentH, pages = 1, forceBreak = false;
+    var defM = orientMetrics(state.orientation);
     var blocks = Array.prototype.filter.call(editor.children, function (el) { return el.nodeType === 1; });
-    for (var i = 0; i < blocks.length; i++) {
-      var b = blocks[i], top = b.offsetTop, h = b.offsetHeight;
-      /* บล็อกเริ่มเลยขอบล่างหน้าไปแล้ว (เพราะบล็อกก่อนหน้าสูงเกินหนึ่งหน้า) → ขยับนับหน้า */
-      var guard = 0;
-      while (top >= pageBottom - 1 && guard++ < 4000) { pageBottom += deadBand + m.contentH; pages++; }
-      var straddle = (top + h > pageBottom + 1 && top < pageBottom);
-      if ((forceBreak || straddle) && top > PT + 1) {
-        var target = pageBottom + deadBand, delta = target - top;
-        if (delta > 0) {
-          var cur = parseFloat(getComputedStyle(b).marginTop) || 0;
-          b.style.marginTop = (cur + delta) + 'px';
-          b.setAttribute('data-wd-gap', '1');
-        }
-        pageBottom = b.offsetTop + m.contentH; pages++;
-      }
-      forceBreak = /wd-pagebreak/.test(b.className || '');
+    /* ความกว้างหน้ามากสุดในเอกสาร (ถ้ามีส่วนแนวนอน) — ใช้เป็นความกว้างพื้นที่พิมพ์ */
+    var maxW = defM.pageW;
+    blocks.forEach(function (b) { if (isSecbreak(b)) { var om = orientMetrics(secOrient(b)); if (om.pageW > maxW) maxW = om.pageW; } });
+    var PT = defM.mt, deadBand = defM.mb + G + defM.mt;   /* margin เท่ากันทุกแนว */
+    els.page.style.width = maxW + 'px';
+    editor.style.width = maxW + 'px';
+    editor.style.padding = PT + 'px 0 ' + defM.mb + 'px 0';
+    /* ล้างสไตล์จัดหน้าของรอบก่อน (ช่องว่างขึ้นหน้า + ความกว้างต่อส่วน) */
+    Array.prototype.forEach.call(editor.querySelectorAll('[data-wd-lay]'), function (b) {
+      b.style.marginTop = ''; b.style.maxWidth = ''; b.style.marginLeft = ''; b.style.marginRight = '';
+      b.removeAttribute('data-wd-lay'); b.removeAttribute('data-wd-gap');
+    });
+    function applyBlockWidth(b, mm) {
+      b.style.maxWidth = mm.contentW + 'px'; b.style.marginLeft = 'auto'; b.style.marginRight = 'auto';
+      b.setAttribute('data-wd-lay', '1');
     }
-    var totalH = pages * m.pageH + (pages - 1) * G;
+    var pagesOrient = [state.orientation];
+    var curM = defM, pageBottom = PT + curM.contentH, pendingOrient = null, forceBreak = false;
+    for (var i = 0; i < blocks.length; i++) {
+      var b = blocks[i];
+      if (isSecbreak(b)) {   /* ตัวแบ่งส่วน: จำแนวใหม่ไว้ ให้บล็อกถัดไปขึ้นหน้าใหม่ */
+        b.style.maxWidth = ''; b.style.marginLeft = ''; b.style.marginRight = '';
+        pendingOrient = secOrient(b); forceBreak = true;
+        continue;
+      }
+      if (/wd-pagebreak/.test(b.className || '')) {   /* ขึ้นหน้าใหม่ (แนวเดิม) */
+        forceBreak = true; pendingOrient = null;
+        continue;
+      }
+      applyBlockWidth(b, curM);
+      var top = b.offsetTop, h = b.offsetHeight;
+      if (forceBreak && top > PT + 1) {                    /* ขึ้นส่วนใหม่ + สลับแนว */
+        if (pendingOrient) { curM = orientMetrics(pendingOrient); applyBlockWidth(b, curM); }
+        var delta = (pageBottom + deadBand) - b.offsetTop;
+        if (delta > 0) { var cur = parseFloat(getComputedStyle(b).marginTop) || 0; b.style.marginTop = (cur + delta) + 'px'; b.setAttribute('data-wd-gap', '1'); }
+        pageBottom = b.offsetTop + curM.contentH; pagesOrient.push(curM.orient);
+        forceBreak = false; pendingOrient = null;
+        continue;
+      }
+      var guard = 0;
+      while (top >= pageBottom - 1 && guard++ < 4000) { pageBottom += deadBand + curM.contentH; pagesOrient.push(curM.orient); }
+      top = b.offsetTop; h = b.offsetHeight;
+      if (top + h > pageBottom + 1 && top < pageBottom && top > PT + 1) {
+        var target2 = pageBottom + deadBand, delta2 = target2 - top;
+        if (delta2 > 0) { var c2 = parseFloat(getComputedStyle(b).marginTop) || 0; b.style.marginTop = (c2 + delta2) + 'px'; b.setAttribute('data-wd-gap', '1'); }
+        pageBottom = b.offsetTop + curM.contentH; pagesOrient.push(curM.orient);
+      }
+    }
+    /* descriptor แต่ละหน้า (ตำแหน่ง + เมตริกตามแนว) */
+    var tops = [], y = 0;
+    for (var k = 0; k < pagesOrient.length; k++) {
+      var pm = orientMetrics(pagesOrient[k]);
+      tops.push({ top: y, m: pm });
+      y += pm.pageH + G;
+    }
+    var totalH = pagesOrient.length ? y - G : defM.pageH;
     els.page.style.height = totalH + 'px';
     editor.style.minHeight = totalH + 'px';
-    renderFrames(pages, m, G, capture);
-    positionEditableHF(m);
-    applyScale(m, totalH, capture);
-    lastPageCount = pages;
+    renderFrames(tops, maxW, capture);
+    positionEditableHF(tops[0] || { m: defM }, maxW);
+    applyScale(maxW, totalH, capture);
+    lastPageCount = pagesOrient.length; lastPageOrients = pagesOrient;
     if (!capture && navOpen) updateNav();
-    return pages;
+    return lastPageCount;
   }
   var paginateTimer = null;
   function schedulePaginate() {
