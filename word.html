@@ -124,11 +124,16 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 /* หัว-ท้ายกระดาษ: แก้ไขได้ในหน้าเอกสารเลยแบบ Word */
 .wd-doc-header,.wd-doc-footer{font-size:13.5px;color:var(--ink);padding:9px clamp(20px,5vw,64px);
   outline:none;min-height:36px;border:1px dashed transparent;border-radius:6px;transition:.14s}
-.wd-doc-header{border-bottom:1px solid var(--line);margin-bottom:2px}
-.wd-doc-footer{border-top:1px solid var(--line);margin-top:2px}
-.wd-doc-header:hover,.wd-doc-footer:hover{background:#FBFCFF}
-.wd-doc-header:focus,.wd-doc-footer:focus{background:#FBFCFF;border-color:var(--sky)}
-.wd-doc-header:empty::before,.wd-doc-footer:empty::before{content:attr(data-ph);color:#C2C9D8;pointer-events:none}
+.wd-doc-header{margin-bottom:2px}
+.wd-doc-footer{margin-top:2px}
+/* เส้นแบ่งหัว/ท้ายจะโชว์เฉพาะเมื่อ "มีเนื้อหา" — ว่างเปล่าจะไม่มีเส้น ดูโล่งเหมือนไม่มีหัว-ท้าย */
+.wd-doc-header:not(.wd-hf-empty){border-bottom:1px solid var(--line)}
+.wd-doc-footer:not(.wd-hf-empty){border-top:1px solid var(--line)}
+/* กล่องว่าง (ยังไม่ได้พิมพ์) ทำให้เตี้ยลง + จางลง เป็นแค่ที่ให้แตะเพิ่ม ไม่เด่นเหมือนหัว-ท้ายจริง */
+.wd-doc-header.wd-hf-empty,.wd-doc-footer.wd-hf-empty{min-height:0;padding-top:6px;padding-bottom:6px;opacity:.55}
+.wd-doc-header:hover,.wd-doc-footer:hover{background:#FBFCFF;opacity:1}
+.wd-doc-header:focus,.wd-doc-footer:focus{background:#FBFCFF;border-color:var(--sky);opacity:1}
+.wd-doc-header:empty::before,.wd-doc-footer:empty::before{content:attr(data-ph);color:#C2C9D8;pointer-events:none;font-size:12px}
 [data-theme="dark"] .wd-doc-header:hover,[data-theme="dark"] .wd-doc-footer:hover,
 [data-theme="dark"] .wd-doc-header:focus,[data-theme="dark"] .wd-doc-footer:focus{background:#171C28}
 .wd-pagenum-note{font-size:11px;color:var(--muted);text-align:center;padding:2px 0 6px;display:none}
@@ -248,8 +253,8 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
   .wd-page{max-width:none!important;margin:0}
   /* หัว-ท้ายกระดาษ: พิมพ์กล่องจริงในเนื้อหา (position:fixed ไม่ทำงานตอนพิมพ์บน iOS Safari)
      — คงข้อความ + การจัดตำแหน่งที่ผู้ใช้ตั้งไว้ ตัดเส้น/พื้นหลัง/placeholder ออก */
-  .wd-doc-header,.wd-doc-footer{border:none!important;background:none!important;padding:6px clamp(20px,5vw,64px)!important;color:#000}
-  .wd-doc-header:empty,.wd-doc-footer:empty{display:none!important}
+  .wd-doc-header,.wd-doc-footer{border:none!important;background:none!important;padding:6px clamp(20px,5vw,64px)!important;color:#000;opacity:1!important}
+  .wd-doc-header:empty,.wd-doc-footer:empty,.wd-doc-header.wd-hf-empty,.wd-doc-footer.wd-hf-empty{display:none!important}
   .wd-doc-header:empty::before,.wd-doc-footer:empty::before{content:none!important}
   .wd-editor .wd-pagebreak{break-after:page;border:none;height:0;margin:0}
   .wd-editor .wd-pagebreak::after{display:none}

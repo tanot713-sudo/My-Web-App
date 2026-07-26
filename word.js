@@ -1314,9 +1314,16 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   els.symbolCloseBtn.addEventListener('click', closeModals);
 
   /* ── หัว-ท้ายกระดาษ (แก้ไขในหน้าเอกสารได้เลยแบบ Word) ── */
+  /* ทำเครื่องหมายว่า "ว่างจริง" โดยดูจากข้อความ (ไม่ใช่แค่ :empty เพราะ contenteditable
+     มักแอบใส่ <br> เวลาแตะแล้วลบ ทำให้ :empty ไม่ตรง → เส้น/กล่องเปล่าโผล่ในไฟล์) */
+  function markHFEmpty() {
+    els.docHeader.classList.toggle('wd-hf-empty', !els.docHeader.textContent.trim());
+    els.docFooter.classList.toggle('wd-hf-empty', !els.docFooter.textContent.trim());
+  }
   function updateHeaderFooterUI() {
     els.pageNumBtn.classList.toggle('active', state.pageNum);
     els.pageNumNote.classList.toggle('show', state.pageNum);
+    markHFEmpty();
   }
   /* อ่านข้อความหัว/ท้ายจากกล่องจริง (ใช้ทั้งเช็คว่าว่างไหม และตอนส่งออก) */
   function syncHFFromRegions() {
@@ -1335,6 +1342,10 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   /* พิมพ์ในกล่องหัว/ท้ายโดยตรง → เก็บลง state ทันที */
   els.docHeader.addEventListener('input', function () { syncHFFromRegions(); scheduleAutosave(); });
   els.docFooter.addEventListener('input', function () { syncHFFromRegions(); scheduleAutosave(); });
+  /* พอเลิกแก้ไข ถ้าว่าง (เหลือแต่ <br>/ช่องว่าง) ให้ล้างเป็นว่างจริง — กันเส้น/กล่องเปล่าโผล่ในไฟล์ */
+  function cleanupEmptyHF(el) { if (!el.textContent.trim()) el.innerHTML = ''; markHFEmpty(); }
+  els.docHeader.addEventListener('blur', function () { cleanupEmptyHF(els.docHeader); });
+  els.docFooter.addEventListener('blur', function () { cleanupEmptyHF(els.docFooter); });
   /* กด Enter ในหัว/ท้ายไม่ต้องขึ้นบรรทัดใหม่ (Word หัว-ท้ายเป็นบรรทัดเดียวพอ) */
   function singleLineGuard(e) { if (e.key === 'Enter') e.preventDefault(); }
   els.docHeader.addEventListener('keydown', singleLineGuard);
