@@ -29,6 +29,9 @@ var LANGUAGES = [
   { code: 'ar', label: 'อาหรับ', labelEn: 'Arabic', ltCode: 'ar', speechLang: 'ar-SA' }
 ];
 var LT_ENDPOINT = 'https://api.languagetool.org/v2/check';
+/* ฟอนต์เริ่มต้นของเอกสาร Word (ฟอนต์ราชการไทยมาตรฐาน — หนา/คมกว่า Prompt) */
+var DEFAULT_DOC_FONT = 'TH Sarabun New';
+var DEFAULT_DOC_SIZE = 32; /* half-points = 16pt (ขนาดมาตรฐานเอกสารราชการไทย) */
 var AUTOSAVE_KEY = 'tanot:word:autosave';
 var UI_LANG_KEY = 'tanot:doclang';
 
@@ -441,7 +444,7 @@ async function nodeToRuns(el, inherited) {
   var child = el.firstChild;
   while (child) {
     if (child.nodeType === Node.TEXT_NODE) {
-      if (child.textContent) runs.push(new docx.TextRun(Object.assign({ text: child.textContent }, inherited)));
+      if (child.textContent) runs.push(new docx.TextRun(Object.assign({ text: child.textContent, font: DEFAULT_DOC_FONT }, inherited)));
     } else if (child.nodeType === Node.ELEMENT_NODE) {
       var tag = child.tagName;
       if (tag === 'IMG') {
@@ -584,7 +587,11 @@ async function htmlToDocxBlob(html, opts) {
     section.footers = { default: new docx.Footer({ children: [await hfParagraph(opts.footerHtml, opts.footerAlign, opts.pageNum)] }) };
   }
 
-  var docOptions = { sections: [section] };
+  var docOptions = {
+    sections: [section],
+    /* ตั้งฟอนต์+ขนาดเริ่มต้นของทั้งเอกสาร (ข้อความปกติ) — หัวข้อยังใช้ขนาดของหัวข้อเอง */
+    styles: { default: { document: { run: { font: DEFAULT_DOC_FONT, size: DEFAULT_DOC_SIZE } } } }
+  };
   if (Object.keys(footnoteMap).length) docOptions.footnotes = footnoteMap;
   var docxDoc = new docx.Document(docOptions);
   return docx.Packer.toBlob(docxDoc);
