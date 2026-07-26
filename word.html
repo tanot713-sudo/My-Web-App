@@ -228,7 +228,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .wd-modal-check{display:flex;align-items:center;gap:8px;margin-top:12px}
 .wd-modal-check input{width:auto}
 .wd-modal-check label{margin:0;color:var(--ink)}
-.wd-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.wd-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap}
 .wd-sym-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;max-height:260px;overflow-y:auto}
 .wd-sym-grid button{font-family:var(--f);font-size:18px;padding:6px 0;border:1.5px solid var(--line);border-radius:8px;
   background:var(--card);cursor:pointer;transition:.12s}
@@ -283,6 +283,9 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   .wd-page{max-width:none!important}
   .wd-editor{padding:20px 16px!important;min-height:60vh}
   .wd-doc-header,.wd-doc-footer{padding:9px 16px!important}
+  /* ปุ่มใน dialog: จัด 2 ปุ่มต่อแถว ไม่ให้ล้นจอ (เช่น ค้นหา/แทนที่ที่มี 4 ปุ่ม) */
+  .wd-modal-actions{gap:8px}
+  .wd-modal-actions .btn{flex:1 1 calc(50% - 4px);justify-content:center;padding:11px 10px}
 }
 @media screen and (max-width:400px){
   .wd-ribbon-tab{padding:6px 9px;font-size:12px}
