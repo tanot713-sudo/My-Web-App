@@ -123,6 +123,7 @@ var I18N = {
     summarizeEmpty: 'ยังไม่มีเนื้อหาให้สรุป',
     summarized: 'เพิ่มสรุปเนื้อหาเบื้องต้นต่อท้ายเอกสารแล้ว (เลือกประโยคสำคัญด้วยกฎทางสถิติ)', summaryHeading: '— สรุปเนื้อหาเบื้องต้น —',
     downloadError: 'ดาวน์โหลดไม่สำเร็จ: {msg}', downloadEmpty: 'ยังไม่มีเนื้อหาให้ดาวน์โหลด',
+    pdfGenerating: 'กำลังสร้างไฟล์ PDF…', pdfDone: 'สร้างไฟล์ PDF เรียบร้อยแล้ว', pdfError: 'สร้าง PDF ไม่สำเร็จ: {msg}',
     dictateUnsupported: 'เบราว์เซอร์นี้ไม่รองรับการพูดแล้วขึ้นข้อความ (ลองใช้ Chrome)',
     dictateListening: 'กำลังฟัง... พูดได้เลย', dictateListeningInterim: 'กำลังฟัง... "{text}"',
     dictateError: 'เกิดข้อผิดพลาดขณะฟัง: {msg}', dictateNoMic: 'ไม่ได้รับอนุญาตให้ใช้ไมโครโฟน — กรุณาอนุญาตการใช้งานไมค์ในเบราว์เซอร์',
@@ -205,6 +206,7 @@ var I18N = {
     summarizeEmpty: 'There\'s no content to summarize yet',
     summarized: 'Added a basic summary to the end of the document (key sentences picked using statistical rules)', summaryHeading: '— Basic Summary —',
     downloadError: 'Download failed: {msg}', downloadEmpty: 'There\'s no content to download yet',
+    pdfGenerating: 'Generating PDF…', pdfDone: 'PDF created successfully', pdfError: 'Couldn\'t create PDF: {msg}',
     dictateUnsupported: 'This browser doesn\'t support Dictate (try Chrome)',
     dictateListening: 'Listening... go ahead and speak', dictateListeningInterim: 'Listening... "{text}"',
     dictateError: 'An error occurred while listening: {msg}', dictateNoMic: 'Microphone access was not granted — please allow microphone access in your browser',
@@ -860,7 +862,43 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
       });
     } catch (err) { setStatus(t('downloadError', { msg: err.message }), true); }
   });
-  els.printBtn.addEventListener('click', function () { window.print(); });
+  /* ── สร้างไฟล์ PDF เอง (ไม่พึ่ง window.print ของเบราว์เซอร์ ที่ iOS Safari จะแทรก
+     URL/วันที่/เลขหน้าเองโดยลบไม่ได้) → ได้ PDF สะอาด มีแค่เนื้อหา + หัว-ท้ายที่พิมพ์เอง ── */
+  async function generatePdf() {
+    var jsPDFctor = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDFctor || !window.html2canvas) { window.print(); return; } /* สำรอง: ถ้าโหลดไลบรารีไม่ได้ */
+    if (!extractText(editor).trim() && !els.docHeader.textContent.trim() && !els.docFooter.textContent.trim()) { setStatus(t('downloadEmpty'), true); return; }
+    setStatus(t('pdfGenerating'), false, true);
+    els.page.classList.add('wd-capturing');
+    try {
+      var canvas = await window.html2canvas(els.page, { scale: 2, backgroundColor: '#ffffff', useCORS: true, windowWidth: els.page.scrollWidth });
+      var ps = PAGE_SIZES[state.pageSize] || PAGE_SIZES.A4;
+      var land = state.orientation === 'landscape';
+      var pwMm = land ? ps.mmH : ps.mmW, phMm = land ? ps.mmW : ps.mmH;
+      var pdf = new jsPDFctor({ orientation: land ? 'landscape' : 'portrait', unit: 'mm', format: [pwMm, phMm] });
+      var pxPerMm = canvas.width / pwMm;
+      var pageHpx = Math.floor(phMm * pxPerMm);
+      var sy = 0, first = true;
+      while (sy < canvas.height - 1) {
+        var sliceHpx = Math.min(pageHpx, canvas.height - sy);
+        var c2 = document.createElement('canvas');
+        c2.width = canvas.width; c2.height = sliceHpx;
+        var ctx = c2.getContext('2d');
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c2.width, c2.height);
+        ctx.drawImage(canvas, 0, sy, canvas.width, sliceHpx, 0, 0, canvas.width, sliceHpx);
+        if (!first) pdf.addPage([pwMm, phMm], land ? 'landscape' : 'portrait');
+        pdf.addImage(c2.toDataURL('image/jpeg', 0.96), 'JPEG', 0, 0, pwMm, sliceHpx / pxPerMm);
+        sy += sliceHpx; first = false;
+      }
+      pdf.save('document.pdf');
+      setStatus(t('pdfDone'));
+    } catch (e) {
+      setStatus(t('pdfError', { msg: e.message }), true);
+    } finally {
+      els.page.classList.remove('wd-capturing');
+    }
+  }
+  els.printBtn.addEventListener('click', generatePdf);
 
   /* ── สรุปเนื้อหา ── */
   els.summarizeBtn.addEventListener('click', function () {

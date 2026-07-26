@@ -246,6 +246,13 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .wd-sym-cat{font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 6px}
 .wd-sym-cat:first-child{margin-top:0}
 
+/* ── ตอนสร้างไฟล์ PDF เอง (html2canvas): ทำให้กระดาษสะอาด ตัดเส้น/พื้นหลัง/ไฮไลต์/กล่องว่าง ── */
+.wd-page.wd-capturing{box-shadow:none}
+.wd-page.wd-capturing .wd-doc-header,.wd-page.wd-capturing .wd-doc-footer{border:none!important;background:none!important;opacity:1!important}
+.wd-page.wd-capturing .wd-doc-header.wd-hf-empty,.wd-page.wd-capturing .wd-doc-footer.wd-hf-empty,.wd-page.wd-capturing .wd-pagenum-note{display:none!important}
+.wd-page.wd-capturing .wd-doc-header:empty::before,.wd-page.wd-capturing .wd-doc-footer:empty::before{content:none!important}
+.wd-page.wd-capturing .wd-find-hit{background:none!important;color:inherit!important}
+
 @media print{
   /* ให้ PDF ออกมาเหมือนแปลง Word เป็น PDF: ตัดทุกอย่างที่ไม่ใช่ตัวเอกสาร
      และตัด header/footer อัตโนมัติของเบราว์เซอร์ (title/URL/วันที่/เลขหน้า)
@@ -802,6 +809,8 @@ window.dispatchEvent(new Event('pdfjs-ready'));
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="word.js"></script>
 </body>
 </html>
