@@ -263,20 +263,21 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   body{padding:0 10px 60px}
   .wd-filebar{padding:9px;gap:6px}
   .wd-filebar .btn{font-size:12.5px;padding:8px 11px}
-  /* ribbon: ให้กลุ่มเครื่องมือขึ้นบรรทัดใหม่แทนการเลื่อนแนวนอน จะเห็นครบทุกปุ่ม
-     + ปุ่มใหญ่ขึ้นเล็กน้อยให้กดง่ายบนจอสัมผัส */
-  .wd-ribbon-body{overflow-x:visible;padding:9px 8px}
-  .wd-ribbon-panel{flex-wrap:wrap;gap:8px 0;min-width:0}
-  .wd-rgroup{padding:2px 9px}
-  .wd-rgroup:not(:last-child){border-right:1px solid var(--line)}
-  .wd-rgroup-body{gap:5px}
-  .wd-rgroup-row{gap:5px}
-  .rb-btn{min-width:38px;height:38px}
-  .rb-color{width:38px;height:38px}
+  /* ribbon บนมือถือ: ยุบกลุ่มทั้งหมด (display:contents) ให้ปุ่มไหลเรียงต่อกัน
+     แล้วตัดขึ้นบรรทัดใหม่อัตโนมัติ ทุกปุ่มขนาดเท่ากัน กดง่าย ไม่มีปุ่มโดนตัด/ที่ว่าง */
+  .wd-ribbon-body{overflow-x:visible;padding:10px}
+  .wd-ribbon-panel.active{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0}
+  .wd-rgroup,.wd-rgroup-body,.wd-rgroup-body.col,.wd-rgroup-row{display:contents}
+  .rb-btn{min-width:42px;height:42px;border:1.5px solid var(--line)}
+  .rb-btn.wide{height:42px;padding:0 12px;flex:0 1 auto}
+  .rb-btn.active{border-color:var(--sky)}
+  .rb-color{width:42px;height:42px;border:1.5px solid var(--line)}
+  .wd-select{height:42px;padding:0 8px;font-size:13.5px}
+  .wd-select.font-select{flex:1 1 44%;min-width:130px}
+  .wd-select.style-select{flex:1 1 42%}
+  .wd-select.size-select{width:74px;flex:0 0 auto}
   .wd-ribbon-tab{padding:7px 12px;font-size:12.5px}
   .wd-ribbon-tabs{gap:2px}
-  .wd-select{padding:8px 7px;font-size:13px}
-  .wd-select.font-select{min-width:110px}
   /* หน้าเอกสารเต็มความกว้างจอ + เริ่มพิมพ์ชิดซ้ายเหมือน Word มือถือ
      (ระยะขอบกระดาษจริงยังใช้ตอนพิมพ์/ดาวน์โหลดไฟล์) */
   .wd-page{max-width:none!important}
