@@ -27,6 +27,7 @@
       importError: 'นำเข้าไฟล์ไม่สำเร็จ: {msg}', importEmpty: 'ไม่พบข้อมูลในไฟล์',
       exporting: 'กำลังสร้างไฟล์…', exported: 'ดาวน์โหลดไฟล์เรียบร้อยแล้ว',
       exportError: 'ดาวน์โหลดไม่สำเร็จ: {msg}',
+      pdfGenerating: 'กำลังสร้างไฟล์ PDF…', pdfDone: 'สร้างไฟล์ PDF เรียบร้อยแล้ว', pdfError: 'สร้าง PDF ไม่สำเร็จ: {msg}',
       newConfirm: 'เริ่มไฟล์ใหม่? ข้อมูลปัจจุบันที่ยังไม่ดาวน์โหลดจะหายไป',
       newDone: 'เริ่มไฟล์ใหม่แล้ว',
       libError: 'โหลดตารางคำนวณไม่สำเร็จ — ตรวจการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้าอีกครั้ง',
@@ -48,6 +49,7 @@
       importError: 'Import failed: {msg}', importEmpty: 'No data found in the file',
       exporting: 'Generating file…', exported: 'File downloaded',
       exportError: 'Download failed: {msg}',
+      pdfGenerating: 'Generating PDF…', pdfDone: 'PDF created successfully', pdfError: 'Couldn\'t create PDF: {msg}',
       newConfirm: 'Start a new file? Current unsaved data will be lost.',
       newDone: 'Started a new file',
       libError: 'Couldn\'t load the spreadsheet — check your connection and refresh the page.',
@@ -342,6 +344,84 @@
     } catch (e) { setStatus(t('exportError', { msg: e.message }), true); }
   }
 
+  /* ── สร้าง PDF สะอาดเอง (แนวเดียวกับหน้าเอกสาร/Word) — วาดตารางเป็นภาพแล้วตัดหน้า A4 ── */
+  function activeCellGrid(sheet) {
+    if (Array.isArray(sheet.data) && sheet.data.length) return sheet.data;
+    var cd = sheet.celldata || [], maxR = 0, maxC = 0;
+    cd.forEach(function (c) { if (c.r > maxR) maxR = c.r; if (c.c > maxC) maxC = c.c; });
+    var g = []; for (var i = 0; i <= maxR; i++) g.push(new Array(maxC + 1).fill(null));
+    cd.forEach(function (c) { g[c.r][c.c] = c.v; });
+    return g;
+  }
+  function usedBounds(grid) {
+    var lastR = -1, lastC = -1;
+    for (var r = 0; r < grid.length; r++) {
+      var row = grid[r] || [];
+      for (var c = 0; c < row.length; c++) {
+        var v = row[c]; if (v && (v.v != null && v.v !== '' || v.m != null && v.m !== '')) { if (r > lastR) lastR = r; if (c > lastC) lastC = c; }
+      }
+    }
+    return { lastR: lastR, lastC: lastC };
+  }
+  function buildPdfTable(sheet) {
+    var grid = activeCellGrid(sheet), b = usedBounds(grid);
+    if (b.lastR < 0) return null;
+    var table = document.createElement('table');
+    table.style.cssText = 'border-collapse:collapse;font-family:\'TH Sarabun New\',\'Sarabun\',\'Prompt\',sans-serif;font-size:15px;color:#111';
+    for (var r = 0; r <= b.lastR; r++) {
+      var tr = document.createElement('tr'), row = grid[r] || [];
+      for (var c = 0; c <= b.lastC; c++) {
+        var cell = row[c], td = document.createElement('td');
+        td.style.cssText = 'border:1px solid #C7CEDB;padding:3px 8px;white-space:nowrap;max-width:340px;overflow:hidden;text-overflow:ellipsis';
+        if (cell) {
+          var txt = (cell.m != null && cell.m !== '') ? cell.m : (cell.v != null ? cell.v : '');
+          td.textContent = txt;
+          if (cell.bl) td.style.fontWeight = 'bold';
+          if (cell.it) td.style.fontStyle = 'italic';
+          if (cell.cl) td.style.textDecoration = 'line-through';
+          if (cell.un) td.style.textDecoration = (td.style.textDecoration ? td.style.textDecoration + ' ' : '') + 'underline';
+          if (cell.fc) td.style.color = cell.fc;
+          if (cell.bg) td.style.background = cell.bg;
+          var ht = cell.ht; td.style.textAlign = (ht === 0 || ht === '0') ? 'center' : (ht === 2 || ht === '2') ? 'right' : (typeof (cell.v) === 'number' ? 'right' : 'left');
+        }
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+    }
+    return table;
+  }
+  async function generatePdf() {
+    var jsPDFctor = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDFctor || !window.html2canvas) { window.print(); return; }
+    var sheets = currentSheets(); if (!sheets.length) { setStatus(t('importEmpty'), true); return; }
+    var active = sheets.filter(function (s) { return s.status === 1; })[0] || sheets[0];
+    var table = buildPdfTable(active);
+    if (!table) { setStatus(t('importEmpty'), true); return; }
+    setStatus(t('pdfGenerating'), false, true);
+    var holder = document.createElement('div');
+    holder.style.cssText = 'position:fixed;left:-99999px;top:0;background:#fff;padding:24px';
+    holder.appendChild(table); document.body.appendChild(holder);
+    try {
+      await new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); });
+      var canvas = await window.html2canvas(holder, { scale: 2, backgroundColor: '#ffffff' });
+      var pw = 210, ph = 297;                       /* A4 แนวตั้ง (mm) */
+      var pdf = new jsPDFctor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      var pxPerMm = canvas.width / pw, pageHpx = Math.floor(ph * pxPerMm), sy = 0, first = true;
+      while (sy < canvas.height - 1) {
+        var sh = Math.min(pageHpx, canvas.height - sy);
+        var c2 = document.createElement('canvas'); c2.width = canvas.width; c2.height = sh;
+        var ctx = c2.getContext('2d'); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c2.width, sh);
+        ctx.drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh);
+        if (!first) pdf.addPage('a4', 'portrait');
+        pdf.addImage(c2.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pw, sh / pxPerMm);
+        sy += sh; first = false;
+      }
+      pdf.save((active.name || 'spreadsheet') + '.pdf');
+      setStatus(t('pdfDone'));
+    } catch (e) { setStatus(t('pdfError', { msg: e.message }), true); }
+    finally { document.body.removeChild(holder); }
+  }
+
   /* ── wiring ── */
   els.newBtn.addEventListener('click', function () {
     if (!confirm(t('newConfirm'))) return;
@@ -357,7 +437,7 @@
   });
   els.exportXlsxBtn.addEventListener('click', exportXlsx);
   els.exportCsvBtn.addEventListener('click', exportCsv);
-  els.printBtn.addEventListener('click', function () { window.print(); });
+  els.printBtn.addEventListener('click', generatePdf);
   if (els.langToggle) {
     els.langToggle.addEventListener('click', function () {
       setUILang(getUILang() === 'en' ? 'th' : 'en');
@@ -378,6 +458,13 @@
     if (document.readyState === 'complete') fire();
     else window.addEventListener('load', fire, { once: true });
   }
+  /* Luckysheet ผูก document.touchmove → preventDefault ทั่วหน้า ทำให้เลื่อน "หน้าเว็บ" ด้วยนิ้วไม่ได้
+     ดักในเฟส capture: ถ้านิ้วอยู่ "นอกกริด" ให้หยุด handler ของ Luckysheet (หน้าเลื่อนตามปกติ)
+     ถ้าอยู่ "บนกริด" ปล่อยผ่านให้ Luckysheet จัดการเลื่อนกริดเอง */
+  document.addEventListener('touchmove', function (e) {
+    if (!(els.grid && els.grid.contains(e.target))) e.stopImmediatePropagation();
+  }, { capture: true, passive: true });
+
   function boot() {
     applyStaticI18n();
     var waited = 0;
