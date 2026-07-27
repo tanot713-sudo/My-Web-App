@@ -474,6 +474,31 @@
     if (!(els.grid && els.grid.contains(e.target))) e.stopImmediatePropagation();
   }, { capture: true, passive: true });
 
+  /* ── ตัวกันชน IME สำหรับพิมพ์ไทยในเซลล์ ──
+     Luckysheet ไม่รองรับ composition (การประกอบสระ/วรรณยุกต์ไทย) ในเซลล์ →
+     ระหว่างยัง "ประกอบตัวอักษร" (e.isComposing) กันไม่ให้ handler ของ Luckysheet
+     เข้ามาอ่าน/รีเซ็ตตัวแก้ไขกลางคัน (ตัวไทยหาย) แล้วค่อยสั่งซิงก์ตอนประกอบเสร็จ
+     ภาษาอังกฤษ/พิมพ์ปกติ (ไม่ composing) จะไม่โดนแตะเลย จึงเสี่ยงต่ำ */
+  function inCellEditor(target) {
+    var ed = document.getElementById('luckysheet-rich-text-editor');
+    return !!(ed && (target === ed || ed.contains(target)));
+  }
+  ['keydown', 'keyup', 'input'].forEach(function (type) {
+    document.addEventListener(type, function (e) {
+      if (e.isComposing && inCellEditor(e.target)) e.stopImmediatePropagation();
+    }, true);
+  });
+  document.addEventListener('compositionend', function (e) {
+    if (!inCellEditor(e.target)) return;
+    var ed = document.getElementById('luckysheet-rich-text-editor');
+    setTimeout(function () {
+      try {
+        ed.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+        ed.dispatchEvent(new Event('input', { bubbles: true }));
+      } catch (_) {}
+    }, 0);
+  }, true);
+
   function boot() {
     applyStaticI18n();
     var waited = 0;
