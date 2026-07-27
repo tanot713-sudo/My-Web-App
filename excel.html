@@ -69,6 +69,12 @@ body.ome-tool-page{margin:0;font-family:var(--f);color:var(--ink,#1F2733);-webki
 .xlr-panel .luckysheet-toolbar-select .luckysheet-toolbar-menu-button-caret{position:static!important}
 /* ซ่อนแถบเครื่องมือเดิมของ Luckysheet หลังย้ายปุ่มออกแล้ว (ตั้งใน JS ด้วย เพื่อคงการวัด layout ตอน init) */
 .luckysheet-wa-editor.xlr-moved{display:none!important}
+/* ช่องพิมพ์ native ซ้อนบนเซลล์ (แก้ปัญหา Luckysheet พิมพ์ไทยตัวหาย) */
+#xlCellEditor{position:fixed;z-index:99999;display:none;box-sizing:border-box;margin:0;
+  border:2px solid var(--xl,#217346);border-radius:2px;padding:1px 4px;
+  font-family:'TH Sarabun New','Sarabun','Prompt',sans-serif;font-size:15px;line-height:1.35;
+  background:#fff;color:#111;resize:none;outline:none;overflow:hidden;white-space:pre;min-width:82px;
+  box-shadow:0 3px 12px rgba(20,30,60,.22)}
 .xl-hint{font-size:12.5px;color:var(--muted,#9AA3B8);margin:10px 2px 0;line-height:1.7}
 footer{margin-top:30px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--sky-dk);text-decoration:none;font-weight:600}
@@ -137,6 +143,9 @@ footer a{color:var(--sky-dk);text-decoration:none;font-weight:600}
       <div class="xlr-panel" data-rpanel="view"></div>
     </div>
   </div>
+
+  <!-- ช่องพิมพ์ของเราเอง (native) วางซ้อนบนเซลล์ตอนแก้ไข — รองรับไทย/ทุกภาษา 100% -->
+  <textarea id="xlCellEditor" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
 
   <div class="xl-sheetwrap">
     <div id="luckysheet"></div>

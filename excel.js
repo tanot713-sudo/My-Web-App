@@ -67,7 +67,7 @@
 
   var els = {
     langToggle: $('langToggle'), statusMsg: $('statusMsg'), loading: $('loading'), grid: $('luckysheet'),
-    ribbon: $('xlRibbon'), ribTabs: $('xlrTabs'), ribPanels: $('xlrPanels'),
+    ribbon: $('xlRibbon'), ribTabs: $('xlrTabs'), ribPanels: $('xlrPanels'), cellEditor: $('xlCellEditor'),
     newBtn: $('newBtn'), importBtn: $('importBtn'), fileInput: $('fileInput'),
     exportXlsxBtn: $('exportXlsxBtn'), exportCsvBtn: $('exportCsvBtn'), printBtn: $('printBtn')
   };
@@ -171,9 +171,88 @@
       showinfobar: false,
       hook: {
         updated: scheduleSave,
-        workbookCreateAfter: function () { hideLoading(); }
+        workbookCreateAfter: function () { hideLoading(); },
+        cellEditBefore: function (range) { startCellEditor(range); }
       }
     };
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     ช่องพิมพ์ของเราเอง (native <textarea>) วางซ้อนบนเซลล์ตอนแก้ไข
+     Luckysheet 2.1.13 พิมพ์ไทย (IME) ในเซลล์แล้วตัวหาย/ไม่ครบ (บั๊กของไลบรารีเอง)
+     → ใช้ช่อง native ที่เบราว์เซอร์รองรับ IME 100% รับข้อความ แล้วเขียนกลับด้วย setCellValue
+     ══════════════════════════════════════════════════════════════════ */
+  var ceState = { active: false, r: 0, c: 0 };
+  function hideLuckyEditor(restore) {
+    var ib = document.getElementById('luckysheet-input-box');
+    if (ib) { ib.style.opacity = restore ? '' : '0'; ib.style.pointerEvents = restore ? '' : 'none'; }
+  }
+  function exitLuckyEdit() {
+    var ed = document.getElementById('luckysheet-rich-text-editor');
+    if (ed) { try { ['keydown', 'keyup'].forEach(function (tp) { ed.dispatchEvent(new KeyboardEvent(tp, { bubbles: true, key: 'Escape', keyCode: 27, which: 27 })); }); } catch (e) {} }
+  }
+  function startCellEditor(range) {
+    var f = range && range[0]; if (!f || !els.cellEditor) return;
+    ceState.r = (f.row_focus != null) ? f.row_focus : f.row[0];
+    ceState.c = (f.column_focus != null) ? f.column_focus : f.column[0];
+    /* หน่วงเล็กน้อยให้ Luckysheet โฟกัสตัวแก้ไขของมันเสร็จก่อน แล้วเราค่อย "แย่งโฟกัส" มาที่ช่องเรา */
+    setTimeout(function () {
+      var ib = document.getElementById('luckysheet-input-box');
+      var ed = document.getElementById('luckysheet-rich-text-editor');
+      if (!ib) return;
+      var rect = ib.getBoundingClientRect();
+      var ta = els.cellEditor;
+      ta.style.left = rect.left + 'px';
+      ta.style.top = rect.top + 'px';
+      ta.style.minWidth = Math.max(82, rect.width) + 'px';
+      ta.style.height = Math.max(24, rect.height) + 'px';
+      ta.value = ed ? ed.textContent : '';           /* ค่าเดิม (ถ้าดับเบิลแตะแก้) */
+      hideLuckyEditor(false);
+      if (ed) { try { ed.blur(); } catch (e) {} }     /* ปลดโฟกัสของ Luckysheet */
+      ta.style.display = 'block';
+      ceState.active = true; ceState.openedAt = Date.now();
+      ta.focus();
+      var L = ta.value.length; try { ta.setSelectionRange(L, L); } catch (e) {}
+      ta.style.height = 'auto'; ta.style.height = Math.max(24, ta.scrollHeight) + 'px';
+    }, 90);
+  }
+  function closeCellEditor() {
+    ceState.active = false;
+    if (els.cellEditor) els.cellEditor.style.display = 'none';
+    hideLuckyEditor(true);
+  }
+  function commitCellEditor(move) {
+    if (!ceState.active) return;
+    var val = els.cellEditor.value, r = ceState.r, c = ceState.c;
+    closeCellEditor();
+    exitLuckyEdit();                                  /* ออกจากโหมดแก้ไขของ Luckysheet โดยไม่ให้มันเขียนค่า (ที่อาจไม่ครบ) */
+    setTimeout(function () {
+      try { luckysheet.setCellValue(r, c, val); } catch (e) {}
+      if (move === 'down') { try { luckysheet.setRangeShow({ row: [r + 1, r + 1], column: [c, c] }); } catch (e) {} }
+      else if (move === 'right') { try { luckysheet.setRangeShow({ row: [r, r], column: [c + 1, c + 1] }); } catch (e) {} }
+      scheduleSave();
+    }, 0);
+  }
+  function cancelCellEditor() {
+    if (!ceState.active) return;
+    closeCellEditor();
+    exitLuckyEdit();
+  }
+  if (els.cellEditor) {
+    els.cellEditor.addEventListener('input', function () {
+      var ta = els.cellEditor; ta.style.height = 'auto'; ta.style.height = Math.max(24, ta.scrollHeight) + 'px';
+    });
+    els.cellEditor.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); commitCellEditor('down'); }
+      else if (e.key === 'Tab' && !e.isComposing) { e.preventDefault(); commitCellEditor('right'); }
+      else if (e.key === 'Escape') { e.preventDefault(); cancelCellEditor(); }
+    });
+    els.cellEditor.addEventListener('blur', function () {
+      if (!ceState.active) return;
+      /* บาง handler ของ Luckysheet อาจแย่งโฟกัสคืนช่วงเปิดใหม่ → ถ้า blur เร็วเกินไป ให้ดึงโฟกัสกลับ ไม่เพิ่งบันทึก */
+      if (Date.now() - (ceState.openedAt || 0) < 300) { setTimeout(function () { if (ceState.active) els.cellEditor.focus(); }, 0); return; }
+      commitCellEditor(null);
+    });
   }
   function hideLoading() { if (els.loading) els.loading.classList.add('hide'); }
   function createSheet(data) {
