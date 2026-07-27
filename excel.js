@@ -447,8 +447,17 @@
 
   /* ── init ── */
   var rsz = null;
-  window.addEventListener('resize', function () { clearTimeout(rsz); rsz = setTimeout(function () { applyGridHeight(false); }, 200); });
-  window.addEventListener('orientationchange', function () { setTimeout(function () { applyGridHeight(true); }, 320); });
+  /* กำลังพิมพ์ในเซลล์อยู่ไหม (คีย์บอร์ดเด้ง) — ถ้าใช่ อย่าปรับ/วาดกริดใหม่
+     เพราะ iOS ย่อจอเวลาคีย์บอร์ดขึ้น → resize → Luckysheet วาดใหม่กลางคัน → ตัวไทยหาย/หน่วง */
+  function isEditingCell() {
+    var ae = document.activeElement;
+    if (ae && (ae.isContentEditable || /^(INPUT|TEXTAREA)$/.test(ae.tagName)) && els.grid && els.grid.contains(ae)) return true;
+    var box = document.getElementById('luckysheet-input-box');
+    if (box && box.offsetParent !== null && getComputedStyle(box).display !== 'none') return true;
+    return false;
+  }
+  window.addEventListener('resize', function () { clearTimeout(rsz); rsz = setTimeout(function () { if (isEditingCell()) return; applyGridHeight(false); }, 250); });
+  window.addEventListener('orientationchange', function () { setTimeout(function () { if (!isEditingCell()) applyGridHeight(true); }, 320); });
 
   /* เรียก fn หลัง layout นิ่งจริง (โหลดหน้าเสร็จ + shell.js แทรกเมนูบนแล้ว + 2 เฟรม)
      สำคัญมากบน iOS Safari: ถ้าเรียก luckysheet.create เร็วเกินไปตอน layout ยังไม่นิ่ง
