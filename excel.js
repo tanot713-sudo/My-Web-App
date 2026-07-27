@@ -74,14 +74,15 @@
      iOS Safari ซ่อน/โชว์แถบ URL ตอนเลื่อน → ถ้าใช้ vh ความสูงจะเปลี่ยนตลอด
      Luckysheet จะวาดใหม่ทั้งกริดซ้ำๆ = กระตุก จึงตรึงเป็นพิกเซล และไม่วาดใหม่
      เมื่อความสูงขยับเล็กน้อย (แถบ URL) จะรีเลย์เอาต์เฉพาะตอนหมุนจอ/เปลี่ยนจริง */
-  var gridTopVP = null, lastVW = 0, lastVH = 0, sheetLive = false;
+  var lastVW = 0, lastVH = 0, sheetLive = false;
   function applyGridHeight(force) {
     if (!els.grid) return;
-    if (gridTopVP == null) gridTopVP = els.grid.getBoundingClientRect().top; /* จับตอนเปิด (หน้าอยู่บนสุด) */
     var vw = window.innerWidth, vh = window.innerHeight;
     if (!force && vw === lastVW && Math.abs(vh - lastVH) < 120) return;  /* เพิกเฉยการขยับเล็กจากแถบ URL */
     lastVW = vw; lastVH = vh;
-    var h = Math.max(360, Math.round(vh - gridTopVP - 14));
+    /* ตารางสูง ~70% ของจอ (ไม่กินทั้งหน้า) เพื่อให้เลื่อน "หน้า" ดูภาพรวมได้เวลาไม่ได้แตะบนตาราง;
+       ตรึงเป็นพิกเซล + เมินการขยับเล็กของแถบ URL กันกระตุกบน iOS */
+    var h = Math.min(760, Math.max(340, Math.round(vh * 0.70)));
     els.grid.style.height = h + 'px';
     /* เรียก resize ได้ "เฉพาะเมื่อสร้างเวิร์กบุ๊กแล้ว" — ถ้าเรียกก่อน create ครั้งแรก
        Luckysheet จะอ่านตำแหน่งของชีตที่ยังไม่มี → error "reading 'left'" → ค้าง Loading… บน iOS */
