@@ -227,7 +227,8 @@
     closeCellEditor();
     exitLuckyEdit();                                  /* ออกจากโหมดแก้ไขของ Luckysheet โดยไม่ให้มันเขียนค่า (ที่อาจไม่ครบ) */
     setTimeout(function () {
-      try { luckysheet.setCellValue(r, c, val); } catch (e) {}
+      try { luckysheet.setCellValue(r, c, val); } catch (e) {}           /* คงการแปลงชนิด: ตัวเลข/สูตรทำงานปกติ */
+      if (val !== '') { try { luckysheet.setCellFormat(r, c, 'ff', 'Sarabun'); } catch (e) {} }  /* ใส่ฟอนต์ไทยแยก ไม่ทำตัวเลข/สูตรพัง */
       if (move === 'down') { try { luckysheet.setRangeShow({ row: [r + 1, r + 1], column: [c, c] }); } catch (e) {} }
       else if (move === 'right') { try { luckysheet.setRangeShow({ row: [r, r], column: [c + 1, c + 1] }); } catch (e) {} }
       scheduleSave();
