@@ -103,12 +103,54 @@
     return { support: isFinite(lo) ? lo : NaN, resistance: isFinite(hi) ? hi : NaN };
   }
 
+  /* ADX(14) — ความแรงของแนวโน้ม (>20-25 = เทรนด์ชัด) */
+  function adx(highs, lows, closes, n) {
+    n = n || 14;
+    if (closes.length < 2 * n + 1) return NaN;
+    var tr = [], pdm = [], ndm = [], i;
+    for (i = 1; i < closes.length; i++) {
+      var up = highs[i] - highs[i - 1], dn = lows[i - 1] - lows[i];
+      pdm.push(up > dn && up > 0 ? up : 0); ndm.push(dn > up && dn > 0 ? dn : 0);
+      tr.push(Math.max(highs[i] - lows[i], Math.abs(highs[i] - closes[i - 1]), Math.abs(lows[i] - closes[i - 1])));
+    }
+    function wilder(arr) { var out = [], s = 0, j; for (j = 0; j < n; j++) s += arr[j]; out[n - 1] = s; for (j = n; j < arr.length; j++) { s = s - s / n + arr[j]; out[j] = s; } return out; }
+    var trS = wilder(tr), pdmS = wilder(pdm), ndmS = wilder(ndm), dx = [];
+    for (i = n - 1; i < tr.length; i++) {
+      if (!trS[i]) { dx.push(0); continue; }
+      var pdi = 100 * pdmS[i] / trS[i], ndi = 100 * ndmS[i] / trS[i], sum = pdi + ndi;
+      dx.push(sum === 0 ? 0 : 100 * Math.abs(pdi - ndi) / sum);
+    }
+    if (dx.length < n) return NaN;
+    var a = 0; for (i = 0; i < n; i++) a += dx[i]; a /= n;
+    for (i = n; i < dx.length; i++) a = (a * (n - 1) + dx[i]) / n;
+    return a;
+  }
+
+  /* Parabolic SAR — จุดตัดขาดทุนตามเทรนด์ (ใช้เป็น trailing stop / สัญญาณพลิก) */
+  function psar(highs, lows, step, maxAf) {
+    step = step || 0.02; maxAf = maxAf || 0.2;
+    var n = highs.length; if (n < 3) return null;
+    var sar = lows[0], ep = highs[0], af = step, up = true, i;
+    for (i = 1; i < n; i++) {
+      sar = sar + af * (ep - sar);
+      if (up) {
+        if (lows[i] < sar) { up = false; sar = ep; ep = lows[i]; af = step; }
+        else if (highs[i] > ep) { ep = highs[i]; af = Math.min(maxAf, af + step); }
+      } else {
+        if (highs[i] > sar) { up = true; sar = ep; ep = highs[i]; af = step; }
+        else if (lows[i] < ep) { ep = lows[i]; af = Math.min(maxAf, af + step); }
+      }
+    }
+    return { sar: sar, up: up };
+  }
+
   /* ── วิเคราะห์ (มีซีรีส์เต็ม) → ไฟจราจร ─────────────────────── */
   function analyzeSeries(s) {
     var c = s.closes, price = c[c.length - 1];
     var ema20 = emaLast(c, 20), ema50 = emaLast(c, 50), r = rsi(c, 14);
     var mac = macd(c), bb = bollinger(c, 20, 2), at = atr(s.highs, s.lows, c, 14);
     var sr = supRes(s.highs, s.lows, 20);
+    var adxV = adx(s.highs, s.lows, c, 14), ps = psar(s.highs, s.lows);
     var range = { hi: Math.max.apply(null, c), lo: Math.min.apply(null, c) };
     var posRange = (price - range.lo) / Math.max(1e-9, range.hi - range.lo);
     var posBB = bb ? (price - bb.lower) / Math.max(1e-9, bb.upper - bb.lower) : 0.5;
@@ -146,10 +188,11 @@
     return {
       light: light, verdict: verdict, why: why, pros: pros, cons: cons, score: score,
       price: price, suggestStop: stop, resistance: sr.resistance,
-      uptrend: uptrend, rsi: r,
+      uptrend: uptrend, rsi: r, adx: adxV, psar: ps,
       det: { ema20: ema20, ema50: ema50, rsi: r, macdHist: mac ? mac.hist : NaN,
              bbUpper: bb ? bb.upper : NaN, bbLower: bb ? bb.lower : NaN, atr: at,
-             support: sr.support, resistance: sr.resistance, posRange: posRange }
+             support: sr.support, resistance: sr.resistance, posRange: posRange,
+             adx: adxV, psar: ps }
     };
   }
 
@@ -466,7 +509,9 @@
         ['เส้นเฉลี่ย 20 วัน (EMA20)', fmt(d.ema20)], ['เส้นเฉลี่ย 50 วัน (EMA50)', fmt(d.ema50)],
         ['RSI (14)', fmt(d.rsi, 1)], ['MACD histogram', fmt(d.macdHist, 3)],
         ['กรอบบน (Bollinger)', fmt(d.bbUpper)], ['กรอบล่าง (Bollinger)', fmt(d.bbLower)],
-        ['ATR (ความผันผวน)', fmt(d.atr)], ['แนวรับล่าสุด', fmt(d.support)], ['แนวต้านล่าสุด', fmt(d.resistance)]
+        ['ATR (ความผันผวน)', fmt(d.atr)], ['แนวรับล่าสุด', fmt(d.support)], ['แนวต้านล่าสุด', fmt(d.resistance)],
+        ['ความแรงแนวโน้ม (ADX 14)', isFinite(d.adx) ? fmt(d.adx, 0) + (d.adx >= 20 ? ' · แข็งแรง' : ' · อ่อน') : '—'],
+        ['จุดตัดขาดทุนตาม (Parabolic SAR)', d.psar ? fmt(d.psar.sar) + (d.psar.up ? ' · เทรนด์ขึ้น' : ' · เทรนด์ลง') : '—']
       ], html = '';
       rows.forEach(function (r) { html += '<div class="k">' + r[0] + '</div><div class="v">' + r[1] + '</div>'; });
       $('detKv').innerHTML = html;
@@ -598,7 +643,8 @@
     var checks = [];
     if (a && isFinite(det.ema20)) {
       var up = isFinite(det.ema50) ? a.price >= det.ema50 : a.price >= det.ema20;
-      checks.push({ ok: up, txt: up ? 'อยู่ในแนวโน้มขึ้น (ราคาเหนือเส้นเฉลี่ย)' : 'ยังไม่อยู่ในแนวโน้มขึ้น (ราคาใต้เส้นเฉลี่ย)' });
+      var adxTxt = isFinite(det.adx) ? (' · ADX ' + det.adx.toFixed(0) + (det.adx >= 20 ? ' เทรนด์แข็งแรง' : ' เทรนด์อ่อน ควรระวัง')) : '';
+      checks.push({ ok: up, txt: (up ? 'อยู่ในแนวโน้มขึ้น (ราคาเหนือเส้นเฉลี่ย)' : 'ยังไม่อยู่ในแนวโน้มขึ้น (ราคาใต้เส้นเฉลี่ย)') + adxTxt });
       var over = (a.price - det.ema20) / det.ema20, notChase = over <= 0.05;
       checks.push({ ok: notChase, txt: notChase ? 'ไม่ไล่ราคา (ห่างเส้นเฉลี่ย 20 ไม่เกิน 5%)' : 'กำลังไล่ราคา (สูงกว่าเส้นเฉลี่ย 20 เกิน 5%)' });
     } else {
@@ -756,13 +802,18 @@
     }
     step();
   }
+  var scanCache = [], scanDoneFlag = false;
   function renderScan(results, done) {
+    scanCache = results; scanDoneFlag = done;
+    var greenOnly = $('greenOnly') && $('greenOnly').checked;
     var sorted = results.slice().sort(function (a, b) { return b.score - a.score; });
     var green = sorted.filter(function (r) { return r.light === 'green'; });
+    var list = greenOnly ? green : sorted;
     var html = '';
     if (done) html += '<div class="mini" style="margin-bottom:8px">สแกนสำเร็จ ' + results.length + '/' + SET50.length + ' ตัว · เจอน่าสนใจ ' + green.length + ' ตัว — เรียงตามคะแนนเทคนิค <b>ไม่ใช่คำแนะนำซื้อ</b></div>';
+    if (greenOnly && green.length === 0) html += '<div class="mini" style="margin-bottom:8px">ยังไม่เจอไฟเขียว' + (done ? '' : ' (กำลังสแกน…)') + '</div>';
     html += '<div class="scan-list">';
-    sorted.slice(0, 15).forEach(function (r) {
+    list.slice(0, 15).forEach(function (r) {
       var b = r.light === 'green' ? '🟢' : r.light === 'red' ? '🔴' : '🟡';
       html += '<button class="scan-item ' + r.light + '" type="button" data-sym="' + r.sym + '"><span class="s">' + b + ' ' + r.sym + '</span><span class="p">' + fmt(r.price) + '</span><span class="w">' + r.why + '</span></button>';
     });
@@ -771,13 +822,24 @@
     [].forEach.call($('scanResult').querySelectorAll('.scan-item'), function (btn) { btn.addEventListener('click', function () { selectSet50(btn.getAttribute('data-sym')); }); });
   }
 
+  function addHolding() {
+    var sym = ($('pfSym').value || '').trim().toUpperCase();
+    var shares = num($('pfShares').value), cost = num($('pfCost').value);
+    if (!sym) { alert('ใส่ชื่อหุ้นก่อน'); return; }
+    if (!isFinite(shares) || shares <= 0 || !isFinite(cost) || cost <= 0) { alert('กรอกจำนวนหุ้นและราคาต้นทุนให้ถูกต้อง'); return; }
+    var pf = loadPf(); pf.push({ sym: sym, shares: shares, cost: cost, ts: Date.now() });
+    savePf(pf); $('pfSym').value = ''; $('pfShares').value = ''; $('pfCost').value = ''; renderPf();
+  }
+
   /* ── "ควรขายไหม" สำหรับหุ้นที่ถือ ─────────────────────────────── */
   function sellVerdict(a) {
-    var det = a.det || {};
-    if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) return { cls: 'no', txt: '🔴 พิจารณาขาย / ตัดขาดทุน — ราคาหลุดแนวโน้ม (ต่ำกว่าเส้นเฉลี่ย)' };
-    if (isFinite(a.rsi) && a.rsi > 70) return { cls: 'warn', txt: '🟡 พิจารณาล็อกกำไรบางส่วน — RSI สูง ราคาร้อนแรง อาจย่อ' };
-    if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) return { cls: 'warn', txt: '🟡 ใกล้แนวต้าน — พิจารณาล็อกกำไรบางส่วน' };
-    return { cls: 'go', txt: '🟢 ยังอยู่ในแนวโน้มขึ้น — ถือต่อได้ (เลื่อนจุดตัดขาดทุนตามขึ้นไป)' };
+    var det = a.det || {}, ps = det.psar;
+    var sarTxt = ps ? ' · แนวตัดขาดทุนตาม (SAR) ≈ ' + fmt(ps.sar) : '';
+    if (ps && !ps.up) return { cls: 'no', txt: '🔴 พิจารณาขาย — สัญญาณ SAR พลิกลง (ราคาต่ำกว่าแนวตามเทรนด์)' + sarTxt };
+    if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) return { cls: 'no', txt: '🔴 พิจารณาขาย / ตัดขาดทุน — ราคาหลุดแนวโน้ม (ต่ำกว่าเส้นเฉลี่ย)' + sarTxt };
+    if (isFinite(a.rsi) && a.rsi > 70) return { cls: 'warn', txt: '🟡 พิจารณาล็อกกำไรบางส่วน — RSI สูง ราคาร้อนแรง อาจย่อ' + sarTxt };
+    if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) return { cls: 'warn', txt: '🟡 ใกล้แนวต้าน — พิจารณาล็อกกำไรบางส่วน' + sarTxt };
+    return { cls: 'go', txt: '🟢 ยังอยู่ในแนวโน้มขึ้น — ถือต่อได้ เลื่อนจุดตัดขาดทุนตาม' + sarTxt };
   }
 
   /* ── init ───────────────────────────────────────────────────── */
@@ -804,6 +866,8 @@
     $('eBtn').addEventListener('click', doExpectancy);
     $('jAdd').addEventListener('click', addJournal);
     $('scanBtn').addEventListener('click', doScan);
+    $('greenOnly').addEventListener('change', function () { if (scanCache.length) renderScan(scanCache, scanDoneFlag); });
+    $('pfAdd').addEventListener('click', addHolding);
     renderSet50Strip();
     renderPf();
     renderJournal();
@@ -811,5 +875,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
-  window.__thstock = { sma: sma, emaLast: emaLast, rsi: rsi, rsiSeries: rsiSeries, smaSeries: smaSeries, macd: macd, bollinger: bollinger, atr: atr, analyzeSeries: analyzeSeries, analyzeSimple: analyzeSimple, riskCalc: riskCalc, demoData: demoData, parsePaste: parsePaste, parseYahoo: parseYahoo, checklistChecks: checklistChecks };
+  window.__thstock = { sma: sma, emaLast: emaLast, rsi: rsi, rsiSeries: rsiSeries, smaSeries: smaSeries, macd: macd, bollinger: bollinger, atr: atr, analyzeSeries: analyzeSeries, analyzeSimple: analyzeSimple, riskCalc: riskCalc, demoData: demoData, parsePaste: parsePaste, parseYahoo: parseYahoo, checklistChecks: checklistChecks, adx: adx, psar: psar };
 })();
