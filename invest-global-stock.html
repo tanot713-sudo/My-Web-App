@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>หุ้นต่างประเทศ — ตัวช่วยเข้า/ออก | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<!-- Lightweight Charts (TradingView) — Apache-2.0 : กราฟแท่งเทียน (โฮสต์เองในเว็บ ใช้ออฟไลน์ได้) -->
+<script src="vendor/lightweight-charts.standalone.js" defer></script>
+<!-- Google Identity Services — สำหรับสำรองพอร์ต/สมุดเทรดขึ้น Google Drive (ไม่บังคับ) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
+  --brand:#12A594;--brand-dk:#0B7F72;--brand-sf:#E7F6F4;
+  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--sky:#3B9BEA;--err:#E5484D;--warn:#E08700;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
+  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto}
+.top-grid{display:grid;grid-template-columns:5fr 6fr;gap:14px;align-items:stretch}
+.top-grid>.card{margin-top:0;display:flex;flex-direction:column}
+@media(max-width:760px){.top-grid{grid-template-columns:1fr;gap:0}.top-grid>.card{margin-top:14px}}
+.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
+.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+.crumb .sep{margin:0 7px;color:#C9CEDC}
+.head{display:flex;align-items:center;gap:14px;margin:12px 0 6px}
+.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:26px;
+  background:linear-gradient(135deg,#12A594,#3FCBB7);color:#fff;display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(18,165,148,.3)}
+h1{font-size:22px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px 18px;margin-top:14px}
+.card h2{font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.step{width:22px;height:22px;border-radius:50%;background:var(--brand-sf);color:var(--brand-dk);
+  display:grid;place-items:center;font-size:12px;font-weight:800;flex-shrink:0}
+
+.frow{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 130px;min-width:120px;max-width:210px}
+.field.grow{max-width:none}
+@media(max-width:520px){.field{max-width:none}}
+.field.grow{flex:1 1 100%}
+.field label{font-size:12px;color:var(--muted);font-weight:600}
+.field .unit{font-size:11px;color:var(--muted);font-weight:500}
+input[type=text],input[type=number]{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:11px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none}
+input:focus{outline:none;border-color:var(--brand)}
+[data-theme="dark"] input{background:#12151C}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
+  background:var(--card);border-radius:11px;padding:10px 15px;font-family:inherit;font-size:14px;font-weight:700;
+  color:var(--ink);cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-dk);color:#fff}
+.btn.sm{padding:7px 11px;font-size:12.5px}
+.status{font-size:12.5px;color:var(--muted);margin-top:9px;min-height:1.2em}
+.status.err{color:var(--err)}
+.status.ok{color:var(--ok)}
+
+/* ── สำรองขึ้น Google Drive ── */
+.drive-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.drive-row .status{margin-top:0}
+
+/* ── ไฟจราจร ── */
+.light{display:flex;gap:14px;align-items:center;border-radius:16px;padding:18px;margin-top:2px}
+.light .bulb{width:56px;height:56px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:30px}
+.light .verdict{font-size:18px;font-weight:800;line-height:1.25}
+.light .why{font-size:13.5px;margin-top:3px;opacity:.9}
+.light.green{background:#E9F9F0;color:#0B7F52}
+.light.yellow{background:#FFF6E4;color:#8A6212}
+.light.red{background:#FDECEC;color:#B23838}
+.light.gray{background:var(--bg);color:var(--muted)}
+[data-theme="dark"] .light.green{background:#14261E;color:#5EDCAB}
+[data-theme="dark"] .light.yellow{background:#2A2415;color:#E8C88A}
+[data-theme="dark"] .light.red{background:#301B1B;color:#F0A0A0}
+
+/* ── ผลลัพธ์คุมเงิน ── */
+.result{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px;display:none}
+.result.show{display:block}
+.big-out{font-size:15px;line-height:1.9}
+.big-out b{color:var(--brand-dk);font-weight:800}
+.kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;margin-top:10px;font-size:13.5px}
+.kv .k{color:var(--muted)}
+.kv .v{font-weight:700;text-align:right}
+.kv .v.risk{color:var(--err)}
+.kv .v.tp{color:var(--ok)}
+.tp-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tp-chip{background:var(--brand-sf);color:var(--brand-dk);border-radius:10px;padding:7px 11px;font-size:12.5px;font-weight:700}
+
+/* ── กราฟ ── */
+.chart-wrap{margin-top:6px;overflow-x:auto}
+svg.chart{display:block;width:100%;height:auto;max-width:100%}
+.chart-cap{font-size:12px;color:var(--muted);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+.chart-cap i{width:11px;height:3px;display:inline-block;vertical-align:middle;margin-right:4px;border-radius:2px}
+
+/* ── collapsible ── */
+details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;color:var(--ink);
+  list-style:none;display:flex;align-items:center;gap:8px;user-select:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:'▸';color:var(--muted);transition:.15s}
+details[open]>summary::before{transform:rotate(90deg)}
+.details-body{padding:0 15px 15px;font-size:13.5px;color:var(--ink)}
+.det-kv{display:grid;grid-template-columns:1fr auto;gap:5px 12px;font-size:13px}
+.det-kv .k{color:var(--muted)}
+.det-kv .v{font-weight:600;text-align:right}
+.lesson h3{font-size:13.5px;font-weight:700;margin:12px 0 4px;color:var(--brand-dk)}
+.lesson p{font-size:13px;color:var(--ink);margin-bottom:4px;opacity:.92}
+.lesson ul{margin:2px 0 6px 18px;font-size:13px}
+.lesson li{margin-bottom:3px}
+
+/* ── พอร์ต ── */
+.pf-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+.pf-table th,.pf-table td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line)}
+.pf-table th:first-child,.pf-table td:first-child{text-align:left}
+.pf-table th{color:var(--muted);font-weight:600;font-size:12px}
+.pf-table input{padding:6px 8px;font-size:13px;width:90px;text-align:right}
+.pf-actions{white-space:normal}
+@media(max-width:480px){.pf-table input{width:62px}.pf-table th,.pf-table td{padding:8px 4px}}
+.pf-pl.up{color:var(--ok);font-weight:700}
+.pf-pl.down{color:var(--err);font-weight:700}
+.pf-empty{font-size:13px;color:var(--muted);padding:10px 0}
+.pf-del{background:none;border:none;color:var(--err);cursor:pointer;font-size:16px;padding:2px 6px}
+
+/* ── ข้อมูลบริษัท/กลุ่มธุรกิจ ── */
+.company-card{background:var(--bg);border-radius:11px;padding:10px 13px;margin-top:8px;font-size:12.5px;line-height:1.6}
+.company-card .cname{font-weight:700;color:var(--ink);font-size:13px}
+.company-card .csector{display:inline-block;background:var(--brand-sf);color:var(--brand-dk);border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;margin-left:6px;vertical-align:middle}
+.company-card .cbiz{color:var(--ink);opacity:.85;margin-top:3px}
+.company-card .cbiz a{color:var(--brand-dk);font-weight:600}
+.company-card .creminders{margin:6px 0 0 16px;padding:0;font-size:12px;color:var(--muted)}
+.company-card .creminders li{margin-bottom:2px}
+
+/* ── ข่าวล่าสุด (best-effort) ── */
+.news-block{margin-top:8px;font-size:12.5px;color:var(--muted)}
+.news-list{list-style:none;margin:4px 0 0;padding:0}
+.news-list li{padding:5px 0;border-top:1px dashed var(--line);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.news-list a{color:var(--brand-dk);font-weight:600;text-decoration:none}
+.news-list a:hover{text-decoration:underline}
+.news-date{color:var(--muted);font-size:11px;white-space:nowrap}
+.news-search-link{color:var(--brand-dk);font-weight:700;text-decoration:none;font-size:12px;white-space:nowrap}
+
+/* ── กราฟ lightweight-charts ── */
+.chart-toolbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;margin-bottom:8px}
+.tf-group,.tg-group{display:flex;gap:6px;flex-wrap:wrap}
+.tf,.tg{font-family:inherit;font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;
+  border:1.5px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
+.tf.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.tg.on{background:var(--brand-sf);border-color:var(--brand);color:var(--brand-dk)}
+.lw-legend{font-size:12.5px;font-weight:600;color:var(--ink);min-height:1.35em;margin-bottom:4px;
+  display:flex;flex-wrap:wrap;gap:2px 12px}
+.lw-legend span{white-space:nowrap}
+.lw-legend .up{color:#26a69a}.lw-legend .dn{color:#ef5350}
+.lw-chart{width:100%;height:300px}
+.lw-rsi{width:100%;height:110px;margin-top:2px}
+/* ── ตารางหุ้นดัง (US) ── */
+#ulCard{display:flex;flex-direction:column}
+.ul-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.scan-filter{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;user-select:none}
+.scan-filter input{width:15px;height:15px;accent-color:var(--brand)}
+#scanStatus:empty{display:none}
+.ul-tablewrap{flex:1;min-height:120px;max-height:360px;overflow-y:auto;margin-top:6px;
+  border:1px solid var(--line);border-radius:11px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.ul-tablewrap::-webkit-scrollbar{width:6px}
+.ul-tablewrap::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.ul-table{width:100%;border-collapse:collapse;font-size:13px}
+.ul-table thead th{position:sticky;top:0;background:var(--bg);color:var(--muted);font-weight:600;font-size:11.5px;
+  padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);z-index:1}
+.ul-table th.c-sym{text-align:left}.ul-table th.c-sig{text-align:center}
+.ul-table td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.ul-table tbody tr{cursor:pointer;transition:.1s}
+.ul-table tbody tr:hover{background:var(--brand-sf)}
+.ul-table tbody tr:last-child td{border-bottom:none}
+.ul-table td.c-sym{text-align:left;font-weight:700;color:var(--brand-dk)}
+.ul-table td.c-sig{text-align:center;font-size:15px}
+.ul-table .up{color:#178a4e;font-weight:700}.ul-table .dn{color:#d1453b;font-weight:700}
+.ul-table .muted{color:var(--muted)}
+@media(max-width:520px){.ul-table .c-chg{display:none}.ul-table th,.ul-table td{padding:8px 7px}}
+.pf-sell{background:var(--brand-sf);border:none;color:var(--brand-dk);border-radius:8px;padding:5px 9px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.pf-sell:hover{background:var(--brand);color:#fff}
+.pf-sellrow td{padding:0 6px 10px!important;overflow-wrap:anywhere;word-break:break-word}
+.sell-detail{width:1px;min-width:100%;box-sizing:border-box}
+.sell-verdict{border-radius:11px;padding:11px 13px;font-size:13px;font-weight:600;line-height:1.5}
+.sell-verdict.go{background:#E9F9F0;color:#0B7F52}
+.sell-verdict.no{background:#FDECEC;color:#B23838}
+.sell-verdict.warn{background:#FFF6E4;color:#8A6212}
+[data-theme="dark"] .sell-verdict.go{background:#14261E;color:#5EDCAB}
+[data-theme="dark"] .sell-verdict.no{background:#301B1B;color:#F0A0A0}
+[data-theme="dark"] .sell-verdict.warn{background:#2A2415;color:#E8C88A}
+.sell-levels{list-style:none;margin:8px 0 0;padding:0}
+.sell-levels li{padding:7px 0;border-top:1px dashed var(--line)}
+.sell-levels li:first-child{border-top:none}
+.sell-levels .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-weight:700;font-size:13px}
+.sell-levels .row.stop .price{color:var(--err)}
+.sell-levels .row.warn .price{color:var(--warn)}
+.sell-levels .row.tp .price{color:var(--ok)}
+.sell-levels .reason{font-size:12px;color:var(--muted);margin-top:2px;font-weight:500;line-height:1.4}
+/* ── ป้ายแหล่งข้อมูลกราฟ ── */
+.src-badge{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;display:inline-block;margin-bottom:10px}
+.src-badge.real{background:#E9F9F0;color:#0B7F52}
+.src-badge.demo{background:#FFF6E4;color:#8A6212}
+.src-badge.paste{background:#EEF1F7;color:#5A6479}
+[data-theme="dark"] .src-badge.real{background:#14261E;color:#5EDCAB}
+[data-theme="dark"] .src-badge.demo{background:#2A2415;color:#E8C88A}
+[data-theme="dark"] .src-badge.paste{background:#242B3B;color:#A9B4C9}
+/* ── ข้อความช่วยเล็ก ── */
+.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
+/* ── ตัวแปลงสกุลเงิน ── */
+.fx-sub{font-size:11.5px;color:var(--muted);font-weight:600;margin-left:4px}
+/* ── กล่องสรุป (เช็กลิสต์/expectancy) ── */
+.verdict-box{border-radius:13px;padding:14px 16px;font-size:14px;font-weight:600;line-height:1.5}
+.verdict-box.go{background:#E9F9F0;color:#0B7F52}
+.verdict-box.no{background:#FDECEC;color:#B23838}
+.verdict-box.warn{background:#FFF6E4;color:#8A6212}
+[data-theme="dark"] .verdict-box.go{background:#14261E;color:#5EDCAB}
+[data-theme="dark"] .verdict-box.no{background:#301B1B;color:#F0A0A0}
+[data-theme="dark"] .verdict-box.warn{background:#2A2415;color:#E8C88A}
+.chk-list{list-style:none;margin:12px 0 0;padding:0}
+.chk-list li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line)}
+.chk-list li:last-child{border-bottom:none}
+.chk-list .ic{flex-shrink:0;font-size:15px}
+.chk-list li.pass{color:var(--ink)}
+.chk-list li.fail{color:#B23838;font-weight:600}
+[data-theme="dark"] .chk-list li.fail{color:#F0A0A0}
+/* ── สถิติสมุดเทรด ── */
+.j-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:12px}
+.j-stat{background:var(--bg);border-radius:11px;padding:11px 13px}
+.j-stat .lbl{font-size:11.5px;color:var(--muted);font-weight:600}
+.j-stat .val{font-size:18px;font-weight:800;margin-top:2px}
+.j-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.j-table th,.j-table td{padding:7px 6px;text-align:right;border-bottom:1px solid var(--line)}
+.j-table th:first-child,.j-table td:first-child{text-align:left}
+.j-table th{color:var(--muted);font-weight:600;font-size:12px}
+.j-win{color:var(--ok);font-weight:700}.j-loss{color:var(--err);font-weight:700}
+.j-del{background:none;border:none;color:var(--err);cursor:pointer;font-size:15px}
+/* ── การ์ด reality-check ── */
+.card.reality{border:1.5px solid #F5D08A;background:#FFFBF2}
+[data-theme="dark"] .card.reality{border-color:#4A3D1E;background:#221D12}
+.reality-list{margin:4px 0 0 18px;font-size:13.5px;line-height:1.7}
+.reality-list li{margin-bottom:5px}
+.reality-cta{margin-top:12px;font-size:13.5px;background:var(--brand-sf);border-radius:11px;padding:12px 14px;line-height:1.6}
+.reality-cta a{color:var(--brand-dk);font-weight:700;text-decoration:none}
+/* ── ภาพประกอบบทเรียน ── */
+.svg-lesson{width:100%;height:auto;max-width:440px;display:block;margin:4px auto 0}
+.lesson figure{margin:14px 0 6px}
+.lesson figcaption{font-size:12.5px;color:var(--muted);text-align:center;margin-top:5px;line-height:1.6}
+.disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
+footer{margin-top:22px;text-align:center;font-size:12.5px;color:#9AA3B8}
+footer a{color:var(--sky);text-decoration:none;font-weight:600}
+@media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:19px}.head-ic{width:44px;height:44px;font-size:22px}}
+</style>
+</head>
+<body class="ome-tool-page" data-invest-key="global-stock">
+<script src="auth-gate.js"></script>
+<div class="wrap">
+
+  <div id="investNav"></div>
+
+  <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>หุ้นต่างประเทศ</nav>
+
+  <div class="head">
+    <div class="head-ic">🌐</div>
+    <div>
+      <h1>หุ้นต่างประเทศ — ตัวช่วยเข้า/ออก</h1>
+      <div class="head-sub">หุ้นสหรัฐฯ (US) · มือใหม่ก็ใช้ได้ · เน้นคุมเงินและความเสี่ยง</div>
+    </div>
+  </div>
+
+  <div class="top-grid">
+  <!-- STEP 1: ราคา -->
+  <div class="card">
+    <h2><span class="step">1</span> ราคาหุ้นตอนนี้</h2>
+    <div class="frow">
+      <div class="field" style="flex:1 1 140px">
+        <label>ชื่อย่อหุ้น (เช่น AAPL, MSFT)</label>
+        <input type="text" id="sym" placeholder="AAPL" autocomplete="off" spellcheck="false">
+      </div>
+      <button class="btn" id="fetchBtn" type="button">🔄 ลองดึงราคา</button>
+    </div>
+    <div class="frow" style="margin-top:12px">
+      <div class="field"><label>ราคาตอนนี้ (USD)</label><input type="number" id="price" inputmode="decimal" step="0.01" placeholder="เช่น 180.50"></div>
+      <div class="field"><label>ราคาสูงสุดของรอบ</label><input type="number" id="hi" inputmode="decimal" step="0.01" placeholder="ช่วง 3 เดือน"></div>
+      <div class="field"><label>ราคาต่ำสุดของรอบ</label><input type="number" id="lo" inputmode="decimal" step="0.01" placeholder="ช่วง 3 เดือน"></div>
+    </div>
+    <div class="mini" id="priceFx"></div>
+    <div class="status" id="fetchStatus">ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจากแอปเทรดที่ใช้ก็พอ (ดูราคาปัจจุบัน + สูง/ต่ำของรอบ)</div>
+    <div style="margin-top:10px;display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn primary" id="analyzeBtn" type="button">ประเมินให้หน่อย →</button>
+      <button class="btn sm" id="demoBtn" type="button">📊 ดูกราฟตัวอย่าง (ฝึกอ่าน)</button>
+    </div>
+    <details style="margin-top:10px">
+      <summary>วางราคาย้อนหลังเอง (ทางเลือก)</summary>
+      <div class="details-body">
+        <p style="font-size:12.5px;color:var(--muted);margin:2px 0 6px">วางราคาปิดหลายวัน คั่นด้วยเว้นวรรค/บรรทัด/จุลภาค (เรียงเก่า→ใหม่)</p>
+        <textarea id="pasteBox" rows="3" style="width:100%;font-family:inherit;font-size:14px;padding:10px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)" placeholder="178.50 179.75 180.00 179.80 181.25 182.50 ..."></textarea>
+        <button class="btn sm" id="pasteBtn" type="button" style="margin-top:8px">ใช้ราคานี้</button>
+      </div>
+    </details>
+    <details style="margin-top:10px">
+      <summary>แปลงเป็นเงินบาท (ทางเลือก)</summary>
+      <div class="details-body">
+        <p class="mini" style="margin:2px 0 8px">เปิดไว้เพื่อดูยอด ≈ บาท กำกับควบคู่กับตัวเลข USD ในหน้านี้ (ไม่บังคับ ไม่กระทบการคำนวณหลักซึ่งเป็น USD เสมอ)</p>
+        <div class="frow">
+          <div class="field"><label>อัตราแลกเปลี่ยน <span class="unit">(บาทต่อ 1 USD)</span></label><input type="number" id="fxRate" inputmode="decimal" step="0.01" placeholder="เช่น 36.00"></div>
+          <button class="btn sm" id="fxFetchBtn" type="button">🔄 ดึงอัตราปัจจุบัน</button>
+        </div>
+        <div class="status" id="fxStatus"></div>
+        <label class="scan-filter" style="margin-top:8px"><input type="checkbox" id="fxShowChk"> แสดงยอดเทียบเงินบาท (≈ ฿) ในหน้านี้</label>
+      </div>
+    </details>
+  </div>
+
+  <!-- หุ้นดัง (US) browser + screener -->
+  <div class="card" id="ulCard">
+    <h2>🔎 หุ้นดัง (US)</h2>
+    <div class="ul-bar">
+      <button class="btn primary sm" id="scanBtn" type="button">🔎 หาหุ้นน่าสนใจ</button>
+      <label class="scan-filter"><input type="checkbox" id="greenOnly"> เฉพาะไฟเขียว</label>
+    </div>
+    <div class="mini" id="scanStatus"></div>
+    <div class="ul-tablewrap">
+      <table class="ul-table">
+        <thead><tr>
+          <th class="c-sym">หลักทรัพย์</th><th class="c-num">ล่าสุด</th>
+          <th class="c-num c-chg">+/−</th><th class="c-num">%</th><th class="c-sig">สัญญาณ</th>
+        </tr></thead>
+        <tbody id="ulBody"></tbody>
+      </table>
+    </div>
+    <p class="mini" style="margin-top:8px">แตะแถวเพื่อดูว่า "น่าลงทุนไหม" · กด "หาหุ้นน่าสนใจ" ให้ระบบไล่ดึงราคา+วิเคราะห์ (ครั้งแรกอาจช้า/ไม่ครบ รอบต่อไปเร็วขึ้นเพราะจำไว้) · <b>ไม่ใช่คำแนะนำซื้อ</b></p>
+  </div>
+  </div><!-- /top-grid -->
+
+  <!-- ไฟจราจร -->
+  <div class="card" id="lightCard" style="display:none">
+    <div class="light gray" id="light">
+      <div class="bulb" id="bulb">⚪</div>
+      <div><div class="verdict" id="verdict">—</div><div class="why" id="why"></div></div>
+    </div>
+
+    <details id="detailsBox" style="display:none">
+      <summary>ดูรายละเอียดทางเทคนิค (ไม่ต้องเข้าใจก็ได้)</summary>
+      <div class="details-body"><div class="det-kv" id="detKv"></div></div>
+    </details>
+  </div>
+
+  <!-- กราฟราคา -->
+  <div class="card" id="chartCard" style="display:none">
+    <h2>📊 กราฟราคา</h2>
+    <div class="src-badge" id="chartSource"></div>
+    <div class="chart-toolbar">
+      <div class="tf-group" id="tfGroup">
+        <button class="tf" data-tf="21" type="button">1เดือน</button>
+        <button class="tf on" data-tf="63" type="button">3เดือน</button>
+        <button class="tf" data-tf="126" type="button">6เดือน</button>
+        <button class="tf" data-tf="252" type="button">1ปี</button>
+      </div>
+      <div class="tg-group" id="tgGroup">
+        <button class="tg on" data-tg="ma20" type="button">เฉลี่ย 20</button>
+        <button class="tg on" data-tg="ma50" type="button">เฉลี่ย 50</button>
+        <button class="tg on" data-tg="vol" type="button">Volume</button>
+        <button class="tg" data-tg="rsi" type="button">RSI</button>
+      </div>
+    </div>
+    <div class="lw-legend" id="lwLegend"></div>
+    <div class="lw-chart" id="lwChart"></div>
+    <div class="lw-rsi" id="lwRsi" style="display:none"></div>
+    <div class="chart-cap">
+      <span><i style="background:#26a69a"></i>แท่งขึ้น</span>
+      <span><i style="background:#ef5350"></i>แท่งลง</span>
+      <span><i style="background:#F5A524"></i>เฉลี่ย 20 วัน</span>
+      <span><i style="background:#3B9BEA"></i>เฉลี่ย 50 วัน</span>
+      <span>👆 แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
+    </div>
+  </div>
+
+  <!-- STEP 2: คุมเงิน -->
+  <div class="card">
+    <h2><span class="step">2</span> ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน</h2>
+    <div class="frow">
+      <div class="field"><label>เงินลงทุนทั้งพอร์ต (USD)</label><input type="number" id="capital" inputmode="numeric" placeholder="เช่น 10000" value="10000"></div>
+      <div class="field"><label>ยอมเสี่ยงต่อไม้ <span class="unit">(% ของพอร์ต)</span></label><input type="number" id="riskPct" inputmode="decimal" step="0.1" value="2"></div>
+    </div>
+    <div class="frow" style="margin-top:10px">
+      <div class="field"><label>ราคาเข้าซื้อ (USD)</label><input type="number" id="entry" inputmode="decimal" step="0.01" placeholder="= ราคาตอนนี้"></div>
+      <div class="field"><label>ราคาตัดขาดทุน (Stop)</label><input type="number" id="stop" inputmode="decimal" step="0.01" placeholder="แนะนำอัตโนมัติ"></div>
+      <div class="field"><label>ค่าคอมฯ <span class="unit">(% ต่อครั้ง)</span></label><input type="number" id="comm" inputmode="decimal" step="0.001" value="0.20"></div>
+    </div>
+    <p class="mini">ค่าคอมฯ ของโบรกไทยที่เทรดหุ้น US แต่ละเจ้าคิดต่างกันมาก (บางเจ้าคิด % บางเจ้าคิดเหมาจ่ายต่อออเดอร์) และมักมีค่าธรรมเนียมแปลงเงินบาท↔ดอลลาร์แยกต่างหาก (~0.25–1%) — ปรับตัวเลขให้ตรงกับโบรกที่ใช้จริง</p>
+    <div style="margin-top:12px;display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn primary" id="calcBtn" type="button">คำนวณ</button>
+      <button class="btn sm" id="saveBtn" type="button" style="display:none">💾 บันทึกเข้าพอร์ต</button>
+    </div>
+
+    <div class="result" id="riskResult">
+      <div class="big-out" id="riskHeadline"></div>
+      <div class="kv" id="riskKv"></div>
+      <div class="tp-row" id="tpRow"></div>
+    </div>
+  </div>
+
+  <!-- เช็กลิสต์ก่อนเข้าไม้ -->
+  <div class="card">
+    <h2>✅ ตรวจก่อนเข้าไม้ — ควรซื้อไหม?</h2>
+    <p class="mini">เช็กวินัย 6 ข้อ ก่อนกดซื้อจริง (กันซื้อตามอารมณ์/ไล่ราคา) — กด "ประเมิน" และ "คำนวณ" ด้านบนก่อน แล้วกดปุ่มนี้</p>
+    <div style="margin-top:10px"><button class="btn" id="checkBtn" type="button">ตรวจเช็กลิสต์</button></div>
+    <div id="checkResult" style="display:none">
+      <div class="verdict-box" id="checkVerdict"></div>
+      <ul class="chk-list" id="chkList"></ul>
+    </div>
+  </div>
+
+  <!-- สำรองขึ้น Google Drive -->
+  <div class="card">
+    <h2>☁️ สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
+    <p class="mini">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตและสมุดเทรดด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าหุ้นไทย ไม่ปนกัน) — กันข้อมูลหายถ้าล้างเบราว์เซอร์ และดึงคืนได้เมื่อเปิดจากเครื่อง/เบราว์เซอร์อื่น</p>
+    <div class="drive-row" style="margin-top:10px">
+      <button class="btn sm" id="driveConnectBtn" type="button">🔗 เชื่อมต่อ Google Drive</button>
+      <span class="status" id="driveStatusTxt"></span>
+    </div>
+  </div>
+
+  <!-- พอร์ต -->
+  <div class="card">
+    <h2>📁 พอร์ตของฉัน</h2>
+    <p class="mini">เพิ่มหุ้นที่ถืออยู่ได้ตรงนี้ แล้วกด "ควรขาย?" เพื่อให้เครื่องช่วยดูจังหวะขาย (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
+    <div class="frow" style="margin-top:10px">
+      <div class="field" style="flex:1 1 90px"><label>ชื่อหุ้น</label><input type="text" id="pfSym" placeholder="AAPL" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label>จำนวนหุ้น</label><input type="number" id="pfShares" inputmode="numeric" placeholder="10"></div>
+      <div class="field"><label>ราคาต้นทุน/หุ้น</label><input type="number" id="pfCost" inputmode="decimal" step="0.01" placeholder="180.50"></div>
+      <button class="btn sm" id="pfAdd" type="button">+ เพิ่มเข้าพอร์ต</button>
+    </div>
+    <div id="pfBox" style="margin-top:10px"><div class="pf-empty">ยังไม่มีหุ้นในพอร์ต — เพิ่มด้านบน หรือกด "บันทึกเข้าพอร์ต" ในขั้นที่ 2</div></div>
+  </div>
+
+  <!-- สมุดเทรด + สถิติ -->
+  <div class="card">
+    <h2>📓 สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)</h2>
+    <p class="mini">บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง (จำในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
+    <div class="frow" style="margin-top:10px">
+      <div class="field" style="flex:1 1 90px"><label>หุ้น</label><input type="text" id="jSym" placeholder="AAPL" spellcheck="false"></div>
+      <div class="field"><label>ราคาเข้า</label><input type="number" id="jEntry" inputmode="decimal" step="0.01"></div>
+      <div class="field"><label>ราคาออก</label><input type="number" id="jExit" inputmode="decimal" step="0.01"></div>
+      <div class="field"><label>จำนวนหุ้น</label><input type="number" id="jShares" inputmode="numeric"></div>
+      <button class="btn sm" id="jAdd" type="button">+ บันทึก</button>
+    </div>
+    <div id="jStats" class="j-stats" style="display:none"></div>
+    <div id="jBox"></div>
+  </div>
+
+  <!-- Expectancy -->
+  <div class="card">
+    <h2>🎲 ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?</h2>
+    <p class="mini">ความจริงที่มือใหม่มักไม่รู้: <b>ชนะบ่อยไม่ได้แปลว่ากำไร</b> — สิ่งที่สำคัญคือ "กำไรตอนถูก" ต้องใหญ่กว่า "ขาดทุนตอนผิด"</p>
+    <div class="frow" style="margin-top:10px">
+      <div class="field"><label>อัตราชนะ <span class="unit">(% ของไม้ที่ชนะ)</span></label><input type="number" id="eWin" inputmode="decimal" value="45"></div>
+      <div class="field"><label>กำไรเฉลี่ยตอนชนะ <span class="unit">(เท่าของความเสี่ยง R)</span></label><input type="number" id="eWinR" inputmode="decimal" step="0.1" value="2"></div>
+      <div class="field"><label>ขาดทุนเฉลี่ยตอนแพ้ <span class="unit">(R)</span></label><input type="number" id="eLossR" inputmode="decimal" step="0.1" value="1"></div>
+      <button class="btn sm" id="eBtn" type="button">คำนวณ</button>
+    </div>
+    <div id="eResult" class="verdict-box" style="display:none;margin-top:12px"></div>
+  </div>
+
+  <!-- เงินเย็นเช็ก / reality-check -->
+  <div class="card reality">
+    <h2>🛟 อ่านก่อนเอาเงินมาลงทุน (สำคัญมาก)</h2>
+    <ul class="reality-list">
+      <li>ลงทุนหุ้น <b>เฉพาะเงินที่ไม่ต้องใช้อย่างน้อย 3–5 ปี</b> — เงินที่หายได้โดยไม่กระทบชีวิต</li>
+      <li>มี <b>เงินสำรองฉุกเฉิน 3–6 เดือน</b> ก่อนเริ่มเสมอ</li>
+      <li><b>ห้ามเด็ดขาด</b>: เอาเงินค่ากิน ค่าเช่า เงินกู้ หรือเงินที่ต้องใช้เร็วๆ มาเทรด</li>
+      <li>การเทรดหุ้น <b>ไม่ใช่รายได้เสริมที่มั่นคง/เร็ว</b> — มือใหม่ส่วนใหญ่ขาดทุนปีแรก โดยเฉพาะตอนร้อนเงิน</li>
+      <li>หุ้นต่างประเทศมี <b>ความเสี่ยงอัตราแลกเปลี่ยน</b> เพิ่มเข้ามาอีกชั้น — ถึงหุ้นจะกำไรเป็น USD แต่ถ้าเงินบาทแข็งขึ้นมาก กำไรตีกลับเป็นบาทอาจลดลงได้</li>
+    </ul>
+    <div class="reality-cta">
+      ถ้าตอนนี้เงินตึงและอยากได้เงินงอกแบบเสี่ยงต่ำ วิธีที่ปลอดภัยกว่าเก็งหุ้นรายตัวมากคือ
+      <b>ทยอยลงทุนกองทุนดัชนี (DCA)</b> — <a href="invest-global-fund.html">ลองเครื่องวางแผนกองทุน S&amp;P500 →</a>
+    </div>
+  </div>
+
+  <!-- เรียนรู้: อ่านกราฟ -->
+  <details class="card lesson" style="box-shadow:var(--sh)">
+    <summary style="font-size:14px">📈 อ่านกราฟเป็นใน 5 นาที (มีรูป)</summary>
+    <div class="details-body">
+      <h3>1. แท่งเทียน 1 แท่ง = ราคา 1 วัน</h3>
+      <figure>
+        <svg class="svg-lesson" viewBox="0 0 320 210" xmlns="http://www.w3.org/2000/svg">
+          <line x1="95" y1="22" x2="95" y2="178" stroke="#26a69a" stroke-width="2.5"/>
+          <rect x="76" y="62" width="38" height="82" rx="2" fill="#26a69a"/>
+          <text x="95" y="200" font-size="13" text-anchor="middle" fill="#26a69a" font-weight="700">วันขึ้น (เขียว)</text>
+          <line x1="235" y1="30" x2="235" y2="188" stroke="#ef5350" stroke-width="2.5"/>
+          <rect x="216" y="70" width="38" height="72" rx="2" fill="#ef5350"/>
+          <text x="235" y="200" font-size="13" text-anchor="middle" fill="#ef5350" font-weight="700">วันลง (แดง)</text>
+          <text x="150" y="40" font-size="11" fill="currentColor">← ไส้บน = ราคาสูงสุด</text>
+          <text x="150" y="104" font-size="11" fill="currentColor">← ตัวเทียน = ช่วงเปิด–ปิด</text>
+          <text x="150" y="168" font-size="11" fill="currentColor">← ไส้ล่าง = ราคาต่ำสุด</text>
+        </svg>
+        <figcaption>เขียว = วันนั้นปิดสูงกว่าเปิด (ราคาขึ้น) · แดง = ปิดต่ำกว่าเปิด (ราคาลง) · ตัวอ้วนคือช่วงเปิด-ปิด เส้นบาง (ไส้) คือจุดสูงสุด-ต่ำสุดของวัน</figcaption>
+      </figure>
+
+      <h3>2. แนวโน้ม: ขึ้น / ลง / ออกข้าง</h3>
+      <figure>
+        <svg class="svg-lesson" viewBox="0 0 440 130" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <polyline points="15,105 45,88 75,95 105,60 135,70 145,40" stroke="#26a69a" stroke-width="2.5" stroke-linejoin="round"/>
+          <text x="80" y="125" font-size="12" text-anchor="middle" fill="#26a69a" font-weight="700">ขาขึ้น</text>
+          <polyline points="165,40 195,58 225,50 255,82 285,74 295,105" stroke="#ef5350" stroke-width="2.5" stroke-linejoin="round"/>
+          <text x="230" y="125" font-size="12" text-anchor="middle" fill="#ef5350" font-weight="700">ขาลง</text>
+          <polyline points="315,72 345,60 360,80 390,62 405,80 430,66" stroke="#8B94A8" stroke-width="2.5" stroke-linejoin="round"/>
+          <text x="375" y="125" font-size="12" text-anchor="middle" fill="#8B94A8" font-weight="700">ออกข้าง</text>
+        </svg>
+        <figcaption>ยอด/ก้นสูงขึ้นเรื่อยๆ = ขาขึ้น (มองหาจังหวะซื้อ) · ต่ำลงเรื่อยๆ = ขาลง (เลี่ยง) · ไปข้างๆ = ยังไม่มีทิศทาง (รอ)</figcaption>
+      </figure>
+
+      <h3>3. แนวรับ–แนวต้าน</h3>
+      <figure>
+        <svg class="svg-lesson" viewBox="0 0 440 150" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <line x1="10" y1="32" x2="430" y2="32" stroke="#ef5350" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <line x1="10" y1="118" x2="430" y2="118" stroke="#26a69a" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <polyline points="20,60 60,34 100,70 150,116 200,80 250,34 300,70 350,116 400,86" stroke="#3B9BEA" stroke-width="2.5" stroke-linejoin="round"/>
+          <text x="14" y="26" font-size="11" fill="#ef5350" font-weight="700">แนวต้าน (มักเด้งลง)</text>
+          <text x="14" y="136" font-size="11" fill="#26a69a" font-weight="700">แนวรับ (มักเด้งขึ้น)</text>
+        </svg>
+        <figcaption>ราคามักเด้งขึ้นเมื่อลงมาถึง "แนวรับ" และมักย่อลงเมื่อขึ้นไปชน "แนวต้าน" — ใกล้แนวรับในขาขึ้น = จังหวะที่น่าสนใจ</figcaption>
+      </figure>
+
+      <h3>4. เส้นค่าเฉลี่ย (เฉลี่ย 20 / 50 วัน)</h3>
+      <figure>
+        <svg class="svg-lesson" viewBox="0 0 440 130" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <polyline points="15,95 45,70 60,90 90,55 120,78 150,48 180,66 210,40 240,58 270,36 300,52 330,30 360,46 400,28" stroke="#8B94A8" stroke-width="1.5" opacity="0.8"/>
+          <polyline points="15,90 60,80 120,70 180,58 240,50 300,42 360,36 400,32" stroke="#F5A524" stroke-width="3" stroke-linejoin="round"/>
+          <text x="405" y="26" font-size="11" fill="#F5A524" font-weight="700">เฉลี่ย</text>
+        </svg>
+        <figcaption>เส้นสีส้มคือค่าเฉลี่ยของราคา ช่วยกรองความแกว่งให้เห็นทิศทางรวมง่ายขึ้น — ราคาอยู่เหนือเส้น = แนวโน้มขึ้น อยู่ใต้เส้น = แนวโน้มลง</figcaption>
+      </figure>
+
+      <h3>5. แล้วดูกราฟจริงด้านบนยังไง</h3>
+      <p>กดปุ่ม "📊 ดูตัวอย่างกราฟ" ที่ขั้นที่ 1 เพื่อลองเล่นกับกราฟจริงได้เลย — สลับช่วงเวลา (1เดือน–1ปี), เปิด-ปิดเส้นเฉลี่ย, แตะบนกราฟเพื่อดูราคาแต่ละวัน แล้วไฟจราจรจะสรุปให้ว่าโดยรวมน่าสนใจไหม</p>
+    </div>
+  </details>
+
+  <!-- เรียนรู้ -->
+  <details class="card lesson" style="box-shadow:var(--sh)">
+    <summary style="font-size:14px">📚 เรียนรู้ — มือใหม่อ่านตรงนี้ก่อน</summary>
+    <div class="details-body">
+      <h3>สวิงเทรดคืออะไร</h3>
+      <p>ซื้อแล้วถือ "ไม่กี่วันถึงไม่กี่สัปดาห์" รอราคาขยับขึ้นตามจังหวะ แล้วขายทำกำไร — ไม่ใช่ซื้อขายรัวๆ ในวันเดียว และไม่ใช่ถือยาวเป็นปี</p>
+      <h3>ทำไม "จุดตัดขาดทุน (Stop)" สำคัญที่สุด</h3>
+      <p>ก่อนซื้อ ให้รู้ก่อนว่า "ถ้าคิดผิด จะยอมขาดทุนที่ราคาไหน" แล้วตั้งไว้ พอราคาถึงจุดนั้นให้ขายตัดใจ ไม่ปล่อยให้ขาดทุนบานปลาย — คนเจ๊งหุ้นส่วนใหญ่เพราะไม่ยอมตัดขาดทุน</p>
+      <h3>"ยอมเสี่ยงต่อไม้ 2%" หมายถึงอะไร</h3>
+      <p>แต่ละครั้งที่ซื้อ ถ้าผิดทางจริง ควรเสียเงินไม่เกิน ~2% ของพอร์ต เครื่องจะคำนวณให้เองว่าควรซื้อกี่หุ้นถึงจะไม่เกินนี้ ทำให้ไม้เดียวไม่ทำพอร์ตพัง</p>
+      <h3>ซื้อกี่หุ้นก็ได้ ไม่ต้องเป็นล็อต</h3>
+      <p>หุ้นสหรัฐฯ ซื้อขายเป็นหุ้นเดี่ยวได้เลย ไม่ต้องซื้อเป็นชุดละ 100 หุ้นแบบหุ้นไทย เครื่องจะคำนวณจำนวนหุ้นเต็มหุ้นให้ตรงกับความเสี่ยงที่ตั้งไว้โดยตรง</p>
+      <h3>ค่าคอมฯ และ "ราคาคุ้มทุน"</h3>
+      <p>ทุกครั้งที่ซื้อและขายมีค่าคอมฯ บวกกับค่าธรรมเนียมแปลงเงินบาท↔ดอลลาร์ (ดูรายละเอียดที่ขั้นที่ 2) ราคาต้องขึ้นเกิน "จุดคุ้มทุน" ก่อนถึงจะเริ่มมีกำไรจริง เครื่องคำนวณให้แล้ว</p>
+      <h3>อ่านไฟจราจรยังไง</h3>
+      <ul>
+        <li>🟢 เขียว = ราคาน่าสนใจ อยู่ช่วงถูกของรอบและเริ่มมีแรงซื้อ — ค่อยพิจารณา (ไม่ใช่สั่งให้ซื้อ)</li>
+        <li>🟡 เหลือง = กลางๆ ยังไม่มีจังหวะเด่น รอดูก่อน</li>
+        <li>🔴 แดง = ราคาแพงเทียบรอบ/สัญญาณอ่อน ระวังการไล่ซื้อ</li>
+      </ul>
+      <h3>เอาตัวเลขจากแอปเทรดตรงไหน</h3>
+      <p>เปิดหุ้นที่สนใจในแอปเทรดที่ใช้ (เช่น InnovestX Global, SCB Easy Invest, หรือแพลตฟอร์มโบรกอื่น): "ราคาตอนนี้" คือราคาล่าสุดตัวใหญ่ ส่วน "สูงสุด/ต่ำสุดของรอบ" ดูช่อง High/Low (หรือ 52W High/Low ก็ได้ถ้าหาช่วงสั้นไม่เจอ) แล้วนำมากรอกในขั้นที่ 1</p>
+    </div>
+  </details>
+
+  <div class="disc">⚠️ เครื่องนี้เป็นตัวช่วยคิดและฝึกวินัย ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · การตัดสินใจและความเสี่ยงเป็นของคุณเอง · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
+
+  <footer><a href="invest.html">← กลับหน้าการลงทุน</a> · <a href="credits.html">เครดิต</a></footer>
+</div>
+
+<script src="invest-nav.js" defer></script>
+<script src="invest-global-stock.js" defer></script>
+</body>
+</html>

@@ -11,7 +11,7 @@
 
   /* หมวดการลงทุน — ลำดับตามที่ผู้ใช้กำหนด; page = หน้าที่ทำแล้ว, ที่เหลือ "เร็วๆ นี้" */
   var CATS = [
-    { key: 'global-stock', label: 'หุ้นต่างประเทศ',  icon: '🌐' },
+    { key: 'global-stock', label: 'หุ้นต่างประเทศ',  icon: '🌐', page: 'invest-global-stock.html' },
     { key: 'thai-stock',   label: 'หุ้นไทย',          icon: '📈', page: 'invest-thai-stock.html' },
     { key: 'gold',         label: 'ทองคำ',            icon: '🪙' },
     { key: 'business',     label: 'ลงทุนทำธุรกิจ',    icon: '🏪', page: 'invest-business.html' },
