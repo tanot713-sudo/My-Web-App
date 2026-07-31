@@ -130,6 +130,49 @@ details[open]>summary::before{transform:rotate(90deg)}
 .lw-legend .up{color:#26a69a}.lw-legend .dn{color:#ef5350}
 .lw-chart{width:100%;height:300px}
 .lw-rsi{width:100%;height:110px;margin-top:2px}
+/* ── ป้ายแหล่งข้อมูลกราฟ ── */
+.src-badge{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;display:inline-block;margin-bottom:10px}
+.src-badge.real{background:#E9F9F0;color:#0B7F52}
+.src-badge.demo{background:#FFF6E4;color:#8A6212}
+.src-badge.paste{background:#EEF1F7;color:#5A6479}
+[data-theme="dark"] .src-badge.real{background:#14261E;color:#5EDCAB}
+[data-theme="dark"] .src-badge.demo{background:#2A2415;color:#E8C88A}
+[data-theme="dark"] .src-badge.paste{background:#242B3B;color:#A9B4C9}
+/* ── ข้อความช่วยเล็ก ── */
+.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
+/* ── กล่องสรุป (เช็กลิสต์/expectancy) ── */
+.verdict-box{border-radius:13px;padding:14px 16px;font-size:14px;font-weight:600;line-height:1.5}
+.verdict-box.go{background:#E9F9F0;color:#0B7F52}
+.verdict-box.no{background:#FDECEC;color:#B23838}
+.verdict-box.warn{background:#FFF6E4;color:#8A6212}
+[data-theme="dark"] .verdict-box.go{background:#14261E;color:#5EDCAB}
+[data-theme="dark"] .verdict-box.no{background:#301B1B;color:#F0A0A0}
+[data-theme="dark"] .verdict-box.warn{background:#2A2415;color:#E8C88A}
+.chk-list{list-style:none;margin:12px 0 0;padding:0}
+.chk-list li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line)}
+.chk-list li:last-child{border-bottom:none}
+.chk-list .ic{flex-shrink:0;font-size:15px}
+.chk-list li.pass{color:var(--ink)}
+.chk-list li.fail{color:#B23838;font-weight:600}
+[data-theme="dark"] .chk-list li.fail{color:#F0A0A0}
+/* ── สถิติสมุดเทรด ── */
+.j-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:12px}
+.j-stat{background:var(--bg);border-radius:11px;padding:11px 13px}
+.j-stat .lbl{font-size:11.5px;color:var(--muted);font-weight:600}
+.j-stat .val{font-size:18px;font-weight:800;margin-top:2px}
+.j-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.j-table th,.j-table td{padding:7px 6px;text-align:right;border-bottom:1px solid var(--line)}
+.j-table th:first-child,.j-table td:first-child{text-align:left}
+.j-table th{color:var(--muted);font-weight:600;font-size:12px}
+.j-win{color:var(--ok);font-weight:700}.j-loss{color:var(--err);font-weight:700}
+.j-del{background:none;border:none;color:var(--err);cursor:pointer;font-size:15px}
+/* ── การ์ด reality-check ── */
+.card.reality{border:1.5px solid #F5D08A;background:#FFFBF2}
+[data-theme="dark"] .card.reality{border-color:#4A3D1E;background:#221D12}
+.reality-list{margin:4px 0 0 18px;font-size:13.5px;line-height:1.7}
+.reality-list li{margin-bottom:5px}
+.reality-cta{margin-top:12px;font-size:13.5px;background:var(--brand-sf);border-radius:11px;padding:12px 14px;line-height:1.6}
+.reality-cta a{color:var(--brand-dk);font-weight:700;text-decoration:none}
 /* ── ภาพประกอบบทเรียน ── */
 .svg-lesson{width:100%;height:auto;max-width:440px;display:block;margin:4px auto 0}
 .lesson figure{margin:14px 0 6px}
@@ -174,7 +217,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <div class="status" id="fetchStatus">ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจาก Streaming ก็พอ (ดูราคาปัจจุบัน + สูง/ต่ำของรอบ)</div>
     <div style="margin-top:10px;display:flex;gap:9px;flex-wrap:wrap">
       <button class="btn primary" id="analyzeBtn" type="button">ประเมินให้หน่อย →</button>
-      <button class="btn sm" id="demoBtn" type="button">📊 ดูตัวอย่างกราฟ</button>
+      <button class="btn sm" id="demoBtn" type="button">📊 ดูกราฟตัวอย่าง (ฝึกอ่าน)</button>
     </div>
     <details style="margin-top:10px">
       <summary>วางราคาย้อนหลังเอง (ทางเลือก)</summary>
@@ -202,6 +245,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- กราฟราคา -->
   <div class="card" id="chartCard" style="display:none">
     <h2>📊 กราฟราคา</h2>
+    <div class="src-badge" id="chartSource"></div>
     <div class="chart-toolbar">
       <div class="tf-group" id="tfGroup">
         <button class="tf" data-tf="21" type="button">1เดือน</button>
@@ -252,10 +296,64 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     </div>
   </div>
 
+  <!-- เช็กลิสต์ก่อนเข้าไม้ -->
+  <div class="card">
+    <h2>✅ ตรวจก่อนเข้าไม้ — ควรซื้อไหม?</h2>
+    <p class="mini">เช็กวินัย 6 ข้อ ก่อนกดซื้อจริง (กันซื้อตามอารมณ์/ไล่ราคา) — กด "ประเมิน" และ "คำนวณ" ด้านบนก่อน แล้วกดปุ่มนี้</p>
+    <div style="margin-top:10px"><button class="btn" id="checkBtn" type="button">ตรวจเช็กลิสต์</button></div>
+    <div id="checkResult" style="display:none">
+      <div class="verdict-box" id="checkVerdict"></div>
+      <ul class="chk-list" id="chkList"></ul>
+    </div>
+  </div>
+
   <!-- พอร์ต -->
   <div class="card">
     <h2>📁 พอร์ตของฉัน</h2>
     <div id="pfBox"><div class="pf-empty">ยังไม่มีหุ้นในพอร์ต — คำนวณด้านบนแล้วกด "บันทึกเข้าพอร์ต"</div></div>
+  </div>
+
+  <!-- สมุดเทรด + สถิติ -->
+  <div class="card">
+    <h2>📓 สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)</h2>
+    <p class="mini">บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง (จำเฉพาะในเครื่องคุณ)</p>
+    <div class="frow" style="margin-top:10px">
+      <div class="field" style="flex:1 1 90px"><label>หุ้น</label><input type="text" id="jSym" placeholder="PTT" spellcheck="false"></div>
+      <div class="field"><label>ราคาเข้า</label><input type="number" id="jEntry" inputmode="decimal" step="0.01"></div>
+      <div class="field"><label>ราคาออก</label><input type="number" id="jExit" inputmode="decimal" step="0.01"></div>
+      <div class="field"><label>จำนวนหุ้น</label><input type="number" id="jShares" inputmode="numeric"></div>
+      <button class="btn sm" id="jAdd" type="button">+ บันทึก</button>
+    </div>
+    <div id="jStats" class="j-stats" style="display:none"></div>
+    <div id="jBox"></div>
+  </div>
+
+  <!-- Expectancy -->
+  <div class="card">
+    <h2>🎲 ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?</h2>
+    <p class="mini">ความจริงที่มือใหม่มักไม่รู้: <b>ชนะบ่อยไม่ได้แปลว่ากำไร</b> — สิ่งที่สำคัญคือ "กำไรตอนถูก" ต้องใหญ่กว่า "ขาดทุนตอนผิด"</p>
+    <div class="frow" style="margin-top:10px">
+      <div class="field"><label>อัตราชนะ <span class="unit">(% ของไม้ที่ชนะ)</span></label><input type="number" id="eWin" inputmode="decimal" value="45"></div>
+      <div class="field"><label>กำไรเฉลี่ยตอนชนะ <span class="unit">(เท่าของความเสี่ยง R)</span></label><input type="number" id="eWinR" inputmode="decimal" step="0.1" value="2"></div>
+      <div class="field"><label>ขาดทุนเฉลี่ยตอนแพ้ <span class="unit">(R)</span></label><input type="number" id="eLossR" inputmode="decimal" step="0.1" value="1"></div>
+      <button class="btn sm" id="eBtn" type="button">คำนวณ</button>
+    </div>
+    <div id="eResult" class="verdict-box" style="display:none;margin-top:12px"></div>
+  </div>
+
+  <!-- เงินเย็นเช็ก / reality-check -->
+  <div class="card reality">
+    <h2>🛟 อ่านก่อนเอาเงินมาลงทุน (สำคัญมาก)</h2>
+    <ul class="reality-list">
+      <li>ลงทุนหุ้น <b>เฉพาะเงินที่ไม่ต้องใช้อย่างน้อย 3–5 ปี</b> — เงินที่หายได้โดยไม่กระทบชีวิต</li>
+      <li>มี <b>เงินสำรองฉุกเฉิน 3–6 เดือน</b> ก่อนเริ่มเสมอ</li>
+      <li><b>ห้ามเด็ดขาด</b>: เอาเงินค่ากิน ค่าเช่า เงินกู้ หรือเงินที่ต้องใช้เร็วๆ มาเทรด</li>
+      <li>การเทรดหุ้น <b>ไม่ใช่รายได้เสริมที่มั่นคง/เร็ว</b> — มือใหม่ส่วนใหญ่ขาดทุนปีแรก โดยเฉพาะตอนร้อนเงิน</li>
+    </ul>
+    <div class="reality-cta">
+      ถ้าตอนนี้เงินตึงและอยากได้เงินงอกแบบเสี่ยงต่ำ วิธีที่ปลอดภัยกว่าเก็งหุ้นรายตัวมากคือ
+      <b>ทยอยลงทุนกองทุนดัชนี (DCA)</b> — <a href="invest-global-fund.html">ลองเครื่องวางแผนกองทุน S&amp;P500 →</a>
+    </div>
   </div>
 
   <!-- เรียนรู้: อ่านกราฟ -->

@@ -246,15 +246,22 @@
   function fetchPrice(sym) {
     var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '.BK?range=1y&interval=1d';
     var tries = [
-      { name: 'ตรง', url: base },
       { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(base) },
-      { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + encodeURIComponent(base) }
+      { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + encodeURIComponent(base) },
+      { name: 'ตรง', url: base }
     ];
-    var i = 0;
+    var i = 0, best = null;
+    /* ไล่ทุกเส้นทาง เลือกอันที่ได้ "จำนวนวันมากสุด" — กัน proxy ที่คืนข้อมูลสั้น (เช่น 10 วัน);
+       พอได้ ≥60 วันก็หยุด (ถือว่าพอดูแนวโน้ม) */
     function next() {
-      if (i >= tries.length) return Promise.reject(new Error('all failed'));
+      if (i >= tries.length) return best ? Promise.resolve(best) : Promise.reject(new Error('all failed'));
       var t = tries[i++];
-      return fetchOne(t.url).then(function (s) { s.source = t.name; return s; }, function () { return next(); });
+      return fetchOne(t.url).then(function (s) {
+        s.source = t.name;
+        if (!best || s.closes.length > best.closes.length) best = s;
+        if (best.closes.length >= 60) return best;
+        return next();
+      }, function () { return next(); });
     }
     return next();
   }
@@ -386,13 +393,22 @@
   }
 
   /* ── ป้อนชุดข้อมูล → วิเคราะห์ + วาดกราฟ ─────────────────────── */
-  function useSeries(s, msg, cls) {
+  var lastSource = { kind: 'real' };
+  function setSourceBadge(src, days) {
+    var el = $('chartSource'); if (!el) return;
+    if (src) lastSource = src; else src = lastSource;
+    if (src.kind === 'demo') { el.className = 'src-badge demo'; el.textContent = '🟡 ข้อมูลตัวอย่าง — ไม่ใช่ราคาจริง (ไว้ฝึกอ่านกราฟ)'; }
+    else if (src.kind === 'paste') { el.className = 'src-badge paste'; el.textContent = '✍️ ราคาที่วางเอง · ' + days + ' วัน'; }
+    else { el.className = 'src-badge real'; el.textContent = '🟢 ' + (src.label || 'ราคาจริง') + ' · ราคาจริง · ' + days + ' วัน'; }
+  }
+  function useSeries(s, msg, cls, src) {
     lastSeries = s;
     var c = s.closes;
     $('price').value = c[c.length - 1].toFixed(2);
     $('hi').value = Math.max.apply(null, c).toFixed(2);
     $('lo').value = Math.min.apply(null, c).toFixed(2);
     if (msg) setStatus(msg, cls);
+    setSourceBadge(src, c.length);
     showAnalysis(analyzeSeries(s));
     if (!buildChart(s)) setStatus('โหลดไลบรารีกราฟไม่ได้ (ลองออนไลน์แล้วรีเฟรช) — ส่วนไฟจราจร/คำนวณเงินยังใช้ได้', 'err');
   }
@@ -431,7 +447,7 @@
     $('chartCard').style.display = 'none';
     if (isFinite(hi) && isFinite(lo) && hi > lo) showAnalysis(analyzeSimple(price, hi, lo));
     else {
-      showAnalysis({ light: 'gray', verdict: 'กรอกราคาสูง/ต่ำของรอบ เพื่อประเมินถูก-แพง', why: 'หรือกด "ดูตัวอย่างกราฟ" เพื่อลองเล่นกราฟ — ตอนนี้ทำได้เฉพาะคำนวณเงินด้านล่าง', pros: [], cons: [], price: price, suggestStop: price * 0.95, resistance: NaN, det: {}, simple: true });
+      showAnalysis({ light: 'gray', verdict: 'กรอกราคาสูง/ต่ำของรอบ เพื่อประเมินถูก-แพง', why: 'หรือกด "ดูกราฟตัวอย่าง (ฝึกอ่าน)" เพื่อลองเล่นกราฟ — ตอนนี้ทำได้เฉพาะคำนวณเงินด้านล่าง', pros: [], cons: [], price: price, suggestStop: price * 0.95, resistance: NaN, det: {}, simple: true });
       $('detailsBox').style.display = 'none';
     }
   }
@@ -441,18 +457,20 @@
     setStatus('กำลังดึงราคา ' + sym + '…'); $('fetchBtn').disabled = true;
     fetchPrice(sym).then(function (s) {
       $('fetchBtn').disabled = false;
-      useSeries(s, 'ดึงราคา ' + sym + ' สำเร็จ (' + s.closes.length + ' วัน · ผ่าน ' + s.source + ')', 'ok');
+      var msg = 'ดึงราคา ' + sym + ' สำเร็จ (' + s.closes.length + ' วัน · ผ่าน ' + s.source + ')';
+      if (s.closes.length < 30) msg += ' — ได้ประวัติน้อย กราฟอาจดูแนวโน้มไม่ชัด';
+      useSeries(s, msg, 'ok', { kind: 'real', label: sym });
     }).catch(function () {
       $('fetchBtn').disabled = false;
-      setStatus('ดึงอัตโนมัติไม่ได้ (มักติดข้อจำกัดเครือข่าย/CORS) — กด "ดูตัวอย่างกราฟ" เพื่อลองเล่น หรือกรอกราคาเองจาก Streaming', 'err');
+      setStatus('ดึงอัตโนมัติไม่ได้ (มักติดข้อจำกัดเครือข่าย/CORS) — กด "ดูกราฟตัวอย่าง (ฝึกอ่าน)" หรือกรอกราคาเองจาก Streaming', 'err');
       $('price').focus();
     });
   }
-  function doDemo() { useSeries(demoData(), 'กำลังแสดง "ข้อมูลตัวอย่าง" (ไม่ใช่ราคาจริง) — ไว้ลองเล่นกราฟและฝึกอ่าน', 'ok'); }
+  function doDemo() { useSeries(demoData(), 'กำลังแสดง "ข้อมูลตัวอย่าง" (ไม่ใช่ราคาจริง) — ไว้ลองเล่นกราฟและฝึกอ่าน', 'ok', { kind: 'demo' }); }
   function doPaste() {
     var s = parsePaste($('pasteBox').value || '');
     if (!s) { setStatus('วางราคาปิดอย่างน้อย 5 วันก่อนนะครับ', 'err'); return; }
-    useSeries(s, 'ใช้ราคาที่วางแล้ว (' + s.closes.length + ' วัน)', 'ok');
+    useSeries(s, 'ใช้ราคาที่วางแล้ว (' + s.closes.length + ' วัน)', 'ok', { kind: 'paste' });
   }
 
   /* ── คำนวณเงิน ──────────────────────────────────────────────── */
@@ -514,6 +532,104 @@
     });
   }
 
+  /* ── เช็กลิสต์ก่อนเข้าไม้ (GO/NO-GO) ─────────────────────────── */
+  function checklistChecks() {
+    var a = lastAnalysis, det = (a && a.det) ? a.det : {};
+    var entry = num($('entry').value), stop = num($('stop').value), riskPct = num($('riskPct').value);
+    var checks = [];
+    if (a && isFinite(det.ema20)) {
+      var up = isFinite(det.ema50) ? a.price >= det.ema50 : a.price >= det.ema20;
+      checks.push({ ok: up, txt: up ? 'อยู่ในแนวโน้มขึ้น (ราคาเหนือเส้นเฉลี่ย)' : 'ยังไม่อยู่ในแนวโน้มขึ้น (ราคาใต้เส้นเฉลี่ย)' });
+      var over = (a.price - det.ema20) / det.ema20, notChase = over <= 0.05;
+      checks.push({ ok: notChase, txt: notChase ? 'ไม่ไล่ราคา (ห่างเส้นเฉลี่ย 20 ไม่เกิน 5%)' : 'กำลังไล่ราคา (สูงกว่าเส้นเฉลี่ย 20 เกิน 5%)' });
+    } else {
+      checks.push({ ok: null, txt: 'แนวโน้ม/การไล่ราคา: ต้องมีข้อมูลกราฟก่อน (กด "ดึงราคา" หรือ "ดูกราฟตัวอย่าง")' });
+    }
+    if (a && isFinite(det.rsi)) checks.push({ ok: det.rsi < 70, txt: det.rsi < 70 ? 'ไม่ร้อนแรงเกิน (RSI ' + det.rsi.toFixed(0) + ')' : 'ร้อนแรงเกินไป (RSI ' + det.rsi.toFixed(0) + ' ≥ 70) เสี่ยงย่อ' });
+    else checks.push({ ok: null, txt: 'RSI: ต้องมีข้อมูลกราฟก่อน' });
+    var stopOk = isFinite(entry) && isFinite(stop) && stop < entry;
+    checks.push({ ok: stopOk, txt: stopOk ? 'ตั้งจุดตัดขาดทุน (Stop) แล้ว' : 'ยังไม่ตั้งจุดตัดขาดทุน — กด "คำนวณ" ในขั้นที่ 2 ก่อน' });
+    checks.push({ ok: isFinite(riskPct) && riskPct <= 2, txt: (isFinite(riskPct) && riskPct <= 2) ? 'เสี่ยงต่อไม้ ≤ 2% (' + riskPct + '%)' : 'เสี่ยงต่อไม้สูงไป (' + (isFinite(riskPct) ? riskPct + '%' : '-') + ') — ควร ≤ 2%' });
+    if (a && isFinite(a.resistance) && stopOk && a.resistance > entry) {
+      var rr = (a.resistance - entry) / (entry - stop), rrOk = rr >= 2;
+      checks.push({ ok: rrOk, txt: rrOk ? 'กำไรคาดหวัง:เสี่ยง ≥ 2:1 (' + rr.toFixed(1) + ':1)' : 'กำไร:เสี่ยงน้อยไป (' + rr.toFixed(1) + ':1) — ควร ≥ 2:1' });
+    } else {
+      checks.push({ ok: null, txt: 'กำไร:เสี่ยง: ต้องมีแนวต้านจากกราฟ + ตั้ง Stop ก่อน' });
+    }
+    return checks;
+  }
+  function doChecklist() {
+    var checks = checklistChecks();
+    var fails = checks.filter(function (c) { return c.ok === false; }).length;
+    var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
+    var box = $('checkResult'), v = $('checkVerdict');
+    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = '⛔ ยังไม่ควรเข้า — ติด ' + fails + ' ข้อ ควรแก้ให้ครบก่อนซื้อ'; }
+    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = '⚠️ ข้อมูลไม่พอประเมินครบ — กด "ประเมิน"/"ดึงราคา" แล้ว "คำนวณ" ก่อน'; }
+    else { v.className = 'verdict-box go'; v.textContent = '✅ เข้าได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)'; }
+    var html = '';
+    checks.forEach(function (c) {
+      var ic = c.ok === true ? '✅' : c.ok === false ? '❌' : '◻️';
+      html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
+    });
+    $('chkList').innerHTML = html;
+    box.style.display = 'block';
+  }
+
+  /* ── Expectancy ─────────────────────────────────────────────── */
+  function doExpectancy() {
+    var w = num($('eWin').value) / 100, wr = num($('eWinR').value), lr = num($('eLossR').value);
+    var box = $('eResult');
+    if (!(w >= 0 && w <= 1) || !isFinite(wr) || !isFinite(lr) || wr < 0 || lr <= 0) {
+      box.className = 'verdict-box warn'; box.textContent = 'กรอกตัวเลขให้ครบ (อัตราชนะ 0–100%, กำไร/ขาดทุนเป็นเท่าของ R)'; box.style.display = 'block'; return;
+    }
+    var exp = w * wr - (1 - w) * lr;
+    var beWin = lr / (wr + lr) * 100; /* อัตราชนะที่ต้องมีเพื่อเสมอตัว */
+    var msg = 'ค่าคาดหวังต่อไม้ ≈ <b>' + (exp >= 0 ? '+' : '') + exp.toFixed(2) + ' R</b> ' +
+      '(ถ้าเสี่ยงไม้ละ 1,000 บาท ≈ ' + (exp >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(exp) * 1000) + ' ต่อไม้โดยเฉลี่ย)<br>' +
+      '<span style="font-weight:500">ต้องชนะอย่างน้อย ~' + beWin.toFixed(0) + '% ถึงจะเสมอตัวที่ R นี้</span>';
+    if (exp > 0.1) { box.className = 'verdict-box go'; box.innerHTML = '✅ ได้เปรียบระยะยาว<br>' + msg + '<br><span style="font-weight:500">ถ้าทำตามวินัยสม่ำเสมอ (คุมความเสี่ยงเท่ากันทุกไม้) มีโอกาสกำไรระยะยาว</span>'; }
+    else if (exp > 0) { box.className = 'verdict-box warn'; box.innerHTML = '⚠️ แทบเสมอตัว<br>' + msg + '<br><span style="font-weight:500">หักค่าคอมฯแล้วอาจขาดทุน — ต้องเพิ่มกำไรตอนชนะ หรือลดขาดทุนตอนแพ้</span>'; }
+    else { box.className = 'verdict-box no'; box.innerHTML = '⛔ ขาดทุนระยะยาว<br>' + msg + '<br><span style="font-weight:500">ถึงชนะบ่อยก็ไม่พอ — ต้อง "ปล่อยกำไรให้ยาว ตัดขาดทุนให้ไว" (เพิ่ม R ตอนชนะ)</span>'; }
+    box.style.display = 'block';
+  }
+
+  /* ── สมุดเทรด + สถิติ ────────────────────────────────────────── */
+  var JN_KEY = 'tanot:invest:thjournal';
+  function loadJn() { try { return JSON.parse(localStorage.getItem(JN_KEY)) || []; } catch (e) { return []; } }
+  function saveJn(a) { try { localStorage.setItem(JN_KEY, JSON.stringify(a)); } catch (e) {} }
+  function addJournal() {
+    var sym = ($('jSym').value || '').trim().toUpperCase() || 'หุ้น';
+    var en = num($('jEntry').value), ex = num($('jExit').value), sh = num($('jShares').value);
+    if (!isFinite(en) || !isFinite(ex) || !isFinite(sh) || sh <= 0) { alert('กรอกราคาเข้า ราคาออก และจำนวนหุ้นให้ครบ'); return; }
+    var jn = loadJn(); jn.push({ sym: sym, en: en, ex: ex, sh: sh, pl: (ex - en) * sh, ts: Date.now() });
+    saveJn(jn); $('jEntry').value = ''; $('jExit').value = ''; $('jShares').value = ''; renderJournal();
+  }
+  function renderJournal() {
+    var jn = loadJn(), box = $('jBox'), stats = $('jStats');
+    if (!jn.length) { box.innerHTML = '<div class="pf-empty" style="font-size:13px;color:var(--muted);padding:8px 0">ยังไม่มีไม้ที่บันทึก — ปิดไม้แล้วบันทึกทุกครั้ง จะเห็นสถิติจริงของตัวเอง</div>'; stats.style.display = 'none'; return; }
+    var wins = jn.filter(function (r) { return r.pl > 0; }), losses = jn.filter(function (r) { return r.pl <= 0; });
+    var total = jn.reduce(function (s, r) { return s + r.pl; }, 0);
+    var winRate = wins.length / jn.length * 100;
+    var avgWin = wins.length ? wins.reduce(function (s, r) { return s + r.pl; }, 0) / wins.length : 0;
+    var avgLoss = losses.length ? Math.abs(losses.reduce(function (s, r) { return s + r.pl; }, 0) / losses.length) : 0;
+    var expBaht = (winRate / 100) * avgWin - (1 - winRate / 100) * avgLoss;
+    stats.style.display = 'grid';
+    stats.innerHTML =
+      '<div class="j-stat"><div class="lbl">จำนวนไม้</div><div class="val">' + jn.length + '</div></div>' +
+      '<div class="j-stat"><div class="lbl">อัตราชนะ</div><div class="val">' + winRate.toFixed(0) + '%</div></div>' +
+      '<div class="j-stat"><div class="lbl">กำไร/ขาดทุนรวม</div><div class="val" style="color:' + (total >= 0 ? 'var(--ok)' : 'var(--err)') + '">' + (total >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(total)) + '</div></div>' +
+      '<div class="j-stat"><div class="lbl">คาดหวัง/ไม้</div><div class="val" style="color:' + (expBaht >= 0 ? 'var(--ok)' : 'var(--err)') + '">' + (expBaht >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(expBaht)) + '</div></div>';
+    var html = '<table class="j-table"><thead><tr><th>หุ้น</th><th>เข้า</th><th>ออก</th><th>จำนวน</th><th>ผล</th><th></th></tr></thead><tbody>';
+    jn.slice().reverse().forEach(function (r, ri) {
+      var idx = jn.length - 1 - ri;
+      html += '<tr><td>' + r.sym + '</td><td>' + fmt(r.en) + '</td><td>' + fmt(r.ex) + '</td><td>' + fmt0(r.sh) + '</td>' +
+        '<td class="' + (r.pl >= 0 ? 'j-win' : 'j-loss') + '">' + (r.pl >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(r.pl)) + '</td>' +
+        '<td><button class="j-del" data-i="' + idx + '">✕</button></td></tr>';
+    });
+    html += '</tbody></table>'; box.innerHTML = html;
+    [].forEach.call(box.querySelectorAll('.j-del'), function (b) { b.addEventListener('click', function () { var jn = loadJn(); jn.splice(+b.getAttribute('data-i'), 1); saveJn(jn); renderJournal(); }); });
+  }
+
   /* ── init ───────────────────────────────────────────────────── */
   function init() {
     $('fetchBtn').addEventListener('click', doFetch);
@@ -534,10 +650,14 @@
       $('saveBtn').textContent = '✓ บันทึกแล้ว';
       setTimeout(function () { $('saveBtn').innerHTML = '💾 บันทึกเข้าพอร์ต'; }, 1500);
     });
+    $('checkBtn').addEventListener('click', doChecklist);
+    $('eBtn').addEventListener('click', doExpectancy);
+    $('jAdd').addEventListener('click', addJournal);
     renderPf();
+    renderJournal();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
-  window.__thstock = { sma: sma, emaLast: emaLast, rsi: rsi, rsiSeries: rsiSeries, smaSeries: smaSeries, macd: macd, bollinger: bollinger, atr: atr, analyzeSeries: analyzeSeries, analyzeSimple: analyzeSimple, riskCalc: riskCalc, demoData: demoData, parsePaste: parsePaste, parseYahoo: parseYahoo };
+  window.__thstock = { sma: sma, emaLast: emaLast, rsi: rsi, rsiSeries: rsiSeries, smaSeries: smaSeries, macd: macd, bollinger: bollinger, atr: atr, analyzeSeries: analyzeSeries, analyzeSimple: analyzeSimple, riskCalc: riskCalc, demoData: demoData, parsePaste: parsePaste, parseYahoo: parseYahoo, checklistChecks: checklistChecks };
 })();
