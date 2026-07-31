@@ -268,10 +268,11 @@
     return dark ? { bg: '#1B2030', text: '#C2CBDD', grid: '#2A3040', border: '#2A3040' }
                 : { bg: '#FFFFFF', text: '#4A5568', grid: '#EEF1F7', border: '#E4E9F2' };
   }
-  function baseOpts(h) {
+  function chartWidth(el) { return Math.max(240, (el && (el.clientWidth || el.offsetWidth)) || (el && el.parentElement && el.parentElement.clientWidth) || 320); }
+  function baseOpts(w, h) {
     var c = themeColors();
     return {
-      height: h, autoSize: true,
+      width: w, height: h,
       localization: { locale: 'en-US' },
       layout: { background: { color: c.bg }, textColor: c.text, fontFamily: "'Prompt',system-ui,sans-serif" },
       grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } },
@@ -307,7 +308,7 @@
   function buildRsi() {
     if (rsiChart || !fullData || !LWC) return;
     var el = $('lwRsi'); el.innerHTML = '';
-    rsiChart = LWC.createChart(el, baseOpts(110));
+    rsiChart = LWC.createChart(el, baseOpts(chartWidth(el), 110));
     rsiS = rsiChart.addLineSeries({ color: '#6C63D9', lineWidth: 2, priceLineVisible: false });
     try {
       rsiS.createPriceLine({ price: 70, color: '#ef5350', lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: '70' });
@@ -353,20 +354,35 @@
   function buildChart(data) {
     if (!window.LightweightCharts) { return false; }
     LWC = window.LightweightCharts; fullData = data;
-    var el = $('lwChart');
     if (chart) { try { chart.remove(); } catch (e) {} chart = null; }
     if (rsiChart) { try { rsiChart.remove(); } catch (e) {} rsiChart = null; rsiS = null; }
-    el.innerHTML = '';
-    chart = LWC.createChart(el, baseOpts(300));
+    /* โชว์การ์ดก่อนสร้างกราฟ — ถ้าสร้างตอนกล่องยังซ่อน (กว้าง 0) iOS Safari มักไม่วาด */
+    $('chartCard').style.display = 'block';
+    var el = $('lwChart'); el.innerHTML = '';
+    chart = LWC.createChart(el, baseOpts(chartWidth(el), 300));
     candle = chart.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350', borderVisible: false, wickUpColor: '#26a69a', wickDownColor: '#ef5350' });
     volS = chart.addHistogramSeries({ priceFormat: { type: 'volume' }, priceScaleId: 'vol' });
     chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
     ma20S = chart.addLineSeries({ color: '#F5A524', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
     ma50S = chart.addLineSeries({ color: '#3B9BEA', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
     chart.subscribeCrosshairMove(onCross);
-    $('chartCard').style.display = 'block';
-    applyTF(curTF); applyToggles(); setupThemeObserver();
+    applyTF(curTF); applyToggles(); setupThemeObserver(); setupResize();
+    /* บังคับปรับขนาด/วาดใหม่หลัง layout นิ่ง (กัน canvas กว้าง 0 บน iOS) */
+    if (window.requestAnimationFrame) requestAnimationFrame(reflow);
+    setTimeout(reflow, 120);
     return true;
+  }
+  function reflow() {
+    var el = $('lwChart');
+    if (chart && el) { try { chart.applyOptions({ width: chartWidth(el) }); chart.timeScale().fitContent(); } catch (e) {} }
+    var er = $('lwRsi');
+    if (rsiChart && er) { try { rsiChart.applyOptions({ width: chartWidth(er) }); rsiChart.timeScale().fitContent(); } catch (e) {} }
+  }
+  var resizeWired = false, resizeObs = null;
+  function setupResize() {
+    if (resizeWired) return; resizeWired = true;
+    window.addEventListener('resize', reflow);
+    if ('ResizeObserver' in window) { resizeObs = new ResizeObserver(reflow); try { resizeObs.observe($('lwChart')); } catch (e) {} }
   }
 
   /* ── ป้อนชุดข้อมูล → วิเคราะห์ + วาดกราฟ ─────────────────────── */
