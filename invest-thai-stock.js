@@ -742,18 +742,24 @@
     'KTC', 'LH', 'MINT', 'MTC', 'OR', 'OSP', 'PTT', 'PTTEP', 'PTTGC', 'RATCH',
     'SAWAD', 'SCB', 'SCC', 'SCGP', 'TISCO', 'TLI', 'TOP', 'TRUE', 'TTB', 'TU'];
 
-  function fetchPriceScan(sym) {
+  function fetchPriceScan(sym, startAt) {
     var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '.BK?range=1y&interval=1d';
     var enc = encodeURIComponent(base);
     var tries = [
       { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + enc },
-      { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc }
+      { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + enc },
+      { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
+      { name: 'thingproxy', url: 'https://thingproxy.freeboard.io/fetch/' + base },
+      { name: 'ตรง', url: base }
     ];
+    /* หมุนจุดเริ่มต่างกันต่อหุ้น กันสแกน 50 ตัวรัวถล่ม proxy เดียวจนโดน rate-limit พร้อมกันหมด */
+    var offset = ((startAt || 0) % tries.length + tries.length) % tries.length;
+    tries = tries.slice(offset).concat(tries.slice(0, offset));
     var i = 0, best = null;
     function next() {
       if (i >= tries.length) return best ? Promise.resolve(best) : Promise.reject(new Error('fail'));
       var t = tries[i++];
-      return fetchOne(t.url, 5000).then(function (s) {
+      return fetchOne(t.url, 7000).then(function (s) {
         s.source = t.name; if (!best || s.closes.length > best.closes.length) best = s;
         if (best.closes.length >= 40) return best; return next();
       }, function () { return next(); });
@@ -831,12 +837,12 @@
       var sym = SET50[idx++];
       $('scanStatus').textContent = 'กำลังสแกน ' + idx + '/' + SET50.length + ' (' + sym + ')…';
       var cached = loadCache(sym), fresh = cached && (Date.now() - cached.cachedAt < 6 * 3600 * 1000);
-      var pr = fresh ? Promise.resolve(cached) : fetchPriceScan(sym).then(function (s) { saveCache(sym, s); return s; }, function () { return cached || null; });
+      var pr = fresh ? Promise.resolve(cached) : fetchPriceScan(sym, idx).then(function (s) { saveCache(sym, s); return s; }, function () { return cached || null; });
       pr.then(function (s) {
         var d = dataFromSeries(s);
         if (d) { ok++; if (d.light === 'green') green++; if (s50Rows[sym]) fillRow(s50Rows[sym], sym, d); }
         if (idx % 5 === 0) { sortTable(); applyGreenFilter(); }
-        setTimeout(step, 90);
+        setTimeout(step, 150);
       });
     }
     step();
