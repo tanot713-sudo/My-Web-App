@@ -74,9 +74,20 @@ input:focus{outline:none;border-color:var(--brand)}
 
 /* ── ไอเดียอ้างอิง ── */
 .idea-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:4px}
-.idea-card{background:var(--bg);border-radius:12px;padding:12px;font-size:12.5px}
+.idea-card{background:var(--bg);border-radius:12px;padding:12px;font-size:12.5px;cursor:pointer;transition:.15s;outline:1.5px solid transparent}
+.idea-card:hover{outline-color:var(--brand);color:var(--brand-dk)}
 .idea-card .ic{font-size:20px;display:block;margin-bottom:6px}
 .idea-card b{display:block;font-size:13px;margin-bottom:2px}
+.idea-detail-head{display:flex;gap:10px;align-items:center;margin:12px 0 10px}
+.idea-detail-head .ic{font-size:30px;flex-shrink:0}
+.idea-detail-head b{font-size:15px}
+.phase-h{font-size:13px;font-weight:700;margin:14px 0 6px;color:var(--brand-dk)}
+.tool-list{list-style:none;margin:0;padding:0}
+.tool-list li{padding:8px 0;border-top:1px dashed var(--line)}
+.tool-list li:first-child{border-top:none}
+.tool-list b{display:block;font-size:13.5px}
+.tool-list .mini{margin-top:1px}
+.tool-get{font-size:12px;color:var(--brand-dk);font-weight:600;margin-top:3px}
 
 /* ── เช็กลิสต์ ใช่/ยัง ── */
 .yn-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
@@ -131,14 +142,17 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- ไอเดียอ้างอิง -->
   <div class="card">
     <h2>💡 ไอเดียอ้างอิง (แรงบันดาลใจ)</h2>
-    <p class="mini">ตัวอย่างช่องทางรายได้เสริมที่คนทั่วไปเริ่มได้ — ไม่ผูกกับการคำนวณด้านล่าง แค่จุดเริ่มคิด</p>
-    <div class="idea-grid">
-      <div class="idea-card"><span class="ic">🧑‍💻</span><b>ขายทักษะ/ที่ปรึกษาฟรีแลนซ์</b>ใช้ทักษะที่มีอยู่แล้วรับงานนอกเวลา</div>
-      <div class="idea-card"><span class="ic">🎓</span><b>สอน/ทำคอร์สออนไลน์</b>ถ่ายทอดความรู้เป็นคอร์สหรือติวเตอร์</div>
-      <div class="idea-card"><span class="ic">🛍️</span><b>ขายสินค้าออนไลน์</b>ผลิตเองหรือหาสินค้ามาขายผ่านมาร์เก็ตเพลส/โซเชียล</div>
-      <div class="idea-card"><span class="ic">🧰</span><b>ทำเครื่องมือ/แอปขายหรือให้เช่า</b>สร้างของที่ใช้ซ้ำได้ ขายทีเดียวหรือเก็บค่าสมาชิก</div>
-      <div class="idea-card"><span class="ic">🏠</span><b>ให้เช่าทรัพย์สินที่มี</b>ห้อง/รถ/อุปกรณ์ที่ไม่ได้ใช้เต็มเวลา</div>
+    <p class="mini">ตัวอย่างช่องทางรายได้เสริมที่คนทั่วไปเริ่มได้ — ไม่ผูกกับการคำนวณด้านล่าง แตะการ์ดเพื่อดูเครื่องมือที่ต้องใช้ตั้งแต่เริ่มจนส่งงาน</p>
+    <div id="bzIdeaListWrap">
+      <div class="idea-grid">
+        <div class="idea-card" data-id="freelance"><span class="ic">🧑‍💻</span><b>ขายทักษะ/ที่ปรึกษาฟรีแลนซ์</b>ใช้ทักษะที่มีอยู่แล้วรับงานนอกเวลา</div>
+        <div class="idea-card" data-id="course"><span class="ic">🎓</span><b>สอน/ทำคอร์สออนไลน์</b>ถ่ายทอดความรู้เป็นคอร์สหรือติวเตอร์</div>
+        <div class="idea-card" data-id="online-sales"><span class="ic">🛍️</span><b>ขายสินค้าออนไลน์</b>ผลิตเองหรือหาสินค้ามาขายผ่านมาร์เก็ตเพลส/โซเชียล</div>
+        <div class="idea-card" data-id="tools-apps"><span class="ic">🧰</span><b>ทำเครื่องมือ/แอปขายหรือให้เช่า</b>สร้างของที่ใช้ซ้ำได้ ขายทีเดียวหรือเก็บค่าสมาชิก</div>
+        <div class="idea-card" data-id="rental"><span class="ic">🏠</span><b>ให้เช่าทรัพย์สินที่มี</b>ห้อง/รถ/อุปกรณ์ที่ไม่ได้ใช้เต็มเวลา</div>
+      </div>
     </div>
+    <div id="bzIdeaDetail" style="display:none"></div>
   </div>
 
   <!-- เครื่องคำนวณจุดคุ้มทุน -->
