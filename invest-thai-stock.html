@@ -13,6 +13,8 @@
 <script src="shell.js" defer></script>
 <!-- Lightweight Charts (TradingView) — Apache-2.0 : กราฟแท่งเทียน (โฮสต์เองในเว็บ ใช้ออฟไลน์ได้) -->
 <script src="vendor/lightweight-charts.standalone.js" defer></script>
+<!-- Google Identity Services — สำหรับสำรองพอร์ต/สมุดเทรดขึ้น Google Drive (ไม่บังคับ) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
   --brand:#12A594;--brand-dk:#0B7F72;--brand-sf:#E7F6F4;
@@ -62,6 +64,10 @@ input:focus{outline:none;border-color:var(--brand)}
 .status{font-size:12.5px;color:var(--muted);margin-top:9px;min-height:1.2em}
 .status.err{color:var(--err)}
 .status.ok{color:var(--ok)}
+
+/* ── สำรองขึ้น Google Drive ── */
+.drive-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.drive-row .status{margin-top:0}
 
 /* ── ไฟจราจร ── */
 .light{display:flex;gap:14px;align-items:center;border-radius:16px;padding:18px;margin-top:2px}
@@ -367,10 +373,20 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     </div>
   </div>
 
+  <!-- สำรองขึ้น Google Drive -->
+  <div class="card">
+    <h2>☁️ สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
+    <p class="mini">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตและสมุดเทรดด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง) — กันข้อมูลหายถ้าล้างเบราว์เซอร์ และดึงคืนได้เมื่อเปิดจากเครื่อง/เบราว์เซอร์อื่น</p>
+    <div class="drive-row" style="margin-top:10px">
+      <button class="btn sm" id="driveConnectBtn" type="button">🔗 เชื่อมต่อ Google Drive</button>
+      <span class="status" id="driveStatusTxt"></span>
+    </div>
+  </div>
+
   <!-- พอร์ต -->
   <div class="card">
     <h2>📁 พอร์ตของฉัน</h2>
-    <p class="mini">เพิ่มหุ้นที่ถืออยู่ได้ตรงนี้ แล้วกด "ควรขาย?" เพื่อให้เครื่องช่วยดูจังหวะขาย (เก็บเฉพาะในเครื่องคุณ)</p>
+    <p class="mini">เพิ่มหุ้นที่ถืออยู่ได้ตรงนี้ แล้วกด "ควรขาย?" เพื่อให้เครื่องช่วยดูจังหวะขาย (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
       <div class="field" style="flex:1 1 90px"><label>ชื่อหุ้น</label><input type="text" id="pfSym" placeholder="PTT" autocomplete="off" spellcheck="false"></div>
       <div class="field"><label>จำนวนหุ้น</label><input type="number" id="pfShares" inputmode="numeric" placeholder="100"></div>
@@ -383,7 +399,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- สมุดเทรด + สถิติ -->
   <div class="card">
     <h2>📓 สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)</h2>
-    <p class="mini">บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง (จำเฉพาะในเครื่องคุณ)</p>
+    <p class="mini">บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง (จำในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
       <div class="field" style="flex:1 1 90px"><label>หุ้น</label><input type="text" id="jSym" placeholder="PTT" spellcheck="false"></div>
       <div class="field"><label>ราคาเข้า</label><input type="number" id="jEntry" inputmode="decimal" step="0.01"></div>
@@ -508,7 +524,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     </div>
   </details>
 
-  <div class="disc">⚠️ เครื่องนี้เป็นตัวช่วยคิดและฝึกวินัย ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · การตัดสินใจและความเสี่ยงเป็นของคุณเอง · ข้อมูลทั้งหมดเก็บในเครื่องคุณเท่านั้น</div>
+  <div class="disc">⚠️ เครื่องนี้เป็นตัวช่วยคิดและฝึกวินัย ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · การตัดสินใจและความเสี่ยงเป็นของคุณเอง · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
 
   <footer><a href="invest.html">← กลับหน้าการลงทุน</a> · <a href="credits.html">เครดิต</a></footer>
 </div>
