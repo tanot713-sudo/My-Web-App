@@ -280,13 +280,14 @@
     if (closes.length < 5) throw new Error('short');
     return toSeries(times, opens, highs, lows, closes, vols);
   }
-  function fetchOne(url, timeoutMs) {
+  function fetchOne(url, timeoutMs, parser) {
     var ctrl = ('AbortController' in window) ? new AbortController() : null;
     var to = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs || 8000) : null;
     return fetch(url, ctrl ? { signal: ctrl.signal } : undefined)
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.text(); })
-      .then(function (t) { if (to) clearTimeout(to); return parseYahoo(JSON.parse(t)); });
+      .then(function (t) { if (to) clearTimeout(to); return (parser || defaultYahooParser)(t); });
   }
+  function defaultYahooParser(t) { return parseYahoo(JSON.parse(t)); }
   function fetchPrice(sym) {
     var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '.BK?range=1y&interval=1d';
     var enc = encodeURIComponent(base);
@@ -603,7 +604,7 @@
     pf.forEach(function (h, i) {
       html += '<tr data-i="' + i + '"><td>' + h.sym + '</td><td>' + fmt0(h.shares) + '</td><td>' + fmt(h.cost) + '</td>' +
         '<td><input type="number" class="pf-price" inputmode="decimal" step="0.01" placeholder="ราคา" value="' + (h.cur != null ? h.cur : '') + '"></td>' +
-        '<td class="pf-pl">—</td><td style="white-space:nowrap"><button class="pf-sell" title="เช็กควรขาย?">ควรขาย?</button> <button class="pf-del" title="ลบ">✕</button></td></tr>' +
+        '<td class="pf-pl">—</td><td class="pf-actions"><button class="pf-sell" title="เช็กควรขาย?">ควรขาย?</button> <button class="pf-del" title="ลบ">✕</button></td></tr>' +
         '<tr class="pf-sellrow" data-sr="' + i + '"><td colspan="6"></td></tr>';
     });
     html += '</tbody></table>'; box.innerHTML = html;
@@ -625,11 +626,16 @@
           var s = r.series, a = analyzeSeries(s), v = sellVerdict(a), price = s.closes[s.closes.length - 1];
           inp.value = price.toFixed(2); h.cur = price; savePf(pf); upd();
           var pl = (price - h.cost) * h.shares, pct = (price / h.cost - 1) * 100;
-          sellCell.innerHTML = '<div class="sell-verdict ' + v.cls + '">' + v.txt +
+          sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict ' + v.cls + '">' + v.headline +
             '<br><span style="font-weight:500">ราคาล่าสุด ' + fmt(price) + (r.stale ? ' (บันทึกไว้ ' + cacheAgeText(r.cachedAt) + ')' : '') +
-            ' · ต้นทุน ' + fmt(h.cost) + ' · ' + (pl >= 0 ? 'กำไร ' : 'ขาดทุน ') + '฿' + fmt0(Math.abs(pl)) + ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)</span></div>';
+            ' · ต้นทุน ' + fmt(h.cost) + ' · ' + (pl >= 0 ? 'กำไร ' : 'ขาดทุน ') + '฿' + fmt0(Math.abs(pl)) + ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)</span>' +
+            sellLevelsHtml(v.levels) + '</div>' +
+            companyInfoHtml(h.sym) +
+            '<div class="news-block"></div></div>';
+          renderNewsBlock(sellCell.querySelector('.news-block'), h.sym);
         }, function () {
-          sellCell.innerHTML = '<div class="sell-verdict warn">ดึงราคา ' + h.sym + ' ไม่ได้ตอนนี้ — ลองใหม่อีกครั้ง หรือกรอกราคาปัจจุบันเองในช่อง</div>';
+          sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict warn">ดึงราคา ' + h.sym + ' ไม่ได้ตอนนี้ — ลองใหม่อีกครั้ง หรือกรอกราคาปัจจุบันเองในช่อง</div>' +
+            companyInfoHtml(h.sym) + '</div>';
         });
       });
       upd();
@@ -741,6 +747,91 @@
     'GLOBAL', 'GPSC', 'GULF', 'HMPRO', 'INTUCH', 'IVL', 'KBANK', 'KCE', 'KKP', 'KTB',
     'KTC', 'LH', 'MINT', 'MTC', 'OR', 'OSP', 'PTT', 'PTTEP', 'PTTGC', 'RATCH',
     'SAWAD', 'SCB', 'SCC', 'SCGP', 'TISCO', 'TLI', 'TOP', 'TRUE', 'TTB', 'TU'];
+
+  /* ══════ ข้อมูลบริษัท/กลุ่มธุรกิจ (ข้อมูลอ้างอิงสาธารณะ) ══════ */
+  var COMPANY_INFO = {
+    ADVANC: { name: 'แอดวานซ์ อินโฟร์ เซอร์วิส (เอไอเอส)', sector: 'ICT/สื่อสาร', business: 'ผู้ให้บริการเครือข่ายโทรศัพท์เคลื่อนที่รายใหญ่ที่สุดของไทย รวมถึงบรอดแบนด์และดิจิทัลเซอร์วิส' },
+    AOT: { name: 'ท่าอากาศยานไทย', sector: 'ขนส่ง/โครงสร้างพื้นฐาน', business: 'ผู้บริหารสนามบินหลักของประเทศ (สุวรรณภูมิ ดอนเมือง เชียงใหม่ ภูเก็ต หาดใหญ่) รายได้หลักจากค่าธรรมเนียมสนามบินและสัมปทานเชิงพาณิชย์' },
+    AWC: { name: 'แอสเสท เวิรด์ คอร์ป', sector: 'ท่องเที่ยว/โรงแรม/บริการอาหาร', business: 'กลุ่มอสังหาริมทรัพย์เพื่อการค้าปลีก โรงแรม และพื้นที่สำนักงาน ในเครือทีซีซี' },
+    BANPU: { name: 'บ้านปู', sector: 'พลังงาน/ปิโตรเคมี', business: 'ธุรกิจถ่านหินและพลังงานครบวงจร ทั้งในไทยและต่างประเทศ รวมถึงธุรกิจไฟฟ้าและพลังงานสะอาด' },
+    BBL: { name: 'ธนาคารกรุงเทพ', sector: 'ธนาคาร', business: 'ธนาคารพาณิชย์ขนาดใหญ่ที่สุดของไทยตามสินทรัพย์ เน้นลูกค้าธุรกิจขนาดใหญ่และองค์กร' },
+    BDMS: { name: 'กรุงเทพดุสิตเวชการ', sector: 'สุขภาพ', business: 'เครือโรงพยาบาลเอกชนรายใหญ่ที่สุดของไทย (โรงพยาบาลกรุงเทพ, สมิติเวช, บีเอ็นเอช ฯลฯ)' },
+    BEM: { name: 'ทางด่วนและรถไฟฟ้ากรุงเทพ', sector: 'ขนส่ง/โครงสร้างพื้นฐาน', business: 'ผู้บริหารทางพิเศษ (ทางด่วน) และรถไฟฟ้าสายสีน้ำเงิน/สีม่วง' },
+    BGRIM: { name: 'บี.กริม เพาเวอร์', sector: 'พลังงาน/ปิโตรเคมี', business: 'ผู้ผลิตไฟฟ้าเอกชนรายใหญ่ เน้นโรงไฟฟ้าพลังงานร่วม (โคเจนเนอเรชัน) และพลังงานหมุนเวียน' },
+    BH: { name: 'โรงพยาบาลบำรุงราษฎร์', sector: 'สุขภาพ', business: 'โรงพยาบาลเอกชนพรีเมียม เน้นลูกค้าต่างชาติและการแพทย์เฉพาะทาง' },
+    BTS: { name: 'บีทีเอส กรุ๊ป โฮลดิ้งส์', sector: 'ขนส่ง/โครงสร้างพื้นฐาน', business: 'ผู้บริหารรถไฟฟ้าบีทีเอส รวมถึงธุรกิจสื่อโฆษณาและอสังหาริมทรัพย์' },
+    CBG: { name: 'คาราบาวกรุ๊ป', sector: 'อาหารและเครื่องดื่ม', business: 'ผู้ผลิตเครื่องดื่มชูกำลังคาราบาวแดง และเครื่องดื่ม/สินค้าอุปโภคบริโภคอื่นๆ ทั้งในและต่างประเทศ' },
+    CENTEL: { name: 'โรงแรมเซ็นทรัลพลาซา', sector: 'ท่องเที่ยว/โรงแรม/บริการอาหาร', business: 'ธุรกิจโรงแรม (เซ็นทารา) และร้านอาหาร (เคเอฟซี มิสเตอร์โดนัท ฯลฯ) ในเครือเซ็นทรัล' },
+    COM7: { name: 'คอมเซเว่น', sector: 'พาณิชย์/ค้าปลีก', business: 'ผู้จำหน่ายสินค้าไอที/มือถือรายใหญ่ (บานาน่า สตูดิโอ 7 ฯลฯ) ตัวแทนจำหน่าย Apple ในไทย' },
+    CPALL: { name: 'ซีพี ออลล์', sector: 'พาณิชย์/ค้าปลีก', business: 'ผู้บริหารร้านสะดวกซื้อ 7-Eleven ในไทย รายใหญ่ที่สุดของประเทศ รวมถึงธุรกิจค้าส่ง (แม็คโคร)' },
+    CPF: { name: 'เจริญโภคภัณฑ์อาหาร', sector: 'อาหารและเครื่องดื่ม', business: 'ธุรกิจเกษตรอุตสาหกรรมและอาหารครบวงจร (สัตว์บก/สัตว์น้ำ อาหารสัตว์ อาหารแปรรูป) รายใหญ่ระดับโลก' },
+    CPN: { name: 'เซ็นทรัลพัฒนา', sector: 'พัฒนาอสังหาริมทรัพย์', business: 'ผู้พัฒนาและบริหารศูนย์การค้า (เซ็นทรัล) รายใหญ่ที่สุดของไทย รวมถึงที่อยู่อาศัยและอาคารสำนักงาน' },
+    CRC: { name: 'เซ็นทรัล รีเทล คอร์ปอเรชั่น', sector: 'พาณิชย์/ค้าปลีก', business: 'ธุรกิจค้าปลีกในเครือเซ็นทรัล (ห้างสรรพสินค้า ซูเปอร์มาร์เก็ต ฯลฯ) ทั้งในไทยและต่างประเทศ' },
+    DELTA: { name: 'เดลต้า อีเลคโทรนิคส์', sector: 'ชิ้นส่วนอิเล็กทรอนิกส์', business: 'ผู้ผลิตชิ้นส่วนอิเล็กทรอนิกส์ เน้นอุปกรณ์จ่ายไฟและระบบจัดการพลังงานให้อุตสาหกรรมทั่วโลก' },
+    EA: { name: 'พลังงานบริสุทธิ์', sector: 'พลังงาน/ปิโตรเคมี', business: 'ธุรกิจพลังงานหมุนเวียน (โซลาร์/ลม) และยานยนต์ไฟฟ้า/แบตเตอรี่' },
+    EGCO: { name: 'ผลิตไฟฟ้า', sector: 'พลังงาน/ปิโตรเคมี', business: 'ผู้ผลิตไฟฟ้าเอกชนรายใหญ่ ทั้งในไทยและต่างประเทศ' },
+    GLOBAL: { name: 'สยามโกลบอลเฮ้าส์', sector: 'พาณิชย์/ค้าปลีก', business: 'ธุรกิจค้าปลีกวัสดุก่อสร้างและสินค้าตกแต่งบ้านแบบครบวงจร' },
+    GPSC: { name: 'โกลบอล เพาเวอร์ ซินเนอร์ยี่', sector: 'พลังงาน/ปิโตรเคมี', business: 'บริษัทแกนนำธุรกิจไฟฟ้าในกลุ่ม ปตท. ผลิตไฟฟ้าและไอน้ำให้ลูกค้าอุตสาหกรรม' },
+    GULF: { name: 'กัลฟ์ เอ็นเนอร์จี ดีเวลลอปเมนท์', sector: 'พลังงาน/ปิโตรเคมี', business: 'ผู้ผลิตไฟฟ้าเอกชนรายใหญ่ ขยายสู่ธุรกิจโครงสร้างพื้นฐานและดิจิทัล' },
+    HMPRO: { name: 'โฮมโปรดักส์ เซ็นเตอร์', sector: 'พาณิชย์/ค้าปลีก', business: 'ธุรกิจค้าปลีกสินค้าตกแต่ง/ซ่อมแซมบ้าน (โฮมโปร เมกาโฮม)' },
+    INTUCH: { name: 'อินทัช โฮลดิ้งส์', sector: 'ICT/สื่อสาร', business: 'บริษัทโฮลดิ้งที่ถือหุ้นใหญ่ใน ADVANC (เอไอเอส) รายได้หลักมาจากเงินปันผล' },
+    IVL: { name: 'อินโดรามา เวนเจอร์ส', sector: 'พลังงาน/ปิโตรเคมี', business: 'ผู้ผลิตปิโตรเคมีและเส้นใย (PET/โพลีเอสเตอร์) รายใหญ่ระดับโลก' },
+    KBANK: { name: 'ธนาคารกสิกรไทย', sector: 'ธนาคาร', business: 'ธนาคารพาณิชย์รายใหญ่ของไทย ให้บริการสินเชื่อ เงินฝาก และธุรกรรมทางการเงินครบวงจร' },
+    KCE: { name: 'เคซีอี อีเลคโทรนิคส์', sector: 'ชิ้นส่วนอิเล็กทรอนิกส์', business: 'ผู้ผลิตแผ่นพิมพ์วงจรอิเล็กทรอนิกส์ (PCB) เน้นส่งออกชิ้นส่วนยานยนต์/อุตสาหกรรม' },
+    KKP: { name: 'ธนาคารเกียรตินาคินภัทร', sector: 'ธนาคาร', business: 'ธนาคารพาณิชย์ขนาดกลาง เน้นสินเชื่อรถยนต์และธุรกิจวาณิชธนกิจ/บริหารความมั่งคั่ง' },
+    KTB: { name: 'ธนาคารกรุงไทย', sector: 'ธนาคาร', business: 'ธนาคารพาณิชย์ที่รัฐถือหุ้นใหญ่ เน้นบริการภาครัฐและประชาชนทั่วไป' },
+    KTC: { name: 'บัตรกรุงไทย', sector: 'เงินทุน/สินเชื่อ', business: 'ผู้ให้บริการบัตรเครดิตและสินเชื่อส่วนบุคคลรายใหญ่' },
+    LH: { name: 'แลนด์แอนด์เฮ้าส์', sector: 'พัฒนาอสังหาริมทรัพย์', business: 'ผู้พัฒนาอสังหาริมทรัพย์ (บ้านจัดสรร คอนโด) รายใหญ่ของไทย' },
+    MINT: { name: 'ไมเนอร์ อินเตอร์เนชั่นแนล', sector: 'ท่องเที่ยว/โรงแรม/บริการอาหาร', business: 'ธุรกิจโรงแรม (NH, Anantara) ร้านอาหาร (เดอะ พิซซ่า คอมปะนี สเวนเซ่นส์) และจัดจำหน่ายสินค้าไลฟ์สไตล์' },
+    MTC: { name: 'เมืองไทย แคปปิตอล', sector: 'เงินทุน/สินเชื่อ', business: 'ผู้ให้บริการสินเชื่อจำนำทะเบียนรถและสินเชื่อรายย่อย' },
+    OR: { name: 'ปตท. น้ำมันและการค้าปลีก', sector: 'พาณิชย์/ค้าปลีก', business: 'ธุรกิจสถานีบริการน้ำมัน (PTT Station) และค้าปลีกในสถานี (คาเฟ่ อเมซอน)' },
+    OSP: { name: 'โอสถสภา', sector: 'อาหารและเครื่องดื่ม', business: 'ผู้ผลิตเครื่องดื่มชูกำลัง (เอ็ม-150) และสินค้าอุปโภคบริโภค' },
+    PTT: { name: 'ปตท.', sector: 'พลังงาน/ปิโตรเคมี', business: 'ธุรกิจก๊าซธรรมชาติ น้ำมัน และปิโตรเคมีครบวงจร รัฐเป็นผู้ถือหุ้นใหญ่ ถือเป็นบริษัทพลังงานแห่งชาติของไทย' },
+    PTTEP: { name: 'ปตท.สำรวจและผลิตปิโตรเลียม', sector: 'พลังงาน/ปิโตรเคมี', business: 'ธุรกิจสำรวจและผลิตปิโตรเลียม (น้ำมัน/ก๊าซ) ทั้งในและต่างประเทศ' },
+    PTTGC: { name: 'พีทีที โกลบอล เคมิคอล', sector: 'พลังงาน/ปิโตรเคมี', business: 'ผู้ผลิตปิโตรเคมีและเคมีภัณฑ์รายใหญ่ในเครือ ปตท.' },
+    RATCH: { name: 'ราช กรุ๊ป', sector: 'พลังงาน/ปิโตรเคมี', business: 'ผู้ผลิตไฟฟ้าเอกชน (เดิมชื่อผลิตไฟฟ้าราชบุรี) ทั้งในไทยและต่างประเทศ' },
+    SAWAD: { name: 'ศรีสวัสดิ์ คอร์ปอเรชั่น', sector: 'เงินทุน/สินเชื่อ', business: 'ผู้ให้บริการสินเชื่อจำนำทะเบียนรถและสินเชื่อรายย่อยรายใหญ่' },
+    SCB: { name: 'ธนาคารไทยพาณิชย์', sector: 'ธนาคาร', business: 'ธนาคารพาณิชย์รายใหญ่ของไทย (ถือผ่าน SCB X) ครบวงจรทั้งรายย่อยและองค์กร' },
+    SCC: { name: 'ปูนซิเมนต์ไทย (เอสซีจี)', sector: 'วัสดุก่อสร้าง/บรรจุภัณฑ์', business: 'กลุ่มอุตสาหกรรมวัสดุก่อสร้าง ปูนซีเมนต์ ปิโตรเคมี และบรรจุภัณฑ์รายใหญ่ของไทย' },
+    SCGP: { name: 'เอสซีจี แพคเกจจิ้ง', sector: 'วัสดุก่อสร้าง/บรรจุภัณฑ์', business: 'ผู้ผลิตบรรจุภัณฑ์ครบวงจรในเครือเอสซีจี' },
+    TISCO: { name: 'ทิสโก้ไฟแนนเชียลกรุ๊ป', sector: 'ธนาคาร', business: 'กลุ่มธุรกิจการเงิน เน้นสินเชื่อรถยนต์และธุรกิจบริหารความมั่งคั่ง' },
+    TLI: { name: 'ไทยประกันชีวิต', sector: 'ประกันชีวิต', business: 'บริษัทประกันชีวิตรายใหญ่ของไทย' },
+    TOP: { name: 'ไทยออยล์', sector: 'พลังงาน/ปิโตรเคมี', business: 'โรงกลั่นน้ำมันรายใหญ่ของไทยในเครือ ปตท.' },
+    TRUE: { name: 'ทรู คอร์ปอเรชั่น', sector: 'ICT/สื่อสาร', business: 'ผู้ให้บริการโทรคมนาคม (มือถือ/อินเทอร์เน็ต) หลังการควบรวมทรู-ดีแทค' },
+    TTB: { name: 'ธนาคารทหารไทยธนชาต', sector: 'ธนาคาร', business: 'ธนาคารพาณิชย์ที่เกิดจากการควบรวม TMB และธนชาต' },
+    TU: { name: 'ไทยยูเนี่ยน กรุ๊ป', sector: 'อาหารและเครื่องดื่ม', business: 'ผู้ผลิตและส่งออกอาหารทะเลแปรรูป (ปลาทูน่ากระป๋อง ฯลฯ) รายใหญ่ระดับโลก' }
+  };
+  var SECTOR_FACTORS = {
+    'ธนาคาร': ['ผลประกอบการอ่อนไหวกับทิศทางดอกเบี้ยนโยบายและคุณภาพสินเชื่อ (หนี้เสีย/NPL)', 'จับตาการประกาศงบการเงินรายไตรมาสและนโยบายจาก ธปท.'],
+    'พลังงาน/ปิโตรเคมี': ['กำไรผันผวนตามราคาน้ำมัน/ก๊าซธรรมชาติในตลาดโลกและค่าการกลั่น/ค่าการตลาด', 'นโยบายพลังงานและการกำกับราคาของภาครัฐมีผลโดยตรงต่อธุรกิจ'],
+    'ICT/สื่อสาร': ['การแข่งขันด้านราคา/โปรโมชันในตลาดมือถือ และต้นทุนลงทุนโครงข่าย', 'รายได้ส่วนหนึ่งผูกกับพฤติกรรมผู้บริโภคด้านดิจิทัล/อินเทอร์เน็ต'],
+    'พาณิชย์/ค้าปลีก': ['ยอดขายอ่อนไหวกับกำลังซื้อผู้บริโภคและการท่องเที่ยว', 'การแข่งขันจากอีคอมเมิร์ซและต้นทุนสาขา/โลจิสติกส์'],
+    'อาหารและเครื่องดื่ม': ['ต้นทุนวัตถุดิบผันผวนตามราคาสินค้าโภคภัณฑ์โลก', 'รายได้ส่วนหนึ่งพึ่งพาตลาดส่งออก อ่อนไหวกับอัตราแลกเปลี่ยน'],
+    'ท่องเที่ยว/โรงแรม/บริการอาหาร': ['รายได้ผูกกับจำนวนนักท่องเที่ยวต่างชาติและฤดูกาลท่องเที่ยว', 'อ่อนไหวกับต้นทุนพลังงาน/ค่าแรง และเหตุการณ์ที่กระทบการเดินทาง'],
+    'สุขภาพ': ['รายได้ส่วนหนึ่งพึ่งพาคนไข้ต่างชาติ อ่อนไหวกับค่าเงินบาทและการเดินทางระหว่างประเทศ', 'ต้นทุนบุคลากรทางการแพทย์และเทคโนโลยีสูงขึ้นต่อเนื่อง'],
+    'ขนส่ง/โครงสร้างพื้นฐาน': ['รายได้ผูกกับปริมาณผู้โดยสาร/การเดินทาง และการต่อ-ขยายสัมปทาน', 'เป็นธุรกิจลงทุนสูง อ่อนไหวกับดอกเบี้ยและนโยบายภาครัฐ'],
+    'พัฒนาอสังหาริมทรัพย์': ['ยอดขาย/โอนอ่อนไหวกับอัตราดอกเบี้ยจำนองและความสามารถกู้ของผู้ซื้อ', 'จับตาสต๊อกที่อยู่อาศัยคงค้างและกำลังซื้อในแต่ละเซกเมนต์'],
+    'เงินทุน/สินเชื่อ': ['คุณภาพสินเชื่อ (หนี้เสีย) อ่อนไหวกับภาวะเศรษฐกิจครัวเรือน', 'ต้นทุนทางการเงินเปลี่ยนตามทิศทางดอกเบี้ยนโยบาย'],
+    'ชิ้นส่วนอิเล็กทรอนิกส์': ['รายได้ผูกกับวัฏจักรอุตสาหกรรมอิเล็กทรอนิกส์/ยานยนต์โลกและค่าเงินบาท', 'อ่อนไหวกับคำสั่งซื้อจากลูกค้าต่างประเทศรายใหญ่'],
+    'วัสดุก่อสร้าง/บรรจุภัณฑ์': ['ความต้องการผูกกับภาคก่อสร้าง/อสังหาฯ ทั้งในและต่างประเทศ', 'ต้นทุนพลังงาน/วัตถุดิบมีผลต่อกำไรโดยตรง'],
+    'ประกันชีวิต': ['ผลตอบแทนจากเงินลงทุนอ่อนไหวกับทิศทางดอกเบี้ยและตลาดทุน', 'จับตาสัดส่วนกรมธรรม์ใหม่และอัตราการต่ออายุ']
+  };
+  function companyInfoUrl(sym) { return 'https://www.google.com/search?q=' + encodeURIComponent(sym + ' บริษัท ทำธุรกิจอะไร'); }
+  function companyInfoHtml(sym) {
+    var c = COMPANY_INFO[sym];
+    if (!c) {
+      return '<div class="company-card"><div class="cname">ไม่มีข้อมูลบริษัทในฐานข้อมูล</div>' +
+        '<div class="cbiz">รองรับเฉพาะ 50 หุ้นใน SET50 — <a href="' + companyInfoUrl(sym) + '" target="_blank" rel="noopener">ค้นหาข้อมูลบริษัท ' + sym + ' เอง ↗</a></div></div>';
+    }
+    var factors = SECTOR_FACTORS[c.sector] || [];
+    var html = '<div class="company-card"><span class="cname">' + c.name + '</span><span class="csector">' + c.sector + '</span>' +
+      '<div class="cbiz">' + c.business + '</div>';
+    if (factors.length) {
+      html += '<ul class="creminders">' + factors.map(function (f) { return '<li>' + f + '</li>'; }).join('') + '</ul>';
+    }
+    html += '</div>';
+    return html;
+  }
 
   function fetchPriceScan(sym, startAt) {
     var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '.BK?range=1y&interval=1d';
@@ -860,12 +951,111 @@
   /* ── "ควรขายไหม" สำหรับหุ้นที่ถือ ─────────────────────────────── */
   function sellVerdict(a) {
     var det = a.det || {}, ps = det.psar;
-    var sarTxt = ps ? ' · แนวตัดขาดทุนตาม (SAR) ≈ ' + fmt(ps.sar) : '';
-    if (ps && !ps.up) return { cls: 'no', txt: '🔴 พิจารณาขาย — สัญญาณ SAR พลิกลง (ราคาต่ำกว่าแนวตามเทรนด์)' + sarTxt };
-    if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) return { cls: 'no', txt: '🔴 พิจารณาขาย / ตัดขาดทุน — ราคาหลุดแนวโน้ม (ต่ำกว่าเส้นเฉลี่ย)' + sarTxt };
-    if (isFinite(a.rsi) && a.rsi > 70) return { cls: 'warn', txt: '🟡 พิจารณาล็อกกำไรบางส่วน — RSI สูง ราคาร้อนแรง อาจย่อ' + sarTxt };
-    if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) return { cls: 'warn', txt: '🟡 ใกล้แนวต้าน — พิจารณาล็อกกำไรบางส่วน' + sarTxt };
-    return { cls: 'go', txt: '🟢 ยังอยู่ในแนวโน้มขึ้น — ถือต่อได้ เลื่อนจุดตัดขาดทุนตาม' + sarTxt };
+    var cls, headline;
+    if (ps && !ps.up) { cls = 'no'; headline = '🔴 พิจารณาขาย — สัญญาณเทรนด์กลับตัว (SAR พลิกลง)'; }
+    else if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) { cls = 'no'; headline = '🔴 พิจารณาขาย/ตัดขาดทุน — ราคาหลุดแนวโน้ม (ต่ำกว่าเส้นค่าเฉลี่ย)'; }
+    else if (isFinite(a.rsi) && a.rsi > 70) { cls = 'warn'; headline = '🟡 พิจารณาล็อกกำไรบางส่วน — RSI สูง ราคาร้อนแรง อาจย่อ'; }
+    else if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) { cls = 'warn'; headline = '🟡 ใกล้แนวต้าน — พิจารณาล็อกกำไรบางส่วน'; }
+    else { cls = 'go'; headline = '🟢 ยังอยู่ในแนวโน้มขึ้น — ถือต่อได้ เลื่อนจุดตัดขาดทุนตามแนวด้านล่าง'; }
+
+    /* ราคาหลายระดับตามสถานการณ์ — คำนวณทุกครั้งจากตัวเลขที่ analyzeSeries มีอยู่แล้ว ไม่ขึ้นกับ branch ไหน trigger */
+    var levels = [
+      {
+        key: 'sar', type: 'stop', label: 'แนวตัดขาดทุนตามเทรนด์ (SAR)',
+        price: ps ? ps.sar : NaN,
+        reason: !ps ? 'ข้อมูลไม่พอคำนวณ (ต้องมีประวัติราคาอย่างน้อย ~3 วัน)'
+          : (ps.up ? 'ถ้าราคาปิดหลุดต่ำกว่า ' + fmt(ps.sar) + ' ถือว่าเทรนด์ขาขึ้นเริ่มกลับตัว' : 'ราคาหลุดแนวนี้ไปแล้ว (SAR พลิกลง) — เป็นสัญญาณเตือนที่ชัดที่สุด')
+      },
+      {
+        key: 'stop', type: 'stop', label: 'จุดตัดขาดทุนตามความเสี่ยง (ATR/แนวรับ)',
+        price: a.suggestStop,
+        reason: !isFinite(a.suggestStop) ? 'ข้อมูลไม่พอคำนวณ'
+          : 'กันขาดทุนหนักถ้าราคาหลุดแนวรับหรือผันผวนเกินค่าเฉลี่ย' + (isFinite(det.atr) ? ' (ATR ≈ ' + fmt(det.atr) + ')' : '')
+      },
+      {
+        key: 'ema20', type: 'warn', label: 'เส้นค่าเฉลี่ย 20 วัน (สัญญาณเตือนแรก)',
+        price: det.ema20,
+        reason: !isFinite(det.ema20) ? 'ข้อมูลไม่พอคำนวณ' : 'หลุดเส้นนี้มักเป็นสัญญาณเริ่มอ่อนตัว — ยังไม่ใช่จุดตัดขาดทุนหลัก แต่ควรเริ่มระวัง'
+      },
+      {
+        key: 'resistance', type: 'tp', label: 'แนวต้าน (จุดพิจารณาล็อกกำไรบางส่วน)',
+        price: isFinite(det.resistance) ? det.resistance : a.resistance,
+        reason: !isFinite(isFinite(det.resistance) ? det.resistance : a.resistance) ? 'ข้อมูลไม่พอคำนวณ' : 'ราคามักเจอแรงขายทำกำไรบริเวณนี้ พิจารณาขายบางส่วนหรือเลื่อนจุดตัดขาดทุนตามเพื่อป้องกันกำไร'
+      }
+    ];
+    return { cls: cls, headline: headline, levels: levels };
+  }
+  function sellLevelsHtml(levels) {
+    var html = '<ul class="sell-levels">';
+    levels.forEach(function (lv) {
+      html += '<li><div class="row ' + lv.type + '"><span>' + lv.label + '</span><span class="price">' +
+        (isFinite(lv.price) ? fmt(lv.price) : '—') + '</span></div><div class="reason">' + lv.reason + '</div></li>';
+    });
+    html += '</ul>';
+    return html;
+  }
+
+  /* ══════ ข่าวล่าสุด (best-effort) — ไม่บล็อกอะไร ถ้าดึงไม่ได้มีลิงก์ค้นเองเสมอ ══════ */
+  function newsSearchUrl(sym) {
+    return 'https://news.google.com/search?q=' + encodeURIComponent(sym + ' หุ้น') + '&hl=th&gl=TH&ceid=TH:th';
+  }
+  function parseNewsRss(t) {
+    var xml = new DOMParser().parseFromString(t, 'text/xml');
+    if (xml.querySelector('parsererror')) throw new Error('parse error');
+    var items = [].slice.call(xml.querySelectorAll('item')).slice(0, 5).map(function (it) {
+      var title = it.querySelector('title'), link = it.querySelector('link'), pub = it.querySelector('pubDate');
+      return { title: title ? title.textContent : '', link: link ? link.textContent : '#', pubDate: pub ? pub.textContent : '' };
+    }).filter(function (n) { return n.title; });
+    if (!items.length) throw new Error('no items');
+    return items;
+  }
+  function newsDateShort(pubDate) {
+    var d = pubDate ? new Date(pubDate) : null;
+    return (d && !isNaN(d)) ? d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : '';
+  }
+  function fetchNewsScan(sym) {
+    var base = 'https://news.google.com/rss/search?q=' + encodeURIComponent(sym + ' หุ้น OR บริษัท') + '&hl=th&gl=TH&ceid=TH:th';
+    var enc = encodeURIComponent(base);
+    var tries = [
+      { url: 'https://api.allorigins.win/raw?url=' + enc },
+      { url: 'https://corsproxy.io/?url=' + enc },
+      { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
+      { url: 'https://thingproxy.freeboard.io/fetch/' + base },
+      { url: base }
+    ];
+    var i = 0;
+    function next() {
+      if (i >= tries.length) return Promise.reject(new Error('all failed'));
+      var t = tries[i++];
+      return fetchOne(t.url, 7000, parseNewsRss).catch(function () { return next(); });
+    }
+    return next();
+  }
+  function newsCacheKey(sym) { return 'tanot:invest:newscache:' + sym; }
+  function saveNewsCache(sym, items) { try { localStorage.setItem(newsCacheKey(sym), JSON.stringify({ ts: Date.now(), items: items })); } catch (e) {} }
+  function loadNewsCache(sym) { try { var o = JSON.parse(localStorage.getItem(newsCacheKey(sym))); return (o && o.items) ? o : null; } catch (e) { return null; } }
+  function fetchNews(sym) {
+    var cached = loadNewsCache(sym), fresh = cached && (Date.now() - cached.ts < 8 * 3600 * 1000);
+    if (fresh) return Promise.resolve({ items: cached.items, stale: false });
+    return fetchNewsScan(sym).then(function (items) {
+      saveNewsCache(sym, items); return { items: items, stale: false };
+    }, function (e) {
+      if (cached) return { items: cached.items, stale: true };
+      throw e;
+    });
+  }
+  function renderNewsBlock(el, sym) {
+    if (!el) return;
+    var link = '<a class="news-search-link" target="_blank" rel="noopener" href="' + newsSearchUrl(sym) + '">ค้นหาข่าวเอง ↗</a>';
+    el.innerHTML = 'กำลังค้นข่าว ' + sym + '… ' + link;
+    fetchNews(sym).then(function (r) {
+      var html = '<ul class="news-list">' + r.items.map(function (n) {
+        return '<li><a href="' + n.link + '" target="_blank" rel="noopener">' + n.title + '</a><span class="news-date">' + newsDateShort(n.pubDate) + '</span></li>';
+      }).join('') + '</ul>ดูข่าวเพิ่มเติม ' + link;
+      el.innerHTML = html;
+    }, function () {
+      el.innerHTML = 'ดึงข่าวอัตโนมัติไม่ได้ตอนนี้ ' + link;
+    });
   }
 
   /* ══════ สำรองพอร์ต + สมุดเทรดขึ้น Google Drive (ไม่บังคับ) ══════
@@ -1057,5 +1247,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
-  window.__thstock = { sma: sma, emaLast: emaLast, rsi: rsi, rsiSeries: rsiSeries, smaSeries: smaSeries, macd: macd, bollinger: bollinger, atr: atr, analyzeSeries: analyzeSeries, analyzeSimple: analyzeSimple, riskCalc: riskCalc, demoData: demoData, parsePaste: parsePaste, parseYahoo: parseYahoo, checklistChecks: checklistChecks, adx: adx, psar: psar };
+  window.__thstock = { sma: sma, emaLast: emaLast, rsi: rsi, rsiSeries: rsiSeries, smaSeries: smaSeries, macd: macd, bollinger: bollinger, atr: atr, analyzeSeries: analyzeSeries, analyzeSimple: analyzeSimple, riskCalc: riskCalc, demoData: demoData, parsePaste: parsePaste, parseYahoo: parseYahoo, checklistChecks: checklistChecks, adx: adx, psar: psar, sellVerdict: sellVerdict, companyInfoHtml: companyInfoHtml, newsSearchUrl: newsSearchUrl, parseNewsRss: parseNewsRss };
 })();

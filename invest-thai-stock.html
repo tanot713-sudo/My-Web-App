@@ -123,10 +123,30 @@ details[open]>summary::before{transform:rotate(90deg)}
 .pf-table th:first-child,.pf-table td:first-child{text-align:left}
 .pf-table th{color:var(--muted);font-weight:600;font-size:12px}
 .pf-table input{padding:6px 8px;font-size:13px;width:90px;text-align:right}
+.pf-actions{white-space:normal}
+@media(max-width:480px){.pf-table input{width:62px}.pf-table th,.pf-table td{padding:8px 4px}}
 .pf-pl.up{color:var(--ok);font-weight:700}
 .pf-pl.down{color:var(--err);font-weight:700}
 .pf-empty{font-size:13px;color:var(--muted);padding:10px 0}
 .pf-del{background:none;border:none;color:var(--err);cursor:pointer;font-size:16px;padding:2px 6px}
+
+/* ── ข้อมูลบริษัท/กลุ่มธุรกิจ ── */
+.company-card{background:var(--bg);border-radius:11px;padding:10px 13px;margin-top:8px;font-size:12.5px;line-height:1.6}
+.company-card .cname{font-weight:700;color:var(--ink);font-size:13px}
+.company-card .csector{display:inline-block;background:var(--brand-sf);color:var(--brand-dk);border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;margin-left:6px;vertical-align:middle}
+.company-card .cbiz{color:var(--ink);opacity:.85;margin-top:3px}
+.company-card .cbiz a{color:var(--brand-dk);font-weight:600}
+.company-card .creminders{margin:6px 0 0 16px;padding:0;font-size:12px;color:var(--muted)}
+.company-card .creminders li{margin-bottom:2px}
+
+/* ── ข่าวล่าสุด (best-effort) ── */
+.news-block{margin-top:8px;font-size:12.5px;color:var(--muted)}
+.news-list{list-style:none;margin:4px 0 0;padding:0}
+.news-list li{padding:5px 0;border-top:1px dashed var(--line);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.news-list a{color:var(--brand-dk);font-weight:600;text-decoration:none}
+.news-list a:hover{text-decoration:underline}
+.news-date{color:var(--muted);font-size:11px;white-space:nowrap}
+.news-search-link{color:var(--brand-dk);font-weight:700;text-decoration:none;font-size:12px;white-space:nowrap}
 
 /* ── กราฟ lightweight-charts ── */
 .chart-toolbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;margin-bottom:8px}
@@ -166,7 +186,8 @@ details[open]>summary::before{transform:rotate(90deg)}
 @media(max-width:520px){.s50-table .c-chg{display:none}.s50-table th,.s50-table td{padding:8px 7px}}
 .pf-sell{background:var(--brand-sf);border:none;color:var(--brand-dk);border-radius:8px;padding:5px 9px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
 .pf-sell:hover{background:var(--brand);color:#fff}
-.pf-sellrow td{padding:0 6px 10px!important}
+.pf-sellrow td{padding:0 6px 10px!important;overflow-wrap:anywhere;word-break:break-word}
+.sell-detail{width:1px;min-width:100%;box-sizing:border-box}
 .sell-verdict{border-radius:11px;padding:11px 13px;font-size:13px;font-weight:600;line-height:1.5}
 .sell-verdict.go{background:#E9F9F0;color:#0B7F52}
 .sell-verdict.no{background:#FDECEC;color:#B23838}
@@ -174,6 +195,14 @@ details[open]>summary::before{transform:rotate(90deg)}
 [data-theme="dark"] .sell-verdict.go{background:#14261E;color:#5EDCAB}
 [data-theme="dark"] .sell-verdict.no{background:#301B1B;color:#F0A0A0}
 [data-theme="dark"] .sell-verdict.warn{background:#2A2415;color:#E8C88A}
+.sell-levels{list-style:none;margin:8px 0 0;padding:0}
+.sell-levels li{padding:7px 0;border-top:1px dashed var(--line)}
+.sell-levels li:first-child{border-top:none}
+.sell-levels .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-weight:700;font-size:13px}
+.sell-levels .row.stop .price{color:var(--err)}
+.sell-levels .row.warn .price{color:var(--warn)}
+.sell-levels .row.tp .price{color:var(--ok)}
+.sell-levels .reason{font-size:12px;color:var(--muted);margin-top:2px;font-weight:500;line-height:1.4}
 /* ── ป้ายแหล่งข้อมูลกราฟ ── */
 .src-badge{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;display:inline-block;margin-bottom:10px}
 .src-badge.real{background:#E9F9F0;color:#0B7F52}
