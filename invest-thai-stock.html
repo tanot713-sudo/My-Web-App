@@ -11,6 +11,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
+<!-- Lightweight Charts (TradingView) — Apache-2.0 : กราฟแท่งเทียน -->
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js" defer></script>
 <style>
 :root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
   --brand:#12A594;--brand-dk:#0B7F72;--brand-sf:#E7F6F4;
@@ -115,6 +117,23 @@ details[open]>summary::before{transform:rotate(90deg)}
 .pf-empty{font-size:13px;color:var(--muted);padding:10px 0}
 .pf-del{background:none;border:none;color:var(--err);cursor:pointer;font-size:16px;padding:2px 6px}
 
+/* ── กราฟ lightweight-charts ── */
+.chart-toolbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;margin-bottom:8px}
+.tf-group,.tg-group{display:flex;gap:6px;flex-wrap:wrap}
+.tf,.tg{font-family:inherit;font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;
+  border:1.5px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
+.tf.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.tg.on{background:var(--brand-sf);border-color:var(--brand);color:var(--brand-dk)}
+.lw-legend{font-size:12.5px;font-weight:600;color:var(--ink);min-height:1.35em;margin-bottom:4px;
+  display:flex;flex-wrap:wrap;gap:2px 12px}
+.lw-legend span{white-space:nowrap}
+.lw-legend .up{color:#26a69a}.lw-legend .dn{color:#ef5350}
+.lw-chart{width:100%;height:300px}
+.lw-rsi{width:100%;height:110px;margin-top:2px}
+/* ── ภาพประกอบบทเรียน ── */
+.svg-lesson{width:100%;height:auto;max-width:440px;display:block;margin:4px auto 0}
+.lesson figure{margin:14px 0 6px}
+.lesson figcaption{font-size:12.5px;color:var(--muted);text-align:center;margin-top:5px;line-height:1.6}
 .disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
 footer{margin-top:22px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--sky);text-decoration:none;font-weight:600}
@@ -153,7 +172,18 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <div class="field"><label>ราคาต่ำสุดของรอบ</label><input type="number" id="lo" inputmode="decimal" step="0.01" placeholder="ช่วง 3 เดือน"></div>
     </div>
     <div class="status" id="fetchStatus">ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจาก Streaming ก็พอ (ดูราคาปัจจุบัน + สูง/ต่ำของรอบ)</div>
-    <div style="margin-top:10px"><button class="btn primary" id="analyzeBtn" type="button">ประเมินให้หน่อย →</button></div>
+    <div style="margin-top:10px;display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn primary" id="analyzeBtn" type="button">ประเมินให้หน่อย →</button>
+      <button class="btn sm" id="demoBtn" type="button">📊 ดูตัวอย่างกราฟ</button>
+    </div>
+    <details style="margin-top:10px">
+      <summary>วางราคาย้อนหลังเอง (ทางเลือก)</summary>
+      <div class="details-body">
+        <p style="font-size:12.5px;color:var(--muted);margin:2px 0 6px">วางราคาปิดหลายวัน คั่นด้วยเว้นวรรค/บรรทัด/จุลภาค (เรียงเก่า→ใหม่)</p>
+        <textarea id="pasteBox" rows="3" style="width:100%;font-family:inherit;font-size:14px;padding:10px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)" placeholder="34.50 34.75 35.00 34.80 35.25 35.50 ..."></textarea>
+        <button class="btn sm" id="pasteBtn" type="button" style="margin-top:8px">ใช้ราคานี้</button>
+      </div>
+    </details>
   </div>
 
   <!-- ไฟจราจร -->
@@ -163,19 +193,39 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <div><div class="verdict" id="verdict">—</div><div class="why" id="why"></div></div>
     </div>
 
-    <div class="chart-wrap" id="chartWrap" style="display:none">
-      <svg class="chart" id="chart" viewBox="0 0 640 200" preserveAspectRatio="none" aria-hidden="true"></svg>
-      <div class="chart-cap">
-        <span><i style="background:#12A594"></i>ราคา 3 เดือน</span>
-        <span><i style="background:#F5A524"></i>เส้นเฉลี่ย 20 วัน</span>
-        <span>🔵 ตอนนี้</span>
-      </div>
-    </div>
-
     <details id="detailsBox" style="display:none">
       <summary>ดูรายละเอียดทางเทคนิค (ไม่ต้องเข้าใจก็ได้)</summary>
       <div class="details-body"><div class="det-kv" id="detKv"></div></div>
     </details>
+  </div>
+
+  <!-- กราฟราคา -->
+  <div class="card" id="chartCard" style="display:none">
+    <h2>📊 กราฟราคา</h2>
+    <div class="chart-toolbar">
+      <div class="tf-group" id="tfGroup">
+        <button class="tf" data-tf="21" type="button">1เดือน</button>
+        <button class="tf on" data-tf="63" type="button">3เดือน</button>
+        <button class="tf" data-tf="126" type="button">6เดือน</button>
+        <button class="tf" data-tf="252" type="button">1ปี</button>
+      </div>
+      <div class="tg-group" id="tgGroup">
+        <button class="tg on" data-tg="ma20" type="button">เฉลี่ย 20</button>
+        <button class="tg on" data-tg="ma50" type="button">เฉลี่ย 50</button>
+        <button class="tg on" data-tg="vol" type="button">Volume</button>
+        <button class="tg" data-tg="rsi" type="button">RSI</button>
+      </div>
+    </div>
+    <div class="lw-legend" id="lwLegend"></div>
+    <div class="lw-chart" id="lwChart"></div>
+    <div class="lw-rsi" id="lwRsi" style="display:none"></div>
+    <div class="chart-cap">
+      <span><i style="background:#26a69a"></i>แท่งขึ้น</span>
+      <span><i style="background:#ef5350"></i>แท่งลง</span>
+      <span><i style="background:#F5A524"></i>เฉลี่ย 20 วัน</span>
+      <span><i style="background:#3B9BEA"></i>เฉลี่ย 50 วัน</span>
+      <span>👆 แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
+    </div>
   </div>
 
   <!-- STEP 2: คุมเงิน -->
@@ -207,6 +257,66 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <h2>📁 พอร์ตของฉัน</h2>
     <div id="pfBox"><div class="pf-empty">ยังไม่มีหุ้นในพอร์ต — คำนวณด้านบนแล้วกด "บันทึกเข้าพอร์ต"</div></div>
   </div>
+
+  <!-- เรียนรู้: อ่านกราฟ -->
+  <details class="card lesson" style="box-shadow:var(--sh)">
+    <summary style="font-size:14px">📈 อ่านกราฟเป็นใน 5 นาที (มีรูป)</summary>
+    <div class="details-body">
+      <h3>1. แท่งเทียน 1 แท่ง = ราคา 1 วัน</h3>
+      <figure>
+        <svg class="svg-lesson" viewBox="0 0 320 210" xmlns="http://www.w3.org/2000/svg">
+          <line x1="95" y1="22" x2="95" y2="178" stroke="#26a69a" stroke-width="2.5"/>
+          <rect x="76" y="62" width="38" height="82" rx="2" fill="#26a69a"/>
+          <text x="95" y="200" font-size="13" text-anchor="middle" fill="#26a69a" font-weight="700">วันขึ้น (เขียว)</text>
+          <line x1="235" y1="30" x2="235" y2="188" stroke="#ef5350" stroke-width="2.5"/>
+          <rect x="216" y="70" width="38" height="72" rx="2" fill="#ef5350"/>
+          <text x="235" y="200" font-size="13" text-anchor="middle" fill="#ef5350" font-weight="700">วันลง (แดง)</text>
+          <text x="150" y="40" font-size="11" fill="currentColor">← ไส้บน = ราคาสูงสุด</text>
+          <text x="150" y="104" font-size="11" fill="currentColor">← ตัวเทียน = ช่วงเปิด–ปิด</text>
+          <text x="150" y="168" font-size="11" fill="currentColor">← ไส้ล่าง = ราคาต่ำสุด</text>
+        </svg>
+        <figcaption>เขียว = วันนั้นปิดสูงกว่าเปิด (ราคาขึ้น) · แดง = ปิดต่ำกว่าเปิด (ราคาลง) · ตัวอ้วนคือช่วงเปิด-ปิด เส้นบาง (ไส้) คือจุดสูงสุด-ต่ำสุดของวัน</figcaption>
+      </figure>
+
+      <h3>2. แนวโน้ม: ขึ้น / ลง / ออกข้าง</h3>
+      <figure>
+        <svg class="svg-lesson" viewBox="0 0 440 130" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <polyline points="15,105 45,88 75,95 105,60 135,70 145,40" stroke="#26a69a" stroke-width="2.5" stroke-linejoin="round"/>
+          <text x="80" y="125" font-size="12" text-anchor="middle" fill="#26a69a" font-weight="700">ขาขึ้น</text>
+          <polyline points="165,40 195,58 225,50 255,82 285,74 295,105" stroke="#ef5350" stroke-width="2.5" stroke-linejoin="round"/>
+          <text x="230" y="125" font-size="12" text-anchor="middle" fill="#ef5350" font-weight="700">ขาลง</text>
+          <polyline points="315,72 345,60 360,80 390,62 405,80 430,66" stroke="#8B94A8" stroke-width="2.5" stroke-linejoin="round"/>
+          <text x="375" y="125" font-size="12" text-anchor="middle" fill="#8B94A8" font-weight="700">ออกข้าง</text>
+        </svg>
+        <figcaption>ยอด/ก้นสูงขึ้นเรื่อยๆ = ขาขึ้น (มองหาจังหวะซื้อ) · ต่ำลงเรื่อยๆ = ขาลง (เลี่ยง) · ไปข้างๆ = ยังไม่มีทิศทาง (รอ)</figcaption>
+      </figure>
+
+      <h3>3. แนวรับ–แนวต้าน</h3>
+      <figure>
+        <svg class="svg-lesson" viewBox="0 0 440 150" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <line x1="10" y1="32" x2="430" y2="32" stroke="#ef5350" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <line x1="10" y1="118" x2="430" y2="118" stroke="#26a69a" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <polyline points="20,60 60,34 100,70 150,116 200,80 250,34 300,70 350,116 400,86" stroke="#3B9BEA" stroke-width="2.5" stroke-linejoin="round"/>
+          <text x="14" y="26" font-size="11" fill="#ef5350" font-weight="700">แนวต้าน (มักเด้งลง)</text>
+          <text x="14" y="136" font-size="11" fill="#26a69a" font-weight="700">แนวรับ (มักเด้งขึ้น)</text>
+        </svg>
+        <figcaption>ราคามักเด้งขึ้นเมื่อลงมาถึง "แนวรับ" และมักย่อลงเมื่อขึ้นไปชน "แนวต้าน" — ใกล้แนวรับในขาขึ้น = จังหวะที่น่าสนใจ</figcaption>
+      </figure>
+
+      <h3>4. เส้นค่าเฉลี่ย (เฉลี่ย 20 / 50 วัน)</h3>
+      <figure>
+        <svg class="svg-lesson" viewBox="0 0 440 130" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <polyline points="15,95 45,70 60,90 90,55 120,78 150,48 180,66 210,40 240,58 270,36 300,52 330,30 360,46 400,28" stroke="#8B94A8" stroke-width="1.5" opacity="0.8"/>
+          <polyline points="15,90 60,80 120,70 180,58 240,50 300,42 360,36 400,32" stroke="#F5A524" stroke-width="3" stroke-linejoin="round"/>
+          <text x="405" y="26" font-size="11" fill="#F5A524" font-weight="700">เฉลี่ย</text>
+        </svg>
+        <figcaption>เส้นสีส้มคือค่าเฉลี่ยของราคา ช่วยกรองความแกว่งให้เห็นทิศทางรวมง่ายขึ้น — ราคาอยู่เหนือเส้น = แนวโน้มขึ้น อยู่ใต้เส้น = แนวโน้มลง</figcaption>
+      </figure>
+
+      <h3>5. แล้วดูกราฟจริงด้านบนยังไง</h3>
+      <p>กดปุ่ม "📊 ดูตัวอย่างกราฟ" ที่ขั้นที่ 1 เพื่อลองเล่นกับกราฟจริงได้เลย — สลับช่วงเวลา (1เดือน–1ปี), เปิด-ปิดเส้นเฉลี่ย, แตะบนกราฟเพื่อดูราคาแต่ละวัน แล้วไฟจราจรจะสรุปให้ว่าโดยรวมน่าสนใจไหม</p>
+    </div>
+  </details>
 
   <!-- เรียนรู้ -->
   <details class="card lesson" style="box-shadow:var(--sh)">
