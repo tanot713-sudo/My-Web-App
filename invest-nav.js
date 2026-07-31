@@ -14,7 +14,7 @@
     { key: 'global-stock', label: 'หุ้นต่างประเทศ',  icon: '🌐' },
     { key: 'thai-stock',   label: 'หุ้นไทย',          icon: '📈', page: 'invest-thai-stock.html' },
     { key: 'gold',         label: 'ทองคำ',            icon: '🪙' },
-    { key: 'business',     label: 'ลงทุนทำธุรกิจ',    icon: '🏪' },
+    { key: 'business',     label: 'ลงทุนทำธุรกิจ',    icon: '🏪', page: 'invest-business.html' },
     { key: 'gov-bond',     label: 'พันธบัตรรัฐบาล',   icon: '🏛️' },
     { key: 'gsb-lottery',  label: 'สลากออมสิน',       icon: '🎟️' },
     { key: 'baac-lottery', label: 'สลาก ธ.ก.ส.',      icon: '🌾' },
