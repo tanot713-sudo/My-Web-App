@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>หุ้นไทย — ตัวช่วยเข้า/ออก | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
+  --brand:#12A594;--brand-dk:#0B7F72;--brand-sf:#E7F6F4;
+  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--sky:#3B9BEA;--err:#E5484D;--warn:#E08700;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
+  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto}
+.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
+.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+.crumb .sep{margin:0 7px;color:#C9CEDC}
+.head{display:flex;align-items:center;gap:14px;margin:12px 0 6px}
+.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:26px;
+  background:linear-gradient(135deg,#12A594,#3FCBB7);color:#fff;display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(18,165,148,.3)}
+h1{font-size:22px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px 18px;margin-top:14px}
+.card h2{font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.step{width:22px;height:22px;border-radius:50%;background:var(--brand-sf);color:var(--brand-dk);
+  display:grid;place-items:center;font-size:12px;font-weight:800;flex-shrink:0}
+
+.frow{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 120px;min-width:110px}
+.field.grow{flex:1 1 100%}
+.field label{font-size:12px;color:var(--muted);font-weight:600}
+.field .unit{font-size:11px;color:var(--muted);font-weight:500}
+input[type=text],input[type=number]{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:11px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none}
+input:focus{outline:none;border-color:var(--brand)}
+[data-theme="dark"] input{background:#12151C}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
+  background:var(--card);border-radius:11px;padding:10px 15px;font-family:inherit;font-size:14px;font-weight:700;
+  color:var(--ink);cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-dk);color:#fff}
+.btn.sm{padding:7px 11px;font-size:12.5px}
+.status{font-size:12.5px;color:var(--muted);margin-top:9px;min-height:1.2em}
+.status.err{color:var(--err)}
+.status.ok{color:var(--ok)}
+
+/* ── ไฟจราจร ── */
+.light{display:flex;gap:14px;align-items:center;border-radius:16px;padding:18px;margin-top:2px}
+.light .bulb{width:56px;height:56px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:30px}
+.light .verdict{font-size:18px;font-weight:800;line-height:1.25}
+.light .why{font-size:13.5px;margin-top:3px;opacity:.9}
+.light.green{background:#E9F9F0;color:#0B7F52}
+.light.yellow{background:#FFF6E4;color:#8A6212}
+.light.red{background:#FDECEC;color:#B23838}
+.light.gray{background:var(--bg);color:var(--muted)}
+[data-theme="dark"] .light.green{background:#14261E;color:#5EDCAB}
+[data-theme="dark"] .light.yellow{background:#2A2415;color:#E8C88A}
+[data-theme="dark"] .light.red{background:#301B1B;color:#F0A0A0}
+
+/* ── ผลลัพธ์คุมเงิน ── */
+.result{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px;display:none}
+.result.show{display:block}
+.big-out{font-size:15px;line-height:1.9}
+.big-out b{color:var(--brand-dk);font-weight:800}
+.kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;margin-top:10px;font-size:13.5px}
+.kv .k{color:var(--muted)}
+.kv .v{font-weight:700;text-align:right}
+.kv .v.risk{color:var(--err)}
+.kv .v.tp{color:var(--ok)}
+.tp-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tp-chip{background:var(--brand-sf);color:var(--brand-dk);border-radius:10px;padding:7px 11px;font-size:12.5px;font-weight:700}
+
+/* ── กราฟ ── */
+.chart-wrap{margin-top:6px;overflow-x:auto}
+svg.chart{display:block;width:100%;height:auto;max-width:100%}
+.chart-cap{font-size:12px;color:var(--muted);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+.chart-cap i{width:11px;height:3px;display:inline-block;vertical-align:middle;margin-right:4px;border-radius:2px}
+
+/* ── collapsible ── */
+details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;color:var(--ink);
+  list-style:none;display:flex;align-items:center;gap:8px;user-select:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:'▸';color:var(--muted);transition:.15s}
+details[open]>summary::before{transform:rotate(90deg)}
+.details-body{padding:0 15px 15px;font-size:13.5px;color:var(--ink)}
+.det-kv{display:grid;grid-template-columns:1fr auto;gap:5px 12px;font-size:13px}
+.det-kv .k{color:var(--muted)}
+.det-kv .v{font-weight:600;text-align:right}
+.lesson h3{font-size:13.5px;font-weight:700;margin:12px 0 4px;color:var(--brand-dk)}
+.lesson p{font-size:13px;color:var(--ink);margin-bottom:4px;opacity:.92}
+.lesson ul{margin:2px 0 6px 18px;font-size:13px}
+.lesson li{margin-bottom:3px}
+
+/* ── พอร์ต ── */
+.pf-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+.pf-table th,.pf-table td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line)}
+.pf-table th:first-child,.pf-table td:first-child{text-align:left}
+.pf-table th{color:var(--muted);font-weight:600;font-size:12px}
+.pf-table input{padding:6px 8px;font-size:13px;width:90px;text-align:right}
+.pf-pl.up{color:var(--ok);font-weight:700}
+.pf-pl.down{color:var(--err);font-weight:700}
+.pf-empty{font-size:13px;color:var(--muted);padding:10px 0}
+.pf-del{background:none;border:none;color:var(--err);cursor:pointer;font-size:16px;padding:2px 6px}
+
+.disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
+footer{margin-top:22px;text-align:center;font-size:12.5px;color:#9AA3B8}
+footer a{color:var(--sky);text-decoration:none;font-weight:600}
+@media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:19px}.head-ic{width:44px;height:44px;font-size:22px}}
+</style>
+</head>
+<body class="ome-tool-page" data-invest-key="thai-stock">
+<script src="auth-gate.js"></script>
+<div class="wrap">
+
+  <div id="investNav"></div>
+
+  <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>หุ้นไทย</nav>
+
+  <div class="head">
+    <div class="head-ic">📈</div>
+    <div>
+      <h1>หุ้นไทย — ตัวช่วยเข้า/ออก</h1>
+      <div class="head-sub">มือใหม่ก็ใช้ได้ · เครื่องอ่านให้ · เน้นคุมเงินและความเสี่ยง</div>
+    </div>
+  </div>
+
+  <!-- STEP 1: ราคา -->
+  <div class="card">
+    <h2><span class="step">1</span> ราคาหุ้นตอนนี้</h2>
+    <div class="frow">
+      <div class="field" style="flex:1 1 140px">
+        <label>ชื่อย่อหุ้น (เช่น PTT, ADVANC)</label>
+        <input type="text" id="sym" placeholder="PTT" autocomplete="off" spellcheck="false">
+      </div>
+      <button class="btn" id="fetchBtn" type="button">🔄 ลองดึงราคา</button>
+    </div>
+    <div class="frow" style="margin-top:12px">
+      <div class="field"><label>ราคาตอนนี้ (บาท)</label><input type="number" id="price" inputmode="decimal" step="0.01" placeholder="เช่น 35.50"></div>
+      <div class="field"><label>ราคาสูงสุดของรอบ</label><input type="number" id="hi" inputmode="decimal" step="0.01" placeholder="ช่วง 3 เดือน"></div>
+      <div class="field"><label>ราคาต่ำสุดของรอบ</label><input type="number" id="lo" inputmode="decimal" step="0.01" placeholder="ช่วง 3 เดือน"></div>
+    </div>
+    <div class="status" id="fetchStatus">ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจาก Streaming ก็พอ (ดูราคาปัจจุบัน + สูง/ต่ำของรอบ)</div>
+    <div style="margin-top:10px"><button class="btn primary" id="analyzeBtn" type="button">ประเมินให้หน่อย →</button></div>
+  </div>
+
+  <!-- ไฟจราจร -->
+  <div class="card" id="lightCard" style="display:none">
+    <div class="light gray" id="light">
+      <div class="bulb" id="bulb">⚪</div>
+      <div><div class="verdict" id="verdict">—</div><div class="why" id="why"></div></div>
+    </div>
+
+    <div class="chart-wrap" id="chartWrap" style="display:none">
+      <svg class="chart" id="chart" viewBox="0 0 640 200" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="chart-cap">
+        <span><i style="background:#12A594"></i>ราคา 3 เดือน</span>
+        <span><i style="background:#F5A524"></i>เส้นเฉลี่ย 20 วัน</span>
+        <span>🔵 ตอนนี้</span>
+      </div>
+    </div>
+
+    <details id="detailsBox" style="display:none">
+      <summary>ดูรายละเอียดทางเทคนิค (ไม่ต้องเข้าใจก็ได้)</summary>
+      <div class="details-body"><div class="det-kv" id="detKv"></div></div>
+    </details>
+  </div>
+
+  <!-- STEP 2: คุมเงิน -->
+  <div class="card">
+    <h2><span class="step">2</span> ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน</h2>
+    <div class="frow">
+      <div class="field"><label>เงินลงทุนทั้งพอร์ต (บาท)</label><input type="number" id="capital" inputmode="numeric" placeholder="เช่น 100000" value="100000"></div>
+      <div class="field"><label>ยอมเสี่ยงต่อไม้ <span class="unit">(% ของพอร์ต)</span></label><input type="number" id="riskPct" inputmode="decimal" step="0.1" value="2"></div>
+    </div>
+    <div class="frow" style="margin-top:10px">
+      <div class="field"><label>ราคาเข้าซื้อ (บาท)</label><input type="number" id="entry" inputmode="decimal" step="0.01" placeholder="= ราคาตอนนี้"></div>
+      <div class="field"><label>ราคาตัดขาดทุน (Stop)</label><input type="number" id="stop" inputmode="decimal" step="0.01" placeholder="แนะนำอัตโนมัติ"></div>
+      <div class="field"><label>ค่าคอมฯ <span class="unit">(% ต่อครั้ง)</span></label><input type="number" id="comm" inputmode="decimal" step="0.001" value="0.157"></div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn primary" id="calcBtn" type="button">คำนวณ</button>
+      <button class="btn sm" id="saveBtn" type="button" style="display:none">💾 บันทึกเข้าพอร์ต</button>
+    </div>
+
+    <div class="result" id="riskResult">
+      <div class="big-out" id="riskHeadline"></div>
+      <div class="kv" id="riskKv"></div>
+      <div class="tp-row" id="tpRow"></div>
+    </div>
+  </div>
+
+  <!-- พอร์ต -->
+  <div class="card">
+    <h2>📁 พอร์ตของฉัน</h2>
+    <div id="pfBox"><div class="pf-empty">ยังไม่มีหุ้นในพอร์ต — คำนวณด้านบนแล้วกด "บันทึกเข้าพอร์ต"</div></div>
+  </div>
+
+  <!-- เรียนรู้ -->
+  <details class="card lesson" style="box-shadow:var(--sh)">
+    <summary style="font-size:14px">📚 เรียนรู้ — มือใหม่อ่านตรงนี้ก่อน</summary>
+    <div class="details-body">
+      <h3>สวิงเทรดคืออะไร</h3>
+      <p>ซื้อแล้วถือ "ไม่กี่วันถึงไม่กี่สัปดาห์" รอราคาขยับขึ้นตามจังหวะ แล้วขายทำกำไร — ไม่ใช่ซื้อขายรัวๆ ในวันเดียว และไม่ใช่ถือยาวเป็นปี</p>
+      <h3>ทำไม "จุดตัดขาดทุน (Stop)" สำคัญที่สุด</h3>
+      <p>ก่อนซื้อ ให้รู้ก่อนว่า "ถ้าคิดผิด จะยอมขาดทุนที่ราคาไหน" แล้วตั้งไว้ พอราคาถึงจุดนั้นให้ขายตัดใจ ไม่ปล่อยให้ขาดทุนบานปลาย — คนเจ๊งหุ้นส่วนใหญ่เพราะไม่ยอมตัดขาดทุน</p>
+      <h3>"ยอมเสี่ยงต่อไม้ 2%" หมายถึงอะไร</h3>
+      <p>แต่ละครั้งที่ซื้อ ถ้าผิดทางจริง ควรเสียเงินไม่เกิน ~2% ของพอร์ต เครื่องจะคำนวณให้เองว่าควรซื้อกี่หุ้นถึงจะไม่เกินนี้ ทำให้ไม้เดียวไม่ทำพอร์ตพัง</p>
+      <h3>ล็อต 100 หุ้นคืออะไร</h3>
+      <p>หุ้นไทยซื้อขายเป็นชุดละ 100 หุ้น (1 ล็อต) เครื่องจะปัดจำนวนให้ลงตัวเป็นหลักร้อยให้อัตโนมัติ</p>
+      <h3>ค่าคอมฯ และ "ราคาคุ้มทุน"</h3>
+      <p>ทุกครั้งที่ซื้อและขายมีค่าคอมฯ (ปกติผ่านเน็ต ~0.157% ต่อครั้ง) ราคาต้องขึ้นเกิน "จุดคุ้มทุน" ก่อนถึงจะเริ่มมีกำไรจริง เครื่องคำนวณให้แล้ว</p>
+      <h3>อ่านไฟจราจรยังไง</h3>
+      <ul>
+        <li>🟢 เขียว = ราคาน่าสนใจ อยู่ช่วงถูกของรอบและเริ่มมีแรงซื้อ — ค่อยพิจารณา (ไม่ใช่สั่งให้ซื้อ)</li>
+        <li>🟡 เหลือง = กลางๆ ยังไม่มีจังหวะเด่น รอดูก่อน</li>
+        <li>🔴 แดง = ราคาแพงเทียบรอบ/สัญญาณอ่อน ระวังการไล่ซื้อ</li>
+      </ul>
+      <h3>เอาตัวเลขจาก Streaming ตรงไหน</h3>
+      <p>เปิดหุ้นที่สนใจใน Streaming: "ราคาตอนนี้" คือราคาล่าสุดตัวใหญ่ ส่วน "สูงสุด/ต่ำสุดของรอบ" ดูช่อง High/Low (หรือ 52W High/Low ก็ได้ถ้าหาช่วงสั้นไม่เจอ) แล้วนำมากรอกในขั้นที่ 1</p>
+    </div>
+  </details>
+
+  <div class="disc">⚠️ เครื่องนี้เป็นตัวช่วยคิดและฝึกวินัย ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · การตัดสินใจและความเสี่ยงเป็นของคุณเอง · ข้อมูลทั้งหมดเก็บในเครื่องคุณเท่านั้น</div>
+
+  <footer><a href="invest.html">← กลับหน้าการลงทุน</a> · <a href="credits.html">เครดิต</a></footer>
+</div>
+
+<script src="invest-nav.js" defer></script>
+<script src="invest-thai-stock.js" defer></script>
+</body>
+</html>
