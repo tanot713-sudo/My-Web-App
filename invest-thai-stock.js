@@ -765,61 +765,81 @@
     $('sym').value = sym; doFetch();
     var lc = $('lightCard'); if (lc && lc.scrollIntoView) setTimeout(function () { lc.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 250);
   }
-  function renderSet50Strip() {
-    var strip = $('set50Strip'); if (!strip) return;
-    strip.innerHTML = '';
+  /* ── ตาราง SET50 ── */
+  var s50Rows = {};
+  function rankOf(l) { return l === 'green' ? 0 : l === 'yellow' ? 1 : l === 'red' ? 2 : 9; }
+  function sigIcon(l) { return l === 'green' ? '🟢' : l === 'yellow' ? '🟡' : l === 'red' ? '🔴' : '·'; }
+  function dataFromSeries(s) {
+    if (!s || s.closes.length < 2) return null;
+    var last = s.closes[s.closes.length - 1], prev = s.closes[s.closes.length - 2];
+    var light = ''; if (s.closes.length >= 20) { try { light = analyzeSeries(s).light; } catch (e) {} }
+    return { last: last, chg: last - prev, pct: prev ? (last - prev) / prev * 100 : 0, light: light };
+  }
+  function fillRow(tr, sym, d) {
+    if (!d) {
+      tr.innerHTML = '<td class="c-sym">' + sym + '</td><td class="muted">–</td><td class="muted c-chg">–</td><td class="muted">–</td><td class="c-sig muted">กดดู</td>';
+      tr.setAttribute('data-rank', 9); tr.setAttribute('data-light', ''); return;
+    }
+    var cls = d.chg >= 0 ? 'up' : 'dn', sign = d.chg >= 0 ? '+' : '−';
+    tr.innerHTML = '<td class="c-sym">' + sym + '</td>' +
+      '<td>' + fmt(d.last) + '</td>' +
+      '<td class="c-chg ' + cls + '">' + sign + fmt(Math.abs(d.chg)) + '</td>' +
+      '<td class="' + cls + '">' + sign + fmt(Math.abs(d.pct), 2) + '%</td>' +
+      '<td class="c-sig">' + sigIcon(d.light) + '</td>';
+    tr.setAttribute('data-rank', rankOf(d.light)); tr.setAttribute('data-light', d.light || '');
+  }
+  function renderSet50Table() {
+    var body = $('s50Body'); if (!body) return;
+    body.innerHTML = ''; s50Rows = {};
     SET50.forEach(function (sym) {
-      var c = loadCache(sym), price = c ? fmt(c.closes[c.closes.length - 1]) : '';
-      var btn = document.createElement('button');
-      btn.className = 's50-chip'; btn.type = 'button'; btn.setAttribute('data-sym', sym);
-      btn.innerHTML = '<span class="sym">' + sym + '</span>' + (price ? '<span class="px">' + price + '</span>' : '');
-      btn.addEventListener('click', function () { selectSet50(sym); });
-      strip.appendChild(btn);
+      var tr = document.createElement('tr'); tr.setAttribute('data-sym', sym);
+      fillRow(tr, sym, dataFromSeries(loadCache(sym)));
+      tr.addEventListener('click', function () { selectSet50(sym); });
+      body.appendChild(tr); s50Rows[sym] = tr;
+    });
+    applyGreenFilter();
+  }
+  function sortTable() {
+    var body = $('s50Body'); if (!body) return;
+    var rows = [].slice.call(body.querySelectorAll('tr'));
+    rows.sort(function (a, b) {
+      var ra = +a.getAttribute('data-rank'), rb = +b.getAttribute('data-rank');
+      if (ra !== rb) return ra - rb;
+      return a.getAttribute('data-sym') < b.getAttribute('data-sym') ? -1 : 1;
+    });
+    rows.forEach(function (r) { body.appendChild(r); });
+  }
+  function applyGreenFilter() {
+    var go = $('greenOnly') && $('greenOnly').checked;
+    Object.keys(s50Rows).forEach(function (sym) {
+      var tr = s50Rows[sym]; tr.style.display = (go && tr.getAttribute('data-light') !== 'green') ? 'none' : '';
     });
   }
 
   var scanning = false;
   function doScan() {
     if (scanning) { scanning = false; return; }
-    var idx = 0, results = [];
-    scanning = true; $('scanBtn').textContent = '⏹ หยุดสแกน'; $('scanResult').style.display = 'block';
-    function greenCount() { return results.filter(function (r) { return r.light === 'green'; }).length; }
-    function fin() { scanning = false; $('scanBtn').textContent = '🔎 หาหุ้นน่าสนใจใน SET50'; $('scanStatus').textContent = ''; renderScan(results, true); }
+    var idx = 0, ok = 0, green = 0;
+    scanning = true; $('scanBtn').textContent = '⏹ หยุด';
+    function fin() {
+      scanning = false; $('scanBtn').textContent = '🔎 หาหุ้นน่าสนใจ';
+      $('scanStatus').textContent = 'สแกนสำเร็จ ' + ok + '/' + SET50.length + ' ตัว · เจอน่าสนใจ ' + green + ' ตัว (ไม่ใช่คำแนะนำซื้อ)';
+      sortTable(); applyGreenFilter();
+    }
     function step() {
       if (!scanning || idx >= SET50.length) { fin(); return; }
       var sym = SET50[idx++];
-      $('scanStatus').textContent = 'กำลังสแกน ' + idx + '/' + SET50.length + ' (' + sym + ') · เจอน่าสนใจ ' + greenCount() + ' ตัว';
+      $('scanStatus').textContent = 'กำลังสแกน ' + idx + '/' + SET50.length + ' (' + sym + ')…';
       var cached = loadCache(sym), fresh = cached && (Date.now() - cached.cachedAt < 6 * 3600 * 1000);
       var pr = fresh ? Promise.resolve(cached) : fetchPriceScan(sym).then(function (s) { saveCache(sym, s); return s; }, function () { return cached || null; });
       pr.then(function (s) {
-        if (s && s.closes.length >= 20) {
-          var a = analyzeSeries(s);
-          results.push({ sym: sym, score: a.score, light: a.light, price: s.closes[s.closes.length - 1], why: a.why });
-          renderScan(results, false);
-        }
-        setTimeout(step, 100);
+        var d = dataFromSeries(s);
+        if (d) { ok++; if (d.light === 'green') green++; if (s50Rows[sym]) fillRow(s50Rows[sym], sym, d); }
+        if (idx % 5 === 0) { sortTable(); applyGreenFilter(); }
+        setTimeout(step, 90);
       });
     }
     step();
-  }
-  var scanCache = [], scanDoneFlag = false;
-  function renderScan(results, done) {
-    scanCache = results; scanDoneFlag = done;
-    var greenOnly = $('greenOnly') && $('greenOnly').checked;
-    var sorted = results.slice().sort(function (a, b) { return b.score - a.score; });
-    var green = sorted.filter(function (r) { return r.light === 'green'; });
-    var list = greenOnly ? green : sorted;
-    var html = '';
-    if (done) html += '<div class="mini" style="margin-bottom:8px">สแกนสำเร็จ ' + results.length + '/' + SET50.length + ' ตัว · เจอน่าสนใจ ' + green.length + ' ตัว — เรียงตามคะแนนเทคนิค <b>ไม่ใช่คำแนะนำซื้อ</b></div>';
-    if (greenOnly && green.length === 0) html += '<div class="mini" style="margin-bottom:8px">ยังไม่เจอไฟเขียว' + (done ? '' : ' (กำลังสแกน…)') + '</div>';
-    html += '<div class="scan-list">';
-    list.slice(0, 15).forEach(function (r) {
-      var b = r.light === 'green' ? '🟢' : r.light === 'red' ? '🔴' : '🟡';
-      html += '<button class="scan-item ' + r.light + '" type="button" data-sym="' + r.sym + '"><span class="s">' + b + ' ' + r.sym + '</span><span class="p">' + fmt(r.price) + '</span><span class="w">' + r.why + '</span></button>';
-    });
-    html += '</div>';
-    $('scanResult').innerHTML = html;
-    [].forEach.call($('scanResult').querySelectorAll('.scan-item'), function (btn) { btn.addEventListener('click', function () { selectSet50(btn.getAttribute('data-sym')); }); });
   }
 
   function addHolding() {
@@ -866,9 +886,9 @@
     $('eBtn').addEventListener('click', doExpectancy);
     $('jAdd').addEventListener('click', addJournal);
     $('scanBtn').addEventListener('click', doScan);
-    $('greenOnly').addEventListener('change', function () { if (scanCache.length) renderScan(scanCache, scanDoneFlag); });
+    $('greenOnly').addEventListener('change', applyGreenFilter);
     $('pfAdd').addEventListener('click', addHolding);
-    renderSet50Strip();
+    renderSet50Table();
     renderPf();
     renderJournal();
   }
