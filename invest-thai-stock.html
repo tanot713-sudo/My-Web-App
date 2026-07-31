@@ -130,6 +130,36 @@ details[open]>summary::before{transform:rotate(90deg)}
 .lw-legend .up{color:#26a69a}.lw-legend .dn{color:#ef5350}
 .lw-chart{width:100%;height:300px}
 .lw-rsi{width:100%;height:110px;margin-top:2px}
+/* ── แถบ SET50 + สแกนเนอร์ ── */
+.set50-strip{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.set50-strip::-webkit-scrollbar{display:none}
+.s50-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:66px;
+  padding:8px 12px;border-radius:11px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);
+  cursor:pointer;font-family:inherit;transition:.14s}
+.s50-chip:hover{border-color:var(--brand);color:var(--brand-dk);transform:translateY(-1px)}
+.s50-chip .sym{font-size:13px;font-weight:700}
+.s50-chip .px{font-size:11.5px;color:var(--muted);font-weight:600}
+.scan-list{display:flex;flex-direction:column;gap:7px}
+.scan-item{display:grid;grid-template-columns:auto auto 1fr;gap:10px;align-items:center;text-align:left;
+  padding:10px 13px;border-radius:11px;border:1.5px solid var(--line);background:var(--card);cursor:pointer;
+  font-family:inherit;color:var(--ink);transition:.14s}
+.scan-item:hover{border-color:var(--brand)}
+.scan-item.green{border-color:#B7E4CF;background:#F2FBF6}
+.scan-item.red{border-color:#F2C7C7}
+[data-theme="dark"] .scan-item.green{background:#14261E;border-color:#1E4A35}
+.scan-item .s{font-weight:800;font-size:13.5px;white-space:nowrap}
+.scan-item .p{font-weight:700;font-size:13px;color:var(--muted);white-space:nowrap}
+.scan-item .w{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-sell{background:var(--brand-sf);border:none;color:var(--brand-dk);border-radius:8px;padding:5px 9px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.pf-sell:hover{background:var(--brand);color:#fff}
+.pf-sellrow td{padding:0 6px 10px!important}
+.sell-verdict{border-radius:11px;padding:11px 13px;font-size:13px;font-weight:600;line-height:1.5}
+.sell-verdict.go{background:#E9F9F0;color:#0B7F52}
+.sell-verdict.no{background:#FDECEC;color:#B23838}
+.sell-verdict.warn{background:#FFF6E4;color:#8A6212}
+[data-theme="dark"] .sell-verdict.go{background:#14261E;color:#5EDCAB}
+[data-theme="dark"] .sell-verdict.no{background:#301B1B;color:#F0A0A0}
+[data-theme="dark"] .sell-verdict.warn{background:#2A2415;color:#E8C88A}
 /* ── ป้ายแหล่งข้อมูลกราฟ ── */
 .src-badge{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;display:inline-block;margin-bottom:10px}
 .src-badge.real{background:#E9F9F0;color:#0B7F52}
@@ -227,6 +257,18 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
         <button class="btn sm" id="pasteBtn" type="button" style="margin-top:8px">ใช้ราคานี้</button>
       </div>
     </details>
+  </div>
+
+  <!-- SET50 browser + screener -->
+  <div class="card" id="set50Card">
+    <h2>🔎 หุ้น SET50 — เลือกดู / หาตัวน่าสนใจ</h2>
+    <p class="mini">แตะชื่อหุ้นเพื่อดูว่า "น่าลงทุนไหม" · หรือกดปุ่มให้ระบบไล่สแกนหาตัวที่น่าสนใจให้ (ครั้งแรกอาจช้าและได้ไม่ครบ รอบต่อไปเร็วขึ้นเพราะจำไว้)</p>
+    <div class="set50-strip" id="set50Strip"></div>
+    <div style="margin-top:12px;display:flex;gap:9px;flex-wrap:wrap;align-items:center">
+      <button class="btn primary" id="scanBtn" type="button">🔎 หาหุ้นน่าสนใจใน SET50</button>
+      <span class="mini" id="scanStatus"></span>
+    </div>
+    <div id="scanResult" style="display:none;margin-top:12px"></div>
   </div>
 
   <!-- ไฟจราจร -->

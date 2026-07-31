@@ -144,8 +144,9 @@
     if (!isFinite(stop) || stop <= 0) stop = price * 0.95;
 
     return {
-      light: light, verdict: verdict, why: why, pros: pros, cons: cons,
+      light: light, verdict: verdict, why: why, pros: pros, cons: cons, score: score,
       price: price, suggestStop: stop, resistance: sr.resistance,
+      uptrend: uptrend, rsi: r,
       det: { ema20: ema20, ema50: ema50, rsi: r, macdHist: mac ? mac.hist : NaN,
              bbUpper: bb ? bb.upper : NaN, bbLower: bb ? bb.lower : NaN, atr: at,
              support: sr.support, resistance: sr.resistance, posRange: posRange }
@@ -236,18 +237,21 @@
     if (closes.length < 5) throw new Error('short');
     return toSeries(times, opens, highs, lows, closes, vols);
   }
-  function fetchOne(url) {
+  function fetchOne(url, timeoutMs) {
     var ctrl = ('AbortController' in window) ? new AbortController() : null;
-    var to = ctrl ? setTimeout(function () { ctrl.abort(); }, 8000) : null;
+    var to = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs || 8000) : null;
     return fetch(url, ctrl ? { signal: ctrl.signal } : undefined)
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.text(); })
       .then(function (t) { if (to) clearTimeout(to); return parseYahoo(JSON.parse(t)); });
   }
   function fetchPrice(sym) {
     var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '.BK?range=1y&interval=1d';
+    var enc = encodeURIComponent(base);
     var tries = [
-      { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(base) },
-      { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + encodeURIComponent(base) },
+      { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + enc },
+      { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + enc },
+      { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
+      { name: 'thingproxy', url: 'https://thingproxy.freeboard.io/fetch/' + base },
       { name: 'ตรง', url: base }
     ];
     var i = 0, best = null;
@@ -264,6 +268,41 @@
       }, function () { return next(); });
     }
     return next();
+  }
+
+  /* ── cache ราคาต่อหุ้น (localStorage) — กันดึงพลาดแล้วหน้าว่าง/ error ── */
+  function cacheKey(sym) { return 'tanot:invest:cache:' + sym; }
+  function saveCache(sym, s) {
+    try {
+      var o = { ts: Date.now(), t: s.times, o: s.ohlc.map(function (b) { return b.open; }), h: s.highs, l: s.lows, c: s.closes, v: s.vol.map(function (b) { return b.value; }) };
+      localStorage.setItem(cacheKey(sym), JSON.stringify(o));
+    } catch (e) {}
+  }
+  function loadCache(sym) {
+    try {
+      var o = JSON.parse(localStorage.getItem(cacheKey(sym)));
+      if (!o || !o.c || o.c.length < 5) return null;
+      var s = toSeries(o.t, o.o, o.h, o.l, o.c, o.v); s.cachedAt = o.ts; return s;
+    } catch (e) { return null; }
+  }
+  /* ดึงสด → cache; ถ้าพลาดแต่มี cache → คืน cache (stale) เพื่อไม่ให้ error */
+  function getSeries(sym) {
+    return fetchPrice(sym).then(function (s) {
+      saveCache(sym, s); return { series: s, stale: false };
+    }, function (e) {
+      var c = loadCache(sym);
+      if (c) return { series: c, stale: true, cachedAt: c.cachedAt };
+      throw e;
+    });
+  }
+  function cacheAgeText(ts) {
+    if (!ts) return '';
+    var mins = Math.round((Date.now() - ts) / 60000);
+    if (mins < 1) return 'เมื่อสักครู่';
+    if (mins < 60) return mins + ' นาทีก่อน';
+    var hrs = Math.round(mins / 60);
+    if (hrs < 24) return hrs + ' ชม.ก่อน';
+    return Math.round(hrs / 24) + ' วันก่อน';
   }
 
   /* ══════ กราฟ lightweight-charts ══════ */
@@ -399,7 +438,7 @@
     if (src) lastSource = src; else src = lastSource;
     if (src.kind === 'demo') { el.className = 'src-badge demo'; el.textContent = '🟡 ข้อมูลตัวอย่าง — ไม่ใช่ราคาจริง (ไว้ฝึกอ่านกราฟ)'; }
     else if (src.kind === 'paste') { el.className = 'src-badge paste'; el.textContent = '✍️ ราคาที่วางเอง · ' + days + ' วัน'; }
-    else { el.className = 'src-badge real'; el.textContent = '🟢 ' + (src.label || 'ราคาจริง') + ' · ราคาจริง · ' + days + ' วัน'; }
+    else { el.className = 'src-badge real'; el.textContent = '🟢 ' + (src.label || 'ราคาจริง') + ' · ' + (src.stale ? ('ราคาล่าสุด ' + cacheAgeText(src.cachedAt)) : 'ราคาจริง') + ' · ' + days + ' วัน'; }
   }
   function useSeries(s, msg, cls, src) {
     lastSeries = s;
@@ -455,14 +494,19 @@
     var sym = ($('sym').value || '').trim().toUpperCase().replace(/\.BK$/, '');
     if (!sym) { setStatus('พิมพ์ชื่อย่อหุ้นก่อน เช่น PTT', 'err'); return; }
     setStatus('กำลังดึงราคา ' + sym + '…'); $('fetchBtn').disabled = true;
-    fetchPrice(sym).then(function (s) {
+    getSeries(sym).then(function (r) {
       $('fetchBtn').disabled = false;
-      var msg = 'ดึงราคา ' + sym + ' สำเร็จ (' + s.closes.length + ' วัน · ผ่าน ' + s.source + ')';
-      if (s.closes.length < 30) msg += ' — ได้ประวัติน้อย กราฟอาจดูแนวโน้มไม่ชัด';
-      useSeries(s, msg, 'ok', { kind: 'real', label: sym });
+      var s = r.series;
+      if (r.stale) {
+        useSeries(s, 'ดึงสดไม่ได้ตอนนี้ — ใช้ราคาที่บันทึกไว้ (' + cacheAgeText(r.cachedAt) + ') · ' + s.closes.length + ' วัน', 'ok', { kind: 'real', label: sym, stale: true, cachedAt: r.cachedAt });
+      } else {
+        var msg = 'ดึงราคา ' + sym + ' สำเร็จ (' + s.closes.length + ' วัน · ผ่าน ' + s.source + ')';
+        if (s.closes.length < 30) msg += ' — ได้ประวัติน้อย กราฟอาจดูแนวโน้มไม่ชัด';
+        useSeries(s, msg, 'ok', { kind: 'real', label: sym });
+      }
     }).catch(function () {
       $('fetchBtn').disabled = false;
-      setStatus('ดึงอัตโนมัติไม่ได้ (มักติดข้อจำกัดเครือข่าย/CORS) — กด "ดูกราฟตัวอย่าง (ฝึกอ่าน)" หรือกรอกราคาเองจาก Streaming', 'err');
+      setStatus('ดึงราคาสดไม่ได้ตอนนี้ (บริการฟรีจำกัดเป็นบางเวลา ไม่ใช่ที่เครื่องคุณ) — ลองกดอีกครั้ง หรือกด "ดูกราฟตัวอย่าง (ฝึกอ่าน)" / กรอกราคาเองจาก Streaming');
       $('price').focus();
     });
   }
@@ -514,11 +558,13 @@
     pf.forEach(function (h, i) {
       html += '<tr data-i="' + i + '"><td>' + h.sym + '</td><td>' + fmt0(h.shares) + '</td><td>' + fmt(h.cost) + '</td>' +
         '<td><input type="number" class="pf-price" inputmode="decimal" step="0.01" placeholder="ราคา" value="' + (h.cur != null ? h.cur : '') + '"></td>' +
-        '<td class="pf-pl">—</td><td><button class="pf-del" title="ลบ">✕</button></td></tr>';
+        '<td class="pf-pl">—</td><td style="white-space:nowrap"><button class="pf-sell" title="เช็กควรขาย?">ควรขาย?</button> <button class="pf-del" title="ลบ">✕</button></td></tr>' +
+        '<tr class="pf-sellrow" data-sr="' + i + '"><td colspan="6"></td></tr>';
     });
     html += '</tbody></table>'; box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('tr[data-i]'), function (tr) {
       var i = +tr.getAttribute('data-i'), h = pf[i], inp = tr.querySelector('.pf-price'), cell = tr.querySelector('.pf-pl');
+      var sellCell = box.querySelector('tr[data-sr="' + i + '"] td');
       function upd() {
         var cur = num(inp.value);
         if (!isFinite(cur)) { cell.textContent = '—'; cell.className = 'pf-pl'; return; }
@@ -528,6 +574,19 @@
       }
       inp.addEventListener('input', function () { upd(); h.cur = num(inp.value); savePf(pf); });
       tr.querySelector('.pf-del').addEventListener('click', function () { pf.splice(i, 1); savePf(pf); renderPf(); });
+      tr.querySelector('.pf-sell').addEventListener('click', function () {
+        sellCell.innerHTML = '<div class="sell-verdict warn">กำลังดึงราคา ' + h.sym + '…</div>';
+        getSeries(h.sym).then(function (r) {
+          var s = r.series, a = analyzeSeries(s), v = sellVerdict(a), price = s.closes[s.closes.length - 1];
+          inp.value = price.toFixed(2); h.cur = price; savePf(pf); upd();
+          var pl = (price - h.cost) * h.shares, pct = (price / h.cost - 1) * 100;
+          sellCell.innerHTML = '<div class="sell-verdict ' + v.cls + '">' + v.txt +
+            '<br><span style="font-weight:500">ราคาล่าสุด ' + fmt(price) + (r.stale ? ' (บันทึกไว้ ' + cacheAgeText(r.cachedAt) + ')' : '') +
+            ' · ต้นทุน ' + fmt(h.cost) + ' · ' + (pl >= 0 ? 'กำไร ' : 'ขาดทุน ') + '฿' + fmt0(Math.abs(pl)) + ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)</span></div>';
+        }, function () {
+          sellCell.innerHTML = '<div class="sell-verdict warn">ดึงราคา ' + h.sym + ' ไม่ได้ตอนนี้ — ลองใหม่อีกครั้ง หรือกรอกราคาปัจจุบันเองในช่อง</div>';
+        });
+      });
       upd();
     });
   }
@@ -630,6 +689,97 @@
     [].forEach.call(box.querySelectorAll('.j-del'), function (b) { b.addEventListener('click', function () { var jn = loadJn(); jn.splice(+b.getAttribute('data-i'), 1); saveJn(jn); renderJournal(); }); });
   }
 
+  /* ══════ SET50 browser + สแกนเนอร์ ══════ */
+  var SET50 = ['ADVANC', 'AOT', 'AWC', 'BANPU', 'BBL', 'BDMS', 'BEM', 'BGRIM', 'BH', 'BTS',
+    'CBG', 'CENTEL', 'COM7', 'CPALL', 'CPF', 'CPN', 'CRC', 'DELTA', 'EA', 'EGCO',
+    'GLOBAL', 'GPSC', 'GULF', 'HMPRO', 'INTUCH', 'IVL', 'KBANK', 'KCE', 'KKP', 'KTB',
+    'KTC', 'LH', 'MINT', 'MTC', 'OR', 'OSP', 'PTT', 'PTTEP', 'PTTGC', 'RATCH',
+    'SAWAD', 'SCB', 'SCC', 'SCGP', 'TISCO', 'TLI', 'TOP', 'TRUE', 'TTB', 'TU'];
+
+  function fetchPriceScan(sym) {
+    var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '.BK?range=1y&interval=1d';
+    var enc = encodeURIComponent(base);
+    var tries = [
+      { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + enc },
+      { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc }
+    ];
+    var i = 0, best = null;
+    function next() {
+      if (i >= tries.length) return best ? Promise.resolve(best) : Promise.reject(new Error('fail'));
+      var t = tries[i++];
+      return fetchOne(t.url, 5000).then(function (s) {
+        s.source = t.name; if (!best || s.closes.length > best.closes.length) best = s;
+        if (best.closes.length >= 40) return best; return next();
+      }, function () { return next(); });
+    }
+    return next();
+  }
+
+  function selectSet50(sym) {
+    $('sym').value = sym; doFetch();
+    var lc = $('lightCard'); if (lc && lc.scrollIntoView) setTimeout(function () { lc.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 250);
+  }
+  function renderSet50Strip() {
+    var strip = $('set50Strip'); if (!strip) return;
+    strip.innerHTML = '';
+    SET50.forEach(function (sym) {
+      var c = loadCache(sym), price = c ? fmt(c.closes[c.closes.length - 1]) : '';
+      var btn = document.createElement('button');
+      btn.className = 's50-chip'; btn.type = 'button'; btn.setAttribute('data-sym', sym);
+      btn.innerHTML = '<span class="sym">' + sym + '</span>' + (price ? '<span class="px">' + price + '</span>' : '');
+      btn.addEventListener('click', function () { selectSet50(sym); });
+      strip.appendChild(btn);
+    });
+  }
+
+  var scanning = false;
+  function doScan() {
+    if (scanning) { scanning = false; return; }
+    var idx = 0, results = [];
+    scanning = true; $('scanBtn').textContent = '⏹ หยุดสแกน'; $('scanResult').style.display = 'block';
+    function greenCount() { return results.filter(function (r) { return r.light === 'green'; }).length; }
+    function fin() { scanning = false; $('scanBtn').textContent = '🔎 หาหุ้นน่าสนใจใน SET50'; $('scanStatus').textContent = ''; renderScan(results, true); }
+    function step() {
+      if (!scanning || idx >= SET50.length) { fin(); return; }
+      var sym = SET50[idx++];
+      $('scanStatus').textContent = 'กำลังสแกน ' + idx + '/' + SET50.length + ' (' + sym + ') · เจอน่าสนใจ ' + greenCount() + ' ตัว';
+      var cached = loadCache(sym), fresh = cached && (Date.now() - cached.cachedAt < 6 * 3600 * 1000);
+      var pr = fresh ? Promise.resolve(cached) : fetchPriceScan(sym).then(function (s) { saveCache(sym, s); return s; }, function () { return cached || null; });
+      pr.then(function (s) {
+        if (s && s.closes.length >= 20) {
+          var a = analyzeSeries(s);
+          results.push({ sym: sym, score: a.score, light: a.light, price: s.closes[s.closes.length - 1], why: a.why });
+          renderScan(results, false);
+        }
+        setTimeout(step, 100);
+      });
+    }
+    step();
+  }
+  function renderScan(results, done) {
+    var sorted = results.slice().sort(function (a, b) { return b.score - a.score; });
+    var green = sorted.filter(function (r) { return r.light === 'green'; });
+    var html = '';
+    if (done) html += '<div class="mini" style="margin-bottom:8px">สแกนสำเร็จ ' + results.length + '/' + SET50.length + ' ตัว · เจอน่าสนใจ ' + green.length + ' ตัว — เรียงตามคะแนนเทคนิค <b>ไม่ใช่คำแนะนำซื้อ</b></div>';
+    html += '<div class="scan-list">';
+    sorted.slice(0, 15).forEach(function (r) {
+      var b = r.light === 'green' ? '🟢' : r.light === 'red' ? '🔴' : '🟡';
+      html += '<button class="scan-item ' + r.light + '" type="button" data-sym="' + r.sym + '"><span class="s">' + b + ' ' + r.sym + '</span><span class="p">' + fmt(r.price) + '</span><span class="w">' + r.why + '</span></button>';
+    });
+    html += '</div>';
+    $('scanResult').innerHTML = html;
+    [].forEach.call($('scanResult').querySelectorAll('.scan-item'), function (btn) { btn.addEventListener('click', function () { selectSet50(btn.getAttribute('data-sym')); }); });
+  }
+
+  /* ── "ควรขายไหม" สำหรับหุ้นที่ถือ ─────────────────────────────── */
+  function sellVerdict(a) {
+    var det = a.det || {};
+    if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) return { cls: 'no', txt: '🔴 พิจารณาขาย / ตัดขาดทุน — ราคาหลุดแนวโน้ม (ต่ำกว่าเส้นเฉลี่ย)' };
+    if (isFinite(a.rsi) && a.rsi > 70) return { cls: 'warn', txt: '🟡 พิจารณาล็อกกำไรบางส่วน — RSI สูง ราคาร้อนแรง อาจย่อ' };
+    if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) return { cls: 'warn', txt: '🟡 ใกล้แนวต้าน — พิจารณาล็อกกำไรบางส่วน' };
+    return { cls: 'go', txt: '🟢 ยังอยู่ในแนวโน้มขึ้น — ถือต่อได้ (เลื่อนจุดตัดขาดทุนตามขึ้นไป)' };
+  }
+
   /* ── init ───────────────────────────────────────────────────── */
   function init() {
     $('fetchBtn').addEventListener('click', doFetch);
@@ -653,6 +803,8 @@
     $('checkBtn').addEventListener('click', doChecklist);
     $('eBtn').addEventListener('click', doExpectancy);
     $('jAdd').addEventListener('click', addJournal);
+    $('scanBtn').addEventListener('click', doScan);
+    renderSet50Strip();
     renderPf();
     renderJournal();
   }
