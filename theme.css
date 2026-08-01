@@ -20,30 +20,56 @@
   --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
 }
 
-/* ── แถบนำทางกลาง (ฉีดโดย shell.js) ─────────────────────────────── */
+/* ── แถบนำทางกลาง (ฉีดโดย shell.js) — ปุ่มแฮมเบอร์เกอร์ + ลิ้นชักเมนู ──── */
 .ome-nav{position:sticky;top:0;z-index:100;height:var(--ome-nav-h);
   background:var(--ome-card);border-bottom:1px solid var(--ome-line);
-  display:flex;align-items:center;gap:4px;padding:0 14px;
+  display:flex;align-items:center;gap:4px;padding:0 10px;
   font-family:var(--ome-f);font-size:13.5px;box-shadow:0 1px 3px rgba(24,31,54,.04)}
 .ome-nav a,.ome-nav button{font-family:var(--ome-f)}
+.ome-hamburger{width:36px;height:36px;border-radius:10px;border:none;background:transparent;
+  color:var(--ome-ink);cursor:pointer;display:grid;place-items:center;flex-shrink:0}
+.ome-hamburger:hover{background:var(--ome-bg)}
 .ome-nav-logo{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--ome-ink);
-  text-decoration:none;margin-right:10px;font-size:14.5px;flex-shrink:0}
+  text-decoration:none;margin-left:6px;font-size:14.5px;flex:1;min-width:0}
 .ome-nav-logo .dot{width:22px;height:22px;border-radius:7px;background:var(--ome-brand);
-  color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700}
-.ome-nav-links{display:flex;align-items:center;gap:2px;overflow-x:auto;flex:1;
-  scrollbar-width:none}
-.ome-nav-links::-webkit-scrollbar{display:none}
-.ome-nav-links a{color:var(--ome-muted);text-decoration:none;font-weight:500;
-  padding:6px 10px;border-radius:9px;white-space:nowrap;transition:.15s}
-.ome-nav-links a:hover{color:var(--ome-ink);background:var(--ome-bg)}
-.ome-nav-links a.active{color:var(--ome-brand-dk);background:var(--ome-brand-sf);font-weight:600}
+  color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0}
 .ome-nav-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .ome-theme-btn{width:32px;height:32px;border-radius:9px;border:1px solid var(--ome-line);
   background:var(--ome-card);color:var(--ome-muted);cursor:pointer;display:grid;
   place-items:center;font-size:15px;transition:.15s}
 .ome-theme-btn:hover{color:var(--ome-ink);border-color:var(--ome-muted)}
+
+/* ── ลิ้นชักเมนู (backdrop + panel เลื่อนจากซ้าย) ──────────────────── */
+.ome-drawer-backdrop{position:fixed;inset:0;background:rgba(15,20,30,.45);z-index:199;
+  opacity:0;pointer-events:none;transition:.2s}
+.ome-drawer-backdrop.open{opacity:1;pointer-events:auto}
+.ome-drawer{position:fixed;top:0;left:0;bottom:0;width:290px;max-width:86vw;background:var(--ome-card);
+  z-index:200;box-shadow:8px 0 30px rgba(0,0,0,.18);transform:translateX(-100%);transition:transform .22s ease;
+  display:flex;flex-direction:column;font-family:var(--ome-f)}
+.ome-drawer.open{transform:translateX(0)}
+.ome-drawer-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;
+  border-bottom:1px solid var(--ome-line);flex-shrink:0}
+.ome-drawer-head .brand{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--ome-ink);text-decoration:none}
+.ome-drawer-head .brand .dot{width:22px;height:22px;border-radius:7px;background:var(--ome-brand);
+  color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700}
+.ome-drawer-close{width:30px;height:30px;border-radius:9px;border:none;background:transparent;
+  color:var(--ome-muted);cursor:pointer;font-size:18px;display:grid;place-items:center}
+.ome-drawer-close:hover{background:var(--ome-bg);color:var(--ome-ink)}
+.ome-menu{overflow-y:auto;flex:1;padding:8px}
+.ome-menu-row{display:flex;align-items:stretch}
+.ome-menu-row a.ome-menu-link{flex:1;display:flex;align-items:center;gap:9px;padding:10px 10px;
+  border-radius:10px;color:var(--ome-ink);text-decoration:none;font-size:14px;font-weight:500}
+.ome-menu-row a.ome-menu-link:hover{background:var(--ome-bg)}
+.ome-menu-row a.ome-menu-link.active{background:var(--ome-brand-sf);color:var(--ome-brand-dk);font-weight:700}
+.ome-menu-row .ome-menu-cat{flex:1;display:flex;align-items:center;gap:9px;padding:10px 10px;
+  font-size:13px;font-weight:700;color:var(--ome-muted);text-transform:uppercase;letter-spacing:.02em}
+.ome-menu-toggle{width:34px;flex-shrink:0;border:none;background:transparent;color:var(--ome-muted);
+  cursor:pointer;font-size:12px;display:grid;place-items:center;transition:transform .15s}
+.ome-menu-toggle.open{transform:rotate(90deg)}
+.ome-menu-children{overflow:hidden;max-height:0;transition:max-height .2s ease;padding-left:14px}
+.ome-menu-children.open{max-height:900px}
+.ome-menu-ic{width:18px;text-align:center;flex-shrink:0;font-size:14px}
 @media(max-width:640px){
-  .ome-nav{padding:0 10px}
   .ome-nav-logo span.txt{display:none}
 }
 

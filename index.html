@@ -31,36 +31,6 @@ body{font-family:var(--ome-f);background:var(--bg,#F6F7FB);color:var(--ink,#1F24
 h1{font-size:clamp(23px,4.4vw,32px);font-weight:700;line-height:1.3;position:relative}
 .sub{margin-top:8px;color:#5A6479;font-size:14px;position:relative}
 
-.sec-title{margin:28px 0 12px;font-size:14px;font-weight:600;color:var(--muted);
-  display:flex;align-items:center;gap:8px}
-.sec-title::after{content:'';flex:1;height:1px;background:var(--line)}
-
-/* ── การ์ดสถิติวันนี้ ── */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
-.stat{display:block;background:var(--card);border-radius:var(--r);box-shadow:var(--sh);
-  padding:18px 20px;text-decoration:none;color:var(--ink);transition:.18s;
-  border:1.5px solid transparent}
-a.stat:hover{border-color:var(--brand);transform:translateY(-2px)}
-.stat-label{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px;margin-bottom:6px}
-.stat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.stat-value{font-size:24px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
-.stat-value small{font-size:13px;font-weight:500;color:var(--muted)}
-.stat-hint{font-size:12px;color:var(--brand-dk);font-weight:500;margin-top:4px}
-
-/* ── ทางลัด ── */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-.tile{display:flex;gap:14px;align-items:flex-start;background:var(--card);border-radius:var(--r);
-  box-shadow:var(--sh);padding:18px 20px;text-decoration:none;color:var(--ink);
-  transition:.18s;border:1.5px solid transparent}
-.tile:hover{border-color:var(--brand);transform:translateY(-2px)}
-.tile-ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
-  flex-shrink:0;color:#fff}
-.tile-name{font-weight:600;font-size:15px;line-height:1.4}
-.tile-desc{font-size:12.5px;color:var(--muted);margin-top:2px}
-
-.note{border-radius:12px;background:#F0F4FF;border:1px solid #DFE7FA;
-  padding:14px 18px;font-size:13px;color:#3C4A6B;margin-top:28px}
-[data-theme="dark"] .note{background:#1A2233;border-color:#2B3A57;color:#A9BEE4}
 footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 @media(max-width:600px){body{padding:0 14px 60px}.hero{padding:24px 20px}}
 </style>
@@ -72,146 +42,20 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 <div class="hero">
   <div class="eyebrow" id="dateLine">Tanot</div>
   <h1 id="greet">สวัสดี 👋</h1>
-  <p class="sub">วันนี้อยากทำอะไรดี — เลือกจากงานที่ค้าง หรือทางลัดด้านล่างได้เลย</p>
-</div>
-
-<div class="sec-title">วันนี้ของคุณ</div>
-<div class="stats">
-  <a class="stat" href="law-business-engineering.html">
-    <div class="stat-label"><span class="stat-dot" style="background:var(--amber)"></span>ทบทวนวันนี้</div>
-    <div class="stat-value" id="stDue">—</div>
-    <div class="stat-hint" id="stDueHint"></div>
-  </a>
-  <a class="stat" href="law-business-engineering.html">
-    <div class="stat-label"><span class="stat-dot" style="background:var(--brand)"></span>XP สะสมรวม</div>
-    <div class="stat-value" id="stXp">—</div>
-    <div class="stat-hint">ห้องเรียน + ฝึกภาษา</div>
-  </a>
-  <a class="stat" href="law-business-engineering.html">
-    <div class="stat-label"><span class="stat-dot" style="background:var(--violet)"></span>สอบรวมล่าสุด</div>
-    <div class="stat-value" id="stExam">—</div>
-    <div class="stat-hint" id="stExamHint"></div>
-  </a>
-  <a class="stat" href="languages.html">
-    <div class="stat-label"><span class="stat-dot" style="background:var(--rose)"></span>คำศัพท์ที่เคยผิด</div>
-    <div class="stat-value" id="stWrong">—</div>
-    <div class="stat-hint" id="stWrongHint"></div>
-  </a>
-</div>
-
-<div class="sec-title">ทางลัด</div>
-<div class="grid">
-  <a class="tile" href="documents.html">
-    <span class="tile-ico" style="background:linear-gradient(135deg,var(--brand),#3FCBB7)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/></svg>
-    </span>
-    <span><span class="tile-name">งานเอกสาร</span><br><span class="tile-desc">รวมเครื่องมือ: ประเมินราคา PM/CM, แยกหน้า PDF</span></span>
-  </a>
-  <a class="tile" href="word.html">
-    <span class="tile-ico" style="background:linear-gradient(135deg,#3B9BEA,#2563EB)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-    </span>
-    <span><span class="tile-name">เอกสาร</span><br><span class="tile-desc">พิมพ์/แก้ไขเอกสาร แบ่งหน้า หัว-ท้าย · รองรับไฟล์ Word (.docx)</span></span>
-  </a>
-  <a class="tile" href="excel.html">
-    <span class="tile-ico" style="background:linear-gradient(135deg,#2fbf71,#178a4e)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-    </span>
-    <span><span class="tile-name">ตารางคำนวณ</span><br><span class="tile-desc">สเปรดชีต สูตร/กราฟ หลายชีต · รองรับไฟล์ Excel (.xlsx)</span></span>
-  </a>
-  <a class="tile" href="invest.html">
-    <span class="tile-ico" style="background:linear-gradient(135deg,var(--ok),#4ED08A)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-4 4"/></svg>
-    </span>
-    <span><span class="tile-name">การลงทุน</span><br><span class="tile-desc">หุ้นไทย · กองทุน S&amp;P500 · ทองคำ · คริปโต ฯลฯ — ตัวช่วยเข้า/ออก + คุมความเสี่ยง</span></span>
-  </a>
-  <a class="tile" href="run.html?tool=est-cost">
-    <span class="tile-ico" style="background:linear-gradient(135deg,var(--sky),#6BB7F5)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M8 8h8M8 16h4"/></svg>
-    </span>
-    <span><span class="tile-name">ประเมินราคางาน PM/CM</span><br><span class="tile-desc">จากรายการอุปกรณ์ → ไฟล์ประมาณราคาพร้อมยื่น</span></span>
-  </a>
-  <a class="tile" href="legal.html">
-    <span class="tile-ico" style="background:linear-gradient(135deg,#334155,#64748B)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 11V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M6 7h8M6 11h5"/><path d="m15 15 6 6M17 13l4 4-2 2-4-4z"/></svg>
-    </span>
-    <span><span class="tile-name">งานกฎหมาย</span><br><span class="tile-desc">ร่างคำฟ้อง/คำให้การ/แจ้งความ + คลังแบบร่างของฉัน</span></span>
-  </a>
-  <a class="tile" href="law-business-engineering.html">
-    <span class="tile-ico" style="background:linear-gradient(135deg,var(--violet),#8F88E8)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
-    </span>
-    <span><span class="tile-name">ห้องเรียน</span><br><span class="tile-desc">กฎหมาย · ธุรกิจ · วิศวกรรม + ทบทวน/สอบ/โน้ต</span></span>
-  </a>
-  <a class="tile" href="languages.html">
-    <span class="tile-ico" style="background:linear-gradient(135deg,var(--rose),#F58BAC)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6M4 14l6-6 2-3M2 5h12M7 2h1"/><path d="m22 22-5-10-5 10M14 18h6"/></svg>
-    </span>
-    <span><span class="tile-name">ฝึกภาษา</span><br><span class="tile-desc">14 ภาษา · แปล/ฟังแล้วพิมพ์/การ์ดคำ</span></span>
-  </a>
-  <a class="tile" href="run.html?tool=pdf-split">
-    <span class="tile-ico" style="background:linear-gradient(135deg,var(--amber),#F7BC5A)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 3v6h6"/><path d="M9 12v6M12 15H6"/></svg>
-    </span>
-    <span><span class="tile-name">แยกหน้า PDF</span><br><span class="tile-desc">แยกรายหน้า + ดึงข้อความทั้งเล่ม</span></span>
-  </a>
-  <a class="tile" href="app.html">
-    <span class="tile-ico" style="background:linear-gradient(135deg,#5A6479,#8B94A8)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-    </span>
-    <span><span class="tile-name">เมนูทั้งหมด</span><br><span class="tile-desc">แอปเดิม: งานกฎหมาย · การเงิน · ชีวิตประจำวัน ฯลฯ</span></span>
-  </a>
-</div>
-
-<div class="note">
-  💡 เว็บนี้ติดตั้งเป็นแอปบนมือถือได้ (เมนูเบราว์เซอร์ → "เพิ่มไปยังหน้าจอหลัก")
-  และเปิดเนื้อหาเรียนแบบออฟไลน์ได้หลังเข้าครั้งแรก — ความคืบหน้าซิงก์ข้ามเครื่องผ่านปุ่ม "ซิงก์ Google Drive" ในแต่ละหน้า
+  <p class="sub">วันนี้อยากทำอะไรดี — เลือกจากเมนู ☰ ด้านบนซ้ายได้เลย</p>
 </div>
 
 <footer>Tanot — งานและการเรียนรู้ · <a href="credits.html" style="color:#2563EB;text-decoration:none;font-weight:600">เครดิต &amp; ลิขสิทธิ์</a></footer>
 </div>
 
 <script>
-// เติมข้อมูล "วันนี้ของคุณ" จาก localStorage ของหน้าเรียน (แชร์ origin เดียวกัน)
 (function () {
   'use strict';
-  function read(key, dv) {
-    try { return JSON.parse(localStorage.getItem(key)) ?? dv; } catch (e) { return dv; }
-  }
-  var $ = function (id) { return document.getElementById(id); };
-
-  // ทักทายตามช่วงเวลา + วันที่ไทย
   var h = new Date().getHours();
   var greet = h < 12 ? 'สวัสดีตอนเช้า ☀️' : h < 17 ? 'สวัสดีตอนบ่าย 👋' : 'สวัสดีตอนเย็น 🌙';
-  $('greet').textContent = greet;
-  $('dateLine').textContent = new Date().toLocaleDateString('th-TH',
+  document.getElementById('greet').textContent = greet;
+  document.getElementById('dateLine').textContent = new Date().toLocaleDateString('th-TH',
     { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-
-  // ทบทวนวันนี้ (จากตาราง spaced repetition ของห้องเรียน)
-  var srs = read('lbe:srs', {});
-  var now = Date.now();
-  var due = Object.keys(srs).filter(function (k) { return srs[k] && srs[k].due <= now; }).length;
-  $('stDue').innerHTML = due + ' <small>ข้อ</small>';
-  $('stDueHint').textContent = due > 0 ? 'ครบกำหนดแล้ว — แตะเพื่อเริ่มทบทวน' : 'ยังไม่มีข้อครบกำหนด';
-
-  // XP รวม
-  var xp = (read('lbe:xp', 0) || 0) + (read('lang-practice:xp', 0) || 0);
-  $('stXp').innerHTML = xp.toLocaleString('th-TH') + ' <small>XP</small>';
-
-  // สอบรวมล่าสุด
-  var exams = read('lbe:exams', []);
-  if (exams.length) {
-    $('stExam').innerHTML = exams[0].score + '<small>/' + exams[0].total + '</small>';
-    $('stExamHint').textContent = new Date(exams[0].date).toLocaleDateString('th-TH');
-  } else {
-    $('stExam').textContent = '—';
-    $('stExamHint').textContent = 'ยังไม่เคยสอบ — ลองเลย';
-  }
-
-  // คำที่เคยผิด (ภาษา)
-  var wrong = Object.keys(read('lang-practice:wrong', {})).length;
-  $('stWrong').innerHTML = wrong + ' <small>คำ</small>';
-  $('stWrongHint').textContent = wrong > 0 ? 'แตะเพื่อกลับไปฝึกซ้ำ' : 'เยี่ยม ไม่มีคำค้าง';
 })();
 </script>
 </body>

@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v61';
+const CACHE = 'ome-v62';
 const PRECACHE = [
   './',
   './index.html',
@@ -14,6 +14,9 @@ const PRECACHE = [
   './documents.html',
   './run.html',
   './law-business-engineering.html',
+  './classroom-law.html',
+  './classroom-business.html',
+  './classroom-engineering.html',
   './languages.html',
   './legal.html',
   './budget.html',
@@ -25,7 +28,6 @@ const PRECACHE = [
   './excel.html',
   './excel.js',
   './invest.html',
-  './invest-nav.js',
   './invest-thai-stock.html',
   './invest-thai-stock.js',
   './invest-global-stock.html',
