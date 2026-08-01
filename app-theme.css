@@ -22,6 +22,11 @@
   --social-bg:#1B203099;
 }
 
+/* ── ซ่อนหมวด "งานที่รับผิดชอบ" ในแอปเก่า — ย้ายไปทำใหม่ครบแล้วในเมนู hamburger
+   ของเว็บใหม่ (documents.html + word.html + excel.html + run.html) ไม่แตะ bundle/React
+   state เลย ปลอดภัยไม่พังส่วนอื่น (ปุ่มถูกซ่อนด้วย CSS เท่านั้น กด flyout ไม่ได้อีกต่อไป) ── */
+button.rail-item[title="งานที่รับผิดชอบ"]{display:none!important}
+
 /* ── rail nav: ตัดเงาเข้ม/outline หนาแบบเดิม ให้บางเบาแบบมิ้นต์ ── */
 .rail-icon{box-shadow:none}
 .rail-item.active .rail-icon{outline:2px solid var(--accent);outline-offset:2px}
