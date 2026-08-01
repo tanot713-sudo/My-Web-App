@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v55';
+const CACHE = 'ome-v56';
 const PRECACHE = [
   './',
   './index.html',
@@ -32,6 +32,8 @@ const PRECACHE = [
   './invest-global-stock.js',
   './invest-global-fund.html',
   './invest-global-fund.js',
+  './invest-thai-fund.html',
+  './invest-thai-fund.js',
   './invest-gold.html',
   './invest-gold.js',
   './invest-business.html',
