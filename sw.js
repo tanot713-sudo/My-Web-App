@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v58';
+const CACHE = 'ome-v59';
 const PRECACHE = [
   './',
   './index.html',
@@ -42,6 +42,8 @@ const PRECACHE = [
   './invest-bitcoin.js',
   './invest-gov-bond.html',
   './invest-gov-bond.js',
+  './invest-gsb-lottery.html',
+  './invest-gsb-lottery.js',
   './vendor/lightweight-charts.standalone.js',
   './credits.html',
   './theme.css',
