@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>จำลองสิ่งของ 3D — จัดผัง/วางอุปกรณ์ | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
+  --brand:#12A594;--brand-dk:#0B7F72;--brand-sf:#E7F6F4;
+  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--sky:#3B9BEA;--err:#E5484D;--warn:#E08700;--violet:#6C63D9;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
+  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto}
+.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
+.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+.crumb .sep{margin:0 7px;color:#C9CEDC}
+.head{display:flex;align-items:center;gap:14px;margin:12px 0 6px}
+.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:26px;
+  background:linear-gradient(135deg,#12A594,#3FCBB6);color:#fff;display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(18,165,148,.3)}
+h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px}
+.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1.5px solid var(--line);
+  background:var(--card);border-radius:11px;padding:8px 13px;font-family:inherit;font-size:13px;font-weight:700;
+  color:var(--ink);cursor:pointer;transition:.15s;white-space:nowrap}
+.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
+.btn.sm{padding:7px 11px;font-size:12.5px}
+.btn.active{background:var(--brand);border-color:var(--brand);color:#fff}
+
+/* ── การ์ดวิวพอร์ต 3D ── */
+.s3-card{padding:14px}
+.s3-toolbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:10px}
+.s3-tb-group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.s3-check{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);font-weight:600;cursor:pointer;user-select:none}
+.s3-check input{cursor:pointer}
+.s3-viewport{position:relative;width:100%;height:520px;border-radius:12px;overflow:hidden;
+  background:#E7ECF4;border:1px solid var(--line);touch-action:none}
+.s3-viewport canvas{display:block;width:100%;height:100%}
+.s3-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:#6B7690;font-size:13.5px;font-weight:600;text-align:center;padding:20px;pointer-events:none}
+.s3-savebar{margin-top:9px;font-size:12px;color:var(--muted);text-align:center;transition:color .2s}
+.s3-savebar.flash{color:var(--brand-dk);font-weight:700}
+@media(max-width:600px){.s3-viewport{height:360px}}
+
+.s3-panels{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:760px){.s3-panels{grid-template-columns:1fr}}
+
+.s3-cat-group-h{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:12px 0 6px}
+.s3-cat-group-h:first-child{margin-top:0}
+.s3-catalog-row{display:flex;flex-wrap:wrap;gap:7px}
+.s3-cat-btn{display:flex;flex-direction:column;align-items:center;gap:3px;width:64px;padding:8px 4px;
+  border-radius:11px;border:1.5px solid var(--line);background:var(--bg);cursor:pointer;
+  font-family:inherit;color:var(--ink);transition:.15s}
+.s3-cat-btn:hover{border-color:var(--brand);color:var(--brand-dk)}
+.s3-cat-btn .ic{font-size:20px}
+.s3-cat-btn .lb{font-size:10.5px;font-weight:600;text-align:center;line-height:1.2}
+
+.s3-insp-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.s3-insp-row:last-child{border-bottom:none}
+.s3-insp-row .lbl{color:var(--muted);font-weight:700;flex-shrink:0}
+.s3-nudge{display:flex;gap:4px}
+.s3-nudge button{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);
+  cursor:pointer;font-size:14px;color:var(--ink);font-family:inherit}
+.s3-nudge button:hover{border-color:var(--brand);color:var(--brand-dk)}
+.s3-color-row{display:flex;gap:7px;flex-wrap:wrap;padding:9px 0 2px}
+.s3-swatch{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.s3-swatch.active{border-color:var(--ink);box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--ink)}
+.s3-insp-empty{font-size:13px;color:var(--muted);padding:4px 0}
+
+details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;list-style:none;
+  display:flex;align-items:center;gap:8px;user-select:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:'▸';color:var(--muted)}
+details[open]>summary::before{transform:rotate(90deg)}
+.details-body{padding:0 15px 15px;font-size:13px}
+.lesson h3{font-size:13.5px;font-weight:700;margin:12px 0 4px;color:var(--brand-dk)}
+.lesson h3:first-child{margin-top:0}
+.lesson p{font-size:13px;margin-bottom:4px;opacity:.92}
+
+.disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
+@media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:18px}}
+</style>
+</head>
+<body class="ome-tool-page">
+<script src="auth-gate.js"></script>
+<div class="wrap">
+
+<nav class="crumb"><a href="index.html">หน้าหลัก</a><span class="sep">/</span>จำลองสิ่งของ 3D</nav>
+<div class="head">
+  <div class="head-ic">🧱</div>
+  <div>
+    <h1>จำลองสิ่งของ 3D</h1>
+    <div class="head-sub">จัดผัง/วางเฟอร์นิเจอร์และอุปกรณ์ก่อสร้างแบบ 3 มิติ</div>
+  </div>
+</div>
+
+<div class="card s3-card">
+  <div class="s3-toolbar">
+    <div class="s3-tb-group">
+      <button class="btn sm" data-view="persp" type="button">🧊 มุม 3D</button>
+      <button class="btn sm" data-view="top" type="button">⬇️ บนลงล่าง</button>
+      <button class="btn sm" data-view="front" type="button">➡️ ด้านหน้า</button>
+      <button class="btn sm" data-view="side" type="button">↗️ ด้านข้าง</button>
+    </div>
+    <div class="s3-tb-group">
+      <label class="s3-check"><input type="checkbox" id="s3Snap" checked> Snap 0.5 ม.</label>
+      <button class="btn sm" id="s3Shot" type="button">📷 บันทึกภาพ</button>
+      <button class="btn sm" id="s3Clear" type="button">🗑 ล้างทั้งหมด</button>
+    </div>
+  </div>
+  <div id="s3Viewport" class="s3-viewport">
+    <div class="s3-loading" id="s3Loading">กำลังโหลด 3D…</div>
+  </div>
+  <div class="s3-savebar" id="s3SaveBar">✓ บันทึกอัตโนมัติในเครื่องนี้แล้ว</div>
+</div>
+
+<div class="s3-panels">
+  <div class="card">
+    <h2>🗂️ คลังของ — คลิกเพื่อวาง</h2>
+    <div id="s3Catalog"></div>
+  </div>
+
+  <div class="card" id="s3InspectorCard" style="display:none">
+    <h2>🎯 วัตถุที่เลือก</h2>
+    <div id="s3InspectorBody"></div>
+  </div>
+</div>
+
+<details>
+  <summary>📚 เรียนรู้ / วิธีใช้</summary>
+  <div class="details-body lesson">
+    <h3>วิธีใช้เบื้องต้น</h3>
+    <p>คลิกไอคอนในคลังของด้านล่างขวาเพื่อวางวัตถุลงในผัง 3D จากนั้นคลิกที่วัตถุในภาพเพื่อเลือก แล้วใช้ปุ่มลูกศรในกล่อง "วัตถุที่เลือก" เพื่อขยับ/หมุน หรือลากเมาส์บนภาพเพื่อหมุนกล้องดูรอบๆ (บนมือถือใช้นิ้วลากได้เหมือนกัน)</p>
+    <h3>Snap คืออะไร</h3>
+    <p>เมื่อเปิด Snap ไว้ ตำแหน่งวัตถุจะถูกปัดให้ลงกริดทีละ 0.5 เมตรเสมอ ช่วยให้จัดวางเป็นแนวตรง/ชิดผนังได้ง่ายขึ้น ปิดได้ถ้าต้องการขยับละเอียดกว่านั้น</p>
+    <h3>ทำไมใช้ทรงเรขาคณิตพื้นฐานแทนโมเดลจริง</h3>
+    <p>เครื่องมือนี้สร้างวัตถุจากทรงพื้นฐาน (กล่อง/ทรงกระบอก/กรวย) ในโค้ดล้วนๆ แทนการใช้โมเดล 3D สำเร็จรูปจากภายนอก เพื่อให้เว็บโหลดเร็ว ไม่ต้องพึ่งพาแหล่งข้อมูลอื่น และแก้ไขสี/ขนาดได้อิสระ — สัดส่วนเป็นค่าประมาณ ไม่ใช่ขนาดจริงตามมาตรฐานสินค้า</p>
+  </div>
+</details>
+
+<p class="disc">⚠️ เป็นเครื่องมือร่างผัง/สเก็ตช์คร่าวๆ ไม่ใช่ซอฟต์แวร์ออกแบบงานก่อสร้างมืออาชีพ ขนาด/สัดส่วนเป็นค่าประมาณ ไม่ควรใช้แทนแบบก่อสร้างจริงหรือแบบที่ต้องใช้ยื่นขออนุญาต · ข้อมูลผังที่จัดไว้เก็บในเครื่องคุณเท่านั้น (localStorage)</p>
+
+</div>
+
+<script src="vendor/gsap.min.js"></script>
+<script type="importmap">
+{"imports":{"three":"./vendor/three/three.module.min.js","three/addons/":"./vendor/three/"}}
+</script>
+<script type="module" src="sim-objects.js"></script>
+</body>
+</html>

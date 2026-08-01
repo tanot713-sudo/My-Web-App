@@ -81,7 +81,11 @@
         { key: 'tax',       label: 'การจ่ายภาษี', href: soonHref('การจ่ายภาษี') },
         { key: 'insurance', label: 'ประกัน', href: soonHref('ประกัน') },
         { key: 'health',    label: 'สุขภาพ', href: soonHref('สุขภาพ') },
-        { key: '3d-sim',    label: 'จำลอง 3D', href: soonHref('จำลอง 3D') },
+        { key: '3d-sim', label: 'จำลอง 3D', children: [
+            { key: '3d-objects', label: 'จำลองสิ่งของ', href: 'sim-objects.html' },
+            { key: '3d-people',  label: 'จำลองคน', href: soonHref('จำลองคน 3D') }
+          ]
+        },
         { key: 'games',     label: 'เกมที่เล่น', href: soonHref('เกมที่เล่น') },
         { key: 'cooking',   label: 'สอนทำอาหาร', href: soonHref('สอนทำอาหาร') },
         { key: 'books',     label: 'หนังสือ', href: soonHref('หนังสือ') }

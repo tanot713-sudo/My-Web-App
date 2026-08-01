@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v66';
+const CACHE = 'ome-v67';
 const PRECACHE = [
   './',
   './index.html',
@@ -49,7 +49,13 @@ const PRECACHE = [
   './invest-baac-lottery.js',
   './invest-lottery.html',
   './invest-lottery.js',
+  './sim-objects.html',
+  './sim-objects.js',
   './vendor/lightweight-charts.standalone.js',
+  './vendor/three/three.module.min.js',
+  './vendor/three/three.core.min.js',
+  './vendor/three/OrbitControls.js',
+  './vendor/gsap.min.js',
   './credits.html',
   './theme.css',
   './shell.js',
