@@ -187,6 +187,7 @@ select{font-family:inherit}
   <div class="card">
     <h2>🧾 คำนวณเงินลดหย่อนภาษี (RMF / SSF / Thai ESG)</h2>
     <div class="frow">
+      <div class="field"><label>ปีภาษีที่จะซื้อ <span class="unit">(กระทบเพดาน Thai ESG)</span></label><input type="number" id="txYear" inputmode="numeric"></div>
       <div class="field" style="flex:1 1 260px"><label>เงินได้สุทธิที่ต้องเสียภาษีต่อปี <span class="unit">(หลังหักลดหย่อนอื่นแล้ว)</span></label>
         <input type="number" id="txIncome" inputmode="numeric" placeholder="เช่น 800000"></div>
     </div>
@@ -210,6 +211,17 @@ select{font-family:inherit}
         <div class="sumbox"><div class="lbl">ประหยัดภาษีได้</div><div class="val grow" id="txSaved">—</div><div class="sub" id="txSavedSub"></div></div>
       </div>
       <div id="txDetail" style="font-size:13px;margin-top:12px;line-height:1.8"></div>
+      <details><summary>ดูแผนหลายปี (ลงทุนต่อเนื่อง)</summary>
+        <div class="details-body">
+          <div class="frow">
+            <div class="field"><label>วางแผนล่วงหน้า <span class="unit">(ปี)</span></label><input type="number" id="txProjYears" inputmode="numeric" value="5"></div>
+            <div class="field"><label>เงินได้เติบโตเฉลี่ย/ปี <span class="unit">(%)</span></label><input type="number" id="txIncomeGrowth" inputmode="decimal" step="0.1" value="0"></div>
+            <button class="btn sm" id="txProjBtn" type="button">คำนวณแผนหลายปี</button>
+          </div>
+          <p style="font-size:11.5px;color:var(--muted);margin-top:8px">สมมติว่าซื้อ RMF/SSF/ESG เท่าเดิมทุกปี (เพดาน Thai ESG จะขยับให้อัตโนมัติถ้าข้ามปี 2570)</p>
+          <div id="txProjTable" style="overflow-x:auto;margin-top:6px"></div>
+        </div>
+      </details>
     </div>
     <p class="mini" style="font-size:12px;color:var(--muted);margin-top:10px">⚠️ ประมาณการ ไม่ใช่คำแนะนำภาษี — ไม่ได้รวมค่าลดหย่อนอื่นนอกเหนือจากกลุ่มเกษียณที่กรอก (เช่น ประกันชีวิต บริจาค ดอกเบี้ยบ้าน) และไม่ได้ตรวจสอบเงื่อนไขการถือครองให้ครบตามกำหนด (RMF/SSF/ESG มีบทลงโทษถ้าขายก่อนกำหนด) โปรดตรวจสอบกับกรมสรรพากรหรือที่ปรึกษาภาษีก่อนตัดสินใจจริง</p>
   </div>
@@ -242,7 +254,7 @@ select{font-family:inherit}
   <div class="card">
     <h2>📁 สมุดซื้อจริงของฉัน</h2>
     <div class="frow">
-      <div class="field" style="flex:1 1 160px"><label>ชื่อกองทุน</label><input type="text" id="lgFund" placeholder="เช่น SCBRMS50, KFSEQ-A"></div>
+      <div class="field" style="flex:1 1 160px"><label>ชื่อกองทุน</label><input type="text" id="lgFund" list="fundList" placeholder="เช่น SCBRMS50, KFSEQ-A"><datalist id="fundList"></datalist></div>
       <div class="field"><label>ประเภท (เพื่อภาษี)</label>
         <select id="lgCat" style="font-size:14px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
           <option value="general">ทั่วไป</option><option value="rmf">RMF</option><option value="ssf">SSF</option><option value="esg">Thai ESG</option>
@@ -257,6 +269,16 @@ select{font-family:inherit}
     <div id="lgBox"><div class="log-empty">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและกำไร-ขาดทุน แยกตามกองทุน</div></div>
   </div>
 
+  <!-- วันที่พร้อมขายแบบไม่เสียสิทธิ์ภาษี -->
+  <div class="card">
+    <h2>🔓 วันที่พร้อมขายแบบไม่เสียสิทธิ์ภาษี</h2>
+    <div class="frow">
+      <div class="field"><label>ปีเกิด <span class="unit">(สำหรับเช็คเงื่อนไขอายุ 55 ปีของ RMF เท่านั้น)</span></label><input type="number" id="elBirthYear" inputmode="numeric" placeholder="เช่น 2538"></div>
+    </div>
+    <div id="elBox" style="margin-top:10px"></div>
+    <p style="font-size:11.5px;color:var(--muted);margin-top:8px">เป็นตัวประมาณจากวันที่บันทึกในสมุดซื้อเท่านั้น ไม่ใช่ข้อมูลจริงจาก บลจ. — ก่อนขายจริงควรตรวจสอบวันครบกำหนดกับ บลจ./สถิติซื้อขายจริงของคุณอีกครั้ง</p>
+  </div>
+
   <!-- เรียนรู้ -->
   <details class="card lesson">
     <summary style="font-size:14px">📚 เรียนรู้ — กองทุนรวมไทยแบบเข้าใจง่าย</summary>
@@ -268,9 +290,9 @@ select{font-family:inherit}
       <h3>ระดับความเสี่ยง 1-8 คืออะไร</h3>
       <p>มาตรฐานเดียวกันทั้งอุตสาหกรรม (สมาคมบริษัทจัดการลงทุน/ก.ล.ต.) พิมพ์อยู่บนหน้าแรก Fund Factsheet ทุกกองเสมอ — ดูสเกลสีด้านบน ยิ่งเลขสูงยิ่งผันผวนสูง เลือกให้เหมาะกับระยะเวลาลงทุนและความสามารถรับความเสี่ยงของตัวเอง</p>
       <h3>RMF vs SSF vs Thai ESG ต่างกันยังไง</h3>
-      <p><b>RMF</b> (กองทุนเพื่อการเลี้ยงชีพ): ลดหย่อนได้สูงสุด 30% ของเงินได้ ไม่เกิน 500,000 บาท (รวมกับ SSF และกลุ่มเกษียณอื่นในเพดานเดียวกัน) ต้องถือจนอายุครบ 55 ปี และลงทุนต่อเนื่องอย่างน้อย 5 ปี ขายก่อนกำหนดต้องคืนภาษีที่ลดหย่อนไปพร้อมเงินเพิ่ม</p>
+      <p><b>RMF</b> (กองทุนเพื่อการเลี้ยงชีพ): ลดหย่อนได้สูงสุด 30% ของเงินได้ ไม่เกิน 500,000 บาท (รวมกับ SSF และกลุ่มเกษียณอื่นในเพดานเดียวกัน) ต้องถือจนอายุครบ 55 ปี และลงทุนต่อเนื่องอย่างน้อย 5 ปี <b>ห้ามเว้นซื้อเกิน 1 ปีติดต่อกัน</b> (ซื้อปีเว้นปีได้ แต่เว้น 2 ปีติดกันไม่ได้) ขายก่อนกำหนดต้องคืนภาษีที่ลดหย่อนไปพร้อมเงินเพิ่ม</p>
       <p><b>SSF</b> (กองทุนรวมเพื่อการออม): ลดหย่อนได้สูงสุด 30% ของเงินได้ ไม่เกิน 200,000 บาท (อยู่ในเพดานรวม 500,000 เดียวกับ RMF) ต้องถือครบ 10 ปีปฏิทินนับจากวันที่ซื้อ</p>
-      <p><b>Thai ESG</b> (กองทุนรวมไทยเพื่อความยั่งยืน): ลดหย่อนได้สูงสุด 30% ของเงินได้ ไม่เกิน 300,000 บาท <b>แยกเพดานต่างหาก ไม่รวมกับ RMF/SSF</b> ต้องถือครบ 5 ปีปฏิทิน — เป็นกองที่มาแทน LTF เดิม (LTF เก่าที่ยังถืออยู่ก็มีเงื่อนไขถือครบ 7 ปีปฏิทินของตัวเอง ไม่เกี่ยวกับกองใหม่)</p>
+      <p><b>Thai ESG</b> (กองทุนรวมไทยเพื่อความยั่งยืน): แยกเพดานต่างหาก ไม่รวมกับ RMF/SSF แต่ <b>เพดาน/ระยะเวลาถือเปลี่ยนตามปีที่ซื้อ</b> — ซื้อปี 2567-2569 ลดหย่อนได้สูงสุด 300,000 บาท ถือ 5 ปีปฏิทิน; ซื้อปี 2570-2575 เพดานลดเหลือ 100,000 บาท และต้องถือนานขึ้นเป็น 8 ปีปฏิทิน (ตามเกณฑ์ที่ประกาศไว้แล้ว) — เป็นกองที่มาแทน LTF เดิม (LTF เก่าที่ยังถืออยู่ก็มีเงื่อนไขถือครบ 7 ปีปฏิทินของตัวเอง ไม่เกี่ยวกับกองใหม่)</p>
       <h3>ทำไมต้อง DCA</h3>
       <p>ซื้อจำนวนเงินเท่าเดิมทุกเดือนไม่ว่าราคาขึ้นหรือลง ทำให้ได้ต้นทุนเฉลี่ย ไม่ต้องเดาจังหวะตลาด เหมาะกับมือใหม่ที่สุด</p>
       <h3>ทำไมหน้านี้ไม่มีราคา NAV สด (ต้องกรอกเอง)</h3>

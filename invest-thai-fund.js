@@ -162,19 +162,31 @@
      RMF   : 30% ของเงินได้ สูงสุด 500,000 (เดี่ยว) — รวมอยู่ในกลุ่มเกษียณรวม ≤500,000
      SSF   : 30% ของเงินได้ สูงสุด 200,000 (เดี่ยว) — รวมอยู่ในกลุ่มเกษียณรวม ≤500,000 เดียวกับ RMF
      กลุ่มเกษียณรวม (RMF+SSF+กบข./PVD/ประกันบำนาญ/กอช. ฯลฯ) ≤ 500,000 รวมกัน
-     Thai ESG : 30% ของเงินได้ สูงสุด 300,000 — เพดานแยกต่างหาก ไม่รวมกับกลุ่มเกษียณ */
+     Thai ESG : เพดาน/ระยะถือ "เปลี่ยนตามปีที่ซื้อ" ตามเกณฑ์ที่ประกาศไว้แล้ว — ไม่ใช่ตัวเลขคงที่
+       ซื้อปี 2567-2569: ลดหย่อนได้ 30% สูงสุด 300,000 บาท ถือ 5 ปีปฏิทิน
+       ซื้อปี 2570-2575: ลดหย่อนได้ 30% สูงสุด 100,000 บาท ถือ 8 ปีปฏิทิน
+       เพดาน Thai ESG แยกต่างหาก ไม่รวมกับกลุ่มเกษียณ */
   var RMF_INDIVIDUAL_CAP = 500000;
   var SSF_INDIVIDUAL_CAP = 200000;
   var RETIRE_COMBINED_CAP = 500000;
-  var ESG_CAP = 300000;
+  var ESG_RULES = [
+    { from: 2024, to: 2026, cap: 300000, holdYears: 5 },
+    { from: 2027, to: 2032, cap: 100000, holdYears: 8 }
+  ];
+  function esgRuleForYear(year) {
+    for (var i = 0; i < ESG_RULES.length; i++) { var r = ESG_RULES[i]; if (year >= r.from && year <= r.to) return r; }
+    return ESG_RULES[ESG_RULES.length - 1]; /* นอกช่วงที่ทราบ (ก่อน 2567 หรือหลัง 2575) ใช้เกณฑ์ล่าสุดที่ทราบไปก่อน — อาจเปลี่ยนได้จริง */
+  }
 
   function computeTaxSaving(o) {
     var income = Math.max(0, o.income || 0);
     var incomeCap = income * 0.3;
+    var year = o.year || new Date().getFullYear();
+    var esgRule = esgRuleForYear(year);
 
     var rmfCap = Math.min(incomeCap, RMF_INDIVIDUAL_CAP);
     var ssfCap = Math.min(incomeCap, SSF_INDIVIDUAL_CAP);
-    var esgCap = Math.min(incomeCap, ESG_CAP);
+    var esgCap = Math.min(incomeCap, esgRule.cap);
 
     var rmfWant = Math.max(0, Math.min(o.rmf || 0, rmfCap));
     var ssfWant = Math.max(0, Math.min(o.ssf || 0, ssfCap));
@@ -199,6 +211,7 @@
     var saved = taxBefore - taxAfter;
 
     return {
+      year: year, esgRule: esgRule,
       rmfCap: rmfCap, ssfCap: ssfCap, esgCap: esgCap,
       rmfWant: o.rmf || 0, ssfWant: o.ssf || 0, esgWant: o.esg || 0,
       rmfUsed: rmfUsed, ssfUsed: ssfUsed, esgUsed: esgUsed,
@@ -209,13 +222,46 @@
     };
   }
 
+  /* ── แผนภาษีหลายปี (ใหม่) ─────────────────────────────────────
+     สมมติฐาน: จำนวนเงินซื้อ RMF/SSF/ESG คงที่ทุกปี, เพดาน ESG ขยับตาม esgRuleForYear เมื่อข้ามปี */
+  function projectTaxSaving(o, years, growthPct) {
+    var rows = [], income = o.income, year = o.year || new Date().getFullYear(), cum = 0, i;
+    for (i = 0; i < years; i++) {
+      var r = computeTaxSaving({ income: income, rmf: o.rmf, ssf: o.ssf, esg: o.esg, otherRetire: o.otherRetire, year: year });
+      cum += r.saved;
+      rows.push({ year: year, income: income, saved: r.saved, cum: cum, esgRule: r.esgRule });
+      income = income * (1 + (growthPct || 0) / 100);
+      year++;
+    }
+    return rows;
+  }
+
+  function doTaxProject() {
+    var o = {
+      income: num($('txIncome').value),
+      rmf: num($('txRmf').value) || 0, ssf: num($('txSsf').value) || 0, esg: num($('txEsg').value) || 0,
+      otherRetire: num($('txOther').value) || 0, year: num($('txYear').value) || new Date().getFullYear()
+    };
+    if (!isFinite(o.income) || o.income <= 0) { alert('กรอกเงินได้สุทธิที่ต้องเสียภาษีต่อปีให้ถูกต้องก่อน'); return; }
+    var years = Math.max(1, Math.round(num($('txProjYears').value) || 5));
+    var growth = num($('txIncomeGrowth').value) || 0;
+    var rows = projectTaxSaving(o, years, growth);
+    var html = '<table class="yr-table"><thead><tr><th>ปี</th><th>เงินได้สมมติ</th><th>ประหยัดภาษีปีนั้น</th><th>สะสม</th></tr></thead><tbody>';
+    rows.forEach(function (r) {
+      html += '<tr><td>' + r.year + '</td><td>' + baht(r.income) + '</td><td>' + baht(r.saved) + '</td><td style="color:var(--ok)">' + baht(r.cum) + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    $('txProjTable').innerHTML = html;
+  }
+
   function doTaxCalc() {
     var o = {
       income: num($('txIncome').value),
       rmf: num($('txRmf').value) || 0,
       ssf: num($('txSsf').value) || 0,
       esg: num($('txEsg').value) || 0,
-      otherRetire: num($('txOther').value) || 0
+      otherRetire: num($('txOther').value) || 0,
+      year: num($('txYear').value) || new Date().getFullYear()
     };
     if (!isFinite(o.income) || o.income <= 0) { alert('กรอกเงินได้สุทธิที่ต้องเสียภาษีต่อปีให้ถูกต้อง'); return; }
     var r = computeTaxSaving(o);
@@ -229,6 +275,7 @@
       : 'ยังไม่ได้ใส่จำนวนซื้อ RMF/SSF/ESG';
 
     var html = '';
+    html += '<div class="tax-line"><span>เกณฑ์ Thai ESG ปี ' + r.year + '</span><span class="v">ลดหย่อนได้สูงสุด ' + baht(r.esgRule.cap) + ' · ถือ ' + r.esgRule.holdYears + ' ปี</span></div>';
     html += '<div class="tax-line"><span>RMF — ใช้สิทธิได้</span><span class="v">' + baht(r.rmfUsed) + ' / ที่ใส่ ' + baht(r.rmfWant) + '</span></div>';
     if (r.rmfCapped) html += '<div class="tax-cap-note">⚠️ RMF เกินสิทธิ (เพดานเดี่ยว ' + baht(r.rmfCap) + ' หรือโดนเพดานกลุ่มเกษียณรวมกันไป) ส่วนเกินลดหย่อนไม่ได้</div>';
     html += '<div class="tax-line"><span>SSF — ใช้สิทธิได้</span><span class="v">' + baht(r.ssfUsed) + ' / ที่ใส่ ' + baht(r.ssfWant) + '</span></div>';
@@ -327,6 +374,72 @@
     saveLog(log);
     $('lgFund').value = ''; $('lgAmt').value = ''; $('lgNav').value = '';
     renderLog();
+    renderFundList();
+    renderEligibility();
+  }
+
+  /* ── autocomplete ชื่อกองทุนจากประวัติซื้อของผู้ใช้เอง (ไม่ hardcode ชื่อกองทุนจริง กันข้อมูลผิด) ── */
+  function fundNamesFromLog() {
+    var seen = {}, names = [];
+    loadLog().forEach(function (r) { if (!seen[r.fund]) { seen[r.fund] = 1; names.push(r.fund); } });
+    return names;
+  }
+  function renderFundList() {
+    var el = $('fundList'); if (!el) return;
+    el.innerHTML = fundNamesFromLog().map(function (f) { return '<option value="' + f.replace(/"/g, '&quot;') + '">'; }).join('');
+  }
+
+  /* ── วันที่พร้อมขายแบบไม่เสียสิทธิ์ภาษี (ตัวประมาณ) ──────────── */
+  var BIRTHYEAR_KEY = 'tanot:invest:thaifund:birthyear';
+  function loadBirthYear() { var v = num(localStorage.getItem(BIRTHYEAR_KEY)); return isFinite(v) ? v : null; }
+  function saveBirthYear(y) { try { localStorage.setItem(BIRTHYEAR_KEY, String(y)); } catch (e) {} }
+
+  var CAT_FULL_LABEL = { rmf: 'RMF', ssf: 'SSF', esg: 'Thai ESG' };
+
+  function eligibilityFor(cat, purchases, birthYear) {
+    if (!purchases.length) return null;
+    purchases.sort(function (a, b) { return a.ts - b.ts; });
+    var firstYear = new Date(purchases[0].ts).getFullYear();
+    if (cat === 'ssf') {
+      return { readyYear: firstYear + 10, note: 'นับจากไม้แรกสุดที่บันทึกไว้ (' + firstYear + ') — แต่ละไม้จริงมีเวลานับของตัวเอง นี่คือค่าประมาณแบบระมัดระวัง (ถือ 10 ปีปฏิทิน)' };
+    }
+    if (cat === 'esg') {
+      var rule = esgRuleForYear(firstYear);
+      return { readyYear: firstYear + rule.holdYears, note: 'ใช้เกณฑ์ถือ ' + rule.holdYears + ' ปี ตามปีที่ซื้อไม้แรก (' + firstYear + ')' };
+    }
+    if (cat === 'rmf') {
+      var yearCond = firstYear + 5;
+      var ageCond = birthYear ? (birthYear + 55) : null;
+      return {
+        readyYear: ageCond ? Math.max(yearCond, ageCond) : yearCond,
+        needsBirthYear: !ageCond,
+        note: 'ต้องถือ ≥5 ปี (นับจากไม้แรก ' + firstYear + ') และอายุครบ 55 ปี · ระบบยังไม่เช็คว่าเว้นซื้อเกิน 1 ปีติดต่อกันหรือไม่ (เงื่อนไขต่อเนื่อง) ต้องดูเองด้วย'
+      };
+    }
+    return null;
+  }
+
+  function renderEligibility() {
+    var box = $('elBox'); if (!box) return;
+    var birthYear = loadBirthYear();
+    var byBirth = $('elBirthYear'); if (byBirth && !byBirth.value && birthYear) byBirth.value = birthYear;
+    var log = loadLog();
+    var groups = { rmf: [], ssf: [], esg: [] };
+    log.forEach(function (r) { if (groups[r.cat]) groups[r.cat].push(r); });
+
+    var curYear = new Date().getFullYear();
+    var boxes = [];
+    ['rmf', 'ssf', 'esg'].forEach(function (cat) {
+      var el = eligibilityFor(cat, groups[cat], birthYear);
+      if (!el) return;
+      var ready = curYear >= el.readyYear;
+      var html = '<div class="sumbox"><div class="lbl">' + CAT_FULL_LABEL[cat] + '</div>';
+      html += '<div class="val' + (ready ? ' grow' : '') + '">' + (ready ? 'พร้อมขายแล้ว' : ('1 ม.ค. ' + el.readyYear)) + '</div>';
+      if (el.needsBirthYear) html += '<div class="sub" style="color:var(--warn)">กรอกปีเกิดด้านล่างเพื่อเช็คเงื่อนไขอายุ 55 ปี</div>';
+      html += '<div class="sub">' + el.note + '</div></div>';
+      boxes.push(html);
+    });
+    box.innerHTML = boxes.length ? ('<div class="sumrow">' + boxes.join('') + '</div>') : '<div class="log-empty">ยังไม่มีรายการซื้อ RMF/SSF/Thai ESG ในสมุดซื้อ — บันทึกก่อนเพื่อดูวันครบกำหนดถือ</div>';
   }
 
   function init() {
@@ -336,12 +449,24 @@
     $('lgCur').addEventListener('input', renderLog);
     $('txBtn').addEventListener('click', doTaxCalc);
     $('txFromLogBtn').addEventListener('click', doTaxFromLog);
+    $('txProjBtn').addEventListener('click', doTaxProject);
+    $('elBirthYear').addEventListener('input', function () {
+      var y = num($('elBirthYear').value);
+      if (isFinite(y) && y > 1900) saveBirthYear(y);
+      renderEligibility();
+    });
+    if ($('txYear')) $('txYear').value = new Date().getFullYear();
     renderRiskScale();
     renderLog();
+    renderFundList();
+    renderEligibility();
     doCalc(); /* แสดงผลตั้งต้นทันที */
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
-  window.__thaifund = { simulate: simulate, plan: plan, thaiTax: thaiTax, computeTaxSaving: computeTaxSaving };
+  window.__thaifund = {
+    simulate: simulate, plan: plan, thaiTax: thaiTax, computeTaxSaving: computeTaxSaving,
+    esgRuleForYear: esgRuleForYear, projectTaxSaving: projectTaxSaving, eligibilityFor: eligibilityFor
+  };
 })();
