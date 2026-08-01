@@ -301,6 +301,23 @@
   }
   var GOLD_TH_RETRIES = 2; /* จำนวนครั้งที่ลองดึงราคาสดทั้งหมด ก่อนตกไป cache/กรอกเอง */
   var GOLD_TH_RETRY_DELAY = 2500; /* ms — เผื่อกรณี rate-limit ชั่วคราวของ API ชุมชน */
+  /* ── ผู้ใช้กรอกราคาทองไทยเองในช่อง (แทนที่จะรอดึงอัตโนมัติ) — ให้เห็นผลทันทีที่กรอก ── */
+  function onManualPriceInput() {
+    var b1 = num($('barBuy').value), b2 = num($('barSell').value), j1 = num($('jewelryBuy').value), j2 = num($('jewelrySell').value);
+    var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge paste';
+    if (![b1, b2, j1, j2].every(isFinite)) {
+      badge.textContent = '✍️ กรอกเอง';
+      setGoldThStatus('กำลังกรอกราคาเอง… กรอกให้ครบทั้ง 4 ช่องเพื่อใช้งาน');
+      return;
+    }
+    badge.textContent = '✍️ ใช้ราคาที่กรอกเอง';
+    setGoldThStatus('ใช้ราคาที่กรอกเองแล้ว', 'ok');
+    if (!$('dcaStart').value) $('dcaStart').value = b1.toFixed(2);
+    if (!$('gdNow').value) $('gdNow').value = b1.toFixed(2);
+    if ($('dcaOut').style.display === 'none') doDCA();
+    renderGoldLog(); /* ใช้ barSell ล่าสุดคำนวณมูลค่าสมุดทองใหม่ */
+  }
+
   function runThaiFetch() {
     setGoldThStatus('กำลังดึงราคาทองวันนี้…');
     $('goldThBadge').style.display = 'none';
@@ -740,6 +757,7 @@
 
   /* ── init ───────────────────────────────────────────────────── */
   function init() {
+    ['barBuy', 'barSell', 'jewelryBuy', 'jewelrySell'].forEach(function (id) { $(id).addEventListener('input', onManualPriceInput); });
     $('goldThRefresh').addEventListener('click', runThaiFetch);
     $('gManualBtn').addEventListener('click', function () {
       var price = num($('gPriceUsd').value), hi = num($('gHiUsd').value), lo = num($('gLoUsd').value);
