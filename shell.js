@@ -10,6 +10,8 @@
 
   var BASE = location.pathname.replace(/[^/]*$/, '');
   var HERE = location.pathname.split('/').pop() || 'index.html';
+  var HERE_FULL = HERE + location.search; // เทียบกับ href ที่มี query string (เช่น run.html?tool=est-cost) ได้ด้วย
+  function hrefMatches(href) { return href === HERE_FULL || href === HERE; }
 
   /* ── ธีม: อ่านค่าที่เคยเลือก > ตามระบบ ─────────────────────────── */
   function getTheme() {
@@ -32,7 +34,16 @@
      icon = ใช้กับ invest.html hub tiles (window.INVEST_CATS), children = รายการย่อย */
   var MENU = [
     { key: 'home', label: 'หน้าหลัก', href: 'index.html' },
-    { key: 'documents', label: 'งานเอกสาร', href: 'documents.html' },
+    { key: 'documents', label: 'งานที่รับผิดชอบ', children: [
+        { key: 'doc-check',  label: 'ตรวจสอบเอกสาร', href: 'doc-check.html' },
+        { key: 'word',       label: 'งาน Word', href: 'word.html' },
+        { key: 'excel',      label: 'งาน Excel', href: 'excel.html' },
+        { key: 'powerpoint', label: 'งาน PowerPoint', href: 'documents.html?soon=powerpoint' },
+        { key: 'cad',        label: 'งานเขียนแบบ (CAD)', href: 'documents.html?soon=cad' },
+        { key: 'est-cost',   label: 'ประเมินราคา PM/CM', href: 'run.html?tool=est-cost' },
+        { key: 'pdf-split',  label: 'แยกหน้า PDF', href: 'run.html?tool=pdf-split' }
+      ]
+    },
     { key: 'legal', label: 'งานกฎหมาย', href: 'legal.html' },
     { key: 'daily', label: 'ชีวิตประจำวัน', children: [
         { key: 'invest', label: 'การลงทุน', href: 'invest.html', children: [
@@ -78,7 +89,7 @@
   function findActivePath(nodes, path) {
     for (var i = 0; i < nodes.length; i++) {
       var n = nodes[i];
-      if (n.href === HERE) { path.push(n); return true; }
+      if (n.href && hrefMatches(n.href)) { path.push(n); return true; }
       if (n.children && findActivePath(n.children, path)) { path.push(n); return true; }
     }
     return false;
@@ -88,7 +99,7 @@
 
   function renderMenuNodes(nodes, container, depth) {
     nodes.forEach(function (n) {
-      var isActive = n.href === HERE;
+      var isActive = !!n.href && hrefMatches(n.href);
       var isAncestorOfActive = activePath.indexOf(n) !== -1 && !isActive;
       var row = document.createElement('div');
       row.className = 'ome-menu-row';
