@@ -20,7 +20,7 @@
     { key: 'baac-lottery', label: 'สลาก ธ.ก.ส.',      icon: '🌾' },
     { key: 'thai-fund',    label: 'กองทุนไทย',        icon: '📊' },
     { key: 'global-fund',  label: 'กองทุนต่างประเทศ', icon: '🧺', page: 'invest-global-fund.html' },
-    { key: 'bitcoin',      label: 'Bitcoin',          icon: '₿' }
+    { key: 'bitcoin',      label: 'Bitcoin',          icon: '₿', page: 'invest-bitcoin.html' }
   ];
 
   function injectCSS() {
