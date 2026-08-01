@@ -299,9 +299,14 @@
     if (!$('gdNow').value) $('gdNow').value = o.barBuyPrice.toFixed(2);
     if ($('dcaOut').style.display === 'none') doDCA();
   }
+  var GOLD_TH_RETRIES = 2; /* จำนวนครั้งที่ลองดึงราคาสดทั้งหมด ก่อนตกไป cache/กรอกเอง */
+  var GOLD_TH_RETRY_DELAY = 2500; /* ms — เผื่อกรณี rate-limit ชั่วคราวของ API ชุมชน */
   function runThaiFetch() {
     setGoldThStatus('กำลังดึงราคาทองวันนี้…');
     $('goldThBadge').style.display = 'none';
+    attemptGoldTH(1);
+  }
+  function attemptGoldTH(tryNum) {
     fetchGoldTH().then(function (o) {
       saveGoldThCache(o);
       fillGoldThFields(o);
@@ -309,16 +314,21 @@
       badge.textContent = '🟢 ราคาสด' + (o.updateDate ? (' · ปรับปรุง ' + o.updateDate + ' ' + (o.updateTime || '')) : '');
       setGoldThStatus('ดึงราคาสำเร็จ', 'ok');
     }, function () {
+      if (tryNum < GOLD_TH_RETRIES) {
+        setGoldThStatus('ดึงราคาไม่สำเร็จ กำลังลองอีกครั้ง… (' + (tryNum + 1) + '/' + GOLD_TH_RETRIES + ')');
+        setTimeout(function () { attemptGoldTH(tryNum + 1); }, GOLD_TH_RETRY_DELAY);
+        return;
+      }
       var c = loadGoldThCache();
       if (c) {
         fillGoldThFields(c);
         var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge real';
         badge.textContent = '🟡 ดึงสดไม่ได้ — ใช้ราคาที่บันทึกไว้ (' + cacheAgeText(c.ts) + ')';
-        setGoldThStatus('ดึงสดไม่ได้ตอนนี้ — ใช้ราคาที่บันทึกไว้', 'ok');
+        setGoldThStatus('ดึงสดไม่ได้ตอนนี้ (ลองแล้ว ' + GOLD_TH_RETRIES + ' ครั้ง) — ใช้ราคาที่บันทึกไว้', 'ok');
       } else {
         var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge paste';
         badge.textContent = '✍️ กรอกเอง';
-        setGoldThStatus('ดึงราคาทองอัตโนมัติไม่ได้ตอนนี้ — กรอกเองในช่องด้านบน หรือลองรีเฟรชอีกครั้ง', 'err');
+        setGoldThStatus('ดึงราคาทองอัตโนมัติไม่ได้ตอนนี้ (ลองแล้ว ' + GOLD_TH_RETRIES + ' ครั้ง) — กรอกเองในช่องด้านบน หรือลองรีเฟรชอีกครั้ง', 'err');
       }
     });
   }
