@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สลากกินแบ่งรัฐบาล — สถิติย้อนหลัง + ตรวจหวย + สุ่มเลข | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#6C63D9">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
+  --brand:#12A594;--brand-dk:#0B7F72;--brand-sf:#E7F6F4;
+  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--sky:#3B9BEA;--err:#E5484D;--warn:#E08700;--violet:#6C63D9;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
+  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto}
+.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
+.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+.crumb .sep{margin:0 7px;color:#C9CEDC}
+.head{display:flex;align-items:center;gap:14px;margin:12px 0 6px}
+.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:26px;
+  background:linear-gradient(135deg,#6C63D9,#8F88E8);color:#fff;display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(108,99,217,.3)}
+h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px}
+.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.frow{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 130px;min-width:120px}
+.field label{font-size:12px;color:var(--muted);font-weight:600}
+.field .unit{font-size:11px;color:var(--muted);font-weight:500}
+input[type=number],input[type=text],input[type=date]{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:11px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none}
+input:focus{outline:none;border-color:var(--brand)}
+[data-theme="dark"] input{background:#12151C}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
+  background:var(--card);border-radius:11px;padding:10px 15px;font-family:inherit;font-size:14px;font-weight:700;
+  color:var(--ink);cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-dk);color:#fff}
+.btn.sm{padding:7px 11px;font-size:12.5px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+.sumrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:4px}
+.sumbox{background:var(--bg);border-radius:13px;padding:14px 15px}
+.sumbox .lbl{font-size:12px;color:var(--muted);font-weight:600}
+.sumbox .val{font-size:21px;font-weight:800;margin-top:3px;letter-spacing:-.01em}
+.sumbox .val.grow{color:var(--ok)}
+.sumbox .sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;list-style:none;
+  display:flex;align-items:center;gap:8px;user-select:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:'▸';color:var(--muted)}
+details[open]>summary::before{transform:rotate(90deg)}
+.details-body{padding:0 15px 15px;font-size:13px}
+.lesson h3{font-size:13.5px;font-weight:700;margin:12px 0 4px;color:var(--brand-dk)}
+.lesson p{font-size:13px;margin-bottom:4px;opacity:.92}
+
+.log-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+.log-table th,.log-table td{padding:7px 6px;text-align:right;border-bottom:1px solid var(--line)}
+.log-table th:first-child,.log-table td:first-child{text-align:left}
+.log-table th{color:var(--muted);font-weight:600;font-size:12px}
+.log-empty{font-size:13px;color:var(--muted);padding:8px 0}
+
+.disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
+footer{margin-top:22px;text-align:center;font-size:12.5px;color:#9AA3B8}
+footer a{color:var(--sky);text-decoration:none;font-weight:600}
+@media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:18px}}
+select{font-family:inherit}
+
+/* ── เฉพาะหน้าสลากกินแบ่งรัฐบาล ── */
+.warn-card{border:1.5px solid #F0C6D0;background:linear-gradient(180deg,#FFF5F8,var(--card))}
+[data-theme="dark"] .warn-card{background:linear-gradient(180deg,#2A1B22,var(--card));border-color:#4A2A35}
+.warn-card h2{color:var(--rose)}
+.progress-wrap{margin-top:10px}
+.progress-bar{height:8px;border-radius:6px;background:var(--bg);overflow:hidden}
+.progress-fill{height:100%;background:var(--brand);width:0%;transition:.2s}
+.progress-text{font-size:12px;color:var(--muted);margin-top:5px}
+.note-box{font-size:12px;color:var(--warn);margin-top:8px}
+.methodology{font-size:11.5px;color:var(--muted);margin-top:8px}
+.freq-caveat{font-size:11.5px;color:var(--rose);font-weight:700;background:var(--warn-sf,#FFF3E0);border-radius:8px;padding:8px 10px;margin-bottom:10px}
+[data-theme="dark"] .freq-caveat{background:#2A2416}
+.pos-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px;margin-top:10px}
+.pos-group{background:var(--bg);border-radius:10px;padding:8px}
+.pos-group .pos-label{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px;text-align:center}
+.pos-bar-row{display:flex;align-items:center;gap:4px;font-size:10px;margin:2px 0}
+.pos-bar-row .d{width:11px;color:var(--muted);font-weight:700}
+.pos-bar-row .bar{flex:1;height:7px;background:var(--line);border-radius:3px;overflow:hidden}
+.pos-bar-row .bar i{display:block;height:100%;background:var(--violet)}
+.pos-bar-row .c{width:18px;text-align:right;color:var(--muted);font-size:9.5px}
+.reels{display:flex;gap:8px;justify-content:center;margin:14px 0;flex-wrap:wrap}
+.reel-digit{width:44px;height:60px;border-radius:12px;background:var(--bg);border:2px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums}
+.reel-digit.spinning{color:var(--muted)}
+.reel-digit.landed{border-color:var(--violet);background:#EFEDFB;transition:.3s}
+[data-theme="dark"] .reel-digit.landed{background:#2B2745}
+.spin-derived{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.spin-derived .sumbox{min-width:110px;text-align:center}
+</style>
+</head>
+<body class="ome-tool-page" data-invest-key="lottery">
+<script src="auth-gate.js"></script>
+<div class="wrap">
+
+  <div id="investNav"></div>
+
+  <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>สลากกินแบ่งรัฐบาล</nav>
+
+  <div class="head">
+    <div class="head-ic">🎰</div>
+    <div>
+      <h1>สลากกินแบ่งรัฐบาล — สถิติย้อนหลัง + ตรวจหวย + สุ่มเลข 6 หลัก</h1>
+      <div class="head-sub">ข้อมูลย้อนหลังจริง ไม่ใช่การพยากรณ์ผลจับรางวัล</div>
+    </div>
+  </div>
+
+  <!-- คำเตือนก่อนเริ่ม -->
+  <div class="card warn-card">
+    <h2>⚠️ คำเตือนก่อนเริ่ม</h2>
+    <p style="font-size:13px">สลากกินแบ่งรัฐบาล <b>ไม่มีการคืนเงินต้น</b> ต่างจากสลากออมสิน/ธ.ก.ส. ที่ทำไปแล้วในแอปนี้ (ซึ่งได้เงินต้นคืนเต็มเสมอถ้าถือจนครบกำหนด) — เงินที่ใช้ซื้อสลากคือค่าใช้จ่ายล้วนๆ</p>
+    <p style="font-size:13px;margin-top:6px">แต่ละงวดจับรางวัลด้วยเครื่องที่ตรวจสอบได้และเป็น<b>อิสระจากงวดก่อนหน้าเสมอ</b> — ไม่มีเลขที่ "ยังไม่ออกจะออกเร็วๆ นี้" สถิติความถี่ในหน้านี้เป็นข้อมูลเชิงพรรณนาเพื่อการศึกษาเท่านั้น</p>
+    <p style="font-size:13px;margin-top:6px">การตั้งงบซื้อสลากไว้ล่วงหน้า (เช่นไม่เกิน 800 บาท/เดือน) เป็นวินัยทางการเงินที่ดี — ควรทำแบบนี้เสมอไม่ว่าจะซื้อมากหรือน้อย</p>
+  </div>
+
+  <!-- ดึงข้อมูลย้อนหลัง -->
+  <div class="card">
+    <h2>📊 ดึงข้อมูลย้อนหลัง</h2>
+    <div class="frow">
+      <div class="field"><label>ช่วงย้อนหลัง</label>
+        <select id="ltWindow" style="font-size:14px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
+          <option value="1">1 เดือน</option>
+          <option value="3" selected>3 เดือน</option>
+          <option value="4">4 เดือน</option>
+          <option value="6">6 เดือน</option>
+          <option value="12">1 ปี</option>
+          <option value="60">5 ปี</option>
+          <option value="120">10 ปี</option>
+          <option value="240">20 ปี</option>
+          <option value="360">30 ปี</option>
+        </select></div>
+      <button class="btn primary" id="ltLoadBtn" type="button">ดึงข้อมูลย้อนหลัง →</button>
+      <button class="btn sm" id="ltStopBtn" type="button" hidden>⏹ หยุด</button>
+      <button class="btn sm" id="ltClearCacheBtn" type="button">ล้างแคช</button>
+    </div>
+    <div class="progress-wrap" id="ltProgressWrap" style="display:none">
+      <div class="progress-bar"><div class="progress-fill" id="ltProgressFill"></div></div>
+      <div class="progress-text" id="ltProgressText"></div>
+    </div>
+    <div class="note-box" id="ltRangeNote"></div>
+    <p class="methodology">ดึงจากไฟล์ผลรางวัลย้อนหลังต่องวดโดยตรง (ไม่ผ่านพร็อกซี) — งวดที่ยังไม่มีข้อมูลจะถูกข้ามอัตโนมัติ ไม่ถือเป็นข้อผิดพลาด · ข้อมูลที่ดึงแล้วถูกเก็บไว้ในเครื่องถาวร ครั้งต่อไปจะเร็วขึ้น</p>
+  </div>
+
+  <!-- สถิติความถี่ -->
+  <div class="card">
+    <h2>🔢 สถิติความถี่</h2>
+    <div class="freq-caveat">ความถี่ในอดีต ไม่ใช่ความน่าจะเป็นในอนาคต — แต่ละงวดสุ่มเป็นอิสระจากงวดก่อนหน้าเสมอ</div>
+    <div class="frow">
+      <div class="field"><label>หมวด</label>
+        <select id="ltStatTier" style="font-size:14px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
+          <option value="twoDigit">เลขท้าย 2 ตัว</option>
+          <option value="threeFirst">เลขหน้า 3 ตัว</option>
+          <option value="threeLast">เลขท้าย 3 ตัว</option>
+          <option value="first">รางวัลที่ 1 (ความถี่รายหลัก)</option>
+          <option value="second">รางวัลที่ 2 (ความถี่รายหลัก)</option>
+          <option value="third">รางวัลที่ 3 (ความถี่รายหลัก)</option>
+        </select></div>
+    </div>
+    <div id="ltStatOut"><div class="log-empty">กด "ดึงข้อมูลย้อนหลัง" ด้านบนก่อน เพื่อดูสถิติความถี่</div></div>
+    <details>
+      <summary style="font-size:13px">ทำไมรางวัลที่ 1/2/3 แสดงความถี่รายหลัก ไม่ใช่เลข 6 หลักเต็ม</summary>
+      <div class="details-body">
+        <p>เลข 6 หลักมีความเป็นไปได้ถึง 1 ล้านแบบ แต่ตัวอย่างที่ดึงมามีเพียงไม่กี่ร้อยงวด ถ้านับความถี่เลข 6 หลักเต็มจะได้ตารางที่แทบทุกเลขออก 0 หรือ 1 ครั้งเท่ากันหมด ไม่มีสาระให้ดู จึงนับความถี่ของ<b>แต่ละหลัก แยกตามตำแหน่ง</b> (หลักแสน หมื่น พัน ร้อย สิบ หน่วย) แทน ซึ่งมีตัวอย่างมากพอที่จะเป็นสถิติเชิงพรรณนาที่มีความหมาย — แต่ก็ยังไม่ใช่การพยากรณ์อยู่ดี</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- ตรวจหวย -->
+  <div class="card">
+    <h2>🎫 ตรวจหวย</h2>
+    <div class="frow">
+      <div class="field"><label>เลขที่ซื้อ (6 หลัก)</label><input type="text" id="ltTicket" maxlength="6" inputmode="numeric" placeholder="เช่น 123456"></div>
+      <button class="btn primary" id="ltCheckBtn" type="button">ตรวจกับงวดล่าสุด →</button>
+    </div>
+    <div id="ltCheckStatus" class="progress-text"></div>
+    <div id="ltCheckOut"></div>
+  </div>
+
+  <!-- สุ่มเลขไปซื้อ -->
+  <div class="card">
+    <h2>🎰 สุ่มเลขไปซื้อ</h2>
+    <div class="reels" id="ltReels">
+      <span class="reel-digit">0</span><span class="reel-digit">0</span><span class="reel-digit">0</span>
+      <span class="reel-digit">0</span><span class="reel-digit">0</span><span class="reel-digit">0</span>
+    </div>
+    <div style="text-align:center"><button class="btn primary" id="ltSpinBtn" type="button">🎰 หมุน</button></div>
+    <div class="spin-derived" id="ltSpinDerived" style="display:none">
+      <div class="sumbox"><div class="lbl">เลขเต็ม 6 หลัก</div><div class="val" id="ltSpinFull">—</div></div>
+      <div class="sumbox"><div class="lbl">เลขหน้า 3 ตัว</div><div class="val" id="ltSpinFront">—</div></div>
+      <div class="sumbox"><div class="lbl">เลขท้าย 3 ตัว</div><div class="val" id="ltSpinBack3">—</div></div>
+      <div class="sumbox"><div class="lbl">เลขท้าย 2 ตัว</div><div class="val" id="ltSpinBack2">—</div></div>
+    </div>
+    <p style="font-size:11.5px;color:var(--muted);margin-top:8px;text-align:center">ร้านขายสลากมักซื้อได้ทั้งเลขเต็ม 6 หลัก หรือเลขสั้นกว่านี้ (3 ตัวหน้า/หลัง, 2 ตัวท้าย) แล้วแต่ร้าน</p>
+    <div class="frow" style="margin-top:12px">
+      <div class="field"><label>งบซื้อสลากเดือนนี้ (เตือนตัวเอง)</label><input type="number" id="ltBudget" inputmode="numeric" placeholder="เช่น 800"></div>
+    </div>
+    <div id="ltSpinHistory" style="margin-top:10px"></div>
+  </div>
+
+  <!-- เรียนรู้ -->
+  <details class="card lesson">
+    <summary style="font-size:14px">📚 เรียนรู้ — สลากกินแบ่งรัฐบาลแบบเข้าใจง่าย</summary>
+    <div class="details-body">
+      <h3>ต่างจากสลากออมสิน/ธ.ก.ส. อย่างไร</h3>
+      <p>สลากออมสิน/สลาก ธ.ก.ส. (ทำไปแล้วในแอปนี้) คืนเงินต้นเต็มเสมอถ้าถือจนครบกำหนด ผลตอบแทนหลักมาจากดอกเบี้ยเล็กน้อย+โอกาสถูกรางวัล — แต่<b>สลากกินแบ่งรัฐบาลไม่มีการคืนเงินต้น</b> เงินที่จ่ายซื้อคือค่าใช้จ่ายทั้งหมด ได้เฉพาะเมื่อถูกรางวัลเท่านั้น</p>
+      <h3>ค่าคาดหวังโดยรวมติดลบ</h3>
+      <p>ราคาสลากรวมค่าการตลาด ค่าดำเนินการ และส่วนที่จัดสรรคืนเป็นรางวัลไม่ครบ 100% ของยอดขาย ในทางสถิติระยะยาว ผู้ซื้อสลากโดยรวมจ่ายมากกว่าที่ได้รับคืนเป็นรางวัล — เป็นค่าใช้จ่ายเพื่อความบันเทิง/ลุ้นโชค ไม่ใช่การลงทุนที่คาดหวังกำไรได้</p>
+      <h3>Gambler's Fallacy — เลขที่ "ยังไม่ออก" ไม่ได้แปลว่าจะออกเร็วๆ นี้</h3>
+      <p>เครื่องจับรางวัลแต่ละงวดเป็นอิสระจากงวดก่อนหน้าโดยสิ้นเชิง เลขที่ไม่เคยออกในอดีตไม่ได้มีโอกาสออกในงวดถัดไปมากกว่าเลขอื่น และเลขที่เพิ่งออกก็ไม่ได้มีโอกาสออกซ้ำน้อยกว่า — ความเชื่อว่าเลข "ค้างมานาน" จะ "ถึงคิว" ออก เป็นความเข้าใจผิดทางสถิติที่พบบ่อย (gambler's fallacy)</p>
+      <h3>วิธีคำนวณวันจับรางวัลในหน้านี้</h3>
+      <p>ใช้กฎทั่วไป (วันที่ 1 และ 16 ของทุกเดือน) — จากการตรวจสอบจริงพบว่าวันที่เลื่อนช่วงปีใหม่/วันครู/วันแรงงานไม่ตรงกันทุกปีตามที่คาด ระบบจึงลองหลายวันที่เป็นไปได้รอบช่วงเสี่ยงเหล่านี้ (เช่น ต้นเดือน ม.ค., ต้นเดือน พ.ค., ปลายเดือน ธ.ค.) แล้วใช้วันที่ที่มีข้อมูลจริงเท่านั้น — วันที่ไม่มีงวด (404) ถูกข้ามอัตโนมัติ ไม่ถือเป็นความผิดพลาด และ<b>ไม่รับประกันว่าจะครอบคลุมทุกกรณีพิเศษในอดีต 100%</b></p>
+      <h3>แหล่งข้อมูล</h3>
+      <p>ข้อมูลผลรางวัลย้อนหลังดึงจากโปรเจกต์ชุมชนบน GitHub (ดูรายละเอียดที่หน้าเครดิต) ไม่มีการรับประกันความถูกต้อง 100% หรือ uptime — ควรตรวจสอบผลรางวัลจริงกับเว็บทางการก่อนขึ้นเงินรางวัลเสมอ</p>
+    </div>
+  </details>
+
+  <div class="disc">⚠️ ข้อมูลย้อนหลังใช้เพื่อการศึกษาเท่านั้น ไม่ใช่การพยากรณ์ผลจับรางวัลหรือคำแนะนำการเล่นหวย ผลจับรางวัลจริงเป็นการสุ่มอิสระทุกงวด · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
+  <footer><a href="invest.html">← กลับหน้าการลงทุน</a> · <a href="credits.html">เครดิต</a></footer>
+</div>
+
+<script src="invest-nav.js" defer></script>
+<script src="invest-lottery.js" defer></script>
+</body>
+</html>
