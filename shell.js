@@ -61,6 +61,7 @@
         { key: 'legal-police-report', label: 'ร่างเพื่อนำไปแจ้งความ', href: 'legal.html#police-report' }
       ]
     },
+    { key: 'language', label: 'ภาษา', href: 'languages.html' },
     { key: 'daily', label: 'ชีวิตประจำวัน', children: [
         { key: 'invest', label: 'การลงทุน', href: 'invest.html', children: [
             { key: 'global-stock', label: 'หุ้นต่างประเทศ',  icon: '🌐', href: 'invest-global-stock.html' },
@@ -86,7 +87,6 @@
         { key: 'books',     label: 'หนังสือ', href: soonHref('หนังสือ') }
       ]
     },
-    { key: 'language', label: 'ภาษา', href: 'languages.html' },
     { key: 'special', label: 'ความสามารถพิเศษ', children: [
         { key: 'music',  label: 'เรียนดนตรี', href: soonHref('เรียนดนตรี') },
         { key: 'sports', label: 'เรียนกีฬา', href: soonHref('เรียนกีฬา') },
@@ -99,8 +99,7 @@
         { key: 'classroom-business',    label: 'ธุรกิจ',         href: 'classroom-business.html' },
         { key: 'classroom-engineering', label: 'วิศวกรรม',       href: 'classroom-engineering.html' }
       ]
-    },
-    { key: 'legacy', label: 'เมนูทั้งหมด', href: 'app.html' }
+    }
   ];
 
   /* หมวดย่อยการลงทุน (เดิมมาจาก invest-nav.js) — คงชื่อ window.INVEST_CATS +
@@ -310,6 +309,38 @@
     a.textContent = 'เครดิต & ลิขสิทธิ์';
     footer.appendChild(a);
     document.body.appendChild(footer);
+    stickFooter(footer);
+  }
+
+  /* ดัน footer ลงไปติดขอบล่างจริงของจอเมื่อเนื้อหาสั้นกว่า viewport
+     ใช้ JS วัด/เติม margin-top แทนการเปลี่ยน display ของ body เป็น flex
+     เพราะบางหน้า (เช่น word.html, legal.html) มีเลย์เอาต์ภายในซับซ้อนที่
+     ชนกับกลไก sizing ของ flex item — วิธีนี้ไม่แตะ box model ของหน้าเดิมเลย */
+  function stickFooter(footer) {
+    var pendingRaf = null;
+    function apply() {
+      if (pendingRaf) cancelAnimationFrame(pendingRaf);
+      pendingRaf = requestAnimationFrame(function () {
+        pendingRaf = null;
+        /* หัก margin-top ที่ใส่ไว้รอบก่อนออกก่อนวัด เพื่อให้เรียก apply() ซ้อนกันกี่ครั้ง/
+           กี่จุด (attach ครั้งแรก, resize, load) ก็ได้ผลลัพธ์เดิมเสมอ (idempotent) —
+           ถ้าไม่หักออก การเรียกซ้อนกันในเฟรมเดียวกันจะอ่านผลลัพธ์ของตัวเองแล้วคิดว่าไม่มีช่องว่างเหลือ
+           ใช้ตำแหน่งจริงของ footer เทียบ viewport แทน document.documentElement.scrollHeight เพราะ
+           scrollHeight รวมความสูงของ .ome-drawer/.ome-drawer-backdrop ที่ inset:0 เต็มจอเสมอ
+           (แม้ซ่อนอยู่นอกจอด้วย transform/opacity) ทำให้วัดผิดเป็น viewport เต็มตลอด */
+        var curMargin = parseFloat(getComputedStyle(footer).marginTop) || 0;
+        var naturalBottom = footer.getBoundingClientRect().bottom - curMargin;
+        var gap = window.innerHeight - naturalBottom;
+        footer.style.marginTop = gap > 0 ? gap + 'px' : '0px';
+      });
+    }
+    apply();
+    var t;
+    window.addEventListener('resize', function () {
+      clearTimeout(t);
+      t = setTimeout(apply, 150);
+    });
+    window.addEventListener('load', apply);
   }
 
   /* ── PWA ────────────────────────────────────────────────────────── */

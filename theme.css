@@ -20,6 +20,15 @@
   --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
 }
 
+/* ── ให้ footer ติดล่างสุดของจอเสมอ แม้เนื้อหาสั้น (sticky footer) ────
+   padding-bottom เดิมของแต่ละหน้าเคยไว้เว้นที่ก่อน footer ของตัวเอง (ตอนยังไม่มี
+   footer กลาง) ตอนนี้ footer มาอยู่หลังสุดเสมอ ถ้าไม่ล้าง padding-bottom นั้น
+   จะกลายเป็นช่องว่างโผล่ต่อจาก footer แทน จึงต้อง override ด้วย !important
+   (ระยะดันลงจริงเมื่อเนื้อหาสั้นคำนวณด้วย JS ใน shell.js แทน display:flex บน body
+   เพราะบางหน้า เช่น word.html/legal.html มีเลย์เอาต์ภายในซับซ้อนที่ชนกับ flex item sizing) */
+body{padding-bottom:0!important}
+.ome-footer{margin-top:0}
+
 /* ── แถบนำทางกลาง (ฉีดโดย shell.js) — ปุ่มแฮมเบอร์เกอร์ + ลิ้นชักเมนู ──── */
 .ome-nav{position:sticky;top:0;z-index:100;height:var(--ome-nav-h);
   background:var(--ome-card);border-bottom:1px solid var(--ome-line);
@@ -62,7 +71,7 @@
 .ome-menu-row a.ome-menu-link:hover{background:var(--ome-bg)}
 .ome-menu-row a.ome-menu-link.active{background:var(--ome-brand-sf);color:var(--ome-brand-dk);font-weight:700}
 .ome-menu-row .ome-menu-cat{flex:1;display:flex;align-items:center;gap:9px;padding:10px 10px;
-  font-size:13px;font-weight:700;color:var(--ome-muted);text-transform:uppercase;letter-spacing:.02em}
+  border-radius:10px;font-size:14px;font-weight:500;color:var(--ome-ink)}
 .ome-menu-toggle{width:34px;flex-shrink:0;border:none;background:transparent;color:var(--ome-muted);
   cursor:pointer;font-size:12px;display:grid;place-items:center;transition:transform .15s}
 .ome-menu-toggle.open{transform:rotate(90deg)}

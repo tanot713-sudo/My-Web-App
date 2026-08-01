@@ -13,7 +13,6 @@
   'use strict';
 
   var KEY = 'tanot:auth';
-  var LEGACY_KEY = 'site-auth-ok';           // key เดิมที่แอปหลัก (app.html) ใช้ — ตั้งให้ด้วยเพื่อไม่ต้องใส่รหัสซ้ำ
   var HASH = 'de1a17ae081719032bea1292b37cacb0a91b1b09ce5cf17a2ea36c93dda76b26'; // SHA-256 ของรหัสผ่าน (ไม่เก็บ plaintext ไว้ในไฟล์)
 
   function authed() {
@@ -60,7 +59,6 @@
         if (hex === HASH) {
           try {
             localStorage.setItem(KEY, '1');
-            localStorage.setItem(LEGACY_KEY, 'true'); // เข้าแอปเดิม (app.html) โดยไม่ต้องใส่รหัสซ้ำ
           } catch (e) {}
           gate.remove();
         } else {

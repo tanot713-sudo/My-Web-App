@@ -5,16 +5,14 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v65';
+const CACHE = 'ome-v66';
 const PRECACHE = [
   './',
   './index.html',
-  './app.html',
   './404.html',
   './documents.html',
   './run.html',
   './soon.html',
-  './law-business-engineering.html',
   './classroom-law.html',
   './classroom-business.html',
   './classroom-engineering.html',
@@ -54,8 +52,6 @@ const PRECACHE = [
   './vendor/lightweight-charts.standalone.js',
   './credits.html',
   './theme.css',
-  './app-theme.css',
-  './app-nav.js',
   './shell.js',
   './auth-gate.js',
   './manifest.json',
