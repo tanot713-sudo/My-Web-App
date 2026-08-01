@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>รอ update เร็วๆ นี้ | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body.ome-tool-page{font-family:var(--ome-f);background:var(--bg,#F6F7FB);color:var(--ink,#1F2430);
+  -webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
+.center{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px;text-align:center}
+.ic{font-size:38px;margin-bottom:14px}
+h1{font-size:19px;font-weight:700;margin-bottom:6px}
+p{color:var(--muted,#727C93);font-size:14px}
+</style>
+</head>
+<body class="ome-tool-page">
+<script src="auth-gate.js"></script>
+<div class="center">
+  <div>
+    <div class="ic">🚧</div>
+    <h1 id="soonLabel">—</h1>
+    <p>รอ update เร็วๆ นี้</p>
+  </div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var m = (location.search || '').match(/[?&]label=([^&]+)/);
+  document.getElementById('soonLabel').textContent = m ? decodeURIComponent(m[1]) : 'หมวดนี้';
+})();
+</script>
+</body>
+</html>

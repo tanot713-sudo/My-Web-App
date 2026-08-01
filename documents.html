@@ -36,9 +36,6 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
   position:relative;overflow:hidden}
 .hero::after{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;
   border-radius:50%;background:rgba(255,255,255,.45)}
-.soon-banner{margin-top:14px;border-radius:14px;background:#FFF7E8;border:1px solid #F5E2B8;
-  padding:13px 16px;font-size:13.5px;color:#7A5B12;display:flex;gap:9px;align-items:flex-start}
-.soon-banner b{font-weight:700}
 .eyebrow{font-size:12px;letter-spacing:.06em;color:var(--brand-dk);font-weight:600;margin-bottom:8px}
 h1{font-size:clamp(24px,4.4vw,34px);font-weight:700;letter-spacing:-.01em;line-height:1.3;position:relative}
 .sub{margin-top:10px;color:#5A6479;max-width:56ch;font-size:14.5px;position:relative}
@@ -158,10 +155,6 @@ a.tcard:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
   <p class="sub">วางไฟล์ข้อมูล รับเอกสารพร้อมใช้ — ทำงานในเบราว์เซอร์ของคุณทั้งหมด ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ใด</p>
 </div>
 
-<div class="soon-banner" id="soonBanner" hidden>
-  <span>🚧</span><span id="soonText"></span>
-</div>
-
 <div class="tools" id="list"></div>
 
 <div class="info">
@@ -170,23 +163,11 @@ a.tcard:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
   แล้วเพิ่มอีก 1 บล็อกใน <code>tools.json</code> — หน้านี้กับหน้ารันจะรู้จักเครื่องมือใหม่เอง ไม่ต้องแก้ HTML
 </div>
 
-<footer>AMR Asia — งานวิศวกรรมและประมาณราคา</footer>
 </div>
 
 <script>
 // ฐาน path — ทำงานได้ทั้ง /My-Web-App/ และ root
 const BASE = location.pathname.replace(/[^/]*$/, '');
-
-// แบนเนอร์เมื่อกดเข้าเมนูที่ยังไม่เปิด (?soon=<key>) — เช่น งาน PowerPoint / งานเขียนแบบ (CAD)
-(function () {
-  var SOON_LABEL = { powerpoint: 'งาน PowerPoint', cad: 'งานเขียนแบบ (CAD)' };
-  var m = (location.search || '').match(/[?&]soon=([a-z-]+)/);
-  if (!m) return;
-  var b = document.getElementById('soonBanner');
-  document.getElementById('soonText').innerHTML =
-    '<b>' + (SOON_LABEL[m[1]] || m[1]) + '</b> — รอ update เร็วๆ นี้';
-  b.hidden = false;
-})();
 
 // หา tools.json โดยลองหลายชื่อโฟลเดอร์ — ไม่ผูกกับชื่อ tools/ หรือ tool/
 const TOOL_DIRS = ['tools/', 'tool/', 'assets/tools/', ''];

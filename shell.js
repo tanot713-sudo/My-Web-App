@@ -10,8 +10,13 @@
 
   var BASE = location.pathname.replace(/[^/]*$/, '');
   var HERE = location.pathname.split('/').pop() || 'index.html';
-  var HERE_FULL = HERE + location.search; // เทียบกับ href ที่มี query string (เช่น run.html?tool=est-cost) ได้ด้วย
-  function hrefMatches(href) { return href === HERE_FULL || href === HERE; }
+  var HERE_FULL = HERE + location.search; // เทียบกับ href ที่มี query string (เช่น run.html?tool=est-cost)
+  var HERE_HASH = HERE + location.hash;    // เทียบกับ href ที่มี hash (เช่น legal.html#plaint)
+  var HERE_FULL_HASH = HERE + location.search + location.hash;
+  function hrefMatches(href) {
+    return href === HERE_FULL || href === HERE || href === HERE_HASH || href === HERE_FULL_HASH;
+  }
+  function soonHref(label) { return 'soon.html?label=' + encodeURIComponent(label); }
 
   /* ── ธีม: อ่านค่าที่เคยเลือก > ตามระบบ ─────────────────────────── */
   function getTheme() {
@@ -38,13 +43,24 @@
         { key: 'doc-check',  label: 'ตรวจสอบเอกสาร', href: 'doc-check.html' },
         { key: 'word',       label: 'งาน Word', href: 'word.html' },
         { key: 'excel',      label: 'งาน Excel', href: 'excel.html' },
-        { key: 'powerpoint', label: 'งาน PowerPoint', href: 'documents.html?soon=powerpoint' },
-        { key: 'cad',        label: 'งานเขียนแบบ (CAD)', href: 'documents.html?soon=cad' },
+        { key: 'powerpoint', label: 'งาน PowerPoint', href: soonHref('งาน PowerPoint') },
+        { key: 'cad',        label: 'งานเขียนแบบ (CAD)', href: soonHref('งานเขียนแบบ (CAD)') },
         { key: 'est-cost',   label: 'ประเมินราคา PM/CM', href: 'run.html?tool=est-cost' },
         { key: 'pdf-split',  label: 'แยกหน้า PDF', href: 'run.html?tool=pdf-split' }
       ]
     },
-    { key: 'legal', label: 'งานกฎหมาย', href: 'legal.html' },
+    { key: 'data-collect', label: 'รวบรวมข้อมูล', href: soonHref('รวบรวมข้อมูล') },
+    { key: 'data-compare', label: 'เปรียบเทียบข้อมูล', href: soonHref('เปรียบเทียบข้อมูล') },
+    { key: 'legal', label: 'งานกฎหมาย', children: [
+        { key: 'legal-plaint',        label: 'ร่างคำฟ้อง', href: 'legal.html#plaint' },
+        { key: 'legal-answer',        label: 'ร่างคำให้การ', href: 'legal.html#answer' },
+        { key: 'legal-petition',      label: 'ร่างคำขอ', href: 'legal.html#petition' },
+        { key: 'legal-statement',     label: 'ร่างคำแถลง', href: 'legal.html#statement' },
+        { key: 'legal-counterclaim',  label: 'ร่างฟ้องแย้ง', href: 'legal.html#counterclaim' },
+        { key: 'legal-prayer',        label: 'ร่างคำขอท้ายฟ้อง', href: 'legal.html#prayer' },
+        { key: 'legal-police-report', label: 'ร่างเพื่อนำไปแจ้งความ', href: 'legal.html#police-report' }
+      ]
+    },
     { key: 'daily', label: 'ชีวิตประจำวัน', children: [
         { key: 'invest', label: 'การลงทุน', href: 'invest.html', children: [
             { key: 'global-stock', label: 'หุ้นต่างประเทศ',  icon: '🌐', href: 'invest-global-stock.html' },
@@ -59,10 +75,25 @@
             { key: 'bitcoin',      label: 'Bitcoin',          icon: '₿', href: 'invest-bitcoin.html' },
             { key: 'lottery',      label: 'สลากกินแบ่งรัฐบาล', icon: '🎰', href: 'invest-lottery.html' }
           ]
-        }
+        },
+        { key: 'finance',   label: 'รายรับรายจ่าย', href: 'budget.html' },
+        { key: 'tax',       label: 'การจ่ายภาษี', href: soonHref('การจ่ายภาษี') },
+        { key: 'insurance', label: 'ประกัน', href: soonHref('ประกัน') },
+        { key: 'health',    label: 'สุขภาพ', href: soonHref('สุขภาพ') },
+        { key: '3d-sim',    label: 'จำลอง 3D', href: soonHref('จำลอง 3D') },
+        { key: 'games',     label: 'เกมที่เล่น', href: soonHref('เกมที่เล่น') },
+        { key: 'cooking',   label: 'สอนทำอาหาร', href: soonHref('สอนทำอาหาร') },
+        { key: 'books',     label: 'หนังสือ', href: soonHref('หนังสือ') }
       ]
     },
     { key: 'language', label: 'ภาษา', href: 'languages.html' },
+    { key: 'special', label: 'ความสามารถพิเศษ', children: [
+        { key: 'music',  label: 'เรียนดนตรี', href: soonHref('เรียนดนตรี') },
+        { key: 'sports', label: 'เรียนกีฬา', href: soonHref('เรียนกีฬา') },
+        { key: 'coding', label: 'การเขียนโค้ด', href: soonHref('การเขียนโค้ด') },
+        { key: 'typing', label: 'สอนพิมพ์', href: soonHref('สอนพิมพ์') }
+      ]
+    },
     { key: 'classroom', label: 'ห้องเรียน', children: [
         { key: 'classroom-law',         label: 'ความรู้กฎหมาย', href: 'classroom-law.html' },
         { key: 'classroom-business',    label: 'ธุรกิจ',         href: 'classroom-business.html' },
@@ -184,9 +215,51 @@
       applyTheme(next);
     });
     right.appendChild(themeBtn);
+
+    var gearBtn = document.createElement('button');
+    gearBtn.id = 'omeGearBtn';
+    gearBtn.className = 'ome-theme-btn';
+    gearBtn.setAttribute('aria-label', 'ตั้งค่า');
+    gearBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+    right.appendChild(gearBtn);
+
     nav.appendChild(right);
 
     document.body.insertBefore(nav, document.body.firstChild);
+
+    /* ── แผงตั้งค่า (dropdown เล็กใต้ปุ่มฟันเฟือง) ── */
+    var settingsPanel = document.createElement('div');
+    settingsPanel.className = 'ome-settings-panel';
+    var SETTINGS_ROWS = [
+      { ic: '🎨', label: 'เลือกธีมเว็บ' },
+      { ic: '🔤', label: 'ปรับขนาดตัวอักษร' },
+      { ic: '🗑️', label: 'ล้างข้อมูล' },
+      { ic: '❓', label: 'Help', divider: true }
+    ];
+    SETTINGS_ROWS.forEach(function (r) {
+      if (r.divider) {
+        var hr = document.createElement('div');
+        hr.className = 'ome-settings-divider';
+        settingsPanel.appendChild(hr);
+      }
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'ome-settings-row';
+      row.innerHTML = '<span class="ic">' + r.ic + '</span><span>' + r.label + '</span>';
+      settingsPanel.appendChild(row);
+    });
+    document.body.appendChild(settingsPanel);
+
+    function openSettings() { settingsPanel.classList.add('open'); }
+    function closeSettings() { settingsPanel.classList.remove('open'); }
+    gearBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      settingsPanel.classList.toggle('open');
+    });
+    document.addEventListener('click', function (e) {
+      if (!settingsPanel.contains(e.target) && e.target !== gearBtn) closeSettings();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSettings(); });
 
     /* ── ลิ้นชักเมนู ── */
     var backdrop = document.createElement('div');
@@ -228,6 +301,17 @@
     });
   }
 
+  /* ── ฟุตเตอร์กลางล่างสุดของทุกหน้า — ลิงก์เดียว ไม่มีข้อความอื่นปน ── */
+  function buildFooter() {
+    var footer = document.createElement('footer');
+    footer.className = 'ome-footer';
+    var a = document.createElement('a');
+    a.href = BASE + 'credits.html';
+    a.textContent = 'เครดิต & ลิขสิทธิ์';
+    footer.appendChild(a);
+    document.body.appendChild(footer);
+  }
+
   /* ── PWA ────────────────────────────────────────────────────────── */
   function registerSW() {
     if ('serviceWorker' in navigator) {
@@ -236,8 +320,8 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { buildNav(); registerSW(); });
+    document.addEventListener('DOMContentLoaded', function () { buildNav(); buildFooter(); registerSW(); });
   } else {
-    buildNav(); registerSW();
+    buildNav(); buildFooter(); registerSW();
   }
 })();
