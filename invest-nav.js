@@ -17,7 +17,7 @@
     { key: 'business',     label: 'ลงทุนทำธุรกิจ',    icon: '🏪', page: 'invest-business.html' },
     { key: 'gov-bond',     label: 'พันธบัตรรัฐบาล',   icon: '🏛️', page: 'invest-gov-bond.html' },
     { key: 'gsb-lottery',  label: 'สลากออมสิน',       icon: '🎟️', page: 'invest-gsb-lottery.html' },
-    { key: 'baac-lottery', label: 'สลาก ธ.ก.ส.',      icon: '🌾' },
+    { key: 'baac-lottery', label: 'สลาก ธ.ก.ส.',      icon: '🌾', page: 'invest-baac-lottery.html' },
     { key: 'thai-fund',    label: 'กองทุนไทย',        icon: '📊', page: 'invest-thai-fund.html' },
     { key: 'global-fund',  label: 'กองทุนต่างประเทศ', icon: '🧺', page: 'invest-global-fund.html' },
     { key: 'bitcoin',      label: 'Bitcoin',          icon: '₿', page: 'invest-bitcoin.html' }
