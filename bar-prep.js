@@ -390,6 +390,29 @@
     if (mime && mime.indexOf('image/') === 0) return FILE_ICONS['image/'];
     return '📄';
   }
+  var FOLDER_MIME = 'application/vnd.google-apps.folder';
+  /* เดิน BFS หาโฟลเดอร์ย่อยทั้งหมด (ลึกได้ถึง maxDepth ชั้น) เพราะผู้ใช้มักจัดไฟล์เป็นหมวดย่อย
+     (เช่น ภาค1/ภาค2/ตัวบทกฎหมาย) ไม่ได้วางไฟล์ไว้ที่โฟลเดอร์หลักตรงๆ */
+  function listSubfoldersRecursive(rootId, maxDepth) {
+    var all = [{ id: rootId, path: '' }];
+    function step(queue, depth) {
+      if (!queue.length || depth >= maxDepth) return Promise.resolve(all);
+      var next = [];
+      return Promise.all(queue.map(function (f) {
+        var q = encodeURIComponent("'" + f.id + "' in parents and mimeType='" + FOLDER_MIME + "' and trashed=false");
+        return DriveSync.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
+          .then(function (r) { return r.ok ? r.json() : { files: [] }; })
+          .then(function (data) {
+            (data.files || []).forEach(function (sub) {
+              var entry = { id: sub.id, path: f.path ? f.path + ' / ' + sub.name : sub.name };
+              all.push(entry);
+              next.push(entry);
+            });
+          });
+      })).then(function () { return step(next, depth + 1); });
+    }
+    return step(all.slice(), 0);
+  }
   function listDriveFiles() {
     var status = $('bpDriveListStatus'), list = $('bpDriveFileList');
     if (!DriveSync.connected || !DriveSync.accessToken) {
@@ -397,21 +420,32 @@
       status.textContent = 'ยังไม่ได้เชื่อมต่อ Google Drive — กดปุ่ม "เชื่อมต่อ Google Drive" ในการ์ดด้านล่างก่อน';
       return;
     }
-    status.className = 'status'; status.textContent = '⏳ กำลังโหลดรายชื่อไฟล์…';
+    status.className = 'status'; status.textContent = '⏳ กำลังค้นโฟลเดอร์ย่อย…';
+    var folders;
     DriveSync.ensureFolder().then(function (folderId) {
-      var q = encodeURIComponent("'" + folderId + "' in parents and trashed=false");
-      return DriveSync.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name,mimeType,webViewLink,modifiedTime)&orderBy=modifiedTime desc');
-    }).then(function (r) { if (!r.ok) throw new Error('โหลดรายชื่อไฟล์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
-      .then(function (data) {
-        var files = (data.files || []).filter(function (f) { return f.name !== DRIVE_FILE_NAME; }); // ข้ามไฟล์ข้อมูลของแอปเอง
+      return listSubfoldersRecursive(folderId, 4);
+    }).then(function (f) {
+      folders = f;
+      status.textContent = '⏳ กำลังโหลดรายชื่อไฟล์จาก ' + folders.length + ' โฟลเดอร์…';
+      return Promise.all(folders.map(function (fo) {
+        var q = encodeURIComponent("'" + fo.id + "' in parents and mimeType!='" + FOLDER_MIME + "' and trashed=false");
+        return DriveSync.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name,mimeType,webViewLink,modifiedTime)')
+          .then(function (r) { return r.ok ? r.json() : { files: [] }; })
+          .then(function (data) {
+            return (data.files || []).map(function (file) { file._path = fo.path; return file; });
+          });
+      }));
+    }).then(function (groups) {
+        var files = [].concat.apply([], groups).filter(function (f) { return f.name !== DRIVE_FILE_NAME; }); // ข้ามไฟล์ข้อมูลของแอปเอง
+        files.sort(function (a, b) { return new Date(b.modifiedTime) - new Date(a.modifiedTime); });
         status.className = 'status ok';
-        status.textContent = files.length ? ('พบ ' + files.length + ' ไฟล์') : 'ยังไม่มีไฟล์อื่นในโฟลเดอร์นี้';
+        status.textContent = files.length ? ('พบ ' + files.length + ' ไฟล์ (รวมในโฟลเดอร์ย่อยแล้ว)') : 'ยังไม่มีไฟล์อื่นในโฟลเดอร์นี้ (เช็กแล้วรวมโฟลเดอร์ย่อยด้วย)';
         if (!files.length) { list.innerHTML = ''; return; }
         list.innerHTML = files.map(function (f) {
           var canExtract = f.mimeType === 'application/pdf' || (f.mimeType && f.mimeType.indexOf('image/') === 0);
           return '<li class="note-item" data-fid="' + f.id + '" data-mime="' + esc(f.mimeType) + '" data-name="' + esc(f.name) + '">' +
             '<div class="hd"><span class="tag">' + fileIcon(f.mimeType) + ' ' + esc(f.name) + '</span></div>' +
-            '<div class="meta">แก้ไขล่าสุด: ' + new Date(f.modifiedTime).toLocaleString('th-TH') + '</div>' +
+            '<div class="meta">' + (f._path ? '📁 ' + esc(f._path) + ' · ' : '') + 'แก้ไขล่าสุด: ' + new Date(f.modifiedTime).toLocaleString('th-TH') + '</div>' +
             '<div class="frow" style="margin-top:6px">' +
               '<a class="btn sm" href="' + f.webViewLink + '" target="_blank" rel="noopener">👁 เปิดดู</a>' +
               (canExtract ? '<button class="btn sm" type="button" data-extract="' + f.id + '">📝 แยกข้อความ</button>' : '') +
@@ -665,5 +699,8 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
-  window.__barprep = { evalCareer: evalCareer, daysUntil: daysUntil, fmtClock: fmtClock };
+  window.__barprep = {
+    evalCareer: evalCareer, daysUntil: daysUntil, fmtClock: fmtClock,
+    DriveSync: DriveSync, listDriveFiles: listDriveFiles
+  };
 })();
