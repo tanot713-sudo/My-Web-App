@@ -19,6 +19,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { STLExporter } from 'three/addons/exporters/STLExporter.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
@@ -31,7 +32,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
 
   var STORAGE_KEY = 'tanot:sim3d:objects';
   var SNAP = 0.5;
-  var UPLOAD_EXTS = ['glb', 'gltf', 'obj', 'ply', 'stl'];
+  var UPLOAD_EXTS = ['glb', 'gltf', 'obj', 'ply', 'stl', 'fbx'];
 
   /* ══════════════════ IndexedDB — คลังโมเดลของฉัน (เก็บไฟล์จริง) ══════════════════ */
   var DB_NAME = 'tanot-sim3d', DB_STORE = 'models', DB_VERSION = 1;
@@ -423,6 +424,14 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       var geo2 = new STLLoader().parse(arrayBuffer);
       geo2.computeVertexNormals();
       return Promise.resolve(new THREE.Mesh(geo2, new THREE.MeshStandardMaterial({ color: 0x9C9C9C })));
+    }
+    if (ext === 'fbx') {
+      var fbxObj = new FBXLoader().parse(arrayBuffer, '');
+      // ไฟล์ FBX มักตั้งหน่วยเป็นเซนติเมตร (ต่างจาก glTF/OBJ ที่ตั้งเป็นเมตรตามธรรมเนียมที่แอปนี้ใช้)
+      // แปลงสเกลตาม GlobalSettings.UnitScaleFactor (จำนวน ซม. ต่อ 1 หน่วย) ให้ลงตัวเป็นเมตรเหมือนฟอร์แมตอื่น
+      var usf = fbxObj.userData && fbxObj.userData.unitScaleFactor;
+      if (isFinite(usf) && usf > 0) fbxObj.scale.multiplyScalar(usf / 100);
+      return Promise.resolve(fbxObj);
     }
     return Promise.reject(new Error('รูปแบบไฟล์ไม่รองรับ'));
   }
@@ -833,8 +842,8 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       }).join('');
       wrap.innerHTML =
         (list.length ? '<div class="s3-mymodel-grid">' + rows + '</div>' : '<p class="s3-insp-empty">ยังไม่มีโมเดลที่อัปโหลด</p>') +
-        '<button class="btn sm s3-upload-btn" type="button" id="s3UploadBtn">⬆️ อัปโหลดโมเดล (.glb .gltf .obj .ply .stl)</button>' +
-        '<input type="file" id="s3FileInput" accept=".glb,.gltf,.obj,.ply,.stl" style="display:none">';
+        '<button class="btn sm s3-upload-btn" type="button" id="s3UploadBtn">⬆️ อัปโหลดโมเดล (.glb .gltf .obj .ply .stl .fbx)</button>' +
+        '<input type="file" id="s3FileInput" accept=".glb,.gltf,.obj,.ply,.stl,.fbx" style="display:none">';
       $('s3UploadBtn').addEventListener('click', function () { $('s3FileInput').click(); });
       $('s3FileInput').addEventListener('change', function (e) {
         var f = e.target.files && e.target.files[0];
@@ -872,7 +881,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
 
   function handleFileUpload(file) {
     var ext = (file.name.split('.').pop() || '').toLowerCase();
-    if (UPLOAD_EXTS.indexOf(ext) === -1) { s3Alert('รองรับเฉพาะไฟล์ .glb .gltf .obj .ply .stl'); return; }
+    if (UPLOAD_EXTS.indexOf(ext) === -1) { s3Alert('รองรับเฉพาะไฟล์ .glb .gltf .obj .ply .stl .fbx'); return; }
     file.arrayBuffer().then(function (buf) {
       return parseModelFile(ext, buf).then(function () {
         var rec = { name: file.name.replace(/\.[^.]+$/, ''), format: ext, arrayBuffer: buf, sizeBytes: buf.byteLength, createdAt: Date.now() };

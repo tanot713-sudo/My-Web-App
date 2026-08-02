@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v69';
+const CACHE = 'ome-v70';
 const PRECACHE = [
   './',
   './index.html',
@@ -60,6 +60,10 @@ const PRECACHE = [
   './vendor/three/jsm/loaders/OBJLoader.js',
   './vendor/three/jsm/loaders/PLYLoader.js',
   './vendor/three/jsm/loaders/STLLoader.js',
+  './vendor/three/jsm/loaders/FBXLoader.js',
+  './vendor/three/jsm/curves/NURBSCurve.js',
+  './vendor/three/jsm/curves/NURBSUtils.js',
+  './vendor/three/jsm/libs/fflate.module.js',
   './vendor/three/jsm/exporters/GLTFExporter.js',
   './vendor/three/jsm/exporters/STLExporter.js',
   './vendor/three/jsm/utils/BufferGeometryUtils.js',
