@@ -1,1091 +1,488 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ห้องเรียนกฎหมาย | Tanot</title>
-    <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#12A594">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>เรียนกฎหมาย | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<!-- Google Identity Services — สำหรับซิงก์โน้ต/ฟลashcard ขึ้น Google Drive ส่วนตัว (ไม่บังคับ) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
+  --brand:#12A594;--brand-dk:#0B7F72;--brand-sf:#E7F6F4;
+  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--sky:#3B9BEA;--err:#E5484D;--warn:#E08700;--violet:#6C63D9;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
+  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto}
+.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
+.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+.crumb .sep{margin:0 7px;color:#C9CEDC}
+.head{display:flex;align-items:center;gap:12px;margin:12px 0 6px}
+.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:26px;
+  background:linear-gradient(135deg,#12A594,#3FCBB6);color:#fff;display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(18,165,148,.3)}
+h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
 
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="theme.css">
-    <script src="shell.js" defer></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        window.tailwind = window.tailwind || {};   // กันพังถ้า CDN โหลดไม่ขึ้น
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Prompt', 'sans-serif'] },
-                    colors: {
-                        primary: '#0B7F72',
-                        secondary: '#12A594',
-                        accent: '#f59e0b',
-                        success: '#10b981',
-                        danger: '#ef4444'
-                    }
-                }
-            }
-        }
-    </script>
+.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px}
+.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
+.frow{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 130px;min-width:120px}
+.field label{font-size:12px;color:var(--muted);font-weight:600}
+.field .unit{font-size:11px;color:var(--muted);font-weight:500}
+input[type=number],input[type=text],input[type=date],textarea{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:11px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none}
+textarea{resize:vertical;line-height:1.6}
+select{font-family:inherit;font-size:14px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--line);
+  background:var(--bg);color:var(--ink);width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand)}
+input[readonly]{opacity:.75;cursor:default}
+[data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{background:#12151C}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
+  background:var(--card);border-radius:11px;padding:10px 15px;font-family:inherit;font-size:14px;font-weight:700;
+  color:var(--ink);cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-dk);color:#fff}
+.btn.sm{padding:7px 11px;font-size:12.5px}
+.btn:disabled{opacity:.5;cursor:default}
+.status{font-size:12.5px;color:var(--muted);margin-top:9px;min-height:1.2em}
+.status.err{color:var(--err)}
+.status.ok{color:var(--ok)}
 
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+.drive-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.drive-row .status{margin-top:0}
 
-    <style>
-        body { background-color: #f8fafc; color: #1e293b; margin: 0; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }
-        /* พรีวิวโน้ต Markdown */
-        .md-preview { line-height: 1.75; font-size: 14px; }
-        .md-preview h2 { font-size: 1.25rem; font-weight: 700; margin: .8em 0 .35em; }
-        .md-preview h3 { font-size: 1.1rem; font-weight: 700; margin: .7em 0 .3em; }
-        .md-preview h4 { font-size: 1rem; font-weight: 600; margin: .6em 0 .25em; }
-        .md-preview p { margin: .35em 0; }
-        .md-preview ul, .md-preview ol { margin: .4em 0 .4em 1.4em; }
-        .md-preview ul { list-style: disc; } .md-preview ol { list-style: decimal; }
-        .md-preview li { margin: .15em 0; }
-        .md-preview code { background: rgba(18,165,148,.12); padding: 1px 6px; border-radius: 6px; font-size: .9em; }
-        .md-preview mark { background: #FDE68A; padding: 0 3px; border-radius: 4px; }
-        [data-theme="dark"] .md-preview mark { background: #7A5C0E; color: #FDE68A; }
-    </style>
+details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;list-style:none;
+  display:flex;align-items:center;gap:8px;user-select:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:'▸';color:var(--muted);transition:.15s}
+details[open]>summary::before{transform:rotate(90deg)}
+.details-body{padding:0 15px 15px;font-size:13.5px}
+.lesson h3{font-size:13.5px;font-weight:700;margin:12px 0 4px;color:var(--brand-dk)}
+.lesson p{font-size:13px;margin-bottom:4px;opacity:.92}
+.lesson ul{margin:2px 0 6px 18px;font-size:13px}
+.lesson li{margin-bottom:4px}
+
+.verdict-box{border-radius:13px;padding:14px 16px;font-size:14px;font-weight:600;line-height:1.5}
+.verdict-box.go{background:#E9F9F0;color:#0B7F52}
+.verdict-box.no{background:#FDECEC;color:#B23838}
+.verdict-box.warn{background:#FFF6E4;color:#8A6212}
+[data-theme="dark"] .verdict-box.go{background:#14261E;color:#5EDCAB}
+[data-theme="dark"] .verdict-box.no{background:#301B1B;color:#F0A0A0}
+[data-theme="dark"] .verdict-box.warn{background:#2A2415;color:#E8C88A}
+
+.disc{font-size:12px;color:var(--muted);line-height:1.6;padding:14px 4px 4px}
+
+/* ── กล่องยืนยัน/แจ้งเตือนของเว็บเอง (แทน confirm()/alert() ของเบราว์เซอร์) ── */
+.bp-modal-backdrop{position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:300;
+  display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.15s;padding:20px}
+.bp-modal-backdrop.open{opacity:1;pointer-events:auto}
+.bp-modal{background:var(--card);border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.25);
+  padding:20px;max-width:360px;width:100%;transform:translateY(8px);transition:.15s}
+.bp-modal-backdrop.open .bp-modal{transform:translateY(0)}
+.bp-modal-title{font-size:15.5px;font-weight:800;margin-bottom:6px}
+.bp-modal-msg{font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:16px;white-space:pre-line}
+.bp-modal-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+
+/* ── hamburger pane เฉพาะหน้านี้ (แยกจาก drawer เมนูหลักของเว็บ) ── */
+.clhb-toggle{width:38px;height:38px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);
+  font-size:18px;cursor:pointer;flex-shrink:0;display:grid;place-items:center;color:var(--ink)}
+.clhb-toggle:hover{border-color:var(--brand);color:var(--brand-dk)}
+.clhb-backdrop{position:fixed;inset:0;background:rgba(15,20,30,.4);z-index:250;opacity:0;pointer-events:none;transition:.18s}
+.clhb-backdrop.open{opacity:1;pointer-events:auto}
+.clhb-panel{position:fixed;top:0;left:0;bottom:0;width:270px;max-width:82vw;background:var(--card);z-index:260;
+  box-shadow:4px 0 24px rgba(24,31,54,.15);transform:translateX(-100%);transition:.2s;overflow-y:auto;padding:16px 0}
+.clhb-panel.open{transform:translateX(0)}
+.clhb-hd{font-size:15px;font-weight:800;padding:4px 18px 14px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.clhb-group-hd{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;
+  padding:14px 18px 4px}
+.clhb-list{list-style:none}
+.clhb-list a{display:block;padding:9px 18px;font-size:13.5px;font-weight:600;color:var(--ink);text-decoration:none;
+  border-left:3px solid transparent}
+.clhb-list a:hover{background:var(--bg)}
+.clhb-list a.active{background:var(--brand-sf);color:var(--brand-dk);border-left-color:var(--brand)}
+.clhb-list a .sub{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:1px}
+
+/* ── การ์ดเป้าหมาย 3 สาย ── */
+.goal-row{display:flex;flex-wrap:wrap;gap:10px}
+.goal-chip{flex:1 1 200px;background:var(--bg);border-radius:13px;padding:12px 14px;display:flex;gap:10px;align-items:center}
+.goal-chip .ic{font-size:22px}
+.goal-chip b{font-size:13.5px;display:block}
+.goal-chip span.sub{font-size:11.5px;color:var(--muted)}
+
+/* ── สนามสอบ / นับถอยหลัง ── */
+.exam-card{border:1px solid var(--line);border-radius:14px;padding:14px 15px;margin-top:10px}
+.exam-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.exam-hd .name{font-weight:800;font-size:14.5px;display:flex;align-items:center;gap:8px}
+.exam-cd{font-size:12.5px;font-weight:700;padding:5px 11px;border-radius:9px;background:var(--brand-sf);color:var(--brand-dk);white-space:nowrap}
+.exam-cd.past{background:var(--bg);color:var(--muted)}
+.exam-cd.unset{background:var(--bg);color:var(--muted)}
+.exam-dates{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:12.5px;color:var(--muted)}
+.exam-dates b{color:var(--ink)}
+.exam-edit{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.exam-edit .field{flex:1 1 140px;min-width:130px}
+.exam-prep{margin-top:10px;font-size:12.5px}
+.exam-prep summary{cursor:pointer;font-weight:700;color:var(--brand-dk)}
+.exam-prep ul{margin:6px 0 0 18px}
+.exam-prep li{margin-bottom:3px}
+.exam-prep li.ban{color:var(--err)}
+[data-theme="dark"] .exam-prep li.ban{color:#F0A0A0}
+.exam-link{font-size:12px;font-weight:700;color:var(--brand-dk);text-decoration:none}
+
+/* ── เช็กเส้นทาง 3 สายอาชีพ ── */
+.career-result{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:14px}
+.career-box{border-radius:13px;padding:14px 15px}
+.career-box .ttl{font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.career-box ul{margin:6px 0 0 16px;font-size:12.5px}
+.career-box li{margin-bottom:3px}
+
+/* ── โน้ต + flashcard ── */
+.note-list{list-style:none;margin-top:12px}
+.note-item{border-bottom:1px solid var(--line);padding:10px 0}
+.note-item:last-child{border-bottom:none}
+.note-item .hd{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.note-item .tag{font-size:11px;font-weight:700;color:var(--brand-dk);background:var(--brand-sf);border-radius:7px;padding:1px 8px}
+.note-item .txt{font-size:13px;margin-top:4px;white-space:pre-wrap}
+.note-item .meta{font-size:11px;color:var(--muted);margin-top:4px}
+.note-actions{display:flex;gap:10px;flex-shrink:0}
+.note-del{background:none;border:none;color:var(--err);cursor:pointer;font-size:14px;flex-shrink:0}
+.note-edit{background:none;border:none;color:var(--brand-dk);cursor:pointer;font-size:14px;flex-shrink:0}
+.note-empty{font-size:13px;color:var(--muted);padding:8px 0}
+.note-group-hd{display:flex;align-items:center;gap:8px;padding:12px 0 6px;border-top:2px solid var(--line)}
+.note-group-hd:first-child{border-top:none;padding-top:0}
+.note-group-hd .mini{margin:0;flex:1}
+.note-del-all{background:none;border:1px solid var(--err);color:var(--err);border-radius:7px;padding:3px 9px;font-size:11.5px;cursor:pointer;flex-shrink:0}
+
+.flash-card{background:var(--bg);border-radius:14px;padding:24px 18px;text-align:center;margin-top:12px;min-height:120px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer}
+.flash-card .q{font-size:15px;font-weight:700}
+.flash-card .a{font-size:14px;color:var(--brand-dk);display:none}
+.flash-card.show .a{display:block}
+.flash-card .hint{font-size:11.5px;color:var(--muted)}
+.flash-btns{display:flex;gap:8px;justify-content:center;margin-top:10px}
+.flash-progress{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+
+/* ── ฝึกเขียนตอบจับเวลา ── */
+.timer-box{text-align:center;padding:16px;background:var(--bg);border-radius:14px;margin-top:12px}
+.timer-num{font-size:34px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.timer-num.warn{color:var(--warn)}
+.timer-num.over{color:var(--err)}
+.chk-list{list-style:none;margin:12px 0 0;padding:0}
+.chk-list li{display:flex;gap:9px;align-items:flex-start;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.chk-list li:last-child{border-bottom:none}
+.chk-list li label{display:flex;gap:8px;align-items:flex-start;cursor:pointer;width:100%}
+.chk-list li label input{margin-top:3px;flex-shrink:0}
+.chk-list .mnum{font-weight:700;color:var(--brand-dk);flex-shrink:0}
+.chk-list .msnip{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wr-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
+.wr-table th,.wr-table td{padding:7px 6px;text-align:left;border-bottom:1px solid var(--line)}
+.wr-table th{color:var(--muted);font-weight:600;font-size:11.5px}
+
+/* ── OCR ── */
+.ocr-drop{border:1.5px dashed var(--line);border-radius:14px;padding:20px;text-align:center;font-size:13px;color:var(--muted)}
+.ocr-preview{max-width:100%;max-height:220px;border-radius:10px;margin-top:10px;display:none}
+
+/* ── สถิติกราฟการเรียน (dashboard) ── */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px}
+.stat-box{background:var(--bg);border-radius:13px;padding:13px 14px}
+.stat-box .num{font-size:22px;font-weight:800;color:var(--brand-dk)}
+.stat-box .lbl{font-size:11.5px;color:var(--muted);margin-top:2px}
+.bar-chart{margin-top:12px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12.5px}
+.bar-row .lbl{width:110px;flex-shrink:0;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-row .track{flex:1;background:var(--bg);border-radius:6px;height:16px;overflow:hidden;display:flex}
+.bar-row .fill{background:var(--brand);height:100%;border-radius:6px 0 0 6px;min-width:2px}
+.bar-row .val{width:34px;text-align:right;flex-shrink:0;font-weight:700;color:var(--ink)}
+.srs-track{display:flex;border-radius:8px;overflow:hidden;height:22px;margin-top:8px}
+.srs-seg{display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:#fff;min-width:2px}
+.srs-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:11px;color:var(--muted)}
+.srs-legend span{display:inline-flex;align-items:center;gap:4px}
+.srs-legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.act-graph{display:flex;align-items:flex-end;gap:2px;height:44px;margin-top:12px}
+.act-bar{flex:1;background:var(--brand);border-radius:2px 2px 0 0;min-width:2px;min-height:3px}
+.act-graph-lbl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-top:4px}
+</style>
 </head>
-<body class="ome-app-page">
+<body class="ome-tool-page">
 <script src="auth-gate.js"></script>
-    <div id="root"></div>
 
-    <script id="course-data" type="application/json">{"law": [{"id": "civil-law", "title": "กฎหมายแพ่ง", "overview": "กฎหมายแพ่ง (ประมวลกฎหมายแพ่งและพาณิชย์) ว่าด้วยความสัมพันธ์ทางกฎหมายระหว่างเอกชนด้วยกัน ครอบคลุมตั้งแต่สถานะบุคคล ทรัพย์สิน นิติกรรมสัญญา หนี้ ละเมิด ไปจนถึงครอบครัวและมรดก เป็นกฎหมายพื้นฐานที่กฎหมายแขนงอื่นเกือบทั้งหมดอ้างอิงหลักการอยู่เสมอ", "keyConcepts": ["บุคคล — บุคคลธรรมดาและนิติบุคคล ความสามารถในการทำนิติกรรม ผู้เยาว์/ผู้ไร้ความสามารถ/ผู้เสมือนไร้ความสามารถ", "ทรัพย์และทรัพยสิทธิ — กรรมสิทธิ์ การครอบครอง ทรัพยสิทธิประเภทต่าง ๆ เช่น ภาระจำยอม สิทธิอาศัย", "นิติกรรมและสัญญา — องค์ประกอบของนิติกรรม ความสมบูรณ์/โมฆะ/โมฆียะ การเกิด-เปลี่ยนแปลง-ระงับสัญญา", "หนี้ — บ่อเกิดแห่งหนี้ (นิติกรรม/ละเมิด/จัดการงานนอกสั่ง/ลาภมิควรได้) การชำระหนี้ ความรับผิดเมื่อไม่ชำระหนี้", "ละเมิด — หลักความรับผิดทางละเมิด (จงใจ/ประมาทเลินเล่อ) และค่าสินไหมทดแทน", "ครอบครัว — การหมั้น การสมรส ทรัพย์สินระหว่างสามีภริยา การหย่า สิทธิหน้าที่บิดามารดา-บุตร", "มรดก — ทายาทโดยธรรม พินัยกรรม การแบ่งและการจัดการมรดก"]}, {"id": "criminal-law", "title": "กฎหมายอาญา", "overview": "กฎหมายอาญา (ประมวลกฎหมายอาญา) ว่าด้วยการกำหนดว่าการกระทำใดเป็นความผิดและกำหนดโทษสำหรับความผิดนั้น ยึดหลัก \"ไม่มีกฎหมาย ไม่มีความผิด ไม่มีโทษ\" (nullum crimen, nulla poena sine lege) เพื่อคุ้มครองสิทธิเสรีภาพของประชาชนจากการใช้อำนาจรัฐตามอำเภอใจ", "keyConcepts": ["หลักไม่มีกฎหมาย ไม่มีความผิด ไม่มีโทษ — ห้ามตีความขยายความให้เป็นผลร้ายแก่ผู้กระทำ และห้ามใช้กฎหมายอาญาย้อนหลังในทางที่เป็นโทษ", "องค์ประกอบความผิด — การกระทำ (actus reus) ประกอบกับเจตนาหรือประมาท (mens rea)", "เจตนาและประมาท — เจตนาประสงค์ต่อผล เจตนาเล็งเห็นผล และการกระทำโดยประมาท", "เหตุยกเว้นความผิด/ยกเว้นโทษ — เช่น การป้องกันโดยชอบด้วยกฎหมาย ความจำเป็น", "ภาคความผิด — ความผิดต่อชีวิตและร่างกาย ทรัพย์ เสรีภาพและชื่อเสียง ความสงบสุขและศีลธรรมอันดีของประชาชน", "โทษทางอาญาและหลักการลงโทษ — ประหารชีวิต จำคุก กักขัง ปรับ ริบทรัพย์สิน"]}, {"id": "civil-procedure", "title": "กฎหมายวิธีพิจารณาความแพ่ง"}, {"id": "criminal-procedure", "title": "กฎหมายวิธีพิจารณาความอาญา"}, {"id": "evidence-law", "title": "กฎหมายลักษณะพยาน"}, {"id": "court-system", "title": "ระบบศาลและพระธรรมนูญศาลยุติธรรม"}, {"id": "constitutional-law", "title": "กฎหมายรัฐธรรมนูญ"}, {"id": "administrative-law", "title": "กฎหมายปกครอง"}, {"id": "labor-law", "title": "กฎหมายแรงงาน"}, {"id": "bankruptcy-law", "title": "กฎหมายล้มละลายและฟื้นฟูกิจการ"}, {"id": "insurance-law", "title": "กฎหมายประกันภัย"}, {"id": "ip-law", "title": "กฎหมายทรัพย์สินทางปัญญา"}, {"id": "tax-law", "title": "กฎหมายภาษีอากร"}, {"id": "consumer-law", "title": "กฎหมายคุ้มครองผู้บริโภค"}, {"id": "international-law", "title": "กฎหมายระหว่างประเทศ"}, {"id": "international-trade-law", "title": "กฎหมายการค้าระหว่างประเทศ"}]}</script>
+<div class="clhb-backdrop" id="clHbBackdrop"></div>
+<nav class="clhb-panel" id="clHbPanel">
+  <div class="clhb-hd">⚖️ เรียนกฎหมาย</div>
+  <ul class="clhb-list">
+    <li><a href="#dashboard" data-view="dashboard">📊 สถิติ</a></li>
+    <li><a href="#goals" data-view="goals">🎯 เป้าหมาย</a></li>
+    <li><a href="#allnotes" data-view="allnotes">📓 โน้ตทั้งหมด</a></li>
+  </ul>
+  <div class="clhb-group-hd">วิชาที่ใช้สอบจริง</div>
+  <ul class="clhb-list" id="clSubjectNav"></ul>
+  <ul class="clhb-list">
+    <li><a href="#tools" data-view="tools">🛠️ เครื่องมือรวม (Drive/ตั้งค่า)</a></li>
+  </ul>
+</nav>
 
-    <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
-        const COURSE = JSON.parse(document.getElementById('course-data').textContent);
+<div class="wrap">
+<nav class="crumb"><a href="index.html">หน้าหลัก</a><span class="sep">/</span>เรียนกฎหมาย</nav>
+<div class="head">
+  <button class="clhb-toggle" id="clHbToggle" type="button" aria-label="เปิดเมนู">☰</button>
+  <div class="head-ic">⚖️</div>
+  <div>
+    <h1>เรียนกฎหมาย</h1>
+    <div class="head-sub">โน้ต + flashcard ทบทวน + ฝึกเขียนตอบจับเวลา + นับถอยหลังสนามสอบ + ซิงก์ Drive ส่วนตัว</div>
+  </div>
+</div>
 
-        // ไอคอน lucide ต้องห่อใน span ที่ React เป็นเจ้าของ — ไม่งั้นตอน lucide แทนที่ <i> ด้วย <svg>
-        // React จะ unmount ไม่ได้ (removeChild error) เวลาสลับหัวข้อ
-        const icon = (name, cls) => () => (
-            <span className="inline-flex" dangerouslySetInnerHTML={{ __html: `<i data-lucide="${name}" class="${cls}"></i>` }} />
-        );
-        const Play = icon('play-circle', 'w-5 h-5');
-        const Check = icon('check-circle-2', 'w-5 h-5 text-success');
-        const Clock = icon('clock', 'w-4 h-4');
-        const Bookmark = icon('bookmark', 'w-4 h-4');
-        const Trophy = icon('trophy', 'w-4 h-4 text-accent');
-        const Target = icon('target', 'w-4 h-4');
-        const Scale = icon('scale', 'w-4 h-4');
-        const Briefcase = icon('briefcase', 'w-4 h-4');
-        const Wrench = icon('wrench', 'w-4 h-4');
-        const ChevronDown = icon('chevron-down', 'w-4 h-4');
-        const PenLine = icon('pen-line', 'w-5 h-5');
-        const Menu = icon('menu', 'w-5 h-5');
-        const CloseIcon = icon('x', 'w-5 h-5');
-        const NotebookIcon = icon('notebook-pen', 'w-5 h-5');
+<!-- ══════════════════ สถิติกราฟการเรียน (หน้าแรกที่เปิดเข้ามาเจอ) ══════════════════ -->
+<div class="view" id="viewDashboard">
+  <div class="card">
+    <h2>📊 สถิติกราฟการเรียน</h2>
+    <div class="stat-row" id="clStatRow"></div>
+  </div>
+  <div class="card">
+    <h2>📚 จำนวนโน้ตต่อวิชา</h2>
+    <p class="mini">เห็นทันทีว่าวิชาไหนมีเนื้อหาเยอะ/น้อยเทียบกัน</p>
+    <div class="bar-chart" id="clSubjBars"></div>
+  </div>
+  <div class="card">
+    <h2>🪜 ความก้าวหน้าการทบทวน (SRS)</h2>
+    <p class="mini">สัดส่วนโน้ตตามขั้นบันไดทบทวน — ยิ่งอยู่ขั้นท้ายๆ มาก ยิ่งจำได้มั่นคง</p>
+    <div class="srs-track" id="clSrsTrack"></div>
+    <div class="srs-legend" id="clSrsLegend"></div>
+  </div>
+  <div class="card">
+    <h2>🔥 กิจกรรม 30 วันล่าสุด</h2>
+    <p class="mini">รวมการเพิ่มโน้ต + ทบทวน flashcard + ฝึกเขียนตอบ ต่อวัน</p>
+    <div class="act-graph" id="clActGraph"></div>
+    <div class="act-graph-lbl"><span id="clActFrom"></span><span id="clActTo"></span></div>
+  </div>
+  <div class="card">
+    <h2>✍️ สถิติฝึกเขียนตอบ</h2>
+    <div class="bar-chart" id="clWrBars"></div>
+    <p class="note-empty" id="clWrStatsEmpty" style="display:none">ยังไม่มีประวัติฝึกเขียนตอบ</p>
+  </div>
+</div>
 
-        // สร้างรายการบทเรียนทั้งหมดจากข้อมูลจริงของ Tanot (กฎหมาย 16 หัวข้อ, ธุรกิจ 12 หัวข้อ, วิศวกรรม 13 หัวข้อ)
-        //
-        // ★ วิธีเพิ่มเนื้อหาให้หัวข้อกฎหมาย/วิศวกรรม: แก้ JSON ใน <script id="course-data"> ด้านบน
-        //   เปลี่ยนรายการจาก  {"id": "civil-law", "title": "กฎหมายแพ่ง"}
-        //   เป็น              {"id": "civil-law", "title": "กฎหมายแพ่ง",
-        //                      "overview": "สรุปภาพรวม...",
-        //                      "keyConcepts": ["ประเด็นที่ 1", "ประเด็นที่ 2"],
-        //                      "quiz": [{"q": "คำถาม?", "options": ["ก","ข","ค","ง"], "answer": 0}]}
-        //   ใส่แค่บางส่วนก็ได้ — มี overview/keyConcepts จะขึ้นในแท็บ "สรุปเนื้อหา" ทันที
-        //   ถ้ามี quiz หัวข้อนั้นจะกลายเป็นแบบฝึกมีเฉลย และเข้าระบบทบทวนเว้นช่วง + สอบรวมอัตโนมัติ
-        const enrich = t => ({
-            id: t.id, title: t.title,
-            kind: (t.quiz && t.quiz.length) ? 'quiz' : 'reflection',
-            data: t,
-        });
-        const SUBJECTS = [
-            { id: 'law', label: 'กฎหมาย', icon: Scale, topics: COURSE.law.map(enrich) },
-        ];
+<!-- ══════════════════ เป้าหมาย (พาเนลแยก ไม่ใช่หน้าแรก) ══════════════════ -->
+<div class="view" id="viewGoals" style="display:none">
+  <div class="card">
+    <h2>🎯 เป้าหมาย 3 สายอาชีพ</h2>
+    <div class="goal-row">
+      <div class="goal-chip"><span class="ic">👨‍⚖️</span><div><b>ผู้พิพากษา</b><span class="sub">สอบผู้ช่วยผู้พิพากษา (ก.ต.)</span></div></div>
+      <div class="goal-chip"><span class="ic">🏛️</span><div><b>อัยการ</b><span class="sub">สอบอัยการผู้ช่วย (ก.อ.)</span></div></div>
+      <div class="goal-chip"><span class="ic">💼</span><div><b>ทนายความ (Law Firm)</b><span class="sub">ตั๋วทนายความ (สภาทนายความ)</span></div></div>
+    </div>
+    <p class="mini">ทั้ง 3 สายต้องผ่าน "เนติบัณฑิต" เป็นพื้นฐานร่วมกัน (หรือมีวุฒินิติศาสตร์ที่เข้าเกณฑ์) ก่อนแยกเส้นทางเฉพาะสาย — ดูรายละเอียดเกณฑ์แต่ละสายในการ์ด "เช็กเส้นทาง" ด้านล่าง</p>
+  </div>
 
-        function reflectionPrompts(title) {
-            return [
-                `อธิบายหลักการสำคัญของ "${title}" ตามความเข้าใจของคุณ`,
-                `ยกตัวอย่างสถานการณ์จริงที่ต้องใช้ความรู้เรื่อง "${title}"`,
-            ];
-        }
+  <div class="card">
+    <h2>⏳ สนามสอบ &amp; นับถอยหลัง</h2>
+    <p class="mini">เว็บราชการ/สภาวิชาชีพไทยไม่มี API ให้ดึงวันสอบอัตโนมัติ — กรอก/แก้วันที่เองจากประกาศทางการล่าสุด (มีลิงก์กำกับทุกสนาม) ระบบจะนับถอยหลังให้จากวันที่คุณกรอก</p>
+    <div id="bpExamList"></div>
+  </div>
 
-        function loadXp() {
-            try { return JSON.parse(localStorage.getItem('lbe:law:xp') || '1250'); } catch { return 1250; }
-        }
-        function saveXp(v) { localStorage.setItem('lbe:law:xp', JSON.stringify(v)); }
+  <div class="card">
+    <h2>🧭 เช็กเส้นทาง 3 สายอาชีพ</h2>
+    <p class="mini">กรอกคุณสมบัติปัจจุบันของคุณ ระบบจะประเมินว่าตอนนี้เข้าเกณฑ์สมัครสนามไหนได้แล้ว และยังขาดอะไรของแต่ละสาย</p>
+    <div class="frow">
+      <div class="field"><label>เนติบัณฑิตแล้วหรือยัง</label>
+        <select id="bpNeti"><option value="no">ยังไม่จบ</option><option value="yes">จบแล้ว</option></select>
+      </div>
+      <div class="field"><label>ประสบการณ์ทำงานด้านกฎหมาย (ปี)</label>
+        <input type="number" id="bpExp" min="0" step="0.5" placeholder="0">
+      </div>
+      <div class="field"><label>วุฒิปริญญาโท/เอกกฎหมาย</label>
+        <select id="bpMaster"><option value="no">ไม่มี</option><option value="th">มี (ในประเทศ)</option><option value="intl">มี (ต่างประเทศ)</option></select>
+      </div>
+      <div class="field"><label>มีตั๋วทนายความแล้วหรือยัง</label>
+        <select id="bpLawyer"><option value="no">ยังไม่มี</option><option value="yes">มีแล้ว</option></select>
+      </div>
+    </div>
+    <button class="btn primary sm" id="bpCareerBtn" type="button" style="margin-top:12px">ประเมินเส้นทาง</button>
+    <div class="career-result" id="bpCareerResult"></div>
+    <p class="mini" style="margin-top:10px">⚠️ เกณฑ์จริงมีรายละเอียดปลีกย่อยเยอะกว่านี้และเปลี่ยนได้ตามระเบียบ ก.ต./ก.อ./สภาทนายความแต่ละปี ผลประเมินนี้เป็นแนวทางคร่าวๆ ไม่ใช่การยืนยันสิทธิ์สมัครสอบจริง ต้องเช็กกับประกาศทางการอีกครั้งเสมอ</p>
+  </div>
+</div>
 
-        function loadWritten() {
-            try { return JSON.parse(localStorage.getItem('lbe:law:written') || '{}'); } catch { return {}; }
-        }
-        function saveWritten(v) { localStorage.setItem('lbe:law:written', JSON.stringify(v)); }
+<!-- ══════════════════ โน้ตทั้งหมด / รายวิชา (ใช้ร่วมกัน — ต่างกันแค่ตัวกรองวิชา) ══════════════════ -->
+<div class="view" id="viewNotes" style="display:none">
+  <div class="card" id="clNotesTitleCard" style="display:none">
+    <h2>📖 <span id="clSubjTitle"></span></h2>
+    <p class="mini" id="clSubjFull"></p>
+  </div>
 
-        function loadCompleted() {
-            try { return JSON.parse(localStorage.getItem('lbe:law:completed') || '{}'); } catch { return {}; }
-        }
-        function saveCompleted(v) { localStorage.setItem('lbe:law:completed', JSON.stringify(v)); }
+  <div class="card">
+    <h2>📝 สมุดโน้ต + Flashcard (ทบทวนแบบเว้นระยะ)</h2>
+    <div class="frow">
+      <div class="field" style="flex:1 1 160px"><label>วิชา/หมวด</label>
+        <input type="text" id="bpNoteSubj" placeholder="เช่น ป.พ.พ. บรรพ 1">
+      </div>
+      <div class="field" style="flex:2 1 260px"><label>คำถาม (ด้านหน้าการ์ด)</label>
+        <input type="text" id="bpNoteQ" placeholder="เช่น มาตรา 420 ว่าด้วยเรื่องอะไร">
+      </div>
+    </div>
+    <div class="field" style="margin-top:8px"><label>คำตอบ/เนื้อหา (ด้านหลังการ์ด)</label>
+      <textarea id="bpNoteA" rows="3" placeholder="สรุปหลักกฎหมาย/เนื้อหาโน้ต"></textarea>
+    </div>
+    <div class="frow" style="margin-top:8px">
+      <button class="btn primary sm" id="bpNoteAdd" type="button">+ บันทึกโน้ต/การ์ด</button>
+      <button class="btn sm" id="bpNoteCancelEdit" type="button" style="display:none">ยกเลิกการแก้ไข</button>
+    </div>
 
-        function loadNotes() {
-            try { return JSON.parse(localStorage.getItem('lbe:law:notes') || '{}'); } catch { return {}; }
-        }
-        function saveNotes(v) { localStorage.setItem('lbe:law:notes', JSON.stringify(v)); }
+    <div style="margin-top:16px">
+      <button class="btn sm" id="bpReviewBtn" type="button">🔁 เริ่มทบทวนวันนี้</button>
+      <span class="mini" id="bpReviewCount"></span>
+    </div>
+    <div id="bpReviewArea"></div>
 
-        function mergeNotes(a, b) {
-            const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
-            const out = {};
-            keys.forEach(k => {
-                const na = a && a[k], nb = b && b[k];
-                if (!na) { out[k] = nb; return; }
-                if (!nb) { out[k] = na; return; }
-                out[k] = (na.updatedAt || 0) >= (nb.updatedAt || 0) ? na : nb;
-            });
-            return out;
-        }
+    <ul class="note-list" id="bpNoteList"></ul>
+  </div>
 
-        const ANNOUNCEMENTS = [
-            { date: 'วันนี้', text: 'ใหม่! ระบบทบทวนแบบเว้นช่วง (spaced repetition) — ข้อที่ตอบผิดจะวนกลับมาถามซ้ำในจังหวะที่ช่วยให้จำได้ยาว ดูการ์ด "ทบทวนวันนี้" ด้านล่าง' },
-            { date: 'ใหม่', text: 'โหมดสอบรวม — สุ่มข้อสอบข้ามหลายหัวข้อ จับเวลา และเก็บสถิติคะแนนไว้ดูพัฒนาการ' },
-            { date: 'เคล็ดลับ', text: 'โน้ตรองรับ Markdown แล้ว: # หัวข้อ, **ตัวหนา**, *เอียง*, ==ไฮไลต์==, - รายการ — กด "ดูตัวอย่าง" ในแท็บโน้ตเพื่อดูผลลัพธ์' },
-        ];
+  <div class="card">
+    <h2>⏱️ ฝึกเขียนตอบจับเวลา</h2>
+    <div class="frow">
+      <div class="field"><label>วิชา</label>
+        <input type="text" id="bpWrSubj" placeholder="เช่น กฎหมายอาญา">
+      </div>
+      <div class="field"><label>เวลา (นาที)</label>
+        <input type="number" id="bpWrMin" value="15" min="1">
+      </div>
+    </div>
+    <div class="field" style="margin-top:8px"><label>โจทย์ (พิมพ์เอง หรือวางจากที่เตรียมไว้)</label>
+      <textarea id="bpWrPrompt" rows="2" placeholder="วางโจทย์ข้อสอบที่จะฝึกตอบ"></textarea>
+    </div>
+    <div class="frow" style="margin-top:8px">
+      <button class="btn primary sm" id="bpWrStart" type="button">▶️ เริ่มจับเวลา</button>
+      <button class="btn sm" id="bpWrStop" type="button" disabled>⏹ หยุด</button>
+    </div>
+    <div class="timer-box" id="bpWrTimerBox" style="display:none">
+      <div class="timer-num" id="bpWrTimerNum">--:--</div>
+      <textarea id="bpWrAnswer" rows="8" placeholder="เขียนคำตอบที่นี่…" style="margin-top:12px"></textarea>
+      <ul class="chk-list" id="bpWrChecklist" style="text-align:left"></ul>
+      <button class="btn primary sm" id="bpWrSave" type="button" style="margin-top:10px">✅ บันทึกผลฝึก</button>
+    </div>
+    <table class="wr-table" id="bpWrTable" style="display:none">
+      <thead><tr><th>วันที่</th><th>วิชา</th><th>เวลาที่ใช้</th><th>เช็กลิสต์ผ่าน</th><th></th></tr></thead>
+      <tbody id="bpWrTbody"></tbody>
+    </table>
+    <p class="note-empty" id="bpWrEmpty">ยังไม่มีประวัติการฝึกเขียนตอบ</p>
+  </div>
 
-        // ── คลังข้อสอบรวม (เฉพาะข้อที่มีเฉลย) ใช้ทั้งโหมดทบทวนและสอบรวม ─────────
-        const QUESTION_BANK = [];
-        SUBJECTS.forEach(s => s.topics.forEach(t => {
-            if (t.kind !== 'quiz') return;
-            t.data.quiz.forEach((q, i) => QUESTION_BANK.push({
-                qKey: `${s.id}:${t.id}:${i}`, subjId: s.id, topicId: t.id, topicTitle: t.title,
-                q: q.q, refAnswer: q.options[q.answer],
-            }));
-        }));
-        const QUESTION_BY_KEY = Object.fromEntries(QUESTION_BANK.map(q => [q.qKey, q]));
+  <div class="card">
+    <h2>📷 นำเข้าข้อความ → ตรวจทาน → บันทึกโน้ต</h2>
+    <p class="mini">ถ่ายรูปหน้าเอกสาร หรือกด "แยกข้อความ" จากไฟล์ใน Drive (การ์ด "เครื่องมือรวม") — ระบบแปลงข้อความให้อัตโนมัติแต่ <b>ต้องตรวจทานก่อนบันทึกเสมอ</b> โดยเฉพาะตัวเลขมาตรา/เลขที่ฎีกาที่ผิดแล้วอันตราย ถ่ายในที่แสงสว่างสม่ำเสมอ ไม่เอียง ไม่มีเงา จะช่วยให้แม่นยำขึ้นมาก · ถ้าเป็นตัวบทกฎหมายทั้งฉบับ (มีหลายมาตรา) ใช้ปุ่ม "✂️ แบ่งเป็นรายมาตรา" ด้านล่างแทนการบันทึกเป็นก้อนเดียว จะได้การ์ดท่องทีละมาตราสำหรับทบทวนแบบ Flashcard</p>
+    <label class="ocr-drop" for="bpOcrFile" id="bpOcrDrop">📷 แตะเพื่อถ่ายรูป/เลือกรูปหน้าเอกสาร</label>
+    <input type="file" id="bpOcrFile" accept="image/*" capture="environment" style="display:none">
+    <img id="bpOcrPreview" class="ocr-preview" alt="ตัวอย่างรูปที่เลือก">
+    <div class="status" id="bpOcrStatus"></div>
+    <div class="frow" style="margin-top:10px" id="bpOcrEditWrap" style="display:none">
+      <div class="field" style="flex:1 1 160px"><label>วิชา/หมวด (สำหรับบันทึกเป็นโน้ต)</label>
+        <input type="text" id="bpOcrSubj" placeholder="เช่น เนติภาค 1 ปี 2568">
+      </div>
+    </div>
+    <textarea id="bpOcrText" rows="6" placeholder="ข้อความที่แปลงได้จะขึ้นตรงนี้ — แก้ไข/ตรวจทานก่อนบันทึก" style="margin-top:8px;display:none"></textarea>
+    <div class="frow" style="margin-top:8px">
+      <button class="btn primary sm" id="bpOcrSave" type="button" style="display:none">✅ บันทึกเป็นโน้ตเดียว</button>
+      <button class="btn sm" id="bpMatraSplitBtn" type="button" style="display:none">✂️ แบ่งเป็นรายมาตรา</button>
+    </div>
+    <div id="bpMatraSplitWrap" style="display:none;margin-top:10px">
+      <p class="mini" id="bpMatraSplitStatus"></p>
+      <ul class="chk-list" id="bpMatraList"></ul>
+      <div class="frow" style="margin-top:8px">
+        <button class="btn primary sm" id="bpMatraSaveBtn" type="button">✅ บันทึกมาตราที่เลือกเป็นโน้ตแยก</button>
+        <button class="btn sm" id="bpMatraCancelBtn" type="button">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-        // ── Spaced repetition: ตอบถูกเลื่อนรอบ 1→3→7→14→30 วัน, ตอบผิดถอยกลับ 1 วัน ──
-        const SRS_STEPS = [1, 3, 7, 14, 30];
-        const DAY_MS = 86400000;
-        function nextSrs(prev, correct) {
-            let interval;
-            if (!correct) interval = 1;
-            else {
-                const i = SRS_STEPS.indexOf(prev ? prev.interval : -1);
-                interval = SRS_STEPS[Math.min(i + 1, SRS_STEPS.length - 1)];
-            }
-            return { interval, due: Date.now() + interval * DAY_MS };
-        }
+<!-- ══════════════════ เครื่องมือรวม (ไม่ผูกกับวิชาใดวิชาหนึ่ง) ══════════════════ -->
+<div class="view" id="viewTools" style="display:none">
+  <div class="card">
+    <h2>📂 ไฟล์ในโฟลเดอร์ Drive ของฉัน</h2>
+    <p class="mini">ไฟล์ที่คุณอัปโหลดไว้แล้วในโฟลเดอร์ <b>เนติ-ตั๋วทนาย-อัยการ-ผู้พิพากษา</b> (เช่น ธงคำตอบที่สแกน/ถ่ายไว้) — ต้องเชื่อมต่อ Google Drive ก่อน (การ์ดด้านล่าง) รายการนี้อ่านจากโฟลเดอร์ส่วนตัวของคุณเท่านั้น ไม่มีใครอื่นเห็น</p>
+    <button class="btn sm" id="bpDriveListBtn" type="button">🔄 โหลดรายชื่อไฟล์จาก Drive</button>
+    <div class="status" id="bpDriveListStatus"></div>
+    <ul class="note-list" id="bpDriveFileList"></ul>
 
-        function loadSrs() {
-            try { return JSON.parse(localStorage.getItem('lbe:law:srs') || '{}'); } catch { return {}; }
-        }
-        function saveSrs(v) { localStorage.setItem('lbe:law:srs', JSON.stringify(v)); }
-        function mergeSrs(a, b) {
-            const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
-            const out = {};
-            keys.forEach(k => {
-                const va = a && a[k], vb = b && b[k];
-                out[k] = !va ? vb : !vb ? va : ((va.due || 0) >= (vb.due || 0) ? va : vb);
-            });
-            return out;
-        }
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
+      <p class="mini" style="margin-bottom:8px">📤 <b>อัปโหลดไฟล์เข้า Drive ผ่านแอปนี้โดยตรง</b> (จำเป็น เพราะสิทธิ์ที่แอปขอไว้เห็นได้เฉพาะไฟล์ที่อัปโหลดผ่านแอปเท่านั้น ไม่เห็นไฟล์ที่ลากเข้า Drive เองจากเว็บ Google)</p>
+      <div class="field" style="max-width:260px">
+        <label>อัปโหลดเข้าโฟลเดอร์ไหน</label>
+        <select id="bpUploadTargetFolder"><option value="">(โฟลเดอร์หลัก)</option></select>
+      </div>
+      <label class="ocr-drop" for="bpUploadFiles" id="bpUploadDrop" style="margin-top:8px">📤 แตะเพื่อเลือกไฟล์อัปโหลด (เลือกได้หลายไฟล์พร้อมกัน)</label>
+      <input type="file" id="bpUploadFiles" multiple style="display:none">
+      <div class="status" id="bpUploadStatus"></div>
+    </div>
+  </div>
 
-        function loadExams() {
-            try { return JSON.parse(localStorage.getItem('lbe:law:exams') || '[]'); } catch { return []; }
-        }
-        function saveExams(v) { localStorage.setItem('lbe:law:exams', JSON.stringify(v)); }
-        function mergeExams(a, b) {
-            const seen = {};
-            [...(a || []), ...(b || [])].forEach(e => { if (e && e.date) seen[e.date] = e; });
-            return Object.values(seen).sort((x, y) => y.date.localeCompare(x.date)).slice(0, 50);
-        }
+  <div class="card">
+    <h2>☁️ ซิงก์ Google Drive ส่วนตัว</h2>
+    <p class="mini">โน้ต/flashcard/ประวัติฝึกเขียนตอบ/ผลประเมินเส้นทางอาชีพ จะถูกสำรองไว้ในโฟลเดอร์ Drive ของคุณเอง (<b>เนติ-ตั๋วทนาย-อัยการ-ผู้พิพากษา</b>) ไม่ผ่านเซิร์ฟเวอร์ใดๆ ของเรา — ไม่เชื่อมต่อก็ใช้งานได้ปกติ ข้อมูลจะเก็บในเครื่องนี้อย่างเดียว (IndexedDB/localStorage)</p>
+    <div class="drive-row">
+      <button class="btn sm" id="driveConnectBtn" type="button">🔗 เชื่อมต่อ Google Drive</button>
+      <span class="status" id="driveStatusTxt"></span>
+    </div>
+  </div>
 
-        function shuffled(arr) {
-            const a = arr.slice();
-            for (let i = a.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
+  <div class="card">
+    <h2>🧹 ล้างข้อมูลเก่า</h2>
+    <div class="frow" style="align-items:center">
+      <button class="btn sm" id="bpCleanNotesBtn" type="button">🧹 ล้างคำที่ไม่ต้องการออกจากโน้ตที่มีอยู่แล้ว</button>
+      <span class="mini" id="bpCleanNotesStatus"></span>
+    </div>
+    <p class="mini">ใช้อันนี้ถ้าโน้ตที่แยกไว้ก่อนหน้ายังมีคำอย่าง "สำนักงานคณะกรรมการกฤษฎีกา" หรือเลขหน้าปนอยู่ (เช่นแยกไว้ก่อนที่ระบบจะตัดคำพวกนี้ให้อัตโนมัติ) กดครั้งเดียวล้างทุกโน้ตที่มีอยู่ในเครื่องนี้เลย</p>
+    <p class="mini" id="bpStorageInfo" style="margin-top:8px"></p>
+  </div>
 
-        // ── Markdown-lite สำหรับโน้ต (escape ก่อนเสมอ กัน XSS) ─────────────────
-        function escapeHtml(s) {
-            return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-        }
-        function mdToHtml(src) {
-            const inline = t => t
-                .replace(/`([^`]+)`/g, '<code>$1</code>')
-                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-                .replace(/==([^=]+)==/g, '<mark>$1</mark>');
-            let html = '', inUl = false, inOl = false;
-            const closeLists = () => {
-                if (inUl) { html += '</ul>'; inUl = false; }
-                if (inOl) { html += '</ol>'; inOl = false; }
-            };
-            escapeHtml(src || '').split('\n').forEach(raw => {
-                const l = raw.trimEnd();
-                if (/^###\s/.test(l)) { closeLists(); html += '<h4>' + inline(l.slice(4)) + '</h4>'; }
-                else if (/^##\s/.test(l)) { closeLists(); html += '<h3>' + inline(l.slice(3)) + '</h3>'; }
-                else if (/^#\s/.test(l)) { closeLists(); html += '<h2>' + inline(l.slice(2)) + '</h2>'; }
-                else if (/^[-*]\s/.test(l)) {
-                    if (!inUl) { closeLists(); html += '<ul>'; inUl = true; }
-                    html += '<li>' + inline(l.slice(2)) + '</li>';
-                }
-                else if (/^\d+\.\s/.test(l)) {
-                    if (!inOl) { closeLists(); html += '<ol>'; inOl = true; }
-                    html += '<li>' + inline(l.replace(/^\d+\.\s/, '')) + '</li>';
-                }
-                else if (l === '') closeLists();
-                else { closeLists(); html += '<p>' + inline(l) + '</p>'; }
-            });
-            closeLists();
-            return html;
-        }
+  <details class="card lesson" style="box-shadow:var(--sh)">
+    <summary style="font-size:14px">📚 เรียนรู้ / เกี่ยวกับเครื่องมือนี้</summary>
+    <div class="details-body">
+      <h3>ทำไมไม่มีเนื้อหาข้อสอบ/ธงคำตอบให้พร้อมในนี้</h3>
+      <p>"คำถามพร้อมธงคำตอบ" ของเนติบัณฑิตยสภาเป็นสิ่งพิมพ์ลิขสิทธิ์ที่ขายจริง เว็บนี้จะไม่ฝัง/แจกจ่ายเนื้อหาที่มีลิขสิทธิ์คนอื่นในตัวโค้ดของเว็บ (ซึ่งจะเห็นได้จากทุกคนที่เข้าเว็บ) — แต่การเก็บสำเนาที่คุณซื้อไว้ใน Google Drive ส่วนตัวของคุณเองเพื่อใช้ศึกษาไม่ใช่ปัญหา (เข้าข่ายข้อยกเว้นเพื่อการศึกษาส่วนตัวตามกฎหมายลิขสิทธิ์) ใช้การ์ด "ไฟล์ในโฟลเดอร์ Drive ของฉัน" เปิดดู/แยกข้อความจากไฟล์ที่คุณอัปโหลดไว้แล้วได้เลย หรือถ่ายรูปสดผ่าน "นำเข้าข้อความ" ก็ได้</p>
+      <h3>ทำไมวันสอบต้องกรอกเอง</h3>
+      <p>เว็บศาลยุติธรรม/อัยการสูงสุด/สภาทนายความ/เนติบัณฑิตยสภา ไม่มี API สาธารณะให้ดึงวันที่อัตโนมัติ ต้องอัปเดตเองจากประกาศจริงทุกรอบ ระบบมีลิงก์ตรงไปหน้าประกาศให้กดเช็กได้เสมอ</p>
+      <h3>Flashcard ทบทวนยังไง</h3>
+      <p>ใช้ระบบเว้นระยะแบบขั้นบันได — การ์ดที่ตอบถูกจะเลื่อนไปทบทวนห่างขึ้นเรื่อยๆ (1 วัน → 3 → 7 → 14 → 30) ตอบผิดจะรีเซ็ตกลับมาทบทวนพรุ่งนี้ทันที ช่วยเน้นเวลาไปกับจุดที่ยังไม่แม่นจริงๆ</p>
+      <h3>ฝึกเขียนตอบจับเวลาทำไมสำคัญ</h3>
+      <p>ข้อสอบทั้งเนติ/อัยการ/ผู้พิพากษาเป็นข้อเขียนอัตนัยล้วนที่ต้องอ้างมาตรา+ฎีกาให้แม่นภายในเวลาจำกัด อ่านเข้าใจอย่างเดียวไม่พอ ต้องฝึกเขียนจริงให้ทันเวลาด้วย</p>
+      <h3>ทำไมแยกวิชาเป็นพาเนล</h3>
+      <p>เพื่อไม่ให้โน้ต/ฝึกเขียน/ทบทวนของหลายวิชาปนกันจนสับสน — เข้าพาเนลวิชาไหน เครื่องมือทั้งหมดในนั้นจะกรอง/บันทึกเฉพาะวิชานั้นให้อัตโนมัติ ส่วน "โน้ตทั้งหมด" ไว้ดูภาพรวมทุกวิชารวมกัน</p>
+      <h3>ข้อมูลเก็บที่ไหน</h3>
+      <p>สมุดโน้ตเก็บใน IndexedDB ของเบราว์เซอร์นี้ (โควตาใหญ่กว่า localStorage มาก) ส่วนข้อมูลอื่น (วันสอบ/ผลประเมินเส้นทาง/ประวัติฝึกเขียน) เก็บใน localStorage — เชื่อมต่อ Google Drive ส่วนตัวได้ถ้าต้องการสำรอง/ใช้ข้ามอุปกรณ์ ไม่มีข้อมูลของคุณผ่านเซิร์ฟเวอร์ของเว็บนี้เลย</p>
+    </div>
+  </details>
 
-        // ── Google Drive sync (ไม่บังคับ) — ซิงก์ XP/ความคืบหน้าข้ามอุปกรณ์ ──────────
-        const DRIVE_CLIENT_ID = '497048581273-akpavakt6m34lhqbjf1irg3m8vl6u27u.apps.googleusercontent.com';
-        const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-        const DRIVE_FOLDER_NAME = 'OME_Progress';
-        const DRIVE_FILE_NAME = 'lbe-law-progress.json';
+  <div class="disc">⚠️ เครื่องมือนี้ช่วยจัดระเบียบการเตรียมสอบเท่านั้น ไม่ใช่แหล่งเนื้อหากฎหมายที่สมบูรณ์หรือคำรับรองว่าจะสอบผ่าน เกณฑ์คุณสมบัติ/วันสอบ/ระเบียบห้องสอบต้องยึดตามประกาศทางการล่าสุดของแต่ละหน่วยงานเป็นหลักเสมอ · ข้อมูลที่กรอกเก็บในเครื่องคุณเท่านั้น (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
+</div>
 
-        const DriveSync = {
-            tokenClient: null,
-            accessToken: null,
-            folderId: null,
-            ensureAuth() {
-                return new Promise((resolve, reject) => {
-                    if (!window.google || !google.accounts || !google.accounts.oauth2) {
-                        reject(new Error('โหลด Google Identity Services ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'));
-                        return;
-                    }
-                    if (!this.tokenClient) {
-                        this.tokenClient = google.accounts.oauth2.initTokenClient({
-                            client_id: DRIVE_CLIENT_ID,
-                            scope: DRIVE_SCOPE,
-                            callback: (resp) => {
-                                if (resp.error) { reject(new Error(resp.error)); return; }
-                                this.accessToken = resp.access_token;
-                                resolve(this.accessToken);
-                            },
-                        });
-                    }
-                    this.tokenClient.requestAccessToken({ prompt: this.accessToken ? '' : 'consent' });
-                });
-            },
-            async ensureFolder() {
-                if (this.folderId) return this.folderId;
-                const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-                const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
-                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw new Error('ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP ' + res.status + ')');
-                const data = await res.json();
-                if (data.files && data.files.length) { this.folderId = data.files[0].id; return this.folderId; }
-                const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
-                    method: 'POST',
-                    headers: { Authorization: 'Bearer ' + this.accessToken, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }),
-                });
-                if (!createRes.ok) throw new Error('สร้างโฟลเดอร์ไม่สำเร็จ (HTTP ' + createRes.status + ')');
-                const createData = await createRes.json();
-                this.folderId = createData.id;
-                return this.folderId;
-            },
-            async findFile(name, folderId) {
-                const q = encodeURIComponent(`name='${name}' and '${folderId}' in parents and trashed=false`);
-                const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
-                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw new Error('ค้นหาไฟล์ไม่สำเร็จ (HTTP ' + res.status + ')');
-                const data = await res.json();
-                return (data.files && data.files[0]) || null;
-            },
-            async downloadFile(fileId) {
-                const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw new Error('ดาวน์โหลดไม่สำเร็จ (HTTP ' + res.status + ')');
-                return res.json();
-            },
-            async uploadFile(name, folderId, existingId, obj) {
-                const form = new FormData();
-                const metadata = existingId ? {} : { name, parents: [folderId] };
-                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-                form.append('file', new Blob([JSON.stringify(obj)], { type: 'application/json' }));
-                const url = existingId
-                    ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`
-                    : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
-                const res = await fetch(url, { method: existingId ? 'PATCH' : 'POST',
-                    headers: { Authorization: 'Bearer ' + this.accessToken }, body: form });
-                if (!res.ok) throw new Error('บันทึกขึ้น Drive ไม่สำเร็จ (HTTP ' + res.status + ')');
-                return res.json();
-            },
-        };
+</div>
 
-        function App() {
-            const initialSubject = 'law';
-            const [view, setView] = useState('stream'); // 'stream' | 'classwork'
-            const [activeSubject, setActiveSubject] = useState(initialSubject);
-            const [activeTopicId, setActiveTopicId] = useState(SUBJECTS.find(s => s.id === initialSubject).topics[0].id);
-            const [activeTab, setActiveTab] = useState('quiz');
-            const [openGroups, setOpenGroups] = useState({ law: initialSubject === 'law', business: initialSubject === 'business', engineering: initialSubject === 'engineering' });
-            const [qIndex, setQIndex] = useState(0);
-            const [answerText, setAnswerText] = useState('');
-            const [revealed, setRevealed] = useState(false);
-            const [selfMark, setSelfMark] = useState(null); // 'correct' | 'wrong'
-            const [xp, setXp] = useState(loadXp());
-            const [written, setWritten] = useState(loadWritten());
-            const [completed, setCompleted] = useState(loadCompleted());
-            const [notes, setNotes] = useState(loadNotes());
-            const [srs, setSrs] = useState(loadSrs());
-            const [exams, setExams] = useState(loadExams());
-            const [syncing, setSyncing] = useState(false);
-            const [syncStatus, setSyncStatus] = useState('');
-            const [mobileNavOpen, setMobileNavOpen] = useState(false);
+<div class="bp-modal-backdrop" id="bpModalBackdrop">
+  <div class="bp-modal" id="bpModal" role="dialog" aria-modal="true">
+    <div class="bp-modal-title" id="bpModalTitle"></div>
+    <div class="bp-modal-msg" id="bpModalMsg"></div>
+    <div class="bp-modal-btns" id="bpModalBtns"></div>
+  </div>
+</div>
 
-            // เซสชันทบทวน (spaced repetition)
-            const [revList, setRevList] = useState([]);       // qKey[]
-            const [revIndex, setRevIndex] = useState(0);
-            const [revAnswer, setRevAnswer] = useState('');
-            const [revRevealed, setRevRevealed] = useState(false);
-
-            // เซสชันสอบรวม
-            const [examList, setExamList] = useState([]);     // question objects
-            const [examIndex, setExamIndex] = useState(0);
-            const [examAnswer, setExamAnswer] = useState('');
-            const [examRevealed, setExamRevealed] = useState(false);
-            const [examScore, setExamScore] = useState(0);
-            const [examStart, setExamStart] = useState(null);
-
-            // โน้ต: โหมดพรีวิว + ค้นหาในหน้ารวมโน้ต
-            const [notePreview, setNotePreview] = useState(false);
-            const [notesQuery, setNotesQuery] = useState('');
-
-            useEffect(() => { lucide.createIcons(); });
-            useEffect(() => { saveXp(xp); }, [xp]);
-            useEffect(() => { saveWritten(written); }, [written]);
-            useEffect(() => { saveCompleted(completed); }, [completed]);
-            useEffect(() => { saveNotes(notes); }, [notes]);
-            useEffect(() => { saveSrs(srs); }, [srs]);
-            useEffect(() => { saveExams(exams); }, [exams]);
-
-            const dueKeys = Object.keys(srs).filter(k => QUESTION_BY_KEY[k] && srs[k].due <= Date.now());
-
-            const startReview = () => {
-                setRevList(shuffled(dueKeys));
-                setRevIndex(0); setRevAnswer(''); setRevRevealed(false);
-                setView('review');
-            };
-            const markReview = (correct) => {
-                const key = revList[revIndex];
-                setSrs(s => ({ ...s, [key]: nextSrs(s[key], correct) }));
-                if (correct) setXp(x => x + 30);
-                setRevIndex(i => i + 1); setRevAnswer(''); setRevRevealed(false);
-            };
-
-            const startExam = (n) => {
-                setExamList(shuffled(QUESTION_BANK).slice(0, n));
-                setExamIndex(0); setExamAnswer(''); setExamRevealed(false);
-                setExamScore(0); setExamStart(Date.now());
-                setView('exam');
-            };
-            const markExam = (correct) => {
-                const q = examList[examIndex];
-                setSrs(s => ({ ...s, [q.qKey]: nextSrs(s[q.qKey], correct) }));
-                if (correct) { setExamScore(sc => sc + 1); setXp(x => x + 20); }
-                const isLast = examIndex + 1 >= examList.length;
-                if (isLast) {
-                    const finalScore = examScore + (correct ? 1 : 0);
-                    setExams(ex => mergeExams(ex, [{
-                        date: new Date().toISOString(), score: finalScore,
-                        total: examList.length, sec: Math.round((Date.now() - examStart) / 1000),
-                    }]));
-                }
-                setExamIndex(i => i + 1); setExamAnswer(''); setExamRevealed(false);
-            };
-
-            const syncNow = async () => {
-                setSyncing(true);
-                setSyncStatus('กำลังเชื่อมต่อ Google...');
-                try {
-                    await DriveSync.ensureAuth();
-                    setSyncStatus('กำลังซิงก์...');
-                    const folderId = await DriveSync.ensureFolder();
-                    const existing = await DriveSync.findFile(DRIVE_FILE_NAME, folderId);
-                    const remote = existing ? await DriveSync.downloadFile(existing.id) : null;
-
-                    const mergedXp = Math.max(xp, remote?.xp || 0);
-                    const mergedCompleted = { ...(remote?.completed || {}), ...completed };
-                    const mergedWritten = { ...(remote?.written || {}), ...written };
-                    const mergedNotes = mergeNotes(remote?.notes, notes);
-                    const mergedSrs = mergeSrs(remote?.srs, srs);
-                    const mergedExams = mergeExams(remote?.exams, exams);
-
-                    setXp(mergedXp);
-                    setCompleted(mergedCompleted);
-                    setWritten(mergedWritten);
-                    setNotes(mergedNotes);
-                    setSrs(mergedSrs);
-                    setExams(mergedExams);
-
-                    await DriveSync.uploadFile(DRIVE_FILE_NAME, folderId, existing?.id,
-                        { xp: mergedXp, completed: mergedCompleted, written: mergedWritten, notes: mergedNotes,
-                          srs: mergedSrs, exams: mergedExams, savedAt: new Date().toISOString() });
-                    setSyncStatus('✅ ซิงก์สำเร็จ');
-                } catch (e) {
-                    setSyncStatus('❌ ' + (e.message || e));
-                } finally {
-                    setSyncing(false);
-                }
-            };
-
-            const subject = SUBJECTS.find(s => s.id === activeSubject);
-            const topic = subject.topics.find(t => t.id === activeTopicId) || subject.topics[0];
-
-            const questions = useMemo(() => {
-                if (topic.kind === 'quiz') {
-                    return topic.data.quiz.map(q => ({ q: q.q, refAnswer: q.options[q.answer], hasKey: true }));
-                }
-                return reflectionPrompts(topic.title).map(q => ({ q, refAnswer: null, hasKey: false }));
-            }, [topic]);
-
-            const level = Math.floor(xp / 250) + 1;
-
-            const noteKey = `${activeSubject}:${topic.id}`;
-            const noteText = (notes[noteKey] && notes[noteKey].text) || '';
-            const updateNote = (text) => setNotes(n => ({ ...n, [noteKey]: { text, updatedAt: Date.now() } }));
-
-            const allTopics = useMemo(() => SUBJECTS.flatMap(s => s.topics.map(t => ({ subjId: s.id, subjLabel: s.label, ...t }))), []);
-            const topicByKey = useMemo(() => Object.fromEntries(allTopics.map(t => [`${t.subjId}:${t.id}`, t])), []);
-            const totalTopics = allTopics.length;
-            const completedCount = allTopics.filter(t => completed[`${t.subjId}:${t.id}`]).length;
-            const todoTopics = allTopics.filter(t => !completed[`${t.subjId}:${t.id}`]);
-            const subjectStats = SUBJECTS.map(s => ({
-                ...s,
-                done: s.topics.filter(t => completed[`${s.id}:${t.id}`]).length,
-                total: s.topics.length,
-            }));
-
-            const selectTopic = (subjId, topicId) => {
-                setActiveSubject(subjId);
-                setActiveTopicId(topicId);
-                setActiveTab('quiz');
-                setQIndex(0);
-                setAnswerText('');
-                setRevealed(false);
-                setSelfMark(null);
-                setView('classwork');
-                setMobileNavOpen(false);
-            };
-
-            const openSubject = (subjId) => {
-                setActiveSubject(subjId);
-                setOpenGroups(g => ({ ...g, [subjId]: true }));
-                setView('classwork');
-            };
-
-            const submitAnswer = () => {
-                if (!answerText.trim()) return;
-                setRevealed(true);
-                const key = `${topic.id}:${qIndex}`;
-                setWritten(w => ({ ...w, [key]: answerText.trim() }));
-                if (!questions[qIndex].hasKey) setXp(x => x + 50);
-            };
-
-            const markSelf = (correct) => {
-                setSelfMark(correct ? 'correct' : 'wrong');
-                if (correct) setXp(x => x + 100);
-                // เข้าคิวทบทวนแบบเว้นช่วง (เฉพาะข้อที่มีเฉลย)
-                if (topic.kind === 'quiz') {
-                    const key = `${activeSubject}:${topic.id}:${qIndex}`;
-                    setSrs(s => ({ ...s, [key]: nextSrs(s[key], correct) }));
-                }
-            };
-
-            const nextQuestion = () => {
-                setQIndex(i => i + 1);
-                setAnswerText('');
-                setRevealed(false);
-                setSelfMark(null);
-            };
-
-            const restartTopic = () => {
-                setQIndex(0);
-                setAnswerText('');
-                setRevealed(false);
-                setSelfMark(null);
-            };
-
-            const isDone = qIndex >= questions.length;
-
-            useEffect(() => {
-                if (!isDone) return;
-                const key = `${activeSubject}:${topic.id}`;
-                if (!completed[key]) setCompleted(c => ({ ...c, [key]: true }));
-            }, [isDone, activeSubject, topic.id]);
-
-            return (
-                <div className="h-[calc(100vh-48px)] w-full flex flex-col bg-slate-50 font-sans">
-
-                    <header className="min-h-[64px] bg-white border-b border-slate-200 flex items-center flex-wrap gap-y-2 justify-between px-4 sm:px-6 py-2 shrink-0 z-10">
-                        <div className="flex items-center gap-2">
-                            <button onClick={() => setMobileNavOpen(true)} className="md:hidden -ml-1 p-1.5 text-slate-500 hover:text-slate-800" aria-label="เปิดเมนูหัวข้อ">
-                                <Menu />
-                            </button>
-                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold shrink-0">ก</div>
-                            <h1 className="text-base sm:text-lg font-bold text-slate-800">ห้องเรียนกฎหมาย <span className="hidden sm:inline text-slate-400 font-normal">| Tanot</span></h1>
-                        </div>
-                        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-                            <div className="flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
-                                <Trophy />
-                                <span className="text-sm font-bold text-amber-600">Level {level}</span>
-                                <span className="text-xs text-amber-500 font-medium">({xp} XP)</span>
-                            </div>
-                            <button
-                                onClick={syncNow}
-                                disabled={syncing}
-                                className="text-xs font-semibold text-slate-500 hover:text-secondary border border-slate-200 hover:border-secondary rounded-full px-3 py-1.5 disabled:opacity-50 transition-colors"
-                            >
-                                {syncing ? 'กำลังซิงก์...' : <>ซิงก์<span className="hidden sm:inline"> Google Drive</span></>}
-                            </button>
-                            {syncStatus && <span className="hidden sm:inline text-xs text-slate-400">{syncStatus}</span>}
-                            <a href="./index.html" className="text-xs font-semibold text-slate-400 hover:text-slate-700">&larr; กลับ Tanot</a>
-                        </div>
-                    </header>
-
-                    <div className="h-11 bg-white border-b border-slate-200 flex items-center gap-4 sm:gap-6 px-4 sm:px-6 shrink-0 z-10 overflow-x-auto whitespace-nowrap">
-                        <button
-                            onClick={() => setView('stream')}
-                            className={`h-full text-sm font-semibold border-b-2 transition-colors shrink-0 ${view === 'stream' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                        >
-                            สตรีม
-                        </button>
-                        <button
-                            onClick={() => setView('classwork')}
-                            className={`h-full text-sm font-semibold border-b-2 transition-colors shrink-0 ${view === 'classwork' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                        >
-                            งานเรียน
-                        </button>
-                        <button
-                            onClick={startReview}
-                            className={`h-full text-sm font-semibold border-b-2 transition-colors shrink-0 flex items-center gap-1.5 ${view === 'review' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                        >
-                            ทบทวน
-                            {dueKeys.length > 0 && <span className="bg-accent text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{dueKeys.length}</span>}
-                        </button>
-                        <button
-                            onClick={() => { setExamList([]); setExamIndex(0); setView('exam'); }}
-                            className={`h-full text-sm font-semibold border-b-2 transition-colors shrink-0 ${view === 'exam' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                        >
-                            สอบรวม
-                        </button>
-                        <button
-                            onClick={() => setView('allnotes')}
-                            className={`h-full text-sm font-semibold border-b-2 transition-colors shrink-0 ${view === 'allnotes' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                        >
-                            โน้ตทั้งหมด
-                        </button>
-                    </div>
-
-                    {view === 'stream' ? (
-                    <div className="flex-1 overflow-y-auto">
-                        <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
-                            <div className="rounded-2xl bg-gradient-to-br from-primary via-teal-800 to-secondary p-6 sm:p-8 text-white shadow-lg">
-                                <p className="text-xs uppercase tracking-widest text-slate-300 mb-2">ห้องเรียน</p>
-                                <h2 className="text-2xl font-bold mb-2">กฎหมาย</h2>
-                                <p className="text-slate-300 text-sm max-w-xl">รวมหัวข้อกฎหมาย {totalTopics} หัวข้อ ฝึกเขียนตอบเพื่อสะสม XP และไล่ระดับความเชี่ยวชาญ</p>
-                                <div className="mt-6 flex items-center gap-4 flex-wrap">
-                                    <div className="flex-1 min-w-[200px] max-w-xs">
-                                        <div className="flex justify-between text-xs text-slate-300 mb-1">
-                                            <span>ความคืบหน้ารวม</span><span>{completedCount}/{totalTopics}</span>
-                                        </div>
-                                        <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                                            <div className="h-full bg-accent rounded-full transition-all" style={{width: `${totalTopics ? (completedCount / totalTopics * 100) : 0}%`}}></div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full">
-                                        <Trophy /><span className="text-sm font-bold">Level {level}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                {subjectStats.map(s => (
-                                    <button key={s.id} onClick={() => openSubject(s.id)}
-                                        className="text-left bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow">
-                                        <div className="flex items-center gap-2 mb-3 text-slate-500"><s.icon /><span className="text-xs font-bold uppercase tracking-wide">{s.label}</span></div>
-                                        <div className="text-lg font-bold text-slate-800 mb-2">{s.done}/{s.total} หัวข้อ</div>
-                                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="h-full bg-secondary rounded-full" style={{width: `${s.total ? (s.done / s.total * 100) : 0}%`}}></div>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-white rounded-xl border border-slate-200 p-5">
-                                    <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Clock /> ทบทวนวันนี้</h3>
-                                    {dueKeys.length === 0 ? (
-                                        <p className="text-sm text-slate-400">ยังไม่มีข้อครบกำหนด — ตอบแบบฝึกในงานเรียนเพื่อเริ่มสะสมคิวทบทวน ระบบจะพาข้อเดิมกลับมาในรอบ 1 → 3 → 7 → 14 → 30 วัน</p>
-                                    ) : (
-                                        <>
-                                            <p className="mb-4"><span className="text-3xl font-bold text-slate-800">{dueKeys.length}</span> <span className="text-sm text-slate-500">ข้อครบกำหนดทบทวน</span></p>
-                                            <button onClick={startReview} className="px-5 py-2.5 bg-secondary text-white text-sm font-bold rounded-xl">เริ่มทบทวน</button>
-                                        </>
-                                    )}
-                                </div>
-                                <div className="bg-white rounded-xl border border-slate-200 p-5">
-                                    <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Trophy /> สอบรวมล่าสุด</h3>
-                                    {exams.length === 0 ? (
-                                        <>
-                                            <p className="text-sm text-slate-400 mb-4">ยังไม่เคยสอบ — ลองสอบรวมเพื่อวัดว่าจำได้จริงแค่ไหน ข้อที่พลาดจะเข้าคิวทบทวนอัตโนมัติ</p>
-                                            <button onClick={() => { setExamList([]); setExamIndex(0); setView('exam'); }} className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl">เริ่มสอบรวม</button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            {exams.slice(0, 3).map((e, i) => (
-                                                <div key={i} className="flex justify-between text-sm py-1.5 border-b border-slate-50">
-                                                    <span className="text-slate-500">{new Date(e.date).toLocaleDateString('th-TH')}</span>
-                                                    <span className={`font-bold ${e.score / e.total >= 0.7 ? 'text-success' : 'text-slate-700'}`}>{e.score}/{e.total}</span>
-                                                </div>
-                                            ))}
-                                            <button onClick={() => { setExamList([]); setExamIndex(0); setView('exam'); }} className="mt-3 px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl">สอบอีกครั้ง</button>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-white rounded-xl border border-slate-200 p-5">
-                                    <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Target /> งานที่ยังไม่เสร็จ</h3>
-                                    {todoTopics.length === 0 ? (
-                                        <p className="text-sm text-slate-400">ทำครบทุกหัวข้อแล้ว เยี่ยมมาก!</p>
-                                    ) : (
-                                        <div className="space-y-1">
-                                            {todoTopics.slice(0, 6).map(t => (
-                                                <button key={`${t.subjId}:${t.id}`} onClick={() => selectTopic(t.subjId, t.id)}
-                                                    className="w-full flex items-center justify-between gap-2 p-2.5 rounded-lg hover:bg-slate-50 text-left">
-                                                    <span className="text-sm text-slate-700 leading-tight">{t.title}</span>
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase shrink-0">{t.subjLabel}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="bg-white rounded-xl border border-slate-200 p-5">
-                                    <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Bookmark /> ประกาศ</h3>
-                                    <div className="space-y-4">
-                                        {ANNOUNCEMENTS.map((a, i) => (
-                                            <div key={i} className="text-sm">
-                                                <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">{a.date}</div>
-                                                <p className="text-slate-600 leading-relaxed">{a.text}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    ) : view === 'review' ? (
-                    <div className="flex-1 overflow-y-auto">
-                        <div className="max-w-2xl mx-auto p-4 sm:p-6">
-                            {revIndex >= revList.length ? (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-                                    {revList.length === 0 ? (
-                                        <>
-                                            <h2 className="text-xl font-bold text-slate-800 mb-2">ยังไม่มีข้อครบกำหนดทบทวน 🎉</h2>
-                                            <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-                                                ทุกข้อที่ตอบในแท็บ "งานเรียน" หรือ "สอบรวม" จะเข้าคิวทบทวนอัตโนมัติ<br/>
-                                                ตอบถูก → รอบถัดไปห่างขึ้น (1 → 3 → 7 → 14 → 30 วัน), ตอบผิด → กลับมาถามพรุ่งนี้
-                                            </p>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-5"><Trophy /></div>
-                                            <h2 className="text-xl font-bold text-slate-800 mb-2">ทบทวนครบ {revList.length} ข้อแล้ว!</h2>
-                                            <p className="text-sm text-slate-500 mb-8">ข้อที่ตอบถูกจะกลับมาอีกครั้งในรอบที่ห่างขึ้น ช่วยให้จำได้ยาวขึ้นเรื่อยๆ</p>
-                                        </>
-                                    )}
-                                    <button onClick={() => setView('stream')} className="px-6 py-3 bg-secondary text-white font-bold rounded-xl text-sm">กลับหน้าสตรีม</button>
-                                </div>
-                            ) : (() => {
-                                const rq = QUESTION_BY_KEY[revList[revIndex]];
-                                return (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8">
-                                    <div className="flex justify-between items-center mb-5">
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">ทบทวน {revIndex + 1} / {revList.length}</span>
-                                        <span className="text-xs font-semibold bg-blue-50 text-secondary px-3 py-1 rounded-full">{rq.topicTitle}</span>
-                                    </div>
-                                    <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-5 leading-snug">{rq.q}</h3>
-                                    <textarea
-                                        value={revAnswer}
-                                        onChange={e => setRevAnswer(e.target.value)}
-                                        disabled={revRevealed}
-                                        rows={4}
-                                        placeholder="ลองตอบจากความจำก่อน แล้วค่อยเปิดเฉลย..."
-                                        className="w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-none disabled:bg-slate-50"
-                                    />
-                                    <div className="mt-5">
-                                        {!revRevealed ? (
-                                            <button onClick={() => setRevRevealed(true)}
-                                                className="w-full py-3 bg-primary text-white rounded-xl font-bold text-sm">ดูเฉลย</button>
-                                        ) : (
-                                            <div className="animate-fade-in-up">
-                                                <div className="p-4 rounded-xl mb-4 border bg-blue-50 border-blue-100">
-                                                    <h4 className="font-bold mb-1 text-secondary text-sm">เฉลย</h4>
-                                                    <p className="text-sm text-slate-700">{rq.refAnswer}</p>
-                                                </div>
-                                                <div className="flex gap-3">
-                                                    <button onClick={() => markReview(true)} className="flex-1 py-3 rounded-xl bg-success text-white text-sm font-bold">จำได้ (+30 XP)</button>
-                                                    <button onClick={() => markReview(false)} className="flex-1 py-3 rounded-xl bg-slate-200 text-slate-600 text-sm font-bold">ยังไม่ได้ (ถามใหม่พรุ่งนี้)</button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                );
-                            })()}
-                        </div>
-                    </div>
-                    ) : view === 'exam' ? (
-                    <div className="flex-1 overflow-y-auto">
-                        <div className="max-w-2xl mx-auto p-4 sm:p-6">
-                            {examList.length === 0 ? (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
-                                    <h2 className="text-xl font-bold text-slate-800 mb-2">สอบรวม</h2>
-                                    <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-                                        สุ่มข้อสอบข้ามทุกหัวข้อที่มีเฉลย ({QUESTION_BANK.length} ข้อในคลัง) จับเวลา และเก็บสถิติคะแนน<br/>
-                                        ข้อที่ตอบผิดจะเข้าคิวทบทวนอัตโนมัติ
-                                    </p>
-                                    <div className="flex gap-3 justify-center mb-8">
-                                        <button onClick={() => startExam(10)} className="px-6 py-3 bg-secondary text-white font-bold rounded-xl text-sm">เริ่มสอบ 10 ข้อ</button>
-                                        <button onClick={() => startExam(20)} className="px-6 py-3 bg-primary text-white font-bold rounded-xl text-sm">เริ่มสอบ 20 ข้อ</button>
-                                    </div>
-                                    {exams.length > 0 && (
-                                        <div className="text-left border-t border-slate-100 pt-5">
-                                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">ผลสอบล่าสุด</h4>
-                                            {exams.slice(0, 5).map((e, i) => (
-                                                <div key={i} className="flex justify-between text-sm py-1.5 border-b border-slate-50">
-                                                    <span className="text-slate-500">{new Date(e.date).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}</span>
-                                                    <span className={`font-bold ${e.score / e.total >= 0.7 ? 'text-success' : 'text-slate-700'}`}>{e.score}/{e.total} ({Math.floor(e.sec / 60)}:{String(e.sec % 60).padStart(2, '0')} นาที)</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            ) : examIndex >= examList.length ? (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-                                    <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6"><Trophy /></div>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-1">ได้ {examScore} / {examList.length} คะแนน</h2>
-                                    <p className="text-sm text-slate-500 mb-8">
-                                        ใช้เวลา {Math.floor((exams[0]?.sec || 0) / 60)}:{String((exams[0]?.sec || 0) % 60).padStart(2, '0')} นาที
-                                        {examScore / examList.length >= 0.7 ? ' — เยี่ยมมาก!' : ' — ข้อที่พลาดเข้าคิวทบทวนแล้ว ลองกลับมาสอบใหม่'}
-                                    </p>
-                                    <div className="flex gap-3 justify-center">
-                                        <button onClick={() => { setExamList([]); setExamIndex(0); }} className="px-6 py-3 bg-secondary text-white font-bold rounded-xl text-sm">สอบอีกครั้ง</button>
-                                        <button onClick={() => setView('stream')} className="px-6 py-3 border-2 border-slate-200 text-slate-700 font-bold rounded-xl text-sm">กลับหน้าสตรีม</button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8">
-                                    <div className="flex justify-between items-center mb-5">
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">ข้อ {examIndex + 1} / {examList.length}</span>
-                                        <span className="text-xs font-semibold bg-blue-50 text-secondary px-3 py-1 rounded-full">{examList[examIndex].topicTitle}</span>
-                                    </div>
-                                    <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-5 leading-snug">{examList[examIndex].q}</h3>
-                                    <textarea
-                                        value={examAnswer}
-                                        onChange={e => setExamAnswer(e.target.value)}
-                                        disabled={examRevealed}
-                                        rows={4}
-                                        placeholder="พิมพ์คำตอบของคุณ..."
-                                        className="w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-none disabled:bg-slate-50"
-                                    />
-                                    <div className="mt-5">
-                                        {!examRevealed ? (
-                                            <button onClick={() => setExamRevealed(true)} disabled={!examAnswer.trim()}
-                                                className={`w-full py-3 rounded-xl font-bold text-sm ${examAnswer.trim() ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}>ส่งคำตอบ</button>
-                                        ) : (
-                                            <div className="animate-fade-in-up">
-                                                <div className="p-4 rounded-xl mb-4 border bg-blue-50 border-blue-100">
-                                                    <h4 className="font-bold mb-1 text-secondary text-sm">เฉลย</h4>
-                                                    <p className="text-sm text-slate-700">{examList[examIndex].refAnswer}</p>
-                                                </div>
-                                                <p className="text-xs text-slate-400 mb-2">เทียบกับคำตอบของคุณแล้ว ตรงไหม?</p>
-                                                <div className="flex gap-3">
-                                                    <button onClick={() => markExam(true)} className="flex-1 py-3 rounded-xl bg-success text-white text-sm font-bold">ตอบถูก</button>
-                                                    <button onClick={() => markExam(false)} className="flex-1 py-3 rounded-xl bg-slate-200 text-slate-600 text-sm font-bold">ยังไม่ถูก</button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    ) : view === 'allnotes' ? (
-                    <div className="flex-1 overflow-y-auto">
-                        <div className="max-w-3xl mx-auto p-4 sm:p-6">
-                            <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                                <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><NotebookIcon /> โน้ตทั้งหมด</h2>
-                                <input
-                                    type="text"
-                                    value={notesQuery}
-                                    onChange={e => setNotesQuery(e.target.value)}
-                                    placeholder="ค้นหาในโน้ตทุกหัวข้อ..."
-                                    className="w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl px-4 py-2.5 text-sm mb-5"
-                                />
-                                {(() => {
-                                    const q = notesQuery.trim().toLowerCase();
-                                    const entries = Object.entries(notes)
-                                        .filter(([k, v]) => v && v.text && v.text.trim())
-                                        .map(([k, v]) => ({ key: k, note: v, topic: topicByKey[k] }))
-                                        .filter(e => e.topic)
-                                        .filter(e => !q || e.topic.title.toLowerCase().includes(q) || e.note.text.toLowerCase().includes(q))
-                                        .sort((a, b) => (b.note.updatedAt || 0) - (a.note.updatedAt || 0));
-                                    if (!entries.length) return (
-                                        <p className="text-sm text-slate-400 text-center py-8">
-                                            {q ? 'ไม่พบโน้ตที่ตรงกับคำค้น' : 'ยังไม่มีโน้ต — เปิดหัวข้อในงานเรียนแล้วไปที่แท็บ "โน้ตของฉัน" เพื่อเริ่มจด'}
-                                        </p>
-                                    );
-                                    return entries.map(e => (
-                                        <button key={e.key}
-                                            onClick={() => { selectTopic(e.topic.subjId, e.topic.id); setActiveTab('notes'); }}
-                                            className="w-full text-left p-4 rounded-xl border border-slate-100 hover:border-secondary mb-3 transition-colors">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="font-bold text-sm text-slate-800">{e.topic.title}</span>
-                                                <span className="text-[10px] text-slate-400">{new Date(e.note.updatedAt).toLocaleDateString('th-TH')}</span>
-                                            </div>
-                                            <p className="text-xs text-slate-500 line-clamp-2">{e.note.text.slice(0, 160)}</p>
-                                        </button>
-                                    ));
-                                })()}
-                            </div>
-                        </div>
-                    </div>
-                    ) : (
-                    <div className="flex flex-1 overflow-hidden relative">
-
-                        {mobileNavOpen && (
-                            <div className="fixed inset-0 bg-black/30 z-30 md:hidden" onClick={() => setMobileNavOpen(false)}></div>
-                        )}
-
-                        <aside className={`fixed md:static inset-y-0 left-0 z-40 w-80 bg-white border-r border-slate-200 overflow-y-auto flex flex-col shrink-0 p-4 transform transition-transform duration-200 md:translate-x-0 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                            <div className="flex items-center justify-between mb-3 md:hidden">
-                                <span className="text-sm font-bold text-slate-700">หัวข้อทั้งหมด</span>
-                                <button onClick={() => setMobileNavOpen(false)} className="p-1 text-slate-400 hover:text-slate-700" aria-label="ปิดเมนู"><CloseIcon /></button>
-                            </div>
-                            {SUBJECTS.map(s => (
-                                <div key={s.id} className="mb-2">
-                                    <button
-                                        onClick={() => setOpenGroups(g => ({ ...g, [s.id]: !g[s.id] }))}
-                                        className="w-full flex items-center justify-between px-2 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-700"
-                                    >
-                                        <span className="flex items-center gap-2"><s.icon /> {s.label} <span className="text-slate-300 font-normal normal-case">({s.topics.length})</span></span>
-                                        <span className={`transition-transform ${openGroups[s.id] ? 'rotate-180' : ''}`}><ChevronDown /></span>
-                                    </button>
-                                    {openGroups[s.id] && (
-                                        <div className="space-y-1 mt-1">
-                                            {s.topics.map(t => {
-                                                const active = activeSubject === s.id && activeTopicId === t.id;
-                                                return (
-                                                    <button
-                                                        key={t.id}
-                                                        onClick={() => selectTopic(s.id, t.id)}
-                                                        className={`w-full text-left p-2.5 rounded-xl border flex gap-2 text-sm ${active ? 'bg-blue-50 border-blue-100 text-secondary font-semibold shadow-sm' : 'border-transparent text-slate-600 hover:bg-slate-50'}`}
-                                                    >
-                                                        {active ? <Play className="shrink-0 mt-0.5" /> : (completed[`${s.id}:${t.id}`] ? <Check className="shrink-0 mt-0.5" /> : <Clock className="shrink-0 mt-1 text-slate-300" />)}
-                                                        <span className="leading-tight">{t.title}</span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </aside>
-
-                        <main className="flex-1 overflow-y-auto p-4 sm:p-6 flex justify-center">
-                            <div className="w-full max-w-3xl">
-
-                                <div className="w-full aspect-video bg-slate-900 rounded-2xl shadow-lg relative mb-6">
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <Play className="text-white w-12 h-12 opacity-50" />
-                                    </div>
-                                    <div className="absolute bottom-3 left-4 text-slate-400 text-xs">วิดีโอประกอบบทเรียน (เร็วๆ นี้)</div>
-                                </div>
-
-                                <div className="flex gap-4 border-b border-slate-200 mb-6">
-                                    <button
-                                        onClick={() => setActiveTab('summary')}
-                                        className={`pb-3 px-2 text-sm font-semibold transition-colors ${activeTab === 'summary' ? 'text-secondary border-b-2 border-secondary' : 'text-slate-400 hover:text-slate-700'}`}
-                                    >
-                                        สรุปเนื้อหา
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveTab('quiz')}
-                                        className={`pb-3 px-2 text-sm font-semibold flex items-center gap-2 transition-colors ${activeTab === 'quiz' ? 'text-secondary border-b-2 border-secondary' : 'text-slate-400 hover:text-slate-700'}`}
-                                    >
-                                        <Target /> แบบฝึกเขียนตอบ <span className="bg-accent text-white text-[10px] px-1.5 py-0.5 rounded-full">เขียนเอง ไม่ใช่ตัวเลือก</span>
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveTab('notes')}
-                                        className={`pb-3 px-2 text-sm font-semibold flex items-center gap-2 transition-colors ${activeTab === 'notes' ? 'text-secondary border-b-2 border-secondary' : 'text-slate-400 hover:text-slate-700'}`}
-                                    >
-                                        <NotebookIcon /> โน้ตของฉัน {noteText && <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>}
-                                    </button>
-                                </div>
-
-                                {activeTab === 'notes' ? (
-                                    <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100">
-                                        <div className="flex items-center justify-between gap-3 flex-wrap mb-1">
-                                            <h3 className="text-xl font-bold flex items-center gap-2"><NotebookIcon /> โน้ตของฉัน — {topic.title}</h3>
-                                            <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-semibold">
-                                                <button onClick={() => setNotePreview(false)}
-                                                    className={`px-3 py-1.5 ${!notePreview ? 'bg-secondary text-white' : 'text-slate-500 hover:bg-slate-50'}`}>แก้ไข</button>
-                                                <button onClick={() => setNotePreview(true)}
-                                                    className={`px-3 py-1.5 ${notePreview ? 'bg-secondary text-white' : 'text-slate-500 hover:bg-slate-50'}`}>ดูตัวอย่าง</button>
-                                            </div>
-                                        </div>
-                                        <p className="text-xs text-slate-400 mb-4">
-                                            {notes[noteKey] ? `บันทึกล่าสุด ${new Date(notes[noteKey].updatedAt).toLocaleString('th-TH')}` : 'ยังไม่มีโน้ตสำหรับหัวข้อนี้ — พิมพ์ด้านล่างได้เลย บันทึกอัตโนมัติ'}
-                                            {' · รองรับ Markdown: '}<code># หัวข้อ</code> <code>**หนา**</code> <code>*เอียง*</code> <code>==ไฮไลต์==</code> <code>- รายการ</code>
-                                        </p>
-                                        {notePreview ? (
-                                            <div className="md-preview border-2 border-slate-100 rounded-xl p-4 min-h-[200px] text-slate-700"
-                                                dangerouslySetInnerHTML={{ __html: noteText.trim() ? mdToHtml(noteText) : '<p style="opacity:.4">ยังไม่มีเนื้อหา — กลับไปแท็บแก้ไขเพื่อพิมพ์โน้ต</p>' }} />
-                                        ) : (
-                                            <textarea
-                                                value={noteText}
-                                                onChange={e => updateNote(e.target.value)}
-                                                rows={10}
-                                                placeholder={"จดสรุป คำจำกัดความ หรือประเด็นที่อยากจำไว้สำหรับหัวข้อนี้...\n\n# หัวข้อใหญ่\n## หัวข้อรอง\n- ประเด็นที่ 1 มี **คำสำคัญ** และ ==จุดที่ต้องจำ==\n- ประเด็นที่ 2"}
-                                                className="w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-y font-sans leading-relaxed"
-                                            />
-                                        )}
-                                    </div>
-                                ) : activeTab === 'summary' ? (
-                                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Bookmark /> {topic.title}</h3>
-                                        {(topic.data && (topic.data.overview || (topic.data.keyConcepts || []).length)) ? (
-                                            <>
-                                                {topic.data.overview && <p className="text-slate-600 mb-4">{topic.data.overview}</p>}
-                                                {(topic.data.keyConcepts || []).length > 0 && (
-                                                    <>
-                                                        <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">ประเด็นสำคัญ</h4>
-                                                        <ul className="space-y-2">
-                                                            {topic.data.keyConcepts.map((k, i) => (
-                                                                <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                                                                    <span className="text-secondary mt-1">&bull;</span> {k}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <p className="text-slate-600 leading-relaxed">
-                                                หัวข้อนี้ยังไม่มีเนื้อหาสรุปแบบมีโครงสร้างในระบบ — ใช้แท็บ "แบบฝึกเขียนตอบ"
-                                                เพื่อฝึกอธิบายหลักการของ "{topic.title}" ด้วยตัวเองแทนได้เลย
-                                                (เพิ่มเนื้อหาได้โดยแก้ข้อมูลใน course-data ของไฟล์นี้ — ดูตัวอย่างรูปแบบในคอมเมนต์ของโค้ด)
-                                            </p>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
-
-                                        {!isDone ? (
-                                            <>
-                                                <div className="flex justify-between items-center mb-6">
-                                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">คำถามที่ {qIndex + 1} จาก {questions.length}</span>
-                                                    {questions[qIndex].hasKey && (
-                                                        <span className="text-xs font-bold bg-blue-50 text-secondary px-3 py-1 rounded-full">มีคำตอบอ้างอิงให้เทียบ</span>
-                                                    )}
-                                                </div>
-
-                                                <h3 className="text-xl font-bold text-slate-800 mb-6 leading-tight">
-                                                    {questions[qIndex].q}
-                                                </h3>
-
-                                                <textarea
-                                                    value={answerText}
-                                                    onChange={e => setAnswerText(e.target.value)}
-                                                    disabled={revealed}
-                                                    rows={5}
-                                                    placeholder="พิมพ์คำตอบของคุณที่นี่..."
-                                                    className="w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-none disabled:bg-slate-50"
-                                                />
-
-                                                <div className="mt-6">
-                                                    {!revealed ? (
-                                                        <button
-                                                            onClick={submitAnswer}
-                                                            disabled={!answerText.trim()}
-                                                            className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${answerText.trim() ? 'bg-primary text-white hover:bg-slate-800 shadow-md' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
-                                                        >
-                                                            ส่งคำตอบ
-                                                        </button>
-                                                    ) : (
-                                                        <div className="animate-fade-in-up">
-                                                            {questions[qIndex].hasKey ? (
-                                                                <div className="p-4 rounded-xl mb-4 border bg-blue-50 border-blue-100">
-                                                                    <h4 className="font-bold mb-1 text-secondary">คำตอบอ้างอิง</h4>
-                                                                    <p className="text-sm text-slate-700 leading-relaxed mb-4">{questions[qIndex].refAnswer}</p>
-                                                                    {selfMark === null ? (
-                                                                        <div className="flex gap-3">
-                                                                            <p className="text-xs text-slate-500 self-center mr-2">เทียบกับคำตอบคุณเองแล้ว ตรงไหม?</p>
-                                                                            <button onClick={() => markSelf(true)} className="px-4 py-2 rounded-lg bg-success text-white text-xs font-bold">ตอบถูก (+100 XP)</button>
-                                                                            <button onClick={() => markSelf(false)} className="px-4 py-2 rounded-lg bg-slate-200 text-slate-600 text-xs font-bold">ยังไม่ถูก</button>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <p className={`text-sm font-semibold ${selfMark === 'correct' ? 'text-success' : 'text-slate-500'}`}>
-                                                                            {selfMark === 'correct' ? '🎉 บันทึกว่าตอบถูกแล้ว' : '💡 ไม่เป็นไร ลองทบทวนประเด็นสำคัญด้านบนอีกครั้ง'}
-                                                                        </p>
-                                                                    )}
-                                                                </div>
-                                                            ) : (
-                                                                <div className="p-4 rounded-xl mb-4 border bg-emerald-50 border-emerald-200">
-                                                                    <h4 className="font-bold text-emerald-700 mb-1">✅ บันทึกคำตอบแล้ว (+50 XP)</h4>
-                                                                    <p className="text-sm text-slate-600">หัวข้อนี้ยังไม่มีคำตอบอ้างอิงในระบบ ลองนำคำตอบไปทบทวนกับเอกสาร/ผู้เชี่ยวชาญเพิ่มเติมได้</p>
-                                                                </div>
-                                                            )}
-                                                            {(questions[qIndex].hasKey ? selfMark !== null : true) && (
-                                                                <button
-                                                                    onClick={nextQuestion}
-                                                                    className="w-full py-3 bg-secondary text-white rounded-xl font-bold text-sm hover:bg-blue-600 shadow-md transition-all"
-                                                                >
-                                                                    {qIndex < questions.length - 1 ? 'ข้อต่อไป' : 'ดูสรุปผล'}
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <div className="text-center py-12">
-                                                <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                                                    <Trophy className="w-12 h-12 text-accent" />
-                                                </div>
-                                                <h2 className="text-2xl font-bold text-slate-800 mb-2">เขียนตอบครบทุกข้อแล้ว!</h2>
-                                                <p className="text-slate-500 mb-8">หัวข้อ "{topic.title}" — {questions.length} ข้อ</p>
-                                                <button
-                                                    onClick={restartTopic}
-                                                    className="px-6 py-3 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors"
-                                                >
-                                                    ทำแบบฝึกอีกครั้ง
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </main>
-                    </div>
-                    )}
-                </div>
-            );
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script type="module">
+import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs';
+window.pdfjsLib = pdfjsLib;
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs';
+</script>
+<script src="classroom-law.js" defer></script>
 </body>
 </html>

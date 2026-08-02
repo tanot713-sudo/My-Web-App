@@ -15,6 +15,43 @@
   }
   var DAY_MS = 86400000;
 
+  /* ══════════════════ วิชาที่ใช้สอบจริง (ขับเคลื่อนพาเนล hamburger + กรองเครื่องมือรายวิชา) ══════════════════
+     จับคู่กับโน้ต/ฝึกเขียนโดยเทียบว่าข้อความวิชาที่ผู้ใช้กรอก (subj) มีคำว่า label อยู่หรือไม่
+     (substring) — ไม่บังคับให้พิมพ์ตรงเป๊ะ เช่น "ป.พ.พ. บรรพ 1" ยังจัดเข้าอยู่ในกลุ่ม "ป.พ.พ." */
+  var SUBJECTS = [
+    { id: 'civil', label: 'ป.พ.พ.', full: 'ประมวลกฎหมายแพ่งและพาณิชย์' },
+    { id: 'criminal', label: 'ป.อ.', full: 'ประมวลกฎหมายอาญา' },
+    { id: 'civpro', label: 'ป.วิ.พ.', full: 'ประมวลกฎหมายวิธีพิจารณาความแพ่ง' },
+    { id: 'crimpro', label: 'ป.วิ.อ.', full: 'ประมวลกฎหมายวิธีพิจารณาความอาญา' },
+    { id: 'evidence', label: 'พยาน', full: 'กฎหมายลักษณะพยาน' },
+    { id: 'court', label: 'ระบบศาล', full: 'พระธรรมนูญศาลยุติธรรม / ระบบศาล' },
+    { id: 'constitution', label: 'รัฐธรรมนูญ', full: 'รัฐธรรมนูญแห่งราชอาณาจักรไทย' },
+    { id: 'lawyer-act', label: 'พ.ร.บ.ทนายความ', full: 'พ.ร.บ.ทนายความ (สายทนายความ)' },
+    { id: 'jkoa', label: 'ระเบียบ ก.ต./ก.อ.', full: 'ระเบียบ ก.ต./ก.อ. (สายผู้พิพากษา/อัยการ)' }
+  ];
+  var currentSubjectFilter = null; // null = ไม่กรอง (โน้ตทั้งหมด/แดชบอร์ด) — subject object = กรองเฉพาะพาเนลวิชานั้น
+  function subjectById(id) {
+    for (var i = 0; i < SUBJECTS.length; i++) { if (SUBJECTS[i].id === id) return SUBJECTS[i]; }
+    return null;
+  }
+  function noteMatchesSubject(rec, subject) {
+    return (rec.subj || '').indexOf(subject.label) !== -1;
+  }
+
+  /* ══════════════════ log กิจกรรม (สำหรับกราฟ 30 วันในแดชบอร์ดเท่านั้น ไม่ใช่แหล่งข้อมูลหลัก) ══════════════════ */
+  var ACTIVITY_KEY = 'tanot:barprep:activity';
+  function loadActivity() {
+    var a = [];
+    try { a = JSON.parse(localStorage.getItem(ACTIVITY_KEY)) || []; } catch (e) {}
+    return a;
+  }
+  function logActivity(type) {
+    var a = loadActivity();
+    a.push({ t: type, ts: Date.now() });
+    if (a.length > 500) a = a.slice(a.length - 500);
+    try { localStorage.setItem(ACTIVITY_KEY, JSON.stringify(a)); } catch (e) {}
+  }
+
   /* ══════════════════ กล่องยืนยัน/แจ้งเตือนของเว็บเอง (แทน confirm()/alert() ของเบราว์เซอร์) ══════════════════ */
   function showModal(opts) {
     return new Promise(function (resolve) {
@@ -285,6 +322,7 @@
     notes.unshift({ id: 'n' + Date.now() + Math.floor(Math.random() * 1000), subj: subj || '', q: q, a: a || '',
       createdAt: Date.now(), srsIdx: -1, dueAt: Date.now() });
     saveNotes(notes);
+    logActivity('note');
     renderNoteList();
     renderReviewCount();
   }
@@ -355,6 +393,7 @@
   }
   function renderNoteList() {
     var notes = loadNotes();
+    if (currentSubjectFilter) notes = notes.filter(function (n) { return noteMatchesSubject(n, currentSubjectFilter); });
     var el = $('bpNoteList');
     if (!notes.length) { el.innerHTML = '<p class="note-empty">ยังไม่มีโน้ต — เพิ่มด้านบนได้เลย</p>'; renderStorageInfo(); return; }
     /* จัดกลุ่มตามวิชา/หมวด เพื่อให้มีปุ่ม "ลบทั้งหมด" ต่อกลุ่ม — สำคัญมากเมื่อเพิ่งใช้
@@ -420,7 +459,9 @@
   }
   function dueNotes() {
     var now = Date.now();
-    return loadNotes().filter(function (n) { return n.dueAt <= now; });
+    var notes = loadNotes();
+    if (currentSubjectFilter) notes = notes.filter(function (n) { return noteMatchesSubject(n, currentSubjectFilter); });
+    return notes.filter(function (n) { return n.dueAt <= now; });
   }
   function renderReviewCount() {
     var n = dueNotes().length;
@@ -463,6 +504,7 @@
       var days = SRS_STEPS[Math.max(rec.srsIdx, 0)];
       rec.dueAt = Date.now() + days * DAY_MS;
       saveNotes(notes);
+      logActivity('review');
     }
     reviewIdx++;
     renderReviewCard();
@@ -522,6 +564,7 @@
       elapsedSec: elapsedSec, checklist: checklist, ts: Date.now()
     };
     var all = loadWriting(); all.unshift(rec); saveWriting(all);
+    logActivity('writing');
     stopWriting();
     $('bpWrTimerBox').style.display = 'none';
     renderWritingHistory();
@@ -532,6 +575,7 @@
   }
   function renderWritingHistory() {
     var all = loadWriting();
+    if (currentSubjectFilter) all = all.filter(function (w) { return (w.subj || '').indexOf(currentSubjectFilter.label) !== -1; });
     var table = $('bpWrTable'), empty = $('bpWrEmpty'), tbody = $('bpWrTbody');
     if (!all.length) { table.style.display = 'none'; empty.style.display = ''; return; }
     table.style.display = ''; empty.style.display = 'none';
@@ -1072,6 +1116,180 @@
     }
   };
 
+  /* ══════════════════ hamburger pane ══════════════════ */
+  function openHamburger() {
+    $('clHbPanel').classList.add('open');
+    $('clHbBackdrop').classList.add('open');
+  }
+  function closeHamburger() {
+    $('clHbPanel').classList.remove('open');
+    $('clHbBackdrop').classList.remove('open');
+  }
+  function renderSubjectNav() {
+    $('clSubjectNav').innerHTML = SUBJECTS.map(function (s) {
+      return '<li><a href="#subject-' + s.id + '" data-view="subject-' + s.id + '">' + esc(s.label) +
+        '<span class="sub">' + esc(s.full) + '</span></a></li>';
+    }).join('');
+  }
+
+  /* ══════════════════ router (hash → มุมมอง .view) ══════════════════ */
+  var VIEW_IDS = { dashboard: 'viewDashboard', goals: 'viewGoals', notes: 'viewNotes', tools: 'viewTools' };
+  function navigate(hash) {
+    hash = String(hash || '').replace(/^#/, '') || 'dashboard';
+    var subjMatch = /^subject-(.+)$/.exec(hash);
+    var subject = subjMatch ? subjectById(subjMatch[1]) : null;
+    var viewName;
+    if (subjMatch) { viewName = subject ? 'notes' : 'dashboard'; }
+    else if (hash === 'allnotes') { viewName = 'notes'; }
+    else if (hash === 'goals' || hash === 'tools' || hash === 'dashboard') { viewName = hash; }
+    else { viewName = 'dashboard'; }
+    currentSubjectFilter = subject;
+    if (editingNoteId) cancelEditNote();
+
+    Object.keys(VIEW_IDS).forEach(function (v) {
+      var el = $(VIEW_IDS[v]);
+      if (el) el.style.display = (v === viewName) ? '' : 'none';
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.clhb-list a'), function (a) {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + hash);
+    });
+
+    if (viewName === 'notes') {
+      var titleCard = $('clNotesTitleCard');
+      if (subject) {
+        titleCard.style.display = '';
+        $('clSubjTitle').textContent = subject.label;
+        $('clSubjFull').textContent = subject.full;
+        $('bpNoteSubj').value = subject.label; $('bpNoteSubj').readOnly = true;
+        $('bpWrSubj').value = subject.label; $('bpWrSubj').readOnly = true;
+        $('bpOcrSubj').value = subject.label; $('bpOcrSubj').readOnly = true;
+      } else {
+        titleCard.style.display = 'none';
+        $('bpNoteSubj').readOnly = false;
+        $('bpWrSubj').readOnly = false;
+        $('bpOcrSubj').readOnly = false;
+      }
+      renderNoteList();
+      renderReviewCount();
+      renderWritingHistory();
+    } else if (viewName === 'dashboard') {
+      renderDashboard();
+    }
+    closeHamburger();
+  }
+
+  /* ══════════════════ แดชบอร์ด "สถิติกราฟการเรียน" (มุมมองเริ่มต้น) ══════════════════ */
+  function renderStatRow() {
+    var notes = loadNotes();
+    var due = loadNotes().filter(function (n) { return n.dueAt <= Date.now(); }).length;
+    var writingCount = loadWriting().length;
+    var dates = loadExamDates();
+    var nearest = null;
+    EXAM_TYPES.forEach(function (ex) {
+      var d = dates[ex.key];
+      if (d && d.examDate) {
+        var days = daysUntil(d.examDate);
+        if (days !== null && days >= 0 && (nearest === null || days < nearest.days)) nearest = { days: days, name: ex.name };
+      }
+    });
+    var boxes = [
+      { num: notes.length, lbl: 'โน้ตทั้งหมด' },
+      { num: due, lbl: 'ถึงกำหนดทบทวนวันนี้' },
+      { num: writingCount, lbl: 'ครั้งที่ฝึกเขียนตอบ' },
+      { num: nearest ? nearest.days : '—', lbl: nearest ? ('วันจนถึง ' + nearest.name) : 'ยังไม่มีวันสอบที่กำลังจะถึง' }
+    ];
+    $('clStatRow').innerHTML = boxes.map(function (b) {
+      return '<div class="stat-box"><div class="num">' + esc(b.num) + '</div><div class="lbl">' + esc(b.lbl) + '</div></div>';
+    }).join('');
+  }
+  function renderSubjBars() {
+    var notes = loadNotes();
+    var counts = {}; SUBJECTS.forEach(function (s) { counts[s.id] = 0; });
+    var other = 0;
+    notes.forEach(function (n) {
+      var matched = null;
+      for (var i = 0; i < SUBJECTS.length; i++) { if (noteMatchesSubject(n, SUBJECTS[i])) { matched = SUBJECTS[i]; break; } }
+      if (matched) counts[matched.id]++; else other++;
+    });
+    var rows = SUBJECTS.map(function (s) { return { lbl: s.label, val: counts[s.id] }; });
+    rows.push({ lbl: 'อื่นๆ', val: other });
+    var max = Math.max.apply(null, rows.map(function (r) { return r.val; }).concat([1]));
+    $('clSubjBars').innerHTML = rows.map(function (r) {
+      var pct = Math.round(r.val / max * 100);
+      return '<div class="bar-row"><span class="lbl">' + esc(r.lbl) + '</span>' +
+        '<span class="track"><span class="fill" style="width:' + pct + '%"></span></span>' +
+        '<span class="val">' + r.val + '</span></div>';
+    }).join('');
+  }
+  var SRS_LABELS = ['ใหม่', '1 วัน', '3 วัน', '7 วัน', '14 วัน', '30 วัน'];
+  var SRS_COLORS = ['#C9CEDC', '#F5A524', '#3B9BEA', '#6C63D9', '#12A594', '#17B26A'];
+  function renderSrsTrack() {
+    var notes = loadNotes();
+    var counts = [0, 0, 0, 0, 0, 0];
+    notes.forEach(function (n) {
+      var idx = (n.srsIdx == null || n.srsIdx < 0) ? 0 : n.srsIdx + 1;
+      if (idx > 5) idx = 5;
+      counts[idx]++;
+    });
+    var total = notes.length || 1;
+    $('clSrsTrack').innerHTML = counts.map(function (c, i) {
+      if (!c) return '';
+      var pct = Math.round(c / total * 100);
+      return '<div class="srs-seg" style="width:' + pct + '%;background:' + SRS_COLORS[i] + '">' + (pct >= 8 ? c : '') + '</div>';
+    }).join('');
+    $('clSrsLegend').innerHTML = SRS_LABELS.map(function (lbl, i) {
+      return '<span><i style="background:' + SRS_COLORS[i] + '"></i>' + esc(lbl) + ' (' + counts[i] + ')</span>';
+    }).join('');
+  }
+  function renderActivityGraph() {
+    var acts = loadActivity();
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var starts = [];
+    for (var i = 29; i >= 0; i--) starts.push(today.getTime() - i * DAY_MS);
+    var counts = starts.map(function (s) {
+      var e = s + DAY_MS;
+      return acts.filter(function (a) { return a.ts >= s && a.ts < e; }).length;
+    });
+    var max = Math.max.apply(null, counts.concat([1]));
+    $('clActGraph').innerHTML = counts.map(function (c) {
+      var h = c > 0 ? Math.max(Math.round(c / max * 100), 8) : 2;
+      return '<div class="act-bar" style="height:' + h + '%" title="' + c + ' กิจกรรม"></div>';
+    }).join('');
+    $('clActFrom').textContent = new Date(starts[0]).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+    $('clActTo').textContent = new Date(starts[starts.length - 1]).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+  }
+  function renderWrBars() {
+    var all = loadWriting();
+    var empty = $('clWrStatsEmpty'), wrap = $('clWrBars');
+    if (!all.length) { wrap.innerHTML = ''; empty.style.display = ''; return; }
+    empty.style.display = 'none';
+    var bySubj = {};
+    all.forEach(function (w) {
+      var key = w.subj || '(ไม่ระบุวิชา)';
+      if (!bySubj[key]) bySubj[key] = { count: 0, passed: 0, total: 0 };
+      bySubj[key].count++;
+      var p = [w.checklist.matra, w.checklist.dika, w.checklist.complete].filter(Boolean).length;
+      bySubj[key].passed += p; bySubj[key].total += 3;
+    });
+    var rows = Object.keys(bySubj).map(function (k) {
+      var d = bySubj[k];
+      var rate = d.total ? Math.round(d.passed / d.total * 100) : 0;
+      return { lbl: k + ' (' + d.count + ' ครั้ง)', val: rate };
+    });
+    wrap.innerHTML = rows.map(function (r) {
+      return '<div class="bar-row"><span class="lbl">' + esc(r.lbl) + '</span>' +
+        '<span class="track"><span class="fill" style="width:' + r.val + '%"></span></span>' +
+        '<span class="val">' + r.val + '%</span></div>';
+    }).join('');
+  }
+  function renderDashboard() {
+    renderStatRow();
+    renderSubjBars();
+    renderSrsTrack();
+    renderActivityGraph();
+    renderWrBars();
+  }
+
   /* ══════════════════ init ══════════════════ */
   function init() {
     renderExams();
@@ -1088,19 +1306,12 @@
       }
     });
     $('bpNoteCancelEdit').addEventListener('click', cancelEditNote);
-    /* renderNoteList/renderReviewCount ต้องรอ notesReady ก่อน (โหลด/ย้ายข้อมูลจาก IndexedDB
-       เสร็จ) ครั้งแรกตอนเปิดหน้าเท่านั้น — หลังจากนี้แคชอุ่นแล้ว เรียกจากปุ่มต่างๆ ได้ทันทีแบบเดิม */
-    notesReady.then(function () {
-      renderNoteList();
-      renderReviewCount();
-    });
     $('bpReviewBtn').addEventListener('click', startReview);
     $('bpCleanNotesBtn').addEventListener('click', cleanExistingNotes);
 
     $('bpWrStart').addEventListener('click', startWriting);
     $('bpWrStop').addEventListener('click', stopWriting);
     $('bpWrSave').addEventListener('click', saveWritingResult);
-    renderWritingHistory();
 
     bindOcr();
 
@@ -1111,6 +1322,18 @@
       e.target.value = '';
     });
     DriveSync.init();
+
+    renderSubjectNav();
+    $('clHbToggle').addEventListener('click', function () {
+      if ($('clHbPanel').classList.contains('open')) closeHamburger(); else openHamburger();
+    });
+    $('clHbBackdrop').addEventListener('click', closeHamburger);
+    window.addEventListener('hashchange', function () { navigate(location.hash); });
+    navigate(location.hash);
+    /* มุมมองที่พึ่งพาสมุดโน้ต (แดชบอร์ด/โน้ตทั้งหมด/รายวิชา) ต้องรอ notesReady ก่อน
+       (โหลด/ย้ายข้อมูลจาก IndexedDB เสร็จ) — เรียก navigate() ซ้ำอีกครั้งเพื่อวาดใหม่ด้วยข้อมูลจริง
+       หลังจากนั้นแคชอุ่นแล้ว ปุ่ม/การนำทางถัดไปเรียกได้ทันทีแบบเดิม */
+    notesReady.then(function () { navigate(location.hash); });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
@@ -1122,6 +1345,8 @@
     splitByMatra: splitByMatra, pdfItemsToLines: pdfItemsToLines, stripBoilerplate: stripBoilerplate,
     showTextForReview: showTextForReview, cleanExistingNotes: cleanExistingNotes,
     matraSortKey: matraSortKey, notesReady: notesReady, idbGetAllNotes: idbGetAllNotes,
-    renderStorageInfo: renderStorageInfo
+    renderStorageInfo: renderStorageInfo,
+    SUBJECTS: SUBJECTS, navigate: navigate, loadActivity: loadActivity,
+    getCurrentSubjectFilter: function () { return currentSubjectFilter; }
   };
 })();
