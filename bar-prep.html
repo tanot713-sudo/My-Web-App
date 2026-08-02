@@ -259,8 +259,16 @@ details[open]>summary::before{transform:rotate(90deg)}
 </div>
 
 <div class="card">
-  <h2>📷 ถ่ายรูป → แปลงข้อความ (OCR) → ตรวจทาน → บันทึกโน้ต</h2>
-  <p class="mini">ใช้กับหน้าหนังสือ/เอกสารของคุณเอง (เช่น ธงคำตอบที่ซื้อมา) — ระบบแปลงข้อความให้อัตโนมัติแต่ <b>ต้องตรวจทานก่อนบันทึกเสมอ</b> โดยเฉพาะตัวเลขมาตรา/เลขที่ฎีกาที่ผิดแล้วอันตราย ถ่ายในที่แสงสว่างสม่ำเสมอ ไม่เอียง ไม่มีเงา จะช่วยให้แม่นยำขึ้นมาก</p>
+  <h2>📂 ไฟล์ในโฟลเดอร์ Drive ของฉัน</h2>
+  <p class="mini">ไฟล์ที่คุณอัปโหลดไว้แล้วในโฟลเดอร์ <b>เนติ-ตั๋วทนาย-อัยการ-ผู้พิพากษา</b> (เช่น ธงคำตอบที่สแกน/ถ่ายไว้) — ต้องเชื่อมต่อ Google Drive ก่อน (การ์ดด้านล่าง) รายการนี้อ่านจากโฟลเดอร์ส่วนตัวของคุณเท่านั้น ไม่มีใครอื่นเห็น</p>
+  <button class="btn sm" id="bpDriveListBtn" type="button">🔄 โหลดรายชื่อไฟล์จาก Drive</button>
+  <div class="status" id="bpDriveListStatus"></div>
+  <ul class="note-list" id="bpDriveFileList"></ul>
+</div>
+
+<div class="card">
+  <h2>📷 นำเข้าข้อความ → ตรวจทาน → บันทึกโน้ต</h2>
+  <p class="mini">ถ่ายรูปหน้าเอกสาร หรือกด "แยกข้อความ" จากไฟล์ใน Drive ด้านบน — ระบบแปลงข้อความให้อัตโนมัติแต่ <b>ต้องตรวจทานก่อนบันทึกเสมอ</b> โดยเฉพาะตัวเลขมาตรา/เลขที่ฎีกาที่ผิดแล้วอันตราย ถ่ายในที่แสงสว่างสม่ำเสมอ ไม่เอียง ไม่มีเงา จะช่วยให้แม่นยำขึ้นมาก</p>
   <label class="ocr-drop" for="bpOcrFile" id="bpOcrDrop">📷 แตะเพื่อถ่ายรูป/เลือกรูปหน้าเอกสาร</label>
   <input type="file" id="bpOcrFile" accept="image/*" capture="environment" style="display:none">
   <img id="bpOcrPreview" class="ocr-preview" alt="ตัวอย่างรูปที่เลือก">
@@ -287,7 +295,7 @@ details[open]>summary::before{transform:rotate(90deg)}
   <summary style="font-size:14px">📚 เรียนรู้ / เกี่ยวกับเครื่องมือนี้</summary>
   <div class="details-body">
     <h3>ทำไมไม่มีเนื้อหาข้อสอบ/ธงคำตอบให้พร้อมในนี้</h3>
-    <p>"คำถามพร้อมธงคำตอบ" ของเนติบัณฑิตยสภาเป็นสิ่งพิมพ์ลิขสิทธิ์ที่ขายจริง เว็บนี้จะไม่ฝัง/แจกจ่ายเนื้อหาที่มีลิขสิทธิ์คนอื่น — ใช้การ์ด "ถ่ายรูป → OCR" นำเข้าไฟล์ที่คุณซื้อ/มีสิทธิ์ใช้เองแทน</p>
+    <p>"คำถามพร้อมธงคำตอบ" ของเนติบัณฑิตยสภาเป็นสิ่งพิมพ์ลิขสิทธิ์ที่ขายจริง เว็บนี้จะไม่ฝัง/แจกจ่ายเนื้อหาที่มีลิขสิทธิ์คนอื่นในตัวโค้ดของเว็บ (ซึ่งจะเห็นได้จากทุกคนที่เข้าเว็บ) — แต่การเก็บสำเนาที่คุณซื้อไว้ใน Google Drive ส่วนตัวของคุณเองเพื่อใช้ศึกษาไม่ใช่ปัญหา (เข้าข่ายข้อยกเว้นเพื่อการศึกษาส่วนตัวตามกฎหมายลิขสิทธิ์) ใช้การ์ด "ไฟล์ในโฟลเดอร์ Drive ของฉัน" เปิดดู/แยกข้อความจากไฟล์ที่คุณอัปโหลดไว้แล้วได้เลย หรือถ่ายรูปสดผ่าน "นำเข้าข้อความ" ก็ได้</p>
     <h3>ทำไมวันสอบต้องกรอกเอง</h3>
     <p>เว็บศาลยุติธรรม/อัยการสูงสุด/สภาทนายความ/เนติบัณฑิตยสภา ไม่มี API สาธารณะให้ดึงวันที่อัตโนมัติ ต้องอัปเดตเองจากประกาศจริงทุกรอบ ระบบมีลิงก์ตรงไปหน้าประกาศให้กดเช็กได้เสมอ</p>
     <h3>Flashcard ทบทวนยังไง</h3>
@@ -304,6 +312,11 @@ details[open]>summary::before{transform:rotate(90deg)}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script type="module">
+import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs';
+window.pdfjsLib = pdfjsLib;
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs';
+</script>
 <script src="bar-prep.js" defer></script>
 </body>
 </html>

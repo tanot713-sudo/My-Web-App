@@ -335,7 +335,19 @@
     });
   }
 
-  /* ══════════════════ ถ่ายรูป → OCR → ตรวจทาน → บันทึกโน้ต ══════════════════ */
+  /* ══════════════════ นำเข้าข้อความ (ถ่ายรูป OCR หรือไฟล์จาก Drive) → ตรวจทาน → บันทึกโน้ต ══════════════════
+     ใช้ชุด element เดียวกัน (#bpOcrText/#bpOcrSubj/#bpOcrSave) ไม่ว่าข้อความจะมาจากไหน
+     เพื่อให้ผู้ใช้ตรวจทานก่อนบันทึกเป็นโน้ตเสมอ (สำคัญมากกับเลขมาตรา/เลขฎีกา) */
+  function showTextForReview(text, subjHint, statusMsg) {
+    $('bpOcrStatus').className = 'status ok';
+    $('bpOcrStatus').textContent = statusMsg || '✅ แปลงข้อความเสร็จแล้ว — ตรวจทานให้ดีก่อนบันทึก (โดยเฉพาะเลขมาตรา/เลขฎีกา)';
+    if (subjHint && !$('bpOcrSubj').value) $('bpOcrSubj').value = subjHint;
+    $('bpOcrText').value = text || '';
+    $('bpOcrText').style.display = '';
+    $('bpOcrEditWrap').style.display = '';
+    $('bpOcrSave').style.display = '';
+    $('bpOcrText').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
   function bindOcr() {
     $('bpOcrFile').addEventListener('change', function (e) {
       var f = e.target.files && e.target.files[0];
@@ -352,12 +364,7 @@
           }
         }
       }).then(function (result) {
-        status.className = 'status ok';
-        status.textContent = '✅ แปลงข้อความเสร็จแล้ว — ตรวจทานให้ดีก่อนบันทึก (โดยเฉพาะเลขมาตรา/เลขฎีกา)';
-        $('bpOcrText').value = (result.data && result.data.text) || '';
-        $('bpOcrText').style.display = '';
-        $('bpOcrEditWrap').style.display = '';
-        $('bpOcrSave').style.display = '';
+        showTextForReview((result.data && result.data.text) || '');
       }).catch(function (err) {
         status.className = 'status err';
         status.textContent = '❌ แปลงข้อความไม่สำเร็จ: ' + (err && err.message ? err.message : err);
@@ -366,13 +373,102 @@
     $('bpOcrSave').addEventListener('click', function () {
       var text = $('bpOcrText').value;
       if (!text.trim()) return;
-      addNote($('bpOcrSubj').value, text.split('\n')[0].slice(0, 80) || 'โน้ตจากรูปถ่าย', text);
+      addNote($('bpOcrSubj').value, text.split('\n')[0].slice(0, 80) || 'โน้ตที่นำเข้า', text);
       $('bpOcrText').value = ''; $('bpOcrText').style.display = 'none';
       $('bpOcrSave').style.display = 'none';
       $('bpOcrStatus').className = 'status ok';
       $('bpOcrStatus').textContent = '✅ บันทึกเป็นโน้ตแล้ว';
       $('bpOcrPreview').style.display = 'none';
       $('bpOcrFile').value = '';
+    });
+  }
+
+  /* ══════════════════ ไฟล์ในโฟลเดอร์ Drive ของฉัน (browse — อ่านเฉพาะโฟลเดอร์ส่วนตัวของผู้ใช้เอง) ══════════════════ */
+  var FILE_ICONS = { 'application/pdf': '📕', 'image/': '🖼️' };
+  function fileIcon(mime) {
+    if (mime === 'application/pdf') return FILE_ICONS['application/pdf'];
+    if (mime && mime.indexOf('image/') === 0) return FILE_ICONS['image/'];
+    return '📄';
+  }
+  function listDriveFiles() {
+    var status = $('bpDriveListStatus'), list = $('bpDriveFileList');
+    if (!DriveSync.connected || !DriveSync.accessToken) {
+      status.className = 'status err';
+      status.textContent = 'ยังไม่ได้เชื่อมต่อ Google Drive — กดปุ่ม "เชื่อมต่อ Google Drive" ในการ์ดด้านล่างก่อน';
+      return;
+    }
+    status.className = 'status'; status.textContent = '⏳ กำลังโหลดรายชื่อไฟล์…';
+    DriveSync.ensureFolder().then(function (folderId) {
+      var q = encodeURIComponent("'" + folderId + "' in parents and trashed=false");
+      return DriveSync.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name,mimeType,webViewLink,modifiedTime)&orderBy=modifiedTime desc');
+    }).then(function (r) { if (!r.ok) throw new Error('โหลดรายชื่อไฟล์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+      .then(function (data) {
+        var files = (data.files || []).filter(function (f) { return f.name !== DRIVE_FILE_NAME; }); // ข้ามไฟล์ข้อมูลของแอปเอง
+        status.className = 'status ok';
+        status.textContent = files.length ? ('พบ ' + files.length + ' ไฟล์') : 'ยังไม่มีไฟล์อื่นในโฟลเดอร์นี้';
+        if (!files.length) { list.innerHTML = ''; return; }
+        list.innerHTML = files.map(function (f) {
+          var canExtract = f.mimeType === 'application/pdf' || (f.mimeType && f.mimeType.indexOf('image/') === 0);
+          return '<li class="note-item" data-fid="' + f.id + '" data-mime="' + esc(f.mimeType) + '" data-name="' + esc(f.name) + '">' +
+            '<div class="hd"><span class="tag">' + fileIcon(f.mimeType) + ' ' + esc(f.name) + '</span></div>' +
+            '<div class="meta">แก้ไขล่าสุด: ' + new Date(f.modifiedTime).toLocaleString('th-TH') + '</div>' +
+            '<div class="frow" style="margin-top:6px">' +
+              '<a class="btn sm" href="' + f.webViewLink + '" target="_blank" rel="noopener">👁 เปิดดู</a>' +
+              (canExtract ? '<button class="btn sm" type="button" data-extract="' + f.id + '">📝 แยกข้อความ</button>' : '') +
+            '</div></li>';
+        }).join('');
+        Array.prototype.forEach.call(list.querySelectorAll('[data-extract]'), function (b) {
+          b.addEventListener('click', function () {
+            var row = b.closest('[data-fid]');
+            extractFromDriveFile(row.dataset.fid, row.dataset.mime, row.dataset.name);
+          });
+        });
+      })
+      .catch(function (e) {
+        status.className = 'status err';
+        status.textContent = '❌ ' + (e.message || e);
+      });
+  }
+  function extractFromDriveFile(fileId, mime, name) {
+    var status = $('bpDriveListStatus');
+    status.className = 'status'; status.textContent = '⏳ กำลังดึงไฟล์ "' + name + '"…';
+    DriveSync.authFetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media')
+      .then(function (r) { if (!r.ok) throw new Error('ดึงไฟล์ไม่สำเร็จ (' + r.status + ')'); return r.arrayBuffer(); })
+      .then(function (buf) {
+        if (mime === 'application/pdf') return extractPdfText(buf);
+        return extractImageText(buf, mime);
+      })
+      .then(function (text) {
+        status.className = 'status ok'; status.textContent = '✅ แยกข้อความจาก "' + name + '" เสร็จแล้ว';
+        showTextForReview(text, name.replace(/\.[^.]+$/, ''));
+      })
+      .catch(function (e) {
+        status.className = 'status err';
+        status.textContent = '❌ แยกข้อความไม่สำเร็จ: ' + (e.message || e);
+      });
+  }
+  function extractPdfText(arrayBuffer) {
+    if (!window.pdfjsLib) return Promise.reject(new Error('โหลดตัวอ่าน PDF ไม่สำเร็จ ลองรีเฟรชหน้าแล้วลองใหม่'));
+    return window.pdfjsLib.getDocument({ data: arrayBuffer }).promise.then(function (doc) {
+      var pages = [], chain = Promise.resolve();
+      var _loop = function (i) {
+        chain = chain.then(function () {
+          return doc.getPage(i).then(function (page) {
+            return page.getTextContent().then(function (content) {
+              pages[i - 1] = content.items.map(function (it) { return it.str; }).join(' ');
+            });
+          });
+        });
+      };
+      for (var i = 1; i <= doc.numPages; i++) _loop(i);
+      return chain.then(function () { return pages.join('\n\n'); });
+    });
+  }
+  function extractImageText(arrayBuffer, mime) {
+    if (!window.Tesseract) return Promise.reject(new Error('โหลดตัวแปลงข้อความไม่สำเร็จ ลองรีเฟรชหน้าแล้วลองใหม่'));
+    var blob = new Blob([arrayBuffer], { type: mime || 'image/jpeg' });
+    return window.Tesseract.recognize(blob, 'tha+eng').then(function (result) {
+      return (result.data && result.data.text) || '';
     });
   }
 
@@ -505,7 +601,7 @@
           renderNoteList(); renderReviewCount(); renderWritingHistory(); renderExams(); loadCareerIntoForm();
           return self.upload(self.payload());
         })
-        .then(function () { self.setStatus('✅ ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); })
+        .then(function () { self.setStatus('✅ ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); listDriveFiles(); })
         .catch(function (e) { self.setStatus('❌ ' + (e.message || e), 'err'); });
     },
     scheduleSync: function () {
@@ -562,6 +658,7 @@
     bindOcr();
 
     $('driveConnectBtn').addEventListener('click', function () { DriveSync.connect(); });
+    $('bpDriveListBtn').addEventListener('click', listDriveFiles);
     DriveSync.init();
   }
 
