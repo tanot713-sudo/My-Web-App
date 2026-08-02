@@ -203,16 +203,80 @@
     if (o.lawyer) $('bpLawyer').value = o.lawyer;
   }
 
-  /* ══════════════════ สมุดโน้ต + Flashcard (spaced repetition ขั้นบันได) ══════════════════ */
-  var NOTES_KEY = 'tanot:barprep:notes';
+  /* ══════════════════ สมุดโน้ต + Flashcard (spaced repetition ขั้นบันได) ══════════════════
+     เก็บใน IndexedDB แทน localStorage (โควตาใหญ่กว่ามาก — หลักร้อย MB ขึ้นไป เทียบกับ
+     localStorage ที่มักจำกัดแค่ ~5-10MB ต่อเว็บ) เพราะถ้าผู้ใช้แยกทั้งประมวลกฎหมายหลายฉบับ
+     เป็นรายมาตรา ข้อมูลรวมอาจเข้าใกล้เพดานเดิมได้ — ใช้แคชในหน่วยความจำ (notesCache) คู่กัน
+     เพื่อให้ loadNotes()/saveNotes() ยังเรียกแบบ synchronous ได้เหมือนเดิมทุกจุดในโค้ด
+     (IndexedDB เองเป็น async ล้วน) ลดความเสี่ยงจากการรื้อโค้ดทุกจุดที่แตะโน้ต */
+  var NOTES_KEY = 'tanot:barprep:notes'; // ใช้ตรวจ/ย้ายข้อมูลเก่าจาก localStorage ครั้งเดียวเท่านั้น ไม่ใช่แหล่งเก็บหลักอีกต่อไป
   var SRS_STEPS = [1, 3, 7, 14, 30]; // วัน
+  var IDB_NAME = 'tanot-barprep', IDB_VERSION = 1, IDB_STORE = 'notes';
+  var notesCache = null;
+  var idbOpenPromise = null;
+  function openNotesDb() {
+    if (idbOpenPromise) return idbOpenPromise;
+    idbOpenPromise = new Promise(function (resolve, reject) {
+      if (!window.indexedDB) { reject(new Error('เบราว์เซอร์นี้ไม่รองรับ IndexedDB')); return; }
+      var req = indexedDB.open(IDB_NAME, IDB_VERSION);
+      req.onupgradeneeded = function (e) {
+        var db = e.target.result;
+        if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE, { keyPath: 'id' });
+      };
+      req.onsuccess = function (e) { resolve(e.target.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+    return idbOpenPromise;
+  }
+  function idbGetAllNotes() {
+    return openNotesDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction(IDB_STORE, 'readonly');
+        var req = tx.objectStore(IDB_STORE).getAll();
+        req.onsuccess = function () { resolve(req.result || []); };
+        req.onerror = function () { reject(req.error); };
+      });
+    });
+  }
+  function idbReplaceAllNotes(notes) {
+    return openNotesDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction(IDB_STORE, 'readwrite');
+        var store = tx.objectStore(IDB_STORE);
+        store.clear();
+        notes.forEach(function (n) { store.put(n); });
+        tx.oncomplete = function () { resolve(); };
+        tx.onerror = function () { reject(tx.error); };
+      });
+    });
+  }
+  /* ย้ายข้อมูลเก่าจาก localStorage เข้า IndexedDB อัตโนมัติครั้งเดียวตอนเปิดหน้าแรกหลังอัปเดต
+     (ถ้ามี) แล้วลบ key เก่าทิ้ง — ผู้ใช้ไม่ต้องทำอะไรเอง โน้ตที่มีอยู่ก่อนหน้าจะยังอยู่ครบ */
+  function migrateNotesFromLocalStorage() {
+    var legacy = null;
+    try { legacy = JSON.parse(localStorage.getItem(NOTES_KEY)); } catch (e) {}
+    if (!legacy || !legacy.length) return Promise.resolve();
+    return idbGetAllNotes().then(function (existing) {
+      if (existing.length) return; // มีข้อมูลใน IndexedDB อยู่แล้ว (เช่นย้ายไปรอบก่อนหน้า) ไม่ต้องย้ายซ้ำ
+      return idbReplaceAllNotes(legacy).then(function () {
+        try { localStorage.removeItem(NOTES_KEY); } catch (e) {}
+      });
+    });
+  }
+  var notesReady = migrateNotesFromLocalStorage().then(function () {
+    return idbGetAllNotes();
+  }).then(function (all) {
+    notesCache = all;
+  }).catch(function (e) {
+    console.error('เปิด IndexedDB สำหรับสมุดโน้ตไม่สำเร็จ ใช้ localStorage เป็นสำรองชั่วคราว:', e);
+    try { notesCache = JSON.parse(localStorage.getItem(NOTES_KEY)) || []; } catch (e2) { notesCache = []; }
+  });
   function loadNotes() {
-    var a = [];
-    try { a = JSON.parse(localStorage.getItem(NOTES_KEY)) || []; } catch (e) {}
-    return a;
+    return notesCache || [];
   }
   function saveNotes(a) {
-    try { localStorage.setItem(NOTES_KEY, JSON.stringify(a)); } catch (e) {}
+    notesCache = a;
+    idbReplaceAllNotes(a).catch(function (e) { console.error('บันทึกโน้ตลง IndexedDB ไม่สำเร็จ:', e); });
     DriveSync.scheduleSync();
   }
   function addNote(subj, q, a) {
@@ -275,10 +339,24 @@
     renderNoteList();
     renderReviewCount();
   }
+  /* แสดงพื้นที่จัดเก็บจริงที่เว็บนี้ใช้ในเบราว์เซอร์ (ตัวเลขจริงจาก browser ไม่ใช่ค่าประมาณ)
+     ผ่าน Storage API — ครอบคลุมทั้ง IndexedDB/localStorage/cache รวมกันทั้ง origin นี้ */
+  function renderStorageInfo() {
+    var el = $('bpStorageInfo');
+    if (!el) return;
+    if (!navigator.storage || !navigator.storage.estimate) {
+      el.textContent = 'เบราว์เซอร์นี้ไม่รองรับการแสดงพื้นที่จัดเก็บ';
+      return;
+    }
+    navigator.storage.estimate().then(function (est) {
+      var fmtMB = function (bytes) { return (bytes / 1048576).toFixed(bytes < 1048576 ? 2 : 1); };
+      el.textContent = '📊 พื้นที่จัดเก็บที่ใช้ในเว็บนี้ (ทุกเครื่องมือรวมกัน): ' + fmtMB(est.usage || 0) + ' MB จากโควตาที่เบราว์เซอร์ให้ ~' + fmtMB(est.quota || 0) + ' MB';
+    }).catch(function () { el.textContent = ''; });
+  }
   function renderNoteList() {
     var notes = loadNotes();
     var el = $('bpNoteList');
-    if (!notes.length) { el.innerHTML = '<p class="note-empty">ยังไม่มีโน้ต — เพิ่มด้านบนได้เลย</p>'; return; }
+    if (!notes.length) { el.innerHTML = '<p class="note-empty">ยังไม่มีโน้ต — เพิ่มด้านบนได้เลย</p>'; renderStorageInfo(); return; }
     /* จัดกลุ่มตามวิชา/หมวด เพื่อให้มีปุ่ม "ลบทั้งหมด" ต่อกลุ่ม — สำคัญมากเมื่อเพิ่งใช้
        "แบ่งเป็นรายมาตรา" แล้วได้โน้ตทีเดียวหลายสิบรายการในวิชาเดียวกัน */
     var groups = [], byKey = {};
@@ -288,14 +366,17 @@
       byKey[key].items.push(n);
     });
     groups.forEach(function (g) {
-      g.items.forEach(function (n, i) { n._origIdx = i; }); // กันตัวเรียงเปลี่ยนลำดับของรายการที่เรียงเลขไม่ได้
-      g.items.sort(function (a, b) {
-        var ka = matraSortKey(a.q), kb = matraSortKey(b.q);
-        if (ka === null && kb === null) return a._origIdx - b._origIdx;
-        if (ka === null) return 1;
-        if (kb === null) return -1;
-        return ka - kb || (a._origIdx - b._origIdx);
+      /* decorate-sort-undecorate: ห่อด้วย wrapper แยกต่างหาก ไม่แตะ object โน้ตตัวจริงเลย —
+         สำคัญเพราะตอนนี้ loadNotes() คืน object เดียวกับที่แคชไว้ (ไม่ใช่ parse ใหม่ทุกครั้ง
+         แบบตอนใช้ localStorage) ถ้าไปเติมฟิลด์ลง object ตรงๆ จะรั่วไหลลง IndexedDB ถาวรได้ */
+      var decorated = g.items.map(function (n, i) { return { n: n, i: i, k: matraSortKey(n.q) }; });
+      decorated.sort(function (a, b) {
+        if (a.k === null && b.k === null) return a.i - b.i;
+        if (a.k === null) return 1;
+        if (b.k === null) return -1;
+        return a.k - b.k || (a.i - b.i);
       });
+      g.items = decorated.map(function (d) { return d.n; });
     });
     el.innerHTML = groups.map(function (g) {
       return '<li class="note-group-hd">' +
@@ -322,6 +403,7 @@
     Array.prototype.forEach.call(el.querySelectorAll('[data-delsubj]'), function (b) {
       b.addEventListener('click', function () { deleteNotesBySubject(b.dataset.delsubj); });
     });
+    renderStorageInfo();
   }
   function deleteNotesBySubject(subj) {
     var notes = loadNotes();
@@ -936,7 +1018,10 @@
     firstSync: function () {
       var self = this;
       self.setStatus('กำลังซิงก์…', '');
-      self.ensureFolder().then(function () { return self.findFile(); })
+      /* ต้องรอ notesReady ก่อนเสมอ — สมุดโน้ตอยู่ใน IndexedDB (async) ถ้า sync อัตโนมัติทำงาน
+         เร็วกว่าโหลดแคชเสร็จ (เช่น Google reauth เงียบๆ ตอนเปิดหน้า) loadNotes() อาจยังว่างอยู่
+         จะ merge/อัปโหลดทับข้อมูลจริงในเครื่องหายได้ */
+      notesReady.then(function () { return self.ensureFolder(); }).then(function () { return self.findFile(); })
         .then(function (fid) { return fid ? self.download() : null; })
         .then(function (remote) {
           if (remote) {
@@ -968,7 +1053,7 @@
       if (self.syncing) { self.pending = true; return; }
       self.pending = false; self.syncing = true;
       self.setStatus('กำลังซิงก์…', '');
-      self.ensureFolder().then(function () { return self.findFile(); })
+      notesReady.then(function () { return self.ensureFolder(); }).then(function () { return self.findFile(); })
         .then(function () { return self.upload(self.payload()); })
         .then(function () { self.setStatus('✅ ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
         .catch(function (e) {
@@ -1003,8 +1088,12 @@
       }
     });
     $('bpNoteCancelEdit').addEventListener('click', cancelEditNote);
-    renderNoteList();
-    renderReviewCount();
+    /* renderNoteList/renderReviewCount ต้องรอ notesReady ก่อน (โหลด/ย้ายข้อมูลจาก IndexedDB
+       เสร็จ) ครั้งแรกตอนเปิดหน้าเท่านั้น — หลังจากนี้แคชอุ่นแล้ว เรียกจากปุ่มต่างๆ ได้ทันทีแบบเดิม */
+    notesReady.then(function () {
+      renderNoteList();
+      renderReviewCount();
+    });
     $('bpReviewBtn').addEventListener('click', startReview);
     $('bpCleanNotesBtn').addEventListener('click', cleanExistingNotes);
 
@@ -1032,6 +1121,7 @@
     DriveSync: DriveSync, listDriveFiles: listDriveFiles, uploadFilesToDrive: uploadFilesToDrive,
     splitByMatra: splitByMatra, pdfItemsToLines: pdfItemsToLines, stripBoilerplate: stripBoilerplate,
     showTextForReview: showTextForReview, cleanExistingNotes: cleanExistingNotes,
-    matraSortKey: matraSortKey
+    matraSortKey: matraSortKey, notesReady: notesReady, idbGetAllNotes: idbGetAllNotes,
+    renderStorageInfo: renderStorageInfo
   };
 })();
