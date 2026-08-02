@@ -417,10 +417,28 @@
     var out = text;
     out = out.replace(/ส(?:ำ|ํา)นักงานคณะกรรมการกฤษฎีกา/g, ' ');
     out = out.replace(/ผู้รับสนองพระบรมราชโองการ[\s\S]{0,60}?นายกรัฐมนตรี/g, ' ');
+    /* เลขหน้าที่เหลืออยู่โดดๆ บนบรรทัดของตัวเอง (เช่น "- ๘ -") หลังตัดลายน้ำออกแล้ว —
+       จำกัดเฉพาะบรรทัดที่มีแค่รูปแบบนี้ล้วนๆ กันไปเผลอตัดเนื้อหาจริงที่บังเอิญมีขีดคั่น */
+    out = out.replace(/(^|\n)[ \t]*[-–—][ \t]*[๐-๙0-9]+[ \t]*[-–—][ \t]*(?=\n|$)/g, '$1');
     out = out.replace(/[ \t]+/g, ' ');
-    out = out.replace(/\n[ \t]*\n[ \t]*\n+/g, '\n\n');
-    out = out.replace(/^[ \t]+|[ \t]+$/gm, '');
+    out = out.replace(/^[ \t]+|[ \t]+$/gm, ''); // เทรนช่องว่างที่เหลือต้น/ท้ายบรรทัดก่อน — ทำให้บรรทัดที่เหลือแค่ช่องว่าง (จากลายน้ำที่ตัดไปแล้ว) กลายเป็นบรรทัดว่างจริงๆ
+    out = out.replace(/\n{3,}/g, '\n\n'); // จากนั้นยุบบรรทัดว่างติดกันตั้งแต่ 3 บรรทัดขึ้นไปให้เหลือ 1 บรรทัดว่างคั่น
     return out.trim();
+  }
+  /* ล้างข้อความหัวกระดาษ/ลายน้ำ/เลขหน้าออกจากโน้ตที่บันทึกไว้แล้วก่อนหน้านี้ (ก่อนที่ระบบ
+     จะตัดให้อัตโนมัติตอนนำเข้า) — ผู้ใช้กดเองทีเดียว ไม่รันอัตโนมัติเพราะแก้ข้อมูลที่มีอยู่แล้ว */
+  function cleanExistingNotes() {
+    var notes = loadNotes();
+    var changed = 0;
+    notes.forEach(function (n) {
+      var q2 = stripBoilerplate(n.q), a2 = stripBoilerplate(n.a);
+      if (q2 !== n.q || a2 !== n.a) { n.q = q2; n.a = a2; changed++; }
+    });
+    saveNotes(notes);
+    renderNoteList();
+    renderReviewCount();
+    var status = $('bpCleanNotesStatus');
+    if (status) status.textContent = changed ? ('✅ ล้างข้อความไม่ต้องการออกจาก ' + changed + ' โน้ตแล้ว') : 'ไม่พบข้อความที่ต้องล้างในโน้ตที่มีอยู่ตอนนี้';
   }
   function showTextForReview(text, subjHint, statusMsg) {
     text = stripBoilerplate(text);
@@ -922,6 +940,7 @@
     renderNoteList();
     renderReviewCount();
     $('bpReviewBtn').addEventListener('click', startReview);
+    $('bpCleanNotesBtn').addEventListener('click', cleanExistingNotes);
 
     $('bpWrStart').addEventListener('click', startWriting);
     $('bpWrStop').addEventListener('click', stopWriting);
@@ -946,6 +965,6 @@
     evalCareer: evalCareer, daysUntil: daysUntil, fmtClock: fmtClock,
     DriveSync: DriveSync, listDriveFiles: listDriveFiles, uploadFilesToDrive: uploadFilesToDrive,
     splitByMatra: splitByMatra, pdfItemsToLines: pdfItemsToLines, stripBoilerplate: stripBoilerplate,
-    showTextForReview: showTextForReview
+    showTextForReview: showTextForReview, cleanExistingNotes: cleanExistingNotes
   };
 })();
