@@ -426,12 +426,10 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       return Promise.resolve(new THREE.Mesh(geo2, new THREE.MeshStandardMaterial({ color: 0x9C9C9C })));
     }
     if (ext === 'fbx') {
-      var fbxObj = new FBXLoader().parse(arrayBuffer, '');
-      // ไฟล์ FBX มักตั้งหน่วยเป็นเซนติเมตร (ต่างจาก glTF/OBJ ที่ตั้งเป็นเมตรตามธรรมเนียมที่แอปนี้ใช้)
-      // แปลงสเกลตาม GlobalSettings.UnitScaleFactor (จำนวน ซม. ต่อ 1 หน่วย) ให้ลงตัวเป็นเมตรเหมือนฟอร์แมตอื่น
-      var usf = fbxObj.userData && fbxObj.userData.unitScaleFactor;
-      if (isFinite(usf) && usf > 0) fbxObj.scale.multiplyScalar(usf / 100);
-      return Promise.resolve(fbxObj);
+      // หมายเหตุ: ไม่ auto-scale ตาม GlobalSettings.UnitScaleFactor เพราะโปรแกรม/แอปสแกนหลายตัว
+      // ไม่กรอกค่านี้ตรงกับหน่วยจริงของเนื้อโมเดล (ทำให้ไฟล์ที่ขนาดถูกต้องอยู่แล้วเพี้ยนไปแทน)
+      // ให้ถือว่า 1 หน่วย = 1 เมตรเหมือนฟอร์แมตอื่น แล้วใช้ช่อง "ปรับขนาด" ตั้งขนาดจริงเอาเองแทน
+      return Promise.resolve(new FBXLoader().parse(arrayBuffer, ''));
     }
     return Promise.reject(new Error('รูปแบบไฟล์ไม่รองรับ'));
   }
@@ -491,8 +489,9 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     return finalizePlace({ type: 'proc', key: key, color: col }, group, x, z, rotY, scale, skipSave);
   }
 
-  function addModelObject(modelRec, x, z, rotY, scale, skipSave) {
-    return parseModelFile(modelRec.format, modelRec.arrayBuffer).then(function (obj) {
+  function addModelObject(modelRec, x, z, rotY, scale, skipSave, preParsedObj) {
+    var p = preParsedObj ? Promise.resolve(preParsedObj) : parseModelFile(modelRec.format, modelRec.arrayBuffer);
+    return p.then(function (obj) {
       groundAndCenter(obj);
       var merged = mergeToSingleMesh(obj);
       var finalObj = merged || obj;
@@ -843,7 +842,8 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       wrap.innerHTML =
         (list.length ? '<div class="s3-mymodel-grid">' + rows + '</div>' : '<p class="s3-insp-empty">ยังไม่มีโมเดลที่อัปโหลด</p>') +
         '<button class="btn sm s3-upload-btn" type="button" id="s3UploadBtn">⬆️ อัปโหลดโมเดล (.glb .gltf .obj .ply .stl .fbx)</button>' +
-        '<input type="file" id="s3FileInput" accept=".glb,.gltf,.obj,.ply,.stl,.fbx" style="display:none">';
+        '<input type="file" id="s3FileInput" accept=".glb,.gltf,.obj,.ply,.stl,.fbx" style="display:none">' +
+        '<p class="s3-upload-status" id="s3UploadStatus" style="display:none"></p>';
       $('s3UploadBtn').addEventListener('click', function () { $('s3FileInput').click(); });
       $('s3FileInput').addEventListener('change', function (e) {
         var f = e.target.files && e.target.files[0];
@@ -866,6 +866,20 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     });
   }
 
+  /* ยกให้เบราว์เซอร์วาดหน้าจอก่อนเริ่มงานหนัก (parse ไฟล์ 3D เป็นงาน sync บล็อก main
+     thread) เพื่อให้ข้อความ "กำลังประมวลผล…" ทันขึ้นก่อนหน้าจอจะไม่ตอบสนองชั่วขณะ */
+  function nextPaint() {
+    return new Promise(function (resolve) {
+      requestAnimationFrame(function () { setTimeout(resolve, 0); });
+    });
+  }
+  function setUploadBusy(busy, msg) {
+    var btn = $('s3UploadBtn'), input = $('s3FileInput'), status = $('s3UploadStatus');
+    if (btn) btn.disabled = busy;
+    if (input) input.disabled = busy;
+    if (status) { status.style.display = busy ? '' : 'none'; status.textContent = msg || ''; }
+  }
+
   function escHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -873,24 +887,35 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
   }
 
   function placeModelById(id) {
+    setUploadBusy(true, '⏳ กำลังโหลดโมเดล… ไฟล์ใหญ่หรือ .fbx อาจใช้เวลาสักครู่');
     dbGetModel(id).then(function (rec) {
       if (!rec) { s3Alert('ไม่พบโมเดลนี้แล้ว'); return; }
-      return addModelObject(rec, stagingX(), -3, 0, 1, false);
-    }).catch(function (e) { s3Alert('โหลดโมเดลไม่สำเร็จ: ' + (e && e.message ? e.message : e)); });
+      return nextPaint().then(function () { return addModelObject(rec, stagingX(), -3, 0, 1, false); });
+    }).catch(function (e) { s3Alert('โหลดโมเดลไม่สำเร็จ: ' + (e && e.message ? e.message : e)); })
+      .then(function () { setUploadBusy(false); });
   }
 
   function handleFileUpload(file) {
     var ext = (file.name.split('.').pop() || '').toLowerCase();
     if (UPLOAD_EXTS.indexOf(ext) === -1) { s3Alert('รองรับเฉพาะไฟล์ .glb .gltf .obj .ply .stl .fbx'); return; }
+    setUploadBusy(true, '⏳ กำลังอ่านไฟล์ ' + file.name + ' …');
+    var bufHolder;
     file.arrayBuffer().then(function (buf) {
-      return parseModelFile(ext, buf).then(function () {
-        var rec = { name: file.name.replace(/\.[^.]+$/, ''), format: ext, arrayBuffer: buf, sizeBytes: buf.byteLength, createdAt: Date.now() };
-        return dbAddModel(rec).then(function (id) {
-          rec.id = id;
-          return refreshMyModelsCatalog().then(function () { return addModelObject(rec, stagingX(), -3, 0, 1, false); });
-        });
+      bufHolder = buf;
+      setUploadBusy(true, '⏳ กำลังแปลงโมเดล 3D… ไฟล์ใหญ่หรือ .fbx อาจใช้เวลาหลายวินาที หน้าจออาจไม่ตอบสนองชั่วขณะ (ไม่ได้ค้าง รอสักครู่)');
+      return nextPaint();
+    }).then(function () {
+      return parseModelFile(ext, bufHolder); // parse ครั้งเดียว แล้วส่งต่อให้วางในผังเลย ไม่ parse ซ้ำสองรอบ
+    }).then(function (parsedObj) {
+      var rec = { name: file.name.replace(/\.[^.]+$/, ''), format: ext, arrayBuffer: bufHolder, sizeBytes: bufHolder.byteLength, createdAt: Date.now() };
+      return dbAddModel(rec).then(function (id) {
+        rec.id = id;
+        return refreshMyModelsCatalog().then(function () { return addModelObject(rec, stagingX(), -3, 0, 1, false, parsedObj); });
       });
+    }).then(function () {
+      setUploadBusy(false);
     }).catch(function (err) {
+      setUploadBusy(false);
       s3Alert('อ่านไฟล์โมเดลไม่สำเร็จ (ไฟล์อาจเสียหรือฟอร์แมตไม่ตรง): ' + (err && err.message ? err.message : err));
     });
   }
