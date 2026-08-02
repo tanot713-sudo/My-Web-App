@@ -193,17 +193,45 @@
     var notes = loadNotes();
     var el = $('bpNoteList');
     if (!notes.length) { el.innerHTML = '<p class="note-empty">ยังไม่มีโน้ต — เพิ่มด้านบนได้เลย</p>'; return; }
-    el.innerHTML = notes.map(function (n) {
-      return '<li class="note-item" data-id="' + n.id + '">' +
-        '<div class="hd">' + (n.subj ? '<span class="tag">' + esc(n.subj) + '</span>' : '<span></span>') +
-        '<button class="note-del" data-del="' + n.id + '" aria-label="ลบโน้ต">🗑</button></div>' +
-        '<div class="txt"><b>' + esc(n.q) + '</b>' + (n.a ? '<br>' + esc(n.a) : '') + '</div>' +
-        '<div class="meta">ทบทวนรอบถัดไป: ' + new Date(n.dueAt).toLocaleDateString('th-TH') + '</div>' +
-      '</li>';
+    /* จัดกลุ่มตามวิชา/หมวด เพื่อให้มีปุ่ม "ลบทั้งหมด" ต่อกลุ่ม — สำคัญมากเมื่อเพิ่งใช้
+       "แบ่งเป็นรายมาตรา" แล้วได้โน้ตทีเดียวหลายสิบรายการในวิชาเดียวกัน */
+    var groups = [], byKey = {};
+    notes.forEach(function (n) {
+      var key = n.subj || '';
+      if (!byKey[key]) { byKey[key] = { subj: key, items: [] }; groups.push(byKey[key]); }
+      byKey[key].items.push(n);
+    });
+    el.innerHTML = groups.map(function (g) {
+      return '<li class="note-group-hd">' +
+        '<span class="tag">' + (g.subj ? esc(g.subj) : 'ไม่ระบุวิชา') + '</span>' +
+        '<span class="mini">' + g.items.length + ' โน้ต</span>' +
+        '<button class="note-del-all" data-delsubj="' + esc(g.subj) + '">🗑 ลบทั้งหมดในวิชานี้</button>' +
+      '</li>' +
+      g.items.map(function (n) {
+        return '<li class="note-item" data-id="' + n.id + '">' +
+          '<div class="hd"><span></span>' +
+          '<button class="note-del" data-del="' + n.id + '" aria-label="ลบโน้ต">🗑</button></div>' +
+          '<div class="txt"><b>' + esc(n.q) + '</b>' + (n.a ? '<br>' + esc(n.a) : '') + '</div>' +
+          '<div class="meta">ทบทวนรอบถัดไป: ' + new Date(n.dueAt).toLocaleDateString('th-TH') + '</div>' +
+        '</li>';
+      }).join('');
     }).join('');
     Array.prototype.forEach.call(el.querySelectorAll('[data-del]'), function (b) {
       b.addEventListener('click', function () { deleteNote(b.dataset.del); });
     });
+    Array.prototype.forEach.call(el.querySelectorAll('[data-delsubj]'), function (b) {
+      b.addEventListener('click', function () { deleteNotesBySubject(b.dataset.delsubj); });
+    });
+  }
+  function deleteNotesBySubject(subj) {
+    var notes = loadNotes();
+    var match = notes.filter(function (n) { return (n.subj || '') === subj; });
+    if (!match.length) return;
+    var label = subj || 'ไม่ระบุวิชา';
+    if (!window.confirm('ลบโน้ตทั้งหมด ' + match.length + ' รายการในวิชา "' + label + '" ใช่หรือไม่? กู้คืนไม่ได้')) return;
+    saveNotes(notes.filter(function (n) { return (n.subj || '') !== subj; }));
+    renderNoteList();
+    renderReviewCount();
   }
   function dueNotes() {
     var now = Date.now();
