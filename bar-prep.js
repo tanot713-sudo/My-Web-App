@@ -15,6 +15,46 @@
   }
   var DAY_MS = 86400000;
 
+  /* ══════════════════ กล่องยืนยัน/แจ้งเตือนของเว็บเอง (แทน confirm()/alert() ของเบราว์เซอร์) ══════════════════ */
+  function showModal(opts) {
+    return new Promise(function (resolve) {
+      var backdrop = $('bpModalBackdrop');
+      $('bpModalTitle').textContent = opts.title || '';
+      $('bpModalMsg').textContent = opts.message || '';
+      var btnsEl = $('bpModalBtns');
+      btnsEl.innerHTML = '';
+      var done = false;
+      function close(val) {
+        if (done) return;
+        done = true;
+        backdrop.classList.remove('open');
+        backdrop.onclick = null;
+        resolve(val);
+      }
+      (opts.buttons || []).forEach(function (b) {
+        var btn = document.createElement('button');
+        btn.className = 'btn sm' + (b.primary ? ' primary' : '');
+        btn.type = 'button';
+        btn.textContent = b.label;
+        btn.addEventListener('click', function () { close(b.value); });
+        btnsEl.appendChild(btn);
+      });
+      backdrop.onclick = function (e) { if (e.target === backdrop) close(opts.cancelValue !== undefined ? opts.cancelValue : null); };
+      backdrop.classList.add('open');
+    });
+  }
+  function bpConfirm(message, title) {
+    return showModal({
+      title: title || 'ยืนยัน',
+      message: message,
+      cancelValue: false,
+      buttons: [
+        { label: 'ยกเลิก', value: false },
+        { label: 'ตกลง', value: true, primary: true }
+      ]
+    }).then(function (v) { return v === true; });
+  }
+
   /* ══════════════════ สนามสอบ & นับถอยหลัง ══════════════════ */
   var EXAM_TYPES = [
     { key: 'neti1', name: 'เนติบัณฑิต ภาค 1', icon: '⚖️', url: 'https://www.thethaibar.or.th/thaibarweb/',
@@ -228,10 +268,12 @@
     var match = notes.filter(function (n) { return (n.subj || '') === subj; });
     if (!match.length) return;
     var label = subj || 'ไม่ระบุวิชา';
-    if (!window.confirm('ลบโน้ตทั้งหมด ' + match.length + ' รายการในวิชา "' + label + '" ใช่หรือไม่? กู้คืนไม่ได้')) return;
-    saveNotes(notes.filter(function (n) { return (n.subj || '') !== subj; }));
-    renderNoteList();
-    renderReviewCount();
+    bpConfirm('ลบโน้ตทั้งหมด ' + match.length + ' รายการในวิชา "' + label + '" ใช่หรือไม่? กู้คืนไม่ได้', 'ลบทั้งวิชา').then(function (ok) {
+      if (!ok) return;
+      saveNotes(loadNotes().filter(function (n) { return (n.subj || '') !== subj; }));
+      renderNoteList();
+      renderReviewCount();
+    });
   }
   function dueNotes() {
     var now = Date.now();

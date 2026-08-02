@@ -83,6 +83,17 @@ details[open]>summary::before{transform:rotate(90deg)}
 
 .disc{font-size:12px;color:var(--muted);line-height:1.6;padding:14px 4px 4px}
 
+/* ── กล่องยืนยัน/แจ้งเตือนของเว็บเอง (แทน confirm()/alert() ของเบราว์เซอร์) ── */
+.bp-modal-backdrop{position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:300;
+  display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.15s;padding:20px}
+.bp-modal-backdrop.open{opacity:1;pointer-events:auto}
+.bp-modal{background:var(--card);border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.25);
+  padding:20px;max-width:360px;width:100%;transform:translateY(8px);transition:.15s}
+.bp-modal-backdrop.open .bp-modal{transform:translateY(0)}
+.bp-modal-title{font-size:15.5px;font-weight:800;margin-bottom:6px}
+.bp-modal-msg{font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:16px;white-space:pre-line}
+.bp-modal-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+
 /* ── การ์ดเป้าหมาย 3 สาย ── */
 .goal-row{display:flex;flex-wrap:wrap;gap:10px}
 .goal-chip{flex:1 1 200px;background:var(--bg);border-radius:13px;padding:12px 14px;display:flex;gap:10px;align-items:center}
@@ -339,6 +350,14 @@ details[open]>summary::before{transform:rotate(90deg)}
 
 <div class="disc">⚠️ เครื่องมือนี้ช่วยจัดระเบียบการเตรียมสอบเท่านั้น ไม่ใช่แหล่งเนื้อหากฎหมายที่สมบูรณ์หรือคำรับรองว่าจะสอบผ่าน เกณฑ์คุณสมบัติ/วันสอบ/ระเบียบห้องสอบต้องยึดตามประกาศทางการล่าสุดของแต่ละหน่วยงานเป็นหลักเสมอ · ข้อมูลที่กรอกเก็บในเครื่องคุณเท่านั้น (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
 
+</div>
+
+<div class="bp-modal-backdrop" id="bpModalBackdrop">
+  <div class="bp-modal" id="bpModal" role="dialog" aria-modal="true">
+    <div class="bp-modal-title" id="bpModalTitle"></div>
+    <div class="bp-modal-msg" id="bpModalMsg"></div>
+    <div class="bp-modal-btns" id="bpModalBtns"></div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
