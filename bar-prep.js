@@ -716,9 +716,10 @@
         self.tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: DRIVE_CLIENT_ID,
           scope: DRIVE_SCOPE,
+          use_fedcm_for_prompt: true, // ลดโอกาสต้องกดยืนยันใหม่ทุกครั้งบนเบราว์เซอร์ที่บล็อก third-party cookie (เช่น Chrome รุ่นใหม่)
           callback: function (resp) {
             if (resp.error) {
-              self.setStatus(self.connected ? 'เชื่อมต่ออัตโนมัติไม่สำเร็จ — กดปุ่มเชื่อมต่ออีกครั้ง' : 'เชื่อมต่อไม่สำเร็จ: ' + resp.error, 'err');
+              self.setStatus(self.connected ? 'เชื่อมต่ออัตโนมัติไม่สำเร็จ (อาจเพราะเบราว์เซอร์บล็อก cookie ข้ามโดเมน) — กดปุ่มเชื่อมต่ออีกครั้ง' : 'เชื่อมต่อไม่สำเร็จ: ' + resp.error, 'err');
               return;
             }
             self.accessToken = resp.access_token;
