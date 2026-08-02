@@ -1,0 +1,7 @@
+Three.js — vendored locally so 3D pages load same-origin and work offline.
+Source unmodified. License: MIT.
+https://github.com/mrdoob/three.js
+
+Files under jsm/ mirror the upstream examples/jsm/ directory layout exactly
+(same relative import paths), so the import map maps "three/addons/" -> "./jsm/"
+matching the official three.js no-bundler setup convention.

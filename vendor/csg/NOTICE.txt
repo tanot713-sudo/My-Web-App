@@ -1,0 +1,12 @@
+three-mesh-bvh + three-bvh-csg — vendored locally so the boolean cut/merge
+feature loads same-origin (lazy-loaded only when that panel opens).
+Source unmodified. License: MIT.
+https://github.com/gkjohnson/three-mesh-bvh
+https://github.com/gkjohnson/three-bvh-csg
+
+Loaded as classic global (UMD) scripts, not ES modules, because their npm
+ESM builds import from sibling source files (not a flat bundle); the UMD
+build is the only flat, self-contained bundle available. They expect
+window.THREE (set from our own ESM `import * as THREE from 'three'`) to
+already exist before they load; three-mesh-bvh sets window.MeshBVHLib,
+then three-bvh-csg reads that and sets window.ThreBvhCsg.

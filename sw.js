@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v67';
+const CACHE = 'ome-v68';
 const PRECACHE = [
   './',
   './index.html',
@@ -54,7 +54,19 @@ const PRECACHE = [
   './vendor/lightweight-charts.standalone.js',
   './vendor/three/three.module.min.js',
   './vendor/three/three.core.min.js',
-  './vendor/three/OrbitControls.js',
+  './vendor/three/jsm/controls/OrbitControls.js',
+  './vendor/three/jsm/controls/TransformControls.js',
+  './vendor/three/jsm/loaders/GLTFLoader.js',
+  './vendor/three/jsm/loaders/OBJLoader.js',
+  './vendor/three/jsm/loaders/PLYLoader.js',
+  './vendor/three/jsm/loaders/STLLoader.js',
+  './vendor/three/jsm/exporters/GLTFExporter.js',
+  './vendor/three/jsm/exporters/STLExporter.js',
+  './vendor/three/jsm/utils/BufferGeometryUtils.js',
+  './vendor/three/jsm/utils/SkeletonUtils.js',
+  './vendor/three/jsm/modifiers/SimplifyModifier.js',
+  './vendor/three/jsm/environments/RoomEnvironment.js',
+  './vendor/three/jsm/webxr/ARButton.js',
   './vendor/gsap.min.js',
   './credits.html',
   './theme.css',
