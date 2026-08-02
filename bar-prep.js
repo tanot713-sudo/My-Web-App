@@ -226,6 +226,52 @@
   }
   function deleteNote(id) {
     saveNotes(loadNotes().filter(function (n) { return n.id !== id; }));
+    if (editingNoteId === id) cancelEditNote();
+    renderNoteList();
+    renderReviewCount();
+  }
+  /* เรียงลำดับตามเลขมาตราที่แยกได้จากคำถาม (รองรับเลขไทย/เลขอารบิก, มาตราย่อยแบบ "9/1",
+     และมาตราแทรกท้าย ทวิ/ตรี/จัตวา/... ) — โน้ตที่ไม่ได้อยู่ในรูปแบบ "มาตรา <เลข>" เรียงไว้ท้ายกลุ่ม
+     ตามลำดับเดิม (ไม่ปนกับมาตราที่เรียงเลขได้) */
+  var MATRA_SUFFIX_ORDER = { '': 0, 'ทวิ': 1, 'ตรี': 2, 'จัตวา': 3, 'เบญจ': 4, 'ฉ': 5, 'สัตต': 6, 'อัฏฐ': 7, 'นว': 8, 'ทศ': 9 };
+  var THAI_DIGIT_MAP = { '๐': '0', '๑': '1', '๒': '2', '๓': '3', '๔': '4', '๕': '5', '๖': '6', '๗': '7', '๘': '8', '๙': '9' };
+  function thaiDigitsToArabic(s) {
+    return String(s).replace(/[๐-๙]/g, function (c) { return THAI_DIGIT_MAP[c]; });
+  }
+  function matraSortKey(q) {
+    var m = /มาตรา\s*([0-9๐-๙]+)(?:\s*\/\s*([0-9๐-๙]+))?(?:\s*(ทวิ|ตรี|จัตวา|เบญจ|ฉ|สัตต|อัฏฐ|นว|ทศ))?/.exec(q || '');
+    if (!m) return null;
+    var main = parseInt(thaiDigitsToArabic(m[1]), 10) || 0;
+    var sub = m[2] ? parseInt(thaiDigitsToArabic(m[2]), 10) : 0;
+    var suf = MATRA_SUFFIX_ORDER[m[3] || ''] || 0;
+    return main * 100000 + sub * 100 + suf;
+  }
+  var editingNoteId = null;
+  function startEditNote(id) {
+    var n = loadNotes().filter(function (x) { return x.id === id; })[0];
+    if (!n) return;
+    editingNoteId = id;
+    $('bpNoteSubj').value = n.subj || '';
+    $('bpNoteQ').value = n.q || '';
+    $('bpNoteA').value = n.a || '';
+    $('bpNoteAdd').textContent = '💾 บันทึกการแก้ไข';
+    $('bpNoteCancelEdit').style.display = '';
+    $('bpNoteSubj').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function cancelEditNote() {
+    editingNoteId = null;
+    $('bpNoteQ').value = ''; $('bpNoteA').value = '';
+    $('bpNoteAdd').textContent = '+ บันทึกโน้ต/การ์ด';
+    $('bpNoteCancelEdit').style.display = 'none';
+  }
+  function updateNote(id, subj, q, a) {
+    if (!q || !q.trim()) return;
+    var notes = loadNotes();
+    var n = notes.filter(function (x) { return x.id === id; })[0];
+    if (!n) return;
+    n.subj = subj || ''; n.q = q; n.a = a || '';
+    saveNotes(notes);
+    cancelEditNote();
     renderNoteList();
     renderReviewCount();
   }
@@ -241,6 +287,16 @@
       if (!byKey[key]) { byKey[key] = { subj: key, items: [] }; groups.push(byKey[key]); }
       byKey[key].items.push(n);
     });
+    groups.forEach(function (g) {
+      g.items.forEach(function (n, i) { n._origIdx = i; }); // กันตัวเรียงเปลี่ยนลำดับของรายการที่เรียงเลขไม่ได้
+      g.items.sort(function (a, b) {
+        var ka = matraSortKey(a.q), kb = matraSortKey(b.q);
+        if (ka === null && kb === null) return a._origIdx - b._origIdx;
+        if (ka === null) return 1;
+        if (kb === null) return -1;
+        return ka - kb || (a._origIdx - b._origIdx);
+      });
+    });
     el.innerHTML = groups.map(function (g) {
       return '<li class="note-group-hd">' +
         '<span class="tag">' + (g.subj ? esc(g.subj) : 'ไม่ระบุวิชา') + '</span>' +
@@ -250,7 +306,8 @@
       g.items.map(function (n) {
         return '<li class="note-item" data-id="' + n.id + '">' +
           '<div class="hd"><span></span>' +
-          '<button class="note-del" data-del="' + n.id + '" aria-label="ลบโน้ต">🗑</button></div>' +
+          '<span class="note-actions"><button class="note-edit" data-edit="' + n.id + '" aria-label="แก้ไขโน้ต">✏️</button>' +
+          '<button class="note-del" data-del="' + n.id + '" aria-label="ลบโน้ต">🗑</button></span></div>' +
           '<div class="txt"><b>' + esc(n.q) + '</b>' + (n.a ? '<br>' + esc(n.a) : '') + '</div>' +
           '<div class="meta">ทบทวนรอบถัดไป: ' + new Date(n.dueAt).toLocaleDateString('th-TH') + '</div>' +
         '</li>';
@@ -258,6 +315,9 @@
     }).join('');
     Array.prototype.forEach.call(el.querySelectorAll('[data-del]'), function (b) {
       b.addEventListener('click', function () { deleteNote(b.dataset.del); });
+    });
+    Array.prototype.forEach.call(el.querySelectorAll('[data-edit]'), function (b) {
+      b.addEventListener('click', function () { startEditNote(b.dataset.edit); });
     });
     Array.prototype.forEach.call(el.querySelectorAll('[data-delsubj]'), function (b) {
       b.addEventListener('click', function () { deleteNotesBySubject(b.dataset.delsubj); });
@@ -270,6 +330,7 @@
     var label = subj || 'ไม่ระบุวิชา';
     bpConfirm('ลบโน้ตทั้งหมด ' + match.length + ' รายการในวิชา "' + label + '" ใช่หรือไม่? กู้คืนไม่ได้', 'ลบทั้งวิชา').then(function (ok) {
       if (!ok) return;
+      if (editingNoteId && match.some(function (n) { return n.id === editingNoteId; })) cancelEditNote();
       saveNotes(loadNotes().filter(function (n) { return (n.subj || '') !== subj; }));
       renderNoteList();
       renderReviewCount();
@@ -934,9 +995,14 @@
     if (localStorage.getItem(CAREER_KEY)) doCareerEval();
 
     $('bpNoteAdd').addEventListener('click', function () {
-      addNote($('bpNoteSubj').value, $('bpNoteQ').value, $('bpNoteA').value);
-      $('bpNoteQ').value = ''; $('bpNoteA').value = '';
+      if (editingNoteId) {
+        updateNote(editingNoteId, $('bpNoteSubj').value, $('bpNoteQ').value, $('bpNoteA').value);
+      } else {
+        addNote($('bpNoteSubj').value, $('bpNoteQ').value, $('bpNoteA').value);
+        $('bpNoteQ').value = ''; $('bpNoteA').value = '';
+      }
     });
+    $('bpNoteCancelEdit').addEventListener('click', cancelEditNote);
     renderNoteList();
     renderReviewCount();
     $('bpReviewBtn').addEventListener('click', startReview);
@@ -965,6 +1031,7 @@
     evalCareer: evalCareer, daysUntil: daysUntil, fmtClock: fmtClock,
     DriveSync: DriveSync, listDriveFiles: listDriveFiles, uploadFilesToDrive: uploadFilesToDrive,
     splitByMatra: splitByMatra, pdfItemsToLines: pdfItemsToLines, stripBoilerplate: stripBoilerplate,
-    showTextForReview: showTextForReview, cleanExistingNotes: cleanExistingNotes
+    showTextForReview: showTextForReview, cleanExistingNotes: cleanExistingNotes,
+    matraSortKey: matraSortKey
   };
 })();

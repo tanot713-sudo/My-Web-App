@@ -135,7 +135,9 @@ details[open]>summary::before{transform:rotate(90deg)}
 .note-item .tag{font-size:11px;font-weight:700;color:var(--brand-dk);background:var(--brand-sf);border-radius:7px;padding:1px 8px}
 .note-item .txt{font-size:13px;margin-top:4px;white-space:pre-wrap}
 .note-item .meta{font-size:11px;color:var(--muted);margin-top:4px}
+.note-actions{display:flex;gap:10px;flex-shrink:0}
 .note-del{background:none;border:none;color:var(--err);cursor:pointer;font-size:14px;flex-shrink:0}
+.note-edit{background:none;border:none;color:var(--brand-dk);cursor:pointer;font-size:14px;flex-shrink:0}
 .note-empty{font-size:13px;color:var(--muted);padding:8px 0}
 .note-group-hd{display:flex;align-items:center;gap:8px;padding:12px 0 6px;border-top:2px solid var(--line)}
 .note-group-hd:first-child{border-top:none;padding-top:0}
@@ -236,7 +238,10 @@ details[open]>summary::before{transform:rotate(90deg)}
   <div class="field" style="margin-top:8px"><label>คำตอบ/เนื้อหา (ด้านหลังการ์ด)</label>
     <textarea id="bpNoteA" rows="3" placeholder="สรุปหลักกฎหมาย/เนื้อหาโน้ต"></textarea>
   </div>
-  <button class="btn primary sm" id="bpNoteAdd" type="button" style="margin-top:8px">+ บันทึกโน้ต/การ์ด</button>
+  <div class="frow" style="margin-top:8px">
+    <button class="btn primary sm" id="bpNoteAdd" type="button">+ บันทึกโน้ต/การ์ด</button>
+    <button class="btn sm" id="bpNoteCancelEdit" type="button" style="display:none">ยกเลิกการแก้ไข</button>
+  </div>
 
   <div style="margin-top:16px">
     <button class="btn sm" id="bpReviewBtn" type="button">🔁 เริ่มทบทวนวันนี้</button>
