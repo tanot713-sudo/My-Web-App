@@ -144,6 +144,10 @@ details[open]>summary::before{transform:rotate(90deg)}
 .chk-list{list-style:none;margin:12px 0 0;padding:0}
 .chk-list li{display:flex;gap:9px;align-items:flex-start;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--line)}
 .chk-list li:last-child{border-bottom:none}
+.chk-list li label{display:flex;gap:8px;align-items:flex-start;cursor:pointer;width:100%}
+.chk-list li label input{margin-top:3px;flex-shrink:0}
+.chk-list .mnum{font-weight:700;color:var(--brand-dk);flex-shrink:0}
+.chk-list .msnip{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wr-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
 .wr-table th,.wr-table td{padding:7px 6px;text-align:left;border-bottom:1px solid var(--line)}
 .wr-table th{color:var(--muted);font-weight:600;font-size:11.5px}
@@ -279,7 +283,7 @@ details[open]>summary::before{transform:rotate(90deg)}
 
 <div class="card">
   <h2>📷 นำเข้าข้อความ → ตรวจทาน → บันทึกโน้ต</h2>
-  <p class="mini">ถ่ายรูปหน้าเอกสาร หรือกด "แยกข้อความ" จากไฟล์ใน Drive ด้านบน — ระบบแปลงข้อความให้อัตโนมัติแต่ <b>ต้องตรวจทานก่อนบันทึกเสมอ</b> โดยเฉพาะตัวเลขมาตรา/เลขที่ฎีกาที่ผิดแล้วอันตราย ถ่ายในที่แสงสว่างสม่ำเสมอ ไม่เอียง ไม่มีเงา จะช่วยให้แม่นยำขึ้นมาก</p>
+  <p class="mini">ถ่ายรูปหน้าเอกสาร หรือกด "แยกข้อความ" จากไฟล์ใน Drive ด้านบน — ระบบแปลงข้อความให้อัตโนมัติแต่ <b>ต้องตรวจทานก่อนบันทึกเสมอ</b> โดยเฉพาะตัวเลขมาตรา/เลขที่ฎีกาที่ผิดแล้วอันตราย ถ่ายในที่แสงสว่างสม่ำเสมอ ไม่เอียง ไม่มีเงา จะช่วยให้แม่นยำขึ้นมาก · ถ้าเป็นตัวบทกฎหมายทั้งฉบับ (มีหลายมาตรา) ใช้ปุ่ม "✂️ แบ่งเป็นรายมาตรา" ด้านล่างแทนการบันทึกเป็นก้อนเดียว จะได้การ์ดท่องทีละมาตราสำหรับทบทวนแบบ Flashcard</p>
   <label class="ocr-drop" for="bpOcrFile" id="bpOcrDrop">📷 แตะเพื่อถ่ายรูป/เลือกรูปหน้าเอกสาร</label>
   <input type="file" id="bpOcrFile" accept="image/*" capture="environment" style="display:none">
   <img id="bpOcrPreview" class="ocr-preview" alt="ตัวอย่างรูปที่เลือก">
@@ -290,7 +294,18 @@ details[open]>summary::before{transform:rotate(90deg)}
     </div>
   </div>
   <textarea id="bpOcrText" rows="6" placeholder="ข้อความที่แปลงได้จะขึ้นตรงนี้ — แก้ไข/ตรวจทานก่อนบันทึก" style="margin-top:8px;display:none"></textarea>
-  <button class="btn primary sm" id="bpOcrSave" type="button" style="margin-top:8px;display:none">✅ บันทึกเป็นโน้ต</button>
+  <div class="frow" style="margin-top:8px">
+    <button class="btn primary sm" id="bpOcrSave" type="button" style="display:none">✅ บันทึกเป็นโน้ตเดียว</button>
+    <button class="btn sm" id="bpMatraSplitBtn" type="button" style="display:none">✂️ แบ่งเป็นรายมาตรา</button>
+  </div>
+  <div id="bpMatraSplitWrap" style="display:none;margin-top:10px">
+    <p class="mini" id="bpMatraSplitStatus"></p>
+    <ul class="chk-list" id="bpMatraList"></ul>
+    <div class="frow" style="margin-top:8px">
+      <button class="btn primary sm" id="bpMatraSaveBtn" type="button">✅ บันทึกมาตราที่เลือกเป็นโน้ตแยก</button>
+      <button class="btn sm" id="bpMatraCancelBtn" type="button">ยกเลิก</button>
+    </div>
+  </div>
 </div>
 
 <div class="card">

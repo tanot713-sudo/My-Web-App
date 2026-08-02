@@ -346,7 +346,43 @@
     $('bpOcrText').style.display = '';
     $('bpOcrEditWrap').style.display = '';
     $('bpOcrSave').style.display = '';
+    $('bpMatraSplitBtn').style.display = '';
+    $('bpMatraSplitWrap').style.display = 'none';
     $('bpOcrText').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  /* ══════════════════ แบ่งข้อความยาว (เช่น ทั้งประมวลกฎหมาย) ออกเป็นรายมาตรา ══════════════════
+     หา "มาตรา <เลข>" ทุกจุดในข้อความ แล้วตัดเป็นช่วงๆ ระหว่างจุดที่พบ — ใช้ได้ดีกับข้อความ
+     ที่แยกมาจากตัวบทกฎหมายจริง แต่ถ้าเนื้อหาในมาตราหนึ่งอ้างอิงถึงเลขมาตราอื่น (เช่น
+     "ตามมาตรา 420") จุดอ้างอิงนั้นจะถูกนับเป็นจุดแบ่งไปด้วย — ต้องให้ผู้ใช้เลือก/ตรวจทาน
+     ก่อนบันทึกเสมอ ไม่บันทึกอัตโนมัติ */
+  function splitByMatra(text) {
+    var re = /มาตรา\s*([๐-๙0-9]+(?:\s*\/\s*[๐-๙0-9]+)?(?:\s*(?:ทวิ|ตรี|จัตวา|เบญจ|ฉ|สัตต|อัฏฐ|นว|ทศ))?)/g;
+    var hits = [], m;
+    while ((m = re.exec(text))) hits.push({ idx: m.index, num: m[1].replace(/\s+/g, '') });
+    if (hits.length < 2) return [];
+    var out = [];
+    for (var i = 0; i < hits.length; i++) {
+      var start = hits[i].idx;
+      var end = i + 1 < hits.length ? hits[i + 1].idx : text.length;
+      var chunk = text.slice(start, end).trim();
+      if (chunk) out.push({ num: hits[i].num, text: chunk });
+    }
+    return out;
+  }
+  var matraSections = [];
+  function renderMatraPreview(sections) {
+    matraSections = sections;
+    var list = $('bpMatraList');
+    list.innerHTML = sections.map(function (s, i) {
+      var snip = s.text.replace(/^มาตรา\s*[๐-๙0-9\/\s]+(?:ทวิ|ตรี|จัตวา|เบญจ|ฉ|สัตต|อัฏฐ|นว|ทศ)?\s*/, '').slice(0, 70);
+      return '<li><label><input type="checkbox" checked data-mi="' + i + '">' +
+        '<span class="mnum">มาตรา ' + esc(s.num) + '</span> <span class="msnip">' + esc(snip) + (s.text.length > 70 ? '…' : '') + '</span>' +
+        '</label></li>';
+    }).join('');
+    $('bpMatraSplitStatus').textContent = 'พบ ' + sections.length + ' มาตรา — ติ๊กออกได้ถ้ามีจุดที่แบ่งผิด (เช่น ข้อความอ้างอิงมาตราอื่นในเนื้อหา) แล้วตรวจทานอีกครั้งก่อนบันทึก';
+    $('bpMatraSplitWrap').style.display = '';
+    $('bpMatraSplitWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
   function bindOcr() {
     $('bpOcrFile').addEventListener('change', function (e) {
@@ -374,13 +410,47 @@
       var text = $('bpOcrText').value;
       if (!text.trim()) return;
       addNote($('bpOcrSubj').value, text.split('\n')[0].slice(0, 80) || 'โน้ตที่นำเข้า', text);
-      $('bpOcrText').value = ''; $('bpOcrText').style.display = 'none';
-      $('bpOcrSave').style.display = 'none';
-      $('bpOcrStatus').className = 'status ok';
-      $('bpOcrStatus').textContent = '✅ บันทึกเป็นโน้ตแล้ว';
-      $('bpOcrPreview').style.display = 'none';
-      $('bpOcrFile').value = '';
+      resetOcrUi('✅ บันทึกเป็นโน้ตแล้ว');
     });
+    $('bpMatraSplitBtn').addEventListener('click', function () {
+      var text = $('bpOcrText').value;
+      var sections = splitByMatra(text);
+      if (!sections.length) {
+        $('bpMatraSplitWrap').style.display = 'none';
+        $('bpOcrStatus').className = 'status err';
+        $('bpOcrStatus').textContent = '❌ ไม่พบรูปแบบ "มาตรา <เลข>" อย่างน้อย 2 มาตราขึ้นไปในข้อความนี้ — ลองกด "บันทึกเป็นโน้ตเดียว" แทน';
+        return;
+      }
+      renderMatraPreview(sections);
+    });
+    $('bpMatraCancelBtn').addEventListener('click', function () {
+      $('bpMatraSplitWrap').style.display = 'none';
+    });
+    $('bpMatraSaveBtn').addEventListener('click', function () {
+      var subj = $('bpOcrSubj').value;
+      var boxes = $('bpMatraList').querySelectorAll('input[type=checkbox]');
+      var n = 0;
+      Array.prototype.forEach.call(boxes, function (b) {
+        if (!b.checked) return;
+        var s = matraSections[parseInt(b.dataset.mi, 10)];
+        if (!s) return;
+        addNote(subj, 'มาตรา ' + s.num, s.text);
+        n++;
+      });
+      if (!n) return;
+      $('bpMatraSplitWrap').style.display = 'none';
+      resetOcrUi('✅ บันทึกแยกเป็นโน้ตแล้ว ' + n + ' มาตรา');
+    });
+  }
+  function resetOcrUi(msg) {
+    $('bpOcrText').value = ''; $('bpOcrText').style.display = 'none';
+    $('bpOcrSave').style.display = 'none';
+    $('bpMatraSplitBtn').style.display = 'none';
+    $('bpMatraSplitWrap').style.display = 'none';
+    $('bpOcrStatus').className = 'status ok';
+    $('bpOcrStatus').textContent = msg;
+    $('bpOcrPreview').style.display = 'none';
+    $('bpOcrFile').value = '';
   }
 
   /* ══════════════════ ไฟล์ในโฟลเดอร์ Drive ของฉัน (browse — อ่านเฉพาะโฟลเดอร์ส่วนตัวของผู้ใช้เอง) ══════════════════ */
@@ -758,6 +828,7 @@
 
   window.__barprep = {
     evalCareer: evalCareer, daysUntil: daysUntil, fmtClock: fmtClock,
-    DriveSync: DriveSync, listDriveFiles: listDriveFiles, uploadFilesToDrive: uploadFilesToDrive
+    DriveSync: DriveSync, listDriveFiles: listDriveFiles, uploadFilesToDrive: uploadFilesToDrive,
+    splitByMatra: splitByMatra
   };
 })();
