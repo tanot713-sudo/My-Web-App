@@ -408,7 +408,22 @@
   /* ══════════════════ นำเข้าข้อความ (ถ่ายรูป OCR หรือไฟล์จาก Drive) → ตรวจทาน → บันทึกโน้ต ══════════════════
      ใช้ชุด element เดียวกัน (#bpOcrText/#bpOcrSubj/#bpOcrSave) ไม่ว่าข้อความจะมาจากไหน
      เพื่อให้ผู้ใช้ตรวจทานก่อนบันทึกเป็นโน้ตเสมอ (สำคัญมากกับเลขมาตรา/เลขฎีกา) */
+  /* ตัดข้อความหัวกระดาษ/ลายน้ำ/บล็อกลงนามที่ไม่ใช่เนื้อหากฎหมายจริงออกก่อนให้ตรวจทาน —
+     "สำนักงานคณะกรรมการกฤษฎีกา" แทรกซ้ำแทบทุกบรรทัดในเอกสารจาก krisdika.go.th (ทั้งสะกด
+     แบบสระอำผสมและสระอำ+นิคหิตแยกตัว) และท้ายแต่ละฉบับมักมี "ผู้รับสนองพระบรมราชโองการ
+     <ชื่อนายกฯ> นายกรัฐมนตรี" ซึ่งชื่อเปลี่ยนไปตามแต่ละฉบับ ไม่ใช่เนื้อหามาตราที่ต้องท่องจำ */
+  function stripBoilerplate(text) {
+    if (!text) return text;
+    var out = text;
+    out = out.replace(/ส(?:ำ|ํา)นักงานคณะกรรมการกฤษฎีกา/g, ' ');
+    out = out.replace(/ผู้รับสนองพระบรมราชโองการ[\s\S]{0,60}?นายกรัฐมนตรี/g, ' ');
+    out = out.replace(/[ \t]+/g, ' ');
+    out = out.replace(/\n[ \t]*\n[ \t]*\n+/g, '\n\n');
+    out = out.replace(/^[ \t]+|[ \t]+$/gm, '');
+    return out.trim();
+  }
   function showTextForReview(text, subjHint, statusMsg) {
+    text = stripBoilerplate(text);
     $('bpOcrStatus').className = 'status ok';
     $('bpOcrStatus').textContent = statusMsg || '✅ แปลงข้อความเสร็จแล้ว — ตรวจทานให้ดีก่อนบันทึก (โดยเฉพาะเลขมาตรา/เลขฎีกา)';
     if (subjHint && !$('bpOcrSubj').value) $('bpOcrSubj').value = subjHint;
@@ -930,6 +945,7 @@
   window.__barprep = {
     evalCareer: evalCareer, daysUntil: daysUntil, fmtClock: fmtClock,
     DriveSync: DriveSync, listDriveFiles: listDriveFiles, uploadFilesToDrive: uploadFilesToDrive,
-    splitByMatra: splitByMatra, pdfItemsToLines: pdfItemsToLines
+    splitByMatra: splitByMatra, pdfItemsToLines: pdfItemsToLines, stripBoilerplate: stripBoilerplate,
+    showTextForReview: showTextForReview
   };
 })();
