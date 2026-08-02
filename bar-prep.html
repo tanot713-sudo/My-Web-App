@@ -264,6 +264,17 @@ details[open]>summary::before{transform:rotate(90deg)}
   <button class="btn sm" id="bpDriveListBtn" type="button">🔄 โหลดรายชื่อไฟล์จาก Drive</button>
   <div class="status" id="bpDriveListStatus"></div>
   <ul class="note-list" id="bpDriveFileList"></ul>
+
+  <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
+    <p class="mini" style="margin-bottom:8px">📤 <b>อัปโหลดไฟล์เข้า Drive ผ่านแอปนี้โดยตรง</b> (จำเป็น เพราะสิทธิ์ที่แอปขอไว้เห็นได้เฉพาะไฟล์ที่อัปโหลดผ่านแอปเท่านั้น ไม่เห็นไฟล์ที่ลากเข้า Drive เองจากเว็บ Google)</p>
+    <div class="field" style="max-width:260px">
+      <label>อัปโหลดเข้าโฟลเดอร์ไหน</label>
+      <select id="bpUploadTargetFolder"><option value="">(โฟลเดอร์หลัก)</option></select>
+    </div>
+    <label class="ocr-drop" for="bpUploadFiles" id="bpUploadDrop" style="margin-top:8px">📤 แตะเพื่อเลือกไฟล์อัปโหลด (เลือกได้หลายไฟล์พร้อมกัน)</label>
+    <input type="file" id="bpUploadFiles" multiple style="display:none">
+    <div class="status" id="bpUploadStatus"></div>
+  </div>
 </div>
 
 <div class="card">

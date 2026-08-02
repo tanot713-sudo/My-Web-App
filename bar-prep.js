@@ -413,6 +413,15 @@
     }
     return step(all.slice(), 0);
   }
+  function renderUploadFolderOptions(folders) {
+    var sel = $('bpUploadTargetFolder');
+    if (!sel) return;
+    var prevValue = sel.value;
+    sel.innerHTML = folders.map(function (fo) {
+      return '<option value="' + fo.id + '">' + (fo.path ? esc(fo.path) : '(โฟลเดอร์หลัก)') + '</option>';
+    }).join('');
+    if (prevValue && folders.some(function (fo) { return fo.id === prevValue; })) sel.value = prevValue;
+  }
   function listDriveFiles() {
     var status = $('bpDriveListStatus'), list = $('bpDriveFileList');
     if (!DriveSync.connected || !DriveSync.accessToken) {
@@ -426,6 +435,7 @@
       return listSubfoldersRecursive(folderId, 4);
     }).then(function (f) {
       folders = f;
+      renderUploadFolderOptions(folders);
       status.textContent = '⏳ กำลังโหลดรายชื่อไฟล์จาก ' + folders.length + ' โฟลเดอร์…';
       return Promise.all(folders.map(function (fo) {
         var q = encodeURIComponent("'" + fo.id + "' in parents and mimeType!='" + FOLDER_MIME + "' and trashed=false");
@@ -463,6 +473,49 @@
         status.textContent = '❌ ' + (e.message || e);
       });
   }
+
+  /* ══════════════════ อัปโหลดไฟล์เข้า Drive ผ่านแอปเอง ══════════════════
+     จำเป็นเพราะสิทธิ์ drive.file ที่ขอไว้ (แคบเพื่อความเป็นส่วนตัว) เห็นได้แค่ไฟล์ที่
+     "แอปนี้เป็นคนสร้าง/อัปโหลด" เท่านั้น — ไฟล์ที่ผู้ใช้ลากเข้า Drive เองผ่านเว็บ
+     Google โดยตรงจะไม่ปรากฏให้แอปเห็นเลย ไม่ว่าจะอยู่โฟลเดอร์ไหนก็ตาม */
+  function uploadOneFile(file, parentId) {
+    var metadata = { name: file.name, parents: [parentId] };
+    var form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', file);
+    return DriveSync.authFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { method: 'POST', body: form })
+      .then(function (r) { if (!r.ok) throw new Error('อัปโหลด "' + file.name + '" ไม่สำเร็จ (' + r.status + ')'); return r.json(); });
+  }
+  function uploadFilesToDrive(files) {
+    var status = $('bpUploadStatus');
+    if (!DriveSync.connected || !DriveSync.accessToken) {
+      status.className = 'status err';
+      status.textContent = 'ยังไม่ได้เชื่อมต่อ Google Drive — กดปุ่ม "เชื่อมต่อ Google Drive" ในการ์ดด้านล่างก่อน';
+      return;
+    }
+    var chosenId = $('bpUploadTargetFolder').value;
+    var list = Array.prototype.slice.call(files);
+    if (!list.length) return;
+    (chosenId ? Promise.resolve(chosenId) : DriveSync.ensureFolder()).then(function (parentId) {
+      var i = 0;
+      function next() {
+        if (i >= list.length) {
+          status.className = 'status ok';
+          status.textContent = '✅ อัปโหลดครบ ' + list.length + ' ไฟล์แล้ว';
+          listDriveFiles();
+          return Promise.resolve();
+        }
+        var f = list[i++];
+        status.className = 'status'; status.textContent = '⏳ กำลังอัปโหลด (' + i + '/' + list.length + '): ' + f.name;
+        return uploadOneFile(f, parentId).then(next);
+      }
+      return next();
+    }).catch(function (e) {
+      status.className = 'status err';
+      status.textContent = '❌ ' + (e.message || e);
+    });
+  }
+
   function extractFromDriveFile(fileId, mime, name) {
     var status = $('bpDriveListStatus');
     status.className = 'status'; status.textContent = '⏳ กำลังดึงไฟล์ "' + name + '"…';
@@ -693,6 +746,10 @@
 
     $('driveConnectBtn').addEventListener('click', function () { DriveSync.connect(); });
     $('bpDriveListBtn').addEventListener('click', listDriveFiles);
+    $('bpUploadFiles').addEventListener('change', function (e) {
+      uploadFilesToDrive(e.target.files);
+      e.target.value = '';
+    });
     DriveSync.init();
   }
 
@@ -701,6 +758,6 @@
 
   window.__barprep = {
     evalCareer: evalCareer, daysUntil: daysUntil, fmtClock: fmtClock,
-    DriveSync: DriveSync, listDriveFiles: listDriveFiles
+    DriveSync: DriveSync, listDriveFiles: listDriveFiles, uploadFilesToDrive: uploadFilesToDrive
   };
 })();
