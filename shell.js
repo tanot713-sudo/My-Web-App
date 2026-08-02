@@ -100,6 +100,7 @@
     },
     { key: 'classroom', label: 'ห้องเรียน', children: [
         { key: 'classroom-law',         label: 'ความรู้กฎหมาย', href: 'classroom-law.html' },
+        { key: 'bar-prep',              label: 'เตรียมสอบเนติ/ตั๋วทนาย/อัยการ/ผู้พิพากษา', href: 'bar-prep.html' },
         { key: 'classroom-business',    label: 'ธุรกิจ',         href: 'classroom-business.html' },
         { key: 'classroom-engineering', label: 'วิศวกรรม',       href: 'classroom-engineering.html' }
       ]
