@@ -357,18 +357,34 @@
      "ตามมาตรา 420") จุดอ้างอิงนั้นจะถูกนับเป็นจุดแบ่งไปด้วย — ต้องให้ผู้ใช้เลือก/ตรวจทาน
      ก่อนบันทึกเสมอ ไม่บันทึกอัตโนมัติ */
   function splitByMatra(text) {
-    var re = /มาตรา\s*([๐-๙0-9]+(?:\s*\/\s*[๐-๙0-9]+)?(?:\s*(?:ทวิ|ตรี|จัตวา|เบญจ|ฉ|สัตต|อัฏฐ|นว|ทศ))?)/g;
-    var hits = [], m;
-    while ((m = re.exec(text))) hits.push({ idx: m.index, num: m[1].replace(/\s+/g, '') });
-    if (hits.length < 2) return [];
-    var out = [];
-    for (var i = 0; i < hits.length; i++) {
-      var start = hits[i].idx;
-      var end = i + 1 < hits.length ? hits[i + 1].idx : text.length;
-      var chunk = text.slice(start, end).trim();
-      if (chunk) out.push({ num: hits[i].num, text: chunk });
+    var numPart = '([๐-๙0-9]+(?:\\s*\\/\\s*[๐-๙0-9]+)?(?:\\s*(?:ทวิ|ตรี|จัตวา|เบญจ|ฉ|สัตต|อัฏฐ|นว|ทศ))?)';
+    function toSections(hits) {
+      var out = [];
+      for (var i = 0; i < hits.length; i++) {
+        var start = hits[i].idx;
+        var end = i + 1 < hits.length ? hits[i + 1].idx : text.length;
+        var chunk = text.slice(start, end).trim();
+        if (chunk) out.push({ num: hits[i].num, text: chunk });
+      }
+      return out;
     }
-    return out;
+    /* โหมดเข้มงวด: นับเฉพาะ "มาตรา" ที่ขึ้นต้นบรรทัดใหม่ (หรือต้นข้อความ) — เอกสารกฎหมายจริง
+       ขึ้นบรรทัด/ย่อหน้าใหม่ทุกมาตราเสมอ ส่วนการอ้างอิงมาตราอื่นกลางเนื้อหา (เช่น รายการ
+       "(๑) มาตรา ๙ ... ให้แก้เป็น ...") จะไม่ได้อยู่ต้นบรรทัด จึงกรองออกไปเองโดยไม่ต้องเดา */
+    var lineStartRe = new RegExp('(^|\\n)[ \\t]*มาตรา\\s*' + numPart, 'g');
+    var strictHits = [], m;
+    while ((m = lineStartRe.exec(text))) {
+      strictHits.push({ idx: m.index + m[0].indexOf('มาตรา'), num: m[2].replace(/\s+/g, '') });
+    }
+    if (strictHits.length >= 2) return toSections(strictHits);
+    /* โหมดกว้าง (สำรอง): ใช้เมื่อข้อความไม่มีการขึ้นบรรทัดใหม่เลย (เช่น ข้อความที่ดึงจาก PDF
+       บางไฟล์ที่ไม่มีข้อมูลตำแหน่งบรรทัดชัดเจน) — สแกนหาทุกจุดที่มีคำว่า "มาตรา"+เลข แทน
+       แม่นยำน้อยกว่าโหมดเข้มงวด ต้องตรวจทานพรีวิวก่อนบันทึกเสมอ */
+    var looseRe = new RegExp('มาตรา\\s*' + numPart, 'g');
+    var looseHits = [], m2;
+    while ((m2 = looseRe.exec(text))) looseHits.push({ idx: m2.index, num: m2[1].replace(/\s+/g, '') });
+    if (looseHits.length < 2) return [];
+    return toSections(looseHits);
   }
   var matraSections = [];
   function renderMatraPreview(sections) {
@@ -604,6 +620,20 @@
         status.textContent = '❌ แยกข้อความไม่สำเร็จ: ' + (e.message || e);
       });
   }
+  /* ต่อข้อความจาก PDF ทีละบรรทัดจริงตามที่ pdf.js รายงาน (แต่ละชิ้นข้อความมี hasEOL บอกว่า
+     จบบรรทัดในต้นฉบับหรือไม่) แทนการรวมทั้งหน้าเป็นบรรทัดเดียวแบบเดิม — ทำให้ splitByMatra
+     ด้านบนใช้ตำแหน่งขึ้นบรรทัดใหม่แยกจุดเริ่มมาตราจริงจากการอ้างอิงมาตราอื่นกลางเนื้อหาได้ */
+  function pdfItemsToLines(items) {
+    var lines = [], cur = '';
+    for (var i = 0; i < items.length; i++) {
+      var s = items[i].str || '';
+      if (cur && s && !/\s$/.test(cur) && !/^\s/.test(s)) cur += ' ';
+      cur += s;
+      if (items[i].hasEOL) { lines.push(cur); cur = ''; }
+    }
+    if (cur) lines.push(cur);
+    return lines.join('\n');
+  }
   function extractPdfText(arrayBuffer) {
     if (!window.pdfjsLib) return Promise.reject(new Error('โหลดตัวอ่าน PDF ไม่สำเร็จ ลองรีเฟรชหน้าแล้วลองใหม่'));
     return window.pdfjsLib.getDocument({ data: arrayBuffer }).promise.then(function (doc) {
@@ -612,7 +642,7 @@
         chain = chain.then(function () {
           return doc.getPage(i).then(function (page) {
             return page.getTextContent().then(function (content) {
-              pages[i - 1] = content.items.map(function (it) { return it.str; }).join(' ');
+              pages[i - 1] = pdfItemsToLines(content.items);
             });
           });
         });
@@ -829,6 +859,6 @@
   window.__barprep = {
     evalCareer: evalCareer, daysUntil: daysUntil, fmtClock: fmtClock,
     DriveSync: DriveSync, listDriveFiles: listDriveFiles, uploadFilesToDrive: uploadFilesToDrive,
-    splitByMatra: splitByMatra
+    splitByMatra: splitByMatra, pdfItemsToLines: pdfItemsToLines
   };
 })();
