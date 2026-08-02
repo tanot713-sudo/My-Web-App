@@ -239,6 +239,54 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
 
   function $(id) { return document.getElementById(id); }
 
+  /* ══════════════════ กล่องยืนยัน/แจ้งเตือนของเว็บเอง (แทน confirm()/alert()) ══════════════════ */
+  function showModal(opts) {
+    return new Promise(function (resolve) {
+      var backdrop = $('s3ModalBackdrop');
+      $('s3ModalTitle').textContent = opts.title || '';
+      $('s3ModalMsg').textContent = opts.message || '';
+      var btnsEl = $('s3ModalBtns');
+      btnsEl.innerHTML = '';
+      var done = false;
+      function close(val) {
+        if (done) return;
+        done = true;
+        backdrop.classList.remove('open');
+        backdrop.onclick = null;
+        resolve(val);
+      }
+      (opts.buttons || []).forEach(function (b) {
+        var btn = document.createElement('button');
+        btn.className = 'btn sm' + (b.primary ? ' active' : '');
+        btn.type = 'button';
+        btn.textContent = b.label;
+        btn.addEventListener('click', function () { close(b.value); });
+        btnsEl.appendChild(btn);
+      });
+      backdrop.onclick = function (e) { if (e.target === backdrop) close(opts.cancelValue !== undefined ? opts.cancelValue : null); };
+      backdrop.classList.add('open');
+    });
+  }
+  function s3Confirm(message, title) {
+    return showModal({
+      title: title || 'ยืนยัน',
+      message: message,
+      cancelValue: false,
+      buttons: [
+        { label: 'ยกเลิก', value: false },
+        { label: 'ตกลง', value: true, primary: true }
+      ]
+    }).then(function (v) { return v === true; });
+  }
+  function s3Alert(message, title) {
+    return showModal({
+      title: title || 'แจ้งเตือน',
+      message: message,
+      cancelValue: true,
+      buttons: [{ label: 'ตกลง', value: true, primary: true }]
+    }).then(function () {});
+  }
+
   /* ══════════════════ ตั้งฉาก 3D ══════════════════ */
   function init() {
     viewportEl = $('s3Viewport');
@@ -623,7 +671,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     if (!rec) return;
     var axis = $('s3SizeAxis').value;
     var targetCm = parseFloat($('s3SizeInput').value);
-    if (!isFinite(targetCm) || targetCm <= 0) { alert('กรอกตัวเลขขนาดเป็นเซนติเมตรที่มากกว่า 0'); return; }
+    if (!isFinite(targetCm) || targetCm <= 0) { s3Alert('กรอกตัวเลขขนาดเป็นเซนติเมตรที่มากกว่า 0'); return; }
     var targetM = targetCm / 100;
     var base = rec.baseSize[axis];
     if (!base || base <= 0) return;
@@ -684,7 +732,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
         mesh.geometry.dispose();
         mesh.geometry = simplified;
       } catch (e) {
-        alert('ลดความละเอียดไม่สำเร็จสำหรับโมเดลนี้: ' + (e && e.message ? e.message : e));
+        s3Alert('ลดความละเอียดไม่สำเร็จสำหรับโมเดลนี้: ' + (e && e.message ? e.message : e));
       }
     }
     if (selHelper) selHelper.update();
@@ -714,7 +762,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
           ? new Blob([result], { type: 'model/gltf-binary' })
           : new Blob([JSON.stringify(result)], { type: 'application/json' });
         downloadBlob(blob, name + '.glb');
-      }, function (err) { alert('ส่งออก .glb ไม่สำเร็จ: ' + err); }, { binary: true });
+      }, function (err) { s3Alert('ส่งออก .glb ไม่สำเร็จ: ' + err); }, { binary: true });
     } else if (format === 'stl') {
       var mesh = getSingleMesh(rec);
       if (!mesh) return;
@@ -724,7 +772,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
   }
 
   function exportAllAsStl() {
-    if (!placed.length) { alert('ยังไม่มีวัตถุในผัง'); return; }
+    if (!placed.length) { s3Alert('ยังไม่มีวัตถุในผัง'); return; }
     var geometries = [];
     placed.forEach(function (r) {
       r.group.updateWorldMatrix(true, true);
@@ -744,7 +792,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       var data = new STLExporter().parse(mesh, { binary: true });
       downloadBlob(new Blob([data], { type: 'model/stl' }), 'tanot-sim3d-all.stl');
     } catch (e) {
-      alert('รวมไฟล์ไม่สำเร็จ: ' + (e && e.message ? e.message : e));
+      s3Alert('รวมไฟล์ไม่สำเร็จ: ' + (e && e.message ? e.message : e));
     }
   }
 
@@ -800,8 +848,10 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
         b.addEventListener('click', function (ev) {
           ev.stopPropagation();
           var id = parseInt(b.dataset.delId, 10);
-          if (!window.confirm('ลบโมเดลนี้ออกจากคลัง? (วัตถุที่วางในผังจากโมเดลนี้ไปแล้วจะไม่หายไป)')) return;
-          dbDeleteModel(id).then(refreshMyModelsCatalog);
+          s3Confirm('ลบโมเดลนี้ออกจากคลัง? (วัตถุที่วางในผังจากโมเดลนี้ไปแล้วจะไม่หายไป)').then(function (ok) {
+            if (!ok) return;
+            dbDeleteModel(id).then(refreshMyModelsCatalog);
+          });
         });
       });
     });
@@ -815,14 +865,14 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
 
   function placeModelById(id) {
     dbGetModel(id).then(function (rec) {
-      if (!rec) { alert('ไม่พบโมเดลนี้แล้ว'); return; }
+      if (!rec) { s3Alert('ไม่พบโมเดลนี้แล้ว'); return; }
       return addModelObject(rec, stagingX(), -3, 0, 1, false);
-    }).catch(function (e) { alert('โหลดโมเดลไม่สำเร็จ: ' + (e && e.message ? e.message : e)); });
+    }).catch(function (e) { s3Alert('โหลดโมเดลไม่สำเร็จ: ' + (e && e.message ? e.message : e)); });
   }
 
   function handleFileUpload(file) {
     var ext = (file.name.split('.').pop() || '').toLowerCase();
-    if (UPLOAD_EXTS.indexOf(ext) === -1) { alert('รองรับเฉพาะไฟล์ .glb .gltf .obj .ply .stl'); return; }
+    if (UPLOAD_EXTS.indexOf(ext) === -1) { s3Alert('รองรับเฉพาะไฟล์ .glb .gltf .obj .ply .stl'); return; }
     file.arrayBuffer().then(function (buf) {
       return parseModelFile(ext, buf).then(function () {
         var rec = { name: file.name.replace(/\.[^.]+$/, ''), format: ext, arrayBuffer: buf, sizeBytes: buf.byteLength, createdAt: Date.now() };
@@ -832,7 +882,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
         });
       });
     }).catch(function (err) {
-      alert('อ่านไฟล์โมเดลไม่สำเร็จ (ไฟล์อาจเสียหรือฟอร์แมตไม่ตรง): ' + (err && err.message ? err.message : err));
+      s3Alert('อ่านไฟล์โมเดลไม่สำเร็จ (ไฟล์อาจเสียหรือฟอร์แมตไม่ตรง): ' + (err && err.message ? err.message : err));
     });
   }
 
@@ -859,7 +909,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
   }
 
   function startCsgMode() {
-    if (placed.length < 2) { alert('ต้องมีวัตถุอย่างน้อย 2 ชิ้นในผังก่อน'); return; }
+    if (placed.length < 2) { s3Alert('ต้องมีวัตถุอย่างน้อย 2 ชิ้นในผังก่อน'); return; }
     csgMode = 'pick-base';
     csgBaseId = null;
     select(null);
@@ -888,8 +938,19 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       var baseId = csgBaseId, toolId = hitId;
       csgMode = null; csgBaseId = null;
       setCsgHint('');
-      var op = window.confirm('ตกลง = ลบส่วนที่ทับซ้อนออกจากฐาน (ตัด)\nยกเลิก = รวมสองชิ้นเป็นก้อนเดียว (รวม)') ? 'subtract' : 'union';
-      runCsg(baseId, toolId, op);
+      showModal({
+        title: 'เลือกวิธีรวมวัตถุ',
+        message: 'จะลบส่วนที่ทับซ้อนออกจากฐาน (ตัด/เจาะรู) หรือรวมสองชิ้นเป็นก้อนเดียว (union)?',
+        cancelValue: null,
+        buttons: [
+          { label: 'ยกเลิก', value: null },
+          { label: 'รวมเป็นก้อนเดียว', value: 'union' },
+          { label: 'ลบส่วนที่ทับซ้อน (ตัด)', value: 'subtract', primary: true }
+        ]
+      }).then(function (op) {
+        if (!op) return;
+        runCsg(baseId, toolId, op);
+      });
     }
   }
 
@@ -897,7 +958,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     var baseRec = findRec(baseId), toolRec = findRec(toolId);
     if (!baseRec || !toolRec) return;
     var baseMesh = getSingleMesh(baseRec), toolMesh = getSingleMesh(toolRec);
-    if (!baseMesh || !toolMesh) { alert('วัตถุที่เลือกมีหลายชิ้นส่วนภายใน ไม่รองรับการตัด/รวม'); return; }
+    if (!baseMesh || !toolMesh) { s3Alert('วัตถุที่เลือกมีหลายชิ้นส่วนภายใน ไม่รองรับการตัด/รวม'); return; }
     ensureCsgLoaded().then(function () {
       var CSG = window.ThreBvhCsg;
       var Brush = CSG.Brush, Evaluator = CSG.Evaluator;
@@ -921,7 +982,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       placed = placed.filter(function (r) { return r.id !== baseId && r.id !== toolId; });
       finalizePlace({ type: 'csg', name: op === 'union' ? 'รวมชิ้น' : 'ตัดชิ้น', color: baseRec.color }, resultMesh, 0, 0, 0, 1, false);
     }).catch(function (e) {
-      alert('ตัด/รวมไม่สำเร็จ: ' + (e && e.message ? e.message : e));
+      s3Alert('ตัด/รวมไม่สำเร็จ: ' + (e && e.message ? e.message : e));
     });
   }
 
@@ -948,11 +1009,13 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     $('s3Shot').addEventListener('click', exportShot);
     $('s3Clear').addEventListener('click', function () {
       if (!placed.length) return;
-      if (!window.confirm('ล้างวัตถุทั้งหมดในผังนี้?')) return;
-      placed.slice().forEach(function (r) { scene.remove(r.group); });
-      placed = [];
-      select(null);
-      scheduleSave();
+      s3Confirm('ล้างวัตถุทั้งหมดในผังนี้?').then(function (ok) {
+        if (!ok) return;
+        placed.slice().forEach(function (r) { scene.remove(r.group); });
+        placed = [];
+        select(null);
+        scheduleSave();
+      });
     });
     $('s3XformToggle').addEventListener('click', function () {
       xformOn = !xformOn;

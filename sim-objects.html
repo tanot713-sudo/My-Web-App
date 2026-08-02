@@ -97,6 +97,17 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .s3-csg-hint{display:none;background:var(--brand-sf);color:var(--brand-dk);border-radius:10px;padding:8px 12px;
   font-size:12.5px;font-weight:600;margin-bottom:8px;text-align:center}
 
+/* ── กล่องยืนยัน/แจ้งเตือนของเว็บเอง (แทน confirm()/alert() ของเบราว์เซอร์) ── */
+.s3-modal-backdrop{position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:300;
+  display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.15s;padding:20px}
+.s3-modal-backdrop.open{opacity:1;pointer-events:auto}
+.s3-modal{background:var(--card);border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.25);
+  padding:20px;max-width:360px;width:100%;transform:translateY(8px);transition:.15s}
+.s3-modal-backdrop.open .s3-modal{transform:translateY(0)}
+.s3-modal-title{font-size:15.5px;font-weight:800;margin-bottom:6px}
+.s3-modal-msg{font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:16px;white-space:pre-line}
+.s3-modal-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+
 details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;list-style:none;
   display:flex;align-items:center;gap:8px;user-select:none}
@@ -203,6 +214,14 @@ details[open]>summary::before{transform:rotate(90deg)}
 
 <p class="disc">⚠️ เป็นเครื่องมือร่างผัง/สเก็ตช์คร่าวๆ ไม่ใช่ซอฟต์แวร์ออกแบบงานก่อสร้างมืออาชีพหรือโปรแกรมแต่งโมเดล 3D เต็มรูปแบบ ขนาด/สัดส่วนเป็นค่าประมาณ ไม่ควรใช้แทนแบบก่อสร้างจริงหรือแบบที่ต้องใช้ยื่นขออนุญาต · ตำแหน่ง/ขนาดที่จัดไว้เก็บในเครื่องคุณเท่านั้น (localStorage) ไฟล์โมเดลที่อัปโหลดเก็บในเครื่องเช่นกัน (IndexedDB) ไม่ถูกอัปโหลดขึ้นที่ไหน</p>
 
+</div>
+
+<div class="s3-modal-backdrop" id="s3ModalBackdrop">
+  <div class="s3-modal" id="s3Modal" role="dialog" aria-modal="true">
+    <div class="s3-modal-title" id="s3ModalTitle"></div>
+    <div class="s3-modal-msg" id="s3ModalMsg"></div>
+    <div class="s3-modal-btns" id="s3ModalBtns"></div>
+  </div>
 </div>
 
 <script src="vendor/gsap.min.js"></script>
