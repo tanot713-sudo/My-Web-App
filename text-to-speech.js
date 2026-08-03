@@ -174,6 +174,92 @@
       .finally(function () { $('dlGenerateBtn').disabled = false; });
   }
 
+  /* ══════════════════ เสียง/วิดีโอ → ข้อความ (Whisper ผ่าน transformers.js, WASM ในเบราว์เซอร์) ══════════════════
+     ตัวไลบรารี + ตัวรันไทม์ ONNX ฝังในเว็บเอง (vendor/transformers/) แต่ตัวโมเดล AI เอง (หลายสิบ MB)
+     ต้องดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรกเสมอ — ไม่มีทางเลี่ยงได้เพราะโมเดลใหญ่เกินจะฝังในเว็บ */
+  var asrPipelinePromiseByModel = {};
+  function loadAsrPipeline(modelId, onProgress) {
+    if (!asrPipelinePromiseByModel[modelId]) {
+      asrPipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
+        var env = mod.env;
+        env.backends.onnx.wasm.wasmPaths = './vendor/transformers/';
+        env.backends.onnx.wasm.numThreads = 1; // GitHub Pages ไม่มี header COOP/COEP ให้ SharedArrayBuffer ทำงาน บังคับ single-thread กันค้าง
+        return mod.pipeline('automatic-speech-recognition', modelId, { progress_callback: onProgress });
+      });
+    }
+    return asrPipelinePromiseByModel[modelId];
+  }
+  function resampleTo16kMono(audioBuffer) {
+    var targetRate = 16000;
+    var OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    var offlineCtx = new OfflineCtx(1, Math.ceil(audioBuffer.duration * targetRate), targetRate);
+    var source = offlineCtx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(offlineCtx.destination);
+    source.start(0);
+    return offlineCtx.startRendering().then(function (rendered) { return rendered.getChannelData(0); });
+  }
+  function decodeFileToPcm(file) {
+    return file.arrayBuffer().then(function (buf) {
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      var ctx = new AudioCtx();
+      return ctx.decodeAudioData(buf).then(function (audioBuffer) {
+        ctx.close();
+        return resampleTo16kMono(audioBuffer);
+      }, function () {
+        ctx.close();
+        throw new Error('ถอดเสียงจากไฟล์นี้ไม่ได้ — ลองไฟล์เสียง/วิดีโอชนิดอื่น (mp3/wav/mp4/webm)');
+      });
+    });
+  }
+  function runAsr() {
+    var fileInput = $('asrFile');
+    var file = fileInput.files && fileInput.files[0];
+    if (!file) { $('asrStatus').className = 'status err'; $('asrStatus').textContent = 'เลือกไฟล์เสียง/วิดีโอก่อน'; return; }
+    var modelId = $('asrModel').value;
+    var langOpt = $('asrLang').value;
+    $('asrGoBtn').disabled = true;
+    $('asrResultWrap').style.display = 'none';
+    $('asrStatus').className = 'status';
+    $('asrStatus').textContent = '⏳ กำลังเตรียมโมเดล AI (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
+    var transcriberPromise = loadAsrPipeline(modelId, function (p) {
+      if (p && p.status === 'progress' && p.file) {
+        var pct = p.progress != null ? Math.round(p.progress) : null;
+        $('asrStatus').textContent = '⏳ กำลังดาวน์โหลดโมเดล: ' + p.file + (pct != null ? (' (' + pct + '%)') : '');
+      }
+    });
+    Promise.all([transcriberPromise, decodeFileToPcm(file)])
+      .then(function (results) {
+        var transcriber = results[0], pcm = results[1];
+        $('asrStatus').textContent = '⏳ กำลังถอดเสียงเป็นข้อความ…';
+        var opts = { task: 'transcribe' };
+        if (langOpt !== 'auto') opts.language = langOpt;
+        return transcriber(pcm, opts);
+      })
+      .then(function (result) {
+        var text = (result && result.text) || '';
+        $('asrResult').value = text.trim();
+        $('asrResultWrap').style.display = 'block';
+        $('asrStatus').className = 'status ok';
+        $('asrStatus').textContent = text.trim() ? '✅ ถอดเสียงเสร็จแล้ว' : '⚠️ ถอดเสียงเสร็จแต่ไม่พบคำพูดในไฟล์นี้';
+      })
+      .catch(function (e) {
+        $('asrStatus').className = 'status err';
+        $('asrStatus').textContent = '❌ ถอดเสียงไม่สำเร็จ: ' + (e && e.message ? e.message : e);
+      })
+      .finally(function () { $('asrGoBtn').disabled = false; });
+  }
+  function copyAsrResult() {
+    var text = $('asrResult').value;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(function () {
+      $('asrStatus').className = 'status ok'; $('asrStatus').textContent = '📋 คัดลอกข้อความแล้ว';
+    }).catch(function () {
+      $('asrResult').select();
+      document.execCommand('copy');
+    });
+  }
+
   /* ══════════════════ init ══════════════════ */
   function init() {
     $('ttsText').addEventListener('input', updateCharCount);
@@ -193,12 +279,16 @@
     $('dlRate').addEventListener('input', function () { $('dlRateVal').textContent = $('dlRate').value; });
     $('dlPitch').addEventListener('input', function () { $('dlPitchVal').textContent = $('dlPitch').value; });
     $('dlGenerateBtn').addEventListener('click', generateDownloadable);
+
+    $('asrGoBtn').addEventListener('click', runAsr);
+    $('asrCopyBtn').addEventListener('click', copyAsrResult);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
   window.__tts = {
-    synthesizeWav: synthesizeWav, wavBytesToMp3Blob: wavBytesToMp3Blob, floatTo16BitPCM: floatTo16BitPCM
+    synthesizeWav: synthesizeWav, wavBytesToMp3Blob: wavBytesToMp3Blob, floatTo16BitPCM: floatTo16BitPCM,
+    loadAsrPipeline: loadAsrPipeline, decodeFileToPcm: decodeFileToPcm, resampleTo16kMono: resampleTo16kMono
   };
 })();
