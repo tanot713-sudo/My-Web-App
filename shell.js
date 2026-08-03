@@ -78,6 +78,7 @@
           ]
         },
         { key: 'finance',   label: 'รายรับรายจ่าย', href: 'budget.html' },
+        { key: 'tts',       label: 'แปลงข้อความเป็นเสียง', href: 'text-to-speech.html' },
         { key: 'tax',       label: 'การจ่ายภาษี', href: soonHref('การจ่ายภาษี') },
         { key: 'insurance', label: 'ประกัน', href: soonHref('ประกัน') },
         { key: 'health',    label: 'สุขภาพ', href: soonHref('สุขภาพ') },

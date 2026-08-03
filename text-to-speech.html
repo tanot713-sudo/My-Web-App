@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แปลงข้อความเป็นเสียง | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
+  --brand:#12A594;--brand-dk:#0B7F72;--brand-sf:#E7F6F4;
+  --amber:#F5A524;--ok:#17B26A;--err:#E5484D;--warn:#E08700;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
+  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:780px;margin:0 auto}
+.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
+.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+.crumb .sep{margin:0 7px;color:#C9CEDC}
+.head{display:flex;align-items:center;gap:12px;margin:12px 0 6px}
+.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:24px;
+  background:linear-gradient(135deg,#12A594,#3FCBB6);color:#fff;display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(18,165,148,.3)}
+h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px}
+.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
+.frow{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 150px;min-width:130px}
+.field label{font-size:12px;color:var(--muted);font-weight:600}
+textarea,select,input[type=number]{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:11px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none}
+textarea{resize:vertical;line-height:1.6}
+select{font-size:14px}
+input[type=range]{width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand)}
+[data-theme="dark"] textarea,[data-theme="dark"] select,[data-theme="dark"] input{background:#12151C}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
+  background:var(--card);border-radius:11px;padding:10px 15px;font-family:inherit;font-size:14px;font-weight:700;
+  color:var(--ink);cursor:pointer;transition:.15s;text-decoration:none}
+.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-dk);color:#fff}
+.btn.sm{padding:7px 11px;font-size:12.5px}
+.btn:disabled{opacity:.5;cursor:default}
+.status{font-size:12.5px;color:var(--muted);margin-top:9px;min-height:1.2em}
+.status.err{color:var(--err)}
+.status.ok{color:var(--ok)}
+
+.char-count{font-size:11.5px;color:var(--muted);text-align:right;margin-top:4px}
+.range-val{font-size:12px;color:var(--brand-dk);font-weight:700;margin-left:6px}
+
+.tts-player{margin-top:12px;padding:14px;background:var(--bg);border-radius:13px;display:none}
+.tts-player audio{width:100%;margin-bottom:10px}
+.tts-player .dl-row{display:flex;gap:8px;flex-wrap:wrap}
+
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:7px;padding:2px 8px;margin-left:6px}
+.badge.robot{background:#FFF6E4;color:#8A6212}
+[data-theme="dark"] .badge.robot{background:#2A2415;color:#E8C88A}
+
+details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;list-style:none;
+  display:flex;align-items:center;gap:8px;user-select:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:'▸';color:var(--muted);transition:.15s}
+details[open]>summary::before{transform:rotate(90deg)}
+.details-body{padding:0 15px 15px;font-size:13.5px}
+.lesson h3{font-size:13.5px;font-weight:700;margin:12px 0 4px;color:var(--brand-dk)}
+.lesson p{font-size:13px;margin-bottom:4px;opacity:.92}
+
+.disc{font-size:12px;color:var(--muted);line-height:1.6;padding:14px 4px 4px}
+</style>
+</head>
+<body class="ome-tool-page">
+<script src="auth-gate.js"></script>
+
+<div class="wrap">
+<nav class="crumb"><a href="index.html">หน้าหลัก</a><span class="sep">/</span>แปลงข้อความเป็นเสียง</nav>
+<div class="head">
+  <div class="head-ic">🗣️</div>
+  <div>
+    <h1>แปลงข้อความเป็นเสียง</h1>
+    <div class="head-sub">พิมพ์/วางข้อความไทยหรืออังกฤษ ฟังทันที หรือสร้างไฟล์เสียง .wav/.mp3 ดาวน์โหลดได้ — ทำงานในเครื่องคุณทั้งหมด ไม่มีข้อความส่งขึ้นเซิร์ฟเวอร์ใดๆ</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>✍️ ข้อความ</h2>
+  <textarea id="ttsText" rows="6" placeholder="พิมพ์หรือวางข้อความที่นี่ (ไทยหรืออังกฤษก็ได้)"></textarea>
+  <div class="char-count" id="ttsCharCount">0 ตัวอักษร</div>
+</div>
+
+<div class="card">
+  <h2>🔊 ฟังทันที (เสียงจากเบราว์เซอร์)</h2>
+  <p class="mini" id="wsThaiNote">กำลังตรวจสอบเสียงที่มีในเครื่องนี้…</p>
+  <div class="frow" style="margin-top:8px">
+    <div class="field" style="flex:2 1 220px"><label>เสียง</label>
+      <select id="wsVoice"></select>
+    </div>
+    <div class="field"><label>ความเร็ว <span class="range-val" id="wsRateVal">1.0x</span></label>
+      <input type="range" id="wsRate" min="0.5" max="2" step="0.1" value="1">
+    </div>
+  </div>
+  <div class="frow" style="margin-top:10px">
+    <button class="btn primary sm" id="wsPlayBtn" type="button">▶️ เล่น</button>
+    <button class="btn sm" id="wsPauseBtn" type="button">⏸ หยุดชั่วคราว</button>
+    <button class="btn sm" id="wsStopBtn" type="button">⏹ หยุด</button>
+  </div>
+  <div class="status" id="wsStatus"></div>
+  <p class="mini">โหมดนี้เล่นเสียงสดเท่านั้น <b>ดาวน์โหลดเป็นไฟล์ไม่ได้</b> (เพราะเสียงมาจากระบบปฏิบัติการ/เบราว์เซอร์โดยตรง ไม่ใช่ข้อมูลเสียงที่หน้าเว็บนี้เข้าถึงได้) — ถ้าต้องการไฟล์ดาวน์โหลด ใช้การ์ดด้านล่างแทน</p>
+</div>
+
+<div class="card">
+  <h2>💾 สร้างไฟล์เสียงดาวน์โหลดได้ (.wav / .mp3)<span class="badge robot">เสียงสังเคราะห์แบบหุ่นยนต์</span></h2>
+  <p class="mini">ใช้เครื่องมือสังเคราะห์เสียง eSpeak NG ที่ทำงานในเบราว์เซอร์ล้วนๆ (ไม่ต้องมีเซิร์ฟเวอร์) รองรับภาษาไทยและอังกฤษเสมอ ไม่ขึ้นกับว่าเครื่องคุณมีเสียงติดตั้งไว้หรือไม่ — แลกกับเสียงที่ฟังดูเป็นเครื่องจักร ไม่เป็นธรรมชาติเท่าโหมด "ฟังทันที" ด้านบน ครั้งแรกที่ใช้ต้องโหลดไฟล์เครื่องมือ (~9MB) หลังจากนั้นเบราว์เซอร์จะแคชไว้ให้ใช้ได้เร็วขึ้นและออฟไลน์ได้</p>
+  <div class="frow" style="margin-top:8px">
+    <div class="field"><label>ภาษา/สำเนียง</label>
+      <select id="dlLang">
+        <option value="th">ไทย</option>
+        <option value="en-us">อังกฤษ (US)</option>
+        <option value="en-gb">อังกฤษ (UK)</option>
+      </select>
+    </div>
+    <div class="field"><label>ความเร็ว (คำ/นาที) <span class="range-val" id="dlRateVal">175</span></label>
+      <input type="range" id="dlRate" min="80" max="400" step="5" value="175">
+    </div>
+    <div class="field"><label>ระดับเสียง (พิทช์) <span class="range-val" id="dlPitchVal">50</span></label>
+      <input type="range" id="dlPitch" min="0" max="99" step="1" value="50">
+    </div>
+  </div>
+  <div class="frow" style="margin-top:10px">
+    <button class="btn primary sm" id="dlGenerateBtn" type="button">🎙️ สร้างไฟล์เสียง</button>
+  </div>
+  <div class="status" id="dlStatus"></div>
+  <div class="tts-player" id="dlPlayerWrap">
+    <audio id="dlAudio" controls></audio>
+    <div class="dl-row">
+      <a class="btn sm" id="dlWavLink" download="tts-output.wav">⬇️ ดาวน์โหลด .wav</a>
+      <a class="btn sm" id="dlMp3Link" download="tts-output.mp3">⬇️ ดาวน์โหลด .mp3</a>
+    </div>
+  </div>
+</div>
+
+<details class="card lesson" style="box-shadow:var(--sh)">
+  <summary style="font-size:14px">📚 เรียนรู้ / ความต่างของ 2 โหมด</summary>
+  <div class="details-body">
+    <h3>ทำไมมี 2 โหมด</h3>
+    <p>โหมด "ฟังทันที" ใช้เสียงที่เบราว์เซอร์/ระบบปฏิบัติการของคุณมีอยู่แล้ว ฟังลื่นและเป็นธรรมชาติกว่า แต่ไม่รับประกันว่าจะมีเสียงไทยติดตั้งไว้ทุกเครื่อง และดาวน์โหลดเป็นไฟล์ไม่ได้ ส่วนโหมด "สร้างไฟล์เสียง" ใช้เครื่องมือสังเคราะห์เสียง (eSpeak NG) ที่ฝังมากับหน้านี้เอง จึงรองรับไทย/อังกฤษได้แน่นอนทุกเครื่อง และให้ไฟล์จริงดาวน์โหลดได้ แลกกับเสียงที่ฟังดูเป็นหุ่นยนต์มากกว่า</p>
+    <h3>wav กับ mp3 ต่างกันยังไง</h3>
+    <p>.wav เป็นไฟล์เสียงต้นฉบับไม่บีบอัด ไฟล์ใหญ่กว่ามาก คุณภาพเก็บครบทุกจุด ส่วน .mp3 บีบอัดให้ไฟล์เล็กลงมาก (เหมาะเก็บ/ส่งต่อ) โดยคุณภาพเสียงพูดแทบไม่ต่างกับหูฟังทั่วไป ทั้งสองแบบเปิดได้ปกติบนคอม/iPhone/iPad</p>
+    <h3>ทำไมไม่มีเสียงธรรมชาติแบบ AI ให้ดาวน์โหลด</h3>
+    <p>ค้นหาแล้วยังไม่พบเครื่องมือ AI เสียงธรรมชาติที่รองรับภาษาไทยและรันในเบราว์เซอร์ได้แบบไม่ต้องมีเซิร์ฟเวอร์/คีย์ API — ตัวที่รองรับไทยจริง (เช่น KhanomTan TTS ของทีม PyThaiNLP) ยังไม่มีใครพอร์ตให้รันในเบราว์เซอร์ได้สำเร็จ ส่วนตัวที่รันในเบราว์เซอร์ได้ (เช่น Piper) ก็ยังไม่รองรับภาษาไทย จึงเลือกใช้ eSpeak NG ที่แลกคุณภาพเสียงเพื่อให้ได้ทั้งสองภาษาแบบเชื่อถือได้และไม่ต้องพึ่งเซิร์ฟเวอร์</p>
+    <h3>ข้อมูลส่งไปไหนบ้าง</h3>
+    <p>ไม่มีข้อความของคุณถูกส่งออกจากเครื่องเลยไม่ว่าโหมดไหน — ทั้งสองโหมดประมวลผลในเบราว์เซอร์ล้วนๆ</p>
+  </div>
+</details>
+
+<div class="disc">⚠️ เครื่องมือนี้ใช้เพื่อการศึกษา/อำนวยความสะดวกส่วนบุคคลเท่านั้น เสียงจากโหมด "สร้างไฟล์เสียง" เป็นเสียงสังเคราะห์คุณภาพจำกัด ไม่เหมาะใช้แทนเสียงพากย์มืออาชีพ · ข้อความที่พิมพ์ไม่ถูกเก็บหรือส่งไปที่ใดทั้งสิ้น</div>
+</div>
+
+<script src="vendor/lamejs/lamejs.iife.js"></script>
+<script src="text-to-speech.js" defer></script>
+</body>
+</html>

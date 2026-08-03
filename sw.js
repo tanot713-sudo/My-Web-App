@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v85';
+const CACHE = 'ome-v86';
 const PRECACHE = [
   './',
   './index.html',
@@ -21,6 +21,13 @@ const PRECACHE = [
   './languages.html',
   './legal.html',
   './budget.html',
+  './text-to-speech.html',
+  './text-to-speech.js',
+  './vendor/lamejs/lamejs.iife.js',
+  /* หมายเหตุ: ตั้งใจไม่ precache './vendor/espeak-ng/espeak-ng.wasm' (~18MB) ที่นี่ —
+     จะบังคับให้ทุกคนที่เปิดเว็บนี้โหลดไฟล์ใหญ่ก้อนนี้ทันทีแม้ไม่เคยใช้เครื่องมือแปลงข้อความ
+     เป็นเสียงเลย ปล่อยให้ fetch handler ด้านล่าง (cache-first สำหรับไฟล์ same-origin ทั่วไป)
+     แคชให้เองอัตโนมัติตอนผู้ใช้เปิดใช้เครื่องมือนี้ครั้งแรกแทน (lazy caching) */
   './doc-check.html',
   './doc-check-file.html',
   './doc-check.js',
