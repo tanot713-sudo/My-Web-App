@@ -165,6 +165,10 @@ input[type=color].mp-input{padding:4px;height:44px;cursor:pointer}
 .mp-btn.danger:hover{background:#B31E31}
 .mp-btn.block{width:100%}
 .mp-btn.sm{padding:8px 14px;font-size:13px;border-radius:10px}
+.mp-sync-status{font-size:13px;color:var(--muted);margin-top:10px;min-height:1.2em}
+.mp-sync-status.ok{color:#0F9D58}
+.mp-sync-status.err{color:#D7263D}
+[data-theme="dark"] .mp-sync-status.ok{color:#5EE0A4}
 .mp-toggle-add{display:flex;align-items:center;gap:10px;justify-content:center;background:var(--mp-blue);
   color:#fff;border:none;border-radius:14px;padding:16px;font-family:var(--f);font-size:15px;font-weight:600;
   cursor:pointer;width:100%;margin-top:16px}
@@ -466,8 +470,18 @@ input[type=color].mp-input{padding:4px;height:44px;cursor:pointer}
     <div class="mp-h1-sub">สำรองข้อมูล หรือล้างข้อมูลทั้งหมด</div>
 
     <div class="mp-card">
+      <h3 style="margin-bottom:14px">☁️ ซิงก์เรียลไทม์ข้ามอุปกรณ์</h3>
+      <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">เชื่อมต่อบัญชี Google เพื่อให้ข้อมูลรายรับรายจ่ายซิงก์เข้าทุกอุปกรณ์ที่ล็อกอินบัญชีเดียวกันโดยอัตโนมัติทันทีที่บันทึก — ไม่เชื่อมต่อก็ใช้งานได้ปกติ (เก็บในเครื่องนี้เท่านั้นแบบเดิม)</p>
+      <div class="mp-row">
+        <button class="mp-btn ghost" id="syncConnectBtn" type="button">🔗 เชื่อมต่อ Google</button>
+        <button class="mp-btn ghost" id="syncDisconnectBtn" type="button" style="display:none">ยกเลิกการเชื่อมต่อ</button>
+      </div>
+      <div class="mp-sync-status" id="syncStatus"></div>
+    </div>
+
+    <div class="mp-card">
       <h3 style="margin-bottom:14px">สำรอง / กู้คืนข้อมูล</h3>
-      <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">ข้อมูลทั้งหมดเก็บอยู่ในเครื่องนี้เท่านั้น (localStorage) แนะนำให้ส่งออกไฟล์สำรองเก็บไว้เป็นระยะ</p>
+      <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">ไฟล์สำรองแบบดาวน์โหลดเก็บเองไว้เป็นระยะ (แยกต่างหากจากการซิงก์เรียลไทม์ด้านบน)</p>
       <div class="mp-row">
         <button class="mp-btn ghost" id="exportData" type="button">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
@@ -495,6 +509,22 @@ input[type=color].mp-input{padding:4px;height:44px;cursor:pointer}
   </section>
 </div>
 
+<!-- ซิงก์เรียลไทม์ข้ามอุปกรณ์ผ่าน Firebase — bare module specifier ต้องใช้ import map ชี้ไปไฟล์
+     ที่ฝังไว้ในเว็บเอง (vendor/firebase/) เบราว์เซอร์ resolve เองไม่ได้เหมือน bundler -->
+<script type="importmap">
+{
+  "imports": {
+    "@firebase/app": "./vendor/firebase/app.js",
+    "@firebase/auth": "./vendor/firebase/auth.js",
+    "@firebase/database": "./vendor/firebase/database.js",
+    "@firebase/util": "./vendor/firebase/util.js",
+    "@firebase/component": "./vendor/firebase/component.js",
+    "@firebase/logger": "./vendor/firebase/logger.js",
+    "idb": "./vendor/firebase/idb.js"
+  }
+}
+</script>
+<script src="firebase-sync.js"></script>
 <script>
 (function(){
 'use strict';
@@ -528,9 +558,62 @@ if (!categories) { categories = DEFAULT_CATEGORIES.slice(); saveJSON(LS_CAT, cat
 var records = loadJSON(LS_REC, []);
 var budgets = loadJSON(LS_BUD, {});
 
-function persistCategories(){ saveJSON(LS_CAT, categories); }
-function persistRecords(){ saveJSON(LS_REC, records); }
-function persistBudgets(){ saveJSON(LS_BUD, budgets); }
+function persistCategories(){ saveJSON(LS_CAT, categories); fbSyncPush('categories', categories); }
+function persistRecords(){ saveJSON(LS_REC, records); fbSyncPush('records', records); }
+function persistBudgets(){ saveJSON(LS_BUD, budgets); fbSyncPush('budgets', budgets); }
+
+/* ══════════════════ ซิงก์เรียลไทม์ข้ามอุปกรณ์ (Firebase) ══════════════════
+   ไม่บังคับใช้ — ถ้าไม่เชื่อมต่อ ทุกอย่างทำงานเหมือนเดิม (localStorage เครื่องเดียว)
+   เมื่อเชื่อมต่อแล้ว persistCategories/persistRecords/persistBudgets จะดันข้อมูลขึ้น
+   Firebase ทุกครั้งที่บันทึก และรับข้อมูลจากอุปกรณ์อื่นผ่าน fbSync.watch() แบบเรียลไทม์ */
+var fbSync = null;
+var fbHandle = { categories: null, records: null, budgets: null };
+function fbSyncPush(subPath, value){
+  if (!fbHandle.connected) return;
+  fbHandle.suppress[subPath] = JSON.stringify(value);
+  fbSync.write(subPath, value).catch(function(e){ console.error('ซิงก์เขียนไม่สำเร็จ:', e); });
+}
+fbHandle.suppress = {};
+fbHandle.connected = false;
+function setSyncStatus(text, cls){
+  var el = document.getElementById('syncStatus');
+  el.textContent = text;
+  el.className = 'mp-sync-status' + (cls ? ' ' + cls : '');
+}
+function startFbWatch(subPath, applyFn){
+  fbSync.watch(subPath, function(remote){
+    if (remote == null) { fbSyncPush(subPath, subPath === 'records' ? records : subPath === 'budgets' ? budgets : categories); return; }
+    var json = JSON.stringify(remote);
+    if (fbHandle.suppress[subPath] === json) return; // ค่าที่เพิ่งเขียนเองสะท้อนกลับมา ไม่ต้อง apply ซ้ำ
+    applyFn(remote);
+  });
+}
+function initFirebaseSync(){
+  if (!window.FirebaseSync) { setSyncStatus('โหลดตัวซิงก์ไม่สำเร็จ — ลองรีเฟรชหน้า', 'err'); return; }
+  fbSync = window.FirebaseSync.connect('budget', {
+    onStatus: setSyncStatus,
+    onSignedIn: function(){
+      fbHandle.connected = true;
+      document.getElementById('syncConnectBtn').style.display = 'none';
+      document.getElementById('syncDisconnectBtn').style.display = '';
+      startFbWatch('categories', function(remote){ categories = remote; saveJSON(LS_CAT, categories); renderCategoryList(); renderDashboard(); });
+      startFbWatch('records', function(remote){ records = remote; saveJSON(LS_REC, records); renderDashboard(); renderHistory(); renderCalendar(); });
+      startFbWatch('budgets', function(remote){ budgets = remote; saveJSON(LS_BUD, budgets); renderBudgetTable(); renderDashboard(); });
+    },
+    onSignedOut: function(){
+      fbHandle.connected = false;
+      document.getElementById('syncConnectBtn').style.display = '';
+      document.getElementById('syncDisconnectBtn').style.display = 'none';
+    }
+  });
+}
+document.getElementById('syncConnectBtn').addEventListener('click', function(){
+  if (fbSync) fbSync.signIn();
+});
+document.getElementById('syncDisconnectBtn').addEventListener('click', function(){
+  if (fbSync) fbSync.signOut();
+});
+initFirebaseSync();
 
 function catById(id){ for (var i=0;i<categories.length;i++) if (categories[i].id===id) return categories[i]; return null; }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }

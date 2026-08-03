@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v87';
+const CACHE = 'ome-v88';
 const PRECACHE = [
   './',
   './index.html',
@@ -21,6 +21,7 @@ const PRECACHE = [
   './languages.html',
   './legal.html',
   './budget.html',
+  './firebase-sync.js',
   './text-to-speech.html',
   './text-to-speech.js',
   './vendor/lamejs/lamejs.iife.js',
@@ -29,7 +30,8 @@ const PRECACHE = [
      เป็นเสียงเลย ปล่อยให้ fetch handler ด้านล่าง (cache-first สำหรับไฟล์ same-origin ทั่วไป)
      แคชให้เองอัตโนมัติตอนผู้ใช้เปิดใช้เครื่องมือนี้ครั้งแรกแทน (lazy caching) — เหตุผลเดียวกัน
      ใช้กับ './vendor/transformers/*' (ไลบรารีถอดเสียงเป็นข้อความ, โหลดผ่าน dynamic import()
-     เฉพาะตอนกดใช้เท่านั้น) จึงไม่ใส่ไว้ใน PRECACHE เช่นกัน */
+     เฉพาะตอนกดใช้เท่านั้น) และ './vendor/firebase/*' (ไลบรารีซิงก์เรียลไทม์ของหน้ารายรับรายจ่าย
+     เท่านั้น) จึงไม่ใส่ไว้ใน PRECACHE เช่นกัน — เบราว์เซอร์จะแคชให้เองอัตโนมัติตอนเปิดหน้านั้นจริง */
   './doc-check.html',
   './doc-check-file.html',
   './doc-check.js',
