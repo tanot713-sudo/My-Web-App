@@ -75,26 +75,46 @@
     $('wsStatus').className = 'status'; $('wsStatus').textContent = '';
   }
 
-  /* ══════════════════ โหมด 2: สร้างไฟล์เสียง (eSpeak NG WASM → wav → mp3) ══════════════════
-     โหลด vendor/espeak-ng/espeak-ng.js (ES module, ~9MB รวม .wasm) แบบ lazy ด้วย dynamic import()
-     เฉพาะตอนกดใช้ครั้งแรก — เก็บ promise ไว้ใช้ซ้ำ ไม่ต้องโหลดใหม่ทุกครั้ง (เบราว์เซอร์แคชไฟล์ให้เองด้วย) */
-  var espeakFactoryPromise = null;
-  function loadEspeakFactory() {
-    if (!espeakFactoryPromise) {
-      espeakFactoryPromise = import('./vendor/espeak-ng/espeak-ng.js').then(function (m) { return m.default; });
-    }
-    return espeakFactoryPromise;
-  }
-  function synthesizeWav(text, voice, rateWpm, pitch) {
-    return loadEspeakFactory().then(function (ESpeakNG) {
-      return ESpeakNG({
-        arguments: ['-v', voice, '-s', String(rateWpm), '-p', String(pitch), '-w', 'out.wav', text]
+  /* ══════════════════ โหมด 2: สร้างไฟล์เสียง (MMS-TTS ผ่าน transformers.js → wav → mp3) ══════════════════
+     เดิมใช้ eSpeak NG แต่พบว่าโมดูลแปลภาษาไทยเป็นหน่วยเสียงของ eSpeak NG (ทั้งรุ่นที่ฝังไว้และรุ่นล่าสุด
+     ที่คอมไพล์จากซอร์สทางการเองสดๆ) แปลผิดตั้งแต่ต้นทาง ฟังไม่รู้เรื่อง — เป็นข้อจำกัดของตัวเอนจินเอง
+     ไม่ใช่เรื่องความเร็ว/พิทช์ จึงเปลี่ยนมาใช้ MMS-TTS (โมเดล AI จาก Meta รองรับ 1,100+ ภาษา) ผ่าน
+     transformers.js แทน — เป็นโมเดลเสียงประสาทเทียมจริง (เสียงเป็นธรรมชาติกว่ามาก) แต่ละภาษาเป็นคนละ
+     โมเดล ต้องดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรกเหมือนโหมดถอดเสียงเป็นข้อความ */
+  var ttsPipelinePromiseByModel = {};
+  function loadTtsPipeline(modelId, onProgress) {
+    if (!ttsPipelinePromiseByModel[modelId]) {
+      ttsPipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
+        var env = mod.env;
+        env.backends.onnx.wasm.wasmPaths = './vendor/transformers/';
+        env.backends.onnx.wasm.numThreads = 1; // GitHub Pages ไม่มี header COOP/COEP ให้ SharedArrayBuffer ทำงาน บังคับ single-thread กันค้าง
+        return mod.pipeline('text-to-speech', modelId, { progress_callback: onProgress });
       });
-    }).then(function (mod) {
-      var bytes = mod.FS.readFile('out.wav');
-      if (!bytes || !bytes.length) throw new Error('ไม่ได้ข้อมูลเสียงกลับมา (อาจเป็นเพราะรหัสภาษา/เสียงไม่ถูกต้อง)');
-      return bytes;
+    }
+    return ttsPipelinePromiseByModel[modelId];
+  }
+  function synthesizeMmsTts(text, modelId, onProgress) {
+    return loadTtsPipeline(modelId, onProgress).then(function (synthesizer) {
+      return synthesizer(text);
+    }).then(function (output) {
+      if (!output || !output.audio || !output.audio.length) throw new Error('ไม่ได้ข้อมูลเสียงกลับมา');
+      return output;
     });
+  }
+  /* ห่อ Float32Array ตัวอย่างเสียงดิบเป็นไฟล์ .wav มาตรฐาน (mono, PCM 16-bit) — MMS-TTS คืนมาเป็น
+     ตัวเลขดิบล้วนๆ ไม่ใช่ไฟล์สำเร็จรูปแบบที่ eSpeak NG เคยให้ ต้องประกอบ WAV header เอง */
+  function float32ToWavBlob(samples, sampleRate) {
+    var pcm = floatTo16BitPCM(samples);
+    var buf = new ArrayBuffer(44 + pcm.length * 2);
+    var view = new DataView(buf);
+    function writeStr(offset, s) { for (var i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i)); }
+    writeStr(0, 'RIFF'); view.setUint32(4, 36 + pcm.length * 2, true); writeStr(8, 'WAVE');
+    writeStr(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+    writeStr(36, 'data'); view.setUint32(40, pcm.length * 2, true);
+    for (var i = 0; i < pcm.length; i++) view.setInt16(44 + i * 2, pcm[i], true);
+    return new Blob([buf], { type: 'audio/wav' });
   }
   function floatTo16BitPCM(floatArr) {
     var out = new Int16Array(floatArr.length);
@@ -144,27 +164,32 @@
     $('dlWavLink').href = wavUrl;
     $('dlMp3Link').href = mp3Url;
   }
+  var TTS_MODELS = { th: 'Xenova/mms-tts-tha', en: 'Xenova/mms-tts-eng' };
   function generateDownloadable() {
     var text = $('ttsText').value;
     if (!text.trim()) { $('dlStatus').className = 'status err'; $('dlStatus').textContent = 'พิมพ์ข้อความก่อน'; return; }
     var lang = $('dlLang').value;
-    var rate = $('dlRate').value;
-    var pitch = $('dlPitch').value;
+    var modelId = TTS_MODELS[lang];
     $('dlGenerateBtn').disabled = true;
     $('dlStatus').className = 'status';
-    $('dlStatus').textContent = '⏳ กำลังโหลดเครื่องมือสังเคราะห์เสียง (ครั้งแรกอาจใช้เวลาสักครู่ ~9MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
-    var wavBytes;
-    synthesizeWav(text, lang, rate, pitch)
-      .then(function (bytes) {
-        wavBytes = bytes;
-        $('dlStatus').textContent = '⏳ กำลังแปลงเป็น .mp3…';
-        var wavBlob = new Blob([bytes], { type: 'audio/wav' });
+    $('dlStatus').textContent = '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
+    synthesizeMmsTts(text, modelId, function (p) {
+      if (p && p.status === 'progress' && p.file) {
+        var pct = p.progress != null ? Math.round(p.progress) : null;
+        $('dlStatus').textContent = '⏳ กำลังดาวน์โหลดโมเดล: ' + p.file + (pct != null ? (' (' + pct + '%)') : '');
+      }
+    })
+      .then(function (output) {
+        $('dlStatus').textContent = '⏳ กำลังสร้างไฟล์เสียง…';
+        var wavBlob = float32ToWavBlob(output.audio, output.sampling_rate);
         var wavUrl = URL.createObjectURL(wavBlob);
-        return wavBytesToMp3Blob(bytes).then(function (mp3Blob) {
-          var mp3Url = URL.createObjectURL(mp3Blob);
-          showResult(wavUrl, mp3Url);
-          $('dlStatus').className = 'status ok';
-          $('dlStatus').textContent = '✅ สร้างไฟล์เสียงเสร็จแล้ว — เล่นฟังหรือดาวน์โหลดได้ด้านล่าง';
+        return wavBlob.arrayBuffer().then(function (buf) {
+          return wavBytesToMp3Blob(new Uint8Array(buf)).then(function (mp3Blob) {
+            var mp3Url = URL.createObjectURL(mp3Blob);
+            showResult(wavUrl, mp3Url);
+            $('dlStatus').className = 'status ok';
+            $('dlStatus').textContent = '✅ สร้างไฟล์เสียงเสร็จแล้ว — เล่นฟังหรือดาวน์โหลดได้ด้านล่าง';
+          });
         });
       })
       .catch(function (e) {
@@ -276,8 +301,6 @@
     $('wsStopBtn').addEventListener('click', wsStop);
     $('wsRate').addEventListener('input', function () { $('wsRateVal').textContent = parseFloat($('wsRate').value).toFixed(1) + 'x'; });
 
-    $('dlRate').addEventListener('input', function () { $('dlRateVal').textContent = $('dlRate').value; });
-    $('dlPitch').addEventListener('input', function () { $('dlPitchVal').textContent = $('dlPitch').value; });
     $('dlGenerateBtn').addEventListener('click', generateDownloadable);
 
     $('asrGoBtn').addEventListener('click', runAsr);
@@ -288,7 +311,8 @@
   else init();
 
   window.__tts = {
-    synthesizeWav: synthesizeWav, wavBytesToMp3Blob: wavBytesToMp3Blob, floatTo16BitPCM: floatTo16BitPCM,
+    synthesizeMmsTts: synthesizeMmsTts, float32ToWavBlob: float32ToWavBlob,
+    wavBytesToMp3Blob: wavBytesToMp3Blob, floatTo16BitPCM: floatTo16BitPCM,
     loadAsrPipeline: loadAsrPipeline, decodeFileToPcm: decodeFileToPcm, resampleTo16kMono: resampleTo16kMono
   };
 })();

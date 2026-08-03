@@ -46,6 +46,7 @@ h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--sky)}
 .lic.ofl{background:#F3EBFB;color:#7A3FBF}
 .lic.gpl{background:#FBEAEA;color:#A32E2E}
 .lic.lgpl{background:#FDF3E4;color:#96631A}
+.lic.ccbync{background:#E7EEFD;color:#2255B0}
 .libcard .desc{font-size:13.5px;color:#4a5262}
 .libcard .meta{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px}
 .libcard a{color:var(--sky-dk);text-decoration:none;font-weight:600}
@@ -129,18 +130,18 @@ footer a{color:var(--sky-dk);text-decoration:none}
     <div class="libcard"><div class="top"><span class="name">three-bvh-csg</span><span class="lic mit">MIT</span></div>
       <div class="desc">คำนวณ Boolean 3D (ตัด/เจาะ/รวม) ระหว่างวัตถุสองชิ้น — โหลดเฉพาะตอนเปิดโหมด "ตัด/รวม" เท่านั้น</div>
       <div class="meta"><span class="pill">จำลองสิ่งของ 3D</span><a href="https://github.com/gkjohnson/three-bvh-csg" target="_blank" rel="noopener">github.com/gkjohnson/three-bvh-csg</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">eSpeak NG</span><span class="lic gpl">GPL-3.0-or-later</span></div>
-      <div class="desc">เครื่องสังเคราะห์เสียงพูด (compile เป็น WASM) ทำงานในเบราว์เซอร์ล้วนๆ รองรับภาษาไทย/อังกฤษ+อื่นๆ — ไม่มีข้อความส่งออกจากเครื่อง</div>
-      <div class="meta"><span class="pill">แปลงข้อความเป็นเสียง</span><a href="https://github.com/espeak-ng/espeak-ng" target="_blank" rel="noopener">github.com/espeak-ng/espeak-ng</a></div></div>
     <div class="libcard"><div class="top"><span class="name">lamejs (@breezystack fork)</span><span class="lic lgpl">LGPL-3.0</span></div>
       <div class="desc">เข้ารหัสไฟล์เสียงเป็น .mp3 ในเบราว์เซอร์ล้วนๆ</div>
       <div class="meta"><span class="pill">แปลงข้อความเป็นเสียง</span><a href="https://github.com/shijinyu/lamejs" target="_blank" rel="noopener">github.com/shijinyu/lamejs</a></div></div>
     <div class="libcard"><div class="top"><span class="name">Transformers.js (Hugging Face)</span><span class="lic apache">Apache-2.0</span></div>
-      <div class="desc">รันโมเดล AI (Whisper) ถอดเสียงพูดเป็นข้อความในเบราว์เซอร์ล้วนๆ — ตัวไลบรารีฝังในเว็บนี้ แต่ตัวโมเดล AI ต้องดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรก</div>
-      <div class="meta"><span class="pill">แปลงเสียงเป็นข้อความ</span><a href="https://github.com/huggingface/transformers.js" target="_blank" rel="noopener">github.com/huggingface/transformers.js</a></div></div>
+      <div class="desc">รันโมเดล AI ในเบราว์เซอร์ล้วนๆ ทั้งแปลงข้อความเป็นเสียง (MMS-TTS) และถอดเสียงพูดเป็นข้อความ (Whisper) — ตัวไลบรารีฝังในเว็บนี้ แต่ตัวโมเดล AI ต้องดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรก</div>
+      <div class="meta"><span class="pill">แปลงข้อความเป็นเสียง</span><span class="pill">แปลงเสียงเป็นข้อความ</span><a href="https://github.com/huggingface/transformers.js" target="_blank" rel="noopener">github.com/huggingface/transformers.js</a></div></div>
     <div class="libcard"><div class="top"><span class="name">ONNX Runtime Web</span><span class="lic mit">MIT</span></div>
       <div class="desc">ตัวรันไทม์ประมวลผลโมเดล AI แบบ WebAssembly — ใช้คู่กับ Transformers.js</div>
-      <div class="meta"><span class="pill">แปลงเสียงเป็นข้อความ</span><a href="https://github.com/microsoft/onnxruntime" target="_blank" rel="noopener">github.com/microsoft/onnxruntime</a></div></div>
+      <div class="meta"><span class="pill">แปลงข้อความเป็นเสียง</span><span class="pill">แปลงเสียงเป็นข้อความ</span><a href="https://github.com/microsoft/onnxruntime" target="_blank" rel="noopener">github.com/microsoft/onnxruntime</a></div></div>
+    <div class="libcard"><div class="top"><span class="name">MMS-TTS (Meta)</span><span class="lic ccbync">CC-BY-NC 4.0</span></div>
+      <div class="desc">โมเดล AI แปลงข้อความเป็นเสียงพูดหลายภาษา (Massively Multilingual Speech) รองรับภาษาไทยโดยเฉพาะ — ดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรก ไม่ได้ฝังในโค้ดเว็บนี้ · สัญญาอนุญาตเป็นแบบไม่ใช้เพื่อการค้า (non-commercial) เหมาะกับการใช้งานส่วนตัว/การศึกษาแบบเว็บนี้</div>
+      <div class="meta"><span class="pill">แปลงข้อความเป็นเสียง</span><a href="https://github.com/facebookresearch/fairseq/tree/main/examples/mms" target="_blank" rel="noopener">github.com/facebookresearch/fairseq (MMS)</a></div></div>
     <div class="libcard"><div class="top"><span class="name">Whisper (OpenAI)</span><span class="lic mit">MIT</span></div>
       <div class="desc">โมเดล AI ถอดเสียงพูดเป็นข้อความ รองรับหลายภาษารวมไทย — ดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรก ไม่ได้ฝังในโค้ดเว็บนี้</div>
       <div class="meta"><span class="pill">แปลงเสียงเป็นข้อความ</span><a href="https://github.com/openai/whisper" target="_blank" rel="noopener">github.com/openai/whisper</a></div></div>
