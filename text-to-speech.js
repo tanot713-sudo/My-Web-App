@@ -164,7 +164,7 @@
     $('dlWavLink').href = wavUrl;
     $('dlMp3Link').href = mp3Url;
   }
-  var TTS_MODELS = { th: 'Xenova/mms-tts-tha', en: 'Xenova/mms-tts-eng' };
+  var TTS_MODELS = { th: 'Tanotfin/mms-tts-tha-onnx', en: 'Xenova/mms-tts-eng' };
   function generateDownloadable() {
     var text = $('ttsText').value;
     if (!text.trim()) { $('dlStatus').className = 'status err'; $('dlStatus').textContent = 'พิมพ์ข้อความก่อน'; return; }
