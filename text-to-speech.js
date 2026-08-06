@@ -172,7 +172,9 @@
     var modelId = TTS_MODELS[lang];
     $('dlGenerateBtn').disabled = true;
     $('dlStatus').className = 'status';
-    $('dlStatus').textContent = '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
+    $('dlStatus').textContent = lang === 'th'
+      ? '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกต้องดาวน์โหลดจาก Hugging Face ~145MB เพราะยังไม่ได้บีบอัด — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…'
+      : '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
     synthesizeMmsTts(text, modelId, function (p) {
       if (p && p.status === 'progress' && p.file) {
         var pct = p.progress != null ? Math.round(p.progress) : null;
