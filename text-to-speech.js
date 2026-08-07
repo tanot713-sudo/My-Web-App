@@ -107,13 +107,11 @@
       ttsPipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
         var env = mod.env;
         configureOnnxWasmPaths(env);
-        /* โมเดลเสียงไทยที่แปลงเอง (Tanotfin/mms-tts-tha-onnx) มีแค่ onnx/model.onnx (fp32) เท่านั้น
-           ยังไม่ได้ทำเวอร์ชันบีบอัด (quantized) — แต่ transformers.js ดีฟอลต์จะลองโหลด
-           onnx/model_quantized.onnx ก่อนเสมอถ้าไม่ระบุ dtype เอง ทำให้หาไฟล์ไม่เจอ (404)
-           ต้องบังคับ dtype:'fp32' เฉพาะโมเดลนี้ — โมเดลอังกฤษของ Xenova แปลงมาพร้อมไฟล์
-           quantized จริงอยู่แล้ว ปล่อยให้ใช้ดีฟอลต์เดิมต่อไปไม่ต้องยุ่ง */
+        /* โมเดลเสียงไทยที่แปลงเอง (Tanotfin/mms-tts-tha-onnx) ตอนนี้มีทั้ง onnx/model.onnx (fp32)
+           และ onnx/model_quantized.onnx (int8, บีบอัดแล้ว) — ปล่อยให้ transformers.js ใช้ดีฟอลต์
+           (dtype 'q8' บน backend wasm) ไปเลือกไฟล์ quantized เองอัตโนมัติ ไม่ต้องบังคับ dtype
+           เหมือนก่อนหน้านี้แล้ว (ตอนนั้นบังคับ fp32 ไว้ชั่วคราวเพราะยังไม่มีไฟล์ quantized) */
         var opts = { progress_callback: onProgress };
-        if (modelId === 'Tanotfin/mms-tts-tha-onnx') opts.dtype = 'fp32';
         return mod.pipeline('text-to-speech', modelId, opts);
       });
     }
@@ -239,7 +237,7 @@
     $('dlGenerateBtn').disabled = true;
     $('dlStatus').className = 'status';
     $('dlStatus').textContent = lang === 'th'
-      ? '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกต้องดาวน์โหลดจาก Hugging Face ~145MB เพราะยังไม่ได้บีบอัด — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…'
+      ? '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกต้องดาวน์โหลดจาก Hugging Face — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…'
       : '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
     synthesizeMmsTts(text, modelId, function (p) {
       if (p && p.status === 'progress' && p.file) {
