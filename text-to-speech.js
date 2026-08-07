@@ -9,6 +9,26 @@
 
   function $(id) { return document.getElementById(id); }
 
+  /* ══════════════════ ตั้งค่า path ไฟล์ WASM ของ onnxruntime-web (ใช้ร่วมกันทั้ง TTS/ASR) ══════════════════
+     แก้บั๊ก 2 ชั้นที่เจอจริงในโปรดักชัน:
+     1) ตั้ง wasmPaths เป็น string เฉยๆ ('./vendor/transformers/') ทำให้ path ที่เบราว์เซอร์ขอจริง
+        กลายเป็น .../vendor/transformers/vendor/transformers/ort-wasm-....mjs (ซ้ำโฟลเดอร์) เพราะ
+        transformers.js จะเอา string นี้ไปประกอบกับชื่อไฟล์ default ของมันเองอีกที — ต้องตั้งเป็น
+        object {mjs, wasm} ชี้ path เต็มตรงๆ แทน ถึงจะข้ามตรรกะประกอบ path ที่มีบั๊กนี้ไปได้
+     2) เว็บนี้ไม่มี header COOP/COEP (GitHub/Cloudflare Pages ธรรมดาไม่ส่งให้) ทำให้ SharedArrayBuffer
+        ใช้ไม่ได้ — ไฟล์ .wasm รุ่น "threaded" ปกติ (ที่ฝังไว้แต่แรก) คอมไพล์มาแบบ pthread ต้องพึ่ง
+        SharedArrayBuffer เสมอไม่ว่าจะตั้ง numThreads=1 หรือไม่ก็ตาม จึงโหลดไม่ได้จริง — ต้องใช้รุ่น
+        "asyncify" (คอมไพล์แบบ single-thread ล้วนๆ ไม่พึ่ง pthread/SharedArrayBuffer) แทน ยกเว้น Safari
+        ที่ตัว onnxruntime-web เองแนะนำให้ใช้รุ่น threaded ปกติ (ตรรกะเดียวกับ default ของไลบรารี
+        เอง แค่ชี้ไปไฟล์ที่ฝังในเว็บนี้แทน jsdelivr) */
+  function configureOnnxWasmPaths(env) {
+    var isSafari = /^((?!chrome|android|crios|fxios|edg).)*safari/i.test(navigator.userAgent);
+    env.backends.onnx.wasm.wasmPaths = isSafari
+      ? { mjs: './vendor/transformers/ort-wasm-simd-threaded.mjs', wasm: './vendor/transformers/ort-wasm-simd-threaded.wasm' }
+      : { mjs: './vendor/transformers/ort-wasm-simd-threaded.asyncify.mjs', wasm: './vendor/transformers/ort-wasm-simd-threaded.asyncify.wasm' };
+    env.backends.onnx.wasm.numThreads = 1; // ไม่มี SharedArrayBuffer อยู่แล้ว บังคับ single-thread กันค้าง
+  }
+
   /* ══════════════════ ตัวนับตัวอักษร ══════════════════ */
   function updateCharCount() {
     $('ttsCharCount').textContent = $('ttsText').value.length + ' ตัวอักษร';
@@ -86,8 +106,7 @@
     if (!ttsPipelinePromiseByModel[modelId]) {
       ttsPipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
         var env = mod.env;
-        env.backends.onnx.wasm.wasmPaths = './vendor/transformers/';
-        env.backends.onnx.wasm.numThreads = 1; // GitHub Pages ไม่มี header COOP/COEP ให้ SharedArrayBuffer ทำงาน บังคับ single-thread กันค้าง
+        configureOnnxWasmPaths(env);
         /* โมเดลเสียงไทยที่แปลงเอง (Tanotfin/mms-tts-tha-onnx) มีแค่ onnx/model.onnx (fp32) เท่านั้น
            ยังไม่ได้ทำเวอร์ชันบีบอัด (quantized) — แต่ transformers.js ดีฟอลต์จะลองโหลด
            onnx/model_quantized.onnx ก่อนเสมอถ้าไม่ระบุ dtype เอง ทำให้หาไฟล์ไม่เจอ (404)
@@ -216,8 +235,7 @@
     if (!asrPipelinePromiseByModel[modelId]) {
       asrPipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
         var env = mod.env;
-        env.backends.onnx.wasm.wasmPaths = './vendor/transformers/';
-        env.backends.onnx.wasm.numThreads = 1; // GitHub Pages ไม่มี header COOP/COEP ให้ SharedArrayBuffer ทำงาน บังคับ single-thread กันค้าง
+        configureOnnxWasmPaths(env);
         return mod.pipeline('automatic-speech-recognition', modelId, { progress_callback: onProgress });
       });
     }
