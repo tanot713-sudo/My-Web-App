@@ -125,6 +125,57 @@
       return output;
     });
   }
+  /* ══════════════════ ตัดข้อความยาวเป็นท่อนสั้นๆ ก่อนสังเคราะห์เสียง ══════════════════
+     เจอจริงในโปรดักชัน: วางข้อความยาว (เช่นย่อหน้ากฎหมายหลายพันตัวอักษร) แล้วทั้งแท็บค้าง/แครช
+     (ไม่ใช่แค่ช้า) — โมเดล VITS คำนวณ attention แบบ O(n²) กับความยาวข้อความทั้งก้อน ยิ่งข้อความยาว
+     หน่วยความจำ/เวลาคำนวณยิ่งพุ่งแบบทวีคูณ ไม่ใช่เชิงเส้น ตัดขนาดโมเดลให้เล็กลง (quantize) ก็ช่วย
+     ได้แค่ความเร็วต่อท่อน ไม่ได้ช่วยเรื่องนี้เลยเพราะเป็นคนละสาเหตุกัน ทางแก้ที่ถูกต้องคือตัดข้อความ
+     เป็นท่อนสั้นๆ ก่อนเสมอ แล้วสังเคราะห์ทีละท่อนต่อกัน (เรียงตามลำดับ ไม่ขนาน กันแย่งหน่วยความจำ) */
+  var MAX_TTS_CHUNK_CHARS = 60;
+  function splitIntoTtsChunks(text, maxLen) {
+    maxLen = maxLen || MAX_TTS_CHUNK_CHARS;
+    var lines = text.split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean);
+    var chunks = [];
+    lines.forEach(function (line) {
+      while (line.length > maxLen) {
+        var head = line.slice(0, maxLen);
+        var punctIdx = Math.max(head.lastIndexOf('.'), head.lastIndexOf('ๆ'), head.lastIndexOf('ฯ'));
+        var spaceIdx = head.lastIndexOf(' ');
+        var cut = punctIdx > 10 ? punctIdx + 1 : (spaceIdx > 10 ? spaceIdx : maxLen);
+        chunks.push(line.slice(0, cut).trim());
+        line = line.slice(cut).trim();
+      }
+      if (line) chunks.push(line);
+    });
+    return chunks;
+  }
+  function concatFloat32Arrays(arrays, gapSamples) {
+    gapSamples = gapSamples || 0;
+    var total = arrays.reduce(function (sum, a) { return sum + a.length; }, 0) + gapSamples * Math.max(0, arrays.length - 1);
+    var out = new Float32Array(total);
+    var offset = 0;
+    arrays.forEach(function (a, i) {
+      out.set(a, offset);
+      offset += a.length + (i < arrays.length - 1 ? gapSamples : 0);
+    });
+    return out;
+  }
+  /* สังเคราะห์เสียงทีละท่อนเรียงลำดับ (ไม่ใช่พร้อมกัน) แล้วต่อรวมเป็นเสียงเดียว —
+     pipeline ถูกแคชไว้แล้วหลังท่อนแรก (ดู loadTtsPipeline) ท่อนต่อไปจึงไม่ดาวน์โหลดโมเดลซ้ำ */
+  function synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onChunkStart) {
+    var audioParts = [], samplingRate = null;
+    return chunks.reduce(function (p, chunk, idx) {
+      return p.then(function () {
+        if (onChunkStart) onChunkStart(idx + 1, chunks.length);
+        return synthesizeMmsTts(chunk, modelId, onModelProgress);
+      }).then(function (output) {
+        samplingRate = output.sampling_rate;
+        audioParts.push(output.audio);
+      });
+    }, Promise.resolve()).then(function () {
+      return { audio: concatFloat32Arrays(audioParts, Math.round(samplingRate * 0.3)), sampling_rate: samplingRate };
+    });
+  }
   /* ห่อ Float32Array ตัวอย่างเสียงดิบเป็นไฟล์ .wav มาตรฐาน (mono, PCM 16-bit) — MMS-TTS คืนมาเป็น
      ตัวเลขดิบล้วนๆ ไม่ใช่ไฟล์สำเร็จรูปแบบที่ eSpeak NG เคยให้ ต้องประกอบ WAV header เอง */
   function float32ToWavBlob(samples, sampleRate) {
@@ -226,27 +277,30 @@
   }
 
   function generateDownloadable() {
-    var text = $('ttsText').value;
-    if (!text.trim()) { $('dlStatus').className = 'status err'; $('dlStatus').textContent = 'พิมพ์ข้อความก่อน'; return; }
+    var rawText = $('ttsText').value;
+    if (!rawText.trim()) { $('dlStatus').className = 'status err'; $('dlStatus').textContent = 'พิมพ์ข้อความก่อน'; return; }
     var lang = $('dlLang').value;
     var modelId = TTS_MODELS[lang];
+    var chunks = splitIntoTtsChunks(rawText);
     if (lang === 'th') {
-      text = normalizeForThaiTts(text);
-      if (!text) { $('dlStatus').className = 'status err'; $('dlStatus').textContent = 'ข้อความหลังตัดอักขระที่โมเดลไม่รู้จักออกแล้วว่างเปล่า ลองพิมพ์เป็นภาษาไทยดู'; return; }
+      chunks = chunks.map(normalizeForThaiTts).filter(Boolean);
+      if (!chunks.length) { $('dlStatus').className = 'status err'; $('dlStatus').textContent = 'ข้อความหลังตัดอักขระที่โมเดลไม่รู้จักออกแล้วว่างเปล่า ลองพิมพ์เป็นภาษาไทยดู'; return; }
     }
     $('dlGenerateBtn').disabled = true;
     $('dlStatus').className = 'status';
     $('dlStatus').textContent = lang === 'th'
       ? '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกต้องดาวน์โหลดจาก Hugging Face — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…'
       : '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
-    synthesizeMmsTts(text, modelId, function (p) {
+    synthesizeMmsTtsChunks(chunks, modelId, function (p) {
       if (p && p.status === 'progress' && p.file) {
         var pct = p.progress != null ? Math.round(p.progress) : null;
         $('dlStatus').textContent = '⏳ กำลังดาวน์โหลดโมเดล: ' + p.file + (pct != null ? (' (' + pct + '%)') : '');
       }
+    }, function (i, n) {
+      if (n > 1) $('dlStatus').textContent = '⏳ กำลังสร้างเสียงท่อนที่ ' + i + '/' + n + '… (ข้อความยาวจึงตัดเป็นท่อนสั้นๆ กันเบราว์เซอร์ค้าง)';
     })
       .then(function (output) {
-        $('dlStatus').textContent = '⏳ กำลังสร้างไฟล์เสียง…';
+        $('dlStatus').textContent = '⏳ กำลังประกอบไฟล์เสียง…';
         var wavBlob = float32ToWavBlob(output.audio, output.sampling_rate);
         var wavUrl = URL.createObjectURL(wavBlob);
         return wavBlob.arrayBuffer().then(function (buf) {
