@@ -187,6 +187,7 @@
      ของเครื่อง) แบ่งท่อนข้อความไปให้แต่ละ Worker คำนวณขนานกันจริง (ไม่ใช่แค่ย้ายออกจากเธรดหลัก) —
      ยังคง fallback กลับมารันในหน้าเว็บตรงๆ (ทีละท่อน) ถ้าสร้าง Worker ไม่สำเร็จเลยสักตัว */
   var ttsWorkerPool = [];
+  var ttsWorkerBusy = []; // ขนานไปกับ ttsWorkerPool — true = worker ตัวนั้นยังทำ batch ก่อนหน้าไม่เสร็จ
   var ttsJobSeq = 0;
   function ttsPoolSize() {
     var cores = navigator.hardwareConcurrency || 2;
@@ -195,12 +196,34 @@
     if (mem && mem < 4) cap = 2; // เครื่อง/มือถือ RAM น้อย ลดจำนวน Worker ลง
     return Math.max(1, Math.min(cores, cap));
   }
+  /* ผูก listener ถาวร (ไม่ผูก/ลบตามแต่ละงานเหมือน onMsg ใน synthesizeMmsTtsChunksInWorkerPool) ไว้
+     คอยฟังแค่ 'batch-done' จาก worker ตัวนี้เพื่ออัปเดตสถานะ busy — ต้องแยกจาก listener รายงานเพราะ
+     ถ้างานหนึ่งพังกลางทาง (reject ไปแล้ว) worker ตัวอื่นในพูลที่ยังไม่ error อาจยังคำนวณค้างอยู่
+     ต่อไปอีกพักหนึ่ง ต้องรู้ให้ได้ว่า "ว่างจริงเมื่อไร" ไม่ใช่แค่ตอนงานที่ dispatch ไปถูก reject */
+  function attachBusyTracker(worker, idx) {
+    worker.addEventListener('message', function (e) {
+      if (e.data && e.data.type === 'batch-done') ttsWorkerBusy[idx] = false;
+    });
+  }
   function getTtsWorkerPool() {
+    /* ถ้าพูลเดิมมี worker ตัวไหนยังไม่ว่าง (งานก่อนหน้ายังทำไม่เสร็จ เช่น ผู้ใช้กด "สร้างไฟล์เสียง"
+       ซ้ำทันทีหลังเจอ error ก่อนที่ worker ตัวอื่นในพูลเดิมจะทำงานที่ค้างอยู่เสร็จ) ห้ามส่งงานใหม่ไปแทรก
+       เด็ดขาด (จะไปต่อคิวหลังงานเก่าที่ทิ้งไปแล้ว ทำให้ล่าช้าโดยไม่จำเป็น) — เลิกใช้พูลเก่าทั้งชุด สั่ง
+       terminate() ตัวที่ยังไม่ว่างทิ้งทันที (หยุดคำนวณเปล่าประโยชน์) แล้วสร้างพูลใหม่สะอาดๆ แทน */
+    if (ttsWorkerPool.length && ttsWorkerBusy.indexOf(true) !== -1) {
+      ttsWorkerPool.forEach(function (w) { w.terminate(); });
+      ttsWorkerPool = [];
+      ttsWorkerBusy = [];
+    }
     if (!ttsWorkerPool.length) {
       var n = ttsPoolSize();
       for (var i = 0; i < n; i++) {
-        try { ttsWorkerPool.push(new Worker('./tts-worker.js', { type: 'module' })); }
-        catch (e) { break; } // สร้างไม่ได้ (เบราว์เซอร์เก่ามาก) — ใช้เท่าที่สร้างได้ อาจเหลือ 0 ตัวก็ได้
+        try {
+          var w = new Worker('./tts-worker.js', { type: 'module' });
+          attachBusyTracker(w, ttsWorkerPool.length);
+          ttsWorkerPool.push(w);
+          ttsWorkerBusy.push(false);
+        } catch (e) { break; } // สร้างไม่ได้ (เบราว์เซอร์เก่ามาก) — ใช้เท่าที่สร้างได้ อาจเหลือ 0 ตัวก็ได้
       }
     }
     return ttsWorkerPool;
@@ -241,7 +264,10 @@
       var perWorkerItems = pool.map(function () { return []; });
       chunks.forEach(function (text, i) { perWorkerItems[i % pool.length].push({ i: i, text: text }); });
       pool.forEach(function (w, wi) {
-        if (perWorkerItems[wi].length) w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: perWorkerItems[wi], modelId: modelId });
+        if (perWorkerItems[wi].length) {
+          ttsWorkerBusy[wi] = true;
+          w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: perWorkerItems[wi], modelId: modelId });
+        }
       });
     });
   }

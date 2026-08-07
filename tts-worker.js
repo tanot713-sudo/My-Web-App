@@ -75,10 +75,24 @@ function synthesizeOneItem(text, modelId, onProgress) {
   });
 }
 
+/* กัน batch ใหม่มาซ้อนทับ batch เก่าที่ยังทำงานไม่เสร็จใน worker ตัวเดียวกัน — ปกติฝั่งหน้าเว็บหลัก
+   (text-to-speech.js) จะเช็ก busy ก่อนแล้วไม่ dispatch batch ใหม่มาซ้ำอยู่แล้ว (ถ้าพูลเดิมยังไม่ว่าง
+   จะ terminate แล้วสร้างพูลใหม่แทน) แต่กันไว้อีกชั้นเผื่อ race condition ที่ไม่คาดคิด — ปฏิเสธ batch
+   ที่ซ้อนเข้ามาทันทีแทนที่จะรัน items.reduce() 2 ชุดขนานกันในเครื่องมือ (pipeline) เดียวกัน */
+var isBusy = false;
+
 self.onmessage = function (e) {
   var msg = e.data;
   if (!msg || msg.type !== 'synthesize-batch') return;
   var items = msg.items, modelId = msg.modelId, jobId = msg.jobId;
+
+  if (isBusy) {
+    items.forEach(function (item) {
+      self.postMessage({ type: 'item-error', jobId: jobId, i: item.i, message: 'Worker นี้กำลังยุ่งอยู่กับงานก่อนหน้า (ไม่ควรเกิดขึ้น)' });
+    });
+    return;
+  }
+  isBusy = true;
 
   function onModelProgress(p) {
     if (p && p.status === 'progress' && p.file) {
@@ -100,5 +114,10 @@ self.onmessage = function (e) {
       self.postMessage({ type: 'item-error', jobId: jobId, i: item.i, message: err && err.message ? err.message : String(err) });
       throw err; // หยุดท่อนที่เหลือใน worker ตัวนี้ (งานทั้งก้อนถือว่าล้มเหลวอยู่แล้วฝั่งหน้าเว็บหลัก)
     });
-  }, Promise.resolve()).catch(function () { /* error ถูกรายงานผ่าน postMessage ไปแล้ว ไม่ต้องทำอะไรเพิ่ม */ });
+  }, Promise.resolve()).catch(function () { /* error ถูกรายงานผ่าน postMessage ไปแล้ว ไม่ต้องทำอะไรเพิ่ม */ }).then(function () {
+    /* แจ้งฝั่งหน้าเว็บหลักเสมอไม่ว่าจะสำเร็จ/ล้มเหลว ว่า worker ตัวนี้ว่างแล้ว — ใช้เคลียร์สถานะ busy
+       ที่ track ไว้ฝั่งหน้าเว็บหลัก (แยกจาก jobId เพราะ worker ตัวนี้รับได้ทีละ batch เท่านั้นเสมอ) */
+    isBusy = false;
+    self.postMessage({ type: 'batch-done', jobId: jobId });
+  });
 };
