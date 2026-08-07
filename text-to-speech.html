@@ -194,17 +194,15 @@ details[open]>summary::before{transform:rotate(90deg)}
 <div class="disc">⚠️ เครื่องมือนี้ใช้เพื่อการศึกษา/อำนวยความสะดวกส่วนบุคคลเท่านั้น เสียงจากโหมด "สร้างไฟล์เสียง" เป็นเสียงสังเคราะห์คุณภาพจำกัด ไม่เหมาะใช้แทนเสียงพากย์มืออาชีพ ผลลัพธ์จากโหมดถอดเสียงเป็นข้อความอาจมีคำผิดพลาดโดยเฉพาะเสียงไม่ชัด/มีเสียงรบกวน ควรตรวจทานก่อนนำไปใช้จริง · ข้อความ/ไฟล์เสียงที่คุณใช้ในหน้านี้ไม่ถูกเก็บหรือส่งไปที่ใดทั้งสิ้น</div>
 </div>
 
-<!-- transformers.js (โหมดถอดเสียงเป็นข้อความ) มี bare module specifier 2 จุดที่ต้องใช้ import map
-     ชี้ไปไฟล์จริง เพราะเบราว์เซอร์ resolve เฉพาะ path แบบ relative/absolute เองไม่ได้ (ต่างจาก
-     bundler อย่าง webpack/vite) — ทั้งสองไฟล์ที่ชี้ไปฝังอยู่ในเว็บเองแล้ว ไม่ได้โหลดจาก CDN ภายนอก -->
-<script type="importmap">
-{
-  "imports": {
-    "onnxruntime-common": "./vendor/transformers/onnxruntime-common/index.js",
-    "onnxruntime-web/webgpu": "./vendor/transformers/ort.webgpu.bundle.min.mjs"
-  }
-}
-</script>
+<!-- หมายเหตุ: เดิม transformers.web.min.js มี bare module specifier 2 จุด (onnxruntime-common,
+     onnxruntime-web/webgpu) ที่ต้องพึ่ง <script type="importmap"> ชี้ไปไฟล์จริงถึงจะ resolve ได้
+     — แต่ import map ใช้ได้เฉพาะใน "เอกสาร" หลักเท่านั้น ไม่ไหลตามไปถึง Web Worker ที่แยกออกไป
+     (tts-worker.js) ทำให้ import() ฝั่ง Worker resolve bare specifier พวกนี้ไม่ได้ โมดูล error
+     ตั้งแต่โหลด แล้วเงียบๆ fallback กลับมารันบล็อกหน้าเว็บเหมือนเดิม (คือสาเหตุที่หน้าเว็บยังค้าง
+     แม้ย้ายไปรันใน Worker แล้ว) — แก้ที่ต้นตอโดยแก้ vendor/transformers/transformers.web.min.js
+     ให้ import เป็น relative path ตรงๆ (./ort.webgpu.bundle.min.mjs, ./onnxruntime-common/index.js)
+     แทน bare specifier ไปเลย เพราะ relative import จะ resolve เทียบกับตำแหน่งไฟล์ที่ import มันเอง
+     เสมอไม่ว่าจะรันในเอกสารหลักหรือใน Worker ก็ตาม จึงไม่ต้องพึ่ง import map อีกต่อไป (เอาออกได้เลย) -->
 <script src="vendor/lamejs/lamejs.iife.js"></script>
 <script src="text-to-speech.js" defer></script>
 </body>
