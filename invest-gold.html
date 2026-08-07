@@ -61,7 +61,7 @@ input:focus,select:focus{outline:none;border-color:var(--brand)}
 
 /* ── ไฟจราจร ── */
 .light{display:flex;gap:14px;align-items:center;border-radius:16px;padding:18px;margin-top:2px}
-.light .bulb{width:56px;height:56px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:30px}
+.light .bulb{width:56px;height:56px;border-radius:50%;flex-shrink:0;background:#B8C0D4}
 .light .verdict{font-size:18px;font-weight:800;line-height:1.25}
 .light .why{font-size:13.5px;margin-top:3px;opacity:.9}
 .light.green{background:#E9F9F0;color:#0B7F52}
@@ -182,7 +182,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <p class="mini">ประเมินจาก<b>แนวโน้มราคาทองคำโลก (GC=F, USD/ออนซ์)</b> เป็นตัวแทนทิศทาง — ราคาไทยด้านบนคือราคาที่ซื้อขายจริง เคลื่อนไปทางเดียวกันแต่ตัวเลขต่างกันเพราะค่าเงินบาท + พรีเมียมนำเข้า ไม่ใช่คำแนะนำการลงทุน</p>
     <div class="src-badge" id="gSrcBadge">กำลังตรวจแนวโน้ม…</div>
     <div class="light gray" id="gLight">
-      <div class="bulb" id="gBulb">⚪</div>
+      <div class="bulb" id="gBulb"></div>
       <div><div class="verdict" id="gVerdict">กำลังโหลด…</div><div class="why" id="gWhy"></div></div>
     </div>
     <details id="gDetailsBox" style="display:none">

@@ -596,9 +596,13 @@
   function showAnalysis(a) {
     lastAnalysis = a;
     $('lightCard').style.display = 'block';
-    var bulbs = { green: '🟢', yellow: '🟡', red: '🔴' };
+    /* วาดวงกลมสีด้วย CSS แทน emoji 🟢🟡🔴 — บางอุปกรณ์/เบราว์เซอร์ไม่มีฟอนต์รองรับ
+       emoji วงกลมสี (โดยเฉพาะ 🟢/🟡 ที่เพิ่งเข้า Unicode ทีหลัง) แสดงเป็นกล่องว่างแทน
+       ซึ่งทำให้ไฟจราจร (จุดขายหลักของหน้านี้) สื่อความหมายไม่ได้เลย */
+    var bulbColors = { green: 'var(--ok)', yellow: 'var(--amber)', red: 'var(--err)' };
     $('light').className = 'light ' + a.light;
-    $('bulb').textContent = bulbs[a.light] || '⚪';
+    $('bulb').textContent = '';
+    $('bulb').style.background = bulbColors[a.light] || '#B8C0D4';
     $('verdict').textContent = a.verdict;
     $('why').textContent = a.why;
 

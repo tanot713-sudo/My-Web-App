@@ -71,7 +71,8 @@ input:focus{outline:none;border-color:var(--brand)}
 
 /* ── ไฟจราจร ── */
 .light{display:flex;gap:14px;align-items:center;border-radius:16px;padding:18px;margin-top:2px}
-.light .bulb{width:56px;height:56px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:30px}
+.light .bulb{width:56px;height:56px;border-radius:50%;flex-shrink:0;background:#B8C0D4}
+.sig-dot{display:inline-block;width:11px;height:11px;border-radius:50%}
 .light .verdict{font-size:18px;font-weight:800;line-height:1.25}
 .light .why{font-size:13.5px;margin-top:3px;opacity:.9}
 .light.green{background:#E9F9F0;color:#0B7F52}
@@ -326,7 +327,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- ไฟจราจร -->
   <div class="card" id="lightCard" style="display:none">
     <div class="light gray" id="light">
-      <div class="bulb" id="bulb">⚪</div>
+      <div class="bulb" id="bulb"></div>
       <div><div class="verdict" id="verdict">—</div><div class="why" id="why"></div></div>
     </div>
 

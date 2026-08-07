@@ -365,15 +365,20 @@
     }
     if (!a) {
       $('gLight').className = 'light gray';
-      $('gBulb').textContent = '⚪';
+      $('gBulb').textContent = '';
+      $('gBulb').style.background = '#B8C0D4';
       $('gVerdict').textContent = 'ยังไม่มีข้อมูล';
       $('gWhy').textContent = '';
       $('gDetailsBox').style.display = 'none';
       return;
     }
-    var bulbs = { green: '🟢', yellow: '🟡', red: '🔴' };
+    /* วาดวงกลมสีด้วย CSS แทน emoji 🟢🟡🔴 — บางอุปกรณ์/เบราว์เซอร์ไม่มีฟอนต์รองรับ
+       emoji วงกลมสี (โดยเฉพาะ 🟢/🟡 ที่เพิ่งเข้า Unicode ทีหลัง) แสดงเป็นกล่องว่างแทน
+       ซึ่งทำให้ไฟจราจร (จุดขายหลักของหน้านี้) สื่อความหมายไม่ได้เลย */
+    var bulbColors = { green: 'var(--ok)', yellow: 'var(--amber)', red: 'var(--err)' };
     $('gLight').className = 'light ' + a.light;
-    $('gBulb').textContent = bulbs[a.light] || '⚪';
+    $('gBulb').textContent = '';
+    $('gBulb').style.background = bulbColors[a.light] || '#B8C0D4';
     $('gVerdict').textContent = a.verdict;
     $('gWhy').textContent = a.why;
     if (a.det && !a.simple && isFinite(a.det.rsi)) {

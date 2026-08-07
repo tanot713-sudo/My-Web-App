@@ -499,9 +499,13 @@
   function showAnalysis(a) {
     lastAnalysis = a;
     $('lightCard').style.display = 'block';
-    var bulbs = { green: '🟢', yellow: '🟡', red: '🔴' };
+    /* วาดวงกลมสีด้วย CSS แทน emoji 🟢🟡🔴 — บางอุปกรณ์/เบราว์เซอร์ไม่มีฟอนต์รองรับ
+       emoji วงกลมสี (โดยเฉพาะ 🟢/🟡 ที่เพิ่งเข้า Unicode ทีหลัง) แสดงเป็นกล่องว่างแทน
+       ซึ่งทำให้ไฟจราจร (จุดขายหลักของหน้านี้) สื่อความหมายไม่ได้เลย */
+    var bulbColors = { green: 'var(--ok)', yellow: 'var(--amber)', red: 'var(--err)' };
     $('light').className = 'light ' + a.light;
-    $('bulb').textContent = bulbs[a.light] || '⚪';
+    $('bulb').textContent = '';
+    $('bulb').style.background = bulbColors[a.light] || '#B8C0D4';
     $('verdict').textContent = a.verdict;
     $('why').textContent = a.why;
 
@@ -865,7 +869,10 @@
   /* ── ตาราง SET50 ── */
   var s50Rows = {};
   function rankOf(l) { return l === 'green' ? 0 : l === 'yellow' ? 1 : l === 'red' ? 2 : 9; }
-  function sigIcon(l) { return l === 'green' ? '🟢' : l === 'yellow' ? '🟡' : l === 'red' ? '🔴' : '·'; }
+  function sigIcon(l) {
+    var color = l === 'green' ? 'var(--ok)' : l === 'yellow' ? 'var(--amber)' : l === 'red' ? 'var(--err)' : '';
+    return color ? '<span class="sig-dot" style="background:' + color + '"></span>' : '·';
+  }
   function dataFromSeries(s) {
     if (!s || s.closes.length < 2) return null;
     var last = s.closes[s.closes.length - 1], prev = s.closes[s.closes.length - 2];
