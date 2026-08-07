@@ -28,18 +28,24 @@ function configureOnnxWasmPaths(env) {
   env.backends.onnx.wasm.numThreads = 1; // ไม่มี SharedArrayBuffer อยู่แล้ว บังคับ single-thread กันค้าง (คนละเรื่องกับที่ทำให้หน้าเว็บค้าง — นั่นแก้ด้วยการย้ายมา Worker นี้)
 }
 
-function loadPipeline(modelId, onProgress) {
+/* jobId ส่งมาแค่เพื่อแปะกำกับสัญญาณ 'pipeline-ready' ที่ยิงกลับไปครั้งเดียวตอนโหลด pipeline
+   เสร็จครั้งแรกของ worker ตัวนี้ (ดูเหตุผลที่ text-to-speech.js ใช้สัญญาณนี้ทำอะไร) — ไม่ได้ใช้
+   แยกแคช pipeline ตาม jobId แต่อย่างใด (ยังแคชตาม modelId เดิม ใช้ข้ามหลายงานได้เหมือนเดิม) */
+function loadPipeline(modelId, onProgress, jobId) {
   if (!pipelinePromiseByModel[modelId]) {
     pipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
       configureOnnxWasmPaths(mod.env);
       return mod.pipeline('text-to-speech', modelId, { progress_callback: onProgress });
     });
+    pipelinePromiseByModel[modelId].then(function () {
+      self.postMessage({ type: 'pipeline-ready', jobId: jobId, modelId: modelId });
+    }, function () { /* โหลดพัง — ปล่อยให้ error จริงโผล่ตอนเรียก synth ท่อนแรกแทน ไม่ต้อง handle ซ้ำที่นี่ */ });
   }
   return pipelinePromiseByModel[modelId];
 }
 
-function synthesizeOneItem(text, modelId, onProgress) {
-  return loadPipeline(modelId, onProgress).then(function (synth) {
+function synthesizeOneItem(text, modelId, onProgress, jobId) {
+  return loadPipeline(modelId, onProgress, jobId).then(function (synth) {
     return synth(text);
   });
 }
@@ -72,7 +78,7 @@ self.onmessage = function (e) {
   items.reduce(function (p, item) {
     return p.then(function () {
       self.postMessage({ type: 'item-start', jobId: jobId, i: item.i });
-      return synthesizeOneItem(item.text, modelId, onModelProgress);
+      return synthesizeOneItem(item.text, modelId, onModelProgress, jobId);
     }).then(function (output) {
       if (!output || !output.audio || !output.audio.length) throw new Error('ไม่ได้ข้อมูลเสียงกลับมา');
       self.postMessage(

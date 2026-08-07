@@ -240,13 +240,29 @@
       var samplingRate = null;
       var doneCount = 0;
       var settled = false;
+      var restDispatched = false;
 
       function cleanup() { pool.forEach(function (w) { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }); }
       function finishError(err) { if (settled) return; settled = true; cleanup(); reject(err); }
+      /* ส่งงานให้ worker ตัวแรก (index 0) ไปก่อนตัวเดียว รอสัญญาณ 'pipeline-ready' (โหลด/แคชโมเดล
+         เสร็จแล้ว) แล้วค่อยปล่อยงานให้ worker ที่เหลือทั้งหมดพร้อมกัน — กัน worker ทุกตัวแย่งดาวน์โหลด
+         ไฟล์โมเดลเดียวกันพร้อมกันตอนยังไม่มีแคชเลย (ครั้งแรกสุดที่ใช้เครื่องมือนี้) ซึ่งทำให้ช้ากว่า
+         ดาวน์โหลดครั้งเดียวมากบนเน็ตที่ไม่เร็วนัก — ถ้าเคยใช้มาก่อนแล้ว (มีแคชอยู่แล้ว) 'pipeline-ready'
+         จะมาเร็วมากแทบไม่หน่วงอะไรเลย มี timeout สำรองกันไว้เผื่อสัญญาณไม่มาด้วยเหตุผลใดก็ตาม */
+      function dispatchRest() {
+        if (restDispatched) return;
+        restDispatched = true;
+        pool.forEach(function (w, wi) {
+          if (wi === 0 || !perWorkerItems[wi].length) return; // worker 0 ถูกส่งไปแล้วตั้งแต่แรก
+          ttsWorkerBusy[wi] = true;
+          w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: perWorkerItems[wi], modelId: modelId });
+        });
+      }
       function onMsg(e) {
         var msg = e.data;
         if (!msg || msg.jobId !== jobId || settled) return;
         if (msg.type === 'model-progress') { if (onModelProgress) onModelProgress({ status: 'progress', file: msg.file, progress: msg.progress }); }
+        else if (msg.type === 'pipeline-ready') { dispatchRest(); }
         else if (msg.type === 'item-done') {
           results[msg.i] = msg.audio;
           samplingRate = msg.samplingRate;
@@ -263,12 +279,11 @@
 
       var perWorkerItems = pool.map(function () { return []; });
       chunks.forEach(function (text, i) { perWorkerItems[i % pool.length].push({ i: i, text: text }); });
-      pool.forEach(function (w, wi) {
-        if (perWorkerItems[wi].length) {
-          ttsWorkerBusy[wi] = true;
-          w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: perWorkerItems[wi], modelId: modelId });
-        }
-      });
+      if (perWorkerItems[0].length) {
+        ttsWorkerBusy[0] = true;
+        pool[0].postMessage({ type: 'synthesize-batch', jobId: jobId, items: perWorkerItems[0], modelId: modelId });
+      }
+      setTimeout(dispatchRest, 15000);
     });
   }
   function synthesizeMmsTtsChunksResponsive(chunks, modelId, onModelProgress, onProgress) {
