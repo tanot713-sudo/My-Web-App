@@ -88,7 +88,14 @@
         var env = mod.env;
         env.backends.onnx.wasm.wasmPaths = './vendor/transformers/';
         env.backends.onnx.wasm.numThreads = 1; // GitHub Pages ไม่มี header COOP/COEP ให้ SharedArrayBuffer ทำงาน บังคับ single-thread กันค้าง
-        return mod.pipeline('text-to-speech', modelId, { progress_callback: onProgress });
+        /* โมเดลเสียงไทยที่แปลงเอง (Tanotfin/mms-tts-tha-onnx) มีแค่ onnx/model.onnx (fp32) เท่านั้น
+           ยังไม่ได้ทำเวอร์ชันบีบอัด (quantized) — แต่ transformers.js ดีฟอลต์จะลองโหลด
+           onnx/model_quantized.onnx ก่อนเสมอถ้าไม่ระบุ dtype เอง ทำให้หาไฟล์ไม่เจอ (404)
+           ต้องบังคับ dtype:'fp32' เฉพาะโมเดลนี้ — โมเดลอังกฤษของ Xenova แปลงมาพร้อมไฟล์
+           quantized จริงอยู่แล้ว ปล่อยให้ใช้ดีฟอลต์เดิมต่อไปไม่ต้องยุ่ง */
+        var opts = { progress_callback: onProgress };
+        if (modelId === 'Tanotfin/mms-tts-tha-onnx') opts.dtype = 'fp32';
+        return mod.pipeline('text-to-speech', modelId, opts);
       });
     }
     return ttsPipelinePromiseByModel[modelId];
