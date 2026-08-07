@@ -72,7 +72,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <div class="hero">
     <div class="eyebrow">Tanot · การลงทุน</div>
     <h1>วางแผนการลงทุนของคุณ 📈</h1>
-    <p class="sub">เลือกหมวดจากแถบด้านบน — ตอนนี้เปิดใช้ <b>หุ้นไทย</b> และ <b>กองทุนต่างประเทศ (S&amp;P500)</b> ที่คุณถืออยู่ก่อน หมวดอื่นกำลังทยอยเพิ่ม</p>
+    <p class="sub">เลือกหมวดจากแถบด้านบน — เปิดใช้ครบทุกหมวดแล้วทั้ง 11 หมวด ตั้งแต่หุ้นไทย/ต่างประเทศ กองทุน ทองคำ ไปจนถึงสลากออมสิน/ธ.ก.ส./สลากกินแบ่งรัฐบาล</p>
   </div>
 
   <div class="soon-banner" id="soonBanner" hidden>
@@ -82,7 +82,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <div class="sec-title">พร้อมใช้แล้ว</div>
   <div class="grid" id="gridReady"></div>
 
-  <div class="sec-title">กำลังพัฒนา</div>
+  <div class="sec-title" id="secSoonTitle">กำลังพัฒนา</div>
   <div class="grid" id="gridSoon"></div>
 
   <div class="note">
@@ -125,6 +125,12 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
         '<span class="tag ' + (built ? 'hold">ถืออยู่' : 'soon">เร็วๆ นี้') + '</span>';
       (built ? ready : soon).appendChild(a);
     });
+    /* ตอนนี้ทุกหมวดสร้างครบแล้ว — ไม่มีอะไรเข้า gridSoon อีก ซ่อนหัวข้อ+กล่องว่างทิ้งไป
+       (ยังคงกลไกนี้ไว้เผื่ออนาคตมีหมวดใหม่ที่ยังไม่ทำ จะโผล่กลับมาเองอัตโนมัติ) */
+    if (!soon.children.length) {
+      document.getElementById('secSoonTitle').hidden = true;
+      soon.hidden = true;
+    }
   });
 
   /* แบนเนอร์เมื่อกดหมวดที่ยังไม่เปิด */
