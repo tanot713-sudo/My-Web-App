@@ -176,6 +176,42 @@
       return { audio: concatFloat32Arrays(audioParts, Math.round(samplingRate * 0.3)), sampling_rate: samplingRate };
     });
   }
+  /* ══════════════════ รันสังเคราะห์เสียงใน Web Worker (กันหน้าเว็บค้าง) ══════════════════
+     เจอจริง: แม้ตัดข้อความเป็นท่อนสั้นๆ แล้ว หน้าเว็บก็ยังค้าง/ไม่ตอบสนองระหว่างคำนวณแต่ละท่อนอยู่ดี
+     เพราะ WASM single-thread รันแบบ synchronous บล็อก event loop ของเธรดที่มันทำงานอยู่เสมอ — ทางแก้
+     จริงคือย้ายการคำนวณทั้งหมดไปรันใน Worker (เธรดแยกต่างหาก) แทน ไม่ใช่แก้ที่การตัดท่อนอย่างเดียว
+     (ดู tts-worker.js) มี fallback กลับมารันในหน้าเว็บตรงๆ ถ้าสร้าง Worker ไม่สำเร็จ (เบราว์เซอร์เก่ามาก) */
+  var ttsWorker = null, ttsJobSeq = 0;
+  function synthesizeMmsTtsChunksInWorker(chunks, modelId, onModelProgress, onChunkStart) {
+    return new Promise(function (resolve, reject) {
+      var worker;
+      try {
+        if (!ttsWorker) ttsWorker = new Worker('./tts-worker.js', { type: 'module' });
+        worker = ttsWorker;
+      } catch (e) { reject(e); return; }
+      var jobId = ++ttsJobSeq;
+      function cleanup() { worker.removeEventListener('message', onMsg); worker.removeEventListener('error', onErr); }
+      function onMsg(e) {
+        var msg = e.data;
+        if (!msg || msg.jobId !== jobId) return;
+        if (msg.type === 'model-progress') { if (onModelProgress) onModelProgress({ status: 'progress', file: msg.file, progress: msg.progress }); }
+        else if (msg.type === 'chunk-start') { if (onChunkStart) onChunkStart(msg.index, msg.total); }
+        else if (msg.type === 'done') { cleanup(); resolve({ audio: msg.audio, sampling_rate: msg.sampling_rate }); }
+        else if (msg.type === 'error') { cleanup(); reject(new Error(msg.message)); }
+      }
+      function onErr(e) { cleanup(); reject(new Error(e.message || 'Web Worker error')); }
+      worker.addEventListener('message', onMsg);
+      worker.addEventListener('error', onErr);
+      worker.postMessage({ type: 'synthesize', jobId: jobId, chunks: chunks, modelId: modelId });
+    });
+  }
+  function synthesizeMmsTtsChunksResponsive(chunks, modelId, onModelProgress, onChunkStart) {
+    if (typeof Worker === 'undefined') return synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onChunkStart);
+    return synthesizeMmsTtsChunksInWorker(chunks, modelId, onModelProgress, onChunkStart).catch(function (err) {
+      console.warn('สร้างเสียงผ่าน Web Worker ไม่สำเร็จ กลับไปรันในหน้าเว็บโดยตรงแทน (หน้าอาจค้างชั่วคราวระหว่างคำนวณ):', err);
+      return synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onChunkStart);
+    });
+  }
   /* ห่อ Float32Array ตัวอย่างเสียงดิบเป็นไฟล์ .wav มาตรฐาน (mono, PCM 16-bit) — MMS-TTS คืนมาเป็น
      ตัวเลขดิบล้วนๆ ไม่ใช่ไฟล์สำเร็จรูปแบบที่ eSpeak NG เคยให้ ต้องประกอบ WAV header เอง */
   function float32ToWavBlob(samples, sampleRate) {
@@ -291,7 +327,7 @@
     $('dlStatus').textContent = lang === 'th'
       ? '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกต้องดาวน์โหลดจาก Hugging Face — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…'
       : '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
-    synthesizeMmsTtsChunks(chunks, modelId, function (p) {
+    synthesizeMmsTtsChunksResponsive(chunks, modelId, function (p) {
       if (p && p.status === 'progress' && p.file) {
         var pct = p.progress != null ? Math.round(p.progress) : null;
         $('dlStatus').textContent = '⏳ กำลังดาวน์โหลดโมเดล: ' + p.file + (pct != null ? (' (' + pct + '%)') : '');
