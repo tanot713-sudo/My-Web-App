@@ -160,56 +160,96 @@
     });
     return out;
   }
-  /* สังเคราะห์เสียงทีละท่อนเรียงลำดับ (ไม่ใช่พร้อมกัน) แล้วต่อรวมเป็นเสียงเดียว —
-     pipeline ถูกแคชไว้แล้วหลังท่อนแรก (ดู loadTtsPipeline) ท่อนต่อไปจึงไม่ดาวน์โหลดโมเดลซ้ำ */
-  function synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onChunkStart) {
-    var audioParts = [], samplingRate = null;
-    return chunks.reduce(function (p, chunk, idx) {
+  /* สังเคราะห์เสียงทีละท่อนเรียงลำดับ (ไม่ใช่พร้อมกัน) แล้วต่อรวมเป็นเสียงเดียว — ใช้เป็น fallback
+     สุดท้ายเท่านั้น (ไม่มี Worker เลย หรือ Worker pool ทั้งพูลใช้งานไม่ได้จริงๆ) เพราะรันบล็อกเธรดหลัก
+     pipeline ถูกแคชไว้แล้วหลังท่อนแรก (ดู loadTtsPipeline) ท่อนต่อไปจึงไม่ดาวน์โหลดโมเดลซ้ำ
+     onProgress(done, total) เรียกหลังแต่ละท่อนเสร็จ (ไม่ใช่ก่อนเริ่ม) ให้ตรงความหมายเดียวกับ
+     ฝั่ง Worker pool ที่นับความคืบหน้ารวมจากหลาย Worker พร้อมกัน — เรียก generateDownloadable
+     คำนวณเวลาประมาณการที่เหลือ (ETA) จากอัตรานี้ได้ตรงกันไม่ว่าจะวิ่งทางไหน */
+  function synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onProgress) {
+    var audioParts = [], samplingRate = null, done = 0;
+    return chunks.reduce(function (p, chunk) {
       return p.then(function () {
-        if (onChunkStart) onChunkStart(idx + 1, chunks.length);
         return synthesizeMmsTts(chunk, modelId, onModelProgress);
       }).then(function (output) {
         samplingRate = output.sampling_rate;
         audioParts.push(output.audio);
+        done++;
+        if (onProgress) onProgress(done, chunks.length);
       });
     }, Promise.resolve()).then(function () {
       return { audio: concatFloat32Arrays(audioParts, Math.round(samplingRate * 0.3)), sampling_rate: samplingRate };
     });
   }
-  /* ══════════════════ รันสังเคราะห์เสียงใน Web Worker (กันหน้าเว็บค้าง) ══════════════════
-     เจอจริง: แม้ตัดข้อความเป็นท่อนสั้นๆ แล้ว หน้าเว็บก็ยังค้าง/ไม่ตอบสนองระหว่างคำนวณแต่ละท่อนอยู่ดี
-     เพราะ WASM single-thread รันแบบ synchronous บล็อก event loop ของเธรดที่มันทำงานอยู่เสมอ — ทางแก้
-     จริงคือย้ายการคำนวณทั้งหมดไปรันใน Worker (เธรดแยกต่างหาก) แทน ไม่ใช่แก้ที่การตัดท่อนอย่างเดียว
-     (ดู tts-worker.js) มี fallback กลับมารันในหน้าเว็บตรงๆ ถ้าสร้าง Worker ไม่สำเร็จ (เบราว์เซอร์เก่ามาก) */
-  var ttsWorker = null, ttsJobSeq = 0;
-  function synthesizeMmsTtsChunksInWorker(chunks, modelId, onModelProgress, onChunkStart) {
+  /* ══════════════════ รันสังเคราะห์เสียงใน Web Worker "พูล" (กันหน้าเว็บค้าง + ใช้หลาย core ขนาน) ══
+     รอบก่อนย้ายไปรันใน Worker ตัวเดียวแก้เรื่องหน้าเว็บค้างได้ (คำนวณไม่บล็อก UI) แต่ยังรันทีละท่อน
+     เรียงคิวอยู่ดี — เวลารวมเท่าเดิม ไม่เร็วขึ้น รอบนี้เปลี่ยนเป็นสร้าง Worker หลายตัว (ตามจำนวน core
+     ของเครื่อง) แบ่งท่อนข้อความไปให้แต่ละ Worker คำนวณขนานกันจริง (ไม่ใช่แค่ย้ายออกจากเธรดหลัก) —
+     ยังคง fallback กลับมารันในหน้าเว็บตรงๆ (ทีละท่อน) ถ้าสร้าง Worker ไม่สำเร็จเลยสักตัว */
+  var ttsWorkerPool = [];
+  var ttsJobSeq = 0;
+  function ttsPoolSize() {
+    var cores = navigator.hardwareConcurrency || 2;
+    var mem = navigator.deviceMemory; // GB — มีเฉพาะ Chrome/Edge เท่านั้น เบราว์เซอร์อื่นเป็น undefined
+    var cap = 4; // แต่ละ Worker โหลดโมเดลเป็นสำเนาของตัวเอง จำกัดไว้กันหน่วยความจำบวมเกินไป
+    if (mem && mem < 4) cap = 2; // เครื่อง/มือถือ RAM น้อย ลดจำนวน Worker ลง
+    return Math.max(1, Math.min(cores, cap));
+  }
+  function getTtsWorkerPool() {
+    if (!ttsWorkerPool.length) {
+      var n = ttsPoolSize();
+      for (var i = 0; i < n; i++) {
+        try { ttsWorkerPool.push(new Worker('./tts-worker.js', { type: 'module' })); }
+        catch (e) { break; } // สร้างไม่ได้ (เบราว์เซอร์เก่ามาก) — ใช้เท่าที่สร้างได้ อาจเหลือ 0 ตัวก็ได้
+      }
+    }
+    return ttsWorkerPool;
+  }
+  /* แบ่งท่อนแบบ round-robin ให้ทุก Worker ในพูลได้งานพอๆ กัน แล้วให้ทำงานขนานกัน — เก็บผลลัพธ์แต่ละ
+     ท่อนกลับมาใส่ตำแหน่งเดิม (msg.i) กันลำดับสลับ เพราะ Worker ต่างตัวเสร็จไม่พร้อมกันแน่นอน */
+  function synthesizeMmsTtsChunksInWorkerPool(chunks, modelId, onModelProgress, onProgress) {
     return new Promise(function (resolve, reject) {
-      var worker;
-      try {
-        if (!ttsWorker) ttsWorker = new Worker('./tts-worker.js', { type: 'module' });
-        worker = ttsWorker;
-      } catch (e) { reject(e); return; }
+      var pool = getTtsWorkerPool();
+      if (!pool.length) { reject(new Error('สร้าง Web Worker ไม่ได้')); return; }
       var jobId = ++ttsJobSeq;
-      function cleanup() { worker.removeEventListener('message', onMsg); worker.removeEventListener('error', onErr); }
+      var total = chunks.length;
+      var results = new Array(total);
+      var samplingRate = null;
+      var doneCount = 0;
+      var settled = false;
+
+      function cleanup() { pool.forEach(function (w) { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }); }
+      function finishError(err) { if (settled) return; settled = true; cleanup(); reject(err); }
       function onMsg(e) {
         var msg = e.data;
-        if (!msg || msg.jobId !== jobId) return;
+        if (!msg || msg.jobId !== jobId || settled) return;
         if (msg.type === 'model-progress') { if (onModelProgress) onModelProgress({ status: 'progress', file: msg.file, progress: msg.progress }); }
-        else if (msg.type === 'chunk-start') { if (onChunkStart) onChunkStart(msg.index, msg.total); }
-        else if (msg.type === 'done') { cleanup(); resolve({ audio: msg.audio, sampling_rate: msg.sampling_rate }); }
-        else if (msg.type === 'error') { cleanup(); reject(new Error(msg.message)); }
+        else if (msg.type === 'item-done') {
+          results[msg.i] = msg.audio;
+          samplingRate = msg.samplingRate;
+          doneCount++;
+          if (onProgress) onProgress(doneCount, total);
+          if (doneCount === total) {
+            settled = true; cleanup();
+            resolve({ audio: concatFloat32Arrays(results, Math.round(samplingRate * 0.3)), sampling_rate: samplingRate });
+          }
+        } else if (msg.type === 'item-error') { finishError(new Error(msg.message)); }
       }
-      function onErr(e) { cleanup(); reject(new Error(e.message || 'Web Worker error')); }
-      worker.addEventListener('message', onMsg);
-      worker.addEventListener('error', onErr);
-      worker.postMessage({ type: 'synthesize', jobId: jobId, chunks: chunks, modelId: modelId });
+      function onErr(e) { finishError(new Error(e.message || 'Web Worker error')); }
+      pool.forEach(function (w) { w.addEventListener('message', onMsg); w.addEventListener('error', onErr); });
+
+      var perWorkerItems = pool.map(function () { return []; });
+      chunks.forEach(function (text, i) { perWorkerItems[i % pool.length].push({ i: i, text: text }); });
+      pool.forEach(function (w, wi) {
+        if (perWorkerItems[wi].length) w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: perWorkerItems[wi], modelId: modelId });
+      });
     });
   }
-  function synthesizeMmsTtsChunksResponsive(chunks, modelId, onModelProgress, onChunkStart) {
-    if (typeof Worker === 'undefined') return synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onChunkStart);
-    return synthesizeMmsTtsChunksInWorker(chunks, modelId, onModelProgress, onChunkStart).catch(function (err) {
-      console.warn('สร้างเสียงผ่าน Web Worker ไม่สำเร็จ กลับไปรันในหน้าเว็บโดยตรงแทน (หน้าอาจค้างชั่วคราวระหว่างคำนวณ):', err);
-      return synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onChunkStart);
+  function synthesizeMmsTtsChunksResponsive(chunks, modelId, onModelProgress, onProgress) {
+    if (typeof Worker === 'undefined') return synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onProgress);
+    return synthesizeMmsTtsChunksInWorkerPool(chunks, modelId, onModelProgress, onProgress).catch(function (err) {
+      console.warn('สร้างเสียงผ่าน Web Worker (พูล) ไม่สำเร็จ กลับไปรันในหน้าเว็บโดยตรงแทน (หน้าอาจค้างชั่วคราวระหว่างคำนวณ):', err);
+      return synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onProgress);
     });
   }
   /* ห่อ Float32Array ตัวอย่างเสียงดิบเป็นไฟล์ .wav มาตรฐาน (mono, PCM 16-bit) — MMS-TTS คืนมาเป็น
@@ -312,6 +352,14 @@
     return out.replace(/\s+/g, ' ').trim();
   }
 
+  /* แปลงวินาทีเป็นข้อความอ่านง่าย ใช้โชว์เวลาที่เหลือโดยประมาณ (ETA) ระหว่างสร้างเสียง */
+  function formatEta(sec) {
+    sec = Math.max(0, Math.round(sec));
+    if (sec < 5) return 'อีกไม่กี่วินาที';
+    if (sec < 60) return 'อีกประมาณ ' + sec + ' วินาที';
+    var m = Math.floor(sec / 60), s = sec % 60;
+    return 'อีกประมาณ ' + m + ' นาที' + (s > 0 ? ' ' + s + ' วินาที' : '');
+  }
   function generateDownloadable() {
     var rawText = $('ttsText').value;
     if (!rawText.trim()) { $('dlStatus').className = 'status err'; $('dlStatus').textContent = 'พิมพ์ข้อความก่อน'; return; }
@@ -327,15 +375,21 @@
     $('dlStatus').textContent = lang === 'th'
       ? '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกต้องดาวน์โหลดจาก Hugging Face — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…'
       : '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
+    var startedAt = Date.now();
     synthesizeMmsTtsChunksResponsive(chunks, modelId, function (p) {
       if (p && p.status === 'progress' && p.file) {
         var pct = p.progress != null ? Math.round(p.progress) : null;
         $('dlStatus').textContent = '⏳ กำลังดาวน์โหลดโมเดล: ' + p.file + (pct != null ? (' (' + pct + '%)') : '');
       }
-    }, function (i, n) {
-      $('dlStatus').textContent = n > 1
-        ? '⏳ กำลังสร้างเสียงท่อนที่ ' + i + '/' + n + '… (ข้อความยาวจึงตัดเป็นท่อนสั้นๆ กันเบราว์เซอร์ค้าง)'
-        : '⏳ กำลังสร้างเสียง… (อาจใช้เวลาถึงหลายนาทีถ้าเครื่องไม่แรงมาก โมเดลรันบน CPU ล้วนๆ)';
+    }, function (done, total) {
+      /* นับความคืบหน้าหลังท่อนเสร็จ (ไม่ใช่ก่อนเริ่ม) — ใช้ตัวเลขเดียวกันคำนวณ ETA ได้ทั้งตอนรันขนาน
+         หลาย Worker พร้อมกันและตอน fallback รันทีละท่อนในหน้าเว็บตรงๆ เพราะเป็นอัตราความเร็วรวมจริง
+         ไม่ผูกกับว่ามีกี่ Worker ทำงานอยู่ */
+      var elapsed = (Date.now() - startedAt) / 1000;
+      var etaTxt = (done > 0 && done < total) ? (' — ' + formatEta((elapsed / done) * (total - done))) : '';
+      $('dlStatus').textContent = total > 1
+        ? '⏳ สร้างเสียงแล้ว ' + done + '/' + total + ' ท่อน' + etaTxt
+        : '⏳ กำลังสร้างเสียง… (อาจใช้เวลาถึงหลายนาทีถ้าเครื่องไม่แรงมาก)';
     })
       .then(function (output) {
         $('dlStatus').textContent = '⏳ กำลังประกอบไฟล์เสียง…';
@@ -470,6 +524,10 @@
   window.__tts = {
     synthesizeMmsTts: synthesizeMmsTts, float32ToWavBlob: float32ToWavBlob,
     wavBytesToMp3Blob: wavBytesToMp3Blob, floatTo16BitPCM: floatTo16BitPCM,
-    loadAsrPipeline: loadAsrPipeline, decodeFileToPcm: decodeFileToPcm, resampleTo16kMono: resampleTo16kMono
+    loadAsrPipeline: loadAsrPipeline, decodeFileToPcm: decodeFileToPcm, resampleTo16kMono: resampleTo16kMono,
+    splitIntoTtsChunks: splitIntoTtsChunks, ttsPoolSize: ttsPoolSize, formatEta: formatEta,
+    synthesizeMmsTtsChunks: synthesizeMmsTtsChunks,
+    synthesizeMmsTtsChunksInWorkerPool: synthesizeMmsTtsChunksInWorkerPool,
+    synthesizeMmsTtsChunksResponsive: synthesizeMmsTtsChunksResponsive
   };
 })();
