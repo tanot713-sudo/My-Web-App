@@ -10,16 +10,15 @@
    จึงเขียนแบบไม่มี state ข้ามงาน (แต่ละ Worker แคชแค่ pipeline ของตัวเอง ไม่รู้จักอินสแตนซ์อื่น
    ในพูลเลย) ตัว orchestration ที่แบ่งงาน/รวมผลลัพธ์กลับมาเรียงลำดับถูกต้องอยู่ฝั่งหน้าเว็บหลัก
 
-   ยังพยายามใช้ WebGPU ก่อน (เร็วกว่า WASM มาก ถ้าเครื่อง/เบราว์เซอร์รองรับจริง — ไฟล์
-   ort.webgpu.bundle.min.mjs ที่ฝังในเว็บรองรับอยู่แล้ว) แต่ยังไม่เคยทดสอบกับโมเดลที่บีบอัด
-   int8 ตัวนี้จริงบนฮาร์ดแวร์จริง (แซนด์บ็อกซ์พัฒนาไม่มี GPU/เน็ตให้ทดสอบ) จึงต้องมี fallback ที่
-   แข็งแรง: ถ้าสร้าง pipeline ไม่ได้ หรือสร้างได้แต่รันจริงแล้ว error (เช่น GPU ไม่รองรับ op
-   แบบ quantized บางตัว) ให้เปลี่ยนไปใช้ WASM แทนทันทีแบบเงียบๆ ไม่ถือเป็นความล้มเหลวของงาน
-   ══════════════════════════════════════════════════════════════════ */
+   หมายเหตุ: เคยลอง device:'webgpu' ก่อน WASM มาแล้วรอบหนึ่ง (คาดว่าจะเร็วกว่า) แต่ทดสอบจริงบน
+   เครื่องผู้ใช้ (Windows, requestAdapter() สำเร็จจริง ไม่ error เลย) กลับช้ากว่าที่คาดมาก (ช้ากว่า
+   WASM ล้วนๆ ที่รันขนานหลาย Worker ควรจะเป็น) น่าจะเพราะ backend WebGPU ของ onnxruntime-web ยังไม่มี
+   kernel ที่ optimize ดีสำหรับ op แบบ quantized int8 (โมเดลนี้ต้องบีบอัด int8 เพื่อความเร็ว ขนาดไฟล์
+   จึงจำเป็นต้องใช้ q8 เสมอ) เลยตัดออก ใช้ WASM ล้วนๆ พึ่ง worker pool ขนานอย่างเดียวแทน ซึ่งวัดผลจริง
+   แล้วให้ผลเร็วกว่าและคาดเดาได้มากกว่า */
 'use strict';
 
 var pipelinePromiseByModel = {};
-var usingWebgpuByModel = {}; // modelId -> true ถ้า pipeline ที่แคชไว้ตอนนี้เป็นความพยายามใช้ WebGPU ที่ยังไม่ยืนยันว่ารันได้จริง
 
 function configureOnnxWasmPaths(env) {
   var isSafari = /^((?!chrome|android|crios|fxios|edg).)*safari/i.test(self.navigator.userAgent);
@@ -29,49 +28,19 @@ function configureOnnxWasmPaths(env) {
   env.backends.onnx.wasm.numThreads = 1; // ไม่มี SharedArrayBuffer อยู่แล้ว บังคับ single-thread กันค้าง (คนละเรื่องกับที่ทำให้หน้าเว็บค้าง — นั่นแก้ด้วยการย้ายมา Worker นี้)
 }
 
-function loadWasmPipeline(modelId, onProgress) {
-  return import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
-    configureOnnxWasmPaths(mod.env);
-    return mod.pipeline('text-to-speech', modelId, { progress_callback: onProgress });
-  });
-}
-
-function loadWebgpuPipeline(modelId, onProgress) {
-  return import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
-    /* บังคับ dtype:'q8' ด้วย เพราะดีฟอลต์ของ transformers.js จะเลือก dtype ตาม device — บน
-       device อื่นที่ไม่ใช่ 'wasm' ดีฟอลต์คือ fp32 (ไฟล์ onnx/model.onnx ตัวใหญ่ที่ยังไม่บีบอัด)
-       ถ้าไม่ระบุเอง จะกลายเป็นดาวน์โหลด/รันไฟล์ fp32 แทนไฟล์ quantized ที่เราอัปโหลดไว้ */
-    return mod.pipeline('text-to-speech', modelId, { device: 'webgpu', dtype: 'q8', progress_callback: onProgress });
-  });
-}
-
 function loadPipeline(modelId, onProgress) {
   if (!pipelinePromiseByModel[modelId]) {
-    var hasWebgpu = typeof self.navigator !== 'undefined' && !!self.navigator.gpu;
-    usingWebgpuByModel[modelId] = hasWebgpu;
-    pipelinePromiseByModel[modelId] = hasWebgpu ? loadWebgpuPipeline(modelId, onProgress) : loadWasmPipeline(modelId, onProgress);
+    pipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
+      configureOnnxWasmPaths(mod.env);
+      return mod.pipeline('text-to-speech', modelId, { progress_callback: onProgress });
+    });
   }
   return pipelinePromiseByModel[modelId];
 }
 
-function fallBackToWasm(modelId, onProgress) {
-  usingWebgpuByModel[modelId] = false;
-  pipelinePromiseByModel[modelId] = loadWasmPipeline(modelId, onProgress);
-  return pipelinePromiseByModel[modelId];
-}
-
-/* สังเคราะห์ 1 ท่อน — ถ้ากำลังลองใช้ WebGPU อยู่แล้วพัง (ตอนสร้าง pipeline หรือตอนรันจริงก็ตาม)
-   ให้ล้มกลับไปใช้ WASM แล้วลองท่อนเดิมซ้ำอีกครั้งเดียว จากนั้นท่อนถัดๆ ไปใน worker ตัวนี้จะใช้
-   WASM ไปเลยไม่ลอง WebGPU ซ้ำอีก (กันเสียเวลา retry ซ้ำๆ ทุกท่อน) */
 function synthesizeOneItem(text, modelId, onProgress) {
   return loadPipeline(modelId, onProgress).then(function (synth) {
     return synth(text);
-  }).catch(function (err) {
-    if (usingWebgpuByModel[modelId]) {
-      console.warn('WebGPU ใช้ไม่สำเร็จ กลับไปรันด้วย WASM แทน:', err && err.message ? err.message : err);
-      return fallBackToWasm(modelId, onProgress).then(function (synth) { return synth(text); });
-    }
-    throw err;
   });
 }
 
