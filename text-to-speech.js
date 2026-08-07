@@ -191,11 +191,51 @@
     $('dlMp3Link').href = mp3Url;
   }
   var TTS_MODELS = { th: 'Tanotfin/mms-tts-tha-onnx', en: 'Xenova/mms-tts-eng' };
+
+  /* ══════════════════ ปรับข้อความก่อนส่งเข้าโมเดลเสียงไทย (Tanotfin/mms-tts-tha-onnx) ══════════════════
+     เจอจริงในโปรดักชัน: โมเดลนี้เทรนมาด้วยอักษรไทยล้วนๆ (vocab แค่ 71 ตัวอักษร ไม่รวม <unk>) ตัวเลข
+     อารบิกมีอยู่ในนั้นแค่บางส่วน (0,1,2,4 เท่านั้น ไม่มี 3,5,6,7,8,9) — เจอเลขที่ไม่อยู่ใน vocab
+     (เช่น "9" ใน "149") จะโดนแมปเป็น <unk> ซึ่งเป็น id ที่ตาราง embedding ของโมเดลไม่มีจริง (bug เดิม
+     ที่ติดมาจากโมเดลต้นฉบับของ Meta เอง ไม่ใช่ที่เราทำพลาด) ทำให้พังกลางคัน (ONNX Runtime error:
+     Gather node index out of bounds) จึงต้องแปลงตัวเลขทุกตัวเป็นคำอ่านภาษาไทยก่อนเสมอ (กันปัญหาทั้ง
+     เลขที่มีจริงและไม่มีใน vocab ให้พฤติกรรมสม่ำเสมอ) แล้วกรองอักขระอื่นที่ไม่อยู่ใน vocab ทิ้ง (แทนที่
+     ด้วยช่องว่าง) กันพังจากตัวอักษรแปลกอื่นๆ ที่อาจพิมพ์ปนมา (อังกฤษ, อีโมจิ, สัญลักษณ์แปลกๆ) */
+  var THAI_DIGIT_WORDS = ['ศูนย์', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า'];
+  var THAI_PLACE_WORDS = ['', 'สิบ', 'ร้อย', 'พัน', 'หมื่น', 'แสน', 'ล้าน'];
+  function thaiNumberToWords(numStr) {
+    numStr = numStr.replace(/^0+(?=\d)/, '');
+    if (numStr === '' || numStr === '0') return THAI_DIGIT_WORDS[0];
+    if (numStr.length > 7) return numStr.split('').map(function (c) { return THAI_DIGIT_WORDS[+c]; }).join(''); // เลขยาวเกินหลักล้าน อ่านทีละตัวกันซับซ้อนเกินจำเป็น
+    var digits = numStr.split('').map(Number), n = digits.length, words = '';
+    for (var i = 0; i < n; i++) {
+      var place = n - 1 - i, d = digits[i];
+      if (d === 0) continue;
+      if (place === 0) words += (d === 1 && n > 1) ? 'เอ็ด' : THAI_DIGIT_WORDS[d];
+      else if (place === 1) words += (d === 1) ? 'สิบ' : (d === 2) ? 'ยี่สิบ' : THAI_DIGIT_WORDS[d] + 'สิบ';
+      else words += THAI_DIGIT_WORDS[d] + THAI_PLACE_WORDS[place];
+    }
+    return words;
+  }
+  var THAI_TTS_VALID_CHARS = 'าน่รเ้อกงวะัมทพยลจีคตดหขิแสบปไูใ็ื์ชุึํโผถญซธศณษฟภฉฝฐฤฏฮฆ๋ฎ\'0๊ฑ142-ฬฒฌ ';
+  function normalizeForThaiTts(text) {
+    var withWords = text.replace(/\d+/g, thaiNumberToWords);
+    var out = '';
+    for (var i = 0; i < withWords.length; i++) {
+      var ch = withWords[i];
+      out += THAI_TTS_VALID_CHARS.indexOf(ch) !== -1 ? ch : ' ';
+    }
+    return out.replace(/\s+/g, ' ').trim();
+  }
+
   function generateDownloadable() {
     var text = $('ttsText').value;
     if (!text.trim()) { $('dlStatus').className = 'status err'; $('dlStatus').textContent = 'พิมพ์ข้อความก่อน'; return; }
     var lang = $('dlLang').value;
     var modelId = TTS_MODELS[lang];
+    if (lang === 'th') {
+      text = normalizeForThaiTts(text);
+      if (!text) { $('dlStatus').className = 'status err'; $('dlStatus').textContent = 'ข้อความหลังตัดอักขระที่โมเดลไม่รู้จักออกแล้วว่างเปล่า ลองพิมพ์เป็นภาษาไทยดู'; return; }
+    }
     $('dlGenerateBtn').disabled = true;
     $('dlStatus').className = 'status';
     $('dlStatus').textContent = lang === 'th'
