@@ -15,39 +15,26 @@
    WASM ล้วนๆ ที่รันขนานหลาย Worker ควรจะเป็น) น่าจะเพราะ backend WebGPU ของ onnxruntime-web ยังไม่มี
    kernel ที่ optimize ดีสำหรับ op แบบ quantized int8 (โมเดลนี้ต้องบีบอัด int8 เพื่อความเร็ว ขนาดไฟล์
    จึงจำเป็นต้องใช้ q8 เสมอ) เลยตัดออก ใช้ WASM ล้วนๆ พึ่ง worker pool ขนานอย่างเดียวแทน ซึ่งวัดผลจริง
-   แล้วให้ผลเร็วกว่าและคาดเดาได้มากกว่า
-
-   หมายเหตุ: เพิ่ม multi-thread WASM ภายใน worker แต่ละตัว (นอกเหนือจากขนานข้าม worker หลายตัวที่ทำ
-   อยู่แล้ว) — ต้องมี SharedArrayBuffer ถึงจะใช้ได้จริง ซึ่งต้องมี header COOP/COEP (ดูไฟล์ _headers
-   ที่ root ของโปรเจกต์) — ปัจจุบันมีผลแค่ตอนเข้าผ่าน Cloudflare Pages เท่านั้น (GitHub Pages ปรับ
-   header เองไม่ได้) เช็ก self.crossOriginIsolated ก่อนเปิดใช้เสมอ ถ้าไม่มีจริงจะ fallback กลับ
-   พฤติกรรมเดิมทุกอย่าง (numThreads=1) ไม่พังอะไร — จำนวน thread คำนวณมาจากฝั่งหน้าเว็บหลัก (ส่งมา
-   ผ่าน msg.numThreads) เผื่อ core ที่เหลือหลังแบ่งให้ worker pool หลายตัวแล้ว กัน oversubscribe */
+   แล้วให้ผลเร็วกว่าและคาดเดาได้มากกว่า */
 'use strict';
 
 var pipelinePromiseByModel = {};
 
-function configureOnnxWasmPaths(env, numThreads) {
+function configureOnnxWasmPaths(env) {
   var isSafari = /^((?!chrome|android|crios|fxios|edg).)*safari/i.test(self.navigator.userAgent);
-  var isolated = typeof self.crossOriginIsolated !== 'undefined' && self.crossOriginIsolated;
-  if (isolated && !isSafari && numThreads > 1) {
-    env.backends.onnx.wasm.wasmPaths = { mjs: './vendor/transformers/ort-wasm-simd-threaded.mjs', wasm: './vendor/transformers/ort-wasm-simd-threaded.wasm' };
-    env.backends.onnx.wasm.numThreads = numThreads;
-  } else {
-    env.backends.onnx.wasm.wasmPaths = isSafari
-      ? { mjs: './vendor/transformers/ort-wasm-simd-threaded.mjs', wasm: './vendor/transformers/ort-wasm-simd-threaded.wasm' }
-      : { mjs: './vendor/transformers/ort-wasm-simd-threaded.asyncify.mjs', wasm: './vendor/transformers/ort-wasm-simd-threaded.asyncify.wasm' };
-    env.backends.onnx.wasm.numThreads = 1; // ไม่มี SharedArrayBuffer ใช้ได้ บังคับ single-thread กันค้าง (คนละเรื่องกับที่ทำให้หน้าเว็บค้าง — นั่นแก้ด้วยการย้ายมา Worker นี้)
-  }
+  env.backends.onnx.wasm.wasmPaths = isSafari
+    ? { mjs: './vendor/transformers/ort-wasm-simd-threaded.mjs', wasm: './vendor/transformers/ort-wasm-simd-threaded.wasm' }
+    : { mjs: './vendor/transformers/ort-wasm-simd-threaded.asyncify.mjs', wasm: './vendor/transformers/ort-wasm-simd-threaded.asyncify.wasm' };
+  env.backends.onnx.wasm.numThreads = 1; // ไม่มี SharedArrayBuffer อยู่แล้ว บังคับ single-thread กันค้าง (คนละเรื่องกับที่ทำให้หน้าเว็บค้าง — นั่นแก้ด้วยการย้ายมา Worker นี้)
 }
 
 /* jobId ส่งมาแค่เพื่อแปะกำกับสัญญาณ 'pipeline-ready' ที่ยิงกลับไปครั้งเดียวตอนโหลด pipeline
    เสร็จครั้งแรกของ worker ตัวนี้ (ดูเหตุผลที่ text-to-speech.js ใช้สัญญาณนี้ทำอะไร) — ไม่ได้ใช้
    แยกแคช pipeline ตาม jobId แต่อย่างใด (ยังแคชตาม modelId เดิม ใช้ข้ามหลายงานได้เหมือนเดิม) */
-function loadPipeline(modelId, onProgress, jobId, numThreads) {
+function loadPipeline(modelId, onProgress, jobId) {
   if (!pipelinePromiseByModel[modelId]) {
     pipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
-      configureOnnxWasmPaths(mod.env, numThreads);
+      configureOnnxWasmPaths(mod.env);
       return mod.pipeline('text-to-speech', modelId, { progress_callback: onProgress });
     });
     pipelinePromiseByModel[modelId].then(function () {
@@ -57,8 +44,8 @@ function loadPipeline(modelId, onProgress, jobId, numThreads) {
   return pipelinePromiseByModel[modelId];
 }
 
-function synthesizeOneItem(text, modelId, onProgress, jobId, numThreads) {
-  return loadPipeline(modelId, onProgress, jobId, numThreads).then(function (synth) {
+function synthesizeOneItem(text, modelId, onProgress, jobId) {
+  return loadPipeline(modelId, onProgress, jobId).then(function (synth) {
     return synth(text);
   });
 }
@@ -72,7 +59,7 @@ var isBusy = false;
 self.onmessage = function (e) {
   var msg = e.data;
   if (!msg || msg.type !== 'synthesize-batch') return;
-  var items = msg.items, modelId = msg.modelId, jobId = msg.jobId, numThreads = msg.numThreads || 1;
+  var items = msg.items, modelId = msg.modelId, jobId = msg.jobId;
 
   if (isBusy) {
     items.forEach(function (item) {
@@ -91,7 +78,7 @@ self.onmessage = function (e) {
   items.reduce(function (p, item) {
     return p.then(function () {
       self.postMessage({ type: 'item-start', jobId: jobId, i: item.i });
-      return synthesizeOneItem(item.text, modelId, onModelProgress, jobId, numThreads);
+      return synthesizeOneItem(item.text, modelId, onModelProgress, jobId);
     }).then(function (output) {
       if (!output || !output.audio || !output.audio.length) throw new Error('ไม่ได้ข้อมูลเสียงกลับมา');
       self.postMessage(
