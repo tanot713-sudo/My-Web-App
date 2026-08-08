@@ -148,16 +148,22 @@
      transformers.js แทน — เป็นโมเดลเสียงประสาทเทียมจริง (เสียงเป็นธรรมชาติกว่ามาก) แต่ละภาษาเป็นคนละ
      โมเดล ต้องดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรกเหมือนโหมดถอดเสียงเป็นข้อความ */
   var ttsPipelinePromiseByModel = {};
+  /* transformers.js เลือกไฟล์ ONNX ให้เองอัตโนมัติตาม dtype เริ่มต้นของแต่ละ backend (บน wasm คือ 'q8'
+     → ไปหา onnx/model_quantized.onnx) โมเดลเสียงไทยที่แปลงเอง (Tanotfin/mms-tts-tha-onnx) มีไฟล์นี้จริง
+     จึงปล่อยดีฟอลต์ได้ปกติ — แต่โมเดล "หญิง (โทนพอดแคสต์)" (phlebotomy1996/mms-thai-female-podcast-spk0)
+     ไม่มีไฟล์ quantized เลย (เช็คจริงในโฟลเดอร์ onnx/ มีแค่ model.onnx กับ model_fp16.onnx) ปล่อยดีฟอลต์
+     จะ 404 ตอนโหลด ต้องบังคับ dtype ต่อโมเดลเป็นรายตัว — เลือก 'fp32' (ไม่ใช่ 'fp16') เพราะ fp32 รองรับ
+     บน wasm backend ครบทุกเบราว์เซอร์แน่นอนกว่า fp16 ที่บาง engine/เบราว์เซอร์รุ่นเก่ายังไม่รองรับเต็มที่ */
+  var TTS_DTYPE_OVERRIDES = {
+    'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32'
+  };
   function loadTtsPipeline(modelId, onProgress) {
     if (!ttsPipelinePromiseByModel[modelId]) {
       ttsPipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
         var env = mod.env;
         configureOnnxWasmPaths(env);
-        /* โมเดลเสียงไทยที่แปลงเอง (Tanotfin/mms-tts-tha-onnx) ตอนนี้มีทั้ง onnx/model.onnx (fp32)
-           และ onnx/model_quantized.onnx (int8, บีบอัดแล้ว) — ปล่อยให้ transformers.js ใช้ดีฟอลต์
-           (dtype 'q8' บน backend wasm) ไปเลือกไฟล์ quantized เองอัตโนมัติ ไม่ต้องบังคับ dtype
-           เหมือนก่อนหน้านี้แล้ว (ตอนนั้นบังคับ fp32 ไว้ชั่วคราวเพราะยังไม่มีไฟล์ quantized) */
         var opts = { progress_callback: onProgress };
+        if (TTS_DTYPE_OVERRIDES[modelId]) opts.dtype = TTS_DTYPE_OVERRIDES[modelId];
         return mod.pipeline('text-to-speech', modelId, opts);
       });
     }

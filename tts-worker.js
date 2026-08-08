@@ -20,6 +20,21 @@
 
 var pipelinePromiseByModel = {};
 
+/* transformers.js เลือกไฟล์ ONNX ให้เองอัตโนมัติตาม dtype เริ่มต้นของแต่ละ backend (บน wasm คือ 'q8'
+   → ไปหา onnx/model_quantized.onnx) โมเดลเสียงไทยของเราเอง (Tanotfin/mms-tts-tha-onnx) มีไฟล์นี้จริง
+   จึงปล่อยดีฟอลต์ได้ปกติ — แต่โมเดล "หญิง (โทนพอดแคสต์)" (phlebotomy1996/mms-thai-female-podcast-spk0)
+   ไม่มีไฟล์ quantized เลย (เช็คจริงในโฟลเดอร์ onnx/ มีแค่ model.onnx กับ model_fp16.onnx) ปล่อยดีฟอลต์
+   จะ 404 ตอนโหลด ต้องบังคับ dtype ต่อโมเดลเป็นรายตัว — เลือก 'fp32' (ไม่ใช่ 'fp16') เพราะ fp32 รองรับ
+   บน wasm backend ครบทุกเบราว์เซอร์แน่นอนกว่า fp16 ที่บาง engine/เบราว์เซอร์รุ่นเก่ายังไม่รองรับเต็มที่ */
+var TTS_DTYPE_OVERRIDES = {
+  'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32'
+};
+function ttsPipelineOpts(modelId, onProgress) {
+  var opts = { progress_callback: onProgress };
+  if (TTS_DTYPE_OVERRIDES[modelId]) opts.dtype = TTS_DTYPE_OVERRIDES[modelId];
+  return opts;
+}
+
 /* ⚠️ ไฟล์ ort-wasm-simd-threaded*.mjs/.wasm, ort.webgpu.bundle.min.mjs, onnxruntime-common/* ใน
    vendor/transformers/ ถูก pin ไว้ที่ onnxruntime-web@1.24.3 โดยตั้งใจ (ห้ามอัปเดตเป็นเวอร์ชันใหม่กว่า
    1.24.x เฉยๆ) — เวอร์ชัน 1.25+ มีบั๊กที่ยืนยันแล้วจากทั้ง microsoft/onnxruntime#28306 และ
@@ -42,7 +57,7 @@ function loadPipeline(modelId, onProgress, jobId) {
   if (!pipelinePromiseByModel[modelId]) {
     pipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
       configureOnnxWasmPaths(mod.env);
-      return mod.pipeline('text-to-speech', modelId, { progress_callback: onProgress });
+      return mod.pipeline('text-to-speech', modelId, ttsPipelineOpts(modelId, onProgress));
     });
     pipelinePromiseByModel[modelId].then(function () {
       self.postMessage({ type: 'pipeline-ready', jobId: jobId, modelId: modelId });
