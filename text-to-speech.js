@@ -411,7 +411,9 @@
   var TTS_VOICES = {
     th: [
       { id: 'Tanotfin/mms-tts-tha-onnx', label: 'ค่าเริ่มต้น' },
-      { id: 'phlebotomy1996/mms-thai-female-podcast-spk0', label: 'หญิง (โทนพอดแคสต์)' }
+      { id: 'phlebotomy1996/mms-thai-female-podcast-spk0', label: 'หญิง (โทนพอดแคสต์)' },
+      { id: 'Tanotfin/mms-tts-tha-female-v2-onnx', label: 'หญิง (ทั่วไป)' },
+      { id: 'Tanotfin/mms-tts-tha-male-v2-onnx', label: 'ชาย (ทั่วไป)' }
     ],
     en: [
       { id: 'Xenova/mms-tts-eng', label: 'ค่าเริ่มต้น' }
