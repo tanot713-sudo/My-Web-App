@@ -1,0 +1,51 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+"Tanot" (แบรนด์เดิม OME) — a single static site (no build step, no backend, no `package.json`) deployed two ways from the same source: **GitHub Pages** (`tanot713-sudo.github.io/my-web-app`, via `.github/workflows/deploy-pages.yml` on every push to `main`) and **Cloudflare Pages** (`my-web-app-5w2.pages.dev`, auto-deploys from the same repo). It's a personal toolbox: study tools (law/business/engineering classrooms), document tools (Word/Excel/PDF split, doc-check), an investment-education hub (12 sub-pages), a text-to-speech/speech-to-text page, a budget tracker, a 3D object sim, etc. Everything is vanilla ES5-leaning JS, no framework, no bundler — files are served as-is.
+
+## Commands
+
+There is no build/lint/test command — this is plain HTML/CSS/JS served directly.
+
+- **Syntax-check a JS file before committing**: `node --check path/to/file.js`
+- **Local server for manual/Playwright testing**: `python3 -m http.server <port>` from the repo root, then open `http://localhost:<port>/<page>.html`
+- **Bypass the password gate when testing**: set `localStorage['tanot:auth'] = '1'` before loading a page (see Auth Gate below) — there is no real login flow to drive.
+- **Testing is done ad hoc with Playwright** (browser automation), not an installed test suite — write a throwaway script under a scratch dir, seed `localStorage` with synthetic data for anything that would otherwise hit the network (most pages have a "demo data" fallback specifically to make this possible without real network access), screenshot at a few widths (~390/760/1100px) in both themes, and check for zero console/page errors.
+- **Deploy verification**: after pushing to `main`, check the `deploy-pages.yml` workflow run for that commit's SHA via GitHub Actions (list workflow runs filtered to `event: workflow_dispatch` or `push`). The concurrency group is `pages` with `cancel-in-progress: false` — a stuck/`waiting` run (e.g. blocked on an environment protection rule) will silently queue-block every subsequent deploy until it's cancelled.
+
+## Architecture
+
+### Shared shell (every page wires these three, in this order)
+1. `auth-gate.js` — client-side-only password gate (SHA-256 hash check against `localStorage['tanot:auth']`). Explicitly **not real security**: anyone can bypass it via DevTools. It exists to keep casual/accidental visitors out, nothing more.
+2. `shell.js` — defines the *entire site's* navigation menu once (the `MENU` array, including the investment sub-nav that used to live in a separate `invest-nav.js`), renders the hamburger/drawer nav, and handles dark/light theme (`localStorage['ome:theme']`, `data-theme` attribute on `<html>`). All pages import this the same way: `<script src="shell.js" defer></script>`.
+3. `theme.css` — the single shared design-system stylesheet (CSS custom properties for colors, `.card`/`.btn`/`.field`/`.frow` component classes reused verbatim across every tool page). New pages copy an existing page's `<style>` block rather than inventing new component classes.
+
+Pages that are PWA-installable also register `sw.js` (see below) via `shell.js`.
+
+### Service worker / cache versioning (`sw.js`)
+Network-first for HTML, cache-first for other same-origin assets. `PRECACHE` lists every file that should work offline. **Whenever you add or change a JS/HTML file that's cache-first, you must bump the `CACHE` const version string** (`ome-vNNN`) or returning users keep serving stale code indefinitely — this is the single most common way a "fix" silently fails to ship. Heavy vendored libraries (`vendor/transformers/*`, `vendor/firebase/*`) are intentionally left out of `PRECACHE` and instead lazy-cached on first real use, so visitors who never touch those tools don't pay for a multi-MB download.
+
+### Per-tool pages
+Each tool is a `<name>.html` + `<name>.js` pair (occasionally split further, e.g. `doc-check.html` / `doc-check-file.html`). There's no router or shared app shell beyond the nav — navigation between tools is a plain page load. Investment tools (`invest-*.html/js`) are the largest family (12 pages) and were built by cloning the most similar existing page and adapting it (e.g. `invest-global-stock.*` is a clone of `invest-thai-stock.*` with `.BK` suffix removed; `invest-baac-lottery.*` is a near-byte-identical clone of `invest-gsb-lottery.*`) — when adding a new tool in an existing family, find the closest sibling and diff against it rather than designing from scratch.
+
+Common conventions across tool pages:
+- **localStorage namespacing**: everything is prefixed `tanot:<feature>:<key>` (e.g. `tanot:invest:thstock`, `tanot:tts:gcloudkey`). Check for existing keys before picking a new one — collisions between two tools sharing a prefix have caused real bugs before.
+- **Client-side-only, no backend**: any "fetch a live value" feature (stock/crypto/gold prices, FX rates, news) has to route around CORS via public CORS-proxy chains (`allorigins`, `corsproxy.io`, `codetabs`, `thingproxy`, tried in sequence with a direct-fetch fallback) since there's no server to proxy through. These proxies are unreliable — every such fetch has a `localStorage` cache-with-timestamp fallback and a "paste/type it in yourself" manual fallback, and must never render a hard error state; degrade to stale-cache or manual-entry instead.
+- **Google Drive sync** (`DriveSync` pattern, repeated per-tool with a different `DRIVE_FILE_NAME`) is opt-in, best-effort backup of a tool's local data to the user's own Drive — not a sync-of-record.
+- **Risk/finance tools carry real disclaimers** — these are educational calculators, not financial advice, and the copy says so explicitly. Preserve that framing when extending them.
+
+### Heavy client-side ML (`text-to-speech.html` / `text-to-speech.js` / `tts-worker.js`)
+Text→speech uses `facebook/mms-tts-*` via `vendor/transformers/` (Transformers.js + onnxruntime-web, self-hosted, not CDN-loaded — a prior CDN-based bare-specifier resolution bug inside a Worker is why the vendored bundle's imports were rewritten to relative paths). Synthesis runs in a **pool of persistent Web Workers** (`tts-worker.js`, spawned via `getTtsWorkerPool()`), not the main thread, because single-thread WASM synthesis is fully synchronous and would otherwise freeze the page. Key things that look like they'd be free performance wins but were tried and reverted after real-world measurement: WebGPU backend (slower — immature quantized-op kernels), multi-threaded WASM via COOP/COEP cross-origin isolation (slower/same — thread oversubscription across the worker pool). The one that *did* help: staggering worker dispatch so only the first worker downloads the model initially (`pipeline-ready` message), avoiding N workers redundantly re-downloading the same multi-MB model on a cold cache. Speech→text uses Whisper, also via Transformers.js.
+
+### Document tooling (`doc-check.js`)
+Client-side file text-extraction already exists here and is the template to reuse for any other "read a file into text" feature: `.txt` via `file.text()`, `.docx` via `mammoth.js`, `.pdf` (with a text layer) via `pdf.js`, images via `Tesseract.js` OCR (`eng+tha`). Grammar/spell-check goes through the public LanguageTool API — note that LanguageTool has **no Thai support** (`ltCode: null` for `th`), so that feature is English-only; Thai text only gets light normalization, not real proofreading. Scanned (image-only) PDF pages are currently detected but not yet OCR'd — doing so would mean rendering each page to a canvas via `pdf.js` and feeding that canvas to Tesseract.js.
+
+### 3D tooling (`sim-objects.js`)
+Self-hosted Three.js (`vendor/three/`, including a `jsm/` mirror of the addons ESM modules) + GSAP + `three-mesh-bvh`/`three-bvh-csg` (vendored UMD builds) for boolean mesh operations. Personal model library persists to IndexedDB, not localStorage (binary model data).
+
+## Licensing / attribution
+
+`credits.html` is the canonical list of every third-party library/API used and its license. **Any time a new external library or free/no-key API is added, add an entry there** — this has been done consistently for every addition so far (Lightweight Charts, thai-gold-api, Alternative.me Fear & Greed, LanguageTool, etc.) and reviewers rely on it being complete.
