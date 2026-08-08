@@ -555,7 +555,12 @@
       .then(function (results) {
         var transcriber = results[0], pcm = results[1];
         $('asrStatus').textContent = '⏳ กำลังถอดเสียงเป็นข้อความ…';
-        var opts = { task: 'transcribe' };
+        /* Whisper เทรนมาให้รับเสียงทีละ ≤30 วินาทีเท่านั้น — ถ้าไม่บอก chunk_length_s/stride_length_s
+           ไฟล์เสียงที่ยาวกว่า 30 วินาทีจะถูกยัดเข้าโมเดลเป็นก้อนเดียวทั้งไฟล์ ทำให้โมเดล "หลอน"
+           (hallucinate) ออกมาเป็นคำซ้ำๆ ไม่จบ (เจอจริง เช่น "นำ นำ นำ นำ..." ไม่หยุด) แก้โดยบอกให้ตัด
+           เสียงเป็นท่อนละ 30 วินาที เหลื่อมกันท่อนละ 5 วินาที (กันคำขาดตรงรอยตัด) แล้วรวมผลลัพธ์กลับ
+           มาเป็นข้อความเดียวให้เอง — ค่านี้ใช้ได้ทั้งไฟล์สั้น/ยาว (ไฟล์สั้นกว่า 30 วิ ก็แค่ได้ท่อนเดียว) */
+        var opts = { task: 'transcribe', chunk_length_s: 30, stride_length_s: 5 };
         if (langOpt !== 'auto') opts.language = langOpt;
         return transcriber(pcm, opts);
       })
