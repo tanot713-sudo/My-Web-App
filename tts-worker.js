@@ -21,7 +21,7 @@
 var pipelinePromiseByModel = {};
 
 /* transformers.js เลือกไฟล์ ONNX ให้เองอัตโนมัติตาม dtype เริ่มต้นของแต่ละ backend (บน wasm คือ 'q8'
-   → ไปหา onnx/model_quantized.onnx) โมเดลเสียงไทยของเราเอง (Tanotfin/mms-tts-tha-onnx) มีไฟล์นี้จริง
+   → ไปหา onnx/model_quantized.onnx) โมเดลเสียงไทยของเราเอง (Tanotfin/mms-tts-2081-onnx) มีไฟล์นี้จริง
    จึงปล่อยดีฟอลต์ได้ปกติ — แต่โมเดล "หญิง (โทนพอดแคสต์)" (phlebotomy1996/mms-thai-female-podcast-spk0)
    ไม่มีไฟล์ quantized เลย (เช็คจริงในโฟลเดอร์ onnx/ มีแค่ model.onnx กับ model_fp16.onnx) ปล่อยดีฟอลต์
    จะ 404 ตอนโหลด ต้องบังคับ dtype ต่อโมเดลเป็นรายตัว — เลือก 'fp32' (ไม่ใช่ 'fp16') เพราะ fp32 รองรับ
@@ -32,8 +32,8 @@ var TTS_DTYPE_OVERRIDES = {
      (stochastic duration predictor) ความยาว output แต่ละรอบไม่เท่ากันเป๊ะ ทำให้ขั้นตอน validate
      output ของ optimum ตีว่า shape ไม่ตรง (ShapeError) แล้วสคริปต์ออกก่อนถึงขั้นตอน quantize จริง
      — ผลคือ repo มีแค่ model.onnx (fp32) ไม่มี model_quantized.onnx เหมือนโมเดลข้างบน */
-  'Tanotfin/mms-tts-tha-female-v2-onnx': 'fp32',
-  'Tanotfin/mms-tts-tha-male-v2-onnx': 'fp32'
+  'Tanotfin/mms-tts-2081-FM-onnx': 'fp32',
+  'Tanotfin/mms-tts-2081-M-onnx': 'fp32'
 };
 function ttsPipelineOpts(modelId, onProgress) {
   var opts = { progress_callback: onProgress };

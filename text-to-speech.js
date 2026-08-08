@@ -149,7 +149,7 @@
      โมเดล ต้องดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรกเหมือนโหมดถอดเสียงเป็นข้อความ */
   var ttsPipelinePromiseByModel = {};
   /* transformers.js เลือกไฟล์ ONNX ให้เองอัตโนมัติตาม dtype เริ่มต้นของแต่ละ backend (บน wasm คือ 'q8'
-     → ไปหา onnx/model_quantized.onnx) โมเดลเสียงไทยที่แปลงเอง (Tanotfin/mms-tts-tha-onnx) มีไฟล์นี้จริง
+     → ไปหา onnx/model_quantized.onnx) โมเดลเสียงไทยที่แปลงเอง (Tanotfin/mms-tts-2081-onnx) มีไฟล์นี้จริง
      จึงปล่อยดีฟอลต์ได้ปกติ — แต่โมเดล "หญิง (โทนพอดแคสต์)" (phlebotomy1996/mms-thai-female-podcast-spk0)
      ไม่มีไฟล์ quantized เลย (เช็คจริงในโฟลเดอร์ onnx/ มีแค่ model.onnx กับ model_fp16.onnx) ปล่อยดีฟอลต์
      จะ 404 ตอนโหลด ต้องบังคับ dtype ต่อโมเดลเป็นรายตัว — เลือก 'fp32' (ไม่ใช่ 'fp16') เพราะ fp32 รองรับ
@@ -160,8 +160,8 @@
        (stochastic duration predictor) ความยาว output แต่ละรอบไม่เท่ากันเป๊ะ ทำให้ขั้นตอน validate
        output ของ optimum ตีว่า shape ไม่ตรง (ShapeError) แล้วสคริปต์ออกก่อนถึงขั้นตอน quantize จริง
        — ผลคือ repo มีแค่ model.onnx (fp32) ไม่มี model_quantized.onnx เหมือนโมเดลข้างบน */
-    'Tanotfin/mms-tts-tha-female-v2-onnx': 'fp32',
-    'Tanotfin/mms-tts-tha-male-v2-onnx': 'fp32'
+    'Tanotfin/mms-tts-2081-FM-onnx': 'fp32',
+    'Tanotfin/mms-tts-2081-M-onnx': 'fp32'
   };
   function loadTtsPipeline(modelId, onProgress) {
     if (!ttsPipelinePromiseByModel[modelId]) {
@@ -416,10 +416,10 @@
   }
   var TTS_VOICES = {
     th: [
-      { id: 'Tanotfin/mms-tts-tha-onnx', label: 'ค่าเริ่มต้น' },
+      { id: 'Tanotfin/mms-tts-2081-onnx', label: 'ค่าเริ่มต้น' },
       { id: 'phlebotomy1996/mms-thai-female-podcast-spk0', label: 'หญิง (โทนพอดแคสต์)' },
-      { id: 'Tanotfin/mms-tts-tha-female-v2-onnx', label: 'หญิง (ทั่วไป)' },
-      { id: 'Tanotfin/mms-tts-tha-male-v2-onnx', label: 'ชาย (ทั่วไป)' }
+      { id: 'Tanotfin/mms-tts-2081-FM-onnx', label: 'หญิง (ทั่วไป)' },
+      { id: 'Tanotfin/mms-tts-2081-M-onnx', label: 'ชาย (ทั่วไป)' }
     ],
     en: [
       { id: 'Xenova/mms-tts-eng', label: 'ค่าเริ่มต้น' }
@@ -431,7 +431,7 @@
     $('dlVoice').innerHTML = voices.map(function (v) { return '<option value="' + v.id + '">' + v.label + '</option>'; }).join('');
   }
 
-  /* ══════════════════ ปรับข้อความก่อนส่งเข้าโมเดลเสียงไทย (Tanotfin/mms-tts-tha-onnx) ══════════════════
+  /* ══════════════════ ปรับข้อความก่อนส่งเข้าโมเดลเสียงไทย (Tanotfin/mms-tts-2081-onnx) ══════════════════
      เจอจริงในโปรดักชัน: โมเดลนี้เทรนมาด้วยอักษรไทยล้วนๆ (vocab แค่ 71 ตัวอักษร ไม่รวม <unk>) ตัวเลข
      อารบิกมีอยู่ในนั้นแค่บางส่วน (0,1,2,4 เท่านั้น ไม่มี 3,5,6,7,8,9) — เจอเลขที่ไม่อยู่ใน vocab
      (เช่น "9" ใน "149") จะโดนแมปเป็น <unk> ซึ่งเป็น id ที่ตาราง embedding ของโมเดลไม่มีจริง (bug เดิม
