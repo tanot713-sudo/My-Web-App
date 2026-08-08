@@ -34,6 +34,49 @@
     $('ttsCharCount').textContent = $('ttsText').value.length + ' ตัวอักษร';
   }
 
+  /* ══════════════════ แนบไฟล์ → นำเข้าข้อความ (file-reader.js) ══════════════════
+     รองรับ .txt/.docx/.xlsx/.xls/.csv/.pptx/.pdf/รูปภาพ — ดูรายละเอียดการอ่านแต่ละชนิดไฟล์ใน
+     file-reader.js (ไฟล์กลาง ใช้ร่วมกับหน้าอื่นได้ในอนาคต ไม่ผูกกับ UI ของหน้านี้โดยเฉพาะ) */
+  function formatImportProgress(p) {
+    if (!p) return '⏳ กำลังอ่านไฟล์…';
+    if (p.stage === 'ocr') return '⏳ กำลังอ่านด้วย OCR หน้า/รูป ' + p.page + '/' + p.total + ' (อาจใช้เวลาสักครู่ต่อหน้า)…';
+    if (p.stage === 'pdf') return '⏳ กำลังอ่าน PDF หน้า ' + p.page + '/' + p.total + '…';
+    return '⏳ กำลังอ่านไฟล์…';
+  }
+  function importFileChange(e) {
+    var file = e.target.files && e.target.files[0];
+    e.target.value = ''; // เคลียร์ค่า input ไว้ กันเลือกไฟล์เดิมซ้ำแล้ว change event ไม่ยิง
+    if (!file) return;
+    if (!window.TanotFileReader) {
+      $('importStatus').className = 'status err';
+      $('importStatus').textContent = '❌ โหลดตัวอ่านไฟล์ไม่สำเร็จ (อาจเป็นเพราะเน็ตช้า/ถูกบล็อก) ลองรีเฟรชหน้าใหม่';
+      return;
+    }
+    $('importFileBtn').disabled = true;
+    $('importStatus').className = 'status';
+    $('importStatus').textContent = '⏳ กำลังอ่านไฟล์ ' + file.name + '…';
+    window.TanotFileReader.readAnyFile(file, {
+      ocr: $('importOcrChk').checked,
+      onProgress: function (p) { $('importStatus').textContent = formatImportProgress(p); }
+    }).then(function (text) {
+      text = (text || '').trim();
+      if (!text) {
+        $('importStatus').className = 'status err';
+        $('importStatus').textContent = '❌ ไม่พบข้อความในไฟล์นี้';
+        return;
+      }
+      $('ttsText').value = text;
+      updateCharCount();
+      $('importStatus').className = 'status ok';
+      $('importStatus').textContent = '✅ นำเข้าข้อความจาก ' + file.name + ' แล้ว (' + text.length + ' ตัวอักษร) — ตรวจทานก่อนกด "สร้างไฟล์เสียง" ได้';
+    }).catch(function (err) {
+      $('importStatus').className = 'status err';
+      $('importStatus').textContent = '❌ อ่านไฟล์ไม่สำเร็จ: ' + (err && err.message ? err.message : err);
+    }).finally(function () {
+      $('importFileBtn').disabled = false;
+    });
+  }
+
   /* ══════════════════ โหมด 1: Web Speech API (เล่นสด) ══════════════════ */
   var wsVoices = [];
   function loadWsVoices() {
@@ -541,6 +584,8 @@
   function init() {
     $('ttsText').addEventListener('input', updateCharCount);
     updateCharCount();
+    $('importFileBtn').addEventListener('click', function () { $('importFileInput').click(); });
+    $('importFileInput').addEventListener('change', importFileChange);
 
     if (window.speechSynthesis) {
       window.speechSynthesis.onvoiceschanged = loadWsVoices;

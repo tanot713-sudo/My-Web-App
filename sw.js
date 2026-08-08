@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v107';
+const CACHE = 'ome-v108';
 const PRECACHE = [
   './',
   './index.html',
@@ -25,6 +25,7 @@ const PRECACHE = [
   './text-to-speech.html',
   './text-to-speech.js',
   './tts-worker.js',
+  './file-reader.js',
   './vendor/lamejs/lamejs.iife.js',
   /* หมายเหตุ: ตั้งใจไม่ precache './vendor/transformers/*' (ไลบรารีแปลงข้อความ↔เสียงด้วย AI,
      ~14MB, โหลดผ่าน dynamic import() เฉพาะตอนกดใช้เท่านั้น) และ './vendor/firebase/*'

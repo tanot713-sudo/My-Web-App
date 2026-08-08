@@ -88,13 +88,23 @@ details[open]>summary::before{transform:rotate(90deg)}
   <div class="head-ic">🗣️</div>
   <div>
     <h1>แปลงเสียง ↔ ข้อความ</h1>
-    <div class="head-sub">ข้อความ→เสียง: ฟังทันทีหรือดาวน์โหลด .wav/.mp3 · เสียง→ข้อความ: อัปโหลดวิดีโอ/mp3 แล้วถอดเป็นข้อความ — ทำงานในเครื่องคุณทั้งหมด ไม่มีข้อมูลส่งขึ้นเซิร์ฟเวอร์ใดๆ</div>
+    <div class="head-sub">ข้อความ→เสียง: พิมพ์เองหรือแนบไฟล์ (.docx/.pdf/.xlsx/.pptx/รูปภาพ) แล้วฟังทันทีหรือดาวน์โหลด .wav/.mp3 · เสียง→ข้อความ: อัปโหลดวิดีโอ/mp3 แล้วถอดเป็นข้อความ — ทำงานในเครื่องคุณทั้งหมด ไม่มีข้อมูลส่งขึ้นเซิร์ฟเวอร์ใดๆ</div>
   </div>
 </div>
 
 <div class="card">
   <h2>✍️ ข้อความ</h2>
-  <textarea id="ttsText" rows="6" placeholder="พิมพ์หรือวางข้อความที่นี่ (ไทยหรืออังกฤษก็ได้)"></textarea>
+  <div class="frow" style="align-items:center;margin-bottom:10px">
+    <button class="btn sm" id="importFileBtn" type="button">📎 แนบไฟล์</button>
+    <input type="file" id="importFileInput" accept=".txt,.docx,.xlsx,.xls,.csv,.pptx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
+    <label class="mini" style="display:flex;align-items:center;gap:5px;margin:0;cursor:pointer">
+      <input type="checkbox" id="importOcrChk" checked style="width:auto;flex:none;accent-color:var(--brand)">
+      ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน (ช้ากว่าปกติ)
+    </label>
+  </div>
+  <p class="mini">รองรับ .txt · .docx · .xlsx/.xls/.csv · .pptx · .pdf · รูปภาพ (.png/.jpg/.webp/.bmp) — นำเข้าแล้วจะแทนที่ข้อความด้านล่าง ตรวจทานก่อนสร้างเสียงได้เสมอ ไฟล์ไม่ถูกส่งออกจากเครื่องเลย</p>
+  <div class="status" id="importStatus"></div>
+  <textarea id="ttsText" rows="6" placeholder="พิมพ์หรือวางข้อความที่นี่ (ไทยหรืออังกฤษก็ได้) หรือกด 📎 แนบไฟล์ด้านบน" style="margin-top:8px"></textarea>
   <div class="char-count" id="ttsCharCount">0 ตัวอักษร</div>
 </div>
 
@@ -186,8 +196,10 @@ details[open]>summary::before{transform:rotate(90deg)}
     <p>เดิมหน้านี้ใช้เครื่องมือสังเคราะห์เสียงแบบกฎ (eSpeak NG) ซึ่งรองรับภาษาไทยตามชื่อ แต่ทดสอบแล้วพบว่าการแปลงตัวอักษรไทยเป็นเสียง (phonemization) มีบั๊กจนออกเสียงฟังไม่รู้เรื่อง แม้จะปรับความเร็ว/พิทช์อย่างไรก็ไม่ช่วย และยืนยันแล้วว่าเป็นบั๊กที่ยังไม่ได้แก้ในซอร์สโค้ดต้นทางล่าสุด จึงเปลี่ยนมาใช้ MMS-TTS ของ Meta แทน ซึ่งเป็นโมเดล AI (ไม่ใช่กฎภาษาศาสตร์แบบเดิม) ที่ฝึกมากับเสียงพูดภาษาไทยจริงโดยเฉพาะ ให้เสียงที่ฟังรู้เรื่องและเป็นธรรมชาติกว่ามาก</p>
     <h3>ถอดเสียงเป็นข้อความ (Whisper) ทำงานยังไง</h3>
     <p>ใช้โมเดล AI ชื่อ Whisper (พัฒนาโดย OpenAI) ผ่านไลบรารี transformers.js รันด้วย WebAssembly ในเบราว์เซอร์คุณเอง ไม่ใช่ส่งเสียงไปประมวลผลที่เซิร์ฟเวอร์ไหน — ตัวไฟล์โมเดล (ไม่ใช่ไฟล์เสียงของคุณ) ต้องดาวน์โหลดจาก Hugging Face ครั้งแรกเท่านั้น เลือก "เล็ก" ถ้าอยากได้ผลเร็ว หรือ "กลาง" ถ้าอยากได้ความแม่นยำสูงขึ้น (ไฟล์ใหญ่กว่า โหลดนานกว่า)</p>
+    <h3>แนบไฟล์แล้วนำเข้าข้อความทำงานยังไง</h3>
+    <p>รองรับ .txt, .docx (Word), .xlsx/.xls/.csv (Excel), .pptx (PowerPoint — เฉพาะรุ่นใหม่ ไฟล์ .ppt เก่าไม่รองรับ), .pdf และรูปภาพ — ทุกไฟล์อ่าน/แกะในเบราว์เซอร์คุณเองทั้งหมด ถ้าเป็นรูปภาพหรือ PDF ที่เป็นภาพสแกน (ไม่มีเลเยอร์ข้อความ) ระบบจะใช้ OCR (อ่านตัวอักษรจากภาพ) ให้อัตโนมัติถ้าเปิดตัวเลือกนี้ไว้ — อาจใช้เวลานานกว่าไฟล์ข้อความปกติ ข้อความที่ดึงได้จะเข้าไปแทนที่ในกล่องข้อความ ให้ตรวจทานแก้ไขก่อนสร้างเสียงได้เสมอ</p>
     <h3>ข้อมูลส่งไปไหนบ้าง</h3>
-    <p>ไม่มีข้อความ/ไฟล์เสียงของคุณถูกส่งออกจากเครื่องเลยไม่ว่าโหมดไหน — ทุกโหมดประมวลผลในเบราว์เซอร์ล้วนๆ (โหมดถอดเสียงเป็นข้อความมีแค่ "ตัวโมเดล AI" ที่ต้องโหลดเข้ามาจาก Hugging Face ครั้งแรก ไม่ใช่ไฟล์เสียงของคุณที่ถูกส่งออกไป)</p>
+    <p>ไม่มีข้อความ/ไฟล์เสียง/ไฟล์ที่แนบของคุณถูกส่งออกจากเครื่องเลยไม่ว่าโหมดไหน — ทุกโหมดประมวลผลในเบราว์เซอร์ล้วนๆ (โหมดถอดเสียงเป็นข้อความและโหมดแนบไฟล์มีแค่ "ตัวไลบรารี/โมเดล AI" ที่ต้องโหลดเข้ามาจาก CDN/Hugging Face ครั้งแรกเท่านั้น ไม่ใช่ไฟล์ของคุณที่ถูกส่งออกไป)</p>
   </div>
 </details>
 
@@ -203,6 +215,18 @@ details[open]>summary::before{transform:rotate(90deg)}
      ให้ import เป็น relative path ตรงๆ (./ort.webgpu.bundle.min.mjs, ./onnxruntime-common/index.js)
      แทน bare specifier ไปเลย เพราะ relative import จะ resolve เทียบกับตำแหน่งไฟล์ที่ import มันเอง
      เสมอไม่ว่าจะรันในเอกสารหลักหรือใน Worker ก็ตาม จึงไม่ต้องพึ่ง import map อีกต่อไป (เอาออกได้เลย) -->
+<!-- ไลบรารีอ่านไฟล์แนบ (โหลดจาก CDN แบบเดียวกับหน้า "ตรวจสอบเอกสาร") — file-reader.js
+     ใช้แค่ตอนกดแนบไฟล์จริงๆ เท่านั้น ไม่โหลด/รันอะไรถ้าไม่ได้ใช้ฟีเจอร์นี้ -->
+<script type="module">
+import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs';
+window.pdfjsLib = pdfjsLib;
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs';
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="file-reader.js"></script>
 <script src="vendor/lamejs/lamejs.iife.js"></script>
 <script src="text-to-speech.js" defer></script>
 </body>
