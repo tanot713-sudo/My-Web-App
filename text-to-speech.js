@@ -20,7 +20,10 @@
         SharedArrayBuffer เสมอไม่ว่าจะตั้ง numThreads=1 หรือไม่ก็ตาม จึงโหลดไม่ได้จริง — ต้องใช้รุ่น
         "asyncify" (คอมไพล์แบบ single-thread ล้วนๆ ไม่พึ่ง pthread/SharedArrayBuffer) แทน ยกเว้น Safari
         ที่ตัว onnxruntime-web เองแนะนำให้ใช้รุ่น threaded ปกติ (ตรรกะเดียวกับ default ของไลบรารี
-        เอง แค่ชี้ไปไฟล์ที่ฝังในเว็บนี้แทน jsdelivr) */
+        เอง แค่ชี้ไปไฟล์ที่ฝังในเว็บนี้แทน jsdelivr)
+     ⚠️ ไฟล์ vendor onnxruntime-web ทั้งชุด pin ไว้ที่ 1.24.3 ตั้งใจ ห้ามอัปเดตเฉยๆ — ดูเหตุผลเต็มที่
+        คอมเมนต์เหนือ configureOnnxWasmPaths ใน tts-worker.js (บั๊ก TransposeDQWeightsForMatMulNBits
+        ในเวอร์ชัน 1.25+ ที่ทำให้สร้าง session พังกับโมเดล quantized บางตัวรวมถึง Whisper) */
   function configureOnnxWasmPaths(env) {
     var isSafari = /^((?!chrome|android|crios|fxios|edg).)*safari/i.test(navigator.userAgent);
     env.backends.onnx.wasm.wasmPaths = isSafari

@@ -20,6 +20,13 @@
 
 var pipelinePromiseByModel = {};
 
+/* ⚠️ ไฟล์ ort-wasm-simd-threaded*.mjs/.wasm, ort.webgpu.bundle.min.mjs, onnxruntime-common/* ใน
+   vendor/transformers/ ถูก pin ไว้ที่ onnxruntime-web@1.24.3 โดยตั้งใจ (ห้ามอัปเดตเป็นเวอร์ชันใหม่กว่า
+   1.24.x เฉยๆ) — เวอร์ชัน 1.25+ มีบั๊กที่ยืนยันแล้วจากทั้ง microsoft/onnxruntime#28306 และ
+   huggingface/transformers.js#1707: ตัวปรับแต่งกราฟ (TransposeDQWeightsForMatMulNBits) พังตอนสร้าง
+   session กับโมเดล quantized ที่ไม่มี scale tensor ตามฟอร์แมตใหม่ (เจอจริงกับ Whisper ที่ใช้ในหน้านี้
+   ผ่าน error "Can't create a session... Missing required scale") ถ้าจะอัปเดตเวอร์ชันในอนาคต ต้องรอ
+   ยืนยันว่า issue นี้ถูกแก้แล้วในเวอร์ชันที่จะอัปเดตไปก่อนเสมอ */
 function configureOnnxWasmPaths(env) {
   var isSafari = /^((?!chrome|android|crios|fxios|edg).)*safari/i.test(self.navigator.userAgent);
   env.backends.onnx.wasm.wasmPaths = isSafari
