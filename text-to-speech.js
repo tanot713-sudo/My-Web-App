@@ -196,6 +196,16 @@
     if (mem && mem < 4) cap = 2; // เครื่อง/มือถือ RAM น้อย ลดจำนวน Worker ลง
     return Math.max(1, Math.min(cores, cap));
   }
+  /* จำนวน thread ภายใน WASM ต่อ Worker 1 ตัว (นอกเหนือจากขนานข้าม Worker หลายตัวที่ทำอยู่แล้ว) —
+     ใช้ได้จริงเฉพาะตอนหน้านี้ cross-origin isolated เท่านั้น (ดูคอมเมนต์ใน tts-worker.js) เอา core
+     ที่เหลือหลังแบ่งให้ Worker ในพูลแล้วมาเฉลี่ยกันต่อ กัน oversubscribe เครื่องที่ core น้อย —
+     บนเครื่อง 4 core ปกติ (ttsPoolSize()=4) จะได้ 1 เสมอ เท่ากับพฤติกรรมเดิมทุกประการ (ไม่มีอะไรเปลี่ยน
+     ถ้าเครื่องไม่ได้แรงกว่า 4 core) ค่านี้ถูกส่งไปให้ Worker เอง ซึ่งจะเป็นผู้ตัดสินใจอีกทีว่าจะใช้จริง
+     ไหม (เช็ก self.crossOriginIsolated เอง) ไม่ใช่ตัดสินใจที่นี่ */
+  function ttsThreadsPerWorker() {
+    var cores = navigator.hardwareConcurrency || 2;
+    return Math.max(1, Math.floor(cores / ttsPoolSize()));
+  }
   /* ผูก listener ถาวร (ไม่ผูก/ลบตามแต่ละงานเหมือน onMsg ใน synthesizeMmsTtsChunksInWorkerPool) ไว้
      คอยฟังแค่ 'batch-done' จาก worker ตัวนี้เพื่ออัปเดตสถานะ busy — ต้องแยกจาก listener รายงานเพราะ
      ถ้างานหนึ่งพังกลางทาง (reject ไปแล้ว) worker ตัวอื่นในพูลที่ยังไม่ error อาจยังคำนวณค้างอยู่
@@ -249,13 +259,14 @@
          ไฟล์โมเดลเดียวกันพร้อมกันตอนยังไม่มีแคชเลย (ครั้งแรกสุดที่ใช้เครื่องมือนี้) ซึ่งทำให้ช้ากว่า
          ดาวน์โหลดครั้งเดียวมากบนเน็ตที่ไม่เร็วนัก — ถ้าเคยใช้มาก่อนแล้ว (มีแคชอยู่แล้ว) 'pipeline-ready'
          จะมาเร็วมากแทบไม่หน่วงอะไรเลย มี timeout สำรองกันไว้เผื่อสัญญาณไม่มาด้วยเหตุผลใดก็ตาม */
+      var numThreads = ttsThreadsPerWorker();
       function dispatchRest() {
         if (restDispatched) return;
         restDispatched = true;
         pool.forEach(function (w, wi) {
           if (wi === 0 || !perWorkerItems[wi].length) return; // worker 0 ถูกส่งไปแล้วตั้งแต่แรก
           ttsWorkerBusy[wi] = true;
-          w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: perWorkerItems[wi], modelId: modelId });
+          w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: perWorkerItems[wi], modelId: modelId, numThreads: numThreads });
         });
       }
       function onMsg(e) {
@@ -281,7 +292,7 @@
       chunks.forEach(function (text, i) { perWorkerItems[i % pool.length].push({ i: i, text: text }); });
       if (perWorkerItems[0].length) {
         ttsWorkerBusy[0] = true;
-        pool[0].postMessage({ type: 'synthesize-batch', jobId: jobId, items: perWorkerItems[0], modelId: modelId });
+        pool[0].postMessage({ type: 'synthesize-batch', jobId: jobId, items: perWorkerItems[0], modelId: modelId, numThreads: numThreads });
       }
       setTimeout(dispatchRest, 15000);
     });
@@ -566,7 +577,7 @@
     synthesizeMmsTts: synthesizeMmsTts, float32ToWavBlob: float32ToWavBlob,
     wavBytesToMp3Blob: wavBytesToMp3Blob, floatTo16BitPCM: floatTo16BitPCM,
     loadAsrPipeline: loadAsrPipeline, decodeFileToPcm: decodeFileToPcm, resampleTo16kMono: resampleTo16kMono,
-    splitIntoTtsChunks: splitIntoTtsChunks, ttsPoolSize: ttsPoolSize, formatEta: formatEta,
+    splitIntoTtsChunks: splitIntoTtsChunks, ttsPoolSize: ttsPoolSize, ttsThreadsPerWorker: ttsThreadsPerWorker, formatEta: formatEta,
     synthesizeMmsTtsChunks: synthesizeMmsTtsChunks,
     synthesizeMmsTtsChunksInWorkerPool: synthesizeMmsTtsChunksInWorkerPool,
     synthesizeMmsTtsChunksResponsive: synthesizeMmsTtsChunksResponsive

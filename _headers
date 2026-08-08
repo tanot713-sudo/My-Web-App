@@ -1,0 +1,16 @@
+# Cloudflare Pages custom response headers — ตั้งใจให้มีผลแค่หน้าเดียว (แปลงข้อความเป็นเสียง)
+# เพื่อเปิดใช้ SharedArrayBuffer (ต้อง cross-origin isolated) ให้โมเดลเสียง AI รันแบบ multi-thread
+# WASM ได้จริง เร็วขึ้นอีกชั้นนอกจากรันขนานหลาย Web Worker ที่ทำอยู่แล้ว — ไม่ใส่ให้ทั้งเว็บเพราะ
+# Cross-Origin-Embedder-Policy อาจกระทบหน้าอื่นที่พึ่งทรัพยากรข้ามโดเมน (เช่น Google Drive sync)
+# ใช้โหมด "credentialless" (ไม่ใช่ "require-corp") เพราะไม่บล็อกทรัพยากรข้ามโดเมนที่ไม่มี
+# Cross-Origin-Resource-Policy header เอง (เช่น ฟอนต์ Google Fonts ของหน้านี้) แค่โหลดแบบไม่ส่ง
+# คุกกี้/เครดิตแทน — ยังคงเปิด cross-origin isolation ได้เหมือนกัน แค่เสี่ยงน้อยกว่ามาก
+#
+# หมายเหตุสำคัญ: มีผลเฉพาะตอนเข้าผ่าน Cloudflare Pages (my-web-app-5w2.pages.dev) เท่านั้น —
+# GitHub Pages (tanot713-sudo.github.io) ไม่รองรับไฟล์ _headers ปรับ header เองไม่ได้ หน้านี้บน
+# GitHub Pages จะยังรันแบบ single-thread WASM เหมือนเดิม (โค้ดฝั่ง JS เช็ก self.crossOriginIsolated
+# ก่อนเปิด multi-thread เสมอ ไม่มี header พวกนี้ก็ทำงานถูกต้องเหมือนเดิมทุกอย่าง ไม่พังอะไร)
+
+/text-to-speech.html
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
