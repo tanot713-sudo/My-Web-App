@@ -27,7 +27,13 @@ var pipelinePromiseByModel = {};
    จะ 404 ตอนโหลด ต้องบังคับ dtype ต่อโมเดลเป็นรายตัว — เลือก 'fp32' (ไม่ใช่ 'fp16') เพราะ fp32 รองรับ
    บน wasm backend ครบทุกเบราว์เซอร์แน่นอนกว่า fp16 ที่บาง engine/เบราว์เซอร์รุ่นเก่ายังไม่รองรับเต็มที่ */
 var TTS_DTYPE_OVERRIDES = {
-  'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32'
+  'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32',
+  /* แปลงเองผ่าน Colab (scripts/convert.py --quantize) — แต่ VITS เป็นโมเดล generative แบบสุ่ม
+     (stochastic duration predictor) ความยาว output แต่ละรอบไม่เท่ากันเป๊ะ ทำให้ขั้นตอน validate
+     output ของ optimum ตีว่า shape ไม่ตรง (ShapeError) แล้วสคริปต์ออกก่อนถึงขั้นตอน quantize จริง
+     — ผลคือ repo มีแค่ model.onnx (fp32) ไม่มี model_quantized.onnx เหมือนโมเดลข้างบน */
+  'Tanotfin/mms-tts-tha-female-v2-onnx': 'fp32',
+  'Tanotfin/mms-tts-tha-male-v2-onnx': 'fp32'
 };
 function ttsPipelineOpts(modelId, onProgress) {
   var opts = { progress_callback: onProgress };
