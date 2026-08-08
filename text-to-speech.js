@@ -402,7 +402,20 @@
     $('dlWavLink').href = wavUrl;
     $('dlMp3Link').href = mp3Url;
   }
-  var TTS_MODELS = { th: 'Tanotfin/mms-tts-tha-onnx', en: 'Xenova/mms-tts-eng' };
+  var TTS_VOICES = {
+    th: [
+      { id: 'Tanotfin/mms-tts-tha-onnx', label: 'ค่าเริ่มต้น' },
+      { id: 'phlebotomy1996/mms-thai-female-podcast-spk0', label: 'หญิง (โทนพอดแคสต์)' }
+    ],
+    en: [
+      { id: 'Xenova/mms-tts-eng', label: 'ค่าเริ่มต้น' }
+    ]
+  };
+  function renderVoiceOptions() {
+    var lang = $('dlLang').value;
+    var voices = TTS_VOICES[lang] || TTS_VOICES.th;
+    $('dlVoice').innerHTML = voices.map(function (v) { return '<option value="' + v.id + '">' + v.label + '</option>'; }).join('');
+  }
 
   /* ══════════════════ ปรับข้อความก่อนส่งเข้าโมเดลเสียงไทย (Tanotfin/mms-tts-tha-onnx) ══════════════════
      เจอจริงในโปรดักชัน: โมเดลนี้เทรนมาด้วยอักษรไทยล้วนๆ (vocab แค่ 71 ตัวอักษร ไม่รวม <unk>) ตัวเลข
@@ -451,7 +464,7 @@
     var rawText = $('ttsText').value;
     if (!rawText.trim()) { $('dlStatus').className = 'status err'; $('dlStatus').textContent = 'พิมพ์ข้อความก่อน'; return; }
     var lang = $('dlLang').value;
-    var modelId = TTS_MODELS[lang];
+    var modelId = $('dlVoice').value;
     var chunks = splitIntoTtsChunks(rawText);
     if (lang === 'th') {
       chunks = chunks.map(normalizeForThaiTts).filter(Boolean);
@@ -610,6 +623,8 @@
     $('wsStopBtn').addEventListener('click', wsStop);
     $('wsRate').addEventListener('input', function () { $('wsRateVal').textContent = parseFloat($('wsRate').value).toFixed(1) + 'x'; });
 
+    renderVoiceOptions();
+    $('dlLang').addEventListener('change', renderVoiceOptions);
     $('dlGenerateBtn').addEventListener('click', generateDownloadable);
 
     $('asrGoBtn').addEventListener('click', runAsr);
