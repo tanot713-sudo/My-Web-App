@@ -108,12 +108,45 @@
   if (document.body) ready();
   else document.addEventListener('DOMContentLoaded', ready);
 
+  /* ── เนื้อหาหน้าเว็บปัจจุบัน (ให้ผู้ช่วยเข้าใจบริบทหน้าที่ผู้ใช้เปิดอยู่ได้) ───────────────────
+     ดึงครั้งเดียวตอนวิดเจ็ตเริ่มทำงาน ไม่ดึงซ้ำทุกครั้งที่ส่งข้อความ (ประหยัด token ของโมเดลเล็ก และ
+     เนื้อหาหน้าเว็บปกติไม่เปลี่ยนระหว่างที่เปิดแชทอยู่) — เดินผ่านเฉพาะ direct children ของ body แล้ว
+     ข้าม fab/panel ของวิดเจ็ตเอง (สร้างไว้แล้วด้านบน แม้ยังไม่ถูก appendChild เข้า DOM จริงตอนนี้ก็ตาม)
+     กันไม่ให้ดึงข้อความของวิดเจ็ตเองปนเข้ามาเป็นบริบทหน้าเว็บ ⚠️ ข้อจำกัด: หน้าที่เนื้อหาโหลด/render
+     แบบ async (เช่นหน้า React บางหน้า) เนื้อหาที่ยังไม่ขึ้นตอนนี้จะไม่ถูกดึงไปด้วย */
+  function getPageContextText() {
+    try {
+      var parts = [];
+      Array.prototype.forEach.call(document.body.childNodes, function (node) {
+        if (node === fab || node === panel) return;
+        var t = node.innerText || node.textContent || '';
+        if (t) parts.push(t);
+      });
+      var text = parts.join(' ').replace(/\s+/g, ' ').trim();
+      if (text.length > 3000) text = text.slice(0, 3000) + '…';
+      return text;
+    } catch (e) { return ''; }
+  }
+  function buildInitialMessages() {
+    var msgs = [{ role: 'system', content: SYSTEM_PROMPT }];
+    var pageText = getPageContextText();
+    if (pageText) {
+      msgs.push({
+        role: 'system',
+        content: 'นี่คือเนื้อหาบางส่วนของหน้าเว็บที่ผู้ใช้กำลังเปิดอยู่ตอนนี้ (ชื่อหน้า: "' + document.title +
+          '") ใช้ข้อมูลนี้ช่วยตอบคำถามที่เกี่ยวกับหน้านี้ได้ ถ้าคำถามไม่เกี่ยวกับหน้านี้ก็ตอบตามปกติ ' +
+          'ไม่ต้องพูดถึงเนื้อหานี้เองถ้าไม่มีใครถาม:\n\n' + pageText
+      });
+    }
+    return msgs;
+  }
+
   /* ── ตัวแปรสถานะ + worker (สร้างแบบ lazy ตอนใช้จริงครั้งแรกเท่านั้น) ──────────────── */
   var chatWorker = null, ttsWorker = null, asrWorker = null;
   var jobSeq = 0;
   var isBusy = false;
   var isRecording = false;
-  var messages = [{ role: 'system', content: SYSTEM_PROMPT }];
+  var messages = buildInitialMessages();
   var mediaStream = null, mediaRecorder = null, recordedChunks = [];
   var sharedAudioCtx = null;
 
@@ -246,6 +279,10 @@
         if (msg.type === 'model-progress') {
           var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
           setStatus('กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) ' + msg.file + ' ' + pct, '');
+        } else if (msg.type === 'fallback') {
+          setStatus('⚠️ ' + msg.message, ''); // จะถูกทับด้วยสถานะถัดไปเองเมื่อโหลดตัวสำรองเสร็จ
+        } else if (msg.type === 'model-info') {
+          console.info('[ai-chat] ใช้โมเดล', msg.modelId, 'บน', msg.device);
         } else if (msg.type === 'token') {
           if (!replyBubble) { setStatus('', ''); replyBubble = appendBubble('assistant', ''); }
           replyText += msg.token;
@@ -384,7 +421,7 @@
     });
 
     newBtn.addEventListener('click', function () {
-      messages = [{ role: 'system', content: SYSTEM_PROMPT }];
+      messages = buildInitialMessages(); // ดึงเนื้อหาหน้าเว็บใหม่ด้วย เผื่อเปลี่ยนหน้า/เนื้อหาเปลี่ยนไปแล้ว
       logEl.innerHTML = '';
       setStatus('', '');
       inputEl.focus();

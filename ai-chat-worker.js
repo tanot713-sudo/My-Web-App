@@ -8,10 +8,18 @@
    (ไม่ใช่ตัดเป็นท่อนแล้วขนานแบบเสียง) ใช้ Worker ตัวเดียวพอ แต่คงไว้ไม่ให้ terminate ข้ามคำถาม
    เพื่อให้ pipeline ที่โหลด/แคชไว้แล้วถูกใช้ซ้ำได้ทุกข้อความถัดไปในเซสชันเดียวกัน (ไม่ต้องโหลดโมเดล
    ใหม่ทุกครั้งที่ถาม) — ฝั่ง ai-chat-widget.js เองก็ไม่ terminate() worker นี้ตอนกด "เริ่มแชทใหม่" ด้วย
-   (แค่รีเซ็ต messages array) เพื่อคง pipeline ที่โหลดไว้แล้ว (~1GB) ไม่ให้ต้องโหลดซ้ำ */
+   (แค่รีเซ็ต messages array) เพื่อคง pipeline ที่โหลดไว้แล้วไม่ให้ต้องโหลดซ้ำ
+
+   ⚠️ ประวัติ: เคยลองอัป MODEL_ID เป็น 1.5B-Instruct ตรงๆ บน WASM มาก่อน (ตอบดีกว่าชัดเจน) แต่เจอ
+   "Can't create a session... ERROR_MESSAGE: std::bad_alloc" จริงตอนใช้งาน (แม้บนเดสก์ท็อป) — WASM
+   รันไทม์มีหน่วยความจำ "ก้อนเดียว" ขนาดจำกัดตายตัว (linear memory) 1.5B ใช้ RAM สูงตอนคำนวณจริงเกินกว่า
+   จะรองรับไหวในหลายเครื่อง — ตอนนี้แก้ด้วยกลยุทธ์ "ลองตัวใหญ่ผ่าน WebGPU ก่อน พังค่อยถอยมาตัวเล็กบน WASM"
+   ด้านล่างแทน (ดู loadPipeline) WebGPU ไม่ผูกกับเพดาน WASM linear memory เดียวกัน เพราะข้อมูลอยู่ใน
+   หน่วยความจำการ์ดจอแทน จึงมีโอกาสรัน 1.5B ได้จริงบนเครื่องที่รองรับ */
 'use strict';
 
 var pipelinePromise = null;
+var activeInfo = null; // { modelId, device } ของ pipeline ที่โหลดสำเร็จจริง — แจ้งฝั่งหน้าเว็บได้
 
 /* ⚠️ ต้อง pin เวอร์ชัน onnxruntime-web เดียวกับ tts-worker.js (1.24.3) เพราะใช้ vendor bundle
    ชุดเดียวกัน (vendor/transformers/*) ห้ามอัปเดตแยกจากกันโดยไม่เช็ค microsoft/onnxruntime#28306 และ
@@ -24,29 +32,39 @@ function configureOnnxWasmPaths(env) {
   env.backends.onnx.wasm.numThreads = 1; // ไม่มี SharedArrayBuffer อยู่แล้ว บังคับ single-thread กันค้าง
 }
 
-/* onnx-community/Qwen2.5-0.5B-Instruct: โมเดลแชทเล็กสุดในตระกูล Qwen2.5 ที่แปลงเป็น ONNX พร้อมใช้กับ
-   transformers.js ไว้แล้ว (ไม่ต้องแปลงเองผ่าน Colab แบบ TTS) รองรับหลายภาษารวมไทย — เลือก dtype 'q4'
-   (บีบอัด 4-bit) ตามคำแนะนำอย่างเป็นทางการของ Hugging Face สำหรับรันบนเบราว์เซอร์ ขนาดไฟล์เล็กกว่า
-   q8/fp32 มาก เหมาะกับดาวน์โหลดผ่านมือถือ
-
-   ⚠️ เคยลองอัปเป็น 1.5B-Instruct มาก่อน (ตอบดีกว่าชัดเจน) แต่เจอ "Can't create a session...
-   ERROR_MESSAGE: std::bad_alloc" จริงตอนใช้งาน (แม้บนเดสก์ท็อป ไม่ใช่แค่มือถือ) — คือ WASM รันไทม์จอง
-   หน่วยความจำเพิ่มไม่ได้ตอนสร้าง session ของโมเดล เพราะ 1.5B ใช้ RAM สูงตอนคำนวณจริง (ไม่ใช่แค่ตอนโหลด
-   ไฟล์) เกินกว่าที่ WASM linear memory เดี่ยวจะรองรับไหวในหลายเครื่อง — ย้อนกลับมาใช้ 0.5B ที่ยืนยันแล้ว
-   ว่าทำงานได้จริง ถ้าจะลองโมเดลใหญ่กว่านี้อีกในอนาคต ต้องหาทางแก้เรื่องหน่วยความจำก่อน (เช่น device:
-   'webgpu' ที่ไม่ใช้ WASM linear memory เดี่ยวแบบเดียวกัน หรือ dtype ที่บีบอัดกว่า q4 ถ้ามี) */
-var MODEL_ID = 'onnx-community/Qwen2.5-0.5B-Instruct';
+var MODEL_ID_BIG = 'onnx-community/Qwen2.5-1.5B-Instruct';   // ลองก่อน ถ้าเครื่องรองรับ WebGPU
+var MODEL_ID_SMALL = 'onnx-community/Qwen2.5-0.5B-Instruct'; // ตัวสำรอง (ใช้แน่ๆ ถ้าตัวใหญ่พัง/ไม่มี WebGPU)
 
 function loadPipeline(onProgress, jobId) {
   if (!pipelinePromise) {
     pipelinePromise = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
       configureOnnxWasmPaths(mod.env);
-      return mod.pipeline('text-generation', MODEL_ID, { dtype: 'q4', progress_callback: onProgress })
-        .then(function (generator) { return { mod: mod, generator: generator }; });
+
+      function loadWith(modelId, device) {
+        var opts = { dtype: 'q4', progress_callback: onProgress };
+        if (device) opts.device = device;
+        return mod.pipeline('text-generation', modelId, opts).then(function (generator) {
+          activeInfo = { modelId: modelId, device: device || 'wasm' };
+          return { mod: mod, generator: generator };
+        });
+      }
+
+      /* navigator.gpu มีเฉพาะเบราว์เซอร์ที่รองรับ WebGPU จริง (Chrome/Edge รุ่นใหม่ ฯลฯ) — เช็คก่อน
+         เพื่อไม่เสียเวลาลองดาวน์โหลดโมเดล 1.5B ก้อนใหญ่ทิ้งเปล่าๆ บนเบราว์เซอร์ที่ไม่มีทางใช้ได้อยู่แล้ว */
+      if (typeof navigator !== 'undefined' && navigator.gpu) {
+        return loadWith(MODEL_ID_BIG, 'webgpu').catch(function (err) {
+          self.postMessage({
+            type: 'fallback', jobId: jobId,
+            message: 'ลองโมเดลใหญ่ (1.5B) ผ่าน WebGPU ไม่สำเร็จ (' + (err && err.message ? err.message : err) + ') ใช้ตัวเล็กแทน'
+          });
+          return loadWith(MODEL_ID_SMALL, undefined);
+        });
+      }
+      return loadWith(MODEL_ID_SMALL, undefined);
     });
     pipelinePromise.then(function () {
-      self.postMessage({ type: 'pipeline-ready', jobId: jobId });
-    }, function () { /* โหลดพัง — ปล่อยให้ error จริงโผล่ตอนเรียก chat ครั้งแรกแทน */ });
+      self.postMessage({ type: 'pipeline-ready', jobId: jobId, modelId: activeInfo.modelId, device: activeInfo.device });
+    }, function () { /* โหลดพังทั้งคู่ — ปล่อยให้ error จริงโผล่ตอนเรียก chat ครั้งแรกแทน */ });
   }
   return pipelinePromise;
 }
@@ -72,6 +90,7 @@ self.onmessage = function (e) {
 
   loadPipeline(onModelProgress, jobId).then(function (loaded) {
     var mod = loaded.mod, generator = loaded.generator;
+    self.postMessage({ type: 'model-info', jobId: jobId, modelId: activeInfo.modelId, device: activeInfo.device });
     /* streamer ส่ง token ทีละตัวกลับหน้าเว็บทันทีที่โมเดลคำนวณเสร็จ (ไม่ต้องรอคำตอบเต็มทั้งก้อน) —
        ให้ความรู้สึกเหมือนแชทบอทจริงๆ ที่พิมพ์ตอบทีละตัวอักษร แทนที่จะขึ้นคำตอบทั้งหมดพร้อมกันตอนจบ */
     var streamer = new mod.TextStreamer(generator.tokenizer, {
