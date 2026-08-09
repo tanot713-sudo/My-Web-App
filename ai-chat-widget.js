@@ -17,7 +17,13 @@
 
   var SYSTEM_PROMPT = 'คุณเป็นผู้ช่วย AI ที่ตอบเป็นภาษาไทยเสมอ (เว้นแต่ผู้ใช้ถามเป็นภาษาอื่นชัดเจน) ' +
     'ตอบให้กระชับ ตรงประเด็น สุภาพ ถ้าไม่แน่ใจคำตอบให้บอกตามตรงว่าไม่แน่ใจ แทนที่จะเดาส่ง';
-  var TTS_VOICE_MODEL = 'Tanotfin/mms-tts-2081-FM-onnx'; // "หญิง (ทั่วไป)" — เสียงที่ใช้อ่านคำตอบ
+  /* เจอจริงว่าถ้าผู้ใช้ถามเป็นอังกฤษ โมเดลแชทจะตอบเป็นอังกฤษกลับ (ตาม system prompt) แล้วป้อนข้อความ
+     อังกฤษเข้าโมเดลเสียงไทยล้วน (Tanotfin/mms-tts-2081-FM-onnx) ทำให้ tokenize/คำนวณ tensor พังจริง
+     ("Tensor shape.Size() must be >= 0") — ต้องเลือกโมเดลเสียงตามภาษาจริงของข้อความที่จะพูด ไม่ใช่ตายตัว
+     ตัวเดียว เช็คแค่ "มีตัวอักษรไทยอยู่ไหม" ก็พอ (ระบบตอบเต็มประโยคเป็นภาษาเดียวเสมอ ไม่สลับภาษากลางคำตอบ) */
+  function pickTtsModel(text) {
+    return /[฀-๿]/.test(text) ? 'Tanotfin/mms-tts-2081-FM-onnx' : 'Xenova/mms-tts-eng';
+  }
 
   /* ── CSS (ฉีดครั้งเดียว ใช้ตัวแปรสี --ome-* จาก theme.css ที่โหลดอยู่แล้วทุกหน้า จึงสลับมืด/สว่าง
      อัตโนมัติตาม data-theme โดยไม่ต้องกำหนด token สีเองซ้ำแบบหน้าเครื่องมือทั่วไป) ────────────────── */
@@ -191,7 +197,7 @@
       function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
       w.addEventListener('message', onMsg);
       w.addEventListener('error', onErr);
-      w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: [{ i: 0, text: text }], modelId: TTS_VOICE_MODEL });
+      w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: [{ i: 0, text: text }], modelId: pickTtsModel(text) });
     }
 
     /* ── ส่งข้อความแชท (ใช้ทั้งตอนพิมพ์และตอนถอดเสียงจากไมค์เสร็จ) ───────────────────────── */
