@@ -1,12 +1,14 @@
 /* ══════════════════════════════════════════════════════════════════
-   Web Worker แยกต่างหากสำหรับรันโมเดลแชท AI (Qwen2.5-0.5B-Instruct ผ่าน transformers.js)
+   Web Worker แยกต่างหากสำหรับรันโมเดลแชท AI (Qwen2.5-Instruct ผ่าน transformers.js)
+   ใช้โดยวิดเจ็ตแชทลอย (ai-chat-widget.js) ที่ฉีดเข้าทุกหน้าผ่าน shell.js
    เหตุผลเดียวกับ tts-worker.js: รัน WASM ในเธรดหลักจะบล็อกหน้าเว็บระหว่างคำนวณ (single-thread
    asyncify รันแบบ synchronous) ย้ายมารันใน Worker แทนให้ UI/หน้าเว็บว่างอยู่เสมอ
 
    ต่างจาก tts-worker.js ตรงที่ไม่ต้องมี "พูล" หลายตัวขนานกัน — แชทเป็นงานต่อเนื่องทีละคำตอบ
-   (ไม่ใช่ตัดเป็นท่อนแล้วขนานแบบเสียง) ใช้ Worker ตัวเดียวพอ แต่คงไว้ไม่ให้ terminate ระหว่างแชท
+   (ไม่ใช่ตัดเป็นท่อนแล้วขนานแบบเสียง) ใช้ Worker ตัวเดียวพอ แต่คงไว้ไม่ให้ terminate ข้ามคำถาม
    เพื่อให้ pipeline ที่โหลด/แคชไว้แล้วถูกใช้ซ้ำได้ทุกข้อความถัดไปในเซสชันเดียวกัน (ไม่ต้องโหลดโมเดล
-   ใหม่ทุกครั้งที่ถาม) — ฝั่ง ai-chat.js เป็นคนตัดสินใจ terminate() ตัวเก่าตอนกด "เริ่มแชทใหม่" เท่านั้น */
+   ใหม่ทุกครั้งที่ถาม) — ฝั่ง ai-chat-widget.js เองก็ไม่ terminate() worker นี้ตอนกด "เริ่มแชทใหม่" ด้วย
+   (แค่รีเซ็ต messages array) เพื่อคง pipeline ที่โหลดไว้แล้ว (~1GB) ไม่ให้ต้องโหลดซ้ำ */
 'use strict';
 
 var pipelinePromise = null;
@@ -22,11 +24,12 @@ function configureOnnxWasmPaths(env) {
   env.backends.onnx.wasm.numThreads = 1; // ไม่มี SharedArrayBuffer อยู่แล้ว บังคับ single-thread กันค้าง
 }
 
-/* onnx-community/Qwen2.5-0.5B-Instruct: โมเดลแชทเล็กสุดในตระกูล Qwen2.5 ที่แปลงเป็น ONNX พร้อมใช้กับ
-   transformers.js ไว้แล้ว (ไม่ต้องแปลงเองผ่าน Colab แบบ TTS) รองรับหลายภาษารวมไทย — เลือก dtype 'q4'
-   (บีบอัด 4-bit) ตามคำแนะนำอย่างเป็นทางการของ Hugging Face สำหรับรันบนเบราว์เซอร์ ขนาดไฟล์เล็กกว่า
-   q8/fp32 มาก เหมาะกับดาวน์โหลดผ่านมือถือ */
-var MODEL_ID = 'onnx-community/Qwen2.5-0.5B-Instruct';
+/* onnx-community/Qwen2.5-1.5B-Instruct: โมเดลแชทตระกูล Qwen2.5 ที่แปลงเป็น ONNX พร้อมใช้กับ
+   transformers.js ไว้แล้ว (ไม่ต้องแปลงเองผ่าน Colab แบบ TTS) รองรับหลายภาษารวมไทย — อัปจากรุ่น 0.5B
+   เดิม (ตอบสับสน/ผิดง่ายเกินไป) เป็น 1.5B ให้ตอบดีขึ้นชัดเจน แลกกับขนาดไฟล์ที่ใหญ่ขึ้น (~800MB-1GB ที่
+   dtype q4) และหน่วยความจำที่ต้องใช้มากขึ้นตอนรัน — เลือก dtype 'q4' (บีบอัด 4-bit) ตามคำแนะนำอย่างเป็น
+   ทางการของ Hugging Face สำหรับรันบนเบราว์เซอร์ อยู่แล้วเพื่อลดขนาดให้เล็กที่สุดเท่าที่ยังใช้งานได้ */
+var MODEL_ID = 'onnx-community/Qwen2.5-1.5B-Instruct';
 
 function loadPipeline(onProgress, jobId) {
   if (!pipelinePromise) {

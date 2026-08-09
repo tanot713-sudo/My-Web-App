@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v126';
+const CACHE = 'ome-v127';
 const PRECACHE = [
   './',
   './index.html',
@@ -27,9 +27,9 @@ const PRECACHE = [
   './tts-worker.js',
   './file-reader.js',
   './vendor/lamejs/lamejs.iife.js',
-  './ai-chat.html',
-  './ai-chat.js',
+  './ai-chat-widget.js',
   './ai-chat-worker.js',
+  './asr-worker.js',
   /* หมายเหตุ: ตั้งใจไม่ precache './vendor/transformers/*' (ไลบรารีแปลงข้อความ↔เสียงด้วย AI,
      ~14MB, โหลดผ่าน dynamic import() เฉพาะตอนกดใช้เท่านั้น) และ './vendor/firebase/*'
      (ไลบรารีซิงก์เรียลไทม์ของหน้ารายรับรายจ่ายเท่านั้น) ที่นี่ — จะบังคับให้ทุกคนที่เปิดเว็บนี้

@@ -18,6 +18,16 @@
   }
   function soonHref(label) { return 'soon.html?label=' + encodeURIComponent(label); }
 
+  /* ── วิดเจ็ตแชท AI ลอย (ปุ่ม 💬 มุมขวาล่างทุกหน้า) — เดิมเป็นหน้าแยก ai-chat.html ย้ายมาเป็นวิดเจ็ต
+     ลอยแทนตามที่ผู้ใช้ขอ ฉีด <script> เข้าไปจากที่นี่แทนที่จะต้องแก้ <head>/<body> ของทุกหน้า (30+ไฟล์)
+     เอง — ตัว ai-chat-widget.js สร้าง DOM/CSS/logic ของวิดเจ็ตเองทั้งหมด ไม่โหลดโมเดล AI ใดๆ ตอนนี้
+     (โหลดเฉพาะตอนผู้ใช้กดส่งข้อความ/ใช้ไมค์ครั้งแรกจริงๆ) */
+  (function injectAiChatWidget() {
+    var s = document.createElement('script');
+    s.src = BASE + 'ai-chat-widget.js';
+    document.head.appendChild(s);
+  })();
+
   /* ── ธีม: อ่านค่าที่เคยเลือก > ตามระบบ ─────────────────────────── */
   function getTheme() {
     try {
@@ -39,7 +49,6 @@
      icon = ใช้กับ invest.html hub tiles (window.INVEST_CATS), children = รายการย่อย */
   var MENU = [
     { key: 'home', label: 'หน้าหลัก', href: 'index.html' },
-    { key: 'ai-chat', label: 'ผู้ช่วย AI ถาม-ตอบ', href: 'ai-chat.html' },
     { key: 'documents', label: 'งานที่รับผิดชอบ', children: [
         { key: 'doc-check',  label: 'ตรวจสอบเอกสาร', href: 'doc-check.html' },
         { key: 'word',       label: 'งาน Word', href: 'word.html' },
