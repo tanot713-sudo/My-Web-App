@@ -322,7 +322,11 @@
         function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
         w.addEventListener('message', onMsg);
         w.addEventListener('error', onErr);
-        w.postMessage({ type: 'transcribe', jobId: jobId, pcm: pcm, lang: 'auto' }, [pcm.buffer]);
+        /* บังคับ lang: 'thai' ตรงๆ ไม่ปล่อยให้ Whisper เดาภาษาเอง (lang: 'auto') — เจอจริงว่า
+           whisper-tiny (โมเดลเล็กสุด) เดาภาษาผิดง่ายโดยเฉพาะเสียงพูดสั้นๆ พอเดาว่าเป็นอังกฤษ จะถอด
+           เสียงไทยออกมาเป็นข้อความอังกฤษเพี้ยนแทน ทำให้แชทเข้าใจผิดว่าถามเป็นอังกฤษแล้วตอบอังกฤษกลับ
+           ตามไปด้วย — โหมดไมค์ของหน้านี้ตั้งใจไว้สำหรับพูดไทยอยู่แล้ว บังคับเลยตัดปัญหาการเดาผิดทิ้งไปเลย */
+        w.postMessage({ type: 'transcribe', jobId: jobId, pcm: pcm, lang: 'thai' }, [pcm.buffer]);
       });
     }
     function startRecording() {
