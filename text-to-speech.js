@@ -250,9 +250,16 @@
   var ttsJobSeq = 0;
   function ttsPoolSize() {
     var cores = navigator.hardwareConcurrency || 2;
-    var mem = navigator.deviceMemory; // GB — มีเฉพาะ Chrome/Edge เท่านั้น เบราว์เซอร์อื่นเป็น undefined
-    var cap = 4; // แต่ละ Worker โหลดโมเดลเป็นสำเนาของตัวเอง จำกัดไว้กันหน่วยความจำบวมเกินไป
-    if (mem && mem < 4) cap = 2; // เครื่อง/มือถือ RAM น้อย ลดจำนวน Worker ลง
+    var mem = navigator.deviceMemory; // GB — มีเฉพาะ Chrome/Edge เท่านั้น เบราว์เซอร์อื่น (รวม Safari/iOS
+    // ทั้งหมด ไม่มีข้อยกเว้น) เป็น undefined เสมอ — เจอจริงว่า iPhone ทุกรุ่นจะได้ mem=undefined ไม่ว่า
+    // เครื่องนั้นจะแรมเยอะแค่ไหนก็ตาม พลาดจากเดิมที่ตั้งดีฟอลต์เป็น "สันนิษฐานว่าแรมเยอะ" (cap=4) เมื่อ
+    // ไม่รู้ค่า — กลับด้านลอจิกใหม่: ไม่รู้ค่า = ระมัดระวังไว้ก่อน (cap=2 เหมือนเครื่องแรมน้อยที่ยืนยันแล้ว)
+    // ค่อยขยับเป็น cap=4 เฉพาะตอนที่ "ยืนยันแล้วจริง" ว่าแรมเยอะพอ (mem>=4, มีแค่ Chrome/Edge ที่รายงานได้)
+    // เหตุผล: แต่ละ Worker โหลดโมเดลเป็นสำเนาของตัวเอง (WASM linear memory แยกก้อนกันคนละ Worker) ยิ่ง
+    // ขนานเยอะยิ่งใช้แรมพร้อมกันเยอะขึ้นเป็นทวีคูณ — เจอจริงว่า iPhone (deviceMemory เป็น undefined จึง
+    // เคยได้ cap=4 มาตลอด) รัน 4 Worker ขนานพร้อมกันจนได้ "RangeError: Out of memory" จาก WASM รันไทม์
+    var cap = 2;
+    if (mem && mem >= 4) cap = 4;
     return Math.max(1, Math.min(cores, cap));
   }
   /* ผูก listener ถาวร (ไม่ผูก/ลบตามแต่ละงานเหมือน onMsg ใน synthesizeMmsTtsChunksInWorkerPool) ไว้
