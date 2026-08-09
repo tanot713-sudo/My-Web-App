@@ -204,7 +204,7 @@
       messages.push({ role: 'user', content: text });
 
       setBusy(true);
-      setStatus('กำลังเตรียมคำตอบ… (ครั้งแรกอาจต้องโหลดโมเดล ~1GB ก่อน)', '');
+      setStatus('กำลังเตรียมคำตอบ… (ครั้งแรกอาจต้องโหลดโมเดล ~350MB ก่อน)', '');
 
       var jobId = ++jobSeq;
       var replyBubble = null, replyText = '';
@@ -353,8 +353,8 @@
       logEl.innerHTML = '';
       setStatus('', '');
       inputEl.focus();
-      /* ไม่ terminate() worker ทิ้ง — ปล่อย pipeline ที่แคชไว้แล้วอยู่ต่อ กันต้องโหลดโมเดล ~1GB ใหม่
-         ทุกครั้งที่กดเริ่มแชทใหม่ (messages array รีเซ็ตพอแล้ว ไม่มี state อื่นค้างอยู่ใน worker) */
+      /* ไม่ terminate() worker ทิ้ง — ปล่อย pipeline ที่แคชไว้แล้วอยู่ต่อ กันต้องโหลดโมเดลใหม่ทุกครั้งที่
+         กดเริ่มแชทใหม่ (messages array รีเซ็ตพอแล้ว ไม่มี state อื่นค้างอยู่ใน worker) */
     });
   }
 })();

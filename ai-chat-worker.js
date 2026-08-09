@@ -24,12 +24,18 @@ function configureOnnxWasmPaths(env) {
   env.backends.onnx.wasm.numThreads = 1; // ไม่มี SharedArrayBuffer อยู่แล้ว บังคับ single-thread กันค้าง
 }
 
-/* onnx-community/Qwen2.5-1.5B-Instruct: โมเดลแชทตระกูล Qwen2.5 ที่แปลงเป็น ONNX พร้อมใช้กับ
-   transformers.js ไว้แล้ว (ไม่ต้องแปลงเองผ่าน Colab แบบ TTS) รองรับหลายภาษารวมไทย — อัปจากรุ่น 0.5B
-   เดิม (ตอบสับสน/ผิดง่ายเกินไป) เป็น 1.5B ให้ตอบดีขึ้นชัดเจน แลกกับขนาดไฟล์ที่ใหญ่ขึ้น (~800MB-1GB ที่
-   dtype q4) และหน่วยความจำที่ต้องใช้มากขึ้นตอนรัน — เลือก dtype 'q4' (บีบอัด 4-bit) ตามคำแนะนำอย่างเป็น
-   ทางการของ Hugging Face สำหรับรันบนเบราว์เซอร์ อยู่แล้วเพื่อลดขนาดให้เล็กที่สุดเท่าที่ยังใช้งานได้ */
-var MODEL_ID = 'onnx-community/Qwen2.5-1.5B-Instruct';
+/* onnx-community/Qwen2.5-0.5B-Instruct: โมเดลแชทเล็กสุดในตระกูล Qwen2.5 ที่แปลงเป็น ONNX พร้อมใช้กับ
+   transformers.js ไว้แล้ว (ไม่ต้องแปลงเองผ่าน Colab แบบ TTS) รองรับหลายภาษารวมไทย — เลือก dtype 'q4'
+   (บีบอัด 4-bit) ตามคำแนะนำอย่างเป็นทางการของ Hugging Face สำหรับรันบนเบราว์เซอร์ ขนาดไฟล์เล็กกว่า
+   q8/fp32 มาก เหมาะกับดาวน์โหลดผ่านมือถือ
+
+   ⚠️ เคยลองอัปเป็น 1.5B-Instruct มาก่อน (ตอบดีกว่าชัดเจน) แต่เจอ "Can't create a session...
+   ERROR_MESSAGE: std::bad_alloc" จริงตอนใช้งาน (แม้บนเดสก์ท็อป ไม่ใช่แค่มือถือ) — คือ WASM รันไทม์จอง
+   หน่วยความจำเพิ่มไม่ได้ตอนสร้าง session ของโมเดล เพราะ 1.5B ใช้ RAM สูงตอนคำนวณจริง (ไม่ใช่แค่ตอนโหลด
+   ไฟล์) เกินกว่าที่ WASM linear memory เดี่ยวจะรองรับไหวในหลายเครื่อง — ย้อนกลับมาใช้ 0.5B ที่ยืนยันแล้ว
+   ว่าทำงานได้จริง ถ้าจะลองโมเดลใหญ่กว่านี้อีกในอนาคต ต้องหาทางแก้เรื่องหน่วยความจำก่อน (เช่น device:
+   'webgpu' ที่ไม่ใช้ WASM linear memory เดี่ยวแบบเดียวกัน หรือ dtype ที่บีบอัดกว่า q4 ถ้ามี) */
+var MODEL_ID = 'onnx-community/Qwen2.5-0.5B-Instruct';
 
 function loadPipeline(onProgress, jobId) {
   if (!pipelinePromise) {
