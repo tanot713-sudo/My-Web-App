@@ -155,14 +155,20 @@
      จะ 404 ตอนโหลด ต้องบังคับ dtype ต่อโมเดลเป็นรายตัว — เลือก 'fp32' (ไม่ใช่ 'fp16') เพราะ fp32 รองรับ
      บน wasm backend ครบทุกเบราว์เซอร์แน่นอนกว่า fp16 ที่บาง engine/เบราว์เซอร์รุ่นเก่ายังไม่รองรับเต็มที่ */
   var TTS_DTYPE_OVERRIDES = {
-    'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32'
-    /* หมายเหตุ: Tanotfin/mms-tts-2081-FM-onnx และ mms-tts-2081-M-onnx เคยต้องบังคับ fp32 ชั่วคราว
-       (ตอนนั้น repo มีแค่ model.onnx ไม่มี model_quantized.onnx เพราะสคริปต์แปลง --quantize เจอ
-       ShapeError ระหว่างขั้นตอนตรวจสอบของ optimum) — แก้ที่ต้นทางแล้วโดยแปลงใหม่ผ่าน Colab ด้วย
-       --skip_validation --modes q8 (ข้ามเฉพาะขั้นตอนตรวจสอบที่เข้มงวดเกินไปสำหรับ VITS ซึ่งเป็นโมเดล
-       generative แบบสุ่ม ไม่ใช่ข้ามการ quantize) ตอนนี้ทั้ง 2 repo มี onnx/model_quantized.onnx ครบ
-       แล้ว จึงปล่อยให้ transformers.js เลือก dtype ดีฟอลต์ (q8) ได้ตามปกติเหมือนโมเดลอื่น ไม่ต้อง
-       บังคับ fp32 อีกต่อไป (fp32 ใหญ่กว่า ~4 เท่า เคยทำให้แท็บ Safari บนมือถือ crash เพราะ RAM ไม่พอ) */
+    'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32',
+    /* แก้กลับมาเป็น fp32 อีกครั้ง (รอบก่อนเคยลองปล่อยดีฟอลต์ให้ใช้ q8/model_quantized.onnx ที่แปลงใหม่
+       ผ่าน Colab ด้วย --skip_validation --modes q8 แล้ว แต่พังจริงตอนใช้งาน — เจอ error ในเบราว์เซอร์
+       "Can't create a session... [ShapeInferenceError] Incompatible dimensions" ที่ node Where ใน
+       duration_predictor/flows.X เหมือนเป๊ะกับที่ onnx.checker เคยจับได้ตอนแปลง — แปลว่าตอนนั้นที่
+       แพตช์ scripts/utils.py ให้ข้าม error นี้ไปนั้น "เดาผิด" ว่าเป็นแค่ checker เข้มงวดเกินไป (false
+       positive) ทั้งที่จริงๆ เป็นบั๊กจริงของ dynamic quantization (int8) กับสถาปัตยกรรม stochastic
+       duration predictor ของ VITS โดยเฉพาะ — ทำให้กราฟที่ quantize ออกมาใช้งานไม่ได้จริงไม่ว่า
+       onnxruntime-web ฝั่งเบราว์เซอร์จะพยายามโหลดยังไงก็ตาม ไม่ใช่แค่ตอน quantize/check ที่ผ่าน
+       บังคับ fp32 (ไฟล์ model.onnx ที่ถูกต้อง ไม่ผ่าน quantization) จึงเป็นทางออกที่ถูกต้องจริงๆ
+       สำหรับ 2 โมเดลนี้ — ส่วนปัญหาแท็บ Safari มือถือ crash ที่เคยเจอกับ fp32 ก่อนหน้านี้ พบว่าสาเหตุ
+       จริงคือบั๊ก ttsPoolSize() รัน 4 Worker ขนานบน iOS (แก้แล้วแยกต่างหาก เป็นคนละเรื่องกับ dtype) */
+    'Tanotfin/mms-tts-2081-FM-onnx': 'fp32',
+    'Tanotfin/mms-tts-2081-M-onnx': 'fp32'
   };
   function loadTtsPipeline(modelId, onProgress) {
     if (!ttsPipelinePromiseByModel[modelId]) {
