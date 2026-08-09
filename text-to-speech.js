@@ -155,20 +155,17 @@
      จะ 404 ตอนโหลด ต้องบังคับ dtype ต่อโมเดลเป็นรายตัว — เลือก 'fp32' (ไม่ใช่ 'fp16') เพราะ fp32 รองรับ
      บน wasm backend ครบทุกเบราว์เซอร์แน่นอนกว่า fp16 ที่บาง engine/เบราว์เซอร์รุ่นเก่ายังไม่รองรับเต็มที่ */
   var TTS_DTYPE_OVERRIDES = {
-    'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32',
-    /* แก้กลับมาเป็น fp32 อีกครั้ง (รอบก่อนเคยลองปล่อยดีฟอลต์ให้ใช้ q8/model_quantized.onnx ที่แปลงใหม่
-       ผ่าน Colab ด้วย --skip_validation --modes q8 แล้ว แต่พังจริงตอนใช้งาน — เจอ error ในเบราว์เซอร์
-       "Can't create a session... [ShapeInferenceError] Incompatible dimensions" ที่ node Where ใน
-       duration_predictor/flows.X เหมือนเป๊ะกับที่ onnx.checker เคยจับได้ตอนแปลง — แปลว่าตอนนั้นที่
-       แพตช์ scripts/utils.py ให้ข้าม error นี้ไปนั้น "เดาผิด" ว่าเป็นแค่ checker เข้มงวดเกินไป (false
-       positive) ทั้งที่จริงๆ เป็นบั๊กจริงของ dynamic quantization (int8) กับสถาปัตยกรรม stochastic
-       duration predictor ของ VITS โดยเฉพาะ — ทำให้กราฟที่ quantize ออกมาใช้งานไม่ได้จริงไม่ว่า
-       onnxruntime-web ฝั่งเบราว์เซอร์จะพยายามโหลดยังไงก็ตาม ไม่ใช่แค่ตอน quantize/check ที่ผ่าน
-       บังคับ fp32 (ไฟล์ model.onnx ที่ถูกต้อง ไม่ผ่าน quantization) จึงเป็นทางออกที่ถูกต้องจริงๆ
-       สำหรับ 2 โมเดลนี้ — ส่วนปัญหาแท็บ Safari มือถือ crash ที่เคยเจอกับ fp32 ก่อนหน้านี้ พบว่าสาเหตุ
-       จริงคือบั๊ก ttsPoolSize() รัน 4 Worker ขนานบน iOS (แก้แล้วแยกต่างหาก เป็นคนละเรื่องกับ dtype) */
-    'Tanotfin/mms-tts-2081-FM-onnx': 'fp32',
-    'Tanotfin/mms-tts-2081-M-onnx': 'fp32'
+    'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32'
+    /* Tanotfin/mms-tts-2081-FM-onnx และ mms-tts-2081-M-onnx (แปลงจาก VIZINTZOR/MMS-TTS-THAI-FEMALEV2/
+       MALEV2) เคยพังทั้ง dtype=fp32 และ q8 ด้วย error เดียวกัน "[ShapeInferenceError] Incompatible
+       dimensions" ที่ node Where ใน duration_predictor/flows.X — ตอนแรกเข้าใจผิดว่าเป็นปัญหา
+       quantization เลยบังคับ fp32 ไว้ (ดูประวัติได้ใน git log) แต่ที่จริงสาเหตุคือโค้ด
+       _unconstrained_rational_quadratic_spline ใน transformers ใช้ boolean-mask fancy indexing
+       (tensor[mask] = ...) ที่ trace-based ONNX export แล้วได้กราฟ shape ไม่คงที่ (data-dependent)
+       สำหรับน้ำหนักของสองโมเดลนี้โดยเฉพาะ แก้ต้นตอแล้วด้วยการแพตช์ฟังก์ชันนั้นให้ใช้ torch.where แบบ
+       shape คงที่ก่อน export ใหม่ (ยืนยันด้วย onnx.checker.check_model(full_check=True) ผ่านทั้ง
+       model.onnx และ model_quantized.onnx ของทั้งสองโมเดลแล้ว) จึงไม่ต้องบังคับ dtype อีกต่อไป
+       ปล่อยดีฟอลต์ (q8) ได้ตามปกติเหมือนเสียงอื่น */
   };
   function loadTtsPipeline(modelId, onProgress) {
     if (!ttsPipelinePromiseByModel[modelId]) {
@@ -431,17 +428,9 @@
   var TTS_VOICES = {
     th: [
       { id: 'Tanotfin/mms-tts-2081-onnx', label: 'ค่าเริ่มต้น' },
-      { id: 'phlebotomy1996/mms-thai-female-podcast-spk0', label: 'หญิง (โทนพอดแคสต์)' }
-      /* "หญิง (ทั่วไป)"/"ชาย (ทั่วไป)" (Tanotfin/mms-tts-2081-FM-onnx, mms-tts-2081-M-onnx — แปลงจาก
-         VIZINTZOR/MMS-TTS-THAI-FEMALEV2/MALEV2) ถอดออกชั่วคราว — ยืนยันแล้วด้วย error message ที่มี
-         [model=..., dtype=...] ต่อท้ายจริงในโปรดักชัน (ไม่ใช่ปัญหาแคชเก่าอีกต่อไป) ว่าพังทั้ง dtype=fp32
-         และ dtype=q8 ด้วย error เดียวกันเป๊ะ: "Can't create a session...
-         [ShapeInferenceError] Incompatible dimensions" ที่ node Where ใน duration_predictor/flows.X
-         — แปลว่าปัญหาไม่ได้อยู่ที่ quantization เลย แต่เป็นตัวกราฟ ONNX จากขั้นตอน export (Step 1,
-         main_export ด้วย torch==2.4.1 legacy trace exporter) เองที่ onnxruntime-web ฝั่งเบราว์เซอร์
-         โหลดไม่ได้ไม่ว่า dtype ไหน — ต้องแก้ที่ขั้นตอน export ให้ลึกกว่านี้ (ลองวิธี export อื่น หรือ
-         หาโมเดลเสียงไทยตัวอื่นที่มีคน convert เป็น ONNX สำเร็จอยู่แล้ว) ถอดออกจากตัวเลือกไว้ก่อนกัน
-         ผู้ใช้เจอ error ตันตรงนี้ ไม่ลบไฟล์ ONNX ที่อัปโหลดไว้ทิ้ง เผื่อกลับมาแก้ต่อภายหลัง */
+      { id: 'phlebotomy1996/mms-thai-female-podcast-spk0', label: 'หญิง (โทนพอดแคสต์)' },
+      { id: 'Tanotfin/mms-tts-2081-FM-onnx', label: 'หญิง (ทั่วไป)' },
+      { id: 'Tanotfin/mms-tts-2081-M-onnx', label: 'ชาย (ทั่วไป)' }
     ],
     en: [
       { id: 'Xenova/mms-tts-eng', label: 'ค่าเริ่มต้น' }
