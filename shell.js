@@ -39,6 +39,7 @@
      icon = ใช้กับ invest.html hub tiles (window.INVEST_CATS), children = รายการย่อย */
   var MENU = [
     { key: 'home', label: 'หน้าหลัก', href: 'index.html' },
+    { key: 'ai-chat', label: 'ผู้ช่วย AI ถาม-ตอบ', href: 'ai-chat.html' },
     { key: 'documents', label: 'งานที่รับผิดชอบ', children: [
         { key: 'doc-check',  label: 'ตรวจสอบเอกสาร', href: 'doc-check.html' },
         { key: 'word',       label: 'งาน Word', href: 'word.html' },

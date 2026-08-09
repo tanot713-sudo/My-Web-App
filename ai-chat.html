@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ผู้ช่วย AI ถาม-ตอบ | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
+  --brand:#12A594;--brand-dk:#0B7F72;--brand-sf:#E7F6F4;
+  --amber:#F5A524;--ok:#17B26A;--err:#E5484D;--warn:#E08700;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
+  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:780px;margin:0 auto}
+.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
+.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+.crumb .sep{margin:0 7px;color:#C9CEDC}
+.head{display:flex;align-items:center;gap:12px;margin:12px 0 6px}
+.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:24px;
+  background:linear-gradient(135deg,#12A594,#3FCBB6);color:#fff;display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(18,165,148,.3)}
+h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px}
+.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
+  background:var(--card);border-radius:11px;padding:10px 15px;font-family:inherit;font-size:14px;font-weight:700;
+  color:var(--ink);cursor:pointer;transition:.15s;text-decoration:none}
+.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-dk);color:#fff}
+.btn.sm{padding:7px 11px;font-size:12.5px}
+.btn:disabled{opacity:.5;cursor:default}
+.status{font-size:12.5px;color:var(--muted);margin-top:9px;min-height:1.2em}
+.status.err{color:var(--err)}
+.status.ok{color:var(--ok)}
+
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:7px;padding:2px 8px;margin-left:6px}
+.badge.robot{background:#FFF6E4;color:#8A6212}
+[data-theme="dark"] .badge.robot{background:#2A2415;color:#E8C88A}
+
+.chat-log{display:flex;flex-direction:column;gap:10px;max-height:52vh;min-height:180px;overflow-y:auto;
+  padding:4px 2px;margin-bottom:12px}
+.chat-row{display:flex}
+.chat-row.me{justify-content:flex-end}
+.chat-row.bot{justify-content:flex-start}
+.chat-bubble{max-width:80%;padding:10px 13px;border-radius:14px;font-size:14.5px;line-height:1.6;
+  white-space:pre-wrap;word-break:break-word}
+.chat-row.me .chat-bubble{background:var(--brand);color:#fff;border-bottom-right-radius:4px}
+.chat-row.bot .chat-bubble{background:var(--bg);color:var(--ink);border:1px solid var(--line);
+  border-bottom-left-radius:4px}
+[data-theme="dark"] .chat-row.bot .chat-bubble{background:#12151C}
+
+.chat-input-row{display:flex;gap:8px;align-items:flex-end}
+.chat-input-row textarea{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:11px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;resize:none;
+  line-height:1.5;max-height:120px;-webkit-appearance:none}
+.chat-input-row textarea:focus{outline:none;border-color:var(--brand)}
+[data-theme="dark"] .chat-input-row textarea{background:#12151C}
+
+details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;list-style:none;
+  display:flex;align-items:center;gap:8px;user-select:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:'▸';color:var(--muted);transition:.15s}
+details[open]>summary::before{transform:rotate(90deg)}
+.details-body{padding:0 15px 15px;font-size:13.5px}
+.lesson h3{font-size:13.5px;font-weight:700;margin:12px 0 4px;color:var(--brand-dk)}
+.lesson p{font-size:13px;margin-bottom:4px;opacity:.92}
+</style>
+</head>
+<body class="ome-tool-page">
+<script src="auth-gate.js"></script>
+
+<div class="wrap">
+<nav class="crumb"><a href="index.html">หน้าหลัก</a><span class="sep">/</span>ผู้ช่วย AI ถาม-ตอบ</nav>
+<div class="head">
+  <div class="head-ic">💬</div>
+  <div>
+    <h1>ผู้ช่วย AI ถาม-ตอบ</h1>
+    <div class="head-sub">แชทกับ AI ตัวเล็กที่รันในเครื่องคุณเอง ไม่ส่งข้อความออกไปไหนเลย</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>💬 แชท<span class="badge robot">AI รันในเครื่อง</span></h2>
+  <p class="mini">โมเดลเล็กมาก (0.5 พันล้านพารามิเตอร์) เหมาะกับคำถามทั่วไป/พื้นฐานเท่านั้น — ไม่ใช่ระดับ
+    ChatGPT/Claude ถ้าถามซับซ้อนมากอาจตอบผิดหรือสับสนได้ ครั้งแรกที่ใช้ต้องโหลดโมเดล (~350MB) ก่อน
+    ครั้งต่อไปจะเร็วขึ้นมากเพราะเบราว์เซอร์แคชไว้แล้ว</p>
+  <div class="chat-log" id="chatLog"></div>
+  <div class="chat-input-row">
+    <textarea id="chatInput" rows="2" placeholder="พิมพ์คำถาม แล้วกด Enter เพื่อส่ง (Shift+Enter ขึ้นบรรทัดใหม่)"></textarea>
+    <button class="btn primary" id="chatSendBtn" type="button">ส่ง</button>
+  </div>
+  <div class="status" id="chatStatus"></div>
+  <div style="margin-top:10px">
+    <button class="btn sm" id="chatNewBtn" type="button">🔄 เริ่มแชทใหม่</button>
+  </div>
+</div>
+
+<details class="card lesson" style="box-shadow:var(--sh)">
+  <summary style="font-size:14px">📚 เรียนรู้ / ข้อจำกัดที่ควรรู้</summary>
+  <div class="details-body">
+    <h3>ทำงานยังไง</h3>
+    <p>ใช้โมเดลภาษา AI ชื่อ Qwen2.5 (ขนาด 0.5 พันล้านพารามิเตอร์ พัฒนาโดย Alibaba) ผ่านไลบรารี
+      transformers.js รันด้วย WebAssembly ในเบราว์เซอร์คุณเองทั้งหมด ไม่มีข้อความไหนถูกส่งไปประมวลผล
+      ที่เซิร์ฟเวอร์ไหนเลย — ตัวไฟล์โมเดลเท่านั้น (ไม่ใช่ข้อความแชทของคุณ) ที่ต้องดาวน์โหลดจาก
+      Hugging Face ครั้งแรกเท่านั้น</p>
+    <h3>ทำไมตอบผิด/สับสนได้บ่อยกว่า ChatGPT/Claude</h3>
+    <p>โมเดลใหญ่อย่าง Claude/ChatGPT มีพารามิเตอร์เป็นแสนล้าน-ล้านล้าน ต้องใช้เซิร์ฟเวอร์ GPU ราคาแพง
+      รันจึงมีค่าใช้จ่ายต่อการใช้งาน ส่วนโมเดลที่หน้านี้ใช้เล็กกว่าเป็นพันเท่า (เพื่อให้รันในเบราว์เซอร์
+      ผู้ใช้ทั่วไปได้ฟรี ไม่มีเซิร์ฟเวอร์) ความฉลาด/ความแม่นยำจึงต่ำกว่ามากตามไปด้วย เหมาะกับคำถามง่ายๆ
+      พื้นฐาน ไม่เหมาะกับงานที่ต้องใช้เหตุผลซับซ้อนหลายขั้นตอน หรือความรู้เฉพาะทางลึกๆ</p>
+    <h3>ไม่ใช่ "AI agent"</h3>
+    <p>โมเดลนี้ตอบคำถามจากความรู้ที่มีอยู่ในตัวเองเท่านั้น เรียกใช้เครื่องมืออื่น ค้นเว็บ อ่านไฟล์ หรือ
+      ทำงานหลายขั้นตอนแทนคุณไม่ได้ — ถ้าต้องการช่วยงานเอกสาร/ตรวจสอบไฟล์ ให้ใช้เครื่องมือเฉพาะทางอื่นๆ
+      ในเว็บนี้แทน (เช่น "ตรวจสอบเอกสาร" หรือ "แปลงเสียง ↔ ข้อความ")</p>
+    <h3>กด "เริ่มแชทใหม่" ทำอะไร</h3>
+    <p>ล้างประวัติการสนทนาทั้งหมดและเริ่มบทสนทนาใหม่ — ใช้เมื่อแชทเดิมเริ่มสับสน/หลงประเด็น หรืออยากเริ่ม
+      หัวข้อใหม่ที่ไม่เกี่ยวกับที่คุยไปก่อนหน้า (โมเดลจำได้แค่ในแชทเดียวกันเท่านั้น ไม่บันทึกข้าม
+      เซสชัน/ปิดหน้าเว็บแล้วหายหมด)</p>
+  </div>
+</details>
+
+</div>
+
+<script src="ai-chat.js" defer></script>
+</body>
+</html>
