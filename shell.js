@@ -351,7 +351,15 @@
   /* ── PWA ────────────────────────────────────────────────────────── */
   function registerSW() {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register(BASE + 'sw.js').catch(function () {});
+      navigator.serviceWorker.register(BASE + 'sw.js').then(function (reg) {
+        /* เช็คอัปเดต sw.js ทันทีทุกครั้งที่โหลดหน้า — ปกติเบราว์เซอร์จะเช็คให้เองอัตโนมัติแค่ทุก ~24
+           ชั่วโมง (ตาม spec ของ Service Worker) เจอจริงว่าตอน deploy โค้ดใหม่หลายรอบในวันเดียวกัน (ระหว่าง
+           debug) ผู้ใช้ปิดเปิดแท็บใหม่แล้วก็ยังเจอโค้ด/แคชเก่าอยู่ดี เพราะ "ปิดเปิดแท็บ" ไม่เท่ากับ "สั่ง
+           เช็คอัปเดต SW" — เบราว์เซอร์ยังไม่ครบ 24 ชม. จากครั้งก่อนก็เลยไม่เช็คให้เอง ต้องเรียก
+           reg.update() ตรงๆ ถึงจะบังคับเช็คทันทีไม่ติด throttle นี้ (ตาม spec การเรียก update() ตรงๆ
+           ข้าม throttle 24 ชม. ที่ใช้กับการเช็คอัตโนมัติของเบราว์เซอร์เองเท่านั้น) */
+        reg.update().catch(function () {});
+      }).catch(function () {});
     }
   }
 
