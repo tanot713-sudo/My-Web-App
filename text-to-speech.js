@@ -431,9 +431,17 @@
   var TTS_VOICES = {
     th: [
       { id: 'Tanotfin/mms-tts-2081-onnx', label: 'ค่าเริ่มต้น' },
-      { id: 'phlebotomy1996/mms-thai-female-podcast-spk0', label: 'หญิง (โทนพอดแคสต์)' },
-      { id: 'Tanotfin/mms-tts-2081-FM-onnx', label: 'หญิง (ทั่วไป)' },
-      { id: 'Tanotfin/mms-tts-2081-M-onnx', label: 'ชาย (ทั่วไป)' }
+      { id: 'phlebotomy1996/mms-thai-female-podcast-spk0', label: 'หญิง (โทนพอดแคสต์)' }
+      /* "หญิง (ทั่วไป)"/"ชาย (ทั่วไป)" (Tanotfin/mms-tts-2081-FM-onnx, mms-tts-2081-M-onnx — แปลงจาก
+         VIZINTZOR/MMS-TTS-THAI-FEMALEV2/MALEV2) ถอดออกชั่วคราว — ยืนยันแล้วด้วย error message ที่มี
+         [model=..., dtype=...] ต่อท้ายจริงในโปรดักชัน (ไม่ใช่ปัญหาแคชเก่าอีกต่อไป) ว่าพังทั้ง dtype=fp32
+         และ dtype=q8 ด้วย error เดียวกันเป๊ะ: "Can't create a session...
+         [ShapeInferenceError] Incompatible dimensions" ที่ node Where ใน duration_predictor/flows.X
+         — แปลว่าปัญหาไม่ได้อยู่ที่ quantization เลย แต่เป็นตัวกราฟ ONNX จากขั้นตอน export (Step 1,
+         main_export ด้วย torch==2.4.1 legacy trace exporter) เองที่ onnxruntime-web ฝั่งเบราว์เซอร์
+         โหลดไม่ได้ไม่ว่า dtype ไหน — ต้องแก้ที่ขั้นตอน export ให้ลึกกว่านี้ (ลองวิธี export อื่น หรือ
+         หาโมเดลเสียงไทยตัวอื่นที่มีคน convert เป็น ONNX สำเร็จอยู่แล้ว) ถอดออกจากตัวเลือกไว้ก่อนกัน
+         ผู้ใช้เจอ error ตันตรงนี้ ไม่ลบไฟล์ ONNX ที่อัปโหลดไว้ทิ้ง เผื่อกลับมาแก้ต่อภายหลัง */
     ],
     en: [
       { id: 'Xenova/mms-tts-eng', label: 'ค่าเริ่มต้น' }
