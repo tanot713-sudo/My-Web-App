@@ -81,7 +81,10 @@ self.onmessage = function (e) {
         self.postMessage({ type: 'token', jobId: jobId, token: token });
       }
     });
-    return generator(messages, { max_new_tokens: 512, temperature: 0.7, streamer: streamer });
+    /* ลดจาก 512 → 256: เจอจริงว่าโมเดล 0.5B รันบน WASM ช้ามากกว่าจะได้คำตอบครบ (โดยเฉพาะรอบที่ต่อจาก
+       ถอดเสียงจากไมค์ ซึ่งมีขั้นตอน ASR ต่อคิวมาก่อนหน้าอีกที) ตัดเพดานให้สั้นลงช่วยให้ตอบเร็วขึ้นชัดเจน
+       และกันโมเดลพูดยืดยาวเกินจำเป็นสำหรับแชทถาม-ตอบทั่วไปด้วย */
+    return generator(messages, { max_new_tokens: 256, temperature: 0.7, streamer: streamer });
   }).then(function () {
     self.postMessage({ type: 'done', jobId: jobId });
   }).catch(function (err) {

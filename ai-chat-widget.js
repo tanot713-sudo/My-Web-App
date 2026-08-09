@@ -115,10 +115,24 @@
   var isRecording = false;
   var messages = [{ role: 'system', content: SYSTEM_PROMPT }];
   var mediaStream = null, mediaRecorder = null, recordedChunks = [];
+  var sharedAudioCtx = null;
 
   function getChatWorker() { if (!chatWorker) chatWorker = new Worker('./ai-chat-worker.js', { type: 'module' }); return chatWorker; }
   function getTtsWorker() { if (!ttsWorker) ttsWorker = new Worker('./tts-worker.js', { type: 'module' }); return ttsWorker; }
   function getAsrWorker() { if (!asrWorker) asrWorker = new Worker('./asr-worker.js', { type: 'module' }); return asrWorker; }
+  /* ต้องสร้าง/ปลดล็อก AudioContext "ในจังหวะคลิกของผู้ใช้โดยตรง" เท่านั้น (synchronous ในตัว event
+     handler) ไม่งั้นเบราว์เซอร์ (autoplay policy) จะสั่ง suspended ค้างไว้ — ที่ผ่านมาสร้าง AudioContext
+     ใหม่ตอน playPcm() ซึ่งรันหลัง worker ตอบกลับมา (async, ห่างจาก click event ไปหลายวินาที) จึงโดนบล็อก
+     เสียงไม่ออกเลยแม้ synthesize สำเร็จ — แก้โดยเรียกฟังก์ชันนี้ตั้งแต่ตอน click ปุ่มส่ง/ไมค์/เปิดแผง
+     (ดูจุดเรียกด้านล่าง) แล้วใช้ context เดียวกันซ้ำตอนเล่นเสียงจริงทีหลัง */
+  function unlockAudioCtx() {
+    if (!sharedAudioCtx) {
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) sharedAudioCtx = new AudioCtx();
+    }
+    if (sharedAudioCtx && sharedAudioCtx.state === 'suspended') sharedAudioCtx.resume();
+    return sharedAudioCtx;
+  }
 
   function wire() {
     var logEl = panel.querySelector('.ome-ai-log');
@@ -157,23 +171,23 @@
     }
 
     fab.addEventListener('click', function () {
+      unlockAudioCtx(); // ปลดล็อกไว้ตั้งแต่กดเปิดแผง กันปัญหา autoplay policy ตอนเล่นเสียงตอบทีหลัง
       panel.classList.toggle('open');
       if (panel.classList.contains('open')) inputEl.focus();
     });
     closeBtn.addEventListener('click', function () { panel.classList.remove('open'); });
 
     /* ── สังเคราะห์เสียงพูดคำตอบ (ใช้ tts-worker.js ตัวเดียวกับหน้าแปลงข้อความเป็นเสียง ส่ง batch
-       ขนาด 1 ท่อน — เสียง "หญิง (ทั่วไป)" ตามที่ผู้ใช้ขอ) ───────────────────────────────── */
+       ขนาด 1 ท่อน) ─────────────────────────────────────────────────────────────────── */
     function playPcm(samples, sampleRate) {
       try {
-        var AudioCtx = window.AudioContext || window.webkitAudioContext;
-        var ctx = new AudioCtx();
+        var ctx = unlockAudioCtx();
+        if (!ctx) { setStatus('❌ เบราว์เซอร์นี้ไม่รองรับ AudioContext', 'err'); return; }
         var buf = ctx.createBuffer(1, samples.length, sampleRate);
         buf.getChannelData(0).set(samples);
         var src = ctx.createBufferSource();
         src.buffer = buf;
         src.connect(ctx.destination);
-        src.onended = function () { ctx.close(); };
         src.start(0);
       } catch (e) { setStatus('❌ เล่นเสียงไม่ได้: ' + (e && e.message ? e.message : e), 'err'); }
     }
@@ -211,6 +225,16 @@
 
       setBusy(true);
       setStatus('กำลังเตรียมคำตอบ… (ครั้งแรกอาจต้องโหลดโมเดล ~350MB ก่อน)', '');
+
+      /* โมเดลเล็ก (0.5B) เชื่อฟัง system prompt ตัวเดียวตอนต้นบทสนทนาได้ไม่แน่นอน — เจอจริงว่าถามเป็นไทย
+         แล้วยังตอบอังกฤษกลับบ่อยๆ แก้ด้วยการ "ย้ำ" คำสั่งภาษาแทรกไว้ท้ายสุดก่อน generate ทุกรอบ (ไม่บันทึก
+         ลง messages ถาวร แค่ใช้ครั้งเดียวตอนส่งคำขอนี้) โมเดลเล็กมักเชื่อฟังคำสั่งที่อยู่ใกล้จุดเริ่มตอบ
+         มากกว่าคำสั่งจากตอนต้นบทสนทนาที่ไกลออกไปแล้ว (recency bias) */
+      var wantThai = /[฀-๿]/.test(text);
+      var langHint = wantThai
+        ? 'ย้ำ: ตอบข้อความล่าสุดนี้เป็นภาษาไทยเท่านั้น ห้ามตอบเป็นภาษาอังกฤษเด็ดขาด'
+        : 'Reminder: respond to this latest message in English only.';
+      var payloadMessages = messages.concat([{ role: 'system', content: langHint }]);
 
       var jobId = ++jobSeq;
       var replyBubble = null, replyText = '';
@@ -252,11 +276,11 @@
       function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
       w.addEventListener('message', onMsg);
       w.addEventListener('error', onErr);
-      w.postMessage({ type: 'chat', jobId: jobId, messages: messages });
+      w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });
     }
-    sendBtn.addEventListener('click', function () { sendMessage(false); });
+    sendBtn.addEventListener('click', function () { unlockAudioCtx(); sendMessage(false); });
     inputEl.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(false); }
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); unlockAudioCtx(); sendMessage(false); }
     });
 
     /* ── โหมดเปิดไมค์คุย: แตะเริ่มอัด แตะอีกทีหยุด → ถอดเสียงเป็นข้อความ → ส่งอัตโนมัติ →
@@ -320,6 +344,7 @@
       });
     }
     micBtn.addEventListener('click', function () {
+      unlockAudioCtx();
       if (isBusy && !isRecording) return;
       if (!isRecording) {
         if (typeof MediaRecorder === 'undefined' || !navigator.mediaDevices) {
