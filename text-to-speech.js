@@ -534,7 +534,12 @@
       })
       .catch(function (e) {
         $('dlStatus').className = 'status err';
-        $('dlStatus').textContent = '❌ สร้างไฟล์เสียงไม่สำเร็จ: ' + (e && e.message ? e.message : e);
+        /* ใส่ modelId + dtype ที่ใช้จริงต่อท้าย error เสมอ (เพิ่มเข้ามาเพื่อวินิจฉัยปัญหา cache เก่า
+           ค้าง vs. ปัญหาโมเดลจริง — ถ้า error หน้าเว็บบอก dtype ไม่ตรงกับที่โค้ดล่าสุดควรใช้ แปลว่า
+           browser/service worker ยังไม่ได้โหลดโค้ดใหม่จริง ไม่ใช่โมเดลพัง) */
+        var usedDtype = TTS_DTYPE_OVERRIDES[modelId] || 'ดีฟอลต์ของเบราว์เซอร์ (มักเป็น q8)';
+        $('dlStatus').textContent = '❌ สร้างไฟล์เสียงไม่สำเร็จ: ' + (e && e.message ? e.message : e)
+          + ' [model=' + modelId + ', dtype=' + usedDtype + ']';
       })
       .finally(function () { $('dlGenerateBtn').disabled = false; });
   }
