@@ -24,6 +24,21 @@
   function pickTtsModel(text) {
     return /[฀-๿]/.test(text) ? 'Tanotfin/mms-tts-2081-FM-onnx' : 'Xenova/mms-tts-eng';
   }
+  /* ⚠️ 2026-08-10: มีรายงานยืนยันจริงจากผู้ใช้ (iPhone 14 Pro Max, Safari) ว่าพิมพ์ถามแค่คำเดียว
+     ("สวัสดี") แล้วหน้าเว็บรีเฟรชเองระหว่างที่โมเดลแชทยังโหลดไม่ถึงครึ่ง (เห็น progress ~11% ค้าง
+     แล้วแอปกลับไปหน้าแรก) — เกิดขึ้นแม้จะบังคับให้ใช้โมเดลเล็ก (0.5B, q4) แล้วก็ตาม (ดูเงื่อนไข
+     navigator.deviceMemory ใน ai-chat-worker.js ที่แก้ไปรอบก่อนหน้า) แปลว่าปัญหาไม่ได้อยู่ที่ขนาด
+     โมเดลอย่างเดียว แต่เป็นเพดานหน่วยความจำต่อแท็บของ WebKit บน iOS เอง (ทุกเบราว์เซอร์บน iOS ต้องใช้
+     เอนจิน WebKit ตัวเดียวกันหมดตามนโยบาย App Store ของ Apple ไม่ว่าจะเรียกตัวเองว่า Safari/Chrome/
+     Firefox บน iOS ก็ตาม) ซึ่งเข้มงวดกว่า Chrome บน desktop/Android มาก — ยังไม่มีทางแก้ที่ยืนยันแล้ว
+     ว่าเสถียรจริงสำหรับรันโมเดล AI ขนาดนี้ในเบราว์เซอร์บน iOS จึงปิดฟีเจอร์นี้ไปก่อนบน iOS ทั้งหมด
+     (กันหน้าเว็บรีเฟรช/เสียข้อมูลที่กำลังทำอยู่หน้าอื่นซ้ำอีก) ดีกว่าปล่อยให้ลองแล้วพังไม่แน่นอน —
+     iPad ที่รายงานตัวเป็น "Mac" ตั้งแต่ iPadOS 13 ต้องเช็กแยกด้วย maxTouchPoints เพราะ userAgent
+     เดียวกับ Mac จริงเป๊ะ ไม่มี "iPad" ในสตริงให้ตรวจแบบตรงไปตรงมาเหมือนเดิม */
+  function isIOS() {
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) return true;
+    return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  }
 
   /* ── CSS (ฉีดครั้งเดียว ใช้ตัวแปรสี --ome-* จาก theme.css ที่โหลดอยู่แล้วทุกหน้า จึงสลับมืด/สว่าง
      อัตโนมัติตาม data-theme โดยไม่ต้องกำหนด token สีเองซ้ำแบบหน้าเครื่องมือทั่วไป) ────────────────── */
@@ -182,6 +197,26 @@
       try { localStorage.setItem('ome:aiChatSpeak', speakChk.checked ? 'on' : 'off'); } catch (e) {}
     });
 
+    fab.addEventListener('click', function () {
+      unlockAudioCtx(); // ปลดล็อกไว้ตั้งแต่กดเปิดแผง กันปัญหา autoplay policy ตอนเล่นเสียงตอบทีหลัง
+      panel.classList.toggle('open');
+      if (panel.classList.contains('open')) inputEl.focus();
+    });
+    closeBtn.addEventListener('click', function () { panel.classList.remove('open'); });
+
+    /* ปิดฟีเจอร์บน iOS ทั้งหมด (ดูเหตุผลที่คอมเมนต์ isIOS() ด้านบน) — ยังเปิด/ปิดแผงดูได้ปกติ (wire ไปแล้ว
+       ด้านบน เผื่ออยากอ่านคำอธิบาย/ใช้งานจากเครื่องอื่นทีหลัง) แค่พิมพ์/อัดเสียงส่งไม่ได้เท่านั้น */
+    if (isIOS()) {
+      panel.querySelector('.ome-ai-disclaimer').innerHTML =
+        '⚠️ <b>ฟีเจอร์นี้ (AI รันในเครื่อง) ยังไม่รองรับ iPhone/iPad ตอนนี้</b> — มีรายงานยืนยันแล้วว่า ' +
+        'ทำให้หน้าเว็บรีเฟรชเองระหว่างโหลดโมเดล (หน่วยความจำต่อแท็บของ Safari/iOS จำกัดเกินกว่าจะรันโมเดล ' +
+        'ขนาดนี้ได้อย่างเสถียร) ปิดไว้ก่อนกันข้อมูลที่ทำค้างอยู่หน้าอื่นหาย — ลองใช้งานจากคอมพิวเตอร์แทนได้ครับ';
+      inputEl.placeholder = 'ใช้งานไม่ได้บน iPhone/iPad ตอนนี้ (ดูคำอธิบายด้านบน)';
+      inputEl.disabled = true; sendBtn.disabled = true; micBtn.disabled = true;
+      newBtn.style.display = 'none'; speakChk.parentElement.style.display = 'none';
+      return; // ข้าม wiring ปุ่มส่ง/ไมค์/ฯลฯ ทั้งหมดด้านล่าง กันกดแล้วหลุดไปโหลดโมเดลอยู่ดี
+    }
+
     function setStatus(text, cls) {
       statusEl.textContent = text || '';
       statusEl.className = 'ome-ai-status' + (cls ? ' ' + cls : '');
@@ -202,13 +237,6 @@
       scrollBottom();
       return b;
     }
-
-    fab.addEventListener('click', function () {
-      unlockAudioCtx(); // ปลดล็อกไว้ตั้งแต่กดเปิดแผง กันปัญหา autoplay policy ตอนเล่นเสียงตอบทีหลัง
-      panel.classList.toggle('open');
-      if (panel.classList.contains('open')) inputEl.focus();
-    });
-    closeBtn.addEventListener('click', function () { panel.classList.remove('open'); });
 
     /* ── สังเคราะห์เสียงพูดคำตอบ (ใช้ tts-worker.js ตัวเดียวกับหน้าแปลงข้อความเป็นเสียง ส่ง batch
        ขนาด 1 ท่อน) ─────────────────────────────────────────────────────────────────── */
