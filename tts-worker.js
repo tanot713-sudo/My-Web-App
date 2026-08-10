@@ -26,21 +26,21 @@ var pipelinePromiseByModel = {};
    ไม่มีไฟล์ quantized เลย (เช็คจริงในโฟลเดอร์ onnx/ มีแค่ model.onnx กับ model_fp16.onnx) ปล่อยดีฟอลต์
    จะ 404 ตอนโหลด ต้องบังคับ dtype ต่อโมเดลเป็นรายตัว — เลือก 'fp32' (ไม่ใช่ 'fp16') เพราะ fp32 รองรับ
    บน wasm backend ครบทุกเบราว์เซอร์แน่นอนกว่า fp16 ที่บาง engine/เบราว์เซอร์รุ่นเก่ายังไม่รองรับเต็มที่ */
+/* ⚠️ 2026-08-10: เจอบั๊กจริงว่าไฟล์นี้กับ text-to-speech.js มีตารางนี้ "ไม่ตรงกัน" — commit 67e6adb
+   (แก้ต้นตอบั๊ก ONNX export ของ Tanotfin/mms-tts-2081-FM-onnx/M-onnx แล้วอัปโหลดโมเดลที่แก้แล้วทับ
+   ของเดิมบน Hugging Face ยืนยันด้วย onnx.checker.check_model(full_check=True) ผ่านทั้ง model.onnx
+   และ model_quantized.onnx) แก้ไขแค่ text-to-speech.js (ถอด fp32 override ของ 2 โมเดลนี้ออก เพราะ
+   q8 ใช้ได้แล้วจริง) แต่ "ลืม" แก้ไฟล์นี้คู่กันไปด้วย ทำให้ Worker พูล (เส้นทางหลักที่ผู้ใช้เจอจริงเกือบ
+   ตลอด ทั้งจากหน้า text-to-speech.html และวิดเจ็ตแชท AI ลอยที่ใช้เสียง FM-onnx พูดคำตอบ) ยังคงบังคับ
+   fp32 ทิ้งไว้เกินความจำเป็น — ไฟล์ fp32 ใหญ่กว่า q8 หลายเท่า ยิ่งรันขนานหลาย Worker พร้อมกัน
+   (ttsPoolSize อาจให้สูงสุด 4 ตัว) ยิ่งใช้หน่วยความจำพร้อมกันมากเป็นทวีคูณ เป็นสาเหตุที่เป็นไปได้สูง
+   ของอาการ "หน้าเว็บรีเฟรชเอง" ที่ผู้ใช้รายงาน (แท็บแครชเพราะหน่วยความจำ WASM ไม่พอ เบราว์เซอร์กู้คืน
+   ด้วยการโหลดหน้าใหม่ ผู้ใช้เห็นเป็นเหมือนหน้ารีเฟรชเอง) — แก้แล้วให้ตรงกับ text-to-speech.js: เหลือแค่
+   โมเดล "หญิง (โทนพอดแคสต์)" เท่านั้นที่ยังต้องบังคับ fp32 จริง (ไม่มีไฟล์ quantized ให้เลือกเลย)
+   ‼️ ถ้าจะแก้ตารางนี้อีกในอนาคต ต้องแก้ไฟล์ text-to-speech.js คู่กันเสมอ (มีตารางเดียวกันซ้ำอยู่ที่นั่น
+   เพราะเป็นคนละ execution context กัน ไม่มี module กลางให้ import ร่วมกันได้ตรงๆ) */
 var TTS_DTYPE_OVERRIDES = {
-  'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32',
-  /* แก้กลับมาเป็น fp32 อีกครั้ง (รอบก่อนเคยลองปล่อยดีฟอลต์ให้ใช้ q8/model_quantized.onnx ที่แปลงใหม่
-     ผ่าน Colab ด้วย --skip_validation --modes q8 แล้ว แต่พังจริงตอนใช้งาน — เจอ error ในเบราว์เซอร์
-     "Can't create a session... [ShapeInferenceError] Incompatible dimensions" ที่ node Where ใน
-     duration_predictor/flows.X เหมือนเป๊ะกับที่ onnx.checker เคยจับได้ตอนแปลง — แปลว่าตอนนั้นที่
-     แพตช์ scripts/utils.py ให้ข้าม error นี้ไปนั้น "เดาผิด" ว่าเป็นแค่ checker เข้มงวดเกินไป (false
-     positive) ทั้งที่จริงๆ เป็นบั๊กจริงของ dynamic quantization (int8) กับสถาปัตยกรรม stochastic
-     duration predictor ของ VITS โดยเฉพาะ — ทำให้กราฟที่ quantize ออกมาใช้งานไม่ได้จริงไม่ว่า
-     onnxruntime-web ฝั่งเบราว์เซอร์จะพยายามโหลดยังไงก็ตาม ไม่ใช่แค่ตอน quantize/check ที่ผ่าน
-     บังคับ fp32 (ไฟล์ model.onnx ที่ถูกต้อง ไม่ผ่าน quantization) จึงเป็นทางออกที่ถูกต้องจริงๆ
-     สำหรับ 2 โมเดลนี้ — ส่วนปัญหาแท็บ Safari มือถือ crash ที่เคยเจอกับ fp32 ก่อนหน้านี้ พบว่าสาเหตุ
-     จริงคือบั๊ก ttsPoolSize() รัน 4 Worker ขนานบน iOS (แก้แล้วแยกต่างหาก เป็นคนละเรื่องกับ dtype) */
-  'Tanotfin/mms-tts-2081-FM-onnx': 'fp32',
-  'Tanotfin/mms-tts-2081-M-onnx': 'fp32'
+  'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32'
 };
 function ttsPipelineOpts(modelId, onProgress) {
   var opts = { progress_callback: onProgress };

@@ -50,8 +50,21 @@ function loadPipeline(onProgress, jobId) {
       }
 
       /* navigator.gpu มีเฉพาะเบราว์เซอร์ที่รองรับ WebGPU จริง (Chrome/Edge รุ่นใหม่ ฯลฯ) — เช็คก่อน
-         เพื่อไม่เสียเวลาลองดาวน์โหลดโมเดล 1.5B ก้อนใหญ่ทิ้งเปล่าๆ บนเบราว์เซอร์ที่ไม่มีทางใช้ได้อยู่แล้ว */
-      if (typeof navigator !== 'undefined' && navigator.gpu) {
+         เพื่อไม่เสียเวลาลองดาวน์โหลดโมเดล 1.5B ก้อนใหญ่ทิ้งเปล่าๆ บนเบราว์เซอร์ที่ไม่มีทางใช้ได้อยู่แล้ว
+         ⚠️ 2026-08-10: แค่มี navigator.gpu (ตัว adapter/driver รองรับ WebGPU) ไม่ได้แปลว่าการ์ดจอมี VRAM
+         พอรันโมเดล 1.5B จริง — ตัว loadWith().catch() ด้านล่างจับได้แค่กรณี "สร้าง session ไม่สำเร็จ"
+         (พังตอนโหลด) เท่านั้น แต่ถ้าโหลดสำเร็จแล้ว "พังตอน generate จริง" (VRAM ไม่พอกลางคัน) มักเป็น
+         การ crash ระดับ GPU process/driver ที่ JS try/catch หรือ Promise.catch() ดักจับไม่ได้เลย (ต่างจาก
+         std::bad_alloc ฝั่ง WASM ที่อย่างน้อยยัง reject เป็น JS error ให้ดักได้) เบราว์เซอร์กู้คืนด้วยการ
+         reload แท็บเอง ผู้ใช้เห็นเป็นเหมือน "หน้าเว็บรีเฟรชเอง" — ป้องกันไม่ให้เกิดตั้งแต่ต้นทาง (แทนที่จะ
+         พยายามดักจับซึ่งทำไม่ได้จริง) ด้วยการเช็ก navigator.deviceMemory (GB) ประกอบก่อนเสมอ ใช้เกณฑ์
+         เดียวกับ ttsPoolSize() ใน text-to-speech.js/tts-worker.js (ระมัดระวังไว้ก่อนเมื่อไม่รู้ค่า — คือ
+         iOS Safari ทั้งหมดและเบราว์เซอร์อื่นนอก Chrome/Edge เสมอ — ค่อยลองตัวใหญ่เฉพาะตอน "ยืนยันแล้วจริง"
+         ว่าแรมเยอะพอ mem>=4) แลกกับคำตอบที่อาจไม่ดีเท่าโมเดลใหญ่บนเครื่องที่ไม่รู้ค่าแต่ที่จริงแรงพอ
+         เพื่อความเสถียร (ไม่เสี่ยงแท็บแครช) เป็นหลัก */
+      var mem = (typeof navigator !== 'undefined') ? navigator.deviceMemory : undefined;
+      var canTryBig = typeof navigator !== 'undefined' && navigator.gpu && mem && mem >= 4;
+      if (canTryBig) {
         return loadWith(MODEL_ID_BIG, 'webgpu').catch(function (err) {
           self.postMessage({
             type: 'fallback', jobId: jobId,
