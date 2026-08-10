@@ -69,10 +69,16 @@ details>summary::-webkit-details-marker{display:none}
 details>summary::before{content:'▸';color:var(--muted);transition:.15s}
 details[open]>summary::before{transform:rotate(90deg)}
 .details-body{padding:0 15px 15px;font-size:13.5px}
+.lesson h2{font-size:15px;font-weight:800;margin:16px 0 6px;color:var(--ink)}
 .lesson h3{font-size:13.5px;font-weight:700;margin:12px 0 4px;color:var(--brand-dk)}
+.lesson h4{font-size:13px;font-weight:700;margin:10px 0 3px;color:var(--ink)}
 .lesson p{font-size:13px;margin-bottom:4px;opacity:.92}
-.lesson ul{margin:2px 0 6px 18px;font-size:13px}
+.lesson ul,.lesson ol{margin:2px 0 6px 18px;font-size:13px}
 .lesson li{margin-bottom:4px}
+.lesson code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:12px}
+.lesson mark{background:#FFF1B8;color:#5A4200;padding:0 3px;border-radius:3px}
+[data-theme="dark"] .lesson mark{background:#4A3D1E;color:#E8C88A}
+.lesson-src{font-size:11.5px;color:var(--muted);border-top:1px dashed var(--line);margin-top:10px;padding-top:8px}
 
 .verdict-box{border-radius:13px;padding:14px 16px;font-size:14px;font-weight:600;line-height:1.5}
 .verdict-box.go{background:#E9F9F0;color:#0B7F52}
@@ -319,6 +325,13 @@ details[open]>summary::before{transform:rotate(90deg)}
   <div class="card" id="clNotesTitleCard" style="display:none">
     <h2>📖 <span id="clSubjTitle"></span></h2>
     <p class="mini" id="clSubjFull"></p>
+  </div>
+
+  <!-- ══════════════════ สรุปเนื้อหาบทเรียน (เนื้อหากฎหมายจริง ต่อวิชา — ทยอยเพิ่มทีละวิชา) ══════════════════ -->
+  <div class="card" id="clLessonCard" style="display:none">
+    <h2>📚 สรุปเนื้อหาบทเรียน</h2>
+    <p class="mini" style="margin-bottom:10px">⚠️ สรุปช่วยทบทวนเบื้องต้น เขียนจากความรู้ทั่วไป ไม่ใช่ตัวบทกฎหมายที่อัปเดตล่าสุดแบบเรียลไทม์ กฎหมายมีการแก้ไขเพิ่มเติมได้ ต้องตรวจทานกับตัวบทจริง/หนังสือเรียนที่ใช้สอบก่อนเชื่อ 100% เสมอ</p>
+    <div id="clLessonBody"></div>
   </div>
 
   <div class="card">
