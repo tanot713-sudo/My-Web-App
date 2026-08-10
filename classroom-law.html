@@ -98,6 +98,12 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 .lread{flex-shrink:0;display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--muted);
   cursor:pointer;user-select:none}
 .lread input{width:14px;height:14px;cursor:pointer}
+.lnote-btn{flex-shrink:0;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:4px 9px;
+  font-family:inherit;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer}
+.lnote-btn:hover{border-color:var(--brand);color:var(--brand-dk)}
+.lnote-btn.has{background:var(--brand-sf);border-color:var(--brand);color:var(--brand-dk)}
+.lnote-wrap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.lnote-ta{width:100%;min-height:70px;font-size:13px}
 
 /* ── ค้นหา/กรอง + จัดกลุ่มตามหัวข้อ ของการ์ดข้อสอบตัวอย่าง ── */
 .exsearch{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
@@ -107,6 +113,29 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
   margin:18px 0 6px;padding-bottom:4px;border-bottom:2px solid var(--brand-sf)}
 .exgroup-hd:first-child{margin-top:0}
 .exempty{font-size:13px;color:var(--muted);padding:10px 2px}
+
+/* ── ข้อสอบจำลอง (Mock Exam) ── */
+.mock-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.mock-timer{font-size:18px;font-weight:800;color:var(--brand-dk);font-variant-numeric:tabular-nums}
+.mock-progress{font-size:12.5px;color:var(--muted);font-weight:700}
+.mock-q{font-size:13.5px}
+
+/* ── ฝึกจำเลขมาตรา (Drill) ── */
+.drill-card{background:var(--bg);border-radius:14px;padding:16px;margin-top:12px;text-align:center}
+.drill-scenario{font-size:14px;font-weight:600;line-height:1.6;margin-bottom:14px}
+.drill-ans{font-size:14px;color:var(--brand-dk);font-weight:700;display:none;margin-bottom:6px}
+.drill-why{font-size:12.5px;color:var(--muted);display:none}
+.drill-card.show .drill-ans,.drill-card.show .drill-why{display:block}
+.drill-progress{font-size:12px;color:var(--muted);margin-top:10px}
+.drill-score{font-size:12.5px;font-weight:700;color:var(--brand-dk)}
+
+/* ── ค้นหามาตรา/ฎีกา รวมทุกวิชา ── */
+.refres-item{border-bottom:1px solid var(--line);padding:10px 0}
+.refres-item:last-child{border-bottom:none}
+.refres-loc{font-size:11.5px;font-weight:700;color:var(--brand-dk);margin-bottom:3px}
+.refres-snip{font-size:13px;line-height:1.6}
+.refres-snip mark{background:#FFF1B8;color:#5A4200;padding:0 3px;border-radius:3px}
+[data-theme="dark"] .refres-snip mark{background:#4A3D1E;color:#E8C88A}
 
 .verdict-box{border-radius:13px;padding:14px 16px;font-size:14px;font-weight:600;line-height:1.5}
 .verdict-box.go{background:#E9F9F0;color:#0B7F52}
@@ -206,6 +235,15 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 .flash-card .hint{font-size:11.5px;color:var(--muted)}
 .flash-btns{display:flex;gap:8px;justify-content:center;margin-top:10px}
 .flash-progress{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+.flash-btns .btn{flex:1 1 0;min-width:0;padding:9px 4px;font-size:12px}
+.fsrs-again{border-color:var(--err);color:var(--err)}
+.fsrs-again:hover{background:var(--err);color:#fff}
+.fsrs-hard{border-color:var(--warn);color:var(--warn)}
+.fsrs-hard:hover{background:var(--warn);color:#fff}
+.fsrs-good{border-color:var(--sky);color:var(--sky)}
+.fsrs-good:hover{background:var(--sky);color:#fff}
+.fsrs-easy{border-color:var(--ok);color:var(--ok)}
+.fsrs-easy:hover{background:var(--ok);color:#fff}
 
 /* ── ฝึกเขียนตอบจับเวลา ── */
 .timer-box{text-align:center;padding:16px;background:var(--bg);border-radius:14px;margin-top:12px}
@@ -352,6 +390,15 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 
 <!-- ══════════════════ โน้ตทั้งหมด / รายวิชา (ใช้ร่วมกัน — ต่างกันแค่ตัวกรองวิชา) ══════════════════ -->
 <div class="view" id="viewNotes" style="display:none">
+
+  <!-- ══════════════════ ค้นหามาตรา/ฎีกา รวมทุกวิชา (ไม่ผูกกับวิชาที่เลือก — เห็นตลอด) ══════════════════ -->
+  <div class="card">
+    <h2>🔎 ค้นหามาตรา/ฎีกา (ทุกวิชา)</h2>
+    <p class="mini" style="margin-bottom:10px">พิมพ์เลขมาตรา (เช่น <code>150</code>) หรือเลขฎีกา/คำสำคัญ (เช่น <code>747/2544</code>, <code>กลฉ้อฉล</code>) — ระบบค้นทุกจุดในสรุปเนื้อหาบทเรียนและข้อสอบตัวอย่างของทุกวิชาที่มีอยู่ในเว็บให้ทันที มีประโยชน์มากตอนอ่านทวนใกล้สอบ</p>
+    <input type="text" id="clRefSearch" placeholder="เช่น มาตรา 150, หรือ 747/2544, หรือ กลฉ้อฉล">
+    <div id="clRefResults" style="margin-top:10px"></div>
+  </div>
+
   <div class="card" id="clNotesTitleCard" style="display:none">
     <h2>📖 <span id="clSubjTitle"></span></h2>
     <p class="mini" id="clSubjFull"></p>
@@ -369,6 +416,29 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
     <h2>🎯 ข้อสอบตัวอย่าง</h2>
     <p class="mini" style="margin-bottom:10px">⚠️ โจทย์+แนวคำตอบตัวอย่าง เขียนขึ้นเพื่อฝึกทำความเข้าใจ ไม่ใช่ข้อสอบจริง/ธงคำตอบทางการ ลองวินิจฉัยเองก่อนกดดูเฉลยเสมอ</p>
     <div id="clExamBody"></div>
+  </div>
+
+  <!-- ══════════════════ ข้อสอบจำลอง (Mock Exam) — สุ่มจากธนาคารข้อสอบด้านบน จับเวลาเอง ══════════════════ -->
+  <div class="card" id="clMockCard" style="display:none">
+    <h2>🧪 ข้อสอบจำลอง (Mock Exam)</h2>
+    <p class="mini" style="margin-bottom:10px">สุ่มโจทย์จากธนาคารข้อสอบตัวอย่างของวิชานี้ จับเวลาเอง ทำครบทุกข้อแล้วค่อยเปิดแนวคำตอบเทียบทีเดียว เหมือนจำลองสถานการณ์สอบจริง (ต่างจากข้อสอบตัวอย่างด้านบนที่เปิดเฉลยดูได้เลยทีละข้อ)</p>
+    <div class="frow" id="clMockSetup">
+      <div class="field" style="flex:1 1 120px"><label>จำนวนข้อ</label>
+        <input type="number" id="clMockCount" value="5" min="1" max="30">
+      </div>
+      <div class="field" style="flex:2 1 200px"><label>&nbsp;</label>
+        <button class="btn primary sm" id="clMockStart" type="button">🎲 เริ่มทำข้อสอบจำลอง</button>
+      </div>
+    </div>
+    <div id="clMockArea"></div>
+  </div>
+
+  <!-- ══════════════════ ฝึกจำเลขมาตรา (drill สั้นๆ) — ต่างจาก mock exam ตรงเป็นชุดสั้น ทำซ้ำได้หลายรอบ ══════════════════ -->
+  <div class="card" id="clDrillCard" style="display:none">
+    <h2>⚡ ฝึกจำเลขมาตรา (Drill)</h2>
+    <p class="mini" style="margin-bottom:10px">โจทย์สถานการณ์สั้นๆ ทายว่าเป็นมาตราอะไร ตอบเร็ว เช็กเร็ว ทำได้หลายรอบต่อวัน เหมาะฝึกความไวก่อนสอบ</p>
+    <button class="btn primary sm" id="clDrillStart" type="button">🎲 เริ่ม Drill</button>
+    <div id="clDrillArea"></div>
   </div>
 
   <div class="card">
@@ -389,8 +459,13 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
       <button class="btn sm" id="bpNoteCancelEdit" type="button" style="display:none">ยกเลิกการแก้ไข</button>
     </div>
 
+    <div style="margin-top:14px" id="bpAutoFlashWrap">
+      <button class="btn sm" id="bpAutoFlash" type="button">⚡ สร้าง flashcard จากคำที่ขีดเน้นในบทเรียน (วิชานี้)</button>
+      <div class="status" id="bpAutoFlashStatus"></div>
+    </div>
+
     <div style="margin-top:16px">
-      <button class="btn sm" id="bpReviewBtn" type="button">🔁 เริ่มทบทวนวันนี้</button>
+      <button class="btn sm" id="bpReviewBtn" type="button">🔁 เริ่มทบทวนวันนี้ (FSRS)</button>
       <span class="mini" id="bpReviewCount"></span>
     </div>
     <div id="bpReviewArea"></div>

@@ -926,6 +926,21 @@
     var i = title.indexOf(':');
     return i > 0 ? title.slice(0, i).trim() : title;
   }
+  /* ── ไฮไลต์/จดโน้ตส่วนตัวลงในเนื้อหาบทเรียนโดยตรง (แยกจากสมุดโน้ต+flashcard การ์ดใหญ่ด้านล่าง —
+     อันนี้เป็นโน้ตสั้นๆ ผูกกับหัวข้อบทเรียนแต่ละหัวข้อโดยเฉพาะ ลดขั้นตอนเทียบกับต้องสลับไปเปิดการ์ดแยก) */
+  var LESSON_NOTE_KEY = 'tanot:barprep:lessonnote';
+  function getLessonNoteMap(subjectId) {
+    var all = {};
+    try { all = JSON.parse(localStorage.getItem(LESSON_NOTE_KEY)) || {}; } catch (e) {}
+    return all[subjectId] || {};
+  }
+  function setLessonNote(subjectId, partTitle, text) {
+    var all = {};
+    try { all = JSON.parse(localStorage.getItem(LESSON_NOTE_KEY)) || {}; } catch (e) {}
+    if (!all[subjectId]) all[subjectId] = {};
+    if (text && text.trim()) { all[subjectId][partTitle] = text; } else { delete all[subjectId][partTitle]; }
+    try { localStorage.setItem(LESSON_NOTE_KEY, JSON.stringify(all)); } catch (e) {}
+  }
   function renderLessonContent(subject) {
     var card = $('clLessonCard'), body = $('clLessonBody');
     if (!card || !body) return;
@@ -938,6 +953,7 @@
     }
     var parts = entry.parts;
     var readMap = getLessonReadMap(subject.id);
+    var noteMap = getLessonNoteMap(subject.id);
     var readCount = 0;
     parts.forEach(function (p) { if (readMap[p.title]) readCount++; });
     var pct = parts.length ? Math.round(readCount / parts.length * 100) : 0;
@@ -955,10 +971,16 @@
 
     function renderPart(p, i, openIt) {
       var isRead = !!readMap[p.title];
+      var noteText = noteMap[p.title] || '';
       return '<details class="lesson" id="lpart-' + i + '"' + (openIt ? ' open' : '') + '>' +
         '<summary><span class="lsum-txt">' + esc(p.title) + '</span>' +
+        '<button type="button" class="lnote-btn' + (noteText ? ' has' : '') + '" data-lnotebtn="' + i + '">📝 โน้ต' + (noteText ? ' ✓' : '') + '</button>' +
         '<label class="lread"><input type="checkbox" data-lread="' + i + '"' + (isRead ? ' checked' : '') + '> อ่านแล้ว</label></summary>' +
-        '<div class="details-body">' + mdToHtml(p.md) + '</div></details>';
+        '<div class="details-body">' + mdToHtml(p.md) +
+        '<div class="lnote-wrap" id="lnotewrap-' + i + '" style="display:' + (noteText ? '' : 'none') + '">' +
+        '<textarea class="lnote-ta" data-lnotearea="' + i + '" placeholder="จดโน้ตส่วนตัวของหัวข้อนี้ — เช่น จุดที่ยังไม่แม่น หรือคำถามที่จะไปถามอาจารย์">' +
+        esc(noteText) + '</textarea></div>' +
+        '</div></details>';
     }
 
     var partsHtml;
@@ -988,6 +1010,29 @@
     });
     Array.prototype.forEach.call(body.querySelectorAll('.lread'), function (lbl) {
       lbl.addEventListener('click', function (e) { e.stopPropagation(); });
+    });
+    Array.prototype.forEach.call(body.querySelectorAll('.lnote-btn'), function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var i = btn.getAttribute('data-lnotebtn');
+        var wrap = $('lnotewrap-' + i);
+        if (!wrap) return;
+        var showing = wrap.style.display !== 'none';
+        wrap.style.display = showing ? 'none' : '';
+        if (!showing) { var ta = wrap.querySelector('textarea'); if (ta) ta.focus(); }
+      });
+    });
+    Array.prototype.forEach.call(body.querySelectorAll('.lnote-ta'), function (ta) {
+      ta.addEventListener('input', function () {
+        var i = +ta.getAttribute('data-lnotearea');
+        setLessonNote(subject.id, parts[i].title, ta.value);
+        var btn = body.querySelector('[data-lnotebtn="' + i + '"]');
+        if (btn) {
+          var has = !!ta.value.trim();
+          btn.classList.toggle('has', has);
+          btn.textContent = has ? '📝 โน้ต ✓' : '📝 โน้ต';
+        }
+      });
     });
     Array.prototype.forEach.call(body.querySelectorAll('[data-lread]'), function (cb) {
       cb.addEventListener('change', function () {
@@ -1348,6 +1393,238 @@
     if (hasTopics && $('exqTopicFilter')) $('exqTopicFilter').addEventListener('change', applyExamFilter);
   }
 
+  /* ══════════════════ ข้อสอบจำลอง (Mock Exam) — สุ่มจากธนาคาร EXAM_QUESTIONS ของวิชาที่เลือก จับเวลาเอง ══════════════════
+     ต่างจากการ์ด "ข้อสอบตัวอย่าง" ด้านบนตรงที่ไม่เปิดเฉลยทีละข้อระหว่างทำ — ต้องทำให้ครบชุดก่อนถึงจะเห็น
+     แนวคำตอบทั้งหมดพร้อมเวลารวมที่ใช้ จำลองบรรยากาศห้องสอบจริงได้ใกล้เคียงกว่า */
+  function fmtMmSs(ms) {
+    var s = Math.max(Math.floor(ms / 1000), 0);
+    var mm = Math.floor(s / 60), ss = s % 60;
+    return (mm < 10 ? '0' : '') + mm + ':' + (ss < 10 ? '0' : '') + ss;
+  }
+  function shuffleIndexes(n) {
+    var a = []; for (var i = 0; i < n; i++) a.push(i);
+    for (var i2 = a.length - 1; i2 > 0; i2--) {
+      var j = Math.floor(Math.random() * (i2 + 1));
+      var tmp = a[i2]; a[i2] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+  var mockState = null; // { list, idxs, idx, startTs, timerId }
+  function renderMockCard(subject) {
+    var card = $('clMockCard');
+    if (!card) return;
+    var list = subject && EXAM_QUESTIONS[subject.id];
+    if (!subject || !list || !list.length) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    $('clMockSetup').style.display = '';
+    $('clMockArea').innerHTML = '';
+  }
+  function abortMockExam() {
+    if (mockState && mockState.timerId) clearInterval(mockState.timerId);
+    mockState = null;
+    var area = $('clMockArea'), setup = $('clMockSetup');
+    if (area) area.innerHTML = '';
+    if (setup) setup.style.display = '';
+  }
+  function startMockExam(subject) {
+    var list = EXAM_QUESTIONS[subject.id] || [];
+    if (!list.length) return;
+    var wanted = Math.max(1, Math.min(parseInt($('clMockCount').value, 10) || 5, list.length));
+    mockState = { list: list, idxs: shuffleIndexes(list.length).slice(0, wanted), idx: 0, startTs: Date.now(), timerId: null };
+    $('clMockSetup').style.display = 'none';
+    renderMockQuestion();
+    mockState.timerId = setInterval(function () {
+      var el = $('clMockTimer');
+      if (!el) { if (mockState) clearInterval(mockState.timerId); return; }
+      el.textContent = fmtMmSs(Date.now() - mockState.startTs);
+    }, 1000);
+  }
+  function renderMockQuestion() {
+    var area = $('clMockArea');
+    var item = mockState.list[mockState.idxs[mockState.idx]];
+    var isLast = mockState.idx === mockState.idxs.length - 1;
+    area.innerHTML =
+      '<div class="mock-hd"><span class="mock-timer" id="clMockTimer">00:00</span>' +
+      '<span class="mock-progress">ข้อที่ ' + (mockState.idx + 1) + '/' + mockState.idxs.length + '</span></div>' +
+      '<div class="mock-q">' + mdToHtml('**โจทย์**\n\n' + item.q) + '</div>' +
+      '<div class="frow" style="margin-top:12px">' +
+      (isLast
+        ? '<button class="btn primary sm" id="clMockFinish" type="button">✅ ส่งคำตอบ / ดูสรุปผล</button>'
+        : '<button class="btn primary sm" id="clMockNext" type="button">ข้อต่อไป →</button>') +
+      '<button class="btn sm" id="clMockAbort" type="button">ยกเลิก</button></div>';
+    if (isLast) { $('clMockFinish').addEventListener('click', finishMockExam); }
+    else { $('clMockNext').addEventListener('click', function () { mockState.idx++; renderMockQuestion(); }); }
+    $('clMockAbort').addEventListener('click', abortMockExam);
+  }
+  function finishMockExam() {
+    var elapsedMs = Date.now() - mockState.startTs;
+    if (mockState.timerId) clearInterval(mockState.timerId);
+    var idxs = mockState.idxs, list = mockState.list;
+    var reviewHtml = idxs.map(function (qi, n) {
+      var item = list[qi];
+      return '<details class="lesson"><summary>ข้อ ' + (n + 1) + '. ' +
+        esc(item.q.length > 60 ? item.q.slice(0, 60) + '…' : item.q) + '</summary>' +
+        '<div class="details-body">' + mdToHtml('**โจทย์**\n\n' + item.q) +
+        '<details style="margin-top:8px"><summary>👁️ ดูแนวคำตอบ</summary><div class="details-body">' +
+        mdToHtml(item.a) + '</div></details></div></details>';
+    }).join('');
+    $('clMockArea').innerHTML =
+      '<div class="verdict-box go">🎉 ทำครบ ' + idxs.length + ' ข้อ ใช้เวลาไป ' + fmtMmSs(elapsedMs) + '</div>' +
+      '<p class="mini" style="margin:10px 0">ลองเทียบคำตอบที่เขียน/คิดไว้กับแนวคำตอบด้านล่าง แล้วประเมินตัวเองตามจริง</p>' +
+      reviewHtml +
+      '<div class="frow" style="margin-top:14px"><button class="btn sm" id="clMockAgain" type="button">🎲 ทำชุดใหม่</button></div>';
+    logActivity('mockexam');
+    mockState = null;
+    $('clMockAgain').addEventListener('click', function () { $('clMockArea').innerHTML = ''; $('clMockSetup').style.display = ''; });
+  }
+
+  /* ══════════════════ ฝึกจำเลขมาตรา (drill สั้นๆ) — โจทย์สถานการณ์สั้น ทายมาตรา ตอบเร็ว ทำซ้ำได้หลายรอบ
+     ต่างจาก Mock Exam ตรงที่เป็นชุดสั้น ไม่จับเวลารวม เน้นความไว ให้ผู้ใช้ self-report ว่าตอบถูก/ผิดเอง
+     (เพราะระบบตรวจคำตอบแบบพิมพ์อิสระไม่ได้) ══════════════════ */
+  var DRILL_QUESTIONS = {
+    nitikam: [
+      { scenario: 'ผู้เยาว์ทำสัญญาซื้อขายโดยไม่ได้รับความยินยอมจากผู้แทนโดยชอบธรรม', answer: 'มาตรา 21', why: 'ผู้เยาว์ทำนิติกรรมต้องได้รับความยินยอมจากผู้แทนโดยชอบธรรม มิฉะนั้นเป็นโมฆียะ' },
+      { scenario: 'คู่สัญญาฝ่ายหนึ่งถูกอีกฝ่ายหลอกลวงจนหลงเชื่อและตัดสินใจทำสัญญา', answer: 'มาตรา 159', why: 'กลฉ้อฉล — ทำให้นิติกรรมตกเป็นโมฆียะ บอกล้างได้' },
+      { scenario: 'ทำสัญญาเพราะถูกอีกฝ่ายข่มขู่จนเกิดความกลัวจนต้องยินยอมทำตาม', answer: 'มาตรา 164', why: 'การข่มขู่ทำให้นิติกรรมตกเป็นโมฆียะ บอกล้างได้เช่นเดียวกับกลฉ้อฉล' },
+      { scenario: 'ผู้แสดงเจตนาสำคัญผิดในสิ่งซึ่งเป็นสาระสำคัญแห่งนิติกรรม', answer: 'มาตรา 156', why: 'สำคัญผิดในสาระสำคัญทำให้นิติกรรมตกเป็นโมฆะ (ต่างจากสำคัญผิดในคุณสมบัติซึ่งเป็นแค่โมฆียะ)' },
+      { scenario: 'นิติกรรมมีวัตถุประสงค์เป็นการต้องห้ามชัดแจ้งโดยกฎหมาย หรือขัดต่อความสงบเรียบร้อยหรือศีลธรรมอันดีของประชาชน', answer: 'มาตรา 150', why: 'นิติกรรมที่มีวัตถุประสงค์ขัดกฎหมาย/ความสงบเรียบร้อย/ศีลธรรม เป็นโมฆะ' },
+      { scenario: 'ซื้อขายที่ดินตกลงกันด้วยวาจา ไม่ได้ทำเป็นหนังสือและจดทะเบียนต่อพนักงานเจ้าหน้าที่', answer: 'มาตรา 456', why: 'ซื้อขายอสังหาริมทรัพย์ต้องทำตามแบบ (หนังสือ+จดทะเบียน) มิฉะนั้นเป็นโมฆะ' },
+      { scenario: 'ลูกหนี้ไม่ชำระหนี้ เจ้าหนี้บอกกล่าวกำหนดเวลาพอสมควรให้ชำระแล้ว ลูกหนี้ก็ยังไม่ชำระอีก', answer: 'มาตรา 387', why: 'เจ้าหนี้เลิกสัญญาได้ (บทบัญญัติทั่วไปเรื่องเลิกสัญญา ต้องบอกกล่าวก่อนเสมอ)' },
+      { scenario: 'วัตถุที่ประสงค์แห่งสัญญาจะสำเร็จได้เฉพาะเมื่อชำระหนี้ตรงตามเวลาที่กำหนดเท่านั้น (เวลาเป็นสาระสำคัญ) แล้วลูกหนี้ไม่ชำระตามกำหนด', answer: 'มาตรา 388', why: 'เจ้าหนี้เลิกสัญญาได้ทันที ไม่ต้องบอกกล่าวกำหนดเวลาอย่างมาตรา 387' },
+      { scenario: 'การชำระหนี้ทั้งหมดหรือบางส่วนตกเป็นพ้นวิสัยเพราะเหตุที่โทษลูกหนี้ได้', answer: 'มาตรา 389', why: 'เจ้าหนี้เลิกสัญญาได้ทันที' },
+      { scenario: 'คู่สัญญาส่งมอบเงินหรือทรัพย์มีค่าให้กันไว้ตอนทำสัญญา เพื่อเป็นหลักฐานว่าได้ทำสัญญากันแล้วและเป็นประกันการปฏิบัติตามสัญญา', answer: 'มาตรา 377', why: 'นี่คือคำนิยาม "มัดจำ" — เป็นสัญญาอุปกรณ์ ต้องส่งมอบเมื่อทำสัญญาเท่านั้น' },
+      { scenario: 'คู่สัญญาตกลงกันไว้ล่วงหน้าว่าจะให้ค่าปรับเป็นจำนวนหนึ่งหากไม่ชำระหนี้หรือชำระหนี้ไม่ถูกต้อง', answer: 'มาตรา 379', why: 'นี่คือคำนิยาม "เบี้ยปรับ" — ไม่ต้องพิสูจน์ความเสียหายจริงก็เรียกได้' },
+      { scenario: 'เบี้ยปรับที่ตกลงกันไว้สูงเกินส่วน', answer: 'มาตรา 383', why: 'ศาลมีดุลพินิจลดจำนวนเบี้ยปรับลงได้ตามสมควร' },
+      { scenario: 'เมื่อเลิกสัญญาแล้ว คู่สัญญาแต่ละฝ่ายต้องให้อีกฝ่ายกลับคืนสู่ฐานะเดิมก่อนทำสัญญา', answer: 'มาตรา 391', why: 'ผลของการเลิกสัญญา — เงินต้องคืนพร้อมดอกเบี้ย งาน/บริการที่คืนสภาพเดิมไม่ได้ต้องใช้เงินแทน' },
+      { scenario: 'ข้อความในสัญญาที่อาจตีความได้สองนัย ให้ถือเอานัยที่จะทำให้เป็นผลบังคับได้ ดีกว่านัยที่ไร้ผล', answer: 'มาตรา 10', why: 'หลักตีความเอกสาร — เลือกนัยที่มีผลบังคับได้เสมอเมื่อกำกวม' },
+      { scenario: 'การตีความการแสดงเจตนา ให้เพ่งเล็งถึงเจตนาอันแท้จริงยิ่งกว่าถ้อยคำสำนวนหรือตัวอักษร', answer: 'มาตรา 171', why: 'หลักตีความการแสดงเจตนา — ใช้เมื่อค้นหาเจตนาที่แท้จริงร่วมกันของคู่กรณีได้' },
+      { scenario: 'การตีความสัญญา ท่านให้ตีความไปตามความประสงค์ในทางสุจริต โดยพิเคราะห์ถึงปกติประเพณีด้วย', answer: 'มาตรา 368', why: 'ขั้นตอนสุดท้ายของการตีความสัญญา ใช้เมื่อหาเจตนาแท้จริง/ตีความเอกสาร/บทสันนิษฐานไม่ได้เลย' }
+    ]
+  };
+  var drillState = null; // { bank, queue, idx, correct, total }
+  function renderDrillCard(subject) {
+    var card = $('clDrillCard');
+    if (!card) return;
+    var bank = subject && DRILL_QUESTIONS[subject.id];
+    if (!subject || !bank || !bank.length) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    $('clDrillArea').innerHTML = '';
+  }
+  function stopDrill() {
+    var d = drillState;
+    drillState = null;
+    var area = $('clDrillArea');
+    if (!area) return;
+    area.innerHTML = (d && d.total)
+      ? '<div class="verdict-box ' + (d.correct / d.total >= 0.7 ? 'go' : 'warn') + '">ทำไป ' + d.total + ' ข้อ ตอบถูก ' + d.correct + ' ข้อ (' + Math.round(d.correct / d.total * 100) + '%)</div>'
+      : '';
+    if (d && d.total) logActivity('drill');
+  }
+  function startDrill(subject) {
+    var bank = DRILL_QUESTIONS[subject.id] || [];
+    if (!bank.length) return;
+    drillState = { bank: bank, queue: shuffleIndexes(bank.length), idx: 0, correct: 0, total: 0 };
+    renderDrillQuestion();
+  }
+  function renderDrillQuestion() {
+    var area = $('clDrillArea');
+    if (drillState.idx >= drillState.queue.length) {
+      drillState.queue = drillState.queue.concat(shuffleIndexes(drillState.bank.length)); // วนซ้ำไม่รู้จบ ทำได้หลายรอบต่อวัน
+    }
+    var item = drillState.bank[drillState.queue[drillState.idx]];
+    area.innerHTML =
+      '<div class="drill-card" id="clDrillCardBox">' +
+      '<div class="drill-scenario">' + esc(item.scenario) + '</div>' +
+      '<div class="drill-ans">➡️ ' + esc(item.answer) + '</div>' +
+      '<div class="drill-why">' + esc(item.why) + '</div>' +
+      '</div>' +
+      '<div class="frow" style="margin-top:10px;justify-content:center" id="clDrillPreAnswer">' +
+      '<button class="btn primary sm" id="clDrillReveal" type="button">👁️ ดูเฉลย</button></div>' +
+      '<div class="frow" style="margin-top:10px;justify-content:center;display:none" id="clDrillPostAnswer">' +
+      '<button class="btn sm fsrs-again" id="clDrillWrong" type="button">✗ ตอบผิด</button>' +
+      '<button class="btn sm fsrs-easy" id="clDrillRight" type="button">✓ ตอบถูก</button></div>' +
+      '<div class="drill-progress">ทำไปแล้ว ' + drillState.total + ' ข้อ · <span class="drill-score">ถูก ' + drillState.correct + '/' + drillState.total + '</span>' +
+      ' &nbsp;<button class="btn sm" id="clDrillStop" type="button">หยุด</button></div>';
+    $('clDrillReveal').addEventListener('click', function () {
+      $('clDrillCardBox').classList.add('show');
+      $('clDrillPreAnswer').style.display = 'none';
+      $('clDrillPostAnswer').style.display = '';
+    });
+    $('clDrillWrong').addEventListener('click', function () { answerDrill(false); });
+    $('clDrillRight').addEventListener('click', function () { answerDrill(true); });
+    $('clDrillStop').addEventListener('click', stopDrill);
+  }
+  function answerDrill(correct) {
+    drillState.total++;
+    if (correct) drillState.correct++;
+    drillState.idx++;
+    renderDrillQuestion();
+  }
+
+  /* ══════════════════ ดัชนีค้นมาตรา/ฎีกา รวมทุกวิชา — พิมพ์เลขมาตราหรือเลขฎีกา/คำสำคัญ แล้วเจอทุกจุด
+     ที่เคยพูดถึงในสรุปเนื้อหาบทเรียนและข้อสอบตัวอย่าง ข้ามทุกวิชา (ดัชนีค้นมาตรา + คลังฎีการวมในกล่องเดียวกัน
+     เพราะเป็นการค้นข้อความแบบเดียวกันทั้งคู่ ต่างกันแค่สิ่งที่พิมพ์ค้น — เลขมาตรา หรือ เลขฎีกา/คำสำคัญ) ══════════════════ */
+  function buildReferenceHaystack() {
+    var out = [];
+    var hashOf = {};
+    SUBJECTS.forEach(function (s) { hashOf[s.id] = 'subject-' + s.id; });
+    COURSE_SUBJECTS.forEach(function (s) { hashOf[s.id] = 'course-' + s.id; });
+    SUBJECTS.concat(COURSE_SUBJECTS).forEach(function (s) {
+      var entry = LESSON_CONTENT[s.id];
+      if (entry && entry.parts) {
+        entry.parts.forEach(function (p, i) {
+          out.push({ subjLabel: s.label, hash: hashOf[s.id], loc: p.title, kind: 'สรุปเนื้อหา', text: p.md, jumpKind: 'lesson', jumpIdx: i });
+        });
+      }
+      var qs = EXAM_QUESTIONS[s.id];
+      if (qs) {
+        qs.forEach(function (item, i) {
+          out.push({ subjLabel: s.label, hash: hashOf[s.id], loc: 'ข้อสอบตัวอย่าง ข้อ ' + (i + 1), kind: 'ข้อสอบ', text: item.q + '\n' + item.a, jumpKind: 'exam', jumpIdx: i });
+        });
+      }
+    });
+    return out;
+  }
+  function renderRefSearchResults(query) {
+    var box = $('clRefResults');
+    if (!box) return;
+    query = (query || '').trim();
+    if (query.length < 2) { box.innerHTML = query ? '<p class="mini">พิมพ์อย่างน้อย 2 ตัวอักษรครับ</p>' : ''; return; }
+    var ql = query.toLowerCase();
+    var hay = buildReferenceHaystack();
+    var results = [];
+    hay.forEach(function (h) {
+      var pos = h.text.toLowerCase().indexOf(ql);
+      if (pos === -1) return;
+      var start = Math.max(0, pos - 55);
+      var end = Math.min(h.text.length, pos + query.length + 55);
+      var snippet = (start > 0 ? '…' : '') + h.text.slice(start, end).replace(/[#*`=\n]+/g, ' ').replace(/\s+/g, ' ').trim() + (end < h.text.length ? '…' : '');
+      var snippetEsc = esc(snippet), queryEsc = esc(query);
+      var reHi = new RegExp('(' + queryEsc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig');
+      results.push({ subjLabel: h.subjLabel, loc: h.loc, kind: h.kind, hash: h.hash, jumpKind: h.jumpKind, jumpIdx: h.jumpIdx,
+        snippetHtml: snippetEsc.replace(reHi, '<mark>$1</mark>') });
+    });
+    if (!results.length) { box.innerHTML = '<p class="mini">ไม่พบผลลัพธ์สำหรับ "' + esc(query) + '" ครับ</p>'; return; }
+    var shown = results.slice(0, 40);
+    box.innerHTML = shown.map(function (r, i) {
+      return '<div class="refres-item"><div class="refres-loc">📍 ' + esc(r.subjLabel) + ' — ' + esc(r.loc) + ' (' + esc(r.kind) + ')' +
+        ' <button type="button" class="lnote-btn" data-refjump="' + i + '" style="margin-left:6px">ไปดู →</button></div>' +
+        '<div class="refres-snip">' + r.snippetHtml + '</div></div>';
+    }).join('') + (results.length > 40 ? '<p class="mini" style="margin-top:6px">พบทั้งหมด ' + results.length + ' จุด แสดง 40 จุดแรก — ลองพิมพ์คำที่เจาะจงขึ้นเพื่อกรองผลลัพธ์ให้แคบลง</p>' : '');
+    Array.prototype.forEach.call(box.querySelectorAll('[data-refjump]'), function (btn) {
+      btn.addEventListener('click', function () {
+        var r = shown[+btn.getAttribute('data-refjump')];
+        location.hash = '#' + r.hash;
+        setTimeout(function () {
+          var el = r.jumpKind === 'lesson' ? $('lpart-' + r.jumpIdx) : $('exq-' + r.jumpIdx);
+          if (!el) return;
+          el.open = true;
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 350);
+      });
+    });
+  }
+
   /* ══════════════════ log กิจกรรม (สำหรับกราฟ 30 วันในแดชบอร์ดเท่านั้น ไม่ใช่แหล่งข้อมูลหลัก) ══════════════════ */
   var ACTIVITY_KEY = 'tanot:barprep:activity';
   function loadActivity() {
@@ -1557,7 +1834,6 @@
      เพื่อให้ loadNotes()/saveNotes() ยังเรียกแบบ synchronous ได้เหมือนเดิมทุกจุดในโค้ด
      (IndexedDB เองเป็น async ล้วน) ลดความเสี่ยงจากการรื้อโค้ดทุกจุดที่แตะโน้ต */
   var NOTES_KEY = 'tanot:barprep:notes'; // ใช้ตรวจ/ย้ายข้อมูลเก่าจาก localStorage ครั้งเดียวเท่านั้น ไม่ใช่แหล่งเก็บหลักอีกต่อไป
-  var SRS_STEPS = [1, 3, 7, 14, 30]; // วัน
   var IDB_NAME = 'tanot-barprep', IDB_VERSION = 1, IDB_STORE = 'notes';
   var notesCache = null;
   var idbOpenPromise = null;
@@ -1635,6 +1911,49 @@
     logActivity('note');
     renderNoteList();
     renderReviewCount();
+  }
+  /* ── Auto-flashcard: ดึงคำ/วลีที่ทำ ==เน้น== ไว้ในสรุปเนื้อหาบทเรียนของวิชาหนึ่ง มาเป็นการ์ดหน้า-หลัง
+     (หน้าการ์ด = คำที่เน้น, หลังการ์ด = ประโยค/บรรทัดที่คำนั้นปรากฏ ตัด markdown ออกให้อ่านง่าย) */
+  function extractHighlightFlashcards(subjectId) {
+    var entry = LESSON_CONTENT[subjectId];
+    var out = [];
+    if (!entry || !entry.parts) return out;
+    entry.parts.forEach(function (p) {
+      p.md.split('\n').forEach(function (line) {
+        var re = /==([^=]+)==/g, m;
+        while ((m = re.exec(line)) !== null) {
+          var term = m[1].trim();
+          if (!term) continue;
+          var context = line.replace(/^[-*\d.]+\s*/, '').replace(/==/g, '').replace(/\*\*/g, '')
+            .replace(/`/g, '').replace(/^#+\s*/, '').trim();
+          out.push({ term: term, context: context, part: p.title });
+        }
+      });
+    });
+    return out;
+  }
+  function autoFlashFromHighlights(subject) {
+    var status = $('bpAutoFlashStatus');
+    if (!subject) { status.textContent = 'เลือกวิชาก่อนครับ (กดจากเมนูหัวเรื่อง)'; status.className = 'status err'; return; }
+    var items = extractHighlightFlashcards(subject.id);
+    if (!items.length) { status.textContent = 'ไม่พบคำที่ขีดเน้น (==...==) ในสรุปเนื้อหาบทเรียนวิชานี้'; status.className = 'status'; return; }
+    var notes = loadNotes();
+    var existingKeys = {};
+    notes.forEach(function (n) { existingKeys[(n.subj || '') + '|' + n.q] = 1; });
+    var added = 0;
+    items.forEach(function (it) {
+      var key = subject.label + '|' + it.term;
+      if (existingKeys[key]) return;
+      notes.unshift({ id: 'n' + Date.now() + Math.floor(Math.random() * 100000), subj: subject.label,
+        q: it.term, a: it.context, createdAt: Date.now(), srsIdx: -1, dueAt: Date.now() });
+      existingKeys[key] = 1;
+      added++;
+    });
+    if (added) { saveNotes(notes); logActivity('note'); renderNoteList(); renderReviewCount(); }
+    status.textContent = added
+      ? '✅ สร้างการ์ดใหม่ ' + added + ' ใบจาก ' + items.length + ' คำที่ขีดเน้นทั้งหมด (ข้ามที่มีอยู่แล้ว)'
+      : 'ไม่มีคำใหม่ — สร้างการ์ดจากคำที่ขีดเน้นทั้งหมดไปแล้วก่อนหน้านี้';
+    status.className = 'status ok';
   }
   function deleteNote(id) {
     saveNotes(loadNotes().filter(function (n) { return n.id !== id; }));
@@ -1777,6 +2096,55 @@
     var n = dueNotes().length;
     $('bpReviewCount').textContent = n ? ' — วันนี้มี ' + n + ' การ์ดที่ถึงกำหนดทบทวน' : ' — วันนี้ไม่มีการ์ดค้างทบทวน 🎉';
   }
+  /* ══════════════════ ตารางทบทวน — โมเดล FSRS (Free Spaced Repetition Scheduler) ══════════════════
+     แทนขั้นบันไดตายตัวเดิม ([1,3,7,14,30] วัน) ด้วยโมเดล stability (ความเสถียรของความจำ หน่วยเป็นวัน)
+     + difficulty (ความยากของการ์ด 1=ง่ายสุด, 10=ยากสุด) ต่อการ์ด และคำนวณช่วงเวลาทบทวนถัดไปจาก
+     "retrievability" ตามสูตร forgetting curve จริงของ FSRS: R(t,S) = (1 + t/(9·S))⁻¹
+     ตั้งเป้าความจำ (desired retention) ไว้ที่ 90% ซึ่งพอดีทำให้ interval (วัน) = stability พอดี
+     (แก้สมการ R(t,S)=0.9 หา t จะได้ t = 9·S·(1/0.9 − 1) = S) — สูตรอัปเดต stability/difficulty
+     ด้านล่างเป็นสูตรแบบย่อที่ออกแบบให้ทำงานถูกต้องและตอบสนองตามความยาก/คะแนนจริงที่ให้ ไม่ใช่การอ้างว่า
+     ตรงกับค่าพารามิเตอร์ต้นฉบับที่ทีม FSRS optimize มาจากข้อมูลรีวิวนับล้านครั้งใน Anki 100%
+     (ของจริงต้องมีข้อมูลสะสมจำนวนมากมาปรับพารามิเตอร์เฉพาะผู้ใช้) แต่ยังคงกลไกหลักของ FSRS ไว้ครบ:
+     ประเมิน stability/difficulty แยกต่อการ์ด และคำนวณช่วงทบทวนจากกราฟลืมจริงแทนขั้นบันไดคงที่เดิม */
+  var FSRS_RETENTION = 0.9;
+  var FSRS_RATING_LABEL = { 1: 'Again (ลืมสนิท)', 2: 'Hard (จำได้ยาก)', 3: 'Good (จำได้)', 4: 'Easy (จำง่ายมาก)' };
+  function fsrsRetrievability(elapsedDays, stability) {
+    if (!stability || stability <= 0) return 0;
+    return Math.pow(1 + elapsedDays / (9 * stability), -1);
+  }
+  /* คำนวณค่า stability/difficulty ใหม่ของการ์ด n หลังตอบด้วย rating (1-4) แล้วคืนค่าฟิลด์ที่อัปเดต */
+  function fsrsSchedule(n, rating) {
+    var now = Date.now();
+    var difficulty = n.difficulty == null ? 5 : n.difficulty;
+    var stability = n.stability;
+    if (stability == null) {
+      /* การ์ดใหม่ (หรือการ์ดเก่าจากระบบขั้นบันไดที่ยังไม่เคยผ่าน FSRS) — ตั้งค่าเริ่มต้นตามคะแนนแรก */
+      var initStability = { 1: 0.5, 2: 1, 3: 3, 4: 7 };
+      stability = initStability[rating];
+      difficulty = 5 - (rating - 3); // Again→6, Hard→5.5(ปัด), Good→5, Easy→4 (เก็บช่วง 1-10)
+    } else {
+      var elapsedDays = Math.max((now - (n.lastReview || now)) / DAY_MS, 0);
+      var r = fsrsRetrievability(elapsedDays, stability);
+      if (rating === 1) {
+        /* ลืม (lapse) — stability หดตัวลง ยิ่งการ์ดยากยิ่งหดมาก ห้ามต่ำกว่า 0.5 วัน */
+        stability = Math.max(stability * 0.5 * (1 - difficulty / 20), 0.5);
+        difficulty += 1;
+      } else {
+        var ratingMul = { 2: 0.5, 3: 1, 4: 1.6 }[rating];
+        /* ยิ่งตอบตอนใกล้ลืม (retrievability ต่ำ) ยิ่งได้ผลตอกย้ำความจำมาก (spacing effect) การ์ดง่ายโตเร็วกว่า */
+        var growth = 1 + ((11 - difficulty) / 10) * (1 - r) * ratingMul;
+        stability = stability * Math.max(growth, 1.05);
+        difficulty += (rating - 3) * -0.5;
+      }
+    }
+    difficulty = Math.min(Math.max(difficulty, 1), 10);
+    var intervalDays = 9 * stability * (1 / FSRS_RETENTION - 1); // = stability พอดีที่ retention 90%
+    return {
+      stability: stability, difficulty: difficulty,
+      reps: (n.reps || 0) + (rating > 1 ? 1 : 0), lapses: (n.lapses || 0) + (rating === 1 ? 1 : 0),
+      lastReview: now, dueAt: now + Math.max(intervalDays, 1 / 24) * DAY_MS, srsIdx: rating === 1 ? -1 : (n.srsIdx || 0) + 1
+    };
+  }
   var reviewQueue = [], reviewIdx = 0;
   function startReview() {
     reviewQueue = dueNotes();
@@ -1795,24 +2163,28 @@
     area.innerHTML =
       '<div class="flash-card" id="bpFlashCard"><div class="q">' + esc(n.q) + '</div>' +
       '<div class="a">' + esc(n.a || '(ไม่มีเนื้อหาเพิ่มเติม)') + '</div>' +
-      '<div class="hint">แตะการ์ดเพื่อดูคำตอบ</div></div>' +
+      '<div class="hint">แตะการ์ดเพื่อดูคำตอบ แล้วให้คะแนนความจำตามจริง</div></div>' +
       '<div class="flash-btns">' +
-        '<button class="btn sm" id="bpFlashNo" type="button">😵 จำไม่ได้</button>' +
-        '<button class="btn primary sm" id="bpFlashYes" type="button">✅ จำได้</button>' +
+        '<button class="btn sm fsrs-again" id="bpFlashAgain" type="button">😵 Again</button>' +
+        '<button class="btn sm fsrs-hard" id="bpFlashHard" type="button">😕 Hard</button>' +
+        '<button class="btn sm fsrs-good" id="bpFlashGood" type="button">🙂 Good</button>' +
+        '<button class="btn sm fsrs-easy" id="bpFlashEasy" type="button">😄 Easy</button>' +
       '</div>' +
       '<div class="flash-progress">การ์ดที่ ' + (reviewIdx + 1) + ' / ' + reviewQueue.length + '</div>';
     $('bpFlashCard').addEventListener('click', function () { this.classList.toggle('show'); });
-    $('bpFlashNo').addEventListener('click', function () { answerCard(n, false); });
-    $('bpFlashYes').addEventListener('click', function () { answerCard(n, true); });
+    $('bpFlashAgain').addEventListener('click', function () { answerCard(n, 1); });
+    $('bpFlashHard').addEventListener('click', function () { answerCard(n, 2); });
+    $('bpFlashGood').addEventListener('click', function () { answerCard(n, 3); });
+    $('bpFlashEasy').addEventListener('click', function () { answerCard(n, 4); });
   }
-  function answerCard(n, correct) {
+  function answerCard(n, rating) {
     var notes = loadNotes();
     var rec = null;
     for (var i = 0; i < notes.length; i++) { if (notes[i].id === n.id) { rec = notes[i]; break; } }
     if (rec) {
-      rec.srsIdx = correct ? Math.min(rec.srsIdx + 1, SRS_STEPS.length - 1) : -1;
-      var days = SRS_STEPS[Math.max(rec.srsIdx, 0)];
-      rec.dueAt = Date.now() + days * DAY_MS;
+      var upd = fsrsSchedule(rec, rating);
+      rec.stability = upd.stability; rec.difficulty = upd.difficulty; rec.reps = upd.reps;
+      rec.lapses = upd.lapses; rec.lastReview = upd.lastReview; rec.dueAt = upd.dueAt; rec.srsIdx = upd.srsIdx;
       saveNotes(notes);
       logActivity('review');
     }
@@ -2489,6 +2861,10 @@
       }
       renderLessonContent(subject);
       renderExamQuestions(subject);
+      abortMockExam();
+      renderMockCard(subject);
+      stopDrill();
+      renderDrillCard(subject);
       renderNoteList();
       renderReviewCount();
       renderWritingHistory();
@@ -2541,16 +2917,24 @@
         '<span class="val">' + r.val + '</span></div>';
     }).join('');
   }
-  var SRS_LABELS = ['ใหม่', '1 วัน', '3 วัน', '7 วัน', '14 วัน', '30 วัน'];
+  var SRS_LABELS = ['ใหม่', 'สั้น (<2วัน)', '2-5 วัน', '5-10 วัน', '10-20 วัน', '20 วัน+'];
   var SRS_COLORS = ['#C9CEDC', '#F5A524', '#3B9BEA', '#6C63D9', '#12A594', '#17B26A'];
+  /* จัดกลุ่มการ์ดตาม stability (ความเสถียรของความจำ, วัน) จากโมเดล FSRS แทนขั้นบันไดเดิม
+     การ์ดที่ยังไม่เคยถูกทบทวนด้วย FSRS (stability เป็น null — รวมถึงการ์ดเก่าจากระบบขั้นบันได
+     ที่ยังไม่ผ่านการทบทวนรอบใหม่) จัดเป็น "ใหม่" ไปก่อน จะได้ค่า stability จริงหลังทบทวนครั้งแรก */
+  function srsBucket(n) {
+    var s = n.stability;
+    if (s == null) return 0;
+    if (s < 2) return 1;
+    if (s < 5) return 2;
+    if (s < 10) return 3;
+    if (s < 20) return 4;
+    return 5;
+  }
   function renderSrsTrack() {
     var notes = loadNotes();
     var counts = [0, 0, 0, 0, 0, 0];
-    notes.forEach(function (n) {
-      var idx = (n.srsIdx == null || n.srsIdx < 0) ? 0 : n.srsIdx + 1;
-      if (idx > 5) idx = 5;
-      counts[idx]++;
-    });
+    notes.forEach(function (n) { counts[srsBucket(n)]++; });
     var total = notes.length || 1;
     $('clSrsTrack').innerHTML = counts.map(function (c, i) {
       if (!c) return '';
@@ -2626,7 +3010,16 @@
       }
     });
     $('bpNoteCancelEdit').addEventListener('click', cancelEditNote);
+    $('bpAutoFlash').addEventListener('click', function () { autoFlashFromHighlights(currentSubjectFilter); });
     $('bpReviewBtn').addEventListener('click', startReview);
+    $('clMockStart').addEventListener('click', function () { if (currentSubjectFilter) startMockExam(currentSubjectFilter); });
+    $('clDrillStart').addEventListener('click', function () { if (currentSubjectFilter) startDrill(currentSubjectFilter); });
+    var refSearchTimer = null;
+    $('clRefSearch').addEventListener('input', function () {
+      var val = this.value;
+      clearTimeout(refSearchTimer);
+      refSearchTimer = setTimeout(function () { renderRefSearchResults(val); }, 200);
+    });
     $('bpCleanNotesBtn').addEventListener('click', cleanExistingNotes);
 
     $('bpWrStart').addEventListener('click', startWriting);
