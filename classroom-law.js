@@ -944,6 +944,7 @@
   function renderLessonContent(subject) {
     var card = $('clLessonCard'), body = $('clLessonBody');
     if (!card || !body) return;
+    if ($('clExportPdfStatus')) $('clExportPdfStatus').textContent = '';
     if (!subject) { card.style.display = 'none'; return; }
     var entry = LESSON_CONTENT[subject.id];
     card.style.display = '';
@@ -969,11 +970,26 @@
     var progHtml = '<div class="lprog"><div class="lprog-bar"><div class="lprog-fill" style="width:' + pct + '%"></div></div>' +
       '<span class="lprog-txt">อ่านแล้ว ' + readCount + '/' + parts.length + ' หัวข้อ (' + pct + '%)</span></div>';
 
+    var ttsBarHtml = '<div class="ttsbar"><div class="ttsbar-row">' +
+      '<select class="ttsbar-voice" id="clTtsVoice"></select>' +
+      '<select class="ttsbar-rate" id="clTtsRate"><option value="0.85">0.85x</option><option value="1" selected>1x</option>' +
+      '<option value="1.15">1.15x</option><option value="1.3">1.3x</option></select>' +
+      '<button class="btn primary sm" id="clTtsPlaylistBtn" type="button">🎧 เล่นทั้งวิชาต่อเนื่อง</button></div>' +
+      '<div class="ttsbar-controls" id="clTtsControls" style="display:none">' +
+      '<span class="ttsbar-now" id="clTtsNow"></span>' +
+      '<button class="btn sm" id="clTtsPrev" type="button">⏮ ก่อนหน้า</button>' +
+      '<button class="btn sm" id="clTtsPauseBtn" type="button">⏸ พัก</button>' +
+      '<button class="btn sm" id="clTtsNext" type="button">⏭ ถัดไป</button>' +
+      '<button class="btn sm" id="clTtsStopBtn" type="button">⏹ หยุด</button></div>' +
+      (!window.speechSynthesis ? '<p class="mini" style="margin-top:6px">⚠️ เบราว์เซอร์นี้ไม่รองรับเสียงอ่านสด (Web Speech API) — ลองเปิดด้วย Chrome</p>' : '') +
+      '</div>';
+
     function renderPart(p, i, openIt) {
       var isRead = !!readMap[p.title];
       var noteText = noteMap[p.title] || '';
       return '<details class="lesson" id="lpart-' + i + '"' + (openIt ? ' open' : '') + '>' +
         '<summary><span class="lsum-txt">' + esc(p.title) + '</span>' +
+        '<button type="button" class="tts-playbtn" data-ttsplay="' + i + '">🔊 ฟัง</button>' +
         '<button type="button" class="lnote-btn' + (noteText ? ' has' : '') + '" data-lnotebtn="' + i + '">📝 โน้ต' + (noteText ? ' ✓' : '') + '</button>' +
         '<label class="lread"><input type="checkbox" data-lread="' + i + '"' + (isRead ? ' checked' : '') + '> อ่านแล้ว</label></summary>' +
         '<div class="details-body">' + mdToHtml(p.md) +
@@ -997,7 +1013,36 @@
       partsHtml = parts.map(function (p, i) { return renderPart(p, i, i === 0); }).join('');
     }
 
-    body.innerHTML = chipsHtml + progHtml + partsHtml;
+    body.innerHTML = chipsHtml + progHtml + ttsBarHtml + partsHtml;
+
+    if (window.speechSynthesis) {
+      var voiceSel = $('clTtsVoice');
+      var voices = ttsVoicesCache.length ? ttsVoicesCache : window.speechSynthesis.getVoices();
+      var sorted = voices.slice().sort(function (a, b) {
+        var at = /^th/i.test(a.lang) ? 0 : 1, bt = /^th/i.test(b.lang) ? 0 : 1;
+        return at - bt;
+      });
+      voiceSel.innerHTML = sorted.length
+        ? sorted.map(function (v) { return '<option value="' + esc(v.name) + '">' + esc(v.name) + ' (' + esc(v.lang) + ')</option>'; }).join('')
+        : '<option value="">(ยังไม่พบเสียง — บางเบราว์เซอร์โหลดช้า ลองกด "เล่น" อีกครั้ง)</option>';
+      var preferredName = getPreferredTtsVoiceName() || (pickDefaultThaiVoice(voices) && pickDefaultThaiVoice(voices).name) || '';
+      if (preferredName) voiceSel.value = preferredName;
+      voiceSel.addEventListener('change', function () { setPreferredTtsVoiceName(voiceSel.value); });
+      $('clTtsPlaylistBtn').addEventListener('click', function () {
+        speakPlaylist(parts, 0, parseFloat($('clTtsRate').value) || 1);
+      });
+      $('clTtsPauseBtn').addEventListener('click', toggleTtsPause);
+      $('clTtsStopBtn').addEventListener('click', stopTts);
+      $('clTtsPrev').addEventListener('click', function () { ttsSkip(-1); });
+      $('clTtsNext').addEventListener('click', function () { ttsSkip(1); });
+      Array.prototype.forEach.call(body.querySelectorAll('[data-ttsplay]'), function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          speakLessonPart(parts, +btn.getAttribute('data-ttsplay'), parseFloat($('clTtsRate').value) || 1);
+        });
+      });
+    }
+    renderTtsBar();
 
     Array.prototype.forEach.call(body.querySelectorAll('.lchip'), function (btn) {
       btn.addEventListener('click', function () {
@@ -1044,6 +1089,235 @@
         openIds.forEach(function (id) { var d = $(id); if (d) d.open = true; });
       });
     });
+  }
+
+  /* ── Export PDF ต่อวิชา — ใช้ html2canvas + jsPDF ตัวเดียวกับที่ word.html/excel.html ใช้อยู่แล้ว
+     (โหลดผ่าน CDN ใน classroom-law.html) เพราะ jsPDF เองไม่รองรับฟอนต์ไทยในตัว การ capture DOM
+     จริงเป็นภาพ (ที่ใช้ฟอนต์ Prompt ซึ่งโหลดในหน้าอยู่แล้ว) แม่นยำกว่าและไม่ต้องฝังฟอนต์เอง —
+     สร้างเป็นภาพต่อเนื่องแล้วตัดแบ่งหน้า A4 เอง (ต่างจาก word.js ที่คุมขนาดกระดาษได้หลายแบบ
+     เพราะที่นี่เป็นแค่เอกสารไหลต่อเนื่องหน้าเดียว ไม่ใช่ตัวแก้ไขเอกสารแบบแบ่งหน้าคงที่) */
+  async function exportSubjectPdf(subject) {
+    var status = $('clExportPdfStatus');
+    var jsPDFctor = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDFctor || !window.html2canvas) {
+      if (status) status.textContent = 'โหลดไลบรารีสร้าง PDF ไม่สำเร็จ (ต้องต่ออินเทอร์เน็ต) — ใช้ปุ่มพิมพ์ของเบราว์เซอร์แทนแล้วเลือก "บันทึกเป็น PDF"';
+      window.print();
+      return;
+    }
+    var entry = LESSON_CONTENT[subject.id];
+    if (!entry || !entry.parts || !entry.parts.length) return;
+    if (status) status.textContent = '⏳ กำลังสร้างไฟล์ PDF… (อาจใช้เวลาสักครู่ถ้าเนื้อหายาว)';
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;color:#1F2430;' +
+      'padding:36px;font-family:Prompt,sans-serif;box-sizing:border-box';
+    var html = '<h1 style="font-size:22px;margin:0 0 4px">' + esc(subject.label) + '</h1>' +
+      '<p style="font-size:12.5px;color:#727C93;margin:0 0 22px">' + esc(subject.full) +
+      ' — สรุปเนื้อหาบทเรียน (ส่งออกจาก Tanot เพื่อพิมพ์อ่าน/ขีดเขียนบนกระดาษ ไม่ใช่ตัวบทกฎหมายทางการ)</p>';
+    entry.parts.forEach(function (p) {
+      html += '<h2 style="font-size:16px;margin:22px 0 8px;border-bottom:2px solid #12A594;padding-bottom:4px;color:#0B7F72">' +
+        esc(p.title) + '</h2><div class="lesson" style="font-size:12.5px;line-height:1.75">' + mdToHtml(p.md) + '</div>';
+    });
+    wrap.innerHTML = html;
+    document.body.appendChild(wrap);
+    try {
+      await new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); });
+      var canvas = await window.html2canvas(wrap, { scale: 2, backgroundColor: '#ffffff', useCORS: true,
+        windowWidth: wrap.scrollWidth, windowHeight: wrap.scrollHeight });
+      var pdf = new jsPDFctor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      var pageWmm = 210, pageHmm = 297;
+      var pxPerMm = canvas.width / pageWmm;
+      var pageHpx = Math.floor(pageHmm * pxPerMm);
+      var totalPages = Math.max(1, Math.ceil(canvas.height / pageHpx));
+      for (var i = 0; i < totalPages; i++) {
+        var sy = i * pageHpx;
+        var sh = Math.min(pageHpx, canvas.height - sy);
+        var c2 = document.createElement('canvas');
+        c2.width = canvas.width; c2.height = sh;
+        var ctx = c2.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c2.width, c2.height);
+        ctx.drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh);
+        if (i > 0) pdf.addPage();
+        pdf.addImage(c2.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageWmm, sh / pxPerMm);
+      }
+      pdf.save(subject.label.replace(/[^\wก-๙\-]+/g, '_') + '-สรุปเนื้อหา.pdf');
+      if (status) status.textContent = '✅ ดาวน์โหลด PDF แล้ว (' + totalPages + ' หน้า)';
+    } catch (e) {
+      if (status) status.textContent = 'สร้าง PDF ไม่สำเร็จ: ' + e.message;
+    } finally {
+      document.body.removeChild(wrap);
+    }
+  }
+
+  /* ══════════════════ 🔊 เสียงอ่าน (Text-to-Speech) — ฟังเนื้อหาบทเรียนได้ เหมาะเปิดฟังตอนออกกำลัง/เดินทาง
+     ══════════════════
+     ใช้ Web Speech API ของเบราว์เซอร์เอง (window.speechSynthesis — เล่นสดได้ทันที ไม่ต้องดาวน์โหลดโมเดล)
+     ต่างจากการ์ด "สร้างไฟล์เสียง" ในหน้า text-to-speech.html ที่ใช้โมเดล MMS-TTS แบบกำหนดเอง (ต้องรอ
+     สร้างไฟล์เสียงก่อนถึงจะฟังได้ ไม่เหมาะกับ "ฟังทันที") — เลือกทางนี้เพราะ (1) เล่นได้ทันทีไม่ต้องรอ
+     เหมาะกับ "ฟังตอนออกกำลัง/เดินทาง" ตามที่ต้องการจริงๆ (2) หลีกเลี่ยงบั๊ก "หน้าเว็บรีเฟรชเอง" ที่สงสัยว่า
+     เกี่ยวข้องกับเสียง "หญิง (โทนพอดแคสต์)" ของโมเดล MMS-TTS ไปได้เลยตั้งแต่ต้น เพราะเป็นคนละระบบเสียงกัน
+     ไม่ได้เรียกใช้โมเดลนั้นแต่อย่างใด (บั๊กนั้นยังไม่ได้แก้ ถูกเลื่อนไว้ทำหลังสุดตามที่ขอไว้แต่ต้น) —
+     ค่าเริ่มต้นเลือกเสียงภาษาไทยทั่วไปของเบราว์เซอร์/อุปกรณ์เอง (ไม่ใช่เสียงโทนพอดแคสต์ที่มีปัญหาอยู่แล้ว
+     เพราะเป็นคนละชุดเสียงกันตั้งแต่แรก) ผู้ใช้เลือกเสียงอื่นที่มีในเครื่องได้เองจาก dropdown */
+  var TTS_VOICE_KEY = 'tanot:barprep:ttsvoice';
+  var ttsVoicesCache = [];
+  function loadTtsVoicesCache() { ttsVoicesCache = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; }
+  if (window.speechSynthesis) {
+    loadTtsVoicesCache();
+    window.speechSynthesis.onvoiceschanged = loadTtsVoicesCache;
+  }
+  function getPreferredTtsVoiceName() {
+    try { return localStorage.getItem(TTS_VOICE_KEY) || ''; } catch (e) { return ''; }
+  }
+  function setPreferredTtsVoiceName(name) {
+    try { localStorage.setItem(TTS_VOICE_KEY, name); } catch (e) {}
+  }
+  function pickDefaultThaiVoice(voices) {
+    var thaiVoices = voices.filter(function (v) { return /^th/i.test(v.lang); });
+    if (!thaiVoices.length) return null;
+    var normal = thaiVoices.filter(function (v) { return !/podcast|พอดแคสต์/i.test(v.name); });
+    return normal[0] || thaiVoices[0];
+  }
+  function ttsSelectedVoice(voices) {
+    var preferred = getPreferredTtsVoiceName();
+    if (preferred) {
+      var found = voices.filter(function (v) { return v.name === preferred; })[0];
+      if (found) return found;
+    }
+    return pickDefaultThaiVoice(voices);
+  }
+  /* แปลง markdown-lite ของเว็บนี้ให้เหลือแต่ข้อความอ่านลื่นๆ (ตัดตัวเน้น, หัวข้อ, โค้ด, บูลเลต, เลขข้อออก) */
+  function mdToSpeechText(md) {
+    return md
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/==([^=]+)==/g, '$1')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/^#{1,6}\s*/gm, '')
+      .replace(/^[-•]\s+/gm, '')
+      .replace(/^\d+\.\s+/gm, '')
+      .replace(/[—–]/g, ', ')
+      .replace(/\n{2,}/g, '\n')
+      .trim();
+  }
+  /* ตัดข้อความยาวเป็นท่อนสั้นๆ (ไม่เกิน ~220 ตัวอักษร/ท่อน) แล้วเล่นต่อกันเป็นทอดๆ แทนการส่งข้อความ
+     ยาวเดียวเข้า SpeechSynthesisUtterance ท่อนเดียว — กันบั๊กที่รู้จักกันดีของ Chrome ที่ utterance ยาวๆ
+     มักเงียบ/ค้างกลางคันหลังเล่นไปสักพัก (ไม่ใช้ lookbehind regex เพื่อให้ยังทำงานได้บน iOS Safari รุ่นเก่า) */
+  function splitToSpeechChunks(text) {
+    var lines = text.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+    var chunks = [];
+    lines.forEach(function (line) {
+      if (line.length <= 220) { chunks.push(line); return; }
+      var buf = '';
+      for (var i = 0; i < line.length; i++) {
+        buf += line[i];
+        var atPunct = /[,.!?ๆฯ]/.test(line[i]) && (i === line.length - 1 || line[i + 1] === ' ');
+        if ((atPunct && buf.length > 40) || buf.length >= 220) { chunks.push(buf.trim()); buf = ''; }
+      }
+      if (buf.trim()) chunks.push(buf.trim());
+    });
+    return chunks;
+  }
+  var ttsState = null; // { rate, chunks, chunkIdx, paused, label, playlist:{parts,idxs,cur}|null }
+  var ttsGen = 0;
+  function renderTtsBar() {
+    var controls = $('clTtsControls');
+    if (!controls) return; // อาจสลับหน้าไปแล้ว ไม่มีแถบให้อัปเดต
+    if (!ttsState) { controls.style.display = 'none'; return; }
+    controls.style.display = '';
+    var nowEl = $('clTtsNow'); if (nowEl) nowEl.textContent = '🔊 กำลังอ่าน: ' + ttsState.label;
+    var pauseBtn = $('clTtsPauseBtn'); if (pauseBtn) pauseBtn.textContent = ttsState.paused ? '▶️ เล่นต่อ' : '⏸ พัก';
+    var prevBtn = $('clTtsPrev'), nextBtn = $('clTtsNext');
+    if (prevBtn) prevBtn.style.display = ttsState.playlist ? '' : 'none';
+    if (nextBtn) nextBtn.style.display = ttsState.playlist ? '' : 'none';
+  }
+  function stopTts() {
+    ttsGen++;
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    ttsState = null;
+    renderTtsBar();
+  }
+  function playCurrentChunk() {
+    if (!ttsState || !window.speechSynthesis) return;
+    var myGen = ttsGen;
+    var text = ttsState.chunks[ttsState.chunkIdx];
+    var u = new SpeechSynthesisUtterance(text);
+    var chosen = ttsSelectedVoice(ttsVoicesCache.length ? ttsVoicesCache : window.speechSynthesis.getVoices());
+    if (chosen) { u.voice = chosen; u.lang = chosen.lang; } else { u.lang = 'th-TH'; }
+    u.rate = ttsState.rate || 1;
+    u.onend = function () { if (myGen !== ttsGen) return; ttsAdvance(); };
+    u.onerror = function (e) {
+      if (myGen !== ttsGen) return;
+      if (e && (e.error === 'interrupted' || e.error === 'canceled')) return;
+      ttsAdvance();
+    };
+    window.speechSynthesis.speak(u);
+    renderTtsBar();
+  }
+  function loadPlaylistPart() {
+    var pl = ttsState.playlist;
+    var p = pl.parts[pl.idxs[pl.cur]];
+    ttsState.chunks = splitToSpeechChunks(mdToSpeechText(p.md));
+    ttsState.chunkIdx = 0;
+    ttsState.label = lessonChipLabel(p.title) + ' (' + (pl.cur + 1) + '/' + pl.idxs.length + ')';
+  }
+  function ttsAdvance() {
+    if (!ttsState) return;
+    ttsState.chunkIdx++;
+    if (ttsState.chunkIdx >= ttsState.chunks.length) {
+      if (ttsState.playlist && ttsState.playlist.cur < ttsState.playlist.idxs.length - 1) {
+        ttsState.playlist.cur++;
+        loadPlaylistPart();
+        playCurrentChunk();
+      } else {
+        stopTts();
+      }
+      return;
+    }
+    playCurrentChunk();
+  }
+  function ttsSkip(delta) {
+    if (!ttsState || !ttsState.playlist) return;
+    var pl = ttsState.playlist;
+    var newCur = pl.cur + delta;
+    if (newCur < 0 || newCur >= pl.idxs.length) return;
+    ttsGen++;
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    pl.cur = newCur;
+    loadPlaylistPart();
+    playCurrentChunk();
+  }
+  function toggleTtsPause() {
+    if (!window.speechSynthesis || !ttsState) return;
+    if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+      window.speechSynthesis.pause(); ttsState.paused = true;
+    } else if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume(); ttsState.paused = false;
+    }
+    renderTtsBar();
+  }
+  function speakLessonPart(parts, idx, rate) {
+    if (!window.speechSynthesis) return;
+    stopTts();
+    var p = parts[idx];
+    ttsState = { rate: rate || 1, chunks: splitToSpeechChunks(mdToSpeechText(p.md)), chunkIdx: 0, paused: false,
+      label: lessonChipLabel(p.title), playlist: null };
+    playCurrentChunk();
+  }
+  function speakPlaylist(parts, startIdx, rate) {
+    if (!window.speechSynthesis) return;
+    stopTts();
+    var idxs = [];
+    for (var i = (startIdx || 0); i < parts.length; i++) idxs.push(i);
+    if (!idxs.length) return;
+    ttsState = { rate: rate || 1, chunks: [], chunkIdx: 0, paused: false, label: '', playlist: { parts: parts, idxs: idxs, cur: 0 } };
+    loadPlaylistPart();
+    playCurrentChunk();
+  }
+  function speakRaw(label, text, rate) {
+    if (!window.speechSynthesis) return;
+    stopTts();
+    ttsState = { rate: rate || 1, chunks: splitToSpeechChunks(mdToSpeechText(text)), chunkIdx: 0, paused: false, label: label, playlist: null };
+    playCurrentChunk();
   }
 
   /* ══════════════════ ข้อสอบตัวอย่าง (แยกจากสรุปเนื้อหาบทเรียนโดยตั้งใจ ตามที่ผู้ใช้ขอ) ══════════════════
@@ -1340,8 +1614,10 @@
       '</div>';
 
     function renderItem(item, i) {
-      return '<details class="lesson examq" id="exq-' + i + '"><summary>ข้อ ' + (i + 1) + '. ' +
-        esc(item.q.length > 60 ? item.q.slice(0, 60) + '…' : item.q) + '</summary>' +
+      return '<details class="lesson examq" id="exq-' + i + '"><summary><span class="lsum-txt">ข้อ ' + (i + 1) + '. ' +
+        esc(item.q.length > 60 ? item.q.slice(0, 60) + '…' : item.q) + '</span>' +
+        (window.speechSynthesis ? '<button type="button" class="tts-playbtn" data-ttsexam="' + i + '">🔊 ฟังโจทย์</button>' : '') +
+        '</summary>' +
         '<div class="details-body">' + mdToHtml('**โจทย์**\n\n' + item.q) +
         '<details style="margin-top:8px"><summary>👁️ ดูแนวคำตอบ</summary>' +
         '<div class="details-body">' + mdToHtml(item.a) + '</div></details>' +
@@ -1363,6 +1639,14 @@
     body.innerHTML = searchHtml +
       '<p class="exempty" id="exqEmpty" style="display:none">ไม่พบข้อสอบที่ตรงกับคำค้นครับ ลองคำอื่นหรือล้างตัวกรองดู</p>' +
       '<div id="exqList">' + listHtml + '</div>';
+
+    Array.prototype.forEach.call(body.querySelectorAll('[data-ttsexam]'), function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var i = +btn.getAttribute('data-ttsexam');
+        speakRaw('ข้อสอบ ข้อ ' + (i + 1), list[i].q, 1);
+      });
+    });
 
     var haystacks = list.map(function (it) { return (it.q + ' ' + it.a).toLowerCase(); });
 
@@ -3013,6 +3297,7 @@
     $('bpAutoFlash').addEventListener('click', function () { autoFlashFromHighlights(currentSubjectFilter); });
     $('bpReviewBtn').addEventListener('click', startReview);
     $('clMockStart').addEventListener('click', function () { if (currentSubjectFilter) startMockExam(currentSubjectFilter); });
+    $('clExportPdf').addEventListener('click', function () { if (currentSubjectFilter) exportSubjectPdf(currentSubjectFilter); });
     $('clDrillStart').addEventListener('click', function () { if (currentSubjectFilter) startDrill(currentSubjectFilter); });
     var refSearchTimer = null;
     $('clRefSearch').addEventListener('input', function () {

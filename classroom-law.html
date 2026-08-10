@@ -34,6 +34,7 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 
 .card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px}
 .card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.lhd-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
 .frow{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end}
 .field{display:flex;flex-direction:column;gap:4px;flex:1 1 130px;min-width:120px}
@@ -104,6 +105,17 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 .lnote-btn.has{background:var(--brand-sf);border-color:var(--brand);color:var(--brand-dk)}
 .lnote-wrap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
 .lnote-ta{width:100%;min-height:70px;font-size:13px}
+
+/* ── แถบเสียงอ่าน (TTS) บนสุดของสรุปเนื้อหาบทเรียน ── */
+.ttsbar{background:var(--bg);border-radius:12px;padding:10px 12px;margin-bottom:14px}
+.ttsbar-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ttsbar-voice{flex:2 1 200px;min-width:0;font-size:12.5px;padding:8px 9px}
+.ttsbar-rate{flex:0 1 78px;font-size:12.5px;padding:8px 6px}
+.ttsbar-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--line)}
+.ttsbar-now{font-size:12px;font-weight:700;color:var(--brand-dk);flex:1 1 100%}
+.tts-playbtn{flex-shrink:0;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:4px 9px;
+  font-family:inherit;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer}
+.tts-playbtn:hover{border-color:var(--brand);color:var(--brand-dk)}
 
 /* ── ค้นหา/กรอง + จัดกลุ่มตามหัวข้อ ของการ์ดข้อสอบตัวอย่าง ── */
 .exsearch{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
@@ -406,7 +418,9 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 
   <!-- ══════════════════ สรุปเนื้อหาบทเรียน (เนื้อหากฎหมายจริง ต่อวิชา — ทยอยเพิ่มทีละวิชา) ══════════════════ -->
   <div class="card" id="clLessonCard" style="display:none">
-    <h2>📚 สรุปเนื้อหาบทเรียน</h2>
+    <div class="lhd-row"><h2 style="margin-bottom:0">📚 สรุปเนื้อหาบทเรียน</h2>
+      <button class="btn sm" id="clExportPdf" type="button">📄 Export PDF ทั้งวิชา</button></div>
+    <p class="mini" id="clExportPdfStatus" style="margin:4px 0 6px"></p>
     <p class="mini" style="margin-bottom:10px">⚠️ สรุปช่วยทบทวนเบื้องต้น เขียนจากความรู้ทั่วไป ไม่ใช่ตัวบทกฎหมายที่อัปเดตล่าสุดแบบเรียลไทม์ กฎหมายมีการแก้ไขเพิ่มเติมได้ ต้องตรวจทานกับตัวบทจริง/หนังสือเรียนที่ใช้สอบก่อนเชื่อ 100% เสมอ</p>
     <div id="clLessonBody"></div>
   </div>
@@ -608,6 +622,9 @@ import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/
 window.pdfjsLib = pdfjsLib;
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs';
 </script>
+<!-- ใช้สร้างไฟล์ Export PDF ต่อวิชา (ตัวเดียวกับที่ word.html/excel.html ใช้อยู่แล้ว) -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="classroom-law.js" defer></script>
 </body>
 </html>
