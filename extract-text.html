@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ดึงข้อความออกจากเอกสาร | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
+  --brand:#12A594;--brand-dk:#0B7F72;--brand-sf:#E7F6F4;
+  --amber:#F5A524;--ok:#17B26A;--err:#E5484D;--warn:#E08700;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
+  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:780px;margin:0 auto}
+.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
+.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+.crumb .sep{margin:0 7px;color:#C9CEDC}
+.head{display:flex;align-items:center;gap:12px;margin:12px 0 6px}
+.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:24px;
+  background:linear-gradient(135deg,#12A594,#3FCBB6);color:#fff;display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(18,165,148,.3)}
+h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px}
+.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
+.frow{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center}
+textarea{font-family:inherit;font-size:14px;padding:10px 12px;border-radius:11px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none;
+  resize:vertical;line-height:1.6}
+textarea:focus{outline:none;border-color:var(--brand)}
+[data-theme="dark"] textarea{background:#12151C}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
+  background:var(--card);border-radius:11px;padding:10px 15px;font-family:inherit;font-size:14px;font-weight:700;
+  color:var(--ink);cursor:pointer;transition:.15s;text-decoration:none}
+.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-dk);color:#fff}
+.btn.sm{padding:7px 11px;font-size:12.5px}
+.btn:disabled{opacity:.5;cursor:default}
+.status{font-size:12.5px;color:var(--muted);margin-top:9px;min-height:1.2em}
+.status.err{color:var(--err)}
+.status.ok{color:var(--ok)}
+.char-count{font-size:11.5px;color:var(--muted);text-align:right;margin-top:4px}
+
+.drop{border:2px dashed var(--line);border-radius:14px;padding:26px 16px;text-align:center;cursor:pointer;
+  transition:.15s;background:var(--bg)}
+.drop:hover,.drop.over{border-color:var(--brand);background:var(--brand-sf)}
+.drop .ic{font-size:30px;margin-bottom:6px}
+.drop .main{font-size:13.5px;font-weight:700}
+.drop .sub{font-size:12px;color:var(--muted);margin-top:3px}
+
+.fmt-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.fmt-tag{font-size:11px;font-weight:700;color:var(--brand-dk);background:var(--brand-sf);border-radius:7px;padding:3px 9px}
+
+.dl-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+</style>
+</head>
+<body class="ome-tool-page">
+<script src="auth-gate.js"></script>
+
+<div class="wrap">
+<nav class="crumb"><a href="documents.html">งานที่รับผิดชอบ</a><span class="sep">/</span>ดึงข้อความออกจากเอกสาร</nav>
+<div class="head">
+  <div class="head-ic">📄</div>
+  <div>
+    <h1>ดึงข้อความออกจากเอกสาร</h1>
+    <div class="head-sub">PDF (พิมพ์/สแกน) · รูปภาพ · Word · Excel · PowerPoint → ข้อความล้วน</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>📎 แนบไฟล์</h2>
+  <label class="drop" id="drop" for="fileInput">
+    <div class="ic">📄</div>
+    <div class="main" id="dropMain">แตะเพื่อเลือกไฟล์ หรือลากไฟล์มาวางตรงนี้</div>
+    <div class="sub" id="dropSub">ไฟล์เดียวต่อครั้ง — ไม่มีการอัปโหลดขึ้นเซิร์ฟเวอร์ ประมวลผลในเบราว์เซอร์ทั้งหมด</div>
+  </label>
+  <input type="file" id="fileInput" accept=".txt,.docx,.xlsx,.xls,.csv,.pptx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
+  <div class="fmt-row">
+    <span class="fmt-tag">.pdf</span><span class="fmt-tag">.png/.jpg/.webp/.bmp</span>
+    <span class="fmt-tag">.docx</span><span class="fmt-tag">.xlsx/.xls/.csv</span>
+    <span class="fmt-tag">.pptx</span><span class="fmt-tag">.txt</span>
+  </div>
+  <label class="mini" style="display:flex;align-items:center;gap:5px;margin-top:10px;cursor:pointer">
+    <input type="checkbox" id="ocrChk" checked style="width:auto;flex:none;accent-color:var(--brand)">
+    ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน (ช้ากว่าปกติ — มีผลกับ PDF และไฟล์รูปภาพเท่านั้น)
+  </label>
+  <div class="status" id="readStatus"></div>
+</div>
+
+<div class="card" id="resultCard" style="display:none">
+  <h2>📝 ข้อความที่ดึงได้</h2>
+  <textarea id="resultText" rows="12" placeholder="ข้อความที่ดึงได้จะขึ้นตรงนี้ — แก้ไข/ตรวจทานได้ก่อนคัดลอก/ดาวน์โหลด"></textarea>
+  <div class="char-count" id="charCount">0 ตัวอักษร</div>
+  <div class="dl-row">
+    <button class="btn primary sm" id="copyBtn" type="button">📋 คัดลอกข้อความ</button>
+    <button class="btn sm" id="downloadTxtBtn" type="button">⬇️ ดาวน์โหลด .txt</button>
+    <button class="btn sm" id="splitPdfBtn" type="button" style="display:none">✂️ แยกหน้า PDF (.zip)</button>
+  </div>
+  <div class="status" id="actionStatus"></div>
+</div>
+
+<p class="disc" style="font-size:12px;color:var(--muted);line-height:1.6;padding:14px 4px 4px">
+  ⚠️ OCR (อ่านตัวอักษรจากภาพ) ไม่แม่นยำ 100% เสมอไป โดยเฉพาะภาพเอียง/แสงไม่พอ/ลายมือเขียน — ควรตรวจทานข้อความที่ได้ก่อนนำไปใช้งานจริงเสมอ
+  ไฟล์ทั้งหมดประมวลผลในเบราว์เซอร์ของเครื่องนี้เท่านั้น ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ที่ไหนเลย
+</p>
+
+</div>
+
+<!-- ไลบรารีอ่านไฟล์แนบ (เหมือนหน้า "แปลงเสียง ↔ ข้อความ"/"ตรวจสอบเอกสาร") -->
+<script type="module">
+import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs';
+window.pdfjsLib = pdfjsLib;
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs';
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<!-- ใช้เฉพาะตอนกด "แยกหน้า PDF" (สร้างไฟล์ PDF รายหน้าใหม่) — คนละหน้าที่กับ pdfjsLib ที่ใช้แค่อ่าน -->
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="file-reader.js"></script>
+<script src="extract-text.js" defer></script>
+</body>
+</html>

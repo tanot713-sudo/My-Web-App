@@ -212,7 +212,10 @@ loadManifest()
       if (soon) {
         el.innerHTML = '<div class="tcard">' + inner + '</div>';
       } else {
-        el.innerHTML = '<a class="tcard" href="' + BASE + 'run.html?tool=' + encodeURIComponent(t.id) + '">' + inner + '</a>';
+        // t.href = ลิงก์ไปหน้าเครื่องมือของตัวเอง (เครื่องมือ JS ล้วน ไม่ผ่าน Pyodide) —
+        // ไม่ใส่ = ใช้ run.html?tool=<id> ตามเดิม (เครื่องมือ Python ผ่าน Pyodide)
+        var href = t.href ? (BASE + t.href) : (BASE + 'run.html?tool=' + encodeURIComponent(t.id));
+        el.innerHTML = '<a class="tcard" href="' + href + '">' + inner + '</a>';
       }
       list.appendChild(el);
     });

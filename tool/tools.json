@@ -37,24 +37,17 @@
       ]
     },
     {
-      "id": "pdf-split",
-      "name": "แยกหน้า PDF + ดึงข้อความ",
-      "tagline": "PDF 1 ไฟล์ → แยกทีละหน้า พร้อมข้อความทั้งเล่ม",
-      "desc": "แยก PDF เป็นไฟล์รายหน้า (รวมเป็น .zip ไฟล์เดียว) และดึงข้อความทุกหน้าออกเป็น .txt สำหรับค้นหา/คัดลอกต่อ ทำงานในเบราว์เซอร์ทั้งหมด ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์",
+      "id": "extract-text",
+      "name": "ดึงข้อความออกจากเอกสาร",
+      "tagline": "PDF/รูปภาพ/Word/Excel/PowerPoint → ข้อความล้วน (พร้อม OCR)",
+      "desc": "ดึงข้อความจาก PDF (พิมพ์หรือสแกนภาพ — OCR ให้อัตโนมัติ), รูปภาพ, .docx, .xlsx/.xls/.csv, .pptx ให้เป็นข้อความล้วนพร้อมคัดลอก/ดาวน์โหลด และยังแยกหน้า PDF เป็นไฟล์รายหน้า (.zip) ได้เหมือนเดิม — ทำงานในเบราว์เซอร์ทั้งหมด ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์",
       "scope": "งานเอกสารทั่วไป",
       "status": "ready",
-      "dir": "pdf-split/",
-      "packages": [
-        "pypdf"
-      ],
-      "modules": [
-        "tool_run.py"
-      ],
-      "assets": [],
-      "accept": ".pdf",
-      "inputName": "ไฟล์ .pdf ใดก็ได้",
-      "inputHint": "PDF สแกนภาพจะแยกหน้าได้ แต่ดึงข้อความไม่ได้ (ยังไม่มี OCR)",
-      "outputHint": "pages_*.zip (PDF รายหน้า) + text_*.txt (ข้อความทั้งเล่ม)",
+      "href": "extract-text.html",
+      "accept": ".pdf,.png,.jpg,.jpeg,.webp,.bmp,.docx,.xlsx,.xls,.csv,.pptx,.txt",
+      "inputName": "PDF/รูปภาพ/.docx/.xlsx/.xls/.csv/.pptx/.txt",
+      "inputHint": "PDF ที่เป็นภาพสแกนและไฟล์รูปภาพใช้ OCR อ่านอัตโนมัติ (เปิด/ปิดได้ในหน้าเครื่องมือ)",
+      "outputHint": "ข้อความให้คัดลอก/ดาวน์โหลดเป็น .txt ได้เสมอ + pages_*.zip (PDF รายหน้า) เฉพาะไฟล์ .pdf",
       "hasCheck": false,
       "notes": []
     }

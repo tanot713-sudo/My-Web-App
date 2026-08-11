@@ -56,7 +56,7 @@
         { key: 'powerpoint', label: 'งาน PowerPoint', href: soonHref('งาน PowerPoint') },
         { key: 'cad',        label: 'งานเขียนแบบ (CAD)', href: soonHref('งานเขียนแบบ (CAD)') },
         { key: 'est-cost',   label: 'ประเมินราคา PM/CM', href: 'run.html?tool=est-cost' },
-        { key: 'pdf-split',  label: 'แยกหน้า PDF', href: 'run.html?tool=pdf-split' }
+        { key: 'extract-text', label: 'ดึงข้อความออกจากเอกสาร', href: 'extract-text.html' }
       ]
     },
     { key: 'data-collect', label: 'รวบรวมข้อมูล', href: soonHref('รวบรวมข้อมูล') },
