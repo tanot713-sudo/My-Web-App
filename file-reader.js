@@ -25,6 +25,44 @@ function isGarbledText(text) {
   return garbled / stripped.length > 0.2 && garbled > normal;
 }
 
+/* บั๊กที่พบบ่อยกับ PDF ภาษาไทยบางไฟล์ (โดยเฉพาะเอกสารราชการ/สัญญาที่แปลงมาจากโปรแกรมบางตัว):
+   font วาง glyph แยกตำแหน่งทีละตัวอักษรแทนที่จะเป็นคำ ทำให้ pdf.js คืน TextItem แยกทีละตัว แล้ว
+   readPdfFile ต่อข้อความด้วยช่องว่างระหว่างทุก item (บรรทัดล่างนี้) จึงได้ข้อความไทยที่ถูกแยกด้วย
+   ช่องว่างทุกตัวอักษร เช่น "ค ู ่ ฉบับ" แทนที่จะเป็น "คู่ฉบับ" — อ่านไม่รู้เรื่องเลย
+   วิธีแก้: ตรวจจับรูปแบบนี้แล้วลบช่องว่างที่ "คั่นกลางระหว่างอักษรไทยสองตัว" ออก (ภาษาไทยไม่มีช่องว่าง
+   คั่นกลางตัวอักษรในคำอยู่แล้วโดยธรรมชาติ) เช็คด้วย looksLikeSpacedThaiText() ก่อนเสมอ เพื่อไม่ให้ไป
+   ลบช่องว่างจริงของข้อความไทยที่ดึงมาถูกต้องอยู่แล้ว (ซึ่งบางทีก็มีช่องว่างคั่นประโยค/วรรคตอนจริงๆ) */
+var THAI_CHAR_RE = /[ก-ฺเ-๎๐-๙]/;
+
+function isThaiCharAt(str, i) {
+  return i >= 0 && i < str.length && THAI_CHAR_RE.test(str[i]);
+}
+
+function looksLikeSpacedThaiText(text) {
+  var tokens = text.split(/ /).filter(Boolean);
+  if (tokens.length < 15) return false;
+  var thaiShortTokens = 0;
+  tokens.forEach(function (tok) {
+    if (tok.length <= 2 && THAI_CHAR_RE.test(tok) && !/[^฀-๿]/.test(tok)) thaiShortTokens++;
+  });
+  return (thaiShortTokens / tokens.length) > 0.35;
+}
+
+function collapseSpacedThaiText(text) {
+  var out = '';
+  for (var i = 0; i < text.length; i++) {
+    var ch = text[i];
+    if (ch === ' ' && isThaiCharAt(text, i - 1) && isThaiCharAt(text, i + 1)) continue;
+    out += ch;
+  }
+  return out;
+}
+
+function fixSpacedThaiIfNeeded(text) {
+  if (text && looksLikeSpacedThaiText(text)) return collapseSpacedThaiText(text);
+  return text;
+}
+
 function requireLib(globalName, humanName) {
   if (!window[globalName]) {
     throw new Error('โหลดไลบรารีสำหรับอ่านไฟล์ชนิดนี้ไม่สำเร็จ (' + humanName + ') — เช็คอินเทอร์เน็ตแล้วลองรีเฟรชหน้าใหม่');
@@ -138,14 +176,16 @@ var ACCEPT_ATTR = '.txt,.docx,.xlsx,.xls,.csv,.pptx,.pdf,.png,.jpg,.jpeg,.webp,.
    (รูปภาพเดี่ยว .png/.jpg ฯลฯ ใช้ OCR เสมอเพราะไม่มีเลเยอร์ข้อความให้เลือกอยู่แล้ว) */
 function readAnyFile(file, opts) {
   var name = file.name.toLowerCase();
-  if (name.endsWith('.txt')) return readTxtFile(file);
-  if (name.endsWith('.docx')) return readDocxFile(file);
-  if (name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.csv')) return readXlsxFile(file);
-  if (name.endsWith('.pptx')) return readPptxFile(file);
-  if (name.endsWith('.ppt')) return Promise.reject(new Error('ไฟล์ .ppt (PowerPoint รุ่นเก่า) ไม่รองรับ — เปิดไฟล์ใน PowerPoint แล้ว "บันทึกเป็น" ชนิด .pptx ก่อน'));
-  if (name.endsWith('.pdf')) return readPdfFile(file, opts);
-  if (/\.(png|jpe?g|webp|bmp)$/.test(name)) return readImageFile(file, opts);
-  return Promise.reject(new Error('ไม่รองรับไฟล์ชนิดนี้ — รองรับ .txt/.docx/.xlsx/.xls/.csv/.pptx/.pdf/รูปภาพ'));
+  var promise;
+  if (name.endsWith('.txt')) promise = readTxtFile(file);
+  else if (name.endsWith('.docx')) promise = readDocxFile(file);
+  else if (name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.csv')) promise = readXlsxFile(file);
+  else if (name.endsWith('.pptx')) promise = readPptxFile(file);
+  else if (name.endsWith('.ppt')) return Promise.reject(new Error('ไฟล์ .ppt (PowerPoint รุ่นเก่า) ไม่รองรับ — เปิดไฟล์ใน PowerPoint แล้ว "บันทึกเป็น" ชนิด .pptx ก่อน'));
+  else if (name.endsWith('.pdf')) promise = readPdfFile(file, opts);
+  else if (/\.(png|jpe?g|webp|bmp)$/.test(name)) promise = readImageFile(file, opts);
+  else return Promise.reject(new Error('ไม่รองรับไฟล์ชนิดนี้ — รองรับ .txt/.docx/.xlsx/.xls/.csv/.pptx/.pdf/รูปภาพ'));
+  return promise.then(fixSpacedThaiIfNeeded);
 }
 
 window.TanotFileReader = {
@@ -157,6 +197,8 @@ window.TanotFileReader = {
   readPptxFile: readPptxFile,
   readPdfFile: readPdfFile,
   readImageFile: readImageFile,
-  isGarbledText: isGarbledText
+  isGarbledText: isGarbledText,
+  looksLikeSpacedThaiText: looksLikeSpacedThaiText,
+  collapseSpacedThaiText: collapseSpacedThaiText
 };
 })();
