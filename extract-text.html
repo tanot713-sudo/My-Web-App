@@ -23,12 +23,11 @@ body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink
 .crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
 .crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
 .crumb .sep{margin:0 7px;color:#C9CEDC}
-.head{display:flex;align-items:center;gap:12px;margin:12px 0 6px}
+.head{display:flex;align-items:center;gap:12px;margin:12px 0 14px}
 .head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:24px;
   background:linear-gradient(135deg,#12A594,#3FCBB6);color:#fff;display:grid;place-items:center;
   box-shadow:0 6px 18px rgba(18,165,148,.3)}
 h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
-.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
 
 .card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px}
 .card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
@@ -52,7 +51,7 @@ textarea:focus{outline:none;border-color:var(--brand)}
 .status.ok{color:var(--ok)}
 .char-count{font-size:11.5px;color:var(--muted);text-align:right;margin-top:4px}
 
-.drop{border:2px dashed var(--line);border-radius:14px;padding:26px 16px;text-align:center;cursor:pointer;
+.drop{border:1.5px solid var(--line);border-radius:14px;padding:26px 16px;text-align:center;cursor:pointer;
   transition:.15s;background:var(--bg)}
 .drop:hover,.drop.over{border-color:var(--brand);background:var(--brand-sf)}
 .drop .ic{font-size:30px;margin-bottom:6px}
@@ -72,19 +71,16 @@ textarea:focus{outline:none;border-color:var(--brand)}
 <nav class="crumb"><a href="documents.html">งานที่รับผิดชอบ</a><span class="sep">/</span>ดึงข้อความออกจากเอกสาร</nav>
 <div class="head">
   <div class="head-ic">📄</div>
-  <div>
-    <h1>ดึงข้อความออกจากเอกสาร</h1>
-    <div class="head-sub">PDF (พิมพ์/สแกน) · รูปภาพ · Word · Excel · PowerPoint → ข้อความล้วน</div>
-  </div>
+  <h1>ดึงข้อความออกจากเอกสาร</h1>
 </div>
 
 <div class="card">
-  <h2>📎 แนบไฟล์</h2>
-  <label class="drop" id="drop" for="fileInput">
+  <h2>📁 แนบไฟล์</h2>
+  <div class="drop" id="drop" role="button" tabindex="0">
     <div class="ic">📄</div>
     <div class="main" id="dropMain">แตะเพื่อเลือกไฟล์ หรือลากไฟล์มาวางตรงนี้</div>
     <div class="sub" id="dropSub">ไฟล์เดียวต่อครั้ง — ไม่มีการอัปโหลดขึ้นเซิร์ฟเวอร์ ประมวลผลในเบราว์เซอร์ทั้งหมด</div>
-  </label>
+  </div>
   <input type="file" id="fileInput" accept=".txt,.docx,.xlsx,.xls,.csv,.pptx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
   <div class="fmt-row">
     <span class="fmt-tag">.pdf</span><span class="fmt-tag">.png/.jpg/.webp/.bmp</span>
@@ -109,11 +105,6 @@ textarea:focus{outline:none;border-color:var(--brand)}
   </div>
   <div class="status" id="actionStatus"></div>
 </div>
-
-<p class="disc" style="font-size:12px;color:var(--muted);line-height:1.6;padding:14px 4px 4px">
-  ⚠️ OCR (อ่านตัวอักษรจากภาพ) ไม่แม่นยำ 100% เสมอไป โดยเฉพาะภาพเอียง/แสงไม่พอ/ลายมือเขียน — ควรตรวจทานข้อความที่ได้ก่อนนำไปใช้งานจริงเสมอ
-  ไฟล์ทั้งหมดประมวลผลในเบราว์เซอร์ของเครื่องนี้เท่านั้น ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ที่ไหนเลย
-</p>
 
 </div>
 

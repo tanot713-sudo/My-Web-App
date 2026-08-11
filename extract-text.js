@@ -120,7 +120,14 @@
 
   function init() {
     var drop = $('drop'), fileInput = $('fileInput');
-    // <label for="fileInput"> เปิด file picker ให้เองอยู่แล้วตอนคลิก ไม่ต้องดักจับ click เพิ่ม
+    /* ตั้งใจใช้ <div> ไม่ใช่ <label for="fileInput"> — เจอบั๊กเรนเดอร์จริงที่ทำให้มีแท่งสีจางๆ
+       โผล่ทับขอบซ้ายของกล่องเวลาใช้ <label> ที่มีพื้นหลัง/เส้นขอบ/border-radius แบบนี้ (บั๊กเฉพาะ
+       ของเบราว์เซอร์บางตัวกับ label ที่ผูกกับ input ไฟล์) จึงต้องดักจับ click/keydown เปิด file
+       picker เอง แทนการพึ่งพฤติกรรม label→input อัตโนมัติ */
+    drop.addEventListener('click', function () { fileInput.click(); });
+    drop.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+    });
     ['dragenter', 'dragover'].forEach(function (ev) {
       drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); });
     });
