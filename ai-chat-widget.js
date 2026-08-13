@@ -40,6 +40,23 @@
     return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
   }
 
+  /* ⚠️ 2026-08-13: มีรายงานยืนยันจริงจากผู้ใช้ (เดสก์ท็อป ไม่ใช่ iOS รอบนี้) ว่าเจอ
+     "Can't create a session... ERROR_MESSAGE: std::bad_alloc" ตอนพิมพ์ถามแค่คำเดียว — คือกรณีเดียวกับ
+     ที่คอมเมนต์ใน ai-chat-worker.js เคยเจอตอนลองโมเดล 1.5B ตรงๆ แต่ครั้งนี้เกิดแม้จะถอยไปใช้โมเดลเล็กสุด
+     (0.5B, q4) แล้วก็ตาม — สรุปคือ WASM linear memory เต็มได้จากหลายสาเหตุที่ไม่เกี่ยวกับขนาดโมเดลเลย
+     (แท็บ/โปรแกรมอื่นกินแรมเยอะ, เบราว์เซอร์บางตัวจำกัด WASM heap ไว้ต่ำ ฯลฯ) ข้อความ error ดิบเป็นภาษา
+     C++ ที่คนทั่วไปอ่านไม่รู้เรื่องและทำอะไรต่อไม่ถูก จึงแปลงเป็นคำอธิบาย+คำแนะนำที่เข้าใจง่ายแทนก่อนแสดงผล
+     (ai-chat-worker.js เองก็แก้คู่กันให้ล้าง pipeline cache ทิ้งเมื่อโหลดพัง เพื่อให้ลองใหม่ได้ในครั้งถัดไป
+     แทนที่จะติด error เดิมค้างตลอดเซสชัน) */
+  function friendlyChatError(rawMessage) {
+    var msg = rawMessage || '';
+    if (/bad_alloc|Can't create a session|out of memory/i.test(msg)) {
+      return 'โหลดโมเดล AI ไม่สำเร็จ เพราะหน่วยความจำที่เบราว์เซอร์เหลือให้ใช้ไม่พอ (มักเกิดถ้าเปิดแท็บ/' +
+        'โปรแกรมอื่นพร้อมกันเยอะ) ลองปิดแท็บ/โปรแกรมอื่นแล้วพิมพ์ถามใหม่อีกครั้ง';
+    }
+    return msg;
+  }
+
   /* ── CSS (ฉีดครั้งเดียว ใช้ตัวแปรสี --ome-* จาก theme.css ที่โหลดอยู่แล้วทุกหน้า จึงสลับมืด/สว่าง
      อัตโนมัติตาม data-theme โดยไม่ต้องกำหนด token สีเองซ้ำแบบหน้าเครื่องมือทั่วไป) ────────────────── */
   var css = ''
@@ -327,7 +344,7 @@
           cleanup();
           if (replyBubble) replyBubble.remove();
           messages.pop();
-          setStatus('❌ ตอบไม่สำเร็จ: ' + msg.message, 'err');
+          setStatus('❌ ตอบไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
           setBusy(false); inputEl.focus();
         }
       }
@@ -335,7 +352,7 @@
         cleanup();
         if (replyBubble) replyBubble.remove();
         messages.pop();
-        setStatus('❌ Web Worker error: ' + (e.message || 'ไม่ทราบสาเหตุ'), 'err');
+        setStatus('❌ ตอบไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
         setBusy(false); inputEl.focus();
       }
       function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }

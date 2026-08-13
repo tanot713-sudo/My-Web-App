@@ -77,7 +77,14 @@ function loadPipeline(onProgress, jobId) {
     });
     pipelinePromise.then(function () {
       self.postMessage({ type: 'pipeline-ready', jobId: jobId, modelId: activeInfo.modelId, device: activeInfo.device });
-    }, function () { /* โหลดพังทั้งคู่ — ปล่อยให้ error จริงโผล่ตอนเรียก chat ครั้งแรกแทน */ });
+    }, function () {
+      /* โหลดพังทั้งคู่ (ทั้งตัวใหญ่ผ่าน WebGPU ถ้าลอง และตัวเล็กสำรองบน WASM) — เคลียร์ cache ทิ้ง
+         ไม่งั้น pipelinePromise จะค้างเป็น promise ที่ reject แล้วตลอดไปทั้งเซสชัน ทำให้ทุกข้อความถัดไป
+         เจอ error เดิมซ้ำทันทีโดยไม่มีทางลองใหม่เลย แม้ผู้ใช้จะปิดแท็บ/โปรแกรมอื่นที่กินหน่วยความจำไปแล้ว
+         ก็ตาม (เจอจริง: std::bad_alloc ตอนสร้าง session แม้เป็นโมเดลเล็กสุด/บนเดสก์ท็อป) — เคลียร์แล้ว
+         ปล่อยให้ error จริงโผล่ตอนเรียก chat ครั้งนี้แทน ครั้งถัดไปจะลองโหลดใหม่ตั้งแต่ต้นให้เอง */
+      pipelinePromise = null;
+    });
   }
   return pipelinePromise;
 }
