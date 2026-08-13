@@ -94,7 +94,7 @@ var isBusy = false;
 self.onmessage = function (e) {
   var msg = e.data;
   if (!msg || msg.type !== 'chat') return;
-  var jobId = msg.jobId, messages = msg.messages;
+  var jobId = msg.jobId, messages = msg.messages, maxNewTokens = msg.maxNewTokens || 256;
 
   if (isBusy) {
     self.postMessage({ type: 'error', jobId: jobId, message: 'Worker กำลังยุ่งอยู่กับงานก่อนหน้า (ไม่ควรเกิดขึ้น)' });
@@ -120,10 +120,13 @@ self.onmessage = function (e) {
         self.postMessage({ type: 'token', jobId: jobId, token: token });
       }
     });
-    /* ลดจาก 512 → 256: เจอจริงว่าโมเดล 0.5B รันบน WASM ช้ามากกว่าจะได้คำตอบครบ (โดยเฉพาะรอบที่ต่อจาก
-       ถอดเสียงจากไมค์ ซึ่งมีขั้นตอน ASR ต่อคิวมาก่อนหน้าอีกที) ตัดเพดานให้สั้นลงช่วยให้ตอบเร็วขึ้นชัดเจน
-       และกันโมเดลพูดยืดยาวเกินจำเป็นสำหรับแชทถาม-ตอบทั่วไปด้วย */
-    return generator(messages, { max_new_tokens: 256, temperature: 0.7, streamer: streamer });
+    /* ลดจาก 512 → 256 เป็นค่าเริ่มต้น: เจอจริงว่าโมเดล 0.5B รันบน WASM ช้ามากกว่าจะได้คำตอบครบ
+       (โดยเฉพาะรอบที่ต่อจากถอดเสียงจากไมค์ ซึ่งมีขั้นตอน ASR ต่อคิวมาก่อนหน้าอีกที) ตัดเพดานให้สั้นลง
+       ช่วยให้ตอบเร็วขึ้นชัดเจนและกันโมเดลพูดยืดยาวเกินจำเป็นสำหรับแชทถาม-ตอบทั่วไปด้วย — ผู้เรียกสามารถ
+       ส่ง msg.maxNewTokens มาขอเพดานที่สูงกว่านี้ได้ (เช่น หน้า languages.html โหมด "ฝึกเขียน" ที่ต้องการ
+       คำตอบตรวจไวยากรณ์/แปลภาษายาวกว่าแชทตอบสั้นๆ ทั่วไป) ai-chat-widget.js เดิมไม่ส่งฟิลด์นี้มา จึงยังได้
+       256 เท่าเดิมเป๊ะๆ ไม่กระทบพฤติกรรมเดิม */
+    return generator(messages, { max_new_tokens: maxNewTokens, temperature: 0.7, streamer: streamer });
   }).then(function () {
     self.postMessage({ type: 'done', jobId: jobId });
   }).catch(function (err) {
