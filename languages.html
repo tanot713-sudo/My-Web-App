@@ -80,6 +80,9 @@
         const CloseIcon = icon('x', 'w-5 h-5');
         const NotebookIcon = icon('notebook-pen', 'w-4 h-4');
         const PencilIcon = icon('pencil', 'w-4 h-4');
+        const SearchIcon = icon('search', 'w-4 h-4');
+        const KeyboardIcon = icon('keyboard', 'w-3.5 h-3.5');
+        const PencilSmallIcon = icon('pencil', 'w-3.5 h-3.5');
         // ไอคอนเล็กประกอบปุ่มโหมดย่อยในหน้า "ฝึกเขียน" — ไม่ใส่ text-* ในคลาสตั้งใจ ให้สืบสี
         // currentColor จากปุ่มแม่เอง (ขาวตอน active / เทาตอนไม่ active) โดยไม่ต้องทำ 2 เวอร์ชันสี
         const BrushIcon = icon('brush', 'w-3.5 h-3.5');
@@ -620,9 +623,11 @@
                     <h3 className="text-lg font-semibold text-gray-800 mb-1">แต่งประโยคภาษา{lang.title}อะไรก็ได้ แล้วให้ AI ช่วยตรวจ</h3>
                     <p className="text-xs text-gray-400 mb-3">เขียนสั้นๆ 1-3 ประโยคก็พอ — AI จะช่วยแก้ไวยากรณ์และอธิบายจุดที่แก้ให้เป็นภาษาไทย</p>
 
-                    <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold w-fit mb-2">
-                        <button type="button" onClick={() => setInputMode('type')} className={`px-3 py-1.5 ${inputMode === 'type' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>พิมพ์</button>
-                        <button type="button" onClick={() => setInputMode('write')} className={`px-3 py-1.5 ${inputMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>เขียนด้วยมือ</button>
+                    <div className="flex rounded-full border border-gray-200 overflow-hidden w-fit mb-2">
+                        <button type="button" onClick={() => setInputMode('type')} title="พิมพ์" aria-label="พิมพ์"
+                            className={`p-2 ${inputMode === 'type' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><KeyboardIcon /></button>
+                        <button type="button" onClick={() => setInputMode('write')} title="เขียนด้วยมือ" aria-label="เขียนด้วยมือ"
+                            className={`p-2 ${inputMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><PencilSmallIcon /></button>
                     </div>
 
                     {inputMode === 'type' ? (
@@ -1004,6 +1009,12 @@
             const [syncing, setSyncing] = useState(false);
             const [syncStatus, setSyncStatus] = useState('');
             const [mobileNavOpen, setMobileNavOpen] = useState(false);
+            const [langFilter, setLangFilter] = useState(''); // ช่องค้นหาภาษาที่แถบข้าง (14 ภาษาเริ่มยาว)
+            const filteredLangIds = useMemo(() => {
+                const q = langFilter.trim().toLowerCase();
+                if (!q) return LANG_IDS;
+                return LANG_IDS.filter(id => LANGS[id].title.toLowerCase().includes(q));
+            }, [langFilter]);
             const [noteMode, setNoteMode] = useState('type'); // 'type' | 'write' — โน้ตของฉัน: พิมพ์/เขียนด้วยมือ
             const [noteOcrStatus, setNoteOcrStatus] = useState('');
             const [noteCanvasEl, setNoteCanvasEl] = useState(null);
@@ -1184,9 +1195,24 @@
                         </div>
 
                         <div className="p-4 flex-1">
-                            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-2">เลือกภาษา ({LANG_IDS.length})</div>
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-2">
+                                เลือกภาษา {langFilter.trim() ? `(${filteredLangIds.length}/${LANG_IDS.length})` : `(${LANG_IDS.length})`}
+                            </div>
+                            <div className="relative mb-3 px-2">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none"><SearchIcon /></span>
+                                <input
+                                    type="text"
+                                    value={langFilter}
+                                    onChange={e => setLangFilter(e.target.value)}
+                                    placeholder="ค้นหาภาษา..."
+                                    className="w-full border border-gray-200 focus:border-brand outline-none rounded-lg pl-9 pr-3 py-2 text-sm text-gray-700"
+                                />
+                            </div>
                             <nav className="space-y-1 mb-6">
-                                {LANG_IDS.map(id => {
+                                {filteredLangIds.length === 0 && (
+                                    <p className="text-xs text-gray-400 px-3 py-2">ไม่พบภาษาที่ตรงกับคำค้นหา</p>
+                                )}
+                                {filteredLangIds.map(id => {
                                     const allDone = Object.keys(LANGS[id].phrases).every(c => isCategoryDone(id, c));
                                     return (
                                         <div key={id} className="flex items-center gap-1">
@@ -1398,9 +1424,11 @@
                                     <div className="mt-6 pt-4 border-t border-gray-200">
                                         <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
                                             <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2"><NotebookIcon /> โน้ตของฉัน — {lang.title}</h4>
-                                            <div className="flex rounded-full border border-gray-200 overflow-hidden text-[11px] font-bold shrink-0">
-                                                <button type="button" onClick={() => setNoteMode('type')} className={`px-2.5 py-1 ${noteMode === 'type' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>พิมพ์</button>
-                                                <button type="button" onClick={() => setNoteMode('write')} className={`px-2.5 py-1 ${noteMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>เขียนด้วยมือ</button>
+                                            <div className="flex rounded-full border border-gray-200 overflow-hidden shrink-0">
+                                                <button type="button" onClick={() => setNoteMode('type')} title="พิมพ์" aria-label="พิมพ์"
+                                                    className={`p-1.5 ${noteMode === 'type' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><KeyboardIcon /></button>
+                                                <button type="button" onClick={() => setNoteMode('write')} title="เขียนด้วยมือ" aria-label="เขียนด้วยมือ"
+                                                    className={`p-1.5 ${noteMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><PencilSmallIcon /></button>
                                             </div>
                                         </div>
                                         <p className="text-xs text-gray-400 mb-2">
