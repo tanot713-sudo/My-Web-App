@@ -33,6 +33,9 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- ใช้เฉพาะปุ่ม "แปลงเป็นข้อความ (OCR)" ในโหมดฝึกเขียนด้วยลายมือ (โน้ต/แต่งประโยคอิสระ) — เวอร์ชันเดียว
+         กับที่ใช้ทั่วเว็บ (file-reader.js/word.js/classroom-law.js/doc-check.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <style>
         body { background-color: #f3f4f6; margin: 0; }
@@ -76,6 +79,7 @@
         const Menu = icon('menu', 'w-5 h-5');
         const CloseIcon = icon('x', 'w-5 h-5');
         const NotebookIcon = icon('notebook-pen', 'w-4 h-4');
+        const PencilIcon = icon('pencil', 'w-4 h-4');
 
         function speak(text, langCode) {
             try {
@@ -392,6 +396,80 @@
             return <p className="text-sm text-red-600 mt-3">❌ {children}</p>;
         }
 
+        // ── กระดานเขียนด้วยลายมือ (รองรับนิ้ว/สไตลัส/Apple Pencil บน iPad ผ่าน Pointer Events —
+        //    Safari ส่ง Apple Pencil มาเป็น pointerType 'pen' ให้ฟรีอยู่แล้วไม่ต้องเขียนโค้ดแยกเคส)
+        //    ใช้ร่วมกันทั้งโน้ตของฉันและโหมด "แต่งประโยคอิสระ" ในฝึกเขียน — พื้นฐานคือ canvas ธรรมดา
+        //    บันทึกภาพเป็น PNG data URL ผ่าน onChange ทุกครั้งที่ยกปากกา ไม่ได้แปลงเป็นข้อความในตัวเอง
+        //    (ปุ่ม "แปลงเป็นข้อความ" อยู่ที่ผู้เรียกใช้แต่ละจุดแทน เพราะแต่ละจุดจัดการผลลัพธ์ต่างกัน) ──
+        function HandwritingCanvas({ value, onChange, onReady, height }) {
+            const canvasRef = useRef(null);
+            const drawingRef = useRef(false);
+            const lastPointRef = useRef(null);
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const dpr = Math.min(window.devicePixelRatio || 1, 2); // กัน PNG บวมเกินไปบนจอ DPR สูง
+                const w = canvas.clientWidth, h = canvas.clientHeight;
+                canvas.width = w * dpr; canvas.height = h * dpr;
+                const ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+                ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#1f2937'; ctx.lineWidth = 2.4;
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
+                if (value) {
+                    const img = new Image();
+                    img.onload = () => ctx.drawImage(img, 0, 0, w, h);
+                    img.src = value;
+                }
+                if (onReady) onReady(canvas);
+            }, []);
+
+            const getPos = (e) => {
+                const rect = canvasRef.current.getBoundingClientRect();
+                return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+            };
+            const start = (e) => {
+                e.preventDefault();
+                canvasRef.current.setPointerCapture(e.pointerId);
+                drawingRef.current = true;
+                lastPointRef.current = getPos(e);
+            };
+            const move = (e) => {
+                if (!drawingRef.current) return;
+                e.preventDefault();
+                const ctx = canvasRef.current.getContext('2d');
+                const p = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(lastPointRef.current.x, lastPointRef.current.y);
+                ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+                lastPointRef.current = p;
+            };
+            const finish = () => {
+                if (!drawingRef.current) return;
+                drawingRef.current = false;
+                if (onChange) onChange(canvasRef.current.toDataURL('image/png'));
+            };
+            const clear = () => {
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+                if (onChange) onChange('');
+            };
+
+            return (
+                <div>
+                    <canvas ref={canvasRef}
+                        style={{ width: '100%', height: (height || 220) + 'px', touchAction: 'none', background: '#fff', borderRadius: '12px', border: '2px solid #e5e7eb', display: 'block' }}
+                        onPointerDown={start} onPointerMove={move} onPointerUp={finish} onPointerLeave={finish} onPointerCancel={finish}
+                    />
+                    <button type="button" onClick={clear} className="mt-1.5 text-xs font-semibold text-gray-400 hover:text-gray-600">ล้างกระดาน</button>
+                </div>
+            );
+        }
+
         // ── โหมด 1: ฝึกเขียนตัวอักษรจีน (ตอนนี้มีแค่ lang-cn — ดูตัวอักษร+ราก+จำนวนขีด, ฟังเสียง,
         //    พิมพ์ pinyin ให้ gradeAnswer ตรวจ, แล้ว self-rate ขับเคลื่อน FSRS) ──────────────────
         function ScriptPanel({ srs, recordSrs, awardXp }) {
@@ -477,6 +555,20 @@
             const [feedback, setFeedback] = useState('');
             const [status, setStatus] = useState(''); // '' | 'loading' | 'done' | 'error'
             const [errMsg, setErrMsg] = useState('');
+            const [inputMode, setInputMode] = useState('type'); // 'type' | 'write' — โหมดเขียนด้วยมือ (iPad ฯลฯ)
+            const [canvasEl, setCanvasEl] = useState(null);
+            const [ocrStatus, setOcrStatus] = useState('');
+
+            const runOcr = () => {
+                if (!canvasEl) return;
+                if (!window.Tesseract) { setOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
+                setOcrStatus('⏳ กำลังอ่านลายมือ...');
+                window.Tesseract.recognize(canvasEl, 'eng+tha').then(r => {
+                    const t = (r.data.text || '').trim();
+                    if (t) { setText(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนส่งตรวจ'); }
+                    else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
+                }).catch(e => setOcrStatus('❌ แปลงไม่สำเร็จ: ' + (e && e.message ? e.message : e)));
+            };
 
             const submit = () => {
                 if (!text.trim()) return;
@@ -519,10 +611,29 @@
             return (
                 <div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-1">แต่งประโยคภาษา{lang.title}อะไรก็ได้ แล้วให้ AI ช่วยตรวจ</h3>
-                    <p className="text-xs text-gray-400 mb-4">เขียนสั้นๆ 1-3 ประโยคก็พอ — AI จะช่วยแก้ไวยากรณ์และอธิบายจุดที่แก้ให้เป็นภาษาไทย</p>
-                    <textarea value={text} onChange={e => setText(e.target.value)} rows={4}
-                        placeholder={`เขียนเป็นภาษา${lang.title}ตรงนี้...`}
-                        className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y" />
+                    <p className="text-xs text-gray-400 mb-3">เขียนสั้นๆ 1-3 ประโยคก็พอ — AI จะช่วยแก้ไวยากรณ์และอธิบายจุดที่แก้ให้เป็นภาษาไทย</p>
+
+                    <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold w-fit mb-2">
+                        <button type="button" onClick={() => setInputMode('type')} className={`px-3 py-1.5 ${inputMode === 'type' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>พิมพ์</button>
+                        <button type="button" onClick={() => setInputMode('write')} className={`px-3 py-1.5 ${inputMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>เขียนด้วยมือ</button>
+                    </div>
+
+                    {inputMode === 'type' ? (
+                        <textarea value={text} onChange={e => setText(e.target.value)} rows={4}
+                            placeholder={`เขียนเป็นภาษา${lang.title}ตรงนี้...`}
+                            className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y" />
+                    ) : (
+                        <div>
+                            <HandwritingCanvas onReady={setCanvasEl} height={200} />
+                            <div className="flex items-center gap-3 mt-2 flex-wrap">
+                                <button type="button" onClick={runOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ</button>
+                                {ocrStatus && <span className="text-xs text-gray-400">{ocrStatus}</span>}
+                            </div>
+                            <p className="text-[11px] text-gray-400 mt-1">รองรับเขียนด้วยนิ้ว/สไตลัส/Apple Pencil บน iPad — OCR แม่นสุดกับภาษาละติน/ไทย ภาษาอื่น (จีน/ญี่ปุ่น/เกาหลี/อาหรับ ฯลฯ) อาจอ่านไม่ออกหรือผิดเยอะ ควรตรวจทานเสมอ</p>
+                            {text && <p className="text-xs text-gray-500 mt-2">ข้อความล่าสุด: "{text}"</p>}
+                        </div>
+                    )}
+
                     <button onClick={submit} disabled={!text.trim() || status === 'loading'}
                         className="mt-3 px-5 py-2.5 rounded-xl font-bold text-sm bg-gray-900 text-white disabled:bg-gray-200 disabled:text-gray-400">
                         {status === 'loading' ? 'กำลังตรวจ...' : 'ส่งให้ AI ตรวจ (+15 XP)'}
@@ -836,6 +947,9 @@
             const [syncing, setSyncing] = useState(false);
             const [syncStatus, setSyncStatus] = useState('');
             const [mobileNavOpen, setMobileNavOpen] = useState(false);
+            const [noteMode, setNoteMode] = useState('type'); // 'type' | 'write' — โน้ตของฉัน: พิมพ์/เขียนด้วยมือ
+            const [noteOcrStatus, setNoteOcrStatus] = useState('');
+            const [noteCanvasEl, setNoteCanvasEl] = useState(null);
             const inputRef = useRef(null);
 
             useEffect(() => { lucide.createIcons(); });
@@ -846,7 +960,22 @@
             useEffect(() => { saveSrs(srs); }, [srs]);
             useEffect(() => { saveWriting(writing); }, [writing]);
 
-            const updateNote = (text) => setNotes(n => ({ ...n, [langId]: { text, updatedAt: Date.now() } }));
+            // merge (ไม่ replace ทั้งก้อน) เพื่อไม่ให้แก้ข้อความแล้วลบภาพลายมือที่บันทึกไว้ทิ้งไปโดยไม่ตั้งใจ (หรือกลับกัน)
+            const updateNote = (text) => setNotes(n => ({ ...n, [langId]: { ...(n[langId] || {}), text, updatedAt: Date.now() } }));
+            const updateNoteDrawing = (drawing) => setNotes(n => ({ ...n, [langId]: { ...(n[langId] || {}), drawing, updatedAt: Date.now() } }));
+            const runNoteOcr = () => {
+                if (!noteCanvasEl) return;
+                if (!window.Tesseract) { setNoteOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
+                setNoteOcrStatus('⏳ กำลังอ่านลายมือ...');
+                window.Tesseract.recognize(noteCanvasEl, 'eng+tha').then(r => {
+                    const t = (r.data.text || '').trim();
+                    if (t) {
+                        const prevText = (notes[langId] && notes[langId].text) || '';
+                        updateNote((prevText ? prevText + '\n' : '') + t);
+                        setNoteOcrStatus('✅ แปลงเป็นข้อความเพิ่มต่อท้ายโน้ตแล้ว — ตรวจทานอีกครั้งในโหมด "พิมพ์"');
+                    } else setNoteOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
+                }).catch(e => setNoteOcrStatus('❌ แปลงไม่สำเร็จ: ' + (e && e.message ? e.message : e)));
+            };
 
             const syncNow = async () => {
                 setSyncing(true);
@@ -924,6 +1053,12 @@
                 setMobileNavOpen(false);
             };
 
+            const goWriting = (id) => {
+                setLangId(id);
+                setView('writing');
+                setMobileNavOpen(false);
+            };
+
             const selectCategory = (c) => {
                 setCategory(c);
                 setIndex(0);
@@ -997,14 +1132,23 @@
                                 {LANG_IDS.map(id => {
                                     const allDone = Object.keys(LANGS[id].phrases).every(c => isCategoryDone(id, c));
                                     return (
-                                        <button
-                                            key={id}
-                                            onClick={() => selectLang(id)}
-                                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && view === 'practice' ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
-                                        >
-                                            <Languages /> <span className="flex-1 text-left">{LANGS[id].title}</span>
-                                            {allDone && <CheckCircle />}
-                                        </button>
+                                        <div key={id} className="flex items-center gap-1">
+                                            <button
+                                                onClick={() => selectLang(id)}
+                                                className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && view === 'practice' ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
+                                            >
+                                                <Languages /> <span className="flex-1 text-left truncate">{LANGS[id].title}</span>
+                                                {allDone && <CheckCircle />}
+                                            </button>
+                                            <button
+                                                onClick={() => goWriting(id)}
+                                                title={`ฝึกเขียนภาษา${LANGS[id].title}`}
+                                                aria-label={`ฝึกเขียนภาษา${LANGS[id].title}`}
+                                                className={`shrink-0 p-2.5 rounded-lg transition ${langId === id && view === 'writing' ? 'bg-brandLight text-brand' : 'text-gray-400 hover:bg-gray-50 hover:text-brand'}`}
+                                            >
+                                                <PencilIcon />
+                                            </button>
+                                        </div>
                                     );
                                 })}
                             </nav>
@@ -1185,17 +1329,35 @@
                                     </div>
 
                                     <div className="mt-6 pt-4 border-t border-gray-200">
-                                        <h4 className="text-sm font-bold text-gray-700 mb-1 flex items-center gap-2"><NotebookIcon /> โน้ตของฉัน — {lang.title}</h4>
+                                        <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                                            <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2"><NotebookIcon /> โน้ตของฉัน — {lang.title}</h4>
+                                            <div className="flex rounded-full border border-gray-200 overflow-hidden text-[11px] font-bold shrink-0">
+                                                <button type="button" onClick={() => setNoteMode('type')} className={`px-2.5 py-1 ${noteMode === 'type' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>พิมพ์</button>
+                                                <button type="button" onClick={() => setNoteMode('write')} className={`px-2.5 py-1 ${noteMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>เขียนด้วยมือ</button>
+                                            </div>
+                                        </div>
                                         <p className="text-xs text-gray-400 mb-2">
                                             {notes[langId] ? `บันทึกล่าสุด ${new Date(notes[langId].updatedAt).toLocaleString('th-TH')}` : 'จดคำศัพท์ ไวยากรณ์ หรือเทคนิคจำที่อยากบันทึกไว้ — บันทึกอัตโนมัติ'}
                                         </p>
-                                        <textarea
-                                            value={(notes[langId] && notes[langId].text) || ''}
-                                            onChange={e => updateNote(e.target.value)}
-                                            rows={4}
-                                            placeholder="เช่น เทคนิคจำคำศัพท์ ไวยากรณ์ที่มักสับสน ฯลฯ"
-                                            className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm text-gray-700 resize-y font-sans leading-relaxed"
-                                        />
+                                        {noteMode === 'type' ? (
+                                            <textarea
+                                                value={(notes[langId] && notes[langId].text) || ''}
+                                                onChange={e => updateNote(e.target.value)}
+                                                rows={4}
+                                                placeholder="เช่น เทคนิคจำคำศัพท์ ไวยากรณ์ที่มักสับสน ฯลฯ"
+                                                className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm text-gray-700 resize-y font-sans leading-relaxed"
+                                            />
+                                        ) : (
+                                            <div>
+                                                <HandwritingCanvas key={langId} value={(notes[langId] && notes[langId].drawing) || ''}
+                                                    onChange={updateNoteDrawing} onReady={setNoteCanvasEl} height={220} />
+                                                <div className="flex items-center gap-3 mt-2 flex-wrap">
+                                                    <button type="button" onClick={runNoteOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ เพิ่มต่อท้ายโน้ต</button>
+                                                    {noteOcrStatus && <span className="text-xs text-gray-400">{noteOcrStatus}</span>}
+                                                </div>
+                                                <p className="text-[11px] text-gray-400 mt-1">รองรับเขียนด้วยนิ้ว/สไตลัส/Apple Pencil บน iPad — ภาพลายมือถูกบันทึกไว้เสมอ (สลับกลับมาดูได้) OCR แม่นสุดกับภาษาละติน/ไทย ภาษาอื่นอาจอ่านไม่ออกหรือผิดเยอะ</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
