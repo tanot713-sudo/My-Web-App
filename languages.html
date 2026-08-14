@@ -80,6 +80,13 @@
         const CloseIcon = icon('x', 'w-5 h-5');
         const NotebookIcon = icon('notebook-pen', 'w-4 h-4');
         const PencilIcon = icon('pencil', 'w-4 h-4');
+        // ไอคอนเล็กประกอบปุ่มโหมดย่อยในหน้า "ฝึกเขียน" — ไม่ใส่ text-* ในคลาสตั้งใจ ให้สืบสี
+        // currentColor จากปุ่มแม่เอง (ขาวตอน active / เทาตอนไม่ active) โดยไม่ต้องทำ 2 เวอร์ชันสี
+        const BrushIcon = icon('brush', 'w-3.5 h-3.5');
+        const PenToolIcon = icon('pen-tool', 'w-3.5 h-3.5');
+        const ShuffleIcon = icon('shuffle', 'w-3.5 h-3.5');
+        const HeadphonesIcon = icon('headphones', 'w-3.5 h-3.5');
+        const LanguagesSmallIcon = icon('languages', 'w-3.5 h-3.5');
 
         function speak(text, langCode) {
             try {
@@ -876,18 +883,31 @@
             const lang = LANGS[langId];
             const hasScript = langId === 'lang-cn';
             const SUB_MODES = [
-                ...(hasScript ? [{ key: 'script', label: 'ฝึกเขียนตัวอักษร' }] : []),
-                { key: 'compose', label: 'แต่งประโยคอิสระ' },
-                { key: 'srsCompose', label: 'แต่งจากคำที่ทวน' },
-                { key: 'dictation', label: 'ฟังแล้วเขียน' },
-                { key: 'translate', label: 'แปลไทย→ภาษา' },
+                ...(hasScript ? [{ key: 'script', label: 'ฝึกเขียนตัวอักษร', Icon: BrushIcon }] : []),
+                { key: 'compose', label: 'แต่งประโยคอิสระ', Icon: PenToolIcon },
+                { key: 'srsCompose', label: 'แต่งจากคำที่ทวน', Icon: ShuffleIcon },
+                { key: 'dictation', label: 'ฟังแล้วเขียน', Icon: HeadphonesIcon },
+                { key: 'translate', label: 'แปลไทย→ภาษา', Icon: LanguagesSmallIcon },
             ];
             const [subMode, setSubMode] = useState(hasScript ? 'script' : 'compose');
             // เดิมหน้านี้มีแถวปุ่มเลือกภาษาของตัวเอง (14 ปุ่มโชว์ตลอด) ซึ่งซ้ำกับปุ่มดินสอที่แถบข้าง
             // ตอนนี้พาเข้ามาแบบเลือกภาษาไว้แล้ว เลยยุบเป็น chip + ปุ่ม "เปลี่ยนภาษา" แทน กางออกเฉพาะตอนต้องใช้จริง
             const [langPickerOpen, setLangPickerOpen] = useState(false);
+            // แจ้งเตือนตอนสลับภาษาแล้วโหมด "ฝึกเขียนตัวอักษร" หายไปเงียบๆ (มีแค่ lang-cn) — กันงงว่าทำไมโหมดหาย
+            const [modeNotice, setModeNotice] = useState('');
 
-            useEffect(() => { if (subMode === 'script' && !hasScript) setSubMode('compose'); }, [langId]);
+            useEffect(() => {
+                if (subMode === 'script' && !hasScript) {
+                    setSubMode('compose');
+                    setModeNotice(`ภาษา${lang.title}ยังไม่มีโหมด "ฝึกเขียนตัวอักษร" (ตอนนี้มีแค่ภาษาจีน) — สลับไปโหมด "แต่งประโยคอิสระ" ให้แล้ว`);
+                }
+            }, [langId]);
+
+            useEffect(() => {
+                if (!modeNotice) return;
+                const t = setTimeout(() => setModeNotice(''), 6000);
+                return () => clearTimeout(t);
+            }, [modeNotice]);
 
             const awardXp = (amt) => setXp(x => x + amt);
             const recordSrs = (key, rating) => setSrs(s => ({ ...s, [key]: fsrsSchedule(s[key] || {}, rating) }));
@@ -927,11 +947,18 @@
                             )}
                         </div>
 
+                        {modeNotice && (
+                            <div className="flex items-center justify-between gap-3 text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-lg px-3 py-2">
+                                <span>ℹ️ {modeNotice}</span>
+                                <button type="button" onClick={() => setModeNotice('')} className="text-amber-500 hover:text-amber-700 font-bold shrink-0">✕</button>
+                            </div>
+                        )}
+
                         <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold w-fit flex-wrap bg-white">
                             {SUB_MODES.map(m => (
                                 <button key={m.key} onClick={() => setSubMode(m.key)}
-                                    className={`px-3 py-1.5 ${subMode === m.key ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
-                                    {m.label}
+                                    className={`px-3 py-1.5 flex items-center gap-1.5 ${subMode === m.key ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                                    <m.Icon /> {m.label}
                                 </button>
                             ))}
                         </div>
