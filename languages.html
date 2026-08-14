@@ -36,6 +36,9 @@
     <!-- ใช้เฉพาะปุ่ม "แปลงเป็นข้อความ (OCR)" ในโหมดฝึกเขียนด้วยลายมือ (โน้ต/แต่งประโยคอิสระ) — เวอร์ชันเดียว
          กับที่ใช้ทั่วเว็บ (file-reader.js/word.js/classroom-law.js/doc-check.js) -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- ใช้เฉพาะแผนภาพ/แบบฝึกลำดับขีดตัวอักษรจีนในโหมด "ฝึกเขียนตัวอักษร" — ไลบรารีโอเพนซอร์ส
+         ข้อมูลลำดับขีดมาจากโปรเจกต์ Make Me a Hanzi (ตรวจสอบแล้ว ไม่ใช่ข้อมูลที่เดาเอง) -->
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
 
     <style>
         body { background-color: #f3f4f6; margin: 0; }
@@ -480,6 +483,64 @@
             );
         }
 
+        // ── แผนภาพ/แบบฝึกลำดับขีดตัวอักษรจีน ใช้ไลบรารี hanzi-writer (ข้อมูลลำดับขีดจริงจากโปรเจกต์
+        //    Make Me a Hanzi ตรวจสอบแล้ว) — ตอนแรกลองสร้างแผนภาพลำดับขีดเองด้วยมือสำหรับ 60 ตัวอักษร
+        //    แต่พอเช็คย้อนกลับกับจำนวนขีดจริงพบว่าผิดไปกว่าครึ่ง (32/60) จึงเปลี่ยนมาใช้ไลบรารีที่มีข้อมูล
+        //    ตรวจสอบแล้วแทน ปลอดภัยกว่าข้อมูลที่เดาเองมาก — มีทั้งโหมดดูภาพเคลื่อนไหวและโหมดลองลากเอง (quiz)
+        //    ซึ่งรองรับนิ้ว/สไตลัส/Apple Pencil ผ่าน pointer/touch events อยู่แล้วในตัวไลบรารี
+        function StrokeOrderDiagram({ char }) {
+            const containerRef = useRef(null);
+            const writerRef = useRef(null);
+            const [mode, setMode] = useState('view'); // 'view' | 'quiz'
+            const [quizMsg, setQuizMsg] = useState('');
+            const [libErr, setLibErr] = useState(false);
+
+            useEffect(() => {
+                if (!containerRef.current) return;
+                if (!window.HanziWriter) { setLibErr(true); return; }
+                setLibErr(false);
+                containerRef.current.innerHTML = '';
+                setQuizMsg('');
+                setMode('view');
+                writerRef.current = window.HanziWriter.create(containerRef.current, char, {
+                    width: 220, height: 220, padding: 14,
+                    showOutline: true,
+                    strokeColor: '#0f766e',
+                    highlightColor: '#facc15',
+                    drawingWidth: 34,
+                });
+            }, [char]);
+
+            const playAnimation = () => {
+                setMode('view'); setQuizMsg('');
+                writerRef.current && writerRef.current.animateCharacter();
+            };
+            const startQuiz = () => {
+                setMode('quiz');
+                setQuizMsg(`ลองลากตามลำดับขีดของ ${char} ดูสิ`);
+                writerRef.current && writerRef.current.quiz({
+                    onCorrectStroke: (info) => setQuizMsg(`✅ ถูกต้อง (ขีดที่ ${info.strokeNum + 1})`),
+                    onMistake: () => setQuizMsg('❌ ยังไม่ตรง ลองดูเส้นจางๆ แล้วลากตามอีกครั้ง'),
+                    onComplete: (summary) => setQuizMsg(summary.totalMistakes === 0 ? '🎉 เขียนครบ ถูกทุกขีดเลย!' : `🎉 เขียนครบแล้ว (พลาด ${summary.totalMistakes} ครั้งระหว่างทาง)`),
+                });
+            };
+
+            if (libErr) return <p className="text-xs text-gray-400 mt-2">โหลดแผนภาพลำดับขีดไม่สำเร็จ (อินเทอร์เน็ตอาจไม่เสถียร) ลองรีเฟรชหน้าใหม่</p>;
+
+            return (
+                <div className="mt-3">
+                    <div ref={containerRef} className="mx-auto rounded-xl border-2 border-gray-100 bg-white" style={{ width: 220, height: 220 }}></div>
+                    <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+                        <button type="button" onClick={playAnimation}
+                            className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition ${mode === 'view' ? 'bg-brand text-white border-brand' : 'border-gray-200 text-gray-600 hover:border-brand'}`}>▶ ดูลำดับขีด</button>
+                        <button type="button" onClick={startQuiz}
+                            className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition ${mode === 'quiz' ? 'bg-brand text-white border-brand' : 'border-gray-200 text-gray-600 hover:border-brand'}`}>✏️ ลองเขียนเอง</button>
+                    </div>
+                    {quizMsg && <p className="text-xs text-center text-gray-500 mt-2">{quizMsg}</p>}
+                </div>
+            );
+        }
+
         // ── โหมด 1: ฝึกเขียนตัวอักษรจีน (ตอนนี้มีแค่ lang-cn — ดูตัวอักษร+ราก+จำนวนขีด, ฟังเสียง,
         //    พิมพ์ pinyin ให้ gradeAnswer ตรวจ, แล้ว self-rate ขับเคลื่อน FSRS) ──────────────────
         function ScriptPanel({ srs, recordSrs, awardXp }) {
@@ -519,6 +580,7 @@
                                 <button onClick={() => speak(c.char, 'zh')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold">
                                     <Volume2 /> ฟังอีกครั้ง
                                 </button>
+                                <StrokeOrderDiagram char={c.char} />
                             </div>
                         )}
                     </div>
