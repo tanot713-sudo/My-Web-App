@@ -872,7 +872,7 @@
         }
 
         // ── shell ของหน้า "ฝึกเขียน" — เลือกภาษา + สลับโหมดย่อย 5 แบบ ──────────────────────
-        function WritingView({ langId, setLangId, xp, setXp, srs, setSrs, writing, setWriting }) {
+        function WritingView({ langId, setLangId, xp, setXp, srs, setSrs, writing, setWriting, dueCounts }) {
             const lang = LANGS[langId];
             const hasScript = langId === 'lang-cn';
             const SUB_MODES = [
@@ -883,6 +883,9 @@
                 { key: 'translate', label: 'แปลไทย→ภาษา' },
             ];
             const [subMode, setSubMode] = useState(hasScript ? 'script' : 'compose');
+            // เดิมหน้านี้มีแถวปุ่มเลือกภาษาของตัวเอง (14 ปุ่มโชว์ตลอด) ซึ่งซ้ำกับปุ่มดินสอที่แถบข้าง
+            // ตอนนี้พาเข้ามาแบบเลือกภาษาไว้แล้ว เลยยุบเป็น chip + ปุ่ม "เปลี่ยนภาษา" แทน กางออกเฉพาะตอนต้องใช้จริง
+            const [langPickerOpen, setLangPickerOpen] = useState(false);
 
             useEffect(() => { if (subMode === 'script' && !hasScript) setSubMode('compose'); }, [langId]);
 
@@ -896,13 +899,32 @@
             return (
                 <div className="flex-1 overflow-y-auto bg-gray-50">
                     <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
-                        <div className="flex flex-wrap gap-2">
-                            {LANG_IDS.map(id => (
-                                <button key={id} onClick={() => setLangId(id)}
-                                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${langId === id ? 'bg-brand text-white border-brand' : 'border-gray-200 text-gray-600 hover:border-brand'}`}>
-                                    {LANGS[id].title}
+                        <div>
+                            <div className="flex items-center justify-between gap-3 flex-wrap">
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <span className="text-xs text-gray-400 font-semibold shrink-0">กำลังฝึกเขียน:</span>
+                                    <span className="px-3 py-1.5 rounded-full text-sm font-bold bg-brandLight text-brand truncate">{lang.title}</span>
+                                </div>
+                                <button type="button" onClick={() => setLangPickerOpen(o => !o)}
+                                    className="shrink-0 text-xs font-semibold text-gray-500 hover:text-brand border border-gray-200 hover:border-brand rounded-full px-3 py-1.5 transition">
+                                    {langPickerOpen ? 'ปิด' : 'เปลี่ยนภาษา'}
                                 </button>
-                            ))}
+                            </div>
+                            {langPickerOpen && (
+                                <div className="flex flex-wrap gap-2 mt-3 p-3 bg-white border border-gray-200 rounded-xl">
+                                    {LANG_IDS.map(id => (
+                                        <button key={id} onClick={() => { setLangId(id); setLangPickerOpen(false); }}
+                                            className={`relative px-3 py-1.5 rounded-full text-xs font-semibold border transition ${langId === id ? 'bg-brand text-white border-brand' : 'border-gray-200 text-gray-600 hover:border-brand'}`}>
+                                            {LANGS[id].title}
+                                            {dueCounts && dueCounts[id] > 0 && (
+                                                <span className={`ml-1.5 inline-flex items-center justify-center min-w-[15px] h-[15px] px-0.5 rounded-full text-[9px] font-bold leading-none ${langId === id ? 'bg-white/25 text-white' : 'bg-red-500 text-white'}`}>
+                                                    {dueCounts[id] > 9 ? '9+' : dueCounts[id]}
+                                                </span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold w-fit flex-wrap bg-white">
@@ -944,6 +966,14 @@
             const [wrong, setWrong] = useState(loadWrong());
             const [srs, setSrs] = useState(loadSrs());
             const [writing, setWriting] = useState(loadWriting());
+            // จำนวนคำ/ตัวอักษรที่ถึงเวลาทวนแล้วต่อภาษา (ใช้ทำ badge แจ้งเตือนบนปุ่ม "ฝึกเขียน" —
+            // ทั้งที่แถบข้างรายภาษาและแท็บรวมด้านบน) — คำนวณจาก srs เท่านั้น ไม่ต้องคิดใหม่ทุก re-render
+            const dueCounts = useMemo(() => {
+                const m = {};
+                LANG_IDS.forEach(id => { m[id] = dueVocab(id, srs).length; });
+                return m;
+            }, [srs]);
+            const totalDue = useMemo(() => Object.values(dueCounts).reduce((a, b) => a + b, 0), [dueCounts]);
             const [syncing, setSyncing] = useState(false);
             const [syncStatus, setSyncStatus] = useState('');
             const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -1142,11 +1172,16 @@
                                             </button>
                                             <button
                                                 onClick={() => goWriting(id)}
-                                                title={`ฝึกเขียนภาษา${LANGS[id].title}`}
+                                                title={`ฝึกเขียนภาษา${LANGS[id].title}${dueCounts[id] ? ` (${dueCounts[id]} รายการถึงเวลาทวน)` : ''}`}
                                                 aria-label={`ฝึกเขียนภาษา${LANGS[id].title}`}
-                                                className={`shrink-0 p-2.5 rounded-lg transition ${langId === id && view === 'writing' ? 'bg-brandLight text-brand' : 'text-gray-400 hover:bg-gray-50 hover:text-brand'}`}
+                                                className={`relative shrink-0 p-2.5 rounded-lg transition ${langId === id && view === 'writing' ? 'bg-brandLight text-brand' : 'text-gray-400 hover:bg-gray-50 hover:text-brand'}`}
                                             >
                                                 <PencilIcon />
+                                                {dueCounts[id] > 0 && (
+                                                    <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[15px] h-[15px] flex items-center justify-center px-0.5 leading-none">
+                                                        {dueCounts[id] > 9 ? '9+' : dueCounts[id]}
+                                                    </span>
+                                                )}
                                             </button>
                                         </div>
                                     );
@@ -1181,9 +1216,14 @@
                                 </button>
                                 <button
                                     onClick={() => setView('writing')}
-                                    className={`h-full flex items-center text-sm font-semibold border-b-2 transition-colors ${view === 'writing' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'writing' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     ฝึกเขียน
+                                    {totalDue > 0 && (
+                                        <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 leading-none">
+                                            {totalDue > 99 ? '99+' : totalDue}
+                                        </span>
+                                    )}
                                 </button>
                             </div>
                             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -1478,6 +1518,7 @@
                             xp={xp} setXp={setXp}
                             srs={srs} setSrs={setSrs}
                             writing={writing} setWriting={setWriting}
+                            dueCounts={dueCounts}
                         />
                         )}
                     </main>
