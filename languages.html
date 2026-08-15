@@ -2881,12 +2881,103 @@
             },
         ];
 
-        function ListeningPanel({ awardXp }) {
+        // ── เวอร์ชันภาษาอังกฤษ — บทสนทนาสั้นแต่งเอง (หัวข้อคู่ขนานกับชุดภาษาจีนด้านบน เพื่อให้เทียบ
+        //    ระดับความยากง่ายกันได้) level 1-3 ใช้แทน CEFR คร่าวๆ (1≈A1-A2, 2≈A2-B1, 3≈B1)
+        const LISTENING_PASSAGES_EN = [
+            {
+                level: 1, title: 'Answering the Phone',
+                lines: [
+                    { speaker: 'A', target: 'Hello?', thai: 'ฮัลโหล' },
+                    { speaker: 'B', target: "Hi, it's Emma.", thai: 'สวัสดี ฉันชื่อเอ็มมา' },
+                    { speaker: 'A', target: 'Where are you now?', thai: 'ตอนนี้คุณอยู่ที่ไหน' },
+                    { speaker: 'B', target: "I'm at home.", thai: 'ฉันอยู่บ้าน' },
+                ],
+                questions: [
+                    { q: 'Where is Emma?', choices: ['At home', 'At school', 'At the store'], correct: 'At home' },
+                    { q: 'Who says "it\'s Emma"?', choices: ['Emma', 'The other speaker', "It isn't said"], correct: 'Emma' },
+                ],
+            },
+            {
+                level: 1, title: 'At the Store',
+                lines: [
+                    { speaker: 'A', target: 'How much is this apple?', thai: 'แอปเปิลลูกนี้ราคาเท่าไหร่' },
+                    { speaker: 'B', target: "It's ten dollars.", thai: 'สิบดอลลาร์' },
+                    { speaker: 'A', target: "That's too expensive. Can you lower the price?", thai: 'แพงไปนะ ลดหน่อยได้ไหม' },
+                    { speaker: 'B', target: 'Okay, eight dollars.', thai: 'ได้ค่ะ แปดดอลลาร์' },
+                ],
+                questions: [
+                    { q: 'What was the first price?', choices: ['Ten dollars', 'Eight dollars', 'Five dollars'], correct: 'Ten dollars' },
+                    { q: 'What was the final price?', choices: ['Ten dollars', 'Eight dollars', 'Five dollars'], correct: 'Eight dollars' },
+                ],
+            },
+            {
+                level: 2, title: 'Making Plans',
+                lines: [
+                    { speaker: 'A', target: 'Are you free tonight?', thai: 'คืนนี้คุณว่างไหม' },
+                    { speaker: 'B', target: "I'm free. What's up?", thai: 'ว่างสิ มีอะไรเหรอ' },
+                    { speaker: 'A', target: "Let's go watch a movie together.", thai: 'ไปดูหนังด้วยกันไหม' },
+                    { speaker: 'B', target: 'Sure! What time should we meet?', thai: 'ดีเลย! นัดกี่โมงดี' },
+                    { speaker: 'A', target: 'Seven p.m., in front of the cinema.', thai: 'หนึ่งทุ่ม ที่หน้าโรงหนัง' },
+                ],
+                questions: [
+                    { q: 'What are they going to do?', choices: ['Watch a movie', 'Have dinner', 'Go shopping'], correct: 'Watch a movie' },
+                    { q: 'What time will they meet?', choices: ['Six p.m.', 'Seven p.m.', 'Nine p.m.'], correct: 'Seven p.m.' },
+                ],
+            },
+            {
+                level: 2, title: "Today's Weather",
+                lines: [
+                    { speaker: 'A', target: "How's the weather today?", thai: 'วันนี้อากาศเป็นยังไงบ้าง' },
+                    { speaker: 'B', target: "It's very cold, and it's raining too.", thai: 'วันนี้หนาวมาก แล้วก็ฝนตกด้วย' },
+                    { speaker: 'A', target: "Then let's not go to the park.", thai: 'งั้นเราไม่ไปสวนสาธารณะกันดีกว่า' },
+                    { speaker: 'B', target: "Okay, let's watch TV at home.", thai: 'ได้ อยู่บ้านดูทีวีกันดีกว่า' },
+                ],
+                questions: [
+                    { q: "How is today's weather?", choices: ['Hot', 'Cold and rainy', 'Sunny'], correct: 'Cold and rainy' },
+                    { q: 'What did they decide to do?', choices: ['Go to the park', 'Watch TV at home', 'Go to the store'], correct: 'Watch TV at home' },
+                ],
+            },
+            {
+                level: 3, title: 'Job Hunting',
+                lines: [
+                    { speaker: 'A', target: "What have you been busy with lately?", thai: 'ช่วงนี้คุณยุ่งอะไรอยู่' },
+                    { speaker: 'B', target: "I'm looking for a job. I've already had three interviews.", thai: 'ฉันกำลังหางาน ไปสัมภาษณ์มาสามครั้งแล้ว' },
+                    { speaker: 'A', target: 'How is it going? Smoothly?', thai: 'เป็นยังไงบ้าง ราบรื่นไหม' },
+                    { speaker: 'B', target: "Pretty good. One company will get back to me next week.", thai: 'ก็โอเคนะ มีบริษัทหนึ่งจะตอบกลับสัปดาห์หน้า' },
+                ],
+                questions: [
+                    { q: 'What has B been doing lately?', choices: ['Looking for a job', 'Studying', 'Traveling'], correct: 'Looking for a job' },
+                    { q: 'How many interviews has B had?', choices: ['One', 'Two', 'Three'], correct: 'Three' },
+                ],
+            },
+            {
+                level: 3, title: 'Travel Plans',
+                lines: [
+                    { speaker: 'A', target: 'Where are you planning to travel this summer?', thai: 'ปิดเทอมนี้คุณจะไปเที่ยวที่ไหน' },
+                    { speaker: 'B', target: "I'm planning to go to Chiang Mai. The scenery there is beautiful.", thai: 'ฉันตั้งใจจะไปเชียงใหม่ ที่นั่นวิวสวยมาก' },
+                    { speaker: 'A', target: 'Are you going alone?', thai: 'ไปคนเดียวเหรอ' },
+                    { speaker: 'B', target: "No, I'm going with my boyfriend. We're planning to go by train.", thai: 'เปล่า ฉันไปกับแฟน เราตั้งใจจะนั่งรถไฟไป' },
+                ],
+                questions: [
+                    { q: 'Where is B planning to go?', choices: ['Bangkok', 'Chiang Mai', 'Phuket'], correct: 'Chiang Mai' },
+                    { q: 'How are they planning to travel?', choices: ['By plane', 'By train', 'By car'], correct: 'By train' },
+                ],
+            },
+        ];
+
+        function ListeningPanel({ awardXp, langId }) {
+            const passages = langId === 'lang-en' ? LISTENING_PASSAGES_EN : LISTENING_PASSAGES;
+            const langCode = LANGS[langId].code;
+            const levelBadge = langId === 'lang-en' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
             const [answers, setAnswers] = useState({});
             const [checked, setChecked] = useState(false);
+
+            // สลับภาษาระหว่างเปิดเรื่องอยู่ — กลับไปหน้าเลือกเรื่องของภาษาใหม่แทนที่จะค้าง index เรื่อง
+            // เก่าซึ่งอาจเกินขอบเขต array ของอีกภาษา (จำนวนเรื่องไม่เท่ากัน)
+            useEffect(() => { setPassageIdx(null); }, [langId]);
 
             if (passageIdx === null) {
                 return (
@@ -2894,10 +2985,10 @@
                         <h3 className="text-lg font-semibold text-gray-800 mb-1">ฟังเรื่องสั้น</h3>
                         <p className="text-xs text-gray-400 mb-4">เลือกเรื่องที่จะฟัง — ลองฟังก่อนแล้วค่อยดูคำแปล จะช่วยฝึกความเข้าใจได้ดีกว่า</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {LISTENING_PASSAGES.map((p, i) => (
+                            {passages.map((p, i) => (
                                 <button key={i} onClick={() => { setPassageIdx(i); setRevealedLines([]); setShowQuiz(false); setAnswers({}); setChecked(false); }}
                                     className="p-4 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
-                                    <span className="text-[10px] font-bold text-brand uppercase">HSK{p.level}</span>
+                                    <span className="text-[10px] font-bold text-brand uppercase">{levelBadge}{p.level}</span>
                                     <div className="font-semibold text-gray-800">{p.title}</div>
                                     <div className="text-xs text-gray-400">{p.lines.length} ประโยค · {p.questions.length} คำถาม</div>
                                 </button>
@@ -2907,8 +2998,8 @@
                 );
             }
 
-            const passage = LISTENING_PASSAGES[passageIdx];
-            const playAll = () => { passage.lines.forEach((l, i) => setTimeout(() => speak(l.target, 'zh'), i * 2200)); };
+            const passage = passages[passageIdx];
+            const playAll = () => { passage.lines.forEach((l, i) => setTimeout(() => speak(l.target, langCode), i * 2200)); };
             const toggleReveal = (i) => setRevealedLines(r => r.includes(i) ? r.filter(x => x !== i) : [...r, i]);
             const checkQuiz = () => {
                 setChecked(true);
@@ -2921,7 +3012,7 @@
                     <button onClick={() => setPassageIdx(null)} className="text-xs font-semibold text-gray-400 hover:text-gray-700 mb-3">← เลือกเรื่องอื่น</button>
                     <div className="flex items-center justify-between mb-1">
                         <h3 className="text-lg font-semibold text-gray-800">{passage.title}</h3>
-                        <span className="text-[10px] font-bold text-brand uppercase">HSK{passage.level}</span>
+                        <span className="text-[10px] font-bold text-brand uppercase">{levelBadge}{passage.level}</span>
                     </div>
                     <button onClick={playAll} className="inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
                         <Volume2 /> ฟังทั้งเรื่อง
@@ -2934,7 +3025,7 @@
                                     <div className="font-medium text-gray-800">{l.target}</div>
                                     {revealedLines.includes(i) && <div className="text-sm text-gray-500 mt-0.5">{l.thai}</div>}
                                 </div>
-                                <button onClick={() => speak(l.target, 'zh')} className="shrink-0 text-brand"><Volume2 /></button>
+                                <button onClick={() => speak(l.target, langCode)} className="shrink-0 text-brand"><Volume2 /></button>
                                 <button onClick={() => toggleReveal(i)} className="shrink-0 text-xs font-semibold text-gray-400 hover:text-gray-700">{revealedLines.includes(i) ? 'ซ่อน' : 'แปล'}</button>
                             </div>
                         ))}
@@ -3004,7 +3095,10 @@
                 }, () => { ctx.close(); throw new Error('ถอดเสียงที่อัดไม่ได้ ลองอัดใหม่อีกครั้ง'); });
             });
         }
-        function transcribeChinese(pcm) {
+        // langName: ชื่อภาษาเต็ม (lowercase) ตามที่ asr-worker.js (Whisper) รับ — ผ่านตรงเป็น
+        // opts.language ไม่มีการแปลง/ตรวจสอบเพิ่มในตัว worker เอง
+        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english' };
+        function transcribeSpeech(pcm, langName) {
             return new Promise((resolve, reject) => {
                 const w = getAsrWorker();
                 const jobId = 'shadow-' + Date.now();
@@ -3018,17 +3112,19 @@
                 function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
                 w.addEventListener('message', onMsg);
                 w.addEventListener('error', onErr);
-                w.postMessage({ type: 'transcribe', jobId, pcm, lang: 'chinese' }, [pcm.buffer]);
+                w.postMessage({ type: 'transcribe', jobId, pcm, lang: langName }, [pcm.buffer]);
             });
         }
 
-        function ShadowingPanel({ awardXp }) {
+        function ShadowingPanel({ awardXp, langId }) {
+            const langCode = LANGS[langId].code;
+            const asrLangName = ASR_LANG_NAME[langId] || 'english';
             const pool = useMemo(() => {
-                const cats = LANGS['lang-cn'].phrases;
+                const cats = LANGS[langId].phrases;
                 const out = [];
                 Object.keys(cats).forEach(cat => cats[cat].forEach(p => out.push(p)));
                 return out;
-            }, []);
+            }, [langId]);
             const [idx, setIdx] = useState(0);
             const [isRecording, setIsRecording] = useState(false);
             const [status, setStatus] = useState(''); // '' | 'recording' | 'transcribing' | 'done' | 'error'
@@ -3038,6 +3134,8 @@
             const mediaRef = useRef(null);
             const chunksRef = useRef([]);
             const streamRef = useRef(null);
+
+            useEffect(() => { setIdx(0); }, [langId]);
 
             const current = pool[idx % pool.length];
             const reset = () => { setStatus(''); setTranscript(''); setGrade(null); setRecordedUrl(''); };
@@ -3076,7 +3174,7 @@
                     setStatus('transcribing');
                     try {
                         const pcm = await decodeBlobToPcm(blob);
-                        const text = await transcribeChinese(pcm);
+                        const text = await transcribeSpeech(pcm, asrLangName);
                         setTranscript(text);
                         const g = gradeAnswer(text, current.target);
                         setGrade(g);
@@ -3097,7 +3195,7 @@
                     <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                         <div className="text-2xl font-bold text-gray-900 mb-1">{current.target}</div>
                         <div className="text-sm text-gray-400 mb-3">{current.thai}</div>
-                        <button onClick={() => speak(current.target, 'zh')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังต้นฉบับ</button>
+                        <button onClick={() => speak(current.target, langCode)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังต้นฉบับ</button>
                     </div>
 
                     <div className="flex flex-col items-center gap-3 mb-4">
@@ -3227,12 +3325,106 @@
             },
         ];
 
-        function ReadingPanel({ awardXp }) {
+        // ── เวอร์ชันภาษาอังกฤษ — หัวข้อคู่ขนานกับชุดภาษาจีนด้านบนเช่นกัน
+        const READING_PASSAGES_EN = [
+            {
+                level: 1, title: 'My Daily Life',
+                lines: [
+                    { target: 'I wake up at seven o\'clock every day.', thai: 'ทุกวันฉันตื่นนอนเจ็ดโมงเช้า' },
+                    { target: 'I eat breakfast first, and then go to school.', thai: 'ฉันกินข้าวเช้าก่อน แล้วค่อยไปโรงเรียน' },
+                    { target: 'I study English at school.', thai: 'ฉันเรียนภาษาอังกฤษที่โรงเรียน' },
+                    { target: 'At noon, I have lunch with my friends.', thai: 'ตอนเที่ยงฉันกินข้าวเที่ยงกับเพื่อน' },
+                    { target: 'I go home at three in the afternoon.', thai: 'ตอนบ่ายสามโมงฉันกลับบ้าน' },
+                    { target: 'In the evening, I watch TV and go to bed at ten.', thai: 'ตอนเย็นฉันดูทีวี นอนสี่ทุ่ม' },
+                ],
+                questions: [
+                    { q: 'What time does she wake up?', choices: ['Seven o\'clock', 'Eight o\'clock', 'Six o\'clock'], correct: 'Seven o\'clock' },
+                    { q: 'What does she do before going to school?', choices: ['Eat breakfast', 'Take a shower', 'Watch TV'], correct: 'Eat breakfast' },
+                ],
+            },
+            {
+                level: 1, title: 'My Family',
+                lines: [
+                    { target: 'There are four people in my family: my father, my mother, my sister, and me.', thai: 'ครอบครัวฉันมีสี่คน: พ่อ แม่ พี่สาว และฉัน' },
+                    { target: 'My father is a doctor, and my mother is a teacher.', thai: 'พ่อเป็นหมอ แม่เป็นครู' },
+                    { target: 'My sister is three years older than me, and she studies at university.', thai: 'พี่สาวอายุมากกว่าฉันสามปี เธอเรียนอยู่มหาวิทยาลัย' },
+                    { target: 'We have a small dog, and it is very cute.', thai: 'บ้านเรามีหมาตัวเล็กหนึ่งตัว มันน่ารักมาก' },
+                    { target: 'On Sundays, we go to the park together.', thai: 'วันอาทิตย์เราไปเที่ยวสวนสาธารณะด้วยกัน' },
+                ],
+                questions: [
+                    { q: 'What is her father\'s job?', choices: ['Doctor', 'Teacher', 'Office worker'], correct: 'Doctor' },
+                    { q: 'How much older is her sister?', choices: ['One year', 'Two years', 'Three years'], correct: 'Three years' },
+                ],
+            },
+            {
+                level: 2, title: 'Weekend Plans',
+                lines: [
+                    { target: 'I am planning to do a lot of things this weekend.', thai: 'สุดสัปดาห์นี้ฉันตั้งใจจะทำหลายอย่าง' },
+                    { target: 'On Saturday morning, I will go to the library to read, and in the afternoon I will go shopping with a friend.', thai: 'เช้าวันเสาร์ฉันจะไปห้องสมุดอ่านหนังสือ บ่ายไปซื้อของกับเพื่อน' },
+                    { target: 'In the evening, we are planning to watch a movie.', thai: 'ตอนเย็นเราตั้งใจจะไปดูหนัง' },
+                    { target: 'On Sunday, I want to rest at home, and maybe cook a meal for my family.', thai: 'วันอาทิตย์ฉันอยากพักผ่อนอยู่บ้าน อาจจะทำกับข้าวให้ครอบครัวกิน' },
+                    { target: 'If the weather is nice, I also want to go running in the park.', thai: 'ถ้าอากาศดี ฉันยังอยากไปวิ่งที่สวนสาธารณะด้วย' },
+                ],
+                questions: [
+                    { q: 'Where will she go on Saturday morning?', choices: ['The library', 'A restaurant', 'The cinema'], correct: 'The library' },
+                    { q: 'What does she plan to do on Sunday?', choices: ['Rest at home', 'Go to work', 'Travel out of town'], correct: 'Rest at home' },
+                ],
+            },
+            {
+                level: 2, title: 'A Sick Day',
+                lines: [
+                    { target: 'Last night I felt unwell — I had a bad headache and a bit of a fever.', thai: 'เมื่อคืนฉันรู้สึกไม่สบาย ปวดหัวมาก แล้วก็มีไข้นิดหน่อย' },
+                    { target: 'This morning I didn\'t go to work, and went to see a doctor at the hospital instead.', thai: 'เช้านี้ฉันไม่ได้ไปทำงาน ไปโรงพยาบาลหาหมอ' },
+                    { target: 'The doctor said I had a cold, told me to drink plenty of water and rest, and gave me some medicine.', thai: 'หมอบอกว่าฉันเป็นหวัด ให้ดื่มน้ำเยอะๆ พักผ่อนเยอะๆ แล้วก็จ่ายยาให้ฉันด้วย' },
+                    { target: 'I felt much better after taking the medicine.', thai: 'หลังจากกินยาแล้วรู้สึกดีขึ้นมาก' },
+                    { target: 'I hope I will feel even better tomorrow.', thai: 'หวังว่าพรุ่งนี้จะดีขึ้นอีกหน่อย' },
+                ],
+                questions: [
+                    { q: 'Why was she feeling unwell?', choices: ['She had a cold', 'She had a stomachache', 'She hurt her leg'], correct: 'She had a cold' },
+                    { q: 'What did the doctor tell her to do?', choices: ['Drink water and rest', 'Exercise hard', 'Stop eating'], correct: 'Drink water and rest' },
+                ],
+            },
+            {
+                level: 3, title: 'My First Time Flying',
+                lines: [
+                    { target: 'Last month, I flew alone to Bangkok for the first time.', thai: 'เดือนที่แล้วฉันนั่งเครื่องบินไปเที่ยวกรุงเทพฯคนเดียวเป็นครั้งแรก' },
+                    { target: 'Before departure, I was very nervous, afraid I wouldn\'t be able to find the gate.', thai: 'ก่อนออกเดินทางฉันตื่นเต้นมาก กลัวว่าตัวเองจะหาประตูขึ้นเครื่องไม่เจอ' },
+                    { target: 'After arriving at the airport, I followed the information on the screens and found the gate without any trouble. I even had time to walk around and buy some small gifts.', thai: 'พอถึงสนามบิน ฉันดูข้อมูลบนจอแล้วหาประตูขึ้นเครื่องเจอได้อย่างราบรื่น ยังมีเวลาเดินเล่นในสนามบิน ซื้อของฝากเล็กๆ น้อยๆ ด้วย' },
+                    { target: 'I was a little scared when the plane took off, but I got used to it after a while.', thai: 'ตอนเครื่องบินขึ้น ฉันกลัวนิดหน่อย แต่ค่อยๆ ชินไป' },
+                    { target: 'This trip taught me that many things aren\'t actually as hard as they seem.', thai: 'การเดินทางครั้งนี้ทำให้ฉันเข้าใจว่า หลายอย่างจริงๆ แล้วไม่ได้ยากอย่างที่คิด' },
+                ],
+                questions: [
+                    { q: 'How did she feel before departure?', choices: ['Nervous, afraid of not finding the gate', 'Very happy', 'She felt nothing at all'], correct: 'Nervous, afraid of not finding the gate' },
+                    { q: 'What else did she do at the airport besides finding the gate?', choices: ['Walked around and bought gifts', 'Slept', 'Called a friend'], correct: 'Walked around and bought gifts' },
+                ],
+            },
+            {
+                level: 3, title: 'My Experience Learning English',
+                lines: [
+                    { target: 'I have been learning English for two years now.', thai: 'ฉันเรียนภาษาอังกฤษมาสองปีแล้ว' },
+                    { target: 'At first, I found pronunciation and grammar especially difficult — I made mistakes often, and my friends often laughed.', thai: 'ตอนเริ่มแรกฉันรู้สึกว่าการออกเสียงและไวยากรณ์ยากมาก พูดผิดบ่อยๆ แล้วก็ถูกเพื่อนล้อบ่อยๆ' },
+                    { target: 'Later, I kept listening to English songs and watching English videos every day, and slowly I got used to the rhythm of the language.', thai: 'ต่อมาฉันฟังเพลงภาษาอังกฤษและดูวิดีโอภาษาอังกฤษทุกวันอย่างสม่ำเสมอ ค่อยๆ ชินกับจังหวะของภาษานี้' },
+                    { target: 'Now, even though there are still many words I don\'t know, I can already have simple conversations with foreign friends.', thai: 'ตอนนี้แม้จะยังมีคำศัพท์ที่ไม่รู้อีกเยอะ แต่ฉันคุยกับเพื่อนต่างชาติแบบง่ายๆ ได้แล้ว' },
+                    { target: 'I think the most important thing in learning a language is not to be afraid of making mistakes — if you keep trying, you will always improve.', thai: 'ฉันคิดว่าสิ่งที่สำคัญที่สุดในการเรียนภาษาคือไม่ต้องกลัวทำผิด ถ้าพยายามต่อไปเรื่อยๆ ยังไงก็ต้องมีความก้าวหน้า' },
+                ],
+                questions: [
+                    { q: 'What did she find hardest at the start?', choices: ['Pronunciation and grammar', 'Vocabulary', 'The alphabet'], correct: 'Pronunciation and grammar' },
+                    { q: 'How did she practice English?', choices: ['Listening to songs and watching videos every day', 'Only memorizing vocabulary', 'Only studying grammar'], correct: 'Listening to songs and watching videos every day' },
+                ],
+            },
+        ];
+
+        function ReadingPanel({ awardXp, langId }) {
+            const passages = langId === 'lang-en' ? READING_PASSAGES_EN : READING_PASSAGES;
+            const langCode = LANGS[langId].code;
+            const levelBadge = langId === 'lang-en' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
             const [answers, setAnswers] = useState({});
             const [checked, setChecked] = useState(false);
+
+            useEffect(() => { setPassageIdx(null); }, [langId]);
 
             if (passageIdx === null) {
                 return (
@@ -3240,10 +3432,10 @@
                         <h3 className="text-lg font-semibold text-gray-800 mb-1">อ่านเรื่องยาว</h3>
                         <p className="text-xs text-gray-400 mb-4">ลองอ่านให้เข้าใจก่อนค่อยเปิดคำแปล — การอ่านเนื้อหายาวๆ บ่อยๆ ช่วยให้จับความหมายจากบริบทได้เร็วขึ้น</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {READING_PASSAGES.map((p, i) => (
+                            {passages.map((p, i) => (
                                 <button key={i} onClick={() => { setPassageIdx(i); setRevealedLines([]); setShowQuiz(false); setAnswers({}); setChecked(false); }}
                                     className="p-4 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
-                                    <span className="text-[10px] font-bold text-brand uppercase">HSK{p.level}</span>
+                                    <span className="text-[10px] font-bold text-brand uppercase">{levelBadge}{p.level}</span>
                                     <div className="font-semibold text-gray-800">{p.title}</div>
                                     <div className="text-xs text-gray-400">{p.lines.length} ประโยค · {p.questions.length} คำถาม</div>
                                 </button>
@@ -3253,8 +3445,8 @@
                 );
             }
 
-            const passage = READING_PASSAGES[passageIdx];
-            const playAll = () => { passage.lines.forEach((l, i) => setTimeout(() => speak(l.target, 'zh'), i * 2600)); };
+            const passage = passages[passageIdx];
+            const playAll = () => { passage.lines.forEach((l, i) => setTimeout(() => speak(l.target, langCode), i * 2600)); };
             const toggleReveal = (i) => setRevealedLines(r => r.includes(i) ? r.filter(x => x !== i) : [...r, i]);
             const checkQuiz = () => {
                 setChecked(true);
@@ -3267,7 +3459,7 @@
                     <button onClick={() => setPassageIdx(null)} className="text-xs font-semibold text-gray-400 hover:text-gray-700 mb-3">← เลือกเรื่องอื่น</button>
                     <div className="flex items-center justify-between mb-1">
                         <h3 className="text-lg font-semibold text-gray-800">{passage.title}</h3>
-                        <span className="text-[10px] font-bold text-brand uppercase">HSK{passage.level}</span>
+                        <span className="text-[10px] font-bold text-brand uppercase">{levelBadge}{passage.level}</span>
                     </div>
                     <button onClick={playAll} className="inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
                         <Volume2 /> อ่านออกเสียงทั้งเรื่อง
@@ -3279,7 +3471,7 @@
                                     <div className="font-medium text-gray-800 text-base">{l.target}</div>
                                     {revealedLines.includes(i) && <div className="text-sm text-gray-500 mt-0.5">{l.thai}</div>}
                                 </div>
-                                <button onClick={() => speak(l.target, 'zh')} className="shrink-0 text-brand"><Volume2 /></button>
+                                <button onClick={() => speak(l.target, langCode)} className="shrink-0 text-brand"><Volume2 /></button>
                                 <button onClick={() => toggleReveal(i)} className="shrink-0 text-xs font-semibold text-gray-400 hover:text-gray-700">{revealedLines.includes(i) ? 'ซ่อน' : 'แปล'}</button>
                             </div>
                         ))}
@@ -3324,55 +3516,108 @@
 
         // ── ตัวเลข-วันที่-เวลา — คลังคำศัพท์คงที่ (ไม่ได้ generate อัตโนมัติ เพื่อกันบั๊กเรื่องการอ่าน
         //    ตัวเลข/เวลาผิด) แยก 4 หมวด สุ่มตัวลวง (choices) จากหมวดเดียวกันเท่านั้นให้ดูสมเหตุสมผล
-        //    หมายเหตุ: "两" ใช้แทน "二" เฉพาะหน้าลักษณนาม/บอกเวลา (เช่น 两点) ตามหลักไวยากรณ์จริง
+        //    field ชื่อ target/phonetic เป็นชื่อกลาง (ไม่ผูกกับภาษาใดภาษาหนึ่ง) — phonetic เป็น optional
+        //    (ภาษาจีนใช้พินอิน ภาษาอังกฤษไม่ต้องมีเพราะ target เขียนเป็นคำอ่านอยู่แล้ว)
+        //    หมายเหตุจีน: "两" ใช้แทน "二" เฉพาะหน้าลักษณนาม/บอกเวลา (เช่น 两点) ตามหลักไวยากรณ์จริง
         const NUMBERS_DATES = {
             numbers: [
-                { prompt: '5', hanzi: '五', pinyin: 'wǔ' },
-                { prompt: '8', hanzi: '八', pinyin: 'bā' },
-                { prompt: '12', hanzi: '十二', pinyin: 'shí\'èr' },
-                { prompt: '15', hanzi: '十五', pinyin: 'shíwǔ' },
-                { prompt: '20', hanzi: '二十', pinyin: 'èrshí' },
-                { prompt: '23', hanzi: '二十三', pinyin: 'èrshísān' },
-                { prompt: '34', hanzi: '三十四', pinyin: 'sānshísì' },
-                { prompt: '50', hanzi: '五十', pinyin: 'wǔshí' },
-                { prompt: '67', hanzi: '六十七', pinyin: 'liùshíqī' },
-                { prompt: '99', hanzi: '九十九', pinyin: 'jiǔshíjiǔ' },
-                { prompt: '100', hanzi: '一百', pinyin: 'yìbǎi' },
-                { prompt: '128', hanzi: '一百二十八', pinyin: 'yìbǎi èrshíbā' },
-                { prompt: '256', hanzi: '二百五十六', pinyin: 'èrbǎi wǔshíliù' },
-                { prompt: '1000', hanzi: '一千', pinyin: 'yìqiān' },
+                { prompt: '5', target: '五', phonetic: 'wǔ' },
+                { prompt: '8', target: '八', phonetic: 'bā' },
+                { prompt: '12', target: '十二', phonetic: 'shí\'èr' },
+                { prompt: '15', target: '十五', phonetic: 'shíwǔ' },
+                { prompt: '20', target: '二十', phonetic: 'èrshí' },
+                { prompt: '23', target: '二十三', phonetic: 'èrshísān' },
+                { prompt: '34', target: '三十四', phonetic: 'sānshísì' },
+                { prompt: '50', target: '五十', phonetic: 'wǔshí' },
+                { prompt: '67', target: '六十七', phonetic: 'liùshíqī' },
+                { prompt: '99', target: '九十九', phonetic: 'jiǔshíjiǔ' },
+                { prompt: '100', target: '一百', phonetic: 'yìbǎi' },
+                { prompt: '128', target: '一百二十八', phonetic: 'yìbǎi èrshíbā' },
+                { prompt: '256', target: '二百五十六', phonetic: 'èrbǎi wǔshíliù' },
+                { prompt: '1000', target: '一千', phonetic: 'yìqiān' },
             ],
             weekday: [
-                { prompt: 'วันจันทร์', hanzi: '星期一', pinyin: 'xīngqīyī' },
-                { prompt: 'วันอังคาร', hanzi: '星期二', pinyin: 'xīngqī\'èr' },
-                { prompt: 'วันพุธ', hanzi: '星期三', pinyin: 'xīngqīsān' },
-                { prompt: 'วันพฤหัสบดี', hanzi: '星期四', pinyin: 'xīngqīsì' },
-                { prompt: 'วันศุกร์', hanzi: '星期五', pinyin: 'xīngqīwǔ' },
-                { prompt: 'วันเสาร์', hanzi: '星期六', pinyin: 'xīngqīliù' },
-                { prompt: 'วันอาทิตย์', hanzi: '星期天', pinyin: 'xīngqītiān' },
+                { prompt: 'วันจันทร์', target: '星期一', phonetic: 'xīngqīyī' },
+                { prompt: 'วันอังคาร', target: '星期二', phonetic: 'xīngqī\'èr' },
+                { prompt: 'วันพุธ', target: '星期三', phonetic: 'xīngqīsān' },
+                { prompt: 'วันพฤหัสบดี', target: '星期四', phonetic: 'xīngqīsì' },
+                { prompt: 'วันศุกร์', target: '星期五', phonetic: 'xīngqīwǔ' },
+                { prompt: 'วันเสาร์', target: '星期六', phonetic: 'xīngqīliù' },
+                { prompt: 'วันอาทิตย์', target: '星期天', phonetic: 'xīngqītiān' },
             ],
             time: [
-                { prompt: '1:00 น.', hanzi: '一点', pinyin: 'yì diǎn' },
-                { prompt: '2:00 น.', hanzi: '两点', pinyin: 'liǎng diǎn' },
-                { prompt: '3:30 น.', hanzi: '三点半', pinyin: 'sān diǎn bàn' },
-                { prompt: '4:40 น.', hanzi: '四点四十分', pinyin: 'sì diǎn sìshí fēn' },
-                { prompt: '6:15 น.', hanzi: '六点十五分', pinyin: 'liù diǎn shíwǔ fēn' },
-                { prompt: '7:30 น.', hanzi: '七点半', pinyin: 'qī diǎn bàn' },
-                { prompt: '8:45 น.', hanzi: '八点四十五分', pinyin: 'bā diǎn sìshíwǔ fēn' },
-                { prompt: '9:05 น.', hanzi: '九点零五分', pinyin: 'jiǔ diǎn líng wǔ fēn' },
-                { prompt: '10:10 น.', hanzi: '十点十分', pinyin: 'shí diǎn shí fēn' },
-                { prompt: '11:20 น.', hanzi: '十一点二十分', pinyin: 'shíyī diǎn èrshí fēn' },
-                { prompt: '12:00 น.', hanzi: '十二点', pinyin: 'shí\'èr diǎn' },
+                { prompt: '1:00 น.', target: '一点', phonetic: 'yì diǎn' },
+                { prompt: '2:00 น.', target: '两点', phonetic: 'liǎng diǎn' },
+                { prompt: '3:30 น.', target: '三点半', phonetic: 'sān diǎn bàn' },
+                { prompt: '4:40 น.', target: '四点四十分', phonetic: 'sì diǎn sìshí fēn' },
+                { prompt: '6:15 น.', target: '六点十五分', phonetic: 'liù diǎn shíwǔ fēn' },
+                { prompt: '7:30 น.', target: '七点半', phonetic: 'qī diǎn bàn' },
+                { prompt: '8:45 น.', target: '八点四十五分', phonetic: 'bā diǎn sìshíwǔ fēn' },
+                { prompt: '9:05 น.', target: '九点零五分', phonetic: 'jiǔ diǎn líng wǔ fēn' },
+                { prompt: '10:10 น.', target: '十点十分', phonetic: 'shí diǎn shí fēn' },
+                { prompt: '11:20 น.', target: '十一点二十分', phonetic: 'shíyī diǎn èrshí fēn' },
+                { prompt: '12:00 น.', target: '十二点', phonetic: 'shí\'èr diǎn' },
             ],
             date: [
-                { prompt: '1 มกราคม', hanzi: '一月一号', pinyin: 'yī yuè yī hào' },
-                { prompt: '14 กุมภาพันธ์', hanzi: '二月十四号', pinyin: 'èr yuè shísì hào' },
-                { prompt: '8 มีนาคม', hanzi: '三月八号', pinyin: 'sān yuè bā hào' },
-                { prompt: '1 พฤษภาคม', hanzi: '五月一号', pinyin: 'wǔ yuè yī hào' },
-                { prompt: '20 มิถุนายน', hanzi: '六月二十号', pinyin: 'liù yuè èrshí hào' },
-                { prompt: '15 สิงหาคม', hanzi: '八月十五号', pinyin: 'bā yuè shíwǔ hào' },
-                { prompt: '10 ตุลาคม', hanzi: '十月十号', pinyin: 'shí yuè shí hào' },
-                { prompt: '25 ธันวาคม', hanzi: '十二月二十五号', pinyin: 'shí\'èr yuè èrshíwǔ hào' },
+                { prompt: '1 มกราคม', target: '一月一号', phonetic: 'yī yuè yī hào' },
+                { prompt: '14 กุมภาพันธ์', target: '二月十四号', phonetic: 'èr yuè shísì hào' },
+                { prompt: '8 มีนาคม', target: '三月八号', phonetic: 'sān yuè bā hào' },
+                { prompt: '1 พฤษภาคม', target: '五月一号', phonetic: 'wǔ yuè yī hào' },
+                { prompt: '20 มิถุนายน', target: '六月二十号', phonetic: 'liù yuè èrshí hào' },
+                { prompt: '15 สิงหาคม', target: '八月十五号', phonetic: 'bā yuè shíwǔ hào' },
+                { prompt: '10 ตุลาคม', target: '十月十号', phonetic: 'shí yuè shí hào' },
+                { prompt: '25 ธันวาคม', target: '十二月二十五号', phonetic: 'shí\'èr yuè èrshíwǔ hào' },
+            ],
+        };
+        // ── เวอร์ชันภาษาอังกฤษ — ไม่มี phonetic เพราะ target เขียนเป็นคำอ่านตรงตัวอยู่แล้ว
+        const NUMBERS_DATES_EN = {
+            numbers: [
+                { prompt: '5', target: 'five' },
+                { prompt: '8', target: 'eight' },
+                { prompt: '12', target: 'twelve' },
+                { prompt: '15', target: 'fifteen' },
+                { prompt: '20', target: 'twenty' },
+                { prompt: '23', target: 'twenty-three' },
+                { prompt: '34', target: 'thirty-four' },
+                { prompt: '50', target: 'fifty' },
+                { prompt: '67', target: 'sixty-seven' },
+                { prompt: '99', target: 'ninety-nine' },
+                { prompt: '100', target: 'one hundred' },
+                { prompt: '128', target: 'one hundred twenty-eight' },
+                { prompt: '256', target: 'two hundred fifty-six' },
+                { prompt: '1000', target: 'one thousand' },
+            ],
+            weekday: [
+                { prompt: 'วันจันทร์', target: 'Monday' },
+                { prompt: 'วันอังคาร', target: 'Tuesday' },
+                { prompt: 'วันพุธ', target: 'Wednesday' },
+                { prompt: 'วันพฤหัสบดี', target: 'Thursday' },
+                { prompt: 'วันศุกร์', target: 'Friday' },
+                { prompt: 'วันเสาร์', target: 'Saturday' },
+                { prompt: 'วันอาทิตย์', target: 'Sunday' },
+            ],
+            time: [
+                { prompt: '1:00 น.', target: "one o'clock" },
+                { prompt: '2:00 น.', target: "two o'clock" },
+                { prompt: '3:30 น.', target: 'three thirty' },
+                { prompt: '4:40 น.', target: 'four forty' },
+                { prompt: '6:15 น.', target: 'six fifteen' },
+                { prompt: '7:30 น.', target: 'seven thirty' },
+                { prompt: '8:45 น.', target: 'eight forty-five' },
+                { prompt: '9:05 น.', target: 'nine oh five' },
+                { prompt: '10:10 น.', target: 'ten ten' },
+                { prompt: '11:20 น.', target: 'eleven twenty' },
+                { prompt: '12:00 น.', target: "twelve o'clock" },
+            ],
+            date: [
+                { prompt: '1 มกราคม', target: 'January 1st' },
+                { prompt: '14 กุมภาพันธ์', target: 'February 14th' },
+                { prompt: '8 มีนาคม', target: 'March 8th' },
+                { prompt: '1 พฤษภาคม', target: 'May 1st' },
+                { prompt: '20 มิถุนายน', target: 'June 20th' },
+                { prompt: '15 สิงหาคม', target: 'August 15th' },
+                { prompt: '10 ตุลาคม', target: 'October 10th' },
+                { prompt: '25 ธันวาคม', target: 'December 25th' },
             ],
         };
         const NUMBERS_DATES_CATS = [
@@ -3383,30 +3628,37 @@
             { key: 'date', label: 'วันที่' },
         ];
         const NDQ_LEN = 10;
-        function buildNdQueue(catKey) {
+        function buildNdQueue(catKey, dataset) {
+            const data = dataset || NUMBERS_DATES;
             const pool = catKey === 'all'
-                ? Object.keys(NUMBERS_DATES).flatMap(cat => NUMBERS_DATES[cat].map(it => ({ ...it, cat })))
-                : NUMBERS_DATES[catKey].map(it => ({ ...it, cat: catKey }));
+                ? Object.keys(data).flatMap(cat => data[cat].map(it => ({ ...it, cat })))
+                : data[catKey].map(it => ({ ...it, cat: catKey }));
             const picked = shuffleArr(pool).slice(0, Math.min(NDQ_LEN, pool.length));
             return picked.map(item => {
-                const samePool = NUMBERS_DATES[item.cat];
-                const distractors = shuffleArr(samePool.filter(it => it.hanzi !== item.hanzi)).slice(0, 3);
-                const choices = shuffleArr([item, ...distractors]).map(it => `${it.hanzi} (${it.pinyin})`);
-                return { ...item, choices, correct: `${item.hanzi} (${item.pinyin})` };
+                const samePool = data[item.cat];
+                const distractors = shuffleArr(samePool.filter(it => it.target !== item.target)).slice(0, 3);
+                const fmt = it => it.phonetic ? `${it.target} (${it.phonetic})` : it.target;
+                const choices = shuffleArr([item, ...distractors]).map(fmt);
+                return { ...item, choices, correct: fmt(item) };
             });
         }
 
-        function NumbersDatesPanel({ awardXp }) {
+        function NumbersDatesPanel({ awardXp, langId }) {
+            const dataset = langId === 'lang-en' ? NUMBERS_DATES_EN : NUMBERS_DATES;
+            const langCode = LANGS[langId].code;
             const [catKey, setCatKey] = useState('all');
-            const [queue, setQueue] = useState(() => buildNdQueue('all'));
+            const [queue, setQueue] = useState(() => buildNdQueue('all', dataset));
             const [qIdx, setQIdx] = useState(0);
             const [selected, setSelected] = useState(null);
             const [score, setScore] = useState(0);
             const [finished, setFinished] = useState(false);
 
+            // สลับภาษาแล้วต้องสร้างคิวใหม่จากชุดข้อมูลของภาษานั้น ไม่งั้นค้างคิวเก่าของอีกภาษา
+            useEffect(() => { restart('all'); }, [langId]);
+
             const restart = (cat) => {
                 setCatKey(cat);
-                setQueue(buildNdQueue(cat));
+                setQueue(buildNdQueue(cat, dataset));
                 setQIdx(0); setSelected(null); setScore(0); setFinished(false);
             };
 
@@ -3445,7 +3697,7 @@
                         <h3 className="text-lg font-semibold text-gray-800">ตัวเลข-วันที่-เวลา</h3>
                         <span className="text-xs font-semibold text-gray-400">ข้อ {qIdx + 1}/{queue.length}</span>
                     </div>
-                    <p className="text-xs text-gray-400 mb-4">ฝึกอ่าน/แปลงตัวเลข วันในสัปดาห์ เวลา และวันที่เป็นภาษาจีน — เลือกหมวดที่ต้องการฝึกได้</p>
+                    <p className="text-xs text-gray-400 mb-4">ฝึกอ่าน/แปลงตัวเลข วันในสัปดาห์ เวลา และวันที่เป็นภาษา{LANGS[langId].title} — เลือกหมวดที่ต้องการฝึกได้</p>
                     <div className="flex flex-wrap gap-1.5 mb-5">
                         {NUMBERS_DATES_CATS.map(c => (
                             <button key={c.key} onClick={() => restart(c.key)}
@@ -3458,14 +3710,14 @@
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-6 text-center mb-4">
                         <span className="text-[10px] font-bold text-brand uppercase">{catLabel}</span>
                         <div className="text-3xl font-extrabold text-gray-900 mt-1">{current.prompt}</div>
-                        <p className="text-xs text-gray-400 mt-1">เลือกคำอ่านภาษาจีนที่ถูกต้อง</p>
+                        <p className="text-xs text-gray-400 mt-1">เลือกคำอ่านภาษา{LANGS[langId].title}ที่ถูกต้อง</p>
                     </div>
 
                     <McChoices choices={current.choices} correct={current.correct} selected={selected} onPick={pick} />
 
                     {selected != null && (
                         <div className="mt-4 flex items-center justify-between gap-3">
-                            <button onClick={() => speak(current.hanzi, 'zh')} className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand"><Volume2 /> ฟังคำตอบที่ถูกต้อง</button>
+                            <button onClick={() => speak(current.target, langCode)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand"><Volume2 /> ฟังคำตอบที่ถูกต้อง</button>
                             <button onClick={next} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm hover:opacity-80">
                                 {qIdx + 1 >= queue.length ? 'ดูผลสรุป' : 'ข้อต่อไป'}
                             </button>
@@ -3475,16 +3727,22 @@
             );
         }
 
+        // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN)/READING_PASSAGES(_EN)/
+        // NUMBERS_DATES(_EN) + ASR_LANG_NAME) — ภาษาอื่นนอกสองนี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
+        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en'];
         function ListenSpeakView({ langId, setLangId, setXp }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
 
-            if (langId !== 'lang-cn') {
+            if (!LISTEN_SPEAK_LANGS.includes(langId)) {
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนตอนนี้</p>
-                            <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีน</button>
+                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนและอังกฤษตอนนี้</p>
+                            <div className="flex gap-2 justify-center">
+                                <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีน</button>
+                                <button onClick={() => setLangId('lang-en')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาอังกฤษ</button>
+                            </div>
                         </div>
                     </div>
                 );
@@ -3514,10 +3772,10 @@
                             </div>
                         </div>
                         <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-6">
-                            {subMode === 'listening' && <ListeningPanel awardXp={awardXp} />}
-                            {subMode === 'shadowing' && <ShadowingPanel awardXp={awardXp} />}
-                            {subMode === 'reading' && <ReadingPanel awardXp={awardXp} />}
-                            {subMode === 'numbers' && <NumbersDatesPanel awardXp={awardXp} />}
+                            {subMode === 'listening' && <ListeningPanel awardXp={awardXp} langId={langId} />}
+                            {subMode === 'shadowing' && <ShadowingPanel awardXp={awardXp} langId={langId} />}
+                            {subMode === 'reading' && <ReadingPanel awardXp={awardXp} langId={langId} />}
+                            {subMode === 'numbers' && <NumbersDatesPanel awardXp={awardXp} langId={langId} />}
                         </div>
                     </div>
                 </div>
@@ -3697,9 +3955,9 @@
                 setMobileNavOpen(false);
             };
 
-            // โหมดฟัง-พูด รองรับเฉพาะภาษาจีนเหมือน ข้อสอบ — สลับภาษาให้อัตโนมัติเช่นกัน
+            // โหมดฟัง-พูด รองรับจีน+อังกฤษเหมือน ข้อสอบ — ถ้าอยู่ภาษาอื่นอยู่ค่อยสลับเป็นจีนให้อัตโนมัติ
             const goListen = () => {
-                setLangId('lang-cn');
+                if (langId !== 'lang-en') setLangId('lang-cn');
                 setView('listen');
                 setMobileNavOpen(false);
             };
@@ -3875,11 +4133,11 @@
                                 </button>
                                 <button
                                     onClick={goListen}
-                                    title="ฟีเจอร์นี้รองรับเฉพาะภาษาจีน — กดแล้วจะสลับภาษาที่เลือกไว้เป็นจีนให้อัตโนมัติ"
+                                    title="รองรับภาษาจีนและอังกฤษ — ภาษาอื่นจะสลับเป็นจีนให้อัตโนมัติ"
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'listen' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <ListenIcon /> ฟัง-พูด
-                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน</span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ</span>
                                 </button>
                             </div>
                             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -3948,6 +4206,33 @@
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
                                                 <div className="text-sm font-bold text-gray-800">ข้อสอบ HSK/BCT</div>
+                                                <div className="text-[11px] text-gray-400">จำลองข้อสอบจริง</div>
+                                            </button>
+                                            <button onClick={goListen}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><ListenIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ฟัง-พูด-อ่าน</div>
+                                                <div className="text-[11px] text-gray-400">บทฟัง, พูดตาม, อ่านยาว</div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {langId === 'lang-en' && (
+                                    <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
+                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาอังกฤษ</h3>
+                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียน ทำข้อสอบจำลอง IELTS/TOEIC และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <button onClick={() => goWriting('lang-en')}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><PenToolIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">แต่งประโยคอิสระ</div>
+                                                <div className="text-[11px] text-gray-400">AI ตรวจแก้ไวยากรณ์</div>
+                                            </button>
+                                            <button onClick={goExam}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><HskIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ IELTS/TOEIC</div>
                                                 <div className="text-[11px] text-gray-400">จำลองข้อสอบจริง</div>
                                             </button>
                                             <button onClick={goListen}
