@@ -3478,6 +3478,445 @@
 
 
         // ══════════════════════════════════════════════════════════════════════════════════
+        // ข้อสอบ TOPIK I (จำลอง) — โคลนโครงสร้าง state machine มาจาก JpExamView (ไม่มีส่วนเขียน/
+        // พูดเหมือนกัน — TOPIK I ของจริงก็ไม่มีส่วนเขียนด้วย มีแค่ 듣기(ฟัง)+읽기(อ่าน) ล้วนปรนัย 4
+        // ตัวเลือก) ไม่มีขั้น "เลือกระดับ" เพราะ TOPIK I เป็นชุดเดียว (TOPIK II ที่มีส่วนเขียนเรียงความ
+        // เป็น follow-up ในอนาคต) จำนวนข้อรวม 70 ข้อเท่าโครงสร้างจริง (ฟัง 30 + อ่าน 40) เนื้อหาทั้งหมด
+        // แต่งเอง ไม่ใช่ข้อสอบทางการที่หลุดออกมา — คำศัพท์ในหมวดอ่านดึงจาก vocab-data ภาษาเกาหลี
+        // ══════════════════════════════════════════════════════════════════════════════════
+
+        function krVocabPool() {
+            const out = [];
+            const cats = VOCAB['lang-kr'] || {};
+            Object.keys(cats).forEach(cat => {
+                (cats[cat] || []).forEach((w, i) => {
+                    if (!w.romaja) return; // กันไว้เผื่ออนาคตเพิ่มคำที่ยังไม่มี romaja
+                    out.push({ key: `lang-kr::vocab-${cat}::${i}`, word: w.word, romaja: w.romaja, thai: w.thai });
+                });
+            });
+            return out;
+        }
+        function genKrWordMeaningMc(pool, count) {
+            // 어휘 (คำศัพท์) — โชว์คำ+romaja ให้เลือกความหมายไทยที่ถูกต้อง
+            const picked = shuffleArr(pool).slice(0, Math.min(count, pool.length));
+            return picked.map(item => {
+                const distractors = shuffleArr(pool.filter(p => p.word !== item.word)).slice(0, 3);
+                const choices = shuffleArr([item.thai, ...distractors.map(d => d.thai)]);
+                return { type: 'kr-word-meaning-mc', word: item.word, romaja: item.romaja, correct: item.thai, choices };
+            });
+        }
+
+        // 문법 (grammar-mc ใช้ renderer ร่วมกับ TOEIC Part 5/JLPT文法ได้เลย เพราะโครงสร้าง {sentence,
+        // choices, correct} เหมือนกัน — ทุกข้อตรวจสอบไวยากรณ์ TOPIK I แล้ว (조사/存在คำกริยา/เปรียบเทียบ)
+        const KR_GRAMMAR = [
+            { sentence: "저는 학생___에요.", choices: ["이", "가", "를", "는"], correct: "이" },
+            { sentence: "저는 사과___ 좋아해요.", choices: ["를", "을", "이", "가"], correct: "를" },
+            { sentence: "내일 학교___ 가요.", choices: ["에", "에서", "를", "도"], correct: "에" },
+            { sentence: "도서관___ 책을 읽어요.", choices: ["에서", "에", "를", "와"], correct: "에서" },
+            { sentence: "저는 매일 일곱 시___ 일어나요.", choices: ["에", "에서", "도", "를"], correct: "에" },
+            { sentence: "저는 친구___ 같이 영화를 봐요.", choices: ["하고", "에서", "를", "도"], correct: "하고" },
+            { sentence: "교실___ 학생이 있어요.", choices: ["에", "를", "가", "도"], correct: "에" },
+            { sentence: "이 가방은 저 가방___ 비싸요.", choices: ["보다", "에서", "와", "를"], correct: "보다" },
+            { sentence: "저___ 학생이에요.", choices: ["도", "는", "가", "를"], correct: "도" },
+            { sentence: "책상 위___ 컵이 있어요.", choices: ["에", "에서", "를", "와"], correct: "에" },
+        ];
+
+        // 읽기 — บทความสั้น (짧은 글) 1 คำถาม/บท และบทความยาวขึ้น (긴 글) 1 คำถาม/บท
+        const KR_READING_SHORT = [
+            { text: "저는 매일 학교에 갑니다. 학교에서 한국어를 배웁니다. 한국어는 어렵지만 재미있습니다.", questions: [
+                { q: "저는 학교에서 무엇을 배워요?", choices: ["한국어", "영어", "수학"], correct: "한국어" },
+            ] },
+            { text: "이 식당은 월요일에 쉽니다. 화요일부터 일요일까지 문을 엽니다.", questions: [
+                { q: "이 식당은 무슨 요일에 쉬어요?", choices: ["월요일", "화요일", "일요일"], correct: "월요일" },
+            ] },
+            { text: "저는 어제 백화점에서 옷을 샀습니다. 아주 예쁜 치마를 샀습니다.", questions: [
+                { q: "저는 어제 무엇을 샀어요?", choices: ["치마", "신발", "가방"], correct: "치마" },
+            ] },
+            { text: "우리 집 앞에는 작은 공원이 있습니다. 저는 주말마다 그 공원에서 산책합니다.", questions: [
+                { q: "저는 주말마다 어디에서 산책해요?", choices: ["집 앞 공원", "학교 운동장", "강가"], correct: "집 앞 공원" },
+            ] },
+            { text: "다음 주 금요일은 제 친구의 생일입니다. 저는 친구에게 줄 선물을 준비하고 있습니다.", questions: [
+                { q: "다음 주 금요일은 무슨 날이에요?", choices: ["친구 생일", "제 생일", "시험 날"], correct: "친구 생일" },
+            ] },
+            { text: "은행은 아침 아홉 시에 문을 엽니다. 오후 네 시에 문을 닫습니다.", questions: [
+                { q: "은행은 오후 몇 시에 문을 닫아요?", choices: ["네 시", "다섯 시", "세 시"], correct: "네 시" },
+            ] },
+            { text: "저는 매운 음식을 잘 못 먹습니다. 그래서 김치찌개를 먹을 때 물을 많이 마십니다.", questions: [
+                { q: "저는 김치찌개를 먹을 때 무엇을 많이 해요?", choices: ["물을 마셔요", "빵을 먹어요", "노래를 불러요"], correct: "물을 마셔요" },
+            ] },
+            { text: "이번 겨울 방학에 저는 고향에 갈 겁니다. 가족들을 오랜만에 만날 수 있어서 기쁩니다.", questions: [
+                { q: "저는 이번 겨울 방학에 어디에 갈 거예요?", choices: ["고향", "회사", "병원"], correct: "고향" },
+            ] },
+            { text: "지하철역에서 우리 집까지 걸어서 십 분쯤 걸립니다. 그래서 저는 보통 걸어서 갑니다.", questions: [
+                { q: "지하철역에서 집까지 어떻게 가요?", choices: ["걸어서 가요", "버스를 타요", "택시를 타요"], correct: "걸어서 가요" },
+            ] },
+            { text: "저는 커피를 아주 좋아합니다. 그렇지만 밤에는 커피를 마시지 않습니다. 잠을 못 자기 때문입니다.", questions: [
+                { q: "저는 왜 밤에 커피를 안 마셔요?", choices: ["잠을 못 자서", "배가 아파서", "돈이 없어서"], correct: "잠을 못 자서" },
+            ] },
+        ];
+        const KR_READING_LONG = [
+            { text: "저는 이번 학기에 한국어 수업을 듣습니다. 처음에는 한글을 읽는 것도 어려웠습니다. 그렇지만 매일 조금씩 공부하니까 이제 간단한 문장은 쓸 수 있습니다. 선생님도 제가 많이 늘었다고 말씀하셨습니다. 앞으로 더 열심히 공부하고 싶습니다.", questions: [
+                { q: "저는 처음에 무엇이 어려웠어요?", choices: ["한글을 읽는 것", "요리하는 것", "운동하는 것"], correct: "한글을 읽는 것" },
+            ] },
+            { text: "지난주에 저는 친구와 함께 등산을 갔습니다. 산은 아주 높았지만 경치가 정말 아름다웠습니다. 정상에 올라갔을 때 우리는 사진을 많이 찍었습니다. 내려올 때는 다리가 아팠지만 즐거운 하루였습니다.", questions: [
+                { q: "저는 정상에서 무엇을 했어요?", choices: ["사진을 찍었어요", "잠을 잤어요", "밥을 먹었어요"], correct: "사진을 찍었어요" },
+            ] },
+            { text: "우리 회사는 다음 달에 새 사무실로 이사를 갑니다. 새 사무실은 지금보다 훨씬 크고 지하철역에서도 가깝습니다. 직원들은 모두 새 사무실을 기대하고 있습니다.", questions: [
+                { q: "새 사무실은 어떻습니까?", choices: ["크고 지하철역에서 가까워요", "작고 멀어요", "오래됐어요"], correct: "크고 지하철역에서 가까워요" },
+            ] },
+            { text: "저는 요리하는 것을 좋아해서 주말마다 새로운 요리를 만들어 봅니다. 지난 주말에는 김치찌개를 처음 만들어 봤습니다. 조금 짰지만 가족들이 맛있게 먹어 줘서 기뻤습니다.", questions: [
+                { q: "지난 주말에 무엇을 처음 만들었어요?", choices: ["김치찌개", "비빔밥", "불고기"], correct: "김치찌개" },
+            ] },
+            { text: "저는 매달 첫째 주 토요일에 도서관에서 봉사활동을 합니다. 아이들에게 책을 읽어 주는 일입니다. 처음에는 조금 떨렸지만 지금은 아이들과 이야기하는 것이 즐겁습니다.", questions: [
+                { q: "저는 도서관에서 무슨 봉사활동을 해요?", choices: ["아이들에게 책을 읽어 줘요", "책을 정리해요", "컴퓨터를 가르쳐요"], correct: "아이들에게 책을 읽어 줘요" },
+            ] },
+        ];
+        function genKrPassageMc(dataset, count) {
+            const picked = shuffleArr(dataset).slice(0, Math.min(count, dataset.length));
+            const out = [];
+            picked.forEach(p => { p.questions.forEach(q => out.push({ type: 'passage-mc', text: p.text, q: q.q, choices: shuffleArr(q.choices), correct: q.correct })); });
+            return out;
+        }
+
+        // 듣기 — 즉시 응답 (quick response) ประโยคเดียว + เลือกคำตอบที่เหมาะสมจาก 3 ตัวเลือก
+        const KR_RESPONSES = [
+            { phrase: "실례합니다, 지금 몇 시예요?", choices: ["세 시예요.", "네, 맞아요.", "감사합니다."], correct: "세 시예요." },
+            { phrase: "요즘 어떻게 지내세요?", choices: ["잘 지내요.", "세 시예요.", "한국 사람이에요."], correct: "잘 지내요." },
+            { phrase: "이 가방은 얼마예요?", choices: ["천 원이에요.", "학교예요.", "내일이에요."], correct: "천 원이에요." },
+            { phrase: "제가 도와드릴까요?", choices: ["네, 부탁해요.", "세 시예요.", "그렇군요."], correct: "네, 부탁해요." },
+            { phrase: "실례지만, 성함이 어떻게 되세요?", choices: ["김민수예요.", "잘 지내요.", "여기예요."], correct: "김민수예요." },
+            { phrase: "커피 한잔 하시겠어요?", choices: ["네, 좋아요.", "아니요, 김민수예요.", "그래요?"], correct: "네, 좋아요." },
+            { phrase: "숙제를 벌써 했어요?", choices: ["네, 했어요.", "네, 가요.", "아니요, 잘 지내요."], correct: "네, 했어요." },
+            { phrase: "내일 또 만나요.", choices: ["네, 내일 봐요.", "네, 부탁해요.", "아니요, 괜찮아요."], correct: "네, 내일 봐요." },
+        ];
+        function genKrResponseMc(count) {
+            const picked = shuffleArr(KR_RESPONSES).slice(0, Math.min(count, KR_RESPONSES.length));
+            return picked.map((r, ri) => ({ type: 'kr-response-mc', phrase: r.phrase, choices: shuffleArr(r.choices), correct: r.correct, voiceSlot: ri }));
+        }
+
+        // 듣기 — 짧은 대화 (short dialogue) บทสนทนาสั้น 2-3 ประโยค + คำถาม 1 ข้อ/บท
+        const KR_DIALOGUES = [
+            { lines: [{ speaker: "A", text: "여보세요, 지금 어디예요?" }, { speaker: "B", text: "저는 지금 집이에요." }, { speaker: "A", text: "알겠어요, 이따가 전화할게요." }], q: "B는 지금 어디에 있어요?", choices: ["집", "학교", "회사"], correct: "집" },
+            { lines: [{ speaker: "A", text: "이 사과는 얼마예요?" }, { speaker: "B", text: "천 원이에요." }, { speaker: "A", text: "두 개 주세요." }], q: "사과 한 개는 얼마예요?", choices: ["천 원", "이천 원", "오백 원"], correct: "천 원" },
+            { lines: [{ speaker: "A", text: "오늘 저녁에 시간 있어요?" }, { speaker: "B", text: "네, 있어요. 왜요?" }, { speaker: "A", text: "같이 영화 볼래요?" }, { speaker: "B", text: "좋아요!" }], q: "두 사람은 오늘 저녁에 뭐 할 거예요?", choices: ["영화를 봐요", "저녁을 먹어요", "공부해요"], correct: "영화를 봐요" },
+            { lines: [{ speaker: "A", text: "오늘 날씨가 어때요?" }, { speaker: "B", text: "아주 추워요. 눈도 와요." }, { speaker: "A", text: "그럼 따뜻하게 입으세요." }], q: "오늘 날씨는 어때요?", choices: ["춥고 눈이 와요", "덥고 맑아요", "비가 와요"], correct: "춥고 눈이 와요" },
+            { lines: [{ speaker: "A", text: "민수 씨, 이제 뭐 할 거예요?" }, { speaker: "B", text: "도서관에서 책을 빌리고 집에 갈 거예요." }, { speaker: "A", text: "저도 같이 가요." }], q: "민수 씨는 도서관에서 뭐 할 거예요?", choices: ["책을 빌려요", "밥을 먹어요", "잠을 자요"], correct: "책을 빌려요" },
+            { lines: [{ speaker: "A", text: "실례합니다, 지하철역이 어디예요?" }, { speaker: "B", text: "이 길로 쭉 가세요." }, { speaker: "A", text: "감사합니다." }], q: "지하철역에 어떻게 가요?", choices: ["이 길로 쭉 가요", "오른쪽으로 가요", "버스를 타요"], correct: "이 길로 쭉 가요" },
+            { lines: [{ speaker: "A", text: "내일 몇 시에 만날까요?" }, { speaker: "B", text: "아홉 시 어때요?" }, { speaker: "A", text: "좋아요, 아홉 시에 봐요." }], q: "두 사람은 내일 몇 시에 만나요?", choices: ["아홉 시", "여덟 시", "열 시"], correct: "아홉 시" },
+            { lines: [{ speaker: "A", text: "뭐 드시겠어요?" }, { speaker: "B", text: "저는 비빔밥 주세요." }, { speaker: "A", text: "네, 잠시만 기다려 주세요." }], q: "B는 뭘 주문했어요?", choices: ["비빔밥", "김치찌개", "냉면"], correct: "비빔밥" },
+            { lines: [{ speaker: "A", text: "어디가 아파요?" }, { speaker: "B", text: "머리가 아프고 열이 나요." }, { speaker: "A", text: "약을 먹고 쉬세요." }], q: "B는 어디가 아파요?", choices: ["머리", "배", "다리"], correct: "머리" },
+            { lines: [{ speaker: "A", text: "주말에 뭐 했어요?" }, { speaker: "B", text: "친구하고 등산했어요." }, { speaker: "A", text: "재미있었겠어요." }], q: "B는 주말에 뭐 했어요?", choices: ["등산했어요", "영화를 봤어요", "집에서 쉬었어요"], correct: "등산했어요" },
+            { lines: [{ speaker: "A", text: "가족이 몇 명이에요?" }, { speaker: "B", text: "저까지 네 명이에요. 부모님하고 언니가 있어요." }, { speaker: "A", text: "저도 언니가 있어요." }], q: "B의 가족은 몇 명이에요?", choices: ["네 명", "세 명", "다섯 명"], correct: "네 명" },
+            { lines: [{ speaker: "A", text: "요즘 무슨 일 하세요?" }, { speaker: "B", text: "회사에 다녀요. 회사원이에요." }, { speaker: "A", text: "그렇군요." }], q: "B는 무슨 일을 해요?", choices: ["회사원이에요", "학생이에요", "의사예요"], correct: "회사원이에요" },
+            { lines: [{ speaker: "A", text: "여름 방학에 어디에 갈 거예요?" }, { speaker: "B", text: "부산에 갈 거예요. 바다를 보고 싶어요." }, { speaker: "A", text: "좋겠어요." }], q: "B는 여름 방학에 어디에 갈 거예요?", choices: ["부산", "제주도", "서울"], correct: "부산" },
+            { lines: [{ speaker: "A", text: "취미가 뭐예요?" }, { speaker: "B", text: "저는 음악 듣는 걸 좋아해요." }, { speaker: "A", text: "저도 음악을 좋아해요." }], q: "B의 취미는 뭐예요?", choices: ["음악 듣기", "운동하기", "요리하기"], correct: "음악 듣기" },
+        ];
+        function genKrDialogueMc(count) {
+            const picked = shuffleArr(KR_DIALOGUES).slice(0, Math.min(count, KR_DIALOGUES.length));
+            return picked.map((d, di) => ({ type: 'kr-dialogue-mc', lines: d.lines, q: d.q, choices: shuffleArr(d.choices), correct: d.correct, dialogueSlot: di }));
+        }
+
+        // 듣기 — 긴 이야기 (talk) บทพูดสั้นคนเดียว + คำถาม 2 ข้อ/บท
+        const KR_TALKS = [
+            { text: "안녕하세요, 저는 마이클입니다. 저는 미국에서 왔습니다. 지금 한국어를 배우고 있습니다. 한국 음식도 아주 좋아합니다. 특히 김치를 제일 좋아합니다.", questions: [
+                { q: "마이클 씨는 어느 나라에서 왔어요?", choices: ["미국", "한국", "일본"], correct: "미국" },
+                { q: "마이클 씨는 무슨 음식을 제일 좋아해요?", choices: ["김치", "라면", "비빔밥"], correct: "김치" },
+            ] },
+            { text: "오늘은 제 생일입니다. 저녁에 가족들과 식당에서 밥을 먹을 겁니다. 그리고 케이크도 먹을 겁니다. 아주 기대됩니다.", questions: [
+                { q: "오늘은 무슨 날이에요?", choices: ["생일", "방학", "시험"], correct: "생일" },
+                { q: "저녁에 무엇을 할 거예요?", choices: ["가족과 식당에 가요", "학교에 가요", "잠을 자요"], correct: "가족과 식당에 가요" },
+            ] },
+            { text: "저는 매일 아침 일곱 시에 일어납니다. 그리고 삼십 분 동안 운동을 합니다. 아침을 먹고 회사에 갑니다. 회사는 집에서 가깝습니다.", questions: [
+                { q: "몇 시에 일어나요?", choices: ["일곱 시", "여섯 시", "여덟 시"], correct: "일곱 시" },
+                { q: "회사는 집에서 어때요?", choices: ["가까워요", "멀어요", "아주 커요"], correct: "가까워요" },
+            ] },
+            { text: "내일은 날씨가 안 좋습니다. 비가 오고 바람도 붑니다. 그래서 밖에 나가지 않는 것이 좋습니다.", questions: [
+                { q: "내일 날씨는 어때요?", choices: ["비가 오고 바람이 불어요", "맑고 따뜻해요", "눈이 와요"], correct: "비가 오고 바람이 불어요" },
+                { q: "내일은 어떻게 하는 것이 좋아요?", choices: ["밖에 나가지 않아요", "산에 가요", "수영해요"], correct: "밖에 나가지 않아요" },
+            ] },
+        ];
+        function genKrTalkMc(count) {
+            const picked = shuffleArr(KR_TALKS).slice(0, Math.min(count, KR_TALKS.length));
+            const out = [];
+            picked.forEach((t, ti) => { t.questions.forEach(q => out.push({ type: 'kr-talk-mc', text: t.text, q: q.q, choices: shuffleArr(q.choices), correct: q.correct, voiceSlot: ti })); });
+            return out;
+        }
+
+        function buildTopikExam() {
+            const pool = krVocabPool();
+            return {
+                kind: 'topik',
+                sections: [
+                    { key: 'listening', title: '듣기 (ฟัง)', icon: '🎧',
+                        questions: [...genKrResponseMc(8), ...genKrDialogueMc(14), ...genKrTalkMc(4)] },
+                    { key: 'reading', title: '읽기 (อ่าน)', icon: '📖',
+                        questions: [...genKrWordMeaningMc(pool, 15), ...genGrammarMc(KR_GRAMMAR, 10), ...genKrPassageMc(KR_READING_SHORT, 10), ...genKrPassageMc(KR_READING_LONG, 5)] },
+                ],
+            };
+        }
+
+        // ── ข้อสอบภาษาเกาหลี (จำลอง) — โคลนโครงสร้าง state machine มาจาก JpExamView แบบเป๊ะๆ (ไม่มี
+        //    ส่วนเขียน/พูดเหมือนกัน) ไม่มีขั้น "เลือกประเภทข้อสอบ" เพราะตอนนี้มีแค่ TOPIK I ชุดเดียว
+        //    (TOPIK II ที่มีส่วนเขียนเรียงความ เป็น follow-up ในอนาคต)
+        function KrExamView({ langId, setLangId, setXp }) {
+            const [started, setStarted] = useState(false);
+            const [exam, setExam] = useState(null);
+            const [sectionIdx, setSectionIdx] = useState(0);
+            const [showIntro, setShowIntro] = useState(true);
+            const [qIdx, setQIdx] = useState(0);
+            const [answered, setAnswered] = useState(false);
+            const [userAnswer, setUserAnswer] = useState(null);
+            const [sectionResults, setSectionResults] = useState([]);
+            const [correctInSection, setCorrectInSection] = useState(0);
+            const [allWrong, setAllWrong] = useState([]);
+            const [finished, setFinished] = useState(false);
+
+            const resetPerQuestion = () => { setAnswered(false); setUserAnswer(null); };
+            const start = () => {
+                setExam(buildTopikExam());
+                setStarted(true);
+                setSectionIdx(0); setShowIntro(true);
+                resetPerQuestion();
+                setSectionResults([]); setCorrectInSection(0); setAllWrong([]); setFinished(false);
+            };
+
+            // ── เล่นเสียงอัตโนมัติทันทีที่เข้าโจทย์ฟังข้อใหม่ (듣기 เท่านั้น) — ต้องอยู่ก่อน early
+            //    return ทุกอันเพราะเป็น hook ──
+            useEffect(() => {
+                if (!exam || showIntro || finished) return;
+                const sec = exam.sections[sectionIdx];
+                const question = sec && sec.questions[qIdx];
+                if (!question) return;
+                const timers = [];
+                const t0 = setTimeout(() => {
+                    if (question.type === 'kr-dialogue-mc') {
+                        question.lines.forEach((ln, i) => timers.push(setTimeout(() => speakVoice(ln.text, 'ko', question.dialogueSlot * 2 + (i % 2)), i * 1800)));
+                    } else if (question.type === 'kr-response-mc') {
+                        speakVoice(question.phrase, 'ko', question.voiceSlot);
+                    } else if (question.type === 'kr-talk-mc') {
+                        speakVoice(question.text, 'ko', question.voiceSlot);
+                    }
+                }, 400);
+                return () => { clearTimeout(t0); timers.forEach(clearTimeout); };
+            }, [exam, sectionIdx, qIdx, showIntro]);
+
+            if (langId !== 'lang-kr') {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-6 text-center">
+                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาเกาหลี</p>
+                            <button onClick={() => setLangId('lang-kr')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาเกาหลี</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!started) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ TOPIK I (จำลอง)</h2>
+                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษาเกาหลีขั้นต้น (TOPIK I ระดับ 1-2) — 2 วิชาตามโครงสร้างจริง</p>
+                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ TOPIK I</div>
+                                <div className="text-xs text-gray-500">듣기 (ฟัง) 30 + 읽기 (อ่าน) 40 = 70 ข้อ ตามโครงสร้างจริง</div>
+                            </button>
+                            <p className="text-xs text-gray-400 leading-relaxed text-left">
+                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา จำนวนข้อรวมเท่าโครงสร้างจริง
+                                (ฟัง 30 + อ่าน 40 = 70) TOPIK I จริงให้คะแนนแยกเป็นคะแนนดิบต่อวิชาและมีเกณฑ์ผ่านขั้นต่ำตามระดับ (1/2) ไม่ใช่
+                                คะแนนรวมแบบนี้ เว็บนี้เลยแสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) แทน<br />
+                                <b>ความแตกต่างจากข้อสอบจริง</b>: 듣기 (ฟัง) แสดงบทพูดเป็นตัวอักษรคู่กับเสียงด้วย (ข้อสอบจริงมีแต่เสียงล้วน
+                                ฟังได้ครั้งเดียว ไม่มีตัวอักษรให้อ่านและฟังซ้ำได้) เพื่อช่วยผู้เริ่มต้นตามทัน — TOPIK I ไม่มีส่วนเขียน (TOPIK II
+                                ถึงจะมีส่วนเขียนเรียงความ ยังไม่รองรับตอนนี้)
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+
+            const restart = start;
+            const backToStart = () => { setStarted(false); setExam(null); };
+
+            if (finished) {
+                const totalCorrect = sectionResults.reduce((s, r) => s + r.correct, 0);
+                const totalQ = sectionResults.reduce((s, r) => s + r.total, 0);
+                const pct = totalQ ? Math.round(totalCorrect / totalQ * 100) : 0;
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ TOPIK I</h2>
+                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (คะแนนดิบ — TOPIK I จริงให้คะแนนแยกวิชาและมีเกณฑ์ผ่านขั้นต่ำตามระดับ ไม่ใช่คะแนนรวมแบบนี้)</p>
+                            <div className="grid grid-cols-2 gap-2 mb-5">
+                                {sectionResults.map(r => (
+                                    <div key={r.key} className="bg-white rounded-xl border border-gray-200 p-3">
+                                        <div className="text-xs text-gray-400">{r.title}</div>
+                                        <div className="text-lg font-bold text-gray-800">{r.correct}/{r.total}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {allWrong.length > 0 && (
+                                <div className="text-left bg-white rounded-xl border border-gray-200 p-4 mb-4 max-h-72 overflow-y-auto">
+                                    <p className="text-sm font-bold text-gray-700 mb-2 sticky top-0 bg-white">ข้อที่ตอบผิด ({allWrong.length}):</p>
+                                    <div className="space-y-1.5">
+                                        {allWrong.map((w, i) => (
+                                            <div key={i} className="text-sm text-gray-600 flex justify-between gap-3">
+                                                <span>{w.left}</span>
+                                                <span className="text-gray-800 font-semibold text-right">{w.right}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex gap-2 justify-center flex-wrap">
+                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
+                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const section = exam.sections[sectionIdx];
+
+            if (showIntro) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">TOPIK I · ส่วนที่ {sectionIdx + 1}/{exam.sections.length}</p>
+                            <div className="text-5xl mb-3">{section.icon}</div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
+                            <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
+                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const q = section.questions[qIdx];
+
+            const finishSection = () => {
+                const results = [...sectionResults, { key: section.key, title: section.title, correct: correctInSection, total: section.questions.length }];
+                setSectionResults(results);
+                if (sectionIdx + 1 >= exam.sections.length) {
+                    setFinished(true);
+                } else {
+                    setSectionIdx(i => i + 1);
+                    setShowIntro(true);
+                    setQIdx(0);
+                    resetPerQuestion();
+                    setCorrectInSection(0);
+                }
+            };
+            const nextQuestion = () => {
+                if (qIdx + 1 >= section.questions.length) { finishSection(); return; }
+                setQIdx(i => i + 1); resetPerQuestion();
+            };
+            const recordAnswer = (isCorrect, wrongEntry) => {
+                setAnswered(true);
+                if (isCorrect) { setCorrectInSection(c => c + 1); setXp(x => x + 2); }
+                else if (wrongEntry) setAllWrong(w => [...w, wrongEntry]);
+            };
+            const pickMc = (choice) => {
+                if (answered) return;
+                setUserAnswer(choice);
+                const isCorrect = choice === q.correct;
+                const leftLabel = q.word || q.sentence || q.phrase || q.q || q.thai;
+                recordAnswer(isCorrect, isCorrect ? null : { left: leftLabel || 'ข้อนี้', right: q.correct });
+            };
+
+            const progressLabel = `${section.title} · ข้อ ${qIdx + 1}/${section.questions.length}`;
+
+            return (
+                <div className="flex-1 overflow-y-auto bg-gray-50">
+                    <div className="max-w-xl mx-auto p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <span className="text-xs font-bold text-gray-400 uppercase">TOPIK I · {progressLabel}</span>
+                            <span className="text-xs font-bold text-brand">ถูก {correctInSection} ข้อ</span>
+                        </div>
+
+                        {q.type === 'kr-word-meaning-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-3xl font-bold text-gray-900 mb-1">{q.word}</div>
+                                    <div className="text-sm text-gray-400 mb-2">{q.romaja}</div>
+                                    <button onClick={() => speak(q.word, 'ko')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'grammar-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'passage-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'kr-response-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
+                                    <button onClick={() => speakVoice(q.phrase, 'ko', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                </div>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'kr-dialogue-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <div className="space-y-1">
+                                        {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
+                                    </div>
+                                    <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'ko', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
+                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'kr-talk-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                    <button onClick={() => speakVoice(q.text, 'ko', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {answered && (
+                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                                {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+
+        // ══════════════════════════════════════════════════════════════════════════════════
         // "ฟัง-พูด" (view === 'listen') — ฟังเรื่องสั้นแบบ extensive listening + พูดตาม/บันทึกเสียง
         // เทียบ (shadowing) รองรับเฉพาะภาษาจีนตอนนี้ (เนื้อหาต้องแต่งเองทีละภาษา เริ่มจากจีนตามที่ขอ
         // เน้นมาตลอดเซสชันนี้) ใช้ของเดิมที่มีอยู่แล้วทั้งหมด: speak() (TTS), gradeAnswer() (ตรวจคำตอบ),
@@ -4856,7 +5295,7 @@
                 setMobileNavOpen(false);
             };
 
-            // ปุ่ม "ข้อสอบ" รองรับ 3 ภาษาแล้ว (จีน→HSK/BCT, อังกฤษ→IELTS/TOEIC, ญี่ปุ่น→JLPT) —
+            // ปุ่ม "ข้อสอบ" รองรับ 4 ภาษาแล้ว (จีน→HSK/BCT, อังกฤษ→IELTS/TOEIC, ญี่ปุ่น→JLPT, เกาหลี→TOPIK) —
             // ถ้ากำลังอยู่ภาษาที่มีข้อสอบอยู่แล้วให้ไปหน้าข้อสอบของภาษานั้นเลย ภาษาอื่นนอกเหนือจากนี้
             // ยัง fallback ไปจีนเหมือนเดิม (ยังไม่รองรับข้อสอบของภาษาอื่น)
             const goExam = () => {
@@ -4864,6 +5303,8 @@
                     setView('enexam');
                 } else if (langId === 'lang-jp') {
                     setView('jpexam');
+                } else if (langId === 'lang-kr') {
+                    setView('krexam');
                 } else {
                     setLangId('lang-cn');
                     setView('hsk');
@@ -4969,7 +5410,7 @@
                                         <div key={id} className="flex items-center gap-1">
                                             <button
                                                 onClick={() => selectLang(id)}
-                                                className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
+                                                className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
                                             >
                                                 <Languages /> <span className="flex-1 text-left truncate">{LANGS[id].title}</span>
                                                 {allDone && <CheckCircle />}
@@ -5041,8 +5482,8 @@
                                 </button>
                                 <button
                                     onClick={goExam}
-                                    title="รองรับภาษาจีน (HSK/BCT), อังกฤษ (IELTS/TOEIC) และญี่ปุ่น (JLPT) — ภาษาอื่นจะสลับเป็นจีนให้อัตโนมัติ"
-                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                    title="รองรับภาษาจีน (HSK/BCT), อังกฤษ (IELTS/TOEIC), ญี่ปุ่น (JLPT) และเกาหลี (TOPIK) — ภาษาอื่นจะสลับเป็นจีนให้อัตโนมัติ"
+                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
                                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น</span>
@@ -5443,6 +5884,8 @@
                         <EnExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : view === 'jpexam' ? (
                         <JpExamView langId={langId} setLangId={setLangId} setXp={setXp} />
+                        ) : view === 'krexam' ? (
+                        <KrExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : (
                         <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} />
                         )}
