@@ -270,17 +270,107 @@
             });
         }
 
-        // สุ่มโจทย์ข้อสอบ HSK (ปรนัย 4 ตัวเลือก) จากคลังคำศัพท์ HSK_VOCAB ที่ตรวจสอบแล้ว —
-        // ตัวลวง 3 ตัวสุ่มจากคำอื่นในระดับเดียวกัน กันไม่ให้ซ้ำกับคำตอบที่ถูก
+        // ══════════════════════════════════════════════════════════════════════════════════
+        // ข้อสอบ HSK (จำลอง) — โครงสร้าง/จำนวนข้อยึดตามข้อสอบ HSK 2.0 ทางการจริง (ตรวจสอบผ่านเว็บ
+        // แล้ว ไม่ได้เดาเอง): HSK1 = ฟัง 20 + อ่าน 20 (รวม 40, ผ่าน 120/200 = 60%),
+        // HSK2 = ฟัง 35 + อ่าน 25 (รวม 60, ผ่าน 120/200 = 60%),
+        // HSK3 = ฟัง 40 + อ่าน 30 + เขียน 10 (รวม 80, ผ่าน 180/300 = 60% — เกณฑ์ผ่านทุกระดับเท่ากับ 60%)
+        // ข้อจำกัดที่ตั้งใจปรับ: ข้อสอบจริงมีข้อแบบ "ฟัง/อ่านแล้วจับคู่รูปภาพ" อยู่หลายข้อ แต่เว็บนี้ไม่มี
+        // คลังรูปภาพ จึงแทนที่ด้วยข้อแบบจับคู่ความหมายไทยแทน (ทดสอบทักษะเดียวกันคือฟัง/อ่านแล้วเข้าใจ
+        // ความหมาย) — และเป็นเนื้อหาที่สร้างจากคลังคำศัพท์ HSK ของเว็บเอง ไม่ใช่ข้อสอบจริงที่หลุดออกมา
+        // ══════════════════════════════════════════════════════════════════════════════════
         function shuffleArr(arr) { return [...arr].sort(() => Math.random() - 0.5); }
-        function buildHskQuiz(level, count) {
-            const pool = HSK_VOCAB[`hsk${level}`] || [];
+
+        // ประโยคง่ายๆ สำหรับข้อ "เรียงคำ" (完成句子) ในส่วนเขียนของ HSK3 — คิด/ตรวจไวยากรณ์เองทุกประโยค
+        // ให้ถูกต้องแน่นอน (ไม่ได้ดึงจากที่ไหน) แบ่งเป็นชิ้นคำที่มีความหมายชัดเจน ไม่ใช่ตัวอักษรเดี่ยวๆ
+        const HSK_WRITE_SENTENCES = [
+            { chunks: ['我', '喜欢', '学习', '中文。'], thai: 'ฉันชอบเรียนภาษาจีน' },
+            { chunks: ['他', '每天', '去', '学校。'], thai: 'เขาไปโรงเรียนทุกวัน' },
+            { chunks: ['这个苹果', '很', '好吃。'], thai: 'แอปเปิลลูกนี้อร่อยมาก' },
+            { chunks: ['我朋友', '住在', '北京。'], thai: 'เพื่อนของฉันอาศัยอยู่ที่ปักกิ่ง' },
+            { chunks: ['你', '今天', '忙不忙？'], thai: 'วันนี้คุณยุ่งไหม' },
+            { chunks: ['我们', '一起', '去看电影吧。'], thai: 'พวกเราไปดูหนังด้วยกันเถอะ' },
+            { chunks: ['她', '在图书馆', '看书。'], thai: 'เธออ่านหนังสือที่ห้องสมุด' },
+            { chunks: ['现在', '几点', '了？'], thai: 'ตอนนี้กี่โมงแล้ว' },
+            { chunks: ['我', '想', '喝一杯咖啡。'], thai: 'ฉันอยากดื่มกาแฟสักแก้ว' },
+            { chunks: ['他', '会说', '三种语言。'], thai: 'เขาพูดได้สามภาษา' },
+            { chunks: ['外面', '正在', '下雨。'], thai: 'ข้างนอกกำลังฝนตก' },
+            { chunks: ['请', '把门', '关上。'], thai: 'กรุณาปิดประตูด้วย' },
+        ];
+
+        // ── ตัวสร้างโจทย์แต่ละแบบ (แต่ละแบบคืน array ของ question object ที่มี field `type` กำกับ
+        //    ไว้ให้ตัว renderer เลือก UI ให้ถูก) ─────────────────────────────────────────────
+        function genMcFromWord(pool, count, type) {
+            // type: 'listen-mc' (ฟังเสียงแล้วเลือกความหมาย) หรือ 'read-mc' (อ่านคำแล้วเลือกความหมาย)
             const picked = shuffleArr(pool).slice(0, Math.min(count, pool.length));
             return picked.map(item => {
                 const distractors = shuffleArr(pool.filter(p => p.word !== item.word)).slice(0, 3);
                 const choices = shuffleArr([item.thai, ...distractors.map(d => d.thai)]);
-                return { word: item.word, pinyin: item.pinyin, correct: item.thai, choices };
+                return { type, word: item.word, pinyin: item.pinyin, correct: item.thai, choices };
             });
+        }
+        function genMcReverse(pool, count) {
+            // 'read-mc-reverse' — โชว์ความหมายไทย ให้เลือกคำจีนที่ถูกต้อง (ฝึกจำอีกทิศทาง)
+            const picked = shuffleArr(pool).slice(0, Math.min(count, pool.length));
+            return picked.map(item => {
+                const distractors = shuffleArr(pool.filter(p => p.word !== item.word)).slice(0, 3);
+                const choices = shuffleArr([item.word, ...distractors.map(d => d.word)]);
+                return { type: 'read-mc-reverse', thai: item.thai, pinyin: item.pinyin, correct: item.word, choices };
+            });
+        }
+        function genTf(pool, count, type) {
+            // type: 'listen-tf' หรือ 'read-tf' — ครึ่งหนึ่งโชว์ความหมายถูก ครึ่งหนึ่งโชว์ความหมายของคำอื่น
+            const picked = shuffleArr(pool).slice(0, Math.min(count, pool.length));
+            return picked.map((item, i) => {
+                const showCorrect = i % 2 === 0;
+                let shownThai = item.thai;
+                if (!showCorrect) {
+                    const others = pool.filter(p => p.word !== item.word);
+                    shownThai = others[Math.floor(Math.random() * others.length)].thai;
+                }
+                return { type, word: item.word, pinyin: item.pinyin, shownThai, answer: showCorrect };
+            });
+        }
+        function genWriteOrder(count) {
+            const picked = shuffleArr(HSK_WRITE_SENTENCES).slice(0, Math.min(count, HSK_WRITE_SENTENCES.length));
+            return picked.map(s => ({ type: 'write-order', chunks: s.chunks, thai: s.thai, scrambled: shuffleArr(s.chunks) }));
+        }
+        function genWritePinyinChar(pool, count) {
+            // 看拼音写汉字 (แบบย่อ: ให้พินอิน+ความหมายไทย เลือกตัวอักษรจีนที่ถูกต้องจาก 4 ตัวเลือก
+            // แทนการเขียนจริง — ผู้เรียนที่อยากฝึกเขียนจริงมีปุ่ม "ลองเขียนเอง" แยกในหน้าฝึกเขียนอยู่แล้ว)
+            return genMcReverse(pool, count).map(q => ({ ...q, type: 'write-pinyin-char' }));
+        }
+
+        // ── ประกอบเป็นข้อสอบเต็มชุด ตามโครงสร้างทางการของแต่ละระดับ ─────────────────────────
+        function buildHskExam(level) {
+            const pool = HSK_VOCAB[`hsk${level}`] || [];
+            if (level === 1) {
+                return {
+                    level, passPct: 60,
+                    sections: [
+                        { key: 'listening', title: 'ฟัง (听力)', icon: '🎧', questions: [...genTf(pool, 10, 'listen-tf'), ...genMcFromWord(pool, 10, 'listen-mc')] },
+                        { key: 'reading', title: 'อ่าน (阅读)', icon: '📖', questions: [...genMcFromWord(pool, 10, 'read-mc'), ...genMcReverse(pool, 10)] },
+                    ],
+                };
+            }
+            if (level === 2) {
+                return {
+                    level, passPct: 60,
+                    sections: [
+                        { key: 'listening', title: 'ฟัง (听力)', icon: '🎧', questions: [...genTf(pool, 15, 'listen-tf'), ...genMcFromWord(pool, 20, 'listen-mc')] },
+                        { key: 'reading', title: 'อ่าน (阅读)', icon: '📖', questions: [...genMcFromWord(pool, 10, 'read-mc'), ...genMcReverse(pool, 10), ...genTf(pool, 5, 'read-tf')] },
+                    ],
+                };
+            }
+            // level 3
+            return {
+                level, passPct: 60,
+                sections: [
+                    { key: 'listening', title: 'ฟัง (听力)', icon: '🎧', questions: [...genTf(pool, 15, 'listen-tf'), ...genMcFromWord(pool, 25, 'listen-mc')] },
+                    { key: 'reading', title: 'อ่าน (阅读)', icon: '📖', questions: [...genMcFromWord(pool, 15, 'read-mc'), ...genMcReverse(pool, 15)] },
+                    { key: 'writing', title: 'เขียน (书写)', icon: '✍️', questions: [...genWriteOrder(5), ...genWritePinyinChar(pool, 5)] },
+                ],
+            };
         }
 
         // ── ประวัติการส่งงาน "ฝึกเขียน" (แต่งประโยค/แปล/dictation) — array จำกัด 200 รายการล่าสุด
@@ -1093,36 +1183,51 @@
             );
         }
 
-        // ── ข้อสอบ HSK (จำลอง) — ปรนัย 4 ตัวเลือกจากคลังคำศัพท์ HSK_VOCAB ที่ตรวจสอบแล้ว (ดูหมายเหตุ
-        //    แหล่งข้อมูลตรง HSK_VOCAB ด้านบน) รองรับเฉพาะภาษาจีนตอนนี้ — ถ้า langId ไม่ใช่ lang-cn
-        //    (เผื่อผู้ใช้สลับภาษาที่แถบข้างระหว่างอยู่โหมดนี้) ให้ขึ้นข้อความชวนสลับกลับแทนที่จะพังเงียบๆ
-        const HSK_QUESTION_COUNT = 20;
+        // ── ปุ่มตัวเลือกปรนัยใช้ร่วมกันหลายชนิดโจทย์ (listen-mc/read-mc/read-mc-reverse/write-pinyin-char)
+        function McChoices({ choices, correct, selected, onPick }) {
+            return (
+                <div className="grid grid-cols-1 gap-2">
+                    {choices.map((c, i) => {
+                        const isCorrect = c === correct;
+                        const isPicked = c === selected;
+                        let cls = 'border-gray-200 hover:border-brand text-gray-700 bg-white';
+                        if (selected != null) {
+                            if (isCorrect) cls = 'border-green-400 bg-green-50 text-green-700';
+                            else if (isPicked) cls = 'border-red-300 bg-red-50 text-red-600';
+                        }
+                        return (
+                            <button key={i} onClick={() => onPick(c)} disabled={selected != null}
+                                className={`text-left px-4 py-3 rounded-xl border-2 font-medium text-sm transition ${cls}`}>{c}</button>
+                        );
+                    })}
+                </div>
+            );
+        }
+
+        // ── ข้อสอบ HSK (จำลอง) — โครงสร้าง/จำนวนข้อยึดตามข้อสอบ HSK 2.0 ทางการ (ดูหมายเหตุที่
+        //    buildHskExam ด้านบน) เนื้อหาสร้างจากคลังคำศัพท์ HSK_VOCAB ที่ตรวจสอบแล้ว รองรับเฉพาะ
+        //    ภาษาจีนตอนนี้ — ถ้า langId ไม่ใช่ lang-cn (เผื่อผู้ใช้สลับภาษาที่แถบข้างระหว่างอยู่โหมดนี้)
+        //    ให้ขึ้นข้อความชวนสลับกลับแทนที่จะพังเงียบๆ
         function HskExamView({ langId, setLangId, setXp }) {
             const [level, setLevel] = useState(null);
-            const [quiz, setQuiz] = useState([]);
+            const [exam, setExam] = useState(null);
+            const [sectionIdx, setSectionIdx] = useState(0);
+            const [showIntro, setShowIntro] = useState(true); // หน้าแนะนำก่อนเริ่มแต่ละส่วน
             const [qIdx, setQIdx] = useState(0);
-            const [selected, setSelected] = useState(null);
-            const [score, setScore] = useState(0);
-            const [wrongList, setWrongList] = useState([]);
+            const [answered, setAnswered] = useState(false);
+            const [userAnswer, setUserAnswer] = useState(null); // string | boolean | ขึ้นกับชนิดโจทย์
+            const [placedIdx, setPlacedIdx] = useState([]); // สำหรับ write-order เท่านั้น
+            const [sectionResults, setSectionResults] = useState([]); // [{key,title,correct,total}]
+            const [correctInSection, setCorrectInSection] = useState(0);
+            const [allWrong, setAllWrong] = useState([]);
             const [finished, setFinished] = useState(false);
 
             const start = (lvl) => {
-                setLevel(lvl);
-                setQuiz(buildHskQuiz(lvl, HSK_QUESTION_COUNT));
-                setQIdx(0); setSelected(null); setScore(0); setWrongList([]); setFinished(false);
-            };
-
-            const answer = (choice) => {
-                if (selected) return;
-                setSelected(choice);
-                const q = quiz[qIdx];
-                if (choice === q.correct) { setScore(s => s + 1); setXp(x => x + 5); }
-                else setWrongList(w => [...w, q]);
-            };
-
-            const next = () => {
-                if (qIdx + 1 >= quiz.length) { setFinished(true); return; }
-                setQIdx(i => i + 1); setSelected(null);
+                const built = buildHskExam(lvl);
+                setLevel(lvl); setExam(built);
+                setSectionIdx(0); setShowIntro(true);
+                setQIdx(0); setAnswered(false); setUserAnswer(null); setPlacedIdx([]);
+                setSectionResults([]); setCorrectInSection(0); setAllWrong([]); setFinished(false);
             };
 
             if (langId !== 'lang-cn') {
@@ -1136,87 +1241,252 @@
                 );
             }
 
-            if (!level) {
+            if (!level || !exam) {
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6">
                             <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ HSK (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">เลือกระดับที่จะทดสอบ — สุ่ม {HSK_QUESTION_COUNT} คำจากคลังคำศัพท์ HSK ระดับนั้น ให้เลือกความหมายไทยที่ถูกต้อง</p>
+                            <p className="text-sm text-gray-500 mb-5">โครงสร้าง/จำนวนข้อยึดตามข้อสอบ HSK 2.0 ทางการจริง เลือกระดับที่จะทดสอบ:</p>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                {[1, 2, 3].map(lvl => (
-                                    <button key={lvl} onClick={() => start(lvl)}
-                                        className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-center transition bg-white">
-                                        <div className="text-2xl font-bold text-brand mb-1">HSK{lvl}</div>
-                                        <div className="text-xs text-gray-400">{(HSK_VOCAB[`hsk${lvl}`] || []).length} คำในคลัง</div>
-                                    </button>
-                                ))}
+                                {[1, 2, 3].map(lvl => {
+                                    const info = lvl === 1 ? 'ฟัง 20 + อ่าน 20 = 40 ข้อ' : lvl === 2 ? 'ฟัง 35 + อ่าน 25 = 60 ข้อ' : 'ฟัง 40 + อ่าน 30 + เขียน 10 = 80 ข้อ';
+                                    return (
+                                        <button key={lvl} onClick={() => start(lvl)}
+                                            className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-center transition bg-white">
+                                            <div className="text-2xl font-bold text-brand mb-1">HSK{lvl}</div>
+                                            <div className="text-xs text-gray-400">{info}</div>
+                                        </button>
+                                    );
+                                })}
                             </div>
-                            <p className="text-xs text-gray-400 mt-5">หมายเหตุ: เป็นแบบทดสอบคำศัพท์จำลองเพื่อฝึกซ้อม ไม่ใช่ข้อสอบ HSK ทางการ (ข้อสอบจริงมีส่วนฟัง/อ่าน/เขียนแยกกัน)</p>
+                            <p className="text-xs text-gray-400 mt-5 leading-relaxed">
+                                หมายเหตุ: เป็นแบบทดสอบจำลองที่สร้างจากคลังคำศัพท์ HSK ของเว็บนี้เอง ไม่ใช่ข้อสอบทางการที่หลุดออกมา —
+                                ข้อสอบจริงมีโจทย์ให้จับคู่รูปภาพหลายข้อ แต่เว็บนี้ไม่มีคลังรูปภาพ จึงแทนที่ด้วยโจทย์จับคู่ความหมายไทยแทน
+                                (ทดสอบทักษะเดียวกัน) เกณฑ์ผ่านทางการคือ 60% ทุกระดับ
+                            </p>
                         </div>
                     </div>
                 );
             }
 
+            const restart = () => start(level);
+            const backToSelect = () => { setLevel(null); setExam(null); };
+
             if (finished) {
-                const pct = Math.round(score / quiz.length * 100);
+                const totalCorrect = sectionResults.reduce((s, r) => s + r.correct, 0);
+                const totalQ = sectionResults.reduce((s, r) => s + r.total, 0);
+                const pct = totalQ ? Math.round(totalCorrect / totalQ * 100) : 0;
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ HSK{level}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{score}/{quiz.length}</div>
-                            <p className="text-gray-500 mb-6">{pct}% ถูกต้อง{pct >= 60 ? ' — ผ่านเกณฑ์ทั่วไป 🎉' : ' — ลองฝึกเพิ่มแล้วสอบใหม่'}</p>
-                            {wrongList.length > 0 && (
-                                <div className="text-left bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-sm font-bold text-gray-700 mb-2">คำที่ตอบผิด ({wrongList.length}):</p>
+                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <p className="text-gray-500 mb-4">{pct}% ถูกต้อง{pct >= exam.passPct ? ` — ผ่านเกณฑ์ทางการ (≥${exam.passPct}%) 🎉` : ` — ยังไม่ถึงเกณฑ์ทางการ (${exam.passPct}%) ลองฝึกเพิ่ม`}</p>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
+                                {sectionResults.map(r => (
+                                    <div key={r.key} className="bg-white rounded-xl border border-gray-200 p-3">
+                                        <div className="text-xs text-gray-400">{r.title}</div>
+                                        <div className="text-lg font-bold text-gray-800">{r.correct}/{r.total}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {allWrong.length > 0 && (
+                                <div className="text-left bg-white rounded-xl border border-gray-200 p-4 mb-4 max-h-72 overflow-y-auto">
+                                    <p className="text-sm font-bold text-gray-700 mb-2 sticky top-0 bg-white">ข้อที่ตอบผิด ({allWrong.length}):</p>
                                     <div className="space-y-1.5">
-                                        {wrongList.map((w, i) => (
+                                        {allWrong.map((w, i) => (
                                             <div key={i} className="text-sm text-gray-600 flex justify-between gap-3">
-                                                <span>{w.word} <span className="text-gray-400">({w.pinyin})</span></span>
-                                                <span className="text-gray-800 font-semibold text-right">{w.correct}</span>
+                                                <span>{w.left}</span>
+                                                <span className="text-gray-800 font-semibold text-right">{w.right}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={() => start(level)} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ระดับเดิม</button>
-                                <button onClick={() => setLevel(null)} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">เลือกระดับใหม่</button>
+                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ระดับเดิม</button>
+                                <button onClick={backToSelect} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">เลือกระดับใหม่</button>
                             </div>
                         </div>
                     </div>
                 );
             }
 
-            const q = quiz[qIdx];
+            const section = exam.sections[sectionIdx];
+
+            if (showIntro) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">HSK{level} · ส่วนที่ {sectionIdx + 1}/{exam.sections.length}</p>
+                            <div className="text-5xl mb-3">{section.icon}</div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
+                            <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
+                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const q = section.questions[qIdx];
+
+            const finishSection = () => {
+                const results = [...sectionResults, { key: section.key, title: section.title, correct: correctInSection, total: section.questions.length }];
+                setSectionResults(results);
+                if (sectionIdx + 1 >= exam.sections.length) {
+                    setFinished(true);
+                } else {
+                    setSectionIdx(i => i + 1);
+                    setShowIntro(true);
+                    setQIdx(0); setAnswered(false); setUserAnswer(null); setPlacedIdx([]);
+                    setCorrectInSection(0);
+                }
+            };
+
+            const nextQuestion = () => {
+                if (qIdx + 1 >= section.questions.length) { finishSection(); return; }
+                setQIdx(i => i + 1); setAnswered(false); setUserAnswer(null); setPlacedIdx([]);
+            };
+
+            const recordAnswer = (isCorrect, wrongEntry) => {
+                setAnswered(true);
+                if (isCorrect) { setCorrectInSection(c => c + 1); setXp(x => x + 2); }
+                else if (wrongEntry) setAllWrong(w => [...w, wrongEntry]);
+            };
+
+            const pickMc = (choice) => {
+                if (answered) return;
+                setUserAnswer(choice);
+                const isCorrect = choice === q.correct;
+                recordAnswer(isCorrect, isCorrect ? null : { left: q.word || q.thai, right: q.correct });
+            };
+
+            const pickTf = (val) => {
+                if (answered) return;
+                setUserAnswer(val);
+                const isCorrect = val === q.answer;
+                recordAnswer(isCorrect, isCorrect ? null : { left: `${q.word} = ${q.shownThai}`, right: q.answer ? 'ถูก' : 'ผิด' });
+            };
+
+            const tapChunk = (idx) => {
+                if (answered) return;
+                setPlacedIdx(p => [...p, idx]);
+            };
+            const undoChunk = () => { if (!answered) setPlacedIdx(p => p.slice(0, -1)); };
+            const submitOrder = () => {
+                if (answered || placedIdx.length !== q.chunks.length) return;
+                const built = placedIdx.map(i => q.scrambled[i]);
+                const isCorrect = built.join('') === q.chunks.join('');
+                recordAnswer(isCorrect, isCorrect ? null : { left: q.thai, right: q.chunks.join('') });
+            };
+
+            const progressLabel = `${section.title} · ข้อ ${qIdx + 1}/${section.questions.length}`;
+
             return (
                 <div className="flex-1 overflow-y-auto bg-gray-50">
                     <div className="max-w-xl mx-auto p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <span className="text-xs font-bold text-gray-400 uppercase">HSK{level} · ข้อ {qIdx + 1}/{quiz.length}</span>
-                            <span className="text-xs font-bold text-brand">คะแนน {score}</span>
+                            <span className="text-xs font-bold text-gray-400 uppercase">{progressLabel}</span>
+                            <span className="text-xs font-bold text-brand">ถูก {correctInSection} ข้อ</span>
                         </div>
-                        <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                            <div className="text-5xl font-bold text-gray-900 mb-2">{q.word}</div>
-                            <button onClick={() => speak(q.word, 'zh')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
-                        </div>
-                        <div className="grid grid-cols-1 gap-2">
-                            {q.choices.map((c, i) => {
-                                const isCorrect = c === q.correct;
-                                const isPicked = c === selected;
-                                let cls = 'border-gray-200 hover:border-brand text-gray-700 bg-white';
-                                if (selected) {
-                                    if (isCorrect) cls = 'border-green-400 bg-green-50 text-green-700';
-                                    else if (isPicked) cls = 'border-red-300 bg-red-50 text-red-600';
-                                }
-                                return (
-                                    <button key={i} onClick={() => answer(c)} disabled={!!selected}
-                                        className={`text-left px-4 py-3 rounded-xl border-2 font-medium text-sm transition ${cls}`}>{c}</button>
-                                );
-                            })}
-                        </div>
-                        {selected && (
-                            <button onClick={next} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
-                                {qIdx + 1 >= quiz.length ? 'ดูผลสอบ' : 'ข้อต่อไป'}
+
+                        {/* ── listen-tf / listen-mc: มีปุ่มฟังเสียงแทนการโชว์ตัวอักษรจีนตรงๆ (จำลองส่วนฟัง) ── */}
+                        {(q.type === 'listen-tf' || q.type === 'listen-mc') && (
+                            <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                <p className="text-xs text-gray-400 mb-3">🎧 กดฟังแล้วตอบ</p>
+                                <button onClick={() => speak(q.word, 'zh')} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
+                                    <Volume2 /> ฟังเสียง (ฟังซ้ำได้)
+                                </button>
+                            </div>
+                        )}
+
+                        {q.type === 'listen-tf' && (
+                            <>
+                                <p className="text-center text-gray-700 mb-4">ความหมายคือ <span className="font-bold">"{q.shownThai}"</span> ใช่หรือไม่?</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button onClick={() => pickTf(true)} disabled={answered}
+                                        className={`py-3 rounded-xl font-bold text-sm border-2 transition ${answered ? (q.answer === true ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === true ? 'border-red-300 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400') : 'border-gray-200 hover:border-brand text-gray-700 bg-white'}`}>✅ ถูก</button>
+                                    <button onClick={() => pickTf(false)} disabled={answered}
+                                        className={`py-3 rounded-xl font-bold text-sm border-2 transition ${answered ? (q.answer === false ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === false ? 'border-red-300 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400') : 'border-gray-200 hover:border-brand text-gray-700 bg-white'}`}>❌ ผิด</button>
+                                </div>
+                            </>
+                        )}
+
+                        {q.type === 'read-tf' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-4xl font-bold text-gray-900 mb-2">{q.word}</div>
+                                    <div className="text-sm text-gray-400">{q.pinyin}</div>
+                                </div>
+                                <p className="text-center text-gray-700 mb-4">ความหมายคือ <span className="font-bold">"{q.shownThai}"</span> ใช่หรือไม่?</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button onClick={() => pickTf(true)} disabled={answered}
+                                        className={`py-3 rounded-xl font-bold text-sm border-2 transition ${answered ? (q.answer === true ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === true ? 'border-red-300 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400') : 'border-gray-200 hover:border-brand text-gray-700 bg-white'}`}>✅ ถูก</button>
+                                    <button onClick={() => pickTf(false)} disabled={answered}
+                                        className={`py-3 rounded-xl font-bold text-sm border-2 transition ${answered ? (q.answer === false ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === false ? 'border-red-300 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400') : 'border-gray-200 hover:border-brand text-gray-700 bg-white'}`}>❌ ผิด</button>
+                                </div>
+                            </>
+                        )}
+
+                        {q.type === 'listen-mc' && (
+                            <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                        )}
+
+                        {q.type === 'read-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-5xl font-bold text-gray-900 mb-2">{q.word}</div>
+                                    <button onClick={() => speak(q.word, 'zh')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                </div>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {(q.type === 'read-mc-reverse' || q.type === 'write-pinyin-char') && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-2xl font-bold text-gray-900 mb-1">{q.thai}</div>
+                                    {q.type === 'write-pinyin-char' && <div className="text-sm text-gray-400">พินอิน: {q.pinyin}</div>}
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกตัวอักษรจีนที่ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'write-order' && (
+                            <>
+                                <p className="text-center text-gray-700 mb-1">เรียงคำให้เป็นประโยคที่แปลว่า:</p>
+                                <p className="text-center font-bold text-gray-900 mb-4">"{q.thai}"</p>
+                                <div className="min-h-[64px] bg-white rounded-xl border-2 border-dashed border-gray-200 p-3 mb-3 flex flex-wrap gap-2 items-center">
+                                    {placedIdx.length === 0 && <span className="text-xs text-gray-300">แตะคำด้านล่างเพื่อเรียงประโยคที่นี่</span>}
+                                    {placedIdx.map((idx, i) => (
+                                        <span key={i} className="px-3 py-1.5 rounded-lg bg-brandLight text-brand font-semibold text-sm">{q.scrambled[idx]}</span>
+                                    ))}
+                                </div>
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    {q.scrambled.map((chunk, idx) => (
+                                        !placedIdx.includes(idx) && (
+                                            <button key={idx} onClick={() => tapChunk(idx)} disabled={answered}
+                                                className="px-3 py-1.5 rounded-lg border-2 border-gray-200 hover:border-brand text-sm font-semibold text-gray-700 bg-white">{chunk}</button>
+                                        )
+                                    ))}
+                                </div>
+                                <div className="flex gap-2 mb-2">
+                                    <button onClick={undoChunk} disabled={answered || !placedIdx.length} className="px-4 py-2 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold disabled:opacity-40">ย้อนกลับ 1 คำ</button>
+                                    <button onClick={submitOrder} disabled={answered || placedIdx.length !== q.chunks.length}
+                                        className="flex-1 py-2 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">ตรวจคำตอบ</button>
+                                </div>
+                                {answered && (
+                                    <p className={`text-sm text-center font-semibold ${placedIdx.map(i => q.scrambled[i]).join('') === q.chunks.join('') ? 'text-green-600' : 'text-red-600'}`}>
+                                        เฉลย: {q.chunks.join('')}
+                                    </p>
+                                )}
+                            </>
+                        )}
+
+                        {answered && (
+                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                                {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
                     </div>
