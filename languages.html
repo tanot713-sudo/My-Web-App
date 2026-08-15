@@ -94,6 +94,8 @@
         const KeyboardIcon = icon('keyboard', 'w-3.5 h-3.5');
         const PencilSmallIcon = icon('pencil', 'w-3.5 h-3.5');
         const HskIcon = icon('graduation-cap', 'w-4 h-4');
+        const ListenIcon = icon('headphones', 'w-4 h-4');
+        const MicIcon = icon('mic', 'w-5 h-5');
         // ไอคอนเล็กประกอบปุ่มโหมดย่อยในหน้า "ฝึกเขียน" — ไม่ใส่ text-* ในคลาสตั้งใจ ให้สืบสี
         // currentColor จากปุ่มแม่เอง (ขาวตอน active / เทาตอนไม่ active) โดยไม่ต้องทำ 2 เวอร์ชันสี
         const BrushIcon = icon('brush', 'w-3.5 h-3.5');
@@ -1712,6 +1714,386 @@
             );
         }
 
+        // ══════════════════════════════════════════════════════════════════════════════════
+        // "ฟัง-พูด" (view === 'listen') — ฟังเรื่องสั้นแบบ extensive listening + พูดตาม/บันทึกเสียง
+        // เทียบ (shadowing) รองรับเฉพาะภาษาจีนตอนนี้ (เนื้อหาต้องแต่งเองทีละภาษา เริ่มจากจีนตามที่ขอ
+        // เน้นมาตลอดเซสชันนี้) ใช้ของเดิมที่มีอยู่แล้วทั้งหมด: speak() (TTS), gradeAnswer() (ตรวจคำตอบ),
+        // asr-worker.js (ถอดเสียงพูดเป็นข้อความ — clone แพทเทิร์นอัดเสียง/resample มาจาก ai-chat-widget.js
+        // โหมด "เปิดไมค์คุย" ตามธรรมเนียม clone-and-adapt ของโปรเจกต์)
+        // ══════════════════════════════════════════════════════════════════════════════════
+
+        // บทฟังสั้นๆ ระดับ HSK1-3 (คิด/ตรวจไวยากรณ์เอง ใช้คำศัพท์พื้นฐานที่คุ้นเคย) ระดับละ 2 เรื่อง
+        const LISTENING_PASSAGES = [
+            {
+                level: 1, title: 'รับโทรศัพท์',
+                lines: [
+                    { speaker: 'A', target: '喂，你好！', thai: 'ฮัลโหล สวัสดี' },
+                    { speaker: 'B', target: '你好，我是丽丽。', thai: 'สวัสดี ฉันชื่อลี่ลี่' },
+                    { speaker: 'A', target: '你在哪儿？', thai: 'คุณอยู่ที่ไหน' },
+                    { speaker: 'B', target: '我在家。', thai: 'ฉันอยู่บ้าน' },
+                ],
+                questions: [
+                    { q: 'ลี่ลี่อยู่ที่ไหน?', choices: ['อยู่บ้าน', 'อยู่โรงเรียน', 'อยู่ร้านค้า'], correct: 'อยู่บ้าน' },
+                    { q: 'คนที่พูดว่า "我是丽丽" ชื่ออะไร?', choices: ['ลี่ลี่', 'หวังลี่', 'ไม่บอกชื่อ'], correct: 'ลี่ลี่' },
+                ],
+            },
+            {
+                level: 1, title: 'ซื้อของ',
+                lines: [
+                    { speaker: 'A', target: '这个苹果多少钱？', thai: 'แอปเปิลลูกนี้ราคาเท่าไหร่' },
+                    { speaker: 'B', target: '十块钱。', thai: 'สิบหยวน' },
+                    { speaker: 'A', target: '太贵了，便宜一点吧。', thai: 'แพงไปนะ ลดหน่อยได้ไหม' },
+                    { speaker: 'B', target: '好的，八块钱。', thai: 'ได้ค่ะ แปดหยวน' },
+                ],
+                questions: [
+                    { q: 'ตอนแรกแอปเปิลราคาเท่าไหร่?', choices: ['สิบหยวน', 'แปดหยวน', 'ห้าหยวน'], correct: 'สิบหยวน' },
+                    { q: 'สุดท้ายซื้อแอปเปิลราคาเท่าไหร่?', choices: ['สิบหยวน', 'แปดหยวน', 'ห้าหยวน'], correct: 'แปดหยวน' },
+                ],
+            },
+            {
+                level: 2, title: 'นัดเพื่อน',
+                lines: [
+                    { speaker: 'A', target: '你今天晚上有空吗？', thai: 'คืนนี้คุณว่างไหม' },
+                    { speaker: 'B', target: '有空，怎么了？', thai: 'ว่างสิ มีอะไรเหรอ' },
+                    { speaker: 'A', target: '我们一起去看电影，好吗？', thai: 'ไปดูหนังด้วยกันไหม' },
+                    { speaker: 'B', target: '好啊！几点见面？', thai: 'ดีเลย! นัดกี่โมงดี' },
+                    { speaker: 'A', target: '晚上七点，在电影院门口。', thai: 'สองทุ่ม ที่หน้าโรงหนัง' },
+                ],
+                questions: [
+                    { q: 'พวกเขาจะไปทำอะไรกัน?', choices: ['ดูหนัง', 'กินข้าว', 'ซื้อของ'], correct: 'ดูหนัง' },
+                    { q: 'พวกเขานัดกี่โมง?', choices: ['หกโมงเย็น', 'สองทุ่ม', 'สามทุ่ม'], correct: 'สองทุ่ม' },
+                ],
+            },
+            {
+                level: 2, title: 'อากาศวันนี้',
+                lines: [
+                    { speaker: 'A', target: '今天天气怎么样？', thai: 'วันนี้อากาศเป็นยังไงบ้าง' },
+                    { speaker: 'B', target: '今天很冷，还下雨了。', thai: 'วันนี้หนาวมาก แล้วก็ฝนตกด้วย' },
+                    { speaker: 'A', target: '那我们不去公园了吧。', thai: 'งั้นเราไม่ไปสวนสาธารณะกันดีกว่า' },
+                    { speaker: 'B', target: '好，我们在家看电视吧。', thai: 'ได้ อยู่บ้านดูทีวีกันดีกว่า' },
+                ],
+                questions: [
+                    { q: 'วันนี้อากาศเป็นยังไง?', choices: ['ร้อน', 'หนาวและฝนตก', 'แดดจัด'], correct: 'หนาวและฝนตก' },
+                    { q: 'สุดท้ายพวกเขาตัดสินใจทำอะไร?', choices: ['ไปสวนสาธารณะ', 'อยู่บ้านดูทีวี', 'ไปร้านค้า'], correct: 'อยู่บ้านดูทีวี' },
+                ],
+            },
+            {
+                level: 3, title: 'หางาน',
+                lines: [
+                    { speaker: 'A', target: '你最近在忙什么？', thai: 'ช่วงนี้คุณยุ่งอะไรอยู่' },
+                    { speaker: 'B', target: '我在找工作，已经面试了三次了。', thai: 'ฉันกำลังหางาน ไปสัมภาษณ์มาสามครั้งแล้ว' },
+                    { speaker: 'A', target: '怎么样，顺利吗？', thai: 'เป็นยังไงบ้าง ราบรื่นไหม' },
+                    { speaker: 'B', target: '还可以，有一家公司下周会给我答复。', thai: 'ก็โอเคนะ มีบริษัทหนึ่งจะตอบกลับสัปดาห์หน้า' },
+                ],
+                questions: [
+                    { q: 'B ช่วงนี้กำลังทำอะไร?', choices: ['หางาน', 'เรียนหนังสือ', 'ท่องเที่ยว'], correct: 'หางาน' },
+                    { q: 'B ไปสัมภาษณ์มากี่ครั้งแล้ว?', choices: ['หนึ่งครั้ง', 'สองครั้ง', 'สามครั้ง'], correct: 'สามครั้ง' },
+                ],
+            },
+            {
+                level: 3, title: 'แผนเที่ยว',
+                lines: [
+                    { speaker: 'A', target: '暑假你打算去哪儿旅行？', thai: 'ปิดเทอมนี้คุณจะไปเที่ยวที่ไหน' },
+                    { speaker: 'B', target: '我打算去云南，那里风景很美。', thai: 'ฉันตั้งใจจะไปยูนนาน ที่นั่นวิวสวยมาก' },
+                    { speaker: 'A', target: '你一个人去吗？', thai: 'ไปคนเดียวเหรอ' },
+                    { speaker: 'B', target: '不是，我和男朋友一起去，我们打算坐火车去。', thai: 'เปล่า ฉันไปกับแฟน เราตั้งใจจะนั่งรถไฟไป' },
+                ],
+                questions: [
+                    { q: 'B ตั้งใจจะไปที่ไหน?', choices: ['ปักกิ่ง', 'ยูนนาน', 'เซี่ยงไฮ้'], correct: 'ยูนนาน' },
+                    { q: 'พวกเขาตั้งใจจะเดินทางยังไง?', choices: ['นั่งเครื่องบิน', 'นั่งรถไฟ', 'ขับรถไป'], correct: 'นั่งรถไฟ' },
+                ],
+            },
+        ];
+
+        function ListeningPanel({ awardXp }) {
+            const [passageIdx, setPassageIdx] = useState(null);
+            const [revealedLines, setRevealedLines] = useState([]);
+            const [showQuiz, setShowQuiz] = useState(false);
+            const [answers, setAnswers] = useState({});
+            const [checked, setChecked] = useState(false);
+
+            if (passageIdx === null) {
+                return (
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-1">ฟังเรื่องสั้น</h3>
+                        <p className="text-xs text-gray-400 mb-4">เลือกเรื่องที่จะฟัง — ลองฟังก่อนแล้วค่อยดูคำแปล จะช่วยฝึกความเข้าใจได้ดีกว่า</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {LISTENING_PASSAGES.map((p, i) => (
+                                <button key={i} onClick={() => { setPassageIdx(i); setRevealedLines([]); setShowQuiz(false); setAnswers({}); setChecked(false); }}
+                                    className="p-4 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
+                                    <span className="text-[10px] font-bold text-brand uppercase">HSK{p.level}</span>
+                                    <div className="font-semibold text-gray-800">{p.title}</div>
+                                    <div className="text-xs text-gray-400">{p.lines.length} ประโยค · {p.questions.length} คำถาม</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+
+            const passage = LISTENING_PASSAGES[passageIdx];
+            const playAll = () => { passage.lines.forEach((l, i) => setTimeout(() => speak(l.target, 'zh'), i * 2200)); };
+            const toggleReveal = (i) => setRevealedLines(r => r.includes(i) ? r.filter(x => x !== i) : [...r, i]);
+            const checkQuiz = () => {
+                setChecked(true);
+                const correctCount = passage.questions.filter((q, i) => answers[i] === q.correct).length;
+                if (correctCount > 0) awardXp(correctCount * 5);
+            };
+
+            return (
+                <div>
+                    <button onClick={() => setPassageIdx(null)} className="text-xs font-semibold text-gray-400 hover:text-gray-700 mb-3">← เลือกเรื่องอื่น</button>
+                    <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-lg font-semibold text-gray-800">{passage.title}</h3>
+                        <span className="text-[10px] font-bold text-brand uppercase">HSK{passage.level}</span>
+                    </div>
+                    <button onClick={playAll} className="inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
+                        <Volume2 /> ฟังทั้งเรื่อง
+                    </button>
+                    <div className="space-y-2 mb-5">
+                        {passage.lines.map((l, i) => (
+                            <div key={i} className="flex items-start gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                <span className="text-xs font-bold text-gray-400 shrink-0 mt-0.5">{l.speaker}</span>
+                                <div className="flex-1">
+                                    <div className="font-medium text-gray-800">{l.target}</div>
+                                    {revealedLines.includes(i) && <div className="text-sm text-gray-500 mt-0.5">{l.thai}</div>}
+                                </div>
+                                <button onClick={() => speak(l.target, 'zh')} className="shrink-0 text-brand"><Volume2 /></button>
+                                <button onClick={() => toggleReveal(i)} className="shrink-0 text-xs font-semibold text-gray-400 hover:text-gray-700">{revealedLines.includes(i) ? 'ซ่อน' : 'แปล'}</button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {!showQuiz ? (
+                        <button onClick={() => setShowQuiz(true)} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ทำคำถามความเข้าใจ</button>
+                    ) : (
+                        <div className="space-y-4">
+                            {passage.questions.map((q, i) => (
+                                <div key={i}>
+                                    <p className="text-sm font-semibold text-gray-700 mb-2">{q.q}</p>
+                                    <div className="grid grid-cols-1 gap-1.5">
+                                        {q.choices.map((c, ci) => {
+                                            const picked = answers[i] === c;
+                                            let cls = 'border-gray-200 hover:border-brand text-gray-700 bg-white';
+                                            if (checked) {
+                                                if (c === q.correct) cls = 'border-green-400 bg-green-50 text-green-700';
+                                                else if (picked) cls = 'border-red-300 bg-red-50 text-red-600';
+                                            } else if (picked) cls = 'border-brand bg-brandLight text-brand';
+                                            return (
+                                                <button key={ci} disabled={checked} onClick={() => setAnswers(a => ({ ...a, [i]: c }))}
+                                                    className={`text-left px-3 py-2 rounded-lg border-2 text-sm font-medium transition ${cls}`}>{c}</button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                            {!checked ? (
+                                <button onClick={checkQuiz} disabled={Object.keys(answers).length < passage.questions.length}
+                                    className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm disabled:bg-gray-200 disabled:text-gray-400">ตรวจคำตอบ</button>
+                            ) : (
+                                <p className="text-sm font-semibold text-center text-gray-700">
+                                    ถูก {passage.questions.filter((q, i) => answers[i] === q.correct).length}/{passage.questions.length} ข้อ
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ── การอัดเสียง/ถอดเสียงพูด clone มาจาก ai-chat-widget.js โหมด "เปิดไมค์คุย" (asr-worker.js
+        //    ตัวเดียวกันเป๊ะ) ต่างกันแค่ lang: 'chinese' (ของเดิมบังคับ 'thai') และไม่ได้ต่อกับแชท AI ──
+        let asrWorker = null;
+        function getAsrWorker() {
+            if (!asrWorker) asrWorker = new Worker('./asr-worker.js', { type: 'module' });
+            return asrWorker;
+        }
+        function resampleTo16kMono(audioBuffer) {
+            const targetRate = 16000;
+            const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+            const offlineCtx = new OfflineCtx(1, Math.ceil(audioBuffer.duration * targetRate), targetRate);
+            const source = offlineCtx.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(offlineCtx.destination);
+            source.start(0);
+            return offlineCtx.startRendering().then(rendered => rendered.getChannelData(0));
+        }
+        function decodeBlobToPcm(blob) {
+            return blob.arrayBuffer().then(buf => {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                const ctx = new AudioCtx();
+                return ctx.decodeAudioData(buf).then(audioBuffer => {
+                    ctx.close();
+                    return resampleTo16kMono(audioBuffer);
+                }, () => { ctx.close(); throw new Error('ถอดเสียงที่อัดไม่ได้ ลองอัดใหม่อีกครั้ง'); });
+            });
+        }
+        function transcribeChinese(pcm) {
+            return new Promise((resolve, reject) => {
+                const w = getAsrWorker();
+                const jobId = 'shadow-' + Date.now();
+                function onMsg(e) {
+                    const msg = e.data;
+                    if (!msg || msg.jobId !== jobId) return;
+                    if (msg.type === 'result') { cleanup(); resolve(msg.text); }
+                    else if (msg.type === 'error') { cleanup(); reject(new Error(msg.message)); }
+                }
+                function onErr(e) { cleanup(); reject(new Error(e.message || 'Web Worker error')); }
+                function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+                w.addEventListener('message', onMsg);
+                w.addEventListener('error', onErr);
+                w.postMessage({ type: 'transcribe', jobId, pcm, lang: 'chinese' }, [pcm.buffer]);
+            });
+        }
+
+        function ShadowingPanel({ awardXp }) {
+            const pool = useMemo(() => {
+                const cats = LANGS['lang-cn'].phrases;
+                const out = [];
+                Object.keys(cats).forEach(cat => cats[cat].forEach(p => out.push(p)));
+                return out;
+            }, []);
+            const [idx, setIdx] = useState(0);
+            const [isRecording, setIsRecording] = useState(false);
+            const [status, setStatus] = useState(''); // '' | 'recording' | 'transcribing' | 'done' | 'error'
+            const [transcript, setTranscript] = useState('');
+            const [grade, setGrade] = useState(null);
+            const [recordedUrl, setRecordedUrl] = useState('');
+            const mediaRef = useRef(null);
+            const chunksRef = useRef([]);
+            const streamRef = useRef(null);
+
+            const current = pool[idx % pool.length];
+            const reset = () => { setStatus(''); setTranscript(''); setGrade(null); setRecordedUrl(''); };
+            const next = () => { setIdx(i => i + 1); reset(); };
+
+            const startRecording = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    streamRef.current = stream;
+                    chunksRef.current = [];
+                    const rec = new MediaRecorder(stream);
+                    rec.addEventListener('dataavailable', e => { if (e.data && e.data.size) chunksRef.current.push(e.data); });
+                    mediaRef.current = rec;
+                    rec.start();
+                    setIsRecording(true);
+                    setStatus('recording');
+                } catch (e) {
+                    setStatus('error'); setTranscript('เปิดไมค์ไม่สำเร็จ — ตรวจสอบว่าอนุญาตให้เว็บนี้ใช้ไมโครโฟนแล้ว');
+                }
+            };
+
+            const stopRecording = () => {
+                if (!mediaRef.current) return;
+                mediaRef.current.addEventListener('stop', async () => {
+                    streamRef.current.getTracks().forEach(t => t.stop());
+                    const blob = new Blob(chunksRef.current, { type: mediaRef.current.mimeType || 'audio/webm' });
+                    setRecordedUrl(URL.createObjectURL(blob));
+                    setIsRecording(false);
+                    // ตัดขั้นถอดเสียงอัตโนมัติบน iOS ไปเลย (เหมือน ai-chat-widget.js) — อัดเสียง/ฟังย้อนได้ปกติ
+                    // แค่ไม่ auto-grade เพราะ WASM AI บน Safari iOS เคยมีรายงานแท็บแครชจริงมาก่อน
+                    if (isIOS()) {
+                        setStatus('error');
+                        setTranscript('ฟีเจอร์ถอดเสียงอัตโนมัติยังไม่รองรับ iPhone/iPad — ลองฟังเสียงที่อัดเทียบกับต้นฉบับด้วยหูแทนได้');
+                        return;
+                    }
+                    setStatus('transcribing');
+                    try {
+                        const pcm = await decodeBlobToPcm(blob);
+                        const text = await transcribeChinese(pcm);
+                        setTranscript(text);
+                        const g = gradeAnswer(text, current.target);
+                        setGrade(g);
+                        setStatus('done');
+                        if (g === 'correct') awardXp(15); else if (g === 'almost') awardXp(8);
+                    } catch (e) {
+                        setStatus('error'); setTranscript('ถอดเสียงไม่สำเร็จ: ' + (e && e.message ? e.message : e));
+                    }
+                }, { once: true });
+                mediaRef.current.stop();
+            };
+
+            return (
+                <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-1">พูดตาม (Shadowing)</h3>
+                    <p className="text-xs text-gray-400 mb-4">ฟังต้นฉบับ แล้วลองพูดตามให้เหมือนที่สุด ระบบจะถอดเสียงที่พูดมาเทียบกับต้นฉบับให้</p>
+
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                        <div className="text-2xl font-bold text-gray-900 mb-1">{current.target}</div>
+                        <div className="text-sm text-gray-400 mb-3">{current.thai}</div>
+                        <button onClick={() => speak(current.target, 'zh')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังต้นฉบับ</button>
+                    </div>
+
+                    <div className="flex flex-col items-center gap-3 mb-4">
+                        {!isRecording ? (
+                            <button onClick={startRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
+                                <MicIcon /> เริ่มอัดเสียง
+                            </button>
+                        ) : (
+                            <button onClick={stopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
+                                ⏹ หยุดอัด
+                            </button>
+                        )}
+                        {status === 'transcribing' && <p className="text-xs text-gray-400">⏳ กำลังถอดเสียง (ครั้งแรกอาจช้า เพราะกำลังโหลดโมเดล)...</p>}
+                    </div>
+
+                    {recordedUrl && (
+                        <div className="mb-4 text-center">
+                            <audio controls src={recordedUrl} className="mx-auto w-full"></audio>
+                        </div>
+                    )}
+
+                    {status === 'done' && (
+                        <div className={`p-4 rounded-xl border mb-4 ${grade === 'correct' ? 'bg-green-50 border-green-100' : grade === 'almost' ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100'}`}>
+                            <p className="text-xs text-gray-400 mb-1">ระบบได้ยินว่า:</p>
+                            <p className="font-semibold text-gray-800 mb-2">{transcript || '(ไม่ได้ยินเสียงพูด)'}</p>
+                            <p className="text-sm font-semibold">
+                                {grade === 'correct' ? '✅ ใกล้เคียงต้นฉบับมาก' : grade === 'almost' ? '🟡 ใกล้เคียง แต่ยังไม่ตรงทั้งหมด' : '❌ ยังต่างจากต้นฉบับพอสมควร'}
+                            </p>
+                        </div>
+                    )}
+                    {status === 'error' && <p className="text-sm text-red-600 mb-4">❌ {transcript}</p>}
+
+                    <button onClick={next} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ประโยคต่อไป</button>
+                </div>
+            );
+        }
+
+        function ListenSpeakView({ langId, setLangId, setXp }) {
+            const [subMode, setSubMode] = useState('listening');
+            const awardXp = (amt) => setXp(x => x + amt);
+
+            if (langId !== 'lang-cn') {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-6 text-center">
+                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนตอนนี้</p>
+                            <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีน</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="flex-1 overflow-y-auto bg-gray-50">
+                    <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
+                        <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold w-fit bg-white">
+                            <button onClick={() => setSubMode('listening')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'listening' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                                <Volume2 /> ฟังเรื่องสั้น
+                            </button>
+                            <button onClick={() => setSubMode('shadowing')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'shadowing' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                                <MicIcon /> พูดตาม
+                            </button>
+                        </div>
+                        <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-6">
+                            {subMode === 'listening' && <ListeningPanel awardXp={awardXp} />}
+                            {subMode === 'shadowing' && <ShadowingPanel awardXp={awardXp} />}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
         function App() {
             // เปิดภาษาตรงจาก URL hash ได้ เช่น #lang-jp (ลิงก์มาจากเมนูแอปหลัก)
             const hashLang = LANGS[location.hash.slice(1)] ? location.hash.slice(1) : null;
@@ -1864,6 +2246,13 @@
             const goHsk = () => {
                 setLangId('lang-cn');
                 setView('hsk');
+                setMobileNavOpen(false);
+            };
+
+            // โหมดฟัง-พูด รองรับเฉพาะภาษาจีนเหมือน ข้อสอบ — สลับภาษาให้อัตโนมัติเช่นกัน
+            const goListen = () => {
+                setLangId('lang-cn');
+                setView('listen');
                 setMobileNavOpen(false);
             };
 
@@ -2023,6 +2412,12 @@
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'hsk' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
+                                </button>
+                                <button
+                                    onClick={goListen}
+                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'listen' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                >
+                                    <ListenIcon /> ฟัง-พูด
                                 </button>
                             </div>
                             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -2321,8 +2716,10 @@
                             writing={writing} setWriting={setWriting}
                             dueCounts={dueCounts}
                         />
-                        ) : (
+                        ) : view === 'hsk' ? (
                         <HskExamView langId={langId} setLangId={setLangId} setXp={setXp} />
+                        ) : (
+                        <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} />
                         )}
                     </main>
                 </div>
