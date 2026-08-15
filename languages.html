@@ -4175,10 +4175,92 @@
             },
         ];
 
+        const LISTENING_PASSAGES_KR = [
+            {
+                level: 1, title: '전화받기',
+                lines: [
+                    { speaker: 'A', target: '여보세요.', thai: 'ฮัลโหล' },
+                    { speaker: 'B', target: '여보세요, 저 민지예요.', thai: 'สวัสดีค่ะ ฉันชื่อมินจี' },
+                    { speaker: 'A', target: '지금 어디에 있어요?', thai: 'ตอนนี้คุณอยู่ที่ไหน' },
+                    { speaker: 'B', target: '집에 있어요.', thai: 'ฉันอยู่บ้าน' },
+                ],
+                questions: [
+                    { q: '민지 씨는 지금 어디에 있어요?', choices: ['집', '학교', '회사'], correct: '집' },
+                    { q: '"저 민지예요"라고 말한 사람은 누구예요?', choices: ['민지', '다른 사람', '말하지 않음'], correct: '민지' },
+                ],
+            },
+            {
+                level: 1, title: '가게에서',
+                lines: [
+                    { speaker: 'A', target: '이 사과는 얼마예요?', thai: 'แอปเปิลลูกนี้ราคาเท่าไหร่' },
+                    { speaker: 'B', target: '천 원이에요.', thai: 'พันวอนค่ะ' },
+                    { speaker: 'A', target: '비싸네요. 싸게 해 줄 수 있어요?', thai: 'แพงไปนะ ลดหน่อยได้ไหม' },
+                    { speaker: 'B', target: '네, 팔백 원에 드릴게요.', thai: 'ได้ค่ะ แปดร้อยวอน' },
+                ],
+                questions: [
+                    { q: '처음 가격은 얼마였어요?', choices: ['천 원', '팔백 원', '오백 원'], correct: '천 원' },
+                    { q: '마지막 가격은 얼마였어요?', choices: ['천 원', '팔백 원', '오백 원'], correct: '팔백 원' },
+                ],
+            },
+            {
+                level: 2, title: '약속하기',
+                lines: [
+                    { speaker: 'A', target: '오늘 저녁에 시간 있어요?', thai: 'คืนนี้คุณว่างไหม' },
+                    { speaker: 'B', target: '있어요. 왜요?', thai: 'ว่างสิ มีอะไรเหรอ' },
+                    { speaker: 'A', target: '같이 영화 볼래요?', thai: 'ไปดูหนังด้วยกันไหม' },
+                    { speaker: 'B', target: '좋아요! 몇 시에 만날까요?', thai: 'ดีเลย! นัดกี่โมงดี' },
+                    { speaker: 'A', target: '일곱 시에, 영화관 앞에서요.', thai: 'หนึ่งทุ่ม ที่หน้าโรงหนัง' },
+                ],
+                questions: [
+                    { q: '두 사람은 뭐 할 거예요?', choices: ['영화를 봐요', '저녁을 먹어요', '쇼핑해요'], correct: '영화를 봐요' },
+                    { q: '몇 시에 만나요?', choices: ['여섯 시', '일곱 시', '아홉 시'], correct: '일곱 시' },
+                ],
+            },
+            {
+                level: 2, title: '오늘 날씨',
+                lines: [
+                    { speaker: 'A', target: '오늘 날씨가 어때요?', thai: 'วันนี้อากาศเป็นยังไงบ้าง' },
+                    { speaker: 'B', target: '아주 추워요. 비도 와요.', thai: 'วันนี้หนาวมาก แล้วก็ฝนตกด้วย' },
+                    { speaker: 'A', target: '그럼 공원에는 안 가겠네요.', thai: 'งั้นเราไม่ไปสวนสาธารณะกันดีกว่า' },
+                    { speaker: 'B', target: '네, 집에서 텔레비전을 봐요.', thai: 'ได้ อยู่บ้านดูทีวีกันดีกว่า' },
+                ],
+                questions: [
+                    { q: '오늘 날씨는 어때요?', choices: ['덥다', '춥고 비', '맑다'], correct: '춥고 비' },
+                    { q: '마지막에 뭐 해요?', choices: ['공원에 가다', '집에서 텔레비전을 보다', '가게에 가다'], correct: '집에서 텔레비전을 보다' },
+                ],
+            },
+            {
+                level: 3, title: '직장 구하기',
+                lines: [
+                    { speaker: 'A', target: '요즘 뭐 하고 지내요?', thai: 'ช่วงนี้คุณยุ่งอะไรอยู่' },
+                    { speaker: 'B', target: '직장을 구하고 있어요. 벌써 세 번 면접을 봤어요.', thai: 'ฉันกำลังหางาน ไปสัมภาษณ์มาสามครั้งแล้ว' },
+                    { speaker: 'A', target: '어때요, 잘 되고 있어요?', thai: 'เป็นยังไงบ้าง ราบรื่นไหม' },
+                    { speaker: 'B', target: '그저 그래요. 다음 주에 한 회사에서 연락이 올 거예요.', thai: 'ก็โอเคนะ มีบริษัทหนึ่งจะตอบกลับสัปดาห์หน้า' },
+                ],
+                questions: [
+                    { q: 'B 씨는 요즘 뭐 해요?', choices: ['직장을 구해요', '공부해요', '여행해요'], correct: '직장을 구해요' },
+                    { q: 'B 씨는 몇 번 면접을 봤어요?', choices: ['한 번', '두 번', '세 번'], correct: '세 번' },
+                ],
+            },
+            {
+                level: 3, title: '여행 계획',
+                lines: [
+                    { speaker: 'A', target: '여름 방학에 어디로 여행 갈 계획이에요?', thai: 'ปิดเทอมนี้คุณจะไปเที่ยวที่ไหน' },
+                    { speaker: 'B', target: '부산에 갈 계획이에요. 경치가 아주 아름다워요.', thai: 'ฉันตั้งใจจะไปปูซาน ที่นั่นวิวสวยมาก' },
+                    { speaker: 'A', target: '혼자 가요?', thai: 'ไปคนเดียวเหรอ' },
+                    { speaker: 'B', target: '아니요, 남자친구랑 같이 가요. 기차로 갈 계획이에요.', thai: 'เปล่า ฉันไปกับแฟน เราตั้งใจจะนั่งรถไฟไป' },
+                ],
+                questions: [
+                    { q: 'B 씨는 어디로 갈 계획이에요?', choices: ['서울', '부산', '제주도'], correct: '부산' },
+                    { q: '어떻게 갈 계획이에요?', choices: ['비행기로', '기차로', '자동차로'], correct: '기차로' },
+                ],
+            },
+        ];
+
         function ListeningPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-en' ? LISTENING_PASSAGES_EN : LISTENING_PASSAGES;
+            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-en' ? LISTENING_PASSAGES_EN : LISTENING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -4307,7 +4389,7 @@
         }
         // langName: ชื่อภาษาเต็ม (lowercase) ตามที่ asr-worker.js (Whisper) รับ — ผ่านตรงเป็น
         // opts.language ไม่มีการแปลง/ตรวจสอบเพิ่มในตัว worker เอง
-        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese' };
+        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean' };
         function transcribeSpeech(pcm, langName) {
             return new Promise((resolve, reject) => {
                 const w = getAsrWorker();
@@ -4714,10 +4796,98 @@
             },
         ];
 
+        const READING_PASSAGES_KR = [
+            {
+                level: 1, title: '나의 하루',
+                lines: [
+                    { target: '저는 매일 아침 일곱 시에 일어납니다.', thai: 'ทุกวันฉันตื่นนอนเจ็ดโมงเช้า' },
+                    { target: '아침을 먹은 후에 학교에 갑니다.', thai: 'ฉันกินข้าวเช้าก่อน แล้วค่อยไปโรงเรียน' },
+                    { target: '학교에서 공부합니다.', thai: 'ฉันเรียนหนังสือที่โรงเรียน' },
+                    { target: '점심에는 친구와 함께 점심을 먹습니다.', thai: 'ตอนเที่ยงฉันกินข้าวเที่ยงกับเพื่อน' },
+                    { target: '오후 세 시에 집에 돌아갑니다.', thai: 'ตอนบ่ายสามโมงฉันกลับบ้าน' },
+                    { target: '저녁에는 텔레비전을 보고, 열 시에 잡니다.', thai: 'ตอนเย็นฉันดูทีวี นอนสี่ทุ่ม' },
+                ],
+                questions: [
+                    { q: '몇 시에 일어나요?', choices: ['일곱 시', '여덟 시', '여섯 시'], correct: '일곱 시' },
+                    { q: '학교에 가기 전에 뭐 해요?', choices: ['아침을 먹다', '샤워하다', '텔레비전을 보다'], correct: '아침을 먹다' },
+                ],
+            },
+            {
+                level: 1, title: '우리 가족',
+                lines: [
+                    { target: '저희 가족은 네 명입니다: 아버지, 어머니, 언니, 저입니다.', thai: 'ครอบครัวฉันมีสี่คน: พ่อ แม่ พี่สาว และฉัน' },
+                    { target: '아버지는 의사이고, 어머니는 선생님입니다.', thai: 'พ่อเป็นหมอ แม่เป็นครู' },
+                    { target: '언니는 저보다 세 살 많고, 대학교에서 공부하고 있습니다.', thai: 'พี่สาวอายุมากกว่าฉันสามปี เธอเรียนอยู่มหาวิทยาลัย' },
+                    { target: '우리 집에는 작은 강아지가 한 마리 있습니다. 아주 귀엽습니다.', thai: 'บ้านเรามีหมาตัวเล็กหนึ่งตัว มันน่ารักมาก' },
+                    { target: '일요일에는 다 같이 공원에 갑니다.', thai: 'วันอาทิตย์เราไปเที่ยวสวนสาธารณะด้วยกัน' },
+                ],
+                questions: [
+                    { q: '아버지의 직업은 뭐예요?', choices: ['의사', '선생님', '회사원'], correct: '의사' },
+                    { q: '언니는 저보다 몇 살 많아요?', choices: ['한 살', '두 살', '세 살'], correct: '세 살' },
+                ],
+            },
+            {
+                level: 2, title: '주말 계획',
+                lines: [
+                    { target: '이번 주말에는 여러 가지를 할 계획입니다.', thai: 'สุดสัปดาห์นี้ฉันตั้งใจจะทำหลายอย่าง' },
+                    { target: '토요일 아침에는 도서관에서 책을 읽고, 오후에는 친구와 쇼핑하러 갈 겁니다.', thai: 'เช้าวันเสาร์ฉันจะไปห้องสมุดอ่านหนังสือ บ่ายไปซื้อของกับเพื่อน' },
+                    { target: '저녁에는 영화를 볼 계획입니다.', thai: 'ตอนเย็นเราตั้งใจจะไปดูหนัง' },
+                    { target: '일요일에는 집에서 쉬고 싶습니다. 가족을 위해 요리를 할지도 모릅니다.', thai: 'วันอาทิตย์ฉันอยากพักผ่อนอยู่บ้าน อาจจะทำกับข้าวให้ครอบครัวกิน' },
+                    { target: '날씨가 좋으면 공원에 뛰러 가고 싶습니다.', thai: 'ถ้าอากาศดี ฉันยังอยากไปวิ่งที่สวนสาธารณะด้วย' },
+                ],
+                questions: [
+                    { q: '토요일 아침에 어디에 가요?', choices: ['도서관', '식당', '영화관'], correct: '도서관' },
+                    { q: '일요일에 뭐 할 계획이에요?', choices: ['집에서 쉬다', '회사에 가다', '여행하다'], correct: '집에서 쉬다' },
+                ],
+            },
+            {
+                level: 2, title: '아픈 날',
+                lines: [
+                    { target: '어젯밤에 몸이 안 좋아서 머리가 많이 아팠고, 열도 조금 났습니다.', thai: 'เมื่อคืนฉันรู้สึกไม่สบาย ปวดหัวมาก แล้วก็มีไข้นิดหน่อย' },
+                    { target: '오늘 아침에 회사에 안 가고 병원에 갔습니다.', thai: 'เช้านี้ฉันไม่ได้ไปทำงาน ไปโรงพยาบาลหาหมอ' },
+                    { target: '의사 선생님이 감기라고 하시면서 물을 많이 마시고 푹 쉬라고 했습니다. 약도 주셨습니다.', thai: 'หมอบอกว่าฉันเป็นหวัด ให้ดื่มน้ำเยอะๆ พักผ่อนเยอะๆ แล้วก็จ่ายยาให้ฉันด้วย' },
+                    { target: '약을 먹은 후에 많이 편해졌습니다.', thai: 'หลังจากกินยาแล้วรู้สึกดีขึ้นมาก' },
+                    { target: '내일은 더 좋아지면 좋겠습니다.', thai: 'หวังว่าพรุ่งนี้จะดีขึ้นอีกหน่อย' },
+                ],
+                questions: [
+                    { q: '왜 몸이 안 좋았어요?', choices: ['감기에 걸려서', '배가 아파서', '다리를 다쳐서'], correct: '감기에 걸려서' },
+                    { q: '의사 선생님은 뭐라고 했어요?', choices: ['물을 마시고 쉬라고 했다', '운동을 많이 하라고 했다', '아무것도 먹지 말라고 했다'], correct: '물을 마시고 쉬라고 했다' },
+                ],
+            },
+            {
+                level: 3, title: '처음 탄 비행기',
+                lines: [
+                    { target: '지난달에 처음으로 혼자 비행기를 타고 서울로 여행을 갔습니다.', thai: 'เดือนที่แล้วฉันนั่งเครื่องบินไปเที่ยวโซลคนเดียวเป็นครั้งแรก' },
+                    { target: '출발하기 전에 아주 긴장했습니다. 탑승구를 못 찾을까 봐 걱정했습니다.', thai: 'ก่อนออกเดินทางฉันตื่นเต้นมาก กลัวว่าตัวเองจะหาประตูขึ้นเครื่องไม่เจอ' },
+                    { target: '공항에 도착한 후에 화면에서 정보를 보고 탑승구를 쉽게 찾았습니다. 시간이 있어서 공항을 걸어 다니면서 작은 기념품도 샀습니다.', thai: 'พอถึงสนามบิน ฉันดูข้อมูลบนจอแล้วหาประตูขึ้นเครื่องเจอได้อย่างราบรื่น ยังมีเวลาเดินเล่นในสนามบิน ซื้อของฝากเล็กๆ น้อยๆ ด้วย' },
+                    { target: '비행기가 이륙할 때 조금 무서웠지만, 점점 익숙해졌습니다.', thai: 'ตอนเครื่องบินขึ้น ฉันกลัวนิดหน่อย แต่ค่อยๆ ชินไป' },
+                    { target: '이번 여행을 통해 많은 일이 생각보다 어렵지 않다는 것을 알게 되었습니다.', thai: 'การเดินทางครั้งนี้ทำให้ฉันเข้าใจว่า หลายอย่างจริงๆ แล้วไม่ได้ยากอย่างที่คิด' },
+                ],
+                questions: [
+                    { q: '출발하기 전에 기분이 어땠어요?', choices: ['긴장하고 탑승구가 걱정됐다', '아주 기뻤다', '아무 느낌도 없었다'], correct: '긴장하고 탑승구가 걱정됐다' },
+                    { q: '공항에서 탑승구를 찾은 것 외에 무엇을 했어요?', choices: ['걸어 다니면서 기념품을 샀다', '잤다', '친구에게 전화했다'], correct: '걸어 다니면서 기념품을 샀다' },
+                ],
+            },
+            {
+                level: 3, title: '한국어 공부 경험',
+                lines: [
+                    { target: '한국어를 공부한 지 벌써 이 년이 되었습니다.', thai: 'ฉันเรียนภาษาเกาหลีมาสองปีแล้ว' },
+                    { target: '처음에는 발음과 문법이 아주 어려워서 자주 틀렸고, 친구들이 자주 웃었습니다.', thai: 'ตอนเริ่มแรกฉันรู้สึกว่าการออกเสียงและไวยากรณ์ยากมาก พูดผิดบ่อยๆ แล้วก็ถูกเพื่อนล้อบ่อยๆ' },
+                    { target: '그 후에 매일 한국 노래를 듣고 한국어 영상을 보면서 조금씩 이 언어의 리듬에 익숙해졌습니다.', thai: 'ต่อมาฉันฟังเพลงเกาหลีและดูวิดีโอภาษาเกาหลีทุกวันอย่างสม่ำเสมอ ค่อยๆ ชินกับจังหวะของภาษานี้' },
+                    { target: '지금은 아직 모르는 단어가 많지만, 한국 친구와 간단한 이야기를 할 수 있게 되었습니다.', thai: 'ตอนนี้แม้จะยังมีคำศัพท์ที่ไม่รู้อีกเยอะ แต่ฉันคุยกับเพื่อนคนเกาหลีแบบง่ายๆ ได้แล้ว' },
+                    { target: '언어를 공부할 때 가장 중요한 것은 틀리는 것을 두려워하지 않고 계속하는 것이라고 생각합니다.', thai: 'ฉันคิดว่าสิ่งที่สำคัญที่สุดในการเรียนภาษาคือไม่ต้องกลัวทำผิด ถ้าพยายามต่อไปเรื่อยๆ ยังไงก็ต้องมีความก้าวหน้า' },
+                ],
+                questions: [
+                    { q: '처음에 가장 어렵다고 생각한 것은 뭐예요?', choices: ['발음과 문법', '단어', '글자'], correct: '발음과 문법' },
+                    { q: '어떻게 연습했어요?', choices: ['매일 노래와 영상을 듣고 봤다', '단어만 외웠다', '문법만 공부했다'], correct: '매일 노래와 영상을 듣고 봤다' },
+                ],
+            },
+        ];
+
         function ReadingPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-en' ? READING_PASSAGES_EN : READING_PASSAGES;
+            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-en' ? READING_PASSAGES_EN : READING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -4973,6 +5143,61 @@
                 { prompt: '25 ธันวาคม', target: '十二月二十五日', phonetic: 'じゅうにがつ にじゅうごにち' },
             ],
         };
+        // ตัวเลขเกาหลี — "numbers" ใช้ระบบเลขจีน-เกาหลี (한자어 수사, มาตรฐานสำหรับตัวเลขทั่วไป/คณิตศาสตร์)
+        // "time" ใช้ชั่วโมงเป็นเลขเกาหลีแท้ (고유어 수사) + นาทีเป็นเลขจีน-เกาหลี ตามหลักไวยากรณ์จริง (ไม่ใช่เลือกเอง)
+        // "date" ใช้ระบบเลขจีน-เกาหลีทั้งเดือน/วัน — เดือนมิถุนายน(6월)/ตุลาคม(10월) ออกเสียงไม่ปกติ
+        // (유월/시월 แทน육월/십월) ตามข้อยกเว้นทางเสียงที่รู้กันทั่วไปในภาษาเกาหลี — romaja ผ่านการตรวจสอบ
+        // ด้วย koroman (ไลบรารีตามกฎ Revised Romanization ทางการ) เหมือนคำศัพท์ Stage 1
+        const NUMBERS_DATES_KR = {
+            numbers: [
+                { prompt: '5', target: '오', phonetic: 'o' },
+                { prompt: '8', target: '팔', phonetic: 'pal' },
+                { prompt: '12', target: '십이', phonetic: 'sibi' },
+                { prompt: '15', target: '십오', phonetic: 'sibo' },
+                { prompt: '20', target: '이십', phonetic: 'isip' },
+                { prompt: '23', target: '이십삼', phonetic: 'isipsam' },
+                { prompt: '34', target: '삼십사', phonetic: 'samsipsa' },
+                { prompt: '50', target: '오십', phonetic: 'osip' },
+                { prompt: '67', target: '육십칠', phonetic: 'yuksipchil' },
+                { prompt: '99', target: '구십구', phonetic: 'gusipgu' },
+                { prompt: '100', target: '백', phonetic: 'baek' },
+                { prompt: '128', target: '백이십팔', phonetic: 'baegisippal' },
+                { prompt: '256', target: '이백오십육', phonetic: 'ibaegosibyuk' },
+                { prompt: '1000', target: '천', phonetic: 'cheon' },
+            ],
+            weekday: [
+                { prompt: 'วันจันทร์', target: '월요일', phonetic: 'wollyoil' },
+                { prompt: 'วันอังคาร', target: '화요일', phonetic: 'hwayoil' },
+                { prompt: 'วันพุธ', target: '수요일', phonetic: 'suyoil' },
+                { prompt: 'วันพฤหัสบดี', target: '목요일', phonetic: 'mongnyoil' },
+                { prompt: 'วันศุกร์', target: '금요일', phonetic: 'geumyoil' },
+                { prompt: 'วันเสาร์', target: '토요일', phonetic: 'toyoil' },
+                { prompt: 'วันอาทิตย์', target: '일요일', phonetic: 'illyoil' },
+            ],
+            time: [
+                { prompt: '1:00 น.', target: '한 시', phonetic: 'han si' },
+                { prompt: '2:00 น.', target: '두 시', phonetic: 'du si' },
+                { prompt: '3:30 น.', target: '세 시 반', phonetic: 'se si ban' },
+                { prompt: '4:40 น.', target: '네 시 사십 분', phonetic: 'ne si sasip bun' },
+                { prompt: '6:15 น.', target: '여섯 시 십오 분', phonetic: 'yeoseot si sibo bun' },
+                { prompt: '7:30 น.', target: '일곱 시 반', phonetic: 'ilgop si ban' },
+                { prompt: '8:45 น.', target: '여덟 시 사십오 분', phonetic: 'yeodeol si sasibo bun' },
+                { prompt: '9:05 น.', target: '아홉 시 오 분', phonetic: 'ahop si o bun' },
+                { prompt: '10:10 น.', target: '열 시 십 분', phonetic: 'yeol si sip bun' },
+                { prompt: '11:20 น.', target: '열한 시 이십 분', phonetic: 'yeolhan si isip bun' },
+                { prompt: '12:00 น.', target: '열두 시', phonetic: 'yeoldu si' },
+            ],
+            date: [
+                { prompt: '1 มกราคม', target: '일월 일일', phonetic: 'irwol iril' },
+                { prompt: '14 กุมภาพันธ์', target: '이월 십사일', phonetic: 'iwol sipsail' },
+                { prompt: '8 มีนาคม', target: '삼월 팔일', phonetic: 'samwol paril' },
+                { prompt: '1 พฤษภาคม', target: '오월 일일', phonetic: 'owol iril' },
+                { prompt: '20 มิถุนายน', target: '유월 이십일', phonetic: 'yuwol isibil' },
+                { prompt: '15 สิงหาคม', target: '팔월 십오일', phonetic: 'parwol siboil' },
+                { prompt: '10 ตุลาคม', target: '시월 십일', phonetic: 'siwol sibil' },
+                { prompt: '25 ธันวาคม', target: '십이월 이십오일', phonetic: 'sibiwol isiboil' },
+            ],
+        };
         const NUMBERS_DATES_CATS = [
             { key: 'all', label: 'ทั้งหมด' },
             { key: 'numbers', label: 'ตัวเลข' },
@@ -4997,7 +5222,7 @@
         }
 
         function NumbersDatesPanel({ awardXp, langId }) {
-            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-en' ? NUMBERS_DATES_EN : NUMBERS_DATES;
+            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-en' ? NUMBERS_DATES_EN : NUMBERS_DATES;
             const langCode = LANGS[langId].code;
             const [catKey, setCatKey] = useState('all');
             const [queue, setQueue] = useState(() => buildNdQueue('all', dataset));
@@ -5080,9 +5305,9 @@
             );
         }
 
-        // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN/_JP)/READING_PASSAGES(_EN/_JP)/
-        // NUMBERS_DATES(_EN/_JP) + ASR_LANG_NAME) — ภาษาอื่นนอกสามนี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
-        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp'];
+        // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN/_JP/_KR)/READING_PASSAGES(_EN/_JP/_KR)/
+        // NUMBERS_DATES(_EN/_JP/_KR) + ASR_LANG_NAME) — ภาษาอื่นนอกสี่นี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
+        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr'];
         function ListenSpeakView({ langId, setLangId, setXp }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
@@ -5091,11 +5316,12 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีน อังกฤษ และญี่ปุ่นตอนนี้</p>
+                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีน อังกฤษ ญี่ปุ่น และเกาหลีตอนนี้</p>
                             <div className="flex gap-2 justify-center flex-wrap">
                                 <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีน</button>
                                 <button onClick={() => setLangId('lang-en')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาอังกฤษ</button>
                                 <button onClick={() => setLangId('lang-jp')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาญี่ปุ่น</button>
+                                <button onClick={() => setLangId('lang-kr')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาเกาหลี</button>
                             </div>
                         </div>
                     </div>
@@ -5312,9 +5538,9 @@
                 setMobileNavOpen(false);
             };
 
-            // โหมดฟัง-พูด รองรับจีน+อังกฤษ+ญี่ปุ่นแล้ว — ถ้าอยู่ภาษาอื่นอยู่ค่อยสลับเป็นจีนให้อัตโนมัติ
+            // โหมดฟัง-พูด รองรับจีน+อังกฤษ+ญี่ปุ่น+เกาหลีแล้ว — ถ้าอยู่ภาษาอื่นอยู่ค่อยสลับเป็นจีนให้อัตโนมัติ
             const goListen = () => {
-                if (langId !== 'lang-en' && langId !== 'lang-jp') setLangId('lang-cn');
+                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr') setLangId('lang-cn');
                 setView('listen');
                 setMobileNavOpen(false);
             };
@@ -5486,15 +5712,15 @@
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
-                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น</span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
                                 </button>
                                 <button
                                     onClick={goListen}
-                                    title="รองรับภาษาจีน อังกฤษ และญี่ปุ่น — ภาษาอื่นจะสลับเป็นจีนให้อัตโนมัติ"
+                                    title="รองรับภาษาจีน อังกฤษ ญี่ปุ่น และเกาหลี — ภาษาอื่นจะสลับเป็นจีนให้อัตโนมัติ"
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'listen' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <ListenIcon /> ฟัง-พูด
-                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น</span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
                                 </button>
                             </div>
                             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -5617,6 +5843,27 @@
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
                                                 <div className="text-sm font-bold text-gray-800">ข้อสอบ JLPT N5</div>
+                                                <div className="text-[11px] text-gray-400">จำลองข้อสอบจริง</div>
+                                            </button>
+                                            <button onClick={goListen}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><ListenIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ฟัง-พูด-อ่าน</div>
+                                                <div className="text-[11px] text-gray-400">บทฟัง, พูดตาม, อ่านยาว</div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {langId === 'lang-kr' && (
+                                    <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
+                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาเกาหลี</h3>
+                                        <p className="text-xs text-gray-400 mb-4">ทำข้อสอบจำลอง TOPIK I และฝึกฟัง-พูด-อ่าน โดยเฉพาะ (ฝึกเขียนตัวอักษรฮันกึลเป็น follow-up ในอนาคต)</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <button onClick={goExam}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><HskIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ TOPIK I</div>
                                                 <div className="text-[11px] text-gray-400">จำลองข้อสอบจริง</div>
                                             </button>
                                             <button onClick={goListen}
