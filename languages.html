@@ -1367,6 +1367,108 @@
             );
         }
 
+        // ── ภาพประกอบ TOEIC Part 1 (Photo Description) — วาดเองเป็น SVG line-art แบบเรียบง่าย
+        //    (ไม่มีคลังรูปถ่ายจริงให้ใช้ในสภาพแวดล้อมนี้ และดึงรูปจากอินเทอร์เน็ตไม่ได้ — เครือข่าย
+        //    sandbox บล็อกโดเมนโฮสต์รูปภาพ/CDN ทั่วไป) ออกแบบให้เป็นภาพประกอบ ไม่ใช่คำบรรยายข้อความ
+        //    ผู้เรียนต้องตีความภาพเองเหมือนข้อสอบจริง ไม่มี label ภาษาไทยบอกใบ้เนื้อหาบนภาพ
+        function ToeicPerson({ x, y, scale = 1, color = '#4B5563' }) {
+            return (
+                <g transform={`translate(${x} ${y}) scale(${scale})`}>
+                    <circle cx="0" cy="0" r="9" fill={color} />
+                    <path d="M -12 30 Q -12 12 0 12 Q 12 12 12 30 L 12 42 L -12 42 Z" fill={color} />
+                </g>
+            );
+        }
+        function ToeicPhotoIllustration({ id }) {
+            const common = { viewBox: '0 0 240 160', className: 'w-full h-40 sm:h-48', role: 'img', 'aria-label': 'ภาพประกอบสถานการณ์' };
+            if (id === 'desk-reading') {
+                return (
+                    <svg {...common}>
+                        <rect x="0" y="0" width="240" height="160" fill="#F9FAFB" />
+                        <rect x="46" y="112" width="148" height="10" rx="2" fill="#12A594" />
+                        <rect x="56" y="122" width="7" height="26" fill="#9CA3AF" />
+                        <rect x="177" y="122" width="7" height="26" fill="#9CA3AF" />
+                        <ToeicPerson x="120" y="56" />
+                        <rect x="93" y="70" width="54" height="36" rx="2" fill="#fff" stroke="#6B7280" strokeWidth="2.5" />
+                        <line x1="101" y1="80" x2="139" y2="80" stroke="#D1D5DB" strokeWidth="2.5" />
+                        <line x1="101" y1="88" x2="139" y2="88" stroke="#D1D5DB" strokeWidth="2.5" />
+                        <line x1="101" y1="96" x2="125" y2="96" stroke="#D1D5DB" strokeWidth="2.5" />
+                    </svg>
+                );
+            }
+            if (id === 'meeting-table') {
+                return (
+                    <svg {...common}>
+                        <rect x="0" y="0" width="240" height="160" fill="#F9FAFB" />
+                        <ellipse cx="120" cy="118" rx="78" ry="20" fill="#12A594" fillOpacity="0.15" stroke="#12A594" strokeWidth="2.5" />
+                        <ToeicPerson x="58" y="78" scale="0.85" />
+                        <ToeicPerson x="120" y="62" scale="0.85" />
+                        <ToeicPerson x="182" y="78" scale="0.85" />
+                        <ToeicPerson x="120" y="104" scale="0.85" color="#12A594" />
+                    </svg>
+                );
+            }
+            if (id === 'stairs-briefcase') {
+                return (
+                    <svg {...common}>
+                        <rect x="0" y="0" width="240" height="160" fill="#F9FAFB" />
+                        <rect x="26" y="132" width="42" height="12" fill="#D1D5DB" />
+                        <rect x="68" y="114" width="42" height="12" fill="#D1D5DB" />
+                        <rect x="110" y="96" width="42" height="12" fill="#D1D5DB" />
+                        <rect x="152" y="78" width="42" height="12" fill="#D1D5DB" />
+                        <ToeicPerson x="131" y="52" scale="0.9" color="#12A594" />
+                        <rect x="149" y="70" width="16" height="12" rx="1.5" fill="#4B5563" />
+                        <line x1="153" y1="70" x2="153" y2="66" stroke="#4B5563" strokeWidth="2" />
+                        <line x1="161" y1="70" x2="161" y2="66" stroke="#4B5563" strokeWidth="2" />
+                    </svg>
+                );
+            }
+            if (id === 'loading-truck') {
+                return (
+                    <svg {...common}>
+                        <rect x="0" y="0" width="240" height="160" fill="#F9FAFB" />
+                        <line x1="10" y1="136" x2="230" y2="136" stroke="#E5E7EB" strokeWidth="2" />
+                        <rect x="26" y="80" width="90" height="52" rx="3" fill="#fff" stroke="#6B7280" strokeWidth="2.5" />
+                        <rect x="116" y="98" width="34" height="34" rx="3" fill="#12A594" fillOpacity="0.85" />
+                        <path d="M150 132 L150 108 L166 108 L178 122 L178 132 Z" fill="#fff" stroke="#6B7280" strokeWidth="2.5" />
+                        <circle cx="60" cy="136" r="9" fill="#4B5563" />
+                        <circle cx="162" cy="136" r="9" fill="#4B5563" />
+                        <ToeicPerson x="195" y="98" scale="0.85" />
+                        <rect x="189" y="112" width="16" height="14" rx="1.5" fill="#12A594" />
+                    </svg>
+                );
+            }
+            if (id === 'reception-phone') {
+                return (
+                    <svg {...common}>
+                        <rect x="0" y="0" width="240" height="160" fill="#F9FAFB" />
+                        <rect x="30" y="106" width="180" height="14" rx="2" fill="#12A594" />
+                        <rect x="150" y="76" width="34" height="26" rx="2" fill="#fff" stroke="#6B7280" strokeWidth="2.5" />
+                        <ToeicPerson x="90" y="72" color="#12A594" />
+                        <path d="M104 82 Q116 88 110 100" fill="none" stroke="#4B5563" strokeWidth="3" strokeLinecap="round" />
+                        <circle cx="110" cy="100" r="4" fill="#4B5563" />
+                    </svg>
+                );
+            }
+            if (id === 'repair-computer') {
+                return (
+                    <svg {...common}>
+                        <rect x="0" y="0" width="240" height="160" fill="#F9FAFB" />
+                        <rect x="40" y="118" width="160" height="10" rx="2" fill="#9CA3AF" />
+                        <rect x="60" y="68" width="58" height="42" rx="2" fill="#fff" stroke="#6B7280" strokeWidth="2.5" />
+                        <line x1="68" y1="80" x2="110" y2="80" stroke="#D1D5DB" strokeWidth="2.5" />
+                        <line x1="68" y1="90" x2="98" y2="90" stroke="#D1D5DB" strokeWidth="2.5" />
+                        <rect x="132" y="72" width="46" height="38" rx="2" fill="#fff" stroke="#12A594" strokeWidth="2.5" strokeDasharray="4 3" />
+                        <circle cx="155" cy="91" r="9" fill="none" stroke="#12A594" strokeWidth="2.5" />
+                        <circle cx="155" cy="91" r="2.5" fill="#12A594" />
+                        <ToeicPerson x="196" y="82" scale="0.8" color="#12A594" />
+                        <line x1="182" y1="96" x2="192" y2="102" stroke="#4B5563" strokeWidth="2.5" strokeLinecap="round" />
+                    </svg>
+                );
+            }
+            return null;
+        }
+
         // ── ข้อสอบ HSK (จำลอง) — โครงสร้าง/จำนวนข้อยึดตามข้อสอบ HSK 2.0 ทางการ (ดูหมายเหตุที่
         //    buildHskExam ด้านบน) เนื้อหาสร้างจากคลังคำศัพท์ HSK_VOCAB ที่ตรวจสอบแล้ว รองรับเฉพาะ
         //    ภาษาจีนตอนนี้ — ถ้า langId ไม่ใช่ lang-cn (เผื่อผู้ใช้สลับภาษาที่แถบข้างระหว่างอยู่โหมดนี้)
@@ -1819,16 +1921,16 @@
 // __EN_EXAM_FULL_CONTENT_V2__
 
         const TOEIC_PHOTO_ITEMS = [
-            { scene: "ผู้ชายกำลังนั่งอ่านหนังสือพิมพ์อยู่ที่โต๊ะทำงาน", correct: "A man is reading a newspaper at his desk.", distractors: ["A man is writing a letter.", "A woman is reading a book.", "A man is talking on the phone."] },
-            { scene: "พนักงานหลายคนกำลังนั่งประชุมกันรอบโต๊ะ", correct: "Several employees are sitting around a table in a meeting.", distractors: ["A man is standing alone in an office.", "Two people are shaking hands outside.", "Workers are loading boxes onto a truck."] },
-            { scene: "หญิงสาวกำลังเดินขึ้นบันไดพร้อมถือกระเป๋าเอกสาร", correct: "A woman is walking up the stairs carrying a briefcase.", distractors: ["A woman is sitting on a bench.", "A man is climbing a ladder.", "A woman is opening a door."] },
-            { scene: "คนงานกำลังยกกล่องขึ้นรถบรรทุก", correct: "Workers are loading boxes onto a truck.", distractors: ["A truck is parked in an empty lot.", "A man is unloading a car.", "Boxes are stacked in a warehouse."] },
-            { scene: "พนักงานต้อนรับกำลังรับโทรศัพท์อยู่ที่เคาน์เตอร์", correct: "A receptionist is answering the phone at the front desk.", distractors: ["A customer is signing a document.", "A manager is giving a presentation.", "Two colleagues are having lunch."] },
-            { scene: "ช่างเทคนิคกำลังซ่อมเครื่องคอมพิวเตอร์", correct: "A technician is repairing a computer.", distractors: ["An employee is cleaning the office.", "A man is installing new software alone at home.", "A woman is printing documents."] },
+            { scene: "ผู้ชายกำลังนั่งอ่านหนังสือพิมพ์อยู่ที่โต๊ะทำงาน", svg: "desk-reading", correct: "A man is reading a newspaper at his desk.", distractors: ["A man is writing a letter.", "A woman is reading a book.", "A man is talking on the phone."] },
+            { scene: "พนักงานหลายคนกำลังนั่งประชุมกันรอบโต๊ะ", svg: "meeting-table", correct: "Several employees are sitting around a table in a meeting.", distractors: ["A man is standing alone in an office.", "Two people are shaking hands outside.", "Workers are loading boxes onto a truck."] },
+            { scene: "หญิงสาวกำลังเดินขึ้นบันไดพร้อมถือกระเป๋าเอกสาร", svg: "stairs-briefcase", correct: "A woman is walking up the stairs carrying a briefcase.", distractors: ["A woman is sitting on a bench.", "A man is climbing a ladder.", "A woman is opening a door."] },
+            { scene: "คนงานกำลังยกกล่องขึ้นรถบรรทุก", svg: "loading-truck", correct: "Workers are loading boxes onto a truck.", distractors: ["A truck is parked in an empty lot.", "A man is unloading a car.", "Boxes are stacked in a warehouse."] },
+            { scene: "พนักงานต้อนรับกำลังรับโทรศัพท์อยู่ที่เคาน์เตอร์", svg: "reception-phone", correct: "A receptionist is answering the phone at the front desk.", distractors: ["A customer is signing a document.", "A manager is giving a presentation.", "Two colleagues are having lunch."] },
+            { scene: "ช่างเทคนิคกำลังซ่อมเครื่องคอมพิวเตอร์", svg: "repair-computer", correct: "A technician is repairing a computer.", distractors: ["An employee is cleaning the office.", "A man is installing new software alone at home.", "A woman is printing documents."] },
         ];
         function genPhotoMc(count) {
             const picked = shuffleArr(TOEIC_PHOTO_ITEMS).slice(0, Math.min(count, TOEIC_PHOTO_ITEMS.length));
-            return picked.map(item => ({ type: 'photo-mc', scene: item.scene, choices: shuffleArr([item.correct, ...item.distractors]), correct: item.correct }));
+            return picked.map(item => ({ type: 'photo-mc', scene: item.scene, svg: item.svg, choices: shuffleArr([item.correct, ...item.distractors]), correct: item.correct }));
         }
 
         const TOEIC_QR_ITEMS = [
@@ -2523,15 +2625,16 @@
                             </>
                         )}
 
-                        {/* Part 1 substitute — ไม่มีคลังรูปภาพ ใช้บรรยายฉาก (ไทย) แทนภาพ ให้เลือกประโยค
-                            อังกฤษที่ตรงกับฉากนั้น (ทดสอบทักษะเดียวกันคือแปลความหมายภาพ/บรรยาย) */}
+                        {/* Part 1 — ไม่มีคลังรูปถ่ายจริงให้ใช้ในสภาพแวดล้อมนี้ (ดึงรูปจากอินเทอร์เน็ตไม่ได้)
+                            ใช้ภาพประกอบ SVG วาดเอง (ToeicPhotoIllustration) แทนรูปถ่าย ให้ผู้เรียนตีความ
+                            ภาพเองแล้วเลือกประโยคอังกฤษที่ตรงกับภาพ เหมือนโจทย์จริง — ไม่โชว์คำบรรยายไทยบอกใบ้ */}
                         {q.type === 'photo-mc' && (
                             <>
-                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">📷 ฉาก (แทนรูปภาพ)</p>
-                                    <div className="text-base font-semibold text-gray-900">{q.scene}</div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2 text-center">📷 Photo Description</p>
+                                    <ToeicPhotoIllustration id={q.svg} />
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกประโยคภาษาอังกฤษที่ตรงกับฉากนี้:</p>
+                                <p className="text-xs text-gray-400 mb-2">เลือกประโยคภาษาอังกฤษที่ตรงกับภาพนี้:</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
