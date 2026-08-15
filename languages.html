@@ -1800,11 +1800,345 @@
             { sentence: 'The shipment was delayed due ___ bad weather.', choices: ['to', 'for', 'of', 'with'], correct: 'to' },
             { sentence: 'This model is one of the ___ selling products this year.', choices: ['best', 'better', 'good', 'best-'], correct: 'best' },
             { sentence: 'The team ___ working on this project since March.', choices: ['has been', 'have been', 'is', 'was'], correct: 'has been' },
+            { sentence: "The new employees must complete their training ___ the end of the month.", choices: ["before", "until", "since", "during"], correct: "before" },
+            { sentence: "The report was written ___ the marketing department.", choices: ["by", "from", "of", "with"], correct: "by" },
+            { sentence: "Customers can return items ___ 30 days of purchase.", choices: ["within", "during", "for", "since"], correct: "within" },
+            { sentence: "The CEO gave a speech ___ inspired all the staff.", choices: ["that", "who", "whom", "whose"], correct: "that" },
+            { sentence: "We need someone ___ can speak both English and Chinese.", choices: ["who", "which", "whom", "whose"], correct: "who" },
+            { sentence: "The factory produces ___ than 500 units per day.", choices: ["more", "much", "many", "most"], correct: "more" },
+            { sentence: "Despite ___ the deadline, the team completed the project successfully.", choices: ["missing", "miss", "missed", "to miss"], correct: "missing" },
+            { sentence: "The invoice should be paid ___ receipt.", choices: ["upon", "at", "in", "on"], correct: "upon" },
+            { sentence: "Employees are encouraged to give ___ feedback about the new system.", choices: ["honest", "honestly", "honesty", "honester"], correct: "honest" },
+            { sentence: "The company's revenue has increased significantly ___ last year.", choices: ["since", "from", "at", "of"], correct: "since" },
         ];
         function genGrammarMc(bank, count) {
             const picked = shuffleArr(bank).slice(0, Math.min(count, bank.length));
             return picked.map(item => ({ type: 'grammar-mc', sentence: item.sentence, choices: shuffleArr(item.choices), correct: item.correct }));
         }
+
+// __EN_EXAM_FULL_CONTENT_V2__
+
+        const TOEIC_PHOTO_ITEMS = [
+            { scene: "ผู้ชายกำลังนั่งอ่านหนังสือพิมพ์อยู่ที่โต๊ะทำงาน", correct: "A man is reading a newspaper at his desk.", distractors: ["A man is writing a letter.", "A woman is reading a book.", "A man is talking on the phone."] },
+            { scene: "พนักงานหลายคนกำลังนั่งประชุมกันรอบโต๊ะ", correct: "Several employees are sitting around a table in a meeting.", distractors: ["A man is standing alone in an office.", "Two people are shaking hands outside.", "Workers are loading boxes onto a truck."] },
+            { scene: "หญิงสาวกำลังเดินขึ้นบันไดพร้อมถือกระเป๋าเอกสาร", correct: "A woman is walking up the stairs carrying a briefcase.", distractors: ["A woman is sitting on a bench.", "A man is climbing a ladder.", "A woman is opening a door."] },
+            { scene: "คนงานกำลังยกกล่องขึ้นรถบรรทุก", correct: "Workers are loading boxes onto a truck.", distractors: ["A truck is parked in an empty lot.", "A man is unloading a car.", "Boxes are stacked in a warehouse."] },
+            { scene: "พนักงานต้อนรับกำลังรับโทรศัพท์อยู่ที่เคาน์เตอร์", correct: "A receptionist is answering the phone at the front desk.", distractors: ["A customer is signing a document.", "A manager is giving a presentation.", "Two colleagues are having lunch."] },
+            { scene: "ช่างเทคนิคกำลังซ่อมเครื่องคอมพิวเตอร์", correct: "A technician is repairing a computer.", distractors: ["An employee is cleaning the office.", "A man is installing new software alone at home.", "A woman is printing documents."] },
+        ];
+        function genPhotoMc(count) {
+            const picked = shuffleArr(TOEIC_PHOTO_ITEMS).slice(0, Math.min(count, TOEIC_PHOTO_ITEMS.length));
+            return picked.map(item => ({ type: 'photo-mc', scene: item.scene, choices: shuffleArr([item.correct, ...item.distractors]), correct: item.correct }));
+        }
+
+        const TOEIC_QR_ITEMS = [
+            { q: "Where is the nearest coffee shop?", correct: "It's just around the corner.", distractors: ["I'll have a coffee, please.", "She works in sales."] },
+            { q: "When does the meeting start?", correct: "At 10 o'clock.", distractors: ["In the conference room.", "About an hour long."] },
+            { q: "Who is in charge of this project?", correct: "Mr. Lee is the project manager.", distractors: ["It started last month.", "It's due next Friday."] },
+            { q: "Could you send me the report by tomorrow?", correct: "Sure, I'll email it tonight.", distractors: ["I already read the report.", "The report was very long."] },
+            { q: "How long have you worked here?", correct: "For about five years.", distractors: ["I work in the marketing department.", "It's a great company."] },
+            { q: "Would you like some coffee or tea?", correct: "Coffee would be great, thanks.", distractors: ["I don't drink much water.", "The kitchen is downstairs."] },
+            { q: "Is the printer working now?", correct: "Yes, I just fixed it.", distractors: ["I need more paper.", "The printer is blue."] },
+            { q: "Why was the flight delayed?", correct: "Because of bad weather.", distractors: ["The flight leaves at noon.", "It landed safely."] },
+            { q: "Did you finish the presentation slides?", correct: "Yes, they're ready to go.", distractors: ["The meeting is at 2pm.", "I like your presentation."] },
+            { q: "Can you turn down the air conditioning?", correct: "Sure, no problem.", distractors: ["It's very hot outside.", "The AC unit is new."] },
+            { q: "What time does the store close?", correct: "At 9 p.m. every day.", distractors: ["The store sells electronics.", "It opened last year."] },
+            { q: "Have you met the new manager yet?", correct: "Yes, she seems very nice.", distractors: ["He used to work here.", "The manager's office is upstairs."] },
+            { q: "Should we reschedule the call?", correct: "Yes, let's move it to Friday.", distractors: ["The call lasted an hour.", "I called him yesterday."] },
+            { q: "Where did you put the invoices?", correct: "They're in the top drawer.", distractors: ["I sent them last week.", "The invoices were correct."] },
+            { q: "Is this seat taken?", correct: "No, please go ahead.", distractors: ["I like this restaurant.", "The chair is broken."] },
+            { q: "Do you know how to use this software?", correct: "Yes, I use it every day.", distractors: ["The software is expensive.", "I bought a new laptop."] },
+            { q: "What did the client say about the proposal?", correct: "She loved it.", distractors: ["The proposal is ten pages long.", "We sent it on Monday."] },
+            { q: "Can I borrow your pen for a second?", correct: "Of course, here you go.", distractors: ["I bought a new notebook.", "The meeting is over."] },
+            { q: "How was your business trip?", correct: "It went really well, thanks.", distractors: ["I'm going next week.", "The airport was crowded."] },
+            { q: "Who's picking up the visitors from the airport?", correct: "I am, at 3 o'clock.", distractors: ["They arrived yesterday.", "The airport is far away."] },
+            { q: "Are the contracts ready for signing?", correct: "Almost, just a few more minutes.", distractors: ["I signed up for the course.", "The contract expired."] },
+            { q: "Why don't we take a short break?", correct: "That sounds like a good idea.", distractors: ["I broke my phone.", "The break room is downstairs."] },
+            { q: "Has the shipment arrived yet?", correct: "Not yet, it's still on the way.", distractors: ["We shipped it last week.", "The warehouse is full."] },
+            { q: "Would you mind closing the window?", correct: "Not at all.", distractors: ["The window is open.", "It's a nice view."] },
+            { q: "What's the password for the Wi-Fi?", correct: "It's written on the wall over there.", distractors: ["The Wi-Fi is slow today.", "I don't have a password."] },
+        ];
+        function genQrMc(count) {
+            const picked = shuffleArr(TOEIC_QR_ITEMS).slice(0, Math.min(count, TOEIC_QR_ITEMS.length));
+            return picked.map(item => ({ type: 'qr-mc', q: item.q, choices: shuffleArr([item.correct, ...item.distractors]), correct: item.correct }));
+        }
+
+        const TOEIC_DIALOGUES = [
+            { lines: ["Hi, I need to book the conference room for tomorrow morning.", "Let me check... It's available from 9 to 11.", "Perfect, that works for our team meeting.", "I'll reserve it for you right away."], questions: [
+                { q: "What does the woman want to do?", choices: ["Book a meeting room", "Cancel a meeting", "Buy new furniture", "Print documents"], correct: "Book a meeting room" },
+                { q: "When is the room available?", choices: ["9 to 11", "11 to 1", "2 to 4", "All day"], correct: "9 to 11" },
+                { q: "What will the man do next?", choices: ["Reserve the room", "Cancel the reservation", "Call the client", "Leave the office"], correct: "Reserve the room" },
+            ] },
+            { lines: ["Have you heard from the supplier about our order?", "Yes, unfortunately the shipment will be a week late.", "That's a problem, we need those parts by Friday.", "I'll ask them to expedite the delivery."], questions: [
+                { q: "What is the problem?", choices: ["The shipment is late", "The order was cancelled", "The price increased", "The parts are broken"], correct: "The shipment is late" },
+                { q: "When do they need the parts?", choices: ["By Friday", "By Monday", "Today", "Next month"], correct: "By Friday" },
+                { q: "What will the man do?", choices: ["Ask for faster delivery", "Cancel the order", "Find a new supplier", "Wait patiently"], correct: "Ask for faster delivery" },
+            ] },
+            { lines: ["Welcome to the company! Is this your first day?", "Yes, it is. I'm a bit nervous.", "Don't worry, I'll show you around the office.", "Thank you, I really appreciate it."], questions: [
+                { q: "What day is it for the woman?", choices: ["Her first day", "Her last day", "Her day off", "A holiday"], correct: "Her first day" },
+                { q: "How does the woman feel?", choices: ["Nervous", "Angry", "Bored", "Confident"], correct: "Nervous" },
+                { q: "What will the man do?", choices: ["Show her around the office", "Give her a raise", "Send her home", "Introduce the CEO"], correct: "Show her around the office" },
+            ] },
+            { lines: ["My computer keeps freezing. Can you take a look?", "Sure, when did this start happening?", "Since this morning, after I installed the new update.", "That might be the issue. Let me reinstall it for you."], questions: [
+                { q: "What is the woman's problem?", choices: ["Her computer keeps freezing", "Her printer is broken", "She lost a file", "Her password expired"], correct: "Her computer keeps freezing" },
+                { q: "When did the problem start?", choices: ["This morning", "Yesterday", "Last week", "Just now"], correct: "This morning" },
+                { q: "What does the man think caused it?", choices: ["A new update", "A virus", "Low battery", "A broken screen"], correct: "A new update" },
+            ] },
+            { lines: ["I'd like to make a reservation for four people tonight.", "What time would you like to come in?", "Around 7 o'clock, if possible.", "We have a table available at 7:15."], questions: [
+                { q: "How many people is the reservation for?", choices: ["Four", "Two", "Six", "Ten"], correct: "Four" },
+                { q: "What time did the customer request?", choices: ["7 o'clock", "6 o'clock", "8 o'clock", "Noon"], correct: "7 o'clock" },
+                { q: "What time is available?", choices: ["7:15", "7:00", "6:45", "8:30"], correct: "7:15" },
+            ] },
+            { lines: ["Have you finished reviewing the budget for next quarter?", "Almost, I just need to check the marketing expenses.", "Can you send it to me by end of day?", "Sure, I'll have it ready by 5 o'clock."], questions: [
+                { q: "What is the man reviewing?", choices: ["The budget", "The sales report", "The employee list", "The travel schedule"], correct: "The budget" },
+                { q: "What does the man still need to check?", choices: ["Marketing expenses", "Office supplies", "Salary numbers", "Travel costs"], correct: "Marketing expenses" },
+                { q: "When will the man send it?", choices: ["By 5 o'clock", "By 9 o'clock", "Tomorrow morning", "Next week"], correct: "By 5 o'clock" },
+            ] },
+            { lines: ["I can't find a parking spot anywhere near the office.", "Try the garage on Second Street, it's usually empty in the morning.", "Thanks, I'll head there now.", "You might want to hurry, traffic is getting worse."], questions: [
+                { q: "What is the woman's problem?", choices: ["She can't find parking", "Her car broke down", "She's lost", "She's late for a meeting"], correct: "She can't find parking" },
+                { q: "Where does the man suggest?", choices: ["The garage on Second Street", "The office lot", "A friend's driveway", "The train station"], correct: "The garage on Second Street" },
+                { q: "What does the man warn about?", choices: ["Traffic getting worse", "Rain coming", "The garage closing", "A parking fine"], correct: "Traffic getting worse" },
+            ] },
+            { lines: ["How did the presentation go with the client this morning?", "It went well, but they had some questions about pricing.", "Did you manage to answer them?", "Yes, I think we addressed their concerns."], questions: [
+                { q: "How did the presentation go?", choices: ["Well", "Badly", "It was cancelled", "It hasn't happened yet"], correct: "Well" },
+                { q: "What were the client's questions about?", choices: ["Pricing", "Delivery time", "Product quality", "Staff training"], correct: "Pricing" },
+                { q: "Did the man answer the questions?", choices: ["Yes", "No", "He wasn't there", "He didn't try"], correct: "Yes" },
+            ] },
+            { lines: ["We're running low on printer paper and ink.", "I'll place an order with the supplier today.", "Can you also get some new pens?", "Sure, I'll add that to the list."], questions: [
+                { q: "What is running low?", choices: ["Printer paper and ink", "Coffee", "Chairs", "Computers"], correct: "Printer paper and ink" },
+                { q: "What will the man do?", choices: ["Place an order", "Fix the printer", "Buy a new office", "Call a meeting"], correct: "Place an order" },
+                { q: "What else does the woman ask for?", choices: ["New pens", "New desks", "New laptops", "New badges"], correct: "New pens" },
+            ] },
+            { lines: ["Are you ready for your trip to Singapore next week?", "Almost, I still need to book my hotel.", "I can recommend a good one near the office.", "That would be really helpful, thanks."], questions: [
+                { q: "Where is the trip to?", choices: ["Singapore", "Tokyo", "London", "Bangkok"], correct: "Singapore" },
+                { q: "What does the woman still need to do?", choices: ["Book a hotel", "Pack her bags", "Buy a ticket", "Get a visa"], correct: "Book a hotel" },
+                { q: "What does the man offer?", choices: ["A hotel recommendation", "A ride to the airport", "Money for the trip", "His office"], correct: "A hotel recommendation" },
+            ] },
+            { lines: ["Did everyone attend the software training yesterday?", "Most people did, but two employees were out sick.", "We should schedule a makeup session for them.", "Good idea, I'll set that up this week."], questions: [
+                { q: "What was the training about?", choices: ["Software", "Sales", "Safety", "Customer service"], correct: "Software" },
+                { q: "Why did some employees miss it?", choices: ["They were sick", "They forgot", "They were on vacation", "They refused"], correct: "They were sick" },
+                { q: "What will the woman do?", choices: ["Schedule a makeup session", "Cancel the training", "Fire the employees", "Ignore it"], correct: "Schedule a makeup session" },
+            ] },
+            { lines: ["I just heard our flight has been delayed by two hours.", "That's frustrating, we'll miss our connecting flight.", "Let's ask the airline about rebooking options.", "Good idea, let's go to the counter now."], questions: [
+                { q: "What happened to the flight?", choices: ["It was delayed", "It was cancelled", "It landed early", "It was overbooked"], correct: "It was delayed" },
+                { q: "What problem does this cause?", choices: ["Missing the connecting flight", "Losing luggage", "Extra cost", "Wrong gate"], correct: "Missing the connecting flight" },
+                { q: "What will they do?", choices: ["Ask about rebooking", "Wait and do nothing", "Buy new tickets online", "Complain online"], correct: "Ask about rebooking" },
+            ] },
+            { lines: ["I have your performance review scheduled for Thursday afternoon.", "Great, what time exactly?", "Let's say 2 o'clock in my office.", "Sounds good, I'll be there."], questions: [
+                { q: "What is scheduled for Thursday?", choices: ["A performance review", "A team lunch", "A client call", "A training session"], correct: "A performance review" },
+                { q: "What time is it?", choices: ["2 o'clock", "10 o'clock", "Noon", "4 o'clock"], correct: "2 o'clock" },
+                { q: "Where will it take place?", choices: ["In the man's office", "In the conference room", "At a restaurant", "Over the phone"], correct: "In the man's office" },
+            ] },
+        ];
+        function genDialogueMc(count) {
+            const picked = shuffleArr(TOEIC_DIALOGUES).slice(0, Math.min(count, TOEIC_DIALOGUES.length));
+            const out = [];
+            picked.forEach(d => { d.questions.forEach(q => out.push({ type: 'dialogue-mc', lines: d.lines, q: q.q, choices: shuffleArr(q.choices), correct: q.correct })); });
+            return out;
+        }
+
+        const TOEIC_TALKS = [
+            { text: "Attention all staff. The elevator on the third floor will be under maintenance from 1 to 3 p.m. today. Please use the stairs or the other elevator during this time. We apologize for the inconvenience.", questions: [
+                { q: "What is under maintenance?", choices: ["The elevator", "The printer", "The Wi-Fi", "The parking lot"], correct: "The elevator" },
+                { q: "What time will the maintenance happen?", choices: ["1 to 3 p.m.", "9 to 11 a.m.", "All day", "After 5 p.m."], correct: "1 to 3 p.m." },
+                { q: "What should staff do?", choices: ["Use the stairs", "Work from home", "Leave early", "Call security"], correct: "Use the stairs" },
+            ] },
+            { text: "Hi, this is Sarah from ABC Supplies. I'm calling about your recent order. Unfortunately, one item is out of stock. Please call me back at your convenience to discuss a replacement.", questions: [
+                { q: "Who is calling?", choices: ["Sarah from ABC Supplies", "A customer", "The manager", "A delivery driver"], correct: "Sarah from ABC Supplies" },
+                { q: "What is the problem?", choices: ["An item is out of stock", "The order was cancelled", "The payment failed", "The address is wrong"], correct: "An item is out of stock" },
+                { q: "What does she want the listener to do?", choices: ["Call her back", "Cancel the order", "Come to the store", "Send an email"], correct: "Call her back" },
+            ] },
+            { text: "Before we finish today's meeting, I want to remind everyone that the quarterly report is due next Monday. Please send your sections to me by Friday so I can compile them in time.", questions: [
+                { q: "What is due next Monday?", choices: ["The quarterly report", "The budget", "The invoices", "The training schedule"], correct: "The quarterly report" },
+                { q: "What should people send by Friday?", choices: ["Their sections of the report", "Their timesheets", "Their expenses", "Their vacation requests"], correct: "Their sections of the report" },
+                { q: "Why does the speaker need it by Friday?", choices: ["To compile the report in time", "To send it to the client", "To print it", "To translate it"], correct: "To compile the report in time" },
+            ] },
+            { text: "Due to heavy rain expected this afternoon, employees are encouraged to leave early if possible. Please drive carefully and check the company app for any updates.", questions: [
+                { q: "Why should employees leave early?", choices: ["Due to heavy rain", "Due to a power outage", "Due to a holiday", "Due to construction"], correct: "Due to heavy rain" },
+                { q: "What are employees told to do while driving?", choices: ["Drive carefully", "Avoid the highway", "Take public transport", "Carpool"], correct: "Drive carefully" },
+                { q: "Where can employees find updates?", choices: ["The company app", "The radio", "A phone call", "The newspaper"], correct: "The company app" },
+            ] },
+            { text: "We're excited to announce the launch of our new product line next month. Marketing materials will be distributed to all sales teams by the end of this week.", questions: [
+                { q: "What is being announced?", choices: ["A new product line", "A new office", "A new policy", "A new manager"], correct: "A new product line" },
+                { q: "When will it launch?", choices: ["Next month", "Next week", "Today", "Next year"], correct: "Next month" },
+                { q: "What will sales teams receive?", choices: ["Marketing materials", "New laptops", "Bonuses", "Uniforms"], correct: "Marketing materials" },
+            ] },
+            { text: "As part of our safety policy, all visitors must sign in at the front desk and wear a visitor badge at all times. Please report any safety concerns to building management immediately.", questions: [
+                { q: "What must visitors do?", choices: ["Sign in and wear a badge", "Pay a fee", "Bring an ID", "Call ahead"], correct: "Sign in and wear a badge" },
+                { q: "Where do visitors sign in?", choices: ["The front desk", "The parking lot", "The elevator", "The cafeteria"], correct: "The front desk" },
+                { q: "What should be reported to management?", choices: ["Safety concerns", "Parking issues", "Lost items", "Complaints about food"], correct: "Safety concerns" },
+            ] },
+            { text: "This is a reminder that the customer service training session will begin at 10 a.m. in Conference Room B. All new hires are required to attend.", questions: [
+                { q: "What time does the training start?", choices: ["10 a.m.", "9 a.m.", "Noon", "3 p.m."], correct: "10 a.m." },
+                { q: "Where will it be held?", choices: ["Conference Room B", "The main hall", "The cafeteria", "Online"], correct: "Conference Room B" },
+                { q: "Who is required to attend?", choices: ["All new hires", "Only managers", "Only the sales team", "Everyone in the company"], correct: "All new hires" },
+            ] },
+            { text: "Your package could not be delivered because no one was available to sign for it. Please visit our website to schedule a redelivery or pick it up at our local office.", questions: [
+                { q: "Why couldn't the package be delivered?", choices: ["No one was available to sign", "The address was wrong", "The item was damaged", "Payment failed"], correct: "No one was available to sign" },
+                { q: "What can the listener do online?", choices: ["Schedule a redelivery", "Cancel the order", "Track another package", "File a complaint"], correct: "Schedule a redelivery" },
+                { q: "Where else can they get the package?", choices: ["The local office", "The post office", "A neighbor's house", "The warehouse"], correct: "The local office" },
+            ] },
+            { text: "Don't forget, the annual company picnic is this Saturday at Riverside Park starting at noon. Please RSVP to HR by Wednesday so we can plan enough food for everyone.", questions: [
+                { q: "When is the picnic?", choices: ["This Saturday", "Next Friday", "Today", "Next month"], correct: "This Saturday" },
+                { q: "Where will it be held?", choices: ["Riverside Park", "The office rooftop", "A restaurant", "The parking lot"], correct: "Riverside Park" },
+                { q: "What should employees do by Wednesday?", choices: ["RSVP to HR", "Bring food", "Book a hotel", "Submit a report"], correct: "RSVP to HR" },
+            ] },
+            { text: "Please be aware that our IT team will be updating the email system tonight. Email service may be unavailable between 11 p.m. and 1 a.m. We appreciate your patience.", questions: [
+                { q: "What will be updated?", choices: ["The email system", "The website", "The phone system", "The printer"], correct: "The email system" },
+                { q: "When will it be unavailable?", choices: ["11 p.m. to 1 a.m.", "9 a.m. to noon", "All day", "5 p.m. to 6 p.m."], correct: "11 p.m. to 1 a.m." },
+                { q: "What does the speaker ask for?", choices: ["Patience", "Feedback", "A password reset", "A meeting"], correct: "Patience" },
+            ] },
+        ];
+        function genTalkMc(count) {
+            const picked = shuffleArr(TOEIC_TALKS).slice(0, Math.min(count, TOEIC_TALKS.length));
+            const out = [];
+            picked.forEach(t => { t.questions.forEach(q => out.push({ type: 'talk-mc', text: t.text, q: q.q, choices: shuffleArr(q.choices), correct: q.correct })); });
+            return out;
+        }
+
+        const TOEIC_PART6_TEXTS = [
+            { text: "Dear team, I am writing to inform you that tomorrow's meeting has been [1] to Friday at 2 p.m. Please make sure you [2] all the necessary documents. If you [3] any questions, feel free to contact me. Thank you for your [4].", blanks: [
+                { choices: ["rescheduled", "reschedule", "rescheduling", "reschedules"], correct: "rescheduled" },
+                { choices: ["bring", "bringing", "brought", "brings"], correct: "bring" },
+                { choices: ["have", "has", "had", "having"], correct: "have" },
+                { choices: ["understanding", "understand", "understood", "understands"], correct: "understanding" },
+            ] },
+            { text: "This is to notify all employees that the office renovation will [1] next Monday. During this time, some areas will be [2] to access. We ask that you [3] your belongings before the work begins. We apologize for any [4] this may cause.", blanks: [
+                { choices: ["begin", "began", "begun", "beginning"], correct: "begin" },
+                { choices: ["closed", "close", "closing", "closes"], correct: "closed" },
+                { choices: ["remove", "removing", "removed", "removes"], correct: "remove" },
+                { choices: ["inconvenience", "convenience", "inconsistency", "incompetence"], correct: "inconvenience" },
+            ] },
+            { text: "Effective next month, all employees will be [1] to submit expense reports online. This new system is [2] to make the process faster and more accurate. Training sessions will be [3] available for anyone who needs help. Please [4] your manager if you have questions.", blanks: [
+                { choices: ["required", "require", "requiring", "requires"], correct: "required" },
+                { choices: ["designed", "design", "designing", "designs"], correct: "designed" },
+                { choices: ["made", "make", "making", "makes"], correct: "made" },
+                { choices: ["contact", "contacting", "contacted", "contacts"], correct: "contact" },
+            ] },
+            { text: "Thank you for your recent order. We are pleased to confirm that your items have been [1] and will arrive within five business days. If you have any concerns [2] your order, please don't hesitate to reach out. We [3] your business and look forward to serving you again. Please keep this email for your [4].", blanks: [
+                { choices: ["shipped", "ship", "shipping", "ships"], correct: "shipped" },
+                { choices: ["regarding", "regard", "regards", "regarded"], correct: "regarding" },
+                { choices: ["appreciate", "appreciated", "appreciating", "appreciates"], correct: "appreciate" },
+                { choices: ["records", "record", "recording", "recorded"], correct: "records" },
+            ] },
+        ];
+        function genBlankMc() {
+            const out = [];
+            TOEIC_PART6_TEXTS.forEach(t => { t.blanks.forEach((b, i) => out.push({ type: 'blank-mc', text: t.text, blankNum: i + 1, choices: shuffleArr(b.choices), correct: b.correct })); });
+            return out;
+        }
+
+        const TOEIC_PASSAGES = [
+            { text: "ABC Corporation is seeking a Marketing Assistant to join our growing team. Responsibilities include managing social media accounts and assisting with event planning. Applicants should have at least one year of marketing experience and strong communication skills. Interested candidates should send their resume to hr@abccorp.com by August 30.", questions: [
+                { q: "What position is being advertised?", choices: ["Marketing Assistant", "Sales Manager", "IT Technician", "Accountant"], correct: "Marketing Assistant" },
+                { q: "What experience is required?", choices: ["At least one year of marketing experience", "Five years of experience", "A college degree", "Fluency in Chinese"], correct: "At least one year of marketing experience" },
+                { q: "How should candidates apply?", choices: ["Send a resume by email", "Call the office", "Visit in person", "Apply online through a form"], correct: "Send a resume by email" },
+            ] },
+            { text: "Notice: Our store will be closed on Monday, September 2nd, for Labor Day. Regular business hours will resume on Tuesday, September 3rd. We apologize for any inconvenience and thank you for your understanding.", questions: [
+                { q: "Why is the store closed?", choices: ["For Labor Day", "For renovation", "For a staff meeting", "For inventory"], correct: "For Labor Day" },
+                { q: "When will the store reopen?", choices: ["Tuesday, September 3rd", "Wednesday, September 4th", "Monday, September 2nd", "The following week"], correct: "Tuesday, September 3rd" },
+                { q: "What does the store apologize for?", choices: ["Any inconvenience", "A price increase", "A delayed order", "Poor service"], correct: "Any inconvenience" },
+            ] },
+            { text: "Dear Mr. Wilson, Thank you for attending our product demonstration last week. We hope you found it informative. If you are interested in placing an order, please contact our sales team by the end of this month to receive a 10% discount. Best regards, Jane Smith", questions: [
+                { q: "What did Mr. Wilson attend?", choices: ["A product demonstration", "A job interview", "A conference", "A training session"], correct: "A product demonstration" },
+                { q: "What discount is offered?", choices: ["10%", "20%", "5%", "15%"], correct: "10%" },
+                { q: "What is the deadline to receive the discount?", choices: ["The end of this month", "Next week", "Tomorrow", "The end of the year"], correct: "The end of this month" },
+            ] },
+            { text: "A recent survey found that more employees are choosing to work remotely at least two days a week. Companies report that productivity has remained steady, while employee satisfaction has increased. Many businesses are now considering permanent flexible work policies.", questions: [
+                { q: "What does the survey show?", choices: ["More employees are working remotely", "Fewer employees have jobs", "Salaries are decreasing", "Companies are closing"], correct: "More employees are working remotely" },
+                { q: "What happened to productivity?", choices: ["It remained steady", "It increased significantly", "It decreased", "It was not measured"], correct: "It remained steady" },
+                { q: "What are companies considering?", choices: ["Permanent flexible work policies", "Reducing salaries", "Closing offices", "Hiring more staff"], correct: "Permanent flexible work policies" },
+            ] },
+            { text: "The new restaurant downtown offers a great variety of dishes at reasonable prices. The service was fast, though the restaurant can get quite crowded during lunch hours. I recommend arriving early or making a reservation.", questions: [
+                { q: "What does the reviewer like about the restaurant?", choices: ["The variety of dishes and prices", "The decoration", "The music", "The parking"], correct: "The variety of dishes and prices" },
+                { q: "When does the restaurant get crowded?", choices: ["During lunch hours", "In the evening", "On weekends only", "Never"], correct: "During lunch hours" },
+                { q: "What does the reviewer recommend?", choices: ["Arriving early or making a reservation", "Avoiding the restaurant", "Ordering delivery", "Visiting on Mondays"], correct: "Arriving early or making a reservation" },
+            ] },
+            { text: "To all staff: Starting next week, the cafeteria will offer a new menu with healthier options. We encourage everyone to provide feedback through the suggestion box located near the entrance.", questions: [
+                { q: "What is changing in the cafeteria?", choices: ["A new, healthier menu", "New tables", "Extended hours", "Lower prices"], correct: "A new, healthier menu" },
+                { q: "How can staff give feedback?", choices: ["Through the suggestion box", "By email", "In a meeting", "By calling HR"], correct: "Through the suggestion box" },
+                { q: "Where is the suggestion box?", choices: ["Near the entrance", "In the kitchen", "In the manager's office", "Outside the building"], correct: "Near the entrance" },
+            ] },
+            { text: "Flight confirmation: Departure from Bangkok at 8:30 a.m., arriving in Tokyo at 4:15 p.m. local time. Please arrive at the airport at least two hours before departure. Baggage allowance is 23 kg for checked luggage.", questions: [
+                { q: "Where does the flight depart from?", choices: ["Bangkok", "Tokyo", "Singapore", "Seoul"], correct: "Bangkok" },
+                { q: "How early should passengers arrive?", choices: ["At least two hours before departure", "One hour before", "Thirty minutes before", "Three hours before"], correct: "At least two hours before departure" },
+                { q: "What is the baggage allowance?", choices: ["23 kg", "15 kg", "30 kg", "20 kg"], correct: "23 kg" },
+            ] },
+            { text: "This product comes with a one-year limited warranty covering manufacturing defects. The warranty does not cover damage caused by misuse or accidents. To make a claim, please keep your receipt and contact customer service.", questions: [
+                { q: "How long is the warranty?", choices: ["One year", "Two years", "Six months", "Lifetime"], correct: "One year" },
+                { q: "What does the warranty NOT cover?", choices: ["Damage from misuse or accidents", "Manufacturing defects", "Shipping costs", "Nothing, it covers everything"], correct: "Damage from misuse or accidents" },
+                { q: "What should customers keep to make a claim?", choices: ["Their receipt", "The original box", "A photo of the product", "Nothing is needed"], correct: "Their receipt" },
+            ] },
+            { text: "You are cordially invited to our annual charity gala on October 15th at the Grand Hotel. The event will feature dinner, live music, and a silent auction. Tickets are $50 per person, with all proceeds going to local schools.", questions: [
+                { q: "What is the event?", choices: ["A charity gala", "A business conference", "A product launch", "A wedding"], correct: "A charity gala" },
+                { q: "How much do tickets cost?", choices: ["$50", "$100", "$25", "Free"], correct: "$50" },
+                { q: "Where do the proceeds go?", choices: ["Local schools", "The hotel", "The organizers", "Charity staff salaries"], correct: "Local schools" },
+            ] },
+            { text: "We are hiring a Customer Service Representative to handle client inquiries by phone and email. The ideal candidate is patient, detail-oriented, and has excellent problem-solving skills. This is a full-time position with benefits.", questions: [
+                { q: "What will the representative handle?", choices: ["Client inquiries by phone and email", "Sales calls only", "Office cleaning", "Accounting tasks"], correct: "Client inquiries by phone and email" },
+                { q: "What skill is mentioned as important?", choices: ["Problem-solving skills", "Cooking skills", "Driving skills", "Foreign language fluency"], correct: "Problem-solving skills" },
+                { q: "What type of position is this?", choices: ["Full-time with benefits", "Part-time", "Internship", "Volunteer"], correct: "Full-time with benefits" },
+            ] },
+            { text: "Due to the forecast of heavy rain, tomorrow's outdoor company event has been moved indoors to the main conference hall. All other details, including the time and schedule, remain unchanged.", questions: [
+                { q: "Why was the event moved?", choices: ["Due to heavy rain forecast", "Due to low attendance", "Due to a budget cut", "Due to a scheduling conflict"], correct: "Due to heavy rain forecast" },
+                { q: "Where will the event now be held?", choices: ["The main conference hall", "A nearby park", "A hotel", "Online"], correct: "The main conference hall" },
+                { q: "What remains unchanged?", choices: ["The time and schedule", "The guest list", "The menu", "The dress code"], correct: "The time and schedule" },
+            ] },
+            { text: "Please be informed that our online banking system will undergo scheduled maintenance this Sunday from 2 a.m. to 6 a.m. During this time, online and mobile banking services will be temporarily unavailable.", questions: [
+                { q: "What will happen this Sunday?", choices: ["Scheduled maintenance", "A bank holiday", "New branch opening", "A security breach"], correct: "Scheduled maintenance" },
+                { q: "What time will the maintenance occur?", choices: ["2 a.m. to 6 a.m.", "9 a.m. to noon", "All day", "6 p.m. to 10 p.m."], correct: "2 a.m. to 6 a.m." },
+                { q: "What will be unavailable?", choices: ["Online and mobile banking", "ATM machines", "Branch locations", "Customer service phone lines"], correct: "Online and mobile banking" },
+            ] },
+            { text: "Your reservation at Sunrise Hotel is confirmed for two nights, checking in on September 10th and checking out on September 12th. Check-in time is 3 p.m., and check-out time is 11 a.m. Free breakfast is included.", questions: [
+                { q: "How many nights is the reservation for?", choices: ["Two nights", "One night", "Three nights", "A week"], correct: "Two nights" },
+                { q: "What time is check-in?", choices: ["3 p.m.", "Noon", "6 p.m.", "10 a.m."], correct: "3 p.m." },
+                { q: "What is included with the reservation?", choices: ["Free breakfast", "Free parking", "Airport pickup", "Spa access"], correct: "Free breakfast" },
+            ] },
+            { text: "This month, we celebrate five employees who have reached their 10-year anniversary with the company. We thank them for their dedication and hard work. A small celebration will be held in the break room on Friday afternoon.", questions: [
+                { q: "What is being celebrated?", choices: ["Employees' 10-year anniversaries", "A company merger", "A new product", "The company's founding"], correct: "Employees' 10-year anniversaries" },
+                { q: "How many employees are being recognized?", choices: ["Five", "Ten", "Two", "Twenty"], correct: "Five" },
+                { q: "Where will the celebration be held?", choices: ["The break room", "The parking lot", "A restaurant", "The lobby"], correct: "The break room" },
+            ] },
+            { text: "A new version of our mobile app is now available for download. This update includes bug fixes and a faster checkout process. We recommend all users update their app as soon as possible for the best experience.", questions: [
+                { q: "What does the new update include?", choices: ["Bug fixes and a faster checkout", "New colors only", "A subscription fee", "Fewer features"], correct: "Bug fixes and a faster checkout" },
+                { q: "What are users recommended to do?", choices: ["Update the app soon", "Delete the app", "Contact support", "Ignore the update"], correct: "Update the app soon" },
+                { q: "What kind of app is this?", choices: ["A mobile app", "A desktop program", "A website", "A browser extension"], correct: "A mobile app" },
+            ] },
+            { text: "Employees are reminded that the north parking lot will be closed for repaving from Monday to Wednesday next week. Please use the south lot or nearby street parking during this period.", questions: [
+                { q: "Why is the north lot closed?", choices: ["For repaving", "For a company event", "For flooding", "For security reasons"], correct: "For repaving" },
+                { q: "How long will it be closed?", choices: ["Monday to Wednesday", "One day only", "The whole week", "One month"], correct: "Monday to Wednesday" },
+                { q: "Where should employees park instead?", choices: ["The south lot or street parking", "A nearby garage only", "Nowhere, they should work from home", "The visitor lot"], correct: "The south lot or street parking" },
+            ] },
+            { text: "Registration is now open for our free workshop on public speaking, to be held next Thursday from 6 to 8 p.m. Space is limited to 20 participants, so early registration is recommended.", questions: [
+                { q: "What is the workshop about?", choices: ["Public speaking", "Cooking", "Accounting", "Photography"], correct: "Public speaking" },
+                { q: "How many participants can attend?", choices: ["20", "50", "10", "Unlimited"], correct: "20" },
+                { q: "What is recommended?", choices: ["Early registration", "Bringing a laptop", "Paying in advance", "Arriving late"], correct: "Early registration" },
+            ] },
+            { text: "Your order #4521 has shipped and is expected to arrive within 3-5 business days. You can track your package using the link provided in this email. Thank you for shopping with us.", questions: [
+                { q: "What is the order number?", choices: ["4521", "1245", "5421", "2451"], correct: "4521" },
+                { q: "When is the order expected to arrive?", choices: ["Within 3-5 business days", "Same day", "Within 24 hours", "Within two weeks"], correct: "Within 3-5 business days" },
+                { q: "How can the customer track the package?", choices: ["Using the link in the email", "By calling customer service", "By visiting the store", "They cannot track it"], correct: "Using the link in the email" },
+            ] },
+        ];
+        function genPassageMc(count) {
+            const picked = shuffleArr(TOEIC_PASSAGES).slice(0, Math.min(count, TOEIC_PASSAGES.length));
+            const out = [];
+            picked.forEach(p => { p.questions.forEach(q => out.push({ type: 'passage-mc', text: p.text, q: q.q, choices: shuffleArr(q.choices), correct: q.correct })); });
+            return out;
+        }
+
+        const IELTS_TASK1_TABLES = [
+            { title: "Number of tourists visiting Thailand by season (2023, in thousands)", rows: [["Season", "Visitors (thousands)"], ["Spring", "1,200"], ["Summer", "3,500"], ["Autumn", "1,800"], ["Winter", "900"]] },
+            { title: "Average monthly electricity usage of a household (kWh)", rows: [["Month", "Usage (kWh)"], ["January", "320"], ["February", "290"], ["March", "310"], ["April", "250"], ["May", "200"], ["June", "180"]] },
+            { title: "Percentage of university students choosing different subjects", rows: [["Subject", "Percentage"], ["Engineering", "35%"], ["Business", "25%"], ["Science", "20%"], ["Arts", "15%"], ["Other", "5%"]] },
+        ];
+        function genIeltsTask1(count) {
+            const picked = shuffleArr(IELTS_TASK1_TABLES).slice(0, Math.min(count, IELTS_TASK1_TABLES.length));
+            return picked.map(t => ({ type: 'write-essay-table', context: 'IELTS Writing Task 1 (เขียนอย่างน้อย 150 คำ)', title: t.title, rows: t.rows,
+                prompt: 'Summarize the information by selecting and reporting the main features, and make comparisons where relevant.' }));
+        }
+
+        const IELTS_SPEAKING = {"part1": ["Can you tell me a little about yourself?", "What do you do — do you work or study?", "What do you like to do in your free time?", "Do you prefer spending time indoors or outdoors? Why?"], "part2": "Describe a skill you would like to learn. You should say: what the skill is, why you want to learn it, how you would learn it, and explain how this skill would be useful to you. (พูดต่อเนื่อง 1-2 นาที)", "part3": ["Why do you think some skills are harder to learn as adults than as children?", "How has technology changed the way people learn new skills?", "Do you think schools should teach more practical skills? Why or why not?"]};
 
         // IELTS Writing Task 2 — หัวข้อเรียงความสไตล์จริง (discuss both views / agree-disagree /
         // advantages-disadvantages — ตรงกับรูปแบบคำถาม Task 2 จริงที่ค้นเจอ) ตรวจด้วย AI แบบเดียว
@@ -1832,6 +2166,22 @@
             return picked.map(p => ({ type: 'write-essay', context: 'IELTS Writing Task 2 (เขียนอย่างน้อย 250 คำ)', prompt: p }));
         }
 
+        // IELTS Writing Task 1 — ใช้ตารางข้อมูลจริง (ตาราง HTML ธรรมดา) แทนกราฟ/แผนภูมิรูปภาพ
+        // (Task 1 ของจริงยอมรับข้อมูลแบบตารางอยู่แล้ว ไม่ใช่ต้องเป็นกราฟเส้น/แท่งเสมอไป — ไม่ใช่การ
+        // ลดทอน แค่เลือกรูปแบบข้อมูลที่ไม่ต้องพึ่งไลบรารีวาดกราฟ) ตรวจด้วย AI เหมือน Task 2 แต่ system
+        // prompt แยกเพราะเกณฑ์ให้คะแนนต่างกัน (Task 1 เน้นสรุป/เปรียบเทียบข้อมูล ไม่ใช่การให้เหตุผล)
+        const IELTS_TASK1_SYSTEM_PROMPT =
+            'คุณเป็นครูสอนภาษาอังกฤษให้คนไทย กำลังตรวจ IELTS Writing Task 1 (ต้องเขียนอย่างน้อย 150 คำ ' +
+            'สรุปข้อมูลจากตารางที่กำหนดให้)\n' +
+            'ตรวจสิ่งที่ผู้เรียนเขียนมา ตอบเป็นภาษาไทยเสมอ รูปแบบคำตอบต้องมี 3 ส่วนตามลำดับนี้เท่านั้น:\n' +
+            '1) "จุดที่แก้ไข:" อธิบายเป็นข้อๆ สั้นๆ ว่าแก้ตรงไหน (ไวยากรณ์/คำศัพท์/ความครบถ้วนของการสรุปข้อมูล)\n' +
+            '2) "ข้อเสนอแนะ:" คำแนะนำสั้นๆ ว่าจะสรุป/เปรียบเทียบตัวเลขให้ดีขึ้นได้อย่างไร (เช่น ใช้คำเปรียบเทียบ highest/lowest)\n' +
+            '3) "คะแนนโดยประมาณ (Band):" ให้ช่วงคะแนน Band คร่าวๆ พร้อมบอกว่าเป็นการประมาณเบื้องต้นเท่านั้น\n' +
+            'ถ้าเขียนดีอยู่แล้วให้บอกตรงๆ ว่าไม่ต้องแก้ไข';
+        const IELTS_TASK1_REMINDER =
+            'ย้ำ: ตรวจข้อความล่าสุดที่ผู้เรียนเพิ่งส่งมาเท่านั้น ตอบตามรูปแบบ 3 ส่วนที่กำหนดไว้เป๊ะๆ ห้ามข้ามส่วนไหน ' +
+            'และห้ามตอบเป็นภาษาอื่นนอกจากไทย';
+
         function buildIeltsExam() {
             const pool = vocabPool('lang-en');
             return {
@@ -1841,19 +2191,24 @@
                         questions: [...genTf(pool, 10, 'listen-tf'), ...genMcFromWord(pool, 10, 'listen-mc'), ...genTf(pool, 10, 'listen-tf'), ...genMcFromWord(pool, 10, 'listen-mc')] },
                     { key: 'reading', title: 'Reading (3 passages)', icon: '📖',
                         questions: [...genMcFromWord(pool, 20, 'read-mc'), ...genMcReverse(pool, 20)] },
-                    { key: 'writing', title: 'Writing Task 2', icon: '✍️', questions: genIeltsEssay(1) },
+                    { key: 'writing1', title: 'Writing Task 1', icon: '📊', questions: genIeltsTask1(1) },
+                    { key: 'writing2', title: 'Writing Task 2', icon: '✍️', questions: genIeltsEssay(1) },
+                    { key: 'speaking', title: 'Speaking', icon: '🗣️', ungraded: true, questions: [{ type: 'speaking-practice' }] },
                 ],
             };
         }
+        // TOEIC เต็มรูปแบบตามโครงสร้างจริง 200 ข้อ (Listening 100 = Part1:6+Part2:25+Part3:39+
+        // Part4:30, Reading 100 = Part5:30+Part6:16+Part7:54) — Part1/2/3/4/6/7 ใช้เนื้อหาที่แต่งเอง
+        // จริง (บทสนทนา/บทพูด/ข้อความ/บทความสั้นๆ) ไม่ใช่สุ่มจากคำศัพท์แล้ว มีแค่ Part7 ที่ใช้บทความ
+        // เดี่ยวล้วนแทนที่จะมีแบบจับคู่ 2-3 บทความเหมือนของจริง (จำนวนข้อรวมเท่าเดิม)
         function buildToeicExam() {
-            const pool = vocabPool('lang-en');
             return {
                 kind: 'toeic', passPct: null,
                 sections: [
                     { key: 'listening', title: 'Listening (Part 1-4)', icon: '🎧',
-                        questions: [...genTf(pool, 4, 'listen-tf'), ...genMcFromWord(pool, 8, 'listen-mc'), ...genMcFromWord(pool, 12, 'listen-mc'), ...genMcReverse(pool, 10)] },
+                        questions: [...genPhotoMc(6), ...genQrMc(25), ...genDialogueMc(13), ...genTalkMc(10)] },
                     { key: 'reading', title: 'Reading (Part 5-7)', icon: '📖',
-                        questions: [...genGrammarMc(TOEIC_GRAMMAR, 10), ...genMcFromWord(pool, 8, 'read-mc'), ...genMcReverse(pool, 16)] },
+                        questions: [...genGrammarMc(TOEIC_GRAMMAR, 30), ...genBlankMc(), ...genPassageMc(18)] },
                 ],
             };
         }
@@ -1877,10 +2232,40 @@
             const [correctInSection, setCorrectInSection] = useState(0);
             const [allWrong, setAllWrong] = useState([]);
             const [finished, setFinished] = useState(false);
+            // ── Speaking (ungraded) — อัดเสียง/ฟังย้อนกลับตัวเองแบบง่ายๆ ไม่ถอดเสียง/ไม่ให้คะแนน
+            //    (ต่างจาก ShadowingPanel ที่ต้องถอดเสียงเทียบต้นฉบับ ตรงนี้แค่ให้ฟังตัวเองทวนได้) ──
+            const [spIsRecording, setSpIsRecording] = useState(false);
+            const [spRecordedUrl, setSpRecordedUrl] = useState('');
+            const spMediaRef = useRef(null);
+            const spChunksRef = useRef([]);
+            const spStreamRef = useRef(null);
+            const spStartRecording = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    spStreamRef.current = stream;
+                    spChunksRef.current = [];
+                    const rec = new MediaRecorder(stream);
+                    rec.addEventListener('dataavailable', ev => { if (ev.data && ev.data.size) spChunksRef.current.push(ev.data); });
+                    spMediaRef.current = rec;
+                    rec.start();
+                    setSpIsRecording(true);
+                } catch (e) { /* ไม่มีสิทธิ์ไมค์ — เงียบไว้ ผู้ใช้ยังอ่าน prompt ได้ปกติ */ }
+            };
+            const spStopRecording = () => {
+                if (!spMediaRef.current) return;
+                spMediaRef.current.addEventListener('stop', () => {
+                    spStreamRef.current.getTracks().forEach(t => t.stop());
+                    const blob = new Blob(spChunksRef.current, { type: spMediaRef.current.mimeType || 'audio/webm' });
+                    setSpRecordedUrl(URL.createObjectURL(blob));
+                    setSpIsRecording(false);
+                }, { once: true });
+                spMediaRef.current.stop();
+            };
 
             const resetPerQuestion = () => {
                 setAnswered(false); setUserAnswer(null);
                 setEssayText(''); setEssayFeedback(''); setEssayStatus('');
+                setSpIsRecording(false); setSpRecordedUrl('');
             };
             const start = (type) => {
                 const built = type === 'toeic' ? buildToeicExam() : buildIeltsExam();
@@ -1911,21 +2296,23 @@
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <button onClick={() => start('ielts')} className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
                                     <div className="text-lg font-bold text-brand mb-1">IELTS</div>
-                                    <div className="text-xs text-gray-500">วัดระดับภาษาอังกฤษทั่วไป ใช้เรียนต่อ/ยื่นวีซ่า — Listening 40 + Reading 40 + Writing Task 2</div>
+                                    <div className="text-xs text-gray-500">วัดระดับภาษาอังกฤษทั่วไป ใช้เรียนต่อ/ยื่นวีซ่า — Listening 40 + Reading 40 + Writing Task 1&amp;2 + Speaking (ฝึกพูด ไม่ให้คะแนน)</div>
                                 </button>
                                 <button onClick={() => start('toeic')} className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
                                     <div className="text-lg font-bold text-brand mb-1">TOEIC</div>
-                                    <div className="text-xs text-gray-500">ภาษาอังกฤษใช้ทำงาน (บริบทออฟฟิศ/ธุรกิจ) — Listening + Reading รวม ~68 ข้อ (ย่อจากของจริง)</div>
+                                    <div className="text-xs text-gray-500">ภาษาอังกฤษใช้ทำงาน (บริบทออฟฟิศ/ธุรกิจ) — Listening 100 + Reading 100 = 200 ข้อเต็ม ตามโครงสร้างจริง</div>
                                 </button>
                             </div>
                             <p className="text-xs text-gray-400 mt-5 leading-relaxed">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่สร้างจากคลังคำศัพท์ของเว็บนี้เอง ไม่ใช่ข้อสอบทางการที่หลุดออกมา
+                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด (บทสนทนา/บทพูด/บทความ/โจทย์ไวยากรณ์) ไม่ใช่ข้อสอบทางการที่หลุดออกมา
                                 ทั้ง IELTS และ TOEIC ไม่มีเกณฑ์ "ผ่าน/ตก" แบบ HSK (ให้คะแนนเป็น Band 0-9 และสเกล 10-990 ตามลำดับ)
                                 เว็บนี้เลยแสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) แทน ไม่ได้แปลงเป็น Band/สเกลทางการ<br />
-                                <b>IELTS</b>: รอบนี้มีแค่ Listening + Reading + Writing Task 2 — ยังไม่มี Task 1 (ต้องบรรยายกราฟ/ภาพ)
-                                และ Speaking (ต้องมีระบบให้คะแนนการพูด ซึ่งเว็บนี้ยังไม่มี)<br />
-                                <b>TOEIC</b>: ลดจำนวนข้อจาก 200 ข้อจริงเหลือ ~68 ข้อให้ทำจบในรอบเดียว Part 1/2/3/4/6/7 ใช้โจทย์
-                                จับคู่ความหมายคำศัพท์แทนภาพ/บทสนทนา/บทความยาวจริง มีแค่ Part 5 (แต่งประโยคไวยากรณ์) ที่เป็นโจทย์เขียนเองจริง
+                                <b>IELTS</b>: มีครบ Listening + Reading + Writing Task 1 (สรุปข้อมูลจากตาราง แทนกราฟรูปภาพ) + Task 2
+                                + Speaking (โจทย์ฝึกพูด 3 ส่วนแบบข้อสอบจริง อัดเสียงฟังทวนได้ แต่ไม่มีระบบให้คะแนนการพูด)<br />
+                                <b>TOEIC</b>: จำนวนข้อครบ 200 ข้อตามโครงสร้างจริงทุก Part (Part1 ภาพ6/Part2 ถาม-ตอบ25/Part3 บทสนทนา39/
+                                Part4 บทพูด30/Part5 ไวยากรณ์30/Part6 เติมข้อความ16/Part7 อ่านจับใจความ54) — Part 1 ไม่มีคลังรูปภาพจริง
+                                เลยใช้บรรยายฉากเป็นข้อความแทน และ Part 7 ใช้บทความเดี่ยวล้วนแทนที่จะมีแบบจับคู่ 2-3 บทความเหมือนข้อสอบจริง
+                                (จำนวนข้อรวมเท่าของจริงเป๊ะ)
                             </p>
                         </div>
                     </div>
@@ -1936,8 +2323,9 @@
             const backToType = () => { setExamType(null); setExam(null); };
 
             if (finished) {
-                const totalCorrect = sectionResults.reduce((s, r) => s + r.correct, 0);
-                const totalQ = sectionResults.reduce((s, r) => s + r.total, 0);
+                const gradedResults = sectionResults.filter(r => !r.ungraded);
+                const totalCorrect = gradedResults.reduce((s, r) => s + r.correct, 0);
+                const totalQ = gradedResults.reduce((s, r) => s + r.total, 0);
                 const pct = totalQ ? Math.round(totalCorrect / totalQ * 100) : 0;
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
@@ -1949,7 +2337,7 @@
                                 {sectionResults.map(r => (
                                     <div key={r.key} className="bg-white rounded-xl border border-gray-200 p-3">
                                         <div className="text-xs text-gray-400">{r.title}</div>
-                                        <div className="text-lg font-bold text-gray-800">{r.correct}/{r.total}</div>
+                                        <div className="text-lg font-bold text-gray-800">{r.ungraded ? 'ฝึกแล้ว' : `${r.correct}/${r.total}`}</div>
                                     </div>
                                 ))}
                             </div>
@@ -1994,7 +2382,7 @@
             const q = section.questions[qIdx];
 
             const finishSection = () => {
-                const results = [...sectionResults, { key: section.key, title: section.title, correct: correctInSection, total: section.questions.length }];
+                const results = [...sectionResults, { key: section.key, title: section.title, correct: correctInSection, total: section.questions.length, ungraded: !!section.ungraded }];
                 setSectionResults(results);
                 if (sectionIdx + 1 >= exam.sections.length) {
                     setFinished(true);
@@ -2019,7 +2407,9 @@
                 if (answered) return;
                 setUserAnswer(choice);
                 const isCorrect = choice === q.correct;
-                recordAnswer(isCorrect, isCorrect ? null : { left: q.word || q.sentence || q.thai, right: q.correct });
+                let leftLabel = q.word || q.sentence || q.q || q.scene || q.thai;
+                if (q.type === 'blank-mc') leftLabel = `Part 6 · ช่องที่ ${q.blankNum}`;
+                recordAnswer(isCorrect, isCorrect ? null : { left: leftLabel || 'ข้อนี้', right: q.correct });
             };
             const pickTf = (val) => {
                 if (answered) return;
@@ -2035,6 +2425,7 @@
                     setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
                     return;
                 }
+                const isTask1 = q.type === 'write-essay-table';
                 setEssayStatus('loading'); setEssayFeedback('');
                 const w = getWritingWorker();
                 const jobId = 'ieltsessay-' + Date.now();
@@ -2050,16 +2441,22 @@
                 function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
                 w.addEventListener('message', onMsg);
                 w.addEventListener('error', onErr);
-                w.postMessage({
-                    type: 'chat', jobId, maxNewTokens: 400,
-                    messages: [
+                const messages = isTask1
+                    ? [
+                        { role: 'system', content: IELTS_TASK1_SYSTEM_PROMPT },
+                        { role: 'system', content: 'ข้อมูลตารางที่โจทย์ให้: ' + q.title + ' — ' + q.rows.map(r => r.join(': ')).join(', ') },
+                        { role: 'user', content: essayText },
+                        { role: 'system', content: IELTS_TASK1_REMINDER },
+                    ]
+                    : [
                         { role: 'system', content: IELTS_WRITE_SYSTEM_PROMPT },
                         { role: 'user', content: essayText },
                         { role: 'system', content: IELTS_WRITE_REMINDER },
-                    ],
-                });
+                    ];
+                w.postMessage({ type: 'chat', jobId, maxNewTokens: 400, messages });
             };
             const skipEssay = () => { setAnswered(true); };
+            const markSpeakingDone = () => { setAnswered(true); };
 
             const progressLabel = `${section.title} · ข้อ ${qIdx + 1}/${section.questions.length}`;
 
@@ -2123,6 +2520,162 @@
                                 </div>
                                 <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่างได้ถูกต้อง:</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {/* Part 1 substitute — ไม่มีคลังรูปภาพ ใช้บรรยายฉาก (ไทย) แทนภาพ ให้เลือกประโยค
+                            อังกฤษที่ตรงกับฉากนั้น (ทดสอบทักษะเดียวกันคือแปลความหมายภาพ/บรรยาย) */}
+                        {q.type === 'photo-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">📷 ฉาก (แทนรูปภาพ)</p>
+                                    <div className="text-base font-semibold text-gray-900">{q.scene}</div>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกประโยคภาษาอังกฤษที่ตรงกับฉากนี้:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'qr-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <p className="text-xs text-gray-400 mb-3">🎧 กดฟังคำถามแล้วเลือกคำตอบที่เหมาะสม</p>
+                                    <div className="text-lg font-semibold text-gray-900 mb-2">{q.q}</div>
+                                    <button onClick={() => speak(q.q, 'en')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                </div>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'dialogue-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา</p>
+                                    <div className="space-y-1">
+                                        {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700">{ln}</p>)}
+                                    </div>
+                                    <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speak(ln, 'en'), i * 1800))}
+                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนา</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'talk-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                    <button onClick={() => speak(q.text, 'en')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูด</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'blank-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">ข้อความ (เติมคำในช่อง [{q.blankNum}])</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{q.text}</p>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่อง [{q.blankNum}] ได้ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'passage-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'write-essay-table' && (
+                            <>
+                                <p className="text-xs text-gray-400 mb-1">{q.context}</p>
+                                <p className="text-gray-700 font-semibold mb-2">{q.title}</p>
+                                <div className="overflow-x-auto mb-3">
+                                    <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+                                        <tbody>
+                                            {q.rows.map((row, ri) => (
+                                                <tr key={ri} className={ri === 0 ? 'bg-gray-50 font-bold text-gray-700' : 'text-gray-700'}>
+                                                    {row.map((cell, ci) => <td key={ci} className="border border-gray-200 px-3 py-1.5">{cell}</td>)}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p className="text-gray-600 text-sm mb-3">{q.prompt}</p>
+                                <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={7} disabled={answered}
+                                    placeholder="Write your summary in English here..."
+                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                {!answered && (
+                                    <div className="flex gap-2 mb-3">
+                                        <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
+                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
+                                        </button>
+                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                    </div>
+                                )}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                            </>
+                        )}
+
+                        {q.type === 'speaking-practice' && (
+                            <>
+                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
+                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
+                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Part 1 — Introduction</p>
+                                    {IELTS_SPEAKING.part1.map((p, i) => (
+                                        <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
+                                            <span className="text-sm text-gray-700">{p}</span>
+                                            <button onClick={() => speak(p, 'en')} className="shrink-0 text-brand"><Volume2 /></button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Part 2 — Cue Card</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{IELTS_SPEAKING.part2}</p>
+                                    <button onClick={() => speak(IELTS_SPEAKING.part2, 'en')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Part 3 — Discussion</p>
+                                    {IELTS_SPEAKING.part3.map((p, i) => (
+                                        <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
+                                            <span className="text-sm text-gray-700">{p}</span>
+                                            <button onClick={() => speak(p, 'en')} className="shrink-0 text-brand"><Volume2 /></button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex flex-col items-center gap-3 mb-4">
+                                    {!spIsRecording ? (
+                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
+                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        </button>
+                                    ) : (
+                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
+                                            ⏹ หยุดอัด
+                                        </button>
+                                    )}
+                                </div>
+                                {spRecordedUrl && (
+                                    <div className="mb-4 text-center">
+                                        <audio controls src={spRecordedUrl} className="mx-auto w-full"></audio>
+                                    </div>
+                                )}
+                                {!answered && (
+                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                )}
                             </>
                         )}
 
