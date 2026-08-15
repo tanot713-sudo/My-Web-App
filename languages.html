@@ -2741,7 +2741,7 @@
                                         <div key={id} className="flex items-center gap-1">
                                             <button
                                                 onClick={() => selectLang(id)}
-                                                className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && view === 'practice' ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
+                                                className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
                                             >
                                                 <Languages /> <span className="flex-1 text-left truncate">{LANGS[id].title}</span>
                                                 {allDone && <CheckCircle />}
@@ -2813,15 +2813,19 @@
                                 </button>
                                 <button
                                     onClick={goHsk}
+                                    title="ฟีเจอร์นี้รองรับเฉพาะภาษาจีน — กดแล้วจะสลับภาษาที่เลือกไว้เป็นจีนให้อัตโนมัติ"
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'hsk' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน</span>
                                 </button>
                                 <button
                                     onClick={goListen}
+                                    title="ฟีเจอร์นี้รองรับเฉพาะภาษาจีน — กดแล้วจะสลับภาษาที่เลือกไว้เป็นจีนให้อัตโนมัติ"
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'listen' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <ListenIcon /> ฟัง-พูด
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน</span>
                                 </button>
                             </div>
                             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
