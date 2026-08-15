@@ -3482,10 +3482,94 @@
             },
         ];
 
+        // ── เวอร์ชันภาษาญี่ปุ่น — หัวข้อคู่ขนานกับชุดจีน/อังกฤษด้านบนเช่นกัน (ประโยคสุภาพ です/ます
+        //    ตามสไตล์ที่ใช้ในวลีภาษาญี่ปุ่นทั้งหมดของหน้านี้อยู่แล้ว)
+        const LISTENING_PASSAGES_JP = [
+            {
+                level: 1, title: 'でんわに でる',
+                lines: [
+                    { speaker: 'A', target: 'もしもし。', thai: 'ฮัลโหล' },
+                    { speaker: 'B', target: 'もしもし、えみです。', thai: 'สวัสดี ฉันชื่อเอมิ' },
+                    { speaker: 'A', target: 'いま どこに いますか。', thai: 'ตอนนี้คุณอยู่ที่ไหน' },
+                    { speaker: 'B', target: 'いえに います。', thai: 'ฉันอยู่บ้าน' },
+                ],
+                questions: [
+                    { q: 'えみさんは どこに いますか。', choices: ['いえ', 'がっこう', 'みせ'], correct: 'いえ' },
+                    { q: '「えみです」と いった ひとは だれですか。', choices: ['えみ', 'もうひとりの ひと', 'いって いない'], correct: 'えみ' },
+                ],
+            },
+            {
+                level: 1, title: 'みせで',
+                lines: [
+                    { speaker: 'A', target: 'この りんごは いくらですか。', thai: 'แอปเปิลลูกนี้ราคาเท่าไหร่' },
+                    { speaker: 'B', target: 'じゅうドルです。', thai: 'สิบดอลลาร์' },
+                    { speaker: 'A', target: 'たかいですね。やすく できますか。', thai: 'แพงไปนะ ลดหน่อยได้ไหม' },
+                    { speaker: 'B', target: 'はい、はちドルに します。', thai: 'ได้ค่ะ แปดดอลลาร์' },
+                ],
+                questions: [
+                    { q: 'はじめの ねだんは いくらでしたか。', choices: ['じゅうドル', 'はちドル', 'ごドル'], correct: 'じゅうドル' },
+                    { q: 'さいごの ねだんは いくらでしたか。', choices: ['じゅうドル', 'はちドル', 'ごドル'], correct: 'はちドル' },
+                ],
+            },
+            {
+                level: 2, title: 'やくそくを する',
+                lines: [
+                    { speaker: 'A', target: 'こんばん ひまですか。', thai: 'คืนนี้คุณว่างไหม' },
+                    { speaker: 'B', target: 'ひまです。どうしましたか。', thai: 'ว่างสิ มีอะไรเหรอ' },
+                    { speaker: 'A', target: 'いっしょに えいがを みませんか。', thai: 'ไปดูหนังด้วยกันไหม' },
+                    { speaker: 'B', target: 'いいですね！なんじに あいましょうか。', thai: 'ดีเลย! นัดกี่โมงดี' },
+                    { speaker: 'A', target: 'しちじに、えいがかんの まえで。', thai: 'หนึ่งทุ่ม ที่หน้าโรงหนัง' },
+                ],
+                questions: [
+                    { q: 'ふたりは なにを しますか。', choices: ['えいがを みる', 'ばんごはんを たべる', 'かいものを する'], correct: 'えいがを みる' },
+                    { q: 'なんじに あいますか。', choices: ['ろくじ', 'しちじ', 'くじ'], correct: 'しちじ' },
+                ],
+            },
+            {
+                level: 2, title: 'きょうの てんき',
+                lines: [
+                    { speaker: 'A', target: 'きょうの てんきは どうですか。', thai: 'วันนี้อากาศเป็นยังไงบ้าง' },
+                    { speaker: 'B', target: 'とても さむいです。あめも ふって います。', thai: 'วันนี้หนาวมาก แล้วก็ฝนตกด้วย' },
+                    { speaker: 'A', target: 'じゃあ、こうえんへは いきませんね。', thai: 'งั้นเราไม่ไปสวนสาธารณะกันดีกว่า' },
+                    { speaker: 'B', target: 'はい、いえで テレビを みましょう。', thai: 'ได้ อยู่บ้านดูทีวีกันดีกว่า' },
+                ],
+                questions: [
+                    { q: 'きょうの てんきは どうですか。', choices: ['あつい', 'さむくて あめ', 'はれ'], correct: 'さむくて あめ' },
+                    { q: 'さいごに なにを しますか。', choices: ['こうえんへ いく', 'いえで テレビを みる', 'みせへ いく'], correct: 'いえで テレビを みる' },
+                ],
+            },
+            {
+                level: 3, title: 'しごとを さがす',
+                lines: [
+                    { speaker: 'A', target: 'さいきん なにを して いますか。', thai: 'ช่วงนี้คุณยุ่งอะไรอยู่' },
+                    { speaker: 'B', target: 'しごとを さがして います。もう さんかい めんせつを うけました。', thai: 'ฉันกำลังหางาน ไปสัมภาษณ์มาสามครั้งแล้ว' },
+                    { speaker: 'A', target: 'どうですか、うまく いって いますか。', thai: 'เป็นยังไงบ้าง ราบรื่นไหม' },
+                    { speaker: 'B', target: 'まあまあです。らいしゅう、いちど かいしゃから へんじが あります。', thai: 'ก็โอเคนะ มีบริษัทหนึ่งจะตอบกลับสัปดาห์หน้า' },
+                ],
+                questions: [
+                    { q: 'Bさんは さいきん なにを して いますか。', choices: ['しごとを さがす', 'べんきょうする', 'りょこうする'], correct: 'しごとを さがす' },
+                    { q: 'Bさんは なんかい めんせつを うけましたか。', choices: ['いっかい', 'にかい', 'さんかい'], correct: 'さんかい' },
+                ],
+            },
+            {
+                level: 3, title: 'りょこうの けいかく',
+                lines: [
+                    { speaker: 'A', target: 'なつやすみに どこへ りょこうする よていですか。', thai: 'ปิดเทอมนี้คุณจะไปเที่ยวที่ไหน' },
+                    { speaker: 'B', target: 'きょうとへ いく よていです。けしきが とても きれいです。', thai: 'ฉันตั้งใจจะไปเชียงใหม่ ที่นั่นวิวสวยมาก' },
+                    { speaker: 'A', target: 'ひとりで いきますか。', thai: 'ไปคนเดียวเหรอ' },
+                    { speaker: 'B', target: 'いいえ、かれしと いっしょに いきます。でんしゃで いく よていです。', thai: 'เปล่า ฉันไปกับแฟน เราตั้งใจจะนั่งรถไฟไป' },
+                ],
+                questions: [
+                    { q: 'Bさんは どこへ いく よていですか。', choices: ['おおさか', 'きょうと', 'ふくおか'], correct: 'きょうと' },
+                    { q: 'どうやって いく よていですか。', choices: ['ひこうきで', 'でんしゃで', 'くるまで'], correct: 'でんしゃで' },
+                ],
+            },
+        ];
+
         function ListeningPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-en' ? LISTENING_PASSAGES_EN : LISTENING_PASSAGES;
+            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-en' ? LISTENING_PASSAGES_EN : LISTENING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -3614,7 +3698,7 @@
         }
         // langName: ชื่อภาษาเต็ม (lowercase) ตามที่ asr-worker.js (Whisper) รับ — ผ่านตรงเป็น
         // opts.language ไม่มีการแปลง/ตรวจสอบเพิ่มในตัว worker เอง
-        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english' };
+        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese' };
         function transcribeSpeech(pcm, langName) {
             return new Promise((resolve, reject) => {
                 const w = getAsrWorker();
@@ -3931,10 +4015,100 @@
             },
         ];
 
+        // ── เวอร์ชันภาษาญี่ปุ่น — หัวข้อคู่ขนานกับชุดจีน/อังกฤษด้านบน (บทสุดท้ายปรับเป็น "ประสบการณ์
+        //    เรียนภาษาญี่ปุ่น" แทนภาษาอื่น เพื่อไม่ให้อ้างถึงตัวเองแปลกๆ เหมือนที่ชุดจีน/อังกฤษทำ)
+        const READING_PASSAGES_JP = [
+            {
+                level: 1, title: 'わたしの まいにち',
+                lines: [
+                    { target: 'わたしは まいあさ しちじに おきます。', thai: 'ทุกวันฉันตื่นนอนเจ็ดโมงเช้า' },
+                    { target: 'あさごはんを たべてから、がっこうへ いきます。', thai: 'ฉันกินข้าวเช้าก่อน แล้วค่อยไปโรงเรียน' },
+                    { target: 'がっこうで べんきょうします。', thai: 'ฉันเรียนหนังสือที่โรงเรียน' },
+                    { target: 'ひるは ともだちと いっしょに ひるごはんを たべます。', thai: 'ตอนเที่ยงฉันกินข้าวเที่ยงกับเพื่อน' },
+                    { target: 'ごご さんじに いえへ かえります。', thai: 'ตอนบ่ายสามโมงฉันกลับบ้าน' },
+                    { target: 'よる テレビを みて、じゅうじに ねます。', thai: 'ตอนเย็นฉันดูทีวี นอนสี่ทุ่ม' },
+                ],
+                questions: [
+                    { q: 'なんじに おきますか。', choices: ['しちじ', 'はちじ', 'ろくじ'], correct: 'しちじ' },
+                    { q: 'がっこうへ いく まえに なにを しますか。', choices: ['あさごはんを たべる', 'シャワーを あびる', 'テレビを みる'], correct: 'あさごはんを たべる' },
+                ],
+            },
+            {
+                level: 1, title: 'わたしの かぞく',
+                lines: [
+                    { target: 'わたしの かぞくは よにんです：ちち、はは、あね、わたしです。', thai: 'ครอบครัวฉันมีสี่คน: พ่อ แม่ พี่สาว และฉัน' },
+                    { target: 'ちちは いしゃで、ははは せんせいです。', thai: 'พ่อเป็นหมอ แม่เป็นครู' },
+                    { target: 'あねは わたしより みっつ としうえで、だいがくで べんきょうして います。', thai: 'พี่สาวอายุมากกว่าฉันสามปี เธอเรียนอยู่มหาวิทยาลัย' },
+                    { target: 'うちには ちいさい いぬが いっとう います。とても かわいいです。', thai: 'บ้านเรามีหมาตัวเล็กหนึ่งตัว มันน่ารักมาก' },
+                    { target: 'にちようびは みんなで こうえんへ いきます。', thai: 'วันอาทิตย์เราไปเที่ยวสวนสาธารณะด้วยกัน' },
+                ],
+                questions: [
+                    { q: 'ちちの しごとは なんですか。', choices: ['いしゃ', 'せんせい', 'かいしゃいん'], correct: 'いしゃ' },
+                    { q: 'あねは わたしより なんさい としうえですか。', choices: ['いっさい', 'にさい', 'さんさい'], correct: 'さんさい' },
+                ],
+            },
+            {
+                level: 2, title: 'しゅうまつの よてい',
+                lines: [
+                    { target: 'こんしゅうの しゅうまつは いろいろな ことを する よていです。', thai: 'สุดสัปดาห์นี้ฉันตั้งใจจะทำหลายอย่าง' },
+                    { target: 'どようびの あさは としょかんで ほんを よんで、ごごは ともだちと かいものに いきます。', thai: 'เช้าวันเสาร์ฉันจะไปห้องสมุดอ่านหนังสือ บ่ายไปซื้อของกับเพื่อน' },
+                    { target: 'よるは えいがを みる よていです。', thai: 'ตอนเย็นเราตั้งใจจะไปดูหนัง' },
+                    { target: 'にちようびは いえで やすみたいです。かぞくに りょうりを つくるかも しれません。', thai: 'วันอาทิตย์ฉันอยากพักผ่อนอยู่บ้าน อาจจะทำกับข้าวให้ครอบครัวกิน' },
+                    { target: 'てんきが よければ、こうえんへ はしりに いきたいです。', thai: 'ถ้าอากาศดี ฉันยังอยากไปวิ่งที่สวนสาธารณะด้วย' },
+                ],
+                questions: [
+                    { q: 'どようびの あさ どこへ いきますか。', choices: ['としょかん', 'レストラン', 'えいがかん'], correct: 'としょかん' },
+                    { q: 'にちようびに なにを する よていですか。', choices: ['いえで やすむ', 'しごとへ いく', 'りょこうする'], correct: 'いえで やすむ' },
+                ],
+            },
+            {
+                level: 2, title: 'びょうきの ひ',
+                lines: [
+                    { target: 'きのうの よる、きぶんが わるくて、あたまが とても いたくて、すこし ねつも ありました。', thai: 'เมื่อคืนฉันรู้สึกไม่สบาย ปวดหัวมาก แล้วก็มีไข้นิดหน่อย' },
+                    { target: 'けさ しごとへ いかないで、びょういんへ いきました。', thai: 'เช้านี้ฉันไม่ได้ไปทำงาน ไปโรงพยาบาลหาหมอ' },
+                    { target: 'いしゃは かぜだと いって、みずを たくさん のんで、ゆっくり やすむように いいました。くすりも くれました。', thai: 'หมอบอกว่าฉันเป็นหวัด ให้ดื่มน้ำเยอะๆ พักผ่อนเยอะๆ แล้วก็จ่ายยาให้ฉันด้วย' },
+                    { target: 'くすりを のんでから、ずっと らくに なりました。', thai: 'หลังจากกินยาแล้วรู้สึกดีขึ้นมาก' },
+                    { target: 'あしたは もっと よく なると いいです。', thai: 'หวังว่าพรุ่งนี้จะดีขึ้นอีกหน่อย' },
+                ],
+                questions: [
+                    { q: 'どうして きぶんが わるかったですか。', choices: ['かぜを ひいたから', 'おなかが いたいから', 'あしを けがしたから'], correct: 'かぜを ひいたから' },
+                    { q: 'いしゃは なにを するように いいましたか。', choices: ['みずを のんで やすむ', 'はげしく うんどうする', 'なにも たべない'], correct: 'みずを のんで やすむ' },
+                ],
+            },
+            {
+                level: 3, title: 'はじめての ひこうき',
+                lines: [
+                    { target: 'せんげつ、はじめて ひとりで ひこうきに のって とうきょうへ りょこうしました。', thai: 'เดือนที่แล้วฉันนั่งเครื่องบินไปเที่ยวโตเกียวคนเดียวเป็นครั้งแรก' },
+                    { target: 'しゅっぱつの まえは とても きんちょうしました。とうじょうぐちが みつからないか しんぱいでした。', thai: 'ก่อนออกเดินทางฉันตื่นเต้นมาก กลัวว่าตัวเองจะหาประตูขึ้นเครื่องไม่เจอ' },
+                    { target: 'くうこうに ついてから、がめんの じょうほうを みて、とうじょうぐちを らくに みつけました。じかんが あったので、くうこうを あるいて、ちいさい おみやげも かいました。', thai: 'พอถึงสนามบิน ฉันดูข้อมูลบนจอแล้วหาประตูขึ้นเครื่องเจอได้อย่างราบรื่น ยังมีเวลาเดินเล่นในสนามบิน ซื้อของฝากเล็กๆ น้อยๆ ด้วย' },
+                    { target: 'ひこうきが とびたつ とき、すこし こわかったですが、だんだん なれました。', thai: 'ตอนเครื่องบินขึ้น ฉันกลัวนิดหน่อย แต่ค่อยๆ ชินไป' },
+                    { target: 'この りょこうで、おおくの ことは おもったより むずかしく ないと わかりました。', thai: 'การเดินทางครั้งนี้ทำให้ฉันเข้าใจว่า หลายอย่างจริงๆ แล้วไม่ได้ยากอย่างที่คิด' },
+                ],
+                questions: [
+                    { q: 'しゅっぱつの まえ、どんな きもちでしたか。', choices: ['きんちょうして、とうじょうぐちの ことが しんぱいだった', 'とても うれしかった', 'なにも かんじなかった'], correct: 'きんちょうして、とうじょうぐちの ことが しんぱいだった' },
+                    { q: 'くうこうで とうじょうぐちを さがす ほかに なにを しましたか。', choices: ['あるいて おみやげを かった', 'ねた', 'ともだちに でんわした'], correct: 'あるいて おみやげを かった' },
+                ],
+            },
+            {
+                level: 3, title: 'にほんご べんきょうの けいけん',
+                lines: [
+                    { target: 'にほんごを べんきょうして、もう にねんに なります。', thai: 'ฉันเรียนภาษาญี่ปุ่นมาสองปีแล้ว' },
+                    { target: 'はじめの ころは、はつおんと ぶんぽうが とても むずかしくて、よく まちがえて、ともだちに よく わらわれました。', thai: 'ตอนเริ่มแรกฉันรู้สึกว่าการออกเสียงและไวยากรณ์ยากมาก พูดผิดบ่อยๆ แล้วก็ถูกเพื่อนล้อบ่อยๆ' },
+                    { target: 'それから まいにち にほんの うたを きいたり、にほんごの どうがを みたり して、すこしずつ この ことばの リズムに なれました。', thai: 'ต่อมาฉันฟังเพลงญี่ปุ่นและดูวิดีโอภาษาญี่ปุ่นทุกวันอย่างสม่ำเสมอ ค่อยๆ ชินกับจังหวะของภาษานี้' },
+                    { target: 'いまは まだ しらない ことばが おおいですが、にほんの ともだちと かんたんな はなしが できるように なりました。', thai: 'ตอนนี้แม้จะยังมีคำศัพท์ที่ไม่รู้อีกเยอะ แต่ฉันคุยกับเพื่อนคนญี่ปุ่นแบบง่ายๆ ได้แล้ว' },
+                    { target: 'ことばを べんきょうする とき いちばん たいせつな ことは、まちがえるのを こわがらないで、つづける ことだと おもいます。', thai: 'ฉันคิดว่าสิ่งที่สำคัญที่สุดในการเรียนภาษาคือไม่ต้องกลัวทำผิด ถ้าพยายามต่อไปเรื่อยๆ ยังไงก็ต้องมีความก้าวหน้า' },
+                ],
+                questions: [
+                    { q: 'はじめに いちばん むずかしいと おもった ことは なんですか。', choices: ['はつおんと ぶんぽう', 'たんご', 'もじ'], correct: 'はつおんと ぶんぽう' },
+                    { q: 'どうやって れんしゅうしましたか。', choices: ['まいにち うたや どうがを きいたり みたり した', 'たんごだけ おぼえた', 'ぶんぽうだけ べんきょうした'], correct: 'まいにち うたや どうがを きいたり みたり した' },
+                ],
+            },
+        ];
+
         function ReadingPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-en' ? READING_PASSAGES_EN : READING_PASSAGES;
+            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-en' ? READING_PASSAGES_EN : READING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -4137,6 +4311,59 @@
                 { prompt: '25 ธันวาคม', target: 'December 25th' },
             ],
         };
+        // ── เวอร์ชันภาษาญี่ปุ่น — มี phonetic (โรมาจิ) เหมือนพินอินจีน เพราะคำอ่านตัวเลข/เวลา/วันที่
+        // ภาษาญี่ปุ่นมีข้อยกเว้นเยอะ (เช่น 四時=よじ ไม่ใช่よんじ, 一日=ついたち ไม่ใช่いちにち) ตรวจสอบ
+        // คำอ่านทุกคำแล้วตามหลักไวยากรณ์มาตรฐาน
+        const NUMBERS_DATES_JP = {
+            numbers: [
+                { prompt: '5', target: '五', phonetic: 'ご' },
+                { prompt: '8', target: '八', phonetic: 'はち' },
+                { prompt: '12', target: '十二', phonetic: 'じゅうに' },
+                { prompt: '15', target: '十五', phonetic: 'じゅうご' },
+                { prompt: '20', target: '二十', phonetic: 'にじゅう' },
+                { prompt: '23', target: '二十三', phonetic: 'にじゅうさん' },
+                { prompt: '34', target: '三十四', phonetic: 'さんじゅうよん' },
+                { prompt: '50', target: '五十', phonetic: 'ごじゅう' },
+                { prompt: '67', target: '六十七', phonetic: 'ろくじゅうなな' },
+                { prompt: '99', target: '九十九', phonetic: 'きゅうじゅうきゅう' },
+                { prompt: '100', target: '百', phonetic: 'ひゃく' },
+                { prompt: '128', target: '百二十八', phonetic: 'ひゃくにじゅうはち' },
+                { prompt: '256', target: '二百五十六', phonetic: 'にひゃくごじゅうろく' },
+                { prompt: '1000', target: '千', phonetic: 'せん' },
+            ],
+            weekday: [
+                { prompt: 'วันจันทร์', target: '月曜日', phonetic: 'げつようび' },
+                { prompt: 'วันอังคาร', target: '火曜日', phonetic: 'かようび' },
+                { prompt: 'วันพุธ', target: '水曜日', phonetic: 'すいようび' },
+                { prompt: 'วันพฤหัสบดี', target: '木曜日', phonetic: 'もくようび' },
+                { prompt: 'วันศุกร์', target: '金曜日', phonetic: 'きんようび' },
+                { prompt: 'วันเสาร์', target: '土曜日', phonetic: 'どようび' },
+                { prompt: 'วันอาทิตย์', target: '日曜日', phonetic: 'にちようび' },
+            ],
+            time: [
+                { prompt: '1:00 น.', target: '一時', phonetic: 'いちじ' },
+                { prompt: '2:00 น.', target: '二時', phonetic: 'にじ' },
+                { prompt: '3:30 น.', target: '三時半', phonetic: 'さんじはん' },
+                { prompt: '4:40 น.', target: '四時四十分', phonetic: 'よじよんじゅっぷん' },
+                { prompt: '6:15 น.', target: '六時十五分', phonetic: 'ろくじじゅうごふん' },
+                { prompt: '7:30 น.', target: '七時半', phonetic: 'しちじはん' },
+                { prompt: '8:45 น.', target: '八時四十五分', phonetic: 'はちじよんじゅうごふん' },
+                { prompt: '9:05 น.', target: '九時五分', phonetic: 'くじごふん' },
+                { prompt: '10:10 น.', target: '十時十分', phonetic: 'じゅうじじゅっぷん' },
+                { prompt: '11:20 น.', target: '十一時二十分', phonetic: 'じゅういちじにじゅっぷん' },
+                { prompt: '12:00 น.', target: '十二時', phonetic: 'じゅうにじ' },
+            ],
+            date: [
+                { prompt: '1 มกราคม', target: '一月一日', phonetic: 'いちがつ ついたち' },
+                { prompt: '14 กุมภาพันธ์', target: '二月十四日', phonetic: 'にがつ じゅうよっか' },
+                { prompt: '8 มีนาคม', target: '三月八日', phonetic: 'さんがつ ようか' },
+                { prompt: '1 พฤษภาคม', target: '五月一日', phonetic: 'ごがつ ついたち' },
+                { prompt: '20 มิถุนายน', target: '六月二十日', phonetic: 'ろくがつ はつか' },
+                { prompt: '15 สิงหาคม', target: '八月十五日', phonetic: 'はちがつ じゅうごにち' },
+                { prompt: '10 ตุลาคม', target: '十月十日', phonetic: 'じゅうがつ とおか' },
+                { prompt: '25 ธันวาคม', target: '十二月二十五日', phonetic: 'じゅうにがつ にじゅうごにち' },
+            ],
+        };
         const NUMBERS_DATES_CATS = [
             { key: 'all', label: 'ทั้งหมด' },
             { key: 'numbers', label: 'ตัวเลข' },
@@ -4161,7 +4388,7 @@
         }
 
         function NumbersDatesPanel({ awardXp, langId }) {
-            const dataset = langId === 'lang-en' ? NUMBERS_DATES_EN : NUMBERS_DATES;
+            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-en' ? NUMBERS_DATES_EN : NUMBERS_DATES;
             const langCode = LANGS[langId].code;
             const [catKey, setCatKey] = useState('all');
             const [queue, setQueue] = useState(() => buildNdQueue('all', dataset));
@@ -4244,9 +4471,9 @@
             );
         }
 
-        // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN)/READING_PASSAGES(_EN)/
-        // NUMBERS_DATES(_EN) + ASR_LANG_NAME) — ภาษาอื่นนอกสองนี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
-        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en'];
+        // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN/_JP)/READING_PASSAGES(_EN/_JP)/
+        // NUMBERS_DATES(_EN/_JP) + ASR_LANG_NAME) — ภาษาอื่นนอกสามนี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
+        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp'];
         function ListenSpeakView({ langId, setLangId, setXp }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
@@ -4255,10 +4482,11 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนและอังกฤษตอนนี้</p>
-                            <div className="flex gap-2 justify-center">
+                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีน อังกฤษ และญี่ปุ่นตอนนี้</p>
+                            <div className="flex gap-2 justify-center flex-wrap">
                                 <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีน</button>
                                 <button onClick={() => setLangId('lang-en')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาอังกฤษ</button>
+                                <button onClick={() => setLangId('lang-jp')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาญี่ปุ่น</button>
                             </div>
                         </div>
                     </div>
@@ -4473,9 +4701,9 @@
                 setMobileNavOpen(false);
             };
 
-            // โหมดฟัง-พูด รองรับจีน+อังกฤษเหมือน ข้อสอบ — ถ้าอยู่ภาษาอื่นอยู่ค่อยสลับเป็นจีนให้อัตโนมัติ
+            // โหมดฟัง-พูด รองรับจีน+อังกฤษ+ญี่ปุ่นแล้ว — ถ้าอยู่ภาษาอื่นอยู่ค่อยสลับเป็นจีนให้อัตโนมัติ
             const goListen = () => {
-                if (langId !== 'lang-en') setLangId('lang-cn');
+                if (langId !== 'lang-en' && langId !== 'lang-jp') setLangId('lang-cn');
                 setView('listen');
                 setMobileNavOpen(false);
             };
@@ -4651,11 +4879,11 @@
                                 </button>
                                 <button
                                     onClick={goListen}
-                                    title="รองรับภาษาจีนและอังกฤษ — ภาษาอื่นจะสลับเป็นจีนให้อัตโนมัติ"
+                                    title="รองรับภาษาจีน อังกฤษ และญี่ปุ่น — ภาษาอื่นจะสลับเป็นจีนให้อัตโนมัติ"
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'listen' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <ListenIcon /> ฟัง-พูด
-                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ</span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น</span>
                                 </button>
                             </div>
                             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -4751,6 +4979,33 @@
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
                                                 <div className="text-sm font-bold text-gray-800">ข้อสอบ IELTS/TOEIC</div>
+                                                <div className="text-[11px] text-gray-400">จำลองข้อสอบจริง</div>
+                                            </button>
+                                            <button onClick={goListen}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><ListenIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ฟัง-พูด-อ่าน</div>
+                                                <div className="text-[11px] text-gray-400">บทฟัง, พูดตาม, อ่านยาว</div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {langId === 'lang-jp' && (
+                                    <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
+                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาญี่ปุ่น</h3>
+                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียน ทำข้อสอบจำลอง JLPT N5 และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <button onClick={() => goWriting('lang-jp')}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><PenToolIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">แต่งประโยคอิสระ</div>
+                                                <div className="text-[11px] text-gray-400">AI ตรวจแก้ไวยากรณ์</div>
+                                            </button>
+                                            <button onClick={goExam}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><HskIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ JLPT N5</div>
                                                 <div className="text-[11px] text-gray-400">จำลองข้อสอบจริง</div>
                                             </button>
                                             <button onClick={goListen}
