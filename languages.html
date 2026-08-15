@@ -1760,6 +1760,403 @@
         }
 
         // ══════════════════════════════════════════════════════════════════════════════════
+        // ข้อสอบภาษาอังกฤษ (จำลอง) — IELTS + TOEIC โครงสร้าง/จำนวนข้อยึดตามข้อมูลที่ค้นจากเว็บจริง
+        // (ตรวจสอบผ่าน WebSearch ก่อนสร้าง ไม่ได้เดาเอง เหมือนตอนทำ HSK/BCT):
+        //   IELTS Academic: Listening 40 ข้อ/4 ส่วน (30 นาที), Reading 40 ข้อ/3 ตอน (60 นาที),
+        //   Writing 2 งาน (Task1 บรรยายกราฟ ~150 คำ/20นาที, Task2 เรียงความ ~250 คำ/40นาที),
+        //   Speaking 3 ส่วน (11-14 นาที) — ไม่มีเกณฑ์ผ่าน/ตก ให้คะแนนเป็น Band 0-9
+        //   *รอบนี้ทำแค่ Listening+Reading+Writing Task2 — Task1 (ต้องมีกราฟ/ภาพ) และ Speaking
+        //   (ต้องให้คะแนนการพูด ซึ่งเว็บนี้ยังไม่มีระบบประเมิน) ยังไม่ได้ทำ บอกไว้ตรงๆ ในหน้าเลือกข้อสอบ
+        //   TOEIC (Listening & Reading): 2 ส่วน 100+100=200 ข้อ (Listening: Part1 ภาพ=6, Part2 ถาม-ตอบ=25,
+        //   Part3 บทสนทนา=39, Part4 บทพูดสั้น=30 / Reading: Part5 เติมประโยค=30, Part6 เติมข้อความ=16,
+        //   Part7 อ่านจับใจความ=54) — ไม่มีเกณฑ์ผ่าน/ตก ให้คะแนนสเกล 10-990
+        //   *ลดจำนวนข้อรวมลงจาก 200 เหลือ ~68 ข้อ (คงสัดส่วน 4 พาร์ทฟัง/3 พาร์ทอ่านไว้ใกล้เคียงของจริง)
+        //   ให้ทำจบได้ในรอบเดียว — Part1/2/3/4/6/7 ใช้โจทย์จับคู่ความหมายคำศัพท์แทนภาพ/บทสนทนา/ข้อความยาว
+        //   จริง (เว็บนี้ยังไม่มีคลังบทสนทนา/บทความอังกฤษยาวๆ) ส่วน Part5 (Incomplete Sentences) เป็น
+        //   โจทย์ไวยากรณ์เขียนเองจริง ไม่ได้สุ่มจากคำศัพท์ — ทุกจุดที่ลดทอนบอกไว้ตรงๆ ในหน้าเลือกข้อสอบ
+        //   ทั้งสองชุดใช้คลังคำศัพท์อังกฤษ 136 คำที่เพิ่มไปก่อนหน้า (vocabPool('lang-en')) ผ่านตัวสร้างโจทย์
+        //   เดียวกับ HSK/BCT (genMcFromWord/genMcReverse/genTf เป็น generic อยู่แล้ว ไม่ต้องแก้)
+        // ══════════════════════════════════════════════════════════════════════════════════
+
+        // Part 5 (Incomplete Sentences) ของ TOEIC — โจทย์ไวยากรณ์บริบทธุรกิจ เขียน/ตรวจเองทุกข้อ
+        const TOEIC_GRAMMAR = [
+            { sentence: 'The meeting has been ___ to next Monday.', choices: ['postponed', 'postpone', 'postponing', 'posts'], correct: 'postponed' },
+            { sentence: 'She is responsible ___ managing the sales team.', choices: ['for', 'to', 'at', 'in'], correct: 'for' },
+            { sentence: 'By the time you arrive, we ___ the presentation.', choices: ['will have finished', 'finish', 'finished', 'are finishing'], correct: 'will have finished' },
+            { sentence: 'The report needs to be submitted ___ Friday.', choices: ['by', 'until', 'since', 'during'], correct: 'by' },
+            { sentence: 'Neither the manager nor the employees ___ satisfied with the results.', choices: ['are', 'is', 'was', 'be'], correct: 'are' },
+            { sentence: 'This is the best proposal we ___ received so far.', choices: ['have', 'has', 'had', 'having'], correct: 'have' },
+            { sentence: 'The company ___ its profits significantly last year.', choices: ['increased', 'increases', 'increasing', 'has increase'], correct: 'increased' },
+            { sentence: 'Please make sure all documents are labeled ___.', choices: ['correctly', 'correct', 'correctness', 'correcting'], correct: 'correctly' },
+            { sentence: 'If the client ___ any questions, please contact us.', choices: ['has', 'have', 'having', 'had'], correct: 'has' },
+            { sentence: 'The new policy will affect ___ department in the company.', choices: ['every', 'all', 'each of', 'most'], correct: 'every' },
+            { sentence: 'We look forward ___ from you soon.', choices: ['to hearing', 'to hear', 'hearing', 'heard'], correct: 'to hearing' },
+            { sentence: 'The budget was reduced ___ 10 percent this quarter.', choices: ['by', 'with', 'at', 'for'], correct: 'by' },
+            { sentence: 'Employees who arrive late ___ required to sign in at the front desk.', choices: ['are', 'is', 'was', 'be'], correct: 'are' },
+            { sentence: 'The conference room is currently ___ use.', choices: ['in', 'on', 'at', 'by'], correct: 'in' },
+            { sentence: 'Our new product line is more efficient ___ the previous one.', choices: ['than', 'that', 'then', 'as'], correct: 'than' },
+            { sentence: 'The manager asked her assistant ___ the files before the meeting.', choices: ['to organize', 'organizing', 'organize', 'organized'], correct: 'to organize' },
+            { sentence: 'All visitors must register ___ the reception desk.', choices: ['at', 'in', 'on', 'to'], correct: 'at' },
+            { sentence: 'The shipment was delayed due ___ bad weather.', choices: ['to', 'for', 'of', 'with'], correct: 'to' },
+            { sentence: 'This model is one of the ___ selling products this year.', choices: ['best', 'better', 'good', 'best-'], correct: 'best' },
+            { sentence: 'The team ___ working on this project since March.', choices: ['has been', 'have been', 'is', 'was'], correct: 'has been' },
+        ];
+        function genGrammarMc(bank, count) {
+            const picked = shuffleArr(bank).slice(0, Math.min(count, bank.length));
+            return picked.map(item => ({ type: 'grammar-mc', sentence: item.sentence, choices: shuffleArr(item.choices), correct: item.correct }));
+        }
+
+        // IELTS Writing Task 2 — หัวข้อเรียงความสไตล์จริง (discuss both views / agree-disagree /
+        // advantages-disadvantages — ตรงกับรูปแบบคำถาม Task 2 จริงที่ค้นเจอ) ตรวจด้วย AI แบบเดียว
+        // กับโหมด "แต่งประโยคอิสระ"/BCT-B แต่ให้คะแนนเป็นช่วง Band คร่าวๆ แทนคะแนน 1-5
+        const IELTS_TASK2_PROMPTS = [
+            'Some people believe technology has made our lives easier, while others think it has made life more complicated. Discuss both views and give your opinion.',
+            'Many people think that governments should invest more money in public transport rather than roads. To what extent do you agree or disagree?',
+            'In some countries, more people are choosing to live alone. What are the causes of this trend, and what effects does it have on society?',
+            'Some people think that working from home is better than working in an office. Discuss the advantages and disadvantages.',
+            'Nowadays, many people prefer to buy things online rather than in physical stores. Do the advantages of this outweigh the disadvantages?',
+            'Some believe that studying abroad is the best way to improve language skills, while others think it is better to study in your own country. Discuss both views and give your opinion.',
+        ];
+        const IELTS_WRITE_SYSTEM_PROMPT =
+            'คุณเป็นครูสอนภาษาอังกฤษให้คนไทย กำลังตรวจเรียงความสไตล์ IELTS Writing Task 2 (ต้องเขียนอย่างน้อย 250 คำ)\n' +
+            'ตรวจสิ่งที่ผู้เรียนเขียนมา ตอบเป็นภาษาไทยเสมอ รูปแบบคำตอบต้องมี 3 ส่วนตามลำดับนี้เท่านั้น:\n' +
+            '1) "จุดที่แก้ไข:" อธิบายเป็นข้อๆ สั้นๆ ว่าแก้ตรงไหน (ไวยากรณ์/คำศัพท์/โครงสร้างเรียงความ)\n' +
+            '2) "ข้อเสนอแนะ:" คำแนะนำสั้นๆ ว่าจะพัฒนาการเขียนสไตล์ IELTS Task 2 ต่อไปอย่างไร\n' +
+            '3) "คะแนนโดยประมาณ (Band):" ให้ช่วงคะแนน Band คร่าวๆ (เช่น 5.5-6.0) พร้อมบอกว่าเป็นการประมาณเบื้องต้นเท่านั้น ไม่ใช่คะแนนทางการ\n' +
+            'ถ้าเขียนดีอยู่แล้วให้บอกตรงๆ ว่าไม่ต้องแก้ไข';
+        const IELTS_WRITE_REMINDER =
+            'ย้ำ: ตรวจเรียงความล่าสุดที่ผู้เรียนเพิ่งส่งมาเท่านั้น ตอบตามรูปแบบ 3 ส่วนที่กำหนดไว้เป๊ะๆ ห้ามข้ามส่วนไหน ' +
+            'และห้ามตอบเป็นภาษาอื่นนอกจากไทย';
+        function genIeltsEssay(count) {
+            const picked = shuffleArr(IELTS_TASK2_PROMPTS).slice(0, Math.min(count, IELTS_TASK2_PROMPTS.length));
+            return picked.map(p => ({ type: 'write-essay', context: 'IELTS Writing Task 2 (เขียนอย่างน้อย 250 คำ)', prompt: p }));
+        }
+
+        function buildIeltsExam() {
+            const pool = vocabPool('lang-en');
+            return {
+                kind: 'ielts', passPct: null,
+                sections: [
+                    { key: 'listening', title: 'Listening (4 sections)', icon: '🎧',
+                        questions: [...genTf(pool, 10, 'listen-tf'), ...genMcFromWord(pool, 10, 'listen-mc'), ...genTf(pool, 10, 'listen-tf'), ...genMcFromWord(pool, 10, 'listen-mc')] },
+                    { key: 'reading', title: 'Reading (3 passages)', icon: '📖',
+                        questions: [...genMcFromWord(pool, 20, 'read-mc'), ...genMcReverse(pool, 20)] },
+                    { key: 'writing', title: 'Writing Task 2', icon: '✍️', questions: genIeltsEssay(1) },
+                ],
+            };
+        }
+        function buildToeicExam() {
+            const pool = vocabPool('lang-en');
+            return {
+                kind: 'toeic', passPct: null,
+                sections: [
+                    { key: 'listening', title: 'Listening (Part 1-4)', icon: '🎧',
+                        questions: [...genTf(pool, 4, 'listen-tf'), ...genMcFromWord(pool, 8, 'listen-mc'), ...genMcFromWord(pool, 12, 'listen-mc'), ...genMcReverse(pool, 10)] },
+                    { key: 'reading', title: 'Reading (Part 5-7)', icon: '📖',
+                        questions: [...genGrammarMc(TOEIC_GRAMMAR, 10), ...genMcFromWord(pool, 8, 'read-mc'), ...genMcReverse(pool, 16)] },
+                ],
+            };
+        }
+
+        // ── ข้อสอบภาษาอังกฤษ (จำลอง) — โคลนโครงสร้าง state machine มาจาก HskExamView แต่แยกเป็นคนละ
+        //    component ตามธรรมเนียม clone-and-adapt ของโปรเจกต์ (ไม่พยายามยัดสองภาษาเข้า component
+        //    เดียวกัน เพราะชนิดโจทย์/ตัวแปรภาษาต่างกันเยอะพอที่จะทำให้ HskExamView เดิมเสี่ยงพังได้)
+        //    ไม่มีขั้น "เลือกระดับ" เหมือน HSK เพราะ IELTS/TOEIC แต่ละชุดมีแบบเดียว (ไม่มีระดับ 1/2/3)
+        function EnExamView({ langId, setLangId, setXp }) {
+            const [examType, setExamType] = useState(null); // 'ielts' | 'toeic'
+            const [exam, setExam] = useState(null);
+            const [sectionIdx, setSectionIdx] = useState(0);
+            const [showIntro, setShowIntro] = useState(true);
+            const [qIdx, setQIdx] = useState(0);
+            const [answered, setAnswered] = useState(false);
+            const [userAnswer, setUserAnswer] = useState(null);
+            const [essayText, setEssayText] = useState('');
+            const [essayFeedback, setEssayFeedback] = useState('');
+            const [essayStatus, setEssayStatus] = useState('');
+            const [sectionResults, setSectionResults] = useState([]);
+            const [correctInSection, setCorrectInSection] = useState(0);
+            const [allWrong, setAllWrong] = useState([]);
+            const [finished, setFinished] = useState(false);
+
+            const resetPerQuestion = () => {
+                setAnswered(false); setUserAnswer(null);
+                setEssayText(''); setEssayFeedback(''); setEssayStatus('');
+            };
+            const start = (type) => {
+                const built = type === 'toeic' ? buildToeicExam() : buildIeltsExam();
+                setExamType(type); setExam(built);
+                setSectionIdx(0); setShowIntro(true);
+                resetPerQuestion();
+                setSectionResults([]); setCorrectInSection(0); setAllWrong([]); setFinished(false);
+            };
+            const examLabel = examType === 'toeic' ? 'TOEIC' : 'IELTS';
+
+            if (langId !== 'lang-en') {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-6 text-center">
+                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาอังกฤษ</p>
+                            <button onClick={() => setLangId('lang-en')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาอังกฤษ</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!examType) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6">
+                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบภาษาอังกฤษ (จำลอง)</h2>
+                            <p className="text-sm text-gray-500 mb-5">เลือกประเภทข้อสอบก่อน:</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <button onClick={() => start('ielts')} className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
+                                    <div className="text-lg font-bold text-brand mb-1">IELTS</div>
+                                    <div className="text-xs text-gray-500">วัดระดับภาษาอังกฤษทั่วไป ใช้เรียนต่อ/ยื่นวีซ่า — Listening 40 + Reading 40 + Writing Task 2</div>
+                                </button>
+                                <button onClick={() => start('toeic')} className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
+                                    <div className="text-lg font-bold text-brand mb-1">TOEIC</div>
+                                    <div className="text-xs text-gray-500">ภาษาอังกฤษใช้ทำงาน (บริบทออฟฟิศ/ธุรกิจ) — Listening + Reading รวม ~68 ข้อ (ย่อจากของจริง)</div>
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-5 leading-relaxed">
+                                หมายเหตุ: เป็นแบบทดสอบจำลองที่สร้างจากคลังคำศัพท์ของเว็บนี้เอง ไม่ใช่ข้อสอบทางการที่หลุดออกมา
+                                ทั้ง IELTS และ TOEIC ไม่มีเกณฑ์ "ผ่าน/ตก" แบบ HSK (ให้คะแนนเป็น Band 0-9 และสเกล 10-990 ตามลำดับ)
+                                เว็บนี้เลยแสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) แทน ไม่ได้แปลงเป็น Band/สเกลทางการ<br />
+                                <b>IELTS</b>: รอบนี้มีแค่ Listening + Reading + Writing Task 2 — ยังไม่มี Task 1 (ต้องบรรยายกราฟ/ภาพ)
+                                และ Speaking (ต้องมีระบบให้คะแนนการพูด ซึ่งเว็บนี้ยังไม่มี)<br />
+                                <b>TOEIC</b>: ลดจำนวนข้อจาก 200 ข้อจริงเหลือ ~68 ข้อให้ทำจบในรอบเดียว Part 1/2/3/4/6/7 ใช้โจทย์
+                                จับคู่ความหมายคำศัพท์แทนภาพ/บทสนทนา/บทความยาวจริง มีแค่ Part 5 (แต่งประโยคไวยากรณ์) ที่เป็นโจทย์เขียนเองจริง
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+
+            const restart = () => start(examType);
+            const backToType = () => { setExamType(null); setExam(null); };
+
+            if (finished) {
+                const totalCorrect = sectionResults.reduce((s, r) => s + r.correct, 0);
+                const totalQ = sectionResults.reduce((s, r) => s + r.total, 0);
+                const pct = totalQ ? Math.round(totalCorrect / totalQ * 100) : 0;
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ {examLabel}</h2>
+                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (คะแนนดิบ — {examLabel} จริงไม่มีเกณฑ์ผ่าน/ตก ให้คะแนนเป็น{examType === 'toeic' ? 'สเกล 10-990' : ' Band 0-9'} แทน)</p>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
+                                {sectionResults.map(r => (
+                                    <div key={r.key} className="bg-white rounded-xl border border-gray-200 p-3">
+                                        <div className="text-xs text-gray-400">{r.title}</div>
+                                        <div className="text-lg font-bold text-gray-800">{r.correct}/{r.total}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {allWrong.length > 0 && (
+                                <div className="text-left bg-white rounded-xl border border-gray-200 p-4 mb-4 max-h-72 overflow-y-auto">
+                                    <p className="text-sm font-bold text-gray-700 mb-2 sticky top-0 bg-white">ข้อที่ตอบผิด ({allWrong.length}):</p>
+                                    <div className="space-y-1.5">
+                                        {allWrong.map((w, i) => (
+                                            <div key={i} className="text-sm text-gray-600 flex justify-between gap-3">
+                                                <span>{w.left}</span>
+                                                <span className="text-gray-800 font-semibold text-right">{w.right}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex gap-2 justify-center flex-wrap">
+                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ชุดเดิม</button>
+                                <button onClick={backToType} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">เปลี่ยนเป็น{examType === 'toeic' ? ' IELTS' : ' TOEIC'}</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const section = exam.sections[sectionIdx];
+
+            if (showIntro) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">{examLabel} · ส่วนที่ {sectionIdx + 1}/{exam.sections.length}</p>
+                            <div className="text-5xl mb-3">{section.icon}</div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
+                            <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
+                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const q = section.questions[qIdx];
+
+            const finishSection = () => {
+                const results = [...sectionResults, { key: section.key, title: section.title, correct: correctInSection, total: section.questions.length }];
+                setSectionResults(results);
+                if (sectionIdx + 1 >= exam.sections.length) {
+                    setFinished(true);
+                } else {
+                    setSectionIdx(i => i + 1);
+                    setShowIntro(true);
+                    setQIdx(0);
+                    resetPerQuestion();
+                    setCorrectInSection(0);
+                }
+            };
+            const nextQuestion = () => {
+                if (qIdx + 1 >= section.questions.length) { finishSection(); return; }
+                setQIdx(i => i + 1); resetPerQuestion();
+            };
+            const recordAnswer = (isCorrect, wrongEntry) => {
+                setAnswered(true);
+                if (isCorrect) { setCorrectInSection(c => c + 1); setXp(x => x + 2); }
+                else if (wrongEntry) setAllWrong(w => [...w, wrongEntry]);
+            };
+            const pickMc = (choice) => {
+                if (answered) return;
+                setUserAnswer(choice);
+                const isCorrect = choice === q.correct;
+                recordAnswer(isCorrect, isCorrect ? null : { left: q.word || q.sentence || q.thai, right: q.correct });
+            };
+            const pickTf = (val) => {
+                if (answered) return;
+                setUserAnswer(val);
+                const isCorrect = val === q.answer;
+                recordAnswer(isCorrect, isCorrect ? null : { left: `${q.word} = ${q.shownThai}`, right: q.answer ? 'ถูก' : 'ผิด' });
+            };
+
+            const submitEssay = () => {
+                if (!essayText.trim() || essayStatus === 'loading') return;
+                if (isIOS()) {
+                    setEssayStatus('error');
+                    setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
+                    return;
+                }
+                setEssayStatus('loading'); setEssayFeedback('');
+                const w = getWritingWorker();
+                const jobId = 'ieltsessay-' + Date.now();
+                let acc = '';
+                function onMsg(e) {
+                    const msg = e.data;
+                    if (!msg || msg.jobId !== jobId) return;
+                    if (msg.type === 'token') { acc += msg.token; setEssayFeedback(acc); }
+                    else if (msg.type === 'done') { cleanup(); setEssayStatus('done'); setAnswered(true); setXp(x => x + 2); }
+                    else if (msg.type === 'error') { cleanup(); setEssayStatus('error'); setEssayFeedback(friendlyChatError(msg.message)); }
+                }
+                function onErr(e) { cleanup(); setEssayStatus('error'); setEssayFeedback(friendlyChatError(e.message || '')); }
+                function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+                w.addEventListener('message', onMsg);
+                w.addEventListener('error', onErr);
+                w.postMessage({
+                    type: 'chat', jobId, maxNewTokens: 400,
+                    messages: [
+                        { role: 'system', content: IELTS_WRITE_SYSTEM_PROMPT },
+                        { role: 'user', content: essayText },
+                        { role: 'system', content: IELTS_WRITE_REMINDER },
+                    ],
+                });
+            };
+            const skipEssay = () => { setAnswered(true); };
+
+            const progressLabel = `${section.title} · ข้อ ${qIdx + 1}/${section.questions.length}`;
+
+            return (
+                <div className="flex-1 overflow-y-auto bg-gray-50">
+                    <div className="max-w-xl mx-auto p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <span className="text-xs font-bold text-gray-400 uppercase">{examLabel} · {progressLabel}</span>
+                            <span className="text-xs font-bold text-brand">ถูก {correctInSection} ข้อ</span>
+                        </div>
+
+                        {(q.type === 'listen-tf' || q.type === 'listen-mc') && (
+                            <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                <p className="text-xs text-gray-400 mb-3">🎧 กดฟังแล้วตอบ</p>
+                                <button onClick={() => speak(q.word, 'en')} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
+                                    <Volume2 /> ฟังเสียง (ฟังซ้ำได้)
+                                </button>
+                            </div>
+                        )}
+
+                        {q.type === 'listen-tf' && (
+                            <>
+                                <p className="text-center text-gray-700 mb-4">ความหมายคือ <span className="font-bold">"{q.shownThai}"</span> ใช่หรือไม่?</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button onClick={() => pickTf(true)} disabled={answered}
+                                        className={`py-3 rounded-xl font-bold text-sm border-2 transition ${answered ? (q.answer === true ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === true ? 'border-red-300 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400') : 'border-gray-200 hover:border-brand text-gray-700 bg-white'}`}>✅ ถูก</button>
+                                    <button onClick={() => pickTf(false)} disabled={answered}
+                                        className={`py-3 rounded-xl font-bold text-sm border-2 transition ${answered ? (q.answer === false ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === false ? 'border-red-300 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400') : 'border-gray-200 hover:border-brand text-gray-700 bg-white'}`}>❌ ผิด</button>
+                                </div>
+                            </>
+                        )}
+
+                        {q.type === 'listen-mc' && (
+                            <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                        )}
+
+                        {q.type === 'read-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
+                                    <button onClick={() => speak(q.word, 'en')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                </div>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'read-mc-reverse' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-2xl font-bold text-gray-900 mb-1">{q.thai}</div>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกคำภาษาอังกฤษที่ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'grammar-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่างได้ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'write-essay' && (
+                            <>
+                                <p className="text-xs text-gray-400 mb-1">{q.context}</p>
+                                <p className="text-gray-700 font-semibold mb-3">{q.prompt}</p>
+                                <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={8} disabled={answered}
+                                    placeholder="Write your essay in English here..."
+                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                {!answered && (
+                                    <div className="flex gap-2 mb-3">
+                                        <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
+                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
+                                        </button>
+                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                    </div>
+                                )}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                            </>
+                        )}
+
+                        {answered && (
+                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                                {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ══════════════════════════════════════════════════════════════════════════════════
         // "ฟัง-พูด" (view === 'listen') — ฟังเรื่องสั้นแบบ extensive listening + พูดตาม/บันทึกเสียง
         // เทียบ (shadowing) รองรับเฉพาะภาษาจีนตอนนี้ (เนื้อหาต้องแต่งเองทีละภาษา เริ่มจากจีนตามที่ขอ
         // เน้นมาตลอดเซสชันนี้) ใช้ของเดิมที่มีอยู่แล้วทั้งหมด: speak() (TTS), gradeAnswer() (ตรวจคำตอบ),
@@ -2652,11 +3049,17 @@
                 setMobileNavOpen(false);
             };
 
-            // ข้อสอบ HSK รองรับเฉพาะภาษาจีน — สลับภาษาให้เป็น lang-cn ทุกครั้งที่กดเข้ามา กันเผลอ
-            // ค้างอยู่โหมดนี้ทั้งที่เลือกภาษาอื่นอยู่ (เหมือน goWriting ข้างบน)
-            const goHsk = () => {
-                setLangId('lang-cn');
-                setView('hsk');
+            // ปุ่ม "ข้อสอบ" รองรับ 2 ภาษาแล้ว (จีน→HSK/BCT, อังกฤษ→IELTS/TOEIC) — ถ้ากำลังอยู่ภาษา
+            // อังกฤษอยู่แล้วให้ไปหน้าข้อสอบอังกฤษเลย ไม่บังคับสลับเป็นจีนแบบเดิมอีกต่อไป (เดิมสลับเป็น
+            // จีนเสมอไม่ว่าจะอยู่ภาษาไหน) ภาษาอื่นนอกจาก จีน/อังกฤษ ยัง fallback ไปจีนเหมือนเดิม (ยังไม่
+            // รองรับข้อสอบของภาษาอื่น)
+            const goExam = () => {
+                if (langId === 'lang-en') {
+                    setView('enexam');
+                } else {
+                    setLangId('lang-cn');
+                    setView('hsk');
+                }
                 setMobileNavOpen(false);
             };
 
@@ -2758,7 +3161,7 @@
                                         <div key={id} className="flex items-center gap-1">
                                             <button
                                                 onClick={() => selectLang(id)}
-                                                className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
+                                                className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
                                             >
                                                 <Languages /> <span className="flex-1 text-left truncate">{LANGS[id].title}</span>
                                                 {allDone && <CheckCircle />}
@@ -2829,12 +3232,12 @@
                                     )}
                                 </button>
                                 <button
-                                    onClick={goHsk}
-                                    title="ฟีเจอร์นี้รองรับเฉพาะภาษาจีน — กดแล้วจะสลับภาษาที่เลือกไว้เป็นจีนให้อัตโนมัติ"
-                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'hsk' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                    onClick={goExam}
+                                    title="รองรับภาษาจีน (HSK/BCT) และอังกฤษ (IELTS/TOEIC) — ภาษาอื่นจะสลับเป็นจีนให้อัตโนมัติ"
+                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
-                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน</span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ</span>
                                 </button>
                                 <button
                                     onClick={goListen}
@@ -2907,7 +3310,7 @@
                                                 <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
                                                 <div className="text-[11px] text-gray-400">ลำดับขีด + ออกเสียง</div>
                                             </button>
-                                            <button onClick={goHsk}
+                                            <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
                                                 <div className="text-sm font-bold text-gray-800">ข้อสอบ HSK/BCT</div>
@@ -3173,6 +3576,8 @@
                         />
                         ) : view === 'hsk' ? (
                         <HskExamView langId={langId} setLangId={setLangId} setXp={setXp} />
+                        ) : view === 'enexam' ? (
+                        <EnExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : (
                         <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} />
                         )}
