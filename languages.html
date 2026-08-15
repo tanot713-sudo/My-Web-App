@@ -96,6 +96,7 @@
         const HskIcon = icon('graduation-cap', 'w-4 h-4');
         const ListenIcon = icon('headphones', 'w-4 h-4');
         const MicIcon = icon('mic', 'w-5 h-5');
+        const HashIcon = icon('hash', 'w-4 h-4');
         // ไอคอนเล็กประกอบปุ่มโหมดย่อยในหน้า "ฝึกเขียน" — ไม่ใส่ text-* ในคลาสตั้งใจ ให้สืบสี
         // currentColor จากปุ่มแม่เอง (ขาวตอน active / เทาตอนไม่ active) โดยไม่ต้องทำ 2 เวอร์ชันสี
         const BrushIcon = icon('brush', 'w-3.5 h-3.5');
@@ -2059,6 +2060,346 @@
             );
         }
 
+        // ── อ่านเรื่องยาว (extensive reading) — บทความสั้นระดับ HSK1-3 ยาวกว่าบทสนทนาในโหมด
+        //    "ฟังเรื่องสั้น" (ย่อหน้าเดียว ผู้เล่าคนเดียว ไม่ใช่บทสนทนา) เนื้อหาแต่งเองจากคำศัพท์/
+        //    ไวยากรณ์ระดับพื้นฐาน-กลางที่คุ้นเคยกันดี (เหมือนบทสนทนาในโหมดฟัง — ยังไม่ผ่านการตรวจทาน
+        //    จากพจนานุกรม/เจ้าของภาษาแยกต่างหาก) รูปแบบ UI โคลนมาจาก ListeningPanel ปรับให้ไม่มี speaker
+        const READING_PASSAGES = [
+            {
+                level: 1, title: 'ชีวิตประจำวันของฉัน',
+                lines: [
+                    { target: '我每天七点起床。', thai: 'ทุกวันฉันตื่นนอนเจ็ดโมงเช้า' },
+                    { target: '我先吃早饭，然后去学校。', thai: 'ฉันกินข้าวเช้าก่อน แล้วค่อยไปโรงเรียน' },
+                    { target: '我在学校学习汉语。', thai: 'ฉันเรียนภาษาจีนที่โรงเรียน' },
+                    { target: '中午我和朋友一起吃午饭。', thai: 'ตอนเที่ยงฉันกินข้าวเที่ยงกับเพื่อน' },
+                    { target: '下午三点我回家。', thai: 'ตอนบ่ายสามโมงฉันกลับบ้าน' },
+                    { target: '晚上我看电视，十点睡觉。', thai: 'ตอนเย็นฉันดูทีวี นอนสี่ทุ่ม' },
+                ],
+                questions: [
+                    { q: 'เขาตื่นนอนกี่โมง?', choices: ['เจ็ดโมงเช้า', 'แปดโมงเช้า', 'หกโมงเช้า'], correct: 'เจ็ดโมงเช้า' },
+                    { q: 'ก่อนไปโรงเรียนเขาทำอะไรก่อน?', choices: ['กินข้าวเช้า', 'อาบน้ำ', 'ดูทีวี'], correct: 'กินข้าวเช้า' },
+                ],
+            },
+            {
+                level: 1, title: 'ครอบครัวของฉัน',
+                lines: [
+                    { target: '我家有四个人：爸爸、妈妈、姐姐和我。', thai: 'ครอบครัวฉันมีสี่คน: พ่อ แม่ พี่สาว และฉัน' },
+                    { target: '爸爸是医生，妈妈是老师。', thai: 'พ่อเป็นหมอ แม่เป็นครู' },
+                    { target: '姐姐比我大三岁，她在大学学习。', thai: 'พี่สาวอายุมากกว่าฉันสามปี เธอเรียนอยู่มหาวิทยาลัย' },
+                    { target: '我们家有一只小狗，它很可爱。', thai: 'บ้านเรามีหมาตัวเล็กหนึ่งตัว มันน่ารักมาก' },
+                    { target: '星期天我们一起去公园玩儿。', thai: 'วันอาทิตย์เราไปเที่ยวสวนสาธารณะด้วยกัน' },
+                ],
+                questions: [
+                    { q: 'พ่อทำงานอะไร?', choices: ['หมอ', 'ครู', 'พนักงานบริษัท'], correct: 'หมอ' },
+                    { q: 'พี่สาวอายุมากกว่าฉันกี่ปี?', choices: ['หนึ่งปี', 'สองปี', 'สามปี'], correct: 'สามปี' },
+                ],
+            },
+            {
+                level: 2, title: 'แผนสุดสัปดาห์',
+                lines: [
+                    { target: '这个周末我打算做很多事情。', thai: 'สุดสัปดาห์นี้ฉันตั้งใจจะทำหลายอย่าง' },
+                    { target: '星期六上午我要去图书馆看书，下午跟朋友一起去买东西。', thai: 'เช้าวันเสาร์ฉันจะไปห้องสมุดอ่านหนังสือ บ่ายไปซื้อของกับเพื่อน' },
+                    { target: '晚上我们打算看电影。', thai: 'ตอนเย็นเราตั้งใจจะไปดูหนัง' },
+                    { target: '星期天我想在家休息，也许会做饭给家人吃。', thai: 'วันอาทิตย์ฉันอยากพักผ่อนอยู่บ้าน อาจจะทำกับข้าวให้ครอบครัวกิน' },
+                    { target: '如果天气好，我还想去公园跑步。', thai: 'ถ้าอากาศดี ฉันยังอยากไปวิ่งที่สวนสาธารณะด้วย' },
+                ],
+                questions: [
+                    { q: 'เช้าวันเสาร์เขาจะไปที่ไหน?', choices: ['ห้องสมุด', 'ร้านอาหาร', 'โรงหนัง'], correct: 'ห้องสมุด' },
+                    { q: 'วันอาทิตย์เขาตั้งใจจะทำอะไร?', choices: ['พักผ่อนอยู่บ้าน', 'ไปทำงาน', 'ไปเที่ยวต่างจังหวัด'], correct: 'พักผ่อนอยู่บ้าน' },
+                ],
+            },
+            {
+                level: 2, title: 'วันที่ไม่สบาย',
+                lines: [
+                    { target: '昨天晚上我觉得不舒服，头很疼，还有点儿发烧。', thai: 'เมื่อคืนฉันรู้สึกไม่สบาย ปวดหัวมาก แล้วก็มีไข้นิดหน่อย' },
+                    { target: '今天早上我没去上班，去医院看医生了。', thai: 'เช้านี้ฉันไม่ได้ไปทำงาน ไปโรงพยาบาลหาหมอ' },
+                    { target: '医生说我感冒了，让我多喝水、多休息，还给我开了一些药。', thai: 'หมอบอกว่าฉันเป็นหวัด ให้ดื่มน้ำเยอะๆ พักผ่อนเยอะๆ แล้วก็จ่ายยาให้ฉันด้วย' },
+                    { target: '我吃了药以后觉得好多了。', thai: 'หลังจากกินยาแล้วรู้สึกดีขึ้นมาก' },
+                    { target: '希望明天能好一点儿。', thai: 'หวังว่าพรุ่งนี้จะดีขึ้นอีกหน่อย' },
+                ],
+                questions: [
+                    { q: 'เขาไม่สบายเพราะอะไร?', choices: ['เป็นหวัด', 'ปวดท้อง', 'เจ็บขา'], correct: 'เป็นหวัด' },
+                    { q: 'หมอบอกให้ทำอะไร?', choices: ['ดื่มน้ำเยอะๆ พักผ่อน', 'ออกกำลังกายหนักๆ', 'งดกินอาหาร'], correct: 'ดื่มน้ำเยอะๆ พักผ่อน' },
+                ],
+            },
+            {
+                level: 3, title: 'ครั้งแรกที่นั่งเครื่องบิน',
+                lines: [
+                    { target: '上个月我第一次一个人坐飞机去北京旅行。', thai: 'เดือนที่แล้วฉันนั่งเครื่องบินไปเที่ยวปักกิ่งคนเดียวเป็นครั้งแรก' },
+                    { target: '出发前我很紧张，怕自己找不到登机口。', thai: 'ก่อนออกเดินทางฉันตื่นเต้นมาก กลัวว่าตัวเองจะหาประตูขึ้นเครื่องไม่เจอ' },
+                    { target: '到了机场以后，我按照屏幕上的信息顺利找到了登机口，还有时间在机场逛了逛，买了一些小礼物。', thai: 'พอถึงสนามบิน ฉันดูข้อมูลบนจอแล้วหาประตูขึ้นเครื่องเจอได้อย่างราบรื่น ยังมีเวลาเดินเล่นในสนามบิน ซื้อของฝากเล็กๆ น้อยๆ ด้วย' },
+                    { target: '飞机起飞的时候我有点儿害怕，不过慢慢就习惯了。', thai: 'ตอนเครื่องบินขึ้น ฉันกลัวนิดหน่อย แต่ค่อยๆ ชินไป' },
+                    { target: '这次旅行让我明白，很多事情其实没有想象中那么难。', thai: 'การเดินทางครั้งนี้ทำให้ฉันเข้าใจว่า หลายอย่างจริงๆ แล้วไม่ได้ยากอย่างที่คิด' },
+                ],
+                questions: [
+                    { q: 'ก่อนออกเดินทางเขารู้สึกอย่างไร?', choices: ['ตื่นเต้น กลัวหาประตูขึ้นเครื่องไม่เจอ', 'ดีใจมาก', 'ไม่รู้สึกอะไรเลย'], correct: 'ตื่นเต้น กลัวหาประตูขึ้นเครื่องไม่เจอ' },
+                    { q: 'ที่สนามบินเขาทำอะไรอีก นอกจากหาประตูขึ้นเครื่อง?', choices: ['เดินเล่นซื้อของฝาก', 'นอนหลับ', 'โทรศัพท์หาเพื่อน'], correct: 'เดินเล่นซื้อของฝาก' },
+                ],
+            },
+            {
+                level: 3, title: 'ประสบการณ์เรียนภาษาต่างประเทศ',
+                lines: [
+                    { target: '我学习汉语已经两年了。', thai: 'ฉันเรียนภาษาจีนมาสองปีแล้ว' },
+                    { target: '刚开始的时候，我觉得发音和声调特别难，经常说错，也常常被朋友笑。', thai: 'ตอนเริ่มแรกฉันรู้สึกว่าการออกเสียงและวรรณยุกต์ยากมาก พูดผิดบ่อยๆ แล้วก็ถูกเพื่อนล้อบ่อยๆ' },
+                    { target: '后来我每天坚持听中文歌、看中文视频，慢慢就习惯了这种语言的节奏。', thai: 'ต่อมาฉันฟังเพลงจีนและดูวิดีโอภาษาจีนทุกวันอย่างสม่ำเสมอ ค่อยๆ ชินกับจังหวะของภาษานี้' },
+                    { target: '现在虽然还有很多不懂的词，但是我已经能跟中国朋友简单聊天了。', thai: 'ตอนนี้แม้จะยังมีคำศัพท์ที่ไม่รู้อีกเยอะ แต่ฉันคุยกับเพื่อนคนจีนแบบง่ายๆ ได้แล้ว' },
+                    { target: '我觉得学语言最重要的是不要怕犯错，坚持下去总会有进步。', thai: 'ฉันคิดว่าสิ่งที่สำคัญที่สุดในการเรียนภาษาคือไม่ต้องกลัวทำผิด ถ้าพยายามต่อไปเรื่อยๆ ยังไงก็ต้องมีความก้าวหน้า' },
+                ],
+                questions: [
+                    { q: 'ตอนเริ่มเรียนเขารู้สึกว่าส่วนไหนยากที่สุด?', choices: ['การออกเสียงและวรรณยุกต์', 'ไวยากรณ์', 'ตัวอักษรจีน'], correct: 'การออกเสียงและวรรณยุกต์' },
+                    { q: 'เขาฝึกภาษาจีนด้วยวิธีไหน?', choices: ['ฟังเพลงและดูวิดีโอภาษาจีนทุกวัน', 'ท่องศัพท์อย่างเดียว', 'เรียนแต่ไวยากรณ์'], correct: 'ฟังเพลงและดูวิดีโอภาษาจีนทุกวัน' },
+                ],
+            },
+        ];
+
+        function ReadingPanel({ awardXp }) {
+            const [passageIdx, setPassageIdx] = useState(null);
+            const [revealedLines, setRevealedLines] = useState([]);
+            const [showQuiz, setShowQuiz] = useState(false);
+            const [answers, setAnswers] = useState({});
+            const [checked, setChecked] = useState(false);
+
+            if (passageIdx === null) {
+                return (
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-1">อ่านเรื่องยาว</h3>
+                        <p className="text-xs text-gray-400 mb-4">ลองอ่านให้เข้าใจก่อนค่อยเปิดคำแปล — การอ่านเนื้อหายาวๆ บ่อยๆ ช่วยให้จับความหมายจากบริบทได้เร็วขึ้น</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {READING_PASSAGES.map((p, i) => (
+                                <button key={i} onClick={() => { setPassageIdx(i); setRevealedLines([]); setShowQuiz(false); setAnswers({}); setChecked(false); }}
+                                    className="p-4 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
+                                    <span className="text-[10px] font-bold text-brand uppercase">HSK{p.level}</span>
+                                    <div className="font-semibold text-gray-800">{p.title}</div>
+                                    <div className="text-xs text-gray-400">{p.lines.length} ประโยค · {p.questions.length} คำถาม</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+
+            const passage = READING_PASSAGES[passageIdx];
+            const playAll = () => { passage.lines.forEach((l, i) => setTimeout(() => speak(l.target, 'zh'), i * 2600)); };
+            const toggleReveal = (i) => setRevealedLines(r => r.includes(i) ? r.filter(x => x !== i) : [...r, i]);
+            const checkQuiz = () => {
+                setChecked(true);
+                const correctCount = passage.questions.filter((q, i) => answers[i] === q.correct).length;
+                if (correctCount > 0) awardXp(correctCount * 5);
+            };
+
+            return (
+                <div>
+                    <button onClick={() => setPassageIdx(null)} className="text-xs font-semibold text-gray-400 hover:text-gray-700 mb-3">← เลือกเรื่องอื่น</button>
+                    <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-lg font-semibold text-gray-800">{passage.title}</h3>
+                        <span className="text-[10px] font-bold text-brand uppercase">HSK{passage.level}</span>
+                    </div>
+                    <button onClick={playAll} className="inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
+                        <Volume2 /> อ่านออกเสียงทั้งเรื่อง
+                    </button>
+                    <div className="space-y-2 mb-5 leading-relaxed">
+                        {passage.lines.map((l, i) => (
+                            <div key={i} className="flex items-start gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                <div className="flex-1">
+                                    <div className="font-medium text-gray-800 text-base">{l.target}</div>
+                                    {revealedLines.includes(i) && <div className="text-sm text-gray-500 mt-0.5">{l.thai}</div>}
+                                </div>
+                                <button onClick={() => speak(l.target, 'zh')} className="shrink-0 text-brand"><Volume2 /></button>
+                                <button onClick={() => toggleReveal(i)} className="shrink-0 text-xs font-semibold text-gray-400 hover:text-gray-700">{revealedLines.includes(i) ? 'ซ่อน' : 'แปล'}</button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {!showQuiz ? (
+                        <button onClick={() => setShowQuiz(true)} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ทำคำถามความเข้าใจ</button>
+                    ) : (
+                        <div className="space-y-4">
+                            {passage.questions.map((q, i) => (
+                                <div key={i}>
+                                    <p className="text-sm font-semibold text-gray-700 mb-2">{q.q}</p>
+                                    <div className="grid grid-cols-1 gap-1.5">
+                                        {q.choices.map((c, ci) => {
+                                            const picked = answers[i] === c;
+                                            let cls = 'border-gray-200 hover:border-brand text-gray-700 bg-white';
+                                            if (checked) {
+                                                if (c === q.correct) cls = 'border-green-400 bg-green-50 text-green-700';
+                                                else if (picked) cls = 'border-red-300 bg-red-50 text-red-600';
+                                            } else if (picked) cls = 'border-brand bg-brandLight text-brand';
+                                            return (
+                                                <button key={ci} disabled={checked} onClick={() => setAnswers(a => ({ ...a, [i]: c }))}
+                                                    className={`text-left px-3 py-2 rounded-lg border-2 text-sm font-medium transition ${cls}`}>{c}</button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                            {!checked ? (
+                                <button onClick={checkQuiz} disabled={Object.keys(answers).length < passage.questions.length}
+                                    className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm disabled:bg-gray-200 disabled:text-gray-400">ตรวจคำตอบ</button>
+                            ) : (
+                                <p className="text-sm font-semibold text-center text-gray-700">
+                                    ถูก {passage.questions.filter((q, i) => answers[i] === q.correct).length}/{passage.questions.length} ข้อ
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ── ตัวเลข-วันที่-เวลา — คลังคำศัพท์คงที่ (ไม่ได้ generate อัตโนมัติ เพื่อกันบั๊กเรื่องการอ่าน
+        //    ตัวเลข/เวลาผิด) แยก 4 หมวด สุ่มตัวลวง (choices) จากหมวดเดียวกันเท่านั้นให้ดูสมเหตุสมผล
+        //    หมายเหตุ: "两" ใช้แทน "二" เฉพาะหน้าลักษณนาม/บอกเวลา (เช่น 两点) ตามหลักไวยากรณ์จริง
+        const NUMBERS_DATES = {
+            numbers: [
+                { prompt: '5', hanzi: '五', pinyin: 'wǔ' },
+                { prompt: '8', hanzi: '八', pinyin: 'bā' },
+                { prompt: '12', hanzi: '十二', pinyin: 'shí\'èr' },
+                { prompt: '15', hanzi: '十五', pinyin: 'shíwǔ' },
+                { prompt: '20', hanzi: '二十', pinyin: 'èrshí' },
+                { prompt: '23', hanzi: '二十三', pinyin: 'èrshísān' },
+                { prompt: '34', hanzi: '三十四', pinyin: 'sānshísì' },
+                { prompt: '50', hanzi: '五十', pinyin: 'wǔshí' },
+                { prompt: '67', hanzi: '六十七', pinyin: 'liùshíqī' },
+                { prompt: '99', hanzi: '九十九', pinyin: 'jiǔshíjiǔ' },
+                { prompt: '100', hanzi: '一百', pinyin: 'yìbǎi' },
+                { prompt: '128', hanzi: '一百二十八', pinyin: 'yìbǎi èrshíbā' },
+                { prompt: '256', hanzi: '二百五十六', pinyin: 'èrbǎi wǔshíliù' },
+                { prompt: '1000', hanzi: '一千', pinyin: 'yìqiān' },
+            ],
+            weekday: [
+                { prompt: 'วันจันทร์', hanzi: '星期一', pinyin: 'xīngqīyī' },
+                { prompt: 'วันอังคาร', hanzi: '星期二', pinyin: 'xīngqī\'èr' },
+                { prompt: 'วันพุธ', hanzi: '星期三', pinyin: 'xīngqīsān' },
+                { prompt: 'วันพฤหัสบดี', hanzi: '星期四', pinyin: 'xīngqīsì' },
+                { prompt: 'วันศุกร์', hanzi: '星期五', pinyin: 'xīngqīwǔ' },
+                { prompt: 'วันเสาร์', hanzi: '星期六', pinyin: 'xīngqīliù' },
+                { prompt: 'วันอาทิตย์', hanzi: '星期天', pinyin: 'xīngqītiān' },
+            ],
+            time: [
+                { prompt: '1:00 น.', hanzi: '一点', pinyin: 'yì diǎn' },
+                { prompt: '2:00 น.', hanzi: '两点', pinyin: 'liǎng diǎn' },
+                { prompt: '3:30 น.', hanzi: '三点半', pinyin: 'sān diǎn bàn' },
+                { prompt: '4:40 น.', hanzi: '四点四十分', pinyin: 'sì diǎn sìshí fēn' },
+                { prompt: '6:15 น.', hanzi: '六点十五分', pinyin: 'liù diǎn shíwǔ fēn' },
+                { prompt: '7:30 น.', hanzi: '七点半', pinyin: 'qī diǎn bàn' },
+                { prompt: '8:45 น.', hanzi: '八点四十五分', pinyin: 'bā diǎn sìshíwǔ fēn' },
+                { prompt: '9:05 น.', hanzi: '九点零五分', pinyin: 'jiǔ diǎn líng wǔ fēn' },
+                { prompt: '10:10 น.', hanzi: '十点十分', pinyin: 'shí diǎn shí fēn' },
+                { prompt: '11:20 น.', hanzi: '十一点二十分', pinyin: 'shíyī diǎn èrshí fēn' },
+                { prompt: '12:00 น.', hanzi: '十二点', pinyin: 'shí\'èr diǎn' },
+            ],
+            date: [
+                { prompt: '1 มกราคม', hanzi: '一月一号', pinyin: 'yī yuè yī hào' },
+                { prompt: '14 กุมภาพันธ์', hanzi: '二月十四号', pinyin: 'èr yuè shísì hào' },
+                { prompt: '8 มีนาคม', hanzi: '三月八号', pinyin: 'sān yuè bā hào' },
+                { prompt: '1 พฤษภาคม', hanzi: '五月一号', pinyin: 'wǔ yuè yī hào' },
+                { prompt: '20 มิถุนายน', hanzi: '六月二十号', pinyin: 'liù yuè èrshí hào' },
+                { prompt: '15 สิงหาคม', hanzi: '八月十五号', pinyin: 'bā yuè shíwǔ hào' },
+                { prompt: '10 ตุลาคม', hanzi: '十月十号', pinyin: 'shí yuè shí hào' },
+                { prompt: '25 ธันวาคม', hanzi: '十二月二十五号', pinyin: 'shí\'èr yuè èrshíwǔ hào' },
+            ],
+        };
+        const NUMBERS_DATES_CATS = [
+            { key: 'all', label: 'ทั้งหมด' },
+            { key: 'numbers', label: 'ตัวเลข' },
+            { key: 'weekday', label: 'วันในสัปดาห์' },
+            { key: 'time', label: 'บอกเวลา' },
+            { key: 'date', label: 'วันที่' },
+        ];
+        const NDQ_LEN = 10;
+        function buildNdQueue(catKey) {
+            const pool = catKey === 'all'
+                ? Object.keys(NUMBERS_DATES).flatMap(cat => NUMBERS_DATES[cat].map(it => ({ ...it, cat })))
+                : NUMBERS_DATES[catKey].map(it => ({ ...it, cat: catKey }));
+            const picked = shuffleArr(pool).slice(0, Math.min(NDQ_LEN, pool.length));
+            return picked.map(item => {
+                const samePool = NUMBERS_DATES[item.cat];
+                const distractors = shuffleArr(samePool.filter(it => it.hanzi !== item.hanzi)).slice(0, 3);
+                const choices = shuffleArr([item, ...distractors]).map(it => `${it.hanzi} (${it.pinyin})`);
+                return { ...item, choices, correct: `${item.hanzi} (${item.pinyin})` };
+            });
+        }
+
+        function NumbersDatesPanel({ awardXp }) {
+            const [catKey, setCatKey] = useState('all');
+            const [queue, setQueue] = useState(() => buildNdQueue('all'));
+            const [qIdx, setQIdx] = useState(0);
+            const [selected, setSelected] = useState(null);
+            const [score, setScore] = useState(0);
+            const [finished, setFinished] = useState(false);
+
+            const restart = (cat) => {
+                setCatKey(cat);
+                setQueue(buildNdQueue(cat));
+                setQIdx(0); setSelected(null); setScore(0); setFinished(false);
+            };
+
+            const current = queue[qIdx];
+            const catLabel = NUMBERS_DATES_CATS.find(c => c.key === current?.cat)?.label || current?.cat;
+
+            const pick = (c) => {
+                if (selected != null) return;
+                setSelected(c);
+                if (c === current.correct) { setScore(s => s + 1); awardXp(5); }
+            };
+            const next = () => {
+                if (qIdx + 1 >= queue.length) { setFinished(true); return; }
+                setQIdx(i => i + 1); setSelected(null);
+            };
+
+            if (finished) {
+                return (
+                    <div className="text-center py-6">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-1">ตัวเลข-วันที่-เวลา</h3>
+                        <p className="text-3xl font-extrabold text-brand my-4">{score}/{queue.length}</p>
+                        <p className="text-sm text-gray-500 mb-6">ตอบถูก {score} จาก {queue.length} ข้อ</p>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                            {NUMBERS_DATES_CATS.map(c => (
+                                <button key={c.key} onClick={() => restart(c.key)}
+                                    className="px-4 py-2 rounded-xl bg-gray-900 text-white font-bold text-xs hover:opacity-80">ฝึกใหม่ · {c.label}</button>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div>
+                    <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-lg font-semibold text-gray-800">ตัวเลข-วันที่-เวลา</h3>
+                        <span className="text-xs font-semibold text-gray-400">ข้อ {qIdx + 1}/{queue.length}</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-4">ฝึกอ่าน/แปลงตัวเลข วันในสัปดาห์ เวลา และวันที่เป็นภาษาจีน — เลือกหมวดที่ต้องการฝึกได้</p>
+                    <div className="flex flex-wrap gap-1.5 mb-5">
+                        {NUMBERS_DATES_CATS.map(c => (
+                            <button key={c.key} onClick={() => restart(c.key)}
+                                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition ${catKey === c.key ? 'bg-brand text-white border-brand' : 'border-gray-200 text-gray-500 hover:border-brand'}`}>
+                                {c.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-6 text-center mb-4">
+                        <span className="text-[10px] font-bold text-brand uppercase">{catLabel}</span>
+                        <div className="text-3xl font-extrabold text-gray-900 mt-1">{current.prompt}</div>
+                        <p className="text-xs text-gray-400 mt-1">เลือกคำอ่านภาษาจีนที่ถูกต้อง</p>
+                    </div>
+
+                    <McChoices choices={current.choices} correct={current.correct} selected={selected} onPick={pick} />
+
+                    {selected != null && (
+                        <div className="mt-4 flex items-center justify-between gap-3">
+                            <button onClick={() => speak(current.hanzi, 'zh')} className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand"><Volume2 /> ฟังคำตอบที่ถูกต้อง</button>
+                            <button onClick={next} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm hover:opacity-80">
+                                {qIdx + 1 >= queue.length ? 'ดูผลสรุป' : 'ข้อต่อไป'}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
         function ListenSpeakView({ langId, setLangId, setXp }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
@@ -2077,17 +2418,25 @@
             return (
                 <div className="flex-1 overflow-y-auto bg-gray-50">
                     <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
-                        <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold w-fit bg-white">
+                        <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold w-fit flex-wrap bg-white">
                             <button onClick={() => setSubMode('listening')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'listening' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
                                 <Volume2 /> ฟังเรื่องสั้น
                             </button>
                             <button onClick={() => setSubMode('shadowing')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'shadowing' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
                                 <MicIcon /> พูดตาม
                             </button>
+                            <button onClick={() => setSubMode('reading')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'reading' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                                <BookOpen /> อ่านเรื่องยาว
+                            </button>
+                            <button onClick={() => setSubMode('numbers')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'numbers' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                                <HashIcon /> ตัวเลข-วันที่
+                            </button>
                         </div>
                         <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-6">
                             {subMode === 'listening' && <ListeningPanel awardXp={awardXp} />}
                             {subMode === 'shadowing' && <ShadowingPanel awardXp={awardXp} />}
+                            {subMode === 'reading' && <ReadingPanel awardXp={awardXp} />}
+                            {subMode === 'numbers' && <NumbersDatesPanel awardXp={awardXp} />}
                         </div>
                     </div>
                 </div>
