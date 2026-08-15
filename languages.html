@@ -1183,6 +1183,122 @@
             );
         }
 
+        // ══════════════════════════════════════════════════════════════════════════════════
+        // ข้อสอบ BCT (Business Chinese Test, จำลอง) — โครงสร้าง/จำนวนข้อยึดตามข้อสอบ BCT ทางการ
+        // (ตรวจสอบผ่านเว็บแล้ว): BCT-A (ระดับต้น อ้างอิงคำศัพท์ ~600 คำ) = ฟัง 30 + อ่าน 30 + เขียน 10
+        // (รวม 70 ข้อ, ~60 นาที), BCT-B (ระดับกลาง-สูง อ้างอิงคำศัพท์ ~4000 คำ) = ฟัง 50 + อ่าน 40 +
+        // เขียน 2 (รวม 92 ข้อ, ~135 นาที — ส่วนเขียนของ B เป็นข้อเขียนอีเมล/รายงานธุรกิจแบบเปิดยาว
+        // ไม่ใช่ปรนัย จึงใช้ AI ตรวจให้ feedback แทนแบบเดียวกับโหมด "แต่งประโยคอิสระ" ในฝึกเขียน)
+        // หมายเหตุความแม่นยำ: รายละเอียดการแบ่งย่อยภายในแต่ละส่วน (เช่นฟังแบ่งเป็นกี่พาร์ทย่อย) แหล่งข้อมูล
+        // ที่หาได้ไม่ได้ระบุครบทุกจุด จึงออกแบบสัดส่วนเองให้สมเหตุสมผล (ระบุไว้ตรงนี้อย่างตรงไปตรงมา) —
+        // แต่ "จำนวนข้อรวมต่อส่วน" (ฟัง/อ่าน/เขียน) และ "จำนวนข้อรวมทั้งฉบับ" ตรงกับที่ตรวจสอบมา
+        // ══════════════════════════════════════════════════════════════════════════════════
+
+        // คำศัพท์ธุรกิจ ~50 คำ — คิด/ตรวจสอบเองทุกคำ (ไม่มีแพ็กเกจข้อมูล BCT ที่ตรวจสอบแล้วให้ดึงเหมือน HSK)
+        // เป็นคำธุรกิจพื้นฐานที่พบบ่อยมาก ความเสี่ยงผิดต่ำกว่าลำดับขีด/คำหายากมาก แต่ยังไม่ได้ผ่านการตรวจ
+        // ไขว้กับพจนานุกรมเหมือนคำ HSK — บอกไว้ตรงๆ ในหน้าเลือกข้อสอบด้วย
+        const BCT_VOCAB = [
+            { word: '会议', pinyin: 'huìyì', thai: 'การประชุม' }, { word: '合同', pinyin: 'hétong', thai: 'สัญญา' },
+            { word: '谈判', pinyin: 'tánpàn', thai: 'การเจรจาต่อรอง' }, { word: '客户', pinyin: 'kèhù', thai: 'ลูกค้า' },
+            { word: '发票', pinyin: 'fāpiào', thai: 'ใบกำกับภาษี/ใบเสร็จ' }, { word: '预算', pinyin: 'yùsuàn', thai: 'งบประมาณ' },
+            { word: '利润', pinyin: 'lìrùn', thai: 'กำไร' }, { word: '成本', pinyin: 'chéngběn', thai: 'ต้นทุน' },
+            { word: '投资', pinyin: 'tóuzī', thai: 'การลงทุน' }, { word: '市场', pinyin: 'shìchǎng', thai: 'ตลาด' },
+            { word: '产品', pinyin: 'chǎnpǐn', thai: 'สินค้า/ผลิตภัณฑ์' }, { word: '服务', pinyin: 'fúwù', thai: 'บริการ' },
+            { word: '老板', pinyin: 'lǎobǎn', thai: 'เจ้านาย' }, { word: '员工', pinyin: 'yuángōng', thai: 'พนักงาน' },
+            { word: '部门', pinyin: 'bùmén', thai: 'แผนก' }, { word: '项目', pinyin: 'xiàngmù', thai: 'โครงการ' },
+            { word: '报告', pinyin: 'bàogào', thai: 'รายงาน' }, { word: '签字', pinyin: 'qiānzì', thai: 'เซ็นชื่อ' },
+            { word: '账户', pinyin: 'zhànghù', thai: 'บัญชี' }, { word: '汇率', pinyin: 'huìlǜ', thai: 'อัตราแลกเปลี่ยน' },
+            { word: '税', pinyin: 'shuì', thai: 'ภาษี' }, { word: '出口', pinyin: 'chūkǒu', thai: 'ส่งออก' },
+            { word: '进口', pinyin: 'jìnkǒu', thai: 'นำเข้า' }, { word: '订单', pinyin: 'dìngdān', thai: 'ใบสั่งซื้อ' },
+            { word: '库存', pinyin: 'kùcún', thai: 'สต๊อกสินค้า' }, { word: '物流', pinyin: 'wùliú', thai: 'โลจิสติกส์' },
+            { word: '邮件', pinyin: 'yóujiàn', thai: 'อีเมล/จดหมาย' }, { word: '名片', pinyin: 'míngpiàn', thai: 'นามบัตร' },
+            { word: '简历', pinyin: 'jiǎnlì', thai: 'เรซูเม่' }, { word: '面试', pinyin: 'miànshì', thai: 'สัมภาษณ์งาน' },
+            { word: '工资', pinyin: 'gōngzī', thai: 'เงินเดือน' }, { word: '奖金', pinyin: 'jiǎngjīn', thai: 'โบนัส' },
+            { word: '加班', pinyin: 'jiābān', thai: 'ทำงานล่วงเวลา' }, { word: '辞职', pinyin: 'cízhí', thai: 'ลาออก' },
+            { word: '升职', pinyin: 'shēngzhí', thai: 'เลื่อนตำแหน่ง' }, { word: '出差', pinyin: 'chūchāi', thai: 'ไปทำงานต่างที่ (ทริปธุรกิจ)' },
+            { word: '合作', pinyin: 'hézuò', thai: 'ร่วมมือ' }, { word: '竞争', pinyin: 'jìngzhēng', thai: 'แข่งขัน' },
+            { word: '广告', pinyin: 'guǎnggào', thai: 'โฆษณา' }, { word: '品牌', pinyin: 'pǐnpái', thai: 'แบรนด์' },
+            { word: '质量', pinyin: 'zhìliàng', thai: 'คุณภาพ' }, { word: '价格', pinyin: 'jiàgé', thai: 'ราคา' },
+            { word: '折扣', pinyin: 'zhékòu', thai: 'ส่วนลด' }, { word: '付款', pinyin: 'fùkuǎn', thai: 'ชำระเงิน' },
+            { word: '退货', pinyin: 'tuìhuò', thai: 'คืนสินค้า' }, { word: '保修', pinyin: 'bǎoxiū', thai: 'รับประกัน' },
+            { word: '电话会议', pinyin: 'diànhuà huìyì', thai: 'ประชุมทางโทรศัพท์' }, { word: '同事', pinyin: 'tóngshì', thai: 'เพื่อนร่วมงาน' },
+            { word: '签证', pinyin: 'qiānzhèng', thai: 'วีซ่า' }, { word: '预约', pinyin: 'yùyuē', thai: 'นัดหมาย' },
+        ];
+        // รวมคลังคำ HSK2-3 (ตรวจสอบแล้ว) เข้ากับคำธุรกิจ (ข้างบน) เป็น pool เดียว — คล้ายสัดส่วนที่
+        // BCT ทางการบอกว่าคำศัพท์ทับซ้อนกับ HSK อยู่มาก มีคำเฉพาะธุรกิจเสริมเข้ามา (ตัดคำซ้ำออก)
+        function bctPool() {
+            const base = [...HSK_VOCAB.hsk2, ...HSK_VOCAB.hsk3];
+            const existing = new Set(base.map(w => w.word));
+            const extra = BCT_VOCAB.filter(w => !existing.has(w.word));
+            return [...base, ...extra];
+        }
+
+        // ประโยคบริบทธุรกิจง่ายๆ สำหรับข้อ "เรียงคำ" ของ BCT-A (คิด/ตรวจไวยากรณ์เองทุกประโยค)
+        const BCT_A_WRITE_SENTENCES = [
+            { chunks: ['我们', '明天', '开会。'], thai: 'พวกเราจะประชุมกันพรุ่งนี้' },
+            { chunks: ['请', '把合同', '签好。'], thai: 'กรุณาเซ็นสัญญาให้เรียบร้อย' },
+            { chunks: ['这个产品', '很', '受欢迎。'], thai: 'สินค้านี้เป็นที่นิยมมาก' },
+            { chunks: ['客户', '想', '降低价格。'], thai: 'ลูกค้าอยากให้ลดราคา' },
+            { chunks: ['我', '需要', '一份报告。'], thai: 'ฉันต้องการรายงานหนึ่งฉบับ' },
+            { chunks: ['会议', '定在', '下午三点。'], thai: 'การประชุมกำหนดไว้บ่ายสามโมง' },
+            { chunks: ['他', '负责', '市场营销。'], thai: 'เขารับผิดชอบด้านการตลาด' },
+            { chunks: ['请', '尽快', '回复邮件。'], thai: 'กรุณาตอบอีเมลโดยเร็วที่สุด' },
+            { chunks: ['公司', '上个月', '招聘了新员工。'], thai: 'บริษัทรับพนักงานใหม่เมื่อเดือนที่แล้ว' },
+            { chunks: ['这份合同', '下周', '到期。'], thai: 'สัญญาฉบับนี้จะหมดอายุสัปดาห์หน้า' },
+            { chunks: ['我们', '需要', '提高产品质量。'], thai: 'เราต้องยกระดับคุณภาพสินค้า' },
+            { chunks: ['请', '把账单', '发给我。'], thai: 'กรุณาส่งใบแจ้งหนี้มาให้ฉัน' },
+        ];
+        // โจทย์เขียนแบบเปิด (BCT-B) — จำลอง "เขียนอีเมล/รายงานธุรกิจ" ของข้อสอบจริง ตรวจด้วย AI
+        const BCT_B_WRITE_PROMPTS = [
+            { context: 'อีเมลแจ้งเลื่อนนัดประชุม', prompt: 'เขียนอีเมลสั้นๆ (2-3 ประโยค) แจ้งลูกค้าว่าจะเลื่อนนัดประชุมออกไปเป็นสัปดาห์หน้า' },
+            { context: 'ข้อความแจ้งขาดประชุม', prompt: 'เขียนข้อความสั้นๆ แจ้งเพื่อนร่วมงานว่าจะขาดประชุมวันนี้เพราะติดธุระ' },
+            { context: 'รายงานความคืบหน้าโครงการ', prompt: 'เขียนสรุปสั้นๆ (2-3 ประโยค) รายงานความคืบหน้าของโครงการให้หัวหน้า' },
+            { context: 'อีเมลขอบคุณลูกค้า', prompt: 'เขียนอีเมลสั้นๆ ขอบคุณลูกค้าที่สั่งซื้อสินค้า' },
+            { context: 'สอบถามราคาสินค้า', prompt: 'เขียนข้อความสั้นๆ สอบถามราคาสินค้าจากซัพพลายเออร์' },
+            { context: 'แจ้งเลื่อนกำหนดส่งมอบ', prompt: 'เขียนอีเมลสั้นๆ แจ้งขอเลื่อนกำหนดส่งมอบสินค้า' },
+        ];
+        const BCT_WRITE_SYSTEM_PROMPT = (contextTh) =>
+            `คุณเป็นครูสอนภาษาจีนธุรกิจให้คนไทย ผู้เรียนกำลังฝึกเขียน "${contextTh}" เป็นภาษาจีน\n` +
+            `ตรวจสิ่งที่ผู้เรียนเขียนมา ตอบเป็นภาษาไทยเสมอ รูปแบบคำตอบต้องมี 3 ส่วนตามลำดับนี้เท่านั้น:\n` +
+            `1) "ตัวอย่างที่ปรับปรุงแล้ว:" ตามด้วยข้อความภาษาจีนที่ถูกต้องและเหมาะสมกับบริบทธุรกิจ\n` +
+            `2) "จุดที่แก้ไข:" อธิบายเป็นข้อๆ สั้นๆ ว่าแก้ตรงไหน เพราะอะไร (ทั้งไวยากรณ์และความเหมาะสมเชิงธุรกิจ)\n` +
+            `3) "คะแนนความเหมาะสม:" ให้คะแนนเป็นตัวเลข 1-5\n` +
+            `ถ้าเขียนดีอยู่แล้วให้บอกตรงๆ ว่าไม่ต้องแก้ไข`;
+        const BCT_WRITE_REMINDER =
+            'ย้ำ: ตรวจข้อความล่าสุดที่ผู้เรียนเพิ่งส่งมาเท่านั้น ตอบตามรูปแบบ 3 ส่วนที่กำหนดไว้เป๊ะๆ ห้ามข้ามส่วนไหน ' +
+            'และห้ามตอบเป็นภาษาอื่นนอกจากไทย';
+
+        function buildBctExam(level) {
+            const pool = bctPool();
+            if (level === 'A') {
+                return {
+                    kind: 'bct', level, passPct: 60,
+                    sections: [
+                        { key: 'listening', title: 'ฟัง (听力)', icon: '🎧', questions: [...genTf(pool, 15, 'listen-tf'), ...genMcFromWord(pool, 15, 'listen-mc')] },
+                        { key: 'reading', title: 'อ่าน (阅读)', icon: '📖', questions: [...genMcFromWord(pool, 15, 'read-mc'), ...genMcReverse(pool, 15)] },
+                        { key: 'writing', title: 'เขียน (书写)', icon: '✍️', questions: genBctWriteOrder(10) },
+                    ],
+                };
+            }
+            // level 'B'
+            return {
+                kind: 'bct', level, passPct: 60,
+                sections: [
+                    { key: 'listening', title: 'ฟัง (听力)', icon: '🎧', questions: [...genTf(pool, 20, 'listen-tf'), ...genMcFromWord(pool, 30, 'listen-mc')] },
+                    { key: 'reading', title: 'อ่าน (阅读)', icon: '📖', questions: [...genMcFromWord(pool, 20, 'read-mc'), ...genMcReverse(pool, 20)] },
+                    { key: 'writing', title: 'เขียน (书写)', icon: '✍️', questions: genBctWriteEssay(2) },
+                ],
+            };
+        }
+        function genBctWriteOrder(count) {
+            const picked = shuffleArr(BCT_A_WRITE_SENTENCES).slice(0, Math.min(count, BCT_A_WRITE_SENTENCES.length));
+            return picked.map(s => ({ type: 'write-order', chunks: s.chunks, thai: s.thai, scrambled: shuffleArr(s.chunks) }));
+        }
+        function genBctWriteEssay(count) {
+            const picked = shuffleArr(BCT_B_WRITE_PROMPTS).slice(0, Math.min(count, BCT_B_WRITE_PROMPTS.length));
+            return picked.map(p => ({ type: 'write-essay', context: p.context, prompt: p.prompt }));
+        }
+
         // ── ปุ่มตัวเลือกปรนัยใช้ร่วมกันหลายชนิดโจทย์ (listen-mc/read-mc/read-mc-reverse/write-pinyin-char)
         function McChoices({ choices, correct, selected, onPick }) {
             return (
@@ -1209,7 +1325,8 @@
         //    ภาษาจีนตอนนี้ — ถ้า langId ไม่ใช่ lang-cn (เผื่อผู้ใช้สลับภาษาที่แถบข้างระหว่างอยู่โหมดนี้)
         //    ให้ขึ้นข้อความชวนสลับกลับแทนที่จะพังเงียบๆ
         function HskExamView({ langId, setLangId, setXp }) {
-            const [level, setLevel] = useState(null);
+            const [examType, setExamType] = useState(null); // 'hsk' | 'bct' — เลือกก่อนเลือกระดับ
+            const [level, setLevel] = useState(null); // HSK: 1|2|3, BCT: 'A'|'B'
             const [exam, setExam] = useState(null);
             const [sectionIdx, setSectionIdx] = useState(0);
             const [showIntro, setShowIntro] = useState(true); // หน้าแนะนำก่อนเริ่มแต่ละส่วน
@@ -1217,60 +1334,103 @@
             const [answered, setAnswered] = useState(false);
             const [userAnswer, setUserAnswer] = useState(null); // string | boolean | ขึ้นกับชนิดโจทย์
             const [placedIdx, setPlacedIdx] = useState([]); // สำหรับ write-order เท่านั้น
+            const [essayText, setEssayText] = useState(''); // สำหรับ write-essay (BCT-B) เท่านั้น
+            const [essayFeedback, setEssayFeedback] = useState('');
+            const [essayStatus, setEssayStatus] = useState(''); // '' | 'loading' | 'done' | 'error'
             const [sectionResults, setSectionResults] = useState([]); // [{key,title,correct,total}]
             const [correctInSection, setCorrectInSection] = useState(0);
             const [allWrong, setAllWrong] = useState([]);
             const [finished, setFinished] = useState(false);
 
-            const start = (lvl) => {
-                const built = buildHskExam(lvl);
-                setLevel(lvl); setExam(built);
+            const resetPerQuestion = () => {
+                setAnswered(false); setUserAnswer(null); setPlacedIdx([]);
+                setEssayText(''); setEssayFeedback(''); setEssayStatus('');
+            };
+
+            const start = (type, lvl) => {
+                const built = type === 'bct' ? buildBctExam(lvl) : buildHskExam(lvl);
+                setExamType(type); setLevel(lvl); setExam(built);
                 setSectionIdx(0); setShowIntro(true);
-                setQIdx(0); setAnswered(false); setUserAnswer(null); setPlacedIdx([]);
+                resetPerQuestion();
                 setSectionResults([]); setCorrectInSection(0); setAllWrong([]); setFinished(false);
             };
+
+            const examLabel = examType === 'bct' ? `BCT (${level})` : `HSK${level}`;
 
             if (langId !== 'lang-cn') {
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">ข้อสอบ HSK รองรับเฉพาะภาษาจีนตอนนี้</p>
+                            <p className="text-gray-500 mb-4">ข้อสอบ HSK/BCT รองรับเฉพาะภาษาจีนตอนนี้</p>
                             <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีน</button>
                         </div>
                     </div>
                 );
             }
 
-            if (!level || !exam) {
+            // ── ขั้นที่ 1: เลือกประเภทข้อสอบ ──────────────────────────────────────────────
+            if (!examType) {
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ HSK (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">โครงสร้าง/จำนวนข้อยึดตามข้อสอบ HSK 2.0 ทางการจริง เลือกระดับที่จะทดสอบ:</p>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                {[1, 2, 3].map(lvl => {
-                                    const info = lvl === 1 ? 'ฟัง 20 + อ่าน 20 = 40 ข้อ' : lvl === 2 ? 'ฟัง 35 + อ่าน 25 = 60 ข้อ' : 'ฟัง 40 + อ่าน 30 + เขียน 10 = 80 ข้อ';
-                                    return (
-                                        <button key={lvl} onClick={() => start(lvl)}
-                                            className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-center transition bg-white">
-                                            <div className="text-2xl font-bold text-brand mb-1">HSK{lvl}</div>
-                                            <div className="text-xs text-gray-400">{info}</div>
-                                        </button>
-                                    );
-                                })}
+                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบภาษาจีน (จำลอง)</h2>
+                            <p className="text-sm text-gray-500 mb-5">เลือกประเภทข้อสอบก่อน:</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <button onClick={() => setExamType('hsk')} className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
+                                    <div className="text-lg font-bold text-brand mb-1">HSK</div>
+                                    <div className="text-xs text-gray-500">วัดระดับภาษาจีนทั่วไป ใช้สมัครเรียนต่อ/ยื่นวีซ่าทำงานในจีน — มี 3 ระดับ</div>
+                                </button>
+                                <button onClick={() => setExamType('bct')} className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
+                                    <div className="text-lg font-bold text-brand mb-1">BCT</div>
+                                    <div className="text-xs text-gray-500">ภาษาจีนธุรกิจ (ประชุม/อีเมล/เจรจา) เหมาะกับคนทำงานสายติดต่อธุรกิจกับจีน — มี 2 ระดับ</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // ── ขั้นที่ 2: เลือกระดับ ────────────────────────────────────────────────────
+            if (!level || !exam) {
+                const hskLevels = [
+                    { lvl: 1, info: 'ฟัง 20 + อ่าน 20 = 40 ข้อ' },
+                    { lvl: 2, info: 'ฟัง 35 + อ่าน 25 = 60 ข้อ' },
+                    { lvl: 3, info: 'ฟัง 40 + อ่าน 30 + เขียน 10 = 80 ข้อ' },
+                ];
+                const bctLevels = [
+                    { lvl: 'A', info: 'ระดับต้น · ฟัง 30 + อ่าน 30 + เขียน 10 = 70 ข้อ' },
+                    { lvl: 'B', info: 'ระดับกลาง-สูง · ฟัง 50 + อ่าน 40 + เขียนอีเมล 2 ข้อ = 92 ข้อ' },
+                ];
+                const levels = examType === 'bct' ? bctLevels : hskLevels;
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6">
+                            <button onClick={() => setExamType(null)} className="text-xs font-semibold text-gray-400 hover:text-gray-700 mb-3">← เปลี่ยนประเภทข้อสอบ</button>
+                            <h2 className="text-xl font-bold text-gray-800 mb-1">{examType === 'bct' ? 'ข้อสอบ BCT (จำลอง)' : 'ข้อสอบ HSK (จำลอง)'}</h2>
+                            <p className="text-sm text-gray-500 mb-5">โครงสร้าง/จำนวนข้อยึดตามข้อสอบ{examType === 'bct' ? ' BCT' : ' HSK 2.0'} ทางการจริง เลือกระดับที่จะทดสอบ:</p>
+                            <div className={`grid grid-cols-1 ${examType === 'bct' ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-3`}>
+                                {levels.map(({ lvl, info }) => (
+                                    <button key={lvl} onClick={() => start(examType, lvl)}
+                                        className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-center transition bg-white">
+                                        <div className="text-2xl font-bold text-brand mb-1">{examType === 'bct' ? `BCT (${lvl})` : `HSK${lvl}`}</div>
+                                        <div className="text-xs text-gray-400">{info}</div>
+                                    </button>
+                                ))}
                             </div>
                             <p className="text-xs text-gray-400 mt-5 leading-relaxed">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่สร้างจากคลังคำศัพท์ HSK ของเว็บนี้เอง ไม่ใช่ข้อสอบทางการที่หลุดออกมา —
+                                หมายเหตุ: เป็นแบบทดสอบจำลองที่สร้างจากคลังคำศัพท์ของเว็บนี้เอง ไม่ใช่ข้อสอบทางการที่หลุดออกมา —
                                 ข้อสอบจริงมีโจทย์ให้จับคู่รูปภาพหลายข้อ แต่เว็บนี้ไม่มีคลังรูปภาพ จึงแทนที่ด้วยโจทย์จับคู่ความหมายไทยแทน
                                 (ทดสอบทักษะเดียวกัน) เกณฑ์ผ่านทางการคือ 60% ทุกระดับ
+                                {examType === 'bct' && ' คำศัพท์ธุรกิจที่ใช้เป็นคำที่คิด/ตรวจสอบเองความหมายพื้นฐาน ยังไม่ได้ตรวจไขว้กับพจนานุกรมเหมือนคำ HSK'}
                             </p>
                         </div>
                     </div>
                 );
             }
 
-            const restart = () => start(level);
-            const backToSelect = () => { setLevel(null); setExam(null); };
+            const restart = () => start(examType, level);
+            const backToLevels = () => { setLevel(null); setExam(null); };
+            const backToType = () => { setExamType(null); setLevel(null); setExam(null); };
 
             if (finished) {
                 const totalCorrect = sectionResults.reduce((s, r) => s + r.correct, 0);
@@ -1279,7 +1439,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ HSK{level}</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ {examLabel}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง{pct >= exam.passPct ? ` — ผ่านเกณฑ์ทางการ (≥${exam.passPct}%) 🎉` : ` — ยังไม่ถึงเกณฑ์ทางการ (${exam.passPct}%) ลองฝึกเพิ่ม`}</p>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
@@ -1305,7 +1465,8 @@
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
                                 <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ระดับเดิม</button>
-                                <button onClick={backToSelect} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">เลือกระดับใหม่</button>
+                                <button onClick={backToLevels} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">เลือกระดับใหม่</button>
+                                <button onClick={backToType} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">เปลี่ยนเป็น{examType === 'bct' ? ' HSK' : ' BCT'}</button>
                             </div>
                         </div>
                     </div>
@@ -1318,7 +1479,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">HSK{level} · ส่วนที่ {sectionIdx + 1}/{exam.sections.length}</p>
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">{examLabel} · ส่วนที่ {sectionIdx + 1}/{exam.sections.length}</p>
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
@@ -1338,14 +1499,15 @@
                 } else {
                     setSectionIdx(i => i + 1);
                     setShowIntro(true);
-                    setQIdx(0); setAnswered(false); setUserAnswer(null); setPlacedIdx([]);
+                    setQIdx(0);
+                    resetPerQuestion();
                     setCorrectInSection(0);
                 }
             };
 
             const nextQuestion = () => {
                 if (qIdx + 1 >= section.questions.length) { finishSection(); return; }
-                setQIdx(i => i + 1); setAnswered(false); setUserAnswer(null); setPlacedIdx([]);
+                setQIdx(i => i + 1); resetPerQuestion();
             };
 
             const recordAnswer = (isCorrect, wrongEntry) => {
@@ -1380,13 +1542,49 @@
                 recordAnswer(isCorrect, isCorrect ? null : { left: q.thai, right: q.chunks.join('') });
             };
 
+            // write-essay (BCT-B เท่านั้น) — ข้อเขียนเปิด ให้ AI ตรวจแบบเดียวกับโหมด "แต่งประโยคอิสระ"
+            // ในหน้าฝึกเขียน ไม่ gate ถูก/ผิดตามคำตัดสินของ AI (โมเดลเล็กไม่น่าเชื่อถือพอสำหรับ auto-grade)
+            // แค่ให้ครบ flow + XP เมื่อส่งสำเร็จ ไม่นับเข้ารายการ "ข้อที่ตอบผิด" เพราะไม่มีคำตอบเดียวที่ถูก
+            const submitEssay = () => {
+                if (!essayText.trim() || essayStatus === 'loading') return;
+                if (isIOS()) {
+                    setEssayStatus('error');
+                    setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
+                    return;
+                }
+                setEssayStatus('loading'); setEssayFeedback('');
+                const w = getWritingWorker();
+                const jobId = 'bctessay-' + Date.now();
+                let acc = '';
+                function onMsg(e) {
+                    const msg = e.data;
+                    if (!msg || msg.jobId !== jobId) return;
+                    if (msg.type === 'token') { acc += msg.token; setEssayFeedback(acc); }
+                    else if (msg.type === 'done') { cleanup(); setEssayStatus('done'); setAnswered(true); setXp(x => x + 2); }
+                    else if (msg.type === 'error') { cleanup(); setEssayStatus('error'); setEssayFeedback(friendlyChatError(msg.message)); }
+                }
+                function onErr(e) { cleanup(); setEssayStatus('error'); setEssayFeedback(friendlyChatError(e.message || '')); }
+                function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+                w.addEventListener('message', onMsg);
+                w.addEventListener('error', onErr);
+                w.postMessage({
+                    type: 'chat', jobId, maxNewTokens: 320,
+                    messages: [
+                        { role: 'system', content: BCT_WRITE_SYSTEM_PROMPT(q.context) },
+                        { role: 'user', content: essayText },
+                        { role: 'system', content: BCT_WRITE_REMINDER },
+                    ],
+                });
+            };
+            const skipEssay = () => { setAnswered(true); };
+
             const progressLabel = `${section.title} · ข้อ ${qIdx + 1}/${section.questions.length}`;
 
             return (
                 <div className="flex-1 overflow-y-auto bg-gray-50">
                     <div className="max-w-xl mx-auto p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <span className="text-xs font-bold text-gray-400 uppercase">{progressLabel}</span>
+                            <span className="text-xs font-bold text-gray-400 uppercase">{examLabel} · {progressLabel}</span>
                             <span className="text-xs font-bold text-brand">ถูก {correctInSection} ข้อ</span>
                         </div>
 
@@ -1481,6 +1679,26 @@
                                         เฉลย: {q.chunks.join('')}
                                     </p>
                                 )}
+                            </>
+                        )}
+
+                        {q.type === 'write-essay' && (
+                            <>
+                                <p className="text-xs text-gray-400 mb-1">{q.context}</p>
+                                <p className="text-gray-700 font-semibold mb-3">{q.prompt}</p>
+                                <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={4} disabled={answered}
+                                    placeholder="เขียนเป็นภาษาจีนตรงนี้..."
+                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                {!answered && (
+                                    <div className="flex gap-2 mb-3">
+                                        <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
+                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            {essayStatus === 'loading' ? 'กำลังตรวจ...' : 'ส่งให้ AI ตรวจ'}
+                                        </button>
+                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                    </div>
+                                )}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
                             </>
                         )}
 
@@ -1804,7 +2022,7 @@
                                     onClick={goHsk}
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'hsk' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
-                                    <HskIcon /> ข้อสอบ HSK
+                                    <HskIcon /> ข้อสอบ
                                 </button>
                             </div>
                             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
