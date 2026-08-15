@@ -97,6 +97,7 @@
         const ListenIcon = icon('headphones', 'w-4 h-4');
         const MicIcon = icon('mic', 'w-5 h-5');
         const HashIcon = icon('hash', 'w-4 h-4');
+        const FlameIcon = icon('flame', 'w-4 h-4');
         // ไอคอนเล็กประกอบปุ่มโหมดย่อยในหน้า "ฝึกเขียน" — ไม่ใส่ text-* ในคลาสตั้งใจ ให้สืบสี
         // currentColor จากปุ่มแม่เอง (ขาวตอน active / เทาตอนไม่ active) โดยไม่ต้องทำ 2 เวอร์ชันสี
         const BrushIcon = icon('brush', 'w-3.5 h-3.5');
@@ -118,6 +119,38 @@
             try { return JSON.parse(localStorage.getItem('lang-practice:xp') || '0'); } catch { return 0; }
         }
         function saveXp(v) { localStorage.setItem('lang-practice:xp', JSON.stringify(v)); }
+
+        // ── streak (นับวันต่อเนื่องที่เข้ามาฝึก) — ใช้เวลาเครื่องผู้ใช้ (local date) ไม่ใช่ UTC
+        //    เพื่อให้ตรงกับความรู้สึก "วันนี้" ของผู้ใช้จริงๆ ไม่ผูกกับ timezone ใดเป็นพิเศษ
+        function todayStr() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+        function loadStreak() {
+            try { return JSON.parse(localStorage.getItem('lang-practice:streak') || 'null') || { count: 0, longest: 0, lastDate: null }; }
+            catch { return { count: 0, longest: 0, lastDate: null }; }
+        }
+        function saveStreak(v) { localStorage.setItem('lang-practice:streak', JSON.stringify(v)); }
+        // เรียกทุกครั้งที่มี "การฝึก" จริง (xp เพิ่ม) — ถ้าฝึกวันนี้ไปแล้วคืนค่าเดิมตรงๆ (ไม่ใช่ก็อปปี้ใหม่)
+        // เพื่อให้ React เช็ค Object.is แล้วรู้ว่าไม่มีอะไรเปลี่ยน ไม่ trigger save/re-render ซ้ำซ้อน
+        function bumpStreak(prev) {
+            const today = todayStr();
+            if (prev.lastDate === today) return prev;
+            const y = new Date(); y.setDate(y.getDate() - 1);
+            const yStr = y.getFullYear() + '-' + String(y.getMonth() + 1).padStart(2, '0') + '-' + String(y.getDate()).padStart(2, '0');
+            const count = prev.lastDate === yStr ? (prev.count || 0) + 1 : 1;
+            return { count, longest: Math.max(prev.longest || 0, count), lastDate: today };
+        }
+        // merge ตอนซิงก์ข้ามเครื่อง — ยึดสถิติของเครื่องที่ฝึกล่าสุด (lastDate ใหม่กว่า) เป็นหลัก
+        // แต่เก็บสถิติสูงสุด (longest) ไว้เสมอไม่ว่าจะมาจากเครื่องไหน
+        function mergeStreak(a, b) {
+            if (!a) return b || { count: 0, longest: 0, lastDate: null };
+            if (!b) return a;
+            const longest = Math.max(a.longest || 0, b.longest || 0);
+            if (a.lastDate === b.lastDate) return { count: Math.max(a.count || 0, b.count || 0), longest, lastDate: a.lastDate };
+            const newer = (a.lastDate || '') > (b.lastDate || '') ? a : b;
+            return { count: newer.count || 0, longest, lastDate: newer.lastDate };
+        }
 
         function loadProgress() {
             try { return JSON.parse(localStorage.getItem('lang-practice:progress') || '{}'); } catch { return {}; }
@@ -2456,6 +2489,8 @@
             const [mode, setMode] = useState('translate'); // 'translate' | 'dictation' | 'flashcard'
             const [flashFlipped, setFlashFlipped] = useState(false);
             const [xp, setXp] = useState(loadXp());
+            const [streak, setStreak] = useState(loadStreak());
+            const practicedToday = streak.lastDate === todayStr();
             const [progress, setProgress] = useState(loadProgress());
             const [notes, setNotes] = useState(loadNotes());
             const [wrong, setWrong] = useState(loadWrong());
@@ -2485,6 +2520,14 @@
 
             useEffect(() => { lucide.createIcons(); });
             useEffect(() => { saveXp(xp); }, [xp]);
+            useEffect(() => { saveStreak(streak); }, [streak]);
+            // นับ streak เมื่อ xp เพิ่มขึ้นจริง (มีการฝึกจริง) — ข้ามรอบแรกตอน mount (แค่โหลดค่าเดิม
+            // ยังไม่ได้ฝึกอะไร) ด้วย ref กันนับ streak เกินจริงตอนเปิดหน้าเฉยๆ
+            const xpMountedRef = useRef(false);
+            useEffect(() => {
+                if (!xpMountedRef.current) { xpMountedRef.current = true; return; }
+                setStreak(s => bumpStreak(s));
+            }, [xp]);
             useEffect(() => { saveProgress(progress); }, [progress]);
             useEffect(() => { saveNotes(notes); }, [notes]);
             useEffect(() => { saveWrong(wrong); }, [wrong]);
@@ -2524,6 +2567,7 @@
                     const mergedWrong = mergeWrong(remote?.wrong, wrong);
                     const mergedSrs = mergeSrs(remote?.srs, srs);
                     const mergedWriting = mergeWriting(remote?.writing, writing);
+                    const mergedStreak = mergeStreak(remote?.streak, streak);
 
                     setXp(mergedXp);
                     setProgress(mergedProgress);
@@ -2531,10 +2575,11 @@
                     setWrong(mergedWrong);
                     setSrs(mergedSrs);
                     setWriting(mergedWriting);
+                    setStreak(mergedStreak);
 
                     await DriveSync.uploadFile(DRIVE_FILE_NAME, folderId, existing?.id,
                         { xp: mergedXp, progress: mergedProgress, notes: mergedNotes, wrong: mergedWrong,
-                          srs: mergedSrs, writing: mergedWriting, savedAt: new Date().toISOString() });
+                          srs: mergedSrs, writing: mergedWriting, streak: mergedStreak, savedAt: new Date().toISOString() });
                     setSyncStatus('✅ ซิงก์สำเร็จ');
                 } catch (e) {
                     setSyncStatus('❌ ' + (e.message || e));
@@ -2723,6 +2768,16 @@
                             <div className="flex items-center gap-2 text-sm px-3 py-2.5 rounded-lg bg-amber-50 border border-amber-100 text-amber-700 font-bold">
                                 <Brain className="w-4 h-4" /> {xp} XP
                             </div>
+                            <div className={`flex items-center gap-2 text-sm px-3 py-2.5 rounded-lg font-bold mt-2 ${streak.count > 0 ? 'bg-orange-50 border border-orange-100 text-orange-600' : 'bg-gray-50 border border-gray-200 text-gray-400'}`}>
+                                <FlameIcon className="w-4 h-4" />
+                                <span>{streak.count} วันติดต่อกัน</span>
+                            </div>
+                            {streak.count > 0 && !practicedToday && (
+                                <p className="text-[11px] text-orange-500 mt-1.5 px-1 leading-snug">🔥 วันนี้ยังไม่ได้ฝึกเลย ฝึกอีกนิดเพื่อรักษาสถิติไว้!</p>
+                            )}
+                            {streak.longest > streak.count && (
+                                <p className="text-[11px] text-gray-400 mt-1.5 px-1">สถิติสูงสุด {streak.longest} วัน</p>
+                            )}
                         </div>
                     </aside>
 
@@ -2800,6 +2855,9 @@
                                         </div>
                                         <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full">
                                             <Brain /><span className="text-sm font-bold">{xp} XP</span>
+                                        </div>
+                                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${practicedToday ? 'bg-amber-400/90 text-amber-900' : 'bg-white/10'}`}>
+                                            <FlameIcon /><span className="text-sm font-bold">{streak.count} วันติดต่อกัน</span>
                                         </div>
                                     </div>
                                 </div>
