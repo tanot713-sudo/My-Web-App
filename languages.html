@@ -103,8 +103,10 @@
         const BrushIcon = icon('brush', 'w-3.5 h-3.5');
         const PenToolIcon = icon('pen-tool', 'w-3.5 h-3.5');
         const ShuffleIcon = icon('shuffle', 'w-3.5 h-3.5');
-        const HeadphonesIcon = icon('headphones', 'w-3.5 h-3.5');
         const LanguagesSmallIcon = icon('languages', 'w-3.5 h-3.5');
+        // ไอคอนหูฟัง (headphones) ถูกใช้โดยแท็บ "ฟัง-พูด" บนหัวไปแล้ว (ListenIcon) เลยใช้ไอคอนหูแทน
+        // สำหรับปุ่ม "ฟังแล้วเขียน" ในแท็บ "ฝึกเขียน" กันสับสนว่าเป็นฟีเจอร์เดียวกัน
+        const EarIcon = icon('ear', 'w-3.5 h-3.5');
 
         function speak(text, langCode) {
             try {
@@ -1130,7 +1132,7 @@
                 ...(hasScript ? [{ key: 'script', label: 'ฝึกเขียนตัวอักษร', Icon: BrushIcon }] : []),
                 { key: 'compose', label: 'แต่งประโยคอิสระ', Icon: PenToolIcon },
                 { key: 'srsCompose', label: 'แต่งจากคำที่ทวน', Icon: ShuffleIcon },
-                { key: 'dictation', label: 'ฟังแล้วเขียน', Icon: HeadphonesIcon },
+                { key: 'dictation', label: 'ฟังแล้วเขียน', Icon: EarIcon },
                 { key: 'translate', label: 'แปลไทย→ภาษา', Icon: LanguagesSmallIcon },
             ];
             const [subMode, setSubMode] = useState(hasScript ? 'script' : 'compose');
@@ -2878,6 +2880,33 @@
                                         </button>
                                     ))}
                                 </div>
+
+                                {langId === 'lang-cn' && (
+                                    <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
+                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาจีน</h3>
+                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียนตัวอักษร ทำข้อสอบจำลอง และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <button onClick={() => goWriting('lang-cn')}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><BrushIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-[11px] text-gray-400">ลำดับขีด + ออกเสียง</div>
+                                            </button>
+                                            <button onClick={goHsk}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><HskIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ HSK/BCT</div>
+                                                <div className="text-[11px] text-gray-400">จำลองข้อสอบจริง</div>
+                                            </button>
+                                            <button onClick={goListen}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><ListenIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ฟัง-พูด-อ่าน</div>
+                                                <div className="text-[11px] text-gray-400">บทฟัง, พูดตาม, อ่านยาว</div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {Object.keys(wrong).length > 0 && (
                                     <div className="bg-white rounded-xl border border-gray-200 p-5">
