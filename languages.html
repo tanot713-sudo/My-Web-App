@@ -1128,13 +1128,17 @@
         function WritingView({ langId, setLangId, xp, setXp, srs, setSrs, writing, setWriting, dueCounts }) {
             const lang = LANGS[langId];
             const hasScript = langId === 'lang-cn';
+            // srsBased: true = โหมดนี้ดึงคิวจาก dueVocab(langId, srs) เหมือนกันหมด (ใช้ pool เดียวกันจริงๆ
+            // ไม่ได้แยกคิวกันคนละโหมด — ทวนคำไหนในโหมดไหนก็ตัดออกจากคิวของอีก 2 โหมดด้วย) เลยโชว์
+            // due-badge ตัวเลขเดียวกันได้ทั้ง 3 ปุ่มอย่างถูกต้อง ไม่ใช่ค่าคนละชุดที่บังเอิญเท่ากัน
             const SUB_MODES = [
-                ...(hasScript ? [{ key: 'script', label: 'ฝึกเขียนตัวอักษร', Icon: BrushIcon }] : []),
+                ...(hasScript ? [{ key: 'script', label: 'ฝึกเขียนตัวอักษร', Icon: BrushIcon, srsBased: true }] : []),
                 { key: 'compose', label: 'แต่งประโยคอิสระ', Icon: PenToolIcon },
-                { key: 'srsCompose', label: 'แต่งจากคำที่ทวน', Icon: ShuffleIcon },
-                { key: 'dictation', label: 'ฟังแล้วเขียน', Icon: EarIcon },
+                { key: 'srsCompose', label: 'แต่งจากคำที่ทวน', Icon: ShuffleIcon, srsBased: true },
+                { key: 'dictation', label: 'ฟังแล้วเขียน', Icon: EarIcon, srsBased: true },
                 { key: 'translate', label: 'แปลไทย→ภาษา', Icon: LanguagesSmallIcon },
             ];
+            const langDue = (dueCounts && dueCounts[langId]) || 0;
             const [subMode, setSubMode] = useState(hasScript ? 'script' : 'compose');
             // เดิมหน้านี้มีแถวปุ่มเลือกภาษาของตัวเอง (14 ปุ่มโชว์ตลอด) ซึ่งซ้ำกับปุ่มดินสอที่แถบข้าง
             // ตอนนี้พาเข้ามาแบบเลือกภาษาไว้แล้ว เลยยุบเป็น chip + ปุ่ม "เปลี่ยนภาษา" แทน กางออกเฉพาะตอนต้องใช้จริง
@@ -1205,6 +1209,11 @@
                                 <button key={m.key} onClick={() => setSubMode(m.key)}
                                     className={`px-3 py-1.5 flex items-center gap-1.5 ${subMode === m.key ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
                                     <m.Icon /> {m.label}
+                                    {m.srsBased && langDue > 0 && (
+                                        <span className={`text-[9px] font-bold rounded-full min-w-[15px] h-[15px] flex items-center justify-center px-0.5 leading-none ${subMode === m.key ? 'bg-white/25 text-white' : 'bg-red-500 text-white'}`}>
+                                            {langDue > 99 ? '99+' : langDue}
+                                        </span>
+                                    )}
                                 </button>
                             ))}
                         </div>
@@ -2453,19 +2462,25 @@
             return (
                 <div className="flex-1 overflow-y-auto bg-gray-50">
                     <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
-                        <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold w-fit flex-wrap bg-white">
-                            <button onClick={() => setSubMode('listening')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'listening' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
-                                <Volume2 /> ฟังเรื่องสั้น
-                            </button>
-                            <button onClick={() => setSubMode('shadowing')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'shadowing' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
-                                <MicIcon /> พูดตาม
-                            </button>
-                            <button onClick={() => setSubMode('reading')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'reading' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
-                                <BookOpen /> อ่านเรื่องยาว
-                            </button>
-                            <button onClick={() => setSubMode('numbers')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'numbers' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
-                                <HashIcon /> ตัวเลข-วันที่
-                            </button>
+                        {/* แยกเป็น 2 กลุ่มเพราะ "ตัวเลข-วันที่" เป็นแบบฝึกหัดคำศัพท์ ไม่ใช่ทักษะฟัง/พูด/อ่าน
+                            เหมือน 3 ปุ่มแรก — ทำเป็นคนละ pill กันให้เห็นชัดว่าเป็นคนละหมวด ไม่ใช่ทักษะที่ 4 */}
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold w-fit flex-wrap bg-white">
+                                <button onClick={() => setSubMode('listening')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'listening' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                                    <Volume2 /> ฟังเรื่องสั้น
+                                </button>
+                                <button onClick={() => setSubMode('shadowing')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'shadowing' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                                    <MicIcon /> พูดตาม
+                                </button>
+                                <button onClick={() => setSubMode('reading')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'reading' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                                    <BookOpen /> อ่านเรื่องยาว
+                                </button>
+                            </div>
+                            <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold w-fit bg-white">
+                                <button onClick={() => setSubMode('numbers')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'numbers' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                                    <HashIcon /> ตัวเลข-วันที่ <span className="font-normal opacity-70">(แบบฝึกหัดเสริม)</span>
+                                </button>
+                            </div>
                         </div>
                         <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-6">
                             {subMode === 'listening' && <ListeningPanel awardXp={awardXp} />}
