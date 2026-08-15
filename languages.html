@@ -1665,6 +1665,20 @@
                 setSectionResults([]); setCorrectInSection(0); setAllWrong([]); setFinished(false);
             };
 
+            // ── เล่นเสียงอัตโนมัติทันทีที่เข้าโจทย์ฟังข้อใหม่ (听力 เท่านั้น) — เหมือนที่ทำกับ TOEIC/
+            //    JLPT ปุ่ม "ฟังเสียง" เดิมยังอยู่ให้กดฟังซ้ำได้ตามปกติ ต้องอยู่ก่อน early return ทุก
+            //    อันเพราะเป็น hook (HSK/BCT ใช้คำเดี่ยวๆ ไม่ใช่บทสนทนาแบบ TOEIC/JLPT เลยแค่ speak()
+            //    ครั้งเดียวพอ ไม่ต้องมีหลายเสียง/หลาย timer แบบนั้น) ──
+            useEffect(() => {
+                if (!exam || showIntro || finished) return;
+                const sec = exam.sections[sectionIdx];
+                const question = sec && sec.questions[qIdx];
+                if (!question) return;
+                if (question.type !== 'listen-tf' && question.type !== 'listen-mc') return;
+                const t0 = setTimeout(() => speak(question.word, 'zh'), 400);
+                return () => clearTimeout(t0);
+            }, [exam, sectionIdx, qIdx, showIntro]);
+
             const examLabel = examType === 'bct' ? `BCT (${level})` : `HSK${level}`;
 
             if (langId !== 'lang-cn') {
