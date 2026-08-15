@@ -2290,6 +2290,29 @@
             };
             const examLabel = examType === 'toeic' ? 'TOEIC' : 'IELTS';
 
+            // ── เล่นเสียงอัตโนมัติทันทีที่เข้าโจทย์ฟังข้อใหม่ (ไม่ต้องกดปุ่ม "ฟัง" เอง) — เฉพาะ
+            //    ประเภทโจทย์ที่เป็นข้อสอบฟังเป็นหลัก (Part 1-4 ของ TOEIC/IELTS Listening) ปุ่มฟังซ้ำ
+            //    เดิมยังอยู่ให้กดฟังซ้ำได้ตามปกติ ต้องอยู่ก่อน early return ทุกอันเพราะเป็น hook ──
+            useEffect(() => {
+                if (!exam || showIntro || finished) return;
+                const sec = exam.sections[sectionIdx];
+                const question = sec && sec.questions[qIdx];
+                if (!question) return;
+                const timers = [];
+                const t0 = setTimeout(() => {
+                    if (question.type === 'photo-mc') {
+                        question.choices.forEach((c, i) => timers.push(setTimeout(() => speak(c, 'en'), i * 2600)));
+                    } else if (question.type === 'qr-mc') {
+                        speak(question.q, 'en');
+                    } else if (question.type === 'dialogue-mc') {
+                        question.lines.forEach((ln, i) => timers.push(setTimeout(() => speak(ln, 'en'), i * 1800)));
+                    } else if (question.type === 'talk-mc') {
+                        speak(question.text, 'en');
+                    }
+                }, 400); // หน่วงสั้นๆ ให้ UI เปลี่ยนหน้าเสร็จก่อนเริ่มพูด
+                return () => { clearTimeout(t0); timers.forEach(clearTimeout); };
+            }, [exam, sectionIdx, qIdx, showIntro]);
+
             if (langId !== 'lang-en') {
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
@@ -2324,8 +2347,8 @@
                                 <b>IELTS</b>: มีครบ Listening + Reading + Writing Task 1 (สรุปข้อมูลจากตาราง แทนกราฟรูปภาพ) + Task 2
                                 + Speaking (โจทย์ฝึกพูด 3 ส่วนแบบข้อสอบจริง อัดเสียงฟังทวนได้ แต่ไม่มีระบบให้คะแนนการพูด)<br />
                                 <b>TOEIC</b>: จำนวนข้อครบ 200 ข้อตามโครงสร้างจริงทุก Part (Part1 ภาพ6/Part2 ถาม-ตอบ25/Part3 บทสนทนา39/
-                                Part4 บทพูด30/Part5 ไวยากรณ์30/Part6 เติมข้อความ16/Part7 อ่านจับใจความ54) — Part 1 ไม่มีคลังรูปภาพจริง
-                                เลยใช้บรรยายฉากเป็นข้อความแทน และ Part 7 ใช้บทความเดี่ยวล้วนแทนที่จะมีแบบจับคู่ 2-3 บทความเหมือนข้อสอบจริง
+                                Part4 บทพูด30/Part5 ไวยากรณ์30/Part6 เติมข้อความ16/Part7 อ่านจับใจความ54) — Part 1-4 (Listening) เสียงเล่น
+                                ให้อัตโนมัติทันทีที่เข้าโจทย์ กดฟังซ้ำได้ตลอด และ Part 7 ใช้บทความเดี่ยวล้วนแทนที่จะมีแบบจับคู่ 2-3 บทความเหมือนข้อสอบจริง
                                 (จำนวนข้อรวมเท่าของจริงเป๊ะ)
                             </p>
                         </div>
@@ -2549,7 +2572,7 @@
                                 </div>
                                 <button onClick={() => q.choices.forEach((c, i) => setTimeout(() => speak(c, 'en'), i * 2600))}
                                     className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-brand bg-brand/10 rounded-full px-3 py-1.5">
-                                    <Volume2 /> ฟังตัวเลือกทั้งหมด (A-D)
+                                    <Volume2 /> ฟังอีกครั้ง (A-D)
                                 </button>
                                 <p className="text-xs text-gray-400 mb-2">เลือกประโยคภาษาอังกฤษที่ตรงกับภาพนี้:</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -2559,7 +2582,7 @@
                         {q.type === 'qr-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 กดฟังคำถามแล้วเลือกคำตอบที่เหมาะสม</p>
+                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังคำถามแล้วเลือกคำตอบที่เหมาะสม</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.q}</div>
                                     <button onClick={() => speak(q.q, 'en')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
                                 </div>
@@ -2575,7 +2598,7 @@
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700">{ln}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speak(ln, 'en'), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนา</button>
+                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -2587,7 +2610,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
                                     <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
-                                    <button onClick={() => speak(q.text, 'en')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูด</button>
+                                    <button onClick={() => speak(q.text, 'en')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
