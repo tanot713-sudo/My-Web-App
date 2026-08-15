@@ -117,6 +117,39 @@
             } catch (e) {}
         }
 
+        // ── หลายเสียงพูดสำหรับข้อสอบฟัง TOEIC/IELTS — ข้อสอบจริงสลับผู้พูดหลายคน/หลายสำเนียงเพื่อ
+        //    เพิ่มความยาก (ไม่ใช่เสียงเดียวซ้ำทุกข้อแบบ speak() ปกติที่ใช้ทั่วเว็บ) เลือกจากรายชื่อ
+        //    เสียงภาษาอังกฤษที่เบราว์เซอร์/อุปกรณ์ผู้ใช้มีจริง (ไม่ได้ดาวน์โหลดเสียงเพิ่มจากไหน) แล้ว
+        //    วน slot ตามลำดับ ถ้าเครื่องมีเสียงอังกฤษแค่ตัวเดียว (บาง OS/เบราว์เซอร์) จะ fallback
+        //    เป็นเสียงเดียวเหมือนเดิมโดยอัตโนมัติ ไม่พัง
+        let cachedEnVoices = null;
+        function getEnglishVoices() {
+            try {
+                const voices = window.speechSynthesis.getVoices() || [];
+                const en = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+                if (en.length) cachedEnVoices = en;
+                return en.length ? en : (cachedEnVoices || []);
+            } catch (e) { return cachedEnVoices || []; }
+        }
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+            // บางเบราว์เซอร์ (เช่น Chrome) โหลดรายชื่อเสียงแบบ async — ต้องรอ event นี้ก่อนถึงจะมีให้เลือก
+            window.speechSynthesis.onvoiceschanged = () => { getEnglishVoices(); };
+        }
+        function speakVoice(text, langCode, slot) {
+            try {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = langCode;
+                const voices = getEnglishVoices();
+                if (voices.length && typeof slot === 'number') {
+                    const v = voices[((slot % voices.length) + voices.length) % voices.length];
+                    u.voice = v;
+                    u.lang = v.lang;
+                }
+                window.speechSynthesis.speak(u);
+            } catch (e) {}
+        }
+
         function loadXp() {
             try { return JSON.parse(localStorage.getItem('lang-practice:xp') || '0'); } catch { return 0; }
         }
@@ -1842,7 +1875,7 @@
         ];
         function genPhotoMc(count) {
             const picked = shuffleArr(TOEIC_PHOTO_ITEMS).slice(0, Math.min(count, TOEIC_PHOTO_ITEMS.length));
-            return picked.map(item => ({ type: 'photo-mc', scene: item.scene, svg: item.svg, choices: shuffleArr([item.correct, ...item.distractors]), correct: item.correct }));
+            return picked.map((item, i) => ({ type: 'photo-mc', scene: item.scene, svg: item.svg, choices: shuffleArr([item.correct, ...item.distractors]), correct: item.correct, voiceSlot: i }));
         }
 
         const TOEIC_QR_ITEMS = [
@@ -1874,7 +1907,7 @@
         ];
         function genQrMc(count) {
             const picked = shuffleArr(TOEIC_QR_ITEMS).slice(0, Math.min(count, TOEIC_QR_ITEMS.length));
-            return picked.map(item => ({ type: 'qr-mc', q: item.q, choices: shuffleArr([item.correct, ...item.distractors]), correct: item.correct }));
+            return picked.map((item, i) => ({ type: 'qr-mc', q: item.q, choices: shuffleArr([item.correct, ...item.distractors]), correct: item.correct, voiceSlot: i }));
         }
 
         const TOEIC_DIALOGUES = [
@@ -1947,7 +1980,9 @@
         function genDialogueMc(count) {
             const picked = shuffleArr(TOEIC_DIALOGUES).slice(0, Math.min(count, TOEIC_DIALOGUES.length));
             const out = [];
-            picked.forEach(d => { d.questions.forEach(q => out.push({ type: 'dialogue-mc', lines: d.lines, q: q.q, choices: shuffleArr(q.choices), correct: q.correct })); });
+            // dialogueSlot ต่าง dialogue กัน ให้ผู้พูดของแต่ละบทสนทนาไม่ใช่คู่เสียงเดิมซ้ำทุกบท ส่วนภายใน
+            // บทเดียวกัน บรรทัดสลับคู่/คี่ = คนละคนพูด (ตรงกับที่โจทย์อ้างอิง "the man"/"the woman" สลับกัน)
+            picked.forEach((d, di) => { d.questions.forEach(q => out.push({ type: 'dialogue-mc', lines: d.lines, q: q.q, choices: shuffleArr(q.choices), correct: q.correct, dialogueSlot: di })); });
             return out;
         }
 
@@ -2006,7 +2041,8 @@
         function genTalkMc(count) {
             const picked = shuffleArr(TOEIC_TALKS).slice(0, Math.min(count, TOEIC_TALKS.length));
             const out = [];
-            picked.forEach(t => { t.questions.forEach(q => out.push({ type: 'talk-mc', text: t.text, q: q.q, choices: shuffleArr(q.choices), correct: q.correct })); });
+            // ผู้พูดคนเดียวกันตลอดบทพูดเดียว (voiceSlot คงที่ต่อบท) แต่ต่างบทพูดใช้เสียงต่างกัน
+            picked.forEach((t, ti) => { t.questions.forEach(q => out.push({ type: 'talk-mc', text: t.text, q: q.q, choices: shuffleArr(q.choices), correct: q.correct, voiceSlot: ti })); });
             return out;
         }
 
@@ -2300,14 +2336,16 @@
                 if (!question) return;
                 const timers = [];
                 const t0 = setTimeout(() => {
+                    // ใช้ speakVoice (ไม่ใช่ speak เฉยๆ) — สลับเสียงพูดหลายเสียง/หลายสำเนียงตามที่เครื่อง
+                    // ผู้ใช้มี เพื่อจำลองข้อสอบฟังจริงที่ไม่ได้มีแค่ผู้พูดคนเดียวตลอดทั้งชุด
                     if (question.type === 'photo-mc') {
-                        question.choices.forEach((c, i) => timers.push(setTimeout(() => speak(c, 'en'), i * 2600)));
+                        question.choices.forEach((c, i) => timers.push(setTimeout(() => speakVoice(c, 'en', question.voiceSlot), i * 2600)));
                     } else if (question.type === 'qr-mc') {
-                        speak(question.q, 'en');
+                        speakVoice(question.q, 'en', question.voiceSlot);
                     } else if (question.type === 'dialogue-mc') {
-                        question.lines.forEach((ln, i) => timers.push(setTimeout(() => speak(ln, 'en'), i * 1800)));
+                        question.lines.forEach((ln, i) => timers.push(setTimeout(() => speakVoice(ln, 'en', question.dialogueSlot * 2 + (i % 2)), i * 1800)));
                     } else if (question.type === 'talk-mc') {
-                        speak(question.text, 'en');
+                        speakVoice(question.text, 'en', question.voiceSlot);
                     }
                 }, 400); // หน่วงสั้นๆ ให้ UI เปลี่ยนหน้าเสร็จก่อนเริ่มพูด
                 return () => { clearTimeout(t0); timers.forEach(clearTimeout); };
@@ -2570,7 +2608,7 @@
                                     <p className="text-[10px] font-bold text-gray-400 uppercase mb-2 text-center">📷 Photo Description</p>
                                     <ToeicPhotoIllustration id={q.svg} />
                                 </div>
-                                <button onClick={() => q.choices.forEach((c, i) => setTimeout(() => speak(c, 'en'), i * 2600))}
+                                <button onClick={() => q.choices.forEach((c, i) => setTimeout(() => speakVoice(c, 'en', q.voiceSlot), i * 2600))}
                                     className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-brand bg-brand/10 rounded-full px-3 py-1.5">
                                     <Volume2 /> ฟังอีกครั้ง (A-D)
                                 </button>
@@ -2584,7 +2622,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <p className="text-xs text-gray-400 mb-3">🎧 ฟังคำถามแล้วเลือกคำตอบที่เหมาะสม</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.q}</div>
-                                    <button onClick={() => speak(q.q, 'en')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.q, 'en', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -2593,11 +2631,11 @@
                         {q.type === 'dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700">{ln}</p>)}
                                     </div>
-                                    <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speak(ln, 'en'), i * 1800))}
+                                    <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln, 'en', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
                                         className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
@@ -2610,7 +2648,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
                                     <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
-                                    <button onClick={() => speak(q.text, 'en')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.text, 'en', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
