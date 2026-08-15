@@ -1130,11 +1130,27 @@
             const [qIdx, setQIdx] = useState(0);
             const [typed, setTyped] = useState('');
             const [result, setResult] = useState(null);
+            // โหมดเขียนด้วยมือ (iPad ฯลฯ) — ก็อปปี้แพทเทิร์นเดียวกับ ComposePanel (HandwritingCanvas +
+            // Tesseract OCR แปลงเป็นข้อความ) มาปรับใช้ตรงนี้ ต่างกันแค่ผลลัพธ์ไปเติม typed แทน text
+            const [inputMode, setInputMode] = useState('type'); // 'type' | 'write'
+            const [canvasEl, setCanvasEl] = useState(null);
+            const [ocrStatus, setOcrStatus] = useState('');
 
-            useEffect(() => { setQIdx(0); setTyped(''); setResult(null); }, [langId]);
+            useEffect(() => { setQIdx(0); setTyped(''); setResult(null); setInputMode('type'); setOcrStatus(''); }, [langId]);
 
             if (!words.length) return <p className="text-sm text-gray-400">ยังไม่มีคำศัพท์ให้ทวนตอนนี้</p>;
             const item = words[qIdx % words.length];
+
+            const runOcr = () => {
+                if (!canvasEl) return;
+                if (!window.Tesseract) { setOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
+                setOcrStatus('⏳ กำลังอ่านลายมือ...');
+                window.Tesseract.recognize(canvasEl, 'eng+tha').then(r => {
+                    const t = (r.data.text || '').trim();
+                    if (t) { setTyped(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนกดตรวจคำตอบ'); }
+                    else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
+                }).catch(e => setOcrStatus('❌ แปลงไม่สำเร็จ: ' + (e && e.message ? e.message : e)));
+            };
 
             const check = () => {
                 const grade = gradeAnswer(typed, item.word);
@@ -1143,7 +1159,7 @@
                 if (grade === 'correct') awardXp(15);
                 else if (grade === 'almost') awardXp(8);
             };
-            const next = () => { setQIdx(i => i + 1); setTyped(''); setResult(null); };
+            const next = () => { setQIdx(i => i + 1); setTyped(''); setResult(null); setInputMode('type'); setOcrStatus(''); };
 
             return (
                 <div>
@@ -1152,9 +1168,29 @@
                         className="flex items-center gap-2 px-5 py-3 mb-4 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
                         <Volume2 /> กดฟังเสียง (ฟังซ้ำได้)
                     </button>
-                    <input value={typed} onChange={e => setTyped(e.target.value)} onKeyDown={e => e.key === 'Enter' && !result && check()}
-                        disabled={!!result} placeholder="พิมพ์คำที่ได้ยิน..."
-                        className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl px-4 py-3 text-base disabled:bg-gray-50" />
+
+                    <div className="flex rounded-full border border-gray-200 overflow-hidden w-fit mb-2">
+                        <button type="button" onClick={() => setInputMode('type')} disabled={!!result} title="พิมพ์" aria-label="พิมพ์"
+                            className={`p-2 disabled:opacity-40 ${inputMode === 'type' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><KeyboardIcon /></button>
+                        <button type="button" onClick={() => setInputMode('write')} disabled={!!result} title="เขียนด้วยมือ" aria-label="เขียนด้วยมือ"
+                            className={`p-2 disabled:opacity-40 ${inputMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><PencilSmallIcon /></button>
+                    </div>
+
+                    {inputMode === 'type' ? (
+                        <input value={typed} onChange={e => setTyped(e.target.value)} onKeyDown={e => e.key === 'Enter' && !result && check()}
+                            disabled={!!result} placeholder="พิมพ์คำที่ได้ยิน..."
+                            className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl px-4 py-3 text-base disabled:bg-gray-50" />
+                    ) : (
+                        <div>
+                            <HandwritingCanvas onReady={setCanvasEl} height={200} />
+                            <div className="flex items-center gap-3 mt-2 flex-wrap">
+                                <button type="button" onClick={runOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ</button>
+                                {ocrStatus && <span className="text-xs text-gray-400">{ocrStatus}</span>}
+                            </div>
+                            <p className="text-[11px] text-gray-400 mt-1">รองรับเขียนด้วยนิ้ว/สไตลัส/Apple Pencil บน iPad — OCR แม่นสุดกับภาษาละติน/ไทย ภาษาอื่น (จีน/ญี่ปุ่น/เกาหลี/อาหรับ ฯลฯ) อาจอ่านไม่ออกหรือผิดเยอะ ควรตรวจทานเสมอ</p>
+                            {typed && <p className="text-xs text-gray-500 mt-2">ข้อความล่าสุด: "{typed}"</p>}
+                        </div>
+                    )}
                     {result && (
                         <div className={`mt-4 p-4 rounded-xl border ${result === 'correct' ? 'bg-green-50 border-green-100' : result === 'almost' ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100'}`}>
                             <p className="text-sm text-gray-700">คำตอบที่ถูกต้องคือ <strong>{item.word}</strong> ({item.thai})</p>
@@ -1180,8 +1216,23 @@
             const [aiFeedback, setAiFeedback] = useState('');
             const [aiStatus, setAiStatus] = useState('');
             const [aiVerdict, setAiVerdict] = useState(null);
+            // โหมดเขียนด้วยมือ (iPad ฯลฯ) — แพทเทิร์นเดียวกับ ComposePanel/SrsDictationPanel
+            const [inputMode, setInputMode] = useState('type'); // 'type' | 'write'
+            const [canvasEl, setCanvasEl] = useState(null);
+            const [ocrStatus, setOcrStatus] = useState('');
 
             const item = allPhrases[qIdx % allPhrases.length];
+
+            const runOcr = () => {
+                if (!canvasEl) return;
+                if (!window.Tesseract) { setOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
+                setOcrStatus('⏳ กำลังอ่านลายมือ...');
+                window.Tesseract.recognize(canvasEl, 'eng+tha').then(r => {
+                    const t = (r.data.text || '').trim();
+                    if (t) { setTyped(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนกดตรวจ'); }
+                    else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
+                }).catch(e => setOcrStatus('❌ แปลงไม่สำเร็จ: ' + (e && e.message ? e.message : e)));
+            };
 
             const checkHeuristic = () => {
                 const grade = gradeAnswer(typed, item.target);
@@ -1230,15 +1281,36 @@
             const next = () => {
                 setQIdx(Math.floor(Math.random() * allPhrases.length));
                 setTyped(''); setHeuristicResult(null); setAiFeedback(''); setAiStatus(''); setAiVerdict(null);
+                setInputMode('type'); setOcrStatus('');
             };
 
             return (
                 <div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">แปลประโยคนี้เป็นภาษา{lang.title}:</h3>
                     <p className="text-xl font-bold text-gray-900 mb-4">{item.thai}</p>
-                    <textarea value={typed} onChange={e => setTyped(e.target.value)} rows={2}
-                        placeholder={`พิมพ์คำแปลภาษา${lang.title}...`}
-                        className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-base resize-y" />
+
+                    <div className="flex rounded-full border border-gray-200 overflow-hidden w-fit mb-2">
+                        <button type="button" onClick={() => setInputMode('type')} title="พิมพ์" aria-label="พิมพ์"
+                            className={`p-2 ${inputMode === 'type' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><KeyboardIcon /></button>
+                        <button type="button" onClick={() => setInputMode('write')} title="เขียนด้วยมือ" aria-label="เขียนด้วยมือ"
+                            className={`p-2 ${inputMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><PencilSmallIcon /></button>
+                    </div>
+
+                    {inputMode === 'type' ? (
+                        <textarea value={typed} onChange={e => setTyped(e.target.value)} rows={2}
+                            placeholder={`พิมพ์คำแปลภาษา${lang.title}...`}
+                            className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-base resize-y" />
+                    ) : (
+                        <div>
+                            <HandwritingCanvas onReady={setCanvasEl} height={200} />
+                            <div className="flex items-center gap-3 mt-2 flex-wrap">
+                                <button type="button" onClick={runOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ</button>
+                                {ocrStatus && <span className="text-xs text-gray-400">{ocrStatus}</span>}
+                            </div>
+                            <p className="text-[11px] text-gray-400 mt-1">รองรับเขียนด้วยนิ้ว/สไตลัส/Apple Pencil บน iPad — OCR แม่นสุดกับภาษาละติน/ไทย ภาษาอื่น (จีน/ญี่ปุ่น/เกาหลี/อาหรับ ฯลฯ) อาจอ่านไม่ออกหรือผิดเยอะ ควรตรวจทานเสมอ</p>
+                            {typed && <p className="text-xs text-gray-500 mt-2">ข้อความล่าสุด: "{typed}"</p>}
+                        </div>
+                    )}
                     <div className="flex flex-wrap gap-2 mt-3">
                         <button onClick={checkHeuristic} disabled={!typed.trim()}
                             className="px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-900 text-white disabled:bg-gray-200 disabled:text-gray-400">ตรวจแบบเร็ว</button>
