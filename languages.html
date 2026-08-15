@@ -235,6 +235,56 @@
             const sim = 1 - levenshtein(a, b) / Math.max(a.length, b.length);
             return sim >= 0.9 ? 'correct' : sim >= 0.7 ? 'almost' : 'wrong';
         }
+        // ── diff ตัวอักษร (LCS-based) — ใช้โชว์ว่าตัวอักษร/สระตัวไหนสะกดผิดชัดๆ แทนที่จะบอกแค่
+        //    "ผิด" เฉยๆ ช่วยแก้ปัญหาสะกดสระผิด (เช่น พิมพ์ "recieve" แต่คำจริงคือ "receive") ให้เห็นจุด
+        //    ที่ต่างตรงๆ ไม่ต้องเดา — คืนอาร์เรย์ของทั้งสองฝั่ง แต่ละตัวมี {ch, same}
+        function diffChars(a, b) {
+            const m = a.length, n = b.length;
+            const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+            for (let i = 1; i <= m; i++) {
+                for (let j = 1; j <= n; j++) {
+                    dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+            let i = m, j = n;
+            const aOut = [], bOut = [];
+            while (i > 0 && j > 0) {
+                if (a[i - 1] === b[j - 1]) {
+                    aOut.push({ ch: a[i - 1], same: true }); bOut.push({ ch: b[j - 1], same: true });
+                    i--; j--;
+                } else if (dp[i - 1][j] >= dp[i][j - 1]) {
+                    aOut.push({ ch: a[i - 1], same: false }); i--;
+                } else {
+                    bOut.push({ ch: b[j - 1], same: false }); j--;
+                }
+            }
+            while (i > 0) { aOut.push({ ch: a[i - 1], same: false }); i--; }
+            while (j > 0) { bOut.push({ ch: b[j - 1], same: false }); j--; }
+            aOut.reverse(); bOut.reverse();
+            return { typedDiff: aOut, correctDiff: bOut };
+        }
+        // component โชว์ diff ให้เห็นเป็นภาพ — ตัวที่พิมพ์ผิด/ขาดหาย ไฮไลต์แดง, ตัวที่ถูกไฮไลต์เขียว
+        function SpellDiff({ typed, correct }) {
+            const { typedDiff, correctDiff } = useMemo(() => diffChars(typed.trim(), correct.trim()), [typed, correct]);
+            const hasDiff = typedDiff.some(c => !c.same) || correctDiff.some(c => !c.same);
+            if (!hasDiff) return null;
+            return (
+                <div className="mt-2 text-sm font-mono leading-relaxed break-all">
+                    <div>
+                        <span className="text-[10px] font-sans font-bold text-gray-400 uppercase mr-1">คุณพิมพ์:</span>
+                        {typedDiff.map((c, i) => (
+                            <span key={i} className={c.same ? 'text-gray-500' : 'bg-red-100 text-red-700 rounded-sm'}>{c.ch}</span>
+                        ))}
+                    </div>
+                    <div>
+                        <span className="text-[10px] font-sans font-bold text-gray-400 uppercase mr-1">ที่ถูกต้อง:</span>
+                        {correctDiff.map((c, i) => (
+                            <span key={i} className={c.same ? 'text-gray-700' : 'bg-green-100 text-green-700 font-bold rounded-sm'}>{c.ch}</span>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
 
         // ── คิวคำที่ตอบผิด (โผล่บนหน้าสตรีมให้กลับมาฝึกซ้ำ) ─────────────────────
         function loadWrong() {
@@ -1051,6 +1101,7 @@
                     {result && (
                         <div className={`mt-4 p-4 rounded-xl border ${result === 'correct' ? 'bg-green-50 border-green-100' : result === 'almost' ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100'}`}>
                             <p className="text-sm text-gray-700">คำตอบที่ถูกต้องคือ <strong>{item.word}</strong> ({item.thai})</p>
+                            {result !== 'correct' && <SpellDiff typed={typed} correct={item.word} />}
                         </div>
                     )}
                     {!result ? (
@@ -4464,6 +4515,7 @@
                                                         <strong>คำตอบที่ถูกต้องคือ:</strong> {current.target}
                                                         {mode === 'dictation' && <span className="block text-gray-500 mt-1">ความหมาย: {current.thai}</span>}
                                                     </p>
+                                                    {result !== 'correct' && (mode === 'translate' || mode === 'dictation') && <SpellDiff typed={typed} correct={current.target} />}
                                                 </div>
                                             )}
 
