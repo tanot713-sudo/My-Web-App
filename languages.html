@@ -7658,6 +7658,368 @@
         }
 
         // ══════════════════════════════════════════════════════════════════════════════════
+        // แบบทดสอบความเข้าใจภาษาฮินดี — ต่างจาก HSK/TOEIC/IELTS/JLPT/TOPIK/DELE/PLIDA/ТРКИ ตรงที่
+        // "ไม่ได้จำลองข้อสอบทางการชุดใดชุดหนึ่ง" เพราะค้นคว้าแล้วไม่พบข้อสอบวัดระดับภาษาฮินดีสำหรับ
+        // ชาวต่างชาติที่เป็นมาตรฐานสากลเปิดเผยโครงสร้างชัดเจนแบบ CEFR/HSK/TOPIK เลย (มีแต่ Kendriya
+        // Hindi Sansthan ที่ Agra ซึ่งเปิดหลักสูตร Certificate/Diploma/Advanced Diploma in Hindi
+        // Language Proficiency — 4-5 ส่วน Oral/Written Expression, Language Structures, Text ฯลฯ
+        // แต่เป็นหลักสูตรหลายปีของสถาบันเดียว ไม่ใช่ข้อสอบระดับเดียวที่มีโครงสร้าง/สัดส่วนคะแนนต่อส่วน
+        // เปิดเผยต่อสาธารณะชัดเจนแบบ DELE/TORFL, และมีอีกสายคือ Prarambhik/Praveshika/Visharad/
+        // Acharya ของ Hindi Pracharini Sabha ซึ่งเป็นระดับหลักสูตรวรรณคดีมากกว่าข้อสอบวัดระดับสื่อสาร) —
+        // จึงออกแบบโครงสร้างเองทั้งหมด (ไม่อ้างว่าจำลองของจริง) เป็นแบบทดสอบความเข้าใจทั่วไป 2 ส่วน
+        // (ฟัง+อ่าน) ตามแนวทางเดียวกับที่ทำกับภาษากวางตุ้ง — เนื้อหาทั้งหมดแต่งเอง คำศัพท์ส่วนคำศัพท์
+        // ดึงจาก vocab-data ภาษาฮินดี (Stage 1)
+        // ══════════════════════════════════════════════════════════════════════════════════
+
+        // คำศัพท์ทั่วไปของฮินดียังไม่มีหมวดเฉพาะทาง (จะเพิ่มใน Stage 5) จึงยังไม่ต้องกรองอะไรออก
+        function hiVocabPool() {
+            const out = [];
+            const cats = VOCAB['lang-in'] || {};
+            Object.keys(cats).forEach(cat => out.push(...(cats[cat] || []).map((w, i) => ({ key: `lang-in::vocab-${cat}::${i}`, word: w.word, translit: w.translit, thai: w.thai }))));
+            return out;
+        }
+        function genHiWordMeaningMc(pool, count) {
+            const picked = shuffleArr(pool).slice(0, Math.min(count, pool.length));
+            return picked.map(item => {
+                const distractors = shuffleArr(pool.filter(p => p.word !== item.word)).slice(0, 3);
+                const choices = shuffleArr([item.thai, ...distractors.map(d => d.thai)]);
+                return { type: 'hi-word-meaning-mc', word: item.word, translit: item.translit, correct: item.thai, choices };
+            });
+        }
+
+        // ไวยากรณ์ฮินดีมีจุดเด่นที่ต่างจากทุกภาษาที่ทำมาก่อนหน้านี้ (ทั้งภาษาโรมานซ์/เจอร์แมนิก/สลาฟ)
+        // อย่างสิ้นเชิง — เพราะเป็นภาษาตระกูลอินโด-อารยัน (Indo-Aryan) เรียงประโยคแบบ SOV (ประธาน-กรรม-
+        // กริยา ต่างจาก SVO ของภาษาที่ทำมาก่อนหน้านี้ทั้งหมด), ใช้ postposition (คำเสริมหลังคำนาม เช่น
+        // में/से/को/के लिए) แทน preposition แบบภาษาอื่น, คุณศัพท์/กริยาผันตามเพศของประธาน (2 เพศ: ชาย/
+        // หญิง ไม่มีเพศกลางแบบรัสเซีย) และจุดที่โดดเด่นที่สุดคือโครงสร้าง "ergative" กับกริยาอดีตกาลที่มี
+        // กรรม — ต้องเติมคำเสริม "ने" หลังประธาน แล้วกริยาจะผันตามเพศ/พจน์ของ "กรรม" ไม่ใช่ประธาน (เช่น
+        // मैंने किताब पढ़ी = ฉันอ่านหนังสือ กริยา पढ़ी ผันเป็นเพศหญิงเพราะ किताब เป็นเพศหญิง ไม่ใช่ผัน
+        // ตาม मैं) — โครงสร้างนี้ไม่มีในภาษาอินโด-ยูโรเปียนสาขาอื่นที่ทำมาก่อนหน้านี้เลย
+        const HI_GRAMMAR = [
+            { sentence: "यह ___ घर है।", choices: ["बड़ा", "बड़ी", "बड़े", "बड़ों"], correct: "बड़ा" },
+            { sentence: "यह ___ किताब है।", choices: ["अच्छा", "अच्छी", "अच्छे", "अच्छों"], correct: "अच्छी" },
+            { sentence: "मैं घर ___ हूँ।", choices: ["में", "पर", "से", "को"], correct: "में" },
+            { sentence: "मैं थाईलैंड ___ हूँ।", choices: ["से", "में", "पर", "को"], correct: "से" },
+            { sentence: "वह खाना खाता ___।", choices: ["है", "हैं", "हो", "हूँ"], correct: "है" },
+            { sentence: "हम भारत से ___ हैं।", choices: ["है", "हैं", "हो", "हूँ"], correct: "हैं" },
+            { sentence: "मैंने किताब ___।", choices: ["पढ़ी", "पढ़ा", "पढ़ते", "पढ़ना"], correct: "पढ़ी" },
+            { sentence: "यह तुम्हारे ___ है।", choices: ["के लिए", "में", "पर", "से"], correct: "के लिए" },
+            { sentence: "यह ___ है?", choices: ["क्या", "कौन", "कहाँ", "कब"], correct: "क्या" },
+            { sentence: "मैं हिंदी ___ बोलता।", choices: ["नहीं", "है", "हूँ", "था"], correct: "नहीं" },
+        ];
+
+        // บทอ่านสั้น 1 คำถาม/บท เขียนเป็นภาษาฮินดีระดับต้น หัวข้อคู่ขนานกับภาษาอื่นที่ทำมาก่อนหน้านี้
+        const HI_READING = [
+            { text: "मेरा नाम अन्ना है। मैं दिल्ली में रहती हूँ। मैं थाई भाषा सीख रही हूँ।", questions: [
+                { q: "अन्ना क्या सीख रही है?", choices: ["थाई भाषा", "अंग्रेज़ी भाषा", "जर्मन भाषा"], correct: "थाई भाषा" },
+            ] },
+            { text: "रेस्तराँ सोमवार को बंद रहता है। मंगलवार से रविवार तक खुला रहता है।", questions: [
+                { q: "रेस्तराँ कब बंद रहता है?", choices: ["सोमवार को", "मंगलवार को", "रविवार को"], correct: "सोमवार को" },
+            ] },
+            { text: "कल मैंने शॉपिंग मॉल में एक नई कमीज़ खरीदी। वह बहुत सुंदर है।", questions: [
+                { q: "मैंने कल क्या खरीदा?", choices: ["कमीज़", "जूते", "बैग"], correct: "कमीज़" },
+            ] },
+            { text: "आज बहुत ठंड है और बारिश हो रही है। कल गर्मी थी और धूप थी।", questions: [
+                { q: "आज मौसम कैसा है?", choices: ["ठंड और बारिश", "गर्मी और धूप", "गर्म और हवा"], correct: "ठंड और बारिश" },
+            ] },
+            { text: "मेरा भाई अस्पताल में डॉक्टर का काम करता है। वह बीमार लोगों की मदद करता है।", questions: [
+                { q: "मेरा भाई क्या काम करता है?", choices: ["डॉक्टर", "शिक्षक", "ड्राइवर"], correct: "डॉक्टर" },
+            ] },
+        ];
+        function genHiPassageMc(dataset, count) {
+            const picked = shuffleArr(dataset).slice(0, Math.min(count, dataset.length));
+            const out = [];
+            picked.forEach(p => { p.questions.forEach(q => out.push({ type: 'passage-mc', text: p.text, q: q.q, choices: shuffleArr(q.choices), correct: q.correct })); });
+            return out;
+        }
+
+        // ประโยคเดียว + เลือกคำตอบที่เหมาะสม (quick response)
+        const HI_RESPONSES = [
+            { phrase: "अभी क्या समय हुआ है?", choices: ["अभी तीन बजे हैं।", "हाँ, बिल्कुल सही।", "बहुत धन्यवाद।"], correct: "अभी तीन बजे हैं।" },
+            { phrase: "क्या आपने खाना खाया?", choices: ["हाँ, खा लिया।", "अभी तीन बजे हैं।", "मेरा नाम टैनोट है।"], correct: "हाँ, खा लिया।" },
+            { phrase: "यह कपड़ा कितने का है?", choices: ["सौ रुपए का है।", "बहुत स्वादिष्ट है।", "कल मिलते हैं।"], correct: "सौ रुपए का है।" },
+            { phrase: "क्या मैं आपकी टैक्सी बुला दूँ?", choices: ["हाँ, कृपया बुला दीजिए।", "बहुत धन्यवाद।", "मुझे नहीं आता।"], correct: "हाँ, कृपया बुला दीजिए।" },
+            { phrase: "आपका नाम क्या है?", choices: ["मेरा नाम टैनोट है।", "अभी तीन बजे हैं।", "बहुत ठंड है।"], correct: "मेरा नाम टैनोट है।" },
+            { phrase: "कल मिलेंगे?", choices: ["हाँ, कल मिलते हैं।", "बहुत धन्यवाद।", "कितने बजे हैं।"], correct: "हाँ, कल मिलते हैं।" },
+        ];
+        function genHiResponseMc(count) {
+            const picked = shuffleArr(HI_RESPONSES).slice(0, Math.min(count, HI_RESPONSES.length));
+            return picked.map((r, ri) => ({ type: 'hi-response-mc', phrase: r.phrase, choices: shuffleArr(r.choices), correct: r.correct, voiceSlot: ri }));
+        }
+
+        // บทสนทนาสั้น 2-4 ประโยค + คำถาม 1 ข้อ/บท
+        const HI_DIALOGUES = [
+            { lines: [{ speaker: 'A', text: "तुम अभी क्या कर रहे हो?" }, { speaker: 'B', text: "मैं होमवर्क कर रहा हूँ।" }], q: "B क्या कर रहा है?", choices: ["होमवर्क कर रहा है", "खाना खा रहा है", "सो रहा है"], correct: "होमवर्क कर रहा है" },
+            { lines: [{ speaker: 'A', text: "यह कितने का है?" }, { speaker: 'B', text: "पचास रुपए।" }, { speaker: 'A', text: "थोड़ा कम कर दो?" }, { speaker: 'B', text: "ठीक है, चालीस रुपए ले लो।" }], q: "आख़िर में कितने रुपए में तय हुआ?", choices: ["चालीस रुपए", "पचास रुपए", "तीस रुपए"], correct: "चालीस रुपए" },
+            { lines: [{ speaker: 'A', text: "तुम कल फ़ुर्सत में हो?" }, { speaker: 'B', text: "हाँ, क्यों?" }, { speaker: 'A', text: "साथ में फ़िल्म देखने चलें?" }, { speaker: 'B', text: "बढ़िया!" }], q: "वे कल क्या करेंगे?", choices: ["फ़िल्म देखेंगे", "खाना खाएँगे", "काम पर जाएँगे"], correct: "फ़िल्म देखेंगे" },
+            { lines: [{ speaker: 'A', text: "आज मौसम कैसा है?" }, { speaker: 'B', text: "बहुत गर्मी है और बारिश भी हो रही है।" }], q: "आज मौसम कैसा है?", choices: ["गर्मी और बारिश", "ठंड", "साफ़ आसमान"], correct: "गर्मी और बारिश" },
+            { lines: [{ speaker: 'A', text: "क्या तुम्हें हिंदी आती है?" }, { speaker: 'B', text: "थोड़ी-थोड़ी, अभी सीख रहा हूँ।" }], q: "B की हिंदी कैसी है?", choices: ["थोड़ी-थोड़ी, अभी सीख रहा है", "बहुत अच्छी", "बिल्कुल नहीं आती"], correct: "थोड़ी-थोड़ी, अभी सीख रहा है" },
+            { lines: [{ speaker: 'A', text: "यहाँ बाथरूम कहाँ है?" }, { speaker: 'B', text: "वहाँ है।" }, { speaker: 'A', text: "बहुत धन्यवाद।" }], q: "बाथरूम कहाँ है?", choices: ["वहाँ", "यहाँ", "कोई बाथरूम नहीं है"], correct: "वहाँ" },
+            { lines: [{ speaker: 'A', text: "तुम आज कितने बजे काम पर जाओगे?" }, { speaker: 'B', text: "नौ बजे।" }, { speaker: 'A', text: "इतनी देर से?" }, { speaker: 'B', text: "देर नहीं, हमारा दफ़्तर नौ बजे ही खुलता है।" }], q: "B कितने बजे काम पर जाएगा?", choices: ["नौ बजे", "आठ बजे", "दस बजे"], correct: "नौ बजे" },
+            { lines: [{ speaker: 'A', text: "तुम्हारे घर में कितने लोग हैं?" }, { speaker: 'B', text: "चार लोग, माता-पिता और मेरा छोटा भाई।" }], q: "B के घर में कितने लोग हैं?", choices: ["चार लोग", "तीन लोग", "पाँच लोग"], correct: "चार लोग" },
+        ];
+        function genHiDialogueMc(count) {
+            const picked = shuffleArr(HI_DIALOGUES).slice(0, Math.min(count, HI_DIALOGUES.length));
+            return picked.map((d, di) => ({ type: 'hi-dialogue-mc', lines: d.lines, q: d.q, choices: shuffleArr(d.choices), correct: d.correct, dialogueSlot: di }));
+        }
+
+        function buildHiExam() {
+            const pool = hiVocabPool();
+            return {
+                kind: 'hi-comprehension',
+                sections: [
+                    { key: 'listening', title: 'सुनना (ฟัง)', icon: '🎧',
+                        questions: [...genHiResponseMc(6), ...genHiDialogueMc(8)] },
+                    { key: 'reading', title: 'पढ़ना (อ่าน)', icon: '📖',
+                        questions: [...genHiWordMeaningMc(pool, 15), ...genGrammarMc(HI_GRAMMAR, 10), ...genHiPassageMc(HI_READING, 5)] },
+                ],
+            };
+        }
+
+        // ── แบบทดสอบความเข้าใจภาษาฮินดี — โคลนโครงสร้าง state machine มาจาก YueExamView (ไม่มีส่วนเขียน/
+        //    พูดเหมือนกัน ไม่มีขั้น "เลือกประเภทข้อสอบ" เพราะมีแบบทดสอบเดียว)
+        function HiExamView({ langId, setLangId, setXp }) {
+            const [started, setStarted] = useState(false);
+            const [exam, setExam] = useState(null);
+            const [sectionIdx, setSectionIdx] = useState(0);
+            const [showIntro, setShowIntro] = useState(true);
+            const [qIdx, setQIdx] = useState(0);
+            const [answered, setAnswered] = useState(false);
+            const [userAnswer, setUserAnswer] = useState(null);
+            const [sectionResults, setSectionResults] = useState([]);
+            const [correctInSection, setCorrectInSection] = useState(0);
+            const [allWrong, setAllWrong] = useState([]);
+            const [finished, setFinished] = useState(false);
+
+            const resetPerQuestion = () => { setAnswered(false); setUserAnswer(null); };
+            const start = () => {
+                setExam(buildHiExam());
+                setStarted(true);
+                setSectionIdx(0); setShowIntro(true);
+                resetPerQuestion();
+                setSectionResults([]); setCorrectInSection(0); setAllWrong([]); setFinished(false);
+            };
+
+            useEffect(() => {
+                if (!exam || showIntro || finished) return;
+                const sec = exam.sections[sectionIdx];
+                const question = sec && sec.questions[qIdx];
+                if (!question) return;
+                const timers = [];
+                const t0 = setTimeout(() => {
+                    if (question.type === 'hi-dialogue-mc') {
+                        question.lines.forEach((ln, i) => timers.push(setTimeout(() => speakVoice(ln.text, 'hi', question.dialogueSlot * 2 + (i % 2)), i * 1800)));
+                    } else if (question.type === 'hi-response-mc') {
+                        speakVoice(question.phrase, 'hi', question.voiceSlot);
+                    }
+                }, 400);
+                return () => { clearTimeout(t0); timers.forEach(clearTimeout); };
+            }, [exam, sectionIdx, qIdx, showIntro]);
+
+            if (langId !== 'lang-in') {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-6 text-center">
+                            <p className="text-gray-500 mb-4">แบบทดสอบชุดนี้รองรับเฉพาะภาษาฮินดี</p>
+                            <button onClick={() => setLangId('lang-in')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาฮินดี</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!started) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-1">แบบทดสอบความเข้าใจภาษาฮินดี</h2>
+                            <p className="text-sm text-gray-500 mb-5">วัดความเข้าใจพื้นฐาน — 2 ส่วน (ฟัง+อ่าน)</p>
+                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
+                                <div className="text-xs text-gray-500">सुनना (ฟัง) 14 + पढ़ना (อ่าน) 30 = 44 ข้อ</div>
+                            </button>
+                            <p className="text-xs text-gray-400 leading-relaxed text-left">
+                                <b>หมายเหตุสำคัญ</b>: ต่างจากข้อสอบ HSK/TOEIC/IELTS/JLPT/TOPIK/DELE/PLIDA/ТРКИ ในเว็บนี้ตรงที่
+                                แบบทดสอบชุดนี้<b>ไม่ได้จำลองข้อสอบทางการชุดใดชุดหนึ่ง</b> — เพราะภาษาฮินดีไม่มีข้อสอบวัดระดับสำหรับ
+                                ชาวต่างชาติที่เป็นมาตรฐานสากลเปิดเผยโครงสร้างชัดเจนแบบ CEFR/HSK/TOPIK ให้อ้างอิง (มีแต่ Kendriya
+                                Hindi Sansthan ที่เปิดหลักสูตร Certificate/Diploma หลายปี ไม่ใช่ข้อสอบระดับเดียวที่มีสัดส่วนคะแนน
+                                ต่อส่วนเปิดเผยชัดเจน) จึงออกแบบโครงสร้างและเนื้อหาเองทั้งหมดเป็นแบบทดสอบความเข้าใจทั่วไป<br />
+                                <b>ความแตกต่างจากข้อสอบจริง</b>: सुनना (ฟัง) แสดงบทพูดเป็นตัวอักษรคู่กับเสียงด้วยเพื่อช่วยผู้เริ่มต้นตามทัน
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+
+            const restart = start;
+            const backToStart = () => { setStarted(false); setExam(null); };
+
+            if (finished) {
+                const totalCorrect = sectionResults.reduce((s, r) => s + r.correct, 0);
+                const totalQ = sectionResults.reduce((s, r) => s + r.total, 0);
+                const pct = totalQ ? Math.round(totalCorrect / totalQ * 100) : 0;
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลแบบทดสอบ</h2>
+                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <p className="text-gray-500 mb-4">{pct}% ถูกต้อง</p>
+                            <div className="grid grid-cols-2 gap-2 mb-5">
+                                {sectionResults.map(r => (
+                                    <div key={r.key} className="bg-white rounded-xl border border-gray-200 p-3">
+                                        <div className="text-xs text-gray-400">{r.title}</div>
+                                        <div className="text-lg font-bold text-gray-800">{r.correct}/{r.total}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {allWrong.length > 0 && (
+                                <div className="text-left bg-white rounded-xl border border-gray-200 p-4 mb-4 max-h-72 overflow-y-auto">
+                                    <p className="text-sm font-bold text-gray-700 mb-2 sticky top-0 bg-white">ข้อที่ตอบผิด ({allWrong.length}):</p>
+                                    <div className="space-y-1.5">
+                                        {allWrong.map((w, i) => (
+                                            <div key={i} className="text-sm text-gray-600 flex justify-between gap-3">
+                                                <span>{w.left}</span>
+                                                <span className="text-gray-800 font-semibold text-right">{w.right}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex gap-2 justify-center flex-wrap">
+                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">ทำใหม่ (สุ่มโจทย์ใหม่)</button>
+                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเริ่มต้น</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const section = exam.sections[sectionIdx];
+
+            if (showIntro) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">ส่วนที่ {sectionIdx + 1}/{exam.sections.length}</p>
+                            <div className="text-5xl mb-3">{section.icon}</div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
+                            <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
+                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const q = section.questions[qIdx];
+
+            const finishSection = () => {
+                const results = [...sectionResults, { key: section.key, title: section.title, correct: correctInSection, total: section.questions.length }];
+                setSectionResults(results);
+                if (sectionIdx + 1 >= exam.sections.length) {
+                    setFinished(true);
+                } else {
+                    setSectionIdx(i => i + 1);
+                    setShowIntro(true);
+                    setQIdx(0);
+                    resetPerQuestion();
+                    setCorrectInSection(0);
+                }
+            };
+            const nextQuestion = () => {
+                if (qIdx + 1 >= section.questions.length) { finishSection(); return; }
+                setQIdx(i => i + 1); resetPerQuestion();
+            };
+            const recordAnswer = (isCorrect, wrongEntry) => {
+                setAnswered(true);
+                if (isCorrect) { setCorrectInSection(c => c + 1); setXp(x => x + 2); }
+                else if (wrongEntry) setAllWrong(w => [...w, wrongEntry]);
+            };
+            const pickMc = (choice) => {
+                if (answered) return;
+                setUserAnswer(choice);
+                const isCorrect = choice === q.correct;
+                const leftLabel = q.word || q.sentence || q.phrase || q.q || q.thai;
+                recordAnswer(isCorrect, isCorrect ? null : { left: leftLabel || 'ข้อนี้', right: q.correct });
+            };
+
+            const progressLabel = `${section.title} · ข้อ ${qIdx + 1}/${section.questions.length}`;
+
+            return (
+                <div className="flex-1 overflow-y-auto bg-gray-50">
+                    <div className="max-w-xl mx-auto p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <span className="text-xs font-bold text-gray-400 uppercase">{progressLabel}</span>
+                            <span className="text-xs font-bold text-brand">ถูก {correctInSection} ข้อ</span>
+                        </div>
+
+                        {q.type === 'hi-word-meaning-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-3xl font-bold text-gray-900 mb-1">{q.word}</div>
+                                    <div className="text-sm text-gray-400 mb-2">{q.translit}</div>
+                                    <button onClick={() => speak(q.word, 'hi')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'grammar-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'passage-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'hi-response-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
+                                    <button onClick={() => speakVoice(q.phrase, 'hi', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                </div>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'hi-dialogue-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <div className="space-y-1">
+                                        {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
+                                    </div>
+                                    <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'hi', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
+                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {answered && (
+                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                                {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ══════════════════════════════════════════════════════════════════════════════════
         // แบบทดสอบความเข้าใจภาษาจีนกวางตุ้ง — ต่างจาก HSK/TOEIC/IELTS/JLPT/TOPIK ตรงที่ "ไม่ได้จำลอง
         // ข้อสอบทางการชุดใดชุดหนึ่ง" เพราะค้นหาแล้วไม่พบข้อสอบวัดระดับภาษากวางตุ้งที่เป็นมาตรฐานสากล
         // เปิดเผยโครงสร้างชัดเจนแบบ HSK/TOPIK เลย (มีแต่ LPAT ซึ่งเป็นข้อสอบครูในฮ่องกงโดยเฉพาะ, CRAT
@@ -11250,10 +11612,11 @@
                 setMobileNavOpen(false);
             };
 
-            // ปุ่ม "ข้อสอบ" รองรับ 11 ภาษาแล้ว (จีนกลาง→HSK/BCT, อังกฤษ→IELTS/TOEIC, ญี่ปุ่น→JLPT,
+            // ปุ่ม "ข้อสอบ" รองรับ 12 ภาษาแล้ว (จีนกลาง→HSK/BCT, อังกฤษ→IELTS/TOEIC, ญี่ปุ่น→JLPT,
             // เกาหลี→TOPIK, จีนกวางตุ้ง→แบบทดสอบความเข้าใจที่แต่งเอง, เยอรมัน→Goethe A1, ฝรั่งเศส→DELF A1,
-            // อิตาลี→PLIDA A1, สเปน→DELE A1, โปรตุเกส→CELPE-Bras, รัสเซีย→ТРКИ-1/TORFL A1) — ถ้ากำลังอยู่
-            // ภาษาที่มีข้อสอบอยู่แล้วให้ไปหน้าข้อสอบของภาษานั้นเลย ภาษาอื่นนอกเหนือจากนี้ยัง fallback ไปจีนกลาง
+            // อิตาลี→PLIDA A1, สเปน→DELE A1, โปรตุเกส→CELPE-Bras, รัสเซีย→ТРКИ-1/TORFL A1, ฮินดี→แบบทดสอบ
+            // ความเข้าใจที่แต่งเอง) — ถ้ากำลังอยู่ภาษาที่มีข้อสอบอยู่แล้วให้ไปหน้าข้อสอบของภาษานั้นเลย
+            // ภาษาอื่นนอกเหนือจากนี้ยัง fallback ไปจีนกลาง
             const goExam = () => {
                 if (langId === 'lang-en') {
                     setView('enexam');
@@ -11275,6 +11638,8 @@
                     setView('ptexam');
                 } else if (langId === 'lang-ru') {
                     setView('ruexam');
+                } else if (langId === 'lang-in') {
+                    setView('hiexam');
                 } else {
                     setLangId('lang-cn');
                     setView('hsk');
@@ -11386,7 +11751,7 @@
                                             <div key={id} className="flex items-center gap-1">
                                                 <button
                                                     onClick={() => selectLang(id)}
-                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
+                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
                                                 >
                                                     <Languages /> <span className="flex-1 text-left truncate">{LANGS[id].title}</span>
                                                     {allDone && <CheckCircle />}
@@ -11475,7 +11840,7 @@
                                 <button
                                     onClick={goExam}
                                     title="รองรับภาษาจีนกลาง (HSK/BCT), อังกฤษ (IELTS/TOEIC), ญี่ปุ่น (JLPT), เกาหลี (TOPIK), จีนกวางตุ้ง (แบบทดสอบความเข้าใจ), เยอรมัน (Goethe A1), ฝรั่งเศส (DELF A1), อิตาลี (PLIDA A1), สเปน (DELE A1) และโปรตุเกส (CELPE-Bras) — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
-                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
                                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
@@ -11843,6 +12208,21 @@
                                     </div>
                                 )}
 
+                                {langId === 'lang-in' && (
+                                    <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
+                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาฮินดี</h3>
+                                        <p className="text-xs text-gray-400 mb-4">ทำแบบทดสอบความเข้าใจภาษาฮินดี โดยเฉพาะ</p>
+                                        <div className="grid grid-cols-1 gap-3">
+                                            <button onClick={goExam}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><HskIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">แบบทดสอบความเข้าใจภาษาฮินดี</div>
+                                                <div className="text-[11px] text-gray-400">सुनना (ฟัง)・पढ़ना (อ่าน)</div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {Object.keys(wrong).length > 0 && (
                                     <div className="bg-white rounded-xl border border-gray-200 p-5">
                                         <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><XCircle /> คำที่เคยตอบผิด ({Object.keys(wrong).length})</h3>
@@ -12114,6 +12494,8 @@
                         <PtExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : view === 'ruexam' ? (
                         <RuExamView langId={langId} setLangId={setLangId} setXp={setXp} />
+                        ) : view === 'hiexam' ? (
+                        <HiExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : (
                         <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} />
                         )}
