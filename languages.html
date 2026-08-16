@@ -10017,9 +10017,9 @@
         ];
 
         function ListeningPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-yue' ? LISTENING_PASSAGES_YUE : langId === 'lang-en' ? LISTENING_PASSAGES_EN : langId === 'lang-de' ? LISTENING_PASSAGES_DE : langId === 'lang-fr' ? LISTENING_PASSAGES_FR : langId === 'lang-it' ? LISTENING_PASSAGES_IT : langId === 'lang-es' ? LISTENING_PASSAGES_ES : langId === 'lang-pt' ? LISTENING_PASSAGES_PT : langId === 'lang-ru' ? LISTENING_PASSAGES_RU : langId === 'lang-in' ? LISTENING_PASSAGES_HI : langId === 'lang-ar' ? LISTENING_PASSAGES_AR : LISTENING_PASSAGES;
+            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-yue' ? LISTENING_PASSAGES_YUE : langId === 'lang-en' ? LISTENING_PASSAGES_EN : langId === 'lang-de' ? LISTENING_PASSAGES_DE : langId === 'lang-fr' ? LISTENING_PASSAGES_FR : langId === 'lang-it' ? LISTENING_PASSAGES_IT : langId === 'lang-es' ? LISTENING_PASSAGES_ES : langId === 'lang-pt' ? LISTENING_PASSAGES_PT : langId === 'lang-ru' ? LISTENING_PASSAGES_RU : langId === 'lang-in' ? LISTENING_PASSAGES_HI : langId === 'lang-ar' ? LISTENING_PASSAGES_AR : langId === 'lang-vn' ? LISTENING_PASSAGES_VN : LISTENING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' || langId === 'lang-in' || langId === 'lang-ar' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' || langId === 'lang-in' || langId === 'lang-ar' || langId === 'lang-vn' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -10151,7 +10151,7 @@
         // หมายเหตุ lang-yue: Whisper (asr-worker.js) ไม่มีตัวเลือกภาษา "cantonese" แยกต่างหากในรายชื่อ
         // ภาษาทางการ 99 ภาษา ใช้ 'chinese' แทน (ใกล้เคียงที่สุดที่มี แม่นยำน้อยกว่าภาษาที่มีในรายชื่อจริง
         // — ผู้ใช้ควรตรวจทานข้อความที่ถอดออกมาเองเสมอ เหมือนที่ระบบเตือนไว้อยู่แล้วทั่วไป)
-        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean', 'lang-yue': 'chinese', 'lang-de': 'german', 'lang-fr': 'french', 'lang-it': 'italian', 'lang-es': 'spanish', 'lang-pt': 'portuguese', 'lang-ru': 'russian', 'lang-in': 'hindi', 'lang-ar': 'arabic' };
+        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean', 'lang-yue': 'chinese', 'lang-de': 'german', 'lang-fr': 'french', 'lang-it': 'italian', 'lang-es': 'spanish', 'lang-pt': 'portuguese', 'lang-ru': 'russian', 'lang-in': 'hindi', 'lang-ar': 'arabic', 'lang-vn': 'vietnamese' };
         function transcribeSpeech(pcm, langName) {
             return new Promise((resolve, reject) => {
                 const w = getAsrWorker();
@@ -10735,9 +10735,9 @@
         ];
 
         function ReadingPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-yue' ? READING_PASSAGES_YUE : langId === 'lang-en' ? READING_PASSAGES_EN : langId === 'lang-de' ? READING_PASSAGES_DE : langId === 'lang-fr' ? READING_PASSAGES_FR : langId === 'lang-it' ? READING_PASSAGES_IT : langId === 'lang-es' ? READING_PASSAGES_ES : langId === 'lang-pt' ? READING_PASSAGES_PT : langId === 'lang-ru' ? READING_PASSAGES_RU : langId === 'lang-in' ? READING_PASSAGES_HI : langId === 'lang-ar' ? READING_PASSAGES_AR : READING_PASSAGES;
+            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-yue' ? READING_PASSAGES_YUE : langId === 'lang-en' ? READING_PASSAGES_EN : langId === 'lang-de' ? READING_PASSAGES_DE : langId === 'lang-fr' ? READING_PASSAGES_FR : langId === 'lang-it' ? READING_PASSAGES_IT : langId === 'lang-es' ? READING_PASSAGES_ES : langId === 'lang-pt' ? READING_PASSAGES_PT : langId === 'lang-ru' ? READING_PASSAGES_RU : langId === 'lang-in' ? READING_PASSAGES_HI : langId === 'lang-ar' ? READING_PASSAGES_AR : langId === 'lang-vn' ? READING_PASSAGES_VN : READING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' || langId === 'lang-in' || langId === 'lang-ar' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' || langId === 'lang-in' || langId === 'lang-ar' || langId === 'lang-vn' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -11126,7 +11126,7 @@
         }
 
         function NumbersDatesPanel({ awardXp, langId }) {
-            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-yue' ? NUMBERS_DATES_YUE : langId === 'lang-en' ? NUMBERS_DATES_EN : langId === 'lang-de' ? NUMBERS_DATES_DE : langId === 'lang-fr' ? NUMBERS_DATES_FR : langId === 'lang-it' ? NUMBERS_DATES_IT : langId === 'lang-es' ? NUMBERS_DATES_ES : langId === 'lang-pt' ? NUMBERS_DATES_PT : langId === 'lang-ru' ? NUMBERS_DATES_RU : langId === 'lang-in' ? NUMBERS_DATES_HI : langId === 'lang-ar' ? NUMBERS_DATES_AR : NUMBERS_DATES;
+            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-yue' ? NUMBERS_DATES_YUE : langId === 'lang-en' ? NUMBERS_DATES_EN : langId === 'lang-de' ? NUMBERS_DATES_DE : langId === 'lang-fr' ? NUMBERS_DATES_FR : langId === 'lang-it' ? NUMBERS_DATES_IT : langId === 'lang-es' ? NUMBERS_DATES_ES : langId === 'lang-pt' ? NUMBERS_DATES_PT : langId === 'lang-ru' ? NUMBERS_DATES_RU : langId === 'lang-in' ? NUMBERS_DATES_HI : langId === 'lang-ar' ? NUMBERS_DATES_AR : langId === 'lang-vn' ? NUMBERS_DATES_VN : NUMBERS_DATES;
             const langCode = LANGS[langId].code;
             const [catKey, setCatKey] = useState('all');
             const [queue, setQueue] = useState(() => buildNdQueue('all', dataset));
@@ -13057,9 +13057,242 @@
             ],
         };
 
+
+        // ── บทฟังภาษาเวียดนาม 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่น รวมตัวละคร "Minji" ที่ปรากฏซ้ำทุกภาษา) ──
+        const LISTENING_PASSAGES_VN = [
+            {
+                level: 1, title: 'Qua điện thoại',
+                lines: [
+                    { speaker: 'A', target: 'Alô?', thai: 'ฮัลโหล' },
+                    { speaker: 'B', target: 'Alô, tôi là Minji đây.', thai: 'สวัสดีค่ะ ฉันชื่อมินจี' },
+                    { speaker: 'A', target: 'Bạn đang ở đâu vậy?', thai: 'ตอนนี้คุณอยู่ที่ไหน' },
+                    { speaker: 'B', target: 'Tôi đang ở nhà.', thai: 'ฉันอยู่บ้าน' },
+                ],
+                questions: [
+                    { q: 'Minji đang ở đâu?', choices: ['ở nhà', 'ở trường', 'ở văn phòng'], correct: 'ở nhà' },
+                    { q: 'Ai đã nói "Tôi là Minji"?', choices: ['Minji', 'người khác', 'không ai cả'], correct: 'Minji' },
+                ],
+            },
+            {
+                level: 1, title: 'Ở cửa hàng',
+                lines: [
+                    { speaker: 'A', target: 'Quả táo này giá bao nhiêu?', thai: 'แอปเปิลลูกนี้ราคาเท่าไหร่' },
+                    { speaker: 'B', target: 'Nó giá một đô la.', thai: 'หนึ่งดอลลาร์ค่ะ' },
+                    { speaker: 'A', target: 'Đắt quá. Giảm giá được không?', thai: 'แพงไปนะ ลดหน่อยได้ไหม' },
+                    { speaker: 'B', target: 'Được, tôi bán tám mươi xu.', thai: 'ได้ค่ะ แปดสิบเซนต์' },
+                ],
+                questions: [
+                    { q: 'Giá ban đầu là bao nhiêu?', choices: ['một đô la', 'tám mươi xu', 'năm mươi xu'], correct: 'một đô la' },
+                    { q: 'Giá cuối cùng là bao nhiêu?', choices: ['một đô la', 'tám mươi xu', 'năm mươi xu'], correct: 'tám mươi xu' },
+                ],
+            },
+            {
+                level: 2, title: 'Hẹn hò',
+                lines: [
+                    { speaker: 'A', target: 'Tối nay bạn có rảnh không?', thai: 'คืนนี้คุณว่างไหม' },
+                    { speaker: 'B', target: 'Có, tôi rảnh. Sao vậy?', thai: 'ว่างสิ มีอะไรเหรอ' },
+                    { speaker: 'A', target: 'Chúng ta xem phim cùng nhau nhé?', thai: 'ไปดูหนังด้วยกันไหม' },
+                    { speaker: 'B', target: 'Rất vui! Mấy giờ gặp nhau?', thai: 'ดีเลย! นัดกี่โมงดี' },
+                    { speaker: 'A', target: 'Bảy giờ, trước rạp chiếu phim.', thai: 'หนึ่งทุ่ม ที่หน้าโรงหนัง' },
+                ],
+                questions: [
+                    { q: 'Họ sẽ làm gì?', choices: ['xem phim', 'ăn tối', 'mua sắm'], correct: 'xem phim' },
+                    { q: 'Mấy giờ họ gặp nhau?', choices: ['sáu giờ', 'bảy giờ', 'chín giờ'], correct: 'bảy giờ' },
+                ],
+            },
+            {
+                level: 2, title: 'Thời tiết hôm nay',
+                lines: [
+                    { speaker: 'A', target: 'Hôm nay thời tiết thế nào?', thai: 'วันนี้อากาศเป็นยังไงบ้าง' },
+                    { speaker: 'B', target: 'Rất lạnh. Lại còn mưa nữa.', thai: 'วันนี้หนาวมาก แล้วก็ฝนตกด้วย' },
+                    { speaker: 'A', target: 'Vậy chắc chúng ta không đi công viên rồi.', thai: 'งั้นเราไม่ไปสวนสาธารณะกันดีกว่า' },
+                    { speaker: 'B', target: 'Đúng vậy, ở nhà xem tivi thôi.', thai: 'ได้ อยู่บ้านดูทีวีกันดีกว่า' },
+                ],
+                questions: [
+                    { q: 'Hôm nay thời tiết thế nào?', choices: ['lạnh và mưa', 'nóng và nắng', 'có tuyết'], correct: 'lạnh và mưa' },
+                    { q: 'Cuối cùng họ sẽ làm gì?', choices: ['đi công viên', 'xem tivi ở nhà', 'mua sắm'], correct: 'xem tivi ở nhà' },
+                ],
+            },
+            {
+                level: 3, title: 'Tìm việc làm',
+                lines: [
+                    { speaker: 'A', target: 'Dạo này bạn làm gì?', thai: 'ช่วงนี้คุณยุ่งอะไรอยู่' },
+                    { speaker: 'B', target: 'Tôi đang tìm việc. Đã phỏng vấn ba lần rồi.', thai: 'ฉันกำลังหางาน ไปสัมภาษณ์มาสามครั้งแล้ว' },
+                    { speaker: 'A', target: 'Thế mọi việc suôn sẻ không?', thai: 'เป็นยังไงบ้าง ราบรื่นไหม' },
+                    { speaker: 'B', target: 'Cũng tạm ổn. Tuần sau có một công ty sẽ gọi lại.', thai: 'ก็โอเคนะ มีบริษัทหนึ่งจะตอบกลับสัปดาห์หน้า' },
+                ],
+                questions: [
+                    { q: 'Dạo này B đang làm gì?', choices: ['tìm việc', 'học', 'du lịch'], correct: 'tìm việc' },
+                    { q: 'B đã phỏng vấn mấy lần?', choices: ['một lần', 'hai lần', 'ba lần'], correct: 'ba lần' },
+                ],
+            },
+            {
+                level: 3, title: 'Kế hoạch du lịch',
+                lines: [
+                    { speaker: 'A', target: 'Kỳ nghỉ hè này bạn sẽ đi đâu?', thai: 'ปิดเทอมนี้คุณจะไปเที่ยวที่ไหน' },
+                    { speaker: 'B', target: 'Tôi định đi Đà Nẵng. Cảnh ở đó rất đẹp.', thai: 'ฉันตั้งใจจะไปดานัง ที่นั่นวิวสวยมาก' },
+                    { speaker: 'A', target: 'Bạn đi một mình à?', thai: 'ไปคนเดียวเหรอ' },
+                    { speaker: 'B', target: 'Không, tôi đi với bạn trai. Chúng tôi định đi bằng tàu hỏa.', thai: 'เปล่า ฉันไปกับแฟน เราตั้งใจจะนั่งรถไฟไป' },
+                ],
+                questions: [
+                    { q: 'B định đi đâu?', choices: ['Hà Nội', 'Đà Nẵng', 'Cần Thơ'], correct: 'Đà Nẵng' },
+                    { q: 'Họ định đi bằng gì?', choices: ['máy bay', 'tàu hỏa', 'ô tô'], correct: 'tàu hỏa' },
+                ],
+            },
+        ];
+
+        // ── บทอ่านภาษาเวียดนาม 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่น) ตรงตามรูปแบบ {level,title,lines,questions}
+        //    เดียวกับ READING_PASSAGES_RU/HI/AR (lines ที่นี่ไม่มี speaker เพราะเป็นข้อความบรรยาย ไม่ใช่บทสนทนา) ──
+        const READING_PASSAGES_VN = [
+            {
+                level: 1, title: 'Một ngày của tôi',
+                lines: [
+                    { target: 'Mỗi ngày tôi thức dậy lúc bảy giờ.', thai: 'ทุกวันฉันตื่นนอนเจ็ดโมงเช้า' },
+                    { target: 'Ăn sáng xong tôi đi học.', thai: 'ฉันกินข้าวเช้าก่อน แล้วค่อยไปโรงเรียน' },
+                    { target: 'Ở trường tôi học bài.', thai: 'ฉันเรียนหนังสือที่โรงเรียน' },
+                    { target: 'Buổi trưa tôi ăn trưa với bạn.', thai: 'ตอนเที่ยงฉันกินข้าวเที่ยงกับเพื่อน' },
+                    { target: 'Ba giờ chiều tôi về nhà.', thai: 'ตอนบ่ายสามโมงฉันกลับบ้าน' },
+                    { target: 'Buổi tối tôi xem tivi và đi ngủ lúc mười giờ.', thai: 'ตอนเย็นฉันดูทีวี นอนสี่ทุ่ม' },
+                ],
+                questions: [
+                    { q: 'Người này thức dậy lúc mấy giờ?', choices: ['bảy giờ', 'tám giờ', 'sáu giờ'], correct: 'bảy giờ' },
+                    { q: 'Người này làm gì trước khi đi học?', choices: ['ăn sáng', 'tắm', 'xem tivi'], correct: 'ăn sáng' },
+                ],
+            },
+            {
+                level: 1, title: 'Gia đình tôi',
+                lines: [
+                    { target: 'Gia đình tôi có bốn người: bố, mẹ, chị gái và tôi.', thai: 'ครอบครัวฉันมีสี่คน: พ่อ แม่ พี่สาว และฉัน' },
+                    { target: 'Bố tôi là bác sĩ, mẹ tôi là giáo viên.', thai: 'พ่อเป็นหมอ แม่เป็นครู' },
+                    { target: 'Chị gái tôi hơn tôi ba tuổi và đang học đại học.', thai: 'พี่สาวอายุมากกว่าฉันสามปี เธอเรียนอยู่มหาวิทยาลัย' },
+                    { target: 'Nhà tôi có một con chó nhỏ. Nó rất dễ thương.', thai: 'บ้านเรามีหมาตัวเล็กหนึ่งตัว มันน่ารักมาก' },
+                    { target: 'Chủ nhật chúng tôi cùng nhau đi công viên.', thai: 'วันอาทิตย์เราไปเที่ยวสวนสาธารณะด้วยกัน' },
+                ],
+                questions: [
+                    { q: 'Bố làm nghề gì?', choices: ['bác sĩ', 'giáo viên', 'nhân viên'], correct: 'bác sĩ' },
+                    { q: 'Chị gái hơn tôi mấy tuổi?', choices: ['một tuổi', 'hai tuổi', 'ba tuổi'], correct: 'ba tuổi' },
+                ],
+            },
+            {
+                level: 2, title: 'Kế hoạch cuối tuần',
+                lines: [
+                    { target: 'Cuối tuần này tôi định làm nhiều việc.', thai: 'สุดสัปดาห์นี้ฉันตั้งใจจะทำหลายอย่าง' },
+                    { target: 'Sáng thứ Bảy tôi đọc sách ở thư viện, chiều đi mua sắm với bạn.', thai: 'เช้าวันเสาร์ฉันจะไปห้องสมุดอ่านหนังสือ บ่ายไปซื้อของกับเพื่อน' },
+                    { target: 'Buổi tối chúng tôi định đi xem phim.', thai: 'ตอนเย็นเราตั้งใจจะไปดูหนัง' },
+                    { target: 'Chủ nhật tôi muốn nghỉ ngơi ở nhà. Có thể tôi sẽ nấu ăn cho gia đình.', thai: 'วันอาทิตย์ฉันอยากพักผ่อนอยู่บ้าน อาจจะทำกับข้าวให้ครอบครัวกิน' },
+                    { target: 'Nếu trời đẹp, tôi cũng muốn chạy bộ ở công viên.', thai: 'ถ้าอากาศดี ฉันยังอยากไปวิ่งที่สวนสาธารณะด้วย' },
+                ],
+                questions: [
+                    { q: 'Sáng thứ Bảy người này đi đâu?', choices: ['thư viện', 'nhà hàng', 'rạp chiếu phim'], correct: 'thư viện' },
+                    { q: 'Chủ nhật người này định làm gì?', choices: ['nghỉ ngơi ở nhà', 'đi làm', 'du lịch'], correct: 'nghỉ ngơi ở nhà' },
+                ],
+            },
+            {
+                level: 2, title: 'Ngày bị ốm',
+                lines: [
+                    { target: 'Tối qua tôi cảm thấy không khỏe.', thai: 'เมื่อคืนฉันรู้สึกไม่สบาย' },
+                    { target: 'Tôi bị đau đầu và hơi sốt.', thai: 'ปวดหัวมาก แล้วก็มีไข้นิดหน่อย' },
+                    { target: 'Sáng nay tôi không đi làm, mà đi khám bác sĩ.', thai: 'เช้านี้ฉันไม่ได้ไปทำงาน ไปโรงพยาบาลหาหมอ' },
+                    { target: 'Bác sĩ nói tôi bị cảm, khuyên tôi uống nhiều nước và nghỉ ngơi. Bác sĩ còn kê thuốc cho tôi.', thai: 'หมอบอกว่าฉันเป็นหวัด ให้ดื่มน้ำเยอะๆ พักผ่อนเยอะๆ แล้วก็จ่ายยาให้ฉันด้วย' },
+                    { target: 'Sau khi uống thuốc, tôi cảm thấy khỏe hơn nhiều.', thai: 'หลังจากกินยาแล้วรู้สึกดีขึ้นมาก' },
+                ],
+                questions: [
+                    { q: 'Tại sao người này cảm thấy không khỏe?', choices: ['vì bị cảm', 'vì đau bụng', 'vì đau chân'], correct: 'vì bị cảm' },
+                    { q: 'Bác sĩ nói gì?', choices: ['uống nhiều nước và nghỉ ngơi', 'tập thể dục nhiều', 'không ăn gì cả'], correct: 'uống nhiều nước và nghỉ ngơi' },
+                ],
+            },
+            {
+                level: 3, title: 'Chuyến bay đầu tiên của tôi',
+                lines: [
+                    { target: 'Tháng trước tôi lần đầu tiên đi máy bay một mình, đến Đà Nẵng.', thai: 'เดือนที่แล้วฉันนั่งเครื่องบินไปเที่ยวดานังคนเดียวเป็นครั้งแรก' },
+                    { target: 'Trước khi khởi hành tôi rất lo lắng. Tôi sợ không tìm được cửa lên máy bay.', thai: 'ก่อนออกเดินทางฉันตื่นเต้นมาก กลัวว่าตัวเองจะหาประตูขึ้นเครื่องไม่เจอ' },
+                    { target: 'Đến sân bay, tôi xem thông tin trên màn hình và tìm được cửa dễ dàng.', thai: 'พอถึงสนามบิน ฉันดูข้อมูลบนจอแล้วหาประตูขึ้นเครื่องเจอได้อย่างราบรื่น' },
+                    { target: 'Vì còn thời gian nên tôi đi dạo trong sân bay và mua một món quà lưu niệm nhỏ.', thai: 'ยังมีเวลาเดินเล่นในสนามบิน ซื้อของฝากเล็กๆ น้อยๆ ด้วย' },
+                    { target: 'Khi máy bay cất cánh tôi hơi sợ, nhưng dần dần quen.', thai: 'ตอนเครื่องบินขึ้น ฉันกลัวนิดหน่อย แต่ค่อยๆ ชินไป' },
+                ],
+                questions: [
+                    { q: 'Người này cảm thấy thế nào trước khi khởi hành?', choices: ['lo lắng về cửa lên máy bay', 'rất vui', 'không cảm thấy gì'], correct: 'lo lắng về cửa lên máy bay' },
+                    { q: 'Ở sân bay, người này còn làm gì ngoài việc tìm cửa?', choices: ['đi dạo và mua quà lưu niệm', 'ngủ', 'gọi điện cho bạn'], correct: 'đi dạo và mua quà lưu niệm' },
+                ],
+            },
+            {
+                level: 3, title: 'Trải nghiệm học tiếng Việt của tôi',
+                lines: [
+                    { target: 'Tôi học tiếng Việt được hai năm rồi.', thai: 'ฉันเรียนภาษาเวียดนามมาสองปีแล้ว' },
+                    { target: 'Lúc đầu phát âm và ngữ pháp rất khó, tôi thường nói sai, và bạn bè hay trêu tôi.', thai: 'ตอนเริ่มแรกฉันรู้สึกว่าการออกเสียงและไวยากรณ์ยากมาก พูดผิดบ่อยๆ แล้วก็ถูกเพื่อนล้อบ่อยๆ' },
+                    { target: 'Sau đó tôi nghe nhạc Việt và xem video tiếng Việt mỗi ngày, dần dần quen với nhịp điệu của ngôn ngữ này.', thai: 'ต่อมาฉันฟังเพลงเวียดนามและดูวิดีโอภาษาเวียดนามทุกวันอย่างสม่ำเสมอ ค่อยๆ ชินกับจังหวะของภาษานี้' },
+                    { target: 'Bây giờ, dù vẫn còn nhiều từ tôi chưa biết, tôi đã có thể trò chuyện đơn giản với bạn bè người Việt.', thai: 'ตอนนี้แม้จะยังมีคำศัพท์ที่ไม่รู้อีกเยอะ แต่ฉันคุยกับเพื่อนคนเวียดนามแบบง่ายๆ ได้แล้ว' },
+                    { target: 'Tôi nghĩ điều quan trọng nhất khi học ngôn ngữ là không sợ sai và tiếp tục cố gắng.', thai: 'ฉันคิดว่าสิ่งที่สำคัญที่สุดในการเรียนภาษาคือไม่ต้องกลัวทำผิด ถ้าพยายามต่อไปเรื่อยๆ ยังไงก็ต้องมีความก้าวหน้า' },
+                ],
+                questions: [
+                    { q: 'Điều gì có vẻ khó nhất lúc đầu?', choices: ['phát âm và ngữ pháp', 'từ vựng', 'chữ cái'], correct: 'phát âm và ngữ pháp' },
+                    { q: 'Người này đã luyện tập thế nào?', choices: ['nghe nhạc và xem video mỗi ngày', 'chỉ học thuộc từ', 'chỉ học ngữ pháp'], correct: 'nghe nhạc và xem video mỗi ngày' },
+                ],
+            },
+        ];
+
+        // ตัวเลข/วันที่/เวลาภาษาเวียดนาม — จุดสังเกตสำคัญ: (1) เลขท้าย 1/4/5 ในคำประสม (ตั้งแต่ 21 ขึ้นไป)
+        // เปลี่ยนรูปคำ: một→mốt (21=hai mươi mốt ไม่ใช่ hai mươi một), bốn→tư (24=hai mươi tư), năm→lăm
+        // (15=mười lăm, 25=hai mươi lăm) เป็นจุดจำยากของผู้เรียนเพราะคำเดียวกันออกเสียงคนละแบบตามตำแหน่ง
+        // (2) ชื่อวันในสัปดาห์นับเลขตรงไปตรงมา (thứ Hai=วันที่สอง เริ่มนับวันจันทร์เป็น "วันที่ 2" เพราะ
+        // วันอาทิตย์ถือเป็น "วันที่ 1" ของสัปดาห์ในธรรมเนียมเก่า) แต่วันอาทิตย์กลับไม่เรียก "thứ Nhất" ตามแพทเทิร์น
+        // เลย กลับใช้ชื่อพิเศษ "Chủ Nhật" (แปลว่า "เจ้าของวัน" มาจากคำยืมจีน-เวียดนาม) ทำลายรูปแบบตัวเลขที่
+        // สม่ำเสมอของวันอื่นๆ ทั้งหมด (3) ชื่อเดือนเรียกง่ายกว่าภาษาอื่นที่ทำมาก่อนหน้านี้มาก เพราะใช้แค่ตัวเลข
+        // (tháng 1 ถึง tháng 12) ไม่มีชื่อเฉพาะแยกแต่ละเดือนแบบยุโรป/อาหรับ/รัสเซีย/ฮินดี
+        const NUMBERS_DATES_VN = {
+            numbers: [
+                { prompt: '5', target: 'năm' },
+                { prompt: '8', target: 'tám' },
+                { prompt: '12', target: 'mười hai' },
+                { prompt: '15', target: 'mười lăm' },
+                { prompt: '20', target: 'hai mươi' },
+                { prompt: '23', target: 'hai mươi ba' },
+                { prompt: '34', target: 'ba mươi tư' },
+                { prompt: '50', target: 'năm mươi' },
+                { prompt: '67', target: 'sáu mươi bảy' },
+                { prompt: '99', target: 'chín mươi chín' },
+                { prompt: '100', target: 'một trăm' },
+                { prompt: '128', target: 'một trăm hai mươi tám' },
+                { prompt: '256', target: 'hai trăm năm mươi sáu' },
+                { prompt: '1000', target: 'một nghìn' },
+            ],
+            weekday: [
+                { prompt: 'วันจันทร์', target: 'thứ Hai' },
+                { prompt: 'วันอังคาร', target: 'thứ Ba' },
+                { prompt: 'วันพุธ', target: 'thứ Tư' },
+                { prompt: 'วันพฤหัสบดี', target: 'thứ Năm' },
+                { prompt: 'วันศุกร์', target: 'thứ Sáu' },
+                { prompt: 'วันเสาร์', target: 'thứ Bảy' },
+                { prompt: 'วันอาทิตย์', target: 'Chủ Nhật' },
+            ],
+            time: [
+                { prompt: '1:00 น.', target: 'một giờ' },
+                { prompt: '2:00 น.', target: 'hai giờ' },
+                { prompt: '3:30 น.', target: 'ba giờ rưỡi' },
+                { prompt: '4:40 น.', target: 'bốn giờ bốn mươi phút' },
+                { prompt: '6:15 น.', target: 'sáu giờ mười lăm phút' },
+                { prompt: '7:30 น.', target: 'bảy giờ rưỡi' },
+                { prompt: '8:45 น.', target: 'tám giờ bốn mươi lăm phút' },
+                { prompt: '9:05 น.', target: 'chín giờ năm phút' },
+                { prompt: '10:10 น.', target: 'mười giờ mười phút' },
+                { prompt: '11:20 น.', target: 'mười một giờ hai mươi phút' },
+                { prompt: '12:00 น.', target: 'mười hai giờ trưa' },
+            ],
+            date: [
+                { prompt: '1 มกราคม', target: 'ngày 1 tháng 1' },
+                { prompt: '14 กุมภาพันธ์', target: 'ngày 14 tháng 2' },
+                { prompt: '8 มีนาคม', target: 'ngày 8 tháng 3' },
+                { prompt: '1 พฤษภาคม', target: 'ngày 1 tháng 5' },
+                { prompt: '20 มิถุนายน', target: 'ngày 20 tháng 6' },
+                { prompt: '15 สิงหาคม', target: 'ngày 15 tháng 8' },
+                { prompt: '10 ตุลาคม', target: 'ngày 10 tháng 10' },
+                { prompt: '25 ธันวาคม', target: 'ngày 25 tháng 12' },
+            ],
+        };
+
         // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN/_JP/_KR/_YUE)/READING_PASSAGES(_EN/_JP/_KR/_YUE)/
         // NUMBERS_DATES(_EN/_JP/_KR/_YUE) + ASR_LANG_NAME) — ภาษาอื่นนอกห้านี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
-        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue', 'lang-de', 'lang-fr', 'lang-it', 'lang-es', 'lang-pt', 'lang-ru', 'lang-in', 'lang-ar'];
+        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue', 'lang-de', 'lang-fr', 'lang-it', 'lang-es', 'lang-pt', 'lang-ru', 'lang-in', 'lang-ar', 'lang-vn'];
         function ListenSpeakView({ langId, setLangId, setXp }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
@@ -13068,7 +13301,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี จีนกวางตุ้ง เยอรมัน ฝรั่งเศส อิตาลี สเปน โปรตุเกส รัสเซีย ฮินดี และอาหรับตอนนี้</p>
+                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี จีนกวางตุ้ง เยอรมัน ฝรั่งเศส อิตาลี สเปน โปรตุเกส รัสเซีย ฮินดี อาหรับ และเวียดนามตอนนี้</p>
                             <div className="flex gap-2 justify-center flex-wrap">
                                 <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีนกลาง</button>
                                 <button onClick={() => setLangId('lang-en')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาอังกฤษ</button>
@@ -13083,6 +13316,7 @@
                                 <button onClick={() => setLangId('lang-ru')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษารัสเซีย</button>
                                 <button onClick={() => setLangId('lang-in')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาฮินดี</button>
                                 <button onClick={() => setLangId('lang-ar')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาอาหรับ</button>
+                                <button onClick={() => setLangId('lang-vn')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาเวียดนาม</button>
                             </div>
                         </div>
                     </div>
@@ -13324,7 +13558,7 @@
             // โหมดฟัง-พูด รองรับจีนกลาง+อังกฤษ+ญี่ปุ่น+เกาหลี+จีนกวางตุ้งแล้ว — ถ้าอยู่ภาษาอื่นอยู่
             // ค่อยสลับเป็นจีนกลางให้อัตโนมัติ
             const goListen = () => {
-                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr' && langId !== 'lang-yue' && langId !== 'lang-de' && langId !== 'lang-fr' && langId !== 'lang-it' && langId !== 'lang-es' && langId !== 'lang-pt' && langId !== 'lang-ru' && langId !== 'lang-in' && langId !== 'lang-ar') setLangId('lang-cn');
+                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr' && langId !== 'lang-yue' && langId !== 'lang-de' && langId !== 'lang-fr' && langId !== 'lang-it' && langId !== 'lang-es' && langId !== 'lang-pt' && langId !== 'lang-ru' && langId !== 'lang-in' && langId !== 'lang-ar' && langId !== 'lang-vn') setLangId('lang-cn');
                 setView('listen');
                 setMobileNavOpen(false);
             };
@@ -13939,13 +14173,19 @@
                                 {langId === 'lang-vn' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
                                         <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาเวียดนาม</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ทำข้อสอบจำลอง VLPT (Vietnamese Language Proficiency Test)</p>
-                                        <div className="grid grid-cols-1 gap-3">
+                                        <p className="text-xs text-gray-400 mb-4">ทำข้อสอบจำลอง VLPT และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
                                                 <div className="text-sm font-bold text-gray-800">ข้อสอบ VLPT</div>
                                                 <div className="text-[11px] text-gray-400">Nghe・Đọc・Viết・Nói</div>
+                                            </button>
+                                            <button onClick={goListen}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><ListenIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ฟัง-พูด-อ่าน</div>
+                                                <div className="text-[11px] text-gray-400">บทฟัง, พูดตาม, อ่านยาว</div>
                                             </button>
                                         </div>
                                     </div>
