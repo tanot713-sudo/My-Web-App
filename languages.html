@@ -4106,6 +4106,572 @@
             );
         }
 
+        // ══════════════════════════════════════════════════════════════════════════════════
+        // ข้อสอบ Goethe-Zertifikat A1 / Start Deutsch 1 (จำลอง) — ตรวจสอบโครงสร้างจริงผ่านเว็บของ
+        // Goethe-Institut แล้ว (https://www.goethe.de/ins/mm/en/spr/prf/gzsd1/ueb.html): Hören ~15
+        // ข้อ 3 ส่วน (20 นาที), Lesen ~15 ข้อ 3 ส่วน (25 นาที), Schreiben (กรอกฟอร์ม + เขียนข้อความสั้น
+        // 20 นาที), Sprechen (แนะนำตัว/ถามตอบข้อมูล/ขอร้อง) — 4 ทักษะน้ำหนักเท่ากันคนละ 20 คะแนน
+        // ต่างจาก TOPIK I/JLPT N5 ที่ไม่มีส่วนเขียน/พูดเลย ข้อสอบเยอรมันระดับ A1 จริงมีครบ 4 ทักษะ
+        // จึงออกแบบให้ Hören/Lesen เป็นปรนัยแบบเดียวกับภาษาอื่น ส่วน Schreiben ใช้ AI ตรวจ (แบบเดียวกับ
+        // IELTS Writing) และ Sprechen เป็นข้อมูลอ้างอิง+อัดเสียงซ้อมเอง (ไม่มีระบบให้คะแนนการพูด เหมือน
+        // IELTS Speaking) — Hören ของจริงมีข้อแบบ "ฟังแล้วเลือกรูปภาพ" อยู่ด้วย แต่เว็บนี้ไม่มีคลังรูปภาพ
+        // จึงแทนที่ด้วยข้อแบบฟังบทสนทนา/ประโยคแล้วเลือกความหมาย/คำตอบที่ถูกต้องแทน (แพทเทิร์นเดียวกับที่
+        // ใช้แก้ปัญหานี้ใน HSK) เนื้อหาทั้งหมดแต่งเอง ไม่ใช่ข้อสอบทางการที่หลุดออกมา
+        // ══════════════════════════════════════════════════════════════════════════════════
+
+        function deVocabPool() {
+            const out = [];
+            const cats = VOCAB['lang-de'] || {};
+            Object.keys(cats).forEach(cat => {
+                (cats[cat] || []).forEach((w, i) => out.push({ key: `lang-de::vocab-${cat}::${i}`, word: w.word, thai: w.thai }));
+            });
+            return out;
+        }
+        function genDeWordMeaningMc(pool, count) {
+            const picked = shuffleArr(pool).slice(0, Math.min(count, pool.length));
+            return picked.map(item => {
+                const distractors = shuffleArr(pool.filter(p => p.word !== item.word)).slice(0, 3);
+                const choices = shuffleArr([item.thai, ...distractors.map(d => d.thai)]);
+                return { type: 'de-word-meaning-mc', word: item.word, correct: item.thai, choices };
+            });
+        }
+
+        // ไวยากรณ์ A1 พื้นฐาน (grammar-mc ใช้ renderer ร่วมกับ TOEIC Part 5/JLPT/TOPIK ได้เลย เพราะ
+        // โครงสร้าง {sentence, choices, correct} เหมือนกัน) — ครอบคลุม sein/haben ผัน, บุพบท-กรณี
+        // (nominativ/akkusativ), คำคำถาม, การปฏิเสธด้วย kein, และการเรียงประโยคแบบ V2
+        const DE_GRAMMAR = [
+            { sentence: "Ich ___ Anna.", choices: ["bin", "bist", "ist", "sind"], correct: "bin" },
+            { sentence: "Er ___ Lehrer.", choices: ["bin", "bist", "ist", "sind"], correct: "ist" },
+            { sentence: "Wir ___ Studenten.", choices: ["bin", "bist", "seid", "sind"], correct: "sind" },
+            { sentence: "Ich ___ einen Bruder.", choices: ["habe", "hast", "hat", "haben"], correct: "habe" },
+            { sentence: "Sie ___ eine Schwester.", choices: ["habe", "hast", "hat", "haben"], correct: "hat" },
+            { sentence: "Ich kaufe ___ Apfel.", choices: ["der", "den", "die", "das"], correct: "den" },
+            { sentence: "Das ist ___ Buch.", choices: ["der", "die", "das", "den"], correct: "das" },
+            { sentence: "___ heißt du?", choices: ["Wie", "Wo", "Wann", "Wer"], correct: "Wie" },
+            { sentence: "Ich habe ___ Zeit.", choices: ["kein", "keine", "keinen", "nicht"], correct: "keine" },
+            { sentence: "Heute ___ ins Kino.", choices: ["gehe ich", "ich gehe", "gehen ich", "ich gehen"], correct: "gehe ich" },
+        ];
+
+        // Lesen — บทความสั้นระดับ A1 หัวข้อคล้ายกับที่ใช้ในภาษาอื่น (เพื่อเทียบเนื้อหาข้ามภาษาได้)
+        const DE_READING = [
+            { text: "Ich heiße Peter. Ich komme aus Deutschland. Ich lerne Thai.", q: "Was lernt Peter?", choices: ["Thai", "Englisch", "Deutsch"], correct: "Thai" },
+            { text: "Das Restaurant ist montags geschlossen. Von Dienstag bis Sonntag ist es geöffnet.", q: "Wann ist das Restaurant geschlossen?", choices: ["montags", "dienstags", "sonntags"], correct: "montags" },
+            { text: "Gestern habe ich im Kaufhaus einen Rock gekauft. Er ist sehr schön.", q: "Was habe ich gestern gekauft?", choices: ["einen Rock", "Schuhe", "eine Tasche"], correct: "einen Rock" },
+            { text: "Vor meinem Haus gibt es einen kleinen Park. Ich gehe dort jedes Wochenende spazieren.", q: "Wo gehe ich jedes Wochenende spazieren?", choices: ["im Park vor meinem Haus", "im Schulhof", "am Fluss"], correct: "im Park vor meinem Haus" },
+            { text: "Nächsten Freitag hat meine Freundin Geburtstag. Ich bereite ein Geschenk für sie vor.", q: "Was ist nächsten Freitag?", choices: ["der Geburtstag meiner Freundin", "mein Geburtstag", "eine Prüfung"], correct: "der Geburtstag meiner Freundin" },
+            { text: "Die Bank öffnet um neun Uhr morgens. Sie schließt um vier Uhr nachmittags.", q: "Wann schließt die Bank?", choices: ["um vier Uhr", "um fünf Uhr", "um drei Uhr"], correct: "um vier Uhr" },
+            { text: "Ich kann kein scharfes Essen essen. Deshalb trinke ich viel Wasser, wenn ich Kimchi-Suppe esse.", q: "Was mache ich, wenn ich Kimchi-Suppe esse?", choices: ["ich trinke viel Wasser", "ich esse Brot", "ich singe"], correct: "ich trinke viel Wasser" },
+            { text: "In den Winterferien fahre ich in meine Heimatstadt. Ich freue mich, meine Familie wiederzusehen.", q: "Wohin fahre ich in den Winterferien?", choices: ["in meine Heimatstadt", "ins Büro", "ins Krankenhaus"], correct: "in meine Heimatstadt" },
+            { text: "Von der U-Bahn-Station bis zu meinem Haus dauert es zu Fuß zehn Minuten. Deshalb gehe ich meistens zu Fuß.", q: "Wie komme ich normalerweise von der U-Bahn-Station nach Hause?", choices: ["zu Fuß", "mit dem Bus", "mit dem Taxi"], correct: "zu Fuß" },
+            { text: "Ich trinke sehr gern Kaffee. Aber abends trinke ich keinen Kaffee, weil ich sonst nicht schlafen kann.", q: "Warum trinke ich abends keinen Kaffee?", choices: ["weil ich sonst nicht schlafen kann", "weil ich krank bin", "weil ich kein Geld habe"], correct: "weil ich sonst nicht schlafen kann" },
+        ];
+        function genDePassageMc(dataset, count) {
+            const picked = shuffleArr(dataset).slice(0, Math.min(count, dataset.length));
+            return picked.map(p => ({ type: 'passage-mc', text: p.text, q: p.q, choices: shuffleArr(p.choices), correct: p.correct }));
+        }
+
+        // Hören — ประโยคเดียว + เลือกคำตอบที่เหมาะสม (quick response)
+        const DE_RESPONSES = [
+            { phrase: "Entschuldigung, wie spät ist es jetzt?", choices: ["Es ist drei Uhr.", "Ja, genau.", "Danke schön."], correct: "Es ist drei Uhr." },
+            { phrase: "Wie geht es Ihnen?", choices: ["Mir geht es gut.", "Es ist drei Uhr.", "Ich bin Deutscher."], correct: "Mir geht es gut." },
+            { phrase: "Was kostet diese Tasche?", choices: ["Sie kostet zehn Euro.", "Sie ist in der Schule.", "Das ist morgen."], correct: "Sie kostet zehn Euro." },
+            { phrase: "Kann ich Ihnen helfen?", choices: ["Ja, bitte.", "Es ist drei Uhr.", "Ach so."], correct: "Ja, bitte." },
+            { phrase: "Entschuldigung, wie heißen Sie?", choices: ["Ich heiße Anna Schmidt.", "Mir geht es gut.", "Ich bin hier."], correct: "Ich heiße Anna Schmidt." },
+            { phrase: "Möchten Sie einen Kaffee?", choices: ["Ja, gerne.", "Nein, ich heiße Anna.", "Wirklich?"], correct: "Ja, gerne." },
+            { phrase: "Hast du schon die Hausaufgaben gemacht?", choices: ["Ja, ich habe sie gemacht.", "Ja, ich gehe.", "Nein, mir geht es gut."], correct: "Ja, ich habe sie gemacht." },
+            { phrase: "Bis morgen!", choices: ["Ja, bis morgen!", "Ja, gerne.", "Nein, danke."], correct: "Ja, bis morgen!" },
+        ];
+        function genDeResponseMc(count) {
+            const picked = shuffleArr(DE_RESPONSES).slice(0, Math.min(count, DE_RESPONSES.length));
+            return picked.map((r, ri) => ({ type: 'de-response-mc', phrase: r.phrase, choices: shuffleArr(r.choices), correct: r.correct, voiceSlot: ri }));
+        }
+
+        // Hören — บทสนทนาสั้น 2-4 ประโยค + คำถาม 1 ข้อ/บท
+        const DE_DIALOGUES = [
+            { lines: [{ speaker: "A", text: "Hallo, wo bist du gerade?" }, { speaker: "B", text: "Ich bin gerade zu Hause." }, { speaker: "A", text: "Verstanden, ich rufe dich später an." }], q: "Wo ist B gerade?", choices: ["zu Hause", "in der Schule", "im Büro"], correct: "zu Hause" },
+            { lines: [{ speaker: "A", text: "Was kostet dieser Apfel?" }, { speaker: "B", text: "Er kostet einen Euro." }, { speaker: "A", text: "Geben Sie mir bitte zwei." }], q: "Was kostet ein Apfel?", choices: ["einen Euro", "zwei Euro", "fünfzig Cent"], correct: "einen Euro" },
+            { lines: [{ speaker: "A", text: "Hast du heute Abend Zeit?" }, { speaker: "B", text: "Ja, habe ich. Warum?" }, { speaker: "A", text: "Wollen wir zusammen einen Film sehen?" }, { speaker: "B", text: "Gerne!" }], q: "Was machen die beiden heute Abend?", choices: ["einen Film sehen", "zu Abend essen", "lernen"], correct: "einen Film sehen" },
+            { lines: [{ speaker: "A", text: "Wie ist das Wetter heute?" }, { speaker: "B", text: "Es ist sehr kalt. Es schneit auch." }, { speaker: "A", text: "Dann zieh dich warm an." }], q: "Wie ist das Wetter heute?", choices: ["kalt und es schneit", "heiß und sonnig", "es regnet"], correct: "kalt und es schneit" },
+            { lines: [{ speaker: "A", text: "Peter, was machst du jetzt?" }, { speaker: "B", text: "Ich leihe mir ein Buch in der Bibliothek aus und gehe dann nach Hause." }, { speaker: "A", text: "Ich komme mit." }], q: "Was macht Peter in der Bibliothek?", choices: ["er leiht sich ein Buch aus", "er isst", "er schläft"], correct: "er leiht sich ein Buch aus" },
+            { lines: [{ speaker: "A", text: "Entschuldigung, wo ist die U-Bahn-Station?" }, { speaker: "B", text: "Gehen Sie diese Straße geradeaus." }, { speaker: "A", text: "Vielen Dank." }], q: "Wie kommt man zur U-Bahn-Station?", choices: ["diese Straße geradeaus", "nach rechts", "mit dem Bus"], correct: "diese Straße geradeaus" },
+            { lines: [{ speaker: "A", text: "Um wie viel Uhr treffen wir uns morgen?" }, { speaker: "B", text: "Wie wäre es um neun Uhr?" }, { speaker: "A", text: "Gut, dann sehen wir uns um neun." }], q: "Um wie viel Uhr treffen sich die beiden morgen?", choices: ["um neun Uhr", "um acht Uhr", "um zehn Uhr"], correct: "um neun Uhr" },
+            { lines: [{ speaker: "A", text: "Was möchten Sie bestellen?" }, { speaker: "B", text: "Ich nehme Bibimbap, bitte." }, { speaker: "A", text: "Gut, einen Moment bitte." }], q: "Was bestellt B?", choices: ["Bibimbap", "Kimchi-Suppe", "Naengmyeon"], correct: "Bibimbap" },
+            { lines: [{ speaker: "A", text: "Wo tut es dir weh?" }, { speaker: "B", text: "Ich habe Kopfschmerzen und Fieber." }, { speaker: "A", text: "Nimm eine Tablette und ruh dich aus." }], q: "Wo tut es B weh?", choices: ["Kopf", "Bauch", "Bein"], correct: "Kopf" },
+            { lines: [{ speaker: "A", text: "Was hast du am Wochenende gemacht?" }, { speaker: "B", text: "Ich war mit einem Freund wandern." }, { speaker: "A", text: "Das klingt lustig." }], q: "Was hat B am Wochenende gemacht?", choices: ["ist wandern gegangen", "hat einen Film gesehen", "hat sich zu Hause ausgeruht"], correct: "ist wandern gegangen" },
+        ];
+        function genDeDialogueMc(count) {
+            const picked = shuffleArr(DE_DIALOGUES).slice(0, Math.min(count, DE_DIALOGUES.length));
+            return picked.map((d, di) => ({ type: 'de-dialogue-mc', lines: d.lines, q: d.q, choices: shuffleArr(d.choices), correct: d.correct, dialogueSlot: di }));
+        }
+
+        // Hören — บทพูดสั้นคนเดียว + คำถาม 1 ข้อ/บท
+        const DE_TALKS = [
+            { text: "Hallo, ich heiße Michael. Ich komme aus Amerika. Ich lerne jetzt Deutsch. Ich mag auch deutsches Essen sehr gern. Am liebsten mag ich Bratwurst.", q: "Woher kommt Michael?", choices: ["aus Amerika", "aus Deutschland", "aus Japan"], correct: "aus Amerika" },
+            { text: "Heute habe ich Geburtstag. Am Abend esse ich mit meiner Familie im Restaurant. Danach essen wir auch Kuchen. Ich freue mich sehr.", q: "Was ist heute?", choices: ["Geburtstag", "Ferien", "eine Prüfung"], correct: "Geburtstag" },
+            { text: "Ich stehe jeden Morgen um sieben Uhr auf. Dann mache ich dreißig Minuten Sport. Danach frühstücke ich und gehe zur Arbeit. Meine Arbeit ist nah von zu Hause.", q: "Wie ist die Arbeit von zu Hause aus?", choices: ["nah", "weit", "sehr groß"], correct: "nah" },
+            { text: "Morgen ist das Wetter nicht gut. Es regnet und es ist auch windig. Deshalb ist es besser, nicht nach draußen zu gehen.", q: "Wie ist das Wetter morgen?", choices: ["es regnet und ist windig", "warm und sonnig", "es schneit"], correct: "es regnet und ist windig" },
+            { text: "Ich arbeite in einem Büro in der Stadt. Jeden Tag fahre ich mit dem Bus zur Arbeit. Die Fahrt dauert ungefähr dreißig Minuten.", q: "Wie fährt die Person zur Arbeit?", choices: ["mit dem Bus", "mit dem Auto", "zu Fuß"], correct: "mit dem Bus" },
+        ];
+        function genDeTalkMc(count) {
+            const picked = shuffleArr(DE_TALKS).slice(0, Math.min(count, DE_TALKS.length));
+            return picked.map((t, ti) => ({ type: 'de-talk-mc', text: t.text, q: t.q, choices: shuffleArr(t.choices), correct: t.correct, voiceSlot: ti }));
+        }
+
+        // Schreiben — เขียนข้อความสั้น (ประมาณ 20-30 คำ) สไตล์ Goethe A1 Teil 2 จริง (ชวน/แจ้ง/ขอโทษ/
+        // ถาม/ขอบคุณ) ตรวจด้วย AI แบบเดียวกับ IELTS Writing แต่ system prompt แยกสำหรับระดับ A1
+        const DE_WRITING_PROMPTS = [
+            "Schreiben Sie eine kurze Nachricht an einen Freund/eine Freundin. Laden Sie ihn/sie zu Ihrer Geburtstagsfeier ein. Schreiben Sie: wann die Feier ist, wo sie ist, und was er/sie mitbringen soll.",
+            "Schreiben Sie eine kurze Nachricht an Ihre Kollegin/Ihren Kollegen. Sagen Sie, dass Sie heute nicht zur Arbeit kommen können, weil Sie krank sind. Entschuldigen Sie sich.",
+            "Schreiben Sie eine kurze Nachricht an einen Freund/eine Freundin. Sagen Sie ab, dass Sie sich heute Abend nicht treffen können, und schlagen Sie einen neuen Termin vor.",
+            "Schreiben Sie eine kurze E-Mail an Ihre Vermieterin/Ihren Vermieter. Fragen Sie, wann Sie die neue Wohnung besichtigen können.",
+            "Schreiben Sie eine kurze Nachricht an eine Freundin/einen Freund. Bedanken Sie sich für ein Geschenk, das Sie bekommen haben.",
+        ];
+        const DE_WRITE_SYSTEM_PROMPT =
+            'คุณเป็นครูสอนภาษาเยอรมันให้คนไทย กำลังตรวจข้อความสั้นสไตล์ Goethe-Zertifikat A1 Schreiben (ประมาณ 20-30 คำ)\n' +
+            'ตรวจสิ่งที่ผู้เรียนเขียนมา ตอบเป็นภาษาไทยเสมอ รูปแบบคำตอบต้องมี 3 ส่วนตามลำดับนี้เท่านั้น:\n' +
+            '1) "จุดที่แก้ไข:" อธิบายเป็นข้อๆ สั้นๆ ว่าแก้ตรงไหน (ไวยากรณ์/คำศัพท์/การเรียงประโยคแบบ V2)\n' +
+            '2) "ข้อเสนอแนะ:" คำแนะนำสั้นๆ ว่าจะเขียนข้อความสไตล์นี้ให้ดีขึ้นได้อย่างไร\n' +
+            '3) "ระดับโดยประมาณ:" ประเมินว่าข้อความนี้อยู่ในระดับ A1 หรือยัง (ผ่าน/ยังไม่ผ่านเกณฑ์ A1 คร่าวๆ) พร้อมบอกว่าเป็นการประมาณเบื้องต้นเท่านั้น ไม่ใช่คะแนนทางการ\n' +
+            'ถ้าเขียนดีอยู่แล้วให้บอกตรงๆ ว่าไม่ต้องแก้ไข';
+        const DE_WRITE_REMINDER =
+            'ย้ำ: ตรวจข้อความล่าสุดที่ผู้เรียนเพิ่งส่งมาเท่านั้น ตอบตามรูปแบบ 3 ส่วนที่กำหนดไว้เป๊ะๆ ห้ามข้ามส่วนไหน ' +
+            'และห้ามตอบเป็นภาษาอื่นนอกจากไทย';
+        function genDeEssay(count) {
+            const picked = shuffleArr(DE_WRITING_PROMPTS).slice(0, Math.min(count, DE_WRITING_PROMPTS.length));
+            return picked.map(p => ({ type: 'write-essay', context: 'Goethe-Zertifikat A1 Schreiben (เขียนประมาณ 20-30 คำ)', prompt: p }));
+        }
+
+        // Sprechen — 3 ส่วนตามโครงสร้างจริงของ A1 (Sich vorstellen/Informationen erfragen und geben/
+        // Bitte formulieren) ไม่มีระบบให้คะแนนการพูด (เหมือน IELTS Speaking) — ใช้ฝึกออกเสียง/อัดเสียง
+        // ซ้อมตอบเองเท่านั้น
+        const DE_SPEAKING = {
+            "part1": ["Wie heißen Sie?", "Woher kommen Sie?", "Welche Sprachen sprechen Sie?", "Was ist Ihr Beruf oder Hobby?"],
+            "part2": "Thema: Urlaub — Stellen Sie 2-3 Fragen zu diesem Thema und beantworten Sie sie auch selbst (z. B. Wohin fahren Sie gern? Mit wem? Wie oft?)",
+            "part3": ["Sie haben keinen Stift. Bitten Sie jemanden um einen Stift.", "Es ist kalt im Zimmer. Bitten Sie jemanden, das Fenster zu schließen.", "Sie brauchen Hilfe mit Ihrem Koffer. Bitten Sie jemanden um Hilfe."],
+        };
+
+        function buildGoetheExam() {
+            const pool = deVocabPool();
+            return {
+                kind: 'goethe',
+                sections: [
+                    { key: 'hoeren', title: 'Hören (ฟัง)', icon: '🎧',
+                        questions: [...genDeResponseMc(5), ...genDeDialogueMc(6), ...genDeTalkMc(4)] },
+                    { key: 'lesen', title: 'Lesen (อ่าน)', icon: '📖',
+                        questions: [...genDeWordMeaningMc(pool, 6), ...genGrammarMc(DE_GRAMMAR, 5), ...genDePassageMc(DE_READING, 4)] },
+                    { key: 'schreiben', title: 'Schreiben (เขียน)', icon: '✍️',
+                        questions: genDeEssay(1) },
+                    { key: 'sprechen', title: 'Sprechen (พูด)', icon: '🗣️',
+                        questions: [{ type: 'speaking-practice' }] },
+                ],
+            };
+        }
+
+        // ── ข้อสอบ Goethe-Zertifikat A1 ภาษาเยอรมัน (จำลอง) — โคลนโครงสร้าง state machine หลักมาจาก
+        //    KrExamView (ส่วนฟัง/อ่านแบบปรนัย) แล้วต่อ Schreiben/Sprechen (state + renderer) มาจาก
+        //    EnExamView (IELTS Writing Task 2/Speaking) เพราะ A1 จริงมีครบ 4 ทักษะ ต่างจาก TOPIK
+        //    I/JLPT N5 ที่ไม่มีส่วนเขียน/พูดเลย
+        function DeExamView({ langId, setLangId, setXp }) {
+            const [started, setStarted] = useState(false);
+            const [exam, setExam] = useState(null);
+            const [sectionIdx, setSectionIdx] = useState(0);
+            const [showIntro, setShowIntro] = useState(true);
+            const [qIdx, setQIdx] = useState(0);
+            const [answered, setAnswered] = useState(false);
+            const [userAnswer, setUserAnswer] = useState(null);
+            const [essayText, setEssayText] = useState('');
+            const [essayFeedback, setEssayFeedback] = useState('');
+            const [essayStatus, setEssayStatus] = useState('');
+            const [sectionResults, setSectionResults] = useState([]);
+            const [correctInSection, setCorrectInSection] = useState(0);
+            const [allWrong, setAllWrong] = useState([]);
+            const [finished, setFinished] = useState(false);
+            const [spIsRecording, setSpIsRecording] = useState(false);
+            const [spRecordedUrl, setSpRecordedUrl] = useState('');
+            const spMediaRef = useRef(null);
+            const spChunksRef = useRef([]);
+            const spStreamRef = useRef(null);
+            const spStartRecording = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    spStreamRef.current = stream;
+                    spChunksRef.current = [];
+                    const rec = new MediaRecorder(stream);
+                    rec.addEventListener('dataavailable', ev => { if (ev.data && ev.data.size) spChunksRef.current.push(ev.data); });
+                    spMediaRef.current = rec;
+                    rec.start();
+                    setSpIsRecording(true);
+                } catch (e) { /* ไม่มีสิทธิ์ไมค์ — เงียบไว้ ผู้ใช้ยังอ่าน prompt ได้ปกติ */ }
+            };
+            const spStopRecording = () => {
+                if (!spMediaRef.current) return;
+                spMediaRef.current.addEventListener('stop', () => {
+                    spStreamRef.current.getTracks().forEach(t => t.stop());
+                    const blob = new Blob(spChunksRef.current, { type: spMediaRef.current.mimeType || 'audio/webm' });
+                    setSpRecordedUrl(URL.createObjectURL(blob));
+                    setSpIsRecording(false);
+                }, { once: true });
+                spMediaRef.current.stop();
+            };
+
+            const resetPerQuestion = () => {
+                setAnswered(false); setUserAnswer(null);
+                setEssayText(''); setEssayFeedback(''); setEssayStatus('');
+                setSpIsRecording(false); setSpRecordedUrl('');
+            };
+            const start = () => {
+                setExam(buildGoetheExam());
+                setStarted(true);
+                setSectionIdx(0); setShowIntro(true);
+                resetPerQuestion();
+                setSectionResults([]); setCorrectInSection(0); setAllWrong([]); setFinished(false);
+            };
+
+            useEffect(() => {
+                if (!exam || showIntro || finished) return;
+                const sec = exam.sections[sectionIdx];
+                const question = sec && sec.questions[qIdx];
+                if (!question) return;
+                const timers = [];
+                const t0 = setTimeout(() => {
+                    if (question.type === 'de-dialogue-mc') {
+                        question.lines.forEach((ln, i) => timers.push(setTimeout(() => speakVoice(ln.text, 'de', question.dialogueSlot * 2 + (i % 2)), i * 1800)));
+                    } else if (question.type === 'de-response-mc') {
+                        speakVoice(question.phrase, 'de', question.voiceSlot);
+                    } else if (question.type === 'de-talk-mc') {
+                        speakVoice(question.text, 'de', question.voiceSlot);
+                    }
+                }, 400);
+                return () => { clearTimeout(t0); timers.forEach(clearTimeout); };
+            }, [exam, sectionIdx, qIdx, showIntro]);
+
+            if (langId !== 'lang-de') {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-6 text-center">
+                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาเยอรมัน</p>
+                            <button onClick={() => setLangId('lang-de')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาเยอรมัน</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!started) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ Goethe-Zertifikat A1 (จำลอง)</h2>
+                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษาเยอรมันขั้นต้น (A1 / Start Deutsch 1) — 4 ทักษะตามโครงสร้างจริง</p>
+                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ Goethe A1</div>
+                                <div className="text-xs text-gray-500">Hören 15 + Lesen 15 + Schreiben 1 + Sprechen 1 ส่วน ตามโครงสร้างจริง</div>
+                            </button>
+                            <p className="text-xs text-gray-400 leading-relaxed text-left">
+                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา โครงสร้างยึดตามข้อมูลจริงจาก
+                                Goethe-Institut (Hören ~15 ข้อ/Lesen ~15 ข้อ/Schreiben/Sprechen น้ำหนักเท่ากันคนละ 20 คะแนน) เว็บนี้แสดงผลเป็น
+                                คะแนนดิบ (ถูกกี่ข้อ) สำหรับ Hören/Lesen เท่านั้น ไม่ใช่คะแนนทางการ<br />
+                                <b>ความแตกต่างจากข้อสอบจริง</b>: (1) Hören ของจริงมีข้อแบบ "ฟังแล้วเลือกรูปภาพ" ด้วย เว็บนี้ไม่มีคลังรูปภาพ
+                                จึงแทนที่ด้วยข้อฟังบทสนทนา/ประโยคแล้วเลือกคำตอบแทนทั้งหมด และแสดงบทพูดเป็นตัวอักษรคู่กับเสียง (ข้อสอบจริงมีแต่
+                                เสียงล้วน ฟังได้ครั้งเดียว) เพื่อช่วยผู้เริ่มต้นตามทัน (2) Schreiben ของจริงมี 2 ส่วน (กรอกฟอร์ม + เขียนข้อความสั้น)
+                                เว็บนี้มีเฉพาะส่วนเขียนข้อความสั้น ตรวจด้วย AI ให้คำแนะนำ ไม่ใช่คะแนนทางการ (3) Sprechen ไม่มีระบบให้คะแนนการพูด
+                                ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเองเท่านั้น
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+
+            const restart = start;
+            const backToStart = () => { setStarted(false); setExam(null); };
+
+            if (finished) {
+                // นับคะแนนดิบเฉพาะ Hören/Lesen (ปรนัย) เท่านั้น — Schreiben/Sprechen เป็นแบบฝึกที่ไม่มี
+                // ระบบให้คะแนนถูก/ผิด (correct/total คงที่ 0/1 เป็น placeholder) ถ้ารวมเข้าไปด้วยจะทำให้
+                // ตัวเลข/เปอร์เซ็นต์ที่แสดงบิดเบือนไปจากคำอธิบายกำกับที่บอกว่า "เฉพาะ Hören/Lesen"
+                const scoredResults = sectionResults.filter(r => r.key === 'hoeren' || r.key === 'lesen');
+                const totalCorrect = scoredResults.reduce((s, r) => s + r.correct, 0);
+                const totalQ = scoredResults.reduce((s, r) => s + r.total, 0);
+                const pct = totalQ ? Math.round(totalCorrect / totalQ * 100) : 0;
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ Goethe A1</h2>
+                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (เฉพาะ Hören/Lesen — Schreiben/Sprechen ไม่มีคะแนนดิบแบบนี้)</p>
+                            <div className="grid grid-cols-2 gap-2 mb-5">
+                                {sectionResults.map(r => (
+                                    <div key={r.key} className="bg-white rounded-xl border border-gray-200 p-3">
+                                        <div className="text-xs text-gray-400">{r.title}</div>
+                                        <div className="text-lg font-bold text-gray-800">{r.total > 0 && (r.key === 'hoeren' || r.key === 'lesen') ? `${r.correct}/${r.total}` : 'ฝึกเสร็จแล้ว'}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {allWrong.length > 0 && (
+                                <div className="text-left bg-white rounded-xl border border-gray-200 p-4 mb-4 max-h-72 overflow-y-auto">
+                                    <p className="text-sm font-bold text-gray-700 mb-2 sticky top-0 bg-white">ข้อที่ตอบผิด ({allWrong.length}):</p>
+                                    <div className="space-y-1.5">
+                                        {allWrong.map((w, i) => (
+                                            <div key={i} className="text-sm text-gray-600 flex justify-between gap-3">
+                                                <span>{w.left}</span>
+                                                <span className="text-gray-800 font-semibold text-right">{w.right}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex gap-2 justify-center flex-wrap">
+                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
+                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const section = exam.sections[sectionIdx];
+
+            if (showIntro) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">Goethe A1 · ส่วนที่ {sectionIdx + 1}/{exam.sections.length}</p>
+                            <div className="text-5xl mb-3">{section.icon}</div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
+                            <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
+                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const q = section.questions[qIdx];
+
+            const finishSection = () => {
+                const results = [...sectionResults, { key: section.key, title: section.title, correct: correctInSection, total: section.questions.length }];
+                setSectionResults(results);
+                if (sectionIdx + 1 >= exam.sections.length) {
+                    setFinished(true);
+                } else {
+                    setSectionIdx(i => i + 1);
+                    setShowIntro(true);
+                    setQIdx(0);
+                    resetPerQuestion();
+                    setCorrectInSection(0);
+                }
+            };
+            const nextQuestion = () => {
+                if (qIdx + 1 >= section.questions.length) { finishSection(); return; }
+                setQIdx(i => i + 1); resetPerQuestion();
+            };
+            const recordAnswer = (isCorrect, wrongEntry) => {
+                setAnswered(true);
+                if (isCorrect) { setCorrectInSection(c => c + 1); setXp(x => x + 2); }
+                else if (wrongEntry) setAllWrong(w => [...w, wrongEntry]);
+            };
+            const pickMc = (choice) => {
+                if (answered) return;
+                setUserAnswer(choice);
+                const isCorrect = choice === q.correct;
+                const leftLabel = q.word || q.sentence || q.phrase || q.q || q.thai;
+                recordAnswer(isCorrect, isCorrect ? null : { left: leftLabel || 'ข้อนี้', right: q.correct });
+            };
+
+            const submitEssay = () => {
+                if (!essayText.trim() || essayStatus === 'loading') return;
+                if (isIOS()) {
+                    setEssayStatus('error');
+                    setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
+                    return;
+                }
+                setEssayStatus('loading'); setEssayFeedback('');
+                const w = getWritingWorker();
+                const jobId = 'deessay-' + Date.now();
+                let acc = '';
+                function onMsg(e) {
+                    const msg = e.data;
+                    if (!msg || msg.jobId !== jobId) return;
+                    if (msg.type === 'token') { acc += msg.token; setEssayFeedback(acc); }
+                    else if (msg.type === 'done') { cleanup(); setEssayStatus('done'); setAnswered(true); setXp(x => x + 2); }
+                    else if (msg.type === 'error') { cleanup(); setEssayStatus('error'); setEssayFeedback(friendlyChatError(msg.message)); }
+                }
+                function onErr(e) { cleanup(); setEssayStatus('error'); setEssayFeedback(friendlyChatError(e.message || '')); }
+                function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+                w.addEventListener('message', onMsg);
+                w.addEventListener('error', onErr);
+                const messages = [
+                    { role: 'system', content: DE_WRITE_SYSTEM_PROMPT },
+                    { role: 'user', content: essayText },
+                    { role: 'system', content: DE_WRITE_REMINDER },
+                ];
+                w.postMessage({ type: 'chat', jobId, maxNewTokens: 400, messages });
+            };
+            const skipEssay = () => { setAnswered(true); };
+            const markSpeakingDone = () => { setAnswered(true); };
+
+            const progressLabel = `${section.title} · ข้อ ${qIdx + 1}/${section.questions.length}`;
+
+            return (
+                <div className="flex-1 overflow-y-auto bg-gray-50">
+                    <div className="max-w-xl mx-auto p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <span className="text-xs font-bold text-gray-400 uppercase">Goethe A1 · {progressLabel}</span>
+                            {(section.key === 'hoeren' || section.key === 'lesen') && (
+                                <span className="text-xs font-bold text-brand">ถูก {correctInSection} ข้อ</span>
+                            )}
+                        </div>
+
+                        {q.type === 'de-word-meaning-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
+                                    <button onClick={() => speak(q.word, 'de')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'grammar-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'passage-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'de-response-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
+                                    <button onClick={() => speakVoice(q.phrase, 'de', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                </div>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'de-dialogue-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <div className="space-y-1">
+                                        {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
+                                    </div>
+                                    <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'de', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
+                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'de-talk-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                    <button onClick={() => speakVoice(q.text, 'de', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'write-essay' && (
+                            <>
+                                <p className="text-xs text-gray-400 mb-1">{q.context}</p>
+                                <p className="text-gray-700 font-semibold mb-3">{q.prompt}</p>
+                                <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={6} disabled={answered}
+                                    placeholder="Schreiben Sie Ihre Nachricht hier auf Deutsch..."
+                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                {!answered && (
+                                    <div className="flex gap-2 mb-3">
+                                        <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
+                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
+                                        </button>
+                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                    </div>
+                                )}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                            </>
+                        )}
+
+                        {q.type === 'speaking-practice' && (
+                            <>
+                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
+                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
+                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Teil 1 — Sich vorstellen</p>
+                                    {DE_SPEAKING.part1.map((p, i) => (
+                                        <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
+                                            <span className="text-sm text-gray-700">{p}</span>
+                                            <button onClick={() => speak(p, 'de')} className="shrink-0 text-brand"><Volume2 /></button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Teil 2 — Informationen erfragen und geben</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{DE_SPEAKING.part2}</p>
+                                    <button onClick={() => speak(DE_SPEAKING.part2, 'de')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Teil 3 — Bitte formulieren</p>
+                                    {DE_SPEAKING.part3.map((p, i) => (
+                                        <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
+                                            <span className="text-sm text-gray-700">{p}</span>
+                                            <button onClick={() => speak(p, 'de')} className="shrink-0 text-brand"><Volume2 /></button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex flex-col items-center gap-3 mb-4">
+                                    {!spIsRecording ? (
+                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
+                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        </button>
+                                    ) : (
+                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
+                                            ⏹ หยุดอัด
+                                        </button>
+                                    )}
+                                </div>
+                                {spRecordedUrl && (
+                                    <div className="mb-4 text-center">
+                                        <audio controls src={spRecordedUrl} className="mx-auto w-full"></audio>
+                                    </div>
+                                )}
+                                {!answered && (
+                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                )}
+                            </>
+                        )}
+
+                        {answered && (
+                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                                {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+
 
         // ══════════════════════════════════════════════════════════════════════════════════
         // แบบทดสอบความเข้าใจภาษาจีนกวางตุ้ง — ต่างจาก HSK/TOEIC/IELTS/JLPT/TOPIK ตรงที่ "ไม่ได้จำลอง
@@ -6306,9 +6872,9 @@
                 setMobileNavOpen(false);
             };
 
-            // ปุ่ม "ข้อสอบ" รองรับ 5 ภาษาแล้ว (จีนกลาง→HSK/BCT, อังกฤษ→IELTS/TOEIC, ญี่ปุ่น→JLPT,
-            // เกาหลี→TOPIK, จีนกวางตุ้ง→แบบทดสอบความเข้าใจที่แต่งเอง) — ถ้ากำลังอยู่ภาษาที่มีข้อสอบอยู่แล้ว
-            // ให้ไปหน้าข้อสอบของภาษานั้นเลย ภาษาอื่นนอกเหนือจากนี้ยัง fallback ไปจีนกลางเหมือนเดิม
+            // ปุ่ม "ข้อสอบ" รองรับ 6 ภาษาแล้ว (จีนกลาง→HSK/BCT, อังกฤษ→IELTS/TOEIC, ญี่ปุ่น→JLPT,
+            // เกาหลี→TOPIK, จีนกวางตุ้ง→แบบทดสอบความเข้าใจที่แต่งเอง, เยอรมัน→Goethe A1) — ถ้ากำลังอยู่ภาษาที่
+            // มีข้อสอบอยู่แล้วให้ไปหน้าข้อสอบของภาษานั้นเลย ภาษาอื่นนอกเหนือจากนี้ยัง fallback ไปจีนกลางเหมือนเดิม
             const goExam = () => {
                 if (langId === 'lang-en') {
                     setView('enexam');
@@ -6318,6 +6884,8 @@
                     setView('krexam');
                 } else if (langId === 'lang-yue') {
                     setView('yueexam');
+                } else if (langId === 'lang-de') {
+                    setView('deexam');
                 } else {
                     setLangId('lang-cn');
                     setView('hsk');
@@ -6429,7 +6997,7 @@
                                             <div key={id} className="flex items-center gap-1">
                                                 <button
                                                     onClick={() => selectLang(id)}
-                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
+                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
                                                 >
                                                     <Languages /> <span className="flex-1 text-left truncate">{LANGS[id].title}</span>
                                                     {allDone && <CheckCircle />}
@@ -6517,8 +7085,8 @@
                                 </button>
                                 <button
                                     onClick={goExam}
-                                    title="รองรับภาษาจีนกลาง (HSK/BCT), อังกฤษ (IELTS/TOEIC), ญี่ปุ่น (JLPT), เกาหลี (TOPIK) และจีนกวางตุ้ง (แบบทดสอบความเข้าใจ) — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
-                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                    title="รองรับภาษาจีนกลาง (HSK/BCT), อังกฤษ (IELTS/TOEIC), ญี่ปุ่น (JLPT), เกาหลี (TOPIK), จีนกวางตุ้ง (แบบทดสอบความเข้าใจ) และเยอรมัน (Goethe A1) — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
+                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
                                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
@@ -6719,6 +7287,21 @@
                                                 <div className="text-brand mb-2"><ListenIcon /></div>
                                                 <div className="text-sm font-bold text-gray-800">ฟัง-พูด-อ่าน</div>
                                                 <div className="text-[11px] text-gray-400">บทฟัง, พูดตาม, อ่านยาว</div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {langId === 'lang-de' && (
+                                    <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
+                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาเยอรมัน</h3>
+                                        <p className="text-xs text-gray-400 mb-4">ทำข้อสอบจำลอง Goethe-Zertifikat A1 โดยเฉพาะ (ฝึกเขียนตัวอักษร/ฟัง-พูด-อ่าน เป็น follow-up ในอนาคต)</p>
+                                        <div className="grid grid-cols-1 gap-3">
+                                            <button onClick={goExam}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><HskIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ Goethe A1</div>
+                                                <div className="text-[11px] text-gray-400">Hören・Lesen・Schreiben・Sprechen</div>
                                             </button>
                                         </div>
                                     </div>
@@ -6983,6 +7566,8 @@
                         <KrExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : view === 'yueexam' ? (
                         <YueExamView langId={langId} setLangId={setLangId} setXp={setXp} />
+                        ) : view === 'deexam' ? (
+                        <DeExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : (
                         <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} />
                         )}
