@@ -5862,6 +5862,568 @@
             );
         }
 
+        // ══════════════════════════════════════════════════════════════════════════════════
+        // ข้อสอบจำลอง DELE A1 (Diploma de Español como Lengua Extranjera, Instituto Cervantes)
+        // ภาษาสเปน — โครงสร้างจริงมี 4 ทักษะแยกเป็น 2 กลุ่ม (Grupo 1: Comprensión de lectura +
+        // Expresión escrita, Grupo 2: Comprensión auditiva + Expresión oral) แต่ละทักษะ 25 คะแนน
+        // รวม 100 คะแนน ต้องได้อย่างน้อย 30/50 ทั้งสองกลุ่มถึงจะผ่าน — คล้าย Goethe A1/DELF A1/PLIDA A1
+        // ตรงที่มีครบ 4 ทักษะเท่ากัน ต่างจาก TOPIK I/JLPT N5 ที่วัดแค่ฟัง+อ่าน จึงโคลนโครงสร้าง state
+        // machine มาจาก ItExamView แบบเป๊ะๆ เนื้อหาทั้งหมดแต่งเอง ไม่ใช่ข้อสอบทางการที่หลุดออกมา
+        // ══════════════════════════════════════════════════════════════════════════════════
+
+        function esVocabPool() {
+            const out = [];
+            const cats = VOCAB['lang-es'] || {};
+            Object.keys(cats).forEach(cat => out.push(...(cats[cat] || []).map((w, i) => ({ key: `lang-es::vocab-${cat}::${i}`, word: w.word, thai: w.thai }))));
+            return out;
+        }
+        function genEsWordMeaningMc(pool, count) {
+            const picked = shuffleArr(pool).slice(0, Math.min(count, pool.length));
+            return picked.map(item => {
+                const distractors = shuffleArr(pool.filter(p => p.word !== item.word)).slice(0, 3);
+                const choices = shuffleArr([item.thai, ...distractors.map(d => d.thai)]);
+                return { type: 'es-word-meaning-mc', word: item.word, correct: item.thai, choices };
+            });
+        }
+
+        // ไวยากรณ์สเปนมีจุดเด่นที่ต่างจากภาษาโรมานซ์อื่นที่ทำไปแล้ว (เยอรมัน/ฝรั่งเศส/อิตาลี): มีกริยา
+        // "เป็น/อยู่" สองตัวแยกกัน ser (ถาวร/ลักษณะประจำตัว) กับ estar (ชั่วคราว/สถานะ) — ใส่ทั้งคู่ไว้
+        // ในชุดข้อสอบเพื่อให้เห็นความต่าง และคำสรรพนามแสดงความเป็นเจ้าของ mi/tu/su ไม่ผันตามเพศคำนาม
+        // (ต่างจาก mia/mio ของอิตาลีหรือ ma/mon ของฝรั่งเศสที่ผันตามเพศ) ผันตามจำนวนอย่างเดียว
+        const ES_GRAMMAR = [
+            { sentence: "Yo ___ Ana.", choices: ["soy", "eres", "es", "somos"], correct: "soy" },
+            { sentence: "Él ___ profesor.", choices: ["soy", "eres", "es", "somos"], correct: "es" },
+            { sentence: "Ella ___ cansada ahora.", choices: ["está", "estás", "estoy", "están"], correct: "está" },
+            { sentence: "Yo ___ un hermano.", choices: ["tengo", "tienes", "tiene", "tenemos"], correct: "tengo" },
+            { sentence: "Ella ___ una hermana.", choices: ["tengo", "tienes", "tiene", "tenemos"], correct: "tiene" },
+            { sentence: "Compro ___ manzana.", choices: ["el", "la", "los", "un"], correct: "la" },
+            { sentence: "Es ___ libro.", choices: ["el", "la", "un", "una"], correct: "un" },
+            { sentence: "___ te llamas?", choices: ["Cómo", "Dónde", "Cuándo", "Quién"], correct: "Cómo" },
+            { sentence: "No tengo ___ animal doméstico.", choices: ["ningún", "un", "el", "unos"], correct: "ningún" },
+            { sentence: "Es ___ hermana.", choices: ["mi", "mis", "tu", "su"], correct: "mi" },
+        ];
+
+        // Comprensión de lectura — บทความสั้นระดับ A1 หัวข้อคู่ขนานกับภาษาเยอรมัน/ฝรั่งเศส/อิตาลี
+        // (เพื่อเทียบกันข้ามภาษาได้)
+        const ES_READING = [
+            { text: "Me llamo Pablo. Vengo de España. Estoy aprendiendo tailandés.", q: "¿Qué está aprendiendo Pablo?", choices: ["tailandés", "inglés", "alemán"], correct: "tailandés" },
+            { text: "El restaurante está cerrado los lunes. De martes a domingo está abierto.", q: "¿Cuándo está cerrado el restaurante?", choices: ["los lunes", "los martes", "los domingos"], correct: "los lunes" },
+            { text: "Ayer compré una falda en el centro comercial. Es muy bonita.", q: "¿Qué compré ayer?", choices: ["una falda", "unos zapatos", "un bolso"], correct: "una falda" },
+            { text: "Delante de mi casa hay un parque pequeño. Voy a pasear allí todos los fines de semana.", q: "¿Dónde voy a pasear todos los fines de semana?", choices: ["en el parque delante de mi casa", "en el patio de la escuela", "a la orilla del río"], correct: "en el parque delante de mi casa" },
+            { text: "El próximo viernes es el cumpleaños de mi amiga. Estoy preparando un regalo para ella.", q: "¿Qué hay el próximo viernes?", choices: ["el cumpleaños de mi amiga", "mi cumpleaños", "un examen"], correct: "el cumpleaños de mi amiga" },
+            { text: "El banco abre a las nueve de la mañana. Cierra a las cuatro de la tarde.", q: "¿A qué hora cierra el banco?", choices: ["a las cuatro", "a las cinco", "a las tres"], correct: "a las cuatro" },
+            { text: "No puedo comer comida picante. Por eso bebo mucha agua cuando como sopa de kimchi.", q: "¿Qué hago cuando como sopa de kimchi?", choices: ["bebo mucha agua", "como pan", "canto"], correct: "bebo mucha agua" },
+            { text: "Durante las vacaciones de invierno vuelvo a mi ciudad natal. Estoy feliz de volver a ver a mi familia.", q: "¿Adónde voy durante las vacaciones de invierno?", choices: ["a mi ciudad natal", "a la oficina", "al hospital"], correct: "a mi ciudad natal" },
+            { text: "Desde la estación de metro hasta mi casa se tarda diez minutos a pie. Por eso normalmente voy caminando.", q: "¿Cómo voy normalmente desde la estación de metro a casa?", choices: ["caminando", "en autobús", "en taxi"], correct: "caminando" },
+            { text: "Me gusta mucho tomar café. Pero por la noche no tomo café, porque si no, no puedo dormir.", q: "¿Por qué no tomo café por la noche?", choices: ["porque si no, no puedo dormir", "porque me duele el estómago", "porque no tengo dinero"], correct: "porque si no, no puedo dormir" },
+        ];
+        function genEsPassageMc(dataset, count) {
+            const picked = shuffleArr(dataset).slice(0, Math.min(count, dataset.length));
+            return picked.map(p => ({ type: 'passage-mc', text: p.text, q: p.q, choices: shuffleArr(p.choices), correct: p.correct }));
+        }
+
+        // Comprensión auditiva — ประโยคเดียว + เลือกคำตอบที่เหมาะสม (quick response)
+        const ES_RESPONSES = [
+            { phrase: "Perdón, ¿qué hora es?", choices: ["Son las tres.", "Sí, exacto.", "Muchas gracias."], correct: "Son las tres." },
+            { phrase: "¿Cómo está usted?", choices: ["Estoy bien.", "Son las tres.", "Soy español."], correct: "Estoy bien." },
+            { phrase: "¿Cuánto cuesta este bolso?", choices: ["Cuesta diez euros.", "Está en la escuela.", "Es mañana."], correct: "Cuesta diez euros." },
+            { phrase: "¿Puedo ayudarle?", choices: ["Sí, por favor.", "Son las tres.", "Ah, entiendo."], correct: "Sí, por favor." },
+            { phrase: "Perdón, ¿cómo se llama?", choices: ["Me llamo Ana García.", "Estoy bien.", "Estoy aquí."], correct: "Me llamo Ana García." },
+            { phrase: "¿Quiere un café?", choices: ["Sí, con gusto.", "No, me llamo Ana.", "¿De verdad?"], correct: "Sí, con gusto." },
+            { phrase: "¿Ya has hecho los deberes?", choices: ["Sí, ya los hice.", "Sí, voy.", "No, estoy bien."], correct: "Sí, ya los hice." },
+            { phrase: "¡Hasta mañana!", choices: ["Sí, ¡hasta mañana!", "Sí, con gusto.", "No, gracias."], correct: "Sí, ¡hasta mañana!" },
+        ];
+        function genEsResponseMc(count) {
+            const picked = shuffleArr(ES_RESPONSES).slice(0, Math.min(count, ES_RESPONSES.length));
+            return picked.map((r, ri) => ({ type: 'es-response-mc', phrase: r.phrase, choices: shuffleArr(r.choices), correct: r.correct, voiceSlot: ri }));
+        }
+
+        // Comprensión auditiva — บทสนทนาสั้น 2-4 ประโยค + คำถาม 1 ข้อ/บท
+        const ES_DIALOGUES = [
+            { lines: [{ speaker: 'A', text: "Hola, ¿dónde estás ahora?" }, { speaker: 'B', text: "Estoy en casa ahora." }, { speaker: 'A', text: "Vale, te llamo más tarde." }], q: "¿Dónde está B ahora?", choices: ["en casa", "en la escuela", "en la oficina"], correct: "en casa" },
+            { lines: [{ speaker: 'A', text: "¿Cuánto cuesta esta manzana?" }, { speaker: 'B', text: "Cuesta un euro." }, { speaker: 'A', text: "Deme dos, por favor." }], q: "¿Cuánto cuesta una manzana?", choices: ["un euro", "dos euros", "cincuenta céntimos"], correct: "un euro" },
+            { lines: [{ speaker: 'A', text: "¿Tienes tiempo esta noche?" }, { speaker: 'B', text: "Sí, tengo tiempo. ¿Por qué?" }, { speaker: 'A', text: "¿Vemos una película juntos?" }, { speaker: 'B', text: "¡Con mucho gusto!" }], q: "¿Qué hacen los dos?", choices: ["ver una película", "cenar", "estudiar"], correct: "ver una película" },
+            { lines: [{ speaker: 'A', text: "¿Qué tiempo hace hoy?" }, { speaker: 'B', text: "Hace mucho frío. También llueve." }, { speaker: 'A', text: "Entonces abrígate bien." }], q: "¿Qué tiempo hace hoy?", choices: ["frío y lluvioso", "calor y sol", "nieva"], correct: "frío y lluvioso" },
+            { lines: [{ speaker: 'A', text: "Marco, ¿qué haces ahora?" }, { speaker: 'B', text: "Tomo prestado un libro en la biblioteca y luego vuelvo a casa." }, { speaker: 'A', text: "Voy contigo." }], q: "¿Qué hace Marco en la biblioteca?", choices: ["toma prestado un libro", "come", "duerme"], correct: "toma prestado un libro" },
+            { lines: [{ speaker: 'A', text: "Perdón, ¿dónde está la estación de metro?" }, { speaker: 'B', text: "Siga todo recto por esta calle." }, { speaker: 'A', text: "Muchas gracias." }], q: "¿Cómo se llega a la estación de metro?", choices: ["todo recto por esta calle", "a la derecha", "en autobús"], correct: "todo recto por esta calle" },
+            { lines: [{ speaker: 'A', text: "¿A qué hora quedamos mañana?" }, { speaker: 'B', text: "¿Qué tal a las nueve?" }, { speaker: 'A', text: "Vale, entonces nos vemos a las nueve." }], q: "¿A qué hora quedan mañana?", choices: ["a las nueve", "a las ocho", "a las diez"], correct: "a las nueve" },
+            { lines: [{ speaker: 'A', text: "¿Qué desea pedir?" }, { speaker: 'B', text: "Tomo un bibimbap, por favor." }, { speaker: 'A', text: "Muy bien, un momento por favor." }], q: "¿Qué pidió B?", choices: ["un bibimbap", "una sopa de kimchi", "un naengmyeon"], correct: "un bibimbap" },
+            { lines: [{ speaker: 'A', text: "¿Dónde le duele?" }, { speaker: 'B', text: "Me duele la cabeza y tengo fiebre." }, { speaker: 'A', text: "Tome una medicina y descanse." }], q: "¿Dónde le duele a B?", choices: ["la cabeza", "el estómago", "la pierna"], correct: "la cabeza" },
+            { lines: [{ speaker: 'A', text: "¿Qué hiciste este fin de semana?" }, { speaker: 'B', text: "Fui de excursión con un amigo." }, { speaker: 'A', text: "Suena divertido." }], q: "¿Qué hizo B este fin de semana?", choices: ["fue de excursión", "vio una película", "descansó en casa"], correct: "fue de excursión" },
+        ];
+        function genEsDialogueMc(count) {
+            const picked = shuffleArr(ES_DIALOGUES).slice(0, Math.min(count, ES_DIALOGUES.length));
+            return picked.map((d, di) => ({ type: 'es-dialogue-mc', lines: d.lines, q: d.q, choices: shuffleArr(d.choices), correct: d.correct, dialogueSlot: di }));
+        }
+
+        // Comprensión auditiva — บทพูดสั้นคนเดียว + คำถาม 1 ข้อ/บท
+        const ES_TALKS = [
+            { text: "Hola, me llamo Miguel. Vengo de Estados Unidos. Ahora estoy aprendiendo español. También me gusta mucho la comida española. Lo que más me gusta es la paella.", q: "¿De dónde viene Miguel?", choices: ["de Estados Unidos", "de España", "de Japón"], correct: "de Estados Unidos" },
+            { text: "Hoy es mi cumpleaños. Por la noche como en un restaurante con mi familia. Después también comemos pastel. Estoy muy contento.", q: "¿Qué es hoy?", choices: ["cumpleaños", "vacaciones", "un examen"], correct: "cumpleaños" },
+            { text: "Me levanto todos los días a las siete. Después hago treinta minutos de ejercicio. Luego desayuno y voy al trabajo. Mi trabajo está cerca de casa.", q: "¿Cómo está el trabajo respecto a la casa?", choices: ["cerca", "lejos", "muy grande"], correct: "cerca" },
+            { text: "Mañana el tiempo no será bueno. Va a llover y también hará viento. Por eso es mejor no salir.", q: "¿Qué tiempo hará mañana?", choices: ["lloverá y hará viento", "calor y sol", "nevará"], correct: "lloverá y hará viento" },
+            { text: "Trabajo en una oficina en la ciudad. Todos los días voy al trabajo en autobús. El trayecto dura unos treinta minutos.", q: "¿Cómo va esta persona al trabajo?", choices: ["en autobús", "en coche", "a pie"], correct: "en autobús" },
+        ];
+        function genEsTalkMc(count) {
+            const picked = shuffleArr(ES_TALKS).slice(0, Math.min(count, ES_TALKS.length));
+            return picked.map((t, ti) => ({ type: 'es-talk-mc', text: t.text, q: t.q, choices: shuffleArr(t.choices), correct: t.correct, voiceSlot: ti }));
+        }
+
+        // Expresión e interacción escritas — เขียนข้อความสั้น/อีเมลไม่เป็นทางการสไตล์ DELE A1 จริง
+        // (ประมาณ 20-30 คำ) ตรวจด้วย AI แบบเดียวกับ Goethe A1/PLIDA A1 Schreiben/Scrittura
+        const ES_WRITING_PROMPTS = [
+            "Escriba un mensaje breve a un amigo/una amiga. Invítelo/la a su fiesta de cumpleaños. Escriba: cuándo es la fiesta, dónde es, y qué debe traer.",
+            "Escriba un mensaje breve a un compañero/una compañera de trabajo. Diga que hoy no puede ir a trabajar porque está enfermo/a. Discúlpese.",
+            "Escriba un mensaje breve a un amigo/una amiga. Cancele la cita de esta noche y proponga una nueva fecha.",
+            "Escriba un correo breve a su propietario/a. Pregunte cuándo puede visitar el nuevo apartamento.",
+            "Escriba un mensaje breve a un amigo/una amiga. Dele las gracias por un regalo que recibió.",
+        ];
+        const ES_WRITE_SYSTEM_PROMPT =
+            'คุณเป็นครูสอนภาษาสเปนให้คนไทย กำลังตรวจข้อความสั้นสไตล์ DELE A1 Expresión escrita (ประมาณ 20-30 คำ)\n' +
+            'ตรวจสิ่งที่ผู้เรียนเขียนมา ตอบเป็นภาษาไทยเสมอ รูปแบบคำตอบต้องมี 3 ส่วนตามลำดับนี้เท่านั้น:\n' +
+            '1) "จุดที่แก้ไข:" อธิบายเป็นข้อๆ สั้นๆ ว่าแก้ตรงไหน (ไวยากรณ์/คำศัพท์/เพศของคำนาม-การผัน ser/estar)\n' +
+            '2) "ข้อเสนอแนะ:" คำแนะนำสั้นๆ ว่าจะเขียนข้อความสไตล์นี้ให้ดีขึ้นได้อย่างไร\n' +
+            '3) "ระดับโดยประมาณ:" ประเมินว่าข้อความนี้อยู่ในระดับ A1 หรือยัง (ผ่าน/ยังไม่ผ่านเกณฑ์ A1 คร่าวๆ) พร้อมบอกว่าเป็นการประมาณเบื้องต้นเท่านั้น ไม่ใช่คะแนนทางการ\n' +
+            'ถ้าเขียนดีอยู่แล้วให้บอกตรงๆ ว่าไม่ต้องแก้ไข';
+        const ES_WRITE_REMINDER =
+            'ย้ำ: ตรวจข้อความล่าสุดที่ผู้เรียนเพิ่งส่งมาเท่านั้น ตอบตามรูปแบบ 3 ส่วนที่กำหนดไว้เป๊ะๆ ห้ามข้ามส่วนไหน ' +
+            'และห้ามตอบเป็นภาษาอื่นนอกจากไทย';
+        function genEsEssay(count) {
+            const picked = shuffleArr(ES_WRITING_PROMPTS).slice(0, Math.min(count, ES_WRITING_PROMPTS.length));
+            return picked.map(p => ({ type: 'write-essay', context: 'DELE A1 Expresión escrita (เขียนประมาณ 20-30 คำ)', prompt: p }));
+        }
+
+        // Expresión e interacción orales — 3 ส่วนตามโครงสร้างทั่วไปของการสอบพูดระดับ A1 (แนะนำตัว/
+        // พูดคุยหัวข้อทั่วไป/ขอความช่วยเหลือ) ไม่มีระบบให้คะแนนการพูด (เหมือน IELTS/Goethe/DELF/PLIDA
+        // Speaking) — ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเองเท่านั้น
+        const ES_SPEAKING = {
+            "part1": ["¿Cómo se llama?", "¿De dónde viene?", "¿Qué idiomas habla?", "¿Cuál es su profesión o su afición?"],
+            "part2": "Tema: Las vacaciones — Haga 2-3 preguntas sobre este tema y respóndalas usted también (por ejemplo: ¿Adónde le gusta ir de vacaciones? ¿Con quién? ¿Con qué frecuencia?)",
+            "part3": ["No tiene un bolígrafo. Pídale un bolígrafo a alguien.", "Hace frío en la habitación. Pídale a alguien que cierre la ventana.", "Necesita ayuda con su maleta. Pida ayuda a alguien."],
+        };
+
+        function buildDeleExam() {
+            const pool = esVocabPool();
+            return {
+                kind: 'dele',
+                sections: [
+                    { key: 'auditiva', title: 'Comprensión auditiva (ฟัง)', icon: '🎧',
+                        questions: [...genEsResponseMc(5), ...genEsDialogueMc(6), ...genEsTalkMc(4)] },
+                    { key: 'lectura', title: 'Comprensión de lectura (อ่าน)', icon: '📖',
+                        questions: [...genEsWordMeaningMc(pool, 6), ...genGrammarMc(ES_GRAMMAR, 5), ...genEsPassageMc(ES_READING, 4)] },
+                    { key: 'escrita', title: 'Expresión escrita (เขียน)', icon: '✍️',
+                        questions: genEsEssay(1) },
+                    { key: 'oral', title: 'Expresión oral (พูด)', icon: '🗣️',
+                        questions: [{ type: 'speaking-practice' }] },
+                ],
+            };
+        }
+
+        // ── ข้อสอบ DELE A1 ภาษาสเปน (จำลอง) — โคลนโครงสร้าง state machine มาจาก ItExamView แบบเป๊ะๆ
+        //    (โครงสร้างจริงคล้ายกันมาก: 4 ทักษะน้ำหนักเท่ากัน มีทั้งเขียน/พูด แบ่งเป็น 2 กลุ่ม กลุ่มละ
+        //    50 คะแนน ต้องได้อย่างน้อย 30/50 ทั้งสองกลุ่ม ต่างจาก TOPIK I/JLPT N5)
+        function EsExamView({ langId, setLangId, setXp }) {
+            const [started, setStarted] = useState(false);
+            const [exam, setExam] = useState(null);
+            const [sectionIdx, setSectionIdx] = useState(0);
+            const [showIntro, setShowIntro] = useState(true);
+            const [qIdx, setQIdx] = useState(0);
+            const [answered, setAnswered] = useState(false);
+            const [userAnswer, setUserAnswer] = useState(null);
+            const [essayText, setEssayText] = useState('');
+            const [essayFeedback, setEssayFeedback] = useState('');
+            const [essayStatus, setEssayStatus] = useState('');
+            const [sectionResults, setSectionResults] = useState([]);
+            const [correctInSection, setCorrectInSection] = useState(0);
+            const [allWrong, setAllWrong] = useState([]);
+            const [finished, setFinished] = useState(false);
+            const [spIsRecording, setSpIsRecording] = useState(false);
+            const [spRecordedUrl, setSpRecordedUrl] = useState('');
+            const spMediaRef = useRef(null);
+            const spChunksRef = useRef([]);
+            const spStreamRef = useRef(null);
+            const spStartRecording = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    spStreamRef.current = stream;
+                    spChunksRef.current = [];
+                    const rec = new MediaRecorder(stream);
+                    rec.addEventListener('dataavailable', ev => { if (ev.data && ev.data.size) spChunksRef.current.push(ev.data); });
+                    spMediaRef.current = rec;
+                    rec.start();
+                    setSpIsRecording(true);
+                } catch (e) { /* ไม่มีสิทธิ์ไมค์ — เงียบไว้ ผู้ใช้ยังอ่าน prompt ได้ปกติ */ }
+            };
+            const spStopRecording = () => {
+                if (!spMediaRef.current) return;
+                spMediaRef.current.addEventListener('stop', () => {
+                    spStreamRef.current.getTracks().forEach(t => t.stop());
+                    const blob = new Blob(spChunksRef.current, { type: spMediaRef.current.mimeType || 'audio/webm' });
+                    setSpRecordedUrl(URL.createObjectURL(blob));
+                    setSpIsRecording(false);
+                }, { once: true });
+                spMediaRef.current.stop();
+            };
+
+            const resetPerQuestion = () => {
+                setAnswered(false); setUserAnswer(null);
+                setEssayText(''); setEssayFeedback(''); setEssayStatus('');
+                setSpIsRecording(false); setSpRecordedUrl('');
+            };
+            const start = () => {
+                setExam(buildDeleExam());
+                setStarted(true);
+                setSectionIdx(0); setShowIntro(true);
+                resetPerQuestion();
+                setSectionResults([]); setCorrectInSection(0); setAllWrong([]); setFinished(false);
+            };
+
+            useEffect(() => {
+                if (!exam || showIntro || finished) return;
+                const sec = exam.sections[sectionIdx];
+                const question = sec && sec.questions[qIdx];
+                if (!question) return;
+                const timers = [];
+                const t0 = setTimeout(() => {
+                    if (question.type === 'es-dialogue-mc') {
+                        question.lines.forEach((ln, i) => timers.push(setTimeout(() => speakVoice(ln.text, 'es', question.dialogueSlot * 2 + (i % 2)), i * 1800)));
+                    } else if (question.type === 'es-response-mc') {
+                        speakVoice(question.phrase, 'es', question.voiceSlot);
+                    } else if (question.type === 'es-talk-mc') {
+                        speakVoice(question.text, 'es', question.voiceSlot);
+                    }
+                }, 400);
+                return () => { clearTimeout(t0); timers.forEach(clearTimeout); };
+            }, [exam, sectionIdx, qIdx, showIntro]);
+
+            if (langId !== 'lang-es') {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-6 text-center">
+                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาสเปน</p>
+                            <button onClick={() => setLangId('lang-es')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาสเปน</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!started) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ DELE A1 (จำลอง)</h2>
+                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษาสเปนขั้นต้น (A1) — 4 ทักษะตามโครงสร้างจริง</p>
+                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ DELE A1</div>
+                                <div className="text-xs text-gray-500">Comprensión auditiva 15 + de lectura 15 + Expresión escrita 1 + oral 1 ส่วน ตามโครงสร้างจริง</div>
+                            </button>
+                            <p className="text-xs text-gray-400 leading-relaxed text-left">
+                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา โครงสร้างยึดตามข้อมูลจริง
+                                (แบ่งเป็น 2 กลุ่ม — Grupo 1: Comprensión de lectura + Expresión escrita, Grupo 2: Comprensión auditiva +
+                                Expresión oral — แต่ละทักษะ 25 คะแนน รวม 100 คะแนน ต้องได้อย่างน้อย 30/50 ทั้งสองกลุ่มถึงจะผ่าน) เว็บนี้
+                                แสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) สำหรับ Comprensión auditiva/de lectura เท่านั้น ไม่ใช่คะแนนทางการ<br />
+                                <b>ความแตกต่างจากข้อสอบจริง</b>: (1) Comprensión auditiva ของจริงมี 4 ส่วน 25 ข้อ ใช้เวลา 25 นาที เว็บนี้
+                                ขยายเป็นชุดคำถามที่ใหญ่ขึ้นเพื่อให้ฝึกได้หลากหลายกว่า และแสดงบทพูดเป็นตัวอักษรคู่กับเสียงเพื่อช่วยผู้เริ่มต้น
+                                ตามทัน (2) Comprensión de lectura ของจริงมี 4 ส่วน 25 ข้อ ใช้เวลา 45 นาที เว็บนี้เพิ่มคำศัพท์/ไวยากรณ์เข้าไป
+                                ด้วยเพื่อให้ฝึกได้ครอบคลุมกว่า (3) Expresión escrita ของจริงมี 2 งาน (กรอกฟอร์ม + เขียนข้อความสั้น) เว็บนี้มี
+                                เฉพาะส่วนเขียนข้อความสั้น ตรวจด้วย AI ให้คำแนะนำ ไม่ใช่คะแนนทางการ (4) Expresión oral ไม่มีระบบให้คะแนนการพูด
+                                ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเองเท่านั้น
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+
+            const restart = start;
+            const backToStart = () => { setStarted(false); setExam(null); };
+
+            if (finished) {
+                // นับคะแนนดิบเฉพาะ Comprensión auditiva/de lectura (ปรนัย) เท่านั้น — Expresión escrita/oral
+                // เป็นแบบฝึกที่ไม่มีระบบให้คะแนนถูก/ผิด (correct/total คงที่ 0/1 เป็น placeholder)
+                const scoredResults = sectionResults.filter(r => r.key === 'auditiva' || r.key === 'lectura');
+                const totalCorrect = scoredResults.reduce((s, r) => s + r.correct, 0);
+                const totalQ = scoredResults.reduce((s, r) => s + r.total, 0);
+                const pct = totalQ ? Math.round(totalCorrect / totalQ * 100) : 0;
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ DELE A1</h2>
+                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (เฉพาะ Comprensión auditiva/de lectura — Expresión escrita/oral ไม่มีคะแนนดิบแบบนี้)</p>
+                            <div className="grid grid-cols-2 gap-2 mb-5">
+                                {sectionResults.map(r => (
+                                    <div key={r.key} className="bg-white rounded-xl border border-gray-200 p-3">
+                                        <div className="text-xs text-gray-400">{r.title}</div>
+                                        <div className="text-lg font-bold text-gray-800">{r.key === 'auditiva' || r.key === 'lectura' ? `${r.correct}/${r.total}` : 'ฝึกเสร็จแล้ว'}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {allWrong.length > 0 && (
+                                <div className="text-left bg-white rounded-xl border border-gray-200 p-4 mb-4 max-h-72 overflow-y-auto">
+                                    <p className="text-sm font-bold text-gray-700 mb-2 sticky top-0 bg-white">ข้อที่ตอบผิด ({allWrong.length}):</p>
+                                    <div className="space-y-1.5">
+                                        {allWrong.map((w, i) => (
+                                            <div key={i} className="text-sm text-gray-600 flex justify-between gap-3">
+                                                <span>{w.left}</span>
+                                                <span className="text-gray-800 font-semibold text-right">{w.right}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex gap-2 justify-center flex-wrap">
+                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
+                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const section = exam.sections[sectionIdx];
+
+            if (showIntro) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">DELE A1 · ส่วนที่ {sectionIdx + 1}/{exam.sections.length}</p>
+                            <div className="text-5xl mb-3">{section.icon}</div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
+                            <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
+                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const q = section.questions[qIdx];
+
+            const finishSection = () => {
+                const results = [...sectionResults, { key: section.key, title: section.title, correct: correctInSection, total: section.questions.length }];
+                setSectionResults(results);
+                if (sectionIdx + 1 >= exam.sections.length) {
+                    setFinished(true);
+                } else {
+                    setSectionIdx(i => i + 1);
+                    setShowIntro(true);
+                    setQIdx(0);
+                    resetPerQuestion();
+                    setCorrectInSection(0);
+                }
+            };
+            const nextQuestion = () => {
+                if (qIdx + 1 >= section.questions.length) { finishSection(); return; }
+                setQIdx(i => i + 1); resetPerQuestion();
+            };
+            const recordAnswer = (isCorrect, wrongEntry) => {
+                setAnswered(true);
+                if (isCorrect) { setCorrectInSection(c => c + 1); setXp(x => x + 2); }
+                else if (wrongEntry) setAllWrong(w => [...w, wrongEntry]);
+            };
+            const pickMc = (choice) => {
+                if (answered) return;
+                setUserAnswer(choice);
+                const isCorrect = choice === q.correct;
+                const leftLabel = q.word || q.sentence || q.phrase || q.q || q.thai;
+                recordAnswer(isCorrect, isCorrect ? null : { left: leftLabel || 'ข้อนี้', right: q.correct });
+            };
+
+            const submitEssay = () => {
+                if (!essayText.trim() || essayStatus === 'loading') return;
+                if (isIOS()) {
+                    setEssayStatus('error');
+                    setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
+                    return;
+                }
+                setEssayStatus('loading'); setEssayFeedback('');
+                const w = getWritingWorker();
+                const jobId = 'esessay-' + Date.now();
+                let acc = '';
+                function onMsg(e) {
+                    const msg = e.data;
+                    if (!msg || msg.jobId !== jobId) return;
+                    if (msg.type === 'token') { acc += msg.token; setEssayFeedback(acc); }
+                    else if (msg.type === 'done') { cleanup(); setEssayStatus('done'); setAnswered(true); setXp(x => x + 2); }
+                    else if (msg.type === 'error') { cleanup(); setEssayStatus('error'); setEssayFeedback(friendlyChatError(msg.message)); }
+                }
+                function onErr(e) { cleanup(); setEssayStatus('error'); setEssayFeedback(friendlyChatError(e.message || '')); }
+                function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+                w.addEventListener('message', onMsg);
+                w.addEventListener('error', onErr);
+                const messages = [
+                    { role: 'system', content: ES_WRITE_SYSTEM_PROMPT },
+                    { role: 'user', content: essayText },
+                    { role: 'system', content: ES_WRITE_REMINDER },
+                ];
+                w.postMessage({ type: 'chat', jobId, maxNewTokens: 400, messages });
+            };
+            const skipEssay = () => { setAnswered(true); };
+            const markSpeakingDone = () => { setAnswered(true); };
+
+            const progressLabel = `${section.title} · ข้อ ${qIdx + 1}/${section.questions.length}`;
+
+            return (
+                <div className="flex-1 overflow-y-auto bg-gray-50">
+                    <div className="max-w-xl mx-auto p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <span className="text-xs font-bold text-gray-400 uppercase">DELE A1 · {progressLabel}</span>
+                            {(section.key === 'auditiva' || section.key === 'lectura') && (
+                                <span className="text-xs font-bold text-brand">ถูก {correctInSection} ข้อ</span>
+                            )}
+                        </div>
+
+                        {q.type === 'es-word-meaning-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
+                                    <button onClick={() => speak(q.word, 'es')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'grammar-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'passage-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'es-response-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
+                                    <button onClick={() => speakVoice(q.phrase, 'es', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                </div>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'es-dialogue-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <div className="space-y-1">
+                                        {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
+                                    </div>
+                                    <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'es', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
+                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'es-talk-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                    <button onClick={() => speakVoice(q.text, 'es', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'write-essay' && (
+                            <>
+                                <p className="text-xs text-gray-400 mb-1">{q.context}</p>
+                                <p className="text-gray-700 font-semibold mb-3">{q.prompt}</p>
+                                <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={6} disabled={answered}
+                                    placeholder="Escriba su texto aquí en español..."
+                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                {!answered && (
+                                    <div className="flex gap-2 mb-3">
+                                        <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
+                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
+                                        </button>
+                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                    </div>
+                                )}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                            </>
+                        )}
+
+                        {q.type === 'speaking-practice' && (
+                            <>
+                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
+                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
+                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Parte 1 — Presentarse</p>
+                                    {ES_SPEAKING.part1.map((p, i) => (
+                                        <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
+                                            <span className="text-sm text-gray-700">{p}</span>
+                                            <button onClick={() => speak(p, 'es')} className="shrink-0 text-brand"><Volume2 /></button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Parte 2 — Hablar de un tema</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{ES_SPEAKING.part2}</p>
+                                    <button onClick={() => speak(ES_SPEAKING.part2, 'es')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Parte 3 — Hacer una petición</p>
+                                    {ES_SPEAKING.part3.map((p, i) => (
+                                        <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
+                                            <span className="text-sm text-gray-700">{p}</span>
+                                            <button onClick={() => speak(p, 'es')} className="shrink-0 text-brand"><Volume2 /></button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex flex-col items-center gap-3 mb-4">
+                                    {!spIsRecording ? (
+                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
+                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        </button>
+                                    ) : (
+                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
+                                            ⏹ หยุดอัด
+                                        </button>
+                                    )}
+                                </div>
+                                {spRecordedUrl && (
+                                    <div className="mb-4 text-center">
+                                        <audio controls src={spRecordedUrl} className="mx-auto w-full"></audio>
+                                    </div>
+                                )}
+                                {!answered && (
+                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                )}
+                            </>
+                        )}
+
+                        {answered && (
+                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                                {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+
 
 
 
@@ -8760,10 +9322,10 @@
                 setMobileNavOpen(false);
             };
 
-            // ปุ่ม "ข้อสอบ" รองรับ 8 ภาษาแล้ว (จีนกลาง→HSK/BCT, อังกฤษ→IELTS/TOEIC, ญี่ปุ่น→JLPT,
+            // ปุ่ม "ข้อสอบ" รองรับ 9 ภาษาแล้ว (จีนกลาง→HSK/BCT, อังกฤษ→IELTS/TOEIC, ญี่ปุ่น→JLPT,
             // เกาหลี→TOPIK, จีนกวางตุ้ง→แบบทดสอบความเข้าใจที่แต่งเอง, เยอรมัน→Goethe A1, ฝรั่งเศส→DELF A1,
-            // อิตาลี→PLIDA A1) — ถ้ากำลังอยู่ภาษาที่มีข้อสอบอยู่แล้วให้ไปหน้าข้อสอบของภาษานั้นเลย ภาษาอื่น
-            // นอกเหนือจากนี้ยัง fallback ไปจีนกลางเหมือนเดิม
+            // อิตาลี→PLIDA A1, สเปน→DELE A1) — ถ้ากำลังอยู่ภาษาที่มีข้อสอบอยู่แล้วให้ไปหน้าข้อสอบของภาษา
+            // นั้นเลย ภาษาอื่นนอกเหนือจากนี้ยัง fallback ไปจีนกลางเหมือนเดิม
             const goExam = () => {
                 if (langId === 'lang-en') {
                     setView('enexam');
@@ -8779,6 +9341,8 @@
                     setView('frexam');
                 } else if (langId === 'lang-it') {
                     setView('itexam');
+                } else if (langId === 'lang-es') {
+                    setView('esexam');
                 } else {
                     setLangId('lang-cn');
                     setView('hsk');
@@ -8890,7 +9454,7 @@
                                             <div key={id} className="flex items-center gap-1">
                                                 <button
                                                     onClick={() => selectLang(id)}
-                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
+                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
                                                 >
                                                     <Languages /> <span className="flex-1 text-left truncate">{LANGS[id].title}</span>
                                                     {allDone && <CheckCircle />}
@@ -8978,8 +9542,8 @@
                                 </button>
                                 <button
                                     onClick={goExam}
-                                    title="รองรับภาษาจีนกลาง (HSK/BCT), อังกฤษ (IELTS/TOEIC), ญี่ปุ่น (JLPT), เกาหลี (TOPIK), จีนกวางตุ้ง (แบบทดสอบความเข้าใจ), เยอรมัน (Goethe A1), ฝรั่งเศส (DELF A1) และอิตาลี (PLIDA A1) — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
-                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                    title="รองรับภาษาจีนกลาง (HSK/BCT), อังกฤษ (IELTS/TOEIC), ญี่ปุ่น (JLPT), เกาหลี (TOPIK), จีนกวางตุ้ง (แบบทดสอบความเข้าใจ), เยอรมัน (Goethe A1), ฝรั่งเศส (DELF A1), อิตาลี (PLIDA A1) และสเปน (DELE A1) — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
+                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
                                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
@@ -9266,6 +9830,21 @@
                                     </div>
                                 )}
 
+                                {langId === 'lang-es' && (
+                                    <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
+                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาสเปน</h3>
+                                        <p className="text-xs text-gray-400 mb-4">ทำข้อสอบจำลอง DELE A1 โดยเฉพาะ</p>
+                                        <div className="grid grid-cols-1 gap-3">
+                                            <button onClick={goExam}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><HskIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ DELE A1</div>
+                                                <div className="text-[11px] text-gray-400">Comprensión auditiva・de lectura・Expresión escrita・oral</div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {Object.keys(wrong).length > 0 && (
                                     <div className="bg-white rounded-xl border border-gray-200 p-5">
                                         <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><XCircle /> คำที่เคยตอบผิด ({Object.keys(wrong).length})</h3>
@@ -9531,6 +10110,8 @@
                         <FrExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : view === 'itexam' ? (
                         <ItExamView langId={langId} setLangId={setLangId} setXp={setXp} />
+                        ) : view === 'esexam' ? (
+                        <EsExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : (
                         <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} />
                         )}
