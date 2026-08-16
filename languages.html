@@ -7682,6 +7682,584 @@
         }
 
         // ══════════════════════════════════════════════════════════════════════════════════
+        // ข้อสอบจำลอง ALPT (Arabic Language Proficiency Test) โดย Arab Academy — ค้นคว้าแล้วพบว่านี่
+        // เป็นข้อสอบวัดระดับภาษาอาหรับสำหรับชาวต่างชาติที่ใกล้เคียงมาตรฐานสากลที่สุด (แมปผลกับ CEFR
+        // A1-C2 ได้) โครงสร้างจริงมี 5 ทักษะแยกกัน: (1) Listening Comprehension (2) Reading (3)
+        // Structure (ไวยากรณ์/โครงสร้างประโยค — เน้น syntax และลำดับคำ) (4) Writing (เขียนตอบแบบ
+        // open-ended พิมพ์คำตอบ) (5) Speaking (สอบพูดสดกับครูผู้สอน) — 3 ส่วนแรก (Listening/Reading/
+        // Structure) เป็นปรนัย ส่วน Writing/Speaking เป็นแบบเปิด สอบจริงเป็นแบบ computer-adaptive
+        // (โจทย์ปรับความยากตามคำตอบ ไม่ใช่จำนวนข้อตายตัว) และไม่มีหมวด "คำศัพท์" แยกต่างหากชัดเจนแบบ
+        // HSK/JLPT — เว็บนี้จึงรวมข้อสอบวัดความรู้คำศัพท์เข้ากับส่วน Structure (ตั้งชื่อว่า "التراكيب
+        // والمفردات" ทั้งไวยากรณ์และคำศัพท์) คล้ายที่ ТРКИ-1 รวม "Лексика. Грамматика" เป็นส่วนเดียวกัน
+        // ══════════════════════════════════════════════════════════════════════════════════
+
+        // คำศัพท์เฉพาะทาง (กฎหมาย/วิศวกรรม/ธุรกิจ) ไม่ควรหลุดเข้าไปในคลังคำศัพท์ข้อสอบ ALPT (ระดับต้น)
+        // — กันไว้เหมือน DE_SPECIALTY_CATS/FR_SPECIALTY_CATS/IT_SPECIALTY_CATS/ES_SPECIALTY_CATS/
+        // PT_SPECIALTY_CATS/RU_SPECIALTY_CATS คำกลุ่มนี้ยังคงโผล่ในโหมด SRS ทั่วไป (ฝึกเขียน/dictation/
+        // compose) ตามปกติ เพราะ vocabPool() (คนละฟังก์ชัน) ไม่กรองออก
+        const AR_SPECIALTY_CATS = ['กฎหมาย (Legal Arabic)', 'วิศวกรรม (Engineering Arabic)', 'ธุรกิจเชิงลึก (Business Arabic)'];
+        function arVocabPool() {
+            const out = [];
+            const cats = VOCAB['lang-ar'] || {};
+            Object.keys(cats).forEach(cat => {
+                if (AR_SPECIALTY_CATS.includes(cat)) return;
+                out.push(...(cats[cat] || []).map((w, i) => ({ key: `lang-ar::vocab-${cat}::${i}`, word: w.word, thai: w.thai })));
+            });
+            return out;
+        }
+        function genArWordMeaningMc(pool, count) {
+            const picked = shuffleArr(pool).slice(0, Math.min(count, pool.length));
+            return picked.map(item => {
+                const distractors = shuffleArr(pool.filter(p => p.word !== item.word)).slice(0, 3);
+                const choices = shuffleArr([item.thai, ...distractors.map(d => d.thai)]);
+                return { type: 'ar-word-meaning-mc', word: item.word, correct: item.thai, choices };
+            });
+        }
+
+        // ไวยากรณ์อาหรับต่างจากทุกภาษาที่ทำมาก่อนหน้านี้อย่างสิ้นเชิง เพราะเป็นตระกูลเซมิติก (Semitic) —
+        // จุดเด่นที่ครอบคลุมในชุดนี้: คำนำหน้านามจำเพาะ ال (al-) ติดกับคำเสมอ (ไม่ใช่คำแยกแบบ the/le/der),
+        // ระบบ "จำนวนคู่" (dual/المثنى) แยกจากเอกพจน์-พหูพจน์ชัดเจน (ไม่มีในภาษาที่ทำมาก่อนหน้านี้เลย —
+        // ของสองชิ้นใช้รูปคำต่างจากของหนึ่งชิ้นและของหลายชิ้น), การผันกริยาปัจจุบันด้วย "หน่วยเติมหน้า"
+        // ตามบุรุษ (أ-/ت-/ي-/ن- แทนการเปลี่ยนท้ายคำแบบยุโรป), โครงสร้าง "อิฎอฟะฮ์" (إضافة) แสดงความเป็น
+        // เจ้าของด้วยการวางคำนามชิดกันตรงๆ โดยไม่มีคำว่า "ของ" (ต่างจาก "of"/"de"/"di"), การไม่ใช้กริยา
+        // "เป็น/อยู่/คือ" ในประโยคปัจจุบันกาล (zero copula เหมือนรัสเซีย แต่ปฏิเสธประโยคนามใช้คำเฉพาะ ليس/
+        // لست ต่างจาก не ของรัสเซีย), และคุณศัพท์ผันตามเพศของคำนามเสมอ (2 เพศ ชาย/หญิง)
+        const AR_GRAMMAR = [
+            { sentence: "البيت ___.", choices: ["كبير", "كبيرة", "كبار", "كبيرات"], correct: "كبير" },
+            { sentence: "الشقة ___.", choices: ["كبير", "كبيرة", "كبار", "كبيرات"], correct: "كبيرة" },
+            { sentence: "هذان ___.", choices: ["كتاب", "كتابان", "كتب", "كتابات"], correct: "كتابان" },
+            { sentence: "أنا ___ العربية.", choices: ["أدرس", "تدرس", "يدرس", "ندرس"], correct: "أدرس" },
+            { sentence: "هي ___ في المكتب.", choices: ["أعمل", "تعمل", "يعمل", "نعمل"], correct: "تعمل" },
+            { sentence: "هذا ___ الطالب.", choices: ["كتاب", "الكتاب", "كتابا", "كتب"], correct: "كتاب" },
+            { sentence: "هو ___ طبيب.", choices: ["—", "هو", "يكون", "كان"], correct: "—" },
+            { sentence: "___ اسمك؟", choices: ["ما", "من", "أين", "متى"], correct: "ما" },
+            { sentence: "أنا ___ طالب.", choices: ["لست", "لا", "ليس", "ما"], correct: "لست" },
+            { sentence: "نحن ___ في الجامعة.", choices: ["أدرس", "تدرسون", "ندرس", "يدرسون"], correct: "ندرس" },
+        ];
+
+        // القراءة — บทอ่านสั้นระดับต้น หัวข้อคู่ขนานกับภาษาอื่นที่ทำมาก่อนหน้านี้ (เพื่อเทียบกันข้ามภาษาได้)
+        const AR_READING = [
+            { text: "اسمي سارة. أسكن في القاهرة. أدرس اللغة التايلاندية.", q: "ماذا تدرس سارة؟", choices: ["اللغة التايلاندية", "اللغة الإنجليزية", "اللغة العربية"], correct: "اللغة التايلاندية" },
+            { text: "المطعم مغلق أيام الاثنين. من الثلاثاء إلى الأحد هو مفتوح.", q: "متى المطعم مغلق؟", choices: ["أيام الاثنين", "أيام الثلاثاء", "أيام الأحد"], correct: "أيام الاثنين" },
+            { text: "اشتريت قميصًا جديدًا في المركز التجاري أمس. إنه جميل جدًا.", q: "ماذا اشتريت أمس؟", choices: ["قميصًا", "حذاءً", "حقيبة"], correct: "قميصًا" },
+            { text: "الجو بارد اليوم وتمطر. أمس كان الجو دافئًا ومشمسًا.", q: "كيف الجو اليوم؟", choices: ["بارد وممطر", "دافئ ومشمس", "حار وعاصف"], correct: "بارد وممطر" },
+            { text: "أخي يعمل طبيبًا في المستشفى. هو يساعد المرضى.", q: "ماذا يعمل أخي؟", choices: ["طبيبًا", "معلمًا", "سائقًا"], correct: "طبيبًا" },
+            { text: "يغادر القطار الساعة الثامنة صباحًا. من فضلك احضر إلى المحطة مبكرًا.", q: "متى يغادر القطار؟", choices: ["الساعة الثامنة صباحًا", "الساعة الثامنة مساءً", "الساعة التاسعة صباحًا"], correct: "الساعة الثامنة صباحًا" },
+            { text: "لدي أخت وأخ. أختي أكبر مني، وأخي أصغر مني.", q: "من أصغر مني؟", choices: ["أخي", "أختي", "كلاهما"], correct: "أخي" },
+            { text: "المحل يعمل من الساعة التاسعة صباحًا حتى العاشرة مساءً كل يوم.", q: "حتى أي ساعة يعمل المحل؟", choices: ["العاشرة مساءً", "التاسعة مساءً", "الثامنة مساءً"], correct: "العاشرة مساءً" },
+            { text: "أدرس اللغة العربية منذ سنتين. إنها صعبة لكنها ممتعة.", q: "منذ متى أدرس اللغة العربية؟", choices: ["منذ سنتين", "منذ سنة", "منذ ثلاث سنوات"], correct: "منذ سنتين" },
+            { text: "اجتماعنا يبدأ الساعة الثالثة بعد الظهر في المكتب في الطابق الخامس.", q: "أين يقام الاجتماع؟", choices: ["في المكتب في الطابق الخامس", "في المكتب في الطابق الثالث", "في المنزل"], correct: "في المكتب في الطابق الخامس" },
+        ];
+        function genArPassageMc(dataset, count) {
+            const picked = shuffleArr(dataset).slice(0, Math.min(count, dataset.length));
+            return picked.map(p => ({ type: 'passage-mc', text: p.text, q: p.q, choices: shuffleArr(p.choices), correct: p.correct }));
+        }
+
+        // الاستماع — ประโยคเดียว + เลือกคำตอบที่เหมาะสม (quick response)
+        const AR_RESPONSES = [
+            { phrase: "عفوًا، كم الساعة الآن؟", choices: ["الساعة الثالثة الآن.", "نعم، بالضبط.", "شكرًا جزيلاً."], correct: "الساعة الثالثة الآن." },
+            { phrase: "كيف حالك؟", choices: ["بخير، شكرًا.", "الساعة الثالثة الآن.", "أنا من روسيا."], correct: "بخير، شكرًا." },
+            { phrase: "بكم هذه الحقيبة؟", choices: ["ثمنها عشرة ريالات.", "هي في المدرسة.", "هذا غدًا."], correct: "ثمنها عشرة ريالات." },
+            { phrase: "هل يمكنني مساعدتك؟", choices: ["نعم، من فضلك.", "الساعة الثالثة الآن.", "أنا عربي."], correct: "نعم، من فضلك." },
+            { phrase: "عفوًا، ما اسمك؟", choices: ["اسمي سارة أحمد.", "أنا بخير.", "أنا هنا."], correct: "اسمي سارة أحمد." },
+            { phrase: "هل تريد قهوة؟", choices: ["نعم، من فضلك.", "لا، اسمي سارة.", "حقًا؟"], correct: "نعم، من فضلك." },
+            { phrase: "هل أنجزت واجبك المنزلي؟", choices: ["نعم، أنجزته.", "نعم، أنا قادم.", "لا، كل شيء بخير."], correct: "نعم، أنجزته." },
+            { phrase: "إلى اللقاء غدًا!", choices: ["نعم، إلى اللقاء غدًا!", "نعم، بكل سرور.", "لا، شكرًا."], correct: "نعم، إلى اللقاء غدًا!" },
+        ];
+        function genArResponseMc(count) {
+            const picked = shuffleArr(AR_RESPONSES).slice(0, Math.min(count, AR_RESPONSES.length));
+            return picked.map((r, ri) => ({ type: 'ar-response-mc', phrase: r.phrase, choices: shuffleArr(r.choices), correct: r.correct, voiceSlot: ri }));
+        }
+
+        // الاستماع — บทสนทนาสั้น 2-4 ประโยค + คำถาม 1 ข้อ/บท
+        const AR_DIALOGUES = [
+            { lines: [{ speaker: 'A', text: "مرحبًا، أين أنت الآن؟" }, { speaker: 'B', text: "أنا في البيت الآن." }, { speaker: 'A', text: "حسنًا، سأتصل بك لاحقًا." }], q: "أين ب الآن؟", choices: ["في البيت", "في المدرسة", "في المكتب"], correct: "في البيت" },
+            { lines: [{ speaker: 'A', text: "بكم هذه التفاحة؟" }, { speaker: 'B', text: "ثمنها ريال واحد." }, { speaker: 'A', text: "أعطني اثنتين من فضلك." }], q: "كم ثمن التفاحة الواحدة؟", choices: ["ريال واحد", "ريالان", "نصف ريال"], correct: "ريال واحد" },
+            { lines: [{ speaker: 'A', text: "هل لديك وقت هذا المساء؟" }, { speaker: 'B', text: "نعم، لدي. لماذا؟" }, { speaker: 'A', text: "هل نشاهد فيلمًا معًا؟" }, { speaker: 'B', text: "بكل سرور!" }], q: "ماذا سيفعلان؟", choices: ["مشاهدة فيلم", "تناول العشاء", "الدراسة"], correct: "مشاهدة فيلم" },
+            { lines: [{ speaker: 'A', text: "كيف الجو اليوم؟" }, { speaker: 'B', text: "بارد جدًا. وتمطر أيضًا." }, { speaker: 'A', text: "إذن البس ملابس دافئة." }], q: "كيف الجو اليوم؟", choices: ["بارد وممطر", "حار ومشمس", "يتساقط الثلج"], correct: "بارد وممطر" },
+            { lines: [{ speaker: 'A', text: "مارك، ماذا تفعل الآن؟" }, { speaker: 'B', text: "أستعير كتابًا من المكتبة، ثم أذهب إلى البيت." }, { speaker: 'A', text: "سأذهب معك." }], q: "ماذا يفعل مارك في المكتبة؟", choices: ["يستعير كتابًا", "يأكل", "ينام"], correct: "يستعير كتابًا" },
+            { lines: [{ speaker: 'A', text: "عفوًا، أين محطة المترو؟" }, { speaker: 'B', text: "اذهب مباشرة في هذا الشارع." }, { speaker: 'A', text: "شكرًا جزيلاً." }], q: "كيف أصل إلى محطة المترو؟", choices: ["مباشرة في هذا الشارع", "إلى اليمين", "بالحافلة"], correct: "مباشرة في هذا الشارع" },
+            { lines: [{ speaker: 'A', text: "متى سنلتقي غدًا؟" }, { speaker: 'B', text: "ما رأيك في الساعة التاسعة؟" }, { speaker: 'A', text: "حسنًا، إذن نلتقي الساعة التاسعة." }], q: "متى سيلتقيان غدًا؟", choices: ["الساعة التاسعة", "الساعة الثامنة", "الساعة العاشرة"], correct: "الساعة التاسعة" },
+            { lines: [{ speaker: 'A', text: "ماذا تريد أن تطلب؟" }, { speaker: 'B', text: "سآخذ الحساء من فضلك." }, { speaker: 'A', text: "حسنًا، لحظة واحدة." }], q: "ماذا طلب ب؟", choices: ["الحساء", "الأرز", "الخبز"], correct: "الحساء" },
+            { lines: [{ speaker: 'A', text: "أين يؤلمك؟" }, { speaker: 'B', text: "رأسي يؤلمني، ولدي حرارة." }, { speaker: 'A', text: "خذ الدواء وارتح." }], q: "أين يؤلم ب؟", choices: ["رأسه", "بطنه", "ساقه"], correct: "رأسه" },
+            { lines: [{ speaker: 'A', text: "ماذا فعلت في نهاية هذا الأسبوع؟" }, { speaker: 'B', text: "ذهبت في رحلة تخييم مع صديقي." }, { speaker: 'A', text: "يبدو ممتعًا." }], q: "ماذا فعل ب في نهاية الأسبوع؟", choices: ["ذهب في رحلة تخييم", "شاهد فيلمًا", "استراح في البيت"], correct: "ذهب في رحلة تخييم" },
+        ];
+        function genArDialogueMc(count) {
+            const picked = shuffleArr(AR_DIALOGUES).slice(0, Math.min(count, AR_DIALOGUES.length));
+            return picked.map((d, di) => ({ type: 'ar-dialogue-mc', lines: d.lines, q: d.q, choices: shuffleArr(d.choices), correct: d.correct, dialogueSlot: di }));
+        }
+
+        // الاستماع — บทพูดสั้นคนเดียว + คำถาม 1 ข้อ/บท
+        const AR_TALKS = [
+            { text: "مرحبًا، اسمي مايكل. أنا من الولايات المتحدة. أدرس اللغة العربية الآن. أحب المطبخ العربي كثيرًا. أفضل طبق أحبه هو الحمص.", q: "من أين مايكل؟", choices: ["من الولايات المتحدة", "من روسيا", "من اليابان"], correct: "من الولايات المتحدة" },
+            { text: "اليوم عيد ميلادي. سأتناول العشاء في مطعم مع عائلتي مساءً. ثم سنأكل الكعكة. أنا سعيد جدًا.", q: "ماذا يحدث اليوم؟", choices: ["عيد ميلاد", "إجازة", "امتحان"], correct: "عيد ميلاد" },
+            { text: "أستيقظ كل يوم الساعة السابعة. ثم أمارس الرياضة لمدة ثلاثين دقيقة. بعد ذلك أتناول الفطور وأذهب إلى العمل. عملي قريب من بيتي.", q: "ما مدى بعد العمل عن البيت؟", choices: ["قريب", "بعيد", "بعيد جدًا"], correct: "قريب" },
+            { text: "سيكون الجو سيئًا غدًا. ستمطر وستهب رياح. لذلك من الأفضل عدم الخروج.", q: "كيف سيكون الجو غدًا؟", choices: ["ممطر وعاصف", "حار ومشمس", "ثلجي"], correct: "ممطر وعاصف" },
+            { text: "أعمل في مكتب في المدينة. أذهب إلى العمل كل يوم بالحافلة. تستغرق الرحلة نحو ثلاثين دقيقة.", q: "كيف يذهب هذا الشخص إلى العمل؟", choices: ["بالحافلة", "بالسيارة", "سيرًا على الأقدام"], correct: "بالحافلة" },
+        ];
+        function genArTalkMc(count) {
+            const picked = shuffleArr(AR_TALKS).slice(0, Math.min(count, AR_TALKS.length));
+            return picked.map((t, ti) => ({ type: 'ar-talk-mc', text: t.text, q: t.q, choices: shuffleArr(t.choices), correct: t.correct, voiceSlot: ti }));
+        }
+
+        // الكتابة — เขียนข้อความสั้น/จดหมายไม่เป็นทางการสไตล์ ALPT Writing จริง (ประมาณ 20-30 คำ) ตรวจด้วย
+        // AI แบบเดียวกับ Goethe A1/DELF A1/PLIDA A1/DELE A1/CELPE-Bras/ТРКИ-1
+        const AR_WRITING_PROMPTS = [
+            "اكتب رسالة قصيرة لصديقك. ادعه إلى حفلة عيد ميلادك. اكتب: متى الحفلة، وأين ستكون، وماذا يجب أن يحضر.",
+            "اكتب رسالة قصيرة لزميلك في العمل. أخبره أنك لا تستطيع الحضور إلى العمل اليوم لأنك مريض. اعتذر منه.",
+            "اكتب رسالة قصيرة لصديقك. ألغِ الموعد هذا المساء واقترح موعدًا جديدًا.",
+            "اكتب رسالة قصيرة لصاحب الشقة. اسأله متى يمكنك مشاهدة الشقة الجديدة.",
+            "اكتب رسالة قصيرة لصديقك. اشكره على الهدية التي تلقيتها منه.",
+        ];
+        const AR_WRITE_SYSTEM_PROMPT =
+            'คุณเป็นครูสอนภาษาอาหรับให้คนไทย กำลังตรวจข้อความสั้นสไตล์ ALPT Writing (การเขียน ประมาณ 20-30 คำ)\n' +
+            'ตรวจสิ่งที่ผู้เรียนเขียนมา ตอบเป็นภาษาไทยเสมอ รูปแบบคำตอบต้องมี 3 ส่วนตามลำดับนี้เท่านั้น:\n' +
+            '1) "จุดที่แก้ไข:" อธิบายเป็นข้อๆ สั้นๆ ว่าแก้ตรงไหน (คำนำหน้านาม ال, การผันเพศคุณศัพท์ตามคำนาม, การผันกริยาตามบุรุษ, โครงสร้างอิฎอฟะฮ์)\n' +
+            '2) "ข้อเสนอแนะ:" คำแนะนำสั้นๆ ว่าจะเขียนข้อความสไตล์นี้ให้ดีขึ้นได้อย่างไร\n' +
+            '3) "ระดับโดยประมาณ:" ประเมินว่าข้อความนี้อยู่ในระดับ A1 หรือยัง (ผ่าน/ยังไม่ผ่านเกณฑ์ A1 คร่าวๆ) พร้อมบอกว่าเป็นการประมาณเบื้องต้นเท่านั้น ไม่ใช่คะแนนทางการ\n' +
+            'ถ้าเขียนดีอยู่แล้วให้บอกตรงๆ ว่าไม่ต้องแก้ไข';
+        const AR_WRITE_REMINDER =
+            'ย้ำ: ตรวจข้อความล่าสุดที่ผู้เรียนเพิ่งส่งมาเท่านั้น ตอบตามรูปแบบ 3 ส่วนที่กำหนดไว้เป๊ะๆ ห้ามข้ามส่วนไหน ' +
+            'และห้ามตอบเป็นภาษาอื่นนอกจากไทย';
+        function genArEssay(count) {
+            const picked = shuffleArr(AR_WRITING_PROMPTS).slice(0, Math.min(count, AR_WRITING_PROMPTS.length));
+            return picked.map(p => ({ type: 'write-essay', context: 'ALPT Writing (เขียนประมาณ 20-30 คำ)', prompt: p }));
+        }
+
+        // المحادثة — 3 ส่วนตามโครงสร้างทั่วไปของการสอบพูดระดับ A1 (แนะนำตัว/พูดคุยหัวข้อทั่วไป/ขอความ
+        // ช่วยเหลือ) ของจริงคือสอบพูดสดกับครูผู้สอน ไม่มีระบบให้คะแนนการพูดในเว็บนี้ (เหมือน IELTS/Goethe/
+        // DELF/PLIDA/DELE/ТРКИ Speaking) — ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเองเท่านั้น
+        const AR_SPEAKING = {
+            "part1": ["ما اسمك؟", "من أين أنت؟", "ما اللغات التي تتحدثها؟", "ما مهنتك أو هوايتك؟"],
+            "part2": "الموضوع: الإجازة — اطرح 2-3 أسئلة حول هذا الموضوع وأجب عنها بنفسك (مثال: أين تحب أن تقضي إجازتك؟ مع من؟ كم مرة؟)",
+            "part3": ["ليس معك قلم. اطلب قلمًا من أحد.", "الغرفة باردة. اطلب من أحد إغلاق النافذة.", "تحتاج إلى مساعدة في حقيبتك. اطلب المساعدة من أحد."],
+        };
+
+        function buildAlptExam() {
+            const pool = arVocabPool();
+            return {
+                kind: 'alpt',
+                sections: [
+                    { key: 'structure', title: 'التراكيب والمفردات (Structure & Vocabulary)', icon: '📝',
+                        questions: [...genArWordMeaningMc(pool, 6), ...genGrammarMc(AR_GRAMMAR, 6)] },
+                    { key: 'reading', title: 'القراءة (Reading)', icon: '📖',
+                        questions: genArPassageMc(AR_READING, 5) },
+                    { key: 'listening', title: 'الاستماع (Listening)', icon: '🎧',
+                        questions: [...genArResponseMc(5), ...genArDialogueMc(6), ...genArTalkMc(4)] },
+                    { key: 'writing', title: 'الكتابة (Writing)', icon: '✍️',
+                        questions: genArEssay(1) },
+                    { key: 'speaking', title: 'المحادثة (Speaking)', icon: '🗣️',
+                        questions: [{ type: 'speaking-practice' }] },
+                ],
+            };
+        }
+
+        // ── ข้อสอบ ALPT ภาษาอาหรับ (จำลอง) — โคลนโครงสร้าง state machine มาจาก RuExamView (5 ส่วนเหมือนกัน
+        //    เพราะ ALPT ก็มี 5 ทักษะแยกกันชัดเจนแบบ ТРКИ-1 — 3 ส่วนแรกปรนัยมีคะแนนดิบ, 2 ส่วนหลังเป็นแบบฝึก
+        //    ไม่มีคะแนน)
+        function ArExamView({ langId, setLangId, setXp }) {
+            const [started, setStarted] = useState(false);
+            const [exam, setExam] = useState(null);
+            const [sectionIdx, setSectionIdx] = useState(0);
+            const [showIntro, setShowIntro] = useState(true);
+            const [qIdx, setQIdx] = useState(0);
+            const [answered, setAnswered] = useState(false);
+            const [userAnswer, setUserAnswer] = useState(null);
+            const [essayText, setEssayText] = useState('');
+            const [essayFeedback, setEssayFeedback] = useState('');
+            const [essayStatus, setEssayStatus] = useState('');
+            const [sectionResults, setSectionResults] = useState([]);
+            const [correctInSection, setCorrectInSection] = useState(0);
+            const [allWrong, setAllWrong] = useState([]);
+            const [finished, setFinished] = useState(false);
+            const [spIsRecording, setSpIsRecording] = useState(false);
+            const [spRecordedUrl, setSpRecordedUrl] = useState('');
+            const spMediaRef = useRef(null);
+            const spChunksRef = useRef([]);
+            const spStreamRef = useRef(null);
+            const spStartRecording = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    spStreamRef.current = stream;
+                    spChunksRef.current = [];
+                    const rec = new MediaRecorder(stream);
+                    rec.addEventListener('dataavailable', ev => { if (ev.data && ev.data.size) spChunksRef.current.push(ev.data); });
+                    spMediaRef.current = rec;
+                    rec.start();
+                    setSpIsRecording(true);
+                } catch (e) { /* ไม่มีสิทธิ์ไมค์ — เงียบไว้ ผู้ใช้ยังอ่าน prompt ได้ปกติ */ }
+            };
+            const spStopRecording = () => {
+                if (!spMediaRef.current) return;
+                spMediaRef.current.addEventListener('stop', () => {
+                    spStreamRef.current.getTracks().forEach(t => t.stop());
+                    const blob = new Blob(spChunksRef.current, { type: spMediaRef.current.mimeType || 'audio/webm' });
+                    setSpRecordedUrl(URL.createObjectURL(blob));
+                    setSpIsRecording(false);
+                }, { once: true });
+                spMediaRef.current.stop();
+            };
+
+            const resetPerQuestion = () => {
+                setAnswered(false); setUserAnswer(null);
+                setEssayText(''); setEssayFeedback(''); setEssayStatus('');
+                setSpIsRecording(false); setSpRecordedUrl('');
+            };
+            const start = () => {
+                setExam(buildAlptExam());
+                setStarted(true);
+                setSectionIdx(0); setShowIntro(true);
+                resetPerQuestion();
+                setSectionResults([]); setCorrectInSection(0); setAllWrong([]); setFinished(false);
+            };
+
+            useEffect(() => {
+                if (!exam || showIntro || finished) return;
+                const sec = exam.sections[sectionIdx];
+                const question = sec && sec.questions[qIdx];
+                if (!question) return;
+                const timers = [];
+                const t0 = setTimeout(() => {
+                    if (question.type === 'ar-dialogue-mc') {
+                        question.lines.forEach((ln, i) => timers.push(setTimeout(() => speakVoice(ln.text, 'ar', question.dialogueSlot * 2 + (i % 2)), i * 1800)));
+                    } else if (question.type === 'ar-response-mc') {
+                        speakVoice(question.phrase, 'ar', question.voiceSlot);
+                    } else if (question.type === 'ar-talk-mc') {
+                        speakVoice(question.text, 'ar', question.voiceSlot);
+                    }
+                }, 400);
+                return () => { clearTimeout(t0); timers.forEach(clearTimeout); };
+            }, [exam, sectionIdx, qIdx, showIntro]);
+
+            if (langId !== 'lang-ar') {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-6 text-center">
+                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาอาหรับ</p>
+                            <button onClick={() => setLangId('lang-ar')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาอาหรับ</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!started) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ ALPT (จำลอง)</h2>
+                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษาอาหรับขั้นต้น (เทียบ CEFR A1) — 5 ส่วนตามโครงสร้างจริง</p>
+                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ ALPT</div>
+                                <div className="text-xs text-gray-500">Structure & Vocabulary + Reading + Listening + Writing + Speaking ครบ 5 ส่วน ตามโครงสร้างจริง</div>
+                            </button>
+                            <p className="text-xs text-gray-400 leading-relaxed text-left">
+                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา โครงสร้างยึดตามข้อมูลจริง
+                                (ALPT ของ Arab Academy วัด 5 ทักษะแยกกัน: Listening/Reading/Structure/Writing/Speaking แมปผลกับ CEFR
+                                A1-C2 ได้ และเป็นแบบ computer-adaptive คือโจทย์ปรับความยากตามคำตอบ ไม่ใช่จำนวนข้อตายตัวแบบตายตัว)
+                                เว็บนี้แสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) สำหรับ Structure & Vocabulary/Reading/Listening เท่านั้น ไม่ใช่คะแนน
+                                ทางการหรือระดับ CEFR จริง<br />
+                                <b>ความแตกต่างจากข้อสอบจริง</b>: (1) ของจริงไม่มีจำนวนข้อตายตัว (ปรับตามความสามารถผู้สอบ) เว็บนี้ใช้จำนวน
+                                ข้อคงที่เพื่อให้ฝึกซ้ำได้ (2) ของจริงไม่มีหมวด "คำศัพท์" แยกต่างหาก เว็บนี้รวมเข้ากับ Structure เพราะเป็น
+                                ทักษะใกล้เคียงกัน (3) Listening แสดงบทพูดเป็นตัวอักษรคู่กับเสียงเพื่อช่วยผู้เริ่มต้นตามทัน (4) Writing ของจริง
+                                พิมพ์คำตอบเปิดกว้างและมีผู้ตรวจจริง เว็บนี้ตรวจด้วย AI ให้คำแนะนำ ไม่ใช่คะแนนทางการ (5) Speaking ของจริงสอบสด
+                                กับครูผู้สอน เว็บนี้ไม่มีระบบให้คะแนนการพูด ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเองเท่านั้น
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+
+            const restart = start;
+            const backToStart = () => { setStarted(false); setExam(null); };
+
+            if (finished) {
+                // นับคะแนนดิบเฉพาะ Structure & Vocabulary/Reading/Listening (ปรนัย) เท่านั้น — Writing/Speaking
+                // เป็นแบบฝึกที่ไม่มีระบบให้คะแนนถูก/ผิด (correct/total คงที่ 0/1 เป็น placeholder)
+                const scoredResults = sectionResults.filter(r => r.key === 'structure' || r.key === 'reading' || r.key === 'listening');
+                const totalCorrect = scoredResults.reduce((s, r) => s + r.correct, 0);
+                const totalQ = scoredResults.reduce((s, r) => s + r.total, 0);
+                const pct = totalQ ? Math.round(totalCorrect / totalQ * 100) : 0;
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ ALPT</h2>
+                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (เฉพาะ Structure & Vocabulary/Reading/Listening — Writing/Speaking ไม่มีคะแนนดิบแบบนี้)</p>
+                            <div className="grid grid-cols-2 gap-2 mb-5">
+                                {sectionResults.map(r => (
+                                    <div key={r.key} className="bg-white rounded-xl border border-gray-200 p-3">
+                                        <div className="text-xs text-gray-400">{r.title}</div>
+                                        <div className="text-lg font-bold text-gray-800">{r.key === 'structure' || r.key === 'reading' || r.key === 'listening' ? `${r.correct}/${r.total}` : 'ฝึกเสร็จแล้ว'}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {allWrong.length > 0 && (
+                                <div className="text-left bg-white rounded-xl border border-gray-200 p-4 mb-4 max-h-72 overflow-y-auto">
+                                    <p className="text-sm font-bold text-gray-700 mb-2 sticky top-0 bg-white">ข้อที่ตอบผิด ({allWrong.length}):</p>
+                                    <div className="space-y-1.5">
+                                        {allWrong.map((w, i) => (
+                                            <div key={i} className="text-sm text-gray-600 flex justify-between gap-3">
+                                                <span>{w.left}</span>
+                                                <span className="text-gray-800 font-semibold text-right">{w.right}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex gap-2 justify-center flex-wrap">
+                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
+                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const section = exam.sections[sectionIdx];
+
+            if (showIntro) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">ALPT · ส่วนที่ {sectionIdx + 1}/{exam.sections.length}</p>
+                            <div className="text-5xl mb-3">{section.icon}</div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
+                            <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
+                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const q = section.questions[qIdx];
+
+            const finishSection = () => {
+                const results = [...sectionResults, { key: section.key, title: section.title, correct: correctInSection, total: section.questions.length }];
+                setSectionResults(results);
+                if (sectionIdx + 1 >= exam.sections.length) {
+                    setFinished(true);
+                } else {
+                    setSectionIdx(i => i + 1);
+                    setShowIntro(true);
+                    setQIdx(0);
+                    resetPerQuestion();
+                    setCorrectInSection(0);
+                }
+            };
+            const nextQuestion = () => {
+                if (qIdx + 1 >= section.questions.length) { finishSection(); return; }
+                setQIdx(i => i + 1); resetPerQuestion();
+            };
+            const recordAnswer = (isCorrect, wrongEntry) => {
+                setAnswered(true);
+                if (isCorrect) { setCorrectInSection(c => c + 1); setXp(x => x + 2); }
+                else if (wrongEntry) setAllWrong(w => [...w, wrongEntry]);
+            };
+            const pickMc = (choice) => {
+                if (answered) return;
+                setUserAnswer(choice);
+                const isCorrect = choice === q.correct;
+                const leftLabel = q.word || q.sentence || q.phrase || q.q || q.thai;
+                recordAnswer(isCorrect, isCorrect ? null : { left: leftLabel || 'ข้อนี้', right: q.correct });
+            };
+
+            const submitEssay = () => {
+                if (!essayText.trim() || essayStatus === 'loading') return;
+                if (isIOS()) {
+                    setEssayStatus('error');
+                    setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
+                    return;
+                }
+                setEssayStatus('loading'); setEssayFeedback('');
+                const w = getWritingWorker();
+                const jobId = 'aressay-' + Date.now();
+                let acc = '';
+                function onMsg(e) {
+                    const msg = e.data;
+                    if (!msg || msg.jobId !== jobId) return;
+                    if (msg.type === 'token') { acc += msg.token; setEssayFeedback(acc); }
+                    else if (msg.type === 'done') { cleanup(); setEssayStatus('done'); setAnswered(true); setXp(x => x + 2); }
+                    else if (msg.type === 'error') { cleanup(); setEssayStatus('error'); setEssayFeedback(friendlyChatError(msg.message)); }
+                }
+                function onErr(e) { cleanup(); setEssayStatus('error'); setEssayFeedback(friendlyChatError(e.message || '')); }
+                function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+                w.addEventListener('message', onMsg);
+                w.addEventListener('error', onErr);
+                const messages = [
+                    { role: 'system', content: AR_WRITE_SYSTEM_PROMPT },
+                    { role: 'user', content: essayText },
+                    { role: 'system', content: AR_WRITE_REMINDER },
+                ];
+                w.postMessage({ type: 'chat', jobId, maxNewTokens: 400, messages });
+            };
+            const skipEssay = () => { setAnswered(true); };
+            const markSpeakingDone = () => { setAnswered(true); };
+
+            const progressLabel = `${section.title} · ข้อ ${qIdx + 1}/${section.questions.length}`;
+
+            return (
+                <div className="flex-1 overflow-y-auto bg-gray-50">
+                    <div className="max-w-xl mx-auto p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <span className="text-xs font-bold text-gray-400 uppercase">ALPT · {progressLabel}</span>
+                            {(section.key === 'structure' || section.key === 'reading' || section.key === 'listening') && (
+                                <span className="text-xs font-bold text-brand">ถูก {correctInSection} ข้อ</span>
+                            )}
+                        </div>
+
+                        {q.type === 'ar-word-meaning-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4" dir="rtl">
+                                    <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
+                                    <button onClick={() => speak(q.word, 'ar')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'grammar-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4" dir="rtl">
+                                    <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'passage-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4" dir="rtl">
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3" dir="rtl">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'ar-response-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <div className="text-lg font-semibold text-gray-900 mb-2" dir="rtl">{q.phrase}</div>
+                                    <button onClick={() => speakVoice(q.phrase, 'ar', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                </div>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'ar-dialogue-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4" dir="rtl">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <div className="space-y-1">
+                                        {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
+                                    </div>
+                                    <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'ar', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
+                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3" dir="rtl">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'ar-talk-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4" dir="rtl">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                    <button onClick={() => speakVoice(q.text, 'ar', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3" dir="rtl">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'write-essay' && (
+                            <>
+                                <p className="text-xs text-gray-400 mb-1">{q.context}</p>
+                                <p className="text-gray-700 font-semibold mb-3" dir="rtl">{q.prompt}</p>
+                                <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={6} disabled={answered} dir="rtl"
+                                    placeholder="اكتب النص هنا باللغة العربية..."
+                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                {!answered && (
+                                    <div className="flex gap-2 mb-3">
+                                        <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
+                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
+                                        </button>
+                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                    </div>
+                                )}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                            </>
+                        )}
+
+                        {q.type === 'speaking-practice' && (
+                            <>
+                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
+                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
+                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Part 1 — التعريف بالنفس</p>
+                                    {AR_SPEAKING.part1.map((p, i) => (
+                                        <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
+                                            <span className="text-sm text-gray-700" dir="rtl">{p}</span>
+                                            <button onClick={() => speak(p, 'ar')} className="shrink-0 text-brand"><Volume2 /></button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Part 2 — الحديث عن موضوع</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed" dir="rtl">{AR_SPEAKING.part2}</p>
+                                    <button onClick={() => speak(AR_SPEAKING.part2, 'ar')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Part 3 — طلب</p>
+                                    {AR_SPEAKING.part3.map((p, i) => (
+                                        <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
+                                            <span className="text-sm text-gray-700" dir="rtl">{p}</span>
+                                            <button onClick={() => speak(p, 'ar')} className="shrink-0 text-brand"><Volume2 /></button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex flex-col items-center gap-3 mb-4">
+                                    {!spIsRecording ? (
+                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
+                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        </button>
+                                    ) : (
+                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
+                                            ⏹ หยุดอัด
+                                        </button>
+                                    )}
+                                </div>
+                                {spRecordedUrl && (
+                                    <div className="mb-4 text-center">
+                                        <audio controls src={spRecordedUrl} className="mx-auto w-full"></audio>
+                                    </div>
+                                )}
+                                {!answered && (
+                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                )}
+                            </>
+                        )}
+
+                        {answered && (
+                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                                {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+
+        // ══════════════════════════════════════════════════════════════════════════════════
         // แบบทดสอบความเข้าใจภาษาฮินดี — ต่างจาก HSK/TOEIC/IELTS/JLPT/TOPIK/DELE/PLIDA/ТРКИ ตรงที่
         // "ไม่ได้จำลองข้อสอบทางการชุดใดชุดหนึ่ง" เพราะค้นคว้าแล้วไม่พบข้อสอบวัดระดับภาษาฮินดีสำหรับ
         // ชาวต่างชาติที่เป็นมาตรฐานสากลเปิดเผยโครงสร้างชัดเจนแบบ CEFR/HSK/TOPIK เลย (มีแต่ Kendriya
@@ -11872,11 +12450,11 @@
                 setMobileNavOpen(false);
             };
 
-            // ปุ่ม "ข้อสอบ" รองรับ 12 ภาษาแล้ว (จีนกลาง→HSK/BCT, อังกฤษ→IELTS/TOEIC, ญี่ปุ่น→JLPT,
+            // ปุ่ม "ข้อสอบ" รองรับ 13 ภาษาแล้ว (จีนกลาง→HSK/BCT, อังกฤษ→IELTS/TOEIC, ญี่ปุ่น→JLPT,
             // เกาหลี→TOPIK, จีนกวางตุ้ง→แบบทดสอบความเข้าใจที่แต่งเอง, เยอรมัน→Goethe A1, ฝรั่งเศส→DELF A1,
             // อิตาลี→PLIDA A1, สเปน→DELE A1, โปรตุเกส→CELPE-Bras, รัสเซีย→ТРКИ-1/TORFL A1, ฮินดี→แบบทดสอบ
-            // ความเข้าใจที่แต่งเอง) — ถ้ากำลังอยู่ภาษาที่มีข้อสอบอยู่แล้วให้ไปหน้าข้อสอบของภาษานั้นเลย
-            // ภาษาอื่นนอกเหนือจากนี้ยัง fallback ไปจีนกลาง
+            // ความเข้าใจที่แต่งเอง, อาหรับ→ALPT) — ถ้ากำลังอยู่ภาษาที่มีข้อสอบอยู่แล้วให้ไปหน้าข้อสอบของ
+            // ภาษานั้นเลย ภาษาอื่นนอกเหนือจากนี้ยัง fallback ไปจีนกลาง
             const goExam = () => {
                 if (langId === 'lang-en') {
                     setView('enexam');
@@ -11900,6 +12478,8 @@
                     setView('ruexam');
                 } else if (langId === 'lang-in') {
                     setView('hiexam');
+                } else if (langId === 'lang-ar') {
+                    setView('arexam');
                 } else {
                     setLangId('lang-cn');
                     setView('hsk');
@@ -12011,7 +12591,7 @@
                                             <div key={id} className="flex items-center gap-1">
                                                 <button
                                                     onClick={() => selectLang(id)}
-                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
+                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam' || view === 'arexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
                                                 >
                                                     <Languages /> <span className="flex-1 text-left truncate">{LANGS[id].title}</span>
                                                     {allDone && <CheckCircle />}
@@ -12100,7 +12680,7 @@
                                 <button
                                     onClick={goExam}
                                     title="รองรับภาษาจีนกลาง (HSK/BCT), อังกฤษ (IELTS/TOEIC), ญี่ปุ่น (JLPT), เกาหลี (TOPIK), จีนกวางตุ้ง (แบบทดสอบความเข้าใจ), เยอรมัน (Goethe A1), ฝรั่งเศส (DELF A1), อิตาลี (PLIDA A1), สเปน (DELE A1) และโปรตุเกส (CELPE-Bras) — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
-                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam' || view === 'arexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
                                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
@@ -12495,6 +13075,21 @@
                                     </div>
                                 )}
 
+                                {langId === 'lang-ar' && (
+                                    <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
+                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาอาหรับ</h3>
+                                        <p className="text-xs text-gray-400 mb-4">ทำข้อสอบจำลอง ALPT (Arabic Language Proficiency Test)</p>
+                                        <div className="grid grid-cols-1 gap-3">
+                                            <button onClick={goExam}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><HskIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ ALPT</div>
+                                                <div className="text-[11px] text-gray-400">Structure & Vocabulary・Reading・Listening・Writing・Speaking</div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {Object.keys(wrong).length > 0 && (
                                     <div className="bg-white rounded-xl border border-gray-200 p-5">
                                         <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><XCircle /> คำที่เคยตอบผิด ({Object.keys(wrong).length})</h3>
@@ -12768,6 +13363,8 @@
                         <RuExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : view === 'hiexam' ? (
                         <HiExamView langId={langId} setLangId={setLangId} setXp={setXp} />
+                        ) : view === 'arexam' ? (
+                        <ArExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : (
                         <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} />
                         )}
