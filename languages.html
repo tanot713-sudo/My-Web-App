@@ -7055,6 +7055,581 @@
 
 
         // ══════════════════════════════════════════════════════════════════════════════════
+        // ข้อสอบจำลอง ТРКИ-1 / TORFL A1 (Тест по русскому языку как иностранному, Elementary Level)
+        // ภาษารัสเซีย — ค้นคว้าแล้วพบว่าโครงสร้างจริงมี "5 ส่วน" แยกกันชัดเจน ต่างจาก Goethe A1/DELF A1/
+        // PLIDA A1/DELE A1/CELPE-Bras ที่ทำมาก่อนหน้านี้ (ซึ่งมักรวมไวยากรณ์เข้ากับส่วนอ่าน): (1) Лексика.
+        // Грамматика (คำศัพท์-ไวยากรณ์ 30 ข้อ 30 นาที 30 คะแนน) แยกเป็นส่วนของตัวเอง ไม่รวมกับการอ่าน
+        // (2) Чтение (การอ่าน 20 ข้อ 30 นาที 20 คะแนน) (3) Аудирование (การฟัง 15 ข้อ 20 นาที 15 คะแนน)
+        // (4) Письмо (การเขียน 2 งาน 20 นาที 15 คะแนน) (5) Говорение (การพูด 4 งาน 15-20 นาที 20 คะแนน)
+        // สอบจริงแบ่งทำ 2 วัน (วันแรก: ไวยากรณ์+อ่าน+ฟัง, วันสอง: เขียน+พูด) และแต่ละส่วนต้องผ่านเกณฑ์
+        // ขั้นต่ำแยกกัน (ไม่ใช่แค่คะแนนรวม) — เว็บนี้จึงออกแบบให้มี 5 ส่วนตามโครงสร้างจริง (ต่างจาก
+        // DELE A1/PLIDA A1 ที่ยุบไวยากรณ์รวมกับการอ่านเป็นส่วนเดียว) โดย 3 ส่วนแรก (Лексика. Грамматика/
+        // Чтение/Аудирование) เป็นปรนัยมีคะแนนดิบ ส่วน Письмо/Говорение เป็นแบบฝึกไม่มีคะแนนทางการ
+        // (ตรวจด้วย AI / ฝึกพูดเองเหมือนภาษาอื่น)
+        // ══════════════════════════════════════════════════════════════════════════════════
+
+        // คำศัพท์ทั่วไปของรัสเซียยังไม่มีหมวดเฉพาะทาง (จะเพิ่มใน Stage 5) จึงยังไม่ต้องกรองอะไรออก
+        // ต่างจาก ptVocabPool()/esVocabPool() ที่มี PT_SPECIALTY_CATS/ES_SPECIALTY_CATS แล้ว
+        function ruVocabPool() {
+            const out = [];
+            const cats = VOCAB['lang-ru'] || {};
+            Object.keys(cats).forEach(cat => out.push(...(cats[cat] || []).map((w, i) => ({ key: `lang-ru::vocab-${cat}::${i}`, word: w.word, thai: w.thai }))));
+            return out;
+        }
+        function genRuWordMeaningMc(pool, count) {
+            const picked = shuffleArr(pool).slice(0, Math.min(count, pool.length));
+            return picked.map(item => {
+                const distractors = shuffleArr(pool.filter(p => p.word !== item.word)).slice(0, 3);
+                const choices = shuffleArr([item.thai, ...distractors.map(d => d.thai)]);
+                return { type: 'ru-word-meaning-mc', word: item.word, correct: item.thai, choices };
+            });
+        }
+
+        // ไวยากรณ์รัสเซียต่างจากทุกภาษาที่ทำมาก่อนหน้านี้อย่างสิ้นเชิง — จุดเด่นที่ใหญ่ที่สุดคือระบบ "การก"
+        // (падеж/case) 6 การก ที่ทำให้คำนาม/คุณศัพท์ผันรูปตามหน้าที่ในประโยค (ต่างจากภาษาโรมานซ์ทั้งหมดที่
+        // ทำมาก่อนหน้านี้ซึ่งแทบไม่มีการผันคำนามเลย) และไม่มีคำนำหน้านาม (article) เหมือนอังกฤษ/เยอรมัน/
+        // ฝรั่งเศส/อิตาลี/สเปน/โปรตุเกส (a/the, der/die/das, le/la, il/la, el/la, o/a) เลยแม้แต่ตัวเดียว
+        // — ตัวอย่างในชุดนี้ครอบคลุม: การก accusative (กรรมตรง), genitive (หลังปฏิเสธ "нет"), prepositional
+        // (สถานที่), เพศคำนาม 3 เพศ (ชาย/หญิง/กลาง) ที่คุณศัพท์ต้องผันตาม, การผันกริยาปัจจุบันตามบุรุษ,
+        // aspect ของกริยา (สมบูรณ์/ไม่สมบูรณ์ — совершенный/несовершенный вид อีกจุดเด่นเฉพาะของภาษาสลาฟ
+        // ที่ไม่มีในภาษาอื่นที่ทำมาก่อนหน้านี้เลย) และการไม่ใช้กริยา "เป็น/อยู่/คือ" ในประโยคปัจจุบันกาล
+        // (zero copula — ต่างจาก ser/estar ของสเปน/โปรตุเกส หรือ essere ของอิตาลีที่ต้องผันทุกประโยค)
+        const RU_GRAMMAR = [
+            { sentence: "Она ___ врач.", choices: ["—", "есть", "быть", "была"], correct: "—" },
+            { sentence: "Я читаю ___.", choices: ["книга", "книгу", "книге", "книги"], correct: "книгу" },
+            { sentence: "У меня нет ___.", choices: ["машина", "машину", "машины", "машине"], correct: "машины" },
+            { sentence: "Я живу ___ Таиланде.", choices: ["в", "на", "к", "от"], correct: "в" },
+            { sentence: "Это ___ дом.", choices: ["большой", "большая", "большое", "большие"], correct: "большой" },
+            { sentence: "Это ___ квартира.", choices: ["новый", "новая", "новое", "новые"], correct: "новая" },
+            { sentence: "Я ___ по-русски.", choices: ["говорю", "говоришь", "говорит", "говорят"], correct: "говорю" },
+            { sentence: "Это ___ брат.", choices: ["мой", "моя", "моё", "мои"], correct: "мой" },
+            { sentence: "Вчера я ___ письмо.", choices: ["писал", "написал", "пишу", "напишу"], correct: "написал" },
+            { sentence: "___ тебя зовут?", choices: ["Как", "Что", "Кто", "Где"], correct: "Как" },
+        ];
+
+        // Чтение — บทอ่านสั้นระดับต้น หัวข้อคู่ขนานกับภาษาอื่นที่ทำมาก่อนหน้านี้ (เพื่อเทียบกันข้ามภาษาได้)
+        const RU_READING = [
+            { text: "Меня зовут Анна. Я живу в Москве. Я изучаю тайский язык.", q: "Что изучает Анна?", choices: ["тайский язык", "английский язык", "русский язык"], correct: "тайский язык" },
+            { text: "Ресторан закрыт по понедельникам. Со вторника по воскресенье он открыт.", q: "Когда ресторан закрыт?", choices: ["по понедельникам", "по вторникам", "по воскресеньям"], correct: "по понедельникам" },
+            { text: "Вчера я купил новую рубашку в торговом центре. Она очень красивая.", q: "Что я купил вчера?", choices: ["рубашку", "туфли", "сумку"], correct: "рубашку" },
+            { text: "Сегодня холодно и идёт дождь. Вчера было тепло и солнечно.", q: "Какая погода сегодня?", choices: ["холодно и дождь", "тепло и солнце", "жарко и ветер"], correct: "холодно и дождь" },
+            { text: "Мой брат работает врачом в больнице. Он помогает больным людям.", q: "Кем работает мой брат?", choices: ["врачом", "учителем", "водителем"], correct: "врачом" },
+            { text: "Поезд отправляется в восемь часов утра. Пожалуйста, приходите на вокзал заранее.", q: "Во сколько отправляется поезд?", choices: ["в восемь утра", "в восемь вечера", "в девять утра"], correct: "в восемь утра" },
+            { text: "У меня есть сестра и брат. Сестра старше меня, а брат младше.", q: "Кто младше меня?", choices: ["брат", "сестра", "оба"], correct: "брат" },
+            { text: "Магазин работает с девяти утра до десяти вечера каждый день.", q: "До скольки работает магазин?", choices: ["до десяти вечера", "до девяти вечера", "до восьми вечера"], correct: "до десяти вечера" },
+            { text: "Я изучаю русский язык уже два года. Это трудно, но интересно.", q: "Как долго я изучаю русский язык?", choices: ["два года", "один год", "три года"], correct: "два года" },
+            { text: "Наша встреча начинается в три часа дня в офисе на пятом этаже.", q: "Где проходит встреча?", choices: ["в офисе на пятом этаже", "в офисе на третьем этаже", "дома"], correct: "в офисе на пятом этаже" },
+        ];
+        function genRuPassageMc(dataset, count) {
+            const picked = shuffleArr(dataset).slice(0, Math.min(count, dataset.length));
+            return picked.map(p => ({ type: 'passage-mc', text: p.text, q: p.q, choices: shuffleArr(p.choices), correct: p.correct }));
+        }
+
+        // Аудирование — ประโยคเดียว + เลือกคำตอบที่เหมาะสม (quick response)
+        const RU_RESPONSES = [
+            { phrase: "Простите, который час?", choices: ["Сейчас три часа.", "Да, точно.", "Большое спасибо."], correct: "Сейчас три часа." },
+            { phrase: "Как у вас дела?", choices: ["Хорошо, спасибо.", "Сейчас три часа.", "Я из России."], correct: "Хорошо, спасибо." },
+            { phrase: "Сколько стоит эта сумка?", choices: ["Она стоит десять рублей.", "Она в школе.", "Это завтра."], correct: "Она стоит десять рублей." },
+            { phrase: "Я могу вам помочь?", choices: ["Да, пожалуйста.", "Сейчас три часа.", "Я русский."], correct: "Да, пожалуйста." },
+            { phrase: "Простите, как вас зовут?", choices: ["Меня зовут Анна Иванова.", "Я хорошо.", "Я здесь."], correct: "Меня зовут Анна Иванова." },
+            { phrase: "Хотите кофе?", choices: ["Да, с удовольствием.", "Нет, меня зовут Анна.", "Правда?"], correct: "Да, с удовольствием." },
+            { phrase: "Вы уже сделали домашнее задание?", choices: ["Да, уже сделал.", "Да, иду.", "Нет, всё хорошо."], correct: "Да, уже сделал." },
+            { phrase: "До завтра!", choices: ["Да, до завтра!", "Да, с удовольствием.", "Нет, спасибо."], correct: "Да, до завтра!" },
+        ];
+        function genRuResponseMc(count) {
+            const picked = shuffleArr(RU_RESPONSES).slice(0, Math.min(count, RU_RESPONSES.length));
+            return picked.map((r, ri) => ({ type: 'ru-response-mc', phrase: r.phrase, choices: shuffleArr(r.choices), correct: r.correct, voiceSlot: ri }));
+        }
+
+        // Аудирование — บทสนทนาสั้น 2-4 ประโยค + คำถาม 1 ข้อ/บท
+        const RU_DIALOGUES = [
+            { lines: [{ speaker: 'A', text: "Привет, где ты сейчас?" }, { speaker: 'B', text: "Я сейчас дома." }, { speaker: 'A', text: "Хорошо, я позвоню тебе позже." }], q: "Где сейчас Б?", choices: ["дома", "в школе", "в офисе"], correct: "дома" },
+            { lines: [{ speaker: 'A', text: "Сколько стоит это яблоко?" }, { speaker: 'B', text: "Оно стоит один рубль." }, { speaker: 'A', text: "Дайте два, пожалуйста." }], q: "Сколько стоит одно яблоко?", choices: ["один рубль", "два рубля", "пятьдесят копеек"], correct: "один рубль" },
+            { lines: [{ speaker: 'A', text: "У тебя есть время сегодня вечером?" }, { speaker: 'B', text: "Да, есть. А что?" }, { speaker: 'A', text: "Посмотрим фильм вместе?" }, { speaker: 'B', text: "С удовольствием!" }], q: "Что они будут делать?", choices: ["смотреть фильм", "ужинать", "учиться"], correct: "смотреть фильм" },
+            { lines: [{ speaker: 'A', text: "Какая сегодня погода?" }, { speaker: 'B', text: "Очень холодно. И ещё идёт дождь." }, { speaker: 'A', text: "Тогда одевайся теплее." }], q: "Какая сегодня погода?", choices: ["холодно и дождь", "жарко и солнце", "идёт снег"], correct: "холодно и дождь" },
+            { lines: [{ speaker: 'A', text: "Марк, что ты сейчас делаешь?" }, { speaker: 'B', text: "Беру книгу в библиотеке, а потом иду домой." }, { speaker: 'A', text: "Я пойду с тобой." }], q: "Что делает Марк в библиотеке?", choices: ["берёт книгу", "ест", "спит"], correct: "берёт книгу" },
+            { lines: [{ speaker: 'A', text: "Простите, где станция метро?" }, { speaker: 'B', text: "Идите прямо по этой улице." }, { speaker: 'A', text: "Большое спасибо." }], q: "Как дойти до станции метро?", choices: ["прямо по этой улице", "направо", "на автобусе"], correct: "прямо по этой улице" },
+            { lines: [{ speaker: 'A', text: "Во сколько встретимся завтра?" }, { speaker: 'B', text: "Как насчёт девяти часов?" }, { speaker: 'A', text: "Хорошо, тогда встретимся в девять." }], q: "Во сколько они встретятся завтра?", choices: ["в девять", "в восемь", "в десять"], correct: "в девять" },
+            { lines: [{ speaker: 'A', text: "Что вы хотите заказать?" }, { speaker: 'B', text: "Я возьму борщ, пожалуйста." }, { speaker: 'A', text: "Хорошо, одну минуту." }], q: "Что заказал Б?", choices: ["борщ", "пельмени", "блины"], correct: "борщ" },
+            { lines: [{ speaker: 'A', text: "Где у вас болит?" }, { speaker: 'B', text: "У меня болит голова, и у меня температура." }, { speaker: 'A', text: "Примите лекарство и отдохните." }], q: "Где болит у Б?", choices: ["голова", "живот", "нога"], correct: "голова" },
+            { lines: [{ speaker: 'A', text: "Что ты делал в эти выходные?" }, { speaker: 'B', text: "Ходил в поход с другом." }, { speaker: 'A', text: "Звучит весело." }], q: "Что делал Б в эти выходные?", choices: ["ходил в поход", "смотрел фильм", "отдыхал дома"], correct: "ходил в поход" },
+        ];
+        function genRuDialogueMc(count) {
+            const picked = shuffleArr(RU_DIALOGUES).slice(0, Math.min(count, RU_DIALOGUES.length));
+            return picked.map((d, di) => ({ type: 'ru-dialogue-mc', lines: d.lines, q: d.q, choices: shuffleArr(d.choices), correct: d.correct, dialogueSlot: di }));
+        }
+
+        // Аудирование — บทพูดสั้นคนเดียว + คำถาม 1 ข้อ/บท
+        const RU_TALKS = [
+            { text: "Привет, меня зовут Михаил. Я из США. Сейчас я изучаю русский язык. Мне очень нравится русская кухня. Больше всего мне нравится борщ.", q: "Откуда Михаил?", choices: ["из США", "из России", "из Японии"], correct: "из США" },
+            { text: "Сегодня мой день рождения. Вечером я ужинаю в ресторане с семьёй. Потом мы едим торт. Я очень рад.", q: "Что сегодня?", choices: ["день рождения", "отпуск", "экзамен"], correct: "день рождения" },
+            { text: "Я встаю каждый день в семь часов. Потом тридцать минут занимаюсь спортом. Затем завтракаю и иду на работу. Моя работа рядом с домом.", q: "Как далеко работа от дома?", choices: ["близко", "далеко", "очень большая"], correct: "близко" },
+            { text: "Завтра погода будет плохая. Будет дождь и ветер. Поэтому лучше не выходить на улицу.", q: "Какая погода будет завтра?", choices: ["дождь и ветер", "жарко и солнце", "снег"], correct: "дождь и ветер" },
+            { text: "Я работаю в офисе в городе. Каждый день я езжу на работу на автобусе. Дорога занимает около тридцати минут.", q: "Как этот человек едет на работу?", choices: ["на автобусе", "на машине", "пешком"], correct: "на автобусе" },
+        ];
+        function genRuTalkMc(count) {
+            const picked = shuffleArr(RU_TALKS).slice(0, Math.min(count, RU_TALKS.length));
+            return picked.map((t, ti) => ({ type: 'ru-talk-mc', text: t.text, q: t.q, choices: shuffleArr(t.choices), correct: t.correct, voiceSlot: ti }));
+        }
+
+        // Письмо — เขียนข้อความสั้น/จดหมายไม่เป็นทางการสไตล์ ТРКИ-1 จริง (ประมาณ 20-30 คำ) ตรวจด้วย AI
+        // แบบเดียวกับ Goethe A1/DELF A1/PLIDA A1/DELE A1/CELPE-Bras
+        const RU_WRITING_PROMPTS = [
+            "Напишите короткое сообщение другу. Пригласите его/её на день рождения. Напишите: когда праздник, где он будет, и что нужно принести.",
+            "Напишите короткое сообщение коллеге. Скажите, что сегодня вы не можете прийти на работу, потому что заболели. Извинитесь.",
+            "Напишите короткое сообщение другу. Отмените встречу сегодня вечером и предложите новую дату.",
+            "Напишите короткое письмо хозяину квартиры. Спросите, когда можно посмотреть новую квартиру.",
+            "Напишите короткое сообщение другу. Поблагодарите за подарок, который вы получили.",
+        ];
+        const RU_WRITE_SYSTEM_PROMPT =
+            'คุณเป็นครูสอนภาษารัสเซียให้คนไทย กำลังตรวจข้อความสั้นสไตล์ ТРКИ-1 (TORFL A1) Письмо (การเขียน ประมาณ 20-30 คำ)\n' +
+            'ตรวจสิ่งที่ผู้เรียนเขียนมา ตอบเป็นภาษาไทยเสมอ รูปแบบคำตอบต้องมี 3 ส่วนตามลำดับนี้เท่านั้น:\n' +
+            '1) "จุดที่แก้ไข:" อธิบายเป็นข้อๆ สั้นๆ ว่าแก้ตรงไหน (การผันคำตามการก/падеж, เพศคำนาม, aspect ของกริยาสมบูรณ์/ไม่สมบูรณ์)\n' +
+            '2) "ข้อเสนอแนะ:" คำแนะนำสั้นๆ ว่าจะเขียนข้อความสไตล์นี้ให้ดีขึ้นได้อย่างไร\n' +
+            '3) "ระดับโดยประมาณ:" ประเมินว่าข้อความนี้อยู่ในระดับ A1 หรือยัง (ผ่าน/ยังไม่ผ่านเกณฑ์ A1 คร่าวๆ) พร้อมบอกว่าเป็นการประมาณเบื้องต้นเท่านั้น ไม่ใช่คะแนนทางการ\n' +
+            'ถ้าเขียนดีอยู่แล้วให้บอกตรงๆ ว่าไม่ต้องแก้ไข';
+        const RU_WRITE_REMINDER =
+            'ย้ำ: ตรวจข้อความล่าสุดที่ผู้เรียนเพิ่งส่งมาเท่านั้น ตอบตามรูปแบบ 3 ส่วนที่กำหนดไว้เป๊ะๆ ห้ามข้ามส่วนไหน ' +
+            'และห้ามตอบเป็นภาษาอื่นนอกจากไทย';
+        function genRuEssay(count) {
+            const picked = shuffleArr(RU_WRITING_PROMPTS).slice(0, Math.min(count, RU_WRITING_PROMPTS.length));
+            return picked.map(p => ({ type: 'write-essay', context: 'ТРКИ-1 Письмо (เขียนประมาณ 20-30 คำ)', prompt: p }));
+        }
+
+        // Говорение — 3 ส่วนตามโครงสร้างทั่วไปของการสอบพูดระดับ A1 (แนะนำตัว/พูดคุยหัวข้อทั่วไป/
+        // ขอความช่วยเหลือ) ไม่มีระบบให้คะแนนการพูด (เหมือน IELTS/Goethe/DELF/PLIDA/DELE Speaking) —
+        // ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเองเท่านั้น
+        const RU_SPEAKING = {
+            "part1": ["Как вас зовут?", "Откуда вы?", "На каких языках вы говорите?", "Какая у вас профессия или хобби?"],
+            "part2": "Тема: Отпуск — Задайте 2-3 вопроса на эту тему и ответьте на них сами (например: Куда вы любите ездить в отпуск? С кем? Как часто?)",
+            "part3": ["У вас нет ручки. Попросите ручку у кого-нибудь.", "В комнате холодно. Попросите кого-нибудь закрыть окно.", "Вам нужна помощь с чемоданом. Попросите кого-нибудь о помощи."],
+        };
+
+        function buildTrkiExam() {
+            const pool = ruVocabPool();
+            return {
+                kind: 'trki',
+                sections: [
+                    { key: 'leksika-grammatika', title: 'Лексика. Грамматика (คำศัพท์-ไวยากรณ์)', icon: '📝',
+                        questions: [...genRuWordMeaningMc(pool, 6), ...genGrammarMc(RU_GRAMMAR, 6)] },
+                    { key: 'chtenie', title: 'Чтение (อ่าน)', icon: '📖',
+                        questions: genRuPassageMc(RU_READING, 5) },
+                    { key: 'audirovanie', title: 'Аудирование (ฟัง)', icon: '🎧',
+                        questions: [...genRuResponseMc(5), ...genRuDialogueMc(6), ...genRuTalkMc(4)] },
+                    { key: 'pismo', title: 'Письмо (เขียน)', icon: '✍️',
+                        questions: genRuEssay(1) },
+                    { key: 'govorenie', title: 'Говорение (พูด)', icon: '🗣️',
+                        questions: [{ type: 'speaking-practice' }] },
+                ],
+            };
+        }
+
+        // ── ข้อสอบ ТРКИ-1/TORFL A1 ภาษารัสเซีย (จำลอง) — โคลนโครงสร้าง state machine มาจาก EsExamView
+        //    แต่ปรับเป็น 5 ส่วนตามโครงสร้างจริง (3 ส่วนแรกปรนัยมีคะแนนดิบ, 2 ส่วนหลังเป็นแบบฝึกไม่มีคะแนน)
+        //    ต่างจาก DELE A1/PLIDA A1 ที่มี 4 ส่วน (ไวยากรณ์รวมกับการอ่าน)
+        function RuExamView({ langId, setLangId, setXp }) {
+            const [started, setStarted] = useState(false);
+            const [exam, setExam] = useState(null);
+            const [sectionIdx, setSectionIdx] = useState(0);
+            const [showIntro, setShowIntro] = useState(true);
+            const [qIdx, setQIdx] = useState(0);
+            const [answered, setAnswered] = useState(false);
+            const [userAnswer, setUserAnswer] = useState(null);
+            const [essayText, setEssayText] = useState('');
+            const [essayFeedback, setEssayFeedback] = useState('');
+            const [essayStatus, setEssayStatus] = useState('');
+            const [sectionResults, setSectionResults] = useState([]);
+            const [correctInSection, setCorrectInSection] = useState(0);
+            const [allWrong, setAllWrong] = useState([]);
+            const [finished, setFinished] = useState(false);
+            const [spIsRecording, setSpIsRecording] = useState(false);
+            const [spRecordedUrl, setSpRecordedUrl] = useState('');
+            const spMediaRef = useRef(null);
+            const spChunksRef = useRef([]);
+            const spStreamRef = useRef(null);
+            const spStartRecording = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    spStreamRef.current = stream;
+                    spChunksRef.current = [];
+                    const rec = new MediaRecorder(stream);
+                    rec.addEventListener('dataavailable', ev => { if (ev.data && ev.data.size) spChunksRef.current.push(ev.data); });
+                    spMediaRef.current = rec;
+                    rec.start();
+                    setSpIsRecording(true);
+                } catch (e) { /* ไม่มีสิทธิ์ไมค์ — เงียบไว้ ผู้ใช้ยังอ่าน prompt ได้ปกติ */ }
+            };
+            const spStopRecording = () => {
+                if (!spMediaRef.current) return;
+                spMediaRef.current.addEventListener('stop', () => {
+                    spStreamRef.current.getTracks().forEach(t => t.stop());
+                    const blob = new Blob(spChunksRef.current, { type: spMediaRef.current.mimeType || 'audio/webm' });
+                    setSpRecordedUrl(URL.createObjectURL(blob));
+                    setSpIsRecording(false);
+                }, { once: true });
+                spMediaRef.current.stop();
+            };
+
+            const resetPerQuestion = () => {
+                setAnswered(false); setUserAnswer(null);
+                setEssayText(''); setEssayFeedback(''); setEssayStatus('');
+                setSpIsRecording(false); setSpRecordedUrl('');
+            };
+            const start = () => {
+                setExam(buildTrkiExam());
+                setStarted(true);
+                setSectionIdx(0); setShowIntro(true);
+                resetPerQuestion();
+                setSectionResults([]); setCorrectInSection(0); setAllWrong([]); setFinished(false);
+            };
+
+            useEffect(() => {
+                if (!exam || showIntro || finished) return;
+                const sec = exam.sections[sectionIdx];
+                const question = sec && sec.questions[qIdx];
+                if (!question) return;
+                const timers = [];
+                const t0 = setTimeout(() => {
+                    if (question.type === 'ru-dialogue-mc') {
+                        question.lines.forEach((ln, i) => timers.push(setTimeout(() => speakVoice(ln.text, 'ru', question.dialogueSlot * 2 + (i % 2)), i * 1800)));
+                    } else if (question.type === 'ru-response-mc') {
+                        speakVoice(question.phrase, 'ru', question.voiceSlot);
+                    } else if (question.type === 'ru-talk-mc') {
+                        speakVoice(question.text, 'ru', question.voiceSlot);
+                    }
+                }, 400);
+                return () => { clearTimeout(t0); timers.forEach(clearTimeout); };
+            }, [exam, sectionIdx, qIdx, showIntro]);
+
+            if (langId !== 'lang-ru') {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-6 text-center">
+                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษารัสเซีย</p>
+                            <button onClick={() => setLangId('lang-ru')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษารัสเซีย</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!started) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ ТРКИ-1 / TORFL A1 (จำลอง)</h2>
+                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษารัสเซียขั้นต้น (A1) — 5 ส่วนตามโครงสร้างจริง</p>
+                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ ТРКИ-1</div>
+                                <div className="text-xs text-gray-500">Лексика. Грамматика + Чтение + Аудирование + Письмо + Говорение ครบ 5 ส่วน ตามโครงสร้างจริง</div>
+                            </button>
+                            <p className="text-xs text-gray-400 leading-relaxed text-left">
+                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา โครงสร้างยึดตามข้อมูลจริง
+                                (5 ส่วนแยกกัน — Лексика. Грамматика 30 ข้อ/30 คะแนน, Чтение 20 ข้อ/20 คะแนน, Аудирование 15 ข้อ/
+                                15 คะแนน, Письмо 2 งาน/15 คะแนน, Говорение 4 งาน/20 คะแนน — สอบจริงแบ่งทำ 2 วัน และแต่ละส่วนต้อง
+                                ผ่านเกณฑ์ขั้นต่ำแยกกัน ไม่ใช่แค่คะแนนรวม) เว็บนี้แสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) สำหรับ Лексика.
+                                Грамматика/Чтение/Аудирование เท่านั้น ไม่ใช่คะแนนทางการ<br />
+                                <b>ความแตกต่างจากข้อสอบจริง</b>: (1) ของจริงแยกเป็น 3 ส่วนปรนัยที่มีจำนวนข้อมากกว่านี้มาก (30+20+15
+                                ข้อ) เว็บนี้ย่อชุดคำถามให้กระชับ แต่ยังคงแยก Лексика. Грамматика ออกจาก Чтение ตามโครงสร้างจริง
+                                (ต่างจาก DELE A1/PLIDA A1 ที่รวมไวยากรณ์เข้ากับการอ่าน) (2) Аудирование แสดงบทพูดเป็นตัวอักษรคู่กับ
+                                เสียงเพื่อช่วยผู้เริ่มต้นตามทัน (3) Письмо ของจริงมี 2 งาน (กรอกฟอร์ม + เขียนข้อความสั้น) เว็บนี้มี
+                                เฉพาะส่วนเขียนข้อความสั้น ตรวจด้วย AI ให้คำแนะนำ ไม่ใช่คะแนนทางการ (4) Говорение ไม่มีระบบให้คะแนน
+                                การพูด ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเองเท่านั้น
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+
+            const restart = start;
+            const backToStart = () => { setStarted(false); setExam(null); };
+
+            if (finished) {
+                // นับคะแนนดิบเฉพาะ Лексика. Грамматика/Чтение/Аудирование (ปรนัย) เท่านั้น — Письмо/Говорение
+                // เป็นแบบฝึกที่ไม่มีระบบให้คะแนนถูก/ผิด (correct/total คงที่ 0/1 เป็น placeholder)
+                const scoredResults = sectionResults.filter(r => r.key === 'leksika-grammatika' || r.key === 'chtenie' || r.key === 'audirovanie');
+                const totalCorrect = scoredResults.reduce((s, r) => s + r.correct, 0);
+                const totalQ = scoredResults.reduce((s, r) => s + r.total, 0);
+                const pct = totalQ ? Math.round(totalCorrect / totalQ * 100) : 0;
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ ТРКИ-1</h2>
+                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (เฉพาะ Лексика. Грамматика/Чтение/Аудирование — Письмо/Говорение ไม่มีคะแนนดิบแบบนี้)</p>
+                            <div className="grid grid-cols-2 gap-2 mb-5">
+                                {sectionResults.map(r => (
+                                    <div key={r.key} className="bg-white rounded-xl border border-gray-200 p-3">
+                                        <div className="text-xs text-gray-400">{r.title}</div>
+                                        <div className="text-lg font-bold text-gray-800">{r.key === 'leksika-grammatika' || r.key === 'chtenie' || r.key === 'audirovanie' ? `${r.correct}/${r.total}` : 'ฝึกเสร็จแล้ว'}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {allWrong.length > 0 && (
+                                <div className="text-left bg-white rounded-xl border border-gray-200 p-4 mb-4 max-h-72 overflow-y-auto">
+                                    <p className="text-sm font-bold text-gray-700 mb-2 sticky top-0 bg-white">ข้อที่ตอบผิด ({allWrong.length}):</p>
+                                    <div className="space-y-1.5">
+                                        {allWrong.map((w, i) => (
+                                            <div key={i} className="text-sm text-gray-600 flex justify-between gap-3">
+                                                <span>{w.left}</span>
+                                                <span className="text-gray-800 font-semibold text-right">{w.right}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex gap-2 justify-center flex-wrap">
+                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
+                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const section = exam.sections[sectionIdx];
+
+            if (showIntro) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">ТРКИ-1 · ส่วนที่ {sectionIdx + 1}/{exam.sections.length}</p>
+                            <div className="text-5xl mb-3">{section.icon}</div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
+                            <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
+                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const q = section.questions[qIdx];
+
+            const finishSection = () => {
+                const results = [...sectionResults, { key: section.key, title: section.title, correct: correctInSection, total: section.questions.length }];
+                setSectionResults(results);
+                if (sectionIdx + 1 >= exam.sections.length) {
+                    setFinished(true);
+                } else {
+                    setSectionIdx(i => i + 1);
+                    setShowIntro(true);
+                    setQIdx(0);
+                    resetPerQuestion();
+                    setCorrectInSection(0);
+                }
+            };
+            const nextQuestion = () => {
+                if (qIdx + 1 >= section.questions.length) { finishSection(); return; }
+                setQIdx(i => i + 1); resetPerQuestion();
+            };
+            const recordAnswer = (isCorrect, wrongEntry) => {
+                setAnswered(true);
+                if (isCorrect) { setCorrectInSection(c => c + 1); setXp(x => x + 2); }
+                else if (wrongEntry) setAllWrong(w => [...w, wrongEntry]);
+            };
+            const pickMc = (choice) => {
+                if (answered) return;
+                setUserAnswer(choice);
+                const isCorrect = choice === q.correct;
+                const leftLabel = q.word || q.sentence || q.phrase || q.q || q.thai;
+                recordAnswer(isCorrect, isCorrect ? null : { left: leftLabel || 'ข้อนี้', right: q.correct });
+            };
+
+            const submitEssay = () => {
+                if (!essayText.trim() || essayStatus === 'loading') return;
+                if (isIOS()) {
+                    setEssayStatus('error');
+                    setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
+                    return;
+                }
+                setEssayStatus('loading'); setEssayFeedback('');
+                const w = getWritingWorker();
+                const jobId = 'ruessay-' + Date.now();
+                let acc = '';
+                function onMsg(e) {
+                    const msg = e.data;
+                    if (!msg || msg.jobId !== jobId) return;
+                    if (msg.type === 'token') { acc += msg.token; setEssayFeedback(acc); }
+                    else if (msg.type === 'done') { cleanup(); setEssayStatus('done'); setAnswered(true); setXp(x => x + 2); }
+                    else if (msg.type === 'error') { cleanup(); setEssayStatus('error'); setEssayFeedback(friendlyChatError(msg.message)); }
+                }
+                function onErr(e) { cleanup(); setEssayStatus('error'); setEssayFeedback(friendlyChatError(e.message || '')); }
+                function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+                w.addEventListener('message', onMsg);
+                w.addEventListener('error', onErr);
+                const messages = [
+                    { role: 'system', content: RU_WRITE_SYSTEM_PROMPT },
+                    { role: 'user', content: essayText },
+                    { role: 'system', content: RU_WRITE_REMINDER },
+                ];
+                w.postMessage({ type: 'chat', jobId, maxNewTokens: 400, messages });
+            };
+            const skipEssay = () => { setAnswered(true); };
+            const markSpeakingDone = () => { setAnswered(true); };
+
+            const progressLabel = `${section.title} · ข้อ ${qIdx + 1}/${section.questions.length}`;
+
+            return (
+                <div className="flex-1 overflow-y-auto bg-gray-50">
+                    <div className="max-w-xl mx-auto p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <span className="text-xs font-bold text-gray-400 uppercase">ТРКИ-1 · {progressLabel}</span>
+                            {(section.key === 'leksika-grammatika' || section.key === 'chtenie' || section.key === 'audirovanie') && (
+                                <span className="text-xs font-bold text-brand">ถูก {correctInSection} ข้อ</span>
+                            )}
+                        </div>
+
+                        {q.type === 'ru-word-meaning-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
+                                    <button onClick={() => speak(q.word, 'ru')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'grammar-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'passage-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'ru-response-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
+                                    <button onClick={() => speakVoice(q.phrase, 'ru', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                </div>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'ru-dialogue-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <div className="space-y-1">
+                                        {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
+                                    </div>
+                                    <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'ru', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
+                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'ru-talk-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                    <button onClick={() => speakVoice(q.text, 'ru', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'write-essay' && (
+                            <>
+                                <p className="text-xs text-gray-400 mb-1">{q.context}</p>
+                                <p className="text-gray-700 font-semibold mb-3">{q.prompt}</p>
+                                <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={6} disabled={answered}
+                                    placeholder="Напишите текст здесь на русском языке..."
+                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                {!answered && (
+                                    <div className="flex gap-2 mb-3">
+                                        <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
+                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
+                                        </button>
+                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                    </div>
+                                )}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                            </>
+                        )}
+
+                        {q.type === 'speaking-practice' && (
+                            <>
+                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
+                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
+                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Часть 1 — Представиться</p>
+                                    {RU_SPEAKING.part1.map((p, i) => (
+                                        <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
+                                            <span className="text-sm text-gray-700">{p}</span>
+                                            <button onClick={() => speak(p, 'ru')} className="shrink-0 text-brand"><Volume2 /></button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Часть 2 — Разговор на тему</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{RU_SPEAKING.part2}</p>
+                                    <button onClick={() => speak(RU_SPEAKING.part2, 'ru')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-xs font-bold text-brand uppercase mb-2">Часть 3 — Просьба</p>
+                                    {RU_SPEAKING.part3.map((p, i) => (
+                                        <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
+                                            <span className="text-sm text-gray-700">{p}</span>
+                                            <button onClick={() => speak(p, 'ru')} className="shrink-0 text-brand"><Volume2 /></button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex flex-col items-center gap-3 mb-4">
+                                    {!spIsRecording ? (
+                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
+                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        </button>
+                                    ) : (
+                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
+                                            ⏹ หยุดอัด
+                                        </button>
+                                    )}
+                                </div>
+                                {spRecordedUrl && (
+                                    <div className="mb-4 text-center">
+                                        <audio controls src={spRecordedUrl} className="mx-auto w-full"></audio>
+                                    </div>
+                                )}
+                                {!answered && (
+                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                )}
+                            </>
+                        )}
+
+                        {answered && (
+                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                                {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ══════════════════════════════════════════════════════════════════════════════════
         // แบบทดสอบความเข้าใจภาษาจีนกวางตุ้ง — ต่างจาก HSK/TOEIC/IELTS/JLPT/TOPIK ตรงที่ "ไม่ได้จำลอง
         // ข้อสอบทางการชุดใดชุดหนึ่ง" เพราะค้นหาแล้วไม่พบข้อสอบวัดระดับภาษากวางตุ้งที่เป็นมาตรฐานสากล
         // เปิดเผยโครงสร้างชัดเจนแบบ HSK/TOPIK เลย (มีแต่ LPAT ซึ่งเป็นข้อสอบครูในฮ่องกงโดยเฉพาะ, CRAT
@@ -10414,10 +10989,10 @@
                 setMobileNavOpen(false);
             };
 
-            // ปุ่ม "ข้อสอบ" รองรับ 10 ภาษาแล้ว (จีนกลาง→HSK/BCT, อังกฤษ→IELTS/TOEIC, ญี่ปุ่น→JLPT,
+            // ปุ่ม "ข้อสอบ" รองรับ 11 ภาษาแล้ว (จีนกลาง→HSK/BCT, อังกฤษ→IELTS/TOEIC, ญี่ปุ่น→JLPT,
             // เกาหลี→TOPIK, จีนกวางตุ้ง→แบบทดสอบความเข้าใจที่แต่งเอง, เยอรมัน→Goethe A1, ฝรั่งเศส→DELF A1,
-            // อิตาลี→PLIDA A1, สเปน→DELE A1, โปรตุเกส→CELPE-Bras) — ถ้ากำลังอยู่ภาษาที่มีข้อสอบอยู่แล้ว
-            // ให้ไปหน้าข้อสอบของภาษานั้นเลย ภาษาอื่นนอกเหนือจากนี้ยัง fallback ไปจีนกลางเหมือนเดิม
+            // อิตาลี→PLIDA A1, สเปน→DELE A1, โปรตุเกส→CELPE-Bras, รัสเซีย→ТРКИ-1/TORFL A1) — ถ้ากำลังอยู่
+            // ภาษาที่มีข้อสอบอยู่แล้วให้ไปหน้าข้อสอบของภาษานั้นเลย ภาษาอื่นนอกเหนือจากนี้ยัง fallback ไปจีนกลาง
             const goExam = () => {
                 if (langId === 'lang-en') {
                     setView('enexam');
@@ -10437,6 +11012,8 @@
                     setView('esexam');
                 } else if (langId === 'lang-pt') {
                     setView('ptexam');
+                } else if (langId === 'lang-ru') {
+                    setView('ruexam');
                 } else {
                     setLangId('lang-cn');
                     setView('hsk');
@@ -10548,7 +11125,7 @@
                                             <div key={id} className="flex items-center gap-1">
                                                 <button
                                                     onClick={() => selectLang(id)}
-                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
+                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
                                                 >
                                                     <Languages /> <span className="flex-1 text-left truncate">{LANGS[id].title}</span>
                                                     {allDone && <CheckCircle />}
@@ -10637,7 +11214,7 @@
                                 <button
                                     onClick={goExam}
                                     title="รองรับภาษาจีนกลาง (HSK/BCT), อังกฤษ (IELTS/TOEIC), ญี่ปุ่น (JLPT), เกาหลี (TOPIK), จีนกวางตุ้ง (แบบทดสอบความเข้าใจ), เยอรมัน (Goethe A1), ฝรั่งเศส (DELF A1), อิตาลี (PLIDA A1), สเปน (DELE A1) และโปรตุเกส (CELPE-Bras) — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
-                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
                                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
@@ -10978,6 +11555,21 @@
                                     </div>
                                 )}
 
+                                {langId === 'lang-ru' && (
+                                    <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
+                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษารัสเซีย</h3>
+                                        <p className="text-xs text-gray-400 mb-4">ทำข้อสอบจำลอง ТРКИ-1 / TORFL A1 โดยเฉพาะ</p>
+                                        <div className="grid grid-cols-1 gap-3">
+                                            <button onClick={goExam}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><HskIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ ТРКИ-1 / TORFL A1</div>
+                                                <div className="text-[11px] text-gray-400">Лексика. Грамматика・Чтение・Аудирование・Письмо・Говорение</div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {Object.keys(wrong).length > 0 && (
                                     <div className="bg-white rounded-xl border border-gray-200 p-5">
                                         <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><XCircle /> คำที่เคยตอบผิด ({Object.keys(wrong).length})</h3>
@@ -11247,6 +11839,8 @@
                         <EsExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : view === 'ptexam' ? (
                         <PtExamView langId={langId} setLangId={setLangId} setXp={setXp} />
+                        ) : view === 'ruexam' ? (
+                        <RuExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : (
                         <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} />
                         )}
