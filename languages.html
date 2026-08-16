@@ -8419,9 +8419,9 @@
         ];
 
         function ListeningPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-yue' ? LISTENING_PASSAGES_YUE : langId === 'lang-en' ? LISTENING_PASSAGES_EN : langId === 'lang-de' ? LISTENING_PASSAGES_DE : langId === 'lang-fr' ? LISTENING_PASSAGES_FR : langId === 'lang-it' ? LISTENING_PASSAGES_IT : langId === 'lang-es' ? LISTENING_PASSAGES_ES : langId === 'lang-pt' ? LISTENING_PASSAGES_PT : LISTENING_PASSAGES;
+            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-yue' ? LISTENING_PASSAGES_YUE : langId === 'lang-en' ? LISTENING_PASSAGES_EN : langId === 'lang-de' ? LISTENING_PASSAGES_DE : langId === 'lang-fr' ? LISTENING_PASSAGES_FR : langId === 'lang-it' ? LISTENING_PASSAGES_IT : langId === 'lang-es' ? LISTENING_PASSAGES_ES : langId === 'lang-pt' ? LISTENING_PASSAGES_PT : langId === 'lang-ru' ? LISTENING_PASSAGES_RU : LISTENING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -8553,7 +8553,7 @@
         // หมายเหตุ lang-yue: Whisper (asr-worker.js) ไม่มีตัวเลือกภาษา "cantonese" แยกต่างหากในรายชื่อ
         // ภาษาทางการ 99 ภาษา ใช้ 'chinese' แทน (ใกล้เคียงที่สุดที่มี แม่นยำน้อยกว่าภาษาที่มีในรายชื่อจริง
         // — ผู้ใช้ควรตรวจทานข้อความที่ถอดออกมาเองเสมอ เหมือนที่ระบบเตือนไว้อยู่แล้วทั่วไป)
-        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean', 'lang-yue': 'chinese', 'lang-de': 'german', 'lang-fr': 'french', 'lang-it': 'italian', 'lang-es': 'spanish', 'lang-pt': 'portuguese' };
+        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean', 'lang-yue': 'chinese', 'lang-de': 'german', 'lang-fr': 'french', 'lang-it': 'italian', 'lang-es': 'spanish', 'lang-pt': 'portuguese', 'lang-ru': 'russian' };
         function transcribeSpeech(pcm, langName) {
             return new Promise((resolve, reject) => {
                 const w = getAsrWorker();
@@ -9137,9 +9137,9 @@
         ];
 
         function ReadingPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-yue' ? READING_PASSAGES_YUE : langId === 'lang-en' ? READING_PASSAGES_EN : langId === 'lang-de' ? READING_PASSAGES_DE : langId === 'lang-fr' ? READING_PASSAGES_FR : langId === 'lang-it' ? READING_PASSAGES_IT : langId === 'lang-es' ? READING_PASSAGES_ES : langId === 'lang-pt' ? READING_PASSAGES_PT : READING_PASSAGES;
+            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-yue' ? READING_PASSAGES_YUE : langId === 'lang-en' ? READING_PASSAGES_EN : langId === 'lang-de' ? READING_PASSAGES_DE : langId === 'lang-fr' ? READING_PASSAGES_FR : langId === 'lang-it' ? READING_PASSAGES_IT : langId === 'lang-es' ? READING_PASSAGES_ES : langId === 'lang-pt' ? READING_PASSAGES_PT : langId === 'lang-ru' ? READING_PASSAGES_RU : READING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -9528,7 +9528,7 @@
         }
 
         function NumbersDatesPanel({ awardXp, langId }) {
-            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-yue' ? NUMBERS_DATES_YUE : langId === 'lang-en' ? NUMBERS_DATES_EN : langId === 'lang-de' ? NUMBERS_DATES_DE : langId === 'lang-fr' ? NUMBERS_DATES_FR : langId === 'lang-it' ? NUMBERS_DATES_IT : langId === 'lang-es' ? NUMBERS_DATES_ES : langId === 'lang-pt' ? NUMBERS_DATES_PT : NUMBERS_DATES;
+            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-yue' ? NUMBERS_DATES_YUE : langId === 'lang-en' ? NUMBERS_DATES_EN : langId === 'lang-de' ? NUMBERS_DATES_DE : langId === 'lang-fr' ? NUMBERS_DATES_FR : langId === 'lang-it' ? NUMBERS_DATES_IT : langId === 'lang-es' ? NUMBERS_DATES_ES : langId === 'lang-pt' ? NUMBERS_DATES_PT : langId === 'lang-ru' ? NUMBERS_DATES_RU : NUMBERS_DATES;
             const langCode = LANGS[langId].code;
             const [catKey, setCatKey] = useState('all');
             const [queue, setQueue] = useState(() => buildNdQueue('all', dataset));
@@ -10767,9 +10767,241 @@
                 { prompt: '25 ธันวาคม', target: 'vinte e cinco de dezembro' },
             ],
         };
+        // ── บทฟังภาษารัสเซีย 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่น รวมตัวละคร "Minji" ที่ปรากฏซ้ำทุกภาษา) ──
+        const LISTENING_PASSAGES_RU = [
+            {
+                level: 1, title: 'По телефону',
+                lines: [
+                    { speaker: 'A', target: 'Алло?', thai: 'ฮัลโหล' },
+                    { speaker: 'B', target: 'Алло, это Минджи.', thai: 'สวัสดีค่ะ ฉันชื่อมินจี' },
+                    { speaker: 'A', target: 'Где ты сейчас?', thai: 'ตอนนี้คุณอยู่ที่ไหน' },
+                    { speaker: 'B', target: 'Я сейчас дома.', thai: 'ฉันอยู่บ้าน' },
+                ],
+                questions: [
+                    { q: 'Где сейчас Минджи?', choices: ['дома', 'в школе', 'в офисе'], correct: 'дома' },
+                    { q: 'Кто сказал "Это Минджи"?', choices: ['Минджи', 'другой человек', 'никто'], correct: 'Минджи' },
+                ],
+            },
+            {
+                level: 1, title: 'В магазине',
+                lines: [
+                    { speaker: 'A', target: 'Сколько стоит это яблоко?', thai: 'แอปเปิลลูกนี้ราคาเท่าไหร่' },
+                    { speaker: 'B', target: 'Оно стоит один рубль.', thai: 'หนึ่งรูเบิลค่ะ' },
+                    { speaker: 'A', target: 'Это дорого. Можно скидку?', thai: 'แพงไปนะ ลดหน่อยได้ไหม' },
+                    { speaker: 'B', target: 'Хорошо, отдам за восемьдесят копеек.', thai: 'ได้ค่ะ แปดสิบโกเปก' },
+                ],
+                questions: [
+                    { q: 'Какая цена была вначале?', choices: ['один рубль', 'восемьдесят копеек', 'пятьдесят копеек'], correct: 'один рубль' },
+                    { q: 'Какая цена была в конце?', choices: ['один рубль', 'восемьдесят копеек', 'пятьдесят копеек'], correct: 'восемьдесят копеек' },
+                ],
+            },
+            {
+                level: 2, title: 'Свидание',
+                lines: [
+                    { speaker: 'A', target: 'У тебя есть время сегодня вечером?', thai: 'คืนนี้คุณว่างไหม' },
+                    { speaker: 'B', target: 'Да, есть время. А что?', thai: 'ว่างสิ มีอะไรเหรอ' },
+                    { speaker: 'A', target: 'Посмотрим фильм вместе?', thai: 'ไปดูหนังด้วยกันไหม' },
+                    { speaker: 'B', target: 'С удовольствием! Во сколько встретимся?', thai: 'ดีเลย! นัดกี่โมงดี' },
+                    { speaker: 'A', target: 'В семь, перед кинотеатром.', thai: 'หนึ่งทุ่ม ที่หน้าโรงหนัง' },
+                ],
+                questions: [
+                    { q: 'Что они будут делать?', choices: ['смотреть фильм', 'ужинать', 'делать покупки'], correct: 'смотреть фильм' },
+                    { q: 'Во сколько они встретятся?', choices: ['в шесть', 'в семь', 'в девять'], correct: 'в семь' },
+                ],
+            },
+            {
+                level: 2, title: 'Погода сегодня',
+                lines: [
+                    { speaker: 'A', target: 'Какая сегодня погода?', thai: 'วันนี้อากาศเป็นยังไงบ้าง' },
+                    { speaker: 'B', target: 'Очень холодно. И ещё идёт дождь.', thai: 'วันนี้หนาวมาก แล้วก็ฝนตกด้วย' },
+                    { speaker: 'A', target: 'Тогда, наверное, мы не пойдём в парк.', thai: 'งั้นเราไม่ไปสวนสาธารณะกันดีกว่า' },
+                    { speaker: 'B', target: 'Точно, останемся дома и посмотрим телевизор.', thai: 'ได้ อยู่บ้านดูทีวีกันดีกว่า' },
+                ],
+                questions: [
+                    { q: 'Какая сегодня погода?', choices: ['холодно и дождь', 'жарко и солнце', 'идёт снег'], correct: 'холодно и дождь' },
+                    { q: 'Что они сделают в итоге?', choices: ['пойдут в парк', 'посмотрят телевизор дома', 'сделают покупки'], correct: 'посмотрят телевизор дома' },
+                ],
+            },
+            {
+                level: 3, title: 'Поиск работы',
+                lines: [
+                    { speaker: 'A', target: 'Что ты делаешь в последнее время?', thai: 'ช่วงนี้คุณยุ่งอะไรอยู่' },
+                    { speaker: 'B', target: 'Ищу работу. Уже прошёл три собеседования.', thai: 'ฉันกำลังหางาน ไปสัมภาษณ์มาสามครั้งแล้ว' },
+                    { speaker: 'A', target: 'И как, всё идёт хорошо?', thai: 'เป็นยังไงบ้าง ราบรื่นไหม' },
+                    { speaker: 'B', target: 'Более-менее. На следующей неделе одна компания снова позвонит.', thai: 'ก็โอเคนะ มีบริษัทหนึ่งจะตอบกลับสัปดาห์หน้า' },
+                ],
+                questions: [
+                    { q: 'Что делает Б в последнее время?', choices: ['ищет работу', 'учится', 'путешествует'], correct: 'ищет работу' },
+                    { q: 'Сколько собеседований прошёл Б?', choices: ['одно', 'два', 'три'], correct: 'три' },
+                ],
+            },
+            {
+                level: 3, title: 'Планы на поездку',
+                lines: [
+                    { speaker: 'A', target: 'Куда ты поедешь на летних каникулах?', thai: 'ปิดเทอมนี้คุณจะไปเที่ยวที่ไหน' },
+                    { speaker: 'B', target: 'Планирую поехать в Мюнхен. Там очень красивая природа.', thai: 'ฉันตั้งใจจะไปมิวนิก ที่นั่นวิวสวยมาก' },
+                    { speaker: 'A', target: 'Ты едешь один?', thai: 'ไปคนเดียวเหรอ' },
+                    { speaker: 'B', target: 'Нет, еду с парнем. Мы думаем поехать на поезде.', thai: 'เปล่า ฉันไปกับแฟน เราตั้งใจจะนั่งรถไฟไป' },
+                ],
+                questions: [
+                    { q: 'Куда планирует поехать Б?', choices: ['в Берлин', 'в Мюнхен', 'в Гамбург'], correct: 'в Мюнхен' },
+                    { q: 'Как они думают поехать?', choices: ['на самолёте', 'на поезде', 'на машине'], correct: 'на поезде' },
+                ],
+            },
+        ];
+
+        // ── บทอ่านภาษารัสเซีย 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่น) ตรงตามรูปแบบ {level,title,lines,questions}
+        //    เดียวกับ READING_PASSAGES_PT (lines ที่นี่ไม่มี speaker เพราะเป็นข้อความบรรยาย ไม่ใช่บทสนทนา) ──
+        const READING_PASSAGES_RU = [
+            {
+                level: 1, title: 'Мой день',
+                lines: [
+                    { target: 'Каждый день я встаю в семь часов.', thai: 'ทุกวันฉันตื่นนอนเจ็ดโมงเช้า' },
+                    { target: 'После завтрака я иду в школу.', thai: 'ฉันกินข้าวเช้าก่อน แล้วค่อยไปโรงเรียน' },
+                    { target: 'В школе я учусь.', thai: 'ฉันเรียนหนังสือที่โรงเรียน' },
+                    { target: 'В полдень я обедаю с другом.', thai: 'ตอนเที่ยงฉันกินข้าวเที่ยงกับเพื่อน' },
+                    { target: 'В три часа дня я возвращаюсь домой.', thai: 'ตอนบ่ายสามโมงฉันกลับบ้าน' },
+                    { target: 'Вечером я смотрю телевизор и ложусь спать в десять.', thai: 'ตอนเย็นฉันดูทีวี นอนสี่ทุ่ม' },
+                ],
+                questions: [
+                    { q: 'Во сколько встаёт этот человек?', choices: ['в семь', 'в восемь', 'в шесть'], correct: 'в семь' },
+                    { q: 'Что человек делает перед школой?', choices: ['завтракает', 'принимает душ', 'смотрит телевизор'], correct: 'завтракает' },
+                ],
+            },
+            {
+                level: 1, title: 'Моя семья',
+                lines: [
+                    { target: 'В моей семье четыре человека: папа, мама, старшая сестра и я.', thai: 'ครอบครัวฉันมีสี่คน: พ่อ แม่ พี่สาว และฉัน' },
+                    { target: 'Мой папа врач, моя мама учительница.', thai: 'พ่อเป็นหมอ แม่เป็นครู' },
+                    { target: 'Моя сестра старше меня на три года и учится в университете.', thai: 'พี่สาวอายุมากกว่าฉันสามปี เธอเรียนอยู่มหาวิทยาลัย' },
+                    { target: 'У нас дома есть маленькая собака. Она очень милая.', thai: 'บ้านเรามีหมาตัวเล็กหนึ่งตัว มันน่ารักมาก' },
+                    { target: 'По воскресеньям мы вместе ходим в парк.', thai: 'วันอาทิตย์เราไปเที่ยวสวนสาธารณะด้วยกัน' },
+                ],
+                questions: [
+                    { q: 'Кем работает папа?', choices: ['врачом', 'учителем', 'сотрудником'], correct: 'врачом' },
+                    { q: 'На сколько лет сестра старше?', choices: ['на один год', 'на два года', 'на три года'], correct: 'на три года' },
+                ],
+            },
+            {
+                level: 2, title: 'Планы на выходные',
+                lines: [
+                    { target: 'В эти выходные я собираюсь сделать много всего.', thai: 'สุดสัปดาห์นี้ฉันตั้งใจจะทำหลายอย่าง' },
+                    { target: 'В субботу утром я читаю в библиотеке, а днём иду за покупками с подругой.', thai: 'เช้าวันเสาร์ฉันจะไปห้องสมุดอ่านหนังสือ บ่ายไปซื้อของกับเพื่อน' },
+                    { target: 'Вечером собираюсь посмотреть фильм.', thai: 'ตอนเย็นเราตั้งใจจะไปดูหนัง' },
+                    { target: 'В воскресенье хочу отдохнуть дома. Может быть, приготовлю еду для семьи.', thai: 'วันอาทิตย์ฉันอยากพักผ่อนอยู่บ้าน อาจจะทำกับข้าวให้ครอบครัวกิน' },
+                    { target: 'Если будет хорошая погода, хочу ещё побегать в парке.', thai: 'ถ้าอากาศดี ฉันยังอยากไปวิ่งที่สวนสาธารณะด้วย' },
+                ],
+                questions: [
+                    { q: 'Куда человек идёт в субботу утром?', choices: ['в библиотеку', 'в ресторан', 'в кино'], correct: 'в библиотеку' },
+                    { q: 'Что человек собирается делать в воскресенье?', choices: ['отдыхать дома', 'идти на работу', 'путешествовать'], correct: 'отдыхать дома' },
+                ],
+            },
+            {
+                level: 2, title: 'День болезни',
+                lines: [
+                    { target: 'Вчера вечером я плохо себя чувствовал.', thai: 'เมื่อคืนฉันรู้สึกไม่สบาย' },
+                    { target: 'Болела голова и была небольшая температура.', thai: 'ปวดหัวมาก แล้วก็มีไข้นิดหน่อย' },
+                    { target: 'Сегодня утром я не пошёл на работу, а пошёл к врачу.', thai: 'เช้านี้ฉันไม่ได้ไปทำงาน ไปโรงพยาบาลหาหมอ' },
+                    { target: 'Врач сказал, что у меня простуда, и посоветовал пить много воды и хорошо отдыхать. Ещё он дал мне лекарство.', thai: 'หมอบอกว่าฉันเป็นหวัด ให้ดื่มน้ำเยอะๆ พักผ่อนเยอะๆ แล้วก็จ่ายยาให้ฉันด้วย' },
+                    { target: 'После того как я выпил лекарство, мне стало намного лучше.', thai: 'หลังจากกินยาแล้วรู้สึกดีขึ้นมาก' },
+                ],
+                questions: [
+                    { q: 'Почему человек плохо себя чувствовал?', choices: ['из-за простуды', 'из-за боли в животе', 'из-за травмы ноги'], correct: 'из-за простуды' },
+                    { q: 'Что сказал врач?', choices: ['пить много воды и отдыхать', 'много заниматься спортом', 'ничего не есть'], correct: 'пить много воды и отдыхать' },
+                ],
+            },
+            {
+                level: 3, title: 'Мой первый полёт',
+                lines: [
+                    { target: 'В прошлом месяце я впервые летел на самолёте один, в Берлин.', thai: 'เดือนที่แล้วฉันนั่งเครื่องบินไปเที่ยวเบอร์ลินคนเดียวเป็นครั้งแรก' },
+                    { target: 'Перед вылетом я очень нервничал. Боялся, что не найду выход на посадку.', thai: 'ก่อนออกเดินทางฉันตื่นเต้นมาก กลัวว่าตัวเองจะหาประตูขึ้นเครื่องไม่เจอ' },
+                    { target: 'Приехав в аэропорт, я посмотрел информацию на экране и легко нашёл выход.', thai: 'พอถึงสนามบิน ฉันดูข้อมูลบนจอแล้วหาประตูขึ้นเครื่องเจอได้อย่างราบรื่น' },
+                    { target: 'Так как ещё было время, я погулял по аэропорту и купил маленький сувенир.', thai: 'ยังมีเวลาเดินเล่นในสนามบิน ซื้อของฝากเล็กๆ น้อยๆ ด้วย' },
+                    { target: 'При взлёте самолёта я немного испугался, но постепенно привык.', thai: 'ตอนเครื่องบินขึ้น ฉันกลัวนิดหน่อย แต่ค่อยๆ ชินไป' },
+                ],
+                questions: [
+                    { q: 'Как чувствовал себя человек перед вылетом?', choices: ['нервничал и переживал из-за выхода', 'был очень счастлив', 'ничего не чувствовал'], correct: 'нервничал и переживал из-за выхода' },
+                    { q: 'Что человек делал в аэропорту, кроме поиска выхода?', choices: ['гулял и купил сувенир', 'спал', 'звонил другу'], correct: 'гулял и купил сувенир' },
+                ],
+            },
+            {
+                level: 3, title: 'Мой опыт изучения русского языка',
+                lines: [
+                    { target: 'Я изучаю русский язык уже два года.', thai: 'ฉันเรียนภาษารัสเซียมาสองปีแล้ว' },
+                    { target: 'Сначала произношение и грамматика были очень трудными, я часто ошибался, и друзья часто надо мной смеялись.', thai: 'ตอนเริ่มแรกฉันรู้สึกว่าการออกเสียงและไวยากรณ์ยากมาก พูดผิดบ่อยๆ แล้วก็ถูกเพื่อนล้อบ่อยๆ' },
+                    { target: 'Потом я каждый день слушал русские песни и смотрел видео на русском языке, и постепенно привык к ритму этого языка.', thai: 'ต่อมาฉันฟังเพลงรัสเซียและดูวิดีโอภาษารัสเซียทุกวันอย่างสม่ำเสมอ ค่อยๆ ชินกับจังหวะของภาษานี้' },
+                    { target: 'Сейчас, хотя ещё много слов, которые я не знаю, я уже могу вести простые разговоры с русскими друзьями.', thai: 'ตอนนี้แม้จะยังมีคำศัพท์ที่ไม่รู้อีกเยอะ แต่ฉันคุยกับเพื่อนคนรัสเซียแบบง่ายๆ ได้แล้ว' },
+                    { target: 'Я думаю, что самое важное при изучении языка — не бояться ошибок и продолжать пытаться.', thai: 'ฉันคิดว่าสิ่งที่สำคัญที่สุดในการเรียนภาษาคือไม่ต้องกลัวทำผิด ถ้าพยายามต่อไปเรื่อยๆ ยังไงก็ต้องมีความก้าวหน้า' },
+                ],
+                questions: [
+                    { q: 'Что человеку показалось труднее всего вначале?', choices: ['произношение и грамматика', 'слова', 'буквы'], correct: 'произношение и грамматика' },
+                    { q: 'Как человек тренировался?', choices: ['слушал песни и смотрел видео каждый день', 'только заучивал слова', 'только изучал грамматику'], correct: 'слушал песни и смотрел видео каждый день' },
+                ],
+            },
+        ];
+
+        // ตัวเลข/วันที่/เวลาภาษารัสเซีย — จุดสังเกตสำคัญที่ต่างจากทุกภาษาที่ทำมาก่อนหน้านี้: (1) ตัวเลข 1
+        // ผันตามเพศคำนามที่ตามมา (один час แต่ одна минута) และคำนามหลังตัวเลขผันการกต่างกันตามช่วง
+        // ตัวเลข (1 = nominative เอกพจน์, 2-4 = genitive เอกพจน์, 5+ = genitive พหูพจน์ — เช่น "один час"
+        // แต่ "два часа" และ "пять часов" ใช้รูปคำว่า "ชั่วโมง" 3 แบบต่างกัน) (2) ชื่อวันมาจากคำบอกลำดับ
+        // ปนกับความหมาย (понедельник มาจาก "หลังวันเดียว" หมายถึงหลังวันอาทิตย์, среда แปลว่า "ตรงกลาง"
+        // เพราะเป็นวันกลางสัปดาห์) (3) การบอกวันที่ใช้เลขลำดับ (ตัวคุณศัพท์ที่ผันตามเพศกลางของคำว่า
+        // "число" ที่ไม่ได้พูดออกมา) และ "เดือน" หลังวันที่ต้องผันเป็นการก genitive เสมอไม่ว่าวันที่จะอยู่
+        // การกไหนก็ตาม (เช่น "первое января" ไม่ใช่ "первое январь")
+        const NUMBERS_DATES_RU = {
+            numbers: [
+                { prompt: '5', target: 'пять' },
+                { prompt: '8', target: 'восемь' },
+                { prompt: '12', target: 'двенадцать' },
+                { prompt: '15', target: 'пятнадцать' },
+                { prompt: '20', target: 'двадцать' },
+                { prompt: '23', target: 'двадцать три' },
+                { prompt: '34', target: 'тридцать четыре' },
+                { prompt: '50', target: 'пятьдесят' },
+                { prompt: '67', target: 'шестьдесят семь' },
+                { prompt: '99', target: 'девяносто девять' },
+                { prompt: '100', target: 'сто' },
+                { prompt: '128', target: 'сто двадцать восемь' },
+                { prompt: '256', target: 'двести пятьдесят шесть' },
+                { prompt: '1000', target: 'тысяча' },
+            ],
+            weekday: [
+                { prompt: 'วันจันทร์', target: 'понедельник' },
+                { prompt: 'วันอังคาร', target: 'вторник' },
+                { prompt: 'วันพุธ', target: 'среда' },
+                { prompt: 'วันพฤหัสบดี', target: 'четверг' },
+                { prompt: 'วันศุกร์', target: 'пятница' },
+                { prompt: 'วันเสาร์', target: 'суббота' },
+                { prompt: 'วันอาทิตย์', target: 'воскресенье' },
+            ],
+            time: [
+                { prompt: '1:00 น.', target: 'один час' },
+                { prompt: '2:00 น.', target: 'два часа' },
+                { prompt: '3:30 น.', target: 'три часа тридцать минут' },
+                { prompt: '4:40 น.', target: 'четыре часа сорок минут' },
+                { prompt: '6:15 น.', target: 'шесть часов пятнадцать минут' },
+                { prompt: '7:30 น.', target: 'семь часов тридцать минут' },
+                { prompt: '8:45 น.', target: 'восемь часов сорок пять минут' },
+                { prompt: '9:05 น.', target: 'девять часов пять минут' },
+                { prompt: '10:10 น.', target: 'десять часов десять минут' },
+                { prompt: '11:20 น.', target: 'одиннадцать часов двадцать минут' },
+                { prompt: '12:00 น.', target: 'полдень' },
+            ],
+            date: [
+                { prompt: '1 มกราคม', target: 'первое января' },
+                { prompt: '14 กุมภาพันธ์', target: 'четырнадцатое февраля' },
+                { prompt: '8 มีนาคม', target: 'восьмое марта' },
+                { prompt: '1 พฤษภาคม', target: 'первое мая' },
+                { prompt: '20 มิถุนายน', target: 'двадцатое июня' },
+                { prompt: '15 สิงหาคม', target: 'пятнадцатое августа' },
+                { prompt: '10 ตุลาคม', target: 'десятое октября' },
+                { prompt: '25 ธันวาคม', target: 'двадцать пятое декабря' },
+            ],
+        };
+
         // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN/_JP/_KR/_YUE)/READING_PASSAGES(_EN/_JP/_KR/_YUE)/
         // NUMBERS_DATES(_EN/_JP/_KR/_YUE) + ASR_LANG_NAME) — ภาษาอื่นนอกห้านี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
-        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue', 'lang-de', 'lang-fr', 'lang-it', 'lang-es', 'lang-pt'];
+        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue', 'lang-de', 'lang-fr', 'lang-it', 'lang-es', 'lang-pt', 'lang-ru'];
         function ListenSpeakView({ langId, setLangId, setXp }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
@@ -10778,7 +11010,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี จีนกวางตุ้ง เยอรมัน ฝรั่งเศส อิตาลี สเปน และโปรตุเกสตอนนี้</p>
+                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี จีนกวางตุ้ง เยอรมัน ฝรั่งเศส อิตาลี สเปน โปรตุเกส และรัสเซียตอนนี้</p>
                             <div className="flex gap-2 justify-center flex-wrap">
                                 <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีนกลาง</button>
                                 <button onClick={() => setLangId('lang-en')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาอังกฤษ</button>
@@ -10790,6 +11022,7 @@
                                 <button onClick={() => setLangId('lang-it')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาอิตาลี</button>
                                 <button onClick={() => setLangId('lang-es')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาสเปน</button>
                                 <button onClick={() => setLangId('lang-pt')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาโปรตุเกส</button>
+                                <button onClick={() => setLangId('lang-ru')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษารัสเซีย</button>
                             </div>
                         </div>
                     </div>
@@ -11024,7 +11257,7 @@
             // โหมดฟัง-พูด รองรับจีนกลาง+อังกฤษ+ญี่ปุ่น+เกาหลี+จีนกวางตุ้งแล้ว — ถ้าอยู่ภาษาอื่นอยู่
             // ค่อยสลับเป็นจีนกลางให้อัตโนมัติ
             const goListen = () => {
-                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr' && langId !== 'lang-yue' && langId !== 'lang-de' && langId !== 'lang-fr' && langId !== 'lang-it' && langId !== 'lang-es' && langId !== 'lang-pt') setLangId('lang-cn');
+                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr' && langId !== 'lang-yue' && langId !== 'lang-de' && langId !== 'lang-fr' && langId !== 'lang-it' && langId !== 'lang-es' && langId !== 'lang-pt' && langId !== 'lang-ru') setLangId('lang-cn');
                 setView('listen');
                 setMobileNavOpen(false);
             };
@@ -11558,13 +11791,19 @@
                                 {langId === 'lang-ru' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
                                         <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษารัสเซีย</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ทำข้อสอบจำลอง ТРКИ-1 / TORFL A1 โดยเฉพาะ</p>
-                                        <div className="grid grid-cols-1 gap-3">
+                                        <p className="text-xs text-gray-400 mb-4">ทำข้อสอบจำลอง ТРКИ-1 / TORFL A1 และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
                                                 <div className="text-sm font-bold text-gray-800">ข้อสอบ ТРКИ-1 / TORFL A1</div>
                                                 <div className="text-[11px] text-gray-400">Лексика. Грамматика・Чтение・Аудирование・Письмо・Говорение</div>
+                                            </button>
+                                            <button onClick={goListen}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><ListenIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ฟัง-พูด-อ่าน</div>
+                                                <div className="text-[11px] text-gray-400">บทฟัง, พูดตาม, อ่านยาว</div>
                                             </button>
                                         </div>
                                     </div>
