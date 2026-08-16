@@ -4786,10 +4786,92 @@
             },
         ];
 
+        const LISTENING_PASSAGES_YUE = [
+            {
+                level: 1, title: '聽電話',
+                lines: [
+                    { speaker: 'A', target: '喂。', thai: 'ฮัลโหล' },
+                    { speaker: 'B', target: '喂，我係阿明。', thai: 'ฮัลโหล ฉันชื่ออาหมิง' },
+                    { speaker: 'A', target: '你而家喺邊度呀？', thai: 'ตอนนี้คุณอยู่ที่ไหน' },
+                    { speaker: 'B', target: '我喺屋企。', thai: 'ฉันอยู่บ้าน' },
+                ],
+                questions: [
+                    { q: '阿明而家喺邊度？', choices: ['屋企', '學校', '舖頭'], correct: '屋企' },
+                    { q: '邊個講"我係阿明"？', choices: ['阿明', '第二個人', '冇講'], correct: '阿明' },
+                ],
+            },
+            {
+                level: 1, title: '喺舖頭',
+                lines: [
+                    { speaker: 'A', target: '呢個蘋果幾多錢呀？', thai: 'แอปเปิลลูกนี้ราคาเท่าไหร่' },
+                    { speaker: 'B', target: '十蚊。', thai: 'สิบดอลลาร์' },
+                    { speaker: 'A', target: '貴喎，平啲得唔得呀？', thai: 'แพงไปนะ ลดหน่อยได้ไหม' },
+                    { speaker: 'B', target: '好，八蚊俾你。', thai: 'ได้ค่ะ แปดดอลลาร์' },
+                ],
+                questions: [
+                    { q: '頭先個價錢係幾多？', choices: ['十蚊', '八蚊', '五蚊'], correct: '十蚊' },
+                    { q: '最後個價錢係幾多？', choices: ['十蚊', '八蚊', '五蚊'], correct: '八蚊' },
+                ],
+            },
+            {
+                level: 2, title: '約時間',
+                lines: [
+                    { speaker: 'A', target: '今晚得唔得閒呀？', thai: 'คืนนี้คุณว่างไหม' },
+                    { speaker: 'B', target: '得閒，做咩事呀？', thai: 'ว่างสิ มีอะไรเหรอ' },
+                    { speaker: 'A', target: '一齊去睇戲好唔好？', thai: 'ไปดูหนังด้วยกันไหม' },
+                    { speaker: 'B', target: '好呀！幾點見面呀？', thai: 'ดีเลย! นัดกี่โมงดี' },
+                    { speaker: 'A', target: '七點，喺戲院門口。', thai: 'หนึ่งทุ่ม ที่หน้าโรงหนัง' },
+                ],
+                questions: [
+                    { q: '兩個人會做咩？', choices: ['睇戲', '食飯', '買嘢'], correct: '睇戲' },
+                    { q: '幾點見面？', choices: ['六點', '七點', '九點'], correct: '七點' },
+                ],
+            },
+            {
+                level: 2, title: '今日天氣',
+                lines: [
+                    { speaker: 'A', target: '今日天氣點呀？', thai: 'วันนี้อากาศเป็นยังไงบ้าง' },
+                    { speaker: 'B', target: '好凍呀，仲落緊雨。', thai: 'วันนี้หนาวมาก แล้วก็ฝนตกด้วย' },
+                    { speaker: 'A', target: '咁我哋唔好去公園喇。', thai: 'งั้นเราไม่ไปสวนสาธารณะกันดีกว่า' },
+                    { speaker: 'B', target: '好，不如喺屋企睇電視。', thai: 'ได้ อยู่บ้านดูทีวีกันดีกว่า' },
+                ],
+                questions: [
+                    { q: '今日天氣點呀？', choices: ['好熱', '好凍又落雨', '天晴'], correct: '好凍又落雨' },
+                    { q: '佢哋最後會做咩？', choices: ['去公園', '喺屋企睇電視', '去舖頭'], correct: '喺屋企睇電視' },
+                ],
+            },
+            {
+                level: 3, title: '揾工',
+                lines: [
+                    { speaker: 'A', target: '你最近做緊咩呀？', thai: 'ช่วงนี้คุณยุ่งอะไรอยู่' },
+                    { speaker: 'B', target: '我而家揾緊工，已經去咗三次面試喇。', thai: 'ฉันกำลังหางาน ไปสัมภาษณ์มาสามครั้งแล้ว' },
+                    { speaker: 'A', target: '點呀，順唔順利呀？', thai: 'เป็นยังไงบ้าง ราบรื่นไหม' },
+                    { speaker: 'B', target: '麻麻哋，下個禮拜有間公司會覆我。', thai: 'ก็โอเคนะ มีบริษัทหนึ่งจะตอบกลับสัปดาห์หน้า' },
+                ],
+                questions: [
+                    { q: 'B最近做緊咩？', choices: ['揾工', '讀書', '去旅行'], correct: '揾工' },
+                    { q: 'B去咗幾多次面試？', choices: ['一次', '兩次', '三次'], correct: '三次' },
+                ],
+            },
+            {
+                level: 3, title: '旅行計劃',
+                lines: [
+                    { speaker: 'A', target: '暑假你打算去邊度旅行呀？', thai: 'ปิดเทอมนี้คุณจะไปเที่ยวที่ไหน' },
+                    { speaker: 'B', target: '我打算去大阪，嗰度風景好靚㗎。', thai: 'ฉันตั้งใจจะไปโอซาก้า ที่นั่นวิวสวยมาก' },
+                    { speaker: 'A', target: '你一個人去咩？', thai: 'ไปคนเดียวเหรอ' },
+                    { speaker: 'B', target: '唔係，我同男朋友一齊去，打算搭火車去。', thai: 'เปล่า ฉันไปกับแฟน เราตั้งใจจะนั่งรถไฟไป' },
+                ],
+                questions: [
+                    { q: 'B打算去邊度？', choices: ['東京', '大阪', '福岡'], correct: '大阪' },
+                    { q: '佢哋打算點樣去？', choices: ['搭飛機', '搭火車', '揸車'], correct: '搭火車' },
+                ],
+            },
+        ];
+
         function ListeningPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-en' ? LISTENING_PASSAGES_EN : LISTENING_PASSAGES;
+            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-yue' ? LISTENING_PASSAGES_YUE : langId === 'lang-en' ? LISTENING_PASSAGES_EN : LISTENING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -4918,7 +5000,10 @@
         }
         // langName: ชื่อภาษาเต็ม (lowercase) ตามที่ asr-worker.js (Whisper) รับ — ผ่านตรงเป็น
         // opts.language ไม่มีการแปลง/ตรวจสอบเพิ่มในตัว worker เอง
-        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean' };
+        // หมายเหตุ lang-yue: Whisper (asr-worker.js) ไม่มีตัวเลือกภาษา "cantonese" แยกต่างหากในรายชื่อ
+        // ภาษาทางการ 99 ภาษา ใช้ 'chinese' แทน (ใกล้เคียงที่สุดที่มี แม่นยำน้อยกว่าภาษาที่มีในรายชื่อจริง
+        // — ผู้ใช้ควรตรวจทานข้อความที่ถอดออกมาเองเสมอ เหมือนที่ระบบเตือนไว้อยู่แล้วทั่วไป)
+        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean', 'lang-yue': 'chinese' };
         function transcribeSpeech(pcm, langName) {
             return new Promise((resolve, reject) => {
                 const w = getAsrWorker();
@@ -5413,10 +5498,98 @@
             },
         ];
 
+        const READING_PASSAGES_YUE = [
+            {
+                level: 1, title: '我嘅一日',
+                lines: [
+                    { target: '我每日朝早七點起身。', thai: 'ทุกวันฉันตื่นนอนเจ็ดโมงเช้า' },
+                    { target: '食完早餐之後，我會返學。', thai: 'ฉันกินข้าวเช้าก่อน แล้วค่อยไปโรงเรียน' },
+                    { target: '喺學校度我會讀書。', thai: 'ฉันเรียนหนังสือที่โรงเรียน' },
+                    { target: '中午我會同朋友一齊食晏。', thai: 'ตอนเที่ยงฉันกินข้าวเที่ยงกับเพื่อน' },
+                    { target: '下晝三點我會返屋企。', thai: 'ตอนบ่ายสามโมงฉันกลับบ้าน' },
+                    { target: '夜晚我會睇電視，十點瞓覺。', thai: 'ตอนเย็นฉันดูทีวี นอนสี่ทุ่ม' },
+                ],
+                questions: [
+                    { q: '幾點起身？', choices: ['七點', '八點', '六點'], correct: '七點' },
+                    { q: '返學之前做咩？', choices: ['食早餐', '沖涼', '睇電視'], correct: '食早餐' },
+                ],
+            },
+            {
+                level: 1, title: '我屋企',
+                lines: [
+                    { target: '我屋企有四個人：爸爸、媽媽、家姐同我。', thai: 'ครอบครัวฉันมีสี่คน: พ่อ แม่ พี่สาว และฉัน' },
+                    { target: '爸爸係醫生，媽媽係老師。', thai: 'พ่อเป็นหมอ แม่เป็นครู' },
+                    { target: '家姐大我三年，佢而家喺大學度讀緊書。', thai: 'พี่สาวอายุมากกว่าฉันสามปี เธอเรียนอยู่มหาวิทยาลัย' },
+                    { target: '屋企有隻細細隻嘅狗仔，好得意。', thai: 'บ้านเรามีหมาตัวเล็กหนึ่งตัว มันน่ารักมาก' },
+                    { target: '星期日我哋成家人會一齊去公園。', thai: 'วันอาทิตย์เราไปเที่ยวสวนสาธารณะด้วยกัน' },
+                ],
+                questions: [
+                    { q: '爸爸做咩工作？', choices: ['醫生', '老師', '司機'], correct: '醫生' },
+                    { q: '家姐大我幾多年？', choices: ['一年', '兩年', '三年'], correct: '三年' },
+                ],
+            },
+            {
+                level: 2, title: '週末計劃',
+                lines: [
+                    { target: '呢個週末我打算做好多嘢。', thai: 'สุดสัปดาห์นี้ฉันตั้งใจจะทำหลายอย่าง' },
+                    { target: '星期六朝早我會去圖書館睇書，下晝同朋友去行街。', thai: 'เช้าวันเสาร์ฉันจะไปห้องสมุดอ่านหนังสือ บ่ายไปเดินเล่นกับเพื่อน' },
+                    { target: '夜晚我打算去睇戲。', thai: 'ตอนเย็นเราตั้งใจจะไปดูหนัง' },
+                    { target: '星期日我想留喺屋企休息，可能會煮嘢食俾屋企人食。', thai: 'วันอาทิตย์ฉันอยากพักผ่อนอยู่บ้าน อาจจะทำกับข้าวให้ครอบครัวกิน' },
+                    { target: '如果天氣好嘅話，我仲想去公園跑步。', thai: 'ถ้าอากาศดี ฉันยังอยากไปวิ่งที่สวนสาธารณะด้วย' },
+                ],
+                questions: [
+                    { q: '星期六朝早去邊度？', choices: ['圖書館', '餐廳', '戲院'], correct: '圖書館' },
+                    { q: '星期日打算做咩？', choices: ['留喺屋企休息', '返工', '去旅行'], correct: '留喺屋企休息' },
+                ],
+            },
+            {
+                level: 2, title: '病咗嘅一日',
+                lines: [
+                    { target: '琴晚我覺得好唔舒服，成個頭好痛，仲有少少發燒。', thai: 'เมื่อคืนฉันรู้สึกไม่สบาย ปวดหัวมาก แล้วก็มีไข้นิดหน่อย' },
+                    { target: '今朝我冇返工，去咗醫院。', thai: 'เช้านี้ฉันไม่ได้ไปทำงาน ไปโรงพยาบาลหาหมอ' },
+                    { target: '醫生話我感冒，叫我飲多啲水，好好休息，仲開咗藥俾我。', thai: 'หมอบอกว่าฉันเป็นหวัด ให้ดื่มน้ำเยอะๆ พักผ่อนเยอะๆ แล้วก็จ่ายยาให้ฉันด้วย' },
+                    { target: '食完藥之後，我舒服咗好多。', thai: 'หลังจากกินยาแล้วรู้สึกดีขึ้นมาก' },
+                    { target: '希望聽日會好返。', thai: 'หวังว่าพรุ่งนี้จะดีขึ้นอีกหน่อย' },
+                ],
+                questions: [
+                    { q: '點解覺得唔舒服？', choices: ['感冒', '肚痛', '跌親'], correct: '感冒' },
+                    { q: '醫生叫我做咩？', choices: ['飲水休息', '做多啲運動', '乜都唔食'], correct: '飲水休息' },
+                ],
+            },
+            {
+                level: 3, title: '第一次搭飛機',
+                lines: [
+                    { target: '上個月我第一次自己一個人搭飛機去東京旅行。', thai: 'เดือนที่แล้วฉันนั่งเครื่องบินไปเที่ยวโตเกียวคนเดียวเป็นครั้งแรก' },
+                    { target: '出發之前我好緊張，驚自己揾唔到登機閘口。', thai: 'ก่อนออกเดินทางฉันตื่นเต้นมาก กลัวว่าตัวเองจะหาประตูขึ้นเครื่องไม่เจอ' },
+                    { target: '到咗機場之後，我睇住個熒幕嘅資料，好順利就揾到登機閘口喇。仲有時間喺機場行下，買咗啲手信。', thai: 'พอถึงสนามบิน ฉันดูข้อมูลบนจอแล้วหาประตูขึ้นเครื่องเจอได้อย่างราบรื่น ยังมีเวลาเดินเล่นในสนามบิน ซื้อของฝากเล็กๆ น้อยๆ ด้วย' },
+                    { target: '飛機起飛嗰陣有少少驚，不過慢慢就慣咗。', thai: 'ตอนเครื่องบินขึ้น ฉันกลัวนิดหน่อย แต่ค่อยๆ ชินไป' },
+                    { target: '呢次旅行令我明白到，好多嘢其實冇諗住咁難。', thai: 'การเดินทางครั้งนี้ทำให้ฉันเข้าใจว่า หลายอย่างจริงๆ แล้วไม่ได้ยากอย่างที่คิด' },
+                ],
+                questions: [
+                    { q: '出發之前個心情點樣？', choices: ['緊張，驚揾唔到閘口', '好開心', '冇乜感覺'], correct: '緊張，驚揾唔到閘口' },
+                    { q: '喺機場除咗揾閘口仲做咗咩？', choices: ['行下買手信', '瞓覺', '打電話俾朋友'], correct: '行下買手信' },
+                ],
+            },
+            {
+                level: 3, title: '學廣東話嘅經驗',
+                lines: [
+                    { target: '我學廣東話已經兩年喇。', thai: 'ฉันเรียนภาษากวางตุ้งมาสองปีแล้ว' },
+                    { target: '頭先嗰陣，發音同文法都好難，成日講錯，朋友仲成日笑我添。', thai: 'ตอนเริ่มแรกฉันรู้สึกว่าการออกเสียงและไวยากรณ์ยากมาก พูดผิดบ่อยๆ แล้วก็ถูกเพื่อนล้อบ่อยๆ' },
+                    { target: '之後我每日聽多啲廣東歌，睇多啲香港電視劇，慢慢就慣咗呢種語言嘅節奏。', thai: 'ต่อมาฉันฟังเพลงกวางตุ้งและดูวิดีโอฮ่องกงทุกวันอย่างสม่ำเสมอ ค่อยๆ ชินกับจังหวะของภาษานี้' },
+                    { target: '而家雖然仲有好多唔識嘅詞語，不過已經可以同香港朋友傾簡單嘅嘢喇。', thai: 'ตอนนี้แม้จะยังมีคำศัพท์ที่ไม่รู้อีกเยอะ แต่ฉันคุยกับเพื่อนคนฮ่องกงแบบง่ายๆ ได้แล้ว' },
+                    { target: '我覺得學語言最緊要嘅係唔好怕講錯，一直堅持落去先得。', thai: 'ฉันคิดว่าสิ่งที่สำคัญที่สุดในการเรียนภาษาคือไม่ต้องกลัวทำผิด ถ้าพยายามต่อไปเรื่อยๆ ยังไงก็ต้องมีความก้าวหน้า' },
+                ],
+                questions: [
+                    { q: '頭先覺得最難嘅係咩？', choices: ['發音同文法', '詞語', '寫字'], correct: '發音同文法' },
+                    { q: '點樣練習？', choices: ['每日聽歌睇劇', '淨係背詞語', '淨係學文法'], correct: '每日聽歌睇劇' },
+                ],
+            },
+        ];
+
         function ReadingPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-en' ? READING_PASSAGES_EN : READING_PASSAGES;
+            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-yue' ? READING_PASSAGES_YUE : langId === 'lang-en' ? READING_PASSAGES_EN : READING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -5727,6 +5900,60 @@
                 { prompt: '25 ธันวาคม', target: '십이월 이십오일', phonetic: 'sibiwol isiboil' },
             ],
         };
+        // ตัวเลขกวางตุ้ง — "numbers"/"date" ใช้ระบบเลขจีนเดียวกับจีนกลางแต่อ่านแบบกวางตุ้ง "time" ใช้ระบบ
+        // "個字" ที่เป็นเอกลักษณ์ของกวางตุ้งเท่านั้น (1 個字 = 5 นาที นับจากขีดบนหน้าปัดนาฬิกาแบบเข็ม
+        // ไม่มีในจีนกลาง) และ "兩點" (loeng5 dim2) ใช้ 兩 ไม่ใช่ 二 ตอนบอกเวลา (เลขนับจำนวนกับเลขบอกเวลา
+        // ใช้ตัวต่างกัน) — jyutping ทุกคำผ่านการตรวจสอบด้วย to-jyutping เหมือนคำศัพท์ Stage 1/2
+        const NUMBERS_DATES_YUE = {
+            numbers: [
+                { prompt: '5', target: '五', phonetic: 'ng5' },
+                { prompt: '8', target: '八', phonetic: 'baat3' },
+                { prompt: '12', target: '十二', phonetic: 'sap6 ji6' },
+                { prompt: '15', target: '十五', phonetic: 'sap6 ng5' },
+                { prompt: '20', target: '二十', phonetic: 'ji6 sap6' },
+                { prompt: '23', target: '二十三', phonetic: 'ji6 sap6 saam1' },
+                { prompt: '34', target: '三十四', phonetic: 'saam1 sap6 sei3' },
+                { prompt: '50', target: '五十', phonetic: 'ng5 sap6' },
+                { prompt: '67', target: '六十七', phonetic: 'luk6 sap6 cat1' },
+                { prompt: '99', target: '九十九', phonetic: 'gau2 sap6 gau2' },
+                { prompt: '100', target: '一百', phonetic: 'jat1 baak3' },
+                { prompt: '128', target: '一百二十八', phonetic: 'jat1 baak3 ji6 sap6 baat3' },
+                { prompt: '256', target: '二百五十六', phonetic: 'ji6 baak3 ng5 sap6 luk6' },
+                { prompt: '1000', target: '一千', phonetic: 'jat1 cin1' },
+            ],
+            weekday: [
+                { prompt: 'วันจันทร์', target: '星期一', phonetic: 'sing1 kei4 jat1' },
+                { prompt: 'วันอังคาร', target: '星期二', phonetic: 'sing1 kei4 ji6' },
+                { prompt: 'วันพุธ', target: '星期三', phonetic: 'sing1 kei4 saam1' },
+                { prompt: 'วันพฤหัสบดี', target: '星期四', phonetic: 'sing1 kei4 sei3' },
+                { prompt: 'วันศุกร์', target: '星期五', phonetic: 'sing1 kei4 ng5' },
+                { prompt: 'วันเสาร์', target: '星期六', phonetic: 'sing1 kei4 luk6' },
+                { prompt: 'วันอาทิตย์', target: '星期日', phonetic: 'sing1 kei4 jat6' },
+            ],
+            time: [
+                { prompt: '1:00 น.', target: '一點', phonetic: 'jat1 dim2' },
+                { prompt: '2:00 น.', target: '兩點', phonetic: 'loeng5 dim2' },
+                { prompt: '3:05 น.', target: '三點一個字', phonetic: 'saam1 dim2 jat1 go3 zi6' },
+                { prompt: '3:15 น.', target: '三點三個字', phonetic: 'saam1 dim2 saam1 go3 zi6' },
+                { prompt: '3:30 น.', target: '三點半', phonetic: 'saam1 dim2 bun3' },
+                { prompt: '3:45 น.', target: '三點九個字', phonetic: 'saam1 dim2 gau2 go3 zi6' },
+                { prompt: '4:40 น.', target: '四點八個字', phonetic: 'sei3 dim2 baat3 go3 zi6' },
+                { prompt: '6:10 น.', target: '六點兩個字', phonetic: 'luk6 dim2 loeng5 go3 zi6' },
+                { prompt: '7:25 น.', target: '七點五個字', phonetic: 'cat1 dim2 ng5 go3 zi6' },
+                { prompt: '9:50 น.', target: '九點十個字', phonetic: 'gau2 dim2 sap6 go3 zi6' },
+                { prompt: '12:00 น.', target: '十二點', phonetic: 'sap6 ji6 dim2' },
+            ],
+            date: [
+                { prompt: '1 มกราคม', target: '一月一日', phonetic: 'jat1 jyut6 jat1 jat6' },
+                { prompt: '14 กุมภาพันธ์', target: '二月十四日', phonetic: 'ji6 jyut6 sap6 sei3 jat6' },
+                { prompt: '8 มีนาคม', target: '三月八日', phonetic: 'saam1 jyut6 baat3 jat6' },
+                { prompt: '1 พฤษภาคม', target: '五月一日', phonetic: 'ng5 jyut6 jat1 jat6' },
+                { prompt: '20 มิถุนายน', target: '六月二十日', phonetic: 'luk6 jyut6 ji6 sap6 jat6' },
+                { prompt: '15 สิงหาคม', target: '八月十五日', phonetic: 'baat3 jyut6 sap6 ng5 jat6' },
+                { prompt: '10 ตุลาคม', target: '十月十日', phonetic: 'sap6 jyut6 sap6 jat6' },
+                { prompt: '25 ธันวาคม', target: '十二月二十五日', phonetic: 'sap6 ji6 jyut6 ji6 sap6 ng5 jat6' },
+            ],
+        };
         const NUMBERS_DATES_CATS = [
             { key: 'all', label: 'ทั้งหมด' },
             { key: 'numbers', label: 'ตัวเลข' },
@@ -5751,7 +5978,7 @@
         }
 
         function NumbersDatesPanel({ awardXp, langId }) {
-            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-en' ? NUMBERS_DATES_EN : NUMBERS_DATES;
+            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-yue' ? NUMBERS_DATES_YUE : langId === 'lang-en' ? NUMBERS_DATES_EN : NUMBERS_DATES;
             const langCode = LANGS[langId].code;
             const [catKey, setCatKey] = useState('all');
             const [queue, setQueue] = useState(() => buildNdQueue('all', dataset));
@@ -5834,9 +6061,9 @@
             );
         }
 
-        // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN/_JP/_KR)/READING_PASSAGES(_EN/_JP/_KR)/
-        // NUMBERS_DATES(_EN/_JP/_KR) + ASR_LANG_NAME) — ภาษาอื่นนอกสี่นี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
-        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr'];
+        // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN/_JP/_KR/_YUE)/READING_PASSAGES(_EN/_JP/_KR/_YUE)/
+        // NUMBERS_DATES(_EN/_JP/_KR/_YUE) + ASR_LANG_NAME) — ภาษาอื่นนอกห้านี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
+        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue'];
         function ListenSpeakView({ langId, setLangId, setXp }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
@@ -5845,12 +6072,13 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีน อังกฤษ ญี่ปุ่น และเกาหลีตอนนี้</p>
+                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี และจีนกวางตุ้งตอนนี้</p>
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีน</button>
+                                <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีนกลาง</button>
                                 <button onClick={() => setLangId('lang-en')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาอังกฤษ</button>
                                 <button onClick={() => setLangId('lang-jp')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาญี่ปุ่น</button>
                                 <button onClick={() => setLangId('lang-kr')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาเกาหลี</button>
+                                <button onClick={() => setLangId('lang-yue')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาจีนกวางตุ้ง</button>
                             </div>
                         </div>
                     </div>
@@ -6069,9 +6297,10 @@
                 setMobileNavOpen(false);
             };
 
-            // โหมดฟัง-พูด รองรับจีน+อังกฤษ+ญี่ปุ่น+เกาหลีแล้ว — ถ้าอยู่ภาษาอื่นอยู่ค่อยสลับเป็นจีนให้อัตโนมัติ
+            // โหมดฟัง-พูด รองรับจีนกลาง+อังกฤษ+ญี่ปุ่น+เกาหลี+จีนกวางตุ้งแล้ว — ถ้าอยู่ภาษาอื่นอยู่
+            // ค่อยสลับเป็นจีนกลางให้อัตโนมัติ
             const goListen = () => {
-                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr') setLangId('lang-cn');
+                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr' && langId !== 'lang-yue') setLangId('lang-cn');
                 setView('listen');
                 setMobileNavOpen(false);
             };
@@ -6268,7 +6497,7 @@
                                 </button>
                                 <button
                                     onClick={goListen}
-                                    title="รองรับภาษาจีน อังกฤษ ญี่ปุ่น และเกาหลี — ภาษาอื่นจะสลับเป็นจีนให้อัตโนมัติ"
+                                    title="รองรับภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี และจีนกวางตุ้ง — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'listen' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <ListenIcon /> ฟัง-พูด
@@ -6443,13 +6672,19 @@
                                 {langId === 'lang-yue' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
                                         <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาจีนกวางตุ้ง</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ทำแบบทดสอบความเข้าใจ (ไม่ใช่ข้อสอบทางการ เพราะกวางตุ้งไม่มีข้อสอบมาตรฐานสากลแบบ HSK/TOPIK) — ฝึกเขียน/ฟัง-พูด-อ่าน เป็น follow-up ในอนาคต</p>
-                                        <div className="grid grid-cols-1 gap-3">
+                                        <p className="text-xs text-gray-400 mb-4">ทำแบบทดสอบความเข้าใจและฝึกฟัง-พูด-อ่าน โดยเฉพาะ (ฝึกเขียนตัวอักษรเป็น follow-up ในอนาคต)</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
                                                 <div className="text-sm font-bold text-gray-800">แบบทดสอบความเข้าใจ</div>
                                                 <div className="text-[11px] text-gray-400">คำศัพท์・ไวยากรณ์・ฟัง・อ่าน 44 ข้อ</div>
+                                            </button>
+                                            <button onClick={goListen}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><ListenIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ฟัง-พูด-อ่าน</div>
+                                                <div className="text-[11px] text-gray-400">บทฟัง, พูดตาม, อ่านยาว</div>
                                             </button>
                                         </div>
                                     </div>
