@@ -8809,9 +8809,9 @@
         ];
 
         function ListeningPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-yue' ? LISTENING_PASSAGES_YUE : langId === 'lang-en' ? LISTENING_PASSAGES_EN : langId === 'lang-de' ? LISTENING_PASSAGES_DE : langId === 'lang-fr' ? LISTENING_PASSAGES_FR : langId === 'lang-it' ? LISTENING_PASSAGES_IT : langId === 'lang-es' ? LISTENING_PASSAGES_ES : langId === 'lang-pt' ? LISTENING_PASSAGES_PT : langId === 'lang-ru' ? LISTENING_PASSAGES_RU : LISTENING_PASSAGES;
+            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-yue' ? LISTENING_PASSAGES_YUE : langId === 'lang-en' ? LISTENING_PASSAGES_EN : langId === 'lang-de' ? LISTENING_PASSAGES_DE : langId === 'lang-fr' ? LISTENING_PASSAGES_FR : langId === 'lang-it' ? LISTENING_PASSAGES_IT : langId === 'lang-es' ? LISTENING_PASSAGES_ES : langId === 'lang-pt' ? LISTENING_PASSAGES_PT : langId === 'lang-ru' ? LISTENING_PASSAGES_RU : langId === 'lang-in' ? LISTENING_PASSAGES_HI : LISTENING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' || langId === 'lang-in' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -8943,7 +8943,7 @@
         // หมายเหตุ lang-yue: Whisper (asr-worker.js) ไม่มีตัวเลือกภาษา "cantonese" แยกต่างหากในรายชื่อ
         // ภาษาทางการ 99 ภาษา ใช้ 'chinese' แทน (ใกล้เคียงที่สุดที่มี แม่นยำน้อยกว่าภาษาที่มีในรายชื่อจริง
         // — ผู้ใช้ควรตรวจทานข้อความที่ถอดออกมาเองเสมอ เหมือนที่ระบบเตือนไว้อยู่แล้วทั่วไป)
-        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean', 'lang-yue': 'chinese', 'lang-de': 'german', 'lang-fr': 'french', 'lang-it': 'italian', 'lang-es': 'spanish', 'lang-pt': 'portuguese', 'lang-ru': 'russian' };
+        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean', 'lang-yue': 'chinese', 'lang-de': 'german', 'lang-fr': 'french', 'lang-it': 'italian', 'lang-es': 'spanish', 'lang-pt': 'portuguese', 'lang-ru': 'russian', 'lang-in': 'hindi' };
         function transcribeSpeech(pcm, langName) {
             return new Promise((resolve, reject) => {
                 const w = getAsrWorker();
@@ -9527,9 +9527,9 @@
         ];
 
         function ReadingPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-yue' ? READING_PASSAGES_YUE : langId === 'lang-en' ? READING_PASSAGES_EN : langId === 'lang-de' ? READING_PASSAGES_DE : langId === 'lang-fr' ? READING_PASSAGES_FR : langId === 'lang-it' ? READING_PASSAGES_IT : langId === 'lang-es' ? READING_PASSAGES_ES : langId === 'lang-pt' ? READING_PASSAGES_PT : langId === 'lang-ru' ? READING_PASSAGES_RU : READING_PASSAGES;
+            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-yue' ? READING_PASSAGES_YUE : langId === 'lang-en' ? READING_PASSAGES_EN : langId === 'lang-de' ? READING_PASSAGES_DE : langId === 'lang-fr' ? READING_PASSAGES_FR : langId === 'lang-it' ? READING_PASSAGES_IT : langId === 'lang-es' ? READING_PASSAGES_ES : langId === 'lang-pt' ? READING_PASSAGES_PT : langId === 'lang-ru' ? READING_PASSAGES_RU : langId === 'lang-in' ? READING_PASSAGES_HI : READING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' || langId === 'lang-in' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -9918,7 +9918,7 @@
         }
 
         function NumbersDatesPanel({ awardXp, langId }) {
-            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-yue' ? NUMBERS_DATES_YUE : langId === 'lang-en' ? NUMBERS_DATES_EN : langId === 'lang-de' ? NUMBERS_DATES_DE : langId === 'lang-fr' ? NUMBERS_DATES_FR : langId === 'lang-it' ? NUMBERS_DATES_IT : langId === 'lang-es' ? NUMBERS_DATES_ES : langId === 'lang-pt' ? NUMBERS_DATES_PT : langId === 'lang-ru' ? NUMBERS_DATES_RU : NUMBERS_DATES;
+            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-yue' ? NUMBERS_DATES_YUE : langId === 'lang-en' ? NUMBERS_DATES_EN : langId === 'lang-de' ? NUMBERS_DATES_DE : langId === 'lang-fr' ? NUMBERS_DATES_FR : langId === 'lang-it' ? NUMBERS_DATES_IT : langId === 'lang-es' ? NUMBERS_DATES_ES : langId === 'lang-pt' ? NUMBERS_DATES_PT : langId === 'lang-ru' ? NUMBERS_DATES_RU : langId === 'lang-in' ? NUMBERS_DATES_HI : NUMBERS_DATES;
             const langCode = LANGS[langId].code;
             const [catKey, setCatKey] = useState('all');
             const [queue, setQueue] = useState(() => buildNdQueue('all', dataset));
@@ -11389,9 +11389,237 @@
             ],
         };
 
+        // ── บทฟังภาษาฮินดี 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่น รวมตัวละคร "Minji" ที่ปรากฏซ้ำทุกภาษา) ──
+        const LISTENING_PASSAGES_HI = [
+            {
+                level: 1, title: 'फ़ोन पर',
+                lines: [
+                    { speaker: 'A', target: 'हैलो?', thai: 'ฮัลโหล' },
+                    { speaker: 'B', target: 'हैलो, मैं मिनजी बोल रही हूँ।', thai: 'สวัสดีค่ะ ฉันชื่อมินจี' },
+                    { speaker: 'A', target: 'तुम अभी कहाँ हो?', thai: 'ตอนนี้คุณอยู่ที่ไหน' },
+                    { speaker: 'B', target: 'मैं अभी घर पर हूँ।', thai: 'ฉันอยู่บ้าน' },
+                ],
+                questions: [
+                    { q: 'मिनजी अभी कहाँ है?', choices: ['घर पर', 'स्कूल में', 'दफ़्तर में'], correct: 'घर पर' },
+                    { q: '"मैं मिनजी बोल रही हूँ" किसने कहा?', choices: ['मिनजी ने', 'किसी और ने', 'किसी ने नहीं'], correct: 'मिनजी ने' },
+                ],
+            },
+            {
+                level: 1, title: 'दुकान पर',
+                lines: [
+                    { speaker: 'A', target: 'यह सेब कितने का है?', thai: 'แอปเปิลลูกนี้ราคาเท่าไหร่' },
+                    { speaker: 'B', target: 'यह एक रुपए का है।', thai: 'หนึ่งรูปีค่ะ' },
+                    { speaker: 'A', target: 'महँगा है। थोड़ा कम कर दो?', thai: 'แพงไปนะ ลดหน่อยได้ไหม' },
+                    { speaker: 'B', target: 'ठीक है, अस्सी पैसे में दे दूँगी।', thai: 'ได้ค่ะ แปดสิบไพซา' },
+                ],
+                questions: [
+                    { q: 'शुरू में कीमत क्या थी?', choices: ['एक रुपए', 'अस्सी पैसे', 'पचास पैसे'], correct: 'एक रुपए' },
+                    { q: 'आख़िर में कीमत क्या हुई?', choices: ['एक रुपए', 'अस्सी पैसे', 'पचास पैसे'], correct: 'अस्सी पैसे' },
+                ],
+            },
+            {
+                level: 2, title: 'मुलाक़ात',
+                lines: [
+                    { speaker: 'A', target: 'तुम आज शाम को फ़ुर्सत में हो?', thai: 'คืนนี้คุณว่างไหม' },
+                    { speaker: 'B', target: 'हाँ, फ़ुर्सत में हूँ। क्यों?', thai: 'ว่างสิ มีอะไรเหรอ' },
+                    { speaker: 'A', target: 'साथ में फ़िल्म देखने चलें?', thai: 'ไปดูหนังด้วยกันไหม' },
+                    { speaker: 'B', target: 'बढ़िया! कितने बजे मिलें?', thai: 'ดีเลย! นัดกี่โมงดี' },
+                    { speaker: 'A', target: 'सात बजे, सिनेमा के सामने।', thai: 'หนึ่งทุ่ม ที่หน้าโรงหนัง' },
+                ],
+                questions: [
+                    { q: 'वे दोनों क्या करेंगे?', choices: ['फ़िल्म देखेंगे', 'खाना खाएँगे', 'ख़रीदारी करेंगे'], correct: 'फ़िल्म देखेंगे' },
+                    { q: 'वे कितने बजे मिलेंगे?', choices: ['सात बजे', 'छह बजे', 'नौ बजे'], correct: 'सात बजे' },
+                ],
+            },
+            {
+                level: 2, title: 'आज का मौसम',
+                lines: [
+                    { speaker: 'A', target: 'आज मौसम कैसा है?', thai: 'วันนี้อากาศเป็นยังไงบ้าง' },
+                    { speaker: 'B', target: 'बहुत ठंड है। बारिश भी हो रही है।', thai: 'วันนี้หนาวมาก แล้วก็ฝนตกด้วย' },
+                    { speaker: 'A', target: 'तो शायद हम पार्क नहीं जाएँगे।', thai: 'งั้นเราไม่ไปสวนสาธารณะกันดีกว่า' },
+                    { speaker: 'B', target: 'हाँ, घर पर रहकर टीवी देखते हैं।', thai: 'ได้ อยู่บ้านดูทีวีกันดีกว่า' },
+                ],
+                questions: [
+                    { q: 'आज मौसम कैसा है?', choices: ['ठंड और बारिश', 'गर्मी और धूप', 'बर्फ़ गिर रही है'], correct: 'ठंड और बारिश' },
+                    { q: 'वे आख़िर में क्या करेंगे?', choices: ['घर पर टीवी देखेंगे', 'पार्क जाएँगे', 'ख़रीदारी करेंगे'], correct: 'घर पर टीवी देखेंगे' },
+                ],
+            },
+            {
+                level: 3, title: 'नौकरी की तलाश',
+                lines: [
+                    { speaker: 'A', target: 'आजकल तुम क्या कर रहे हो?', thai: 'ช่วงนี้คุณยุ่งอะไรอยู่' },
+                    { speaker: 'B', target: 'मैं नौकरी ढूंढ रहा हूँ। तीन साक्षात्कार दे चुका हूँ।', thai: 'ฉันกำลังหางาน ไปสัมภาษณ์มาสามครั้งแล้ว' },
+                    { speaker: 'A', target: 'तो, कैसा चल रहा है?', thai: 'เป็นยังไงบ้าง ราบรื่นไหม' },
+                    { speaker: 'B', target: 'ठीक-ठाक है। अगले हफ़्ते एक कंपनी फिर फ़ोन करेगी।', thai: 'ก็โอเคนะ มีบริษัทหนึ่งจะตอบกลับสัปดาห์หน้า' },
+                ],
+                questions: [
+                    { q: 'B आजकल क्या कर रहा है?', choices: ['नौकरी ढूंढ रहा है', 'पढ़ाई कर रहा है', 'यात्रा कर रहा है'], correct: 'नौकरी ढूंढ रहा है' },
+                    { q: 'B कितने साक्षात्कार दे चुका है?', choices: ['तीन', 'दो', 'एक'], correct: 'तीन' },
+                ],
+            },
+            {
+                level: 3, title: 'यात्रा की योजना',
+                lines: [
+                    { speaker: 'A', target: 'गर्मी की छुट्टियों में तुम कहाँ जाओगे?', thai: 'ปิดเทอมนี้คุณจะไปเที่ยวที่ไหน' },
+                    { speaker: 'B', target: 'मैं म्यूनिख जाने की सोच रहा हूँ। वहाँ का नज़ारा बहुत सुंदर है।', thai: 'ฉันตั้งใจจะไปมิวนิก ที่นั่นวิวสวยมาก' },
+                    { speaker: 'A', target: 'क्या तुम अकेले जाओगे?', thai: 'ไปคนเดียวเหรอ' },
+                    { speaker: 'B', target: 'नहीं, अपने प्रेमी के साथ। हम ट्रेन से जाने की सोच रहे हैं।', thai: 'เปล่า ฉันไปกับแฟน เราตั้งใจจะนั่งรถไฟไป' },
+                ],
+                questions: [
+                    { q: 'B कहाँ जाने की सोच रहा है?', choices: ['म्यूनिख', 'बर्लिन', 'हैम्बर्ग'], correct: 'म्यूनिख' },
+                    { q: 'वे कैसे जाने की सोच रहे हैं?', choices: ['ट्रेन से', 'हवाई जहाज़ से', 'कार से'], correct: 'ट्रेन से' },
+                ],
+            },
+        ];
+
+        // ── บทอ่านภาษาฮินดี 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่น) ──
+        const READING_PASSAGES_HI = [
+            {
+                level: 1, title: 'मेरा दिन',
+                lines: [
+                    { target: 'मैं हर दिन सात बजे उठता हूँ।', thai: 'ทุกวันฉันตื่นนอนเจ็ดโมงเช้า' },
+                    { target: 'नाश्ते के बाद मैं स्कूल जाता हूँ।', thai: 'ฉันกินข้าวเช้าก่อน แล้วค่อยไปโรงเรียน' },
+                    { target: 'स्कूल में मैं पढ़ाई करता हूँ।', thai: 'ฉันเรียนหนังสือที่โรงเรียน' },
+                    { target: 'दोपहर को मैं दोस्त के साथ खाना खाता हूँ।', thai: 'ตอนเที่ยงฉันกินข้าวเที่ยงกับเพื่อน' },
+                    { target: 'दोपहर तीन बजे मैं घर लौटता हूँ।', thai: 'ตอนบ่ายสามโมงฉันกลับบ้าน' },
+                    { target: 'शाम को मैं टीवी देखता हूँ और दस बजे सो जाता हूँ।', thai: 'ตอนเย็นฉันดูทีวี นอนสี่ทุ่ม' },
+                ],
+                questions: [
+                    { q: 'यह व्यक्ति कितने बजे उठता है?', choices: ['सात बजे', 'आठ बजे', 'छह बजे'], correct: 'सात बजे' },
+                    { q: 'यह व्यक्ति स्कूल जाने से पहले क्या करता है?', choices: ['नाश्ता करता है', 'नहाता है', 'टीवी देखता है'], correct: 'नाश्ता करता है' },
+                ],
+            },
+            {
+                level: 1, title: 'मेरा परिवार',
+                lines: [
+                    { target: 'मेरे परिवार में चार लोग हैं: पापा, मम्मी, बड़ी बहन और मैं।', thai: 'ครอบครัวฉันมีสี่คน: พ่อ แม่ พี่สาว และฉัน' },
+                    { target: 'मेरे पापा डॉक्टर हैं, मेरी मम्मी शिक्षिका हैं।', thai: 'พ่อเป็นหมอ แม่เป็นครู' },
+                    { target: 'मेरी बहन मुझसे तीन साल बड़ी है और विश्वविद्यालय में पढ़ती है।', thai: 'พี่สาวอายุมากกว่าฉันสามปี เธอเรียนอยู่มหาวิทยาลัย' },
+                    { target: 'हमारे घर में एक छोटा कुत्ता है। वह बहुत प्यारा है।', thai: 'บ้านเรามีหมาตัวเล็กหนึ่งตัว มันน่ารักมาก' },
+                    { target: 'रविवार को हम सब मिलकर पार्क जाते हैं।', thai: 'วันอาทิตย์เราไปเที่ยวสวนสาธารณะด้วยกัน' },
+                ],
+                questions: [
+                    { q: 'पापा क्या काम करते हैं?', choices: ['डॉक्टर', 'शिक्षक', 'कर्मचारी'], correct: 'डॉक्टर' },
+                    { q: 'बहन कितने साल बड़ी है?', choices: ['तीन साल', 'दो साल', 'एक साल'], correct: 'तीन साल' },
+                ],
+            },
+            {
+                level: 2, title: 'सप्ताहांत की योजना',
+                lines: [
+                    { target: 'इस सप्ताहांत मैं कई काम करने की सोच रहा हूँ।', thai: 'สุดสัปดาห์นี้ฉันตั้งใจจะทำหลายอย่าง' },
+                    { target: 'शनिवार सुबह मैं पुस्तकालय में पढ़ता हूँ, और दोपहर को दोस्त के साथ ख़रीदारी करता हूँ।', thai: 'เช้าวันเสาร์ฉันจะไปห้องสมุดอ่านหนังสือ บ่ายไปซื้อของกับเพื่อน' },
+                    { target: 'शाम को मैं फ़िल्म देखने की सोच रहा हूँ।', thai: 'ตอนเย็นเราตั้งใจจะไปดูหนัง' },
+                    { target: 'रविवार को मैं घर पर आराम करना चाहता हूँ। शायद परिवार के लिए खाना बनाऊँगा।', thai: 'วันอาทิตย์ฉันอยากพักผ่อนอยู่บ้าน อาจจะทำกับข้าวให้ครอบครัวกิน' },
+                    { target: 'अगर मौसम अच्छा रहा, तो पार्क में दौड़ना भी चाहता हूँ।', thai: 'ถ้าอากาศดี ฉันยังอยากไปวิ่งที่สวนสาธารณะด้วย' },
+                ],
+                questions: [
+                    { q: 'यह व्यक्ति शनिवार सुबह कहाँ जाता है?', choices: ['पुस्तकालय', 'रेस्तराँ', 'सिनेमा'], correct: 'पुस्तकालय' },
+                    { q: 'यह व्यक्ति रविवार को क्या करना चाहता है?', choices: ['घर पर आराम करना', 'काम पर जाना', 'यात्रा करना'], correct: 'घर पर आराम करना' },
+                ],
+            },
+            {
+                level: 2, title: 'बीमारी का दिन',
+                lines: [
+                    { target: 'कल रात मुझे तबीयत ठीक नहीं लग रही थी।', thai: 'เมื่อคืนฉันรู้สึกไม่สบาย' },
+                    { target: 'सिर में दर्द था और हल्का बुख़ार भी था।', thai: 'ปวดหัวมาก แล้วก็มีไข้นิดหน่อย' },
+                    { target: 'आज सुबह मैं काम पर नहीं गया, डॉक्टर के पास गया।', thai: 'เช้านี้ฉันไม่ได้ไปทำงาน ไปโรงพยาบาลหาหมอ' },
+                    { target: 'डॉक्टर ने कहा कि मुझे ज़ुकाम है, और बहुत पानी पीने तथा आराम करने की सलाह दी। साथ ही दवा भी दी।', thai: 'หมอบอกว่าฉันเป็นหวัด ให้ดื่มน้ำเยอะๆ พักผ่อนเยอะๆ แล้วก็จ่ายยาให้ฉันด้วย' },
+                    { target: 'दवा लेने के बाद मुझे काफ़ी अच्छा महसूस हुआ।', thai: 'หลังจากกินยาแล้วรู้สึกดีขึ้นมาก' },
+                ],
+                questions: [
+                    { q: 'यह व्यक्ति क्यों बीमार महसूस कर रहा था?', choices: ['ज़ुकाम की वजह से', 'पेट दर्द की वजह से', 'पैर में चोट की वजह से'], correct: 'ज़ुकाम की वजह से' },
+                    { q: 'डॉक्टर ने क्या कहा?', choices: ['बहुत पानी पीना और आराम करना', 'बहुत व्यायाम करना', 'कुछ न खाना'], correct: 'बहुत पानी पीना और आराम करना' },
+                ],
+            },
+            {
+                level: 3, title: 'मेरी पहली उड़ान',
+                lines: [
+                    { target: 'पिछले महीने मैं पहली बार अकेले हवाई जहाज़ से बर्लिन गया।', thai: 'เดือนที่แล้วฉันนั่งเครื่องบินไปเที่ยวเบอร์ลินคนเดียวเป็นครั้งแรก' },
+                    { target: 'जाने से पहले मैं बहुत घबराया हुआ था। मुझे डर था कि गेट नहीं मिलेगा।', thai: 'ก่อนออกเดินทางฉันตื่นเต้นมาก กลัวว่าตัวเองจะหาประตูขึ้นเครื่องไม่เจอ' },
+                    { target: 'हवाई अड्डे पहुँचकर मैंने स्क्रीन पर जानकारी देखी और आसानी से गेट ढूँढ लिया।', thai: 'พอถึงสนามบิน ฉันดูข้อมูลบนจอแล้วหาประตูขึ้นเครื่องเจอได้อย่างราบรื่น' },
+                    { target: 'समय था तो मैं हवाई अड्डे में घूमा और एक छोटा तोहफ़ा ख़रीदा।', thai: 'ยังมีเวลาเดินเล่นในสนามบิน ซื้อของฝากเล็กๆ น้อยๆ ด้วย' },
+                    { target: 'हवाई जहाज़ के उड़ान भरते समय मैं थोड़ा डरा, पर धीरे-धीरे आदत हो गई।', thai: 'ตอนเครื่องบินขึ้น ฉันกลัวนิดหน่อย แต่ค่อยๆ ชินไป' },
+                ],
+                questions: [
+                    { q: 'जाने से पहले यह व्यक्ति कैसा महसूस कर रहा था?', choices: ['घबराया हुआ और गेट को लेकर चिंतित', 'बहुत ख़ुश', 'कुछ महसूस नहीं हुआ'], correct: 'घबराया हुआ और गेट को लेकर चिंतित' },
+                    { q: 'गेट ढूँढने के अलावा हवाई अड्डे में और क्या किया?', choices: ['घूमा और तोहफ़ा ख़रीदा', 'सोया', 'दोस्त को फ़ोन किया'], correct: 'घूमा और तोहफ़ा ख़रीदा' },
+                ],
+            },
+            {
+                level: 3, title: 'हिंदी सीखने का मेरा अनुभव',
+                lines: [
+                    { target: 'मुझे हिंदी सीखते हुए दो साल हो गए हैं।', thai: 'ฉันเรียนภาษาฮินดีมาสองปีแล้ว' },
+                    { target: 'शुरुआत में उच्चारण और व्याकरण बहुत मुश्किल लगते थे, मैं अक्सर ग़लतियाँ करता था, और दोस्त अक्सर मुझ पर हँसते थे।', thai: 'ตอนเริ่มแรกฉันรู้สึกว่าการออกเสียงและไวยากรณ์ยากมาก พูดผิดบ่อยๆ แล้วก็ถูกเพื่อนล้อบ่อยๆ' },
+                    { target: 'बाद में मैं हर दिन हिंदी गाने सुनता और वीडियो देखता था, धीरे-धीरे इस भाषा की लय की आदत हो गई।', thai: 'ต่อมาฉันฟังเพลงฮินดีและดูวิดีโอภาษาฮินดีทุกวันอย่างสม่ำเสมอ ค่อยๆ ชินกับจังหวะของภาษานี้' },
+                    { target: 'अब, भले ही अभी भी बहुत सारे शब्द मुझे नहीं आते, पर मैं भारतीय दोस्तों के साथ आसान बातचीत कर सकता हूँ।', thai: 'ตอนนี้แม้จะยังมีคำศัพท์ที่ไม่รู้อีกเยอะ แต่ฉันคุยกับเพื่อนคนอินเดียแบบง่ายๆ ได้แล้ว' },
+                    { target: 'मुझे लगता है कि भाषा सीखने में सबसे ज़रूरी बात है ग़लती करने से न डरना और कोशिश करते रहना।', thai: 'ฉันคิดว่าสิ่งที่สำคัญที่สุดในการเรียนภาษาคือไม่ต้องกลัวทำผิด ถ้าพยายามต่อไปเรื่อยๆ ยังไงก็ต้องมีความก้าวหน้า' },
+                ],
+                questions: [
+                    { q: 'शुरुआत में इस व्यक्ति को सबसे मुश्किल क्या लगा?', choices: ['उच्चारण और व्याकरण', 'शब्द', 'लिपि'], correct: 'उच्चारण और व्याकरण' },
+                    { q: 'इस व्यक्ति ने कैसे अभ्यास किया?', choices: ['हर दिन गाने सुने और वीडियो देखे', 'सिर्फ़ शब्द रटे', 'सिर्फ़ व्याकरण पढ़ी'], correct: 'हर दिन गाने सुने और वीडियो देखे' },
+                ],
+            },
+        ];
+        // ตัวเลข/วันที่/เวลาภาษาฮินดี — จุดสังเกตสำคัญที่ต่างจากทุกภาษาที่ทำมาก่อนหน้านี้: (1) ตัวเลขฮินดี
+        // 1-100 ไม่มีรูปแบบซ้ำเป็นระบบเหมือนภาษาอื่น (ต่างจากอังกฤษ/รัสเซียที่ "สิบเอ็ด, สิบสอง..." เป็น
+        // แพทเทิร์นเดียวกันหมด) แต่ละเลข 1-99 เกือบทั้งหมดมีคำเฉพาะของตัวเอง ไม่ได้ประกอบจากหลักสิบ+หลัก
+        // หน่วยตรงไปตรงมาแบบภาษาอื่น (เช่น 21=इक्कीस, 22=बाईस ไม่ใช่ "बीस-एक" ตรงตัว) ทำให้ต้องท่องจำเป็น
+        // คำเดี่ยวๆ มากกว่าภาษาอื่นที่ทำมาก่อนหน้านี้มาก (2) การบอกเวลาใช้ postposition "बजे" ต่อท้ายเลข
+        // ชั่วโมงเสมอ (3) วันที่ใช้เลขนับธรรมดา ไม่มีการแยกเลขลำดับพิเศษสำหรับวันที่ 1 แบบฝรั่งเศส/อิตาลี
+        const NUMBERS_DATES_HI = {
+            numbers: [
+                { prompt: '5', target: 'पाँच' },
+                { prompt: '8', target: 'आठ' },
+                { prompt: '12', target: 'बारह' },
+                { prompt: '15', target: 'पंद्रह' },
+                { prompt: '20', target: 'बीस' },
+                { prompt: '23', target: 'तेईस' },
+                { prompt: '34', target: 'चौंतीस' },
+                { prompt: '50', target: 'पचास' },
+                { prompt: '67', target: 'सड़सठ' },
+                { prompt: '99', target: 'निन्यानवे' },
+                { prompt: '100', target: 'सौ' },
+                { prompt: '128', target: 'एक सौ अट्ठाईस' },
+                { prompt: '256', target: 'दो सौ छप्पन' },
+                { prompt: '1000', target: 'हज़ार' },
+            ],
+            weekday: [
+                { prompt: 'วันจันทร์', target: 'सोमवार' },
+                { prompt: 'วันอังคาร', target: 'मंगलवार' },
+                { prompt: 'วันพุธ', target: 'बुधवार' },
+                { prompt: 'วันพฤหัสบดี', target: 'गुरुवार' },
+                { prompt: 'วันศุกร์', target: 'शुक्रवार' },
+                { prompt: 'วันเสาร์', target: 'शनिवार' },
+                { prompt: 'วันอาทิตย์', target: 'रविवार' },
+            ],
+            time: [
+                { prompt: '1:00 น.', target: 'एक बजे' },
+                { prompt: '2:00 น.', target: 'दो बजे' },
+                { prompt: '3:30 น.', target: 'साढ़े तीन बजे' },
+                { prompt: '4:40 น.', target: 'चार बजकर चालीस मिनट' },
+                { prompt: '6:15 น.', target: 'सवा छह बजे' },
+                { prompt: '7:30 น.', target: 'साढ़े सात बजे' },
+                { prompt: '8:45 น.', target: 'पौने नौ बजे' },
+                { prompt: '9:05 น.', target: 'नौ बजकर पाँच मिनट' },
+                { prompt: '10:10 น.', target: 'दस बजकर दस मिनट' },
+                { prompt: '11:20 น.', target: 'ग्यारह बजकर बीस मिनट' },
+                { prompt: '12:00 น.', target: 'दोपहर बारह बजे' },
+            ],
+            date: [
+                { prompt: '1 มกราคม', target: 'एक जनवरी' },
+                { prompt: '14 กุมภาพันธ์', target: 'चौदह फ़रवरी' },
+                { prompt: '8 มีนาคม', target: 'आठ मार्च' },
+                { prompt: '1 พฤษภาคม', target: 'एक मई' },
+                { prompt: '20 มิถุนายน', target: 'बीस जून' },
+                { prompt: '15 สิงหาคม', target: 'पंद्रह अगस्त' },
+                { prompt: '10 ตุลาคม', target: 'दस अक्तूबर' },
+                { prompt: '25 ธันวาคม', target: 'पच्चीस दिसंबर' },
+            ],
+        };
+
         // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN/_JP/_KR/_YUE)/READING_PASSAGES(_EN/_JP/_KR/_YUE)/
         // NUMBERS_DATES(_EN/_JP/_KR/_YUE) + ASR_LANG_NAME) — ภาษาอื่นนอกห้านี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
-        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue', 'lang-de', 'lang-fr', 'lang-it', 'lang-es', 'lang-pt', 'lang-ru'];
+        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue', 'lang-de', 'lang-fr', 'lang-it', 'lang-es', 'lang-pt', 'lang-ru', 'lang-in'];
         function ListenSpeakView({ langId, setLangId, setXp }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
@@ -11400,7 +11628,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี จีนกวางตุ้ง เยอรมัน ฝรั่งเศส อิตาลี สเปน โปรตุเกส และรัสเซียตอนนี้</p>
+                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี จีนกวางตุ้ง เยอรมัน ฝรั่งเศส อิตาลี สเปน โปรตุเกส รัสเซีย และฮินดีตอนนี้</p>
                             <div className="flex gap-2 justify-center flex-wrap">
                                 <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีนกลาง</button>
                                 <button onClick={() => setLangId('lang-en')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาอังกฤษ</button>
@@ -11413,6 +11641,7 @@
                                 <button onClick={() => setLangId('lang-es')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาสเปน</button>
                                 <button onClick={() => setLangId('lang-pt')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาโปรตุเกส</button>
                                 <button onClick={() => setLangId('lang-ru')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษารัสเซีย</button>
+                                <button onClick={() => setLangId('lang-in')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาฮินดี</button>
                             </div>
                         </div>
                     </div>
@@ -11650,7 +11879,7 @@
             // โหมดฟัง-พูด รองรับจีนกลาง+อังกฤษ+ญี่ปุ่น+เกาหลี+จีนกวางตุ้งแล้ว — ถ้าอยู่ภาษาอื่นอยู่
             // ค่อยสลับเป็นจีนกลางให้อัตโนมัติ
             const goListen = () => {
-                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr' && langId !== 'lang-yue' && langId !== 'lang-de' && langId !== 'lang-fr' && langId !== 'lang-it' && langId !== 'lang-es' && langId !== 'lang-pt' && langId !== 'lang-ru') setLangId('lang-cn');
+                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr' && langId !== 'lang-yue' && langId !== 'lang-de' && langId !== 'lang-fr' && langId !== 'lang-it' && langId !== 'lang-es' && langId !== 'lang-pt' && langId !== 'lang-ru' && langId !== 'lang-in') setLangId('lang-cn');
                 setView('listen');
                 setMobileNavOpen(false);
             };
@@ -12211,13 +12440,19 @@
                                 {langId === 'lang-in' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
                                         <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาฮินดี</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ทำแบบทดสอบความเข้าใจภาษาฮินดี โดยเฉพาะ</p>
-                                        <div className="grid grid-cols-1 gap-3">
+                                        <p className="text-xs text-gray-400 mb-4">ทำแบบทดสอบความเข้าใจภาษาฮินดี และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
                                                 <div className="text-sm font-bold text-gray-800">แบบทดสอบความเข้าใจภาษาฮินดี</div>
                                                 <div className="text-[11px] text-gray-400">सुनना (ฟัง)・पढ़ना (อ่าน)</div>
+                                            </button>
+                                            <button onClick={goListen}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><ListenIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ฟัง-พูด-อ่าน</div>
+                                                <div className="text-[11px] text-gray-400">บทฟัง, พูดตาม, อ่านยาว</div>
                                             </button>
                                         </div>
                                     </div>
