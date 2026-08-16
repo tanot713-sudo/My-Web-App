@@ -5463,9 +5463,9 @@
         ];
 
         function ListeningPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-yue' ? LISTENING_PASSAGES_YUE : langId === 'lang-en' ? LISTENING_PASSAGES_EN : LISTENING_PASSAGES;
+            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-yue' ? LISTENING_PASSAGES_YUE : langId === 'lang-en' ? LISTENING_PASSAGES_EN : langId === 'lang-de' ? LISTENING_PASSAGES_DE : LISTENING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -5597,7 +5597,7 @@
         // หมายเหตุ lang-yue: Whisper (asr-worker.js) ไม่มีตัวเลือกภาษา "cantonese" แยกต่างหากในรายชื่อ
         // ภาษาทางการ 99 ภาษา ใช้ 'chinese' แทน (ใกล้เคียงที่สุดที่มี แม่นยำน้อยกว่าภาษาที่มีในรายชื่อจริง
         // — ผู้ใช้ควรตรวจทานข้อความที่ถอดออกมาเองเสมอ เหมือนที่ระบบเตือนไว้อยู่แล้วทั่วไป)
-        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean', 'lang-yue': 'chinese' };
+        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean', 'lang-yue': 'chinese', 'lang-de': 'german' };
         function transcribeSpeech(pcm, langName) {
             return new Promise((resolve, reject) => {
                 const w = getAsrWorker();
@@ -6181,9 +6181,9 @@
         ];
 
         function ReadingPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-yue' ? READING_PASSAGES_YUE : langId === 'lang-en' ? READING_PASSAGES_EN : READING_PASSAGES;
+            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-yue' ? READING_PASSAGES_YUE : langId === 'lang-en' ? READING_PASSAGES_EN : langId === 'lang-de' ? READING_PASSAGES_DE : READING_PASSAGES;
             const langCode = LANGS[langId].code;
-            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' ? 'Level ' : 'HSK';
+            const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
             const [revealedLines, setRevealedLines] = useState([]);
             const [showQuiz, setShowQuiz] = useState(false);
@@ -6572,7 +6572,7 @@
         }
 
         function NumbersDatesPanel({ awardXp, langId }) {
-            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-yue' ? NUMBERS_DATES_YUE : langId === 'lang-en' ? NUMBERS_DATES_EN : NUMBERS_DATES;
+            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-yue' ? NUMBERS_DATES_YUE : langId === 'lang-en' ? NUMBERS_DATES_EN : langId === 'lang-de' ? NUMBERS_DATES_DE : NUMBERS_DATES;
             const langCode = LANGS[langId].code;
             const [catKey, setCatKey] = useState('all');
             const [queue, setQueue] = useState(() => buildNdQueue('all', dataset));
@@ -6655,9 +6655,239 @@
             );
         }
 
+
+        // ── บทฟัง-พูดภาษาเยอรมัน 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่นเพื่อเทียบกันได้ข้ามภาษา) ระดับ 1-3
+        //    (หัวข้อละ 2 บท) ตรงตามรูปแบบ {level,title,lines,questions} เดียวกับ LISTENING_PASSAGES_KR ──
+        const LISTENING_PASSAGES_DE = [
+            {
+                level: 1, title: 'Telefonieren',
+                lines: [
+                    { speaker: 'A', target: 'Hallo?', thai: 'ฮัลโหล' },
+                    { speaker: 'B', target: 'Hallo, hier ist Minji.', thai: 'สวัสดีค่ะ ฉันชื่อมินจี' },
+                    { speaker: 'A', target: 'Wo bist du gerade?', thai: 'ตอนนี้คุณอยู่ที่ไหน' },
+                    { speaker: 'B', target: 'Ich bin zu Hause.', thai: 'ฉันอยู่บ้าน' },
+                ],
+                questions: [
+                    { q: 'Wo ist Minji gerade?', choices: ['zu Hause', 'in der Schule', 'im Büro'], correct: 'zu Hause' },
+                    { q: 'Wer hat gesagt "Hier ist Minji"?', choices: ['Minji', 'eine andere Person', 'niemand'], correct: 'Minji' },
+                ],
+            },
+            {
+                level: 1, title: 'Im Geschäft',
+                lines: [
+                    { speaker: 'A', target: 'Was kostet dieser Apfel?', thai: 'แอปเปิลลูกนี้ราคาเท่าไหร่' },
+                    { speaker: 'B', target: 'Er kostet einen Euro.', thai: 'หนึ่งยูโรค่ะ' },
+                    { speaker: 'A', target: 'Das ist teuer. Können Sie mir einen Rabatt geben?', thai: 'แพงไปนะ ลดหน่อยได้ไหม' },
+                    { speaker: 'B', target: 'Ja, ich gebe ihn Ihnen für achtzig Cent.', thai: 'ได้ค่ะ แปดสิบเซนต์' },
+                ],
+                questions: [
+                    { q: 'Was war der erste Preis?', choices: ['ein Euro', 'achtzig Cent', 'fünfzig Cent'], correct: 'ein Euro' },
+                    { q: 'Was war der letzte Preis?', choices: ['ein Euro', 'achtzig Cent', 'fünfzig Cent'], correct: 'achtzig Cent' },
+                ],
+            },
+            {
+                level: 2, title: 'Verabredung',
+                lines: [
+                    { speaker: 'A', target: 'Hast du heute Abend Zeit?', thai: 'คืนนี้คุณว่างไหม' },
+                    { speaker: 'B', target: 'Ja, habe ich. Warum?', thai: 'ว่างสิ มีอะไรเหรอ' },
+                    { speaker: 'A', target: 'Wollen wir zusammen einen Film sehen?', thai: 'ไปดูหนังด้วยกันไหม' },
+                    { speaker: 'B', target: 'Gerne! Um wie viel Uhr treffen wir uns?', thai: 'ดีเลย! นัดกี่โมงดี' },
+                    { speaker: 'A', target: 'Um sieben Uhr, vor dem Kino.', thai: 'หนึ่งทุ่ม ที่หน้าโรงหนัง' },
+                ],
+                questions: [
+                    { q: 'Was machen die beiden?', choices: ['einen Film sehen', 'zu Abend essen', 'einkaufen'], correct: 'einen Film sehen' },
+                    { q: 'Um wie viel Uhr treffen sie sich?', choices: ['um sechs Uhr', 'um sieben Uhr', 'um neun Uhr'], correct: 'um sieben Uhr' },
+                ],
+            },
+            {
+                level: 2, title: 'Das Wetter heute',
+                lines: [
+                    { speaker: 'A', target: 'Wie ist das Wetter heute?', thai: 'วันนี้อากาศเป็นยังไงบ้าง' },
+                    { speaker: 'B', target: 'Es ist sehr kalt. Es regnet auch.', thai: 'วันนี้หนาวมาก แล้วก็ฝนตกด้วย' },
+                    { speaker: 'A', target: 'Dann gehen wir wohl nicht in den Park.', thai: 'งั้นเราไม่ไปสวนสาธารณะกันดีกว่า' },
+                    { speaker: 'B', target: 'Genau, wir bleiben zu Hause und schauen fern.', thai: 'ได้ อยู่บ้านดูทีวีกันดีกว่า' },
+                ],
+                questions: [
+                    { q: 'Wie ist das Wetter heute?', choices: ['heiß', 'kalt und regnerisch', 'sonnig'], correct: 'kalt und regnerisch' },
+                    { q: 'Was machen sie am Ende?', choices: ['in den Park gehen', 'zu Hause fernsehen', 'einkaufen gehen'], correct: 'zu Hause fernsehen' },
+                ],
+            },
+            {
+                level: 3, title: 'Jobsuche',
+                lines: [
+                    { speaker: 'A', target: 'Was machst du zurzeit so?', thai: 'ช่วงนี้คุณยุ่งอะไรอยู่' },
+                    { speaker: 'B', target: 'Ich suche eine Arbeitsstelle. Ich hatte schon drei Vorstellungsgespräche.', thai: 'ฉันกำลังหางาน ไปสัมภาษณ์มาสามครั้งแล้ว' },
+                    { speaker: 'A', target: 'Und wie läuft es, gut?', thai: 'เป็นยังไงบ้าง ราบรื่นไหม' },
+                    { speaker: 'B', target: 'Es geht so. Nächste Woche meldet sich eine Firma bei mir.', thai: 'ก็โอเคนะ มีบริษัทหนึ่งจะตอบกลับสัปดาห์หน้า' },
+                ],
+                questions: [
+                    { q: 'Was macht B zurzeit?', choices: ['eine Arbeitsstelle suchen', 'studieren', 'verreisen'], correct: 'eine Arbeitsstelle suchen' },
+                    { q: 'Wie viele Vorstellungsgespräche hatte B schon?', choices: ['eins', 'zwei', 'drei'], correct: 'drei' },
+                ],
+            },
+            {
+                level: 3, title: 'Reisepläne',
+                lines: [
+                    { speaker: 'A', target: 'Wohin fährst du in den Sommerferien?', thai: 'ปิดเทอมนี้คุณจะไปเที่ยวที่ไหน' },
+                    { speaker: 'B', target: 'Ich habe vor, nach München zu fahren. Die Landschaft dort ist sehr schön.', thai: 'ฉันตั้งใจจะไปมิวนิก ที่นั่นวิวสวยมาก' },
+                    { speaker: 'A', target: 'Fährst du allein?', thai: 'ไปคนเดียวเหรอ' },
+                    { speaker: 'B', target: 'Nein, ich fahre mit meinem Freund. Wir planen, mit dem Zug zu fahren.', thai: 'เปล่า ฉันไปกับแฟน เราตั้งใจจะนั่งรถไฟไป' },
+                ],
+                questions: [
+                    { q: 'Wohin plant B zu fahren?', choices: ['Berlin', 'München', 'Hamburg'], correct: 'München' },
+                    { q: 'Wie planen sie zu fahren?', choices: ['mit dem Flugzeug', 'mit dem Zug', 'mit dem Auto'], correct: 'mit dem Zug' },
+                ],
+            },
+        ];
+
+        // ── บทอ่านภาษาเยอรมัน 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่น) ตรงตามรูปแบบ {level,title,lines,questions}
+        //    เดียวกับ READING_PASSAGES_KR (lines ที่นี่ไม่มี speaker เพราะเป็นข้อความบรรยาย ไม่ใช่บทสนทนา) ──
+        const READING_PASSAGES_DE = [
+            {
+                level: 1, title: 'Mein Tag',
+                lines: [
+                    { target: 'Ich stehe jeden Morgen um sieben Uhr auf.', thai: 'ทุกวันฉันตื่นนอนเจ็ดโมงเช้า' },
+                    { target: 'Nach dem Frühstück gehe ich zur Schule.', thai: 'ฉันกินข้าวเช้าก่อน แล้วค่อยไปโรงเรียน' },
+                    { target: 'In der Schule lerne ich.', thai: 'ฉันเรียนหนังสือที่โรงเรียน' },
+                    { target: 'Mittags esse ich mit einem Freund zu Mittag.', thai: 'ตอนเที่ยงฉันกินข้าวเที่ยงกับเพื่อน' },
+                    { target: 'Um drei Uhr nachmittags gehe ich nach Hause.', thai: 'ตอนบ่ายสามโมงฉันกลับบ้าน' },
+                    { target: 'Am Abend schaue ich fern und gehe um zehn Uhr schlafen.', thai: 'ตอนเย็นฉันดูทีวี นอนสี่ทุ่ม' },
+                ],
+                questions: [
+                    { q: 'Um wie viel Uhr steht die Person auf?', choices: ['sieben Uhr', 'acht Uhr', 'sechs Uhr'], correct: 'sieben Uhr' },
+                    { q: 'Was macht die Person, bevor sie zur Schule geht?', choices: ['frühstücken', 'duschen', 'fernsehen'], correct: 'frühstücken' },
+                ],
+            },
+            {
+                level: 1, title: 'Meine Familie',
+                lines: [
+                    { target: 'Meine Familie hat vier Mitglieder: meinen Vater, meine Mutter, meine ältere Schwester und mich.', thai: 'ครอบครัวฉันมีสี่คน: พ่อ แม่ พี่สาว และฉัน' },
+                    { target: 'Mein Vater ist Arzt, meine Mutter ist Lehrerin.', thai: 'พ่อเป็นหมอ แม่เป็นครู' },
+                    { target: 'Meine Schwester ist drei Jahre älter als ich und studiert an der Universität.', thai: 'พี่สาวอายุมากกว่าฉันสามปี เธอเรียนอยู่มหาวิทยาลัย' },
+                    { target: 'Wir haben zu Hause einen kleinen Hund. Er ist sehr niedlich.', thai: 'บ้านเรามีหมาตัวเล็กหนึ่งตัว มันน่ารักมาก' },
+                    { target: 'Sonntags gehen wir alle zusammen in den Park.', thai: 'วันอาทิตย์เราไปเที่ยวสวนสาธารณะด้วยกัน' },
+                ],
+                questions: [
+                    { q: 'Was ist der Beruf des Vaters?', choices: ['Arzt', 'Lehrer', 'Angestellter'], correct: 'Arzt' },
+                    { q: 'Wie viele Jahre älter ist die Schwester?', choices: ['ein Jahr', 'zwei Jahre', 'drei Jahre'], correct: 'drei Jahre' },
+                ],
+            },
+            {
+                level: 2, title: 'Wochenendpläne',
+                lines: [
+                    { target: 'Dieses Wochenende habe ich vor, viele verschiedene Dinge zu tun.', thai: 'สุดสัปดาห์นี้ฉันตั้งใจจะทำหลายอย่าง' },
+                    { target: 'Am Samstagmorgen lese ich in der Bibliothek, und am Nachmittag gehe ich mit einer Freundin einkaufen.', thai: 'เช้าวันเสาร์ฉันจะไปห้องสมุดอ่านหนังสือ บ่ายไปซื้อของกับเพื่อน' },
+                    { target: 'Am Abend plane ich, einen Film zu sehen.', thai: 'ตอนเย็นเราตั้งใจจะไปดูหนัง' },
+                    { target: 'Am Sonntag möchte ich zu Hause ausruhen. Vielleicht koche ich auch etwas für meine Familie.', thai: 'วันอาทิตย์ฉันอยากพักผ่อนอยู่บ้าน อาจจะทำกับข้าวให้ครอบครัวกิน' },
+                    { target: 'Wenn das Wetter gut ist, möchte ich auch im Park joggen gehen.', thai: 'ถ้าอากาศดี ฉันยังอยากไปวิ่งที่สวนสาธารณะด้วย' },
+                ],
+                questions: [
+                    { q: 'Wohin geht die Person am Samstagmorgen?', choices: ['in die Bibliothek', 'ins Restaurant', 'ins Kino'], correct: 'in die Bibliothek' },
+                    { q: 'Was plant die Person am Sonntag?', choices: ['zu Hause ausruhen', 'zur Arbeit gehen', 'verreisen'], correct: 'zu Hause ausruhen' },
+                ],
+            },
+            {
+                level: 2, title: 'Ein kranker Tag',
+                lines: [
+                    { target: 'Gestern Abend habe ich mich nicht gut gefühlt.', thai: 'เมื่อคืนฉันรู้สึกไม่สบาย' },
+                    { target: 'Ich hatte starke Kopfschmerzen und auch etwas Fieber.', thai: 'ปวดหัวมาก แล้วก็มีไข้นิดหน่อย' },
+                    { target: 'Heute Morgen bin ich nicht zur Arbeit gegangen, sondern zum Arzt.', thai: 'เช้านี้ฉันไม่ได้ไปทำงาน ไปโรงพยาบาลหาหมอ' },
+                    { target: 'Der Arzt hat gesagt, ich hätte eine Erkältung, und er hat mir geraten, viel Wasser zu trinken und mich gut auszuruhen. Er hat mir auch Medizin gegeben.', thai: 'หมอบอกว่าฉันเป็นหวัด ให้ดื่มน้ำเยอะๆ พักผ่อนเยอะๆ แล้วก็จ่ายยาให้ฉันด้วย' },
+                    { target: 'Nachdem ich die Medizin genommen hatte, fühlte ich mich viel besser.', thai: 'หลังจากกินยาแล้วรู้สึกดีขึ้นมาก' },
+                ],
+                questions: [
+                    { q: 'Warum fühlte sich die Person nicht gut?', choices: ['wegen einer Erkältung', 'wegen Bauchschmerzen', 'wegen einer Beinverletzung'], correct: 'wegen einer Erkältung' },
+                    { q: 'Was hat der Arzt gesagt?', choices: ['viel Wasser trinken und sich ausruhen', 'viel Sport machen', 'nichts essen'], correct: 'viel Wasser trinken und sich ausruhen' },
+                ],
+            },
+            {
+                level: 3, title: 'Mein erster Flug',
+                lines: [
+                    { target: 'Letzten Monat bin ich zum ersten Mal allein mit dem Flugzeug nach Berlin gereist.', thai: 'เดือนที่แล้วฉันนั่งเครื่องบินไปเที่ยวเบอร์ลินคนเดียวเป็นครั้งแรก' },
+                    { target: 'Vor der Abreise war ich sehr nervös. Ich hatte Angst, das Gate nicht zu finden.', thai: 'ก่อนออกเดินทางฉันตื่นเต้นมาก กลัวว่าตัวเองจะหาประตูขึ้นเครื่องไม่เจอ' },
+                    { target: 'Nachdem ich am Flughafen angekommen war, habe ich die Informationen auf dem Bildschirm angeschaut und das Gate ohne Probleme gefunden.', thai: 'พอถึงสนามบิน ฉันดูข้อมูลบนจอแล้วหาประตูขึ้นเครื่องเจอได้อย่างราบรื่น' },
+                    { target: 'Da ich noch Zeit hatte, bin ich durch den Flughafen spaziert und habe ein kleines Souvenir gekauft.', thai: 'ยังมีเวลาเดินเล่นในสนามบิน ซื้อของฝากเล็กๆ น้อยๆ ด้วย' },
+                    { target: 'Beim Abheben des Flugzeugs hatte ich etwas Angst, aber nach und nach habe ich mich daran gewöhnt.', thai: 'ตอนเครื่องบินขึ้น ฉันกลัวนิดหน่อย แต่ค่อยๆ ชินไป' },
+                ],
+                questions: [
+                    { q: 'Wie fühlte sich die Person vor der Abreise?', choices: ['nervös und besorgt wegen des Gates', 'sehr fröhlich', 'gar nichts'], correct: 'nervös und besorgt wegen des Gates' },
+                    { q: 'Was hat die Person am Flughafen außer dem Gate-Finden noch gemacht?', choices: ['spazieren und ein Souvenir kaufen', 'geschlafen', 'mit einem Freund telefoniert'], correct: 'spazieren und ein Souvenir kaufen' },
+                ],
+            },
+            {
+                level: 3, title: 'Meine Erfahrung beim Deutschlernen',
+                lines: [
+                    { target: 'Ich lerne jetzt schon seit zwei Jahren Deutsch.', thai: 'ฉันเรียนภาษาเยอรมันมาสองปีแล้ว' },
+                    { target: 'Am Anfang waren Aussprache und Grammatik sehr schwer, ich habe oft Fehler gemacht, und meine Freunde haben oft gelacht.', thai: 'ตอนเริ่มแรกฉันรู้สึกว่าการออกเสียงและไวยากรณ์ยากมาก พูดผิดบ่อยๆ แล้วก็ถูกเพื่อนล้อบ่อยๆ' },
+                    { target: 'Danach habe ich jeden Tag deutsche Lieder gehört und deutsche Videos angeschaut und mich so nach und nach an den Rhythmus dieser Sprache gewöhnt.', thai: 'ต่อมาฉันฟังเพลงเยอรมันและดูวิดีโอภาษาเยอรมันทุกวันอย่างสม่ำเสมอ ค่อยๆ ชินกับจังหวะของภาษานี้' },
+                    { target: 'Jetzt gibt es zwar noch viele Wörter, die ich nicht kenne, aber ich kann schon einfache Gespräche mit deutschen Freunden führen.', thai: 'ตอนนี้แม้จะยังมีคำศัพท์ที่ไม่รู้อีกเยอะ แต่ฉันคุยกับเพื่อนคนเยอรมันแบบง่ายๆ ได้แล้ว' },
+                    { target: 'Ich denke, das Wichtigste beim Sprachenlernen ist, keine Angst vor Fehlern zu haben und weiterzumachen.', thai: 'ฉันคิดว่าสิ่งที่สำคัญที่สุดในการเรียนภาษาคือไม่ต้องกลัวทำผิด ถ้าพยายามต่อไปเรื่อยๆ ยังไงก็ต้องมีความก้าวหน้า' },
+                ],
+                questions: [
+                    { q: 'Was fand die Person am Anfang am schwierigsten?', choices: ['Aussprache und Grammatik', 'Wörter', 'Buchstaben'], correct: 'Aussprache und Grammatik' },
+                    { q: 'Wie hat die Person geübt?', choices: ['jeden Tag Lieder gehört und Videos angeschaut', 'nur Wörter auswendig gelernt', 'nur Grammatik gelernt'], correct: 'jeden Tag Lieder gehört und Videos angeschaut' },
+                ],
+            },
+        ];
+
+        // ตัวเลข/วันที่/เวลาภาษาเยอรมัน — เขียนด้วยอักษรละตินอยู่แล้ว (ไม่ต้องมี phonetic เหมือน
+        // NUMBERS_DATES_EN) ตัวเลขผสม (เช่น 23=dreiundzwanzig) ใช้กฎมาตรฐาน "หลักหน่วย + und + หลักสิบ"
+        // (สลับลำดับจากภาษาไทย/อังกฤษ) เวลาที่นี่ใช้รูปแบบตัวเลขตรงไปตรงมา (X Uhr Y) — ภาษาเยอรมันมีอีก
+        // รูปแบบทางการพูดที่ใช้ "halb" บอกครึ่งชั่วโมงก่อนหน้า (เช่น "halb vier" = 3:30 ไม่ใช่ 4:30
+        // เพราะนับถึง "ครึ่งทางไปสี่โมง") แต่ไม่ใช้เป็นคำตอบหลักที่นี่เพื่อไม่ให้สับสนผู้เริ่มต้น
+        const NUMBERS_DATES_DE = {
+            numbers: [
+                { prompt: '5', target: 'fünf' },
+                { prompt: '8', target: 'acht' },
+                { prompt: '12', target: 'zwölf' },
+                { prompt: '15', target: 'fünfzehn' },
+                { prompt: '20', target: 'zwanzig' },
+                { prompt: '23', target: 'dreiundzwanzig' },
+                { prompt: '34', target: 'vierunddreißig' },
+                { prompt: '50', target: 'fünfzig' },
+                { prompt: '67', target: 'siebenundsechzig' },
+                { prompt: '99', target: 'neunundneunzig' },
+                { prompt: '100', target: 'hundert' },
+                { prompt: '128', target: 'hundertachtundzwanzig' },
+                { prompt: '256', target: 'zweihundertsechsundfünfzig' },
+                { prompt: '1000', target: 'tausend' },
+            ],
+            weekday: [
+                { prompt: 'วันจันทร์', target: 'Montag' },
+                { prompt: 'วันอังคาร', target: 'Dienstag' },
+                { prompt: 'วันพุธ', target: 'Mittwoch' },
+                { prompt: 'วันพฤหัสบดี', target: 'Donnerstag' },
+                { prompt: 'วันศุกร์', target: 'Freitag' },
+                { prompt: 'วันเสาร์', target: 'Samstag' },
+                { prompt: 'วันอาทิตย์', target: 'Sonntag' },
+            ],
+            time: [
+                { prompt: '1:00 น.', target: 'ein Uhr' },
+                { prompt: '2:00 น.', target: 'zwei Uhr' },
+                { prompt: '3:30 น.', target: 'drei Uhr dreißig' },
+                { prompt: '4:40 น.', target: 'vier Uhr vierzig' },
+                { prompt: '6:15 น.', target: 'sechs Uhr fünfzehn' },
+                { prompt: '7:30 น.', target: 'sieben Uhr dreißig' },
+                { prompt: '8:45 น.', target: 'acht Uhr fünfundvierzig' },
+                { prompt: '9:05 น.', target: 'neun Uhr fünf' },
+                { prompt: '10:10 น.', target: 'zehn Uhr zehn' },
+                { prompt: '11:20 น.', target: 'elf Uhr zwanzig' },
+                { prompt: '12:00 น.', target: 'zwölf Uhr' },
+            ],
+            date: [
+                { prompt: '1 มกราคม', target: '1. Januar' },
+                { prompt: '14 กุมภาพันธ์', target: '14. Februar' },
+                { prompt: '8 มีนาคม', target: '8. März' },
+                { prompt: '1 พฤษภาคม', target: '1. Mai' },
+                { prompt: '20 มิถุนายน', target: '20. Juni' },
+                { prompt: '15 สิงหาคม', target: '15. August' },
+                { prompt: '10 ตุลาคม', target: '10. Oktober' },
+                { prompt: '25 ธันวาคม', target: '25. Dezember' },
+            ],
+        };
         // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN/_JP/_KR/_YUE)/READING_PASSAGES(_EN/_JP/_KR/_YUE)/
         // NUMBERS_DATES(_EN/_JP/_KR/_YUE) + ASR_LANG_NAME) — ภาษาอื่นนอกห้านี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
-        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue'];
+        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue', 'lang-de'];
         function ListenSpeakView({ langId, setLangId, setXp }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
@@ -6666,13 +6896,14 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี และจีนกวางตุ้งตอนนี้</p>
+                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี จีนกวางตุ้ง และเยอรมันตอนนี้</p>
                             <div className="flex gap-2 justify-center flex-wrap">
                                 <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีนกลาง</button>
                                 <button onClick={() => setLangId('lang-en')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาอังกฤษ</button>
                                 <button onClick={() => setLangId('lang-jp')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาญี่ปุ่น</button>
                                 <button onClick={() => setLangId('lang-kr')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาเกาหลี</button>
                                 <button onClick={() => setLangId('lang-yue')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาจีนกวางตุ้ง</button>
+                                <button onClick={() => setLangId('lang-de')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาเยอรมัน</button>
                             </div>
                         </div>
                     </div>
@@ -6896,7 +7127,7 @@
             // โหมดฟัง-พูด รองรับจีนกลาง+อังกฤษ+ญี่ปุ่น+เกาหลี+จีนกวางตุ้งแล้ว — ถ้าอยู่ภาษาอื่นอยู่
             // ค่อยสลับเป็นจีนกลางให้อัตโนมัติ
             const goListen = () => {
-                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr' && langId !== 'lang-yue') setLangId('lang-cn');
+                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr' && langId !== 'lang-yue' && langId !== 'lang-de') setLangId('lang-cn');
                 setView('listen');
                 setMobileNavOpen(false);
             };
@@ -7093,7 +7324,7 @@
                                 </button>
                                 <button
                                     onClick={goListen}
-                                    title="รองรับภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี และจีนกวางตุ้ง — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
+                                    title="รองรับภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี จีนกวางตุ้ง และเยอรมัน — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'listen' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <ListenIcon /> ฟัง-พูด
@@ -7295,13 +7526,19 @@
                                 {langId === 'lang-de' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
                                         <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาเยอรมัน</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ทำข้อสอบจำลอง Goethe-Zertifikat A1 โดยเฉพาะ (ฝึกเขียนตัวอักษร/ฟัง-พูด-อ่าน เป็น follow-up ในอนาคต)</p>
-                                        <div className="grid grid-cols-1 gap-3">
+                                        <p className="text-xs text-gray-400 mb-4">ทำข้อสอบจำลอง Goethe-Zertifikat A1 และฝึกฟัง-พูด-อ่าน โดยเฉพาะ (ฝึกเขียนตัวอักษรเป็น follow-up ในอนาคต)</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
                                                 <div className="text-sm font-bold text-gray-800">ข้อสอบ Goethe A1</div>
                                                 <div className="text-[11px] text-gray-400">Hören・Lesen・Schreiben・Sprechen</div>
+                                            </button>
+                                            <button onClick={goListen}
+                                                className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
+                                                <div className="text-brand mb-2"><ListenIcon /></div>
+                                                <div className="text-sm font-bold text-gray-800">ฟัง-พูด-อ่าน</div>
+                                                <div className="text-[11px] text-gray-400">บทฟัง, พูดตาม, อ่านยาว</div>
                                             </button>
                                         </div>
                                     </div>
