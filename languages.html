@@ -1151,16 +1151,28 @@
         //    hanzi-writer แต่เขียนเช็คเอง เพราะไม่มีข้อมูล {strokes,medians} มาตรฐานสำหรับฮันกึล) ใช้ได้กับ
         //    35/40 จามอที่มี KR_STROKE_PATHS เท่านั้น (พยัญชนะคู่ 5 ตัวไม่มีข้อมูล — คืนค่า null ให้ตัวเรียกใช้
         //    ไปแสดง HandwritingCanvas ธรรมดาแทน) บอกผู้ใช้ตรงๆ ว่าเป็นการตรวจคร่าวๆ ไม่ได้แม่นยำเท่าจีน/ญี่ปุ่น
+        // หมายเหตุสถาปัตยกรรม (แก้ตามคำแนะนำผู้ใช้ หลัง KR_STROKE_PATHS ที่ derive เองทำให้บาง
+        // ตัว (ㄹ/ㅁ) render ผิดรูปสองรอบติด): แยกหน้าที่ของข้อมูล 2 ชุดออกจากกันเด็ดขาด —
+        // (1) KR_STROKE_SVG (ภาพ SVG จริงที่มนุษย์วาด/ตรวจสอบแล้ว) ใช้แสดงผลอย่างเดียว ไม่เคย
+        //     derive เพิ่ม จึงไม่มีทางผิดรูป — วางไว้ด้านบนเป็นภาพอ้างอิงตลอดเวลา
+        // (2) KR_STROKE_PATHS (พิกัด polyline หยาบที่ดึง+แก้เอง) ใช้ "ตรวจ" อย่างเดียว (invisible,
+        //     ไม่เอามา render เป็นเส้น/ตัวอักษรให้เห็นอีกต่อไป) ดังนั้นต่อให้พิกัดของตัวไหนยังไม่
+        //     แม่นยำ 100% ผลกระทบมีแค่ "ตรวจหลวม/ตรวจเข้มไปหน่อย" ไม่ทำให้ตัวอักษรที่แสดงบนจอ
+        //     ผิดรูปเหมือนที่เคยเกิดขึ้น — ไม่ต้องไล่ตรวจสอบด้วยตาทีละตัวอีกเมื่อแก้ไขข้อมูลนี้
+        // ขีดที่ผ่านแล้วจะโชว์เป็น "ลายเส้นที่ผู้ใช้ลากเอง" (เก็บจาก curPoints ตรงๆ) ไม่ใช่เส้น
+        // สังเคราะห์จาก reference อีกต่อไป — จึงไม่มีทางบิดเบี้ยวผิดรูปได้เลยไม่ว่า reference จะ
+        // แม่นแค่ไหน
         function HangulStrokeQuiz({ char, onAllDone }) {
             const strokes = KR_STROKE_PATHS[char];
             const svgRef = useRef(null);
             const [strokeIdx, setStrokeIdx] = useState(0);
             const [drawing, setDrawing] = useState(false);
             const [curPoints, setCurPoints] = useState([]);
+            const [doneStrokes, setDoneStrokes] = useState([]); // ลายเส้นจริงที่ผู้ใช้ลากผ่านแล้ว ทีละขีด
             const [feedback, setFeedback] = useState(''); // '' | 'wrong'
             const doneRef = useRef(false);
 
-            useEffect(() => { setStrokeIdx(0); setCurPoints([]); setFeedback(''); doneRef.current = false; }, [char]);
+            useEffect(() => { setStrokeIdx(0); setCurPoints([]); setDoneStrokes([]); setFeedback(''); doneRef.current = false; }, [char]);
 
             if (!strokes || !strokes.length) return null;
             const finished = strokeIdx >= strokes.length;
@@ -1192,6 +1204,7 @@
                         const ref = strokes[strokeIdx].points;
                         const result = scoreStrokeMatch(prev, ref);
                         if (result.ok) {
+                            setDoneStrokes(d => [...d, prev]);
                             setStrokeIdx(i => i + 1);
                             setFeedback('');
                             return [];
@@ -1203,26 +1216,23 @@
                 });
             };
             const skipStroke = () => { setStrokeIdx(i => i + 1); setCurPoints([]); setFeedback(''); };
-            const restart = () => { setStrokeIdx(0); setCurPoints([]); setFeedback(''); doneRef.current = false; };
+            const restart = () => { setStrokeIdx(0); setCurPoints([]); setDoneStrokes([]); setFeedback(''); doneRef.current = false; };
 
             const toPath = (pts) => pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
 
             return (
                 <div className="mb-3">
+                    <HangulStrokeDiagram char={char} />
                     <p className="text-[11px] text-gray-400 text-center mb-1.5">
-                        {finished ? 'เขียนครบทุกขีดแล้ว 🎉' : `ลากขีดที่ ${strokeIdx + 1}/${strokes.length} ตามเส้นประสีเทา`}
+                        {finished ? 'เขียนครบทุกขีดแล้ว 🎉' : `ดูภาพลำดับขีดด้านบนเป็นตัวช่วย แล้วลองลากขีดที่ ${strokeIdx + 1}/${strokes.length} ในกรอบนี้`}
                     </p>
                     <svg ref={svgRef} viewBox="0 0 100 100"
                         className="mx-auto block rounded-xl border-2 touch-none"
                         style={{ width: 200, height: 200, background: '#fff', borderColor: feedback === 'wrong' ? '#fca5a5' : '#e5e7eb', touchAction: 'none' }}
                         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp} onPointerCancel={onUp}>
-                        {strokes.map((s, i) => i < strokeIdx && (
-                            <path key={i} d={toPath(s.points)} fill="none" stroke="#111827" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+                        {doneStrokes.map((pts, i) => (
+                            <path key={i} d={toPath(pts)} fill="none" stroke="#111827" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
                         ))}
-                        {!finished && (
-                            <path d={toPath(strokes[strokeIdx].points)} fill="none" stroke="#9ca3af" strokeWidth="2.4"
-                                strokeDasharray="3,3" strokeLinecap="round" strokeLinejoin="round" />
-                        )}
                         {!finished && curPoints.length > 1 && (
                             <path d={toPath(curPoints)} fill="none" stroke={feedback === 'wrong' ? '#ef4444' : '#0f766e'} strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
                         )}
@@ -1233,8 +1243,7 @@
                         {finished && <button type="button" onClick={restart} className="text-[11px] text-brand font-semibold hover:opacity-80">ลากใหม่อีกรอบ</button>}
                     </div>
                     <p className="text-[10px] text-gray-400 text-center mt-1 leading-relaxed">
-                        ระบบตรวจคร่าวๆ ที่เขียนขึ้นเอง (ไม่ได้แม่นยำเท่าระบบของจีน/ญี่ปุ่นที่ใช้ฐานข้อมูลเฉพาะทาง) —
-                        ข้อมูลเส้นอ้างอิงมาจาก <a href="https://github.com/MagisterAdamus/hangeul-stroke-order" target="_blank" rel="noopener" className="underline">Hangeul Stroke Order</a> โดย Adam Stone (CC BY-SA 4.0)
+                        ระบบตรวจคร่าวๆ ที่เขียนขึ้นเอง (ไม่ได้แม่นยำเท่าระบบของจีน/ญี่ปุ่นที่ใช้ฐานข้อมูลเฉพาะทาง)
                     </p>
                 </div>
             );
