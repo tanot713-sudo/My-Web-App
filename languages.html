@@ -1292,44 +1292,26 @@
             );
         }
 
-        // ── แผนภาพลำดับขีดตัวพิมพ์ใหญ่ซีริลลิก (รัสเซีย) — ต่างจาก HangulStrokeDiagram ตรงที่ไม่มีไฟล์ SVG
-        //    จากภายนอกให้ใช้ (ไม่มีโปรเจกต์แบบ Hangeul Stroke Order สำหรับซีริลลิกอยู่จริง) จึงต้อง generate
-        //    ภาพเองจาก RU_STROKE_PATHS สดๆ ตอน render (วงกลมเลขกำกับ + ลูกศรทิศทาง สไตล์เดียวกับภาพเกาหลี)
-        //    — บอกผู้ใช้ตรงๆ ว่าไม่ใช่ข้อมูลที่ตรวจสอบจากภายนอกเหมือนเกาหลี เป็นแค่หลักการเขียนตัวพิมพ์บล็อก
-        //    มาตรฐานสากลที่รู้จักกันกว้างขวาง (ผู้ใช้รับทราบและยินยอมระดับความมั่นใจนี้แล้ว)
+        // ── ชื่อไฟล์ภาพลำดับขีดตัวพิมพ์ใหญ่ซีริลลิก (รัสเซีย) 33 ตัว — ผู้ใช้ยืนยันชัดเจนว่าไม่ต้องการให้
+        //    generate แผนภาพเอง (ลองแล้วผลลัพธ์ไม่เหมือนตัวอักษรจริงเลย) ให้ใช้ "ภาพจริง" แทนเสมอ จึงตัดภาพ
+        //    ต่อตัวจากไฟล์ Russian_Alphabet_Blueprint.pptx ที่ผู้ใช้ส่งมา (สไลด์ 6-10 มีภาพลูกศร+เลขกำกับ
+        //    ลำดับขีดครบ 33 ตัว) เก็บเป็นไฟล์ .webp ใน images/ru-stroke/ แล้วแสดงเป็น <img> ตรงๆ — ไม่มีการ
+        //    วาด/ตีความใหม่จากพิกัดอีกต่อไป (RU_STROKE_PATHS ยังใช้อยู่ แต่ใช้เฉพาะ "ตรวจ" ที่มองไม่เห็นเท่านั้น)
+        const RU_STROKE_IMAGE = {
+            А:'A', Б:'B', В:'V', Г:'G', Д:'D', Е:'E', Ё:'YO', Ж:'ZH', З:'Z', И:'I', Й:'J',
+            К:'K', Л:'L', М:'M', Н:'N', О:'O', П:'P', Р:'R', С:'S', Т:'T', У:'U', Ф:'F',
+            Х:'H', Ц:'TS', Ч:'CH', Ш:'SH', Щ:'SHCH', Ъ:'HARD', Ы:'Y', Ь:'SOFT', Э:'E2', Ю:'YU', Я:'YA',
+        };
         function RuStrokeDiagram({ upperChar }) {
-            const strokes = RU_STROKE_PATHS[upperChar];
-            if (!strokes || !strokes.length) return null;
-            const toPath = (pts) => pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-            const COLORS = ['#0f766e', '#2563eb', '#d97706', '#16a34a', '#9333ea', '#dc2626'];
+            const file = RU_STROKE_IMAGE[upperChar];
+            if (!file) return null;
             return (
                 <div className="mb-3">
-                    <svg viewBox="-8 -14 116 120" className="mx-auto block" style={{ width: 160, height: 160 }}>
-                        {strokes.map((s, i) => {
-                            const pts = s.points;
-                            const color = COLORS[i % COLORS.length];
-                            if (pts.length === 1) {
-                                return <circle key={i} cx={pts[0][0]} cy={pts[0][1]} r="2.5" fill={color} />;
-                            }
-                            const [ex, ey] = pts[pts.length - 1];
-                            const [px, py] = pts[pts.length - 2];
-                            const ang = Math.atan2(ey - py, ex - px);
-                            const ah = 4;
-                            const a1 = [ex - ah * Math.cos(ang - 0.4), ey - ah * Math.sin(ang - 0.4)];
-                            const a2 = [ex - ah * Math.cos(ang + 0.4), ey - ah * Math.sin(ang + 0.4)];
-                            return (
-                                <g key={i}>
-                                    <path d={toPath(pts)} fill="none" stroke={color} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-                                    <polygon points={`${ex},${ey} ${a1[0]},${a1[1]} ${a2[0]},${a2[1]}`} fill={color} />
-                                    <circle cx={pts[0][0]} cy={pts[0][1]} r="6" fill="#fff" stroke={color} strokeWidth="1.6" />
-                                    <text x={pts[0][0]} y={pts[0][1] + 3} fontSize="7" textAnchor="middle" fill={color} fontWeight="bold">{i + 1}</text>
-                                </g>
-                            );
-                        })}
-                    </svg>
+                    <img src={`./images/ru-stroke/${file}.webp`} alt={`ลำดับขีด ${upperChar}`}
+                        className="mx-auto block rounded-lg border border-gray-200" style={{ maxWidth: 220, maxHeight: 180 }} />
                     <p className="text-[10px] text-gray-400 text-center mt-1 leading-relaxed">
-                        แผนภาพนี้สร้างจากหลักการเขียนตัวพิมพ์บล็อกมาตรฐานสากล ไม่ใช่ข้อมูลที่ตรวจสอบจากภายนอกแบบเกาหลี
-                        (ไม่มีแหล่งข้อมูลแบบนั้นสำหรับซีริลลิกอยู่จริง)
+                        ภาพจริงจากไฟล์อ้างอิงที่ผู้ใช้ส่งมา ไม่ใช่ภาพที่ระบบวาดขึ้นเอง — ยังไม่ใช่ข้อมูลที่มนุษย์
+                        ตรวจสอบแบบเดียวกับเกาหลี (ไฟล์ต้นทางสร้างด้วยเครื่องมือ AI เช่นกัน)
                     </p>
                 </div>
             );
@@ -1419,7 +1401,7 @@
                         {finished && <button type="button" onClick={restart} className="text-[11px] text-brand font-semibold hover:opacity-80">ลากใหม่อีกรอบ</button>}
                     </div>
                     <p className="text-[10px] text-gray-400 text-center mt-1 leading-relaxed">
-                        ระบบตรวจคร่าวๆ ที่เขียนขึ้นเอง — ใช้หลักการเขียนตัวพิมพ์บล็อกมาตรฐานสากล ไม่ใช่ข้อมูลตรวจสอบจากภายนอกแบบเกาหลี
+                        ระบบตรวจคร่าวๆ ที่เขียนขึ้นเอง (อ้างอิงจากภาพจริงด้านบน) ไม่ใช่ข้อมูลตรวจสอบจากภายนอกแบบเกาหลี
                     </p>
                 </div>
             );
