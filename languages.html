@@ -772,6 +772,19 @@
                 return !rec || (rec.dueAt || 0) <= now;
             });
         }
+        // กรองเฉพาะ "ตัวอักษร" (คีย์ลงท้าย ::script::) ออกจาก vocabPool รวม — ใช้เฉพาะโหมดฝึกเขียนตัวอักษร
+        // (ScriptPanel/LetterPanel) ตามที่ผู้ใช้ระบุ: ต้องฝึกเขียนตัวอักษรให้ครบ/คล่องก่อนถึงจะเริ่มฝึกคำศัพท์
+        // ได้ ไม่ควรปนกัน — โหมดอื่น (dictation/แต่งประโยค) ยังใช้ vocabPool/dueVocab เดิม (รวมทุกอย่าง) เหมือนเดิม
+        function scriptPool(langId) {
+            return vocabPool(langId).filter(item => item.key.includes('::script::'));
+        }
+        function dueScript(langId, srs) {
+            const now = Date.now();
+            return scriptPool(langId).filter(item => {
+                const rec = srs[item.key];
+                return !rec || (rec.dueAt || 0) <= now;
+            });
+        }
 
         // ══════════════════════════════════════════════════════════════════════════════════
         // ข้อสอบ HSK (จำลอง) — โครงสร้าง/จำนวนข้อยึดตามข้อสอบ HSK 2.0 ทางการจริง (ตรวจสอบผ่านเว็บ
@@ -1286,9 +1299,6 @@
                         {!finished && <button type="button" onClick={skipStroke} className="text-[11px] text-gray-400 hover:text-gray-600 underline">ข้ามขีดนี้</button>}
                         {finished && <button type="button" onClick={restart} className="text-[11px] text-brand font-semibold hover:opacity-80">ลากใหม่อีกรอบ</button>}
                     </div>
-                    <p className="text-[10px] text-gray-400 text-center mt-1 leading-relaxed">
-                        ระบบตรวจคร่าวๆ ที่เขียนขึ้นเอง (ไม่ได้แม่นยำเท่าระบบของจีน/ญี่ปุ่นที่ใช้ฐานข้อมูลเฉพาะทาง)
-                    </p>
                 </div>
             );
         }
@@ -1386,10 +1396,6 @@
                         ))}
                         <circle ref={penRef} r="2.5" fill="#a97a34" style={{ opacity: 0 }} />
                     </svg>
-                    <p className="text-[10px] text-gray-400 text-center mt-1 leading-relaxed">
-                        เส้นวาดเคลื่อนไหวจากพิกัดที่ตรวจกับฟอนต์จริงแล้ว (รูปทรงตรงกับฟอนต์จริง) — การแบ่งขีด/ลำดับ
-                        อ้างอิงจากไฟล์ที่ผู้ใช้ส่งมา (สร้างด้วย AI) ยังไม่ใช่ข้อมูลตรวจสอบจากภายนอกแบบเกาหลี
-                    </p>
                 </div>
             );
         }
@@ -1477,9 +1483,6 @@
                         {!finished && <button type="button" onClick={skipStroke} className="text-[11px] text-gray-400 hover:text-gray-600 underline">ข้ามขีดนี้</button>}
                         {finished && <button type="button" onClick={restart} className="text-[11px] text-brand font-semibold hover:opacity-80">ลากใหม่อีกรอบ</button>}
                     </div>
-                    <p className="text-[10px] text-gray-400 text-center mt-1 leading-relaxed">
-                        ระบบตรวจคร่าวๆ ที่เขียนขึ้นเอง (อ้างอิงจากภาพจริงด้านบน) ไม่ใช่ข้อมูลตรวจสอบจากภายนอกแบบเกาหลี
-                    </p>
                 </div>
             );
         }
@@ -1517,10 +1520,6 @@
                             );
                         })}
                     </svg>
-                    <p className="text-[10px] text-gray-400 text-center mt-1 leading-relaxed">
-                        รูปทรงตัวอักษรตรงกับฟอนต์เทวนาครีจริง แต่การแบ่งขีดเป็นการประมาณคร่าวๆ ตามหลักทั่วไป
-                        ไม่ใช่ข้อมูลที่ตรวจสอบจากภายนอกแบบเกาหลี
-                    </p>
                 </div>
             );
         }
@@ -1607,9 +1606,6 @@
                         {!finished && <button type="button" onClick={skipStroke} className="text-[11px] text-gray-400 hover:text-gray-600 underline">ข้ามขีดนี้</button>}
                         {finished && <button type="button" onClick={restart} className="text-[11px] text-brand font-semibold hover:opacity-80">ลากใหม่อีกรอบ</button>}
                     </div>
-                    <p className="text-[10px] text-gray-400 text-center mt-1 leading-relaxed">
-                        ระบบตรวจคร่าวๆ ที่เขียนขึ้นเอง — รูปทรงตัวอักษรตรงกับฟอนต์จริง แต่การแบ่งขีดเป็นการประมาณคร่าวๆ ไม่ใช่ข้อมูลตรวจสอบจากภายนอกแบบเกาหลี
-                    </p>
                 </div>
             );
         }
@@ -1647,9 +1643,6 @@
                             );
                         })}
                     </svg>
-                    <p className="text-[10px] text-gray-400 text-center mt-1 leading-relaxed">
-                        แผนภาพนี้สร้างจากหลักการเขียนตัวพิมพ์บล็อกมาตรฐานสากล
-                    </p>
                 </div>
             );
         }
@@ -1734,9 +1727,6 @@
                         {!finished && <button type="button" onClick={skipStroke} className="text-[11px] text-gray-400 hover:text-gray-600 underline">ข้ามขีดนี้</button>}
                         {finished && <button type="button" onClick={restart} className="text-[11px] text-brand font-semibold hover:opacity-80">ลากใหม่อีกรอบ</button>}
                     </div>
-                    <p className="text-[10px] text-gray-400 text-center mt-1 leading-relaxed">
-                        ระบบตรวจคร่าวๆ ที่เขียนขึ้นเอง — ใช้หลักการเขียนตัวพิมพ์บล็อกมาตรฐานสากล
-                    </p>
                 </div>
             );
         }
@@ -1838,8 +1828,8 @@
         //    สองภาษาไม่เหมือนกันเป๊ะ (จีนมี radical, ญี่ปุ่นไม่มี / คะนะไม่มี meaningTh) ──────────────────
         function ScriptPanel({ srs, recordSrs, awardXp, langId }) {
             const queue = useMemo(() => {
-                const due = dueVocab(langId, srs);
-                return due.length ? due : vocabPool(langId).slice(0, 10);
+                const due = dueScript(langId, srs);
+                return due.length ? due : scriptPool(langId).slice(0, 10);
             }, [srs, langId]);
             const [qIdx, setQIdx] = useState(0);
             const [revealed, setRevealed] = useState(false);
@@ -1925,14 +1915,15 @@
         //    HanziWriter — ใช้ HandwritingCanvas เป็นพื้นที่ฝึกลากมือเปล่าแทน (ไม่ผ่าน OCR ตรวจ เพราะ
         //    โมเดล Tesseract ที่โหลดอยู่ตอนนี้ (eng+tha) ไม่รองรับฮันกึล — ส่วนอังกฤษ OCR แม่นอยู่แล้วแต่
         //    ไม่จำเป็นเพราะเป็นแค่ฝึกมือ ไม่ได้ต้องแปลงกลับเป็นข้อความ) โครงสร้างการทวน (due queue/
-        //    self-rate FSRS/พิมพ์คำอ่านให้ตรวจ) เหมือน ScriptPanel ทุกอย่าง — คิวทวนใช้ pool เดียวกับ
-        //    dictation/srsCompose (รวมคำศัพท์ทั่วไปด้วย ไม่ใช่แค่ตัวอักษร/ฮันกึลล้วน) ดังนั้นบางข้อ
+        //    self-rate FSRS/พิมพ์คำอ่านให้ตรวจ) เหมือน ScriptPanel ทุกอย่าง — คิวทวนใช้ scriptPool/dueScript
+        //    (เฉพาะตัวอักษรล้วนๆ ไม่ปนคำศัพท์ทั่วไป ตามที่ผู้ใช้ระบุ: ต้องเขียนตัวอักษรครบ/คล่องก่อนถึงจะ
+        //    เริ่มฝึกคำศัพท์ได้ — เดิมใช้ vocabPool รวมทุกอย่างทำให้คำศัพท์ปนเข้ามาในโหมดนี้) ดังนั้นบางข้อ
         //    (คำศัพท์อังกฤษ) อาจไม่มี c.reading แยกจากตัวคำ (สะกดด้วยตัวอักษรเดียวกันอยู่แล้ว) — ส่วน
         //    "พิมพ์คำอ่านตรวจ" จะซ่อนไปเฉยๆ ถ้าไม่มี c.reading ให้ตรวจ
         function LetterPanel({ srs, recordSrs, awardXp, langId }) {
             const queue = useMemo(() => {
-                const due = dueVocab(langId, srs);
-                return due.length ? due : vocabPool(langId).slice(0, 10);
+                const due = dueScript(langId, srs);
+                return due.length ? due : scriptPool(langId).slice(0, 10);
             }, [srs, langId]);
             const [qIdx, setQIdx] = useState(0);
             const [revealed, setRevealed] = useState(false);
