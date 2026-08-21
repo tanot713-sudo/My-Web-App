@@ -17,6 +17,26 @@
 
   var SYSTEM_PROMPT = 'คุณเป็นผู้ช่วย AI ที่ตอบเป็นภาษาไทยเสมอ (เว้นแต่ผู้ใช้ถามเป็นภาษาอื่นชัดเจน) ' +
     'ตอบให้กระชับ ตรงประเด็น สุภาพ ถ้าไม่แน่ใจคำตอบให้บอกตามตรงว่าไม่แน่ใจ แทนที่จะเดาส่ง';
+
+  /* ── สรุปบทเรียน (แนวคิดจาก claude-cookbooks: capabilities/summarization/guide.ipynb —
+     "guided summarization" คือกำหนดโครงสร้างหัวข้อตายตัวให้โมเดลกรอกตาม แทนที่จะปล่อยให้สรุปแบบ
+     ร้อยแก้วอิสระ) ทำให้อ่านง่าย/สม่ำเสมอ และช่วยโมเดลเล็ก 0.5B ที่ไม่ค่อยรู้ว่าควรสรุปยาวแค่ไหนเองได้ดี
+     ขึ้นด้วย — คุกบุ๊กต้นฉบับใช้ assistant-preamble + stop sequence ของ Anthropic API บังคับให้ขึ้นต้น
+     ที่เนื้อหาทันที (ไม่มีคำนำ) แต่ pipeline ท้องถิ่นตัวนี้ (transformers.js) ไม่รองรับการ prefill
+     ข้อความฝั่ง assistant แบบนั้น จึงใช้สิ่งที่มีอยู่แล้วในไฟล์นี้แทน (ดู langHint ด้านล่างใน
+     sendMessage) คือ "ย้ำ" คำสั่งท้ายสุดก่อน generate ทุกครั้ง ช่วยลดปัญหาโมเดลเล็กขึ้นต้นด้วยคำนำ
+     เกริ่นทั้งที่สั่งห้ามแล้วในระดับหนึ่ง — เป็นคำขอครั้งเดียวไม่ผูกกับบทสนทนาหลัก (messages) จึงไม่ใช้
+     trimMessages() ตรงนี้ ส่ง [system, user] สั้นๆ ตรงๆ ทุกครั้ง (ตรงกับแนวคิด "just-in-time context"
+     จาก context_engineering — ไม่ต้องยัดเข้า context หลักที่ใช้คุยต่อเนื่อง) */
+  var SUMMARY_SYSTEM_PROMPT = 'คุณเป็นผู้ช่วยสรุปบทเรียนภาษาให้ผู้เรียนชาวไทย จะได้รับเนื้อหาบางส่วนของ' +
+    'หน้าเว็บที่ผู้เรียนกำลังดูอยู่ สรุปเนื้อหานั้นให้กระชับ อ่านง่าย ตามโครงสร้างนี้เท่านั้น ' +
+    '(ห้ามขึ้นต้นด้วยคำนำหรือคำอธิบายใดๆ ก่อน ให้เริ่มที่ "หัวข้อหลัก:" ทันที):\n\n' +
+    'หัวข้อหลัก: (หน้านี้เกี่ยวกับอะไร สั้นๆ 1 บรรทัด)\n' +
+    'ประเด็นสำคัญ:\n- (ข้อละบรรทัด ไม่เกิน 5 ข้อ)\n' +
+    'คำศัพท์/สำนวนที่ควรจำ:\n- (คำหรือสำนวนเด่นในเนื้อหานี้ ถ้ามี ไม่เกิน 5 คำ)\n\n' +
+    'ถ้าเนื้อหาที่ได้รับสั้นเกินไปหรือไม่มีสาระให้สรุป ให้ตอบแค่ว่า "เนื้อหาในหน้านี้สั้นเกินไปที่จะสรุปได้"';
+  var SUMMARY_REMINDER = 'ย้ำ: ตอบตามโครงสร้าง 3 หัวข้อที่กำหนดเท่านั้น เริ่มที่ "หัวข้อหลัก:" ทันที ' +
+    'ห้ามขึ้นต้นด้วยคำนำ คำทักทาย หรือคำอธิบายอื่นก่อนหน้านั้นเด็ดขาด';
   /* เจอจริงว่าถ้าผู้ใช้ถามเป็นอังกฤษ โมเดลแชทจะตอบเป็นอังกฤษกลับ (ตาม system prompt) แล้วป้อนข้อความ
      อังกฤษเข้าโมเดลเสียงไทยล้วน (Tanotfin/mms-tts-2081-FM-onnx) ทำให้ tokenize/คำนวณ tensor พังจริง
      ("Tensor shape.Size() must be >= 0") — ต้องเลือกโมเดลเสียงตามภาษาจริงของข้อความที่จะพูด ไม่ใช่ตายตัว
@@ -101,9 +121,11 @@
     + '.ome-ai-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap}'
     + '.ome-ai-speak-lbl{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ome-muted);cursor:pointer}'
     + '.ome-ai-speak-lbl input{accent-color:var(--ome-brand)}'
-    + '.ome-ai-newbtn{border:none;background:transparent;color:var(--ome-muted);font-size:11.5px;'
+    + '.ome-ai-footbtns{display:flex;gap:12px;flex-shrink:0}'
+    + '.ome-ai-newbtn,.ome-ai-sumbtn{border:none;background:transparent;color:var(--ome-muted);font-size:11.5px;'
     + 'cursor:pointer;font-family:inherit;font-weight:600}'
-    + '.ome-ai-newbtn:hover{color:var(--ome-brand-dk)}';
+    + '.ome-ai-newbtn:hover,.ome-ai-sumbtn:hover{color:var(--ome-brand-dk)}'
+    + '.ome-ai-sumbtn:disabled{opacity:.5;cursor:default}';
   var styleEl = document.createElement('style');
   styleEl.textContent = css;
   document.head.appendChild(styleEl);
@@ -128,7 +150,10 @@
       '</div>' +
       '<div class="ome-ai-foot">' +
         '<label class="ome-ai-speak-lbl"><input type="checkbox">🔊 พูดคำตอบด้วยเสียง</label>' +
-        '<button class="ome-ai-newbtn" type="button">🔄 เริ่มแชทใหม่</button>' +
+        '<div class="ome-ai-footbtns">' +
+          '<button class="ome-ai-sumbtn" type="button" title="สรุปเนื้อหาหน้านี้">📝 สรุปหน้านี้</button>' +
+          '<button class="ome-ai-newbtn" type="button">🔄 เริ่มแชทใหม่</button>' +
+        '</div>' +
       '</div>' +
     '</div>';
 
@@ -230,6 +255,7 @@
     var closeBtn = panel.querySelector('.ome-ai-close');
     var speakChk = panel.querySelector('.ome-ai-speak-lbl input');
     var newBtn = panel.querySelector('.ome-ai-newbtn');
+    var sumBtn = panel.querySelector('.ome-ai-sumbtn');
 
     try { speakChk.checked = localStorage.getItem('ome:aiChatSpeak') === 'on'; } catch (e) {}
     speakChk.addEventListener('change', function () {
@@ -252,7 +278,7 @@
         'ขนาดนี้ได้อย่างเสถียร) ปิดไว้ก่อนกันข้อมูลที่ทำค้างอยู่หน้าอื่นหาย — ลองใช้งานจากคอมพิวเตอร์แทนได้ครับ';
       inputEl.placeholder = 'ใช้งานไม่ได้บน iPhone/iPad ตอนนี้ (ดูคำอธิบายด้านบน)';
       inputEl.disabled = true; sendBtn.disabled = true; micBtn.disabled = true;
-      newBtn.style.display = 'none'; speakChk.parentElement.style.display = 'none';
+      newBtn.style.display = 'none'; sumBtn.style.display = 'none'; speakChk.parentElement.style.display = 'none';
       return; // ข้าม wiring ปุ่มส่ง/ไมค์/ฯลฯ ทั้งหมดด้านล่าง กันกดแล้วหลุดไปโหลดโมเดลอยู่ดี
     }
 
@@ -262,7 +288,7 @@
     }
     function setBusy(b) {
       isBusy = b;
-      inputEl.disabled = b; sendBtn.disabled = b; micBtn.disabled = b;
+      inputEl.disabled = b; sendBtn.disabled = b; micBtn.disabled = b; sumBtn.disabled = b;
     }
     function scrollBottom() { logEl.scrollTop = logEl.scrollHeight; }
     function appendBubble(role, text) {
@@ -388,6 +414,69 @@
     inputEl.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); unlockAudioCtx(); sendMessage(false); }
     });
+
+    /* ── สรุปบทเรียนหน้านี้ — คำขอเดี่ยว ไม่ผูกกับ messages หลัก (ดูเหตุผลที่คอมเมนต์
+       SUMMARY_SYSTEM_PROMPT ด้านบนไฟล์) ───────────────────────────────────────────── */
+    function summarizePage() {
+      if (isBusy) return;
+      var pageText = getPageContextText();
+      if (!pageText || pageText.replace(/\s+/g, '').length < 40) {
+        setStatus('เนื้อหาในหน้านี้สั้นเกินไปที่จะสรุปได้', 'err');
+        return;
+      }
+      appendBubble('user', '📝 สรุปเนื้อหาหน้านี้ให้หน่อย');
+      setBusy(true);
+      setStatus('กำลังสรุปเนื้อหาหน้านี้… (ครั้งแรกอาจต้องโหลดโมเดล ~350MB ก่อน)', '');
+
+      var summaryMessages = [
+        { role: 'system', content: SUMMARY_SYSTEM_PROMPT },
+        { role: 'user', content: pageText },
+        { role: 'system', content: SUMMARY_REMINDER }
+      ];
+
+      var jobId = ++jobSeq;
+      var replyBubble = null, replyText = '';
+      var w = getChatWorker();
+
+      function onMsg(e) {
+        var msg = e.data;
+        if (!msg || msg.jobId !== jobId) return;
+        if (msg.type === 'model-progress') {
+          var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
+          setStatus('กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) ' + msg.file + ' ' + pct, '');
+        } else if (msg.type === 'fallback') {
+          setStatus('⚠️ ' + msg.message, '');
+        } else if (msg.type === 'model-info') {
+          console.info('[ai-chat] ใช้โมเดล', msg.modelId, 'บน', msg.device);
+        } else if (msg.type === 'token') {
+          if (!replyBubble) { setStatus('', ''); replyBubble = appendBubble('assistant', ''); }
+          replyText += msg.token;
+          replyBubble.textContent = replyText;
+          scrollBottom();
+        } else if (msg.type === 'done') {
+          cleanup();
+          if (!replyText) setStatus('สรุปไม่สำเร็จ ลองอีกครั้ง', 'err');
+          else if (speakChk.checked) speakText(replyText);
+          setBusy(false); inputEl.focus();
+        } else if (msg.type === 'error') {
+          cleanup();
+          if (replyBubble) replyBubble.remove();
+          setStatus('❌ สรุปไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
+          setBusy(false); inputEl.focus();
+        }
+      }
+      function onErr(e) {
+        cleanup();
+        if (replyBubble) replyBubble.remove();
+        setStatus('❌ สรุปไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
+        setBusy(false); inputEl.focus();
+      }
+      function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+      w.addEventListener('message', onMsg);
+      w.addEventListener('error', onErr);
+      w.postMessage({ type: 'chat', jobId: jobId, messages: summaryMessages, maxNewTokens: 400 });
+    }
+    sumBtn.addEventListener('click', function () { unlockAudioCtx(); summarizePage(); });
 
     /* ── โหมดเปิดไมค์คุย: แตะเริ่มอัด แตะอีกทีหยุด → ถอดเสียงเป็นข้อความ → ส่งอัตโนมัติ →
        บังคับพูดคำตอบกลับด้วยเสียงเสมอ (ไม่ต้องพึ่ง checkbox) ให้ความรู้สึกเหมือนคุยด้วยเสียงจริง ── */
