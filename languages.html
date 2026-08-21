@@ -1518,38 +1518,82 @@
             );
         }
 
-        // ── แผนภาพลำดับขีดเทวนาครี (ฮินดี) — โครงสร้างเดียวกับ RuStrokeDiagram ทุกประการ (generate ภาพเองจาก
-        //    HI_STROKE_PATHS สดๆ ตอน render ไม่มีไฟล์ SVG จากภายนอกให้ใช้เหมือนกัน) — บอกผู้ใช้ตรงๆ ว่า
-        //    รูปทรงตัวอักษรตรงกับฟอนต์จริง (ไม่ได้เดา) แต่การแบ่งขีดเป็นการประมาณคร่าวๆ ตามหลักทั่วไป
+        // ── แผนภาพลำดับขีดเทวนาครี (ฮินดี) — เดิมเป็นภาพนิ่งลูกศร+วงกลมเลขกำกับสี 6 สี ผู้ใช้ทดสอบแล้วบอกว่า
+        //    ดูยาก ขอเปลี่ยนมาใช้ "เส้นวาดเคลื่อนไหว" แบบเดียวกับ RuStrokeDiagram/LatinStrokeDiagram ทุกประการ
+        //    (สีเดียว navy, เส้นโค้งมนด้วย smoothPathD, มีจุดสีทองไล่ตามปลายทางที่กำลังลาก) — ใช้ class ชื่อ
+        //    เฉพาะ (hi-anim-stroke) กันชนกับ animation ของภาษาอื่นที่ mount พร้อมกันได้ พิกัดอยู่ในช่วง 0-100
+        //    พอดีอยู่แล้ว (x:15-88, y:4-80) เลยใช้ viewBox 0 0 100 100 เหมือนภาษาอื่นได้ตรงๆ ไม่ต้องขยายกรอบ
         function HiStrokeDiagram({ char }) {
             const strokes = HI_STROKE_PATHS[char];
+            const svgRef = useRef(null);
+            const penRef = useRef(null);
+
+            useEffect(() => {
+                if (!strokes || !strokes.length || !svgRef.current) return;
+                const svg = svgRef.current;
+                const paths = Array.from(svg.querySelectorAll('.hi-anim-stroke'));
+                const lens = paths.map((p) => p.getTotalLength());
+                paths.forEach((p, i) => {
+                    p.style.strokeDasharray = String(lens[i]);
+                    p.style.strokeDashoffset = String(lens[i]);
+                });
+                const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                if (reduceMotion) {
+                    paths.forEach((p) => { p.style.strokeDashoffset = '0'; });
+                    return;
+                }
+                const STROKE_MS = 620, GAP_MS = 240, END_PAUSE_MS = 1500;
+                const totalPer = STROKE_MS + GAP_MS;
+                const totalTime = paths.length * totalPer + END_PAUSE_MS;
+                const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+                let start = null;
+                let rafId = null;
+
+                function frame(now) {
+                    if (start === null) start = now;
+                    const elapsed = (now - start) % totalTime;
+                    const idx = Math.min(paths.length - 1, Math.floor(elapsed / totalPer));
+                    const localT = elapsed - idx * totalPer;
+                    const progress = Math.min(1, localT / STROKE_MS);
+                    const eased = easeInOutCubic(progress);
+                    paths.forEach((p, i) => {
+                        if (i < idx) p.style.strokeDashoffset = '0';
+                        else if (i === idx) p.style.strokeDashoffset = String(lens[i] * (1 - eased));
+                        else p.style.strokeDashoffset = String(lens[i]);
+                    });
+                    if (penRef.current) {
+                        if (elapsed < paths.length * totalPer) {
+                            const pt = paths[idx].getPointAtLength(lens[idx] * eased);
+                            penRef.current.setAttribute('cx', pt.x);
+                            penRef.current.setAttribute('cy', pt.y);
+                            penRef.current.style.opacity = progress < 1 ? '1' : '0';
+                        } else {
+                            penRef.current.style.opacity = '0';
+                        }
+                    }
+                    rafId = requestAnimationFrame(frame);
+                }
+                rafId = requestAnimationFrame(frame);
+                return () => { if (rafId) cancelAnimationFrame(rafId); };
+            }, [char, strokes]);
+
             if (!strokes || !strokes.length) return null;
-            const toPath = (pts) => pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-            const COLORS = ['#0f766e', '#2563eb', '#d97706', '#16a34a', '#9333ea', '#dc2626'];
             return (
                 <div className="mb-3">
-                    <svg viewBox="-8 -14 116 120" className="mx-auto block" style={{ width: 160, height: 160 }}>
-                        {strokes.map((s, i) => {
-                            const pts = s.points;
-                            const color = COLORS[i % COLORS.length];
-                            if (pts.length === 1) {
-                                return <circle key={i} cx={pts[0][0]} cy={pts[0][1]} r="2.5" fill={color} />;
-                            }
-                            const [ex, ey] = pts[pts.length - 1];
-                            const [px, py] = pts[pts.length - 2];
-                            const ang = Math.atan2(ey - py, ex - px);
-                            const ah = 4;
-                            const a1 = [ex - ah * Math.cos(ang - 0.4), ey - ah * Math.sin(ang - 0.4)];
-                            const a2 = [ex - ah * Math.cos(ang + 0.4), ey - ah * Math.sin(ang + 0.4)];
-                            return (
-                                <g key={i}>
-                                    <path d={toPath(pts)} fill="none" stroke={color} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-                                    <polygon points={`${ex},${ey} ${a1[0]},${a1[1]} ${a2[0]},${a2[1]}`} fill={color} />
-                                    <circle cx={pts[0][0]} cy={pts[0][1]} r="6" fill="#fff" stroke={color} strokeWidth="1.6" />
-                                    <text x={pts[0][0]} y={pts[0][1] + 3} fontSize="7" textAnchor="middle" fill={color} fontWeight="bold">{i + 1}</text>
-                                </g>
-                            );
-                        })}
+                    <svg ref={svgRef} viewBox="0 0 100 100" className="mx-auto block" style={{ width: 160, height: 160 }}>
+                        <line x1="4" y1="24" x2="96" y2="24" stroke="#e5e7eb" strokeWidth="0.5" />
+                        <line x1="4" y1="50" x2="96" y2="50" stroke="#e5e7eb" strokeWidth="0.5" />
+                        <line x1="4" y1="76" x2="96" y2="76" stroke="#e5e7eb" strokeWidth="0.5" />
+                        {strokes.map((s, i) => (
+                            s.points.length < 2 ? (
+                                <circle key={i} className="hi-anim-stroke" cx={s.points[0][0]} cy={s.points[0][1]} r="3"
+                                    fill="none" stroke="#1e2761" strokeWidth="6" />
+                            ) : (
+                                <path key={i} className="hi-anim-stroke" d={smoothPathD(s.points)} fill="none"
+                                    stroke="#1e2761" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+                            )
+                        ))}
+                        <circle ref={penRef} r="2.5" fill="#a97a34" style={{ opacity: 0 }} />
                     </svg>
                 </div>
             );
