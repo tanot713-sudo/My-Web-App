@@ -182,6 +182,28 @@
   var mediaStream = null, mediaRecorder = null, recordedChunks = [];
   var sharedAudioCtx = null;
 
+  /* ⚠️ จัดการบริบทยาว (แนวคิดจาก claude-cookbooks: tool_use/context_engineering — "context rot" และ
+     primitive แบบ clearing/compaction) ปรับใช้แบบง่ายที่สุดที่เหมาะกับที่นี่: primitive จริงของ Anthropic
+     API (compact_20260112, clear_tool_uses_20250919) ใช้ไม่ได้ตรงๆ เพราะที่นี่ไม่ได้เรียก Anthropic API
+     เลย เป็นโมเดลเล็ก (0.5B/1.5B) รันในเครื่องผ่าน transformers.js ที่ไม่มี KV-cache ข้ามรอบ (generator()
+     ประมวลผล messages ทั้งก้อนใหม่ทุกครั้ง ไม่ต่างจากการ "ไม่มี clearing" เลยของ cookbook) แปลว่ายิ่งแชท
+     ยาวเท่าไหร่ ยิ่งช้าลงเรื่อยๆ แบบ O(n²) สะสม (ไม่ใช่แค่ context rot ด้านคุณภาพเหมือนโมเดลใหญ่) และมี
+     รายงานจริงจากผู้ใช้มาแล้วว่าหน่วยความจำ WASM เต็ม (bad_alloc)/หน้าเว็บรีเฟรชเองตอนใช้งานต่อเนื่องนาน
+     (ดูคอมเมนต์ ai-chat-worker.js) — ตัดบริบทเก่าทิ้งแบบ sliding window ตรงๆ ง่ายกว่า "compaction" จริง
+     (ที่ต้องเรียกโมเดลสรุปเพิ่มอีกรอบ ซึ่งเสี่ยงพังเองถ้าโมเดลเล็กสรุปไม่แม่นด้วย) เก็บเฉพาะ system
+     message(s) ตั้งต้น (system prompt + บริบทหน้าเว็บ) ไว้เสมอ + คู่ถาม-ตอบล่าสุดไม่เกิน MAX_HISTORY_TURNS
+     คู่ — ตัดเฉพาะสิ่งที่ "ส่งเข้าโมเดล" เท่านั้น ไม่กระทบข้อความที่แสดงในหน้าแชท (log DOM เก็บแยกอยู่แล้ว) */
+  var MAX_HISTORY_TURNS = 6;
+  function trimMessages() {
+    var leadEnd = 0;
+    while (leadEnd < messages.length && messages[leadEnd].role === 'system') leadEnd++;
+    var lead = messages.slice(0, leadEnd);
+    var convo = messages.slice(leadEnd);
+    var maxConvo = MAX_HISTORY_TURNS * 2;
+    if (convo.length > maxConvo) convo = convo.slice(convo.length - maxConvo);
+    messages = lead.concat(convo);
+  }
+
   function getChatWorker() { if (!chatWorker) chatWorker = new Worker('./ai-chat-worker.js', { type: 'module' }); return chatWorker; }
   function getTtsWorker() { if (!ttsWorker) ttsWorker = new Worker('./tts-worker.js', { type: 'module' }); return ttsWorker; }
   function getAsrWorker() { if (!asrWorker) asrWorker = new Worker('./asr-worker.js', { type: 'module' }); return asrWorker; }
@@ -300,6 +322,7 @@
       inputEl.value = '';
       appendBubble('user', text);
       messages.push({ role: 'user', content: text });
+      trimMessages();
 
       setBusy(true);
       setStatus('กำลังเตรียมคำตอบ… (ครั้งแรกอาจต้องโหลดโมเดล ~350MB ก่อน)', '');
@@ -337,6 +360,7 @@
           cleanup();
           if (replyText) {
             messages.push({ role: 'assistant', content: replyText });
+            trimMessages();
             if (forceSpeak || speakChk.checked) speakText(replyText);
           } else setStatus('ไม่ได้คำตอบกลับมา ลองอีกครั้ง', 'err');
           setBusy(false); inputEl.focus();
