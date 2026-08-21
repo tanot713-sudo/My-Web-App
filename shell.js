@@ -106,7 +106,7 @@
         { key: 'music',  label: 'เรียนดนตรี', href: soonHref('เรียนดนตรี') },
         { key: 'sports', label: 'เรียนกีฬา', href: soonHref('เรียนกีฬา') },
         { key: 'coding', label: 'การเขียนโค้ด', href: soonHref('การเขียนโค้ด') },
-        { key: 'typing', label: 'สอนพิมพ์', href: soonHref('สอนพิมพ์') }
+        { key: 'typing', label: 'สอนพิมพ์', href: 'typing.html' }
       ]
     },
     { key: 'classroom', label: 'ห้องเรียน', children: [

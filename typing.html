@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สอนพิมพ์ | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#4F46E5">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+:root{
+  --bg:#F6F7FB; --card:#FFFFFF; --ink:#1F2430; --muted:#727C93; --line:#EAEDF5;
+  --tt:#4F46E5; --tt-dk:#3730A3; --tt-sf:#EEEDFC;
+  --ok:#17B26A; --err:#E5484D;
+  --f:'Prompt',system-ui,-apple-system,sans-serif;
+  --r:16px; --sh:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--f);background:var(--bg);color:var(--ink);
+  line-height:1.7;font-size:15px;font-weight:400;padding:0 20px 80px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto}
+
+.crumb-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:24px 0 0;flex-wrap:wrap}
+.crumb{font-size:13px;color:var(--muted)}
+.crumb a{color:var(--tt);text-decoration:none;font-weight:500}
+.crumb a:hover{text-decoration:underline}
+.crumb span.sep{margin:0 8px;color:#C9CEDC}
+.lang-toggle{display:inline-flex;align-items:center;gap:2px;background:var(--line);border:none;border-radius:20px;
+  padding:3px;cursor:pointer;font-family:var(--f);flex-shrink:0}
+.lang-toggle span{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:16px;color:var(--muted);transition:.15s}
+.lang-toggle span.active{background:var(--card);color:var(--tt-dk);box-shadow:0 1px 3px rgba(24,31,54,.08)}
+
+.tt-head{display:flex;align-items:flex-start;gap:16px;margin-top:16px}
+.tt-head-icon{width:52px;height:52px;border-radius:16px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--tt),#8B7FF0);color:#fff;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(79,70,229,.28)}
+.tt-head h1{font-size:clamp(21px,3.6vw,28px);font-weight:700;letter-spacing:-.01em}
+.tt-head p{margin-top:4px;color:var(--muted);max-width:64ch;font-size:14px}
+
+.tt-tabs{display:flex;gap:6px;margin-top:22px;overflow-x:auto;padding-bottom:2px}
+.tt-tab{font-family:var(--f);font-size:13px;font-weight:600;padding:9px 14px;border:1.5px solid var(--line);border-radius:11px;
+  background:var(--card);color:var(--muted);cursor:pointer;white-space:nowrap;transition:.15s;flex-shrink:0}
+.tt-tab:hover{border-color:var(--tt)}
+.tt-tab.active{background:var(--tt);color:#fff;border-color:var(--tt)}
+.tt-track-desc{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.6}
+
+.tt-thai-hint{display:none;align-items:center;gap:8px;background:#FFF7E6;color:#8A5B00;border-radius:11px;
+  padding:9px 14px;margin-top:10px;font-size:13px;font-weight:600}
+[data-theme="dark"] .tt-thai-hint{background:#3A2E10;color:#F5C36B}
+
+.tt-layout{display:grid;grid-template-columns:220px 1fr;gap:18px;margin-top:16px;align-items:start}
+@media(max-width:760px){.tt-layout{grid-template-columns:1fr}}
+
+.tt-lesson-list{display:flex;flex-direction:column;gap:6px}
+.tt-lesson{display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:var(--f);
+  text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:11px;padding:10px 12px;
+  cursor:pointer;font-size:13px;color:var(--ink);transition:.15s}
+.tt-lesson:hover{border-color:var(--tt)}
+.tt-lesson.active{border-color:var(--tt);background:var(--tt-sf);color:var(--tt-dk);font-weight:600}
+.tt-lesson-best{font-size:11px;color:var(--ok);font-weight:700;flex-shrink:0}
+
+.tt-main{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:24px;position:relative}
+.tt-stats{display:flex;gap:22px;margin-bottom:18px;flex-wrap:wrap}
+.tt-stat{display:flex;flex-direction:column;gap:2px}
+.tt-stat b{font-size:22px;font-weight:800;color:var(--tt-dk)}
+.tt-stat span{font-size:11.5px;color:var(--muted);font-weight:600}
+
+.tt-practice-area{position:relative;background:var(--bg);border-radius:12px;padding:20px;cursor:text;min-height:90px}
+.tt-practice-text{font-size:19px;line-height:1.9;letter-spacing:.3px;word-break:break-word}
+.tt-char{color:#B9BFCF;transition:color .1s}
+.tt-char.correct{color:var(--ink)}
+.tt-char.wrong{color:var(--err);background:#FFE3E3;border-radius:2px}
+[data-theme="dark"] .tt-char.wrong{background:#3A1F22}
+.tt-char.cursor{border-left:2px solid var(--tt);animation:tt-blink 1s step-end infinite}
+@keyframes tt-blink{50%{border-color:transparent}}
+.tt-hidden-input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.tt-focus-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(246,247,251,.85);border-radius:12px;font-size:13.5px;font-weight:600;color:var(--muted);
+  pointer-events:none}
+[data-theme="dark"] .tt-focus-hint{background:rgba(15,18,26,.85)}
+.tt-practice-area.done .tt-focus-hint{display:none}
+
+.tt-keyboard{margin-top:22px;display:flex;flex-direction:column;gap:6px;align-items:center}
+.tt-kbrow{display:flex;gap:5px}
+.tt-key{width:34px;height:34px;border-radius:8px;background:var(--bg);border:1.5px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--muted);
+  transition:.12s}
+.tt-key.home{border-bottom:3px solid #C9CEDC}
+.tt-key.next{background:var(--tt);color:#fff;border-color:var(--tt);transform:scale(1.08)}
+.tt-key.tt-space{width:220px}
+@media(max-width:600px){.tt-keyboard{display:none}}
+
+.tt-result{display:none;position:absolute;inset:0;background:var(--card);border-radius:var(--r);
+  flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px}
+.tt-result h2{font-size:20px;font-weight:800;color:var(--tt-dk)}
+.tt-result-row{display:flex;gap:28px;flex-wrap:wrap;justify-content:center}
+.tt-result-row .tt-stat b{font-size:28px}
+.tt-result-actions{display:flex;gap:10px;margin-top:6px}
+.btn{font-family:var(--f);font-size:14px;font-weight:600;padding:10px 18px;border:1.5px solid var(--line);
+  border-radius:11px;cursor:pointer;background:var(--card);color:var(--ink);transition:.16s}
+.btn:hover{border-color:var(--tt);color:var(--tt-dk)}
+.btn.primary{background:var(--tt);color:#fff;border-color:var(--tt);box-shadow:0 2px 8px rgba(79,70,229,.28)}
+.btn.primary:hover{background:var(--tt-dk);color:#fff}
+
+footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
+@media(max-width:600px){body{padding:0 14px 60px}.tt-main{padding:16px}}
+</style>
+</head>
+<body class="ome-tool-page">
+<script src="auth-gate.js"></script>
+<div class="wrap" id="typingRoot">
+<div class="crumb-row">
+  <nav class="crumb"><a href="documents.html" data-i18n="crumbResp">งานที่รับผิดชอบ</a><span class="sep">/</span><span data-i18n="crumbTyping">สอนพิมพ์</span></nav>
+  <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
+    <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
+  </button>
+</div>
+
+<div class="tt-head">
+  <div class="tt-head-icon">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 16h8"/></svg>
+  </div>
+  <div>
+    <h1 data-i18n="pageTitle">สอนพิมพ์</h1>
+    <p data-i18n="pageDesc">ฝึกพิมพ์สัมผัสไทย/อังกฤษ ไล่ระดับตั้งแต่แถวกลางจนถึงประโยคเต็ม วัดความเร็ว (WPM) และความแม่นยำแบบสด — ทำงานในเบราว์เซอร์ของคุณทั้งหมด</p>
+  </div>
+</div>
+
+<div class="tt-tabs" id="trackTabs"></div>
+<div class="tt-track-desc" id="trackDesc"></div>
+<div class="tt-thai-hint" id="thaiKbHint" data-i18n="thaiKbHint">⚠️ อย่าลืมสลับคีย์บอร์ดเป็นภาษาไทยก่อนเริ่มพิมพ์</div>
+
+<div class="tt-layout">
+  <div class="tt-lesson-list" id="lessonList"></div>
+
+  <div class="tt-main">
+    <div class="tt-stats">
+      <div class="tt-stat"><b id="statWpm">0</b><span data-i18n="statsWpm">คำ/นาที</span></div>
+      <div class="tt-stat"><b id="statAcc">100%</b><span data-i18n="statsAcc">ความแม่นยำ</span></div>
+      <div class="tt-stat"><b id="statTime">0s</b><span data-i18n="statsTime">เวลา</span></div>
+    </div>
+
+    <div class="tt-practice-area" id="practiceArea">
+      <div class="tt-practice-text" id="practiceText"></div>
+      <input class="tt-hidden-input" id="hiddenInput" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div class="tt-focus-hint" id="focusHint" data-i18n="clickToFocus">คลิกที่นี่เพื่อเริ่มพิมพ์</div>
+    </div>
+
+    <div class="tt-keyboard" id="virtualKeyboard"></div>
+
+    <div class="tt-result" id="resultPanel">
+      <h2 data-i18n="resultTitle">จบบทเรียนแล้ว!</h2>
+      <div class="tt-result-row">
+        <div class="tt-stat"><b id="resultWpm">0</b><span data-i18n="resultWpm">ความเร็ว</span></div>
+        <div class="tt-stat"><b id="resultAcc">100%</b><span data-i18n="resultAcc">ความแม่นยำ</span></div>
+        <div class="tt-stat"><b id="resultBest">0</b><span data-i18n="resultBest">สถิติที่ดีที่สุด</span></div>
+      </div>
+      <div class="tt-result-actions">
+        <button class="btn" id="retryBtn" type="button" data-i18n="btnRetry">ฝึกซ้ำ</button>
+        <button class="btn primary" id="nextBtn" type="button" data-i18n="btnNext">บทถัดไป</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script src="typing.js"></script>
+</body>
+</html>
