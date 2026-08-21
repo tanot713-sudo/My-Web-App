@@ -11178,7 +11178,7 @@
         ];
 
         function ListeningPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-yue' ? LISTENING_PASSAGES_YUE : langId === 'lang-en' ? LISTENING_PASSAGES_EN : langId === 'lang-de' ? LISTENING_PASSAGES_DE : langId === 'lang-fr' ? LISTENING_PASSAGES_FR : langId === 'lang-it' ? LISTENING_PASSAGES_IT : langId === 'lang-es' ? LISTENING_PASSAGES_ES : langId === 'lang-pt' ? LISTENING_PASSAGES_PT : langId === 'lang-ru' ? LISTENING_PASSAGES_RU : langId === 'lang-in' ? LISTENING_PASSAGES_HI : langId === 'lang-ar' ? LISTENING_PASSAGES_AR : langId === 'lang-vn' ? LISTENING_PASSAGES_VN : LISTENING_PASSAGES;
+            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-yue' ? LISTENING_PASSAGES_YUE : langId === 'lang-en' ? LISTENING_PASSAGES_EN : langId === 'lang-de' ? LISTENING_PASSAGES_DE : langId === 'lang-fr' ? LISTENING_PASSAGES_FR : langId === 'lang-it' ? LISTENING_PASSAGES_IT : langId === 'lang-es' ? LISTENING_PASSAGES_ES : langId === 'lang-pt' ? LISTENING_PASSAGES_PT : langId === 'lang-ru' ? LISTENING_PASSAGES_RU : langId === 'lang-in' ? LISTENING_PASSAGES_HI : langId === 'lang-ar' ? LISTENING_PASSAGES_AR : langId === 'lang-vn' ? LISTENING_PASSAGES_VN : langId === 'lang-my' ? LISTENING_PASSAGES_MY : LISTENING_PASSAGES;
             const langCode = LANGS[langId].code;
             const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' || langId === 'lang-in' || langId === 'lang-ar' || langId === 'lang-vn' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
@@ -11312,7 +11312,7 @@
         // หมายเหตุ lang-yue: Whisper (asr-worker.js) ไม่มีตัวเลือกภาษา "cantonese" แยกต่างหากในรายชื่อ
         // ภาษาทางการ 99 ภาษา ใช้ 'chinese' แทน (ใกล้เคียงที่สุดที่มี แม่นยำน้อยกว่าภาษาที่มีในรายชื่อจริง
         // — ผู้ใช้ควรตรวจทานข้อความที่ถอดออกมาเองเสมอ เหมือนที่ระบบเตือนไว้อยู่แล้วทั่วไป)
-        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean', 'lang-yue': 'chinese', 'lang-de': 'german', 'lang-fr': 'french', 'lang-it': 'italian', 'lang-es': 'spanish', 'lang-pt': 'portuguese', 'lang-ru': 'russian', 'lang-in': 'hindi', 'lang-ar': 'arabic', 'lang-vn': 'vietnamese' };
+        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean', 'lang-yue': 'chinese', 'lang-de': 'german', 'lang-fr': 'french', 'lang-it': 'italian', 'lang-es': 'spanish', 'lang-pt': 'portuguese', 'lang-ru': 'russian', 'lang-in': 'hindi', 'lang-ar': 'arabic', 'lang-vn': 'vietnamese', 'lang-my': 'malay' };
         function transcribeSpeech(pcm, langName) {
             return new Promise((resolve, reject) => {
                 const w = getAsrWorker();
@@ -11896,7 +11896,7 @@
         ];
 
         function ReadingPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-yue' ? READING_PASSAGES_YUE : langId === 'lang-en' ? READING_PASSAGES_EN : langId === 'lang-de' ? READING_PASSAGES_DE : langId === 'lang-fr' ? READING_PASSAGES_FR : langId === 'lang-it' ? READING_PASSAGES_IT : langId === 'lang-es' ? READING_PASSAGES_ES : langId === 'lang-pt' ? READING_PASSAGES_PT : langId === 'lang-ru' ? READING_PASSAGES_RU : langId === 'lang-in' ? READING_PASSAGES_HI : langId === 'lang-ar' ? READING_PASSAGES_AR : langId === 'lang-vn' ? READING_PASSAGES_VN : READING_PASSAGES;
+            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-yue' ? READING_PASSAGES_YUE : langId === 'lang-en' ? READING_PASSAGES_EN : langId === 'lang-de' ? READING_PASSAGES_DE : langId === 'lang-fr' ? READING_PASSAGES_FR : langId === 'lang-it' ? READING_PASSAGES_IT : langId === 'lang-es' ? READING_PASSAGES_ES : langId === 'lang-pt' ? READING_PASSAGES_PT : langId === 'lang-ru' ? READING_PASSAGES_RU : langId === 'lang-in' ? READING_PASSAGES_HI : langId === 'lang-ar' ? READING_PASSAGES_AR : langId === 'lang-vn' ? READING_PASSAGES_VN : langId === 'lang-my' ? READING_PASSAGES_MY : READING_PASSAGES;
             const langCode = LANGS[langId].code;
             const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' || langId === 'lang-in' || langId === 'lang-ar' || langId === 'lang-vn' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
@@ -12287,7 +12287,7 @@
         }
 
         function NumbersDatesPanel({ awardXp, langId }) {
-            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-yue' ? NUMBERS_DATES_YUE : langId === 'lang-en' ? NUMBERS_DATES_EN : langId === 'lang-de' ? NUMBERS_DATES_DE : langId === 'lang-fr' ? NUMBERS_DATES_FR : langId === 'lang-it' ? NUMBERS_DATES_IT : langId === 'lang-es' ? NUMBERS_DATES_ES : langId === 'lang-pt' ? NUMBERS_DATES_PT : langId === 'lang-ru' ? NUMBERS_DATES_RU : langId === 'lang-in' ? NUMBERS_DATES_HI : langId === 'lang-ar' ? NUMBERS_DATES_AR : langId === 'lang-vn' ? NUMBERS_DATES_VN : NUMBERS_DATES;
+            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-yue' ? NUMBERS_DATES_YUE : langId === 'lang-en' ? NUMBERS_DATES_EN : langId === 'lang-de' ? NUMBERS_DATES_DE : langId === 'lang-fr' ? NUMBERS_DATES_FR : langId === 'lang-it' ? NUMBERS_DATES_IT : langId === 'lang-es' ? NUMBERS_DATES_ES : langId === 'lang-pt' ? NUMBERS_DATES_PT : langId === 'lang-ru' ? NUMBERS_DATES_RU : langId === 'lang-in' ? NUMBERS_DATES_HI : langId === 'lang-ar' ? NUMBERS_DATES_AR : langId === 'lang-vn' ? NUMBERS_DATES_VN : langId === 'lang-my' ? NUMBERS_DATES_MY : NUMBERS_DATES;
             const langCode = LANGS[langId].code;
             const [catKey, setCatKey] = useState('all');
             const [queue, setQueue] = useState(() => buildNdQueue('all', dataset));
@@ -13986,6 +13986,233 @@
             ],
         };
 
+        // ── บทฟังภาษามาเลย์ 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่น รวมตัวละคร "Minji" ที่ปรากฏซ้ำทุกภาษา) ──
+        const LISTENING_PASSAGES_MY = [
+            {
+                level: 1, title: 'Di telefon',
+                lines: [
+                    { speaker: 'A', target: 'Helo?', thai: 'ฮัลโหล' },
+                    { speaker: 'B', target: 'Helo, saya Minji.', thai: 'สวัสดีค่ะ ฉันชื่อมินจี' },
+                    { speaker: 'A', target: 'Awak sekarang di mana?', thai: 'ตอนนี้คุณอยู่ที่ไหน' },
+                    { speaker: 'B', target: 'Saya sekarang di rumah.', thai: 'ฉันอยู่บ้าน' },
+                ],
+                questions: [
+                    { q: 'Di mana Minji sekarang?', choices: ['Di rumah', 'Di sekolah', 'Di pejabat'], correct: 'Di rumah' },
+                    { q: 'Siapa yang berkata "saya Minji"?', choices: ['Minji', 'Orang lain', 'Tiada siapa'], correct: 'Minji' },
+                ],
+            },
+            {
+                level: 1, title: 'Di kedai',
+                lines: [
+                    { speaker: 'A', target: 'Epal ini berapa harganya?', thai: 'แอปเปิลลูกนี้ราคาเท่าไหร่' },
+                    { speaker: 'B', target: 'Ini satu ringgit.', thai: 'หนึ่งริงกิตค่ะ' },
+                    { speaker: 'A', target: 'Mahal. Boleh kurangkan sikit?', thai: 'แพงไปนะ ลดหน่อยได้ไหม' },
+                    { speaker: 'B', target: 'Baiklah, lapan puluh sen sahaja.', thai: 'ได้ค่ะ แปดสิบเซ็นเท่านั้น' },
+                ],
+                questions: [
+                    { q: 'Berapa harga pada mulanya?', choices: ['Satu ringgit', 'Lapan puluh sen', 'Lima puluh sen'], correct: 'Satu ringgit' },
+                    { q: 'Berapa harga akhirnya?', choices: ['Satu ringgit', 'Lapan puluh sen', 'Lima puluh sen'], correct: 'Lapan puluh sen' },
+                ],
+            },
+            {
+                level: 2, title: 'Janji temu',
+                lines: [
+                    { speaker: 'A', target: 'Awak free petang ini?', thai: 'คืนนี้คุณว่างไหม' },
+                    { speaker: 'B', target: 'Ya, free. Kenapa?', thai: 'ว่างสิ มีอะไรเหรอ' },
+                    { speaker: 'A', target: 'Nak tengok wayang sama-sama?', thai: 'ไปดูหนังด้วยกันไหม' },
+                    { speaker: 'B', target: 'Bagus! Pukul berapa kita jumpa?', thai: 'ดีเลย! นัดกี่โมงดี' },
+                    { speaker: 'A', target: 'Pukul tujuh, di depan pawagam.', thai: 'หนึ่งทุ่ม ที่หน้าโรงหนัง' },
+                ],
+                questions: [
+                    { q: 'Apa yang mereka akan buat?', choices: ['Tengok wayang', 'Makan bersama', 'Membeli-belah'], correct: 'Tengok wayang' },
+                    { q: 'Pukul berapa mereka akan jumpa?', choices: ['Pukul tujuh', 'Pukul enam', 'Pukul sembilan'], correct: 'Pukul tujuh' },
+                ],
+            },
+            {
+                level: 2, title: 'Cuaca hari ini',
+                lines: [
+                    { speaker: 'A', target: 'Cuaca hari ini macam mana?', thai: 'วันนี้อากาศเป็นยังไงบ้าง' },
+                    { speaker: 'B', target: 'Sejuk sangat. Hujan pun ada.', thai: 'วันนี้หนาวมาก แล้วก็ฝนตกด้วย' },
+                    { speaker: 'A', target: 'Kalau begitu mungkin kita tak pergi taman.', thai: 'งั้นเราไม่ไปสวนสาธารณะกันดีกว่า' },
+                    { speaker: 'B', target: 'Ya, baik kita duduk di rumah tengok TV sahaja.', thai: 'ได้ อยู่บ้านดูทีวีกันดีกว่า' },
+                ],
+                questions: [
+                    { q: 'Bagaimana cuaca hari ini?', choices: ['Sejuk dan hujan', 'Panas dan cerah', 'Salji turun'], correct: 'Sejuk dan hujan' },
+                    { q: 'Akhirnya apa yang mereka buat?', choices: ['Duduk rumah tengok TV', 'Pergi taman', 'Membeli-belah'], correct: 'Duduk rumah tengok TV' },
+                ],
+            },
+            {
+                level: 3, title: 'Mencari kerja',
+                lines: [
+                    { speaker: 'A', target: 'Kebelakangan ini awak buat apa?', thai: 'ช่วงนี้คุณยุ่งอะไรอยู่' },
+                    { speaker: 'B', target: 'Saya sedang cari kerja. Dah pergi temu duga tiga kali.', thai: 'ฉันกำลังหางาน ไปสัมภาษณ์มาสามครั้งแล้ว' },
+                    { speaker: 'A', target: 'Macam mana, lancar tak?', thai: 'เป็นยังไงบ้าง ราบรื่นไหม' },
+                    { speaker: 'B', target: 'Okay lah. Minggu depan ada satu syarikat akan telefon semula.', thai: 'ก็โอเคนะ มีบริษัทหนึ่งจะตอบกลับสัปดาห์หน้า' },
+                ],
+                questions: [
+                    { q: 'Apa B buat kebelakangan ini?', choices: ['Cari kerja', 'Belajar', 'Melancong'], correct: 'Cari kerja' },
+                    { q: 'Berapa kali B pergi temu duga?', choices: ['Tiga kali', 'Dua kali', 'Sekali'], correct: 'Tiga kali' },
+                ],
+            },
+            {
+                level: 3, title: 'Rancangan percutian',
+                lines: [
+                    { speaker: 'A', target: 'Cuti musim panas ini awak nak pergi ke mana?', thai: 'ปิดเทอมนี้คุณจะไปเที่ยวที่ไหน' },
+                    { speaker: 'B', target: 'Saya sedang fikir nak pergi Munich. Pemandangan di sana sangat cantik.', thai: 'ฉันตั้งใจจะไปมิวนิก ที่นั่นวิวสวยมาก' },
+                    { speaker: 'A', target: 'Awak pergi sendirian?', thai: 'ไปคนเดียวเหรอ' },
+                    { speaker: 'B', target: 'Tidak, dengan pasangan saya. Kami rancang naik kereta api.', thai: 'เปล่า ฉันไปกับแฟน เราตั้งใจจะนั่งรถไฟไป' },
+                ],
+                questions: [
+                    { q: 'B rancang nak pergi ke mana?', choices: ['Munich', 'Berlin', 'Hamburg'], correct: 'Munich' },
+                    { q: 'Mereka rancang naik apa?', choices: ['Kereta api', 'Kapal terbang', 'Kereta'], correct: 'Kereta api' },
+                ],
+            },
+        ];
+
+        // ── บทอ่านภาษามาเลย์ 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่น) ──
+        const READING_PASSAGES_MY = [
+            {
+                level: 1, title: 'Hari saya',
+                lines: [
+                    { target: 'Saya bangun pukul tujuh setiap hari.', thai: 'ทุกวันฉันตื่นนอนเจ็ดโมงเช้า' },
+                    { target: 'Selepas sarapan saya pergi ke sekolah.', thai: 'ฉันกินข้าวเช้าก่อน แล้วค่อยไปโรงเรียน' },
+                    { target: 'Di sekolah saya belajar.', thai: 'ฉันเรียนหนังสือที่โรงเรียน' },
+                    { target: 'Waktu tengah hari saya makan bersama kawan.', thai: 'ตอนเที่ยงฉันกินข้าวเที่ยงกับเพื่อน' },
+                    { target: 'Pukul tiga petang saya pulang ke rumah.', thai: 'ตอนบ่ายสามโมงฉันกลับบ้าน' },
+                    { target: 'Waktu petang saya tengok TV dan tidur pukul sepuluh malam.', thai: 'ตอนเย็นฉันดูทีวี นอนสี่ทุ่ม' },
+                ],
+                questions: [
+                    { q: 'Pukul berapa orang ini bangun?', choices: ['Pukul tujuh', 'Pukul lapan', 'Pukul enam'], correct: 'Pukul tujuh' },
+                    { q: 'Apa yang orang ini buat sebelum pergi ke sekolah?', choices: ['Makan sarapan', 'Mandi', 'Tengok TV'], correct: 'Makan sarapan' },
+                ],
+            },
+            {
+                level: 1, title: 'Keluarga saya',
+                lines: [
+                    { target: 'Keluarga saya ada empat orang: ayah, ibu, kakak dan saya.', thai: 'ครอบครัวฉันมีสี่คน: พ่อ แม่ พี่สาว และฉัน' },
+                    { target: 'Ayah saya doktor, ibu saya guru.', thai: 'พ่อเป็นหมอ แม่เป็นครู' },
+                    { target: 'Kakak saya tiga tahun lebih tua daripada saya, dia belajar di universiti.', thai: 'พี่สาวอายุมากกว่าฉันสามปี เธอเรียนอยู่มหาวิทยาลัย' },
+                    { target: 'Rumah kami ada seekor anjing kecil. Dia sangat comel.', thai: 'บ้านเรามีหมาตัวเล็กหนึ่งตัว มันน่ารักมาก' },
+                    { target: 'Hari Ahad kami semua pergi taman bersama-sama.', thai: 'วันอาทิตย์เราไปเที่ยวสวนสาธารณะด้วยกัน' },
+                ],
+                questions: [
+                    { q: 'Apa pekerjaan ayah?', choices: ['Doktor', 'Guru', 'Pekerja'], correct: 'Doktor' },
+                    { q: 'Kakak lebih tua berapa tahun?', choices: ['Tiga tahun', 'Dua tahun', 'Setahun'], correct: 'Tiga tahun' },
+                ],
+            },
+            {
+                level: 2, title: 'Rancangan hujung minggu',
+                lines: [
+                    { target: 'Hujung minggu ini saya rancang buat banyak perkara.', thai: 'สุดสัปดาห์นี้ฉันตั้งใจจะทำหลายอย่าง' },
+                    { target: 'Sabtu pagi saya baca buku di perpustakaan, petang membeli-belah dengan kawan.', thai: 'เช้าวันเสาร์ฉันจะไปห้องสมุดอ่านหนังสือ บ่ายไปซื้อของกับเพื่อน' },
+                    { target: 'Waktu malam saya rancang tengok wayang.', thai: 'ตอนเย็นเราตั้งใจจะไปดูหนัง' },
+                    { target: 'Hari Ahad saya nak berehat di rumah. Mungkin masak untuk keluarga.', thai: 'วันอาทิตย์ฉันอยากพักผ่อนอยู่บ้าน อาจจะทำกับข้าวให้ครอบครัวกิน' },
+                    { target: 'Kalau cuaca baik, saya juga nak berlari di taman.', thai: 'ถ้าอากาศดี ฉันยังอยากไปวิ่งที่สวนสาธารณะด้วย' },
+                ],
+                questions: [
+                    { q: 'Sabtu pagi orang ini pergi ke mana?', choices: ['Perpustakaan', 'Restoran', 'Pawagam'], correct: 'Perpustakaan' },
+                    { q: 'Apa orang ini nak buat hari Ahad?', choices: ['Berehat di rumah', 'Pergi kerja', 'Melancong'], correct: 'Berehat di rumah' },
+                ],
+            },
+            {
+                level: 2, title: 'Hari sakit',
+                lines: [
+                    { target: 'Malam tadi badan saya rasa tak sedap.', thai: 'เมื่อคืนฉันรู้สึกไม่สบาย' },
+                    { target: 'Kepala sakit dan demam sedikit.', thai: 'ปวดหัวมาก แล้วก็มีไข้นิดหน่อย' },
+                    { target: 'Pagi ini saya tak pergi kerja, saya pergi jumpa doktor.', thai: 'เช้านี้ฉันไม่ได้ไปทำงาน ไปโรงพยาบาลหาหมอ' },
+                    { target: 'Doktor kata saya selesema, suruh minum air banyak dan berehat, dan bagi ubat.', thai: 'หมอบอกว่าฉันเป็นหวัด ให้ดื่มน้ำเยอะๆ พักผ่อนเยอะๆ แล้วก็จ่ายยาให้ฉันด้วย' },
+                    { target: 'Selepas makan ubat saya rasa jauh lebih baik.', thai: 'หลังจากกินยาแล้วรู้สึกดีขึ้นมาก' },
+                ],
+                questions: [
+                    { q: 'Kenapa orang ini rasa tak sihat?', choices: ['Selesema', 'Sakit perut', 'Kaki cedera'], correct: 'Selesema' },
+                    { q: 'Apa doktor kata?', choices: ['Minum air banyak dan berehat', 'Bersenam banyak', 'Jangan makan apa-apa'], correct: 'Minum air banyak dan berehat' },
+                ],
+            },
+            {
+                level: 3, title: 'Penerbangan pertama saya',
+                lines: [
+                    { target: 'Bulan lepas saya pergi ke Berlin naik kapal terbang sendirian buat kali pertama.', thai: 'เดือนที่แล้วฉันนั่งเครื่องบินไปเที่ยวเบอร์ลินคนเดียวเป็นครั้งแรก' },
+                    { target: 'Sebelum pergi saya sangat gementar. Saya takut tak jumpa pintu berlepas.', thai: 'ก่อนออกเดินทางฉันตื่นเต้นมาก กลัวว่าตัวเองจะหาประตูขึ้นเครื่องไม่เจอ' },
+                    { target: 'Sampai di lapangan terbang saya tengok maklumat di skrin dan berjaya jumpa pintu berlepas dengan mudah.', thai: 'พอถึงสนามบิน ฉันดูข้อมูลบนจอแล้วหาประตูขึ้นเครื่องเจอได้อย่างราบรื่น' },
+                    { target: 'Ada masa lagi jadi saya jalan-jalan di lapangan terbang dan beli hadiah kecil.', thai: 'ยังมีเวลาเดินเล่นในสนามบิน ซื้อของฝากเล็กๆ น้อยๆ ด้วย' },
+                    { target: 'Waktu kapal terbang berlepas saya rasa takut sedikit, tapi lama-lama biasa.', thai: 'ตอนเครื่องบินขึ้น ฉันกลัวนิดหน่อย แต่ค่อยๆ ชินไป' },
+                ],
+                questions: [
+                    { q: 'Sebelum pergi bagaimana perasaan orang ini?', choices: ['Gementar dan risau tentang pintu berlepas', 'Sangat gembira', 'Tiada perasaan apa-apa'], correct: 'Gementar dan risau tentang pintu berlepas' },
+                    { q: 'Selain cari pintu berlepas apa lagi dia buat di lapangan terbang?', choices: ['Jalan-jalan dan beli hadiah', 'Tidur', 'Telefon kawan'], correct: 'Jalan-jalan dan beli hadiah' },
+                ],
+            },
+            {
+                level: 3, title: 'Pengalaman belajar bahasa Melayu saya',
+                lines: [
+                    { target: 'Saya sudah belajar bahasa Melayu selama dua tahun.', thai: 'ฉันเรียนภาษามาเลย์มาสองปีแล้ว' },
+                    { target: 'Pada mulanya sebutan dan tatabahasa rasa sangat susah, saya selalu buat kesilapan, kawan-kawan pun selalu ketawakan saya.', thai: 'ตอนเริ่มแรกฉันรู้สึกว่าการออกเสียงและไวยากรณ์ยากมาก พูดผิดบ่อยๆ แล้วก็ถูกเพื่อนล้อบ่อยๆ' },
+                    { target: 'Kemudian saya dengar lagu Melayu dan tengok video setiap hari, lama-lama saya biasa dengan irama bahasa ini.', thai: 'ต่อมาฉันฟังเพลงมาเลย์และดูวิดีโอภาษามาเลย์ทุกวันอย่างสม่ำเสมอ ค่อยๆ ชินกับจังหวะของภาษานี้' },
+                    { target: 'Sekarang, walaupun masih banyak perkataan saya tak tahu, saya sudah boleh berbual mudah dengan kawan-kawan Malaysia.', thai: 'ตอนนี้แม้จะยังมีคำศัพท์ที่ไม่รู้อีกเยอะ แต่ฉันคุยกับเพื่อนคนมาเลเซียแบบง่ายๆ ได้แล้ว' },
+                    { target: 'Saya rasa perkara paling penting dalam belajar bahasa ialah jangan takut buat silap, asalkan terus berusaha.', thai: 'ฉันคิดว่าสิ่งที่สำคัญที่สุดในการเรียนภาษาคือไม่ต้องกลัวทำผิด ถ้าพยายามต่อไปเรื่อยๆ ยังไงก็ต้องมีความก้าวหน้า' },
+                ],
+                questions: [
+                    { q: 'Pada mulanya apa yang paling susah bagi orang ini?', choices: ['Sebutan dan tatabahasa', 'Perkataan', 'Tulisan'], correct: 'Sebutan dan tatabahasa' },
+                    { q: 'Macam mana orang ini berlatih?', choices: ['Dengar lagu dan tengok video setiap hari', 'Hafal perkataan sahaja', 'Baca tatabahasa sahaja'], correct: 'Dengar lagu dan tengok video setiap hari' },
+                ],
+            },
+        ];
+
+        // ตัวเลข/วันที่/เวลาภาษามาเลย์ — จุดสังเกตสำคัญ: (1) ตัวเลขมาเลย์เป็นระบบสิบ-หน่วยตรงไปตรงมา
+        // (เช่น 23 = dua puluh tiga = "สอง-สิบ-สาม" ต่างจากฮินดีที่แต่ละเลขมีคำเฉพาะของตัวเอง) (2) การ
+        // บอกเวลาใช้ "pukul" นำหน้าเลขชั่วโมงเสมอ มีคำเฉพาะสำหรับครึ่ง/เศษหนึ่งส่วนสี่ (setengah/suku)
+        // คล้ายภาษาไทย (3) รูปแบบวันที่เรียงเลข+เดือนตรงไปตรงมาไม่มีเลขลำดับพิเศษ (ต่างจากฝรั่งเศส/อิตาลี)
+        const NUMBERS_DATES_MY = {
+            numbers: [
+                { prompt: '5', target: 'lima' },
+                { prompt: '8', target: 'lapan' },
+                { prompt: '12', target: 'dua belas' },
+                { prompt: '15', target: 'lima belas' },
+                { prompt: '20', target: 'dua puluh' },
+                { prompt: '23', target: 'dua puluh tiga' },
+                { prompt: '34', target: 'tiga puluh empat' },
+                { prompt: '50', target: 'lima puluh' },
+                { prompt: '67', target: 'enam puluh tujuh' },
+                { prompt: '99', target: 'sembilan puluh sembilan' },
+                { prompt: '100', target: 'seratus' },
+                { prompt: '128', target: 'seratus dua puluh lapan' },
+                { prompt: '256', target: 'dua ratus lima puluh enam' },
+                { prompt: '1000', target: 'seribu' },
+            ],
+            weekday: [
+                { prompt: 'วันจันทร์', target: 'Isnin' },
+                { prompt: 'วันอังคาร', target: 'Selasa' },
+                { prompt: 'วันพุธ', target: 'Rabu' },
+                { prompt: 'วันพฤหัสบดี', target: 'Khamis' },
+                { prompt: 'วันศุกร์', target: 'Jumaat' },
+                { prompt: 'วันเสาร์', target: 'Sabtu' },
+                { prompt: 'วันอาทิตย์', target: 'Ahad' },
+            ],
+            time: [
+                { prompt: '1:00 น.', target: 'pukul satu' },
+                { prompt: '2:00 น.', target: 'pukul dua' },
+                { prompt: '3:30 น.', target: 'pukul tiga setengah' },
+                { prompt: '4:40 น.', target: 'pukul empat empat puluh minit' },
+                { prompt: '6:15 น.', target: 'pukul enam suku' },
+                { prompt: '7:30 น.', target: 'pukul tujuh setengah' },
+                { prompt: '8:45 น.', target: 'pukul sembilan kurang suku' },
+                { prompt: '9:05 น.', target: 'pukul sembilan lima minit' },
+                { prompt: '10:10 น.', target: 'pukul sepuluh sepuluh minit' },
+                { prompt: '11:20 น.', target: 'pukul sebelas dua puluh minit' },
+                { prompt: '12:00 น.', target: 'pukul dua belas tengah hari' },
+            ],
+            date: [
+                { prompt: '1 มกราคม', target: '1 Januari' },
+                { prompt: '14 กุมภาพันธ์', target: '14 Februari' },
+                { prompt: '8 มีนาคม', target: '8 Mac' },
+                { prompt: '1 พฤษภาคม', target: '1 Mei' },
+                { prompt: '20 มิถุนายน', target: '20 Jun' },
+                { prompt: '15 สิงหาคม', target: '15 Ogos' },
+                { prompt: '10 ตุลาคม', target: '10 Oktober' },
+                { prompt: '25 ธันวาคม', target: '25 Disember' },
+            ],
+        };
+
 
         // ── บทฟังภาษาอาหรับ 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่น รวมตัวละคร "Minji" ที่ปรากฏซ้ำทุกภาษา) ──
         const LISTENING_PASSAGES_AR = [
@@ -14453,7 +14680,7 @@
 
         // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN/_JP/_KR/_YUE)/READING_PASSAGES(_EN/_JP/_KR/_YUE)/
         // NUMBERS_DATES(_EN/_JP/_KR/_YUE) + ASR_LANG_NAME) — ภาษาอื่นนอกห้านี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
-        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue', 'lang-de', 'lang-fr', 'lang-it', 'lang-es', 'lang-pt', 'lang-ru', 'lang-in', 'lang-ar', 'lang-vn'];
+        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue', 'lang-de', 'lang-fr', 'lang-it', 'lang-es', 'lang-pt', 'lang-ru', 'lang-in', 'lang-ar', 'lang-vn', 'lang-my'];
         function ListenSpeakView({ langId, setLangId, setXp }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
@@ -14721,7 +14948,7 @@
             // โหมดฟัง-พูด รองรับจีนกลาง+อังกฤษ+ญี่ปุ่น+เกาหลี+จีนกวางตุ้งแล้ว — ถ้าอยู่ภาษาอื่นอยู่
             // ค่อยสลับเป็นจีนกลางให้อัตโนมัติ
             const goListen = () => {
-                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr' && langId !== 'lang-yue' && langId !== 'lang-de' && langId !== 'lang-fr' && langId !== 'lang-it' && langId !== 'lang-es' && langId !== 'lang-pt' && langId !== 'lang-ru' && langId !== 'lang-in' && langId !== 'lang-ar' && langId !== 'lang-vn') setLangId('lang-cn');
+                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr' && langId !== 'lang-yue' && langId !== 'lang-de' && langId !== 'lang-fr' && langId !== 'lang-it' && langId !== 'lang-es' && langId !== 'lang-pt' && langId !== 'lang-ru' && langId !== 'lang-in' && langId !== 'lang-ar' && langId !== 'lang-vn' && langId !== 'lang-my') setLangId('lang-cn');
                 setView('listen');
                 setMobileNavOpen(false);
             };
