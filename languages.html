@@ -1599,91 +1599,10 @@
             );
         }
 
-        // ── โหมด "ฝึกลากขีดเทวนาครีแบบมีระบบตรวจ" — โครงสร้างเดียวกับ RuStrokeQuiz ทุกประการ ต่างกันแค่ใช้
-        //    HiStrokeDiagram/HI_STROKE_PATHS และพารามิเตอร์ชื่อ char (ตัวเดียว ไม่มีคู่ใหญ่-เล็กแบบละติน/ซีริลลิก)
-        function HiStrokeQuiz({ char, onAllDone }) {
-            const strokes = HI_STROKE_PATHS[char];
-            const svgRef = useRef(null);
-            const [strokeIdx, setStrokeIdx] = useState(0);
-            const [drawing, setDrawing] = useState(false);
-            const [curPoints, setCurPoints] = useState([]);
-            const [doneStrokes, setDoneStrokes] = useState([]);
-            const [feedback, setFeedback] = useState('');
-            const doneRef = useRef(false);
-
-            useEffect(() => { setStrokeIdx(0); setCurPoints([]); setDoneStrokes([]); setFeedback(''); doneRef.current = false; }, [char]);
-
-            if (!strokes || !strokes.length) return null;
-            const finished = strokeIdx >= strokes.length;
-            if (finished && !doneRef.current) { doneRef.current = true; if (onAllDone) onAllDone(); }
-
-            const toLocal = (e) => {
-                const rect = svgRef.current.getBoundingClientRect();
-                const x = ((e.clientX - rect.left) / rect.width) * 100;
-                const y = ((e.clientY - rect.top) / rect.height) * 100;
-                return [x, y];
-            };
-            const onDown = (e) => {
-                if (finished) return;
-                e.preventDefault();
-                svgRef.current.setPointerCapture(e.pointerId);
-                setDrawing(true); setFeedback('');
-                setCurPoints([toLocal(e)]);
-            };
-            const onMove = (e) => {
-                if (!drawing) return;
-                e.preventDefault();
-                setCurPoints(prev => [...prev, toLocal(e)]);
-            };
-            const onUp = () => {
-                if (!drawing) return;
-                setDrawing(false);
-                setCurPoints(prev => {
-                    if (prev.length >= 2) {
-                        const ref = strokes[strokeIdx].points;
-                        const result = scoreStrokeMatch(prev, ref);
-                        if (result.ok) {
-                            setDoneStrokes(d => [...d, prev]);
-                            setStrokeIdx(i => i + 1);
-                            setFeedback('');
-                            return [];
-                        } else {
-                            setFeedback('wrong');
-                        }
-                    }
-                    return prev;
-                });
-            };
-            const skipStroke = () => { setStrokeIdx(i => i + 1); setCurPoints([]); setFeedback(''); };
-            const restart = () => { setStrokeIdx(0); setCurPoints([]); setDoneStrokes([]); setFeedback(''); doneRef.current = false; };
-
-            const toPath = (pts) => pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-
-            return (
-                <div className="mb-3">
-                    <HiStrokeDiagram char={char} />
-                    <p className="text-[11px] text-gray-400 text-center mb-1.5 min-h-[3.2em] flex items-center justify-center px-2">
-                        {finished ? 'เขียนครบทุกขีดแล้ว 🎉' : `ดูภาพลำดับขีดด้านบนเป็นตัวช่วย แล้วลองลากขีดที่ ${strokeIdx + 1}/${strokes.length} ในกรอบนี้`}
-                    </p>
-                    <svg ref={svgRef} viewBox="0 0 100 100"
-                        className="mx-auto block rounded-xl border-2 touch-none"
-                        style={{ width: 200, height: 200, background: '#fff', borderColor: feedback === 'wrong' ? '#fca5a5' : '#e5e7eb', touchAction: 'none' }}
-                        onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp} onPointerCancel={onUp}>
-                        {doneStrokes.map((pts, i) => (
-                            <path key={i} d={toPath(pts)} fill="none" stroke="#111827" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
-                        ))}
-                        {!finished && curPoints.length > 1 && (
-                            <path d={toPath(curPoints)} fill="none" stroke={feedback === 'wrong' ? '#ef4444' : '#0f766e'} strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
-                        )}
-                    </svg>
-                    <div className="flex items-center justify-center gap-3 mt-1.5">
-                        {feedback === 'wrong' && <span className="text-[11px] text-red-500 font-semibold">ยังไม่ตรง ลองใหม่อีกครั้ง</span>}
-                        {!finished && <button type="button" onClick={skipStroke} className="text-[11px] text-gray-400 hover:text-gray-600 underline">ข้ามขีดนี้</button>}
-                        {finished && <button type="button" onClick={restart} className="text-[11px] text-brand font-semibold hover:opacity-80">ลากใหม่อีกรอบ</button>}
-                    </div>
-                </div>
-            );
-        }
+        // ── หมายเหตุ: เดิมมี HiStrokeQuiz (โหมดลากขีดเทวนาครีแบบมีระบบตรวจ) ตรงนี้ แต่ผู้ใช้ขอตัดระบบตรวจ
+        //    ออกสำหรับภาษาฮินดีโดยเฉพาะ (ตัวอักษรอื่นที่ยังมีระบบตรวจอยู่ เช่น ซีริลลิก/ละติน/ฮันกึล ไม่กระทบ)
+        //    ตอนนี้ฮินดีใช้ path fallback เดียวกับภาษาที่ไม่มีระบบตรวจ (ดูจุดที่เรียก HiStrokeDiagram ด้านล่าง
+        //    ในบล็อก JSX ของโหมดฝึกตัวอักษร) คือแสดงแผนภาพอ้างอิง + ให้ลากอิสระในกรอบเปล่าไม่มีการให้คะแนน
 
         // ── แผนภาพ+โหมดฝึกลากขีดตัวพิมพ์ใหญ่ละติน — ใช้ร่วมกันได้ทุกภาษาละติน (อังกฤษ/เยอรมัน/ฝรั่งเศส/
         //    อิตาลี/สเปน/โปรตุเกส) เพราะ LATIN_STROKE_PATHS เป็นชุดข้อมูลเดียวกันจริงๆ ไม่ใช่แค่รูปแบบคล้าย
@@ -2139,11 +2058,10 @@
                                         <LatinStrokeQuiz upperChar={c.char[0]} pathsData={LATIN_ACCENT_STROKE_PATHS} />
                                     ) : langId === 'lang-vn' && VN_STROKE_PATHS[c.char] ? (
                                         <LatinStrokeQuiz upperChar={c.char} pathsData={VN_STROKE_PATHS} />
-                                    ) : langId === 'lang-in' && HI_STROKE_PATHS[c.char] ? (
-                                        <HiStrokeQuiz char={c.char} />
                                     ) : (
                                         <>
                                             {langId === 'lang-kr' && <HangulStrokeDiagram char={c.char} />}
+                                            {langId === 'lang-in' && HI_STROKE_PATHS[c.char] && <HiStrokeDiagram char={c.char} />}
                                             <p className="text-[11px] text-gray-400 mb-1.5">ลองลากเขียนตามในกรอบนี้ (ไม่มีระบบตรวจ ใช้ฝึกมือเฉยๆ)</p>
                                             <HandwritingCanvas height={140} />
                                         </>
