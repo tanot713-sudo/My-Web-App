@@ -10036,6 +10036,359 @@
         }
 
         // ══════════════════════════════════════════════════════════════════════════════════
+        // แบบทดสอบความเข้าใจภาษามาเลย์ — โคลนโครงสร้างมาจาก HiExamView ทุกประการ (ไม่มีข้อสอบวัดระดับ
+        // ภาษามาเลย์สำหรับชาวต่างชาติที่เป็นมาตรฐานสากลเปิดเผยโครงสร้างชัดเจนแบบ CEFR/HSK/TOPIK/DELE
+        // เช่นกัน — มีแต่ MUET ซึ่งเป็นข้อสอบภาษาอังกฤษสำหรับคนมาเลเซีย ไม่ใช่ข้อสอบภาษามาเลย์สำหรับ
+        // ชาวต่างชาติ) จึงออกแบบโครงสร้างเองทั้งหมด เป็นแบบทดสอบความเข้าใจทั่วไป 2 ส่วน (ฟัง+อ่าน)
+        // คำศัพท์ส่วนคำศัพท์ดึงจาก vocab-data ภาษามาเลย์ (Stage 1)
+        const MY_SPECIALTY_CATS = ['กฎหมาย (Legal Malay)', 'วิศวกรรม (Engineering Malay)', 'ธุรกิจเชิงลึก (Business Malay)'];
+        function myVocabPool() {
+            const out = [];
+            const cats = VOCAB['lang-my'] || {};
+            Object.keys(cats).forEach(cat => {
+                if (MY_SPECIALTY_CATS.includes(cat)) return;
+                out.push(...(cats[cat] || []).map((w, i) => ({ key: `lang-my::vocab-${cat}::${i}`, word: w.word, thai: w.thai })));
+            });
+            return out;
+        }
+        function genMyWordMeaningMc(pool, count) {
+            const picked = shuffleArr(pool).slice(0, Math.min(count, pool.length));
+            return picked.map(item => {
+                const distractors = shuffleArr(pool.filter(p => p.word !== item.word)).slice(0, 3);
+                const choices = shuffleArr([item.thai, ...distractors.map(d => d.thai)]);
+                return { type: 'my-word-meaning-mc', word: item.word, correct: item.thai, choices };
+            });
+        }
+
+        // ไวยากรณ์มาเลย์เป็นตระกูลออสโตรนีเซียน (Austronesian) — เด่นตรงคำนามไม่ผันตามเพศ/พจน์ (พหูพจน์
+        // ใช้การซ้ำคำ เช่น budak-budak แทนการเติม -s), กริยาไม่ผันตามประธาน/กาล (ใช้บริบท/คำช่วยแทน),
+        // มีคำอุปสรรค (affix) สำคัญ เช่น meN- (กริยา active), di- (กริยา passive), แสดงความเป็นเจ้าของ
+        // ด้วยการวางคำนามไว้หลังกันตรงๆ (rumah saya = บ้านของฉัน ไม่มีคำเชื่อมแบบ "of"), และแยก "bukan"
+        // (ปฏิเสธคำนาม) กับ "tidak" (ปฏิเสธกริยา/คุณศัพท์) ชัดเจนต่างจาก negation คำเดียวของภาษาอื่น
+        const MY_GRAMMAR = [
+            { sentence: "Saya ___ nasi setiap hari.", choices: ["makan", "makanan", "dimakan", "pemakan"], correct: "makan" },
+            { sentence: "Kereta ini ___ oleh abang saya.", choices: ["dibeli", "membeli", "beli", "pembeli"], correct: "dibeli" },
+            { sentence: "Dia sedang ___ buku di perpustakaan.", choices: ["membaca", "baca", "dibaca", "pembaca"], correct: "membaca" },
+            { sentence: "___ itu sangat comel.", choices: ["Budak-budak", "Budak", "Pembudak", "Kebudakan"], correct: "Budak-budak" },
+            { sentence: "Rumah ___ besar dan cantik.", choices: ["saya", "aku punya", "kepada saya", "untuk saya"], correct: "saya" },
+            { sentence: "Dia ___ seorang guru.", choices: ["bukan", "tidak", "tak", "jangan"], correct: "bukan" },
+            { sentence: "Jangan ___ di sini!", choices: ["merokok", "rokok", "perokok", "dirokok"], correct: "merokok" },
+            { sentence: "Saya sudah ___ kerja itu.", choices: ["menyiapkan", "siapkan", "disiapkan", "kesiapan"], correct: "menyiapkan" },
+            { sentence: "Berapa ___ orang dalam keluarga anda?", choices: ["orang", "biji", "ekor", "batang"], correct: "orang" },
+            { sentence: "Kucing itu sedang ___ ikan.", choices: ["makan", "makanan", "termakan", "pemakan"], correct: "makan" },
+        ];
+
+        // บทอ่านสั้น 1 คำถาม/บท เขียนเป็นภาษามาเลย์ระดับต้น หัวข้อคู่ขนานกับภาษาอื่นที่ทำมาก่อนหน้านี้
+        const MY_READING = [
+            { text: "Nama saya Anna. Saya tinggal di Kuala Lumpur. Saya sedang belajar bahasa Thai.", questions: [
+                { q: "Anna belajar bahasa apa?", choices: ["Bahasa Thai", "Bahasa Inggeris", "Bahasa Jerman"], correct: "Bahasa Thai" },
+            ] },
+            { text: "Kedai itu tutup pada hari Isnin. Ia buka dari hari Selasa hingga Ahad.", questions: [
+                { q: "Bilakah kedai itu tutup?", choices: ["Hari Isnin", "Hari Selasa", "Hari Ahad"], correct: "Hari Isnin" },
+            ] },
+            { text: "Semalam saya membeli baju baru di pusat membeli-belah. Baju itu sangat cantik.", questions: [
+                { q: "Apa yang saya beli semalam?", choices: ["Baju", "Kasut", "Beg"], correct: "Baju" },
+            ] },
+            { text: "Hari ini sangat sejuk dan hujan turun. Semalam cuaca panas dan cerah.", questions: [
+                { q: "Bagaimana cuaca hari ini?", choices: ["Sejuk dan hujan", "Panas dan cerah", "Panas dan berangin"], correct: "Sejuk dan hujan" },
+            ] },
+            { text: "Abang saya bekerja sebagai doktor di hospital. Dia membantu orang yang sakit.", questions: [
+                { q: "Apakah pekerjaan abang saya?", choices: ["Doktor", "Guru", "Pemandu"], correct: "Doktor" },
+            ] },
+        ];
+        function genMyPassageMc(dataset, count) {
+            const picked = shuffleArr(dataset).slice(0, Math.min(count, dataset.length));
+            const out = [];
+            picked.forEach(p => { p.questions.forEach(q => out.push({ type: 'passage-mc', text: p.text, q: q.q, choices: shuffleArr(q.choices), correct: q.correct })); });
+            return out;
+        }
+
+        // ประโยคเดียว + เลือกคำตอบที่เหมาะสม (quick response)
+        const MY_RESPONSES = [
+            { phrase: "Sekarang pukul berapa?", choices: ["Sekarang pukul tiga.", "Ya, betul sekali.", "Terima kasih banyak."], correct: "Sekarang pukul tiga." },
+            { phrase: "Awak sudah makan?", choices: ["Sudah, saya sudah makan.", "Sekarang pukul tiga.", "Nama saya Tanot."], correct: "Sudah, saya sudah makan." },
+            { phrase: "Baju ini berapa harganya?", choices: ["Seratus ringgit.", "Sedap sangat.", "Jumpa esok."], correct: "Seratus ringgit." },
+            { phrase: "Bolehkah saya panggil teksi untuk awak?", choices: ["Ya, tolong panggilkan.", "Terima kasih banyak.", "Saya tidak tahu."], correct: "Ya, tolong panggilkan." },
+            { phrase: "Siapa nama awak?", choices: ["Nama saya Tanot.", "Sekarang pukul tiga.", "Sejuk sangat."], correct: "Nama saya Tanot." },
+            { phrase: "Jumpa esok?", choices: ["Ya, jumpa esok.", "Terima kasih banyak.", "Pukul berapa sekarang."], correct: "Ya, jumpa esok." },
+        ];
+        function genMyResponseMc(count) {
+            const picked = shuffleArr(MY_RESPONSES).slice(0, Math.min(count, MY_RESPONSES.length));
+            return picked.map((r, ri) => ({ type: 'my-response-mc', phrase: r.phrase, choices: shuffleArr(r.choices), correct: r.correct, voiceSlot: ri }));
+        }
+
+        // บทสนทนาสั้น 2-4 ประโยค + คำถาม 1 ข้อ/บท
+        const MY_DIALOGUES = [
+            { lines: [{ speaker: 'A', text: "Awak sedang buat apa sekarang?" }, { speaker: 'B', text: "Saya sedang buat kerja rumah." }], q: "Apa yang B sedang buat?", choices: ["Buat kerja rumah", "Makan nasi", "Tidur"], correct: "Buat kerja rumah" },
+            { lines: [{ speaker: 'A', text: "Ini berapa harganya?" }, { speaker: 'B', text: "Lima puluh ringgit." }, { speaker: 'A', text: "Boleh kurangkan sikit?" }, { speaker: 'B', text: "Baiklah, empat puluh ringgit." }], q: "Akhirnya berapa harga yang disepakati?", choices: ["Empat puluh ringgit", "Lima puluh ringgit", "Tiga puluh ringgit"], correct: "Empat puluh ringgit" },
+            { lines: [{ speaker: 'A', text: "Awak free esok?" }, { speaker: 'B', text: "Ya, kenapa?" }, { speaker: 'A', text: "Nak tengok wayang sama-sama?" }, { speaker: 'B', text: "Boleh juga!" }], q: "Apa yang mereka akan buat esok?", choices: ["Tengok wayang", "Makan bersama", "Pergi kerja"], correct: "Tengok wayang" },
+            { lines: [{ speaker: 'A', text: "Cuaca hari ini macam mana?" }, { speaker: 'B', text: "Panas sangat dan hujan pun ada." }], q: "Bagaimana cuaca hari ini?", choices: ["Panas dan hujan", "Sejuk", "Langit cerah"], correct: "Panas dan hujan" },
+            { lines: [{ speaker: 'A', text: "Awak boleh cakap bahasa Melayu?" }, { speaker: 'B', text: "Sikit-sikit, sedang belajar lagi." }], q: "Macam mana kebolehan bahasa Melayu B?", choices: ["Sikit-sikit, sedang belajar", "Sangat lancar", "Tak boleh langsung"], correct: "Sikit-sikit, sedang belajar" },
+            { lines: [{ speaker: 'A', text: "Tandas di mana ya?" }, { speaker: 'B', text: "Di sana." }, { speaker: 'A', text: "Terima kasih banyak." }], q: "Di mana tandas?", choices: ["Di sana", "Di sini", "Tiada tandas"], correct: "Di sana" },
+            { lines: [{ speaker: 'A', text: "Awak pukul berapa pergi kerja hari ini?" }, { speaker: 'B', text: "Pukul sembilan." }, { speaker: 'A', text: "Lambat sangat?" }, { speaker: 'B', text: "Tak lambat, pejabat kami buka pukul sembilan." }], q: "Pukul berapa B pergi kerja?", choices: ["Pukul sembilan", "Pukul lapan", "Pukul sepuluh"], correct: "Pukul sembilan" },
+            { lines: [{ speaker: 'A', text: "Berapa ramai orang dalam keluarga awak?" }, { speaker: 'B', text: "Empat orang, ibu bapa dan adik lelaki saya." }], q: "Berapa ramai orang dalam keluarga B?", choices: ["Empat orang", "Tiga orang", "Lima orang"], correct: "Empat orang" },
+        ];
+        function genMyDialogueMc(count) {
+            const picked = shuffleArr(MY_DIALOGUES).slice(0, Math.min(count, MY_DIALOGUES.length));
+            return picked.map((d, di) => ({ type: 'my-dialogue-mc', lines: d.lines, q: d.q, choices: shuffleArr(d.choices), correct: d.correct, dialogueSlot: di }));
+        }
+
+        function buildMyExam() {
+            const pool = myVocabPool();
+            return {
+                kind: 'my-comprehension',
+                sections: [
+                    { key: 'listening', title: 'Mendengar (ฟัง)', icon: '🎧',
+                        questions: [...genMyResponseMc(6), ...genMyDialogueMc(8)] },
+                    { key: 'reading', title: 'Membaca (อ่าน)', icon: '📖',
+                        questions: [...genMyWordMeaningMc(pool, 15), ...genGrammarMc(MY_GRAMMAR, 10), ...genMyPassageMc(MY_READING, 5)] },
+                ],
+            };
+        }
+
+        // ── แบบทดสอบความเข้าใจภาษามาเลย์ — โครงสร้างเดียวกับ HiExamView ทุกประการ (ไม่มีส่วนเขียน/พูด
+        //    เหมือนกัน ไม่มีขั้น "เลือกประเภทข้อสอบ" เพราะมีแบบทดสอบเดียว)
+        function MyExamView({ langId, setLangId, setXp }) {
+            const [started, setStarted] = useState(false);
+            const [exam, setExam] = useState(null);
+            const [sectionIdx, setSectionIdx] = useState(0);
+            const [showIntro, setShowIntro] = useState(true);
+            const [qIdx, setQIdx] = useState(0);
+            const [answered, setAnswered] = useState(false);
+            const [userAnswer, setUserAnswer] = useState(null);
+            const [sectionResults, setSectionResults] = useState([]);
+            const [correctInSection, setCorrectInSection] = useState(0);
+            const [allWrong, setAllWrong] = useState([]);
+            const [finished, setFinished] = useState(false);
+
+            const resetPerQuestion = () => { setAnswered(false); setUserAnswer(null); };
+            const start = () => {
+                setExam(buildMyExam());
+                setStarted(true);
+                setSectionIdx(0); setShowIntro(true);
+                resetPerQuestion();
+                setSectionResults([]); setCorrectInSection(0); setAllWrong([]); setFinished(false);
+            };
+
+            useEffect(() => {
+                if (!exam || showIntro || finished) return;
+                const sec = exam.sections[sectionIdx];
+                const question = sec && sec.questions[qIdx];
+                if (!question) return;
+                const timers = [];
+                const t0 = setTimeout(() => {
+                    if (question.type === 'my-dialogue-mc') {
+                        question.lines.forEach((ln, i) => timers.push(setTimeout(() => speakVoice(ln.text, 'ms', question.dialogueSlot * 2 + (i % 2)), i * 1800)));
+                    } else if (question.type === 'my-response-mc') {
+                        speakVoice(question.phrase, 'ms', question.voiceSlot);
+                    }
+                }, 400);
+                return () => { clearTimeout(t0); timers.forEach(clearTimeout); };
+            }, [exam, sectionIdx, qIdx, showIntro]);
+
+            if (langId !== 'lang-my') {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-6 text-center">
+                            <p className="text-gray-500 mb-4">แบบทดสอบชุดนี้รองรับเฉพาะภาษามาเลย์</p>
+                            <button onClick={() => setLangId('lang-my')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษามาเลย์</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!started) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-1">แบบทดสอบความเข้าใจภาษามาเลย์</h2>
+                            <p className="text-sm text-gray-500 mb-5">วัดความเข้าใจพื้นฐาน — 2 ส่วน (ฟัง+อ่าน)</p>
+                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
+                                <div className="text-xs text-gray-500">Mendengar (ฟัง) 14 + Membaca (อ่าน) 30 = 44 ข้อ</div>
+                            </button>
+                            <p className="text-xs text-gray-400 leading-relaxed text-left">
+                                <b>หมายเหตุสำคัญ</b>: ต่างจากข้อสอบ HSK/TOEIC/IELTS/JLPT/TOPIK/DELE/PLIDA/ТРКИ ในเว็บนี้ตรงที่
+                                แบบทดสอบชุดนี้<b>ไม่ได้จำลองข้อสอบทางการชุดใดชุดหนึ่ง</b> — เพราะภาษามาเลย์ไม่มีข้อสอบวัดระดับสำหรับ
+                                ชาวต่างชาติที่เป็นมาตรฐานสากลเปิดเผยโครงสร้างชัดเจนแบบ CEFR/HSK/TOPIK ให้อ้างอิง (มีแต่ MUET ซึ่งเป็น
+                                ข้อสอบภาษา<u>อังกฤษ</u>สำหรับคนมาเลเซียเอง ไม่ใช่ข้อสอบภาษามาเลย์สำหรับชาวต่างชาติ) จึงออกแบบโครงสร้าง
+                                และเนื้อหาเองทั้งหมดเป็นแบบทดสอบความเข้าใจทั่วไป<br />
+                                <b>ความแตกต่างจากข้อสอบจริง</b>: Mendengar (ฟัง) แสดงบทพูดเป็นตัวอักษรคู่กับเสียงด้วยเพื่อช่วยผู้เริ่มต้นตามทัน
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+
+            const restart = start;
+            const backToStart = () => { setStarted(false); setExam(null); };
+
+            if (finished) {
+                const totalCorrect = sectionResults.reduce((s, r) => s + r.correct, 0);
+                const totalQ = sectionResults.reduce((s, r) => s + r.total, 0);
+                const pct = totalQ ? Math.round(totalCorrect / totalQ * 100) : 0;
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลแบบทดสอบ</h2>
+                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <p className="text-gray-500 mb-4">{pct}% ถูกต้อง</p>
+                            <div className="grid grid-cols-2 gap-2 mb-5">
+                                {sectionResults.map(r => (
+                                    <div key={r.key} className="bg-white rounded-xl border border-gray-200 p-3">
+                                        <div className="text-xs text-gray-400">{r.title}</div>
+                                        <div className="text-lg font-bold text-gray-800">{r.correct}/{r.total}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {allWrong.length > 0 && (
+                                <div className="text-left bg-white rounded-xl border border-gray-200 p-4 mb-4 max-h-72 overflow-y-auto">
+                                    <p className="text-sm font-bold text-gray-700 mb-2 sticky top-0 bg-white">ข้อที่ตอบผิด ({allWrong.length}):</p>
+                                    <div className="space-y-1.5">
+                                        {allWrong.map((w, i) => (
+                                            <div key={i} className="text-sm text-gray-600 flex justify-between gap-3">
+                                                <span>{w.left}</span>
+                                                <span className="text-gray-800 font-semibold text-right">{w.right}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex gap-2 justify-center flex-wrap">
+                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">ทำใหม่ (สุ่มโจทย์ใหม่)</button>
+                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเริ่มต้น</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const section = exam.sections[sectionIdx];
+
+            if (showIntro) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">ส่วนที่ {sectionIdx + 1}/{exam.sections.length}</p>
+                            <div className="text-5xl mb-3">{section.icon}</div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
+                            <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
+                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const q = section.questions[qIdx];
+
+            const finishSection = () => {
+                const results = [...sectionResults, { key: section.key, title: section.title, correct: correctInSection, total: section.questions.length }];
+                setSectionResults(results);
+                if (sectionIdx + 1 >= exam.sections.length) {
+                    setFinished(true);
+                } else {
+                    setSectionIdx(i => i + 1);
+                    setShowIntro(true);
+                    setQIdx(0);
+                    resetPerQuestion();
+                    setCorrectInSection(0);
+                }
+            };
+            const nextQuestion = () => {
+                if (qIdx + 1 >= section.questions.length) { finishSection(); return; }
+                setQIdx(i => i + 1); resetPerQuestion();
+            };
+            const recordAnswer = (isCorrect, wrongEntry) => {
+                setAnswered(true);
+                if (isCorrect) { setCorrectInSection(c => c + 1); setXp(x => x + 2); }
+                else if (wrongEntry) setAllWrong(w => [...w, wrongEntry]);
+            };
+            const pickMc = (choice) => {
+                if (answered) return;
+                setUserAnswer(choice);
+                const isCorrect = choice === q.correct;
+                const leftLabel = q.word || q.sentence || q.phrase || q.q || q.thai;
+                recordAnswer(isCorrect, isCorrect ? null : { left: leftLabel || 'ข้อนี้', right: q.correct });
+            };
+
+            const progressLabel = `${section.title} · ข้อ ${qIdx + 1}/${section.questions.length}`;
+
+            return (
+                <div className="flex-1 overflow-y-auto bg-gray-50">
+                    <div className="max-w-xl mx-auto p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <span className="text-xs font-bold text-gray-400 uppercase">{progressLabel}</span>
+                            <span className="text-xs font-bold text-brand">ถูก {correctInSection} ข้อ</span>
+                        </div>
+
+                        {q.type === 'my-word-meaning-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-3xl font-bold text-gray-900 mb-1">{q.word}</div>
+                                    <button onClick={() => speak(q.word, 'ms')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'grammar-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'passage-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'my-response-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
+                                    <button onClick={() => speakVoice(q.phrase, 'ms', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                </div>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'my-dialogue-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <div className="space-y-1">
+                                        {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
+                                    </div>
+                                    <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'ms', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
+                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {answered && (
+                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                                {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ══════════════════════════════════════════════════════════════════════════════════
         // แบบทดสอบความเข้าใจภาษาจีนกวางตุ้ง — ต่างจาก HSK/TOEIC/IELTS/JLPT/TOPIK ตรงที่ "ไม่ได้จำลอง
         // ข้อสอบทางการชุดใดชุดหนึ่ง" เพราะค้นหาแล้วไม่พบข้อสอบวัดระดับภาษากวางตุ้งที่เป็นมาตรฐานสากล
         // เปิดเผยโครงสร้างชัดเจนแบบ HSK/TOPIK เลย (มีแต่ LPAT ซึ่งเป็นข้อสอบครูในฮ่องกงโดยเฉพาะ, CRAT
@@ -14356,6 +14709,8 @@
                     setView('arexam');
                 } else if (langId === 'lang-vn') {
                     setView('vnexam');
+                } else if (langId === 'lang-my') {
+                    setView('myexam');
                 } else {
                     setLangId('lang-cn');
                     setView('hsk');
@@ -14467,7 +14822,7 @@
                                             <div key={id} className="flex items-center gap-1">
                                                 <button
                                                     onClick={() => selectLang(id)}
-                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam' || view === 'arexam' || view === 'vnexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
+                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam' || view === 'arexam' || view === 'vnexam' || view === 'myexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
                                                 >
                                                     <Languages /> <span className="flex-1 text-left truncate">{LANGS[id].title}</span>
                                                     {allDone && <CheckCircle />}
@@ -14556,7 +14911,7 @@
                                 <button
                                     onClick={goExam}
                                     title="รองรับภาษาจีนกลาง (HSK/BCT), อังกฤษ (IELTS/TOEIC), ญี่ปุ่น (JLPT), เกาหลี (TOPIK), จีนกวางตุ้ง (แบบทดสอบความเข้าใจ), เยอรมัน (Goethe A1), ฝรั่งเศส (DELF A1), อิตาลี (PLIDA A1), สเปน (DELE A1) และโปรตุเกส (CELPE-Bras) — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
-                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam' || view === 'arexam' || view === 'vnexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam' || view === 'arexam' || view === 'vnexam' || view === 'myexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
                                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
@@ -15282,6 +15637,8 @@
                         <ArExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : view === 'vnexam' ? (
                         <VnExamView langId={langId} setLangId={setLangId} setXp={setXp} />
+                        ) : view === 'myexam' ? (
+                        <MyExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : (
                         <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} />
                         )}
