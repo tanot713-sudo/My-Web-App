@@ -10408,6 +10408,357 @@
         }
 
         // ══════════════════════════════════════════════════════════════════════════════════
+        // แบบทดสอบความเข้าใจภาษาพม่า — โคลนโครงสร้างมาจาก MyExamView (มาเลย์) ทุกประการ เหตุผลเดียวกัน:
+        // ภาษาพม่าไม่มีข้อสอบวัดระดับสำหรับชาวต่างชาติที่เป็นมาตรฐานสากลเปิดเผยโครงสร้างชัดเจนแบบ
+        // CEFR/HSK/TOPIK/DELE จึงออกแบบโครงสร้างเองทั้งหมด เป็นแบบทดสอบความเข้าใจทั่วไป 2 ส่วน (ฟัง+อ่าน)
+        // คำศัพท์ส่วนคำศัพท์ดึงจาก vocab-data ภาษาพม่า (Stage 1) — TTS ใช้โค้ด 'my' (ISO 639-1 ของภาษาพม่า
+        // ไม่ใช่ langId 'lang-my' ที่หมายถึงมาเลย์ในเว็บนี้ — บังเอิญซ้ำกันแต่คนละความหมาย)
+        const MM_SPECIALTY_CATS = ['กฎหมาย (Legal Burmese)', 'วิศวกรรม (Engineering Burmese)', 'ธุรกิจเชิงลึก (Business Burmese)'];
+        function mmVocabPool() {
+            const out = [];
+            const cats = VOCAB['lang-mm'] || {};
+            Object.keys(cats).forEach(cat => {
+                if (MM_SPECIALTY_CATS.includes(cat)) return;
+                out.push(...(cats[cat] || []).map((w, i) => ({ key: `lang-mm::vocab-${cat}::${i}`, word: w.word, thai: w.thai })));
+            });
+            return out;
+        }
+        function genMmWordMeaningMc(pool, count) {
+            const picked = shuffleArr(pool).slice(0, Math.min(count, pool.length));
+            return picked.map(item => {
+                const distractors = shuffleArr(pool.filter(p => p.word !== item.word)).slice(0, 3);
+                const choices = shuffleArr([item.thai, ...distractors.map(d => d.thai)]);
+                return { type: 'mm-word-meaning-mc', word: item.word, correct: item.thai, choices };
+            });
+        }
+
+        // ไวยากรณ์พม่าเป็นแบบ SOV (ประธาน-กรรม-กริยา) เหมือนญี่ปุ่น/เกาหลี/ฮินดี — กริยาไม่ผันตามประธาน/พจน์
+        // แต่ผันด้วย "อนุภาคท้ายกริยา" (particle) แสดงกาล/มาลา เช่น တယ်/ပါတယ် (ปัจจุบัน/สุภาพ), မယ် (อนาคต),
+        // ခဲ့ (อดีต), နေ (กำลังทำอยู่) — มีคำลักษณนาม (classifier) เหมือนไทย เช่น ယောက် (คน) ကောင် (สัตว์)
+        // ปฏิเสธด้วยโครงสร้าง မ...ဘူး (ครอบกริยา) และมีคำอนุภาคคำถาม လား ท้ายประโยค yes/no question
+        const MM_GRAMMAR = [
+            { sentence: "ကျွန်တော် ထမင်း စား___။", choices: ["တယ်", "မယ်", "ခဲ့", "နေ"], correct: "တယ်" },
+            { sentence: "ကျေးဇူးတင်___။", choices: ["ပါတယ်", "တယ်", "မယ်", "ခဲ့တယ်"], correct: "ပါတယ်" },
+            { sentence: "မနက်ဖြန် ကျွန်တော် သွား___။", choices: ["မယ်", "တယ်", "ခဲ့တယ်", "နေတယ်"], correct: "မယ်" },
+            { sentence: "မနေ့က ကျွန်တော် ရုပ်ရှင် ကြည့်___တယ်။", choices: ["ခဲ့", "မယ်", "နေ", "ပြီး"], correct: "ခဲ့" },
+            { sentence: "အခု သူ ထမင်း စား___တယ်။", choices: ["နေ", "ခဲ့", "မယ်", "ပြီး"], correct: "နေ" },
+            { sentence: "မိသားစုမှာ လူ ဘယ်နှစ်___ ရှိလဲ။", choices: ["ယောက်", "ခု", "ကောင်", "စီး"], correct: "ယောက်" },
+            { sentence: "ခွေး နှစ်___ ရှိတယ်။", choices: ["ကောင်", "ယောက်", "ခု", "စီး"], correct: "ကောင်" },
+            { sentence: "ကျွန်တော် ဒါကို ___ ကြိုက်ဘူး။", choices: ["မ", "တွေ", "လား", "ပါ"], correct: "မ" },
+            { sentence: "ကျွန်တော် ဆိုင်___ ဝယ်တယ်။", choices: ["မှာ", "ကို", "နဲ့", "က"], correct: "မှာ" },
+            { sentence: "ခင်ဗျား ထမင်း စား___။", choices: ["ပြီးလား", "ပြီး", "မယ်", "တယ်"], correct: "ပြီးလား" },
+        ];
+
+        // บทอ่านสั้น 1 คำถาม/บท เขียนเป็นภาษาพม่าระดับต้น หัวข้อคู่ขนานกับภาษาอื่นที่ทำมาก่อนหน้านี้
+        const MM_READING = [
+            { text: "ကျွန်မနာမည် အန်နာပါ။ ကျွန်မ ရန်ကုန်မှာ နေပါတယ်။ ကျွန်မ ထိုင်းစာ လေ့လာနေပါတယ်။", questions: [
+                { q: "အန်နာ ဘာစာ လေ့လာနေလဲ။", choices: ["ထိုင်းစာ", "အင်္ဂလိပ်စာ", "ဂျာမန်စာ"], correct: "ထိုင်းစာ" },
+            ] },
+            { text: "ဆိုင်ဟာ တနင်္လာနေ့ ပိတ်ပါတယ်။ အင်္ဂါနေ့ကနေ တနင်္ဂနွေနေ့အထိ ဖွင့်ပါတယ်။", questions: [
+                { q: "ဆိုင် ဘယ်တော့ ပိတ်လဲ။", choices: ["တနင်္လာနေ့", "အင်္ဂါနေ့", "တနင်္ဂနွေနေ့"], correct: "တနင်္လာနေ့" },
+            ] },
+            { text: "မနေ့က ကျွန်တော် ဈေးဝယ်စင်တာမှာ အင်္ကျီအသစ် ဝယ်ခဲ့တယ်။ အရမ်းလှတယ်။", questions: [
+                { q: "မနေ့က ဘာ ဝယ်ခဲ့လဲ။", choices: ["အင်္ကျီ", "ဖိနပ်", "အိတ်"], correct: "အင်္ကျီ" },
+            ] },
+            { text: "ဒီနေ့ အရမ်းအေးပြီး မိုးရွာနေတယ်။ မနေ့က ပူပြီး နေရောင်ကျတယ်။", questions: [
+                { q: "ဒီနေ့ ရာသီဥတု ဘယ်လိုလဲ။", choices: ["အေးပြီး မိုးရွာတယ်", "ပူပြီး နေရောင်ကျတယ်", "ပူပြီး လေတိုက်တယ်"], correct: "အေးပြီး မိုးရွာတယ်" },
+            ] },
+            { text: "ကျွန်တော့်အစ်ကို ဆေးရုံမှာ ဆရာဝန်အနေနဲ့ အလုပ်လုပ်တယ်။ နေမကောင်းတဲ့ လူတွေကို ကူညီပေးတယ်။", questions: [
+                { q: "ကျွန်တော့်အစ်ကို ဘာအလုပ်လုပ်လဲ။", choices: ["ဆရာဝန်", "ဆရာ", "ကားမောင်းသမား"], correct: "ဆရာဝန်" },
+            ] },
+        ];
+        function genMmPassageMc(dataset, count) {
+            const picked = shuffleArr(dataset).slice(0, Math.min(count, dataset.length));
+            const out = [];
+            picked.forEach(p => { p.questions.forEach(q => out.push({ type: 'passage-mc', text: p.text, q: q.q, choices: shuffleArr(q.choices), correct: q.correct })); });
+            return out;
+        }
+
+        // ประโยคเดียว + เลือกคำตอบที่เหมาะสม (quick response)
+        const MM_RESPONSES = [
+            { phrase: "အခု ဘယ်နှစ်နာရီလဲ။", choices: ["အခု သုံးနာရီပါ။", "ဟုတ်ကဲ့၊ မှန်ပါတယ်။", "ကျေးဇူးအများကြီးတင်ပါတယ်။"], correct: "အခု သုံးနာရီပါ။" },
+            { phrase: "ထမင်း စားပြီးပြီလား။", choices: ["ဟုတ်ကဲ့၊ စားပြီးပါပြီ။", "အခု သုံးနာရီပါ။", "ကျွန်တော့်နာမည် တနုတ်ပါ။"], correct: "ဟုတ်ကဲ့၊ စားပြီးပါပြီ။" },
+            { phrase: "ဒီအင်္ကျီ ဘယ်လောက်လဲ။", choices: ["တစ်ရာကျပ်ပါ။", "အရမ်းစားလို့ကောင်းတယ်။", "မနက်ဖြန် တွေ့မယ်။"], correct: "တစ်ရာကျပ်ပါ။" },
+            { phrase: "ခင်ဗျားအတွက် တက္ကစီခေါ်ပေးရမလား။", choices: ["ဟုတ်ကဲ့၊ ခေါ်ပေးပါ။", "ကျေးဇူးအများကြီးတင်ပါတယ်။", "မသိပါဘူး။"], correct: "ဟုတ်ကဲ့၊ ခေါ်ပေးပါ။" },
+            { phrase: "နာမည် ဘယ်လိုခေါ်လဲ။", choices: ["ကျွန်တော့်နာမည် တနုတ်ပါ။", "အခု သုံးနာရီပါ။", "အရမ်းအေးတယ်။"], correct: "ကျွန်တော့်နာမည် တနုတ်ပါ။" },
+            { phrase: "မနက်ဖြန် တွေ့မလား။", choices: ["ဟုတ်ကဲ့၊ မနက်ဖြန် တွေ့မယ်။", "ကျေးဇူးအများကြီးတင်ပါတယ်။", "အခု ဘယ်နှစ်နာရီလဲ။"], correct: "ဟုတ်ကဲ့၊ မနက်ဖြန် တွေ့မယ်။" },
+        ];
+        function genMmResponseMc(count) {
+            const picked = shuffleArr(MM_RESPONSES).slice(0, Math.min(count, MM_RESPONSES.length));
+            return picked.map((r, ri) => ({ type: 'mm-response-mc', phrase: r.phrase, choices: shuffleArr(r.choices), correct: r.correct, voiceSlot: ri }));
+        }
+
+        // บทสนทนาสั้น 2-4 ประโยค + คำถาม 1 ข้อ/บท
+        const MM_DIALOGUES = [
+            { lines: [{ speaker: 'A', text: "အခု ဘာလုပ်နေလဲ။" }, { speaker: 'B', text: "အိမ်စာ လုပ်နေတယ်။" }], q: "B ဘာလုပ်နေလဲ။", choices: ["အိမ်စာလုပ်နေတယ်", "ထမင်းစားနေတယ်", "အိပ်နေတယ်"], correct: "အိမ်စာလုပ်နေတယ်" },
+            { lines: [{ speaker: 'A', text: "ဒါ ဘယ်လောက်လဲ။" }, { speaker: 'B', text: "ငါးဆယ်ကျပ်ပါ။" }, { speaker: 'A', text: "နည်းနည်း လျှော့ပေးလို့ရမလား။" }, { speaker: 'B', text: "ကောင်းပြီ၊ လေးဆယ်ကျပ်ယူပါ။" }], q: "နောက်ဆုံး ဘယ်လောက်နဲ့ သဘောတူလဲ။", choices: ["လေးဆယ်ကျပ်", "ငါးဆယ်ကျပ်", "သုံးဆယ်ကျပ်"], correct: "လေးဆယ်ကျပ်" },
+            { lines: [{ speaker: 'A', text: "မနက်ဖြန် အားလား။" }, { speaker: 'B', text: "အား၊ ဘာဖြစ်လို့လဲ။" }, { speaker: 'A', text: "အတူတူ ရုပ်ရှင် ကြည့်ချင်လား။" }, { speaker: 'B', text: "ကောင်းတယ်!" }], q: "သူတို့ မနက်ဖြန် ဘာလုပ်ကြမလဲ။", choices: ["ရုပ်ရှင်ကြည့်ကြမယ်", "အတူစားကြမယ်", "အလုပ်သွားကြမယ်"], correct: "ရုပ်ရှင်ကြည့်ကြမယ်" },
+            { lines: [{ speaker: 'A', text: "ဒီနေ့ ရာသီဥတု ဘယ်လိုလဲ။" }, { speaker: 'B', text: "အရမ်းပူပြီး မိုးလည်းရွာနေတယ်။" }], q: "ဒီနေ့ ရာသီဥတု ဘယ်လိုလဲ။", choices: ["ပူပြီး မိုးရွာတယ်", "အေးတယ်", "နေရောင်ကျတယ်"], correct: "ပူပြီး မိုးရွာတယ်" },
+            { lines: [{ speaker: 'A', text: "ဗမာစာ ပြောတတ်လား။" }, { speaker: 'B', text: "နည်းနည်းပါးပါး ပါ၊ အခုလေ့လာနေတုန်းပါ။" }], q: "B ဗမာစာ ဘယ်လောက်တတ်လဲ။", choices: ["နည်းနည်းပါးပါး၊ လေ့လာနေတုန်း", "အရမ်းတတ်တယ်", "လုံးဝမတတ်ဘူး"], correct: "နည်းနည်းပါးပါး၊ လေ့လာနေတုန်း" },
+            { lines: [{ speaker: 'A', text: "အိမ်သာ ဘယ်မှာလဲ။" }, { speaker: 'B', text: "ဟိုမှာ။" }, { speaker: 'A', text: "ကျေးဇူးအများကြီးတင်ပါတယ်။" }], q: "အိမ်သာ ဘယ်မှာလဲ။", choices: ["ဟိုမှာ", "ဒီမှာ", "အိမ်သာမရှိဘူး"], correct: "ဟိုမှာ" },
+            { lines: [{ speaker: 'A', text: "ဒီနေ့ ဘယ်နှစ်နာရီ အလုပ်သွားမလဲ။" }, { speaker: 'B', text: "ကိုးနာရီ။" }, { speaker: 'A', text: "နောက်ကျတယ်မလား။" }, { speaker: 'B', text: "မကျဘူး၊ ကျွန်တော်တို့ ရုံးက ကိုးနာရီမှ ဖွင့်တာ။" }], q: "B ဘယ်နှစ်နာရီ အလုပ်သွားမလဲ။", choices: ["ကိုးနာရီ", "ရှစ်နာရီ", "ဆယ်နာရီ"], correct: "ကိုးနာရီ" },
+            { lines: [{ speaker: 'A', text: "မိသားစုမှာ လူ ဘယ်နှစ်ယောက် ရှိလဲ။" }, { speaker: 'B', text: "လေးယောက်၊ မိဘတွေနဲ့ ညီလေးတစ်ယောက်။" }], q: "B ရဲ့ မိသားစုမှာ လူဘယ်နှစ်ယောက်ရှိလဲ။", choices: ["လေးယောက်", "သုံးယောက်", "ငါးယောက်"], correct: "လေးယောက်" },
+        ];
+        function genMmDialogueMc(count) {
+            const picked = shuffleArr(MM_DIALOGUES).slice(0, Math.min(count, MM_DIALOGUES.length));
+            return picked.map((d, di) => ({ type: 'mm-dialogue-mc', lines: d.lines, q: d.q, choices: shuffleArr(d.choices), correct: d.correct, dialogueSlot: di }));
+        }
+
+        function buildMmExam() {
+            const pool = mmVocabPool();
+            return {
+                kind: 'mm-comprehension',
+                sections: [
+                    { key: 'listening', title: 'နားထောင်ခြင်း (ฟัง)', icon: '🎧',
+                        questions: [...genMmResponseMc(6), ...genMmDialogueMc(8)] },
+                    { key: 'reading', title: 'ဖတ်ခြင်း (อ่าน)', icon: '📖',
+                        questions: [...genMmWordMeaningMc(pool, 15), ...genGrammarMc(MM_GRAMMAR, 10), ...genMmPassageMc(MM_READING, 5)] },
+                ],
+            };
+        }
+
+        // ── แบบทดสอบความเข้าใจภาษาพม่า — โครงสร้างเดียวกับ MyExamView ทุกประการ (ไม่มีส่วนเขียน/พูด
+        //    เหมือนกัน ไม่มีขั้น "เลือกประเภทข้อสอบ" เพราะมีแบบทดสอบเดียว)
+        function MmExamView({ langId, setLangId, setXp }) {
+            const [started, setStarted] = useState(false);
+            const [exam, setExam] = useState(null);
+            const [sectionIdx, setSectionIdx] = useState(0);
+            const [showIntro, setShowIntro] = useState(true);
+            const [qIdx, setQIdx] = useState(0);
+            const [answered, setAnswered] = useState(false);
+            const [userAnswer, setUserAnswer] = useState(null);
+            const [sectionResults, setSectionResults] = useState([]);
+            const [correctInSection, setCorrectInSection] = useState(0);
+            const [allWrong, setAllWrong] = useState([]);
+            const [finished, setFinished] = useState(false);
+
+            const resetPerQuestion = () => { setAnswered(false); setUserAnswer(null); };
+            const start = () => {
+                setExam(buildMmExam());
+                setStarted(true);
+                setSectionIdx(0); setShowIntro(true);
+                resetPerQuestion();
+                setSectionResults([]); setCorrectInSection(0); setAllWrong([]); setFinished(false);
+            };
+
+            useEffect(() => {
+                if (!exam || showIntro || finished) return;
+                const sec = exam.sections[sectionIdx];
+                const question = sec && sec.questions[qIdx];
+                if (!question) return;
+                const timers = [];
+                const t0 = setTimeout(() => {
+                    if (question.type === 'mm-dialogue-mc') {
+                        question.lines.forEach((ln, i) => timers.push(setTimeout(() => speakVoice(ln.text, 'my', question.dialogueSlot * 2 + (i % 2)), i * 1800)));
+                    } else if (question.type === 'mm-response-mc') {
+                        speakVoice(question.phrase, 'my', question.voiceSlot);
+                    }
+                }, 400);
+                return () => { clearTimeout(t0); timers.forEach(clearTimeout); };
+            }, [exam, sectionIdx, qIdx, showIntro]);
+
+            if (langId !== 'lang-mm') {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-6 text-center">
+                            <p className="text-gray-500 mb-4">แบบทดสอบชุดนี้รองรับเฉพาะภาษาพม่า</p>
+                            <button onClick={() => setLangId('lang-mm')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาพม่า</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!started) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-1">แบบทดสอบความเข้าใจภาษาพม่า</h2>
+                            <p className="text-sm text-gray-500 mb-5">วัดความเข้าใจพื้นฐาน — 2 ส่วน (ฟัง+อ่าน)</p>
+                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
+                                <div className="text-xs text-gray-500">နားထောင်ခြင်း (ฟัง) 14 + ဖတ်ခြင်း (อ่าน) 30 = 44 ข้อ</div>
+                            </button>
+                            <p className="text-xs text-gray-400 leading-relaxed text-left">
+                                <b>หมายเหตุสำคัญ</b>: ต่างจากข้อสอบ HSK/TOEIC/IELTS/JLPT/TOPIK/DELE/PLIDA/ТРКИ ในเว็บนี้ตรงที่
+                                แบบทดสอบชุดนี้<b>ไม่ได้จำลองข้อสอบทางการชุดใดชุดหนึ่ง</b> — เพราะภาษาพม่าไม่มีข้อสอบวัดระดับสำหรับ
+                                ชาวต่างชาติที่เป็นมาตรฐานสากลเปิดเผยโครงสร้างชัดเจนแบบ CEFR/HSK/TOPIK ให้อ้างอิง จึงออกแบบโครงสร้าง
+                                และเนื้อหาเองทั้งหมดเป็นแบบทดสอบความเข้าใจทั่วไป<br />
+                                <b>ความแตกต่างจากข้อสอบจริง</b>: နားထောင်ခြင်း (ฟัง) แสดงบทพูดเป็นตัวอักษรคู่กับเสียงด้วยเพื่อช่วยผู้เริ่มต้นตามทัน
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+
+            const restart = start;
+            const backToStart = () => { setStarted(false); setExam(null); };
+
+            if (finished) {
+                const totalCorrect = sectionResults.reduce((s, r) => s + r.correct, 0);
+                const totalQ = sectionResults.reduce((s, r) => s + r.total, 0);
+                const pct = totalQ ? Math.round(totalCorrect / totalQ * 100) : 0;
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลแบบทดสอบ</h2>
+                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <p className="text-gray-500 mb-4">{pct}% ถูกต้อง</p>
+                            <div className="grid grid-cols-2 gap-2 mb-5">
+                                {sectionResults.map(r => (
+                                    <div key={r.key} className="bg-white rounded-xl border border-gray-200 p-3">
+                                        <div className="text-xs text-gray-400">{r.title}</div>
+                                        <div className="text-lg font-bold text-gray-800">{r.correct}/{r.total}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {allWrong.length > 0 && (
+                                <div className="text-left bg-white rounded-xl border border-gray-200 p-4 mb-4 max-h-72 overflow-y-auto">
+                                    <p className="text-sm font-bold text-gray-700 mb-2 sticky top-0 bg-white">ข้อที่ตอบผิด ({allWrong.length}):</p>
+                                    <div className="space-y-1.5">
+                                        {allWrong.map((w, i) => (
+                                            <div key={i} className="text-sm text-gray-600 flex justify-between gap-3">
+                                                <span>{w.left}</span>
+                                                <span className="text-gray-800 font-semibold text-right">{w.right}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex gap-2 justify-center flex-wrap">
+                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">ทำใหม่ (สุ่มโจทย์ใหม่)</button>
+                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเริ่มต้น</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const section = exam.sections[sectionIdx];
+
+            if (showIntro) {
+                return (
+                    <div className="flex-1 overflow-y-auto bg-gray-50">
+                        <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">ส่วนที่ {sectionIdx + 1}/{exam.sections.length}</p>
+                            <div className="text-5xl mb-3">{section.icon}</div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
+                            <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
+                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const q = section.questions[qIdx];
+
+            const finishSection = () => {
+                const results = [...sectionResults, { key: section.key, title: section.title, correct: correctInSection, total: section.questions.length }];
+                setSectionResults(results);
+                if (sectionIdx + 1 >= exam.sections.length) {
+                    setFinished(true);
+                } else {
+                    setSectionIdx(i => i + 1);
+                    setShowIntro(true);
+                    setQIdx(0);
+                    resetPerQuestion();
+                    setCorrectInSection(0);
+                }
+            };
+            const nextQuestion = () => {
+                if (qIdx + 1 >= section.questions.length) { finishSection(); return; }
+                setQIdx(i => i + 1); resetPerQuestion();
+            };
+            const recordAnswer = (isCorrect, wrongEntry) => {
+                setAnswered(true);
+                if (isCorrect) { setCorrectInSection(c => c + 1); setXp(x => x + 2); }
+                else if (wrongEntry) setAllWrong(w => [...w, wrongEntry]);
+            };
+            const pickMc = (choice) => {
+                if (answered) return;
+                setUserAnswer(choice);
+                const isCorrect = choice === q.correct;
+                const leftLabel = q.word || q.sentence || q.phrase || q.q || q.thai;
+                recordAnswer(isCorrect, isCorrect ? null : { left: leftLabel || 'ข้อนี้', right: q.correct });
+            };
+
+            const progressLabel = `${section.title} · ข้อ ${qIdx + 1}/${section.questions.length}`;
+
+            return (
+                <div className="flex-1 overflow-y-auto bg-gray-50">
+                    <div className="max-w-xl mx-auto p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <span className="text-xs font-bold text-gray-400 uppercase">{progressLabel}</span>
+                            <span className="text-xs font-bold text-brand">ถูก {correctInSection} ข้อ</span>
+                        </div>
+
+                        {q.type === 'mm-word-meaning-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-3xl font-bold text-gray-900 mb-1">{q.word}</div>
+                                    <button onClick={() => speak(q.word, 'my')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'grammar-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'passage-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'mm-response-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
+                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
+                                    <button onClick={() => speakVoice(q.phrase, 'my', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                </div>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {q.type === 'mm-dialogue-mc' && (
+                            <>
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <div className="space-y-1">
+                                        {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
+                                    </div>
+                                    <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'my', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
+                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                </div>
+                                <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
+                                <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
+                            </>
+                        )}
+
+                        {answered && (
+                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                                {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ══════════════════════════════════════════════════════════════════════════════════
         // แบบทดสอบความเข้าใจภาษาจีนกวางตุ้ง — ต่างจาก HSK/TOEIC/IELTS/JLPT/TOPIK ตรงที่ "ไม่ได้จำลอง
         // ข้อสอบทางการชุดใดชุดหนึ่ง" เพราะค้นหาแล้วไม่พบข้อสอบวัดระดับภาษากวางตุ้งที่เป็นมาตรฐานสากล
         // เปิดเผยโครงสร้างชัดเจนแบบ HSK/TOPIK เลย (มีแต่ LPAT ซึ่งเป็นข้อสอบครูในฮ่องกงโดยเฉพาะ, CRAT
@@ -11197,7 +11548,7 @@
         ];
 
         function ListeningPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-yue' ? LISTENING_PASSAGES_YUE : langId === 'lang-en' ? LISTENING_PASSAGES_EN : langId === 'lang-de' ? LISTENING_PASSAGES_DE : langId === 'lang-fr' ? LISTENING_PASSAGES_FR : langId === 'lang-it' ? LISTENING_PASSAGES_IT : langId === 'lang-es' ? LISTENING_PASSAGES_ES : langId === 'lang-pt' ? LISTENING_PASSAGES_PT : langId === 'lang-ru' ? LISTENING_PASSAGES_RU : langId === 'lang-in' ? LISTENING_PASSAGES_HI : langId === 'lang-ar' ? LISTENING_PASSAGES_AR : langId === 'lang-vn' ? LISTENING_PASSAGES_VN : langId === 'lang-my' ? LISTENING_PASSAGES_MY : LISTENING_PASSAGES;
+            const passages = langId === 'lang-jp' ? LISTENING_PASSAGES_JP : langId === 'lang-kr' ? LISTENING_PASSAGES_KR : langId === 'lang-yue' ? LISTENING_PASSAGES_YUE : langId === 'lang-en' ? LISTENING_PASSAGES_EN : langId === 'lang-de' ? LISTENING_PASSAGES_DE : langId === 'lang-fr' ? LISTENING_PASSAGES_FR : langId === 'lang-it' ? LISTENING_PASSAGES_IT : langId === 'lang-es' ? LISTENING_PASSAGES_ES : langId === 'lang-pt' ? LISTENING_PASSAGES_PT : langId === 'lang-ru' ? LISTENING_PASSAGES_RU : langId === 'lang-in' ? LISTENING_PASSAGES_HI : langId === 'lang-ar' ? LISTENING_PASSAGES_AR : langId === 'lang-vn' ? LISTENING_PASSAGES_VN : langId === 'lang-my' ? LISTENING_PASSAGES_MY : langId === 'lang-mm' ? LISTENING_PASSAGES_MM : LISTENING_PASSAGES;
             const langCode = LANGS[langId].code;
             const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' || langId === 'lang-in' || langId === 'lang-ar' || langId === 'lang-vn' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
@@ -11331,7 +11682,7 @@
         // หมายเหตุ lang-yue: Whisper (asr-worker.js) ไม่มีตัวเลือกภาษา "cantonese" แยกต่างหากในรายชื่อ
         // ภาษาทางการ 99 ภาษา ใช้ 'chinese' แทน (ใกล้เคียงที่สุดที่มี แม่นยำน้อยกว่าภาษาที่มีในรายชื่อจริง
         // — ผู้ใช้ควรตรวจทานข้อความที่ถอดออกมาเองเสมอ เหมือนที่ระบบเตือนไว้อยู่แล้วทั่วไป)
-        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean', 'lang-yue': 'chinese', 'lang-de': 'german', 'lang-fr': 'french', 'lang-it': 'italian', 'lang-es': 'spanish', 'lang-pt': 'portuguese', 'lang-ru': 'russian', 'lang-in': 'hindi', 'lang-ar': 'arabic', 'lang-vn': 'vietnamese', 'lang-my': 'malay' };
+        const ASR_LANG_NAME = { 'lang-cn': 'chinese', 'lang-en': 'english', 'lang-jp': 'japanese', 'lang-kr': 'korean', 'lang-yue': 'chinese', 'lang-de': 'german', 'lang-fr': 'french', 'lang-it': 'italian', 'lang-es': 'spanish', 'lang-pt': 'portuguese', 'lang-ru': 'russian', 'lang-in': 'hindi', 'lang-ar': 'arabic', 'lang-vn': 'vietnamese', 'lang-my': 'malay', 'lang-mm': 'burmese' };
         function transcribeSpeech(pcm, langName) {
             return new Promise((resolve, reject) => {
                 const w = getAsrWorker();
@@ -11915,7 +12266,7 @@
         ];
 
         function ReadingPanel({ awardXp, langId }) {
-            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-yue' ? READING_PASSAGES_YUE : langId === 'lang-en' ? READING_PASSAGES_EN : langId === 'lang-de' ? READING_PASSAGES_DE : langId === 'lang-fr' ? READING_PASSAGES_FR : langId === 'lang-it' ? READING_PASSAGES_IT : langId === 'lang-es' ? READING_PASSAGES_ES : langId === 'lang-pt' ? READING_PASSAGES_PT : langId === 'lang-ru' ? READING_PASSAGES_RU : langId === 'lang-in' ? READING_PASSAGES_HI : langId === 'lang-ar' ? READING_PASSAGES_AR : langId === 'lang-vn' ? READING_PASSAGES_VN : langId === 'lang-my' ? READING_PASSAGES_MY : READING_PASSAGES;
+            const passages = langId === 'lang-jp' ? READING_PASSAGES_JP : langId === 'lang-kr' ? READING_PASSAGES_KR : langId === 'lang-yue' ? READING_PASSAGES_YUE : langId === 'lang-en' ? READING_PASSAGES_EN : langId === 'lang-de' ? READING_PASSAGES_DE : langId === 'lang-fr' ? READING_PASSAGES_FR : langId === 'lang-it' ? READING_PASSAGES_IT : langId === 'lang-es' ? READING_PASSAGES_ES : langId === 'lang-pt' ? READING_PASSAGES_PT : langId === 'lang-ru' ? READING_PASSAGES_RU : langId === 'lang-in' ? READING_PASSAGES_HI : langId === 'lang-ar' ? READING_PASSAGES_AR : langId === 'lang-vn' ? READING_PASSAGES_VN : langId === 'lang-my' ? READING_PASSAGES_MY : langId === 'lang-mm' ? READING_PASSAGES_MM : READING_PASSAGES;
             const langCode = LANGS[langId].code;
             const levelBadge = langId === 'lang-en' || langId === 'lang-jp' || langId === 'lang-kr' || langId === 'lang-yue' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' || langId === 'lang-in' || langId === 'lang-ar' || langId === 'lang-vn' ? 'Level ' : 'HSK';
             const [passageIdx, setPassageIdx] = useState(null);
@@ -12306,7 +12657,7 @@
         }
 
         function NumbersDatesPanel({ awardXp, langId }) {
-            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-yue' ? NUMBERS_DATES_YUE : langId === 'lang-en' ? NUMBERS_DATES_EN : langId === 'lang-de' ? NUMBERS_DATES_DE : langId === 'lang-fr' ? NUMBERS_DATES_FR : langId === 'lang-it' ? NUMBERS_DATES_IT : langId === 'lang-es' ? NUMBERS_DATES_ES : langId === 'lang-pt' ? NUMBERS_DATES_PT : langId === 'lang-ru' ? NUMBERS_DATES_RU : langId === 'lang-in' ? NUMBERS_DATES_HI : langId === 'lang-ar' ? NUMBERS_DATES_AR : langId === 'lang-vn' ? NUMBERS_DATES_VN : langId === 'lang-my' ? NUMBERS_DATES_MY : NUMBERS_DATES;
+            const dataset = langId === 'lang-jp' ? NUMBERS_DATES_JP : langId === 'lang-kr' ? NUMBERS_DATES_KR : langId === 'lang-yue' ? NUMBERS_DATES_YUE : langId === 'lang-en' ? NUMBERS_DATES_EN : langId === 'lang-de' ? NUMBERS_DATES_DE : langId === 'lang-fr' ? NUMBERS_DATES_FR : langId === 'lang-it' ? NUMBERS_DATES_IT : langId === 'lang-es' ? NUMBERS_DATES_ES : langId === 'lang-pt' ? NUMBERS_DATES_PT : langId === 'lang-ru' ? NUMBERS_DATES_RU : langId === 'lang-in' ? NUMBERS_DATES_HI : langId === 'lang-ar' ? NUMBERS_DATES_AR : langId === 'lang-vn' ? NUMBERS_DATES_VN : langId === 'lang-my' ? NUMBERS_DATES_MY : langId === 'lang-mm' ? NUMBERS_DATES_MM : NUMBERS_DATES;
             const langCode = LANGS[langId].code;
             const [catKey, setCatKey] = useState('all');
             const [queue, setQueue] = useState(() => buildNdQueue('all', dataset));
@@ -14233,6 +14584,234 @@
         };
 
 
+        // ── บทฟังภาษาพม่า 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่น รวมตัวละคร "Minji" ที่ปรากฏซ้ำทุกภาษา) ──
+        const LISTENING_PASSAGES_MM = [
+            {
+                level: 1, title: 'ဖုန်းပြောနေခြင်း',
+                lines: [
+                    { speaker: 'A', target: 'ဟယ်လို။', thai: 'ฮัลโหล' },
+                    { speaker: 'B', target: 'ဟယ်လို၊ ကျွန်မ မင်းဂျီပါ။', thai: 'สวัสดีค่ะ ฉันชื่อมินจี' },
+                    { speaker: 'A', target: 'အခု ဘယ်မှာနေလဲ။', thai: 'ตอนนี้คุณอยู่ที่ไหน' },
+                    { speaker: 'B', target: 'အခု အိမ်မှာပါ။', thai: 'ฉันอยู่บ้าน' },
+                ],
+                questions: [
+                    { q: 'မင်းဂျီ အခု ဘယ်မှာလဲ။', choices: ['အိမ်မှာ', 'ကျောင်းမှာ', 'ရုံးမှာ'], correct: 'အိမ်မှာ' },
+                    { q: '"ကျွန်မ မင်းဂျီပါ" ဆိုတာ ဘယ်သူပြောတာလဲ။', choices: ['မင်းဂျီ', 'တခြားသူ', 'ဘယ်သူမှမဟုတ်'], correct: 'မင်းဂျီ' },
+                ],
+            },
+            {
+                level: 1, title: 'ဆိုင်မှာ',
+                lines: [
+                    { speaker: 'A', target: 'ဒီပန်းသီး ဘယ်လောက်လဲ။', thai: 'แอปเปิลลูกนี้ราคาเท่าไหร่' },
+                    { speaker: 'B', target: 'တစ်ခု တစ်ရာကျပ်ပါ။', thai: 'หนึ่งริงกิตค่ะ' },
+                    { speaker: 'A', target: 'စျေးကြီးတယ်။ နည်းနည်း လျှော့ပေးလို့ရမလား။', thai: 'แพงไปนะ ลดหน่อยได้ไหม' },
+                    { speaker: 'B', target: 'ကောင်းပြီ၊ ရှစ်ဆယ်ကျပ်ပဲယူပါ။', thai: 'ได้ค่ะ แปดสิบเซ็นเท่านั้น' },
+                ],
+                questions: [
+                    { q: 'ပထမဆုံး ဈေးနှုန်း ဘယ်လောက်လဲ။', choices: ['တစ်ရာကျပ်', 'ရှစ်ဆယ်ကျပ်', 'ငါးဆယ်ကျပ်'], correct: 'တစ်ရာကျပ်' },
+                    { q: 'နောက်ဆုံး ဈေးနှုန်း ဘယ်လောက်လဲ။', choices: ['တစ်ရာကျပ်', 'ရှစ်ဆယ်ကျပ်', 'ငါးဆယ်ကျပ်'], correct: 'ရှစ်ဆယ်ကျပ်' },
+                ],
+            },
+            {
+                level: 2, title: 'ချိန်းဆိုမှု',
+                lines: [
+                    { speaker: 'A', target: 'ဒီနေ့ညနေ အားလား။', thai: 'คืนนี้คุณว่างไหม' },
+                    { speaker: 'B', target: 'ဟုတ်ကဲ့ အားပါတယ်၊ ဘာဖြစ်လို့လဲ။', thai: 'ว่างสิ มีอะไรเหรอ' },
+                    { speaker: 'A', target: 'အတူတူ ရုပ်ရှင်ကြည့်ချင်လား။', thai: 'ไปดูหนังด้วยกันไหม' },
+                    { speaker: 'B', target: 'ကောင်းတယ်! ဘယ်နှစ်နာရီ တွေ့မလဲ။', thai: 'ดีเลย! นัดกี่โมงดี' },
+                    { speaker: 'A', target: 'ခုနစ်နာရီ ရုပ်ရှင်ရုံရှေ့မှာ။', thai: 'หนึ่งทุ่ม ที่หน้าโรงหนัง' },
+                ],
+                questions: [
+                    { q: 'သူတို့ ဘာလုပ်ကြမလဲ။', choices: ['ရုပ်ရှင်ကြည့်ကြမယ်', 'အတူစားကြမယ်', 'ဈေးဝယ်ကြမယ်'], correct: 'ရုပ်ရှင်ကြည့်ကြမယ်' },
+                    { q: 'ဘယ်နှစ်နာရီ တွေ့ကြမလဲ။', choices: ['ခုနစ်နာရီ', 'ခြောက်နာရီ', 'ကိုးနာရီ'], correct: 'ခုနစ်နာရီ' },
+                ],
+            },
+            {
+                level: 2, title: 'ဒီနေ့ ရာသီဥတု',
+                lines: [
+                    { speaker: 'A', target: 'ဒီနေ့ ရာသီဥတု ဘယ်လိုလဲ။', thai: 'วันนี้อากาศเป็นยังไงบ้าง' },
+                    { speaker: 'B', target: 'အရမ်းအေးတယ်။ မိုးလည်းရွာတယ်။', thai: 'วันนี้หนาวมาก แล้วก็ฝนตกด้วย' },
+                    { speaker: 'A', target: 'ဒါဆို ပန်းခြံ မသွားကြတော့ဘူးလား။', thai: 'งั้นเราไม่ไปสวนสาธารณะกันดีกว่า' },
+                    { speaker: 'B', target: 'ဟုတ်ကဲ့၊ အိမ်မှာနေပြီး တီဗီကြည့်တာ ပိုကောင်းမယ်။', thai: 'ได้ อยู่บ้านดูทีวีกันดีกว่า' },
+                ],
+                questions: [
+                    { q: 'ဒီနေ့ ရာသီဥတု ဘယ်လိုလဲ။', choices: ['အေးပြီး မိုးရွာတယ်', 'ပူပြီး နေရောင်ကျတယ်', 'နှင်းကျတယ်'], correct: 'အေးပြီး မိုးရွာတယ်' },
+                    { q: 'နောက်ဆုံး သူတို့ ဘာလုပ်ကြမလဲ။', choices: ['အိမ်မှာနေပြီး တီဗီကြည့်', 'ပန်းခြံသွား', 'ဈေးဝယ်သွား'], correct: 'အိမ်မှာနေပြီး တီဗီကြည့်' },
+                ],
+            },
+            {
+                level: 3, title: 'အလုပ်ရှာနေခြင်း',
+                lines: [
+                    { speaker: 'A', target: 'ဒီရက်ပိုင်း ဘာလုပ်နေလဲ။', thai: 'ช่วงนี้คุณยุ่งอะไรอยู่' },
+                    { speaker: 'B', target: 'အလုပ်ရှာနေတယ်။ အင်တာဗျူး သုံးကြိမ်သွားပြီးပြီ။', thai: 'ฉันกำลังหางาน ไปสัมภาษณ์มาสามครั้งแล้ว' },
+                    { speaker: 'A', target: 'ဘယ်လိုလဲ၊ ချောမွေ့လား။', thai: 'เป็นยังไงบ้าง ราบรื่นไหม' },
+                    { speaker: 'B', target: 'အဆင်ပြေတယ်ထင်တယ်။ နောက်အပတ် ကုမ္ပဏီတစ်ခုက ပြန်ဆက်သွယ်မယ်။', thai: 'ก็โอเคนะ มีบริษัทหนึ่งจะตอบกลับสัปดาห์หน้า' },
+                ],
+                questions: [
+                    { q: 'B ဒီရက်ပိုင်း ဘာလုပ်နေလဲ။', choices: ['အလုပ်ရှာနေ', 'စာသင်နေ', 'ခရီးသွားနေ'], correct: 'အလုပ်ရှာနေ' },
+                    { q: 'B အင်တာဗျူး ဘယ်နှစ်ကြိမ်သွားပြီးပြီလဲ။', choices: ['သုံးကြိမ်', 'နှစ်ကြိမ်', 'တစ်ကြိမ်'], correct: 'သုံးကြိမ်' },
+                ],
+            },
+            {
+                level: 3, title: 'ခရီးစဉ် အစီအစဉ်',
+                lines: [
+                    { speaker: 'A', target: 'နွေရာသီ အားလပ်ရက် ဘယ်ကို သွားချင်လဲ။', thai: 'ปิดเทอมนี้คุณจะไปเที่ยวที่ไหน' },
+                    { speaker: 'B', target: 'ပုဂံကို သွားချင်တယ်။ အဲဒီမှာ ရှုခင်းလှတယ်။', thai: 'ฉันตั้งใจจะไปมิวนิก ที่นั่นวิวสวยมาก' },
+                    { speaker: 'A', target: 'တစ်ယောက်တည်း သွားမှာလား။', thai: 'ไปคนเดียวเหรอ' },
+                    { speaker: 'B', target: 'မဟုတ်ဘူး၊ အိမ်ထောင်ဖက်နဲ့ပါ။ ရထားနဲ့ သွားဖို့ စီစဉ်ထားတယ်။', thai: 'เปล่า ฉันไปกับแฟน เราตั้งใจจะนั่งรถไฟไป' },
+                ],
+                questions: [
+                    { q: 'B ဘယ်ကို သွားဖို့ စီစဉ်ထားလဲ။', choices: ['ပုဂံ', 'မန္တလေး', 'ပုသိမ်'], correct: 'ပုဂံ' },
+                    { q: 'သူတို့ ဘာနဲ့သွားဖို့ စီစဉ်ထားလဲ။', choices: ['ရထား', 'လေယာဉ်', 'ကား'], correct: 'ရထား' },
+                ],
+            },
+        ];
+
+        // ── บทอ่านภาษาพม่า 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่น) ──
+        const READING_PASSAGES_MM = [
+            {
+                level: 1, title: 'ကျွန်မ၏ တစ်နေ့တာ',
+                lines: [
+                    { target: 'နေ့တိုင်း ကျွန်မ မနက် ခုနစ်နာရီမှာ နိုးပါတယ်။', thai: 'ทุกวันฉันตื่นนอนเจ็ดโมงเช้า' },
+                    { target: 'မနက်စာစားပြီးရင် ကျောင်းသွားပါတယ်။', thai: 'ฉันกินข้าวเช้าก่อน แล้วค่อยไปโรงเรียน' },
+                    { target: 'ကျောင်းမှာ ကျွန်မ စာသင်ပါတယ်။', thai: 'ฉันเรียนหนังสือที่โรงเรียน' },
+                    { target: 'မွန်းတည့်အချိန် သူငယ်ချင်းတွေနဲ့ အတူစားပါတယ်။', thai: 'ตอนเที่ยงฉันกินข้าวเที่ยงกับเพื่อน' },
+                    { target: 'ညနေ သုံးနာရီမှာ အိမ်ပြန်ပါတယ်။', thai: 'ตอนบ่ายสามโมงฉันกลับบ้าน' },
+                    { target: 'ညနေခင်း တီဗီကြည့်ပြီး ညဆယ်နာရီမှာ အိပ်ပါတယ်။', thai: 'ตอนเย็นฉันดูทีวี นอนสี่ทุ่ม' },
+                ],
+                questions: [
+                    { q: 'ဒီလူ ဘယ်အချိန် နိုးလဲ။', choices: ['ခုနစ်နာရီ', 'ရှစ်နာရီ', 'ခြောက်နာရီ'], correct: 'ခုနစ်နာရီ' },
+                    { q: 'ကျောင်းမသွားခင် ဘာလုပ်လဲ။', choices: ['မနက်စာစား', 'ရေချိုး', 'တီဗီကြည့်'], correct: 'မနက်စာစား' },
+                ],
+            },
+            {
+                level: 1, title: 'ကျွန်မ၏ မိသားစု',
+                lines: [
+                    { target: 'ကျွန်မ့်မိသားစုမှာ လူလေးယောက် ရှိပါတယ်— အဖေ၊ အမေ၊ အစ်မနဲ့ ကျွန်မ။', thai: 'ครอบครัวฉันมีสี่คน: พ่อ แม่ พี่สาว และฉัน' },
+                    { target: 'အဖေက ဆရာဝန်၊ အမေက ဆရာမပါ။', thai: 'พ่อเป็นหมอ แม่เป็นครู' },
+                    { target: 'အစ်မက ကျွန်မထက် သုံးနှစ်ကြီးပြီး တက္ကသိုလ်မှာ စာသင်နေတယ်။', thai: 'พี่สาวอายุมากกว่าฉันสามปี เธอเรียนอยู่มหาวิทยาลัย' },
+                    { target: 'အိမ်မှာ ခွေးလေးတစ်ကောင် ရှိတယ်။ အရမ်းချစ်စရာကောင်းတယ်။', thai: 'บ้านเรามีหมาตัวเล็กหนึ่งตัว มันน่ารักมาก' },
+                    { target: 'တနင်္ဂနွေနေ့တိုင်း အားလုံး အတူတူ ပန်းခြံသွားကြတယ်။', thai: 'วันอาทิตย์เราไปเที่ยวสวนสาธารณะด้วยกัน' },
+                ],
+                questions: [
+                    { q: 'အဖေ ဘာအလုပ်လုပ်လဲ။', choices: ['ဆရာဝန်', 'ဆရာ', 'အလုပ်သမား'], correct: 'ဆရာဝန်' },
+                    { q: 'အစ်မ ဘယ်နှစ်နှစ်ကြီးလဲ။', choices: ['သုံးနှစ်', 'နှစ်နှစ်', 'တစ်နှစ်'], correct: 'သုံးနှစ်' },
+                ],
+            },
+            {
+                level: 2, title: 'စနေ-တနင်္ဂနွေ အစီအစဉ်',
+                lines: [
+                    { target: 'ဒီအပတ်စွန်း ကျွန်မ အလုပ်များစွာလုပ်ဖို့ စီစဉ်ထားတယ်။', thai: 'สุดสัปดาห์นี้ฉันตั้งใจจะทำหลายอย่าง' },
+                    { target: 'စနေမနက် စာကြည့်တိုက်မှာ စာဖတ်မယ်၊ ညနေ သူငယ်ချင်းနဲ့ ဈေးဝယ်မယ်။', thai: 'เช้าวันเสาร์ฉันจะไปห้องสมุดอ่านหนังสือ บ่ายไปซื้อของกับเพื่อน' },
+                    { target: 'ညဘက် ရုပ်ရှင်ကြည့်ဖို့ စီစဉ်ထားတယ်။', thai: 'ตอนเย็นเราตั้งใจจะไปดูหนัง' },
+                    { target: 'တနင်္ဂနွေနေ့ အိမ်မှာနားချင်တယ်။ မိသားစုအတွက် ဟင်းချက်ချင်တယ်။', thai: 'วันอาทิตย์ฉันอยากพักผ่อนอยู่บ้าน อาจจะทำกับข้าวให้ครอบครัวกิน' },
+                    { target: 'ရာသီဥတုကောင်းရင် ပန်းခြံမှာ ပြေးလိုက်ချင်သေးတယ်။', thai: 'ถ้าอากาศดี ฉันยังอยากไปวิ่งที่สวนสาธารณะด้วย' },
+                ],
+                questions: [
+                    { q: 'စနေမနက် ဘယ်ကို သွားလဲ။', choices: ['စာကြည့်တိုက်', 'စားသောက်ဆိုင်', 'ရုပ်ရှင်ရုံ'], correct: 'စာကြည့်တိုက်' },
+                    { q: 'တနင်္ဂနွေနေ့ ဘာလုပ်ချင်လဲ။', choices: ['အိမ်မှာနား', 'အလုပ်သွား', 'ခရီးသွား'], correct: 'အိမ်မှာနား' },
+                ],
+            },
+            {
+                level: 2, title: 'နေမကောင်းတဲ့နေ့',
+                lines: [
+                    { target: 'မနေ့ညက ကျွန်မ ခန္ဓာကိုယ် သိပ်မကောင်းဘူး။', thai: 'เมื่อคืนฉันรู้สึกไม่สบาย' },
+                    { target: 'ခေါင်းကိုက်ပြီး အနည်းငယ် ဖျားတယ်။', thai: 'ปวดหัวมาก แล้วก็มีไข้นิดหน่อย' },
+                    { target: 'ဒီနေ့မနက် အလုပ်မသွားဘဲ ဆရာဝန်ဆီ သွားခဲ့တယ်။', thai: 'เช้านี้ฉันไม่ได้ไปทำงาน ไปโรงพยาบาลหาหมอ' },
+                    { target: 'ဆရာဝန်က အအေးမိတယ်၊ ရေများများသောက်ပြီး နားပါလို့ ပြောပြီး ဆေးပေးတယ်။', thai: 'หมอบอกว่าฉันเป็นหวัด ให้ดื่มน้ำเยอะๆ พักผ่อนเยอะๆ แล้วก็จ่ายยาให้ฉันด้วย' },
+                    { target: 'ဆေးသောက်ပြီးတဲ့နောက် အများကြီး သက်သာသွားတယ်။', thai: 'หลังจากกินยาแล้วรู้สึกดีขึ้นมาก' },
+                ],
+                questions: [
+                    { q: 'ဘာဖြစ်လို့ နေမကောင်းတာလဲ။', choices: ['အအေးမိ', 'ဗိုက်နာ', 'ခြေထောက်ဒဏ်ရာရ'], correct: 'အအေးမိ' },
+                    { q: 'ဆရာဝန် ဘာပြောလဲ။', choices: ['ရေများများသောက်ပြီးနား', 'ကိုယ်လက်လှုပ်ရှားမှုများများလုပ်', 'ဘာမှမစား'], correct: 'ရေများများသောက်ပြီးနား' },
+                ],
+            },
+            {
+                level: 3, title: 'ကျွန်တော့် ပထမဆုံး လေယာဉ်ခရီး',
+                lines: [
+                    { target: 'လွန်ခဲ့တဲ့ လက ကျွန်တော် ရန်ကုန်ကို လေယာဉ်နဲ့ တစ်ယောက်တည်း ပထမဆုံးအကြိမ် သွားခဲ့တယ်။', thai: 'เดือนที่แล้วฉันนั่งเครื่องบินไปเที่ยวเบอร์ลินคนเดียวเป็นครั้งแรก' },
+                    { target: 'မထွက်ခွာခင် အရမ်းစိတ်လှုပ်ရှားခဲ့တယ်။ လေဆိပ်တံခါးကို ရှာမတွေ့မှာ စိုးရိမ်ခဲ့တယ်။', thai: 'ก่อนออกเดินทางฉันตื่นเต้นมาก กลัวว่าตัวเองจะหาประตูขึ้นเครื่องไม่เจอ' },
+                    { target: 'လေဆိပ်ရောက်တော့ မျက်နှာပြင်ပေါ်က အချက်အလက်တွေကို ကြည့်ပြီး တံခါးကို လွယ်လွယ်ကူကူ ရှာတွေ့ခဲ့တယ်။', thai: 'พอถึงสนามบิน ฉันดูข้อมูลบนจอแล้วหาประตูขึ้นเครื่องเจอได้อย่างราบรื่น' },
+                    { target: 'အချိန်ကျန်သေးလို့ လေဆိပ်ထဲမှာ လမ်းလျှောက်ပြီး လက်ဆောင်လေးတွေ ဝယ်ခဲ့တယ်။', thai: 'ยังมีเวลาเดินเล่นในสนามบิน ซื้อของฝากเล็กๆ น้อยๆ ด้วย' },
+                    { target: 'လေယာဉ် ပျံတက်ချိန်မှာ အနည်းငယ် ကြောက်ခဲ့ပေမယ့် နည်းနည်းနဲ့ ဖြေးဖြေးချင်း ပုံမှန်ဖြစ်လာခဲ့တယ်။', thai: 'ตอนเครื่องบินขึ้น ฉันกลัวนิดหน่อย แต่ค่อยๆ ชินไป' },
+                ],
+                questions: [
+                    { q: 'မသွားခင် ဒီလူ ခံစားချက် ဘယ်လိုလဲ။', choices: ['စိတ်လှုပ်ရှားပြီး တံခါးရှာမတွေ့မှာစိုးရိမ်', 'အရမ်းပျော်ရွှင်', 'ဘာမှစိတ်မထောင်ထား'], correct: 'စိတ်လှုပ်ရှားပြီး တံခါးရှာမတွေ့မှာစိုးရိမ်' },
+                    { q: 'တံခါးရှာခြင်းအပြင် လေဆိပ်မှာ ဘာလုပ်ခဲ့သေးလဲ။', choices: ['လမ်းလျှောက်ပြီး လက်ဆောင်ဝယ်', 'အိပ်ပျော်', 'သူငယ်ချင်းကို ဖုန်းဆက်'], correct: 'လမ်းလျှောက်ပြီး လက်ဆောင်ဝယ်' },
+                ],
+            },
+            {
+                level: 3, title: 'ကျွန်တော့် ဗမာစာ လေ့လာမှု အတွေ့အကြုံ',
+                lines: [
+                    { target: 'ကျွန်တော် ဗမာစာကို နှစ်နှစ်လောက် လေ့လာနေပါပြီ။', thai: 'ฉันเรียนภาษาพม่ามาสองปีแล้ว' },
+                    { target: 'အစပိုင်းမှာ အသံထွက်နဲ့ သဒ္ဒါက အရမ်းခက်ခဲ့တယ်၊ မှားခဲ့တာများပြီး သူငယ်ချင်းတွေလည်း ရယ်ခဲ့ကြတယ်။', thai: 'ตอนเริ่มแรกฉันรู้สึกว่าการออกเสียงและไวยากรณ์ยากมาก พูดผิดบ่อยๆ แล้วก็ถูกเพื่อนล้อบ่อยๆ' },
+                    { target: 'နောက်ပိုင်း နေ့တိုင်း ဗမာသီချင်းတွေနားထောင်ပြီး ဗီဒီယိုတွေကြည့်ခဲ့တယ်၊ ဒီဘာသာစကားရဲ့ စည်းချက်ကို တဖြည်းဖြည်း ရင်းနှီးလာတယ်။', thai: 'ต่อมาฉันฟังเพลงพม่าและดูวิดีโอภาษาพม่าทุกวันอย่างสม่ำเสมอ ค่อยๆ ชินกับจังหวะของภาษานี้' },
+                    { target: 'အခုတော့ မသိသေးတဲ့ စကားလုံးများစွာရှိနေသေးပေမယ့် မြန်မာသူငယ်ချင်းတွေနဲ့ ရိုးရှင်းစွာ စကားပြောနိုင်ပြီ။', thai: 'ตอนนี้แม้จะยังมีคำศัพท์ที่ไม่รู้อีกเยอะ แต่ฉันคุยกับเพื่อนคนพม่าแบบง่ายๆ ได้แล้ว' },
+                    { target: 'ဘာသာစကားလေ့လာရာမှာ အရေးအကြီးဆုံးအချက်က မှားမှာမကြောက်ဘဲ ဆက်ကြိုးစားနေဖို့ပဲလို့ ကျွန်တော် ထင်တယ်။', thai: 'ฉันคิดว่าสิ่งที่สำคัญที่สุดในการเรียนภาษาคือไม่ต้องกลัวทำผิด ถ้าพยายามต่อไปเรื่อยๆ ยังไงก็ต้องมีความก้าวหน้า' },
+                ],
+                questions: [
+                    { q: 'အစပိုင်းမှာ ဒီလူအတွက် အခက်ခဲဆုံးက ဘာလဲ။', choices: ['အသံထွက်နဲ့ သဒ္ဒါ', 'စကားလုံး', 'စာလုံးရေး'], correct: 'အသံထွက်နဲ့ သဒ္ဒါ' },
+                    { q: 'ဒီလူ ဘယ်လို လေ့ကျင့်ခဲ့လဲ။', choices: ['နေ့တိုင်း သီချင်းနားထောင်ပြီး ဗီဒီယိုကြည့်', 'စကားလုံးချည်းသက်သက် အလွတ်ကျက်', 'သဒ္ဒါချည်းသက်သက် ဖတ်'], correct: 'နေ့တိုင်း သီချင်းနားထောင်ပြီး ဗီဒီယိုကြည့်' },
+                ],
+            },
+        ];
+
+        // ตัวเลข/วันที่/เวลาภาษาพม่า — จุดสังเกตสำคัญ: (1) ตัวเลขพม่าเป็นระบบสิบ-หน่วยตรงไปตรงมาคล้ายไทย
+        // (เช่น 23 = နှစ်ဆယ့်သုံး = "สอง-สิบ-สาม") (2) การบอกเวลาใช้ "X နာရီ" ตามหลังเลขชั่วโมงเสมอ
+        // มีคำเฉพาะสำหรับครึ่ง (ခွဲ) คล้ายภาษาไทย (3) ชื่อวันในสัปดาห์มาจากชื่อดาวเคราะห์แบบเดียวกับไทย
+        // (တနင်္လာ=จันทร์, အင်္ဂါ=อังคาร ฯลฯ) ทำให้ผู้เรียนไทยจำได้ง่ายกว่าภาษาอื่น
+        const NUMBERS_DATES_MM = {
+            numbers: [
+                { prompt: '5', target: 'ငါး' },
+                { prompt: '8', target: 'ရှစ်' },
+                { prompt: '12', target: 'ဆယ့်နှစ်' },
+                { prompt: '15', target: 'ဆယ့်ငါး' },
+                { prompt: '20', target: 'နှစ်ဆယ်' },
+                { prompt: '23', target: 'နှစ်ဆယ့်သုံး' },
+                { prompt: '34', target: 'သုံးဆယ့်လေး' },
+                { prompt: '50', target: 'ငါးဆယ်' },
+                { prompt: '67', target: 'ခြောက်ဆယ့်ခုနစ်' },
+                { prompt: '99', target: 'ကိုးဆယ့်ကိုး' },
+                { prompt: '100', target: 'တစ်ရာ' },
+                { prompt: '128', target: 'တစ်ရာ့နှစ်ဆယ့်ရှစ်' },
+                { prompt: '256', target: 'နှစ်ရာ့ငါးဆယ့်ခြောက်' },
+                { prompt: '1000', target: 'တစ်ထောင်' },
+            ],
+            weekday: [
+                { prompt: 'วันจันทร์', target: 'တနင်္လာနေ့' },
+                { prompt: 'วันอังคาร', target: 'အင်္ဂါနေ့' },
+                { prompt: 'วันพุธ', target: 'ဗုဒ္ဓဟူးနေ့' },
+                { prompt: 'วันพฤหัสบดี', target: 'ကြာသပတေးနေ့' },
+                { prompt: 'วันศุกร์', target: 'သောကြာနေ့' },
+                { prompt: 'วันเสาร์', target: 'စနေနေ့' },
+                { prompt: 'วันอาทิตย์', target: 'တနင်္ဂနွေနေ့' },
+            ],
+            time: [
+                { prompt: '1:00 น.', target: 'တစ်နာရီ' },
+                { prompt: '2:00 น.', target: 'နှစ်နာရီ' },
+                { prompt: '3:30 น.', target: 'သုံးနာရီခွဲ' },
+                { prompt: '4:40 น.', target: 'လေးနာရီ လေးဆယ်မိနစ်' },
+                { prompt: '6:15 น.', target: 'ခြောက်နာရီ ဆယ့်ငါးမိနစ်' },
+                { prompt: '7:30 น.', target: 'ခုနစ်နာရီခွဲ' },
+                { prompt: '8:45 น.', target: 'ရှစ်နာရီ လေးဆယ့်ငါးမိနစ်' },
+                { prompt: '9:05 น.', target: 'ကိုးနာရီ ငါးမိနစ်' },
+                { prompt: '10:10 น.', target: 'ဆယ်နာရီ ဆယ်မိနစ်' },
+                { prompt: '11:20 น.', target: 'ဆယ့်တစ်နာရီ နှစ်ဆယ်မိနစ်' },
+                { prompt: '12:00 น.', target: 'မွန်းတည့် ဆယ့်နှစ်နာရီ' },
+            ],
+            date: [
+                { prompt: '1 มกราคม', target: 'ဇန်နဝါရီ ၁ ရက်နေ့' },
+                { prompt: '14 กุมภาพันธ์', target: 'ဖေဖော်ဝါရီ ၁၄ ရက်နေ့' },
+                { prompt: '8 มีนาคม', target: 'မတ် ၈ ရက်နေ့' },
+                { prompt: '1 พฤษภาคม', target: 'မေ ၁ ရက်နေ့' },
+                { prompt: '20 มิถุนายน', target: 'ဇွန် ၂၀ ရက်နေ့' },
+                { prompt: '15 สิงหาคม', target: 'သြဂုတ် ၁၅ ရက်နေ့' },
+                { prompt: '10 ตุลาคม', target: 'အောက်တိုဘာ ၁၀ ရက်နေ့' },
+                { prompt: '25 ธันวาคม', target: 'ဒီဇင်ဘာ ၂၅ ရက်နေ့' },
+            ],
+        };
+
+
         // ── บทฟังภาษาอาหรับ 6 หัวข้อ (เนื้อหาคู่ขนานกับภาษาอื่น รวมตัวละคร "Minji" ที่ปรากฏซ้ำทุกภาษา) ──
         const LISTENING_PASSAGES_AR = [
             {
@@ -14699,7 +15278,7 @@
 
         // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN/_JP/_KR/_YUE)/READING_PASSAGES(_EN/_JP/_KR/_YUE)/
         // NUMBERS_DATES(_EN/_JP/_KR/_YUE) + ASR_LANG_NAME) — ภาษาอื่นนอกห้านี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
-        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue', 'lang-de', 'lang-fr', 'lang-it', 'lang-es', 'lang-pt', 'lang-ru', 'lang-in', 'lang-ar', 'lang-vn', 'lang-my'];
+        const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue', 'lang-de', 'lang-fr', 'lang-it', 'lang-es', 'lang-pt', 'lang-ru', 'lang-in', 'lang-ar', 'lang-vn', 'lang-my', 'lang-mm'];
         function ListenSpeakView({ langId, setLangId, setXp }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
@@ -14957,6 +15536,8 @@
                     setView('vnexam');
                 } else if (langId === 'lang-my') {
                     setView('myexam');
+                } else if (langId === 'lang-mm') {
+                    setView('mmexam');
                 } else {
                     setLangId('lang-cn');
                     setView('hsk');
@@ -14967,7 +15548,7 @@
             // โหมดฟัง-พูด รองรับจีนกลาง+อังกฤษ+ญี่ปุ่น+เกาหลี+จีนกวางตุ้งแล้ว — ถ้าอยู่ภาษาอื่นอยู่
             // ค่อยสลับเป็นจีนกลางให้อัตโนมัติ
             const goListen = () => {
-                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr' && langId !== 'lang-yue' && langId !== 'lang-de' && langId !== 'lang-fr' && langId !== 'lang-it' && langId !== 'lang-es' && langId !== 'lang-pt' && langId !== 'lang-ru' && langId !== 'lang-in' && langId !== 'lang-ar' && langId !== 'lang-vn' && langId !== 'lang-my') setLangId('lang-cn');
+                if (langId !== 'lang-en' && langId !== 'lang-jp' && langId !== 'lang-kr' && langId !== 'lang-yue' && langId !== 'lang-de' && langId !== 'lang-fr' && langId !== 'lang-it' && langId !== 'lang-es' && langId !== 'lang-pt' && langId !== 'lang-ru' && langId !== 'lang-in' && langId !== 'lang-ar' && langId !== 'lang-vn' && langId !== 'lang-my' && langId !== 'lang-mm') setLangId('lang-cn');
                 setView('listen');
                 setMobileNavOpen(false);
             };
@@ -15068,7 +15649,7 @@
                                             <div key={id} className="flex items-center gap-1">
                                                 <button
                                                     onClick={() => selectLang(id)}
-                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam' || view === 'arexam' || view === 'vnexam' || view === 'myexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
+                                                    className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${langId === id && (view === 'practice' || view === 'hsk' || view === 'listen' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam' || view === 'arexam' || view === 'vnexam' || view === 'myexam' || view === 'mmexam') ? 'bg-brandLight text-brand font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
                                                 >
                                                     <Languages /> <span className="flex-1 text-left truncate">{LANGS[id].title}</span>
                                                     {allDone && <CheckCircle />}
@@ -15157,7 +15738,7 @@
                                 <button
                                     onClick={goExam}
                                     title="รองรับภาษาจีนกลาง (HSK/BCT), อังกฤษ (IELTS/TOEIC), ญี่ปุ่น (JLPT), เกาหลี (TOPIK), จีนกวางตุ้ง (แบบทดสอบความเข้าใจ), เยอรมัน (Goethe A1), ฝรั่งเศส (DELF A1), อิตาลี (PLIDA A1), สเปน (DELE A1) และโปรตุเกส (CELPE-Bras) — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
-                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam' || view === 'arexam' || view === 'vnexam' || view === 'myexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                    className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam' || view === 'arexam' || view === 'vnexam' || view === 'myexam' || view === 'mmexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
                                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
@@ -15885,6 +16466,8 @@
                         <VnExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : view === 'myexam' ? (
                         <MyExamView langId={langId} setLangId={setLangId} setXp={setXp} />
+                        ) : view === 'mmexam' ? (
+                        <MmExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : (
                         <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} />
                         )}
