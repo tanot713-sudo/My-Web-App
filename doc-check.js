@@ -2,7 +2,11 @@
    Tanot — doc-check.js
    ตรวจสอบเอกสาร: แนบไฟล์ (.txt/.docx/.pdf/รูปภาพ) → ตรวจคำผิดด้วย
    LanguageTool API สาธารณะ → แก้ตามคำแนะนำ → อ่านออกเสียง → ดาวน์โหลด .docx
-   ประมวลผลไฟล์ทั้งหมดในเบราว์เซอร์ ไม่มีอะไรถูกอัปโหลดขึ้นเซิร์ฟเวอร์ของเรา
+   ไฟล์ .txt/.docx/.pdf และข้อความที่พิมพ์เอง ประมวลผลในเบราว์เซอร์ทั้งหมด
+   ไม่มีอะไรถูกอัปโหลดขึ้นเซิร์ฟเวอร์ของเรา — ยกเว้นรูปภาพเมื่อเลือกโหมดอ่านด้วย
+   "Claude Vision" (ทางเลือกเสริม ปิดเป็นค่าเริ่มต้น) ซึ่งจะส่งรูปนั้นไปยัง Cloudflare
+   Worker ของเราเอง (ไม่ใช่เซิร์ฟเวอร์บุคคลที่สาม) แล้วต่อไป Anthropic API เพื่ออ่านข้อความ
+   ในภาพ — โหมดเริ่มต้น (Tesseract) ยังคงอ่านในเบราว์เซอร์ล้วนๆ เหมือนเดิมทุกประการ
    ══════════════════════════════════════════════════════════════════ */
 (function () {
 'use strict';
@@ -26,6 +30,48 @@ var LANGUAGES = [
 ];
 var PAGE_CHAR_LIMIT = 2500;
 var LT_ENDPOINT = 'https://api.languagetool.org/v2/check';
+
+/* ══════════════════════════════════════════════════════════════════
+   OCR รูปภาพ: เลือกได้ระหว่าง Tesseract (ฟรี, ในเบราว์เซอร์, อ่านได้แค่ไทย/อังกฤษ)
+   กับ Claude Vision (ผ่าน Worker ของเราเอง — ไม่มี key ฝังในโค้ดนี้ — แม่นยำกว่ามาก
+   อ่านลายมือได้ รองรับทุกภาษาที่เว็บนี้มี) — URL นี้ไม่ใช่ความลับ (Worker เช็ค origin
+   + ถือ API key ไว้ฝั่งเซิร์ฟเวอร์เอง) จึงฝังในโค้ดฝั่งเบราว์เซอร์ได้ตรงๆ
+   ══════════════════════════════════════════════════════════════════ */
+var OCR_WORKER_URL = 'https://tanot-ocr-proxy.tanot713.workers.dev/';
+var OCR_ENGINE_KEY = 'tanot:ocrengine';
+
+function getOcrEngine() {
+  try { return localStorage.getItem(OCR_ENGINE_KEY) === 'vision' ? 'vision' : 'tesseract'; }
+  catch (e) { return 'tesseract'; }
+}
+function setOcrEngine(engine) {
+  try { localStorage.setItem(OCR_ENGINE_KEY, engine); } catch (e) {}
+}
+
+/* โหมด Claude Vision มีค่าใช้จ่ายต่อการใช้งานจริง (ผ่าน API key ของเรา) จึงล็อกด้วยรหัสผ่าน
+   แยกต่างหาก — เหมือน auth-gate.js: ป้องกันฝั่งไคลเอนต์เท่านั้น (เก็บแค่ SHA-256 ของรหัสผ่าน
+   ไม่ใช่ plaintext) กันคนทั่วไปกดใช้โดยไม่ตั้งใจ ไม่ใช่การป้องกันจริงจังจากผู้ที่ตั้งใจเปิด DevTools */
+var OCR_PW_HASH = 'a23be51eba57166064b8ffc23c735a3f6638e8c1b9302f232b87119e432bd356';
+var OCR_PW_UNLOCK_KEY = 'tanot:ocrvision:unlocked';
+
+async function sha256Hex(str) {
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+}
+function isVisionUnlocked() {
+  try { return localStorage.getItem(OCR_PW_UNLOCK_KEY) === '1'; } catch (e) { return false; }
+}
+
+/* แปลงไฟล์เป็น base64 แบบแบ่งชิ้น (กัน stack overflow จาก String.fromCharCode.apply กับไฟล์ใหญ่) */
+async function fileToBase64(file) {
+  var buf = await file.arrayBuffer();
+  var bytes = new Uint8Array(buf);
+  var binary = '', chunkSize = 0x8000;
+  for (var i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+}
 
 /* ══════════════════════════════════════════════════════════════════
    ภาษาที่ใช้แสดงผล UI (ไทย/อังกฤษ) — แยกจาก "ภาษาของเอกสาร" (state.lang) ด้านบน
@@ -92,7 +138,19 @@ var I18N = {
     pdfGarbledPage: '(ข้อความในหน้านี้อ่านไม่ออก — ไฟล์นี้อาจใช้ font แบบพิเศษที่ไม่ใช่ Unicode มาตรฐาน)',
     ocrNoText: '(ไม่พบข้อความในภาพ)',
     unsupportedFileType: 'ไม่รองรับไฟล์ประเภทนี้ (รองรับ .txt .docx .pdf .png .jpg)',
-    ltServiceError: 'บริการตรวจคำผิดตอบกลับผิดพลาด ({status})'
+    ltServiceError: 'บริการตรวจคำผิดตอบกลับผิดพลาด ({status})',
+    ocrEngineLabel: 'อ่านรูปภาพด้วย',
+    ocrEngineTesseract: 'ฟรี (ไทย/อังกฤษ)',
+    ocrEngineVision: 'Claude Vision (แม่นยำกว่า ทุกภาษา)',
+    ocrEngineNote: 'โหมดนี้จะส่งรูปที่แนบไปยัง Cloudflare Worker ของเราแล้วต่อไปยัง Anthropic API เพื่ออ่านข้อความ (ไม่ใช่ประมวลผลในเบราว์เซอร์ล้วนๆ เหมือนโหมดฟรี)',
+    ocrVisionNetErr: 'เชื่อมต่อบริการ Claude Vision ไม่ได้ — ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต หรือลองสลับไปใช้โหมดฟรี (Tesseract) แทน',
+    ocrVisionApiErr: 'บริการ Claude Vision ตอบกลับผิดพลาด ({status}) — ลองสลับไปใช้โหมดฟรี (Tesseract) แทน',
+    ocrPwTitle: 'ใส่รหัสผ่านเพื่อใช้ Claude Vision',
+    ocrPwDesc: 'โหมดนี้มีค่าใช้จ่ายต่อการใช้งาน จึงล็อกด้วยรหัสผ่านแยกต่างหาก',
+    ocrPwPlaceholder: 'รหัสผ่าน',
+    ocrPwErrText: 'รหัสผ่านไม่ถูกต้อง',
+    ocrPwCancel: 'ยกเลิก',
+    ocrPwSubmit: 'ยืนยัน'
   },
   en: {
     docTitleType: 'Document Check | Tanot',
@@ -144,7 +202,19 @@ var I18N = {
     pdfGarbledPage: '(The text on this page is unreadable — this file may use a special non-Unicode font)',
     ocrNoText: '(No text found in the image)',
     unsupportedFileType: 'This file type is not supported (supports .txt .docx .pdf .png .jpg)',
-    ltServiceError: 'The spell-check service returned an error ({status})'
+    ltServiceError: 'The spell-check service returned an error ({status})',
+    ocrEngineLabel: 'Read images with',
+    ocrEngineTesseract: 'Free (Thai/English)',
+    ocrEngineVision: 'Claude Vision (more accurate, all languages)',
+    ocrEngineNote: 'This mode sends the attached image to our Cloudflare Worker, which forwards it to the Anthropic API to read the text (not purely in-browser processing like the free mode).',
+    ocrVisionNetErr: 'Could not reach the Claude Vision service — check your internet connection, or switch back to the free (Tesseract) mode.',
+    ocrVisionApiErr: 'The Claude Vision service returned an error ({status}) — try switching back to the free (Tesseract) mode.',
+    ocrPwTitle: 'Enter password to use Claude Vision',
+    ocrPwDesc: 'This mode costs money per use, so it\'s locked behind a separate password.',
+    ocrPwPlaceholder: 'Password',
+    ocrPwErrText: 'Incorrect password',
+    ocrPwCancel: 'Cancel',
+    ocrPwSubmit: 'Confirm'
   }
 };
 
@@ -254,9 +324,32 @@ async function readPdfFile(file) {
   return pages.length ? pages : [''];
 }
 
-async function readImageFile(file) {
+async function readImageFileTesseract(file) {
   var result = await window.Tesseract.recognize(file, 'eng+tha');
   return splitIntoPages(result.data.text || t('ocrNoText'));
+}
+
+async function readImageFileVision(file) {
+  var base64 = await fileToBase64(file);
+  var mediaType = file.type || 'image/png';
+  var res;
+  try {
+    res = await fetch(OCR_WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageBase64: base64, mediaType: mediaType })
+    });
+  } catch (e) {
+    throw new Error(t('ocrVisionNetErr'));
+  }
+  var data = {};
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok) throw new Error(data.error || t('ocrVisionApiErr', { status: res.status }));
+  return splitIntoPages(data.text || t('ocrNoText'));
+}
+
+async function readImageFile(file) {
+  return getOcrEngine() === 'vision' ? readImageFileVision(file) : readImageFileTesseract(file);
 }
 
 async function readAnyFile(file) {
@@ -327,7 +420,10 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
       workspace = $('workspace'), prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), pageIndicator = $('pageIndicator'),
       docText = $('docText'), issueCount = $('issueCount'), issueList = $('issueList'), issueEmpty = $('issueEmpty'),
       emptyState = $('emptyState'), typeBox = $('typeBox'), modeTabs = $('modeTabs'),
-      typeTextarea = $('typeTextarea'), useTypedTextBtn = $('useTypedTextBtn'), langToggle = $('langToggle');
+      typeTextarea = $('typeTextarea'), useTypedTextBtn = $('useTypedTextBtn'), langToggle = $('langToggle'),
+      ocrEngineToggle = $('ocrEngineToggle'), ocrEngineNote = $('ocrEngineNote'),
+      ocrPwOverlay = $('ocrPwOverlay'), ocrPwInput = $('ocrPwInput'), ocrPwErr = $('ocrPwErr'),
+      ocrPwCancel = $('ocrPwCancel'), ocrPwSubmit = $('ocrPwSubmit');
 
   var SPEAK_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
   var STOP_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
@@ -363,8 +459,64 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
     langSelect.value = prevValue;
   }
 
+  /* ══ เลือกวิธีอ่าน OCR รูปภาพ (Tesseract ฟรี / Claude Vision) — มีเฉพาะหน้าแนบไฟล์ ══ */
+  function applyOcrEngineUI() {
+    if (!ocrEngineToggle) return;
+    var engine = getOcrEngine();
+    ocrEngineToggle.querySelectorAll('[data-oe]').forEach(function (span) {
+      span.classList.toggle('active', span.getAttribute('data-oe') === engine);
+    });
+    if (ocrEngineNote) ocrEngineNote.style.display = engine === 'vision' ? 'block' : 'none';
+  }
+  function showOcrPwModal() {
+    if (!ocrPwOverlay) return;
+    ocrPwErr.style.display = 'none';
+    ocrPwInput.value = '';
+    ocrPwOverlay.style.display = 'flex';
+    ocrPwInput.focus();
+  }
+  function hideOcrPwModal() {
+    if (ocrPwOverlay) ocrPwOverlay.style.display = 'none';
+  }
+  function submitOcrPw() {
+    var pw = ocrPwInput.value;
+    sha256Hex(pw).then(function (hex) {
+      if (hex === OCR_PW_HASH) {
+        try { localStorage.setItem(OCR_PW_UNLOCK_KEY, '1'); } catch (e) {}
+        hideOcrPwModal();
+        setOcrEngine('vision');
+        applyOcrEngineUI();
+      } else {
+        ocrPwErr.style.display = 'block';
+        ocrPwInput.value = '';
+        ocrPwInput.focus();
+      }
+    });
+  }
+
+  if (ocrEngineToggle) {
+    ocrEngineToggle.addEventListener('click', function (e) {
+      var span = e.target.closest('[data-oe]');
+      if (!span) return;
+      var engine = span.getAttribute('data-oe');
+      if (engine === 'vision' && !isVisionUnlocked()) { showOcrPwModal(); return; }
+      setOcrEngine(engine);
+      applyOcrEngineUI();
+    });
+  }
+  if (ocrPwCancel) ocrPwCancel.addEventListener('click', hideOcrPwModal);
+  if (ocrPwSubmit) ocrPwSubmit.addEventListener('click', submitOcrPw);
+  if (ocrPwOverlay) {
+    ocrPwOverlay.addEventListener('click', function (e) { if (e.target === ocrPwOverlay) hideOcrPwModal(); });
+    ocrPwOverlay.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') hideOcrPwModal();
+      else if (e.key === 'Enter') { e.preventDefault(); submitOcrPw(); }
+    });
+  }
+
   applyStaticI18n();
   buildLangOptions();
+  applyOcrEngineUI();
   langSelect.value = state.lang;
 
   if (langToggle) {

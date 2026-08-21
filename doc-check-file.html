@@ -61,6 +61,27 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 [data-theme="dark"] .drop{background:#171C28}
 [data-theme="dark"] .drop:hover,[data-theme="dark"] .drop.over{background:#14261E}
 
+/* ── เลือกวิธีอ่าน OCR รูปภาพ ── */
+.ocr-engine-row{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.ocr-engine-label{font-size:12.5px;color:var(--muted);font-weight:600}
+.ocr-toggle{display:inline-flex;align-items:center;gap:2px;background:var(--line);border:none;border-radius:20px;
+  padding:3px;cursor:pointer;font-family:var(--f)}
+.ocr-toggle span{font-size:12px;font-weight:700;padding:6px 12px;border-radius:16px;color:var(--muted);transition:.15s}
+.ocr-toggle span.active{background:var(--card);color:var(--brand-dk);box-shadow:0 1px 3px rgba(24,31,54,.08)}
+.ocr-engine-note{display:none;font-size:12px;color:var(--muted);margin-top:6px;max-width:56ch;line-height:1.6}
+
+/* ── กล่องรหัสผ่านก่อนใช้ Claude Vision (โหมดมีค่าใช้จ่าย) ── */
+.ocr-pw-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(15,18,26,.55);
+  align-items:center;justify-content:center;padding:20px}
+.ocr-pw-card{background:var(--card);border-radius:16px;padding:26px;width:100%;max-width:320px;box-shadow:var(--sh)}
+.ocr-pw-card h3{font-size:16px;font-weight:700;margin-bottom:6px}
+.ocr-pw-card p{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6}
+.ocr-pw-card input{width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1.5px solid var(--line);
+  background:var(--bg);color:var(--ink);font-size:14.5px;font-family:var(--f);margin-bottom:8px}
+.ocr-pw-card input:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.ocr-pw-err{color:var(--err);font-size:12.5px;margin-bottom:8px}
+.ocr-pw-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+
 /* ── ป้ายประเภทจุดที่พบ ── */
 .kind-badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;margin-bottom:7px}
 .kind-badge.spelling{background:#FFE3EA;color:#B3325A}
@@ -174,6 +195,28 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   <div class="drop-hint" data-i18n="dropHint">รองรับ .txt · .docx · .pdf · .png · .jpg (สแกน/ภาพถ่ายใช้ OCR อ่านให้อัตโนมัติ)</div>
 </div>
 <input type="file" id="fileInput" accept=".txt,.docx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
+
+<div class="ocr-engine-row">
+  <span class="ocr-engine-label" data-i18n="ocrEngineLabel">อ่านรูปภาพด้วย</span>
+  <div class="ocr-toggle" id="ocrEngineToggle">
+    <span data-oe="tesseract" data-i18n="ocrEngineTesseract" class="active">ฟรี (ไทย/อังกฤษ)</span>
+    <span data-oe="vision" data-i18n="ocrEngineVision">Claude Vision (แม่นยำกว่า ทุกภาษา)</span>
+  </div>
+</div>
+<div class="ocr-engine-note" id="ocrEngineNote" data-i18n="ocrEngineNote">โหมดนี้จะส่งรูปที่แนบไปยัง Cloudflare Worker ของเราแล้วต่อไปยัง Anthropic API เพื่ออ่านข้อความ (ไม่ใช่ประมวลผลในเบราว์เซอร์ล้วนๆ เหมือนโหมดฟรี)</div>
+
+<div class="ocr-pw-overlay" id="ocrPwOverlay">
+  <div class="ocr-pw-card">
+    <h3 data-i18n="ocrPwTitle">ใส่รหัสผ่านเพื่อใช้ Claude Vision</h3>
+    <p data-i18n="ocrPwDesc">โหมดนี้มีค่าใช้จ่ายต่อการใช้งาน จึงล็อกด้วยรหัสผ่านแยกต่างหาก</p>
+    <input type="password" id="ocrPwInput" data-i18n-placeholder="ocrPwPlaceholder" placeholder="รหัสผ่าน" autocomplete="off">
+    <div class="ocr-pw-err" id="ocrPwErr" style="display:none" data-i18n="ocrPwErrText">รหัสผ่านไม่ถูกต้อง</div>
+    <div class="ocr-pw-actions">
+      <button class="btn" id="ocrPwCancel" type="button" data-i18n="ocrPwCancel">ยกเลิก</button>
+      <button class="btn primary" id="ocrPwSubmit" type="button" data-i18n="ocrPwSubmit">ยืนยัน</button>
+    </div>
+  </div>
+</div>
 
 <div class="dc-toolbar" id="toolbar">
   <div class="dc-file-chip">
