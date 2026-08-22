@@ -36,6 +36,8 @@ var I18N = {
     quizPromptPitchCompare: 'เสียงที่ 2 สูงกว่าหรือต่ำกว่าเสียงที่ 1?',
     quizPromptPitchSameDiff: 'สองเสียงนี้เป็นเสียงเดียวกันหรือต่างกัน?',
     quizPromptChordEar: 'คอร์ดที่ได้ยินเป็นเมเจอร์หรือไมเนอร์?',
+    quizPromptInterval: 'สองเสียงนี้ห่างกันเป็นขั้นคู่เสียงอะไร?',
+    quizPromptRhythm: 'จังหวะที่ได้ยินตรงกับข้อไหน?',
     quizPromptProgression: 'ในโพรเกรสชัน I-V-vi-IV ตำแหน่งที่ {position} คือคอร์ดอะไร?',
     listenBtn: '🔊 ฟังเสียง',
     listenProgressionBtn: '🔊 ฟังโพรเกรสชัน I-V-vi-IV',
@@ -65,6 +67,8 @@ var I18N = {
     quizPromptPitchCompare: 'Is the 2nd note higher or lower than the 1st?',
     quizPromptPitchSameDiff: 'Are these two notes the same pitch or different?',
     quizPromptChordEar: 'Is the chord you hear major or minor?',
+    quizPromptInterval: 'What interval do these two notes form?',
+    quizPromptRhythm: 'Which option matches the rhythm you heard?',
     quizPromptProgression: 'In the I-V-vi-IV progression, what is chord #{position}?',
     listenBtn: '🔊 Listen',
     listenProgressionBtn: '🔊 Listen to I-V-vi-IV',
@@ -435,6 +439,18 @@ function playChordTones(freqs) {
   var t = ctx.currentTime + 0.05, dur = 1.1;
   freqs.forEach(function (f) { playTone(ctx, f, t, dur); });
 }
+/* ฝึกจับจังหวะ (Rhythm Dictation) — เล่นโน้ตระดับเสียงเดียวซ้ำๆ ตามความยาวใน durations
+   (หน่วยเป็น "จังหวะ" เทียบตัวโน้ตดำ=1, ตัวเขบ็ต 1 ชั้น=0.5) ให้ฟังแล้วแยกรูปแบบจังหวะ */
+function playRhythm(durations) {
+  var ctx = getAudioCtx();
+  if (!ctx) return;
+  var beatSec = 0.42, t = ctx.currentTime + 0.05;
+  durations.forEach(function (d) {
+    var dur = d * beatSec;
+    playTone(ctx, 880, t, dur * 0.55);
+    t += dur;
+  });
+}
 function buildEarPlayerHtml() {
   return '<div style="text-align:center;padding:24px 0">' +
     '<button type="button" id="earPlayBtn" class="btn primary" style="font-size:16px;padding:16px 32px">' + t('listenBtn') + '</button>' +
@@ -584,6 +600,26 @@ function quizPitchSameDiffItem(note1, oct1, note2, oct2) {
   var f1 = noteFreq(note1, oct1), f2 = noteFreq(note2, oct2);
   var same = note1 === note2 && oct1 === oct2;
   return { kind: 'quiz', qType: 'pitch-same-diff', freqs: [f1, f2], answer: same ? 'same' : 'different' };
+}
+/* ขั้นคู่เสียง (Interval) — เริ่มจาก C4 เสมอ ให้เป็นโน้ตธรรมชาติล้วน (ไม่ต้องมีชาร์ป/แฟลต)
+   เพื่อไม่ต้องพึ่งความรู้ "ขยายทฤษฎีเกิน C Major" ก่อนก็เรียนได้ */
+function quizIntervalItem(letter, octave, key) {
+  var f1 = noteFreq('C', 4), f2 = noteFreq(letter, octave);
+  return { kind: 'quiz', qType: 'interval-ear', freqs: [f1, f2], answer: key };
+}
+/* จังหวะ (Rhythm Dictation) — แต่ละแพทเทิร์นรวมความยาว 4 จังหวะเท่ากันหมด ต่างกันแค่การแบ่งย่อย
+   ให้แยกด้วยหูว่าเป็นรูปแบบไหน (durations: หน่วยจังหวะ ตัวดำ=1, เขบ็ต1ชั้น=0.5) */
+var RHYTHM_PATTERNS = {
+  steady: { durations: [1, 1, 1, 1], label: { th: 'เรียบเสมอ (♩ ♩ ♩ ♩)', en: 'Even (♩ ♩ ♩ ♩)' } },
+  shortShortLong: { durations: [0.5, 0.5, 1, 1, 1], label: { th: 'สั้น-สั้น-ยาว-ยาว-ยาว (♪ ♪ ♩ ♩ ♩)', en: 'Short-short-long-long-long (♪ ♪ ♩ ♩ ♩)' } },
+  longShortShort: { durations: [1, 0.5, 0.5, 1, 1], label: { th: 'ยาว-สั้น-สั้น-ยาว-ยาว (♩ ♪ ♪ ♩ ♩)', en: 'Long-short-short-long-long (♩ ♪ ♪ ♩ ♩)' } },
+  fourEighths: { durations: [0.5, 0.5, 0.5, 0.5, 1, 1], label: { th: 'สั้นสี่ตัว-ยาวสองตัว (♪ ♪ ♪ ♪ ♩ ♩)', en: 'Four short-two long (♪ ♪ ♪ ♪ ♩ ♩)' } }
+};
+var RHYTHM_PATTERN_KEYS = ['steady', 'shortShortLong', 'longShortShort', 'fourEighths'];
+var RHYTHM_PATTERN_LABELS = {};
+RHYTHM_PATTERN_KEYS.forEach(function (k) { RHYTHM_PATTERN_LABELS[k] = RHYTHM_PATTERNS[k].label; });
+function quizRhythmItem(key) {
+  return { kind: 'quiz', qType: 'rhythm-dictation', durations: RHYTHM_PATTERNS[key].durations, answer: key };
 }
 /* ตำแหน่งโน้ต+ออกเทฟของแต่ละคอร์ดใน CHORDS (index เดียวกัน) — ใช้ค่าเดิมจากบทคอร์ดเบื้องต้น/
    หัดเล่นเปียโน ให้เสียงที่ได้ยินตรงกับโน้ตที่เคยเห็นบนบรรทัด/คีย์เปียโนพอดี ไม่ต้องคิดใหม่ */
@@ -1009,6 +1045,43 @@ var TRACKS = [
     ]
   },
   {
+    id: 'ear-training-advanced',
+    label: { th: 'ฝึกหูขั้นสูง', en: 'Advanced Ear Training' },
+    group: { th: 'ฝึกหู', en: 'Ear Training' },
+    items: [
+      readingItem('ขั้นคู่เสียง (Interval) คืออะไร', 'What Is an Interval',
+        [
+          'ขั้นคู่เสียง (Interval) คือระยะห่างระหว่างโน้ต 2 ตัว — เป็นทักษะฝึกหูขั้นถัดไปหลังจากแยกเสียงสูง/ต่ำได้แล้ว เพราะช่วยให้บอกได้ว่าสองเสียงห่างกัน "เท่าไร" ไม่ใช่แค่ "ไปทางไหน"',
+          "บทนี้ฝึก 4 ขั้นคู่เสียงพื้นฐานจากโน้ต C: คู่ 2 (C→D, ใกล้กันมาก ฟังคล้ายเสียงเลื่อน), คู่ 3 (C→E, ระยะห่างคอร์ด), คู่ 5 (C→G, ฟังกว้างและมั่นคง) และอ็อกเทฟ (C→C ตัวถัดไป, ฟังเหมือนเป็นโน้ตเดียวกันแต่สูง/ต่ำกว่า)",
+          'เทคนิคช่วยจำ: ลองนึกถึงเพลงที่ขึ้นต้นด้วยขั้นคู่เสียงนั้นๆ เช่น อ็อกเทฟฟังคล้ายเสียง "โด...โด" ซ้ำกันแต่คนละช่วงเสียง'
+        ],
+        [
+          'An interval is the distance between two notes — the next ear-training skill after telling higher/lower apart, because it tells you "how far", not just "which direction".',
+          'This lesson practices 4 basic intervals starting from C: a 2nd (C→D, very close, sounds like a slide), a 3rd (C→E, chord-spacing distance), a 5th (C→G, sounds wide and stable), and an octave (C→the next C, sounds like the same note but higher/lower).',
+          'Memory trick: think of a song that starts with that interval — an octave sounds like "do...do" repeated but in a different register.'
+        ]),
+      quizIntervalItem('D', 4, '2nd'), quizIntervalItem('E', 4, '3rd'),
+      quizIntervalItem('G', 4, '5th'), quizIntervalItem('C', 5, 'octave'),
+      quizIntervalItem('C', 5, 'octave'), quizIntervalItem('G', 4, '5th'),
+      quizIntervalItem('E', 4, '3rd'), quizIntervalItem('D', 4, '2nd'),
+      readingItem('ฝึกจับจังหวะ (Rhythm Dictation)', 'Rhythm Dictation',
+        [
+          'จับจังหวะ (Rhythm Dictation) คือการฟังแล้วแยกแยะรูปแบบจังหวะโดยไม่ต้องดูโน้ต — ใช้เสียงระดับเดียวกันซ้ำๆ เน้นที่ "ความยาว-สั้นของแต่ละเสียง" เท่านั้น',
+          'แต่ละแพทเทิร์นในแบบฝึกหัดยาวเท่ากัน (4 จังหวะ) แต่แบ่งย่อยต่างกัน — ฟังให้ดีว่าตรงไหน "สั้น" (เสียงถี่ๆ) ตรงไหน "ยาว" (เสียงห่างๆ) แล้วเทียบกับตัวเลือก',
+          'กดปุ่ม 🔊 ฟังซ้ำได้เรื่อยๆ ลองนับจังหวะเบาๆ ในใจไปด้วยจะช่วยแยกแยะได้ง่ายขึ้น'
+        ],
+        [
+          "Rhythm dictation means listening and identifying a rhythmic pattern without looking at notation — using the same pitch repeated, focused purely on each note's short/long duration.",
+          'Each pattern in the exercises is the same total length (4 beats) but subdivided differently — listen carefully for where it\'s "short" (quick notes) versus "long" (spaced-out notes), then compare to the options.',
+          'Press 🔊 to listen as many times as you like — quietly counting the beat along in your head helps you tell them apart.'
+        ]),
+      quizRhythmItem('steady'), quizRhythmItem('shortShortLong'),
+      quizRhythmItem('longShortShort'), quizRhythmItem('fourEighths'),
+      quizRhythmItem('fourEighths'), quizRhythmItem('longShortShort'),
+      quizRhythmItem('shortShortLong'), quizRhythmItem('steady')
+    ]
+  },
+  {
     id: 'first-song',
     label: { th: 'เพลงแรกของคุณ', en: 'Your First Song' },
     group: { th: 'นำไปใช้จริง', en: 'Apply It' },
@@ -1218,6 +1291,7 @@ var BADGE_DEFS = [
   { id: 'track-guitar', icon: '🎸', th: 'เจ้ากีตาร์', en: 'Guitar Master' },
   { id: 'track-ukulele', icon: '🪕', th: 'เจ้าอูคูเลเล่', en: 'Ukulele Master' },
   { id: 'track-ear-training', icon: '👂', th: 'นักฟังเสียง', en: 'Ear Training Master' },
+  { id: 'track-ear-training-advanced', icon: '🎧', th: 'เจ้าหูทอง', en: 'Golden Ear' },
   { id: 'track-first-song', icon: '🎤', th: 'เพลงแรกของฉัน', en: 'First Song Complete' },
   { id: 'track-beyond-c-major', icon: '🗝️', th: 'เจ้ากุญแจเสียง', en: 'Key Signature Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
@@ -1513,6 +1587,16 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
           : function () { playSequence(item.freqs); };
         var earBtn = document.getElementById('earPlayBtn');
         if (earBtn) earBtn.addEventListener('click', playFn);
+      } else if (item.qType === 'interval-ear') {
+        quizPromptEl.textContent = t('quizPromptInterval');
+        staffSvgHolder.innerHTML = buildEarPlayerHtml();
+        var ivBtn = document.getElementById('earPlayBtn');
+        if (ivBtn) ivBtn.addEventListener('click', function () { playSequence(item.freqs); });
+      } else if (item.qType === 'rhythm-dictation') {
+        quizPromptEl.textContent = t('quizPromptRhythm');
+        staffSvgHolder.innerHTML = buildEarPlayerHtml();
+        var rhBtn = document.getElementById('earPlayBtn');
+        if (rhBtn) rhBtn.addEventListener('click', function () { playRhythm(item.durations); });
       } else if (item.qType === 'progression-position') {
         quizPromptEl.textContent = t('quizPromptProgression', { position: item.position });
         staffSvgHolder.innerHTML = buildProgressionDisplayHtml(item.position);
@@ -1556,6 +1640,13 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     same: { th: 'เสียงเดียวกัน', en: 'Same' },
     different: { th: 'ต่างกัน', en: 'Different' }
   };
+  var INTERVAL_OPTIONS = ['2nd', '3rd', '5th', 'octave'];
+  var INTERVAL_LABELS = {
+    '2nd': { th: 'คู่ 2 (2nd)', en: '2nd' },
+    '3rd': { th: 'คู่ 3 (3rd)', en: '3rd' },
+    '5th': { th: 'คู่ 5 (5th)', en: '5th' },
+    octave: { th: 'อ็อกเทฟ (Octave)', en: 'Octave' }
+  };
   function renderAnswerRow(item) {
     answerRow.innerHTML = '';
     var progress = loadProgress();
@@ -1586,12 +1677,15 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     var isPitchCompareQuiz = item.qType === 'pitch-compare';
     var isPitchSameDiffQuiz = item.qType === 'pitch-same-diff';
     var isProgressionQuiz = item.qType === 'progression-position';
-    var isWide = isValueQuiz || isQualityQuiz || isGuitarQuiz || isUkuleleQuiz || isPitchCompareQuiz || isPitchSameDiffQuiz || isProgressionQuiz;
+    var isIntervalQuiz = item.qType === 'interval-ear';
+    var isRhythmQuiz = item.qType === 'rhythm-dictation';
+    var isWide = isValueQuiz || isQualityQuiz || isGuitarQuiz || isUkuleleQuiz || isPitchCompareQuiz || isPitchSameDiffQuiz || isProgressionQuiz || isIntervalQuiz || isRhythmQuiz;
     var choices = isValueQuiz ? NOTE_VALUE_ORDER : isBeatsQuiz ? TIME_SIG_BEATS_OPTIONS :
       isQualityQuiz ? CHORD_QUALITY_OPTIONS : isGuitarQuiz ? GUITAR_CHORD_NAMES :
       isUkuleleQuiz ? UKULELE_CHORD_NAMES :
       isPitchCompareQuiz ? PITCH_COMPARE_OPTIONS : isPitchSameDiffQuiz ? PITCH_SAME_DIFF_OPTIONS :
-      isProgressionQuiz ? PROGRESSION_QUIZ_OPTIONS : ANSWER_LETTERS;
+      isProgressionQuiz ? PROGRESSION_QUIZ_OPTIONS :
+      isIntervalQuiz ? INTERVAL_OPTIONS : isRhythmQuiz ? RHYTHM_PATTERN_KEYS : ANSWER_LETTERS;
     choices.forEach(function (choice) {
       var btn = document.createElement('button');
       btn.type = 'button';
@@ -1600,6 +1694,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
         isGuitarQuiz ? pick(GUITAR_CHORD_LABELS[choice]) : isUkuleleQuiz ? pick(UKULELE_CHORD_LABELS[choice]) :
         isPitchCompareQuiz ? pick(PITCH_COMPARE_LABELS[choice]) :
         isPitchSameDiffQuiz ? pick(PITCH_SAME_DIFF_LABELS[choice]) :
+        isIntervalQuiz ? pick(INTERVAL_LABELS[choice]) : isRhythmQuiz ? pick(RHYTHM_PATTERN_LABELS[choice]) :
         isProgressionQuiz ? pick(PROGRESSION_LABELS[choice]) : String(choice);
       if (alreadyPassed) {
         btn.disabled = true;
