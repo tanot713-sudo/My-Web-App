@@ -23,6 +23,9 @@ var I18N = {
     quizPromptTreble: 'โน้ตตัวนี้บนกุญแจซอลคือตัวอะไร?',
     quizPromptBass: 'โน้ตตัวนี้บนกุญแจฟาคือตัวอะไร?',
     quizPromptValue: 'โน้ตตัวนี้คือโน้ตอะไร (มีกี่จังหวะ ในจังหวะ 4/4)?',
+    quizPromptTimeSigBeats: 'จังหวะนี้มีกี่จังหวะต่อห้อง (beats per measure)?',
+    quizPromptTimeSigUnit: 'โน้ตตัวไหนได้ 1 จังหวะ ในจังหวะนี้?',
+    quizPromptScaleDegree: 'โน้ตตัวที่ {degree} ในบันไดเสียง C เมเจอร์ คือตัวอะไร?',
     correctMsg: '✅ ถูกต้อง! ปลดล็อกข้อถัดไปแล้ว',
     trackDoneMsg: '🎉 จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
     toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
@@ -36,6 +39,9 @@ var I18N = {
     quizPromptTreble: 'Which note is this, on the treble clef?',
     quizPromptBass: 'Which note is this, on the bass clef?',
     quizPromptValue: 'Which note value is this (how many beats, in 4/4 time)?',
+    quizPromptTimeSigBeats: 'How many beats are in one measure of this time signature?',
+    quizPromptTimeSigUnit: 'Which note value gets one beat in this time signature?',
+    quizPromptScaleDegree: 'What is note #{degree} of the C Major scale?',
     correctMsg: '✅ Correct! Next one unlocked.',
     trackDoneMsg: '🎉 Lesson complete! Pick the next lesson from the ☰ menu above.',
     toastTrackDone: 'Lesson "{track}" complete! 🎉',
@@ -152,6 +158,47 @@ function buildNoteValueSvg(duration) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   เครื่องหมายกำหนดจังหวะ — วาดบรรทัด 5 เส้น (ไม่มีกุญแจ/หัวโน้ต) + ตัวเลข 2 ตัวซ้อนกัน
+   ใช้ระบบพิกัด y() เดียวกับ buildStaffSvg เพื่อวางเลขให้อยู่กึ่งกลางครึ่งบน/ล่างของบรรทัดพอดี
+   ══════════════════════════════════════════════════════════════════ */
+function buildTimeSigSvg(top, bottom) {
+  var W = 220, H = 130;
+  var staffLeft = 46, staffRight = 200;
+  var y0 = 30;
+  function y(s) { return y0 + (8 - s) * 7; }
+  var lines = [0, 2, 4, 6, 8].map(function (s) {
+    return '<line x1="' + staffLeft + '" y1="' + y(s) + '" x2="' + staffRight + '" y2="' + y(s) + '" stroke="currentColor" stroke-width="1.4"/>';
+  }).join('');
+  var cx = 110;
+  var numFont = 'font-family="Georgia, \'Times New Roman\', serif" font-weight="800" text-anchor="middle" fill="currentColor"';
+  var topText = '<text x="' + cx + '" y="' + (y(6) + 10) + '" font-size="30" ' + numFont + '>' + top + '</text>';
+  var botText = '<text x="' + cx + '" y="' + (y(2) + 10) + '" font-size="30" ' + numFont + '>' + bottom + '</text>';
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="200" height="' + Math.round(200 * H / W) + '" ' +
+    'style="max-width:100%;display:block;margin:0 auto" role="img" aria-label="time signature">' +
+    lines + topText + botText + '</svg>';
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   บันไดเสียง C Major — แสดงเป็นแถวตัวอักษร (ไม่ใช่ SVG บรรทัด เพราะไม่ต้องอ้างอิงระดับเสียง
+   บนบรรทัดจริง แค่ลำดับ) ตำแหน่งที่ถูกถามแสดงเป็น "?" เน้นสี
+   ══════════════════════════════════════════════════════════════════ */
+var SCALE_NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'];
+function buildScaleDisplayHtml(degree) {
+  var items = SCALE_NOTES.map(function (note, i) {
+    var n = i + 1;
+    var isTarget = n === degree;
+    var label = isTarget ? '?' : note;
+    var style = 'display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;' +
+      'margin:3px;font-weight:800;font-size:16px;' +
+      (isTarget
+        ? 'background:linear-gradient(135deg,var(--mx),var(--mx2));color:#fff;box-shadow:0 4px 10px rgba(124,58,237,.3);'
+        : 'background:var(--card);border:1.5px solid var(--line);color:var(--ink);');
+    return '<span style="' + style + '">' + label + '</span>';
+  }).join('');
+  return '<div style="display:flex;flex-wrap:wrap;justify-content:center;padding:14px 0">' + items + '</div>';
+}
+
+/* ══════════════════════════════════════════════════════════════════
    เนื้อหาบทเรียน
    ══════════════════════════════════════════════════════════════════ */
 function readingItem(headingTh, headingEn, paragraphsTh, paragraphsEn) {
@@ -163,6 +210,16 @@ function quizNoteItem(step, clef) {
 }
 function quizValueItem(duration) {
   return { kind: 'quiz', qType: 'note-value', duration: duration, answer: duration };
+}
+function quizTimeSigBeatsItem(top, bottom) {
+  return { kind: 'quiz', qType: 'time-sig-beats', top: top, bottom: bottom, answer: top };
+}
+var UNIT_FOR_BOTTOM = { 2: 'half', 4: 'quarter', 8: 'eighth' };
+function quizTimeSigUnitItem(top, bottom) {
+  return { kind: 'quiz', qType: 'time-sig-unit', top: top, bottom: bottom, answer: UNIT_FOR_BOTTOM[bottom] };
+}
+function quizScaleItem(degree) {
+  return { kind: 'quiz', qType: 'scale-degree', degree: degree, answer: SCALE_NOTES[degree - 1] };
 }
 
 var TRACKS = [
@@ -300,6 +357,82 @@ var TRACKS = [
       quizValueItem('eighth'),
       quizValueItem('sixteenth')
     ]
+  },
+  {
+    id: 'time-signatures',
+    label: { th: 'เครื่องหมายกำหนดจังหวะ', en: 'Time Signatures' },
+    group: { th: 'ทฤษฎีดนตรีพื้นฐาน', en: 'Music Theory Basics' },
+    items: [
+      readingItem('เครื่องหมายกำหนดจังหวะคืออะไร', 'What Is a Time Signature',
+        [
+          'เครื่องหมายกำหนดจังหวะ (Time Signature) คือตัวเลข 2 ตัวเขียนซ้อนกันไว้ต้นเพลง (หลังกุญแจ) บอกว่าในแต่ละห้องเพลง (measure/bar) มีกี่จังหวะ และโน้ตตัวไหนนับเป็น 1 จังหวะ',
+          'ตัวเลขบน บอกว่า 1 ห้องมีกี่จังหวะ เช่น 3/4 หมายถึง 1 ห้องมี 3 จังหวะ',
+          'ตัวเลขล่าง บอกว่าโน้ตตัวไหนได้ 1 จังหวะ โดยนับจากค่าตัวโน้ตที่เรียนไปก่อนหน้า: เลข 4 = โน้ตตัวดำได้ 1 จังหวะ, เลข 8 = โน้ตเขบ็ตหนึ่งชั้นได้ 1 จังหวะ, เลข 2 = โน้ตตัวขาวได้ 1 จังหวะ'
+        ],
+        [
+          'A Time Signature is two numbers stacked at the start of a piece (right after the clef). It tells you how many beats are in each measure (bar), and which note value counts as one beat.',
+          'The top number tells you how many beats are in one measure — e.g. 3/4 means each measure has 3 beats.',
+          'The bottom number tells you which note gets one beat, based on the note values you already learned: 4 = quarter note gets 1 beat, 8 = eighth note gets 1 beat, 2 = half note gets 1 beat.'
+        ]),
+      readingItem('จังหวะที่พบบ่อย', 'Common Time Signatures',
+        [
+          '4/4 (Common Time) — 4 จังหวะต่อห้อง โน้ตตัวดำได้ 1 จังหวะ พบบ่อยที่สุดในเพลงป๊อป/ร็อกทั่วไป บางทีเขียนย่อเป็นสัญลักษณ์ C',
+          '3/4 — 3 จังหวะต่อห้อง โน้ตตัวดำได้ 1 จังหวะ ให้ความรู้สึกโยกเยกแบบวอลทซ์ (waltz) นับ 1-2-3 1-2-3',
+          '2/4 — 2 จังหวะต่อห้อง โน้ตตัวดำได้ 1 จังหวะ ให้ความรู้สึกหนักแน่นแบบเพลงมาร์ช',
+          "6/8 — 6 จังหวะต่อห้อง โน้ตเขบ็ตหนึ่งชั้นได้ 1 จังหวะ (หมายเหตุ: ในเพลงจริง 6/8 มักถูก 'รู้สึก' เป็น 2 ห้วงใหญ่ ห้วงละ 3 ไม่ใช่นับทีละ 1 ถึง 6 ตรงๆ — แต่บทนี้ขอเริ่มจากการนับพื้นฐานตามตัวเลขไปก่อน ยังไม่ลงลึกเรื่องจังหวะผสม)"
+        ],
+        [
+          "4/4 (Common Time) — 4 beats per measure, quarter note gets 1 beat. The most common meter in pop/rock, sometimes written as a 'C' symbol.",
+          '3/4 — 3 beats per measure, quarter note gets 1 beat. Has a swaying waltz feel, counted 1-2-3, 1-2-3.',
+          '2/4 — 2 beats per measure, quarter note gets 1 beat. Has a strong marching feel.',
+          "6/8 — 6 beats per measure, eighth note gets 1 beat. (Note: in real music, 6/8 is usually 'felt' as 2 big groups of 3, not counted straight 1 through 6 — but this lesson starts with basic numeric counting, without compound meter feel yet.)"
+        ]),
+      quizTimeSigBeatsItem(4, 4),
+      quizTimeSigUnitItem(4, 4),
+      quizTimeSigBeatsItem(3, 4),
+      quizTimeSigUnitItem(3, 4),
+      quizTimeSigBeatsItem(2, 4),
+      quizTimeSigUnitItem(2, 4),
+      quizTimeSigBeatsItem(6, 8),
+      quizTimeSigUnitItem(6, 8)
+    ]
+  },
+  {
+    id: 'scales',
+    label: { th: 'บันไดเสียง (C Major)', en: 'Scales (C Major)' },
+    group: { th: 'ทฤษฎีดนตรีพื้นฐาน', en: 'Music Theory Basics' },
+    items: [
+      readingItem('บันไดเสียงเมเจอร์คืออะไร', 'What Is a Major Scale',
+        [
+          'บันไดเสียงเมเจอร์ (Major Scale) คือชุดโน้ต 8 ตัวเรียงกันตามรูปแบบระยะห่างที่ตายตัว: เต็มเสียง-เต็มเสียง-ครึ่งเสียง-เต็มเสียง-เต็มเสียง-เต็มเสียง-ครึ่งเสียง (ย่อว่า W-W-H-W-W-W-H)',
+          "'เต็มเสียง' (Whole step) และ 'ครึ่งเสียง' (Half step) คือระยะห่างระหว่างโน้ต 2 ตัวที่อยู่ติดกัน — บนคีย์เปียโน ครึ่งเสียงคือ 1 คีย์ถัดไป (นับรวมคีย์ดำ) ส่วนเต็มเสียงคือข้าม 2 คีย์",
+          'บันไดเสียง C Major คือ C-D-E-F-G-A-B แล้ววนกลับมา C (สูงกว่าเดิม 1 ออกเทฟ) — ใช้แค่คีย์ขาวทั้งหมด ไม่มีเครื่องหมาย # หรือ ♭ เลย จึงเป็นบันไดเสียงแรกที่นักดนตรีมือใหม่มักเรียนก่อน'
+        ],
+        [
+          'The Major Scale is a set of 8 notes arranged in a fixed pattern of gaps: Whole-Whole-Half-Whole-Whole-Whole-Half (shortened to W-W-H-W-W-W-H).',
+          "A 'Whole step' and 'Half step' are the distance between two adjacent notes — on a piano keyboard, a half step is one key over (counting black keys), and a whole step skips two keys.",
+          "The C Major scale is C-D-E-F-G-A-B, then back to C (one octave higher) — using only white keys, with no sharps or flats at all. That's usually the first scale beginner musicians learn."
+        ]),
+      readingItem('ทำไม C Major ไม่มี # หรือ ♭', 'Why C Major Has No Sharps or Flats',
+        [
+          'ทำไม C Major ไม่ต้องมี # หรือ ♭ เลย? เพราะครึ่งเสียงตามธรรมชาติบนคีย์เปียโน (ไม่มีคีย์ดำคั่น) เกิดขึ้นพอดีระหว่าง E-F และ B-C เท่านั้น',
+          'ลองไล่ดู: C→D (เต็มเสียง), D→E (เต็มเสียง), E→F (ครึ่งเสียง — ไม่มีคีย์ดำคั่น!), F→G (เต็มเสียง), G→A (เต็มเสียง), A→B (เต็มเสียง), B→C (ครึ่งเสียง — ไม่มีคีย์ดำคั่นอีกครั้ง!) — ตรงกับรูปแบบ W-W-H-W-W-W-H เป๊ะ',
+          'บทถัดไปจะให้ทายว่าโน้ตตัวที่เท่าไหร่ในบันไดเสียง C Major คือตัวอะไร ลองท่องบันไดเสียง C-D-E-F-G-A-B-C ให้คล่องก่อนเริ่มทำ'
+        ],
+        [
+          'Why does C Major need no sharps or flats at all? Because the natural half steps on a piano (where there\'s no black key in between) occur exactly between E-F and B-C.',
+          'Walk through it: C→D (whole), D→E (whole), E→F (half — no black key between them!), F→G (whole), G→A (whole), A→B (whole), B→C (half — no black key again!) — matching the W-W-H-W-W-W-H pattern exactly.',
+          'The next lesson will ask you to name the Nth note of the C Major scale. Try reciting C-D-E-F-G-A-B-C a few times before you start.'
+        ]),
+      quizScaleItem(1),
+      quizScaleItem(5),
+      quizScaleItem(8),
+      quizScaleItem(3),
+      quizScaleItem(6),
+      quizScaleItem(2),
+      quizScaleItem(4),
+      quizScaleItem(7)
+    ]
   }
 ];
 
@@ -361,6 +494,8 @@ var BADGE_DEFS = [
   { id: 'track-note-reading-treble', icon: '🎵', th: 'เจ้าแห่งโน้ตซอล', en: 'Treble Note Master' },
   { id: 'track-bass-clef', icon: '🎻', th: 'เจ้าแห่งโน้ตฟา', en: 'Bass Note Master' },
   { id: 'track-note-values', icon: '⏱️', th: 'เจ้าจังหวะ', en: 'Rhythm Master' },
+  { id: 'track-time-signatures', icon: '🥁', th: 'เจ้าเครื่องหมายจังหวะ', en: 'Time Signature Master' },
+  { id: 'track-scales', icon: '🪜', th: 'เจ้าบันไดเสียง', en: 'Scale Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สทฤษฎีเบื้องต้น!', en: 'Theory Basics Complete!' }
@@ -608,6 +743,15 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       if (item.qType === 'note-value') {
         quizPromptEl.textContent = t('quizPromptValue');
         staffSvgHolder.innerHTML = buildNoteValueSvg(item.duration);
+      } else if (item.qType === 'time-sig-beats') {
+        quizPromptEl.textContent = t('quizPromptTimeSigBeats');
+        staffSvgHolder.innerHTML = buildTimeSigSvg(item.top, item.bottom);
+      } else if (item.qType === 'time-sig-unit') {
+        quizPromptEl.textContent = t('quizPromptTimeSigUnit');
+        staffSvgHolder.innerHTML = buildTimeSigSvg(item.top, item.bottom);
+      } else if (item.qType === 'scale-degree') {
+        quizPromptEl.textContent = t('quizPromptScaleDegree', { degree: item.degree });
+        staffSvgHolder.innerHTML = buildScaleDisplayHtml(item.degree);
       } else {
         quizPromptEl.textContent = t(CLEFS[item.clef || 'treble'].promptKey);
         staffSvgHolder.innerHTML = buildStaffSvg(item.step, item.clef);
@@ -627,19 +771,21 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
   }
 
   var ANSWER_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+  var TIME_SIG_BEATS_OPTIONS = [2, 3, 4, 6];
   function renderAnswerRow(item) {
     answerRow.innerHTML = '';
     var progress = loadProgress();
     var track = trackById(state.trackId);
     var idx = state.itemIndex;
     var alreadyPassed = !!progress[progressKey(track.id, idx)];
-    var isValueQuiz = item.qType === 'note-value';
-    var choices = isValueQuiz ? NOTE_VALUE_ORDER : ANSWER_LETTERS;
+    var isValueQuiz = item.qType === 'note-value' || item.qType === 'time-sig-unit';
+    var isBeatsQuiz = item.qType === 'time-sig-beats';
+    var choices = isValueQuiz ? NOTE_VALUE_ORDER : isBeatsQuiz ? TIME_SIG_BEATS_OPTIONS : ANSWER_LETTERS;
     choices.forEach(function (choice) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'mx-answer-btn' + (isValueQuiz ? ' wide' : '');
-      btn.textContent = isValueQuiz ? pick(NOTE_VALUE_LABELS[choice]) : choice;
+      btn.textContent = isValueQuiz ? pick(NOTE_VALUE_LABELS[choice]) : String(choice);
       if (alreadyPassed) {
         btn.disabled = true;
         if (choice === item.answer) btn.classList.add('correct');
