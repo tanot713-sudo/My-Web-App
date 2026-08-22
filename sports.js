@@ -214,6 +214,78 @@ function buildTennisServeSvg() {
     '<text x="70" y="14" font-size="11" font-weight="800" text-anchor="middle" fill="#1971C2">Odd→Left</text>';
   return svgWrap(buildTennisCourtCoreSvg() + rightServe + leftServe + labels, 220, 320, 220, 'tennis serve direction diagram');
 }
+/* โซนเพรสสูง (ใกล้ประตูคู่แข่ง) vs โซนบล็อกต่ำ (ใกล้ประตูตัวเอง) บนสนามฟุตบอลเดียวกับแผนการเล่น */
+function buildFootballPressingSvg() {
+  var pitch = '<rect x="10" y="10" width="240" height="360" rx="4" fill="#2F9E44" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<line x1="10" y1="190" x2="250" y2="190" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<circle cx="130" cy="190" r="35" fill="none" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<rect x="80" y="20" width="100" height="50" fill="none" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<rect x="80" y="310" width="100" height="50" fill="none" stroke="#FFFFFF" stroke-width="2"/>';
+  var highPressZone = '<rect x="20" y="20" width="220" height="120" fill="#E8590C" opacity="0.32"/>' +
+    '<text x="130" y="45" font-size="12" font-weight="800" text-anchor="middle" fill="#7A2E06">High Press Zone</text>';
+  var lowBlockZone = '<rect x="20" y="250" width="220" height="120" fill="#1971C2" opacity="0.32"/>' +
+    '<text x="130" y="365" font-size="12" font-weight="800" text-anchor="middle" fill="#0B3D6B">Low Block Zone</text>';
+  var arrow = svgArrow(130, 320, 130, 160, '#FFD43B');
+  return svgWrap(pitch + highPressZone + lowBlockZone + arrow, 260, 380, 280, 'football high press zone near opponent goal vs low block zone near own goal diagram');
+}
+/* เกมรับแบบโซน 2-3 (แนวหน้า 2 คนใกล้เส้นสามคะแนน แนวหลัง 3 คนใกล้ห่วง) */
+function buildBasketballZoneDefenseSvg() {
+  var positions = [
+    { x: 80, y: 55 }, { x: 180, y: 55 },
+    { x: 45, y: 175 }, { x: 130, y: 200 }, { x: 215, y: 175 }
+  ];
+  var dots = positions.map(function (p) {
+    return '<circle cx="' + p.x + '" cy="' + p.y + '" r="14" fill="#1971C2" stroke="#1F2430" stroke-width="2"/>' +
+      '<text x="' + p.x + '" y="' + (p.y + 5) + '" font-size="11" font-weight="800" text-anchor="middle" fill="#FFFFFF">D</text>';
+  }).join('');
+  var court = '<rect x="10" y="10" width="240" height="280" rx="4" fill="#D9822B" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<rect x="90" y="10" width="80" height="110" fill="none" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<circle cx="130" cy="120" r="35" fill="none" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<path d="M 25,235 Q 130,290 235,235" stroke="#FFFFFF" stroke-width="2" fill="none"/>' +
+    '<line x1="105" y1="18" x2="155" y2="18" stroke="#1F2430" stroke-width="4"/>';
+  var label = '<text x="130" y="270" font-size="13" font-weight="800" text-anchor="middle" fill="#1F2430">2-3 Zone Defense</text>';
+  return svgWrap(court + dots + label, 260, 300, 280, 'basketball 2-3 zone defense positions diagram');
+}
+/* ก้าวเข้าตบบอล 3 ก้าว → กระโดด → ตบบอลข้ามตาข่ายลงแดนคู่แข่ง */
+function buildVolleyballSpikeApproachSvg() {
+  var ground = '<line x1="10" y1="190" x2="290" y2="190" stroke="#1F2430" stroke-width="2"/>';
+  var net = '<line x1="230" y1="40" x2="230" y2="190" stroke="#1F2430" stroke-width="5"/>';
+  var steps = [{ x: 40, y: 185, label: '1' }, { x: 80, y: 182, label: '2' }, { x: 120, y: 178, label: '3' }];
+  var footprints = steps.map(function (s) {
+    return '<ellipse cx="' + s.x + '" cy="' + s.y + '" rx="10" ry="6" fill="#FFD43B" stroke="#1F2430" stroke-width="1.5"/>' +
+      '<text x="' + s.x + '" y="' + (s.y + 4) + '" font-size="9" font-weight="800" text-anchor="middle" fill="#1F2430">' + s.label + '</text>';
+  }).join('');
+  var jumpArrow = svgArrow(150, 178, 175, 90, '#2F9E44');
+  var attackArrow = svgArrow(180, 85, 255, 165, '#E8590C');
+  var labels = '<text x="150" y="205" font-size="12" font-weight="800" text-anchor="middle" fill="#1F2430">Approach Steps</text>' +
+    '<text x="205" y="75" font-size="12" font-weight="800" text-anchor="middle" fill="#2F9E44">Jump</text>' +
+    '<text x="255" y="150" font-size="12" font-weight="800" text-anchor="middle" fill="#E8590C">Attack</text>';
+  return svgWrap(ground + net + footprints + jumpArrow + attackArrow + labels, 300, 220, 320, 'volleyball spike approach steps and attack trajectory diagram');
+}
+/* รูปแบบยืนคู่: หน้า-หลัง (รุก) เทียบกับ ซ้าย-ขวา (รับ) สองสนามจำลองข้างกัน */
+function buildBadmintonDoublesFormationSvg() {
+  function miniCourt(offsetX, dots, label) {
+    var court = '<rect x="' + offsetX + '" y="20" width="110" height="220" fill="#2F9E44" stroke="#FFFFFF" stroke-width="2"/>' +
+      '<line x1="' + offsetX + '" y1="130" x2="' + (offsetX + 110) + '" y2="130" stroke="#1F2430" stroke-width="4"/>';
+    var d = dots.map(function (p) {
+      return '<circle cx="' + (offsetX + p.x) + '" cy="' + p.y + '" r="12" fill="#FFD43B" stroke="#1F2430" stroke-width="2"/>';
+    }).join('');
+    var lbl = '<text x="' + (offsetX + 55) + '" y="258" font-size="11" font-weight="800" text-anchor="middle" fill="#1F2430">' + label + '</text>';
+    return court + d + lbl;
+  }
+  var frontBack = miniCourt(15, [{ x: 55, y: 60 }, { x: 55, y: 100 }], 'Front-Back (Attack)');
+  var sideBySide = miniCourt(165, [{ x: 35, y: 80 }, { x: 75, y: 80 }], 'Side-by-Side (Defense)');
+  return svgWrap(frontBack + sideBySide, 300, 280, 320, 'badminton doubles formations: front-back attacking vs side-by-side defensive diagram');
+}
+/* โซนวอลเลย์ใกล้ตาข่าย vs โซนกราวด์สโตรกใกล้เส้นหลัง บนสนามเทนนิสฐานเดียวกัน */
+function buildTennisShotZonesSvg() {
+  var core = buildTennisCourtCoreSvg();
+  var volleyZone = '<rect x="15" y="130" width="190" height="60" fill="#FFD43B" opacity="0.35"/>' +
+    '<text x="110" y="163" font-size="12" font-weight="800" text-anchor="middle" fill="#7A5B00">Volley Zone</text>';
+  var groundZone = '<rect x="15" y="225" width="190" height="80" fill="#E8590C" opacity="0.3"/>' +
+    '<text x="110" y="270" font-size="12" font-weight="800" text-anchor="middle" fill="#7A2E06">Groundstroke Zone</text>';
+  return svgWrap(core + volleyZone + groundZone, 220, 320, 220, 'tennis court zones: volley near net vs groundstrokes from baseline diagram');
+}
 
 var TRACKS = [
   {
@@ -281,6 +353,33 @@ var TRACKS = [
           'A Free Kick comes in two types: a Direct Free Kick (which can be shot straight into the goal) is awarded for serious fouls like pushing or tripping; an Indirect Free Kick (which must touch another player before it can count as a goal) is awarded for lighter offenses, such as offside or a goalkeeper holding the ball too long.',
           "A Penalty Kick is awarded when the defending team commits a foul inside their own penalty area. It's taken from the penalty spot with only the goalkeeper to beat — the single highest-percentage scoring chance in the game.",
           'Substitutions: each team may make a limited number of substitutions per match (typically 3-5 depending on the competition). A player who has been substituted off cannot return to the field for the rest of that match.'
+        ]),
+      readingItem('กลยุทธ์เกมรับ: เพรสสูง (High Press) กับตั้งรับเป็นบล็อกต่ำ (Low Block)', 'Defensive Tactics: High Press vs Low Block',
+        [
+          'High Press (เพรสสูง): ทีมเข้าไปกดดันคู่แข่งตั้งแต่แดนของฝ่ายตรงข้าม พยายามแย่งบอลคืนให้เร็วที่สุดก่อนที่คู่แข่งจะตั้งเกมได้ ต้องใช้พลังงานสูงและวิ่งประกบกันเป็นทีม เหมาะกับทีมที่มีความฟิตดีและเล่นเป็นระบบ',
+          'Low Block (บล็อกต่ำ): ทีมถอยร่นมายืนแน่นในแดนตัวเอง ปล่อยให้คู่แข่งครองบอลในแดนกลาง แต่บีบพื้นที่ให้แคบตรงหน้าประตูตัวเอง เน้นความแน่นหนาของแนวรับมากกว่าการวิ่งไล่บอล เหมาะกับทีมที่เจอคู่แข่งเก่งกว่าและเล่นเกมสวนกลับ (Counter-Attack)',
+          'การเลือกใช้กลยุทธ์ขึ้นอยู่กับสถานการณ์: ทีมที่นำอยู่มักเลือก Low Block เพื่อรักษาผลไม่ให้คู่แข่งไล่ตีเสมอ ส่วนทีมที่ตามหลังหรือมีนักเตะฟิตกว่ามักเลือก High Press เพื่อสร้างโอกาสยิงประตูให้เร็วที่สุด',
+          'แผนการเล่นแบบ 4-3-3 เน้นปีกกว้างสองข้างและกองกลาง 3 คน (มักมี 1 คนคอยตัดเกมรับ) เหมาะกับทีมที่เล่นบุกด้วยความเร็วทางริม — ส่วน 3-5-2 ใช้กองหลัง 3 คนกับวิงแบ็ก (Wing-back) วิ่งขึ้นลงข้างสนามแทนปีก ทำให้มีกำลังพลในแดนกลางเยอะกว่าแบบ 4-4-2'
+        ],
+        [
+          'High Press: the team pressures the opponent starting from the opponent\'s own half, trying to win the ball back as quickly as possible before the opponent can build up play. It requires high fitness and coordinated team running — suited to teams with strong stamina and organized structure.',
+          "Low Block: the team retreats to sit compactly in its own half, letting the opponent have the ball in midfield but squeezing the space right in front of its own goal. It prioritizes defensive solidity over chasing the ball — suited to teams facing a stronger opponent and relying on counter-attacks.",
+          "Which tactic to use depends on the situation: a team that's ahead often chooses Low Block to protect the result, while a team that's behind or has fitter players often chooses High Press to create scoring chances as quickly as possible.",
+          "The 4-3-3 formation emphasizes wide wingers and 3 midfielders (often with one dedicated to breaking up play) — suited to teams that attack with pace down the flanks. 3-5-2, meanwhile, uses 3 center-backs with wing-backs running up and down the sidelines instead of wingers, giving it more numbers in midfield than a 4-4-2."
+        ],
+        buildFootballPressingSvg()),
+      readingItem('เทคนิคการโหม่งและการเข้าปะทะที่ถูกกติกา', 'Heading Technique & Legal Tackling',
+        [
+          'การโหม่งบอล (Heading): สัมผัสบอลด้วยหน้าผาก (ไม่ใช่กระหม่อมหรือท้ายทอย) เกร็งคอและกล้ามเนื้อคอ สะบัดคอไปข้างหน้าตอนบอลมาถึงเพื่อเพิ่มแรงส่ง ลืมตามองบอลตลอดจนกว่าจะสัมผัส ไม่ใช่หลับตาหลบบอล',
+          'จังหวะกระโดดโหม่งที่ดีต้องอ่านวิถีบอลล่วงหน้า กระโดดขึ้นในจังหวะที่บอลอยู่สูงสุดของตัวเอง ไม่ใช่กระโดดตามบอลทีหลัง เพื่อให้ได้เปรียบเรื่องความสูงเหนือคู่แข่ง',
+          'การเข้าปะทะแบบยืน (Standing Tackle) ปลอดภัยและควบคุมได้มากกว่า ใช้เท้าสอดเข้าแย่งบอลโดยไม่ล้มตัว ส่วนการเข้าสไลด์ (Sliding Tackle) มีความเสี่ยงสูงกว่า ต้องจับจังหวะให้แม่นและเล่นบอลก่อนขาคู่แข่งเสมอ ถ้าเข้าช้าเกินไปหรือพลาดไปโดนขาคู่ต่อสู้ก่อนจะถือเป็นฟาวล์ทันที',
+          'การเข้าปะทะที่อันตราย (เช่น พุ่งเข้าใส่ด้วยปุ่มรองเท้าชี้ขึ้น หรือเข้าท้ายคู่แข่งโดยไม่เห็นบอล) มักได้ใบเหลืองหรือใบแดงทันที และถ้าเป็นการทำฟาวล์ผู้เล่นคนสุดท้ายที่ขวางกั้นโอกาสทำประตูชัดเจน (Denying an Obvious Goal-Scoring Opportunity) มักได้ใบแดงตรงแม้จะเป็นการปะทะที่ไม่รุนแรงมากก็ตาม'
+        ],
+        [
+          "Heading: make contact with the ball using your forehead (not the crown or back of the head), tense your neck muscles, and snap your neck forward as the ball arrives to add power. Keep your eyes open and watch the ball all the way to contact — don't close your eyes and flinch away from it.",
+          "Good header timing means reading the ball's flight in advance and jumping so you meet the ball at the top of your own jump, rather than jumping late and chasing it — this gives you a height advantage over the opponent.",
+          "A Standing Tackle is safer and more controlled — using the foot to poke the ball away without going to ground. A Sliding Tackle carries more risk — timing must be precise, and the tackler must play the ball before the opponent's leg. Coming in too late, or making contact with the leg before the ball, is an immediate foul.",
+          "Dangerous tackles (such as lunging in studs-up, or tackling from behind without seeing the ball) usually draw a yellow or straight red card. A foul that denies an obvious goal-scoring opportunity on the last defender often results in a straight red card even if the contact itself wasn't especially forceful."
         ])
     ]
   },
@@ -351,6 +450,31 @@ var TRACKS = [
           'A Technical Foul is given for unsportsmanlike conduct, such as arguing aggressively with a referee. The opposing team is awarded free throws without losing possession — unlike a regular personal foul, which comes from physical contact.',
           "Bonus Free Throws: once a team's fouls in a quarter reach the team-foul limit (usually 5), every additional foul by that team sends the opponent to the free-throw line, even if the foul didn't happen during a shot — this is called being 'in the bonus'.",
           'If the score is tied at the end of the 4th quarter, the game goes to Overtime — extra 5-minute periods played one after another until one team is ahead when time runs out.'
+        ]),
+      readingItem('กลยุทธ์เกมรับ: Man-to-Man กับ Zone Defense', 'Defensive Tactics: Man-to-Man vs Zone Defense',
+        [
+          'Man-to-Man Defense (ประกบตัวต่อตัว): ผู้เล่นแต่ละคนรับผิดชอบประกบคู่แข่งคนใดคนหนึ่งตลอดเกม ไม่ว่าคู่แข่งจะเคลื่อนที่ไปไหนในสนาม ข้อดีคือกดดันได้ตรงจุดและปรับตัวไล่ตามผู้เล่นเก่งของคู่แข่งได้ง่าย แต่เสี่ยงถ้าผู้เล่นวิ่งไม่ทันหรือโดนสกรีน (Screen) บล็อกทาง',
+          'Zone Defense (เกมรับแบบโซน): ผู้เล่นแต่ละคนรับผิดชอบพื้นที่ที่กำหนดไว้แทนที่จะประกบคนใดคนหนึ่ง เช่นรูปแบบ 2-3 Zone (แนวหน้า 2 คนใกล้เส้นสามคะแนน แนวหลัง 3 คนใกล้ห่วง) ดูไดอะแกรมด้านล่างประกอบ ข้อดีคือป้องกันการตัดเข้าใต้ห่วงได้ดีและประหยัดพลังงานกว่า แต่มีช่องโหว่บริเวณมุมสนามที่ไม่มีใครรับผิดชอบชัดเจน',
+          'ทีมมักสลับใช้ทั้งสองระบบในเกมเดียวกันเพื่อให้คู่แข่งปรับตัวไม่ทัน — เปลี่ยนจาก Man-to-Man เป็น Zone กะทันหันหลังทำแต้มได้ เป็นกลยุทธ์ที่พบบ่อยในระดับสูง'
+        ],
+        [
+          "Man-to-Man Defense: each player is responsible for guarding one specific opponent throughout the game, wherever that opponent moves on the court. Its advantage is targeted pressure and the ability to shut down the opponent's best player — but it's vulnerable if a defender gets beaten for speed or blocked out by a screen.",
+          "Zone Defense: each player is responsible for a fixed area of the court rather than a specific opponent — for example, the 2-3 Zone (2 defenders up near the 3-point line, 3 defenders back near the basket, see the diagram below). Its advantage is stronger protection against drives to the basket and lower energy cost, but it leaves gaps in the corners that aren't clearly anyone's responsibility.",
+          "Teams often switch between both systems within the same game to keep the opponent from adjusting — suddenly switching from man-to-man to zone right after scoring is a common tactic at higher levels."
+        ],
+        buildBasketballZoneDefenseSvg()),
+      readingItem('การรีบาวด์และการเล่น Pick and Roll', 'Rebounding & the Pick and Roll',
+        [
+          'การรีบาวด์ (Rebound) คือการเก็บบอลที่กระดอนออกจากห่วงหรือกระดานหลังยิงไม่เข้า แบ่งเป็น Offensive Rebound (ทีมรุกเก็บเองแล้วยิงซ้ำ) และ Defensive Rebound (ทีมรับเก็บเพื่อตัดจบการครองบอลของฝ่ายรุก)',
+          'เทคนิคสำคัญของการรีบาวด์คือ Boxing Out — หันหลังกันคู่แข่งไม่ให้เข้าใกล้ห่วงก่อนบอลจะตกลงมา ยืนกางแขนกว้างและงอเข่าต่ำเพื่อทรงตัวมั่นคง แล้วค่อยกระโดดเก็บบอลเมื่อบอลตกลงมาถึง',
+          'Pick and Roll (บอลคู่ตั้งการ์ด-โรล) เป็นแท็กติกพื้นฐานที่นิยมที่สุดในบาสเกตบอลสมัยใหม่: ผู้เล่นคนหนึ่ง (Screener) ยืนขวางทางผู้ประกบเพื่อนร่วมทีมที่ถือบอล (Ball Handler) เปิดทางให้เพื่อนขับเข้าไปทำเกม จากนั้น Screener จะหมุนตัว (Roll) เข้าหาห่วงเพื่อรับบอลต่อในจังหวะที่แนวรับสับสน',
+          'ฝ่ายรับมีวิธีรับมือ Pick and Roll หลายแบบ เช่น Switch (สลับคู่ประกบกันเลยตอนโดนสกรีน) หรือ Hedge/Show (ผู้เล่นที่ประกบ Screener ออกมาช่วยดักผู้ถือบอลชั่วคราวก่อนกลับไปหาคู่ของตัวเอง)'
+        ],
+        [
+          "A Rebound is recovering the ball after a missed shot bounces off the rim or backboard. There are two kinds: an Offensive Rebound (the attacking team recovers it and can shoot again) and a Defensive Rebound (the defending team recovers it to end the offense's possession).",
+          "The key rebounding technique is Boxing Out — turning your back to the opponent to keep them away from the basket before the ball comes down, spreading your arms wide and bending your knees low for a stable base, then jumping to grab the ball once it arrives.",
+          "The Pick and Roll is the single most common tactic in modern basketball: one player (the Screener) stands in the way of the defender guarding a teammate who has the ball (the Ball Handler), opening a lane for that teammate to drive. The Screener then 'rolls' toward the basket to receive a pass while the defense is scrambled.",
+          "Defenses handle the Pick and Roll several ways — for example, Switching (the two defenders simply swap assignments when the screen happens) or Hedging/Showing (the defender guarding the screener briefly steps out to slow the ball handler before recovering back to their own man)."
         ])
     ]
   },
@@ -419,6 +543,31 @@ var TRACKS = [
           "Carrying/Lifting: contacting the ball in a way that looks like 'catching' or 'throwing' it rather than a clean, brief touch or strike — this most often happens during a set — is a fault.",
           "Net Touch: players may not touch the net while playing the ball (a very light, incidental touch that doesn't affect play is usually allowed), and may not cross under the net into the opponent's side while the ball is in play.",
           'Two main serve types: the Float Serve (a serve with no spin, making the ball\'s flight unpredictable and hard to read) and the Jump Serve (a jumping serve struck hard and fast like an attack, popular at higher levels because it puts heavy pressure on the receiving team).'
+        ]),
+      readingItem('เทคนิคการตบบอล (Spike/Attack) และการเซ็ต', 'Spike/Attack Technique & Setting',
+        [
+          'การเข้าตบบอล (Approach) แบบมาตรฐานมี 3-4 ก้าว: ก้าวแรกสั้นๆ กำหนดจังหวะ ก้าวที่สองยาวขึ้นเพื่อสร้างความเร็ว ก้าวสุดท้ายเป็นการทิ้งเท้าลงพร้อมกัน (ปกติเท้าซ้ายแล้วขวาสำหรับคนถนัดขวา) เพื่อเบรกความเร็วในแนวนอนเป็นแรงกระโดดในแนวตั้ง ดูไดอะแกรมด้านล่างประกอบ',
+          'ขณะกระโดดให้แขนทั้งสองข้างแกว่งจากด้านหลังไปด้านหน้าช่วยส่งแรงกระโดดขึ้น แขนที่ตีบอล (Hitting Arm) ยกขึ้นเตรียมพร้อม แล้วเหวี่ยงตีบอลด้วยจังหวะสะบัดข้อมือตอนแขนเหยียดตรงที่สุด เพื่อให้บอลพุ่งลงแรงและควบคุมทิศทางได้',
+          'การเซ็ต (Set) คือการส่งบอลให้ตัวตบในตำแหน่งและความสูงที่พอดี ผู้เซ็ตใช้ปลายนิ้วทั้งสองมือดันบอลขึ้นเบาๆ เหนือหน้าผาก ต้องตัดสินใจเร็วว่าจะเซ็ตให้ตัวตบคนไหน (เร็วหรือช้า สูงหรือเตี้ย) เพื่อหลอกแนวรับฝ่ายตรงข้าม'
+        ],
+        [
+          'A standard attack approach uses 3-4 steps: a short first step to set the rhythm, a longer second step to build speed, and a final two-footed plant (typically left-then-right for a right-handed hitter) that converts horizontal speed into vertical jump power. See the diagram below.',
+          'While jumping, both arms swing from back to front to help drive the jump upward. The hitting arm is drawn back ready to strike, then swings through and snaps at the wrist at full extension, so the ball is hit down hard with controlled direction.',
+          'Setting is delivering the ball to a hitter at just the right position and height. The setter uses both hands\' fingertips to gently push the ball upward from just above the forehead, and must decide quickly which hitter to set to (fast or slow, high or low) to keep the opposing defense guessing.'
+        ],
+        buildVolleyballSpikeApproachSvg()),
+      readingItem('ระบบการเล่น 5-1 / 6-2 และตำแหน่ง Libero', '5-1 / 6-2 Systems & the Libero Position',
+        [
+          'ระบบ 5-1 คือทีมมีตัวเซ็ต (Setter) เพียง 1 คนที่เซ็ตบอลตลอดเกมไม่ว่าจะหมุนไปอยู่ตำแหน่งไหน ส่วนอีก 5 คนเป็นตัวตบ/บล็อก — เป็นระบบยอดนิยมในระดับสูงเพราะเซ็ตเตอร์คนเดียวจะคุ้นเคยกับตัวตบทุกคนอย่างต่อเนื่อง',
+          'ระบบ 6-2 คือทีมมีตัวเซ็ตสำรอง 2 คน สลับกันเป็นตัวตบเวลาอยู่แถวหน้าและเป็นตัวเซ็ตเวลาอยู่แถวหลัง ทำให้ทีมมีตัวตบแถวหน้าครบ 3 คนตลอดเวลา (แทนที่จะเหลือแค่ 2 คนแบบระบบ 5-1) แต่ต้องใช้ผู้เล่นที่เซ็ตเก่งถึง 2 คน',
+          'Libero คือตำแหน่งผู้เล่นรับเฉพาะทาง สวมเสื้อสีต่างจากเพื่อนร่วมทีมให้กรรมการสังเกตง่าย เปลี่ยนตัวเข้า-ออกได้ไม่จำกัดจำนวนครั้ง (แต่ต้องสลับกับผู้เล่นแถวหลังคนเดิมเท่านั้น) และห้ามตบบอลข้ามตาข่ายขณะบอลอยู่สูงกว่าระดับตาข่ายทั้งลูก',
+          'Libero ห้ามเสิร์ฟในกติกาเดิม แต่ในกติกาปัจจุบันหลายรายการแข่งขันอนุญาตให้ Libero เสิร์ฟแทนผู้เล่นตำแหน่งหนึ่งได้ (ตรวจสอบกติกาเฉพาะของแต่ละรายการแข่งขัน) — จุดเด่นของ Libero คือทักษะรับลูกและเซฟบอลที่ยอดเยี่ยม ทำให้ทีมลดความเสี่ยงเสียแต้มจากการรับเสิร์ฟหรือรับลูกตบพลาด'
+        ],
+        [
+          'The 5-1 system has just one Setter who sets the ball all game long no matter which position they rotate into, with the other 5 players as hitters/blockers — this is the most popular system at higher levels because a single setter builds consistent chemistry with every hitter.',
+          'The 6-2 system uses two setters who alternate: hitting while in the front row and setting while in the back row. This keeps the team with a full 3 front-row hitters at all times (instead of only 2 under a 5-1 system) — but it requires two players who are both strong setters.',
+          'The Libero is a specialist defensive position, wearing a different-colored jersey so referees can spot them easily. They can substitute in and out an unlimited number of times (but only ever swapping with the same back-row player) and may not attack the ball above net height.',
+          'Traditionally the Libero was not allowed to serve, but many current competitions now allow the Libero to serve in place of one rotation position (check the specific rules of each competition). The Libero\'s strength is elite passing and defensive skill, which reduces a team\'s risk of losing points on serve-receive or dig errors.'
         ])
     ]
   },
@@ -485,6 +634,31 @@ var TRACKS = [
           'Other common faults: a player may not touch the net with their body or racket while the shuttle is still in play, may not hit the shuttle before it has crossed to their own side, and may not make noise or gestures meant to distract the opponent.',
           "In doubles, whichever team wins the rally (by winning back the serve) earns the right to serve, but the two players on that team don't necessarily alternate who serves — whoever happens to be standing in the right-side court when the team wins the point serves next (it may not be the same player who served last time), making doubles rotation more complex than volleyball's.",
           'There are two basic grips: the Forehand Grip (like a handshake grip, suited to hitting shots on the racket-arm side) and the Backhand Grip (rotate the thumb onto the flat of the handle, suited to hitting shots on the non-racket side without turning the body).'
+        ]),
+      readingItem('กลยุทธ์การเล่นคู่: รูปแบบยืนหน้า-หลัง กับ ซ้าย-ขวา', 'Doubles Strategy: Front-Back vs Side-by-Side Formations',
+        [
+          'รูปแบบยืนหน้า-หลัง (Front-Back Formation): ผู้เล่นคนหนึ่งยืนใกล้ตาข่ายคอยสกัด/ตบลูกสั้น อีกคนยืนลึกคอยรับ Clear และตบลูกไกล ใช้เมื่อทีมเป็นฝ่ายรุก (เพิ่งเสิร์ฟหรือกำลังกดดันคู่แข่ง) เพราะแบ่งหน้าที่ชัดเจนระหว่างเกมหน้าตาข่ายกับเกมหลังสนาม',
+          'รูปแบบซ้าย-ขวา (Side-by-Side Formation): ผู้เล่นสองคนยืนขนานกันแบ่งซ้าย-ขวาคุมคนละครึ่งสนาม ใช้เมื่อทีมเป็นฝ่ายรับ (เพิ่งเสียลูกให้คู่แข่งตบ) เพราะครอบคลุมพื้นที่กว้างเท่ากันทั้งสนาม ป้องกันลูกตบจากทุกมุมได้ดีกว่า',
+          'ทีมคู่ระดับสูงจะสลับรูปแบบไปมาตลอดแรลลี่ตามสถานการณ์ — เปลี่ยนจาก Side-by-Side เป็น Front-Back ทันทีที่ได้จังหวะรุก แล้วสลับกลับเมื่อถูกคู่แข่งตบใส่ ความสามารถในการอ่านจังหวะและสลับตำแหน่งเร็วคือหัวใจของการเล่นคู่ระดับสูง'
+        ],
+        [
+          "Front-Back Formation: one player stands close to the net to intercept and put away short shots, while the other stays deep to handle clears and return smashes. It's used when the team is on the attack (just after serving or pressuring the opponent), splitting responsibilities clearly between the net game and the rear-court game.",
+          "Side-by-Side Formation: the two players stand parallel, each covering one half of the court (left/right). It's used when the team is on defense (just after the opponent has smashed), because it covers the width of the court evenly and defends against attacks from any angle better.",
+          "High-level doubles pairs switch between formations constantly within a single rally, depending on the moment — switching from Side-by-Side to Front-Back the instant they get an attacking opportunity, then back again when the opponent smashes. The ability to read the moment and switch formation quickly is the core skill of high-level doubles play."
+        ],
+        buildBadmintonDoublesFormationSvg()),
+      readingItem('ลูกตีขั้นสูง: Net Shot, Drive และ Around-the-Head', 'Advanced Shots: Net Shot, Drive & Around-the-Head',
+        [
+          'Net Shot (ลูกหน้าตาข่าย): ตีลูกเบาๆ ให้ข้ามตาข่ายแค่พอดีแล้วร่วงลงใกล้ตาข่ายฝั่งคู่แข่งมากที่สุด ต้องควบคุมแรงตีให้นุ่มนวล มักใช้ตอบโต้ลูก Drop ของคู่แข่งหรือเปิดเกมบีบให้คู่แข่งต้องก้มตัวรับใกล้พื้น',
+          'Drive (ลูกขนาน): ตีลูกให้พุ่งขนานกับพื้นและตาข่ายด้วยความเร็วสูง ไม่มีความโด่ง มักใช้แลกหมัดกันในจังหวะกลางสนามเพื่อไม่ให้คู่แข่งมีเวลาตั้งท่าตบ เป็นลูกที่ต้องอาศัยปฏิกิริยาตอบสนองเร็ว',
+          'Around-the-Head Stroke (ตีเหนือหัวข้ามฝั่งลำตัว): ใช้ตอนลูกลอยมาทางไหล่ฝั่งตรงข้ามกับมือถือแร็กเกต (เช่น คนถนัดขวา ลูกลอยมาทางไหล่ซ้าย) แทนที่จะตีแบ็คแฮนด์ที่มีแรงน้อยกว่า ผู้เล่นจะเอื้อมแร็กเกตข้ามศีรษะไปตีด้วยท่าเดียวกับฟอร์แฮนด์ ทำให้ได้แรงตีที่หนักกว่าแบ็คแฮนด์มาก',
+          'การเลือกใช้ลูกตีแต่ละแบบขึ้นอยู่กับจังหวะเกม: Net Shot และ Drop เหมาะกับการควบคุมจังหวะให้ช้าลง ส่วน Drive และ Smash เหมาะกับการเร่งจังหวะให้เร็วขึ้นเพื่อจบแต้ม'
+        ],
+        [
+          "Net Shot: a soft touch that just clears the net and drops as close to the net as possible on the opponent's side. It requires very gentle touch control, and is often used to answer an opponent's Drop shot or to force the opponent to bend down low to retrieve it.",
+          "Drive: a shot hit flat and fast, parallel to the floor and the net, with no arc. It's often used to trade fast exchanges in the mid-court so the opponent has no time to set up a smash — a shot that demands quick reflexes.",
+          "Around-the-Head Stroke: used when the shuttle floats toward the shoulder on the opposite side from the racket hand (e.g. for a right-handed player, a shuttle floating toward the left shoulder). Instead of hitting a weaker backhand, the player reaches the racket up and over the head to strike with a forehand-style motion, producing far more power than a backhand.",
+          "Which shot to use depends on the rhythm of the rally: Net Shots and Drops are suited to slowing the pace down, while Drives and Smashes are suited to speeding the pace up to finish the point."
         ])
     ]
   },
@@ -551,6 +725,33 @@ var TRACKS = [
           'A Foot Fault happens if a server steps on or over the baseline before striking the ball on serve — it counts as one fault, just like any other serve fault.',
           'In Doubles, the two players on a team take turns serving throughout the match (player 1 serves game 1, player 2 serves game 3, alternating with the opposing pair), and they also alternate which side (right/left) they return serve from, the same as the singles rule.',
           "An alternative scoring system called 'No-Ad' (no Deuce/Advantage) is used by some tournaments to shorten matches — if the score reaches 40-40, the very next point decides the game outright (sudden death), and the receiving side chooses which side to return from."
+        ]),
+      readingItem('ประเภทการตีลูกพื้นฐาน: Forehand, Backhand และ Volley', 'Basic Shot Types: Forehand, Backhand & Volley',
+        [
+          'Forehand (ลูกหน้ามือ): ตีลูกด้วยฝ่ามือด้านเดียวกับมือที่ถือแร็กเกต เป็นลูกพื้นฐานที่ทรงพลังที่สุดสำหรับผู้เล่นส่วนใหญ่ เพราะแขนเคลื่อนที่เป็นธรรมชาติและควบคุมง่าย',
+          'Backhand (ลูกหลังมือ): ตีลูกด้วยฝ่ามือด้านตรงข้ามกับมือถือแร็กเกต มีทั้งแบบมือเดียว (One-Handed) ที่เอื้อมได้ไกลกว่า และแบบสองมือ (Two-Handed) ที่มั่นคงและควบคุมทิศทางง่ายกว่า นิยมในผู้เล่นอาชีพยุคปัจจุบัน',
+          'Volley (ลูกตีก่อนบอลตกพื้น): ตีลูกกลางอากาศก่อนที่บอลจะเด้งพื้น มักทำตอนยืนใกล้ตาข่าย (ดูโซนสีเหลืองในไดอะแกรมด้านล่าง) ใช้ท่าตีสั้นกระชับไม่มีการเหวี่ยงแขนแรงเหมือนกราวด์สโตรก เพราะบอลมาเร็วและมีเวลาเตรียมตัวน้อย',
+          'Groundstroke (ลูกตีหลังบอลเด้งพื้นครั้งเดียว) คือ Forehand/Backhand ที่ตีตอนยืนใกล้เส้นหลังสนาม (โซนสีส้มในไดอะแกรม) เป็นลูกพื้นฐานที่ใช้บ่อยที่สุดในเกม ผู้เล่นสไตล์ Baseline มักใช้ลูกนี้เป็นหลักในการแลกหมัดยาวๆ'
+        ],
+        [
+          'Forehand: a shot struck with the palm facing the same side as the racket hand. It\'s the most powerful basic shot for most players, since the arm\'s natural swing path makes it easier to control.',
+          'Backhand: a shot struck with the palm facing the opposite side from the racket hand. There\'s a One-Handed version (which reaches further) and a Two-Handed version (which is more stable and easier to direct) — the two-handed backhand is popular among today\'s professional players.',
+          'Volley: hitting the ball out of the air before it bounces. It\'s typically played while standing close to the net (see the yellow zone in the diagram below), using a short, compact stroke rather than a big swing like a groundstroke, since the ball arrives fast and there\'s little time to prepare.',
+          'A Groundstroke (a Forehand or Backhand hit after the ball has bounced once) is typically played from near the baseline (the orange zone in the diagram) — the most frequently used shot in the game. Baseline-style players rely on groundstrokes as their main weapon in long rallies.'
+        ],
+        buildTennisShotZonesSvg()),
+      readingItem('กลยุทธ์การเล่น: Baseline กับ Serve-and-Volley และพื้นสนามแต่ละประเภท', 'Playing Styles: Baseline vs Serve-and-Volley, and Court Surfaces',
+        [
+          'สไตล์ Baseline: ผู้เล่นยืนแลกลูกใกล้เส้นหลังสนามเป็นหลัก อาศัยความแม่นยำและความอึดในการวิ่งไล่ลูก รอจังหวะที่คู่แข่งเสียท่าจึงจะบุกขึ้นไปจบแต้ม เป็นสไตล์ที่นิยมที่สุดในเทนนิสยุคปัจจุบัน',
+          'สไตล์ Serve-and-Volley: ผู้เล่นวิ่งบุกขึ้นไปยืนใกล้ตาข่ายทันทีหลังเสิร์ฟ เพื่อจบแต้มด้วยการวอลเลย์ก่อนคู่แข่งจะตั้งตัวได้ ต้องอาศัยการเสิร์ฟที่ทรงพลังและปฏิกิริยาตอบสนองที่รวดเร็ว สไตล์นี้พบน้อยลงในปัจจุบันแต่ยังใช้ได้ผลบนพื้นสนามเร็ว',
+          'สนามดิน (Clay Court): พื้นผิวช้าและบอลเด้งสูง ทำให้แลกลูกได้ยาวนาน เหมาะกับสไตล์ Baseline — สนามหญ้า (Grass Court): พื้นผิวเร็วและบอลเด้งต่ำ เหมาะกับสไตล์ Serve-and-Volley และลูกเสิร์ฟที่ทรงพลัง — สนามฮาร์ดคอร์ต (Hard Court): ความเร็วปานกลาง เป็นพื้นสนามที่ใช้เล่นกันมากที่สุดในระดับทัวร์นาเมนต์ทั่วไป',
+          'รายการแกรนด์สแลม (Grand Slam) ทั้ง 4 รายการใช้พื้นสนามต่างกัน: Australian Open และ US Open ใช้ฮาร์ดคอร์ต, French Open (Roland Garros) ใช้สนามดิน, และ Wimbledon ใช้สนามหญ้า — นักเทนนิสระดับโลกจึงต้องปรับสไตล์การเล่นให้เข้ากับพื้นสนามแต่ละประเภท'
+        ],
+        [
+          'The Baseline style: the player stays mainly near the baseline trading groundstrokes, relying on accuracy and stamina to chase down shots, waiting for the opponent to be caught off balance before advancing to finish the point. It\'s the most common style in tennis today.',
+          'The Serve-and-Volley style: the player rushes forward to the net immediately after serving, aiming to finish the point with a volley before the opponent can set up. It requires a powerful serve and quick reflexes. This style is less common today but still effective on fast courts.',
+          'Clay Courts: a slow surface with a high bounce, favoring long rallies and the Baseline style. Grass Courts: a fast surface with a low bounce, favoring Serve-and-Volley and powerful serves. Hard Courts: medium speed, and the most commonly used surface at general tournament level.',
+          'The four Grand Slam tournaments each use a different surface: the Australian Open and US Open are played on hard courts, the French Open (Roland Garros) on clay, and Wimbledon on grass — so top-level players must adapt their playing style to each surface.'
         ])
     ]
   }
