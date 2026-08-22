@@ -26,6 +26,8 @@ var I18N = {
     quizPromptTimeSigBeats: 'จังหวะนี้มีกี่จังหวะต่อห้อง (beats per measure)?',
     quizPromptTimeSigUnit: 'โน้ตตัวไหนได้ 1 จังหวะ ในจังหวะนี้?',
     quizPromptScaleDegree: 'โน้ตตัวที่ {degree} ในบันไดเสียง C เมเจอร์ คือตัวอะไร?',
+    quizPromptChordQuality: 'คอร์ดนี้เป็นเมเจอร์หรือไมเนอร์?',
+    quizPromptChordRoot: 'คอร์ดนี้มีโน้ตรากเป็นตัวอะไร (root)?',
     correctMsg: '✅ ถูกต้อง! ปลดล็อกข้อถัดไปแล้ว',
     trackDoneMsg: '🎉 จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
     toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
@@ -42,6 +44,8 @@ var I18N = {
     quizPromptTimeSigBeats: 'How many beats are in one measure of this time signature?',
     quizPromptTimeSigUnit: 'Which note value gets one beat in this time signature?',
     quizPromptScaleDegree: 'What is note #{degree} of the C Major scale?',
+    quizPromptChordQuality: 'Is this chord major or minor?',
+    quizPromptChordRoot: 'What is the root note of this chord?',
     correctMsg: '✅ Correct! Next one unlocked.',
     trackDoneMsg: '🎉 Lesson complete! Pick the next lesson from the ☰ menu above.',
     toastTrackDone: 'Lesson "{track}" complete! 🎉',
@@ -199,6 +203,57 @@ function buildScaleDisplayHtml(degree) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   คอร์ดไทรแอด — วาดโน้ต 3 ตัวซ้อนกันที่ x เดียวกันบนบรรทัด 5 เส้น (คอร์ดจริงเขียนแบบนี้)
+   ใช้ y()/เส้นน้อยชุดเดียวกับ buildStaffSvg ก้านโน้ตใช้เส้นเดียวลากผ่านหัวโน้ตทั้ง 3 ตัว
+   (ทิศทางก้านตัดสินจากโน้ตกลางของคอร์ด เหมือนหลักการเดิมของโน้ตเดี่ยว)
+   ══════════════════════════════════════════════════════════════════ */
+function buildChordStaffSvg(steps, clef) {
+  clef = clef || 'treble';
+  var W = 220, H = 130;
+  var staffLeft = 46, staffRight = 200;
+  var y0 = 30;
+  function y(s) { return y0 + (8 - s) * 7; }
+
+  var lines = [0, 2, 4, 6, 8].map(function (s) {
+    return '<line x1="' + staffLeft + '" y1="' + y(s) + '" x2="' + staffRight + '" y2="' + y(s) + '" stroke="currentColor" stroke-width="1.4"/>';
+  }).join('');
+
+  var noteX = 150;
+  var sorted = steps.slice().sort(function (a, b) { return a - b; });
+  var minStep = sorted[0], maxStep = sorted[sorted.length - 1];
+
+  var ledger = '';
+  if (minStep <= -2) {
+    for (var s = -2; s >= minStep; s -= 2) {
+      ledger += '<line x1="' + (noteX - 12) + '" y1="' + y(s) + '" x2="' + (noteX + 12) + '" y2="' + y(s) + '" stroke="currentColor" stroke-width="1.4"/>';
+    }
+  }
+  if (maxStep >= 10) {
+    for (var s2 = 10; s2 <= maxStep; s2 += 2) {
+      ledger += '<line x1="' + (noteX - 12) + '" y1="' + y(s2) + '" x2="' + (noteX + 12) + '" y2="' + y(s2) + '" stroke="currentColor" stroke-width="1.4"/>';
+    }
+  }
+
+  var midStep = steps[1] !== undefined ? steps[1] : steps[0]; /* ตัวกลาง (3rd) ตัดสินทิศทางก้าน */
+  var stemUp = midStep < 4;
+  var stemX = stemUp ? noteX + 6.3 : noteX - 6.3;
+  var stemY1 = stemUp ? y(maxStep) : y(minStep);
+  var stemY2 = stemUp ? y(minStep) - 32 : y(maxStep) + 32;
+  var stem = '<line x1="' + stemX + '" y1="' + stemY1 + '" x2="' + stemX + '" y2="' + stemY2 + '" stroke="currentColor" stroke-width="1.6"/>';
+
+  var noteheads = steps.map(function (s) {
+    return '<ellipse cx="' + noteX + '" cy="' + y(s) + '" rx="6.8" ry="5.1" transform="rotate(-18 ' + noteX + ' ' + y(s) + ')" fill="currentColor"/>';
+  }).join('');
+
+  var clefText = '<text x="50" y="88" font-size="64" ' +
+    'font-family="Segoe UI Symbol, Noto Sans Symbols 2, Apple Symbols, DejaVu Sans, sans-serif" fill="currentColor">' + CLEFS[clef].glyph + '</text>';
+
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="240" height="' + Math.round(240 * H / W) + '" ' +
+    'style="max-width:100%;display:block;margin:0 auto" role="img" aria-label="chord notation">' +
+    lines + clefText + ledger + stem + noteheads + '</svg>';
+}
+
+/* ══════════════════════════════════════════════════════════════════
    เนื้อหาบทเรียน
    ══════════════════════════════════════════════════════════════════ */
 function readingItem(headingTh, headingEn, paragraphsTh, paragraphsEn) {
@@ -220,6 +275,22 @@ function quizTimeSigUnitItem(top, bottom) {
 }
 function quizScaleItem(degree) {
   return { kind: 'quiz', qType: 'scale-degree', degree: degree, answer: SCALE_NOTES[degree - 1] };
+}
+/* คอร์ดไทรแอด diatonic 6 ตัวแรกของ C Major (I ii iii IV V vi) — ข้าม vii° diminished
+   ไว้ก่อน (บทเรียนคุยถึงแค่เนื้อหา ไม่ควิซ เพราะจะเพิ่มตัวเลือกที่ 3 นอกเหนือ major/minor) */
+var CHORDS = [
+  { roman: 'I', root: 'C', quality: 'major', steps: [-2, 0, 2] },
+  { roman: 'ii', root: 'D', quality: 'minor', steps: [-1, 1, 3] },
+  { roman: 'iii', root: 'E', quality: 'minor', steps: [0, 2, 4] },
+  { roman: 'IV', root: 'F', quality: 'major', steps: [1, 3, 5] },
+  { roman: 'V', root: 'G', quality: 'major', steps: [2, 4, 6] },
+  { roman: 'vi', root: 'A', quality: 'minor', steps: [3, 5, 7] }
+];
+function quizChordQualityItem(chord) {
+  return { kind: 'quiz', qType: 'chord-quality', steps: chord.steps, answer: chord.quality };
+}
+function quizChordRootItem(chord) {
+  return { kind: 'quiz', qType: 'chord-root', steps: chord.steps, answer: chord.root };
 }
 
 var TRACKS = [
@@ -433,6 +504,52 @@ var TRACKS = [
       quizScaleItem(4),
       quizScaleItem(7)
     ]
+  },
+  {
+    id: 'chords',
+    label: { th: 'คอร์ดเบื้องต้น', en: 'Basic Chords' },
+    group: { th: 'ทฤษฎีดนตรีพื้นฐาน', en: 'Music Theory Basics' },
+    items: [
+      readingItem('คอร์ดคืออะไร', 'What Is a Chord',
+        [
+          "คอร์ด (Chord) คือกลุ่มโน้ตตั้งแต่ 3 ตัวขึ้นไปที่เล่นพร้อมกัน ให้เสียงประสานที่ฟังกลมกลืน — คอร์ด 3 โน้ตเรียกว่า 'ไทรแอด' (Triad)",
+          'ไทรแอดสร้างจากการ "ซ้อนสาม" (stack thirds) บนบันไดเสียง: เริ่มจากโน้ตราก (root) แล้วข้ามขึ้นไป 1 ตัวเป็นโน้ตที่ 3 (3rd) แล้วข้ามขึ้นไปอีก 1 ตัวเป็นโน้ตที่ 5 (5th)',
+          'เช่น ไทรแอด C: เริ่มจาก C (root) ข้ามไป E (3rd) ข้ามไป G (5th) → คอร์ด C ประกอบด้วยโน้ต C-E-G'
+        ],
+        [
+          "A Chord is a group of 3 or more notes played together, creating harmony — a 3-note chord is called a 'Triad'.",
+          'A triad is built by "stacking thirds" on a scale: start from a root note, skip up to the 3rd note (the 3rd), then skip up again to the 5th note (the 5th).',
+          'For example, the C triad: start at C (root), skip to E (3rd), skip to G (5th) → the C chord is made of C-E-G.'
+        ]),
+      readingItem('คอร์ดเมเจอร์ vs ไมเนอร์', 'Major vs Minor Chords',
+        [
+          "สิ่งที่ทำให้คอร์ดฟังดู 'สดใส' (เมเจอร์) หรือ 'เศร้า/มืดหม่น' (ไมเนอร์) คือระยะห่างระหว่างโน้ตรากกับโน้ตที่ 3 เท่านั้น — โน้ตรากกับโน้ตที่ 5 เหมือนกันทั้งคู่",
+          'คอร์ดเมเจอร์: root ถึง 3rd ห่าง 4 ครึ่งเสียง (major 3rd) เช่น คอร์ด C Major = C-E-G',
+          'คอร์ดไมเนอร์: root ถึง 3rd ห่างแค่ 3 ครึ่งเสียง (minor 3rd, ใกล้กว่าเมเจอร์นิดเดียว) เช่น คอร์ด D minor = D-F-A'
+        ],
+        [
+          "What makes a chord sound 'bright' (major) or 'sad/dark' (minor) is only the distance between the root and the 3rd — the root and 5th are the same in both.",
+          'Major chord: root to 3rd is 4 half steps (a major 3rd) — e.g. C Major = C-E-G.',
+          'Minor chord: root to 3rd is only 3 half steps (a minor 3rd, just slightly closer than major) — e.g. D minor = D-F-A.'
+        ]),
+      readingItem('คอร์ดไทรแอดทั้ง 7 ใน C Major', 'The 7 Triads of C Major',
+        [
+          "ถ้าสร้างไทรแอดบนโน้ตทุกตัวของบันไดเสียง C Major (ใช้แค่โน้ตในบันไดเสียง ไม่มี # หรือ ♭) จะได้คอร์ดที่ 'อยู่ในคีย์' (diatonic) ทั้งหมด 7 คอร์ด แต่ละคอร์ดมีคุณภาพต่างกันตามธรรมชาติ",
+          'I=C Major, ii=D minor, iii=E minor, IV=F Major, V=G Major, vi=A minor, vii°=B diminished (ตัวใหญ่แทนเมเจอร์ ตัวเล็กแทนไมเนอร์ สัญลักษณ์ ° แทนดิมินิชด์)',
+          'สังเกตแพทเทิร์น: เมเจอร์-ไมเนอร์-ไมเนอร์-เมเจอร์-เมเจอร์-ไมเนอร์-ดิมินิชด์ (M-m-m-M-M-m-dim) แพทเทิร์นนี้เกิดจาก W-W-H-W-W-W-H ของบันไดเสียงเมเจอร์เป๊ะๆ — บทนี้จะฝึกแค่ 6 คอร์ดแรก (เมเจอร์/ไมเนอร์) ยังไม่รวม vii° diminished ซึ่งมีเสียงตึงเครียดเฉพาะตัว'
+        ],
+        [
+          "If you build a triad on every note of the C Major scale (using only notes in the scale, no sharps/flats), you get 7 chords that are all 'in the key' (diatonic) — each with a naturally different quality.",
+          'I=C Major, ii=D minor, iii=E minor, IV=F Major, V=G Major, vi=A minor, vii°=B diminished (capital = major, lowercase = minor, ° = diminished).',
+          "Notice the pattern: Major-minor-minor-Major-Major-minor-diminished (M-m-m-M-M-m-dim) — this pattern comes directly from the major scale's W-W-H-W-W-W-H formula. This lesson practices only the first 6 chords (major/minor) — not vii° diminished, which has its own tense sound."
+        ]),
+      quizChordQualityItem(CHORDS[0]), quizChordRootItem(CHORDS[0]),
+      quizChordQualityItem(CHORDS[1]), quizChordRootItem(CHORDS[1]),
+      quizChordQualityItem(CHORDS[2]), quizChordRootItem(CHORDS[2]),
+      quizChordQualityItem(CHORDS[3]), quizChordRootItem(CHORDS[3]),
+      quizChordQualityItem(CHORDS[4]), quizChordRootItem(CHORDS[4]),
+      quizChordQualityItem(CHORDS[5]), quizChordRootItem(CHORDS[5])
+    ]
   }
 ];
 
@@ -496,6 +613,7 @@ var BADGE_DEFS = [
   { id: 'track-note-values', icon: '⏱️', th: 'เจ้าจังหวะ', en: 'Rhythm Master' },
   { id: 'track-time-signatures', icon: '🥁', th: 'เจ้าเครื่องหมายจังหวะ', en: 'Time Signature Master' },
   { id: 'track-scales', icon: '🪜', th: 'เจ้าบันไดเสียง', en: 'Scale Master' },
+  { id: 'track-chords', icon: '🎶', th: 'เจ้าคอร์ด', en: 'Chord Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สทฤษฎีเบื้องต้น!', en: 'Theory Basics Complete!' }
@@ -752,6 +870,12 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       } else if (item.qType === 'scale-degree') {
         quizPromptEl.textContent = t('quizPromptScaleDegree', { degree: item.degree });
         staffSvgHolder.innerHTML = buildScaleDisplayHtml(item.degree);
+      } else if (item.qType === 'chord-quality') {
+        quizPromptEl.textContent = t('quizPromptChordQuality');
+        staffSvgHolder.innerHTML = buildChordStaffSvg(item.steps);
+      } else if (item.qType === 'chord-root') {
+        quizPromptEl.textContent = t('quizPromptChordRoot');
+        staffSvgHolder.innerHTML = buildChordStaffSvg(item.steps);
       } else {
         quizPromptEl.textContent = t(CLEFS[item.clef || 'treble'].promptKey);
         staffSvgHolder.innerHTML = buildStaffSvg(item.step, item.clef);
@@ -772,6 +896,11 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
 
   var ANSWER_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
   var TIME_SIG_BEATS_OPTIONS = [2, 3, 4, 6];
+  var CHORD_QUALITY_OPTIONS = ['major', 'minor'];
+  var CHORD_QUALITY_LABELS = {
+    major: { th: 'เมเจอร์ (Major)', en: 'Major' },
+    minor: { th: 'ไมเนอร์ (Minor)', en: 'Minor' }
+  };
   function renderAnswerRow(item) {
     answerRow.innerHTML = '';
     var progress = loadProgress();
@@ -780,12 +909,15 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     var alreadyPassed = !!progress[progressKey(track.id, idx)];
     var isValueQuiz = item.qType === 'note-value' || item.qType === 'time-sig-unit';
     var isBeatsQuiz = item.qType === 'time-sig-beats';
-    var choices = isValueQuiz ? NOTE_VALUE_ORDER : isBeatsQuiz ? TIME_SIG_BEATS_OPTIONS : ANSWER_LETTERS;
+    var isQualityQuiz = item.qType === 'chord-quality';
+    var isWide = isValueQuiz || isQualityQuiz;
+    var choices = isValueQuiz ? NOTE_VALUE_ORDER : isBeatsQuiz ? TIME_SIG_BEATS_OPTIONS :
+      isQualityQuiz ? CHORD_QUALITY_OPTIONS : ANSWER_LETTERS;
     choices.forEach(function (choice) {
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'mx-answer-btn' + (isValueQuiz ? ' wide' : '');
-      btn.textContent = isValueQuiz ? pick(NOTE_VALUE_LABELS[choice]) : String(choice);
+      btn.className = 'mx-answer-btn' + (isWide ? ' wide' : '');
+      btn.textContent = isValueQuiz ? pick(NOTE_VALUE_LABELS[choice]) : isQualityQuiz ? pick(CHORD_QUALITY_LABELS[choice]) : String(choice);
       if (alreadyPassed) {
         btn.disabled = true;
         if (choice === item.answer) btn.classList.add('correct');
