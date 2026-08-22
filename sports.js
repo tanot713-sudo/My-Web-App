@@ -398,6 +398,87 @@ var TRACKS = [
         'a'
       )
     ]
+  },
+  {
+    id: 'tennis-basics',
+    label: { th: 'เทนนิส: กติกาพื้นฐาน', en: 'Tennis: Basic Rules' },
+    group: { th: 'เทนนิส', en: 'Tennis' },
+    items: [
+      readingItem('รู้จักเทนนิส', 'Meet Tennis',
+        [
+          'เทนนิส (Tennis) เล่นได้ทั้งประเภทเดี่ยว (Singles) และประเภทคู่ (Doubles) ตีลูกบอลข้ามตาข่ายด้วยไม้เทนนิส (Racket) ให้ตกในเขตสนามของฝ่ายตรงข้าม โดยยอมให้บอลเด้งพื้นได้ 1 ครั้งก่อนตีกลับ',
+          'ระบบคะแนนในแต่ละเกม (Game) นับแบบพิเศษ: 0 = Love, 1 แต้ม = 15, 2 แต้ม = 30, 3 แต้ม = 40, แต้มที่ 4 ชนะเกม (ถ้าคู่ต่อสู้มี 40 เท่ากันด้วย เรียกว่า Deuce ต้องนำห่าง 2 แต้มถึงชนะ)',
+          'การแข่งขันแบ่งเป็นเซต (Set) — ผู้เล่น/ทีมที่ชนะ 6 เกมก่อน (นำห่างอย่างน้อย 2 เกม) เป็นผู้ชนะเซต ถ้าเกมเสมอ 6-6 มักใช้ระบบ Tie-Break ตัดสิน แมตช์ทั่วไปเล่นแบบ Best of 3 เซต (บางทัวร์นาเมนต์ประเภทชายเดี่ยวใช้ Best of 5)'
+        ],
+        [
+          'Tennis can be played Singles or Doubles. Players hit the ball over the net with a racket so it lands inside the opponent\'s court, and are allowed one bounce on their side before returning it.',
+          "Scoring within a game uses a special sequence: 0 = Love, 1 point = 15, 2 points = 30, 3 points = 40, and the 4th point wins the game (if both reach 40, it's called Deuce, and a player must win by a 2-point margin).",
+          'A match is divided into sets — the first player/team to win 6 games (by a margin of at least 2) wins the set. If the game score reaches 6-6, a Tie-Break usually decides the set. A typical match is best-of-3 sets (some men\'s tournaments use best-of-5).'
+        ]),
+      readingItem('การเสิร์ฟและกติกาสำคัญ', 'Serving & Key Rules',
+        [
+          'การเสิร์ฟ (Serve): ผู้เล่นต้องยืนหลังเส้นท้ายสนามแล้วโยนบอลขึ้นตีข้ามตาข่ายลงในช่องเสิร์ฟทแยงมุมฝั่งตรงข้าม มีสิทธิ์เสิร์ฟผิดพลาดได้ 1 ครั้ง (Fault) ถ้าผิดครั้งที่ 2 ติดกัน (Double Fault) เสียแต้มทันที',
+          "ถ้าเสิร์ฟแล้วบอลโดนตาข่ายแต่ยังตกในช่องเสิร์ฟที่ถูกต้อง เรียกว่า 'Let' ให้เสิร์ฟใหม่โดยไม่นับเป็นการเสิร์ฟเสีย",
+          "ลูกที่ถือว่า 'ออก' (Out) คือลูกที่ตกนอกเส้นสนาม หรือลูกที่เด้งพื้นฝั่งตัวเอง 2 ครั้งก่อนตีกลับ หรือลูกที่ตีไม่ข้ามตาข่าย — ทุกกรณีทำให้อีกฝ่ายได้แต้มทันที"
+        ],
+        [
+          'The Serve: a player stands behind the baseline, tosses the ball up, and hits it over the net into the diagonally opposite service box. One serve fault is allowed — a second consecutive fault (a Double Fault) loses the point immediately.',
+          "If a serve touches the net but still lands in the correct service box, it's called a 'Let' — the serve is simply retaken and does not count as a fault.",
+          "A ball is called 'out' if it lands outside the court lines, if a player lets it bounce twice on their own side before returning it, or if it fails to clear the net — in every case, the other side scores the point immediately."
+        ]),
+      mcqItem(
+        'ในเกมเทนนิส ถ้าผู้เล่นทำแต้มได้ 2 แต้มแล้ว คะแนนจะถูกเรียกว่าอะไร?', "In a tennis game, what is the score called after a player has won 2 points?",
+        [mcqOpt('a', '30', '30'), mcqOpt('b', '15', '15'),
+         mcqOpt('c', '40', '40'), mcqOpt('d', 'Love', 'Love')],
+        'a'
+      ),
+      mcqItem(
+        'ถ้าทั้งสองฝ่ายมีคะแนน 40-40 เท่ากัน เรียกว่าอะไร?', 'What is it called when both sides are tied at 40-40?',
+        [mcqOpt('a', 'Deuce', 'Deuce'), mcqOpt('b', 'Tie-Break', 'Tie-Break'),
+         mcqOpt('c', 'Match Point', 'Match Point'), mcqOpt('d', 'Let', 'Let')],
+        'a'
+      ),
+      mcqItem(
+        'ผู้เล่น/ทีมที่ชนะ 6 เกมก่อน (นำห่างอย่างน้อย 2 เกม) จะเป็นผู้ชนะอะไร?', 'The player/team who wins 6 games first (by a margin of at least 2) wins what?',
+        [mcqOpt('a', 'เซต (Set)', 'The Set'), mcqOpt('b', 'แมตช์ทั้งหมดทันที', 'The entire match immediately'),
+         mcqOpt('c', 'แค่เกมเดียว', 'Just a single game'), mcqOpt('d', 'ทัวร์นาเมนต์', 'The whole tournament')],
+        'a'
+      ),
+      mcqItem(
+        'การแข่งขันเทนนิสมาตรฐานทั่วไปเล่นแบบใด?', 'How is a typical standard tennis match played?',
+        [mcqOpt('a', 'Best of 3 เซต', 'Best of 3 sets'), mcqOpt('b', 'Best of 5 เซตเสมอทุกครั้ง', 'Always best-of-5 sets'),
+         mcqOpt('c', 'เซตเดียวจบการแข่งขัน', 'A single set decides the match'),
+         mcqOpt('d', 'Best of 1 เซต', 'Best of 1 set')],
+        'a'
+      ),
+      mcqItem(
+        'ถ้าเสิร์ฟผิดพลาด 2 ครั้งติดกัน (Double Fault) จะเกิดอะไรขึ้น?', 'What happens on a Double Fault (two consecutive serve faults)?',
+        [mcqOpt('a', 'เสียแต้มให้อีกฝ่ายทันที', 'The point immediately goes to the other side'),
+         mcqOpt('b', 'เสิร์ฟใหม่ได้อีกครั้งโดยไม่เสียอะไร', 'The server gets to retry with no penalty'),
+         mcqOpt('c', 'เปลี่ยนฝั่งเสิร์ฟไปให้อีกฝ่ายทั้งเกม', 'Serve permanently switches to the other side for the rest of the game'),
+         mcqOpt('d', 'ไม่มีผลอะไรเลย', 'Nothing happens at all')],
+        'a'
+      ),
+      mcqItem(
+        'ถ้าเสิร์ฟโดนตาข่ายแต่ยังตกในช่องเสิร์ฟที่ถูกต้อง เรียกว่าอะไร?', 'What is it called when a serve touches the net but still lands in the correct service box?',
+        [mcqOpt('a', 'Let', 'Let'), mcqOpt('b', 'Fault', 'Fault'),
+         mcqOpt('c', 'Deuce', 'Deuce'), mcqOpt('d', 'Ace', 'Ace')],
+        'a'
+      ),
+      mcqItem(
+        'ผู้เล่นยอมให้บอลเด้งพื้นฝั่งตัวเองได้กี่ครั้งก่อนต้องตีกลับ?', 'How many times is a player allowed to let the ball bounce on their side before returning it?',
+        [mcqOpt('a', '1 ครั้ง', '1 time'), mcqOpt('b', '2 ครั้ง', '2 times'),
+         mcqOpt('c', 'ไม่ให้เด้งเลย ต้องตีก่อนตกพื้น', 'None — must be hit before touching the ground'),
+         mcqOpt('d', '3 ครั้ง', '3 times')],
+        'a'
+      ),
+      mcqItem(
+        'ถ้าคะแนนเกมในเซตเสมอ 6-6 มักใช้ระบบใดตัดสินเซตนั้น?', 'When the game score in a set reaches 6-6, what system usually decides the set?',
+        [mcqOpt('a', 'Tie-Break', 'A Tie-Break'), mcqOpt('b', 'Deuce', 'Deuce'),
+         mcqOpt('c', 'Golden Point', 'Golden Point'), mcqOpt('d', 'Sudden Death', 'Sudden Death')],
+        'a'
+      )
+    ]
   }
 ];
 
@@ -459,6 +540,7 @@ var BADGE_DEFS = [
   { id: 'track-basketball-basics', icon: '🏀', th: 'เจ้ากติกาบาสเกตบอล', en: 'Basketball Rules Master' },
   { id: 'track-volleyball-basics', icon: '🏐', th: 'เจ้ากติกาวอลเลย์บอล', en: 'Volleyball Rules Master' },
   { id: 'track-badminton-basics', icon: '🏸', th: 'เจ้ากติกาแบดมินตัน', en: 'Badminton Rules Master' },
+  { id: 'track-tennis-basics', icon: '🎾', th: 'เจ้ากติกาเทนนิส', en: 'Tennis Rules Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สที่มีทั้งหมด!', en: 'All Lessons Complete!' }
