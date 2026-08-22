@@ -129,6 +129,67 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .sp-instructions p{margin-bottom:10px}
 .sp-instructions p:last-child{margin-bottom:0}
 
+/* ไดอะแกรม SVG เคลื่อนไหวตอนเปิดบทเรียน — แต่ละองค์ประกอบ fade/pop เข้าทีละตัวเรียงลำดับ
+   ลูกศร (svgArrow ใน sports.js) มีอนิเมชันลากเส้นเพิ่มเติมผ่าน .sp-arrow-line/.sp-arrow-head */
+.sp-instructions svg{overflow:visible}
+.sp-instructions svg>*{animation-fill-mode:both;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+.sp-instructions svg>:first-child{animation-name:sp-diagram-fade;animation-duration:.5s}
+.sp-instructions svg>circle,.sp-instructions svg>rect,.sp-instructions svg>ellipse,
+.sp-instructions svg>path,.sp-instructions svg>polygon:not(.sp-arrow-head),
+.sp-instructions svg>line:not(.sp-arrow-line){
+  animation-name:sp-diagram-pop;animation-duration:.42s;transform-box:fill-box;transform-origin:center}
+.sp-instructions svg>text{animation-name:sp-diagram-rise;animation-duration:.42s}
+/* หมายเหตุสำคัญ: ห้ามใส่ opacity ใน keyframe พวกนี้เด็ดขาด — หลายไดอะแกรมตั้งใจใช้
+   opacity="0.x" (แบบโปร่งแสง) ผ่าน presentation attribute บนองค์ประกอบ SVG อยู่แล้ว
+   (เช่น badge พื้นหลังโปร่งแสงใน svgFactStrip, โซนสีทับสนามใน pressing/shot-zone diagrams)
+   ถ้า keyframe ไปตั้งค่า opacity ท้ายอนิเมชันเป็น 1 จะไปทับค่า opacity ที่ตั้งใจไว้ กลาย
+   เป็นทึบเต็มที่ ทำให้ข้อความสีเดียวกับพื้นหลังมองไม่เห็น หรือโซนสีบังไดอะแกรมข้างใต้หมด
+   จึงใช้แค่ transform (scale/translateY) เข้าตำแหน่งเฉยๆ ไม่แตะ opacity เลย */
+@keyframes sp-diagram-fade{from{transform:scale(.96)}to{transform:scale(1)}}
+@keyframes sp-diagram-pop{from{transform:scale(.82)}to{transform:scale(1)}}
+@keyframes sp-diagram-rise{from{transform:translateY(5px)}to{transform:translateY(0)}}
+@keyframes sp-arrow-draw{to{stroke-dashoffset:0}}
+.sp-instructions svg>*:nth-child(1){animation-delay:0s}
+.sp-instructions svg>*:nth-child(2){animation-delay:.02s}
+.sp-instructions svg>*:nth-child(3){animation-delay:.04s}
+.sp-instructions svg>*:nth-child(4){animation-delay:.06s}
+.sp-instructions svg>*:nth-child(5){animation-delay:.08s}
+.sp-instructions svg>*:nth-child(6){animation-delay:.1s}
+.sp-instructions svg>*:nth-child(7){animation-delay:.12s}
+.sp-instructions svg>*:nth-child(8){animation-delay:.14s}
+.sp-instructions svg>*:nth-child(9){animation-delay:.16s}
+.sp-instructions svg>*:nth-child(10){animation-delay:.18s}
+.sp-instructions svg>*:nth-child(11){animation-delay:.2s}
+.sp-instructions svg>*:nth-child(12){animation-delay:.22s}
+.sp-instructions svg>*:nth-child(13){animation-delay:.24s}
+.sp-instructions svg>*:nth-child(14){animation-delay:.26s}
+.sp-instructions svg>*:nth-child(15){animation-delay:.28s}
+.sp-instructions svg>*:nth-child(16){animation-delay:.3s}
+.sp-instructions svg>*:nth-child(17){animation-delay:.32s}
+.sp-instructions svg>*:nth-child(18){animation-delay:.34s}
+.sp-instructions svg>*:nth-child(19){animation-delay:.36s}
+.sp-instructions svg>*:nth-child(20){animation-delay:.38s}
+.sp-instructions svg>*:nth-child(21){animation-delay:.4s}
+.sp-instructions svg>*:nth-child(22){animation-delay:.42s}
+.sp-instructions svg>*:nth-child(23){animation-delay:.44s}
+.sp-instructions svg>*:nth-child(24){animation-delay:.46s}
+.sp-instructions svg>*:nth-child(25){animation-delay:.48s}
+.sp-instructions svg>*:nth-child(26){animation-delay:.5s}
+.sp-instructions svg>*:nth-child(27){animation-delay:.52s}
+.sp-instructions svg>*:nth-child(28){animation-delay:.54s}
+.sp-instructions svg>*:nth-child(29){animation-delay:.56s}
+.sp-instructions svg>*:nth-child(30){animation-delay:.58s}
+.sp-instructions svg>*:nth-child(n+31){animation-delay:.6s}
+/* ลูกศร (svgArrow) มาทีหลังกฎ nth-child เพื่อให้ delay ของอนิเมชันลากเส้น/หัวลูกศรเอง
+   (ไม่ใช่ delay ตามลำดับ) เป็นฝ่ายชนะ specificity เท่ากันแต่มาทีหลังในไฟล์ */
+.sp-instructions svg>.sp-arrow-line{stroke-dasharray:300;stroke-dashoffset:300;
+  animation:sp-arrow-draw .5s cubic-bezier(.2,.8,.2,1) both}
+.sp-instructions svg>.sp-arrow-head{animation:sp-diagram-fade .22s ease .38s both}
+@media (prefers-reduced-motion: reduce){
+  .sp-instructions svg>*,.sp-instructions svg>.sp-arrow-line,.sp-instructions svg>.sp-arrow-head{
+    animation:none!important;transform:none!important;stroke-dashoffset:0!important}
+}
+
 .sp-toolbar{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}
 .btn{font-family:var(--f);font-size:14px;font-weight:600;padding:10px 18px;border:1.5px solid var(--line);
   border-radius:11px;cursor:pointer;background:var(--card);color:var(--ink);transition:.18s cubic-bezier(.2,.8,.2,1)}

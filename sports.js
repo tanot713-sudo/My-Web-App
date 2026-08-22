@@ -62,8 +62,8 @@ function svgArrow(x1, y1, x2, y2, color) {
   var hy1 = y2 - headLen * Math.sin(angle - Math.PI / 6);
   var hx2 = x2 - headLen * Math.cos(angle + Math.PI / 6);
   var hy2 = y2 - headLen * Math.sin(angle + Math.PI / 6);
-  return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="' + color + '" stroke-width="3"/>' +
-    '<polygon points="' + x2 + ',' + y2 + ' ' + hx1 + ',' + hy1 + ' ' + hx2 + ',' + hy2 + '" fill="' + color + '"/>';
+  return '<line class="sp-arrow-line" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="' + color + '" stroke-width="3"/>' +
+    '<polygon class="sp-arrow-head" points="' + x2 + ',' + y2 + ' ' + hx1 + ',' + hy1 + ' ' + hx2 + ',' + hy2 + '" fill="' + color + '"/>';
 }
 function svgWrap(inner, viewW, viewH, maxW, label) {
   return '<div style="text-align:center;margin:16px 0">' +
@@ -370,6 +370,69 @@ function buildJudoThrowPhasesSvg() {
     '<text x="150" y="130" font-size="11" text-anchor="middle" fill="#1F2430">Position</text>' +
     '<text x="255" y="130" font-size="11" text-anchor="middle" fill="#1F2430">Execute</text>';
   return svgWrap(b1 + b2 + b3 + a1 + a2 + labels, 300, 150, 320, 'judo throw phases: kuzushi tsukuri kake flow diagram');
+}
+/* ท่ามวยไทยแบบเคลื่อนไหว (ให้ผู้เรียนดูแล้วทำตามได้) — สร้างจากท่าเดียวกัน (การ์ดยืน)
+   แล้วขยับแขน/ขาแค่จุดเดียวต่อท่าด้วย <animateTransform> (SMIL) หมุนรอบข้อต่อจริง
+   (สะโพก/เข่า/ไหล่/ศอก) วนซ้ำไม่รู้จบ อ้างอิงขั้นตอนจริงจากงานวิจัยออนไลน์:
+   Roundhouse Kick (ยกเข่าเข้าหาลำตัว หมุนสะโพก เหวี่ยงหน้าแข้งออก), Teep (ยกเข่าสูง
+   ดันสะโพกออกด้วยปลายเท้า), Jab-Cross (หมัดหน้าพุ่งตรงก่อน ตามด้วยหมัดหลังหมุนสะโพก) */
+function buildMuayThaiTechniqueDemoSvg() {
+  function baseFigure(ox) {
+    return '<line x1="' + (ox + 98) + '" y1="42" x2="' + (ox + 86) + '" y2="95" stroke="#1F2430" stroke-width="4" stroke-linecap="round"/>' +
+      '<circle cx="' + (ox + 98) + '" cy="30" r="10" fill="#FFD43B" stroke="#1F2430" stroke-width="2"/>';
+  }
+  function groundLine(ox) { return '<line x1="' + (ox + 6) + '" y1="165" x2="' + (ox + 154) + '" y2="165" stroke="#94a3b8" stroke-width="2"/>'; }
+  function caption(ox, text) { return '<text x="' + (ox + 80) + '" y="195" font-size="13" font-weight="800" text-anchor="middle" fill="#1F2430">' + text + '</text>'; }
+  /* ขาคู่ที่ยืนอยู่กับที่ (ไม่ขยับ) ใช้ร่วมกันทั้ง 3 ท่า — เฉพาะขา/แขนที่เป็นจุดเด่นของแต่ละ
+     เทคนิคเท่านั้นที่หมุนเคลื่อนไหว */
+  function standingLeg(ox) {
+    return '<line x1="' + (ox + 86) + '" y1="95" x2="' + (ox + 100) + '" y2="122" stroke="#1F2430" stroke-width="5" stroke-linecap="round"/>' +
+      '<line x1="' + (ox + 100) + '" y1="122" x2="' + (ox + 107) + '" y2="152" stroke="#1F2430" stroke-width="5" stroke-linecap="round"/>';
+  }
+  function animRotate(values, keyTimes, dur) {
+    return '<animateTransform attributeName="transform" type="rotate" values="' + values + '" keyTimes="' + keyTimes + '" dur="' + dur + '" repeatCount="indefinite"/>';
+  }
+  /* --- แผง 1: Roundhouse Kick — ยกเข่าเข้าหมุนสะโพก แล้วเหวี่ยงหน้าแข้งออก --- */
+  function panelRoundhouse(ox) {
+    var leadArm = '<line x1="' + (ox + 96) + '" y1="46" x2="' + (ox + 112) + '" y2="60" stroke="#1F2430" stroke-width="4" stroke-linecap="round"/>' +
+      '<line x1="' + (ox + 112) + '" y1="60" x2="' + (ox + 105) + '" y2="38" stroke="#1F2430" stroke-width="4" stroke-linecap="round"/>';
+    var rearArm = '<g><line x1="' + (ox + 96) + '" y1="46" x2="' + (ox + 78) + '" y2="60" stroke="#1F2430" stroke-width="4" stroke-linecap="round"/>' +
+      '<line x1="' + (ox + 78) + '" y1="60" x2="' + (ox + 86) + '" y2="44" stroke="#1F2430" stroke-width="4" stroke-linecap="round"/>' +
+      animRotate('0 ' + (ox + 96) + ' 46; -35 ' + (ox + 96) + ' 46; 0 ' + (ox + 96) + ' 46; 0 ' + (ox + 96) + ' 46', '0;0.5;0.7;1', '2s') + '</g>';
+    var kickLeg = '<g><line x1="' + (ox + 86) + '" y1="95" x2="' + (ox + 68) + '" y2="122" stroke="#1F2430" stroke-width="5" stroke-linecap="round"/>' +
+      '<g><line x1="' + (ox + 68) + '" y1="122" x2="' + (ox + 60) + '" y2="150" stroke="#1F2430" stroke-width="5" stroke-linecap="round"/>' +
+      animRotate('0 ' + (ox + 68) + ' 122; 55 ' + (ox + 68) + ' 122; 0 ' + (ox + 68) + ' 122; 0 ' + (ox + 68) + ' 122', '0;0.5;0.7;1', '2s') + '</g>' +
+      animRotate('0 ' + (ox + 86) + ' 95; -75 ' + (ox + 86) + ' 95; 0 ' + (ox + 86) + ' 95; 0 ' + (ox + 86) + ' 95', '0;0.5;0.7;1', '2s') + '</g>';
+    return groundLine(ox) + caption(ox, 'Roundhouse Kick') + baseFigure(ox) + leadArm + rearArm + standingLeg(ox) + kickLeg;
+  }
+  /* --- แผง 2: Teep (เตะถีบ) — ยกเข่าสูงแล้วดันสะโพกออกด้วยปลายเท้า --- */
+  function panelTeep(ox) {
+    var leadArm = '<line x1="' + (ox + 96) + '" y1="46" x2="' + (ox + 112) + '" y2="60" stroke="#1F2430" stroke-width="4" stroke-linecap="round"/>' +
+      '<line x1="' + (ox + 112) + '" y1="60" x2="' + (ox + 105) + '" y2="38" stroke="#1F2430" stroke-width="4" stroke-linecap="round"/>';
+    var rearArm = '<g><line x1="' + (ox + 96) + '" y1="46" x2="' + (ox + 78) + '" y2="60" stroke="#1F2430" stroke-width="4" stroke-linecap="round"/>' +
+      '<line x1="' + (ox + 78) + '" y1="60" x2="' + (ox + 86) + '" y2="44" stroke="#1F2430" stroke-width="4" stroke-linecap="round"/>' +
+      animRotate('0 ' + (ox + 96) + ' 46; -20 ' + (ox + 96) + ' 46; 0 ' + (ox + 96) + ' 46; 0 ' + (ox + 96) + ' 46', '0;0.5;0.7;1', '2s') + '</g>';
+    var teepLeg = '<g><line x1="' + (ox + 86) + '" y1="95" x2="' + (ox + 68) + '" y2="122" stroke="#1F2430" stroke-width="5" stroke-linecap="round"/>' +
+      '<g><line x1="' + (ox + 68) + '" y1="122" x2="' + (ox + 60) + '" y2="150" stroke="#1F2430" stroke-width="5" stroke-linecap="round"/>' +
+      animRotate('0 ' + (ox + 68) + ' 122; 95 ' + (ox + 68) + ' 122; 0 ' + (ox + 68) + ' 122; 0 ' + (ox + 68) + ' 122', '0;0.5;0.7;1', '2s') + '</g>' +
+      animRotate('0 ' + (ox + 86) + ' 95; -55 ' + (ox + 86) + ' 95; 0 ' + (ox + 86) + ' 95; 0 ' + (ox + 86) + ' 95', '0;0.5;0.7;1', '2s') + '</g>';
+    return groundLine(ox) + caption(ox, 'Teep (Push Kick)') + baseFigure(ox) + leadArm + rearArm + standingLeg(ox) + teepLeg;
+  }
+  /* --- แผง 3: Jab-Cross — หมัดหน้าพุ่งตรงก่อน ตามด้วยหมัดหลังหมุนสะโพก/ไหล่ --- */
+  function panelJabCross(ox) {
+    var jabArm = '<g><line x1="' + (ox + 96) + '" y1="46" x2="' + (ox + 112) + '" y2="60" stroke="#1F2430" stroke-width="4" stroke-linecap="round"/>' +
+      '<g><line x1="' + (ox + 112) + '" y1="60" x2="' + (ox + 105) + '" y2="38" stroke="#1F2430" stroke-width="4" stroke-linecap="round"/>' +
+      animRotate('0 ' + (ox + 112) + ' 60; -70 ' + (ox + 112) + ' 60; 0 ' + (ox + 112) + ' 60; 0 ' + (ox + 112) + ' 60; 0 ' + (ox + 112) + ' 60', '0;0.2;0.4;0.6;1', '2s') + '</g>' +
+      animRotate('0 ' + (ox + 96) + ' 46; 30 ' + (ox + 96) + ' 46; 0 ' + (ox + 96) + ' 46; 0 ' + (ox + 96) + ' 46; 0 ' + (ox + 96) + ' 46', '0;0.2;0.4;0.6;1', '2s') + '</g>';
+    var crossArm = '<g><line x1="' + (ox + 96) + '" y1="46" x2="' + (ox + 78) + '" y2="60" stroke="#1F2430" stroke-width="4" stroke-linecap="round"/>' +
+      '<g><line x1="' + (ox + 78) + '" y1="60" x2="' + (ox + 86) + '" y2="44" stroke="#1F2430" stroke-width="4" stroke-linecap="round"/>' +
+      animRotate('0 ' + (ox + 78) + ' 60; 0 ' + (ox + 78) + ' 60; -85 ' + (ox + 78) + ' 60; 0 ' + (ox + 78) + ' 60; 0 ' + (ox + 78) + ' 60', '0;0.4;0.6;0.8;1', '2s') + '</g>' +
+      animRotate('0 ' + (ox + 96) + ' 46; 0 ' + (ox + 96) + ' 46; -35 ' + (ox + 96) + ' 46; 0 ' + (ox + 96) + ' 46; 0 ' + (ox + 96) + ' 46', '0;0.4;0.6;0.8;1', '2s') + '</g>';
+    return groundLine(ox) + caption(ox, 'Jab - Cross') + baseFigure(ox) + jabArm + crossArm + standingLeg(ox) + '<line x1="' + (ox + 86) + '" y1="95" x2="' + (ox + 68) + '" y2="122" stroke="#1F2430" stroke-width="5" stroke-linecap="round"/>' +
+      '<line x1="' + (ox + 68) + '" y1="122" x2="' + (ox + 60) + '" y2="150" stroke="#1F2430" stroke-width="5" stroke-linecap="round"/>';
+  }
+  return svgWrap(panelRoundhouse(0) + panelTeep(165) + panelJabCross(330), 480, 210, 480,
+    'animated muay thai technique demo: roundhouse kick, teep push kick, and jab-cross combination looping so learners can follow along');
 }
 
 var TRACKS = [
@@ -1062,20 +1125,22 @@ var TRACKS = [
           'หมัด (Punches): ท่าพื้นฐานคล้ายมวยสากล เช่น หมัดตรง (Jab, Cross) และหมัดเหวี่ยง (Hook) ใช้เปิดเกมหรือสร้างจังหวะก่อนเข้าท่าอื่น',
           'ศอก (Elbows): มีหลายมุม เช่น ศอกตี (แนวนอน), ศอกงัด (แนวเฉียงขึ้น), ศอกกลับหลัง (หมุนตัว) เป็นอาวุธระยะประชิดที่สร้างบาดแผลได้รุนแรงที่สุด',
           'เข่า (Knees): เข่าตรงและเข่าเฉียง มักใช้ในจังหวะปล้ำประชิด (Clinch) เมื่อจับคอคู่ต่อสู้ไว้ได้แล้วกระแทกเข่าเข้าลำตัว',
-          "เตะ (Kicks): ท่าเด่นที่สุดของมวยไทยคือเตะวงกลม (Roundhouse Kick) ที่ใช้ 'หน้าแข้ง' เป็นจุดกระทบแทนหลังเท้าแบบศิลปะการต่อสู้อื่น หมุนสะโพกเต็มที่เพื่อดึงแรงสูงสุด ส่วนการเตะถีบ (Teep หรือ Push Kick) ใช้ควบคุมระยะและดันคู่ต่อสู้ออกมากกว่าจะเน้นความแรง"
+          "เตะ (Kicks): ท่าเด่นที่สุดของมวยไทยคือเตะวงกลม (Roundhouse Kick) ที่ใช้ 'หน้าแข้ง' เป็นจุดกระทบแทนหลังเท้าแบบศิลปะการต่อสู้อื่น หมุนสะโพกเต็มที่เพื่อดึงแรงสูงสุด ส่วนการเตะถีบ (Teep หรือ Push Kick) ใช้ควบคุมระยะและดันคู่ต่อสู้ออกมากกว่าจะเน้นความแรง",
+          'ดูภาพเคลื่อนไหวด้านล่างประกอบ — สาธิตท่าเตะวงกลม เตะถีบ และหมัดตรงคู่ (Jab-Cross) วนซ้ำให้ดูตามได้'
         ],
         [
           'Punches: basic techniques similar to boxing, such as straight punches (Jab, Cross) and hooks — used to open an exchange or set up rhythm before other strikes.',
           'Elbows: thrown from several angles — the horizontal elbow strike, the upward diagonal elbow, and the spinning elbow — the most damaging close-range weapon in the sport.',
           'Knees: straight knees and diagonal knees, most often thrown from the clinch once a fighter has control of the opponent\'s neck, driving the knee into the body.',
-          "Kicks: Muay Thai's signature technique is the Roundhouse Kick, which strikes with the shin (rather than the foot/instep used in other martial arts), rotating the hip fully through for maximum power. The Teep (Push Kick) is used to control distance and push the opponent away rather than to strike with maximum force."
+          "Kicks: Muay Thai's signature technique is the Roundhouse Kick, which strikes with the shin (rather than the foot/instep used in other martial arts), rotating the hip fully through for maximum power. The Teep (Push Kick) is used to control distance and push the opponent away rather than to strike with maximum force.",
+          'See the animated diagram below — a looping demonstration of the roundhouse kick, teep, and jab-cross combination you can follow along with.'
         ],
         svgFactStrip([
           { title: 'Punch', sub: 'jab/cross/hook', color: '#1971C2' },
           { title: 'Elbow', sub: 'most damaging', color: '#E8590C' },
           { title: 'Knee', sub: 'from the clinch', color: '#C92A2A' },
           { title: 'Shin Kick', sub: 'signature technique', color: '#2F9E44' }
-        ], 'muay thai basic strikes facts diagram')),
+        ], 'muay thai basic strikes facts diagram') + buildMuayThaiTechniqueDemoSvg()),
       readingItem('การปล้ำประชิด (Clinch)', 'The Clinch',
         [
           "การปล้ำประชิด (Clinch) เป็นทักษะเฉพาะตัวของมวยไทยที่ไม่ค่อยพบในศิลปะการต่อสู้อื่น: นักมวยเข้าคุมคอคู่ต่อสู้ด้วยมือทั้งสองข้าง (ท่าที่เรียกว่า Double Collar Tie หรือ 'ปล้ำคอ') เพื่อควบคุมทิศทางศีรษะและลำตัวคู่ต่อสู้แล้วกระแทกเข่าเข้าลำตัวหรือใบหน้า",
