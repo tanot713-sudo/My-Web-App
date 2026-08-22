@@ -43,6 +43,7 @@ var I18N = {
     listenProgressionBtn: '🔊 ฟังโพรเกรสชัน I-V-vi-IV',
     listenBeatBtn: '🔊 ฟังจังหวะร็อกพื้นฐาน',
     quizPromptDrumEar: 'เสียงที่ได้ยินคือชิ้นกลองไหน?',
+    quizPromptViolinString: 'เสียงที่ได้ยินคือสายเปล่าเส้นไหน?',
     correctMsg: '✅ ถูกต้อง! ปลดล็อกข้อถัดไปแล้ว',
     trackDoneMsg: '🎉 จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
     toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
@@ -76,6 +77,7 @@ var I18N = {
     listenProgressionBtn: '🔊 Listen to I-V-vi-IV',
     listenBeatBtn: '🔊 Listen to the Basic Rock Beat',
     quizPromptDrumEar: 'Which drum piece is this sound?',
+    quizPromptViolinString: 'Which open string is this sound?',
     correctMsg: '✅ Correct! Next one unlocked.',
     trackDoneMsg: '🎉 Lesson complete! Pick the next lesson from the ☰ menu above.',
     toastTrackDone: 'Lesson "{track}" complete! 🎉',
@@ -731,6 +733,18 @@ var DRUM_HIT_LABELS = {
 function quizDrumEarItem(type) {
   return { kind: 'quiz', qType: 'drum-ear', drumType: type, answer: type };
 }
+/* สายเปล่าไวโอลิน 4 สาย เรียงเป็นคู่ 5 (perfect 5th) ทุกคู่: G3-D4-A4-E5 */
+var VIOLIN_STRING_OPTIONS = ['G', 'D', 'A', 'E'];
+var VIOLIN_STRING_LABELS = {
+  G: { th: 'สาย G (ต่ำสุด)', en: 'G string (lowest)' },
+  D: { th: 'สาย D', en: 'D string' },
+  A: { th: 'สาย A', en: 'A string' },
+  E: { th: 'สาย E (สูงสุด)', en: 'E string (highest)' }
+};
+var VIOLIN_STRING_OCTAVES = { G: 3, D: 4, A: 4, E: 5 };
+function quizViolinStringItem(letter) {
+  return { kind: 'quiz', qType: 'violin-string-ear', freq: noteFreq(letter, VIOLIN_STRING_OCTAVES[letter]), answer: letter };
+}
 
 var TRACKS = [
   {
@@ -1174,6 +1188,38 @@ var TRACKS = [
     ]
   },
   {
+    id: 'violin',
+    label: { th: 'หัดเล่นไวโอลิน', en: 'Violin' },
+    group: { th: 'เครื่องดนตรี', en: 'Instruments' },
+    items: [
+      readingItem('รู้จักไวโอลิน', 'Meet the Violin',
+        [
+          "ไวโอลิน (Violin) เป็นเครื่องสายที่เล่นด้วยการสี 'คันชัก' (bow) ผ่านสาย หรือบางครั้งใช้นิ้วดีด (pizzicato) — ต่างจากกีตาร์/อูคูเลเล่ตรงที่ไวโอลิน 'ไม่มีเฟรต' บนคอ ผู้เล่นต้องหาตำแหน่งเสียงด้วยความเคยชินของนิ้วและหูล้วนๆ",
+          'ไวโอลินมี 4 สาย ตั้งเสียงห่างกันเป็นคู่ 5 (Perfect 5th) ทุกคู่ เรียงจากต่ำไปสูง: G3 - D4 - A4 - E5 — สังเกตว่าคู่ 5 คือขั้นคู่เสียงเดียวกับที่เคยฝึกฟังในบทฝึกหูขั้นสูงเลย!',
+          'โน้ตไวโอลินเขียนด้วยกุญแจซอล (Treble Clef) เพียงกุญแจเดียวเท่านั้น (ต่างจากเปียโนที่ต้องใช้ทั้งกุญแจซอลและฟา) ทฤษฎีที่เรียนมาทั้งหมดในบทอ่านโน้ตกุญแจซอลใช้ได้กับไวโอลินตรงๆ'
+        ],
+        [
+          "The Violin is a string instrument played by drawing a 'bow' across the strings, or sometimes plucked with a finger (pizzicato) — unlike guitar/ukulele, the violin has NO frets on its neck. Players find pitches purely through finger muscle memory and ear.",
+          'The violin has 4 strings tuned a perfect 5th apart each, low to high: G3 - D4 - A4 - E5 — notice that a 5th is the exact same interval you practiced listening for in the Advanced Ear Training lesson!',
+          'Violin music is written in Treble Clef only (unlike piano, which needs both treble and bass) — everything you learned in the treble clef reading lesson applies directly to violin.'
+        ]),
+      quizViolinStringItem('G'), quizViolinStringItem('D'), quizViolinStringItem('A'), quizViolinStringItem('E'),
+      quizViolinStringItem('A'), quizViolinStringItem('E'), quizViolinStringItem('G'), quizViolinStringItem('D'),
+      readingItem('โน้ตบนไวโอลินอ่านด้วยกุญแจซอล', 'Violin Notes on the Treble Staff',
+        [
+          'สาย A (สายเปิดเส้นที่ 3) ตรงกับโน้ต A4 ซึ่งอยู่บนบรรทัดเพลงกุญแจซอลพอดี ส่วนสาย E (สายเปิดสูงสุด) ตรงกับโน้ต E5',
+          'ลองอ่านตำแหน่งโน้ตทั้งสองนี้บนบรรทัดเพลงในแบบฝึกหัดถัดไป — ใช้ทักษะอ่านโน้ตกุญแจซอลที่เรียนมาแล้วได้เลย ไม่ต้องเรียนใหม่',
+          'ส่วนสาย G และสาย D อยู่ต่ำกว่าบรรทัดเพลง 5 เส้น (ต้องใช้เส้นน้อยเสริม) บทนี้จึงยังไม่ลงรายละเอียดตำแหน่งของสองสายนั้นบนโน้ต แต่จำเสียงจากการฝึกหูที่ผ่านมาได้แล้ว'
+        ],
+        [
+          'The A string (3rd open string) matches the note A4, which sits right on the treble staff. The E string (highest open string) matches the note E5.',
+          "Try reading these two note positions on the staff in the next exercises — use the treble-clef reading skill you already learned, nothing new to study.",
+          "The G and D strings sit below the 5-line staff (needing extra ledger lines), so this lesson doesn't cover their exact notated position yet — but you already know their sound from the ear-training exercises above."
+        ]),
+      quizNoteItem(3), quizNoteItem(7), quizNoteItem(3), quizNoteItem(7)
+    ]
+  },
+  {
     id: 'ear-training',
     label: { th: 'ฝึกหูดนตรี', en: 'Ear Training' },
     group: { th: 'ฝึกหู', en: 'Ear Training' },
@@ -1449,7 +1495,7 @@ var BADGE_DEFS = [
   { id: 'first-pass', icon: '🥉', th: 'ก้าวแรก', en: 'First Step' },
   { id: 'track-staff-clef', icon: '🎼', th: 'รู้จักบรรทัดเพลง', en: 'Staff Reader' },
   { id: 'track-note-reading-treble', icon: '🎵', th: 'เจ้าแห่งโน้ตซอล', en: 'Treble Note Master' },
-  { id: 'track-bass-clef', icon: '🎻', th: 'เจ้าแห่งโน้ตฟา', en: 'Bass Note Master' },
+  { id: 'track-bass-clef', icon: '𝄢', th: 'เจ้าแห่งโน้ตฟา', en: 'Bass Note Master' },
   { id: 'track-note-values', icon: '⏱️', th: 'เจ้าจังหวะ', en: 'Rhythm Master' },
   { id: 'track-time-signatures', icon: '🥁', th: 'เจ้าเครื่องหมายจังหวะ', en: 'Time Signature Master' },
   { id: 'track-scales', icon: '🪜', th: 'เจ้าบันไดเสียง', en: 'Scale Master' },
@@ -1458,6 +1504,7 @@ var BADGE_DEFS = [
   { id: 'track-guitar', icon: '🎸', th: 'เจ้ากีตาร์', en: 'Guitar Master' },
   { id: 'track-ukulele', icon: '🪕', th: 'เจ้าอูคูเลเล่', en: 'Ukulele Master' },
   { id: 'track-drums', icon: '🪘', th: 'เจ้ากลอง', en: 'Drum Master' },
+  { id: 'track-violin', icon: '🎻', th: 'เจ้าไวโอลิน', en: 'Violin Master' },
   { id: 'track-ear-training', icon: '👂', th: 'นักฟังเสียง', en: 'Ear Training Master' },
   { id: 'track-ear-training-advanced', icon: '🎧', th: 'เจ้าหูทอง', en: 'Golden Ear' },
   { id: 'track-first-song', icon: '🎤', th: 'เพลงแรกของฉัน', en: 'First Song Complete' },
@@ -1765,6 +1812,11 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
         staffSvgHolder.innerHTML = buildEarPlayerHtml();
         var drBtn = document.getElementById('earPlayBtn');
         if (drBtn) drBtn.addEventListener('click', function () { playDrumHit(item.drumType); });
+      } else if (item.qType === 'violin-string-ear') {
+        quizPromptEl.textContent = t('quizPromptViolinString');
+        staffSvgHolder.innerHTML = buildEarPlayerHtml();
+        var vsBtn = document.getElementById('earPlayBtn');
+        if (vsBtn) vsBtn.addEventListener('click', function () { playSequence([item.freq]); });
       } else if (item.qType === 'interval-ear') {
         quizPromptEl.textContent = t('quizPromptInterval');
         staffSvgHolder.innerHTML = buildEarPlayerHtml();
@@ -1858,14 +1910,15 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     var isIntervalQuiz = item.qType === 'interval-ear';
     var isRhythmQuiz = item.qType === 'rhythm-dictation';
     var isDrumEarQuiz = item.qType === 'drum-ear';
-    var isWide = isValueQuiz || isQualityQuiz || isGuitarQuiz || isUkuleleQuiz || isPitchCompareQuiz || isPitchSameDiffQuiz || isProgressionQuiz || isIntervalQuiz || isRhythmQuiz || isDrumEarQuiz;
+    var isViolinStringQuiz = item.qType === 'violin-string-ear';
+    var isWide = isValueQuiz || isQualityQuiz || isGuitarQuiz || isUkuleleQuiz || isPitchCompareQuiz || isPitchSameDiffQuiz || isProgressionQuiz || isIntervalQuiz || isRhythmQuiz || isDrumEarQuiz || isViolinStringQuiz;
     var choices = isValueQuiz ? NOTE_VALUE_ORDER : isBeatsQuiz ? TIME_SIG_BEATS_OPTIONS :
       isQualityQuiz ? CHORD_QUALITY_OPTIONS : isGuitarQuiz ? GUITAR_CHORD_NAMES :
       isUkuleleQuiz ? UKULELE_CHORD_NAMES :
       isPitchCompareQuiz ? PITCH_COMPARE_OPTIONS : isPitchSameDiffQuiz ? PITCH_SAME_DIFF_OPTIONS :
       isProgressionQuiz ? PROGRESSION_QUIZ_OPTIONS :
       isIntervalQuiz ? INTERVAL_OPTIONS : isRhythmQuiz ? RHYTHM_PATTERN_KEYS :
-      isDrumEarQuiz ? DRUM_HIT_OPTIONS : ANSWER_LETTERS;
+      isDrumEarQuiz ? DRUM_HIT_OPTIONS : isViolinStringQuiz ? VIOLIN_STRING_OPTIONS : ANSWER_LETTERS;
     choices.forEach(function (choice) {
       var btn = document.createElement('button');
       btn.type = 'button';
@@ -1875,7 +1928,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
         isPitchCompareQuiz ? pick(PITCH_COMPARE_LABELS[choice]) :
         isPitchSameDiffQuiz ? pick(PITCH_SAME_DIFF_LABELS[choice]) :
         isIntervalQuiz ? pick(INTERVAL_LABELS[choice]) : isRhythmQuiz ? pick(RHYTHM_PATTERN_LABELS[choice]) :
-        isDrumEarQuiz ? pick(DRUM_HIT_LABELS[choice]) :
+        isDrumEarQuiz ? pick(DRUM_HIT_LABELS[choice]) : isViolinStringQuiz ? pick(VIOLIN_STRING_LABELS[choice]) :
         isProgressionQuiz ? pick(PROGRESSION_LABELS[choice]) : String(choice);
       if (alreadyPassed) {
         btn.disabled = true;
