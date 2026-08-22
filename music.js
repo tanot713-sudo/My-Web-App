@@ -450,6 +450,13 @@ function buildProgressionDisplayHtml(position) {
 function quizProgressionItem(position) {
   return { kind: 'quiz', qType: 'progression-position', position: position, answer: PROGRESSION_QUIZ_OPTIONS[position - 1] };
 }
+/* คำถามเลือกตอบทั่วไป — ต่างจากคำถามชนิดอื่นตรงที่ตัวเลือก/คำถามผูกอยู่กับ item เอง ไม่ใช่ชุด
+   คงที่ทั้งแอป ใช้เมื่อคำตอบมีตัวเลือกเฉพาะเจาะจง (เช่น มีเครื่องหมาย # หรือ ♭ ที่ระบบตัวอักษร
+   A-G เดิมไม่รองรับ) options: [{key, label:{th,en}}], answer: key ของตัวเลือกที่ถูก */
+function mcqItem(promptTh, promptEn, options, answer) {
+  return { kind: 'quiz', qType: 'mcq', prompt: { th: promptTh, en: promptEn }, options: options, answer: answer };
+}
+function mcqOpt(key, th, en) { return { key: key, label: { th: th, en: en } }; }
 
 /* ══════════════════════════════════════════════════════════════════
    เนื้อหาบทเรียน
@@ -948,6 +955,116 @@ var TRACKS = [
       ),
       quizProgressionItem(1), quizProgressionItem(2), quizProgressionItem(3), quizProgressionItem(4)
     ]
+  },
+  {
+    id: 'beyond-c-major',
+    label: { th: 'ขยายทฤษฎี: คีย์อื่นและคอร์ด 7th', en: 'Beyond C Major: Other Keys & 7th Chords' },
+    group: { th: 'ทฤษฎีขั้นสูง', en: 'Advanced Theory' },
+    items: [
+      readingItem('ทำไมต้องมีคีย์อื่น', 'Why Other Keys Exist',
+        [
+          'บันไดเสียงเมเจอร์ทุกคีย์ต้องเรียงตามแพทเทิร์น W-W-H-W-W-W-H เสมอ — C Major ใช้แค่คีย์ขาวได้พอดีเพราะครึ่งเสียงธรรมชาติ (E-F, B-C) ตรงกับตำแหน่งในแพทเทิร์นพอดี',
+          'แต่ถ้าเริ่มบันไดเสียงจากโน้ตอื่น (เช่น G หรือ F) ตำแหน่งครึ่งเสียงธรรมชาติจะไม่ตรงกับแพทเทิร์นอีกต่อไป จึงต้องปรับโน้ตบางตัวด้วยเครื่องหมาย # (ชาร์ป, สูงขึ้นครึ่งเสียง) หรือ ♭ (แฟลต, ต่ำลงครึ่งเสียง) เพื่อรักษาแพทเทิร์นไว้',
+          "แต่ละคีย์เมเจอร์จึงมี 'เครื่องหมายกุญแจเสียง' (key signature) ของตัวเอง — จำนวน # หรือ ♭ ที่ต้องใช้คงที่ตลอดทั้งเพลง เขียนไว้ครั้งเดียวตรงต้นบรรทัดหลังกุญแจ"
+        ],
+        [
+          "Every major scale must follow the W-W-H-W-W-W-H pattern exactly — C Major happens to use only white keys because its natural half steps (E-F, B-C) line up perfectly with the pattern's positions.",
+          "But starting the scale from a different note (like G or F) means the natural half-step positions no longer line up with the pattern, so some notes must be adjusted with a # (sharp, raise by a half step) or ♭ (flat, lower by a half step) to preserve the pattern.",
+          "Each major key therefore has its own 'key signature' — a fixed set of sharps or flats used throughout the whole piece, written once at the start of the staff right after the clef."
+        ]),
+      readingItem('บันไดเสียง G Major (1 ชาร์ป)', 'The G Major Scale (1 Sharp)',
+        [
+          'บันไดเสียง G Major: G-A-B-C-D-E-F#-G — เหมือน C Major ทุกอย่าง ยกเว้นโน้ตตัวที่ 7 ต้องเป็น F# (ไม่ใช่ F ธรรมดา) เพื่อให้ครึ่งเสียงสุดท้าย (ตัวที่ 7 ไป 8) ตรงตำแหน่ง',
+          'ทำไมต้องเป็น F# ไม่ใช่ F: ไล่ตามแพทเทิร์น W-W-H-W-W-W-H จาก G จะได้ A(W) B(W) C(H) D(W) E(W) F#(W) G(H) — ถ้าใช้ F ธรรมดาแทน จะกลายเป็นครึ่งเสียงผิดตำแหน่ง',
+          "เครื่องหมายกุญแจเสียงของ G Major คือ '1 ชาร์ป' (F#) เท่านั้น — คีย์เมเจอร์ที่มี # น้อยที่สุด (นอกจาก C Major ที่ไม่มีเลย)"
+        ],
+        [
+          "The G Major scale: G-A-B-C-D-E-F#-G — identical to C Major except the 7th note must be F# (not plain F) to keep the final half step (7th to 8th) in the right place.",
+          "Why F# and not F: following the W-W-H-W-W-W-H pattern from G gives A(W) B(W) C(H) D(W) E(W) F#(W) G(H) — using plain F instead would put the half step in the wrong spot.",
+          "G Major's key signature is just '1 sharp' (F#) — the major key with the fewest sharps (besides C Major, which has none)."
+        ]),
+      readingItem('บันไดเสียง F Major (1 แฟลต)', 'The F Major Scale (1 Flat)',
+        [
+          'บันไดเสียง F Major: F-G-A-Bb-C-D-E-F — เหมือน C Major ทุกอย่าง ยกเว้นโน้ตตัวที่ 4 ต้องเป็น Bb (ไม่ใช่ B ธรรมดา)',
+          'ทำไมต้องเป็น Bb ไม่ใช่ B: ไล่ตามแพทเทิร์นจาก F จะได้ G(W) A(W) Bb(H) C(W) D(W) E(W) F(H) — ถ้าใช้ B ธรรมดา ระยะจาก A ไป B จะกลายเป็นเต็มเสียง ทำให้ตำแหน่งที่ 3-4 ยาวเกินไป (ผิดแพทเทิร์น)',
+          "เครื่องหมายกุญแจเสียงของ F Major คือ '1 แฟลต' (Bb) — คีย์เมเจอร์ที่มี ♭ น้อยที่สุด"
+        ],
+        [
+          "The F Major scale: F-G-A-Bb-C-D-E-F — identical to C Major except the 4th note must be Bb (not plain B).",
+          "Why Bb and not B: following the pattern from F gives G(W) A(W) Bb(H) C(W) D(W) E(W) F(H) — using plain B would make the A-to-B gap a whole step, making positions 3-4 too long (breaking the pattern).",
+          "F Major's key signature is just '1 flat' (Bb) — the major key with the fewest flats."
+        ]),
+      readingItem('วงกลมคู่ห้า (Circle of Fifths)', 'The Circle of Fifths',
+        [
+          "วงกลมคู่ห้า (Circle of Fifths) คือแผนภาพวงกลมที่เรียงคีย์เมเจอร์ทั้ง 12 คีย์ตามจำนวน #/♭ — เริ่มจาก C Major (ไม่มี #/♭) ที่ 12 นาฬิกา วนตามเข็มนาฬิกาแต่ละคีย์เพิ่ม # อีก 1 ตัว (G=1#, D=2#, A=3# ...) วนทวนเข็มแต่ละคีย์เพิ่ม ♭ อีก 1 ตัว (F=1♭, Bb=2♭, Eb=3♭ ...)",
+          "เหตุผลที่เรียกว่า 'คู่ห้า': แต่ละคีย์ถัดไปตามเข็มนาฬิกาห่างจากคีย์ก่อนหน้าเป็นระยะ 'คู่ห้าสมบูรณ์' (perfect 5th) พอดี เช่น C ไป G คือคู่ห้า, G ไป D คือคู่ห้า ต่อเนื่องกันไปเรื่อยๆ",
+          'นักดนตรีใช้วงกลมนี้ช่วยจำเครื่องหมายกุญแจเสียงของทุกคีย์ได้เร็ว และช่วยแต่งเพลง/เปลี่ยนคีย์ (modulate) ได้ง่ายขึ้น เพราะคีย์ที่อยู่ใกล้กันบนวงกลมมักฟังเข้ากันได้ดี'
+        ],
+        [
+          "The Circle of Fifths is a circular diagram arranging all 12 major keys by their number of sharps/flats — starting at C Major (no sharps/flats) at 12 o'clock, going clockwise each key adds one more sharp (G=1♯, D=2♯, A=3♯...), going counterclockwise each key adds one more flat (F=1♭, Bb=2♭, Eb=3♭...).",
+          "Why 'fifths': each next key clockwise is exactly a 'perfect fifth' away from the previous one — e.g. C to G is a fifth, G to D is a fifth, and so on continuously.",
+          "Musicians use this circle to quickly recall every key's signature, and it helps with composing/modulating (changing keys), since keys near each other on the circle tend to sound compatible."
+        ]),
+      readingItem('คอร์ด 7th คืออะไร', 'What Is a 7th Chord',
+        [
+          "คอร์ด 7th คือไทรแอด (root-3rd-5th) ที่เติมโน้ตตัวที่ 4 เข้าไปอีก 1 ตัว คือ '7th' (ซ้อนสามต่อจาก 5th อีกชั้น) ทำให้ได้เสียงที่ซับซ้อน/มีสีสันมากกว่าไทรแอดธรรมดา",
+          "Dominant 7th (เขียนแค่ '7' เช่น G7): ไทรแอดเมเจอร์ + minor 7th — เสียงตึง อยากแก้ (resolve) ไปคอร์ดหลัก มักใช้เป็นคอร์ด V7 ก่อนจบท่อน",
+          'Major 7th (Cmaj7): ไทรแอดเมเจอร์ + major 7th — เสียงนุ่ม ฟุ้งฝัน. Minor 7th (Am7): ไทรแอดไมเนอร์ + minor 7th — เสียงนุ่มแบบหม่นๆ พบบ่อยในแจ๊ส/R&B'
+        ],
+        [
+          "A 7th chord is a triad (root-3rd-5th) with one more note stacked on top — the '7th' (another third above the 5th) — giving a richer, more colorful sound than a plain triad.",
+          "Dominant 7th (written just '7', e.g. G7): a major triad + minor 7th — a tense sound that wants to resolve to the tonic chord, often used as the V7 chord right before ending a phrase.",
+          "Major 7th (Cmaj7): a major triad + major 7th — soft, dreamy sound. Minor 7th (Am7): a minor triad + minor 7th — soft, mellow sound, common in jazz/R&B."
+        ]),
+      mcqItem(
+        'คีย์ G Major มีเครื่องหมายกุญแจเสียงแบบไหน?', 'What is the key signature of G Major?',
+        [mcqOpt('a', '1 ชาร์ป (F#)', '1 sharp (F#)'), mcqOpt('b', '1 แฟลต (Bb)', '1 flat (Bb)'),
+         mcqOpt('c', '2 ชาร์ป', '2 sharps'), mcqOpt('d', 'ไม่มีเลย', 'None')],
+        'a'
+      ),
+      mcqItem(
+        'คีย์ F Major มีเครื่องหมายกุญแจเสียงแบบไหน?', 'What is the key signature of F Major?',
+        [mcqOpt('a', '1 แฟลต (Bb)', '1 flat (Bb)'), mcqOpt('b', '1 ชาร์ป (F#)', '1 sharp (F#)'),
+         mcqOpt('c', '2 แฟลต', '2 flats'), mcqOpt('d', 'ไม่มีเลย', 'None')],
+        'a'
+      ),
+      mcqItem(
+        'โน้ตตัวที่ 7 ของบันไดเสียง G Major คือตัวอะไร?', 'What is the 7th note of the G Major scale?',
+        [mcqOpt('a', 'F#', 'F#'), mcqOpt('b', 'F', 'F'), mcqOpt('c', 'G', 'G'), mcqOpt('d', 'E', 'E')],
+        'a'
+      ),
+      mcqItem(
+        'โน้ตตัวที่ 4 ของบันไดเสียง F Major คือตัวอะไร?', 'What is the 4th note of the F Major scale?',
+        [mcqOpt('a', 'Bb', 'Bb'), mcqOpt('b', 'B', 'B'), mcqOpt('c', 'A', 'A'), mcqOpt('d', 'C', 'C')],
+        'a'
+      ),
+      mcqItem(
+        'บนวงกลมคู่ห้า เคลื่อนตามเข็มนาฬิกาจาก C ไป 1 ขั้น จะถึงคีย์ไหน?', 'On the Circle of Fifths, moving 1 step clockwise from C reaches which key?',
+        [mcqOpt('a', 'G', 'G'), mcqOpt('b', 'F', 'F'), mcqOpt('c', 'D', 'D'), mcqOpt('d', 'A', 'A')],
+        'a'
+      ),
+      mcqItem(
+        'บนวงกลมคู่ห้า เคลื่อนทวนเข็มนาฬิกาจาก C ไป 1 ขั้น จะถึงคีย์ไหน?', 'On the Circle of Fifths, moving 1 step counterclockwise from C reaches which key?',
+        [mcqOpt('a', 'F', 'F'), mcqOpt('b', 'G', 'G'), mcqOpt('c', 'Bb', 'Bb'), mcqOpt('d', 'D', 'D')],
+        'a'
+      ),
+      mcqItem(
+        'คอร์ด G7 (Dominant 7th) ประกอบด้วยไทรแอดแบบไหน + โน้ตอะไรเพิ่ม?', 'A G7 (Dominant 7th) chord is built from which triad + what added note?',
+        [mcqOpt('a', 'ไทรแอดเมเจอร์ + minor 7th', 'Major triad + minor 7th'),
+         mcqOpt('b', 'ไทรแอดไมเนอร์ + major 7th', 'Minor triad + major 7th'),
+         mcqOpt('c', 'ไทรแอดเมเจอร์ + major 7th', 'Major triad + major 7th'),
+         mcqOpt('d', 'ไทรแอดดิมินิชด์ + minor 7th', 'Diminished triad + minor 7th')],
+        'a'
+      ),
+      mcqItem(
+        'คอร์ด Dominant 7th (เช่น G7) มักใช้ทำหน้าที่อะไรในเพลง?', 'What role does a Dominant 7th chord (e.g. G7) usually play in a song?',
+        [mcqOpt('a', 'สร้างความตึงก่อนแก้กลับไปคอร์ดหลัก (V7→I)', 'Creates tension before resolving to the tonic chord (V7→I)'),
+         mcqOpt('b', 'เป็นคอร์ดเปิดเพลงเสมอ', 'Always the opening chord of a song'),
+         mcqOpt('c', 'ใช้แทนคอร์ด IV เท่านั้น', 'Only used to substitute for the IV chord'),
+         mcqOpt('d', 'ไม่มีหน้าที่พิเศษ', 'Has no special function')],
+        'a'
+      )
+    ]
   }
 ];
 
@@ -1016,6 +1133,7 @@ var BADGE_DEFS = [
   { id: 'track-guitar', icon: '🎸', th: 'เจ้ากีตาร์', en: 'Guitar Master' },
   { id: 'track-ear-training', icon: '👂', th: 'นักฟังเสียง', en: 'Ear Training Master' },
   { id: 'track-first-song', icon: '🎤', th: 'เพลงแรกของฉัน', en: 'First Song Complete' },
+  { id: 'track-beyond-c-major', icon: '🗝️', th: 'เจ้ากุญแจเสียง', en: 'Key Signature Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สทฤษฎีเบื้องต้น!', en: 'Theory Basics Complete!' }
@@ -1311,6 +1429,9 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
         staffSvgHolder.innerHTML = buildProgressionDisplayHtml(item.position);
         var pgBtn = document.getElementById('progPlayBtn');
         if (pgBtn) pgBtn.addEventListener('click', function () { playProgression(progressionFreqs()); });
+      } else if (item.qType === 'mcq') {
+        quizPromptEl.textContent = pick(item.prompt);
+        staffSvgHolder.innerHTML = '';
       } else {
         quizPromptEl.textContent = t(CLEFS[item.clef || 'treble'].promptKey);
         staffSvgHolder.innerHTML = buildStaffSvg(item.step, item.clef);
@@ -1352,6 +1473,22 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     var track = trackById(state.trackId);
     var idx = state.itemIndex;
     var alreadyPassed = !!progress[progressKey(track.id, idx)];
+    if (item.qType === 'mcq') {
+      /* ตัวเลือก/ป้ายผูกกับ item เอง ไม่ใช่ชุดคงที่ทั้งแอปแบบ qType อื่น เลยแยก render ต่างหาก */
+      item.options.forEach(function (opt) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'mx-answer-btn wide';
+        btn.textContent = pick(opt.label);
+        if (alreadyPassed) {
+          btn.disabled = true;
+          if (opt.key === item.answer) btn.classList.add('correct');
+        }
+        btn.addEventListener('click', function () { handleAnswer(item, opt.key, btn); });
+        answerRow.appendChild(btn);
+      });
+      return;
+    }
     var isValueQuiz = item.qType === 'note-value' || item.qType === 'time-sig-unit';
     var isBeatsQuiz = item.qType === 'time-sig-beats';
     var isQualityQuiz = item.qType === 'chord-quality' || item.qType === 'piano-chord-quality' || item.qType === 'chord-quality-ear';
