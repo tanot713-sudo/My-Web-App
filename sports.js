@@ -47,12 +47,64 @@ function t(key, vars) {
 /* ══════════════════════════════════════════════════════════════════
    เนื้อหาบทเรียน — ทุกข้อเป็น 'reading' (อ่านอย่างเดียว) หรือ 'quiz' (ปรนัย 4 ตัวเลือก)
    ══════════════════════════════════════════════════════════════════ */
-function readingItem(headingTh, headingEn, paragraphsTh, paragraphsEn) {
-  return { kind: 'reading', heading: { th: headingTh, en: headingEn }, body: { th: paragraphsTh, en: paragraphsEn } };
+/* diagramHtml (ถ้ามี) เป็น HTML คงที่ (มักเป็น SVG) แปะต่อท้ายย่อหน้า — ไม่ต้องพึ่งภาษา
+   เพราะป้ายในไดอะแกรมใช้คำสากลที่ใช้ตรงตัวทั้งไทย/อังกฤษอยู่แล้ว (GK, DF, Instep ฯลฯ) */
+function readingItem(headingTh, headingEn, paragraphsTh, paragraphsEn, diagramHtml) {
+  return { kind: 'reading', heading: { th: headingTh, en: headingEn }, body: { th: paragraphsTh, en: paragraphsEn }, diagram: diagramHtml };
 }
 function mcqOpt(key, th, en) { return { key: key, label: { th: th, en: en } }; }
 function mcqItem(promptTh, promptEn, options, answer) {
   return { kind: 'quiz', prompt: { th: promptTh, en: promptEn }, options: options, answer: answer };
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ไดอะแกรมประกอบบทเรียน — SVG วาดเองล้วน (ไม่ใช้ไฟล์ภาพ) ตามแนวทางเดียวกับ music.js
+   ══════════════════════════════════════════════════════════════════ */
+function svgArrow(x1, y1, x2, y2, color) {
+  var angle = Math.atan2(y2 - y1, x2 - x1);
+  var headLen = 10;
+  var hx1 = x2 - headLen * Math.cos(angle - Math.PI / 6);
+  var hy1 = y2 - headLen * Math.sin(angle - Math.PI / 6);
+  var hx2 = x2 - headLen * Math.cos(angle + Math.PI / 6);
+  var hy2 = y2 - headLen * Math.sin(angle + Math.PI / 6);
+  return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="' + color + '" stroke-width="3"/>' +
+    '<polygon points="' + x2 + ',' + y2 + ' ' + hx1 + ',' + hy1 + ' ' + hx2 + ',' + hy2 + '" fill="' + color + '"/>';
+}
+function svgWrap(inner, viewW, viewH, maxW, label) {
+  return '<div style="text-align:center;margin:16px 0">' +
+    '<svg viewBox="0 0 ' + viewW + ' ' + viewH + '" style="width:100%;max-width:' + maxW + 'px;height:auto;display:block;margin:0 auto" role="img" aria-label="' + label + '">' +
+    inner + '</svg></div>';
+}
+/* สนามฟุตบอล + แผนการเล่น 4-4-2 (11 ตำแหน่ง: GK 1, DF 4, MF 4, FW 2) */
+function buildFootballFormationSvg() {
+  var positions = [
+    { x: 130, y: 345, label: 'GK' },
+    { x: 45, y: 280, label: 'LB' }, { x: 105, y: 280, label: 'CB' }, { x: 165, y: 280, label: 'CB' }, { x: 225, y: 280, label: 'RB' },
+    { x: 45, y: 190, label: 'LM' }, { x: 105, y: 190, label: 'CM' }, { x: 165, y: 190, label: 'CM' }, { x: 225, y: 190, label: 'RM' },
+    { x: 95, y: 95, label: 'ST' }, { x: 165, y: 95, label: 'ST' }
+  ];
+  var dots = positions.map(function (p) {
+    return '<circle cx="' + p.x + '" cy="' + p.y + '" r="15" fill="#FFD43B" stroke="#1F2430" stroke-width="2"/>' +
+      '<text x="' + p.x + '" y="' + (p.y + 5) + '" font-size="12" font-weight="800" text-anchor="middle" fill="#1F2430">' + p.label + '</text>';
+  }).join('');
+  var pitch = '<rect x="10" y="10" width="240" height="360" rx="4" fill="#2F9E44" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<line x1="10" y1="190" x2="250" y2="190" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<circle cx="130" cy="190" r="35" fill="none" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<rect x="80" y="20" width="100" height="50" fill="none" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<rect x="80" y="310" width="100" height="50" fill="none" stroke="#FFFFFF" stroke-width="2"/>';
+  return svgWrap(pitch + dots, 260, 380, 280, 'football 4-4-2 formation diagram');
+}
+/* 3 เทคนิคการเตะบอลพื้นฐาน — ลูกศรแทนทิศทางเท้าที่สัมผัสบอล 3 จุด (หลังเท้า/ข้างในเท้า/ข้างนอกเท้า) */
+function buildKickTechniqueSvg() {
+  var ball = '<circle cx="140" cy="110" r="24" fill="#FFFFFF" stroke="#1F2430" stroke-width="2.5"/>' +
+    '<polygon points="140,96 151,104 147,118 133,118 129,104" fill="#1F2430"/>';
+  var arrows = svgArrow(140, 205, 140, 134, '#E8590C') +
+    svgArrow(55, 195, 123, 127, '#2F9E44') +
+    svgArrow(225, 195, 157, 127, '#1971C2');
+  var labels = '<text x="140" y="222" font-size="13" font-weight="800" text-anchor="middle" fill="#E8590C">Instep</text>' +
+    '<text x="45" y="212" font-size="13" font-weight="800" text-anchor="middle" fill="#2F9E44">Inside</text>' +
+    '<text x="235" y="212" font-size="13" font-weight="800" text-anchor="middle" fill="#1971C2">Outside</text>';
+  return svgWrap(arrows + ball + labels, 280, 230, 300, 'football kicking technique diagram');
 }
 
 var TRACKS = [
@@ -83,6 +135,30 @@ var TRACKS = [
           'A Yellow Card is a warning for a moderately serious rule violation. If the same player receives 2 yellow cards in one match, it automatically becomes a red card and they are sent off.',
           'A Red Card means immediate ejection from the match. The team that gets a player sent off must play the rest of the match with one fewer player and cannot bring on a substitute to replace them.'
         ]),
+      readingItem('ตำแหน่งผู้เล่นและแผนการเล่น 4-4-2', 'Player Positions & the 4-4-2 Formation',
+        [
+          "แผนการเล่น (Formation) คือการจัดตำแหน่งผู้เล่น 11 คนในสนาม แผนยอดนิยมแบบหนึ่งคือ '4-4-2' หมายถึงกองหลัง 4 คน กองกลาง 4 คน กองหน้า 2 คน (ไม่รวมผู้รักษาประตู)",
+          'กองหลัง (Defender, DF) มีหน้าที่หลักคือป้องกันไม่ให้คู่แข่งเข้าใกล้ประตูตัวเอง — กองกลาง (Midfielder, MF) เชื่อมเกมระหว่างแนวรับกับแนวรุก ทั้งช่วยป้องกันและช่วยสร้างโอกาสทำประตู — กองหน้า (Forward, FW) มีหน้าที่หลักคือจบสกอร์ทำประตู',
+          'ดูไดอะแกรมด้านล่าง: ตำแหน่งเรียงจากผู้รักษาประตู (GK) ด้านล่างสุด ขึ้นไปจนถึงกองหน้า (ST) ด้านบนสุด — ทีมจริงปรับแผนการเล่นเป็นแบบอื่นได้ เช่น 4-3-3 หรือ 3-5-2 ขึ้นอยู่กับกลยุทธ์'
+        ],
+        [
+          "A Formation is how a team arranges its 11 players on the field. One popular formation is '4-4-2', meaning 4 defenders, 4 midfielders, and 2 forwards (not counting the goalkeeper).",
+          'Defenders (DF) mainly stop the opponent from getting close to their own goal. Midfielders (MF) link defense and attack, helping both defend and create scoring chances. Forwards (FW) are mainly responsible for finishing and scoring goals.',
+          'See the diagram below: positions run from the Goalkeeper (GK) at the bottom up to the Forwards (ST) at the top. Real teams use other formations too, like 4-3-3 or 3-5-2, depending on strategy.'
+        ],
+        buildFootballFormationSvg()),
+      readingItem('เทคนิคการเตะบอลพื้นฐาน 3 แบบ', '3 Basic Kicking Techniques',
+        [
+          "เตะแบบ Instep (หลังเท้า): สัมผัสบอลด้วยหลังเท้า (บริเวณเชือกรองเท้า) เตะตรงจากด้านหลังบอล ให้แรงพุ่งตรงและรุนแรงที่สุด นิยมใช้ยิงประตูหรือส่งบอลไกล",
+          "เตะแบบ Inside (ข้างเท้าด้านใน): สัมผัสบอลด้วยข้างเท้าด้านใน (บริเวณอุ้งเท้า) พื้นที่สัมผัสกว้างที่สุด ควบคุมทิศทางได้แม่นยำ นิยมใช้ส่งบอลระยะสั้น-กลาง",
+          "เตะแบบ Outside (ข้างเท้าด้านนอก): สัมผัสบอลด้วยข้างเท้าด้านนอก ทำให้บอลหมุนและโค้งวิ่งหลบแนวรับหรือหลบผู้รักษาประตูได้ นิยมใช้เตะฟรีคิกโค้งหรือส่งบอลหลอกทิศทาง"
+        ],
+        [
+          "Instep kick (laces): the ball is struck with the top of the foot (where the shoelaces are), straight from behind — the most powerful and direct strike, commonly used for shooting or long passes.",
+          "Inside-foot kick: the ball is struck with the inside of the foot (the arch area), which has the widest contact surface for the most accurate direction control — commonly used for short-to-medium passes.",
+          "Outside-foot kick: the ball is struck with the outside of the foot, putting spin on the ball so it curves around defenders or the goalkeeper — commonly used for curling free kicks or disguising the pass direction."
+        ],
+        buildKickTechniqueSvg()),
       mcqItem(
         'ฟุตบอล 1 ทีมมีผู้เล่นกี่คนในสนาม (รวมผู้รักษาประตู)?', 'How many players does one football team have on the field (including the goalkeeper)?',
         [mcqOpt('a', '11 คน', '11 players'), mcqOpt('b', '10 คน', '10 players'),
@@ -139,6 +215,20 @@ var TRACKS = [
         'ผู้เล่น (ที่ไม่ใช่ผู้รักษาประตูในเขตโทษตัวเอง) ห้ามใช้ส่วนไหนของร่างกายสัมผัสบอล?', 'Which body part are outfield players (outside the goalkeeper-in-their-own-area exception) forbidden from touching the ball with?',
         [mcqOpt('a', 'มือและแขน', 'Hands and arms'), mcqOpt('b', 'เท้า', 'Feet'),
          mcqOpt('c', 'หัว', 'The head'), mcqOpt('d', 'หน้าอก', 'The chest')],
+        'a'
+      ),
+      mcqItem(
+        'ในแผนการเล่น 4-4-2 มีกองหลัง (DF) กี่คน?', 'In the 4-4-2 formation, how many defenders (DF) are there?',
+        [mcqOpt('a', '4 คน', '4'), mcqOpt('b', '2 คน', '2'),
+         mcqOpt('c', '3 คน', '3'), mcqOpt('d', '5 คน', '5')],
+        'a'
+      ),
+      mcqItem(
+        'การเตะแบบ Instep (หลังเท้า) เหมาะกับการใช้งานแบบไหนที่สุด?', 'What is the Instep kick (top-of-foot) best suited for?',
+        [mcqOpt('a', 'ยิงประตูหรือส่งบอลไกล ต้องการแรงพุ่งตรง', 'Shooting or long passes that need power and a direct trajectory'),
+         mcqOpt('b', 'ส่งบอลระยะสั้นให้แม่นยำที่สุด', 'The most accurate short passes'),
+         mcqOpt('c', 'เตะโค้งหลบแนวรับ', 'Curving the ball around defenders'),
+         mcqOpt('d', 'ไม่มีจุดประสงค์เฉพาะ ใช้แทนกันได้หมด', 'No specific purpose — interchangeable with the others')],
         'a'
       )
     ]
@@ -777,6 +867,7 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
     if (item.kind === 'reading') {
       itemHeading.textContent = pick(item.heading);
       instructionsBox.innerHTML = pick(item.body).map(function (p) { return '<p>' + p + '</p>'; }).join('');
+      if (item.diagram) instructionsBox.innerHTML += item.diagram;
       quizWrap.style.display = 'none';
       markReadBtn.style.display = 'inline-flex';
       markReadBtn.disabled = false;
