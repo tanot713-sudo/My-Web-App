@@ -356,6 +356,45 @@ var TRACKS = [
     ]
   },
   {
+    id: 'html-responsive-forms', kind: 'html', label: 'Responsive & Forms', labelEn: 'Responsive & Forms',
+    concept: {
+      explain: 'Responsive design ทำให้เว็บแสดงผลดีทั้งจอเล็ก (มือถือ) และจอใหญ่ (คอมพิวเตอร์) — ใช้ @media query กำหนด style ที่ใช้เฉพาะตอนจอเล็กกว่าค่าที่กำหนด เช่น @media (max-width: 600px) { ... } — ส่วนฟอร์ม (form) ควรใช้ <label> คู่กับ <input> เสมอ (เชื่อมด้วย for="id ของ input") เพื่อให้ผู้ใช้เข้าใจว่าต้องกรอกอะไร ใช้ attribute required บังคับกรอก, type="email" ให้เบราว์เซอร์ช่วยตรวจสอบรูปแบบเบื้องต้น',
+      example: '<style>\n  .box { background: #2563EB; padding: 20px; }\n  @media (max-width: 600px) {\n    .box { background: red; }\n  }\n</style>\n<label for="email">อีเมล</label>\n<input id="email" type="email" required>'
+    },
+    exercises: [
+      {
+        title: 'เขียน media query พื้นฐาน',
+        instructions: 'เพิ่ม @media (max-width: 600px) { .box { background: red; } } ต่อท้ายใน <style> แล้วรันดู',
+        starter: '<style>\n  .box { background: #2563EB; color: #fff; padding: 20px; }\n</style>\n<div class="box">กล่องนี้ควรเปลี่ยนสีตอนจอเล็ก</div>',
+        tests: [
+          { type: 'html-text', selector: 'style', includes: '@media', label: '<style> ต้องมี @media' },
+          { type: 'html-text', selector: 'style', includes: 'max-width', label: '<style> ต้องมี max-width' }
+        ]
+      },
+      {
+        title: 'เชื่อม label กับ input',
+        instructions: 'เพิ่ม for="nameField" ในแท็ก <label> เพื่อเชื่อมโยงกับ input (ผู้ใช้กด label แล้วโฟกัสไปที่ input ได้เลย)',
+        starter: '<label>ชื่อ</label>\n<input type="text" id="nameField">',
+        tests: [{ type: 'html-attr', selector: 'label', attr: 'for', includes: 'nameField', label: '<label> ต้องมี for="nameField"' }]
+      },
+      {
+        title: 'ตรวจสอบอีเมลและบังคับกรอก',
+        instructions: 'เปลี่ยน type จาก "text" เป็น "email" แล้วเพิ่ม required ต่อท้าย (ไม่ต้องใส่ค่า พิมพ์แค่คำว่า required เฉยๆ) แล้วรันดู',
+        starter: '<input type="text" placeholder="อีเมล">',
+        tests: [
+          { type: 'html-attr', selector: 'input', attr: 'type', includes: 'email', label: '<input> ต้องมี type="email"' },
+          { type: 'html-has-attr', selector: 'input', attr: 'required', label: '<input> ต้องมี required' }
+        ]
+      },
+      {
+        title: 'เพิ่มตัวเลือกใน select',
+        instructions: 'เพิ่ม <option>ญี่ปุ่น</option> อีกบรรทัดในแท็ก select แล้วรันดู — ควรมี option 2 อัน',
+        starter: '<select id="country">\n  <option>ไทย</option>\n</select>',
+        tests: [{ type: 'html-count', selector: '#country option', count: 2, label: '<select id="country"> ต้องมี <option> 2 อัน' }]
+      }
+    ]
+  },
+  {
     /* kind 'dom' — รันโค้ด JS ของผู้เรียนกับ "DOM จำลอง" (fake document) ใน Web Worker แยก
        (เหมือนแทร็ก 'js' ทุกประการ มี .terminate() ฆ่าลูปไม่รู้จบได้จริง) ต่างจาก 'js' ตรงที่ต้อง
        เตรียม document ปลอมให้โค้ดเรียก getElementById/querySelector ได้ ดูรายละเอียด+เหตุผลที่
@@ -485,6 +524,43 @@ var TRACKS = [
         tests: [{ type: 'log-includes', expected: 'จับข้อผิดพลาดได้: เกิดข้อผิดพลาด!', label: 'ต้อง console.log("จับข้อผิดพลาดได้: เกิดข้อผิดพลาด!")' }]
       }
     ]
+  },
+  {
+    /* kind 'js' เหมือนแทร็กอื่น แต่ code-runner-worker.js เตรียม localStorage ปลอมไว้ให้เป็น global
+       (Worker จริงไม่มี localStorage เลย เป็น Window-only API — ยืนยันด้วยการทดสอบจริงว่า
+       typeof localStorage เป็น undefined ใน Worker) เก็บข้อมูลแค่ในตัวแปรของ Worker เอง ไม่แตะ
+       localStorage จริงของหน้าเว็บหลักเลย ปลอดภัย 100% — ดูรายละเอียดที่หัวไฟล์ code-runner-worker.js */
+    id: 'js-localstorage', kind: 'js', label: 'localStorage (JS)', labelEn: 'localStorage (JS)',
+    concept: {
+      explain: 'localStorage เก็บข้อมูลไว้ในเบราว์เซอร์ของผู้ใช้ ข้อมูลจะยังอยู่ต่อแม้ปิดแท็บ/ปิดเบราว์เซอร์แล้วเปิดใหม่ (ต่างจากตัวแปรธรรมดาที่หายไปทันทีที่ปิดหน้าเว็บ) — localStorage.setItem("ชื่อคีย์", "ค่า") ใช้บันทึก, localStorage.getItem("ชื่อคีย์") ใช้ดึงค่ากลับ (เก็บได้แค่ string เท่านั้น ถ้าอยากเก็บ object/array ต้องแปลงด้วย JSON.stringify ก่อน แล้วแปลงกลับด้วย JSON.parse ตอนอ่าน) — localStorage.removeItem("ชื่อคีย์") ใช้ลบ',
+      example: 'localStorage.setItem("username", "สมชาย");\nconsole.log(localStorage.getItem("username"));'
+    },
+    exercises: [
+      {
+        title: 'บันทึกและดึงค่าด้วย setItem/getItem',
+        instructions: 'เปลี่ยน "nickname" ในบรรทัด getItem ให้เป็น "username" แล้วรันดู — ควรเห็นคำว่า "สมชาย"',
+        starter: 'localStorage.setItem("username", "สมชาย");\nconsole.log(localStorage.getItem("nickname"));',
+        tests: [{ type: 'log-includes', expected: 'สมชาย', label: 'ต้อง console.log("สมชาย")' }]
+      },
+      {
+        title: 'localStorage เก็บได้แค่ string',
+        instructions: 'รันโค้ดนี้ดูก่อน สังเกตว่า typeof ออกมาเป็น "string" ทั้งที่เซฟเป็นตัวเลข (100) เพราะ localStorage เก็บได้แค่ string เสมอ — ลองแก้บรรทัดสุดท้ายเป็น console.log(Number(saved) + 1); แล้วรันดู ควรได้ 101',
+        starter: 'localStorage.setItem("score", 100);\nlet saved = localStorage.getItem("score");\nconsole.log(typeof saved);',
+        tests: [{ type: 'log-includes', expected: '101', label: 'ต้อง console.log(Number(saved) + 1) ออกมาเป็น 101' }]
+      },
+      {
+        title: 'เก็บ object ด้วย JSON.stringify/parse',
+        instructions: 'เปลี่ยนบรรทัดสุดท้ายเป็น let loaded = JSON.parse(raw); console.log(loaded.name); แล้วรันดู — ควรเห็น "สมหญิง" (ต้องแปลงกลับด้วย JSON.parse ก่อนถึงจะอ่านค่า .name ได้ตรงๆ)',
+        starter: 'let user = { name: "สมหญิง", age: 30 };\nlocalStorage.setItem("user", JSON.stringify(user));\nlet raw = localStorage.getItem("user");\nconsole.log(raw);',
+        tests: [{ type: 'log-includes', expected: 'สมหญิง', label: 'ต้อง console.log(loaded.name) ออกมาเป็น "สมหญิง"' }]
+      },
+      {
+        title: 'ลบข้อมูลด้วย removeItem',
+        instructions: 'เพิ่ม localStorage.removeItem("temp"); ก่อนบรรทัด console.log แล้วรันดู — ควรได้ null เพราะข้อมูลถูกลบไปแล้ว',
+        starter: 'localStorage.setItem("temp", "ข้อมูลชั่วคราว");\nconsole.log(localStorage.getItem("temp"));',
+        tests: [{ type: 'log-includes', expected: 'null', label: 'console.log ต้องออกมาเป็น null หลังลบ' }]
+      }
+    ]
   }
 ];
 
@@ -561,11 +637,13 @@ function checkHtmlTests(code, tests) {
   catch (e) { return (tests || []).map(function (t) { return { label: t.label, pass: false }; }); }
   return (tests || []).map(function (test) {
     try {
+      if (test.type === 'html-count') return { label: test.label, pass: doc.querySelectorAll(test.selector).length === test.count };
       var el = doc.querySelector(test.selector);
       if (!el) return { label: test.label, pass: false };
       if (test.type === 'html-text') return { label: test.label, pass: (el.textContent || '').indexOf(test.includes) !== -1 };
       if (test.type === 'html-nonempty') return { label: test.label, pass: (el.textContent || '').trim().length > 0 };
       if (test.type === 'html-attr') return { label: test.label, pass: ((el.getAttribute(test.attr) || '')).indexOf(test.includes) !== -1 };
+      if (test.type === 'html-has-attr') return { label: test.label, pass: el.hasAttribute(test.attr) };
       return { label: test.label, pass: false };
     } catch (e) { return { label: test.label, pass: false }; }
   });
@@ -694,9 +772,11 @@ var BADGE_DEFS = [
   { id: 'track-html-css', icon: '🎨', th: 'ดีไซเนอร์ CSS', en: 'CSS Designer' },
   { id: 'track-html-flexbox', icon: '📐', th: 'นักจัดวาง Flexbox', en: 'Flexbox Layout Pro' },
   { id: 'track-html-grid', icon: '🔲', th: 'นักจัดวาง Grid', en: 'Grid Layout Pro' },
+  { id: 'track-html-responsive-forms', icon: '📱', th: 'นักออกแบบตอบสนอง', en: 'Responsive Pro' },
   { id: 'track-js-dom', icon: '🕹️', th: 'เจ้าแห่ง DOM', en: 'DOM Master' },
   { id: 'track-js-events-forms', icon: '📝', th: 'นักฟอร์ม', en: 'Forms Master' },
   { id: 'track-js-async', icon: '⏳', th: 'เจ้าแห่ง Async', en: 'Async Master' },
+  { id: 'track-js-localstorage', icon: '💾', th: 'นักเก็บข้อมูล', en: 'Storage Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สแรก!', en: 'Course Complete!' }

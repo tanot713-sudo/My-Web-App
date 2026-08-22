@@ -21,8 +21,27 @@
       ไม่กระทบแทร็กอื่น) ให้ worker รอเวลานี้ก่อนค่อยตรวจ tests เพื่อให้ Promise/setTimeout ข้างใน
       โค้ดผู้เรียนมีเวลา "settle" (ทำงานจนจบ) ก่อน — timeout ฆ่าลูปไม่รู้จบยังทำงานอิสระจากตรงนี้
       (ควบคุมจากฝั่ง main thread ผ่าน worker.terminate() เหมือนเดิมทุกประการ)
+   4. รองรับแทร็ก "localStorage (JS)" — Worker จริงๆ ไม่มี localStorage เลย (เป็น Window-only API
+      ไม่ได้ mixin เข้า WorkerGlobalScope ตามสเปก ยืนยันด้วยการทดสอบจริงว่า typeof localStorage
+      เป็น "undefined" ใน Worker) จึงจำลอง localStorage ปลอมขึ้นมาเอง (เก็บในตัวแปรธรรมดา ไม่แตะ
+      localStorage จริงของหน้าเว็บหลักเลย ปลอดภัย 100% และสอดคล้องกับที่ Worker เข้าถึง storage
+      จริงไม่ได้อยู่แล้วโดยธรรมชาติ) — ต้องประกาศเป็น global ของสคริปต์ (นอกฟังก์ชัน onmessage)
+      เหตุผลเดียวกับ document ใน dom-runner-worker.js: (0, eval) แบบ indirect เห็นแค่ global scope
+      Worker ใหม่ถูกสร้างทุกครั้งที่กดรันอยู่แล้ว ข้อมูลจึงเริ่มว่างใหม่ทุกรอบโดยธรรมชาติ (ไม่ได้
+      จำลอง "ข้อมูลอยู่ข้ามการปิดเปิดเบราว์เซอร์จริง" แต่พอสำหรับสอน API รูปแบบ set แล้ว get
+      ในรันเดียวกัน ซึ่งเป็นรูปแบบแบบฝึกหัดที่ใช้ในแทร็กนี้)
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
+
+var __lsStore = {};
+var localStorage = {
+  getItem: function (k) { return Object.prototype.hasOwnProperty.call(__lsStore, k) ? __lsStore[k] : null; },
+  setItem: function (k, v) { __lsStore[k] = String(v); },
+  removeItem: function (k) { delete __lsStore[k]; },
+  clear: function () { __lsStore = {}; },
+  key: function (i) { var keys = Object.keys(__lsStore); return keys[i] !== undefined ? keys[i] : null; },
+  get length() { return Object.keys(__lsStore).length; }
+};
 
 self.onmessage = function (e) {
   var msg = e.data || {};
