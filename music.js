@@ -28,6 +28,9 @@ var I18N = {
     quizPromptScaleDegree: 'โน้ตตัวที่ {degree} ในบันไดเสียง C เมเจอร์ คือตัวอะไร?',
     quizPromptChordQuality: 'คอร์ดนี้เป็นเมเจอร์หรือไมเนอร์?',
     quizPromptChordRoot: 'คอร์ดนี้มีโน้ตรากเป็นตัวอะไร (root)?',
+    quizPromptPianoNote: 'คีย์เปียโนที่ไฮไลต์อยู่คือโน้ตอะไร?',
+    quizPromptPianoChordQuality: 'คอร์ดที่กดอยู่บนเปียโนนี้เป็นเมเจอร์หรือไมเนอร์?',
+    quizPromptPianoChordRoot: 'คอร์ดที่กดอยู่บนเปียโนนี้มีโน้ตรากเป็นตัวอะไร?',
     correctMsg: '✅ ถูกต้อง! ปลดล็อกข้อถัดไปแล้ว',
     trackDoneMsg: '🎉 จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
     toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
@@ -46,6 +49,9 @@ var I18N = {
     quizPromptScaleDegree: 'What is note #{degree} of the C Major scale?',
     quizPromptChordQuality: 'Is this chord major or minor?',
     quizPromptChordRoot: 'What is the root note of this chord?',
+    quizPromptPianoNote: 'Which note is the highlighted piano key?',
+    quizPromptPianoChordQuality: 'Is this piano chord major or minor?',
+    quizPromptPianoChordRoot: 'What is the root note of this piano chord?',
     correctMsg: '✅ Correct! Next one unlocked.',
     trackDoneMsg: '🎉 Lesson complete! Pick the next lesson from the ☰ menu above.',
     toastTrackDone: 'Lesson "{track}" complete! 🎉',
@@ -254,6 +260,44 @@ function buildChordStaffSvg(steps, clef) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   คีย์เปียโน — วาดคีย์ขาว 14 คีย์ (2 ออกเทฟ) + คีย์ดำแทรกในตำแหน่งจริง ระบายสีเหมือนคีย์บอร์ด
+   จริงเสมอ (ไม่อิงธีมมืด/สว่างของเว็บ เพราะเป็นภาพแทนวัตถุจริง เหมือนที่กรอบพรีวิว HTML ของหน้า
+   coding.html ใช้พื้นขาวคงที่) ตำแหน่ง slot 0-13 นับคีย์ขาวจากซ้าย, letter = WHITE_LETTERS[slot%7]
+   ตำแหน่งคอร์ด (root,3rd,5th) บนคีย์ขาวคือ slot, slot+2, slot+4 เสมอ (ข้าม 1 คีย์ขาวทุกครั้ง)
+   ตรงกับไทรแอด diatonic ของ C Major ที่เรียนไปแล้วในบทคอร์ดเบื้องต้นพอดี — ใช้สูตรเดียวกันได้เลย
+   ══════════════════════════════════════════════════════════════════ */
+var PIANO_WHITE_KEYS = 14;
+var WHITE_LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+var HAS_BLACK_AFTER = { C: true, D: true, E: false, F: true, G: true, A: true, B: false };
+var LETTER_TO_SLOT0 = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+function chordPianoSlots(chord) {
+  var base = LETTER_TO_SLOT0[chord.root];
+  return [base, base + 2, base + 4];
+}
+function buildPianoSvg(highlightSlots) {
+  highlightSlots = highlightSlots || [];
+  var whiteW = 30, whiteH = 130, blackW = 18, blackH = 82;
+  var W = PIANO_WHITE_KEYS * whiteW, H = whiteH;
+  var whiteRects = '';
+  for (var i = 0; i < PIANO_WHITE_KEYS; i++) {
+    var isHi = highlightSlots.indexOf(i) !== -1;
+    whiteRects += '<rect x="' + (i * whiteW) + '" y="0" width="' + whiteW + '" height="' + whiteH + '" ' +
+      'fill="' + (isHi ? 'var(--mx)' : '#FAFAFA') + '" stroke="#B8BEC9" stroke-width="1.5"/>';
+  }
+  var blackRects = '';
+  for (var j = 0; j < PIANO_WHITE_KEYS; j++) {
+    var letter = WHITE_LETTERS[j % 7];
+    if (HAS_BLACK_AFTER[letter] && j < PIANO_WHITE_KEYS - 1) {
+      var bx = (j + 1) * whiteW - blackW / 2;
+      blackRects += '<rect x="' + bx + '" y="0" width="' + blackW + '" height="' + blackH + '" fill="#2A2E38" stroke="#111318" stroke-width="1"/>';
+    }
+  }
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" ' +
+    'style="width:100%;max-width:420px;height:auto;display:block;margin:0 auto" role="img" aria-label="piano keyboard">' +
+    whiteRects + blackRects + '</svg>';
+}
+
+/* ══════════════════════════════════════════════════════════════════
    เนื้อหาบทเรียน
    ══════════════════════════════════════════════════════════════════ */
 function readingItem(headingTh, headingEn, paragraphsTh, paragraphsEn) {
@@ -291,6 +335,15 @@ function quizChordQualityItem(chord) {
 }
 function quizChordRootItem(chord) {
   return { kind: 'quiz', qType: 'chord-root', steps: chord.steps, answer: chord.root };
+}
+function quizPianoNoteItem(slot) {
+  return { kind: 'quiz', qType: 'piano-note', slot: slot, answer: WHITE_LETTERS[((slot % 7) + 7) % 7] };
+}
+function quizPianoChordQualityItem(chord) {
+  return { kind: 'quiz', qType: 'piano-chord-quality', slots: chordPianoSlots(chord), answer: chord.quality };
+}
+function quizPianoChordRootItem(chord) {
+  return { kind: 'quiz', qType: 'piano-chord-root', slots: chordPianoSlots(chord), answer: chord.root };
 }
 
 var TRACKS = [
@@ -550,6 +603,53 @@ var TRACKS = [
       quizChordQualityItem(CHORDS[4]), quizChordRootItem(CHORDS[4]),
       quizChordQualityItem(CHORDS[5]), quizChordRootItem(CHORDS[5])
     ]
+  },
+  {
+    id: 'piano',
+    label: { th: 'หัดเล่นเปียโน/คีย์บอร์ด', en: 'Piano / Keyboard' },
+    group: { th: 'เครื่องดนตรี', en: 'Instruments' },
+    items: [
+      readingItem('รู้จักคีย์เปียโน', 'Meet the Piano Keys',
+        [
+          'คีย์เปียโนมี 2 แบบ: คีย์ขาว (white keys) เป็นโน้ตธรรมชาติ 7 ตัว (C D E F G A B) เรียงกันซ้ำไปเรื่อยๆ และคีย์ดำ (black keys) ที่แทรกอยู่ระหว่างคีย์ขาวบางคู่',
+          'คีย์ดำจะรวมกันเป็นกลุ่มละ 2 ตัว สลับกับกลุ่มละ 3 ตัว ซ้ำไปเรื่อยๆ ตลอดคีย์บอร์ด — ใช้กลุ่มนี้เป็นจุดสังเกตหาโน้ตได้ง่ายมาก',
+          'โน้ต C คือคีย์ขาวที่อยู่ทางซ้ายของกลุ่มคีย์ดำ 2 ตัวเสมอ ส่วนโน้ต F คือคีย์ขาวที่อยู่ทางซ้ายของกลุ่มคีย์ดำ 3 ตัวเสมอ — จำจุดสังเกตนี้แล้วจะหาโน้ตอื่นๆ ได้ง่ายด้วยการนับต่อจากตรงนี้'
+        ],
+        [
+          'Piano keys come in 2 types: white keys are the 7 natural notes (C D E F G A B) repeating over and over, and black keys sit between certain pairs of white keys.',
+          'Black keys cluster in groups of 2, alternating with groups of 3, repeating all the way across the keyboard — use these groups as landmarks to find notes easily.',
+          'C is always the white key just to the left of a group of 2 black keys. F is always the white key just to the left of a group of 3 black keys — remember these landmarks and count outward to find any other note.'
+        ]),
+      readingItem('คอร์ดบนเปียโน', 'Chords on Piano',
+        [
+          'การเล่นคอร์ดบนเปียโนคือการกดโน้ต 3 ตัว (root, 3rd, 5th) พร้อมกัน — ตำแหน่งเดียวกับที่เรียนไปในบทคอร์ดเบื้องต้น แค่เปลี่ยนจากดูบนบรรทัด 5 เส้น มาดูบนคีย์เปียโนแทน',
+          "เทคนิคจำง่ายๆ: กดคีย์ขาว 3 ตัว แบบ 'เว้น 1 คีย์ขาว' ทุกครั้ง (root → ข้าม 1 → 3rd → ข้าม 1 → 5th) จะได้ไทรแอด diatonic ของ C Major เป๊ะ ไม่ว่าจะเริ่มจากคีย์ขาวตัวไหน",
+          'ลองไล่ดู: เริ่ม C ข้าม D ไป E ข้าม F ไป G → C-E-G (คอร์ด C Major) — เริ่ม D ข้าม E ไป F ข้าม G ไป A → D-F-A (คอร์ด D minor) ใช้วิธีเดียวกันได้กับทุกคอร์ดในบทที่แล้ว'
+        ],
+        [
+          'Playing a chord on piano means pressing 3 notes (root, 3rd, 5th) at the same time — the same positions from the Basic Chords lesson, just viewed on piano keys instead of the staff.',
+          "Easy trick: press 3 white keys, always 'skipping 1 white key' each time (root → skip 1 → 3rd → skip 1 → 5th), and you get a diatonic C Major triad exactly — no matter which white key you start on.",
+          'Try it: start C, skip D, land E, skip F, land G → C-E-G (C Major chord) — start D, skip E, land F, skip G, land A → D-F-A (D minor chord). Same method works for every chord from the last lesson.'
+        ]),
+      readingItem('โพรเกรสชันสี่คอร์ดสุดฮิต (I-V-vi-IV)', 'The Famous 4-Chord Progression (I-V-vi-IV)',
+        [
+          "'I-V-vi-IV' คือลำดับคอร์ด 4 ตัวที่นักแต่งเพลงป๊อปทั่วโลกใช้ซ้ำแล้วซ้ำอีกนับพันเพลง (ในคีย์ C คือ C-G-Am-F) เพราะให้ความรู้สึกลื่นไหลและติดหูง่าย",
+          'ลองกดตามลำดับนี้บนเปียโน: C major (C-E-G) → G major (G-B-D) → A minor (A-C-E) → F major (F-A-C) แล้ววนกลับไป C ใหม่ — จะรู้สึกคุ้นหูมากเพราะเพลงดังหลายเพลงใช้ลำดับนี้',
+          'แบบฝึกหัดถัดไปจะฝึกจำตำแหน่งคอร์ดทั้ง 4 ตัวนี้บนเปียโนให้คล่อง (I=C Major, V=G Major, vi=A minor, IV=F Major)'
+        ],
+        [
+          "'I-V-vi-IV' is a 4-chord sequence pop songwriters worldwide have reused in thousands of songs (in the key of C: C-G-Am-F) because it feels smooth and instantly catchy.",
+          'Try pressing this order on piano: C major (C-E-G) → G major (G-B-D) → A minor (A-C-E) → F major (F-A-C), then loop back to C — it\'ll sound familiar since many hit songs use exactly this progression.',
+          'The next exercises will drill these 4 chord positions on piano until they\'re second nature (I=C Major, V=G Major, vi=A minor, IV=F Major).'
+        ]),
+      quizPianoNoteItem(0), quizPianoNoteItem(4), quizPianoNoteItem(7), quizPianoNoteItem(2),
+      quizPianoNoteItem(9), quizPianoNoteItem(5), quizPianoNoteItem(11), quizPianoNoteItem(1),
+      quizPianoNoteItem(8), quizPianoNoteItem(13),
+      quizPianoChordQualityItem(CHORDS[0]), quizPianoChordRootItem(CHORDS[0]),
+      quizPianoChordQualityItem(CHORDS[4]), quizPianoChordRootItem(CHORDS[4]),
+      quizPianoChordQualityItem(CHORDS[5]), quizPianoChordRootItem(CHORDS[5]),
+      quizPianoChordQualityItem(CHORDS[3]), quizPianoChordRootItem(CHORDS[3])
+    ]
   }
 ];
 
@@ -614,6 +714,7 @@ var BADGE_DEFS = [
   { id: 'track-time-signatures', icon: '🥁', th: 'เจ้าเครื่องหมายจังหวะ', en: 'Time Signature Master' },
   { id: 'track-scales', icon: '🪜', th: 'เจ้าบันไดเสียง', en: 'Scale Master' },
   { id: 'track-chords', icon: '🎶', th: 'เจ้าคอร์ด', en: 'Chord Master' },
+  { id: 'track-piano', icon: '🎹', th: 'เจ้าเปียโน', en: 'Piano Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สทฤษฎีเบื้องต้น!', en: 'Theory Basics Complete!' }
@@ -876,6 +977,15 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       } else if (item.qType === 'chord-root') {
         quizPromptEl.textContent = t('quizPromptChordRoot');
         staffSvgHolder.innerHTML = buildChordStaffSvg(item.steps);
+      } else if (item.qType === 'piano-note') {
+        quizPromptEl.textContent = t('quizPromptPianoNote');
+        staffSvgHolder.innerHTML = buildPianoSvg([item.slot]);
+      } else if (item.qType === 'piano-chord-quality') {
+        quizPromptEl.textContent = t('quizPromptPianoChordQuality');
+        staffSvgHolder.innerHTML = buildPianoSvg(item.slots);
+      } else if (item.qType === 'piano-chord-root') {
+        quizPromptEl.textContent = t('quizPromptPianoChordRoot');
+        staffSvgHolder.innerHTML = buildPianoSvg(item.slots);
       } else {
         quizPromptEl.textContent = t(CLEFS[item.clef || 'treble'].promptKey);
         staffSvgHolder.innerHTML = buildStaffSvg(item.step, item.clef);
@@ -909,7 +1019,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     var alreadyPassed = !!progress[progressKey(track.id, idx)];
     var isValueQuiz = item.qType === 'note-value' || item.qType === 'time-sig-unit';
     var isBeatsQuiz = item.qType === 'time-sig-beats';
-    var isQualityQuiz = item.qType === 'chord-quality';
+    var isQualityQuiz = item.qType === 'chord-quality' || item.qType === 'piano-chord-quality';
     var isWide = isValueQuiz || isQualityQuiz;
     var choices = isValueQuiz ? NOTE_VALUE_ORDER : isBeatsQuiz ? TIME_SIG_BEATS_OPTIONS :
       isQualityQuiz ? CHORD_QUALITY_OPTIONS : ANSWER_LETTERS;
