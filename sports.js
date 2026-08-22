@@ -106,6 +106,36 @@ function buildKickTechniqueSvg() {
     '<text x="235" y="212" font-size="13" font-weight="800" text-anchor="middle" fill="#1971C2">Outside</text>';
   return svgWrap(arrows + ball + labels, 280, 230, 300, 'football kicking technique diagram');
 }
+/* ครึ่งสนามบาสเกตบอล + 5 ตำแหน่งหลัก (PG/SG/SF/PF/C) */
+function buildBasketballPositionsSvg() {
+  var positions = [
+    { x: 130, y: 60, label: 'C' },
+    { x: 185, y: 110, label: 'PF' }, { x: 75, y: 110, label: 'SF' },
+    { x: 195, y: 200, label: 'SG' }, { x: 130, y: 255, label: 'PG' }
+  ];
+  var dots = positions.map(function (p) {
+    return '<circle cx="' + p.x + '" cy="' + p.y + '" r="16" fill="#FFD43B" stroke="#1F2430" stroke-width="2"/>' +
+      '<text x="' + p.x + '" y="' + (p.y + 5) + '" font-size="12" font-weight="800" text-anchor="middle" fill="#1F2430">' + p.label + '</text>';
+  }).join('');
+  var court = '<rect x="10" y="10" width="240" height="280" rx="4" fill="#D9822B" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<rect x="90" y="10" width="80" height="110" fill="none" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<circle cx="130" cy="120" r="35" fill="none" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<path d="M 25,235 Q 130,290 235,235" stroke="#FFFFFF" stroke-width="2" fill="none"/>' +
+    '<line x1="105" y1="18" x2="155" y2="18" stroke="#1F2430" stroke-width="4"/>';
+  return svgWrap(court + dots, 260, 300, 280, 'basketball 5 positions diagram');
+}
+/* มุมยิงในอุดมคติ (Shooting Arc) — เส้นวิถีโค้งจากลูกบอลไปห่วง พร้อมป้ายมุม */
+function buildBasketballShotArcSvg() {
+  var hoop = '<line x1="236" y1="18" x2="242" y2="66" stroke="#1F2430" stroke-width="5"/>' +
+    '<ellipse cx="218" cy="60" rx="20" ry="6" fill="none" stroke="#E8590C" stroke-width="3"/>';
+  var trajectory = '<path d="M 40,220 Q 90,40 216,58" stroke="#E8590C" stroke-width="3" fill="none" stroke-dasharray="7,5"/>';
+  var ball = '<circle cx="40" cy="220" r="15" fill="#E8590C" stroke="#1F2430" stroke-width="2"/>' +
+    '<line x1="40" y1="205" x2="40" y2="235" stroke="#1F2430" stroke-width="1.5"/>' +
+    '<path d="M 25,220 Q 40,206 55,220" stroke="#1F2430" stroke-width="1.5" fill="none"/>' +
+    '<path d="M 25,220 Q 40,234 55,220" stroke="#1F2430" stroke-width="1.5" fill="none"/>';
+  var label = '<text x="90" y="150" font-size="14" font-weight="800" fill="#E8590C">~45-52°</text>';
+  return svgWrap(trajectory + hoop + ball + label, 260, 240, 280, 'basketball ideal shooting arc diagram');
+}
 
 var TRACKS = [
   {
@@ -260,6 +290,30 @@ var TRACKS = [
           "Each player has a personal foul quota, usually 5-6 depending on the league. Reaching the foul limit means being 'fouled out' — the player must leave the game immediately.",
           'The 24-Second Shot Clock: the team in possession must get a shot to hit the rim within 24 seconds (some leagues use 30, or 14 after an offensive rebound), or they lose possession.'
         ]),
+      readingItem('5 ตำแหน่งผู้เล่นบาสเกตบอล', 'The 5 Basketball Positions',
+        [
+          'บาสเกตบอลมีตำแหน่งหลัก 5 ตำแหน่ง: การ์ดจ่าย (Point Guard, PG) ผู้นำเกมรุกและจ่ายบอล, การ์ดยิง (Shooting Guard, SG) ทำหน้าที่ยิงระยะไกล, สมอลฟอร์เวิร์ด (Small Forward, SF) เล่นได้รอบด้านทั้งยิงและตัดเข้าห่วง',
+          'เพาเวอร์ฟอร์เวิร์ด (Power Forward, PF) เล่นใกล้ห่วง แข็งแกร่งทั้งรุกและรับ — เซ็นเตอร์ (Center, C) มักเป็นผู้เล่นตัวสูงที่สุดในทีม ยืนใกล้ห่วงที่สุด ทำหน้าที่รีบาวด์และบล็อก',
+          'ดูไดอะแกรมด้านล่าง: ตำแหน่งเรียงจากใกล้ห่วง (C ด้านบน) ไปจนถึงตำแหน่งไกลห่วงที่สุด (PG ด้านล่าง) — ทีมจริงปรับตำแหน่งได้ยืดหยุ่นตามสไตล์การเล่น'
+        ],
+        [
+          'Basketball has 5 main positions: the Point Guard (PG) leads the offense and distributes the ball; the Shooting Guard (SG) specializes in long-range shooting; the Small Forward (SF) is versatile, both shooting and driving to the basket.',
+          'The Power Forward (PF) plays close to the basket, strong on both offense and defense — the Center (C) is usually the tallest player on the team, positioned closest to the basket, responsible for rebounds and blocks.',
+          'See the diagram below: positions run from closest to the basket (C at the top) to farthest (PG at the bottom) — real teams adjust positioning flexibly depending on their playing style.'
+        ],
+        buildBasketballPositionsSvg()),
+      readingItem('มุมยิงที่ถูกต้อง (Shooting Arc)', 'The Ideal Shooting Arc',
+        [
+          "การยิงบาสเกตบอลที่ดีต้องมี 'ส่วนโค้ง' (Arc) ของลูกบอลที่เหมาะสม ไม่ใช่ยิงเส้นตรงแบนราบ — มุมยิงที่แนะนำอยู่ที่ประมาณ 45-52 องศาเมื่อวัดจากพื้น",
+          "ประโยชน์ของมุมยิงสูง: ลูกบอลจะพุ่งลงห่วงในแนวดิ่งมากขึ้น ทำให้ 'ช่องรับบอล' ที่ปากห่วงกว้างขึ้นเมื่อเทียบกับยิงเส้นตรง เพิ่มโอกาสเข้าห่วง",
+          'เทคนิคช่วยจำท่ายิงพื้นฐานเรียกว่า BEEF: Balance (ทรงตัวมั่นคง) Eyes (มองเป้าหมาย/ห่วง) Elbow (ศอกอยู่ใต้บอลตรงแนวห่วง) Follow-through (สะบัดข้อมือตามหลังปล่อยบอล)'
+        ],
+        [
+          "A good basketball shot needs the right 'arc' — not a flat, straight-line shot. The recommended shooting angle is roughly 45-52 degrees from the ground.",
+          "The benefit of a higher arc: the ball comes down into the hoop more vertically, giving it a wider 'window' to fall through compared to a flatter shot — increasing the chance of scoring.",
+          'A common memory trick for shooting form is BEEF: Balance (stable stance), Eyes (focus on the target/rim), Elbow (kept under the ball, in line with the basket), Follow-through (snap the wrist after releasing).'
+        ],
+        buildBasketballShotArcSvg()),
       mcqItem(
         'บาสเกตบอล 1 ทีมมีผู้เล่นกี่คนในสนาม?', 'How many players does one basketball team have on the court?',
         [mcqOpt('a', '5 คน', '5 players'), mcqOpt('b', '6 คน', '6 players'),
@@ -310,6 +364,19 @@ var TRACKS = [
         'การเดินโดยไม่เลี้ยงบอล เรียกว่าอะไร?', 'What is it called when a player walks without dribbling the ball?',
         [mcqOpt('a', 'Traveling', 'Traveling'), mcqOpt('b', 'Double Dribble', 'Double Dribble'),
          mcqOpt('c', 'Charging', 'Charging'), mcqOpt('d', 'Blocking', 'Blocking')],
+        'a'
+      ),
+      mcqItem(
+        'ตำแหน่งไหนมักเป็นผู้เล่นตัวสูงที่สุดในทีม ยืนใกล้ห่วงที่สุด ทำหน้าที่รีบาวด์/บล็อก?', 'Which position is usually the tallest player, positioned closest to the basket, responsible for rebounds/blocks?',
+        [mcqOpt('a', 'เซ็นเตอร์ (Center, C)', 'Center (C)'), mcqOpt('b', 'การ์ดจ่าย (Point Guard, PG)', 'Point Guard (PG)'),
+         mcqOpt('c', 'การ์ดยิง (Shooting Guard, SG)', 'Shooting Guard (SG)'),
+         mcqOpt('d', 'สมอลฟอร์เวิร์ด (Small Forward, SF)', 'Small Forward (SF)')],
+        'a'
+      ),
+      mcqItem(
+        'มุมยิงบาสเกตบอลที่แนะนำ (Ideal Shooting Arc) อยู่ที่ประมาณกี่องศา?', 'What is the recommended basketball shooting arc, roughly?',
+        [mcqOpt('a', '45-52 องศา', '45-52 degrees'), mcqOpt('b', '10-20 องศา', '10-20 degrees'),
+         mcqOpt('c', '70-80 องศา', '70-80 degrees'), mcqOpt('d', '0 องศา (เส้นตรงแบนราบ)', '0 degrees (a flat straight line)')],
         'a'
       )
     ]
