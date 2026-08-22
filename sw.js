@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v304';
+const CACHE = 'ome-v305';
 const PRECACHE = [
   './',
   './index.html',

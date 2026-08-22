@@ -31,6 +31,7 @@ var I18N = {
     quizPromptPianoNote: 'คีย์เปียโนที่ไฮไลต์อยู่คือโน้ตอะไร?',
     quizPromptPianoChordQuality: 'คอร์ดที่กดอยู่บนเปียโนนี้เป็นเมเจอร์หรือไมเนอร์?',
     quizPromptPianoChordRoot: 'คอร์ดที่กดอยู่บนเปียโนนี้มีโน้ตรากเป็นตัวอะไร?',
+    quizPromptGuitarChord: 'ไดอะแกรมนี้คือคอร์ดอะไร?',
     correctMsg: '✅ ถูกต้อง! ปลดล็อกข้อถัดไปแล้ว',
     trackDoneMsg: '🎉 จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
     toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
@@ -52,6 +53,7 @@ var I18N = {
     quizPromptPianoNote: 'Which note is the highlighted piano key?',
     quizPromptPianoChordQuality: 'Is this piano chord major or minor?',
     quizPromptPianoChordRoot: 'What is the root note of this piano chord?',
+    quizPromptGuitarChord: 'Which chord is this diagram?',
     correctMsg: '✅ Correct! Next one unlocked.',
     trackDoneMsg: '🎉 Lesson complete! Pick the next lesson from the ☰ menu above.',
     toastTrackDone: 'Lesson "{track}" complete! 🎉',
@@ -298,6 +300,45 @@ function buildPianoSvg(highlightSlots) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   ไดอะแกรมคอร์ดกีตาร์ — คอตาร์แนวตั้ง 6 สาย (ซ้าย=สาย 6/E ต่ำ, ขวา=สาย 1/E สูง) นัทหนาบนสุด
+   ตามด้วยเฟรต 4 ช่อง pattern[i] คือ 'x' (ห้ามดีด), 0 (สายเปล่า), หรือเลขเฟรต 1-4 (ตำแหน่งกด)
+   สีคงที่ไม่อิงธีมมืด/สว่างเหมือนคีย์เปียโน (ภาพแทนวัตถุจริง)
+   ══════════════════════════════════════════════════════════════════ */
+function buildGuitarChordSvg(pattern) {
+  var W = 150, H = 150;
+  var stringX0 = 20, stringSpacing = 22;
+  var nutY = 34, fretSpacing = 26, numFrets = 4;
+  function sx(i) { return stringX0 + i * stringSpacing; }
+
+  var strings = '';
+  for (var i = 0; i < 6; i++) {
+    strings += '<line x1="' + sx(i) + '" y1="' + nutY + '" x2="' + sx(i) + '" y2="' + (nutY + numFrets * fretSpacing) + '" stroke="#3A3F4C" stroke-width="1.6"/>';
+  }
+  var frets = '<line x1="' + sx(0) + '" y1="' + nutY + '" x2="' + sx(5) + '" y2="' + nutY + '" stroke="#1F2430" stroke-width="5"/>';
+  for (var k = 1; k <= numFrets; k++) {
+    var fy = nutY + k * fretSpacing;
+    frets += '<line x1="' + sx(0) + '" y1="' + fy + '" x2="' + sx(5) + '" y2="' + fy + '" stroke="#3A3F4C" stroke-width="1.6"/>';
+  }
+
+  var marks = '';
+  pattern.forEach(function (v, i) {
+    var x = sx(i);
+    if (v === 'x') {
+      marks += '<text x="' + x + '" y="18" font-size="15" font-weight="800" text-anchor="middle" fill="#B3325A">×</text>';
+    } else if (v === 0) {
+      marks += '<circle cx="' + x + '" cy="14" r="6" fill="none" stroke="#0F7A4E" stroke-width="2"/>';
+    } else {
+      var dy = nutY + (v - 0.5) * fretSpacing;
+      marks += '<circle cx="' + x + '" cy="' + dy + '" r="8" fill="var(--mx)"/>';
+    }
+  });
+
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" ' +
+    'style="width:100%;max-width:180px;height:auto;display:block;margin:0 auto" role="img" aria-label="guitar chord diagram">' +
+    strings + frets + marks + '</svg>';
+}
+
+/* ══════════════════════════════════════════════════════════════════
    เนื้อหาบทเรียน
    ══════════════════════════════════════════════════════════════════ */
 function readingItem(headingTh, headingEn, paragraphsTh, paragraphsEn) {
@@ -344,6 +385,24 @@ function quizPianoChordQualityItem(chord) {
 }
 function quizPianoChordRootItem(chord) {
   return { kind: 'quiz', qType: 'piano-chord-root', slots: chordPianoSlots(chord), answer: chord.root };
+}
+/* คอร์ดเปิด (open chord) มาตรฐาน 8 คอร์ดที่มือใหม่กีตาร์ทุกคนเรียนก่อน — pattern เรียงจาก
+   สาย 6 (E ต่ำ) ไปสาย 1 (E สูง): 'x' = ห้ามดีด, 0 = สายเปล่า, ตัวเลข = เฟรตที่ต้องกด */
+var GUITAR_CHORDS = [
+  { name: 'C', label: { th: 'C เมเจอร์', en: 'C Major' }, pattern: ['x', 3, 2, 0, 1, 0] },
+  { name: 'G', label: { th: 'G เมเจอร์', en: 'G Major' }, pattern: [3, 2, 0, 0, 0, 3] },
+  { name: 'D', label: { th: 'D เมเจอร์', en: 'D Major' }, pattern: ['x', 'x', 0, 2, 3, 2] },
+  { name: 'A', label: { th: 'A เมเจอร์', en: 'A Major' }, pattern: ['x', 0, 2, 2, 2, 0] },
+  { name: 'E', label: { th: 'E เมเจอร์', en: 'E Major' }, pattern: [0, 2, 2, 1, 0, 0] },
+  { name: 'Em', label: { th: 'E ไมเนอร์ (Em)', en: 'E minor (Em)' }, pattern: [0, 2, 2, 0, 0, 0] },
+  { name: 'Am', label: { th: 'A ไมเนอร์ (Am)', en: 'A minor (Am)' }, pattern: ['x', 0, 2, 2, 1, 0] },
+  { name: 'Dm', label: { th: 'D ไมเนอร์ (Dm)', en: 'D minor (Dm)' }, pattern: ['x', 'x', 0, 2, 3, 1] }
+];
+var GUITAR_CHORD_LABELS = {};
+GUITAR_CHORDS.forEach(function (c) { GUITAR_CHORD_LABELS[c.name] = c.label; });
+var GUITAR_CHORD_NAMES = GUITAR_CHORDS.map(function (c) { return c.name; });
+function quizGuitarChordItem(chord) {
+  return { kind: 'quiz', qType: 'guitar-chord', pattern: chord.pattern, answer: chord.name };
 }
 
 var TRACKS = [
@@ -650,6 +709,39 @@ var TRACKS = [
       quizPianoChordQualityItem(CHORDS[5]), quizPianoChordRootItem(CHORDS[5]),
       quizPianoChordQualityItem(CHORDS[3]), quizPianoChordRootItem(CHORDS[3])
     ]
+  },
+  {
+    id: 'guitar',
+    label: { th: 'หัดเล่นกีตาร์', en: 'Guitar' },
+    group: { th: 'เครื่องดนตรี', en: 'Instruments' },
+    items: [
+      readingItem('อ่านไดอะแกรมคอร์ดกีตาร์', 'Reading a Guitar Chord Diagram',
+        [
+          "ไดอะแกรมคอร์ดกีตาร์แสดงคอกีตาร์ในแนวตั้ง: เส้นแนวตั้ง 6 เส้นคือสายกีตาร์ (จากซ้าย = สาย 6 เสียงต่ำสุด E ไปขวา = สาย 1 เสียงสูงสุด E) เส้นหนาบนสุดคือ 'นัท' (nut) จุดเริ่มคอ เส้นแนวนอนที่เหลือคือเฟรต (fret)",
+          "จุดกลม (●) วางบนตำแหน่งที่ต้องกดสาย ที่เฟรตนั้นๆ — วงกลมโปร่ง (○) เหนือนัทหมายถึงดีดสายเปล่า (open string) ไม่ต้องกด — เครื่องหมายกากบาท (×) หมายถึงห้ามดีดสายนั้น (mute/skip)",
+          'เช่น ถ้าสาย A (สาย 5) มีจุด ● อยู่ตรงเฟรต 2 หมายถึงกดสาย A ที่ช่องเฟรตที่ 2 แล้วดีด'
+        ],
+        [
+          "A guitar chord diagram shows the neck vertically: 6 vertical lines are the strings (left = string 6, lowest E; right = string 1, highest E). The thick top line is the 'nut' (start of the neck); the remaining horizontal lines are frets.",
+          'A filled dot (●) marks where to press that string at that fret. An open circle (○) above the nut means play that string open (no pressing). An X (×) means skip/mute that string entirely.',
+          'For example, if the A string (string 5) has a dot ● at fret 2, that means press the A string at the 2nd fret, then strum it.'
+        ]),
+      readingItem('คอร์ดเปิดพื้นฐาน 8 คอร์ด', 'The 8 Basic Open Chords',
+        [
+          'คอร์ดเปิด (Open Chords) คือคอร์ดที่ใช้สายเปล่าผสมกับสายที่กด — เล่นง่ายเพราะไม่ต้องกดครบทุกสาย เหมาะเป็นคอร์ดแรกที่มือใหม่ทุกคนต้องเรียน',
+          "คอร์ดเมเจอร์เปิดยอดฮิต 5 ตัว (บางทีเรียก 'CAGED': C, A, G, E, D) และคอร์ดไมเนอร์เปิดพื้นฐาน 3 ตัว (Em, Am, Dm) — 8 คอร์ดนี้เล่นเพลงกีตาร์ได้หลายพันเพลง",
+          'แบบฝึกหัดถัดไปจะโชว์ไดอะแกรม ให้ทายว่าเป็นคอร์ดอะไร — สังเกตรูปแบบจุด/กากบาท/วงกลมโปร่งให้ดี แต่ละคอร์ดมีรูปทรงเฉพาะตัวจำได้ไม่ยาก'
+        ],
+        [
+          "Open Chords use a mix of open (unpressed) and fretted strings — easier to play since you don't need to press every string, making them the first chords every beginner learns.",
+          "The 5 most popular open major chords (sometimes called 'CAGED': C, A, G, E, D) plus 3 basic open minor chords (Em, Am, Dm) — these 8 chords alone can play thousands of songs.",
+          "The next exercises will show a diagram and ask you to name the chord — pay attention to the pattern of dots/X's/circles; each chord has its own distinct, memorable shape."
+        ]),
+      quizGuitarChordItem(GUITAR_CHORDS[0]), quizGuitarChordItem(GUITAR_CHORDS[1]),
+      quizGuitarChordItem(GUITAR_CHORDS[2]), quizGuitarChordItem(GUITAR_CHORDS[3]),
+      quizGuitarChordItem(GUITAR_CHORDS[4]), quizGuitarChordItem(GUITAR_CHORDS[5]),
+      quizGuitarChordItem(GUITAR_CHORDS[6]), quizGuitarChordItem(GUITAR_CHORDS[7])
+    ]
   }
 ];
 
@@ -715,6 +807,7 @@ var BADGE_DEFS = [
   { id: 'track-scales', icon: '🪜', th: 'เจ้าบันไดเสียง', en: 'Scale Master' },
   { id: 'track-chords', icon: '🎶', th: 'เจ้าคอร์ด', en: 'Chord Master' },
   { id: 'track-piano', icon: '🎹', th: 'เจ้าเปียโน', en: 'Piano Master' },
+  { id: 'track-guitar', icon: '🎸', th: 'เจ้ากีตาร์', en: 'Guitar Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สทฤษฎีเบื้องต้น!', en: 'Theory Basics Complete!' }
@@ -986,6 +1079,9 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       } else if (item.qType === 'piano-chord-root') {
         quizPromptEl.textContent = t('quizPromptPianoChordRoot');
         staffSvgHolder.innerHTML = buildPianoSvg(item.slots);
+      } else if (item.qType === 'guitar-chord') {
+        quizPromptEl.textContent = t('quizPromptGuitarChord');
+        staffSvgHolder.innerHTML = buildGuitarChordSvg(item.pattern);
       } else {
         quizPromptEl.textContent = t(CLEFS[item.clef || 'treble'].promptKey);
         staffSvgHolder.innerHTML = buildStaffSvg(item.step, item.clef);
@@ -1020,14 +1116,16 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     var isValueQuiz = item.qType === 'note-value' || item.qType === 'time-sig-unit';
     var isBeatsQuiz = item.qType === 'time-sig-beats';
     var isQualityQuiz = item.qType === 'chord-quality' || item.qType === 'piano-chord-quality';
-    var isWide = isValueQuiz || isQualityQuiz;
+    var isGuitarQuiz = item.qType === 'guitar-chord';
+    var isWide = isValueQuiz || isQualityQuiz || isGuitarQuiz;
     var choices = isValueQuiz ? NOTE_VALUE_ORDER : isBeatsQuiz ? TIME_SIG_BEATS_OPTIONS :
-      isQualityQuiz ? CHORD_QUALITY_OPTIONS : ANSWER_LETTERS;
+      isQualityQuiz ? CHORD_QUALITY_OPTIONS : isGuitarQuiz ? GUITAR_CHORD_NAMES : ANSWER_LETTERS;
     choices.forEach(function (choice) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'mx-answer-btn' + (isWide ? ' wide' : '');
-      btn.textContent = isValueQuiz ? pick(NOTE_VALUE_LABELS[choice]) : isQualityQuiz ? pick(CHORD_QUALITY_LABELS[choice]) : String(choice);
+      btn.textContent = isValueQuiz ? pick(NOTE_VALUE_LABELS[choice]) : isQualityQuiz ? pick(CHORD_QUALITY_LABELS[choice]) :
+        isGuitarQuiz ? pick(GUITAR_CHORD_LABELS[choice]) : String(choice);
       if (alreadyPassed) {
         btn.disabled = true;
         if (choice === item.answer) btn.classList.add('correct');
