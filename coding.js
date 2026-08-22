@@ -561,6 +561,203 @@ var TRACKS = [
         tests: [{ type: 'log-includes', expected: 'null', label: 'console.log ต้องออกมาเป็น null หลังลบ' }]
       }
     ]
+  },
+  {
+    /* ══ Track C: โปรเจกต์จบคอร์ส (capstone) — เอาความรู้ทุกแทร็กก่อนหน้ามารวมกันในโปรเจกต์จริง
+       โปรเจกต์ที่ 1: Landing Page (kind 'html' เหมือนแทร็ก HTML/CSS/Flexbox/Grid ทั่วไป) */
+    id: 'project-landing-page', kind: 'html', label: 'โปรเจกต์: Landing Page', labelEn: 'Project: Landing Page',
+    concept: {
+      explain: 'โปรเจกต์แรก: สร้างหน้า Landing Page ง่ายๆ ที่มีโครงสร้างเหมือนเว็บจริง — ส่วนหัว (header) มีชื่อแบรนด์, ส่วน hero มีข้อความโปรโมทกับปุ่มกดหลัก (CTA), การ์ดฟีเจอร์ด้วย Flexbox, และส่วนท้าย (footer) มีข้อมูลติดต่อ — นำความรู้ HTML+CSS+Flexbox ที่เรียนมาทั้งหมดมารวมกันในหน้าเดียว',
+      example: '<header style="background:#1F2430;color:#fff;padding:16px;">MyBrand</header>\n<section style="text-align:center;padding:40px;">\n  <h1>สร้างเว็บของคุณวันนี้</h1>\n  <button style="background:#2563EB;color:#fff;padding:12px 24px;border:none;border-radius:8px;">เริ่มเลย</button>\n</section>'
+    },
+    exercises: [
+      {
+        title: 'ส่วนหัว (Header)',
+        instructions: 'ใส่ชื่อแบรนด์ "MyBrand" ไว้ในกล่อง div ว่างๆ ในส่วนหัว แล้วรันดู',
+        starter: '<header style="display: flex; justify-content: space-between; padding: 16px; background: #1F2430; color: #fff;">\n  <div style="font-weight: 700;"></div>\n</header>',
+        tests: [{ type: 'html-text', selector: 'header div', includes: 'MyBrand', label: 'ส่วนหัวต้องมีคำว่า "MyBrand"' }]
+      },
+      {
+        title: 'ส่วน Hero + ปุ่ม CTA',
+        instructions: 'เพิ่ม style ให้ปุ่ม (background: #2563EB; color: #fff; padding: 12px 24px; border: none; border-radius: 8px;) แล้วรันดู',
+        starter: '<section style="text-align: center; padding: 60px 20px;">\n  <h1>สร้างเว็บของคุณวันนี้</h1>\n  <p>เรียนเขียนโค้ดง่ายๆ ได้ที่นี่</p>\n  <button style="">เริ่มเลย</button>\n</section>',
+        tests: [{ type: 'html-attr', selector: 'button', attr: 'style', includes: 'background', label: 'ปุ่มต้องมี background ใน style' }]
+      },
+      {
+        title: 'การ์ดฟีเจอร์ด้วย Flexbox',
+        instructions: 'เติมข้อความ "ปลอดภัย" ในกล่อง id="card2" ที่ยังว่างอยู่ แล้วรันดู',
+        starter: '<div style="display: flex; gap: 16px; padding: 20px;">\n  <div style="flex: 1; background: #E8EFFE; padding: 16px; border-radius: 8px;">เร็ว</div>\n  <div id="card2" style="flex: 1; background: #E8EFFE; padding: 16px; border-radius: 8px;"></div>\n</div>',
+        tests: [{ type: 'html-nonempty', selector: '#card2', label: '#card2 ต้องมีข้อความ' }]
+      },
+      {
+        title: 'ส่วนท้าย (Footer)',
+        instructions: 'ใส่ข้อความ "ติดต่อเรา: contact@mybrand.com" ในแท็ก p แล้วรันดู',
+        starter: '<footer style="text-align: center; padding: 20px; color: #727C93;">\n  <p></p>\n</footer>',
+        tests: [{ type: 'html-text', selector: 'footer p', includes: 'contact@mybrand.com', label: 'footer ต้องมีอีเมลติดต่อ' }]
+      }
+    ]
+  },
+  {
+    /* โปรเจกต์ที่ 2: To-Do List App (kind 'dom' — ต้องมี createElement/appendChild/remove ของจริง
+       ดูส่วนขยายที่ dom-runner-worker.js) */
+    id: 'project-todo-list', kind: 'dom', label: 'โปรเจกต์: To-Do List', labelEn: 'Project: To-Do List',
+    concept: {
+      explain: 'โปรเจกต์ที่ 2: To-Do List App — แอปพื้นฐานที่รวมความรู้ DOM+Events เข้าด้วยกัน: เพิ่มรายการใหม่ด้วย document.createElement() + appendChild(), แสดงผลในลิสต์, ทำเครื่องหมายว่าเสร็จแล้วด้วย classList, และลบรายการด้วย .remove()',
+      example: 'var li = document.createElement("li");\nli.textContent = "งานใหม่";\ndocument.getElementById("list").appendChild(li);',
+      domSpec: [{ tag: 'ul', id: 'demoList', children: [{ tag: 'li', text: 'ตัวอย่างรายการ' }] }]
+    },
+    exercises: [
+      {
+        title: 'เพิ่มรายการใหม่ด้วย createElement',
+        instructions: 'เติมโค้ดในฟังก์ชัน ให้สร้าง <li> ใหม่ด้วย document.createElement("li") ใส่ข้อความจาก taskInput.value แล้วเพิ่มเข้า #taskList ด้วย .appendChild() แล้วรันดู (ระบบจะกดปุ่มเพิ่มให้อัตโนมัติ)',
+        domSpec: [{ tag: 'input', id: 'taskInput', value: 'ซื้อของ' }, { tag: 'button', id: 'addBtn', text: 'เพิ่ม' }, { tag: 'ul', id: 'taskList' }],
+        starter: 'document.getElementById("addBtn").addEventListener("click", function () {\n  \n});',
+        preActions: [{ type: 'click', selector: '#addBtn' }],
+        tests: [
+          { type: 'dom-count', selector: 'li', count: 1, label: '#taskList ต้องมี <li> 1 อันหลังกดเพิ่ม' },
+          { type: 'dom-text', selector: 'li', includes: 'ซื้อของ', label: '<li> ต้องมีข้อความ "ซื้อของ"' }
+        ]
+      },
+      {
+        title: 'เพิ่มหลายรายการ (ดึงค่าจริงจาก input)',
+        instructions: 'แก้ li.textContent = "งานใหม่"; ให้ดึงค่าจริงจาก document.getElementById("taskInput").value แทน แล้วรันดู — ควรได้ทั้งหมด 2 รายการ ("ซื้อของ" เดิม + "ทำการบ้าน" จาก input)',
+        domSpec: [{ tag: 'input', id: 'taskInput', value: 'ทำการบ้าน' }, { tag: 'button', id: 'addBtn', text: 'เพิ่ม' }, { tag: 'ul', id: 'taskList', children: [{ tag: 'li', text: 'ซื้อของ' }] }],
+        starter: 'document.getElementById("addBtn").addEventListener("click", function () {\n  var li = document.createElement("li");\n  li.textContent = "งานใหม่";\n  document.getElementById("taskList").appendChild(li);\n});',
+        preActions: [{ type: 'click', selector: '#addBtn' }],
+        tests: [{ type: 'dom-count', selector: 'li', count: 2, label: 'ต้องมี <li> ทั้งหมด 2 อัน (เดิม 1 + เพิ่มใหม่ 1)' }]
+      },
+      {
+        title: 'ทำเครื่องหมายว่าเสร็จแล้ว (classList)',
+        instructions: 'เติมโค้ดในฟังก์ชัน ให้เพิ่ม class "done" ให้กับ #task1 (ใช้ classList.add) เมื่อกดปุ่ม แล้วรันดู',
+        domSpec: [{ tag: 'ul', id: 'taskList', children: [{ tag: 'li', id: 'task1', text: 'ซื้อของ' }] }, { tag: 'button', id: 'doneBtn', text: 'ทำเสร็จแล้ว' }],
+        previewCss: '.done{text-decoration:line-through;color:#999;}',
+        starter: 'document.getElementById("doneBtn").addEventListener("click", function () {\n  \n});',
+        preActions: [{ type: 'click', selector: '#doneBtn' }],
+        tests: [{ type: 'dom-class', selector: '#task1', class: 'done', label: '#task1 ต้องมี class "done" หลังกดปุ่ม' }]
+      },
+      {
+        title: 'ลบรายการด้วย remove()',
+        instructions: 'เติมโค้ดในฟังก์ชัน ให้ลบ #task1 ออกจากหน้าเว็บด้วย document.getElementById("task1").remove(); แล้วรันดู',
+        domSpec: [{ tag: 'ul', id: 'taskList', children: [{ tag: 'li', id: 'task1', text: 'ลบฉันด้วย' }] }, { tag: 'button', id: 'delBtn', text: 'ลบ' }],
+        starter: 'document.getElementById("delBtn").addEventListener("click", function () {\n  \n});',
+        preActions: [{ type: 'click', selector: '#delBtn' }],
+        tests: [{ type: 'dom-count', selector: 'li', count: 0, label: 'ต้องไม่เหลือ <li> เลยหลังลบ' }]
+      }
+    ]
+  },
+  {
+    /* โปรเจกต์ที่ 3: ฟอร์มติดต่อพร้อม validation (kind 'dom') */
+    id: 'project-contact-form', kind: 'dom', label: 'โปรเจกต์: ฟอร์มติดต่อ', labelEn: 'Project: Contact Form',
+    concept: {
+      explain: 'โปรเจกต์ที่ 3: ฟอร์มติดต่อพร้อม validation — ตรวจสอบว่าผู้ใช้กรอกครบไหม (required), ตรวจรูปแบบอีเมลง่ายๆ ด้วย .includes("@"), และแสดงข้อความแจ้งเตือน/สำเร็จ รวมความรู้ Events & Forms เข้ากับตรรกะเงื่อนไข',
+      example: 'if (email === "") {\n  errorMsg.textContent = "กรุณากรอกอีเมล";\n} else if (!email.includes("@")) {\n  errorMsg.textContent = "รูปแบบไม่ถูกต้อง";\n} else {\n  errorMsg.textContent = "สำเร็จ!";\n}',
+      domSpec: [{ tag: 'input', id: 'demoInput' }, { tag: 'p', id: 'demoMsg' }]
+    },
+    exercises: [
+      {
+        title: 'ตรวจสอบว่ากรอกครบหรือไม่',
+        instructions: 'เติม document.getElementById("errorMsg").textContent = "กรุณากรอกอีเมล"; ในเงื่อนไข if (บรรทัดว่าง) แล้วรันดู (ระบบจะกดปุ่มส่งให้อัตโนมัติ — ช่องอีเมลว่างเปล่าอยู่)',
+        domSpec: [{ tag: 'input', id: 'emailInput', value: '' }, { tag: 'button', id: 'submitBtn', text: 'ส่ง' }, { tag: 'p', id: 'errorMsg' }],
+        starter: 'document.getElementById("submitBtn").addEventListener("click", function () {\n  var email = document.getElementById("emailInput").value;\n  if (email === "") {\n    \n  }\n});',
+        preActions: [{ type: 'click', selector: '#submitBtn' }],
+        tests: [{ type: 'dom-text', selector: '#errorMsg', includes: 'กรุณากรอกอีเมล', label: '#errorMsg ต้องแสดงข้อความเตือน' }]
+      },
+      {
+        title: 'ตรวจสอบรูปแบบอีเมลด้วย includes',
+        instructions: 'เติม document.getElementById("errorMsg").textContent = "รูปแบบอีเมลไม่ถูกต้อง"; ในเงื่อนไข (บรรทัดว่าง) แล้วรันดู (ช่องอีเมลมีค่า "notanemail" ที่ไม่มี @ อยู่)',
+        domSpec: [{ tag: 'input', id: 'emailInput', value: 'notanemail' }, { tag: 'button', id: 'submitBtn', text: 'ส่ง' }, { tag: 'p', id: 'errorMsg' }],
+        starter: 'document.getElementById("submitBtn").addEventListener("click", function () {\n  var email = document.getElementById("emailInput").value;\n  if (!email.includes("@")) {\n    \n  }\n});',
+        preActions: [{ type: 'click', selector: '#submitBtn' }],
+        tests: [{ type: 'dom-text', selector: '#errorMsg', includes: 'รูปแบบอีเมลไม่ถูกต้อง', label: '#errorMsg ต้องแสดงข้อความแจ้งรูปแบบผิด' }]
+      },
+      {
+        title: 'แสดงข้อความสำเร็จเมื่อกรอกถูกต้อง',
+        instructions: 'เติม document.getElementById("errorMsg").textContent = "ส่งสำเร็จ!"; ในส่วน else (บรรทัดว่าง) แล้วรันดู — เพราะอีเมลที่กรอกถูกต้องแล้ว',
+        domSpec: [{ tag: 'input', id: 'emailInput', value: 'test@email.com' }, { tag: 'button', id: 'submitBtn', text: 'ส่ง' }, { tag: 'p', id: 'errorMsg' }],
+        starter: 'document.getElementById("submitBtn").addEventListener("click", function () {\n  var email = document.getElementById("emailInput").value;\n  if (email === "" || !email.includes("@")) {\n    document.getElementById("errorMsg").textContent = "กรอกอีเมลให้ถูกต้อง";\n  } else {\n    \n  }\n});',
+        preActions: [{ type: 'click', selector: '#submitBtn' }],
+        tests: [{ type: 'dom-text', selector: '#errorMsg', includes: 'ส่งสำเร็จ', label: '#errorMsg ต้องแสดง "ส่งสำเร็จ!"' }]
+      },
+      {
+        title: 'รวม validation หลายเงื่อนไข',
+        instructions: 'เติม document.getElementById("errorMsg2").textContent = "ส่งสำเร็จ!"; ในส่วน else สุดท้าย (บรรทัดว่าง) แล้วรันดู — ทั้งชื่อและอีเมลกรอกถูกต้องแล้ว',
+        domSpec: [{ tag: 'input', id: 'nameInput', value: 'สมชาย' }, { tag: 'input', id: 'emailInput2', value: 'a@b.com' }, { tag: 'button', id: 'submitBtn2', text: 'ส่ง' }, { tag: 'p', id: 'errorMsg2' }],
+        starter: 'document.getElementById("submitBtn2").addEventListener("click", function () {\n  var name = document.getElementById("nameInput").value;\n  var email = document.getElementById("emailInput2").value;\n  if (name === "") {\n    document.getElementById("errorMsg2").textContent = "กรุณากรอกชื่อ";\n  } else if (!email.includes("@")) {\n    document.getElementById("errorMsg2").textContent = "อีเมลไม่ถูกต้อง";\n  } else {\n    \n  }\n});',
+        preActions: [{ type: 'click', selector: '#submitBtn2' }],
+        tests: [{ type: 'dom-text', selector: '#errorMsg2', includes: 'ส่งสำเร็จ', label: '#errorMsg2 ต้องแสดง "ส่งสำเร็จ!"' }]
+      }
+    ]
+  },
+  {
+    /* โปรเจกต์ที่ 4: แอปดึงข้อมูลจาก API มาแสดง (kind 'js' — รวม async/await + array/object)
+       ใช้ mock function จำลอง API ด้วย setTimeout-based Promise (ไม่พึ่ง fetch จริง เหตุผลเดียวกับ
+       แทร็ก Async/Fetch: ต้องทำงานออฟไลน์ได้ ไม่มี backend จริงให้เรียก) */
+    id: 'project-api-fetch', kind: 'js', label: 'โปรเจกต์: แอปดึงข้อมูล API', labelEn: 'Project: API Fetch App',
+    concept: {
+      explain: 'โปรเจกต์สุดท้าย: จำลองการดึงข้อมูลจาก API (เหมือนเว็บจริงที่ดึงข้อมูลสินค้า/โพสต์ ฯลฯ) แล้วแสดงผลออกมา — รวมความรู้ทั้งหมดที่เรียนมา: async/await, อาร์เรย์, อ็อบเจกต์, ลูป เข้าด้วยกันในโปรเจกต์เดียว',
+      example: 'async function main() {\n  let posts = await fetchPosts();\n  for (let i = 0; i < posts.length; i++) {\n    console.log(posts[i].title);\n  }\n}\nmain();'
+    },
+    exercises: [
+      {
+        title: 'ดึงข้อมูลด้วย async/await แล้ววนลูปแสดงผล',
+        instructions: 'เติม for loop ในฟังก์ชัน main (บรรทัดว่าง) ให้วน console.log(posts[i].title); ทุกโพสต์ แล้วรันดู — ควรเห็นทั้ง "โพสต์แรก" และ "โพสต์ที่สอง"',
+        starter: 'function fetchPosts() {\n  return new Promise(function (resolve) {\n    setTimeout(function () {\n      resolve([\n        { title: "โพสต์แรก" },\n        { title: "โพสต์ที่สอง" }\n      ]);\n    }, 100);\n  });\n}\n\nasync function main() {\n  let posts = await fetchPosts();\n  \n}\nmain();',
+        settleMs: 400,
+        tests: [
+          { type: 'log-includes', expected: 'โพสต์แรก', label: 'ต้องแสดง "โพสต์แรก"' },
+          { type: 'log-includes', expected: 'โพสต์ที่สอง', label: 'ต้องแสดง "โพสต์ที่สอง"' }
+        ]
+      },
+      {
+        title: 'กรองข้อมูลด้วย filter',
+        instructions: 'เปลี่ยน let activeUsers = users; เป็น let activeUsers = users.filter(function (u) { return u.active; }); แล้วรันดู — ควรได้ 2 (เฉพาะคนที่ active: true)',
+        starter: 'function fetchUsers() {\n  return new Promise(function (resolve) {\n    setTimeout(function () {\n      resolve([\n        { name: "สมชาย", active: true },\n        { name: "สมหญิง", active: false },\n        { name: "สมศักดิ์", active: true }\n      ]);\n    }, 100);\n  });\n}\n\nasync function main() {\n  let users = await fetchUsers();\n  let activeUsers = users;\n  console.log(activeUsers.length);\n}\nmain();',
+        settleMs: 400,
+        tests: [{ type: 'log-includes', expected: '2', label: 'ต้อง console.log(activeUsers.length) ออกมาเป็น 2' }]
+      },
+      {
+        title: 'จัดการข้อผิดพลาดตอนดึงข้อมูลล้มเหลว',
+        instructions: 'เติม console.log("โหลดข้อมูลล้มเหลว: " + err); ในบล็อก catch (บรรทัดว่าง) แล้วรันดู',
+        starter: 'function fetchData() {\n  return new Promise(function (resolve, reject) {\n    setTimeout(function () {\n      reject("เซิร์ฟเวอร์ไม่ตอบสนอง");\n    }, 100);\n  });\n}\n\nasync function main() {\n  try {\n    let data = await fetchData();\n    console.log(data);\n  } catch (err) {\n    \n  }\n}\nmain();',
+        settleMs: 400,
+        tests: [{ type: 'log-includes', expected: 'โหลดข้อมูลล้มเหลว: เซิร์ฟเวอร์ไม่ตอบสนอง', label: 'ต้อง console.log ข้อความ error ที่ถูกต้อง' }]
+      },
+      {
+        title: 'ดึงหลาย endpoint พร้อมกันด้วย Promise.all',
+        instructions: 'เปลี่ยนบรรทัดสุดท้ายในฟังก์ชันเป็น console.log(results[0] + results[1]); แล้วรันดู — ควรได้ 15 (Promise.all รอทุกตัวพร้อมกัน เร็วกว่าการ await ทีละตัว)',
+        starter: 'function fetchA() {\n  return new Promise(function (resolve) {\n    setTimeout(function () { resolve(5); }, 50);\n  });\n}\nfunction fetchB() {\n  return new Promise(function (resolve) {\n    setTimeout(function () { resolve(10); }, 50);\n  });\n}\n\nasync function main() {\n  let results = await Promise.all([fetchA(), fetchB()]);\n  console.log(results[0]);\n}\nmain();',
+        settleMs: 400,
+        tests: [{ type: 'log-includes', expected: '15', label: 'ต้อง console.log(results[0] + results[1]) ออกมาเป็น 15' }]
+      }
+    ]
+  },
+  {
+    /* ══ Track D: เนื้อหาสายอาชีพ (ไม่มีโค้ดให้เขียน) — kind 'reading' ต่างจากทุก kind ก่อนหน้า
+       ตรงที่ไม่มี code editor/test เลย มีแค่เนื้อหาให้อ่าน + ปุ่ม "ทำเครื่องหมายว่าอ่านแล้ว"
+       (เรียก handlePassFail(true) ตรงๆ) เพื่อปลดล็อกหัวข้อถัดไป — ดู UI wiring ส่วน
+       runBtnLabel()/selectItem()/runBtn click handler สำหรับ branch ของ kind นี้ */
+    id: 'career-path', kind: 'reading', label: 'สายอาชีพนักพัฒนา', labelEn: 'Career Path',
+    concept: {
+      explain: 'เขียนโค้ดเป็นแล้ว ต่อไปคือเอาไปใช้หารายได้จริง! หมวดนี้ไม่มีโค้ดให้เขียน แต่มีความรู้จริงที่ช่วยให้คุณก้าวจาก "เขียนโค้ดได้" ไปเป็น "หารายได้จากการเขียนโค้ด" — อ่านแต่ละหัวข้อแล้วกดทำเครื่องหมายว่าอ่านแล้วเพื่อปลดล็อกหัวข้อถัดไป'
+    },
+    exercises: [
+      {
+        title: 'สร้างพอร์ตโฟลิโอ (Portfolio)',
+        content: 'พอร์ตโฟลิโอคือสิ่งแรกที่ลูกค้า/บริษัทจะดูก่อนตัดสินใจจ้างคุณ — ควรมีอย่างน้อย 3-5 โปรเจกต์ที่ทำเสร็จสมบูรณ์ (ใช้โปรเจกต์จากแทร็ก "โปรเจกต์จบคอร์ส" ในเว็บนี้ได้เลย เช่น Landing Page, To-Do List, ฟอร์มติดต่อ) แต่ละโปรเจกต์ควรมี:\n\n- ลิงก์ไปดูเว็บที่ deploy ไว้จริง (ไม่ใช่แค่โค้ด)\n- ลิงก์ไปดูซอร์สโค้ดบน GitHub\n- คำอธิบายสั้นๆ ว่าโปรเจกต์นี้ทำอะไร ใช้เทคโนโลยีอะไรบ้าง\n\nเว็บไซต์พอร์ตโฟลิโอที่ดีไม่จำเป็นต้องซับซ้อน — เพจเดียวที่มีลิงก์ไปโปรเจกต์ทั้งหมดก็เพียงพอสำหรับเริ่มต้น'
+      },
+      {
+        title: 'หางานผ่านแพลตฟอร์ม Freelance',
+        content: 'แพลตฟอร์มยอดนิยมสำหรับหางานฟรีแลนซ์สายเขียนโค้ด:\n\n- Fastwork.co — แพลตฟอร์มไทย เหมาะสำหรับเริ่มต้น มีลูกค้าไทยเยอะ\n- Upwork.com / Fiverr.com — แพลตฟอร์มระดับโลก งานเยอะกว่าแต่แข่งขันสูงกว่า\n\nเทคนิคเริ่มต้น:\n1. เริ่มจากงานราคาไม่แพงเพื่อสร้างรีวิว/เรตติ้งก่อน\n2. เขียนโปรไฟล์ให้ชัดเจนว่าทำอะไรได้บ้าง แนบพอร์ตโฟลิโอ\n3. ตอบงานที่ตรงกับทักษะจริงๆ ไม่รับงานเกินความสามารถ\n4. ส่งงานตรงเวลาเสมอ — ความน่าเชื่อถือสำคัญกว่าความเร็ว'
+      },
+      {
+        title: 'Deploy เว็บของคุณด้วย GitHub Pages',
+        content: 'GitHub Pages คือบริการฟรีที่ให้คุณเอาเว็บ HTML/CSS/JS ธรรมดา (ไม่ต้องมี backend) ขึ้นออนไลน์ได้จริง — เว็บ Tanot ที่คุณกำลังใช้อยู่นี้ก็ deploy ด้วยวิธีเดียวกันนี้!\n\nขั้นตอนคร่าวๆ:\n1. สร้าง repository บน GitHub แล้วอัปโหลดไฟล์เว็บของคุณ (index.html เป็นต้น)\n2. ไปที่ Settings → Pages ของ repository\n3. เลือก branch ที่จะ deploy (มักเป็น main) แล้วกด Save\n4. รอสักครู่ จะได้ลิงก์แบบ https://ชื่อผู้ใช้.github.io/ชื่อ-repo/ ที่เปิดดูได้จริงจากทุกที่\n\nข้อดี: ฟรี 100%, เชื่อมกับ GitHub ที่มีอยู่แล้ว, เหมาะมากสำหรับใส่ลิงก์ในพอร์ตโฟลิโอ'
+      },
+      {
+        title: 'ก้าวต่อไป: เส้นทางสายอาชีพนักพัฒนา',
+        content: 'หลังพื้นฐานแน่นแล้ว เส้นทางที่ไปต่อได้มีหลายสาย:\n\n- Front-end Developer — เชี่ยวชาญ React/Vue เพิ่มเติมจาก HTML/CSS/JS ที่มีอยู่แล้ว\n- Back-end Developer — เรียนภาษาฝั่งเซิร์ฟเวอร์ (Node.js ใช้ JS ตัวเดียวกับที่เรียนมาได้เลย) + ฐานข้อมูล\n- Full-stack Developer — ทำได้ทั้งสองฝั่ง เป็นที่ต้องการสูงในตลาด\n\nคำแนะนำ: อย่ารีบกระโดดไปเรียนทุกอย่างพร้อมกัน — ทำโปรเจกต์จริงต่อเนื่อง สร้างพอร์ตโฟลิโอที่แข็งแรง แล้วค่อยๆ ขยายทักษะตามงานที่อยากทำ ทักษะเขียนโค้ดพื้นฐานที่เรียนจบในคอร์สนี้คือรากฐานที่ใช้ได้กับทุกสายที่กล่าวมา'
+      }
+    ]
   }
 ];
 
@@ -668,11 +865,12 @@ function elementSpecToHtml(el) {
   var classStr = classes.join(' ');
   var attrsStr = Object.keys(el.attrs || {}).map(function (k) { return ' ' + k + '="' + escapeHtmlText(el.attrs[k]) + '"'; }).join('');
   var valueStr = (el.tag === 'input' || el.tag === 'textarea') && el.value ? ' value="' + escapeHtmlText(el.value) + '"' : '';
+  var childrenHtml = (el.children || []).map(elementSpecToHtml).join('');
   return '<' + el.tag +
     (el.id ? ' id="' + el.id + '"' : '') +
     (classStr ? ' class="' + classStr + '"' : '') +
     (styleStr ? ' style="' + styleStr + '"' : '') +
-    valueStr + attrsStr + '>' + escapeHtmlText(el.text) + '</' + el.tag + '>';
+    valueStr + attrsStr + '>' + escapeHtmlText(el.text) + childrenHtml + '</' + el.tag + '>';
 }
 function domSpecToHtml(domSpec, previewCss) {
   var body = (domSpec || []).map(elementSpecToHtml).join('\n');
@@ -697,7 +895,8 @@ var I18N = {
     exerciseTitle: 'แบบฝึกหัด {n}', tryExample: 'ลองรันตัวอย่างนี้ดูได้เลย แล้วลองแก้โค้ดเล่นดู',
     openFullBtn: '🔗 เปิดดูเต็มจอ',
     toastTrackDone: 'จบแทร็ก "{track}" แล้ว! 🎉', toastBadge: 'ได้เหรียญตรา "{badge}"!',
-    toastLevelUp: 'เลเวลอัป! ระดับ {level} — {title}'
+    toastLevelUp: 'เลเวลอัป! ระดับ {level} — {title}',
+    markReadBtn: '✓ ทำเครื่องหมายว่าอ่านแล้ว'
   },
   en: {
     pageTitle: 'Coding', crumbResp: 'Responsibilities', crumbCoding: 'Coding',
@@ -709,7 +908,8 @@ var I18N = {
     exerciseTitle: 'Exercise {n}', tryExample: 'Try running this example, then experiment with the code.',
     openFullBtn: '🔗 Open Fullscreen',
     toastTrackDone: 'Track "{track}" complete! 🎉', toastBadge: 'Badge earned: "{badge}"!',
-    toastLevelUp: 'Level up! Level {level} — {title}'
+    toastLevelUp: 'Level up! Level {level} — {title}',
+    markReadBtn: '✓ Mark as Read'
   }
 };
 function t(key, vars) {
@@ -777,6 +977,11 @@ var BADGE_DEFS = [
   { id: 'track-js-events-forms', icon: '📝', th: 'นักฟอร์ม', en: 'Forms Master' },
   { id: 'track-js-async', icon: '⏳', th: 'เจ้าแห่ง Async', en: 'Async Master' },
   { id: 'track-js-localstorage', icon: '💾', th: 'นักเก็บข้อมูล', en: 'Storage Master' },
+  { id: 'track-project-landing-page', icon: '🏠', th: 'นักสร้าง Landing Page', en: 'Landing Page Builder' },
+  { id: 'track-project-todo-list', icon: '📋', th: 'นักสร้างแอป To-Do', en: 'To-Do App Builder' },
+  { id: 'track-project-contact-form', icon: '📨', th: 'นักสร้างฟอร์ม', en: 'Form Builder' },
+  { id: 'track-project-api-fetch', icon: '🌐', th: 'นักสร้างแอป API', en: 'API App Builder' },
+  { id: 'track-career-path', icon: '🎓', th: 'พร้อมหารายได้!', en: 'Career Ready!' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สแรก!', en: 'Course Complete!' }
@@ -814,7 +1019,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
       itemHeading = $('itemHeading'), openFullBtn = $('openFullBtn'),
       levelNumEl = $('levelNum'), levelTitleEl = $('levelTitleEl'), xpFillEl = $('xpFill'),
       streakCountEl = $('streakCount'), badgeRowEl = $('badgeRow'), toastWrap = $('toastWrap'),
-      confettiLayer = $('confettiLayer');
+      confettiLayer = $('confettiLayer'), editorWrapEl = $('editorWrap');
 
   var state = { trackId: TRACKS[0].id, itemIndex: 0, busy: false };
   var cm = null; /* CodeMirror instance ถ้าโหลดสำเร็จ — ไม่งั้น fallback ไปใช้ textarea ธรรมดา */
@@ -849,8 +1054,15 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
         span.classList.toggle('active', span.getAttribute('data-lt') === getUILang());
       });
     }
-    runBtn.textContent = t('runBtn');
+    runBtn.textContent = runBtnLabel();
     renderGamifyBar();
+  }
+
+  /* ปุ่มหลักเปลี่ยนความหมายตาม kind ของแทร็ก: kind ปกติ = "รัน" โค้ด, kind 'reading' (แทร็กสาย
+     อาชีพ ไม่มีโค้ดให้เขียน) = "ทำเครื่องหมายว่าอ่านแล้ว" เพื่อปลดล็อกหัวข้อถัดไป */
+  function runBtnLabel() {
+    var track = trackById(state.trackId);
+    return track.kind === 'reading' ? t('markReadBtn') : t('runBtn');
   }
 
   function renderGamifyBar() {
@@ -1005,22 +1217,25 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
     outputLog.innerHTML = '';
     var isHtml = track.kind === 'html';
     var isDom = track.kind === 'dom';
+    var isReading = track.kind === 'reading';
     htmlPreviewWrap.style.display = (isHtml || isDom) ? 'block' : 'none';
-    outputPanel.style.display = isHtml ? 'none' : 'block'; /* คอนโซล log ไม่เกี่ยวกับแทร็ก HTML เลย ซ่อนไปเลยแทนโชว์เปล่าๆ — DOM ยังโชว์ต่อ เผื่อ debug ด้วย console.log */
+    outputPanel.style.display = (isHtml || isReading) ? 'none' : 'block'; /* คอนโซล log ไม่เกี่ยวกับแทร็ก HTML/reading เลย ซ่อนไปเลยแทนโชว์เปล่าๆ — DOM ยังโชว์ต่อ เผื่อ debug ด้วย console.log */
     if (openFullBtn) openFullBtn.style.display = isHtml ? 'inline-flex' : 'none'; /* แทร็ก DOM ไม่โชว์ปุ่มนี้ เพราะโค้ดที่พิมพ์เป็น JS ไม่ใช่ HTML แบบ standalone ที่เปิดตรงๆ ได้ */
+    if (editorWrapEl) editorWrapEl.style.display = isReading ? 'none' : 'block'; /* แทร็ก reading (สายอาชีพ) ไม่มีโค้ดให้เขียน ซ่อนกล่องแก้ไขทั้งหมด */
+    runBtn.textContent = runBtnLabel();
 
     var drafts = loadDrafts();
     var draftKey = progressKey(state.trackId, idx);
 
     if (idx === 0) {
       itemHeading.textContent = t('conceptLabel');
-      instructionsBox.textContent = track.concept.explain + '\n\n' + t('tryExample');
-      setCode(drafts[draftKey] !== undefined ? drafts[draftKey] : track.concept.example);
+      instructionsBox.textContent = track.concept.explain + (isReading ? '' : ('\n\n' + t('tryExample')));
+      setCode(isReading ? '' : (drafts[draftKey] !== undefined ? drafts[draftKey] : track.concept.example));
     } else {
       var ex = track.exercises[idx - 1];
       itemHeading.textContent = t('exerciseTitle', { n: idx }) + ': ' + ex.title;
-      instructionsBox.textContent = ex.instructions;
-      setCode(drafts[draftKey] !== undefined ? drafts[draftKey] : ex.starter);
+      instructionsBox.textContent = isReading ? ex.content : ex.instructions;
+      setCode(isReading ? '' : (drafts[draftKey] !== undefined ? drafts[draftKey] : ex.starter));
     }
     if (isHtml) updateHtmlPreview();
     else if (isDom) updateDomPreviewIdle();
@@ -1110,12 +1325,19 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
   function setBusy(b) {
     state.busy = b;
     runBtn.disabled = b;
-    runBtn.textContent = b ? t('running') : t('runBtn');
+    runBtn.textContent = b ? t('running') : runBtnLabel();
   }
 
   runBtn.addEventListener('click', async function () {
     if (state.busy) return;
     var track = trackById(state.trackId);
+
+    if (track.kind === 'reading') {
+      if (state.itemIndex === 0) return; /* หน้าภาพรวมไม่มีอะไรให้ "ทำเครื่องหมายว่าอ่านแล้ว" แยกจากการเลือกหัวข้อถัดไปเอง */
+      handlePassFail(true);
+      return;
+    }
+
     var code = getCode();
     saveDraft(state.trackId, state.itemIndex, code);
     resultBanner.style.display = 'none';

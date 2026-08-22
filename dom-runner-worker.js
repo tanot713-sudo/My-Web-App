@@ -1,6 +1,7 @@
 /* ══════════════════════════════════════════════════════════════════
    Tanot — dom-runner-worker.js
-   รันโค้ด JS ของผู้เรียนที่จัดการ DOM แบบแยกส่วน (sandbox) สำหรับแทร็ก "DOM (JS)"
+   รันโค้ด JS ของผู้เรียนที่จัดการ DOM แบบแยกส่วน (sandbox) สำหรับแทร็ก "DOM (JS)" / "Events &
+   Forms" / โปรเจกต์จบคอร์สที่ต้องมีปฏิสัมพันธ์ (To-Do List / ฟอร์มติดต่อ)
 
    ⚠️ ทำไมไม่ใช้ DOM จริงใน <iframe> (ต่างจากที่ลองก่อนแล้วพบปัญหาจริง):
    ตอนแรกออกแบบให้รันโค้ดผู้เรียนใน <iframe sandbox="allow-scripts"> (ตัวเดียวกับพรีวิว HTML)
@@ -13,12 +14,21 @@
    code-runner-worker.js) เพราะ Worker มี .terminate() ที่ฆ่าลูปไม่รู้จบได้จริงจากภายนอก
 
    แต่ Worker ไม่มี document จริง (คนละ global scope จากหน้าเว็บหลัก) จึงสร้าง "DOM จำลอง"
-   (fake document) ขั้นต่ำ พอสำหรับสิ่งที่แบบฝึกหัดในแทร็กนี้ต้องใช้: getElementById/querySelector/
+   (fake document) พอสำหรับสิ่งที่แบบฝึกหัดในแทร็กเหล่านี้ต้องใช้: getElementById/querySelector/
    querySelectorAll, .textContent, .style.xxx, .classList.add/remove/contains/toggle,
-   getAttribute/setAttribute, addEventListener/removeEventListener, .click() (จำลอง event)
-   รันเสร็จแล้ว serialize สถานะสุดท้ายของ DOM จำลองกลับเป็น HTML string ธรรมดา (ไม่มีสคริปต์เลย)
+   getAttribute/setAttribute, addEventListener/removeEventListener, .click() (จำลอง event),
+   .value (input/textarea), createElement/appendChild/removeChild/.remove() (สร้าง/ลบ element
+   แบบไดนามิก สำหรับโปรเจกต์ To-Do List ที่ต้องเพิ่มรายการใหม่ได้จริง) — โครงสร้างเป็นทรี
+   (parent/children) ไม่ใช่ลิสต์แบนเหมือนตอนแรก เพื่อรองรับการ nest element เข้าไปข้างในกันได้
+   รันเสร็จแล้ว serialize สถานะสุดท้ายของทรีทั้งหมดกลับเป็น HTML string ธรรมดา (ไม่มีสคริปต์เลย)
    ส่งกลับไปให้หน้าเว็บหลัก set เป็น srcdoc ของ iframe พรีวิว — ผู้เรียนเห็นผลลัพธ์จริงเป็นภาพ
    แต่ตัว "การรัน" เกิดขึ้นใน Worker ที่ฆ่าได้เท่านั้น ไม่มีทางค้างจริง
+
+   ⚠️ ข้อจำกัดที่ตั้งใจไว้ (เพียงพอสำหรับแบบฝึกหัดในเว็บนี้ ไม่ได้พยายามเลียนแบบ DOM จริงทั้งหมด):
+   - text content กับ children element ไม่ได้ผสมกันตามลำดับจริงเหมือน DOM จริง (text จะ render
+     ก่อน children เสมอ) — เพียงพอเพราะแบบฝึกหัดที่ออกแบบไว้ไม่มี element ไหนมีทั้งสองอย่างปนกัน
+   - selector engine รองรับแค่ #id, .class, tagName เดี่ยวๆ ไม่รองรับ selector ประกอบ (เช่น
+     "#list li") — ออกแบบแบบฝึกหัดให้เลี่ยงกรณีนี้เสมอ (ใช้ id/tag ที่ไม่ซ้ำกันในแต่ละ domSpec)
    ══════════════════════════════════════════════════════════════════ */
 
 function escapeHtmlText(s) {
@@ -26,10 +36,12 @@ function escapeHtmlText(s) {
 }
 
 function makeFakeElement(spec) {
+  spec = spec || {};
   var el = {
     tag: spec.tag, id: spec.id || '',
     classes: {}, attrs: {}, styleObj: {},
-    _text: spec.text || '', _value: spec.value !== undefined ? String(spec.value) : '', _listeners: {}
+    _text: spec.text || '', _value: spec.value !== undefined ? String(spec.value) : '',
+    _listeners: {}, children: [], parent: null
   };
   if (spec.classes) (Array.isArray(spec.classes) ? spec.classes : Object.keys(spec.classes)).forEach(function (c) { el.classes[c] = true; });
   if (spec.style) Object.keys(spec.style).forEach(function (k) { el.styleObj[k] = spec.style[k]; });
@@ -88,28 +100,60 @@ function makeFakeElement(spec) {
     });
   };
   el.click = function () { el._dispatch('click'); };
+
+  /* appendChild/removeChild/.remove() — สำหรับสร้าง element ใหม่แบบไดนามิกด้วย
+     document.createElement() แล้วต่อเข้าทรี (โปรเจกต์ To-Do List ต้องใช้จริง) */
+  el.appendChild = function (child) {
+    if (child.parent) child.parent.removeChild(child);
+    child.parent = el;
+    el.children.push(child);
+    return child;
+  };
+  el.removeChild = function (child) {
+    el.children = el.children.filter(function (c) { return c !== child; });
+    if (child.parent === el) child.parent = null;
+    return child;
+  };
+  el.remove = function () {
+    if (el.parent) el.parent.removeChild(el);
+  };
+
+  if (spec.children) spec.children.forEach(function (childSpec) { el.appendChild(makeFakeElement(childSpec)); });
   return el;
 }
 
+/* เดินทรีทั้งหมด (roots + ลูกหลานทุกชั้น) เป็น flat array — ใช้เป็นฐานให้ querySelector/All ค้นหา
+   ทั่วทั้งทรี ไม่ใช่แค่ระดับบนสุดเหมือนตอนที่ยังเป็นลิสต์แบน */
+function collectAll(roots) {
+  var out = [];
+  function walk(el) { out.push(el); el.children.forEach(walk); }
+  roots.forEach(walk);
+  return out;
+}
+
 function makeFakeDocument(domSpec) {
-  var elements = (domSpec || []).map(makeFakeElement);
+  var roots = (domSpec || []).map(makeFakeElement);
+  function all() { return collectAll(roots); }
   function matchOne(sel) {
     if (!sel) return null;
+    var elements = all();
     if (sel[0] === '#') { var id = sel.slice(1); for (var i = 0; i < elements.length; i++) if (elements[i].id === id) return elements[i]; return null; }
     if (sel[0] === '.') { var cls = sel.slice(1); for (var j = 0; j < elements.length; j++) if (elements[j].classes[cls]) return elements[j]; return null; }
     for (var k = 0; k < elements.length; k++) if (elements[k].tag === sel) return elements[k];
     return null;
   }
   return {
-    getElementById: function (id) { for (var i = 0; i < elements.length; i++) if (elements[i].id === id) return elements[i]; return null; },
+    getElementById: function (id) { var elements = all(); for (var i = 0; i < elements.length; i++) if (elements[i].id === id) return elements[i]; return null; },
     querySelector: matchOne,
     querySelectorAll: function (sel) {
       if (!sel) return [];
+      var elements = all();
       if (sel[0] === '.') { var cls = sel.slice(1); return elements.filter(function (e) { return e.classes[cls]; }); }
       if (sel[0] === '#') { var el = matchOne(sel); return el ? [el] : []; }
       return elements.filter(function (e) { return e.tag === sel; });
     },
-    _elements: elements
+    createElement: function (tag) { return makeFakeElement({ tag: tag }); },
+    _roots: roots
   };
 }
 
@@ -121,11 +165,12 @@ function elementSpecToHtml(el) {
   var classStr = Object.keys(el.classes || {}).filter(function (c) { return el.classes[c]; }).join(' ');
   var attrsStr = Object.keys(el.attrs || {}).map(function (k) { return ' ' + k + '="' + escapeHtmlText(el.attrs[k]) + '"'; }).join('');
   var valueStr = (el.tag === 'input' || el.tag === 'textarea') && el._value ? ' value="' + escapeHtmlText(el._value) + '"' : '';
+  var childrenHtml = (el.children || []).map(elementSpecToHtml).join('');
   return '<' + el.tag +
     (el.id ? ' id="' + el.id + '"' : '') +
     (classStr ? ' class="' + classStr + '"' : '') +
     (styleStr ? ' style="' + styleStr + '"' : '') +
-    valueStr + attrsStr + '>' + escapeHtmlText(el._text) + '</' + el.tag + '>';
+    valueStr + attrsStr + '>' + escapeHtmlText(el._text) + childrenHtml + '</' + el.tag + '>';
 }
 
 /* ตัวแปร document ต้องเป็น global ของสคริปต์ (ประกาศนอก onmessage) เพราะ (0, eval) แบบ indirect
@@ -164,6 +209,7 @@ self.onmessage = function (e) {
 
   var testResults = (msg.tests || []).map(function (test) {
     try {
+      if (test.type === 'dom-count') return { label: test.label, pass: document.querySelectorAll(test.selector).length === test.count };
       if (test.type === 'dom-exists') return { label: test.label, pass: !!document.querySelector(test.selector) };
       var el = document.querySelector(test.selector);
       if (!el) return { label: test.label, pass: false };
@@ -171,14 +217,13 @@ self.onmessage = function (e) {
       if (test.type === 'dom-attr') return { label: test.label, pass: ((el.attrs[test.attr] || '')).indexOf(test.includes) !== -1 };
       if (test.type === 'dom-style') return { label: test.label, pass: String(el.styleObj[test.prop] || '').indexOf(test.includes) !== -1 };
       if (test.type === 'dom-class') return { label: test.label, pass: !!el.classes[test.class] };
-      if (test.type === 'dom-count') return { label: test.label, pass: document.querySelectorAll(test.selector).length === test.count };
       if (test.type === 'dom-value') return { label: test.label, pass: (el._value || '').indexOf(test.includes) !== -1 };
       return { label: test.label, pass: false };
     } catch (err) { return { label: test.label, pass: false }; }
   });
 
   var previewHtml = (msg.previewCss ? '<style>' + msg.previewCss + '</style>\n' : '') +
-    document._elements.map(elementSpecToHtml).join('\n');
+    document._roots.map(elementSpecToHtml).join('\n');
 
   console.log = origLog;
   self.postMessage({ jobId: msg.jobId, logs: logs, testResults: testResults, runtimeError: runtimeError, previewHtml: previewHtml });
