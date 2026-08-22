@@ -70,6 +70,36 @@ function svgWrap(inner, viewW, viewH, maxW, label) {
     '<svg viewBox="0 0 ' + viewW + ' ' + viewH + '" style="width:100%;max-width:' + maxW + 'px;height:auto;display:block;margin:0 auto" role="img" aria-label="' + label + '">' +
     inner + '</svg></div>';
 }
+/* แถบป้ายข้อเท็จจริงสั้นๆ — ใช้กับบทเรียนที่เป็นกติกา/ตัวเลขล้วน ไม่มีภาพจริงให้วาด
+   (facts: [{title, sub, color}, ...] — title เป็นตัวเลข/คำหลัก, sub เป็นคำอธิบายสั้นๆ) */
+function svgFactStrip(facts, label) {
+  var badgeW = 118, gap = 12, h = 64;
+  var n = facts.length;
+  var viewW = n * badgeW + (n - 1) * gap + 20;
+  var inner = facts.map(function (f, i) {
+    var x = 10 + i * (badgeW + gap);
+    return '<rect x="' + x + '" y="10" width="' + badgeW + '" height="' + h + '" rx="14" fill="' + f.color + '" opacity="0.14" stroke="' + f.color + '" stroke-width="2"/>' +
+      '<text x="' + (x + badgeW / 2) + '" y="38" font-size="12.5" font-weight="800" text-anchor="middle" fill="' + f.color + '">' + f.title + '</text>' +
+      '<text x="' + (x + badgeW / 2) + '" y="58" font-size="10.5" font-weight="600" text-anchor="middle" fill="' + f.color + '">' + f.sub + '</text>';
+  }).join('');
+  return svgWrap(inner, viewW, 84, Math.min(viewW, 560), label);
+}
+/* กล่องขั้นตอนต่อเนื่องเชื่อมด้วยลูกศร — ใช้กับบทเรียนที่อธิบายลำดับ/กระบวนการ/ระยะ
+   (steps: [{title, sub, color}, ...]) */
+function svgFlowSteps(steps, label) {
+  var boxW = 100, boxH = 54, gap = 36, y = 30;
+  var n = steps.length;
+  var viewW = n * boxW + (n - 1) * gap + 20;
+  var parts = [];
+  steps.forEach(function (s, i) {
+    var x = 10 + i * (boxW + gap);
+    parts.push('<rect x="' + x + '" y="' + y + '" width="' + boxW + '" height="' + boxH + '" rx="10" fill="' + s.color + '" opacity="0.9"/>');
+    parts.push('<text x="' + (x + boxW / 2) + '" y="' + (y + boxH / 2 + 5) + '" font-size="12" font-weight="800" text-anchor="middle" fill="#FFFFFF">' + s.title + '</text>');
+    if (s.sub) parts.push('<text x="' + (x + boxW / 2) + '" y="' + (y + boxH + 18) + '" font-size="10.5" text-anchor="middle" fill="#1F2430">' + s.sub + '</text>');
+    if (i < n - 1) parts.push(svgArrow(x + boxW + 4, y + boxH / 2, x + boxW + gap - 4, y + boxH / 2, '#1F2430'));
+  });
+  return svgWrap(parts.join(''), viewW, y + boxH + 32, Math.min(viewW, 560), label);
+}
 /* สนามฟุตบอล + แผนการเล่น 4-4-2 (11 ตำแหน่ง: GK 1, DF 4, MF 4, FW 2) */
 function buildFootballFormationSvg() {
   var positions = [
@@ -358,7 +388,12 @@ var TRACKS = [
           "Football (Soccer) is the world's most-watched sport, played between 2 teams of 11 players each on the field (including the goalkeeper). The goal is to kick the ball into the opponent's net more times than they score against you.",
           'A match is split into 2 halves, 45 minutes each (90 minutes total), with a short halftime break between them. The referee may add stoppage time at the end of each half to compensate for time lost.',
           'Players may not touch the ball with their hands or arms (except the goalkeeper inside their own penalty area) — they must use their feet, head, or other body parts instead.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: '11 v 11', sub: 'players per side', color: '#2F9E44' },
+          { title: '2 x 45 min', sub: 'match halves', color: '#2F9E44' },
+          { title: '🚫 Hands', sub: 'outfield players', color: '#E8590C' }
+        ], 'football match facts: 11 vs 11, 2x45 minutes, no hands')),
       readingItem('การล้ำหน้าและใบเหลือง-แดง', 'Offside & Cards',
         [
           "กติกาล้ำหน้า (Offside): ผู้เล่นจะ 'ล้ำหน้า' ถ้าอยู่ใกล้ประตูคู่แข่งกว่าบอลและกว่าผู้เล่นฝ่ายตรงข้ามคนรองสุดท้าย (ปกติคือกองหลัง) ในจังหวะที่เพื่อนร่วมทีมส่งบอลมาให้ — ถ้าล้ำหน้าแล้วรับบอล กรรมการจะเป่าฟาวล์",
@@ -369,7 +404,12 @@ var TRACKS = [
           "The Offside rule: a player is 'offside' if they are nearer to the opponent's goal than both the ball and the second-to-last opponent (usually a defender) at the moment a teammate passes to them — receiving the ball while offside gets whistled as a foul.",
           'A Yellow Card is a warning for a moderately serious rule violation. If the same player receives 2 yellow cards in one match, it automatically becomes a red card and they are sent off.',
           'A Red Card means immediate ejection from the match. The team that gets a player sent off must play the rest of the match with one fewer player and cannot bring on a substitute to replace them.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Offside', sub: 'nearer goal than ball+DF', color: '#F5A524' },
+          { title: '🟨🟨 = 🟥', sub: '2 yellows = red', color: '#E8590C' },
+          { title: '🟥 Sent Off', sub: 'play a man down', color: '#C92A2A' }
+        ], 'football offside and card rules diagram')),
       readingItem('ตำแหน่งผู้เล่นและแผนการเล่น 4-4-2', 'Player Positions & the 4-4-2 Formation',
         [
           "แผนการเล่น (Formation) คือการจัดตำแหน่งผู้เล่น 11 คนในสนาม แผนยอดนิยมแบบหนึ่งคือ '4-4-2' หมายถึงกองหลัง 4 คน กองกลาง 4 คน กองหน้า 2 คน (ไม่รวมผู้รักษาประตู)",
@@ -408,7 +448,13 @@ var TRACKS = [
           'A Free Kick comes in two types: a Direct Free Kick (which can be shot straight into the goal) is awarded for serious fouls like pushing or tripping; an Indirect Free Kick (which must touch another player before it can count as a goal) is awarded for lighter offenses, such as offside or a goalkeeper holding the ball too long.',
           "A Penalty Kick is awarded when the defending team commits a foul inside their own penalty area. It's taken from the penalty spot with only the goalkeeper to beat — the single highest-percentage scoring chance in the game.",
           'Substitutions: each team may make a limited number of substitutions per match (typically 3-5 depending on the competition). A player who has been substituted off cannot return to the field for the rest of that match.'
-        ]),
+        ],
+        svgFlowSteps([
+          { title: 'Throw-in', sub: 'out on sideline', color: '#1971C2' },
+          { title: 'Goal/Corner', sub: 'out on goal line', color: '#2F9E44' },
+          { title: 'Free Kick', sub: 'foul committed', color: '#F5A524' },
+          { title: 'Penalty', sub: 'foul in the box', color: '#E8590C' }
+        ], 'football restart types flow diagram')),
       readingItem('กลยุทธ์เกมรับ: เพรสสูง (High Press) กับตั้งรับเป็นบล็อกต่ำ (Low Block)', 'Defensive Tactics: High Press vs Low Block',
         [
           'High Press (เพรสสูง): ทีมเข้าไปกดดันคู่แข่งตั้งแต่แดนของฝ่ายตรงข้าม พยายามแย่งบอลคืนให้เร็วที่สุดก่อนที่คู่แข่งจะตั้งเกมได้ ต้องใช้พลังงานสูงและวิ่งประกบกันเป็นทีม เหมาะกับทีมที่มีความฟิตดีและเล่นเป็นระบบ',
@@ -435,7 +481,12 @@ var TRACKS = [
           "Good header timing means reading the ball's flight in advance and jumping so you meet the ball at the top of your own jump, rather than jumping late and chasing it — this gives you a height advantage over the opponent.",
           "A Standing Tackle is safer and more controlled — using the foot to poke the ball away without going to ground. A Sliding Tackle carries more risk — timing must be precise, and the tackler must play the ball before the opponent's leg. Coming in too late, or making contact with the leg before the ball, is an immediate foul.",
           "Dangerous tackles (such as lunging in studs-up, or tackling from behind without seeing the ball) usually draw a yellow or straight red card. A foul that denies an obvious goal-scoring opportunity on the last defender often results in a straight red card even if the contact itself wasn't especially forceful."
-        ])
+        ],
+        svgFactStrip([
+          { title: 'Header', sub: 'forehead, eyes open', color: '#1971C2' },
+          { title: 'Standing Tackle', sub: 'safer, controlled', color: '#2F9E44' },
+          { title: 'Sliding Tackle', sub: 'ball first, risky', color: '#E8590C' }
+        ], 'football heading and tackling technique facts'))
     ]
   },
   {
@@ -453,7 +504,12 @@ var TRACKS = [
           "Basketball is played between 2 teams of 5 players each on the court. The goal is to shoot the ball into the opponent's basket (hoop) to score more points than them. A standard court has a hoop at each end.",
           'A match is divided into 4 quarters, each 10-12 minutes depending on the league (e.g. the NBA uses 12 minutes, FIBA uses 10 minutes), with short breaks between quarters and a longer halftime break after quarter 2.',
           'Scoring: a shot made from inside the 3-point line is worth 2 points, a shot from outside the 3-point line is worth 3 points, and a free throw is worth 1 point each.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: '5 v 5', sub: 'players per side', color: '#D9822B' },
+          { title: '4 x 10-12 min', sub: 'quarters', color: '#D9822B' },
+          { title: '2 / 3 / 1 pts', sub: 'shot values', color: '#E8590C' }
+        ], 'basketball match facts diagram')),
       readingItem('การเลี้ยงบอลและการฟาวล์', 'Dribbling & Fouls',
         [
           "การเลี้ยงบอล (Dribbling): ผู้เล่นที่ถือบอลต้องเลี้ยงบอล (กระเด้งบอลกับพื้นต่อเนื่อง) ขณะเดินหรือวิ่ง ถ้าหยุดเลี้ยงแล้วเริ่มเลี้ยงใหม่ (Double Dribble) หรือเดินโดยไม่เลี้ยงบอล (Traveling) จะถูกเป่าฟาวล์ เสียสิทธิ์ครองบอลให้ฝ่ายตรงข้าม",
@@ -464,7 +520,12 @@ var TRACKS = [
           'Dribbling: a player holding the ball must dribble (continuously bounce it on the floor) while walking or running. Stopping and re-starting a dribble (Double Dribble) or walking without dribbling (Traveling) is a violation, giving possession to the other team.',
           "Each player has a personal foul quota, usually 5-6 depending on the league. Reaching the foul limit means being 'fouled out' — the player must leave the game immediately.",
           'The 24-Second Shot Clock: the team in possession must get a shot to hit the rim within 24 seconds (some leagues use 30, or 14 after an offensive rebound), or they lose possession.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: '5-6 fouls', sub: 'personal foul limit', color: '#E8590C' },
+          { title: '24 sec', sub: 'shot clock', color: '#D9822B' },
+          { title: '🚫 Double Dribble', sub: 'lose possession', color: '#C92A2A' }
+        ], 'basketball dribbling and foul rules diagram')),
       readingItem('5 ตำแหน่งผู้เล่นบาสเกตบอล', 'The 5 Basketball Positions',
         [
           'บาสเกตบอลมีตำแหน่งหลัก 5 ตำแหน่ง: การ์ดจ่าย (Point Guard, PG) ผู้นำเกมรุกและจ่ายบอล, การ์ดยิง (Shooting Guard, SG) ทำหน้าที่ยิงระยะไกล, สมอลฟอร์เวิร์ด (Small Forward, SF) เล่นได้รอบด้านทั้งยิงและตัดเข้าห่วง',
@@ -505,7 +566,12 @@ var TRACKS = [
           'A Technical Foul is given for unsportsmanlike conduct, such as arguing aggressively with a referee. The opposing team is awarded free throws without losing possession — unlike a regular personal foul, which comes from physical contact.',
           "Bonus Free Throws: once a team's fouls in a quarter reach the team-foul limit (usually 5), every additional foul by that team sends the opponent to the free-throw line, even if the foul didn't happen during a shot — this is called being 'in the bonus'.",
           'If the score is tied at the end of the 4th quarter, the game goes to Overtime — extra 5-minute periods played one after another until one team is ahead when time runs out.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: '3 sec', sub: 'max time in the key', color: '#D9822B' },
+          { title: 'Goaltending', sub: 'ball on downward path', color: '#E8590C' },
+          { title: '+5 min', sub: 'overtime period', color: '#1971C2' }
+        ], 'basketball violations and overtime rules diagram')),
       readingItem('กลยุทธ์เกมรับ: Man-to-Man กับ Zone Defense', 'Defensive Tactics: Man-to-Man vs Zone Defense',
         [
           'Man-to-Man Defense (ประกบตัวต่อตัว): ผู้เล่นแต่ละคนรับผิดชอบประกบคู่แข่งคนใดคนหนึ่งตลอดเกม ไม่ว่าคู่แข่งจะเคลื่อนที่ไปไหนในสนาม ข้อดีคือกดดันได้ตรงจุดและปรับตัวไล่ตามผู้เล่นเก่งของคู่แข่งได้ง่าย แต่เสี่ยงถ้าผู้เล่นวิ่งไม่ทันหรือโดนสกรีน (Screen) บล็อกทาง',
@@ -530,7 +596,12 @@ var TRACKS = [
           "The key rebounding technique is Boxing Out — turning your back to the opponent to keep them away from the basket before the ball comes down, spreading your arms wide and bending your knees low for a stable base, then jumping to grab the ball once it arrives.",
           "The Pick and Roll is the single most common tactic in modern basketball: one player (the Screener) stands in the way of the defender guarding a teammate who has the ball (the Ball Handler), opening a lane for that teammate to drive. The Screener then 'rolls' toward the basket to receive a pass while the defense is scrambled.",
           "Defenses handle the Pick and Roll several ways — for example, Switching (the two defenders simply swap assignments when the screen happens) or Hedging/Showing (the defender guarding the screener briefly steps out to slow the ball handler before recovering back to their own man)."
-        ])
+        ],
+        svgFlowSteps([
+          { title: 'Screen', sub: 'block defender', color: '#1971C2' },
+          { title: 'Drive', sub: 'ball handler attacks', color: '#2F9E44' },
+          { title: 'Roll', sub: 'screener cuts to hoop', color: '#E8590C' }
+        ], 'basketball pick and roll sequence diagram'))
     ]
   },
   {
@@ -548,7 +619,12 @@ var TRACKS = [
           "Volleyball is played between 2 teams of 6 players each on the court, divided by a net in the middle. The goal is to hit the ball over the net so it lands on the opponent's side, or to force the opponent into a mistake.",
           'Each team may touch the ball up to 3 times per side (not counting a block) before it must cross the net. No single player may touch the ball twice in a row (except for a block).',
           'A match is played best-of-5 sets (first to win 3 sets). Each set is played to 25 points (the deciding 5th set is played to 15), and a team must win by at least 2 points to take the set.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: '6 v 6', sub: 'players per side', color: '#2B6CB0' },
+          { title: '3 touches', sub: 'max per side', color: '#2B6CB0' },
+          { title: 'Best of 5', sub: 'sets, to 25 pts', color: '#1971C2' }
+        ], 'volleyball match facts diagram')),
       readingItem('การเสิร์ฟ บล็อก และตำแหน่งหมุนเวียน', 'Serving, Blocking & Rotation',
         [
           'การเสิร์ฟ (Serve): ผู้เล่นเสิร์ฟยืนหลังเส้นท้ายสนามแล้วตีบอลข้ามตาข่ายเข้าไปในสนามคู่แข่ง เป็นการเริ่มต้นทุกแต้ม ถ้าเสิร์ฟบอลออกหรือติดตาข่าย ฝ่ายตรงข้ามได้แต้มทันที',
@@ -559,7 +635,12 @@ var TRACKS = [
           "The Serve: the serving player stands behind the back line and hits the ball over the net into the opponent's court. It starts every point — if the serve goes out of bounds or hits the net without crossing, the other team scores immediately.",
           "The Block: front-row players may jump and reach over the net to intercept the opponent's attack. A block does not count as one of the team's 3 allowed touches.",
           "Rotation: every time a team regains the right to serve (after winning a point off the opponent's serve), all 6 players rotate one position clockwise, so everyone takes turns serving and playing every position."
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Serve', sub: 'starts every point', color: '#1971C2' },
+          { title: 'Block', sub: 'not a counted touch', color: '#2F9E44' },
+          { title: 'Rotate', sub: 'clockwise on serve win', color: '#E8590C' }
+        ], 'volleyball serving blocking and rotation facts diagram')),
       readingItem('6 โซนตำแหน่งและการหมุนตำแหน่ง', 'The 6 Court Zones & Rotation',
         [
           'สนามฝั่งหนึ่งแบ่งเป็น 6 โซน มีเลขกำกับ 1-6 — แถวหน้า (ใกล้ตาข่าย) คือโซน 4, 3, 2 (ซ้ายไปขวา) แถวหลัง (ใกล้เส้นหลัง) คือโซน 5, 6, 1 (ซ้ายไปขวา)',
@@ -598,7 +679,12 @@ var TRACKS = [
           "Carrying/Lifting: contacting the ball in a way that looks like 'catching' or 'throwing' it rather than a clean, brief touch or strike — this most often happens during a set — is a fault.",
           "Net Touch: players may not touch the net while playing the ball (a very light, incidental touch that doesn't affect play is usually allowed), and may not cross under the net into the opponent's side while the ball is in play.",
           'Two main serve types: the Float Serve (a serve with no spin, making the ball\'s flight unpredictable and hard to read) and the Jump Serve (a jumping serve struck hard and fast like an attack, popular at higher levels because it puts heavy pressure on the receiving team).'
-        ]),
+        ],
+        svgFactStrip([
+          { title: '🚫 4 Hits', sub: 'over 3 touches', color: '#E8590C' },
+          { title: '🚫 Double Touch', sub: 'same player x2', color: '#E8590C' },
+          { title: 'Float / Jump', sub: '2 serve types', color: '#1971C2' }
+        ], 'volleyball common faults and serve types diagram')),
       readingItem('เทคนิคการตบบอล (Spike/Attack) และการเซ็ต', 'Spike/Attack Technique & Setting',
         [
           'การเข้าตบบอล (Approach) แบบมาตรฐานมี 3-4 ก้าว: ก้าวแรกสั้นๆ กำหนดจังหวะ ก้าวที่สองยาวขึ้นเพื่อสร้างความเร็ว ก้าวสุดท้ายเป็นการทิ้งเท้าลงพร้อมกัน (ปกติเท้าซ้ายแล้วขวาสำหรับคนถนัดขวา) เพื่อเบรกความเร็วในแนวนอนเป็นแรงกระโดดในแนวตั้ง ดูไดอะแกรมด้านล่างประกอบ',
@@ -623,7 +709,12 @@ var TRACKS = [
           'The 6-2 system uses two setters who alternate: hitting while in the front row and setting while in the back row. This keeps the team with a full 3 front-row hitters at all times (instead of only 2 under a 5-1 system) — but it requires two players who are both strong setters.',
           'The Libero is a specialist defensive position, wearing a different-colored jersey so referees can spot them easily. They can substitute in and out an unlimited number of times (but only ever swapping with the same back-row player) and may not attack the ball above net height.',
           'Traditionally the Libero was not allowed to serve, but many current competitions now allow the Libero to serve in place of one rotation position (check the specific rules of each competition). The Libero\'s strength is elite passing and defensive skill, which reduces a team\'s risk of losing points on serve-receive or dig errors.'
-        ])
+        ],
+        svgFactStrip([
+          { title: '5-1', sub: 'one setter', color: '#1971C2' },
+          { title: '6-2', sub: 'two setters', color: '#2F9E44' },
+          { title: 'Libero', sub: 'defense specialist', color: '#E8590C' }
+        ], 'volleyball 5-1 6-2 systems and libero position diagram'))
     ]
   },
   {
@@ -641,7 +732,12 @@ var TRACKS = [
           "Badminton can be played Singles (1 vs 1) or Doubles (2 vs 2). Players hit a shuttlecock over the net so it lands inside the opponent's court, while keeping it from hitting the floor on their own side.",
           'A match is best-of-3 games (first to win 2). Each game is played to 21 points, won by a margin of at least 2 points (if tied 20-20, a team must lead by 2, up to a hard cap of 30 — first to 30 at 29-29 wins outright).',
           "The scoring system is the 'Rally Point System' — a point is scored on every rally regardless of who served (unlike the old system, where only the serving side could score)."
-        ]),
+        ],
+        svgFactStrip([
+          { title: '1v1 / 2v2', sub: 'singles or doubles', color: '#2F9E44' },
+          { title: '21 pts', sub: 'per game, win by 2', color: '#2F9E44' },
+          { title: 'Rally Point', sub: 'score every rally', color: '#1971C2' }
+        ], 'badminton match facts diagram')),
       readingItem('การเสิร์ฟและข้อผิดพลาดที่พบบ่อย', 'Serving & Common Faults',
         [
           "การเสิร์ฟ (Serve) ต้องตีลูกจากใต้เอวขึ้นไป (Underarm) เท่านั้น ห้ามตีลูกในระดับสูงกว่านั้น และหัวไม้ต้องชี้ต่ำกว่ามือที่จับด้ามขณะตี ถ้าผิดกติกาถือเป็น 'Service Fault' เสียแต้มทันที",
@@ -652,7 +748,12 @@ var TRACKS = [
           "The serve must be hit underarm (from below the waist) only — hitting the shuttlecock at a higher point is not allowed, and the racket head must point below the serving hand while striking. Breaking this rule is a 'Service Fault' and costs the point immediately.",
           "In doubles, the server and receiver must stand in the correct service court based on their team's score being even or odd (an even score serves from the right court, an odd score serves from the left).",
           "A shuttlecock is called 'out' if it lands outside the court lines, if a player fails to hit it over the net, or if it touches a player's body before hitting the ground — in every case, the other side scores the point immediately under the Rally Point System."
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Underarm', sub: 'below the waist', color: '#1971C2' },
+          { title: '🚫 Service Fault', sub: 'lose point instantly', color: '#E8590C' },
+          { title: 'Even→R / Odd→L', sub: 'doubles courts', color: '#2F9E44' }
+        ], 'badminton serving and common fault facts diagram')),
       readingItem('เส้นสนามเดี่ยว vs เส้นสนามคู่', 'Singles vs Doubles Court Lines',
         [
           'สนามแบดมินตันมีเส้นสองชุดซ้อนกัน: เส้นสนามเดี่ยว (Singles) แคบกว่าแต่ลึกกว่า และเส้นสนามคู่ (Doubles) กว้างกว่าแต่ตื้นกว่า — ผู้เล่นต้องรู้ว่าเส้นไหนใช้กับประเภทที่ตัวเองเล่นอยู่',
@@ -689,7 +790,12 @@ var TRACKS = [
           'Other common faults: a player may not touch the net with their body or racket while the shuttle is still in play, may not hit the shuttle before it has crossed to their own side, and may not make noise or gestures meant to distract the opponent.',
           "In doubles, whichever team wins the rally (by winning back the serve) earns the right to serve, but the two players on that team don't necessarily alternate who serves — whoever happens to be standing in the right-side court when the team wins the point serves next (it may not be the same player who served last time), making doubles rotation more complex than volleyball's.",
           'There are two basic grips: the Forehand Grip (like a handshake grip, suited to hitting shots on the racket-arm side) and the Backhand Grip (rotate the thumb onto the flat of the handle, suited to hitting shots on the non-racket side without turning the body).'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Let', sub: 'replay, no penalty', color: '#1971C2' },
+          { title: '🚫 Net Touch', sub: 'while ball in play', color: '#E8590C' },
+          { title: 'Forehand / Backhand', sub: '2 grips', color: '#2F9E44' }
+        ], 'badminton more faults and grip facts diagram')),
       readingItem('กลยุทธ์การเล่นคู่: รูปแบบยืนหน้า-หลัง กับ ซ้าย-ขวา', 'Doubles Strategy: Front-Back vs Side-by-Side Formations',
         [
           'รูปแบบยืนหน้า-หลัง (Front-Back Formation): ผู้เล่นคนหนึ่งยืนใกล้ตาข่ายคอยสกัด/ตบลูกสั้น อีกคนยืนลึกคอยรับ Clear และตบลูกไกล ใช้เมื่อทีมเป็นฝ่ายรุก (เพิ่งเสิร์ฟหรือกำลังกดดันคู่แข่ง) เพราะแบ่งหน้าที่ชัดเจนระหว่างเกมหน้าตาข่ายกับเกมหลังสนาม',
@@ -714,7 +820,12 @@ var TRACKS = [
           "Drive: a shot hit flat and fast, parallel to the floor and the net, with no arc. It's often used to trade fast exchanges in the mid-court so the opponent has no time to set up a smash — a shot that demands quick reflexes.",
           "Around-the-Head Stroke: used when the shuttle floats toward the shoulder on the opposite side from the racket hand (e.g. for a right-handed player, a shuttle floating toward the left shoulder). Instead of hitting a weaker backhand, the player reaches the racket up and over the head to strike with a forehand-style motion, producing far more power than a backhand.",
           "Which shot to use depends on the rhythm of the rally: Net Shots and Drops are suited to slowing the pace down, while Drives and Smashes are suited to speeding the pace up to finish the point."
-        ])
+        ],
+        svgFactStrip([
+          { title: 'Net Shot', sub: 'soft, close to net', color: '#2F9E44' },
+          { title: 'Drive', sub: 'flat and fast', color: '#E8590C' },
+          { title: 'Around-the-Head', sub: 'forehand power, off-side', color: '#1971C2' }
+        ], 'badminton advanced shots facts diagram'))
     ]
   },
   {
@@ -732,7 +843,12 @@ var TRACKS = [
           'Tennis can be played Singles or Doubles. Players hit the ball over the net with a racket so it lands inside the opponent\'s court, and are allowed one bounce on their side before returning it.',
           "Scoring within a game uses a special sequence: 0 = Love, 1 point = 15, 2 points = 30, 3 points = 40, and the 4th point wins the game (if both reach 40, it's called Deuce, and a player must win by a 2-point margin).",
           'A match is divided into sets — the first player/team to win 6 games (by a margin of at least 2) wins the set. If the game score reaches 6-6, a Tie-Break usually decides the set. A typical match is best-of-3 sets (some men\'s tournaments use best-of-5).'
-        ]),
+        ],
+        svgFactStrip([
+          { title: '1v1 / 2v2', sub: 'singles or doubles', color: '#2F6DA6' },
+          { title: '0-15-30-40', sub: 'game scoring', color: '#2F6DA6' },
+          { title: 'Best of 3', sub: 'sets to win', color: '#1971C2' }
+        ], 'tennis match facts diagram')),
       readingItem('การเสิร์ฟและกติกาสำคัญ', 'Serving & Key Rules',
         [
           'การเสิร์ฟ (Serve): ผู้เล่นต้องยืนหลังเส้นท้ายสนามแล้วโยนบอลขึ้นตีข้ามตาข่ายลงในช่องเสิร์ฟทแยงมุมฝั่งตรงข้าม มีสิทธิ์เสิร์ฟผิดพลาดได้ 1 ครั้ง (Fault) ถ้าผิดครั้งที่ 2 ติดกัน (Double Fault) เสียแต้มทันที',
@@ -743,7 +859,12 @@ var TRACKS = [
           'The Serve: a player stands behind the baseline, tosses the ball up, and hits it over the net into the diagonally opposite service box. One serve fault is allowed — a second consecutive fault (a Double Fault) loses the point immediately.',
           "If a serve touches the net but still lands in the correct service box, it's called a 'Let' — the serve is simply retaken and does not count as a fault.",
           "A ball is called 'out' if it lands outside the court lines, if a player lets it bounce twice on their own side before returning it, or if it fails to clear the net — in every case, the other side scores the point immediately."
-        ]),
+        ],
+        svgFactStrip([
+          { title: '1 Fault OK', sub: '2nd = Double Fault', color: '#E8590C' },
+          { title: 'Let', sub: 'net + in = replay', color: '#1971C2' },
+          { title: '2 Bounces', sub: '= point lost', color: '#2F6DA6' }
+        ], 'tennis serving and key rules facts diagram')),
       readingItem('เส้นสนามเทนนิสและช่องเสิร์ฟ', 'Tennis Court Lines & Service Boxes',
         [
           "สนามเทนนิสมีเส้นข้าง 2 ชุดเหมือนแบดมินตัน: เส้นสนามเดี่ยว (ด้านใน) และเส้นสนามคู่ (ด้านนอก รวมเลนกว้างพิเศษเรียก 'Doubles Alley' ที่ใช้เฉพาะประเภทคู่)",
@@ -780,7 +901,12 @@ var TRACKS = [
           'A Foot Fault happens if a server steps on or over the baseline before striking the ball on serve — it counts as one fault, just like any other serve fault.',
           'In Doubles, the two players on a team take turns serving throughout the match (player 1 serves game 1, player 2 serves game 3, alternating with the opposing pair), and they also alternate which side (right/left) they return serve from, the same as the singles rule.',
           "An alternative scoring system called 'No-Ad' (no Deuce/Advantage) is used by some tournaments to shorten matches — if the score reaches 40-40, the very next point decides the game outright (sudden death), and the receiving side chooses which side to return from."
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Tie-Break', sub: 'first to 7 at 6-6', color: '#1971C2' },
+          { title: '🚫 Foot Fault', sub: 'stepping on baseline', color: '#E8590C' },
+          { title: 'No-Ad', sub: 'sudden death at 40-40', color: '#2F6DA6' }
+        ], 'tennis tiebreak foot fault and no-ad rules diagram')),
       readingItem('ประเภทการตีลูกพื้นฐาน: Forehand, Backhand และ Volley', 'Basic Shot Types: Forehand, Backhand & Volley',
         [
           'Forehand (ลูกหน้ามือ): ตีลูกด้วยฝ่ามือด้านเดียวกับมือที่ถือแร็กเกต เป็นลูกพื้นฐานที่ทรงพลังที่สุดสำหรับผู้เล่นส่วนใหญ่ เพราะแขนเคลื่อนที่เป็นธรรมชาติและควบคุมง่าย',
@@ -807,7 +933,12 @@ var TRACKS = [
           'The Serve-and-Volley style: the player rushes forward to the net immediately after serving, aiming to finish the point with a volley before the opponent can set up. It requires a powerful serve and quick reflexes. This style is less common today but still effective on fast courts.',
           'Clay Courts: a slow surface with a high bounce, favoring long rallies and the Baseline style. Grass Courts: a fast surface with a low bounce, favoring Serve-and-Volley and powerful serves. Hard Courts: medium speed, and the most commonly used surface at general tournament level.',
           'The four Grand Slam tournaments each use a different surface: the Australian Open and US Open are played on hard courts, the French Open (Roland Garros) on clay, and Wimbledon on grass — so top-level players must adapt their playing style to each surface.'
-        ])
+        ],
+        svgFactStrip([
+          { title: 'Baseline', sub: 'long rallies', color: '#2F6DA6' },
+          { title: 'Serve-and-Volley', sub: 'rush the net', color: '#E8590C' },
+          { title: 'Clay/Grass/Hard', sub: '3 surfaces', color: '#2F9E44' }
+        ], 'tennis playing styles and court surfaces diagram'))
     ]
   },
   {
@@ -825,7 +956,12 @@ var TRACKS = [
           "Table Tennis (or Ping-Pong) can be played Singles or Doubles. Players hit a small plastic ball over the net so it lands inside the opponent's half of the table, and are allowed one bounce on their own side before returning it.",
           'A match is played best-of-7 games (first to win 4) or best-of-5 depending on the competition. Each game is played to 11 points, won by a margin of at least 2 (if tied 10-10, play continues until a 2-point lead — there is no point cap).',
           "It uses a 'Rally Point System' just like badminton — a point is scored on every rally regardless of who served."
-        ]),
+        ],
+        svgFactStrip([
+          { title: '1v1 / 2v2', sub: 'singles or doubles', color: '#1971C2' },
+          { title: '11 pts', sub: 'per game, win by 2', color: '#1971C2' },
+          { title: 'Best of 7', sub: 'games to win', color: '#2F9E44' }
+        ], 'table tennis match facts diagram')),
       readingItem('การเสิร์ฟและกติกาสำคัญ', 'Serving & Key Rules',
         [
           "การเสิร์ฟ (Serve): ผู้เล่นต้องโยนลูกบอลขึ้นในแนวดิ่งอย่างน้อย 16 ซม. จากฝ่ามือที่แบเรียบ แล้วตีให้ลูกเด้งบนโต๊ะฝั่งตัวเองก่อน 1 ครั้ง จากนั้นข้ามตาข่ายไปเด้งบนโต๊ะฝั่งคู่แข่งอีก 1 ครั้ง",
@@ -836,7 +972,12 @@ var TRACKS = [
           'The Serve: a player must toss the ball vertically at least 16 cm from an open, flat palm, then strike it so it bounces once on their own side of the table first, crosses the net, and bounces once on the opponent\'s side.',
           "The right to serve switches every 2 points (except once the score reaches 10-10 or higher, when it switches every 1 point instead), so no side benefits from serving for too long in a row.",
           "If a serve touches the net but still crosses over and bounces correctly on the opponent's side, it's called a 'Let' — the serve is simply retaken and doesn't count against either side."
-        ]),
+        ],
+        svgFactStrip([
+          { title: '16 cm Toss', sub: 'minimum serve height', color: '#1971C2' },
+          { title: 'Every 2 pts', sub: 'serve alternates', color: '#2F9E44' },
+          { title: 'Let', sub: 'net + in = replay', color: '#E8590C' }
+        ], 'table tennis serving and key rules facts diagram')),
       readingItem('เส้นสนามและอุปกรณ์', 'The Table & Equipment',
         [
           'โต๊ะมาตรฐานมีขนาด 2.74 x 1.525 เมตร สูงจากพื้น 76 ซม. ตาข่ายกลางโต๊ะสูง 15.25 ซม. — เตี้ยกว่าตาข่ายกีฬาอื่นๆ มากเพราะลูกบอลเบาและตีระยะใกล้',
@@ -859,7 +1000,12 @@ var TRACKS = [
           'Drive: struck with topspin, the most basic attacking stroke. There\'s a Forehand Drive (on the racket-hand side) and a Backhand Drive (on the opposite side), used to pressure the opponent with speed and spin.',
           'Push: a soft stroke with a small amount of backspin added, used as a safe reply when the opponent\'s shot carries heavy backspin — it slows the pace of the rally down.',
           'Chop: struck with heavy backspin while standing back from the table — a defensive stroke used to answer an opponent\'s hard attacking shots, making the ball float slowly and drop short when the opponent tries to attack it.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Drive', sub: 'topspin attack', color: '#E8590C' },
+          { title: 'Push', sub: 'soft, safe reply', color: '#2F9E44' },
+          { title: 'Chop', sub: 'heavy backspin defense', color: '#1971C2' }
+        ], 'table tennis drive push chop stroke facts diagram')),
       readingItem('การหมุนของลูก: Topspin กับ Backspin', 'Ball Spin: Topspin vs Backspin',
         [
           'Topspin (ลูกม้วนหน้า): บอลหมุนไปข้างหน้า ทำให้บอลพุ่งโค้งลงเร็วหลังข้ามตาข่าย และกระดอนพุ่งไปข้างหน้าแรงเมื่อโดนไม้คู่แข่ง เป็นแรงหมุนหลักของลูกโจมตีสมัยใหม่ ดูไดอะแกรมด้านล่างประกอบ',
@@ -889,7 +1035,12 @@ var TRACKS = [
           "Muay Thai is Thailand's national martial art, nicknamed 'The Art of Eight Limbs' because it allows striking with 8 points of contact — both fists, both elbows, both knees, and both shins/feet — unlike boxing, which uses fists only.",
           'A standard match has 5 rounds of 3 minutes each, with a 2-minute rest between rounds (the number of rounds and timing can vary by promotion and sanctioning body).',
           "The outcome can be decided several ways: Knockout (KO), a referee stoppage (TKO) when one fighter can no longer defend themselves safely, or a Judges' Decision on points when the fight goes the full distance without a knockout."
-        ]),
+        ],
+        svgFactStrip([
+          { title: '8 Limbs', sub: 'fists/elbows/knees/shins', color: '#C92A2A' },
+          { title: '5 x 3 min', sub: 'rounds', color: '#C92A2A' },
+          { title: 'KO / TKO / Decision', sub: '3 ways to win', color: '#E8590C' }
+        ], 'muay thai match facts diagram')),
       readingItem('การให้คะแนนและการชนะ', 'Scoring & Winning',
         [
           'การให้คะแนนมวยไทยแบบดั้งเดิมเน้นที่ "ความเหนือกว่าในสังเวียน" (Ring Dominance) และคุณภาพของหมัด/เท้าที่ทรงพลังและแม่นยำ มากกว่าการนับจำนวนครั้งที่ต่อยโดนแบบมวยสากล',
@@ -900,7 +1051,12 @@ var TRACKS = [
           "Traditional Muay Thai scoring emphasizes ring dominance and the quality of powerful, well-timed strikes — not simply counting how many strikes land the way boxing does.",
           'Highly-scoring actions include powerful shin kicks, knee and elbow strikes at close range, and controlling the opponent in the clinch. Later rounds (rounds 3-4) are often weighted more heavily than early rounds, since fighters typically spend the opening rounds feeling each other out.',
           'Fouls such as biting, eye-gouging, headbutting, striking a downed opponent, or groin strikes result in point deductions, or immediate disqualification for serious violations.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Ring Dominance', sub: 'quality > quantity', color: '#E8590C' },
+          { title: 'Knee/Elbow/Clinch', sub: 'high-scoring actions', color: '#C92A2A' },
+          { title: 'Rounds 3-4', sub: 'weighted more', color: '#F5A524' }
+        ], 'muay thai scoring facts diagram')),
       readingItem('ท่าโจมตีพื้นฐาน: หมัด ศอก เข่า เตะ', 'Basic Strikes: Punches, Elbows, Knees & Kicks',
         [
           'หมัด (Punches): ท่าพื้นฐานคล้ายมวยสากล เช่น หมัดตรง (Jab, Cross) และหมัดเหวี่ยง (Hook) ใช้เปิดเกมหรือสร้างจังหวะก่อนเข้าท่าอื่น',
@@ -913,7 +1069,13 @@ var TRACKS = [
           'Elbows: thrown from several angles — the horizontal elbow strike, the upward diagonal elbow, and the spinning elbow — the most damaging close-range weapon in the sport.',
           'Knees: straight knees and diagonal knees, most often thrown from the clinch once a fighter has control of the opponent\'s neck, driving the knee into the body.',
           "Kicks: Muay Thai's signature technique is the Roundhouse Kick, which strikes with the shin (rather than the foot/instep used in other martial arts), rotating the hip fully through for maximum power. The Teep (Push Kick) is used to control distance and push the opponent away rather than to strike with maximum force."
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Punch', sub: 'jab/cross/hook', color: '#1971C2' },
+          { title: 'Elbow', sub: 'most damaging', color: '#E8590C' },
+          { title: 'Knee', sub: 'from the clinch', color: '#C92A2A' },
+          { title: 'Shin Kick', sub: 'signature technique', color: '#2F9E44' }
+        ], 'muay thai basic strikes facts diagram')),
       readingItem('การปล้ำประชิด (Clinch)', 'The Clinch',
         [
           "การปล้ำประชิด (Clinch) เป็นทักษะเฉพาะตัวของมวยไทยที่ไม่ค่อยพบในศิลปะการต่อสู้อื่น: นักมวยเข้าคุมคอคู่ต่อสู้ด้วยมือทั้งสองข้าง (ท่าที่เรียกว่า Double Collar Tie หรือ 'ปล้ำคอ') เพื่อควบคุมทิศทางศีรษะและลำตัวคู่ต่อสู้แล้วกระแทกเข่าเข้าลำตัวหรือใบหน้า",
@@ -924,7 +1086,12 @@ var TRACKS = [
           "The Clinch is a signature Muay Thai skill rarely seen in other martial arts: a fighter controls the opponent's neck with both hands (a position called the Double Collar Tie, or 'plum') to control the direction of the opponent's head and torso, then drives knee strikes into the body or face.",
           "Sweeps can be used from the clinch to off-balance or take the opponent down, but unlike wrestling, it isn't about locking up the body for a sustained takedown and ground control.",
           'Referees will break the fighters apart when a clinch stalls with no movement or scoring action for a period of time, to keep the fight moving.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Double Collar Tie', sub: 'control the neck', color: '#E8590C' },
+          { title: 'Sweep', sub: 'off-balance, not a takedown', color: '#C92A2A' },
+          { title: 'Break', sub: 'ref separates if stalled', color: '#1971C2' }
+        ], 'muay thai clinch facts diagram')),
       readingItem('พิธีไหว้ครูและวัฒนธรรม', 'Wai Kru & Cultural Significance',
         [
           "พิธีไหว้ครูรำมวย (Wai Kru Ram Muay) คือการแสดงความเคารพต่อครูฝึกและบูรพาจารย์ก่อนการชกทุกครั้ง เป็นการร่ายรำตามจังหวะดนตรี แต่ละค่ายมวยหรือนักมวยมักมีท่ารำเฉพาะตัวที่สืบทอดมาจากครูของตน",
@@ -935,7 +1102,12 @@ var TRACKS = [
           "The Wai Kru Ram Muay is a pre-fight ritual dance paying respect to one's teachers and the martial art's lineage, performed before every fight to the sound of live music — each gym or fighter typically has their own unique choreography passed down from their teacher.",
           "The Mongkol is a headband worn during the Wai Kru ceremony, removed by the trainer just before the fight begins. The Pra Jiad are armbands some fighters wear throughout the entire fight for good luck and protection.",
           "The Wong Sarama, a live band of a Thai oboe and drums, plays throughout the fight — the tempo speeds up as the action intensifies, helping build energy for both the fighters and the crowd."
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Wai Kru', sub: 'pre-fight dance ritual', color: '#F5A524' },
+          { title: 'Mongkol', sub: 'headband, removed pre-fight', color: '#E8590C' },
+          { title: 'Wong Sarama', sub: 'live music band', color: '#1971C2' }
+        ], 'muay thai wai kru and cultural facts diagram')),
       readingItem('ระยะการชกและการอ่านจังหวะคู่ต่อสู้', 'Fighting Ranges & Reading Rhythm',
         [
           'ระยะไกล (Long Range): ระยะที่ใช้เตะ (Kick) และเตะถีบ (Teep) เป็นหลัก เพราะขาเอื้อมได้ไกลกว่าแขน นักมวยมักใช้ระยะนี้ควบคุมพื้นที่และป้องกันไม่ให้คู่ต่อสู้เข้าใกล้',
@@ -948,7 +1120,12 @@ var TRACKS = [
           'Mid Range: the range for punches and standing knee strikes (not from the clinch) — a transitional range between long and close. A fighter must decide quickly whether to press forward into the clinch or retreat back to long range.',
           'Close Range: dominated by elbows and knees from the clinch — the most dangerous range because of the high impact and short distance that makes strikes hard to dodge. Fighters skilled at clinching often try to drag the fight into this range.',
           "Reading timing is an advanced skill: watching an opponent's breathing rhythm, a foot lifting before a kick, or a shoulder dropping before a punch, to anticipate and counter before the technique fully lands."
-        ]),
+        ],
+        svgFlowSteps([
+          { title: 'Long', sub: 'kicks/teeps', color: '#1971C2' },
+          { title: 'Mid', sub: 'punches/knees', color: '#2F9E44' },
+          { title: 'Close', sub: 'elbows/clinch', color: '#E8590C' }
+        ], 'muay thai fighting ranges flow diagram')),
       readingItem('รูปแบบนักมวยและกลยุทธ์', 'Fighter Styles & Strategy',
         [
           'Muay Mat (สายหมัด): นักมวยที่เน้นชกหมัดหนักและตรง เคลื่อนไหวเข้าออกเร็ว มักชนะด้วยการน็อก จุดอ่อนคือถ้าโดนเตะสวนบ่อยๆ ระยะไกลจะเสียเปรียบ',
@@ -961,7 +1138,13 @@ var TRACKS = [
           'Muay Tae (Kicker): a fighter who relies on heavy shin kicks and controls the long range well. Their weakness is being at a disadvantage if the opponent can close the distance quickly, neutralizing the kicking range.',
           'Muay Khao (Knee Fighter): a fighter skilled in clinching and driving knee strikes, usually tall and strong, winning by wearing the opponent down in the clinch. Their weakness is struggling if the opponent is skilled at avoiding the clinch.',
           "Muay Femur (Technician): a fighter who relies on technique and counters rather than raw power, moving elegantly and reading the fight well, usually winning on points rather than knockout — the relationship between these styles is often like 'rock-paper-scissors', where no single style dominates every matchup; it depends on who the opponent is."
-        ])
+        ],
+        svgFactStrip([
+          { title: 'Muay Mat', sub: 'puncher', color: '#1971C2' },
+          { title: 'Muay Tae', sub: 'kicker', color: '#2F9E44' },
+          { title: 'Muay Khao', sub: 'knee fighter', color: '#E8590C' },
+          { title: 'Muay Femur', sub: 'technician', color: '#F5A524' }
+        ], 'muay thai fighter styles diagram'))
     ]
   },
   {
@@ -979,7 +1162,12 @@ var TRACKS = [
           'Taekwondo is a Korean martial art that has been an official Olympic sport since 2000. Its defining feature is a heavy emphasis on kicking techniques, which score higher than punches — unlike many other combat sports.',
           'Under Olympic (World Taekwondo) rules, a match has 3 rounds of 2 minutes each, with a 1-minute rest between rounds.',
           'The outcome is decided by points when time runs out, by Knockout, or by a referee stoppage (RSC — Referee Stops Contest) when a competitor can no longer defend themselves safely.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Olympic since 2000', sub: 'Korean martial art', color: '#1971C2' },
+          { title: '3 x 2 min', sub: 'rounds', color: '#1971C2' },
+          { title: 'Kicks Score Higher', sub: 'than punches', color: '#E8590C' }
+        ], 'taekwondo match facts diagram')),
       readingItem('การให้คะแนน', 'Scoring System',
         [
           "เทควันโดระดับแข่งขันใช้ระบบให้คะแนนอิเล็กทรอนิกส์ (PSS — Protector and Scoring System) เซนเซอร์ที่ฝังอยู่ในเสื้อเกราะป้องกันตัว (Hogu) และหมวกกันน็อกจะตรวจจับแรงกระแทกและตัดสินว่าการเตะ/ต่อยนั้นได้คะแนนหรือไม่โดยอัตโนมัติ",
@@ -990,7 +1178,12 @@ var TRACKS = [
           "Competitive Taekwondo uses an electronic scoring system (PSS — Protector and Scoring System). Sensors built into the body protector (Hogu) and headgear detect impact force and automatically determine whether a kick or punch scores.",
           'Points scale with the difficulty of the technique: a basic body kick = 2 points, a punch to the body = 1 point, a turning/spinning kick to the body = 4 points, a head kick = 3 points, and a turning/spinning kick to the head = 5 points — the harder and riskier the technique, the more it\'s worth.',
           'Rule violations (Gam-jeom) — such as falling down, stepping out of bounds, grabbing or holding the opponent, kicking below the waist, or turning your back to the opponent — cost 1 point deduction each.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: '2 pts', sub: 'body kick', color: '#1971C2' },
+          { title: '3 pts', sub: 'head kick', color: '#E8590C' },
+          { title: '4-5 pts', sub: 'spinning kicks', color: '#C92A2A' }
+        ], 'taekwondo scoring points diagram')),
       readingItem('เขตคะแนนและเสื้อเกราะ', 'Scoring Zones & Protective Gear',
         [
           'เป้าที่ให้คะแนนได้มีเพียง 2 ส่วนเท่านั้น: ลำตัวในเขตที่เสื้อเกราะ (Hogu) คลุมอยู่ และศีรษะทั้งหมด — การโจมตีที่แขน ขา หรือแผ่นหลังต่ำกว่าเอวจะไม่นับคะแนนแม้จะโดนก็ตาม',
@@ -1001,7 +1194,12 @@ var TRACKS = [
           "Only two areas count as valid scoring targets: the torso area covered by the Hogu, and the head — strikes to the arms, legs, or the back below the waist don't score even if they land.",
           'Mandatory protective gear for competition includes: the Hogu (body protector), headgear, forearm and shin guards, a groin guard, and a mouthguard — all required before stepping into the ring.',
           "Even though Taekwondo emphasizes high, complex kicks, only a controlled strike that lands on a valid target with force above the sensor's threshold scores a point — a light graze isn't enough."
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Torso + Head', sub: 'only valid targets', color: '#1971C2' },
+          { title: 'Hogu + Headgear', sub: 'required gear', color: '#2F9E44' },
+          { title: 'PSS Sensors', sub: 'auto-detect force', color: '#E8590C' }
+        ], 'taekwondo scoring zones and gear diagram')),
       readingItem('ท่าเตะพื้นฐาน', 'Basic Kicks',
         [
           "Ap Chagi (เตะตรง / Front Kick): เตะพุ่งตรงไปข้างหน้าด้วยปลายเท้าหรือฝ่าเท้า เป็นท่าเตะพื้นฐานที่สุด ใช้ทั้งโจมตีและควบคุมระยะ",
@@ -1014,7 +1212,13 @@ var TRACKS = [
           'Dollyo Chagi (Roundhouse Kick): the most commonly used scoring kick in competition, rotating the hip and striking with the instep or shin — the primary scoring technique for most competitors.',
           'Yeop Chagi (Side Kick): a powerful thrusting kick to the side using the blade or heel of the foot, chambering the knee first before extending the leg out — very powerful because it uses full hip drive.',
           'Dwit Chagi (Back Kick / Spinning Kick): the fighter briefly turns their back to the opponent before thrusting the kick backward — the most powerful kick, but requiring excellent timing and balance.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Ap Chagi', sub: 'front kick', color: '#1971C2' },
+          { title: 'Dollyo Chagi', sub: 'roundhouse, most used', color: '#E8590C' },
+          { title: 'Yeop Chagi', sub: 'side kick', color: '#2F9E44' },
+          { title: 'Dwit Chagi', sub: 'spinning back kick', color: '#C92A2A' }
+        ], 'taekwondo basic kicks diagram')),
       readingItem('แถบสี (Belt Ranks) และปรัชญา', 'Belt Ranks & Philosophy',
         [
           'ระบบสายคาดเอว (Geup/Kup) ไล่ระดับจากสายขาวไปจนถึงสายดำ (Dan) จำนวนระดับ Geup อาจต่างกันไปตามสำนัก/สหพันธ์ แต่ที่พบบ่อยคือ 10 กึบลงมาจนถึง 1 กึบ ก่อนขึ้นเป็นสายดำ',
@@ -1025,7 +1229,12 @@ var TRACKS = [
           'The colored belt system (Geup/Kup) progresses from white belt up to black belt (Dan). The number of Geup levels varies by school or federation, but a common system runs from 10th Geup down to 1st Geup before reaching black belt.',
           'The Five Tenets of Taekwondo are: Courtesy (Ye Ui), Integrity (Yom Chi), Perseverance (In Nae), Self-Control (Guk Gi), and Indomitable Spirit (Baekjul Boolgool).',
           'Poomsae (Forms/Patterns) are choreographed solo sequences of techniques (similar to kata in karate), used both to train fundamentals and as a separate competitive discipline from actual sparring (Kyorugi).'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'White → Black', sub: 'Geup to Dan', color: '#1971C2' },
+          { title: '5 Tenets', sub: 'courtesy, integrity...', color: '#F5A524' },
+          { title: 'Poomsae', sub: 'solo forms practice', color: '#2F9E44' }
+        ], 'taekwondo belt ranks and philosophy diagram')),
       readingItem('เทคนิคขั้นสูง: การหลอกล่อและการเตะต่อเนื่อง', 'Advanced Tactics: Feinting & Combination Kicks',
         [
           'การหลอกล่อ (Feinting): ใช้การขยับเท้าหรือลำตัวหลอกให้คู่ต่อสู้ตอบสนองผิดจังหวะ เช่น ยกเข่าเสมือนจะเตะแต่ไม่เตะจริง เพื่อดึงการ์ดคู่ต่อสู้ให้เปิดก่อนออกท่าจริง',
@@ -1038,7 +1247,12 @@ var TRACKS = [
           'The Skip Kick: quickly swapping the back and front foot positions with a small hop to close the distance before kicking, making the kick faster and more powerful while catching the opponent off guard.',
           'Combination Kicks: for example, two consecutive roundhouse kicks off alternating legs, or a roundhouse kick followed by a spinning back kick. The more complex and accurate the combination, the higher the scoring potential, since the scoring system rewards difficult techniques.',
           "Taekwondo's scoring system rewards counter-attacking after a successful defense, since it demonstrates good game-reading and timing. High-level competitors often wait for the opponent to commit first, then counter, rather than attacking constantly."
-        ]),
+        ],
+        svgFlowSteps([
+          { title: 'Feint', sub: 'fake to open guard', color: '#1971C2' },
+          { title: 'Skip', sub: 'close distance fast', color: '#2F9E44' },
+          { title: 'Combo Kick', sub: 'chain techniques', color: '#E8590C' }
+        ], 'taekwondo advanced tactics flow diagram')),
       readingItem('ประเภทการแข่งขัน: Kyorugi กับ Poomsae', 'Competition Disciplines: Kyorugi vs Poomsae',
         [
           'Kyorugi (คิวรูกิ) คือการต่อสู้จริงแบบเต็มรูปแบบที่กล่าวถึงในบทเรียนก่อนหน้า ใช้ระบบให้คะแนนอิเล็กทรอนิกส์ แบ่งรุ่นน้ำหนัก (Weight Class) เพื่อให้คู่แข่งขันมีความได้เปรียบทางร่างกายใกล้เคียงกัน',
@@ -1051,7 +1265,11 @@ var TRACKS = [
           'Poomsae is a solo forms competition performing a pre-set pattern of techniques, with no actual contact against an opponent — so there are no weight classes, only divisions by belt rank or age.',
           'Poomsae is judged on two criteria: Accuracy (whether stances, directions, and techniques match the prescribed pattern) and Presentation (power, rhythm/speed, and breath control).',
           'Both Kyorugi and Poomsae are recognized as separate competitive disciplines internationally. Some athletes specialize in just one, while others compete in both, since the fundamental skills (kicks, stances) form a shared foundation.'
-        ])
+        ],
+        svgFactStrip([
+          { title: 'Kyorugi', sub: 'full-contact sparring', color: '#E8590C' },
+          { title: 'Poomsae', sub: 'solo forms, judged', color: '#2F9E44' }
+        ], 'taekwondo kyorugi vs poomsae diagram'))
     ]
   },
   {
@@ -1069,7 +1287,12 @@ var TRACKS = [
           'Boxing is a combat sport using fists only (no kicks, elbows, or knees), with padded gloves worn for protection. Valid targets are the head and the front/sides of the torso only.',
           "Amateur/Olympic matches have 3 rounds of 3 minutes each. Professional matches can run up to 12 rounds of 3 minutes (depending on weight class and the fight's significance), with a 1-minute rest between rounds.",
           "The outcome can be decided by: Knockout (KO), a referee/doctor stoppage (TKO — Technical Knockout, e.g. a fighter's corner throwing in the towel, or an injury too severe to continue safely), or a Judges' Decision on points when the fight goes the distance."
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Fists Only', sub: 'no kicks/elbows/knees', color: '#1971C2' },
+          { title: '3-12 rounds', sub: 'x 3 min', color: '#1971C2' },
+          { title: 'KO / TKO / Decision', sub: '3 ways to win', color: '#E8590C' }
+        ], 'boxing match facts diagram')),
       readingItem('การให้คะแนนและการชนะ', 'Scoring & Winning',
         [
           "ระบบให้คะแนนมาตรฐาน (10-Point Must System): ผู้ชนะในแต่ละยกได้ 10 คะแนน ผู้แพ้ได้ 9 คะแนนหรือน้อยกว่า (เช่น 8 คะแนนถ้าโดนล้มในยกนั้น) กรรมการให้คะแนนทุกยกแล้วรวมผลตอนจบแมตช์",
@@ -1080,7 +1303,12 @@ var TRACKS = [
           'The standard scoring system (10-Point Must System): the winner of each round gets 10 points, the loser gets 9 or fewer (e.g. 8 if they were knocked down that round). Judges score every round and total the results at the end of the match.',
           "The Standing 8-Count (Mandatory 8-Count): the referee counts to 8 after a fighter is knocked down or dazed from a punch. If the fighter can't demonstrate they're fit to continue by the count of 8, the fight is stopped immediately.",
           "A TKO can also happen if a fighter's face is cut too badly to continue safely, or if their corner throws in the towel to concede on their behalf."
-        ]),
+        ],
+        svgFactStrip([
+          { title: '10-Point Must', sub: 'winner gets 10', color: '#1971C2' },
+          { title: '8-Count', sub: 'after a knockdown', color: '#E8590C' },
+          { title: 'TKO', sub: 'ref/corner stoppage', color: '#C92A2A' }
+        ], 'boxing scoring and winning facts diagram')),
       readingItem('หมัดพื้นฐาน 4 แบบ', '4 Basic Punches',
         [
           'Jab: หมัดตรงเร็วจากมือหน้า ใช้วัดระยะและเปิดทางให้หมัดชุดถัดไป เป็นหมัดที่พลังน้อยที่สุดแต่ใช้บ่อยที่สุด ดูไดอะแกรมด้านล่างประกอบ',
@@ -1107,7 +1335,12 @@ var TRACKS = [
           "Slip: moving the head off the body's centerline to dodge a straight punch without moving the feet much — the most energy-efficient defensive skill.",
           'Block/Parry: using the gloves or forearms to absorb impact or deflect the direction of an incoming punch.',
           'Footwork: staying balanced and mobile, never crossing the feet while moving, using it to control range and angle rather than just standing and trading punches.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Guard', sub: 'hands up, chin down', color: '#1971C2' },
+          { title: 'Slip', sub: 'move head off-line', color: '#2F9E44' },
+          { title: 'Footwork', sub: 'never cross feet', color: '#E8590C' }
+        ], 'boxing defense facts diagram')),
       readingItem('รุ่นน้ำหนัก', 'Weight Classes',
         [
           'มวยสากลแบ่งรุ่นน้ำหนักหลายรุ่น (เช่น ฟลายเวท เฟเธอร์เวท ไลท์เวท เวลเตอร์เวท มิดเดิลเวท เฮฟวี่เวท ฯลฯ) เพื่อให้คู่ชกมีความได้เปรียบทางร่างกายใกล้เคียงกัน เพราะน้ำหนักมีผลต่อพลังหมัดอย่างมาก',
@@ -1118,7 +1351,11 @@ var TRACKS = [
           'Boxing is divided into many weight classes (e.g. Flyweight, Featherweight, Lightweight, Welterweight, Middleweight, Heavyweight, etc.) to keep physical advantages fair between opponents, since weight strongly affects punching power.',
           'A professional Weigh-in is usually held one day before the fight. Fighters must make weight for their class, or risk penalties or the fight being cancelled.',
           'Amateur boxing often uses headgear (in some categories) and has slightly different scoring and safety rules compared to professional boxing.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Flyweight → Heavyweight', sub: 'many weight classes', color: '#1971C2' },
+          { title: 'Weigh-in', sub: 'day before pro fights', color: '#2F9E44' }
+        ], 'boxing weight classes diagram')),
       readingItem('กลยุทธ์: การชกต่อเนื่องและการควบคุมพื้นที่บนเวที', 'Strategy: Combination Punching & Ring Generalship',
         [
           'การชกต่อเนื่อง (Combination Punching) คือการชกหลายหมัดติดต่อกันในจังหวะเดียว เช่น Jab-Cross-Hook (1-2-3) เพื่อให้คู่ต่อสู้ป้องกันไม่ทันครบทุกหมัด ยิ่งชุดหมัดหลากหลายมุมเท่าไหร่ ยิ่งเจาะการ์ดคู่ต่อสู้ได้ง่ายขึ้น',
@@ -1131,7 +1368,12 @@ var TRACKS = [
           'Ring Generalship is the skill of forcing the opponent to move where you want them to — for example, Cutting Off the Ring, herding the opponent toward the ropes until they have nowhere left to escape.',
           'Orthodox (right-handed lead) and Southpaw (left-handed lead) stances often cause problems for each other, since their punching angles and foot positions are mirror-opposite. A fighter unfamiliar with the opposite stance is often at a disadvantage early in the fight.',
           "Reading an opponent's breathing rhythm and footwork helps predict whether they're about to punch or retreat, allowing more accurate counters or attacks."
-        ]),
+        ],
+        svgFlowSteps([
+          { title: 'Jab', sub: 'set up', color: '#1971C2' },
+          { title: 'Cross', sub: 'power', color: '#2F9E44' },
+          { title: 'Hook', sub: 'finish', color: '#E8590C' }
+        ], 'boxing combination punching sequence diagram')),
       readingItem('เทคนิคขั้นสูง: การล็อกตัว หมัดสวน และการชกลำตัว', 'Advanced Techniques: Clinching, Counter-Punching & Body Shots',
         [
           'การล็อกตัว (Clinching) ในมวยสากลต่างจากมวยไทยตรงที่ห้ามชกขณะล็อกตัวอยู่ กรรมการจะแยกคู่ชกออกจากกันทันทีเมื่อเข้าล็อกตัว มักใช้เพื่อพักหรือขัดจังหวะโมเมนตัมของคู่ต่อสู้เท่านั้น',
@@ -1144,7 +1386,12 @@ var TRACKS = [
           'Counter-Punching means waiting for the opponent to throw first, then striking back the instant they open a gap. Counter-punchers typically expend less energy but need very sharp reflexes.',
           "Body Shots are often overlooked since they rarely produce an instant knockout like a head shot, but they accumulate damage and drain the opponent's stamina effectively in later rounds. There's a saying in boxing: 'Body shots pay the bills' — meaning it's a long-term investment that really pays off.",
           'Blending all three skills — clinching to rest, precise counter-punching, and body shots to accumulate damage — appropriately for each round\'s situation is what separates elite boxers from ordinary ones.'
-        ])
+        ],
+        svgFactStrip([
+          { title: 'Clinch', sub: 'no strikes allowed', color: '#1971C2' },
+          { title: 'Counter-Punch', sub: "react, don't initiate", color: '#2F9E44' },
+          { title: 'Body Shots', sub: 'wear down stamina', color: '#E8590C' }
+        ], 'boxing advanced techniques diagram'))
     ]
   },
   {
@@ -1162,7 +1409,12 @@ var TRACKS = [
           "Judo is a Japanese martial art whose name means 'the gentle way'. It was founded by Jigoro Kano in 1882, and has been an Olympic sport since 1964 (men) and 1992 (women).",
           "Judo's core philosophy is 'Maximum efficiency, minimum effort' (Seiryoku Zenyo) and 'Mutual welfare and benefit' (Jita Kyoei) — emphasizing technique and using the opponent's own force over raw strength alone.",
           "Under international/Olympic rules, a match's standard contest time is 4 minutes. If no one scores an Ippon (an outright win) by time's up, the match goes to Golden Score — sudden-death overtime."
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Founded 1882', sub: 'by Jigoro Kano', color: '#1971C2' },
+          { title: 'Olympic since 1964', sub: 'men / 1992 women', color: '#1971C2' },
+          { title: '4 min', sub: 'standard match time', color: '#2F9E44' }
+        ], 'judo match facts diagram')),
       readingItem('การให้คะแนนและการชนะ', 'Scoring & Winning',
         [
           'Ippon (อิปปง) คือคะแนนเต็มที่ทำให้ชนะทันที ได้จาก: การทุ่มคู่ต่อสู้ลงหลังด้วยแรง ความเร็ว และการควบคุมที่สมบูรณ์, การจับล็อกกดคู่ต่อสู้ไว้กับพื้น (Osaekomi) นาน 20 วินาที, หรือคู่ต่อสู้ยอมแพ้จากการถูกรัดคอ/ล็อกข้อต่อ',
@@ -1173,7 +1425,12 @@ var TRACKS = [
           "Ippon is a full point that wins the match instantly, earned by: throwing the opponent onto their back with force, speed, and full control; pinning the opponent to the mat (Osaekomi) for 20 seconds; or the opponent submitting from a choke or joint lock.",
           "Waza-ari is a half-point, awarded for a throw that's nearly perfect but missing one element of a full Ippon — scoring two Waza-ari in the same match combines into an automatic Ippon (Waza-ari Awasete Ippon).",
           'If time runs out with no Ippon scored, the win goes to whoever has more Waza-ari. If still tied, the match goes to Golden Score — sudden-death overtime where the next score wins immediately.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Ippon', sub: 'instant win', color: '#E8590C' },
+          { title: 'Waza-ari', sub: 'half point, x2 = Ippon', color: '#1971C2' },
+          { title: 'Golden Score', sub: 'sudden death OT', color: '#F5A524' }
+        ], 'judo scoring facts diagram')),
       readingItem('การทุ่มพื้นฐาน (Nage-waza)', 'Basic Throws (Nage-waza)',
         [
           'การจับคู่ต่อสู้ (Kumi-kata) คือการควบคุมชุดยูโด (Judogi) ของคู่ต่อสู้ เป็นรากฐานของการทุ่มทุกท่า — นักยูโดระดับสูงมักแย่งชิงตำแหน่งจับที่ได้เปรียบก่อนจะเริ่มโจมตีจริง',
@@ -1186,7 +1443,12 @@ var TRACKS = [
           'O Goshi (Major Hip Throw): pull the opponent onto your hip, then rotate and swing them over and down. It\'s the most fundamental throw that every judoka learns first.',
           'Seoi Nage (Shoulder Throw): pull the opponent onto your back/shoulder, then bend forward and throw them forward. It\'s very popular in competition because it frequently scores Ippon.',
           'Ouchi Gari / Osoto Gari (Inner/Outer Reap): using the leg to reap or sweep the opponent\'s leg to break their balance and take them down. It requires less lifting strength than hip or shoulder throws, making it a good technique for beginners.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'O Goshi', sub: 'hip throw', color: '#1971C2' },
+          { title: 'Seoi Nage', sub: 'shoulder throw', color: '#2F9E44' },
+          { title: 'Ouchi/Osoto Gari', sub: 'leg reap', color: '#E8590C' }
+        ], 'judo basic throws diagram')),
       readingItem('เทคนิคพื้นสนาม (Ne-waza)', 'Ground Techniques (Ne-waza)',
         [
           'Osaekomi-waza (การจับกด): เทคนิคกดคู่ต่อสู้ให้แผ่นหลังติดพื้นและควบคุมไว้ไม่ให้หลุด นาน 20 วินาทีเพื่อให้ได้ Ippon (บางกติการะดับล่างใช้เวลาสั้นกว่านี้)',
@@ -1197,7 +1459,12 @@ var TRACKS = [
           'Osaekomi-waza (Pins/Holds): pinning the opponent\'s back to the mat and maintaining control without them escaping, for 20 seconds to score an Ippon (some lower-level rulesets use a shorter time).',
           'Shime-waza (Chokes): using an arm or the opponent\'s own judogi to compress the blood vessels or airway in the neck. If the opponent taps out to submit, it\'s an immediate Ippon — a technique that demands serious attention to safety.',
           'Kansetsu-waza (Joint Locks): competition rules only permit elbow locks (armbars). Locks on any other joint — knees, wrists, or the spine — are prohibited for athlete safety.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Osaekomi', sub: 'pin, 20 sec = Ippon', color: '#1971C2' },
+          { title: 'Shime-waza', sub: 'chokes', color: '#E8590C' },
+          { title: 'Kansetsu-waza', sub: 'elbow locks only', color: '#C92A2A' }
+        ], 'judo ground techniques diagram')),
       readingItem('มารยาทและระบบสายคาดเอว', 'Etiquette & Belt System',
         [
           'การโค้งคำนับ (Rei) เป็นธรรมเนียมสำคัญของยูโด ทำก่อนและหลังการฝึกซ้อมหรือแข่งขันทุกครั้ง เพื่อแสดงความเคารพต่อคู่ฝึก/คู่แข่ง ต่อสถานที่ฝึก (Dojo) และต่อตัวกีฬาเอง — ถือเป็นหัวใจของปรัชญายูโดไม่แพ้เทคนิคการทุ่ม',
@@ -1208,7 +1475,12 @@ var TRACKS = [
           'Bowing (Rei) is an essential Judo custom performed before and after every practice or match, showing respect for one\'s training partner/opponent, the training hall (Dojo), and the sport itself — considered as central to Judo\'s philosophy as its throwing techniques.',
           'The belt ranking system progresses from beginner grades (Kyu) up to black-belt grades (Dan), similar to other Japanese martial arts — belt colors vary somewhat between national federations.',
           'Randori is free, cooperative sparring practice (not a real competition) where both partners attempt throws and locks on each other with controlled intensity — the main way judoka develop technique against a genuinely resisting partner.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Rei', sub: 'bow, show respect', color: '#F5A524' },
+          { title: 'Kyu → Dan', sub: 'belt progression', color: '#1971C2' },
+          { title: 'Randori', sub: 'free sparring practice', color: '#2F9E44' }
+        ], 'judo etiquette and belt system diagram')),
       readingItem('ขั้นตอนของการทุ่ม: Kuzushi-Tsukuri-Kake', 'The 3 Phases of a Throw: Kuzushi-Tsukuri-Kake',
         [
           'ทุกการทุ่มในยูโดแบ่งเป็น 3 ขั้นตอนต่อเนื่องกัน: Kuzushi (การทำลายการทรงตัว) คือการดึง/ดันคู่ต่อสู้ให้เสียสมดุลก่อนโจมตี เพราะร่างกายมนุษย์ทุ่มยากมากถ้ายังทรงตัวมั่นคงอยู่ ดูไดอะแกรมด้านล่างประกอบ',
@@ -1233,7 +1505,12 @@ var TRACKS = [
           'Shido is a penalty for minor rule violations — such as gripping the opponent\'s uniform in an improper spot (too deep into the sleeve or pant leg), repeatedly stepping out of the contest area (Jogai), or excessive non-attacking passivity. Accumulating 3 Shido results in Hansoku-make (an immediate loss).',
           'Directly grabbing the opponent\'s leg with the hand to execute a throw used to be a legal technique, but international rules (IJF) banned it around 2013, to preserve Judo\'s identity as a throwing-technique-focused sport distinct from wrestling.',
           'Hansoku-make (disqualification) is an immediate loss for a serious rule violation — such as a dangerous technique that risks injuring the opponent, or accumulating 3 Shido. Unlike some other combat sports, Judo is especially strict about protecting joints and the spine.'
-        ])
+        ],
+        svgFactStrip([
+          { title: 'Shido', sub: 'penalty, x3 = loss', color: '#E8590C' },
+          { title: '🚫 Direct Leg Grab', sub: 'banned since ~2013', color: '#C92A2A' },
+          { title: 'Hansoku-make', sub: 'disqualification', color: '#C92A2A' }
+        ], 'judo prohibited acts diagram'))
     ]
   },
   {
@@ -1251,7 +1528,12 @@ var TRACKS = [
           "Brazilian Jiu-Jitsu (BJJ) is a grappling and ground-control-focused martial art developed in Brazil, rooted in Judo (transmitted by Mitsuyo Maeda to the Gracie family in the early 1900s). It's nicknamed 'the gentle art' because it emphasizes technique and leverage that let a smaller person defeat a larger opponent.",
           'BJJ has two main formats: Gi (wearing a judo-like uniform, using grips on the fabric to control the opponent) and No-Gi (wearing a rashguard/shorts, with no fabric to grip). Some techniques differ between the two formats because No-Gi has no cloth to grab.',
           'Match structure varies widely by belt level and organizing body — for example, white belt matches are often around 5-6 minutes, while black belt matches often run up to 10 minutes.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Ground Grappling', sub: 'from Judo roots', color: '#2F9E44' },
+          { title: 'Gi / No-Gi', sub: '2 formats', color: '#1971C2' },
+          { title: '5-10 min', sub: 'match length varies', color: '#F5A524' }
+        ], 'brazilian jiu-jitsu match facts diagram')),
       readingItem('การให้คะแนนและการชนะ', 'Scoring & Winning',
         [
           'ชนะทันทีด้วยการยอมแพ้ (Submission): คู่ต่อสู้ตบเสื่อ/ตบตัวคู่ต่อสู้ หรือพูดยอมแพ้ เมื่อโดนล็อกข้อต่อหรือรัดคอจนทนไม่ไหว',
@@ -1262,7 +1544,12 @@ var TRACKS = [
           'An instant win by Submission: the opponent taps the mat or their opponent\'s body, or verbally submits, when they can no longer withstand a joint lock or choke.',
           'The point system (under IBJJF rules, the most widely used standard): a Takedown = 2 points, a Guard Pass = 3 points, Mount/Back Control = 4 points, a Sweep = 2 points, Knee-on-Belly = 2 points — points reward gaining and holding a dominant position.',
           "If nobody forces a submission, whoever has more points at the time limit wins. If points are tied, 'Advantages' (near-successful attempts) break the tie; if still tied, the referees decide."
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Submission', sub: 'instant win', color: '#E8590C' },
+          { title: 'Guard Pass = 3', sub: 'points example', color: '#1971C2' },
+          { title: 'Mount/Back = 4', sub: 'points example', color: '#2F9E44' }
+        ], 'bjj scoring and winning facts diagram')),
       readingItem('ตำแหน่งควบคุมพื้นฐาน', 'Basic Positions',
         [
           'Guard (การ์ด): ผู้เล่นที่อยู่ด้านล่างใช้ขาควบคุม/คุกคามผู้เล่นด้านบน — ต่างจากกีฬาปล้ำอื่นๆ ที่การอยู่ด้านล่างมักเสียเปรียบล้วนๆ ใน BJJ การ์ดถือเป็นตำแหน่งที่เป็นกลางไปจนถึงได้เปรียบ เพราะสามารถโจมตีและป้องกันตัวได้พร้อมกัน',
@@ -1275,7 +1562,13 @@ var TRACKS = [
           "Mount: the top player sits astride the opponent's torso facing them — one of the most dominant positions, since it opens up many submission options.",
           "Back Control: controlling the opponent from behind with both legs hooked in — the single most dominant position, since the opponent can't see the attacker and struggles to defend effectively.",
           'Side Control: pinning the opponent perpendicular from the side, controlling their hips and shoulders — a fundamental control position often used to rest or transition to another position.'
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Guard', sub: 'neutral-advantageous', color: '#1971C2' },
+          { title: 'Mount', sub: 'dominant', color: '#E8590C' },
+          { title: 'Back Control', sub: 'most dominant', color: '#C92A2A' },
+          { title: 'Side Control', sub: 'basic pin', color: '#2F9E44' }
+        ], 'bjj basic positions diagram')),
       readingItem('การรัดและการล็อกพื้นฐาน', 'Basic Submissions',
         [
           'Rear Naked Choke (รัดคอจากด้านหลัง): ใช้จากตำแหน่งคุมหลัง สอดแขนรัดรอบคอเพื่อตัดการไหลเวียนเลือด เป็นหนึ่งในเทคนิคยอมแพ้ที่ได้ผลและใช้สำเร็จบ่อยที่สุดในทุกระดับ',
@@ -1288,7 +1581,12 @@ var TRACKS = [
           "Armbar (Juji Gatame): isolating the opponent's arm and hyperextending the elbow joint in reverse — can be applied from guard, mount, or several other positions.",
           "Triangle Choke: using both legs (formed into a triangle shape) to lock around the opponent's neck and one arm, cutting off blood flow — a signature technique applied from guard.",
           "Kimura / Americana: shoulder joint locks named after the judoka associated with them, applied by controlling the opponent's wrist and rotating the arm in reverse."
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'Rear Naked Choke', sub: 'most reliable', color: '#E8590C' },
+          { title: 'Armbar', sub: 'elbow hyperextension', color: '#1971C2' },
+          { title: 'Triangle Choke', sub: 'from guard', color: '#2F9E44' }
+        ], 'bjj basic submissions diagram')),
       readingItem('ระบบสายคาดเอวและวัฒนธรรมยิม', 'Belt System & Gym Culture',
         [
           'การไล่ระดับสายคาดเอวของ BJJ ช้ากว่าศิลปะการต่อสู้ส่วนใหญ่อย่างเห็นได้ชัด: ขาว → ฟ้า → ม่วง → น้ำตาล → ดำ มักใช้เวลา 8-10 ปีขึ้นไปกว่าจะได้สายดำ เพราะเนื้อหาเทคนิคมีความลึกและซับซ้อนมาก',
@@ -1299,7 +1597,12 @@ var TRACKS = [
           "BJJ's belt progression is notably slower than most martial arts: White → Blue → Purple → Brown → Black, often taking 8 or more years to reach black belt because of the sport's technical depth and complexity.",
           "'Rolling' is the term for live sparring practice (equivalent to Randori in Judo) — the primary training method alongside drilling specific techniques, used to develop skill against a genuinely resisting partner.",
           "'Tap early, tap often' is BJJ's core safety culture — tapping out when caught in a submission isn't shameful, it's how practitioners avoid injury and keep training for the long term. Refusing to tap out of ego is considered poor gym etiquette."
-        ]),
+        ],
+        svgFactStrip([
+          { title: 'White→Black', sub: '8-10+ years', color: '#1971C2' },
+          { title: 'Rolling', sub: 'live sparring', color: '#2F9E44' },
+          { title: 'Tap Early', sub: 'safety culture', color: '#E8590C' }
+        ], 'bjj belt system and gym culture diagram')),
       readingItem('แนวคิดหลัก: ตำแหน่งก่อนการยอมแพ้ และการผ่านการ์ด', 'Core Concept: Position Before Submission & Guard Passing',
         [
           "หลักคิดสำคัญที่สุดข้อหนึ่งของ BJJ คือ 'ตำแหน่งมาก่อนการยอมแพ้' (Position Before Submission) — นักกีฬาที่เก่งจะไม่รีบพยายามล็อกจากตำแหน่งเสียเปรียบ แต่จะไล่ควบคุมตำแหน่งที่ได้เปรียบมากขึ้นเรื่อยๆ ก่อนแล้วค่อยหาจังหวะล็อกทีหลัง",
@@ -1312,7 +1615,12 @@ var TRACKS = [
           'A rough position hierarchy from most to least advantageous: Back Control > Mount > Side Control/Knee-on-Belly > Half Guard > Guard (roughly neutral between both players) > being underneath the opponent\'s Side Control or Mount (the most disadvantageous).',
           "Guard Passing is the top player's primary goal — finding a way past the opponent's legs to a better control position. There are two main styles: Pressure Passing (using body weight to compress the opponent's space) and Speed Passing (moving quickly around the opponent's legs before they can react).",
           'Conversely, the bottom player (holding guard) has two paired goals: sweeping to reverse into the top position, or looking for a submission directly from guard (such as a Triangle Choke) without needing to get on top first.'
-        ]),
+        ],
+        svgFlowSteps([
+          { title: 'Position', sub: 'get dominant control', color: '#1971C2' },
+          { title: 'Pass', sub: 'past the guard', color: '#2F9E44' },
+          { title: 'Submit', sub: 'finish the fight', color: '#E8590C' }
+        ], 'bjj position before submission flow diagram')),
       readingItem('รูปแบบการแข่งขัน: IBJJF กับ ADCC', 'Competition Formats: IBJJF vs ADCC',
         [
           'IBJJF (International Brazilian Jiu-Jitsu Federation) เป็นองค์กรจัดการแข่งขันประเภท Gi ที่ใหญ่ที่สุดในโลก ใช้กติกาให้คะแนนแบบมาตรฐานที่กล่าวถึงในบทเรียนก่อนหน้า และมีกฎจำกัดเทคนิคล็อกขาบางแบบตามระดับสาย เพื่อความปลอดภัยของนักกีฬารุ่นเล็ก',
@@ -1325,7 +1633,12 @@ var TRACKS = [
           'ADCC (Abu Dhabi Combat Club) is the most prestigious No-Gi tournament in the sport, held every 2 years, using more open rules that permit a noticeably wider range of leg lock techniques than IBJJF.',
           'A key difference between the two: leg lock rules — IBJJF restricts certain leg lock techniques (such as the Heel Hook) to higher belt levels only, to prevent injury in less experienced athletes who may not yet be able to defend against them, while ADCC and most No-Gi rulesets generally allow them more broadly.',
           'BJJ played a foundational role in shaping modern MMA — several of the UFC\'s earliest champions, such as Royce Gracie, were BJJ specialists who beat much larger opponents using ground control, proving to the wider combat sports world how important ground fighting is.'
-        ])
+        ],
+        svgFactStrip([
+          { title: 'IBJJF', sub: 'largest Gi federation', color: '#1971C2' },
+          { title: 'ADCC', sub: 'top No-Gi event', color: '#E8590C' },
+          { title: 'MMA Roots', sub: 'Royce Gracie era', color: '#2F9E44' }
+        ], 'bjj competition formats diagram'))
     ]
   }
 ];
