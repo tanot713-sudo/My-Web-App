@@ -129,21 +129,6 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .sp-instructions p{margin-bottom:10px}
 .sp-instructions p:last-child{margin-bottom:0}
 
-.sp-quiz-wrap{background:var(--bg);border-radius:12px;padding:20px 12px;margin-bottom:16px;color:var(--ink)}
-.sp-quiz-prompt{font-size:14.5px;font-weight:700;color:var(--ink);text-align:center;margin-bottom:4px;line-height:1.6}
-
-.sp-answer-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
-.sp-answer-btn{font-family:var(--f);font-size:13.5px;font-weight:700;padding:12px 16px;border-radius:12px;
-  border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;
-  transition:.15s cubic-bezier(.2,.8,.2,1);max-width:320px;text-align:left}
-.sp-answer-btn:hover:not(:disabled){border-color:var(--sp);color:var(--sp-dk);transform:translateY(-2px);box-shadow:0 6px 14px rgba(22,163,74,.14)}
-.sp-answer-btn:disabled{opacity:.5;cursor:default}
-.sp-answer-btn.correct{background:#E7F9F0;border-color:var(--ok);color:#0F7A4E}
-.sp-answer-btn.wrong{background:#FFE9EF;border-color:var(--err);color:#B3325A;animation:sp-shake .35s}
-[data-theme="dark"] .sp-answer-btn.correct{background:#12301F;color:#5EDCA0}
-[data-theme="dark"] .sp-answer-btn.wrong{background:#3A1F26;color:#F5A9BE}
-@keyframes sp-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
-
 .sp-toolbar{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}
 .btn{font-family:var(--f);font-size:14px;font-weight:600;padding:10px 18px;border:1.5px solid var(--line);
   border-radius:11px;cursor:pointer;background:var(--card);color:var(--ink);transition:.18s cubic-bezier(.2,.8,.2,1)}
@@ -210,11 +195,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
     <div class="sp-confetti" id="confettiLayer"></div>
     <div class="sp-item-heading" id="itemHeading"></div>
     <div class="sp-instructions" id="instructionsBox"></div>
-
-    <div class="sp-quiz-wrap" id="quizWrap" style="display:none">
-      <div class="sp-quiz-prompt" id="quizPrompt"></div>
-      <div class="sp-answer-row" id="answerRow"></div>
-    </div>
 
     <div class="sp-toolbar">
       <button class="btn primary" id="markReadBtn" type="button" data-i18n="markReadBtn" style="display:none">✓ เข้าใจแล้ว ไปต่อ</button>

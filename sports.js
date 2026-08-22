@@ -1,9 +1,10 @@
 /* ══════════════════════════════════════════════════════════════════
    Tanot — เรียนกีฬา (sports.js)
-   สเตจ 1: ฟุตบอล — กติกาพื้นฐาน
+   กติกา + ความรู้กีฬาหลายชนิด แบบสอนอย่างเดียว ไม่มีข้อสอบ/แบบทดสอบ
    สถาปัตยกรรมก็อป-แล้วปรับจาก music.js (แถบเกม/เมนูแฮมเบอร์เกอร์/sidebar ล็อกลำดับ/i18n TH-EN)
-   เรียบง่ายกว่า music.js เพราะไม่มีโน้ตดนตรี/เสียง — แต่ละ item เป็น 'reading' (เนื้อหาอ่านอย่างเดียว
-   กดปุ่มเพื่อไปต่อ) หรือ 'quiz' (โจทย์ปรนัย 4 ตัวเลือก ตอบถูกถึงปลดล็อกข้อถัดไป) เท่านั้น
+   เรียบง่ายกว่า music.js เพราะไม่มีโน้ตดนตรี/เสียง — ทุก item เป็น 'reading' เท่านั้น
+   (เนื้อหาอ่าน + ไดอะแกรม SVG ประกอบเมื่อมี กดปุ่ม "เข้าใจแล้ว ไปต่อ" เพื่อปลดล็อกข้อถัดไป
+   ไม่มีการตอบคำถามหรือให้คะแนนถูก/ผิด)
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
@@ -20,7 +21,6 @@ var I18N = {
     pageTitle: 'เรียนกีฬา', crumbResp: 'งานที่รับผิดชอบ', crumbSports: 'เรียนกีฬา',
     markReadBtn: '✓ เข้าใจแล้ว ไปต่อ',
     lockedMsg: 'บทเรียนนี้ยังล็อกอยู่ — ทำข้อก่อนหน้าให้ผ่านก่อน',
-    correctMsg: '✅ ถูกต้อง! ปลดล็อกข้อถัดไปแล้ว',
     trackDoneMsg: '🎉 จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
     toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
     toastBadge: 'ได้รับเหรียญตรา: "{badge}"!',
@@ -30,7 +30,6 @@ var I18N = {
     pageTitle: 'Learn Sports', crumbResp: 'Responsibilities', crumbSports: 'Learn Sports',
     markReadBtn: '✓ Got it, continue',
     lockedMsg: 'This lesson is locked — pass the previous one first.',
-    correctMsg: '✅ Correct! Next one unlocked.',
     trackDoneMsg: '🎉 Lesson complete! Pick the next lesson from the ☰ menu above.',
     toastTrackDone: 'Lesson "{track}" complete! 🎉',
     toastBadge: 'Badge earned: "{badge}"!',
@@ -45,16 +44,12 @@ function t(key, vars) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   เนื้อหาบทเรียน — ทุกข้อเป็น 'reading' (อ่านอย่างเดียว) หรือ 'quiz' (ปรนัย 4 ตัวเลือก)
+   เนื้อหาบทเรียน — ทุกข้อเป็น 'reading' (อ่านอย่างเดียว ไม่มีข้อสอบ)
    ══════════════════════════════════════════════════════════════════ */
 /* diagramHtml (ถ้ามี) เป็น HTML คงที่ (มักเป็น SVG) แปะต่อท้ายย่อหน้า — ไม่ต้องพึ่งภาษา
    เพราะป้ายในไดอะแกรมใช้คำสากลที่ใช้ตรงตัวทั้งไทย/อังกฤษอยู่แล้ว (GK, DF, Instep ฯลฯ) */
 function readingItem(headingTh, headingEn, paragraphsTh, paragraphsEn, diagramHtml) {
   return { kind: 'reading', heading: { th: headingTh, en: headingEn }, body: { th: paragraphsTh, en: paragraphsEn }, diagram: diagramHtml };
-}
-function mcqOpt(key, th, en) { return { key: key, label: { th: th, en: en } }; }
-function mcqItem(promptTh, promptEn, options, answer) {
-  return { kind: 'quiz', prompt: { th: promptTh, en: promptEn }, options: options, answer: answer };
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -272,78 +267,21 @@ var TRACKS = [
           "Outside-foot kick: the ball is struck with the outside of the foot, putting spin on the ball so it curves around defenders or the goalkeeper — commonly used for curling free kicks or disguising the pass direction."
         ],
         buildKickTechniqueSvg()),
-      mcqItem(
-        'ฟุตบอล 1 ทีมมีผู้เล่นกี่คนในสนาม (รวมผู้รักษาประตู)?', 'How many players does one football team have on the field (including the goalkeeper)?',
-        [mcqOpt('a', '11 คน', '11 players'), mcqOpt('b', '10 คน', '10 players'),
-         mcqOpt('c', '9 คน', '9 players'), mcqOpt('d', '12 คน', '12 players')],
-        'a'
-      ),
-      mcqItem(
-        'การแข่งขันฟุตบอลมาตรฐานแบ่งเวลาอย่างไร?', 'How is a standard football match divided?',
-        [mcqOpt('a', '2 ครึ่ง ครึ่งละ 45 นาที', '2 halves of 45 minutes each'),
-         mcqOpt('b', '2 ครึ่ง ครึ่งละ 30 นาที', '2 halves of 30 minutes each'),
-         mcqOpt('c', '4 ควอเตอร์ ควอเตอร์ละ 20 นาที', '4 quarters of 20 minutes each'),
-         mcqOpt('d', 'ครึ่งเดียว 90 นาทีรวด', 'One straight 90-minute period')],
-        'a'
-      ),
-      mcqItem(
-        'ใครเป็นคนเดียวที่สามารถใช้มือสัมผัสบอลได้ (ในเขตโทษของทีมตัวเอง)?', 'Who is the only player allowed to touch the ball with their hands (inside their own penalty area)?',
-        [mcqOpt('a', 'ผู้รักษาประตู', 'The goalkeeper'), mcqOpt('b', 'กองหลัง', 'A defender'),
-         mcqOpt('c', 'กองหน้า', 'A forward'), mcqOpt('d', 'กัปตันทีม', 'The team captain')],
-        'a'
-      ),
-      mcqItem(
-        'ผู้เล่นจะ "ล้ำหน้า" (Offside) เมื่อใด?', 'When is a player considered "offside"?',
-        [mcqOpt('a', 'อยู่ใกล้ประตูคู่แข่งกว่าบอลและผู้เล่นรองสุดท้ายฝ่ายตรงข้าม ตอนเพื่อนส่งบอลมาให้', 'Nearer to the opponent\'s goal than both the ball and the second-to-last opponent, at the moment a teammate passes'),
-         mcqOpt('b', 'ยืนอยู่ในเขตโทษของทีมตัวเอง', 'Standing in their own penalty area'),
-         mcqOpt('c', 'วิ่งเร็วกว่าคู่แข่ง', 'Running faster than the opponent'),
-         mcqOpt('d', 'ถือบอลไว้นานเกินไป', 'Holding the ball too long')],
-        'a'
-      ),
-      mcqItem(
-        'ถ้าผู้เล่นได้ใบเหลือง 2 ใบในเกมเดียวกัน จะเกิดอะไรขึ้น?', 'What happens if a player receives 2 yellow cards in the same match?',
-        [mcqOpt('a', 'กลายเป็นใบแดง ถูกไล่ออกจากสนามทันที', 'It becomes a red card — sent off immediately'),
-         mcqOpt('b', 'โดนแค่เตือนเฉยๆ ไม่มีผลอะไรเพิ่ม', 'Just a warning, no further consequence'),
-         mcqOpt('c', 'โดนแบนแค่เกมถัดไปเท่านั้น', 'Only banned for the next match'),
-         mcqOpt('d', 'ทีมเสียจุดโทษทันที', "The team immediately concedes a penalty")],
-        'a'
-      ),
-      mcqItem(
-        'ทีมที่โดนไล่ผู้เล่นออกด้วยใบแดง ต้องเล่นต่ออย่างไร?', 'How must a team play after one of its players is sent off with a red card?',
-        [mcqOpt('a', 'เล่นต่อด้วยผู้เล่นน้อยกว่าคู่แข่ง 1 คน ตลอดเกมที่เหลือ', 'Play the rest of the match with one fewer player than the opponent'),
-         mcqOpt('b', 'ส่งตัวสำรองลงแทนได้ทันที', 'Bring on a substitute right away'),
-         mcqOpt('c', 'หยุดพัก 10 นาทีก่อนเล่นต่อ', 'Take a 10-minute break before resuming'),
-         mcqOpt('d', 'ทีมคู่แข่งได้ประตูฟรีทันที', 'The opponent gets a free goal immediately')],
-        'a'
-      ),
-      mcqItem(
-        'เวลาทดเวลาบาดเจ็บ (Stoppage Time) มีไว้เพื่ออะไร?', 'What is stoppage time for?',
-        [mcqOpt('a', 'ชดเชยเวลาที่เสียไประหว่างครึ่งนั้น (บาดเจ็บ เปลี่ยนตัว ฯลฯ)', 'To compensate for time lost during that half (injuries, substitutions, etc.)'),
-         mcqOpt('b', 'ให้ทีมเจ้าบ้านได้เปรียบเสมอ', 'To always favor the home team'),
-         mcqOpt('c', 'เพื่อยืดเกมให้ยาวขึ้นเป็นมาตรฐาน 2 เท่า', 'To always double the length of the match'),
-         mcqOpt('d', 'ใช้เฉพาะรอบชิงชนะเลิศเท่านั้น', 'Only applies in the final match of a tournament')],
-        'a'
-      ),
-      mcqItem(
-        'ผู้เล่น (ที่ไม่ใช่ผู้รักษาประตูในเขตโทษตัวเอง) ห้ามใช้ส่วนไหนของร่างกายสัมผัสบอล?', 'Which body part are outfield players (outside the goalkeeper-in-their-own-area exception) forbidden from touching the ball with?',
-        [mcqOpt('a', 'มือและแขน', 'Hands and arms'), mcqOpt('b', 'เท้า', 'Feet'),
-         mcqOpt('c', 'หัว', 'The head'), mcqOpt('d', 'หน้าอก', 'The chest')],
-        'a'
-      ),
-      mcqItem(
-        'ในแผนการเล่น 4-4-2 มีกองหลัง (DF) กี่คน?', 'In the 4-4-2 formation, how many defenders (DF) are there?',
-        [mcqOpt('a', '4 คน', '4'), mcqOpt('b', '2 คน', '2'),
-         mcqOpt('c', '3 คน', '3'), mcqOpt('d', '5 คน', '5')],
-        'a'
-      ),
-      mcqItem(
-        'การเตะแบบ Instep (หลังเท้า) เหมาะกับการใช้งานแบบไหนที่สุด?', 'What is the Instep kick (top-of-foot) best suited for?',
-        [mcqOpt('a', 'ยิงประตูหรือส่งบอลไกล ต้องการแรงพุ่งตรง', 'Shooting or long passes that need power and a direct trajectory'),
-         mcqOpt('b', 'ส่งบอลระยะสั้นให้แม่นยำที่สุด', 'The most accurate short passes'),
-         mcqOpt('c', 'เตะโค้งหลบแนวรับ', 'Curving the ball around defenders'),
-         mcqOpt('d', 'ไม่มีจุดประสงค์เฉพาะ ใช้แทนกันได้หมด', 'No specific purpose — interchangeable with the others')],
-        'a'
-      )
+      readingItem('ลูกตั้งเตะและการเริ่มเกมใหม่', 'Restarts: Throw-ins, Corners, Free Kicks & Penalties',
+        [
+          'เมื่อบอลออกนอกเส้นข้างสนาม จะเริ่มเกมใหม่ด้วยการทุ่ม (Throw-in) โดยทีมที่ไม่ได้แตะบอลเป็นคนสุดท้าย ผู้เล่นต้องใช้สองมือทุ่มบอลข้ามศีรษะจากจุดที่บอลออก เท้าทั้งสองต้องแตะพื้นนอกสนามขณะทุ่ม',
+          'เมื่อบอลออกนอกเส้นประตู (หลังประตู) ถ้าฝ่ายรุกเป็นคนแตะบอลออกครั้งสุดท้าย ฝ่ายรับจะได้ Goal Kick (เตะจากในกรอบเขตประตูของตัวเอง) แต่ถ้าฝ่ายรับแตะบอลออกครั้งสุดท้าย ฝ่ายรุกจะได้ Corner Kick (เตะจากมุมสนามฝั่งที่บอลออก)',
+          'ฟรีคิก (Free Kick) แบ่งเป็น 2 แบบ: Direct Free Kick (เตะตรงเข้าประตูได้เลยโดยไม่ต้องมีใครแตะก่อน) ให้สำหรับฟาวล์รุนแรง เช่น ดันหรือสกัดขา ส่วน Indirect Free Kick (ต้องมีผู้เล่นอีกคนแตะบอลก่อนจึงจะนับเป็นประตูได้) ให้สำหรับความผิดที่เบากว่า เช่น ล้ำหน้าหรือผู้รักษาประตูถือบอลนานเกินไป',
+          'จุดโทษ (Penalty Kick) ให้เมื่อฝ่ายรับทำฟาวล์ในเขตโทษของตัวเอง เตะจากจุดโทษโดยมีเพียงผู้รักษาประตูคอยป้องกัน ถือเป็นโอกาสทำประตูที่มีโอกาสสูงที่สุดในเกม',
+          'การเปลี่ยนตัวผู้เล่น (Substitution): แต่ละทีมเปลี่ยนตัวได้จำนวนจำกัดต่อเกม (ปกติ 3-5 คนแล้วแต่การแข่งขัน) ผู้เล่นที่ถูกเปลี่ยนออกแล้วจะกลับลงสนามอีกไม่ได้ในเกมนั้น'
+        ],
+        [
+          'When the ball goes out over the sideline, play restarts with a Throw-in, taken by the team that did not touch it last. The thrower must use both hands, throwing the ball from behind and over the head from the exact spot it left the field, keeping both feet on the ground outside the touchline.',
+          "When the ball goes out over the goal line (behind the goal): if the attacking team touched it last, the defending team gets a Goal Kick (taken from inside their own goal area); if the defending team touched it last, the attacking team gets a Corner Kick (taken from the corner arc on the side the ball went out).",
+          'A Free Kick comes in two types: a Direct Free Kick (which can be shot straight into the goal) is awarded for serious fouls like pushing or tripping; an Indirect Free Kick (which must touch another player before it can count as a goal) is awarded for lighter offenses, such as offside or a goalkeeper holding the ball too long.',
+          "A Penalty Kick is awarded when the defending team commits a foul inside their own penalty area. It's taken from the penalty spot with only the goalkeeper to beat — the single highest-percentage scoring chance in the game.",
+          'Substitutions: each team may make a limited number of substitutions per match (typically 3-5 depending on the competition). A player who has been substituted off cannot return to the field for the rest of that match.'
+        ])
     ]
   },
   {
@@ -397,71 +335,23 @@ var TRACKS = [
           'A common memory trick for shooting form is BEEF: Balance (stable stance), Eyes (focus on the target/rim), Elbow (kept under the ball, in line with the basket), Follow-through (snap the wrist after releasing).'
         ],
         buildBasketballShotArcSvg()),
-      mcqItem(
-        'บาสเกตบอล 1 ทีมมีผู้เล่นกี่คนในสนาม?', 'How many players does one basketball team have on the court?',
-        [mcqOpt('a', '5 คน', '5 players'), mcqOpt('b', '6 คน', '6 players'),
-         mcqOpt('c', '7 คน', '7 players'), mcqOpt('d', '4 คน', '4 players')],
-        'a'
-      ),
-      mcqItem(
-        'การแข่งขันบาสเกตบอลมาตรฐานแบ่งเวลาอย่างไร?', 'How is a standard basketball match divided?',
-        [mcqOpt('a', '4 ควอเตอร์', '4 quarters'), mcqOpt('b', '2 ครึ่ง', '2 halves'),
-         mcqOpt('c', '3 พีเรียด', '3 periods'), mcqOpt('d', '5 ควอเตอร์', '5 quarters')],
-        'a'
-      ),
-      mcqItem(
-        'ยิงจากนอกเส้นสามคะแนน (3-point line) ได้กี่คะแนน?', 'How many points is a shot from outside the 3-point line worth?',
-        [mcqOpt('a', '3 คะแนน', '3 points'), mcqOpt('b', '2 คะแนน', '2 points'),
-         mcqOpt('c', '1 คะแนน', '1 point'), mcqOpt('d', '4 คะแนน', '4 points')],
-        'a'
-      ),
-      mcqItem(
-        'ยิงโทษ (Free Throw) แต่ละครั้งได้กี่คะแนน?', 'How many points is each free throw worth?',
-        [mcqOpt('a', '1 คะแนน', '1 point'), mcqOpt('b', '2 คะแนน', '2 points'),
-         mcqOpt('c', '3 คะแนน', '3 points'), mcqOpt('d', '0 คะแนน', '0 points')],
-        'a'
-      ),
-      mcqItem(
-        'ถ้าผู้เล่นเลี้ยงบอลหยุดแล้วเริ่มเลี้ยงใหม่ เรียกว่าอะไรและเกิดผลอย่างไร?', 'What is it called (and what happens) when a player stops dribbling then starts again?',
-        [mcqOpt('a', 'Double Dribble — เสียสิทธิ์ครองบอลให้ฝ่ายตรงข้าม', 'Double Dribble — possession goes to the other team'),
-         mcqOpt('b', 'Traveling — ได้โทษ 2 ครั้ง', 'Traveling — 2 penalties issued'),
-         mcqOpt('c', 'ไม่ผิดกติกาอะไร เล่นต่อได้ปกติ', 'Not a violation at all, play continues normally'),
-         mcqOpt('d', 'ฟาวล์ส่วนตัว 1 ครั้งให้ผู้เล่นคนนั้น', "A personal foul is added to that player")],
-        'a'
-      ),
-      mcqItem(
-        'ผู้เล่นที่ทำฟาวล์ส่วนตัวครบโควตาแล้ว (Fouled Out) จะเกิดอะไรขึ้น?', 'What happens to a player who has been "fouled out" (reached their personal foul limit)?',
-        [mcqOpt('a', 'ต้องออกจากเกมทันที เล่นต่อไม่ได้', 'They must leave the game immediately and cannot continue playing'),
-         mcqOpt('b', 'โดนใบเหลืองเตือน', 'They get a yellow-card warning'),
-         mcqOpt('c', 'เสียสิทธิ์ยิงโทษไปตลอดเกม', 'They permanently lose the right to shoot free throws'),
-         mcqOpt('d', 'ทีมเสีย 1 คะแนนทันที', 'The team immediately loses 1 point')],
-        'a'
-      ),
-      mcqItem(
-        'นาฬิกายิง (Shot Clock) มาตรฐานให้เวลากี่วินาทีในการยิงให้บอลโดนห่วง?', 'How many seconds does the standard shot clock give a team to get a shot to hit the rim?',
-        [mcqOpt('a', '24 วินาที', '24 seconds'), mcqOpt('b', '45 วินาที', '45 seconds'),
-         mcqOpt('c', '10 วินาที', '10 seconds'), mcqOpt('d', '60 วินาที', '60 seconds')],
-        'a'
-      ),
-      mcqItem(
-        'การเดินโดยไม่เลี้ยงบอล เรียกว่าอะไร?', 'What is it called when a player walks without dribbling the ball?',
-        [mcqOpt('a', 'Traveling', 'Traveling'), mcqOpt('b', 'Double Dribble', 'Double Dribble'),
-         mcqOpt('c', 'Charging', 'Charging'), mcqOpt('d', 'Blocking', 'Blocking')],
-        'a'
-      ),
-      mcqItem(
-        'ตำแหน่งไหนมักเป็นผู้เล่นตัวสูงที่สุดในทีม ยืนใกล้ห่วงที่สุด ทำหน้าที่รีบาวด์/บล็อก?', 'Which position is usually the tallest player, positioned closest to the basket, responsible for rebounds/blocks?',
-        [mcqOpt('a', 'เซ็นเตอร์ (Center, C)', 'Center (C)'), mcqOpt('b', 'การ์ดจ่าย (Point Guard, PG)', 'Point Guard (PG)'),
-         mcqOpt('c', 'การ์ดยิง (Shooting Guard, SG)', 'Shooting Guard (SG)'),
-         mcqOpt('d', 'สมอลฟอร์เวิร์ด (Small Forward, SF)', 'Small Forward (SF)')],
-        'a'
-      ),
-      mcqItem(
-        'มุมยิงบาสเกตบอลที่แนะนำ (Ideal Shooting Arc) อยู่ที่ประมาณกี่องศา?', 'What is the recommended basketball shooting arc, roughly?',
-        [mcqOpt('a', '45-52 องศา', '45-52 degrees'), mcqOpt('b', '10-20 องศา', '10-20 degrees'),
-         mcqOpt('c', '70-80 องศา', '70-80 degrees'), mcqOpt('d', '0 องศา (เส้นตรงแบนราบ)', '0 degrees (a flat straight line)')],
-        'a'
-      )
+      readingItem('การละเมิดกติกาและสถานการณ์พิเศษ', 'Violations & Special Situations',
+        [
+          'Backcourt Violation: เมื่อทีมได้บอลในแดนหน้า (แดนรุก) แล้ว ห้ามพาบอลกลับไปแตะแดนหลัง (แดนตัวเอง) อีก ถ้าทำจะเสียสิทธิ์ครองบอลให้ฝ่ายตรงข้ามทันที',
+          '3-Second Violation: ผู้เล่นฝ่ายรุกห้ามยืนอยู่ในเขตใต้ห่วง (The Key/Paint) นานเกิน 3 วินาทีติดต่อกันขณะทีมตัวเองครองบอล เพื่อป้องกันการยืนกีดขวางใกล้ห่วงตลอดเวลา',
+          'Goaltending: ห้ามผู้เล่นฝ่ายรับสัมผัสบอลขณะที่บอลกำลังพุ่งลงในวิถีขาลงเหนือห่วง (ถือว่าบอลจะเข้าอยู่แล้ว) ถ้าทำจะถูกนับเป็นประตูให้ฝ่ายรุกทันที',
+          "ฟาวล์เชิงเทคนิค (Technical Foul) ให้สำหรับพฤติกรรมไม่เหมาะสม เช่น โต้เถียงกรรมการรุนแรงหรือทำผิดมารยาท ทีมตรงข้ามได้ยิงโทษฟรีโดยไม่เสียสิทธิ์ครองบอล — ต่างจากฟาวล์ส่วนตัวปกติที่มาจากการปะทะร่างกาย",
+          "Bonus Free Throws: เมื่อทีมทำฟาวล์ทีมสะสมครบโควตาในควอเตอร์นั้น (ปกติ 5 ครั้ง) ทุกฟาวล์ต่อจากนั้นของทีมนั้น ฝ่ายตรงข้ามจะได้ยิงโทษแม้ฟาวล์นั้นไม่ได้เกิดขณะยิงบอล เรียกว่าสถานะ 'Bonus'",
+          'ถ้าคะแนนเสมอกันเมื่อจบควอเตอร์ 4 จะมีการต่อเวลาพิเศษ (Overtime) ครั้งละ 5 นาที เล่นต่อไปเรื่อยๆ จนกว่าจะมีทีมที่คะแนนนำเมื่อหมดเวลา'
+        ],
+        [
+          'Backcourt Violation: once a team brings the ball into the frontcourt (attacking half), it may not carry or pass the ball back across the mid-court line into its own backcourt — doing so gives possession to the other team immediately.',
+          '3-Second Violation: an offensive player may not stand inside the key (the paint, under the basket) for more than 3 consecutive seconds while their team has possession — this prevents players from camping right next to the hoop.',
+          "Goaltending: a defender may not touch the ball while it's on its downward path above the rim and appears to be going in — doing so awards the basket to the offense automatically.",
+          'A Technical Foul is given for unsportsmanlike conduct, such as arguing aggressively with a referee. The opposing team is awarded free throws without losing possession — unlike a regular personal foul, which comes from physical contact.',
+          "Bonus Free Throws: once a team's fouls in a quarter reach the team-foul limit (usually 5), every additional foul by that team sends the opponent to the free-throw line, even if the foul didn't happen during a shot — this is called being 'in the bonus'.",
+          'If the score is tied at the end of the 4th quarter, the game goes to Overtime — extra 5-minute periods played one after another until one team is ahead when time runs out.'
+        ])
     ]
   },
   {
@@ -515,76 +405,21 @@ var TRACKS = [
           'The angle of the arm platform determines where the ball goes — angle the arms toward the setter (Zones 2-3) to direct the ball for the next set. See the diagram below.'
         ],
         buildVolleyballPassSvg()),
-      mcqItem(
-        'วอลเลย์บอล 1 ทีมมีผู้เล่นกี่คนในสนาม?', 'How many players does one volleyball team have on the court?',
-        [mcqOpt('a', '6 คน', '6 players'), mcqOpt('b', '5 คน', '5 players'),
-         mcqOpt('c', '7 คน', '7 players'), mcqOpt('d', '4 คน', '4 players')],
-        'a'
-      ),
-      mcqItem(
-        'แต่ละทีมสัมผัสบอลได้สูงสุดกี่ครั้งต่อฝั่ง (ไม่นับบล็อก) ก่อนต้องส่งบอลข้ามตาข่าย?', 'How many times may a team touch the ball per side (not counting a block) before it must cross the net?',
-        [mcqOpt('a', '3 ครั้ง', '3 times'), mcqOpt('b', '2 ครั้ง', '2 times'),
-         mcqOpt('c', '4 ครั้ง', '4 times'), mcqOpt('d', '1 ครั้ง', '1 time')],
-        'a'
-      ),
-      mcqItem(
-        'การแข่งขันวอลเลย์บอลมาตรฐานเล่นแบบใด?', 'How is a standard volleyball match played?',
-        [mcqOpt('a', 'Best of 5 เซต (ชนะ 3 ใน 5 เซต)', 'Best of 5 sets (first to win 3)'),
-         mcqOpt('b', 'Best of 3 เซต', 'Best of 3 sets'),
-         mcqOpt('c', 'เซตเดียวจบเกม', 'A single set decides the match'),
-         mcqOpt('d', 'Best of 7 เซต', 'Best of 7 sets')],
-        'a'
-      ),
-      mcqItem(
-        'แต่ละเซต (ยกเว้นเซตตัดสิน) เล่นถึงกี่แต้ม?', 'How many points is each set (except the deciding set) played to?',
-        [mcqOpt('a', '25 แต้ม', '25 points'), mcqOpt('b', '21 แต้ม', '21 points'),
-         mcqOpt('c', '15 แต้ม', '15 points'), mcqOpt('d', '30 แต้ม', '30 points')],
-        'a'
-      ),
-      mcqItem(
-        'เซตตัดสิน (เซตที่ 5) เล่นถึงกี่แต้ม?', 'How many points is the deciding 5th set played to?',
-        [mcqOpt('a', '15 แต้ม', '15 points'), mcqOpt('b', '25 แต้ม', '25 points'),
-         mcqOpt('c', '21 แต้ม', '21 points'), mcqOpt('d', '10 แต้ม', '10 points')],
-        'a'
-      ),
-      mcqItem(
-        'การบล็อกนับเป็น 1 ใน 3 ครั้งสัมผัสบอลที่อนุญาตของทีมหรือไม่?', "Does a block count as one of the team's 3 allowed ball touches?",
-        [mcqOpt('a', 'ไม่นับ — บล็อกแยกต่างหาก', 'No — a block is separate and does not count'),
-         mcqOpt('b', 'นับเสมอ', 'Yes, it always counts'),
-         mcqOpt('c', 'นับเฉพาะบล็อกเดี่ยว (คนเดียว)', 'Only counts for a solo block'),
-         mcqOpt('d', 'แล้วแต่กรรมการตัดสิน', "It's up to the referee's discretion")],
-        'a'
-      ),
-      mcqItem(
-        'ทีมต้องหมุนตำแหน่งผู้เล่น 1 ตำแหน่งเมื่อใด?', 'When must a team rotate its players one position?',
-        [mcqOpt('a', 'เมื่อได้สิทธิ์เสิร์ฟใหม่จากการเสียแต้มของฝ่ายตรงข้าม', "When it regains the serve after winning a point off the opponent's serve"),
-         mcqOpt('b', 'ทุกจบเซต', 'At the end of every set'),
-         mcqOpt('c', 'ทุก 5 แต้มที่ทำได้', 'Every 5 points scored'),
-         mcqOpt('d', 'ไม่ต้องหมุนเลยตลอดเกม', 'Never — positions stay fixed all match')],
-        'a'
-      ),
-      mcqItem(
-        'ถ้าเสิร์ฟบอลออกนอกสนามหรือติดตาข่าย จะเกิดอะไรขึ้น?', 'What happens if a serve goes out of bounds or fails to cross the net?',
-        [mcqOpt('a', 'ฝ่ายตรงข้ามได้แต้มทันที', 'The other team scores a point immediately'),
-         mcqOpt('b', 'เสิร์ฟใหม่ได้อีกครั้งโดยไม่เสียอะไร', 'The server gets to retry with no penalty'),
-         mcqOpt('c', 'ไม่มีผลอะไรเลย เล่นต่อปกติ', 'Nothing happens, play just continues'),
-         mcqOpt('d', 'ทีมเสิร์ฟเสียสิทธิ์เสิร์ฟแต่ไม่เสียแต้ม', 'The serving team loses the serve but no point is scored')],
-        'a'
-      ),
-      mcqItem(
-        'โซนไหนคือตำแหน่งเสิร์ฟ?', 'Which zone is the serving position?',
-        [mcqOpt('a', 'โซน 1', 'Zone 1'), mcqOpt('b', 'โซน 4', 'Zone 4'),
-         mcqOpt('c', 'โซน 6', 'Zone 6'), mcqOpt('d', 'โซน 3', 'Zone 3')],
-        'a'
-      ),
-      mcqItem(
-        'ผู้เล่นแถวหลัง (โซน 1, 5, 6) มีข้อจำกัดอะไร?', 'What restriction applies to back-row players (Zones 1, 5, 6)?',
-        [mcqOpt('a', 'ห้ามกระโดดตบหน้าเส้น 3 เมตร และห้ามบล็อกที่ตาข่าย', 'They may not jump-attack in front of the 3-meter line, and may not block at the net'),
-         mcqOpt('b', 'ห้ามเสิร์ฟบอล', 'They are not allowed to serve'),
-         mcqOpt('c', 'ห้ามรับลูกด้วยแขน', 'They are not allowed to use a forearm pass'),
-         mcqOpt('d', 'ไม่มีข้อจำกัดใดๆ เลย', 'There is no restriction at all')],
-        'a'
-      )
+      readingItem('การละเมิดกติกาที่พบบ่อยและประเภทการเสิร์ฟ', 'Common Faults & Serve Types',
+        [
+          'Four Hits: ถ้าทีมสัมผัสบอลเกิน 3 ครั้ง (ไม่นับบล็อก) ก่อนส่งข้ามตาข่าย ถือเป็นการทำผิดกติกา เสียแต้มให้ฝ่ายตรงข้ามทันที',
+          'Double Touch: ผู้เล่นคนเดียวสัมผัสบอล 2 ครั้งติดต่อกัน (ยกเว้นตอนบล็อก หรือกรณีสัมผัสครั้งแรกของทีมที่กระเด้งหลายจุดในจังหวะเดียว) ถือเป็นการทำผิดกติกาเช่นกัน',
+          "Carrying/Lifting: การสัมผัสบอลด้วยท่าทางที่ดูเหมือน 'จับ' หรือ 'โยน' บอลแทนที่จะเป็นการตี/สัมผัสสั้นๆ (มักเกิดตอนเซ็ต) ถือเป็นการทำผิดกติกา",
+          'Net Touch: ผู้เล่นห้ามสัมผัสตาข่ายขณะเล่นลูก (ยกเว้นกรณีสัมผัสเบามากที่ไม่มีผลต่อการเล่น) และห้ามล้ำเส้นกลางสนามเข้าไปในแดนคู่แข่งขณะบอลยังอยู่ในการเล่น',
+          'ประเภทการเสิร์ฟหลัก: Float Serve (เสิร์ฟลอย ไม่หมุน ทำให้บอลเคลื่อนที่ไม่แน่นอนคาดเดายาก) และ Jump Serve (เสิร์ฟกระโดด ตีแรงและเร็วเหมือนลูกตบ นิยมในระดับสูง เพราะสร้างแรงกดดันให้ฝ่ายรับได้มาก)'
+        ],
+        [
+          'Four Hits: if a team touches the ball more than 3 times (not counting a block) before sending it over the net, that\'s a fault and the point goes to the other team immediately.',
+          'Double Touch: a single player touching the ball twice in a row (except while blocking, or during a legal multi-contact first touch) is also a fault.',
+          "Carrying/Lifting: contacting the ball in a way that looks like 'catching' or 'throwing' it rather than a clean, brief touch or strike — this most often happens during a set — is a fault.",
+          "Net Touch: players may not touch the net while playing the ball (a very light, incidental touch that doesn't affect play is usually allowed), and may not cross under the net into the opponent's side while the ball is in play.",
+          'Two main serve types: the Float Serve (a serve with no spin, making the ball\'s flight unpredictable and hard to read) and the Jump Serve (a jumping serve struck hard and fast like an attack, popular at higher levels because it puts heavy pressure on the receiving team).'
+        ])
     ]
   },
   {
@@ -638,81 +473,19 @@ var TRACKS = [
           'Smash (a steep power shot): hits the shuttle down hard and fast at a steep angle — the most powerful point-finishing shot, usually struck while the shuttle is overhead.'
         ],
         buildBadmintonShotsSvg()),
-      mcqItem(
-        'การแข่งขันแบดมินตันมาตรฐานเล่นแบบใด?', 'How is a standard badminton match played?',
-        [mcqOpt('a', 'Best of 3 เกม (ชนะ 2 ใน 3 เกม)', 'Best of 3 games (first to win 2)'),
-         mcqOpt('b', 'Best of 5 เกม', 'Best of 5 games'),
-         mcqOpt('c', 'เกมเดียวจบการแข่งขัน', 'A single game decides the match'),
-         mcqOpt('d', 'Best of 1 เกม', 'Best of 1 game')],
-        'a'
-      ),
-      mcqItem(
-        'แต่ละเกมเล่นถึงกี่แต้ม?', 'How many points is each game played to?',
-        [mcqOpt('a', '21 แต้ม', '21 points'), mcqOpt('b', '25 แต้ม', '25 points'),
-         mcqOpt('c', '15 แต้ม', '15 points'), mcqOpt('d', '11 แต้ม', '11 points')],
-        'a'
-      ),
-      mcqItem(
-        'ถ้าคะแนนเสมอ 29-29 แล้วใครถึง 30 ก่อน จะเกิดอะไรขึ้น?', 'If the score is tied 29-29, what happens when a player/team reaches 30 first?',
-        [mcqOpt('a', 'ชนะเกมทันที (30 คือแต้มสูงสุด)', 'They win the game immediately (30 is the hard cap)'),
-         mcqOpt('b', 'ต้องเล่นต่อจนนำห่าง 2 แต้ม ไม่มีเพดานแต้ม', 'Play continues until a 2-point lead, with no cap'),
-         mcqOpt('c', 'เริ่มเกมใหม่ตั้งแต่ 0-0', 'The game restarts from 0-0'),
-         mcqOpt('d', 'ไม่มีกติกาข้อนี้อยู่จริง', "No such rule exists")],
-        'a'
-      ),
-      mcqItem(
-        'ระบบคะแนนปัจจุบันของแบดมินตันเรียกว่าอะไร?', "What is badminton's current scoring system called?",
-        [mcqOpt('a', 'Rally Point System — ได้แต้มทุกครั้งที่ชนะแรลลี่ ไม่ว่าใครเสิร์ฟ', 'Rally Point System — a point is scored on every rally, regardless of who served'),
-         mcqOpt('b', 'Side-Out System — ต้องเป็นฝ่ายเสิร์ฟถึงจะได้แต้ม', 'Side-Out System — only the serving side can score'),
-         mcqOpt('c', 'Golden Point System', 'Golden Point System'),
-         mcqOpt('d', 'Tie-Break Only System', 'Tie-Break Only System')],
-        'a'
-      ),
-      mcqItem(
-        'การเสิร์ฟในแบดมินตันต้องตีลูกจากระดับไหน?', 'At what level must the shuttlecock be struck when serving in badminton?',
-        [mcqOpt('a', 'ใต้เอว (Underarm) เท่านั้น', 'From below the waist (underarm) only'),
-         mcqOpt('b', 'เหนือไหล่', 'Above the shoulder'),
-         mcqOpt('c', 'ระดับไหนก็ได้ ไม่มีข้อจำกัด', 'Any height — there is no restriction'),
-         mcqOpt('d', 'เหนือศีรษะเท่านั้น', 'Above the head only')],
-        'a'
-      ),
-      mcqItem(
-        'ถ้าเสิร์ฟผิดกติกา (เช่น ตีลูกเหนือเอว) เรียกว่าอะไรและเกิดผลอย่างไร?', 'What is it called (and what happens) when a serve breaks the rules (e.g. struck above the waist)?',
-        [mcqOpt('a', 'Service Fault — เสียแต้มให้อีกฝ่ายทันที', 'Service Fault — the point goes to the other side immediately'),
-         mcqOpt('b', 'Let — เสิร์ฟใหม่ได้โดยไม่เสียแต้ม', 'A Let — the serve is simply retaken with no point lost'),
-         mcqOpt('c', 'ไม่มีผลอะไร เล่นต่อปกติ', 'Nothing happens, play continues normally'),
-         mcqOpt('d', 'ผู้เล่นได้รับใบเหลือง', 'The player receives a yellow card')],
-        'a'
-      ),
-      mcqItem(
-        'ในประเภทคู่ เมื่อคะแนนของทีมเป็นเลขคู่ ต้องเสิร์ฟจากช่องไหน?', "In doubles, when a team's score is an even number, which service court must they serve from?",
-        [mcqOpt('a', 'ช่องขวา', 'The right service court'), mcqOpt('b', 'ช่องซ้าย', 'The left service court'),
-         mcqOpt('c', 'ช่องไหนก็ได้', 'Either court, it does not matter'),
-         mcqOpt('d', 'ต้องเสิร์ฟจากกลางสนาม', 'From the middle of the court')],
-        'a'
-      ),
-      mcqItem(
-        'ถ้าลูกขนไก่โดนตัวผู้เล่นก่อนตกพื้น จะเกิดอะไรขึ้น?', "What happens if the shuttlecock touches a player's body before hitting the ground?",
-        [mcqOpt('a', 'อีกฝ่ายได้แต้มทันที', 'The other side scores the point immediately'),
-         mcqOpt('b', 'เสิร์ฟใหม่ ไม่มีใครได้แต้ม', 'The serve is retaken, no point is awarded'),
-         mcqOpt('c', 'ไม่มีผลอะไรเลย', 'Nothing happens at all'),
-         mcqOpt('d', 'หยุดเกมชั่วคราวเพื่อตรวจสอบ', 'Play is paused for a review')],
-        'a'
-      ),
-      mcqItem(
-        'เส้นสนามเดี่ยว (Singles) กับเส้นสนามคู่ (Doubles) ต่างกันอย่างไร?', 'How do the singles and doubles court lines differ?',
-        [mcqOpt('a', 'เดี่ยวแคบกว่าแต่ลึกกว่า คู่กว้างกว่าแต่ตื้นกว่า', 'Singles is narrower but deeper; doubles is wider but shallower'),
-         mcqOpt('b', 'เดี่ยวกว้างกว่าคู่ทุกด้าน', 'Singles is wider than doubles on every side'),
-         mcqOpt('c', 'เหมือนกันทุกเส้น ไม่มีความแตกต่าง', 'They are identical, no difference at all'),
-         mcqOpt('d', 'คู่แคบกว่าเดี่ยวเสมอ', 'Doubles is always narrower than singles')],
-        'a'
-      ),
-      mcqItem(
-        'ลูกตีแบบไหนใช้ดันคู่แข่งให้ถอยไปแดนหลังสนาม?', 'Which shot is used to push the opponent back toward the rear of the court?',
-        [mcqOpt('a', 'Clear', 'Clear'), mcqOpt('b', 'Drop', 'Drop'),
-         mcqOpt('c', 'Smash', 'Smash'), mcqOpt('d', 'Serve', 'Serve')],
-        'a'
-      )
+      readingItem('ฟาวล์เพิ่มเติมและการหมุนตำแหน่งประเภทคู่', 'More Faults & Doubles Rotation',
+        [
+          'Let (เล่นใหม่): กรรมการสั่ง Let เมื่อเกิดเหตุขัดจังหวะที่ไม่เป็นความผิดของฝ่ายใด เช่น ลูกขนไก่ค้างอยู่บนตาข่ายหลังข้ามไปแล้ว หรือฝ่ายรับยังไม่พร้อมตอนเสิร์ฟ — แต้มนั้นจะเล่นใหม่โดยไม่มีใครเสียแต้ม',
+          'ฟาวล์อื่นๆ ที่พบบ่อย: ผู้เล่นห้ามสัมผัสตาข่ายด้วยตัวหรือไม้แร็กเกตขณะลูกยังอยู่ในการเล่น ห้ามตีลูกก่อนที่ลูกจะข้ามมาถึงฝั่งตัวเอง (ต้องรอให้ลูกอยู่ฝั่งตัวเองก่อน) และห้ามส่งเสียงหรือทำท่าทางรบกวนสมาธิคู่แข่ง',
+          'ในประเภทคู่ ทีมที่ชนะแต้ม (จากการเป็นฝ่ายรับ) จะได้สิทธิ์เสิร์ฟ แต่คู่ผู้เล่นในทีมนั้นไม่จำเป็นต้องสลับตำแหน่งเสิร์ฟกันเสมอ — ผู้เล่นที่อยู่ในตำแหน่งขวาตอนทีมได้แต้มจะเป็นคนเสิร์ฟ (คนที่เสิร์ฟครั้งก่อนอาจไม่ใช่คนเดิม) ทำให้การหมุนตำแหน่งซับซ้อนกว่าวอลเลย์บอล',
+          'การจับไม้ (Grip) พื้นฐานมี 2 แบบ: Forehand Grip (จับแบบจับมือ เหมาะกับตีลูกฝั่งขวาลำตัว) และ Backhand Grip (หมุนนิ้วโป้งมาพาดสันไม้ เหมาะกับตีลูกฝั่งซ้ายลำตัวโดยไม่ต้องหมุนตัว)'
+        ],
+        [
+          "A Let is called when there's an interruption that isn't either player's fault — e.g. the shuttlecock gets caught on top of the net after crossing over, or the receiver wasn't ready when served to. The point is simply replayed and nobody loses a point.",
+          'Other common faults: a player may not touch the net with their body or racket while the shuttle is still in play, may not hit the shuttle before it has crossed to their own side, and may not make noise or gestures meant to distract the opponent.',
+          "In doubles, whichever team wins the rally (by winning back the serve) earns the right to serve, but the two players on that team don't necessarily alternate who serves — whoever happens to be standing in the right-side court when the team wins the point serves next (it may not be the same player who served last time), making doubles rotation more complex than volleyball's.",
+          'There are two basic grips: the Forehand Grip (like a handshake grip, suited to hitting shots on the racket-arm side) and the Backhand Grip (rotate the thumb onto the flat of the handle, suited to hitting shots on the non-racket side without turning the body).'
+        ])
     ]
   },
   {
@@ -766,73 +539,19 @@ var TRACKS = [
           'This rule keeps the game fair: both players must serve and receive from both sides in alternation throughout the match.'
         ],
         buildTennisServeSvg()),
-      mcqItem(
-        'ในเกมเทนนิส ถ้าผู้เล่นทำแต้มได้ 2 แต้มแล้ว คะแนนจะถูกเรียกว่าอะไร?', "In a tennis game, what is the score called after a player has won 2 points?",
-        [mcqOpt('a', '30', '30'), mcqOpt('b', '15', '15'),
-         mcqOpt('c', '40', '40'), mcqOpt('d', 'Love', 'Love')],
-        'a'
-      ),
-      mcqItem(
-        'ถ้าทั้งสองฝ่ายมีคะแนน 40-40 เท่ากัน เรียกว่าอะไร?', 'What is it called when both sides are tied at 40-40?',
-        [mcqOpt('a', 'Deuce', 'Deuce'), mcqOpt('b', 'Tie-Break', 'Tie-Break'),
-         mcqOpt('c', 'Match Point', 'Match Point'), mcqOpt('d', 'Let', 'Let')],
-        'a'
-      ),
-      mcqItem(
-        'ผู้เล่น/ทีมที่ชนะ 6 เกมก่อน (นำห่างอย่างน้อย 2 เกม) จะเป็นผู้ชนะอะไร?', 'The player/team who wins 6 games first (by a margin of at least 2) wins what?',
-        [mcqOpt('a', 'เซต (Set)', 'The Set'), mcqOpt('b', 'แมตช์ทั้งหมดทันที', 'The entire match immediately'),
-         mcqOpt('c', 'แค่เกมเดียว', 'Just a single game'), mcqOpt('d', 'ทัวร์นาเมนต์', 'The whole tournament')],
-        'a'
-      ),
-      mcqItem(
-        'การแข่งขันเทนนิสมาตรฐานทั่วไปเล่นแบบใด?', 'How is a typical standard tennis match played?',
-        [mcqOpt('a', 'Best of 3 เซต', 'Best of 3 sets'), mcqOpt('b', 'Best of 5 เซตเสมอทุกครั้ง', 'Always best-of-5 sets'),
-         mcqOpt('c', 'เซตเดียวจบการแข่งขัน', 'A single set decides the match'),
-         mcqOpt('d', 'Best of 1 เซต', 'Best of 1 set')],
-        'a'
-      ),
-      mcqItem(
-        'ถ้าเสิร์ฟผิดพลาด 2 ครั้งติดกัน (Double Fault) จะเกิดอะไรขึ้น?', 'What happens on a Double Fault (two consecutive serve faults)?',
-        [mcqOpt('a', 'เสียแต้มให้อีกฝ่ายทันที', 'The point immediately goes to the other side'),
-         mcqOpt('b', 'เสิร์ฟใหม่ได้อีกครั้งโดยไม่เสียอะไร', 'The server gets to retry with no penalty'),
-         mcqOpt('c', 'เปลี่ยนฝั่งเสิร์ฟไปให้อีกฝ่ายทั้งเกม', 'Serve permanently switches to the other side for the rest of the game'),
-         mcqOpt('d', 'ไม่มีผลอะไรเลย', 'Nothing happens at all')],
-        'a'
-      ),
-      mcqItem(
-        'ถ้าเสิร์ฟโดนตาข่ายแต่ยังตกในช่องเสิร์ฟที่ถูกต้อง เรียกว่าอะไร?', 'What is it called when a serve touches the net but still lands in the correct service box?',
-        [mcqOpt('a', 'Let', 'Let'), mcqOpt('b', 'Fault', 'Fault'),
-         mcqOpt('c', 'Deuce', 'Deuce'), mcqOpt('d', 'Ace', 'Ace')],
-        'a'
-      ),
-      mcqItem(
-        'ผู้เล่นยอมให้บอลเด้งพื้นฝั่งตัวเองได้กี่ครั้งก่อนต้องตีกลับ?', 'How many times is a player allowed to let the ball bounce on their side before returning it?',
-        [mcqOpt('a', '1 ครั้ง', '1 time'), mcqOpt('b', '2 ครั้ง', '2 times'),
-         mcqOpt('c', 'ไม่ให้เด้งเลย ต้องตีก่อนตกพื้น', 'None — must be hit before touching the ground'),
-         mcqOpt('d', '3 ครั้ง', '3 times')],
-        'a'
-      ),
-      mcqItem(
-        'ถ้าคะแนนเกมในเซตเสมอ 6-6 มักใช้ระบบใดตัดสินเซตนั้น?', 'When the game score in a set reaches 6-6, what system usually decides the set?',
-        [mcqOpt('a', 'Tie-Break', 'A Tie-Break'), mcqOpt('b', 'Deuce', 'Deuce'),
-         mcqOpt('c', 'Golden Point', 'Golden Point'), mcqOpt('d', 'Sudden Death', 'Sudden Death')],
-        'a'
-      ),
-      mcqItem(
-        "เส้นข้างชุดไหนใช้เฉพาะประเภทคู่ (Doubles) เท่านั้น?", 'Which set of lines is used only in doubles play?',
-        [mcqOpt('a', "Doubles Alley (เลนกว้างพิเศษด้านนอก)", 'The Doubles Alley (the extra-wide outer lane)'),
-         mcqOpt('b', 'Service Line', 'The Service Line'), mcqOpt('c', 'Baseline', 'The Baseline'),
-         mcqOpt('d', 'Center Service Line', 'The Center Service Line')],
-        'a'
-      ),
-      mcqItem(
-        'ลูกเสิร์ฟต้องข้ามตาข่ายไปตกที่ไหนเสมอ?', 'Where must a serve always land after crossing the net?',
-        [mcqOpt('a', 'ช่องเสิร์ฟทแยงมุมฝั่งตรงข้าม', 'In the diagonally opposite service box'),
-         mcqOpt('b', 'ช่องตรงหน้าผู้เสิร์ฟ', 'In the box directly ahead of the server'),
-         mcqOpt('c', 'ตรงไหนก็ได้ในสนามฝั่งคู่แข่ง', 'Anywhere at all on the opponent\'s side'),
-         mcqOpt('d', 'นอกเส้นสนามก็ได้ ไม่มีผล', "Outside the lines is fine too, no penalty")],
-        'a'
-      )
+      readingItem('กติกาเพิ่มเติม: ไทเบรก เสิร์ฟผิดกติกา และประเภทคู่', 'More Rules: Tie-Breaks, Foot Faults & Doubles',
+        [
+          'Tie-Break: เมื่อเกมในเซตเสมอ 6-6 มักเล่นไทเบรกตัดสิน นับคะแนนแบบธรรมดา (1, 2, 3...) แทนระบบ 15-30-40 ฝ่ายแรกที่ทำได้ 7 แต้ม (นำห่างอย่างน้อย 2 แต้ม) เป็นผู้ชนะเซตนั้นไปด้วยสกอร์ 7-6',
+          'Foot Fault: ขณะเสิร์ฟ ผู้เล่นห้ามเหยียบหรือก้าวข้ามเส้นหลังสนาม (Baseline) ก่อนตีลูกออกจากมือ ถ้าทำถือเป็น Foot Fault นับเป็นการเสิร์ฟเสีย 1 ครั้งเหมือน Fault ทั่วไป',
+          'ในประเภทคู่ (Doubles) คู่ผู้เล่นแต่ละทีมต้องผลัดกันเสิร์ฟทั้งเกม (คนที่ 1 เสิร์ฟเกมที่ 1 คนที่ 2 ของทีมเดียวกันเสิร์ฟเกมที่ 3 สลับกับคู่ต่อสู้) และต้องผลัดกันรับเสิร์ฟฝั่งขวา-ซ้ายเช่นเดียวกับกฎรับเสิร์ฟของประเภทเดี่ยว',
+          "ระบบให้คะแนนทางเลือก 'No-Ad' (ไม่มี Deuce/Advantage): บางทัวร์นาเมนต์ใช้ระบบนี้เพื่อร่นเวลาแข่ง — ถ้าคะแนนถึง 40-40 แต้มถัดไปตัดสินเกมทันที (Sudden Death) โดยฝ่ายรับเลือกได้ว่าจะรับจากฝั่งไหน"
+        ],
+        [
+          'A Tie-Break decides a set when the game score reaches 6-6. Scoring switches to simple counting (1, 2, 3...) instead of 15-30-40 — the first side to reach 7 points (by a margin of at least 2) wins the set, typically recorded as 7-6.',
+          'A Foot Fault happens if a server steps on or over the baseline before striking the ball on serve — it counts as one fault, just like any other serve fault.',
+          'In Doubles, the two players on a team take turns serving throughout the match (player 1 serves game 1, player 2 serves game 3, alternating with the opposing pair), and they also alternate which side (right/left) they return serve from, the same as the singles rule.',
+          "An alternative scoring system called 'No-Ad' (no Deuce/Advantage) is used by some tournaments to shorten matches — if the score reaches 40-40, the very next point decides the game outright (sudden death), and the receiving side chooses which side to return from."
+        ])
     ]
   }
 ];
@@ -923,8 +642,7 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
   var trackMenuBtn = $('trackMenuBtn'), trackMenuPanel = $('trackMenuPanel'), currentTrackLabel = $('currentTrackLabel'),
       itemList = $('itemList'), lockMsg = $('lockMsg'), instructionsBox = $('instructionsBox'),
       itemHeading = $('itemHeading'), langToggle = $('langToggle'),
-      quizWrap = $('quizWrap'), quizPromptEl = $('quizPrompt'),
-      answerRow = $('answerRow'), markReadBtn = $('markReadBtn'), resultBanner = $('resultBanner'),
+      markReadBtn = $('markReadBtn'), resultBanner = $('resultBanner'),
       levelNumEl = $('levelNum'), levelTitleEl = $('levelTitleEl'), xpFillEl = $('xpFill'),
       streakCountEl = $('streakCount'), badgeRowEl = $('badgeRow'), toastWrap = $('toastWrap'),
       confettiLayer = $('confettiLayer');
@@ -1078,12 +796,7 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
   if (trackMenuPanel) trackMenuPanel.addEventListener('click', function (e) { e.stopPropagation(); });
   document.addEventListener('click', closeTrackMenu);
 
-  function itemLabel(track, item, i) {
-    if (item.kind === 'reading') return pick(item.heading);
-    var quizNum = 0;
-    for (var k = 0; k <= i; k++) if (track.items[k].kind === 'quiz') quizNum++;
-    return (getUILang() === 'en' ? 'Question ' : 'ข้อที่ ') + quizNum;
-  }
+  function itemLabel(track, item) { return pick(item.heading); }
 
   function renderItemList() {
     var trackIdx = TRACKS.indexOf(trackById(state.trackId));
@@ -1096,7 +809,7 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'sp-item' + (i === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
-      btn.textContent = (passed ? '✅ ' : unlocked ? (item.kind === 'reading' ? '📖 ' : '❓ ') : '🔒 ') + itemLabel(track, item, i);
+      btn.textContent = (passed ? '✅ ' : unlocked ? '📖 ' : '🔒 ') + itemLabel(track, item);
       btn.addEventListener('click', function () {
         if (unlocked) selectItem(i);
         else showLockMsg();
@@ -1129,21 +842,11 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
     resultBanner.style.display = 'none';
     resultBanner.className = 'sp-result-banner';
 
-    if (item.kind === 'reading') {
-      itemHeading.textContent = pick(item.heading);
-      instructionsBox.innerHTML = pick(item.body).map(function (p) { return '<p>' + p + '</p>'; }).join('');
-      if (item.diagram) instructionsBox.innerHTML += item.diagram;
-      quizWrap.style.display = 'none';
-      markReadBtn.style.display = 'inline-flex';
-      markReadBtn.disabled = false;
-    } else {
-      itemHeading.textContent = itemLabel(track, item, idx);
-      instructionsBox.innerHTML = '';
-      quizWrap.style.display = 'block';
-      markReadBtn.style.display = 'none';
-      quizPromptEl.textContent = pick(item.prompt);
-      renderAnswerRow(item);
-    }
+    itemHeading.textContent = pick(item.heading);
+    instructionsBox.innerHTML = pick(item.body).map(function (p) { return '<p>' + p + '</p>'; }).join('');
+    if (item.diagram) instructionsBox.innerHTML += item.diagram;
+    markReadBtn.style.display = 'inline-flex';
+    markReadBtn.disabled = false;
 
     var progress = loadProgress();
     var trackIdx = TRACKS.indexOf(track);
@@ -1153,50 +856,6 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
       resultBanner.textContent = t('trackDoneMsg');
       resultBanner.className = 'sp-result-banner pass';
       resultBanner.style.display = 'block';
-    }
-  }
-
-  function renderAnswerRow(item) {
-    answerRow.innerHTML = '';
-    var progress = loadProgress();
-    var track = trackById(state.trackId);
-    var idx = state.itemIndex;
-    var alreadyPassed = !!progress[progressKey(track.id, idx)];
-    item.options.forEach(function (opt) {
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'sp-answer-btn';
-      btn.textContent = pick(opt.label);
-      if (alreadyPassed) {
-        btn.disabled = true;
-        if (opt.key === item.answer) btn.classList.add('correct');
-      }
-      btn.addEventListener('click', function () { handleAnswer(item, opt.key, btn); });
-      answerRow.appendChild(btn);
-    });
-  }
-
-  function handleAnswer(item, choice, btnEl) {
-    if (choice === item.answer) {
-      Array.prototype.forEach.call(answerRow.children, function (b) { b.disabled = true; });
-      btnEl.classList.add('correct');
-      resultBanner.textContent = t('correctMsg');
-      resultBanner.className = 'sp-result-banner pass';
-      resultBanner.style.display = 'block';
-
-      var trackIdx = TRACKS.indexOf(trackById(state.trackId));
-      passItem(trackIdx, state.itemIndex);
-
-      var track = TRACKS[trackIdx];
-      var isLast = state.itemIndex === track.items.length - 1;
-      if (!isLast) {
-        setTimeout(function () { selectItem(state.itemIndex + 1); }, 900);
-      } else {
-        resultBanner.textContent = t('trackDoneMsg');
-      }
-    } else {
-      btnEl.classList.add('wrong');
-      setTimeout(function () { btnEl.classList.remove('wrong'); }, 400);
     }
   }
 
