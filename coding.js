@@ -401,6 +401,90 @@ var TRACKS = [
         tests: [{ type: 'dom-text', selector: '#result', includes: 'กดแล้ว', label: 'หลังคลิกปุ่ม #result ต้องมีข้อความ "กดแล้ว"' }]
       }
     ]
+  },
+  {
+    /* kind 'dom' เหมือน js-dom ทุกประการ (ใช้ dom-runner-worker.js ตัวเดียวกัน) — ต่อยอดความรู้
+       addEventListener จากแทร็กก่อนหน้า มาใช้กับ input/form โดยเฉพาะ (.value, submit event,
+       e.preventDefault()) domSpec รองรับ field "value" สำหรับ input/textarea แล้ว */
+    id: 'js-events-forms', kind: 'dom', label: 'Events & Forms (JS)', labelEn: 'Events & Forms (JS)',
+    concept: {
+      explain: 'ฟอร์ม (form) และช่องกรอกข้อมูล (input) มี event พิเศษให้ใช้ — addEventListener("click", ...) ดักการคลิกปุ่ม, addEventListener("submit", ...) ดักการส่งฟอร์ม (ต้องเรียก e.preventDefault() กันหน้าเว็บโหลดใหม่) — อ่านค่าที่ผู้ใช้พิมพ์ในช่อง input ด้วย .value เช่น document.getElementById("name").value',
+      example: 'let input = document.getElementById("nameInput");\nconsole.log(input.value);',
+      domSpec: [{ tag: 'input', id: 'nameInput', value: 'สมชาย' }]
+    },
+    exercises: [
+      {
+        title: 'อ่านค่าจาก input ด้วย .value',
+        instructions: 'เปลี่ยนบรรทัดนี้ให้ดึงค่าจากช่องกรอกด้วย document.getElementById("nameInput").value แทนข้อความคงที่ แล้วรันดู — ควรเห็นคำว่า "สมชาย"',
+        domSpec: [{ tag: 'input', id: 'nameInput', value: 'สมชาย' }, { tag: 'p', id: 'output', text: 'ยังไม่แสดงชื่อ' }],
+        starter: 'document.getElementById("output").textContent = "ยังไม่แสดงชื่อ";',
+        tests: [{ type: 'dom-text', selector: '#output', includes: 'สมชาย', label: '#output ต้องแสดงชื่อจาก input' }]
+      },
+      {
+        title: 'กดปุ่มแล้วอ่านค่าจาก input',
+        instructions: 'เติมโค้ดในฟังก์ชัน ให้เปลี่ยน textContent ของ #result เป็นค่าจาก emailInput.value เมื่อกดปุ่ม แล้วรันดู (ระบบจะจำลองการคลิกปุ่มให้อัตโนมัติ)',
+        domSpec: [{ tag: 'input', id: 'emailInput', value: 'test@email.com' }, { tag: 'button', id: 'submitBtn', text: 'ส่ง' }, { tag: 'p', id: 'result', text: 'ยังไม่ส่ง' }],
+        starter: 'document.getElementById("submitBtn").addEventListener("click", function () {\n  \n});',
+        preActions: [{ type: 'click', selector: '#submitBtn' }],
+        tests: [{ type: 'dom-text', selector: '#result', includes: 'test@email.com', label: '#result ต้องแสดงอีเมลจาก emailInput' }]
+      },
+      {
+        title: 'ป้องกันการส่งฟอร์มด้วย preventDefault',
+        instructions: 'เติมโค้ดในฟังก์ชัน (บรรทัดว่าง) ให้เปลี่ยน textContent ของ #status เป็น "ส่งฟอร์มแล้ว!" แล้วรันดู (ระบบจะจำลองการส่งฟอร์มให้อัตโนมัติ) — e.preventDefault() ใช้กันไม่ให้หน้าเว็บโหลดใหม่ตอนส่งฟอร์มจริง',
+        domSpec: [{ tag: 'form', id: 'myForm' }, { tag: 'p', id: 'status', text: 'รอส่งฟอร์ม' }],
+        starter: 'document.getElementById("myForm").addEventListener("submit", function (e) {\n  e.preventDefault();\n  \n});',
+        preActions: [{ type: 'submit', selector: '#myForm' }],
+        tests: [{ type: 'dom-text', selector: '#status', includes: 'ส่งฟอร์มแล้ว', label: '#status ต้องมีข้อความ "ส่งฟอร์มแล้ว!"' }]
+      },
+      {
+        title: 'รวมค่าจาก input หลายช่อง',
+        instructions: 'แก้บรรทัดสุดท้ายในฟังก์ชันให้เป็น document.getElementById("fullName").textContent = first + last; (รวมชื่อกับนามสกุล) แล้วรันดู — ควรเห็น "สมชายใจดี"',
+        domSpec: [{ tag: 'input', id: 'firstNameInput', value: 'สมชาย' }, { tag: 'input', id: 'lastNameInput', value: 'ใจดี' }, { tag: 'button', id: 'go', text: 'รวมชื่อ' }, { tag: 'p', id: 'fullName', text: '' }],
+        starter: 'document.getElementById("go").addEventListener("click", function () {\n  var first = document.getElementById("firstNameInput").value;\n  var last = document.getElementById("lastNameInput").value;\n  document.getElementById("fullName").textContent = first;\n});',
+        preActions: [{ type: 'click', selector: '#go' }],
+        tests: [{ type: 'dom-text', selector: '#fullName', includes: 'สมชายใจดี', label: '#fullName ต้องเป็น "สมชายใจดี"' }]
+      }
+    ]
+  },
+  {
+    /* kind 'js' เหมือนแทร็กอื่น (Worker + code-runner-worker.js) แต่แบบฝึกหัดทุกข้อมี settleMs
+       (ดูเหตุผลที่หัวไฟล์ code-runner-worker.js) เพราะโค้ดเป็น async — console.log เกิดหลัง await
+       ต้องให้ worker รอ "settle" ก่อนตรวจ tests ไม่งั้นจะตรวจเร็วเกินไปจนพลาดผลลัพธ์ที่ยังมาไม่ถึง */
+    id: 'js-async', kind: 'js', label: 'Async/Fetch (JS)', labelEn: 'Async/Fetch (JS)',
+    concept: {
+      explain: 'Promise คือวัตถุที่แทน "ค่าที่จะได้ในอนาคต" (เช่น ผลจากการขอข้อมูลจากเซิร์ฟเวอร์ ซึ่งใช้เวลา ไม่ได้ค่ากลับทันที) — async/await คือไวยากรณ์ที่ทำให้เขียนโค้ดรอ Promise ได้อ่านง่ายเหมือนโค้ดปกติ: ใส่ async หน้าฟังก์ชัน แล้วใช้ await หน้า Promise ที่ต้องการรอผล โค้ดจะ "หยุดรอ" ตรงนั้นจนกว่าจะได้ค่ากลับมา (ระหว่างรอ หน้าเว็บไม่ค้าง ยังทำงานอย่างอื่นได้ปกติ) — fetch() คือฟังก์ชันจริงที่ใช้ขอข้อมูลจากเซิร์ฟเวอร์ผ่านอินเทอร์เน็ต ทำงานแบบเดียวกันนี้เป๊ะ',
+      example: 'function delay(ms) {\n  return new Promise(function (resolve) {\n    setTimeout(resolve, ms);\n  });\n}\n\nasync function main() {\n  await delay(100);\n  console.log("รอเสร็จแล้ว");\n}\nmain();'
+    },
+    exercises: [
+      {
+        title: 'ใช้ .then() กับ Promise',
+        instructions: 'เปลี่ยนข้อความใน console.log เป็น "รอเสร็จแล้ว" แล้วรันดู — ข้อความจะปรากฏหลังรอ 100 มิลลิวินาที (สังเกตว่าโค้ดไม่ค้างรอ แค่ "นัดหมาย" ให้ทำงานทีหลัง)',
+        starter: 'function delay(ms) {\n  return new Promise(function (resolve) {\n    setTimeout(resolve, ms);\n  });\n}\ndelay(100).then(function () {\n  console.log("ยังไม่เสร็จ");\n});',
+        settleMs: 400,
+        tests: [{ type: 'log-includes', expected: 'รอเสร็จแล้ว', label: 'ต้อง console.log("รอเสร็จแล้ว")' }]
+      },
+      {
+        title: 'async/await พื้นฐาน',
+        instructions: 'เติมคำว่า await หน้า fetchUser() แล้วรันดู — ถ้าไม่มี await จะได้ user เป็น Promise object เฉยๆ (user.name จะเป็น undefined) ต้องมี await ถึงจะได้ค่าจริงจากใน Promise',
+        starter: 'function fetchUser() {\n  return new Promise(function (resolve) {\n    setTimeout(function () {\n      resolve({ name: "สมชาย" });\n    }, 100);\n  });\n}\n\nasync function main() {\n  let user = fetchUser();\n  console.log(user.name);\n}\nmain();',
+        settleMs: 400,
+        tests: [{ type: 'log-includes', expected: 'สมชาย', label: 'ต้อง console.log(user.name) ออกมาเป็น "สมชาย"' }]
+      },
+      {
+        title: 'รวมหลาย await ตามลำดับ',
+        instructions: 'เปลี่ยนบรรทัดสุดท้ายในฟังก์ชันเป็น console.log(a + b); แล้วรันดู — ควรได้ 15 (รอ a แล้วรอ b ตามลำดับ ก่อนจะรวมกัน)',
+        starter: 'function getNumber(n) {\n  return new Promise(function (resolve) {\n    setTimeout(function () {\n      resolve(n);\n    }, 50);\n  });\n}\n\nasync function main() {\n  let a = await getNumber(5);\n  let b = await getNumber(10);\n  console.log(a);\n}\nmain();',
+        settleMs: 400,
+        tests: [{ type: 'log-includes', expected: '15', label: 'ต้อง console.log(a + b) ออกมาเป็น 15' }]
+      },
+      {
+        title: 'จัดการข้อผิดพลาดด้วย try/catch',
+        instructions: 'เติม console.log("จับข้อผิดพลาดได้: " + err); ในบล็อก catch (บรรทัดว่าง) แล้วรันดู — เพราะ riskyTask() reject (ล้มเหลว) เสมอ โค้ดควรกระโดดไปที่ catch',
+        starter: 'function riskyTask() {\n  return new Promise(function (resolve, reject) {\n    setTimeout(function () {\n      reject("เกิดข้อผิดพลาด!");\n    }, 50);\n  });\n}\n\nasync function main() {\n  try {\n    await riskyTask();\n    console.log("สำเร็จ");\n  } catch (err) {\n    \n  }\n}\nmain();',
+        settleMs: 400,
+        tests: [{ type: 'log-includes', expected: 'จับข้อผิดพลาดได้: เกิดข้อผิดพลาด!', label: 'ต้อง console.log("จับข้อผิดพลาดได้: เกิดข้อผิดพลาด!")' }]
+      }
+    ]
   }
 ];
 
@@ -437,7 +521,7 @@ function saveDraft(trackId, itemIndex, code) {
    ══════════════════════════════════════════════════════════════════ */
 var RUN_TIMEOUT_MS = 5000;
 var jobSeq = 0;
-function runJsCode(code, tests) {
+function runJsCode(code, tests, settleMs) {
   return new Promise(function (resolve) {
     var worker;
     try { worker = new Worker('./code-runner-worker.js'); }
@@ -464,7 +548,7 @@ function runJsCode(code, tests) {
       worker.terminate();
       resolve({ runtimeError: (e && e.message) || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ' });
     };
-    worker.postMessage({ jobId: jobId, code: code, tests: tests || [] });
+    worker.postMessage({ jobId: jobId, code: code, tests: tests || [], settleMs: settleMs || 0 });
   });
 }
 
@@ -505,11 +589,12 @@ function elementSpecToHtml(el) {
   var classes = el.classes ? (Array.isArray(el.classes) ? el.classes : Object.keys(el.classes).filter(function (c) { return el.classes[c]; })) : [];
   var classStr = classes.join(' ');
   var attrsStr = Object.keys(el.attrs || {}).map(function (k) { return ' ' + k + '="' + escapeHtmlText(el.attrs[k]) + '"'; }).join('');
+  var valueStr = (el.tag === 'input' || el.tag === 'textarea') && el.value ? ' value="' + escapeHtmlText(el.value) + '"' : '';
   return '<' + el.tag +
     (el.id ? ' id="' + el.id + '"' : '') +
     (classStr ? ' class="' + classStr + '"' : '') +
     (styleStr ? ' style="' + styleStr + '"' : '') +
-    attrsStr + '>' + escapeHtmlText(el.text) + '</' + el.tag + '>';
+    valueStr + attrsStr + '>' + escapeHtmlText(el.text) + '</' + el.tag + '>';
 }
 function domSpecToHtml(domSpec, previewCss) {
   var body = (domSpec || []).map(elementSpecToHtml).join('\n');
@@ -610,6 +695,8 @@ var BADGE_DEFS = [
   { id: 'track-html-flexbox', icon: '📐', th: 'นักจัดวาง Flexbox', en: 'Flexbox Layout Pro' },
   { id: 'track-html-grid', icon: '🔲', th: 'นักจัดวาง Grid', en: 'Grid Layout Pro' },
   { id: 'track-js-dom', icon: '🕹️', th: 'เจ้าแห่ง DOM', en: 'DOM Master' },
+  { id: 'track-js-events-forms', icon: '📝', th: 'นักฟอร์ม', en: 'Forms Master' },
+  { id: 'track-js-async', icon: '⏳', th: 'เจ้าแห่ง Async', en: 'Async Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สแรก!', en: 'Course Complete!' }
@@ -993,8 +1080,8 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
 
     setBusy(true);
     outputLog.innerHTML = '<div class="cx-output-empty">' + t('running') + '</div>';
-    var testsForRun = state.itemIndex > 0 ? track.exercises[state.itemIndex - 1].tests : null;
-    var res = await runJsCode(code, testsForRun);
+    var currentEx = state.itemIndex > 0 ? track.exercises[state.itemIndex - 1] : null;
+    var res = await runJsCode(code, currentEx && currentEx.tests, currentEx && currentEx.settleMs);
     setBusy(false);
 
     if (res.timeout) {

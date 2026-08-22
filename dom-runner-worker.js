@@ -29,7 +29,7 @@ function makeFakeElement(spec) {
   var el = {
     tag: spec.tag, id: spec.id || '',
     classes: {}, attrs: {}, styleObj: {},
-    _text: spec.text || '', _listeners: {}
+    _text: spec.text || '', _value: spec.value !== undefined ? String(spec.value) : '', _listeners: {}
   };
   if (spec.classes) (Array.isArray(spec.classes) ? spec.classes : Object.keys(spec.classes)).forEach(function (c) { el.classes[c] = true; });
   if (spec.style) Object.keys(spec.style).forEach(function (k) { el.styleObj[k] = spec.style[k]; });
@@ -42,6 +42,12 @@ function makeFakeElement(spec) {
   Object.defineProperty(el, 'innerText', {
     get: function () { return el._text; },
     set: function (v) { el._text = String(v); }
+  });
+  /* .value — สำหรับ input/textarea/select ในแทร็ก "Events & Forms" (input ทั่วไปไม่มี .value จริง
+     แต่จำลองแบบง่ายที่สุดพอสำหรับสิ่งที่แบบฝึกหัดต้องใช้: อ่าน/เขียนค่าที่พิมพ์ในช่องกรอก) */
+  Object.defineProperty(el, 'value', {
+    get: function () { return el._value; },
+    set: function (v) { el._value = String(v); }
   });
   Object.defineProperty(el, 'style', {
     /* Proxy เพื่อรองรับ property ใดๆ แบบไดนามิก (el.style.color = 'red', el.style.fontSize = ...)
@@ -73,9 +79,15 @@ function makeFakeElement(spec) {
     if (!el._listeners[type]) return;
     el._listeners[type] = el._listeners[type].filter(function (f) { return f !== fn; });
   };
-  el.click = function () {
-    (el._listeners.click || []).forEach(function (fn) { try { fn.call(el, { type: 'click', target: el }); } catch (e) {} });
+  /* จำลอง event แบบทั่วไป (ใช้ได้ทั้ง click/submit/change ฯลฯ) — event object มี preventDefault
+     เป็น no-op ที่ใช้งานได้จริงตามสเปก (ไม่ทำอะไรเพิ่มเติมเพราะ DOM จำลองไม่มี "การโหลดหน้าใหม่"
+     อยู่แล้ว แต่ต้องมีเมธอดนี้ไว้ให้เรียกได้โดยไม่ error เวลาโค้ดผู้เรียนเขียน e.preventDefault()) */
+  el._dispatch = function (type) {
+    (el._listeners[type] || []).forEach(function (fn) {
+      try { fn.call(el, { type: type, target: el, preventDefault: function () {} }); } catch (e) {}
+    });
   };
+  el.click = function () { el._dispatch('click'); };
   return el;
 }
 
@@ -108,11 +120,12 @@ function elementSpecToHtml(el) {
   }).join(' ');
   var classStr = Object.keys(el.classes || {}).filter(function (c) { return el.classes[c]; }).join(' ');
   var attrsStr = Object.keys(el.attrs || {}).map(function (k) { return ' ' + k + '="' + escapeHtmlText(el.attrs[k]) + '"'; }).join('');
+  var valueStr = (el.tag === 'input' || el.tag === 'textarea') && el._value ? ' value="' + escapeHtmlText(el._value) + '"' : '';
   return '<' + el.tag +
     (el.id ? ' id="' + el.id + '"' : '') +
     (classStr ? ' class="' + classStr + '"' : '') +
     (styleStr ? ' style="' + styleStr + '"' : '') +
-    attrsStr + '>' + escapeHtmlText(el._text) + '</' + el.tag + '>';
+    valueStr + attrsStr + '>' + escapeHtmlText(el._text) + '</' + el.tag + '>';
 }
 
 /* ตัวแปร document ต้องเป็น global ของสคริปต์ (ประกาศนอก onmessage) เพราะ (0, eval) แบบ indirect
@@ -143,7 +156,9 @@ self.onmessage = function (e) {
   (msg.preActions || []).forEach(function (a) {
     try {
       var el = document.querySelector(a.selector);
-      if (el && a.type === 'click') el.click();
+      /* _dispatch รองรับ event type ใดก็ได้ (click/submit/change ฯลฯ) แบบเดียวกัน ไม่ต้อง
+         special-case ทีละชนิดในไฟล์นี้ */
+      if (el) el._dispatch(a.type);
     } catch (err) {}
   });
 
@@ -157,6 +172,7 @@ self.onmessage = function (e) {
       if (test.type === 'dom-style') return { label: test.label, pass: String(el.styleObj[test.prop] || '').indexOf(test.includes) !== -1 };
       if (test.type === 'dom-class') return { label: test.label, pass: !!el.classes[test.class] };
       if (test.type === 'dom-count') return { label: test.label, pass: document.querySelectorAll(test.selector).length === test.count };
+      if (test.type === 'dom-value') return { label: test.label, pass: (el._value || '').indexOf(test.includes) !== -1 };
       return { label: test.label, pass: false };
     } catch (err) { return { label: test.label, pass: false }; }
   });

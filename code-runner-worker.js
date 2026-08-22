@@ -12,6 +12,15 @@
    สร้าง Worker ใหม่ทุกครั้งที่กด "รัน" (ไม่ใช้ตัวเดียวซ้ำ) — ง่ายและปลอดภัยสุด ไม่มี state
    ค้างจากรอบก่อนหน้าให้ปนกัน ต้นทุนสร้าง Worker ใหม่ทุกครั้งถือว่าน้อยมากเพราะกดรันไม่บ่อย
    (ต่างจาก ai-chat-worker.js/tts-worker.js ที่ตั้งใจคงไว้ไม่ terminate เพราะโหลดโมเดล AI หนักมาก)
+
+   3. รองรับโค้ด async/await (แทร็ก "Async/Fetch") — (0, eval) รันแบบ synchronous เสร็จแล้วคืน
+      ทันที แต่ถ้าโค้ดผู้เรียนเรียก async function ที่มี await ข้างใน (เช่น await delay(100))
+      console.log ที่อยู่หลัง await จะยังไม่ทันเกิดตอน eval() คืนค่ากลับมา (มันถูก "นัดหมาย" ไว้ทำ
+      ทีหลังผ่าน microtask/timer) ถ้าตรวจ tests ทันทีแบบเดิมจะพลาดผลลัพธ์ที่ยังมาไม่ถึง — จึงเพิ่ม
+      msg.settleMs (ส่งมาเฉพาะแบบฝึกหัดที่เป็น async เท่านั้น ค่าเริ่มต้น 0 = พฤติกรรมเดิมทุกอย่าง
+      ไม่กระทบแทร็กอื่น) ให้ worker รอเวลานี้ก่อนค่อยตรวจ tests เพื่อให้ Promise/setTimeout ข้างใน
+      โค้ดผู้เรียนมีเวลา "settle" (ทำงานจนจบ) ก่อน — timeout ฆ่าลูปไม่รู้จบยังทำงานอิสระจากตรงนี้
+      (ควบคุมจากฝั่ง main thread ผ่าน worker.terminate() เหมือนเดิมทุกประการ)
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
@@ -28,32 +37,35 @@ self.onmessage = function (e) {
   };
 
   var runtimeError = null;
-  var testResults = [];
+
+  function finish() {
+    var testResults = (msg.tests || []).map(function (test) {
+      if (test.type === 'log-includes') {
+        return { label: test.label, pass: logs.some(function (l) { return l === String(test.expected); }) };
+      }
+      if (test.type === 'call') {
+        try {
+          var actual = (0, eval)(test.call);
+          return { label: test.label, pass: JSON.stringify(actual) === JSON.stringify(test.expected), actual: actual };
+        } catch (err) {
+          return { label: test.label, pass: false, error: String(err && err.message || err) };
+        }
+      }
+      return { label: test.label, pass: false };
+    });
+    console.log = origLog;
+    self.postMessage({ jobId: msg.jobId, logs: logs, testResults: testResults, runtimeError: runtimeError });
+  }
 
   try {
     /* eval แบบ indirect ((0, eval)) ให้รันใน global scope ของ worker นี้ (ไม่ใช่ local scope ของ
        ฟังก์ชันนี้) — จำเป็นสำหรับให้ฟังก์ชันที่ผู้เรียนประกาศ (function name(){}) เข้าถึงได้จาก
        การตรวจข้อสอบ (tests ที่ type 'call') ในขั้นตอนถัดไป */
     (0, eval)(msg.code || '');
-
-    (msg.tests || []).forEach(function (test) {
-      if (test.type === 'log-includes') {
-        var pass = logs.some(function (l) { return l === String(test.expected); });
-        testResults.push({ label: test.label, pass: pass });
-      } else if (test.type === 'call') {
-        try {
-          var actual = (0, eval)(test.call);
-          var pass2 = JSON.stringify(actual) === JSON.stringify(test.expected);
-          testResults.push({ label: test.label, pass: pass2, actual: actual });
-        } catch (err) {
-          testResults.push({ label: test.label, pass: false, error: String(err && err.message || err) });
-        }
-      }
-    });
   } catch (err) {
     runtimeError = String(err && err.message || err);
   }
 
-  console.log = origLog;
-  self.postMessage({ jobId: msg.jobId, logs: logs, testResults: testResults, runtimeError: runtimeError });
+  if (msg.settleMs > 0 && !runtimeError) setTimeout(finish, msg.settleMs);
+  else finish();
 };
