@@ -194,6 +194,31 @@ function buildBadmintonShotsSvg() {
     '<text x="175" y="150" font-size="13" font-weight="800" text-anchor="middle" fill="#E8590C">Smash</text>';
   return svgWrap(ground + net + clear + drop + smash + player + labels, 300, 200, 320, 'badminton clear drop smash shot trajectories diagram');
 }
+/* สนามเทนนิสฐาน (ใช้ร่วมกันทั้งไดอะแกรมเส้นสนามและไดอะแกรมทิศทางเสิร์ฟด้านล่าง):
+   เส้นสนามเดี่ยว/คู่ (มี Doubles Alley เพิ่ม) + เส้นเสิร์ฟ + ช่องเสิร์ฟ 4 ช่อง */
+function buildTennisCourtCoreSvg() {
+  var courtBg = '<rect x="15" y="15" width="190" height="290" fill="#2F6DA6"/>';
+  var doublesBoundary = '<rect x="15" y="15" width="190" height="290" fill="none" stroke="#FFFFFF" stroke-width="3"/>';
+  var singlesSidelines = '<line x1="35" y1="15" x2="35" y2="305" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<line x1="185" y1="15" x2="185" y2="305" stroke="#FFFFFF" stroke-width="2"/>';
+  var serviceLines = '<line x1="35" y1="95" x2="185" y2="95" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<line x1="35" y1="225" x2="185" y2="225" stroke="#FFFFFF" stroke-width="2"/>';
+  var centerServiceLine = '<line x1="110" y1="95" x2="110" y2="160" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<line x1="110" y1="160" x2="110" y2="225" stroke="#FFFFFF" stroke-width="2"/>';
+  var net = '<line x1="10" y1="160" x2="210" y2="160" stroke="#1F2430" stroke-width="5"/>';
+  return courtBg + doublesBoundary + singlesSidelines + serviceLines + centerServiceLine + net;
+}
+function buildTennisCourtSvg() {
+  return svgWrap(buildTennisCourtCoreSvg(), 220, 320, 220, 'tennis court lines and service boxes diagram');
+}
+/* ทิศทางการเสิร์ฟ — เสิร์ฟต้องข้ามทแยงมุมเสมอ ไม่เคยตรงหน้าผู้เสิร์ฟ (ขวา=คะแนนคู่, ซ้าย=คะแนนคี่) */
+function buildTennisServeSvg() {
+  var rightServe = svgArrow(150, 22, 72, 130, '#E8590C');
+  var leftServe = svgArrow(70, 22, 148, 130, '#1971C2');
+  var labels = '<text x="150" y="14" font-size="11" font-weight="800" text-anchor="middle" fill="#E8590C">Even→Right</text>' +
+    '<text x="70" y="14" font-size="11" font-weight="800" text-anchor="middle" fill="#1971C2">Odd→Left</text>';
+  return svgWrap(buildTennisCourtCoreSvg() + rightServe + leftServe + labels, 220, 320, 220, 'tennis serve direction diagram');
+}
 
 var TRACKS = [
   {
@@ -717,6 +742,30 @@ var TRACKS = [
           "If a serve touches the net but still lands in the correct service box, it's called a 'Let' — the serve is simply retaken and does not count as a fault.",
           "A ball is called 'out' if it lands outside the court lines, if a player lets it bounce twice on their own side before returning it, or if it fails to clear the net — in every case, the other side scores the point immediately."
         ]),
+      readingItem('เส้นสนามเทนนิสและช่องเสิร์ฟ', 'Tennis Court Lines & Service Boxes',
+        [
+          "สนามเทนนิสมีเส้นข้าง 2 ชุดเหมือนแบดมินตัน: เส้นสนามเดี่ยว (ด้านใน) และเส้นสนามคู่ (ด้านนอก รวมเลนกว้างพิเศษเรียก 'Doubles Alley' ที่ใช้เฉพาะประเภทคู่)",
+          "ใกล้ตาข่ายมี 'เส้นเสิร์ฟ' (Service Line) ขนานกับตาข่าย ตัดกับ 'เส้นกึ่งกลาง' (Center Service Line) แบ่งพื้นที่ใกล้ตาข่ายแต่ละฝั่งออกเป็น 2 ช่องเสิร์ฟ (Service Box) ซ้าย-ขวา",
+          'กติกาสำคัญ: ลูกเสิร์ฟต้องข้ามตาข่ายไปตกในช่องเสิร์ฟทแยงมุมฝั่งตรงข้ามเสมอ ห้ามเสิร์ฟลงช่องตรงหน้าตัวเอง'
+        ],
+        [
+          "A tennis court has two sets of sidelines like badminton: the singles sidelines (inner) and doubles sidelines (outer, including an extra-wide lane called the 'Doubles Alley' used only in doubles play).",
+          "Near the net there's a 'Service Line' running parallel to the net, crossed by the 'Center Service Line', dividing the near-net area on each side into 2 left-right service boxes.",
+          'Key rule: a serve must cross the net and land in the diagonally opposite service box — never the box straight ahead of the server.'
+        ],
+        buildTennisCourtSvg()),
+      readingItem('ตำแหน่งเสิร์ฟ: ขวาเมื่อคะแนนคู่ ซ้ายเมื่อคะแนนคี่', 'Serve Position: Right on Even, Left on Odd',
+        [
+          'ผู้เสิร์ฟต้องยืนสลับฝั่งตามคะแนนของตัวเองในเกมนั้น: คะแนนเป็นเลขคู่ (0, 15-15, 30-30 ฯลฯ) เสิร์ฟจากฝั่งขวาของสนาม คะแนนเป็นเลขคี่เสิร์ฟจากฝั่งซ้าย',
+          "ไม่ว่าจะเสิร์ฟจากฝั่งไหน บอลต้องพุ่งข้ามตาข่ายแบบทแยงมุมเสมอ ไปตกในช่องเสิร์ฟฝั่งตรงข้ามที่ 'ไม่ตรงหน้า' ผู้เสิร์ฟ — ดูไดอะแกรมด้านล่างประกอบ",
+          'กติกานี้มีไว้เพื่อให้เกมยุติธรรม: ทั้งสองฝ่ายต้องเสิร์ฟและรับเสิร์ฟจากทั้งสองฝั่งสลับกันไปตลอดทั้งเกม'
+        ],
+        [
+          'The server must alternate sides based on their own score in that game: an even point count (0, 15-15, 30-30, etc.) serves from the right side of the court; an odd count serves from the left side.',
+          'Regardless of which side, the ball must always cross the net diagonally, landing in the opposite service box that is NOT directly ahead of the server — see the diagram below.',
+          'This rule keeps the game fair: both players must serve and receive from both sides in alternation throughout the match.'
+        ],
+        buildTennisServeSvg()),
       mcqItem(
         'ในเกมเทนนิส ถ้าผู้เล่นทำแต้มได้ 2 แต้มแล้ว คะแนนจะถูกเรียกว่าอะไร?', "In a tennis game, what is the score called after a player has won 2 points?",
         [mcqOpt('a', '30', '30'), mcqOpt('b', '15', '15'),
@@ -767,6 +816,21 @@ var TRACKS = [
         'ถ้าคะแนนเกมในเซตเสมอ 6-6 มักใช้ระบบใดตัดสินเซตนั้น?', 'When the game score in a set reaches 6-6, what system usually decides the set?',
         [mcqOpt('a', 'Tie-Break', 'A Tie-Break'), mcqOpt('b', 'Deuce', 'Deuce'),
          mcqOpt('c', 'Golden Point', 'Golden Point'), mcqOpt('d', 'Sudden Death', 'Sudden Death')],
+        'a'
+      ),
+      mcqItem(
+        "เส้นข้างชุดไหนใช้เฉพาะประเภทคู่ (Doubles) เท่านั้น?", 'Which set of lines is used only in doubles play?',
+        [mcqOpt('a', "Doubles Alley (เลนกว้างพิเศษด้านนอก)", 'The Doubles Alley (the extra-wide outer lane)'),
+         mcqOpt('b', 'Service Line', 'The Service Line'), mcqOpt('c', 'Baseline', 'The Baseline'),
+         mcqOpt('d', 'Center Service Line', 'The Center Service Line')],
+        'a'
+      ),
+      mcqItem(
+        'ลูกเสิร์ฟต้องข้ามตาข่ายไปตกที่ไหนเสมอ?', 'Where must a serve always land after crossing the net?',
+        [mcqOpt('a', 'ช่องเสิร์ฟทแยงมุมฝั่งตรงข้าม', 'In the diagonally opposite service box'),
+         mcqOpt('b', 'ช่องตรงหน้าผู้เสิร์ฟ', 'In the box directly ahead of the server'),
+         mcqOpt('c', 'ตรงไหนก็ได้ในสนามฝั่งคู่แข่ง', 'Anywhere at all on the opponent\'s side'),
+         mcqOpt('d', 'นอกเส้นสนามก็ได้ ไม่มีผล', "Outside the lines is fine too, no penalty")],
         'a'
       )
     ]
