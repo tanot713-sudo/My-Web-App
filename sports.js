@@ -223,6 +223,91 @@ var TRACKS = [
         'a'
       )
     ]
+  },
+  {
+    id: 'volleyball-basics',
+    label: { th: 'วอลเลย์บอล: กติกาพื้นฐาน', en: 'Volleyball: Basic Rules' },
+    group: { th: 'วอลเลย์บอล', en: 'Volleyball' },
+    items: [
+      readingItem('รู้จักวอลเลย์บอล', 'Meet Volleyball',
+        [
+          'วอลเลย์บอล (Volleyball) แข่งกันระหว่าง 2 ทีม ทีมละ 6 คนในสนาม แบ่งฝั่งด้วยตาข่ายตรงกลาง เป้าหมายคือตีลูกบอลข้ามตาข่ายให้ตกพื้นฝั่งคู่แข่ง หรือทำให้คู่แข่งเล่นลูกผิดพลาด',
+          'แต่ละทีมสัมผัสบอลได้สูงสุด 3 ครั้งต่อฝั่ง (ไม่นับบล็อก) ก่อนต้องส่งบอลข้ามตาข่าย ผู้เล่นคนเดียวห้ามสัมผัสบอล 2 ครั้งติดกัน (ยกเว้นบล็อก)',
+          'การแข่งขันเล่นแบบ Best of 5 เซต (ชนะ 3 ใน 5 เซต) แต่ละเซตเล่นถึง 25 แต้ม (เซตตัดสินที่ 5 เล่นถึง 15 แต้ม) ต้องนำอย่างน้อย 2 แต้มถึงจะชนะเซต'
+        ],
+        [
+          "Volleyball is played between 2 teams of 6 players each on the court, divided by a net in the middle. The goal is to hit the ball over the net so it lands on the opponent's side, or to force the opponent into a mistake.",
+          'Each team may touch the ball up to 3 times per side (not counting a block) before it must cross the net. No single player may touch the ball twice in a row (except for a block).',
+          'A match is played best-of-5 sets (first to win 3 sets). Each set is played to 25 points (the deciding 5th set is played to 15), and a team must win by at least 2 points to take the set.'
+        ]),
+      readingItem('การเสิร์ฟ บล็อก และตำแหน่งหมุนเวียน', 'Serving, Blocking & Rotation',
+        [
+          'การเสิร์ฟ (Serve): ผู้เล่นเสิร์ฟยืนหลังเส้นท้ายสนามแล้วตีบอลข้ามตาข่ายเข้าไปในสนามคู่แข่ง เป็นการเริ่มต้นทุกแต้ม ถ้าเสิร์ฟบอลออกหรือติดตาข่าย ฝ่ายตรงข้ามได้แต้มทันที',
+          'การบล็อก (Block): ผู้เล่นแถวหน้าสามารถกระโดดยื่นมือข้ามตาข่ายเพื่อสกัดบอลที่คู่แข่งตีมา บล็อกไม่นับเป็น 1 ใน 3 ครั้งสัมผัสบอลของทีม',
+          'การหมุนตำแหน่ง (Rotation): ทุกครั้งที่ทีมได้สิทธิ์เสิร์ฟใหม่ (จากการเสียแต้มของฝ่ายตรงข้าม) ผู้เล่นทั้ง 6 คนต้องหมุนตำแหน่งตามเข็มนาฬิกา 1 ตำแหน่ง เพื่อให้ทุกคนได้เสิร์ฟและเล่นครบทุกตำแหน่งสลับกันไป'
+        ],
+        [
+          "The Serve: the serving player stands behind the back line and hits the ball over the net into the opponent's court. It starts every point — if the serve goes out of bounds or hits the net without crossing, the other team scores immediately.",
+          "The Block: front-row players may jump and reach over the net to intercept the opponent's attack. A block does not count as one of the team's 3 allowed touches.",
+          "Rotation: every time a team regains the right to serve (after winning a point off the opponent's serve), all 6 players rotate one position clockwise, so everyone takes turns serving and playing every position."
+        ]),
+      mcqItem(
+        'วอลเลย์บอล 1 ทีมมีผู้เล่นกี่คนในสนาม?', 'How many players does one volleyball team have on the court?',
+        [mcqOpt('a', '6 คน', '6 players'), mcqOpt('b', '5 คน', '5 players'),
+         mcqOpt('c', '7 คน', '7 players'), mcqOpt('d', '4 คน', '4 players')],
+        'a'
+      ),
+      mcqItem(
+        'แต่ละทีมสัมผัสบอลได้สูงสุดกี่ครั้งต่อฝั่ง (ไม่นับบล็อก) ก่อนต้องส่งบอลข้ามตาข่าย?', 'How many times may a team touch the ball per side (not counting a block) before it must cross the net?',
+        [mcqOpt('a', '3 ครั้ง', '3 times'), mcqOpt('b', '2 ครั้ง', '2 times'),
+         mcqOpt('c', '4 ครั้ง', '4 times'), mcqOpt('d', '1 ครั้ง', '1 time')],
+        'a'
+      ),
+      mcqItem(
+        'การแข่งขันวอลเลย์บอลมาตรฐานเล่นแบบใด?', 'How is a standard volleyball match played?',
+        [mcqOpt('a', 'Best of 5 เซต (ชนะ 3 ใน 5 เซต)', 'Best of 5 sets (first to win 3)'),
+         mcqOpt('b', 'Best of 3 เซต', 'Best of 3 sets'),
+         mcqOpt('c', 'เซตเดียวจบเกม', 'A single set decides the match'),
+         mcqOpt('d', 'Best of 7 เซต', 'Best of 7 sets')],
+        'a'
+      ),
+      mcqItem(
+        'แต่ละเซต (ยกเว้นเซตตัดสิน) เล่นถึงกี่แต้ม?', 'How many points is each set (except the deciding set) played to?',
+        [mcqOpt('a', '25 แต้ม', '25 points'), mcqOpt('b', '21 แต้ม', '21 points'),
+         mcqOpt('c', '15 แต้ม', '15 points'), mcqOpt('d', '30 แต้ม', '30 points')],
+        'a'
+      ),
+      mcqItem(
+        'เซตตัดสิน (เซตที่ 5) เล่นถึงกี่แต้ม?', 'How many points is the deciding 5th set played to?',
+        [mcqOpt('a', '15 แต้ม', '15 points'), mcqOpt('b', '25 แต้ม', '25 points'),
+         mcqOpt('c', '21 แต้ม', '21 points'), mcqOpt('d', '10 แต้ม', '10 points')],
+        'a'
+      ),
+      mcqItem(
+        'การบล็อกนับเป็น 1 ใน 3 ครั้งสัมผัสบอลที่อนุญาตของทีมหรือไม่?', "Does a block count as one of the team's 3 allowed ball touches?",
+        [mcqOpt('a', 'ไม่นับ — บล็อกแยกต่างหาก', 'No — a block is separate and does not count'),
+         mcqOpt('b', 'นับเสมอ', 'Yes, it always counts'),
+         mcqOpt('c', 'นับเฉพาะบล็อกเดี่ยว (คนเดียว)', 'Only counts for a solo block'),
+         mcqOpt('d', 'แล้วแต่กรรมการตัดสิน', "It's up to the referee's discretion")],
+        'a'
+      ),
+      mcqItem(
+        'ทีมต้องหมุนตำแหน่งผู้เล่น 1 ตำแหน่งเมื่อใด?', 'When must a team rotate its players one position?',
+        [mcqOpt('a', 'เมื่อได้สิทธิ์เสิร์ฟใหม่จากการเสียแต้มของฝ่ายตรงข้าม', "When it regains the serve after winning a point off the opponent's serve"),
+         mcqOpt('b', 'ทุกจบเซต', 'At the end of every set'),
+         mcqOpt('c', 'ทุก 5 แต้มที่ทำได้', 'Every 5 points scored'),
+         mcqOpt('d', 'ไม่ต้องหมุนเลยตลอดเกม', 'Never — positions stay fixed all match')],
+        'a'
+      ),
+      mcqItem(
+        'ถ้าเสิร์ฟบอลออกนอกสนามหรือติดตาข่าย จะเกิดอะไรขึ้น?', 'What happens if a serve goes out of bounds or fails to cross the net?',
+        [mcqOpt('a', 'ฝ่ายตรงข้ามได้แต้มทันที', 'The other team scores a point immediately'),
+         mcqOpt('b', 'เสิร์ฟใหม่ได้อีกครั้งโดยไม่เสียอะไร', 'The server gets to retry with no penalty'),
+         mcqOpt('c', 'ไม่มีผลอะไรเลย เล่นต่อปกติ', 'Nothing happens, play just continues'),
+         mcqOpt('d', 'ทีมเสิร์ฟเสียสิทธิ์เสิร์ฟแต่ไม่เสียแต้ม', 'The serving team loses the serve but no point is scored')],
+        'a'
+      )
+    ]
   }
 ];
 
@@ -282,6 +367,7 @@ var BADGE_DEFS = [
   { id: 'first-pass', icon: '🥉', th: 'ก้าวแรก', en: 'First Step' },
   { id: 'track-football-basics', icon: '⚽', th: 'เจ้ากติกาฟุตบอล', en: 'Football Rules Master' },
   { id: 'track-basketball-basics', icon: '🏀', th: 'เจ้ากติกาบาสเกตบอล', en: 'Basketball Rules Master' },
+  { id: 'track-volleyball-basics', icon: '🏐', th: 'เจ้ากติกาวอลเลย์บอล', en: 'Volleyball Rules Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สที่มีทั้งหมด!', en: 'All Lessons Complete!' }
