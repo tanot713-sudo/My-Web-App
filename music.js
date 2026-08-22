@@ -35,7 +35,9 @@ var I18N = {
     quizPromptPitchCompare: 'เสียงที่ 2 สูงกว่าหรือต่ำกว่าเสียงที่ 1?',
     quizPromptPitchSameDiff: 'สองเสียงนี้เป็นเสียงเดียวกันหรือต่างกัน?',
     quizPromptChordEar: 'คอร์ดที่ได้ยินเป็นเมเจอร์หรือไมเนอร์?',
+    quizPromptProgression: 'ในโพรเกรสชัน I-V-vi-IV ตำแหน่งที่ {position} คือคอร์ดอะไร?',
     listenBtn: '🔊 ฟังเสียง',
+    listenProgressionBtn: '🔊 ฟังโพรเกรสชัน I-V-vi-IV',
     correctMsg: '✅ ถูกต้อง! ปลดล็อกข้อถัดไปแล้ว',
     trackDoneMsg: '🎉 จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
     toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
@@ -61,7 +63,9 @@ var I18N = {
     quizPromptPitchCompare: 'Is the 2nd note higher or lower than the 1st?',
     quizPromptPitchSameDiff: 'Are these two notes the same pitch or different?',
     quizPromptChordEar: 'Is the chord you hear major or minor?',
+    quizPromptProgression: 'In the I-V-vi-IV progression, what is chord #{position}?',
     listenBtn: '🔊 Listen',
+    listenProgressionBtn: '🔊 Listen to I-V-vi-IV',
     correctMsg: '✅ Correct! Next one unlocked.',
     trackDoneMsg: '🎉 Lesson complete! Pick the next lesson from the ☰ menu above.',
     toastTrackDone: 'Lesson "{track}" complete! 🎉',
@@ -400,6 +404,54 @@ function buildEarPlayerHtml() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   โพรเกรสชัน I-V-vi-IV (C-G-Am-F) — เล่นคอร์ดเรียงต่อกันทีละคอร์ด (ต่างจาก playChordTones
+   ที่เล่นคอร์ดเดียว) ใช้ CHORD_NOTE_OCTAVES ร่วมกับบทฝึกหูดนตรี (นิยามไว้ด้านล่างในหมวด
+   "เนื้อหาบทเรียน" — ฟังก์ชันในบล็อกนี้อ้างอิงถึงแค่ภายใน closure จึงเรียกได้ปกติตอนใช้งานจริง
+   แม้ตัวแปรจะถูกประกาศทีหลังในไฟล์ก็ตาม)
+   ══════════════════════════════════════════════════════════════════ */
+var PROGRESSION_CHORD_INDEXES = [0, 4, 5, 3]; /* I, V, vi, IV ตามลำดับ index ใน CHORDS */
+var PROGRESSION_ROMAN = ['I', 'V', 'vi', 'IV'];
+var PROGRESSION_QUIZ_OPTIONS = ['C', 'G', 'Am', 'F'];
+var PROGRESSION_LABELS = { C: { th: 'C', en: 'C' }, G: { th: 'G', en: 'G' }, Am: { th: 'Am', en: 'Am' }, F: { th: 'F', en: 'F' } };
+function progressionFreqs() {
+  return PROGRESSION_CHORD_INDEXES.map(function (idx) {
+    return CHORD_NOTE_OCTAVES[idx].map(function (n) { return noteFreq(n[0], n[1]); });
+  });
+}
+function playProgression(chordFreqsList) {
+  var ctx = getAudioCtx();
+  if (!ctx) return;
+  var t0 = ctx.currentTime + 0.05, dur = 0.7, gap = 0.15;
+  chordFreqsList.forEach(function (freqs, i) {
+    var startT = t0 + i * (dur + gap);
+    freqs.forEach(function (f) { playTone(ctx, f, startT, dur); });
+  });
+}
+function buildProgressionListenHtml() {
+  return '<div style="text-align:center;padding:14px 0 4px">' +
+    '<button type="button" id="progPlayBtn" class="btn primary">' + t('listenProgressionBtn') + '</button>' +
+    '</div>';
+}
+function buildProgressionDisplayHtml(position) {
+  var items = PROGRESSION_ROMAN.map(function (roman, i) {
+    var n = i + 1;
+    var isTarget = n === position;
+    var label = isTarget ? '?' : roman;
+    var style = 'display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;' +
+      'margin:3px;font-weight:800;font-size:16px;' +
+      (isTarget
+        ? 'background:linear-gradient(135deg,var(--mx),var(--mx2));color:#fff;box-shadow:0 4px 10px rgba(124,58,237,.3);'
+        : 'background:var(--card);border:1.5px solid var(--line);color:var(--ink);');
+    return '<span style="' + style + '">' + label + '</span>';
+  }).join('');
+  return '<div style="display:flex;flex-wrap:wrap;justify-content:center;padding:10px 0">' + items + '</div>' +
+    buildProgressionListenHtml();
+}
+function quizProgressionItem(position) {
+  return { kind: 'quiz', qType: 'progression-position', position: position, answer: PROGRESSION_QUIZ_OPTIONS[position - 1] };
+}
+
+/* ══════════════════════════════════════════════════════════════════
    เนื้อหาบทเรียน
    ══════════════════════════════════════════════════════════════════ */
 function readingItem(headingTh, headingEn, paragraphsTh, paragraphsEn) {
@@ -480,6 +532,7 @@ var CHORD_NOTE_OCTAVES = {
   0: [['C', 4], ['E', 4], ['G', 4]],
   1: [['D', 4], ['F', 4], ['A', 4]],
   3: [['F', 4], ['A', 4], ['C', 5]],
+  4: [['G', 4], ['B', 4], ['D', 5]],
   5: [['A', 4], ['C', 5], ['E', 5]]
 };
 function quizChordEarItem(chordIdx) {
@@ -862,6 +915,39 @@ var TRACKS = [
         ]),
       quizChordEarItem(0), quizChordEarItem(1), quizChordEarItem(3), quizChordEarItem(5)
     ]
+  },
+  {
+    id: 'first-song',
+    label: { th: 'เพลงแรกของคุณ', en: 'Your First Song' },
+    group: { th: 'นำไปใช้จริง', en: 'Apply It' },
+    items: [
+      readingItem('จากทฤษฎีสู่เพลงจริง', 'From Theory to a Real Song',
+        [
+          'ตอนนี้คุณรู้จักบันไดเสียง C Major, คอร์ดไทรแอด, และโพรเกรสชัน I-V-vi-IV (C-G-Am-F) แล้ว — ถึงเวลาเอาทุกอย่างมารวมกันเป็นเพลงจริงสักเพลง!',
+          "เพลงส่วนใหญ่ไม่ได้ใช้คอร์ดสุ่มๆ แต่ใช้ 'โพรเกรสชัน' (ลำดับคอร์ดที่วนซ้ำ) เป็นโครงหลัก แล้วใส่ทำนอง/เนื้อร้องทับลงไป — I-V-vi-IV ที่เรียนไปเป็นหนึ่งในโพรเกรสชันที่ใช้บ่อยที่สุดในโลก",
+          'บทนี้จะให้เพลงฝึกหัดสั้นๆ (แต่งขึ้นมาเพื่อฝึกโดยเฉพาะ) ให้ลองเล่นตามคอร์ดจริง แล้วฝึกจำลำดับโพรเกรสชันให้ขึ้นใจ'
+        ],
+        [
+          "By now you know the C Major scale, chord triads, and the I-V-vi-IV progression (C-G-Am-F) — time to put it all together into an actual song!",
+          "Most songs don't use random chords — they use a 'progression' (a repeating chord sequence) as the backbone, then add melody/lyrics on top. I-V-vi-IV is one of the most-used progressions in the world.",
+          "This lesson gives you a short practice song (written specifically for practice) to play along with real chords, then drills memorizing the progression order."
+        ]),
+      Object.assign(
+        readingItem("เพลงฝึกหัด: 'เดินเล่นยามเย็น'", "Practice Song: 'Evening Walk'",
+          [
+            'ลองเล่นเพลงฝึกหัดนี้ตามคอร์ดที่กำหนด เล่นคอร์ดละ 1 ห้อง (4 จังหวะ ในจังหวะ 4/4) แล้วขึ้นคอร์ดถัดไปตามลำดับ',
+            "ห้องที่ 1 (คอร์ด C): 'เดินเล่นยามเย็น' — ห้องที่ 2 (คอร์ด G): 'ลมพัดมาแผ่วเบา' — ห้องที่ 3 (คอร์ด Am): 'มองท้องฟ้าสีทอง' — ห้องที่ 4 (คอร์ด F): 'ใจฉันสงบเย็น' — แล้ววนกลับไปห้องที่ 1 ใหม่",
+            'ใช้คอร์ดที่เรียนไปแล้วได้เลย ไม่ว่าจะเปียโน (root-3rd-5th เว้น 1 คีย์ขาว) หรือกีตาร์ (ไดอะแกรมคอร์ดเปิดจากบทที่แล้ว) — ลองเล่นช้าๆ ก่อน แล้วค่อยเพิ่มความเร็ว'
+          ],
+          [
+            "Try playing this practice song with the given chords — play each chord for 1 measure (4 beats, in 4/4 time) then move to the next chord in order.",
+            "Measure 1 (C chord): 'Walking in the evening' — Measure 2 (G chord): 'A gentle breeze drifts by' — Measure 3 (Am chord): 'Watching the golden sky' — Measure 4 (F chord): 'My heart feels calm and still' — then loop back to measure 1.",
+            "Use the chords you already learned — on piano (root-3rd-5th skipping 1 white key) or guitar (open chord diagrams from the last lesson). Try it slowly first, then speed up."
+          ]),
+        { progression: true }
+      ),
+      quizProgressionItem(1), quizProgressionItem(2), quizProgressionItem(3), quizProgressionItem(4)
+    ]
   }
 ];
 
@@ -929,6 +1015,7 @@ var BADGE_DEFS = [
   { id: 'track-piano', icon: '🎹', th: 'เจ้าเปียโน', en: 'Piano Master' },
   { id: 'track-guitar', icon: '🎸', th: 'เจ้ากีตาร์', en: 'Guitar Master' },
   { id: 'track-ear-training', icon: '👂', th: 'นักฟังเสียง', en: 'Ear Training Master' },
+  { id: 'track-first-song', icon: '🎤', th: 'เพลงแรกของฉัน', en: 'First Song Complete' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สทฤษฎีเบื้องต้น!', en: 'Theory Basics Complete!' }
@@ -1165,6 +1252,11 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     if (item.kind === 'reading') {
       itemHeading.textContent = pick(item.heading);
       instructionsBox.innerHTML = pick(item.body).map(function (p) { return '<p>' + p + '</p>'; }).join('');
+      if (item.progression) {
+        instructionsBox.innerHTML += buildProgressionListenHtml();
+        var progBtn = document.getElementById('progPlayBtn');
+        if (progBtn) progBtn.addEventListener('click', function () { playProgression(progressionFreqs()); });
+      }
       staffWrap.style.display = 'none';
       markReadBtn.style.display = 'inline-flex';
       markReadBtn.disabled = false;
@@ -1214,6 +1306,11 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
           : function () { playSequence(item.freqs); };
         var earBtn = document.getElementById('earPlayBtn');
         if (earBtn) earBtn.addEventListener('click', playFn);
+      } else if (item.qType === 'progression-position') {
+        quizPromptEl.textContent = t('quizPromptProgression', { position: item.position });
+        staffSvgHolder.innerHTML = buildProgressionDisplayHtml(item.position);
+        var pgBtn = document.getElementById('progPlayBtn');
+        if (pgBtn) pgBtn.addEventListener('click', function () { playProgression(progressionFreqs()); });
       } else {
         quizPromptEl.textContent = t(CLEFS[item.clef || 'treble'].promptKey);
         staffSvgHolder.innerHTML = buildStaffSvg(item.step, item.clef);
@@ -1261,17 +1358,20 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     var isGuitarQuiz = item.qType === 'guitar-chord';
     var isPitchCompareQuiz = item.qType === 'pitch-compare';
     var isPitchSameDiffQuiz = item.qType === 'pitch-same-diff';
-    var isWide = isValueQuiz || isQualityQuiz || isGuitarQuiz || isPitchCompareQuiz || isPitchSameDiffQuiz;
+    var isProgressionQuiz = item.qType === 'progression-position';
+    var isWide = isValueQuiz || isQualityQuiz || isGuitarQuiz || isPitchCompareQuiz || isPitchSameDiffQuiz || isProgressionQuiz;
     var choices = isValueQuiz ? NOTE_VALUE_ORDER : isBeatsQuiz ? TIME_SIG_BEATS_OPTIONS :
       isQualityQuiz ? CHORD_QUALITY_OPTIONS : isGuitarQuiz ? GUITAR_CHORD_NAMES :
-      isPitchCompareQuiz ? PITCH_COMPARE_OPTIONS : isPitchSameDiffQuiz ? PITCH_SAME_DIFF_OPTIONS : ANSWER_LETTERS;
+      isPitchCompareQuiz ? PITCH_COMPARE_OPTIONS : isPitchSameDiffQuiz ? PITCH_SAME_DIFF_OPTIONS :
+      isProgressionQuiz ? PROGRESSION_QUIZ_OPTIONS : ANSWER_LETTERS;
     choices.forEach(function (choice) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'mx-answer-btn' + (isWide ? ' wide' : '');
       btn.textContent = isValueQuiz ? pick(NOTE_VALUE_LABELS[choice]) : isQualityQuiz ? pick(CHORD_QUALITY_LABELS[choice]) :
         isGuitarQuiz ? pick(GUITAR_CHORD_LABELS[choice]) : isPitchCompareQuiz ? pick(PITCH_COMPARE_LABELS[choice]) :
-        isPitchSameDiffQuiz ? pick(PITCH_SAME_DIFF_LABELS[choice]) : String(choice);
+        isPitchSameDiffQuiz ? pick(PITCH_SAME_DIFF_LABELS[choice]) :
+        isProgressionQuiz ? pick(PROGRESSION_LABELS[choice]) : String(choice);
       if (alreadyPassed) {
         btn.disabled = true;
         if (choice === item.answer) btn.classList.add('correct');
