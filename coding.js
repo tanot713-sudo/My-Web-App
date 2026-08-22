@@ -87,6 +87,39 @@ var TRACKS = [
     ]
   },
   {
+    id: 'js-loops', kind: 'js', label: 'ลูป (JS)', labelEn: 'Loops (JS)',
+    concept: {
+      explain: 'ลูป (loop) ใช้วนทำงานซ้ำๆ โดยไม่ต้องเขียนโค้ดซ้ำหลายรอบ — for loop มี 3 ส่วนในวงเล็บ: ค่าเริ่มต้น (let i = 1), เงื่อนไขที่ต้องเป็นจริงถึงจะวนต่อ (i <= 5), และสิ่งที่ทำหลังแต่ละรอบ (i++ คือเพิ่มค่าทีละ 1) — ส่วน while loop จะวนต่อไปเรื่อยๆ ตราบใดที่เงื่อนไขในวงเล็บยังเป็นจริงอยู่',
+      example: 'for (let i = 1; i <= 5; i++) {\n  console.log(i);\n}'
+    },
+    exercises: [
+      {
+        title: 'for loop พื้นฐาน',
+        instructions: 'เปลี่ยน i <= 5 เป็น i <= 10 แล้วรันดู — ควรเห็นเลข 10 ปรากฏในผลลัพธ์ด้วย',
+        starter: 'for (let i = 1; i <= 5; i++) {\n  console.log(i);\n}',
+        tests: [{ type: 'log-includes', expected: '10', label: 'ผลลัพธ์ต้องมีเลข 10' }]
+      },
+      {
+        title: 'รวมผลรวมด้วยลูป',
+        instructions: 'เติมโค้ด sum = sum + i; ไว้ในลูป (บรรทัดว่างตรงกลาง) แล้วรันดู — ผลรวม 1+2+3+4+5 ควรได้ 15',
+        starter: 'let sum = 0;\nfor (let i = 1; i <= 5; i++) {\n  \n}\nconsole.log(sum);',
+        tests: [{ type: 'log-includes', expected: '15', label: 'console.log(sum) ต้องออกมาเป็น 15' }]
+      },
+      {
+        title: 'while loop นับถอยหลัง',
+        instructions: 'รันโค้ดนี้ดูก่อน สังเกตการทำงานของ while แล้วเปลี่ยนค่า count เริ่มต้นจาก 5 เป็น 3 — ควรเห็นเลข 3 ปรากฏเป็นตัวแรก',
+        starter: 'let count = 5;\nwhile (count > 0) {\n  console.log(count);\n  count = count - 1;\n}',
+        tests: [{ type: 'log-includes', expected: '3', label: 'ผลลัพธ์ต้องมีเลข 3 ปรากฏ' }]
+      },
+      {
+        title: 'สูตรคูณด้วยลูป',
+        instructions: 'เปลี่ยน i <= 3 เป็น i <= 5 เพื่อพิมพ์สูตรคูณแม่ 3 ตั้งแต่ 3×1 ถึง 3×5 — ผลลัพธ์ควรมีเลข 15 ปรากฏด้วย (3×5)',
+        starter: 'let num = 3;\nfor (let i = 1; i <= 3; i++) {\n  console.log(num * i);\n}',
+        tests: [{ type: 'log-includes', expected: '15', label: 'ผลลัพธ์ต้องมีเลข 15 (3×5)' }]
+      }
+    ]
+  },
+  {
     id: 'html-basics', kind: 'html', label: 'โครงสร้าง HTML', labelEn: 'HTML Basics',
     concept: {
       explain: 'HTML คือการ "ห่อ" ข้อความด้วยแท็ก (tag) เปิด-ปิด เช่น <h1>หัวข้อ</h1> — เบราว์เซอร์จะแปลแท็กเหล่านี้เป็นหน้าเว็บที่เห็นทางขวา ลองแก้โค้ดด้านล่างแล้วดูผลด้านขวาได้เลย เปลี่ยนแบบ real-time',
@@ -116,6 +149,39 @@ var TRACKS = [
         instructions: 'สร้างลิงก์ไปที่ https://www.google.com ด้วยแท็ก <a href="...">ข้อความ</a>',
         starter: '<a></a>',
         tests: [{ type: 'html-attr', selector: 'a', attr: 'href', includes: 'google.com', label: '<a> ต้องมี href ที่มีคำว่า "google.com"' }]
+      }
+    ]
+  },
+  {
+    id: 'html-css', kind: 'html', label: 'จัดรูปแบบด้วย CSS', labelEn: 'CSS Styling',
+    concept: {
+      explain: 'CSS ใช้กำหนดหน้าตา (สี ขนาด ระยะห่าง) ให้แท็ก HTML — วิธีง่ายสุดคือใส่ attribute style="..." ในแท็กโดยตรง เขียนเป็น property: value; คั่นด้วย ; ถ้ามีหลายอัน เช่น style="color: blue; font-size: 24px;"',
+      example: '<h1 style="color: blue; font-size: 28px;">หัวข้อสีน้ำเงิน</h1>'
+    },
+    exercises: [
+      {
+        title: 'เปลี่ยนสีตัวอักษร',
+        instructions: 'เพิ่ม style="color: red;" ในแท็ก h1 ให้ตัวอักษรเป็นสีแดง',
+        starter: '<h1>สวัสดี</h1>',
+        tests: [{ type: 'html-attr', selector: 'h1', attr: 'style', includes: 'red', label: '<h1> ต้องมี style ที่มีคำว่า "red"' }]
+      },
+      {
+        title: 'ใส่สีพื้นหลัง',
+        instructions: 'เพิ่ม style="background-color: yellow;" ให้ <p>',
+        starter: '<p>ข้อความนี้ควรมีพื้นหลังสีเหลือง</p>',
+        tests: [{ type: 'html-attr', selector: 'p', attr: 'style', includes: 'yellow', label: '<p> ต้องมี style ที่มีคำว่า "yellow"' }]
+      },
+      {
+        title: 'ขยายขนาดตัวอักษร',
+        instructions: 'เพิ่ม font-size: 30px; ใน style ของ <p> ให้ตัวอักษรใหญ่ขึ้น',
+        starter: '<p style="">ข้อความนี้ควรตัวใหญ่ขึ้น</p>',
+        tests: [{ type: 'html-attr', selector: 'p', attr: 'style', includes: 'font-size', label: '<p> ต้องมี font-size ใน style' }]
+      },
+      {
+        title: 'จัดข้อความกึ่งกลาง',
+        instructions: 'เพิ่ม text-align: center; ใน style ของ h1',
+        starter: '<h1 style="">หัวข้อนี้ควรอยู่กึ่งกลาง</h1>',
+        tests: [{ type: 'html-attr', selector: 'h1', attr: 'style', includes: 'center', label: '<h1> ต้องมี text-align: center ใน style' }]
       }
     ]
   }
