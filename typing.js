@@ -41,6 +41,41 @@ var EN_CHAR_MAP = buildCharMap(0);
 var TH_CHAR_MAP = buildCharMap(1);
 
 /* ══════════════════════════════════════════════════════════════════
+   โซนสีนิ้ว (แนวทางเดียวกับแอปสอนพิมพ์มืออาชีพ เช่น RapidTyping/Typiq) — คำนวณจากตำแหน่งคอลัมน์
+   ในแต่ละแถว (ไม่ผูกกับอักษร เพราะตำแหน่งนิ้วอ้างอิงตามตำแหน่งแป้นจริง ใช้ได้ทั้งผัง EN/TH)
+   8 นิ้ว: ก้อยซ้าย(lp) นางซ้าย(lr) กลางซ้าย(lm) ชี้ซ้าย(li) ชี้ขวา(ri) กลางขวา(rm) นางขวา(rr) ก้อยขวา(rp)
+   ══════════════════════════════════════════════════════════════════ */
+function fingerFor(r, c) {
+  if (r === 0) { /* ` 1 2 3 4 5 6 7 8 9 0 - = */
+    if (c <= 1) return 'lp'; if (c === 2) return 'lr'; if (c === 3) return 'lm';
+    if (c === 4 || c === 5) return 'li'; if (c === 6 || c === 7) return 'ri';
+    if (c === 8) return 'rm'; if (c === 9) return 'rr'; return 'rp';
+  }
+  if (r === 1) { /* q w e r t y u i o p [ ] */
+    if (c === 0) return 'lp'; if (c === 1) return 'lr'; if (c === 2) return 'lm';
+    if (c === 3 || c === 4) return 'li'; if (c === 5 || c === 6) return 'ri';
+    if (c === 7) return 'rm'; if (c === 8) return 'rr'; return 'rp';
+  }
+  if (r === 2) { /* a s d f g h j k l ; ' */
+    if (c === 0) return 'lp'; if (c === 1) return 'lr'; if (c === 2) return 'lm';
+    if (c === 3 || c === 4) return 'li'; if (c === 5 || c === 6) return 'ri';
+    if (c === 7) return 'rm'; if (c === 8) return 'rr'; return 'rp';
+  }
+  /* r === 3: z x c v b n m , . / */
+  if (c === 0) return 'lp'; if (c === 1) return 'lr'; if (c === 2) return 'lm';
+  if (c === 3 || c === 4) return 'li'; if (c === 5 || c === 6) return 'ri';
+  if (c === 7) return 'rm'; return c === 8 ? 'rr' : 'rp';
+}
+var FINGER_NAMES = {
+  lp: { th: 'ก้อยซ้าย', en: 'Left Pinky' }, lr: { th: 'นางซ้าย', en: 'Left Ring' },
+  lm: { th: 'กลางซ้าย', en: 'Left Middle' }, li: { th: 'ชี้ซ้าย', en: 'Left Index' },
+  ri: { th: 'ชี้ขวา', en: 'Right Index' }, rm: { th: 'กลางขวา', en: 'Right Middle' },
+  rr: { th: 'นางขวา', en: 'Right Ring' }, rp: { th: 'ก้อยขวา', en: 'Right Pinky' },
+  thumb: { th: 'โป้ง (เว้นวรรค)', en: 'Thumb (space)' }
+};
+var FINGER_ORDER = ['lp', 'lr', 'lm', 'li', 'ri', 'rm', 'rr', 'rp'];
+
+/* ══════════════════════════════════════════════════════════════════
    บทเรียน — แบ่งเป็น track (ไทย/อังกฤษ x แถวกลาง/คีย์บอร์ดเต็ม/คำศัพท์/ประโยค)
    ══════════════════════════════════════════════════════════════════ */
 var TRACKS = [
@@ -147,6 +182,53 @@ function saveProgress(p) {
 }
 function progressKey(trackId, lessonIdx) { return trackId + '::' + lessonIdx; }
 
+/* ปลดล็อกบทเรียนตามลำดับ: บทแรกของทุก track ปลดล็อกเสมอ บทถัดไปต้องทำบทก่อนหน้าให้ความแม่นยำ
+   อย่างน้อย UNLOCK_MIN_ACC% ก่อน — ใช้ "ความแม่นยำ" ล้วนๆ ไม่ผูกกับ WPM เพราะความเร็วเป้าหมายที่
+   เหมาะสมต่างกันมากระหว่างคนละคน/คนละภาษา (พิมพ์ไทยมักช้ากว่าอังกฤษโดยธรรมชาติเพราะตัวอักษร/
+   วรรณยุกต์ซับซ้อนกว่า) แต่ความแม่นยำเป็นมาตรฐานเดียวที่ยุติธรรมกับทุก track */
+var UNLOCK_MIN_ACC = 75;
+function isUnlocked(track, idx, progress) {
+  if (idx === 0) return true;
+  var prev = progress[progressKey(track.id, idx - 1)];
+  return !!prev && prev.acc >= UNLOCK_MIN_ACC;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   โหมดทดสอบจับเวลา 60 วินาที — สุ่มคำจากคลังคำศัพท์ของภาษานั้นๆ (ก็อปจาก track *-words ที่มีอยู่แล้ว)
+   มาต่อกันเป็นข้อความยาวมากๆ (สลับหลายรอบ) ให้พอสำหรับพิมพ์ได้ตลอด 60 วิ ไม่มีใครพิมพ์ทันจริงๆ
+   ══════════════════════════════════════════════════════════════════ */
+var SPRINT_SECONDS = 60;
+function buildSprintText(lang) {
+  var words = [];
+  TRACKS.forEach(function (tr) {
+    if (tr.lang !== lang || tr.id.indexOf('-words') === -1) return;
+    tr.lessons.forEach(function (l) { words = words.concat(l.text.split(/\s+/).filter(Boolean)); });
+  });
+  var pool = [];
+  for (var rep = 0; rep < 20; rep++) {
+    var shuffled = words.slice();
+    for (var i = shuffled.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp;
+    }
+    pool = pool.concat(shuffled);
+  }
+  return pool.join(' ');
+}
+
+var SPRINT_KEY = 'tanot:typing:sprint';
+function loadSprintBest() {
+  try { return JSON.parse(localStorage.getItem(SPRINT_KEY)) || {}; } catch (e) { return {}; }
+}
+function saveSprintBest(b) { try { localStorage.setItem(SPRINT_KEY, JSON.stringify(b)); } catch (e) {} }
+
+/* แสดง/ซ่อนสีโซนนิ้วบนคีย์บอร์ดเสมือน — ค้างค่าไว้ (เปิดเป็นค่าเริ่มต้น) */
+var FINGER_COLOR_KEY = 'tanot:typing:fingercolors';
+function getFingerColorsOn() {
+  try { return localStorage.getItem(FINGER_COLOR_KEY) !== '0'; } catch (e) { return true; }
+}
+function setFingerColorsOn(on) { try { localStorage.setItem(FINGER_COLOR_KEY, on ? '1' : '0'); } catch (e) {} }
+
 /* ══════════════════════════════════════════════════════════════════
    ภาษา UI (ไทย/อังกฤษ) — คนละ key กับหน้าอื่น (แต่ละหน้าเก็บของตัวเอง ดูเหตุผลเดียวกับ doc-check.js)
    ══════════════════════════════════════════════════════════════════ */
@@ -164,7 +246,12 @@ var I18N = {
     resultTitle: 'จบบทเรียนแล้ว!', resultWpm: 'ความเร็ว', resultAcc: 'ความแม่นยำ', resultBest: 'สถิติที่ดีที่สุด',
     btnRetry: 'ฝึกซ้ำ', btnNext: 'บทถัดไป', btnRestartHint: 'พิมพ์เพื่อเริ่มบทเรียน',
     thaiKbHint: '⚠️ อย่าลืมสลับคีย์บอร์ดเป็นภาษาไทยก่อนเริ่มพิมพ์',
-    clickToFocus: 'คลิกที่นี่เพื่อเริ่มพิมพ์'
+    clickToFocus: 'คลิกที่นี่เพื่อเริ่มพิมพ์',
+    lockedMsg: 'บทนี้ยังไม่ปลดล็อก — ทำบทก่อนหน้าให้ความแม่นยำอย่างน้อย ' + UNLOCK_MIN_ACC + '% ก่อน',
+    fingerLabel: 'นิ้ว', showFingerColors: 'แสดงสีโซนนิ้ว',
+    sprintEn: '⚡ ทดสอบจับเวลา 60 วิ (อังกฤษ)', sprintTh: '⚡ ทดสอบจับเวลา 60 วิ (ไทย)',
+    sprintResultTitle: 'หมดเวลา!', sprintBest: 'สถิติที่ดีที่สุด', statsTimeLeft: 'เวลาที่เหลือ',
+    backToLessons: 'กลับไปฝึกบทเรียน'
   },
   en: {
     pageTitle: 'Typing Tutor', pageDesc: 'Practice touch typing in Thai/English, progressing from the home row to full sentences. Live WPM and accuracy tracking — everything runs in your browser.',
@@ -173,7 +260,12 @@ var I18N = {
     resultTitle: 'Lesson complete!', resultWpm: 'Speed', resultAcc: 'Accuracy', resultBest: 'Best score',
     btnRetry: 'Retry', btnNext: 'Next Lesson', btnRestartHint: 'Start typing to begin',
     thaiKbHint: '⚠️ Remember to switch your keyboard to Thai before you start typing',
-    clickToFocus: 'Click here to start typing'
+    clickToFocus: 'Click here to start typing',
+    lockedMsg: 'This lesson is locked — complete the previous one with at least ' + UNLOCK_MIN_ACC + '% accuracy first',
+    fingerLabel: 'Finger', showFingerColors: 'Show finger color zones',
+    sprintEn: '⚡ 60-Second Sprint (English)', sprintTh: '⚡ 60-Second Sprint (Thai)',
+    sprintResultTitle: "Time's up!", sprintBest: 'Best score', statsTimeLeft: 'Time Left',
+    backToLessons: 'Back to lessons'
   }
 };
 function t(key) { var l = getUILang(); return (I18N[l] && I18N[l][key]) || I18N.th[key] || key; }
@@ -189,11 +281,15 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
       resultWpmEl = $('resultWpm'), resultAccEl = $('resultAcc'), resultBestEl = $('resultBest'),
       retryBtn = $('retryBtn'), nextBtn = $('nextBtn'), practiceArea = $('practiceArea'),
       langToggle = $('langToggle'), trackDesc = $('trackDesc'), focusHint = $('focusHint'),
-      thaiKbHint = $('thaiKbHint');
+      thaiKbHint = $('thaiKbHint'), fingerHint = $('fingerHint'), fingerLegend = $('fingerLegend'),
+      fingerColorToggle = $('fingerColorToggle'), sprintEnBtn = $('sprintEnBtn'), sprintThBtn = $('sprintThBtn'),
+      lockMsg = $('lockMsg'), statTimeLabel = $('statTimeLabel'), resultTitleEl = $('resultTitleEl'),
+      resultBestLabel = $('resultBestLabel');
 
   var state = {
     trackId: 'en-home', lessonIndex: 0, target: '', charStatus: [], attempted: [],
-    startTime: null, keystrokes: 0, mistakes: 0, finished: false, timerId: null
+    startTime: null, keystrokes: 0, mistakes: 0, finished: false, timerId: null,
+    sprintMode: false, sprintLang: null, sprintCountdownId: null
   };
 
   function applyI18n() {
@@ -224,13 +320,22 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     var progress = loadProgress();
     lessonList.innerHTML = '';
     track.lessons.forEach(function (lesson, i) {
+      var unlocked = isUnlocked(track, i, progress);
       var item = document.createElement('button');
       item.type = 'button';
-      item.className = 'tt-lesson' + (i === state.lessonIndex ? ' active' : '');
+      item.className = 'tt-lesson' + (i === state.lessonIndex && !state.sprintMode ? ' active' : '') + (unlocked ? '' : ' locked');
       var best = progress[progressKey(track.id, i)];
-      item.innerHTML = '<span class="tt-lesson-title">' + (i + 1) + '. ' + lesson.title + '</span>' +
+      item.innerHTML = '<span class="tt-lesson-title">' + (unlocked ? '' : '🔒 ') + (i + 1) + '. ' + lesson.title + '</span>' +
         (best ? '<span class="tt-lesson-best">' + Math.round(best.wpm) + ' ' + t('statsWpm') + '</span>' : '');
-      item.addEventListener('click', function () { selectLesson(i); });
+      item.addEventListener('click', function () {
+        if (unlocked) selectLesson(i);
+        else if (lockMsg) {
+          lockMsg.textContent = t('lockedMsg');
+          lockMsg.style.display = 'block';
+          clearTimeout(lockMsg._hideTimer);
+          lockMsg._hideTimer = setTimeout(function () { lockMsg.style.display = 'none'; }, 3000);
+        }
+      });
       lessonList.appendChild(item);
     });
   }
@@ -238,6 +343,7 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
   function selectTrack(trackId) {
     state.trackId = trackId;
     state.lessonIndex = 0;
+    state.sprintMode = false;
     renderTrackTabs();
     renderLessonList();
     var track = trackById(trackId);
@@ -248,16 +354,20 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
 
   function selectLesson(idx) {
     state.lessonIndex = idx;
+    state.sprintMode = false;
     renderLessonList();
     startLesson();
   }
 
-  function startLesson() {
-    var track = trackById(state.trackId);
-    var lesson = track.lessons[state.lessonIndex];
-    state.target = lesson.text;
-    state.charStatus = new Array(state.target.length).fill('pending');
-    state.attempted = new Array(state.target.length).fill(false);
+  /* ภาษาที่กำลังฝึกอยู่ ณ ขณะนี้ — โหมดจับเวลาไม่ได้ผูกกับ track ปกติ (state.trackId อาจเป็นแทร็กเก่า
+     ที่ค้างไว้ก่อนกดจับเวลา) จึงต้องเช็ค sprintMode ก่อนเสมอแทนที่จะอ่าน track.lang ตรงๆ */
+  function currentLang() { return state.sprintMode ? state.sprintLang : trackById(state.trackId).lang; }
+
+  /* ค่าเริ่มต้นของสถานะการฝึกที่ใช้ร่วมกันทั้งบทเรียนปกติและโหมดจับเวลา (กันโค้ดซ้ำ) */
+  function resetAttemptState(targetText) {
+    state.target = targetText;
+    state.charStatus = new Array(targetText.length).fill('pending');
+    state.attempted = new Array(targetText.length).fill(false);
     state.startTime = null;
     state.keystrokes = 0;
     state.mistakes = 0;
@@ -266,20 +376,50 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     resultPanel.style.display = 'none';
     practiceArea.classList.remove('done');
     clearInterval(state.timerId);
+  }
+
+  function startLesson() {
+    var track = trackById(state.trackId);
+    var lesson = track.lessons[state.lessonIndex];
+    resetAttemptState(lesson.text);
     statWpm.textContent = '0';
     statAcc.textContent = '100%';
     statTime.textContent = '0s';
+    if (statTimeLabel) statTimeLabel.textContent = t('statsTime');
     renderPracticeText();
     renderKeyboard(track.lang);
     highlightNextKey(track.lang);
     hiddenInput.focus();
   }
 
+  function startSprint(lang) {
+    state.sprintMode = true;
+    state.sprintLang = lang;
+    resetAttemptState(buildSprintText(lang));
+    statWpm.textContent = '0';
+    statAcc.textContent = '100%';
+    statTime.textContent = String(SPRINT_SECONDS) + 's';
+    if (statTimeLabel) statTimeLabel.textContent = t('statsTimeLeft');
+    renderLessonList();
+    renderPracticeText();
+    renderKeyboard(lang);
+    highlightNextKey(lang);
+    hiddenInput.focus();
+  }
+
+  /* โหมดจับเวลาสร้างข้อความเป้าหมายยาวมาก (หลายพันตัวอักษร กันพิมพ์ทันใน 60 วิ) — เรนเดอร์ทั้งก้อน
+     จะดันคีย์บอร์ด/สถิติหลุดจอไปไกลมาก จึงโชว์แค่ "หน้าต่าง" รอบตำแหน่งเคอร์เซอร์เท่านั้น (behind/ahead)
+     บทเรียนปกติทุกบทสั้นกว่า WINDOW_AHEAD อยู่แล้วเสมอ จึงยังเห็นครบทั้งข้อความเหมือนเดิมทุกประการ
+     ไม่มีผลกับ UX เดิมเลย ส่วนโหมดจับเวลาจะได้ประโยชน์เต็มๆ */
+  var WINDOW_BEHIND = 40, WINDOW_AHEAD = 200;
   function renderPracticeText() {
+    var cursor = hiddenInput.value.length;
+    var start = Math.max(0, cursor - WINDOW_BEHIND);
+    var end = Math.min(state.target.length, cursor + WINDOW_AHEAD);
     practiceText.innerHTML = '';
-    for (var i = 0; i < state.target.length; i++) {
+    for (var i = start; i < end; i++) {
       var span = document.createElement('span');
-      span.className = 'tt-char ' + state.charStatus[i] + (i === hiddenInput.value.length ? ' cursor' : '');
+      span.className = 'tt-char ' + state.charStatus[i] + (i === cursor ? ' cursor' : '');
       span.textContent = state.target[i];
       practiceText.appendChild(span);
     }
@@ -287,13 +427,14 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
 
   function renderKeyboard(lang) {
     kbEl.innerHTML = '';
+    var showFingers = getFingerColorsOn();
     KB_ROWS.forEach(function (row, r) {
       var rowEl = document.createElement('div');
       rowEl.className = 'tt-kbrow';
       row.forEach(function (key, c) {
         var keyEl = document.createElement('div');
         var isHome = r === 2 && HOME_KEYS_EN.indexOf(key[0]) !== -1;
-        keyEl.className = 'tt-key' + (isHome ? ' home' : '');
+        keyEl.className = 'tt-key' + (isHome ? ' home' : '') + (showFingers ? ' f-' + fingerFor(r, c) : '');
         keyEl.dataset.r = r; keyEl.dataset.c = c;
         keyEl.textContent = key[lang === 'th' ? 1 : 0];
         rowEl.appendChild(keyEl);
@@ -307,54 +448,96 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     spaceKey.dataset.space = '1';
     spaceRow.appendChild(spaceKey);
     kbEl.appendChild(spaceRow);
+    renderFingerLegend(showFingers);
+  }
+
+  function renderFingerLegend(showFingers) {
+    if (!fingerLegend) return;
+    fingerLegend.style.display = showFingers ? 'flex' : 'none';
+    fingerLegend.innerHTML = '';
+    FINGER_ORDER.forEach(function (fid) {
+      var chip = document.createElement('span');
+      chip.className = 'tt-flegend-chip f-' + fid;
+      chip.textContent = FINGER_NAMES[fid][getUILang()];
+      fingerLegend.appendChild(chip);
+    });
   }
 
   function highlightNextKey(lang) {
     kbEl.querySelectorAll('.tt-key').forEach(function (k) { k.classList.remove('next'); });
     var nextChar = state.target[hiddenInput.value.length];
-    if (nextChar === undefined) return;
+    if (nextChar === undefined) { if (fingerHint) fingerHint.textContent = ''; return; }
     if (nextChar === ' ') {
       var sp = kbEl.querySelector('.tt-space');
       if (sp) sp.classList.add('next');
+      if (fingerHint) fingerHint.textContent = t('fingerLabel') + ': ' + FINGER_NAMES.thumb[getUILang()];
       return;
     }
     var map = lang === 'th' ? TH_CHAR_MAP : EN_CHAR_MAP;
     var pos = map[nextChar];
-    if (!pos || pos.space) return;
+    if (!pos || pos.space) { if (fingerHint) fingerHint.textContent = ''; return; }
     var keyEl = kbEl.querySelector('.tt-key[data-r="' + pos.r + '"][data-c="' + pos.c + '"]');
     if (keyEl) keyEl.classList.add('next');
+    if (fingerHint) fingerHint.textContent = t('fingerLabel') + ': ' + FINGER_NAMES[fingerFor(pos.r, pos.c)][getUILang()];
   }
 
   function liveStats() {
     if (!state.startTime) return;
-    var minutes = (Date.now() - state.startTime) / 60000;
+    var elapsedMs = Date.now() - state.startTime;
+    var minutes = elapsedMs / 60000;
     var wpm = minutes > 0 ? Math.round((state.keystrokes / 5) / minutes) : 0;
     var acc = state.keystrokes > 0 ? Math.round(((state.keystrokes - state.mistakes) / state.keystrokes) * 100) : 100;
     statWpm.textContent = String(wpm);
     statAcc.textContent = acc + '%';
-    statTime.textContent = Math.round((Date.now() - state.startTime) / 1000) + 's';
+    if (state.sprintMode) {
+      var remaining = SPRINT_SECONDS * 1000 - elapsedMs;
+      if (remaining <= 0) { statTime.textContent = '0s'; finishAttempt(); return; }
+      statTime.textContent = Math.ceil(remaining / 1000) + 's';
+    } else {
+      statTime.textContent = Math.round(elapsedMs / 1000) + 's';
+    }
   }
 
-  function finishLesson() {
+  /* ให้คะแนน+บันทึกผลเมื่อจบการฝึก (ใช้ร่วมกันทั้งบทเรียนปกติ — จบเมื่อพิมพ์ครบ — และโหมดจับเวลา
+     ที่จบเมื่อหมดเวลา ไม่ใช่พิมพ์ครบ) คำนวณจาก state.keystrokes/mistakes/เวลาที่ผ่านไปจริงเสมอ
+     ไม่ได้อิงความยาว target เลย จึงใช้ตัวเดียวกันได้กับทั้งสองโหมดโดยไม่ต้องแยกสูตร */
+  function finishAttempt() {
+    if (state.finished) return;
     state.finished = true;
     clearInterval(state.timerId);
     var minutes = (Date.now() - state.startTime) / 60000;
     var wpm = minutes > 0 ? (state.keystrokes / 5) / minutes : 0;
     var acc = state.keystrokes > 0 ? ((state.keystrokes - state.mistakes) / state.keystrokes) * 100 : 100;
 
-    var progress = loadProgress();
-    var key = progressKey(state.trackId, state.lessonIndex);
-    var prevBest = progress[key];
-    var isNewBest = !prevBest || wpm > prevBest.wpm;
-    if (isNewBest) progress[key] = { wpm: wpm, acc: acc, at: Date.now() };
-    saveProgress(progress);
-
-    resultWpmEl.textContent = Math.round(wpm);
-    resultAccEl.textContent = Math.round(acc) + '%';
-    resultBestEl.textContent = Math.round((progress[key] || { wpm: wpm }).wpm) + ' ' + t('statsWpm');
+    if (state.sprintMode) {
+      var sprintBest = loadSprintBest();
+      var prevSprint = sprintBest[state.sprintLang];
+      if (!prevSprint || wpm > prevSprint.wpm) sprintBest[state.sprintLang] = { wpm: wpm, acc: acc, at: Date.now() };
+      saveSprintBest(sprintBest);
+      resultWpmEl.textContent = Math.round(wpm);
+      resultAccEl.textContent = Math.round(acc) + '%';
+      resultBestEl.textContent = Math.round(sprintBest[state.sprintLang].wpm) + ' ' + t('statsWpm');
+      nextBtn.style.display = 'none';
+    } else {
+      /* เก็บ WPM สูงสุดและความแม่นยำสูงสุดแยกกันเป็นอิสระต่อกัน (ไม่จำเป็นต้องมาจากรอบเดียวกัน) —
+         เพราะปลดล็อกบทถัดไป (isUnlocked) เช็คจาก acc เพียงอย่างเดียว ถ้าผูกไว้กับรอบที่ได้ WPM
+         สูงสุดรอบเดียว อาจพลาดกรณีผู้เรียนเคยพิมพ์แม่นพอแล้วในรอบอื่นที่ WPM ไม่สูงสุด */
+      var progress = loadProgress();
+      var key = progressKey(state.trackId, state.lessonIndex);
+      var prevBest = progress[key];
+      var isNewBest = !prevBest || wpm > prevBest.wpm || acc > (prevBest.acc || 0);
+      if (isNewBest) progress[key] = { wpm: Math.max(wpm, prevBest ? prevBest.wpm : 0), acc: Math.max(acc, prevBest ? prevBest.acc : 0), at: Date.now() };
+      saveProgress(progress);
+      resultWpmEl.textContent = Math.round(wpm);
+      resultAccEl.textContent = Math.round(acc) + '%';
+      resultBestEl.textContent = Math.round((progress[key] || { wpm: wpm }).wpm) + ' ' + t('statsWpm');
+      nextBtn.style.display = '';
+      renderLessonList();
+    }
+    if (resultTitleEl) resultTitleEl.textContent = state.sprintMode ? t('sprintResultTitle') : t('resultTitle');
+    if (resultBestLabel) resultBestLabel.textContent = state.sprintMode ? t('sprintBest') : t('resultBest');
     resultPanel.style.display = 'flex';
     practiceArea.classList.add('done');
-    renderLessonList();
   }
 
   hiddenInput.addEventListener('input', function () {
@@ -380,23 +563,38 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     for (var j = val.length; j < state.target.length; j++) state.charStatus[j] = 'pending';
 
     renderPracticeText();
-    var track = trackById(state.trackId);
-    highlightNextKey(track.lang);
+    highlightNextKey(currentLang());
     liveStats();
 
-    if (val.length === state.target.length) finishLesson();
+    if (val.length === state.target.length) finishAttempt();
   });
 
   practiceArea.addEventListener('click', function () { hiddenInput.focus(); });
   hiddenInput.addEventListener('focus', function () { focusHint.style.display = 'none'; });
   hiddenInput.addEventListener('blur', function () { if (!state.finished) focusHint.style.display = 'block'; });
 
-  retryBtn.addEventListener('click', startLesson);
+  retryBtn.addEventListener('click', function () {
+    if (state.sprintMode) startSprint(state.sprintLang);
+    else startLesson();
+  });
   nextBtn.addEventListener('click', function () {
+    if (state.sprintMode) return; /* ปุ่มนี้ถูกซ่อนในโหมดจับเวลาอยู่แล้ว (ดู finishAttempt) กันไว้อีกชั้น */
     var track = trackById(state.trackId);
     if (state.lessonIndex < track.lessons.length - 1) selectLesson(state.lessonIndex + 1);
     else startLesson();
   });
+
+  if (sprintEnBtn) sprintEnBtn.addEventListener('click', function () { startSprint('en'); });
+  if (sprintThBtn) sprintThBtn.addEventListener('click', function () { startSprint('th'); });
+
+  if (fingerColorToggle) {
+    fingerColorToggle.checked = getFingerColorsOn();
+    fingerColorToggle.addEventListener('change', function () {
+      setFingerColorsOn(fingerColorToggle.checked);
+      renderKeyboard(currentLang());
+      highlightNextKey(currentLang());
+    });
+  }
 
   if (langToggle) {
     langToggle.addEventListener('click', function () {
@@ -406,6 +604,9 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
       renderLessonList();
       var track = trackById(state.trackId);
       trackDesc.textContent = track.desc;
+      renderKeyboard(currentLang());
+      highlightNextKey(currentLang());
+      if (statTimeLabel) statTimeLabel.textContent = state.sprintMode ? t('statsTimeLeft') : t('statsTime');
     });
   }
 

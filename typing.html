@@ -90,9 +90,45 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
   display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--muted);
   transition:.12s}
 .tt-key.home{border-bottom:3px solid #C9CEDC}
+/* โซนสีนิ้ว — ใช้ selector แบบ class เดี่ยว (ไม่ผูกกับ .tt-key) เพื่อให้ใช้ซ้ำกับชิปคำอธิบายสี
+   (.tt-flegend-chip) ได้ด้วย — specificity (0,1,0) ต่ำกว่า .tt-key.next (0,2,0) เสมอ จึงมั่นใจได้ว่า
+   ปุ่ม "ถัดไป" จะทับสีนิ้วด้วยสีเน้น --tt เข้มเสมอไม่ว่าจะอยู่โซนนิ้วไหน (ไม่ต้องพึ่งลำดับใน source) */
+.f-lp{background:#FEE2E2;color:#B91C1C}
+.f-lr{background:#FFEDD5;color:#C2410C}
+.f-lm{background:#FEF9C3;color:#A16207}
+.f-li{background:#DCFCE7;color:#15803D}
+.f-ri{background:#DBEAFE;color:#1D4ED8}
+.f-rm{background:#EDE9FE;color:#6D28D9}
+.f-rr{background:#FCE7F3;color:#BE185D}
+.f-rp{background:#E7E5E4;color:#57534E}
+[data-theme="dark"] .f-lp{background:#4A1F1F;color:#FCA5A5}
+[data-theme="dark"] .f-lr{background:#4A2E15;color:#FDBA74}
+[data-theme="dark"] .f-lm{background:#4A3D15;color:#FDE68A}
+[data-theme="dark"] .f-li{background:#173A24;color:#86EFAC}
+[data-theme="dark"] .f-ri{background:#17264A;color:#93C5FD}
+[data-theme="dark"] .f-rm{background:#2E1F4A;color:#C4B5FD}
+[data-theme="dark"] .f-rr{background:#3A1F30;color:#F9A8D4}
+[data-theme="dark"] .f-rp{background:#38332E;color:#D6D3D1}
 .tt-key.next{background:var(--tt);color:#fff;border-color:var(--tt);transform:scale(1.08)}
 .tt-key.tt-space{width:220px}
 @media(max-width:600px){.tt-keyboard{display:none}}
+
+.tt-finger-hint{text-align:center;font-size:12.5px;font-weight:700;color:var(--tt-dk);min-height:1.4em;margin-top:8px}
+.tt-flegend{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+.tt-flegend-chip{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px}
+@media(max-width:600px){.tt-flegend{display:none}}
+
+.tt-toolbar-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.tt-sprint-btn{font-family:var(--f);font-size:12.5px;font-weight:600;padding:8px 13px;border:1.5px solid var(--line);
+  border-radius:10px;cursor:pointer;background:var(--card);color:var(--ink);transition:.15s}
+.tt-sprint-btn:hover{border-color:var(--tt);color:var(--tt-dk)}
+.tt-finger-toggle{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer;margin-left:auto}
+.tt-finger-toggle input{accent-color:var(--tt)}
+.tt-lock-msg{display:none;background:#FFF3E0;color:#9A5A00;border-radius:10px;padding:8px 12px;font-size:12.5px;
+  font-weight:600;margin-bottom:8px}
+[data-theme="dark"] .tt-lock-msg{background:#3A2C10;color:#F5C36B}
+.tt-lesson.locked{opacity:.55;cursor:not-allowed}
+.tt-lesson.locked:hover{border-color:var(--line)}
 
 .tt-result{display:none;position:absolute;inset:0;background:var(--card);border-radius:var(--r);
   flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px}
@@ -134,14 +170,23 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 <div class="tt-track-desc" id="trackDesc"></div>
 <div class="tt-thai-hint" id="thaiKbHint" data-i18n="thaiKbHint">⚠️ อย่าลืมสลับคีย์บอร์ดเป็นภาษาไทยก่อนเริ่มพิมพ์</div>
 
+<div class="tt-toolbar-row">
+  <button class="tt-sprint-btn" id="sprintEnBtn" type="button" data-i18n="sprintEn">⚡ ทดสอบจับเวลา 60 วิ (อังกฤษ)</button>
+  <button class="tt-sprint-btn" id="sprintThBtn" type="button" data-i18n="sprintTh">⚡ ทดสอบจับเวลา 60 วิ (ไทย)</button>
+  <label class="tt-finger-toggle"><input type="checkbox" id="fingerColorToggle"><span data-i18n="showFingerColors">แสดงสีโซนนิ้ว</span></label>
+</div>
+
 <div class="tt-layout">
-  <div class="tt-lesson-list" id="lessonList"></div>
+  <div>
+    <div class="tt-lock-msg" id="lockMsg"></div>
+    <div class="tt-lesson-list" id="lessonList"></div>
+  </div>
 
   <div class="tt-main">
     <div class="tt-stats">
       <div class="tt-stat"><b id="statWpm">0</b><span data-i18n="statsWpm">คำ/นาที</span></div>
       <div class="tt-stat"><b id="statAcc">100%</b><span data-i18n="statsAcc">ความแม่นยำ</span></div>
-      <div class="tt-stat"><b id="statTime">0s</b><span data-i18n="statsTime">เวลา</span></div>
+      <div class="tt-stat"><b id="statTime">0s</b><span id="statTimeLabel" data-i18n="statsTime">เวลา</span></div>
     </div>
 
     <div class="tt-practice-area" id="practiceArea">
@@ -150,14 +195,16 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
       <div class="tt-focus-hint" id="focusHint" data-i18n="clickToFocus">คลิกที่นี่เพื่อเริ่มพิมพ์</div>
     </div>
 
+    <div class="tt-finger-hint" id="fingerHint"></div>
     <div class="tt-keyboard" id="virtualKeyboard"></div>
+    <div class="tt-flegend" id="fingerLegend"></div>
 
     <div class="tt-result" id="resultPanel">
-      <h2 data-i18n="resultTitle">จบบทเรียนแล้ว!</h2>
+      <h2 id="resultTitleEl" data-i18n="resultTitle">จบบทเรียนแล้ว!</h2>
       <div class="tt-result-row">
         <div class="tt-stat"><b id="resultWpm">0</b><span data-i18n="resultWpm">ความเร็ว</span></div>
         <div class="tt-stat"><b id="resultAcc">100%</b><span data-i18n="resultAcc">ความแม่นยำ</span></div>
-        <div class="tt-stat"><b id="resultBest">0</b><span data-i18n="resultBest">สถิติที่ดีที่สุด</span></div>
+        <div class="tt-stat"><b id="resultBest">0</b><span id="resultBestLabel" data-i18n="resultBest">สถิติที่ดีที่สุด</span></div>
       </div>
       <div class="tt-result-actions">
         <button class="btn" id="retryBtn" type="button" data-i18n="btnRetry">ฝึกซ้ำ</button>
