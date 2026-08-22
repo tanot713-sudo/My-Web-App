@@ -92,7 +92,7 @@ var TRACKS = [
   },
   {
     id: 'en-full', lang: 'en', label: 'คีย์บอร์ดเต็ม', labelEn: 'Full Keyboard',
-    desc: 'เริ่มขยับนิ้วขึ้น-ลงจากแถวกลางไปแตะแถวบน/ล่าง แล้วรีบกลับมาที่แถวกลางเสมอ',
+    desc: '',
     lessons: [
       { title: 'แถวบน q-p', text: 'qwert yuiop qwert yuiop trewq poiuy' },
       { title: 'แถวล่าง z-/', text: 'zxcvb nm,./ zxcvb nm,./ bvcxz /.,mn' },
@@ -103,7 +103,7 @@ var TRACKS = [
   },
   {
     id: 'en-words', lang: 'en', label: 'คำศัพท์', labelEn: 'Common Words',
-    desc: 'คำที่ใช้บ่อยที่สุดในภาษาอังกฤษ — พิมพ์คล่องกลุ่มนี้แล้วจะพิมพ์ประโยคทั่วไปได้เร็วขึ้นมาก',
+    desc: '',
     lessons: [
       { title: 'คำศัพท์ชุด 1', text: 'the of and a to in is you that it he was for on are' },
       { title: 'คำศัพท์ชุด 2', text: 'as with his they at be this from have or one had by word' },
@@ -112,7 +112,7 @@ var TRACKS = [
   },
   {
     id: 'en-sentences', lang: 'en', label: 'ประโยค', labelEn: 'Sentences',
-    desc: 'ประโยคสั้นๆ ที่ใช้ตัวอักษรครบทุกแถว ฝึกความลื่นไหลตอนเปลี่ยนคำ',
+    desc: '',
     lessons: [
       { title: 'ประโยคที่ 1', text: 'Practice typing every day to become faster and more accurate.' },
       { title: 'ประโยคที่ 2', text: 'A good typist keeps their eyes on the screen, not the keyboard.' },
@@ -123,7 +123,7 @@ var TRACKS = [
   },
   {
     id: 'th-home', lang: 'th', label: 'แถวกลาง (ไทย)', labelEn: 'Home Row (Thai)',
-    desc: '⚠️ สลับคีย์บอร์ดเป็นภาษาไทยก่อนเริ่ม — วางนิ้วบนแป้นเดียวกับอังกฤษ (A S D F / J K L ;) แต่จะพิมพ์ได้อักษรไทยแทน',
+    desc: '',
     lessons: [
       { title: 'พื้นฐาน ฟ ห ก ด', text: 'ฟหกด ฟหกด ฟหกด ดกหฟ ฟหกด' },
       { title: 'พื้นฐาน ่ า ส ว', text: 'ก่า ห่า ด่า ส่า ก่า ห่า ว่า ว่า' },
@@ -134,7 +134,7 @@ var TRACKS = [
   },
   {
     id: 'th-full', lang: 'th', label: 'คีย์บอร์ดเต็ม (ไทย)', labelEn: 'Full Keyboard (Thai)',
-    desc: '⚠️ สลับคีย์บอร์ดเป็นภาษาไทยก่อนเริ่ม — ขยับนิ้วขึ้นแถวบน (ๆ ไ ำ พ ะ ั ี ร น ย บ ล) และลงแถวล่าง (ผ ป แ อ ิ ื ท ม ใ ฝ)',
+    desc: '',
     lessons: [
       { title: 'แถวบน', text: 'ไป มา ไทย นก บาน รัก บัว ปี น้ำ' },
       { title: 'แถวล่าง', text: 'มือ ทะเล แดด ฝน ใจ อาหาร ปลา แปะ' },
@@ -145,7 +145,7 @@ var TRACKS = [
   },
   {
     id: 'th-words', lang: 'th', label: 'คำศัพท์ (ไทย)', labelEn: 'Common Words (Thai)',
-    desc: 'คำไทยที่ใช้บ่อยในชีวิตประจำวัน (เลือกเฉพาะคำที่พิมพ์ได้โดยไม่ต้องกด Shift)',
+    desc: '',
     lessons: [
       { title: 'คำศัพท์ชุด 1', text: 'กิน นอน ดู ฟัง พูด เดิน วิ่ง ทำ มา ไป อยู่ ยืน นั่ง' },
       { title: 'คำศัพท์ชุด 2', text: 'บ้าน รถ น้ำ ไฟ ข้าว ปลา ผัก ผลไม้ เสื้อ กางเกง' },
@@ -154,7 +154,7 @@ var TRACKS = [
   },
   {
     id: 'th-sentences', lang: 'th', label: 'ประโยค (ไทย)', labelEn: 'Sentences (Thai)',
-    desc: 'ประโยคสั้นๆ ที่ใช้ได้จริง (คัดเฉพาะประโยคที่ไม่มีตัวอักษรต้องกด Shift)',
+    desc: '',
     lessons: [
       { title: 'ประโยคที่ 1', text: 'วันนี้อากาศดีมาก เหมาะแก่การไปเที่ยวทะเล' },
       { title: 'ประโยคที่ 2', text: 'ฝึกพิมพ์ดีดทุกวันจะช่วยให้พิมพ์ได้เร็วและแม่นยำขึ้น' },
@@ -240,7 +240,7 @@ function setUILang(l) { try { localStorage.setItem(UI_LANG_KEY, l); } catch (e) 
 
 var I18N = {
   th: {
-    pageTitle: 'สอนพิมพ์', pageDesc: 'ฝึกพิมพ์สัมผัสไทย/อังกฤษ ไล่ระดับตั้งแต่แถวกลางจนถึงประโยคเต็ม วัดความเร็ว (WPM) และความแม่นยำแบบสด — ทำงานในเบราว์เซอร์ของคุณทั้งหมด',
+    pageTitle: 'สอนพิมพ์', pageDesc: '',
     crumbResp: 'งานที่รับผิดชอบ', crumbTyping: 'สอนพิมพ์',
     statsWpm: 'คำ/นาที', statsAcc: 'ความแม่นยำ', statsTime: 'เวลา',
     resultTitle: 'จบบทเรียนแล้ว!', resultWpm: 'ความเร็ว', resultAcc: 'ความแม่นยำ', resultBest: 'สถิติที่ดีที่สุด',
@@ -254,7 +254,7 @@ var I18N = {
     backToLessons: 'กลับไปฝึกบทเรียน'
   },
   en: {
-    pageTitle: 'Typing Tutor', pageDesc: 'Practice touch typing in Thai/English, progressing from the home row to full sentences. Live WPM and accuracy tracking — everything runs in your browser.',
+    pageTitle: 'Typing Tutor', pageDesc: '',
     crumbResp: 'Responsibilities', crumbTyping: 'Typing Tutor',
     statsWpm: 'WPM', statsAcc: 'Accuracy', statsTime: 'Time',
     resultTitle: 'Lesson complete!', resultWpm: 'Speed', resultAcc: 'Accuracy', resultBest: 'Best score',
@@ -268,7 +268,15 @@ var I18N = {
     backToLessons: 'Back to lessons'
   }
 };
-function t(key) { var l = getUILang(); return (I18N[l] && I18N[l][key]) || I18N.th[key] || key; }
+/* เช็คด้วย !== undefined แทน truthy-check ตรงๆ — บาง key (เช่น desc ของบาง track/pageDesc)
+   ตั้งใจให้เป็นสตริงว่างจริงๆ ('' เป็น falsy) ถ้าใช้ || เฉยๆ จะเข้าใจผิดว่า "ไม่มี key นี้" แล้ว
+   fallback ไปคืนชื่อ key ดิบๆ ออกมาแทน (บั๊กที่เจอจริงตอนลบข้อความ desc ออก) */
+function t(key) {
+  var l = getUILang();
+  if (I18N[l] && I18N[l][key] !== undefined) return I18N[l][key];
+  if (I18N.th[key] !== undefined) return I18N.th[key];
+  return key;
+}
 
 /* ══════════════════════════════════════════════════════════════════
    UI wiring
