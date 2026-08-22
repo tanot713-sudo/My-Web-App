@@ -32,6 +32,7 @@ var I18N = {
     quizPromptPianoChordQuality: 'คอร์ดที่กดอยู่บนเปียโนนี้เป็นเมเจอร์หรือไมเนอร์?',
     quizPromptPianoChordRoot: 'คอร์ดที่กดอยู่บนเปียโนนี้มีโน้ตรากเป็นตัวอะไร?',
     quizPromptGuitarChord: 'ไดอะแกรมนี้คือคอร์ดอะไร?',
+    quizPromptUkuleleChord: 'ไดอะแกรมนี้คือคอร์ดอูคูเลเล่อะไร?',
     quizPromptPitchCompare: 'เสียงที่ 2 สูงกว่าหรือต่ำกว่าเสียงที่ 1?',
     quizPromptPitchSameDiff: 'สองเสียงนี้เป็นเสียงเดียวกันหรือต่างกัน?',
     quizPromptChordEar: 'คอร์ดที่ได้ยินเป็นเมเจอร์หรือไมเนอร์?',
@@ -60,6 +61,7 @@ var I18N = {
     quizPromptPianoChordQuality: 'Is this piano chord major or minor?',
     quizPromptPianoChordRoot: 'What is the root note of this piano chord?',
     quizPromptGuitarChord: 'Which chord is this diagram?',
+    quizPromptUkuleleChord: 'Which ukulele chord is this diagram?',
     quizPromptPitchCompare: 'Is the 2nd note higher or lower than the 1st?',
     quizPromptPitchSameDiff: 'Are these two notes the same pitch or different?',
     quizPromptChordEar: 'Is the chord you hear major or minor?',
@@ -349,6 +351,42 @@ function buildGuitarChordSvg(pattern) {
     'style="width:100%;max-width:180px;height:auto;display:block;margin:0 auto" role="img" aria-label="guitar chord diagram">' +
     strings + frets + marks + '</svg>';
 }
+/* ไดอะแกรมคอร์ดอูคูเลเล่ — โครงเดียวกับกีตาร์เป๊ะๆ แค่ 4 สาย (G-C-E-A) แทน 6 สาย
+   คอร์ดพื้นฐาน 4 ตัว (C-G-Am-F) บังเอิญเป็นโพรเกรสชัน I-V-vi-IV เดียวกับที่เรียนไปแล้ว */
+function buildUkuleleChordSvg(pattern) {
+  var W = 150, H = 150;
+  var stringX0 = 30, stringSpacing = 30;
+  var nutY = 34, fretSpacing = 26, numFrets = 4;
+  var numStrings = 4;
+  function sx(i) { return stringX0 + i * stringSpacing; }
+
+  var strings = '';
+  for (var i = 0; i < numStrings; i++) {
+    strings += '<line x1="' + sx(i) + '" y1="' + nutY + '" x2="' + sx(i) + '" y2="' + (nutY + numFrets * fretSpacing) + '" stroke="#3A3F4C" stroke-width="1.6"/>';
+  }
+  var frets = '<line x1="' + sx(0) + '" y1="' + nutY + '" x2="' + sx(numStrings - 1) + '" y2="' + nutY + '" stroke="#1F2430" stroke-width="5"/>';
+  for (var k = 1; k <= numFrets; k++) {
+    var fy = nutY + k * fretSpacing;
+    frets += '<line x1="' + sx(0) + '" y1="' + fy + '" x2="' + sx(numStrings - 1) + '" y2="' + fy + '" stroke="#3A3F4C" stroke-width="1.6"/>';
+  }
+
+  var marks = '';
+  pattern.forEach(function (v, i) {
+    var x = sx(i);
+    if (v === 'x') {
+      marks += '<text x="' + x + '" y="18" font-size="15" font-weight="800" text-anchor="middle" fill="#B3325A">×</text>';
+    } else if (v === 0) {
+      marks += '<circle cx="' + x + '" cy="14" r="6" fill="none" stroke="#0F7A4E" stroke-width="2"/>';
+    } else {
+      var dy = nutY + (v - 0.5) * fretSpacing;
+      marks += '<circle cx="' + x + '" cy="' + dy + '" r="8" fill="var(--mx)"/>';
+    }
+  });
+
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" ' +
+    'style="width:100%;max-width:150px;height:auto;display:block;margin:0 auto" role="img" aria-label="ukulele chord diagram">' +
+    strings + frets + marks + '</svg>';
+}
 
 /* ══════════════════════════════════════════════════════════════════
    ฝึกหูดนตรี — สังเคราะห์เสียงจริงด้วย Web Audio API (oscillator คลื่นไซน์) ไม่ใช้ไฟล์เสียง
@@ -523,6 +561,20 @@ GUITAR_CHORDS.forEach(function (c) { GUITAR_CHORD_LABELS[c.name] = c.label; });
 var GUITAR_CHORD_NAMES = GUITAR_CHORDS.map(function (c) { return c.name; });
 function quizGuitarChordItem(chord) {
   return { kind: 'quiz', qType: 'guitar-chord', pattern: chord.pattern, answer: chord.name };
+}
+/* คอร์ดเปิดพื้นฐาน 4 คอร์ดของอูคูเลเล่ — pattern เรียงจากสาย G (ซ้ายสุด) ไปสาย A (ขวาสุด)
+   บังเอิญเป็นคอร์ดชุดเดียวกับโพรเกรสชัน I-V-vi-IV (C-G-Am-F) ที่เรียนไปแล้วในบทเปียโน/กีตาร์ */
+var UKULELE_CHORDS = [
+  { name: 'C', label: { th: 'C เมเจอร์', en: 'C Major' }, pattern: [0, 0, 0, 3] },
+  { name: 'G', label: { th: 'G เมเจอร์', en: 'G Major' }, pattern: [0, 2, 3, 2] },
+  { name: 'Am', label: { th: 'A ไมเนอร์ (Am)', en: 'A minor (Am)' }, pattern: [2, 0, 0, 0] },
+  { name: 'F', label: { th: 'F เมเจอร์', en: 'F Major' }, pattern: [2, 0, 1, 0] }
+];
+var UKULELE_CHORD_LABELS = {};
+UKULELE_CHORDS.forEach(function (c) { UKULELE_CHORD_LABELS[c.name] = c.label; });
+var UKULELE_CHORD_NAMES = UKULELE_CHORDS.map(function (c) { return c.name; });
+function quizUkuleleChordItem(chord) {
+  return { kind: 'quiz', qType: 'ukulele-chord', pattern: chord.pattern, answer: chord.name };
 }
 function quizPitchCompareItem(note1, oct1, note2, oct2) {
   var f1 = noteFreq(note1, oct1), f2 = noteFreq(note2, oct2);
@@ -886,6 +938,39 @@ var TRACKS = [
     ]
   },
   {
+    id: 'ukulele',
+    label: { th: 'หัดเล่นอูคูเลเล่', en: 'Ukulele' },
+    group: { th: 'เครื่องดนตรี', en: 'Instruments' },
+    items: [
+      readingItem('รู้จักอูคูเลเล่', 'Meet the Ukulele',
+        [
+          'อูคูเลเล่ (Ukulele) เป็นเครื่องดนตรีตระกูลกีตาร์ขนาดเล็ก มีแค่ 4 สาย (กีตาร์มี 6 สาย) เสียงใส สดใส น้ำหนักเบา พกพาง่าย เหมาะเป็นเครื่องดนตรีแรกสำหรับมือใหม่มาก',
+          "สายทั้ง 4 เรียงจากซ้ายไปขวาบนไดอะแกรม (เหมือนกีตาร์) คือ G-C-E-A — จุดพิเศษของอูคูเลเล่คือสาย G (สายซ้ายสุด) มักตั้งเสียง 'สูง' กว่าสาย C ข้างๆ (เรียกว่า re-entrant tuning) ทำให้ได้เสียงกรุ๊งกริ๊งเป็นเอกลักษณ์",
+          'เพราะมีแค่ 4 สาย คอร์ดอูคูเลเล่จึงกดง่ายกว่ากีตาร์มาก บางคอร์ดกดแค่นิ้วเดียวก็เล่นได้แล้ว!'
+        ],
+        [
+          'The Ukulele is a small guitar-family instrument with just 4 strings (guitar has 6). It has a bright, cheerful sound, light weight, and is easy to carry — a great first instrument for beginners.',
+          "The 4 strings, left to right on the diagram (like guitar), are G-C-E-A — a unique feature is that the G string (leftmost) is usually tuned 'higher' than the neighboring C string (called re-entrant tuning), giving that signature jangly sound.",
+          'Because there are only 4 strings, ukulele chords are much easier to press than guitar — some chords only need a single finger!'
+        ]),
+      readingItem('คอร์ดพื้นฐาน 4 คอร์ด: C-G-Am-F', 'The 4 Basic Chords: C-G-Am-F',
+        [
+          'สังเกตไหมว่าชื่อคอร์ดพวกนี้คุ้นๆ? ใช่แล้ว — คือโพรเกรสชัน I-V-vi-IV เดียวกับที่เรียนไปตอนเล่นเปียโน/กีตาร์เลย! บนอูคูเลเล่คอร์ดเหล่านี้ก็ยังคงเป็นคอร์ดเปิดง่ายๆ เหมือนกัน',
+          'คอร์ด C บนอูคูเลเล่พิเศษมาก — กดแค่สาย A (ขวาสุด) เฟรต 3 ด้วยนิ้วเดียว สายอื่นดีดเปล่าหมด ง่ายที่สุดในบรรดาคอร์ดทั้งหมด!',
+          'แบบฝึกหัดถัดไปจะโชว์ไดอะแกรม ให้ทายว่าเป็นคอร์ดอะไร ลองกดตามในใจแล้วนึกภาพเสียงตามไปด้วย'
+        ],
+        [
+          "Notice these chord names look familiar? That's right — it's the same I-V-vi-IV progression from the piano/guitar lessons! On ukulele, these are also simple open chords.",
+          'The C chord on ukulele is especially special — just press the A string (rightmost) at fret 3 with one finger, strum all the other strings open. The easiest chord of them all!',
+          'The next exercises will show a diagram and ask you to name the chord — try pressing along in your mind and imagining the sound.'
+        ]),
+      quizUkuleleChordItem(UKULELE_CHORDS[0]), quizUkuleleChordItem(UKULELE_CHORDS[1]),
+      quizUkuleleChordItem(UKULELE_CHORDS[2]), quizUkuleleChordItem(UKULELE_CHORDS[3]),
+      quizUkuleleChordItem(UKULELE_CHORDS[2]), quizUkuleleChordItem(UKULELE_CHORDS[3]),
+      quizUkuleleChordItem(UKULELE_CHORDS[0]), quizUkuleleChordItem(UKULELE_CHORDS[1])
+    ]
+  },
+  {
     id: 'ear-training',
     label: { th: 'ฝึกหูดนตรี', en: 'Ear Training' },
     group: { th: 'ฝึกหู', en: 'Ear Training' },
@@ -1131,6 +1216,7 @@ var BADGE_DEFS = [
   { id: 'track-chords', icon: '🎶', th: 'เจ้าคอร์ด', en: 'Chord Master' },
   { id: 'track-piano', icon: '🎹', th: 'เจ้าเปียโน', en: 'Piano Master' },
   { id: 'track-guitar', icon: '🎸', th: 'เจ้ากีตาร์', en: 'Guitar Master' },
+  { id: 'track-ukulele', icon: '🪕', th: 'เจ้าอูคูเลเล่', en: 'Ukulele Master' },
   { id: 'track-ear-training', icon: '👂', th: 'นักฟังเสียง', en: 'Ear Training Master' },
   { id: 'track-first-song', icon: '🎤', th: 'เพลงแรกของฉัน', en: 'First Song Complete' },
   { id: 'track-beyond-c-major', icon: '🗝️', th: 'เจ้ากุญแจเสียง', en: 'Key Signature Master' },
@@ -1413,6 +1499,9 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       } else if (item.qType === 'guitar-chord') {
         quizPromptEl.textContent = t('quizPromptGuitarChord');
         staffSvgHolder.innerHTML = buildGuitarChordSvg(item.pattern);
+      } else if (item.qType === 'ukulele-chord') {
+        quizPromptEl.textContent = t('quizPromptUkuleleChord');
+        staffSvgHolder.innerHTML = buildUkuleleChordSvg(item.pattern);
       } else if (item.qType === 'pitch-compare' || item.qType === 'pitch-same-diff' || item.qType === 'chord-quality-ear') {
         quizPromptEl.textContent = t(
           item.qType === 'pitch-compare' ? 'quizPromptPitchCompare' :
@@ -1493,12 +1582,14 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     var isBeatsQuiz = item.qType === 'time-sig-beats';
     var isQualityQuiz = item.qType === 'chord-quality' || item.qType === 'piano-chord-quality' || item.qType === 'chord-quality-ear';
     var isGuitarQuiz = item.qType === 'guitar-chord';
+    var isUkuleleQuiz = item.qType === 'ukulele-chord';
     var isPitchCompareQuiz = item.qType === 'pitch-compare';
     var isPitchSameDiffQuiz = item.qType === 'pitch-same-diff';
     var isProgressionQuiz = item.qType === 'progression-position';
-    var isWide = isValueQuiz || isQualityQuiz || isGuitarQuiz || isPitchCompareQuiz || isPitchSameDiffQuiz || isProgressionQuiz;
+    var isWide = isValueQuiz || isQualityQuiz || isGuitarQuiz || isUkuleleQuiz || isPitchCompareQuiz || isPitchSameDiffQuiz || isProgressionQuiz;
     var choices = isValueQuiz ? NOTE_VALUE_ORDER : isBeatsQuiz ? TIME_SIG_BEATS_OPTIONS :
       isQualityQuiz ? CHORD_QUALITY_OPTIONS : isGuitarQuiz ? GUITAR_CHORD_NAMES :
+      isUkuleleQuiz ? UKULELE_CHORD_NAMES :
       isPitchCompareQuiz ? PITCH_COMPARE_OPTIONS : isPitchSameDiffQuiz ? PITCH_SAME_DIFF_OPTIONS :
       isProgressionQuiz ? PROGRESSION_QUIZ_OPTIONS : ANSWER_LETTERS;
     choices.forEach(function (choice) {
@@ -1506,7 +1597,8 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       btn.type = 'button';
       btn.className = 'mx-answer-btn' + (isWide ? ' wide' : '');
       btn.textContent = isValueQuiz ? pick(NOTE_VALUE_LABELS[choice]) : isQualityQuiz ? pick(CHORD_QUALITY_LABELS[choice]) :
-        isGuitarQuiz ? pick(GUITAR_CHORD_LABELS[choice]) : isPitchCompareQuiz ? pick(PITCH_COMPARE_LABELS[choice]) :
+        isGuitarQuiz ? pick(GUITAR_CHORD_LABELS[choice]) : isUkuleleQuiz ? pick(UKULELE_CHORD_LABELS[choice]) :
+        isPitchCompareQuiz ? pick(PITCH_COMPARE_LABELS[choice]) :
         isPitchSameDiffQuiz ? pick(PITCH_SAME_DIFF_LABELS[choice]) :
         isProgressionQuiz ? pick(PROGRESSION_LABELS[choice]) : String(choice);
       if (alreadyPassed) {
