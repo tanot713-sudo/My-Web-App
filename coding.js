@@ -1011,7 +1011,8 @@ function checkAwardBadges(progress, streak) {
    ══════════════════════════════════════════════════════════════════ */
 if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
   var $ = function (id) { return document.getElementById(id); };
-  var trackTabs = $('trackTabs'), itemList = $('itemList'), lockMsg = $('lockMsg'),
+  var trackMenuBtn = $('trackMenuBtn'), trackMenuPanel = $('trackMenuPanel'), currentTrackLabel = $('currentTrackLabel'),
+      itemList = $('itemList'), lockMsg = $('lockMsg'),
       instructionsBox = $('instructionsBox'), codeTextarea = $('codeTextarea'), runBtn = $('runBtn'),
       outputPanel = $('outputPanel'), outputLog = $('outputLog'), htmlPreviewWrap = $('htmlPreviewWrap'),
       htmlPreview = $('htmlPreview'), testsPanel = $('testsPanel'), testsList = $('testsList'),
@@ -1151,15 +1152,56 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
     showToastQueue(toastQueue);
   }
 
+  /* จัดกลุ่มแทร็กในเมนู hamburger ตาม id/kind — ไม่ต้องเติม field ใหม่ในแต่ละ track object
+     (derive จากข้อมูลที่มีอยู่แล้ว) ลำดับกลุ่มเรียงตามลำดับที่พบครั้งแรกใน TRACKS array */
+  function trackGroupLabel(tr) {
+    if (tr.id === 'career-path') return { th: 'สายอาชีพ', en: 'Career Path' };
+    if (tr.id.indexOf('project-') === 0) return { th: 'โปรเจกต์จบคอร์ส', en: 'Capstone Projects' };
+    if (tr.kind === 'html') return { th: 'HTML / CSS', en: 'HTML / CSS' };
+    if (tr.id === 'js-dom' || tr.id === 'js-events-forms' || tr.id === 'js-async' || tr.id === 'js-localstorage') {
+      return { th: 'JavaScript ขั้นสูง', en: 'Advanced JavaScript' };
+    }
+    return { th: 'JavaScript พื้นฐาน', en: 'JavaScript Basics' };
+  }
+
+  function closeTrackMenu() {
+    trackMenuPanel.classList.remove('open');
+    trackMenuBtn.classList.remove('open');
+    trackMenuBtn.setAttribute('aria-expanded', 'false');
+  }
+  function toggleTrackMenu() {
+    var opening = !trackMenuPanel.classList.contains('open');
+    trackMenuPanel.classList.toggle('open', opening);
+    trackMenuBtn.classList.toggle('open', opening);
+    trackMenuBtn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  }
+  trackMenuBtn.addEventListener('click', function (e) { e.stopPropagation(); toggleTrackMenu(); });
+  trackMenuPanel.addEventListener('click', function (e) { e.stopPropagation(); });
+  document.addEventListener('click', function () { closeTrackMenu(); });
+
   function renderTrackTabs() {
-    trackTabs.innerHTML = '';
+    var lang = getUILang();
+    var track = trackById(state.trackId);
+    currentTrackLabel.textContent = lang === 'en' ? track.labelEn : track.label;
+
+    trackMenuPanel.innerHTML = '';
+    var lastGroup = null;
     TRACKS.forEach(function (tr) {
+      var group = trackGroupLabel(tr);
+      var groupText = lang === 'en' ? group.en : group.th;
+      if (groupText !== lastGroup) {
+        var groupEl = document.createElement('div');
+        groupEl.className = 'cx-track-group-label';
+        groupEl.textContent = groupText;
+        trackMenuPanel.appendChild(groupEl);
+        lastGroup = groupText;
+      }
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'cx-tab' + (tr.id === state.trackId ? ' active' : '');
-      btn.textContent = getUILang() === 'en' ? tr.labelEn : tr.label;
-      btn.addEventListener('click', function () { selectTrack(tr.id); });
-      trackTabs.appendChild(btn);
+      btn.className = 'cx-track-menu-item' + (tr.id === state.trackId ? ' active' : '');
+      btn.textContent = lang === 'en' ? tr.labelEn : tr.label;
+      btn.addEventListener('click', function () { selectTrack(tr.id); closeTrackMenu(); });
+      trackMenuPanel.appendChild(btn);
     });
   }
 
