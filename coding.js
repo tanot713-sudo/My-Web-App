@@ -1,16 +1,21 @@
 /* ══════════════════════════════════════════════════════════════════
    Tanot — coding.js
-   สอนเขียนโค้ด: JavaScript (รันจริงใน Web Worker แยก sandbox + ตรวจ test case
-   อัตโนมัติ) และ HTML/CSS (พรีวิวสดในกรอบ iframe แบบ sandbox) — บทเรียนไล่ระดับ
-   คำอธิบาย → แบบฝึกหัด ปลดล็อกตามลำดับเมื่อทำแบบฝึกหัดก่อนหน้าผ่าน
+   สอนเขียนโค้ด: JavaScript (kind 'js', รันจริงใน Web Worker แยก sandbox + ตรวจ test case
+   อัตโนมัติ), HTML/CSS (kind 'html', พรีวิวสดในกรอบ iframe แบบ sandbox, ตรวจด้วย DOMParser),
+   และ DOM manipulation (kind 'dom', รันโค้ด JS กับ "DOM จำลอง" ใน Web Worker แยกอีกตัว แล้ว
+   serialize ผลลัพธ์กลับเป็น HTML ธรรมดาให้พรีวิว) — บทเรียนไล่ระดับ คำอธิบาย → แบบฝึกหัด
+   ปลดล็อกตามลำดับเมื่อทำแบบฝึกหัดก่อนหน้าผ่าน
 
-   ⚠️ ความปลอดภัย: โค้ด JS ของผู้เรียนรันใน Web Worker แยก (ไม่มีสิทธิ์เข้าถึง
-   document/localStorage ของหน้าเว็บหลักโดยธรรมชาติของ Worker เอง) มี timeout
-   ฆ่าลูปไม่รู้จบได้จริง — ดูรายละเอียดที่ code-runner-worker.js
-   โค้ด HTML พรีวิวใน <iframe sandbox="allow-scripts"> (ไม่มี allow-same-origin
-   จึงเข้าถึง cookie/localStorage ของหน้าเว็บหลักไม่ได้เช่นกัน) ส่วนการตรวจแบบฝึกหัด
-   HTML ใช้ DOMParser แยกต่างหาก (แค่ parse โครงสร้าง ไม่ execute อะไรเลย ปลอดภัย
-   กว่าการเข้าไปอ่านค่าจาก iframe ที่ render จริงซึ่งติดข้อจำกัด cross-origin อยู่แล้ว)
+   ⚠️ ความปลอดภัย/กันลูปไม่รู้จบ: โค้ด JS ของผู้เรียน (ทั้ง kind 'js' และ 'dom') รันใน Web Worker
+   แยก มี timeout + .terminate() ฆ่าลูปไม่รู้จบได้จริง — ดูรายละเอียดที่ code-runner-worker.js และ
+   dom-runner-worker.js (แทร็ก DOM เคยลองรันโค้ดตรงๆ ใน <iframe sandbox="allow-scripts"> มาก่อน
+   แล้วพบว่า "ผิด" — sandbox iframe แยกแค่สิทธิ์ ไม่แยก JS thread จากหน้าเว็บหลัก ลูปไม่รู้จบใน
+   iframe บล็อก event loop ของ parent ไปด้วย ทำให้ตั้ง timeout ฝั่ง parent ไม่ได้ผลจริง จึงย้ายมา
+   ใช้ Worker เหมือนแทร็ก JS ทั่วไป ดูรายละเอียดเหตุผลที่หัวไฟล์ dom-runner-worker.js)
+   โค้ด HTML พรีวิวใน <iframe sandbox="allow-scripts"> (ไม่มี allow-same-origin จึงเข้าถึง
+   cookie/localStorage ของหน้าเว็บหลักไม่ได้) ส่วนการตรวจแบบฝึกหัด HTML ใช้ DOMParser แยกต่างหาก
+   (แค่ parse โครงสร้าง ไม่ execute อะไรเลย) — แทร็ก DOM ก็ไม่เคย execute อะไรใน iframe เลยเช่นกัน
+   (iframe พรีวิวของแทร็ก DOM ได้แค่ HTML string ที่ serialize มาแล้วจาก Worker เท่านั้น)
    ══════════════════════════════════════════════════════════════════ */
 (function () {
 'use strict';
@@ -250,6 +255,53 @@ var TRACKS = [
         tests: [{ type: 'html-attr', selector: 'div', attr: 'style', includes: 'gap', label: 'div ครอบนอกต้องมี gap' }]
       }
     ]
+  },
+  {
+    /* kind 'dom' — รันโค้ด JS ของผู้เรียนกับ "DOM จำลอง" (fake document) ใน Web Worker แยก
+       (เหมือนแทร็ก 'js' ทุกประการ มี .terminate() ฆ่าลูปไม่รู้จบได้จริง) ต่างจาก 'js' ตรงที่ต้อง
+       เตรียม document ปลอมให้โค้ดเรียก getElementById/querySelector ได้ ดูรายละเอียด+เหตุผลที่
+       "ไม่ใช้ iframe จริง" (ลองแล้วพบว่า sandbox iframe บล็อก event loop หน้าเว็บหลักได้จริงถ้า
+       โค้ดมีลูปไม่รู้จบ) ที่ dom-runner-worker.js — domSpec คือรายการ element เริ่มต้นแบบ declarative
+       (ไม่ใช่ HTML string) ให้ worker สร้าง DOM จำลองจากมัน แล้ว serialize ผลลัพธ์สุดท้ายกลับเป็น
+       HTML ธรรมดา (ไม่มีสคริปต์) ให้พรีวิว — ปลอดภัย 100% เพราะพรีวิวไม่ execute อะไรเลย */
+    id: 'js-dom', kind: 'dom', label: 'DOM (JS)', labelEn: 'DOM (JS)',
+    concept: {
+      explain: 'DOM (Document Object Model) คือโครงสร้างของหน้าเว็บที่ JavaScript เข้าถึงและเปลี่ยนแปลงได้แบบ real-time — ใช้ document.getElementById("...") หรือ document.querySelector("...") เพื่อ "หา" องค์ประกอบ (element) บนหน้าเว็บ แล้วเปลี่ยนแปลงมันได้ เช่น .textContent (เปลี่ยนข้อความ), .style.xxx (เปลี่ยนสไตล์), .classList.add/remove (เพิ่ม/ลบ class) — พรีวิวด้านขวาจะอัปเดตทันทีเมื่อกดรัน นี่คือจุดเริ่มต้นของการทำเว็บโต้ตอบได้จริง',
+      example: 'document.getElementById("demo").textContent = "เปลี่ยนข้อความแล้ว!";',
+      domSpec: [{ tag: 'h1', id: 'demo', text: 'ข้อความเดิม' }]
+    },
+    exercises: [
+      {
+        title: 'เปลี่ยนข้อความด้วย textContent',
+        instructions: 'เปลี่ยนค่าที่กำหนดให้เป็น "สวัสดี DOM!" แล้วรันดู — หัวข้อในพรีวิวด้านขวาจะเปลี่ยนทันที',
+        domSpec: [{ tag: 'h1', id: 'title', text: 'ข้อความเดิม' }],
+        starter: 'document.getElementById("title").textContent = "ข้อความเดิม";',
+        tests: [{ type: 'dom-text', selector: '#title', includes: 'สวัสดี DOM', label: '#title ต้องมีข้อความ "สวัสดี DOM!"' }]
+      },
+      {
+        title: 'เปลี่ยนสีด้วย style',
+        instructions: 'เปลี่ยนค่าสีจาก "black" เป็น "red" แล้วรันดู — ข้อความในพรีวิวควรเปลี่ยนเป็นสีแดง',
+        domSpec: [{ tag: 'p', id: 'msg', text: 'ข้อความนี้ควรเปลี่ยนสี' }],
+        starter: 'document.getElementById("msg").style.color = "black";',
+        tests: [{ type: 'dom-style', selector: '#msg', prop: 'color', includes: 'red', label: '#msg ต้องมีสีแดง (color: red)' }]
+      },
+      {
+        title: 'เพิ่ม class ด้วย classList',
+        instructions: 'เปลี่ยน "inactive" เป็น "active" แล้วรันดู — กล่องสี่เหลี่ยมในพรีวิวควรเปลี่ยนเป็นสีน้ำเงิน',
+        domSpec: [{ tag: 'div', id: 'box', text: '', style: { width: '80px', height: '80px', background: '#ccc' } }],
+        previewCss: '.active{background:#2563EB !important;}',
+        starter: 'document.getElementById("box").classList.add("inactive");',
+        tests: [{ type: 'dom-class', selector: '#box', class: 'active', label: '#box ต้องมี class "active"' }]
+      },
+      {
+        title: 'จับเหตุการณ์คลิกด้วย addEventListener',
+        instructions: 'เติมโค้ดในฟังก์ชัน ให้เปลี่ยน textContent ของ #result เป็น "กดแล้ว!" เมื่อคลิกปุ่ม แล้วรันดู (ระบบจะจำลองการคลิกปุ่มให้อัตโนมัติหลังรันเสร็จ)',
+        domSpec: [{ tag: 'button', id: 'btn', text: 'กดฉัน' }, { tag: 'p', id: 'result', text: 'ยังไม่ได้กด' }],
+        starter: 'document.getElementById("btn").addEventListener("click", function () {\n  \n});',
+        preActions: [{ type: 'click', selector: '#btn' }],
+        tests: [{ type: 'dom-text', selector: '#result', includes: 'กดแล้ว', label: 'หลังคลิกปุ่ม #result ต้องมีข้อความ "กดแล้ว"' }]
+      }
+    ]
   }
 ];
 
@@ -334,6 +386,35 @@ function checkHtmlTests(code, tests) {
       return { label: test.label, pass: false };
     } catch (e) { return { label: test.label, pass: false }; }
   });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ตัว serialize DOM จำลอง (ดู dom-runner-worker.js) กลับเป็น HTML string ธรรมดา — ใช้ 2 ที่:
+   (1) แสดงสถานะ "ก่อนรัน" ในพรีวิว (จาก domSpec ตรงๆ ยังไม่มีการรันโค้ดอะไรเลย)
+   (2) ก็อปปี้ตรรกะเดียวกันไว้ใน dom-runner-worker.js เพื่อ serialize สถานะ "หลังรัน" (จาก DOM
+   จำลองที่โค้ดผู้เรียนแก้ไขแล้ว) — จงใจก็อปแทนแชร์ฟังก์ชันเดียวกันข้าม Worker/main thread
+   (ธรรมเนียมเดิมของโปรเจกต์นี้: clone-and-adapt แทน shared abstraction ข้ามไฟล์ที่โหลดคนละบริบท)
+   ══════════════════════════════════════════════════════════════════ */
+function escapeHtmlText(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function elementSpecToHtml(el) {
+  var styleStr = Object.keys(el.style || {}).map(function (k) {
+    var cssProp = k.replace(/[A-Z]/g, function (m) { return '-' + m.toLowerCase(); });
+    return cssProp + ': ' + el.style[k] + ';';
+  }).join(' ');
+  var classes = el.classes ? (Array.isArray(el.classes) ? el.classes : Object.keys(el.classes).filter(function (c) { return el.classes[c]; })) : [];
+  var classStr = classes.join(' ');
+  var attrsStr = Object.keys(el.attrs || {}).map(function (k) { return ' ' + k + '="' + escapeHtmlText(el.attrs[k]) + '"'; }).join('');
+  return '<' + el.tag +
+    (el.id ? ' id="' + el.id + '"' : '') +
+    (classStr ? ' class="' + classStr + '"' : '') +
+    (styleStr ? ' style="' + styleStr + '"' : '') +
+    attrsStr + '>' + escapeHtmlText(el.text) + '</' + el.tag + '>';
+}
+function domSpecToHtml(domSpec, previewCss) {
+  var body = (domSpec || []).map(elementSpecToHtml).join('\n');
+  return (previewCss ? '<style>' + previewCss + '</style>\n' : '') + body;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -426,6 +507,7 @@ var BADGE_DEFS = [
   { id: 'track-html-basics', icon: '🧱', th: 'สถาปนิก HTML', en: 'HTML Architect' },
   { id: 'track-html-css', icon: '🎨', th: 'ดีไซเนอร์ CSS', en: 'CSS Designer' },
   { id: 'track-html-flexbox', icon: '📐', th: 'นักจัดวาง Flexbox', en: 'Flexbox Layout Pro' },
+  { id: 'track-js-dom', icon: '🕹️', th: 'เจ้าแห่ง DOM', en: 'DOM Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สแรก!', en: 'Course Complete!' }
@@ -653,9 +735,10 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
     testsPanel.style.display = 'none';
     outputLog.innerHTML = '';
     var isHtml = track.kind === 'html';
-    htmlPreviewWrap.style.display = isHtml ? 'block' : 'none';
-    outputPanel.style.display = isHtml ? 'none' : 'block'; /* คอนโซล log ไม่เกี่ยวกับแทร็ก HTML เลย ซ่อนไปเลยแทนโชว์เปล่าๆ */
-    if (openFullBtn) openFullBtn.style.display = isHtml ? 'inline-flex' : 'none';
+    var isDom = track.kind === 'dom';
+    htmlPreviewWrap.style.display = (isHtml || isDom) ? 'block' : 'none';
+    outputPanel.style.display = isHtml ? 'none' : 'block'; /* คอนโซล log ไม่เกี่ยวกับแทร็ก HTML เลย ซ่อนไปเลยแทนโชว์เปล่าๆ — DOM ยังโชว์ต่อ เผื่อ debug ด้วย console.log */
+    if (openFullBtn) openFullBtn.style.display = isHtml ? 'inline-flex' : 'none'; /* แทร็ก DOM ไม่โชว์ปุ่มนี้ เพราะโค้ดที่พิมพ์เป็น JS ไม่ใช่ HTML แบบ standalone ที่เปิดตรงๆ ได้ */
 
     var drafts = loadDrafts();
     var draftKey = progressKey(state.trackId, idx);
@@ -670,7 +753,8 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
       instructionsBox.textContent = ex.instructions;
       setCode(drafts[draftKey] !== undefined ? drafts[draftKey] : ex.starter);
     }
-    if (track.kind === 'html') updateHtmlPreview();
+    if (isHtml) updateHtmlPreview();
+    else if (isDom) updateDomPreviewIdle();
   }
 
   function updateHtmlPreview() {
@@ -678,6 +762,51 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
        cookie/localStorage ของหน้าเว็บหลักไม่ได้ — ฝั่ง parent ก็อ่าน contentDocument กลับไม่ได้
        เช่นกัน (ตั้งใจ) การตรวจแบบฝึกหัด HTML จึงใช้ DOMParser แยกต่างหาก ไม่ใช้ iframe นี้เลย */
     htmlPreview.srcdoc = getCode();
+  }
+
+  /* โชว์สถานะเริ่มต้นของ DOM (ก่อนกดรัน) ในพรีวิว — ใช้ domSpec ของแบบฝึกหัด/คำอธิบายปัจจุบัน
+     เฉยๆ ยังไม่รันโค้ดอะไรทั้งนั้น (แค่ให้เห็นจุดตั้งต้นก่อนโค้ดจะเปลี่ยนอะไร) เป็น static HTML ล้วน
+     ไม่มีสคริปต์เลย ปลอดภัย 100% */
+  function updateDomPreviewIdle() {
+    var track = trackById(state.trackId);
+    var item = state.itemIndex === 0 ? track.concept : track.exercises[state.itemIndex - 1];
+    htmlPreview.srcdoc = domSpecToHtml(item.domSpec, item.previewCss);
+  }
+
+  /* รันโค้ด JS ของผู้เรียนกับ "DOM จำลอง" ใน Web Worker แยก (dom-runner-worker.js) — เหตุผลที่ไม่ใช้
+     iframe จริงรันโค้ดตรงๆ (ลองแล้วเจอปัญหาจริง: ลูปไม่รู้จบในสคริปต์ของ sandboxed iframe บล็อก
+     event loop ของหน้าเว็บหลักไปด้วย ทำให้ตั้ง timeout ฝั่ง parent ไม่ได้ผล) ดูรายละเอียดที่หัวไฟล์
+     dom-runner-worker.js — โครงสร้าง Promise/timeout/terminate เหมือน runJsCode() ทุกประการ */
+  var domJobSeq = 0;
+  function runDomCode(domSpec, jsCode, tests, preActions, previewCss) {
+    return new Promise(function (resolve) {
+      var worker;
+      try { worker = new Worker('./dom-runner-worker.js'); }
+      catch (e) { resolve({ runtimeError: 'สร้าง Worker ไม่สำเร็จ: ' + (e && e.message ? e.message : e) }); return; }
+      var jobId = ++domJobSeq;
+      var done = false;
+      var timer = setTimeout(function () {
+        if (done) return;
+        done = true;
+        worker.terminate();
+        resolve({ timeout: true });
+      }, RUN_TIMEOUT_MS);
+      worker.onmessage = function (e) {
+        if (!e.data || e.data.jobId !== jobId || done) return;
+        done = true;
+        clearTimeout(timer);
+        worker.terminate();
+        resolve(e.data);
+      };
+      worker.onerror = function (e) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        worker.terminate();
+        resolve({ runtimeError: (e && e.message) || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ' });
+      };
+      worker.postMessage({ jobId: jobId, domSpec: domSpec, code: jsCode, tests: tests || [], preActions: preActions || [], previewCss: previewCss });
+    });
   }
 
   function renderOutput(logs) {
@@ -730,6 +859,33 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
         renderTests(results);
         handlePassFail(results.every(function (r) { return r.pass; }));
       }
+      return;
+    }
+
+    if (track.kind === 'dom') {
+      if (state.itemIndex === 0) { updateDomPreviewIdle(); return; } /* หน้าคำอธิบายไม่มี tests ให้รัน แค่โชว์ base */
+      var exd = track.exercises[state.itemIndex - 1];
+      setBusy(true);
+      outputLog.innerHTML = '<div class="cx-output-empty">' + t('running') + '</div>';
+      var resd = await runDomCode(exd.domSpec, code, exd.tests, exd.preActions, exd.previewCss);
+      setBusy(false);
+      if (resd.timeout) {
+        renderOutput([]);
+        resultBanner.textContent = t('timeoutMsg');
+        resultBanner.className = 'cx-result-banner fail';
+        resultBanner.style.display = 'block';
+        return;
+      }
+      renderOutput(resd.logs);
+      if (resd.runtimeError) {
+        var errLineD = document.createElement('div');
+        errLineD.className = 'cx-output-line err';
+        errLineD.textContent = '❌ ' + resd.runtimeError;
+        outputLog.appendChild(errLineD);
+      }
+      if (resd.previewHtml !== undefined) htmlPreview.srcdoc = resd.previewHtml;
+      renderTests(resd.testResults);
+      handlePassFail(!resd.runtimeError && resd.testResults && resd.testResults.length > 0 && resd.testResults.every(function (r) { return r.pass; }));
       return;
     }
 
@@ -814,6 +970,6 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { TRACKS: TRACKS, checkHtmlTests: checkHtmlTests };
+  module.exports = { TRACKS: TRACKS, checkHtmlTests: checkHtmlTests, domSpecToHtml: domSpecToHtml };
 }
 })();
