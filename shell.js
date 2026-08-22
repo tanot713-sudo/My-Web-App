@@ -104,7 +104,7 @@
     },
     { key: 'special', label: 'ความสามารถพิเศษ', children: [
         { key: 'music',  label: 'เรียนดนตรี', href: 'music.html' },
-        { key: 'sports', label: 'เรียนกีฬา', href: soonHref('เรียนกีฬา') },
+        { key: 'sports', label: 'เรียนกีฬา', href: 'sports.html' },
         { key: 'coding', label: 'การเขียนโค้ด', href: 'coding.html' },
         { key: 'typing', label: 'สอนพิมพ์', href: 'typing.html' }
       ]
