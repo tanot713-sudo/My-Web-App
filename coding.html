@@ -59,7 +59,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 /* ── Gamification bar: เลเวล/XP/สตรีค/เหรียญตรา — ให้ความรู้สึกเหมือนเล่นเกมตอนฝึกโค้ด ── */
 .cx-gamebar{display:flex;align-items:center;gap:14px;margin-top:18px;background:var(--card);border:1.5px solid var(--line);
   border-radius:14px;padding:12px 16px;box-shadow:0 2px 8px rgba(24,31,54,.05);flex-wrap:wrap}
-.cx-level-chip{display:flex;align-items:center;gap:10px;flex:1;min-width:180px}
+.cx-level-chip{display:flex;align-items:center;gap:10px;flex:0 1 240px;min-width:180px}
 .cx-level-num{width:36px;height:36px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--cx),var(--cx2));
   color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(37,99,235,.3)}
 .cx-level-info{flex:1;min-width:0}
@@ -69,12 +69,13 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .cx-streak-chip{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:800;color:#B45309;background:#FFF3E0;
   padding:6px 12px;border-radius:20px;flex-shrink:0}
 [data-theme="dark"] .cx-streak-chip{background:#3A2C10;color:#F5C36B}
-.cx-badge-row{display:flex;gap:5px;flex-wrap:wrap}
+.cx-badge-row{display:flex;gap:5px;flex-wrap:wrap;flex:1;min-width:140px;padding-left:14px;border-left:1.5px solid var(--line)}
 .cx-badge{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;
   background:var(--bg);border:1.5px solid var(--line);opacity:.35;filter:grayscale(1);transition:.2s;cursor:default}
 .cx-badge.earned{opacity:1;filter:none;background:linear-gradient(135deg,var(--cx-sf),var(--card));border-color:var(--cx);
   box-shadow:0 2px 6px rgba(37,99,235,.2)}
-@media(max-width:600px){.cx-gamebar{flex-direction:column;align-items:stretch}.cx-badge-row{justify-content:center}}
+@media(max-width:600px){.cx-gamebar{flex-direction:column;align-items:stretch}
+  .cx-badge-row{justify-content:center;border-left:none;padding-left:0;padding-top:10px;border-top:1.5px solid var(--line)}}
 
 .cx-toast-wrap{position:fixed;left:20px;bottom:20px;display:flex;flex-direction:column-reverse;gap:8px;z-index:200;pointer-events:none;max-width:calc(100vw - 40px)}
 .cx-toast{background:var(--card);border:1.5px solid var(--cx);border-radius:12px;padding:10px 16px;font-size:13.5px;
@@ -117,6 +118,11 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 
 .cx-layout{display:grid;grid-template-columns:220px 1fr;gap:18px;margin-top:16px;align-items:start}
 @media(max-width:820px){.cx-layout{grid-template-columns:1fr}}
+/* sidebar รายการแบบฝึกหัดมักสั้นกว่าการ์ดเนื้อหาหลักมาก (โดยเฉพาะแทร็กที่มีพรีวิว/ผลตรวจ) ทำให้
+   เห็นพื้นที่ว่างโล่งๆ ข้างล่าง sidebar เยอะ และต้องเลื่อนกลับขึ้นไปบนสุดทุกครั้งที่จะสลับข้อ —
+   ปักหมุด sidebar ให้เลื่อนตามระหว่างอ่านเนื้อหายาวๆ (เฉพาะจอกว้าง จอแคบ sidebar ซ้อนอยู่บนสุด
+   ของ main อยู่แล้วตามธรรมชาติของ grid-template-columns:1fr ด้านบน ไม่ต้อง sticky ซ้ำ) */
+@media(min-width:821px){.cx-sidebar{position:sticky;top:20px;max-height:calc(100vh - 40px);overflow-y:auto}}
 
 .cx-item-list{display:flex;flex-direction:column;gap:6px}
 .cx-item{display:flex;align-items:center;gap:8px;font-family:var(--f);text-align:left;background:var(--card);
@@ -162,7 +168,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .cx-output-line.err{color:var(--err);font-weight:600}
 
 .cx-html-preview-wrap{display:none;margin-top:16px}
-#htmlPreview{width:100%;height:220px;border:1.5px solid var(--line);border-radius:10px;background:#fff}
+#htmlPreview{width:100%;height:160px;border:1.5px solid var(--line);border-radius:10px;background:#fff}
 
 .cx-tests-panel{display:none;margin-top:14px}
 .cx-test-row{font-size:13px;padding:7px 10px;border-radius:8px;margin-bottom:5px;font-weight:600}
@@ -225,7 +231,7 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 </div>
 
 <div class="cx-layout">
-  <div>
+  <div class="cx-sidebar">
     <div class="cx-lock-msg" id="lockMsg"></div>
     <div class="cx-item-list" id="itemList"></div>
   </div>
