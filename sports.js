@@ -308,6 +308,96 @@ var TRACKS = [
         'a'
       )
     ]
+  },
+  {
+    id: 'badminton-basics',
+    label: { th: 'แบดมินตัน: กติกาพื้นฐาน', en: 'Badminton: Basic Rules' },
+    group: { th: 'แบดมินตัน', en: 'Badminton' },
+    items: [
+      readingItem('รู้จักแบดมินตัน', 'Meet Badminton',
+        [
+          'แบดมินตัน (Badminton) เล่นได้ทั้งประเภทเดี่ยว (Singles, 1 ต่อ 1) และประเภทคู่ (Doubles, 2 ต่อ 2) ตีลูกขนไก่ (Shuttlecock) ข้ามตาข่ายให้ตกในเขตสนามของฝ่ายตรงข้าม โดยไม่ให้ลูกโดนพื้นฝั่งตัวเอง',
+          'การแข่งขันเล่นแบบ Best of 3 เกม (ชนะ 2 ใน 3 เกม) แต่ละเกมเล่นถึง 21 แต้ม ต้องนำอย่างน้อย 2 แต้มถึงจะชนะเกม (ถ้าเสมอ 20-20 ต้องนำห่าง 2 แต้ม สูงสุดไม่เกิน 30 แต้ม ถ้าถึง 29-29 ใครถึง 30 ก่อนชนะทันที)',
+          "ระบบคะแนนปัจจุบันคือ 'Rally Point System' — ได้แต้มทุกครั้งที่ชนะแรลลี่นั้น ไม่ว่าฝ่ายไหนเป็นฝ่ายเสิร์ฟ (ต่างจากระบบเก่าที่ต้องเป็นฝ่ายเสิร์ฟถึงจะได้แต้ม)"
+        ],
+        [
+          "Badminton can be played Singles (1 vs 1) or Doubles (2 vs 2). Players hit a shuttlecock over the net so it lands inside the opponent's court, while keeping it from hitting the floor on their own side.",
+          'A match is best-of-3 games (first to win 2). Each game is played to 21 points, won by a margin of at least 2 points (if tied 20-20, a team must lead by 2, up to a hard cap of 30 — first to 30 at 29-29 wins outright).',
+          "The scoring system is the 'Rally Point System' — a point is scored on every rally regardless of who served (unlike the old system, where only the serving side could score)."
+        ]),
+      readingItem('การเสิร์ฟและข้อผิดพลาดที่พบบ่อย', 'Serving & Common Faults',
+        [
+          "การเสิร์ฟ (Serve) ต้องตีลูกจากใต้เอวขึ้นไป (Underarm) เท่านั้น ห้ามตีลูกในระดับสูงกว่านั้น และหัวไม้ต้องชี้ต่ำกว่ามือที่จับด้ามขณะตี ถ้าผิดกติกาถือเป็น 'Service Fault' เสียแต้มทันที",
+          'ในประเภทคู่ ผู้เล่นเสิร์ฟและรับเสิร์ฟต้องยืนในช่องสนามที่ถูกต้องตามคะแนนคู่/คี่ของทีมตัวเอง (แต้มคู่เสิร์ฟจากช่องขวา แต้มคี่เสิร์ฟจากช่องซ้าย)',
+          "ลูกที่ถือว่า 'ออก' (Out) คือลูกตกนอกเส้นสนาม หรือลูกที่ผู้เล่นตีไม่ข้ามตาข่าย หรือลูกที่โดนตัวผู้เล่นก่อนตกพื้น — ทุกกรณีทำให้อีกฝ่ายได้แต้มทันทีตาม Rally Point System"
+        ],
+        [
+          "The serve must be hit underarm (from below the waist) only — hitting the shuttlecock at a higher point is not allowed, and the racket head must point below the serving hand while striking. Breaking this rule is a 'Service Fault' and costs the point immediately.",
+          "In doubles, the server and receiver must stand in the correct service court based on their team's score being even or odd (an even score serves from the right court, an odd score serves from the left).",
+          "A shuttlecock is called 'out' if it lands outside the court lines, if a player fails to hit it over the net, or if it touches a player's body before hitting the ground — in every case, the other side scores the point immediately under the Rally Point System."
+        ]),
+      mcqItem(
+        'การแข่งขันแบดมินตันมาตรฐานเล่นแบบใด?', 'How is a standard badminton match played?',
+        [mcqOpt('a', 'Best of 3 เกม (ชนะ 2 ใน 3 เกม)', 'Best of 3 games (first to win 2)'),
+         mcqOpt('b', 'Best of 5 เกม', 'Best of 5 games'),
+         mcqOpt('c', 'เกมเดียวจบการแข่งขัน', 'A single game decides the match'),
+         mcqOpt('d', 'Best of 1 เกม', 'Best of 1 game')],
+        'a'
+      ),
+      mcqItem(
+        'แต่ละเกมเล่นถึงกี่แต้ม?', 'How many points is each game played to?',
+        [mcqOpt('a', '21 แต้ม', '21 points'), mcqOpt('b', '25 แต้ม', '25 points'),
+         mcqOpt('c', '15 แต้ม', '15 points'), mcqOpt('d', '11 แต้ม', '11 points')],
+        'a'
+      ),
+      mcqItem(
+        'ถ้าคะแนนเสมอ 29-29 แล้วใครถึง 30 ก่อน จะเกิดอะไรขึ้น?', 'If the score is tied 29-29, what happens when a player/team reaches 30 first?',
+        [mcqOpt('a', 'ชนะเกมทันที (30 คือแต้มสูงสุด)', 'They win the game immediately (30 is the hard cap)'),
+         mcqOpt('b', 'ต้องเล่นต่อจนนำห่าง 2 แต้ม ไม่มีเพดานแต้ม', 'Play continues until a 2-point lead, with no cap'),
+         mcqOpt('c', 'เริ่มเกมใหม่ตั้งแต่ 0-0', 'The game restarts from 0-0'),
+         mcqOpt('d', 'ไม่มีกติกาข้อนี้อยู่จริง', "No such rule exists")],
+        'a'
+      ),
+      mcqItem(
+        'ระบบคะแนนปัจจุบันของแบดมินตันเรียกว่าอะไร?', "What is badminton's current scoring system called?",
+        [mcqOpt('a', 'Rally Point System — ได้แต้มทุกครั้งที่ชนะแรลลี่ ไม่ว่าใครเสิร์ฟ', 'Rally Point System — a point is scored on every rally, regardless of who served'),
+         mcqOpt('b', 'Side-Out System — ต้องเป็นฝ่ายเสิร์ฟถึงจะได้แต้ม', 'Side-Out System — only the serving side can score'),
+         mcqOpt('c', 'Golden Point System', 'Golden Point System'),
+         mcqOpt('d', 'Tie-Break Only System', 'Tie-Break Only System')],
+        'a'
+      ),
+      mcqItem(
+        'การเสิร์ฟในแบดมินตันต้องตีลูกจากระดับไหน?', 'At what level must the shuttlecock be struck when serving in badminton?',
+        [mcqOpt('a', 'ใต้เอว (Underarm) เท่านั้น', 'From below the waist (underarm) only'),
+         mcqOpt('b', 'เหนือไหล่', 'Above the shoulder'),
+         mcqOpt('c', 'ระดับไหนก็ได้ ไม่มีข้อจำกัด', 'Any height — there is no restriction'),
+         mcqOpt('d', 'เหนือศีรษะเท่านั้น', 'Above the head only')],
+        'a'
+      ),
+      mcqItem(
+        'ถ้าเสิร์ฟผิดกติกา (เช่น ตีลูกเหนือเอว) เรียกว่าอะไรและเกิดผลอย่างไร?', 'What is it called (and what happens) when a serve breaks the rules (e.g. struck above the waist)?',
+        [mcqOpt('a', 'Service Fault — เสียแต้มให้อีกฝ่ายทันที', 'Service Fault — the point goes to the other side immediately'),
+         mcqOpt('b', 'Let — เสิร์ฟใหม่ได้โดยไม่เสียแต้ม', 'A Let — the serve is simply retaken with no point lost'),
+         mcqOpt('c', 'ไม่มีผลอะไร เล่นต่อปกติ', 'Nothing happens, play continues normally'),
+         mcqOpt('d', 'ผู้เล่นได้รับใบเหลือง', 'The player receives a yellow card')],
+        'a'
+      ),
+      mcqItem(
+        'ในประเภทคู่ เมื่อคะแนนของทีมเป็นเลขคู่ ต้องเสิร์ฟจากช่องไหน?', "In doubles, when a team's score is an even number, which service court must they serve from?",
+        [mcqOpt('a', 'ช่องขวา', 'The right service court'), mcqOpt('b', 'ช่องซ้าย', 'The left service court'),
+         mcqOpt('c', 'ช่องไหนก็ได้', 'Either court, it does not matter'),
+         mcqOpt('d', 'ต้องเสิร์ฟจากกลางสนาม', 'From the middle of the court')],
+        'a'
+      ),
+      mcqItem(
+        'ถ้าลูกขนไก่โดนตัวผู้เล่นก่อนตกพื้น จะเกิดอะไรขึ้น?', "What happens if the shuttlecock touches a player's body before hitting the ground?",
+        [mcqOpt('a', 'อีกฝ่ายได้แต้มทันที', 'The other side scores the point immediately'),
+         mcqOpt('b', 'เสิร์ฟใหม่ ไม่มีใครได้แต้ม', 'The serve is retaken, no point is awarded'),
+         mcqOpt('c', 'ไม่มีผลอะไรเลย', 'Nothing happens at all'),
+         mcqOpt('d', 'หยุดเกมชั่วคราวเพื่อตรวจสอบ', 'Play is paused for a review')],
+        'a'
+      )
+    ]
   }
 ];
 
@@ -368,6 +458,7 @@ var BADGE_DEFS = [
   { id: 'track-football-basics', icon: '⚽', th: 'เจ้ากติกาฟุตบอล', en: 'Football Rules Master' },
   { id: 'track-basketball-basics', icon: '🏀', th: 'เจ้ากติกาบาสเกตบอล', en: 'Basketball Rules Master' },
   { id: 'track-volleyball-basics', icon: '🏐', th: 'เจ้ากติกาวอลเลย์บอล', en: 'Volleyball Rules Master' },
+  { id: 'track-badminton-basics', icon: '🏸', th: 'เจ้ากติกาแบดมินตัน', en: 'Badminton Rules Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สที่มีทั้งหมด!', en: 'All Lessons Complete!' }
