@@ -120,6 +120,39 @@ var TRACKS = [
     ]
   },
   {
+    id: 'js-functions', kind: 'js', label: 'ฟังก์ชัน (JS)', labelEn: 'Functions (JS)',
+    concept: {
+      explain: 'ฟังก์ชัน (function) คือโค้ดที่ห่อรวมกันไว้ใช้ซ้ำได้ โดยไม่ต้องเขียนซ้ำทุกครั้ง — ประกาศด้วย function ตามด้วยชื่อ() {...} ข้างในวงเล็บใส่ "พารามิเตอร์" (ค่าที่จะรับเข้ามา) ได้ ส่วน return ใช้ "คืนค่า" ผลลัพธ์กลับออกไปให้ผู้เรียก — เรียกใช้ฟังก์ชันด้วยชื่อตามด้วยวงเล็บ เช่น ชื่อฟังก์ชัน(ค่าที่ส่งเข้าไป)',
+      example: 'function square(n) {\n  return n * n;\n}\nconsole.log(square(4));'
+    },
+    exercises: [
+      {
+        title: 'เรียกใช้ฟังก์ชัน',
+        instructions: 'เพิ่มบรรทัด sayHello(); ต่อท้ายโค้ด เพื่อเรียกใช้ฟังก์ชันที่ประกาศไว้ แล้วรันดู — ควรเห็นคำว่า "สวัสดี"',
+        starter: 'function sayHello() {\n  console.log("สวัสดี");\n}\n',
+        tests: [{ type: 'log-includes', expected: 'สวัสดี', label: 'ต้องเรียก sayHello() แล้วเห็นคำว่า "สวัสดี"' }]
+      },
+      {
+        title: 'ส่งค่าเข้าฟังก์ชัน',
+        instructions: 'เปลี่ยนค่าที่ส่งเข้า square จาก 4 เป็น 5 แล้วรันดู — ควรได้ 25',
+        starter: 'function square(n) {\n  return n * n;\n}\nconsole.log(square(4));',
+        tests: [{ type: 'log-includes', expected: '25', label: 'console.log(square(5)) ต้องได้ 25' }]
+      },
+      {
+        title: 'return คืนค่า',
+        instructions: 'เติม return a + b; ในฟังก์ชัน add (บรรทัดว่าง) แล้วรันดู — ควรได้ 7',
+        starter: 'function add(a, b) {\n  \n}\nconsole.log(add(3, 4));',
+        tests: [{ type: 'log-includes', expected: '7', label: 'console.log(add(3, 4)) ต้องได้ 7' }]
+      },
+      {
+        title: 'ใช้ผลลัพธ์จากฟังก์ชัน',
+        instructions: 'เปลี่ยน double(3) เป็น double(10) แล้วรันดู — ผลรวมควรได้ 30 (double(5)=10 บวก double(10)=20)',
+        starter: 'function double(n) {\n  return n * 2;\n}\nlet result = double(5) + double(3);\nconsole.log(result);',
+        tests: [{ type: 'log-includes', expected: '30', label: 'console.log(result) ต้องได้ 30' }]
+      }
+    ]
+  },
+  {
     id: 'html-basics', kind: 'html', label: 'โครงสร้าง HTML', labelEn: 'HTML Basics',
     concept: {
       explain: 'HTML คือการ "ห่อ" ข้อความด้วยแท็ก (tag) เปิด-ปิด เช่น <h1>หัวข้อ</h1> — เบราว์เซอร์จะแปลแท็กเหล่านี้เป็นหน้าเว็บที่เห็นทางขวา ลองแก้โค้ดด้านล่างแล้วดูผลด้านขวาได้เลย เปลี่ยนแบบ real-time',
@@ -182,6 +215,39 @@ var TRACKS = [
         instructions: 'เพิ่ม text-align: center; ใน style ของ h1',
         starter: '<h1 style="">หัวข้อนี้ควรอยู่กึ่งกลาง</h1>',
         tests: [{ type: 'html-attr', selector: 'h1', attr: 'style', includes: 'center', label: '<h1> ต้องมี text-align: center ใน style' }]
+      }
+    ]
+  },
+  {
+    id: 'html-flexbox', kind: 'html', label: 'จัดวางด้วย Flexbox', labelEn: 'Flexbox',
+    concept: {
+      explain: 'Flexbox ใช้จัดวางกล่องหลายกล่องให้เรียงกันสวยงาม — ใส่ display: flex; ให้กล่องที่ครอบ (container) แล้วกล่องลูกข้างในจะเรียงกันแนวนอนอัตโนมัติ — justify-content จัดตำแหน่งแนวนอน (เช่น center คือกึ่งกลาง), align-items จัดตำแหน่งแนวตั้ง, gap กำหนดระยะห่างระหว่างกล่อง',
+      example: '<div style="display: flex; gap: 10px;">\n  <div style="background: #2563EB; color: #fff; padding: 10px;">กล่อง 1</div>\n  <div style="background: #06B6D4; color: #fff; padding: 10px;">กล่อง 2</div>\n</div>'
+    },
+    exercises: [
+      {
+        title: 'เปิดใช้งาน Flexbox',
+        instructions: 'เพิ่ม display: flex; ใน style ของ div ครอบนอกสุด ให้กล่อง 1 และ 2 เรียงกันแนวนอน',
+        starter: '<div style="">\n  <div style="background:#2563EB;color:#fff;padding:10px;">1</div>\n  <div style="background:#06B6D4;color:#fff;padding:10px;">2</div>\n</div>',
+        tests: [{ type: 'html-attr', selector: 'div', attr: 'style', includes: 'flex', label: 'div ครอบนอกต้องมี display: flex' }]
+      },
+      {
+        title: 'จัดกึ่งกลางแนวนอน',
+        instructions: 'เพิ่ม justify-content: center; ใน style ของ div ครอบนอก ให้กล่องอยู่กึ่งกลางแนวนอน',
+        starter: '<div style="display: flex;">\n  <div style="background:#2563EB;color:#fff;padding:10px;">กล่อง</div>\n</div>',
+        tests: [{ type: 'html-attr', selector: 'div', attr: 'style', includes: 'justify-content', label: 'div ครอบนอกต้องมี justify-content' }]
+      },
+      {
+        title: 'จัดกึ่งกลางแนวตั้ง',
+        instructions: 'เพิ่ม align-items: center; ใน style ของ div ครอบนอก ให้กล่องอยู่กึ่งกลางแนวตั้งของกรอบสูง 150px',
+        starter: '<div style="display: flex; height: 150px;">\n  <div style="background:#2563EB;color:#fff;padding:10px;">กล่อง</div>\n</div>',
+        tests: [{ type: 'html-attr', selector: 'div', attr: 'style', includes: 'align-items', label: 'div ครอบนอกต้องมี align-items' }]
+      },
+      {
+        title: 'ระยะห่างระหว่างกล่อง',
+        instructions: 'เพิ่ม gap: 16px; ใน style ของ div ครอบนอก ให้มีระยะห่างระหว่างกล่อง 1 กับ 2',
+        starter: '<div style="display: flex;">\n  <div style="background:#2563EB;color:#fff;padding:10px;">1</div>\n  <div style="background:#06B6D4;color:#fff;padding:10px;">2</div>\n</div>',
+        tests: [{ type: 'html-attr', selector: 'div', attr: 'style', includes: 'gap', label: 'div ครอบนอกต้องมี gap' }]
       }
     ]
   }
@@ -356,8 +422,10 @@ var BADGE_DEFS = [
   { id: 'track-js-variables', icon: '🔤', th: 'เจ้าแห่งตัวแปร', en: 'Variable Master' },
   { id: 'track-js-conditionals', icon: '🔀', th: 'เซียนเงื่อนไข', en: 'Logic Master' },
   { id: 'track-js-loops', icon: '🔁', th: 'นักวนซ้ำ', en: 'Loop Master' },
+  { id: 'track-js-functions', icon: '🧩', th: 'เจ้าฟังก์ชัน', en: 'Function Master' },
   { id: 'track-html-basics', icon: '🧱', th: 'สถาปนิก HTML', en: 'HTML Architect' },
   { id: 'track-html-css', icon: '🎨', th: 'ดีไซเนอร์ CSS', en: 'CSS Designer' },
+  { id: 'track-html-flexbox', icon: '📐', th: 'นักจัดวาง Flexbox', en: 'Flexbox Layout Pro' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สแรก!', en: 'Course Complete!' }
