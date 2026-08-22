@@ -81,7 +81,7 @@ var FINGER_ORDER = ['lp', 'lr', 'lm', 'li', 'ri', 'rm', 'rr', 'rp'];
 var TRACKS = [
   {
     id: 'en-home', lang: 'en', label: 'แถวกลาง', labelEn: 'Home Row',
-    desc: 'วางนิ้วบนแป้น A S D F (มือซ้าย) และ J K L ; (มือขวา) — ปุ่ม F กับ J มีปุ่มนูนเล็กๆ ให้คลำหาได้โดยไม่ต้องมอง',
+    desc: '',
     lessons: [
       { title: 'พื้นฐาน a s d f', text: 'asdf asdf asdf fdsa fdsa asdf jaaa' },
       { title: 'พื้นฐาน j k l ;', text: 'jkl; jkl; jkl; ;lkj ;lkj jkl; fjjj' },
