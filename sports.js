@@ -142,6 +142,87 @@ var TRACKS = [
         'a'
       )
     ]
+  },
+  {
+    id: 'basketball-basics',
+    label: { th: 'บาสเกตบอล: กติกาพื้นฐาน', en: 'Basketball: Basic Rules' },
+    group: { th: 'บาสเกตบอล', en: 'Basketball' },
+    items: [
+      readingItem('รู้จักบาสเกตบอล', 'Meet Basketball',
+        [
+          'บาสเกตบอล (Basketball) แข่งกันระหว่าง 2 ทีม ทีมละ 5 คนในสนาม เป้าหมายคือโยนบอลลงห่วง (Basket) ของฝ่ายตรงข้ามให้ได้คะแนนมากกว่า สนามมาตรฐานมีห่วงอยู่ปลายสนามทั้งสองฝั่ง',
+          'การแข่งขันแบ่งเป็น 4 ควอเตอร์ (Quarter) ควอเตอร์ละ 10-12 นาทีแล้วแต่ลีก (เช่น NBA ใช้ 12 นาที, FIBA ใช้ 10 นาที) มีพักเบรกระหว่างควอเตอร์และพักครึ่งยาวกว่าหลังควอเตอร์ 2',
+          'การให้คะแนน: ยิงจากในเส้นสามคะแนน (3-point line) ได้ 2 คะแนน, ยิงจากนอกเส้นสามคะแนนได้ 3 คะแนน, ยิงโทษ (Free Throw) ได้ 1 คะแนนต่อครั้ง'
+        ],
+        [
+          "Basketball is played between 2 teams of 5 players each on the court. The goal is to shoot the ball into the opponent's basket (hoop) to score more points than them. A standard court has a hoop at each end.",
+          'A match is divided into 4 quarters, each 10-12 minutes depending on the league (e.g. the NBA uses 12 minutes, FIBA uses 10 minutes), with short breaks between quarters and a longer halftime break after quarter 2.',
+          'Scoring: a shot made from inside the 3-point line is worth 2 points, a shot from outside the 3-point line is worth 3 points, and a free throw is worth 1 point each.'
+        ]),
+      readingItem('การเลี้ยงบอลและการฟาวล์', 'Dribbling & Fouls',
+        [
+          "การเลี้ยงบอล (Dribbling): ผู้เล่นที่ถือบอลต้องเลี้ยงบอล (กระเด้งบอลกับพื้นต่อเนื่อง) ขณะเดินหรือวิ่ง ถ้าหยุดเลี้ยงแล้วเริ่มเลี้ยงใหม่ (Double Dribble) หรือเดินโดยไม่เลี้ยงบอล (Traveling) จะถูกเป่าฟาวล์ เสียสิทธิ์ครองบอลให้ฝ่ายตรงข้าม",
+          "ผู้เล่นแต่ละคนมีโควตาฟาวล์ส่วนตัว (Personal Foul) ปกติ 5-6 ครั้งแล้วแต่ลีก ถ้าทำฟาวล์ครบโควตาจะถูก 'ไล่ออกจากเกม' (Fouled Out) ต้องออกจากสนามทันที",
+          "24-Second Shot Clock (นาฬิกายิง 24 วินาที): ทีมที่ครองบอลต้องยิงให้บอลโดนห่วงภายใน 24 วินาที (บางลีกใช้ 30 หรือ 14 วินาทีในกรณีรีบาวด์ฝั่งรุก) ไม่งั้นเสียสิทธิ์ครองบอล"
+        ],
+        [
+          'Dribbling: a player holding the ball must dribble (continuously bounce it on the floor) while walking or running. Stopping and re-starting a dribble (Double Dribble) or walking without dribbling (Traveling) is a violation, giving possession to the other team.',
+          "Each player has a personal foul quota, usually 5-6 depending on the league. Reaching the foul limit means being 'fouled out' — the player must leave the game immediately.",
+          'The 24-Second Shot Clock: the team in possession must get a shot to hit the rim within 24 seconds (some leagues use 30, or 14 after an offensive rebound), or they lose possession.'
+        ]),
+      mcqItem(
+        'บาสเกตบอล 1 ทีมมีผู้เล่นกี่คนในสนาม?', 'How many players does one basketball team have on the court?',
+        [mcqOpt('a', '5 คน', '5 players'), mcqOpt('b', '6 คน', '6 players'),
+         mcqOpt('c', '7 คน', '7 players'), mcqOpt('d', '4 คน', '4 players')],
+        'a'
+      ),
+      mcqItem(
+        'การแข่งขันบาสเกตบอลมาตรฐานแบ่งเวลาอย่างไร?', 'How is a standard basketball match divided?',
+        [mcqOpt('a', '4 ควอเตอร์', '4 quarters'), mcqOpt('b', '2 ครึ่ง', '2 halves'),
+         mcqOpt('c', '3 พีเรียด', '3 periods'), mcqOpt('d', '5 ควอเตอร์', '5 quarters')],
+        'a'
+      ),
+      mcqItem(
+        'ยิงจากนอกเส้นสามคะแนน (3-point line) ได้กี่คะแนน?', 'How many points is a shot from outside the 3-point line worth?',
+        [mcqOpt('a', '3 คะแนน', '3 points'), mcqOpt('b', '2 คะแนน', '2 points'),
+         mcqOpt('c', '1 คะแนน', '1 point'), mcqOpt('d', '4 คะแนน', '4 points')],
+        'a'
+      ),
+      mcqItem(
+        'ยิงโทษ (Free Throw) แต่ละครั้งได้กี่คะแนน?', 'How many points is each free throw worth?',
+        [mcqOpt('a', '1 คะแนน', '1 point'), mcqOpt('b', '2 คะแนน', '2 points'),
+         mcqOpt('c', '3 คะแนน', '3 points'), mcqOpt('d', '0 คะแนน', '0 points')],
+        'a'
+      ),
+      mcqItem(
+        'ถ้าผู้เล่นเลี้ยงบอลหยุดแล้วเริ่มเลี้ยงใหม่ เรียกว่าอะไรและเกิดผลอย่างไร?', 'What is it called (and what happens) when a player stops dribbling then starts again?',
+        [mcqOpt('a', 'Double Dribble — เสียสิทธิ์ครองบอลให้ฝ่ายตรงข้าม', 'Double Dribble — possession goes to the other team'),
+         mcqOpt('b', 'Traveling — ได้โทษ 2 ครั้ง', 'Traveling — 2 penalties issued'),
+         mcqOpt('c', 'ไม่ผิดกติกาอะไร เล่นต่อได้ปกติ', 'Not a violation at all, play continues normally'),
+         mcqOpt('d', 'ฟาวล์ส่วนตัว 1 ครั้งให้ผู้เล่นคนนั้น', "A personal foul is added to that player")],
+        'a'
+      ),
+      mcqItem(
+        'ผู้เล่นที่ทำฟาวล์ส่วนตัวครบโควตาแล้ว (Fouled Out) จะเกิดอะไรขึ้น?', 'What happens to a player who has been "fouled out" (reached their personal foul limit)?',
+        [mcqOpt('a', 'ต้องออกจากเกมทันที เล่นต่อไม่ได้', 'They must leave the game immediately and cannot continue playing'),
+         mcqOpt('b', 'โดนใบเหลืองเตือน', 'They get a yellow-card warning'),
+         mcqOpt('c', 'เสียสิทธิ์ยิงโทษไปตลอดเกม', 'They permanently lose the right to shoot free throws'),
+         mcqOpt('d', 'ทีมเสีย 1 คะแนนทันที', 'The team immediately loses 1 point')],
+        'a'
+      ),
+      mcqItem(
+        'นาฬิกายิง (Shot Clock) มาตรฐานให้เวลากี่วินาทีในการยิงให้บอลโดนห่วง?', 'How many seconds does the standard shot clock give a team to get a shot to hit the rim?',
+        [mcqOpt('a', '24 วินาที', '24 seconds'), mcqOpt('b', '45 วินาที', '45 seconds'),
+         mcqOpt('c', '10 วินาที', '10 seconds'), mcqOpt('d', '60 วินาที', '60 seconds')],
+        'a'
+      ),
+      mcqItem(
+        'การเดินโดยไม่เลี้ยงบอล เรียกว่าอะไร?', 'What is it called when a player walks without dribbling the ball?',
+        [mcqOpt('a', 'Traveling', 'Traveling'), mcqOpt('b', 'Double Dribble', 'Double Dribble'),
+         mcqOpt('c', 'Charging', 'Charging'), mcqOpt('d', 'Blocking', 'Blocking')],
+        'a'
+      )
+    ]
   }
 ];
 
@@ -200,6 +281,7 @@ function saveBadges(b) { try { localStorage.setItem(BADGES_KEY, JSON.stringify(b
 var BADGE_DEFS = [
   { id: 'first-pass', icon: '🥉', th: 'ก้าวแรก', en: 'First Step' },
   { id: 'track-football-basics', icon: '⚽', th: 'เจ้ากติกาฟุตบอล', en: 'Football Rules Master' },
+  { id: 'track-basketball-basics', icon: '🏀', th: 'เจ้ากติกาบาสเกตบอล', en: 'Basketball Rules Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สที่มีทั้งหมด!', en: 'All Lessons Complete!' }
