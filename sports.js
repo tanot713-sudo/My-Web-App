@@ -136,6 +136,31 @@ function buildBasketballShotArcSvg() {
   var label = '<text x="90" y="150" font-size="14" font-weight="800" fill="#E8590C">~45-52°</text>';
   return svgWrap(trajectory + hoop + ball + label, 260, 240, 280, 'basketball ideal shooting arc diagram');
 }
+/* 6 โซนตำแหน่งวอลเลย์บอล + การหมุนตำแหน่ง — แถวหน้า (4,3,2) ใกล้ตาข่าย, แถวหลัง (5,6,1) ใกล้เส้นหลัง */
+function buildVolleyballPositionsSvg() {
+  var positions = [
+    { x: 60, y: 55, label: '4' }, { x: 130, y: 55, label: '3' }, { x: 200, y: 55, label: '2' },
+    { x: 60, y: 160, label: '5' }, { x: 130, y: 160, label: '6' }, { x: 200, y: 160, label: '1' }
+  ];
+  var dots = positions.map(function (p) {
+    return '<circle cx="' + p.x + '" cy="' + p.y + '" r="18" fill="#FFD43B" stroke="#1F2430" stroke-width="2"/>' +
+      '<text x="' + p.x + '" y="' + (p.y + 6) + '" font-size="15" font-weight="800" text-anchor="middle" fill="#1F2430">' + p.label + '</text>';
+  }).join('');
+  var court = '<rect x="10" y="10" width="240" height="190" fill="#2B6CB0" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<line x1="10" y1="10" x2="250" y2="10" stroke="#1F2430" stroke-width="6"/>' +
+    '<line x1="10" y1="105" x2="250" y2="105" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="5,5"/>';
+  return svgWrap(court + dots, 260, 220, 280, 'volleyball 6 court zones diagram');
+}
+/* เทคนิครับลูกด้วยแขน (Forearm Pass) — แพลตฟอร์มแขน + ทิศทางบอลเข้า/ออก */
+function buildVolleyballPassSvg() {
+  var platform = '<line x1="95" y1="185" x2="205" y2="165" stroke="#1F2430" stroke-width="10" stroke-linecap="round"/>';
+  var incoming = svgArrow(230, 40, 165, 158, '#1971C2');
+  var outgoing = svgArrow(155, 165, 70, 60, '#E8590C');
+  var labels = '<text x="235" y="30" font-size="12" font-weight="800" text-anchor="middle" fill="#1971C2">Incoming</text>' +
+    '<text x="150" y="210" font-size="12" font-weight="800" text-anchor="middle" fill="#1F2430">Forearm Platform</text>' +
+    '<text x="55" y="50" font-size="12" font-weight="800" text-anchor="middle" fill="#E8590C">To Setter</text>';
+  return svgWrap(incoming + outgoing + platform + labels, 260, 220, 280, 'volleyball forearm pass technique diagram');
+}
 
 var TRACKS = [
   {
@@ -408,6 +433,30 @@ var TRACKS = [
           "The Block: front-row players may jump and reach over the net to intercept the opponent's attack. A block does not count as one of the team's 3 allowed touches.",
           "Rotation: every time a team regains the right to serve (after winning a point off the opponent's serve), all 6 players rotate one position clockwise, so everyone takes turns serving and playing every position."
         ]),
+      readingItem('6 โซนตำแหน่งและการหมุนตำแหน่ง', 'The 6 Court Zones & Rotation',
+        [
+          'สนามฝั่งหนึ่งแบ่งเป็น 6 โซน มีเลขกำกับ 1-6 — แถวหน้า (ใกล้ตาข่าย) คือโซน 4, 3, 2 (ซ้ายไปขวา) แถวหลัง (ใกล้เส้นหลัง) คือโซน 5, 6, 1 (ซ้ายไปขวา)',
+          'โซน 1 คือตำแหน่งเสิร์ฟ เมื่อทีมหมุนตำแหน่งตามเข็มนาฬิกา ผู้เล่นที่อยู่โซน 1 เดิมจะย้ายไปโซน 6 ผู้เล่นโซน 6 ย้ายไปโซน 5 และวนต่อไปเรื่อยๆ จนครบ',
+          "ผู้เล่นแถวหลัง (โซน 1, 5, 6) มีข้อจำกัด: ห้ามกระโดดตบบอลจากหน้าเส้น 3 เมตร (Attack Line) และห้ามบล็อกที่ตาข่าย — กติกานี้ทำให้ 'Libero' (ผู้เล่นตำแหน่งรับเฉพาะทาง) เป็นที่นิยมในทีมระดับสูง"
+        ],
+        [
+          'One side of the court is divided into 6 numbered zones — the front row (near the net) is Zones 4, 3, 2 (left to right); the back row (near the baseline) is Zones 5, 6, 1 (left to right).',
+          'Zone 1 is the serving position. When a team rotates clockwise, the player in Zone 1 moves to Zone 6, the player in Zone 6 moves to Zone 5, and so on around the cycle.',
+          "Back-row players (Zones 1, 5, 6) have restrictions: they may not jump and attack from in front of the 3-meter attack line, and may not block at the net — this rule is why the 'Libero' (a specialist defensive position) is popular at higher levels."
+        ],
+        buildVolleyballPositionsSvg()),
+      readingItem('เทคนิคการรับลูกด้วยแขน (Forearm Pass)', 'Forearm Pass Technique',
+        [
+          'การรับลูกด้วยแขน (Forearm Pass หรือ Bump) เป็นทักษะแรกที่นักตบมือใหม่ต้องฝึก ใช้รับลูกเสิร์ฟหรือลูกตบจากฝ่ายตรงข้าม',
+          "ท่าที่ถูกต้อง: ประกบมือทั้งสองข้างเข้าด้วยกันให้เป็น 'แพลตฟอร์ม' เรียบ เหยียดแขนตรง งอเข่าย่อตัวต่ำ แล้วใช้แรงจากขาดันตัวขึ้นไปสัมผัสบอล ไม่ใช่แกว่งแขนตี",
+          'มุมของแพลตฟอร์มแขนกำหนดทิศทางที่บอลจะพุ่งไป — เอียงแขนไปทางตัวตั้งบอล (โซน 2-3) เพื่อส่งบอลให้ตัวตั้งเตรียมเซ็ตต่อ ดูไดอะแกรมด้านล่างประกอบ'
+        ],
+        [
+          "The Forearm Pass (or 'Bump') is the first skill every beginner volleyball player must learn — used to receive serves or attacks from the opposing team.",
+          'Correct form: press both hands together to form a flat \'platform\', keep the arms straight, bend the knees into a low stance, and use leg power to push up into the ball — not a swinging arm motion.',
+          'The angle of the arm platform determines where the ball goes — angle the arms toward the setter (Zones 2-3) to direct the ball for the next set. See the diagram below.'
+        ],
+        buildVolleyballPassSvg()),
       mcqItem(
         'วอลเลย์บอล 1 ทีมมีผู้เล่นกี่คนในสนาม?', 'How many players does one volleyball team have on the court?',
         [mcqOpt('a', '6 คน', '6 players'), mcqOpt('b', '5 คน', '5 players'),
@@ -462,6 +511,20 @@ var TRACKS = [
          mcqOpt('b', 'เสิร์ฟใหม่ได้อีกครั้งโดยไม่เสียอะไร', 'The server gets to retry with no penalty'),
          mcqOpt('c', 'ไม่มีผลอะไรเลย เล่นต่อปกติ', 'Nothing happens, play just continues'),
          mcqOpt('d', 'ทีมเสิร์ฟเสียสิทธิ์เสิร์ฟแต่ไม่เสียแต้ม', 'The serving team loses the serve but no point is scored')],
+        'a'
+      ),
+      mcqItem(
+        'โซนไหนคือตำแหน่งเสิร์ฟ?', 'Which zone is the serving position?',
+        [mcqOpt('a', 'โซน 1', 'Zone 1'), mcqOpt('b', 'โซน 4', 'Zone 4'),
+         mcqOpt('c', 'โซน 6', 'Zone 6'), mcqOpt('d', 'โซน 3', 'Zone 3')],
+        'a'
+      ),
+      mcqItem(
+        'ผู้เล่นแถวหลัง (โซน 1, 5, 6) มีข้อจำกัดอะไร?', 'What restriction applies to back-row players (Zones 1, 5, 6)?',
+        [mcqOpt('a', 'ห้ามกระโดดตบหน้าเส้น 3 เมตร และห้ามบล็อกที่ตาข่าย', 'They may not jump-attack in front of the 3-meter line, and may not block at the net'),
+         mcqOpt('b', 'ห้ามเสิร์ฟบอล', 'They are not allowed to serve'),
+         mcqOpt('c', 'ห้ามรับลูกด้วยแขน', 'They are not allowed to use a forearm pass'),
+         mcqOpt('d', 'ไม่มีข้อจำกัดใดๆ เลย', 'There is no restriction at all')],
         'a'
       )
     ]
