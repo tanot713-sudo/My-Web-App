@@ -286,7 +286,9 @@ var I18N = {
     allPassed: '✅ ผ่านหมดทุกข้อ! ปลดล็อกข้อถัดไปแล้ว', notAllPassed: 'ยังไม่ผ่านครบทุกข้อ ลองแก้โค้ดแล้วรันใหม่อีกครั้ง',
     lockedMsg: 'ข้อนี้ยังไม่ปลดล็อก — ทำข้อก่อนหน้าให้ผ่านก่อน',
     exerciseTitle: 'แบบฝึกหัด {n}', tryExample: 'ลองรันตัวอย่างนี้ดูได้เลย แล้วลองแก้โค้ดเล่นดู',
-    openFullBtn: '🔗 เปิดดูเต็มจอ'
+    openFullBtn: '🔗 เปิดดูเต็มจอ',
+    toastTrackDone: 'จบแทร็ก "{track}" แล้ว! 🎉', toastBadge: 'ได้เหรียญตรา "{badge}"!',
+    toastLevelUp: 'เลเวลอัป! ระดับ {level} — {title}'
   },
   en: {
     pageTitle: 'Coding', crumbResp: 'Responsibilities', crumbCoding: 'Coding',
@@ -296,7 +298,9 @@ var I18N = {
     allPassed: '✅ All tests passed! Next exercise unlocked.', notAllPassed: "Not all tests passed yet — fix your code and run again.",
     lockedMsg: 'This exercise is locked — pass the previous one first.',
     exerciseTitle: 'Exercise {n}', tryExample: 'Try running this example, then experiment with the code.',
-    openFullBtn: '🔗 Open Fullscreen'
+    openFullBtn: '🔗 Open Fullscreen',
+    toastTrackDone: 'Track "{track}" complete! 🎉', toastBadge: 'Badge earned: "{badge}"!',
+    toastLevelUp: 'Level up! Level {level} — {title}'
   }
 };
 function t(key, vars) {
@@ -304,6 +308,78 @@ function t(key, vars) {
   var s = (I18N[l] && I18N[l][key] !== undefined) ? I18N[l][key] : (I18N.th[key] !== undefined ? I18N.th[key] : key);
   if (vars) Object.keys(vars).forEach(function (k) { s = s.replace('{' + k + '}', vars[k]); });
   return s;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Gamification — เลเวล/XP/สตรีค/เหรียญตรา (ผู้ใช้ขอ "ทำให้เหมือนเล่นเกม")
+   ให้รางวัลเฉพาะตอน "ผ่านครั้งแรก" ของแต่ละแบบฝึกหัด (เช็คจาก progress เดิมก่อนบันทึกทับ)
+   กันไม่ให้ฟาร์ม XP ด้วยการกดรันซ้ำข้อเดิมที่ผ่านไปแล้ว
+   ══════════════════════════════════════════════════════════════════ */
+var XP_KEY = 'tanot:coding:xp';
+var STREAK_KEY = 'tanot:coding:streak';
+var BADGES_KEY = 'tanot:coding:badges';
+var XP_PER_EXERCISE = 20;
+var XP_PER_TRACK_BONUS = 50;
+var XP_PER_LEVEL = 50;
+
+function loadXp() { try { return parseInt(localStorage.getItem(XP_KEY), 10) || 0; } catch (e) { return 0; } }
+function saveXp(xp) { try { localStorage.setItem(XP_KEY, String(xp)); } catch (e) {} }
+function levelFromXp(xp) { return 1 + Math.floor(xp / XP_PER_LEVEL); }
+function xpIntoLevel(xp) { return xp % XP_PER_LEVEL; }
+function levelTitle(level) {
+  var th = ['มือใหม่หัดโค้ด', 'นักเรียนโค้ด', 'นักเขียนโค้ดฝึกหัด', 'โค้ดเดอร์รุ่นเยาว์', 'โค้ดเดอร์มือโปร', 'เซียนโค้ด'];
+  var en = ['Code Newbie', 'Code Student', 'Junior Coder', 'Rising Coder', 'Pro Coder', 'Code Master'];
+  var idx = Math.min(Math.floor((level - 1) / 2), th.length - 1);
+  return getUILang() === 'en' ? en[idx] : th[idx];
+}
+
+/* วันที่แบบ local (ไม่ใช้ ISO/UTC) กันวันเลื่อนข้ามคืนผิดโซนเวลาไทย */
+function todayStr() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function dateStrOffset(days) { var d = new Date(); d.setDate(d.getDate() + days); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function loadStreak() { try { return JSON.parse(localStorage.getItem(STREAK_KEY)) || { count: 0, lastDate: '' }; } catch (e) { return { count: 0, lastDate: '' }; } }
+function saveStreak(s) { try { localStorage.setItem(STREAK_KEY, JSON.stringify(s)); } catch (e) {} }
+function bumpStreak() {
+  var s = loadStreak();
+  var today = todayStr();
+  if (s.lastDate === today) return s; /* วันนี้ทำแบบฝึกหัดผ่านไปแล้ว ไม่นับซ้ำ */
+  s.count = (s.lastDate === dateStrOffset(-1)) ? s.count + 1 : 1;
+  s.lastDate = today;
+  saveStreak(s);
+  return s;
+}
+
+function loadBadges() { try { return JSON.parse(localStorage.getItem(BADGES_KEY)) || []; } catch (e) { return []; } }
+function saveBadges(b) { try { localStorage.setItem(BADGES_KEY, JSON.stringify(b)); } catch (e) {} }
+
+var BADGE_DEFS = [
+  { id: 'first-pass', icon: '🥉', th: 'ก้าวแรก', en: 'First Step' },
+  { id: 'track-js-variables', icon: '🔤', th: 'เจ้าแห่งตัวแปร', en: 'Variable Master' },
+  { id: 'track-js-conditionals', icon: '🔀', th: 'เซียนเงื่อนไข', en: 'Logic Master' },
+  { id: 'track-js-loops', icon: '🔁', th: 'นักวนซ้ำ', en: 'Loop Master' },
+  { id: 'track-html-basics', icon: '🧱', th: 'สถาปนิก HTML', en: 'HTML Architect' },
+  { id: 'track-html-css', icon: '🎨', th: 'ดีไซเนอร์ CSS', en: 'CSS Designer' },
+  { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
+  { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
+  { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สแรก!', en: 'Course Complete!' }
+];
+function badgeLabel(def) { return getUILang() === 'en' ? def.en : def.th; }
+
+function trackCompleted(track, progress) {
+  return track.exercises.every(function (ex, i) { return !!progress[progressKey(track.id, i + 1)]; });
+}
+function allTracksCompleted(progress) { return TRACKS.every(function (tr) { return trackCompleted(tr, progress); }); }
+
+function checkAwardBadges(progress, streak) {
+  var earned = loadBadges();
+  var newly = [];
+  function award(id) { if (earned.indexOf(id) === -1) { earned.push(id); newly.push(id); } }
+  award('first-pass');
+  TRACKS.forEach(function (tr) { if (trackCompleted(tr, progress)) award('track-' + tr.id); });
+  if (streak.count >= 3) award('streak-3');
+  if (streak.count >= 7) award('streak-7');
+  if (allTracksCompleted(progress)) award('all-tracks');
+  if (newly.length) saveBadges(earned);
+  return newly;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -316,7 +392,10 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
       outputPanel = $('outputPanel'), outputLog = $('outputLog'), htmlPreviewWrap = $('htmlPreviewWrap'),
       htmlPreview = $('htmlPreview'), testsPanel = $('testsPanel'), testsList = $('testsList'),
       resultBanner = $('resultBanner'), langToggle = $('langToggle'), outputLabel = $('outputLabelEl'),
-      itemHeading = $('itemHeading'), openFullBtn = $('openFullBtn');
+      itemHeading = $('itemHeading'), openFullBtn = $('openFullBtn'),
+      levelNumEl = $('levelNum'), levelTitleEl = $('levelTitleEl'), xpFillEl = $('xpFill'),
+      streakCountEl = $('streakCount'), badgeRowEl = $('badgeRow'), toastWrap = $('toastWrap'),
+      confettiLayer = $('confettiLayer');
 
   var state = { trackId: TRACKS[0].id, itemIndex: 0, busy: false };
   var cm = null; /* CodeMirror instance ถ้าโหลดสำเร็จ — ไม่งั้น fallback ไปใช้ textarea ธรรมดา */
@@ -352,6 +431,93 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
       });
     }
     runBtn.textContent = t('runBtn');
+    renderGamifyBar();
+  }
+
+  function renderGamifyBar() {
+    var xp = loadXp();
+    var level = levelFromXp(xp);
+    if (levelNumEl) levelNumEl.textContent = String(level);
+    if (levelTitleEl) levelTitleEl.textContent = levelTitle(level);
+    if (xpFillEl) xpFillEl.style.width = Math.round((xpIntoLevel(xp) / XP_PER_LEVEL) * 100) + '%';
+    var streak = loadStreak();
+    if (streakCountEl) streakCountEl.textContent = String(streak.count);
+    if (badgeRowEl) {
+      var earned = loadBadges();
+      badgeRowEl.innerHTML = '';
+      BADGE_DEFS.forEach(function (def) {
+        var b = document.createElement('div');
+        b.className = 'cx-badge' + (earned.indexOf(def.id) !== -1 ? ' earned' : '');
+        b.textContent = def.icon;
+        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : ' 🔒');
+        badgeRowEl.appendChild(b);
+      });
+    }
+  }
+
+  /* คิวขึ้น toast ทีละอัน (แจ้งเลเวลอัป/เหรียญตราใหม่/จบแทร็ก) — กันข้อความซ้อนกันเวลามีหลาย
+     event เกิดพร้อมกันในการผ่านครั้งเดียว (เช่น ผ่านข้อสุดท้ายของแทร็ก + ได้เหรียญตรา + เลเวลอัป) */
+  var toastQueueState = [];
+  var toastBusy = false;
+  function showToastQueue(items) {
+    if (!items || !items.length) return;
+    toastQueueState = toastQueueState.concat(items);
+    if (!toastBusy) processToastQueue();
+  }
+  function processToastQueue() {
+    if (!toastQueueState.length) { toastBusy = false; return; }
+    toastBusy = true;
+    var item = toastQueueState.shift();
+    var el = document.createElement('div');
+    el.className = 'cx-toast';
+    el.textContent = item.icon + ' ' + item.text;
+    if (toastWrap) toastWrap.appendChild(el);
+    setTimeout(function () {
+      el.classList.add('leaving');
+      setTimeout(function () { el.remove(); processToastQueue(); }, 300);
+    }, 2200);
+  }
+
+  /* confetti — ก็อปแพทเทิร์นจาก typing.js (spawnConfetti) ปรับสีให้เข้าธีมฟ้า-ฟ้าอมเขียวของหน้านี้ */
+  var CONFETTI_COLORS = ['#2563EB', '#06B6D4', '#17B76A', '#F5A524', '#EC4899'];
+  function spawnConfetti() {
+    if (!confettiLayer) return;
+    confettiLayer.innerHTML = '';
+    for (var i = 0; i < 18; i++) {
+      var piece = document.createElement('span');
+      piece.className = 'cx-confetti-piece';
+      piece.style.left = Math.round(Math.random() * 100) + '%';
+      piece.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+      piece.style.animationDuration = (900 + Math.random() * 700) + 'ms';
+      piece.style.animationDelay = Math.round(Math.random() * 200) + 'ms';
+      confettiLayer.appendChild(piece);
+    }
+  }
+
+  function awardForPass(progress) {
+    var track = trackById(state.trackId);
+    var xp = loadXp();
+    var prevLevel = levelFromXp(xp);
+    xp += XP_PER_EXERCISE;
+    var trackJustCompleted = trackCompleted(track, progress);
+    if (trackJustCompleted) xp += XP_PER_TRACK_BONUS;
+    saveXp(xp);
+    var streak = bumpStreak();
+    var newBadges = checkAwardBadges(progress, streak);
+    var newLevel = levelFromXp(xp);
+    renderGamifyBar();
+
+    var toastQueue = [];
+    if (trackJustCompleted) {
+      toastQueue.push({ icon: '🎉', text: t('toastTrackDone', { track: getUILang() === 'en' ? track.labelEn : track.label }) });
+    }
+    newBadges.forEach(function (id) {
+      var def = null;
+      for (var i = 0; i < BADGE_DEFS.length; i++) if (BADGE_DEFS[i].id === id) { def = BADGE_DEFS[i]; break; }
+      if (def) toastQueue.push({ icon: def.icon, text: t('toastBadge', { badge: badgeLabel(def) }) });
+    });
+    if (newLevel > prevLevel) toastQueue.push({ icon: '⭐', text: t('toastLevelUp', { level: newLevel, title: levelTitle(newLevel) }) });
+    showToastQueue(toastQueue);
   }
 
   function renderTrackTabs() {
@@ -529,12 +695,14 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
     if (state.itemIndex === 0) return;
     var progress = loadProgress();
     var key = progressKey(state.trackId, state.itemIndex);
+    var alreadyPassed = !!progress[key];
     if (allPass) {
       progress[key] = { passed: true, at: Date.now() };
       saveProgress(progress);
       resultBanner.textContent = t('allPassed');
       resultBanner.className = 'cx-result-banner pass';
       renderItemList();
+      if (!alreadyPassed) { awardForPass(progress); spawnConfetti(); }
     } else {
       resultBanner.textContent = t('notAllPassed');
       resultBanner.className = 'cx-result-banner fail';

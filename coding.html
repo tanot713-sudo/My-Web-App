@@ -56,6 +56,38 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
   background:linear-gradient(90deg,var(--ink),var(--cx-dk));-webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent}
 
+/* ── Gamification bar: เลเวล/XP/สตรีค/เหรียญตรา — ให้ความรู้สึกเหมือนเล่นเกมตอนฝึกโค้ด ── */
+.cx-gamebar{display:flex;align-items:center;gap:14px;margin-top:18px;background:var(--card);border:1.5px solid var(--line);
+  border-radius:14px;padding:12px 16px;box-shadow:0 2px 8px rgba(24,31,54,.05);flex-wrap:wrap}
+.cx-level-chip{display:flex;align-items:center;gap:10px;flex:1;min-width:180px}
+.cx-level-num{width:36px;height:36px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--cx),var(--cx2));
+  color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(37,99,235,.3)}
+.cx-level-info{flex:1;min-width:0}
+.cx-level-title{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.cx-xp-track{height:6px;border-radius:4px;background:var(--line);overflow:hidden}
+.cx-xp-fill{height:100%;width:0;background:linear-gradient(90deg,var(--cx),var(--cx2));border-radius:4px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.cx-streak-chip{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:800;color:#B45309;background:#FFF3E0;
+  padding:6px 12px;border-radius:20px;flex-shrink:0}
+[data-theme="dark"] .cx-streak-chip{background:#3A2C10;color:#F5C36B}
+.cx-badge-row{display:flex;gap:5px;flex-wrap:wrap}
+.cx-badge{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;
+  background:var(--bg);border:1.5px solid var(--line);opacity:.35;filter:grayscale(1);transition:.2s;cursor:default}
+.cx-badge.earned{opacity:1;filter:none;background:linear-gradient(135deg,var(--cx-sf),var(--card));border-color:var(--cx);
+  box-shadow:0 2px 6px rgba(37,99,235,.2)}
+@media(max-width:600px){.cx-gamebar{flex-direction:column;align-items:stretch}.cx-badge-row{justify-content:center}}
+
+.cx-toast-wrap{position:fixed;left:20px;bottom:20px;display:flex;flex-direction:column-reverse;gap:8px;z-index:200;pointer-events:none;max-width:calc(100vw - 40px)}
+.cx-toast{background:var(--card);border:1.5px solid var(--cx);border-radius:12px;padding:10px 16px;font-size:13.5px;
+  font-weight:700;color:var(--ink);box-shadow:0 8px 24px rgba(24,31,54,.16);display:flex;align-items:center;gap:8px;
+  animation:cx-toast-in .35s cubic-bezier(.2,.8,.2,1);max-width:280px}
+@keyframes cx-toast-in{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+.cx-toast.leaving{animation:cx-toast-out .3s ease forwards}
+@keyframes cx-toast-out{to{transform:translateY(8px);opacity:0}}
+
+.cx-confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:var(--r);z-index:5}
+.cx-confetti-piece{position:absolute;top:-10px;width:8px;height:8px;border-radius:2px;animation:cx-confetti-fall linear forwards}
+@keyframes cx-confetti-fall{to{transform:translateY(260px) rotate(360deg);opacity:0}}
+
 .cx-tabs{display:flex;gap:6px;margin-top:22px;overflow-x:auto;padding-bottom:2px}
 .cx-tab{font-family:var(--f);font-size:13px;font-weight:600;padding:9px 14px;border:1.5px solid var(--line);border-radius:11px;
   background:var(--card);color:var(--muted);cursor:pointer;white-space:nowrap;transition:.18s cubic-bezier(.2,.8,.2,1);flex-shrink:0}
@@ -152,6 +184,18 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   </div>
 </div>
 
+<div class="cx-gamebar" id="gameBar">
+  <div class="cx-level-chip">
+    <div class="cx-level-num" id="levelNum">1</div>
+    <div class="cx-level-info">
+      <div class="cx-level-title" id="levelTitleEl">—</div>
+      <div class="cx-xp-track"><div class="cx-xp-fill" id="xpFill"></div></div>
+    </div>
+  </div>
+  <div class="cx-streak-chip" id="streakChip">🔥 <span id="streakCount">0</span></div>
+  <div class="cx-badge-row" id="badgeRow"></div>
+</div>
+
 <div class="cx-tabs" id="trackTabs"></div>
 
 <div class="cx-layout">
@@ -161,6 +205,7 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   </div>
 
   <div class="cx-main">
+    <div class="cx-confetti" id="confettiLayer"></div>
     <div class="cx-item-heading" id="itemHeading"></div>
     <div class="cx-instructions" id="instructionsBox"></div>
 
@@ -192,6 +237,8 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   </div>
 </div>
 
+
+<div class="cx-toast-wrap" id="toastWrap"></div>
 </div>
 <script src="coding.js"></script>
 </body>
