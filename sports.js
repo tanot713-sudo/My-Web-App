@@ -161,6 +161,39 @@ function buildVolleyballPassSvg() {
     '<text x="55" y="50" font-size="12" font-weight="800" text-anchor="middle" fill="#E8590C">To Setter</text>';
   return svgWrap(incoming + outgoing + platform + labels, 260, 220, 280, 'volleyball forearm pass technique diagram');
 }
+/* เส้นสนามแบดมินตัน: เดี่ยว (ส้ม, แคบ+ลึก) vs คู่ (น้ำเงิน, กว้าง+ตื้น) ซ้อนกันในสนามเดียว */
+function buildBadmintonCourtSvg() {
+  var singles = '#E8590C', doubles = '#1971C2';
+  var courtBg = '<rect x="15" y="15" width="170" height="290" fill="#2F9E44"/>';
+  var doublesBoundary = '<rect x="15" y="15" width="170" height="290" fill="none" stroke="' + doubles + '" stroke-width="3"/>';
+  var singlesSidelines = '<line x1="35" y1="15" x2="35" y2="305" stroke="' + singles + '" stroke-width="2.5"/>' +
+    '<line x1="165" y1="15" x2="165" y2="305" stroke="' + singles + '" stroke-width="2.5"/>';
+  var shortServiceLines = '<line x1="15" y1="95" x2="185" y2="95" stroke="#FFFFFF" stroke-width="2"/>' +
+    '<line x1="15" y1="225" x2="185" y2="225" stroke="#FFFFFF" stroke-width="2"/>';
+  var doublesLongServiceLines = '<line x1="15" y1="45" x2="185" y2="45" stroke="' + doubles + '" stroke-width="2"/>' +
+    '<line x1="15" y1="275" x2="185" y2="275" stroke="' + doubles + '" stroke-width="2"/>';
+  var centerLine = '<line x1="100" y1="15" x2="100" y2="95" stroke="#FFFFFF" stroke-width="1.5"/>' +
+    '<line x1="100" y1="225" x2="100" y2="305" stroke="#FFFFFF" stroke-width="1.5"/>';
+  var net = '<line x1="10" y1="160" x2="190" y2="160" stroke="#1F2430" stroke-width="5"/>';
+  /* legend วางเป็นคอลัมน์ทางขวาของสนาม (ไม่ใช่แถวใต้สนาม) กันข้อความล้นขอบ viewBox */
+  var legend = '<circle cx="215" cy="140" r="6" fill="' + singles + '"/><text x="215" y="162" font-size="11" font-weight="700" text-anchor="middle" fill="' + singles + '">Singles</text>' +
+    '<circle cx="215" cy="185" r="6" fill="' + doubles + '"/><text x="215" y="207" font-size="11" font-weight="700" text-anchor="middle" fill="' + doubles + '">Doubles</text>';
+  return svgWrap(courtBg + doublesBoundary + singlesSidelines + shortServiceLines + doublesLongServiceLines + centerLine + net + legend, 260, 320, 240, 'badminton singles vs doubles court lines diagram');
+}
+/* 3 ประเภทลูกตีพื้นฐาน (มุมมองด้านข้าง): Clear (โด่งลึก) / Drop (หยอด) / Smash (ตบชัน) */
+function buildBadmintonShotsSvg() {
+  var ground = '<line x1="10" y1="180" x2="290" y2="180" stroke="#1F2430" stroke-width="2"/>';
+  var net = '<line x1="150" y1="120" x2="150" y2="180" stroke="#1F2430" stroke-width="4"/>' +
+    '<line x1="144" y1="120" x2="156" y2="120" stroke="#1F2430" stroke-width="3"/>';
+  var player = '<circle cx="30" cy="172" r="7" fill="#FFD43B" stroke="#1F2430" stroke-width="2"/>';
+  var clear = '<path d="M 30,172 Q 150,20 270,172" stroke="#1971C2" stroke-width="3" fill="none" stroke-dasharray="6,4"/>';
+  var drop = '<path d="M 30,172 Q 95,95 175,165" stroke="#2F9E44" stroke-width="3" fill="none" stroke-dasharray="6,4"/>';
+  var smash = svgArrow(60, 135, 230, 176, '#E8590C');
+  var labels = '<text x="200" y="35" font-size="13" font-weight="800" text-anchor="middle" fill="#1971C2">Clear</text>' +
+    '<text x="100" y="85" font-size="13" font-weight="800" text-anchor="middle" fill="#2F9E44">Drop</text>' +
+    '<text x="175" y="150" font-size="13" font-weight="800" text-anchor="middle" fill="#E8590C">Smash</text>';
+  return svgWrap(ground + net + clear + drop + smash + player + labels, 300, 200, 320, 'badminton clear drop smash shot trajectories diagram');
+}
 
 var TRACKS = [
   {
@@ -556,6 +589,30 @@ var TRACKS = [
           "In doubles, the server and receiver must stand in the correct service court based on their team's score being even or odd (an even score serves from the right court, an odd score serves from the left).",
           "A shuttlecock is called 'out' if it lands outside the court lines, if a player fails to hit it over the net, or if it touches a player's body before hitting the ground — in every case, the other side scores the point immediately under the Rally Point System."
         ]),
+      readingItem('เส้นสนามเดี่ยว vs เส้นสนามคู่', 'Singles vs Doubles Court Lines',
+        [
+          'สนามแบดมินตันมีเส้นสองชุดซ้อนกัน: เส้นสนามเดี่ยว (Singles) แคบกว่าแต่ลึกกว่า และเส้นสนามคู่ (Doubles) กว้างกว่าแต่ตื้นกว่า — ผู้เล่นต้องรู้ว่าเส้นไหนใช้กับประเภทที่ตัวเองเล่นอยู่',
+          'เส้นข้างสนามเดี่ยว (สีส้มในไดอะแกรม) อยู่ด้านในกว่าเส้นข้างสนามคู่ (สีน้ำเงิน) เพราะสนามเดี่ยวไม่ต้องกว้างเท่าสนามคู่ (มีผู้เล่นแค่ฝั่งละคน)',
+          'ในทางกลับกัน เส้นหลังสำหรับการเสิร์ฟคู่ (Doubles Long Service Line) อยู่ในกว่าเส้นหลังสุดของสนาม (ซึ่งเป็นเส้นหลังสำหรับสนามเดี่ยวด้วย) เพราะการเสิร์ฟคู่มักตีลูกสั้นกว่าเพื่อไม่ให้คู่ต่อสู้โต้กลับง่าย'
+        ],
+        [
+          "A badminton court has two overlapping sets of lines: the Singles lines (narrower but deeper) and the Doubles lines (wider but shallower) — players need to know which lines apply to the format they're playing.",
+          'The singles sideline (orange in the diagram) sits inside the doubles sideline (blue), because a singles court doesn\'t need to be as wide (only one player per side).',
+          'Conversely, the doubles long service line sits inside the very back boundary (which also serves as the singles long service line/back boundary), because doubles serves are usually kept shorter so the opponent can\'t easily attack them.'
+        ],
+        buildBadmintonCourtSvg()),
+      readingItem('3 ประเภทลูกตีพื้นฐาน: Clear, Drop, Smash', '3 Basic Shot Types: Clear, Drop, Smash',
+        [
+          'Clear (ลูกโด่งลึก): ตีลูกให้พุ่งสูงและลึกไปตกด้านหลังสนามคู่แข่ง ใช้ดันคู่แข่งให้ถอยไปแดนหลัง ซื้อเวลาตั้งท่าใหม่',
+          'Drop (ลูกหยอด): ตีลูกให้ข้ามตาข่ายแบบนุ่มๆ ตกใกล้ตาข่ายฝั่งคู่แข่ง ใช้หลอกล่อให้คู่แข่งวิ่งเข้ามาใกล้ตาข่าย',
+          'Smash (ลูกตบ): ตีลูกลงแรงและเร็วในมุมชัน เป็นลูกจบแต้มที่ทรงพลังที่สุด มักตีตอนลูกลอยอยู่เหนือหัว'
+        ],
+        [
+          "Clear (a high, deep shot): hits the shuttle high and deep to land near the back of the opponent's court — used to push the opponent back and buy time to reset position.",
+          'Drop (a soft net shot): hits the shuttle so it barely clears the net and falls just on the other side — used to lure the opponent forward toward the net.',
+          'Smash (a steep power shot): hits the shuttle down hard and fast at a steep angle — the most powerful point-finishing shot, usually struck while the shuttle is overhead.'
+        ],
+        buildBadmintonShotsSvg()),
       mcqItem(
         'การแข่งขันแบดมินตันมาตรฐานเล่นแบบใด?', 'How is a standard badminton match played?',
         [mcqOpt('a', 'Best of 3 เกม (ชนะ 2 ใน 3 เกม)', 'Best of 3 games (first to win 2)'),
@@ -615,6 +672,20 @@ var TRACKS = [
          mcqOpt('b', 'เสิร์ฟใหม่ ไม่มีใครได้แต้ม', 'The serve is retaken, no point is awarded'),
          mcqOpt('c', 'ไม่มีผลอะไรเลย', 'Nothing happens at all'),
          mcqOpt('d', 'หยุดเกมชั่วคราวเพื่อตรวจสอบ', 'Play is paused for a review')],
+        'a'
+      ),
+      mcqItem(
+        'เส้นสนามเดี่ยว (Singles) กับเส้นสนามคู่ (Doubles) ต่างกันอย่างไร?', 'How do the singles and doubles court lines differ?',
+        [mcqOpt('a', 'เดี่ยวแคบกว่าแต่ลึกกว่า คู่กว้างกว่าแต่ตื้นกว่า', 'Singles is narrower but deeper; doubles is wider but shallower'),
+         mcqOpt('b', 'เดี่ยวกว้างกว่าคู่ทุกด้าน', 'Singles is wider than doubles on every side'),
+         mcqOpt('c', 'เหมือนกันทุกเส้น ไม่มีความแตกต่าง', 'They are identical, no difference at all'),
+         mcqOpt('d', 'คู่แคบกว่าเดี่ยวเสมอ', 'Doubles is always narrower than singles')],
+        'a'
+      ),
+      mcqItem(
+        'ลูกตีแบบไหนใช้ดันคู่แข่งให้ถอยไปแดนหลังสนาม?', 'Which shot is used to push the opponent back toward the rear of the court?',
+        [mcqOpt('a', 'Clear', 'Clear'), mcqOpt('b', 'Drop', 'Drop'),
+         mcqOpt('c', 'Smash', 'Smash'), mcqOpt('d', 'Serve', 'Serve')],
         'a'
       )
     ]
