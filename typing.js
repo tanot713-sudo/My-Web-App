@@ -284,7 +284,9 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
       thaiKbHint = $('thaiKbHint'), fingerHint = $('fingerHint'), fingerLegend = $('fingerLegend'),
       fingerColorToggle = $('fingerColorToggle'), sprintEnBtn = $('sprintEnBtn'), sprintThBtn = $('sprintThBtn'),
       lockMsg = $('lockMsg'), statTimeLabel = $('statTimeLabel'), resultTitleEl = $('resultTitleEl'),
-      resultBestLabel = $('resultBestLabel');
+      resultBestLabel = $('resultBestLabel'), progressFill = $('progressFill'), trackProgress = $('trackProgress'),
+      trackProgressFill = $('trackProgressFill'), trackProgressLabel = $('trackProgressLabel'),
+      confettiLayer = $('confettiLayer');
 
   var state = {
     trackId: 'en-home', lessonIndex: 0, target: '', charStatus: [], attempted: [],
@@ -346,6 +348,7 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     state.sprintMode = false;
     renderTrackTabs();
     renderLessonList();
+    renderTrackProgress();
     var track = trackById(trackId);
     trackDesc.textContent = track.desc;
     thaiKbHint.style.display = track.lang === 'th' ? 'flex' : 'none';
@@ -374,6 +377,9 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     state.finished = false;
     hiddenInput.value = '';
     resultPanel.style.display = 'none';
+    resultPanel.classList.remove('show');
+    if (confettiLayer) confettiLayer.innerHTML = '';
+    if (progressFill) progressFill.style.width = '0%';
     practiceArea.classList.remove('done');
     clearInterval(state.timerId);
   }
@@ -401,6 +407,7 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     statTime.textContent = String(SPRINT_SECONDS) + 's';
     if (statTimeLabel) statTimeLabel.textContent = t('statsTimeLeft');
     renderLessonList();
+    renderTrackProgress();
     renderPracticeText();
     renderKeyboard(lang);
     highlightNextKey(lang);
@@ -422,6 +429,59 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
       span.className = 'tt-char ' + state.charStatus[i] + (i === cursor ? ' cursor' : '');
       span.textContent = state.target[i];
       practiceText.appendChild(span);
+    }
+    /* แถบความคืบหน้าของรอบนี้ — โหมดจับเวลาไม่มี "ครบ 100%" ที่มีความหมายจริง (ข้อความยาวมาก
+       เกินพิมพ์ทันเสมอ) จึงไม่โชว์แถบนี้เลยในโหมดนั้น กันความเข้าใจผิดว่าใกล้จบแล้ว */
+    if (progressFill) {
+      progressFill.style.width = (state.sprintMode || !state.target.length)
+        ? '0%' : Math.round((cursor / state.target.length) * 100) + '%';
+    }
+  }
+
+  /* ป้ายความคืบหน้าของทั้งแทร็ก (กี่บทเสร็จแล้วจากทั้งหมด) — ไม่แสดงระหว่างโหมดจับเวลา
+     เพราะไม่ได้ผูกกับ track/lesson ปกติ */
+  function renderTrackProgress() {
+    if (!trackProgress) return;
+    if (state.sprintMode) { trackProgress.style.display = 'none'; return; }
+    trackProgress.style.display = 'flex';
+    var track = trackById(state.trackId);
+    var progress = loadProgress();
+    var done = track.lessons.filter(function (_, i) { return !!progress[progressKey(track.id, i)]; }).length;
+    var pct = Math.round((done / track.lessons.length) * 100);
+    if (trackProgressFill) trackProgressFill.style.width = pct + '%';
+    if (trackProgressLabel) trackProgressLabel.textContent = done + '/' + track.lessons.length;
+  }
+
+  /* เอฟเฟกต์เล็กๆ ตอนกดปุ่มถูกต้อง — ให้ความรู้สึกเหมือนคีย์บอร์ดจริงตอบสนอง (ทำเฉพาะปุ่มที่เพิ่งพิมพ์
+     ไปหมาดๆ ไม่ใช่ปุ่ม "ถัดไป" ที่ไฮไลต์ไว้ล่วงหน้าอยู่แล้ว — คนละความหมายกัน) */
+  function pulseKey(lang, ch) {
+    if (!kbEl) return;
+    if (ch === ' ') {
+      var sp = kbEl.querySelector('.tt-space');
+      if (sp) { sp.classList.add('pressed'); setTimeout(function () { sp.classList.remove('pressed'); }, 100); }
+      return;
+    }
+    var map = lang === 'th' ? TH_CHAR_MAP : EN_CHAR_MAP;
+    var pos = map[ch];
+    if (!pos || pos.space) return;
+    var keyEl = kbEl.querySelector('.tt-key[data-r="' + pos.r + '"][data-c="' + pos.c + '"]');
+    if (keyEl) { keyEl.classList.add('pressed'); setTimeout(function () { keyEl.classList.remove('pressed'); }, 100); }
+  }
+
+  /* คอนเฟตตี้เล็กๆ ตอนจบการฝึก — ทำเองล้วนๆ ด้วย CSS animation ไม่พึ่งไลบรารีภายนอก
+     (สอดคล้องกับเว็บนี้ที่ปกติไม่โหลด asset หนักเกินจำเป็น) */
+  var CONFETTI_COLORS = ['#4F46E5', '#EC4899', '#17B76A', '#F5A524', '#3B9BEA'];
+  function spawnConfetti() {
+    if (!confettiLayer) return;
+    confettiLayer.innerHTML = '';
+    for (var i = 0; i < 18; i++) {
+      var piece = document.createElement('span');
+      piece.className = 'tt-confetti-piece';
+      piece.style.left = Math.round(Math.random() * 100) + '%';
+      piece.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+      piece.style.animationDuration = (900 + Math.random() * 700) + 'ms';
+      piece.style.animationDelay = Math.round(Math.random() * 200) + 'ms';
+      confettiLayer.appendChild(piece);
     }
   }
 
@@ -533,10 +593,16 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
       resultBestEl.textContent = Math.round((progress[key] || { wpm: wpm }).wpm) + ' ' + t('statsWpm');
       nextBtn.style.display = '';
       renderLessonList();
+      renderTrackProgress();
     }
     if (resultTitleEl) resultTitleEl.textContent = state.sprintMode ? t('sprintResultTitle') : t('resultTitle');
     if (resultBestLabel) resultBestLabel.textContent = state.sprintMode ? t('sprintBest') : t('resultBest');
     resultPanel.style.display = 'flex';
+    /* set display ก่อนแล้วค่อยเพิ่ม class ในเฟรมถัดไป — ให้ transition (opacity/transform) เล่นจริง
+       (เพิ่ม class พร้อม display:flex ในบรรทัดเดียวกัน เบราว์เซอร์จะข้าม transition ไปเลยเพราะ
+       ยังไม่มี "สถานะก่อนหน้า" ให้ transition จาก) */
+    requestAnimationFrame(function () { resultPanel.classList.add('show'); });
+    if (acc >= 60) spawnConfetti(); /* ให้กำลังใจเฉพาะรอบที่พอใช้ได้ ไม่ใช่ทุกรอบแม้พิมพ์ผิดเยอะมาก */
     practiceArea.classList.add('done');
   }
 
@@ -552,15 +618,21 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
       val = val.slice(0, state.target.length);
       hiddenInput.value = val;
     }
+    var newlyTypedIndex = -1;
     for (var i = 0; i < val.length; i++) {
       if (!state.attempted[i]) {
         state.attempted[i] = true;
         state.keystrokes++;
         if (val[i] !== state.target[i]) state.mistakes++;
+        newlyTypedIndex = i; /* พิมพ์ทีละตัวปกติมีแค่ 1 ตัวใหม่ต่อ event — วางไว้นอกลูปกันไว้เผื่อ paste */
       }
       state.charStatus[i] = val[i] === state.target[i] ? 'correct' : 'wrong';
     }
     for (var j = val.length; j < state.target.length; j++) state.charStatus[j] = 'pending';
+    /* เอฟเฟกต์กดปุ่ม — โชว์เฉพาะตอนพิมพ์ถูก (ตัวที่พิมพ์ผิดมีจุดสังเกตอยู่แล้วคือตัวอักษรขึ้นแดง) */
+    if (newlyTypedIndex !== -1 && val[newlyTypedIndex] === state.target[newlyTypedIndex]) {
+      pulseKey(currentLang(), val[newlyTypedIndex]);
+    }
 
     renderPracticeText();
     highlightNextKey(currentLang());
