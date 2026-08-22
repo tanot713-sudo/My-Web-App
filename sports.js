@@ -312,6 +312,35 @@ function buildTableTennisSpinSvg() {
   var bottomLabel = '<text x="150" y="165" font-size="12" font-weight="800" text-anchor="middle" fill="#1971C2">Backspin: floats longer, sinks late</text>';
   return svgWrap(net + topBall + topSpin + topArrow + topLabel + bottomBall + bottomSpin + bottomArrow + bottomLabel, 280, 180, 300, 'table tennis topspin vs backspin trajectory diagram');
 }
+/* เป้ากลาง + 4 หมัดพื้นฐาน: Jab/Cross เป็นเส้นตรง, Hook/Uppercut เป็นเส้นโค้ง */
+function buildBoxingPunchAnglesSvg() {
+  var target = '<circle cx="150" cy="110" r="28" fill="#FFFFFF" stroke="#1F2430" stroke-width="2.5"/>';
+  var jab = svgArrow(20, 110, 118, 110, '#1971C2');
+  var cross = svgArrow(280, 110, 182, 110, '#E8590C');
+  var hook = '<path d="M 55,190 Q 90,130 122,120" stroke="#2F9E44" stroke-width="3" fill="none" stroke-dasharray="6,4"/>';
+  var uppercut = '<path d="M 150,225 Q 168,180 150,142" stroke="#F5A524" stroke-width="3" fill="none" stroke-dasharray="6,4"/>';
+  var labels = '<text x="70" y="95" font-size="12" font-weight="800" text-anchor="middle" fill="#1971C2">Jab</text>' +
+    '<text x="230" y="95" font-size="12" font-weight="800" text-anchor="middle" fill="#E8590C">Cross</text>' +
+    '<text x="55" y="205" font-size="12" font-weight="800" text-anchor="middle" fill="#2F9E44">Hook</text>' +
+    '<text x="150" y="240" font-size="12" font-weight="800" text-anchor="middle" fill="#F5A524">Uppercut</text>';
+  return svgWrap(target + jab + cross + hook + uppercut + labels, 300, 250, 320, 'boxing four basic punch angles: jab, cross, hook, uppercut diagram');
+}
+/* 3 ขั้นตอนของการทุ่มยูโด: Kuzushi (ทำลายสมดุล) → Tsukuri (เข้าตำแหน่ง) → Kake (ทุ่มจริง) */
+function buildJudoThrowPhasesSvg() {
+  function box(x, label, color) {
+    return '<rect x="' + x + '" y="60" width="70" height="50" rx="8" fill="' + color + '" opacity="0.88"/>' +
+      '<text x="' + (x + 35) + '" y="90" font-size="12" font-weight="800" text-anchor="middle" fill="#FFFFFF">' + label + '</text>';
+  }
+  var b1 = box(10, 'Kuzushi', '#1971C2');
+  var b2 = box(115, 'Tsukuri', '#2F9E44');
+  var b3 = box(220, 'Kake', '#E8590C');
+  var a1 = svgArrow(80, 85, 113, 85, '#1F2430');
+  var a2 = svgArrow(185, 85, 218, 85, '#1F2430');
+  var labels = '<text x="45" y="130" font-size="11" text-anchor="middle" fill="#1F2430">Off-balance</text>' +
+    '<text x="150" y="130" font-size="11" text-anchor="middle" fill="#1F2430">Position</text>' +
+    '<text x="255" y="130" font-size="11" text-anchor="middle" fill="#1F2430">Execute</text>';
+  return svgWrap(b1 + b2 + b3 + a1 + a2 + labels, 300, 150, 320, 'judo throw phases: kuzushi tsukuri kake flow diagram');
+}
 
 var TRACKS = [
   {
@@ -906,6 +935,32 @@ var TRACKS = [
           "The Wai Kru Ram Muay is a pre-fight ritual dance paying respect to one's teachers and the martial art's lineage, performed before every fight to the sound of live music — each gym or fighter typically has their own unique choreography passed down from their teacher.",
           "The Mongkol is a headband worn during the Wai Kru ceremony, removed by the trainer just before the fight begins. The Pra Jiad are armbands some fighters wear throughout the entire fight for good luck and protection.",
           "The Wong Sarama, a live band of a Thai oboe and drums, plays throughout the fight — the tempo speeds up as the action intensifies, helping build energy for both the fighters and the crowd."
+        ]),
+      readingItem('ระยะการชกและการอ่านจังหวะคู่ต่อสู้', 'Fighting Ranges & Reading Rhythm',
+        [
+          'ระยะไกล (Long Range): ระยะที่ใช้เตะ (Kick) และเตะถีบ (Teep) เป็นหลัก เพราะขาเอื้อมได้ไกลกว่าแขน นักมวยมักใช้ระยะนี้ควบคุมพื้นที่และป้องกันไม่ให้คู่ต่อสู้เข้าใกล้',
+          'ระยะกลาง (Mid Range): ระยะที่ใช้หมัดและเข่าลอย (เข่าที่ไม่ต้องปล้ำ) เป็นระยะเปลี่ยนผ่านระหว่างไกลกับใกล้ นักมวยต้องตัดสินใจเร็วว่าจะรุกต่อเข้าประชิดหรือถอยกลับไประยะไกล',
+          'ระยะประชิด (Close Range): ระยะที่ใช้ศอกและเข่าในคลินช์เป็นหลัก อันตรายที่สุดเพราะแรงปะทะสูงและระยะสั้นทำให้หลบยาก นักมวยที่ถนัดคลินช์มักพยายามดึงเกมเข้าสู่ระยะนี้',
+          'การอ่านจังหวะ (Timing) คือทักษะขั้นสูง: สังเกตจังหวะหายใจ การยกเท้าก่อนเตะ หรือการดึงไหล่ก่อนต่อยของคู่ต่อสู้ เพื่อคาดเดาและสวนกลับ (Counter) ก่อนที่ท่านั้นจะออกมาเต็มรูปแบบ'
+        ],
+        [
+          'Long Range: the range where kicks and teeps (push kicks) dominate, since legs reach further than arms. Fighters use this range to control space and keep the opponent from closing in.',
+          'Mid Range: the range for punches and standing knee strikes (not from the clinch) — a transitional range between long and close. A fighter must decide quickly whether to press forward into the clinch or retreat back to long range.',
+          'Close Range: dominated by elbows and knees from the clinch — the most dangerous range because of the high impact and short distance that makes strikes hard to dodge. Fighters skilled at clinching often try to drag the fight into this range.',
+          "Reading timing is an advanced skill: watching an opponent's breathing rhythm, a foot lifting before a kick, or a shoulder dropping before a punch, to anticipate and counter before the technique fully lands."
+        ]),
+      readingItem('รูปแบบนักมวยและกลยุทธ์', 'Fighter Styles & Strategy',
+        [
+          'Muay Mat (สายหมัด): นักมวยที่เน้นชกหมัดหนักและตรง เคลื่อนไหวเข้าออกเร็ว มักชนะด้วยการน็อก จุดอ่อนคือถ้าโดนเตะสวนบ่อยๆ ระยะไกลจะเสียเปรียบ',
+          'Muay Tae (สายเตะ): นักมวยที่เน้นเตะหนักหน้าแข้งเป็นหลัก คุมระยะไกลได้ดี จุดอ่อนคือถ้าคู่ต่อสู้เข้าประชิดได้เร็วจะเสียเปรียบเพราะเตะใช้ระยะไม่ได้',
+          'Muay Khao (สายเข่า): นักมวยที่ถนัดปล้ำประชิดและกระแทกเข่า มักตัวสูงและแข็งแรง ชนะด้วยการบั่นทอนพลังคู่ต่อสู้ในคลินช์ จุดอ่อนคือถ้าคู่ต่อสู้หลบคลินช์เก่งจะทำอะไรไม่ได้มาก',
+          "Muay Femur (สายเทคนิค): นักมวยที่เน้นเทคนิคและการสวนกลับ (Counter) มากกว่าความแรง เคลื่อนไหวสวยงามและอ่านเกมเก่ง มักชนะด้วยคะแนนมากกว่าน็อก — ความสัมพันธ์ระหว่างแต่ละสไตล์มักเป็นแบบ 'ค้อน-กรรไกร-กระดาษ' ที่ไม่มีสไตล์ใดเหนือกว่าทุกสไตล์เสมอไป ขึ้นอยู่กับคู่ต่อสู้ที่เจอ"
+        ],
+        [
+          'Muay Mat (Puncher): a fighter who relies on heavy, straight punches with fast in-and-out footwork, often winning by knockout. Their weakness is being outkicked repeatedly at long range.',
+          'Muay Tae (Kicker): a fighter who relies on heavy shin kicks and controls the long range well. Their weakness is being at a disadvantage if the opponent can close the distance quickly, neutralizing the kicking range.',
+          'Muay Khao (Knee Fighter): a fighter skilled in clinching and driving knee strikes, usually tall and strong, winning by wearing the opponent down in the clinch. Their weakness is struggling if the opponent is skilled at avoiding the clinch.',
+          "Muay Femur (Technician): a fighter who relies on technique and counters rather than raw power, moving elegantly and reading the fight well, usually winning on points rather than knockout — the relationship between these styles is often like 'rock-paper-scissors', where no single style dominates every matchup; it depends on who the opponent is."
         ])
     ]
   },
@@ -970,6 +1025,306 @@ var TRACKS = [
           'The colored belt system (Geup/Kup) progresses from white belt up to black belt (Dan). The number of Geup levels varies by school or federation, but a common system runs from 10th Geup down to 1st Geup before reaching black belt.',
           'The Five Tenets of Taekwondo are: Courtesy (Ye Ui), Integrity (Yom Chi), Perseverance (In Nae), Self-Control (Guk Gi), and Indomitable Spirit (Baekjul Boolgool).',
           'Poomsae (Forms/Patterns) are choreographed solo sequences of techniques (similar to kata in karate), used both to train fundamentals and as a separate competitive discipline from actual sparring (Kyorugi).'
+        ]),
+      readingItem('เทคนิคขั้นสูง: การหลอกล่อและการเตะต่อเนื่อง', 'Advanced Tactics: Feinting & Combination Kicks',
+        [
+          'การหลอกล่อ (Feinting): ใช้การขยับเท้าหรือลำตัวหลอกให้คู่ต่อสู้ตอบสนองผิดจังหวะ เช่น ยกเข่าเสมือนจะเตะแต่ไม่เตะจริง เพื่อดึงการ์ดคู่ต่อสู้ให้เปิดก่อนออกท่าจริง',
+          'การเตะกระโดดปิดระยะ (Skip Kick): ใช้เท้าหลังกระโดดสับเปลี่ยนตำแหน่งกับเท้าหน้าอย่างรวดเร็วเพื่อปิดระยะห่างก่อนเตะ ทำให้เตะได้เร็วและแรงขึ้นโดยคู่ต่อสู้ตั้งตัวไม่ทัน',
+          'การเตะต่อเนื่อง (Combination Kicks): เช่น เตะเฉียงซ้ำสองครั้งติดกันคนละขา หรือเตะเฉียงตามด้วยเตะหมุนกลับหลัง ยิ่งเตะต่อเนื่องซับซ้อนและแม่นยำเท่าไหร่ ยิ่งมีโอกาสได้คะแนนสูงเพราะระบบให้คะแนนสนับสนุนท่ายาก',
+          'ระบบให้คะแนนของเทควันโดให้รางวัลกับการสวนกลับ (Counter-Attack) หลังจากตั้งรับสำเร็จ เพราะแสดงถึงการอ่านเกมและจังหวะที่ดี นักกีฬาระดับสูงจึงมักรอให้คู่ต่อสู้เปิดเกมก่อนแล้วจึงสวนกลับ แทนที่จะรุกใส่ตลอดเวลา'
+        ],
+        [
+          "Feinting: using foot or body movement to trick the opponent into reacting at the wrong moment — for example, raising the knee as if about to kick without actually kicking, to draw the opponent's guard open before the real technique.",
+          'The Skip Kick: quickly swapping the back and front foot positions with a small hop to close the distance before kicking, making the kick faster and more powerful while catching the opponent off guard.',
+          'Combination Kicks: for example, two consecutive roundhouse kicks off alternating legs, or a roundhouse kick followed by a spinning back kick. The more complex and accurate the combination, the higher the scoring potential, since the scoring system rewards difficult techniques.',
+          "Taekwondo's scoring system rewards counter-attacking after a successful defense, since it demonstrates good game-reading and timing. High-level competitors often wait for the opponent to commit first, then counter, rather than attacking constantly."
+        ]),
+      readingItem('ประเภทการแข่งขัน: Kyorugi กับ Poomsae', 'Competition Disciplines: Kyorugi vs Poomsae',
+        [
+          'Kyorugi (คิวรูกิ) คือการต่อสู้จริงแบบเต็มรูปแบบที่กล่าวถึงในบทเรียนก่อนหน้า ใช้ระบบให้คะแนนอิเล็กทรอนิกส์ แบ่งรุ่นน้ำหนัก (Weight Class) เพื่อให้คู่แข่งขันมีความได้เปรียบทางร่างกายใกล้เคียงกัน',
+          'Poomsae (พุมเซ่) คือการแข่งขันร่ายรำท่าเทคนิคคนเดียวตามแบบแผนที่กำหนดไว้ล่วงหน้า ไม่มีการปะทะกับคู่ต่อสู้จริง จึงไม่มีการแบ่งรุ่นน้ำหนัก แต่แบ่งตามระดับสายหรืออายุแทน',
+          'เกณฑ์การให้คะแนน Poomsae แบ่งเป็น 2 ส่วน: ความแม่นยำ (Accuracy) เช่น ท่ายืน ทิศทาง และเทคนิคตรงตามแบบแผนหรือไม่ และการนำเสนอ (Presentation) เช่น พลัง จังหวะความเร็ว และการควบคุมลมหายใจ',
+          'ทั้ง Kyorugi และ Poomsae เป็นประเภทการแข่งขันที่ได้รับการยอมรับแยกจากกันในระดับนานาชาติ นักกีฬาบางคนเลือกฝึกเฉพาะทางใดทางหนึ่ง ขณะที่บางคนแข่งทั้งสองประเภท เพราะทักษะพื้นฐาน (ท่าเตะ ท่ายืน) เป็นรากฐานร่วมกัน'
+        ],
+        [
+          'Kyorugi is the full-contact sparring discipline covered in the previous lesson, using the electronic scoring system, with competitors divided into weight classes to keep physical advantages fair.',
+          'Poomsae is a solo forms competition performing a pre-set pattern of techniques, with no actual contact against an opponent — so there are no weight classes, only divisions by belt rank or age.',
+          'Poomsae is judged on two criteria: Accuracy (whether stances, directions, and techniques match the prescribed pattern) and Presentation (power, rhythm/speed, and breath control).',
+          'Both Kyorugi and Poomsae are recognized as separate competitive disciplines internationally. Some athletes specialize in just one, while others compete in both, since the fundamental skills (kicks, stances) form a shared foundation.'
+        ])
+    ]
+  },
+  {
+    id: 'boxing-basics',
+    label: { th: 'มวยสากล: กติกาพื้นฐาน', en: 'Boxing: Basic Rules' },
+    group: { th: 'มวยสากล', en: 'Boxing' },
+    items: [
+      readingItem('รู้จักมวยสากล', 'Meet Boxing',
+        [
+          'มวยสากล (Boxing) เป็นกีฬาต่อสู้ที่ใช้เพียงหมัดเท่านั้น (ไม่มีเตะ ศอก หรือเข่า) สวมนวมป้องกันมือ เป้าที่ชกได้คือศีรษะและลำตัวด้านหน้า/ด้านข้างเท่านั้น',
+          'การแข่งขันสมัครเล่น/โอลิมปิกมี 3 ยก ยกละ 3 นาที ส่วนมวยอาชีพอาจยาวถึง 12 ยก ยกละ 3 นาที (แล้วแต่รุ่นและความสำคัญของแมตช์) พักระหว่างยก 1 นาที',
+          "ผลการแข่งขันตัดสินได้จาก: น็อกเอาต์ (KO), กรรมการ/แพทย์ยุติการชก (TKO — Technical Knockout เช่น มุมเลือดยอมแพ้แทนนักมวย หรือบาดแผลรุนแรงเกินจะชกต่อ), หรือให้คะแนนจากกรรมการ (Judges' Decision) เมื่อครบยก"
+        ],
+        [
+          'Boxing is a combat sport using fists only (no kicks, elbows, or knees), with padded gloves worn for protection. Valid targets are the head and the front/sides of the torso only.',
+          "Amateur/Olympic matches have 3 rounds of 3 minutes each. Professional matches can run up to 12 rounds of 3 minutes (depending on weight class and the fight's significance), with a 1-minute rest between rounds.",
+          "The outcome can be decided by: Knockout (KO), a referee/doctor stoppage (TKO — Technical Knockout, e.g. a fighter's corner throwing in the towel, or an injury too severe to continue safely), or a Judges' Decision on points when the fight goes the distance."
+        ]),
+      readingItem('การให้คะแนนและการชนะ', 'Scoring & Winning',
+        [
+          "ระบบให้คะแนนมาตรฐาน (10-Point Must System): ผู้ชนะในแต่ละยกได้ 10 คะแนน ผู้แพ้ได้ 9 คะแนนหรือน้อยกว่า (เช่น 8 คะแนนถ้าโดนล้มในยกนั้น) กรรมการให้คะแนนทุกยกแล้วรวมผลตอนจบแมตช์",
+          "การนับ 8 (Standing 8-Count / Mandatory 8-Count): กรรมการนับถึง 8 หลังนักมวยถูกล้มหรือมึนงงจากการโดนชก ถ้านักมวยไม่สามารถแสดงให้เห็นว่าพร้อมชกต่อได้เมื่อนับถึง 8 การชกจะถูกยุติทันที",
+          "TKO อาจเกิดขึ้นได้เช่นกันถ้าใบหน้านักมวยฉีกขาดรุนแรงเกินกว่าจะชกต่อได้อย่างปลอดภัย หรือถ้ามุมพี่เลี้ยงนักมวยโยนผ้าเข้าสังเวียนเพื่อยอมแพ้แทนนักมวยของตัวเอง"
+        ],
+        [
+          'The standard scoring system (10-Point Must System): the winner of each round gets 10 points, the loser gets 9 or fewer (e.g. 8 if they were knocked down that round). Judges score every round and total the results at the end of the match.',
+          "The Standing 8-Count (Mandatory 8-Count): the referee counts to 8 after a fighter is knocked down or dazed from a punch. If the fighter can't demonstrate they're fit to continue by the count of 8, the fight is stopped immediately.",
+          "A TKO can also happen if a fighter's face is cut too badly to continue safely, or if their corner throws in the towel to concede on their behalf."
+        ]),
+      readingItem('หมัดพื้นฐาน 4 แบบ', '4 Basic Punches',
+        [
+          'Jab: หมัดตรงเร็วจากมือหน้า ใช้วัดระยะและเปิดทางให้หมัดชุดถัดไป เป็นหมัดที่พลังน้อยที่สุดแต่ใช้บ่อยที่สุด ดูไดอะแกรมด้านล่างประกอบ',
+          'Cross (หมัดตรงหลัง): หมัดตรงพลังสูงจากมือหลัง หมุนสะโพกและไหล่ส่งแรงเต็มที่ เป็นหมัดจบสกอร์ที่ใช้บ่อยที่สุด',
+          'Hook: หมัดที่เหวี่ยงเป็นแนวโค้งแนวนอน เป้าหมายคือด้านข้างศีรษะหรือลำตัว งอศอกประมาณ 90 องศาขณะเหวี่ยง',
+          'Uppercut: หมัดที่พุ่งขึ้นในแนวดิ่ง เป้าหมายคือคางหรือลำตัว สร้างแรงจากการงอเข่าแล้วดันตัวขึ้น'
+        ],
+        [
+          'Jab: a fast straight punch from the lead hand, used to gauge distance and set up the next combination — the least powerful punch but the most frequently thrown. See the diagram below.',
+          'Cross (rear straight punch): a powerful straight punch from the rear hand, rotating the hip and shoulder through for full power — the most commonly used punch to finish a combination.',
+          'Hook: a punch thrown in a horizontal arc, targeting the side of the head or the body, with the elbow bent roughly 90 degrees during the swing.',
+          'Uppercut: a punch thrown vertically upward, targeting the chin or the body, generated by bending the knees and driving upward.'
+        ],
+        buildBoxingPunchAnglesSvg()),
+      readingItem('การป้องกันตัว: การ์ด การหลบ และฟุตเวิร์ก', 'Defense: Guard, Slip & Footwork',
+        [
+          'ท่าการ์ดพื้นฐาน (Guard): ยกมือทั้งสองข้างป้องกันคาง เก็บคางลง และหุบศอกเข้าเพื่อป้องกันลำตัว เป็นท่าเริ่มต้นก่อนทุกการเคลื่อนไหว',
+          'การหลบ (Slip): ขยับศีรษะออกจากแนวกึ่งกลางลำตัวเพื่อหลบหมัดตรงโดยไม่ต้องขยับเท้ามาก เป็นทักษะป้องกันที่ประหยัดพลังงานที่สุด',
+          'การบล็อก/ปัด (Block/Parry): ใช้นวมหรือปลายแขนรับแรงหรือปัดทิศทางหมัดที่พุ่งเข้ามา',
+          'ฟุตเวิร์ก (Footwork): รักษาสมดุลและความคล่องตัว ห้ามไขว้เท้าขณะเคลื่อนที่ ใช้ควบคุมระยะและมุมแทนที่จะยืนแลกหมัดตรงๆ อย่างเดียว'
+        ],
+        [
+          'The basic Guard: both hands raised protecting the chin, chin tucked down, elbows in to protect the body — the starting position before every movement.',
+          "Slip: moving the head off the body's centerline to dodge a straight punch without moving the feet much — the most energy-efficient defensive skill.",
+          'Block/Parry: using the gloves or forearms to absorb impact or deflect the direction of an incoming punch.',
+          'Footwork: staying balanced and mobile, never crossing the feet while moving, using it to control range and angle rather than just standing and trading punches.'
+        ]),
+      readingItem('รุ่นน้ำหนัก', 'Weight Classes',
+        [
+          'มวยสากลแบ่งรุ่นน้ำหนักหลายรุ่น (เช่น ฟลายเวท เฟเธอร์เวท ไลท์เวท เวลเตอร์เวท มิดเดิลเวท เฮฟวี่เวท ฯลฯ) เพื่อให้คู่ชกมีความได้เปรียบทางร่างกายใกล้เคียงกัน เพราะน้ำหนักมีผลต่อพลังหมัดอย่างมาก',
+          'การชั่งน้ำหนัก (Weigh-in) ในมวยอาชีพมักจัดขึ้นหนึ่งวันก่อนการชก นักมวยต้องทำน้ำหนักให้อยู่ในเกณฑ์รุ่นของตัวเอง ไม่งั้นอาจถูกปรับหรือยกเลิกการชกได้',
+          'มวยสมัครเล่นมักสวมหมวกป้องกันศีรษะ (ในบางรุ่น) และมีกติกาการให้คะแนน/ความปลอดภัยที่ต่างจากมวยอาชีพเล็กน้อย'
+        ],
+        [
+          'Boxing is divided into many weight classes (e.g. Flyweight, Featherweight, Lightweight, Welterweight, Middleweight, Heavyweight, etc.) to keep physical advantages fair between opponents, since weight strongly affects punching power.',
+          'A professional Weigh-in is usually held one day before the fight. Fighters must make weight for their class, or risk penalties or the fight being cancelled.',
+          'Amateur boxing often uses headgear (in some categories) and has slightly different scoring and safety rules compared to professional boxing.'
+        ]),
+      readingItem('กลยุทธ์: การชกต่อเนื่องและการควบคุมพื้นที่บนเวที', 'Strategy: Combination Punching & Ring Generalship',
+        [
+          'การชกต่อเนื่อง (Combination Punching) คือการชกหลายหมัดติดต่อกันในจังหวะเดียว เช่น Jab-Cross-Hook (1-2-3) เพื่อให้คู่ต่อสู้ป้องกันไม่ทันครบทุกหมัด ยิ่งชุดหมัดหลากหลายมุมเท่าไหร่ ยิ่งเจาะการ์ดคู่ต่อสู้ได้ง่ายขึ้น',
+          'การควบคุมพื้นที่บนเวที (Ring Generalship) คือทักษะการบังคับให้คู่ต่อสู้เคลื่อนที่ไปในทิศทางที่ตัวเองต้องการ เช่น การตัดมุมเวที (Cutting Off the Ring) ไล่ต้อนคู่ต่อสู้ไปติดเชือกจนไม่มีที่หนี',
+          'ท่ายืนถนัดขวา (Orthodox) กับถนัดซ้าย (Southpaw) มักสร้างปัญหาให้กันเอง เพราะมุมการชกและตำแหน่งเท้าตรงข้ามกัน นักมวยที่ไม่คุ้นชินการชกกับฝ่ายตรงข้ามสไตล์มักเสียเปรียบในช่วงต้นไฟต์',
+          'การอ่านจังหวะการหายใจและการก้าวเท้าของคู่ต่อสู้ ช่วยให้ทำนายได้ว่าคู่ต่อสู้กำลังจะออกหมัดหรือกำลังจะถอย ทำให้วางแผนสวนกลับหรือรุกได้แม่นยำขึ้น'
+        ],
+        [
+          "Combination Punching is throwing several punches in one continuous sequence, such as Jab-Cross-Hook (1-2-3), so the opponent can't defend against every punch in time. The more varied the angles in a combination, the easier it breaks through the opponent's guard.",
+          'Ring Generalship is the skill of forcing the opponent to move where you want them to — for example, Cutting Off the Ring, herding the opponent toward the ropes until they have nowhere left to escape.',
+          'Orthodox (right-handed lead) and Southpaw (left-handed lead) stances often cause problems for each other, since their punching angles and foot positions are mirror-opposite. A fighter unfamiliar with the opposite stance is often at a disadvantage early in the fight.',
+          "Reading an opponent's breathing rhythm and footwork helps predict whether they're about to punch or retreat, allowing more accurate counters or attacks."
+        ]),
+      readingItem('เทคนิคขั้นสูง: การล็อกตัว หมัดสวน และการชกลำตัว', 'Advanced Techniques: Clinching, Counter-Punching & Body Shots',
+        [
+          'การล็อกตัว (Clinching) ในมวยสากลต่างจากมวยไทยตรงที่ห้ามชกขณะล็อกตัวอยู่ กรรมการจะแยกคู่ชกออกจากกันทันทีเมื่อเข้าล็อกตัว มักใช้เพื่อพักหรือขัดจังหวะโมเมนตัมของคู่ต่อสู้เท่านั้น',
+          'หมัดสวน (Counter-Punching) คือการรอให้คู่ต่อสู้ออกหมัดก่อนแล้วจึงชกสวนกลับในจังหวะที่คู่ต่อสู้เปิดช่องว่าง นักมวยสายสวน (Counter-Puncher) มักใช้พลังงานน้อยกว่าแต่ต้องมีปฏิกิริยาตอบสนองที่แม่นยำมาก',
+          "การชกลำตัว (Body Shots) มักถูกมองข้ามเพราะไม่ทำให้น็อกทันทีเหมือนชกหน้า แต่สะสมความเสียหายและบั่นทอนพละกำลังคู่ต่อสู้ในยกท้ายๆ ได้ดีมาก มีคำกล่าวในวงการมวยว่า 'Body shots pay the bills' หมายถึงเป็นการลงทุนระยะยาวที่ได้ผลจริง",
+          'การผสมผสานทั้งสามทักษะ (ล็อกตัวเพื่อพัก, สวนกลับแม่นยำ, ชกลำตัวสะสมความเสียหาย) เข้าด้วยกันอย่างเหมาะสมตามสถานการณ์ในแต่ละยก คือสิ่งที่แยกนักมวยระดับสูงออกจากนักมวยทั่วไป'
+        ],
+        [
+          "Clinching in boxing differs from Muay Thai in that striking is not allowed while clinched — the referee breaks the fighters apart immediately. It's used mainly to rest or to disrupt the opponent's momentum, not to strike.",
+          'Counter-Punching means waiting for the opponent to throw first, then striking back the instant they open a gap. Counter-punchers typically expend less energy but need very sharp reflexes.',
+          "Body Shots are often overlooked since they rarely produce an instant knockout like a head shot, but they accumulate damage and drain the opponent's stamina effectively in later rounds. There's a saying in boxing: 'Body shots pay the bills' — meaning it's a long-term investment that really pays off.",
+          'Blending all three skills — clinching to rest, precise counter-punching, and body shots to accumulate damage — appropriately for each round\'s situation is what separates elite boxers from ordinary ones.'
+        ])
+    ]
+  },
+  {
+    id: 'judo-basics',
+    label: { th: 'ยูโด: กติกาพื้นฐาน', en: 'Judo: Basic Rules' },
+    group: { th: 'ยูโด', en: 'Judo' },
+    items: [
+      readingItem('รู้จักยูโด', 'Meet Judo',
+        [
+          'ยูโด (Judo) เป็นศิลปะการต่อสู้จากญี่ปุ่น แปลว่า \'วิถีแห่งความอ่อนโยน\' ก่อตั้งโดยจิโกโร คาโนะ ในปี ค.ศ. 1882 บรรจุเป็นกีฬาโอลิมปิกตั้งแต่ปี 1964 (ประเภทชาย) และ 1992 (ประเภทหญิง)',
+          "หลักปรัชญาหลักของยูโดคือ 'ใช้พลังงานให้เกิดประโยชน์สูงสุดด้วยความพยายามน้อยที่สุด' (Seiryoku Zenyo) และ 'ประโยชน์และสวัสดิภาพร่วมกัน' (Jita Kyoei) — เน้นเทคนิคและการใช้แรงคู่ต่อสู้มากกว่าความแข็งแรงอย่างเดียว",
+          'การแข่งขันตามกติกาสากล/โอลิมปิก มีเวลาแข่งขันมาตรฐาน 4 นาที ถ้าจบเวลาโดยไม่มีใครทำ Ippon (ชนะเด็ดขาด) จะเข้าสู่ช่วงต่อเวลา (Golden Score) แบบตายก่อนแพ้ก่อน (Sudden Death)'
+        ],
+        [
+          "Judo is a Japanese martial art whose name means 'the gentle way'. It was founded by Jigoro Kano in 1882, and has been an Olympic sport since 1964 (men) and 1992 (women).",
+          "Judo's core philosophy is 'Maximum efficiency, minimum effort' (Seiryoku Zenyo) and 'Mutual welfare and benefit' (Jita Kyoei) — emphasizing technique and using the opponent's own force over raw strength alone.",
+          "Under international/Olympic rules, a match's standard contest time is 4 minutes. If no one scores an Ippon (an outright win) by time's up, the match goes to Golden Score — sudden-death overtime."
+        ]),
+      readingItem('การให้คะแนนและการชนะ', 'Scoring & Winning',
+        [
+          'Ippon (อิปปง) คือคะแนนเต็มที่ทำให้ชนะทันที ได้จาก: การทุ่มคู่ต่อสู้ลงหลังด้วยแรง ความเร็ว และการควบคุมที่สมบูรณ์, การจับล็อกกดคู่ต่อสู้ไว้กับพื้น (Osaekomi) นาน 20 วินาที, หรือคู่ต่อสู้ยอมแพ้จากการถูกรัดคอ/ล็อกข้อต่อ',
+          'Waza-ari (วาซาอาริ) คือครึ่งคะแนน ให้เมื่อการทุ่มเกือบสมบูรณ์แบบแต่ขาดองค์ประกอบบางอย่างของ Ippon — ถ้าทำ Waza-ari ได้ 2 ครั้งในแมตช์เดียวกัน จะรวมเป็น Ippon ทันที (Waza-ari Awasete Ippon)',
+          'ถ้าครบเวลาแข่งขันโดยไม่มีใครทำ Ippon จะตัดสินจาก Waza-ari ที่ทำได้มากกว่า ถ้ายังเสมอกันจะเข้าสู่ Golden Score ต่อเวลาแบบใครทำคะแนนได้ก่อนชนะทันที'
+        ],
+        [
+          "Ippon is a full point that wins the match instantly, earned by: throwing the opponent onto their back with force, speed, and full control; pinning the opponent to the mat (Osaekomi) for 20 seconds; or the opponent submitting from a choke or joint lock.",
+          "Waza-ari is a half-point, awarded for a throw that's nearly perfect but missing one element of a full Ippon — scoring two Waza-ari in the same match combines into an automatic Ippon (Waza-ari Awasete Ippon).",
+          'If time runs out with no Ippon scored, the win goes to whoever has more Waza-ari. If still tied, the match goes to Golden Score — sudden-death overtime where the next score wins immediately.'
+        ]),
+      readingItem('การทุ่มพื้นฐาน (Nage-waza)', 'Basic Throws (Nage-waza)',
+        [
+          'การจับคู่ต่อสู้ (Kumi-kata) คือการควบคุมชุดยูโด (Judogi) ของคู่ต่อสู้ เป็นรากฐานของการทุ่มทุกท่า — นักยูโดระดับสูงมักแย่งชิงตำแหน่งจับที่ได้เปรียบก่อนจะเริ่มโจมตีจริง',
+          'O Goshi (ทุ่มสะโพกใหญ่): ดึงคู่ต่อสู้ให้พาดบนสะโพกตัวเอง แล้วหมุนตัวเหวี่ยงทุ่มข้ามสะโพกลงพื้น เป็นท่าทุ่มพื้นฐานที่สุดที่นักยูโดทุกคนต้องฝึกเป็นอันดับแรก',
+          'Seoi Nage (ทุ่มพาดบ่า): ดึงคู่ต่อสู้ให้พาดบนหลัง/บ่าตัวเอง แล้วก้มตัวเหวี่ยงทุ่มไปข้างหน้า เป็นท่าที่นิยมมากในระดับแข่งขันเพราะทำ Ippon ได้บ่อย',
+          'Ouchi Gari / Osoto Gari (เกี่ยวขาด้านใน/ด้านนอก): ใช้ขาเกี่ยว/กวาดขาคู่ต่อสู้เพื่อทำลายการทรงตัวแล้วทุ่มลงพื้น ไม่ต้องใช้แรงยกมากเท่าท่าทุ่มสะโพก/บ่า เหมาะกับผู้เริ่มต้น'
+        ],
+        [
+          "Grip Fighting (Kumi-kata) — controlling the opponent's judogi (uniform) — is the foundation of every throw. High-level judoka often fight hard for an advantageous grip before ever attempting a real attack.",
+          'O Goshi (Major Hip Throw): pull the opponent onto your hip, then rotate and swing them over and down. It\'s the most fundamental throw that every judoka learns first.',
+          'Seoi Nage (Shoulder Throw): pull the opponent onto your back/shoulder, then bend forward and throw them forward. It\'s very popular in competition because it frequently scores Ippon.',
+          'Ouchi Gari / Osoto Gari (Inner/Outer Reap): using the leg to reap or sweep the opponent\'s leg to break their balance and take them down. It requires less lifting strength than hip or shoulder throws, making it a good technique for beginners.'
+        ]),
+      readingItem('เทคนิคพื้นสนาม (Ne-waza)', 'Ground Techniques (Ne-waza)',
+        [
+          'Osaekomi-waza (การจับกด): เทคนิคกดคู่ต่อสู้ให้แผ่นหลังติดพื้นและควบคุมไว้ไม่ให้หลุด นาน 20 วินาทีเพื่อให้ได้ Ippon (บางกติการะดับล่างใช้เวลาสั้นกว่านี้)',
+          'Shime-waza (การรัดคอ): ใช้แขนหรือชุดยูโดของคู่ต่อสู้รัดคอเพื่อบีบหลอดเลือดหรือทางเดินหายใจ ถ้าคู่ต่อสู้ตบพื้นยอมแพ้ (Tap Out) จะได้ Ippon ทันที เป็นเทคนิคที่ต้องระวังความปลอดภัยสูงมาก',
+          'Kansetsu-waza (การล็อกข้อต่อ): กติกาการแข่งขันยูโดอนุญาตเฉพาะการล็อกข้อศอก (Armbar) เท่านั้น ห้ามล็อกข้อต่ออื่นๆ เช่น เข่า ข้อมือ หรือกระดูกสันหลัง เพื่อความปลอดภัยของนักกีฬา'
+        ],
+        [
+          'Osaekomi-waza (Pins/Holds): pinning the opponent\'s back to the mat and maintaining control without them escaping, for 20 seconds to score an Ippon (some lower-level rulesets use a shorter time).',
+          'Shime-waza (Chokes): using an arm or the opponent\'s own judogi to compress the blood vessels or airway in the neck. If the opponent taps out to submit, it\'s an immediate Ippon — a technique that demands serious attention to safety.',
+          'Kansetsu-waza (Joint Locks): competition rules only permit elbow locks (armbars). Locks on any other joint — knees, wrists, or the spine — are prohibited for athlete safety.'
+        ]),
+      readingItem('มารยาทและระบบสายคาดเอว', 'Etiquette & Belt System',
+        [
+          'การโค้งคำนับ (Rei) เป็นธรรมเนียมสำคัญของยูโด ทำก่อนและหลังการฝึกซ้อมหรือแข่งขันทุกครั้ง เพื่อแสดงความเคารพต่อคู่ฝึก/คู่แข่ง ต่อสถานที่ฝึก (Dojo) และต่อตัวกีฬาเอง — ถือเป็นหัวใจของปรัชญายูโดไม่แพ้เทคนิคการทุ่ม',
+          'ระบบสายคาดเอวไล่ระดับจากขั้นต้น (Kyu) ไปจนถึงขั้นดำ (Dan) คล้ายศิลปะการต่อสู้ญี่ปุ่นอื่นๆ — สีสายแตกต่างกันไปตามสหพันธ์แต่ละประเทศ',
+          'Randori คือการฝึกซ้อมแบบอิสระ (ไม่ใช่การแข่งขันจริง) ที่ทั้งสองฝ่ายพยายามทุ่ม/ล็อกกันด้วยความร่วมมือและการควบคุมความแรง เป็นวิธีหลักที่นักยูโดใช้พัฒนาเทคนิคกับคู่ฝึกที่ต่อต้านจริง'
+        ],
+        [
+          'Bowing (Rei) is an essential Judo custom performed before and after every practice or match, showing respect for one\'s training partner/opponent, the training hall (Dojo), and the sport itself — considered as central to Judo\'s philosophy as its throwing techniques.',
+          'The belt ranking system progresses from beginner grades (Kyu) up to black-belt grades (Dan), similar to other Japanese martial arts — belt colors vary somewhat between national federations.',
+          'Randori is free, cooperative sparring practice (not a real competition) where both partners attempt throws and locks on each other with controlled intensity — the main way judoka develop technique against a genuinely resisting partner.'
+        ]),
+      readingItem('ขั้นตอนของการทุ่ม: Kuzushi-Tsukuri-Kake', 'The 3 Phases of a Throw: Kuzushi-Tsukuri-Kake',
+        [
+          'ทุกการทุ่มในยูโดแบ่งเป็น 3 ขั้นตอนต่อเนื่องกัน: Kuzushi (การทำลายการทรงตัว) คือการดึง/ดันคู่ต่อสู้ให้เสียสมดุลก่อนโจมตี เพราะร่างกายมนุษย์ทุ่มยากมากถ้ายังทรงตัวมั่นคงอยู่ ดูไดอะแกรมด้านล่างประกอบ',
+          'Tsukuri (การเข้าตำแหน่ง) คือการเคลื่อนตัวเข้าตำแหน่งที่เหมาะสมสำหรับท่าทุ่มที่เลือกไว้ ระหว่างที่คู่ต่อสู้ยังเสียสมดุลอยู่ ต้องทำเร็วก่อนคู่ต่อสู้ตั้งตัวได้ทัน',
+          'Kake (การทุ่มจริง) คือขั้นตอนสุดท้าย การออกแรงทุ่มคู่ต่อสู้ลงพื้นให้สำเร็จ — นักยูโดระดับสูงจะทำทั้ง 3 ขั้นตอนนี้ต่อเนื่องเป็นจังหวะเดียวจนดูเหมือนไร้รอยต่อ',
+          'ถ้าทุ่มไม่สำเร็จ นักยูโดระดับสูงมักไม่ปล่อยโอกาสทิ้ง แต่จะต่อเนื่องเข้าสู่เทคนิคพื้นสนามทันที เรียกว่า Renraku-waza (เทคนิคต่อเนื่อง) เช่น ทุ่มไม่ล้มแต่คว้าแขนต่อเข้าล็อกข้อศอกทันที'
+        ],
+        [
+          'Every Judo throw breaks down into 3 continuous phases: Kuzushi (breaking balance) — pulling or pushing the opponent off-balance before attacking, since a human body that\'s still stable is very hard to throw. See the diagram below.',
+          'Tsukuri (positioning/fitting in) — moving into the correct position for the chosen throw while the opponent is still off-balance, done quickly before they can recover.',
+          'Kake (execution) — the final phase, actually completing the throw and putting the opponent on the ground. High-level judoka blend all three phases into what looks like a single seamless motion.',
+          'If a throw fails, top-level judoka rarely let the opportunity go to waste — they immediately continue into a ground technique, called Renraku-waza (combination technique) — for example, failing to throw but grabbing the arm to immediately transition into an armbar.'
+        ],
+        buildJudoThrowPhasesSvg()),
+      readingItem('กฎข้อห้ามและการลงโทษ (Shido)', 'Prohibited Acts & Penalties (Shido)',
+        [
+          'Shido (ชิโด) คือการลงโทษสำหรับความผิดกติกาเล็กน้อย เช่น การจับชุดคู่ต่อสู้ผิดตำแหน่ง (เช่น จับในแขนเสื้อ/ขากางเกงลึกเกินไป), การถอยหนีออกนอกเขตแข่งขันซ้ำๆ (Jogai), หรือการยืนเกียร์รับไม่โจมตีนานเกินไป (Passivity) — สะสมครบ 3 ครั้งจะกลายเป็น Hansoku-make (แพ้ทันที)',
+          'การจับขาคู่ต่อสู้โดยตรงด้วยมือเพื่อทุ่ม (Direct Leg Grab) เคยเป็นเทคนิคที่ใช้ได้ทั่วไป แต่กติกาสากล (IJF) ยกเลิกให้ใช้ได้ตั้งแต่ราวปี 2013 เพื่อรักษาเอกลักษณ์ของยูโดในฐานะกีฬาที่เน้นเทคนิคทุ่มมากกว่ามวยปล้ำ',
+          'Hansoku-make (การแพ้ฟาวล์) คือการปรับแพ้ทันทีจากความผิดกติการุนแรง เช่น เทคนิคอันตรายที่เสี่ยงทำร้ายคู่ต่อสู้ หรือสะสม Shido ครบ 3 ครั้ง — ต่างจากกีฬาต่อสู้บางประเภทตรงที่ยูโดเข้มงวดกับความปลอดภัยของข้อต่อและกระดูกสันหลังเป็นพิเศษ'
+        ],
+        [
+          'Shido is a penalty for minor rule violations — such as gripping the opponent\'s uniform in an improper spot (too deep into the sleeve or pant leg), repeatedly stepping out of the contest area (Jogai), or excessive non-attacking passivity. Accumulating 3 Shido results in Hansoku-make (an immediate loss).',
+          'Directly grabbing the opponent\'s leg with the hand to execute a throw used to be a legal technique, but international rules (IJF) banned it around 2013, to preserve Judo\'s identity as a throwing-technique-focused sport distinct from wrestling.',
+          'Hansoku-make (disqualification) is an immediate loss for a serious rule violation — such as a dangerous technique that risks injuring the opponent, or accumulating 3 Shido. Unlike some other combat sports, Judo is especially strict about protecting joints and the spine.'
+        ])
+    ]
+  },
+  {
+    id: 'bjj-basics',
+    label: { th: 'บราซิลเลียนยิวยิตสู: กติกาพื้นฐาน', en: 'Brazilian Jiu-Jitsu: Basic Rules' },
+    group: { th: 'บราซิลเลียนยิวยิตสู', en: 'Brazilian Jiu-Jitsu' },
+    items: [
+      readingItem('รู้จัก Brazilian Jiu-Jitsu', 'Meet Brazilian Jiu-Jitsu',
+        [
+          "บราซิลเลียนยิวยิตสู (BJJ) เป็นศิลปะการต่อสู้เน้นการปล้ำและควบคุมพื้นสนามที่พัฒนาขึ้นในบราซิล มีรากฐานจากยูโด (ผ่านการถ่ายทอดของมิตสึโยะ มาเอดะ ให้ตระกูล Gracie ในช่วงต้นคริสต์ศตวรรษที่ 1900) ได้ฉายาว่า 'ศิลปะแห่งความอ่อนโยน' เพราะเน้นเทคนิคและคานงัดที่ทำให้คนตัวเล็กเอาชนะคนตัวใหญ่กว่าได้",
+          'BJJ มี 2 รูปแบบหลัก: Gi (สวมชุดคล้ายยูโด ใช้จับชุดคู่ต่อสู้ในการควบคุม) และ No-Gi (สวมเสื้อรัดรูป/กางเกงขาสั้น ไม่มีชุดให้จับ) เทคนิคบางส่วนต่างกันไปตามรูปแบบ เพราะไม่มีผ้าให้จับใน No-Gi',
+          'โครงสร้างการแข่งขันแตกต่างกันมากตามระดับสายและองค์กรจัดการแข่งขัน เช่น แมตช์ระดับสายขาวมักสั้นราว 5-6 นาที ขณะที่แมตช์ระดับสายดำมักยาวถึง 10 นาที'
+        ],
+        [
+          "Brazilian Jiu-Jitsu (BJJ) is a grappling and ground-control-focused martial art developed in Brazil, rooted in Judo (transmitted by Mitsuyo Maeda to the Gracie family in the early 1900s). It's nicknamed 'the gentle art' because it emphasizes technique and leverage that let a smaller person defeat a larger opponent.",
+          'BJJ has two main formats: Gi (wearing a judo-like uniform, using grips on the fabric to control the opponent) and No-Gi (wearing a rashguard/shorts, with no fabric to grip). Some techniques differ between the two formats because No-Gi has no cloth to grab.',
+          'Match structure varies widely by belt level and organizing body — for example, white belt matches are often around 5-6 minutes, while black belt matches often run up to 10 minutes.'
+        ]),
+      readingItem('การให้คะแนนและการชนะ', 'Scoring & Winning',
+        [
+          'ชนะทันทีด้วยการยอมแพ้ (Submission): คู่ต่อสู้ตบเสื่อ/ตบตัวคู่ต่อสู้ หรือพูดยอมแพ้ เมื่อโดนล็อกข้อต่อหรือรัดคอจนทนไม่ไหว',
+          'ระบบให้คะแนน (ตามกติกา IBJJF ซึ่งเป็นมาตรฐานที่ใช้แพร่หลาย): Takedown (ทุ่มลง) = 2 แต้ม, Guard Pass (ผ่านการ์ด) = 3 แต้ม, Mount/Back Control (คร่อมตัว/คุมหลัง) = 4 แต้ม, Sweep (พลิกสลับตำแหน่ง) = 2 แต้ม, Knee-on-Belly (เข่ากดท้อง) = 2 แต้ม — คะแนนให้รางวัลกับการควบคุมตำแหน่งที่ได้เปรียบ',
+          "ถ้าไม่มีใครทำให้อีกฝ่ายยอมแพ้ ผู้ที่มีคะแนนมากกว่าเมื่อหมดเวลาเป็นผู้ชนะ ถ้าคะแนนเท่ากันจะตัดสินด้วย 'Advantage' (ความพยายามที่เกือบสำเร็จ) ถ้ายังเสมออีกจะให้กรรมการตัดสิน"
+        ],
+        [
+          'An instant win by Submission: the opponent taps the mat or their opponent\'s body, or verbally submits, when they can no longer withstand a joint lock or choke.',
+          'The point system (under IBJJF rules, the most widely used standard): a Takedown = 2 points, a Guard Pass = 3 points, Mount/Back Control = 4 points, a Sweep = 2 points, Knee-on-Belly = 2 points — points reward gaining and holding a dominant position.',
+          "If nobody forces a submission, whoever has more points at the time limit wins. If points are tied, 'Advantages' (near-successful attempts) break the tie; if still tied, the referees decide."
+        ]),
+      readingItem('ตำแหน่งควบคุมพื้นฐาน', 'Basic Positions',
+        [
+          'Guard (การ์ด): ผู้เล่นที่อยู่ด้านล่างใช้ขาควบคุม/คุกคามผู้เล่นด้านบน — ต่างจากกีฬาปล้ำอื่นๆ ที่การอยู่ด้านล่างมักเสียเปรียบล้วนๆ ใน BJJ การ์ดถือเป็นตำแหน่งที่เป็นกลางไปจนถึงได้เปรียบ เพราะสามารถโจมตีและป้องกันตัวได้พร้อมกัน',
+          'Mount (คร่อมตัว): ผู้เล่นด้านบนนั่งคร่อมลำตัวคู่ต่อสู้หันหน้าเข้าหากัน เป็นหนึ่งในตำแหน่งที่ได้เปรียบที่สุด เพราะเปิดโอกาสโจมตีด้วยเทคนิคยอมแพ้ได้หลากหลาย',
+          'Back Control (คุมหลัง): ควบคุมคู่ต่อสู้จากด้านหลังโดยเกี่ยวขาทั้งสองข้าง (Hooks) เป็นตำแหน่งที่ได้เปรียบมากที่สุด เพราะคู่ต่อสู้มองไม่เห็นและป้องกันตัวได้ยาก',
+          'Side Control (คุมข้าง): กดคู่ต่อสู้จากด้านข้างในแนวตั้งฉาก ควบคุมสะโพกและไหล่ของคู่ต่อสู้ไว้ เป็นตำแหน่งควบคุมพื้นฐานที่มักใช้พักหรือเปลี่ยนไปตำแหน่งอื่น'
+        ],
+        [
+          "Guard: the bottom player uses their legs to control and threaten the top player. Unlike most grappling sports where being underneath is purely disadvantageous, in BJJ, guard is considered a neutral-to-advantageous position because it allows both attack and defense simultaneously.",
+          "Mount: the top player sits astride the opponent's torso facing them — one of the most dominant positions, since it opens up many submission options.",
+          "Back Control: controlling the opponent from behind with both legs hooked in — the single most dominant position, since the opponent can't see the attacker and struggles to defend effectively.",
+          'Side Control: pinning the opponent perpendicular from the side, controlling their hips and shoulders — a fundamental control position often used to rest or transition to another position.'
+        ]),
+      readingItem('การรัดและการล็อกพื้นฐาน', 'Basic Submissions',
+        [
+          'Rear Naked Choke (รัดคอจากด้านหลัง): ใช้จากตำแหน่งคุมหลัง สอดแขนรัดรอบคอเพื่อตัดการไหลเวียนเลือด เป็นหนึ่งในเทคนิคยอมแพ้ที่ได้ผลและใช้สำเร็จบ่อยที่สุดในทุกระดับ',
+          'Armbar / Juji Gatame (ล็อกข้อศอก): แยกแขนคู่ต่อสู้ออกมาแล้วดัดข้อศอกย้อนทิศทาง ใช้ได้จากหลายตำแหน่งทั้งการ์ด คร่อมตัว หรือตำแหน่งอื่นๆ',
+          'Triangle Choke (รัดคอสามเหลี่ยม): ใช้ขาทั้งสองข้าง (จัดเป็นรูปสามเหลี่ยม) ล็อกรอบคอคู่ต่อสู้และแขนข้างหนึ่งเพื่อตัดการไหลเวียนเลือด เป็นเทคนิคเอกลักษณ์ที่ทำจากตำแหน่งการ์ด',
+          'Kimura / Americana (ล็อกไหล่): เทคนิคล็อกข้อไหล่ที่ตั้งชื่อตามนักยูโดที่เกี่ยวข้อง ทำโดยควบคุมข้อมือคู่ต่อสู้แล้วหมุนแขนย้อนทิศทาง'
+        ],
+        [
+          'Rear Naked Choke: applied from back control, wrapping an arm around the neck to cut off blood flow — one of the most reliable and frequently successful submissions at every skill level.',
+          "Armbar (Juji Gatame): isolating the opponent's arm and hyperextending the elbow joint in reverse — can be applied from guard, mount, or several other positions.",
+          "Triangle Choke: using both legs (formed into a triangle shape) to lock around the opponent's neck and one arm, cutting off blood flow — a signature technique applied from guard.",
+          "Kimura / Americana: shoulder joint locks named after the judoka associated with them, applied by controlling the opponent's wrist and rotating the arm in reverse."
+        ]),
+      readingItem('ระบบสายคาดเอวและวัฒนธรรมยิม', 'Belt System & Gym Culture',
+        [
+          'การไล่ระดับสายคาดเอวของ BJJ ช้ากว่าศิลปะการต่อสู้ส่วนใหญ่อย่างเห็นได้ชัด: ขาว → ฟ้า → ม่วง → น้ำตาล → ดำ มักใช้เวลา 8-10 ปีขึ้นไปกว่าจะได้สายดำ เพราะเนื้อหาเทคนิคมีความลึกและซับซ้อนมาก',
+          "'Rolling' คือศัพท์เรียกการฝึกซ้อมแบบต่อสู้จริง (เทียบเท่า Randori ในยูโด) เป็นวิธีฝึกหลักคู่กับการฝึกท่าเฉพาะ (Drilling) เพื่อพัฒนาทักษะกับคู่ฝึกที่ต่อต้านจริง",
+          "'Tap Early, Tap Often' คือวัฒนธรรมความปลอดภัยหลักของ BJJ — การตบยอมแพ้เมื่อโดนล็อกไม่ใช่เรื่องน่าอาย แต่เป็นวิธีป้องกันการบาดเจ็บและฝึกได้ต่อเนื่องในระยะยาว การดื้อไม่ยอมแพ้เพราะอีโก้ถือเป็นมารยาทที่ไม่ดีในยิม"
+        ],
+        [
+          "BJJ's belt progression is notably slower than most martial arts: White → Blue → Purple → Brown → Black, often taking 8 or more years to reach black belt because of the sport's technical depth and complexity.",
+          "'Rolling' is the term for live sparring practice (equivalent to Randori in Judo) — the primary training method alongside drilling specific techniques, used to develop skill against a genuinely resisting partner.",
+          "'Tap early, tap often' is BJJ's core safety culture — tapping out when caught in a submission isn't shameful, it's how practitioners avoid injury and keep training for the long term. Refusing to tap out of ego is considered poor gym etiquette."
+        ]),
+      readingItem('แนวคิดหลัก: ตำแหน่งก่อนการยอมแพ้ และการผ่านการ์ด', 'Core Concept: Position Before Submission & Guard Passing',
+        [
+          "หลักคิดสำคัญที่สุดข้อหนึ่งของ BJJ คือ 'ตำแหน่งมาก่อนการยอมแพ้' (Position Before Submission) — นักกีฬาที่เก่งจะไม่รีบพยายามล็อกจากตำแหน่งเสียเปรียบ แต่จะไล่ควบคุมตำแหน่งที่ได้เปรียบมากขึ้นเรื่อยๆ ก่อนแล้วค่อยหาจังหวะล็อกทีหลัง",
+          'ลำดับขั้นตำแหน่งจากได้เปรียบมากไปน้อย (คร่าวๆ): Back Control > Mount > Side Control/Knee-on-Belly > Half Guard > Guard (ทั้งสองฝ่ายเท่ากันโดยประมาณ) > อยู่ใต้ Side Control/Mount ของคู่ต่อสู้ (เสียเปรียบที่สุด)',
+          'Guard Passing (การผ่านการ์ด) คือเป้าหมายหลักของผู้เล่นด้านบน: ต้องหาทางผ่านขาคู่ต่อสู้ไปสู่ตำแหน่งควบคุมที่ดีกว่า มี 2 สไตล์หลัก คือ Pressure Passing (ใช้น้ำหนักตัวกดทับบีบพื้นที่คู่ต่อสู้) และ Speed Passing (ใช้ความเร็วเคลื่อนที่รอบขาคู่ต่อสู้ก่อนตั้งตัวทัน)',
+          'ในทางกลับกัน ผู้เล่นด้านล่าง (ผู้ถือการ์ด) มีเป้าหมาย 2 อย่างคู่กัน: พลิกสลับตำแหน่งขึ้นมาอยู่ด้านบน (Sweep) หรือหาจังหวะล็อกจากการ์ดโดยตรง (เช่น Triangle Choke) โดยไม่ต้องรอขึ้นไปอยู่ด้านบนก่อน'
+        ],
+        [
+          "One of BJJ's most important concepts is 'Position Before Submission' — skilled practitioners don't rush a submission attempt from a disadvantageous position, but instead progress to increasingly dominant positions first, then look for a submission opportunity.",
+          'A rough position hierarchy from most to least advantageous: Back Control > Mount > Side Control/Knee-on-Belly > Half Guard > Guard (roughly neutral between both players) > being underneath the opponent\'s Side Control or Mount (the most disadvantageous).',
+          "Guard Passing is the top player's primary goal — finding a way past the opponent's legs to a better control position. There are two main styles: Pressure Passing (using body weight to compress the opponent's space) and Speed Passing (moving quickly around the opponent's legs before they can react).",
+          'Conversely, the bottom player (holding guard) has two paired goals: sweeping to reverse into the top position, or looking for a submission directly from guard (such as a Triangle Choke) without needing to get on top first.'
+        ]),
+      readingItem('รูปแบบการแข่งขัน: IBJJF กับ ADCC', 'Competition Formats: IBJJF vs ADCC',
+        [
+          'IBJJF (International Brazilian Jiu-Jitsu Federation) เป็นองค์กรจัดการแข่งขันประเภท Gi ที่ใหญ่ที่สุดในโลก ใช้กติกาให้คะแนนแบบมาตรฐานที่กล่าวถึงในบทเรียนก่อนหน้า และมีกฎจำกัดเทคนิคล็อกขาบางแบบตามระดับสาย เพื่อความปลอดภัยของนักกีฬารุ่นเล็ก',
+          'ADCC (Abu Dhabi Combat Club) คือการแข่งขันประเภท No-Gi ที่ได้รับการยกย่องสูงสุดในวงการ จัดทุก 2 ปี ใช้กติกาที่เปิดกว้างกว่า อนุญาตให้ใช้เทคนิคล็อกขาได้หลากหลายกว่า IBJJF อย่างชัดเจน',
+          'ความแตกต่างสำคัญระหว่างสองสนาม: กฎเรื่องเทคนิคล็อกขา (Leg Locks) — IBJJF จำกัดเทคนิคล็อกขาบางแบบ (เช่น Heel Hook) ไว้เฉพาะระดับสายสูง เพื่อป้องกันอาการบาดเจ็บในนักกีฬาที่ยังไม่มีประสบการณ์พอจะป้องกันตัวจากท่านี้ ขณะที่ ADCC และกติกา No-Gi ทั่วไปมักอนุญาตให้ใช้ได้กว้างกว่า',
+          'BJJ มีบทบาทสำคัญในการวางรากฐานกีฬา MMA สมัยใหม่: แชมป์ยุคแรกๆ ของ UFC หลายคน เช่น Royce Gracie เป็นนักกีฬา BJJ ที่ใช้เทคนิคควบคุมพื้นสนามเอาชนะคู่ต่อสู้ที่ตัวใหญ่กว่ามาก พิสูจน์ให้วงการเห็นความสำคัญของการต่อสู้บนพื้น'
+        ],
+        [
+          'IBJJF (International Brazilian Jiu-Jitsu Federation) is the largest organizer of Gi competitions in the world, using the standard point system covered in the previous lesson, and restricting certain leg lock techniques by belt level for the safety of less experienced competitors.',
+          'ADCC (Abu Dhabi Combat Club) is the most prestigious No-Gi tournament in the sport, held every 2 years, using more open rules that permit a noticeably wider range of leg lock techniques than IBJJF.',
+          'A key difference between the two: leg lock rules — IBJJF restricts certain leg lock techniques (such as the Heel Hook) to higher belt levels only, to prevent injury in less experienced athletes who may not yet be able to defend against them, while ADCC and most No-Gi rulesets generally allow them more broadly.',
+          'BJJ played a foundational role in shaping modern MMA — several of the UFC\'s earliest champions, such as Royce Gracie, were BJJ specialists who beat much larger opponents using ground control, proving to the wider combat sports world how important ground fighting is.'
         ])
     ]
   }
@@ -1035,8 +1390,11 @@ var BADGE_DEFS = [
   { id: 'track-badminton-basics', icon: '🏸', th: 'เจ้ากติกาแบดมินตัน', en: 'Badminton Rules Master' },
   { id: 'track-tennis-basics', icon: '🎾', th: 'เจ้ากติกาเทนนิส', en: 'Tennis Rules Master' },
   { id: 'track-table-tennis-basics', icon: '🏓', th: 'เจ้ากติกาเทเบิลเทนนิส', en: 'Table Tennis Rules Master' },
-  { id: 'track-muay-thai-basics', icon: '🥊', th: 'เจ้ากติกามวยไทย', en: 'Muay Thai Rules Master' },
+  { id: 'track-muay-thai-basics', icon: '🇹🇭', th: 'เจ้ากติกามวยไทย', en: 'Muay Thai Rules Master' },
   { id: 'track-taekwondo-basics', icon: '🥋', th: 'เจ้ากติกาเทควันโด', en: 'Taekwondo Rules Master' },
+  { id: 'track-boxing-basics', icon: '🥊', th: 'เจ้ากติกามวยสากล', en: 'Boxing Rules Master' },
+  { id: 'track-judo-basics', icon: '🤼', th: 'เจ้ากติกายูโด', en: 'Judo Rules Master' },
+  { id: 'track-bjj-basics', icon: '🇧🇷', th: 'เจ้ากติกา BJJ', en: 'BJJ Rules Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สที่มีทั้งหมด!', en: 'All Lessons Complete!' }
