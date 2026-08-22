@@ -482,7 +482,15 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
      ที่พิมพ์แบบเต็มจอจริงบนมือถือ (กรอบพรีวิวเล็กในหน้านี้อาจดูยากบนจอเล็ก) */
   if (openFullBtn) {
     openFullBtn.addEventListener('click', function () {
-      var blob = new Blob([getCode()], { type: 'text/html' });
+      /* บั๊กที่เจอจริง (ผู้ใช้รายงาน): เปิดแล้วภาษาไทยกลายเป็นตัวอักษรมั่วๆ ("เธชเธงเธฑเธชเธ”เธต")
+         เพราะโค้ดที่ผู้เรียนพิมพ์เป็นแค่ชิ้นส่วน HTML (เช่น <h1>สวัสดี</h1>) ไม่มี <meta charset>
+         ของตัวเอง เบราว์เซอร์เลยต้องเดา encoding เอง (เดาผิดเป็น Latin-1/Windows-1252 แทน UTF-8)
+         แก้ 2 ชั้น: (1) ระบุ charset=utf-8 ตรงๆ ใน MIME type ของ Blob (2) แทรก <meta charset="utf-8">
+         นำหน้าโค้ดเสมอถ้ายังไม่มี — กันไว้สองชั้นเผื่อบางเบราว์เซอร์ไม่อ่าน charset จาก Blob type */
+      var code = getCode();
+      var hasCharsetMeta = /<meta[^>]+charset/i.test(code);
+      var fullHtml = hasCharsetMeta ? code : '<meta charset="utf-8">\n' + code;
+      var blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
       var url = URL.createObjectURL(blob);
       window.open(url, '_blank');
     });
