@@ -32,6 +32,10 @@ var I18N = {
     quizPromptPianoChordQuality: 'คอร์ดที่กดอยู่บนเปียโนนี้เป็นเมเจอร์หรือไมเนอร์?',
     quizPromptPianoChordRoot: 'คอร์ดที่กดอยู่บนเปียโนนี้มีโน้ตรากเป็นตัวอะไร?',
     quizPromptGuitarChord: 'ไดอะแกรมนี้คือคอร์ดอะไร?',
+    quizPromptPitchCompare: 'เสียงที่ 2 สูงกว่าหรือต่ำกว่าเสียงที่ 1?',
+    quizPromptPitchSameDiff: 'สองเสียงนี้เป็นเสียงเดียวกันหรือต่างกัน?',
+    quizPromptChordEar: 'คอร์ดที่ได้ยินเป็นเมเจอร์หรือไมเนอร์?',
+    listenBtn: '🔊 ฟังเสียง',
     correctMsg: '✅ ถูกต้อง! ปลดล็อกข้อถัดไปแล้ว',
     trackDoneMsg: '🎉 จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
     toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
@@ -54,6 +58,10 @@ var I18N = {
     quizPromptPianoChordQuality: 'Is this piano chord major or minor?',
     quizPromptPianoChordRoot: 'What is the root note of this piano chord?',
     quizPromptGuitarChord: 'Which chord is this diagram?',
+    quizPromptPitchCompare: 'Is the 2nd note higher or lower than the 1st?',
+    quizPromptPitchSameDiff: 'Are these two notes the same pitch or different?',
+    quizPromptChordEar: 'Is the chord you hear major or minor?',
+    listenBtn: '🔊 Listen',
     correctMsg: '✅ Correct! Next one unlocked.',
     trackDoneMsg: '🎉 Lesson complete! Pick the next lesson from the ☰ menu above.',
     toastTrackDone: 'Lesson "{track}" complete! 🎉',
@@ -339,6 +347,59 @@ function buildGuitarChordSvg(pattern) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   ฝึกหูดนตรี — สังเคราะห์เสียงจริงด้วย Web Audio API (oscillator คลื่นไซน์) ไม่ใช้ไฟล์เสียง
+   ใดๆ เลย สร้าง AudioContext แบบ lazy (รอจนผู้ใช้กดปุ่มครั้งแรกค่อยสร้าง — เบราว์เซอร์บล็อก
+   autoplay เสียงที่ไม่มาจาก user gesture อยู่แล้ว การรอให้ปุ่มเป็นตัวสร้าง context จึงถูกต้องเป๊ะ)
+   ══════════════════════════════════════════════════════════════════ */
+var NATURAL_SEMITONE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+function noteFreq(letter, octave) {
+  var midi = (octave + 1) * 12 + NATURAL_SEMITONE[letter];
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+var audioCtx = null;
+function getAudioCtx() {
+  var AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  if (!audioCtx) audioCtx = new AC();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playTone(ctx, freq, startTime, duration) {
+  var osc = ctx.createOscillator();
+  var gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  /* envelope สั้นๆ กันเสียง "click" ตอนเริ่ม/จบโน้ตแบบดิบๆ */
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(0.25, startTime + 0.02);
+  gain.gain.setValueAtTime(0.25, startTime + duration - 0.05);
+  gain.gain.linearRampToValueAtTime(0, startTime + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(startTime);
+  osc.stop(startTime + duration + 0.02);
+}
+/* เล่นทีละโน้ตต่อกัน (ไล่ระดับเสียง) — ใช้กับโจทย์เทียบเสียงสูง-ต่ำ/เหมือน-ต่าง */
+function playSequence(freqs) {
+  var ctx = getAudioCtx();
+  if (!ctx) return;
+  var t = ctx.currentTime + 0.05, dur = 0.55, gap = 0.15;
+  freqs.forEach(function (f, i) { playTone(ctx, f, t + i * (dur + gap), dur); });
+}
+/* เล่นพร้อมกันทุกโน้ต (คอร์ด) — ใช้กับโจทย์แยกเมเจอร์/ไมเนอร์ด้วยหู */
+function playChordTones(freqs) {
+  var ctx = getAudioCtx();
+  if (!ctx) return;
+  var t = ctx.currentTime + 0.05, dur = 1.1;
+  freqs.forEach(function (f) { playTone(ctx, f, t, dur); });
+}
+function buildEarPlayerHtml() {
+  return '<div style="text-align:center;padding:24px 0">' +
+    '<button type="button" id="earPlayBtn" class="btn primary" style="font-size:16px;padding:16px 32px">' + t('listenBtn') + '</button>' +
+    '</div>';
+}
+
+/* ══════════════════════════════════════════════════════════════════
    เนื้อหาบทเรียน
    ══════════════════════════════════════════════════════════════════ */
 function readingItem(headingTh, headingEn, paragraphsTh, paragraphsEn) {
@@ -403,6 +464,27 @@ GUITAR_CHORDS.forEach(function (c) { GUITAR_CHORD_LABELS[c.name] = c.label; });
 var GUITAR_CHORD_NAMES = GUITAR_CHORDS.map(function (c) { return c.name; });
 function quizGuitarChordItem(chord) {
   return { kind: 'quiz', qType: 'guitar-chord', pattern: chord.pattern, answer: chord.name };
+}
+function quizPitchCompareItem(note1, oct1, note2, oct2) {
+  var f1 = noteFreq(note1, oct1), f2 = noteFreq(note2, oct2);
+  return { kind: 'quiz', qType: 'pitch-compare', freqs: [f1, f2], answer: f2 > f1 ? 'higher' : 'lower' };
+}
+function quizPitchSameDiffItem(note1, oct1, note2, oct2) {
+  var f1 = noteFreq(note1, oct1), f2 = noteFreq(note2, oct2);
+  var same = note1 === note2 && oct1 === oct2;
+  return { kind: 'quiz', qType: 'pitch-same-diff', freqs: [f1, f2], answer: same ? 'same' : 'different' };
+}
+/* ตำแหน่งโน้ต+ออกเทฟของแต่ละคอร์ดใน CHORDS (index เดียวกัน) — ใช้ค่าเดิมจากบทคอร์ดเบื้องต้น/
+   หัดเล่นเปียโน ให้เสียงที่ได้ยินตรงกับโน้ตที่เคยเห็นบนบรรทัด/คีย์เปียโนพอดี ไม่ต้องคิดใหม่ */
+var CHORD_NOTE_OCTAVES = {
+  0: [['C', 4], ['E', 4], ['G', 4]],
+  1: [['D', 4], ['F', 4], ['A', 4]],
+  3: [['F', 4], ['A', 4], ['C', 5]],
+  5: [['A', 4], ['C', 5], ['E', 5]]
+};
+function quizChordEarItem(chordIdx) {
+  var freqs = CHORD_NOTE_OCTAVES[chordIdx].map(function (n) { return noteFreq(n[0], n[1]); });
+  return { kind: 'quiz', qType: 'chord-quality-ear', freqs: freqs, answer: CHORDS[chordIdx].quality };
 }
 
 var TRACKS = [
@@ -742,6 +824,44 @@ var TRACKS = [
       quizGuitarChordItem(GUITAR_CHORDS[4]), quizGuitarChordItem(GUITAR_CHORDS[5]),
       quizGuitarChordItem(GUITAR_CHORDS[6]), quizGuitarChordItem(GUITAR_CHORDS[7])
     ]
+  },
+  {
+    id: 'ear-training',
+    label: { th: 'ฝึกหูดนตรี', en: 'Ear Training' },
+    group: { th: 'ฝึกหู', en: 'Ear Training' },
+    items: [
+      readingItem('ฝึกหูดนตรีคืออะไร', 'What Is Ear Training',
+        [
+          'ฝึกหูดนตรี (Ear Training) คือการฝึกให้หูจดจำและแยกแยะเสียงดนตรีได้ โดยไม่ต้องดูโน้ตเลย — ทักษะนี้ช่วยให้เล่นตามเพลงที่ได้ยินได้ (play by ear), แกะเพลง, และแต่งเพลงได้ไวขึ้น',
+          "ทุกคนฝึกฟังแบบนี้ได้ ไม่จำเป็นต้องมี 'พรสวรรค์หูทิพย์' — เริ่มจากทักษะพื้นฐานที่สุดก่อน: แยกเสียงสูง/ต่ำ และแยกว่าสองเสียงเหมือนกันหรือต่างกัน แล้วค่อยไปถึงการแยกคอร์ดเมเจอร์/ไมเนอร์ด้วยหู",
+          'กดปุ่ม 🔊 ฟังเสียง ได้ไม่จำกัดจำนวนครั้งในแต่ละข้อ ฟังซ้ำได้เรื่อยๆ จนกว่าจะมั่นใจแล้วค่อยตอบ'
+        ],
+        [
+          "Ear Training means training your ear to recognize and distinguish musical sounds without looking at any notation — this skill helps you play songs by ear, transcribe music, and compose faster.",
+          "Anyone can train this — you don't need a 'natural gift.' Start with the most basic skills: telling high from low pitch, and telling whether two pitches are the same or different, then move up to recognizing major vs minor chords by ear.",
+          "Click the 🔊 Listen button as many times as you like on each question — replay until you're confident, then answer."
+        ]),
+      quizPitchCompareItem('C', 4, 'G', 4),
+      quizPitchCompareItem('G', 4, 'C', 4),
+      quizPitchCompareItem('C', 4, 'D', 4),
+      quizPitchCompareItem('E', 5, 'C', 4),
+      quizPitchSameDiffItem('C', 4, 'C', 4),
+      quizPitchSameDiffItem('C', 4, 'E', 4),
+      quizPitchSameDiffItem('G', 4, 'G', 4),
+      quizPitchSameDiffItem('D', 4, 'A', 4),
+      readingItem('แยกคอร์ดเมเจอร์/ไมเนอร์ด้วยหู', 'Hearing Major vs Minor Chords',
+        [
+          "จำได้จากบทคอร์ดเบื้องต้นไหม? คอร์ดเมเจอร์ฟังดู 'สดใส/มีความสุข' ส่วนคอร์ดไมเนอร์ฟังดู 'เศร้า/มืดหม่น' — ความแตกต่างนี้ได้ยินได้จริงๆ ไม่ใช่แค่ทฤษฎี",
+          "ลองฟังคอร์ดในแบบฝึกหัดถัดไป แล้วถามตัวเองว่า 'ฟังดูมีความสุขไหม หรือฟังดูเหงาๆ' — ไม่ต้องรู้ชื่อโน้ตเป๊ะๆ ก็แยกได้ ใช้ความรู้สึกล้วนๆ",
+          'ทักษะนี้ฝึกบ่อยๆ จะกลายเป็นสัญชาตญาณ — นักดนตรีมืออาชีพหลายคนแยกเมเจอร์/ไมเนอร์ได้ในเสี้ยววินาทีโดยไม่ต้องคิด'
+        ],
+        [
+          "Remember from the Basic Chords lesson? Major chords sound 'bright/happy' while minor chords sound 'sad/dark' — this difference is genuinely audible, not just theory.",
+          "Listen to the chord in the next exercises and ask yourself, 'does this sound happy, or does it sound melancholy?' — you don't need to know the exact notes, just go by feeling.",
+          "Practice this often and it becomes instinct — many professional musicians can tell major from minor in a split second without even thinking about it."
+        ]),
+      quizChordEarItem(0), quizChordEarItem(1), quizChordEarItem(3), quizChordEarItem(5)
+    ]
   }
 ];
 
@@ -808,6 +928,7 @@ var BADGE_DEFS = [
   { id: 'track-chords', icon: '🎶', th: 'เจ้าคอร์ด', en: 'Chord Master' },
   { id: 'track-piano', icon: '🎹', th: 'เจ้าเปียโน', en: 'Piano Master' },
   { id: 'track-guitar', icon: '🎸', th: 'เจ้ากีตาร์', en: 'Guitar Master' },
+  { id: 'track-ear-training', icon: '👂', th: 'นักฟังเสียง', en: 'Ear Training Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สทฤษฎีเบื้องต้น!', en: 'Theory Basics Complete!' }
@@ -1082,6 +1203,17 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       } else if (item.qType === 'guitar-chord') {
         quizPromptEl.textContent = t('quizPromptGuitarChord');
         staffSvgHolder.innerHTML = buildGuitarChordSvg(item.pattern);
+      } else if (item.qType === 'pitch-compare' || item.qType === 'pitch-same-diff' || item.qType === 'chord-quality-ear') {
+        quizPromptEl.textContent = t(
+          item.qType === 'pitch-compare' ? 'quizPromptPitchCompare' :
+          item.qType === 'pitch-same-diff' ? 'quizPromptPitchSameDiff' : 'quizPromptChordEar'
+        );
+        staffSvgHolder.innerHTML = buildEarPlayerHtml();
+        var playFn = item.qType === 'chord-quality-ear'
+          ? function () { playChordTones(item.freqs); }
+          : function () { playSequence(item.freqs); };
+        var earBtn = document.getElementById('earPlayBtn');
+        if (earBtn) earBtn.addEventListener('click', playFn);
       } else {
         quizPromptEl.textContent = t(CLEFS[item.clef || 'treble'].promptKey);
         staffSvgHolder.innerHTML = buildStaffSvg(item.step, item.clef);
@@ -1107,6 +1239,16 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     major: { th: 'เมเจอร์ (Major)', en: 'Major' },
     minor: { th: 'ไมเนอร์ (Minor)', en: 'Minor' }
   };
+  var PITCH_COMPARE_OPTIONS = ['higher', 'lower'];
+  var PITCH_COMPARE_LABELS = {
+    higher: { th: 'สูงกว่า', en: 'Higher' },
+    lower: { th: 'ต่ำกว่า', en: 'Lower' }
+  };
+  var PITCH_SAME_DIFF_OPTIONS = ['same', 'different'];
+  var PITCH_SAME_DIFF_LABELS = {
+    same: { th: 'เสียงเดียวกัน', en: 'Same' },
+    different: { th: 'ต่างกัน', en: 'Different' }
+  };
   function renderAnswerRow(item) {
     answerRow.innerHTML = '';
     var progress = loadProgress();
@@ -1115,17 +1257,21 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     var alreadyPassed = !!progress[progressKey(track.id, idx)];
     var isValueQuiz = item.qType === 'note-value' || item.qType === 'time-sig-unit';
     var isBeatsQuiz = item.qType === 'time-sig-beats';
-    var isQualityQuiz = item.qType === 'chord-quality' || item.qType === 'piano-chord-quality';
+    var isQualityQuiz = item.qType === 'chord-quality' || item.qType === 'piano-chord-quality' || item.qType === 'chord-quality-ear';
     var isGuitarQuiz = item.qType === 'guitar-chord';
-    var isWide = isValueQuiz || isQualityQuiz || isGuitarQuiz;
+    var isPitchCompareQuiz = item.qType === 'pitch-compare';
+    var isPitchSameDiffQuiz = item.qType === 'pitch-same-diff';
+    var isWide = isValueQuiz || isQualityQuiz || isGuitarQuiz || isPitchCompareQuiz || isPitchSameDiffQuiz;
     var choices = isValueQuiz ? NOTE_VALUE_ORDER : isBeatsQuiz ? TIME_SIG_BEATS_OPTIONS :
-      isQualityQuiz ? CHORD_QUALITY_OPTIONS : isGuitarQuiz ? GUITAR_CHORD_NAMES : ANSWER_LETTERS;
+      isQualityQuiz ? CHORD_QUALITY_OPTIONS : isGuitarQuiz ? GUITAR_CHORD_NAMES :
+      isPitchCompareQuiz ? PITCH_COMPARE_OPTIONS : isPitchSameDiffQuiz ? PITCH_SAME_DIFF_OPTIONS : ANSWER_LETTERS;
     choices.forEach(function (choice) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'mx-answer-btn' + (isWide ? ' wide' : '');
       btn.textContent = isValueQuiz ? pick(NOTE_VALUE_LABELS[choice]) : isQualityQuiz ? pick(CHORD_QUALITY_LABELS[choice]) :
-        isGuitarQuiz ? pick(GUITAR_CHORD_LABELS[choice]) : String(choice);
+        isGuitarQuiz ? pick(GUITAR_CHORD_LABELS[choice]) : isPitchCompareQuiz ? pick(PITCH_COMPARE_LABELS[choice]) :
+        isPitchSameDiffQuiz ? pick(PITCH_SAME_DIFF_LABELS[choice]) : String(choice);
       if (alreadyPassed) {
         btn.disabled = true;
         if (choice === item.answer) btn.classList.add('correct');
