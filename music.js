@@ -41,6 +41,8 @@ var I18N = {
     quizPromptProgression: 'ในโพรเกรสชัน I-V-vi-IV ตำแหน่งที่ {position} คือคอร์ดอะไร?',
     listenBtn: '🔊 ฟังเสียง',
     listenProgressionBtn: '🔊 ฟังโพรเกรสชัน I-V-vi-IV',
+    listenBeatBtn: '🔊 ฟังจังหวะร็อกพื้นฐาน',
+    quizPromptDrumEar: 'เสียงที่ได้ยินคือชิ้นกลองไหน?',
     correctMsg: '✅ ถูกต้อง! ปลดล็อกข้อถัดไปแล้ว',
     trackDoneMsg: '🎉 จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
     toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
@@ -72,6 +74,8 @@ var I18N = {
     quizPromptProgression: 'In the I-V-vi-IV progression, what is chord #{position}?',
     listenBtn: '🔊 Listen',
     listenProgressionBtn: '🔊 Listen to I-V-vi-IV',
+    listenBeatBtn: '🔊 Listen to the Basic Rock Beat',
+    quizPromptDrumEar: 'Which drum piece is this sound?',
     correctMsg: '✅ Correct! Next one unlocked.',
     trackDoneMsg: '🎉 Lesson complete! Pick the next lesson from the ☰ menu above.',
     toastTrackDone: 'Lesson "{track}" complete! 🎉',
@@ -458,6 +462,90 @@ function buildEarPlayerHtml() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   สังเคราะห์เสียงกลอง (ไม่ใช้ไฟล์เสียง เหมือนโน้ตดนตรีอื่นๆ ในหน้านี้) — Kick ใช้ sine
+   กวาดความถี่ลง (pitch envelope) แบบกลองเบสดรัมจริง, Snare/Hi-Hat ใช้ white noise buffer
+   ผ่านฟิลเตอร์ความถี่คนละแบบ (Snare ผสมโทนกลาง 180Hz, Hi-Hat highpass สูงมาก สั้นกระชับ)
+   ══════════════════════════════════════════════════════════════════ */
+var drumNoiseBuffer = null;
+function getDrumNoiseBuffer(ctx) {
+  if (drumNoiseBuffer) return drumNoiseBuffer;
+  var size = ctx.sampleRate * 0.5;
+  drumNoiseBuffer = ctx.createBuffer(1, size, ctx.sampleRate);
+  var data = drumNoiseBuffer.getChannelData(0);
+  for (var i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
+  return drumNoiseBuffer;
+}
+function playKickAt(ctx, startTime) {
+  var osc = ctx.createOscillator();
+  var gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(150, startTime);
+  osc.frequency.exponentialRampToValueAtTime(45, startTime + 0.15);
+  gain.gain.setValueAtTime(0.9, startTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(startTime); osc.stop(startTime + 0.32);
+}
+function playSnareAt(ctx, startTime) {
+  var noise = ctx.createBufferSource();
+  noise.buffer = getDrumNoiseBuffer(ctx);
+  var noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = 'highpass';
+  noiseFilter.frequency.value = 1000;
+  var noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.6, startTime);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.18);
+  noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(ctx.destination);
+  noise.start(startTime); noise.stop(startTime + 0.2);
+
+  var osc = ctx.createOscillator();
+  var oscGain = ctx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.value = 180;
+  oscGain.gain.setValueAtTime(0.35, startTime);
+  oscGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.12);
+  osc.connect(oscGain); oscGain.connect(ctx.destination);
+  osc.start(startTime); osc.stop(startTime + 0.14);
+}
+function playHiHatAt(ctx, startTime) {
+  var noise = ctx.createBufferSource();
+  noise.buffer = getDrumNoiseBuffer(ctx);
+  var filter = ctx.createBiquadFilter();
+  filter.type = 'highpass';
+  filter.frequency.value = 7000;
+  var gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.4, startTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.06);
+  noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+  noise.start(startTime); noise.stop(startTime + 0.08);
+}
+function playDrumHit(type) {
+  var ctx = getAudioCtx();
+  if (!ctx) return;
+  var t = ctx.currentTime + 0.05;
+  if (type === 'kick') playKickAt(ctx, t);
+  else if (type === 'snare') playSnareAt(ctx, t);
+  else playHiHatAt(ctx, t);
+}
+/* จังหวะร็อกพื้นฐาน (Basic Rock Beat): Kick จังหวะ 1&3, Snare จังหวะ 2&4, Hi-Hat ทุกจังหวะ */
+function playRockBeat() {
+  var ctx = getAudioCtx();
+  if (!ctx) return;
+  var t = ctx.currentTime + 0.05, beatSec = 0.42;
+  var beats = ['kick', 'snare', 'kick', 'snare'];
+  beats.forEach(function (b, i) {
+    var bt = t + i * beatSec;
+    if (b === 'kick') playKickAt(ctx, bt); else playSnareAt(ctx, bt);
+    playHiHatAt(ctx, bt);
+  });
+}
+function buildDrumBeatListenHtml() {
+  return '<div style="text-align:center;padding:14px 0 4px">' +
+    '<button type="button" id="drumBeatPlayBtn" class="btn primary">' + t('listenBeatBtn') + '</button>' +
+    '</div>';
+}
+
+/* ══════════════════════════════════════════════════════════════════
    โพรเกรสชัน I-V-vi-IV (C-G-Am-F) — เล่นคอร์ดเรียงต่อกันทีละคอร์ด (ต่างจาก playChordTones
    ที่เล่นคอร์ดเดียว) ใช้ CHORD_NOTE_OCTAVES ร่วมกับบทฝึกหูดนตรี (นิยามไว้ด้านล่างในหมวด
    "เนื้อหาบทเรียน" — ฟังก์ชันในบล็อกนี้อ้างอิงถึงแค่ภายใน closure จึงเรียกได้ปกติตอนใช้งานจริง
@@ -633,6 +721,15 @@ var CHORD_NOTE_OCTAVES = {
 function quizChordEarItem(chordIdx) {
   var freqs = CHORD_NOTE_OCTAVES[chordIdx].map(function (n) { return noteFreq(n[0], n[1]); });
   return { kind: 'quiz', qType: 'chord-quality-ear', freqs: freqs, answer: CHORDS[chordIdx].quality };
+}
+var DRUM_HIT_OPTIONS = ['kick', 'snare', 'hihat'];
+var DRUM_HIT_LABELS = {
+  kick: { th: 'กระเดื่อง (Kick)', en: 'Kick' },
+  snare: { th: 'สแนร์ (Snare)', en: 'Snare' },
+  hihat: { th: 'ไฮแฮต (Hi-Hat)', en: 'Hi-Hat' }
+};
+function quizDrumEarItem(type) {
+  return { kind: 'quiz', qType: 'drum-ear', drumType: type, answer: type };
 }
 
 var TRACKS = [
@@ -1007,6 +1104,76 @@ var TRACKS = [
     ]
   },
   {
+    id: 'drums',
+    label: { th: 'หัดเล่นกลองชุด', en: 'Drum Kit' },
+    group: { th: 'เครื่องดนตรี', en: 'Instruments' },
+    items: [
+      readingItem('รู้จักกลองชุดพื้นฐาน', 'Meet the Basic Drum Kit',
+        [
+          'กลองชุด (Drum Kit) ประกอบด้วยชิ้นส่วนหลัก 3 อย่างที่มือใหม่ต้องรู้จักก่อน: กระเดื่อง/เบสดรัม (Kick) เสียงทุ้มหนักตีด้วยเท้า, สแนร์ (Snare) เสียงแหลมคมกลางลำตัวตีด้วยไม้, และไฮแฮต (Hi-Hat) เสียงชิกๆ สั้นกระชับตีด้วยไม้เช่นกัน',
+          "ต่างจากเครื่องดนตรีมีระดับเสียง (เปียโน/กีตาร์) กลองไม่มีโน้ตที่ระบุระดับเสียงสูง-ต่ำ แต่บอกแค่ 'จังหวะ' และ 'ชิ้นไหนตี' — บทนี้จึงใช้ตารางกริดแทนโน้ตดนตรี: แต่ละคอลัมน์คือ 1 จังหวะ แต่ละแถวคือชิ้นส่วนกลอง",
+          "ฝึกจำเสียงแต่ละชิ้นด้วยหูก่อน: Kick เสียงทุ้ม 'ตุม', Snare เสียงแหลมคม 'แต้ก', Hi-Hat เสียงสั้นกระชับ 'ชิก' — แบบฝึกหัดถัดไปจะให้ฟังแล้วทายว่าเป็นชิ้นไหน"
+        ],
+        [
+          "A drum kit has 3 core pieces every beginner learns first: the Kick (bass drum) — a deep low thump played with the foot; the Snare — a sharp, crisp sound in the middle played with a stick; and the Hi-Hat — a short, tight 'chick' sound also played with a stick.",
+          "Unlike pitched instruments (piano/guitar), drums don't have notes for high/low pitch — they only show 'when' and 'which piece'. This lesson uses a grid instead of music notation: each column is one beat, each row is a drum piece.",
+          "First train your ear to recognize each sound: Kick is a deep 'thud', Snare is a sharp 'crack', Hi-Hat is a short tight 'chick' — the next exercises will play a sound and ask you to identify which piece it is."
+        ]),
+      quizDrumEarItem('kick'), quizDrumEarItem('snare'), quizDrumEarItem('hihat'),
+      quizDrumEarItem('snare'), quizDrumEarItem('kick'), quizDrumEarItem('hihat'),
+      Object.assign(
+        readingItem('จังหวะร็อกพื้นฐาน (Basic Rock Beat)', 'The Basic Rock Beat',
+          [
+            'จังหวะร็อกพื้นฐาน (Basic Rock Beat) เป็นแพทเทิร์นกลองที่พบได้ในเพลงป๊อป/ร็อกนับไม่ถ้วน นับ 4 จังหวะ (1-2-3-4) วนซ้ำ: Kick ตกที่จังหวะ 1 และ 3, Snare ตกที่จังหวะ 2 และ 4, ส่วน Hi-Hat ตีทุกจังหวะต่อเนื่องเป็นตัวคุมจังหวะ',
+            "ลองนับออกเสียง '1-2-3-4' พร้อมจินตนาการ: จังหวะ 1='ตุม' (kick) จังหวะ 2='แต้ก' (snare) จังหวะ 3='ตุม' (kick) จังหวะ 4='แต้ก' (snare) — ไฮแฮตแทรกอยู่ทุกจังหวะเป็นพื้นเสียง",
+            'แบบฝึกหัดถัดไปจะถามว่าจังหวะที่กำหนดมีชิ้นกลองไหนตีอยู่บ้าง'
+          ],
+          [
+            "The Basic Rock Beat is a drum pattern found in countless pop/rock songs. Counting 4 beats (1-2-3-4) on a loop: the Kick lands on beats 1 and 3, the Snare lands on beats 2 and 4, while the Hi-Hat plays every beat continuously to keep time.",
+            "Try counting out loud '1-2-3-4' while imagining: beat 1 = 'thud' (kick), beat 2 = 'crack' (snare), beat 3 = 'thud' (kick), beat 4 = 'crack' (snare) — the hi-hat is woven through every beat as the steady backdrop.",
+            'The next exercises will ask which drum piece(s) play on a given beat.'
+          ]),
+        { drumBeat: true }
+      ),
+      mcqItem(
+        'จังหวะที่ 1 ของจังหวะร็อกพื้นฐาน มีชิ้นกลองไหนตีอยู่บ้าง?', 'Which drum piece(s) play on beat 1 of the Basic Rock Beat?',
+        [mcqOpt('a', 'Kick + Hi-Hat', 'Kick + Hi-Hat'), mcqOpt('b', 'Snare + Hi-Hat', 'Snare + Hi-Hat'),
+         mcqOpt('c', 'Kick เท่านั้น', 'Kick only'), mcqOpt('d', 'Snare เท่านั้น', 'Snare only')],
+        'a'
+      ),
+      mcqItem(
+        'จังหวะที่ 2 ของจังหวะร็อกพื้นฐาน มีชิ้นกลองไหนตีอยู่บ้าง?', 'Which drum piece(s) play on beat 2 of the Basic Rock Beat?',
+        [mcqOpt('a', 'Kick + Hi-Hat', 'Kick + Hi-Hat'), mcqOpt('b', 'Snare + Hi-Hat', 'Snare + Hi-Hat'),
+         mcqOpt('c', 'Kick เท่านั้น', 'Kick only'), mcqOpt('d', 'Snare เท่านั้น', 'Snare only')],
+        'b'
+      ),
+      mcqItem(
+        'จังหวะที่ 3 ของจังหวะร็อกพื้นฐาน มีชิ้นกลองไหนตีอยู่บ้าง?', 'Which drum piece(s) play on beat 3 of the Basic Rock Beat?',
+        [mcqOpt('a', 'Kick + Hi-Hat', 'Kick + Hi-Hat'), mcqOpt('b', 'Snare + Hi-Hat', 'Snare + Hi-Hat'),
+         mcqOpt('c', 'Kick เท่านั้น', 'Kick only'), mcqOpt('d', 'Snare เท่านั้น', 'Snare only')],
+        'a'
+      ),
+      mcqItem(
+        'จังหวะที่ 4 ของจังหวะร็อกพื้นฐาน มีชิ้นกลองไหนตีอยู่บ้าง?', 'Which drum piece(s) play on beat 4 of the Basic Rock Beat?',
+        [mcqOpt('a', 'Kick + Hi-Hat', 'Kick + Hi-Hat'), mcqOpt('b', 'Snare + Hi-Hat', 'Snare + Hi-Hat'),
+         mcqOpt('c', 'Kick เท่านั้น', 'Kick only'), mcqOpt('d', 'Snare เท่านั้น', 'Snare only')],
+        'b'
+      ),
+      mcqItem(
+        'ครบ 1 ห้อง (4 จังหวะ) ของจังหวะร็อกพื้นฐาน Kick ตีทั้งหมดกี่ครั้ง?', 'In one full measure (4 beats) of the Basic Rock Beat, how many times does the Kick hit?',
+        [mcqOpt('a', '1 ครั้ง', '1 time'), mcqOpt('b', '2 ครั้ง', '2 times'),
+         mcqOpt('c', '3 ครั้ง', '3 times'), mcqOpt('d', '4 ครั้ง', '4 times')],
+        'b'
+      ),
+      mcqItem(
+        'Snare ตกที่จังหวะไหนบ้างในจังหวะร็อกพื้นฐาน?', 'Which beats does the Snare land on in the Basic Rock Beat?',
+        [mcqOpt('a', 'จังหวะ 1 และ 3', 'Beats 1 and 3'), mcqOpt('b', 'จังหวะ 2 และ 4', 'Beats 2 and 4'),
+         mcqOpt('c', 'ทุกจังหวะ', 'Every beat'), mcqOpt('d', 'จังหวะ 1 เท่านั้น', 'Beat 1 only')],
+        'b'
+      )
+    ]
+  },
+  {
     id: 'ear-training',
     label: { th: 'ฝึกหูดนตรี', en: 'Ear Training' },
     group: { th: 'ฝึกหู', en: 'Ear Training' },
@@ -1290,6 +1457,7 @@ var BADGE_DEFS = [
   { id: 'track-piano', icon: '🎹', th: 'เจ้าเปียโน', en: 'Piano Master' },
   { id: 'track-guitar', icon: '🎸', th: 'เจ้ากีตาร์', en: 'Guitar Master' },
   { id: 'track-ukulele', icon: '🪕', th: 'เจ้าอูคูเลเล่', en: 'Ukulele Master' },
+  { id: 'track-drums', icon: '🪘', th: 'เจ้ากลอง', en: 'Drum Master' },
   { id: 'track-ear-training', icon: '👂', th: 'นักฟังเสียง', en: 'Ear Training Master' },
   { id: 'track-ear-training-advanced', icon: '🎧', th: 'เจ้าหูทอง', en: 'Golden Ear' },
   { id: 'track-first-song', icon: '🎤', th: 'เพลงแรกของฉัน', en: 'First Song Complete' },
@@ -1535,6 +1703,11 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
         var progBtn = document.getElementById('progPlayBtn');
         if (progBtn) progBtn.addEventListener('click', function () { playProgression(progressionFreqs()); });
       }
+      if (item.drumBeat) {
+        instructionsBox.innerHTML += buildDrumBeatListenHtml();
+        var beatBtn = document.getElementById('drumBeatPlayBtn');
+        if (beatBtn) beatBtn.addEventListener('click', function () { playRockBeat(); });
+      }
       staffWrap.style.display = 'none';
       markReadBtn.style.display = 'inline-flex';
       markReadBtn.disabled = false;
@@ -1587,6 +1760,11 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
           : function () { playSequence(item.freqs); };
         var earBtn = document.getElementById('earPlayBtn');
         if (earBtn) earBtn.addEventListener('click', playFn);
+      } else if (item.qType === 'drum-ear') {
+        quizPromptEl.textContent = t('quizPromptDrumEar');
+        staffSvgHolder.innerHTML = buildEarPlayerHtml();
+        var drBtn = document.getElementById('earPlayBtn');
+        if (drBtn) drBtn.addEventListener('click', function () { playDrumHit(item.drumType); });
       } else if (item.qType === 'interval-ear') {
         quizPromptEl.textContent = t('quizPromptInterval');
         staffSvgHolder.innerHTML = buildEarPlayerHtml();
@@ -1679,13 +1857,15 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     var isProgressionQuiz = item.qType === 'progression-position';
     var isIntervalQuiz = item.qType === 'interval-ear';
     var isRhythmQuiz = item.qType === 'rhythm-dictation';
-    var isWide = isValueQuiz || isQualityQuiz || isGuitarQuiz || isUkuleleQuiz || isPitchCompareQuiz || isPitchSameDiffQuiz || isProgressionQuiz || isIntervalQuiz || isRhythmQuiz;
+    var isDrumEarQuiz = item.qType === 'drum-ear';
+    var isWide = isValueQuiz || isQualityQuiz || isGuitarQuiz || isUkuleleQuiz || isPitchCompareQuiz || isPitchSameDiffQuiz || isProgressionQuiz || isIntervalQuiz || isRhythmQuiz || isDrumEarQuiz;
     var choices = isValueQuiz ? NOTE_VALUE_ORDER : isBeatsQuiz ? TIME_SIG_BEATS_OPTIONS :
       isQualityQuiz ? CHORD_QUALITY_OPTIONS : isGuitarQuiz ? GUITAR_CHORD_NAMES :
       isUkuleleQuiz ? UKULELE_CHORD_NAMES :
       isPitchCompareQuiz ? PITCH_COMPARE_OPTIONS : isPitchSameDiffQuiz ? PITCH_SAME_DIFF_OPTIONS :
       isProgressionQuiz ? PROGRESSION_QUIZ_OPTIONS :
-      isIntervalQuiz ? INTERVAL_OPTIONS : isRhythmQuiz ? RHYTHM_PATTERN_KEYS : ANSWER_LETTERS;
+      isIntervalQuiz ? INTERVAL_OPTIONS : isRhythmQuiz ? RHYTHM_PATTERN_KEYS :
+      isDrumEarQuiz ? DRUM_HIT_OPTIONS : ANSWER_LETTERS;
     choices.forEach(function (choice) {
       var btn = document.createElement('button');
       btn.type = 'button';
@@ -1695,6 +1875,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
         isPitchCompareQuiz ? pick(PITCH_COMPARE_LABELS[choice]) :
         isPitchSameDiffQuiz ? pick(PITCH_SAME_DIFF_LABELS[choice]) :
         isIntervalQuiz ? pick(INTERVAL_LABELS[choice]) : isRhythmQuiz ? pick(RHYTHM_PATTERN_LABELS[choice]) :
+        isDrumEarQuiz ? pick(DRUM_HIT_LABELS[choice]) :
         isProgressionQuiz ? pick(PROGRESSION_LABELS[choice]) : String(choice);
       if (alreadyPassed) {
         btn.disabled = true;
