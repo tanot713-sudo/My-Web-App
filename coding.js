@@ -158,6 +158,72 @@ var TRACKS = [
     ]
   },
   {
+    id: 'js-arrays', kind: 'js', label: 'อาร์เรย์ (JS)', labelEn: 'Arrays (JS)',
+    concept: {
+      explain: 'อาร์เรย์ (array) คือตัวแปรที่เก็บค่าหลายๆ ค่าเรียงกันเป็นลิสต์ สร้างด้วยเครื่องหมาย [ ] คั่นแต่ละค่าด้วย , — เข้าถึงสมาชิกแต่ละตัวด้วย index (ลำดับ) โดยเริ่มนับจาก 0 เสมอ เช่น arr[0] คือตัวแรก — .length บอกจำนวนสมาชิกทั้งหมด, .push(ค่า) ใช้เพิ่มสมาชิกใหม่ต่อท้าย',
+      example: 'let fruits = ["แอปเปิ้ล", "กล้วย", "ส้ม"];\nconsole.log(fruits[0]);\nconsole.log(fruits.length);'
+    },
+    exercises: [
+      {
+        title: 'เข้าถึงสมาชิกด้วย index',
+        instructions: 'เปลี่ยน index จาก 0 เป็น 1 แล้วรันดู — ควรเห็นคำว่า "กล้วย" (index เริ่มนับจาก 0)',
+        starter: 'let fruits = ["แอปเปิ้ล", "กล้วย", "ส้ม"];\nconsole.log(fruits[0]);',
+        tests: [{ type: 'log-includes', expected: 'กล้วย', label: 'ต้อง console.log("กล้วย")' }]
+      },
+      {
+        title: 'เพิ่มสมาชิกด้วย push',
+        instructions: 'เพิ่มบรรทัด numbers.push(5); ต่อจากบรรทัดแรก แล้วรันดู — numbers.length ควรเป็น 5',
+        starter: 'let numbers = [1, 2, 3];\nnumbers.push(4);\nconsole.log(numbers.length);',
+        tests: [{ type: 'log-includes', expected: '5', label: 'console.log(numbers.length) ต้องได้ 5' }]
+      },
+      {
+        title: 'วนลูปอาร์เรย์ด้วย for',
+        instructions: 'เติม colors.push("เหลือง"); ในบรรทัดว่าง (ก่อนลูป) แล้วรันดู — ผลลัพธ์ควรมีคำว่า "เหลือง" ปรากฏด้วย',
+        starter: 'let colors = ["แดง", "เขียว", "น้ำเงิน"];\n\nfor (let i = 0; i < colors.length; i++) {\n  console.log(colors[i]);\n}',
+        tests: [{ type: 'log-includes', expected: 'เหลือง', label: 'ผลลัพธ์ต้องมีคำว่า "เหลือง"' }]
+      },
+      {
+        title: 'รวมผลรวมของอาร์เรย์',
+        instructions: 'เติม sum = sum + nums[i]; ในลูป (บรรทัดว่าง) แล้วรันดู — ผลรวม 10+20+30 ควรได้ 60',
+        starter: 'let nums = [10, 20, 30];\nlet sum = 0;\nfor (let i = 0; i < nums.length; i++) {\n  \n}\nconsole.log(sum);',
+        tests: [{ type: 'log-includes', expected: '60', label: 'console.log(sum) ต้องออกมาเป็น 60' }]
+      }
+    ]
+  },
+  {
+    id: 'js-objects', kind: 'js', label: 'อ็อบเจกต์ (JS)', labelEn: 'Objects (JS)',
+    concept: {
+      explain: 'อ็อบเจกต์ (object) คือตัวแปรที่เก็บข้อมูลเป็นคู่ "ชื่อ: ค่า" (key: value) สร้างด้วยเครื่องหมาย { } เช่น { name: "สมชาย", age: 25 } — เข้าถึงค่าแต่ละ key ด้วยจุด (.) เช่น person.name — เปลี่ยนค่าหรือเพิ่ม key ใหม่ก็ทำได้ด้วยการกำหนดค่าตรงๆ เช่น person.age = 26;',
+      example: 'let person = { name: "สมชาย", age: 25 };\nconsole.log(person.name);\nconsole.log(person.age);'
+    },
+    exercises: [
+      {
+        title: 'เข้าถึงค่าด้วย .property',
+        instructions: 'เปลี่ยน car.brand เป็น car.color แล้วรันดู — ควรเห็นคำว่า "แดง"',
+        starter: 'let car = { brand: "Toyota", color: "แดง" };\nconsole.log(car.brand);',
+        tests: [{ type: 'log-includes', expected: 'แดง', label: 'ต้อง console.log("แดง")' }]
+      },
+      {
+        title: 'เปลี่ยนค่า property',
+        instructions: 'เพิ่มบรรทัด user.score = 100; ก่อน console.log แล้วรันดู — ควรได้ 100',
+        starter: 'let user = { name: "สมหญิง", score: 50 };\nconsole.log(user.score);',
+        tests: [{ type: 'log-includes', expected: '100', label: 'console.log(user.score) ต้องได้ 100' }]
+      },
+      {
+        title: 'เพิ่ม property ใหม่',
+        instructions: 'เพิ่มบรรทัด book.pages = 200; ก่อน console.log แล้วรันดู — ตอนนี้ book ยังไม่มี pages เลยได้ undefined ต้องเพิ่มก่อนถึงจะได้ 200',
+        starter: 'let book = { title: "นิยาย" };\nconsole.log(book.pages);',
+        tests: [{ type: 'log-includes', expected: '200', label: 'console.log(book.pages) ต้องได้ 200' }]
+      },
+      {
+        title: 'อ็อบเจกต์ที่มีอาร์เรย์ข้างใน',
+        instructions: 'เปลี่ยน index จาก 0 เป็น 1 แล้วรันดู — ควรได้ 90',
+        starter: 'let student = { name: "ปอ", grades: [80, 90, 70] };\nconsole.log(student.grades[0]);',
+        tests: [{ type: 'log-includes', expected: '90', label: 'console.log(student.grades[1]) ต้องได้ 90' }]
+      }
+    ]
+  },
+  {
     id: 'html-basics', kind: 'html', label: 'โครงสร้าง HTML', labelEn: 'HTML Basics',
     concept: {
       explain: 'HTML คือการ "ห่อ" ข้อความด้วยแท็ก (tag) เปิด-ปิด เช่น <h1>หัวข้อ</h1> — เบราว์เซอร์จะแปลแท็กเหล่านี้เป็นหน้าเว็บที่เห็นทางขวา ลองแก้โค้ดด้านล่างแล้วดูผลด้านขวาได้เลย เปลี่ยนแบบ real-time',
@@ -253,6 +319,39 @@ var TRACKS = [
         instructions: 'เพิ่ม gap: 16px; ใน style ของ div ครอบนอก ให้มีระยะห่างระหว่างกล่อง 1 กับ 2',
         starter: '<div style="display: flex;">\n  <div style="background:#2563EB;color:#fff;padding:10px;">1</div>\n  <div style="background:#06B6D4;color:#fff;padding:10px;">2</div>\n</div>',
         tests: [{ type: 'html-attr', selector: 'div', attr: 'style', includes: 'gap', label: 'div ครอบนอกต้องมี gap' }]
+      }
+    ]
+  },
+  {
+    id: 'html-grid', kind: 'html', label: 'จัดวางด้วย Grid', labelEn: 'CSS Grid',
+    concept: {
+      explain: 'CSS Grid ใช้จัดวางเป็นตาราง (แถว+คอลัมน์) ต่างจาก Flexbox ที่จัดแนวเดียว — ใส่ display: grid; ให้ container แล้วกำหนด grid-template-columns เพื่อบอกว่าอยากได้กี่คอลัมน์ กว้างเท่าไหร่ เช่น 1fr 1fr 1fr คือ 3 คอลัมน์กว้างเท่ากัน (fr แปลว่าสัดส่วน) — gap กำหนดระยะห่างระหว่างช่อง เหมือน Flexbox — grid-column: span 2; ทำให้ 1 ช่องกินพื้นที่ 2 คอลัมน์รวด',
+      example: '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">\n  <div style="background: #2563EB; color: #fff; padding: 10px;">1</div>\n  <div style="background: #06B6D4; color: #fff; padding: 10px;">2</div>\n  <div style="background: #17B26A; color: #fff; padding: 10px;">3</div>\n</div>'
+    },
+    exercises: [
+      {
+        title: 'เปิดใช้งาน Grid',
+        instructions: 'เพิ่ม display: grid; ใน style ของ div ครอบนอกสุด',
+        starter: '<div style="">\n  <div style="background:#2563EB;color:#fff;padding:10px;">1</div>\n  <div style="background:#06B6D4;color:#fff;padding:10px;">2</div>\n</div>',
+        tests: [{ type: 'html-attr', selector: 'div', attr: 'style', includes: 'grid', label: 'div ครอบนอกต้องมี display: grid' }]
+      },
+      {
+        title: 'กำหนดจำนวนคอลัมน์',
+        instructions: 'เพิ่ม grid-template-columns: 1fr 1fr 1fr; ให้แบ่งเป็น 3 คอลัมน์เท่ากัน',
+        starter: '<div style="display: grid;">\n  <div style="background:#2563EB;color:#fff;padding:10px;">1</div>\n  <div style="background:#06B6D4;color:#fff;padding:10px;">2</div>\n  <div style="background:#17B26A;color:#fff;padding:10px;">3</div>\n</div>',
+        tests: [{ type: 'html-attr', selector: 'div', attr: 'style', includes: 'grid-template-columns', label: 'div ครอบนอกต้องมี grid-template-columns' }]
+      },
+      {
+        title: 'ระยะห่างระหว่างช่อง',
+        instructions: 'เพิ่ม gap: 12px; ให้มีระยะห่างระหว่างช่องแต่ละอัน',
+        starter: '<div style="display: grid; grid-template-columns: 1fr 1fr;">\n  <div style="background:#2563EB;color:#fff;padding:10px;">1</div>\n  <div style="background:#06B6D4;color:#fff;padding:10px;">2</div>\n</div>',
+        tests: [{ type: 'html-attr', selector: 'div', attr: 'style', includes: 'gap', label: 'div ครอบนอกต้องมี gap' }]
+      },
+      {
+        title: 'ขยายช่องให้กินหลายคอลัมน์',
+        instructions: 'เพิ่ม grid-column: span 2; ใน style ของกล่อง id="wide" ("กว้างพิเศษ") ให้มันกินพื้นที่ 2 คอลัมน์',
+        starter: '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">\n  <div id="wide" style="background:#2563EB;color:#fff;padding:10px;">กว้างพิเศษ</div>\n  <div style="background:#06B6D4;color:#fff;padding:10px;">2</div>\n  <div style="background:#17B26A;color:#fff;padding:10px;">3</div>\n</div>',
+        tests: [{ type: 'html-attr', selector: '#wide', attr: 'style', includes: 'grid-column', label: '#wide ต้องมี grid-column ใน style' }]
       }
     ]
   },
@@ -504,9 +603,12 @@ var BADGE_DEFS = [
   { id: 'track-js-conditionals', icon: '🔀', th: 'เซียนเงื่อนไข', en: 'Logic Master' },
   { id: 'track-js-loops', icon: '🔁', th: 'นักวนซ้ำ', en: 'Loop Master' },
   { id: 'track-js-functions', icon: '🧩', th: 'เจ้าฟังก์ชัน', en: 'Function Master' },
+  { id: 'track-js-arrays', icon: '📦', th: 'นักอาร์เรย์', en: 'Array Master' },
+  { id: 'track-js-objects', icon: '🗂️', th: 'นักอ็อบเจกต์', en: 'Object Master' },
   { id: 'track-html-basics', icon: '🧱', th: 'สถาปนิก HTML', en: 'HTML Architect' },
   { id: 'track-html-css', icon: '🎨', th: 'ดีไซเนอร์ CSS', en: 'CSS Designer' },
   { id: 'track-html-flexbox', icon: '📐', th: 'นักจัดวาง Flexbox', en: 'Flexbox Layout Pro' },
+  { id: 'track-html-grid', icon: '🔲', th: 'นักจัดวาง Grid', en: 'Grid Layout Pro' },
   { id: 'track-js-dom', icon: '🕹️', th: 'เจ้าแห่ง DOM', en: 'DOM Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
