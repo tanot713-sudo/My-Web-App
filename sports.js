@@ -286,6 +286,32 @@ function buildTennisShotZonesSvg() {
     '<text x="110" y="270" font-size="12" font-weight="800" text-anchor="middle" fill="#7A2E06">Groundstroke Zone</text>';
   return svgWrap(core + volleyZone + groundZone, 220, 320, 220, 'tennis court zones: volley near net vs groundstrokes from baseline diagram');
 }
+/* โต๊ะเทเบิลเทนนิสมองจากด้านบน: ตาข่าย + เส้นกลางโต๊ะสำหรับการเสิร์ฟประเภทคู่ */
+function buildTableTennisTableSvg() {
+  var table = '<rect x="15" y="15" width="220" height="140" fill="#1971C2" stroke="#FFFFFF" stroke-width="3"/>';
+  var centerLine = '<line x1="125" y1="15" x2="125" y2="155" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="4,4"/>';
+  var net = '<line x1="15" y1="85" x2="235" y2="85" stroke="#1F2430" stroke-width="5"/>';
+  var labels = '<text x="240" y="89" font-size="12" font-weight="800" text-anchor="start" fill="#1F2430">Net</text>' +
+    '<text x="125" y="172" font-size="11" font-weight="700" text-anchor="middle" fill="#1F2430">Center Line (doubles serve)</text>';
+  return svgWrap(table + centerLine + net + labels, 280, 190, 300, 'table tennis table layout with net and center line for doubles diagram');
+}
+/* Topspin (ลูกม้วนหน้า) จมเร็วหลังข้ามตาข่าย เทียบกับ Backspin (ลูกตัด) ที่ลอยและตกช้ากว่า */
+function buildTableTennisSpinSvg() {
+  var net = '<line x1="150" y1="10" x2="150" y2="170" stroke="#1F2430" stroke-width="3"/>';
+  function ball(cx, cy) { return '<circle cx="' + cx + '" cy="' + cy + '" r="11" fill="#FFFFFF" stroke="#1F2430" stroke-width="2"/>'; }
+  function spinArc(cx, cy, color, sweepFlag) {
+    return '<path d="M ' + (cx - 8) + ' ' + (cy - 7) + ' A 9 9 0 1 ' + sweepFlag + ' ' + (cx - 8) + ' ' + (cy + 7) + '" stroke="' + color + '" stroke-width="2" fill="none"/>';
+  }
+  var topBall = ball(40, 45);
+  var topSpin = spinArc(40, 45, '#E8590C', 1);
+  var topArrow = svgArrow(55, 45, 200, 95, '#E8590C');
+  var topLabel = '<text x="150" y="20" font-size="12" font-weight="800" text-anchor="middle" fill="#E8590C">Topspin: dips down fast after crossing</text>';
+  var bottomBall = ball(40, 135);
+  var bottomSpin = spinArc(40, 135, '#1971C2', 0);
+  var bottomArrow = svgArrow(55, 135, 220, 140, '#1971C2');
+  var bottomLabel = '<text x="150" y="165" font-size="12" font-weight="800" text-anchor="middle" fill="#1971C2">Backspin: floats longer, sinks late</text>';
+  return svgWrap(net + topBall + topSpin + topArrow + topLabel + bottomBall + bottomSpin + bottomArrow + bottomLabel, 280, 180, 300, 'table tennis topspin vs backspin trajectory diagram');
+}
 
 var TRACKS = [
   {
@@ -754,6 +780,198 @@ var TRACKS = [
           'The four Grand Slam tournaments each use a different surface: the Australian Open and US Open are played on hard courts, the French Open (Roland Garros) on clay, and Wimbledon on grass — so top-level players must adapt their playing style to each surface.'
         ])
     ]
+  },
+  {
+    id: 'table-tennis-basics',
+    label: { th: 'เทเบิลเทนนิส: กติกาพื้นฐาน', en: 'Table Tennis: Basic Rules' },
+    group: { th: 'เทเบิลเทนนิส', en: 'Table Tennis' },
+    items: [
+      readingItem('รู้จักเทเบิลเทนนิส', 'Meet Table Tennis',
+        [
+          'เทเบิลเทนนิส (Table Tennis) หรือปิงปอง เล่นได้ทั้งประเภทเดี่ยว (Singles) และประเภทคู่ (Doubles) ตีลูกบอลพลาสติกเล็กๆ ข้ามตาข่ายให้ตกในเขตโต๊ะของฝ่ายตรงข้าม โดยยอมให้บอลเด้งพื้นโต๊ะฝั่งตัวเองได้ 1 ครั้งก่อนตีกลับเท่านั้น',
+          'การแข่งขันเล่นแบบ Best of 7 เกม (ชนะ 4 ใน 7 เกม) หรือ Best of 5 เกมแล้วแต่รายการ แต่ละเกมเล่นถึง 11 แต้ม ต้องนำอย่างน้อย 2 แต้มถึงจะชนะเกม (ถ้าเสมอ 10-10 ต้องนำห่าง 2 แต้มไปเรื่อยๆ ไม่มีเพดานแต้ม)',
+          "ใช้ระบบ 'Rally Point System' เช่นเดียวกับแบดมินตัน — ได้แต้มทุกครั้งที่ชนะแรลลี่นั้น ไม่ว่าฝ่ายไหนเป็นฝ่ายเสิร์ฟ"
+        ],
+        [
+          "Table Tennis (or Ping-Pong) can be played Singles or Doubles. Players hit a small plastic ball over the net so it lands inside the opponent's half of the table, and are allowed one bounce on their own side before returning it.",
+          'A match is played best-of-7 games (first to win 4) or best-of-5 depending on the competition. Each game is played to 11 points, won by a margin of at least 2 (if tied 10-10, play continues until a 2-point lead — there is no point cap).',
+          "It uses a 'Rally Point System' just like badminton — a point is scored on every rally regardless of who served."
+        ]),
+      readingItem('การเสิร์ฟและกติกาสำคัญ', 'Serving & Key Rules',
+        [
+          "การเสิร์ฟ (Serve): ผู้เล่นต้องโยนลูกบอลขึ้นในแนวดิ่งอย่างน้อย 16 ซม. จากฝ่ามือที่แบเรียบ แล้วตีให้ลูกเด้งบนโต๊ะฝั่งตัวเองก่อน 1 ครั้ง จากนั้นข้ามตาข่ายไปเด้งบนโต๊ะฝั่งคู่แข่งอีก 1 ครั้ง",
+          "สิทธิ์เสิร์ฟจะสลับกันทุกๆ 2 แต้ม (ยกเว้นช่วงคะแนน 10-10 ขึ้นไป ที่จะสลับเสิร์ฟทุก 1 แต้มแทน) เพื่อไม่ให้ฝ่ายใดได้เปรียบจากการเสิร์ฟต่อเนื่องนานเกินไป",
+          "ถ้าเสิร์ฟแล้วลูกโดนตาข่ายแต่ยังข้ามไปเด้งถูกต้องในโต๊ะฝั่งคู่แข่ง เรียกว่า 'Let' ให้เสิร์ฟใหม่โดยไม่นับเป็นการเสียแต้มหรือเสียสิทธิ์แต่อย่างใด"
+        ],
+        [
+          'The Serve: a player must toss the ball vertically at least 16 cm from an open, flat palm, then strike it so it bounces once on their own side of the table first, crosses the net, and bounces once on the opponent\'s side.',
+          "The right to serve switches every 2 points (except once the score reaches 10-10 or higher, when it switches every 1 point instead), so no side benefits from serving for too long in a row.",
+          "If a serve touches the net but still crosses over and bounces correctly on the opponent's side, it's called a 'Let' — the serve is simply retaken and doesn't count against either side."
+        ]),
+      readingItem('เส้นสนามและอุปกรณ์', 'The Table & Equipment',
+        [
+          'โต๊ะมาตรฐานมีขนาด 2.74 x 1.525 เมตร สูงจากพื้น 76 ซม. ตาข่ายกลางโต๊ะสูง 15.25 ซม. — เตี้ยกว่าตาข่ายกีฬาอื่นๆ มากเพราะลูกบอลเบาและตีระยะใกล้',
+          "เส้นกึ่งกลางโต๊ะ (Center Line) แบ่งแต่ละฝั่งออกเป็นซ้าย-ขวา ใช้เฉพาะตอนเสิร์ฟในประเภทคู่เท่านั้น: ผู้เสิร์ฟต้องเสิร์ฟจากช่องขวาของตัวเองไปยังช่องขวาของคู่แข่งเสมอ (ดูไดอะแกรมด้านล่างประกอบ)",
+          "ไม้ปิงปอง (Paddle/Racket) มี 2 แบบการจับหลัก: Shakehand Grip (จับเหมือนจับมือ นิยมในนักกีฬาตะวันตก) และ Penhold Grip (จับเหมือนจับปากกา นิยมในนักกีฬาเอเชียตะวันออก) แต่ละแบบเหมาะกับสไตล์การเล่นที่ต่างกัน"
+        ],
+        [
+          'A standard table is 2.74 x 1.525 meters, 76 cm above the floor. The net across the middle stands just 15.25 cm tall — much lower than in other net sports, since the ball is light and play happens at close range.',
+          "The table's Center Line divides each side into left and right halves, and is only relevant when serving in doubles: the server must always serve from their own right-hand box to the opponent's right-hand box (see the diagram below).",
+          'There are two main paddle grips: the Shakehand Grip (held like shaking hands, popular among Western players) and the Penhold Grip (held like holding a pen, popular among East Asian players) — each suits a different playing style.'
+        ],
+        buildTableTennisTableSvg()),
+      readingItem('เทคนิคการตีพื้นฐาน: Drive, Push และ Chop', 'Basic Strokes: Drive, Push & Chop',
+        [
+          'Drive (ลูกรุก): ตีลูกด้วยแรงหมุนม้วนหน้า (Topspin) เป็นลูกโจมตีพื้นฐานที่สุด ใช้ทั้ง Forehand Drive (ฝั่งถนัด) และ Backhand Drive (ฝั่งตรงข้าม) เพื่อกดดันคู่แข่งด้วยความเร็วและแรงหมุน',
+          'Push (ลูกดัน): ตีลูกเบาๆ พร้อมใส่แรงหมุนตัด (Backspin) เล็กน้อย เป็นลูกตอบโต้แบบปลอดภัยเมื่อลูกของคู่แข่งมีแรงหมุนตัดมาก ใช้ควบคุมจังหวะให้ช้าลง',
+          'Chop (ลูกตัด): ตีลูกด้วยแรงหมุนตัด (Backspin) หนักและถอยห่างจากโต๊ะ เป็นท่าเล่นเชิงรับที่ใช้ตอบโต้ลูกตบแรงๆ ของคู่แข่ง ทำให้บอลลอยช้าและตกใกล้ตาข่ายเมื่อคู่แข่งพยายามตีกลับ'
+        ],
+        [
+          'Drive: struck with topspin, the most basic attacking stroke. There\'s a Forehand Drive (on the racket-hand side) and a Backhand Drive (on the opposite side), used to pressure the opponent with speed and spin.',
+          'Push: a soft stroke with a small amount of backspin added, used as a safe reply when the opponent\'s shot carries heavy backspin — it slows the pace of the rally down.',
+          'Chop: struck with heavy backspin while standing back from the table — a defensive stroke used to answer an opponent\'s hard attacking shots, making the ball float slowly and drop short when the opponent tries to attack it.'
+        ]),
+      readingItem('การหมุนของลูก: Topspin กับ Backspin', 'Ball Spin: Topspin vs Backspin',
+        [
+          'Topspin (ลูกม้วนหน้า): บอลหมุนไปข้างหน้า ทำให้บอลพุ่งโค้งลงเร็วหลังข้ามตาข่าย และกระดอนพุ่งไปข้างหน้าแรงเมื่อโดนไม้คู่แข่ง เป็นแรงหมุนหลักของลูกโจมตีสมัยใหม่ ดูไดอะแกรมด้านล่างประกอบ',
+          'Backspin (ลูกตัด): บอลหมุนย้อนกลับ ทำให้บอลลอยแบนราบกว่าและตกช้ากว่า Topspin ถ้าคู่แข่งตีกลับแรงเกินไปโดยไม่ปรับมุมไม้ บอลมักจะติดตาข่ายหรือออกนอกโต๊ะ',
+          'นักกีฬาต้องอ่านแรงหมุนจากมุมไม้และจังหวะการสวิงของคู่แข่งก่อนตอบโต้ ถ้าอ่านแรงหมุนผิดพลาด มักตีบอลออกนอกโต๊ะหรือติดตาข่ายเพราะปรับมุมไม้ไม่ถูก'
+        ],
+        [
+          "Topspin: the ball spins forward, making it dip down sharply right after crossing the net and rebound forward hard off the opponent's paddle — the main spin behind modern attacking play. See the diagram below.",
+          "Backspin: the ball spins backward, making it float flatter and drop later than topspin. If the opponent hits back too hard without adjusting the paddle angle, the ball often clips the net or flies off the table.",
+          "Players must read the spin from the opponent's paddle angle and swing motion before responding — misreading the spin usually sends the return long off the table or into the net because the paddle angle wasn't adjusted correctly."
+        ],
+        buildTableTennisSpinSvg())
+    ]
+  },
+  {
+    id: 'muay-thai-basics',
+    label: { th: 'มวยไทย: กติกาพื้นฐาน', en: 'Muay Thai: Basic Rules' },
+    group: { th: 'มวยไทย', en: 'Muay Thai' },
+    items: [
+      readingItem('รู้จักมวยไทย', 'Meet Muay Thai',
+        [
+          "มวยไทย (Muay Thai) เป็นศิลปะการต่อสู้ประจำชาติไทย ได้ฉายาว่า 'ศาสตร์แห่งแขนขาทั้งแปด' (The Art of Eight Limbs) เพราะใช้อวัยวะโจมตีได้ถึง 8 จุด คือ หมัดสองข้าง ศอกสองข้าง เข่าสองข้าง และหน้าแข้ง/เท้าสองข้าง ต่างจากมวยสากลที่ใช้แค่หมัด",
+          'การแข่งขันมาตรฐานมี 5 ยก ยกละ 3 นาที พักระหว่างยก 2 นาที (จำนวนยกและเวลาอาจต่างกันไปตามรายการและสมาคม)',
+          'ผลการแข่งขันตัดสินได้หลายทาง: น็อกเอาต์ (Knockout), กรรมการยุติการชก (TKO/Technical Knockout) เมื่อนักกีฬาฝ่ายหนึ่งไม่สามารถป้องกันตัวต่อได้อย่างปลอดภัย, หรือให้คะแนนจากกรรมการ (Judges\' Decision) เมื่อครบยกโดยไม่มีใครถูกน็อก'
+        ],
+        [
+          "Muay Thai is Thailand's national martial art, nicknamed 'The Art of Eight Limbs' because it allows striking with 8 points of contact — both fists, both elbows, both knees, and both shins/feet — unlike boxing, which uses fists only.",
+          'A standard match has 5 rounds of 3 minutes each, with a 2-minute rest between rounds (the number of rounds and timing can vary by promotion and sanctioning body).',
+          "The outcome can be decided several ways: Knockout (KO), a referee stoppage (TKO) when one fighter can no longer defend themselves safely, or a Judges' Decision on points when the fight goes the full distance without a knockout."
+        ]),
+      readingItem('การให้คะแนนและการชนะ', 'Scoring & Winning',
+        [
+          'การให้คะแนนมวยไทยแบบดั้งเดิมเน้นที่ "ความเหนือกว่าในสังเวียน" (Ring Dominance) และคุณภาพของหมัด/เท้าที่ทรงพลังและแม่นยำ มากกว่าการนับจำนวนครั้งที่ต่อยโดนแบบมวยสากล',
+          'ท่าที่ให้คะแนนสูง ได้แก่ การเตะด้วยหน้าแข้งที่ทรงพลัง การใช้เข่าและศอกในระยะประชิด และการควบคุมคู่ต่อสู้ในการปล้ำประชิด (Clinch) — ยกหลังๆ (ยก 3-4) มักมีน้ำหนักคะแนนมากกว่ายกแรกๆ เพราะนักมวยมักเริ่มเกมด้วยการหยั่งเชิงคู่ต่อสู้ก่อน',
+          'ความผิดกติกา (Fouls) เช่น กัด ข่วนตา โขกศีรษะ ต่อยตอนคู่ต่อสู้ล้มแล้ว หรือตีเป้าต่ำ (Groin Strike) จะถูกตัดคะแนนหรือปรับแพ้ทันทีในกรณีร้ายแรง'
+        ],
+        [
+          "Traditional Muay Thai scoring emphasizes ring dominance and the quality of powerful, well-timed strikes — not simply counting how many strikes land the way boxing does.",
+          'Highly-scoring actions include powerful shin kicks, knee and elbow strikes at close range, and controlling the opponent in the clinch. Later rounds (rounds 3-4) are often weighted more heavily than early rounds, since fighters typically spend the opening rounds feeling each other out.',
+          'Fouls such as biting, eye-gouging, headbutting, striking a downed opponent, or groin strikes result in point deductions, or immediate disqualification for serious violations.'
+        ]),
+      readingItem('ท่าโจมตีพื้นฐาน: หมัด ศอก เข่า เตะ', 'Basic Strikes: Punches, Elbows, Knees & Kicks',
+        [
+          'หมัด (Punches): ท่าพื้นฐานคล้ายมวยสากล เช่น หมัดตรง (Jab, Cross) และหมัดเหวี่ยง (Hook) ใช้เปิดเกมหรือสร้างจังหวะก่อนเข้าท่าอื่น',
+          'ศอก (Elbows): มีหลายมุม เช่น ศอกตี (แนวนอน), ศอกงัด (แนวเฉียงขึ้น), ศอกกลับหลัง (หมุนตัว) เป็นอาวุธระยะประชิดที่สร้างบาดแผลได้รุนแรงที่สุด',
+          'เข่า (Knees): เข่าตรงและเข่าเฉียง มักใช้ในจังหวะปล้ำประชิด (Clinch) เมื่อจับคอคู่ต่อสู้ไว้ได้แล้วกระแทกเข่าเข้าลำตัว',
+          "เตะ (Kicks): ท่าเด่นที่สุดของมวยไทยคือเตะวงกลม (Roundhouse Kick) ที่ใช้ 'หน้าแข้ง' เป็นจุดกระทบแทนหลังเท้าแบบศิลปะการต่อสู้อื่น หมุนสะโพกเต็มที่เพื่อดึงแรงสูงสุด ส่วนการเตะถีบ (Teep หรือ Push Kick) ใช้ควบคุมระยะและดันคู่ต่อสู้ออกมากกว่าจะเน้นความแรง"
+        ],
+        [
+          'Punches: basic techniques similar to boxing, such as straight punches (Jab, Cross) and hooks — used to open an exchange or set up rhythm before other strikes.',
+          'Elbows: thrown from several angles — the horizontal elbow strike, the upward diagonal elbow, and the spinning elbow — the most damaging close-range weapon in the sport.',
+          'Knees: straight knees and diagonal knees, most often thrown from the clinch once a fighter has control of the opponent\'s neck, driving the knee into the body.',
+          "Kicks: Muay Thai's signature technique is the Roundhouse Kick, which strikes with the shin (rather than the foot/instep used in other martial arts), rotating the hip fully through for maximum power. The Teep (Push Kick) is used to control distance and push the opponent away rather than to strike with maximum force."
+        ]),
+      readingItem('การปล้ำประชิด (Clinch)', 'The Clinch',
+        [
+          "การปล้ำประชิด (Clinch) เป็นทักษะเฉพาะตัวของมวยไทยที่ไม่ค่อยพบในศิลปะการต่อสู้อื่น: นักมวยเข้าคุมคอคู่ต่อสู้ด้วยมือทั้งสองข้าง (ท่าที่เรียกว่า Double Collar Tie หรือ 'ปล้ำคอ') เพื่อควบคุมทิศทางศีรษะและลำตัวคู่ต่อสู้แล้วกระแทกเข่าเข้าลำตัวหรือใบหน้า",
+          'ในจังหวะปล้ำประชิด สามารถใช้ "การทุ่ม" (Sweep) เพื่อทำให้คู่ต่อสู้เสียการทรงตัวหรือล้มลงได้ แต่ต่างจากมวยปล้ำ (Wrestling) ตรงที่ไม่ใช่การเข้าล็อกตัวเพื่อกดลงพื้นแบบต่อเนื่อง',
+          'กรรมการจะแยกคู่นักมวยออกจากกันเมื่อการปล้ำประชิดหยุดนิ่งไม่มีการเคลื่อนไหวหรือทำคะแนนเป็นระยะเวลาหนึ่ง เพื่อให้เกมดำเนินต่อไปอย่างมีจังหวะ'
+        ],
+        [
+          "The Clinch is a signature Muay Thai skill rarely seen in other martial arts: a fighter controls the opponent's neck with both hands (a position called the Double Collar Tie, or 'plum') to control the direction of the opponent's head and torso, then drives knee strikes into the body or face.",
+          "Sweeps can be used from the clinch to off-balance or take the opponent down, but unlike wrestling, it isn't about locking up the body for a sustained takedown and ground control.",
+          'Referees will break the fighters apart when a clinch stalls with no movement or scoring action for a period of time, to keep the fight moving.'
+        ]),
+      readingItem('พิธีไหว้ครูและวัฒนธรรม', 'Wai Kru & Cultural Significance',
+        [
+          "พิธีไหว้ครูรำมวย (Wai Kru Ram Muay) คือการแสดงความเคารพต่อครูฝึกและบูรพาจารย์ก่อนการชกทุกครั้ง เป็นการร่ายรำตามจังหวะดนตรี แต่ละค่ายมวยหรือนักมวยมักมีท่ารำเฉพาะตัวที่สืบทอดมาจากครูของตน",
+          "มงคล (Mongkol) เป็นเครื่องประดับศีรษะที่สวมใส่ระหว่างพิธีไหว้ครู ครูฝึกจะถอดออกก่อนเริ่มการชกจริง ส่วนประเจียด (Pra Jiad) เป็นผ้าพันแขนที่นักมวยบางคนสวมใส่ไว้ตลอดการชกเพื่อความเป็นสิริมงคล",
+          'วงดนตรีสรรเสริญ (Wong Sarama) ประกอบด้วยปี่ไทยและกลอง บรรเลงสดตลอดการชก จังหวะดนตรีจะเร่งเร็วขึ้นเรื่อยๆ ตามความเข้มข้นของการต่อสู้ ช่วยปลุกพลังให้ทั้งนักมวยและผู้ชม'
+        ],
+        [
+          "The Wai Kru Ram Muay is a pre-fight ritual dance paying respect to one's teachers and the martial art's lineage, performed before every fight to the sound of live music — each gym or fighter typically has their own unique choreography passed down from their teacher.",
+          "The Mongkol is a headband worn during the Wai Kru ceremony, removed by the trainer just before the fight begins. The Pra Jiad are armbands some fighters wear throughout the entire fight for good luck and protection.",
+          "The Wong Sarama, a live band of a Thai oboe and drums, plays throughout the fight — the tempo speeds up as the action intensifies, helping build energy for both the fighters and the crowd."
+        ])
+    ]
+  },
+  {
+    id: 'taekwondo-basics',
+    label: { th: 'เทควันโด: กติกาพื้นฐาน', en: 'Taekwondo: Basic Rules' },
+    group: { th: 'เทควันโด', en: 'Taekwondo' },
+    items: [
+      readingItem('รู้จักเทควันโด', 'Meet Taekwondo',
+        [
+          'เทควันโด (Taekwondo) เป็นศิลปะการต่อสู้จากเกาหลี บรรจุเป็นกีฬาโอลิมปิกอย่างเป็นทางการตั้งแต่ปี 2000 จุดเด่นคือเน้นเทคนิคการเตะเป็นหลัก (ให้คะแนนสูงกว่าหมัด) ต่างจากศิลปะการต่อสู้แบบผสมอื่นๆ',
+          'การแข่งขันตามกติกาโอลิมปิก (World Taekwondo) แบ่งเป็น 3 ยก ยกละ 2 นาที พักระหว่างยก 1 นาที',
+          "ผลการแข่งขันตัดสินจากคะแนนเมื่อครบเวลา, การน็อกเอาต์ (Knockout), หรือกรรมการยุติการแข่งขัน (RSC — Referee Stops Contest) เมื่อนักกีฬาฝ่ายหนึ่งไม่สามารถป้องกันตัวต่อได้อย่างปลอดภัย"
+        ],
+        [
+          'Taekwondo is a Korean martial art that has been an official Olympic sport since 2000. Its defining feature is a heavy emphasis on kicking techniques, which score higher than punches — unlike many other combat sports.',
+          'Under Olympic (World Taekwondo) rules, a match has 3 rounds of 2 minutes each, with a 1-minute rest between rounds.',
+          'The outcome is decided by points when time runs out, by Knockout, or by a referee stoppage (RSC — Referee Stops Contest) when a competitor can no longer defend themselves safely.'
+        ]),
+      readingItem('การให้คะแนน', 'Scoring System',
+        [
+          "เทควันโดระดับแข่งขันใช้ระบบให้คะแนนอิเล็กทรอนิกส์ (PSS — Protector and Scoring System) เซนเซอร์ที่ฝังอยู่ในเสื้อเกราะป้องกันตัว (Hogu) และหมวกกันน็อกจะตรวจจับแรงกระแทกและตัดสินว่าการเตะ/ต่อยนั้นได้คะแนนหรือไม่โดยอัตโนมัติ",
+          'คะแนนแบ่งตามความยากของท่า: เตะลำตัวธรรมดา = 2 คะแนน, หมัดลำตัว = 1 คะแนน, เตะลำตัวแบบหมุนตัว (Turning/Spinning Kick) = 4 คะแนน, เตะศีรษะ = 3 คะแนน, เตะศีรษะแบบหมุนตัว = 5 คะแนน — ยิ่งท่ายากและเสี่ยงมาก ยิ่งได้คะแนนสูง',
+          'การทำผิดกติกา (Gam-jeom) เช่น ล้มลงเอง ออกนอกสนามแข่ง จับหรือดึงตัวคู่ต่อสู้ เตะต่ำกว่าเอว หรือหันหลังให้คู่ต่อสู้ จะถูกตัดคะแนน 1 แต้มต่อครั้ง'
+        ],
+        [
+          "Competitive Taekwondo uses an electronic scoring system (PSS — Protector and Scoring System). Sensors built into the body protector (Hogu) and headgear detect impact force and automatically determine whether a kick or punch scores.",
+          'Points scale with the difficulty of the technique: a basic body kick = 2 points, a punch to the body = 1 point, a turning/spinning kick to the body = 4 points, a head kick = 3 points, and a turning/spinning kick to the head = 5 points — the harder and riskier the technique, the more it\'s worth.',
+          'Rule violations (Gam-jeom) — such as falling down, stepping out of bounds, grabbing or holding the opponent, kicking below the waist, or turning your back to the opponent — cost 1 point deduction each.'
+        ]),
+      readingItem('เขตคะแนนและเสื้อเกราะ', 'Scoring Zones & Protective Gear',
+        [
+          'เป้าที่ให้คะแนนได้มีเพียง 2 ส่วนเท่านั้น: ลำตัวในเขตที่เสื้อเกราะ (Hogu) คลุมอยู่ และศีรษะทั้งหมด — การโจมตีที่แขน ขา หรือแผ่นหลังต่ำกว่าเอวจะไม่นับคะแนนแม้จะโดนก็ตาม',
+          "อุปกรณ์ป้องกันภาคบังคับสำหรับการแข่งขันมี: เสื้อเกราะ (Hogu), หมวกกันน็อก, สนับป้องกันแขนและหน้าแข้ง, สนับป้องกันเป้า และฟันยาง — ครบทุกชิ้นก่อนขึ้นชกเสมอ",
+          "แม้เทควันโดจะเน้นเทคนิคเตะสูงและซับซ้อน แต่การเตะที่โดนเป้าแบบ 'ควบคุมได้' และมีแรงกระแทกผ่านเกณฑ์ที่เซนเซอร์กำหนดเท่านั้นที่จะได้คะแนน ไม่ใช่แค่สัมผัสเบาๆ"
+        ],
+        [
+          "Only two areas count as valid scoring targets: the torso area covered by the Hogu, and the head — strikes to the arms, legs, or the back below the waist don't score even if they land.",
+          'Mandatory protective gear for competition includes: the Hogu (body protector), headgear, forearm and shin guards, a groin guard, and a mouthguard — all required before stepping into the ring.',
+          "Even though Taekwondo emphasizes high, complex kicks, only a controlled strike that lands on a valid target with force above the sensor's threshold scores a point — a light graze isn't enough."
+        ]),
+      readingItem('ท่าเตะพื้นฐาน', 'Basic Kicks',
+        [
+          "Ap Chagi (เตะตรง / Front Kick): เตะพุ่งตรงไปข้างหน้าด้วยปลายเท้าหรือฝ่าเท้า เป็นท่าเตะพื้นฐานที่สุด ใช้ทั้งโจมตีและควบคุมระยะ",
+          'Dollyo Chagi (เตะเฉียง / Roundhouse Kick): ท่าเตะที่ใช้บ่อยที่สุดในการแข่งขัน หมุนสะโพกแล้วเตะด้วยหลังเท้าหรือหน้าแข้ง เป็นท่าทำคะแนนหลักของนักกีฬาส่วนใหญ่',
+          'Yeop Chagi (เตะข้าง / Side Kick): เตะพุ่งไปด้านข้างด้วยสันเท้าหรือส้นเท้า งอเข่าตั้งท่าก่อนแล้วยืดขาพุ่งออกไป เป็นท่าที่ทรงพลังมากเพราะใช้แรงจากสะโพกเต็มที่',
+          'Dwit Chagi (เตะกลับหลัง / Back Kick หรือ Spinning Kick): หมุนตัวหันหลังให้คู่ต่อสู้ชั่วขณะแล้วพุ่งเตะกลับไปด้านหลัง เป็นท่าที่ทรงพลังที่สุดแต่ต้องอาศัยจังหวะและการทรงตัวที่ดี'
+        ],
+        [
+          'Ap Chagi (Front Kick): a straight kick thrust forward using the ball or sole of the foot — the most basic kick, used both to attack and to control distance.',
+          'Dollyo Chagi (Roundhouse Kick): the most commonly used scoring kick in competition, rotating the hip and striking with the instep or shin — the primary scoring technique for most competitors.',
+          'Yeop Chagi (Side Kick): a powerful thrusting kick to the side using the blade or heel of the foot, chambering the knee first before extending the leg out — very powerful because it uses full hip drive.',
+          'Dwit Chagi (Back Kick / Spinning Kick): the fighter briefly turns their back to the opponent before thrusting the kick backward — the most powerful kick, but requiring excellent timing and balance.'
+        ]),
+      readingItem('แถบสี (Belt Ranks) และปรัชญา', 'Belt Ranks & Philosophy',
+        [
+          'ระบบสายคาดเอว (Geup/Kup) ไล่ระดับจากสายขาวไปจนถึงสายดำ (Dan) จำนวนระดับ Geup อาจต่างกันไปตามสำนัก/สหพันธ์ แต่ที่พบบ่อยคือ 10 กึบลงมาจนถึง 1 กึบ ก่อนขึ้นเป็นสายดำ',
+          'หลักธรรม 5 ประการของเทควันโด (Five Tenets): มารยาท (Courtesy/Ye Ui), ความซื่อสัตย์ (Integrity/Yom Chi), ความอดทน (Perseverance/In Nae), การควบคุมตนเอง (Self-Control/Guk Gi), และจิตใจที่ไม่ย่อท้อ (Indomitable Spirit/Baekjul Boolgool)',
+          'พุมเซ่ (Poomsae) คือชุดท่าเทคนิคที่ร่ายรำต่อเนื่องกันคนเดียว (คล้ายคาตะในคาราเต้) ใช้ทั้งฝึกพื้นฐานท่าทางและเป็นประเภทการแข่งขันแยกต่างหากจากการต่อสู้จริง (Kyorugi)'
+        ],
+        [
+          'The colored belt system (Geup/Kup) progresses from white belt up to black belt (Dan). The number of Geup levels varies by school or federation, but a common system runs from 10th Geup down to 1st Geup before reaching black belt.',
+          'The Five Tenets of Taekwondo are: Courtesy (Ye Ui), Integrity (Yom Chi), Perseverance (In Nae), Self-Control (Guk Gi), and Indomitable Spirit (Baekjul Boolgool).',
+          'Poomsae (Forms/Patterns) are choreographed solo sequences of techniques (similar to kata in karate), used both to train fundamentals and as a separate competitive discipline from actual sparring (Kyorugi).'
+        ])
+    ]
   }
 ];
 
@@ -816,6 +1034,9 @@ var BADGE_DEFS = [
   { id: 'track-volleyball-basics', icon: '🏐', th: 'เจ้ากติกาวอลเลย์บอล', en: 'Volleyball Rules Master' },
   { id: 'track-badminton-basics', icon: '🏸', th: 'เจ้ากติกาแบดมินตัน', en: 'Badminton Rules Master' },
   { id: 'track-tennis-basics', icon: '🎾', th: 'เจ้ากติกาเทนนิส', en: 'Tennis Rules Master' },
+  { id: 'track-table-tennis-basics', icon: '🏓', th: 'เจ้ากติกาเทเบิลเทนนิส', en: 'Table Tennis Rules Master' },
+  { id: 'track-muay-thai-basics', icon: '🥊', th: 'เจ้ากติกามวยไทย', en: 'Muay Thai Rules Master' },
+  { id: 'track-taekwondo-basics', icon: '🥋', th: 'เจ้ากติกาเทควันโด', en: 'Taekwondo Rules Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สที่มีทั้งหมด!', en: 'All Lessons Complete!' }
