@@ -20,7 +20,9 @@ var I18N = {
     pageTitle: 'เรียนดนตรี', crumbResp: 'งานที่รับผิดชอบ', crumbMusic: 'เรียนดนตรี',
     markReadBtn: '✓ เข้าใจแล้ว ไปต่อ',
     lockedMsg: 'บทเรียนนี้ยังล็อกอยู่ — ทำข้อก่อนหน้าให้ผ่านก่อน',
-    quizPrompt: 'โน้ตตัวนี้บนกุญแจซอลคือตัวอะไร?',
+    quizPromptTreble: 'โน้ตตัวนี้บนกุญแจซอลคือตัวอะไร?',
+    quizPromptBass: 'โน้ตตัวนี้บนกุญแจฟาคือตัวอะไร?',
+    quizPromptValue: 'โน้ตตัวนี้คือโน้ตอะไร (มีกี่จังหวะ ในจังหวะ 4/4)?',
     correctMsg: '✅ ถูกต้อง! ปลดล็อกข้อถัดไปแล้ว',
     trackDoneMsg: '🎉 จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
     toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
@@ -31,7 +33,9 @@ var I18N = {
     pageTitle: 'Learn Music', crumbResp: 'Responsibilities', crumbMusic: 'Learn Music',
     markReadBtn: '✓ Got it, continue',
     lockedMsg: 'This lesson is locked — pass the previous one first.',
-    quizPrompt: 'Which note is this, on the treble clef?',
+    quizPromptTreble: 'Which note is this, on the treble clef?',
+    quizPromptBass: 'Which note is this, on the bass clef?',
+    quizPromptValue: 'Which note value is this (how many beats, in 4/4 time)?',
     correctMsg: '✅ Correct! Next one unlocked.',
     trackDoneMsg: '🎉 Lesson complete! Pick the next lesson from the ☰ menu above.',
     toastTrackDone: 'Lesson "{track}" complete! 🎉',
@@ -47,18 +51,26 @@ function t(key, vars) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   ทฤษฎีโน้ตบนกุญแจซอล — ระบบพิกัด: step 0 = เส้นล่างสุด (E4), แต่ละ step ขยับครึ่งช่องเส้น
-   (เส้น↔ช่องติดกัน) ชื่อโน้ตวนซ้ำทุก 7 step ตามลำดับ E-F-G-A-B-C-D (ไล่จาก step 0 ขึ้นไป)
+   ทฤษฎีโน้ตบนกุญแจซอล/ฟา — ระบบพิกัด: step 0 = เส้นล่างสุดของกุญแจนั้นๆ (E4 บนกุญแจซอล,
+   G2 บนกุญแจฟา) แต่ละ step ขยับครึ่งช่องเส้น (เส้น↔ช่องติดกัน) — เส้นทั้ง 5 อยู่ที่ step คู่เสมอ
+   (0,2,4,6,8) ไม่ว่าจะกุญแจไหน จุดนี้เองที่ทำให้ฟังก์ชันวาดบรรทัด/เส้นน้อย/ก้านโน้ตใช้ร่วมกันได้
+   ทั้งสองกุญแจ ต่างกันแค่ชื่อโน้ตที่ผูกกับแต่ละ step (เริ่มตัวอักษรคนละตัว) กับกราฟิกกุญแจ
    ══════════════════════════════════════════════════════════════════ */
-var TREBLE_LETTERS = ['E', 'F', 'G', 'A', 'B', 'C', 'D'];
-function letterForStep(step) { return TREBLE_LETTERS[((step % 7) + 7) % 7]; }
-function octaveForStep(step) { return step <= 4 ? 4 : 5; } /* step 0..4 = ...4, step 5..10 = ...5 (ใช้แค่แสดงผล ไม่ใช้ตัดสินคำตอบ) */
+var CLEFS = {
+  treble: { letters: ['E', 'F', 'G', 'A', 'B', 'C', 'D'], glyph: '𝄞', promptKey: 'quizPromptTreble' },
+  bass: { letters: ['G', 'A', 'B', 'C', 'D', 'E', 'F'], glyph: '𝄢', promptKey: 'quizPromptBass' }
+};
+function letterForStep(step, clef) {
+  var letters = CLEFS[clef || 'treble'].letters;
+  return letters[((step % 7) + 7) % 7];
+}
 
-/* สร้าง SVG บรรทัด 5 เส้น + กุญแจซอล + เส้นน้อย (ถ้าจำเป็น) + หัวโน้ต/ก้านโน้ต ที่ step ที่กำหนด */
-function buildStaffSvg(step) {
+/* สร้าง SVG บรรทัด 5 เส้น + กุญแจ + เส้นน้อย (ถ้าจำเป็น) + หัวโน้ต/ก้านโน้ต ที่ step ที่กำหนด */
+function buildStaffSvg(step, clef) {
+  clef = clef || 'treble';
   var W = 220, H = 130;
   var staffLeft = 46, staffRight = 200;
-  var y0 = 30; /* เส้นบนสุด F5 (step 8) */
+  var y0 = 30; /* เส้นบนสุด (step 8) */
   function y(s) { return y0 + (8 - s) * 7; }
 
   var lines = [0, 2, 4, 6, 8].map(function (s) {
@@ -86,12 +98,57 @@ function buildStaffSvg(step) {
 
   var notehead = '<ellipse cx="' + noteX + '" cy="' + noteY + '" rx="6.8" ry="5.1" transform="rotate(-18 ' + noteX + ' ' + noteY + ')" fill="currentColor"/>';
 
-  var clef = '<text x="50" y="88" font-size="64" ' +
-    'font-family="Segoe UI Symbol, Noto Sans Symbols 2, Apple Symbols, DejaVu Sans, sans-serif" fill="currentColor">𝄞</text>';
+  var clefText = '<text x="50" y="88" font-size="64" ' +
+    'font-family="Segoe UI Symbol, Noto Sans Symbols 2, Apple Symbols, DejaVu Sans, sans-serif" fill="currentColor">' + CLEFS[clef].glyph + '</text>';
 
   return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="240" height="' + Math.round(240 * H / W) + '" ' +
     'style="max-width:100%;display:block;margin:0 auto" role="img" aria-label="staff notation">' +
-    lines + clef + ledger + stem + notehead + '</svg>';
+    lines + clefText + ledger + stem + notehead + '</svg>';
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ค่าตัวโน้ต — วาดตัวโน้ตเดี่ยวๆ ลอยไม่มีบรรทัด (ไม่เกี่ยวกับระดับเสียง สอนแค่ "รูปร่าง = จังหวะ")
+   ตัวกลม: หัวโปร่งไม่มีก้าน / ตัวขาว: หัวโปร่งมีก้าน / ตัวดำ: หัวทึบมีก้าน / เขบ็ต: หัวทึบมีก้าน+หาง
+   ══════════════════════════════════════════════════════════════════ */
+var NOTE_VALUE_ORDER = ['whole', 'half', 'quarter', 'eighth', 'sixteenth'];
+var NOTE_VALUE_LABELS = {
+  whole: { th: 'ตัวกลม (4 จังหวะ)', en: 'Whole note (4 beats)' },
+  half: { th: 'ตัวขาว (2 จังหวะ)', en: 'Half note (2 beats)' },
+  quarter: { th: 'ตัวดำ (1 จังหวะ)', en: 'Quarter note (1 beat)' },
+  eighth: { th: 'เขบ็ตหนึ่งชั้น (½ จังหวะ)', en: 'Eighth note (½ beat)' },
+  sixteenth: { th: 'เขบ็ตสองชั้น (¼ จังหวะ)', en: 'Sixteenth note (¼ beat)' }
+};
+function buildNoteValueSvg(duration) {
+  var W = 140, H = 130;
+  var cx = 60, cy = 90;
+  var hollow = duration === 'whole' || duration === 'half';
+  var hasStem = duration !== 'whole';
+  var flagCount = duration === 'eighth' ? 1 : duration === 'sixteenth' ? 2 : 0;
+
+  var head;
+  if (duration === 'whole') {
+    /* ตัวกลม: วงรีโปร่งแนวนอน ไม่เอียง ไม่มีก้าน — รูปทรงต่างจากตัวอื่นชัดเจนตั้งแต่แรกเห็น */
+    head = '<ellipse cx="' + cx + '" cy="' + cy + '" rx="11" ry="7.5" fill="none" stroke="currentColor" stroke-width="2.2"/>';
+  } else {
+    head = '<ellipse cx="' + cx + '" cy="' + cy + '" rx="7.2" ry="5.4" transform="rotate(-18 ' + cx + ' ' + cy + ')" ' +
+      (hollow ? 'fill="none" stroke="currentColor" stroke-width="2.2"' : 'fill="currentColor"') + '/>';
+  }
+
+  var stem = '';
+  var flags = '';
+  if (hasStem) {
+    var stemTopY = cy - 55;
+    stem = '<line x1="' + (cx + 6.8) + '" y1="' + cy + '" x2="' + (cx + 6.8) + '" y2="' + stemTopY + '" stroke="currentColor" stroke-width="2"/>';
+    for (var i = 0; i < flagCount; i++) {
+      var fy = stemTopY + i * 14;
+      flags += '<path d="M ' + (cx + 6.8) + ' ' + fy + ' C ' + (cx + 24) + ' ' + (fy + 4) + ', ' + (cx + 22) + ' ' + (fy + 20) + ', ' + (cx + 8) + ' ' + (fy + 24) +
+        '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+    }
+  }
+
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="160" height="' + Math.round(160 * H / W) + '" ' +
+    'style="max-width:100%;display:block;margin:0 auto" role="img" aria-label="note value">' +
+    stem + flags + head + '</svg>';
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -100,8 +157,12 @@ function buildStaffSvg(step) {
 function readingItem(headingTh, headingEn, paragraphsTh, paragraphsEn) {
   return { kind: 'reading', heading: { th: headingTh, en: headingEn }, body: { th: paragraphsTh, en: paragraphsEn } };
 }
-function quizNoteItem(step) {
-  return { kind: 'quiz', qType: 'note-name', step: step, answer: letterForStep(step) };
+function quizNoteItem(step, clef) {
+  clef = clef || 'treble';
+  return { kind: 'quiz', qType: 'note-name', clef: clef, step: step, answer: letterForStep(step, clef) };
+}
+function quizValueItem(duration) {
+  return { kind: 'quiz', qType: 'note-value', duration: duration, answer: duration };
 }
 
 var TRACKS = [
@@ -175,6 +236,70 @@ var TRACKS = [
       quizNoteItem(-2), /* C4 — โน้ตตัวกลาง C */
       quizNoteItem(10)  /* A5 */
     ]
+  },
+  {
+    id: 'bass-clef',
+    label: { th: 'อ่านโน้ตบนกุญแจฟา', en: 'Reading Bass Clef Notes' },
+    group: { th: 'ทฤษฎีดนตรีพื้นฐาน', en: 'Music Theory Basics' },
+    items: [
+      readingItem('กุญแจฟา (Bass Clef)', 'The Bass Clef',
+        [
+          'กุญแจฟา (Bass Clef หรือ F Clef) ใช้เขียนโน้ตเสียงต่ำ เช่น มือซ้ายเปียโน เชลโล กีตาร์เบส เสียงร้องทุ้ม — จุดสองจุดของสัญลักษณ์คร่อมเส้นที่ 4 นับจากล่าง กำหนดให้เส้นนั้นคือโน้ต F3 (จึงเรียกอีกชื่อว่า \'กุญแจ F\')',
+          "จำชื่อเส้นทั้ง 5 (ล่างขึ้นบน: G-B-D-F-A) ด้วยประโยค 'Good Boys Do Fine Always' และจำชื่อช่องทั้ง 4 (ล่างขึ้นบน: A-C-E-G) ด้วยประโยค 'All Cows Eat Grass'",
+          'กุญแจฟาอยู่ต่ำกว่ากุญแจซอลพอดี โน้ตตัวกลาง C (C4) บนกุญแจฟาจึงอยู่บนเส้นน้อยเส้นแรก "เหนือ" บรรทัด (สลับด้านกับกุญแจซอลที่ C4 อยู่ใต้บรรทัด) — วิธีตอบเหมือนเดิมทุกอย่าง แค่เปลี่ยนกุญแจ'
+        ],
+        [
+          "The Bass Clef (or F Clef) is used for lower-pitched notes — e.g. left hand on piano, cello, bass guitar, lower voices. The two dots of the symbol straddle the 4th line from the bottom, marking that line as F3 (hence 'F Clef').",
+          "Remember the five lines (bottom to top: G-B-D-F-A) with 'Good Boys Do Fine Always', and the four spaces (bottom to top: A-C-E-G) with 'All Cows Eat Grass'.",
+          "The bass clef sits just below the treble clef — Middle C (C4) on the bass clef sits on the first ledger line ABOVE the staff (the opposite side from the treble clef, where C4 sits below). Answering works exactly the same way, just a different clef."
+        ]),
+      quizNoteItem(0, 'bass'),  /* G2 — เส้นล่างสุด */
+      quizNoteItem(4, 'bass'),  /* D3 — เส้นกลาง */
+      quizNoteItem(8, 'bass'),  /* A3 — เส้นบนสุด */
+      quizNoteItem(2, 'bass'),  /* B2 */
+      quizNoteItem(6, 'bass'),  /* F3 */
+      quizNoteItem(1, 'bass'),  /* A2 */
+      quizNoteItem(3, 'bass'),  /* C3 */
+      quizNoteItem(5, 'bass'),  /* E3 */
+      quizNoteItem(7, 'bass'),  /* G3 */
+      quizNoteItem(10, 'bass')  /* C4 — โน้ตตัวกลาง C บนกุญแจฟา (เส้นน้อยเหนือบรรทัด) */
+    ]
+  },
+  {
+    id: 'note-values',
+    label: { th: 'ค่าตัวโน้ตและจังหวะ', en: 'Note Values & Rhythm' },
+    group: { th: 'ทฤษฎีดนตรีพื้นฐาน', en: 'Music Theory Basics' },
+    items: [
+      readingItem('รู้จักตัวโน้ตแต่ละแบบ', 'Meet the Note Values',
+        [
+          'นอกจาก "ตำแหน่ง" บนบรรทัดจะบอกระดับเสียง รูปร่างของตัวโน้ตยังบอก "ความยาว" ของเสียงนั้นด้วย (กี่จังหวะ) — สมมติว่ากำลังเล่นในจังหวะ 4/4 (มี 4 จังหวะต่อห้อง)',
+          'ตัวกลม (Whole note) = 4 จังหวะ — วงรีโปร่ง ไม่มีก้าน. ตัวขาว (Half note) = 2 จังหวะ — วงรีโปร่ง มีก้าน',
+          'ตัวดำ (Quarter note) = 1 จังหวะ — วงรีทึบ มีก้าน. เขบ็ตหนึ่งชั้น (Eighth note) = ครึ่งจังหวะ — วงรีทึบ มีก้าน มีหาง 1 เส้น',
+          'เขบ็ตสองชั้น (Sixteenth note) = หนึ่งในสี่จังหวะ — วงรีทึบ มีก้าน มีหาง 2 เส้น — ยิ่งมีหางเยอะ ยิ่งเล่นเร็ว/สั้นลง'
+        ],
+        [
+          'Besides pitch (which the position on the staff tells you), the shape of a note also tells you its duration (how many beats) — assuming we\'re in 4/4 time (4 beats per bar).',
+          'Whole note = 4 beats — hollow oval, no stem. Half note = 2 beats — hollow oval, with a stem.',
+          'Quarter note = 1 beat — filled oval, with a stem. Eighth note = ½ beat — filled oval, stem, one flag.',
+          'Sixteenth note = ¼ beat — filled oval, stem, two flags — more flags means faster/shorter.'
+        ]),
+      readingItem('ความสัมพันธ์ของค่าตัวโน้ต', 'How Note Values Relate',
+        [
+          'ค่าตัวโน้ตแต่ละระดับ "หารครึ่ง" ตัวก่อนหน้าเสมอ: 1 ตัวกลม = 2 ตัวขาว = 4 ตัวดำ = 8 เขบ็ตหนึ่งชั้น = 16 เขบ็ตสองชั้น',
+          'ลองนึกภาพแบ่งพิซซ่า 1 ถาด (ตัวกลม = 4 จังหวะ) ออกเป็น 2 ชิ้นเท่ากัน (ตัวขาว = ชิ้นละ 2 จังหวะ) แบ่งต่ออีกทีเป็น 4 ชิ้น (ตัวดำ = ชิ้นละ 1 จังหวะ) — หารครึ่งไปเรื่อยๆ',
+          'บทถัดไปจะมีโน้ตแต่ละแบบให้ดู แล้วเลือกว่าคือตัวอะไร — สังเกตที่หัวโน้ต (โปร่ง/ทึบ) และหาง (มี/ไม่มี, กี่เส้น) เป็นหลัก'
+        ],
+        [
+          'Each note value is always half of the one before it: 1 whole note = 2 half notes = 4 quarter notes = 8 eighth notes = 16 sixteenth notes.',
+          'Picture splitting one pizza (whole note = 4 beats) into 2 equal slices (half notes = 2 beats each), then into 4 slices (quarter notes = 1 beat each) — halving each time.',
+          "The next lesson will show you each note shape and ask you to identify it — look mainly at the notehead (hollow/filled) and the flags (none, one, or two)."
+        ]),
+      quizValueItem('quarter'),
+      quizValueItem('whole'),
+      quizValueItem('half'),
+      quizValueItem('eighth'),
+      quizValueItem('sixteenth')
+    ]
   }
 ];
 
@@ -234,6 +359,8 @@ var BADGE_DEFS = [
   { id: 'first-pass', icon: '🥉', th: 'ก้าวแรก', en: 'First Step' },
   { id: 'track-staff-clef', icon: '🎼', th: 'รู้จักบรรทัดเพลง', en: 'Staff Reader' },
   { id: 'track-note-reading-treble', icon: '🎵', th: 'เจ้าแห่งโน้ตซอล', en: 'Treble Note Master' },
+  { id: 'track-bass-clef', icon: '🎻', th: 'เจ้าแห่งโน้ตฟา', en: 'Bass Note Master' },
+  { id: 'track-note-values', icon: '⏱️', th: 'เจ้าจังหวะ', en: 'Rhythm Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สทฤษฎีเบื้องต้น!', en: 'Theory Basics Complete!' }
@@ -478,8 +605,13 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       instructionsBox.innerHTML = '';
       staffWrap.style.display = 'block';
       markReadBtn.style.display = 'none';
-      quizPromptEl.textContent = t('quizPrompt');
-      staffSvgHolder.innerHTML = buildStaffSvg(item.step);
+      if (item.qType === 'note-value') {
+        quizPromptEl.textContent = t('quizPromptValue');
+        staffSvgHolder.innerHTML = buildNoteValueSvg(item.duration);
+      } else {
+        quizPromptEl.textContent = t(CLEFS[item.clef || 'treble'].promptKey);
+        staffSvgHolder.innerHTML = buildStaffSvg(item.step, item.clef);
+      }
       renderAnswerRow(item);
     }
 
@@ -501,22 +633,24 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     var track = trackById(state.trackId);
     var idx = state.itemIndex;
     var alreadyPassed = !!progress[progressKey(track.id, idx)];
-    ANSWER_LETTERS.forEach(function (letter) {
+    var isValueQuiz = item.qType === 'note-value';
+    var choices = isValueQuiz ? NOTE_VALUE_ORDER : ANSWER_LETTERS;
+    choices.forEach(function (choice) {
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'mx-answer-btn';
-      btn.textContent = letter;
+      btn.className = 'mx-answer-btn' + (isValueQuiz ? ' wide' : '');
+      btn.textContent = isValueQuiz ? pick(NOTE_VALUE_LABELS[choice]) : choice;
       if (alreadyPassed) {
         btn.disabled = true;
-        if (letter === item.answer) btn.classList.add('correct');
+        if (choice === item.answer) btn.classList.add('correct');
       }
-      btn.addEventListener('click', function () { handleAnswer(item, letter, btn); });
+      btn.addEventListener('click', function () { handleAnswer(item, choice, btn); });
       answerRow.appendChild(btn);
     });
   }
 
-  function handleAnswer(item, letter, btnEl) {
-    if (letter === item.answer) {
+  function handleAnswer(item, choice, btnEl) {
+    if (choice === item.answer) {
       Array.prototype.forEach.call(answerRow.children, function (b) { b.disabled = true; });
       btnEl.classList.add('correct');
       resultBanner.textContent = t('correctMsg');
