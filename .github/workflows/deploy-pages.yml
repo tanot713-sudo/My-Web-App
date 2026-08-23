@@ -15,7 +15,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: node --check ทุกไฟล์ .js ของเราเอง (ยกเว้น vendor/ ที่เป็นไลบรารีนอก)
+        run: |
+          status=0
+          for f in *.js; do
+            echo "checking $f"
+            node --check "$f" || status=1
+          done
+          exit $status
+
   deploy:
+    needs: check
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
