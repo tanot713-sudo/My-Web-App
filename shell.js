@@ -98,7 +98,7 @@
           ]
         },
         { key: 'games',     label: 'เกมที่เล่น', href: soonHref('เกมที่เล่น') },
-        { key: 'cooking',   label: 'สอนทำอาหาร', href: soonHref('สอนทำอาหาร') },
+        { key: 'cooking',   label: 'เรียนทำอาหาร', href: 'cooking.html' },
         { key: 'books',     label: 'หนังสือ', href: soonHref('หนังสือ') }
       ]
     },
