@@ -406,6 +406,136 @@ var TRACKS = [
         ],
         '<div id="unitConvWidget"></div>')
     ]
+  },
+  {
+    id: 'thai-recipes',
+    label: { th: 'สูตรอาหารไทย', en: 'Thai Recipes' },
+    group: { th: 'สูตรอาหาร', en: 'Recipes' },
+    items: [
+      readingItem(
+        'ต้มยำกุ้ง (Tom Yum Goong)', 'Tom Yum Goong (Thai Hot & Sour Shrimp Soup)',
+        [
+          'ต้มยำกุ้งคือต้มยำแบบใสที่มีชื่อเสียงที่สุดของไทย รสชาติเปรี้ยว-เผ็ด-เค็ม-หอมกลมกล่อม หัวใจสำคัญคือ "สามเกลอต้มยำ" — ตะไคร้ ข่า และใบมะกรูด สมุนไพรสามชนิดนี้ให้กลิ่นหอมเฉพาะตัวที่ขาดไม่ได้ ต้มแค่เคี่ยวให้กลิ่นออกมาในน้ำซุป ไม่ต้องกินตัวสมุนไพรเอง',
+          'วัตถุดิบ (สำหรับ 2-3 ที่): กุ้งแม่น้ำหรือกุ้งขาว 300 กรัม (เก็บหัว-เปลือกไว้ต้มน้ำซุป), ตะไคร้ 2 ต้น (ทุบ หั่นท่อน), ข่า 4-5 แว่น (ทุบพอแตก), ใบมะกรูด 4-5 ใบ (ฉีกให้กลิ่นออก), พริกขี้หนู 5-10 เม็ด (ทุบพอแตก), เห็ดฟาง 100 กรัม, มะเขือเทศ 1 ลูก (หั่นชิ้น), หอมแดง 3-4 หัว (ทุบ), น้ำพริกเผา 2 ช้อนโต๊ะ, น้ำปลา 3 ช้อนโต๊ะ, น้ำมะนาว 3-4 ช้อนโต๊ะ, น้ำตาลปีบเล็กน้อย, ผักชีซอย',
+          'ขั้นตอน: (1) ต้มน้ำเปล่าให้เดือด ใส่หัว-เปลือกกุ้งลงต้มให้น้ำเป็นสีส้มออกรสหวานจากกุ้งก่อน แล้วช้อนเปลือกทิ้ง (หรือใช้น้ำซุปกุ้งสำเร็จแทนได้) (2) ใส่ตะไคร้ ข่า ใบมะกรูด หอมแดง พริกขี้หนูทุบลงต้มรวมกันให้กลิ่นหอมออกมาเต็มที่ ปิดฝาหม้อช่วยให้เดือดเร็วขึ้น (3) ใส่น้ำพริกเผาและน้ำปลา คนให้ละลายเข้ากัน ชิมรส (4) ใส่เห็ดฟางและมะเขือเทศ ต้มจนเห็ดสุก แล้วใส่กุ้งลงไปต้มแค่ 30 วินาที-1 นาทีจนกุ้งสุกพอดี (ต้มนานเกินไปเนื้อกุ้งจะเหนียว) (5) ปิดไฟ บีบน้ำมะนาวใส่ตอนจะเสิร์ฟเท่านั้น (ใส่ตอนน้ำยังเดือดจะทำให้รสขมและกลิ่นมะนาวหายไป) โรยผักชี เสิร์ฟทันที',
+          'เคล็ดลับ: น้ำพริกเผาคือตัวให้ความหอมมันและสีสวย ถ้าไม่มีน้ำซุปกุ้งจากเปลือกจริง รสชาติจะจืดกว่ามาก แนะนำให้เก็บเปลือกกุ้งไว้ต้มทุกครั้ง'
+        ],
+        [
+          'Tom Yum Goong is Thailand\'s most famous clear-broth hot and sour soup — sour, spicy, salty, and fragrant all at once. Its soul is the "tom yum trinity": lemongrass, galangal, and kaffir lime leaves. These are simmered just to release their aroma into the broth — they aren\'t meant to be eaten.',
+          'Ingredients (serves 2-3): 300g river prawns or shrimp (keep the heads and shells for stock), 2 stalks lemongrass (bruised, cut into lengths), 4-5 slices galangal (lightly crushed), 4-5 kaffir lime leaves (torn to release aroma), 5-10 Thai chilies (lightly crushed), 100g straw mushrooms, 1 tomato (cut into wedges), 3-4 shallots (crushed), 2 tbsp roasted chili paste (nam prik pao), 3 tbsp fish sauce, 3-4 tbsp lime juice, a little palm sugar, chopped cilantro.',
+          'Steps: (1) Boil water and add the shrimp heads/shells to make a stock until the water turns orange and sweet, then strain out the shells (or use pre-made shrimp stock). (2) Add lemongrass, galangal, kaffir lime leaves, shallots, and crushed chilies; simmer with the lid on to release the aromatics faster. (3) Stir in the roasted chili paste and fish sauce until dissolved, taste and adjust. (4) Add straw mushrooms and tomato, simmer until the mushrooms are cooked, then add the shrimp and cook for just 30 seconds to 1 minute until just done (overcooking makes the shrimp rubbery). (5) Turn off the heat and squeeze in lime juice only right before serving (adding it while still boiling makes it bitter and burns off the aroma). Garnish with cilantro and serve immediately.',
+          'Tip: the roasted chili paste is what gives the soup its rich aroma, body, and reddish color. Without real shrimp-shell stock the flavor will be noticeably flatter — always save the shells to make stock.'
+        ],
+        svgFactStrip([
+          { title: 'ตะไคร้', sub: 'Lemongrass', color: '#16A34A' },
+          { title: 'ข่า', sub: 'Galangal', color: '#F59E0B' },
+          { title: 'ใบมะกรูด', sub: 'Kaffir Lime Leaf', color: '#0EA5E9' }
+        ], 'tom yum trinity herbs: lemongrass galangal kaffir lime leaf diagram') +
+        svgFlowSteps([
+          { title: 'ต้มน้ำซุปกุ้ง', sub: 'Shrimp stock', color: '#EA580C' },
+          { title: 'ใส่สมุนไพร', sub: 'Add herbs', color: '#16A34A' },
+          { title: 'ใส่พริกเผา+ปลา', sub: 'Paste+fish sauce', color: '#F59E0B' },
+          { title: 'ใส่กุ้ง 30 วิ', sub: 'Shrimp 30s', color: '#DC2626' },
+          { title: 'บีบมะนาวปิดไฟ', sub: 'Lime off-heat', color: '#0EA5E9' }
+        ], 'tom yum goong cooking process flow diagram')),
+
+      readingItem(
+        'ผัดไทย (Pad Thai)', 'Pad Thai',
+        [
+          'ผัดไทยคือก๋วยเตี๋ยวผัดเส้นจันท์ที่มีรสชาติกลมกล่อมครบทั้งเปรี้ยว-หวาน-เค็ม-อูมามิในคำเดียว หัวใจสำคัญคือ "ซอสผัดไทย" ที่ทำจากมะขามเปียก น้ำปลา และน้ำตาลปีบ ต้องเคี่ยวให้ได้สัดส่วนที่สมดุลก่อนนำไปผัด',
+          'ซอสผัดไทย (สำหรับ 4 ที่): น้ำมะขามเปียกข้น 5 ช้อนโต๊ะ, น้ำปลา 3 ช้อนโต๊ะ, น้ำตาลปีบ 3 ช้อนโต๊ะ, น้ำเปล่า 1 ช้อนโต๊ะ — เคี่ยวน้ำตาลปีบในหม้อไฟกลางจนละลายเป็นสีเข้มขึ้น แล้วใส่น้ำ น้ำปลา น้ำมะขามเปียกตามลงไป เคี่ยวไฟอ่อนคนเรื่อย ๆ ประมาณ 5 นาทีจนซอสข้นเข้ากัน',
+          'วัตถุดิบผัด: เส้นจันท์แช่น้ำนิ่ม 200 กรัม, กุ้งหรือเต้าหู้แข็ง, ไข่ 2 ฟอง, ถั่วงอก, กุยช่าย, หัวไชโป๊วสับ, ถั่วลิสงป่น, กระเทียมสับ, น้ำมันสำหรับผัด',
+          'ขั้นตอน: (1) ตั้งกระทะไฟแรง ใส่น้ำมัน ผัดกระเทียมกับหัวไชโป๊วให้หอม (2) ใส่กุ้ง/เต้าหู้ผัดให้สุก ดันไปข้างกระทะ ตอกไข่ลงตรงกลาง คนไข่ให้กระจายแล้วคลุกรวมกับของที่ดันไว้ (3) ใส่เส้นจันท์ที่แช่นิ่มแล้ว ราดซอสผัดไทยลงไป ผัดเร็ว ๆ ให้เส้นซึมซอสทั่วโดยไม่ให้เส้นแฉะเกินไป (4) ใส่ถั่วงอกครึ่งหนึ่งกับกุยช่ายหั่นท่อน ผัดเร็ว ๆ ให้ผักยังกรอบอยู่ (5) ปิดไฟ ตักใส่จาน โรยถั่วลิสงป่น เสิร์ฟพร้อมถั่วงอกสด มะนาว และพริกป่นแยกต่างหาก',
+          'เคล็ดลับ: ห้ามผัดเส้นนานเกินไปเพราะเส้นจะเละ และควรผัดไฟแรงตลอดเพื่อให้ได้กลิ่นกระทะ (wok hei) แบบร้านข้างทาง'
+        ],
+        [
+          'Pad Thai is stir-fried Chanthaburi rice noodles with a perfectly balanced sour-sweet-salty-umami flavor in every bite. Its heart is the "Pad Thai sauce" made from tamarind paste, fish sauce, and palm sugar — it must be reduced to the right balance before stir-frying.',
+          'Pad Thai sauce (serves 4): 5 tbsp thick tamarind paste, 3 tbsp fish sauce, 3 tbsp palm sugar, 1 tbsp water — melt the palm sugar in a pot over medium heat until it darkens, then add water, fish sauce, and tamarind paste. Simmer on low heat, stirring, for about 5 minutes until thick and combined.',
+          'Stir-fry ingredients: 200g dried chanthaburi rice noodles (soaked until soft), shrimp or firm tofu, 2 eggs, bean sprouts, garlic chives, chopped preserved radish, ground peanuts, chopped garlic, oil for frying.',
+          'Steps: (1) Heat a wok on high heat with oil, stir-fry garlic and preserved radish until fragrant. (2) Add shrimp/tofu and cook through, push to the side of the wok, crack the eggs into the center, scramble, then mix everything together. (3) Add the soaked noodles and pour in the Pad Thai sauce, stir-fry quickly so the noodles absorb the sauce without becoming mushy. (4) Add half the bean sprouts and cut garlic chives, toss quickly so the vegetables stay crisp. (5) Turn off the heat, plate, sprinkle with ground peanuts, and serve with fresh bean sprouts, lime, and chili powder on the side.',
+          'Tip: never stir-fry the noodles too long or they turn mushy, and keep the heat high throughout to get that smoky "wok hei" flavor from street-food stalls.'
+        ],
+        svgFactStrip([
+          { title: '5 ช้อนโต๊ะ', sub: 'น้ำมะขามเปียก / Tamarind', color: '#B45309' },
+          { title: '3 ช้อนโต๊ะ', sub: 'น้ำปลา / Fish sauce', color: '#0EA5E9' },
+          { title: '3 ช้อนโต๊ะ', sub: 'น้ำตาลปีบ / Palm sugar', color: '#EA580C' }
+        ], 'pad thai sauce ratio: tamarind fish sauce palm sugar diagram') +
+        svgFlowSteps([
+          { title: 'เคี่ยวซอส', sub: 'Make sauce', color: '#B45309' },
+          { title: 'ผัดกระเทียม', sub: 'Fry garlic', color: '#16A34A' },
+          { title: 'ใส่กุ้ง+ไข่', sub: 'Shrimp+egg', color: '#F59E0B' },
+          { title: 'ใส่เส้น+ซอส', sub: 'Noodles+sauce', color: '#DC2626' },
+          { title: 'ใส่ผักสด', sub: 'Add veg', color: '#0EA5E9' }
+        ], 'pad thai cooking process flow diagram')),
+
+      readingItem(
+        'แกงเขียวหวานไก่ (Gaeng Keow Wan Gai)', 'Thai Green Curry with Chicken',
+        [
+          'แกงเขียวหวานคือแกงกะทิที่ใช้พริกแกงเขียวหวาน (ทำจากพริกขี้หนูเขียวสด ตะไคร้ ข่า ผิวมะกรูด กะปิ และเครื่องเทศ) ชื่อ "เขียวหวาน" มาจากสีเขียวของพริกแกงและรสชาติออกหวานนำเล็กน้อยจากกะทิ ไม่ใช่แปลว่าหวานจัด',
+          'วัตถุดิบ (สำหรับ 3-4 ที่): เนื้อไก่หั่นชิ้น 300 กรัม, พริกแกงเขียวหวาน 3-4 ช้อนโต๊ะ, หัวกะทิ 200 มล., หางกะทิ 400 มล., มะเขือเปราะหรือมะเขือม่วงหั่นชิ้น, พริกชี้ฟ้าแดงหั่นเฉียง, ใบมะกรูดฉีก, ใบโหระพา, น้ำปลา 2-3 ช้อนโต๊ะ, น้ำตาลปีบ 1 ช้อนโต๊ะ',
+          'ขั้นตอน: (1) ตั้งกระทะไฟกลาง-แรง ใส่หัวกะทิ (กะทิเข้มข้นที่ตักจากชั้นบนสุดของกระป๋อง) ผัดคนเรื่อย ๆ 3-5 นาทีจนน้ำมันแตกตัวลอยขึ้นมาเป็นมัน ๆ (เรียกว่า "แตกมัน") — ขั้นตอนนี้สำคัญมาก เป็นตัวดึงกลิ่นหอมของพริกแกงออกมาเต็มที่ (2) ใส่พริกแกงเขียวหวานลงผัดกับหัวกะทิที่แตกมันแล้ว 1-2 นาทีจนหอม (3) ใส่เนื้อไก่ลงผัดจนเนื้อเปลี่ยนเป็นสีขาวรอบนอก (4) เติมหางกะทิ พอเดือดใส่มะเขือลงต้ม ปรุงรสด้วยน้ำปลาและน้ำตาลปีบ (5) ปิดไฟ ใส่ใบมะกรูดฉีกกับใบโหระพา คนให้ทั่วก่อนยกลง (ใส่ตอนใกล้ปิดไฟเพื่อรักษากลิ่นหอมสด) เสิร์ฟกับข้าวสวยร้อน ๆ',
+          'เคล็ดลับ: ขั้นตอน "แตกมัน" คือจุดตัดสินความอร่อย ถ้าข้ามขั้นตอนนี้ไปเลยใส่กะทิรวมกันหมด แกงจะไม่หอมมันเท่าที่ควร'
+        ],
+        [
+          'Green curry is a coconut-milk curry made with green curry paste (fresh green Thai chilies, lemongrass, galangal, kaffir lime zest, shrimp paste, and spices). The name "green sweet" comes from the paste\'s green color and the mild sweetness from the coconut milk — it doesn\'t mean the dish is very sweet.',
+          'Ingredients (serves 3-4): 300g chicken, cut into pieces, 3-4 tbsp green curry paste, 200ml coconut cream, 400ml coconut milk, sliced Thai eggplant or round eggplant, sliced red spur chilies, torn kaffir lime leaves, Thai basil, 2-3 tbsp fish sauce, 1 tbsp palm sugar.',
+          'Steps: (1) Heat a wok on medium-high, add the coconut cream (the thick top layer) and stir continuously for 3-5 minutes until the oil separates and floats to the top — this "breaking the fat" step is critical, as it fully draws out the paste\'s aroma later. (2) Add the green curry paste and fry with the split coconut cream for 1-2 minutes until fragrant. (3) Add the chicken and stir-fry until the outside turns white. (4) Add the coconut milk, once boiling add the eggplant, then season with fish sauce and palm sugar. (5) Turn off the heat, add torn kaffir lime leaves and Thai basil, stir through before removing from heat (added near the end to preserve their fresh aroma). Serve with hot steamed rice.',
+          'Tip: the "breaking the fat" step is what makes or breaks the dish\'s richness — skipping it and dumping in all the coconut milk at once results in a curry that\'s noticeably less aromatic and rich.'
+        ],
+        svgFlowSteps([
+          { title: 'แตกมันกะทิ', sub: 'Split coconut cream', color: '#F59E0B' },
+          { title: 'ผัดพริกแกง', sub: 'Fry paste', color: '#16A34A' },
+          { title: 'ผัดไก่', sub: 'Cook chicken', color: '#EA580C' },
+          { title: 'เติมกะทิ+มะเขือ', sub: 'Add milk+eggplant', color: '#0EA5E9' },
+          { title: 'ใบมะกรูด+โหระพา', sub: 'Herbs off-heat', color: '#DC2626' }
+        ], 'thai green curry cooking process flow diagram')),
+
+      readingItem(
+        'ส้มตำ (Som Tam)', 'Som Tam (Thai Green Papaya Salad)',
+        [
+          'ส้มตำคือสลัดมะละกอดิบสับเส้น รสจัดจ้านเปรี้ยว-เผ็ด-เค็ม-หวาน ปรุงด้วยครกไม้/ครกดินแบบดั้งเดิม เทคนิคการ "ตำ" ที่ถูกต้องสำคัญมาก เพราะต้องบุบให้เครื่องปรุงเข้าเนื้อมะละกอโดยที่มะละกอยังกรอบอยู่ ไม่ใช่ตำจนแหลก',
+          'วัตถุดิบ (สำหรับ 2 ที่): มะละกอดิบสับเส้น 2 ถ้วย, กระเทียม 2-3 กลีบ, พริกขี้หนูสด 2-5 เม็ด (ปรับตามความเผ็ด), มะเขือเทศลูกเล็กผ่าซีก, ถั่วฝักยาวหั่นท่อน, กุ้งแห้งป่น 2-3 ช้อนโต๊ะ, ถั่วลิสงคั่วทุบหยาบ 2 ช้อนโต๊ะ, น้ำปลา 2 ช้อนโต๊ะ, น้ำมะนาว 2-3 ช้อนโต๊ะ, น้ำตาลปีบ 1-2 ช้อนโต๊ะ',
+          'ขั้นตอน: (1) ใส่กระเทียมกับพริกขี้หนูลงครก ตำพอแตกหยาบ ๆ ไม่ต้องละเอียด (2) ใส่ถั่วฝักยาวกับถั่วลิสง ตำเบา ๆ ให้บุบพอช้ำแต่ยังกรอบ (3) ใส่มะเขือเทศ กุ้งแห้ง น้ำปลา น้ำมะนาว น้ำตาลปีบ ตำเบา ๆ ให้เข้ากัน (4) ใส่มะละกอสับลงไป ใช้เทคนิค "ตำสลับพลิก" คือตำเบา ๆ 3-4 ครั้งแล้วใช้ช้อนพลิกก้นครกขึ้นมาด้านบนสลับกันไปเรื่อย ๆ จนมะละกอเคลือบด้วยน้ำปรุงทั่วถึงแต่ยังกรอบอยู่ ชิมรสปรับตามชอบ',
+          'เคล็ดลับ: ครกดินกับสากไม้ให้ผลลัพธ์ดีที่สุดเพราะน้ำหนักและพื้นผิวช่วยบุบเครื่องปรุงพอดี ไม่แหลกจนเป็นน้ำเหมือนใช้เครื่องปั่น'
+        ],
+        [
+          'Som Tam is a shredded raw papaya salad with bold sour-spicy-salty-sweet flavor, traditionally made in a wooden or clay mortar and pestle. Getting the "pounding" technique right matters a lot — you need to bruise the ingredients enough for the dressing to penetrate while the papaya stays crisp, not pulverized.',
+          'Ingredients (serves 2): 2 cups shredded green papaya, 2-3 cloves garlic, 2-5 Thai chilies (adjust to taste), halved cherry tomatoes, cut long beans, 2-3 tbsp ground dried shrimp, 2 tbsp roughly crushed roasted peanuts, 2 tbsp fish sauce, 2-3 tbsp lime juice, 1-2 tbsp palm sugar.',
+          'Steps: (1) Add garlic and chilies to the mortar, pound until roughly broken down — no need to make it fine. (2) Add long beans and peanuts, pound gently until lightly bruised but still crisp. (3) Add tomatoes, dried shrimp, fish sauce, lime juice, and palm sugar, pound gently to combine. (4) Add the shredded papaya and use the "pound-and-flip" technique — pound gently 3-4 times, then use a spoon to flip the ingredients from the bottom to the top, repeating until the papaya is evenly coated with the dressing but still crisp. Taste and adjust.',
+          'Tip: a clay mortar with a wooden pestle gives the best result — their weight and texture bruise the ingredients just right, unlike a blender which would turn everything into liquid.'
+        ],
+        svgFlowSteps([
+          { title: 'ตำกระเทียม+พริก', sub: 'Garlic+chili', color: '#16A34A' },
+          { title: 'ใส่ถั่วฝักยาว', sub: 'Long beans', color: '#0EA5E9' },
+          { title: 'ปรุงรส', sub: 'Season', color: '#F59E0B' },
+          { title: 'ตำสลับพลิก', sub: 'Pound & flip', color: '#DC2626' }
+        ], 'som tam pounding technique process flow diagram')),
+
+      readingItem(
+        'ผัดกะเพราหมูสับ ไข่ดาว', 'Pad Kra Pao Moo Saap (Thai Holy Basil Pork) with Fried Egg',
+        [
+          'ผัดกะเพราคือเมนูจานเดียวยอดนิยมที่สุดของไทย หัวใจสำคัญคือ "ใบกะเพรา" (Holy Basil) ซึ่งมีกลิ่นฉุนเผ็ดร้อนคล้ายกานพลูเฉพาะตัว ต่างจาก "ใบโหระพา" (Thai Basil) ที่กลิ่นหอมอ่อนกว่าคล้ายชะเอม ห้ามใช้แทนกันเด็ดขาดถ้าอยากได้รสชาติแท้ ๆ',
+          'วัตถุดิบ (สำหรับ 1-2 ที่): หมูสับ 200 กรัม, ใบกะเพรา 1 กำมือ, กระเทียม 5-6 กลีบ, พริกขี้หนู 5-10 เม็ด, ถั่วฝักยาวหั่นท่อน (ถ้าชอบ), ไข่ไก่ 1-2 ฟองสำหรับทอด, น้ำมันสำหรับทอดไข่, น้ำมันสำหรับผัด',
+          'ซอสปรุงรส: น้ำปลา 1 ช้อนโต๊ะ, ซีอิ๊วขาว 1 ช้อนโต๊ะ, ซอสหอยนางรม 1 ช้อนโต๊ะ, น้ำตาล 1 ช้อนชา, ผสมรวมกันในถ้วยเตรียมไว้ก่อนผัด',
+          'ขั้นตอน: (1) โขลกกระเทียมกับพริกขี้หนูในครกให้แตกหยาบ ๆ (2) ตั้งกระทะไฟแรงจนน้ำมันร้อนจัด ใส่กระเทียมพริกที่โขลกลงผัดสัก 30 วินาที-1 นาทีจนหอม (3) ใส่หมูสับ ปล่อยให้ติดกระทะเซียนไฟประมาณ 20 วินาทีก่อนค่อยคนให้กระจาย จะได้กลิ่นไหม้หอม ๆ ติดกระทะ (4) ผัดหมูจนเกือบสุก ใส่ถั่วฝักยาวถ้าใช้ แล้วราดซอสปรุงรสที่ผสมไว้ ผัดให้เข้ากัน (5) ปิดไฟทันที ใส่ใบกะเพราลงคลุกให้ทั่ว ความร้อนที่เหลือจะทำให้ใบสลดพอดีโดยไม่เสียกลิ่นหอม (6) ทอดไข่ดาวแยกในกระทะน้ำมันร้อนจัด ใช้ตะหลิวช้อนน้ำมันร้อนราดหน้าไข่ให้ไข่แดงสุกด้านบนขณะที่ขอบไข่ขาวกรอบ เสิร์ฟบนข้าวสวยร้อน ราดกะเพราแล้ววางไข่ดาวด้านบน',
+          'เคล็ดลับ: การปล่อยหมูให้เซียนไฟก่อนคนคือกุญแจของกลิ่น "ผัดกะทะ" แบบร้านตามสั่ง ถ้าคนทันทีเนื้อจะแค่สุกแบบต้มไม่มีกลิ่นไหม้หอม'
+        ],
+        [
+          'Pad Kra Pao is Thailand\'s most popular single-plate dish. Its soul is "kra pao" (Holy Basil), which has a sharp, peppery, clove-like aroma — quite different from "horapa" (Thai Basil), which is milder and more anise-like. Never substitute one for the other if you want the authentic flavor.',
+          'Ingredients (serves 1-2): 200g ground pork, 1 handful holy basil leaves, 5-6 cloves garlic, 5-10 Thai chilies, cut long beans (optional), 1-2 eggs for frying, oil for frying the egg, oil for stir-frying.',
+          'Sauce: 1 tbsp fish sauce, 1 tbsp light soy sauce, 1 tbsp oyster sauce, 1 tsp sugar — mix together in a bowl before cooking.',
+          'Steps: (1) Pound garlic and chilies in a mortar until roughly broken down. (2) Heat a wok on high until the oil is very hot, add the pounded garlic and chilies, stir-fry for 30 seconds to 1 minute until fragrant. (3) Add the ground pork, let it sear against the hot wok for about 20 seconds before breaking it up — this gives it a fragrant charred aroma. (4) Stir-fry the pork until nearly cooked, add long beans if using, then pour in the mixed sauce and toss to combine. (5) Turn off the heat immediately and add the holy basil, tossing to wilt it in the residual heat without losing its fresh aroma. (6) Fry the egg separately in very hot oil, basting hot oil over the top with a spatula so the yolk cooks on top while the edges stay crispy. Serve over hot rice, topped with the kra pao and the fried egg.',
+          'Tip: letting the pork sear before stirring is the key to that "wok-fried" street-stall aroma — stirring immediately just steams the meat with no charred fragrance.'
+        ],
+        svgFlowSteps([
+          { title: 'โขลกพริก+กระเทียม', sub: 'Pound aromatics', color: '#16A34A' },
+          { title: 'ผัดหอมไฟแรง', sub: 'Fry aromatics', color: '#F59E0B' },
+          { title: 'เซียนหมู', sub: 'Sear pork', color: '#EA580C' },
+          { title: 'ใส่ซอส', sub: 'Add sauce', color: '#DC2626' },
+          { title: 'ใส่กะเพราปิดไฟ', sub: 'Basil off-heat', color: '#16A34A' },
+          { title: 'ทอดไข่ดาว', sub: 'Fry egg', color: '#0EA5E9' }
+        ], 'pad kra pao cooking process flow diagram'))
+    ]
   }
 ];
 
@@ -591,6 +721,7 @@ function saveBadges(b) { try { localStorage.setItem(BADGES_KEY, JSON.stringify(b
 var BADGE_DEFS = [
   { id: 'first-pass', icon: '🥉', th: 'ก้าวแรกในครัว', en: 'First Step' },
   { id: 'track-kitchen-basics', icon: '🔪', th: 'เจ้าพื้นฐานครัว', en: 'Kitchen Fundamentals Master' },
+  { id: 'track-thai-recipes', icon: '🇹🇭', th: 'เจ้าตำรับอาหารไทย', en: 'Thai Recipes Master' },
   { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
   { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักครัว', en: '7-Day Streak' },
   { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สที่มีทั้งหมด!', en: 'All Lessons Complete!' }
