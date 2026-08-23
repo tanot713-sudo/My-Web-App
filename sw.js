@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v330';
+const CACHE = 'ome-v331';
 const PRECACHE = [
   './',
   './index.html',
@@ -19,6 +19,7 @@ const PRECACHE = [
   './classroom-business.html',
   './classroom-engineering.html',
   './languages.html',
+  './languages.compiled.js',
   './legal.html',
   './budget.html',
   './firebase-sync.js',
