@@ -125,24 +125,29 @@ function svgTempBar(minT, maxT, marks, label) {
     '<text x="' + (barX + barW) + '" y="' + (barY - 12) + '" font-size="10" fill="#727C93" text-anchor="end">' + maxT + '°C</text>';
   return svgWrap(axis + '<rect x="' + barX + '" y="' + barY + '" width="' + barW + '" height="' + barH + '" rx="4" fill="none" stroke="#1F2430" stroke-width="1.5"/>' + segs + labels, 500, 120, 540, label);
 }
-/* มือจับมีดแบบ pinch grip + มือประคอง (claw grip) บนเขียง — ภาพนิ่งอธิบายท่าจับที่ถูกต้อง */
+/* ตำแหน่งจับมีดแบบ pinch grip + ตำแหน่งมือประคอง (claw grip) — แบบแผนผัง (schematic) ล้วนๆ
+   ใช้วงกลมประ+ลูกศร+ป้ายชี้ตำแหน่งบนมีด/เขียง แทนการวาดรูปมือจริง เพราะการวาดมือ/คนด้วยรูปทรง
+   เรขาคณิตง่ายๆ มักออกมาดูหยาบ (เจอปัญหานี้มาก่อนตอนทำ SVG มวยไทย) วิธีนี้สื่อความได้แม่นยำกว่า
+   และเข้าธีมเดียวกับไดอะแกรมอื่นในไฟล์นี้ที่เป็นรูปทรงเรขาคณิต/แผนผังล้วน */
 function buildKnifeGripSvg() {
   var board = '<rect x="20" y="150" width="280" height="70" rx="6" fill="#C9A876" stroke="#8B6F47" stroke-width="2"/>';
-  /* มีด: ใบมีด + ด้าม วางเฉียงพร้อมสัมผัสเขียง */
   var blade = '<path d="M 90,170 L 230,150 L 235,158 L 100,182 Z" fill="#CBD5E1" stroke="#1F2430" stroke-width="2"/>';
   var handle = '<rect x="50" y="172" width="46" height="16" rx="6" fill="#5C4433" stroke="#1F2430" stroke-width="2" transform="rotate(-8 73 180)"/>';
-  /* มือขวา: pinch grip — นิ้วโป้ง+นิ้วชี้หนีบที่โคนใบมีด */
-  var rightHand = '<ellipse cx="82" cy="172" rx="17" ry="13" fill="#E8B88A" stroke="#1F2430" stroke-width="2" transform="rotate(-10 82 172)"/>' +
-    '<path d="M 95,163 Q 105,158 100,150" stroke="#1F2430" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
-    '<text x="82" y="205" font-size="10.5" font-weight="800" text-anchor="middle" fill="#C2410C">Pinch Grip</text>';
-  /* มือซ้าย: claw grip — งอปลายนิ้วประคองอาหาร ใช้ข้อนิ้วดันใบมีด */
-  var food = '<circle cx="190" cy="158" r="12" fill="#FF8787" stroke="#1F2430" stroke-width="2"/><circle cx="205" cy="160" r="10" fill="#FF8787" stroke="#1F2430" stroke-width="2"/>';
-  var leftHand = '<path d="M 175,145 Q 168,160 178,172 Q 190,178 202,172 Q 210,165 205,150 Q 195,140 175,145 Z" fill="#E8B88A" stroke="#1F2430" stroke-width="2"/>' +
-    '<line x1="182" y1="150" x2="182" y2="162" stroke="#1F2430" stroke-width="1.5"/>' +
-    '<line x1="192" y1="147" x2="192" y2="160" stroke="#1F2430" stroke-width="1.5"/>' +
-    '<line x1="202" y1="150" x2="200" y2="162" stroke="#1F2430" stroke-width="1.5"/>' +
-    '<text x="190" y="205" font-size="10.5" font-weight="800" text-anchor="middle" fill="#C2410C">Claw Grip</text>';
-  return svgWrap(board + food + blade + handle + rightHand + leftHand, 320, 220, 340, 'knife pinch grip and guiding claw grip hand positions diagram');
+  var food = ['178,160', '192,157', '206,161'].map(function (xy) {
+    var xs = xy.split(',');
+    return '<rect x="' + (xs[0] - 7) + '" y="' + (xs[1] - 6) + '" width="14" height="12" rx="2" fill="#74C69D" stroke="#1F2430" stroke-width="1.3"/>';
+  }).join('');
+  /* วงกลมประชี้จุดจับ (โคนใบมีดเหนือด้าม) + ป้าย Pinch Grip */
+  var pinchCallout = '<circle cx="93" cy="171" r="17" fill="none" stroke="#C2410C" stroke-width="2" stroke-dasharray="4,3"/>' +
+    svgArrow(93, 200, 93, 190, '#C2410C') +
+    '<text x="93" y="216" font-size="11" font-weight="800" text-anchor="middle" fill="#C2410C">Pinch Grip</text>' +
+    '<text x="93" y="228" font-size="9" text-anchor="middle" fill="#727C93">โคนใบมีดเหนือด้าม</text>';
+  /* วงกลมประชี้จุดวางมือประคอง (เหนือกองอาหาร) + ป้าย Claw Grip */
+  var clawCallout = '<circle cx="192" cy="159" r="20" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-dasharray="4,3"/>' +
+    svgArrow(192, 200, 192, 182, '#0EA5E9') +
+    '<text x="192" y="216" font-size="11" font-weight="800" text-anchor="middle" fill="#0EA5E9">Claw Grip</text>' +
+    '<text x="192" y="228" font-size="9" text-anchor="middle" fill="#727C93">งอปลายนิ้วหลบใบมีด</text>';
+  return svgWrap(board + food + blade + handle + pinchCallout + clawCallout, 320, 236, 340, 'knife pinch grip and guiding claw grip position callouts diagram');
 }
 /* อนิเมชันท่าหั่นแบบ rocking chop — ปลายใบมีดเป็นจุดหมุน (pivot) แตะเขียงตลอด ด้ามยกขึ้น-ลง
    ใช้ SMIL animateTransform หมุนรอบจุดปลายมีดที่แน่นอน (เสถียรกว่า CSS transform-origin ที่เจอปัญหา
@@ -229,22 +234,41 @@ function buildWetHeatSvg() {
     { from: 98, to: 112, color: '#DC2626', label: 'Boil', temp: '100°C' }
   ], 'poaching simmering boiling temperature spectrum diagram');
 }
-/* แถวไอคอนอุปกรณ์ครัวพื้นฐาน 5 ชิ้น */
+/* ไอคอนจริงจาก Lucide (lucide.dev, สัญญาอนุญาต ISC — โอเพนซอร์สฟรี ใช้ได้ทุกกรณีรวมเชิงพาณิชย์
+   ไม่มีปัญหาลิขสิทธิ์ ไม่ต้องใส่เครดิตก็ได้ตามเงื่อนไขสัญญาอนุญาต) แทนที่จะวาดไอคอนเองซึ่งมักออกมา
+   ดูหยาบ — คัดลอกเฉพาะ path ข้างในมา (ตัด <svg> ครอบนอกออก) แล้ว scale ให้เข้าขนาดไดอะแกรม
+   ต้นฉบับ viewBox 0 0 24 24 ทุกไอคอน: https://lucide.dev/icons/ */
+var LUCIDE_PATHS = {
+  pot: '<path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/>' +
+    '<path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/>',
+  thermometer: '<path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>',
+  measuringCup: '<path d="M4.5 3h15"/><path d="M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3"/><path d="M6 14h12"/>'
+};
+function lucideIcon(pathsInner, cx, cy, size, color) {
+  var s = size / 24;
+  return '<g transform="translate(' + (cx - size / 2) + ',' + (cy - size / 2) + ') scale(' + s.toFixed(3) + ')" ' +
+    'fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + pathsInner + '</g>';
+}
+/* แถวไอคอนอุปกรณ์ครัวพื้นฐาน 5 ชิ้น — มีดเชฟใช้รูปทรงเรขาคณิตเองต่อ (ใบมีดตรง+ด้าม) เพราะไอคอน
+   "pocket-knife" ของ Lucide เป็นมีดพับ ไม่ใช่มีดเชฟใบตรง ใช้แทนกันไม่ได้ ส่วนอีก 3 ชิ้นใช้ไอคอนจริง */
 function buildEquipmentIconsSvg() {
+  /* วาดเป็น outline ล้วน (fill:none) ให้เข้าสไตล์เดียวกับไอคอน Lucide เส้นล้วนอีก 3 ชิ้น */
+  var knifeIcon = '<path d="M -15,3 L 10,-9 L 12,-5 L -13,7 Z" fill="none" stroke="#EA580C" stroke-width="2" stroke-linejoin="round"/>' +
+    '<rect x="-24" y="1" width="12" height="8" rx="3" fill="none" stroke="#EA580C" stroke-width="2" transform="rotate(-8 -18 5)"/>';
   var items = [
-    { label: 'Chef\'s Knife', color: '#EA580C', icon: '<path d="M -22,4 L 14,-8 L 16,-4 L -18,10 Z" fill="#CBD5E1" stroke="#1F2430" stroke-width="1.5"/><rect x="-32" y="0" width="14" height="9" rx="3" fill="#5C4433" stroke="#1F2430" stroke-width="1.5"/>' },
-    { label: 'Cutting Board', color: '#8B6F47', icon: '<rect x="-24" y="-14" width="48" height="28" rx="4" fill="#C9A876" stroke="#8B6F47" stroke-width="2"/>' },
-    { label: 'Saucepan', color: '#495057', icon: '<rect x="-18" y="-6" width="36" height="20" rx="3" fill="#94A3B8" stroke="#1F2430" stroke-width="1.5"/><rect x="18" y="-2" width="16" height="5" fill="#495057"/>' },
-    { label: 'Thermometer', color: '#DC2626', icon: '<rect x="-4" y="-16" width="8" height="26" rx="4" fill="#F1F3F5" stroke="#1F2430" stroke-width="1.5"/><circle cx="0" cy="14" r="7" fill="#DC2626" stroke="#1F2430" stroke-width="1.5"/>' },
-    { label: 'Measuring Cup', color: '#0EA5E9', icon: '<path d="M -14,-14 L 14,-14 L 10,14 L -10,14 Z" fill="none" stroke="#1F2430" stroke-width="2"/><line x1="14" y1="-14" x2="22" y2="-10" stroke="#1F2430" stroke-width="2"/>' }
+    { label: 'Chef\'s Knife', color: '#EA580C', icon: knifeIcon },
+    { label: 'Cutting Board', color: '#8B6F47', icon: '<rect x="-22" y="-12" width="44" height="24" rx="4" fill="#C9A876" stroke="#8B6F47" stroke-width="2"/>' },
+    { label: 'Saucepan', color: '#495057', icon: lucideIcon(LUCIDE_PATHS.pot, 0, 0, 30, '#495057') },
+    { label: 'Thermometer', color: '#DC2626', icon: lucideIcon(LUCIDE_PATHS.thermometer, 0, 0, 30, '#DC2626') },
+    { label: 'Measuring Cup', color: '#0EA5E9', icon: lucideIcon(LUCIDE_PATHS.measuringCup, 0, 0, 30, '#0EA5E9') }
   ];
-  var gap = 90, y = 60;
+  var gap = 90, y = 70;
   var parts = items.map(function (it, i) {
     var cx = 55 + i * gap;
     return '<g transform="translate(' + cx + ',' + y + ')">' + it.icon +
-      '<text x="0" y="36" font-size="10.5" font-weight="800" text-anchor="middle" fill="' + it.color + '">' + it.label + '</text></g>';
+      '<text x="0" y="34" font-size="10.5" font-weight="800" text-anchor="middle" fill="' + it.color + '">' + it.label + '</text></g>';
   }).join('');
-  return svgWrap(parts, 55 + (items.length - 1) * gap + 55, 110, 560, 'basic kitchen equipment icons diagram');
+  return svgWrap(parts, 55 + (items.length - 1) * gap + 55, 130, 560, 'basic kitchen equipment icons diagram');
 }
 
 /* ══════════════════════════════════════════════════════════════════
