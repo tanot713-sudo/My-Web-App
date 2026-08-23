@@ -4061,8 +4061,17 @@
             'ย้ำ: ตรวจข้อความล่าสุดที่ผู้เรียนเพิ่งส่งมาเท่านั้น ตอบตามรูปแบบ 3 ส่วนที่กำหนดไว้เป๊ะๆ ห้ามข้ามส่วนไหน ' +
             'และห้ามตอบเป็นภาษาอื่นนอกจากไทย';
 
+        // หมวดคำศัพท์เฉพาะทาง (กฎหมาย/วิศวกรรม/ธุรกิจ — เพิ่มทีหลัง ขยายจาก 20 เป็น 60 คำ/หมวด) เป็น
+        // ระดับสูงกว่า IELTS ทั่วไป ต้องกันไว้ไม่ให้หลุดเข้าไปในคลังคำศัพท์ของข้อสอบ IELTS จำลอง
+        // (buildIeltsExam ใช้ enVocabPool() นี้แทน vocabPool('lang-en') ตรงๆ) — รูปแบบเดียวกับ
+        // JP_SPECIALTY_CATS/jpVocabPool() และ KR_SPECIALTY_CATS/krVocabPool()
+        const EN_SPECIALTY_CATS = ['กฎหมาย (Legal English)', 'วิศวกรรม (Engineering English)', 'ธุรกิจเชิงลึก (Business English)'];
+        function enVocabPool() {
+            return vocabPool('lang-en').filter(item => !EN_SPECIALTY_CATS.some(cat => item.key.includes(`::vocab-${cat}::`)));
+        }
+
         function buildIeltsExam() {
-            const pool = vocabPool('lang-en');
+            const pool = enVocabPool();
             return {
                 kind: 'ielts', passPct: null,
                 sections: [
