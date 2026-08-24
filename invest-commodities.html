@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ค่าเงิน &amp; วัตถุดิบ — ราคาสินค้าโภคภัณฑ์และค่าเงิน | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<script src="vendor/lightweight-charts.standalone.js" defer></script>
+<style>
+:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
+  --brand:#12A594;--brand-dk:#0B7F72;--brand-sf:#E7F6F4;
+  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--sky:#3B9BEA;--err:#E5484D;--warn:#E08700;--violet:#6C63D9;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
+  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto}
+.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
+.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+.crumb .sep{margin:0 7px;color:#C9CEDC}
+.head{display:flex;align-items:center;gap:14px;margin:12px 0 6px}
+.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:24px;
+  background:linear-gradient(135deg,#3B9BEA,#6FC1F5);color:#fff;display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(59,155,234,.3)}
+h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px}
+.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
+
+.src-badge{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;display:inline-block;margin-bottom:10px}
+.src-badge.real{background:#E9F9F0;color:#0B7F52}
+.src-badge.paste{background:#EEF1F7;color:#5A6479}
+[data-theme="dark"] .src-badge.real{background:#14261E;color:#5EDCAB}
+[data-theme="dark"] .src-badge.paste{background:#242B3B;color:#A9B4C9}
+
+/* ── การ์ดสินทรัพย์ ── */
+.asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:9px}
+.asset-card{background:var(--bg);border:1.5px solid transparent;border-radius:13px;padding:11px 12px;
+  text-align:left;font-family:inherit;cursor:pointer;transition:.12s;display:flex;flex-direction:column;gap:3px}
+.asset-card:hover{border-color:var(--line)}
+.asset-card.on{background:var(--brand-sf);border-color:var(--brand)}
+.asset-card .ic{font-size:17px}
+.asset-card .nm{font-size:12px;font-weight:700;color:var(--ink);margin-top:1px;line-height:1.3}
+.asset-card .pr{font-size:14.5px;font-weight:800;margin-top:3px;letter-spacing:-.01em}
+.asset-card .pr.na{color:var(--muted);font-weight:600;font-size:12.5px}
+.asset-card .chg{font-size:11.5px;font-weight:700}
+.asset-card .chg.up{color:var(--ok)}
+.asset-card .chg.dn{color:var(--err)}
+.asset-card .chg.flat{color:var(--muted)}
+
+/* ── รายละเอียด + กราฟ ── */
+.detail-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}
+.detail-title{display:flex;align-items:center;gap:9px}
+.detail-title .ic{font-size:24px}
+.detail-title .nm{font-size:16px;font-weight:800}
+.detail-title .unit{font-size:12px;color:var(--muted);font-weight:600}
+.ctype{display:flex;gap:6px}
+.ctype button{font-family:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:9px;
+  border:1.5px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
+.ctype button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+[data-theme="dark"] .ctype button.on{background:#EAEDF5;border-color:#EAEDF5;color:#12151C}
+
+.ohlc-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:8px;margin-top:12px}
+.ohlc-box{background:var(--bg);border-radius:11px;padding:8px 10px}
+.ohlc-box .k{font-size:11px;color:var(--muted);font-weight:600}
+.ohlc-box .v{font-size:14px;font-weight:800;margin-top:2px}
+.ohlc-box .v.up{color:var(--ok)}
+.ohlc-box .v.dn{color:var(--err)}
+
+.tf-group{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.tf{font-family:inherit;font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;
+  border:1.5px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
+.tf.on{background:var(--brand);border-color:var(--brand);color:#fff}
+
+.lw-chart{width:100%;height:260px;margin-top:10px}
+.chart-empty{font-size:13px;color:var(--muted);padding:26px 4px;text-align:center}
+.chart-cap{font-size:12px;color:var(--muted);margin-top:8px;display:flex;gap:14px;flex-wrap:wrap}
+.chart-cap i{width:11px;height:3px;display:inline-block;vertical-align:middle;margin-right:4px;border-radius:2px}
+
+.disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
+footer{margin-top:22px;text-align:center;font-size:12.5px;color:#9AA3B8}
+footer a{color:var(--sky);text-decoration:none;font-weight:600}
+@media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:18px}}
+</style>
+</head>
+<body class="ome-tool-page" data-invest-key="commodities">
+<script src="auth-gate.js"></script>
+<div class="wrap">
+
+  <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>ค่าเงิน &amp; วัตถุดิบ</nav>
+
+  <div class="head">
+    <div class="head-ic">🌍</div>
+    <div>
+      <h1>ค่าเงิน &amp; วัตถุดิบ</h1>
+      <div class="head-sub">กราฟราคาสินค้าโภคภัณฑ์และค่าเงินหลัก — แตะการ์ดเพื่อดูกราฟ</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="src-badge real">🕐 ข้อมูล EOD (วันก่อนหน้า)</div>
+    <div class="asset-grid" id="assetGrid"></div>
+    <p class="mini" style="margin-top:10px">ราคาสินค้าโภคภัณฑ์/ค่าเงินโลกดึงจาก Yahoo Finance (ผ่านหลายเส้นทาง best-effort) · ราคาทองไทยดึงจาก thai-gold-api เหมือนหน้า<a href="invest-gold.html" style="color:var(--brand-dk);font-weight:700;text-decoration:none">ทองคำ</a> · การ์ดที่ขึ้น "ดึงไม่ได้" คือลองดึงแล้วไม่สำเร็จจริงๆ ไม่ใช่ข้อมูลปลอม</p>
+  </div>
+
+  <div class="card">
+    <div class="detail-hd">
+      <div class="detail-title">
+        <span class="ic" id="dIcon">🌍</span>
+        <div><div class="nm" id="dName">—</div><div class="unit" id="dUnit"></div></div>
+      </div>
+      <div class="ctype" id="ctypeGroup">
+        <button class="on" data-ct="candle" type="button">Candle</button>
+        <button data-ct="line" type="button">Line</button>
+      </div>
+    </div>
+    <div class="src-badge" id="dSrcBadge" style="margin-top:12px">กำลังโหลด…</div>
+    <div class="ohlc-row" id="ohlcRow" style="display:none">
+      <div class="ohlc-box"><div class="k">เปิด</div><div class="v" id="oOpen">—</div></div>
+      <div class="ohlc-box"><div class="k">สูง</div><div class="v" id="oHigh">—</div></div>
+      <div class="ohlc-box"><div class="k">ต่ำ</div><div class="v" id="oLow">—</div></div>
+      <div class="ohlc-box"><div class="k">ปิด</div><div class="v" id="oClose">—</div></div>
+      <div class="ohlc-box"><div class="k">เปลี่ยนแปลง</div><div class="v" id="oChg">—</div></div>
+    </div>
+    <div class="tf-group" id="tfGroup">
+      <button class="tf" data-tf="21" type="button">1เดือน</button>
+      <button class="tf on" data-tf="63" type="button">3เดือน</button>
+      <button class="tf" data-tf="126" type="button">6เดือน</button>
+      <button class="tf" data-tf="252" type="button">1ปี</button>
+    </div>
+    <div class="lw-chart" id="lwChart"></div>
+    <div id="chartEmpty" class="chart-empty" style="display:none"></div>
+    <div class="chart-cap" id="chartCap" style="display:none">
+      <span><i style="background:#26a69a"></i>แท่งขึ้น</span>
+      <span><i style="background:#ef5350"></i>แท่งลง</span>
+      <span>👆 แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
+    </div>
+  </div>
+
+  <details class="card" style="box-shadow:var(--sh)">
+    <summary style="font-size:14px;font-weight:700;cursor:pointer">ℹ️ ทำไมบางสินค้าไม่มีในรายการ</summary>
+    <div style="font-size:13.5px;color:#4a5262;margin-top:10px;line-height:1.7">
+      ถ่านหิน, ค่าระวางเรือ (freight), ยางพารา, ปาล์มน้ำมัน และมันสำปะหลัง ยังไม่มีในรายการด้านบน เพราะยังไม่พบแหล่งข้อมูลราคาสาธารณะที่ดึงได้ฟรีจากเบราว์เซอร์โดยตรงที่มั่นใจว่าแม่นยำ —
+      ไม่อยากใส่ตัวเลขที่ดึงไม่ได้จริงหรือคาดเดาราคาขึ้นมาเอง ถ้าในอนาคตเจอแหล่งข้อมูลที่เชื่อถือได้จะเพิ่มให้ภายหลัง
+    </div>
+  </details>
+
+  <div class="disc">⚠️ เครื่องมือนี้ให้ข้อมูลราคาเพื่อดูภาพรวมเท่านั้น ไม่ใช่คำแนะนำการลงทุน · ราคาจาก Yahoo Finance/thai-gold-api อาจคลาดเคลื่อนหรือดึงไม่สำเร็จบางช่วง เทียบกับแหล่งทางการก่อนตัดสินใจซื้อขายจริง</div>
+
+</div>
+
+<script src="invest-commodities.js" defer></script>
+</body>
+</html>
