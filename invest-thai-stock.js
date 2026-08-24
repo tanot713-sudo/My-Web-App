@@ -554,16 +554,24 @@
         if (s.closes.length < 30) msg += ' — ได้ประวัติน้อย กราฟอาจดูแนวโน้มไม่ชัด';
         useSeries(s, msg, 'ok', { kind: 'real', label: sym });
       }
+      showStockNews(sym);
     }).catch(function () {
       $('fetchBtn').disabled = false;
       setStatus('ดึงราคาสดไม่ได้ตอนนี้ (บริการฟรีจำกัดเป็นบางเวลา ไม่ใช่ที่เครื่องคุณ) — ลองกดอีกครั้ง หรือกด "ดูกราฟตัวอย่าง (ฝึกอ่าน)" / กรอกราคาเองจาก Streaming');
       $('price').focus();
     });
   }
-  function doDemo() { useSeries(demoData(), 'กำลังแสดง "ข้อมูลตัวอย่าง" (ไม่ใช่ราคาจริง) — ไว้ลองเล่นกราฟและฝึกอ่าน', 'ok', { kind: 'demo' }); }
+  /* ข่าวหุ้นตัวที่กำลังดู — ต่อยอด fetchNewsScan()/parseNewsRss() เดิม (เดิมใช้แค่ในโหมด "ควรขาย?" ของพอร์ต) */
+  function showStockNews(sym) {
+    $('stockNewsCard').style.display = 'block';
+    $('stockNewsTitle').textContent = '📰 ข่าวหุ้น ' + sym;
+    renderNewsBlock($('stockNewsBlock'), sym);
+  }
+  function doDemo() { $('stockNewsCard').style.display = 'none'; useSeries(demoData(), 'กำลังแสดง "ข้อมูลตัวอย่าง" (ไม่ใช่ราคาจริง) — ไว้ลองเล่นกราฟและฝึกอ่าน', 'ok', { kind: 'demo' }); }
   function doPaste() {
     var s = parsePaste($('pasteBox').value || '');
     if (!s) { setStatus('วางราคาปิดอย่างน้อย 5 วันก่อนนะครับ', 'err'); return; }
+    $('stockNewsCard').style.display = 'none';
     useSeries(s, 'ใช้ราคาที่วางแล้ว (' + s.closes.length + ' วัน)', 'ok', { kind: 'paste' });
   }
 
