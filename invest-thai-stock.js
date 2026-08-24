@@ -13,6 +13,7 @@
   var PF_KEY = 'tanot:invest:thstock';
   var lastSeries = null;
   var lastAnalysis = null;
+  var lastNewsItems = null; // หัวข้อข่าวล่าสุดของหุ้นตัวที่กำลังดู (เติมโดย renderNewsBlock) — ให้ "สรุปหุ้นด้วย AI" อ้างอิงได้
 
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
@@ -525,6 +526,16 @@
 
     if (!$('entry').value) $('entry').value = a.price.toFixed(2);
     if (!$('stop').value && isFinite(a.suggestStop)) $('stop').value = a.suggestStop.toFixed(2);
+
+    /* การ์ด "สรุปหุ้นด้วย AI" — โชว์เมื่อมีไฟจราจรจริง (ไม่ใช่ light: 'gray' ที่ยังไม่มีข้อมูลราคาเลย)
+       รีเซ็ตผลสรุปเก่าทิ้งทุกครั้งที่เปลี่ยนหุ้น/โหลดข้อมูลใหม่ กันโชว์สรุปของหุ้นตัวก่อนหน้าค้างอยู่ */
+    if (a.light && a.light !== 'gray') {
+      $('aiSumCard').style.display = 'block';
+      $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+      setAiSumStatus('', '');
+    } else {
+      $('aiSumCard').style.display = 'none';
+    }
   }
 
   function setStatus(msg, cls) { var el = $('fetchStatus'); el.textContent = msg; el.className = 'status' + (cls ? ' ' + cls : ''); }
@@ -573,6 +584,126 @@
     if (!s) { setStatus('วางราคาปิดอย่างน้อย 5 วันก่อนนะครับ', 'err'); return; }
     $('stockNewsCard').style.display = 'none';
     useSeries(s, 'ใช้ราคาที่วางแล้ว (' + s.closes.length + ' วัน)', 'ok', { kind: 'paste' });
+  }
+
+  /* ══════ สรุปหุ้นด้วย AI (Stage 4) — ใช้ ai-chat-worker.js ตัวเดียวกับวิดเจ็ตแชทลอย (ai-chat-widget.js)
+     รันในเครื่องผู้ใช้เอง ไม่ส่งข้อมูลออกไปไหน แนวทาง "guided summarization" เดียวกับปุ่ม "📝 สรุปหน้านี้"
+     ของวิดเจ็ตแชท (โครงสร้างหัวข้อตายตัว ช่วยโมเดลเล็ก 0.5B ตอบสม่ำเสมอ/อ่านง่ายขึ้น) ต่างกันตรงที่นี่ไม่ได้
+     ป้อน "เนื้อหาหน้าเว็บดิบ" ให้โมเดลอ่านเอง แต่ป้อน "ตัวเลข/สัญญาณที่หน้านี้คำนวณไว้ให้แล้ว" (RSI/MACD/
+     แนวรับ-แนวต้าน ฯลฯ จาก analyzeSeries() ด้านบน) ตรงๆ แทน — กันโมเดลเล็กต้องมาคำนวณ/ตีความตัวเลขเอง
+     (ซึ่งไม่แม่นยำพอสำหรับเรื่องเงิน) ให้ทำหน้าที่แค่ "เรียบเรียงเป็นภาษาพูด" จากผลที่คำนวณแม่นแล้วเท่านั้น
+     (สอดคล้องกับหลักของเว็บนี้ที่ยึดมาตลอด: ห้ามให้ AI เดา/สร้างตัวเลขเอง) ────────────────────────── */
+  var AI_SUMMARY_SYSTEM_PROMPT = 'คุณเป็นผู้ช่วยสรุปข้อมูลหุ้นให้นักลงทุนมือใหม่ชาวไทยฟัง จะได้รับตัวเลข/' +
+    'สัญญาณทางเทคนิคที่คำนวณไว้ให้แล้วล่วงหน้า (ห้ามคำนวณหรือเดาตัวเลขเพิ่มเองเด็ดขาด ใช้เฉพาะตัวเลขที่ให้มา) ' +
+    'และหัวข้อข่าวล่าสุดของหุ้นตัวนี้ถ้ามี หน้าที่ของคุณคือเรียบเรียงเป็นภาษาพูดที่เข้าใจง่าย ไม่ใช่ผู้แนะนำการลงทุน ' +
+    'ตอบเป็นภาษาไทยตามโครงสร้างนี้เท่านั้น (ห้ามขึ้นต้นด้วยคำนำ ให้เริ่มที่ "สรุปภาพรวม:" ทันที):\n\n' +
+    'สรุปภาพรวม: (1-2 ประโยค อธิบายสถานะราคาปัจจุบันแบบเข้าใจง่ายจากข้อมูลที่ให้)\n' +
+    'ปัจจัยหนุน: (ไม่เกิน 3 ข้อ จากข้อมูลที่ให้เท่านั้น ถ้าไม่มีให้บอกว่า "ไม่มีปัจจัยหนุนเด่นชัดตอนนี้")\n' +
+    'ปัจจัยเสี่ยง: (ไม่เกิน 3 ข้อ จากข้อมูลที่ให้เท่านั้น ถ้าไม่มีให้บอกว่า "ไม่มีปัจจัยเสี่ยงเด่นชัดตอนนี้")\n' +
+    'ข่าวที่เกี่ยวข้อง: (สรุปสั้นๆ จากหัวข้อข่าวที่ให้มาเท่านั้น ถ้าไม่มีข่าวส่งมาให้บอกว่า "ไม่มีข่าวล่าสุดที่ดึงมาได้ตอนนี้")\n\n' +
+    'ห้ามให้คำแนะนำซื้อ/ขาย ห้ามทำนายราคาในอนาคต ห้ามเติมตัวเลข บริษัท หรือเหตุการณ์ที่ไม่ได้อยู่ในข้อมูลที่ให้มาเด็ดขาด ' +
+    'ปิดท้ายด้วยประโยคเตือนเสมอว่า "นี่คือการสรุปข้อมูลเพื่อการศึกษาเท่านั้น ไม่ใช่คำแนะนำการลงทุน"';
+  var AI_SUMMARY_REMINDER = 'ย้ำ: ห้ามให้คำแนะนำซื้อ/ขาย ห้ามทำนายราคาในอนาคต ห้ามเติมตัวเลข/เหตุการณ์ที่ไม่ได้อยู่ในข้อมูลที่ให้มา ' +
+    'ตอบตามโครงสร้าง 4 หัวข้อที่กำหนดเท่านั้น เริ่มที่ "สรุปภาพรวม:" ทันที ห้ามขึ้นต้นด้วยคำนำ';
+
+  /* iOS gate + ข้อความ error ที่เข้าใจง่าย — ก็อปมาจาก ai-chat-widget.js ตรงๆ (แพทเทิร์น clone-and-adapt
+     ของเว็บนี้) เพราะเป็นไฟล์แยกกัน ไม่ได้แชร์โมดูลกัน ดูคอมเมนต์เต็มที่ ai-chat-widget.js ว่าทำไมต้องปิด
+     บน iOS (หน้าเว็บรีเฟรชเองกลางคันตอนโหลดโมเดล — มีรายงานยืนยันจริงจากผู้ใช้) */
+  function isIOS() {
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) return true;
+    return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  }
+  function friendlyChatError(rawMessage) {
+    var msg = rawMessage || '';
+    if (/bad_alloc|Can't create a session|out of memory/i.test(msg)) {
+      return 'โหลดโมเดล AI ไม่สำเร็จ เพราะหน่วยความจำที่เบราว์เซอร์เหลือให้ใช้ไม่พอ (มักเกิดถ้าเปิดแท็บ/' +
+        'โปรแกรมอื่นพร้อมกันเยอะ) ลองปิดแท็บ/โปรแกรมอื่นแล้วกดสรุปใหม่อีกครั้ง';
+    }
+    return msg;
+  }
+
+  var aiSumChatWorker = null, aiSumJobSeq = 0, aiSumBusy = false;
+  function getAiSumWorker() { if (!aiSumChatWorker) aiSumChatWorker = new Worker('./ai-chat-worker.js', { type: 'module' }); return aiSumChatWorker; }
+  function setAiSumStatus(text, cls) { var el = $('aiSumStatus'); if (!el) return; el.textContent = text || ''; el.className = 'status' + (cls ? ' ' + cls : ''); }
+
+  /* รวมข้อมูลที่คำนวณไว้แล้วทั้งหมดเป็นข้อความ (เฉพาะตัวเลขจริงที่มี — isFinite เช็คทุกตัวกันค่า NaN/undefined
+     หลุดเข้าไปให้โมเดลอ่านเป็นข้อมูลปลอมๆ) ให้โมเดลอ่านแล้วเรียบเรียงต่อเท่านั้น ไม่ต้องคำนวณเพิ่มเอง */
+  function buildStockContext() {
+    var a = lastAnalysis; if (!a) return null;
+    var sym = (lastSource && lastSource.label) ? lastSource.label : (($('sym').value || '').trim().toUpperCase() || 'หุ้นนี้');
+    var lines = ['หุ้น: ' + sym, 'ราคาล่าสุด: ' + fmt(a.price) + ' บาท', 'สัญญาณไฟจราจรที่คำนวณแล้ว: ' + a.verdict + ' (' + a.why + ')'];
+    if (a.pros && a.pros.length) lines.push('ปัจจัยหนุนที่ตรวจพบ: ' + a.pros.join(', '));
+    if (a.cons && a.cons.length) lines.push('ปัจจัยเสี่ยงที่ตรวจพบ: ' + a.cons.join(', '));
+    var d = a.det || {};
+    if (isFinite(d.rsi)) lines.push('RSI (14 วัน): ' + fmt(d.rsi, 1) + (d.rsi > 70 ? ' (สูง/ร้อนแรง)' : d.rsi < 38 ? ' (ต่ำ/แรงขายเริ่มคลาย)' : ' (กลางๆ)'));
+    if (isFinite(d.macdHist)) lines.push('MACD histogram: ' + fmt(d.macdHist, 3) + (d.macdHist >= 0 ? ' (เป็นบวก)' : ' (เป็นลบ)'));
+    if (isFinite(d.ema20) && isFinite(d.ema50)) lines.push('เส้นเฉลี่ย 20 วัน: ' + fmt(d.ema20) + ', เส้นเฉลี่ย 50 วัน: ' + fmt(d.ema50) + (a.uptrend ? ' (ราคาอยู่เหนือเส้นเฉลี่ย — แนวโน้มขึ้น)' : ' (ราคาอยู่ใต้เส้นเฉลี่ย — แนวโน้มลง/พักตัว)'));
+    if (isFinite(d.support)) lines.push('แนวรับล่าสุด: ' + fmt(d.support));
+    if (isFinite(d.resistance)) lines.push('แนวต้านล่าสุด: ' + fmt(d.resistance));
+    if (isFinite(d.adx)) lines.push('ความแรงแนวโน้ม (ADX): ' + fmt(d.adx, 0) + (d.adx >= 20 ? ' (แข็งแรง)' : ' (อ่อน)'));
+    if (lastNewsItems && lastNewsItems.length) {
+      lines.push('หัวข้อข่าวล่าสุด (' + lastNewsItems.length + ' ข่าว): ' + lastNewsItems.slice(0, 5).map(function (n) { return n.title; }).join(' / '));
+    } else {
+      lines.push('หัวข้อข่าวล่าสุด: ไม่มีข้อมูลข่าว');
+    }
+    return lines.join('\n');
+  }
+
+  function doAiSummary() {
+    if (aiSumBusy) return;
+    if (isIOS()) {
+      setAiSumStatus('⚠️ ฟีเจอร์นี้ (AI รันในเครื่อง) ยังไม่รองรับ iPhone/iPad ตอนนี้ — หน่วยความจำต่อแท็บของ Safari/iOS จำกัดเกินกว่าจะรันโมเดลได้อย่างเสถียร ลองใช้งานจากคอมพิวเตอร์แทนได้ครับ', 'err');
+      return;
+    }
+    var ctx = buildStockContext();
+    if (!ctx) { setAiSumStatus('ยังไม่มีข้อมูลหุ้นให้สรุป — ดึงราคาหรือดูกราฟตัวอย่างก่อนนะครับ', 'err'); return; }
+
+    aiSumBusy = true;
+    $('aiSumBtn').disabled = true;
+    $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+    setAiSumStatus('กำลังสรุป… (ครั้งแรกอาจต้องโหลดโมเดล AI ~350MB ก่อน)', '');
+
+    var payloadMessages = [
+      { role: 'system', content: AI_SUMMARY_SYSTEM_PROMPT },
+      { role: 'user', content: ctx },
+      { role: 'system', content: AI_SUMMARY_REMINDER }
+    ];
+    var jobId = ++aiSumJobSeq, replyText = '';
+    var w = getAiSumWorker();
+
+    function onMsg(e) {
+      var msg = e.data;
+      if (!msg || msg.jobId !== jobId) return;
+      if (msg.type === 'model-progress') {
+        var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
+        setAiSumStatus('กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) ' + msg.file + ' ' + pct, '');
+      } else if (msg.type === 'fallback') {
+        setAiSumStatus('⚠️ ' + msg.message, '');
+      } else if (msg.type === 'token') {
+        if (!replyText) { setAiSumStatus('', ''); $('aiSumOut').style.display = 'block'; }
+        replyText += msg.token;
+        $('aiSumOut').textContent = replyText;
+      } else if (msg.type === 'done') {
+        cleanup();
+        if (!replyText) setAiSumStatus('สรุปไม่สำเร็จ ลองอีกครั้ง', 'err');
+        aiSumBusy = false; $('aiSumBtn').disabled = false;
+      } else if (msg.type === 'error') {
+        cleanup();
+        $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+        setAiSumStatus('❌ สรุปไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
+        aiSumBusy = false; $('aiSumBtn').disabled = false;
+      }
+    }
+    function onErr(e) {
+      cleanup();
+      $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+      setAiSumStatus('❌ สรุปไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
+      aiSumBusy = false; $('aiSumBtn').disabled = false;
+    }
+    function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+    w.addEventListener('message', onMsg);
+    w.addEventListener('error', onErr);
+    w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages, maxNewTokens: 400 });
   }
 
   /* ── คำนวณเงิน ──────────────────────────────────────────────── */
@@ -1061,6 +1192,7 @@
   }
   function renderNewsBlock(el, sym) {
     if (!el) return;
+    lastNewsItems = null; // ล้างของหุ้นตัวก่อนหน้าไว้ก่อน กันสรุป AI หยิบข่าวหุ้นผิดตัวไปใช้ระหว่างรอโหลด
     var link = '<a class="news-search-link" target="_blank" rel="noopener" href="' + newsSearchUrl(sym) + '">ค้นหาข่าวเอง ↗</a>';
     el.innerHTML = 'กำลังค้นข่าว ' + sym + '… ' + link;
     fetchNews(sym).then(function (r) {
@@ -1068,6 +1200,7 @@
         return '<li><a href="' + n.link + '" target="_blank" rel="noopener">' + n.title + '</a><span class="news-date">' + newsDateShort(n.pubDate) + '</span></li>';
       }).join('') + '</ul>ดูข่าวเพิ่มเติม ' + link;
       el.innerHTML = html;
+      lastNewsItems = r.items;
     }, function () {
       el.innerHTML = 'ดึงข่าวอัตโนมัติไม่ได้ตอนนี้ ' + link;
     });
@@ -1255,6 +1388,7 @@
     $('greenOnly').addEventListener('change', applyGreenFilter);
     $('pfAdd').addEventListener('click', addHolding);
     $('driveConnectBtn') && $('driveConnectBtn').addEventListener('click', function () { DriveSync.connect(); });
+    $('aiSumBtn').addEventListener('click', doAiSummary);
     renderSet50Table();
     renderPf();
     renderJournal();

@@ -65,6 +65,10 @@ input:focus{outline:none;border-color:var(--brand)}
 .status.err{color:var(--err)}
 .status.ok{color:var(--ok)}
 
+/* ── สรุปหุ้นด้วย AI ── */
+.ai-sum-out{margin-top:11px;background:var(--bg);border:1px solid var(--line);border-radius:12px;
+  padding:13px 14px;font-size:13.5px;line-height:1.75;white-space:pre-wrap;color:var(--ink)}
+
 /* ── สำรองขึ้น Google Drive ── */
 .drive-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .drive-row .status{margin-top:0}
@@ -372,6 +376,15 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <h2 id="stockNewsTitle">📰 ข่าวหุ้น</h2>
     <div id="stockNewsBlock" class="news-block"></div>
     <p class="mini" style="margin-top:8px">📅 อยากดู Opportunity Day (บริษัทพบผู้ลงทุน) ของหุ้นนี้ — <a id="oppdayLink" href="https://www.set.or.th/oppday" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700;text-decoration:none">ค้นหาที่หน้า Opportunity Day ของตลาดหลักทรัพย์ฯ ↗</a></p>
+  </div>
+
+  <!-- สรุปหุ้นด้วย AI -->
+  <div class="card" id="aiSumCard" style="display:none">
+    <h2>🤖 สรุปหุ้นด้วย AI</h2>
+    <p class="mini">AI ตัวเล็กรันในเครื่องคุณเอง ไม่ส่งข้อมูลออกไปไหน — เรียบเรียงจากตัวเลข/สัญญาณที่หน้านี้คำนวณให้แล้วเท่านั้น (ไม่เดา/ไม่เติมข้อมูลเอง) ไม่ใช่คำแนะนำการลงทุน</p>
+    <button class="btn primary sm" id="aiSumBtn" type="button" style="margin-top:8px">🤖 สรุปให้หน่อย</button>
+    <div class="status" id="aiSumStatus"></div>
+    <div class="ai-sum-out" id="aiSumOut" style="display:none"></div>
   </div>
 
   <!-- STEP 2: คุมเงิน -->
