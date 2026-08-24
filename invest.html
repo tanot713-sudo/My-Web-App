@@ -83,6 +83,9 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 .stat-val.chg{font-size:12px;font-weight:700;margin-top:1px}
 .stat-val.chg.up{color:var(--ok)}
 .stat-val.chg.dn{color:var(--rose)}
+.stat-spark{display:block;width:100%;height:20px;margin-top:4px}
+.stat-spark svg{width:100%;height:100%;display:block}
+.stat-val{font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body class="ome-tool-page" data-invest-key="hub">
@@ -100,9 +103,9 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <div class="stat-box"><div class="stat-ic">🗂️</div><div class="stat-txt">
       <div class="stat-lbl">หมวดการลงทุน</div><div class="stat-val" id="stCats">—</div></div></div>
     <a class="stat-box link" href="invest-commodities.html"><div class="stat-ic">🪙</div><div class="stat-txt">
-      <div class="stat-lbl">ทองคำ COMEX</div><div class="stat-val" id="stGold">—</div><div class="stat-val chg" id="stGoldChg"></div></div></a>
+      <div class="stat-lbl">ทองคำ COMEX</div><div class="stat-val" id="stGold">—</div><div class="stat-val chg" id="stGoldChg"></div><span class="stat-spark" id="stGoldSpark"></span></div></a>
     <a class="stat-box link" href="invest-commodities.html"><div class="stat-ic">🔄</div><div class="stat-txt">
-      <div class="stat-lbl">บาทดอลลาร์</div><div class="stat-val" id="stUsd">—</div><div class="stat-val chg" id="stUsdChg"></div></div></a>
+      <div class="stat-lbl">บาทดอลลาร์</div><div class="stat-val" id="stUsd">—</div><div class="stat-val chg" id="stUsdChg"></div><span class="stat-spark" id="stUsdSpark"></span></div></a>
     <a class="stat-box link" href="invest-news.html"><div class="stat-ic">📰</div><div class="stat-txt">
       <div class="stat-lbl">ข่าวหุ้นล่าสุด</div><div class="stat-val small" id="stNews">กำลังโหลด…</div></div></a>
   </div>
@@ -206,15 +209,29 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   }
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
 
-  /* ราคาย่อ — cache key ตรงกับ invest-commodities.js เป๊ะ (tanot:invest:cache:comm:q:<sym>) */
+  /* ราคาย่อ — cache key ตรงกับ invest-commodities.js เป๊ะ (tanot:invest:cache:comm:q:<sym>)
+     รวม spark (ราคาปิด 5 วันล่าสุด) ไว้ด้วย — ใช้วาดกราฟเส้นจิ๋วใต้ตัวเลข เหมือนหน้าค่าเงิน & วัตถุดิบ */
   function parseQuoteLite(t) {
     var j = JSON.parse(t), res = j && j.chart && j.chart.result && j.chart.result[0], meta = res && res.meta;
     if (!meta || !isFinite(meta.regularMarketPrice)) throw new Error('no meta');
-    return { price: meta.regularMarketPrice, prevClose: meta.previousClose };
+    var q = res.indicators && res.indicators.quote && res.indicators.quote[0], spark = [];
+    if (q && q.close) spark = q.close.filter(function (v) { return v != null; });
+    return { price: meta.regularMarketPrice, prevClose: meta.previousClose, spark: spark };
+  }
+  function sparkSvg(vals, up) {
+    if (!vals || vals.length < 2) return '';
+    var w = 100, h = 26, min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+    var range = Math.max(1e-9, max - min), i, pts = [];
+    for (i = 0; i < vals.length; i++) {
+      var x = i / (vals.length - 1) * w, y = h - (vals[i] - min) / range * (h - 4) - 2;
+      pts.push(x.toFixed(1) + ',' + y.toFixed(1));
+    }
+    var color = up ? '#17B26A' : '#E5484D';
+    return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none"><polyline points="' + pts.join(' ') + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>';
   }
   function quoteCacheKey(sym) { return 'tanot:invest:cache:comm:q:' + sym; }
   function loadQuoteCache(sym) { try { var o = JSON.parse(localStorage.getItem(quoteCacheKey(sym))); return (o && isFinite(o.price)) ? o : null; } catch (e) { return null; } }
-  function saveQuoteCache(sym, q) { try { localStorage.setItem(quoteCacheKey(sym), JSON.stringify({ ts: Date.now(), price: q.price, prevClose: q.prevClose })); } catch (e) {} }
+  function saveQuoteCache(sym, q) { try { localStorage.setItem(quoteCacheKey(sym), JSON.stringify({ ts: Date.now(), price: q.price, prevClose: q.prevClose, spark: q.spark })); } catch (e) {} }
   function loadQuote(sym, offset) {
     var cached = loadQuoteCache(sym), fresh = cached && (Date.now() - cached.ts < 3600 * 1000);
     if (fresh) return Promise.resolve(cached);
@@ -226,7 +243,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     }
     return next().then(function (q) { saveQuoteCache(sym, q); return q; }, function (e) { if (cached) return cached; throw e; });
   }
-  function showQuote(valId, chgId, sym, dp, offset) {
+  function showQuote(valId, chgId, sym, dp, offset, sparkId) {
     loadQuote(sym, offset).then(function (q) {
       document.getElementById(valId).textContent = fmt(q.price, dp);
       var pct = isFinite(q.prevClose) && q.prevClose ? (q.price / q.prevClose - 1) * 100 : NaN;
@@ -235,10 +252,12 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
         chgEl.textContent = (pct >= 0 ? '▲' : '▼') + fmt(Math.abs(pct), 2) + '%';
         chgEl.className = 'stat-val chg ' + (pct >= 0 ? 'up' : 'dn');
       }
+      var sparkEl = sparkId && document.getElementById(sparkId);
+      if (sparkEl) sparkEl.innerHTML = sparkSvg(q.spark, !(isFinite(pct) && pct < 0));
     }, function () { document.getElementById(valId).textContent = 'ดึงไม่ได้'; });
   }
-  showQuote('stGold', 'stGoldChg', 'GC=F', 1, 0);
-  showQuote('stUsd', 'stUsdChg', 'THB=X', 3, 1);
+  showQuote('stGold', 'stGoldChg', 'GC=F', 1, 0, 'stGoldSpark');
+  showQuote('stUsd', 'stUsdChg', 'THB=X', 3, 1, 'stUsdSpark');
 
   /* หัวข้อข่าวล่าสุด — cache key/คำค้นตรงกับ chip เริ่มต้นของ invest-news.js เป๊ะ */
   function parseNewsRss(t) {

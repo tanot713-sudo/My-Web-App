@@ -70,7 +70,22 @@
     var j = JSON.parse(t), res = j && j.chart && j.chart.result && j.chart.result[0];
     var meta = res && res.meta;
     if (!meta || !isFinite(meta.regularMarketPrice)) throw new Error('no meta');
-    return { price: meta.regularMarketPrice, prevClose: meta.previousClose };
+    /* เก็บราคาปิดของ 5 วันล่าสุดไว้ด้วย (มีอยู่แล้วในการตอบกลับนี้ ไม่ต้องยิง fetch เพิ่ม)
+       ใช้วาดกราฟเส้นจิ๋ว (sparkline) ในการ์ดสถิติ — เห็นแนวโน้มเร็วๆ แบบแอปการเงินทั่วไป */
+    var q = res.indicators && res.indicators.quote && res.indicators.quote[0], spark = [];
+    if (q && q.close) spark = q.close.filter(function (v) { return v != null; });
+    return { price: meta.regularMarketPrice, prevClose: meta.previousClose, spark: spark };
+  }
+  function sparkSvg(vals, up) {
+    if (!vals || vals.length < 2) return '';
+    var w = 100, h = 28, min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+    var range = Math.max(1e-9, max - min), i, pts = [];
+    for (i = 0; i < vals.length; i++) {
+      var x = i / (vals.length - 1) * w, y = h - (vals[i] - min) / range * (h - 4) - 2;
+      pts.push(x.toFixed(1) + ',' + y.toFixed(1));
+    }
+    var color = up ? '#17B26A' : '#E5484D';
+    return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none"><polyline points="' + pts.join(' ') + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>';
   }
   function parseYahooSeries(t) {
     var j = JSON.parse(t), res = j && j.chart && j.chart.result && j.chart.result[0];
@@ -92,7 +107,7 @@
   /* quote-lite (สำหรับการ์ดสรุป — เบา, range สั้น) — dedupe ต่อ symbol กันยิง proxy ซ้ำ */
   var quoteCacheMem = {}, quotePromises = {}, seqCounter = 0;
   function quoteCacheKey(sym) { return 'tanot:invest:cache:comm:q:' + sym; }
-  function saveQuoteCache(sym, q) { try { localStorage.setItem(quoteCacheKey(sym), JSON.stringify({ ts: Date.now(), price: q.price, prevClose: q.prevClose })); } catch (e) {} }
+  function saveQuoteCache(sym, q) { try { localStorage.setItem(quoteCacheKey(sym), JSON.stringify({ ts: Date.now(), price: q.price, prevClose: q.prevClose, spark: q.spark })); } catch (e) {} }
   function loadQuoteCache(sym) { try { var o = JSON.parse(localStorage.getItem(quoteCacheKey(sym))); return (o && isFinite(o.price)) ? o : null; } catch (e) { return null; } }
   function getQuote(sym) {
     if (quoteCacheMem[sym]) return Promise.resolve(quoteCacheMem[sym]);
@@ -188,21 +203,22 @@
   function cardEl(a) {
     return document.querySelector('.stat-card[data-key="' + a.key + '"]');
   }
-  function writeCard(a, price, chgPct) {
+  function writeCard(a, price, chgPct, spark) {
     var el = cardEl(a); if (!el) return;
-    var prEl = el.querySelector('.pr'), chgEl = el.querySelector('.chg');
-    if (!isFinite(price)) { prEl.textContent = 'ดึงไม่ได้'; prEl.className = 'pr na'; chgEl.textContent = ''; return; }
+    var prEl = el.querySelector('.pr'), chgEl = el.querySelector('.chg'), sparkEl = el.querySelector('.spark');
+    if (!isFinite(price)) { prEl.textContent = 'ดึงไม่ได้'; prEl.className = 'pr na'; chgEl.textContent = ''; if (sparkEl) sparkEl.innerHTML = ''; return; }
     prEl.textContent = fmt(price, a.dp); prEl.className = 'pr';
     if (isFinite(chgPct)) {
       chgEl.textContent = (chgPct >= 0 ? '▲' : '▼') + fmt(Math.abs(chgPct), 2) + '%';
       chgEl.className = 'chg ' + (chgPct > 0 ? 'up' : chgPct < 0 ? 'dn' : 'flat');
     } else { chgEl.textContent = ''; }
+    if (sparkEl) sparkEl.innerHTML = sparkSvg(spark, !(isFinite(chgPct) && chgPct < 0));
   }
   function loadCardQuote(a) {
     if (a.kind === 'yahoo') {
       getQuote(a.sym).then(function (q) {
         var pct = isFinite(q.prevClose) && q.prevClose ? (q.price / q.prevClose - 1) * 100 : NaN;
-        writeCard(a, q.price, pct);
+        writeCard(a, q.price, pct, q.spark);
       }, function () { writeCard(a, NaN, NaN); });
     } else if (a.kind === 'cross') {
       Promise.all([getQuote(a.a), getQuote(a.b)]).then(function (r) {
@@ -231,7 +247,8 @@
         '<span class="ic">' + a.icon + '</span>' +
         '<span class="nm">' + a.label + '</span>' +
         '<span class="pr na">กำลังโหลด…</span>' +
-        '<span class="chg"></span></button>';
+        '<span class="chg"></span>' +
+        '<span class="spark"></span></button>';
     });
     $('statRow').innerHTML = statHtml;
 
