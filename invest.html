@@ -67,15 +67,6 @@ footer{margin-top:34px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--sky);text-decoration:none;font-weight:600}
 @media(max-width:600px){body.ome-tool-page{padding:0 14px 60px}.hero{padding:22px 18px}}
 
-/* ── แถบเมนูลัดหมวดการลงทุน (แนวคิดจาก sidebar ของเว็บอ้างอิง ปรับเป็นแถบเลื่อนแนวนอนสำหรับมือถือ) ── */
-.qn-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;margin-top:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.qn-strip::-webkit-scrollbar{display:none}
-.qn-chip{flex-shrink:0;display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12.5px;font-weight:700;
-  padding:8px 14px;border-radius:20px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);
-  text-decoration:none;white-space:nowrap;box-shadow:var(--sh)}
-.qn-chip .ic{font-size:14px}
-.qn-chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
-
 /* ── การ์ดสรุปสถิติ (Stat grid สไตล์ dashboard ของเว็บอ้างอิง — ใช้เฉพาะข้อมูลจริง/ดึงได้จริงเท่านั้น) ── */
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-top:16px}
 .stat-box{background:var(--card);border-radius:15px;box-shadow:var(--sh);padding:14px 15px;display:flex;gap:11px;
@@ -104,8 +95,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <h1>วางแผนการลงทุนของคุณ 📈</h1>
     <p class="sub">เลือกหมวดจากแถบด้านบน — เปิดใช้ครบทุกหมวดแล้วทั้ง 13 หมวด ตั้งแต่หุ้นไทย/ต่างประเทศ กองทุน ทองคำ ค่าเงิน/วัตถุดิบ ข่าวหุ้น ไปจนถึงสลากออมสิน/ธ.ก.ส./สลากกินแบ่งรัฐบาล</p>
   </div>
-
-  <div class="qn-strip" id="qnStrip"></div>
 
   <div class="stat-grid" id="statGrid">
     <div class="stat-box"><div class="stat-ic">🗂️</div><div class="stat-txt">
@@ -156,13 +145,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   function waitCats(cb){ if (window.INVEST_CATS) cb(window.INVEST_CATS); else setTimeout(function(){ waitCats(cb); }, 30); }
 
   waitCats(function (CATS) {
-    /* แถบเมนูลัด (qn-strip) — ใช้ CATS ชุดเดียวกับกริดด้านล่าง ไม่ต้อง poll ซ้ำ */
-    var qn = document.getElementById('qnStrip');
-    if (qn) {
-      var qnHtml = '<a class="qn-chip on" href="invest.html"><span class="ic">🗂️</span>ภาพรวม</a>';
-      CATS.forEach(function (c) { if (c.page) qnHtml += '<a class="qn-chip" href="' + c.page + '"><span class="ic">' + c.icon + '</span>' + c.label + '</a>'; });
-      qn.innerHTML = qnHtml;
-    }
     var stCats = document.getElementById('stCats'); if (stCats) stCats.textContent = CATS.length + ' หมวด';
 
     var ready = document.getElementById('gridReady');
