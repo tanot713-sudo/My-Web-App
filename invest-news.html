@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ข่าวหุ้น — รวมข่าวตลาดหุ้นไทย | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
+  --brand:#12A594;--brand-dk:#0B7F72;--brand-sf:#E7F6F4;
+  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--sky:#3B9BEA;--err:#E5484D;--warn:#E08700;--violet:#6C63D9;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
+  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto}
+.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
+.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+.crumb .sep{margin:0 7px;color:#C9CEDC}
+.head{display:flex;align-items:center;gap:14px;margin:12px 0 6px}
+.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:24px;
+  background:linear-gradient(135deg,#6C63D9,#9C93F0);color:#fff;display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(108,99,217,.3)}
+h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px}
+.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
+
+.chip-row{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-family:inherit;font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:20px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.searchrow{display:flex;gap:8px;margin-top:10px}
+.searchrow input{flex:1;font-family:inherit;font-size:14.5px;padding:10px 12px;border-radius:11px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);-webkit-appearance:none}
+.searchrow input:focus{outline:none;border-color:var(--brand)}
+[data-theme="dark"] .searchrow input{background:#12151C}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--brand);
+  background:var(--brand);border-radius:11px;padding:0 16px;font-family:inherit;font-size:14px;font-weight:700;
+  color:#fff;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--brand-dk);border-color:var(--brand-dk)}
+
+.src-badge{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;display:inline-block;margin-bottom:2px}
+.src-badge.real{background:#E9F9F0;color:#0B7F52}
+.src-badge.paste{background:#EEF1F7;color:#5A6479}
+[data-theme="dark"] .src-badge.real{background:#14261E;color:#5EDCAB}
+[data-theme="dark"] .src-badge.paste{background:#242B3B;color:#A9B4C9}
+
+.news-list{list-style:none;margin-top:10px}
+.news-item{padding:13px 0;border-top:1px solid var(--line)}
+.news-item:first-child{border-top:none;padding-top:4px}
+.news-item a.title{color:var(--ink);text-decoration:none;font-weight:700;font-size:14.5px;line-height:1.5;display:block}
+.news-item a.title:hover{color:var(--brand-dk)}
+.news-meta{display:flex;gap:8px;align-items:center;margin-top:5px;font-size:12px;color:var(--muted)}
+.news-meta .src{font-weight:700;color:var(--violet)}
+.news-empty{font-size:13.5px;color:var(--muted);padding:20px 4px;text-align:center}
+.news-loading{font-size:13.5px;color:var(--muted);padding:20px 4px;text-align:center}
+
+.disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
+footer{margin-top:22px;text-align:center;font-size:12.5px;color:#9AA3B8}
+footer a{color:var(--sky);text-decoration:none;font-weight:600}
+@media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:18px}}
+</style>
+</head>
+<body class="ome-tool-page" data-invest-key="news">
+<script src="auth-gate.js"></script>
+<div class="wrap">
+
+  <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>ข่าวหุ้น</nav>
+
+  <div class="head">
+    <div class="head-ic">📰</div>
+    <div>
+      <h1>ข่าวหุ้น</h1>
+      <div class="head-sub">รวมหัวข้อข่าวตลาดหุ้นไทยล่าสุด — แตะหัวข้อเพื่อไปอ่านต้นฉบับ</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="chip-row" id="chipRow"></div>
+    <div class="searchrow">
+      <input type="text" id="qInput" placeholder="ค้นข่าวหุ้น/บริษัทที่สนใจ เช่น PTT, ปันผล, กนง." inputmode="text">
+      <button class="btn" id="qBtn" type="button">ค้นหา</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="src-badge" id="srcBadge">กำลังโหลดข่าว…</div>
+    <div id="newsBody"><div class="news-loading">กำลังโหลด…</div></div>
+  </div>
+
+  <div class="disc">📌 หน้านี้แสดงเฉพาะ<b>หัวข้อข่าว + ที่มา + เวลา + ลิงก์ไปต้นฉบับ</b> ไม่ได้นำเนื้อหาข่าวมาเผยแพร่ซ้ำ — ข่าวดึงจาก Google News RSS (สาธารณะ) ผ่านหลายเส้นทาง best-effort อาจดึงไม่สำเร็จบางช่วง ไม่ใช่คำแนะนำการลงทุน</div>
+
+</div>
+
+<script src="invest-news.js" defer></script>
+</body>
+</html>
