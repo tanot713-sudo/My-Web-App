@@ -17,8 +17,13 @@
     { key: 'econ', label: 'เศรษฐกิจไทย', q: 'เศรษฐกิจไทย' },
     { key: 'rate', label: 'ดอกเบี้ย/กนง.', q: 'กนง. OR ดอกเบี้ยนโยบาย ธนาคารแห่งประเทศไทย' },
     { key: 'ipo', label: 'ข่าว IPO', q: 'หุ้น IPO เข้าตลาด' },
-    { key: 'div', label: 'ปันผลหุ้น', q: 'ปันผลหุ้น XD' }
+    { key: 'div', label: 'ปันผลหุ้น', q: 'ปันผลหุ้น XD' },
+    { key: 'oppday', label: 'Opportunity Day', q: 'Opportunity Day บริษัทจดทะเบียนพบผู้ลงทุน' }
   ];
+  /* Opportunity Day (บริษัทจดทะเบียนพบผู้ลงทุน) จัดโดยตลาดหลักทรัพย์ฯ — เว็บ set.or.th/oppday
+     เป็นเว็บแอปที่ต้องเรนเดอร์ด้วย JS ไม่มี API/RSS สาธารณะให้ดึงข้อมูลปฏิทินได้ตรงๆ (ตรวจแล้วไม่พบ)
+     จึงให้ "ข่าวเกี่ยวกับ Opportunity Day" ผ่านชิปค้นข่าวด้านบนแทน + ลิงก์ไปหน้าปฏิทินจริงของ SET ตรงนี้ */
+  var OPPDAY_URL = 'https://www.set.or.th/oppday';
   var LAST_QKEY = 'tanot:invest:news:lastChip';
   var curQuery = null, curLabel = '', seq = 0;
 
