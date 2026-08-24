@@ -29,8 +29,12 @@ h1{font-size:clamp(22px,4.4vw,30px);font-weight:700;line-height:1.3;position:rel
 .sub{margin-top:8px;color:#5A6479;font-size:14px;position:relative;max-width:640px}
 [data-theme="dark"] .sub{color:#A9BEE4}
 
-.soon-banner{margin-top:14px;border-radius:14px;background:#FFF7E8;border:1px solid #F5E2B8;
-  padding:13px 16px;font-size:13.5px;color:#7A5B12;display:flex;gap:9px;align-items:flex-start}
+.soon-banner{display:none;margin-top:14px;border-radius:14px;background:#FFF7E8;border:1px solid #F5E2B8;
+  padding:13px 16px;font-size:13.5px;color:#7A5B12;gap:9px;align-items:flex-start}
+/* [hidden] ของเบราว์เซอร์ (UA stylesheet) แพ้ display:flex ที่กำหนดตรงบน .soon-banner เอง (author style
+   ชนะ UA เสมอไม่ว่า specificity เท่าไร) ทำให้กล่องนี้โผล่ว่างๆ ทุกครั้งแม้ยังไม่ตั้ง hidden=false — ใช้
+   :not([hidden]) แทนเพื่อให้ display:flex มีผลเฉพาะตอน JS เอา attribute hidden ออกแล้วจริงๆ */
+.soon-banner:not([hidden]){display:flex}
 [data-theme="dark"] .soon-banner{background:#2A2415;border-color:#4A3D1E;color:#E8C88A}
 .soon-banner b{font-weight:700}
 
@@ -62,6 +66,32 @@ h1{font-size:clamp(22px,4.4vw,30px);font-weight:700;line-height:1.3;position:rel
 footer{margin-top:34px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--sky);text-decoration:none;font-weight:600}
 @media(max-width:600px){body.ome-tool-page{padding:0 14px 60px}.hero{padding:22px 18px}}
+
+/* ── แถบเมนูลัดหมวดการลงทุน (แนวคิดจาก sidebar ของเว็บอ้างอิง ปรับเป็นแถบเลื่อนแนวนอนสำหรับมือถือ) ── */
+.qn-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;margin-top:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.qn-strip::-webkit-scrollbar{display:none}
+.qn-chip{flex-shrink:0;display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12.5px;font-weight:700;
+  padding:8px 14px;border-radius:20px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);
+  text-decoration:none;white-space:nowrap;box-shadow:var(--sh)}
+.qn-chip .ic{font-size:14px}
+.qn-chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+
+/* ── การ์ดสรุปสถิติ (Stat grid สไตล์ dashboard ของเว็บอ้างอิง — ใช้เฉพาะข้อมูลจริง/ดึงได้จริงเท่านั้น) ── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-top:16px}
+.stat-box{background:var(--card);border-radius:15px;box-shadow:var(--sh);padding:14px 15px;display:flex;gap:11px;
+  align-items:center;text-decoration:none;color:inherit}
+.stat-box.link{cursor:pointer}
+.stat-box.link:hover{outline:1.5px solid var(--brand)}
+.stat-ic{width:38px;height:38px;border-radius:11px;background:var(--brand-sf);display:grid;place-items:center;
+  font-size:18px;flex-shrink:0}
+.stat-txt{min-width:0}
+.stat-lbl{font-size:11.5px;color:var(--muted);font-weight:600}
+.stat-val{font-size:16.5px;font-weight:800;margin-top:2px;letter-spacing:-.01em}
+.stat-val.small{font-size:12.5px;font-weight:700;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical;overflow:hidden}
+.stat-val.chg{font-size:12px;font-weight:700;margin-top:1px}
+.stat-val.chg.up{color:var(--ok)}
+.stat-val.chg.dn{color:var(--rose)}
 </style>
 </head>
 <body class="ome-tool-page" data-invest-key="hub">
@@ -73,6 +103,19 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <div class="eyebrow">Tanot · การลงทุน</div>
     <h1>วางแผนการลงทุนของคุณ 📈</h1>
     <p class="sub">เลือกหมวดจากแถบด้านบน — เปิดใช้ครบทุกหมวดแล้วทั้ง 13 หมวด ตั้งแต่หุ้นไทย/ต่างประเทศ กองทุน ทองคำ ค่าเงิน/วัตถุดิบ ข่าวหุ้น ไปจนถึงสลากออมสิน/ธ.ก.ส./สลากกินแบ่งรัฐบาล</p>
+  </div>
+
+  <div class="qn-strip" id="qnStrip"></div>
+
+  <div class="stat-grid" id="statGrid">
+    <div class="stat-box"><div class="stat-ic">🗂️</div><div class="stat-txt">
+      <div class="stat-lbl">หมวดการลงทุน</div><div class="stat-val" id="stCats">—</div></div></div>
+    <a class="stat-box link" href="invest-commodities.html"><div class="stat-ic">🪙</div><div class="stat-txt">
+      <div class="stat-lbl">ทองคำ COMEX</div><div class="stat-val" id="stGold">—</div><div class="stat-val chg" id="stGoldChg"></div></div></a>
+    <a class="stat-box link" href="invest-commodities.html"><div class="stat-ic">🔄</div><div class="stat-txt">
+      <div class="stat-lbl">บาทดอลลาร์</div><div class="stat-val" id="stUsd">—</div><div class="stat-val chg" id="stUsdChg"></div></div></a>
+    <a class="stat-box link" href="invest-news.html"><div class="stat-ic">📰</div><div class="stat-txt">
+      <div class="stat-lbl">ข่าวหุ้นล่าสุด</div><div class="stat-val small" id="stNews">กำลังโหลด…</div></div></a>
   </div>
 
   <div class="soon-banner" id="soonBanner" hidden>
@@ -113,6 +156,15 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   function waitCats(cb){ if (window.INVEST_CATS) cb(window.INVEST_CATS); else setTimeout(function(){ waitCats(cb); }, 30); }
 
   waitCats(function (CATS) {
+    /* แถบเมนูลัด (qn-strip) — ใช้ CATS ชุดเดียวกับกริดด้านล่าง ไม่ต้อง poll ซ้ำ */
+    var qn = document.getElementById('qnStrip');
+    if (qn) {
+      var qnHtml = '<a class="qn-chip on" href="invest.html"><span class="ic">🗂️</span>ภาพรวม</a>';
+      CATS.forEach(function (c) { if (c.page) qnHtml += '<a class="qn-chip" href="' + c.page + '"><span class="ic">' + c.icon + '</span>' + c.label + '</a>'; });
+      qn.innerHTML = qnHtml;
+    }
+    var stCats = document.getElementById('stCats'); if (stCats) stCats.textContent = CATS.length + ' หมวด';
+
     var ready = document.getElementById('gridReady');
     var soon  = document.getElementById('gridSoon');
     CATS.forEach(function (c) {
@@ -142,6 +194,96 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     document.getElementById('soonText').innerHTML =
       'หมวด <b>' + (DESC[m[1]] || m[1]) + '</b> กำลังพัฒนา — ตอนนี้ลองใช้ <b>หุ้นไทย</b> หรือ <b>กองทุนต่างประเทศ</b> ที่เปิดแล้วได้เลย';
     b.hidden = false;
+  }
+})();
+</script>
+
+<!-- การ์ดสรุปสถิติ: ทองคำ/บาทดอลลาร์ (เดียวกับ invest-commodities.js) + หัวข้อข่าวล่าสุด (เดียวกับ invest-news.js)
+     ตั้งใจใช้ cache key รูปแบบเดียวกันทุกตัว เพื่อให้ถ้าเคยเปิดหน้านั้นมาก่อน หน้านี้จะโชว์จาก cache ได้ทันที -->
+<script>
+(function () {
+  'use strict';
+  function fetchOne(url, timeoutMs, parser) {
+    var ctrl = ('AbortController' in window) ? new AbortController() : null;
+    var to = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs || 8000) : null;
+    return fetch(url, ctrl ? { signal: ctrl.signal } : undefined)
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.text(); })
+      .then(function (t) { if (to) clearTimeout(to); return parser(t); });
+  }
+  function proxyTries(base, offset) {
+    var enc = encodeURIComponent(base);
+    var tries = [
+      { url: 'https://api.allorigins.win/raw?url=' + enc },
+      { url: 'https://corsproxy.io/?url=' + enc },
+      { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
+      { url: 'https://thingproxy.freeboard.io/fetch/' + base },
+      { url: base }
+    ];
+    offset = ((offset || 0) % tries.length + tries.length) % tries.length;
+    return tries.slice(offset).concat(tries.slice(0, offset));
+  }
+  function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
+
+  /* ราคาย่อ — cache key ตรงกับ invest-commodities.js เป๊ะ (tanot:invest:cache:comm:q:<sym>) */
+  function parseQuoteLite(t) {
+    var j = JSON.parse(t), res = j && j.chart && j.chart.result && j.chart.result[0], meta = res && res.meta;
+    if (!meta || !isFinite(meta.regularMarketPrice)) throw new Error('no meta');
+    return { price: meta.regularMarketPrice, prevClose: meta.previousClose };
+  }
+  function quoteCacheKey(sym) { return 'tanot:invest:cache:comm:q:' + sym; }
+  function loadQuoteCache(sym) { try { var o = JSON.parse(localStorage.getItem(quoteCacheKey(sym))); return (o && isFinite(o.price)) ? o : null; } catch (e) { return null; } }
+  function saveQuoteCache(sym, q) { try { localStorage.setItem(quoteCacheKey(sym), JSON.stringify({ ts: Date.now(), price: q.price, prevClose: q.prevClose })); } catch (e) {} }
+  function loadQuote(sym, offset) {
+    var cached = loadQuoteCache(sym), fresh = cached && (Date.now() - cached.ts < 3600 * 1000);
+    if (fresh) return Promise.resolve(cached);
+    var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=5d&interval=1d';
+    var tries = proxyTries(base, offset), i = 0;
+    function next() {
+      if (i >= tries.length) return cached ? Promise.resolve(cached) : Promise.reject(new Error('fail'));
+      return fetchOne(tries[i++].url, 7000, parseQuoteLite).catch(next);
+    }
+    return next().then(function (q) { saveQuoteCache(sym, q); return q; }, function (e) { if (cached) return cached; throw e; });
+  }
+  function showQuote(valId, chgId, sym, dp, offset) {
+    loadQuote(sym, offset).then(function (q) {
+      document.getElementById(valId).textContent = fmt(q.price, dp);
+      var pct = isFinite(q.prevClose) && q.prevClose ? (q.price / q.prevClose - 1) * 100 : NaN;
+      var chgEl = document.getElementById(chgId);
+      if (chgEl && isFinite(pct)) {
+        chgEl.textContent = (pct >= 0 ? '▲' : '▼') + fmt(Math.abs(pct), 2) + '%';
+        chgEl.className = 'stat-val chg ' + (pct >= 0 ? 'up' : 'dn');
+      }
+    }, function () { document.getElementById(valId).textContent = 'ดึงไม่ได้'; });
+  }
+  showQuote('stGold', 'stGoldChg', 'GC=F', 1, 0);
+  showQuote('stUsd', 'stUsdChg', 'THB=X', 3, 1);
+
+  /* หัวข้อข่าวล่าสุด — cache key/คำค้นตรงกับ chip เริ่มต้นของ invest-news.js เป๊ะ */
+  function parseNewsRss(t) {
+    var xml = new DOMParser().parseFromString(t, 'text/xml');
+    if (xml.querySelector('parsererror')) throw new Error('parse error');
+    var items = [].slice.call(xml.querySelectorAll('item')).slice(0, 1).map(function (it) {
+      var title = it.querySelector('title');
+      return { title: title ? title.textContent : '' };
+    }).filter(function (n) { return n.title; });
+    if (!items.length) throw new Error('no items');
+    return items;
+  }
+  var NEWS_QUERY = 'ตลาดหุ้นไทย OR SET Index';
+  function newsCacheKey() { return 'tanot:invest:newscache:hub:' + NEWS_QUERY; }
+  function loadNewsCache() { try { var o = JSON.parse(localStorage.getItem(newsCacheKey())); return (o && o.items) ? o : null; } catch (e) { return null; } }
+  var cachedNews = loadNewsCache();
+  if (cachedNews && cachedNews.items && cachedNews.items[0]) {
+    document.getElementById('stNews').textContent = cachedNews.items[0].title;
+  } else {
+    var base = 'https://news.google.com/rss/search?q=' + encodeURIComponent(NEWS_QUERY) + '&hl=th&gl=TH&ceid=TH:th';
+    var tries = proxyTries(base, 2), i = 0;
+    (function next() {
+      if (i >= tries.length) { document.getElementById('stNews').textContent = 'ดึงข่าวไม่ได้ตอนนี้'; return; }
+      fetchOne(tries[i++].url, 7000, parseNewsRss).then(function (items) {
+        document.getElementById('stNews').textContent = items[0].title;
+      }, next);
+    })();
   }
 })();
 </script>

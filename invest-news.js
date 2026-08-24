@@ -98,6 +98,8 @@
 
   function renderNews(r) {
     var body = $('newsBody');
+    var stCount = $('stCount'); if (stCount) stCount.textContent = r.items.length + ' รายการ';
+    var stUpdated = $('stUpdated'); if (stUpdated) stUpdated.textContent = r.stale ? cacheAgeText(r.cachedAt) : 'เมื่อสักครู่';
     if (!r.items.length) { body.innerHTML = '<div class="news-empty">ไม่พบข่าวสำหรับคำค้นนี้ ลองคำค้นอื่นดูครับ</div>'; return; }
     var html = '<ul class="news-list">' + r.items.map(function (n) {
       var meta = [];
@@ -115,6 +117,9 @@
     curQuery = query; curLabel = label;
     setBadge('กำลังโหลดข่าว "' + label + '"…');
     $('newsBody').innerHTML = '<div class="news-loading">กำลังโหลด…</div>';
+    var stTopic = $('stTopic'); if (stTopic) stTopic.textContent = label;
+    var stCount = $('stCount'); if (stCount) stCount.textContent = '…';
+    var stUpdated = $('stUpdated'); if (stUpdated) stUpdated.textContent = '…';
     fetchNews(query).then(function (r) {
       if (curQuery !== query) return;
       setBadge(r.stale ? ('🟡 ดึงสดไม่ได้ — ใช้ข่าวที่บันทึกไว้ ' + cacheAgeText(r.cachedAt)) : ('🟢 ข่าวล่าสุด "' + label + '"'), 'real');

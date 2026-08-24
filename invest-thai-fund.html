@@ -116,6 +116,15 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 .tax-line .v{font-weight:700}
 .tax-cap-note{font-size:11.5px;color:var(--warn);margin-top:2px}
 select{font-family:inherit}
+
+/* ── แถบเมนูลัดหมวดการลงทุน (แนวคิดจาก sidebar ของเว็บอ้างอิง ปรับเป็นแถบเลื่อนแนวนอนสำหรับมือถือ) ── */
+.qn-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;margin-top:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.qn-strip::-webkit-scrollbar{display:none}
+.qn-chip{flex-shrink:0;display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12.5px;font-weight:700;
+  padding:8px 14px;border-radius:20px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);
+  text-decoration:none;white-space:nowrap;box-shadow:var(--sh)}
+.qn-chip .ic{font-size:14px}
+.qn-chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
 </style>
 </head>
 <body class="ome-tool-page" data-invest-key="thai-fund">
@@ -124,6 +133,7 @@ select{font-family:inherit}
 
 
   <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>กองทุนไทย</nav>
+  <div class="qn-strip" id="qnStrip"></div>
 
   <div class="head">
     <div class="head-ic">📊</div>
@@ -303,5 +313,21 @@ select{font-family:inherit}
 </div>
 
 <script src="invest-thai-fund.js" defer></script>
+<script>
+(function(){
+  'use strict';
+  function waitCats(cb){ if (window.INVEST_CATS) cb(window.INVEST_CATS); else setTimeout(function(){ waitCats(cb); }, 30); }
+  waitCats(function (CATS) {
+    var el = document.getElementById('qnStrip'); if (!el) return;
+    var curKey = document.body.getAttribute('data-invest-key');
+    var html = '<a class="qn-chip' + (curKey === 'hub' ? ' on' : '') + '" href="invest.html"><span class="ic">🗂️</span>ภาพรวม</a>';
+    CATS.forEach(function (c) {
+      if (!c.page) return;
+      html += '<a class="qn-chip' + (c.key === curKey ? ' on' : '') + '" href="' + c.page + '"><span class="ic">' + c.icon + '</span>' + c.label + '</a>';
+    });
+    el.innerHTML = html;
+  });
+})();
+</script>
 </body>
 </html>
