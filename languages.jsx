@@ -3048,7 +3048,7 @@
                             </div>
                         )}
 
-                        <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold w-fit flex-wrap bg-white">
+                        <div className="flex rounded-xl border border-gray-200 overflow-hidden text-xs font-bold w-fit flex-wrap bg-white">
                             {SUB_MODES.map(m => (
                                 <button key={m.key} onClick={() => setSubMode(m.key)}
                                     className={`px-3 py-1.5 flex items-center gap-1.5 ${subMode === m.key ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
