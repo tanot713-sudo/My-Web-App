@@ -36,6 +36,8 @@
     { key: 'cnythb', label: 'หยวนเทียบบาท', icon: '🇨🇳', kind: 'cross', a: 'THB=X', b: 'CNY=X', op: 'div', mul: 1, unit: 'บาท/หยวน', dp: 3 }
   ];
   var byKey = {}; ASSETS.forEach(function (a) { byKey[a.key] = a; });
+  /* สินทรัพย์หลักที่โชว์ราคา+% ในแถวสถิติด้านบน (แยกจากแถวปุ่มเลือกที่มีครบทุกตัว — เหมือนแถวบนสุดของเว็บอ้างอิง) */
+  var STAT_KEYS = ['usdthb', 'gc', 'goldbar', 'goldjew', 'wti'];
 
   var LAST_KEY = 'tanot:invest:comm:lastKey';
   var curKey = null, curTF = 63, curType = 'candle';
@@ -182,9 +184,9 @@
     return thaiGoldPromise;
   }
 
-  /* ── การ์ดสรุป ─────────────────────────────────────────────── */
+  /* ── การ์ดสรุป (เฉพาะสินทรัพย์ใน STAT_KEYS เท่านั้นที่มีการ์ดโชว์ราคา) ── */
   function cardEl(a) {
-    return document.querySelector('.asset-card[data-key="' + a.key + '"]');
+    return document.querySelector('.stat-card[data-key="' + a.key + '"]');
   }
   function writeCard(a, price, chgPct) {
     var el = cardEl(a); if (!el) return;
@@ -221,20 +223,30 @@
   }
 
   function buildGrid() {
-    var grid = $('assetGrid'), html = '';
-    ASSETS.forEach(function (a) {
-      html += '<button type="button" class="asset-card" data-key="' + a.key + '">' +
+    /* แถวสถิติ: การ์ดใหญ่ ราคา+% เฉพาะสินทรัพย์หลัก 5 ตัว (เหมือนแถวบนสุดของเว็บอ้างอิง) */
+    var statHtml = '';
+    STAT_KEYS.forEach(function (k) {
+      var a = byKey[k];
+      statHtml += '<button type="button" class="stat-card" data-key="' + a.key + '">' +
         '<span class="ic">' + a.icon + '</span>' +
         '<span class="nm">' + a.label + '</span>' +
         '<span class="pr na">กำลังโหลด…</span>' +
         '<span class="chg"></span></button>';
     });
-    grid.innerHTML = html;
-    [].forEach.call(grid.querySelectorAll('.asset-card'), function (btn) {
+    $('statRow').innerHTML = statHtml;
+
+    /* แถวปุ่มเลือก: pill ครบทุกสินทรัพย์ (ไม่โชว์ราคา) — ตัวเลือกจริงสำหรับสลับกราฟด้านล่าง */
+    var pillHtml = '';
+    ASSETS.forEach(function (a) {
+      pillHtml += '<button type="button" class="pill" data-key="' + a.key + '"><span class="ic">' + a.icon + '</span>' + a.label + '</button>';
+    });
+    $('pillRow').innerHTML = pillHtml;
+
+    [].forEach.call(document.querySelectorAll('.stat-card, .pill'), function (btn) {
       btn.addEventListener('click', function () { selectAsset(btn.getAttribute('data-key')); });
     });
-    /* ทยอยยิง ไม่ยิงพร้อมกันทั้ง 16 ตัว กัน proxy โดน rate-limit */
-    ASSETS.forEach(function (a, i) { setTimeout(function () { loadCardQuote(a); }, i * 180); });
+    /* ทยอยยิงเฉพาะ 5 ตัวในแถวสถิติ (ตัวอื่นดึงตอนกดเลือกจริงในแถวปุ่ม) กัน proxy โดน rate-limit */
+    STAT_KEYS.forEach(function (k, i) { setTimeout(function () { loadCardQuote(byKey[k]); }, i * 180); });
   }
 
   /* ── กราฟแท่งเทียน (lightweight-charts — เหมือน invest-thai-stock.js) ── */
@@ -348,7 +360,7 @@
     var a = byKey[key]; if (!a) return;
     curKey = key;
     try { localStorage.setItem(LAST_KEY, key); } catch (e) {}
-    [].forEach.call(document.querySelectorAll('.asset-card'), function (el) { el.classList.toggle('on', el.getAttribute('data-key') === key); });
+    [].forEach.call(document.querySelectorAll('.stat-card, .pill'), function (el) { el.classList.toggle('on', el.getAttribute('data-key') === key); });
     $('dIcon').textContent = a.icon; $('dName').textContent = a.label; $('dUnit').textContent = a.unit;
     $('ohlcRow').style.display = 'none';
     fullData = null;

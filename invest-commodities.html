@@ -41,20 +41,27 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 [data-theme="dark"] .src-badge.real{background:#14261E;color:#5EDCAB}
 [data-theme="dark"] .src-badge.paste{background:#242B3B;color:#A9B4C9}
 
-/* ── การ์ดสินทรัพย์ ── */
-.asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:9px}
-.asset-card{background:var(--bg);border:1.5px solid transparent;border-radius:13px;padding:11px 12px;
+/* ── แถวสถิติ (การ์ดใหญ่ ราคา+% เฉพาะสินทรัพย์หลัก — เหมือนแถวบนสุดของเว็บอ้างอิง) ── */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px}
+.stat-card{background:var(--bg);border:1.5px solid transparent;border-radius:13px;padding:12px 13px;
   text-align:left;font-family:inherit;cursor:pointer;transition:.12s;display:flex;flex-direction:column;gap:3px}
-.asset-card:hover{border-color:var(--line)}
-.asset-card.on{background:var(--brand-sf);border-color:var(--brand)}
-.asset-card .ic{font-size:17px}
-.asset-card .nm{font-size:12px;font-weight:700;color:var(--ink);margin-top:1px;line-height:1.3}
-.asset-card .pr{font-size:14.5px;font-weight:800;margin-top:3px;letter-spacing:-.01em}
-.asset-card .pr.na{color:var(--muted);font-weight:600;font-size:12.5px}
-.asset-card .chg{font-size:11.5px;font-weight:700}
-.asset-card .chg.up{color:var(--ok)}
-.asset-card .chg.dn{color:var(--err)}
-.asset-card .chg.flat{color:var(--muted)}
+.stat-card:hover{border-color:var(--line)}
+.stat-card.on{background:var(--brand-sf);border-color:var(--brand)}
+.stat-card .ic{font-size:18px}
+.stat-card .nm{font-size:12px;font-weight:700;color:var(--muted);margin-top:2px;line-height:1.3}
+.stat-card .pr{font-size:16px;font-weight:800;margin-top:3px;letter-spacing:-.01em}
+.stat-card .pr.na{color:var(--muted);font-weight:600;font-size:12.5px}
+.stat-card .chg{font-size:11.5px;font-weight:700}
+.stat-card .chg.up{color:var(--ok)}
+.stat-card .chg.dn{color:var(--err)}
+.stat-card .chg.flat{color:var(--muted)}
+
+/* ── แถวปุ่มเลือกสินทรัพย์ (pill แยกจากแถวสถิติ — เหมือนแถวปุ่มใต้สถิติของเว็บอ้างอิง) ── */
+.pill-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.pill{display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12.5px;font-weight:700;
+  padding:7px 13px;border-radius:20px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.pill .ic{font-size:14px}
+.pill.on{background:var(--brand);border-color:var(--brand);color:#fff}
 
 /* ── รายละเอียด + กราฟ ── */
 .detail-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}
@@ -107,8 +114,9 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <div class="card">
     <div class="src-badge real">🕐 ข้อมูล EOD (วันก่อนหน้า)</div>
-    <div class="asset-grid" id="assetGrid"></div>
-    <p class="mini" style="margin-top:10px">ราคาสินค้าโภคภัณฑ์/ค่าเงินโลกดึงจาก Yahoo Finance (ผ่านหลายเส้นทาง best-effort) · ราคาทองไทยดึงจาก thai-gold-api เหมือนหน้า<a href="invest-gold.html" style="color:var(--brand-dk);font-weight:700;text-decoration:none">ทองคำ</a> · การ์ดที่ขึ้น "ดึงไม่ได้" คือลองดึงแล้วไม่สำเร็จจริงๆ ไม่ใช่ข้อมูลปลอม</p>
+    <div class="stat-row" id="statRow"></div>
+    <div class="pill-row" id="pillRow"></div>
+    <p class="mini" style="margin-top:12px">ราคาสินค้าโภคภัณฑ์/ค่าเงินโลกดึงจาก Yahoo Finance (ผ่านหลายเส้นทาง best-effort) · ราคาทองไทยดึงจาก thai-gold-api เหมือนหน้า<a href="invest-gold.html" style="color:var(--brand-dk);font-weight:700;text-decoration:none">ทองคำ</a> · การ์ดที่ขึ้น "ดึงไม่ได้" คือลองดึงแล้วไม่สำเร็จจริงๆ ไม่ใช่ข้อมูลปลอม</p>
   </div>
 
   <div class="card">
