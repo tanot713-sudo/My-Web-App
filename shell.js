@@ -79,6 +79,7 @@
             { key: 'gold',         label: 'ทองคำ',            icon: '🪙', href: 'invest-gold.html' },
             { key: 'commodities',  label: 'ค่าเงิน & วัตถุดิบ', icon: '🌍', href: 'invest-commodities.html' },
             { key: 'news',         label: 'ข่าวหุ้น',          icon: '📰', href: 'invest-news.html' },
+            { key: 'portfolio',    label: 'พอร์ตจำลอง',        icon: '💼', href: 'invest-portfolio.html' },
             { key: 'business',     label: 'ลงทุนทำธุรกิจ',    icon: '🏪', href: 'invest-business.html' },
             { key: 'gov-bond',     label: 'พันธบัตรรัฐบาล',   icon: '🏛️', href: 'invest-gov-bond.html' },
             { key: 'gsb-lottery',  label: 'สลากออมสิน',       icon: '🎟️', href: 'invest-gsb-lottery.html' },
