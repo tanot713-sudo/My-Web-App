@@ -17314,7 +17314,7 @@
                     <main className="flex-1 flex flex-col h-full overflow-hidden relative">
 
                         <header className="min-h-[64px] bg-white border-b border-gray-200 flex items-center flex-wrap gap-y-2 justify-between px-4 sm:px-6 py-2 shrink-0">
-                            <div className="flex items-center gap-3 sm:gap-6 h-full">
+                            <div className="flex items-center gap-3 sm:gap-6 h-full whitespace-nowrap">
                                 <button onClick={() => setMobileNavOpen(true)} className="md:hidden -ml-1 p-1.5 text-gray-500 hover:text-gray-800" aria-label="เปิดเมนูภาษา">
                                     <Menu />
                                 </button>
@@ -17347,7 +17347,7 @@
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam' || view === 'arexam' || view === 'vnexam' || view === 'myexam' || view === 'mmexam' || view === 'khexam' || view === 'laexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
-                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
+                                    <span className="hidden sm:inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
                                 </button>
                                 <button
                                     onClick={goListen}
@@ -17355,7 +17355,7 @@
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'listen' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <ListenIcon /> ฟัง-พูด
-                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
+                                    <span className="hidden sm:inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
                                 </button>
                             </div>
                             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
