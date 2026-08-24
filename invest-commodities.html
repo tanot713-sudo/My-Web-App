@@ -92,6 +92,18 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .chart-cap{font-size:12px;color:var(--muted);margin-top:8px;display:flex;gap:14px;flex-wrap:wrap}
 .chart-cap i{width:11px;height:3px;display:inline-block;vertical-align:middle;margin-right:4px;border-radius:2px}
 
+/* ── ตารางราคาย้อนหลัง (เหมือนตารางท้ายหน้าของเว็บอ้างอิง) ── */
+.hist-wrap{overflow-x:auto;margin-top:4px}
+.hist-table{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap}
+.hist-table th,.hist-table td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line)}
+.hist-table th:first-child,.hist-table td:first-child{text-align:left}
+.hist-table th{color:var(--muted);font-weight:600;font-size:11.5px}
+.hist-table td.hi{color:var(--ok)}
+.hist-table td.lo{color:var(--err)}
+.hist-table td.chg.up{color:var(--ok);font-weight:700}
+.hist-table td.chg.dn{color:var(--err);font-weight:700}
+.hist-empty{font-size:13px;color:var(--muted);padding:14px 4px;text-align:center}
+
 .disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
 footer{margin-top:22px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--sky);text-decoration:none;font-weight:600}
@@ -151,6 +163,11 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <span><i style="background:#ef5350"></i>แท่งลง</span>
       <span>👆 แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
     </div>
+  </div>
+
+  <div class="card">
+    <h2>🗓️ <span id="histTitle">ข้อมูลราคาย้อนหลัง</span></h2>
+    <div class="hist-wrap"><table class="hist-table" id="histTable"></table></div>
   </div>
 
   <details class="card" style="box-shadow:var(--sh)">

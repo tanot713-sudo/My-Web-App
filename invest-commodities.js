@@ -334,6 +334,28 @@
     $('ohlcRow').style.display = 'grid';
   }
 
+  /* ── ตารางราคาย้อนหลัง (ล่าสุด 30 วัน — เหมือนตารางท้ายหน้าของเว็บอ้างอิง) ── */
+  var HIST_DAYS = 30;
+  function renderHistTable(s, a) {
+    var titleEl = $('histTitle'); if (titleEl) titleEl.textContent = 'ข้อมูลราคา ' + a.label + ' — ล่าสุด ' + Math.min(HIST_DAYS, s.times.length) + ' วัน';
+    var tbl = $('histTable'); if (!tbl) return;
+    var n = s.times.length;
+    if (!n) { tbl.innerHTML = ''; return; }
+    var start = Math.max(0, n - HIST_DAYS);
+    var rows = '';
+    for (var i = n - 1; i >= start; i--) {
+      var bar = ohlcAt(s, i);
+      var prevClose = i > 0 ? s.closes[i - 1] : bar.open;
+      var chg = bar.close - prevClose, pct = prevClose ? chg / prevClose * 100 : NaN;
+      var dateTxt = new Date(bar.time).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+      rows += '<tr><td>' + dateTxt + '</td><td>' + fmt(bar.open, a.dp) + '</td>' +
+        '<td class="hi">' + fmt(bar.high, a.dp) + '</td><td class="lo">' + fmt(bar.low, a.dp) + '</td>' +
+        '<td>' + fmt(bar.close, a.dp) + '</td>' +
+        '<td class="chg ' + (chg > 0 ? 'up' : chg < 0 ? 'dn' : '') + '">' + (chg >= 0 ? '+' : '') + fmt(chg, a.dp) + (isFinite(pct) ? ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 2) + '%)' : '') + '</td></tr>';
+    }
+    tbl.innerHTML = '<thead><tr><th>วันที่</th><th>เปิด</th><th>สูง</th><th>ต่ำ</th><th>ปิด</th><th>เปลี่ยนแปลง</th></tr></thead><tbody>' + rows + '</tbody>';
+  }
+
   /* คำนวณ series cross จาก 2 series จริง (จับคู่ตามวันที่ตรงกัน) — ประมาณค่าต่อองค์ประกอบ OHLC
      (ไม่ใช่ tick-by-tick จริง แต่เป็นวิธีที่ใช้ทั่วไปสำหรับกราฟ cross-rate โดยประมาณ) */
   function crossSeries(a, sa, sb) {
@@ -372,6 +394,8 @@
       $('chartCap').style.display = 'none';
       $('chartEmpty').style.display = 'block';
       $('chartEmpty').textContent = 'ราคาทองไทยไม่มีข้อมูลย้อนหลังจากแหล่งฟรี — ดูกราฟแนวโน้มราคาทองโลก (COMEX) แทนได้จากการ์ด "ทองคำ COMEX" ด้านบน';
+      $('histTitle').textContent = 'ราคาทองไทยไม่มีข้อมูลย้อนหลังจากแหล่งฟรี';
+      $('histTable').innerHTML = '';
       getThaiGold().then(function (r) {
         setDetailStatus(r.stale ? '🟡 ดึงสดไม่ได้ — ใช้ราคาที่บันทึกไว้ล่าสุด' : '🟢 ราคาสดวันนี้' + (r.data.updateDate ? (' · ' + r.data.updateDate) : ''), 'real');
         writeCard(a, r.data[a.field], NaN);
@@ -396,10 +420,13 @@
       fullData = r.s;
       setDetailStatus(r.stale ? '🟡 ดึงสดไม่ได้ — ใช้ข้อมูลที่บันทึกไว้ล่าสุด' : '🟢 ราคาจาก Yahoo Finance', 'real');
       if (!buildChart(r.s)) setDetailStatus('โหลดไลบรารีกราฟไม่ได้ (ลองออนไลน์แล้วรีเฟรช)', 'paste');
+      renderHistTable(r.s, a);
     }, function () {
       if (curKey !== key) return;
       setDetailStatus('ดึงข้อมูลไม่สำเร็จตอนนี้ — ลองรีเฟรชอีกครั้ง หรือเลือกสินทรัพย์อื่นก่อน', 'paste');
       $('chartEmpty').textContent = 'ดึงกราฟไม่ได้ตอนนี้';
+      $('histTitle').textContent = 'ดึงข้อมูลราคาย้อนหลังไม่ได้ตอนนี้';
+      $('histTable').innerHTML = '';
     });
   }
 
