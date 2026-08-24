@@ -67,9 +67,18 @@ footer{margin-top:34px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--sky);text-decoration:none;font-weight:600}
 @media(max-width:600px){body.ome-tool-page{padding:0 14px 60px}.hero{padding:22px 18px}}
 
+/* ── แผงสรุปสถิติ พับเก็บได้ (เหมือนลิ้นชัก hamburger — ไม่กางค้างให้ดูรกตลอดเวลา) ── */
+.stat-panel{margin-top:16px;border-radius:16px;background:var(--card);box-shadow:var(--sh);overflow:hidden}
+.stat-panel summary{cursor:pointer;padding:14px 16px;font-size:13.5px;font-weight:700;color:var(--ink);
+  list-style:none;display:flex;align-items:center;gap:8px;user-select:none}
+.stat-panel summary::-webkit-details-marker{display:none}
+.stat-panel summary::before{content:'▸';color:var(--muted);transition:.15s;font-size:12px}
+.stat-panel[open] summary::before{transform:rotate(90deg)}
+.stat-panel[open] summary{border-bottom:1px solid var(--line)}
+
 /* ── การ์ดสรุปสถิติ (Stat grid สไตล์ dashboard ของเว็บอ้างอิง — ใช้เฉพาะข้อมูลจริง/ดึงได้จริงเท่านั้น) ── */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-top:16px}
-.stat-box{background:var(--card);border-radius:15px;box-shadow:var(--sh);padding:14px 15px;display:flex;gap:11px;
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;padding:14px 16px 16px}
+.stat-box{background:var(--bg);border-radius:13px;padding:12px 13px;display:flex;gap:11px;
   align-items:center;text-decoration:none;color:inherit}
 .stat-box.link{cursor:pointer}
 .stat-box.link:hover{outline:1.5px solid var(--brand)}
@@ -99,16 +108,19 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <p class="sub">เลือกหมวดจากแถบด้านบน — เปิดใช้ครบทุกหมวดแล้วทั้ง 13 หมวด ตั้งแต่หุ้นไทย/ต่างประเทศ กองทุน ทองคำ ค่าเงิน/วัตถุดิบ ข่าวหุ้น ไปจนถึงสลากออมสิน/ธ.ก.ส./สลากกินแบ่งรัฐบาล</p>
   </div>
 
-  <div class="stat-grid" id="statGrid">
-    <div class="stat-box"><div class="stat-ic">🗂️</div><div class="stat-txt">
-      <div class="stat-lbl">หมวดการลงทุน</div><div class="stat-val" id="stCats">—</div></div></div>
-    <a class="stat-box link" href="invest-commodities.html"><div class="stat-ic">🪙</div><div class="stat-txt">
-      <div class="stat-lbl">ทองคำ COMEX</div><div class="stat-val" id="stGold">—</div><div class="stat-val chg" id="stGoldChg"></div><span class="stat-spark" id="stGoldSpark"></span></div></a>
-    <a class="stat-box link" href="invest-commodities.html"><div class="stat-ic">🔄</div><div class="stat-txt">
-      <div class="stat-lbl">บาทดอลลาร์</div><div class="stat-val" id="stUsd">—</div><div class="stat-val chg" id="stUsdChg"></div><span class="stat-spark" id="stUsdSpark"></span></div></a>
-    <a class="stat-box link" href="invest-news.html"><div class="stat-ic">📰</div><div class="stat-txt">
-      <div class="stat-lbl">ข่าวหุ้นล่าสุด</div><div class="stat-val small" id="stNews">กำลังโหลด…</div></div></a>
-  </div>
+  <details class="stat-panel">
+    <summary>📊 สรุปด่วน — หมวด/ราคาทอง/บาทดอลลาร์/ข่าวล่าสุด</summary>
+    <div class="stat-grid" id="statGrid">
+      <div class="stat-box"><div class="stat-ic">🗂️</div><div class="stat-txt">
+        <div class="stat-lbl">หมวดการลงทุน</div><div class="stat-val" id="stCats">—</div></div></div>
+      <a class="stat-box link" href="invest-commodities.html"><div class="stat-ic">🪙</div><div class="stat-txt">
+        <div class="stat-lbl">ทองคำ COMEX</div><div class="stat-val" id="stGold">—</div><div class="stat-val chg" id="stGoldChg"></div><span class="stat-spark" id="stGoldSpark"></span></div></a>
+      <a class="stat-box link" href="invest-commodities.html"><div class="stat-ic">🔄</div><div class="stat-txt">
+        <div class="stat-lbl">บาทดอลลาร์</div><div class="stat-val" id="stUsd">—</div><div class="stat-val chg" id="stUsdChg"></div><span class="stat-spark" id="stUsdSpark"></span></div></a>
+      <a class="stat-box link" href="invest-news.html"><div class="stat-ic">📰</div><div class="stat-txt">
+        <div class="stat-lbl">ข่าวหุ้นล่าสุด</div><div class="stat-val small" id="stNews">กำลังโหลด…</div></div></a>
+    </div>
+  </details>
 
   <div class="soon-banner" id="soonBanner" hidden>
     <span>🚧</span><span id="soonText"></span>
