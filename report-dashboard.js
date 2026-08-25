@@ -673,7 +673,7 @@
 
   /* จัดกลุ่มแถว×คอลัมน์×รวมค่า แบบ Excel PivotTable ง่ายๆ — ไม่มี colCol = รวมเป็นคอลัมน์ค่าเดียว,
      ไม่มี valCol = นับจำนวนแถวแทนการรวมตัวเลข จำกัดจำนวนแถว/คอลัมน์ที่ไม่ซ้ำกันกันตารางใหญ่เกินไป */
-  function buildPivot(rows) {
+  function buildPivot(rows, noCap) {
     var dt = state.dashTable;
     var rowCol = state.columns.filter(function (c) { return c.key === dt.pivotRow; })[0];
     if (!rowCol) return null;
@@ -698,7 +698,7 @@
     rowKeys.sort(function (a, b) { return a.localeCompare(b, getUILang()); });
     if (colCol) colKeys.sort(function (a, b) { return a.localeCompare(b, getUILang()); });
     var rowTotalCount = rowKeys.length, colTotalCount = colCol ? colKeys.length : 1;
-    var rowTruncated = rowKeys.length > PIVOT_ROW_CAP, colTruncated = !!(colCol && colKeys.length > PIVOT_COL_CAP);
+    var rowTruncated = !noCap && rowKeys.length > PIVOT_ROW_CAP, colTruncated = !!(!noCap && colCol && colKeys.length > PIVOT_COL_CAP);
     if (rowTruncated) rowKeys = rowKeys.slice(0, PIVOT_ROW_CAP);
     if (colTruncated) colKeys = colKeys.slice(0, PIVOT_COL_CAP);
     function cellVal(rv, cv) {
@@ -1354,9 +1354,84 @@
     var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' }); // BOM กัน Excel เปิดภาษาไทยเพี้ยน
     downloadBlob(blob, exportFileBase() + '.csv');
   }
+  /* ── ส่งออกตารางในแดชบอร์ด (ตามที่กำลังเห็นจริง — ผ่านตัวกรองของตารางนี้แล้ว และถ้าอยู่โหมด Pivot
+     ก็ส่งออกเป็นตารางไขว้ที่คำนวณแล้ว ไม่ใช่ข้อมูลดิบ) — ต่างจากปุ่ม Excel/CSV ที่แท็บ "ตาราง (แก้ไข)"
+     ซึ่งส่งออกข้อมูลดิบทั้งหมดเสมอ ไม่คำนึงถึงตัวกรอง/Pivot ที่ตั้งไว้ในแดชบอร์ด ไม่จำกัดจำนวนแถว/คอลัมน์
+     ไม่ซ้ำกันแบบที่ตารางบนจอจำกัดไว้ (จำกัดไว้กันตารางแสดงผลอืด ไม่ใช่ข้อจำกัดของไฟล์ที่ส่งออกได้) */
+  function buildDashTableExportRows() {
+    var rows = lastDashRows.filter(matchesDashFilters);
+    var dt = state.dashTable;
+    if (dt.mode === 'pivot' && dt.pivotRow) {
+      var piv = buildPivot(rows, true);
+      if (!piv) return [];
+      var out = [];
+      piv.rowKeys.forEach(function (rk) {
+        var o = {}; o[piv.rowLabel] = rk;
+        var rowTotal = 0, anyVal = false;
+        piv.colKeys.forEach(function (ck) {
+          var v = piv.cellVal(rk, ck);
+          var colHeader = ck === '__single__' ? piv.valLabel : ck;
+          o[colHeader] = v == null ? '' : v;
+          if (v != null) { rowTotal += v; anyVal = true; }
+        });
+        if (piv.colLabel) o[t('pivotTotalLbl')] = anyVal ? rowTotal : '';
+        out.push(o);
+      });
+      if (piv.colLabel) {
+        var totalRow = {}; totalRow[piv.rowLabel] = t('pivotGrandTotalLbl');
+        var grand = 0;
+        piv.colKeys.forEach(function (ck) {
+          var sum = 0;
+          piv.rowKeys.forEach(function (rk) { var v = piv.cellVal(rk, ck); if (v != null) sum += v; });
+          totalRow[ck] = sum; grand += sum;
+        });
+        totalRow[t('pivotTotalLbl')] = grand;
+        out.push(totalRow);
+      }
+      return out;
+    }
+    return rows.map(function (r) {
+      var o = {};
+      state.columns.forEach(function (col) {
+        var v = r[col.key];
+        if (v instanceof Date && !isNaN(v)) o[col.label] = v.toISOString().slice(0, 10);
+        else o[col.label] = (v === null || v === undefined) ? '' : v;
+      });
+      return o;
+    });
+  }
+  function dashTableExportSuffix() { return state.dashTable.mode === 'pivot' ? '-pivot' : '-table'; }
+  function exportDashTableXlsx() {
+    if (typeof XLSX === 'undefined') { alert(t('exportLibFail')); return; }
+    var rows = buildDashTableExportRows();
+    if (!rows.length) { alert(t('exportNoData')); return; }
+    var ws = XLSX.utils.json_to_sheet(rows);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, (state.dashTable.mode === 'pivot' ? 'Pivot' : 'Sheet1'));
+    XLSX.writeFile(wb, exportFileBase() + dashTableExportSuffix() + '.xlsx');
+  }
+  function exportDashTableCsv() {
+    if (typeof XLSX === 'undefined') { alert(t('exportLibFail')); return; }
+    var rows = buildDashTableExportRows();
+    if (!rows.length) { alert(t('exportNoData')); return; }
+    var ws = XLSX.utils.json_to_sheet(rows);
+    var csv = XLSX.utils.sheet_to_csv(ws);
+    var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    downloadBlob(blob, exportFileBase() + dashTableExportSuffix() + '.csv');
+  }
+  /* ── ซ่อนแถบเครื่องมือ/ตัวเลือก/ตัวกรองที่กดไม่ได้อยู่แล้วชั่วคราวตอนแคปภาพ (html2canvas) — คืนค่ากลับ
+     เสมอไม่ว่าจะสำเร็จหรือพลาด กันเผลอค้างซ่อนถาวรถ้า promise reject ═══ */
+  function withControlsHidden(fn) {
+    var el = $('dashboardView');
+    el.classList.add('hide-controls');
+    var restore = function () { el.classList.remove('hide-controls'); };
+    return fn().then(function (v) { restore(); return v; }, function (e) { restore(); throw e; });
+  }
   function exportDashboardImage() {
     if (typeof window.html2canvas === 'undefined') { alert(t('exportLibFail')); return; }
-    window.html2canvas($('dashboardView'), { backgroundColor: '#F3F5F8', scale: 2 }).then(function (canvas) {
+    withControlsHidden(function () {
+      return window.html2canvas($('dashboardView'), { backgroundColor: '#F3F5F8', scale: 2 });
+    }).then(function (canvas) {
       canvas.toBlob(function (blob) { if (blob) downloadBlob(blob, exportFileBase() + '.png'); });
     });
   }
@@ -1364,7 +1439,9 @@
   function exportDashboardPdf() {
     var jsPDFctor = window.jspdf && window.jspdf.jsPDF;
     if (!jsPDFctor || !window.html2canvas) { window.print(); return; }
-    window.html2canvas($('dashboardView'), { backgroundColor: '#F3F5F8', scale: 2 }).then(function (canvas) {
+    withControlsHidden(function () {
+      return window.html2canvas($('dashboardView'), { backgroundColor: '#F3F5F8', scale: 2 });
+    }).then(function (canvas) {
       var pw = 210, ph = 297; // A4 แนวตั้ง (mm)
       var pdf = new jsPDFctor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       var pxPerMm = canvas.width / pw, pageHpx = Math.floor(ph * pxPerMm), sy = 0, first = true;
@@ -1554,6 +1631,8 @@
     $('exportImgBtn').addEventListener('click', exportDashboardImage);
     $('exportPdfBtn').addEventListener('click', exportDashboardPdf);
     $('exportHtmlBtn').addEventListener('click', exportDashboardHtml);
+    $('dashExportXlsxBtn').addEventListener('click', exportDashTableXlsx);
+    $('dashExportCsvBtn').addEventListener('click', exportDashTableCsv);
     $('printBtn').addEventListener('click', function () { window.print(); });
     $('globalSearch').addEventListener('input', function () {
       state.globalQuery = $('globalSearch').value; state.page = 1; renderTable();

@@ -138,6 +138,10 @@ td.rowdel{text-align:center}
 
 /* ── แถบเครื่องมือตาราง ── */
 .toolbar-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+/* ตอนแคปหน้าจอเป็นรูป/PDF (html2canvas) — สลับคลาสนี้ชั่วคราวเพื่อซ่อนแถบเครื่องมือ/ตัวเลือก/ตัวกรอง
+   ที่กดไม่ได้อยู่แล้วในภาพนิ่ง ไม่ให้ติดไปในรายงานที่ export ออกไป (ต่างจาก @media print ด้านล่างที่ใช้กับ
+   ปุ่ม "พิมพ์" ของเบราว์เซอร์เท่านั้น ไม่ครอบคลุม html2canvas ซึ่งแคป DOM สดไม่ผ่าน print stylesheet) */
+.hide-controls .toolbar-row,.hide-controls .chart-ctrl-row,.hide-controls .dash-filter-row{display:none!important}
 .search-wrap{position:relative;flex:1 1 200px;min-width:160px}
 .search-wrap .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);pointer-events:none}
 .toolbar-row input[type=text]{font-family:inherit;font-size:13.5px;padding:10px 12px 10px 32px;border-radius:10px;
@@ -172,7 +176,7 @@ td.rowdel{text-align:center}
 /* ── โหมดพิมพ์: โชว์เฉพาะเนื้อหาที่กำลังดู ซ่อนปุ่ม/แถบเมนู ── */
 @media print{
   .crumb,.lang-toggle,.chip-row,.toolbar-row,.pager,.btn,#uploadCard,#resumeCard,#reportsCard,#sheetCard,#headerCard,
-  .rowchk,.hdrchk,.rowdel,#hdrChk,.filter-row{display:none!important}
+  .rowchk,.hdrchk,.rowdel,#hdrChk,.filter-row,.chart-ctrl-row,.dash-filter-row{display:none!important}
   body.ome-tool-page{padding:0;background:#fff}
   .card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}
 }
@@ -327,6 +331,10 @@ td.rowdel{text-align:center}
     </div>
     <div class="card" id="dashTableCard" style="display:none">
       <h2 data-i18n="dashTableTitle">📋 ตารางข้อมูล</h2>
+      <div class="toolbar-row" style="margin-bottom:6px">
+        <button class="btn sm" id="dashExportXlsxBtn" type="button" data-i18n="exportXlsxBtn">⬇️ Excel</button>
+        <button class="btn sm" id="dashExportCsvBtn" type="button" data-i18n="exportCsvBtn">⬇️ CSV</button>
+      </div>
       <div class="chart-ctrl-row">
         <label><span data-i18n="dashModeLbl">มุมมองตาราง</span> <select id="dashModeSel">
           <option value="flat" data-i18n="dashModeFlat">รายการ</option>
