@@ -49,10 +49,15 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 @media(max-width:600px){.chart-wrap{height:240px}}
 .chart-ctrl-row{display:flex;flex-wrap:wrap;gap:10px 18px;margin:-4px 0 10px}
 .chart-ctrl-row label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600}
-.chart-ctrl-row select{font-family:inherit;font-size:12.5px;font-weight:700;padding:6px 9px;border-radius:8px;
-  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;max-width:180px}
-.chart-ctrl-row select:focus{outline:none;border-color:var(--brand)}
-[data-theme="dark"] .chart-ctrl-row select{background:#12151C}
+.chart-ctrl-row select{font-family:inherit;font-size:12.5px;font-weight:700;padding:7px 28px 7px 11px;border-radius:9px;
+  border:1.5px solid var(--line);background-color:var(--card);color:var(--ink);cursor:pointer;max-width:190px;
+  -webkit-appearance:none;-moz-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;background-size:14px;
+  box-shadow:0 1px 2px rgba(16,24,40,.03);transition:.15s}
+.chart-ctrl-row select:hover{border-color:#C9D0DC}
+.chart-ctrl-row select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-sf)}
+[data-theme="dark"] .chart-ctrl-row select{background-color:#12151C}
 
 /* ── แถบบอกว่ากำลังกรองจากการคลิกกราฟ ── */
 .drill-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
@@ -255,27 +260,40 @@ td.rowdel{text-align:center}
     <div class="card" id="barChartCard" style="display:none">
       <h2 id="barChartTitle">📊 กราฟแท่ง</h2>
       <div class="chart-ctrl-row">
+        <label>ชนิดกราฟ <select id="barTypeSel">
+          <option value="bar">แท่งแนวตั้ง</option><option value="barH">แท่งแนวนอน</option>
+          <option value="line">เส้น</option><option value="pie">วงกลม</option><option value="doughnut">โดนัท</option>
+        </select></label>
         <label>จัดกลุ่มตาม <select id="barCatSel"></select></label>
         <label>รวมค่า <select id="barNumSel"></select></label>
       </div>
       <div class="chart-wrap"><canvas id="barChart"></canvas></div>
-      <p class="mini">👆 แตะแท่งเพื่อกรองตารางเฉพาะกลุ่มนั้น</p>
+      <p class="mini">👆 แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น</p>
     </div>
     <div class="card" id="lineChartCard" style="display:none">
       <h2 id="lineChartTitle">📈 แนวโน้มตามเวลา</h2>
       <div class="chart-ctrl-row">
+        <label>ชนิดกราฟ <select id="lineTypeSel">
+          <option value="line">เส้น</option><option value="bar">แท่งแนวตั้ง</option><option value="barH">แท่งแนวนอน</option>
+          <option value="pie">วงกลม</option><option value="doughnut">โดนัท</option>
+        </select></label>
         <label>แกนเวลา <select id="lineDateSel"></select></label>
         <label>รวมค่า <select id="lineNumSel"></select></label>
       </div>
       <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+      <p class="mini">👆 แตะกราฟเพื่อกรองตารางเฉพาะช่วงนั้น</p>
     </div>
     <div class="card" id="pieChartCard" style="display:none">
       <h2 id="pieChartTitle">🥧 สัดส่วน</h2>
       <div class="chart-ctrl-row">
+        <label>ชนิดกราฟ <select id="pieTypeSel">
+          <option value="doughnut">โดนัท</option><option value="pie">วงกลม</option>
+          <option value="bar">แท่งแนวตั้ง</option><option value="barH">แท่งแนวนอน</option><option value="line">เส้น</option>
+        </select></label>
         <label>แสดงสัดส่วนตาม <select id="pieCatSel"></select></label>
       </div>
       <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
-      <p class="mini">👆 แตะชิ้นวงกลมเพื่อกรองตารางเฉพาะกลุ่มนั้น</p>
+      <p class="mini">👆 แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น</p>
     </div>
     <div class="card" id="dashboardEmptyCard" style="display:none">
       <h2>📊 แดชบอร์ด</h2>
