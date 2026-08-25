@@ -1,9 +1,11 @@
 /* ══════════════════════════════════════════════════════════════════
-   Tanot — นำเสนอรายงาน (Stage 1: นำเข้าไฟล์ + ตารางข้อมูล)
-   • อ่าน .xlsx/.xls/.csv ด้วย SheetJS (ตัวเดียวกับที่หน้า "งาน Excel" ใช้อยู่แล้ว — clone-and-adapt)
-   • ตารางเบาๆ ของตัวเอง (ไม่ใช้ Luckysheet เต็มรูปแบบ) รองรับเรียง/กรอง/แก้ไขเซลล์/เพิ่ม-ลบแถว/เลิกทำ/แบ่งหน้า
-   • เดาชนิดข้อมูลแต่ละคอลัมน์ (number/date/category/text) ไว้ล่วงหน้า — ยังไม่ใช้ตอนนี้ แต่ stage ถัดไป
-     (แดชบอร์ด+กราฟ) จะใช้ตัดสินใจแนะนำชนิดกราฟจากตรงนี้
+   Tanot — นำเสนอรายงาน
+   Stage 1: อ่าน .xlsx/.xls/.csv ด้วย SheetJS (ตัวเดียวกับที่หน้า "งาน Excel" ใช้อยู่แล้ว — clone-and-adapt)
+            ตารางเบาๆ ของตัวเอง (ไม่ใช้ Luckysheet เต็มรูปแบบ) เรียง/กรอง/แก้ไขเซลล์/เพิ่ม-ลบแถว/เลิกทำ/แบ่งหน้า
+   Stage 2: มุมมอง "แดชบอร์ด" — สรุปตัวเลข + กราฟแท่ง/เส้น/วงกลม สร้างอัตโนมัติจากชนิดข้อมูลที่เดาไว้ตั้งแต่
+            Stage 1 (number/date/category/text) ด้วย Chart.js (CDN — เพิ่มใหม่ ยังไม่มีไลบรารีทำกราฟแท่ง/
+            วงกลมแบบมีปฏิสัมพันธ์ในเว็บนี้มาก่อน) แดชบอร์ดสรุปจากข้อมูล "ทั้งหมด" เสมอ ไม่ผูกกับตัวกรองที่ตั้งไว้
+            ในมุมมองตาราง (ยังไม่มีการเชื่อมตัวกรอง/คลิกกราฟเพื่อกรอง — เป็นแผนของ stage ถัดไป)
    • เก็บงานปัจจุบันไว้ใน IndexedDB (ไม่ใช้ localStorage เพราะข้อมูลจาก Excel อาจใหญ่เกินเพดาน) —
      ตอนนี้เก็บได้ทีละ 1 ชุด (resume ได้ถ้าปิดแท็บ/รีเฟรชไปแล้ว) ส่วนบันทึกหลายรายงานเป็น stage ถัดไป
    ทุกอย่างทำงานฝั่งเบราว์เซอร์ ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์
@@ -226,10 +228,21 @@
     $('headerCard').style.display = 'none';
     $('uploadCard').style.display = 'none';
     $('resumeCard').style.display = 'none';
-    $('dataCard').style.display = 'block';
     $('dataMeta').textContent = (state.fileName || '') + (state.sheetNames.length > 1 ? ' · ' + state.activeSheet : '') + ' · ' + state.rows.length.toLocaleString('th-TH') + ' แถว';
+    $('viewTabs').style.display = 'flex';
+    setView('table');
     renderTable();
     persistDebounced();
+  }
+
+  /* ══════════════════ สลับมุมมองตาราง/แดชบอร์ด ══════════════════ */
+  var currentView = 'table';
+  function setView(view) {
+    currentView = view;
+    [].forEach.call($('viewTabs').querySelectorAll('.chip'), function (b) { b.classList.toggle('on', b.getAttribute('data-view') === view); });
+    $('dataCard').style.display = view === 'table' ? 'block' : 'none';
+    $('dashboardView').style.display = view === 'dashboard' ? 'block' : 'none';
+    if (view === 'dashboard') renderDashboard();
   }
 
   function buildColumnsAndRows(aoa, headerIdx) {
@@ -517,11 +530,145 @@
     renderTable();
   }
 
+  /* ══════════════════ มุมมองแดชบอร์ด (Stage 2) — สรุปตัวเลข + กราฟอัตโนมัติ ══════════════════
+     ใช้ state.rows ทั้งหมดเสมอ (ไม่ผูกกับตัวกรอง/คำค้นของมุมมองตาราง) เพื่อไม่ต้องอธิบายเพิ่มว่าทำไม
+     ตัวเลขสรุปดู "ไม่ครบ" — เชื่อมกับตัวกรองเป็นของ stage ถัดไป */
+  var CHART_COLORS = ['#1E9E5A', '#1B2030', '#F59E0B', '#3B82F6', '#EC5E8A', '#8B5CF6', '#0EA5A5', '#EF4444', '#84CC16', '#64748B'];
+  var charts = { bar: null, line: null, pie: null };
+  var MAX_CHART_CATS = 8;
+
+  function statOf(rows, key) {
+    var vals = rows.map(function (r) { return r[key]; }).filter(function (v) { return typeof v === 'number' && isFinite(v); });
+    if (!vals.length) return null;
+    var sum = vals.reduce(function (a, b) { return a + b; }, 0);
+    return { sum: sum, avg: sum / vals.length, min: Math.min.apply(null, vals), max: Math.max.apply(null, vals), count: vals.length };
+  }
+  /* รวมยอด (หรือถ้าไม่มีคอลัมน์ตัวเลข — นับจำนวนแถว) แยกตามค่าของคอลัมน์หมวดหมู่ — เอาเฉพาะ top N
+     ค่าที่มากที่สุด รวมที่เหลือเป็น "อื่นๆ" กันกราฟรกเกินอ่านได้ถ้ามีหลายสิบหมวดหมู่ */
+  function aggregateByCategory(rows, catKey, numKey) {
+    var map = {}, order = [];
+    rows.forEach(function (r) {
+      var k = r[catKey]; k = (k === null || k === undefined || k === '') ? '(ว่าง)' : String(k);
+      if (!(k in map)) { map[k] = 0; order.push(k); }
+      map[k] += numKey ? (typeof r[numKey] === 'number' ? r[numKey] : 0) : 1;
+    });
+    var entries = order.map(function (k) { return [k, map[k]]; });
+    entries.sort(function (a, b) { return b[1] - a[1]; });
+    if (entries.length > MAX_CHART_CATS) {
+      var top = entries.slice(0, MAX_CHART_CATS);
+      var rest = entries.slice(MAX_CHART_CATS).reduce(function (s, e) { return s + e[1]; }, 0);
+      top.push(['อื่นๆ', rest]);
+      entries = top;
+    }
+    return entries;
+  }
+  /* รวมยอด (หรือนับจำนวน) แยกตามวันที่ (ตัดเหลือแค่ yyyy-mm-dd) เรียงตามเวลา */
+  function aggregateByDate(rows, dateKey, numKey) {
+    var map = {};
+    rows.forEach(function (r) {
+      var d = r[dateKey];
+      if (!(d instanceof Date) || isNaN(d)) return;
+      var k = d.toISOString().slice(0, 10);
+      map[k] = (map[k] || 0) + (numKey ? (typeof r[numKey] === 'number' ? r[numKey] : 0) : 1);
+    });
+    return Object.keys(map).sort().map(function (k) { return [k, map[k]]; });
+  }
+  function destroyChart(key) { if (charts[key]) { try { charts[key].destroy(); } catch (e) {} charts[key] = null; } }
+
+  function renderDashboard() {
+    var rows = state.rows;
+    var numCols = state.columns.filter(function (c) { return c.type === 'number'; });
+    var dateCols = state.columns.filter(function (c) { return c.type === 'date'; });
+    /* เรียงคอลัมน์หมวดหมู่จากค่าไม่ซ้ำน้อยไปมาก — คอลัมน์ที่ค่าซ้ำกันบ่อย (เช่น "ประเภท") เหมาะเป็นแกน
+       กราฟแท่ง/วงกลมมากกว่าคอลัมน์ที่ค่าไม่ซ้ำเกือบทุกแถว (เช่น "ชื่อสินค้า" ที่บังเอิญถูกเดาเป็น category
+       เพราะมีข้อมูลน้อยแถว) กันกราฟแท่งมี 1 แท่งต่อ 1 แถวซึ่งไม่มีประโยชน์อะไร */
+    var catCols = state.columns.filter(function (c) { return c.type === 'category'; }).map(function (c) {
+      var uniq = {}; rows.forEach(function (r) { var v = r[c.key]; if (v !== null && v !== undefined && v !== '') uniq[String(v)] = true; });
+      return { col: c, uniqCount: Object.keys(uniq).length };
+    }).sort(function (a, b) { return a.uniqCount - b.uniqCount; }).map(function (e) { return e.col; });
+    var anyRendered = false;
+
+    /* ── สรุปตัวเลข (การ์ดสถิติ sum/avg/min/max ต่อคอลัมน์ตัวเลข สูงสุด 4 คอลัมน์) ── */
+    if (numCols.length && rows.length) {
+      var html = '';
+      numCols.slice(0, 4).forEach(function (col) {
+        var s = statOf(rows, col.key);
+        if (!s) return;
+        html += '<div class="stat-tile"><div class="lbl">' + escapeHtml(col.label) + '</div>' +
+          '<div class="val">' + s.sum.toLocaleString('th-TH', { maximumFractionDigits: 2 }) + '</div>' +
+          '<div class="sub">เฉลี่ย ' + s.avg.toLocaleString('th-TH', { maximumFractionDigits: 2 }) + ' · ต่ำสุด ' +
+          s.min.toLocaleString('th-TH', { maximumFractionDigits: 2 }) + ' · สูงสุด ' + s.max.toLocaleString('th-TH', { maximumFractionDigits: 2 }) + '</div></div>';
+      });
+      if (html) { $('numStatRow').innerHTML = html; $('numStatCard').style.display = 'block'; anyRendered = true; }
+      else $('numStatCard').style.display = 'none';
+    } else $('numStatCard').style.display = 'none';
+
+    var hasChartJs = typeof Chart !== 'undefined';
+
+    /* ── กราฟแท่ง: คอลัมน์หมวดหมู่แรก × คอลัมน์ตัวเลขแรก (หรือจำนวนแถวถ้าไม่มีคอลัมน์ตัวเลข) ── */
+    destroyChart('bar');
+    if (hasChartJs && catCols.length && rows.length) {
+      var barCat = catCols[0], barNum = numCols[0];
+      var barEntries = aggregateByCategory(rows, barCat.key, barNum ? barNum.key : null);
+      $('barChartTitle').textContent = barNum ? ('📊 ' + barCat.label + ' ตามผลรวม ' + barNum.label) : ('📊 จำนวนรายการตาม ' + barCat.label);
+      charts.bar = new Chart($('barChart').getContext('2d'), {
+        type: 'bar',
+        data: { labels: barEntries.map(function (e) { return e[0]; }), datasets: [{ data: barEntries.map(function (e) { return e[1]; }), backgroundColor: '#1E9E5A', borderRadius: 6, maxBarThickness: 46 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, grid: { color: '#EEF0F4' } }, x: { grid: { display: false } } } }
+      });
+      $('barChartCard').style.display = 'block'; anyRendered = true;
+    } else $('barChartCard').style.display = 'none';
+
+    /* ── กราฟเส้น: คอลัมน์วันที่แรก × คอลัมน์ตัวเลขแรก (หรือจำนวนแถวถ้าไม่มีคอลัมน์ตัวเลข) ── */
+    destroyChart('line');
+    if (hasChartJs && dateCols.length && rows.length) {
+      var lineDate = dateCols[0], lineNum = numCols[0];
+      var lineEntries = aggregateByDate(rows, lineDate.key, lineNum ? lineNum.key : null);
+      if (lineEntries.length >= 2) {
+        $('lineChartTitle').textContent = lineNum ? ('📈 แนวโน้ม ' + lineNum.label + ' ตามเวลา (' + lineDate.label + ')') : ('📈 จำนวนรายการตามเวลา (' + lineDate.label + ')');
+        charts.line = new Chart($('lineChart').getContext('2d'), {
+          type: 'line',
+          data: { labels: lineEntries.map(function (e) { return e[0]; }), datasets: [{ data: lineEntries.map(function (e) { return e[1]; }), borderColor: '#1E9E5A', backgroundColor: 'rgba(30,158,90,.12)', fill: true, tension: .3, pointRadius: 3 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, grid: { color: '#EEF0F4' } }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true } } } }
+        });
+        $('lineChartCard').style.display = 'block'; anyRendered = true;
+      } else $('lineChartCard').style.display = 'none';
+    } else $('lineChartCard').style.display = 'none';
+
+    /* ── กราฟวงกลม: สัดส่วนจำนวนแถวตามคอลัมน์หมวดหมู่ (ใช้คอลัมน์ที่ 2 ถ้ามี กันซ้ำมุมมองกับกราฟแท่ง) ── */
+    destroyChart('pie');
+    if (hasChartJs && catCols.length && rows.length) {
+      var pieCat = catCols.length > 1 ? catCols[1] : catCols[0];
+      var pieEntries = aggregateByCategory(rows, pieCat.key, null);
+      $('pieChartTitle').textContent = '🥧 สัดส่วนจำนวนรายการตาม ' + pieCat.label;
+      charts.pie = new Chart($('pieChart').getContext('2d'), {
+        type: 'doughnut',
+        data: { labels: pieEntries.map(function (e) { return e[0]; }), datasets: [{ data: pieEntries.map(function (e) { return e[1]; }), backgroundColor: CHART_COLORS, borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 11, font: { size: 11 } } } } }
+      });
+      $('pieChartCard').style.display = 'block'; anyRendered = true;
+    } else $('pieChartCard').style.display = 'none';
+
+    if (!hasChartJs) {
+      $('dashboardEmptyCard').style.display = 'block';
+      $('dashboardEmptyCard').querySelector('.mini').textContent = 'โหลดไลบรารีทำกราฟไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)';
+    } else if (!anyRendered) {
+      $('dashboardEmptyCard').style.display = 'block';
+      $('dashboardEmptyCard').querySelector('.mini').textContent = 'ยังสรุปเป็นกราฟไม่ได้ — ต้องมีอย่างน้อย 1 คอลัมน์ตัวเลข หรือ 1 คอลัมน์หมวดหมู่ที่ไม่ใช่ข้อความอิสระเกินไป';
+    } else {
+      $('dashboardEmptyCard').style.display = 'none';
+    }
+  }
+
   function resetToUpload() {
     state.fileName = null; state.sheetNames = []; state.activeSheet = null; state.workbook = null; state.rawAoA = null;
     state.columns = []; state.rows = []; state.nextRowId = 1; state.filters = {}; state.globalQuery = '';
     state.sortCol = null; state.sortDir = null; state.selected = {}; state.page = 1; state.history = [];
     $('dataCard').style.display = 'none';
+    $('dashboardView').style.display = 'none';
+    $('viewTabs').style.display = 'none';
     $('statRow').style.display = 'none';
     $('sheetCard').style.display = 'none';
     $('headerCard').style.display = 'none';
@@ -550,6 +697,9 @@
     $('delSelBtn').addEventListener('click', deleteSelected);
     $('undoBtn').addEventListener('click', undo);
     $('clearFilterBtn').addEventListener('click', clearAllFilters);
+    [].forEach.call($('viewTabs').querySelectorAll('.chip'), function (b) {
+      b.addEventListener('click', function () { setView(b.getAttribute('data-view')); });
+    });
     $('newFileBtn').addEventListener('click', function () {
       if (state.rows.length && !confirm('ยังไม่ได้ส่งออกข้อมูลปัจจุบัน — อัปโหลดไฟล์ใหม่จะแทนที่ข้อมูลนี้ ดำเนินการต่อไหม?')) return;
       resetToUpload();
@@ -568,7 +718,8 @@
           state.filters = {}; state.globalQuery = ''; state.sortCol = null; state.sortDir = null;
           state.selected = {}; state.page = 1; state.history = [];
           $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none';
-          $('dataCard').style.display = 'block';
+          $('viewTabs').style.display = 'flex';
+          setView('table');
           renderTable();
         });
         $('discardBtn').addEventListener('click', function () { $('resumeCard').style.display = 'none'; dbClearCurrent(); });
