@@ -36,13 +36,17 @@
     page: 1,
     history: [],           // snapshots for undo: { columns, rows, nextRowId }
     drill: null,           // { key, label, value } — จากคลิกแท่ง/ชิ้นวงกลมในแดชบอร์ด กรองทั้งตาราง+แดชบอร์ด
-    chartChoice: { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null } // null = auto
+    chartChoice: { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null }, // null = auto
+    reportId: null,        // ถ้าไม่ null = ผูกกับรายงานที่ตั้งชื่อบันทึกไว้ใน store 'reports' (Stage 4) — autosave เข้าที่นี่ด้วย
+    reportName: null
   };
 
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
 
-  /* ══════════════════ IndexedDB — เก็บงานปัจจุบัน 1 ชุด ══════════════════ */
-  var DB_NAME = 'tanot-report-dashboard', DB_STORE = 'current', DB_VERSION = 1;
+  /* ══════════════════ IndexedDB ══════════════════
+     store 'current' — งานที่ทำค้างไว้ล่าสุด 1 ชุดเสมอ (กันข้อมูลหายถ้าปิดแท็บ/รีเฟรชโดยไม่ได้บันทึก)
+     store 'reports' (Stage 4) — คลังรายงานที่ตั้งชื่อบันทึกไว้ถาวร หลายรายงานพร้อมกันได้ */
+  var DB_NAME = 'tanot-report-dashboard', DB_STORE = 'current', DB_REPORTS = 'reports', DB_VERSION = 2;
   function dbOpen() {
     return new Promise(function (resolve, reject) {
       if (!window.indexedDB) { reject(new Error('เบราว์เซอร์นี้ไม่รองรับ IndexedDB')); return; }
@@ -50,6 +54,7 @@
       req.onupgradeneeded = function () {
         var db = req.result;
         if (!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE, { keyPath: 'id' });
+        if (!db.objectStoreNames.contains(DB_REPORTS)) db.createObjectStore(DB_REPORTS, { keyPath: 'id', autoIncrement: true });
       };
       req.onsuccess = function () { resolve(req.result); };
       req.onerror = function () { reject(req.error); };
@@ -80,17 +85,71 @@
       req.onerror = function () { resolve(); };
     }); }).catch(function () {});
   }
+  /* ── Stage 4: คลังรายงาน (หลายชุด, ตั้งชื่อเอง) ── */
+  function dbAddReport(rec) {
+    return dbOpen().then(function (db) { return new Promise(function (resolve, reject) {
+      var tx = db.transaction(DB_REPORTS, 'readwrite');
+      var req = tx.objectStore(DB_REPORTS).add(rec);
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    }); });
+  }
+  function dbPutReport(rec) {
+    return dbOpen().then(function (db) { return new Promise(function (resolve, reject) {
+      var tx = db.transaction(DB_REPORTS, 'readwrite');
+      var req = tx.objectStore(DB_REPORTS).put(rec);
+      req.onsuccess = function () { resolve(); };
+      req.onerror = function () { reject(req.error); };
+    }); }).catch(function () {});
+  }
+  function dbListReports() {
+    return dbOpen().then(function (db) { return new Promise(function (resolve, reject) {
+      var tx = db.transaction(DB_REPORTS, 'readonly');
+      var req = tx.objectStore(DB_REPORTS).getAll();
+      req.onsuccess = function () { resolve(req.result || []); };
+      req.onerror = function () { reject(req.error); };
+    }); }).catch(function () { return []; });
+  }
+  function dbGetReport(id) {
+    return dbOpen().then(function (db) { return new Promise(function (resolve, reject) {
+      var tx = db.transaction(DB_REPORTS, 'readonly');
+      var req = tx.objectStore(DB_REPORTS).get(id);
+      req.onsuccess = function () { resolve(req.result || null); };
+      req.onerror = function () { reject(req.error); };
+    }); }).catch(function () { return null; });
+  }
+  function dbDeleteReport(id) {
+    return dbOpen().then(function (db) { return new Promise(function (resolve) {
+      var tx = db.transaction(DB_REPORTS, 'readwrite');
+      var req = tx.objectStore(DB_REPORTS).delete(id);
+      req.onsuccess = function () { resolve(); };
+      req.onerror = function () { resolve(); };
+    }); }).catch(function () {});
+  }
+
   var persistTimer = null;
   function persistDebounced() {
     if (persistTimer) clearTimeout(persistTimer);
     persistTimer = setTimeout(function () {
-      dbSaveCurrent({
+      var payload = {
         fileName: state.fileName, sheetName: state.activeSheet,
         columns: state.columns, rows: state.rows, nextRowId: state.nextRowId,
+        reportId: state.reportId, reportName: state.reportName,
         savedAt: Date.now()
-      });
+      };
+      dbSaveCurrent(payload);
+      /* ถ้างานนี้ผูกกับรายงานที่ตั้งชื่อบันทึกไว้แล้ว (Stage 4) ให้ autosave เข้ารายงานนั้นตรงๆ ด้วย
+         ไม่ต้องกดบันทึกซ้ำทุกครั้งที่แก้ไข */
+      if (state.reportId) {
+        dbPutReport({
+          id: state.reportId, name: state.reportName, fileName: state.fileName, sheetName: state.activeSheet,
+          columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, savedAt: Date.now()
+        });
+        setSaveStatus('บันทึกอัตโนมัติแล้ว · ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }), 'ok');
+      }
     }, 400);
   }
+  function setSaveStatus(msg, cls) { var el = $('saveStatus'); if (!el) return; el.textContent = msg || ''; el.className = 'status' + (cls ? ' ' + cls : ''); }
 
   function deepClone(v) {
     if (typeof structuredClone === 'function') { try { return structuredClone(v); } catch (e) {} }
@@ -226,12 +285,14 @@
     state.sortCol = null; state.sortDir = null;
     state.selected = {}; state.page = 1; state.history = [];
     state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
-    updateDrillBanner();
+    state.reportId = null; state.reportName = null;
+    updateDrillBanner(); updateSaveUI();
     $('undoBtn').disabled = true;
     $('sheetCard').style.display = 'none';
     $('headerCard').style.display = 'none';
     $('uploadCard').style.display = 'none';
     $('resumeCard').style.display = 'none';
+    $('reportsCard').style.display = 'none';
     $('dataMeta').textContent = (state.fileName || '') + (state.sheetNames.length > 1 ? ' · ' + state.activeSheet : '') + ' · ' + state.rows.length.toLocaleString('th-TH') + ' แถว';
     $('viewTabs').style.display = 'flex';
     setView('table'); // เรียก renderTable() ให้เองในตัว
@@ -735,12 +796,189 @@
     }
   }
 
+  /* ══════════════════ Stage 4: บันทึกหลายรายงาน ══════════════════
+     'บันทึกเป็นรายงาน' ผูกงานปัจจุบันเข้ากับรายการถาวรใน store 'reports' — หลังจากนั้น persistDebounced()
+     (ด้านบน) จะ autosave เข้ารายงานนี้ต่อทุกครั้งที่แก้ไข ไม่ต้องกดบันทึกซ้ำเอง */
+  function updateSaveUI() {
+    if (state.reportId) {
+      $('saveReportBtn').textContent = '💾 บันทึกแล้ว: ' + state.reportName;
+    } else {
+      $('saveReportBtn').textContent = '💾 บันทึกเป็นรายงาน';
+      setSaveStatus('', '');
+    }
+  }
+  function saveAsReport() {
+    if (state.reportId) {
+      // ผูกอยู่แล้ว — ปุ่มนี้ทำหน้าที่ "บันทึกตอนนี้เลย" เผื่อไม่อยากรอ autosave debounce
+      persistDebounced();
+      setSaveStatus('กำลังบันทึก…', '');
+      return;
+    }
+    var name = prompt('ตั้งชื่อรายงานนี้:', (state.fileName || 'รายงาน').replace(/\.[^.]+$/, ''));
+    if (!name) return;
+    name = name.trim(); if (!name) return;
+    var rec = { name: name, fileName: state.fileName, sheetName: state.activeSheet,
+      columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, savedAt: Date.now() };
+    dbAddReport(rec).then(function (id) {
+      state.reportId = id; state.reportName = name;
+      updateSaveUI();
+      setSaveStatus('บันทึกเป็นรายงาน "' + name + '" แล้ว', 'ok');
+      persistDebounced(); // อัปเดต draft ปัจจุบันให้มี reportId ผูกไว้ด้วย กัน resume แล้วหลุดการเชื่อมโยง
+    }, function () {
+      setSaveStatus('บันทึกไม่สำเร็จ ลองอีกครั้ง', 'err');
+    });
+  }
+  function relativeTimeTh(ts) {
+    var mins = Math.round((Date.now() - ts) / 60000);
+    if (mins < 1) return 'เมื่อสักครู่';
+    if (mins < 60) return mins + ' นาทีก่อน';
+    var hrs = Math.round(mins / 60);
+    if (hrs < 24) return hrs + ' ชม.ก่อน';
+    return new Date(ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  function renderReportsList() {
+    dbListReports().then(function (reports) {
+      reports.sort(function (a, b) { return (b.savedAt || 0) - (a.savedAt || 0); });
+      if (!reports.length) { $('reportsCard').style.display = 'none'; $('reportsList').innerHTML = ''; return; }
+      $('reportsCard').style.display = 'block';
+      $('reportsMeta').textContent = reports.length.toLocaleString('th-TH') + ' รายงาน';
+      var html = '';
+      reports.forEach(function (r) {
+        html += '<div class="report-row" data-id="' + r.id + '">' +
+          '<div><div class="rname">' + escapeHtml(r.name) + '</div>' +
+          '<div class="rmeta">' + (r.rows ? r.rows.length.toLocaleString('th-TH') : 0) + ' แถว · บันทึกล่าสุด ' + relativeTimeTh(r.savedAt) + '</div></div>' +
+          '<div class="ractions">' +
+          '<button type="button" class="btn sm open-report" data-id="' + r.id + '">เปิด</button>' +
+          '<button type="button" class="btn sm rename-report" data-id="' + r.id + '">✏️</button>' +
+          '<button type="button" class="btn sm danger del-report" data-id="' + r.id + '">🗑️</button>' +
+          '</div></div>';
+      });
+      $('reportsList').innerHTML = html;
+      [].forEach.call($('reportsList').querySelectorAll('.open-report'), function (b) {
+        b.addEventListener('click', function () { openReport(+b.getAttribute('data-id')); });
+      });
+      [].forEach.call($('reportsList').querySelectorAll('.rename-report'), function (b) {
+        b.addEventListener('click', function () { renameReport(+b.getAttribute('data-id')); });
+      });
+      [].forEach.call($('reportsList').querySelectorAll('.del-report'), function (b) {
+        b.addEventListener('click', function () { deleteReport(+b.getAttribute('data-id')); });
+      });
+    });
+  }
+  function openReport(id) {
+    dbGetReport(id).then(function (rec) {
+      if (!rec) { renderReportsList(); return; }
+      state.fileName = rec.fileName; state.activeSheet = rec.sheetName; state.sheetNames = rec.sheetName ? [rec.sheetName] : [];
+      state.columns = rec.columns; state.rows = rec.rows; state.nextRowId = rec.nextRowId;
+      state.reportId = rec.id; state.reportName = rec.name;
+      state.filters = {}; state.globalQuery = ''; state.sortCol = null; state.sortDir = null;
+      state.selected = {}; state.page = 1; state.history = [];
+      state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
+      updateDrillBanner(); updateSaveUI();
+      $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
+      $('dataMeta').textContent = (state.fileName || rec.name) + ' · ' + state.rows.length.toLocaleString('th-TH') + ' แถว';
+      $('viewTabs').style.display = 'flex';
+      setView('table');
+      persistDebounced();
+    });
+  }
+  function renameReport(id) {
+    dbGetReport(id).then(function (rec) {
+      if (!rec) return;
+      var name = prompt('เปลี่ยนชื่อรายงาน:', rec.name);
+      if (!name) return;
+      name = name.trim(); if (!name) return;
+      rec.name = name;
+      dbPutReport(rec).then(function () {
+        if (state.reportId === id) { state.reportName = name; updateSaveUI(); }
+        renderReportsList();
+      });
+    });
+  }
+  function deleteReport(id) {
+    dbGetReport(id).then(function (rec) {
+      if (!rec) return;
+      if (!confirm('ลบรายงาน "' + rec.name + '" ถาวร (กู้คืนไม่ได้)?')) return;
+      dbDeleteReport(id).then(function () {
+        if (state.reportId === id) { state.reportId = null; state.reportName = null; updateSaveUI(); persistDebounced(); }
+        renderReportsList();
+      });
+    });
+  }
+
+  /* ══════════════════ Stage 5: ส่งออก ══════════════════ */
+  function exportFileBase() { return (state.reportName || (state.fileName || 'รายงาน').replace(/\.[^.]+$/, '')); }
+  function buildExportRows() {
+    /* จัดรูปแบบวันที่เป็นสตริง yyyy-mm-dd เองตรงๆ แทนที่จะส่ง Date object ดิบเข้า SheetJS —
+       กันพฤติกรรมแปลง Date เป็นเลขลำดับวันของ Excel/รูปแบบอื่นที่ควบคุมไม่ได้ ให้ไฟล์ที่ส่งออกอ่านง่าย
+       และหน้าตาเหมือนกันแน่นอนทั้ง .xlsx และ .csv */
+    return state.rows.map(function (r) {
+      var o = {};
+      state.columns.forEach(function (col) {
+        var v = r[col.key];
+        if (v instanceof Date && !isNaN(v)) o[col.label] = v.toISOString().slice(0, 10);
+        else o[col.label] = (v === null || v === undefined) ? '' : v;
+      });
+      return o;
+    });
+  }
+  function downloadBlob(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+  function exportXlsx() {
+    if (typeof XLSX === 'undefined') { setUploadStatus('', ''); alert('โหลดไลบรารีส่งออกไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)'); return; }
+    if (!state.rows.length) { alert('ยังไม่มีข้อมูลให้ส่งออก'); return; }
+    var ws = XLSX.utils.json_to_sheet(buildExportRows());
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, (state.activeSheet || 'Sheet1').slice(0, 31));
+    XLSX.writeFile(wb, exportFileBase() + '.xlsx');
+  }
+  function exportCsv() {
+    if (typeof XLSX === 'undefined') { alert('โหลดไลบรารีส่งออกไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)'); return; }
+    if (!state.rows.length) { alert('ยังไม่มีข้อมูลให้ส่งออก'); return; }
+    var ws = XLSX.utils.json_to_sheet(buildExportRows());
+    var csv = XLSX.utils.sheet_to_csv(ws);
+    var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' }); // BOM กัน Excel เปิดภาษาไทยเพี้ยน
+    downloadBlob(blob, exportFileBase() + '.csv');
+  }
+  function exportDashboardImage() {
+    if (typeof window.html2canvas === 'undefined') { alert('โหลดไลบรารีส่งออกไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)'); return; }
+    window.html2canvas($('dashboardView'), { backgroundColor: '#F3F5F8', scale: 2 }).then(function (canvas) {
+      canvas.toBlob(function (blob) { if (blob) downloadBlob(blob, exportFileBase() + '.png'); });
+    });
+  }
+  /* ตัด canvas เป็นหลายหน้า A4 ถ้าสูงเกิน 1 หน้า — เคลิบเดียวกับ generatePdf() ใน excel.js */
+  function exportDashboardPdf() {
+    var jsPDFctor = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDFctor || !window.html2canvas) { window.print(); return; }
+    window.html2canvas($('dashboardView'), { backgroundColor: '#F3F5F8', scale: 2 }).then(function (canvas) {
+      var pw = 210, ph = 297; // A4 แนวตั้ง (mm)
+      var pdf = new jsPDFctor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      var pxPerMm = canvas.width / pw, pageHpx = Math.floor(ph * pxPerMm), sy = 0, first = true;
+      while (sy < canvas.height - 1) {
+        var sh = Math.min(pageHpx, canvas.height - sy);
+        var c2 = document.createElement('canvas'); c2.width = canvas.width; c2.height = sh;
+        var ctx = c2.getContext('2d'); ctx.fillStyle = '#F3F5F8'; ctx.fillRect(0, 0, c2.width, sh);
+        ctx.drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh);
+        if (!first) pdf.addPage('a4', 'portrait');
+        pdf.addImage(c2.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pw, sh / pxPerMm);
+        sy += sh; first = false;
+      }
+      pdf.save(exportFileBase() + '.pdf');
+    });
+  }
+
   function resetToUpload() {
     state.fileName = null; state.sheetNames = []; state.activeSheet = null; state.workbook = null; state.rawAoA = null;
     state.columns = []; state.rows = []; state.nextRowId = 1; state.filters = {}; state.globalQuery = '';
     state.sortCol = null; state.sortDir = null; state.selected = {}; state.page = 1; state.history = [];
     state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
-    updateDrillBanner();
+    state.reportId = null; state.reportName = null;
+    updateDrillBanner(); updateSaveUI();
     $('dataCard').style.display = 'none';
     $('dashboardView').style.display = 'none';
     $('viewTabs').style.display = 'none';
@@ -752,6 +990,7 @@
     $('fileInput').value = '';
     setUploadStatus('', '');
     dbClearCurrent();
+    renderReportsList();
   }
 
   /* ══════════════════ เริ่มต้น + resume ══════════════════ */
@@ -781,26 +1020,41 @@
     $('lineDateSel').addEventListener('change', function () { state.chartChoice.lineDate = this.value; renderDashboard(); });
     $('lineNumSel').addEventListener('change', function () { state.chartChoice.lineNum = this.value; renderDashboard(); });
     $('pieCatSel').addEventListener('change', function () { state.chartChoice.pieCat = this.value; renderDashboard(); });
+    /* ปุ่ม "ไฟล์ใหม่" — ถามยืนยันเฉพาะตอนข้อมูลยังไม่ได้บันทึกเป็นรายงาน (reportId ว่าง) เพราะนั่นคือ
+       กรณีเดียวที่ข้อมูลจะหายจริง — ถ้าบันทึกเป็นรายงานแล้วสลับได้เลยโดยไม่ต้องถาม (autosave ไว้แล้ว) */
     $('newFileBtn').addEventListener('click', function () {
-      if (state.rows.length && !confirm('ยังไม่ได้ส่งออกข้อมูลปัจจุบัน — อัปโหลดไฟล์ใหม่จะแทนที่ข้อมูลนี้ ดำเนินการต่อไหม?')) return;
+      if (!state.reportId && state.rows.length && !confirm('ยังไม่ได้บันทึกเป็นรายงาน — เริ่มไฟล์ใหม่จะแทนที่ข้อมูลนี้ ดำเนินการต่อไหม?')) return;
       resetToUpload();
     });
+    $('myReportsBtn').addEventListener('click', function () {
+      if (!state.reportId && state.rows.length && !confirm('ยังไม่ได้บันทึกเป็นรายงาน — ออกไปดูรายการรายงานจะแทนที่ข้อมูลนี้ ดำเนินการต่อไหม?')) return;
+      resetToUpload();
+      setTimeout(function () { var el = $('reportsCard'); if (el.style.display !== 'none') el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
+    });
+    $('saveReportBtn').addEventListener('click', saveAsReport);
+    $('exportXlsxBtn').addEventListener('click', exportXlsx);
+    $('exportCsvBtn').addEventListener('click', exportCsv);
+    $('exportImgBtn').addEventListener('click', exportDashboardImage);
+    $('exportPdfBtn').addEventListener('click', exportDashboardPdf);
+    $('printBtn').addEventListener('click', function () { window.print(); });
     $('globalSearch').addEventListener('input', function () {
       state.globalQuery = $('globalSearch').value; state.page = 1; renderTable();
     });
 
+    renderReportsList();
     dbLoadCurrent().then(function (saved) {
       if (saved && saved.rows && saved.rows.length) {
         $('resumeCard').style.display = 'block';
-        $('resumeInfo').textContent = (saved.fileName || 'ไฟล์ที่แล้ว') + ' · ' + saved.rows.length.toLocaleString('th-TH') + ' แถว · บันทึกไว้เมื่อ ' + new Date(saved.savedAt).toLocaleString('th-TH');
+        $('resumeInfo').textContent = (saved.reportName || saved.fileName || 'ไฟล์ที่แล้ว') + ' · ' + saved.rows.length.toLocaleString('th-TH') + ' แถว · บันทึกไว้เมื่อ ' + new Date(saved.savedAt).toLocaleString('th-TH');
         $('resumeBtn').addEventListener('click', function () {
           state.fileName = saved.fileName; state.activeSheet = saved.sheetName; state.sheetNames = saved.sheetName ? [saved.sheetName] : [];
           state.columns = saved.columns; state.rows = saved.rows; state.nextRowId = saved.nextRowId;
+          state.reportId = saved.reportId || null; state.reportName = saved.reportName || null;
           state.filters = {}; state.globalQuery = ''; state.sortCol = null; state.sortDir = null;
           state.selected = {}; state.page = 1; state.history = [];
           state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
-          updateDrillBanner();
-          $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none';
+          updateDrillBanner(); updateSaveUI();
+          $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none';
           $('viewTabs').style.display = 'flex';
           setView('table'); // เรียก renderTable() ให้เองในตัว
         });

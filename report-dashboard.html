@@ -131,6 +131,23 @@ td.rowdel{text-align:center}
 
 .disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
 @media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:18px}}
+
+/* ── รายการรายงานที่บันทึกไว้ ── */
+.report-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  padding:11px 4px;border-bottom:1px solid var(--line)}
+.report-row:last-child{border-bottom:none}
+.report-row .rname{font-size:14px;font-weight:700;color:var(--ink)}
+.report-row .rmeta{font-size:11.5px;color:var(--muted);margin-top:2px}
+.report-row .ractions{display:flex;gap:6px;flex-shrink:0}
+.reports-empty{font-size:13px;color:var(--muted);padding:8px 4px}
+
+/* ── โหมดพิมพ์: โชว์เฉพาะเนื้อหาที่กำลังดู ซ่อนปุ่ม/แถบเมนู ── */
+@media print{
+  .crumb,.chip-row,.toolbar-row,.pager,.btn,#uploadCard,#resumeCard,#reportsCard,#sheetCard,#headerCard,
+  .rowchk,.hdrchk,.rowdel,#hdrChk,.filter-row{display:none!important}
+  body.ome-tool-page{padding:0;background:#fff}
+  .card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}
+}
 </style>
 </head>
 <body class="ome-tool-page">
@@ -185,6 +202,11 @@ td.rowdel{text-align:center}
     </div>
   </div>
 
+  <div class="card" id="reportsCard" style="display:none">
+    <h2>📁 รายงานของฉัน <span class="mini" id="reportsMeta" style="margin-left:auto"></span></h2>
+    <div id="reportsList"></div>
+  </div>
+
   <div class="card" id="sheetCard" style="display:none">
     <h2>📑 เลือกชีต</h2>
     <div class="chip-row" id="sheetChips"></div>
@@ -205,7 +227,14 @@ td.rowdel{text-align:center}
       <button class="btn sm" id="delSelBtn" type="button" disabled>🗑️ ลบที่เลือก</button>
       <button class="btn sm" id="undoBtn" type="button" disabled>↩️ เลิกทำ</button>
       <button class="btn sm" id="clearFilterBtn" type="button">ล้างตัวกรอง</button>
-      <button class="btn sm" id="newFileBtn" type="button">📤 อัปโหลดไฟล์ใหม่</button>
+    </div>
+    <div class="toolbar-row">
+      <button class="btn sm" id="saveReportBtn" type="button">💾 บันทึกเป็นรายงาน</button>
+      <button class="btn sm" id="myReportsBtn" type="button">📁 รายงานของฉัน</button>
+      <button class="btn sm" id="exportXlsxBtn" type="button">⬇️ Excel</button>
+      <button class="btn sm" id="exportCsvBtn" type="button">⬇️ CSV</button>
+      <button class="btn sm" id="newFileBtn" type="button">📤 ไฟล์ใหม่</button>
+      <span class="status" id="saveStatus" style="margin-top:0;margin-left:auto"></span>
     </div>
     <div class="tbl-wrap" id="dataTableWrap"><table id="dataTable"></table></div>
     <div id="dataEmpty" class="tbl-empty" style="display:none">ไม่พบแถวที่ตรงกับตัวกรอง</div>
@@ -213,6 +242,11 @@ td.rowdel{text-align:center}
   </div>
 
   <div id="dashboardView" style="display:none">
+    <div class="toolbar-row">
+      <button class="btn sm" id="exportImgBtn" type="button">📷 บันทึกเป็นรูปภาพ</button>
+      <button class="btn sm" id="exportPdfBtn" type="button">📄 บันทึกเป็น PDF</button>
+      <button class="btn sm" id="printBtn" type="button">🖨️ พิมพ์</button>
+    </div>
     <div class="card" id="numStatCard" style="display:none">
       <h2>🔢 สรุปตัวเลข</h2>
       <div class="stat-row" id="numStatRow"></div>
@@ -254,6 +288,9 @@ td.rowdel{text-align:center}
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <!-- Chart.js — กราฟแท่ง/เส้น/วงกลมของมุมมองแดชบอร์ด (MIT) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<!-- html2canvas + jsPDF — บันทึกแดชบอร์ดเป็นรูปภาพ/PDF (ตัวเดียวกับที่หน้า "งาน Excel" ใช้ทำ PDF) -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="report-dashboard.js" defer></script>
 </body>
 </html>
