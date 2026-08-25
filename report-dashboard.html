@@ -108,6 +108,14 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .tbl-wrap{overflow-x:auto;margin-top:4px;max-width:100%;border-radius:12px}
 .tbl-wrap.dash{max-height:440px;overflow-y:auto}
 .tbl-wrap.dash thead th{position:sticky;top:0;background:var(--card);z-index:1}
+.tbl-wrap.dash td.piv-total,.tbl-wrap.dash th.piv-total{font-weight:800;background:#F8F9FB}
+.tbl-wrap.dash tr.piv-total-row td{font-weight:800;background:#F8F9FB;border-top:2px solid var(--line)}
+[data-theme="dark"] .tbl-wrap.dash td.piv-total,[data-theme="dark"] .tbl-wrap.dash th.piv-total,
+[data-theme="dark"] .tbl-wrap.dash tr.piv-total-row td{background:#171C28}
+/* ── แถวกรองต่อคอลัมน์ของตารางในแดชบอร์ด (แยกจากตัวกรองของแท็บแก้ไข) ── */
+.dash-filter-row{display:flex;flex-wrap:wrap;gap:8px 10px;margin:2px 0 12px}
+.dash-filter-row .fcol{display:flex;flex-direction:column;gap:3px;min-width:104px;max-width:170px}
+.dash-filter-row .fcol label{font-size:10.5px;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.02em;
@@ -319,6 +327,20 @@ td.rowdel{text-align:center}
     </div>
     <div class="card" id="dashTableCard" style="display:none">
       <h2 data-i18n="dashTableTitle">📋 ตารางข้อมูล</h2>
+      <div class="chart-ctrl-row">
+        <label><span data-i18n="dashModeLbl">มุมมองตาราง</span> <select id="dashModeSel">
+          <option value="flat" data-i18n="dashModeFlat">รายการ</option>
+          <option value="pivot" data-i18n="dashModePivot">Pivot</option>
+        </select></label>
+        <label id="pivotRowWrap" style="display:none"><span data-i18n="pivotRowsLbl">แถว</span> <select id="pivotRowSel"></select></label>
+        <label id="pivotColWrap" style="display:none"><span data-i18n="pivotColsLbl">คอลัมน์</span> <select id="pivotColSel"></select></label>
+        <label id="pivotValWrap" style="display:none"><span data-i18n="pivotValueLbl">ค่า</span> <select id="pivotValSel"></select></label>
+        <label id="pivotAggWrap" style="display:none"><span data-i18n="pivotAggLbl">รวมด้วย</span> <select id="pivotAggSel">
+          <option value="sum" data-i18n="aggSum">ผลรวม</option>
+          <option value="avg" data-i18n="aggAvg">ค่าเฉลี่ย</option>
+        </select></label>
+      </div>
+      <div class="dash-filter-row" id="dashFilterRow"></div>
       <div class="tbl-wrap dash"><table id="dashTable"></table></div>
       <p class="mini" id="dashTableMeta"></p>
     </div>

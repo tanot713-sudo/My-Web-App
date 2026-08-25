@@ -76,6 +76,12 @@
       dashTableTitle: '📋 ตารางข้อมูล',
       dashTableMetaFull: '{n} แถว · แก้ไขข้อมูลได้ที่แท็บ "{tab}"',
       dashTableMetaCapped: 'แสดง {shown} จาก {total} แถว · ดูทั้งหมด/แก้ไขได้ที่แท็บ "{tab}"',
+      dashModeLbl: 'มุมมองตาราง', dashModeFlat: 'รายการ', dashModePivot: 'Pivot',
+      pivotRowsLbl: 'แถว', pivotColsLbl: 'คอลัมน์', pivotValueLbl: 'ค่า', pivotAggLbl: 'รวมด้วย',
+      pivotNoneOption: '(ไม่มี)', aggSum: 'ผลรวม', aggAvg: 'ค่าเฉลี่ย',
+      pivotTotalLbl: 'รวม', pivotGrandTotalLbl: 'รวมทั้งหมด',
+      pivotEmptyHint: 'เลือกคอลัมน์ที่จะใช้เป็น "แถว" ของ Pivot ก่อน',
+      pivotCapNote: ' (แสดง {n} จาก {total} รายการแรก)',
       dashboardEmptyTitle: '📊 แดชบอร์ด',
       chartLibFail: 'โหลดไลบรารีทำกราฟไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)',
       noChartPossible: 'ยังสรุปเป็นกราฟไม่ได้ — ต้องมีอย่างน้อย 1 คอลัมน์ตัวเลข หรือ 1 คอลัมน์หมวดหมู่ที่ไม่ใช่ข้อความอิสระเกินไป',
@@ -136,6 +142,12 @@
       dashTableTitle: '📋 Data Table',
       dashTableMetaFull: '{n} rows · edit data in the "{tab}" tab',
       dashTableMetaCapped: 'Showing {shown} of {total} rows · see all/edit in the "{tab}" tab',
+      dashModeLbl: 'Table view', dashModeFlat: 'List', dashModePivot: 'Pivot',
+      pivotRowsLbl: 'Rows', pivotColsLbl: 'Columns', pivotValueLbl: 'Value', pivotAggLbl: 'Summarize by',
+      pivotNoneOption: '(None)', aggSum: 'Sum', aggAvg: 'Average',
+      pivotTotalLbl: 'Total', pivotGrandTotalLbl: 'Grand Total',
+      pivotEmptyHint: 'Choose a column to use as the Pivot "Rows" first',
+      pivotCapNote: ' (showing the first {n} of {total})',
       dashboardEmptyTitle: '📊 Dashboard',
       chartLibFail: "Couldn't load the charting library (go online and refresh)",
       noChartPossible: 'Not enough structure to chart yet — you need at least 1 numeric column or 1 category-like column',
@@ -181,6 +193,7 @@
     drill: null,           // { key, label, value } — จากคลิกแท่ง/ชิ้นวงกลมในแดชบอร์ด กรองทั้งตาราง+แดชบอร์ด
     chartChoice: { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null }, // null = auto
     chartType: { slot1: null, slot2: null, slot3: null }, // null = ดีฟอลต์ของสล็อตนั้น (bar/line/doughnut)
+    dashTable: { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {} }, // ตารางในแดชบอร์ด: โหมดรายการ/pivot + ตัวกรองของตัวเอง (ไม่ผูกกับ state.filters ของแท็บแก้ไข)
     reportId: null,        // ถ้าไม่ null = ผูกกับรายงานที่ตั้งชื่อบันทึกไว้ใน store 'reports' (Stage 4) — autosave เข้าที่นี่ด้วย
     reportName: null
   };
@@ -430,6 +443,7 @@
     state.selected = {}; state.page = 1; state.history = [];
     state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
     state.chartType = { slot1: null, slot2: null, slot3: null };
+    state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {} };
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
     $('undoBtn').disabled = true;
@@ -629,27 +643,184 @@
 
   /* ── ตารางข้อมูลอ่านอย่างเดียวในมุมมองแดชบอร์ด — ไม่มีช่องแก้ไข/checkbox/ลบแถว ต่างจาก renderTable()
      ที่เป็นตารางแก้ไขเต็มรูปแบบของแท็บ "ตาราง (แก้ไข)" จำกัดจำนวนแถวที่แสดงกันหน้าอืดถ้าไฟล์ใหญ่มาก
-     คืนค่า true/false ว่าแสดงการ์ดหรือไม่ (ให้ renderDashboard() รวมกับ anyRendered) */
-  var DASH_TABLE_CAP = 300;
+     รองรับ 2 โหมด: รายการ (flat, เดิม) และ Pivot (จัดกลุ่มแถว×คอลัมน์×รวมค่า) + มีแถวกรองต่อคอลัมน์ของตัวเอง
+     (state.dashTable.filters — แยกจาก state.filters ของแท็บแก้ไข ไม่กระทบกราฟด้านบนซึ่งยังคงสรุปจากข้อมูล
+     ที่ผ่าน drill เท่านั้น) คืนค่า true/false ว่าแสดงการ์ดหรือไม่ (ให้ renderDashboard() รวมกับ anyRendered) */
+  var DASH_TABLE_CAP = 300, PIVOT_ROW_CAP = 60, PIVOT_COL_CAP = 20;
+  var lastDashRows = [];
+
+  function matchesDashFilters(row) {
+    for (var i = 0; i < state.columns.length; i++) {
+      var col = state.columns[i], f = state.dashTable.filters[col.key];
+      if (!f) continue;
+      var v = row[col.key];
+      if (col.type === 'number' || col.type === 'date') {
+        if (f.min !== undefined && f.min !== '' && f.min !== null) {
+          var minV = col.type === 'date' ? new Date(f.min) : num(f.min);
+          if (v == null || (col.type === 'date' ? (v < minV) : (num(v) < minV))) return false;
+        }
+        if (f.max !== undefined && f.max !== '' && f.max !== null) {
+          var maxV = col.type === 'date' ? new Date(f.max) : num(f.max);
+          if (v == null || (col.type === 'date' ? (v > maxV) : (num(v) > maxV))) return false;
+        }
+      } else if (f.q) {
+        var hay = (v == null ? '' : String(v)).toLowerCase();
+        if (hay.indexOf(String(f.q).toLowerCase()) === -1) return false;
+      }
+    }
+    return true;
+  }
+
+  /* จัดกลุ่มแถว×คอลัมน์×รวมค่า แบบ Excel PivotTable ง่ายๆ — ไม่มี colCol = รวมเป็นคอลัมน์ค่าเดียว,
+     ไม่มี valCol = นับจำนวนแถวแทนการรวมตัวเลข จำกัดจำนวนแถว/คอลัมน์ที่ไม่ซ้ำกันกันตารางใหญ่เกินไป */
+  function buildPivot(rows) {
+    var dt = state.dashTable;
+    var rowCol = state.columns.filter(function (c) { return c.key === dt.pivotRow; })[0];
+    if (!rowCol) return null;
+    var colCol = dt.pivotCol ? state.columns.filter(function (c) { return c.key === dt.pivotCol; })[0] : null;
+    var valCol = dt.pivotVal ? state.columns.filter(function (c) { return c.key === dt.pivotVal; })[0] : null;
+    var agg = dt.pivotAgg;
+    var rowKeys = [], rowSeen = {}, colKeys = [], colSeen = {}, cells = {};
+    rows.forEach(function (r) {
+      var rv = r[rowCol.key]; rv = (rv === null || rv === undefined || rv === '') ? t('emptyValueLabel') : String(rv);
+      if (!rowSeen[rv]) { rowSeen[rv] = true; rowKeys.push(rv); }
+      var cv = '__single__';
+      if (colCol) {
+        var cvv = r[colCol.key]; cv = (cvv === null || cvv === undefined || cvv === '') ? t('emptyValueLabel') : String(cvv);
+        if (!colSeen[cv]) { colSeen[cv] = true; colKeys.push(cv); }
+      }
+      if (!cells[rv]) cells[rv] = {};
+      if (!cells[rv][cv]) cells[rv][cv] = { sum: 0, count: 0 };
+      var v = valCol ? r[valCol.key] : 1;
+      if (typeof v === 'number' && isFinite(v)) cells[rv][cv].sum += v;
+      cells[rv][cv].count += 1;
+    });
+    rowKeys.sort(function (a, b) { return a.localeCompare(b, getUILang()); });
+    if (colCol) colKeys.sort(function (a, b) { return a.localeCompare(b, getUILang()); });
+    var rowTotalCount = rowKeys.length, colTotalCount = colCol ? colKeys.length : 1;
+    var rowTruncated = rowKeys.length > PIVOT_ROW_CAP, colTruncated = !!(colCol && colKeys.length > PIVOT_COL_CAP);
+    if (rowTruncated) rowKeys = rowKeys.slice(0, PIVOT_ROW_CAP);
+    if (colTruncated) colKeys = colKeys.slice(0, PIVOT_COL_CAP);
+    function cellVal(rv, cv) {
+      var c = cells[rv] && cells[rv][cv];
+      if (!c) return null;
+      if (!valCol) return c.count;
+      if (agg === 'avg') return c.count ? c.sum / c.count : 0;
+      return c.sum;
+    }
+    return {
+      rowLabel: rowCol.label, colLabel: colCol ? colCol.label : null, valLabel: valCol ? valCol.label : t('countOption'),
+      rowKeys: rowKeys, colKeys: colCol ? colKeys : ['__single__'], cellVal: cellVal,
+      rowTruncated: rowTruncated, colTruncated: colTruncated, rowTotalCount: rowTotalCount, colTotalCount: colTotalCount
+    };
+  }
+  function fmtPivotNum(n) { return n == null ? t('emptyCellDash') : n.toLocaleString(locale(), { maximumFractionDigits: 2 }); }
+
+  /* วาดเฉพาะเนื้อ <table> + meta — แยกจากการวาดแถบควบคุม/แถวกรอง กันช่องกรองเสียโฟกัสตอนพิมพ์
+     (ต่างจาก renderTable() หลักที่ต้อง refocus เอง เพราะที่นี่ input ตัวเดิมไม่ถูกลบทิ้งเลย) */
+  function renderDashTableBody() {
+    var rows = lastDashRows.filter(matchesDashFilters);
+    var dt = state.dashTable;
+    if (dt.mode === 'pivot') {
+      var piv = dt.pivotRow ? buildPivot(rows) : null;
+      if (!piv) { $('dashTable').innerHTML = ''; $('dashTableMeta').textContent = t('pivotEmptyHint'); return; }
+      var cornerLabel = piv.colLabel ? (piv.rowLabel + ' \\ ' + piv.colLabel) : piv.rowLabel;
+      var thead = '<thead><tr><th>' + escapeHtml(cornerLabel) + '</th>' +
+        piv.colKeys.map(function (ck) { return '<th class="num">' + escapeHtml(ck === '__single__' ? piv.valLabel : ck) + '</th>'; }).join('') +
+        (piv.colLabel ? '<th class="num piv-total">' + escapeHtml(t('pivotTotalLbl')) + '</th>' : '') +
+        '</tr></thead>';
+      var colTotals = {}, grandTotal = 0;
+      var bodyRows = piv.rowKeys.map(function (rk) {
+        var rowTotal = 0;
+        var tds = piv.colKeys.map(function (ck) {
+          var v = piv.cellVal(rk, ck);
+          if (v != null) { colTotals[ck] = (colTotals[ck] || 0) + v; rowTotal += v; }
+          return '<td class="num">' + fmtPivotNum(v) + '</td>';
+        }).join('');
+        grandTotal += rowTotal;
+        return '<tr><td>' + escapeHtml(rk) + '</td>' + tds + (piv.colLabel ? '<td class="num piv-total">' + fmtPivotNum(rowTotal) + '</td>' : '') + '</tr>';
+      }).join('');
+      var totalsRow = piv.colLabel ? ('<tr class="piv-total-row"><td class="piv-total">' + escapeHtml(t('pivotGrandTotalLbl')) + '</td>' +
+        piv.colKeys.map(function (ck) { return '<td class="num piv-total">' + fmtPivotNum(colTotals[ck] || 0) + '</td>'; }).join('') +
+        '<td class="num piv-total">' + fmtPivotNum(grandTotal) + '</td></tr>') : '';
+      $('dashTable').innerHTML = thead + '<tbody>' + bodyRows + totalsRow + '</tbody>';
+      var meta = rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
+      if (piv.rowTruncated) meta += t('pivotCapNote', { n: piv.rowKeys.length, total: piv.rowTotalCount });
+      $('dashTableMeta').textContent = meta;
+    } else {
+      var shown = rows.slice(0, DASH_TABLE_CAP);
+      var thead2 = '<thead><tr>' + state.columns.map(function (col) {
+        return '<th class="' + (col.type === 'number' ? 'num' : '') + '">' + escapeHtml(col.label) + '</th>';
+      }).join('') + '</tr></thead>';
+      var tbody2 = '<tbody>' + shown.map(function (row) {
+        return '<tr>' + state.columns.map(function (col) {
+          var v = row[col.key];
+          var txt = (col.type === 'number' && typeof v === 'number')
+            ? v.toLocaleString(locale(), { maximumFractionDigits: 2 })
+            : (cellEditValue(v, col.type) || t('emptyCellDash'));
+          return '<td class="' + (col.type === 'number' ? 'num' : '') + '">' + escapeHtml(txt) + '</td>';
+        }).join('') + '</tr>';
+      }).join('') + '</tbody>';
+      $('dashTable').innerHTML = thead2 + tbody2;
+      $('dashTableMeta').textContent = rows.length > DASH_TABLE_CAP
+        ? t('dashTableMetaCapped', { shown: DASH_TABLE_CAP.toLocaleString(locale()), total: rows.length.toLocaleString(locale()), tab: t('tabTable') })
+        : t('dashTableMetaFull', { n: rows.length.toLocaleString(locale()), tab: t('tabTable') });
+    }
+  }
+
+  /* วาดแถบโหมด/ตัวเลือก Pivot + แถวกรองต่อคอลัมน์ (เรียกเมื่อชุดข้อมูล/คอลัมน์อาจเปลี่ยน ไม่ใช่ทุกคีย์
+     ที่พิมพ์ในช่องกรอง — อินพุตกรองเรียก renderDashTableBody() ตรงๆ แทน กันเสียโฟกัส) */
+  function renderDashTableControls() {
+    var dt = state.dashTable;
+    $('dashModeSel').value = dt.mode;
+    var isPivot = dt.mode === 'pivot';
+    $('pivotRowWrap').style.display = isPivot ? '' : 'none';
+    $('pivotColWrap').style.display = isPivot ? '' : 'none';
+    $('pivotValWrap').style.display = isPivot ? '' : 'none';
+    $('pivotAggWrap').style.display = (isPivot && dt.pivotVal) ? '' : 'none';
+    if (isPivot) {
+      /* เรียงคอลัมน์หมวดหมู่จากค่าไม่ซ้ำน้อยไปมากก่อน (เหมือนที่กราฟใช้) แล้วค่อยต่อท้ายด้วยคอลัมน์วันที่ —
+         กันค่าเริ่มต้นของ "แถว" ดันไปเจอคอลัมน์ที่ไม่ซ้ำเกือบทุกแถว (เช่น ชื่อสินค้า) ซึ่งไม่มีประโยชน์ในการทำ pivot */
+      var catCols0 = sortByUniqCountAsc(state.columns.filter(function (c) { return c.type === 'category'; }), lastDashRows);
+      var dateCols0 = state.columns.filter(function (c) { return c.type === 'date'; });
+      var catDateCols = catCols0.concat(dateCols0);
+      var numCols = state.columns.filter(function (c) { return c.type === 'number'; });
+      if (!dt.pivotRow && catDateCols.length) dt.pivotRow = catDateCols[0].key;
+      fillSelect($('pivotRowSel'), catDateCols, dt.pivotRow);
+      fillSelect($('pivotColSel'), catCols0, dt.pivotCol, t('pivotNoneOption'));
+      fillSelect($('pivotValSel'), numCols, dt.pivotVal, t('countOption'));
+      $('pivotAggSel').value = dt.pivotAgg;
+    }
+    var html = state.columns.map(function (col) {
+      var f = dt.filters[col.key];
+      if (col.type === 'number' || col.type === 'date') {
+        var minV = f && f.min != null ? f.min : '', maxV = f && f.max != null ? f.max : '';
+        var inType = col.type === 'date' ? 'date' : 'number';
+        return '<div class="fcol"><label>' + escapeHtml(col.label) + '</label><div class="filter-range">' +
+          '<input class="filter-in dfin" type="' + inType + '" data-col="' + col.key + '" data-k="min" value="' + escapeAttr(minV) + '" placeholder="' + escapeAttr(t('filterMin')) + '">' +
+          '<input class="filter-in dfin" type="' + inType + '" data-col="' + col.key + '" data-k="max" value="' + escapeAttr(maxV) + '" placeholder="' + escapeAttr(t('filterMax')) + '">' +
+          '</div></div>';
+      }
+      var q = f && f.q ? f.q : '';
+      return '<div class="fcol"><label>' + escapeHtml(col.label) + '</label>' +
+        '<input class="filter-in dfin" type="text" data-col="' + col.key + '" data-k="q" value="' + escapeAttr(q) + '" placeholder="' + escapeAttr(t('filterQ')) + '"></div>';
+    }).join('');
+    $('dashFilterRow').innerHTML = html;
+    [].forEach.call($('dashFilterRow').querySelectorAll('.dfin'), function (inp) {
+      inp.addEventListener('input', function () {
+        var col = inp.getAttribute('data-col'), k = inp.getAttribute('data-k');
+        if (!dt.filters[col]) dt.filters[col] = {};
+        dt.filters[col][k] = inp.value;
+        renderDashTableBody();
+      });
+    });
+  }
+
   function renderDashboardTable(rows) {
     if (!rows.length || !state.columns.length) { $('dashTableCard').style.display = 'none'; return false; }
-    var shown = rows.slice(0, DASH_TABLE_CAP);
-    var thead = '<thead><tr>' + state.columns.map(function (col) {
-      return '<th class="' + (col.type === 'number' ? 'num' : '') + '">' + escapeHtml(col.label) + '</th>';
-    }).join('') + '</tr></thead>';
-    var tbody = '<tbody>' + shown.map(function (row) {
-      return '<tr>' + state.columns.map(function (col) {
-        var v = row[col.key];
-        var txt = (col.type === 'number' && typeof v === 'number')
-          ? v.toLocaleString(locale(), { maximumFractionDigits: 2 })
-          : (cellEditValue(v, col.type) || t('emptyCellDash'));
-        return '<td class="' + (col.type === 'number' ? 'num' : '') + '">' + escapeHtml(txt) + '</td>';
-      }).join('') + '</tr>';
-    }).join('') + '</tbody>';
-    $('dashTable').innerHTML = thead + tbody;
-    $('dashTableMeta').textContent = rows.length > DASH_TABLE_CAP
-      ? t('dashTableMetaCapped', { shown: DASH_TABLE_CAP.toLocaleString(locale()), total: rows.length.toLocaleString(locale()), tab: t('tabTable') })
-      : t('dashTableMetaFull', { n: rows.length.toLocaleString(locale()), tab: t('tabTable') });
+    lastDashRows = rows;
+    renderDashTableControls();
+    renderDashTableBody();
     $('dashTableCard').style.display = 'block';
     return true;
   }
@@ -833,6 +1004,16 @@
   }
   function destroyChart(key) { if (charts[key]) { try { charts[key].destroy(); } catch (e) {} charts[key] = null; } }
 
+  /* เรียงคอลัมน์จากค่าไม่ซ้ำน้อยไปมาก — คอลัมน์ที่ค่าซ้ำกันบ่อย (เช่น "หมวดหมู่") เหมาะเป็นค่าเริ่มต้นของ
+     แกนกราฟ/แถว pivot มากกว่าคอลัมน์ที่ค่าไม่ซ้ำเกือบทุกแถว (เช่น "ชื่อสินค้า" ที่บังเอิญถูกเดาเป็น category
+     เพราะมีข้อมูลน้อยแถว) — ใช้ร่วมกันทั้งกราฟและตัวเลือก "แถว" ของ Pivot */
+  function sortByUniqCountAsc(cols, rows) {
+    return cols.map(function (c) {
+      var uniq = {}; rows.forEach(function (r) { var v = r[c.key]; if (v !== null && v !== undefined && v !== '') uniq[String(v)] = true; });
+      return { col: c, uniqCount: Object.keys(uniq).length };
+    }).sort(function (a, b) { return a.uniqCount - b.uniqCount; }).map(function (e) { return e.col; });
+  }
+
   /* ── เลือกชนิดกราฟเองได้ต่อการ์ด (แท่งแนวตั้ง/แนวนอน/เส้น/วงกลม/โดนัท) — ข้อมูลชุดเดียวกัน (labels+data)
      วาดเป็นชนิดไหนก็ได้ทั้งนั้น จึงใช้ตัวสร้าง config กลางตัวเดียวให้ทั้ง 3 การ์ด แทนที่จะผูกตายตัวว่า
      การ์ดไหนต้องเป็นกราฟแท่ง/เส้น/วงกลมเท่านั้นเหมือนเดิม */
@@ -915,10 +1096,7 @@
        กราฟแท่ง/วงกลมมากกว่าคอลัมน์ที่ค่าไม่ซ้ำเกือบทุกแถว (เช่น "ชื่อสินค้า" ที่บังเอิญถูกเดาเป็น category
        เพราะมีข้อมูลน้อยแถว) กันกราฟแท่งมี 1 แท่งต่อ 1 แถวซึ่งไม่มีประโยชน์อะไร — เป็นแค่ค่าเริ่มต้นแนะนำ
        ผู้ใช้เปลี่ยนได้เองเสมอผ่าน dropdown ของแต่ละการ์ด */
-    var catCols = state.columns.filter(function (c) { return c.type === 'category'; }).map(function (c) {
-      var uniq = {}; rows.forEach(function (r) { var v = r[c.key]; if (v !== null && v !== undefined && v !== '') uniq[String(v)] = true; });
-      return { col: c, uniqCount: Object.keys(uniq).length };
-    }).sort(function (a, b) { return a.uniqCount - b.uniqCount; }).map(function (e) { return e.col; });
+    var catCols = sortByUniqCountAsc(state.columns.filter(function (c) { return c.type === 'category'; }), rows);
     var anyRendered = false;
 
     /* ── สรุปตัวเลข (การ์ดสถิติ sum/avg/min/max ต่อคอลัมน์ตัวเลข สูงสุด 4 คอลัมน์) ── */
@@ -1104,6 +1282,7 @@
       state.selected = {}; state.page = 1; state.history = [];
       state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
     state.chartType = { slot1: null, slot2: null, slot3: null };
+    state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {} };
       updateDrillBanner(); updateSaveUI();
       $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
       $('dataMeta').textContent = (state.fileName || rec.name) + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
@@ -1275,6 +1454,7 @@
     state.sortCol = null; state.sortDir = null; state.selected = {}; state.page = 1; state.history = [];
     state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
     state.chartType = { slot1: null, slot2: null, slot3: null };
+    state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {} };
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
     $('dataCard').style.display = 'none';
@@ -1350,6 +1530,13 @@
     $('lineNumSel').addEventListener('change', function () { state.chartChoice.lineNum = this.value; renderDashboard(); });
     $('pieTypeSel').addEventListener('change', function () { state.chartType.slot3 = this.value; renderDashboard(); });
     $('pieCatSel').addEventListener('change', function () { state.chartChoice.pieCat = this.value; renderDashboard(); });
+    /* ตัวเลือกโหมด/Pivot ของตารางในแดชบอร์ด — สลับแล้ววาดใหม่แค่ตัวตาราง (renderDashboardTable) ไม่ต้อง
+       สร้างกราฟใหม่ทั้งหมด ใช้ lastDashRows ที่เก็บไว้จากรอบ renderDashboard() ล่าสุด */
+    $('dashModeSel').addEventListener('change', function () { state.dashTable.mode = this.value; renderDashboardTable(lastDashRows); });
+    $('pivotRowSel').addEventListener('change', function () { state.dashTable.pivotRow = this.value; renderDashboardTable(lastDashRows); });
+    $('pivotColSel').addEventListener('change', function () { state.dashTable.pivotCol = this.value; renderDashboardTable(lastDashRows); });
+    $('pivotValSel').addEventListener('change', function () { state.dashTable.pivotVal = this.value; renderDashboardTable(lastDashRows); });
+    $('pivotAggSel').addEventListener('change', function () { state.dashTable.pivotAgg = this.value; renderDashboardTable(lastDashRows); });
     /* ปุ่ม "ไฟล์ใหม่" — ถามยืนยันเฉพาะตอนข้อมูลยังไม่ได้บันทึกเป็นรายงาน (reportId ว่าง) เพราะนั่นคือ
        กรณีเดียวที่ข้อมูลจะหายจริง — ถ้าบันทึกเป็นรายงานแล้วสลับได้เลยโดยไม่ต้องถาม (autosave ไว้แล้ว) */
     $('newFileBtn').addEventListener('click', function () {
@@ -1386,6 +1573,7 @@
           state.selected = {}; state.page = 1; state.history = [];
           state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
     state.chartType = { slot1: null, slot2: null, slot3: null };
+    state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {} };
           updateDrillBanner(); updateSaveUI();
           $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none';
           $('viewTabs').style.display = 'flex';
