@@ -19,6 +19,149 @@
   var HISTORY_MAX = 20;
   var HEADER_PREVIEW_ROWS = 8;
 
+  /* ══════════════════ i18n ไทย/อังกฤษ — แพทเทิร์นเดียวกับ excel.js/word.js (clone-and-adapt) ══════════════════ */
+  var UI_LANG_KEY = 'tanot:reportlang';
+  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
+  function setUILang(l) { try { localStorage.setItem(UI_LANG_KEY, l); } catch (e) {} }
+  function locale() { return getUILang() === 'en' ? 'en-US' : 'th-TH'; }
+  var I18N = {
+    th: {
+      docTitle: 'นำเสนอรายงาน — อัปโหลด Excel เป็นแดชบอร์ด | Tanot',
+      crumbHome: 'หน้าหลัก', crumbResp: 'งานที่รับผิดชอบ', crumbPage: 'นำเสนอรายงาน',
+      pageTitle: 'นำเสนอรายงาน', pageSub: 'อัปโหลดไฟล์ Excel/CSV แล้วดู แก้ไข เรียง กรองข้อมูลได้ในเว็บ',
+      statTotalLbl: 'รายการทั้งหมด', statColsLbl: 'คอลัมน์', statShownLbl: 'กำลังแสดง', statSelectedLbl: 'เลือกไว้',
+      unitRows: 'แถว', unitCols: 'คอลัมน์',
+      tabTable: '📋 ตาราง (แก้ไข)', tabDashboard: '📊 แดชบอร์ด',
+      drillText: '🔍 กำลังกรอง: {label} = {value}', drillClearBtn: '✕ ล้างตัวกรองนี้',
+      uploadTitle: '📤 อัปโหลดไฟล์', dropText: 'ลากไฟล์มาวางตรงนี้ หรือ', pickBtn: 'เลือกไฟล์',
+      dropHint: 'รองรับ .xlsx .xls .csv — ไฟล์ประมวลผลในเครื่องคุณทั้งหมด',
+      statusReading: 'กำลังอ่านไฟล์…',
+      statusLibFail: 'โหลดไลบรารีอ่านไฟล์ไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)',
+      statusReadFail: 'อ่านไฟล์ไม่สำเร็จ ลองใหม่อีกครั้ง',
+      statusOpenFail: 'ไฟล์นี้เปิดไม่ได้ — ตรวจว่าเป็น .xlsx/.xls/.csv ที่ไม่เสียหาย',
+      statusSheetEmpty: 'ชีตนี้ไม่มีข้อมูล — ลองเลือกชีตอื่น',
+      resumeTitle: '💾 พบข้อมูลที่ทำค้างไว้', resumeBtn: 'ดำเนินการต่อ', discardBtn: 'เริ่มใหม่',
+      resumeInfo: '{name} · {n} แถว · บันทึกไว้เมื่อ {date}', resumeFallbackName: 'ไฟล์ที่แล้ว',
+      reportsTitle: '📁 รายงานของฉัน', reportsMeta: '{n} รายงาน',
+      reportRowMeta: '{n} แถว · บันทึกล่าสุด {time}', openBtn: 'เปิด',
+      deleteReportConfirm: 'ลบรายงาน "{name}" ถาวร (กู้คืนไม่ได้)?', renameReportPrompt: 'เปลี่ยนชื่อรายงาน:',
+      saveAsReportPrompt: 'ตั้งชื่อรายงานนี้:', reportDefaultBase: 'รายงาน',
+      sheetTitle: '📑 เลือกชีต',
+      headerTitle: '🔤 เลือกแถวหัวตาราง',
+      headerHint: 'คลิกแถวที่เป็นชื่อคอลัมน์ (ปกติเป็นแถวแรกสุด) — ดูตัวอย่าง 8 แถวแรกของไฟล์',
+      confirmHeaderBtn: 'ใช้แถวนี้เป็นหัวตาราง →',
+      dataTitle: '📋 ข้อมูล', searchPh: 'ค้นหาทุกคอลัมน์…', addRowBtn: '+ เพิ่มแถว',
+      delSelBtn: '🗑️ ลบที่เลือก', undoBtn: '↩️ เลิกทำ', clearFilterBtn: 'ล้างตัวกรอง',
+      saveReportBtn: '💾 บันทึกเป็นรายงาน', savedReportBtn: '💾 บันทึกแล้ว: {name}',
+      myReportsBtn: '📁 รายงานของฉัน', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 ไฟล์ใหม่',
+      dataEmptyTxt: 'ไม่พบแถวที่ตรงกับตัวกรอง', colFallback: 'คอลัมน์ {n}',
+      filterMin: 'ต่ำสุด', filterMax: 'สูงสุด', filterQ: 'กรอง…', delRowTitle: 'ลบแถวนี้',
+      pagerPrev: '← ก่อนหน้า', pagerNext: 'ถัดไป →', pagerInfo: 'หน้า {page} / {total} ({n} แถว)',
+      metaFilteredSuffix: ' (กรองเหลือ {m})',
+      saveStatusSaving: 'กำลังบันทึก…', saveStatusSavedNamed: 'บันทึกเป็นรายงาน "{name}" แล้ว',
+      saveStatusFail: 'บันทึกไม่สำเร็จ ลองอีกครั้ง', saveStatusAuto: 'บันทึกอัตโนมัติแล้ว · {time}',
+      newFileConfirm: 'ยังไม่ได้บันทึกเป็นรายงาน — เริ่มไฟล์ใหม่จะแทนที่ข้อมูลนี้ ดำเนินการต่อไหม?',
+      myReportsConfirm: 'ยังไม่ได้บันทึกเป็นรายงาน — ออกไปดูรายการรายงานจะแทนที่ข้อมูลนี้ ดำเนินการต่อไหม?',
+      exportImgBtn: '📷 บันทึกเป็นรูปภาพ', exportPdfBtn: '📄 บันทึกเป็น PDF',
+      exportHtmlBtn: '📃 บันทึกเป็น HTML', printBtn: '🖨️ พิมพ์',
+      numStatTitle: '🔢 สรุปตัวเลข', statTileSub: 'เฉลี่ย {avg} · ต่ำสุด {min} · สูงสุด {max}',
+      chartTypeLbl: 'ชนิดกราฟ', groupByLbl: 'จัดกลุ่มตาม', sumValueLbl: 'รวมค่า',
+      timeAxisLbl: 'แกนเวลา', showByLbl: 'แสดงสัดส่วนตาม', countOption: 'จำนวนรายการ (นับ)',
+      typeBar: 'แท่งแนวตั้ง', typeBarH: 'แท่งแนวนอน', typeLine: 'เส้น', typePie: 'วงกลม', typeDoughnut: 'โดนัท',
+      barChartTitleDefault: '📊 กราฟแท่ง', lineChartTitleDefault: '📈 แนวโน้มตามเวลา', pieChartTitleDefault: '🥧 สัดส่วน',
+      barChartTitleWithNum: '{cat} ตามผลรวม {num}', barChartTitleCount: 'จำนวนรายการตาม {cat}',
+      lineChartTitleWithNum: 'แนวโน้ม {num} ตามเวลา ({date})', lineChartTitleCount: 'จำนวนรายการตามเวลา ({date})',
+      pieChartTitleTpl: 'สัดส่วนจำนวนรายการตาม {cat}',
+      hintBarClick: '👆 แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น', hintLineClick: '👆 แตะกราฟเพื่อกรองตารางเฉพาะช่วงนั้น',
+      dashTableTitle: '📋 ตารางข้อมูล',
+      dashTableMetaFull: '{n} แถว · แก้ไขข้อมูลได้ที่แท็บ "{tab}"',
+      dashTableMetaCapped: 'แสดง {shown} จาก {total} แถว · ดูทั้งหมด/แก้ไขได้ที่แท็บ "{tab}"',
+      dashboardEmptyTitle: '📊 แดชบอร์ด',
+      chartLibFail: 'โหลดไลบรารีทำกราฟไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)',
+      noChartPossible: 'ยังสรุปเป็นกราฟไม่ได้ — ต้องมีอย่างน้อย 1 คอลัมน์ตัวเลข หรือ 1 คอลัมน์หมวดหมู่ที่ไม่ใช่ข้อความอิสระเกินไป',
+      noRowsMatch: 'ไม่มีแถวข้อมูลที่ตรงกับตัวกรองที่ตั้งไว้ตอนนี้',
+      otherBucket: 'อื่นๆ', emptyValueLabel: '(ว่าง)', emptyCellDash: '—',
+      exportLibFail: 'โหลดไลบรารีส่งออกไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)', exportNoData: 'ยังไม่มีข้อมูลให้ส่งออก',
+      exportedAt: 'ออกรายงานเมื่อ {date} · {n} แถว', exportedFooter: 'สร้างจาก "นำเสนอรายงาน" — Tanot',
+      justNow: 'เมื่อสักครู่', minsAgo: '{n} นาทีก่อน', hrsAgo: '{n} ชม.ก่อน'
+    },
+    en: {
+      docTitle: 'Report Dashboard — Upload Excel as a Dashboard | Tanot',
+      crumbHome: 'Home', crumbResp: 'Responsibilities', crumbPage: 'Report Dashboard',
+      pageTitle: 'Report Dashboard', pageSub: 'Upload an Excel/CSV file to view, edit, sort, and filter your data right in the browser',
+      statTotalLbl: 'Total Rows', statColsLbl: 'Columns', statShownLbl: 'Showing', statSelectedLbl: 'Selected',
+      unitRows: 'rows', unitCols: 'columns',
+      tabTable: '📋 Table (Edit)', tabDashboard: '📊 Dashboard',
+      drillText: '🔍 Filtering: {label} = {value}', drillClearBtn: '✕ Clear this filter',
+      uploadTitle: '📤 Upload File', dropText: 'Drag a file here, or', pickBtn: 'Choose File',
+      dropHint: 'Supports .xlsx .xls .csv — everything is processed on your device',
+      statusReading: 'Reading file…',
+      statusLibFail: "Couldn't load the file-reading library (go online and refresh)",
+      statusReadFail: "Couldn't read the file — please try again",
+      statusOpenFail: "Couldn't open this file — make sure it's a valid, uncorrupted .xlsx/.xls/.csv",
+      statusSheetEmpty: 'This sheet has no data — try another sheet',
+      resumeTitle: '💾 Found Unsaved Work', resumeBtn: 'Continue', discardBtn: 'Start Over',
+      resumeInfo: '{name} · {n} rows · saved {date}', resumeFallbackName: 'Previous file',
+      reportsTitle: '📁 My Reports', reportsMeta: '{n} reports',
+      reportRowMeta: '{n} rows · last saved {time}', openBtn: 'Open',
+      deleteReportConfirm: 'Permanently delete report "{name}"? This cannot be undone.', renameReportPrompt: 'Rename report:',
+      saveAsReportPrompt: 'Name this report:', reportDefaultBase: 'Report',
+      sheetTitle: '📑 Choose Sheet',
+      headerTitle: '🔤 Choose the Header Row',
+      headerHint: 'Click the row that contains your column names (usually the first row) — showing the first 8 rows',
+      confirmHeaderBtn: 'Use this row as the header →',
+      dataTitle: '📋 Data', searchPh: 'Search all columns…', addRowBtn: '+ Add Row',
+      delSelBtn: '🗑️ Delete Selected', undoBtn: '↩️ Undo', clearFilterBtn: 'Clear Filters',
+      saveReportBtn: '💾 Save as Report', savedReportBtn: '💾 Saved: {name}',
+      myReportsBtn: '📁 My Reports', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 New File',
+      dataEmptyTxt: 'No rows match the current filters', colFallback: 'Column {n}',
+      filterMin: 'Min', filterMax: 'Max', filterQ: 'Filter…', delRowTitle: 'Delete this row',
+      pagerPrev: '← Prev', pagerNext: 'Next →', pagerInfo: 'Page {page} / {total} ({n} rows)',
+      metaFilteredSuffix: ' (filtered to {m})',
+      saveStatusSaving: 'Saving…', saveStatusSavedNamed: 'Saved as report "{name}"',
+      saveStatusFail: "Couldn't save — please try again", saveStatusAuto: 'Autosaved · {time}',
+      newFileConfirm: "This hasn't been saved as a report yet — starting a new file will replace this data. Continue?",
+      myReportsConfirm: "This hasn't been saved as a report yet — leaving to view your reports will replace this data. Continue?",
+      exportImgBtn: '📷 Save as Image', exportPdfBtn: '📄 Save as PDF',
+      exportHtmlBtn: '📃 Save as HTML', printBtn: '🖨️ Print',
+      numStatTitle: '🔢 Number Summary', statTileSub: 'avg {avg} · min {min} · max {max}',
+      chartTypeLbl: 'Chart type', groupByLbl: 'Group by', sumValueLbl: 'Value',
+      timeAxisLbl: 'Time axis', showByLbl: 'Break down by', countOption: 'Row count',
+      typeBar: 'Column', typeBarH: 'Bar', typeLine: 'Line', typePie: 'Pie', typeDoughnut: 'Doughnut',
+      barChartTitleDefault: '📊 Bar Chart', lineChartTitleDefault: '📈 Trend Over Time', pieChartTitleDefault: '🥧 Breakdown',
+      barChartTitleWithNum: '{cat} by total {num}', barChartTitleCount: 'Row count by {cat}',
+      lineChartTitleWithNum: '{num} trend over time ({date})', lineChartTitleCount: 'Row count over time ({date})',
+      pieChartTitleTpl: 'Row count breakdown by {cat}',
+      hintBarClick: '👆 Tap the chart to filter the table to that group', hintLineClick: '👆 Tap the chart to filter the table to that period',
+      dashTableTitle: '📋 Data Table',
+      dashTableMetaFull: '{n} rows · edit data in the "{tab}" tab',
+      dashTableMetaCapped: 'Showing {shown} of {total} rows · see all/edit in the "{tab}" tab',
+      dashboardEmptyTitle: '📊 Dashboard',
+      chartLibFail: "Couldn't load the charting library (go online and refresh)",
+      noChartPossible: 'Not enough structure to chart yet — you need at least 1 numeric column or 1 category-like column',
+      noRowsMatch: 'No rows match the current filter',
+      otherBucket: 'Other', emptyValueLabel: '(empty)', emptyCellDash: '—',
+      exportLibFail: "Couldn't load the export library (go online and refresh)", exportNoData: 'No data to export yet',
+      exportedAt: 'Generated {date} · {n} rows', exportedFooter: 'Generated from "Report Dashboard" — Tanot',
+      justNow: 'Just now', minsAgo: '{n} min ago', hrsAgo: '{n} hr ago'
+    }
+  };
+  function t(key, vars) {
+    var s = (I18N[getUILang()] && I18N[getUILang()][key]) || I18N.th[key] || key;
+    if (vars) Object.keys(vars).forEach(function (k) { s = s.replace('{' + k + '}', vars[k]); });
+    return s;
+  }
+  function applyStaticI18n() {
+    var lang = getUILang();
+    document.documentElement.lang = lang;
+    document.title = t('docTitle');
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-title]').forEach(function (el) { el.title = t(el.getAttribute('data-i18n-title')); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
+    var lt = $('langToggle');
+    if (lt) lt.querySelectorAll('span').forEach(function (s) { s.classList.toggle('active', s.getAttribute('data-lt') === lang); });
+  }
+
   var state = {
     fileName: null,
     sheetNames: [],
@@ -146,7 +289,7 @@
           id: state.reportId, name: state.reportName, fileName: state.fileName, sheetName: state.activeSheet,
           columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, savedAt: Date.now()
         });
-        setSaveStatus('บันทึกอัตโนมัติแล้ว · ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }), 'ok');
+        setSaveStatus(t('saveStatusAuto', { time: new Date().toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' }) }), 'ok');
       }
     }, 400);
   }
@@ -201,17 +344,17 @@
 
   function handleFile(file) {
     if (!file) return;
-    setUploadStatus('กำลังอ่านไฟล์…', '');
-    if (typeof XLSX === 'undefined') { setUploadStatus('โหลดไลบรารีอ่านไฟล์ไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)', 'err'); return; }
+    setUploadStatus(t('statusReading'), '');
+    if (typeof XLSX === 'undefined') { setUploadStatus(t('statusLibFail'), 'err'); return; }
     var reader = new FileReader();
-    reader.onerror = function () { setUploadStatus('อ่านไฟล์ไม่สำเร็จ ลองใหม่อีกครั้ง', 'err'); };
+    reader.onerror = function () { setUploadStatus(t('statusReadFail'), 'err'); };
     reader.onload = function (e) {
       try {
         var wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
         if (!wb.SheetNames || !wb.SheetNames.length) throw new Error('empty workbook');
         onWorkbookParsed(wb, file.name);
       } catch (err) {
-        setUploadStatus('ไฟล์นี้เปิดไม่ได้ — ตรวจว่าเป็น .xlsx/.xls/.csv ที่ไม่เสียหาย', 'err');
+        setUploadStatus(t('statusOpenFail'), 'err');
       }
     };
     reader.readAsArrayBuffer(file);
@@ -249,7 +392,7 @@
     var aoa = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
     /* ตัดแถวว่างล้วนท้ายไฟล์ทิ้ง (พบบ่อยจากไฟล์ Excel ที่มีช่วงเซลล์เผื่อไว้เกินข้อมูลจริง) */
     while (aoa.length && aoa[aoa.length - 1].every(function (c) { return c === null || c === ''; })) aoa.pop();
-    if (!aoa.length) { setUploadStatus('ชีตนี้ไม่มีข้อมูล — ลองเลือกชีตอื่น', 'err'); return; }
+    if (!aoa.length) { setUploadStatus(t('statusSheetEmpty'), 'err'); return; }
     state.rawAoA = aoa;
     state.headerRowIdx = 0;
     renderHeaderPreview();
@@ -295,7 +438,7 @@
     $('uploadCard').style.display = 'none';
     $('resumeCard').style.display = 'none';
     $('reportsCard').style.display = 'none';
-    $('dataMeta').textContent = (state.fileName || '') + (state.sheetNames.length > 1 ? ' · ' + state.activeSheet : '') + ' · ' + state.rows.length.toLocaleString('th-TH') + ' แถว';
+    $('dataMeta').textContent = (state.fileName || '') + (state.sheetNames.length > 1 ? ' · ' + state.activeSheet : '') + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
     $('viewTabs').style.display = 'flex';
     setView('table'); // เรียก renderTable() ให้เองในตัว
     persistDebounced();
@@ -322,7 +465,7 @@
     var columns = [];
     for (var c = 0; c < maxCols; c++) {
       var label = headerRow[c];
-      label = (label == null || String(label).trim() === '') ? ('คอลัมน์ ' + (c + 1)) : String(label);
+      label = (label == null || String(label).trim() === '') ? t('colFallback', { n: c + 1 }) : String(label);
       columns.push({ key: 'col_' + c, label: label });
     }
     /* ตัดแถวว่างล้วนออกก่อนคำนวณชนิดข้อมูล/ก่อนแสดงผล */
@@ -357,7 +500,7 @@
        ไม่งั้น String(Date object) จะได้รูปแบบยาวที่ไม่มีทางตรงกับ label ที่คลิกเลย กรองไม่เจอสักแถว */
     var s;
     if (v instanceof Date && !isNaN(v)) s = v.toISOString().slice(0, 10);
-    else s = (v === null || v === undefined || v === '') ? '(ว่าง)' : String(v);
+    else s = (v === null || v === undefined || v === '') ? t('emptyValueLabel') : String(v);
     return s === state.drill.value;
   }
   function matchesFilters(row) {
@@ -403,7 +546,7 @@
         if (va == null) return 1; if (vb == null) return -1;
         if (col && col.type === 'number') return (va - vb) * dir;
         if (col && col.type === 'date') return (new Date(va) - new Date(vb)) * dir;
-        return String(va).localeCompare(String(vb), 'th') * dir;
+        return String(va).localeCompare(String(vb), getUILang()) * dir;
       });
     }
     return out;
@@ -434,12 +577,12 @@
           var minV = f && f.min != null ? f.min : '', maxV = f && f.max != null ? f.max : '';
           var inType = col.type === 'date' ? 'date' : 'number';
           return '<td><div class="filter-range">' +
-            '<input class="filter-in" type="' + inType + '" data-col="' + col.key + '" data-k="min" value="' + escapeAttr(minV) + '" placeholder="ต่ำสุด">' +
-            '<input class="filter-in" type="' + inType + '" data-col="' + col.key + '" data-k="max" value="' + escapeAttr(maxV) + '" placeholder="สูงสุด">' +
+            '<input class="filter-in" type="' + inType + '" data-col="' + col.key + '" data-k="min" value="' + escapeAttr(minV) + '" placeholder="' + escapeAttr(t('filterMin')) + '">' +
+            '<input class="filter-in" type="' + inType + '" data-col="' + col.key + '" data-k="max" value="' + escapeAttr(maxV) + '" placeholder="' + escapeAttr(t('filterMax')) + '">' +
             '</div></td>';
         }
         var q = f && f.q ? f.q : '';
-        return '<td><input class="filter-in" type="text" data-col="' + col.key + '" data-k="q" value="' + escapeAttr(q) + '" placeholder="กรอง…"></td>';
+        return '<td><input class="filter-in" type="text" data-col="' + col.key + '" data-k="q" value="' + escapeAttr(q) + '" placeholder="' + escapeAttr(t('filterQ')) + '"></td>';
       }).join('') +
       '<td></td></tr></thead>';
 
@@ -456,23 +599,59 @@
             return '<td class="' + (col.type === 'number' ? 'num' : '') + '"><input class="cell-in" type="' + inputType +
               '" data-id="' + row.__id + '" data-col="' + col.key + '" value="' + escapeAttr(v) + '"' + (col.type === 'number' ? ' step="any"' : '') + '></td>';
           }).join('') +
-          '<td class="rowdel"><button type="button" class="del1" data-id="' + row.__id + '" title="ลบแถวนี้">✕</button></td>' +
+          '<td class="rowdel"><button type="button" class="del1" data-id="' + row.__id + '" title="' + escapeAttr(t('delRowTitle')) + '">✕</button></td>' +
           '</tr>';
       });
     }
     tbody += '</tbody>';
     $('dataTable').innerHTML = thead + tbody;
+    $('dataEmpty').textContent = t('dataEmptyTxt');
     $('dataEmpty').style.display = pageRows.length ? 'none' : 'block';
 
     renderPager(all.length, totalPages);
     wireTableEvents();
     $('dataMeta').textContent = (state.fileName || '') + (state.sheetNames.length > 1 ? ' · ' + state.activeSheet : '') +
-      ' · ' + state.rows.length.toLocaleString('th-TH') + ' แถว' + (all.length !== state.rows.length ? ' (กรองเหลือ ' + all.length.toLocaleString('th-TH') + ')' : '');
-    $('statRow').style.display = 'grid';
-    $('statTotal').innerHTML = state.rows.length.toLocaleString('th-TH') + ' <span class="unit">แถว</span>';
-    $('statCols').innerHTML = state.columns.length.toLocaleString('th-TH') + ' <span class="unit">คอลัมน์</span>';
-    $('statShown').innerHTML = all.length.toLocaleString('th-TH') + ' <span class="unit">แถว</span>';
+      ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows') +
+      (all.length !== state.rows.length ? t('metaFilteredSuffix', { m: all.length.toLocaleString(locale()) }) : '');
+    updateStatRow(all.length);
     updateSelectionUI();
+  }
+
+  /* แถบสถิติด่วนบนสุด (รายการทั้งหมด/คอลัมน์/กำลังแสดง) — แยกออกมาจาก renderTable() เพราะต้องอัปเดตด้วยตอน
+     สลับภาษา แม้กำลังอยู่ในมุมมองแดชบอร์ด (ซึ่งไม่เรียก renderTable()) ไม่งั้นแถบนี้ค้างเป็นภาษาเดิม */
+  function updateStatRow(shownCount) {
+    if (shownCount === undefined) shownCount = getFilteredSorted().length;
+    $('statRow').style.display = 'grid';
+    $('statTotal').innerHTML = state.rows.length.toLocaleString(locale()) + ' <span class="unit">' + t('unitRows') + '</span>';
+    $('statCols').innerHTML = state.columns.length.toLocaleString(locale()) + ' <span class="unit">' + t('unitCols') + '</span>';
+    $('statShown').innerHTML = shownCount.toLocaleString(locale()) + ' <span class="unit">' + t('unitRows') + '</span>';
+  }
+
+  /* ── ตารางข้อมูลอ่านอย่างเดียวในมุมมองแดชบอร์ด — ไม่มีช่องแก้ไข/checkbox/ลบแถว ต่างจาก renderTable()
+     ที่เป็นตารางแก้ไขเต็มรูปแบบของแท็บ "ตาราง (แก้ไข)" จำกัดจำนวนแถวที่แสดงกันหน้าอืดถ้าไฟล์ใหญ่มาก
+     คืนค่า true/false ว่าแสดงการ์ดหรือไม่ (ให้ renderDashboard() รวมกับ anyRendered) */
+  var DASH_TABLE_CAP = 300;
+  function renderDashboardTable(rows) {
+    if (!rows.length || !state.columns.length) { $('dashTableCard').style.display = 'none'; return false; }
+    var shown = rows.slice(0, DASH_TABLE_CAP);
+    var thead = '<thead><tr>' + state.columns.map(function (col) {
+      return '<th class="' + (col.type === 'number' ? 'num' : '') + '">' + escapeHtml(col.label) + '</th>';
+    }).join('') + '</tr></thead>';
+    var tbody = '<tbody>' + shown.map(function (row) {
+      return '<tr>' + state.columns.map(function (col) {
+        var v = row[col.key];
+        var txt = (col.type === 'number' && typeof v === 'number')
+          ? v.toLocaleString(locale(), { maximumFractionDigits: 2 })
+          : (cellEditValue(v, col.type) || t('emptyCellDash'));
+        return '<td class="' + (col.type === 'number' ? 'num' : '') + '">' + escapeHtml(txt) + '</td>';
+      }).join('') + '</tr>';
+    }).join('') + '</tbody>';
+    $('dashTable').innerHTML = thead + tbody;
+    $('dashTableMeta').textContent = rows.length > DASH_TABLE_CAP
+      ? t('dashTableMetaCapped', { shown: DASH_TABLE_CAP.toLocaleString(locale()), total: rows.length.toLocaleString(locale()), tab: t('tabTable') })
+      : t('dashTableMetaFull', { n: rows.length.toLocaleString(locale()), tab: t('tabTable') });
+    $('dashTableCard').style.display = 'block';
+    return true;
   }
 
   /* อัปเดตปุ่มลบที่เลือก + การ์ดสถิติ "เลือกไว้" จาก state.selected ตรงๆ — เรียกทั้งจาก renderTable()
@@ -480,14 +659,14 @@
   function updateSelectionUI() {
     var selCount = Object.keys(state.selected).filter(function (k) { return state.selected[k]; }).length;
     $('delSelBtn').disabled = selCount === 0;
-    $('statSelected').innerHTML = selCount.toLocaleString('th-TH') + ' <span class="unit">แถว</span>';
+    $('statSelected').innerHTML = selCount.toLocaleString(locale()) + ' <span class="unit">' + t('unitRows') + '</span>';
   }
 
   function renderPager(total, totalPages) {
     if (total <= PAGE_SIZE) { $('pager').innerHTML = ''; return; }
-    var html = '<button type="button" class="btn sm" id="pgPrev"' + (state.page <= 1 ? ' disabled' : '') + '>← ก่อนหน้า</button>' +
-      '<span>หน้า ' + state.page + ' / ' + totalPages + ' (' + total.toLocaleString('th-TH') + ' แถว)</span>' +
-      '<button type="button" class="btn sm" id="pgNext"' + (state.page >= totalPages ? ' disabled' : '') + '>ถัดไป →</button>';
+    var html = '<button type="button" class="btn sm" id="pgPrev"' + (state.page <= 1 ? ' disabled' : '') + '>' + t('pagerPrev') + '</button>' +
+      '<span>' + t('pagerInfo', { page: state.page, total: totalPages, n: total.toLocaleString(locale()) }) + '</span>' +
+      '<button type="button" class="btn sm" id="pgNext"' + (state.page >= totalPages ? ' disabled' : '') + '>' + t('pagerNext') + '</button>';
     $('pager').innerHTML = html;
     var prev = $('pgPrev'), next = $('pgNext');
     if (prev) prev.addEventListener('click', function () { state.page--; renderTable(); });
@@ -627,7 +806,7 @@
   function aggregateByCategory(rows, catKey, numKey) {
     var map = {}, order = [];
     rows.forEach(function (r) {
-      var k = r[catKey]; k = (k === null || k === undefined || k === '') ? '(ว่าง)' : String(k);
+      var k = r[catKey]; k = (k === null || k === undefined || k === '') ? t('emptyValueLabel') : String(k);
       if (!(k in map)) { map[k] = 0; order.push(k); }
       map[k] += numKey ? (typeof r[numKey] === 'number' ? r[numKey] : 0) : 1;
     });
@@ -636,7 +815,7 @@
     if (entries.length > MAX_CHART_CATS) {
       var top = entries.slice(0, MAX_CHART_CATS);
       var rest = entries.slice(MAX_CHART_CATS).reduce(function (s, e) { return s + e[1]; }, 0);
-      top.push(['อื่นๆ', rest]);
+      top.push([t('otherBucket'), rest]);
       entries = top;
     }
     return entries;
@@ -708,7 +887,7 @@
   function updateDrillBanner() {
     if (state.drill) {
       $('drillBanner').style.display = 'flex';
-      $('drillText').textContent = '🔍 กำลังกรอง: ' + escapeHtml(state.drill.label) + ' = ' + escapeHtml(state.drill.value);
+      $('drillText').textContent = t('drillText', { label: state.drill.label, value: state.drill.value });
     } else {
       $('drillBanner').style.display = 'none';
     }
@@ -749,9 +928,12 @@
         var s = statOf(rows, col.key);
         if (!s) return;
         html += '<div class="stat-tile"><div class="lbl">' + escapeHtml(col.label) + '</div>' +
-          '<div class="val">' + s.sum.toLocaleString('th-TH', { maximumFractionDigits: 2 }) + '</div>' +
-          '<div class="sub">เฉลี่ย ' + s.avg.toLocaleString('th-TH', { maximumFractionDigits: 2 }) + ' · ต่ำสุด ' +
-          s.min.toLocaleString('th-TH', { maximumFractionDigits: 2 }) + ' · สูงสุด ' + s.max.toLocaleString('th-TH', { maximumFractionDigits: 2 }) + '</div></div>';
+          '<div class="val">' + s.sum.toLocaleString(locale(), { maximumFractionDigits: 2 }) + '</div>' +
+          '<div class="sub">' + t('statTileSub', {
+            avg: s.avg.toLocaleString(locale(), { maximumFractionDigits: 2 }),
+            min: s.min.toLocaleString(locale(), { maximumFractionDigits: 2 }),
+            max: s.max.toLocaleString(locale(), { maximumFractionDigits: 2 })
+          }) + '</div></div>';
       });
       if (html) { $('numStatRow').innerHTML = html; $('numStatCard').style.display = 'block'; anyRendered = true; }
       else $('numStatCard').style.display = 'none';
@@ -766,15 +948,15 @@
       var barNum = state.chartChoice.barNum === '' ? null : resolveColChoice(state.chartChoice.barNum, numCols, numCols[0]);
       var barType = state.chartType.slot1 || 'bar';
       fillSelect($('barCatSel'), catCols, barCat.key);
-      fillSelect($('barNumSel'), numCols, barNum ? barNum.key : '', 'จำนวนรายการ (นับ)');
+      fillSelect($('barNumSel'), numCols, barNum ? barNum.key : '', t('countOption'));
       $('barTypeSel').value = barType;
       var barEntries = aggregateByCategory(rows, barCat.key, barNum ? barNum.key : null);
-      $('barChartTitle').textContent = CHART_TYPE_ICON[barType] + ' ' + (barNum ? (barCat.label + ' ตามผลรวม ' + barNum.label) : ('จำนวนรายการตาม ' + barCat.label));
+      $('barChartTitle').textContent = CHART_TYPE_ICON[barType] + ' ' + (barNum ? t('barChartTitleWithNum', { cat: barCat.label, num: barNum.label }) : t('barChartTitleCount', { cat: barCat.label }));
       var barCfg = buildChartConfig(barType, barEntries.map(function (e) { return e[0]; }), barEntries.map(function (e) { return e[1]; }), '#1E9E5A');
       barCfg.options.onClick = function (evt, els) {
         if (!els || !els.length) return;
         var label = barEntries[els[0].index][0];
-        if (label === 'อื่นๆ') return; // รวมหลายค่า กรองเป็นค่าเดียวไม่ได้จริง
+        if (label === t('otherBucket')) return; // รวมหลายค่า กรองเป็นค่าเดียวไม่ได้จริง
         setDrill(barCat.key, barCat.label, label);
       };
       charts.bar = new Chart($('barChart').getContext('2d'), barCfg);
@@ -788,11 +970,11 @@
       var lineNum = state.chartChoice.lineNum === '' ? null : resolveColChoice(state.chartChoice.lineNum, numCols, numCols[0]);
       var lineType = state.chartType.slot2 || 'line';
       fillSelect($('lineDateSel'), dateCols, lineDate.key);
-      fillSelect($('lineNumSel'), numCols, lineNum ? lineNum.key : '', 'จำนวนรายการ (นับ)');
+      fillSelect($('lineNumSel'), numCols, lineNum ? lineNum.key : '', t('countOption'));
       $('lineTypeSel').value = lineType;
       var lineEntries = aggregateByDate(rows, lineDate.key, lineNum ? lineNum.key : null);
       if (lineEntries.length >= 2) {
-        $('lineChartTitle').textContent = CHART_TYPE_ICON[lineType] + ' ' + (lineNum ? ('แนวโน้ม ' + lineNum.label + ' ตามเวลา (' + lineDate.label + ')') : ('จำนวนรายการตามเวลา (' + lineDate.label + ')'));
+        $('lineChartTitle').textContent = CHART_TYPE_ICON[lineType] + ' ' + (lineNum ? t('lineChartTitleWithNum', { num: lineNum.label, date: lineDate.label }) : t('lineChartTitleCount', { date: lineDate.label }));
         var lineCfg = buildChartConfig(lineType, lineEntries.map(function (e) { return e[0]; }), lineEntries.map(function (e) { return e[1]; }), '#1E9E5A');
         lineCfg.options.onClick = function (evt, els) {
           if (!els || !els.length) return;
@@ -814,26 +996,30 @@
       fillSelect($('pieCatSel'), catCols, pieCat.key);
       $('pieTypeSel').value = pieType;
       var pieEntries = aggregateByCategory(rows, pieCat.key, null);
-      $('pieChartTitle').textContent = CHART_TYPE_ICON[pieType] + ' สัดส่วนจำนวนรายการตาม ' + pieCat.label;
+      $('pieChartTitle').textContent = CHART_TYPE_ICON[pieType] + ' ' + t('pieChartTitleTpl', { cat: pieCat.label });
       var pieCfg = buildChartConfig(pieType, pieEntries.map(function (e) { return e[0]; }), pieEntries.map(function (e) { return e[1]; }), '#1E9E5A');
       pieCfg.options.onClick = function (evt, els) {
         if (!els || !els.length) return;
         var label = pieEntries[els[0].index][0];
-        if (label === 'อื่นๆ') return;
+        if (label === t('otherBucket')) return;
         setDrill(pieCat.key, pieCat.label, label);
       };
       charts.pie = new Chart($('pieChart').getContext('2d'), pieCfg);
       $('pieChartCard').style.display = 'block'; anyRendered = true;
     } else $('pieChartCard').style.display = 'none';
 
+    /* ── ตารางข้อมูล (อ่านอย่างเดียว) แสดงในแดชบอร์ดเลย ไม่ต้องสลับแท็บไปมา — ใช้ rows ชุดเดียวกับกราฟ
+       (ผ่าน drill แล้ว) ส่วนตารางแก้ไขได้เต็มรูปแบบยังอยู่ที่แท็บ "ตาราง (แก้ไข)" เหมือนเดิม ── */
+    if (renderDashboardTable(rows)) anyRendered = true;
+
     if (!hasChartJs) {
       $('dashboardEmptyCard').style.display = 'block';
-      $('dashboardEmptyCard').querySelector('.mini').textContent = 'โหลดไลบรารีทำกราฟไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)';
+      $('dashboardEmptyCard').querySelector('.mini').textContent = t('chartLibFail');
     } else if (!anyRendered) {
       $('dashboardEmptyCard').style.display = 'block';
       $('dashboardEmptyCard').querySelector('.mini').textContent = rows.length
-        ? 'ยังสรุปเป็นกราฟไม่ได้ — ต้องมีอย่างน้อย 1 คอลัมน์ตัวเลข หรือ 1 คอลัมน์หมวดหมู่ที่ไม่ใช่ข้อความอิสระเกินไป'
-        : 'ไม่มีแถวข้อมูลที่ตรงกับตัวกรองที่ตั้งไว้ตอนนี้';
+        ? t('noChartPossible')
+        : t('noRowsMatch');
     } else {
       $('dashboardEmptyCard').style.display = 'none';
     }
@@ -844,9 +1030,9 @@
      (ด้านบน) จะ autosave เข้ารายงานนี้ต่อทุกครั้งที่แก้ไข ไม่ต้องกดบันทึกซ้ำเอง */
   function updateSaveUI() {
     if (state.reportId) {
-      $('saveReportBtn').textContent = '💾 บันทึกแล้ว: ' + state.reportName;
+      $('saveReportBtn').textContent = t('savedReportBtn', { name: state.reportName });
     } else {
-      $('saveReportBtn').textContent = '💾 บันทึกเป็นรายงาน';
+      $('saveReportBtn').textContent = t('saveReportBtn');
       setSaveStatus('', '');
     }
   }
@@ -854,10 +1040,10 @@
     if (state.reportId) {
       // ผูกอยู่แล้ว — ปุ่มนี้ทำหน้าที่ "บันทึกตอนนี้เลย" เผื่อไม่อยากรอ autosave debounce
       persistDebounced();
-      setSaveStatus('กำลังบันทึก…', '');
+      setSaveStatus(t('saveStatusSaving'), '');
       return;
     }
-    var name = prompt('ตั้งชื่อรายงานนี้:', (state.fileName || 'รายงาน').replace(/\.[^.]+$/, ''));
+    var name = prompt(t('saveAsReportPrompt'), (state.fileName || t('reportDefaultBase')).replace(/\.[^.]+$/, ''));
     if (!name) return;
     name = name.trim(); if (!name) return;
     var rec = { name: name, fileName: state.fileName, sheetName: state.activeSheet,
@@ -865,33 +1051,33 @@
     dbAddReport(rec).then(function (id) {
       state.reportId = id; state.reportName = name;
       updateSaveUI();
-      setSaveStatus('บันทึกเป็นรายงาน "' + name + '" แล้ว', 'ok');
+      setSaveStatus(t('saveStatusSavedNamed', { name: name }), 'ok');
       persistDebounced(); // อัปเดต draft ปัจจุบันให้มี reportId ผูกไว้ด้วย กัน resume แล้วหลุดการเชื่อมโยง
     }, function () {
-      setSaveStatus('บันทึกไม่สำเร็จ ลองอีกครั้ง', 'err');
+      setSaveStatus(t('saveStatusFail'), 'err');
     });
   }
-  function relativeTimeTh(ts) {
+  function relativeTime(ts) {
     var mins = Math.round((Date.now() - ts) / 60000);
-    if (mins < 1) return 'เมื่อสักครู่';
-    if (mins < 60) return mins + ' นาทีก่อน';
+    if (mins < 1) return t('justNow');
+    if (mins < 60) return t('minsAgo', { n: mins });
     var hrs = Math.round(mins / 60);
-    if (hrs < 24) return hrs + ' ชม.ก่อน';
-    return new Date(ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+    if (hrs < 24) return t('hrsAgo', { n: hrs });
+    return new Date(ts).toLocaleDateString(locale(), { day: 'numeric', month: 'short', year: 'numeric' });
   }
   function renderReportsList() {
     dbListReports().then(function (reports) {
       reports.sort(function (a, b) { return (b.savedAt || 0) - (a.savedAt || 0); });
       if (!reports.length) { $('reportsCard').style.display = 'none'; $('reportsList').innerHTML = ''; return; }
       $('reportsCard').style.display = 'block';
-      $('reportsMeta').textContent = reports.length.toLocaleString('th-TH') + ' รายงาน';
+      $('reportsMeta').textContent = t('reportsMeta', { n: reports.length.toLocaleString(locale()) });
       var html = '';
       reports.forEach(function (r) {
         html += '<div class="report-row" data-id="' + r.id + '">' +
           '<div><div class="rname">' + escapeHtml(r.name) + '</div>' +
-          '<div class="rmeta">' + (r.rows ? r.rows.length.toLocaleString('th-TH') : 0) + ' แถว · บันทึกล่าสุด ' + relativeTimeTh(r.savedAt) + '</div></div>' +
+          '<div class="rmeta">' + t('reportRowMeta', { n: (r.rows ? r.rows.length.toLocaleString(locale()) : 0), time: relativeTime(r.savedAt) }) + '</div></div>' +
           '<div class="ractions">' +
-          '<button type="button" class="btn sm open-report" data-id="' + r.id + '">เปิด</button>' +
+          '<button type="button" class="btn sm open-report" data-id="' + r.id + '">' + escapeHtml(t('openBtn')) + '</button>' +
           '<button type="button" class="btn sm rename-report" data-id="' + r.id + '">✏️</button>' +
           '<button type="button" class="btn sm danger del-report" data-id="' + r.id + '">🗑️</button>' +
           '</div></div>';
@@ -920,7 +1106,7 @@
     state.chartType = { slot1: null, slot2: null, slot3: null };
       updateDrillBanner(); updateSaveUI();
       $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
-      $('dataMeta').textContent = (state.fileName || rec.name) + ' · ' + state.rows.length.toLocaleString('th-TH') + ' แถว';
+      $('dataMeta').textContent = (state.fileName || rec.name) + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
       $('viewTabs').style.display = 'flex';
       setView('table');
       persistDebounced();
@@ -929,7 +1115,7 @@
   function renameReport(id) {
     dbGetReport(id).then(function (rec) {
       if (!rec) return;
-      var name = prompt('เปลี่ยนชื่อรายงาน:', rec.name);
+      var name = prompt(t('renameReportPrompt'), rec.name);
       if (!name) return;
       name = name.trim(); if (!name) return;
       rec.name = name;
@@ -942,7 +1128,7 @@
   function deleteReport(id) {
     dbGetReport(id).then(function (rec) {
       if (!rec) return;
-      if (!confirm('ลบรายงาน "' + rec.name + '" ถาวร (กู้คืนไม่ได้)?')) return;
+      if (!confirm(t('deleteReportConfirm', { name: rec.name }))) return;
       dbDeleteReport(id).then(function () {
         if (state.reportId === id) { state.reportId = null; state.reportName = null; updateSaveUI(); persistDebounced(); }
         renderReportsList();
@@ -951,7 +1137,7 @@
   }
 
   /* ══════════════════ Stage 5: ส่งออก ══════════════════ */
-  function exportFileBase() { return (state.reportName || (state.fileName || 'รายงาน').replace(/\.[^.]+$/, '')); }
+  function exportFileBase() { return (state.reportName || (state.fileName || t('reportDefaultBase')).replace(/\.[^.]+$/, '')); }
   function buildExportRows() {
     /* จัดรูปแบบวันที่เป็นสตริง yyyy-mm-dd เองตรงๆ แทนที่จะส่ง Date object ดิบเข้า SheetJS —
        กันพฤติกรรมแปลง Date เป็นเลขลำดับวันของ Excel/รูปแบบอื่นที่ควบคุมไม่ได้ ให้ไฟล์ที่ส่งออกอ่านง่าย
@@ -974,23 +1160,23 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
   function exportXlsx() {
-    if (typeof XLSX === 'undefined') { setUploadStatus('', ''); alert('โหลดไลบรารีส่งออกไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)'); return; }
-    if (!state.rows.length) { alert('ยังไม่มีข้อมูลให้ส่งออก'); return; }
+    if (typeof XLSX === 'undefined') { setUploadStatus('', ''); alert(t('exportLibFail')); return; }
+    if (!state.rows.length) { alert(t('exportNoData')); return; }
     var ws = XLSX.utils.json_to_sheet(buildExportRows());
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, (state.activeSheet || 'Sheet1').slice(0, 31));
     XLSX.writeFile(wb, exportFileBase() + '.xlsx');
   }
   function exportCsv() {
-    if (typeof XLSX === 'undefined') { alert('โหลดไลบรารีส่งออกไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)'); return; }
-    if (!state.rows.length) { alert('ยังไม่มีข้อมูลให้ส่งออก'); return; }
+    if (typeof XLSX === 'undefined') { alert(t('exportLibFail')); return; }
+    if (!state.rows.length) { alert(t('exportNoData')); return; }
     var ws = XLSX.utils.json_to_sheet(buildExportRows());
     var csv = XLSX.utils.sheet_to_csv(ws);
     var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' }); // BOM กัน Excel เปิดภาษาไทยเพี้ยน
     downloadBlob(blob, exportFileBase() + '.csv');
   }
   function exportDashboardImage() {
-    if (typeof window.html2canvas === 'undefined') { alert('โหลดไลบรารีส่งออกไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)'); return; }
+    if (typeof window.html2canvas === 'undefined') { alert(t('exportLibFail')); return; }
     window.html2canvas($('dashboardView'), { backgroundColor: '#F3F5F8', scale: 2 }).then(function (canvas) {
       canvas.toBlob(function (blob) { if (blob) downloadBlob(blob, exportFileBase() + '.png'); });
     });
@@ -1041,7 +1227,7 @@
     var showPie = $('pieChartCard').style.display !== 'none';
     var barCfg = cleanChartConfigForExport(charts.bar), lineCfg = cleanChartConfigForExport(charts.line), pieCfg = cleanChartConfigForExport(charts.pie);
 
-    var html = '<!DOCTYPE html><html lang="th"><head><meta charset="utf-8">' +
+    var html = '<!DOCTYPE html><html lang="' + getUILang() + '"><head><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width, initial-scale=1"><title>' + title + '</title>' +
       '<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800&display=swap" rel="stylesheet">' +
       '<style>:root{--bg:#F3F5F8;--card:#fff;--ink:#151A23;--muted:#6B7280;--brand:#1E9E5A;' +
@@ -1062,14 +1248,14 @@
       '.foot{font-size:11.5px;color:var(--muted);text-align:center;margin-top:22px}' +
       '</style></head><body><div class="wrap">' +
       '<h1>📊 ' + title + '</h1>' +
-      '<div class="sub">ออกรายงานเมื่อ ' + new Date().toLocaleString('th-TH') + ' · ' + state.rows.length.toLocaleString('th-TH') + ' แถว</div>';
+      '<div class="sub">' + escapeHtml(t('exportedAt', { date: new Date().toLocaleString(locale()), n: state.rows.length.toLocaleString(locale()) })) + '</div>';
 
-    if (showNum) html += '<div class="card"><h2>🔢 สรุปตัวเลข</h2><div class="stat-row">' + $('numStatRow').innerHTML + '</div></div>';
+    if (showNum) html += '<div class="card"><h2>' + escapeHtml(t('numStatTitle')) + '</h2><div class="stat-row">' + $('numStatRow').innerHTML + '</div></div>';
     if (showBar) html += '<div class="card"><h2>' + escapeHtml($('barChartTitle').textContent) + '</h2><div class="chart-wrap"><canvas id="rdc1"></canvas></div></div>';
     if (showLine) html += '<div class="card"><h2>' + escapeHtml($('lineChartTitle').textContent) + '</h2><div class="chart-wrap"><canvas id="rdc2"></canvas></div></div>';
     if (showPie) html += '<div class="card"><h2>' + escapeHtml($('pieChartTitle').textContent) + '</h2><div class="chart-wrap"><canvas id="rdc3"></canvas></div></div>';
 
-    html += '<div class="foot">สร้างจาก "นำเสนอรายงาน" — Tanot</div></div>' +
+    html += '<div class="foot">' + escapeHtml(t('exportedFooter')) + '</div></div>' +
       '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"><\/script><script>';
     if (showBar) html += 'new Chart(document.getElementById("rdc1").getContext("2d"),' + JSON.stringify(barCfg) + ');';
     if (showLine) html += 'new Chart(document.getElementById("rdc2").getContext("2d"),' + JSON.stringify(lineCfg) + ');';
@@ -1078,7 +1264,7 @@
     return html;
   }
   function exportDashboardHtml() {
-    if (!state.rows.length) { alert('ยังไม่มีข้อมูลให้ส่งออก'); return; }
+    if (!state.rows.length) { alert(t('exportNoData')); return; }
     var blob = new Blob([buildDashboardHtmlDoc()], { type: 'text/html;charset=utf-8;' });
     downloadBlob(blob, exportFileBase() + '.html');
   }
@@ -1106,7 +1292,36 @@
   }
 
   /* ══════════════════ เริ่มต้น + resume ══════════════════ */
+  var lastSavedResume = null;
+  function renderResumeInfo() {
+    if (!lastSavedResume) return;
+    var saved = lastSavedResume;
+    $('resumeInfo').textContent = t('resumeInfo', {
+      name: saved.reportName || saved.fileName || t('resumeFallbackName'),
+      n: saved.rows.length.toLocaleString(locale()),
+      date: new Date(saved.savedAt).toLocaleString(locale())
+    });
+  }
   function init() {
+    applyStaticI18n();
+    if ($('langToggle')) {
+      $('langToggle').addEventListener('click', function () {
+        setUILang(getUILang() === 'en' ? 'th' : 'en');
+        /* ล้างตัวกรองจากคลิกกราฟ (drill) ทิ้งตอนสลับภาษา — ค่า "อื่นๆ"/"(ว่าง)" ที่เก็บไว้เป็นข้อความ
+           ภาษาเดิม จะไม่ตรงกับข้อความภาษาใหม่ที่ matchesDrill() สร้างใหม่อีกต่อไป กรองแล้วจะเงียบๆ ไม่เจอ
+           สักแถว — เคลียร์ทิ้งไปเลยชัดเจนกว่า */
+        if (state.drill) clearDrill();
+        applyStaticI18n();
+        updateSaveUI();
+        renderResumeInfo();
+        renderReportsList();
+        if (state.rows.length) {
+          updateStatRow();
+          updateSelectionUI();
+          if (currentView === 'dashboard') renderDashboard(); else renderTable();
+        }
+      });
+    }
     $('pickBtn').addEventListener('click', function () { $('fileInput').click(); });
     $('fileInput').addEventListener('change', function () { handleFile($('fileInput').files[0]); });
 
@@ -1138,11 +1353,11 @@
     /* ปุ่ม "ไฟล์ใหม่" — ถามยืนยันเฉพาะตอนข้อมูลยังไม่ได้บันทึกเป็นรายงาน (reportId ว่าง) เพราะนั่นคือ
        กรณีเดียวที่ข้อมูลจะหายจริง — ถ้าบันทึกเป็นรายงานแล้วสลับได้เลยโดยไม่ต้องถาม (autosave ไว้แล้ว) */
     $('newFileBtn').addEventListener('click', function () {
-      if (!state.reportId && state.rows.length && !confirm('ยังไม่ได้บันทึกเป็นรายงาน — เริ่มไฟล์ใหม่จะแทนที่ข้อมูลนี้ ดำเนินการต่อไหม?')) return;
+      if (!state.reportId && state.rows.length && !confirm(t('newFileConfirm'))) return;
       resetToUpload();
     });
     $('myReportsBtn').addEventListener('click', function () {
-      if (!state.reportId && state.rows.length && !confirm('ยังไม่ได้บันทึกเป็นรายงาน — ออกไปดูรายการรายงานจะแทนที่ข้อมูลนี้ ดำเนินการต่อไหม?')) return;
+      if (!state.reportId && state.rows.length && !confirm(t('myReportsConfirm'))) return;
       resetToUpload();
       setTimeout(function () { var el = $('reportsCard'); if (el.style.display !== 'none') el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
     });
@@ -1160,8 +1375,9 @@
     renderReportsList();
     dbLoadCurrent().then(function (saved) {
       if (saved && saved.rows && saved.rows.length) {
+        lastSavedResume = saved;
         $('resumeCard').style.display = 'block';
-        $('resumeInfo').textContent = (saved.reportName || saved.fileName || 'ไฟล์ที่แล้ว') + ' · ' + saved.rows.length.toLocaleString('th-TH') + ' แถว · บันทึกไว้เมื่อ ' + new Date(saved.savedAt).toLocaleString('th-TH');
+        renderResumeInfo();
         $('resumeBtn').addEventListener('click', function () {
           state.fileName = saved.fileName; state.activeSheet = saved.sheetName; state.sheetNames = saved.sheetName ? [saved.sheetName] : [];
           state.columns = saved.columns; state.rows = saved.rows; state.nextRowId = saved.nextRowId;

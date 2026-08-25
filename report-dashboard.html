@@ -38,6 +38,9 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 
 /* ── การ์ดสถิติด่วน (แรงบันดาลใจจากแถบสถิติของภาพตัวอย่าง — ตัวเลขใหญ่หนา + label เล็ก) ── */
 .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:14px}
+/* การ์ด "สรุปตัวเลข" ในแดชบอร์ดมีจำนวนคอลัมน์ตัวเลขไม่แน่นอน (1-4) ถ้าใช้ 1fr เหมือน statRow ด้านบน
+   ตอนมีตัวเลขคอลัมน์เดียวจะยืดเต็มการ์ดจนดูไม่สมมาตร — จำกัดความกว้างสูงสุดต่อช่องแทน */
+#numStatRow{grid-template-columns:repeat(auto-fit,minmax(160px,240px))}
 .stat-tile{background:var(--card);border-radius:15px;box-shadow:var(--sh);padding:15px 16px;border:1px solid rgba(16,24,40,.03)}
 .stat-tile .lbl{font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.02em}
 .stat-tile .val{font-size:23px;font-weight:800;margin-top:5px;letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -94,8 +97,17 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
   border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
 .chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
 
+/* ── สลับภาษาไทย/อังกฤษ ── */
+.crumb-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.lang-toggle{display:inline-flex;align-items:center;gap:2px;background:var(--line);border:none;border-radius:20px;
+  padding:3px;cursor:pointer;font-family:inherit;margin-top:14px}
+.lang-toggle span{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:16px;color:var(--muted);transition:.15s}
+.lang-toggle span.active{background:var(--card);color:var(--brand-dk);box-shadow:0 1px 3px rgba(24,31,54,.08)}
+
 /* ── ตาราง ── */
 .tbl-wrap{overflow-x:auto;margin-top:4px;max-width:100%;border-radius:12px}
+.tbl-wrap.dash{max-height:440px;overflow-y:auto}
+.tbl-wrap.dash thead th{position:sticky;top:0;background:var(--card);z-index:1}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.02em;
@@ -151,157 +163,167 @@ td.rowdel{text-align:center}
 
 /* ── โหมดพิมพ์: โชว์เฉพาะเนื้อหาที่กำลังดู ซ่อนปุ่ม/แถบเมนู ── */
 @media print{
-  .crumb,.chip-row,.toolbar-row,.pager,.btn,#uploadCard,#resumeCard,#reportsCard,#sheetCard,#headerCard,
+  .crumb,.lang-toggle,.chip-row,.toolbar-row,.pager,.btn,#uploadCard,#resumeCard,#reportsCard,#sheetCard,#headerCard,
   .rowchk,.hdrchk,.rowdel,#hdrChk,.filter-row{display:none!important}
   body.ome-tool-page{padding:0;background:#fff}
   .card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}
 }
 </style>
 </head>
-<body class="ome-tool-page">
+<body class="ome-tool-page" data-doctitle-key="docTitle">
 <script src="auth-gate.js"></script>
 <div class="wrap">
 
-  <nav class="crumb"><a href="index.html">หน้าหลัก</a><span class="sep">/</span>งานที่รับผิดชอบ<span class="sep">/</span>นำเสนอรายงาน</nav>
+  <div class="crumb-row">
+    <nav class="crumb"><a href="index.html" data-i18n="crumbHome">หน้าหลัก</a><span class="sep">/</span><span data-i18n="crumbResp">งานที่รับผิดชอบ</span><span class="sep">/</span><span data-i18n="crumbPage">นำเสนอรายงาน</span></nav>
+    <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
+      <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
+    </button>
+  </div>
 
   <div class="head">
     <div class="head-ic">📊</div>
     <div>
-      <h1>นำเสนอรายงาน</h1>
-      <div class="head-sub">อัปโหลดไฟล์ Excel/CSV แล้วดู แก้ไข เรียง กรองข้อมูลได้ในเว็บ</div>
+      <h1 data-i18n="pageTitle">นำเสนอรายงาน</h1>
+      <div class="head-sub" data-i18n="pageSub">อัปโหลดไฟล์ Excel/CSV แล้วดู แก้ไข เรียง กรองข้อมูลได้ในเว็บ</div>
     </div>
   </div>
 
   <div class="stat-row" id="statRow" style="display:none">
-    <div class="stat-tile"><div class="lbl">รายการทั้งหมด</div><div class="val" id="statTotal">0 <span class="unit">แถว</span></div></div>
-    <div class="stat-tile"><div class="lbl">คอลัมน์</div><div class="val" id="statCols">0 <span class="unit">คอลัมน์</span></div></div>
-    <div class="stat-tile"><div class="lbl">กำลังแสดง</div><div class="val" id="statShown">0 <span class="unit">แถว</span></div></div>
-    <div class="stat-tile"><div class="lbl">เลือกไว้</div><div class="val" id="statSelected">0 <span class="unit">แถว</span></div></div>
+    <div class="stat-tile"><div class="lbl" data-i18n="statTotalLbl">รายการทั้งหมด</div><div class="val" id="statTotal">0 <span class="unit" data-i18n="unitRows">แถว</span></div></div>
+    <div class="stat-tile"><div class="lbl" data-i18n="statColsLbl">คอลัมน์</div><div class="val" id="statCols">0 <span class="unit" data-i18n="unitCols">คอลัมน์</span></div></div>
+    <div class="stat-tile"><div class="lbl" data-i18n="statShownLbl">กำลังแสดง</div><div class="val" id="statShown">0 <span class="unit" data-i18n="unitRows">แถว</span></div></div>
+    <div class="stat-tile"><div class="lbl" data-i18n="statSelectedLbl">เลือกไว้</div><div class="val" id="statSelected">0 <span class="unit" data-i18n="unitRows">แถว</span></div></div>
   </div>
 
   <div class="chip-row" id="viewTabs" style="display:none;margin-top:14px">
-    <button type="button" class="chip on" data-view="table">📋 ตาราง</button>
-    <button type="button" class="chip" data-view="dashboard">📊 แดชบอร์ด</button>
+    <button type="button" class="chip on" data-view="table" data-i18n="tabTable">📋 ตาราง (แก้ไข)</button>
+    <button type="button" class="chip" data-view="dashboard" data-i18n="tabDashboard">📊 แดชบอร์ด</button>
   </div>
 
   <div class="drill-banner" id="drillBanner" style="display:none">
     <span id="drillText"></span>
-    <button type="button" class="btn sm" id="drillClearBtn">✕ ล้างตัวกรองนี้</button>
+    <button type="button" class="btn sm" id="drillClearBtn" data-i18n="drillClearBtn">✕ ล้างตัวกรองนี้</button>
   </div>
 
   <div class="card" id="uploadCard">
-    <h2>📤 อัปโหลดไฟล์</h2>
+    <h2 data-i18n="uploadTitle">📤 อัปโหลดไฟล์</h2>
     <div class="drop-zone" id="dropZone">
       <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden>
       <div class="drop-ic-wrap">📁</div>
-      <div class="drop-txt">ลากไฟล์มาวางตรงนี้ หรือ</div>
-      <button class="btn primary" id="pickBtn" type="button">เลือกไฟล์</button>
-      <div class="drop-hint">รองรับ .xlsx .xls .csv — ไฟล์ประมวลผลในเครื่องคุณทั้งหมด</div>
+      <div class="drop-txt" data-i18n="dropText">ลากไฟล์มาวางตรงนี้ หรือ</div>
+      <button class="btn primary" id="pickBtn" type="button" data-i18n="pickBtn">เลือกไฟล์</button>
+      <div class="drop-hint" data-i18n="dropHint">รองรับ .xlsx .xls .csv — ไฟล์ประมวลผลในเครื่องคุณทั้งหมด</div>
     </div>
     <div class="status" id="uploadStatus"></div>
   </div>
 
   <div class="card" id="resumeCard" style="display:none">
-    <h2>💾 พบข้อมูลที่ทำค้างไว้</h2>
+    <h2 data-i18n="resumeTitle">💾 พบข้อมูลที่ทำค้างไว้</h2>
     <p class="mini" id="resumeInfo"></p>
     <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn primary sm" id="resumeBtn" type="button">ดำเนินการต่อ</button>
-      <button class="btn sm" id="discardBtn" type="button">เริ่มใหม่</button>
+      <button class="btn primary sm" id="resumeBtn" type="button" data-i18n="resumeBtn">ดำเนินการต่อ</button>
+      <button class="btn sm" id="discardBtn" type="button" data-i18n="discardBtn">เริ่มใหม่</button>
     </div>
   </div>
 
   <div class="card" id="reportsCard" style="display:none">
-    <h2>📁 รายงานของฉัน <span class="mini" id="reportsMeta" style="margin-left:auto"></span></h2>
+    <h2><span data-i18n="reportsTitle">📁 รายงานของฉัน</span> <span class="mini" id="reportsMeta" style="margin-left:auto"></span></h2>
     <div id="reportsList"></div>
   </div>
 
   <div class="card" id="sheetCard" style="display:none">
-    <h2>📑 เลือกชีต</h2>
+    <h2 data-i18n="sheetTitle">📑 เลือกชีต</h2>
     <div class="chip-row" id="sheetChips"></div>
   </div>
 
   <div class="card" id="headerCard" style="display:none">
-    <h2>🔤 เลือกแถวหัวตาราง</h2>
-    <p class="mini">คลิกแถวที่เป็นชื่อคอลัมน์ (ปกติเป็นแถวแรกสุด) — ดูตัวอย่าง 8 แถวแรกของไฟล์</p>
+    <h2 data-i18n="headerTitle">🔤 เลือกแถวหัวตาราง</h2>
+    <p class="mini" data-i18n="headerHint">คลิกแถวที่เป็นชื่อคอลัมน์ (ปกติเป็นแถวแรกสุด) — ดูตัวอย่าง 8 แถวแรกของไฟล์</p>
     <div class="tbl-wrap"><table id="headerPreviewTable"></table></div>
-    <button class="btn primary sm" id="confirmHeaderBtn" type="button" style="margin-top:10px">ใช้แถวนี้เป็นหัวตาราง →</button>
+    <button class="btn primary sm" id="confirmHeaderBtn" type="button" style="margin-top:10px" data-i18n="confirmHeaderBtn">ใช้แถวนี้เป็นหัวตาราง →</button>
   </div>
 
   <div class="card" id="dataCard" style="display:none">
-    <h2>📋 ข้อมูล <span class="mini" id="dataMeta" style="margin-left:auto"></span></h2>
+    <h2><span data-i18n="dataTitle">📋 ข้อมูล</span> <span class="mini" id="dataMeta" style="margin-left:auto"></span></h2>
     <div class="toolbar-row">
-      <div class="search-wrap"><span class="ic">🔍</span><input type="text" id="globalSearch" placeholder="ค้นหาทุกคอลัมน์…"></div>
-      <button class="btn sm" id="addRowBtn" type="button">+ เพิ่มแถว</button>
-      <button class="btn sm" id="delSelBtn" type="button" disabled>🗑️ ลบที่เลือก</button>
-      <button class="btn sm" id="undoBtn" type="button" disabled>↩️ เลิกทำ</button>
-      <button class="btn sm" id="clearFilterBtn" type="button">ล้างตัวกรอง</button>
+      <div class="search-wrap"><span class="ic">🔍</span><input type="text" id="globalSearch" data-i18n-placeholder="searchPh" placeholder="ค้นหาทุกคอลัมน์…"></div>
+      <button class="btn sm" id="addRowBtn" type="button" data-i18n="addRowBtn">+ เพิ่มแถว</button>
+      <button class="btn sm" id="delSelBtn" type="button" disabled data-i18n="delSelBtn">🗑️ ลบที่เลือก</button>
+      <button class="btn sm" id="undoBtn" type="button" disabled data-i18n="undoBtn">↩️ เลิกทำ</button>
+      <button class="btn sm" id="clearFilterBtn" type="button" data-i18n="clearFilterBtn">ล้างตัวกรอง</button>
     </div>
     <div class="toolbar-row">
-      <button class="btn sm" id="saveReportBtn" type="button">💾 บันทึกเป็นรายงาน</button>
-      <button class="btn sm" id="myReportsBtn" type="button">📁 รายงานของฉัน</button>
-      <button class="btn sm" id="exportXlsxBtn" type="button">⬇️ Excel</button>
-      <button class="btn sm" id="exportCsvBtn" type="button">⬇️ CSV</button>
-      <button class="btn sm" id="newFileBtn" type="button">📤 ไฟล์ใหม่</button>
+      <button class="btn sm" id="saveReportBtn" type="button" data-i18n="saveReportBtn">💾 บันทึกเป็นรายงาน</button>
+      <button class="btn sm" id="myReportsBtn" type="button" data-i18n="myReportsBtn">📁 รายงานของฉัน</button>
+      <button class="btn sm" id="exportXlsxBtn" type="button" data-i18n="exportXlsxBtn">⬇️ Excel</button>
+      <button class="btn sm" id="exportCsvBtn" type="button" data-i18n="exportCsvBtn">⬇️ CSV</button>
+      <button class="btn sm" id="newFileBtn" type="button" data-i18n="newFileBtn">📤 ไฟล์ใหม่</button>
       <span class="status" id="saveStatus" style="margin-top:0;margin-left:auto"></span>
     </div>
     <div class="tbl-wrap" id="dataTableWrap"><table id="dataTable"></table></div>
-    <div id="dataEmpty" class="tbl-empty" style="display:none">ไม่พบแถวที่ตรงกับตัวกรอง</div>
+    <div id="dataEmpty" class="tbl-empty" style="display:none" data-i18n="dataEmptyTxt">ไม่พบแถวที่ตรงกับตัวกรอง</div>
     <div class="pager" id="pager"></div>
   </div>
 
   <div id="dashboardView" style="display:none">
     <div class="toolbar-row">
-      <button class="btn sm" id="exportImgBtn" type="button">📷 บันทึกเป็นรูปภาพ</button>
-      <button class="btn sm" id="exportPdfBtn" type="button">📄 บันทึกเป็น PDF</button>
-      <button class="btn sm" id="exportHtmlBtn" type="button">📃 บันทึกเป็น HTML</button>
-      <button class="btn sm" id="printBtn" type="button">🖨️ พิมพ์</button>
+      <button class="btn sm" id="exportImgBtn" type="button" data-i18n="exportImgBtn">📷 บันทึกเป็นรูปภาพ</button>
+      <button class="btn sm" id="exportPdfBtn" type="button" data-i18n="exportPdfBtn">📄 บันทึกเป็น PDF</button>
+      <button class="btn sm" id="exportHtmlBtn" type="button" data-i18n="exportHtmlBtn">📃 บันทึกเป็น HTML</button>
+      <button class="btn sm" id="printBtn" type="button" data-i18n="printBtn">🖨️ พิมพ์</button>
     </div>
     <div class="card" id="numStatCard" style="display:none">
-      <h2>🔢 สรุปตัวเลข</h2>
+      <h2 data-i18n="numStatTitle">🔢 สรุปตัวเลข</h2>
       <div class="stat-row" id="numStatRow"></div>
     </div>
     <div class="chart-grid">
     <div class="card" id="barChartCard" style="display:none">
       <h2 id="barChartTitle">📊 กราฟแท่ง</h2>
       <div class="chart-ctrl-row">
-        <label>ชนิดกราฟ <select id="barTypeSel">
-          <option value="bar">แท่งแนวตั้ง</option><option value="barH">แท่งแนวนอน</option>
-          <option value="line">เส้น</option><option value="pie">วงกลม</option><option value="doughnut">โดนัท</option>
+        <label><span data-i18n="chartTypeLbl">ชนิดกราฟ</span> <select id="barTypeSel">
+          <option value="bar" data-i18n="typeBar">แท่งแนวตั้ง</option><option value="barH" data-i18n="typeBarH">แท่งแนวนอน</option>
+          <option value="line" data-i18n="typeLine">เส้น</option><option value="pie" data-i18n="typePie">วงกลม</option><option value="doughnut" data-i18n="typeDoughnut">โดนัท</option>
         </select></label>
-        <label>จัดกลุ่มตาม <select id="barCatSel"></select></label>
-        <label>รวมค่า <select id="barNumSel"></select></label>
+        <label><span data-i18n="groupByLbl">จัดกลุ่มตาม</span> <select id="barCatSel"></select></label>
+        <label><span data-i18n="sumValueLbl">รวมค่า</span> <select id="barNumSel"></select></label>
       </div>
       <div class="chart-wrap"><canvas id="barChart"></canvas></div>
-      <p class="mini">👆 แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น</p>
+      <p class="mini" data-i18n="hintBarClick">👆 แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น</p>
     </div>
     <div class="card" id="lineChartCard" style="display:none">
       <h2 id="lineChartTitle">📈 แนวโน้มตามเวลา</h2>
       <div class="chart-ctrl-row">
-        <label>ชนิดกราฟ <select id="lineTypeSel">
-          <option value="line">เส้น</option><option value="bar">แท่งแนวตั้ง</option><option value="barH">แท่งแนวนอน</option>
-          <option value="pie">วงกลม</option><option value="doughnut">โดนัท</option>
+        <label><span data-i18n="chartTypeLbl">ชนิดกราฟ</span> <select id="lineTypeSel">
+          <option value="line" data-i18n="typeLine">เส้น</option><option value="bar" data-i18n="typeBar">แท่งแนวตั้ง</option><option value="barH" data-i18n="typeBarH">แท่งแนวนอน</option>
+          <option value="pie" data-i18n="typePie">วงกลม</option><option value="doughnut" data-i18n="typeDoughnut">โดนัท</option>
         </select></label>
-        <label>แกนเวลา <select id="lineDateSel"></select></label>
-        <label>รวมค่า <select id="lineNumSel"></select></label>
+        <label><span data-i18n="timeAxisLbl">แกนเวลา</span> <select id="lineDateSel"></select></label>
+        <label><span data-i18n="sumValueLbl">รวมค่า</span> <select id="lineNumSel"></select></label>
       </div>
       <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
-      <p class="mini">👆 แตะกราฟเพื่อกรองตารางเฉพาะช่วงนั้น</p>
+      <p class="mini" data-i18n="hintLineClick">👆 แตะกราฟเพื่อกรองตารางเฉพาะช่วงนั้น</p>
     </div>
     <div class="card" id="pieChartCard" style="display:none">
       <h2 id="pieChartTitle">🥧 สัดส่วน</h2>
       <div class="chart-ctrl-row">
-        <label>ชนิดกราฟ <select id="pieTypeSel">
-          <option value="doughnut">โดนัท</option><option value="pie">วงกลม</option>
-          <option value="bar">แท่งแนวตั้ง</option><option value="barH">แท่งแนวนอน</option><option value="line">เส้น</option>
+        <label><span data-i18n="chartTypeLbl">ชนิดกราฟ</span> <select id="pieTypeSel">
+          <option value="doughnut" data-i18n="typeDoughnut">โดนัท</option><option value="pie" data-i18n="typePie">วงกลม</option>
+          <option value="bar" data-i18n="typeBar">แท่งแนวตั้ง</option><option value="barH" data-i18n="typeBarH">แท่งแนวนอน</option><option value="line" data-i18n="typeLine">เส้น</option>
         </select></label>
-        <label>แสดงสัดส่วนตาม <select id="pieCatSel"></select></label>
+        <label><span data-i18n="showByLbl">แสดงสัดส่วนตาม</span> <select id="pieCatSel"></select></label>
       </div>
       <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
-      <p class="mini">👆 แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น</p>
+      <p class="mini" data-i18n="hintBarClick">👆 แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น</p>
     </div>
+    </div>
+    <div class="card" id="dashTableCard" style="display:none">
+      <h2 data-i18n="dashTableTitle">📋 ตารางข้อมูล</h2>
+      <div class="tbl-wrap dash"><table id="dashTable"></table></div>
+      <p class="mini" id="dashTableMeta"></p>
     </div>
     <div class="card" id="dashboardEmptyCard" style="display:none">
-      <h2>📊 แดชบอร์ด</h2>
+      <h2 data-i18n="dashboardEmptyTitle">📊 แดชบอร์ด</h2>
       <p class="mini">ยังสรุปเป็นกราฟไม่ได้ — ต้องมีอย่างน้อย 1 คอลัมน์ตัวเลข หรือ 1 คอลัมน์หมวดหมู่ที่ไม่ใช่ข้อความอิสระเกินไป</p>
     </div>
   </div>
