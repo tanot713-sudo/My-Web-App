@@ -34,7 +34,9 @@
     sortCol: null, sortDir: null, // 'asc' | 'desc'
     selected: {},          // rowId -> true
     page: 1,
-    history: []            // snapshots for undo: { columns, rows, nextRowId }
+    history: [],           // snapshots for undo: { columns, rows, nextRowId }
+    drill: null,           // { key, label, value } — จากคลิกแท่ง/ชิ้นวงกลมในแดชบอร์ด กรองทั้งตาราง+แดชบอร์ด
+    chartChoice: { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null } // null = auto
   };
 
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
@@ -223,6 +225,8 @@
     state.filters = {}; state.globalQuery = ''; $('globalSearch').value = '';
     state.sortCol = null; state.sortDir = null;
     state.selected = {}; state.page = 1; state.history = [];
+    state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
+    updateDrillBanner();
     $('undoBtn').disabled = true;
     $('sheetCard').style.display = 'none';
     $('headerCard').style.display = 'none';
@@ -230,8 +234,7 @@
     $('resumeCard').style.display = 'none';
     $('dataMeta').textContent = (state.fileName || '') + (state.sheetNames.length > 1 ? ' · ' + state.activeSheet : '') + ' · ' + state.rows.length.toLocaleString('th-TH') + ' แถว';
     $('viewTabs').style.display = 'flex';
-    setView('table');
-    renderTable();
+    setView('table'); // เรียก renderTable() ให้เองในตัว
     persistDebounced();
   }
 
@@ -242,7 +245,9 @@
     [].forEach.call($('viewTabs').querySelectorAll('.chip'), function (b) { b.classList.toggle('on', b.getAttribute('data-view') === view); });
     $('dataCard').style.display = view === 'table' ? 'block' : 'none';
     $('dashboardView').style.display = view === 'dashboard' ? 'block' : 'none';
-    if (view === 'dashboard') renderDashboard();
+    /* render ใหม่ทุกครั้งที่สลับเข้ามุมมองนั้น (ไม่ใช่แค่ตอน confirmHeader()/resume ครั้งแรก) — กันเห็น
+       ข้อมูลเก่าค้าง เช่น กด drill-down จากแดชบอร์ดแล้วสลับมาตาราง ต้องเห็นตารางกรองตามด้วย */
+    if (view === 'dashboard') renderDashboard(); else renderTable();
   }
 
   function buildColumnsAndRows(aoa, headerIdx) {
@@ -282,7 +287,13 @@
   }
 
   /* ══════════════════ กรอง/เรียง/แบ่งหน้า ══════════════════ */
+  function matchesDrill(row) {
+    if (!state.drill) return true;
+    var v = row[state.drill.key];
+    return (v === null || v === undefined || v === '' ? '(ว่าง)' : String(v)) === state.drill.value;
+  }
   function matchesFilters(row) {
+    if (!matchesDrill(row)) return false;
     for (var i = 0; i < state.columns.length; i++) {
       var col = state.columns[i], f = state.filters[col.key];
       if (!f) continue;
@@ -575,13 +586,52 @@
   }
   function destroyChart(key) { if (charts[key]) { try { charts[key].destroy(); } catch (e) {} charts[key] = null; } }
 
+  /* ── Stage 3: กรองจากการคลิกกราฟ (drill-down) — ใช้ร่วมกันทั้งมุมมองตาราง (matchesFilters ด้านบน)
+     และแดชบอร์ด (renderDashboard คำนวณจาก state.rows ที่ผ่าน drill แล้วเสมอ) ── */
+  function setDrill(key, colLabel, value) {
+    state.drill = { key: key, label: colLabel, value: value };
+    updateDrillBanner();
+    renderDashboard();
+    if (currentView === 'table') renderTable();
+  }
+  function clearDrill() {
+    if (!state.drill) return;
+    state.drill = null;
+    updateDrillBanner();
+    renderDashboard();
+    if (currentView === 'table') renderTable();
+  }
+  function updateDrillBanner() {
+    if (state.drill) {
+      $('drillBanner').style.display = 'flex';
+      $('drillText').textContent = '🔍 กำลังกรอง: ' + escapeHtml(state.drill.label) + ' = ' + escapeHtml(state.drill.value);
+    } else {
+      $('drillBanner').style.display = 'none';
+    }
+  }
+
+  /* ── Stage 3: เลือกคอลัมน์ที่ใช้ทำกราฟเอง (dropdown ต่อการ์ด) — null/ไม่เคยแตะ = ให้ระบบเดาที่ดีที่สุด
+     ให้เองทุกครั้งที่ข้อมูลเปลี่ยน, พอผู้ใช้เลือกเองครั้งหนึ่งแล้วจะ "ติด" ค่านั้นไว้จนกว่าจะเปลี่ยนอีก ── */
+  function resolveColChoice(chosenKey, cols, fallback) {
+    if (chosenKey) { var found = cols.filter(function (c) { return c.key === chosenKey; })[0]; if (found) return found; }
+    return fallback || null;
+  }
+  function fillSelect(el, items, currentKey, extraOption) {
+    var html = '';
+    if (extraOption) html += '<option value="">' + escapeHtml(extraOption) + '</option>';
+    items.forEach(function (c) { html += '<option value="' + c.key + '"' + (c.key === currentKey ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>'; });
+    el.innerHTML = html;
+    el.disabled = !items.length;
+  }
+
   function renderDashboard() {
-    var rows = state.rows;
+    var rows = state.drill ? state.rows.filter(matchesDrill) : state.rows;
     var numCols = state.columns.filter(function (c) { return c.type === 'number'; });
     var dateCols = state.columns.filter(function (c) { return c.type === 'date'; });
     /* เรียงคอลัมน์หมวดหมู่จากค่าไม่ซ้ำน้อยไปมาก — คอลัมน์ที่ค่าซ้ำกันบ่อย (เช่น "ประเภท") เหมาะเป็นแกน
        กราฟแท่ง/วงกลมมากกว่าคอลัมน์ที่ค่าไม่ซ้ำเกือบทุกแถว (เช่น "ชื่อสินค้า" ที่บังเอิญถูกเดาเป็น category
-       เพราะมีข้อมูลน้อยแถว) กันกราฟแท่งมี 1 แท่งต่อ 1 แถวซึ่งไม่มีประโยชน์อะไร */
+       เพราะมีข้อมูลน้อยแถว) กันกราฟแท่งมี 1 แท่งต่อ 1 แถวซึ่งไม่มีประโยชน์อะไร — เป็นแค่ค่าเริ่มต้นแนะนำ
+       ผู้ใช้เปลี่ยนได้เองเสมอผ่าน dropdown ของแต่ละการ์ด */
     var catCols = state.columns.filter(function (c) { return c.type === 'category'; }).map(function (c) {
       var uniq = {}; rows.forEach(function (r) { var v = r[c.key]; if (v !== null && v !== undefined && v !== '') uniq[String(v)] = true; });
       return { col: c, uniqCount: Object.keys(uniq).length };
@@ -605,25 +655,37 @@
 
     var hasChartJs = typeof Chart !== 'undefined';
 
-    /* ── กราฟแท่ง: คอลัมน์หมวดหมู่แรก × คอลัมน์ตัวเลขแรก (หรือจำนวนแถวถ้าไม่มีคอลัมน์ตัวเลข) ── */
+    /* ── กราฟแท่ง: คอลัมน์หมวดหมู่ × คอลัมน์ตัวเลข (เลือกเองได้ทั้งคู่ ค่าเริ่มต้นให้ระบบเดา) ── */
     destroyChart('bar');
     if (hasChartJs && catCols.length && rows.length) {
-      var barCat = catCols[0], barNum = numCols[0];
+      var barCat = resolveColChoice(state.chartChoice.barCat, catCols, catCols[0]);
+      var barNum = state.chartChoice.barNum === '' ? null : resolveColChoice(state.chartChoice.barNum, numCols, numCols[0]);
+      fillSelect($('barCatSel'), catCols, barCat.key);
+      fillSelect($('barNumSel'), numCols, barNum ? barNum.key : '', 'จำนวนรายการ (นับ)');
       var barEntries = aggregateByCategory(rows, barCat.key, barNum ? barNum.key : null);
       $('barChartTitle').textContent = barNum ? ('📊 ' + barCat.label + ' ตามผลรวม ' + barNum.label) : ('📊 จำนวนรายการตาม ' + barCat.label);
       charts.bar = new Chart($('barChart').getContext('2d'), {
         type: 'bar',
         data: { labels: barEntries.map(function (e) { return e[0]; }), datasets: [{ data: barEntries.map(function (e) { return e[1]; }), backgroundColor: '#1E9E5A', borderRadius: 6, maxBarThickness: 46 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true, grid: { color: '#EEF0F4' } }, x: { grid: { display: false } } } }
+          scales: { y: { beginAtZero: true, grid: { color: '#EEF0F4' } }, x: { grid: { display: false } } },
+          onClick: function (evt, els) {
+            if (!els || !els.length) return;
+            var label = barEntries[els[0].index][0];
+            if (label === 'อื่นๆ') return; // รวมหลายค่า กรองเป็นค่าเดียวไม่ได้จริง
+            setDrill(barCat.key, barCat.label, label);
+          } }
       });
       $('barChartCard').style.display = 'block'; anyRendered = true;
     } else $('barChartCard').style.display = 'none';
 
-    /* ── กราฟเส้น: คอลัมน์วันที่แรก × คอลัมน์ตัวเลขแรก (หรือจำนวนแถวถ้าไม่มีคอลัมน์ตัวเลข) ── */
+    /* ── กราฟเส้น: คอลัมน์วันที่ × คอลัมน์ตัวเลข (เลือกเองได้ทั้งคู่) ── */
     destroyChart('line');
     if (hasChartJs && dateCols.length && rows.length) {
-      var lineDate = dateCols[0], lineNum = numCols[0];
+      var lineDate = resolveColChoice(state.chartChoice.lineDate, dateCols, dateCols[0]);
+      var lineNum = state.chartChoice.lineNum === '' ? null : resolveColChoice(state.chartChoice.lineNum, numCols, numCols[0]);
+      fillSelect($('lineDateSel'), dateCols, lineDate.key);
+      fillSelect($('lineNumSel'), numCols, lineNum ? lineNum.key : '', 'จำนวนรายการ (นับ)');
       var lineEntries = aggregateByDate(rows, lineDate.key, lineNum ? lineNum.key : null);
       if (lineEntries.length >= 2) {
         $('lineChartTitle').textContent = lineNum ? ('📈 แนวโน้ม ' + lineNum.label + ' ตามเวลา (' + lineDate.label + ')') : ('📈 จำนวนรายการตามเวลา (' + lineDate.label + ')');
@@ -637,16 +699,25 @@
       } else $('lineChartCard').style.display = 'none';
     } else $('lineChartCard').style.display = 'none';
 
-    /* ── กราฟวงกลม: สัดส่วนจำนวนแถวตามคอลัมน์หมวดหมู่ (ใช้คอลัมน์ที่ 2 ถ้ามี กันซ้ำมุมมองกับกราฟแท่ง) ── */
+    /* ── กราฟวงกลม: สัดส่วนจำนวนแถวตามคอลัมน์หมวดหมู่ (เลือกเองได้ ดีฟอลต์ใช้คอลัมน์ที่ 2 ถ้ามี
+       กันซ้ำมุมมองกับกราฟแท่ง) ── */
     destroyChart('pie');
     if (hasChartJs && catCols.length && rows.length) {
-      var pieCat = catCols.length > 1 ? catCols[1] : catCols[0];
+      var pieDefault = catCols.length > 1 ? catCols[1] : catCols[0];
+      var pieCat = resolveColChoice(state.chartChoice.pieCat, catCols, pieDefault);
+      fillSelect($('pieCatSel'), catCols, pieCat.key);
       var pieEntries = aggregateByCategory(rows, pieCat.key, null);
       $('pieChartTitle').textContent = '🥧 สัดส่วนจำนวนรายการตาม ' + pieCat.label;
       charts.pie = new Chart($('pieChart').getContext('2d'), {
         type: 'doughnut',
         data: { labels: pieEntries.map(function (e) { return e[0]; }), datasets: [{ data: pieEntries.map(function (e) { return e[1]; }), backgroundColor: CHART_COLORS, borderWidth: 0 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 11, font: { size: 11 } } } } }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 11, font: { size: 11 } } } },
+          onClick: function (evt, els) {
+            if (!els || !els.length) return;
+            var label = pieEntries[els[0].index][0];
+            if (label === 'อื่นๆ') return;
+            setDrill(pieCat.key, pieCat.label, label);
+          } }
       });
       $('pieChartCard').style.display = 'block'; anyRendered = true;
     } else $('pieChartCard').style.display = 'none';
@@ -656,7 +727,9 @@
       $('dashboardEmptyCard').querySelector('.mini').textContent = 'โหลดไลบรารีทำกราฟไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)';
     } else if (!anyRendered) {
       $('dashboardEmptyCard').style.display = 'block';
-      $('dashboardEmptyCard').querySelector('.mini').textContent = 'ยังสรุปเป็นกราฟไม่ได้ — ต้องมีอย่างน้อย 1 คอลัมน์ตัวเลข หรือ 1 คอลัมน์หมวดหมู่ที่ไม่ใช่ข้อความอิสระเกินไป';
+      $('dashboardEmptyCard').querySelector('.mini').textContent = rows.length
+        ? 'ยังสรุปเป็นกราฟไม่ได้ — ต้องมีอย่างน้อย 1 คอลัมน์ตัวเลข หรือ 1 คอลัมน์หมวดหมู่ที่ไม่ใช่ข้อความอิสระเกินไป'
+        : 'ไม่มีแถวข้อมูลที่ตรงกับตัวกรองที่ตั้งไว้ตอนนี้';
     } else {
       $('dashboardEmptyCard').style.display = 'none';
     }
@@ -666,6 +739,8 @@
     state.fileName = null; state.sheetNames = []; state.activeSheet = null; state.workbook = null; state.rawAoA = null;
     state.columns = []; state.rows = []; state.nextRowId = 1; state.filters = {}; state.globalQuery = '';
     state.sortCol = null; state.sortDir = null; state.selected = {}; state.page = 1; state.history = [];
+    state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
+    updateDrillBanner();
     $('dataCard').style.display = 'none';
     $('dashboardView').style.display = 'none';
     $('viewTabs').style.display = 'none';
@@ -700,6 +775,12 @@
     [].forEach.call($('viewTabs').querySelectorAll('.chip'), function (b) {
       b.addEventListener('click', function () { setView(b.getAttribute('data-view')); });
     });
+    $('drillClearBtn').addEventListener('click', clearDrill);
+    $('barCatSel').addEventListener('change', function () { state.chartChoice.barCat = this.value; renderDashboard(); });
+    $('barNumSel').addEventListener('change', function () { state.chartChoice.barNum = this.value; renderDashboard(); });
+    $('lineDateSel').addEventListener('change', function () { state.chartChoice.lineDate = this.value; renderDashboard(); });
+    $('lineNumSel').addEventListener('change', function () { state.chartChoice.lineNum = this.value; renderDashboard(); });
+    $('pieCatSel').addEventListener('change', function () { state.chartChoice.pieCat = this.value; renderDashboard(); });
     $('newFileBtn').addEventListener('click', function () {
       if (state.rows.length && !confirm('ยังไม่ได้ส่งออกข้อมูลปัจจุบัน — อัปโหลดไฟล์ใหม่จะแทนที่ข้อมูลนี้ ดำเนินการต่อไหม?')) return;
       resetToUpload();
@@ -717,10 +798,11 @@
           state.columns = saved.columns; state.rows = saved.rows; state.nextRowId = saved.nextRowId;
           state.filters = {}; state.globalQuery = ''; state.sortCol = null; state.sortDir = null;
           state.selected = {}; state.page = 1; state.history = [];
+          state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
+          updateDrillBanner();
           $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none';
           $('viewTabs').style.display = 'flex';
-          setView('table');
-          renderTable();
+          setView('table'); // เรียก renderTable() ให้เองในตัว
         });
         $('discardBtn').addEventListener('click', function () { $('resumeCard').style.display = 'none'; dbClearCurrent(); });
       }
