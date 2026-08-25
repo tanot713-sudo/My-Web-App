@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>นำเสนอรายงาน — อัปโหลด Excel เป็นแดชบอร์ด | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
+  --brand:#12A594;--brand-dk:#0B7F72;--brand-sf:#E7F6F4;
+  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--sky:#3B9BEA;--err:#E5484D;--warn:#E08700;--violet:#6C63D9;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
+  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto}
+.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
+.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+.crumb .sep{margin:0 7px;color:#C9CEDC}
+.head{display:flex;align-items:center;gap:14px;margin:12px 0 6px}
+.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:24px;
+  background:linear-gradient(135deg,#4361EE,#7C93FF);color:#fff;display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(67,97,238,.3)}
+h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px}
+.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
+  background:var(--card);border-radius:11px;padding:10px 15px;font-family:inherit;font-size:14px;font-weight:700;
+  color:var(--ink);cursor:pointer;transition:.15s;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:var(--brand);color:var(--brand-dk)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover:not(:disabled){background:var(--brand-dk);color:#fff}
+.btn.danger{background:var(--err);border-color:var(--err);color:#fff}
+.btn.danger:hover:not(:disabled){background:#C93F44;color:#fff}
+.btn.sm{padding:7px 11px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:default}
+.status{font-size:12.5px;color:var(--muted);margin-top:9px;min-height:1.2em}
+.status.err{color:var(--err)}
+.status.ok{color:var(--ok)}
+
+/* ── โซนอัปโหลด ── */
+.drop-zone{border:2px dashed var(--line);border-radius:14px;padding:30px 16px;text-align:center;transition:.15s}
+.drop-zone.drag{border-color:var(--brand);background:var(--brand-sf)}
+.drop-ic{font-size:34px}
+.drop-txt{font-size:13.5px;color:var(--muted);margin:6px 0 12px}
+.drop-hint{font-size:11.5px;color:var(--muted);margin-top:10px}
+
+/* ── ชิปเลือกชีต ── */
+.chip-row{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-family:inherit;font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:20px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+
+/* ── ตาราง ── */
+.tbl-wrap{overflow-x:auto;margin-top:4px;max-width:100%}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:700;font-size:11.5px;background:var(--bg);position:sticky;top:0;cursor:pointer;user-select:none}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+th .sort-ic{opacity:.4;margin-left:3px}
+th.sorted .sort-ic{opacity:1;color:var(--brand)}
+tr.hdr-pick{cursor:pointer}
+tr.hdr-pick:hover td{background:var(--brand-sf)}
+tr.hdr-pick.on td{background:var(--brand-sf);font-weight:700}
+td input.cell-in{width:100%;min-width:70px;font-family:inherit;font-size:13px;padding:4px 6px;border-radius:6px;
+  border:1.5px solid transparent;background:transparent;color:var(--ink)}
+td input.cell-in:focus{outline:none;border-color:var(--brand);background:var(--card)}
+.rowchk,.hdrchk{cursor:pointer;width:15px;height:15px;accent-color:var(--brand)}
+td.rowdel{text-align:center}
+.rowdel button{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px}
+.rowdel button:hover{background:var(--bg);color:var(--err)}
+.tbl-empty{font-size:13px;color:var(--muted);padding:16px 4px;text-align:center}
+
+/* ── แถบเครื่องมือตาราง ── */
+.toolbar-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.toolbar-row input[type=text]{font-family:inherit;font-size:13.5px;padding:9px 12px;border-radius:10px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);flex:1 1 180px;min-width:140px;-webkit-appearance:none}
+.toolbar-row input:focus{outline:none;border-color:var(--brand)}
+[data-theme="dark"] .toolbar-row input,[data-theme="dark"] td input.cell-in:focus{background:#12151C}
+
+/* ── แถวกรองต่อคอลัมน์ ── */
+.filter-in{width:100%;min-width:66px;font-family:inherit;font-size:11.5px;padding:4px 6px;border-radius:6px;
+  border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+.filter-in:focus{outline:none;border-color:var(--brand)}
+.filter-row td{background:var(--bg);padding:5px 8px}
+.filter-range{display:flex;gap:3px}
+.filter-range input{width:50%;min-width:0}
+
+/* ── ตัวแบ่งหน้า ── */
+.pager{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.pager span{font-size:12.5px;color:var(--muted)}
+
+.disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
+@media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:18px}}
+</style>
+</head>
+<body class="ome-tool-page">
+<script src="auth-gate.js"></script>
+<div class="wrap">
+
+  <nav class="crumb"><a href="index.html">หน้าหลัก</a><span class="sep">/</span>งานที่รับผิดชอบ<span class="sep">/</span>นำเสนอรายงาน</nav>
+
+  <div class="head">
+    <div class="head-ic">📊</div>
+    <div>
+      <h1>นำเสนอรายงาน</h1>
+      <div class="head-sub">อัปโหลดไฟล์ Excel/CSV แล้วดู แก้ไข เรียง กรองข้อมูลได้ในเว็บ</div>
+    </div>
+  </div>
+
+  <div class="card" id="uploadCard">
+    <h2>📤 อัปโหลดไฟล์</h2>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden>
+      <div class="drop-ic">📁</div>
+      <div class="drop-txt">ลากไฟล์มาวางตรงนี้ หรือ</div>
+      <button class="btn primary" id="pickBtn" type="button">เลือกไฟล์</button>
+      <div class="drop-hint">รองรับ .xlsx .xls .csv — ไฟล์ประมวลผลในเครื่องคุณทั้งหมด</div>
+    </div>
+    <div class="status" id="uploadStatus"></div>
+  </div>
+
+  <div class="card" id="resumeCard" style="display:none">
+    <h2>💾 พบข้อมูลที่ทำค้างไว้</h2>
+    <p class="mini" id="resumeInfo"></p>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn primary sm" id="resumeBtn" type="button">ดำเนินการต่อ</button>
+      <button class="btn sm" id="discardBtn" type="button">เริ่มใหม่</button>
+    </div>
+  </div>
+
+  <div class="card" id="sheetCard" style="display:none">
+    <h2>📑 เลือกชีต</h2>
+    <div class="chip-row" id="sheetChips"></div>
+  </div>
+
+  <div class="card" id="headerCard" style="display:none">
+    <h2>🔤 เลือกแถวหัวตาราง</h2>
+    <p class="mini">คลิกแถวที่เป็นชื่อคอลัมน์ (ปกติเป็นแถวแรกสุด) — ดูตัวอย่าง 8 แถวแรกของไฟล์</p>
+    <div class="tbl-wrap"><table id="headerPreviewTable"></table></div>
+    <button class="btn primary sm" id="confirmHeaderBtn" type="button" style="margin-top:10px">ใช้แถวนี้เป็นหัวตาราง →</button>
+  </div>
+
+  <div class="card" id="dataCard" style="display:none">
+    <h2>📋 ข้อมูล <span class="mini" id="dataMeta" style="margin-left:auto"></span></h2>
+    <div class="toolbar-row">
+      <input type="text" id="globalSearch" placeholder="ค้นหาทุกคอลัมน์…">
+      <button class="btn sm" id="addRowBtn" type="button">+ เพิ่มแถว</button>
+      <button class="btn sm" id="delSelBtn" type="button" disabled>🗑️ ลบที่เลือก</button>
+      <button class="btn sm" id="undoBtn" type="button" disabled>↩️ เลิกทำ</button>
+      <button class="btn sm" id="clearFilterBtn" type="button">ล้างตัวกรอง</button>
+      <button class="btn sm" id="newFileBtn" type="button">📤 อัปโหลดไฟล์ใหม่</button>
+    </div>
+    <div class="tbl-wrap" id="dataTableWrap"><table id="dataTable"></table></div>
+    <div id="dataEmpty" class="tbl-empty" style="display:none">ไม่พบแถวที่ตรงกับตัวกรอง</div>
+    <div class="pager" id="pager"></div>
+  </div>
+
+
+</div>
+
+<!-- SheetJS — อ่านไฟล์ .xlsx/.xls/.csv (ตัวเดียวกับที่หน้า "งาน Excel" ใช้) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="report-dashboard.js" defer></script>
+</body>
+</html>
