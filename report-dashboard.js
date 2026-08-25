@@ -374,9 +374,21 @@
 
     renderPager(all.length, totalPages);
     wireTableEvents();
-    $('delSelBtn').disabled = Object.keys(state.selected).filter(function (k) { return state.selected[k]; }).length === 0;
     $('dataMeta').textContent = (state.fileName || '') + (state.sheetNames.length > 1 ? ' · ' + state.activeSheet : '') +
       ' · ' + state.rows.length.toLocaleString('th-TH') + ' แถว' + (all.length !== state.rows.length ? ' (กรองเหลือ ' + all.length.toLocaleString('th-TH') + ')' : '');
+    $('statRow').style.display = 'grid';
+    $('statTotal').innerHTML = state.rows.length.toLocaleString('th-TH') + ' <span class="unit">แถว</span>';
+    $('statCols').innerHTML = state.columns.length.toLocaleString('th-TH') + ' <span class="unit">คอลัมน์</span>';
+    $('statShown').innerHTML = all.length.toLocaleString('th-TH') + ' <span class="unit">แถว</span>';
+    updateSelectionUI();
+  }
+
+  /* อัปเดตปุ่มลบที่เลือก + การ์ดสถิติ "เลือกไว้" จาก state.selected ตรงๆ — เรียกทั้งจาก renderTable()
+     (หลัง render ใหม่ทั้งตาราง) และจาก event ของ checkbox เดี่ยวๆ (ไม่ต้อง render ใหม่ทั้งตาราง) */
+  function updateSelectionUI() {
+    var selCount = Object.keys(state.selected).filter(function (k) { return state.selected[k]; }).length;
+    $('delSelBtn').disabled = selCount === 0;
+    $('statSelected').innerHTML = selCount.toLocaleString('th-TH') + ' <span class="unit">แถว</span>';
   }
 
   function renderPager(total, totalPages) {
@@ -426,12 +438,13 @@
         commitCellEdit(id, colKey, inp.value);
       });
     });
-    /* เลือกแถว (checkbox) */
+    /* เลือกแถว (checkbox) — อัปเดตปุ่มลบ + การ์ดสถิติ "เลือกไว้" ตรงๆ โดยไม่ render ตารางใหม่ทั้งหมด
+       (กันเช็คบ็อกซ์อื่นๆ ที่ผู้ใช้อาจกำลังจะกดต่อหลุด/รีเซ็ตตำแหน่งสกรอลล์) */
     [].forEach.call($('dataTable').querySelectorAll('.rowchk'), function (chk) {
       chk.addEventListener('change', function () {
         var id = +chk.getAttribute('data-id');
         if (chk.checked) state.selected[id] = true; else delete state.selected[id];
-        $('delSelBtn').disabled = Object.keys(state.selected).filter(function (k) { return state.selected[k]; }).length === 0;
+        updateSelectionUI();
       });
     });
     var hdrChk = $('hdrChk');
@@ -441,7 +454,7 @@
         var id = +chk.getAttribute('data-id');
         if (hdrChk.checked) state.selected[id] = true; else delete state.selected[id];
       });
-      $('delSelBtn').disabled = Object.keys(state.selected).filter(function (k) { return state.selected[k]; }).length === 0;
+      updateSelectionUI();
     });
     /* ลบทีละแถว */
     [].forEach.call($('dataTable').querySelectorAll('.del1'), function (btn) {
@@ -509,6 +522,7 @@
     state.columns = []; state.rows = []; state.nextRowId = 1; state.filters = {}; state.globalQuery = '';
     state.sortCol = null; state.sortDir = null; state.selected = {}; state.page = 1; state.history = [];
     $('dataCard').style.display = 'none';
+    $('statRow').style.display = 'none';
     $('sheetCard').style.display = 'none';
     $('headerCard').style.display = 'none';
     $('resumeCard').style.display = 'none';
