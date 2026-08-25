@@ -971,6 +971,72 @@
       pdf.save(exportFileBase() + '.pdf');
     });
   }
+  /* ── ส่งออกเป็น HTML แบบสแตนด์อโลน — ไม่ใช่ภาพนิ่งแบบ PNG/PDF: ฝัง config ของกราฟที่กำลังโชว์อยู่จริง
+     (ดึงจาก instance ของ Chart.js ที่ยังอยู่ใน memory ตอนนี้ ไม่ต้องคำนวณ aggregate ซ้ำ) ลงในไฟล์แล้ว
+     เรียก Chart.js จาก CDN ตัวเดียวกันตอนเปิดไฟล์ ทำให้เปิดที่ไหนก็ได้แล้วเห็นกราฟจริง คมชัด ซูมได้ ไม่ใช่
+     รูปแบน — ตัด onClick (drill-down) ทิ้งเพราะพึ่งพา state ของหน้าเว็บที่ไม่มีในไฟล์แยกแล้ว */
+  function cleanChartConfigForExport(c) {
+    if (!c) return null;
+    var opts = (c.config && c.config.options) || {};
+    return {
+      type: c.config.type,
+      data: JSON.parse(JSON.stringify(c.config.data)),
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: (opts.plugins && opts.plugins.legend) ? JSON.parse(JSON.stringify(opts.plugins.legend)) : { display: false } },
+        scales: opts.scales ? JSON.parse(JSON.stringify(opts.scales)) : undefined
+      }
+    };
+  }
+  function buildDashboardHtmlDoc() {
+    var title = escapeHtml(exportFileBase());
+    var showNum = $('numStatCard').style.display !== 'none';
+    var showBar = $('barChartCard').style.display !== 'none';
+    var showLine = $('lineChartCard').style.display !== 'none';
+    var showPie = $('pieChartCard').style.display !== 'none';
+    var barCfg = cleanChartConfigForExport(charts.bar), lineCfg = cleanChartConfigForExport(charts.line), pieCfg = cleanChartConfigForExport(charts.pie);
+
+    var html = '<!DOCTYPE html><html lang="th"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1"><title>' + title + '</title>' +
+      '<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800&display=swap" rel="stylesheet">' +
+      '<style>:root{--bg:#F3F5F8;--card:#fff;--ink:#151A23;--muted:#6B7280;--brand:#1E9E5A;' +
+      '--sh:0 1px 2px rgba(16,24,40,.04),0 10px 26px rgba(16,24,40,.07)}' +
+      '*{box-sizing:border-box;margin:0;padding:0}' +
+      'body{font-family:Prompt,system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:22px 16px 60px;-webkit-font-smoothing:antialiased}' +
+      '.wrap{max-width:820px;margin:0 auto}' +
+      'h1{font-size:20px;font-weight:800}.sub{font-size:12.5px;color:var(--muted);margin-top:4px;margin-bottom:4px}' +
+      '.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px}' +
+      '.card h2{font-size:14px;font-weight:700;margin-bottom:12px}' +
+      '.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}' +
+      '.stat-tile{background:var(--bg);border-radius:12px;padding:14px 15px}' +
+      '.stat-tile .lbl{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.02em}' +
+      '.stat-tile .val{font-size:21px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}' +
+      '.stat-tile .val .unit{font-size:12px;font-weight:600;color:var(--muted);margin-left:2px}' +
+      '.stat-tile .sub{font-size:11px;color:var(--muted);margin-top:4px}' +
+      '.chart-wrap{position:relative;height:280px;margin-top:4px}' +
+      '.foot{font-size:11.5px;color:var(--muted);text-align:center;margin-top:22px}' +
+      '</style></head><body><div class="wrap">' +
+      '<h1>📊 ' + title + '</h1>' +
+      '<div class="sub">ออกรายงานเมื่อ ' + new Date().toLocaleString('th-TH') + ' · ' + state.rows.length.toLocaleString('th-TH') + ' แถว</div>';
+
+    if (showNum) html += '<div class="card"><h2>🔢 สรุปตัวเลข</h2><div class="stat-row">' + $('numStatRow').innerHTML + '</div></div>';
+    if (showBar) html += '<div class="card"><h2>' + escapeHtml($('barChartTitle').textContent) + '</h2><div class="chart-wrap"><canvas id="rdc1"></canvas></div></div>';
+    if (showLine) html += '<div class="card"><h2>' + escapeHtml($('lineChartTitle').textContent) + '</h2><div class="chart-wrap"><canvas id="rdc2"></canvas></div></div>';
+    if (showPie) html += '<div class="card"><h2>' + escapeHtml($('pieChartTitle').textContent) + '</h2><div class="chart-wrap"><canvas id="rdc3"></canvas></div></div>';
+
+    html += '<div class="foot">สร้างจาก "นำเสนอรายงาน" — Tanot</div></div>' +
+      '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"><\/script><script>';
+    if (showBar) html += 'new Chart(document.getElementById("rdc1").getContext("2d"),' + JSON.stringify(barCfg) + ');';
+    if (showLine) html += 'new Chart(document.getElementById("rdc2").getContext("2d"),' + JSON.stringify(lineCfg) + ');';
+    if (showPie) html += 'new Chart(document.getElementById("rdc3").getContext("2d"),' + JSON.stringify(pieCfg) + ');';
+    html += '<\/script></body></html>';
+    return html;
+  }
+  function exportDashboardHtml() {
+    if (!state.rows.length) { alert('ยังไม่มีข้อมูลให้ส่งออก'); return; }
+    var blob = new Blob([buildDashboardHtmlDoc()], { type: 'text/html;charset=utf-8;' });
+    downloadBlob(blob, exportFileBase() + '.html');
+  }
 
   function resetToUpload() {
     state.fileName = null; state.sheetNames = []; state.activeSheet = null; state.workbook = null; state.rawAoA = null;
@@ -1036,6 +1102,7 @@
     $('exportCsvBtn').addEventListener('click', exportCsv);
     $('exportImgBtn').addEventListener('click', exportDashboardImage);
     $('exportPdfBtn').addEventListener('click', exportDashboardPdf);
+    $('exportHtmlBtn').addEventListener('click', exportDashboardHtml);
     $('printBtn').addEventListener('click', function () { window.print(); });
     $('globalSearch').addEventListener('input', function () {
       state.globalQuery = $('globalSearch').value; state.page = 1; renderTable();
