@@ -112,6 +112,12 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .tbl-wrap.dash tr.piv-total-row td{font-weight:800;background:#F8F9FB;border-top:2px solid var(--line)}
 [data-theme="dark"] .tbl-wrap.dash td.piv-total,[data-theme="dark"] .tbl-wrap.dash th.piv-total,
 [data-theme="dark"] .tbl-wrap.dash tr.piv-total-row td{background:#171C28}
+/* ── ตารางความเสี่ยง (Likelihood × Impact heat map) — สีพื้นเซลล์คำนวณจาก JS แล้วใส่เป็น inline style
+   ตรงๆ (เขียว→เหลือง→แดงตามคะแนนความเสี่ยงสัมพัทธ์) ไม่ต้องพึ่ง Chart.js ซึ่งไม่มี heatmap ในตัว ── */
+.risk-matrix{width:auto;min-width:100%}
+.risk-matrix th,.risk-matrix td{text-align:center;cursor:default;white-space:nowrap}
+.risk-matrix th{background:var(--bg);font-weight:700;position:static}
+.risk-matrix td{font-weight:800;font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums}
 /* ── แถบตัวกรองที่ active ของตารางในแดชบอร์ด (แยกจากตัวกรองของแท็บแก้ไข) — เดิมเป็นแถวกรองตรึงอยู่
    ตลอดทีละคอลัมน์ (รกมากเมื่อคอลัมน์เยอะ) เปลี่ยนเป็น: กดปุ่ม 🔽 ที่หัวคอลัมน์ หรือ "+ ตัวกรอง" ที่นี่
    เพื่อเปิด popup เลือกค่า/ช่วงทีละคอลัมน์แทน ── */
@@ -346,9 +352,15 @@ td.rowdel{text-align:center}
           <option value="maintenance" data-i18n="domainMaintenanceOption">🛠️ ซ่อมบำรุง</option>
           <option value="project" data-i18n="domainProjectOption">📁 โครงการ</option>
           <option value="legal" data-i18n="domainLegalOption">⚖️ กฎหมาย</option>
+          <option value="risk" data-i18n="domainRiskOption">⚠️ ความเสี่ยง</option>
         </select></label>
       </div>
       <div class="stat-row" id="domainKpiRow"></div>
+      <div class="card" id="domainMatrixCard" style="display:none;margin-top:14px">
+        <h2 id="domainMatrixTitle"></h2>
+        <div class="tbl-wrap"><div id="domainMatrixWrap"></div></div>
+        <p class="mini" id="domainMatrixAxisNote"></p>
+      </div>
       <div class="chart-grid">
         <div class="card" id="domainChart1Card" style="display:none">
           <h2 id="domainChart1Title"></h2>

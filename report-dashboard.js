@@ -79,11 +79,19 @@
       numStatTitle: '🔢 สรุปตัวเลข', statTileSub: 'เฉลี่ย {avg} · ต่ำสุด {min} · สูงสุด {max}',
       domainTemplateLbl: 'แม่แบบ', domainAutoOption: 'อัตโนมัติ', domainNoneOption: 'ทั่วไป (ไม่ใช้แม่แบบ)',
       domainMaintenanceOption: '🛠️ ซ่อมบำรุง', domainProjectOption: '📁 โครงการ', domainLegalOption: '⚖️ กฎหมาย',
+      domainRiskOption: '⚠️ ความเสี่ยง',
       domainTitleMaintenance: '🛠️ แดชบอร์ดซ่อมบำรุง', domainTitleProject: '📁 แดชบอร์ดโครงการ', domainTitleLegal: '⚖️ แดชบอร์ดกฎหมาย',
+      domainTitleRisk: '⚠️ แดชบอร์ดความเสี่ยง',
       domainDetectedHint: 'ตรวจพบว่าตารางนี้น่าจะเป็นตาราง{name} — เลือกแม่แบบอื่นได้จากด้านบนถ้าไม่ตรง',
       domainTitleNone: '🧩 แดชบอร์ดเฉพาะทาง',
       domainNoMatchHint: 'ยังไม่พบรูปแบบตารางที่ตรงกับแม่แบบใดในตอนนี้ — เลือกแม่แบบเองได้จากด้านบนถ้าต้องการ',
-      domainNameMaintenance: 'ซ่อมบำรุง', domainNameProject: 'โครงการ', domainNameLegal: 'กฎหมาย',
+      domainNameMaintenance: 'ซ่อมบำรุง', domainNameProject: 'โครงการ', domainNameLegal: 'กฎหมาย', domainNameRisk: 'ความเสี่ยง',
+      rKpiTotal: 'ความเสี่ยงทั้งหมด', rKpiCategories: 'จำนวนหมวดหมู่', rKpiAvgScore: 'คะแนนความเสี่ยงเฉลี่ย',
+      rKpiHighCount: 'ความเสี่ยงระดับสูง',
+      rChartByCategory: '📊 จำนวนความเสี่ยงต่อประเภท', rChartByStatus: '📊 จำนวนความเสี่ยงต่อสถานะ',
+      rChartByOwner: '📊 จำนวนความเสี่ยงต่อผู้รับผิดชอบ',
+      rMatrixTitle: '🔥 ตารางความเสี่ยง (โอกาสเกิด × ผลกระทบ)',
+      rMatrixAxisNote: 'แกนนอน = โอกาสเกิด (น้อย→มาก) · แกนตั้ง = ผลกระทบ (มาก→น้อย จากบนลงล่าง) · ตัวเลขในช่อง = จำนวนความเสี่ยง',
       mKpiTotalWO: 'Work Order ทั้งหมด', mKpiDowntime: 'Downtime รวม (ชม.)', mKpiCost: 'ต้นทุนซ่อมรวม',
       mKpiMttr: 'เวลาซ่อมเฉลี่ย (ชม.)', mKpiOnTimePct: '% เสร็จตรงแผน',
       mChartStatus: '📊 จำนวนงานต่อสถานะ', mChartCostByType: '📊 ต้นทุนซ่อมต่อประเภทเครื่องจักร',
@@ -174,11 +182,19 @@
       numStatTitle: '🔢 Number Summary', statTileSub: 'avg {avg} · min {min} · max {max}',
       domainTemplateLbl: 'Template', domainAutoOption: 'Auto', domainNoneOption: 'Generic (no template)',
       domainMaintenanceOption: '🛠️ Maintenance', domainProjectOption: '📁 Project', domainLegalOption: '⚖️ Legal',
+      domainRiskOption: '⚠️ Risk',
       domainTitleMaintenance: '🛠️ Maintenance Dashboard', domainTitleProject: '📁 Project Dashboard', domainTitleLegal: '⚖️ Legal Dashboard',
+      domainTitleRisk: '⚠️ Risk Dashboard',
       domainDetectedHint: 'Detected this as a {name} table — pick a different template above if it’s wrong',
       domainTitleNone: '🧩 Specialized Dashboard',
       domainNoMatchHint: 'No template matched this table automatically — pick one above if you’d like.',
-      domainNameMaintenance: 'Maintenance', domainNameProject: 'Project', domainNameLegal: 'Legal',
+      domainNameMaintenance: 'Maintenance', domainNameProject: 'Project', domainNameLegal: 'Legal', domainNameRisk: 'Risk',
+      rKpiTotal: 'Total Risks', rKpiCategories: 'Total Categories', rKpiAvgScore: 'Avg Risk Score',
+      rKpiHighCount: 'High Risks',
+      rChartByCategory: '📊 Risks by Category', rChartByStatus: '📊 Risks by Status',
+      rChartByOwner: '📊 Risks by Owner',
+      rMatrixTitle: '🔥 Risk Matrix (Likelihood × Impact)',
+      rMatrixAxisNote: 'X-axis = Likelihood (low→high) · Y-axis = Impact (high→low, top to bottom) · numbers = risk count per cell',
       mKpiTotalWO: 'Total Work Orders', mKpiDowntime: 'Total Downtime (hrs)', mKpiCost: 'Total Repair Cost',
       mKpiMttr: 'Avg Repair Time (hrs)', mKpiOnTimePct: '% Completed On Plan',
       mChartStatus: '📊 Work Orders by Status', mChartCostByType: '📊 Repair Cost by Equipment Type',
@@ -1485,6 +1501,16 @@
       lawname: { w: 2, kw: ['พระราชบัญญัติ', 'ประมวลกฎหมาย', 'พรบ', 'กฎหมาย', 'act', 'statute'] },
       readstatus: { w: 1, kw: ['อ่านแล้ว', 'สถานะการอ่าน', 'status'] },
       penalty: { w: 1, kw: ['โทษ', 'บทลงโทษ', 'penalty'] }
+    },
+    risk: {
+      likelihood: { w: 3, kw: ['likelihood', 'probability', 'โอกาสเกิด', 'ความน่าจะเป็น', 'โอกาส'] },
+      impact: { w: 3, kw: ['impact', 'severity', 'ผลกระทบ', 'ความรุนแรง'] },
+      risklevel: { w: 2, kw: ['risklevel', 'riskscore', 'riskrating', 'ระดับความเสี่ยง', 'คะแนนความเสี่ยง'] },
+      riskcategory: { w: 2, kw: ['riskcategory', 'ประเภทความเสี่ยง', 'หมวดความเสี่ยง', 'ลักษณะความเสี่ยง'] },
+      riskname: { w: 1, kw: ['ความเสี่ยง', 'risk'] },
+      status: { w: 1, kw: ['status', 'สถานะ'] },
+      owner: { w: 1, kw: ['riskowner', 'ผู้รับผิดชอบ', 'owner'] },
+      mitigation: { w: 1, kw: ['mitigation', 'มาตรการ', 'แผนจัดการ', 'แผนรองรับ', 'แผนลดความเสี่ยง'] }
     }
   };
   function normLabel(s) { return String(s == null ? '' : s).toLowerCase().replace(/[\s_\-]+/g, ''); }
@@ -1502,7 +1528,7 @@
   }
   function detectDomain() {
     var best = null;
-    ['maintenance', 'project', 'legal'].forEach(function (id) {
+    ['maintenance', 'project', 'legal', 'risk'].forEach(function (id) {
       var m = matchDomainRoles(state.columns, DOMAIN_ROLES[id]);
       if (m.score >= DOMAIN_MIN_SCORE && (!best || m.score > best.score)) best = { id: id, roles: m.roles, score: m.score };
     });
@@ -1640,7 +1666,115 @@
     return { title: t('domainTitleLegal'), tiles: tiles, chart1: chart1, chart2: chart2 };
   }
 
-  var DOMAIN_BUILDERS = { maintenance: buildMaintenanceDomain, project: buildProjectDomain, legal: buildLegalDomain };
+  /* ── ความเสี่ยง: มาตรฐาน risk register ทั่วไป (อ้างอิงจาก Smartsheet/RiskPublishing ตอนออกแบบ) —
+     Likelihood × Impact heat map เป็นภาพหลักที่คนวงการนี้คุ้นเคยที่สุด นอกเหนือจาก KPI/กราฟทั่วไป
+     ค่าคอลัมน์ likelihood/impact รับได้ทั้งตัวเลข (1-5 เป็นต้น) และข้อความระดับ (ต่ำ/กลาง/สูง, Low/Medium/
+     High) ผ่านตารางเทียบค่ามาตรฐาน — ต่างจากคอลัมน์ "สถานะ" ทั่วไปที่หลากหลายเกินจะเดา เพราะคำศัพท์
+     ระดับความเสี่ยงเป็นมาตรฐานสากล (ISO 31000) ที่ใช้คำซ้ำกันในแทบทุกองค์กรจริงๆ */
+  var RISK_LEVEL_RANK = {
+    verylow: 1, rare: 1, unlikely: 1, insignificant: 1, minor: 1, low: 1,
+    'ต่ำมาก': 1, 'น้อยมาก': 1, 'ต่ำ': 1, 'น้อย': 1,
+    possible: 2, moderate: 2, medium: 2,
+    'ปานกลาง': 2, 'กลาง': 2, 'ค่อนข้างต่ำ': 2,
+    likely: 3, high: 3, major: 3,
+    'สูง': 3, 'มาก': 3, 'ค่อนข้างสูง': 3,
+    almostcertain: 4, veryhigh: 4, critical: 4, severe: 4,
+    'สูงมาก': 4, 'วิกฤต': 4, 'รุนแรงมาก': 4
+  };
+  function riskRankOf(v) {
+    if (typeof v === 'number' && isFinite(v)) return v;
+    var n = normLabel(v);
+    return RISK_LEVEL_RANK[n] !== undefined ? RISK_LEVEL_RANK[n] : null;
+  }
+  function riskScoreOf(row, likCol, impCol) {
+    var lr = likCol.type === 'number' ? (typeof row[likCol.key] === 'number' ? row[likCol.key] : null) : riskRankOf(row[likCol.key]);
+    var ir = impCol.type === 'number' ? (typeof row[impCol.key] === 'number' ? row[impCol.key] : null) : riskRankOf(row[impCol.key]);
+    return (lr == null || ir == null) ? null : lr * ir;
+  }
+  /* ลำดับค่าบนแกน: เรียงตามระดับที่รู้จัก (RISK_LEVEL_RANK) ก่อน ค่าที่เดาระดับไม่ได้ต่อท้ายตามลำดับที่เจอ */
+  function riskAxisLevels(rows, col) {
+    var seen = {}, order = [];
+    rows.forEach(function (r) {
+      var raw = r[col.key];
+      if (raw === null || raw === undefined || raw === '') return;
+      var key = String(raw);
+      if (!(key in seen)) { seen[key] = { raw: raw, rank: riskRankOf(raw) }; order.push(key); }
+    });
+    order.sort(function (a, b) {
+      var ra = seen[a].rank, rb = seen[b].rank;
+      if (ra != null && rb != null) return ra - rb;
+      if (ra != null) return -1;
+      if (rb != null) return 1;
+      return 0;
+    });
+    return order.map(function (k) { return seen[k].raw; });
+  }
+  var RISK_MATRIX_MAX_LEVELS = 6; // เกินนี้ไม่ใช่มาตราส่วนแบบ risk matrix จริงแล้ว (คงเป็นค่าตัวเลขอิสระ) ข้ามการวาดตาราง
+  function buildRiskMatrixHtml(rows, likCol, impCol) {
+    var likLevels = riskAxisLevels(rows, likCol);
+    var impLevels = riskAxisLevels(rows, impCol);
+    if (!likLevels.length || !impLevels.length || likLevels.length > RISK_MATRIX_MAX_LEVELS || impLevels.length > RISK_MATRIX_MAX_LEVELS) return null;
+    var nLik = likLevels.length, nImp = impLevels.length;
+    var counts = {};
+    rows.forEach(function (r) {
+      var lv = r[likCol.key], iv = r[impCol.key];
+      if (lv === null || lv === undefined || lv === '' || iv === null || iv === undefined || iv === '') return;
+      var k = String(lv) + '|' + String(iv);
+      counts[k] = (counts[k] || 0) + 1;
+    });
+    var impDesc = impLevels.slice().reverse(); // แสดงผลกระทบสูงสุดไว้บนสุด (ตามธรรมเนียม risk matrix)
+    var html = '<table class="risk-matrix"><thead><tr><th></th>' +
+      likLevels.map(function (l) { return '<th>' + escapeHtml(String(l)) + '</th>'; }).join('') + '</tr></thead><tbody>';
+    impDesc.forEach(function (impVal, impDescIdx) {
+      var impRankIdx = nImp - 1 - impDescIdx; // ตำแหน่งจริงใน impLevels (0=ต่ำสุด)
+      html += '<tr><th>' + escapeHtml(String(impVal)) + '</th>';
+      likLevels.forEach(function (likVal, likIdx) {
+        var cnt = counts[String(likVal) + '|' + String(impVal)] || 0;
+        var frac = ((likIdx + 1) * (impRankIdx + 1)) / (nLik * nImp);
+        var bg = frac >= 0.66 ? 'rgba(229,72,77,.55)' : frac >= 0.33 ? 'rgba(245,158,11,.5)' : 'rgba(30,158,90,.35)';
+        html += '<td style="background:' + bg + '">' + (cnt || '') + '</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    return html;
+  }
+
+  function buildRiskDomain(rows, roles) {
+    var tiles = [];
+    tiles.push({ label: t('rKpiTotal'), value: rows.length.toLocaleString(locale()) });
+    if (roles.riskcategory) {
+      var uniqCat = {}; rows.forEach(function (r) { var v = r[roles.riskcategory.key]; if (v !== null && v !== undefined && v !== '') uniqCat[String(v)] = true; });
+      tiles.push({ label: t('rKpiCategories'), value: Object.keys(uniqCat).length.toLocaleString(locale()) });
+    }
+    var matrixHtml = null;
+    if (roles.likelihood && roles.impact) {
+      var scores = rows.map(function (r) { return riskScoreOf(r, roles.likelihood, roles.impact); }).filter(function (v) { return v !== null; });
+      if (scores.length) {
+        var avgScore = scores.reduce(function (s, v) { return s + v; }, 0) / scores.length;
+        tiles.push({ label: t('rKpiAvgScore'), value: avgScore.toLocaleString(locale(), { maximumFractionDigits: 2 }) });
+        var maxScore = Math.max.apply(null, scores);
+        var highCount = scores.filter(function (v) { return v >= maxScore * 0.66; }).length;
+        tiles.push({ label: t('rKpiHighCount'), value: highCount.toLocaleString(locale()) });
+      }
+      matrixHtml = buildRiskMatrixHtml(rows, roles.likelihood, roles.impact);
+    }
+    var chart1 = null, chart2 = null;
+    if (roles.riskcategory) {
+      var e1 = aggregateByCategory(rows, roles.riskcategory.key, null);
+      chart1 = { title: t('rChartByCategory'), labels: e1.map(function (e) { return e[0]; }), data: e1.map(function (e) { return e[1]; }) };
+    }
+    if (roles.status) {
+      var e2 = aggregateByCategory(rows, roles.status.key, null);
+      chart2 = { title: t('rChartByStatus'), labels: e2.map(function (e) { return e[0]; }), data: e2.map(function (e) { return e[1]; }) };
+    } else if (roles.owner) {
+      var e2b = aggregateByCategory(rows, roles.owner.key, null);
+      chart2 = { title: t('rChartByOwner'), labels: e2b.map(function (e) { return e[0]; }), data: e2b.map(function (e) { return e[1]; }) };
+    }
+    return { title: t('domainTitleRisk'), tiles: tiles, chart1: chart1, chart2: chart2, matrix: matrixHtml ? { title: t('rMatrixTitle'), html: matrixHtml, axisNote: t('rMatrixAxisNote') } : null };
+  }
+
+  var DOMAIN_BUILDERS = { maintenance: buildMaintenanceDomain, project: buildProjectDomain, legal: buildLegalDomain, risk: buildRiskDomain };
   function renderDomainDashboard(rows) {
     var override = state.domainOverride;
     var picked = override ? (override === 'none' ? null : { id: override, roles: matchDomainRoles(state.columns, DOMAIN_ROLES[override]).roles }) : detectDomain();
@@ -1657,6 +1791,7 @@
       $('domainKpiRow').innerHTML = '';
       $('domainChart1Card').style.display = 'none';
       $('domainChart2Card').style.display = 'none';
+      $('domainMatrixCard').style.display = 'none';
       return false;
     }
     var built = DOMAIN_BUILDERS[picked.id](rows, picked.roles);
@@ -1676,6 +1811,14 @@
         $(cardId).style.display = 'none';
       }
     });
+    if (built.matrix) {
+      $('domainMatrixCard').style.display = 'block';
+      $('domainMatrixTitle').textContent = built.matrix.title;
+      $('domainMatrixWrap').innerHTML = built.matrix.html;
+      $('domainMatrixAxisNote').textContent = built.matrix.axisNote;
+    } else {
+      $('domainMatrixCard').style.display = 'none';
+    }
     return true;
   }
 
