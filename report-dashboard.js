@@ -92,6 +92,14 @@
       rChartByOwner: '📊 จำนวนความเสี่ยงต่อผู้รับผิดชอบ',
       rMatrixTitle: '🔥 ตารางความเสี่ยง (โอกาสเกิด × ผลกระทบ)',
       rMatrixAxisNote: 'แกนนอน = โอกาสเกิด (น้อย→มาก) · แกนตั้ง = ผลกระทบ (มาก→น้อย จากบนลงล่าง) · ตัวเลขในช่อง = จำนวนความเสี่ยง',
+      domainFinanceOption: '💰 รายรับ-รายจ่าย', domainReadingOption: '📚 การอ่านหนังสือ',
+      domainTitleFinance: '💰 แดชบอร์ดรายรับ-รายจ่าย', domainTitleReading: '📚 แดชบอร์ดการอ่านหนังสือ',
+      domainNameFinance: 'รายรับ-รายจ่าย', domainNameReading: 'การอ่านหนังสือ',
+      fKpiIncome: 'รายรับรวม', fKpiExpense: 'รายจ่ายรวม', fKpiNet: 'คงเหลือสุทธิ', fKpiTxnCount: 'จำนวนรายการ',
+      fChartExpenseByCategory: '📊 รายจ่ายตามหมวดหมู่', fChartNetByMonth: '📈 คงเหลือสุทธิรายเดือน',
+      rdKpiTotalBooks: 'จำนวนหนังสือทั้งหมด', rdKpiTotalPages: 'จำนวนหน้ารวม',
+      rdKpiAvgRating: 'คะแนนเฉลี่ย', rdKpiGenres: 'จำนวนแนว',
+      rdChartByGenre: '📊 จำนวนเล่มต่อแนว', rdChartByMonth: '📈 จำนวนเล่มที่อ่านจบต่อเดือน',
       mKpiTotalWO: 'Work Order ทั้งหมด', mKpiDowntime: 'Downtime รวม (ชม.)', mKpiCost: 'ต้นทุนซ่อมรวม',
       mKpiMttr: 'เวลาซ่อมเฉลี่ย (ชม.)', mKpiOnTimePct: '% เสร็จตรงแผน',
       mChartStatus: '📊 จำนวนงานต่อสถานะ', mChartCostByType: '📊 ต้นทุนซ่อมต่อประเภทเครื่องจักร',
@@ -195,6 +203,14 @@
       rChartByOwner: '📊 Risks by Owner',
       rMatrixTitle: '🔥 Risk Matrix (Likelihood × Impact)',
       rMatrixAxisNote: 'X-axis = Likelihood (low→high) · Y-axis = Impact (high→low, top to bottom) · numbers = risk count per cell',
+      domainFinanceOption: '💰 Income/Expense', domainReadingOption: '📚 Reading Tracker',
+      domainTitleFinance: '💰 Income/Expense Dashboard', domainTitleReading: '📚 Reading Dashboard',
+      domainNameFinance: 'Income/Expense', domainNameReading: 'Reading',
+      fKpiIncome: 'Total Income', fKpiExpense: 'Total Expense', fKpiNet: 'Net Balance', fKpiTxnCount: 'Transactions',
+      fChartExpenseByCategory: '📊 Expense by Category', fChartNetByMonth: '📈 Net Balance by Month',
+      rdKpiTotalBooks: 'Total Books', rdKpiTotalPages: 'Total Pages',
+      rdKpiAvgRating: 'Avg Rating', rdKpiGenres: 'Total Genres',
+      rdChartByGenre: '📊 Books by Genre', rdChartByMonth: '📈 Books Finished by Month',
       mKpiTotalWO: 'Total Work Orders', mKpiDowntime: 'Total Downtime (hrs)', mKpiCost: 'Total Repair Cost',
       mKpiMttr: 'Avg Repair Time (hrs)', mKpiOnTimePct: '% Completed On Plan',
       mChartStatus: '📊 Work Orders by Status', mChartCostByType: '📊 Repair Cost by Equipment Type',
@@ -1511,6 +1527,26 @@
       status: { w: 1, kw: ['status', 'สถานะ'] },
       owner: { w: 1, kw: ['riskowner', 'ผู้รับผิดชอบ', 'owner'] },
       mitigation: { w: 1, kw: ['mitigation', 'มาตรการ', 'แผนจัดการ', 'แผนรองรับ', 'แผนลดความเสี่ยง'] }
+    },
+    finance: {
+      income: { w: 3, kw: ['รายรับ', 'รายได้', 'income', 'revenue'] },
+      expense: { w: 3, kw: ['รายจ่าย', 'ค่าใช้จ่าย', 'expense', 'cost', 'spending'] },
+      amount: { w: 2, kw: ['จำนวนเงิน', 'ยอดเงิน', 'มูลค่า', 'amount'] },
+      txntype: { w: 2, kw: ['ประเภทรายการ', 'ประเภทธุรกรรม', 'transactiontype'] },
+      category: { w: 2, kw: ['หมวดหมู่', 'category'] },
+      date: { w: 1, kw: ['date', 'วันที่'] },
+      account: { w: 1, kw: ['บัญชี', 'ช่องทาง', 'account', 'วิธีชำระ', 'paymentmethod'] },
+      description: { w: 1, kw: ['รายละเอียด', 'คำอธิบาย', 'description', 'note'] }
+    },
+    reading: {
+      pages: { w: 3, kw: ['จำนวนหน้า', 'pages', 'pagecount'] },
+      finishdate: { w: 3, kw: ['วันที่อ่านจบ', 'อ่านจบ', 'finishdate', 'datefinished', 'completeddate'] },
+      booktitle: { w: 2, kw: ['ชื่อหนังสือ', 'ชื่อเรื่อง', 'booktitle', 'title'] },
+      genre: { w: 2, kw: ['แนวหนังสือ', 'ประเภทหนังสือ', 'หมวดหมู่', 'genre'] },
+      rating: { w: 2, kw: ['คะแนน', 'ให้ดาว', 'rating'] },
+      author: { w: 1, kw: ['ผู้แต่ง', 'นักเขียน', 'author'] },
+      startdate: { w: 1, kw: ['วันที่เริ่มอ่าน', 'เริ่มอ่าน', 'startdate', 'datestarted'] },
+      status: { w: 1, kw: ['สถานะ', 'status'] }
     }
   };
   function normLabel(s) { return String(s == null ? '' : s).toLowerCase().replace(/[\s_\-]+/g, ''); }
@@ -1528,7 +1564,7 @@
   }
   function detectDomain() {
     var best = null;
-    ['maintenance', 'project', 'legal', 'risk'].forEach(function (id) {
+    ['maintenance', 'project', 'legal', 'risk', 'finance', 'reading'].forEach(function (id) {
       var m = matchDomainRoles(state.columns, DOMAIN_ROLES[id]);
       if (m.score >= DOMAIN_MIN_SCORE && (!best || m.score > best.score)) best = { id: id, roles: m.roles, score: m.score };
     });
@@ -1774,7 +1810,127 @@
     return { title: t('domainTitleRisk'), tiles: tiles, chart1: chart1, chart2: chart2, matrix: matrixHtml ? { title: t('rMatrixTitle'), html: matrixHtml, axisNote: t('rMatrixAxisNote') } : null };
   }
 
-  var DOMAIN_BUILDERS = { maintenance: buildMaintenanceDomain, project: buildProjectDomain, legal: buildLegalDomain, risk: buildRiskDomain };
+  /* จัดกลุ่ม (หรือถ้าไม่มีคอลัมน์ตัวเลข — นับจำนวนแถว) แยกตามเดือน (yyyy-mm) เรียงตามเวลา — ใช้ร่วมกันกับ
+     แดชบอร์ดรายรับ-รายจ่าย/การอ่านหนังสือ ที่ต้องดูแนวโน้มระดับเดือน (ต่างจาก aggregateByDate ที่ตัดถึง
+     ระดับวัน ซึ่งถี่เกินไปสำหรับข้อมูลที่มักกินเวลาหลายเดือน-หลายปี) */
+  function aggregateByMonth(rows, dateKey, numKey) {
+    var map = {};
+    rows.forEach(function (r) {
+      var d = r[dateKey];
+      if (!(d instanceof Date) || isNaN(d)) return;
+      var k = d.toISOString().slice(0, 7);
+      map[k] = (map[k] || 0) + (numKey ? (typeof r[numKey] === 'number' ? r[numKey] : 0) : 1);
+    });
+    return Object.keys(map).sort().map(function (k) { return [k, map[k]]; });
+  }
+
+  /* ── รายรับ-รายจ่าย: รองรับ 2 รูปแบบตารางที่พบจริง — (ก) มีคอลัมน์ "รายรับ"/"รายจ่าย" แยกกันเป็นตัวเลข
+     2 คอลัมน์ (พบบ่อยในเทมเพลตบัญชีของไทย) หรือ (ข) มีคอลัมน์ "จำนวนเงิน" + "ประเภทรายการ" ตัวเดียว ต้อง
+     เดาว่าค่าไหนคือรายรับ/รายจ่ายจากคำมาตรฐาน (รายรับ/รายได้/income vs รายจ่าย/ค่าใช้จ่าย/expense) —
+     ต่างจากคอลัมน์ "สถานะ" ทั่วไปตรงที่คำเหล่านี้เป็นศัพท์บัญชีมาตรฐานที่ใช้ซ้ำกันจริง ไม่ใช่ค่าที่แต่ละ
+     องค์กรตั้งเองตามใจชอบ */
+  var FINANCE_INCOME_KW = ['รายรับ', 'รายได้', 'income', 'revenue', 'เงินเข้า', 'ฝาก', 'deposit'];
+  var FINANCE_EXPENSE_KW = ['รายจ่าย', 'ค่าใช้จ่าย', 'expense', 'cost', 'เงินออก', 'ถอน', 'withdraw', 'ซื้อ'];
+  function classifyTxnType(v) {
+    var n = normLabel(v);
+    if (FINANCE_INCOME_KW.some(function (k) { return n.indexOf(normLabel(k)) !== -1; })) return 'income';
+    if (FINANCE_EXPENSE_KW.some(function (k) { return n.indexOf(normLabel(k)) !== -1; })) return 'expense';
+    return null;
+  }
+  function financeRowFlow(row, roles) {
+    if (roles.income && roles.expense) {
+      var inc = typeof row[roles.income.key] === 'number' ? row[roles.income.key] : 0;
+      var exp = typeof row[roles.expense.key] === 'number' ? row[roles.expense.key] : 0;
+      return { inc: inc, exp: exp };
+    }
+    if (roles.amount && roles.txntype) {
+      var cls = classifyTxnType(row[roles.txntype.key]);
+      var amt = typeof row[roles.amount.key] === 'number' ? Math.abs(row[roles.amount.key]) : 0;
+      if (cls === 'income') return { inc: amt, exp: 0 };
+      if (cls === 'expense') return { inc: 0, exp: amt };
+      return null;
+    }
+    return null;
+  }
+  function buildFinanceDomain(rows, roles) {
+    var tiles = [];
+    var flows = rows.map(function (r) { return financeRowFlow(r, roles); });
+    var totalIncome = 0, totalExpense = 0, resolvedCount = 0;
+    flows.forEach(function (f) { if (f) { totalIncome += f.inc; totalExpense += f.exp; resolvedCount++; } });
+    if (resolvedCount) {
+      tiles.push({ label: t('fKpiIncome'), value: totalIncome.toLocaleString(locale(), { maximumFractionDigits: 2 }) });
+      tiles.push({ label: t('fKpiExpense'), value: totalExpense.toLocaleString(locale(), { maximumFractionDigits: 2 }) });
+      tiles.push({ label: t('fKpiNet'), value: (totalIncome - totalExpense).toLocaleString(locale(), { maximumFractionDigits: 2 }) });
+    }
+    tiles.push({ label: t('fKpiTxnCount'), value: rows.length.toLocaleString(locale()) });
+    var chart1 = null, chart2 = null;
+    if (roles.category && resolvedCount) {
+      var map = {}, order = [];
+      rows.forEach(function (r, i) {
+        var f = flows[i]; if (!f || !f.exp) return;
+        var k = r[roles.category.key]; k = (k === null || k === undefined || k === '') ? t('emptyValueLabel') : String(k);
+        if (!(k in map)) { map[k] = 0; order.push(k); }
+        map[k] += f.exp;
+      });
+      var entries = order.map(function (k) { return [k, map[k]]; });
+      entries.sort(function (a, b) { return b[1] - a[1]; });
+      if (entries.length > MAX_CHART_CATS) {
+        var top = entries.slice(0, MAX_CHART_CATS);
+        var rest = entries.slice(MAX_CHART_CATS).reduce(function (s, e) { return s + e[1]; }, 0);
+        top.push([t('otherBucket'), rest]);
+        entries = top;
+      }
+      if (entries.length) chart1 = { title: t('fChartExpenseByCategory'), labels: entries.map(function (e) { return e[0]; }), data: entries.map(function (e) { return e[1]; }) };
+    }
+    if (roles.date && resolvedCount) {
+      var monthMap = {};
+      rows.forEach(function (r, i) {
+        var f = flows[i]; if (!f) return;
+        var d = r[roles.date.key]; if (!(d instanceof Date) || isNaN(d)) return;
+        var mk = d.toISOString().slice(0, 7);
+        monthMap[mk] = (monthMap[mk] || 0) + (f.inc - f.exp);
+      });
+      var monthKeys = Object.keys(monthMap).sort();
+      if (monthKeys.length >= 2) chart2 = { title: t('fChartNetByMonth'), labels: monthKeys, data: monthKeys.map(function (k) { return Math.round(monthMap[k] * 100) / 100; }) };
+    }
+    return { title: t('domainTitleFinance'), tiles: tiles, chart1: chart1, chart2: chart2 };
+  }
+
+  /* ── การอ่านหนังสือ: อ้างอิงจาก Bookwise/StoryGraph/Bookly ตอนออกแบบ — เล่ม/เดือน, สัดส่วนแนวหนังสือ,
+     คะแนนเฉลี่ย, จำนวนหน้ารวม เป็นชุด KPI/กราฟที่แอปติดตามการอ่านยอดนิยมใช้ตรงกันเกือบทั้งหมด */
+  function buildReadingDomain(rows, roles) {
+    var tiles = [];
+    if (roles.booktitle) {
+      var uniqBooks = {}; rows.forEach(function (r) { var v = r[roles.booktitle.key]; if (v !== null && v !== undefined && v !== '') uniqBooks[String(v)] = true; });
+      tiles.push({ label: t('rdKpiTotalBooks'), value: Object.keys(uniqBooks).length.toLocaleString(locale()) });
+    } else {
+      tiles.push({ label: t('rdKpiTotalBooks'), value: rows.length.toLocaleString(locale()) });
+    }
+    if (roles.pages) {
+      var pageSum = rows.reduce(function (s, r) { var v = r[roles.pages.key]; return s + (typeof v === 'number' ? v : 0); }, 0);
+      tiles.push({ label: t('rdKpiTotalPages'), value: pageSum.toLocaleString(locale()) });
+    }
+    if (roles.rating) {
+      var ratings = rows.map(function (r) { return r[roles.rating.key]; }).filter(function (v) { return typeof v === 'number'; });
+      if (ratings.length) tiles.push({ label: t('rdKpiAvgRating'), value: (ratings.reduce(function (s, v) { return s + v; }, 0) / ratings.length).toLocaleString(locale(), { maximumFractionDigits: 2 }) });
+    }
+    if (roles.genre) {
+      var uniqGenre = {}; rows.forEach(function (r) { var v = r[roles.genre.key]; if (v !== null && v !== undefined && v !== '') uniqGenre[String(v)] = true; });
+      tiles.push({ label: t('rdKpiGenres'), value: Object.keys(uniqGenre).length.toLocaleString(locale()) });
+    }
+    var chart1 = null, chart2 = null;
+    if (roles.genre) {
+      var e1 = aggregateByCategory(rows, roles.genre.key, null);
+      chart1 = { title: t('rdChartByGenre'), labels: e1.map(function (e) { return e[0]; }), data: e1.map(function (e) { return e[1]; }) };
+    }
+    if (roles.finishdate) {
+      var e2 = aggregateByMonth(rows, roles.finishdate.key, null);
+      if (e2.length >= 2) chart2 = { title: t('rdChartByMonth'), labels: e2.map(function (e) { return e[0]; }), data: e2.map(function (e) { return e[1]; }) };
+    }
+    return { title: t('domainTitleReading'), tiles: tiles, chart1: chart1, chart2: chart2 };
+  }
+
+  var DOMAIN_BUILDERS = { maintenance: buildMaintenanceDomain, project: buildProjectDomain, legal: buildLegalDomain, risk: buildRiskDomain, finance: buildFinanceDomain, reading: buildReadingDomain };
   function renderDomainDashboard(rows) {
     var override = state.domainOverride;
     var picked = override ? (override === 'none' ? null : { id: override, roles: matchDomainRoles(state.columns, DOMAIN_ROLES[override]).roles }) : detectDomain();
