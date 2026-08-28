@@ -77,6 +77,23 @@
       exportImgBtn: '📷 บันทึกเป็นรูปภาพ', exportPdfBtn: '📄 บันทึกเป็น PDF',
       exportHtmlBtn: '📃 บันทึกเป็น HTML', printBtn: '🖨️ พิมพ์',
       numStatTitle: '🔢 สรุปตัวเลข', statTileSub: 'เฉลี่ย {avg} · ต่ำสุด {min} · สูงสุด {max}',
+      domainTemplateLbl: 'แม่แบบ', domainAutoOption: 'อัตโนมัติ', domainNoneOption: 'ทั่วไป (ไม่ใช้แม่แบบ)',
+      domainMaintenanceOption: '🛠️ ซ่อมบำรุง', domainProjectOption: '📁 โครงการ', domainLegalOption: '⚖️ กฎหมาย',
+      domainTitleMaintenance: '🛠️ แดชบอร์ดซ่อมบำรุง', domainTitleProject: '📁 แดชบอร์ดโครงการ', domainTitleLegal: '⚖️ แดชบอร์ดกฎหมาย',
+      domainDetectedHint: 'ตรวจพบว่าตารางนี้น่าจะเป็นตาราง{name} — เลือกแม่แบบอื่นได้จากด้านบนถ้าไม่ตรง',
+      domainTitleNone: '🧩 แดชบอร์ดเฉพาะทาง',
+      domainNoMatchHint: 'ยังไม่พบรูปแบบตารางที่ตรงกับแม่แบบใดในตอนนี้ — เลือกแม่แบบเองได้จากด้านบนถ้าต้องการ',
+      domainNameMaintenance: 'ซ่อมบำรุง', domainNameProject: 'โครงการ', domainNameLegal: 'กฎหมาย',
+      mKpiTotalWO: 'Work Order ทั้งหมด', mKpiDowntime: 'Downtime รวม (ชม.)', mKpiCost: 'ต้นทุนซ่อมรวม',
+      mKpiMttr: 'เวลาซ่อมเฉลี่ย (ชม.)', mKpiOnTimePct: '% เสร็จตรงแผน',
+      mChartStatus: '📊 จำนวนงานต่อสถานะ', mChartCostByType: '📊 ต้นทุนซ่อมต่อประเภทเครื่องจักร',
+      mChartCountByPriority: '📊 จำนวนงานต่อระดับความสำคัญ',
+      pKpiBudget: 'งบประมาณรวม', pKpiActual: 'ใช้จริงรวม', pKpiRemaining: 'งบคงเหลือ',
+      pKpiAvgProgress: 'ความคืบหน้าเฉลี่ย', pKpiOverdue: 'โครงการล่าช้า',
+      pChartProgress: '📊 ความคืบหน้า (%) ต่อโครงการ', pChartActualCost: '📊 ใช้จริงต่อโครงการ',
+      lKpiSections: 'จำนวนมาตรา', lKpiCategories: 'จำนวนหมวดหมู่',
+      lChartByCategory: '📊 จำนวนมาตราต่อหมวดหมู่', lChartByReadStatus: '📊 จำนวนมาตราต่อสถานะการอ่าน',
+      lChartByLawName: '📊 จำนวนมาตราต่อกฎหมาย',
       chartTypeLbl: 'ชนิดกราฟ', groupByLbl: 'จัดกลุ่มตาม', sumValueLbl: 'รวมค่า',
       timeAxisLbl: 'แกนเวลา', showByLbl: 'แสดงสัดส่วนตาม', countOption: 'จำนวนรายการ (นับ)',
       typeBar: 'แท่งแนวตั้ง', typeBarH: 'แท่งแนวนอน', typeLine: 'เส้น', typePie: 'วงกลม', typeDoughnut: 'โดนัท',
@@ -155,6 +172,23 @@
       exportImgBtn: '📷 Save as Image', exportPdfBtn: '📄 Save as PDF',
       exportHtmlBtn: '📃 Save as HTML', printBtn: '🖨️ Print',
       numStatTitle: '🔢 Number Summary', statTileSub: 'avg {avg} · min {min} · max {max}',
+      domainTemplateLbl: 'Template', domainAutoOption: 'Auto', domainNoneOption: 'Generic (no template)',
+      domainMaintenanceOption: '🛠️ Maintenance', domainProjectOption: '📁 Project', domainLegalOption: '⚖️ Legal',
+      domainTitleMaintenance: '🛠️ Maintenance Dashboard', domainTitleProject: '📁 Project Dashboard', domainTitleLegal: '⚖️ Legal Dashboard',
+      domainDetectedHint: 'Detected this as a {name} table — pick a different template above if it’s wrong',
+      domainTitleNone: '🧩 Specialized Dashboard',
+      domainNoMatchHint: 'No template matched this table automatically — pick one above if you’d like.',
+      domainNameMaintenance: 'Maintenance', domainNameProject: 'Project', domainNameLegal: 'Legal',
+      mKpiTotalWO: 'Total Work Orders', mKpiDowntime: 'Total Downtime (hrs)', mKpiCost: 'Total Repair Cost',
+      mKpiMttr: 'Avg Repair Time (hrs)', mKpiOnTimePct: '% Completed On Plan',
+      mChartStatus: '📊 Work Orders by Status', mChartCostByType: '📊 Repair Cost by Equipment Type',
+      mChartCountByPriority: '📊 Work Orders by Priority',
+      pKpiBudget: 'Total Budget', pKpiActual: 'Total Actual Cost', pKpiRemaining: 'Budget Remaining',
+      pKpiAvgProgress: 'Avg Progress', pKpiOverdue: 'Overdue Projects',
+      pChartProgress: '📊 Progress (%) by Project', pChartActualCost: '📊 Actual Cost by Project',
+      lKpiSections: 'Total Sections', lKpiCategories: 'Total Categories',
+      lChartByCategory: '📊 Sections by Category', lChartByReadStatus: '📊 Sections by Read Status',
+      lChartByLawName: '📊 Sections by Law',
       chartTypeLbl: 'Chart type', groupByLbl: 'Group by', sumValueLbl: 'Value',
       timeAxisLbl: 'Time axis', showByLbl: 'Break down by', countOption: 'Row count',
       typeBar: 'Column', typeBarH: 'Bar', typeLine: 'Line', typePie: 'Pie', typeDoughnut: 'Doughnut',
@@ -219,6 +253,7 @@
     chartChoice: { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null }, // null = auto
     chartType: { slot1: null, slot2: null, slot3: null }, // null = ดีฟอลต์ของสล็อตนั้น (bar/line/doughnut)
     dashTable: { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} }, // ตารางในแดชบอร์ด: โหมดรายการ/pivot + ตัวกรองของตัวเอง (ไม่ผูกกับ state.filters ของแท็บแก้ไข)
+    domainOverride: null,  // '' หรือ null = อัตโนมัติ (เดาจากชื่อคอลัมน์), 'none'|'maintenance'|'project'|'legal' = ผู้ใช้เลือกเอง
     reportId: null,        // ถ้าไม่ null = ผูกกับรายงานที่ตั้งชื่อบันทึกไว้ใน store 'reports' (Stage 4) — autosave เข้าที่นี่ด้วย
     reportName: null
   };
@@ -500,6 +535,7 @@
     state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
     state.chartType = { slot1: null, slot2: null, slot3: null };
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
+    state.domainOverride = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
     $('undoBtn').disabled = true;
@@ -1281,7 +1317,7 @@
      ใช้ state.rows ทั้งหมดเสมอ (ไม่ผูกกับตัวกรอง/คำค้นของมุมมองตาราง) เพื่อไม่ต้องอธิบายเพิ่มว่าทำไม
      ตัวเลขสรุปดู "ไม่ครบ" — เชื่อมกับตัวกรองเป็นของ stage ถัดไป */
   var CHART_COLORS = ['#1E9E5A', '#1B2030', '#F59E0B', '#3B82F6', '#EC5E8A', '#8B5CF6', '#0EA5A5', '#EF4444', '#84CC16', '#64748B'];
-  var charts = { bar: null, line: null, pie: null };
+  var charts = { bar: null, line: null, pie: null, domain1: null, domain2: null };
   var MAX_CHART_CATS = 8;
 
   function statOf(rows, key) {
@@ -1406,8 +1442,246 @@
     el.disabled = !items.length;
   }
 
+  /* ══════════════════ แดชบอร์ดเฉพาะทาง (ซ่อมบำรุง/โครงการ/กฎหมาย) ══════════════════
+     เดาประเภทตารางจาก "ชื่อคอลัมน์" (ไทย+อังกฤษ) แล้วแนะนำ KPI/กราฟที่ตรงกับงานจริงแทนการเดาทั่วไป —
+     อ้างอิงจากงานวิจัยจริงตอนออกแบบ (Maintenance KPI: IBM/Upkeep, Project KPI: ClearPoint) ไม่ใช่เดาส่งๆ
+     หลักการจับคู่: ให้แต่ละ "บทบาท" (role) มีคำค้นหลายคำ (ไทย/อังกฤษ) ค้นหาแบบ substring กับชื่อคอลัมน์ที่
+     ตัดช่องว่าง/underscore ออกแล้ว (กัน "Plan Start" vs "PlanStart" ไม่ตรงกัน) แต่ละ role มี "น้ำหนัก" —
+     role ที่เป็นเอกลักษณ์ของโดเมนนั้นจริงๆ (เช่น "workorder" ของซ่อมบำรุง, "มาตรา" ของกฎหมาย) ได้น้ำหนักสูง
+     กว่า role ทั่วไปที่หลายโดเมนมีร่วมกัน (เช่น "status") กันตารางอื่นถูกเดาผิดโดเมน — โดเมนที่คะแนนรวมสูง
+     สุดและถึงเกณฑ์ขั้นต่ำ (5) ถึงจะถือว่า "ตรวจพบ" ผู้ใช้เลือกแม่แบบเองทับได้เสมอผ่าน dropdown */
+  var DOMAIN_MIN_SCORE = 5;
+  var DOMAIN_ROLES = {
+    maintenance: {
+      workorder: { w: 3, kw: ['workorder', 'ใบสั่งงาน', 'เลขที่งาน'] },
+      equipmentno: { w: 2, kw: ['equipmentno', 'รหัสเครื่องจักร', 'รหัสอุปกรณ์'] },
+      equipmenttype: { w: 2, kw: ['equipmenttype', 'ประเภทเครื่องจักร', 'ประเภทอุปกรณ์'] },
+      downtime: { w: 3, kw: ['downtime', 'เวลาหยุด', 'หยุดทำงาน'] },
+      planstart: { w: 1, kw: ['planstart', 'planworkstart', 'กำหนดเริ่ม'] },
+      planfinish: { w: 1, kw: ['planfinish', 'planworkfinish', 'กำหนดเสร็จ'] },
+      actstart: { w: 1, kw: ['actworkstart', 'actualstart', 'เริ่มปฏิบัติงาน', 'เริ่มจริง'] },
+      actend: { w: 1, kw: ['actworkend', 'actualend', 'เสร็จปฏิบัติงาน', 'เสร็จจริง'] },
+      matcost: { w: 1, kw: ['matcost', 'materialcost', 'ค่าวัสดุ', 'ค่าอะไหล่'] },
+      laborcost: { w: 1, kw: ['laborcost', 'labourcost', 'ค่าแรง'] },
+      othercost: { w: 1, kw: ['othercost', 'ค่าใช้จ่ายอื่น'] },
+      status: { w: 1, kw: ['status', 'สถานะ'] },
+      priority: { w: 1, kw: ['priority', 'ความสำคัญ', 'ลำดับความสำคัญ'] }
+    },
+    project: {
+      projectname: { w: 2, kw: ['projectname', 'ชื่อโครงการ', 'โครงการ'] },
+      budget: { w: 3, kw: ['budget', 'งบประมาณ', 'plannedcost', 'planbudget'] },
+      actualcost: { w: 2, kw: ['actualcost', 'ใช้จริง', 'ค่าใช้จ่ายจริง'] },
+      percentcomplete: { w: 3, kw: ['percentcomplete', 'percentcompleted', 'ความคืบหน้า', 'เปอร์เซ็นต์ความคืบหน้า'] },
+      startdate: { w: 1, kw: ['startdate', 'วันที่เริ่ม'] },
+      enddate: { w: 1, kw: ['enddate', 'วันที่สิ้นสุด', 'กำหนดเสร็จ'] },
+      milestone: { w: 1, kw: ['milestone', 'เป้าหมาย'] },
+      phase: { w: 1, kw: ['phase', 'เฟส'] },
+      status: { w: 1, kw: ['status', 'สถานะ'] },
+      owner: { w: 1, kw: ['owner', 'ผู้รับผิดชอบ', 'ผู้จัดการโครงการ'] }
+    },
+    legal: {
+      section: { w: 3, kw: ['มาตรา', 'section', 'article'] },
+      lawcategory: { w: 2, kw: ['หมวด', 'ลักษณะ', 'category'] },
+      lawname: { w: 2, kw: ['พระราชบัญญัติ', 'ประมวลกฎหมาย', 'พรบ', 'กฎหมาย', 'act', 'statute'] },
+      readstatus: { w: 1, kw: ['อ่านแล้ว', 'สถานะการอ่าน', 'status'] },
+      penalty: { w: 1, kw: ['โทษ', 'บทลงโทษ', 'penalty'] }
+    }
+  };
+  function normLabel(s) { return String(s == null ? '' : s).toLowerCase().replace(/[\s_\-]+/g, ''); }
+  function matchDomainRoles(columns, roleDefs) {
+    var used = {}, roles = {}, score = 0;
+    Object.keys(roleDefs).forEach(function (roleKey) {
+      var def = roleDefs[roleKey];
+      var found = columns.filter(function (c) { return !used[c.key]; }).filter(function (c) {
+        var nl = normLabel(c.label);
+        return def.kw.some(function (kw) { return nl.indexOf(normLabel(kw)) !== -1; });
+      })[0];
+      if (found) { roles[roleKey] = found; used[found.key] = true; score += def.w; }
+    });
+    return { roles: roles, score: score };
+  }
+  function detectDomain() {
+    var best = null;
+    ['maintenance', 'project', 'legal'].forEach(function (id) {
+      var m = matchDomainRoles(state.columns, DOMAIN_ROLES[id]);
+      if (m.score >= DOMAIN_MIN_SCORE && (!best || m.score > best.score)) best = { id: id, roles: m.roles, score: m.score };
+    });
+    return best;
+  }
+  function renderStatTiles(containerId, tiles) {
+    var html = tiles.map(function (t) {
+      return '<div class="stat-tile"><div class="lbl">' + escapeHtml(t.label) + '</div><div class="val">' + t.value +
+        (t.unit ? ' <span class="unit">' + escapeHtml(t.unit) + '</span>' : '') + '</div>' +
+        (t.sub ? '<div class="sub">' + escapeHtml(t.sub) + '</div>' : '') + '</div>';
+    }).join('');
+    $(containerId).innerHTML = html;
+  }
+  function hoursBetween(a, b) { return (b.getTime() - a.getTime()) / 3600000; }
+
+  function buildMaintenanceDomain(rows, roles) {
+    var tiles = [];
+    tiles.push({ label: t('mKpiTotalWO'), value: rows.length.toLocaleString(locale()) });
+    if (roles.downtime) {
+      var dtSum = rows.reduce(function (s, r) { var v = r[roles.downtime.key]; return s + (typeof v === 'number' ? v : 0); }, 0);
+      tiles.push({ label: t('mKpiDowntime'), value: dtSum.toLocaleString(locale(), { maximumFractionDigits: 1 }) });
+    }
+    var costCols = [roles.matcost, roles.laborcost, roles.othercost].filter(Boolean);
+    if (costCols.length) {
+      var costSum = rows.reduce(function (s, r) { return s + costCols.reduce(function (s2, c) { var v = r[c.key]; return s2 + (typeof v === 'number' ? v : 0); }, 0); }, 0);
+      tiles.push({ label: t('mKpiCost'), value: costSum.toLocaleString(locale(), { maximumFractionDigits: 0 }) });
+    }
+    if (roles.actstart && roles.actend) {
+      var durs = rows.map(function (r) {
+        var a = r[roles.actstart.key], b = r[roles.actend.key];
+        return (a instanceof Date && !isNaN(a) && b instanceof Date && !isNaN(b) && b >= a) ? hoursBetween(a, b) : null;
+      }).filter(function (v) { return v !== null; });
+      if (durs.length) tiles.push({ label: t('mKpiMttr'), value: (durs.reduce(function (s, v) { return s + v; }, 0) / durs.length).toLocaleString(locale(), { maximumFractionDigits: 1 }) });
+    }
+    if (roles.actend && roles.planfinish) {
+      var both = rows.filter(function (r) { var a = r[roles.actend.key], b = r[roles.planfinish.key]; return a instanceof Date && !isNaN(a) && b instanceof Date && !isNaN(b); });
+      if (both.length) {
+        var onTime = both.filter(function (r) { return r[roles.actend.key] <= r[roles.planfinish.key]; }).length;
+        tiles.push({ label: t('mKpiOnTimePct'), value: (onTime / both.length * 100).toLocaleString(locale(), { maximumFractionDigits: 0 }), unit: '%' });
+      }
+    }
+    var chart1 = null, chart2 = null;
+    if (roles.status) {
+      var e1 = aggregateByCategory(rows, roles.status.key, null);
+      chart1 = { title: t('mChartStatus'), labels: e1.map(function (e) { return e[0]; }), data: e1.map(function (e) { return e[1]; }) };
+    }
+    if (roles.equipmenttype && costCols.length) {
+      var e2 = aggregateByCategory(rows, roles.equipmenttype.key, costCols[0].key);
+      chart2 = { title: t('mChartCostByType'), labels: e2.map(function (e) { return e[0]; }), data: e2.map(function (e) { return e[1]; }) };
+    } else if (roles.priority) {
+      var e2b = aggregateByCategory(rows, roles.priority.key, null);
+      chart2 = { title: t('mChartCountByPriority'), labels: e2b.map(function (e) { return e[0]; }), data: e2b.map(function (e) { return e[1]; }) };
+    }
+    return { title: t('domainTitleMaintenance'), tiles: tiles, chart1: chart1, chart2: chart2 };
+  }
+
+  function avgByCategory(rows, catKey, numKey) {
+    var sums = {}, counts = {}, order = [];
+    rows.forEach(function (r) {
+      var k = r[catKey]; k = (k === null || k === undefined || k === '') ? t('emptyValueLabel') : String(k);
+      var v = r[numKey];
+      if (typeof v !== 'number') return;
+      if (!(k in sums)) { sums[k] = 0; counts[k] = 0; order.push(k); }
+      sums[k] += v; counts[k] += 1;
+    });
+    var entries = order.map(function (k) { return [k, sums[k] / counts[k]]; });
+    if (entries.length > MAX_CHART_CATS) entries = entries.slice(0, MAX_CHART_CATS);
+    return entries;
+  }
+
+  function buildProjectDomain(rows, roles) {
+    var tiles = [];
+    if (roles.budget) {
+      var budgetSum = rows.reduce(function (s, r) { var v = r[roles.budget.key]; return s + (typeof v === 'number' ? v : 0); }, 0);
+      tiles.push({ label: t('pKpiBudget'), value: budgetSum.toLocaleString(locale(), { maximumFractionDigits: 0 }) });
+    }
+    var actualSum = null;
+    if (roles.actualcost) {
+      actualSum = rows.reduce(function (s, r) { var v = r[roles.actualcost.key]; return s + (typeof v === 'number' ? v : 0); }, 0);
+      tiles.push({ label: t('pKpiActual'), value: actualSum.toLocaleString(locale(), { maximumFractionDigits: 0 }) });
+    }
+    if (roles.budget && roles.actualcost) {
+      var budgetSum2 = rows.reduce(function (s, r) { var v = r[roles.budget.key]; return s + (typeof v === 'number' ? v : 0); }, 0);
+      tiles.push({ label: t('pKpiRemaining'), value: (budgetSum2 - actualSum).toLocaleString(locale(), { maximumFractionDigits: 0 }) });
+    }
+    if (roles.percentcomplete) {
+      var vals = rows.map(function (r) { return r[roles.percentcomplete.key]; }).filter(function (v) { return typeof v === 'number'; });
+      if (vals.length) tiles.push({ label: t('pKpiAvgProgress'), value: (vals.reduce(function (s, v) { return s + v; }, 0) / vals.length).toLocaleString(locale(), { maximumFractionDigits: 1 }), unit: '%' });
+    }
+    if (roles.enddate && roles.percentcomplete) {
+      var now = new Date();
+      var overdue = rows.filter(function (r) {
+        var d = r[roles.enddate.key], p = r[roles.percentcomplete.key];
+        return d instanceof Date && !isNaN(d) && d < now && typeof p === 'number' && p < 100;
+      }).length;
+      tiles.push({ label: t('pKpiOverdue'), value: overdue.toLocaleString(locale()) });
+    }
+    var chart1 = null, chart2 = null;
+    if (roles.projectname && roles.percentcomplete) {
+      var e1 = avgByCategory(rows, roles.projectname.key, roles.percentcomplete.key);
+      chart1 = { title: t('pChartProgress'), labels: e1.map(function (e) { return e[0]; }), data: e1.map(function (e) { return Math.round(e[1] * 10) / 10; }) };
+    }
+    if (roles.projectname && roles.actualcost) {
+      var e2 = aggregateByCategory(rows, roles.projectname.key, roles.actualcost.key);
+      chart2 = { title: t('pChartActualCost'), labels: e2.map(function (e) { return e[0]; }), data: e2.map(function (e) { return e[1]; }) };
+    }
+    return { title: t('domainTitleProject'), tiles: tiles, chart1: chart1, chart2: chart2 };
+  }
+
+  function buildLegalDomain(rows, roles) {
+    var tiles = [];
+    var sectionCol = roles.section;
+    if (sectionCol) {
+      var uniq = {}; rows.forEach(function (r) { var v = r[sectionCol.key]; if (v !== null && v !== undefined && v !== '') uniq[String(v)] = true; });
+      tiles.push({ label: t('lKpiSections'), value: Object.keys(uniq).length.toLocaleString(locale()) });
+    } else {
+      tiles.push({ label: t('lKpiSections'), value: rows.length.toLocaleString(locale()) });
+    }
+    if (roles.lawcategory) {
+      var uniqCat = {}; rows.forEach(function (r) { var v = r[roles.lawcategory.key]; if (v !== null && v !== undefined && v !== '') uniqCat[String(v)] = true; });
+      tiles.push({ label: t('lKpiCategories'), value: Object.keys(uniqCat).length.toLocaleString(locale()) });
+    }
+    var chart1 = null, chart2 = null;
+    if (roles.lawcategory) {
+      var e1 = aggregateByCategory(rows, roles.lawcategory.key, null);
+      chart1 = { title: t('lChartByCategory'), labels: e1.map(function (e) { return e[0]; }), data: e1.map(function (e) { return e[1]; }) };
+    }
+    if (roles.readstatus) {
+      var e2 = aggregateByCategory(rows, roles.readstatus.key, null);
+      chart2 = { title: t('lChartByReadStatus'), labels: e2.map(function (e) { return e[0]; }), data: e2.map(function (e) { return e[1]; }) };
+    } else if (roles.lawname) {
+      var e2b = aggregateByCategory(rows, roles.lawname.key, null);
+      chart2 = { title: t('lChartByLawName'), labels: e2b.map(function (e) { return e[0]; }), data: e2b.map(function (e) { return e[1]; }) };
+    }
+    return { title: t('domainTitleLegal'), tiles: tiles, chart1: chart1, chart2: chart2 };
+  }
+
+  var DOMAIN_BUILDERS = { maintenance: buildMaintenanceDomain, project: buildProjectDomain, legal: buildLegalDomain };
+  function renderDomainDashboard(rows) {
+    var override = state.domainOverride;
+    var picked = override ? (override === 'none' ? null : { id: override, roles: matchDomainRoles(state.columns, DOMAIN_ROLES[override]).roles }) : detectDomain();
+    destroyChart('domain1'); destroyChart('domain2');
+    if (!rows.length) { $('domainDashboardCard').style.display = 'none'; return false; }
+    /* การ์ดนี้เปิดค้างไว้เสมอเมื่อมีข้อมูล (ไม่ซ่อนทั้งการ์ดตอนไม่พบแม่แบบ/ผู้ใช้ปิดไว้) เพราะตัวเลือก
+       "แม่แบบ" อยู่ในการ์ดนี้เอง — ถ้าซ่อนทั้งการ์ดผู้ใช้จะไม่มีทางกดเปิดกลับมาได้อีก */
+    $('domainDashboardCard').style.display = 'block';
+    $('domainOverrideSel').value = override || '';
+    if (!picked) {
+      $('domainDashboardTitle').textContent = t('domainTitleNone');
+      $('domainDetectedHint').style.display = 'block';
+      $('domainDetectedHint').textContent = t('domainNoMatchHint');
+      $('domainKpiRow').innerHTML = '';
+      $('domainChart1Card').style.display = 'none';
+      $('domainChart2Card').style.display = 'none';
+      return false;
+    }
+    var built = DOMAIN_BUILDERS[picked.id](rows, picked.roles);
+    $('domainDashboardTitle').textContent = built.title;
+    $('domainDetectedHint').style.display = override ? 'none' : 'block';
+    if (!override) $('domainDetectedHint').textContent = t('domainDetectedHint', { name: t('domainName' + picked.id.charAt(0).toUpperCase() + picked.id.slice(1)) });
+    renderStatTiles('domainKpiRow', built.tiles);
+    [['domainChart1', built.chart1], ['domainChart2', built.chart2]].forEach(function (pair) {
+      var canvasId = pair[0], chart = pair[1];
+      var cardId = canvasId + 'Card', titleId = canvasId + 'Title';
+      if (chart && typeof Chart !== 'undefined' && chart.labels.length) {
+        $(cardId).style.display = 'block';
+        $(titleId).textContent = chart.title;
+        var cfg = buildChartConfig('bar', chart.labels, chart.data, '#1E9E5A');
+        charts[canvasId === 'domainChart1' ? 'domain1' : 'domain2'] = new Chart($(canvasId).getContext('2d'), cfg);
+      } else {
+        $(cardId).style.display = 'none';
+      }
+    });
+    return true;
+  }
+
   function renderDashboard() {
     var rows = state.drill ? state.rows.filter(matchesDrill) : state.rows;
+    renderDomainDashboard(rows);
     var numCols = state.columns.filter(function (c) { return c.type === 'number'; });
     var dateCols = state.columns.filter(function (c) { return c.type === 'date'; });
     /* เรียงคอลัมน์หมวดหมู่จากค่าไม่ซ้ำน้อยไปมาก — คอลัมน์ที่ค่าซ้ำกันบ่อย (เช่น "ประเภท") เหมาะเป็นแกน
@@ -1605,6 +1879,7 @@
       state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
     state.chartType = { slot1: null, slot2: null, slot3: null };
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
+    state.domainOverride = null;
       updateDrillBanner(); updateSaveUI();
       $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
       $('dataMeta').textContent = (state.fileName || rec.name) + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
@@ -1854,6 +2129,7 @@
     state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
     state.chartType = { slot1: null, slot2: null, slot3: null };
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
+    state.domainOverride = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
     $('dataCard').style.display = 'none';
@@ -1962,6 +2238,10 @@
     $('dashExportXlsxBtn').addEventListener('click', exportDashTableXlsx);
     $('dashExportCsvBtn').addEventListener('click', exportDashTableCsv);
     $('dashColsBtn').addEventListener('click', function () { openColumnVisibilityPopover($('dashColsBtn')); });
+    $('domainOverrideSel').addEventListener('change', function () {
+      state.domainOverride = this.value || null;
+      renderDashboard();
+    });
     $('printBtn').addEventListener('click', function () { window.print(); });
     $('globalSearch').addEventListener('input', function () {
       state.globalQuery = $('globalSearch').value; state.page = 1; renderTable();
@@ -1984,6 +2264,7 @@
           state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
     state.chartType = { slot1: null, slot2: null, slot3: null };
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
+    state.domainOverride = null;
           updateDrillBanner(); updateSaveUI();
           $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none';
           $('viewTabs').style.display = 'flex';

@@ -336,6 +336,30 @@ td.rowdel{text-align:center}
       <button class="btn sm" id="exportHtmlBtn" type="button" data-i18n="exportHtmlBtn">📃 บันทึกเป็น HTML</button>
       <button class="btn sm" id="printBtn" type="button" data-i18n="printBtn">🖨️ พิมพ์</button>
     </div>
+    <div class="card" id="domainDashboardCard" style="display:none">
+      <h2 id="domainDashboardTitle"></h2>
+      <p class="mini" id="domainDetectedHint"></p>
+      <div class="chart-ctrl-row">
+        <label><span data-i18n="domainTemplateLbl">แม่แบบ</span> <select id="domainOverrideSel">
+          <option value="" data-i18n="domainAutoOption">อัตโนมัติ</option>
+          <option value="none" data-i18n="domainNoneOption">ทั่วไป (ไม่ใช้แม่แบบ)</option>
+          <option value="maintenance" data-i18n="domainMaintenanceOption">🛠️ ซ่อมบำรุง</option>
+          <option value="project" data-i18n="domainProjectOption">📁 โครงการ</option>
+          <option value="legal" data-i18n="domainLegalOption">⚖️ กฎหมาย</option>
+        </select></label>
+      </div>
+      <div class="stat-row" id="domainKpiRow"></div>
+      <div class="chart-grid">
+        <div class="card" id="domainChart1Card" style="display:none">
+          <h2 id="domainChart1Title"></h2>
+          <div class="chart-wrap"><canvas id="domainChart1"></canvas></div>
+        </div>
+        <div class="card" id="domainChart2Card" style="display:none">
+          <h2 id="domainChart2Title"></h2>
+          <div class="chart-wrap"><canvas id="domainChart2"></canvas></div>
+        </div>
+      </div>
+    </div>
     <div class="card" id="numStatCard" style="display:none">
       <h2 data-i18n="numStatTitle">🔢 สรุปตัวเลข</h2>
       <div class="stat-row" id="numStatRow"></div>
