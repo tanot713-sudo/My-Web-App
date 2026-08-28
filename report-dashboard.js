@@ -59,6 +59,15 @@
       myReportsBtn: '📁 รายงานของฉัน', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 ไฟล์ใหม่',
       dataEmptyTxt: 'ไม่พบแถวที่ตรงกับตัวกรอง', colFallback: 'คอลัมน์ {n}',
       filterMin: 'ต่ำสุด', filterMax: 'สูงสุด', filterQ: 'กรอง…', delRowTitle: 'ลบแถวนี้',
+      filterIconTitle: 'กรองคอลัมน์นี้', filterSearchPh: 'ค้นหาค่า…', filterSelectAllBtn: 'เลือกทั้งหมด',
+      filterSelectNoneBtn: 'ไม่เลือกเลย', filterEmptyList: 'ไม่พบค่าที่ตรงกับคำค้นหา',
+      filterApplyBtn: 'ใช้ตัวกรอง', filterCancelBtn: 'ยกเลิก', filterClearThisBtn: 'ล้างตัวกรองนี้',
+      addFilterBtn: '+ ตัวกรอง', clearAllFiltersBtn: '✕ ล้างตัวกรองทั้งหมด',
+      filterChipValues: '{col}: {n} ค่า', filterChipValue1: '{col}: {v}',
+      filterChipMin: '{col}: ≥ {v}', filterChipMax: '{col}: ≤ {v}', filterChipRange: '{col}: {min}–{max}',
+      addFilterPickTitle: 'เลือกคอลัมน์ที่จะกรอง',
+      columnsBtn: '👁️ คอลัมน์', columnsPopoverTitle: 'เลือกคอลัมน์ที่จะแสดง', columnsSearchPh: 'ค้นหาคอลัมน์…',
+      columnsCloseBtn: 'ปิด', columnsHiddenNote: 'ซ่อนอยู่ {n} คอลัมน์',
       pagerPrev: '← ก่อนหน้า', pagerNext: 'ถัดไป →', pagerInfo: 'หน้า {page} / {total} ({n} แถว)',
       metaFilteredSuffix: ' (กรองเหลือ {m})',
       saveStatusSaving: 'กำลังบันทึก…', saveStatusSavedNamed: 'บันทึกเป็นรายงาน "{name}" แล้ว',
@@ -128,6 +137,15 @@
       myReportsBtn: '📁 My Reports', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 New File',
       dataEmptyTxt: 'No rows match the current filters', colFallback: 'Column {n}',
       filterMin: 'Min', filterMax: 'Max', filterQ: 'Filter…', delRowTitle: 'Delete this row',
+      filterIconTitle: 'Filter this column', filterSearchPh: 'Search values…', filterSelectAllBtn: 'Select all',
+      filterSelectNoneBtn: 'Select none', filterEmptyList: 'No values match your search',
+      filterApplyBtn: 'Apply filter', filterCancelBtn: 'Cancel', filterClearThisBtn: 'Clear this filter',
+      addFilterBtn: '+ Filter', clearAllFiltersBtn: '✕ Clear all filters',
+      filterChipValues: '{col}: {n} values', filterChipValue1: '{col}: {v}',
+      filterChipMin: '{col}: ≥ {v}', filterChipMax: '{col}: ≤ {v}', filterChipRange: '{col}: {min}–{max}',
+      addFilterPickTitle: 'Choose a column to filter',
+      columnsBtn: '👁️ Columns', columnsPopoverTitle: 'Choose columns to show', columnsSearchPh: 'Search columns…',
+      columnsCloseBtn: 'Close', columnsHiddenNote: '{n} columns hidden',
       pagerPrev: '← Prev', pagerNext: 'Next →', pagerInfo: 'Page {page} / {total} ({n} rows)',
       metaFilteredSuffix: ' (filtered to {m})',
       saveStatusSaving: 'Saving…', saveStatusSavedNamed: 'Saved as report "{name}"',
@@ -200,7 +218,7 @@
     drill: null,           // { key, label, value } — จากคลิกแท่ง/ชิ้นวงกลมในแดชบอร์ด กรองทั้งตาราง+แดชบอร์ด
     chartChoice: { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null }, // null = auto
     chartType: { slot1: null, slot2: null, slot3: null }, // null = ดีฟอลต์ของสล็อตนั้น (bar/line/doughnut)
-    dashTable: { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {} }, // ตารางในแดชบอร์ด: โหมดรายการ/pivot + ตัวกรองของตัวเอง (ไม่ผูกกับ state.filters ของแท็บแก้ไข)
+    dashTable: { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} }, // ตารางในแดชบอร์ด: โหมดรายการ/pivot + ตัวกรองของตัวเอง (ไม่ผูกกับ state.filters ของแท็บแก้ไข)
     reportId: null,        // ถ้าไม่ null = ผูกกับรายงานที่ตั้งชื่อบันทึกไว้ใน store 'reports' (Stage 4) — autosave เข้าที่นี่ด้วย
     reportName: null
   };
@@ -481,7 +499,7 @@
     state.selected = {}; state.page = 1; state.history = [];
     state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
     state.chartType = { slot1: null, slot2: null, slot3: null };
-    state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {} };
+    state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
     $('undoBtn').disabled = true;
@@ -752,13 +770,15 @@
           var maxV = col.type === 'date' ? new Date(f.max) : num(f.max);
           if (v == null || (col.type === 'date' ? (v > maxV) : (num(v) > maxV))) return false;
         }
-      } else if (f.q) {
-        var hay = (v == null ? '' : String(v)).toLowerCase();
-        if (hay.indexOf(String(f.q).toLowerCase()) === -1) return false;
+      } else if (f.values) {
+        /* กรองแบบ Excel: values = รายการค่าที่ "อนุญาตให้แสดง" (มาจาก popup checkbox) ไม่ใช่ substring search
+           แบบเดิม — แถวว่างเทียบกับ emptyValueLabel เดียวกับที่ใช้ตอนสร้างรายการ checkbox ใน popup */
+        if (f.values.indexOf(dashValueKey(v)) === -1) return false;
       }
     }
     return true;
   }
+  function dashValueKey(v) { return (v === null || v === undefined || v === '') ? t('emptyValueLabel') : String(v); }
 
   /* จัดกลุ่มแถว×คอลัมน์×รวมค่า แบบ Excel PivotTable ง่ายๆ — ไม่มี colCol = รวมเป็นคอลัมน์ค่าเดียว,
      ไม่มี valCol = นับจำนวนแถวแทนการรวมตัวเลข จำกัดจำนวนแถว/คอลัมน์ที่ไม่ซ้ำกันกันตารางใหญ่เกินไป */
@@ -838,11 +858,14 @@
       $('dashTableMeta').textContent = meta;
     } else {
       var shown = rows.slice(0, DASH_TABLE_CAP);
-      var thead2 = '<thead><tr>' + state.columns.map(function (col) {
-        return '<th class="' + (col.type === 'number' ? 'num' : '') + '">' + escapeHtml(col.label) + '</th>';
+      var visCols = state.columns.filter(function (c) { return !dt.hiddenCols[c.key]; });
+      var thead2 = '<thead><tr>' + visCols.map(function (col) {
+        var active = !!dt.filters[col.key];
+        return '<th class="' + (col.type === 'number' ? 'num' : '') + '">' + escapeHtml(col.label) +
+          '<button type="button" class="th-filter-btn' + (active ? ' active' : '') + '" data-col="' + col.key + '" title="' + escapeAttr(t('filterIconTitle')) + '">🔽</button></th>';
       }).join('') + '</tr></thead>';
       var tbody2 = '<tbody>' + shown.map(function (row) {
-        return '<tr>' + state.columns.map(function (col) {
+        return '<tr>' + visCols.map(function (col) {
           var v = row[col.key];
           var txt = (col.type === 'number' && typeof v === 'number')
             ? v.toLocaleString(locale(), { maximumFractionDigits: 2 })
@@ -851,6 +874,13 @@
         }).join('') + '</tr>';
       }).join('') + '</tbody>';
       $('dashTable').innerHTML = thead2 + tbody2;
+      [].forEach.call($('dashTable').querySelectorAll('.th-filter-btn'), function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var col = state.columns.filter(function (c) { return c.key === btn.getAttribute('data-col'); })[0];
+          openColumnFilterPopover(col, btn);
+        });
+      });
       $('dashTableMeta').textContent = rows.length > DASH_TABLE_CAP
         ? t('dashTableMetaCapped', { shown: DASH_TABLE_CAP.toLocaleString(locale()), total: rows.length.toLocaleString(locale()), tab: t('tabTable') })
         : t('dashTableMetaFull', { n: rows.length.toLocaleString(locale()), tab: t('tabTable') });
@@ -880,28 +910,227 @@
       fillSelect($('pivotValSel'), numCols, dt.pivotVal, t('countOption'));
       $('pivotAggSel').value = dt.pivotAgg;
     }
-    var html = state.columns.map(function (col) {
-      var f = dt.filters[col.key];
-      if (col.type === 'number' || col.type === 'date') {
-        var minV = f && f.min != null ? f.min : '', maxV = f && f.max != null ? f.max : '';
-        var inType = col.type === 'date' ? 'date' : 'number';
-        return '<div class="fcol"><label>' + escapeHtml(col.label) + '</label><div class="filter-range">' +
-          '<input class="filter-in dfin" type="' + inType + '" data-col="' + col.key + '" data-k="min" value="' + escapeAttr(minV) + '" placeholder="' + escapeAttr(t('filterMin')) + '">' +
-          '<input class="filter-in dfin" type="' + inType + '" data-col="' + col.key + '" data-k="max" value="' + escapeAttr(maxV) + '" placeholder="' + escapeAttr(t('filterMax')) + '">' +
-          '</div></div>';
-      }
-      var q = f && f.q ? f.q : '';
-      return '<div class="fcol"><label>' + escapeHtml(col.label) + '</label>' +
-        '<input class="filter-in dfin" type="text" data-col="' + col.key + '" data-k="q" value="' + escapeAttr(q) + '" placeholder="' + escapeAttr(t('filterQ')) + '"></div>';
+    renderDashActiveFilters();
+  }
+
+  /* ══════════════════ ตัวกรองต่อคอลัมน์ของตารางในแดชบอร์ด — แบบ popup (Excel-style) ══════════════════
+     เดิมเคยเป็นแถวกรองตรึงอยู่ตลอดทีละคอลัมน์ ซึ่งรกมากเมื่อคอลัมน์เยอะ (ผู้ใช้รายงาน) — เปลี่ยนมาเป็น:
+     ไอคอน 🔽 ที่หัวคอลัมน์ (เฉพาะโหมดรายการ, วาดใน renderDashTableBody) + แถบ chip ตัวกรองที่ active
+     อยู่เหนือตาราง (แสดงได้ทั้ง 2 โหมด เพราะตัวกรองมีผลก่อน pivot เสมอ) กด "+ ตัวกรอง" เพื่อเลือกคอลัมน์ที่
+     ยังไม่ได้กรองแล้วเปิด popup แบบเดียวกับกดไอคอนที่หัวคอลัมน์ */
+  function filterChipLabel(col, f) {
+    if (f.values) return f.values.length === 1 ? t('filterChipValue1', { col: col.label, v: f.values[0] }) : t('filterChipValues', { col: col.label, n: f.values.length });
+    var hasMin = f.min !== undefined && f.min !== '' && f.min !== null;
+    var hasMax = f.max !== undefined && f.max !== '' && f.max !== null;
+    if (hasMin && hasMax) return t('filterChipRange', { col: col.label, min: f.min, max: f.max });
+    if (hasMin) return t('filterChipMin', { col: col.label, v: f.min });
+    if (hasMax) return t('filterChipMax', { col: col.label, v: f.max });
+    return col.label;
+  }
+  function renderDashActiveFilters() {
+    var dt = state.dashTable;
+    var activeCols = state.columns.filter(function (c) { return !!dt.filters[c.key]; });
+    var html = activeCols.map(function (col) {
+      return '<span class="filter-chip" data-col="' + col.key + '"><span>' + escapeHtml(filterChipLabel(col, dt.filters[col.key])) + '</span>' +
+        '<button type="button" class="chip-edit" data-col="' + col.key + '" title="' + escapeAttr(t('filterIconTitle')) + '">✎</button>' +
+        '<button type="button" class="chip-x" data-col="' + col.key + '" aria-label="✕">✕</button></span>';
     }).join('');
-    $('dashFilterRow').innerHTML = html;
-    [].forEach.call($('dashFilterRow').querySelectorAll('.dfin'), function (inp) {
-      inp.addEventListener('input', function () {
-        var col = inp.getAttribute('data-col'), k = inp.getAttribute('data-k');
-        if (!dt.filters[col]) dt.filters[col] = {};
-        dt.filters[col][k] = inp.value;
-        renderDashTableBody();
+    html += '<button type="button" class="add-filter-btn" id="addFilterBtn">' + escapeHtml(t('addFilterBtn')) + '</button>';
+    if (activeCols.length) html += '<button type="button" class="clear-filters-btn" id="clearAllFiltersBtn">' + escapeHtml(t('clearAllFiltersBtn')) + '</button>';
+    $('dashActiveFilters').innerHTML = html;
+    [].forEach.call($('dashActiveFilters').querySelectorAll('.chip-x'), function (btn) {
+      btn.addEventListener('click', function () {
+        delete dt.filters[btn.getAttribute('data-col')];
+        renderDashActiveFilters(); renderDashTableBody();
       });
+    });
+    [].forEach.call($('dashActiveFilters').querySelectorAll('.chip-edit'), function (btn) {
+      btn.addEventListener('click', function () {
+        var col = state.columns.filter(function (c) { return c.key === btn.getAttribute('data-col'); })[0];
+        openColumnFilterPopover(col, btn);
+      });
+    });
+    $('addFilterBtn').addEventListener('click', function () { openAddFilterPicker($('addFilterBtn')); });
+    if ($('clearAllFiltersBtn')) {
+      $('clearAllFiltersBtn').addEventListener('click', function () {
+        dt.filters = {};
+        renderDashActiveFilters(); renderDashTableBody();
+      });
+    }
+  }
+
+  /* ── กลไก popup กลาง ใช้ #filterPopover จุดเดียวสร้างเนื้อหาใหม่ทุกครั้งที่เปิด (ใช้ทั้งตัวกรองคอลัมน์
+     และเลือกคอลัมน์ที่จะแสดง) ปิดเองเมื่อคลิกข้างนอก/กด Esc ── */
+  var closeActivePopover = null;
+  function positionPopover(el, anchorEl) {
+    var r = anchorEl.getBoundingClientRect();
+    var w = el.offsetWidth || 230;
+    var left = Math.min(Math.max(8, r.left), window.innerWidth - w - 8);
+    var top = r.bottom + 6;
+    if (top + 260 > window.innerHeight) top = Math.max(8, r.top - 266); // ไม่มีที่ด้านล่างพอ เปิดขึ้นด้านบนแทน
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
+  }
+  function openPopover(innerHtml, anchorEl, wireFn) {
+    if (closeActivePopover) closeActivePopover();
+    var el = $('filterPopover');
+    el.innerHTML = innerHtml;
+    el.style.display = 'block';
+    positionPopover(el, anchorEl);
+    var onDocClick = function (e) { if (!el.contains(e.target) && e.target !== anchorEl && !anchorEl.contains(e.target)) close(); };
+    var onKey = function (e) { if (e.key === 'Escape') close(); };
+    function close() {
+      el.style.display = 'none'; el.innerHTML = '';
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+      closeActivePopover = null;
+    }
+    setTimeout(function () { document.addEventListener('mousedown', onDocClick); document.addEventListener('keydown', onKey); }, 0);
+    closeActivePopover = close;
+    if (wireFn) wireFn(el, close);
+  }
+
+  /* รายการค่าไม่ซ้ำของคอลัมน์หนึ่ง คำนวณจากแถวที่ผ่านตัวกรอง "คอลัมน์อื่นๆ" แล้ว (ไม่รวมตัวกรองของคอลัมน์
+     นี้เอง) — แบบเดียวกับ Excel AutoFilter ที่รายการ checkbox แคบลงตามตัวกรองที่ตั้งไว้แล้วในคอลัมน์อื่น */
+  var COL_VALUE_LIST_CAP = 500;
+  function distinctValuesExcluding(colKey) {
+    var savedFilter = state.dashTable.filters[colKey];
+    delete state.dashTable.filters[colKey];
+    var seen = {}, out = [];
+    lastDashRows.forEach(function (row) {
+      if (!matchesDashFilters(row)) return;
+      var k = dashValueKey(row[colKey]);
+      if (!seen[k]) { seen[k] = true; out.push(k); }
+    });
+    if (savedFilter) state.dashTable.filters[colKey] = savedFilter;
+    out.sort(function (a, b) { return a.localeCompare(b, locale()); });
+    return out;
+  }
+
+  function openColumnFilterPopover(col, anchorEl) {
+    var dt = state.dashTable;
+    var f = dt.filters[col.key];
+    if (col.type === 'number' || col.type === 'date') {
+      var minV = f && f.min != null ? f.min : '', maxV = f && f.max != null ? f.max : '';
+      var inType = col.type === 'date' ? 'date' : 'number';
+      var html = '<div class="fp-title">' + escapeHtml(col.label) + '</div>' +
+        '<div class="fp-range">' +
+        '<label>' + escapeHtml(t('filterMin')) + '<input type="' + inType + '" class="fp-min" value="' + escapeAttr(minV) + '"></label>' +
+        '<label>' + escapeHtml(t('filterMax')) + '<input type="' + inType + '" class="fp-max" value="' + escapeAttr(maxV) + '"></label>' +
+        '</div>' +
+        '<div class="fp-actions"><button type="button" class="fp-link fp-clear">' + escapeHtml(t('filterClearThisBtn')) + '</button>' +
+        '<div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
+      openPopover(html, anchorEl, function (el, close) {
+        var applyRange = function () {
+          var minEl = el.querySelector('.fp-min'), maxEl = el.querySelector('.fp-max');
+          var nf = {};
+          if (minEl.value !== '') nf.min = minEl.value;
+          if (maxEl.value !== '') nf.max = maxEl.value;
+          if (nf.min !== undefined || nf.max !== undefined) dt.filters[col.key] = nf; else delete dt.filters[col.key];
+          renderDashActiveFilters(); renderDashTableBody();
+        };
+        el.querySelector('.fp-apply').addEventListener('click', function () { applyRange(); close(); });
+        el.querySelector('.fp-clear').addEventListener('click', function () { delete dt.filters[col.key]; renderDashActiveFilters(); renderDashTableBody(); close(); });
+      });
+      return;
+    }
+    /* category/text: รายการ checkbox แบบ Excel + ช่องค้นหาแคบรายการ (คอลัมน์ข้อความอิสระอาจมีค่าไม่ซ้ำเยอะ) */
+    var allValues = distinctValuesExcluding(col.key);
+    var selected = f && f.values ? f.values : null; // null = ยังไม่กรอง (ถือว่าติ๊กครบทุกค่า)
+    var pending = {}; allValues.forEach(function (v) { pending[v] = !selected || selected.indexOf(v) !== -1; });
+    var htmlCat = '<div class="fp-title">' + escapeHtml(col.label) + '</div>' +
+      '<input type="text" class="fp-search" placeholder="' + escapeAttr(t('filterSearchPh')) + '">' +
+      '<div class="fp-quick"><button type="button" class="fp-all">' + escapeHtml(t('filterSelectAllBtn')) + '</button>' +
+      '<button type="button" class="fp-none">' + escapeHtml(t('filterSelectNoneBtn')) + '</button></div>' +
+      '<div class="fp-list"></div>' +
+      '<div class="fp-actions"><button type="button" class="fp-link fp-clear">' + escapeHtml(t('filterClearThisBtn')) + '</button>' +
+      '<div class="fp-btns"><button type="button" class="btn sm secondary fp-cancel">' + escapeHtml(t('filterCancelBtn')) + '</button>' +
+      '<button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
+    openPopover(htmlCat, anchorEl, function (el, close) {
+      var listEl = el.querySelector('.fp-list');
+      function renderList(query) {
+        var q = (query || '').toLowerCase();
+        var vals = q ? allValues.filter(function (v) { return v.toLowerCase().indexOf(q) !== -1; }) : allValues;
+        if (!vals.length) { listEl.innerHTML = '<div class="fp-empty">' + escapeHtml(t('filterEmptyList')) + '</div>'; return; }
+        listEl.innerHTML = vals.slice(0, COL_VALUE_LIST_CAP).map(function (v) {
+          return '<label class="fp-item"><input type="checkbox" class="fp-chk" data-v="' + escapeAttr(v) + '"' + (pending[v] ? ' checked' : '') + '><span>' + escapeHtml(v) + '</span></label>';
+        }).join('');
+        [].forEach.call(listEl.querySelectorAll('.fp-chk'), function (chk) {
+          chk.addEventListener('change', function () { pending[chk.getAttribute('data-v')] = chk.checked; });
+        });
+      }
+      renderList('');
+      el.querySelector('.fp-search').addEventListener('input', function (e) { renderList(e.target.value); });
+      el.querySelector('.fp-all').addEventListener('click', function () { allValues.forEach(function (v) { pending[v] = true; }); renderList(el.querySelector('.fp-search').value); });
+      el.querySelector('.fp-none').addEventListener('click', function () { allValues.forEach(function (v) { pending[v] = false; }); renderList(el.querySelector('.fp-search').value); });
+      el.querySelector('.fp-cancel').addEventListener('click', close);
+      el.querySelector('.fp-clear').addEventListener('click', function () { delete dt.filters[col.key]; renderDashActiveFilters(); renderDashTableBody(); close(); });
+      el.querySelector('.fp-apply').addEventListener('click', function () {
+        var chosen = allValues.filter(function (v) { return pending[v]; });
+        if (chosen.length === allValues.length) delete dt.filters[col.key]; // เลือกครบทุกค่า = ไม่ต้องกรอง
+        else dt.filters[col.key] = { values: chosen };
+        renderDashActiveFilters(); renderDashTableBody();
+        close();
+      });
+    });
+  }
+
+  function openAddFilterPicker(anchorEl) {
+    var unfiltered = state.columns.filter(function (c) { return !state.dashTable.filters[c.key]; });
+    var html = '<div class="fp-title">' + escapeHtml(t('addFilterPickTitle')) + '</div>' +
+      '<input type="text" class="fp-search" placeholder="' + escapeAttr(t('filterSearchPh')) + '">' +
+      '<div class="fp-list"></div>';
+    openPopover(html, anchorEl, function (el, close) {
+      var listEl = el.querySelector('.fp-list');
+      function renderPick(query) {
+        var q = (query || '').toLowerCase();
+        var cols = q ? unfiltered.filter(function (c) { return c.label.toLowerCase().indexOf(q) !== -1; }) : unfiltered;
+        if (!cols.length) { listEl.innerHTML = '<div class="fp-empty">' + escapeHtml(t('filterEmptyList')) + '</div>'; return; }
+        listEl.innerHTML = cols.map(function (c) { return '<div class="fp-item" data-col="' + c.key + '"><span>' + escapeHtml(c.label) + '</span></div>'; }).join('');
+        [].forEach.call(listEl.querySelectorAll('.fp-item'), function (item) {
+          item.addEventListener('click', function () {
+            var col = state.columns.filter(function (c) { return c.key === item.getAttribute('data-col'); })[0];
+            close();
+            openColumnFilterPopover(col, anchorEl);
+          });
+        });
+      }
+      renderPick('');
+      el.querySelector('.fp-search').addEventListener('input', function (e) { renderPick(e.target.value); });
+    });
+  }
+
+  /* ══════════════════ เลือกคอลัมน์ที่จะแสดงในตารางของแดชบอร์ด (ซ่อน/แสดง) ══════════════════
+     ใช้เมื่อไฟล์มีคอลัมน์เยอะมาก (เช่นออกจากระบบ CMMS/work order) — ใช้ popup เดียวกัน สลับทันทีไม่ต้องกด
+     Apply (แค่ซ่อน/แสดงคอลัมน์ ไม่กระทบข้อมูล ทำ/undo ได้ง่ายกว่าตัวกรอง) ไม่กระทบตัวเลือกคอลัมน์ของ Pivot */
+  function openColumnVisibilityPopover(anchorEl) {
+    var dt = state.dashTable;
+    var html = '<div class="fp-title">' + escapeHtml(t('columnsPopoverTitle')) + '</div>' +
+      '<input type="text" class="fp-search" placeholder="' + escapeAttr(t('columnsSearchPh')) + '">' +
+      '<div class="fp-quick"><button type="button" class="fp-all">' + escapeHtml(t('filterSelectAllBtn')) + '</button>' +
+      '<button type="button" class="fp-none">' + escapeHtml(t('filterSelectNoneBtn')) + '</button></div>' +
+      '<div class="fp-list"></div>' +
+      '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm fp-close">' + escapeHtml(t('columnsCloseBtn')) + '</button></div></div>';
+    openPopover(html, anchorEl, function (el, close) {
+      var listEl = el.querySelector('.fp-list');
+      function renderCols(query) {
+        var q = (query || '').toLowerCase();
+        var cols = q ? state.columns.filter(function (c) { return c.label.toLowerCase().indexOf(q) !== -1; }) : state.columns;
+        listEl.innerHTML = cols.map(function (c) {
+          return '<label class="fp-item"><input type="checkbox" class="fp-chk" data-col="' + c.key + '"' + (dt.hiddenCols[c.key] ? '' : ' checked') + '><span>' + escapeHtml(c.label) + '</span></label>';
+        }).join('');
+        [].forEach.call(listEl.querySelectorAll('.fp-chk'), function (chk) {
+          chk.addEventListener('change', function () {
+            if (chk.checked) delete dt.hiddenCols[chk.getAttribute('data-col')]; else dt.hiddenCols[chk.getAttribute('data-col')] = true;
+            renderDashTableBody();
+          });
+        });
+      }
+      renderCols('');
+      el.querySelector('.fp-search').addEventListener('input', function (e) { renderCols(e.target.value); });
+      el.querySelector('.fp-all').addEventListener('click', function () { state.columns.forEach(function (c) { delete dt.hiddenCols[c.key]; }); renderCols(el.querySelector('.fp-search').value); renderDashTableBody(); });
+      el.querySelector('.fp-none').addEventListener('click', function () { state.columns.forEach(function (c) { dt.hiddenCols[c.key] = true; }); renderCols(el.querySelector('.fp-search').value); renderDashTableBody(); });
+      el.querySelector('.fp-close').addEventListener('click', close);
     });
   }
 
@@ -1375,7 +1604,7 @@
       state.selected = {}; state.page = 1; state.history = [];
       state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
     state.chartType = { slot1: null, slot2: null, slot3: null };
-    state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {} };
+    state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
       updateDrillBanner(); updateSaveUI();
       $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
       $('dataMeta').textContent = (state.fileName || rec.name) + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
@@ -1624,7 +1853,7 @@
     state.sortCol = null; state.sortDir = null; state.selected = {}; state.page = 1; state.history = [];
     state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
     state.chartType = { slot1: null, slot2: null, slot3: null };
-    state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {} };
+    state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
     $('dataCard').style.display = 'none';
@@ -1732,6 +1961,7 @@
     $('exportHtmlBtn').addEventListener('click', exportDashboardHtml);
     $('dashExportXlsxBtn').addEventListener('click', exportDashTableXlsx);
     $('dashExportCsvBtn').addEventListener('click', exportDashTableCsv);
+    $('dashColsBtn').addEventListener('click', function () { openColumnVisibilityPopover($('dashColsBtn')); });
     $('printBtn').addEventListener('click', function () { window.print(); });
     $('globalSearch').addEventListener('input', function () {
       state.globalQuery = $('globalSearch').value; state.page = 1; renderTable();
@@ -1753,7 +1983,7 @@
           state.selected = {}; state.page = 1; state.history = [];
           state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
     state.chartType = { slot1: null, slot2: null, slot3: null };
-    state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {} };
+    state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
           updateDrillBanner(); updateSaveUI();
           $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none';
           $('viewTabs').style.display = 'flex';

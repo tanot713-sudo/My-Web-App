@@ -112,10 +112,54 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .tbl-wrap.dash tr.piv-total-row td{font-weight:800;background:#F8F9FB;border-top:2px solid var(--line)}
 [data-theme="dark"] .tbl-wrap.dash td.piv-total,[data-theme="dark"] .tbl-wrap.dash th.piv-total,
 [data-theme="dark"] .tbl-wrap.dash tr.piv-total-row td{background:#171C28}
-/* ── แถวกรองต่อคอลัมน์ของตารางในแดชบอร์ด (แยกจากตัวกรองของแท็บแก้ไข) ── */
-.dash-filter-row{display:flex;flex-wrap:wrap;gap:8px 10px;margin:2px 0 12px}
-.dash-filter-row .fcol{display:flex;flex-direction:column;gap:3px;min-width:104px;max-width:170px}
-.dash-filter-row .fcol label{font-size:10.5px;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ── แถบตัวกรองที่ active ของตารางในแดชบอร์ด (แยกจากตัวกรองของแท็บแก้ไข) — เดิมเป็นแถวกรองตรึงอยู่
+   ตลอดทีละคอลัมน์ (รกมากเมื่อคอลัมน์เยอะ) เปลี่ยนเป็น: กดปุ่ม 🔽 ที่หัวคอลัมน์ หรือ "+ ตัวกรอง" ที่นี่
+   เพื่อเปิด popup เลือกค่า/ช่วงทีละคอลัมน์แทน ── */
+.dash-active-filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 12px}
+.filter-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--brand-dk);
+  background:var(--brand-sf);border:1.5px solid var(--brand);border-radius:16px;padding:5px 6px 5px 12px;max-width:260px}
+.filter-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.filter-chip button{border:none;background:transparent;color:var(--brand-dk);cursor:pointer;font-size:13px;
+  line-height:1;padding:2px 4px;border-radius:50%;font-weight:700;flex-shrink:0}
+.filter-chip button:hover{background:rgba(30,158,90,.18)}
+.add-filter-btn,.clear-filters-btn{font-family:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:16px;
+  border:1.5px dashed var(--line);background:transparent;color:var(--muted);cursor:pointer}
+.add-filter-btn:hover{border-color:var(--brand);color:var(--brand-dk)}
+.clear-filters-btn{border-style:solid;color:var(--err)}
+.clear-filters-btn:hover{background:#FDEBEC}
+th .th-filter-btn{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:11px;
+  padding:1px 3px;margin-left:4px;border-radius:5px;vertical-align:middle}
+th .th-filter-btn:hover{background:var(--line);color:var(--ink)}
+th .th-filter-btn.active{color:var(--brand)}
+
+/* ── popup ตัวกรอง/เลือกคอลัมน์ — ลอยแยกจาก layout ปกติ ตำแหน่งคำนวณจากปุ่มที่กด ── */
+.filter-popover{position:fixed;z-index:60;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  box-shadow:var(--sh);padding:12px;width:230px;max-width:calc(100vw - 20px)}
+.filter-popover .fp-title{font-size:12px;font-weight:800;color:var(--ink);margin-bottom:8px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.filter-popover .fp-search{width:100%;font-family:inherit;font-size:12.5px;padding:6px 8px;border-radius:8px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:8px}
+.filter-popover .fp-search:focus{outline:none;border-color:var(--brand)}
+.filter-popover .fp-quick{display:flex;gap:8px;margin-bottom:6px}
+.filter-popover .fp-quick button{font-family:inherit;font-size:11px;font-weight:700;color:var(--brand-dk);
+  background:transparent;border:none;cursor:pointer;padding:0}
+.filter-popover .fp-quick button:hover{text-decoration:underline}
+.filter-popover .fp-list{max-height:200px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;
+  padding:4px 0;margin-bottom:10px}
+.filter-popover .fp-item{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink);
+  padding:5px 9px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.filter-popover .fp-item:hover{background:var(--bg)}
+.filter-popover .fp-item input{accent-color:var(--brand);flex-shrink:0}
+.filter-popover .fp-empty{font-size:12px;color:var(--muted);padding:8px 9px}
+.filter-popover .fp-range{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.filter-popover .fp-range label{font-size:11px;color:var(--muted);font-weight:700}
+.filter-popover .fp-range input{width:100%;font-family:inherit;font-size:12.5px;padding:6px 8px;border-radius:8px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);margin-top:3px}
+.filter-popover .fp-range input:focus{outline:none;border-color:var(--brand)}
+.filter-popover .fp-actions{display:flex;gap:7px;justify-content:space-between;align-items:center}
+.filter-popover .fp-actions .fp-link{font-family:inherit;font-size:11.5px;font-weight:700;color:var(--err);
+  background:transparent;border:none;cursor:pointer;padding:4px 0}
+.filter-popover .fp-actions .fp-btns{display:flex;gap:6px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.02em;
@@ -141,7 +185,8 @@ td.rowdel{text-align:center}
 /* ตอนแคปหน้าจอเป็นรูป/PDF (html2canvas) — สลับคลาสนี้ชั่วคราวเพื่อซ่อนแถบเครื่องมือ/ตัวเลือก/ตัวกรอง
    ที่กดไม่ได้อยู่แล้วในภาพนิ่ง ไม่ให้ติดไปในรายงานที่ export ออกไป (ต่างจาก @media print ด้านล่างที่ใช้กับ
    ปุ่ม "พิมพ์" ของเบราว์เซอร์เท่านั้น ไม่ครอบคลุม html2canvas ซึ่งแคป DOM สดไม่ผ่าน print stylesheet) */
-.hide-controls .toolbar-row,.hide-controls .chart-ctrl-row,.hide-controls .dash-filter-row{display:none!important}
+.hide-controls .toolbar-row,.hide-controls .chart-ctrl-row,.hide-controls .dash-active-filters,
+.hide-controls .th-filter-btn,.hide-controls #filterPopover{display:none!important}
 .search-wrap{position:relative;flex:1 1 200px;min-width:160px}
 .search-wrap .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);pointer-events:none}
 .toolbar-row input[type=text]{font-family:inherit;font-size:13.5px;padding:10px 12px 10px 32px;border-radius:10px;
@@ -176,7 +221,8 @@ td.rowdel{text-align:center}
 /* ── โหมดพิมพ์: โชว์เฉพาะเนื้อหาที่กำลังดู ซ่อนปุ่ม/แถบเมนู ── */
 @media print{
   .crumb,.lang-toggle,.chip-row,.toolbar-row,.pager,.btn,#uploadCard,#resumeCard,#reportsCard,#sheetCard,#headerCard,
-  .rowchk,.hdrchk,.rowdel,#hdrChk,.filter-row,.chart-ctrl-row,.dash-filter-row{display:none!important}
+  .rowchk,.hdrchk,.rowdel,#hdrChk,.filter-row,.chart-ctrl-row,.dash-active-filters,
+  .th-filter-btn,#filterPopover{display:none!important}
   body.ome-tool-page{padding:0;background:#fff}
   .card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}
 }
@@ -339,6 +385,7 @@ td.rowdel{text-align:center}
       <div class="toolbar-row" style="margin-bottom:6px">
         <button class="btn sm" id="dashExportXlsxBtn" type="button" data-i18n="exportXlsxBtn">⬇️ Excel</button>
         <button class="btn sm" id="dashExportCsvBtn" type="button" data-i18n="exportCsvBtn">⬇️ CSV</button>
+        <button class="btn sm" id="dashColsBtn" type="button" data-i18n="columnsBtn">👁️ คอลัมน์</button>
       </div>
       <div class="chart-ctrl-row">
         <label><span data-i18n="dashModeLbl">มุมมองตาราง</span> <select id="dashModeSel">
@@ -353,7 +400,7 @@ td.rowdel{text-align:center}
           <option value="avg" data-i18n="aggAvg">ค่าเฉลี่ย</option>
         </select></label>
       </div>
-      <div class="dash-filter-row" id="dashFilterRow"></div>
+      <div class="dash-active-filters" id="dashActiveFilters"></div>
       <div class="tbl-wrap dash"><table id="dashTable"></table></div>
       <p class="mini" id="dashTableMeta"></p>
     </div>
@@ -364,6 +411,10 @@ td.rowdel{text-align:center}
   </div>
 
 </div>
+
+<!-- popup ตัวกรองต่อคอลัมน์/เลือกคอลัมน์ที่จะแสดง ของตารางในแดชบอร์ด — ใช้ position:fixed จุดเดียว
+     แชร์กันทุกคอลัมน์ (เนื้อหาข้างในสร้างใหม่ทุกครั้งที่เปิด) วางไว้นอก .wrap กัน overflow ของ .tbl-wrap ตัด -->
+<div id="filterPopover" class="filter-popover" style="display:none"></div>
 
 <!-- SheetJS — อ่านไฟล์ .xlsx/.xls/.csv (ตัวเดียวกับที่หน้า "งาน Excel" ใช้) -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
