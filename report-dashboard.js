@@ -47,6 +47,9 @@
       deleteReportConfirm: 'ลบรายงาน "{name}" ถาวร (กู้คืนไม่ได้)?', renameReportPrompt: 'เปลี่ยนชื่อรายงาน:',
       saveAsReportPrompt: 'ตั้งชื่อรายงานนี้:', reportDefaultBase: 'รายงาน',
       sheetTitle: '📑 เลือกชีต',
+      sheetModeHint: 'พบ {n} ชีตในไฟล์นี้ เลือกวิธีนำเข้า:',
+      sheetModeCombine: '📚 รวมทุกชีตเป็นตารางเดียว', sheetModeSingle: '📄 เลือกชีตเดียว',
+      sourceSheetLabel: 'ชีตต้นทาง', combinedSheetsSuffix: 'รวม {n} ชีต',
       headerTitle: '🔤 เลือกแถวหัวตาราง',
       headerHint: 'คลิกแถวที่เป็นชื่อคอลัมน์ (ปกติเป็นแถวแรกสุด) — ดูตัวอย่าง 8 แถวแรกของไฟล์',
       confirmHeaderBtn: 'ใช้แถวนี้เป็นหัวตาราง →',
@@ -113,6 +116,9 @@
       deleteReportConfirm: 'Permanently delete report "{name}"? This cannot be undone.', renameReportPrompt: 'Rename report:',
       saveAsReportPrompt: 'Name this report:', reportDefaultBase: 'Report',
       sheetTitle: '📑 Choose Sheet',
+      sheetModeHint: 'Found {n} sheets in this file — choose how to import:',
+      sheetModeCombine: '📚 Combine all sheets into one table', sheetModeSingle: '📄 Choose one sheet',
+      sourceSheetLabel: 'Source Sheet', combinedSheetsSuffix: 'combined {n} sheets',
       headerTitle: '🔤 Choose the Header Row',
       headerHint: 'Click the row that contains your column names (usually the first row) — showing the first 8 rows',
       confirmHeaderBtn: 'Use this row as the header →',
@@ -178,6 +184,7 @@
     fileName: null,
     sheetNames: [],
     activeSheet: null,
+    combineMode: false,    // true = รวมทุกชีตเป็นตารางเดียว (Append แบบ Power BI, จับคู่คอลัมน์ตามชื่อ) แทนการเลือกชีตเดียว
     workbook: null,       // XLSX workbook object (kept while picking sheet/header)
     rawAoA: null,         // array-of-arrays of the active sheet, for header-row picking
     headerRowIdx: 0,
@@ -290,6 +297,7 @@
     persistTimer = setTimeout(function () {
       var payload = {
         fileName: state.fileName, sheetName: state.activeSheet,
+        combineMode: state.combineMode, sheetNames: state.sheetNames,
         columns: state.columns, rows: state.rows, nextRowId: state.nextRowId,
         reportId: state.reportId, reportName: state.reportName,
         savedAt: Date.now()
@@ -300,6 +308,7 @@
       if (state.reportId) {
         dbPutReport({
           id: state.reportId, name: state.reportName, fileName: state.fileName, sheetName: state.activeSheet,
+          combineMode: state.combineMode, sheetNames: state.sheetNames,
           columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, savedAt: Date.now()
         });
         setSaveStatus(t('saveStatusAuto', { time: new Date().toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' }) }), 'ok');
@@ -379,16 +388,23 @@
     if (wb.SheetNames.length > 1) {
       showSheetPicker();
     } else {
+      state.combineMode = false;
       selectSheet(wb.SheetNames[0]);
     }
   }
 
+  /* หลายชีต: ให้เลือกว่าจะ "รวมทุกชีตเป็นตารางเดียว" (Append แบบ Power BI — จับคู่คอลัมน์ตามชื่อ ไม่ใช่ตำแหน่ง,
+     คอลัมน์ที่ไม่มีในบางชีตจะเป็นค่าว่าง, เพิ่มคอลัมน์ "ชีตต้นทาง" อัตโนมัติ) หรือ "เลือกชีตเดียว" แบบเดิม
+     ดีฟอลต์เป็นโหมดรวม เพราะผู้ใช้ทั่วไปที่มีหลายชีตโครงสร้างเดียวกัน (เช่น รายเดือน) มักอยากดูรวมกันมากกว่า */
   function showSheetPicker() {
+    $('sheetModeHint').textContent = t('sheetModeHint', { n: state.sheetNames.length });
     var html = '';
     state.sheetNames.forEach(function (name) {
       html += '<button type="button" class="chip" data-sheet="' + escapeAttr(name) + '">' + escapeHtml(name) + '</button>';
     });
     $('sheetChips').innerHTML = html;
+    $('sheetChips').style.display = 'none';
+    $('sheetModeCombine').classList.remove('on'); $('sheetModeSingle').classList.remove('on');
     $('sheetCard').style.display = 'block';
     [].forEach.call($('sheetChips').querySelectorAll('.chip'), function (btn) {
       btn.addEventListener('click', function () {
@@ -400,10 +416,30 @@
   }
 
   function selectSheet(name) {
+    state.combineMode = false;
     state.activeSheet = name;
     var sheet = state.workbook.Sheets[name];
     var aoa = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
     /* ตัดแถวว่างล้วนท้ายไฟล์ทิ้ง (พบบ่อยจากไฟล์ Excel ที่มีช่วงเซลล์เผื่อไว้เกินข้อมูลจริง) */
+    while (aoa.length && aoa[aoa.length - 1].every(function (c) { return c === null || c === ''; })) aoa.pop();
+    if (!aoa.length) { setUploadStatus(t('statusSheetEmpty'), 'err'); return; }
+    state.rawAoA = aoa;
+    state.headerRowIdx = 0;
+    renderHeaderPreview();
+    $('headerCard').style.display = 'block';
+    $('headerCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  /* โหมดรวมทุกชีต: ใช้ตำแหน่งแถวหัวตารางของ "ชีตแรก" เป็นตัวแทนทุกชีต (สมมติว่าไฟล์จริงมีแถวหัวตำแหน่ง
+     เดียวกันทุกชีต ซึ่งเป็นกรณีทั่วไปที่สุด) — พรีวิวแถวหัวจากชีตแรกเท่านั้น ตอนกด "ใช้แถวนี้เป็นหัวตาราง"
+     ค่อยไปประมวลผลทุกชีตจริงใน buildColumnsAndRowsCombined() */
+  function selectCombinedSheets() {
+    state.combineMode = true;
+    $('sheetModeCombine').classList.add('on'); $('sheetModeSingle').classList.remove('on');
+    $('sheetChips').style.display = 'none';
+    state.activeSheet = state.sheetNames[0];
+    var sheet = state.workbook.Sheets[state.activeSheet];
+    var aoa = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
     while (aoa.length && aoa[aoa.length - 1].every(function (c) { return c === null || c === ''; })) aoa.pop();
     if (!aoa.length) { setUploadStatus(t('statusSheetEmpty'), 'err'); return; }
     state.rawAoA = aoa;
@@ -436,7 +472,9 @@
   }
 
   function confirmHeader() {
-    var built = buildColumnsAndRows(state.rawAoA, state.headerRowIdx);
+    var built = state.combineMode
+      ? buildColumnsAndRowsCombined(state.workbook, state.sheetNames, state.headerRowIdx)
+      : buildColumnsAndRows(state.rawAoA, state.headerRowIdx);
     state.columns = built.columns; state.rows = built.rows; state.nextRowId = built.nextRowId;
     state.filters = {}; state.globalQuery = ''; $('globalSearch').value = '';
     state.sortCol = null; state.sortDir = null;
@@ -452,10 +490,17 @@
     $('uploadCard').style.display = 'none';
     $('resumeCard').style.display = 'none';
     $('reportsCard').style.display = 'none';
-    $('dataMeta').textContent = (state.fileName || '') + (state.sheetNames.length > 1 ? ' · ' + state.activeSheet : '') + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
+    $('dataMeta').textContent = (state.fileName || '') + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
     $('viewTabs').style.display = 'flex';
     setView('table'); // เรียก renderTable() ให้เองในตัว
     persistDebounced();
+  }
+
+  /* ต่อท้าย dataMeta บอกที่มาของชีต: โหมดรวม → "รวม N ชีต", โหมดชีตเดียวที่ไฟล์มีหลายชีต → ชื่อชีตที่เลือก,
+     ไฟล์ชีตเดียวหรือรายงานเก่าที่ไม่มีข้อมูลนี้ → ไม่ต่อท้ายอะไร */
+  function dataMetaSheetSuffix() {
+    if (state.combineMode) return ' · ' + t('combinedSheetsSuffix', { n: state.sheetNames.length });
+    return (state.sheetNames.length > 1 && state.activeSheet) ? ' · ' + state.activeSheet : '';
   }
 
   /* ══════════════════ สลับมุมมองตาราง/แดชบอร์ด ══════════════════ */
@@ -490,6 +535,50 @@
       var row = { __id: nextId++ };
       columns.forEach(function (col, ci) { row[col.key] = r[ci] === undefined ? null : r[ci]; });
       rows.push(row);
+    });
+    columns.forEach(function (col) {
+      col.type = inferColumnType(rows.map(function (r) { return r[col.key]; }));
+    });
+    return { columns: columns, rows: rows, nextRowId: nextId };
+  }
+
+  /* รวมทุกชีตเป็นตารางเดียว — สไตล์ "Append" ของ Power Query/Power BI: จับคู่คอลัมน์ตาม "ชื่อ" (ไม่ใช่ตำแหน่ง),
+     ชีตไหนไม่มีคอลัมน์นั้นก็เป็นค่าว่างในแถวจากชีตนั้น ไม่ error/ไม่บังคับให้ทุกชีตหน้าตาเหมือนกันเป๊ะ
+     และเติมคอลัมน์ "ชีตต้นทาง" ให้อัตโนมัติเพื่อยังบอกได้ว่าแต่ละแถวมาจากชีตไหน (headerIdx ใช้ตำแหน่งเดียวกัน
+     ทุกชีต ตามที่พรีวิวไว้จากชีตแรก — ชีตที่สั้นกว่าตำแหน่งนี้จะถูกข้ามไปทั้งชีต) */
+  function buildColumnsAndRowsCombined(workbook, sheetNames, headerIdx) {
+    var labelOrder = [], labelSeen = {}, perSheet = [];
+    sheetNames.forEach(function (name) {
+      var sheet = workbook.Sheets[name];
+      var aoa = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
+      while (aoa.length && aoa[aoa.length - 1].every(function (c) { return c === null || c === ''; })) aoa.pop();
+      if (!aoa.length || headerIdx >= aoa.length) return;
+      var headerRow = aoa[headerIdx] || [];
+      var dataRows = aoa.slice(headerIdx + 1).filter(function (r) { return r.some(function (v) { return v !== null && v !== undefined && v !== ''; }); });
+      var labels = [];
+      for (var c = 0; c < headerRow.length; c++) {
+        var label = headerRow[c];
+        label = (label == null || String(label).trim() === '') ? t('colFallback', { n: c + 1 }) : String(label);
+        labels.push(label);
+        if (!labelSeen[label]) { labelSeen[label] = true; labelOrder.push(label); }
+      }
+      perSheet.push({ name: name, labels: labels, dataRows: dataRows });
+    });
+
+    var columns = labelOrder.map(function (label, i) { return { key: 'col_' + i, label: label }; });
+    var labelToKey = {}; columns.forEach(function (col) { labelToKey[col.label] = col.key; });
+    var srcKey = 'col_source_sheet';
+    columns.push({ key: srcKey, label: t('sourceSheetLabel') });
+
+    var rows = [], nextId = 1;
+    perSheet.forEach(function (sh) {
+      sh.dataRows.forEach(function (r) {
+        var row = { __id: nextId++ };
+        columns.forEach(function (col) { row[col.key] = null; });
+        sh.labels.forEach(function (label, ci) { row[labelToKey[label]] = r[ci] === undefined ? null : r[ci]; });
+        row[srcKey] = sh.name;
+        rows.push(row);
+      });
     });
     columns.forEach(function (col) {
       col.type = inferColumnType(rows.map(function (r) { return r[col.key]; }));
@@ -624,7 +713,7 @@
 
     renderPager(all.length, totalPages);
     wireTableEvents();
-    $('dataMeta').textContent = (state.fileName || '') + (state.sheetNames.length > 1 ? ' · ' + state.activeSheet : '') +
+    $('dataMeta').textContent = (state.fileName || '') + dataMetaSheetSuffix() +
       ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows') +
       (all.length !== state.rows.length ? t('metaFilteredSuffix', { m: all.length.toLocaleString(locale()) }) : '');
     updateStatRow(all.length);
@@ -1225,6 +1314,7 @@
     if (!name) return;
     name = name.trim(); if (!name) return;
     var rec = { name: name, fileName: state.fileName, sheetName: state.activeSheet,
+      combineMode: state.combineMode, sheetNames: state.sheetNames,
       columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, savedAt: Date.now() };
     dbAddReport(rec).then(function (id) {
       state.reportId = id; state.reportName = name;
@@ -1275,7 +1365,10 @@
   function openReport(id) {
     dbGetReport(id).then(function (rec) {
       if (!rec) { renderReportsList(); return; }
-      state.fileName = rec.fileName; state.activeSheet = rec.sheetName; state.sheetNames = rec.sheetName ? [rec.sheetName] : [];
+      state.fileName = rec.fileName; state.activeSheet = rec.sheetName;
+      /* rec.sheetNames เพิ่มมาทีหลัง (โหมดรวมชีต) — รายงานเก่าก่อนหน้านี้ไม่มีฟิลด์นี้ ให้ fallback เป็นชีตเดียว */
+      state.sheetNames = rec.sheetNames || (rec.sheetName ? [rec.sheetName] : []);
+      state.combineMode = !!rec.combineMode;
       state.columns = rec.columns; state.rows = rec.rows; state.nextRowId = rec.nextRowId;
       state.reportId = rec.id; state.reportName = rec.name;
       state.filters = {}; state.globalQuery = ''; state.sortCol = null; state.sortDir = null;
@@ -1285,7 +1378,7 @@
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {} };
       updateDrillBanner(); updateSaveUI();
       $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
-      $('dataMeta').textContent = (state.fileName || rec.name) + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
+      $('dataMeta').textContent = (state.fileName || rec.name) + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
       $('viewTabs').style.display = 'flex';
       setView('table');
       persistDebounced();
@@ -1526,7 +1619,7 @@
   }
 
   function resetToUpload() {
-    state.fileName = null; state.sheetNames = []; state.activeSheet = null; state.workbook = null; state.rawAoA = null;
+    state.fileName = null; state.sheetNames = []; state.activeSheet = null; state.combineMode = false; state.workbook = null; state.rawAoA = null;
     state.columns = []; state.rows = []; state.nextRowId = 1; state.filters = {}; state.globalQuery = '';
     state.sortCol = null; state.sortDir = null; state.selected = {}; state.page = 1; state.history = [];
     state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
@@ -1591,6 +1684,12 @@
     });
 
     $('confirmHeaderBtn').addEventListener('click', confirmHeader);
+    $('sheetModeCombine').addEventListener('click', selectCombinedSheets);
+    $('sheetModeSingle').addEventListener('click', function () {
+      state.combineMode = false;
+      $('sheetModeSingle').classList.add('on'); $('sheetModeCombine').classList.remove('on');
+      $('sheetChips').style.display = 'flex';
+    });
     $('addRowBtn').addEventListener('click', addRow);
     $('delSelBtn').addEventListener('click', deleteSelected);
     $('undoBtn').addEventListener('click', undo);
@@ -1645,7 +1744,9 @@
         $('resumeCard').style.display = 'block';
         renderResumeInfo();
         $('resumeBtn').addEventListener('click', function () {
-          state.fileName = saved.fileName; state.activeSheet = saved.sheetName; state.sheetNames = saved.sheetName ? [saved.sheetName] : [];
+          state.fileName = saved.fileName; state.activeSheet = saved.sheetName;
+          state.sheetNames = saved.sheetNames || (saved.sheetName ? [saved.sheetName] : []);
+          state.combineMode = !!saved.combineMode;
           state.columns = saved.columns; state.rows = saved.rows; state.nextRowId = saved.nextRowId;
           state.reportId = saved.reportId || null; state.reportName = saved.reportName || null;
           state.filters = {}; state.globalQuery = ''; state.sortCol = null; state.sortDir = null;

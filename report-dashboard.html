@@ -246,7 +246,12 @@ td.rowdel{text-align:center}
 
   <div class="card" id="sheetCard" style="display:none">
     <h2 data-i18n="sheetTitle">📑 เลือกชีต</h2>
-    <div class="chip-row" id="sheetChips"></div>
+    <p class="mini" id="sheetModeHint"></p>
+    <div class="chip-row">
+      <button class="chip" id="sheetModeCombine" type="button" data-i18n="sheetModeCombine">📚 รวมทุกชีตเป็นตารางเดียว</button>
+      <button class="chip" id="sheetModeSingle" type="button" data-i18n="sheetModeSingle">📄 เลือกชีตเดียว</button>
+    </div>
+    <div class="chip-row" id="sheetChips" style="display:none"></div>
   </div>
 
   <div class="card" id="headerCard" style="display:none">
