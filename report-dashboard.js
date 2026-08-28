@@ -31,7 +31,16 @@
       pageTitle: 'นำเสนอรายงาน', pageSub: 'อัปโหลดไฟล์ Excel/CSV แล้วดู แก้ไข เรียง กรองข้อมูลได้ในเว็บ',
       statTotalLbl: 'รายการทั้งหมด', statColsLbl: 'คอลัมน์', statShownLbl: 'กำลังแสดง', statSelectedLbl: 'เลือกไว้',
       unitRows: 'แถว', unitCols: 'คอลัมน์',
-      tabTable: '📋 ตาราง (แก้ไข)', tabDashboard: '📊 แดชบอร์ด',
+      tabTable: '📋 ตาราง (แก้ไข)', tabDashboard: '📊 แดชบอร์ด', tabCustom: '🧩 กำหนดเอง',
+      addWidgetBtn: '➕ เพิ่มกล่อง',
+      customEmptyHint: 'ลากมุมกล่องเพื่อย่อ-ขยาย ลากหัวกล่องเพื่อย้ายตำแหน่ง — เริ่มจากกด "เพิ่มกล่อง" ด้านบน',
+      addWidgetPickTitle: 'เลือกชนิดกล่อง', wtKpi: '🔢 ตัวเลข (KPI)', wtChart: '📊 กราฟ', wtText: '📝 ข้อความ',
+      wtKpiLabel: 'กล่องตัวเลข', wtChartLabel: 'กล่องกราฟ', wtTextLabel: 'กล่องข้อความ',
+      wtEditTitle: 'แก้ไขกล่องนี้', wtRemoveTitle: 'ลบกล่องนี้',
+      cwColumnLbl: 'คอลัมน์', cwAggLbl: 'วิธีคำนวณ', cwLabelLbl: 'ป้ายชื่อ (ไม่บังคับ)',
+      cwAggSum: 'ผลรวม', cwAggAvg: 'ค่าเฉลี่ย', cwAggCount: 'จำนวนแถวทั้งหมด', cwAggMin: 'ค่าต่ำสุด', cwAggMax: 'ค่าสูงสุด',
+      cwChartTypeLbl: 'ชนิดกราฟ', cwGroupByLbl: 'จัดกลุ่มตาม', cwValueLbl: 'ค่า',
+      cwTextPh: 'พิมพ์ข้อความที่นี่…', totalRowsKpiLabel: 'จำนวนแถวทั้งหมด',
       drillText: '🔍 กำลังกรอง: {label} = {value}', drillClearBtn: '✕ ล้างตัวกรองนี้',
       uploadTitle: '📤 อัปโหลดไฟล์', dropText: 'ลากไฟล์มาวางตรงนี้ หรือ', pickBtn: 'เลือกไฟล์',
       dropHint: 'รองรับ .xlsx .xls .csv — ไฟล์ประมวลผลในเครื่องคุณทั้งหมด',
@@ -142,7 +151,16 @@
       pageTitle: 'Report Dashboard', pageSub: 'Upload an Excel/CSV file to view, edit, sort, and filter your data right in the browser',
       statTotalLbl: 'Total Rows', statColsLbl: 'Columns', statShownLbl: 'Showing', statSelectedLbl: 'Selected',
       unitRows: 'rows', unitCols: 'columns',
-      tabTable: '📋 Table (Edit)', tabDashboard: '📊 Dashboard',
+      tabTable: '📋 Table (Edit)', tabDashboard: '📊 Dashboard', tabCustom: '🧩 Custom',
+      addWidgetBtn: '➕ Add Box',
+      customEmptyHint: 'Drag a corner to resize, drag the header to move — start by clicking "Add Box" above',
+      addWidgetPickTitle: 'Choose a box type', wtKpi: '🔢 Number (KPI)', wtChart: '📊 Chart', wtText: '📝 Text',
+      wtKpiLabel: 'Number box', wtChartLabel: 'Chart box', wtTextLabel: 'Text box',
+      wtEditTitle: 'Edit this box', wtRemoveTitle: 'Remove this box',
+      cwColumnLbl: 'Column', cwAggLbl: 'Aggregation', cwLabelLbl: 'Label (optional)',
+      cwAggSum: 'Sum', cwAggAvg: 'Average', cwAggCount: 'Total row count', cwAggMin: 'Minimum', cwAggMax: 'Maximum',
+      cwChartTypeLbl: 'Chart type', cwGroupByLbl: 'Group by', cwValueLbl: 'Value',
+      cwTextPh: 'Type your text here…', totalRowsKpiLabel: 'Total Rows',
       drillText: '🔍 Filtering: {label} = {value}', drillClearBtn: '✕ Clear this filter',
       uploadTitle: '📤 Upload File', dropText: 'Drag a file here, or', pickBtn: 'Choose File',
       dropHint: 'Supports .xlsx .xls .csv — everything is processed on your device',
@@ -286,6 +304,8 @@
     chartType: { slot1: null, slot2: null, slot3: null }, // null = ดีฟอลต์ของสล็อตนั้น (bar/line/doughnut)
     dashTable: { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} }, // ตารางในแดชบอร์ด: โหมดรายการ/pivot + ตัวกรองของตัวเอง (ไม่ผูกกับ state.filters ของแท็บแก้ไข)
     domainOverride: null,  // '' หรือ null = อัตโนมัติ (เดาจากชื่อคอลัมน์), 'none'|'maintenance'|'project'|'legal' = ผู้ใช้เลือกเอง
+    customWidgets: [],    // [{id,type:'kpi'|'chart'|'text',x,y,w,h,config}] มุมมอง "กำหนดเอง" — ต่างจาก dashTable/domainOverride
+                           // ตรงที่ต้อง "จำ" ข้ามเซสชัน (ผู้ใช้จัดวางเองด้วยมือ) จึงบันทึกไปกับรายงานด้วย
     reportId: null,        // ถ้าไม่ null = ผูกกับรายงานที่ตั้งชื่อบันทึกไว้ใน store 'reports' (Stage 4) — autosave เข้าที่นี่ด้วย
     reportName: null
   };
@@ -385,6 +405,7 @@
         combineMode: state.combineMode, sheetNames: state.sheetNames,
         columns: state.columns, rows: state.rows, nextRowId: state.nextRowId,
         reportId: state.reportId, reportName: state.reportName,
+        customWidgets: state.customWidgets,
         savedAt: Date.now()
       };
       dbSaveCurrent(payload);
@@ -394,7 +415,7 @@
         dbPutReport({
           id: state.reportId, name: state.reportName, fileName: state.fileName, sheetName: state.activeSheet,
           combineMode: state.combineMode, sheetNames: state.sheetNames,
-          columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, savedAt: Date.now()
+          columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets, savedAt: Date.now()
         });
         setSaveStatus(t('saveStatusAuto', { time: new Date().toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' }) }), 'ok');
       }
@@ -568,6 +589,7 @@
     state.chartType = { slot1: null, slot2: null, slot3: null };
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
+    state.customWidgets = [];
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
     $('undoBtn').disabled = true;
@@ -596,9 +618,12 @@
     [].forEach.call($('viewTabs').querySelectorAll('.chip'), function (b) { b.classList.toggle('on', b.getAttribute('data-view') === view); });
     $('dataCard').style.display = view === 'table' ? 'block' : 'none';
     $('dashboardView').style.display = view === 'dashboard' ? 'block' : 'none';
+    $('customView').style.display = view === 'custom' ? 'block' : 'none';
     /* render ใหม่ทุกครั้งที่สลับเข้ามุมมองนั้น (ไม่ใช่แค่ตอน confirmHeader()/resume ครั้งแรก) — กันเห็น
        ข้อมูลเก่าค้าง เช่น กด drill-down จากแดชบอร์ดแล้วสลับมาตาราง ต้องเห็นตารางกรองตามด้วย */
-    if (view === 'dashboard') renderDashboard(); else renderTable();
+    if (view === 'dashboard') renderDashboard();
+    else if (view === 'custom') renderCustomView();
+    else renderTable();
   }
 
   function buildColumnsAndRows(aoa, headerIdx) {
@@ -1978,6 +2003,212 @@
     return true;
   }
 
+  /* ══════════════════ มุมมอง "กำหนดเอง" — ลากวางกล่อง KPI/กราฟ/ข้อความเอง (Gridstack.js, MIT) ══════════════════
+     ต่างจากแดชบอร์ดอัตโนมัติ/แดชบอร์ดเฉพาะทางด้านบนตรงที่ผู้ใช้เลือกเองทุกอย่าง (คอลัมน์/ชนิดกราฟ/ตำแหน่ง/
+     ขนาด) แล้ว "จำ" ไว้ข้ามเซสชัน (บันทึกไปกับรายงานจริง ต่างจาก dashTable/domainOverride ที่เป็นแค่ค่า
+     ชั่วคราวรีเซ็ตทุกครั้งที่โหลดใหม่) ไม่ผูกกับ state.drill (การคลิกกราฟแดชบอร์ดอัตโนมัติเพื่อกรอง) —
+     ตั้งใจให้มุมมองนี้เป็นรายงานสรุปของตัวเองที่ตัวเลขนิ่ง ไม่ขยับตามการคลิกที่แท็บอื่น */
+  var customGridInst = null;
+  var customCharts = {}; // widgetId -> Chart instance (ต้อง destroy ก่อนวาดใหม่เหมือนกราฟแดชบอร์ดหลัก)
+
+  function genWidgetId() { return 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  function computeKpiWidgetValue(cfg) {
+    if (cfg.agg === 'count' || !cfg.colKey) {
+      return { value: state.rows.length.toLocaleString(locale()), label: cfg.label || t('totalRowsKpiLabel') };
+    }
+    var col = state.columns.filter(function (c) { return c.key === cfg.colKey; })[0];
+    if (!col) return { value: '—', label: cfg.label || '' };
+    var vals = state.rows.map(function (r) { return r[col.key]; }).filter(function (v) { return typeof v === 'number' && isFinite(v); });
+    var num = null;
+    if (vals.length) {
+      if (cfg.agg === 'sum') num = vals.reduce(function (a, b) { return a + b; }, 0);
+      else if (cfg.agg === 'avg') num = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+      else if (cfg.agg === 'min') num = Math.min.apply(null, vals);
+      else if (cfg.agg === 'max') num = Math.max.apply(null, vals);
+    }
+    var aggLbl = t('cwAgg' + cfg.agg.charAt(0).toUpperCase() + cfg.agg.slice(1));
+    return {
+      value: num === null ? '—' : num.toLocaleString(locale(), { maximumFractionDigits: 2 }),
+      label: cfg.label || (col.label + ' · ' + aggLbl)
+    };
+  }
+  function renderKpiWidget(bodyEl, cfg) {
+    var r = computeKpiWidgetValue(cfg);
+    bodyEl.innerHTML = '<div class="wt-sub">' + escapeHtml(r.label) + '</div><div class="wt-val">' + r.value + '</div>';
+  }
+  function renderChartWidget(bodyEl, cfg, widgetId) {
+    if (customCharts[widgetId]) { try { customCharts[widgetId].destroy(); } catch (e) {} delete customCharts[widgetId]; }
+    if (typeof Chart === 'undefined') { bodyEl.innerHTML = '<p class="mini">' + escapeHtml(t('chartLibFail')) + '</p>'; return; }
+    var catCol = state.columns.filter(function (c) { return c.key === cfg.catColKey; })[0];
+    if (!catCol) { bodyEl.innerHTML = '<p class="mini">—</p>'; return; }
+    var numCol = cfg.numColKey ? state.columns.filter(function (c) { return c.key === cfg.numColKey; })[0] : null;
+    var entries = catCol.type === 'date'
+      ? aggregateByDate(state.rows, catCol.key, numCol ? numCol.key : null)
+      : aggregateByCategory(state.rows, catCol.key, numCol ? numCol.key : null);
+    bodyEl.innerHTML = '<canvas></canvas>';
+    var canvas = bodyEl.querySelector('canvas');
+    var chartCfg = buildChartConfig(cfg.chartType, entries.map(function (e) { return e[0]; }), entries.map(function (e) { return e[1]; }), '#1E9E5A');
+    customCharts[widgetId] = new Chart(canvas.getContext('2d'), chartCfg);
+  }
+  function renderTextWidget(bodyEl, cfg, widget) {
+    bodyEl.setAttribute('contenteditable', 'true');
+    bodyEl.setAttribute('data-placeholder', t('cwTextPh'));
+    if (bodyEl.textContent !== (cfg.text || '')) bodyEl.textContent = cfg.text || '';
+    var saveTimer = null;
+    bodyEl.oninput = function () {
+      widget.config.text = bodyEl.textContent;
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(persistDebounced, 400);
+    };
+  }
+  function widgetTypeLabel(type) { return type === 'kpi' ? t('wtKpiLabel') : type === 'chart' ? t('wtChartLabel') : t('wtTextLabel'); }
+  function renderWidgetBody(widget, itemEl) {
+    var bodyEl = itemEl.querySelector('.widget-body');
+    if (!bodyEl) return;
+    bodyEl.className = 'widget-body wb-' + widget.type;
+    if (widget.type === 'kpi') renderKpiWidget(bodyEl, widget.config);
+    else if (widget.type === 'chart') renderChartWidget(bodyEl, widget.config, widget.id);
+    else renderTextWidget(bodyEl, widget.config, widget);
+  }
+  function widgetHtml(widget) {
+    return '<div class="widget-head">' +
+      '<span class="wt-label">' + escapeHtml(widgetTypeLabel(widget.type)) + '</span>' +
+      (widget.type === 'text' ? '' : '<button type="button" class="w-edit" title="' + escapeAttr(t('wtEditTitle')) + '">⚙️</button>') +
+      '<button type="button" class="w-del" title="' + escapeAttr(t('wtRemoveTitle')) + '">✕</button>' +
+      '</div><div class="widget-body"></div>';
+  }
+  function wireWidgetControls(widget, itemEl) {
+    var editBtn = itemEl.querySelector('.w-edit');
+    if (editBtn) editBtn.addEventListener('click', function () { openWidgetEditPopover(widget, itemEl, editBtn); });
+    itemEl.querySelector('.w-del').addEventListener('click', function () {
+      if (customCharts[widget.id]) { try { customCharts[widget.id].destroy(); } catch (e) {} delete customCharts[widget.id]; }
+      try { customGridInst.removeWidget(itemEl); } catch (e) { itemEl.remove(); }
+      state.customWidgets = state.customWidgets.filter(function (w) { return w.id !== widget.id; });
+      persistDebounced();
+    });
+  }
+
+  function renderCustomView() {
+    if (typeof GridStack === 'undefined') {
+      $('customGrid').innerHTML = '<p class="mini">' + escapeHtml(t('chartLibFail')) + '</p>';
+      return;
+    }
+    Object.keys(customCharts).forEach(function (id) { try { customCharts[id].destroy(); } catch (e) {} });
+    customCharts = {};
+    if (customGridInst) { try { customGridInst.destroy(true); } catch (e) {} customGridInst = null; }
+    $('customGrid').innerHTML = '';
+    customGridInst = GridStack.init({ cellHeight: 90, margin: 8, float: true, handle: '.widget-head' });
+    state.customWidgets.forEach(function (widget) {
+      var el = customGridInst.addWidget({ x: widget.x, y: widget.y, w: widget.w, h: widget.h, id: widget.id, content: widgetHtml(widget) });
+      renderWidgetBody(widget, el);
+      wireWidgetControls(widget, el);
+    });
+    customGridInst.on('change', function (ev, items) {
+      (items || []).forEach(function (it) {
+        var widget = state.customWidgets.filter(function (w) { return w.id === it.id; })[0];
+        if (widget) { widget.x = it.x; widget.y = it.y; widget.w = it.w; widget.h = it.h; }
+      });
+      persistDebounced();
+    });
+    $('customEmptyHint').style.display = state.customWidgets.length ? 'none' : 'inline';
+  }
+
+  function addCustomWidget(type) {
+    var numCols = state.columns.filter(function (c) { return c.type === 'number'; });
+    var catCols = state.columns.filter(function (c) { return c.type === 'category' || c.type === 'date'; });
+    var widget = { id: genWidgetId(), type: type, x: null, y: null, w: type === 'chart' ? 4 : (type === 'text' ? 3 : 2), h: type === 'chart' ? 4 : 2, config: {} };
+    if (type === 'kpi') {
+      widget.config = numCols.length ? { colKey: numCols[0].key, agg: 'sum', label: null } : { colKey: null, agg: 'count', label: null };
+    } else if (type === 'chart') {
+      widget.config = { chartType: 'bar', catColKey: catCols.length ? catCols[0].key : null, numColKey: numCols.length ? numCols[0].key : '' };
+    } else {
+      widget.config = { text: '' };
+    }
+    state.customWidgets.push(widget);
+    if (customGridInst) {
+      var el = customGridInst.addWidget({ w: widget.w, h: widget.h, id: widget.id, content: widgetHtml(widget) });
+      if (el.gridstackNode) { widget.x = el.gridstackNode.x; widget.y = el.gridstackNode.y; }
+      renderWidgetBody(widget, el);
+      wireWidgetControls(widget, el);
+      if (type === 'text') { var bodyEl = el.querySelector('.widget-body'); if (bodyEl) bodyEl.focus(); }
+    }
+    $('customEmptyHint').style.display = 'none';
+    persistDebounced();
+  }
+
+  function openAddWidgetPicker(anchorEl) {
+    var html = '<div class="fp-title">' + escapeHtml(t('addWidgetPickTitle')) + '</div>' +
+      '<div class="fp-list add-widget-pick">' +
+      '<div class="fp-item" data-type="kpi"><span>' + escapeHtml(t('wtKpi')) + '</span></div>' +
+      '<div class="fp-item" data-type="chart"><span>' + escapeHtml(t('wtChart')) + '</span></div>' +
+      '<div class="fp-item" data-type="text"><span>' + escapeHtml(t('wtText')) + '</span></div>' +
+      '</div>';
+    openPopover(html, anchorEl, function (el, close) {
+      [].forEach.call(el.querySelectorAll('.fp-item'), function (item) {
+        item.addEventListener('click', function () { addCustomWidget(item.getAttribute('data-type')); close(); });
+      });
+    });
+  }
+
+  function openWidgetEditPopover(widget, itemEl, anchorEl) {
+    var html = '';
+    if (widget.type === 'kpi') {
+      var numCols = state.columns.filter(function (c) { return c.type === 'number'; });
+      html = '<div class="fp-title">' + escapeHtml(t('wtEditTitle')) + '</div>' +
+        '<div class="fp-range">' +
+        '<label>' + escapeHtml(t('cwAggLbl')) + '<select class="ew-agg">' +
+        ['sum', 'avg', 'count', 'min', 'max'].map(function (a) { return '<option value="' + a + '"' + (widget.config.agg === a ? ' selected' : '') + '>' + escapeHtml(t('cwAgg' + a.charAt(0).toUpperCase() + a.slice(1))) + '</option>'; }).join('') +
+        '</select></label>' +
+        '<label class="ew-colwrap"' + (widget.config.agg === 'count' ? ' style="display:none"' : '') + '>' + escapeHtml(t('cwColumnLbl')) + '<select class="ew-col">' +
+        numCols.map(function (c) { return '<option value="' + c.key + '"' + (widget.config.colKey === c.key ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>'; }).join('') +
+        '</select></label>' +
+        '<label>' + escapeHtml(t('cwLabelLbl')) + '<input type="text" class="ew-label" value="' + escapeAttr(widget.config.label || '') + '"></label>' +
+        '</div>' +
+        '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
+    } else if (widget.type === 'chart') {
+      var catCols = state.columns.filter(function (c) { return c.type === 'category' || c.type === 'date'; });
+      var numCols2 = state.columns.filter(function (c) { return c.type === 'number'; });
+      html = '<div class="fp-title">' + escapeHtml(t('wtEditTitle')) + '</div>' +
+        '<div class="fp-range">' +
+        '<label>' + escapeHtml(t('cwChartTypeLbl')) + '<select class="ew-charttype">' +
+        ['bar', 'barH', 'line', 'pie', 'doughnut'].map(function (ct) { return '<option value="' + ct + '"' + (widget.config.chartType === ct ? ' selected' : '') + '>' + escapeHtml(t('type' + ct.charAt(0).toUpperCase() + ct.slice(1))) + '</option>'; }).join('') +
+        '</select></label>' +
+        '<label>' + escapeHtml(t('cwGroupByLbl')) + '<select class="ew-cat">' +
+        catCols.map(function (c) { return '<option value="' + c.key + '"' + (widget.config.catColKey === c.key ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>'; }).join('') +
+        '</select></label>' +
+        '<label>' + escapeHtml(t('cwValueLbl')) + '<select class="ew-val">' +
+        '<option value=""' + (!widget.config.numColKey ? ' selected' : '') + '>' + escapeHtml(t('countOption')) + '</option>' +
+        numCols2.map(function (c) { return '<option value="' + c.key + '"' + (widget.config.numColKey === c.key ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>'; }).join('') +
+        '</select></label>' +
+        '</div>' +
+        '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
+    } else {
+      return; // ข้อความแก้ตรงๆ ในกล่องอยู่แล้ว ไม่ต้องมี popup แก้
+    }
+    openPopover(html, anchorEl, function (el, close) {
+      if (widget.type === 'kpi') {
+        var aggSel = el.querySelector('.ew-agg'), colWrap = el.querySelector('.ew-colwrap');
+        aggSel.addEventListener('change', function () { colWrap.style.display = aggSel.value === 'count' ? 'none' : ''; });
+      }
+      el.querySelector('.fp-apply').addEventListener('click', function () {
+        if (widget.type === 'kpi') {
+          var agg = el.querySelector('.ew-agg').value;
+          widget.config.agg = agg;
+          widget.config.colKey = agg === 'count' ? null : el.querySelector('.ew-col').value;
+          widget.config.label = el.querySelector('.ew-label').value.trim() || null;
+        } else if (widget.type === 'chart') {
+          widget.config.chartType = el.querySelector('.ew-charttype').value;
+          widget.config.catColKey = el.querySelector('.ew-cat').value;
+          widget.config.numColKey = el.querySelector('.ew-val').value;
+        }
+        renderWidgetBody(widget, itemEl);
+        persistDebounced();
+        close();
+      });
+    });
+  }
+
   function renderDashboard() {
     var rows = state.drill ? state.rows.filter(matchesDrill) : state.rows;
     renderDomainDashboard(rows);
@@ -2117,7 +2348,7 @@
     name = name.trim(); if (!name) return;
     var rec = { name: name, fileName: state.fileName, sheetName: state.activeSheet,
       combineMode: state.combineMode, sheetNames: state.sheetNames,
-      columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, savedAt: Date.now() };
+      columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets, savedAt: Date.now() };
     dbAddReport(rec).then(function (id) {
       state.reportId = id; state.reportName = name;
       updateSaveUI();
@@ -2179,6 +2410,7 @@
     state.chartType = { slot1: null, slot2: null, slot3: null };
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
+    state.customWidgets = rec.customWidgets || [];
       updateDrillBanner(); updateSaveUI();
       $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
       $('dataMeta').textContent = (state.fileName || rec.name) + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
@@ -2429,6 +2661,7 @@
     state.chartType = { slot1: null, slot2: null, slot3: null };
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
+    state.customWidgets = [];
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
     $('dataCard').style.display = 'none';
@@ -2541,6 +2774,7 @@
       state.domainOverride = this.value || null;
       renderDashboard();
     });
+    $('addWidgetBtn').addEventListener('click', function () { openAddWidgetPicker($('addWidgetBtn')); });
     $('printBtn').addEventListener('click', function () { window.print(); });
     $('globalSearch').addEventListener('input', function () {
       state.globalQuery = $('globalSearch').value; state.page = 1; renderTable();
@@ -2564,6 +2798,7 @@
     state.chartType = { slot1: null, slot2: null, slot3: null };
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
+    state.customWidgets = saved.customWidgets || [];
           updateDrillBanner(); updateSaveUI();
           $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none';
           $('viewTabs').style.display = 'flex';

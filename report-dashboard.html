@@ -10,6 +10,8 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
+<!-- Gridstack.js — กริดลาก/ย่อ-ขยายกล่องเองสำหรับมุมมอง "กำหนดเอง" (MIT, ไม่มี dependency อื่น) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@12.6.0/dist/gridstack.min.css">
 <script src="shell.js" defer></script>
 <style>
 /* ── โทนสี: อ้างอิงจากภาพตัวอย่างแดชบอร์ด (การ์ดขาวลอยเด่น, เขียวเป็นสีหลัก, กราฟ/แถบเข้มกว่าเป็นสีรอง) ── */
@@ -118,6 +120,29 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .risk-matrix th,.risk-matrix td{text-align:center;cursor:default;white-space:nowrap}
 .risk-matrix th{background:var(--bg);font-weight:700;position:static}
 .risk-matrix td{font-weight:800;font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* ── มุมมอง "กำหนดเอง" — Gridstack.js จัดตำแหน่ง/ย่อ-ขยายกล่องให้ ที่นี่แค่แต่งหน้าตากล่องให้เข้าธีมเว็บ ── */
+.grid-stack{margin-top:10px}
+.grid-stack-item-content{background:var(--card);border-radius:14px;box-shadow:var(--sh);
+  border:1px solid rgba(16,24,40,.03);overflow:hidden;display:flex;flex-direction:column}
+.widget-head{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);
+  cursor:grab;flex-shrink:0}
+.widget-head:active{cursor:grabbing}
+.widget-head .wt-label{font-size:12px;font-weight:700;color:var(--ink);flex:1;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.widget-head button{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:13px;
+  padding:2px 5px;border-radius:6px;flex-shrink:0}
+.widget-head button:hover{background:var(--bg);color:var(--ink)}
+.widget-body{flex:1;min-height:0;padding:10px;overflow:auto;position:relative}
+.widget-body.wb-kpi{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px}
+.widget-body.wb-kpi .wt-val{font-size:26px;font-weight:800;color:var(--ink);letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums}
+.widget-body.wb-kpi .wt-sub{font-size:11.5px;color:var(--muted)}
+.widget-body.wb-chart{padding:8px}
+.widget-body.wb-chart canvas{max-width:100%}
+.widget-body.wb-text{font-size:14px;line-height:1.6;color:var(--ink);white-space:pre-wrap;outline:none}
+.widget-body.wb-text:empty::before{content:attr(data-placeholder);color:var(--muted)}
+.add-widget-pick .fp-item{gap:10px}
 /* ── แถบตัวกรองที่ active ของตารางในแดชบอร์ด (แยกจากตัวกรองของแท็บแก้ไข) — เดิมเป็นแถวกรองตรึงอยู่
    ตลอดทีละคอลัมน์ (รกมากเมื่อคอลัมน์เยอะ) เปลี่ยนเป็น: กดปุ่ม 🔽 ที่หัวคอลัมน์ หรือ "+ ตัวกรอง" ที่นี่
    เพื่อเปิด popup เลือกค่า/ช่วงทีละคอลัมน์แทน ── */
@@ -263,6 +288,7 @@ td.rowdel{text-align:center}
   <div class="chip-row" id="viewTabs" style="display:none;margin-top:14px">
     <button type="button" class="chip on" data-view="table" data-i18n="tabTable">📋 ตาราง (แก้ไข)</button>
     <button type="button" class="chip" data-view="dashboard" data-i18n="tabDashboard">📊 แดชบอร์ด</button>
+    <button type="button" class="chip" data-view="custom" data-i18n="tabCustom">🧩 กำหนดเอง</button>
   </div>
 
   <div class="drill-banner" id="drillBanner" style="display:none">
@@ -448,6 +474,14 @@ td.rowdel{text-align:center}
     </div>
   </div>
 
+  <div id="customView" style="display:none">
+    <div class="toolbar-row">
+      <button class="btn sm" id="addWidgetBtn" type="button" data-i18n="addWidgetBtn">➕ เพิ่มกล่อง</button>
+      <span class="mini" id="customEmptyHint" data-i18n="customEmptyHint">ลากมุมกล่องเพื่อย่อ-ขยาย ลากหัวกล่องเพื่อย้ายตำแหน่ง — เริ่มจากกด "เพิ่มกล่อง" ด้านบน</span>
+    </div>
+    <div class="grid-stack" id="customGrid"></div>
+  </div>
+
 </div>
 
 <!-- popup ตัวกรองต่อคอลัมน์/เลือกคอลัมน์ที่จะแสดง ของตารางในแดชบอร์ด — ใช้ position:fixed จุดเดียว
@@ -461,6 +495,8 @@ td.rowdel{text-align:center}
 <!-- html2canvas + jsPDF — บันทึกแดชบอร์ดเป็นรูปภาพ/PDF (ตัวเดียวกับที่หน้า "งาน Excel" ใช้ทำ PDF) -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<!-- Gridstack.js — มุมมอง "กำหนดเอง": ลาก/ย่อ-ขยายกล่อง KPI/กราฟ/ข้อความเอง -->
+<script src="https://cdn.jsdelivr.net/npm/gridstack@12.6.0/dist/gridstack-all.js"></script>
 <script src="report-dashboard.js" defer></script>
 </body>
 </html>
