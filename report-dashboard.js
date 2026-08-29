@@ -2098,6 +2098,10 @@
     customCharts = {};
     if (customGridInst) { try { customGridInst.destroy(true); } catch (e) {} customGridInst = null; }
     $('customGrid').innerHTML = '';
+    // Gridstack v10+ เปลี่ยน default ของฟิลด์ content ให้ใส่เป็น textContent (กัน XSS จาก user data)
+    // แทนที่จะเป็น innerHTML เหมือนเวอร์ชันก่อนหน้า — เนื้อหา content ที่เราส่งเป็น markup ที่เราสร้างเอง
+    // (ไม่ใช่ข้อความจากผู้ใช้ดิบๆ) จึงต้อง override ให้ใส่เป็น innerHTML ตรงๆ ไม่งั้นกล่องจะโชว์โค้ด HTML เป็นตัวหนังสือ
+    GridStack.renderCB = function (el, w) { el.innerHTML = w.content || ''; };
     customGridInst = GridStack.init({ cellHeight: 90, margin: 8, float: true, handle: '.widget-head' });
     state.customWidgets.forEach(function (widget) {
       var el = customGridInst.addWidget({ x: widget.x, y: widget.y, w: widget.w, h: widget.h, id: widget.id, content: widgetHtml(widget) });
