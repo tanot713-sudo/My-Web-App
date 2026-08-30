@@ -45,7 +45,7 @@
       cwTableColsLbl: 'คอลัมน์ที่แสดง', cwTableSearchPh: 'ค้นหาในตาราง…', cwTableNoColsHint: 'เลือกอย่างน้อย 1 คอลัมน์',
       cwTableSortHint: 'คลิกหัวคอลัมน์เพื่อเรียงลำดับ',
       cardColorBtnTitle: 'ปรับสีการ์ดนี้', cardColorTitle: 'ปรับสีการ์ด', cardBgColorLbl: 'สีพื้นหลัง',
-      cardAccentColorLbl: 'สีหลัก (กราฟ/ตัวเลข)', cardGradientLbl: 'ไล่เฉดสี', cardColorResetBtn: 'ล้างสี (กลับค่าเดิม)',
+      cardAccentColorLbl: 'สีหลัก (กราฟ/ตัวเลข)', cardGradientLbl: 'ไล่เฉดสี', cardColorResetBtn: 'ล้างสี',
       customBgBtn: '🎨 พื้นหลัง', loadTemplateBtn: '📥 โหลดจากแดชบอร์ด',
       loadTemplateNoneHint: 'ยังไม่มีการ์ดในแท็บ "แดชบอร์ด" ให้โหลด — อัปโหลดข้อมูลก่อน',
       loadTemplateSnapshotNote: ' (สแนปช็อต ณ ตอนโหลด ไม่อัปเดตตามข้อมูลสด)',
@@ -175,7 +175,7 @@
       cwTableColsLbl: 'Columns to show', cwTableSearchPh: 'Search table…', cwTableNoColsHint: 'Select at least 1 column',
       cwTableSortHint: 'Click a column header to sort',
       cardColorBtnTitle: 'Customize this card\'s color', cardColorTitle: 'Customize card color', cardBgColorLbl: 'Background color',
-      cardAccentColorLbl: 'Accent color (chart/number)', cardGradientLbl: 'Gradient', cardColorResetBtn: 'Reset color (default)',
+      cardAccentColorLbl: 'Accent color (chart/number)', cardGradientLbl: 'Gradient', cardColorResetBtn: 'Reset',
       customBgBtn: '🎨 Background', loadTemplateBtn: '📥 Load from Dashboard',
       loadTemplateNoneHint: 'No cards in the "Dashboard" tab to load yet — upload data first',
       loadTemplateSnapshotNote: ' (snapshot at load time, not live-updating)',
@@ -1101,16 +1101,20 @@
   var closeActivePopover = null;
   function positionPopover(el, anchorEl) {
     var r = anchorEl.getBoundingClientRect();
-    var w = el.offsetWidth || 230;
+    /* วัดขนาดจริงหลัง layout (offsetWidth/Height บังคับ reflow แล้ว) แทนค่าคงที่เดิม (230/260) — ป๊อปอัพ
+       ที่เนื้อหายาวกว่าปกติ (เช่นส่วนปรับสีที่มีทั้งสวอตช์สี+ปุ่มล้างสี) จะได้กันขอบขวา/ล่างจอถูกต้องเสมอ
+       ไม่ล้นออกไปหรือถูกตัดที่ขอบจอเหมือนที่เคยเกิดตอนกว้าง/สูงเกินสมมุติฐานเดิม */
+    var w = el.offsetWidth || 230, h = el.offsetHeight || 260;
     var left = Math.min(Math.max(8, r.left), window.innerWidth - w - 8);
     var top = r.bottom + 6;
-    if (top + 260 > window.innerHeight) top = Math.max(8, r.top - 266); // ไม่มีที่ด้านล่างพอ เปิดขึ้นด้านบนแทน
+    if (top + h > window.innerHeight) top = Math.max(8, r.top - h - 6); // ไม่มีที่ด้านล่างพอ เปิดขึ้นด้านบนแทน
     el.style.left = left + 'px';
     el.style.top = top + 'px';
   }
-  function openPopover(innerHtml, anchorEl, wireFn) {
+  function openPopover(innerHtml, anchorEl, wireFn, wide) {
     if (closeActivePopover) closeActivePopover();
     var el = $('filterPopover');
+    el.className = 'filter-popover' + (wide ? ' wide' : '');
     el.innerHTML = innerHtml;
     el.style.display = 'block';
     positionPopover(el, anchorEl);
@@ -1910,7 +1914,7 @@
         persistDebounced();
         close();
       });
-    });
+    }, true);
   }
   function renderStatTiles(containerId, tiles, role) {
     var cfg = role ? state.cardColors[role] : null;
@@ -2614,7 +2618,7 @@
         persistDebounced();
         close();
       });
-    });
+    }, true);
   }
 
   /* "โหลดจากแดชบอร์ด" — คัดลอกการ์ดที่กำลังแสดงอยู่ในแท็บ "แดชบอร์ด" มาเป็นกล่องในแท็บ "กำหนดเอง"
@@ -2807,7 +2811,7 @@
         persistDebounced();
         close();
       });
-    });
+    }, true);
   }
 
   function renderDashboard() {
