@@ -856,6 +856,7 @@
     renderPager(all.length, totalPages);
     wireTableEvents();
     wireCellSelection();
+    wireCellKeyboardNav();
     renderCellSelOverlay();
     $('dataMeta').textContent = (state.fileName || '') + dataMetaSheetSuffix() +
       ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows') +
@@ -1375,16 +1376,19 @@
     });
   }
 
+  /* แปลงข้อความดิบ (จากพิมพ์ในเซลล์ หรือจากแปะ/paste) ให้เป็นค่าจริงตามชนิดคอลัมน์ — ใช้ร่วมกันทั้ง
+     commitCellEdit() (พิมพ์ทีละเซลล์) และ pasteGridAt() (แปะทีเดียวหลายเซลล์) กันตรรกะแปลงค่าเพี้ยนกันคนละที่ */
+  function coerceCellValue(col, rawVal) {
+    if (rawVal === '' || rawVal == null) return null;
+    if (col && col.type === 'number') { var n = num(rawVal); return isFinite(n) ? n : rawVal; }
+    if (col && col.type === 'date') { var d = new Date(rawVal); return isNaN(d) ? rawVal : d; }
+    return rawVal;
+  }
   function commitCellEdit(rowId, colKey, rawVal) {
     var row = state.rows.filter(function (r) { return r.__id === rowId; })[0];
     if (!row) return;
     var col = state.columns.filter(function (c) { return c.key === colKey; })[0];
-    var newVal;
-    if (rawVal === '') newVal = null;
-    else if (col && col.type === 'number') { var n = num(rawVal); newVal = isFinite(n) ? n : rawVal; }
-    else if (col && col.type === 'date') { var d = new Date(rawVal); newVal = isNaN(d) ? rawVal : d; }
-    else newVal = rawVal;
-    row[colKey] = newVal;
+    row[colKey] = coerceCellValue(col, rawVal);
     /* ค่าที่เพิ่งพิมพ์อาจทำให้ชนิดข้อมูลของคอลัมน์นี้เปลี่ยนไปจากเดิม (เช่น พิมพ์ตัวอักษรลงคอลัมน์ตัวเลข) —
        คำนวณชนิดใหม่จากข้อมูลทั้งคอลัมน์เสมอหลังแก้ไข กันตารางแสดงผลผิดเพี้ยน */
     if (col) col.type = inferColumnType(state.rows.map(function (r) { return r[col.key]; }));
@@ -1536,6 +1540,172 @@
         }
         renderCellSelOverlay();
       });
+    });
+  }
+
+  /* ══════════════════ นำทางด้วยคีย์บอร์ด (ลูกศร/Tab/Enter) แบบ Excel ══════════════════
+     ทำงานบนแถวที่แสดงอยู่ในหน้าปัจจุบันเท่านั้น (ไม่ข้ามหน้า/เพจจิ้ง) — กดที่ขอบตารางแล้วไม่ไปต่อถือว่า
+     "ชนขอบ" เฉยๆ ตามพฤติกรรม spreadsheet ทั่วไปที่หยุดที่ขอบชีต/หน้าที่มองเห็น ไม่ใช่ error */
+  function tableGridCoords(td) {
+    var trs = [].slice.call($('dataTable').querySelectorAll('tbody tr[data-id]'));
+    var ri = -1;
+    for (var i = 0; i < trs.length; i++) { if (+trs[i].getAttribute('data-id') === +td.getAttribute('data-id')) { ri = i; break; } }
+    var colKeys = state.columns.map(function (c) { return c.key; });
+    var ci = colKeys.indexOf(td.getAttribute('data-col'));
+    return { trs: trs, colKeys: colKeys, ri: ri, ci: ci };
+  }
+  function focusCellInput(rowEl, colKey) {
+    var td = rowEl.querySelector('td[data-col="' + colKey + '"]');
+    var inp = td && td.querySelector('.cell-in');
+    if (!inp) return false;
+    inp.focus();
+    try { inp.select(); } catch (e) {} // เข้าเซลล์ใหม่แล้วเลือกข้อความทั้งหมดไว้ พิมพ์ต่อได้ทันทีแบบ Excel
+    return true;
+  }
+  function caretAtStart(inp) { try { return inp.selectionStart === 0 && inp.selectionEnd === 0; } catch (e) { return true; } }
+  function caretAtEnd(inp) { try { return inp.selectionStart === inp.value.length && inp.selectionEnd === inp.value.length; } catch (e) { return true; } }
+  function moveActiveCell(fromTd, dRow, dCol, extend) {
+    var g = tableGridCoords(fromTd);
+    if (g.ri === -1 || g.ci === -1) return;
+    var nri = Math.max(0, Math.min(g.trs.length - 1, g.ri + dRow));
+    var nci = Math.max(0, Math.min(g.colKeys.length - 1, g.ci + dCol));
+    if (nri === g.ri && nci === g.ci) return;
+    var targetTr = g.trs[nri], targetKey = g.colKeys[nci], targetId = +targetTr.getAttribute('data-id');
+    if (extend && state.cellSel) state.cellSel = { id0: state.cellSel.id0, col0: state.cellSel.col0, id1: targetId, col1: targetKey };
+    else state.cellSel = { id0: targetId, col0: targetKey, id1: targetId, col1: targetKey };
+    focusCellInput(targetTr, targetKey);
+    renderCellSelOverlay();
+  }
+  /* Tab/Shift+Tab ไล่ตามคอลัมน์แล้ววนขึ้น/ลงแถวถัดไปเมื่อชนขอบซ้าย/ขวา (เหมือน Excel/Sheets) — ไม่ขยาย
+     การเลือกหลายเซลล์ (ยุบเหลือเซลล์เดียวเสมอ ต่างจากลูกศร+Shift ที่ขยายช่วงได้) */
+  function tabMove(fromTd, forward) {
+    var g = tableGridCoords(fromTd);
+    if (g.ri === -1 || g.ci === -1) return;
+    var nci = g.ci + (forward ? 1 : -1), nri = g.ri;
+    if (nci >= g.colKeys.length) { nci = 0; nri++; }
+    else if (nci < 0) { nci = g.colKeys.length - 1; nri--; }
+    if (nri < 0 || nri >= g.trs.length) return;
+    var targetTr = g.trs[nri], targetKey = g.colKeys[nci], targetId = +targetTr.getAttribute('data-id');
+    state.cellSel = { id0: targetId, col0: targetKey, id1: targetId, col1: targetKey };
+    focusCellInput(targetTr, targetKey);
+    renderCellSelOverlay();
+  }
+  function wireCellKeyboardNav() {
+    [].forEach.call($('dataTable').querySelectorAll('td[data-id][data-col] .cell-in'), function (inp) {
+      inp.addEventListener('keydown', function (e) {
+        var td = inp.closest('td[data-id][data-col]');
+        if (!td) return;
+        var isText = inp.type === 'text';
+        if (e.key === 'ArrowUp') { e.preventDefault(); moveActiveCell(td, -1, 0, e.shiftKey); }
+        else if (e.key === 'ArrowDown') { e.preventDefault(); moveActiveCell(td, 1, 0, e.shiftKey); }
+        /* ลูกศรซ้าย/ขวา: ทำเฉพาะคอลัมน์ข้อความ และเฉพาะตอน caret ชนขอบค่าในเซลล์แล้วเท่านั้น กันชนกับการ
+           เลื่อน caret ปกติกลางข้อความ / ไม่ยุ่งกับ input type=number,date ที่มีความหมายของลูกศรซ้ายขวาเอง */
+        else if (e.key === 'ArrowLeft' && isText && caretAtStart(inp)) { e.preventDefault(); moveActiveCell(td, 0, -1, e.shiftKey); }
+        else if (e.key === 'ArrowRight' && isText && caretAtEnd(inp)) { e.preventDefault(); moveActiveCell(td, 0, 1, e.shiftKey); }
+        else if (e.key === 'Tab') { e.preventDefault(); tabMove(td, !e.shiftKey); }
+        else if (e.key === 'Enter') { e.preventDefault(); moveActiveCell(td, e.shiftKey ? -1 : 1, 0, false); }
+      });
+    });
+  }
+
+  /* ══════════════════ Copy/Paste แบบ Excel (Ctrl+C / Ctrl+V) ══════════════════
+     ทำงานเฉพาะตอนโฟกัสอยู่ที่ input ของเซลล์ตาราง (.cell-in) เท่านั้น ถ้าผู้ใช้ลากเลือกข้อความบางส่วน
+     ภายในเซลล์เดียวอยู่ (ไม่ใช่การเลือกหลายเซลล์แบบตารางของเรา) ปล่อยให้ browser คัดลอก/แปะทับส่วนที่เลือกนั้น
+     ตามปกติ — กรณีอื่นทั้งหมด (คลิกเลือกเซลล์เฉยๆ ไม่มีข้อความถูกไฮไลต์) ให้ระบบแปะแบบตารางจัดการเสมอ แม้จะ
+     แปะแค่ค่าเดียวไม่มี tab/newline ก็ตาม (นับเป็น grid 1x1) เพื่อให้ "แทนที่ทั้งเซลล์" แบบ Excel จริงๆ — ถ้า
+     ปล่อยให้ input จัดการเองจะกลายเป็น "แทรกที่ตำแหน่ง caret" แทน "แทนที่ทั้งเซลล์" ซึ่งไม่ตรงพฤติกรรมที่ต้องการ */
+  function cellHasPartialTextSelection(inp) {
+    try { return inp.selectionStart !== inp.selectionEnd; } catch (e) { return false; }
+  }
+  function buildTsvFromSelection(idx) {
+    var lines = [];
+    for (var ri = idx.rMin; ri <= idx.rMax; ri++) {
+      var row = state.rows.filter(function (rr) { return rr.__id === idx.rowIds[ri]; })[0];
+      var cells = [];
+      for (var ci = idx.cMin; ci <= idx.cMax; ci++) {
+        var colKey = idx.colKeys[ci];
+        var col = state.columns.filter(function (c) { return c.key === colKey; })[0];
+        cells.push(cellEditValue(row ? row[colKey] : null, col ? col.type : 'text'));
+      }
+      lines.push(cells.join('\t'));
+    }
+    return lines.join('\n');
+  }
+  function parseTsv(text) {
+    var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    if (lines.length > 1 && lines[lines.length - 1] === '') lines.pop(); // ตัดบรรทัดว่างท้ายที่เกิดจากการ copy
+    return lines.map(function (line) { return line.split('\t'); });
+  }
+  /* แปะข้อมูล grid (แถว x คอลัมน์) โดยยึด td ที่โฟกัสอยู่เป็นมุมบนซ้าย ไล่ขวา/ลงจากจุดนั้น
+     คอลัมน์: หยุดที่คอลัมน์สุดท้ายที่มีอยู่ (ไม่สร้างคอลัมน์ใหม่ให้อัตโนมัติ ค่าที่เกินขอบขวาจะถูกทิ้งไปเงียบๆ)
+     แถว: ถ้า grid ที่แปะยาวเกินจำนวนแถวที่เหลือในหน้านี้ จะเพิ่มแถวใหม่ต่อท้ายชุดข้อมูลทั้งหมดให้พอ (เหมือนกด
+     "+เพิ่มแถว" ซ้ำๆ) แล้วล้างตัวกรอง/คำค้นเดิมทิ้งแบบเดียวกับ addRow() กันแถวใหม่โดนกรองซ่อนจนดูเหมือนแปะไม่ติด */
+  function pasteGridAt(anchorTd, grid) {
+    var trs = [].slice.call($('dataTable').querySelectorAll('tbody tr[data-id]'));
+    var anchorRi = -1;
+    for (var i = 0; i < trs.length; i++) { if (+trs[i].getAttribute('data-id') === +anchorTd.getAttribute('data-id')) { anchorRi = i; break; } }
+    var colKeys = state.columns.map(function (c) { return c.key; });
+    var anchorCi = colKeys.indexOf(anchorTd.getAttribute('data-col'));
+    if (anchorRi === -1 || anchorCi === -1 || !grid.length) return;
+    pushHistory();
+    var targetRows = [], addedNew = false;
+    for (var g = 0; g < grid.length; g++) {
+      if (anchorRi + g < trs.length) {
+        var id = +trs[anchorRi + g].getAttribute('data-id');
+        targetRows.push(state.rows.filter(function (r) { return r.__id === id; })[0]);
+      } else {
+        var newRow = { __id: state.nextRowId++ };
+        state.columns.forEach(function (col) { newRow[col.key] = null; });
+        state.rows.push(newRow);
+        targetRows.push(newRow);
+        addedNew = true;
+      }
+    }
+    var touchedCols = {};
+    grid.forEach(function (line, gi) {
+      var row = targetRows[gi];
+      if (!row) return;
+      for (var c = 0; c < line.length; c++) {
+        var ci = anchorCi + c;
+        if (ci >= colKeys.length) break;
+        var colKey = colKeys[ci];
+        var col = state.columns.filter(function (cc) { return cc.key === colKey; })[0];
+        row[colKey] = coerceCellValue(col, line[c]);
+        touchedCols[colKey] = true;
+      }
+    });
+    Object.keys(touchedCols).forEach(function (colKey) {
+      var col = state.columns.filter(function (c) { return c.key === colKey; })[0];
+      if (col) col.type = inferColumnType(state.rows.map(function (r) { return r[colKey]; }));
+    });
+    if (addedNew) { state.filters = {}; state.globalQuery = ''; $('globalSearch').value = ''; }
+    var lastRow = targetRows[targetRows.length - 1];
+    var lastColKey = colKeys[Math.min(anchorCi + (grid[0] ? grid[0].length : 1) - 1, colKeys.length - 1)];
+    if (lastRow) state.cellSel = { id0: +anchorTd.getAttribute('data-id'), col0: anchorTd.getAttribute('data-col'), id1: lastRow.__id, col1: lastColKey };
+    renderTable();
+    persistDebounced();
+  }
+  function wireTableCopyPaste() {
+    document.addEventListener('copy', function (e) {
+      var active = document.activeElement;
+      if (!active || !active.classList || !active.classList.contains('cell-in')) return;
+      if (cellHasPartialTextSelection(active)) return;
+      if (!state.cellSel) return;
+      var idx = cellSelToIndices(state.cellSel);
+      if (!idx) return;
+      e.clipboardData.setData('text/plain', buildTsvFromSelection(idx));
+      e.preventDefault();
+    });
+    document.addEventListener('paste', function (e) {
+      var active = document.activeElement;
+      if (!active || !active.classList || !active.classList.contains('cell-in')) return;
+      if (cellHasPartialTextSelection(active)) return; // มีข้อความถูกเลือกบางส่วนอยู่ -> ปล่อยให้แปะทับส่วนนั้นแบบ input ปกติ
+      var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+      if (text == null) return;
+      var anchorTd = active.closest('td[data-id][data-col]');
+      if (!anchorTd) return;
+      e.preventDefault();
+      pasteGridAt(anchorTd, parseTsv(text)); // ค่าเดียวไม่มี tab/newline ก็กลายเป็น grid 1x1 พอดี
     });
   }
   /* คำนวณค่าที่จะเติมของ "เส้น" หนึ่งเส้น (คอลัมน์เดียวตอนลากขึ้น/ลง หรือแถวเดียวตอนลากซ้าย/ขวา) —
@@ -3424,6 +3594,7 @@
     });
     $('addRowBtn').addEventListener('click', addRow);
     $('addColBtn').addEventListener('click', addColumn);
+    wireTableCopyPaste();
     [].forEach.call(document.querySelectorAll('.card-color-btn'), function (btn) {
       btn.addEventListener('click', function () { openCardColorPopover(btn.getAttribute('data-role'), btn, renderDashboard); });
     });
