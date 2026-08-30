@@ -34,13 +34,16 @@
       tabTable: '📋 ตาราง (แก้ไข)', tabDashboard: '📊 แดชบอร์ด', tabCustom: '🧩 กำหนดเอง',
       addWidgetBtn: '➕ เพิ่มกล่อง',
       customEmptyHint: 'ลากมุมกล่องเพื่อย่อ-ขยาย ลากหัวกล่องเพื่อย้ายตำแหน่ง — เริ่มจากกด "เพิ่มกล่อง" ด้านบน',
-      addWidgetPickTitle: 'เลือกชนิดกล่อง', wtKpi: '🔢 ตัวเลข (KPI)', wtChart: '📊 กราฟ', wtText: '📝 ข้อความ',
-      wtKpiLabel: 'กล่องตัวเลข', wtChartLabel: 'กล่องกราฟ', wtTextLabel: 'กล่องข้อความ',
+      addWidgetPickTitle: 'เลือกชนิดกล่อง', wtKpi: '🔢 ตัวเลข (KPI)', wtChart: '📊 กราฟ', wtText: '📝 ข้อความ', wtTable: '📋 ตาราง',
+      wtKpiLabel: 'กล่องตัวเลข', wtChartLabel: 'กล่องกราฟ', wtTextLabel: 'กล่องข้อความ', wtTableLabel: 'กล่องตาราง',
       wtEditTitle: 'แก้ไขกล่องนี้', wtRemoveTitle: 'ลบกล่องนี้',
       cwColumnLbl: 'คอลัมน์', cwAggLbl: 'วิธีคำนวณ', cwLabelLbl: 'ป้ายชื่อ (ไม่บังคับ)',
       cwAggSum: 'ผลรวม', cwAggAvg: 'ค่าเฉลี่ย', cwAggCount: 'จำนวนแถวทั้งหมด', cwAggMin: 'ค่าต่ำสุด', cwAggMax: 'ค่าสูงสุด',
       cwChartTypeLbl: 'ชนิดกราฟ', cwGroupByLbl: 'จัดกลุ่มตาม', cwValueLbl: 'ค่า',
       cwTextPh: 'พิมพ์ข้อความที่นี่…', totalRowsKpiLabel: 'จำนวนแถวทั้งหมด',
+      cwTableModeLbl: 'รูปแบบตาราง', cwTableModePlain: 'ตารางข้อมูล', cwTableModePivot: 'Pivot Table',
+      cwTableColsLbl: 'คอลัมน์ที่แสดง', cwTableSearchPh: 'ค้นหาในตาราง…', cwTableNoColsHint: 'เลือกอย่างน้อย 1 คอลัมน์',
+      cwTableSortHint: 'คลิกหัวคอลัมน์เพื่อเรียงลำดับ',
       drillText: '🔍 กำลังกรอง: {label} = {value}', drillClearBtn: '✕ ล้างตัวกรองนี้',
       uploadTitle: '📤 อัปโหลดไฟล์', dropText: 'ลากไฟล์มาวางตรงนี้ หรือ', pickBtn: 'เลือกไฟล์',
       dropHint: 'รองรับ .xlsx .xls .csv — ไฟล์ประมวลผลในเครื่องคุณทั้งหมด',
@@ -154,13 +157,16 @@
       tabTable: '📋 Table (Edit)', tabDashboard: '📊 Dashboard', tabCustom: '🧩 Custom',
       addWidgetBtn: '➕ Add Box',
       customEmptyHint: 'Drag a corner to resize, drag the header to move — start by clicking "Add Box" above',
-      addWidgetPickTitle: 'Choose a box type', wtKpi: '🔢 Number (KPI)', wtChart: '📊 Chart', wtText: '📝 Text',
-      wtKpiLabel: 'Number box', wtChartLabel: 'Chart box', wtTextLabel: 'Text box',
+      addWidgetPickTitle: 'Choose a box type', wtKpi: '🔢 Number (KPI)', wtChart: '📊 Chart', wtText: '📝 Text', wtTable: '📋 Table',
+      wtKpiLabel: 'Number box', wtChartLabel: 'Chart box', wtTextLabel: 'Text box', wtTableLabel: 'Table box',
       wtEditTitle: 'Edit this box', wtRemoveTitle: 'Remove this box',
       cwColumnLbl: 'Column', cwAggLbl: 'Aggregation', cwLabelLbl: 'Label (optional)',
       cwAggSum: 'Sum', cwAggAvg: 'Average', cwAggCount: 'Total row count', cwAggMin: 'Minimum', cwAggMax: 'Maximum',
       cwChartTypeLbl: 'Chart type', cwGroupByLbl: 'Group by', cwValueLbl: 'Value',
       cwTextPh: 'Type your text here…', totalRowsKpiLabel: 'Total Rows',
+      cwTableModeLbl: 'Table mode', cwTableModePlain: 'Data table', cwTableModePivot: 'Pivot Table',
+      cwTableColsLbl: 'Columns to show', cwTableSearchPh: 'Search table…', cwTableNoColsHint: 'Select at least 1 column',
+      cwTableSortHint: 'Click a column header to sort',
       drillText: '🔍 Filtering: {label} = {value}', drillClearBtn: '✕ Clear this filter',
       uploadTitle: '📤 Upload File', dropText: 'Drag a file here, or', pickBtn: 'Choose File',
       dropHint: 'Supports .xlsx .xls .csv — everything is processed on your device',
@@ -875,13 +881,19 @@
 
   /* จัดกลุ่มแถว×คอลัมน์×รวมค่า แบบ Excel PivotTable ง่ายๆ — ไม่มี colCol = รวมเป็นคอลัมน์ค่าเดียว,
      ไม่มี valCol = นับจำนวนแถวแทนการรวมตัวเลข จำกัดจำนวนแถว/คอลัมน์ที่ไม่ซ้ำกันกันตารางใหญ่เกินไป */
-  function buildPivot(rows, noCap) {
+  /* opts เป็นตัวเลือกไม่บังคับ ใช้ตอนเรียกจากกล่อง Pivot ในแท็บ "กำหนดเอง" (แต่ละกล่องมีค่า
+     แถว/คอลัมน์/ค่า/วิธีคำนวณเป็นของตัวเอง แยกจากตาราง Pivot หลัก) — ไม่ใส่ opts จะอ่านจาก
+     state.dashTable เหมือนเดิมทุกประการ (ตาราง Pivot หลักในแท็บ "ตาราง" ไม่กระทบ) */
+  function buildPivot(rows, noCap, opts) {
     var dt = state.dashTable;
-    var rowCol = state.columns.filter(function (c) { return c.key === dt.pivotRow; })[0];
+    var rowKey = opts ? opts.rowKey : dt.pivotRow;
+    var colKey = opts ? opts.colKey : dt.pivotCol;
+    var valKey = opts ? opts.valKey : dt.pivotVal;
+    var agg = opts ? opts.agg : dt.pivotAgg;
+    var rowCol = state.columns.filter(function (c) { return c.key === rowKey; })[0];
     if (!rowCol) return null;
-    var colCol = dt.pivotCol ? state.columns.filter(function (c) { return c.key === dt.pivotCol; })[0] : null;
-    var valCol = dt.pivotVal ? state.columns.filter(function (c) { return c.key === dt.pivotVal; })[0] : null;
-    var agg = dt.pivotAgg;
+    var colCol = colKey ? state.columns.filter(function (c) { return c.key === colKey; })[0] : null;
+    var valCol = valKey ? state.columns.filter(function (c) { return c.key === valKey; })[0] : null;
     var rowKeys = [], rowSeen = {}, colKeys = [], colSeen = {}, cells = {};
     rows.forEach(function (r) {
       var rv = r[rowCol.key]; rv = (rv === null || rv === undefined || rv === '') ? t('emptyValueLabel') : String(rv);
@@ -918,6 +930,31 @@
   }
   function fmtPivotNum(n) { return n == null ? t('emptyCellDash') : n.toLocaleString(locale(), { maximumFractionDigits: 2 }); }
 
+  /* สร้าง <thead>+<tbody> ของตาราง Pivot จากผลลัพธ์ buildPivot() — แยกออกมาจาก renderDashTableBody()
+     เพื่อให้กล่อง Pivot ในแท็บ "กำหนดเอง" เรียกใช้ซ้ำได้โดยไม่ต้องก็อปโค้ดสร้าง HTML ซ้ำ */
+  function pivotTableHtml(piv) {
+    var cornerLabel = piv.colLabel ? (piv.rowLabel + ' \\ ' + piv.colLabel) : piv.rowLabel;
+    var thead = '<thead><tr><th>' + escapeHtml(cornerLabel) + '</th>' +
+      piv.colKeys.map(function (ck) { return '<th class="num">' + escapeHtml(ck === '__single__' ? piv.valLabel : ck) + '</th>'; }).join('') +
+      (piv.colLabel ? '<th class="num piv-total">' + escapeHtml(t('pivotTotalLbl')) + '</th>' : '') +
+      '</tr></thead>';
+    var colTotals = {}, grandTotal = 0;
+    var bodyRows = piv.rowKeys.map(function (rk) {
+      var rowTotal = 0;
+      var tds = piv.colKeys.map(function (ck) {
+        var v = piv.cellVal(rk, ck);
+        if (v != null) { colTotals[ck] = (colTotals[ck] || 0) + v; rowTotal += v; }
+        return '<td class="num">' + fmtPivotNum(v) + '</td>';
+      }).join('');
+      grandTotal += rowTotal;
+      return '<tr><td>' + escapeHtml(rk) + '</td>' + tds + (piv.colLabel ? '<td class="num piv-total">' + fmtPivotNum(rowTotal) + '</td>' : '') + '</tr>';
+    }).join('');
+    var totalsRow = piv.colLabel ? ('<tr class="piv-total-row"><td class="piv-total">' + escapeHtml(t('pivotGrandTotalLbl')) + '</td>' +
+      piv.colKeys.map(function (ck) { return '<td class="num piv-total">' + fmtPivotNum(colTotals[ck] || 0) + '</td>'; }).join('') +
+      '<td class="num piv-total">' + fmtPivotNum(grandTotal) + '</td></tr>') : '';
+    return thead + '<tbody>' + bodyRows + totalsRow + '</tbody>';
+  }
+
   /* วาดเฉพาะเนื้อ <table> + meta — แยกจากการวาดแถบควบคุม/แถวกรอง กันช่องกรองเสียโฟกัสตอนพิมพ์
      (ต่างจาก renderTable() หลักที่ต้อง refocus เอง เพราะที่นี่ input ตัวเดิมไม่ถูกลบทิ้งเลย) */
   function renderDashTableBody() {
@@ -926,26 +963,7 @@
     if (dt.mode === 'pivot') {
       var piv = dt.pivotRow ? buildPivot(rows) : null;
       if (!piv) { $('dashTable').innerHTML = ''; $('dashTableMeta').textContent = t('pivotEmptyHint'); return; }
-      var cornerLabel = piv.colLabel ? (piv.rowLabel + ' \\ ' + piv.colLabel) : piv.rowLabel;
-      var thead = '<thead><tr><th>' + escapeHtml(cornerLabel) + '</th>' +
-        piv.colKeys.map(function (ck) { return '<th class="num">' + escapeHtml(ck === '__single__' ? piv.valLabel : ck) + '</th>'; }).join('') +
-        (piv.colLabel ? '<th class="num piv-total">' + escapeHtml(t('pivotTotalLbl')) + '</th>' : '') +
-        '</tr></thead>';
-      var colTotals = {}, grandTotal = 0;
-      var bodyRows = piv.rowKeys.map(function (rk) {
-        var rowTotal = 0;
-        var tds = piv.colKeys.map(function (ck) {
-          var v = piv.cellVal(rk, ck);
-          if (v != null) { colTotals[ck] = (colTotals[ck] || 0) + v; rowTotal += v; }
-          return '<td class="num">' + fmtPivotNum(v) + '</td>';
-        }).join('');
-        grandTotal += rowTotal;
-        return '<tr><td>' + escapeHtml(rk) + '</td>' + tds + (piv.colLabel ? '<td class="num piv-total">' + fmtPivotNum(rowTotal) + '</td>' : '') + '</tr>';
-      }).join('');
-      var totalsRow = piv.colLabel ? ('<tr class="piv-total-row"><td class="piv-total">' + escapeHtml(t('pivotGrandTotalLbl')) + '</td>' +
-        piv.colKeys.map(function (ck) { return '<td class="num piv-total">' + fmtPivotNum(colTotals[ck] || 0) + '</td>'; }).join('') +
-        '<td class="num piv-total">' + fmtPivotNum(grandTotal) + '</td></tr>') : '';
-      $('dashTable').innerHTML = thead + '<tbody>' + bodyRows + totalsRow + '</tbody>';
+      $('dashTable').innerHTML = pivotTableHtml(piv);
       var meta = rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
       if (piv.rowTruncated) meta += t('pivotCapNote', { n: piv.rowKeys.length, total: piv.rowTotalCount });
       $('dashTableMeta').textContent = meta;
@@ -2062,13 +2080,100 @@
       saveTimer = setTimeout(persistDebounced, 400);
     };
   }
-  function widgetTypeLabel(type) { return type === 'kpi' ? t('wtKpiLabel') : type === 'chart' ? t('wtChartLabel') : t('wtTextLabel'); }
+  function tableWidgetCellDisplay(v, type) {
+    if (v === null || v === undefined || v === '') return '';
+    if (type === 'date' && v instanceof Date && !isNaN(v)) return v.toLocaleDateString(locale());
+    if (type === 'number' && typeof v === 'number' && isFinite(v)) return v.toLocaleString(locale(), { maximumFractionDigits: 2 });
+    return String(v);
+  }
+  /* ตารางข้อมูลธรรมดา (ไม่ใช่ pivot) ของกล่องตาราง — กรอง/เรียงจาก state.rows ทั้งหมดเสมอ (เหมือนกล่อง
+     KPI/กราฟ ไม่ผูกกับ state.drill หรือตัวกรองแท็บตาราง ตามหลักการเดิม "รายงานสรุปนิ่ง ไม่ขยับตามแท็บอื่น") */
+  function tableWidgetPlainRows(cfg) {
+    var cols = state.columns.filter(function (c) { return cfg.cols.indexOf(c.key) !== -1; });
+    var rows = state.rows;
+    if (cfg.q) {
+      var q = cfg.q.toLowerCase();
+      rows = rows.filter(function (r) {
+        return cols.some(function (c) { return tableWidgetCellDisplay(r[c.key], c.type).toLowerCase().indexOf(q) !== -1; });
+      });
+    }
+    if (cfg.sortCol) {
+      var sc = state.columns.filter(function (c) { return c.key === cfg.sortCol; })[0];
+      if (sc) {
+        var dir = cfg.sortDir === 'desc' ? -1 : 1;
+        rows = rows.slice().sort(function (a, b) {
+          var av = a[sc.key], bv = b[sc.key];
+          if (av == null && bv == null) return 0;
+          if (av == null) return 1; if (bv == null) return -1;
+          if (sc.type === 'number') return (av - bv) * dir;
+          if (sc.type === 'date') return (new Date(av) - new Date(bv)) * dir;
+          return String(av).localeCompare(String(bv), getUILang()) * dir;
+        });
+      }
+    }
+    return { cols: cols, rows: rows };
+  }
+  /* วาดเฉพาะ <table> + บรรทัด meta ของกล่องตาราง — แยกจาก renderTableWidget() (ที่สร้าง skeleton ทั้งกล่อง
+     รวมช่องค้นหา) ครั้งเดียว กันช่องค้นหาเสียโฟกัสเวลาพิมพ์ทุกครั้งที่ผลลัพธ์เปลี่ยน เหมือน renderDashTableBody() */
+  function renderTableWidgetTable(bodyEl, cfg) {
+    var wrap = bodyEl.querySelector('.wtbl-tablewrap');
+    if (!wrap) return;
+    if (cfg.mode === 'pivot') {
+      var piv = cfg.pivotRow ? buildPivot(state.rows, true, { rowKey: cfg.pivotRow, colKey: cfg.pivotCol, valKey: cfg.pivotVal, agg: cfg.pivotAgg }) : null;
+      if (!piv) { wrap.innerHTML = '<p class="mini">' + escapeHtml(t('pivotEmptyHint')) + '</p>'; return; }
+      wrap.innerHTML = '<table>' + pivotTableHtml(piv) + '</table>';
+      return;
+    }
+    if (!cfg.cols.length) { wrap.innerHTML = '<p class="mini">' + escapeHtml(t('cwTableNoColsHint')) + '</p>'; return; }
+    var r = tableWidgetPlainRows(cfg);
+    var thead = '<thead><tr>' + r.cols.map(function (c) {
+      var sorted = cfg.sortCol === c.key;
+      var ic = sorted ? (cfg.sortDir === 'asc' ? '▲' : '▼') : '↕';
+      return '<th class="' + (c.type === 'number' ? 'num' : '') + (sorted ? ' sorted' : '') + '" data-col="' + c.key + '" title="' + escapeAttr(t('cwTableSortHint')) + '">' +
+        escapeHtml(c.label) + '<span class="sort-ic">' + ic + '</span></th>';
+    }).join('') + '</tr></thead>';
+    var tbody = '<tbody>' + r.rows.map(function (row) {
+      return '<tr>' + r.cols.map(function (c) {
+        return '<td class="' + (c.type === 'number' ? 'num' : '') + '">' + escapeHtml(tableWidgetCellDisplay(row[c.key], c.type)) + '</td>';
+      }).join('') + '</tr>';
+    }).join('') + '</tbody>';
+    wrap.innerHTML = '<table>' + thead + tbody + '</table>';
+    [].forEach.call(wrap.querySelectorAll('th[data-col]'), function (th) {
+      th.addEventListener('click', function () {
+        var col = th.getAttribute('data-col');
+        if (cfg.sortCol === col) cfg.sortDir = cfg.sortDir === 'asc' ? 'desc' : 'asc';
+        else { cfg.sortCol = col; cfg.sortDir = 'asc'; }
+        renderTableWidgetTable(bodyEl, cfg);
+        persistDebounced();
+      });
+    });
+    var meta = bodyEl.querySelector('.wtbl-meta');
+    if (meta) meta.textContent = r.rows.length.toLocaleString(locale()) + ' / ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
+  }
+  function renderTableWidget(bodyEl, cfg, widget) {
+    var searchHtml = cfg.mode === 'pivot' ? '' :
+      '<input type="text" class="wtbl-search" placeholder="' + escapeAttr(t('cwTableSearchPh')) + '" value="' + escapeAttr(cfg.q || '') + '">';
+    bodyEl.innerHTML = searchHtml + '<div class="wtbl-tablewrap"></div>' + (cfg.mode === 'pivot' ? '' : '<div class="wtbl-meta"></div>');
+    var searchEl = bodyEl.querySelector('.wtbl-search');
+    if (searchEl) {
+      var saveTimer = null;
+      searchEl.addEventListener('input', function () {
+        cfg.q = searchEl.value;
+        renderTableWidgetTable(bodyEl, cfg);
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(persistDebounced, 400);
+      });
+    }
+    renderTableWidgetTable(bodyEl, cfg);
+  }
+  function widgetTypeLabel(type) { return type === 'kpi' ? t('wtKpiLabel') : type === 'chart' ? t('wtChartLabel') : type === 'table' ? t('wtTableLabel') : t('wtTextLabel'); }
   function renderWidgetBody(widget, itemEl) {
     var bodyEl = itemEl.querySelector('.widget-body');
     if (!bodyEl) return;
     bodyEl.className = 'widget-body wb-' + widget.type;
     if (widget.type === 'kpi') renderKpiWidget(bodyEl, widget.config);
     else if (widget.type === 'chart') renderChartWidget(bodyEl, widget.config, widget.id);
+    else if (widget.type === 'table') renderTableWidget(bodyEl, widget.config, widget);
     else renderTextWidget(bodyEl, widget.config, widget);
   }
   function widgetHtml(widget) {
@@ -2121,11 +2226,18 @@
   function addCustomWidget(type) {
     var numCols = state.columns.filter(function (c) { return c.type === 'number'; });
     var catCols = state.columns.filter(function (c) { return c.type === 'category' || c.type === 'date'; });
-    var widget = { id: genWidgetId(), type: type, x: null, y: null, w: type === 'chart' ? 4 : (type === 'text' ? 3 : 2), h: type === 'chart' ? 4 : 2, config: {} };
+    var sizes = { chart: [4, 4], text: [3, 2], table: [5, 4] };
+    var wh = sizes[type] || [2, 2];
+    var widget = { id: genWidgetId(), type: type, x: null, y: null, w: wh[0], h: wh[1], config: {} };
     if (type === 'kpi') {
       widget.config = numCols.length ? { colKey: numCols[0].key, agg: 'sum', label: null } : { colKey: null, agg: 'count', label: null };
     } else if (type === 'chart') {
       widget.config = { chartType: 'bar', catColKey: catCols.length ? catCols[0].key : null, numColKey: numCols.length ? numCols[0].key : '' };
+    } else if (type === 'table') {
+      widget.config = {
+        mode: 'plain', cols: state.columns.slice(0, 6).map(function (c) { return c.key; }), q: '', sortCol: null, sortDir: 'asc',
+        pivotRow: catCols.length ? catCols[0].key : '', pivotCol: '', pivotVal: '', pivotAgg: 'sum'
+      };
     } else {
       widget.config = { text: '' };
     }
@@ -2146,6 +2258,7 @@
       '<div class="fp-list add-widget-pick">' +
       '<div class="fp-item" data-type="kpi"><span>' + escapeHtml(t('wtKpi')) + '</span></div>' +
       '<div class="fp-item" data-type="chart"><span>' + escapeHtml(t('wtChart')) + '</span></div>' +
+      '<div class="fp-item" data-type="table"><span>' + escapeHtml(t('wtTable')) + '</span></div>' +
       '<div class="fp-item" data-type="text"><span>' + escapeHtml(t('wtText')) + '</span></div>' +
       '</div>';
     openPopover(html, anchorEl, function (el, close) {
@@ -2187,6 +2300,43 @@
         '</select></label>' +
         '</div>' +
         '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
+    } else if (widget.type === 'table') {
+      var catColsT = state.columns.filter(function (c) { return c.type === 'category' || c.type === 'date'; });
+      var numColsT = state.columns.filter(function (c) { return c.type === 'number'; });
+      var isPivot = widget.config.mode === 'pivot';
+      html = '<div class="fp-title">' + escapeHtml(t('wtEditTitle')) + '</div>' +
+        '<div class="fp-range">' +
+        '<label>' + escapeHtml(t('cwTableModeLbl')) + '<select class="ew-mode">' +
+        '<option value="plain"' + (!isPivot ? ' selected' : '') + '>' + escapeHtml(t('cwTableModePlain')) + '</option>' +
+        '<option value="pivot"' + (isPivot ? ' selected' : '') + '>' + escapeHtml(t('cwTableModePivot')) + '</option>' +
+        '</select></label>' +
+        '</div>' +
+        '<div class="ew-plain-wrap"' + (isPivot ? ' style="display:none"' : '') + '>' +
+        '<div class="fp-title" style="margin-top:8px">' + escapeHtml(t('cwTableColsLbl')) + '</div>' +
+        '<div class="fp-quick"><button type="button" class="fp-all">' + escapeHtml(t('filterSelectAllBtn')) + '</button>' +
+        '<button type="button" class="fp-none">' + escapeHtml(t('filterSelectNoneBtn')) + '</button></div>' +
+        '<div class="fp-list">' + state.columns.map(function (c) {
+          return '<label class="fp-item"><input type="checkbox" class="ew-col-chk" data-col="' + c.key + '"' + (widget.config.cols.indexOf(c.key) !== -1 ? ' checked' : '') + '><span>' + escapeHtml(c.label) + '</span></label>';
+        }).join('') + '</div>' +
+        '</div>' +
+        '<div class="ew-pivot-wrap fp-range"' + (isPivot ? '' : ' style="display:none"') + '>' +
+        '<label>' + escapeHtml(t('pivotRowsLbl')) + '<select class="ew-pivot-row">' +
+        catColsT.map(function (c) { return '<option value="' + c.key + '"' + (widget.config.pivotRow === c.key ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>'; }).join('') +
+        '</select></label>' +
+        '<label>' + escapeHtml(t('pivotColsLbl')) + '<select class="ew-pivot-col">' +
+        '<option value=""' + (!widget.config.pivotCol ? ' selected' : '') + '>' + escapeHtml(t('pivotNoneOption')) + '</option>' +
+        catColsT.map(function (c) { return '<option value="' + c.key + '"' + (widget.config.pivotCol === c.key ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>'; }).join('') +
+        '</select></label>' +
+        '<label>' + escapeHtml(t('pivotValueLbl')) + '<select class="ew-pivot-val">' +
+        '<option value=""' + (!widget.config.pivotVal ? ' selected' : '') + '>' + escapeHtml(t('countOption')) + '</option>' +
+        numColsT.map(function (c) { return '<option value="' + c.key + '"' + (widget.config.pivotVal === c.key ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>'; }).join('') +
+        '</select></label>' +
+        '<label>' + escapeHtml(t('pivotAggLbl')) + '<select class="ew-pivot-agg">' +
+        '<option value="sum"' + (widget.config.pivotAgg === 'sum' ? ' selected' : '') + '>' + escapeHtml(t('aggSum')) + '</option>' +
+        '<option value="avg"' + (widget.config.pivotAgg === 'avg' ? ' selected' : '') + '>' + escapeHtml(t('aggAvg')) + '</option>' +
+        '</select></label>' +
+        '</div>' +
+        '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
     } else {
       return; // ข้อความแก้ตรงๆ ในกล่องอยู่แล้ว ไม่ต้องมี popup แก้
     }
@@ -2194,6 +2344,15 @@
       if (widget.type === 'kpi') {
         var aggSel = el.querySelector('.ew-agg'), colWrap = el.querySelector('.ew-colwrap');
         aggSel.addEventListener('change', function () { colWrap.style.display = aggSel.value === 'count' ? 'none' : ''; });
+      } else if (widget.type === 'table') {
+        var modeSel = el.querySelector('.ew-mode'), plainWrap = el.querySelector('.ew-plain-wrap'), pivotWrap = el.querySelector('.ew-pivot-wrap');
+        modeSel.addEventListener('change', function () {
+          var pv = modeSel.value === 'pivot';
+          plainWrap.style.display = pv ? 'none' : '';
+          pivotWrap.style.display = pv ? '' : 'none';
+        });
+        el.querySelector('.fp-all').addEventListener('click', function () { [].forEach.call(el.querySelectorAll('.ew-col-chk'), function (c) { c.checked = true; }); });
+        el.querySelector('.fp-none').addEventListener('click', function () { [].forEach.call(el.querySelectorAll('.ew-col-chk'), function (c) { c.checked = false; }); });
       }
       el.querySelector('.fp-apply').addEventListener('click', function () {
         if (widget.type === 'kpi') {
@@ -2205,6 +2364,13 @@
           widget.config.chartType = el.querySelector('.ew-charttype').value;
           widget.config.catColKey = el.querySelector('.ew-cat').value;
           widget.config.numColKey = el.querySelector('.ew-val').value;
+        } else if (widget.type === 'table') {
+          widget.config.mode = el.querySelector('.ew-mode').value;
+          widget.config.cols = [].map.call(el.querySelectorAll('.ew-col-chk:checked'), function (c) { return c.getAttribute('data-col'); });
+          widget.config.pivotRow = el.querySelector('.ew-pivot-row').value;
+          widget.config.pivotCol = el.querySelector('.ew-pivot-col').value;
+          widget.config.pivotVal = el.querySelector('.ew-pivot-val').value;
+          widget.config.pivotAgg = el.querySelector('.ew-pivot-agg').value;
         }
         renderWidgetBody(widget, itemEl);
         persistDebounced();

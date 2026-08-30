@@ -142,6 +142,19 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .widget-body.wb-chart canvas{max-width:100%}
 .widget-body.wb-text{font-size:14px;line-height:1.6;color:var(--ink);white-space:pre-wrap;outline:none}
 .widget-body.wb-text:empty::before{content:attr(data-placeholder);color:var(--muted)}
+.widget-body.wb-table{display:flex;flex-direction:column;gap:6px;padding:8px}
+.widget-body.wb-table .wtbl-search{width:100%;padding:6px 9px;border:1px solid var(--line);border-radius:8px;
+  font-size:12px;background:var(--card);color:var(--ink);flex-shrink:0}
+.widget-body.wb-table .wtbl-tablewrap{flex:1;min-height:0;overflow:auto}
+.widget-body.wb-table table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.widget-body.wb-table th,.widget-body.wb-table td{padding:5px 9px;border-bottom:1px solid var(--line);text-align:left}
+.widget-body.wb-table thead th{position:sticky;top:0;background:var(--card);cursor:pointer;user-select:none}
+.widget-body.wb-table thead th.sorted{color:var(--brand-dk)}
+.widget-body.wb-table thead th .sort-ic{font-size:9px;margin-left:3px;color:var(--muted)}
+.widget-body.wb-table td.num,.widget-body.wb-table th.num{text-align:right}
+.widget-body.wb-table td.piv-total,.widget-body.wb-table th.piv-total{font-weight:800}
+.widget-body.wb-table tr.piv-total-row td{font-weight:800;border-top:2px solid var(--line)}
+.widget-body.wb-table .wtbl-meta{font-size:10.5px;color:var(--muted);flex-shrink:0}
 .add-widget-pick .fp-item{gap:10px}
 /* ── แถบตัวกรองที่ active ของตารางในแดชบอร์ด (แยกจากตัวกรองของแท็บแก้ไข) — เดิมเป็นแถวกรองตรึงอยู่
    ตลอดทีละคอลัมน์ (รกมากเมื่อคอลัมน์เยอะ) เปลี่ยนเป็น: กดปุ่ม 🔽 ที่หัวคอลัมน์ หรือ "+ ตัวกรอง" ที่นี่
