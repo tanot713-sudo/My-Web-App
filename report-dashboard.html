@@ -122,7 +122,7 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .risk-matrix td{font-weight:800;font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums}
 
 /* ── มุมมอง "กำหนดเอง" — Gridstack.js จัดตำแหน่ง/ย่อ-ขยายกล่องให้ ที่นี่แค่แต่งหน้าตากล่องให้เข้าธีมเว็บ ── */
-.grid-stack{margin-top:10px}
+.grid-stack{margin-top:10px;min-height:80px;border-radius:14px;transition:background .15s}
 .grid-stack-item-content{background:var(--card);border-radius:14px;box-shadow:var(--sh);
   border:1px solid rgba(16,24,40,.03);overflow:hidden;display:flex;flex-direction:column}
 .widget-head{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);
@@ -138,6 +138,7 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .widget-body.wb-kpi .wt-val{font-size:26px;font-weight:800;color:var(--ink);letter-spacing:-.01em;
   font-variant-numeric:tabular-nums}
 .widget-body.wb-kpi .wt-sub{font-size:11.5px;color:var(--muted)}
+.wt-snapshot-note{font-size:10px;color:var(--muted);font-style:italic}
 .widget-body.wb-chart{padding:8px}
 .widget-body.wb-chart canvas{max-width:100%}
 .widget-body.wb-text{font-size:14px;line-height:1.6;color:var(--ink);white-space:pre-wrap;outline:none}
@@ -155,6 +156,14 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .widget-body.wb-table td.piv-total,.widget-body.wb-table th.piv-total{font-weight:800}
 .widget-body.wb-table tr.piv-total-row td{font-weight:800;border-top:2px solid var(--line)}
 .widget-body.wb-table .wtbl-meta{font-size:10.5px;color:var(--muted);flex-shrink:0}
+.card-color-btn{border:none;background:transparent;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px;
+  margin-left:auto;opacity:.55;transition:.15s}
+.card-color-btn:hover{opacity:1;background:var(--bg)}
+.fp-range label.cc-checkrow{display:flex;align-items:center;gap:6px;font-weight:400}
+/* ลูกเล่นเล็กๆ: การ์ด/กล่องยกตัวขึ้นนิดๆ พร้อมเงาเข้มขึ้นตอน hover ให้ดูมีมิติ ไม่ใช่แผ่นแบนราบ */
+.card,.grid-stack-item-content{transition:transform .15s ease,box-shadow .15s ease}
+.card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(16,24,40,.09)}
+.grid-stack-item-content:hover{box-shadow:0 8px 20px rgba(16,24,40,.12)}
 .add-widget-pick .fp-item{gap:10px}
 /* ── แถบตัวกรองที่ active ของตารางในแดชบอร์ด (แยกจากตัวกรองของแท็บแก้ไข) — เดิมเป็นแถวกรองตรึงอยู่
    ตลอดทีละคอลัมน์ (รกมากเมื่อคอลัมน์เยอะ) เปลี่ยนเป็น: กดปุ่ม 🔽 ที่หัวคอลัมน์ หรือ "+ ตัวกรอง" ที่นี่
@@ -407,30 +416,33 @@ td.cellsel-in{background:var(--brand-sf)}
           <option value="reading" data-i18n="domainReadingOption">📚 การอ่านหนังสือ</option>
         </select></label>
       </div>
+      <div class="chart-ctrl-row" style="margin-top:-4px">
+        <button class="card-color-btn" type="button" data-role="domainKpi" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button>
+      </div>
       <div class="stat-row" id="domainKpiRow"></div>
       <div class="card" id="domainMatrixCard" style="display:none;margin-top:14px">
-        <h2 id="domainMatrixTitle"></h2>
+        <h2><span id="domainMatrixTitle"></span> <button class="card-color-btn" type="button" data-role="domainMatrix" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
         <div class="tbl-wrap"><div id="domainMatrixWrap"></div></div>
         <p class="mini" id="domainMatrixAxisNote"></p>
       </div>
       <div class="chart-grid">
         <div class="card" id="domainChart1Card" style="display:none">
-          <h2 id="domainChart1Title"></h2>
+          <h2><span id="domainChart1Title"></span> <button class="card-color-btn" type="button" data-role="domainChart1" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
           <div class="chart-wrap"><canvas id="domainChart1"></canvas></div>
         </div>
         <div class="card" id="domainChart2Card" style="display:none">
-          <h2 id="domainChart2Title"></h2>
+          <h2><span id="domainChart2Title"></span> <button class="card-color-btn" type="button" data-role="domainChart2" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
           <div class="chart-wrap"><canvas id="domainChart2"></canvas></div>
         </div>
       </div>
     </div>
     <div class="card" id="numStatCard" style="display:none">
-      <h2 data-i18n="numStatTitle">🔢 สรุปตัวเลข</h2>
+      <h2><span data-i18n="numStatTitle">🔢 สรุปตัวเลข</span> <button class="card-color-btn" type="button" data-role="numStat" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
       <div class="stat-row" id="numStatRow"></div>
     </div>
     <div class="chart-grid">
     <div class="card" id="barChartCard" style="display:none">
-      <h2 id="barChartTitle">📊 กราฟแท่ง</h2>
+      <h2><span id="barChartTitle">📊 กราฟแท่ง</span> <button class="card-color-btn" type="button" data-role="bar" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
       <div class="chart-ctrl-row">
         <label><span data-i18n="chartTypeLbl">ชนิดกราฟ</span> <select id="barTypeSel">
           <option value="bar" data-i18n="typeBar">แท่งแนวตั้ง</option><option value="barH" data-i18n="typeBarH">แท่งแนวนอน</option>
@@ -443,7 +455,7 @@ td.cellsel-in{background:var(--brand-sf)}
       <p class="mini" data-i18n="hintBarClick">👆 แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น</p>
     </div>
     <div class="card" id="lineChartCard" style="display:none">
-      <h2 id="lineChartTitle">📈 แนวโน้มตามเวลา</h2>
+      <h2><span id="lineChartTitle">📈 แนวโน้มตามเวลา</span> <button class="card-color-btn" type="button" data-role="line" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
       <div class="chart-ctrl-row">
         <label><span data-i18n="chartTypeLbl">ชนิดกราฟ</span> <select id="lineTypeSel">
           <option value="line" data-i18n="typeLine">เส้น</option><option value="bar" data-i18n="typeBar">แท่งแนวตั้ง</option><option value="barH" data-i18n="typeBarH">แท่งแนวนอน</option>
@@ -456,7 +468,7 @@ td.cellsel-in{background:var(--brand-sf)}
       <p class="mini" data-i18n="hintLineClick">👆 แตะกราฟเพื่อกรองตารางเฉพาะช่วงนั้น</p>
     </div>
     <div class="card" id="pieChartCard" style="display:none">
-      <h2 id="pieChartTitle">🥧 สัดส่วน</h2>
+      <h2><span id="pieChartTitle">🥧 สัดส่วน</span> <button class="card-color-btn" type="button" data-role="pie" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
       <div class="chart-ctrl-row">
         <label><span data-i18n="chartTypeLbl">ชนิดกราฟ</span> <select id="pieTypeSel">
           <option value="doughnut" data-i18n="typeDoughnut">โดนัท</option><option value="pie" data-i18n="typePie">วงกลม</option>
@@ -501,6 +513,8 @@ td.cellsel-in{background:var(--brand-sf)}
   <div id="customView" style="display:none">
     <div class="toolbar-row">
       <button class="btn sm" id="addWidgetBtn" type="button" data-i18n="addWidgetBtn">➕ เพิ่มกล่อง</button>
+      <button class="btn sm" id="loadTemplateBtn" type="button" data-i18n="loadTemplateBtn">📥 โหลดจากแดชบอร์ด</button>
+      <button class="btn sm" id="customBgBtn" type="button" data-i18n="customBgBtn">🎨 พื้นหลัง</button>
       <span class="mini" id="customEmptyHint" data-i18n="customEmptyHint">ลากมุมกล่องเพื่อย่อ-ขยาย ลากหัวกล่องเพื่อย้ายตำแหน่ง — เริ่มจากกด "เพิ่มกล่อง" ด้านบน</span>
     </div>
     <div class="grid-stack" id="customGrid"></div>

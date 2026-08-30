@@ -44,6 +44,11 @@
       cwTableModeLbl: 'รูปแบบตาราง', cwTableModePlain: 'ตารางข้อมูล', cwTableModePivot: 'Pivot Table',
       cwTableColsLbl: 'คอลัมน์ที่แสดง', cwTableSearchPh: 'ค้นหาในตาราง…', cwTableNoColsHint: 'เลือกอย่างน้อย 1 คอลัมน์',
       cwTableSortHint: 'คลิกหัวคอลัมน์เพื่อเรียงลำดับ',
+      cardColorBtnTitle: 'ปรับสีการ์ดนี้', cardColorTitle: 'ปรับสีการ์ด', cardBgColorLbl: 'สีพื้นหลัง',
+      cardAccentColorLbl: 'สีหลัก (กราฟ/ตัวเลข)', cardGradientLbl: 'ไล่เฉดสี', cardColorResetBtn: 'ล้างสี (กลับค่าเดิม)',
+      customBgBtn: '🎨 พื้นหลัง', loadTemplateBtn: '📥 โหลดจากแดชบอร์ด',
+      loadTemplateNoneHint: 'ยังไม่มีการ์ดในแท็บ "แดชบอร์ด" ให้โหลด — อัปโหลดข้อมูลก่อน',
+      loadTemplateSnapshotNote: ' (สแนปช็อต ณ ตอนโหลด ไม่อัปเดตตามข้อมูลสด)',
       drillText: '🔍 กำลังกรอง: {label} = {value}', drillClearBtn: '✕ ล้างตัวกรองนี้',
       uploadTitle: '📤 อัปโหลดไฟล์', dropText: 'ลากไฟล์มาวางตรงนี้ หรือ', pickBtn: 'เลือกไฟล์',
       dropHint: 'รองรับ .xlsx .xls .csv — ไฟล์ประมวลผลในเครื่องคุณทั้งหมด',
@@ -169,6 +174,11 @@
       cwTableModeLbl: 'Table mode', cwTableModePlain: 'Data table', cwTableModePivot: 'Pivot Table',
       cwTableColsLbl: 'Columns to show', cwTableSearchPh: 'Search table…', cwTableNoColsHint: 'Select at least 1 column',
       cwTableSortHint: 'Click a column header to sort',
+      cardColorBtnTitle: 'Customize this card\'s color', cardColorTitle: 'Customize card color', cardBgColorLbl: 'Background color',
+      cardAccentColorLbl: 'Accent color (chart/number)', cardGradientLbl: 'Gradient', cardColorResetBtn: 'Reset color (default)',
+      customBgBtn: '🎨 Background', loadTemplateBtn: '📥 Load from Dashboard',
+      loadTemplateNoneHint: 'No cards in the "Dashboard" tab to load yet — upload data first',
+      loadTemplateSnapshotNote: ' (snapshot at load time, not live-updating)',
       drillText: '🔍 Filtering: {label} = {value}', drillClearBtn: '✕ Clear this filter',
       uploadTitle: '📤 Upload File', dropText: 'Drag a file here, or', pickBtn: 'Choose File',
       dropHint: 'Supports .xlsx .xls .csv — everything is processed on your device',
@@ -315,8 +325,11 @@
     chartType: { slot1: null, slot2: null, slot3: null }, // null = ดีฟอลต์ของสล็อตนั้น (bar/line/doughnut)
     dashTable: { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} }, // ตารางในแดชบอร์ด: โหมดรายการ/pivot + ตัวกรองของตัวเอง (ไม่ผูกกับ state.filters ของแท็บแก้ไข)
     domainOverride: null,  // '' หรือ null = อัตโนมัติ (เดาจากชื่อคอลัมน์), 'none'|'maintenance'|'project'|'legal' = ผู้ใช้เลือกเอง
-    customWidgets: [],    // [{id,type:'kpi'|'chart'|'text',x,y,w,h,config}] มุมมอง "กำหนดเอง" — ต่างจาก dashTable/domainOverride
+    customWidgets: [],    // [{id,type:'kpi'|'chart'|'table'|'text',x,y,w,h,config}] มุมมอง "กำหนดเอง" — ต่างจาก dashTable/domainOverride
                            // ตรงที่ต้อง "จำ" ข้ามเซสชัน (ผู้ใช้จัดวางเองด้วยมือ) จึงบันทึกไปกับรายงานด้วย
+    cardColors: {},        // role ('numStat'|'bar'|'line'|'pie'|'domainKpi'|'domainMatrix'|'domainChart1'|'domainChart2') ->
+                           // {bg, accent, gradient} ปรับสีการ์ดในแท็บ "แดชบอร์ด" — persist เหมือน customWidgets (ผู้ใช้ตั้งเอง)
+    customBg: null,        // {bg, gradient} สีพื้นหลังของผืนผ้าใบแท็บ "กำหนดเอง"
     reportId: null,        // ถ้าไม่ null = ผูกกับรายงานที่ตั้งชื่อบันทึกไว้ใน store 'reports' (Stage 4) — autosave เข้าที่นี่ด้วย
     reportName: null
   };
@@ -416,7 +429,7 @@
         combineMode: state.combineMode, sheetNames: state.sheetNames,
         columns: state.columns, rows: state.rows, nextRowId: state.nextRowId,
         reportId: state.reportId, reportName: state.reportName,
-        customWidgets: state.customWidgets,
+        customWidgets: state.customWidgets, cardColors: state.cardColors, customBg: state.customBg,
         savedAt: Date.now()
       };
       dbSaveCurrent(payload);
@@ -426,7 +439,8 @@
         dbPutReport({
           id: state.reportId, name: state.reportName, fileName: state.fileName, sheetName: state.activeSheet,
           combineMode: state.combineMode, sheetNames: state.sheetNames,
-          columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets, savedAt: Date.now()
+          columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets,
+          cardColors: state.cardColors, customBg: state.customBg, savedAt: Date.now()
         });
         setSaveStatus(t('saveStatusAuto', { time: new Date().toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' }) }), 'ok');
       }
@@ -601,6 +615,8 @@
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
     state.customWidgets = [];
+    state.cardColors = {};
+    state.customBg = null;
     state.cellSel = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
@@ -1856,9 +1872,52 @@
     });
     return best;
   }
-  function renderStatTiles(containerId, tiles) {
+  /* ══════════════════ ปรับสีการ์ด/กล่อง (แท็บ "แดชบอร์ด" + "กำหนดเอง") ══════════════════
+     state.cardColors[role] = {bg, accent, gradient} — role คือชื่อบทบาทการ์ด ไม่ผูกกับแม่แบบที่กำลังเปิดอยู่
+     (เช่น role "domainChart1" ใช้สีเดียวกันไม่ว่าจะสลับไปแม่แบบซ่อมบำรุง/โครงการ/อื่นๆ) เพื่อไม่ต้องเก็บสี
+     แยกทีละแม่แบบ — ผู้ใช้ตั้งสีการ์ด "กราฟที่ 1" ไว้ครั้งเดียว ใช้ได้กับทุกแม่แบบที่มีกราฟที่ 1 */
+  function shadeColor(hex, percent) {
+    /* ผสมสีเข้าหาขาว (percent บวก = สว่างขึ้น) ใช้คำนวณสีคู่ไล่เฉด (gradient) จากสีเดียวที่ผู้ใช้เลือก */
+    var m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+    if (!m) return hex;
+    var f = parseInt(m[1], 16), t = 255, p = Math.max(0, Math.min(1, percent));
+    var R = f >> 16, G = f >> 8 & 0x00FF, B = f & 0x0000FF;
+    return '#' + (0x1000000 + (Math.round((t - R) * p) + R) * 0x10000 + (Math.round((t - G) * p) + G) * 0x100 + (Math.round((t - B) * p) + B)).toString(16).slice(1);
+  }
+  function cardColorAccent(role) { return (state.cardColors[role] && state.cardColors[role].accent) || '#1E9E5A'; }
+  function applyCardColor(elId, role) {
+    var el = $(elId);
+    if (!el) return;
+    var cfg = state.cardColors[role];
+    if (!cfg || !cfg.bg) { el.style.background = ''; return; }
+    el.style.background = cfg.gradient ? ('linear-gradient(135deg,' + cfg.bg + ',' + shadeColor(cfg.bg, 0.4) + ')') : cfg.bg;
+  }
+  function openCardColorPopover(role, anchorEl, onApply) {
+    var cur = state.cardColors[role] || {};
+    var html = '<div class="fp-title">' + escapeHtml(t('cardColorTitle')) + '</div>' +
+      '<div class="fp-range">' +
+      '<label>' + escapeHtml(t('cardBgColorLbl')) + '<input type="color" class="cc-bg" value="' + (cur.bg || '#ffffff') + '"></label>' +
+      '<label class="cc-checkrow"><input type="checkbox" class="cc-grad"' + (cur.gradient ? ' checked' : '') + '> ' + escapeHtml(t('cardGradientLbl')) + '</label>' +
+      '<label>' + escapeHtml(t('cardAccentColorLbl')) + '<input type="color" class="cc-accent" value="' + (cur.accent || '#1E9E5A') + '"></label>' +
+      '</div>' +
+      '<div class="fp-actions"><button type="button" class="btn sm ghost cc-reset">' + escapeHtml(t('cardColorResetBtn')) + '</button>' +
+      '<div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
+    openPopover(html, anchorEl, function (el, close) {
+      el.querySelector('.cc-reset').addEventListener('click', function () { delete state.cardColors[role]; onApply(); persistDebounced(); close(); });
+      el.querySelector('.fp-apply').addEventListener('click', function () {
+        state.cardColors[role] = { bg: el.querySelector('.cc-bg').value, gradient: el.querySelector('.cc-grad').checked, accent: el.querySelector('.cc-accent').value };
+        onApply();
+        persistDebounced();
+        close();
+      });
+    });
+  }
+  function renderStatTiles(containerId, tiles, role) {
+    var cfg = role ? state.cardColors[role] : null;
+    var accent = cfg && cfg.accent;
+    var tileBg = cfg && cfg.bg ? (cfg.gradient ? 'background:linear-gradient(135deg,' + cfg.bg + ',' + shadeColor(cfg.bg, 0.4) + ');' : 'background:' + cfg.bg + ';') : '';
     var html = tiles.map(function (t) {
-      return '<div class="stat-tile"><div class="lbl">' + escapeHtml(t.label) + '</div><div class="val">' + t.value +
+      return '<div class="stat-tile"' + (tileBg ? ' style="' + tileBg + '"' : '') + '><div class="lbl">' + escapeHtml(t.label) + '</div><div class="val"' + (accent ? ' style="color:' + accent + '"' : '') + '>' + t.value +
         (t.unit ? ' <span class="unit">' + escapeHtml(t.unit) + '</span>' : '') + '</div>' +
         (t.sub ? '<div class="sub">' + escapeHtml(t.sub) + '</div>' : '') + '</div>';
     }).join('');
@@ -2240,14 +2299,15 @@
     $('domainDashboardTitle').textContent = built.title;
     $('domainDetectedHint').style.display = override ? 'none' : 'block';
     if (!override) $('domainDetectedHint').textContent = t('domainDetectedHint', { name: t('domainName' + picked.id.charAt(0).toUpperCase() + picked.id.slice(1)) });
-    renderStatTiles('domainKpiRow', built.tiles);
+    renderStatTiles('domainKpiRow', built.tiles, 'domainKpi');
     [['domainChart1', built.chart1], ['domainChart2', built.chart2]].forEach(function (pair) {
       var canvasId = pair[0], chart = pair[1];
       var cardId = canvasId + 'Card', titleId = canvasId + 'Title';
       if (chart && typeof Chart !== 'undefined' && chart.labels.length) {
         $(cardId).style.display = 'block';
         $(titleId).textContent = chart.title;
-        var cfg = buildChartConfig('bar', chart.labels, chart.data, '#1E9E5A');
+        applyCardColor(cardId, canvasId);
+        var cfg = buildChartConfig('bar', chart.labels, chart.data, cardColorAccent(canvasId));
         charts[canvasId === 'domainChart1' ? 'domain1' : 'domain2'] = new Chart($(canvasId).getContext('2d'), cfg);
       } else {
         $(cardId).style.display = 'none';
@@ -2255,6 +2315,7 @@
     });
     if (built.matrix) {
       $('domainMatrixCard').style.display = 'block';
+      applyCardColor('domainMatrixCard', 'domainMatrix');
       $('domainMatrixTitle').textContent = built.matrix.title;
       $('domainMatrixWrap').innerHTML = built.matrix.html;
       $('domainMatrixAxisNote').textContent = built.matrix.axisNote;
@@ -2275,6 +2336,10 @@
   function genWidgetId() { return 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
   function computeKpiWidgetValue(cfg) {
+    /* กล่องที่ "โหลดจากแดชบอร์ด" มาจากตัวเลขที่คำนวณเฉพาะทาง (เช่น MTTR ของแม่แบบซ่อมบำรุง) ไม่มีสูตร
+       colKey+agg ทั่วไปให้คำนวณสดได้ — เก็บเป็นสแนปช็อตค่า ณ ตอนโหลดแทน (ล้างทิ้งอัตโนมัติถ้าผู้ใช้แก้ไข
+       ผ่าน popup ⚙️ ในภายหลัง กลายเป็นกล่องสดตามปกติ) */
+    if (cfg.snapshot) return { value: cfg.snapshot.value, label: cfg.label || cfg.snapshot.label };
     if (cfg.agg === 'count' || !cfg.colKey) {
       return { value: state.rows.length.toLocaleString(locale()), label: cfg.label || t('totalRowsKpiLabel') };
     }
@@ -2294,28 +2359,41 @@
       label: cfg.label || (col.label + ' · ' + aggLbl)
     };
   }
+  function widgetAccent(cfg) { return (cfg.style && cfg.style.accent) || '#1E9E5A'; }
   function renderKpiWidget(bodyEl, cfg) {
     var r = computeKpiWidgetValue(cfg);
-    bodyEl.innerHTML = '<div class="wt-sub">' + escapeHtml(r.label) + '</div><div class="wt-val">' + r.value + '</div>';
+    var accent = widgetAccent(cfg);
+    bodyEl.innerHTML = '<div class="wt-sub">' + escapeHtml(r.label) +
+      (cfg.snapshot ? '<span class="wt-snapshot-note">' + escapeHtml(t('loadTemplateSnapshotNote')) + '</span>' : '') +
+      '</div><div class="wt-val" style="color:' + accent + '">' + r.value + '</div>';
   }
   function renderChartWidget(bodyEl, cfg, widgetId) {
     if (customCharts[widgetId]) { try { customCharts[widgetId].destroy(); } catch (e) {} delete customCharts[widgetId]; }
     if (typeof Chart === 'undefined') { bodyEl.innerHTML = '<p class="mini">' + escapeHtml(t('chartLibFail')) + '</p>'; return; }
-    var catCol = state.columns.filter(function (c) { return c.key === cfg.catColKey; })[0];
-    if (!catCol) { bodyEl.innerHTML = '<p class="mini">—</p>'; return; }
-    var numCol = cfg.numColKey ? state.columns.filter(function (c) { return c.key === cfg.numColKey; })[0] : null;
-    var entries = catCol.type === 'date'
-      ? aggregateByDate(state.rows, catCol.key, numCol ? numCol.key : null)
-      : aggregateByCategory(state.rows, catCol.key, numCol ? numCol.key : null);
-    bodyEl.innerHTML = '<canvas></canvas>';
+    var labels, data;
+    if (cfg.snapshot) {
+      /* กราฟที่ "โหลดจากแดชบอร์ด" มาจากแม่แบบเฉพาะทาง (เช่นกราฟค่าซ่อมตามประเภทอุปกรณ์) เป็นข้อมูล
+         ที่รวมกลุ่ม/คำนวณไว้แล้วตายตัว ไม่มีคอลัมน์ catColKey/numColKey ทั่วไปให้คำนวณสดซ้ำได้ */
+      labels = cfg.snapshot.labels; data = cfg.snapshot.data;
+    } else {
+      var catCol = state.columns.filter(function (c) { return c.key === cfg.catColKey; })[0];
+      if (!catCol) { bodyEl.innerHTML = '<p class="mini">—</p>'; return; }
+      var numCol = cfg.numColKey ? state.columns.filter(function (c) { return c.key === cfg.numColKey; })[0] : null;
+      var entries = catCol.type === 'date'
+        ? aggregateByDate(state.rows, catCol.key, numCol ? numCol.key : null)
+        : aggregateByCategory(state.rows, catCol.key, numCol ? numCol.key : null);
+      labels = entries.map(function (e) { return e[0]; }); data = entries.map(function (e) { return e[1]; });
+    }
+    bodyEl.innerHTML = (cfg.snapshot ? '<div class="wt-snapshot-note" style="margin-bottom:2px">' + escapeHtml(t('loadTemplateSnapshotNote')) + '</div>' : '') + '<canvas></canvas>';
     var canvas = bodyEl.querySelector('canvas');
-    var chartCfg = buildChartConfig(cfg.chartType, entries.map(function (e) { return e[0]; }), entries.map(function (e) { return e[1]; }), '#1E9E5A');
+    var chartCfg = buildChartConfig(cfg.chartType || 'bar', labels, data, widgetAccent(cfg));
     customCharts[widgetId] = new Chart(canvas.getContext('2d'), chartCfg);
   }
   function renderTextWidget(bodyEl, cfg, widget) {
     bodyEl.setAttribute('contenteditable', 'true');
     bodyEl.setAttribute('data-placeholder', t('cwTextPh'));
     if (bodyEl.textContent !== (cfg.text || '')) bodyEl.textContent = cfg.text || '';
+    bodyEl.style.color = (cfg.style && cfg.style.accent) || '';
     var saveTimer = null;
     bodyEl.oninput = function () {
       widget.config.text = bodyEl.textContent;
@@ -2414,6 +2492,9 @@
     var bodyEl = itemEl.querySelector('.widget-body');
     if (!bodyEl) return;
     bodyEl.className = 'widget-body wb-' + widget.type;
+    var content = itemEl.querySelector('.grid-stack-item-content');
+    var style = widget.config.style;
+    if (content) content.style.background = (style && style.bg) ? (style.gradient ? 'linear-gradient(135deg,' + style.bg + ',' + shadeColor(style.bg, 0.4) + ')' : style.bg) : '';
     if (widget.type === 'kpi') renderKpiWidget(bodyEl, widget.config);
     else if (widget.type === 'chart') renderChartWidget(bodyEl, widget.config, widget.id);
     else if (widget.type === 'table') renderTableWidget(bodyEl, widget.config, widget);
@@ -2422,7 +2503,7 @@
   function widgetHtml(widget) {
     return '<div class="widget-head">' +
       '<span class="wt-label">' + escapeHtml(widgetTypeLabel(widget.type)) + '</span>' +
-      (widget.type === 'text' ? '' : '<button type="button" class="w-edit" title="' + escapeAttr(t('wtEditTitle')) + '">⚙️</button>') +
+      '<button type="button" class="w-edit" title="' + escapeAttr(t('wtEditTitle')) + '">⚙️</button>' +
       '<button type="button" class="w-del" title="' + escapeAttr(t('wtRemoveTitle')) + '">✕</button>' +
       '</div><div class="widget-body"></div>';
   }
@@ -2437,7 +2518,12 @@
     });
   }
 
+  function applyCustomBg() {
+    var cfg = state.customBg;
+    $('customGrid').style.background = (cfg && cfg.bg) ? (cfg.gradient ? 'linear-gradient(135deg,' + cfg.bg + ',' + shadeColor(cfg.bg, 0.4) + ')' : cfg.bg) : '';
+  }
   function renderCustomView() {
+    applyCustomBg();
     if (typeof GridStack === 'undefined') {
       $('customGrid').innerHTML = '<p class="mini">' + escapeHtml(t('chartLibFail')) + '</p>';
       return;
@@ -2511,6 +2597,98 @@
     });
   }
 
+  function openCustomBgPopover(anchorEl) {
+    var cur = state.customBg || {};
+    var html = '<div class="fp-title">' + escapeHtml(t('cardColorTitle')) + '</div>' +
+      '<div class="fp-range">' +
+      '<label>' + escapeHtml(t('cardBgColorLbl')) + '<input type="color" class="cbg-bg" value="' + (cur.bg || '#ffffff') + '"></label>' +
+      '<label class="cc-checkrow"><input type="checkbox" class="cbg-grad"' + (cur.gradient ? ' checked' : '') + '> ' + escapeHtml(t('cardGradientLbl')) + '</label>' +
+      '</div>' +
+      '<div class="fp-actions"><button type="button" class="btn sm ghost cbg-reset">' + escapeHtml(t('cardColorResetBtn')) + '</button>' +
+      '<div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
+    openPopover(html, anchorEl, function (el, close) {
+      el.querySelector('.cbg-reset').addEventListener('click', function () { state.customBg = null; applyCustomBg(); persistDebounced(); close(); });
+      el.querySelector('.fp-apply').addEventListener('click', function () {
+        state.customBg = { bg: el.querySelector('.cbg-bg').value, gradient: el.querySelector('.cbg-grad').checked };
+        applyCustomBg();
+        persistDebounced();
+        close();
+      });
+    });
+  }
+
+  /* "โหลดจากแดชบอร์ด" — คัดลอกการ์ดที่กำลังแสดงอยู่ในแท็บ "แดชบอร์ด" มาเป็นกล่องในแท็บ "กำหนดเอง"
+     ให้ลาก/ย่อ-ขยาย/ปรับสีต่อได้เอง แบ่ง 2 แบบตามที่มาของข้อมูล:
+     - การ์ดทั่วไป (สรุปตัวเลข/กราฟแท่ง/เส้น/วงกลม) คำนวณจากคอลัมน์+วิธีคำนวณธรรมดา (colKey+agg หรือ
+       catColKey+numColKey) เหมือนกล่อง KPI/กราฟที่สร้างเองทุกประการ จึงสร้างเป็นกล่อง "สด" ที่คำนวณใหม่
+       ทุกครั้งได้ตรงๆ ไม่ต้องแช่แข็งค่า
+     - การ์ดของแม่แบบเฉพาะทาง (เช่น MTTR/กราฟต้นทุนตามประเภทอุปกรณ์ ของแม่แบบซ่อมบำรุง) คำนวณด้วยสูตร
+       เฉพาะของแต่ละแม่แบบ ไม่มีคอลัมน์+วิธีคำนวณทั่วไปให้แปลงกลับเป็นกล่องสดได้ตรงๆ จึงคัดลอกเป็น
+       "สแนปช็อต" ค่า ณ ตอนโหลดแทน (แจ้งผู้ใช้ชัดเจนว่าไม่อัปเดตตามข้อมูลสด — แก้ไขผ่าน ⚙️ เพื่อเปลี่ยน
+       เป็นกล่องสดตามคอลัมน์ที่เลือกเองได้ภายหลัง) */
+  function loadCustomFromDashboard() {
+    /* เรียก renderDashboard() ก่อนเสมอ เผื่อผู้ใช้มาที่แท็บ "กำหนดเอง" ตรงๆ โดยไม่เคยเปิดแท็บ "แดชบอร์ด"
+       เลยในเซสชันนี้ (การ์ด/select ต่างๆ ที่จะอ่านค่ายังไม่เคยถูกคำนวณ/เติมข้อมูลเลย) */
+    renderDashboard();
+    var added = 0;
+    function push(type, w, h, config) {
+      var widget = { id: genWidgetId(), type: type, x: null, y: null, w: w, h: h, config: config };
+      state.customWidgets.push(widget);
+      added++;
+    }
+    var numCols = state.columns.filter(function (c) { return c.type === 'number'; });
+    if ($('numStatCard').style.display !== 'none') {
+      numCols.slice(0, 4).forEach(function (c) { push('kpi', 2, 2, { colKey: c.key, agg: 'sum', label: null }); });
+    }
+    [['bar', 'barCatSel', 'barNumSel', 'barTypeSel'], ['line', 'lineDateSel', 'lineNumSel', 'lineTypeSel'], ['pie', 'pieCatSel', null, 'pieTypeSel']].forEach(function (t3) {
+      var cardId = t3[0] + 'ChartCard';
+      if ($(cardId).style.display === 'none') return;
+      var catSel = $(t3[1]), numSel = t3[2] ? $(t3[2]) : null, typeSel = $(t3[3]);
+      push('chart', 4, 4, { chartType: typeSel ? typeSel.value : 'bar', catColKey: catSel.value, numColKey: numSel ? numSel.value : '' });
+    });
+    if ($('domainDashboardCard').style.display !== 'none') {
+      var kpiTiles = [].slice.call($('domainKpiRow').querySelectorAll('.stat-tile'));
+      kpiTiles.forEach(function (tile) {
+        var lbl = tile.querySelector('.lbl'), val = tile.querySelector('.val');
+        if (!lbl || !val) return;
+        push('kpi', 2, 2, { colKey: null, agg: 'count', label: null, snapshot: { value: val.textContent, label: lbl.textContent } });
+      });
+      ['domainChart1', 'domainChart2'].forEach(function (id) {
+        if ($(id + 'Card').style.display === 'none') return;
+        var chartInst = charts[id === 'domainChart1' ? 'domain1' : 'domain2'];
+        if (!chartInst) return;
+        push('chart', 4, 4, { chartType: 'bar', snapshot: { labels: chartInst.data.labels, data: chartInst.data.datasets[0].data } });
+      });
+    }
+    if (!added) { alert(t('loadTemplateNoneHint')); return; }
+    persistDebounced();
+    renderCustomView();
+  }
+
+  /* ส่วนปรับสี (พื้นหลัง+ไล่เฉด+สีหลัก) ใช้ร่วมกันทุกชนิดกล่อง — table ไม่มีสีหลักเพราะไม่มีจุดที่ใช้สีเดี่ยว
+     ชัดเจนแบบ KPI/กราฟ/ข้อความ (ตารางมีหลายคอลัมน์ ไม่มี "สีหลัก" เดียวที่สมเหตุสมผล) */
+  function widgetStyleSectionHtml(widget) {
+    var st = widget.config.style || {};
+    return '<div class="fp-title" style="margin-top:10px">' + escapeHtml(t('cardColorTitle')) + '</div>' +
+      '<div class="fp-range">' +
+      '<label>' + escapeHtml(t('cardBgColorLbl')) + '<input type="color" class="ew-style-bg" value="' + (st.bg || '#ffffff') + '"></label>' +
+      '<label class="cc-checkrow"><input type="checkbox" class="ew-style-grad"' + (st.gradient ? ' checked' : '') + '> ' + escapeHtml(t('cardGradientLbl')) + '</label>' +
+      (widget.type === 'table' ? '' : '<label>' + escapeHtml(t('cardAccentColorLbl')) + '<input type="color" class="ew-style-accent" value="' + (st.accent || '#1E9E5A') + '"></label>') +
+      '</div>' +
+      '<button type="button" class="btn sm ghost ew-style-reset" style="margin-bottom:10px">' + escapeHtml(t('cardColorResetBtn')) + '</button>';
+  }
+  function wireWidgetStyleSection(el, widget, itemEl, close) {
+    el.querySelector('.ew-style-reset').addEventListener('click', function () {
+      delete widget.config.style;
+      renderWidgetBody(widget, itemEl);
+      persistDebounced();
+      close();
+    });
+  }
+  function applyWidgetStyleSection(el, widget) {
+    var accentEl = el.querySelector('.ew-style-accent');
+    widget.config.style = { bg: el.querySelector('.ew-style-bg').value, gradient: el.querySelector('.ew-style-grad').checked, accent: accentEl ? accentEl.value : undefined };
+  }
   function openWidgetEditPopover(widget, itemEl, anchorEl) {
     var html = '';
     if (widget.type === 'kpi') {
@@ -2525,6 +2703,7 @@
         '</select></label>' +
         '<label>' + escapeHtml(t('cwLabelLbl')) + '<input type="text" class="ew-label" value="' + escapeAttr(widget.config.label || '') + '"></label>' +
         '</div>' +
+        widgetStyleSectionHtml(widget) +
         '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
     } else if (widget.type === 'chart') {
       var catCols = state.columns.filter(function (c) { return c.type === 'category' || c.type === 'date'; });
@@ -2542,6 +2721,7 @@
         numCols2.map(function (c) { return '<option value="' + c.key + '"' + (widget.config.numColKey === c.key ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>'; }).join('') +
         '</select></label>' +
         '</div>' +
+        widgetStyleSectionHtml(widget) +
         '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
     } else if (widget.type === 'table') {
       var catColsT = state.columns.filter(function (c) { return c.type === 'category' || c.type === 'date'; });
@@ -2579,11 +2759,16 @@
         '<option value="avg"' + (widget.config.pivotAgg === 'avg' ? ' selected' : '') + '>' + escapeHtml(t('aggAvg')) + '</option>' +
         '</select></label>' +
         '</div>' +
+        widgetStyleSectionHtml(widget) +
         '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
     } else {
-      return; // ข้อความแก้ตรงๆ ในกล่องอยู่แล้ว ไม่ต้องมี popup แก้
+      /* กล่องข้อความ — แก้เนื้อหาตรงในกล่องอยู่แล้ว popup นี้มีแค่ส่วนปรับสี */
+      html = '<div class="fp-title">' + escapeHtml(t('wtEditTitle')) + '</div>' +
+        widgetStyleSectionHtml(widget) +
+        '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
     }
     openPopover(html, anchorEl, function (el, close) {
+      wireWidgetStyleSection(el, widget, itemEl, close);
       if (widget.type === 'kpi') {
         var aggSel = el.querySelector('.ew-agg'), colWrap = el.querySelector('.ew-colwrap');
         aggSel.addEventListener('change', function () { colWrap.style.display = aggSel.value === 'count' ? 'none' : ''; });
@@ -2598,15 +2783,18 @@
         el.querySelector('.fp-none').addEventListener('click', function () { [].forEach.call(el.querySelectorAll('.ew-col-chk'), function (c) { c.checked = false; }); });
       }
       el.querySelector('.fp-apply').addEventListener('click', function () {
+        applyWidgetStyleSection(el, widget);
         if (widget.type === 'kpi') {
           var agg = el.querySelector('.ew-agg').value;
           widget.config.agg = agg;
           widget.config.colKey = agg === 'count' ? null : el.querySelector('.ew-col').value;
           widget.config.label = el.querySelector('.ew-label').value.trim() || null;
+          delete widget.config.snapshot; // แก้ค่าคำนวณเองแล้ว เลิกเป็นสแนปช็อตแช่แข็ง กลับมาคำนวณสดตามปกติ
         } else if (widget.type === 'chart') {
           widget.config.chartType = el.querySelector('.ew-charttype').value;
           widget.config.catColKey = el.querySelector('.ew-cat').value;
           widget.config.numColKey = el.querySelector('.ew-val').value;
+          delete widget.config.snapshot;
         } else if (widget.type === 'table') {
           widget.config.mode = el.querySelector('.ew-mode').value;
           widget.config.cols = [].map.call(el.querySelectorAll('.ew-col-chk:checked'), function (c) { return c.getAttribute('data-col'); });
@@ -2637,18 +2825,19 @@
     /* ── สรุปตัวเลข (การ์ดสถิติ sum/avg/min/max ต่อคอลัมน์ตัวเลข สูงสุด 4 คอลัมน์) ── */
     if (numCols.length && rows.length) {
       var html = '';
+      var numStatAccent = state.cardColors.numStat && state.cardColors.numStat.accent;
       numCols.slice(0, 4).forEach(function (col) {
         var s = statOf(rows, col.key);
         if (!s) return;
         html += '<div class="stat-tile"><div class="lbl">' + escapeHtml(col.label) + '</div>' +
-          '<div class="val">' + s.sum.toLocaleString(locale(), { maximumFractionDigits: 2 }) + '</div>' +
+          '<div class="val"' + (numStatAccent ? ' style="color:' + numStatAccent + '"' : '') + '>' + s.sum.toLocaleString(locale(), { maximumFractionDigits: 2 }) + '</div>' +
           '<div class="sub">' + t('statTileSub', {
             avg: s.avg.toLocaleString(locale(), { maximumFractionDigits: 2 }),
             min: s.min.toLocaleString(locale(), { maximumFractionDigits: 2 }),
             max: s.max.toLocaleString(locale(), { maximumFractionDigits: 2 })
           }) + '</div></div>';
       });
-      if (html) { $('numStatRow').innerHTML = html; $('numStatCard').style.display = 'block'; anyRendered = true; }
+      if (html) { $('numStatRow').innerHTML = html; $('numStatCard').style.display = 'block'; applyCardColor('numStatCard', 'numStat'); anyRendered = true; }
       else $('numStatCard').style.display = 'none';
     } else $('numStatCard').style.display = 'none';
 
@@ -2665,7 +2854,7 @@
       $('barTypeSel').value = barType;
       var barEntries = aggregateByCategory(rows, barCat.key, barNum ? barNum.key : null);
       $('barChartTitle').textContent = CHART_TYPE_ICON[barType] + ' ' + (barNum ? t('barChartTitleWithNum', { cat: barCat.label, num: barNum.label }) : t('barChartTitleCount', { cat: barCat.label }));
-      var barCfg = buildChartConfig(barType, barEntries.map(function (e) { return e[0]; }), barEntries.map(function (e) { return e[1]; }), '#1E9E5A');
+      var barCfg = buildChartConfig(barType, barEntries.map(function (e) { return e[0]; }), barEntries.map(function (e) { return e[1]; }), cardColorAccent('bar'));
       barCfg.options.onClick = function (evt, els) {
         if (!els || !els.length) return;
         var label = barEntries[els[0].index][0];
@@ -2673,7 +2862,7 @@
         setDrill(barCat.key, barCat.label, label);
       };
       charts.bar = new Chart($('barChart').getContext('2d'), barCfg);
-      $('barChartCard').style.display = 'block'; anyRendered = true;
+      $('barChartCard').style.display = 'block'; applyCardColor('barChartCard', 'bar'); anyRendered = true;
     } else $('barChartCard').style.display = 'none';
 
     /* ── การ์ด 2: คอลัมน์วันที่ × คอลัมน์ตัวเลข (เลือกคอลัมน์+ชนิดกราฟเองได้ทั้งหมด) ── */
@@ -2688,14 +2877,14 @@
       var lineEntries = aggregateByDate(rows, lineDate.key, lineNum ? lineNum.key : null);
       if (lineEntries.length >= 2) {
         $('lineChartTitle').textContent = CHART_TYPE_ICON[lineType] + ' ' + (lineNum ? t('lineChartTitleWithNum', { num: lineNum.label, date: lineDate.label }) : t('lineChartTitleCount', { date: lineDate.label }));
-        var lineCfg = buildChartConfig(lineType, lineEntries.map(function (e) { return e[0]; }), lineEntries.map(function (e) { return e[1]; }), '#1E9E5A');
+        var lineCfg = buildChartConfig(lineType, lineEntries.map(function (e) { return e[0]; }), lineEntries.map(function (e) { return e[1]; }), cardColorAccent('line'));
         lineCfg.options.onClick = function (evt, els) {
           if (!els || !els.length) return;
           var label = lineEntries[els[0].index][0];
           setDrill(lineDate.key, lineDate.label, label);
         };
         charts.line = new Chart($('lineChart').getContext('2d'), lineCfg);
-        $('lineChartCard').style.display = 'block'; anyRendered = true;
+        $('lineChartCard').style.display = 'block'; applyCardColor('lineChartCard', 'line'); anyRendered = true;
       } else $('lineChartCard').style.display = 'none';
     } else $('lineChartCard').style.display = 'none';
 
@@ -2710,7 +2899,7 @@
       $('pieTypeSel').value = pieType;
       var pieEntries = aggregateByCategory(rows, pieCat.key, null);
       $('pieChartTitle').textContent = CHART_TYPE_ICON[pieType] + ' ' + t('pieChartTitleTpl', { cat: pieCat.label });
-      var pieCfg = buildChartConfig(pieType, pieEntries.map(function (e) { return e[0]; }), pieEntries.map(function (e) { return e[1]; }), '#1E9E5A');
+      var pieCfg = buildChartConfig(pieType, pieEntries.map(function (e) { return e[0]; }), pieEntries.map(function (e) { return e[1]; }), cardColorAccent('pie'));
       pieCfg.options.onClick = function (evt, els) {
         if (!els || !els.length) return;
         var label = pieEntries[els[0].index][0];
@@ -2718,7 +2907,7 @@
         setDrill(pieCat.key, pieCat.label, label);
       };
       charts.pie = new Chart($('pieChart').getContext('2d'), pieCfg);
-      $('pieChartCard').style.display = 'block'; anyRendered = true;
+      $('pieChartCard').style.display = 'block'; applyCardColor('pieChartCard', 'pie'); anyRendered = true;
     } else $('pieChartCard').style.display = 'none';
 
     /* ── ตารางข้อมูล (อ่านอย่างเดียว) แสดงในแดชบอร์ดเลย ไม่ต้องสลับแท็บไปมา — ใช้ rows ชุดเดียวกับกราฟ
@@ -2761,7 +2950,8 @@
     name = name.trim(); if (!name) return;
     var rec = { name: name, fileName: state.fileName, sheetName: state.activeSheet,
       combineMode: state.combineMode, sheetNames: state.sheetNames,
-      columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets, savedAt: Date.now() };
+      columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets,
+      cardColors: state.cardColors, customBg: state.customBg, savedAt: Date.now() };
     dbAddReport(rec).then(function (id) {
       state.reportId = id; state.reportName = name;
       updateSaveUI();
@@ -2824,6 +3014,8 @@
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
     state.customWidgets = rec.customWidgets || [];
+    state.cardColors = rec.cardColors || {};
+    state.customBg = rec.customBg || null;
       updateDrillBanner(); updateSaveUI();
       $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
       $('dataMeta').textContent = (state.fileName || rec.name) + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
@@ -3075,6 +3267,8 @@
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
     state.customWidgets = [];
+    state.cardColors = {};
+    state.customBg = null;
     state.cellSel = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
@@ -3143,6 +3337,9 @@
     });
     $('addRowBtn').addEventListener('click', addRow);
     $('addColBtn').addEventListener('click', addColumn);
+    [].forEach.call(document.querySelectorAll('.card-color-btn'), function (btn) {
+      btn.addEventListener('click', function () { openCardColorPopover(btn.getAttribute('data-role'), btn, renderDashboard); });
+    });
     $('delSelBtn').addEventListener('click', deleteSelected);
     $('undoBtn').addEventListener('click', undo);
     $('clearFilterBtn').addEventListener('click', clearAllFilters);
@@ -3190,6 +3387,8 @@
       renderDashboard();
     });
     $('addWidgetBtn').addEventListener('click', function () { openAddWidgetPicker($('addWidgetBtn')); });
+    $('loadTemplateBtn').addEventListener('click', loadCustomFromDashboard);
+    $('customBgBtn').addEventListener('click', function () { openCustomBgPopover($('customBgBtn')); });
     $('printBtn').addEventListener('click', function () { window.print(); });
     $('globalSearch').addEventListener('input', function () {
       state.globalQuery = $('globalSearch').value; state.page = 1; renderTable();
@@ -3214,6 +3413,8 @@
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
     state.customWidgets = saved.customWidgets || [];
+    state.cardColors = saved.cardColors || {};
+    state.customBg = saved.customBg || null;
           updateDrillBanner(); updateSaveUI();
           $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none';
           $('viewTabs').style.display = 'flex';
