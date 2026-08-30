@@ -242,7 +242,10 @@ th .col-del:hover{background:var(--card);color:var(--err)}
 .cellsel-box{position:absolute;border:2px solid var(--brand);pointer-events:none;box-sizing:border-box;z-index:2}
 .cellsel-fillpreview{position:absolute;border:1.5px dashed var(--brand-dk);pointer-events:none;box-sizing:border-box;z-index:2}
 .cellsel-handle{position:absolute;width:8px;height:8px;background:var(--brand);border:1.5px solid var(--card);
-  border-radius:1px;cursor:crosshair;z-index:3;transform:translate(-50%,-50%)}
+  border-radius:1px;cursor:crosshair;z-index:3;transform:translate(-50%,-50%);
+  /* ขยายพื้นที่แตะจริงให้ใหญ่พอสำหรับนิ้ว (padding ดันกรอบ hit-area ให้กว้างขึ้นโดยสีพื้นหลังยังทาแค่
+     เนื้อในเดิม 8x8px ผ่าน background-clip — ภาพที่เห็นเหมือนเดิมทุกอย่าง แค่แตะแม่นขึ้น) */
+  padding:11px;background-clip:content-box;touch-action:none;-webkit-user-select:none;user-select:none}
 td.cellsel-in{background:var(--brand-sf)}
 .tbl-empty{font-size:13px;color:var(--muted);padding:16px 4px;text-align:center}
 
@@ -397,13 +400,17 @@ td.cellsel-in{background:var(--brand-sf)}
     <div class="pager" id="pager"></div>
   </div>
 
+  <!-- แถบ export/พิมพ์ ใช้ร่วมกันทั้งแท็บ "แดชบอร์ด" และ "กำหนดเอง" (ย้ายออกมานอก #dashboardView เดิม
+       ที่ทำให้กดจากแท็บ "กำหนดเอง" ไม่ได้เลยเพราะการ์ดถูกซ่อนไปกับทั้งแท็บ) — setView() สลับ display เอง
+       ตามแท็บที่เปิดอยู่ (table = ซ่อน, dashboard/custom = โชว์), ฟังก์ชัน export จับภาพจาก view ที่ active
+       อยู่จริง ไม่ hardcode #dashboardView แล้ว -->
+  <div class="toolbar-row" id="dashExportToolbar" style="display:none">
+    <button class="btn sm" id="exportImgBtn" type="button" data-i18n="exportImgBtn">📷 บันทึกเป็นรูปภาพ</button>
+    <button class="btn sm" id="exportPdfBtn" type="button" data-i18n="exportPdfBtn">📄 บันทึกเป็น PDF</button>
+    <button class="btn sm" id="exportHtmlBtn" type="button" data-i18n="exportHtmlBtn">📃 บันทึกเป็น HTML</button>
+    <button class="btn sm" id="printBtn" type="button" data-i18n="printBtn">🖨️ พิมพ์</button>
+  </div>
   <div id="dashboardView" style="display:none">
-    <div class="toolbar-row">
-      <button class="btn sm" id="exportImgBtn" type="button" data-i18n="exportImgBtn">📷 บันทึกเป็นรูปภาพ</button>
-      <button class="btn sm" id="exportPdfBtn" type="button" data-i18n="exportPdfBtn">📄 บันทึกเป็น PDF</button>
-      <button class="btn sm" id="exportHtmlBtn" type="button" data-i18n="exportHtmlBtn">📃 บันทึกเป็น HTML</button>
-      <button class="btn sm" id="printBtn" type="button" data-i18n="printBtn">🖨️ พิมพ์</button>
-    </div>
     <div class="card" id="domainDashboardCard" style="display:none">
       <h2 id="domainDashboardTitle"></h2>
       <p class="mini" id="domainDetectedHint"></p>

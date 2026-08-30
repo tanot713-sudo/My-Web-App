@@ -647,6 +647,7 @@
     $('dataCard').style.display = view === 'table' ? 'block' : 'none';
     $('dashboardView').style.display = view === 'dashboard' ? 'block' : 'none';
     $('customView').style.display = view === 'custom' ? 'block' : 'none';
+    $('dashExportToolbar').style.display = (view === 'dashboard' || view === 'custom') ? 'flex' : 'none';
     /* render ใหม่ทุกครั้งที่สลับเข้ามุมมองนั้น (ไม่ใช่แค่ตอน confirmHeader()/resume ครั้งแรก) — กันเห็น
        ข้อมูลเก่าค้าง เช่น กด drill-down จากแดชบอร์ดแล้วสลับมาตาราง ต้องเห็นตารางกรองตามด้วย */
     if (view === 'dashboard') renderDashboard();
@@ -1513,13 +1514,19 @@
       var handle = document.createElement('div');
       handle.className = 'cellsel-handle';
       handle.style.left = (r.left + r.width) + 'px'; handle.style.top = (r.top + r.height) + 'px';
-      handle.addEventListener('mousedown', function (e) { e.preventDefault(); startFillDrag(idx); });
+      /* pointerdown (ไม่ใช่ mousedown) เพื่อให้ลากด้วยนิ้วบนมือถือ/แท็บเล็ตได้ด้วย ไม่ใช่แค่เมาส์ —
+         setPointerCapture กันไม่ให้ event หลุดถ้านิ้วเลื่อนออกจากจุดเล็กๆ นี้ระหว่างลากเร็วๆ */
+      handle.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+        startFillDrag(idx);
+      });
       wrap.appendChild(handle);
     }
   }
   function wireCellSelection() {
     [].forEach.call($('dataTable').querySelectorAll('td[data-id][data-col]'), function (td) {
-      td.addEventListener('mousedown', function (e) {
+      td.addEventListener('pointerdown', function (e) {
         var id = +td.getAttribute('data-id'), col = td.getAttribute('data-col');
         if (e.shiftKey && state.cellSel) {
           state.cellSel = { id0: state.cellSel.id0, col0: state.cellSel.col0, id1: id, col1: col };
@@ -1575,13 +1582,15 @@
       renderCellSelOverlay(preview);
     }
     function onUp() {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener('pointercancel', onUp);
       if (fillDrag && fillDrag.dir && fillDrag.target) applyFillDrag(fillDrag.origin, fillDrag.dir, fillDrag.target);
       fillDrag = null;
     }
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
   }
   function applyFillDrag(origin, dir, target) {
     pushHistory();
@@ -3156,10 +3165,14 @@
     var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     downloadBlob(blob, exportFileBase() + dashTableExportSuffix() + '.csv');
   }
+  /* หา element ของ view ที่กำลังเปิดอยู่จริงตอนนี้ (แดชบอร์ดอัตโนมัติ หรือ กำหนดเอง) ให้ปุ่ม export/พิมพ์
+     ที่ย้ายมาอยู่นอก 2 แท็บนี้แล้วใช้จับภาพจากอันที่ถูกต้องเสมอ — ก่อนหน้านี้ hardcode #dashboardView
+     ตัวเดียว กดจากแท็บ "กำหนดเอง" แล้วได้ภาพว่างเปล่า (หรือกดไม่ได้เลยเพราะปุ่มซ่อนไปกับแท็บ) */
+  function activeExportViewEl() { return currentView === 'custom' ? $('customView') : $('dashboardView'); }
   /* ── ซ่อนแถบเครื่องมือ/ตัวเลือก/ตัวกรองที่กดไม่ได้อยู่แล้วชั่วคราวตอนแคปภาพ (html2canvas) — คืนค่ากลับ
      เสมอไม่ว่าจะสำเร็จหรือพลาด กันเผลอค้างซ่อนถาวรถ้า promise reject ═══ */
   function withControlsHidden(fn) {
-    var el = $('dashboardView');
+    var el = activeExportViewEl();
     el.classList.add('hide-controls');
     var restore = function () { el.classList.remove('hide-controls'); };
     return fn().then(function (v) { restore(); return v; }, function (e) { restore(); throw e; });
@@ -3167,7 +3180,7 @@
   function exportDashboardImage() {
     if (typeof window.html2canvas === 'undefined') { alert(t('exportLibFail')); return; }
     withControlsHidden(function () {
-      return window.html2canvas($('dashboardView'), { backgroundColor: '#F3F5F8', scale: 2 });
+      return window.html2canvas(activeExportViewEl(), { backgroundColor: '#F3F5F8', scale: 2 });
     }).then(function (canvas) {
       canvas.toBlob(function (blob) { if (blob) downloadBlob(blob, exportFileBase() + '.png'); });
     });
@@ -3177,7 +3190,7 @@
     var jsPDFctor = window.jspdf && window.jspdf.jsPDF;
     if (!jsPDFctor || !window.html2canvas) { window.print(); return; }
     withControlsHidden(function () {
-      return window.html2canvas($('dashboardView'), { backgroundColor: '#F3F5F8', scale: 2 });
+      return window.html2canvas(activeExportViewEl(), { backgroundColor: '#F3F5F8', scale: 2 });
     }).then(function (canvas) {
       var pw = 210, ph = 297; // A4 แนวตั้ง (mm)
       var pdf = new jsPDFctor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -3256,9 +3269,77 @@
     html += '<\/script></body></html>';
     return html;
   }
+  /* ตารางของกล่อง "ตาราง" ในแท็บกำหนดเอง แบบ HTML ดิบ (ไม่ผูก event) สำหรับฝังในไฟล์ export แบบสแตนด์อโลน
+     ใช้ตรรกะเดียวกับ renderTableWidgetTable() ทุกประการ (โหมดข้อมูล/pivot) แค่ไม่ต้อง wire ตัวกรอง/เรียง */
+  function tableWidgetHtmlForExport(cfg) {
+    if (cfg.mode === 'pivot') {
+      var piv = cfg.pivotRow ? buildPivot(state.rows, true, { rowKey: cfg.pivotRow, colKey: cfg.pivotCol, valKey: cfg.pivotVal, agg: cfg.pivotAgg }) : null;
+      return piv ? ('<table>' + pivotTableHtml(piv) + '</table>') : '';
+    }
+    if (!cfg.cols.length) return '';
+    var r = tableWidgetPlainRows(cfg);
+    var thead = '<thead><tr>' + r.cols.map(function (c) { return '<th class="' + (c.type === 'number' ? 'num' : '') + '">' + escapeHtml(c.label) + '</th>'; }).join('') + '</tr></thead>';
+    var tbody = '<tbody>' + r.rows.map(function (row) {
+      return '<tr>' + r.cols.map(function (c) { return '<td class="' + (c.type === 'number' ? 'num' : '') + '">' + escapeHtml(tableWidgetCellDisplay(row[c.key], c.type)) + '</td>'; }).join('') + '</tr>';
+    }).join('') + '</tbody>';
+    return '<table>' + thead + tbody + '</table>';
+  }
+  /* export กล่อง "กำหนดเอง" เป็น HTML สแตนด์อโลน — คนละโครงสร้างจากแดชบอร์ดอัตโนมัติ (คอลัมน์/การคำนวณ
+     เลือกเองอิสระต่อกล่อง ไม่ใช่ 4 การ์ดตายตัว) เรียงลำดับกล่องตามตำแหน่ง y แล้ว x ให้ใกล้เคียงลำดับที่เห็น
+     บนจอจริงมากที่สุด (GridStack วางอิสระ ไม่มีลำดับ DOM ที่แน่นอนอยู่แล้ว) */
+  function buildCustomHtmlDoc() {
+    var title = escapeHtml(exportFileBase());
+    var widgets = state.customWidgets.slice().sort(function (a, b) { return (a.y || 0) - (b.y || 0) || (a.x || 0) - (b.x || 0); });
+    var chartIdx = 0, chartScripts = [];
+    var body = widgets.map(function (w) {
+      if (w.type === 'kpi') {
+        var r = computeKpiWidgetValue(w.config);
+        return '<div class="card"><div class="stat-row"><div class="stat-tile"><div class="lbl">' + escapeHtml(r.label) + '</div>' +
+          '<div class="val" style="color:' + widgetAccent(w.config) + '">' + r.value + '</div></div></div></div>';
+      }
+      if (w.type === 'chart') {
+        var chartInst = customCharts[w.id];
+        var cfg = cleanChartConfigForExport(chartInst);
+        if (!cfg) return '';
+        var canvasId = 'cwc' + (chartIdx++);
+        chartScripts.push('new Chart(document.getElementById("' + canvasId + '").getContext("2d"),' + JSON.stringify(cfg) + ');');
+        return '<div class="card"><div class="chart-wrap"><canvas id="' + canvasId + '"></canvas></div></div>';
+      }
+      if (w.type === 'table') {
+        var tbl = tableWidgetHtmlForExport(w.config);
+        return tbl ? '<div class="card">' + tbl + '</div>' : '';
+      }
+      // text
+      return '<div class="card" style="color:' + ((w.config.style && w.config.style.accent) || 'inherit') + '">' + escapeHtml(w.config.text || '') + '</div>';
+    }).join('');
+    var html = '<!DOCTYPE html><html lang="' + getUILang() + '"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1"><title>' + title + '</title>' +
+      '<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800&display=swap" rel="stylesheet">' +
+      '<style>:root{--bg:#F3F5F8;--card:#fff;--ink:#151A23;--muted:#6B7280;--line:#E7E9F0;' +
+      '--sh:0 1px 2px rgba(16,24,40,.04),0 10px 26px rgba(16,24,40,.07)}' +
+      '*{box-sizing:border-box;margin:0;padding:0}' +
+      'body{font-family:Prompt,system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:22px 16px 60px;-webkit-font-smoothing:antialiased}' +
+      '.wrap{max-width:820px;margin:0 auto}' +
+      'h1{font-size:20px;font-weight:800}.sub{font-size:12.5px;color:var(--muted);margin-top:4px;margin-bottom:4px}' +
+      '.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px;white-space:pre-wrap;line-height:1.6}' +
+      '.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}' +
+      '.stat-tile .lbl{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.02em}' +
+      '.stat-tile .val{font-size:21px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}' +
+      '.chart-wrap{position:relative;height:280px}' +
+      'table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}' +
+      'th.num,td.num{text-align:right}.foot{font-size:11.5px;color:var(--muted);text-align:center;margin-top:22px}' +
+      '</style></head><body><div class="wrap">' +
+      '<h1>🧩 ' + title + '</h1>' +
+      '<div class="sub">' + escapeHtml(t('exportedAt', { date: new Date().toLocaleString(locale()), n: state.rows.length.toLocaleString(locale()) })) + '</div>' +
+      body +
+      '<div class="foot">' + escapeHtml(t('exportedFooter')) + '</div></div>' +
+      '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"><\/script><script>' + chartScripts.join('') + '<\/script></body></html>';
+    return html;
+  }
   function exportDashboardHtml() {
     if (!state.rows.length) { alert(t('exportNoData')); return; }
-    var blob = new Blob([buildDashboardHtmlDoc()], { type: 'text/html;charset=utf-8;' });
+    var doc = currentView === 'custom' ? buildCustomHtmlDoc() : buildDashboardHtmlDoc();
+    var blob = new Blob([doc], { type: 'text/html;charset=utf-8;' });
     downloadBlob(blob, exportFileBase() + '.html');
   }
 
@@ -3278,6 +3359,8 @@
     updateDrillBanner(); updateSaveUI();
     $('dataCard').style.display = 'none';
     $('dashboardView').style.display = 'none';
+    $('customView').style.display = 'none';
+    $('dashExportToolbar').style.display = 'none';
     $('viewTabs').style.display = 'none';
     $('statRow').style.display = 'none';
     $('sheetCard').style.display = 'none';
