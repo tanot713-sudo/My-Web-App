@@ -66,6 +66,8 @@
       headerHint: 'คลิกแถวที่เป็นชื่อคอลัมน์ (ปกติเป็นแถวแรกสุด) — ดูตัวอย่าง 8 แถวแรกของไฟล์',
       confirmHeaderBtn: 'ใช้แถวนี้เป็นหัวตาราง →',
       dataTitle: '📋 ข้อมูล', searchPh: 'ค้นหาทุกคอลัมน์…', addRowBtn: '+ เพิ่มแถว',
+      addColBtn: '+ เพิ่มคอลัมน์', delColTitle: 'ลบคอลัมน์นี้', newColumnDefaultLabel: 'คอลัมน์ใหม่',
+      renameColPrompt: 'ตั้งชื่อคอลัมน์', dblclickRenameHint: 'ดับเบิลคลิกชื่อคอลัมน์เพื่อเปลี่ยนชื่อ',
       delSelBtn: '🗑️ ลบที่เลือก', undoBtn: '↩️ เลิกทำ', clearFilterBtn: 'ล้างตัวกรอง',
       saveReportBtn: '💾 บันทึกเป็นรายงาน', savedReportBtn: '💾 บันทึกแล้ว: {name}',
       myReportsBtn: '📁 รายงานของฉัน', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 ไฟล์ใหม่',
@@ -189,6 +191,8 @@
       headerHint: 'Click the row that contains your column names (usually the first row) — showing the first 8 rows',
       confirmHeaderBtn: 'Use this row as the header →',
       dataTitle: '📋 Data', searchPh: 'Search all columns…', addRowBtn: '+ Add Row',
+      addColBtn: '+ Add Column', delColTitle: 'Delete this column', newColumnDefaultLabel: 'New column',
+      renameColPrompt: 'Rename column', dblclickRenameHint: 'Double-click a column name to rename it',
       delSelBtn: '🗑️ Delete Selected', undoBtn: '↩️ Undo', clearFilterBtn: 'Clear Filters',
       saveReportBtn: '💾 Save as Report', savedReportBtn: '💾 Saved: {name}',
       myReportsBtn: '📁 My Reports', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 New File',
@@ -303,6 +307,7 @@
     globalQuery: '',
     sortCol: null, sortDir: null, // 'asc' | 'desc'
     selected: {},          // rowId -> true
+    cellSel: null,         // { id0, col0, id1, col1 } ช่วงเซลล์ที่เลือกไว้ (อ้างด้วย row id + col key) สำหรับลาก fill handle
     page: 1,
     history: [],           // snapshots for undo: { columns, rows, nextRowId }
     drill: null,           // { key, label, value } — จากคลิกแท่ง/ชิ้นวงกลมในแดชบอร์ด กรองทั้งตาราง+แดชบอร์ด
@@ -596,6 +601,7 @@
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
     state.customWidgets = [];
+    state.cellSel = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
     $('undoBtn').disabled = true;
@@ -786,7 +792,9 @@
         var sorted = state.sortCol === col.key;
         var ic = sorted ? (state.sortDir === 'asc' ? '▲' : '▼') : '↕';
         return '<th class="' + (col.type === 'number' ? 'num' : '') + (sorted ? ' sorted' : '') + '" data-col="' + col.key + '">' +
-          escapeHtml(col.label) + '<span class="sort-ic">' + ic + '</span></th>';
+          '<span class="th-label" data-col="' + col.key + '" title="' + escapeAttr(t('dblclickRenameHint')) + '">' + escapeHtml(col.label) + '</span>' +
+          '<span class="sort-ic">' + ic + '</span>' +
+          '<button type="button" class="col-del" data-col="' + col.key + '" title="' + escapeAttr(t('delColTitle')) + '">✕</button></th>';
       }).join('') +
       '<th style="width:34px"></th>' +
       '</tr><tr class="filter-row">' +
@@ -816,7 +824,7 @@
           state.columns.map(function (col) {
             var v = cellEditValue(row[col.key], col.type);
             var inputType = col.type === 'number' ? 'number' : (col.type === 'date' ? 'date' : 'text');
-            return '<td class="' + (col.type === 'number' ? 'num' : '') + '"><input class="cell-in" type="' + inputType +
+            return '<td class="' + (col.type === 'number' ? 'num' : '') + '" data-id="' + row.__id + '" data-col="' + col.key + '"><input class="cell-in" type="' + inputType +
               '" data-id="' + row.__id + '" data-col="' + col.key + '" value="' + escapeAttr(v) + '"' + (col.type === 'number' ? ' step="any"' : '') + '></td>';
           }).join('') +
           '<td class="rowdel"><button type="button" class="del1" data-id="' + row.__id + '" title="' + escapeAttr(t('delRowTitle')) + '">✕</button></td>' +
@@ -830,6 +838,8 @@
 
     renderPager(all.length, totalPages);
     wireTableEvents();
+    wireCellSelection();
+    renderCellSelOverlay();
     $('dataMeta').textContent = (state.fileName || '') + dataMetaSheetSuffix() +
       ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows') +
       (all.length !== state.rows.length ? t('metaFilteredSuffix', { m: all.length.toLocaleString(locale()) }) : '');
@@ -1274,6 +1284,14 @@
   }
 
   function wireTableEvents() {
+    /* ลบคอลัมน์ (ปุ่ม ✕ ในหัวตาราง) — stopPropagation กันไม่ให้ไปโดน listener เรียงคอลัมน์ของ th ด้วย */
+    [].forEach.call($('dataTable').querySelectorAll('.col-del'), function (btn) {
+      btn.addEventListener('click', function (e) { e.stopPropagation(); deleteColumn(btn.getAttribute('data-col')); });
+    });
+    /* เปลี่ยนชื่อคอลัมน์ (ดับเบิลคลิกที่ชื่อ) */
+    [].forEach.call($('dataTable').querySelectorAll('.th-label'), function (span) {
+      span.addEventListener('dblclick', function (e) { e.stopPropagation(); renameColumn(span.getAttribute('data-col')); });
+    });
     /* เรียงคอลัมน์ */
     [].forEach.call($('dataTable').querySelectorAll('thead tr:first-child th[data-col]'), function (th) {
       th.addEventListener('click', function () {
@@ -1371,6 +1389,231 @@
     var idSet = {}; ids.forEach(function (id) { idSet[id] = true; });
     state.rows = state.rows.filter(function (r) { return !idSet[r.__id]; });
     ids.forEach(function (id) { delete state.selected[id]; });
+    renderTable();
+    persistDebounced();
+  }
+
+  /* ══════════════════ เพิ่ม/ลบ/เปลี่ยนชื่อ คอลัมน์ ══════════════════ */
+  function genColKey() { return 'col_new_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function addColumn() {
+    pushHistory();
+    var key = genColKey();
+    state.columns.push({ key: key, label: t('newColumnDefaultLabel'), type: 'text' });
+    state.rows.forEach(function (r) { r[key] = null; });
+    renderTable();
+    persistDebounced();
+  }
+  function renameColumn(key) {
+    var col = state.columns.filter(function (c) { return c.key === key; })[0];
+    if (!col) return;
+    var next = window.prompt(t('renameColPrompt'), col.label);
+    if (next === null) return;
+    next = next.trim();
+    if (!next) return;
+    pushHistory();
+    col.label = next;
+    renderTable();
+    persistDebounced();
+  }
+  function deleteColumn(key) {
+    pushHistory();
+    state.columns = state.columns.filter(function (c) { return c.key !== key; });
+    state.rows.forEach(function (r) { delete r[key]; });
+    delete state.filters[key];
+    if (state.sortCol === key) { state.sortCol = null; state.sortDir = null; }
+    if (state.dashTable.hiddenCols) delete state.dashTable.hiddenCols[key];
+    if (state.cellSel && (state.cellSel.col0 === key || state.cellSel.col1 === key)) state.cellSel = null;
+    renderTable();
+    persistDebounced();
+  }
+
+  /* ══════════════════ เลือกเซลล์ + ลาก Fill Handle (คล้าย Excel) ══════════════════
+     state.cellSel เก็บช่วงที่เลือกด้วย row id + column key (ไม่ใช่ index ของหน้า/ลำดับที่แสดงผล) เพื่อให้
+     รอดจากการ re-render ระหว่างพิมพ์ — ถ้าอ้างถึงแถว/คอลัมน์ที่ไม่ได้แสดงอยู่ในหน้าปัจจุบันแล้ว (เปลี่ยนหน้า/
+     ถูกกรองออก/ถูกลบ) renderCellSelOverlay() จะไม่วาดอะไรเลย (แต่ไม่ล้างค่า state.cellSel ทิ้ง เผื่อกลับมาหน้าเดิม)
+     รองรับการเลือกหลายเซลล์ด้วย Shift+คลิก เท่านั้น (ไม่รองรับลากเมาส์เลือกตรงๆ เพราะจะชนกับการลากเลือก
+     ข้อความในช่อง input ของแต่ละเซลล์) ส่วนการลาก "fill handle" ใช้จุดเล็กๆ ที่มุมขวาล่างของกรอบที่เลือกแทน */
+  var fillDrag = null; // ตัวแปรชั่วคราวระหว่างลาก ไม่ต้อง persist
+  function clearCellSel() { state.cellSel = null; renderCellSelOverlay(); }
+  function cellTd(id, colKey) { return $('dataTable').querySelector('td[data-id="' + id + '"][data-col="' + colKey + '"]'); }
+  /* แปลง state.cellSel (id/key) เป็นตำแหน่งแถว/คอลัมน์ที่แสดงผลอยู่ตอนนี้ (index ใน pageRows ปัจจุบัน + ลำดับ
+     คอลัมน์ใน state.columns) คืน null ถ้าเซลล์ปลายด้านใดด้านหนึ่งไม่ได้อยู่ในหน้าที่แสดงอยู่ตอนนี้ */
+  function cellSelToIndices(sel) {
+    var trs = [].slice.call($('dataTable').querySelectorAll('tbody tr[data-id]'));
+    var rowIds = trs.map(function (tr) { return +tr.getAttribute('data-id'); });
+    var r0 = rowIds.indexOf(sel.id0), r1 = rowIds.indexOf(sel.id1);
+    var colKeys = state.columns.map(function (c) { return c.key; });
+    var c0 = colKeys.indexOf(sel.col0), c1 = colKeys.indexOf(sel.col1);
+    if (r0 === -1 || r1 === -1 || c0 === -1 || c1 === -1) return null;
+    return { rMin: Math.min(r0, r1), rMax: Math.max(r0, r1), cMin: Math.min(c0, c1), cMax: Math.max(c0, c1), rowIds: rowIds, colKeys: colKeys };
+  }
+  function renderCellSelOverlay(previewIdx) {
+    var wrap = $('dataTableWrap');
+    [].forEach.call(wrap.querySelectorAll('.cellsel-box,.cellsel-handle,.cellsel-fillpreview'), function (el) { el.remove(); });
+    [].forEach.call(wrap.querySelectorAll('td.cellsel-in'), function (td) { td.classList.remove('cellsel-in'); });
+    if (!state.cellSel) return;
+    var idx = cellSelToIndices(state.cellSel);
+    if (!idx) return;
+    var wrapRect = wrap.getBoundingClientRect();
+    function rectFor(rMin, rMax, cMin, cMax) {
+      var tdA = cellTd(idx.rowIds[rMin], idx.colKeys[cMin]);
+      var tdB = cellTd(idx.rowIds[rMax], idx.colKeys[cMax]);
+      if (!tdA || !tdB) return null;
+      var a = tdA.getBoundingClientRect(), b = tdB.getBoundingClientRect();
+      return {
+        left: (a.left - wrapRect.left) + wrap.scrollLeft,
+        top: (a.top - wrapRect.top) + wrap.scrollTop,
+        width: (b.right - a.left),
+        height: (b.bottom - a.top)
+      };
+    }
+    [].forEach.call(wrap.querySelectorAll('tbody tr[data-id]'), function (tr, ri) {
+      if (ri < idx.rMin || ri > idx.rMax) return;
+      state.columns.forEach(function (c, ci) {
+        if (ci < idx.cMin || ci > idx.cMax) return;
+        var td = tr.querySelector('td[data-col="' + c.key + '"]');
+        if (td) td.classList.add('cellsel-in');
+      });
+    });
+    var r = rectFor(idx.rMin, idx.rMax, idx.cMin, idx.cMax);
+    if (!r) return;
+    var box = document.createElement('div');
+    box.className = 'cellsel-box';
+    box.style.left = r.left + 'px'; box.style.top = r.top + 'px'; box.style.width = r.width + 'px'; box.style.height = r.height + 'px';
+    wrap.appendChild(box);
+    if (previewIdx) {
+      var pr = rectFor(previewIdx.rMin, previewIdx.rMax, previewIdx.cMin, previewIdx.cMax);
+      if (pr) {
+        var pv = document.createElement('div');
+        pv.className = 'cellsel-fillpreview';
+        pv.style.left = pr.left + 'px'; pv.style.top = pr.top + 'px'; pv.style.width = pr.width + 'px'; pv.style.height = pr.height + 'px';
+        wrap.appendChild(pv);
+      }
+    } else {
+      var handle = document.createElement('div');
+      handle.className = 'cellsel-handle';
+      handle.style.left = (r.left + r.width) + 'px'; handle.style.top = (r.top + r.height) + 'px';
+      handle.addEventListener('mousedown', function (e) { e.preventDefault(); startFillDrag(idx); });
+      wrap.appendChild(handle);
+    }
+  }
+  function wireCellSelection() {
+    [].forEach.call($('dataTable').querySelectorAll('td[data-id][data-col]'), function (td) {
+      td.addEventListener('mousedown', function (e) {
+        var id = +td.getAttribute('data-id'), col = td.getAttribute('data-col');
+        if (e.shiftKey && state.cellSel) {
+          state.cellSel = { id0: state.cellSel.id0, col0: state.cellSel.col0, id1: id, col1: col };
+          e.preventDefault();
+        } else {
+          state.cellSel = { id0: id, col0: col, id1: id, col1: col };
+        }
+        renderCellSelOverlay();
+      });
+    });
+  }
+  /* คำนวณค่าที่จะเติมของ "เส้น" หนึ่งเส้น (คอลัมน์เดียวตอนลากขึ้น/ลง หรือแถวเดียวตอนลากซ้าย/ขวา) —
+     srcVals คือค่าต้นฉบับที่เลือกไว้ก่อนลาก (เรียงจากตำแหน่งน้อยไปมาก), i คือตำแหน่งของเซลล์ที่จะเติม
+     เทียบกับเซลล์แรกของ srcVals (0 = ตำแหน่งเซลล์แรก, ค่าลบ = ก่อนหน้า/ด้านบน, ทวนจากจุดนั้น) */
+  function fillLineValue(srcVals, i, colType) {
+    var n = srcVals.length;
+    if (n === 1) return srcVals[0]; // ลาก 1 เซลล์เดียว -> คัดลอกค่าเดิมซ้ำเสมอ (ไม่ไล่เลข)
+    var allNum = colType === 'number' && srcVals.every(function (v) { return typeof v === 'number' && isFinite(v); });
+    if (allNum) {
+      /* ตัวเลข 2 เซลล์ขึ้นไป -> ไล่ตามสูตรเส้นตรง step = ค่าเฉลี่ยผลต่างระหว่างเซลล์ที่ติดกัน (2 เซลล์ =
+         ไล่ตามผลต่างนั้นตรงๆ รวมถึงกรณีค่าเท่ากันทั้งคู่ -> step เป็น 0 -> ซ้ำค่าเดิมไปเรื่อยๆ ตามที่ต้องการ) */
+      var diffs = []; for (var k = 1; k < n; k++) diffs.push(srcVals[k] - srcVals[k - 1]);
+      var step = diffs.reduce(function (a, b) { return a + b; }, 0) / diffs.length;
+      return srcVals[0] + step * i;
+    }
+    if (colType === 'date' && srcVals.every(function (v) { return v instanceof Date && !isNaN(v); })) {
+      var dayDiffs = []; for (var k2 = 1; k2 < n; k2++) dayDiffs.push((srcVals[k2] - srcVals[k2 - 1]) / 86400000);
+      var dayStep = dayDiffs.reduce(function (a, b) { return a + b; }, 0) / dayDiffs.length;
+      return new Date(srcVals[0].getTime() + dayStep * i * 86400000);
+    }
+    /* ข้อความ/ค่าผสม -> ไม่มีลำดับให้ไล่ วนซ้ำชุดเดิมเป็นรอบๆ ตามตำแหน่ง (mod แบบรองรับเลขลบด้วย) */
+    return srcVals[((i % n) + n) % n];
+  }
+  function startFillDrag(originIdx) {
+    var origin = { rMin: originIdx.rMin, rMax: originIdx.rMax, cMin: originIdx.cMin, cMax: originIdx.cMax, rowIds: originIdx.rowIds, colKeys: originIdx.colKeys };
+    fillDrag = { origin: origin };
+    function onMove(e) {
+      var el = document.elementFromPoint(e.clientX, e.clientY);
+      var td = el && el.closest ? el.closest('td[data-id][data-col]') : null;
+      if (!td) return;
+      var ri = origin.rowIds.indexOf(+td.getAttribute('data-id'));
+      var ci = origin.colKeys.indexOf(td.getAttribute('data-col'));
+      if (ri === -1 || ci === -1) return;
+      var rBelow = ri - origin.rMax, rAbove = origin.rMin - ri, cRight = ci - origin.cMax, cLeft = origin.cMin - ci;
+      var maxExt = Math.max(rBelow, rAbove, cRight, cLeft, 0);
+      var preview = { rMin: origin.rMin, rMax: origin.rMax, cMin: origin.cMin, cMax: origin.cMax };
+      if (maxExt <= 0) { fillDrag.dir = null; fillDrag.target = null; renderCellSelOverlay(); return; }
+      if (maxExt === rBelow) { fillDrag.dir = 'down'; preview.rMax = ri; }
+      else if (maxExt === rAbove) { fillDrag.dir = 'up'; preview.rMin = ri; }
+      else if (maxExt === cRight) { fillDrag.dir = 'right'; preview.cMax = ci; }
+      else { fillDrag.dir = 'left'; preview.cMin = ci; }
+      fillDrag.target = preview;
+      renderCellSelOverlay(preview);
+    }
+    function onUp() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      if (fillDrag && fillDrag.dir && fillDrag.target) applyFillDrag(fillDrag.origin, fillDrag.dir, fillDrag.target);
+      fillDrag = null;
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+  function applyFillDrag(origin, dir, target) {
+    pushHistory();
+    var vertical = dir === 'down' || dir === 'up';
+    if (vertical) {
+      for (var ci = origin.cMin; ci <= origin.cMax; ci++) {
+        var colKey = origin.colKeys[ci];
+        var col = state.columns.filter(function (c) { return c.key === colKey; })[0];
+        var srcVals = [];
+        for (var ri = origin.rMin; ri <= origin.rMax; ri++) {
+          var r = state.rows.filter(function (rr) { return rr.__id === origin.rowIds[ri]; })[0];
+          srcVals.push(r ? r[colKey] : null);
+        }
+        if (dir === 'down') {
+          for (var rd = origin.rMax + 1; rd <= target.rMax; rd++) {
+            var rowD = state.rows.filter(function (rr) { return rr.__id === origin.rowIds[rd]; })[0];
+            if (rowD) rowD[colKey] = fillLineValue(srcVals, rd - origin.rMin, col ? col.type : 'text');
+          }
+        } else {
+          for (var ru = target.rMin; ru < origin.rMin; ru++) {
+            var rowU = state.rows.filter(function (rr) { return rr.__id === origin.rowIds[ru]; })[0];
+            if (rowU) rowU[colKey] = fillLineValue(srcVals, ru - origin.rMin, col ? col.type : 'text');
+          }
+        }
+        if (col) col.type = inferColumnType(state.rows.map(function (rr) { return rr[colKey]; }));
+      }
+    } else {
+      for (var ri2 = origin.rMin; ri2 <= origin.rMax; ri2++) {
+        var rowId = origin.rowIds[ri2];
+        var row = state.rows.filter(function (rr) { return rr.__id === rowId; })[0];
+        if (!row) continue;
+        var srcVals2 = [];
+        for (var ci2 = origin.cMin; ci2 <= origin.cMax; ci2++) srcVals2.push(row[origin.colKeys[ci2]]);
+        if (dir === 'right') {
+          for (var cr = origin.cMax + 1; cr <= target.cMax; cr++) {
+            var colR = state.columns.filter(function (c) { return c.key === origin.colKeys[cr]; })[0];
+            row[origin.colKeys[cr]] = fillLineValue(srcVals2, cr - origin.cMin, colR ? colR.type : 'text');
+          }
+        } else {
+          for (var cl = target.cMin; cl < origin.cMin; cl++) {
+            var colL = state.columns.filter(function (c) { return c.key === origin.colKeys[cl]; })[0];
+            row[origin.colKeys[cl]] = fillLineValue(srcVals2, cl - origin.cMin, colL ? colL.type : 'text');
+          }
+        }
+      }
+      for (var cc = target.cMin; cc <= target.cMax; cc++) {
+        var colKeyC = origin.colKeys[cc];
+        var colC = state.columns.filter(function (c) { return c.key === colKeyC; })[0];
+        if (colC) colC.type = inferColumnType(state.rows.map(function (rr) { return rr[colKeyC]; }));
+      }
+    }
+    state.cellSel = { id0: origin.rowIds[target.rMin], col0: origin.colKeys[target.cMin], id1: origin.rowIds[target.rMax], col1: origin.colKeys[target.cMax] };
     renderTable();
     persistDebounced();
   }
@@ -2832,6 +3075,7 @@
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
     state.customWidgets = [];
+    state.cellSel = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
     $('dataCard').style.display = 'none';
@@ -2898,6 +3142,7 @@
       $('sheetChips').style.display = 'flex';
     });
     $('addRowBtn').addEventListener('click', addRow);
+    $('addColBtn').addEventListener('click', addColumn);
     $('delSelBtn').addEventListener('click', deleteSelected);
     $('undoBtn').addEventListener('click', undo);
     $('clearFilterBtn').addEventListener('click', clearAllFilters);

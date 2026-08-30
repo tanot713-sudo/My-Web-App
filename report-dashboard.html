@@ -222,6 +222,16 @@ td input.cell-in:focus{outline:none;border-color:var(--brand);background:var(--c
 td.rowdel{text-align:center}
 .rowdel button{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px}
 .rowdel button:hover{background:var(--bg);color:var(--err)}
+th .th-label{cursor:text}
+th .col-del{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:12px;
+  padding:1px 4px;border-radius:6px;margin-left:2px;vertical-align:middle}
+th .col-del:hover{background:var(--card);color:var(--err)}
+#dataTableWrap{position:relative}
+.cellsel-box{position:absolute;border:2px solid var(--brand);pointer-events:none;box-sizing:border-box;z-index:2}
+.cellsel-fillpreview{position:absolute;border:1.5px dashed var(--brand-dk);pointer-events:none;box-sizing:border-box;z-index:2}
+.cellsel-handle{position:absolute;width:8px;height:8px;background:var(--brand);border:1.5px solid var(--card);
+  border-radius:1px;cursor:crosshair;z-index:3;transform:translate(-50%,-50%)}
+td.cellsel-in{background:var(--brand-sf)}
 .tbl-empty{font-size:13px;color:var(--muted);padding:16px 4px;text-align:center}
 
 /* ── แถบเครื่องมือตาราง ── */
@@ -357,6 +367,7 @@ td.rowdel{text-align:center}
     <div class="toolbar-row">
       <div class="search-wrap"><span class="ic">🔍</span><input type="text" id="globalSearch" data-i18n-placeholder="searchPh" placeholder="ค้นหาทุกคอลัมน์…"></div>
       <button class="btn sm" id="addRowBtn" type="button" data-i18n="addRowBtn">+ เพิ่มแถว</button>
+      <button class="btn sm" id="addColBtn" type="button" data-i18n="addColBtn">+ เพิ่มคอลัมน์</button>
       <button class="btn sm" id="delSelBtn" type="button" disabled data-i18n="delSelBtn">🗑️ ลบที่เลือก</button>
       <button class="btn sm" id="undoBtn" type="button" disabled data-i18n="undoBtn">↩️ เลิกทำ</button>
       <button class="btn sm" id="clearFilterBtn" type="button" data-i18n="clearFilterBtn">ล้างตัวกรอง</button>
