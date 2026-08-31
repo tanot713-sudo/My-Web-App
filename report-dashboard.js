@@ -106,6 +106,10 @@
       dhDupSummary: 'พบแถวข้อมูลซ้ำกันทั้งหมด {n} แถว (นับเฉพาะคอลัมน์ข้อมูลต้นฉบับ ไม่รวมคอลัมน์สูตร)',
       dhNoDup: '✅ ไม่พบแถวข้อมูลซ้ำเลย', dhDedupeBtn: '🗑️ ลบแถวซ้ำ ({n} แถว)',
       dhNoRows: 'ยังไม่มีข้อมูล', dhEmptyDash: '—',
+      kpiTargetSectionTitle: '🎯 เป้าหมาย + เปรียบเทียบ', kpiTargetLbl: 'เป้าหมาย (ไม่บังคับ)', kpiTargetPh: 'เช่น 100000',
+      kpiTargetDirLbl: 'ทิศทางที่ดี', kpiTargetDirUp: 'ค่ายิ่งมากยิ่งดี', kpiTargetDirDown: 'ค่ายิ่งน้อยยิ่งดี',
+      kpiOfTarget: 'ของเป้า', kpiCompareDateLbl: 'เทียบกับเดือนก่อน (ไม่บังคับ)', kpiCompareDateNone: 'ไม่เทียบ',
+      kpiVsPeriod: 'เทียบ {period}', kpiNoCompareData: 'ข้อมูลไม่พอสำหรับเปรียบเทียบ',
       fErrUnclosedBracket: 'ไม่พบ ] ปิดชื่อคอลัมน์', fErrUnclosedString: 'ข้อความในเครื่องหมายคำพูดไม่ปิด',
       fErrUnknownChar: 'พบอักขระที่ไม่รู้จักในสูตร: "{c}"', fErrExpected: 'รูปแบบสูตรผิด (คาดว่าจะเจอ "{type}")',
       fErrUnknownWord: 'ไม่รู้จักคำว่า "{w}" (ลืมใส่ [ ] รอบชื่อคอลัมน์หรือเปล่า?)',
@@ -275,6 +279,10 @@
       dhDupSummary: 'Found {n} duplicate row(s) (based on source data columns only, formula columns excluded)',
       dhNoDup: '✅ No duplicate rows found', dhDedupeBtn: '🗑️ Remove duplicates ({n} rows)',
       dhNoRows: 'No data yet', dhEmptyDash: '—',
+      kpiTargetSectionTitle: '🎯 Target + Comparison', kpiTargetLbl: 'Target (optional)', kpiTargetPh: 'e.g. 100000',
+      kpiTargetDirLbl: 'Good direction', kpiTargetDirUp: 'Higher is better', kpiTargetDirDown: 'Lower is better',
+      kpiOfTarget: 'of target', kpiCompareDateLbl: 'Compare to previous month (optional)', kpiCompareDateNone: 'No comparison',
+      kpiVsPeriod: 'vs {period}', kpiNoCompareData: 'Not enough data to compare',
       fErrUnclosedBracket: 'Missing ] to close column name', fErrUnclosedString: 'Unclosed quoted text',
       fErrUnknownChar: 'Unknown character in formula: "{c}"', fErrExpected: 'Malformed formula (expected "{type}")',
       fErrUnknownWord: 'Unknown word "{w}" (did you forget [ ] around a column name?)',
@@ -3408,37 +3416,103 @@
 
   function genWidgetId() { return 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
+  /* ช่วง [start, end) ของเดือนที่ห่างจาก maxDate ไป offsetMonths เดือน (0 = เดือนของ maxDate เอง,
+     1 = เดือนก่อนหน้า) — ใช้เทียบ "เดือนล่าสุดที่มีข้อมูลจริง" กับ "เดือนก่อนหน้านั้น" แทนการอิงวันที่
+     ปัจจุบันของเครื่อง เพราะข้อมูลอาจไม่ครอบคลุมถึงเดือนปัจจุบันจริงๆ ก็ได้ */
+  function periodBoundsFromMaxDate(maxDate, offsetMonths) {
+    var y = maxDate.getFullYear(), m = maxDate.getMonth() - offsetMonths;
+    var start = new Date(y, m, 1), end = new Date(y, m + 1, 1);
+    return { start: start, end: end, label: start.toLocaleDateString(locale(), { year: 'numeric', month: 'short' }) };
+  }
+  function aggValuesInRange(rows, dateColKey, numColKey, agg, start, end) {
+    var inRange = rows.filter(function (r) { var d = r[dateColKey]; return d instanceof Date && !isNaN(d) && d >= start && d < end; });
+    if (agg === 'count' || !numColKey) return inRange.length;
+    var vals = inRange.map(function (r) { return r[numColKey]; }).filter(function (v) { return typeof v === 'number' && isFinite(v); });
+    if (!vals.length) return null;
+    if (agg === 'sum') return vals.reduce(function (a, b) { return a + b; }, 0);
+    if (agg === 'avg') return vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+    if (agg === 'min') return Math.min.apply(null, vals);
+    if (agg === 'max') return Math.max.apply(null, vals);
+    return null;
+  }
   function computeKpiWidgetValue(cfg) {
     /* กล่องที่ "โหลดจากแดชบอร์ด" มาจากตัวเลขที่คำนวณเฉพาะทาง (เช่น MTTR ของแม่แบบซ่อมบำรุง) ไม่มีสูตร
        colKey+agg ทั่วไปให้คำนวณสดได้ — เก็บเป็นสแนปช็อตค่า ณ ตอนโหลดแทน (ล้างทิ้งอัตโนมัติถ้าผู้ใช้แก้ไข
-       ผ่าน popup ⚙️ ในภายหลัง กลายเป็นกล่องสดตามปกติ) */
-    if (cfg.snapshot) return { value: cfg.snapshot.value, label: cfg.label || cfg.snapshot.label };
+       ผ่าน popup ⚙️ ในภายหลัง กลายเป็นกล่องสดตามปกติ) เป้าหมาย/เทียบช่วงเวลาใช้กับกล่องสแนปช็อตไม่ได้
+       เพราะไม่มี colKey+agg ให้คำนวณย้อนหลังตามช่วงวันที่ */
+    if (cfg.snapshot) return { value: cfg.snapshot.value, label: cfg.label || cfg.snapshot.label, rawNum: null, compare: null };
+    var rawNum = null, out;
     if (cfg.agg === 'count' || !cfg.colKey) {
-      return { value: state.rows.length.toLocaleString(locale()), label: cfg.label || t('totalRowsKpiLabel') };
+      rawNum = state.rows.length;
+      out = { value: rawNum.toLocaleString(locale()), label: cfg.label || t('totalRowsKpiLabel') };
+    } else {
+      var col = state.columns.filter(function (c) { return c.key === cfg.colKey; })[0];
+      if (!col) return { value: '—', label: cfg.label || '', rawNum: null, compare: null };
+      var vals = state.rows.map(function (r) { return r[col.key]; }).filter(function (v) { return typeof v === 'number' && isFinite(v); });
+      if (vals.length) {
+        if (cfg.agg === 'sum') rawNum = vals.reduce(function (a, b) { return a + b; }, 0);
+        else if (cfg.agg === 'avg') rawNum = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+        else if (cfg.agg === 'min') rawNum = Math.min.apply(null, vals);
+        else if (cfg.agg === 'max') rawNum = Math.max.apply(null, vals);
+      }
+      var aggLbl = t('cwAgg' + cfg.agg.charAt(0).toUpperCase() + cfg.agg.slice(1));
+      out = { value: rawNum === null ? '—' : rawNum.toLocaleString(locale(), { maximumFractionDigits: 2 }), label: cfg.label || (col.label + ' · ' + aggLbl) };
     }
-    var col = state.columns.filter(function (c) { return c.key === cfg.colKey; })[0];
-    if (!col) return { value: '—', label: cfg.label || '' };
-    var vals = state.rows.map(function (r) { return r[col.key]; }).filter(function (v) { return typeof v === 'number' && isFinite(v); });
-    var num = null;
-    if (vals.length) {
-      if (cfg.agg === 'sum') num = vals.reduce(function (a, b) { return a + b; }, 0);
-      else if (cfg.agg === 'avg') num = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
-      else if (cfg.agg === 'min') num = Math.min.apply(null, vals);
-      else if (cfg.agg === 'max') num = Math.max.apply(null, vals);
+    out.rawNum = rawNum;
+    out.compare = null;
+    if (cfg.compareDateColKey) {
+      var dateCol = state.columns.filter(function (c) { return c.key === cfg.compareDateColKey; })[0];
+      if (dateCol && dateCol.type === 'date') {
+        var dates = state.rows.map(function (r) { return r[dateCol.key]; }).filter(function (d) { return d instanceof Date && !isNaN(d); });
+        if (dates.length) {
+          var maxDate = new Date(Math.max.apply(null, dates.map(function (d) { return d.getTime(); })));
+          var curP = periodBoundsFromMaxDate(maxDate, 0), prevP = periodBoundsFromMaxDate(maxDate, 1);
+          var numKeyForAgg = (cfg.agg === 'count' || !cfg.colKey) ? null : cfg.colKey;
+          out.compare = {
+            curVal: aggValuesInRange(state.rows, dateCol.key, numKeyForAgg, cfg.agg, curP.start, curP.end),
+            prevVal: aggValuesInRange(state.rows, dateCol.key, numKeyForAgg, cfg.agg, prevP.start, prevP.end),
+            prevLabel: prevP.label
+          };
+        }
+      }
     }
-    var aggLbl = t('cwAgg' + cfg.agg.charAt(0).toUpperCase() + cfg.agg.slice(1));
-    return {
-      value: num === null ? '—' : num.toLocaleString(locale(), { maximumFractionDigits: 2 }),
-      label: cfg.label || (col.label + ' · ' + aggLbl)
-    };
+    return out;
   }
   function widgetAccent(cfg) { return (cfg.style && cfg.style.accent) || '#1E9E5A'; }
+  /* คอลัมน์เป้าหมาย/แถบความคืบหน้า + แถวเปรียบเทียบเดือนก่อน ต่อยอดจากกล่อง KPI เดิม — เป็นส่วนเสริม
+     ไม่บังคับ (cfg.target/cfg.compareDateColKey เป็น undefined ได้ตามปกติสำหรับกล่อง KPI เดิมที่มีอยู่แล้ว
+     ก่อนฟีเจอร์นี้ ทำงานเหมือนเดิมทุกประการถ้าไม่ได้ตั้งค่าอะไรเพิ่ม) */
   function renderKpiWidget(bodyEl, cfg) {
     var r = computeKpiWidgetValue(cfg);
     var accent = widgetAccent(cfg);
-    bodyEl.innerHTML = '<div class="wt-sub">' + escapeHtml(r.label) +
-      (cfg.snapshot ? '<span class="wt-snapshot-note">' + escapeHtml(t('loadTemplateSnapshotNote')) + '</span>' : '') +
-      '</div><div class="wt-val" style="color:' + accent + '">' + r.value + '</div>';
+    var dir = cfg.betterDirection || 'up';
+    var html = '<div class="wt-sub">' + escapeHtml(r.label) +
+      (cfg.snapshot ? '<span class="wt-snapshot-note">' + escapeHtml(t('loadTemplateSnapshotNote')) + '</span>' : '') + '</div>' +
+      '<div class="wt-val" style="color:' + accent + '">' + r.value + '</div>';
+    if (cfg.target != null && r.rawNum != null) {
+      var pct = cfg.target !== 0 ? (r.rawNum / cfg.target * 100) : 0;
+      var met = dir === 'up' ? r.rawNum >= cfg.target : r.rawNum <= cfg.target;
+      var nearMiss = dir === 'up' ? pct >= 80 : pct <= 120;
+      var statusCls = met ? 'good' : (nearMiss ? 'warn' : 'bad');
+      html += '<div class="wt-target-row"><div class="wt-target-bar"><div class="wt-target-fill ' + statusCls + '" style="width:' + Math.max(0, Math.min(100, pct)) + '%"></div></div>' +
+        '<span class="wt-target-pct ' + statusCls + '">' + Math.round(pct) + '% ' + escapeHtml(t('kpiOfTarget')) + ' ' + cfg.target.toLocaleString(locale()) + '</span></div>';
+    }
+    if (cfg.compareDateColKey && r.compare) {
+      var cp = r.compare;
+      if (cp.curVal != null && cp.prevVal != null) {
+        var delta = cp.curVal - cp.prevVal;
+        var deltaPct = cp.prevVal !== 0 ? (delta / Math.abs(cp.prevVal) * 100) : null;
+        var good = dir === 'up' ? delta >= 0 : delta <= 0;
+        var arrow = delta > 0 ? '▲' : (delta < 0 ? '▼' : '—');
+        html += '<div class="wt-compare-row ' + (delta === 0 ? '' : (good ? 'good' : 'bad')) + '"><span class="wt-compare-arrow">' + arrow + '</span>' +
+          '<span>' + (delta >= 0 ? '+' : '') + delta.toLocaleString(locale(), { maximumFractionDigits: 2 }) +
+          (deltaPct != null ? ' (' + (deltaPct >= 0 ? '+' : '') + deltaPct.toFixed(1) + '%)' : '') + '</span>' +
+          '<span class="wt-compare-label">' + escapeHtml(t('kpiVsPeriod', { period: cp.prevLabel })) + '</span></div>';
+      } else {
+        html += '<div class="wt-compare-row"><span class="mini">' + escapeHtml(t('kpiNoCompareData')) + '</span></div>';
+      }
+    }
+    bodyEl.innerHTML = html;
   }
   function renderChartWidget(bodyEl, cfg, widgetId) {
     if (customCharts[widgetId]) { try { customCharts[widgetId].destroy(); } catch (e) {} delete customCharts[widgetId]; }
@@ -3920,6 +3994,18 @@
         '</select></label>' +
         '<label>' + escapeHtml(t('cwLabelLbl')) + '<input type="text" class="ew-label" value="' + escapeAttr(widget.config.label || '') + '"></label>' +
         '</div>' +
+        '<div class="fp-title" style="margin-top:10px">' + escapeHtml(t('kpiTargetSectionTitle')) + '</div>' +
+        '<div class="fp-range">' +
+        '<label>' + escapeHtml(t('kpiTargetLbl')) + '<input type="number" step="any" class="ew-target" placeholder="' + escapeAttr(t('kpiTargetPh')) + '" value="' + escapeAttr(widget.config.target != null ? widget.config.target : '') + '"></label>' +
+        '<label>' + escapeHtml(t('kpiTargetDirLbl')) + '<select class="ew-target-dir">' +
+        '<option value="up"' + ((widget.config.betterDirection || 'up') === 'up' ? ' selected' : '') + '>' + escapeHtml(t('kpiTargetDirUp')) + '</option>' +
+        '<option value="down"' + (widget.config.betterDirection === 'down' ? ' selected' : '') + '>' + escapeHtml(t('kpiTargetDirDown')) + '</option>' +
+        '</select></label>' +
+        '<label>' + escapeHtml(t('kpiCompareDateLbl')) + '<select class="ew-compare-date">' +
+        '<option value=""' + (!widget.config.compareDateColKey ? ' selected' : '') + '>' + escapeHtml(t('kpiCompareDateNone')) + '</option>' +
+        state.columns.filter(function (c) { return c.type === 'date'; }).map(function (c) { return '<option value="' + c.key + '"' + (widget.config.compareDateColKey === c.key ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>'; }).join('') +
+        '</select></label>' +
+        '</div>' +
         widgetStyleSectionHtml(widget) +
         '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
     } else if (widget.type === 'chart') {
@@ -4006,6 +4092,10 @@
           widget.config.agg = agg;
           widget.config.colKey = agg === 'count' ? null : el.querySelector('.ew-col').value;
           widget.config.label = el.querySelector('.ew-label').value.trim() || null;
+          var targetRaw = el.querySelector('.ew-target').value.trim();
+          widget.config.target = targetRaw === '' ? null : parseFloat(targetRaw);
+          widget.config.betterDirection = el.querySelector('.ew-target-dir').value;
+          widget.config.compareDateColKey = el.querySelector('.ew-compare-date').value || null;
           delete widget.config.snapshot; // แก้ค่าคำนวณเองแล้ว เลิกเป็นสแนปช็อตแช่แข็ง กลับมาคำนวณสดตามปกติ
         } else if (widget.type === 'chart') {
           widget.config.chartType = el.querySelector('.ew-charttype').value;

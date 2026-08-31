@@ -144,6 +144,23 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
   font-variant-numeric:tabular-nums}
 .widget-body.wb-kpi .wt-sub{font-size:11.5px;color:var(--muted)}
 .wt-snapshot-note{font-size:10px;color:var(--muted);font-style:italic}
+
+/* ── กล่อง KPI: แถบเป้าหมาย + แถวเปรียบเทียบเดือนก่อน ── */
+.wt-target-row{margin-top:8px}
+.wt-target-bar{height:6px;border-radius:4px;background:var(--line);overflow:hidden;margin-bottom:4px}
+.wt-target-fill{height:100%;border-radius:4px;transition:width .25s}
+.wt-target-fill.good{background:var(--ok)}
+.wt-target-fill.warn{background:var(--warn)}
+.wt-target-fill.bad{background:var(--err)}
+.wt-target-pct{font-size:11px;font-weight:700}
+.wt-target-pct.good{color:var(--ok)}
+.wt-target-pct.warn{color:var(--warn)}
+.wt-target-pct.bad{color:var(--err)}
+.wt-compare-row{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;font-weight:600;color:var(--muted)}
+.wt-compare-row.good{color:var(--ok)}
+.wt-compare-row.bad{color:var(--err)}
+.wt-compare-arrow{font-size:10px}
+.wt-compare-label{color:var(--muted);font-weight:400;font-size:11px}
 .widget-body.wb-chart{padding:8px}
 .widget-body.wb-chart canvas{max-width:100%}
 .widget-body.wb-text{font-size:14px;line-height:1.6;color:var(--ink);white-space:pre-wrap;outline:none}
