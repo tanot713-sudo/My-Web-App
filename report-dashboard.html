@@ -367,13 +367,20 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
 .dh-colname{text-align:left!important;font-weight:600;color:var(--ink)}
 .dh-fx-tag{font-size:9px;font-weight:800;font-style:italic;color:var(--brand-dk);background:var(--brand-sf);
   padding:1px 4px;border-radius:5px;margin-left:3px}
-.dh-trim-btn{font-family:inherit;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px;
+.dh-trim-btn,.dh-fuzzy-btn{font-family:inherit;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px;
   border:1px solid var(--line);background:var(--card);color:var(--brand-dk);cursor:pointer;white-space:nowrap}
-.dh-trim-btn:hover{background:var(--brand-sf);border-color:var(--brand)}
+.dh-trim-btn:hover,.dh-fuzzy-btn:hover{background:var(--brand-sf);border-color:var(--brand)}
 .dh-dup-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
   padding:9px 10px;background:var(--bg);border-radius:8px;margin-bottom:4px}
 .dh-dup-msg{font-size:12.5px;color:var(--ink)}
 .dh-dup-msg.ok{color:var(--ok)}
+.dh-fuzzy-list{max-height:340px;overflow:auto;margin-bottom:10px}
+.dh-fuzzy-group{padding:9px 10px;background:var(--bg);border-radius:8px;margin-bottom:8px}
+.dh-fuzzy-values{font-size:12.5px;color:var(--ink);margin-bottom:6px}
+.dh-fuzzy-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dh-fuzzy-row label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.dh-fuzzy-canon{font-family:inherit;font-size:12.5px;padding:4px 6px;border-radius:6px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink)}
 
 /* ── สรุปอัตโนมัติ (Auto Summary) ── */
 .as-textarea{width:100%;font-family:inherit;font-size:13px;line-height:1.7;color:var(--ink);

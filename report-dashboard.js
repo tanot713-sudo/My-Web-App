@@ -106,6 +106,10 @@
       dhDupSummary: 'พบแถวข้อมูลซ้ำกันทั้งหมด {n} แถว (นับเฉพาะคอลัมน์ข้อมูลต้นฉบับ ไม่รวมคอลัมน์สูตร)',
       dhNoDup: '✅ ไม่พบแถวข้อมูลซ้ำเลย', dhDedupeBtn: '🗑️ ลบแถวซ้ำ ({n} แถว)',
       dhNoRows: 'ยังไม่มีข้อมูล', dhEmptyDash: '—',
+      dhFuzzyBtn: '🔍 ตรวจตัวสะกด', dhFuzzyTitle: 'ตรวจหาค่าที่สะกดต่างกันแต่อาจหมายถึงสิ่งเดียวกัน (เช่น "กรุงเทพ"/"กรุงเทพฯ")',
+      dhFuzzyTitleFor: '🔍 ตัวสะกดใกล้เคียง: {col}',
+      dhFuzzyNone: '✅ ไม่พบตัวสะกดที่คล้ายกันในคอลัมน์นี้',
+      dhFuzzyMergeInto: 'รวมเป็น:', dhFuzzyMergeBtn: 'รวม', dhBackBtn: '← กลับ',
       kpiTargetSectionTitle: '🎯 เป้าหมาย + เปรียบเทียบ', kpiTargetLbl: 'เป้าหมาย (ไม่บังคับ)', kpiTargetPh: 'เช่น 100000',
       kpiTargetDirLbl: 'ทิศทางที่ดี', kpiTargetDirUp: 'ค่ายิ่งมากยิ่งดี', kpiTargetDirDown: 'ค่ายิ่งน้อยยิ่งดี',
       kpiOfTarget: 'ของเป้า', kpiCompareDateLbl: 'เทียบกับเดือนก่อน (ไม่บังคับ)', kpiCompareDateNone: 'ไม่เทียบ',
@@ -292,6 +296,10 @@
       dhDupSummary: 'Found {n} duplicate row(s) (based on source data columns only, formula columns excluded)',
       dhNoDup: '✅ No duplicate rows found', dhDedupeBtn: '🗑️ Remove duplicates ({n} rows)',
       dhNoRows: 'No data yet', dhEmptyDash: '—',
+      dhFuzzyBtn: '🔍 Check spelling', dhFuzzyTitle: 'Find values spelled differently that likely mean the same thing (e.g. "Bangkok"/"BKK")',
+      dhFuzzyTitleFor: '🔍 Similar spellings: {col}',
+      dhFuzzyNone: '✅ No similar spellings found in this column',
+      dhFuzzyMergeInto: 'Merge into:', dhFuzzyMergeBtn: 'Merge', dhBackBtn: '← Back',
       kpiTargetSectionTitle: '🎯 Target + Comparison', kpiTargetLbl: 'Target (optional)', kpiTargetPh: 'e.g. 100000',
       kpiTargetDirLbl: 'Good direction', kpiTargetDirUp: 'Higher is better', kpiTargetDirDown: 'Lower is better',
       kpiOfTarget: 'of target', kpiCompareDateLbl: 'Compare to previous month (optional)', kpiCompareDateNone: 'No comparison',
@@ -1094,6 +1102,73 @@
     var mid = Math.floor(n / 2);
     return n % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
   }
+
+  /* ── ตัวสะกดใกล้เคียง (Fuzzy Spelling Merge) — หาค่าที่สะกดต่างกันเล็กน้อยแต่น่าจะหมายถึงสิ่งเดียวกัน
+     (เช่น "กรุงเทพ"/"กรุงเทพฯ") ด้วย edit distance (Levenshtein) แล้วจัดกลุ่มด้วย Union-Find (ค่า A คล้าย B,
+     B คล้าย C แม้ A-C ไม่คล้ายกันตรงๆ ก็ยังควรอยู่กลุ่มเดียวกัน) — ไม่ auto-merge เอง ต้องให้ผู้ใช้ยืนยันทีละ
+     กลุ่มเสมอ เพราะภาษาไทยไม่มีช่องว่างคั่นคำ คำสั้นที่ต่างกันแค่ 1 ตัวอักษรอาจเป็นคนละความหมายเลย (เช่น
+     "กา"/"ขา") จึงเสี่ยงจับผิดคำได้ง่ายกว่าภาษาอังกฤษมาก */
+  function levenshtein(a, b) {
+    var m = a.length, n = b.length;
+    if (!m) return n; if (!n) return m;
+    var prev = []; for (var j = 0; j <= n; j++) prev[j] = j;
+    for (var i = 1; i <= m; i++) {
+      var cur = [i];
+      for (j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1));
+      prev = cur;
+    }
+    return prev[n];
+  }
+  function fuzzySimilarity(a, b) {
+    var maxLen = Math.max(a.length, b.length);
+    return maxLen ? 1 - levenshtein(a, b) / maxLen : 1;
+  }
+  /* เกณฑ์ความเหมือนแปรผันตามความยาว — คำยิ่งสั้นยิ่งต้องการความเหมือนสูงมากถึงจะถือว่าเป็นตัวสะกดเดียวกัน
+     คำสั้นกว่า 4 ตัวอักษรไม่ตรวจเลย (เกณฑ์ > 1 คือไม่มีทางผ่าน) เพราะความเสี่ยงจับคำที่ไม่เกี่ยวข้องมั่วสูงเกินไป */
+  function fuzzyThresholdFor(len) {
+    if (len < 4) return 1.01;
+    if (len <= 5) return 0.88;
+    if (len <= 8) return 0.82;
+    return 0.78;
+  }
+  var FUZZY_MAX_UNIQUE = 300; // ค่าไม่ซ้ำเกินนี้ช้าเกินไป (เทียบทุกคู่ = O(n^2)) และมักไม่ใช่คอลัมน์จัดหมวดหมู่จริงอยู่แล้ว
+  function findFuzzyGroups(colKey) {
+    var freq = {};
+    state.rows.forEach(function (r) {
+      var v = r[colKey];
+      if (v === null || v === undefined || v === '' || v instanceof Date) return;
+      var s = String(v);
+      freq[s] = (freq[s] || 0) + 1;
+    });
+    var values = Object.keys(freq);
+    if (values.length < 2 || values.length > FUZZY_MAX_UNIQUE) return [];
+    var parent = values.map(function (_, i) { return i; });
+    function find(x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
+    function union(a, b) { var ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb; }
+    for (var i = 0; i < values.length; i++) {
+      for (var k = i + 1; k < values.length; k++) {
+        var maxLen = Math.max(values[i].length, values[k].length);
+        if (fuzzySimilarity(values[i], values[k]) >= fuzzyThresholdFor(maxLen)) union(i, k);
+      }
+    }
+    var clusters = {};
+    values.forEach(function (v, i) { var root = find(i); (clusters[root] = clusters[root] || []).push(v); });
+    return Object.keys(clusters).map(function (key) { return clusters[key]; })
+      .filter(function (g) { return g.length > 1; })
+      .map(function (g) {
+        g.sort(function (a, b) { return freq[b] - freq[a]; }); // ค่าที่พบบ่อยสุดขึ้นก่อน -> ใช้เป็นค่าแนะนำเริ่มต้น
+        return { values: g, freq: freq };
+      })
+      .sort(function (a, b) { return b.values.length - a.values.length; });
+  }
+  function mergeFuzzyGroup(colKey, values, canon) {
+    pushHistory();
+    var others = {}; values.forEach(function (v) { if (v !== canon) others[v] = true; });
+    state.rows.forEach(function (r) { if (Object.prototype.hasOwnProperty.call(others, String(r[colKey]))) r[colKey] = canon; });
+    renderTable();
+    persistDebounced();
+  }
+
   function colHealthStats(col) {
     var vals = state.rows.map(function (r) { return r[col.key]; });
     var blank = vals.filter(function (v) { return v === null || v === undefined || v === ''; }).length;
@@ -1146,8 +1221,11 @@
         var dupIds = findDuplicateRowIds();
         var rowsHtml = state.columns.map(function (col) {
           var s = colHealthStats(col);
-          var trimBtn = (!col.formula && (col.type === 'text' || col.type === 'category'))
+          var isTextish = !col.formula && (col.type === 'text' || col.type === 'category');
+          var trimBtn = isTextish
             ? '<button type="button" class="dh-trim-btn" data-col="' + col.key + '" title="' + escapeAttr(t('dhTrimTitle')) + '">' + escapeHtml(t('dhTrimBtn')) + '</button>' : '';
+          var fuzzyBtn = (isTextish && s.uniqueCount >= 2 && s.uniqueCount <= FUZZY_MAX_UNIQUE)
+            ? '<button type="button" class="dh-fuzzy-btn" data-col="' + col.key + '" title="' + escapeAttr(t('dhFuzzyTitle')) + '">' + escapeHtml(t('dhFuzzyBtn')) + '</button>' : '';
           return '<tr><td class="dh-colname">' + escapeHtml(col.label) + (col.formula ? ' <span class="dh-fx-tag">ƒx</span>' : '') + '</td>' +
             '<td>' + s.blank.toLocaleString(locale()) + '</td>' +
             '<td>' + s.uniqueCount.toLocaleString(locale()) + '</td>' +
@@ -1155,7 +1233,7 @@
             '<td>' + (col.type === 'number' ? fmtDhNum(s.max) : t('dhEmptyDash')) + '</td>' +
             '<td>' + (col.type === 'number' ? fmtDhNum(s.avg) : t('dhEmptyDash')) + '</td>' +
             '<td>' + (col.type === 'number' ? fmtDhNum(s.median) : t('dhEmptyDash')) + '</td>' +
-            '<td>' + trimBtn + '</td></tr>';
+            '<td>' + trimBtn + ' ' + fuzzyBtn + '</td></tr>';
         }).join('');
         el.innerHTML = '<div class="fp-title">' + escapeHtml(t('dhTitle')) + '</div>' +
           '<div class="dh-table-wrap"><table class="dh-table"><thead><tr>' +
@@ -1171,6 +1249,9 @@
         [].forEach.call(el.querySelectorAll('.dh-trim-btn'), function (btn) {
           btn.addEventListener('click', function () { trimColumnWhitespace(btn.getAttribute('data-col')); refresh(); });
         });
+        [].forEach.call(el.querySelectorAll('.dh-fuzzy-btn'), function (btn) {
+          btn.addEventListener('click', function () { refreshFuzzy(btn.getAttribute('data-col')); });
+        });
         var dedupeBtn = el.querySelector('#dhDedupeBtn');
         if (dedupeBtn) dedupeBtn.addEventListener('click', function () {
           pushHistory();
@@ -1178,6 +1259,35 @@
           refresh();
         });
         el.querySelector('#dhCloseBtn').addEventListener('click', close);
+        positionPopover(el, anchorEl);
+      }
+      /* หน้าย่อย "ตัวสะกดใกล้เคียง" ของคอลัมน์เดียว — สลับเนื้อหาป็อปอัพทั้งหมดไปแสดงกลุ่มที่พบ (แทนที่ตาราง
+         หลัก) ผู้ใช้ต้องเลือกค่าหลักแล้วกด "รวม" ทีละกลุ่มเอง (ไม่ auto-merge) เพราะเสี่ยงจับคำผิดได้ง่าย */
+      function refreshFuzzy(colKey) {
+        var col = state.columns.filter(function (c) { return c.key === colKey; })[0];
+        var groups = findFuzzyGroups(colKey);
+        var bodyHtml = !groups.length
+          ? '<div class="dh-empty">' + escapeHtml(t('dhFuzzyNone')) + '</div>'
+          : groups.map(function (g, gi) {
+              var optsHtml = g.values.map(function (v) { return '<option value="' + escapeAttr(v) + '">' + escapeHtml(v) + ' (' + g.freq[v].toLocaleString(locale()) + ')</option>'; }).join('');
+              var listHtml = g.values.map(function (v) { return escapeHtml(v) + ' (' + g.freq[v].toLocaleString(locale()) + ')'; }).join(', ');
+              return '<div class="dh-fuzzy-group">' +
+                '<div class="dh-fuzzy-values">' + listHtml + '</div>' +
+                '<div class="dh-fuzzy-row"><label>' + escapeHtml(t('dhFuzzyMergeInto')) + ' <select class="dh-fuzzy-canon" data-gidx="' + gi + '">' + optsHtml + '</select></label>' +
+                '<button type="button" class="btn sm dh-fuzzy-merge-btn" data-gidx="' + gi + '">' + escapeHtml(t('dhFuzzyMergeBtn')) + '</button></div></div>';
+            }).join('');
+        el.innerHTML = '<div class="fp-title">' + escapeHtml(t('dhFuzzyTitleFor', { col: col.label })) + '</div>' +
+          '<div class="dh-fuzzy-list">' + bodyHtml + '</div>' +
+          '<div class="fp-actions"><button type="button" class="btn ghost sm" id="dhFuzzyBackBtn">' + escapeHtml(t('dhBackBtn')) + '</button><span></span></div>';
+        [].forEach.call(el.querySelectorAll('.dh-fuzzy-merge-btn'), function (btn) {
+          btn.addEventListener('click', function () {
+            var gi = +btn.getAttribute('data-gidx');
+            var canon = el.querySelector('.dh-fuzzy-canon[data-gidx="' + gi + '"]').value;
+            mergeFuzzyGroup(colKey, groups[gi].values, canon);
+            refreshFuzzy(colKey);
+          });
+        });
+        el.querySelector('#dhFuzzyBackBtn').addEventListener('click', refresh);
         positionPopover(el, anchorEl);
       }
       refresh();
