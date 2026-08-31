@@ -315,6 +315,29 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
 .cf-rule-row .cf-rule-del:hover{background:var(--bg);color:var(--err)}
 .cf-rule-empty{font-size:12px;color:var(--muted);padding:4px 0 8px}
 
+/* ── ตรวจสุขภาพข้อมูล + ล้างข้อมูลเบื้องต้น (Data Health & Cleaning) ── */
+.filter-popover.xwide{width:min(620px,calc(100vw - 20px))}
+.dh-empty{font-size:13px;color:var(--muted);padding:16px 4px;text-align:center}
+.dh-table-wrap{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-bottom:10px}
+.dh-table{width:100%;border-collapse:collapse;font-size:12px}
+.dh-table th{position:sticky;top:0;background:#F8F9FB;color:var(--muted);font-weight:700;
+  text-transform:uppercase;letter-spacing:.02em;font-size:10px;text-align:right;padding:7px 8px;
+  border-bottom:1px solid var(--line);white-space:nowrap}
+.dh-table th:first-child{text-align:left}
+.dh-table td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.dh-table tr:last-child td{border-bottom:none}
+.dh-colname{text-align:left!important;font-weight:600;color:var(--ink)}
+.dh-fx-tag{font-size:9px;font-weight:800;font-style:italic;color:var(--brand-dk);background:var(--brand-sf);
+  padding:1px 4px;border-radius:5px;margin-left:3px}
+.dh-trim-btn{font-family:inherit;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px;
+  border:1px solid var(--line);background:var(--card);color:var(--brand-dk);cursor:pointer;white-space:nowrap}
+.dh-trim-btn:hover{background:var(--brand-sf);border-color:var(--brand)}
+.dh-dup-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  padding:9px 10px;background:var(--bg);border-radius:8px;margin-bottom:4px}
+.dh-dup-msg{font-size:12.5px;color:var(--ink)}
+.dh-dup-msg.ok{color:var(--ok)}
+
 /* ── แถวสวอตช์สีสำเร็จรูป (ปุ่มปรับสีการ์ด/พื้นหลัง/กล่องกำหนดเอง) ── */
 .color-swatch-row{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
 .color-swatch{width:26px;height:26px;border-radius:7px;border:1.5px solid rgba(0,0,0,.12);cursor:pointer;
@@ -479,6 +502,7 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
       <button class="btn sm" id="delSelBtn" type="button" disabled data-i18n="delSelBtn">🗑️ ลบที่เลือก</button>
       <button class="btn sm" id="undoBtn" type="button" disabled data-i18n="undoBtn">↩️ เลิกทำ</button>
       <button class="btn sm" id="clearFilterBtn" type="button" data-i18n="clearFilterBtn">ล้างตัวกรอง</button>
+      <button class="btn sm" id="dataHealthBtn" type="button" data-i18n="dataHealthBtn">🩺 ตรวจสุขภาพข้อมูล</button>
     </div>
     <div class="toolbar-row">
       <button class="btn sm" id="saveReportBtn" type="button" data-i18n="saveReportBtn">💾 บันทึกเป็นรายงาน</button>

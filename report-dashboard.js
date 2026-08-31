@@ -99,6 +99,13 @@
       cfAddRuleBtn: '+ เพิ่มเงื่อนไข', cfResetBtn: '🗑️ ล้างรูปแบบ', cfRuleDel: 'ลบเงื่อนไขนี้',
       cfNoRules: 'ยังไม่มีเงื่อนไข กด "+ เพิ่มเงื่อนไข" เพื่อเริ่ม',
       cfOpEq: 'เท่ากับ', cfOpNeq: 'ไม่เท่ากับ', cfOpContains: 'มีคำว่า',
+      dataHealthBtn: '🩺 ตรวจสุขภาพข้อมูล', dhTitle: '🩺 ตรวจสุขภาพข้อมูล', dhCloseBtn: 'ปิด',
+      dhColHeader: 'คอลัมน์', dhBlankHeader: 'ว่าง', dhUniqueHeader: 'ไม่ซ้ำ',
+      dhMinHeader: 'ต่ำสุด', dhMaxHeader: 'สูงสุด', dhAvgHeader: 'เฉลี่ย', dhMedianHeader: 'มัธยฐาน',
+      dhTrimBtn: 'ตัดช่องว่าง', dhTrimTitle: 'ตัดช่องว่างหัว-ท้ายข้อความทุกเซลล์ในคอลัมน์นี้',
+      dhDupSummary: 'พบแถวข้อมูลซ้ำกันทั้งหมด {n} แถว (นับเฉพาะคอลัมน์ข้อมูลต้นฉบับ ไม่รวมคอลัมน์สูตร)',
+      dhNoDup: '✅ ไม่พบแถวข้อมูลซ้ำเลย', dhDedupeBtn: '🗑️ ลบแถวซ้ำ ({n} แถว)',
+      dhNoRows: 'ยังไม่มีข้อมูล', dhEmptyDash: '—',
       fErrUnclosedBracket: 'ไม่พบ ] ปิดชื่อคอลัมน์', fErrUnclosedString: 'ข้อความในเครื่องหมายคำพูดไม่ปิด',
       fErrUnknownChar: 'พบอักขระที่ไม่รู้จักในสูตร: "{c}"', fErrExpected: 'รูปแบบสูตรผิด (คาดว่าจะเจอ "{type}")',
       fErrUnknownWord: 'ไม่รู้จักคำว่า "{w}" (ลืมใส่ [ ] รอบชื่อคอลัมน์หรือเปล่า?)',
@@ -261,6 +268,13 @@
       cfAddRuleBtn: '+ Add rule', cfResetBtn: '🗑️ Clear formatting', cfRuleDel: 'Delete this rule',
       cfNoRules: 'No rules yet — click "+ Add rule" to start',
       cfOpEq: 'equals', cfOpNeq: 'not equal to', cfOpContains: 'contains',
+      dataHealthBtn: '🩺 Data Health Check', dhTitle: '🩺 Data Health Check', dhCloseBtn: 'Close',
+      dhColHeader: 'Column', dhBlankHeader: 'Blank', dhUniqueHeader: 'Unique',
+      dhMinHeader: 'Min', dhMaxHeader: 'Max', dhAvgHeader: 'Avg', dhMedianHeader: 'Median',
+      dhTrimBtn: 'Trim', dhTrimTitle: 'Trim leading/trailing whitespace from every cell in this column',
+      dhDupSummary: 'Found {n} duplicate row(s) (based on source data columns only, formula columns excluded)',
+      dhNoDup: '✅ No duplicate rows found', dhDedupeBtn: '🗑️ Remove duplicates ({n} rows)',
+      dhNoRows: 'No data yet', dhEmptyDash: '—',
       fErrUnclosedBracket: 'Missing ] to close column name', fErrUnclosedString: 'Unclosed quoted text',
       fErrUnknownChar: 'Unknown character in formula: "{c}"', fErrExpected: 'Malformed formula (expected "{type}")',
       fErrUnknownWord: 'Unknown word "{w}" (did you forget [ ] around a column name?)',
@@ -1005,6 +1019,107 @@
         renderTable(); persistDebounced(); close();
       });
     }, true);
+  }
+
+  /* ══════════════════ ตรวจสุขภาพข้อมูล + ล้างข้อมูลเบื้องต้น (Data Health & Cleaning) ══════════════════
+     คำนวณสถิติต่อคอลัมน์ (ว่าง/ไม่ซ้ำ/min-max-เฉลี่ย-มัธยฐานสำหรับตัวเลข) + หาแถวที่ข้อมูลซ้ำกันทุกคอลัมน์
+     ต้นฉบับเป๊ะ (ไม่นับคอลัมน์สูตรเพราะเป็นค่าที่คำนวณมาจากคอลัมน์อื่นอยู่แล้ว ถ้าต้นฉบับซ้ำ สูตรก็ซ้ำตามอยู่ดี
+     ไม่ต้องเอามานับซ้ำสองชั้น) ทุกปุ่มในนี้ทำงานทันที (ไม่มีขั้นตอน "บันทึก" แยก) แล้ว refresh ตัวเลขในป็อปอัพ
+     เองสด — ต่างจากป็อปอัพอื่นๆ ที่เป็นฟอร์มตั้งค่าล่วงหน้า */
+  function median(nums) {
+    var s = nums.slice().sort(function (a, b) { return a - b; }), n = s.length;
+    if (!n) return null;
+    var mid = Math.floor(n / 2);
+    return n % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+  }
+  function colHealthStats(col) {
+    var vals = state.rows.map(function (r) { return r[col.key]; });
+    var blank = vals.filter(function (v) { return v === null || v === undefined || v === ''; }).length;
+    var nonNull = vals.filter(function (v) { return v !== null && v !== undefined && v !== ''; });
+    var uniq = {}; nonNull.forEach(function (v) { uniq[v instanceof Date ? v.getTime() : String(v)] = true; });
+    var stats = { blank: blank, uniqueCount: Object.keys(uniq).length, min: null, max: null, avg: null, median: null };
+    if (col.type === 'number') {
+      var nums = nonNull.filter(function (v) { return typeof v === 'number' && isFinite(v); });
+      if (nums.length) {
+        stats.min = Math.min.apply(null, nums); stats.max = Math.max.apply(null, nums);
+        stats.avg = nums.reduce(function (a, b) { return a + b; }, 0) / nums.length;
+        stats.median = median(nums);
+      }
+    }
+    return stats;
+  }
+  function findDuplicateRowIds() {
+    var srcCols = state.columns.filter(function (c) { return !c.formula; });
+    var seen = {}, dupIds = [];
+    state.rows.forEach(function (r) {
+      var key = srcCols.map(function (c) {
+        var v = r[c.key];
+        return v instanceof Date ? String(v.getTime()) : String(v == null ? '' : v);
+      }).join('');
+      if (seen[key]) dupIds.push(r.__id); else seen[key] = true;
+    });
+    return dupIds;
+  }
+  function trimColumnWhitespace(colKey) {
+    pushHistory();
+    var col = state.columns.filter(function (c) { return c.key === colKey; })[0];
+    state.rows.forEach(function (r) { if (typeof r[colKey] === 'string') r[colKey] = r[colKey].trim(); });
+    if (col && !col.formula) col.type = inferColumnType(state.rows.map(function (r) { return r[colKey]; }));
+    renderTable();
+    persistDebounced();
+  }
+  function fmtDhNum(n) { return n == null ? t('dhEmptyDash') : n.toLocaleString(locale(), { maximumFractionDigits: 2 }); }
+  function openDataHealthPopover(anchorEl) {
+    openPopover('', anchorEl, function (el, close) {
+      el.classList.add('xwide'); // กว้างกว่าป๊อปอัพทั่วไป (ต้องใส่ก่อน refresh()/positionPopover() ครั้งแรก
+                                  // ไม่งั้นตำแหน่งจะคำนวณจากความกว้างเดิมที่แคบกว่าความจริง)
+      function refresh() {
+        if (!state.rows.length) {
+          el.innerHTML = '<div class="fp-title">' + escapeHtml(t('dhTitle')) + '</div><div class="dh-empty">' + escapeHtml(t('dhNoRows')) + '</div>' +
+            '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn ghost sm" id="dhCloseBtn">' + escapeHtml(t('dhCloseBtn')) + '</button></div></div>';
+          el.querySelector('#dhCloseBtn').addEventListener('click', close);
+          positionPopover(el, anchorEl);
+          return;
+        }
+        var dupIds = findDuplicateRowIds();
+        var rowsHtml = state.columns.map(function (col) {
+          var s = colHealthStats(col);
+          var trimBtn = (!col.formula && (col.type === 'text' || col.type === 'category'))
+            ? '<button type="button" class="dh-trim-btn" data-col="' + col.key + '" title="' + escapeAttr(t('dhTrimTitle')) + '">' + escapeHtml(t('dhTrimBtn')) + '</button>' : '';
+          return '<tr><td class="dh-colname">' + escapeHtml(col.label) + (col.formula ? ' <span class="dh-fx-tag">ƒx</span>' : '') + '</td>' +
+            '<td>' + s.blank.toLocaleString(locale()) + '</td>' +
+            '<td>' + s.uniqueCount.toLocaleString(locale()) + '</td>' +
+            '<td>' + (col.type === 'number' ? fmtDhNum(s.min) : t('dhEmptyDash')) + '</td>' +
+            '<td>' + (col.type === 'number' ? fmtDhNum(s.max) : t('dhEmptyDash')) + '</td>' +
+            '<td>' + (col.type === 'number' ? fmtDhNum(s.avg) : t('dhEmptyDash')) + '</td>' +
+            '<td>' + (col.type === 'number' ? fmtDhNum(s.median) : t('dhEmptyDash')) + '</td>' +
+            '<td>' + trimBtn + '</td></tr>';
+        }).join('');
+        el.innerHTML = '<div class="fp-title">' + escapeHtml(t('dhTitle')) + '</div>' +
+          '<div class="dh-table-wrap"><table class="dh-table"><thead><tr>' +
+          '<th>' + escapeHtml(t('dhColHeader')) + '</th><th>' + escapeHtml(t('dhBlankHeader')) + '</th><th>' + escapeHtml(t('dhUniqueHeader')) + '</th>' +
+          '<th>' + escapeHtml(t('dhMinHeader')) + '</th><th>' + escapeHtml(t('dhMaxHeader')) + '</th>' +
+          '<th>' + escapeHtml(t('dhAvgHeader')) + '</th><th>' + escapeHtml(t('dhMedianHeader')) + '</th><th></th></tr></thead>' +
+          '<tbody>' + rowsHtml + '</tbody></table></div>' +
+          '<div class="dh-dup-row">' + (dupIds.length
+            ? '<span class="dh-dup-msg">' + escapeHtml(t('dhDupSummary', { n: dupIds.length })) + '</span>' +
+              '<button type="button" class="btn sm" id="dhDedupeBtn">' + escapeHtml(t('dhDedupeBtn', { n: dupIds.length })) + '</button>'
+            : '<span class="dh-dup-msg ok">' + escapeHtml(t('dhNoDup')) + '</span>') + '</div>' +
+          '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn ghost sm" id="dhCloseBtn">' + escapeHtml(t('dhCloseBtn')) + '</button></div></div>';
+        [].forEach.call(el.querySelectorAll('.dh-trim-btn'), function (btn) {
+          btn.addEventListener('click', function () { trimColumnWhitespace(btn.getAttribute('data-col')); refresh(); });
+        });
+        var dedupeBtn = el.querySelector('#dhDedupeBtn');
+        if (dedupeBtn) dedupeBtn.addEventListener('click', function () {
+          pushHistory();
+          deleteRows(findDuplicateRowIds());
+          refresh();
+        });
+        el.querySelector('#dhCloseBtn').addEventListener('click', close);
+        positionPopover(el, anchorEl);
+      }
+      refresh();
+    });
   }
 
   /* ══════════════════ วาดตาราง ══════════════════ */
@@ -4527,6 +4642,7 @@
     $('delSelBtn').addEventListener('click', deleteSelected);
     $('undoBtn').addEventListener('click', undo);
     $('clearFilterBtn').addEventListener('click', clearAllFilters);
+    $('dataHealthBtn').addEventListener('click', function () { openDataHealthPopover($('dataHealthBtn')); });
     [].forEach.call($('viewTabs').querySelectorAll('.chip'), function (b) {
       b.addEventListener('click', function () { setView(b.getAttribute('data-view')); });
     });
