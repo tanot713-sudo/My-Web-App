@@ -93,6 +93,12 @@
       cancelBtn: 'ยกเลิก', saveBtn: 'บันทึก',
       selCountLbl: 'จำนวนเซลล์', selNonEmptyLbl: 'มีค่า', selSumLbl: 'ผลรวม', selAvgLbl: 'เฉลี่ย',
       selMinLbl: 'ต่ำสุด', selMaxLbl: 'สูงสุด',
+      cfBtnTitle: 'จัดรูปแบบตามเงื่อนไข', cfTitle: '🎨 จัดรูปแบบตามเงื่อนไข — {col}',
+      cfModeNone: 'ไม่มี', cfModeScale: 'มาตราสี', cfModeBar: 'แถบข้อมูล', cfModeRules: 'ไฮไลต์ตามเงื่อนไข',
+      cfScaleLow: 'ค่าน้อย', cfScaleHigh: 'ค่ามาก', cfBarColor: 'สีแถบ',
+      cfAddRuleBtn: '+ เพิ่มเงื่อนไข', cfResetBtn: '🗑️ ล้างรูปแบบ', cfRuleDel: 'ลบเงื่อนไขนี้',
+      cfNoRules: 'ยังไม่มีเงื่อนไข กด "+ เพิ่มเงื่อนไข" เพื่อเริ่ม',
+      cfOpEq: 'เท่ากับ', cfOpNeq: 'ไม่เท่ากับ', cfOpContains: 'มีคำว่า',
       fErrUnclosedBracket: 'ไม่พบ ] ปิดชื่อคอลัมน์', fErrUnclosedString: 'ข้อความในเครื่องหมายคำพูดไม่ปิด',
       fErrUnknownChar: 'พบอักขระที่ไม่รู้จักในสูตร: "{c}"', fErrExpected: 'รูปแบบสูตรผิด (คาดว่าจะเจอ "{type}")',
       fErrUnknownWord: 'ไม่รู้จักคำว่า "{w}" (ลืมใส่ [ ] รอบชื่อคอลัมน์หรือเปล่า?)',
@@ -249,6 +255,12 @@
       cancelBtn: 'Cancel', saveBtn: 'Save',
       selCountLbl: 'Cells', selNonEmptyLbl: 'Non-empty', selSumLbl: 'Sum', selAvgLbl: 'Average',
       selMinLbl: 'Min', selMaxLbl: 'Max',
+      cfBtnTitle: 'Conditional formatting', cfTitle: '🎨 Conditional Formatting — {col}',
+      cfModeNone: 'None', cfModeScale: 'Color scale', cfModeBar: 'Data bar', cfModeRules: 'Highlight rules',
+      cfScaleLow: 'Low value', cfScaleHigh: 'High value', cfBarColor: 'Bar color',
+      cfAddRuleBtn: '+ Add rule', cfResetBtn: '🗑️ Clear formatting', cfRuleDel: 'Delete this rule',
+      cfNoRules: 'No rules yet — click "+ Add rule" to start',
+      cfOpEq: 'equals', cfOpNeq: 'not equal to', cfOpContains: 'contains',
       fErrUnclosedBracket: 'Missing ] to close column name', fErrUnclosedString: 'Unclosed quoted text',
       fErrUnknownChar: 'Unknown character in formula: "{c}"', fErrExpected: 'Malformed formula (expected "{type}")',
       fErrUnknownWord: 'Unknown word "{w}" (did you forget [ ] around a column name?)',
@@ -385,7 +397,9 @@
                            // พื้นหลังผืนผ้าใบแท็บ "กำหนดเอง" — mode ไม่มี (undefined) = ข้อมูลเก่าก่อนอัปเกรด ให้ตีความเป็น 'color'
     dashboardBg: null,     // เหมือน customBg ทุกอย่างแต่ใช้กับพื้นหลังรวมของแท็บ "แดชบอร์ด" อัตโนมัติแทน
     reportId: null,        // ถ้าไม่ null = ผูกกับรายงานที่ตั้งชื่อบันทึกไว้ใน store 'reports' (Stage 4) — autosave เข้าที่นี่ด้วย
-    reportName: null
+    reportName: null,
+    condFormat: {}         // colKey -> {mode:'none'|'scale'|'bar'|'rules', low, high, barColor, rules:[{op,val,color}]}
+                           // จัดรูปแบบตามเงื่อนไข (Conditional Formatting) ต่อคอลัมน์ — persist เหมือน cardColors
   };
 
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
@@ -484,6 +498,7 @@
         columns: state.columns, rows: state.rows, nextRowId: state.nextRowId,
         reportId: state.reportId, reportName: state.reportName,
         customWidgets: state.customWidgets, cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg,
+        condFormat: state.condFormat,
         savedAt: Date.now()
       };
       dbSaveCurrent(payload);
@@ -494,7 +509,7 @@
           id: state.reportId, name: state.reportName, fileName: state.fileName, sheetName: state.activeSheet,
           combineMode: state.combineMode, sheetNames: state.sheetNames,
           columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets,
-          cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, savedAt: Date.now()
+          cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, condFormat: state.condFormat, savedAt: Date.now()
         });
         setSaveStatus(t('saveStatusAuto', { time: new Date().toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' }) }), 'ok');
       }
@@ -672,6 +687,7 @@
     state.cardColors = {};
     state.customBg = null;
     state.dashboardBg = null;
+    state.condFormat = {};
     state.cellSel = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
@@ -854,6 +870,143 @@
     return out;
   }
 
+  /* ══════════════════ จัดรูปแบบตามเงื่อนไข (Conditional Formatting) ══════════════════
+     state.condFormat[colKey] = {mode:'none'|'scale'|'bar'|'rules', low, high, barColor, rules:[{op,val,color}]}
+     'scale'/'bar' ใช้ได้เฉพาะคอลัมน์ตัวเลข (เทียบค่ากับ min/max ของ "ทั้งคอลัมน์" ไม่ใช่แค่หน้าที่แสดงอยู่ —
+     ให้สีเทียบกันได้ตรงความจริงไม่ว่าจะเปิดดูหน้าไหน) 'rules' ใช้ได้ทุกชนิดคอลัมน์ ไล่ตรวจทีละกฎ กฎแรกที่ตรง
+     ชนะ (เหมือน Excel) — คำนวณเป็น inline style ผูกกับ <td> ตรงๆ ตอน render */
+  function computeColRange(colKey) {
+    var vals = state.rows.map(function (r) { return r[colKey]; }).filter(function (v) { return typeof v === 'number' && isFinite(v); });
+    if (!vals.length) return null;
+    return { min: Math.min.apply(null, vals), max: Math.max.apply(null, vals) };
+  }
+  function hexInterp(a, b, frac) {
+    function h2rgb(h) {
+      h = String(h || '#999999').replace('#', '');
+      if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
+      var n = parseInt(h, 16) || 0;
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    var ca = h2rgb(a), cb = h2rgb(b);
+    var r = Math.round(ca[0] + (cb[0] - ca[0]) * frac), g = Math.round(ca[1] + (cb[1] - ca[1]) * frac), bl = Math.round(ca[2] + (cb[2] - ca[2]) * frac);
+    return 'rgb(' + r + ',' + g + ',' + bl + ')';
+  }
+  function cfRuleMatches(rule, v, colType) {
+    if (v === null || v === undefined || v === '') return false;
+    if (colType === 'number') {
+      var n = typeof v === 'number' ? v : parseFloat(v), rv = parseFloat(rule.val);
+      if (!isFinite(n) || !isFinite(rv)) return false;
+      if (rule.op === 'gt') return n > rv; if (rule.op === 'gte') return n >= rv;
+      if (rule.op === 'lt') return n < rv; if (rule.op === 'lte') return n <= rv;
+      if (rule.op === 'eq') return n === rv; if (rule.op === 'neq') return n !== rv;
+      return false;
+    }
+    var s = String(v), rs = String(rule.val || '');
+    if (rule.op === 'eq') return s === rs;
+    if (rule.op === 'neq') return s !== rs;
+    if (rule.op === 'contains') return rs !== '' && s.indexOf(rs) !== -1;
+    return false;
+  }
+  /* คืนค่า inline style string (มี " style=\"...\"" นำหน้าเผื่อไม่ต้อง trim ตอนต่อ HTML หรือ '' ถ้าไม่ต้อง
+     จัดรูปแบบอะไรเลย) cfRanges ต้องคำนวณไว้ล่วงหน้าครั้งเดียวก่อนวนแถวทั้งหมด (ไม่ใช่คำนวณซ้ำทุกเซลล์) */
+  function cellCfStyle(col, row, cfRanges) {
+    var cf = state.condFormat[col.key];
+    if (!cf || !cf.mode || cf.mode === 'none') return '';
+    var v = row[col.key];
+    if (cf.mode === 'scale') {
+      var range = cfRanges[col.key];
+      if (!range || typeof v !== 'number' || !isFinite(v)) return '';
+      var frac = range.max === range.min ? 0.5 : (v - range.min) / (range.max - range.min);
+      return ' style="background-color:' + hexInterp(cf.low || '#FCA5A5', cf.high || '#86EFAC', frac) + '"';
+    }
+    if (cf.mode === 'bar') {
+      var range2 = cfRanges[col.key];
+      if (!range2 || typeof v !== 'number' || !isFinite(v)) return '';
+      var pct = range2.max === range2.min ? 100 : Math.max(0, Math.min(100, (v - range2.min) / (range2.max - range2.min) * 100));
+      return ' style="background:linear-gradient(to right,' + (cf.barColor || '#60A5FA') + ' ' + pct + '%, transparent ' + pct + '%)"';
+    }
+    if (cf.mode === 'rules') {
+      var rules = cf.rules || [];
+      for (var i = 0; i < rules.length; i++) { if (cfRuleMatches(rules[i], v, col.type)) return ' style="background-color:' + rules[i].color + '"'; }
+    }
+    return '';
+  }
+  /* เปิดป็อปอัพตั้งค่าจัดรูปแบบตามเงื่อนไขของคอลัมน์หนึ่ง — โคลนค่าปัจจุบันมาแก้ในตัวแปรท้องถิ่นก่อน ยังไม่
+     เขียนทับ state จริงจนกว่าจะกด "บันทึก" (กด "ยกเลิก"/ปิดป็อปอัพแล้วค่าที่แก้ไม่ค้าง) */
+  function openCondFormatPopover(col, anchorEl) {
+    var isNum = col.type === 'number';
+    var saved = state.condFormat[col.key];
+    var cf = saved ? deepClone(saved) : { mode: 'none', low: '#FCA5A5', high: '#86EFAC', barColor: '#60A5FA', rules: [] };
+    if (!cf.rules) cf.rules = [];
+    var html = '<div class="fp-title">' + escapeHtml(t('cfTitle', { col: col.label })) + '</div>' +
+      '<div class="bg-mode-tabs" id="cfModeTabs">' +
+      '<button type="button" class="btn sm bg-mode-btn" data-mode="none">' + escapeHtml(t('cfModeNone')) + '</button>' +
+      (isNum ? '<button type="button" class="btn sm bg-mode-btn" data-mode="scale">' + escapeHtml(t('cfModeScale')) + '</button>' : '') +
+      (isNum ? '<button type="button" class="btn sm bg-mode-btn" data-mode="bar">' + escapeHtml(t('cfModeBar')) + '</button>' : '') +
+      '<button type="button" class="btn sm bg-mode-btn" data-mode="rules">' + escapeHtml(t('cfModeRules')) + '</button>' +
+      '</div>' +
+      '<div id="cfPanelScale" class="cf-panel">' +
+      '<label class="fc-label">' + escapeHtml(t('cfScaleLow')) + ' <input type="color" id="cfLow" value="' + escapeAttr(cf.low || '#FCA5A5') + '"></label>' +
+      '<label class="fc-label">' + escapeHtml(t('cfScaleHigh')) + ' <input type="color" id="cfHigh" value="' + escapeAttr(cf.high || '#86EFAC') + '"></label>' +
+      '</div>' +
+      '<div id="cfPanelBar" class="cf-panel">' +
+      '<label class="fc-label">' + escapeHtml(t('cfBarColor')) + ' <input type="color" id="cfBarColor" value="' + escapeAttr(cf.barColor || '#60A5FA') + '"></label>' +
+      '</div>' +
+      '<div id="cfPanelRules" class="cf-panel">' +
+      '<div id="cfRulesList"></div>' +
+      '<button type="button" class="btn ghost sm" id="cfAddRuleBtn" style="margin-top:6px">' + escapeHtml(t('cfAddRuleBtn')) + '</button>' +
+      '</div>' +
+      '<div class="fp-actions" style="margin-top:10px">' +
+      '<button type="button" class="fp-link" id="cfResetBtn">' + escapeHtml(t('cfResetBtn')) + '</button>' +
+      '<div class="fp-btns"><button type="button" class="btn ghost sm" id="cfCancelBtn">' + escapeHtml(t('cancelBtn')) + '</button>' +
+      '<button type="button" class="btn primary sm" id="cfSaveBtn">' + escapeHtml(t('saveBtn')) + '</button></div></div>';
+    openPopover(html, anchorEl, function (el, close) {
+      function setMode(m) {
+        cf.mode = m;
+        [].forEach.call(el.querySelectorAll('.bg-mode-btn'), function (b) { b.classList.toggle('on', b.getAttribute('data-mode') === m); });
+        el.querySelector('#cfPanelScale').style.display = m === 'scale' ? 'block' : 'none';
+        el.querySelector('#cfPanelBar').style.display = m === 'bar' ? 'block' : 'none';
+        el.querySelector('#cfPanelRules').style.display = m === 'rules' ? 'block' : 'none';
+      }
+      var OPS_NUM = [['gt', '>'], ['gte', '≥'], ['lt', '<'], ['lte', '≤'], ['eq', '='], ['neq', '≠']];
+      var OPS_STR = [['eq', t('cfOpEq')], ['neq', t('cfOpNeq')], ['contains', t('cfOpContains')]];
+      function renderRules() {
+        var ops = isNum ? OPS_NUM : OPS_STR;
+        el.querySelector('#cfRulesList').innerHTML = cf.rules.length ? cf.rules.map(function (r, i) {
+          return '<div class="cf-rule-row" data-i="' + i + '">' +
+            '<select class="cf-rule-op">' + ops.map(function (o) { return '<option value="' + o[0] + '"' + (r.op === o[0] ? ' selected' : '') + '>' + escapeHtml(o[1]) + '</option>'; }).join('') + '</select>' +
+            '<input type="text" class="cf-rule-val" value="' + escapeAttr(r.val || '') + '">' +
+            '<input type="color" class="cf-rule-color" value="' + escapeAttr(r.color || '#FDE68A') + '">' +
+            '<button type="button" class="cf-rule-del" title="' + escapeAttr(t('cfRuleDel')) + '">✕</button>' +
+            '</div>';
+        }).join('') : '<div class="cf-rule-empty">' + escapeHtml(t('cfNoRules')) + '</div>';
+        [].forEach.call(el.querySelectorAll('.cf-rule-row'), function (rowEl) {
+          var i = +rowEl.getAttribute('data-i');
+          rowEl.querySelector('.cf-rule-op').addEventListener('change', function (e) { cf.rules[i].op = e.target.value; });
+          rowEl.querySelector('.cf-rule-val').addEventListener('input', function (e) { cf.rules[i].val = e.target.value; });
+          rowEl.querySelector('.cf-rule-color').addEventListener('input', function (e) { cf.rules[i].color = e.target.value; });
+          rowEl.querySelector('.cf-rule-del').addEventListener('click', function () { cf.rules.splice(i, 1); renderRules(); });
+        });
+      }
+      setMode(cf.mode || 'none');
+      renderRules();
+      [].forEach.call(el.querySelectorAll('.bg-mode-btn'), function (b) { b.addEventListener('click', function () { setMode(b.getAttribute('data-mode')); }); });
+      el.querySelector('#cfAddRuleBtn').addEventListener('click', function () { cf.rules.push({ op: isNum ? 'gt' : 'eq', val: '', color: '#FDE68A' }); renderRules(); });
+      el.querySelector('#cfResetBtn').addEventListener('click', function () {
+        delete state.condFormat[col.key];
+        renderTable(); persistDebounced(); close();
+      });
+      el.querySelector('#cfCancelBtn').addEventListener('click', close);
+      el.querySelector('#cfSaveBtn').addEventListener('click', function () {
+        if (cf.mode === 'scale') { cf.low = el.querySelector('#cfLow').value; cf.high = el.querySelector('#cfHigh').value; }
+        if (cf.mode === 'bar') { cf.barColor = el.querySelector('#cfBarColor').value; }
+        if (cf.mode === 'none') delete state.condFormat[col.key];
+        else state.condFormat[col.key] = cf;
+        renderTable(); persistDebounced(); close();
+      });
+    }, true);
+  }
+
   /* ══════════════════ วาดตาราง ══════════════════ */
   function renderTable() {
     recomputeFormulas();
@@ -881,18 +1034,28 @@
       '<td></td>' +
       state.columns.map(function (col) {
         var f = state.filters[col.key];
+        var cfOn = state.condFormat[col.key] && state.condFormat[col.key].mode && state.condFormat[col.key].mode !== 'none';
+        var cfBtn = '<button type="button" class="cf-btn' + (cfOn ? ' on' : '') + '" data-col="' + col.key + '" title="' + escapeAttr(t('cfBtnTitle')) + '">🎨</button>';
         if (col.type === 'number' || col.type === 'date') {
           var minV = f && f.min != null ? f.min : '', maxV = f && f.max != null ? f.max : '';
           var inType = col.type === 'date' ? 'date' : 'number';
-          return '<td><div class="filter-range">' +
+          return '<td><div class="filter-cell"><div class="filter-range">' +
             '<input class="filter-in" type="' + inType + '" data-col="' + col.key + '" data-k="min" value="' + escapeAttr(minV) + '" placeholder="' + escapeAttr(t('filterMin')) + '">' +
             '<input class="filter-in" type="' + inType + '" data-col="' + col.key + '" data-k="max" value="' + escapeAttr(maxV) + '" placeholder="' + escapeAttr(t('filterMax')) + '">' +
-            '</div></td>';
+            '</div>' + cfBtn + '</div></td>';
         }
         var q = f && f.q ? f.q : '';
-        return '<td><input class="filter-in" type="text" data-col="' + col.key + '" data-k="q" value="' + escapeAttr(q) + '" placeholder="' + escapeAttr(t('filterQ')) + '"></td>';
+        return '<td><div class="filter-cell"><input class="filter-in" type="text" data-col="' + col.key + '" data-k="q" value="' + escapeAttr(q) + '" placeholder="' + escapeAttr(t('filterQ')) + '">' + cfBtn + '</div></td>';
       }).join('') +
       '<td></td></tr></thead>';
+
+    /* คำนวณช่วง min/max ของแต่ละคอลัมน์ที่ตั้งจัดรูปแบบแบบ "มาตราสี"/"แถบข้อมูล" ไว้ล่วงหน้าครั้งเดียว
+       (ไม่ใช่คำนวณซ้ำทุกเซลล์ — ข้อมูลอาจมีหลายพันแถว) */
+    var cfRanges = {};
+    state.columns.forEach(function (col) {
+      var cf = state.condFormat[col.key];
+      if (cf && (cf.mode === 'scale' || cf.mode === 'bar')) cfRanges[col.key] = computeColRange(col.key);
+    });
 
     var tbody = '<tbody>';
     if (!pageRows.length) {
@@ -906,7 +1069,7 @@
             var inputType = col.type === 'number' ? 'number' : (col.type === 'date' ? 'date' : 'text');
             /* คอลัมน์สูตร: อ่านอย่างเดียว (readonly ไม่ใช่ disabled — ยังโฟกัส/เลือก/คัดลอกได้ปกติ แค่พิมพ์
                ทับค่าที่คำนวณเองไม่ได้ ค่าจะถูกคำนวณทับใหม่เสมอโดย recomputeFormulas() อยู่แล้วด้วย) */
-            return '<td class="' + (col.type === 'number' ? 'num' : '') + (col.formula ? ' formula-cell' : '') + '" data-id="' + row.__id + '" data-col="' + col.key + '"><input class="cell-in" type="' + inputType +
+            return '<td class="' + (col.type === 'number' ? 'num' : '') + (col.formula ? ' formula-cell' : '') + '" data-id="' + row.__id + '" data-col="' + col.key + '"' + cellCfStyle(col, row, cfRanges) + '><input class="cell-in" type="' + inputType +
               '" data-id="' + row.__id + '" data-col="' + col.key + '" value="' + escapeAttr(v) + '"' + (col.type === 'number' ? ' step="any"' : '') + (col.formula ? ' readonly tabindex="-1"' : '') + '></td>';
           }).join('') +
           '<td class="rowdel"><button type="button" class="del1" data-id="' + row.__id + '" title="' + escapeAttr(t('delRowTitle')) + '">✕</button></td>' +
@@ -1383,6 +1546,14 @@
         if (col) openFormulaColumnPopover(col, btn);
       });
     });
+    /* จัดรูปแบบตามเงื่อนไข (ปุ่ม 🎨 ในแถวตัวกรองแต่ละคอลัมน์) */
+    [].forEach.call($('dataTable').querySelectorAll('.cf-btn'), function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var col = state.columns.filter(function (c) { return c.key === btn.getAttribute('data-col'); })[0];
+        if (col) openCondFormatPopover(col, btn);
+      });
+    });
     /* เปลี่ยนชื่อคอลัมน์ (ดับเบิลคลิกที่ชื่อ) */
     [].forEach.call($('dataTable').querySelectorAll('.th-label'), function (span) {
       span.addEventListener('dblclick', function (e) { e.stopPropagation(); renameColumn(span.getAttribute('data-col')); });
@@ -1753,6 +1924,7 @@
     state.columns = state.columns.filter(function (c) { return c.key !== key; });
     state.rows.forEach(function (r) { delete r[key]; });
     delete state.filters[key];
+    delete state.condFormat[key];
     if (state.sortCol === key) { state.sortCol = null; state.sortDir = null; }
     if (state.dashTable.hiddenCols) delete state.dashTable.hiddenCols[key];
     if (state.cellSel && (state.cellSel.col0 === key || state.cellSel.col1 === key)) state.cellSel = null;
@@ -3882,7 +4054,7 @@
     var rec = { name: name, fileName: state.fileName, sheetName: state.activeSheet,
       combineMode: state.combineMode, sheetNames: state.sheetNames,
       columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets,
-      cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, savedAt: Date.now() };
+      cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, condFormat: state.condFormat, savedAt: Date.now() };
     dbAddReport(rec).then(function (id) {
       state.reportId = id; state.reportName = name;
       updateSaveUI();
@@ -3948,6 +4120,7 @@
     state.cardColors = rec.cardColors || {};
     state.customBg = rec.customBg || null;
     state.dashboardBg = rec.dashboardBg || null;
+    state.condFormat = rec.condFormat || {};
       updateDrillBanner(); updateSaveUI();
       $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
       $('dataMeta').textContent = (state.fileName || rec.name) + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
@@ -4274,6 +4447,7 @@
     state.cardColors = {};
     state.customBg = null;
     state.dashboardBg = null;
+    state.condFormat = {};
     state.cellSel = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
@@ -4427,6 +4601,7 @@
     state.cardColors = saved.cardColors || {};
     state.customBg = saved.customBg || null;
     state.dashboardBg = saved.dashboardBg || null;
+    state.condFormat = saved.condFormat || {};
           updateDrillBanner(); updateSaveUI();
           $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none';
           $('viewTabs').style.display = 'flex';
