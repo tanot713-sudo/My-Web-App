@@ -255,6 +255,9 @@ th .col-del:hover{background:var(--card);color:var(--err)}
      เนื้อในเดิม 8x8px ผ่าน background-clip — ภาพที่เห็นเหมือนเดิมทุกอย่าง แค่แตะแม่นขึ้น) */
   padding:11px;background-clip:content-box;touch-action:none;-webkit-user-select:none;user-select:none}
 td.cellsel-in{background:var(--brand-sf)}
+/* ระหว่างลากเลือกหลายเซลล์ (ข้ามเซลล์แรกไปแล้ว) ปิดการเลือกข้อความทั่วทั้งหน้าไว้ชั่วคราว กันเห็นแถบไฮไลต์
+   ข้อความค้างเป็นภาพหลอนระหว่างลากเมาส์ผ่านเซลล์อื่นๆ ต่อไป */
+body.cellsel-dragging{user-select:none;-webkit-user-select:none}
 /* ปุ่ม "ตัวเลือกเติมอัตโนมัติ" ลอยที่มุมพื้นที่เพิ่งเติม — ทางเลือกใช้ได้ทั้งเมาส์/สัมผัสแทนปุ่ม Ctrl
    (ซึ่งอุปกรณ์สัมผัสอย่างแท็บเล็ต/มือถือไม่มีคีย์บอร์ดให้กดเลย) */
 .cellsel-autofill-btn{position:absolute;width:22px;height:22px;border-radius:50%;background:var(--card);

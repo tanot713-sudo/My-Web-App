@@ -1547,17 +1547,49 @@
       wrap.appendChild(handle);
     }
   }
+  /* ลากเลือกหลายเซลล์ตรงๆ แบบ Excel (ไม่ต้องพึ่ง Shift+คลิก) — เดิมตั้งใจไม่ทำเพราะกลัวชนกับการลากเลือก
+     ข้อความภายใน input ของเซลล์เดียว แก้ด้วยการ "รอดูก่อน": ปล่อยให้ browser จัดการแบบปกติ (เลือกข้อความ/
+     วางเคอร์เซอร์) ตราบใดที่นิ้ว/เมาส์ยังไม่ออกจากเซลล์เริ่มต้น พอขยับไปโดนเซลล์อื่นเป็นครั้งแรกเท่านั้นถึง
+     ตัดสินใจว่านี่คือ "ลากเลือกช่วง" ค่อยยกเลิกการเลือกข้อความที่ browser อาจเริ่มไปแล้วและสลับมาไฮไลต์
+     ช่วงเซลล์แทน — ผลคือคลิกเดียว/ลากในเซลล์เดียวกันยังพิมพ์/เลือกคำได้ปกติทุกประการ ไม่มีอะไรเปลี่ยน */
   function wireCellSelection() {
+    var dragSel = null;
+    function onDragMove(e) {
+      var el = document.elementFromPoint(e.clientX, e.clientY);
+      var td = el && el.closest ? el.closest('td[data-id][data-col]') : null;
+      if (!td) return;
+      var id = +td.getAttribute('data-id'), col = td.getAttribute('data-col');
+      if (id === dragSel.originId && col === dragSel.originCol) return; // ยังอยู่เซลล์เดิม ปล่อยให้ input จัดการเอง
+      if (!dragSel.active) {
+        dragSel.active = true;
+        try { window.getSelection().removeAllRanges(); } catch (err) {}
+        document.body.classList.add('cellsel-dragging');
+      }
+      state.cellSel = { id0: dragSel.originId, col0: dragSel.originCol, id1: id, col1: col };
+      renderCellSelOverlay();
+    }
+    function onDragUp() {
+      document.removeEventListener('pointermove', onDragMove);
+      document.removeEventListener('pointerup', onDragUp);
+      document.removeEventListener('pointercancel', onDragUp);
+      document.body.classList.remove('cellsel-dragging');
+      dragSel = null;
+    }
     [].forEach.call($('dataTable').querySelectorAll('td[data-id][data-col]'), function (td) {
       td.addEventListener('pointerdown', function (e) {
         var id = +td.getAttribute('data-id'), col = td.getAttribute('data-col');
         if (e.shiftKey && state.cellSel) {
           state.cellSel = { id0: state.cellSel.id0, col0: state.cellSel.col0, id1: id, col1: col };
           e.preventDefault();
-        } else {
-          state.cellSel = { id0: id, col0: col, id1: id, col1: col };
+          renderCellSelOverlay();
+          return;
         }
+        state.cellSel = { id0: id, col0: col, id1: id, col1: col };
         renderCellSelOverlay();
+        dragSel = { originId: id, originCol: col, active: false };
+        document.addEventListener('pointermove', onDragMove);
+        document.addEventListener('pointerup', onDragUp);
+        document.addEventListener('pointercancel', onDragUp);
       });
     });
   }
