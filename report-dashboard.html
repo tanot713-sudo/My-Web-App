@@ -123,6 +123,11 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 
 /* ── มุมมอง "กำหนดเอง" — Gridstack.js จัดตำแหน่ง/ย่อ-ขยายกล่องให้ ที่นี่แค่แต่งหน้าตากล่องให้เข้าธีมเว็บ ── */
 .grid-stack{margin-top:10px;min-height:80px;border-radius:14px;transition:background .15s}
+/* ชั้นพื้นหลังแยกต่างหาก อยู่หลังเนื้อหาเสมอ (z-index ติดลบ) ไม่กระทบการ์ด/กล่องด้านบน แม้ปรับความโปร่งใส
+   หรือใส่รูป/ลวดลายก็ตาม — ต่างจากเดิมที่ทาสี/รูปตรงบนตัว container เนื้อหาเลย (ปรับความโปร่งใสไม่ได้เพราะ
+   จะทำให้เนื้อหาด้านในโปร่งตามไปด้วย) */
+#customBgLayer{position:absolute;inset:0;z-index:-1;border-radius:14px;pointer-events:none;background-position:center;transition:opacity .15s}
+#dashboardBgLayer{position:absolute;inset:0;z-index:-1;pointer-events:none;background-position:center;transition:opacity .15s}
 .grid-stack-item-content{background:var(--card);border-radius:14px;box-shadow:var(--sh);
   border:1px solid rgba(16,24,40,.03);overflow:hidden;display:flex;flex-direction:column}
 .widget-head{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);
@@ -186,7 +191,10 @@ th .th-filter-btn:hover{background:var(--line);color:var(--ink)}
 th .th-filter-btn.active{color:var(--brand)}
 
 /* ── popup ตัวกรอง/เลือกคอลัมน์ — ลอยแยกจาก layout ปกติ ตำแหน่งคำนวณจากปุ่มที่กด ── */
-.filter-popover{position:fixed;z-index:60;background:var(--card);border:1px solid var(--line);border-radius:12px;
+/* z-index:200 (> ปุ่มลอย "ผู้ช่วย AI" ของ ai-chat-widget.js ที่ 170) — เจอจริงว่าถ้า popover ไปเปิดใกล้
+   มุมขวาล่างจอ (ปุ่ม 🎨 ของการ์ดที่อยู่ท้ายๆ หน้า) ปุ่มแชทลอยจะบังปุ่ม "ใช้สีนี้" ไว้ (z-index เดิม 60 < 170)
+   ทำให้แตะแล้วโดนปุ่มแชทแทน ดูเหมือน "กดแล้วไม่มีอะไรเกิดขึ้น" ทั้งที่ popover ทำงานถูกต้องทุกอย่าง */
+.filter-popover{position:fixed;z-index:200;background:var(--card);border:1px solid var(--line);border-radius:12px;
   box-shadow:var(--sh);padding:12px;width:230px;max-width:calc(100vw - 20px)}
 .filter-popover.wide{width:280px}
 .filter-popover .fp-title{font-size:12px;font-weight:800;color:var(--ink);margin-bottom:8px;
@@ -262,8 +270,27 @@ td.cellsel-in{background:var(--brand-sf)}
 .color-swatch:hover{transform:scale(1.12)}
 [data-theme="dark"] .color-swatch{border-color:rgba(255,255,255,.22)}
 
+/* ── ป๊อปอัพพื้นหลังแบบ "PowerPoint" (สี/ลวดลาย/รูปภาพ + ความโปร่งใส) ── */
+.bg-mode-tabs{display:flex;gap:6px;margin-bottom:8px}
+.bg-mode-tabs .bg-mode-btn{flex:1}
+.bg-mode-btn.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.bg-pattern-grid{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
+.bg-pattern-swatch{width:44px;height:34px;border-radius:8px;border:1.5px solid rgba(0,0,0,.12);cursor:pointer;
+  padding:0;background-color:#fff}
+[data-theme="dark"] .bg-pattern-swatch{border-color:rgba(255,255,255,.22);background-color:#1b2028}
+.bg-pattern-swatch.on{outline:2.5px solid var(--brand);outline-offset:1px}
+.bg-img-preview{width:100%;height:64px;border-radius:8px;background-size:cover;background-position:center;
+  background-color:var(--bg);border:1px dashed rgba(0,0,0,.15);margin:6px 0}
+[data-theme="dark"] .bg-img-preview{border-color:rgba(255,255,255,.2)}
+.bg-fit-row,.bg-opacity-row{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12.5px}
+.bg-opacity-row input[type=range]{flex:1}
+.bg-opacity-val{min-width:36px;text-align:right;font-variant-numeric:tabular-nums}
+
 /* ── แถบเครื่องมือตาราง ── */
 .toolbar-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+/* ข้อความคำอธิบายท้ายแถวปุ่ม (เช่น "ลากมุมกล่อง...") ให้ตกลงบรรทัดใหม่เสมอ แทนที่จะเบียดต่อท้ายปุ่มสุดท้าย
+   ดูไม่สมมาตร โดยเฉพาะตอนจอแคบที่ปุ่มขึ้นบรรทัดใหม่กันเองอยู่แล้ว */
+.toolbar-row > .mini{flex-basis:100%;margin-top:2px}
 /* ตอนแคปหน้าจอเป็นรูป/PDF (html2canvas) — สลับคลาสนี้ชั่วคราวเพื่อซ่อนแถบเครื่องมือ/ตัวเลือก/ตัวกรอง
    ที่กดไม่ได้อยู่แล้วในภาพนิ่ง ไม่ให้ติดไปในรายงานที่ export ออกไป (ต่างจาก @media print ด้านล่างที่ใช้กับ
    ปุ่ม "พิมพ์" ของเบราว์เซอร์เท่านั้น ไม่ครอบคลุม html2canvas ซึ่งแคป DOM สดไม่ผ่าน print stylesheet) */
@@ -423,7 +450,11 @@ td.cellsel-in{background:var(--brand-sf)}
     <button class="btn sm" id="exportHtmlBtn" type="button" data-i18n="exportHtmlBtn">📃 บันทึกเป็น HTML</button>
     <button class="btn sm" id="printBtn" type="button" data-i18n="printBtn">🖨️ พิมพ์</button>
   </div>
-  <div id="dashboardView" style="display:none">
+  <div class="toolbar-row" id="dashBgToolbar" style="display:none">
+    <button class="btn sm" id="dashboardBgBtn" type="button" data-i18n="dashboardBgBtn">🎨 พื้นหลังแดชบอร์ด</button>
+  </div>
+  <div id="dashboardView" style="position:relative;display:none">
+    <div id="dashboardBgLayer"></div>
     <div class="card" id="domainDashboardCard" style="display:none">
       <h2 id="domainDashboardTitle"></h2>
       <p class="mini" id="domainDetectedHint"></p>
@@ -540,7 +571,10 @@ td.cellsel-in{background:var(--brand-sf)}
       <button class="btn sm" id="customBgBtn" type="button" data-i18n="customBgBtn">🎨 พื้นหลัง</button>
       <span class="mini" id="customEmptyHint" data-i18n="customEmptyHint">ลากมุมกล่องเพื่อย่อ-ขยาย ลากหัวกล่องเพื่อย้ายตำแหน่ง — เริ่มจากกด "เพิ่มกล่อง" ด้านบน</span>
     </div>
-    <div class="grid-stack" id="customGrid"></div>
+    <div id="customCanvasWrap" style="position:relative">
+      <div id="customBgLayer"></div>
+      <div class="grid-stack" id="customGrid"></div>
+    </div>
   </div>
 
 </div>

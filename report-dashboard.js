@@ -48,7 +48,11 @@
       cardAccentColorLbl: 'สีหลัก (กราฟ/ตัวเลข)', cardGradientLbl: 'ไล่เฉดสี', cardColorResetBtn: 'ล้างสี',
       moreColorsLbl: 'สีอื่นๆ', autoFillOptionsHint: 'ตัวเลือกเติมอัตโนมัติ', autoFillOptionsTitle: 'เลือกรูปแบบการเติม',
       autoFillSeriesOpt: 'ไล่ต่อเป็นลำดับ', autoFillCopyOpt: 'ทำซ้ำค่าเดิม',
-      customBgBtn: '🎨 พื้นหลัง', loadTemplateBtn: '📥 โหลดจากแดชบอร์ด',
+      customBgBtn: '🎨 พื้นหลัง', dashboardBgBtn: '🎨 พื้นหลังแดชบอร์ด', loadTemplateBtn: '📥 โหลดจากแดชบอร์ด',
+      bgModeColor: '🎨 สี', bgModePattern: '🔳 ลวดลาย', bgModeImage: '🖼️ รูปภาพ',
+      bgPatternLbl: 'เลือกลวดลาย', bgPatternColorLbl: 'สีลวดลาย', bgImageLbl: 'อัปโหลดรูปภาพ',
+      bgImageFitLbl: 'การแสดงผล', bgFit_cover: 'เต็มพื้นที่ (ครอบตัด)', bgFit_contain: 'พอดีรูป', bgFit_repeat: 'เรียงต่อกัน',
+      bgOpacityLbl: 'ความชัด/โปร่งใส', bgImageReadFailHint: 'อ่านไฟล์รูปภาพไม่สำเร็จ ลองไฟล์อื่นดูครับ',
       loadTemplateNoneHint: 'ยังไม่มีการ์ดในแท็บ "แดชบอร์ด" ให้โหลด — อัปโหลดข้อมูลก่อน',
       loadTemplateSnapshotNote: ' (สแนปช็อต ณ ตอนโหลด ไม่อัปเดตตามข้อมูลสด)',
       drillText: '🔍 กำลังกรอง: {label} = {value}', drillClearBtn: '✕ ล้างตัวกรองนี้',
@@ -181,7 +185,11 @@
       cardAccentColorLbl: 'Accent color (chart/number)', cardGradientLbl: 'Gradient', cardColorResetBtn: 'Reset',
       moreColorsLbl: 'More colors', autoFillOptionsHint: 'Auto Fill Options', autoFillOptionsTitle: 'Choose fill type',
       autoFillSeriesOpt: 'Continue series', autoFillCopyOpt: 'Repeat value',
-      customBgBtn: '🎨 Background', loadTemplateBtn: '📥 Load from Dashboard',
+      customBgBtn: '🎨 Background', dashboardBgBtn: '🎨 Dashboard Background', loadTemplateBtn: '📥 Load from Dashboard',
+      bgModeColor: '🎨 Color', bgModePattern: '🔳 Pattern', bgModeImage: '🖼️ Image',
+      bgPatternLbl: 'Choose a pattern', bgPatternColorLbl: 'Pattern color', bgImageLbl: 'Upload image',
+      bgImageFitLbl: 'Display', bgFit_cover: 'Fill (crop)', bgFit_contain: 'Fit', bgFit_repeat: 'Tile',
+      bgOpacityLbl: 'Opacity', bgImageReadFailHint: 'Could not read that image file — try another one.',
       loadTemplateNoneHint: 'No cards in the "Dashboard" tab to load yet — upload data first',
       loadTemplateSnapshotNote: ' (snapshot at load time, not live-updating)',
       drillText: '🔍 Filtering: {label} = {value}', drillClearBtn: '✕ Clear this filter',
@@ -335,7 +343,9 @@
                            // ตรงที่ต้อง "จำ" ข้ามเซสชัน (ผู้ใช้จัดวางเองด้วยมือ) จึงบันทึกไปกับรายงานด้วย
     cardColors: {},        // role ('numStat'|'bar'|'line'|'pie'|'domainKpi'|'domainMatrix'|'domainChart1'|'domainChart2') ->
                            // {bg, accent, gradient} ปรับสีการ์ดในแท็บ "แดชบอร์ด" — persist เหมือน customWidgets (ผู้ใช้ตั้งเอง)
-    customBg: null,        // {bg, gradient} สีพื้นหลังของผืนผ้าใบแท็บ "กำหนดเอง"
+    customBg: null,        // {mode:'color'|'pattern'|'image', bg, gradient, patternId, patternColor, imageData, imageFit, opacity}
+                           // พื้นหลังผืนผ้าใบแท็บ "กำหนดเอง" — mode ไม่มี (undefined) = ข้อมูลเก่าก่อนอัปเกรด ให้ตีความเป็น 'color'
+    dashboardBg: null,     // เหมือน customBg ทุกอย่างแต่ใช้กับพื้นหลังรวมของแท็บ "แดชบอร์ด" อัตโนมัติแทน
     reportId: null,        // ถ้าไม่ null = ผูกกับรายงานที่ตั้งชื่อบันทึกไว้ใน store 'reports' (Stage 4) — autosave เข้าที่นี่ด้วย
     reportName: null
   };
@@ -435,7 +445,7 @@
         combineMode: state.combineMode, sheetNames: state.sheetNames,
         columns: state.columns, rows: state.rows, nextRowId: state.nextRowId,
         reportId: state.reportId, reportName: state.reportName,
-        customWidgets: state.customWidgets, cardColors: state.cardColors, customBg: state.customBg,
+        customWidgets: state.customWidgets, cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg,
         savedAt: Date.now()
       };
       dbSaveCurrent(payload);
@@ -446,7 +456,7 @@
           id: state.reportId, name: state.reportName, fileName: state.fileName, sheetName: state.activeSheet,
           combineMode: state.combineMode, sheetNames: state.sheetNames,
           columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets,
-          cardColors: state.cardColors, customBg: state.customBg, savedAt: Date.now()
+          cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, savedAt: Date.now()
         });
         setSaveStatus(t('saveStatusAuto', { time: new Date().toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' }) }), 'ok');
       }
@@ -623,6 +633,7 @@
     state.customWidgets = [];
     state.cardColors = {};
     state.customBg = null;
+    state.dashboardBg = null;
     state.cellSel = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
@@ -654,6 +665,7 @@
     $('dashboardView').style.display = view === 'dashboard' ? 'block' : 'none';
     $('customView').style.display = view === 'custom' ? 'block' : 'none';
     $('dashExportToolbar').style.display = (view === 'dashboard' || view === 'custom') ? 'flex' : 'none';
+    $('dashBgToolbar').style.display = view === 'dashboard' ? 'flex' : 'none';
     /* render ใหม่ทุกครั้งที่สลับเข้ามุมมองนั้น (ไม่ใช่แค่ตอน confirmHeader()/resume ครั้งแรก) — กันเห็น
        ข้อมูลเก่าค้าง เช่น กด drill-down จากแดชบอร์ดแล้วสลับมาตาราง ต้องเห็นตารางกรองตามด้วย */
     if (view === 'dashboard') renderDashboard();
@@ -2252,6 +2264,9 @@
       /* แตะสวอตช์ = ใช้สีทันทีแล้วปิด popover เลย (เหมือนกดปุ่มสีเติมใน Excel) ไม่ต้องกด "ใช้สีนี้" ซ้ำอีก */
       wireColorSwatchRow(el, '.cc-bg-row', '.cc-bg', function () { doApply(); close(); });
       wireColorSwatchRow(el, '.cc-accent-row', '.cc-accent', function () { doApply(); close(); });
+      /* ติ๊ก/ถอดไล่เฉด เห็นผลทันทีเช่นกัน ไม่ต้องกด "ใช้สีนี้" แยก — กันเคสติ๊กแล้วไม่กดอะไรต่อ ดูเหมือน
+         "ไล่สีไม่ได้" ทั้งที่จริงๆ แค่ยังไม่เคย apply เลย (popover ยังเปิดอยู่ให้ลองสีอื่นต่อได้) */
+      el.querySelector('.cc-grad').addEventListener('change', doApply);
     }, true);
   }
   function renderStatTiles(containerId, tiles, role) {
@@ -2860,9 +2875,167 @@
     });
   }
 
-  function applyCustomBg() {
-    var cfg = state.customBg;
-    $('customGrid').style.background = (cfg && cfg.bg) ? (cfg.gradient ? 'linear-gradient(135deg,' + cfg.bg + ',' + shadeColor(cfg.bg, 0.4) + ')' : cfg.bg) : '';
+  /* ══════════════════ พื้นหลังแบบ "PowerPoint" (สี/ไล่เฉด/ลวดลาย/รูปภาพ + ความโปร่งใส) ══════════════════
+     ใช้ร่วมกันทั้งพื้นหลังผืนผ้าใบแท็บ "กำหนดเอง" (state.customBg) และพื้นหลังรวมแท็บ "แดชบอร์ด"
+     (state.dashboardBg) — ทาสี/รูปบน "ชั้นพื้นหลัง" แยกต่างหาก (#customBgLayer/#dashboardBgLayer,
+     position:absolute + z-index ติดลบ) ไม่ใช่ทาตรงบน container เนื้อหาเหมือนเดิม เพื่อให้ปรับความโปร่งใส
+     ของพื้นหลังได้โดยไม่ทำให้การ์ด/กล่องด้านบนโปร่งตามไปด้วย */
+  var BG_PATTERNS = {
+    dots: { size: '16px 16px', css: function (c) { return 'radial-gradient(' + c + ' 1.6px, transparent 1.6px)'; } },
+    diag: { size: '14px 14px', css: function (c) { return 'repeating-linear-gradient(45deg,' + c + ' 0 4px, transparent 4px 14px)'; } },
+    hstripe: { size: '100% 14px', css: function (c) { return 'repeating-linear-gradient(0deg,' + c + ' 0 3px, transparent 3px 14px)'; } },
+    grid: { size: '22px 22px', css: function (c) { return 'linear-gradient(' + c + ' 1px, transparent 1px), linear-gradient(90deg,' + c + ' 1px, transparent 1px)'; } },
+    cross: { size: '14px 14px', css: function (c) { return 'repeating-linear-gradient(45deg,' + c + ' 0 2px, transparent 2px 14px), repeating-linear-gradient(-45deg,' + c + ' 0 2px, transparent 2px 14px)'; } },
+    checker: { size: '24px 24px', position: '0 0,12px 12px', css: function (c) { return 'linear-gradient(45deg,' + c + ' 25%, transparent 25%, transparent 75%, ' + c + ' 75%), linear-gradient(45deg,' + c + ' 25%, transparent 25%, transparent 75%, ' + c + ' 75%)'; } }
+  };
+  var BG_PATTERN_ORDER = ['dots', 'diag', 'hstripe', 'grid', 'cross', 'checker'];
+  function applyBgConfig(layerEl, cfg) {
+    if (!layerEl) return;
+    layerEl.style.backgroundImage = ''; layerEl.style.backgroundSize = ''; layerEl.style.backgroundRepeat = ''; layerEl.style.backgroundPosition = 'center';
+    if (!cfg || (!cfg.bg && !cfg.imageData && !cfg.patternId)) { layerEl.style.background = ''; layerEl.style.opacity = ''; return; }
+    layerEl.style.opacity = String((cfg.opacity != null ? cfg.opacity : 100) / 100);
+    var mode = cfg.mode || (cfg.imageData ? 'image' : (cfg.patternId ? 'pattern' : 'color'));
+    if (mode === 'image' && cfg.imageData) {
+      layerEl.style.background = cfg.bg || '#ffffff';
+      layerEl.style.backgroundImage = 'url(' + cfg.imageData + ')';
+      if (cfg.imageFit === 'repeat') { layerEl.style.backgroundSize = 'auto'; layerEl.style.backgroundRepeat = 'repeat'; }
+      else { layerEl.style.backgroundSize = cfg.imageFit || 'cover'; layerEl.style.backgroundRepeat = 'no-repeat'; }
+    } else if (mode === 'pattern' && cfg.patternId && BG_PATTERNS[cfg.patternId]) {
+      var p = BG_PATTERNS[cfg.patternId];
+      layerEl.style.background = cfg.bg || '#ffffff';
+      layerEl.style.backgroundImage = p.css(cfg.patternColor || '#1E9E5A');
+      layerEl.style.backgroundSize = p.size;
+      if (p.position) layerEl.style.backgroundPosition = p.position;
+    } else {
+      layerEl.style.background = cfg.gradient ? ('linear-gradient(135deg,' + cfg.bg + ',' + shadeColor(cfg.bg, 0.4) + ')') : (cfg.bg || '');
+    }
+  }
+  function applyCustomBg() { applyBgConfig($('customBgLayer'), state.customBg); }
+  function applyDashboardBg() { applyBgConfig($('dashboardBgLayer'), state.dashboardBg); }
+  /* ย่อรูปที่อัปโหลดลง canvas ก่อนแปลงเป็น data URL — กันไฟล์ภาพถ่ายจากมือถือ (มักกว้างหลายพันพิกเซล)
+     ทำให้ข้อมูลที่บันทึกลง IndexedDB บวมเกินจำเป็น จำกัดด้านยาวสุดไว้ที่ 1000px และบีบเป็น JPEG คุณภาพ .82
+     พอเหมาะสำหรับใช้เป็นพื้นหลัง (ไม่ต้องคมกริบระดับภาพต้นฉบับ) */
+  function resizeImageToDataUrl(file, maxDim, cb) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        var w = Math.max(1, Math.round(img.width * scale)), h = Math.max(1, Math.round(img.height * scale));
+        var canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        cb(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = function () { cb(null); };
+      img.src = reader.result;
+    };
+    reader.onerror = function () { cb(null); };
+    reader.readAsDataURL(file);
+  }
+  function bgPopoverHtml(cur, prefix) {
+    var mode = cur.mode || (cur.imageData ? 'image' : (cur.patternId ? 'pattern' : 'color'));
+    return '<div class="fp-title">' + escapeHtml(t('cardColorTitle')) + '</div>' +
+      '<div class="bg-mode-tabs">' +
+      '<button type="button" class="btn sm ghost bg-mode-btn' + (mode === 'color' ? ' on' : '') + '" data-mode="color">' + escapeHtml(t('bgModeColor')) + '</button>' +
+      '<button type="button" class="btn sm ghost bg-mode-btn' + (mode === 'pattern' ? ' on' : '') + '" data-mode="pattern">' + escapeHtml(t('bgModePattern')) + '</button>' +
+      '<button type="button" class="btn sm ghost bg-mode-btn' + (mode === 'image' ? ' on' : '') + '" data-mode="image">' + escapeHtml(t('bgModeImage')) + '</button>' +
+      '</div>' +
+      '<div class="fp-range">' +
+      '<div class="bg-mode-pane" data-pane="color"' + (mode !== 'color' ? ' hidden' : '') + '>' +
+      '<label>' + escapeHtml(t('cardBgColorLbl')) + '</label>' + colorSwatchRowHtml(prefix + '-bg-row') +
+      '<label><input type="color" class="' + prefix + '-bg" value="' + (cur.bg || '#ffffff') + '"> ' + escapeHtml(t('moreColorsLbl')) + '</label>' +
+      '<label class="cc-checkrow"><input type="checkbox" class="' + prefix + '-grad"' + (cur.gradient ? ' checked' : '') + '> ' + escapeHtml(t('cardGradientLbl')) + '</label>' +
+      '</div>' +
+      '<div class="bg-mode-pane" data-pane="pattern"' + (mode !== 'pattern' ? ' hidden' : '') + '>' +
+      '<label>' + escapeHtml(t('bgPatternLbl')) + '</label>' +
+      '<div class="bg-pattern-grid">' + BG_PATTERN_ORDER.map(function (pid) {
+        var p = BG_PATTERNS[pid];
+        return '<button type="button" class="bg-pattern-swatch' + (cur.patternId === pid ? ' on' : '') + '" data-pattern="' + pid + '" ' +
+          'style="background-image:' + p.css(cur.patternColor || '#1E9E5A') + ';background-size:' + p.size + (p.position ? ';background-position:' + p.position : '') + '" title="' + pid + '"></button>';
+      }).join('') + '</div>' +
+      '<label>' + escapeHtml(t('bgPatternColorLbl')) + '</label>' + colorSwatchRowHtml(prefix + '-pat-row') +
+      '<input type="hidden" class="' + prefix + '-patcolor" value="' + (cur.patternColor || '#1E9E5A') + '">' +
+      '<input type="hidden" class="' + prefix + '-patid" value="' + (cur.patternId || BG_PATTERN_ORDER[0]) + '">' +
+      '</div>' +
+      '<div class="bg-mode-pane" data-pane="image"' + (mode !== 'image' ? ' hidden' : '') + '>' +
+      '<label>' + escapeHtml(t('bgImageLbl')) + '</label>' +
+      '<input type="file" accept="image/*" class="' + prefix + '-imgfile">' +
+      '<div class="bg-img-preview" style="' + (cur.imageData ? 'background-image:url(' + cur.imageData + ')' : '') + '"></div>' +
+      '<input type="hidden" class="' + prefix + '-imgdata" value="' + escapeAttr(cur.imageData || '') + '">' +
+      '<label class="bg-fit-row"><span>' + escapeHtml(t('bgImageFitLbl')) + '</span><select class="' + prefix + '-imgfit">' +
+      ['cover', 'contain', 'repeat'].map(function (f) { return '<option value="' + f + '"' + (cur.imageFit === f ? ' selected' : '') + '>' + escapeHtml(t('bgFit_' + f)) + '</option>'; }).join('') +
+      '</select></label>' +
+      '</div>' +
+      '<label class="bg-opacity-row"><span>' + escapeHtml(t('bgOpacityLbl')) + '</span>' +
+      '<input type="range" class="' + prefix + '-opacity" min="10" max="100" value="' + (cur.opacity != null ? cur.opacity : 100) + '">' +
+      '<span class="bg-opacity-val">' + (cur.opacity != null ? cur.opacity : 100) + '%</span></label>' +
+      '</div>' +
+      '<div class="fp-actions"><button type="button" class="btn sm ghost ' + prefix + '-reset">' + escapeHtml(t('cardColorResetBtn')) + '</button>' +
+      '<div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
+  }
+  function wireBgPopover(el, prefix, readCfg, writeCfg, apply) {
+    var curMode = (readCfg().mode) || (readCfg().imageData ? 'image' : (readCfg().patternId ? 'pattern' : 'color'));
+    function setMode(m) {
+      curMode = m;
+      [].forEach.call(el.querySelectorAll('.bg-mode-btn'), function (b) { b.classList.toggle('on', b.getAttribute('data-mode') === m); });
+      [].forEach.call(el.querySelectorAll('.bg-mode-pane'), function (p) { p.hidden = p.getAttribute('data-pane') !== m; });
+      positionPopover(el, el.__anchorEl || el); // ความสูง popover เปลี่ยนไปตามโหมด ต้องจัดตำแหน่งใหม่กันล้นจอ
+    }
+    [].forEach.call(el.querySelectorAll('.bg-mode-btn'), function (b) { b.addEventListener('click', function () { setMode(b.getAttribute('data-mode')); }); });
+    function readForm() {
+      var cfg = { mode: curMode, opacity: +el.querySelector('.' + prefix + '-opacity').value };
+      if (curMode === 'color') { cfg.bg = el.querySelector('.' + prefix + '-bg').value; cfg.gradient = el.querySelector('.' + prefix + '-grad').checked; }
+      else if (curMode === 'pattern') { cfg.patternId = el.querySelector('.' + prefix + '-patid').value; cfg.patternColor = el.querySelector('.' + prefix + '-patcolor').value; cfg.bg = '#ffffff'; }
+      else if (curMode === 'image') { cfg.imageData = el.querySelector('.' + prefix + '-imgdata').value; cfg.imageFit = el.querySelector('.' + prefix + '-imgfit').value; cfg.bg = '#ffffff'; }
+      return cfg;
+    }
+    function doApply() { writeCfg(readForm()); apply(); persistDebounced(); }
+    el.querySelector('.' + prefix + '-reset').addEventListener('click', function () { writeCfg(null); apply(); persistDebounced(); });
+    el.querySelector('.fp-apply').addEventListener('click', doApply);
+    wireColorSwatchRow(el, '.' + prefix + '-bg-row', '.' + prefix + '-bg', function () { doApply(); });
+    el.querySelector('.' + prefix + '-grad').addEventListener('change', doApply); // ติ๊ก/ถอดไล่เฉด เห็นผลทันทีไม่ต้องกด "ใช้สีนี้" ซ้ำ
+    var opacityInput = el.querySelector('.' + prefix + '-opacity'), opacityVal = el.querySelector('.bg-opacity-val');
+    opacityInput.addEventListener('input', function () { opacityVal.textContent = opacityInput.value + '%'; doApply(); });
+    [].forEach.call(el.querySelectorAll('.bg-pattern-swatch'), function (btn) {
+      btn.addEventListener('click', function () {
+        [].forEach.call(el.querySelectorAll('.bg-pattern-swatch'), function (b) { b.classList.remove('on'); });
+        btn.classList.add('on');
+        el.querySelector('.' + prefix + '-patid').value = btn.getAttribute('data-pattern');
+        doApply();
+      });
+    });
+    wireColorSwatchRow(el, '.' + prefix + '-pat-row', '.' + prefix + '-patcolor', function (hex) {
+      // อัปเดตสีตัวอย่างลวดลายทุกช่องให้ตรงกับสีที่เพิ่งเลือกด้วย ไม่งั้นดูไม่ออกว่าเปลี่ยนสีแล้วจริงไหมก่อนกด apply
+      [].forEach.call(el.querySelectorAll('.bg-pattern-swatch'), function (btn) {
+        var pid = btn.getAttribute('data-pattern'), p = BG_PATTERNS[pid];
+        btn.style.backgroundImage = p.css(hex);
+      });
+      doApply();
+    });
+    el.querySelector('.' + prefix + '-imgfile').addEventListener('change', function (e) {
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      resizeImageToDataUrl(file, 1000, function (dataUrl) {
+        if (!dataUrl) { alert(t('bgImageReadFailHint')); return; }
+        el.querySelector('.' + prefix + '-imgdata').value = dataUrl;
+        el.querySelector('.bg-img-preview').style.backgroundImage = 'url(' + dataUrl + ')';
+        doApply();
+      });
+    });
+    el.querySelector('.' + prefix + '-imgfit').addEventListener('change', doApply);
+  }
+  function openBgPopover(target, anchorEl) {
+    var isCustom = target === 'custom';
+    var cur = (isCustom ? state.customBg : state.dashboardBg) || {};
+    var prefix = isCustom ? 'cbg' : 'dbg';
+    openPopover(bgPopoverHtml(cur, prefix), anchorEl, function (el, close) {
+      el.__anchorEl = anchorEl;
+      wireBgPopover(el, prefix,
+        function () { return (isCustom ? state.customBg : state.dashboardBg) || {}; },
+        function (cfg) { if (isCustom) state.customBg = cfg; else state.dashboardBg = cfg; },
+        isCustom ? applyCustomBg : applyDashboardBg
+      );
+    }, true);
   }
   function renderCustomView() {
     applyCustomBg();
@@ -2937,28 +3110,6 @@
         item.addEventListener('click', function () { addCustomWidget(item.getAttribute('data-type')); close(); });
       });
     });
-  }
-
-  function openCustomBgPopover(anchorEl) {
-    var cur = state.customBg || {};
-    var html = '<div class="fp-title">' + escapeHtml(t('cardColorTitle')) + '</div>' +
-      '<div class="fp-range">' +
-      '<label>' + escapeHtml(t('cardBgColorLbl')) + '</label>' + colorSwatchRowHtml('cbg-bg-row') +
-      '<label><input type="color" class="cbg-bg" value="' + (cur.bg || '#ffffff') + '"> ' + escapeHtml(t('moreColorsLbl')) + '</label>' +
-      '<label class="cc-checkrow"><input type="checkbox" class="cbg-grad"' + (cur.gradient ? ' checked' : '') + '> ' + escapeHtml(t('cardGradientLbl')) + '</label>' +
-      '</div>' +
-      '<div class="fp-actions"><button type="button" class="btn sm ghost cbg-reset">' + escapeHtml(t('cardColorResetBtn')) + '</button>' +
-      '<div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
-    openPopover(html, anchorEl, function (el, close) {
-      function doApply() {
-        state.customBg = { bg: el.querySelector('.cbg-bg').value, gradient: el.querySelector('.cbg-grad').checked };
-        applyCustomBg();
-        persistDebounced();
-      }
-      el.querySelector('.cbg-reset').addEventListener('click', function () { state.customBg = null; applyCustomBg(); persistDebounced(); close(); });
-      el.querySelector('.fp-apply').addEventListener('click', function () { doApply(); close(); });
-      wireColorSwatchRow(el, '.cbg-bg-row', '.cbg-bg', function () { doApply(); close(); });
-    }, true);
   }
 
   /* "โหลดจากแดชบอร์ด" — คัดลอกการ์ดที่กำลังแสดงอยู่ในแท็บ "แดชบอร์ด" มาเป็นกล่องในแท็บ "กำหนดเอง"
@@ -3161,6 +3312,7 @@
   }
 
   function renderDashboard() {
+    applyDashboardBg();
     var rows = state.drill ? state.rows.filter(matchesDrill) : state.rows;
     renderDomainDashboard(rows);
     var numCols = state.columns.filter(function (c) { return c.type === 'number'; });
@@ -3301,7 +3453,7 @@
     var rec = { name: name, fileName: state.fileName, sheetName: state.activeSheet,
       combineMode: state.combineMode, sheetNames: state.sheetNames,
       columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets,
-      cardColors: state.cardColors, customBg: state.customBg, savedAt: Date.now() };
+      cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, savedAt: Date.now() };
     dbAddReport(rec).then(function (id) {
       state.reportId = id; state.reportName = name;
       updateSaveUI();
@@ -3366,6 +3518,7 @@
     state.customWidgets = rec.customWidgets || [];
     state.cardColors = rec.cardColors || {};
     state.customBg = rec.customBg || null;
+    state.dashboardBg = rec.dashboardBg || null;
       updateDrillBanner(); updateSaveUI();
       $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
       $('dataMeta').textContent = (state.fileName || rec.name) + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
@@ -3691,6 +3844,7 @@
     state.customWidgets = [];
     state.cardColors = {};
     state.customBg = null;
+    state.dashboardBg = null;
     state.cellSel = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
@@ -3698,6 +3852,7 @@
     $('dashboardView').style.display = 'none';
     $('customView').style.display = 'none';
     $('dashExportToolbar').style.display = 'none';
+    $('dashBgToolbar').style.display = 'none';
     $('viewTabs').style.display = 'none';
     $('statRow').style.display = 'none';
     $('sheetCard').style.display = 'none';
@@ -3813,7 +3968,8 @@
     });
     $('addWidgetBtn').addEventListener('click', function () { openAddWidgetPicker($('addWidgetBtn')); });
     $('loadTemplateBtn').addEventListener('click', loadCustomFromDashboard);
-    $('customBgBtn').addEventListener('click', function () { openCustomBgPopover($('customBgBtn')); });
+    $('customBgBtn').addEventListener('click', function () { openBgPopover('custom', $('customBgBtn')); });
+    $('dashboardBgBtn').addEventListener('click', function () { openBgPopover('dashboard', $('dashboardBgBtn')); });
     $('printBtn').addEventListener('click', function () { window.print(); });
     $('globalSearch').addEventListener('input', function () {
       state.globalQuery = $('globalSearch').value; state.page = 1; renderTable();
@@ -3840,6 +3996,7 @@
     state.customWidgets = saved.customWidgets || [];
     state.cardColors = saved.cardColors || {};
     state.customBg = saved.customBg || null;
+    state.dashboardBg = saved.dashboardBg || null;
           updateDrillBanner(); updateSaveUI();
           $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none';
           $('viewTabs').style.display = 'flex';
