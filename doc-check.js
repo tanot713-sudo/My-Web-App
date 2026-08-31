@@ -316,7 +316,16 @@ async function readPdfFile(file) {
   for (var i = 1; i <= doc.numPages; i++) {
     var page = await doc.getPage(i);
     var content = await page.getTextContent();
-    var text = content.items.map(function (it) { return it.str; }).join(' ').trim();
+    /* ต่อข้อความทีละบรรทัดตามที่ PDF บอกจริง (item.hasEOL จาก pdf.js) แทนการต่อทุกชิ้นด้วยช่องว่างเดียว
+       รวดทั้งหน้าแบบเดิม — ของเดิมทำให้ทุกบรรทัด/ย่อหน้าในหน้านั้นถูกยำรวมเป็นข้อความยาวพรืดเส้นเดียว ไม่มี
+       ขึ้นบรรทัดใหม่เลย อ่านยากและดูเหมือนข้อความเพี้ยน ทั้งที่ต้นฉบับมีการเว้นบรรทัด/ย่อหน้าอยู่จริง */
+    var lines = [], line = '';
+    content.items.forEach(function (it) {
+      line += (line ? ' ' : '') + it.str;
+      if (it.hasEOL) { lines.push(line); line = ''; }
+    });
+    if (line) lines.push(line);
+    var text = lines.join('\n').trim();
     if (!text) pages.push(t('pdfNoTextPage'));
     else if (isGarbledText(text)) pages.push(t('pdfGarbledPage'));
     else pages.push(text);
