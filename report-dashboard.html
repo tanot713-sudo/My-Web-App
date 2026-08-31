@@ -65,6 +65,8 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
   box-shadow:0 1px 2px rgba(16,24,40,.03);transition:.15s}
 .chart-ctrl-row select:hover{border-color:#C9D0DC}
 .chart-ctrl-row select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-sf)}
+.trendline-chk{cursor:pointer}
+.trendline-chk input{accent-color:var(--brand);cursor:pointer}
 [data-theme="dark"] .chart-ctrl-row select{background-color:#12151C}
 
 /* ── แถบบอกว่ากำลังกรองจากการคลิกกราฟ ── */
@@ -283,6 +285,24 @@ body.cellsel-dragging{user-select:none;-webkit-user-select:none}
 .cellsel-autofill-btn:hover{background:var(--brand-sf)}
 .tbl-empty{font-size:13px;color:var(--muted);padding:16px 4px;text-align:center}
 
+/* ── ตรึงคอลัมน์แรก (Freeze pane) — ตรึงเฉพาะ "คอลัมน์ข้อมูลจริงคอลัมน์แรก" (ไม่ใช่คอลัมน์ checkbox ที่มา
+   ก่อนหน้า) ไว้ที่ left:0 ตอนเลื่อนตารางไปทางขวา คอลัมน์ checkbox ที่ไม่ได้ตรึงจะเลื่อนลับซ้ายจอไปเองตามปกติ
+   แล้วคอลัมน์ที่ตรึงไว้ก็จะโผล่มาชิดขอบซ้ายพอดี ไม่ต้องคำนวณ offset ของคอลัมน์ก่อนหน้าเลย */
+.freeze-col th:nth-child(2),.freeze-col td:nth-child(2){position:sticky;left:0;z-index:3;
+  background:var(--card);box-shadow:2px 0 5px rgba(16,24,40,.08)}
+.freeze-col thead th:nth-child(2){z-index:4;background:#F8F9FB}
+.freeze-col .filter-row td:nth-child(2){background:#F8F9FB}
+#freezeColBtn.active,#groupByBtn.active{background:var(--brand-sf);border-color:var(--brand);color:var(--brand-dk)}
+
+/* ── จัดกลุ่มแถว + ยอดรวมย่อย (Group by / Subtotal) ── */
+.group-row td{background:var(--brand-sf);font-weight:600;padding:8px 10px;white-space:nowrap}
+.group-toggle{border:none;background:transparent;color:var(--brand-dk);cursor:pointer;font-size:11px;
+  padding:2px 6px;margin-right:6px;border-radius:5px}
+.group-toggle:hover{background:rgba(0,0,0,.06)}
+.group-name{color:var(--ink)}
+.group-count{color:var(--muted);font-weight:500;margin-left:8px;font-size:12px}
+.group-subtotal{color:var(--brand-dk);font-weight:700;margin-left:16px;font-size:12.5px}
+
 /* ── แถบสรุปค่าที่เลือก (แบบ Excel status bar) — โผล่เฉพาะตอนลากเลือกมากกว่า 1 เซลล์ ── */
 .cellsel-summary{display:flex;flex-wrap:wrap;gap:5px 18px;margin-top:8px;padding:8px 14px;
   background:var(--bg);border:1px solid var(--line);border-radius:10px;font-size:12.5px;color:var(--muted)}
@@ -354,6 +374,13 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
   padding:9px 10px;background:var(--bg);border-radius:8px;margin-bottom:4px}
 .dh-dup-msg{font-size:12.5px;color:var(--ink)}
 .dh-dup-msg.ok{color:var(--ok)}
+
+/* ── สรุปอัตโนมัติ (Auto Summary) ── */
+.as-textarea{width:100%;font-family:inherit;font-size:13px;line-height:1.7;color:var(--ink);
+  background:var(--bg);border:1.5px solid var(--line);border-radius:9px;padding:10px 12px;
+  resize:vertical;margin-bottom:6px}
+.as-status{min-height:16px;font-weight:600;color:var(--ok)}
+.as-status.err{color:var(--err)}
 
 /* ── แถวสวอตช์สีสำเร็จรูป (ปุ่มปรับสีการ์ด/พื้นหลัง/กล่องกำหนดเอง) ── */
 .color-swatch-row{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
@@ -518,8 +545,11 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
       <button class="btn sm" id="addFormulaColBtn" type="button" data-i18n="addFormulaColBtn">+ ƒx คอลัมน์สูตร</button>
       <button class="btn sm" id="delSelBtn" type="button" disabled data-i18n="delSelBtn">🗑️ ลบที่เลือก</button>
       <button class="btn sm" id="undoBtn" type="button" disabled data-i18n="undoBtn">↩️ เลิกทำ</button>
+      <button class="btn sm" id="redoBtn" type="button" disabled data-i18n="redoBtn">↪️ ทำซ้ำ</button>
       <button class="btn sm" id="clearFilterBtn" type="button" data-i18n="clearFilterBtn">ล้างตัวกรอง</button>
       <button class="btn sm" id="dataHealthBtn" type="button" data-i18n="dataHealthBtn">🩺 ตรวจสุขภาพข้อมูล</button>
+      <button class="btn sm" id="freezeColBtn" type="button" data-i18n="freezeColBtn">📌 ตรึงคอลัมน์แรก</button>
+      <button class="btn sm" id="groupByBtn" type="button" data-i18n="groupByBtn">📊 จัดกลุ่ม</button>
     </div>
     <div class="toolbar-row">
       <button class="btn sm" id="saveReportBtn" type="button" data-i18n="saveReportBtn">💾 บันทึกเป็นรายงาน</button>
@@ -544,6 +574,7 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
     <button class="btn sm" id="exportPdfBtn" type="button" data-i18n="exportPdfBtn">📄 บันทึกเป็น PDF</button>
     <button class="btn sm" id="exportHtmlBtn" type="button" data-i18n="exportHtmlBtn">📃 บันทึกเป็น HTML</button>
     <button class="btn sm" id="printBtn" type="button" data-i18n="printBtn">🖨️ พิมพ์</button>
+    <button class="btn sm" id="autoSummaryBtn" type="button" data-i18n="autoSummaryBtn">📝 สรุปอัตโนมัติ</button>
   </div>
   <div class="toolbar-row" id="dashBgToolbar" style="display:none">
     <button class="btn sm" id="dashboardBgBtn" type="button" data-i18n="dashboardBgBtn">🎨 พื้นหลังแดชบอร์ด</button>
@@ -612,6 +643,7 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
         </select></label>
         <label><span data-i18n="timeAxisLbl">แกนเวลา</span> <select id="lineDateSel"></select></label>
         <label><span data-i18n="sumValueLbl">รวมค่า</span> <select id="lineNumSel"></select></label>
+        <label class="trendline-chk"><input type="checkbox" id="trendlineChk"> <span data-i18n="trendlineLbl">แสดงเส้นแนวโน้ม + พยากรณ์</span></label>
       </div>
       <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
       <p class="mini" data-i18n="hintLineClick">👆 แตะกราฟเพื่อกรองตารางเฉพาะช่วงนั้น</p>

@@ -80,7 +80,7 @@
       addColBtn: '+ เพิ่มคอลัมน์', delColTitle: 'ลบคอลัมน์นี้', newColumnDefaultLabel: 'คอลัมน์ใหม่',
       renameColPrompt: 'ตั้งชื่อคอลัมน์', dblclickRenameHint: 'ดับเบิลคลิกชื่อคอลัมน์เพื่อเปลี่ยนชื่อ',
       fillHandleHint: 'ลากเพื่อเติมอัตโนมัติ — กด Ctrl ค้างไว้ระหว่างลาก หรือกดปุ่ม ⚙️ ที่ขึ้นมาหลังลากเสร็จ เพื่อสลับโหมด (ไล่เลข/ทำซ้ำ)',
-      delSelBtn: '🗑️ ลบที่เลือก', undoBtn: '↩️ เลิกทำ', clearFilterBtn: 'ล้างตัวกรอง',
+      delSelBtn: '🗑️ ลบที่เลือก', undoBtn: '↩️ เลิกทำ', redoBtn: '↪️ ทำซ้ำ', clearFilterBtn: 'ล้างตัวกรอง',
       addFormulaColBtn: '+ ƒx คอลัมน์สูตร',
       fcAddTitle: 'ƒx เพิ่มคอลัมน์สูตร', fcEditTitle: 'ƒx แก้ไขคอลัมน์สูตร',
       fcNameLbl: 'ชื่อคอลัมน์', fcNamePh: 'เช่น ยอดรวม',
@@ -110,6 +110,19 @@
       kpiTargetDirLbl: 'ทิศทางที่ดี', kpiTargetDirUp: 'ค่ายิ่งมากยิ่งดี', kpiTargetDirDown: 'ค่ายิ่งน้อยยิ่งดี',
       kpiOfTarget: 'ของเป้า', kpiCompareDateLbl: 'เทียบกับเดือนก่อน (ไม่บังคับ)', kpiCompareDateNone: 'ไม่เทียบ',
       kpiVsPeriod: 'เทียบ {period}', kpiNoCompareData: 'ข้อมูลไม่พอสำหรับเปรียบเทียบ',
+      freezeColBtn: '📌 ตรึงคอลัมน์แรก',
+      groupByBtn: '📊 จัดกลุ่ม', groupByTitle: '📊 จัดกลุ่มแถวในตาราง',
+      groupByColLbl: 'จัดกลุ่มตามคอลัมน์', groupByNoneOption: 'ไม่จัดกลุ่ม',
+      groupSubtotalColLbl: 'รวมยอดคอลัมน์ (ไม่บังคับ)', groupSubtotalCountOnly: 'นับจำนวนอย่างเดียว',
+      groupSubtotalLbl: 'รวม', groupPagerHiddenNote: 'กำลังจัดกลุ่มอยู่ — แสดงทุกแถวที่ตรงตัวกรอง ไม่แบ่งหน้า',
+      autoSummaryBtn: '📝 สรุปอัตโนมัติ', autoSummaryTitle: '📝 สรุปอัตโนมัติ (คำนวณจากข้อมูลจริง)',
+      autoSummaryCopyBtn: '📋 คัดลอก', autoSummaryCopied: 'คัดลอกแล้ว!', autoSummaryCopyFail: 'คัดลอกไม่สำเร็จ ลองเลือกข้อความเองแล้วกด Ctrl+C',
+      summaryTotalRows: 'ข้อมูลทั้งหมด {n} รายการ ({m} คอลัมน์)',
+      summaryColSum: '{col} รวมทั้งหมด {sum}',
+      summaryMomGrowth: ' เพิ่มขึ้น {pct}% จากเดือนก่อนหน้า ({prev})',
+      summaryMomDecline: ' ลดลง {pct}% จากเดือนก่อนหน้า ({prev})',
+      summaryTopCategory: '{col} ที่พบมากที่สุดคือ "{value}" ({count} รายการ คิดเป็น {pct}% ของทั้งหมด)',
+      trendlineLbl: 'แสดงเส้นแนวโน้ม + พยากรณ์', trendlineDatasetLabel: 'แนวโน้ม (พยากรณ์)',
       fErrUnclosedBracket: 'ไม่พบ ] ปิดชื่อคอลัมน์', fErrUnclosedString: 'ข้อความในเครื่องหมายคำพูดไม่ปิด',
       fErrUnknownChar: 'พบอักขระที่ไม่รู้จักในสูตร: "{c}"', fErrExpected: 'รูปแบบสูตรผิด (คาดว่าจะเจอ "{type}")',
       fErrUnknownWord: 'ไม่รู้จักคำว่า "{w}" (ลืมใส่ [ ] รอบชื่อคอลัมน์หรือเปล่า?)',
@@ -253,7 +266,7 @@
       addColBtn: '+ Add Column', delColTitle: 'Delete this column', newColumnDefaultLabel: 'New column',
       renameColPrompt: 'Rename column', dblclickRenameHint: 'Double-click a column name to rename it',
       fillHandleHint: 'Drag to auto-fill — hold Ctrl while dragging, or tap the ⚙️ button that appears after, to toggle mode (series/repeat)',
-      delSelBtn: '🗑️ Delete Selected', undoBtn: '↩️ Undo', clearFilterBtn: 'Clear Filters',
+      delSelBtn: '🗑️ Delete Selected', undoBtn: '↩️ Undo', redoBtn: '↪️ Redo', clearFilterBtn: 'Clear Filters',
       addFormulaColBtn: '+ ƒx Formula Column',
       fcAddTitle: 'ƒx Add Formula Column', fcEditTitle: 'ƒx Edit Formula Column',
       fcNameLbl: 'Column name', fcNamePh: 'e.g. Total',
@@ -283,6 +296,19 @@
       kpiTargetDirLbl: 'Good direction', kpiTargetDirUp: 'Higher is better', kpiTargetDirDown: 'Lower is better',
       kpiOfTarget: 'of target', kpiCompareDateLbl: 'Compare to previous month (optional)', kpiCompareDateNone: 'No comparison',
       kpiVsPeriod: 'vs {period}', kpiNoCompareData: 'Not enough data to compare',
+      freezeColBtn: '📌 Freeze First Column',
+      groupByBtn: '📊 Group', groupByTitle: '📊 Group Table Rows',
+      groupByColLbl: 'Group by column', groupByNoneOption: 'No grouping',
+      groupSubtotalColLbl: 'Subtotal column (optional)', groupSubtotalCountOnly: 'Count only',
+      groupSubtotalLbl: 'Subtotal', groupPagerHiddenNote: 'Grouping is active — showing all filtered rows, no pagination',
+      autoSummaryBtn: '📝 Auto Summary', autoSummaryTitle: '📝 Auto Summary (computed from real data)',
+      autoSummaryCopyBtn: '📋 Copy', autoSummaryCopied: 'Copied!', autoSummaryCopyFail: 'Copy failed — try selecting the text and pressing Ctrl+C',
+      summaryTotalRows: 'Total of {n} records ({m} columns).',
+      summaryColSum: '{col} totals {sum}.',
+      summaryMomGrowth: ' Up {pct}% from the previous month ({prev}).',
+      summaryMomDecline: ' Down {pct}% from the previous month ({prev}).',
+      summaryTopCategory: 'The most common {col} is "{value}" ({count} records, {pct}% of the total).',
+      trendlineLbl: 'Show trendline + forecast', trendlineDatasetLabel: 'Trend (forecast)',
       fErrUnclosedBracket: 'Missing ] to close column name', fErrUnclosedString: 'Unclosed quoted text',
       fErrUnknownChar: 'Unknown character in formula: "{c}"', fErrExpected: 'Malformed formula (expected "{type}")',
       fErrUnknownWord: 'Unknown word "{w}" (did you forget [ ] around a column name?)',
@@ -406,8 +432,9 @@
     cellSel: null,         // { id0, col0, id1, col1 } ช่วงเซลล์ที่เลือกไว้ (อ้างด้วย row id + col key) สำหรับลาก fill handle
     page: 1,
     history: [],           // snapshots for undo: { columns, rows, nextRowId }
+    redoStack: [],         // snapshots for redo (สลับกับ history ตอน undo/redo) — ล้างทิ้งทุกครั้งที่มีการแก้ไขใหม่
     drill: null,           // { key, label, value } — จากคลิกแท่ง/ชิ้นวงกลมในแดชบอร์ด กรองทั้งตาราง+แดชบอร์ด
-    chartChoice: { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null }, // null = auto
+    chartChoice: { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null, lineTrend: false }, // null = auto
     chartType: { slot1: null, slot2: null, slot3: null }, // null = ดีฟอลต์ของสล็อตนั้น (bar/line/doughnut)
     dashTable: { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} }, // ตารางในแดชบอร์ด: โหมดรายการ/pivot + ตัวกรองของตัวเอง (ไม่ผูกกับ state.filters ของแท็บแก้ไข)
     domainOverride: null,  // '' หรือ null = อัตโนมัติ (เดาจากชื่อคอลัมน์), 'none'|'maintenance'|'project'|'legal' = ผู้ใช้เลือกเอง
@@ -420,8 +447,12 @@
     dashboardBg: null,     // เหมือน customBg ทุกอย่างแต่ใช้กับพื้นหลังรวมของแท็บ "แดชบอร์ด" อัตโนมัติแทน
     reportId: null,        // ถ้าไม่ null = ผูกกับรายงานที่ตั้งชื่อบันทึกไว้ใน store 'reports' (Stage 4) — autosave เข้าที่นี่ด้วย
     reportName: null,
-    condFormat: {}         // colKey -> {mode:'none'|'scale'|'bar'|'rules', low, high, barColor, rules:[{op,val,color}]}
+    condFormat: {},        // colKey -> {mode:'none'|'scale'|'bar'|'rules', low, high, barColor, rules:[{op,val,color}]}
                            // จัดรูปแบบตามเงื่อนไข (Conditional Formatting) ต่อคอลัมน์ — persist เหมือน cardColors
+    freezeFirstCol: false, // ตรึงคอลัมน์แรกของตาราง (Freeze pane) ไว้ไม่ให้เลื่อนตามแนวนอน
+    groupBy: null,         // colKey หรือ null = ไม่จัดกลุ่ม — จัดกลุ่มแถวในตาราง (แท็บ "ตาราง (แก้ไข)") ตามค่าคอลัมน์นี้
+    groupSubtotalCol: null, // colKey (ตัวเลข) หรือ null = นับจำนวนอย่างเดียว — คอลัมน์ที่รวมยอดย่อยต่อกลุ่ม
+    collapsedGroups: {}    // groupKey -> true = ยุบกลุ่มนี้ไว้ (ไม่ persist ข้ามเซสชัน ตั้งใจให้รีเซ็ตทุกครั้งที่เปิดใหม่)
   };
 
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
@@ -520,7 +551,7 @@
         columns: state.columns, rows: state.rows, nextRowId: state.nextRowId,
         reportId: state.reportId, reportName: state.reportName,
         customWidgets: state.customWidgets, cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg,
-        condFormat: state.condFormat,
+        condFormat: state.condFormat, freezeFirstCol: state.freezeFirstCol, groupBy: state.groupBy, groupSubtotalCol: state.groupSubtotalCol,
         savedAt: Date.now()
       };
       dbSaveCurrent(payload);
@@ -531,7 +562,8 @@
           id: state.reportId, name: state.reportName, fileName: state.fileName, sheetName: state.activeSheet,
           combineMode: state.combineMode, sheetNames: state.sheetNames,
           columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets,
-          cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, condFormat: state.condFormat, savedAt: Date.now()
+          cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, condFormat: state.condFormat,
+          freezeFirstCol: state.freezeFirstCol, groupBy: state.groupBy, groupSubtotalCol: state.groupSubtotalCol, savedAt: Date.now()
         });
         setSaveStatus(t('saveStatusAuto', { time: new Date().toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' }) }), 'ok');
       }
@@ -553,13 +585,33 @@
     state.history.push(deepClone({ columns: state.columns, rows: state.rows, nextRowId: state.nextRowId }));
     if (state.history.length > HISTORY_MAX) state.history.shift();
     $('undoBtn').disabled = false;
+    /* การแก้ไขใหม่ใดๆ ทำให้ "ทำซ้ำ" ของเก่าไม่มีความหมายอีกต่อไป (เหมือน Word/Excel — พิมพ์ต่อหลัง undo
+       แล้วปุ่ม redo จะหายไปทันที) ต้องล้าง redoStack ทิ้งทุกครั้งที่มีการแก้ไขใหม่เกิดขึ้นจริง */
+    state.redoStack = [];
+    $('redoBtn').disabled = true;
   }
   function undo() {
     if (!state.history.length) return;
+    state.redoStack.push(deepClone({ columns: state.columns, rows: state.rows, nextRowId: state.nextRowId }));
+    if (state.redoStack.length > HISTORY_MAX) state.redoStack.shift();
     var snap = state.history.pop();
     state.columns = snap.columns; state.rows = snap.rows; state.nextRowId = snap.nextRowId;
     state.selected = {};
     $('undoBtn').disabled = state.history.length === 0;
+    $('redoBtn').disabled = false;
+    state.page = 1;
+    renderTable();
+    persistDebounced();
+  }
+  function redo() {
+    if (!state.redoStack.length) return;
+    state.history.push(deepClone({ columns: state.columns, rows: state.rows, nextRowId: state.nextRowId }));
+    if (state.history.length > HISTORY_MAX) state.history.shift();
+    var snap = state.redoStack.pop();
+    state.columns = snap.columns; state.rows = snap.rows; state.nextRowId = snap.nextRowId;
+    state.selected = {};
+    $('undoBtn').disabled = false;
+    $('redoBtn').disabled = state.redoStack.length === 0;
     state.page = 1;
     renderTable();
     persistDebounced();
@@ -700,8 +752,8 @@
     state.columns = built.columns; state.rows = built.rows; state.nextRowId = built.nextRowId;
     state.filters = {}; state.globalQuery = ''; $('globalSearch').value = '';
     state.sortCol = null; state.sortDir = null;
-    state.selected = {}; state.page = 1; state.history = [];
-    state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
+    state.selected = {}; state.page = 1; state.history = []; state.redoStack = [];
+    state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null, lineTrend: false };
     state.chartType = { slot1: null, slot2: null, slot3: null };
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
@@ -710,10 +762,12 @@
     state.customBg = null;
     state.dashboardBg = null;
     state.condFormat = {};
+    state.freezeFirstCol = false; state.groupBy = null; state.groupSubtotalCol = null; state.collapsedGroups = {};
     state.cellSel = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
     $('undoBtn').disabled = true;
+    $('redoBtn').disabled = true;
     $('sheetCard').style.display = 'none';
     $('headerCard').style.display = 'none';
     $('uploadCard').style.display = 'none';
@@ -1130,6 +1184,123 @@
     });
   }
 
+  /* เปิดป็อปอัพตั้งค่าจัดกลุ่มแถว (Group by) — เลือกคอลัมน์จัดกลุ่ม + คอลัมน์รวมยอดย่อยไม่บังคับ
+     ใช้ Apply เหมือนป็อปอัพตั้งค่าอื่นๆ (ไม่ใช่ apply ทันทีแบบแผงตรวจสุขภาพข้อมูล เพราะมีสองช่องให้เลือกคู่กัน) */
+  function openGroupByPopover(anchorEl) {
+    var groupableCols = state.columns.filter(function (c) { return c.type === 'category' || c.type === 'date' || c.type === 'text'; });
+    var numCols = state.columns.filter(function (c) { return c.type === 'number'; });
+    var html = '<div class="fp-title">' + escapeHtml(t('groupByTitle')) + '</div>' +
+      '<div class="fp-range">' +
+      '<label>' + escapeHtml(t('groupByColLbl')) + '<select class="gb-col">' +
+      '<option value=""' + (!state.groupBy ? ' selected' : '') + '>' + escapeHtml(t('groupByNoneOption')) + '</option>' +
+      groupableCols.map(function (c) { return '<option value="' + c.key + '"' + (state.groupBy === c.key ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>'; }).join('') +
+      '</select></label>' +
+      '<label>' + escapeHtml(t('groupSubtotalColLbl')) + '<select class="gb-subtotal">' +
+      '<option value=""' + (!state.groupSubtotalCol ? ' selected' : '') + '>' + escapeHtml(t('groupSubtotalCountOnly')) + '</option>' +
+      numCols.map(function (c) { return '<option value="' + c.key + '"' + (state.groupSubtotalCol === c.key ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>'; }).join('') +
+      '</select></label>' +
+      '</div>' +
+      '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
+    openPopover(html, anchorEl, function (el, close) {
+      el.querySelector('.fp-apply').addEventListener('click', function () {
+        var newGroupBy = el.querySelector('.gb-col').value || null;
+        if (newGroupBy !== state.groupBy) state.collapsedGroups = {}; // เปลี่ยนคอลัมน์จัดกลุ่มแล้วล้างสถานะยุบ/ขยายเดิมทิ้ง (คีย์กลุ่มเก่าไม่ตรงกับกลุ่มใหม่อยู่แล้ว)
+        state.groupBy = newGroupBy;
+        state.groupSubtotalCol = el.querySelector('.gb-subtotal').value || null;
+        state.page = 1;
+        renderTable();
+        persistDebounced();
+        close();
+      });
+    }, true);
+  }
+
+  /* ── สรุปอัตโนมัติ (Auto Summary) — ประโยคภาษาไทย/อังกฤษล้วนที่คำนวณจากข้อมูลจริงตอนนี้ (เคารพ drill-down
+     ที่กำลังเปิดอยู่ เหมือนแดชบอร์ด) ไม่ใช่ AI สร้างข้อความ แค่ประกอบเทมเพลตจากตัวเลขที่คำนวณได้ตรงๆ:
+     จำนวนแถว/คอลัมน์, ผลรวมคอลัมน์ตัวเลขคอลัมน์แรก + เทียบเดือนล่าสุดกับเดือนก่อนหน้า (ถ้ามีคอลัมน์วันที่),
+     และหมวดหมู่ที่พบบ่อยที่สุดของคอลัมน์ category คอลัมน์แรก (ถ้ามี) */
+  function buildAutoSummaryText() {
+    var rows = state.drill ? state.rows.filter(matchesDrill) : state.rows;
+    var numCols = state.columns.filter(function (c) { return c.type === 'number'; });
+    var dateCols = state.columns.filter(function (c) { return c.type === 'date'; });
+    var catCols = state.columns.filter(function (c) { return c.type === 'category'; });
+    var parts = [];
+    parts.push(t('summaryTotalRows', { n: rows.length.toLocaleString(locale()), m: state.columns.length.toLocaleString(locale()) }));
+
+    if (numCols.length) {
+      var numCol = numCols[0];
+      var vals = rows.map(function (r) { return r[numCol.key]; }).filter(function (v) { return typeof v === 'number' && isFinite(v); });
+      if (vals.length) {
+        var sum = vals.reduce(function (a, b) { return a + b; }, 0);
+        var sentence = t('summaryColSum', { col: numCol.label, sum: sum.toLocaleString(locale(), { maximumFractionDigits: 2 }) });
+        if (dateCols.length) {
+          var dateCol = dateCols[0];
+          var validDates = rows.map(function (r) { return r[dateCol.key]; }).filter(function (d) { return d instanceof Date && !isNaN(d); });
+          if (validDates.length) {
+            var maxDate = new Date(Math.max.apply(null, validDates));
+            var curBounds = periodBoundsFromMaxDate(maxDate, 0), prevBounds = periodBoundsFromMaxDate(maxDate, 1);
+            var curVal = aggValuesInRange(rows, dateCol.key, numCol.key, 'sum', curBounds.start, curBounds.end);
+            var prevVal = aggValuesInRange(rows, dateCol.key, numCol.key, 'sum', prevBounds.start, prevBounds.end);
+            if (curVal !== null && prevVal !== null && prevVal !== 0) {
+              var pct = ((curVal - prevVal) / Math.abs(prevVal)) * 100;
+              sentence += t(pct >= 0 ? 'summaryMomGrowth' : 'summaryMomDecline', {
+                pct: Math.abs(pct).toLocaleString(locale(), { maximumFractionDigits: 1 }), prev: prevBounds.label
+              });
+            }
+          }
+        }
+        parts.push(sentence);
+      }
+    }
+
+    if (catCols.length) {
+      var catCol = catCols[0];
+      var freq = {};
+      rows.forEach(function (r) { var k = dashValueKey(r[catCol.key]); freq[k] = (freq[k] || 0) + 1; });
+      var keys = Object.keys(freq);
+      if (keys.length) {
+        var topKey = keys.reduce(function (a, b) { return freq[b] > freq[a] ? b : a; });
+        var topCount = freq[topKey];
+        var topPct = rows.length ? (topCount / rows.length) * 100 : 0;
+        parts.push(t('summaryTopCategory', {
+          col: catCol.label, value: topKey, count: topCount.toLocaleString(locale()),
+          pct: topPct.toLocaleString(locale(), { maximumFractionDigits: 1 })
+        }));
+      }
+    }
+
+    return parts.join(' ');
+  }
+  function openAutoSummaryPopover(anchorEl) {
+    openPopover('', anchorEl, function (el, close) {
+      el.classList.add('xwide'); // ต้องใส่ก่อน positionPopover เสมอ (บั๊กเดิมที่เจอกับแผงตรวจสุขภาพข้อมูล —
+                                  // openPopover คำนวณตำแหน่งจากความกว้างตอน .xwide ยังไม่ถูกใส่)
+      var text = buildAutoSummaryText();
+      el.innerHTML = '<div class="fp-title">' + escapeHtml(t('autoSummaryTitle')) + '</div>' +
+        '<textarea class="as-textarea" id="asText" rows="5" readonly></textarea>' +
+        '<div class="fp-actions"><span class="as-status" id="asStatus"></span><div class="fp-btns">' +
+        '<button type="button" class="btn sm" id="asCopyBtn">' + escapeHtml(t('autoSummaryCopyBtn')) + '</button></div></div>';
+      el.querySelector('#asText').value = text;
+      positionPopover(el, anchorEl);
+      el.querySelector('#asCopyBtn').addEventListener('click', function () {
+        var statusEl = el.querySelector('#asStatus');
+        function showStatus(ok, msg) { statusEl.textContent = msg; statusEl.classList.toggle('err', !ok); }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            showStatus(true, t('autoSummaryCopied'));
+          }, function () { showStatus(false, t('autoSummaryCopyFail')); });
+        } else {
+          try {
+            var ta = el.querySelector('#asText');
+            ta.select();
+            document.execCommand('copy');
+            showStatus(true, t('autoSummaryCopied'));
+          } catch (e) { showStatus(false, t('autoSummaryCopyFail')); }
+        }
+      });
+    }, true);
+  }
+
   /* ══════════════════ วาดตาราง ══════════════════ */
   function renderTable() {
     recomputeFormulas();
@@ -1179,32 +1350,75 @@
       var cf = state.condFormat[col.key];
       if (cf && (cf.mode === 'scale' || cf.mode === 'bar')) cfRanges[col.key] = computeColRange(col.key);
     });
-
-    var tbody = '<tbody>';
-    if (!pageRows.length) {
-      tbody += '';
-    } else {
-      pageRows.forEach(function (row) {
-        tbody += '<tr data-id="' + row.__id + '">' +
-          '<td><input type="checkbox" class="rowchk" data-id="' + row.__id + '"' + (state.selected[row.__id] ? ' checked' : '') + '></td>' +
-          state.columns.map(function (col) {
-            var v = cellEditValue(row[col.key], col.type);
-            var inputType = col.type === 'number' ? 'number' : (col.type === 'date' ? 'date' : 'text');
-            /* คอลัมน์สูตร: อ่านอย่างเดียว (readonly ไม่ใช่ disabled — ยังโฟกัส/เลือก/คัดลอกได้ปกติ แค่พิมพ์
-               ทับค่าที่คำนวณเองไม่ได้ ค่าจะถูกคำนวณทับใหม่เสมอโดย recomputeFormulas() อยู่แล้วด้วย) */
-            return '<td class="' + (col.type === 'number' ? 'num' : '') + (col.formula ? ' formula-cell' : '') + '" data-id="' + row.__id + '" data-col="' + col.key + '"' + cellCfStyle(col, row, cfRanges) + '><input class="cell-in" type="' + inputType +
-              '" data-id="' + row.__id + '" data-col="' + col.key + '" value="' + escapeAttr(v) + '"' + (col.type === 'number' ? ' step="any"' : '') + (col.formula ? ' readonly tabindex="-1"' : '') + '></td>';
-          }).join('') +
-          '<td class="rowdel"><button type="button" class="del1" data-id="' + row.__id + '" title="' + escapeAttr(t('delRowTitle')) + '">✕</button></td>' +
-          '</tr>';
+    function renderDataRow(row) {
+      return '<tr data-id="' + row.__id + '">' +
+        '<td><input type="checkbox" class="rowchk" data-id="' + row.__id + '"' + (state.selected[row.__id] ? ' checked' : '') + '></td>' +
+        state.columns.map(function (col) {
+          var v = cellEditValue(row[col.key], col.type);
+          var inputType = col.type === 'number' ? 'number' : (col.type === 'date' ? 'date' : 'text');
+          /* คอลัมน์สูตร: อ่านอย่างเดียว (readonly ไม่ใช่ disabled — ยังโฟกัส/เลือก/คัดลอกได้ปกติ แค่พิมพ์
+             ทับค่าที่คำนวณเองไม่ได้ ค่าจะถูกคำนวณทับใหม่เสมอโดย recomputeFormulas() อยู่แล้วด้วย) */
+          return '<td class="' + (col.type === 'number' ? 'num' : '') + (col.formula ? ' formula-cell' : '') + '" data-id="' + row.__id + '" data-col="' + col.key + '"' + cellCfStyle(col, row, cfRanges) + '><input class="cell-in" type="' + inputType +
+            '" data-id="' + row.__id + '" data-col="' + col.key + '" value="' + escapeAttr(v) + '"' + (col.type === 'number' ? ' step="any"' : '') + (col.formula ? ' readonly tabindex="-1"' : '') + '></td>';
+        }).join('') +
+        '<td class="rowdel"><button type="button" class="del1" data-id="' + row.__id + '" title="' + escapeAttr(t('delRowTitle')) + '">✕</button></td>' +
+        '</tr>';
+    }
+    /* จัดกลุ่ม (Group by + Subtotal) — เมื่อเปิดใช้งาน แสดงข้อมูลที่ผ่านตัวกรอง/เรียงแล้ว "ทั้งหมด" โดยไม่
+       แบ่งหน้า (ปิดใช้ pager ชั่วคราว) เพราะการตัดหน้ากลางกลุ่มจะทำให้เห็นกลุ่มขาดครึ่งๆ กลางๆ ไม่มีประโยชน์ —
+       เรียงแถวใหม่ตามค่าคอลัมน์ที่จัดกลุ่มก่อน (ให้แถวกลุ่มเดียวกันอยู่ติดกัน) โดยยังคงลำดับเดิมภายในกลุ่ม
+       เดียวกันไว้ (stable sort) เผื่อผู้ใช้ตั้งการเรียงคอลัมน์อื่นไว้ก่อนแล้ว */
+    var groupCol = state.groupBy ? state.columns.filter(function (c) { return c.key === state.groupBy; })[0] : null;
+    var groups = null, groupedRows = all;
+    if (groupCol) {
+      var withIdx = all.map(function (r, i) { return { r: r, i: i }; });
+      withIdx.sort(function (a, b) {
+        var ka = dashValueKey(a.r[groupCol.key]), kb = dashValueKey(b.r[groupCol.key]);
+        var c = ka.localeCompare(kb, locale());
+        return c !== 0 ? c : a.i - b.i;
       });
+      groupedRows = withIdx.map(function (x) { return x.r; });
+      groups = [];
+      var curKey, curGroup = null;
+      groupedRows.forEach(function (r) {
+        var key = dashValueKey(r[groupCol.key]);
+        if (key !== curKey) { curGroup = { key: key, rows: [] }; groups.push(curGroup); curKey = key; }
+        curGroup.rows.push(r);
+      });
+    }
+    var tbody = '<tbody>';
+    if (groups) {
+      var subCol = state.groupSubtotalCol ? state.columns.filter(function (c) { return c.key === state.groupSubtotalCol; })[0] : null;
+      groups.forEach(function (g) {
+        var collapsed = !!state.collapsedGroups[g.key];
+        var subVal = null;
+        if (subCol) {
+          var nums = g.rows.map(function (r) { return r[subCol.key]; }).filter(function (v) { return typeof v === 'number' && isFinite(v); });
+          if (nums.length) subVal = nums.reduce(function (a, b) { return a + b; }, 0);
+        }
+        tbody += '<tr class="group-row"><td colspan="' + (state.columns.length + 2) + '">' +
+          '<button type="button" class="group-toggle" data-gkey="' + escapeAttr(g.key) + '">' + (collapsed ? '▶' : '▼') + '</button>' +
+          '<b class="group-name">' + escapeHtml(g.key) + '</b>' +
+          '<span class="group-count">' + g.rows.length.toLocaleString(locale()) + ' ' + escapeHtml(t('unitRows')) + '</span>' +
+          (subVal != null ? '<span class="group-subtotal">' + escapeHtml(t('groupSubtotalLbl')) + ' ' + escapeHtml(subCol.label) + ' ' + subVal.toLocaleString(locale(), { maximumFractionDigits: 2 }) + '</span>' : '') +
+          '</td></tr>';
+        if (!collapsed) g.rows.forEach(function (row) { tbody += renderDataRow(row); });
+      });
+      if (!groups.length) tbody += '';
+    } else if (pageRows.length) {
+      pageRows.forEach(function (row) { tbody += renderDataRow(row); });
     }
     tbody += '</tbody>';
     $('dataTable').innerHTML = thead + tbody;
     $('dataEmpty').textContent = t('dataEmptyTxt');
-    $('dataEmpty').style.display = pageRows.length ? 'none' : 'block';
+    $('dataEmpty').style.display = all.length ? 'none' : 'block';
+    $('dataTableWrap').classList.toggle('freeze-col', !!state.freezeFirstCol);
+    $('freezeColBtn').classList.toggle('active', !!state.freezeFirstCol);
+    $('groupByBtn').classList.toggle('active', !!state.groupBy);
 
-    renderPager(all.length, totalPages);
+    /* ปิด pager เวลาจัดกลุ่มอยู่ (แสดงทุกแถวรวดเดียว ไม่แบ่งหน้า) — โชว์ข้อความอธิบายแทน */
+    if (groups) { $('pager').innerHTML = '<span class="mini">' + escapeHtml(t('groupPagerHiddenNote')) + '</span>'; }
+    else renderPager(all.length, totalPages);
     wireTableEvents();
     wireCellSelection();
     wireCellKeyboardNav();
@@ -1741,6 +1955,15 @@
         deleteRows([+btn.getAttribute('data-id')]);
       });
     });
+    /* ยุบ/ขยายกลุ่ม (ปุ่ม ▼/▶ ในแถวหัวกลุ่ม ตอนจัดกลุ่มอยู่) — ไม่ต้อง pushHistory() เพราะไม่ใช่การแก้ข้อมูล
+       แค่สลับการแสดงผล ไม่กระทบ undo/redo */
+    [].forEach.call($('dataTable').querySelectorAll('.group-toggle'), function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.getAttribute('data-gkey');
+        if (state.collapsedGroups[key]) delete state.collapsedGroups[key]; else state.collapsedGroups[key] = true;
+        renderTable();
+      });
+    });
   }
 
   /* แปลงข้อความดิบ (จากพิมพ์ในเซลล์ หรือจากแปะ/paste) ให้เป็นค่าจริงตามชนิดคอลัมน์ — ใช้ร่วมกันทั้ง
@@ -2048,6 +2271,8 @@
     state.rows.forEach(function (r) { delete r[key]; });
     delete state.filters[key];
     delete state.condFormat[key];
+    if (state.groupBy === key) { state.groupBy = null; state.collapsedGroups = {}; }
+    if (state.groupSubtotalCol === key) state.groupSubtotalCol = null;
     if (state.sortCol === key) { state.sortCol = null; state.sortDir = null; }
     if (state.dashTable.hiddenCols) delete state.dashTable.hiddenCols[key];
     if (state.cellSel && (state.cellSel.col0 === key || state.cellSel.col1 === key)) state.cellSel = null;
@@ -2786,6 +3011,47 @@
           ? { x: { beginAtZero: true, grid: { color: '#EEF0F4' } }, y: { grid: { display: false } } }
           : { y: { beginAtZero: true, grid: { color: '#EEF0F4' } }, x: { grid: { display: false } } } }
     };
+  }
+
+  /* ── เส้นแนวโน้ม + พยากรณ์ (Trendline/Forecast) สำหรับกราฟเส้นตามเวลา ── หาสมการเส้นตรงแบบ least-squares
+     ธรรมดา (x = ลำดับจุดข้อมูล 0..n-1, y = ค่าจริง) แล้วต่อเส้นออกไปอีก 3 จุดข้างหน้า — เจตนาให้เรียบง่าย
+     พอเห็นทิศทาง ไม่ใช่โมเดลพยากรณ์ทางสถิติซับซ้อน (ไม่รองรับฤดูกาล/ความผันผวนที่ซับซ้อนกว่าเส้นตรง) */
+  function linearRegression(data) {
+    var n = data.length, sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+    for (var i = 0; i < n; i++) { sumX += i; sumY += data[i]; sumXY += i * data[i]; sumXX += i * i; }
+    var denom = n * sumXX - sumX * sumX;
+    var slope = denom !== 0 ? (n * sumXY - sumX * sumY) / denom : 0;
+    return { slope: slope, intercept: (sumY - slope * sumX) / n };
+  }
+  /* ต่อป้ายวันที่ไปข้างหน้าอีก count จุด โดยใช้ช่วงห่างเดียวกับ 2 จุดสุดท้ายของข้อมูลจริง (เผื่อข้อมูลไม่ได้
+     เรียงรายวันเป๊ะ เช่น รวมยอดรายสัปดาห์/รายเดือนที่บังเอิญมาจาก aggregateByDate ทีละวันแต่ห่างกันสม่ำเสมอ) */
+  function nextDateLabels(labels, count) {
+    var n = labels.length;
+    var lastDate = new Date(labels[n - 1] + 'T00:00:00Z'), prevDate = new Date(labels[n - 2] + 'T00:00:00Z');
+    var stepMs = lastDate.getTime() - prevDate.getTime();
+    if (!isFinite(stepMs) || stepMs <= 0) stepMs = 86400000; // เผื่อกรณีผิดปกติ — ถอยไปทีละ 1 วันเป็นค่าเริ่มต้น
+    var out = [];
+    for (var i = 1; i <= count; i++) out.push(new Date(lastDate.getTime() + stepMs * i).toISOString().slice(0, 10));
+    return out;
+  }
+  /* แก้ไข cfg (ผลจาก buildChartConfig('line', ...)) ให้มีเส้นแนวโน้มเพิ่มมาอีกเส้น — ยืดแกน labels ออกไป
+     3 จุดข้างหน้า, เติม null ในชุดข้อมูลจริงช่วงพยากรณ์ (Chart.js เว้นช่วงเส้นให้เองเมื่อเจอ null ไม่ลากเส้น
+     มั่วช่วงที่ไม่มีข้อมูลจริง), โชว์ legend เพื่อแยกเส้นจริง/เส้นแนวโน้มออกจากกันให้ชัด */
+  function addTrendlineToLineConfig(cfg, labels, data, seriesLabel) {
+    var FORECAST_N = 3;
+    var reg = linearRegression(data);
+    var forecastLabels = nextDateLabels(labels, FORECAST_N);
+    var allLabels = labels.concat(forecastLabels);
+    cfg.data.labels = allLabels;
+    cfg.data.datasets[0].label = seriesLabel;
+    cfg.data.datasets[0].data = data.concat(forecastLabels.map(function () { return null; }));
+    cfg.data.datasets.push({
+      label: t('trendlineDatasetLabel'),
+      data: allLabels.map(function (_, i) { return reg.slope * i + reg.intercept; }),
+      borderColor: '#9CA3AF', borderDash: [6, 4], borderWidth: 2, pointRadius: 0, fill: false, tension: 0
+    });
+    cfg.options.plugins.legend.display = true;
+    return cfg;
   }
 
   /* ── Stage 3: กรองจากการคลิกกราฟ (drill-down) — ใช้ร่วมกันทั้งมุมมองตาราง (matchesFilters ด้านบน)
@@ -4183,11 +4449,19 @@
       fillSelect($('lineNumSel'), numCols, lineNum ? lineNum.key : '', t('countOption'));
       $('lineTypeSel').value = lineType;
       var lineEntries = aggregateByDate(rows, lineDate.key, lineNum ? lineNum.key : null);
+      /* เส้นแนวโน้ม/พยากรณ์มีความหมายเฉพาะตอนเป็นกราฟเส้นจริงๆ (ลากเส้นตรงต่อยอดได้) — ชนิดอื่น (แท่ง/วงกลม)
+         ปิดช่องกาไว้ก่อนกันสับสน แต่ยังจำค่าที่เคยติ๊กไว้ใน state ต่อเผื่อสลับกลับมาเป็นเส้นอีกครั้ง */
+      var lineNumLabel = lineNum ? lineNum.label + ' · ' + t('cwAggSum') : t('unitRows');
+      $('trendlineChk').disabled = lineType !== 'line';
+      $('trendlineChk').checked = !!state.chartChoice.lineTrend;
       if (lineEntries.length >= 2) {
         $('lineChartTitle').textContent = CHART_TYPE_ICON[lineType] + ' ' + (lineNum ? t('lineChartTitleWithNum', { num: lineNum.label, date: lineDate.label }) : t('lineChartTitleCount', { date: lineDate.label }));
         var lineCfg = buildChartConfig(lineType, lineEntries.map(function (e) { return e[0]; }), lineEntries.map(function (e) { return e[1]; }), cardColorAccent('line'));
+        if (lineType === 'line' && state.chartChoice.lineTrend) {
+          addTrendlineToLineConfig(lineCfg, lineEntries.map(function (e) { return e[0]; }), lineEntries.map(function (e) { return e[1]; }), lineNumLabel);
+        }
         lineCfg.options.onClick = function (evt, els) {
-          if (!els || !els.length) return;
+          if (!els || !els.length || els[0].index >= lineEntries.length) return; // จุดพยากรณ์ที่ต่อเพิ่มไม่มีแถวข้อมูลจริงให้กรอง
           var label = lineEntries[els[0].index][0];
           setDrill(lineDate.key, lineDate.label, label);
         };
@@ -4259,7 +4533,8 @@
     var rec = { name: name, fileName: state.fileName, sheetName: state.activeSheet,
       combineMode: state.combineMode, sheetNames: state.sheetNames,
       columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets,
-      cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, condFormat: state.condFormat, savedAt: Date.now() };
+      cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, condFormat: state.condFormat,
+      freezeFirstCol: state.freezeFirstCol, groupBy: state.groupBy, groupSubtotalCol: state.groupSubtotalCol, savedAt: Date.now() };
     dbAddReport(rec).then(function (id) {
       state.reportId = id; state.reportName = name;
       updateSaveUI();
@@ -4316,8 +4591,8 @@
       state.columns = rec.columns; state.rows = rec.rows; state.nextRowId = rec.nextRowId;
       state.reportId = rec.id; state.reportName = rec.name;
       state.filters = {}; state.globalQuery = ''; state.sortCol = null; state.sortDir = null;
-      state.selected = {}; state.page = 1; state.history = [];
-      state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
+      state.selected = {}; state.page = 1; state.history = []; state.redoStack = [];
+      state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null, lineTrend: false };
     state.chartType = { slot1: null, slot2: null, slot3: null };
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
@@ -4326,6 +4601,7 @@
     state.customBg = rec.customBg || null;
     state.dashboardBg = rec.dashboardBg || null;
     state.condFormat = rec.condFormat || {};
+    state.freezeFirstCol = !!rec.freezeFirstCol; state.groupBy = rec.groupBy || null; state.groupSubtotalCol = rec.groupSubtotalCol || null; state.collapsedGroups = {};
       updateDrillBanner(); updateSaveUI();
       $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
       $('dataMeta').textContent = (state.fileName || rec.name) + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
@@ -4643,8 +4919,8 @@
   function resetToUpload() {
     state.fileName = null; state.sheetNames = []; state.activeSheet = null; state.combineMode = false; state.workbook = null; state.rawAoA = null;
     state.columns = []; state.rows = []; state.nextRowId = 1; state.filters = {}; state.globalQuery = '';
-    state.sortCol = null; state.sortDir = null; state.selected = {}; state.page = 1; state.history = [];
-    state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
+    state.sortCol = null; state.sortDir = null; state.selected = {}; state.page = 1; state.history = []; state.redoStack = [];
+    state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null, lineTrend: false };
     state.chartType = { slot1: null, slot2: null, slot3: null };
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
@@ -4653,6 +4929,7 @@
     state.customBg = null;
     state.dashboardBg = null;
     state.condFormat = {};
+    state.freezeFirstCol = false; state.groupBy = null; state.groupSubtotalCol = null; state.collapsedGroups = {};
     state.cellSel = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
@@ -4731,8 +5008,16 @@
     });
     $('delSelBtn').addEventListener('click', deleteSelected);
     $('undoBtn').addEventListener('click', undo);
+    $('redoBtn').addEventListener('click', redo);
     $('clearFilterBtn').addEventListener('click', clearAllFilters);
     $('dataHealthBtn').addEventListener('click', function () { openDataHealthPopover($('dataHealthBtn')); });
+    $('freezeColBtn').addEventListener('click', function () {
+      state.freezeFirstCol = !state.freezeFirstCol;
+      renderTable();
+      persistDebounced();
+    });
+    $('groupByBtn').addEventListener('click', function () { openGroupByPopover($('groupByBtn')); });
+    $('autoSummaryBtn').addEventListener('click', function () { openAutoSummaryPopover($('autoSummaryBtn')); });
     [].forEach.call($('viewTabs').querySelectorAll('.chip'), function (b) {
       b.addEventListener('click', function () { setView(b.getAttribute('data-view')); });
     });
@@ -4741,6 +5026,7 @@
     $('barCatSel').addEventListener('change', function () { state.chartChoice.barCat = this.value; renderDashboard(); });
     $('barNumSel').addEventListener('change', function () { state.chartChoice.barNum = this.value; renderDashboard(); });
     $('lineTypeSel').addEventListener('change', function () { state.chartType.slot2 = this.value; renderDashboard(); });
+    $('trendlineChk').addEventListener('change', function () { state.chartChoice.lineTrend = this.checked; renderDashboard(); });
     $('lineDateSel').addEventListener('change', function () { state.chartChoice.lineDate = this.value; renderDashboard(); });
     $('lineNumSel').addEventListener('change', function () { state.chartChoice.lineNum = this.value; renderDashboard(); });
     $('pieTypeSel').addEventListener('change', function () { state.chartType.slot3 = this.value; renderDashboard(); });
@@ -4798,8 +5084,8 @@
           state.columns = saved.columns; state.rows = saved.rows; state.nextRowId = saved.nextRowId;
           state.reportId = saved.reportId || null; state.reportName = saved.reportName || null;
           state.filters = {}; state.globalQuery = ''; state.sortCol = null; state.sortDir = null;
-          state.selected = {}; state.page = 1; state.history = [];
-          state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null };
+          state.selected = {}; state.page = 1; state.history = []; state.redoStack = [];
+          state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null, lineTrend: false };
     state.chartType = { slot1: null, slot2: null, slot3: null };
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
@@ -4808,6 +5094,7 @@
     state.customBg = saved.customBg || null;
     state.dashboardBg = saved.dashboardBg || null;
     state.condFormat = saved.condFormat || {};
+    state.freezeFirstCol = !!saved.freezeFirstCol; state.groupBy = saved.groupBy || null; state.groupSubtotalCol = saved.groupSubtotalCol || null; state.collapsedGroups = {};
           updateDrillBanner(); updateSaveUI();
           $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none';
           $('viewTabs').style.display = 'flex';
