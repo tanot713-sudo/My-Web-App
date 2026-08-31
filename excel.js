@@ -31,7 +31,21 @@
       newConfirm: 'เริ่มไฟล์ใหม่? ข้อมูลปัจจุบันที่ยังไม่ดาวน์โหลดจะหายไป',
       newDone: 'เริ่มไฟล์ใหม่แล้ว',
       libError: 'โหลดตารางคำนวณไม่สำเร็จ — ตรวจการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้าอีกครั้ง',
-      sheetName: 'ชีต1'
+      sheetName: 'ชีต1',
+      diFuzzyBtn: '🔍 ตรวจตัวสะกด', diFuzzyTitle: 'ตรวจหาค่าที่สะกดต่างกันแต่อาจหมายถึงสิ่งเดียวกัน (เช่น "กรุงเทพ"/"กรุงเทพฯ")',
+      diFuzzyPickCol: 'เลือกคอลัมน์:', diFuzzyNone: '✅ ไม่พบตัวสะกดที่คล้ายกันในคอลัมน์นี้',
+      diFuzzyMergeInto: 'รวมเป็น:', diFuzzyMergeBtn: 'รวม', diCloseBtn: 'ปิด',
+      diSummaryBtn: '📝 สรุปอัตโนมัติ', diSummaryTitle: '📝 สรุปอัตโนมัติ (คำนวณจากข้อมูลจริงในชีตนี้)',
+      diCopyBtn: '📋 คัดลอก', diCopied: 'คัดลอกแล้ว!', diCopyFail: 'คัดลอกไม่สำเร็จ ลองเลือกข้อความเองแล้วกด Ctrl+C',
+      diTotalRows: 'ข้อมูลทั้งหมด {n} แถว ({m} คอลัมน์ นับจากแถวหัวตาราง)',
+      diColSum: '{col} รวมทั้งหมด {sum}',
+      diTopCategory: '{col} ที่พบมากที่สุดคือ "{value}" ({count} รายการ คิดเป็น {pct}% ของทั้งหมด)',
+      diEmptyValue: '(ว่าง)',
+      diTrendBtn: '📈 เส้นแนวโน้ม', diTrendTitle: '📈 เส้นแนวโน้ม + พยากรณ์',
+      diTrendXLbl: 'แกน X (ป้ายกำกับ)', diTrendYLbl: 'แกน Y (ตัวเลข)',
+      diTrendDatasetLabel: 'แนวโน้ม (พยากรณ์)', diForecastLabel: 'พยากรณ์ {n}',
+      diNoData: 'ต้องมีแถวหัวตาราง + ข้อมูลอย่างน้อย 1 แถว ก่อนถึงจะวิเคราะห์ได้',
+      diNoNumCol: 'ไม่พบคอลัมน์ตัวเลขในชีตนี้', diNoTextCol: 'ไม่พบคอลัมน์ข้อความ/หมวดหมู่ที่เหมาะสมในชีตนี้'
     },
     en: {
       docTitle: 'Spreadsheet | Tanot',
@@ -53,7 +67,21 @@
       newConfirm: 'Start a new file? Current unsaved data will be lost.',
       newDone: 'Started a new file',
       libError: 'Couldn\'t load the spreadsheet — check your connection and refresh the page.',
-      sheetName: 'Sheet1'
+      sheetName: 'Sheet1',
+      diFuzzyBtn: '🔍 Check spelling', diFuzzyTitle: 'Find values spelled differently that likely mean the same thing (e.g. "Bangkok"/"BKK")',
+      diFuzzyPickCol: 'Column:', diFuzzyNone: '✅ No similar spellings found in this column',
+      diFuzzyMergeInto: 'Merge into:', diFuzzyMergeBtn: 'Merge', diCloseBtn: 'Close',
+      diSummaryBtn: '📝 Auto Summary', diSummaryTitle: '📝 Auto Summary (computed from this sheet’s real data)',
+      diCopyBtn: '📋 Copy', diCopied: 'Copied!', diCopyFail: 'Copy failed — try selecting the text and pressing Ctrl+C',
+      diTotalRows: 'Total of {n} rows ({m} columns, counting the header row).',
+      diColSum: '{col} totals {sum}.',
+      diTopCategory: 'The most common {col} is "{value}" ({count} rows, {pct}% of the total).',
+      diEmptyValue: '(empty)',
+      diTrendBtn: '📈 Trendline', diTrendTitle: '📈 Trendline + Forecast',
+      diTrendXLbl: 'X axis (labels)', diTrendYLbl: 'Y axis (numbers)',
+      diTrendDatasetLabel: 'Trend (forecast)', diForecastLabel: 'Forecast {n}',
+      diNoData: 'Needs a header row plus at least 1 data row before it can be analyzed.',
+      diNoNumCol: 'No numeric column found in this sheet', diNoTextCol: 'No suitable text/category column found in this sheet'
     }
   };
   function getUILang() { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
@@ -64,12 +92,16 @@
     return s;
   }
   var $ = function (id) { return document.getElementById(id); };
+  function locale() { return getUILang() === 'en' ? 'en-US' : 'th-TH'; }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function escapeAttr(s) { return escapeHtml(s); }
 
   var els = {
     langToggle: $('langToggle'), statusMsg: $('statusMsg'), loading: $('loading'), grid: $('luckysheet'),
     ribbon: $('xlRibbon'), ribTabs: $('xlrTabs'), ribPanels: $('xlrPanels'), cellEditor: $('xlCellEditor'),
     newBtn: $('newBtn'), importBtn: $('importBtn'), fileInput: $('fileInput'),
-    exportXlsxBtn: $('exportXlsxBtn'), exportCsvBtn: $('exportCsvBtn'), printBtn: $('printBtn')
+    exportXlsxBtn: $('exportXlsxBtn'), exportCsvBtn: $('exportCsvBtn'), printBtn: $('printBtn'),
+    diFuzzyBtn: $('diFuzzyBtn'), diSummaryBtn: $('diSummaryBtn'), diTrendBtn: $('diTrendBtn'), diPopover: $('diPopover')
   };
 
   /* ── ความสูงกริดคงที่ (พิกเซล) กันอาการกระตุกบนมือถือ ──
@@ -502,6 +534,328 @@
     finally { document.body.removeChild(holder); }
   }
 
+  /* ══════════════════════════════════════════════════════════════════
+     วิเคราะห์ข้อมูล (Data Insights) — สรุปอัตโนมัติ / รวมตัวสะกดใกล้เคียง / เส้นแนวโน้ม+พยากรณ์
+     ย้ายมาจากเครื่องมือ "แดชบอร์ดรายงาน" (report-dashboard.js) ปรับให้อ่าน/เขียนข้อมูลจากกริด Luckysheet
+     โดยตรงแทนที่จะมีโมเดลคอลัมน์ของตัวเอง — สมมติว่าแถวแรกของ "ชีตที่กำลังเปิดอยู่" คือหัวตาราง แล้วเดา
+     ชนิดคอลัมน์ (ตัวเลข/หมวดหมู่/ข้อความ) จากค่าจริงด้านล่าง ไม่รองรับการตรวจจับคอลัมน์วันที่แบบ Date object
+     จริงจังเหมือนแดชบอร์ดเดิม (Luckysheet เก็บวันที่เป็นเลขลำดับ ไม่ใช่ Date) จึงตัดส่วนเทียบเดือนต่อเดือนออก
+     จากสรุปอัตโนมัติเวอร์ชันนี้ และเส้นแนวโน้มจะพยากรณ์ป้ายวันที่ต่อได้เฉพาะเมื่อป้ายแกน X เป็นข้อความรูปแบบ
+     yyyy-mm-dd ตรงตัวเท่านั้น ไม่งั้นจะใช้ป้าย "พยากรณ์ 1/2/3" แทน
+     ══════════════════════════════════════════════════════════════════ */
+  function colLetter(i) {
+    var s = ''; i++;
+    while (i > 0) { var m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); }
+    return s;
+  }
+  function activeSheetObj() {
+    var sheets = currentSheets();
+    if (!sheets.length) return null;
+    return sheets.filter(function (s) { return s.status === 1; })[0] || sheets[0];
+  }
+  function inferGridColType(values) {
+    var nonNull = values.filter(function (v) { return v !== null && v !== undefined && v !== ''; });
+    if (!nonNull.length) return 'text';
+    var numCount = 0;
+    nonNull.forEach(function (v) { if (typeof v === 'number' && isFinite(v)) numCount++; });
+    if (numCount / nonNull.length > 0.7) return 'number';
+    var uniq = {}; nonNull.forEach(function (v) { uniq[String(v)] = true; });
+    var uniqCount = Object.keys(uniq).length;
+    if (uniqCount <= 25 || uniqCount / nonNull.length <= 0.3) return 'category';
+    return 'text';
+  }
+  function usedColCount(aoa) {
+    var maxC = -1;
+    aoa.forEach(function (row) {
+      (row || []).forEach(function (v, c) { if (v !== null && v !== undefined && v !== '' && c > maxC) maxC = c; });
+    });
+    return maxC + 1;
+  }
+  /* โมเดลตาราง { cols: [{index,label,type}], rows: [[...]] } จากชีตที่กำลังเปิดอยู่ — ตัดแถว/คอลัมน์ว่าง
+     ท้ายตารางทิ้งก่อนเสมอ เพราะ Luckysheet เก็บกริดเป็นขนาดคงที่ (ค่าเริ่มต้น 60 แถว × 20 คอลัมน์) เต็มไปด้วย
+     เซลล์ว่างเปล่าเกือบทั้งหมด ถ้าไม่ตัดทิ้งจะเห็น "คอลัมน์ B" "คอลัมน์ C" ว่างๆ โผล่มาให้เลือกเต็มไปหมด */
+  function gridModel() {
+    var sheet = activeSheetObj();
+    if (!sheet) return null;
+    var aoa = sheetToAoa(sheet);
+    while (aoa.length && aoa[aoa.length - 1].every(function (v) { return v === null || v === undefined || v === ''; })) aoa.pop();
+    if (aoa.length < 2) return null; // ต้องมีอย่างน้อยแถวหัวตาราง + ข้อมูล 1 แถว
+    var ncols = usedColCount(aoa);
+    if (ncols < 1) return null;
+    var header = (aoa[0] || []).slice(0, ncols); while (header.length < ncols) header.push(null);
+    var dataRows = aoa.slice(1).map(function (row) {
+      var r = (row || []).slice(0, ncols); while (r.length < ncols) r.push(null);
+      return r;
+    });
+    var cols = [];
+    for (var c = 0; c < ncols; c++) {
+      var label = (header[c] !== null && header[c] !== undefined && header[c] !== '') ? String(header[c]) : colLetter(c);
+      var vals = dataRows.map(function (r) { return r[c]; });
+      cols.push({ index: c, label: label, type: inferGridColType(vals) });
+    }
+    return { cols: cols, rows: dataRows, headerRowOffset: 1 }; // +1 เพราะแถว 0 ของชีตจริงคือหัวตาราง
+  }
+
+  /* ── ป็อปอัพกลาง ── ใช้ element เดียว (#diPopover) ร่วมกันทั้ง 3 ฟีเจอร์ เหมือนแพทเทิร์น filterPopover
+     ของแดชบอร์ดเดิม — แต่ละ wireFn ต้องเรียก positionDiPopover(el, anchorEl) เองหลังสร้างเนื้อหาเสร็จ
+     (ไม่ position ให้อัตโนมัติก่อน เพราะขนาดเนื้อหาจะยังไม่นิ่งจนกว่า wireFn จะ build เสร็จ) */
+  function positionDiPopover(el, anchorEl) {
+    var r = anchorEl.getBoundingClientRect();
+    var w = el.offsetWidth || 320, h = el.offsetHeight || 200;
+    var left = Math.min(Math.max(8, r.left), window.innerWidth - w - 8);
+    var top = r.bottom + 6;
+    if (top + h > window.innerHeight) top = Math.max(8, r.top - h - 6);
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
+  }
+  var closeActiveDiPopover = null;
+  function openInsightsPopover(anchorEl, wireFn) {
+    if (closeActiveDiPopover) closeActiveDiPopover();
+    var el = els.diPopover;
+    if (!el) return;
+    el.className = 'di-popover';
+    el.style.display = 'block';
+    var onDocClick = function (e) { if (!el.contains(e.target) && e.target !== anchorEl && !anchorEl.contains(e.target)) close(); };
+    var onKey = function (e) { if (e.key === 'Escape') close(); };
+    function close() {
+      el.style.display = 'none'; el.innerHTML = '';
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+      closeActiveDiPopover = null;
+    }
+    setTimeout(function () { document.addEventListener('mousedown', onDocClick); document.addEventListener('keydown', onKey); }, 0);
+    closeActiveDiPopover = close;
+    wireFn(el, close);
+  }
+  function renderDiEmpty(el, anchorEl, close, titleKey, msgKey) {
+    el.innerHTML = '<div class="di-title">' + escapeHtml(t(titleKey)) + '</div><div class="di-empty">' + escapeHtml(t(msgKey)) + '</div>' +
+      '<div class="di-actions"><span></span><button type="button" class="xl-btn" id="diCloseBtn">' + escapeHtml(t('diCloseBtn')) + '</button></div>';
+    el.querySelector('#diCloseBtn').addEventListener('click', close);
+    positionDiPopover(el, anchorEl);
+  }
+
+  /* ── สรุปอัตโนมัติ ── */
+  function buildGridSummaryText(model) {
+    var numCols = model.cols.filter(function (c) { return c.type === 'number'; });
+    var catCols = model.cols.filter(function (c) { return c.type === 'category'; });
+    var parts = [];
+    parts.push(t('diTotalRows', { n: model.rows.length.toLocaleString(locale()), m: model.cols.length.toLocaleString(locale()) }));
+    if (numCols.length) {
+      var col = numCols[0];
+      var vals = model.rows.map(function (r) { return r[col.index]; }).filter(function (v) { return typeof v === 'number' && isFinite(v); });
+      if (vals.length) {
+        var sum = vals.reduce(function (a, b) { return a + b; }, 0);
+        parts.push(t('diColSum', { col: col.label, sum: sum.toLocaleString(locale(), { maximumFractionDigits: 2 }) }));
+      }
+    }
+    if (catCols.length) {
+      var cc = catCols[0], freq = {};
+      model.rows.forEach(function (r) {
+        var v = r[cc.index];
+        var k = (v === null || v === undefined || v === '') ? t('diEmptyValue') : String(v);
+        freq[k] = (freq[k] || 0) + 1;
+      });
+      var keys = Object.keys(freq);
+      if (keys.length) {
+        var topKey = keys.reduce(function (a, b) { return freq[b] > freq[a] ? b : a; });
+        var topPct = model.rows.length ? (freq[topKey] / model.rows.length) * 100 : 0;
+        parts.push(t('diTopCategory', {
+          col: cc.label, value: topKey, count: freq[topKey].toLocaleString(locale()),
+          pct: topPct.toLocaleString(locale(), { maximumFractionDigits: 1 })
+        }));
+      }
+    }
+    return parts.join(' ');
+  }
+  function openSummaryPopover(anchorEl) {
+    var model = gridModel();
+    openInsightsPopover(anchorEl, function (el, close) {
+      if (!model) { renderDiEmpty(el, anchorEl, close, 'diSummaryTitle', 'diNoData'); return; }
+      el.classList.add('wide');
+      var text = buildGridSummaryText(model);
+      el.innerHTML = '<div class="di-title">' + escapeHtml(t('diSummaryTitle')) + '</div>' +
+        '<textarea class="di-textarea" id="diText" readonly></textarea>' +
+        '<div class="di-actions"><span class="di-status" id="diStatus"></span><button type="button" class="xl-btn" id="diCopyBtn">' + escapeHtml(t('diCopyBtn')) + '</button></div>';
+      el.querySelector('#diText').value = text;
+      positionDiPopover(el, anchorEl);
+      el.querySelector('#diCopyBtn').addEventListener('click', function () {
+        var statusEl = el.querySelector('#diStatus');
+        function showStatus(ok, msg) { statusEl.textContent = msg; statusEl.classList.toggle('err', !ok); }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () { showStatus(true, t('diCopied')); }, function () { showStatus(false, t('diCopyFail')); });
+        } else {
+          try { var ta = el.querySelector('#diText'); ta.select(); document.execCommand('copy'); showStatus(true, t('diCopied')); }
+          catch (e) { showStatus(false, t('diCopyFail')); }
+        }
+      });
+    });
+  }
+
+  /* ── รวมตัวสะกดใกล้เคียง (Fuzzy Spelling Merge) ── อัลกอริทึมเดียวกับที่ใช้ในแดชบอร์ดรายงานทุกประการ
+     (Levenshtein edit distance + Union-Find + เกณฑ์ความเหมือนแปรผันตามความยาวคำ กันคำสั้นจับผิดคำ) */
+  function levenshtein(a, b) {
+    var m = a.length, n = b.length;
+    if (!m) return n; if (!n) return m;
+    var prev = []; for (var j = 0; j <= n; j++) prev[j] = j;
+    for (var i = 1; i <= m; i++) {
+      var cur = [i];
+      for (j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1));
+      prev = cur;
+    }
+    return prev[n];
+  }
+  function fuzzySimilarity(a, b) {
+    var maxLen = Math.max(a.length, b.length);
+    return maxLen ? 1 - levenshtein(a, b) / maxLen : 1;
+  }
+  function fuzzyThresholdFor(len) {
+    if (len < 4) return 1.01;
+    if (len <= 5) return 0.88;
+    if (len <= 8) return 0.82;
+    return 0.78;
+  }
+  var FUZZY_MAX_UNIQUE = 300;
+  function findGridFuzzyGroups(model, colIndex) {
+    var freq = {};
+    model.rows.forEach(function (r) {
+      var v = r[colIndex];
+      if (v === null || v === undefined || v === '') return;
+      freq[String(v)] = (freq[String(v)] || 0) + 1;
+    });
+    var values = Object.keys(freq);
+    if (values.length < 2 || values.length > FUZZY_MAX_UNIQUE) return [];
+    var parent = values.map(function (_, i) { return i; });
+    function find(x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
+    function union(a, b) { var ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb; }
+    for (var i = 0; i < values.length; i++) {
+      for (var k = i + 1; k < values.length; k++) {
+        var maxLen = Math.max(values[i].length, values[k].length);
+        if (fuzzySimilarity(values[i], values[k]) >= fuzzyThresholdFor(maxLen)) union(i, k);
+      }
+    }
+    var clusters = {};
+    values.forEach(function (v, i) { var root = find(i); (clusters[root] = clusters[root] || []).push(v); });
+    return Object.keys(clusters).map(function (key) { return clusters[key]; })
+      .filter(function (g) { return g.length > 1; })
+      .map(function (g) { g.sort(function (a, b) { return freq[b] - freq[a]; }); return { values: g, freq: freq }; })
+      .sort(function (a, b) { return b.values.length - a.values.length; });
+  }
+  function mergeGridFuzzyGroup(model, colIndex, values, canon) {
+    var others = {}; values.forEach(function (v) { if (v !== canon) others[v] = true; });
+    model.rows.forEach(function (r, ri) {
+      if (Object.prototype.hasOwnProperty.call(others, String(r[colIndex]))) {
+        try { luckysheet.setCellValue(ri + model.headerRowOffset, colIndex, canon); } catch (e) {}
+        r[colIndex] = canon; // อัปเดตโมเดลในหน่วยความจำให้ตรงกับที่เพิ่งเขียนกลับ ไม่ต้องอ่านชีตใหม่ทั้งก้อน
+      }
+    });
+    scheduleSave();
+  }
+  function openFuzzyPopover(anchorEl) {
+    var model = gridModel();
+    openInsightsPopover(anchorEl, function (el, close) {
+      if (!model) { renderDiEmpty(el, anchorEl, close, 'diFuzzyTitle', 'diNoData'); return; }
+      var eligibleCols = model.cols.filter(function (c) { return c.type !== 'number'; });
+      if (!eligibleCols.length) { renderDiEmpty(el, anchorEl, close, 'diFuzzyTitle', 'diNoTextCol'); return; }
+      el.classList.add('wide');
+      function renderGroups(colIndex) {
+        var groups = findGridFuzzyGroups(model, colIndex);
+        var listHtml = !groups.length
+          ? '<div class="di-empty">' + escapeHtml(t('diFuzzyNone')) + '</div>'
+          : groups.map(function (g, gi) {
+              var optsHtml = g.values.map(function (v) { return '<option value="' + escapeAttr(v) + '">' + escapeHtml(v) + ' (' + g.freq[v].toLocaleString(locale()) + ')</option>'; }).join('');
+              var valuesHtml = g.values.map(function (v) { return escapeHtml(v) + ' (' + g.freq[v].toLocaleString(locale()) + ')'; }).join(', ');
+              return '<div class="di-group"><div class="di-group-values">' + valuesHtml + '</div>' +
+                '<div class="di-group-row"><label style="flex-direction:row;align-items:center">' + escapeHtml(t('diFuzzyMergeInto')) +
+                ' <select class="di-fuzzy-canon" data-gidx="' + gi + '">' + optsHtml + '</select></label>' +
+                '<button type="button" class="xl-btn di-fuzzy-merge-btn" data-gidx="' + gi + '">' + escapeHtml(t('diFuzzyMergeBtn')) + '</button></div></div>';
+            }).join('');
+        el.querySelector('.di-list').innerHTML = listHtml;
+        [].forEach.call(el.querySelectorAll('.di-fuzzy-merge-btn'), function (btn) {
+          btn.addEventListener('click', function () {
+            var gi = +btn.getAttribute('data-gidx');
+            var canon = el.querySelector('.di-fuzzy-canon[data-gidx="' + gi + '"]').value;
+            mergeGridFuzzyGroup(model, colIndex, groups[gi].values, canon);
+            renderGroups(colIndex);
+          });
+        });
+        positionDiPopover(el, anchorEl);
+      }
+      el.innerHTML = '<div class="di-title">' + escapeHtml(t('diFuzzyTitle')) + '</div>' +
+        '<div class="di-row"><label>' + escapeHtml(t('diFuzzyPickCol')) +
+        '<select class="di-fuzzy-col">' + eligibleCols.map(function (c) { return '<option value="' + c.index + '">' + escapeHtml(c.label) + '</option>'; }).join('') + '</select></label></div>' +
+        '<div class="di-list"></div>' +
+        '<div class="di-actions"><span></span><button type="button" class="xl-btn" id="diCloseBtn">' + escapeHtml(t('diCloseBtn')) + '</button></div>';
+      el.querySelector('.di-fuzzy-col').addEventListener('change', function () { renderGroups(+this.value); });
+      el.querySelector('#diCloseBtn').addEventListener('click', close);
+      renderGroups(eligibleCols[0].index);
+    });
+  }
+
+  /* ── เส้นแนวโน้ม + พยากรณ์ ── สมการเส้นตรงแบบ least-squares เดียวกับแดชบอร์ดรายงาน วาดด้วย Chart.js
+     (โหลดเพิ่มเฉพาะหน้านี้) ลงในผืนผ้าใบภายในป็อปอัพเอง ไม่ยุ่งกับกราฟของ Luckysheet เอง */
+  function linearRegression(data) {
+    var n = data.length, sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+    for (var i = 0; i < n; i++) { sumX += i; sumY += data[i]; sumXY += i * data[i]; sumXX += i * i; }
+    var denom = n * sumXX - sumX * sumX;
+    var slope = denom !== 0 ? (n * sumXY - sumX * sumY) / denom : 0;
+    return { slope: slope, intercept: (sumY - slope * sumX) / n };
+  }
+  function nextDateLabels(labels, count) {
+    var n = labels.length;
+    var lastDate = new Date(labels[n - 1] + 'T00:00:00Z'), prevDate = new Date(labels[n - 2] + 'T00:00:00Z');
+    var stepMs = lastDate.getTime() - prevDate.getTime();
+    if (!isFinite(stepMs) || stepMs <= 0) stepMs = 86400000;
+    var out = [];
+    for (var i = 1; i <= count; i++) out.push(new Date(lastDate.getTime() + stepMs * i).toISOString().slice(0, 10));
+    return out;
+  }
+  function openTrendPopover(anchorEl) {
+    var model = gridModel();
+    openInsightsPopover(anchorEl, function (el, close) {
+      if (!model) { renderDiEmpty(el, anchorEl, close, 'diTrendTitle', 'diNoData'); return; }
+      var numCols = model.cols.filter(function (c) { return c.type === 'number'; });
+      if (!numCols.length) { renderDiEmpty(el, anchorEl, close, 'diTrendTitle', 'diNoNumCol'); return; }
+      el.classList.add('wide');
+      var chartInst = null;
+      el.innerHTML = '<div class="di-title">' + escapeHtml(t('diTrendTitle')) + '</div>' +
+        '<div class="di-row">' +
+        '<label>' + escapeHtml(t('diTrendXLbl')) + '<select class="di-trend-x">' + model.cols.map(function (c) { return '<option value="' + c.index + '">' + escapeHtml(c.label) + '</option>'; }).join('') + '</select></label>' +
+        '<label>' + escapeHtml(t('diTrendYLbl')) + '<select class="di-trend-y">' + numCols.map(function (c) { return '<option value="' + c.index + '">' + escapeHtml(c.label) + '</option>'; }).join('') + '</select></label>' +
+        '</div>' +
+        '<div class="di-chart-wrap"><canvas id="diTrendCanvas"></canvas></div>' +
+        '<div class="di-actions"><span></span><button type="button" class="xl-btn" id="diCloseBtn">' + escapeHtml(t('diCloseBtn')) + '</button></div>';
+      function draw() {
+        var xIdx = +el.querySelector('.di-trend-x').value, yIdx = +el.querySelector('.di-trend-y').value;
+        var pairs = model.rows.map(function (r) { return [r[xIdx] == null ? '' : String(r[xIdx]), r[yIdx]]; })
+          .filter(function (p) { return typeof p[1] === 'number' && isFinite(p[1]); });
+        if (chartInst) { try { chartInst.destroy(); } catch (e) {} chartInst = null; }
+        if (pairs.length < 2 || typeof window.Chart === 'undefined') return;
+        var labels = pairs.map(function (p) { return p[0]; }), data = pairs.map(function (p) { return p[1]; });
+        var reg = linearRegression(data);
+        var isoDateLike = /^\d{4}-\d{2}-\d{2}$/.test(labels[labels.length - 1]) && /^\d{4}-\d{2}-\d{2}$/.test(labels[labels.length - 2]);
+        var forecastLabels = isoDateLike ? nextDateLabels(labels, 3) : [1, 2, 3].map(function (n) { return t('diForecastLabel', { n: n }); });
+        var allLabels = labels.concat(forecastLabels);
+        var yCol = model.cols.filter(function (c) { return c.index === yIdx; })[0];
+        chartInst = new Chart(document.getElementById('diTrendCanvas').getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: allLabels,
+            datasets: [
+              { label: yCol ? yCol.label : '', data: data.concat(forecastLabels.map(function () { return null; })), borderColor: '#217346', backgroundColor: 'rgba(33,115,70,.12)', tension: .25, fill: true },
+              { label: t('diTrendDatasetLabel'), data: allLabels.map(function (_, i) { return reg.slope * i + reg.intercept; }), borderColor: '#9CA3AF', borderDash: [6, 4], borderWidth: 2, pointRadius: 0, fill: false, tension: 0 }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
+        });
+      }
+      el.querySelector('.di-trend-x').addEventListener('change', draw);
+      el.querySelector('.di-trend-y').addEventListener('change', draw);
+      el.querySelector('#diCloseBtn').addEventListener('click', close);
+      positionDiPopover(el, anchorEl);
+      draw();
+    });
+  }
+
   /* ── wiring ── */
   els.newBtn.addEventListener('click', function () {
     if (!confirm(t('newConfirm'))) return;
@@ -518,6 +872,9 @@
   els.exportXlsxBtn.addEventListener('click', exportXlsx);
   els.exportCsvBtn.addEventListener('click', exportCsv);
   els.printBtn.addEventListener('click', generatePdf);
+  if (els.diFuzzyBtn) els.diFuzzyBtn.addEventListener('click', function () { openFuzzyPopover(els.diFuzzyBtn); });
+  if (els.diSummaryBtn) els.diSummaryBtn.addEventListener('click', function () { openSummaryPopover(els.diSummaryBtn); });
+  if (els.diTrendBtn) els.diTrendBtn.addEventListener('click', function () { openTrendPopover(els.diTrendBtn); });
   if (els.langToggle) {
     els.langToggle.addEventListener('click', function () {
       setUILang(getUILang() === 'en' ? 'th' : 'en');

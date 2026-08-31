@@ -76,6 +76,27 @@ body.ome-tool-page{margin:0;font-family:var(--f);color:var(--ink,#1F2733);-webki
   background:#fff;color:#111;resize:none;outline:none;overflow:hidden;white-space:pre;min-width:82px;
   box-shadow:0 3px 12px rgba(20,30,60,.22)}
 .xl-hint{font-size:12.5px;color:var(--muted,#9AA3B8);margin:10px 2px 0;line-height:1.7}
+/* ── วิเคราะห์ข้อมูล (Data Insights): สรุปอัตโนมัติ/รวมตัวสะกด/เส้นแนวโน้ม ── */
+.di-popover{position:fixed;z-index:99998;background:#fff;border:1px solid var(--line,#E4E9F2);border-radius:12px;
+  box-shadow:0 10px 34px rgba(20,30,60,.18);padding:14px 16px;font-family:var(--f);display:none;
+  width:320px;max-width:calc(100vw - 24px)}
+.di-popover.wide{width:460px}
+.di-title{font-size:14.5px;font-weight:800;color:var(--ink,#1F2733);margin-bottom:10px}
+.di-row{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.di-row label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted,#727C93);font-weight:600}
+.di-row select,.di-textarea,.di-fuzzy-canon{font-family:inherit;font-size:13px;padding:7px 9px;border-radius:8px;
+  border:1.5px solid var(--line,#E4E9F2);color:var(--ink,#1F2733);background:#fff}
+.di-textarea{width:100%;line-height:1.7;resize:vertical;min-height:90px}
+.di-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
+.di-status{font-size:12px;font-weight:600;color:var(--xl,#178a4e);min-height:15px}
+.di-status.err{color:#E5484D}
+.di-empty{font-size:13px;color:var(--muted,#727C93);text-align:center;padding:14px 4px}
+.di-group{padding:9px 10px;background:#F6F8FA;border-radius:8px;margin-bottom:8px}
+.di-group-values{font-size:12.5px;color:var(--ink,#1F2733);margin-bottom:6px}
+.di-group-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.di-group-row label{flex-direction:row!important;align-items:center;gap:6px;font-weight:400}
+.di-list{max-height:300px;overflow:auto;margin-bottom:8px}
+.di-chart-wrap{height:220px;margin:8px 0}
 footer{margin-top:30px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--sky-dk);text-decoration:none;font-weight:600}
 @media (max-width:640px){
@@ -122,6 +143,9 @@ footer a{color:var(--sky-dk);text-decoration:none;font-weight:600}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       <span data-i18n="printBtn">พิมพ์ / PDF</span>
     </button>
+    <button class="xl-btn" id="diFuzzyBtn" type="button"><span data-i18n="diFuzzyBtn">🔍 ตรวจตัวสะกด</span></button>
+    <button class="xl-btn" id="diSummaryBtn" type="button"><span data-i18n="diSummaryBtn">📝 สรุปอัตโนมัติ</span></button>
+    <button class="xl-btn" id="diTrendBtn" type="button"><span data-i18n="diTrendBtn">📈 เส้นแนวโน้ม</span></button>
     <span class="xl-sp"></span>
     <span class="xl-status" id="statusMsg"><span data-i18n="autosaveReady">พร้อมใช้งาน</span></span>
   </div>
@@ -147,6 +171,9 @@ footer a{color:var(--sky-dk);text-decoration:none;font-weight:600}
   <!-- ช่องพิมพ์ของเราเอง (native) วางซ้อนบนเซลล์ตอนแก้ไข — รองรับไทย/ทุกภาษา 100% -->
   <textarea id="xlCellEditor" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
 
+  <!-- ป็อปอัพกลางของฟีเจอร์ "วิเคราะห์ข้อมูล" (สรุปอัตโนมัติ/ตรวจตัวสะกด/เส้นแนวโน้ม) -->
+  <div class="di-popover" id="diPopover"></div>
+
   <div class="xl-sheetwrap">
     <div id="luckysheet"></div>
     <div class="xl-loading" id="loading">
@@ -162,6 +189,8 @@ footer a{color:var(--sky-dk);text-decoration:none;font-weight:600}
 <script src="https://cdn.jsdelivr.net/npm/luckyexcel@1.0.1/dist/luckyexcel.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/luckysheet@2.1.13/dist/plugins/js/plugin.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/luckysheet@2.1.13/dist/luckysheet.umd.js"></script>
+<!-- Chart.js (กราฟเส้นแนวโน้ม+พยากรณ์ ในฟีเจอร์วิเคราะห์ข้อมูล — แยกจากกราฟของ Luckysheet เอง) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <!-- สร้าง PDF สะอาดเองแบบเดียวกับหน้าเอกสาร (Word) -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
