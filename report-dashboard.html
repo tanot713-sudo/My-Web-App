@@ -247,7 +247,20 @@ th .col-del:hover{background:var(--card);color:var(--err)}
      เนื้อในเดิม 8x8px ผ่าน background-clip — ภาพที่เห็นเหมือนเดิมทุกอย่าง แค่แตะแม่นขึ้น) */
   padding:11px;background-clip:content-box;touch-action:none;-webkit-user-select:none;user-select:none}
 td.cellsel-in{background:var(--brand-sf)}
+/* ปุ่ม "ตัวเลือกเติมอัตโนมัติ" ลอยที่มุมพื้นที่เพิ่งเติม — ทางเลือกใช้ได้ทั้งเมาส์/สัมผัสแทนปุ่ม Ctrl
+   (ซึ่งอุปกรณ์สัมผัสอย่างแท็บเล็ต/มือถือไม่มีคีย์บอร์ดให้กดเลย) */
+.cellsel-autofill-btn{position:absolute;width:22px;height:22px;border-radius:50%;background:var(--card);
+  border:1.5px solid var(--brand);font-size:12px;line-height:1;cursor:pointer;z-index:4;padding:0;
+  box-shadow:0 1px 4px rgba(16,24,40,.18);display:flex;align-items:center;justify-content:center}
+.cellsel-autofill-btn:hover{background:var(--brand-sf)}
 .tbl-empty{font-size:13px;color:var(--muted);padding:16px 4px;text-align:center}
+
+/* ── แถวสวอตช์สีสำเร็จรูป (ปุ่มปรับสีการ์ด/พื้นหลัง/กล่องกำหนดเอง) ── */
+.color-swatch-row{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.color-swatch{width:26px;height:26px;border-radius:7px;border:1.5px solid rgba(0,0,0,.12);cursor:pointer;
+  padding:0;transition:transform .1s}
+.color-swatch:hover{transform:scale(1.12)}
+[data-theme="dark"] .color-swatch{border-color:rgba(255,255,255,.22)}
 
 /* ── แถบเครื่องมือตาราง ── */
 .toolbar-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}

@@ -46,6 +46,8 @@
       cwTableSortHint: 'คลิกหัวคอลัมน์เพื่อเรียงลำดับ',
       cardColorBtnTitle: 'ปรับสีการ์ดนี้', cardColorTitle: 'ปรับสีการ์ด', cardBgColorLbl: 'สีพื้นหลัง',
       cardAccentColorLbl: 'สีหลัก (กราฟ/ตัวเลข)', cardGradientLbl: 'ไล่เฉดสี', cardColorResetBtn: 'ล้างสี',
+      moreColorsLbl: 'สีอื่นๆ', autoFillOptionsHint: 'ตัวเลือกเติมอัตโนมัติ', autoFillOptionsTitle: 'เลือกรูปแบบการเติม',
+      autoFillSeriesOpt: 'ไล่ต่อเป็นลำดับ', autoFillCopyOpt: 'ทำซ้ำค่าเดิม',
       customBgBtn: '🎨 พื้นหลัง', loadTemplateBtn: '📥 โหลดจากแดชบอร์ด',
       loadTemplateNoneHint: 'ยังไม่มีการ์ดในแท็บ "แดชบอร์ด" ให้โหลด — อัปโหลดข้อมูลก่อน',
       loadTemplateSnapshotNote: ' (สแนปช็อต ณ ตอนโหลด ไม่อัปเดตตามข้อมูลสด)',
@@ -73,7 +75,7 @@
       dataTitle: '📋 ข้อมูล', searchPh: 'ค้นหาทุกคอลัมน์…', addRowBtn: '+ เพิ่มแถว',
       addColBtn: '+ เพิ่มคอลัมน์', delColTitle: 'ลบคอลัมน์นี้', newColumnDefaultLabel: 'คอลัมน์ใหม่',
       renameColPrompt: 'ตั้งชื่อคอลัมน์', dblclickRenameHint: 'ดับเบิลคลิกชื่อคอลัมน์เพื่อเปลี่ยนชื่อ',
-      fillHandleHint: 'ลากเพื่อเติมอัตโนมัติ — กด Ctrl ค้างไว้ระหว่างลากเพื่อสลับโหมด (ไล่เลข/ทำซ้ำ)',
+      fillHandleHint: 'ลากเพื่อเติมอัตโนมัติ — กด Ctrl ค้างไว้ระหว่างลาก หรือกดปุ่ม ⚙️ ที่ขึ้นมาหลังลากเสร็จ เพื่อสลับโหมด (ไล่เลข/ทำซ้ำ)',
       delSelBtn: '🗑️ ลบที่เลือก', undoBtn: '↩️ เลิกทำ', clearFilterBtn: 'ล้างตัวกรอง',
       saveReportBtn: '💾 บันทึกเป็นรายงาน', savedReportBtn: '💾 บันทึกแล้ว: {name}',
       myReportsBtn: '📁 รายงานของฉัน', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 ไฟล์ใหม่',
@@ -177,6 +179,8 @@
       cwTableSortHint: 'Click a column header to sort',
       cardColorBtnTitle: 'Customize this card\'s color', cardColorTitle: 'Customize card color', cardBgColorLbl: 'Background color',
       cardAccentColorLbl: 'Accent color (chart/number)', cardGradientLbl: 'Gradient', cardColorResetBtn: 'Reset',
+      moreColorsLbl: 'More colors', autoFillOptionsHint: 'Auto Fill Options', autoFillOptionsTitle: 'Choose fill type',
+      autoFillSeriesOpt: 'Continue series', autoFillCopyOpt: 'Repeat value',
       customBgBtn: '🎨 Background', loadTemplateBtn: '📥 Load from Dashboard',
       loadTemplateNoneHint: 'No cards in the "Dashboard" tab to load yet — upload data first',
       loadTemplateSnapshotNote: ' (snapshot at load time, not live-updating)',
@@ -204,7 +208,7 @@
       dataTitle: '📋 Data', searchPh: 'Search all columns…', addRowBtn: '+ Add Row',
       addColBtn: '+ Add Column', delColTitle: 'Delete this column', newColumnDefaultLabel: 'New column',
       renameColPrompt: 'Rename column', dblclickRenameHint: 'Double-click a column name to rename it',
-      fillHandleHint: 'Drag to auto-fill — hold Ctrl while dragging to toggle mode (series/repeat)',
+      fillHandleHint: 'Drag to auto-fill — hold Ctrl while dragging, or tap the ⚙️ button that appears after, to toggle mode (series/repeat)',
       delSelBtn: '🗑️ Delete Selected', undoBtn: '↩️ Undo', clearFilterBtn: 'Clear Filters',
       saveReportBtn: '💾 Save as Report', savedReportBtn: '💾 Saved: {name}',
       myReportsBtn: '📁 My Reports', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 New File',
@@ -1476,7 +1480,7 @@
   }
   function renderCellSelOverlay(previewIdx) {
     var wrap = $('dataTableWrap');
-    [].forEach.call(wrap.querySelectorAll('.cellsel-box,.cellsel-handle,.cellsel-fillpreview'), function (el) { el.remove(); });
+    [].forEach.call(wrap.querySelectorAll('.cellsel-box,.cellsel-handle,.cellsel-fillpreview,.cellsel-autofill-btn'), function (el) { el.remove(); });
     [].forEach.call(wrap.querySelectorAll('td.cellsel-in'), function (td) { td.classList.remove('cellsel-in'); });
     if (!state.cellSel) return;
     var idx = cellSelToIndices(state.cellSel);
@@ -1892,6 +1896,56 @@
     state.cellSel = { id0: origin.rowIds[target.rMin], col0: origin.colKeys[target.cMin], id1: origin.rowIds[target.rMax], col1: origin.colKeys[target.cMax] };
     renderTable();
     persistDebounced();
+    /* renderTable() ข้างบนเรียก renderCellSelOverlay() ซึ่งล้างปุ่ม autofill เก่าทิ้งไปแล้วเป็นส่วนหนึ่ง
+       ของการ cleanup ปกติ — วาดปุ่มใหม่ทีหลังสุดตรงนี้เสมอ กันโดนล้างตามไปด้วย */
+    renderAutoFillOptionsBtn(origin, dir, target, invert);
+  }
+  /* ปุ่ม "ตัวเลือกเติมอัตโนมัติ" ลอยที่มุมล่างขวาของพื้นที่ที่เพิ่งเติม — ทางเลือกที่ใช้ได้ทั้งเมาส์/สัมผัส
+     (ต่างจากปุ่ม Ctrl ที่ใช้ได้เฉพาะตอนมีคีย์บอร์ดจริง) แตะแล้วเลือกสลับ "ไล่ต่อ" หรือ "ทำซ้ำ" ย้อนหลังได้
+     ทันที โดยไม่ต้องลากใหม่ — เลียนแบบปุ่ม AutoFill Options ตัวจริงของ Excel ที่โผล่หลังลาก/แปะทุกครั้ง */
+  var lastFillOp = null;
+  function renderAutoFillOptionsBtn(origin, dir, target, invert) {
+    lastFillOp = { origin: origin, dir: dir, target: target, invert: invert };
+    var wrap = $('dataTableWrap');
+    var vertical = dir === 'down' || dir === 'up';
+    var rMin = vertical ? target.rMin : origin.rMin, rMax = vertical ? target.rMax : origin.rMax;
+    var cMin = vertical ? origin.cMin : target.cMin, cMax = vertical ? origin.cMax : target.cMax;
+    var tdB = cellTd(origin.rowIds[rMax], origin.colKeys[cMax]);
+    if (!tdB) return;
+    var wrapRect = wrap.getBoundingClientRect(), b = tdB.getBoundingClientRect();
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cellsel-autofill-btn';
+    btn.title = t('autoFillOptionsHint');
+    btn.textContent = '⚙️';
+    btn.style.left = ((b.right - wrapRect.left) + wrap.scrollLeft - 4) + 'px';
+    btn.style.top = ((b.bottom - wrapRect.top) + wrap.scrollTop - 4) + 'px';
+    btn.addEventListener('click', function (e) { e.stopPropagation(); openAutoFillOptionsPopover(btn); });
+    wrap.appendChild(btn);
+  }
+  function openAutoFillOptionsPopover(anchorEl) {
+    if (!lastFillOp) return;
+    var op = lastFillOp;
+    var html = '<div class="fp-title">' + escapeHtml(t('autoFillOptionsTitle')) + '</div>' +
+      '<div class="fp-list">' +
+      '<div class="fp-item" data-mode="series"><span>📈 ' + escapeHtml(t('autoFillSeriesOpt')) + '</span></div>' +
+      '<div class="fp-item" data-mode="copy"><span>🔁 ' + escapeHtml(t('autoFillCopyOpt')) + '</span></div>' +
+      '</div>';
+    openPopover(html, anchorEl, function (el, close) {
+      [].forEach.call(el.querySelectorAll('.fp-item'), function (item) {
+        item.addEventListener('click', function () {
+          var wantSeries = item.getAttribute('data-mode') === 'series';
+          var vertical = op.dir === 'down' || op.dir === 'up';
+          /* n=1 (แหล่งต้นฉบับมีเซลล์เดียว): ปกติ=ทำซ้ำ, invert=ไล่ต่อ (สลับกับกรณี n>=2 พอดี) —
+             แปลงความหมาย "ไล่ต่อ/ทำซ้ำ" ที่ผู้ใช้เลือกจากเมนู ให้เป็นค่า invert ที่ถูกต้องเสมอ ไม่ว่า n
+             จะเป็นเท่าไหร่ ผู้ใช้เลือกจากผลลัพธ์ที่ต้องการตรงๆ ไม่ต้องรู้ความหมายของปุ่ม Ctrl เลย */
+          var n = vertical ? (op.origin.rMax - op.origin.rMin + 1) : (op.origin.cMax - op.origin.cMin + 1);
+          var invertToApply = (n === 1) ? wantSeries : !wantSeries;
+          applyFillDrag(op.origin, op.dir, op.target, invertToApply);
+          close();
+        });
+      });
+    });
   }
 
   function deleteSelected() {
@@ -2144,6 +2198,29 @@
     var R = f >> 16, G = f >> 8 & 0x00FF, B = f & 0x0000FF;
     return '#' + (0x1000000 + (Math.round((t - R) * p) + R) * 0x10000 + (Math.round((t - G) * p) + G) * 0x100 + (Math.round((t - B) * p) + B)).toString(16).slice(1);
   }
+  /* แถวสวอตช์สีสำเร็จรูป (แบบเดียวกับปุ่ม "สีเติม" ใน Excel ที่กดครั้งเดียวแล้วใช้เลย) — เพิ่มมาคู่กับ
+     <input type="color"> เดิม (ยังใช้เลือกสีเองแบบละเอียดได้ตามปกติ) เพราะแตะ/คลิกสวอตช์ครั้งเดียวจบ
+     เชื่อถือได้แน่นอนกว่าบนอุปกรณ์สัมผัส ต่างจาก native color picker ที่บางเบราว์เซอร์/อุปกรณ์ต้องกด 2
+     จังหวะ (เปิดตัวเลือกสี -> ปิด -> กด "ใช้สีนี้" อีกที) ทำให้ดูเหมือน "กดแล้วไม่มีอะไรเกิดขึ้น" */
+  var COLOR_SWATCHES = ['#E53935', '#FB8C00', '#FDD835', '#7CB342', '#00897B', '#1E88E5', '#3949AB', '#8E24AA', '#D81B60', '#6D4C41', '#9E9E9E', '#263238'];
+  function colorSwatchRowHtml(rowClass) {
+    return '<div class="color-swatch-row ' + rowClass + '">' + COLOR_SWATCHES.map(function (hex) {
+      return '<button type="button" class="color-swatch" data-hex="' + hex + '" style="background:' + hex + '" title="' + hex + '"></button>';
+    }).join('') + '</div>';
+  }
+  /* onPick(hex) รับค่า hex ที่แตะไป — ปล่อยให้ผู้เรียกตัดสินใจเองว่าจะ apply+ปิด popover ทันที (จุดที่
+     popover ทั้งกล่องมีหน้าที่ปรับสีอย่างเดียว) หรือแค่เซ็ตค่าไว้เฉยๆ (จุดที่ต้องกดปุ่ม Apply รวมของ
+     popover ใหญ่กว่าอีกที เพราะมีฟิลด์อื่นให้ปรับร่วมด้วย) */
+  function wireColorSwatchRow(el, rowSel, inputSel, onPick) {
+    [].forEach.call(el.querySelectorAll(rowSel + ' .color-swatch'), function (btn) {
+      btn.addEventListener('click', function () {
+        var hex = btn.getAttribute('data-hex');
+        var inp = el.querySelector(inputSel);
+        if (inp) inp.value = hex;
+        if (onPick) onPick(hex);
+      });
+    });
+  }
   function cardColorAccent(role) { return (state.cardColors[role] && state.cardColors[role].accent) || '#1E9E5A'; }
   function applyCardColor(elId, role) {
     var el = $(elId);
@@ -2156,20 +2233,25 @@
     var cur = state.cardColors[role] || {};
     var html = '<div class="fp-title">' + escapeHtml(t('cardColorTitle')) + '</div>' +
       '<div class="fp-range">' +
-      '<label>' + escapeHtml(t('cardBgColorLbl')) + '<input type="color" class="cc-bg" value="' + (cur.bg || '#ffffff') + '"></label>' +
+      '<label>' + escapeHtml(t('cardBgColorLbl')) + '</label>' + colorSwatchRowHtml('cc-bg-row') +
+      '<label><input type="color" class="cc-bg" value="' + (cur.bg || '#ffffff') + '"> ' + escapeHtml(t('moreColorsLbl')) + '</label>' +
       '<label class="cc-checkrow"><input type="checkbox" class="cc-grad"' + (cur.gradient ? ' checked' : '') + '> ' + escapeHtml(t('cardGradientLbl')) + '</label>' +
-      '<label>' + escapeHtml(t('cardAccentColorLbl')) + '<input type="color" class="cc-accent" value="' + (cur.accent || '#1E9E5A') + '"></label>' +
+      '<label>' + escapeHtml(t('cardAccentColorLbl')) + '</label>' + colorSwatchRowHtml('cc-accent-row') +
+      '<label><input type="color" class="cc-accent" value="' + (cur.accent || '#1E9E5A') + '"> ' + escapeHtml(t('moreColorsLbl')) + '</label>' +
       '</div>' +
       '<div class="fp-actions"><button type="button" class="btn sm ghost cc-reset">' + escapeHtml(t('cardColorResetBtn')) + '</button>' +
       '<div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
     openPopover(html, anchorEl, function (el, close) {
-      el.querySelector('.cc-reset').addEventListener('click', function () { delete state.cardColors[role]; onApply(); persistDebounced(); close(); });
-      el.querySelector('.fp-apply').addEventListener('click', function () {
+      function doApply() {
         state.cardColors[role] = { bg: el.querySelector('.cc-bg').value, gradient: el.querySelector('.cc-grad').checked, accent: el.querySelector('.cc-accent').value };
         onApply();
         persistDebounced();
-        close();
-      });
+      }
+      el.querySelector('.cc-reset').addEventListener('click', function () { delete state.cardColors[role]; onApply(); persistDebounced(); close(); });
+      el.querySelector('.fp-apply').addEventListener('click', function () { doApply(); close(); });
+      /* แตะสวอตช์ = ใช้สีทันทีแล้วปิด popover เลย (เหมือนกดปุ่มสีเติมใน Excel) ไม่ต้องกด "ใช้สีนี้" ซ้ำอีก */
+      wireColorSwatchRow(el, '.cc-bg-row', '.cc-bg', function () { doApply(); close(); });
+      wireColorSwatchRow(el, '.cc-accent-row', '.cc-accent', function () { doApply(); close(); });
     }, true);
   }
   function renderStatTiles(containerId, tiles, role) {
@@ -2861,19 +2943,21 @@
     var cur = state.customBg || {};
     var html = '<div class="fp-title">' + escapeHtml(t('cardColorTitle')) + '</div>' +
       '<div class="fp-range">' +
-      '<label>' + escapeHtml(t('cardBgColorLbl')) + '<input type="color" class="cbg-bg" value="' + (cur.bg || '#ffffff') + '"></label>' +
+      '<label>' + escapeHtml(t('cardBgColorLbl')) + '</label>' + colorSwatchRowHtml('cbg-bg-row') +
+      '<label><input type="color" class="cbg-bg" value="' + (cur.bg || '#ffffff') + '"> ' + escapeHtml(t('moreColorsLbl')) + '</label>' +
       '<label class="cc-checkrow"><input type="checkbox" class="cbg-grad"' + (cur.gradient ? ' checked' : '') + '> ' + escapeHtml(t('cardGradientLbl')) + '</label>' +
       '</div>' +
       '<div class="fp-actions"><button type="button" class="btn sm ghost cbg-reset">' + escapeHtml(t('cardColorResetBtn')) + '</button>' +
       '<div class="fp-btns"><button type="button" class="btn sm fp-apply">' + escapeHtml(t('filterApplyBtn')) + '</button></div></div>';
     openPopover(html, anchorEl, function (el, close) {
-      el.querySelector('.cbg-reset').addEventListener('click', function () { state.customBg = null; applyCustomBg(); persistDebounced(); close(); });
-      el.querySelector('.fp-apply').addEventListener('click', function () {
+      function doApply() {
         state.customBg = { bg: el.querySelector('.cbg-bg').value, gradient: el.querySelector('.cbg-grad').checked };
         applyCustomBg();
         persistDebounced();
-        close();
-      });
+      }
+      el.querySelector('.cbg-reset').addEventListener('click', function () { state.customBg = null; applyCustomBg(); persistDebounced(); close(); });
+      el.querySelector('.fp-apply').addEventListener('click', function () { doApply(); close(); });
+      wireColorSwatchRow(el, '.cbg-bg-row', '.cbg-bg', function () { doApply(); close(); });
     }, true);
   }
 
@@ -2931,9 +3015,11 @@
     var st = widget.config.style || {};
     return '<div class="fp-title" style="margin-top:10px">' + escapeHtml(t('cardColorTitle')) + '</div>' +
       '<div class="fp-range">' +
-      '<label>' + escapeHtml(t('cardBgColorLbl')) + '<input type="color" class="ew-style-bg" value="' + (st.bg || '#ffffff') + '"></label>' +
+      '<label>' + escapeHtml(t('cardBgColorLbl')) + '</label>' + colorSwatchRowHtml('ew-style-bg-row') +
+      '<label><input type="color" class="ew-style-bg" value="' + (st.bg || '#ffffff') + '"> ' + escapeHtml(t('moreColorsLbl')) + '</label>' +
       '<label class="cc-checkrow"><input type="checkbox" class="ew-style-grad"' + (st.gradient ? ' checked' : '') + '> ' + escapeHtml(t('cardGradientLbl')) + '</label>' +
-      (widget.type === 'table' ? '' : '<label>' + escapeHtml(t('cardAccentColorLbl')) + '<input type="color" class="ew-style-accent" value="' + (st.accent || '#1E9E5A') + '"></label>') +
+      (widget.type === 'table' ? '' : '<label>' + escapeHtml(t('cardAccentColorLbl')) + '</label>' + colorSwatchRowHtml('ew-style-accent-row') +
+        '<label><input type="color" class="ew-style-accent" value="' + (st.accent || '#1E9E5A') + '"> ' + escapeHtml(t('moreColorsLbl')) + '</label>') +
       '</div>' +
       '<button type="button" class="btn sm ghost ew-style-reset" style="margin-bottom:10px">' + escapeHtml(t('cardColorResetBtn')) + '</button>';
   }
@@ -2944,6 +3030,10 @@
       persistDebounced();
       close();
     });
+    /* จุดนี้ popover รวมมีปุ่ม "ใช้" กลางอันเดียวคุมทุกฟิลด์ (ไม่ใช่แค่สี) แตะสวอตช์แค่เซ็ตค่าไว้ในช่อง
+       สีเดิม ไม่ apply/ปิดทันทีเหมือน 2 จุดข้างบน เพราะยังมีฟิลด์อื่นให้ปรับต่อในกล่องเดียวกัน */
+    wireColorSwatchRow(el, '.ew-style-bg-row', '.ew-style-bg', null);
+    wireColorSwatchRow(el, '.ew-style-accent-row', '.ew-style-accent', null);
   }
   function applyWidgetStyleSection(el, widget) {
     var accentEl = el.querySelector('.ew-style-accent');
