@@ -114,7 +114,8 @@
       kpiTargetDirLbl: 'ทิศทางที่ดี', kpiTargetDirUp: 'ค่ายิ่งมากยิ่งดี', kpiTargetDirDown: 'ค่ายิ่งน้อยยิ่งดี',
       kpiOfTarget: 'ของเป้า', kpiCompareDateLbl: 'เทียบกับเดือนก่อน (ไม่บังคับ)', kpiCompareDateNone: 'ไม่เทียบ',
       kpiVsPeriod: 'เทียบ {period}', kpiNoCompareData: 'ข้อมูลไม่พอสำหรับเปรียบเทียบ',
-      freezeColBtn: '📌 ตรึงคอลัมน์แรก',
+      freezeColBtn: '📌 ตรึงคอลัมน์', freezeColTitle: '📌 ตรึงคอลัมน์', freezeColPickLbl: 'ตรึงถึงคอลัมน์',
+      freezeColNoneOption: 'ไม่ตรึง',
       groupByBtn: '📊 จัดกลุ่ม', groupByTitle: '📊 จัดกลุ่มแถวในตาราง',
       groupByColLbl: 'จัดกลุ่มตามคอลัมน์', groupByNoneOption: 'ไม่จัดกลุ่ม',
       groupSubtotalColLbl: 'รวมยอดคอลัมน์ (ไม่บังคับ)', groupSubtotalCountOnly: 'นับจำนวนอย่างเดียว',
@@ -304,7 +305,8 @@
       kpiTargetDirLbl: 'Good direction', kpiTargetDirUp: 'Higher is better', kpiTargetDirDown: 'Lower is better',
       kpiOfTarget: 'of target', kpiCompareDateLbl: 'Compare to previous month (optional)', kpiCompareDateNone: 'No comparison',
       kpiVsPeriod: 'vs {period}', kpiNoCompareData: 'Not enough data to compare',
-      freezeColBtn: '📌 Freeze First Column',
+      freezeColBtn: '📌 Freeze Columns', freezeColTitle: '📌 Freeze Columns', freezeColPickLbl: 'Freeze through column',
+      freezeColNoneOption: 'No freeze',
       groupByBtn: '📊 Group', groupByTitle: '📊 Group Table Rows',
       groupByColLbl: 'Group by column', groupByNoneOption: 'No grouping',
       groupSubtotalColLbl: 'Subtotal column (optional)', groupSubtotalCountOnly: 'Count only',
@@ -457,7 +459,7 @@
     reportName: null,
     condFormat: {},        // colKey -> {mode:'none'|'scale'|'bar'|'rules', low, high, barColor, rules:[{op,val,color}]}
                            // จัดรูปแบบตามเงื่อนไข (Conditional Formatting) ต่อคอลัมน์ — persist เหมือน cardColors
-    freezeFirstCol: false, // ตรึงคอลัมน์แรกของตาราง (Freeze pane) ไว้ไม่ให้เลื่อนตามแนวนอน
+    freezeCols: 0,         // จำนวนคอลัมน์ข้อมูลจริงที่ตรึงไว้จากซ้าย (Freeze pane) 0 = ไม่ตรึง ไม่นับคอลัมน์ checkbox
     groupBy: null,         // colKey หรือ null = ไม่จัดกลุ่ม — จัดกลุ่มแถวในตาราง (แท็บ "ตาราง (แก้ไข)") ตามค่าคอลัมน์นี้
     groupSubtotalCol: null, // colKey (ตัวเลข) หรือ null = นับจำนวนอย่างเดียว — คอลัมน์ที่รวมยอดย่อยต่อกลุ่ม
     collapsedGroups: {}    // groupKey -> true = ยุบกลุ่มนี้ไว้ (ไม่ persist ข้ามเซสชัน ตั้งใจให้รีเซ็ตทุกครั้งที่เปิดใหม่)
@@ -559,7 +561,7 @@
         columns: state.columns, rows: state.rows, nextRowId: state.nextRowId,
         reportId: state.reportId, reportName: state.reportName,
         customWidgets: state.customWidgets, cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg,
-        condFormat: state.condFormat, freezeFirstCol: state.freezeFirstCol, groupBy: state.groupBy, groupSubtotalCol: state.groupSubtotalCol,
+        condFormat: state.condFormat, freezeCols: state.freezeCols, groupBy: state.groupBy, groupSubtotalCol: state.groupSubtotalCol,
         savedAt: Date.now()
       };
       dbSaveCurrent(payload);
@@ -571,7 +573,7 @@
           combineMode: state.combineMode, sheetNames: state.sheetNames,
           columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets,
           cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, condFormat: state.condFormat,
-          freezeFirstCol: state.freezeFirstCol, groupBy: state.groupBy, groupSubtotalCol: state.groupSubtotalCol, savedAt: Date.now()
+          freezeCols: state.freezeCols, groupBy: state.groupBy, groupSubtotalCol: state.groupSubtotalCol, savedAt: Date.now()
         });
         setSaveStatus(t('saveStatusAuto', { time: new Date().toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' }) }), 'ok');
       }
@@ -770,7 +772,7 @@
     state.customBg = null;
     state.dashboardBg = null;
     state.condFormat = {};
-    state.freezeFirstCol = false; state.groupBy = null; state.groupSubtotalCol = null; state.collapsedGroups = {};
+    state.freezeCols = 0; state.groupBy = null; state.groupSubtotalCol = null; state.collapsedGroups = {};
     state.cellSel = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
@@ -1294,6 +1296,53 @@
     });
   }
 
+  /* ตรึงคอลัมน์ (Freeze pane) — ตรึงได้ N คอลัมน์ข้อมูลจริงจากซ้าย (ไม่รวมคอลัมน์ checkbox) ต้องคำนวณ
+     offset สะสมด้วย JS เพราะความกว้างแต่ละคอลัมน์ไม่เท่ากัน (ต่างจากตรึงคอลัมน์เดียวเดิมที่ left:0 คงที่ได้เลย)
+     เรียกทุกครั้งหลัง renderTable() วาดตารางใหม่ เพราะ DOM cell ถูกสร้างใหม่ทั้งหมด ต้องใส่คลาส/offset ใหม่เสมอ */
+  function applyFreezeOffsets() {
+    var n = Math.max(0, Math.min(state.freezeCols || 0, state.columns.length));
+    $('dataTableWrap').classList.toggle('freeze-col', n > 0);
+    $('freezeColBtn').classList.toggle('active', n > 0);
+    var table = $('dataTable');
+    [].forEach.call(table.querySelectorAll('.freeze-sticky'), function (el) {
+      el.classList.remove('freeze-sticky', 'freeze-sticky-last');
+      el.style.left = '';
+    });
+    if (n <= 0) return;
+    var headRow = table.querySelector('thead tr:first-child');
+    if (!headRow) return;
+    var offset = 0;
+    for (var i = 0; i < n; i++) {
+      var nthChild = i + 2; // +2 เพราะ nth-child เริ่มที่ 1 และตัวที่ 1 คือคอลัมน์ checkbox ที่ไม่ตรึง
+      var th = headRow.children[nthChild - 1];
+      if (!th) break;
+      [].forEach.call(table.querySelectorAll('tr > *:nth-child(' + nthChild + ')'), function (cell) {
+        cell.classList.add('freeze-sticky');
+        if (i === n - 1) cell.classList.add('freeze-sticky-last');
+        cell.style.left = offset + 'px';
+      });
+      offset += th.offsetWidth;
+    }
+  }
+  /* เปิดป็อปอัพเลือกจำนวนคอลัมน์ที่ตรึง — เลือก "ตรึงถึงคอลัมน์ X" แล้วตรึงคอลัมน์ 1..X ทั้งหมด (ไม่ใช่แค่
+     คอลัมน์เดียว) ใช้งานได้ทันทีตอนเปลี่ยนค่า (ไม่ต้องกด Apply) เหมือนตัวเลือกชนิดกราฟในแดชบอร์ด */
+  function openFreezeColPopover(anchorEl) {
+    var html = '<div class="fp-title">' + escapeHtml(t('freezeColTitle')) + '</div>' +
+      '<div class="fp-range">' +
+      '<label>' + escapeHtml(t('freezeColPickLbl')) + '<select class="fz-col">' +
+      '<option value="0"' + (!state.freezeCols ? ' selected' : '') + '>' + escapeHtml(t('freezeColNoneOption')) + '</option>' +
+      state.columns.map(function (c, i) { return '<option value="' + (i + 1) + '"' + (state.freezeCols === i + 1 ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>'; }).join('') +
+      '</select></label>' +
+      '</div>';
+    openPopover(html, anchorEl, function (el) {
+      el.querySelector('.fz-col').addEventListener('change', function () {
+        state.freezeCols = +this.value || 0;
+        renderTable();
+        persistDebounced();
+      });
+    });
+  }
+
   /* เปิดป็อปอัพตั้งค่าจัดกลุ่มแถว (Group by) — เลือกคอลัมน์จัดกลุ่ม + คอลัมน์รวมยอดย่อยไม่บังคับ
      ใช้ Apply เหมือนป็อปอัพตั้งค่าอื่นๆ (ไม่ใช่ apply ทันทีแบบแผงตรวจสุขภาพข้อมูล เพราะมีสองช่องให้เลือกคู่กัน) */
   function openGroupByPopover(anchorEl) {
@@ -1522,8 +1571,7 @@
     $('dataTable').innerHTML = thead + tbody;
     $('dataEmpty').textContent = t('dataEmptyTxt');
     $('dataEmpty').style.display = all.length ? 'none' : 'block';
-    $('dataTableWrap').classList.toggle('freeze-col', !!state.freezeFirstCol);
-    $('freezeColBtn').classList.toggle('active', !!state.freezeFirstCol);
+    applyFreezeOffsets();
     $('groupByBtn').classList.toggle('active', !!state.groupBy);
 
     /* ปิด pager เวลาจัดกลุ่มอยู่ (แสดงทุกแถวรวดเดียว ไม่แบ่งหน้า) — โชว์ข้อความอธิบายแทน */
@@ -4644,7 +4692,7 @@
       combineMode: state.combineMode, sheetNames: state.sheetNames,
       columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets,
       cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, condFormat: state.condFormat,
-      freezeFirstCol: state.freezeFirstCol, groupBy: state.groupBy, groupSubtotalCol: state.groupSubtotalCol, savedAt: Date.now() };
+      freezeCols: state.freezeCols, groupBy: state.groupBy, groupSubtotalCol: state.groupSubtotalCol, savedAt: Date.now() };
     dbAddReport(rec).then(function (id) {
       state.reportId = id; state.reportName = name;
       updateSaveUI();
@@ -4711,7 +4759,9 @@
     state.customBg = rec.customBg || null;
     state.dashboardBg = rec.dashboardBg || null;
     state.condFormat = rec.condFormat || {};
-    state.freezeFirstCol = !!rec.freezeFirstCol; state.groupBy = rec.groupBy || null; state.groupSubtotalCol = rec.groupSubtotalCol || null; state.collapsedGroups = {};
+    // เข้ากันได้กับรายงานเก่าที่บันทึกไว้ก่อนรองรับตรึงหลายคอลัมน์ (มีแค่ freezeFirstCol true/false)
+    state.freezeCols = rec.freezeCols != null ? (+rec.freezeCols || 0) : (rec.freezeFirstCol ? 1 : 0);
+    state.groupBy = rec.groupBy || null; state.groupSubtotalCol = rec.groupSubtotalCol || null; state.collapsedGroups = {};
       updateDrillBanner(); updateSaveUI();
       $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
       $('dataMeta').textContent = (state.fileName || rec.name) + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
@@ -5039,7 +5089,7 @@
     state.customBg = null;
     state.dashboardBg = null;
     state.condFormat = {};
-    state.freezeFirstCol = false; state.groupBy = null; state.groupSubtotalCol = null; state.collapsedGroups = {};
+    state.freezeCols = 0; state.groupBy = null; state.groupSubtotalCol = null; state.collapsedGroups = {};
     state.cellSel = null;
     state.reportId = null; state.reportName = null;
     updateDrillBanner(); updateSaveUI();
@@ -5121,11 +5171,7 @@
     $('redoBtn').addEventListener('click', redo);
     $('clearFilterBtn').addEventListener('click', clearAllFilters);
     $('dataHealthBtn').addEventListener('click', function () { openDataHealthPopover($('dataHealthBtn')); });
-    $('freezeColBtn').addEventListener('click', function () {
-      state.freezeFirstCol = !state.freezeFirstCol;
-      renderTable();
-      persistDebounced();
-    });
+    $('freezeColBtn').addEventListener('click', function () { openFreezeColPopover($('freezeColBtn')); });
     $('groupByBtn').addEventListener('click', function () { openGroupByPopover($('groupByBtn')); });
     $('autoSummaryBtn').addEventListener('click', function () { openAutoSummaryPopover($('autoSummaryBtn')); });
     [].forEach.call($('viewTabs').querySelectorAll('.chip'), function (b) {
@@ -5204,7 +5250,8 @@
     state.customBg = saved.customBg || null;
     state.dashboardBg = saved.dashboardBg || null;
     state.condFormat = saved.condFormat || {};
-    state.freezeFirstCol = !!saved.freezeFirstCol; state.groupBy = saved.groupBy || null; state.groupSubtotalCol = saved.groupSubtotalCol || null; state.collapsedGroups = {};
+    state.freezeCols = saved.freezeCols != null ? (+saved.freezeCols || 0) : (saved.freezeFirstCol ? 1 : 0);
+    state.groupBy = saved.groupBy || null; state.groupSubtotalCol = saved.groupSubtotalCol || null; state.collapsedGroups = {};
           updateDrillBanner(); updateSaveUI();
           $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none';
           $('viewTabs').style.display = 'flex';

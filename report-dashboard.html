@@ -285,13 +285,14 @@ body.cellsel-dragging{user-select:none;-webkit-user-select:none}
 .cellsel-autofill-btn:hover{background:var(--brand-sf)}
 .tbl-empty{font-size:13px;color:var(--muted);padding:16px 4px;text-align:center}
 
-/* ── ตรึงคอลัมน์แรก (Freeze pane) — ตรึงเฉพาะ "คอลัมน์ข้อมูลจริงคอลัมน์แรก" (ไม่ใช่คอลัมน์ checkbox ที่มา
-   ก่อนหน้า) ไว้ที่ left:0 ตอนเลื่อนตารางไปทางขวา คอลัมน์ checkbox ที่ไม่ได้ตรึงจะเลื่อนลับซ้ายจอไปเองตามปกติ
-   แล้วคอลัมน์ที่ตรึงไว้ก็จะโผล่มาชิดขอบซ้ายพอดี ไม่ต้องคำนวณ offset ของคอลัมน์ก่อนหน้าเลย */
-.freeze-col th:nth-child(2),.freeze-col td:nth-child(2){position:sticky;left:0;z-index:3;
-  background:var(--card);box-shadow:2px 0 5px rgba(16,24,40,.08)}
-.freeze-col thead th:nth-child(2){z-index:4;background:#F8F9FB}
-.freeze-col .filter-row td:nth-child(2){background:#F8F9FB}
+/* ── ตรึงคอลัมน์ (Freeze pane) — ตรึงได้ตั้งแต่ 1 ถึง N คอลัมน์ข้อมูลจริงจากซ้าย (ไม่รวมคอลัมน์ checkbox
+   ที่มาก่อนหน้าเสมอ ปล่อยให้เลื่อนลับซ้ายจอไปตามปกติ พอเลื่อนพ้นแล้วคอลัมน์ที่ตรึงไว้ชุดแรกก็จะโผล่มาชิดขอบ
+   ซ้ายพอดี) ต่างจากตรึงคอลัมน์เดียวเดิมตรงที่ความกว้างแต่ละคอลัมน์ไม่เท่ากัน จึงคำนวณ offset สะสมด้วย JS
+   (ฟังก์ชัน applyFreezeOffsets) แล้วใส่เป็น inline style ให้คลาส .freeze-sticky แทนการใช้ nth-child คงที่ */
+.freeze-sticky{position:sticky;z-index:3;background:var(--card)}
+thead .freeze-sticky{z-index:4;background:#F8F9FB}
+.filter-row .freeze-sticky{background:#F8F9FB}
+.freeze-sticky.freeze-sticky-last{box-shadow:2px 0 5px rgba(16,24,40,.08)}
 #freezeColBtn.active,#groupByBtn.active{background:var(--brand-sf);border-color:var(--brand);color:var(--brand-dk)}
 
 /* ── จัดกลุ่มแถว + ยอดรวมย่อย (Group by / Subtotal) ── */
@@ -555,7 +556,7 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
       <button class="btn sm" id="redoBtn" type="button" disabled data-i18n="redoBtn">↪️ ทำซ้ำ</button>
       <button class="btn sm" id="clearFilterBtn" type="button" data-i18n="clearFilterBtn">ล้างตัวกรอง</button>
       <button class="btn sm" id="dataHealthBtn" type="button" data-i18n="dataHealthBtn">🩺 ตรวจสุขภาพข้อมูล</button>
-      <button class="btn sm" id="freezeColBtn" type="button" data-i18n="freezeColBtn">📌 ตรึงคอลัมน์แรก</button>
+      <button class="btn sm" id="freezeColBtn" type="button" data-i18n="freezeColBtn">📌 ตรึงคอลัมน์</button>
       <button class="btn sm" id="groupByBtn" type="button" data-i18n="groupByBtn">📊 จัดกลุ่ม</button>
     </div>
     <div class="toolbar-row">
