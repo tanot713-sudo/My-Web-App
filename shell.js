@@ -365,6 +365,24 @@
   /* ── PWA ────────────────────────────────────────────────────────── */
   function registerSW() {
     if ('serviceWorker' in navigator) {
+      /* SW ใหม่ "เข้าควบคุม" หน้านี้ได้ (skipWaiting+clients.claim ใน sw.js) โดยไม่ทำให้โค้ด JS ที่โหลด
+         และรันอยู่แล้วในแท็บนี้เปลี่ยนตามไปด้วย — ต้อง reload จริงๆ อีกครั้งถึงจะได้ report-dashboard.js
+         ฉบับใหม่มาทำงาน ไม่งั้นผู้ใช้จะ "รีเฟรชแล้ว" แต่ยังเจอโค้ดเก่าอยู่ดี (สลับ controller ระหว่างกลาง
+         แต่หน้าที่กำลังรันไม่ได้ re-execute script ใหม่) เจอเคสจริงว่าฟีเจอร์ที่เพิ่งแก้ไปแล้วดูเหมือน
+         "ยังไม่ได้แก้" ทั้งที่ deploy สำเร็จแล้ว เพราะแท็บที่เปิดค้างไว้ตอน deploy ยังไม่เคย reload ครบ
+         รอบตั้งแต่ SW ใหม่เข้าควบคุม — reload ให้อัตโนมัติทันทีที่ตรวจพบว่า controller เปลี่ยน (ครั้งเดียว
+         กัน loop เผื่อ event ยิงซ้ำ) ผู้ใช้จะได้เห็นโค้ดล่าสุดจริงๆ โดยไม่ต้องกดรีเฟรชเอง 2 รอบ */
+      /* สำคัญ: controllerchange ยิงด้วยตอน "ครั้งแรกที่เคยลงทะเบียน SW" เช่นกัน (จากไม่มี controller เลย
+         กลายเป็นมี) ไม่ใช่แค่ตอนมี SW เก่าอยู่แล้วแล้วเปลี่ยนเป็นใหม่ — ต้องเช็คว่ามี controller อยู่ก่อน
+         หน้าเว็บนี้โหลดเสร็จด้วย (แปลว่าเป็นแท็บที่เปิดค้าง/เข้าซ้ำ ไม่ใช่ครั้งแรก) ถึงจะ reload ไม่งั้น
+         ทุกคนที่เข้าเว็บนี้ครั้งแรก (หรือเปิด private/ล้างแคช) จะโดน reload เด้งซ้ำโดยไม่จำเป็นทันทีที่เข้า */
+      var hadController = !!navigator.serviceWorker.controller;
+      var reloading = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (reloading || !hadController) return;
+        reloading = true;
+        location.reload();
+      });
       navigator.serviceWorker.register(BASE + 'sw.js').then(function (reg) {
         /* เช็คอัปเดต sw.js ทันทีทุกครั้งที่โหลดหน้า — ปกติเบราว์เซอร์จะเช็คให้เองอัตโนมัติแค่ทุก ~24
            ชั่วโมง (ตาม spec ของ Service Worker) เจอจริงว่าตอน deploy โค้ดใหม่หลายรอบในวันเดียวกัน (ระหว่าง
