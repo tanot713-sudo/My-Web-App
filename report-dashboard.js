@@ -81,6 +81,25 @@
       renameColPrompt: 'ตั้งชื่อคอลัมน์', dblclickRenameHint: 'ดับเบิลคลิกชื่อคอลัมน์เพื่อเปลี่ยนชื่อ',
       fillHandleHint: 'ลากเพื่อเติมอัตโนมัติ — กด Ctrl ค้างไว้ระหว่างลาก หรือกดปุ่ม ⚙️ ที่ขึ้นมาหลังลากเสร็จ เพื่อสลับโหมด (ไล่เลข/ทำซ้ำ)',
       delSelBtn: '🗑️ ลบที่เลือก', undoBtn: '↩️ เลิกทำ', clearFilterBtn: 'ล้างตัวกรอง',
+      addFormulaColBtn: '+ ƒx คอลัมน์สูตร',
+      fcAddTitle: 'ƒx เพิ่มคอลัมน์สูตร', fcEditTitle: 'ƒx แก้ไขคอลัมน์สูตร',
+      fcNameLbl: 'ชื่อคอลัมน์', fcNamePh: 'เช่น ยอดรวม',
+      fcFormulaLbl: 'สูตร (คลิกชื่อคอลัมน์ด้านล่างเพื่อแทรก)', fcFormulaPh: 'เช่น [ราคา] * [จำนวน]',
+      fcHint: 'ตัวดำเนินการ: + − × / ^(ยกกำลัง) และเทียบค่า &gt; &gt;= &lt; &lt;= == !=<br>ฟังก์ชัน: IF(เงื่อนไข,จริง,เท็จ) · AND(...) · OR(...) · NOT(x) · ROUND(x,ทศนิยม) · ABS(x) · MIN(...) · MAX(...) · SUM(...) · CONCAT(...)',
+      fcErrNoName: 'กรุณาตั้งชื่อคอลัมน์', fcErrNoFormula: 'กรุณาพิมพ์สูตร',
+      fcErrDupeName: 'มีคอลัมน์ชื่อนี้อยู่แล้ว ตั้งชื่ออื่น', fcErrorTitlePrefix: 'สูตรผิดพลาด: ',
+      fcDeleteBtn: '🗑️ ลบคอลัมน์นี้', fcDeleteConfirm: 'ลบคอลัมน์สูตรนี้ใช่ไหม?',
+      delColUsedInFormulaConfirm: 'คอลัมน์นี้ถูกใช้ในสูตรของคอลัมน์ "{cols}" — ถ้าลบ สูตรเหล่านั้นจะคำนวณไม่ได้อีกต่อไป ต้องการลบต่อหรือไม่?',
+      cancelBtn: 'ยกเลิก', saveBtn: 'บันทึก',
+      selCountLbl: 'จำนวนเซลล์', selNonEmptyLbl: 'มีค่า', selSumLbl: 'ผลรวม', selAvgLbl: 'เฉลี่ย',
+      selMinLbl: 'ต่ำสุด', selMaxLbl: 'สูงสุด',
+      fErrUnclosedBracket: 'ไม่พบ ] ปิดชื่อคอลัมน์', fErrUnclosedString: 'ข้อความในเครื่องหมายคำพูดไม่ปิด',
+      fErrUnknownChar: 'พบอักขระที่ไม่รู้จักในสูตร: "{c}"', fErrExpected: 'รูปแบบสูตรผิด (คาดว่าจะเจอ "{type}")',
+      fErrUnknownWord: 'ไม่รู้จักคำว่า "{w}" (ลืมใส่ [ ] รอบชื่อคอลัมน์หรือเปล่า?)',
+      fErrIncomplete: 'สูตรไม่สมบูรณ์ ใกล้ตำแหน่ง "{near}"',
+      fErrColNotFound: 'ไม่พบคอลัมน์ชื่อ "{label}"', fErrSelfRef: 'สูตรอ้างอิงคอลัมน์ตัวเองไม่ได้',
+      fErrRefFormulaCol: 'สูตรอ้างอิงคอลัมน์สูตร "{label}" ไม่ได้ (อ้างอิงได้เฉพาะคอลัมน์ข้อมูลต้นฉบับ)',
+      fErrDivZero: 'หารด้วยศูนย์', fErrArgCount: '{fn} ต้องมี {n} อาร์กิวเมนต์', fErrUnknownFn: 'ไม่รู้จักฟังก์ชัน "{fn}"',
       saveReportBtn: '💾 บันทึกเป็นรายงาน', savedReportBtn: '💾 บันทึกแล้ว: {name}',
       myReportsBtn: '📁 รายงานของฉัน', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 ไฟล์ใหม่',
       dataEmptyTxt: 'ไม่พบแถวที่ตรงกับตัวกรอง', colFallback: 'คอลัมน์ {n}',
@@ -218,6 +237,25 @@
       renameColPrompt: 'Rename column', dblclickRenameHint: 'Double-click a column name to rename it',
       fillHandleHint: 'Drag to auto-fill — hold Ctrl while dragging, or tap the ⚙️ button that appears after, to toggle mode (series/repeat)',
       delSelBtn: '🗑️ Delete Selected', undoBtn: '↩️ Undo', clearFilterBtn: 'Clear Filters',
+      addFormulaColBtn: '+ ƒx Formula Column',
+      fcAddTitle: 'ƒx Add Formula Column', fcEditTitle: 'ƒx Edit Formula Column',
+      fcNameLbl: 'Column name', fcNamePh: 'e.g. Total',
+      fcFormulaLbl: 'Formula (click a column name below to insert)', fcFormulaPh: 'e.g. [Price] * [Qty]',
+      fcHint: 'Operators: + − × / ^(power) and comparisons &gt; &gt;= &lt; &lt;= == !=<br>Functions: IF(cond,then,else) · AND(...) · OR(...) · NOT(x) · ROUND(x,decimals) · ABS(x) · MIN(...) · MAX(...) · SUM(...) · CONCAT(...)',
+      fcErrNoName: 'Please name the column', fcErrNoFormula: 'Please enter a formula',
+      fcErrDupeName: 'A column with this name already exists', fcErrorTitlePrefix: 'Formula error: ',
+      fcDeleteBtn: '🗑️ Delete this column', fcDeleteConfirm: 'Delete this formula column?',
+      delColUsedInFormulaConfirm: 'This column is used in the formula of column "{cols}" — deleting it will break those formulas. Delete anyway?',
+      cancelBtn: 'Cancel', saveBtn: 'Save',
+      selCountLbl: 'Cells', selNonEmptyLbl: 'Non-empty', selSumLbl: 'Sum', selAvgLbl: 'Average',
+      selMinLbl: 'Min', selMaxLbl: 'Max',
+      fErrUnclosedBracket: 'Missing ] to close column name', fErrUnclosedString: 'Unclosed quoted text',
+      fErrUnknownChar: 'Unknown character in formula: "{c}"', fErrExpected: 'Malformed formula (expected "{type}")',
+      fErrUnknownWord: 'Unknown word "{w}" (did you forget [ ] around a column name?)',
+      fErrIncomplete: 'Incomplete formula near "{near}"',
+      fErrColNotFound: 'Column "{label}" not found', fErrSelfRef: 'A formula cannot reference its own column',
+      fErrRefFormulaCol: 'Cannot reference formula column "{label}" (only source data columns are allowed)',
+      fErrDivZero: 'Division by zero', fErrArgCount: '{fn} requires {n} argument(s)', fErrUnknownFn: 'Unknown function "{fn}"',
       saveReportBtn: '💾 Save as Report', savedReportBtn: '💾 Saved: {name}',
       myReportsBtn: '📁 My Reports', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 New File',
       dataEmptyTxt: 'No rows match the current filters', colFallback: 'Column {n}',
@@ -667,7 +705,10 @@
     $('dashExportToolbar').style.display = (view === 'dashboard' || view === 'custom') ? 'flex' : 'none';
     $('dashBgToolbar').style.display = view === 'dashboard' ? 'flex' : 'none';
     /* render ใหม่ทุกครั้งที่สลับเข้ามุมมองนั้น (ไม่ใช่แค่ตอน confirmHeader()/resume ครั้งแรก) — กันเห็น
-       ข้อมูลเก่าค้าง เช่น กด drill-down จากแดชบอร์ดแล้วสลับมาตาราง ต้องเห็นตารางกรองตามด้วย */
+       ข้อมูลเก่าค้าง เช่น กด drill-down จากแดชบอร์ดแล้วสลับมาตาราง ต้องเห็นตารางกรองตามด้วย
+       recomputeFormulas() ก่อนเสมอ — เผื่อสลับตรงไปแดชบอร์ด/กำหนดเองโดยยังไม่เคยเปิดแท็บตารางเลยในรอบนี้
+       (renderTable() ก็เรียกซ้ำอีกชั้นเองอยู่แล้วตอนสลับไปตาราง ไม่เป็นไร เรียกซ้ำได้ ไม่มีผลข้างเคียง) */
+    recomputeFormulas();
     if (view === 'dashboard') renderDashboard();
     else if (view === 'custom') renderCustomView();
     else renderTable();
@@ -815,6 +856,7 @@
 
   /* ══════════════════ วาดตาราง ══════════════════ */
   function renderTable() {
+    recomputeFormulas();
     var all = getFilteredSorted();
     var totalPages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
     if (state.page > totalPages) state.page = totalPages;
@@ -826,7 +868,10 @@
       state.columns.map(function (col) {
         var sorted = state.sortCol === col.key;
         var ic = sorted ? (state.sortDir === 'asc' ? '▲' : '▼') : '↕';
+        var fxBtn = col.formula ? '<button type="button" class="col-fx' + (col.formulaError ? ' err' : '') + '" data-col="' + col.key +
+          '" title="' + escapeAttr(col.formulaError ? (t('fcErrorTitlePrefix') + col.formulaError) : t('fcEditTitle')) + '">ƒx</button>' : '';
         return '<th class="' + (col.type === 'number' ? 'num' : '') + (sorted ? ' sorted' : '') + '" data-col="' + col.key + '">' +
+          fxBtn +
           '<span class="th-label" data-col="' + col.key + '" title="' + escapeAttr(t('dblclickRenameHint')) + '">' + escapeHtml(col.label) + '</span>' +
           '<span class="sort-ic">' + ic + '</span>' +
           '<button type="button" class="col-del" data-col="' + col.key + '" title="' + escapeAttr(t('delColTitle')) + '">✕</button></th>';
@@ -859,8 +904,10 @@
           state.columns.map(function (col) {
             var v = cellEditValue(row[col.key], col.type);
             var inputType = col.type === 'number' ? 'number' : (col.type === 'date' ? 'date' : 'text');
-            return '<td class="' + (col.type === 'number' ? 'num' : '') + '" data-id="' + row.__id + '" data-col="' + col.key + '"><input class="cell-in" type="' + inputType +
-              '" data-id="' + row.__id + '" data-col="' + col.key + '" value="' + escapeAttr(v) + '"' + (col.type === 'number' ? ' step="any"' : '') + '></td>';
+            /* คอลัมน์สูตร: อ่านอย่างเดียว (readonly ไม่ใช่ disabled — ยังโฟกัส/เลือก/คัดลอกได้ปกติ แค่พิมพ์
+               ทับค่าที่คำนวณเองไม่ได้ ค่าจะถูกคำนวณทับใหม่เสมอโดย recomputeFormulas() อยู่แล้วด้วย) */
+            return '<td class="' + (col.type === 'number' ? 'num' : '') + (col.formula ? ' formula-cell' : '') + '" data-id="' + row.__id + '" data-col="' + col.key + '"><input class="cell-in" type="' + inputType +
+              '" data-id="' + row.__id + '" data-col="' + col.key + '" value="' + escapeAttr(v) + '"' + (col.type === 'number' ? ' step="any"' : '') + (col.formula ? ' readonly tabindex="-1"' : '') + '></td>';
           }).join('') +
           '<td class="rowdel"><button type="button" class="del1" data-id="' + row.__id + '" title="' + escapeAttr(t('delRowTitle')) + '">✕</button></td>' +
           '</tr>';
@@ -1328,6 +1375,14 @@
     [].forEach.call($('dataTable').querySelectorAll('.col-del'), function (btn) {
       btn.addEventListener('click', function (e) { e.stopPropagation(); deleteColumn(btn.getAttribute('data-col')); });
     });
+    /* แก้ไขสูตร (ปุ่ม ƒx ในหัวคอลัมน์สูตร) */
+    [].forEach.call($('dataTable').querySelectorAll('.col-fx'), function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var col = state.columns.filter(function (c) { return c.key === btn.getAttribute('data-col'); })[0];
+        if (col) openFormulaColumnPopover(col, btn);
+      });
+    });
     /* เปลี่ยนชื่อคอลัมน์ (ดับเบิลคลิกที่ชื่อ) */
     [].forEach.call($('dataTable').querySelectorAll('.th-label'), function (span) {
       span.addEventListener('dblclick', function (e) { e.stopPropagation(); renameColumn(span.getAttribute('data-col')); });
@@ -1436,6 +1491,231 @@
     persistDebounced();
   }
 
+  /* ══════════════════ คอลัมน์สูตรคำนวณ (Calculated Column) ══════════════════
+     ภาษาสูตรอย่างง่ายคล้าย Excel — เขียน tokenizer + recursive-descent parser + evaluator เอง (ไม่ใช้
+     eval()/new Function() เพื่อความปลอดภัย ผู้ใช้พิมพ์สูตรเองได้อิสระโดยไม่เสี่ยงรันโค้ดจริง) อ้างอิงคอลัมน์
+     อื่นด้วย [ชื่อคอลัมน์] (ป้ายชื่อที่แสดงผล ไม่ใช่ key ภายใน — อ่านง่ายกว่าสำหรับผู้ใช้ทั่วไป) รองรับเฉพาะ
+     การอ้างอิง "คอลัมน์ข้อมูลต้นฉบับ" เท่านั้น (ห้ามอ้างอิงคอลัมน์สูตรอื่น) เพื่อตัดปัญหาลำดับการคำนวณ/
+     อ้างอิงวนซ้ำไปได้ทั้งหมดตั้งแต่ต้น — คอลัมน์สูตรจะถูกคำนวณใหม่ทุกครั้งที่ renderTable() (ดู
+     recomputeFormulas() ที่เรียกเป็นบรรทัดแรกของ renderTable()) จึงไม่มีทางค้างค่าเก่าหลังแก้ข้อมูลต้นทาง */
+  function formulaTokenize(src) {
+    var toks = [], i = 0, n = src.length;
+    function isDigit(c) { return c >= '0' && c <= '9'; }
+    function isIdentStart(c) { return /[A-Za-z_]/.test(c); }
+    function isIdentPart(c) { return /[A-Za-z0-9_]/.test(c); }
+    while (i < n) {
+      var c = src[i];
+      if (c === ' ' || c === '\t' || c === '\n' || c === '\r') { i++; continue; }
+      if (c === '[') {
+        var j = src.indexOf(']', i + 1);
+        if (j === -1) throw new Error(t('fErrUnclosedBracket'));
+        toks.push({ type: 'colref', value: src.slice(i + 1, j).trim() });
+        i = j + 1; continue;
+      }
+      if (c === '"' || c === "'") {
+        var q = c, k = i + 1, buf = '';
+        while (k < n && src[k] !== q) { buf += src[k]; k++; }
+        if (k >= n) throw new Error(t('fErrUnclosedString'));
+        toks.push({ type: 'str', value: buf });
+        i = k + 1; continue;
+      }
+      if (isDigit(c) || (c === '.' && isDigit(src[i + 1] || ''))) {
+        var k2 = i, buf2 = '';
+        while (k2 < n && (isDigit(src[k2]) || src[k2] === '.')) { buf2 += src[k2]; k2++; }
+        toks.push({ type: 'num', value: parseFloat(buf2) });
+        i = k2; continue;
+      }
+      if (isIdentStart(c)) {
+        var k3 = i, buf3 = '';
+        while (k3 < n && isIdentPart(src[k3])) { buf3 += src[k3]; k3++; }
+        toks.push({ type: 'ident', value: buf3 });
+        i = k3; continue;
+      }
+      var two = src.substr(i, 2);
+      if (two === '>=' || two === '<=' || two === '==' || two === '!=' || two === '<>') {
+        toks.push({ type: 'op', value: two === '<>' ? '!=' : two }); i += 2; continue;
+      }
+      if (c === '(' || c === ')' || c === ',') { toks.push({ type: c }); i++; continue; }
+      if (c === '=') { toks.push({ type: 'op', value: '==' }); i++; continue; }
+      if ('+-*/%^><'.indexOf(c) !== -1) { toks.push({ type: 'op', value: c }); i++; continue; }
+      throw new Error(t('fErrUnknownChar', { c: c }));
+    }
+    toks.push({ type: 'eof' });
+    return toks;
+  }
+  function formulaParse(toks) {
+    var pos = 0;
+    function peek() { return toks[pos]; }
+    function next() { return toks[pos++]; }
+    function expect(type) { if (peek().type !== type) throw new Error(t('fErrExpected', { type: type })); return next(); }
+    function parseComparison() {
+      var left = parseAdditive();
+      while (peek().type === 'op' && ['>', '>=', '<', '<=', '==', '!='].indexOf(peek().value) !== -1) {
+        var op = next().value; left = { type: 'binary', op: op, left: left, right: parseAdditive() };
+      }
+      return left;
+    }
+    function parseAdditive() {
+      var left = parseMultiplicative();
+      while (peek().type === 'op' && (peek().value === '+' || peek().value === '-')) {
+        var op = next().value; left = { type: 'binary', op: op, left: left, right: parseMultiplicative() };
+      }
+      return left;
+    }
+    function parseMultiplicative() {
+      var left = parsePower();
+      while (peek().type === 'op' && (peek().value === '*' || peek().value === '/' || peek().value === '%')) {
+        var op = next().value; left = { type: 'binary', op: op, left: left, right: parsePower() };
+      }
+      return left;
+    }
+    function parsePower() {
+      var left = parseUnary();
+      if (peek().type === 'op' && peek().value === '^') { next(); return { type: 'binary', op: '^', left: left, right: parsePower() }; }
+      return left;
+    }
+    function parseUnary() {
+      if (peek().type === 'op' && (peek().value === '-' || peek().value === '+')) {
+        var op = next().value; return { type: 'unary', op: op, arg: parseUnary() };
+      }
+      return parsePrimary();
+    }
+    function parsePrimary() {
+      var tk = peek();
+      if (tk.type === 'num') { next(); return { type: 'num', value: tk.value }; }
+      if (tk.type === 'str') { next(); return { type: 'str', value: tk.value }; }
+      if (tk.type === 'colref') { next(); return { type: 'colref', label: tk.value }; }
+      if (tk.type === '(') { next(); var e = parseComparison(); expect(')'); return e; }
+      if (tk.type === 'ident') {
+        next();
+        if (peek().type === '(') {
+          next();
+          var args = [];
+          if (peek().type !== ')') { args.push(parseComparison()); while (peek().type === ',') { next(); args.push(parseComparison()); } }
+          expect(')');
+          return { type: 'call', name: tk.value.toUpperCase(), args: args };
+        }
+        throw new Error(t('fErrUnknownWord', { w: tk.value }));
+      }
+      throw new Error(t('fErrIncomplete', { near: tk.value != null ? String(tk.value) : tk.type }));
+    }
+    var ast = parseComparison();
+    expect('eof');
+    return ast;
+  }
+  /* ผูก [ชื่อคอลัมน์] ในสูตรเข้ากับ key จริงตอน validate (ครั้งเดียว ไม่ใช่ทุกแถว) — พร้อมกันการอ้างอิง
+     ตัวเอง/คอลัมน์สูตรอื่น ซึ่งเป็นเงื่อนไขที่ทำให้ระบบนี้ไม่ต้องกังวลเรื่องลำดับคำนวณ/วนซ้ำเลย */
+  function formulaResolveRefs(node, excludeKey) {
+    if (node.type === 'colref') {
+      var col = state.columns.filter(function (c) { return c.label === node.label; })[0];
+      if (!col) throw new Error(t('fErrColNotFound', { label: node.label }));
+      if (col.key === excludeKey) throw new Error(t('fErrSelfRef'));
+      if (col.formula) throw new Error(t('fErrRefFormulaCol', { label: node.label }));
+      node.key = col.key;
+      return;
+    }
+    if (node.type === 'unary') { formulaResolveRefs(node.arg, excludeKey); return; }
+    if (node.type === 'binary') { formulaResolveRefs(node.left, excludeKey); formulaResolveRefs(node.right, excludeKey); return; }
+    if (node.type === 'call') { node.args.forEach(function (a) { formulaResolveRefs(a, excludeKey); }); return; }
+  }
+  function formulaValidate(exprStr, excludeKey) {
+    try {
+      var ast = formulaParse(formulaTokenize(exprStr));
+      formulaResolveRefs(ast, excludeKey);
+      return { ok: true, ast: ast };
+    } catch (e) { return { ok: false, error: e.message }; }
+  }
+  function formulaToNum(v) {
+    if (v === null || v === undefined || v === '') return 0;
+    if (typeof v === 'number') return v;
+    if (v instanceof Date) return v.getTime();
+    if (typeof v === 'boolean') return v ? 1 : 0;
+    var n = parseFloat(v);
+    return isFinite(n) ? n : 0;
+  }
+  function formulaToBool(v) {
+    if (typeof v === 'boolean') return v;
+    if (v === null || v === undefined || v === '') return false;
+    if (typeof v === 'number') return v !== 0;
+    var s = String(v).trim().toLowerCase();
+    return s !== '' && s !== 'false' && s !== '0';
+  }
+  function formulaToDisplay(v) {
+    if (v === null || v === undefined) return '';
+    if (v instanceof Date) return v.toLocaleDateString(locale());
+    if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
+    return v;
+  }
+  function formulaEvalNode(node, row) {
+    switch (node.type) {
+      case 'num': case 'str': return node.value;
+      case 'colref': return row[node.key];
+      case 'unary': { var v = formulaEvalNode(node.arg, row); return node.op === '-' ? -formulaToNum(v) : formulaToNum(v); }
+      case 'binary': {
+        var op = node.op;
+        if (op === '>' || op === '>=' || op === '<' || op === '<=' || op === '==' || op === '!=') {
+          var l = formulaEvalNode(node.left, row), r = formulaEvalNode(node.right, row);
+          var ln = l instanceof Date ? l.getTime() : (typeof l === 'number' ? l : parseFloat(l));
+          var rn = r instanceof Date ? r.getTime() : (typeof r === 'number' ? r : parseFloat(r));
+          var bothNum = isFinite(ln) && isFinite(rn) && l !== null && l !== '' && r !== null && r !== '';
+          var a = bothNum ? ln : String(l == null ? '' : l), b = bothNum ? rn : String(r == null ? '' : r);
+          if (op === '>') return a > b; if (op === '>=') return a >= b;
+          if (op === '<') return a < b; if (op === '<=') return a <= b;
+          if (op === '==') return a === b; return a !== b;
+        }
+        var lv = formulaToNum(formulaEvalNode(node.left, row)), rv = formulaToNum(formulaEvalNode(node.right, row));
+        if (op === '+') return lv + rv; if (op === '-') return lv - rv; if (op === '*') return lv * rv;
+        if (op === '/') { if (rv === 0) throw new Error(t('fErrDivZero')); return lv / rv; }
+        if (op === '%') { if (rv === 0) throw new Error(t('fErrDivZero')); return lv % rv; }
+        return Math.pow(lv, rv);
+      }
+      case 'call': return formulaCallFn(node.name, node.args, row);
+    }
+    return null;
+  }
+  function formulaCallFn(name, args, row) {
+    function ev(i) { return formulaEvalNode(args[i], row); }
+    switch (name) {
+      case 'IF': if (args.length !== 3) throw new Error(t('fErrArgCount', { fn: 'IF', n: 3 })); return formulaToBool(ev(0)) ? ev(1) : ev(2);
+      case 'AND': return args.every(function (_, i) { return formulaToBool(ev(i)); });
+      case 'OR': return args.some(function (_, i) { return formulaToBool(ev(i)); });
+      case 'NOT': if (args.length !== 1) throw new Error(t('fErrArgCount', { fn: 'NOT', n: 1 })); return !formulaToBool(ev(0));
+      case 'ROUND': { var x = formulaToNum(ev(0)), n = args.length > 1 ? formulaToNum(ev(1)) : 0, f = Math.pow(10, n); return Math.round(x * f) / f; }
+      case 'ABS': return Math.abs(formulaToNum(ev(0)));
+      case 'MIN': return Math.min.apply(null, args.map(function (_, i) { return formulaToNum(ev(i)); }));
+      case 'MAX': return Math.max.apply(null, args.map(function (_, i) { return formulaToNum(ev(i)); }));
+      case 'SUM': return args.reduce(function (s, _, i) { return s + formulaToNum(ev(i)); }, 0);
+      case 'CONCAT': return args.map(function (_, i) { return String(formulaToDisplay(ev(i))); }).join('');
+      default: throw new Error(t('fErrUnknownFn', { fn: name }));
+    }
+  }
+  /* คำนวณคอลัมน์สูตรทุกคอลัมน์ใหม่ทั้งหมด — เรียกเป็นบรรทัดแรกของ renderTable() เสมอ (choke point เดียว)
+     กันพลาดจุดเรียกหลังแก้ข้อมูล/แปะ/ลาก fill handle/เพิ่ม-ลบแถว-คอลัมน์ ฯลฯ ที่มีหลายจุดมาก ถ้าสูตรผิดพลาด
+     (อ้างอิงคอลัมน์ที่ถูกลบไปแล้ว ฯลฯ) ตั้งค่าทุกแถวเป็นว่างแทนที่จะค้างค่าเก่าผิดๆ ไว้ */
+  function recomputeFormulas() {
+    state.columns.forEach(function (col) {
+      if (!col.formula) { col.formulaError = null; return; }
+      var res = formulaValidate(col.formula, col.key);
+      if (!res.ok) { col.formulaError = res.error; state.rows.forEach(function (r) { r[col.key] = null; }); return; }
+      col.formulaError = null;
+      state.rows.forEach(function (row) {
+        try { row[col.key] = formulaEvalNode(res.ast, row); } catch (e) { row[col.key] = null; }
+      });
+      col.type = inferColumnType(state.rows.map(function (r) { return r[col.key]; }));
+    });
+  }
+  /* เปลี่ยนชื่อคอลัมน์แล้ว "ไล่แก้" ข้อความสูตรของคอลัมน์อื่นที่อ้างอิง [ชื่อเดิม] ให้เป็น [ชื่อใหม่] ตาม —
+     ไม่งั้นสูตรที่อ้างอิงคอลัมน์นี้อยู่จะพังทันทีที่เปลี่ยนชื่อ (formulaResolveRefs หาไม่เจอ) */
+  function cascadeRenameInFormulas(oldLabel, newLabel) {
+    if (oldLabel === newLabel) return;
+    var pattern = new RegExp('\\[' + oldLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\]', 'g');
+    state.columns.forEach(function (c) { if (c.formula && pattern.test(c.formula)) c.formula = c.formula.replace(pattern, '[' + newLabel + ']'); });
+  }
+  function formulaDependentsOf(label) {
+    var pattern = new RegExp('\\[' + label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\]');
+    return state.columns.filter(function (c) { return c.formula && pattern.test(c.formula); });
+  }
+
   /* ══════════════════ เพิ่ม/ลบ/เปลี่ยนชื่อ คอลัมน์ ══════════════════ */
   function genColKey() { return 'col_new_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   function addColumn() {
@@ -1454,11 +1734,21 @@
     next = next.trim();
     if (!next) return;
     pushHistory();
+    var oldLabel = col.label;
     col.label = next;
+    cascadeRenameInFormulas(oldLabel, next);
     renderTable();
     persistDebounced();
   }
   function deleteColumn(key) {
+    var col = state.columns.filter(function (c) { return c.key === key; })[0];
+    if (col) {
+      var dependents = formulaDependentsOf(col.label).filter(function (c) { return c.key !== key; });
+      if (dependents.length) {
+        var names = dependents.map(function (c) { return c.label; }).join(', ');
+        if (!window.confirm(t('delColUsedInFormulaConfirm', { cols: names }))) return;
+      }
+    }
     pushHistory();
     state.columns = state.columns.filter(function (c) { return c.key !== key; });
     state.rows.forEach(function (r) { delete r[key]; });
@@ -1468,6 +1758,77 @@
     if (state.cellSel && (state.cellSel.col0 === key || state.cellSel.col1 === key)) state.cellSel = null;
     renderTable();
     persistDebounced();
+  }
+  /* เพิ่ม/แก้ไขคอลัมน์สูตร — เปิดจากปุ่ม "+ ƒx คอลัมน์สูตร" (คอลัมน์ใหม่) หรือปุ่ม ƒx ที่หัวคอลัมน์สูตรเดิม */
+  function openFormulaColumnPopover(existingCol, anchorEl) {
+    var isNew = !existingCol;
+    var chips = state.columns.filter(function (c) { return !c.formula; }).map(function (c) {
+      return '<button type="button" class="fc-chip" data-label="' + escapeAttr(c.label) + '">' + escapeHtml(c.label) + '</button>';
+    }).join('');
+    var html = '<div class="fp-title">' + escapeHtml(isNew ? t('fcAddTitle') : t('fcEditTitle')) + '</div>' +
+      '<label class="fc-label">' + escapeHtml(t('fcNameLbl')) + '</label>' +
+      '<input class="fp-search" id="fcName" type="text" value="' + escapeAttr(isNew ? '' : existingCol.label) + '" placeholder="' + escapeAttr(t('fcNamePh')) + '">' +
+      '<label class="fc-label">' + escapeHtml(t('fcFormulaLbl')) + '</label>' +
+      '<textarea id="fcFormula" class="fc-formula" rows="3" placeholder="' + escapeAttr(t('fcFormulaPh')) + '">' + escapeHtml(isNew ? '' : (existingCol.formula || '')) + '</textarea>' +
+      (chips ? '<div class="fc-chips">' + chips + '</div>' : '') +
+      '<div class="fc-error" id="fcError"></div>' +
+      '<div class="fc-hint">' + t('fcHint') + '</div>' +
+      '<div class="fp-actions">' +
+      (isNew ? '<span></span>' : '<button type="button" class="fp-link" id="fcDeleteBtn">' + escapeHtml(t('fcDeleteBtn')) + '</button>') +
+      '<div class="fp-btns"><button type="button" class="btn ghost sm" id="fcCancelBtn">' + escapeHtml(t('cancelBtn')) + '</button>' +
+      '<button type="button" class="btn primary sm" id="fcSaveBtn" disabled>' + escapeHtml(t('saveBtn')) + '</button></div></div>';
+    openPopover(html, anchorEl, function (el, close) {
+      var nameInp = el.querySelector('#fcName'), formulaInp = el.querySelector('#fcFormula');
+      var errEl = el.querySelector('#fcError'), saveBtn = el.querySelector('#fcSaveBtn');
+      function validateNow() {
+        var name = nameInp.value.trim(), formula = formulaInp.value.trim();
+        if (!name) { errEl.textContent = t('fcErrNoName'); saveBtn.disabled = true; return; }
+        if (!formula) { errEl.textContent = t('fcErrNoFormula'); saveBtn.disabled = true; return; }
+        var dupe = state.columns.filter(function (c) { return c.label === name && (!existingCol || c.key !== existingCol.key); })[0];
+        if (dupe) { errEl.textContent = t('fcErrDupeName'); saveBtn.disabled = true; return; }
+        var res = formulaValidate(formula, existingCol ? existingCol.key : null);
+        if (!res.ok) { errEl.textContent = res.error; saveBtn.disabled = true; return; }
+        errEl.textContent = ''; saveBtn.disabled = false;
+      }
+      nameInp.addEventListener('input', validateNow);
+      formulaInp.addEventListener('input', validateNow);
+      [].forEach.call(el.querySelectorAll('.fc-chip'), function (chip) {
+        /* mousedown + preventDefault กัน textarea เสียโฟกัส (ปุ่มจะแย่งโฟกัสไปตอน mousedown ปกติ)
+           เพื่อให้รู้ตำแหน่งเคอร์เซอร์ล่าสุดและแทรกชื่อคอลัมน์ตรงจุดนั้นได้แม่นยำ */
+        chip.addEventListener('mousedown', function (e) {
+          e.preventDefault();
+          var token = '[' + chip.getAttribute('data-label') + ']';
+          var start = formulaInp.selectionStart, end = formulaInp.selectionEnd;
+          formulaInp.value = formulaInp.value.slice(0, start) + token + formulaInp.value.slice(end);
+          var newPos = start + token.length;
+          formulaInp.focus(); formulaInp.setSelectionRange(newPos, newPos);
+          validateNow();
+        });
+      });
+      var delBtn = el.querySelector('#fcDeleteBtn');
+      if (delBtn) delBtn.addEventListener('click', function () {
+        if (!window.confirm(t('fcDeleteConfirm'))) return;
+        deleteColumn(existingCol.key);
+        close();
+      });
+      el.querySelector('#fcCancelBtn').addEventListener('click', close);
+      saveBtn.addEventListener('click', function () {
+        var name = nameInp.value.trim(), formula = formulaInp.value.trim();
+        pushHistory();
+        if (isNew) {
+          state.columns.push({ key: genColKey(), label: name, type: 'number', formula: formula });
+        } else {
+          var oldLabel = existingCol.label;
+          existingCol.label = name; existingCol.formula = formula;
+          cascadeRenameInFormulas(oldLabel, name);
+        }
+        renderTable();
+        persistDebounced();
+        close();
+      });
+      validateNow();
+      nameInp.focus();
+    }, true);
   }
 
   /* ══════════════════ เลือกเซลล์ + ลาก Fill Handle (คล้าย Excel) ══════════════════
@@ -1490,13 +1851,45 @@
     if (r0 === -1 || r1 === -1 || c0 === -1 || c1 === -1) return null;
     return { rMin: Math.min(r0, r1), rMax: Math.max(r0, r1), cMin: Math.min(c0, c1), cMax: Math.max(c0, c1), rowIds: rowIds, colKeys: colKeys };
   }
+  /* แถบสรุปค่าที่เลือกแบบ Excel status bar — โผล่เฉพาะตอนเลือกมากกว่า 1 เซลล์ (เซลล์เดียวไม่มีประโยชน์อะไร
+     จะสรุป) นับ/รวม/เฉลี่ย/ต่ำสุด/สูงสุด เฉพาะเซลล์ที่แปลงเป็นตัวเลขได้ในช่วงที่เลือกไว้เท่านั้น */
+  function updateCellSelSummary(idx) {
+    var el = $('cellSelSummary');
+    if (!idx) { el.hidden = true; return; }
+    var cellCount = (idx.rMax - idx.rMin + 1) * (idx.cMax - idx.cMin + 1);
+    if (cellCount <= 1) { el.hidden = true; return; }
+    var nums = [], nonEmpty = 0;
+    for (var ri = idx.rMin; ri <= idx.rMax; ri++) {
+      var row = state.rows.filter(function (r) { return r.__id === idx.rowIds[ri]; })[0];
+      if (!row) continue;
+      for (var ci = idx.cMin; ci <= idx.cMax; ci++) {
+        var v = row[idx.colKeys[ci]];
+        if (v === null || v === undefined || v === '') continue;
+        nonEmpty++;
+        var n = typeof v === 'number' ? v : parseFloat(v);
+        if (isFinite(n)) nums.push(n);
+      }
+    }
+    var parts = [[t('selCountLbl'), cellCount.toLocaleString(locale())]];
+    if (nonEmpty !== cellCount) parts.push([t('selNonEmptyLbl'), nonEmpty.toLocaleString(locale())]);
+    if (nums.length) {
+      var sum = nums.reduce(function (a, b) { return a + b; }, 0);
+      parts.push([t('selSumLbl'), sum.toLocaleString(locale(), { maximumFractionDigits: 2 })]);
+      parts.push([t('selAvgLbl'), (sum / nums.length).toLocaleString(locale(), { maximumFractionDigits: 2 })]);
+      parts.push([t('selMinLbl'), Math.min.apply(null, nums).toLocaleString(locale(), { maximumFractionDigits: 2 })]);
+      parts.push([t('selMaxLbl'), Math.max.apply(null, nums).toLocaleString(locale(), { maximumFractionDigits: 2 })]);
+    }
+    el.hidden = false;
+    el.innerHTML = parts.map(function (p) { return '<span>' + escapeHtml(p[0]) + '<b>' + escapeHtml(p[1]) + '</b></span>'; }).join('');
+  }
   function renderCellSelOverlay(previewIdx) {
     var wrap = $('dataTableWrap');
     [].forEach.call(wrap.querySelectorAll('.cellsel-box,.cellsel-handle,.cellsel-fillpreview,.cellsel-autofill-btn'), function (el) { el.remove(); });
     [].forEach.call(wrap.querySelectorAll('td.cellsel-in'), function (td) { td.classList.remove('cellsel-in'); });
-    if (!state.cellSel) return;
+    if (!state.cellSel) { updateCellSelSummary(null); return; }
     var idx = cellSelToIndices(state.cellSel);
-    if (!idx) return;
+    if (!idx) { updateCellSelSummary(null); return; }
+    updateCellSelSummary(idx);
     var wrapRect = wrap.getBoundingClientRect();
     function rectFor(rMin, rMax, cMin, cMax) {
       var tdA = cellTd(idx.rowIds[rMin], idx.colKeys[cMin]);
@@ -1721,6 +2114,7 @@
         if (ci >= colKeys.length) break;
         var colKey = colKeys[ci];
         var col = state.columns.filter(function (cc) { return cc.key === colKey; })[0];
+        if (col && col.formula) continue; // คอลัมน์สูตรคำนวณเอง ห้ามวางทับ (จะถูก recomputeFormulas() คำนวณทับอยู่ดี)
         row[colKey] = coerceCellValue(col, line[c]);
         touchedCols[colKey] = true;
       }
@@ -1894,6 +2288,7 @@
       for (var ci = origin.cMin; ci <= origin.cMax; ci++) {
         var colKey = origin.colKeys[ci];
         var col = state.columns.filter(function (c) { return c.key === colKey; })[0];
+        if (col && col.formula) continue; // คอลัมน์สูตรคำนวณเอง ห้ามลากเติมทับ
         var srcVals = [];
         for (var ri = origin.rMin; ri <= origin.rMax; ri++) {
           var r = state.rows.filter(function (rr) { return rr.__id === origin.rowIds[ri]; })[0];
@@ -1922,11 +2317,13 @@
         if (dir === 'right') {
           for (var cr = origin.cMax + 1; cr <= target.cMax; cr++) {
             var colR = state.columns.filter(function (c) { return c.key === origin.colKeys[cr]; })[0];
+            if (colR && colR.formula) continue; // คอลัมน์สูตรคำนวณเอง ห้ามลากเติมทับ
             row[origin.colKeys[cr]] = fillLineValue(srcVals2, cr - origin.cMin, colR ? colR.type : 'text', invert);
           }
         } else {
           for (var cl = target.cMin; cl < origin.cMin; cl++) {
             var colL = state.columns.filter(function (c) { return c.key === origin.colKeys[cl]; })[0];
+            if (colL && colL.formula) continue; // คอลัมน์สูตรคำนวณเอง ห้ามลากเติมทับ
             row[origin.colKeys[cl]] = fillLineValue(srcVals2, cl - origin.cMin, colL ? colL.type : 'text', invert);
           }
         }
@@ -3948,6 +4345,7 @@
     });
     $('addRowBtn').addEventListener('click', addRow);
     $('addColBtn').addEventListener('click', addColumn);
+    $('addFormulaColBtn').addEventListener('click', function () { openFormulaColumnPopover(null, $('addFormulaColBtn')); });
     wireTableCopyPaste();
     [].forEach.call(document.querySelectorAll('.card-color-btn'), function (btn) {
       btn.addEventListener('click', function () { openCardColorPopover(btn.getAttribute('data-role'), btn, renderDashboard); });

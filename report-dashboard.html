@@ -266,6 +266,32 @@ body.cellsel-dragging{user-select:none;-webkit-user-select:none}
 .cellsel-autofill-btn:hover{background:var(--brand-sf)}
 .tbl-empty{font-size:13px;color:var(--muted);padding:16px 4px;text-align:center}
 
+/* ── แถบสรุปค่าที่เลือก (แบบ Excel status bar) — โผล่เฉพาะตอนลากเลือกมากกว่า 1 เซลล์ ── */
+.cellsel-summary{display:flex;flex-wrap:wrap;gap:5px 18px;margin-top:8px;padding:8px 14px;
+  background:var(--bg);border:1px solid var(--line);border-radius:10px;font-size:12.5px;color:var(--muted)}
+.cellsel-summary[hidden]{display:none}
+.cellsel-summary b{color:var(--ink);font-weight:800;margin-left:5px;font-variant-numeric:tabular-nums}
+
+/* ── คอลัมน์สูตรคำนวณ (Calculated Column) ── */
+th .col-fx{border:none;background:var(--brand-sf);color:var(--brand-dk);cursor:pointer;font-size:10.5px;
+  font-weight:800;font-style:italic;padding:1px 5px;border-radius:6px;margin-right:4px;vertical-align:middle}
+th .col-fx:hover{background:var(--brand);color:#fff}
+th .col-fx.err{background:#FDE8E8;color:var(--err)}
+td.formula-cell{background:var(--bg)}
+td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
+.fc-label{font-size:11px;color:var(--muted);font-weight:700;display:block;margin:8px 0 4px}
+.fc-label:first-of-type{margin-top:0}
+.fc-formula{width:100%;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;
+  padding:6px 8px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);
+  resize:vertical;min-height:56px}
+.fc-formula:focus{outline:none;border-color:var(--brand)}
+.fc-chips{display:flex;flex-wrap:wrap;gap:4px;margin:7px 0}
+.fc-chip{font-family:inherit;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;
+  border:1px solid var(--line);background:var(--card);color:var(--brand-dk);cursor:pointer}
+.fc-chip:hover{background:var(--brand-sf);border-color:var(--brand)}
+.fc-error{font-size:11.5px;color:var(--err);min-height:16px;margin-bottom:4px;line-height:1.4}
+.fc-hint{font-size:11px;color:var(--muted);line-height:1.7;margin-bottom:8px}
+
 /* ── แถวสวอตช์สีสำเร็จรูป (ปุ่มปรับสีการ์ด/พื้นหลัง/กล่องกำหนดเอง) ── */
 .color-swatch-row{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
 .color-swatch{width:26px;height:26px;border-radius:7px;border:1.5px solid rgba(0,0,0,.12);cursor:pointer;
@@ -426,6 +452,7 @@ body.cellsel-dragging{user-select:none;-webkit-user-select:none}
       <div class="search-wrap"><span class="ic">🔍</span><input type="text" id="globalSearch" data-i18n-placeholder="searchPh" placeholder="ค้นหาทุกคอลัมน์…"></div>
       <button class="btn sm" id="addRowBtn" type="button" data-i18n="addRowBtn">+ เพิ่มแถว</button>
       <button class="btn sm" id="addColBtn" type="button" data-i18n="addColBtn">+ เพิ่มคอลัมน์</button>
+      <button class="btn sm" id="addFormulaColBtn" type="button" data-i18n="addFormulaColBtn">+ ƒx คอลัมน์สูตร</button>
       <button class="btn sm" id="delSelBtn" type="button" disabled data-i18n="delSelBtn">🗑️ ลบที่เลือก</button>
       <button class="btn sm" id="undoBtn" type="button" disabled data-i18n="undoBtn">↩️ เลิกทำ</button>
       <button class="btn sm" id="clearFilterBtn" type="button" data-i18n="clearFilterBtn">ล้างตัวกรอง</button>
@@ -440,6 +467,7 @@ body.cellsel-dragging{user-select:none;-webkit-user-select:none}
     </div>
     <div class="tbl-wrap" id="dataTableWrap"><table id="dataTable"></table></div>
     <div id="dataEmpty" class="tbl-empty" style="display:none" data-i18n="dataEmptyTxt">ไม่พบแถวที่ตรงกับตัวกรอง</div>
+    <div class="cellsel-summary" id="cellSelSummary" hidden></div>
     <div class="pager" id="pager"></div>
   </div>
 
