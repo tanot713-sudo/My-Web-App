@@ -89,7 +89,11 @@
     + 'z-index:170;display:none;flex-direction:column;overflow:hidden;font-family:var(--ome-f);'
     + 'border:1px solid var(--ome-line)}'
     + '.ome-ai-panel.open{display:flex}'
-    + '@media(max-width:480px){.ome-ai-panel{right:8px;left:8px;bottom:78px;width:auto;max-width:none;height:auto;max-height:calc(100vh - 100px)}}'
+    /* จอเล็ก: ปุ่มลอยเดิม (56px ชิดขวา-ล่าง 16px) ทับเนื้อหาสำคัญของบางหน้าได้ง่าย (เช่นการ์ดสรุปตัวเลข/
+       ปุ่มลบตัวกรองท้ายตาราง) เพราะพื้นที่จอแคบทำให้เนื้อหาเลื่อนมาอยู่ตรงมุมขวาล่างบ่อยกว่าจอใหญ่ ย่อขนาด
+       ลงเล็กน้อยให้บังพื้นที่น้อยลง โดยยังคงแตะง่าย (46px ยังเกินเกณฑ์พื้นที่แตะขั้นต่ำ 44px) */
+    + '@media(max-width:480px){.ome-ai-fab{width:46px;height:46px;font-size:20px;right:10px;bottom:10px}}'
+    + '@media(max-width:480px){.ome-ai-panel{right:8px;left:8px;bottom:68px;width:auto;max-width:none;height:auto;max-height:calc(100vh - 100px)}}'
     + '.ome-ai-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;'
     + 'border-bottom:1px solid var(--ome-line);flex-shrink:0}'
     + '.ome-ai-head b{font-size:14px;color:var(--ome-ink)}'

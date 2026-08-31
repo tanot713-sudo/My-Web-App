@@ -245,9 +245,13 @@ th .th-filter-btn.active{color:var(--brand)}
 .filter-popover .btn.ghost:hover{background:var(--bg);color:var(--ink)}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+/* หัวคอลัมน์กึ่งกลางเสมอ (ไม่ผูกกับชนิดข้อมูล) — คอลัมน์ตัวเลข/วันที่มีแถวตัวกรองด้านล่างกว้างกว่าคอลัมน์
+   ข้อความ (ช่องต่ำสุด-สูงสุด 2 ช่อง เทียบกับช่องกรองช่องเดียว) ถ้าป้ายชื่อคอลัมน์ชิดซ้ายเหมือนเดิมจะดูเอียง
+   ไปทางซ้ายของคอลัมน์กว้างๆ ให้ความรู้สึกจัดวางไม่สมมาตร กึ่งกลางทำให้แต่ละหัวคอลัมน์สมดุลอยู่กลางคอลัมน์
+   ของตัวเองเสมอไม่ว่าคอลัมน์จะกว้างแค่ไหน */
 th{color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.02em;
-  background:#F8F9FB;position:sticky;top:0;cursor:pointer;user-select:none}
-th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+  background:#F8F9FB;position:sticky;top:0;cursor:pointer;user-select:none;text-align:center}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
 th .sort-ic{opacity:.35;margin-left:3px;font-size:10px}
 th.sorted .sort-ic{opacity:1;color:var(--brand)}
 tbody tr:hover td{background:#FAFBFD}
@@ -429,6 +433,14 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
   border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none}
 .toolbar-row input:focus{outline:none;border-color:var(--brand)}
 [data-theme="dark"] .toolbar-row input,[data-theme="dark"] td input.cell-in:focus{background:#12151C}
+/* จอแคบ: ปุ่มในแถบเครื่องมือความยาวไม่เท่ากัน พอ wrap ตามธรรมชาติแล้วมักเหลือปุ่มเดี่ยวลอยเล็กๆ ท้ายแถว
+   (เช่น "จัดกลุ่ม" ค้างอยู่คนเดียวทั้งแถว) ดูไม่สมมาตร — บังคับให้ปุ่มกว้างประมาณครึ่งแถว (2 ปุ่ม/แถว) ด้วย
+   flex-basis แทน ถ้าเหลือปุ่มเดียวท้ายสุด flex-grow จะดันให้ขยายเต็มแถวแทนที่จะลอยเล็กๆ ชิดซ้าย */
+@media(max-width:600px){
+  .toolbar-row .btn{flex:1 1 calc(50% - 4px)}
+  .toolbar-row .search-wrap{flex-basis:100%}
+  .toolbar-row .status{flex-basis:100%;margin-left:0!important;text-align:center}
+}
 
 /* ── แถวกรองต่อคอลัมน์ ── */
 .filter-in{width:100%;min-width:66px;font-family:inherit;font-size:11.5px;padding:5px 7px;border-radius:7px;
