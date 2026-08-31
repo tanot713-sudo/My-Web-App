@@ -73,6 +73,7 @@
       dataTitle: '📋 ข้อมูล', searchPh: 'ค้นหาทุกคอลัมน์…', addRowBtn: '+ เพิ่มแถว',
       addColBtn: '+ เพิ่มคอลัมน์', delColTitle: 'ลบคอลัมน์นี้', newColumnDefaultLabel: 'คอลัมน์ใหม่',
       renameColPrompt: 'ตั้งชื่อคอลัมน์', dblclickRenameHint: 'ดับเบิลคลิกชื่อคอลัมน์เพื่อเปลี่ยนชื่อ',
+      fillHandleHint: 'ลากเพื่อเติมอัตโนมัติ — กด Ctrl ค้างไว้ระหว่างลากเพื่อสลับโหมด (ไล่เลข/ทำซ้ำ)',
       delSelBtn: '🗑️ ลบที่เลือก', undoBtn: '↩️ เลิกทำ', clearFilterBtn: 'ล้างตัวกรอง',
       saveReportBtn: '💾 บันทึกเป็นรายงาน', savedReportBtn: '💾 บันทึกแล้ว: {name}',
       myReportsBtn: '📁 รายงานของฉัน', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 ไฟล์ใหม่',
@@ -203,6 +204,7 @@
       dataTitle: '📋 Data', searchPh: 'Search all columns…', addRowBtn: '+ Add Row',
       addColBtn: '+ Add Column', delColTitle: 'Delete this column', newColumnDefaultLabel: 'New column',
       renameColPrompt: 'Rename column', dblclickRenameHint: 'Double-click a column name to rename it',
+      fillHandleHint: 'Drag to auto-fill — hold Ctrl while dragging to toggle mode (series/repeat)',
       delSelBtn: '🗑️ Delete Selected', undoBtn: '↩️ Undo', clearFilterBtn: 'Clear Filters',
       saveReportBtn: '💾 Save as Report', savedReportBtn: '💾 Saved: {name}',
       myReportsBtn: '📁 My Reports', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 New File',
@@ -1517,6 +1519,7 @@
     } else {
       var handle = document.createElement('div');
       handle.className = 'cellsel-handle';
+      handle.title = t('fillHandleHint');
       handle.style.left = (r.left + r.width) + 'px'; handle.style.top = (r.top + r.height) + 'px';
       /* pointerdown (ไม่ใช่ mousedown) เพื่อให้ลากด้วยนิ้วบนมือถือ/แท็บเล็ตได้ด้วย ไม่ใช่แค่เมาส์ —
          setPointerCapture กันไม่ให้ event หลุดถ้านิ้วเลื่อนออกจากจุดเล็กๆ นี้ระหว่างลากเร็วๆ */
@@ -1708,14 +1711,78 @@
       pasteGridAt(anchorTd, parseTsv(text)); // ค่าเดียวไม่มี tab/newline ก็กลายเป็น grid 1x1 พอดี
     });
   }
+  /* รายการ "built-in list" ที่ Excel รู้จักเอง (วัน/เดือน ทั้งไทย+อังกฤษ ทั้งเต็ม+ย่อ) — ลากเซลล์ที่มีค่า
+     ตรงกับรายการใดรายการหนึ่งจะไล่ต่อในรายการนั้นแทนการวนซ้ำเฉยๆ (เช่น "จันทร์" ลากลง -> "อังคาร","พุธ",...) */
+  var FILL_LISTS = [
+    ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'],
+    ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'],
+    ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'],
+    ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'],
+    ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  ];
+  function normFillStr(v) { return String(v == null ? '' : v).trim(); }
+  function findListIndices(list, srcVals) {
+    var idxs = srcVals.map(function (v) {
+      var nv = normFillStr(v), lower = nv.toLowerCase();
+      for (var li = 0; li < list.length; li++) { if (list[li] === nv || list[li].toLowerCase() === lower) return li; }
+      return -1;
+    });
+    return idxs.every(function (x) { return x !== -1; }) ? idxs : null;
+  }
+  /* ไล่ต่อ/วนซ้ำใน built-in list (วัน/เดือน) — คืน undefined ถ้าค่าที่เลือกไม่ตรงลิสต์ไหนเลย ให้ตกไปเช็ค
+     เงื่อนไขอื่นต่อ (ไม่ใช่ error แค่ "ไม่ใช่กรณีนี้") */
+  function builtInListStep(srcVals, i, invert) {
+    var n = srcVals.length;
+    for (var li = 0; li < FILL_LISTS.length; li++) {
+      var list = FILL_LISTS[li], idxs = findListIndices(list, srcVals);
+      if (!idxs) continue;
+      var L = list.length;
+      if (n === 1) return invert ? srcVals[0] : list[((idxs[0] + i) % L + L) % L];
+      if (invert) return srcVals[((i % n) + n) % n];
+      var diffs = []; for (var k = 1; k < n; k++) diffs.push(idxs[k] - idxs[k - 1]);
+      var step = Math.round(diffs.reduce(function (a, b) { return a + b; }, 0) / diffs.length);
+      return list[((idxs[0] + step * i) % L + L) % L];
+    }
+    return undefined;
+  }
+  /* จับ "ข้อความ + เลขต่อท้าย" (เช่น "Item 1", "WO001") แยกส่วนคงที่ (prefix) กับตัวเลขท้ายสุด */
+  function parseTrailingNumber(v) {
+    var m = /^(.*?)(\d+)$/.exec(normFillStr(v));
+    return m ? { prefix: m[1], width: m[2].length, num: parseInt(m[2], 10) } : null;
+  }
+  /* ไล่เลขต่อท้ายข้อความ (เช่น "Item 1" -> "Item 2","Item 3") คงจำนวนหลัก/เลข 0 นำหน้าของค่าต้นฉบับไว้
+     คืน undefined ถ้าค่าที่เลือกไม่ใช่ pattern นี้ (ไม่มีเลขต่อท้าย หรือส่วนคงที่ไม่ตรงกันทุกเซลล์) */
+  function trailingNumberStep(srcVals, i, invert) {
+    var n = srcVals.length, parsed = srcVals.map(parseTrailingNumber);
+    if (parsed.some(function (p) { return !p; })) return undefined;
+    var prefix = parsed[0].prefix;
+    if (!parsed.every(function (p) { return p.prefix === prefix; })) return undefined;
+    var width = parsed[0].width;
+    function fmt(num) {
+      var s = String(Math.abs(num));
+      if (s.length < width) s = '0'.repeat(width - s.length) + s;
+      return prefix + (num < 0 ? '-' + s : s);
+    }
+    if (n === 1) return invert ? srcVals[0] : fmt(parsed[0].num + i);
+    if (invert) return srcVals[((i % n) + n) % n];
+    var diffs = []; for (var k = 1; k < n; k++) diffs.push(parsed[k].num - parsed[k - 1].num);
+    var step = Math.round(diffs.reduce(function (a, b) { return a + b; }, 0) / diffs.length);
+    return fmt(parsed[0].num + step * i);
+  }
   /* คำนวณค่าที่จะเติมของ "เส้น" หนึ่งเส้น (คอลัมน์เดียวตอนลากขึ้น/ลง หรือแถวเดียวตอนลากซ้าย/ขวา) —
      srcVals คือค่าต้นฉบับที่เลือกไว้ก่อนลาก (เรียงจากตำแหน่งน้อยไปมาก), i คือตำแหน่งของเซลล์ที่จะเติม
-     เทียบกับเซลล์แรกของ srcVals (0 = ตำแหน่งเซลล์แรก, ค่าลบ = ก่อนหน้า/ด้านบน, ทวนจากจุดนั้น) */
-  function fillLineValue(srcVals, i, colType) {
+     เทียบกับเซลล์แรกของ srcVals (0 = ตำแหน่งเซลล์แรก, ค่าลบ = ก่อนหน้า/ด้านบน, ทวนจากจุดนั้น)
+     invert = กด Ctrl/Cmd ค้างระหว่างลากอยู่หรือไม่ — สลับพฤติกรรมปกติเป็นตรงข้าม แบบเดียวกับ Excel จริง:
+     ค่าเดียว ปกติ=ซ้ำเดิม กด Ctrl=ไล่เลข/ลิสต์ต่อ | หลายค่าที่เป็นลำดับ ปกติ=ไล่ต่อ กด Ctrl=คัดลอกวนซ้ำชุดเดิม */
+  function fillLineValue(srcVals, i, colType, invert) {
     var n = srcVals.length;
-    if (n === 1) return srcVals[0]; // ลาก 1 เซลล์เดียว -> คัดลอกค่าเดิมซ้ำเสมอ (ไม่ไล่เลข)
     var allNum = colType === 'number' && srcVals.every(function (v) { return typeof v === 'number' && isFinite(v); });
     if (allNum) {
+      if (n === 1) return invert ? srcVals[0] + i : srcVals[0];
+      if (invert) return srcVals[((i % n) + n) % n];
       /* ตัวเลข 2 เซลล์ขึ้นไป -> ไล่ตามสูตรเส้นตรง step = ค่าเฉลี่ยผลต่างระหว่างเซลล์ที่ติดกัน (2 เซลล์ =
          ไล่ตามผลต่างนั้นตรงๆ รวมถึงกรณีค่าเท่ากันทั้งคู่ -> step เป็น 0 -> ซ้ำค่าเดิมไปเรื่อยๆ ตามที่ต้องการ) */
       var diffs = []; for (var k = 1; k < n; k++) diffs.push(srcVals[k] - srcVals[k - 1]);
@@ -1723,11 +1790,18 @@
       return srcVals[0] + step * i;
     }
     if (colType === 'date' && srcVals.every(function (v) { return v instanceof Date && !isNaN(v); })) {
+      if (n === 1) return invert ? new Date(srcVals[0].getTime() + i * 86400000) : srcVals[0];
+      if (invert) return new Date(srcVals[((i % n) + n) % n].getTime());
       var dayDiffs = []; for (var k2 = 1; k2 < n; k2++) dayDiffs.push((srcVals[k2] - srcVals[k2 - 1]) / 86400000);
       var dayStep = dayDiffs.reduce(function (a, b) { return a + b; }, 0) / dayDiffs.length;
       return new Date(srcVals[0].getTime() + dayStep * i * 86400000);
     }
-    /* ข้อความ/ค่าผสม -> ไม่มีลำดับให้ไล่ วนซ้ำชุดเดิมเป็นรอบๆ ตามตำแหน่ง (mod แบบรองรับเลขลบด้วย) */
+    var listResult = builtInListStep(srcVals, i, invert);
+    if (listResult !== undefined) return listResult;
+    var suffixResult = trailingNumberStep(srcVals, i, invert);
+    if (suffixResult !== undefined) return suffixResult;
+    if (n === 1) return srcVals[0]; // ข้อความล้วนไม่มี pattern ให้ไล่ -> คัดลอกซ้ำเสมอ (invert ไม่มีผล)
+    /* ข้อความ/ค่าผสมที่ไม่เข้าเงื่อนไขพิเศษใดๆ -> วนซ้ำชุดเดิมเป็นรอบๆ ตามตำแหน่ง (mod รองรับเลขลบด้วย) */
     return srcVals[((i % n) + n) % n];
   }
   function startFillDrag(originIdx) {
@@ -1751,18 +1825,21 @@
       fillDrag.target = preview;
       renderCellSelOverlay(preview);
     }
-    function onUp() {
+    function onUp(e) {
       document.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerup', onUp);
       document.removeEventListener('pointercancel', onUp);
-      if (fillDrag && fillDrag.dir && fillDrag.target) applyFillDrag(fillDrag.origin, fillDrag.dir, fillDrag.target);
+      /* กด Ctrl (หรือ Cmd บน Mac) ค้างไว้ตอนปล่อยนิ้ว/เมาส์ = สลับพฤติกรรมไล่ต่อ/คัดลอกซ้ำ แบบเดียวกับ
+         Excel จริง — เช็คที่ตอนปล่อย (ไม่ใช่ตอนเริ่มลาก) เพราะกดปล่อย Ctrl ระหว่างลากได้เหมือน Excel */
+      var invert = !!(e && (e.ctrlKey || e.metaKey));
+      if (fillDrag && fillDrag.dir && fillDrag.target) applyFillDrag(fillDrag.origin, fillDrag.dir, fillDrag.target, invert);
       fillDrag = null;
     }
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
     document.addEventListener('pointercancel', onUp);
   }
-  function applyFillDrag(origin, dir, target) {
+  function applyFillDrag(origin, dir, target, invert) {
     pushHistory();
     var vertical = dir === 'down' || dir === 'up';
     if (vertical) {
@@ -1777,12 +1854,12 @@
         if (dir === 'down') {
           for (var rd = origin.rMax + 1; rd <= target.rMax; rd++) {
             var rowD = state.rows.filter(function (rr) { return rr.__id === origin.rowIds[rd]; })[0];
-            if (rowD) rowD[colKey] = fillLineValue(srcVals, rd - origin.rMin, col ? col.type : 'text');
+            if (rowD) rowD[colKey] = fillLineValue(srcVals, rd - origin.rMin, col ? col.type : 'text', invert);
           }
         } else {
           for (var ru = target.rMin; ru < origin.rMin; ru++) {
             var rowU = state.rows.filter(function (rr) { return rr.__id === origin.rowIds[ru]; })[0];
-            if (rowU) rowU[colKey] = fillLineValue(srcVals, ru - origin.rMin, col ? col.type : 'text');
+            if (rowU) rowU[colKey] = fillLineValue(srcVals, ru - origin.rMin, col ? col.type : 'text', invert);
           }
         }
         if (col) col.type = inferColumnType(state.rows.map(function (rr) { return rr[colKey]; }));
@@ -1797,12 +1874,12 @@
         if (dir === 'right') {
           for (var cr = origin.cMax + 1; cr <= target.cMax; cr++) {
             var colR = state.columns.filter(function (c) { return c.key === origin.colKeys[cr]; })[0];
-            row[origin.colKeys[cr]] = fillLineValue(srcVals2, cr - origin.cMin, colR ? colR.type : 'text');
+            row[origin.colKeys[cr]] = fillLineValue(srcVals2, cr - origin.cMin, colR ? colR.type : 'text', invert);
           }
         } else {
           for (var cl = target.cMin; cl < origin.cMin; cl++) {
             var colL = state.columns.filter(function (c) { return c.key === origin.colKeys[cl]; })[0];
-            row[origin.colKeys[cl]] = fillLineValue(srcVals2, cl - origin.cMin, colL ? colL.type : 'text');
+            row[origin.colKeys[cl]] = fillLineValue(srcVals2, cl - origin.cMin, colL ? colL.type : 'text', invert);
           }
         }
       }
