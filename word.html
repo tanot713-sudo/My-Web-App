@@ -119,7 +119,10 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 /* ── layout: กระดาษ | จุดที่พบ ── */
 .wd-body{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-top:16px;align-items:start}
 .wd-body.nav-open{grid-template-columns:250px minmax(0,1fr) 300px}
-@media(max-width:900px){.wd-body,.wd-body.nav-open{grid-template-columns:1fr}}
+/* หน้าจอกลางๆ (แล็ปท็อป/แท็บเล็ตแนวนอน ~900-1300px): ถ้ายังบังคับ 2-3 คอลัมน์ พื้นที่กระดาษจะเหลือ
+   น้อยกว่าความกว้างจริงของ A4 (794px) จนต้องย่อ (transform scale) ตัวหนังสือเล็กลงเห็นไม่ถนัด — เลื่อน
+   จุดตัดขึ้นเป็น 1300px ให้กระดาษได้เต็มความกว้างจอก่อน (แผงข้าง "จุดที่พบ"/นำทาง ไหลลงไปด้านล่างแทน) */
+@media(max-width:1300px){.wd-body,.wd-body.nav-open{grid-template-columns:1fr}}
 
 /* ── หน้าต่างนำทาง (Navigation Pane) ── */
 .wd-nav{position:sticky;top:calc(var(--ome-nav-h,48px) + 16px);max-height:calc(100vh - 76px);
@@ -152,7 +155,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .wd-nav-backdrop{position:fixed;inset:0;background:rgba(15,20,35,.42);z-index:55}
 .wd-nav-backdrop[hidden]{display:none}
 @media(min-width:901px){.wd-nav-backdrop{display:none!important}}
-@media(max-width:900px){
+@media(max-width:1300px){
   /* drawer เริ่มใต้แถบเมนูเว็บ เพื่อให้หัว "การนำทาง" + ปุ่มปิด (X) กดได้ ไม่โดนบัง */
   .wd-nav{position:fixed;top:calc(var(--ome-nav-h,52px));left:0;bottom:0;width:min(84vw,330px);max-height:none;
     border-radius:0;border:none;z-index:60;box-shadow:2px 0 18px rgba(15,20,35,.25)}

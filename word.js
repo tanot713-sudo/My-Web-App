@@ -870,12 +870,14 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   els.newDocBtn.addEventListener('click', function () {
     if (!confirm(t('newDocConfirm'))) return;
     editor.innerHTML = '';
+    ensureEditorHasBlocks(); // กันพิมพ์ตัวอักษรแรกในเอกสารใหม่โดยไม่กด Enter แล้วระบบจัดหน้ามองไม่เห็น (ดูคำอธิบายที่นิยามฟังก์ชัน)
     els.docHeader.textContent = ''; els.docFooter.textContent = '';
     state.matches = []; els.issueHint.dataset.shown = '0';
     state.header = ''; state.footer = ''; state.pageNum = false;
     renderIssues(); renderFootnotes(); updateHeaderFooterUI();
     try { localStorage.removeItem(AUTOSAVE_KEY); } catch (e) {}
     updateCounts();
+    schedulePaginate();
     setStatus(t('clearedDoc'));
   });
   els.importBtn.addEventListener('click', function () { els.fileInput.click(); });
@@ -1607,16 +1609,28 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
         if (delta > 0) { var cur = parseFloat(getComputedStyle(b).marginTop) || 0; b.style.marginTop = (cur + delta) + 'px'; b.setAttribute('data-wd-gap', '1'); }
         pageBottom = b.offsetTop + curM.contentH; pagesOrient.push(curM.orient);
         forceBreak = false; pendingOrient = null;
-        continue;
+      } else {
+        var guard = 0;
+        while (top >= pageBottom - 1 && guard++ < 4000) { pageBottom += deadBand + curM.contentH; pagesOrient.push(curM.orient); }
+        top = b.offsetTop; h = b.offsetHeight;
+        if (top + h > pageBottom + 1 && top < pageBottom && top > PT + 1) {
+          var target2 = pageBottom + deadBand, delta2 = target2 - top;
+          if (delta2 > 0) { var c2 = parseFloat(getComputedStyle(b).marginTop) || 0; b.style.marginTop = (c2 + delta2) + 'px'; b.setAttribute('data-wd-gap', '1'); }
+          pageBottom = b.offsetTop + curM.contentH; pagesOrient.push(curM.orient);
+        }
       }
-      var guard = 0;
-      while (top >= pageBottom - 1 && guard++ < 4000) { pageBottom += deadBand + curM.contentH; pagesOrient.push(curM.orient); }
+      /* บล็อกเดียวอาจสูงเกินกว่า "1 หน้าเปล่าๆ" เองได้ (เช่น พิมพ์ย่อหน้ายาวมากไม่ขึ้นบรรทัดใหม่เลยสักครั้ง)
+         ระบบนี้ตัดแบ่งเนื้อหา "ภายใน" บล็อกเดียวข้ามหน้าจริงไม่ได้ (ต้องตัดกลาง DOM node ซึ่งซับซ้อนเกินความ
+         จำเป็นเทียบกับเคสที่พบจริง) แต่อย่างน้อยต้องเพิ่มจำนวน "หน้าพื้นหลัง" ให้พอกับความสูงจริงของบล็อกนี้
+         ไม่งั้นตัวนับจำนวนหน้า/ความสูงรวมของเอกสารจะหยุดโตทันทีที่เจอบล็อกแบบนี้ (bug ที่ผู้ใช้รายงาน "พิมพ์ไป
+         เรื่อยๆ พอเต็มหน้าแรกแล้วไม่ขึ้นหน้าใหม่เลย") ผลข้างเคียงที่ยอมรับได้: รอยแบ่งหน้าอาจตกกลางบรรทัดพอดี
+         สำหรับบล็อกที่ยาวผิดปกตินี้เพียงบล็อกเดียว ยังดีกว่าไม่มีหน้าใหม่ให้เห็นเลยแบบเดิม
+         หมายเหตุ: ต้องทำนอก if ด้านบน เพราะถ้าบล็อกนี้เป็นบล็อกแรกสุดของหน้าอยู่แล้ว (top ≈ PT พอดี ไม่เข้า
+         เงื่อนไข top > PT + 1) แต่ตัวมันเองสูงเกินกว่า 1 หน้า ก็ยังต้องเพิ่มหน้าพื้นหลังให้พออยู่ดี */
       top = b.offsetTop; h = b.offsetHeight;
-      if (top + h > pageBottom + 1 && top < pageBottom && top > PT + 1) {
-        var target2 = pageBottom + deadBand, delta2 = target2 - top;
-        if (delta2 > 0) { var c2 = parseFloat(getComputedStyle(b).marginTop) || 0; b.style.marginTop = (c2 + delta2) + 'px'; b.setAttribute('data-wd-gap', '1'); }
-        pageBottom = b.offsetTop + curM.contentH; pagesOrient.push(curM.orient);
-      }
+      var extraGuard = 0;
+      while (top + h > pageBottom + 1 && extraGuard++ < 4000) { pageBottom += deadBand + curM.contentH; pagesOrient.push(curM.orient); }
+      continue;
     }
     /* descriptor แต่ละหน้า (ตำแหน่ง + เมตริกตามแนว) */
     var tops = [], y = 0;
@@ -1871,8 +1885,30 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     scheduleAutosave();
   });
 
+  /* ระบบจัดหน้า (layoutPages) วัดความสูงเฉพาะ "element ลูกโดยตรง" ของ editor เท่านั้น (Array.prototype.
+     filter(...nodeType===1)) — ถ้า editor ว่างเปล่าสนิทแล้วผู้ใช้พิมพ์ตัวอักษรแรกโดยไม่กด Enter เลย
+     สักครั้ง เบราว์เซอร์จะแทรกตัวอักษรเป็น text node ลอยๆ ตรงๆ ใต้ editor (ไม่มี <div>/<p> ครอบ) ซึ่ง
+     ระบบจัดหน้ามองไม่เห็นเลย ผลคือพิมพ์ไปเรื่อยๆ เนื้อหาล้นเกินหน้าแรกไปมากแค่ไหนก็ไม่มีหน้าใหม่ขึ้นมาให้
+     เห็นเลย (bug ที่ผู้ใช้รายงาน "พิมพ์ไปเรื่อยพอเต็มหน้าแรกแล้วไม่ขึ้นหน้าใหม่") แก้โดยรับประกันว่า editor
+     มี block element ครอบเนื้อหาเสมอ ไม่ปล่อยให้ว่างเปล่าสนิทหรือมี text node ลอยหัวเอกสารเด็ดขาด */
+  var BLOCK_TAG_RE = /^(DIV|P|H[1-6]|UL|OL|TABLE|BLOCKQUOTE)$/i;
+  function ensureEditorHasBlocks() {
+    if (!editor.firstChild) {
+      var d = document.createElement('div'); d.appendChild(document.createElement('br'));
+      editor.appendChild(d);
+      return;
+    }
+    if (editor.firstChild.nodeType === 1 && BLOCK_TAG_RE.test(editor.firstChild.tagName)) return; // ปกติอยู่แล้ว (เคสส่วนใหญ่)
+    var wrap = document.createElement('div');
+    while (editor.firstChild && !(editor.firstChild.nodeType === 1 && BLOCK_TAG_RE.test(editor.firstChild.tagName))) {
+      wrap.appendChild(editor.firstChild); // ย้าย (ไม่ใช่ทำลาย) node เดิม — ตำแหน่งเคอร์เซอร์/selection ที่ชี้ไปยัง node เหล่านี้อยู่จะยังใช้ได้ต่อ
+    }
+    editor.insertBefore(wrap, editor.firstChild);
+  }
+
   /* ── editor input ── */
   editor.addEventListener('input', function () {
+    ensureEditorHasBlocks(); // กันเคส Ctrl+A ลบทั้งหมดแล้วพิมพ์ต่อทันที (editor ว่างเปล่าสนิทอีกรอบ)
     if (state.matches.length) { state.matches = []; renderIssues(); }
     if (editor.querySelectorAll('sup.wd-fnref').length !== els.footnotesList.children.length) renderFootnotes();
     scheduleAutosave();
@@ -1893,6 +1929,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
         setStatus(t('restoredDraft'));
       }
     } catch (e) {}
+    ensureEditorHasBlocks(); // ครอบทั้งเคสไม่มีร่างเก่าเลย (editor ว่างสนิท) และร่างเก่าที่บันทึกไว้ตอนยังมีบั๊กนี้ (text node ลอยหัวเอกสาร)
   })();
 
   /* ── init ── */
