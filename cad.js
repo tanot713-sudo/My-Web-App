@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════
-   Tanot — cad.js (งานเขียนแบบ CAD, Stage 1+2+3)
+   Tanot — cad.js (งานเขียนแบบ CAD, Stage 1+2+3+4)
    Stage 1: ระบบพิกัดโลกมิลลิเมตรจริง, แพน/ซูม, กริด+ไม้บรรทัด, สแนปกริด, โมเดล entity/layer
    ทั่วไป, เครื่องมือเส้น, undo/redo, บันทึกอัตโนมัติ
    Stage 2: ชนิดเอนทิตี้ครบ (polyline/สี่เหลี่ยม/วงกลม/ส่วนโค้ง), ใส่ระยะ-มุมเป๊ะๆ, จับจุด
@@ -7,6 +7,9 @@
    Stage 3: เลือกได้หลายชิ้น (shift-คลิก/ลากเลือกเป็นกลุ่ม), จุดจับ (grips) ลากแก้รูปทรง
    ตรงๆ, แผงคุณสมบัติ (แก้พิกัด/รัศมี/มุมตรงๆ), เครื่องมือแก้ไข: ย้าย/คัดลอก/หมุน/มิเรอร์/
    สเกล/ตัดเส้น(trim)/ต่อเส้น(extend)/มุมโค้ง(fillet)/ออฟเซ็ต/อาเรย์สี่เหลี่ยม
+   Stage 4: ใส่มิติเส้น (linear dimension) + มิติรัศมี (radius dimension) + คำอธิบายข้อความ
+   (text annotation), แผงจัดการเลเยอร์เต็มรูปแบบ (เพิ่ม/ลบ/เปลี่ยนชื่อ/สี/ซ่อน/ล็อก/ย้าย
+   เอนทิตี้ข้ามเลเยอร์)
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -54,7 +57,17 @@
       propCx: 'ศูนย์กลาง X (มม.)', propCy: 'ศูนย์กลาง Y (มม.)', propR: 'รัศมี (มม.)',
       propStartDeg: 'มุมเริ่ม (°)', propEndDeg: 'มุมจบ (°)',
       propPolylineNote: 'พอลีไลน์มี {n} จุด — ลากจุดสี่เหลี่ยมบนเส้นเพื่อแก้แต่ละจุดโดยตรง',
-      selCountLbl: 'เลือกอยู่ {n} ชิ้น'
+      selCountLbl: 'เลือกอยู่ {n} ชิ้น',
+      toolDim: '📏 มิติเส้น', toolRaddim: '⌀ มิติรัศมี', toolText: '🅰️ ข้อความ',
+      dimHint: 'คลิก 2 จุดที่จะวัดระยะ แล้วคลิกจุดที่ 3 เพื่อวางเส้นมิติ',
+      raddimHint: 'คลิกวงกลมหรือส่วนโค้งที่จะใส่มิติรัศมี',
+      textContentLbl: 'ข้อความ', textHeightLbl: 'ความสูงตัวอักษร (มม.)', textApplyBtn: '✔️ วางข้อความ',
+      textHint: 'คลิกตำแหน่งที่จะวางข้อความ แล้วพิมพ์ข้อความ',
+      propsTitleDim: 'คุณสมบัติ: มิติเส้น', propsTitleRaddim: 'คุณสมบัติ: มิติรัศมี', propsTitleText: 'คุณสมบัติ: ข้อความ',
+      propText: 'ข้อความ', propHeight: 'ความสูงตัวอักษร (มม.)', propLayer: 'เลเยอร์',
+      layersTitle: 'เลเยอร์', layerAddBtn: '➕ เลเยอร์ใหม่', layerNamePlaceholder: 'ชื่อเลเยอร์',
+      layerActiveLbl: 'ใช้งานอยู่', layerDeleteConfirm: 'ลบเลเยอร์ "{name}"? เอนทิตี้ในเลเยอร์นี้จะถูกย้ายไปเลเยอร์ 0',
+      layerCantDeleteLast: 'ต้องมีอย่างน้อย 1 เลเยอร์'
     },
     en: {
       docTitle: 'CAD Drafting | Tanot',
@@ -96,7 +109,17 @@
       propCx: 'Center X (mm)', propCy: 'Center Y (mm)', propR: 'Radius (mm)',
       propStartDeg: 'Start angle (°)', propEndDeg: 'End angle (°)',
       propPolylineNote: 'Polyline has {n} points — drag a square grip on the line to edit each point directly',
-      selCountLbl: '{n} selected'
+      selCountLbl: '{n} selected',
+      toolDim: '📏 Dimension', toolRaddim: '⌀ Radius dim', toolText: '🅰️ Text',
+      dimHint: 'Click 2 points to measure, then click a 3rd point to place the dimension line',
+      raddimHint: 'Click a circle or arc to add a radius dimension',
+      textContentLbl: 'Text', textHeightLbl: 'Text height (mm)', textApplyBtn: '✔️ Place text',
+      textHint: 'Click where to place the text, then type it in',
+      propsTitleDim: 'Properties: Dimension', propsTitleRaddim: 'Properties: Radius dim', propsTitleText: 'Properties: Text',
+      propText: 'Text', propHeight: 'Text height (mm)', propLayer: 'Layer',
+      layersTitle: 'Layers', layerAddBtn: '➕ New layer', layerNamePlaceholder: 'Layer name',
+      layerActiveLbl: 'Active', layerDeleteConfirm: 'Delete layer "{name}"? Its entities will move to layer 0',
+      layerCantDeleteLast: 'At least 1 layer is required'
     }
   };
   function getUILang() { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
@@ -137,15 +160,17 @@
 
   var state = {
     entities: [],           // [{id, type, layer, ...}] พิกัดหน่วย mm เสมอ — ดูรูปแบบตาม type ด้านล่าง
-    layers: { '0': { color: '#1F2430', visible: true } },
+    layers: { '0': { name: 'เลเยอร์ 0', color: null, visible: true, locked: false } }, // color:null = ใช้สีธีมอัตโนมัติ (col.entity ใน render()) แทนสีตายตัว กันปัญหามองไม่เห็นตอนสลับโหมดมืด
+    layerSeq: 1,             // ตัวนับสำหรับตั้งชื่อ id เลเยอร์ใหม่ถัดไป ('1','2',...)
     activeLayer: '0',
     view: { cx: 0, cy: 0, scale: 0.5 }, // cx,cy = พิกัดโลก (mm) ที่อยู่กึ่งกลางจอ, scale = px ต่อ mm
-    tool: 'select',         // 'select' | เครื่องมือวาด | 'move'|'copy'|'rotate'|'mirror'|'scale'|'trim'|'extend'|'fillet'|'offset'|'arrayrect'
+    tool: 'select',         // 'select' | เครื่องมือวาด | 'move'|'copy'|'rotate'|'mirror'|'scale'|'trim'|'extend'|'fillet'|'offset'|'arrayrect'|'dim'|'raddim'|'text'
     selectedIds: [],         // Stage 3: เลือกได้หลายชิ้น (เดิม Stage 1-2 เป็น selectedId เดี่ยว)
     snapOn: true, snapStep: 10,
     osnapOn: true, orthoOn: false,
     mirrorKeepOriginal: true,
-    pendingPoints: [],       // จุดที่คลิกไปแล้วระหว่างวาด/ย้าย/หมุน/มิเรอร์เอนทิตี้ปัจจุบัน
+    textDefaultHeight: 12,   // ความสูงตัวอักษรเริ่มต้น (มม.) สำหรับเครื่องมือข้อความ
+    pendingPoints: [],       // จุดที่คลิกไปแล้วระหว่างวาด/ย้าย/หมุน/มิเรอร์/มิติเส้นเอนทิตี้ปัจจุบัน
     pendingEntityIds: [],    // เอนทิตี้ที่คลิกเลือกไว้แล้วสำหรับเครื่องมือ fillet (ต้องการ 2 เส้น)
     trimCutterId: null,      // เอนทิตี้ที่เป็นเส้นตัด/เส้นขอบ สำหรับเครื่องมือ trim/extend
     offsetSourceId: null,    // เอนทิตี้ต้นทางสำหรับเครื่องมือ offset
@@ -162,7 +187,12 @@
      polyline: {points:[{x,y},...], closed:bool}
      rect:     {p1:{x,y}, p2:{x,y}}                         (มุมตรงข้ามกัน แนวแกนตรงเสมอ)
      circle:   {center:{x,y}, radius}
-     arc:      {center:{x,y}, radius, startAngle, endAngle} (เรเดียน, กวาดทวนเข็มจาก start ไป end เสมอ) */
+     arc:      {center:{x,y}, radius, startAngle, endAngle} (เรเดียน, กวาดทวนเข็มจาก start ไป end เสมอ)
+     dim:      {p1:{x,y}, p2:{x,y}, offset}                 (มิติเส้นตรง — offset = ระยะตั้งฉากมีเครื่องหมาย
+                                                              จาก p1-p2 ไปยังตำแหน่งเส้นมิติที่วางจริง)
+     raddim:   {center:{x,y}, radius, angle}                (มิติรัศมี — snapshot ค่า ณ ตอนสร้าง ไม่ผูกกับ
+                                                              วงกลม/ส่วนโค้งต้นทางอีกต่อไป, angle = ทิศทางขีดนำ)
+     text:     {p:{x,y}, text, height}                       (คำอธิบายข้อความ — p คือมุมล่างซ้ายของข้อความ) */
 
   var viewport = $('cadViewport'), canvas = $('cadCanvas'), ctx = canvas.getContext('2d');
   var distInput = $('distInput'), angInput = $('angInput'), preciseRow = $('preciseRow'), finishPolyBtn = $('finishPolylineBtn');
@@ -207,6 +237,24 @@
     var ep = { x: e.center.x + e.radius * Math.cos(e.endAngle), y: e.center.y + e.radius * Math.sin(e.endAngle) };
     return Math.min(Math.hypot(p.x - sp.x, p.y - sp.y), Math.hypot(p.x - ep.x, p.y - ep.y));
   }
+  /* มิติเส้น (dim): p1,p2 คือคู่จุดที่วัดระยะ, offset คือระยะตั้งฉากมีเครื่องหมายจากเส้น p1-p2 ไปยัง
+     เส้นมิติที่วางจริง — คำนวณจุดปลายเส้นมิติทั้งสอง (dimP1,dimP2) จากค่านี้สดทุกครั้งที่ใช้ ทำให้ย้าย/
+     หมุนเอนทิตี้นี้ผ่าน mapEntityPoints (ที่แก้แค่ p1,p2) ได้ผลถูกต้องอัตโนมัติโดยไม่ต้องจัดการ offset เอง */
+  function dimLinePoints(e) {
+    var dx = e.p2.x - e.p1.x, dy = e.p2.y - e.p1.y, len = Math.hypot(dx, dy);
+    var nx = len ? -dy / len : 0, ny = len ? dx / len : 1;
+    return {
+      dimP1: { x: e.p1.x + nx * e.offset, y: e.p1.y + ny * e.offset },
+      dimP2: { x: e.p2.x + nx * e.offset, y: e.p2.y + ny * e.offset },
+      n: { x: nx, y: ny }
+    };
+  }
+  function raddimLeaderPoint(e) { return { x: e.center.x + e.radius * Math.cos(e.angle), y: e.center.y + e.radius * Math.sin(e.angle) }; }
+  function estimateTextWidth(text, height) { return (text || '').length * height * 0.58; } // ประมาณความกว้าง (ไม่มีการวัดฟอนต์จริงในสเตจนี้)
+  function distPointToRect(p, xmin, ymin, xmax, ymax) {
+    var dx = Math.max(xmin - p.x, 0, p.x - xmax), dy = Math.max(ymin - p.y, 0, p.y - ymax);
+    return Math.hypot(dx, dy);
+  }
   function distPointToEntity(p, e) {
     if (e.type === 'line') return distPointToSegment(p, e.p1, e.p2);
     if (e.type === 'polyline') {
@@ -222,6 +270,12 @@
     }
     if (e.type === 'circle') return Math.abs(Math.hypot(p.x - e.center.x, p.y - e.center.y) - e.radius);
     if (e.type === 'arc') return distPointToArc(p, e);
+    if (e.type === 'dim') { var dl = dimLinePoints(e); return distPointToSegment(p, dl.dimP1, dl.dimP2); }
+    if (e.type === 'raddim') return distPointToSegment(p, e.center, raddimLeaderPoint(e));
+    if (e.type === 'text') {
+      var w = estimateTextWidth(e.text, e.height);
+      return distPointToRect(p, e.p.x, e.p.y, e.p.x + w, e.p.y + e.height);
+    }
     return Infinity;
   }
   /* วงกลมผ่าน 3 จุด (circumcircle) — คืน center/radius/startAngle/endAngle โดยเลือกทิศกวาด (จาก p1 ไป p2)
@@ -272,7 +326,11 @@
       pts.push({ p: e.center, kind: 'center' });
       pts.push({ p: { x: e.center.x + e.radius * Math.cos(e.startAngle), y: e.center.y + e.radius * Math.sin(e.startAngle) }, kind: 'end' });
       pts.push({ p: { x: e.center.x + e.radius * Math.cos(e.endAngle), y: e.center.y + e.radius * Math.sin(e.endAngle) }, kind: 'end' });
-    }
+    } else if (e.type === 'dim') {
+      var dl0 = dimLinePoints(e);
+      pts.push({ p: dl0.dimP1, kind: 'end' }, { p: dl0.dimP2, kind: 'end' });
+    } else if (e.type === 'raddim') { pts.push({ p: e.center, kind: 'center' }, { p: raddimLeaderPoint(e), kind: 'end' }); }
+    else if (e.type === 'text') { pts.push({ p: e.p, kind: 'end' }); }
     return pts;
   }
   function entitySegments(e) {
@@ -284,7 +342,7 @@
       return segs;
     }
     if (e.type === 'rect') { var c = rectCorners(e); return [[c[0], c[1]], [c[1], c[2]], [c[2], c[3]], [c[3], c[0]]]; }
-    return []; // circle/arc ไม่รองรับจุดตัด/ตั้งฉากแบบเส้นตรงในสเตจนี้ (ขอบเขตที่ตัดออกไปก่อน)
+    return []; // circle/arc/dim/raddim/text ไม่รองรับจุดตัด/ตั้งฉากแบบเส้นตรงในสเตจนี้ (ขอบเขตที่ตัดออกไปก่อน)
   }
   function entityBoundsPoints(e) {
     if (e.type === 'line') return [e.p1, e.p2];
@@ -292,6 +350,9 @@
     if (e.type === 'rect') return [e.p1, e.p2];
     if (e.type === 'circle') return [{ x: e.center.x - e.radius, y: e.center.y - e.radius }, { x: e.center.x + e.radius, y: e.center.y + e.radius }];
     if (e.type === 'arc') { var pts = arcPoints(e, 16); pts.push(e.center); return pts; }
+    if (e.type === 'dim') { var dl1 = dimLinePoints(e); return [e.p1, e.p2, dl1.dimP1, dl1.dimP2]; }
+    if (e.type === 'raddim') return [e.center, raddimLeaderPoint(e)];
+    if (e.type === 'text') { var w2 = estimateTextWidth(e.text, e.height); return [e.p, { x: e.p.x + w2, y: e.p.y + e.height }]; }
     return [];
   }
 
@@ -348,6 +409,9 @@
     else if (e.type === 'rect') { e.p1 = fn(e.p1); e.p2 = fn(e.p2); }
     else if (e.type === 'circle') { e.center = fn(e.center); }
     else if (e.type === 'arc') { e.center = fn(e.center); }
+    else if (e.type === 'dim') { e.p1 = fn(e.p1); e.p2 = fn(e.p2); }
+    else if (e.type === 'raddim') { e.center = fn(e.center); }
+    else if (e.type === 'text') { e.p = fn(e.p); }
     return e;
   }
 
@@ -367,13 +431,17 @@
       var src = mods.convertRect && e.type === 'rect' ? rectToPolyline(e) : deepClone(e);
       mapEntityPoints(src, fn);
       if (mods.rotateDeltaRad != null && src.type === 'arc') { src.startAngle += mods.rotateDeltaRad; src.endAngle += mods.rotateDeltaRad; }
-      if (mods.mirrorLine && src.type === 'arc') {
+      if (mods.rotateDeltaRad != null && src.type === 'raddim') src.angle += mods.rotateDeltaRad;
+      if (mods.mirrorLine) {
         var phi = Math.atan2(mods.mirrorLine.b.y - mods.mirrorLine.a.y, mods.mirrorLine.b.x - mods.mirrorLine.a.x);
         var reflectAng = function (a) { return 2 * phi - a; };
-        var ns = reflectAng(src.endAngle), ne = reflectAng(src.startAngle);
-        src.startAngle = ns; src.endAngle = ne;
+        if (src.type === 'arc') { var ns = reflectAng(src.endAngle), ne = reflectAng(src.startAngle); src.startAngle = ns; src.endAngle = ne; }
+        else if (src.type === 'raddim') src.angle = reflectAng(src.angle);
+        else if (src.type === 'dim') src.offset = -src.offset; // มิเรอร์กลับด้าน (chirality) ต้องพลิกเครื่องหมาย offset ด้วย ไม่งั้นเส้นมิติจะไปโผล่ผิดฝั่ง
       }
-      if (mods.scaleFactor != null && (src.type === 'circle' || src.type === 'arc')) src.radius *= mods.scaleFactor;
+      if (mods.scaleFactor != null && (src.type === 'circle' || src.type === 'arc' || src.type === 'raddim')) src.radius *= mods.scaleFactor;
+      if (mods.scaleFactor != null && src.type === 'dim') src.offset *= mods.scaleFactor;
+      if (mods.scaleFactor != null && src.type === 'text') src.height *= mods.scaleFactor;
       if (mods.duplicate) { src.id = genId(); added.push(src); return e; }
       return src;
     });
@@ -525,15 +593,23 @@
       var mAng = (e.startAngle + e.endAngle) / 2;
       return [{ p: e.center, ref: 'center' }, { p: { x: e.center.x + e.radius * Math.cos(mAng), y: e.center.y + e.radius * Math.sin(mAng) }, ref: 'radius' }];
     }
+    if (e.type === 'dim') { var dl2 = dimLinePoints(e); return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }, { p: dl2.dimP1, ref: 'dimoffset' }]; }
+    if (e.type === 'raddim') return [{ p: e.center, ref: 'center' }, { p: raddimLeaderPoint(e), ref: 'raddimleader' }];
+    if (e.type === 'text') return [{ p: e.p, ref: 'p' }];
     return [];
   }
   function applyGripEdit(e, ref, pt) {
     if (ref === 'p1') e.p1 = { x: pt.x, y: pt.y };
     else if (ref === 'p2') e.p2 = { x: pt.x, y: pt.y };
+    else if (ref === 'p') e.p = { x: pt.x, y: pt.y };
     else if (ref === 'center') e.center = { x: pt.x, y: pt.y };
     else if (ref === 'radius') e.radius = Math.max(0.01, Math.hypot(pt.x - e.center.x, pt.y - e.center.y));
     else if (ref === 'p2x-p1y') { e.p2.x = pt.x; e.p1.y = pt.y; }
     else if (ref === 'p1x-p2y') { e.p1.x = pt.x; e.p2.y = pt.y; }
+    else if (ref === 'dimoffset') {
+      var dx = e.p2.x - e.p1.x, dy = e.p2.y - e.p1.y, len = Math.hypot(dx, dy);
+      e.offset = len ? ((pt.x - e.p1.x) * (-dy / len) + (pt.y - e.p1.y) * (dx / len)) : 0;
+    } else if (ref === 'raddimleader') { e.radius = Math.max(0.01, Math.hypot(pt.x - e.center.x, pt.y - e.center.y)); e.angle = Math.atan2(pt.y - e.center.y, pt.x - e.center.x); }
     else if (ref && typeof ref === 'object' && 'idx' in ref) e.points[ref.idx] = { x: pt.x, y: pt.y };
   }
   function hitTestGrip(worldPt) {
@@ -661,12 +737,33 @@
       if (closed) ctx.closePath();
       ctx.stroke();
     }
+    function drawArrowHead(screenPt, dirAngle, color) {
+      var len = 8, wid = 3, dx = Math.cos(dirAngle), dy = Math.sin(dirAngle), px = -dy, py = dx;
+      var bx = screenPt.x - dx * len, by = screenPt.y - dy * len;
+      ctx.beginPath();
+      ctx.moveTo(screenPt.x, screenPt.y);
+      ctx.lineTo(bx + px * wid, by + py * wid);
+      ctx.lineTo(bx - px * wid, by - py * wid);
+      ctx.closePath();
+      ctx.fillStyle = color; ctx.fill();
+    }
+    function drawDimText(midScreen, text, screenAngle, color) {
+      var a = screenAngle;
+      if (a > Math.PI / 2 || a < -Math.PI / 2) a += Math.PI;
+      ctx.save();
+      ctx.translate(midScreen.x, midScreen.y); ctx.rotate(a);
+      ctx.fillStyle = color; ctx.font = '11px Prompt, sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText(text, 0, -4);
+      ctx.restore();
+    }
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
       if (layer.visible === false) return;
       var selected = state.selectedIds.indexOf(e.id) !== -1;
       var isCutterOrPick = e.id === state.trimCutterId || e.id === state.offsetSourceId || state.pendingEntityIds.indexOf(e.id) !== -1;
-      ctx.strokeStyle = isCutterOrPick ? col.osnap : (selected ? col.selected : (layer.color || col.entity));
+      var col_ = isCutterOrPick ? col.osnap : (selected ? col.selected : (layer.color || col.entity));
+      ctx.strokeStyle = col_;
       ctx.lineWidth = (selected || isCutterOrPick) ? 2.5 : 1.6;
       if (e.type === 'line') strokePolylinePts([e.p1, e.p2], false);
       else if (e.type === 'polyline') strokePolylinePts(e.points, !!e.closed);
@@ -675,6 +772,30 @@
         var c0 = worldToScreen(e.center.x, e.center.y);
         ctx.beginPath(); ctx.ellipse(c0.x, c0.y, e.radius * state.view.scale, e.radius * state.view.scale, 0, 0, Math.PI * 2); ctx.stroke();
       } else if (e.type === 'arc') strokePolylinePts(arcPoints(e), false);
+      else if (e.type === 'dim') {
+        var dl = dimLinePoints(e);
+        strokePolylinePts([e.p1, dl.dimP1], false);
+        strokePolylinePts([e.p2, dl.dimP2], false);
+        strokePolylinePts([dl.dimP1, dl.dimP2], false);
+        var ds1 = worldToScreen(dl.dimP1.x, dl.dimP1.y), ds2 = worldToScreen(dl.dimP2.x, dl.dimP2.y);
+        var dAng = Math.atan2(ds2.y - ds1.y, ds2.x - ds1.x);
+        drawArrowHead(ds1, dAng + Math.PI, col_); drawArrowHead(ds2, dAng, col_);
+        var dMid = { x: (ds1.x + ds2.x) / 2, y: (ds1.y + ds2.y) / 2 };
+        var dLen = Math.hypot(e.p2.x - e.p1.x, e.p2.y - e.p1.y);
+        drawDimText(dMid, fmtMm(dLen) + ' ' + t('mmUnit'), dAng, col_);
+      } else if (e.type === 'raddim') {
+        var rlp = raddimLeaderPoint(e);
+        var rs1 = worldToScreen(e.center.x, e.center.y), rs2 = worldToScreen(rlp.x, rlp.y);
+        ctx.beginPath(); ctx.moveTo(rs1.x, rs1.y); ctx.lineTo(rs2.x, rs2.y); ctx.stroke();
+        var rAng = Math.atan2(rs2.y - rs1.y, rs2.x - rs1.x);
+        drawArrowHead(rs2, rAng, col_);
+        drawDimText({ x: rs2.x + Math.cos(rAng) * 14, y: rs2.y + Math.sin(rAng) * 14 }, 'R' + fmtMm(e.radius), rAng, col_);
+      } else if (e.type === 'text') {
+        var tsp = worldToScreen(e.p.x, e.p.y);
+        ctx.fillStyle = col_; ctx.font = Math.max(6, e.height * state.view.scale) + 'px Prompt, sans-serif';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+        ctx.fillText(e.text, tsp.x, tsp.y);
+      }
     });
     /* จุดจับ (grips) — วาดเฉพาะตอนเลือกอยู่ตัวเดียวและเครื่องมือคือ "เลือก" (กันสับสนตอนใช้เครื่องมือแก้ไขอื่น) */
     if (state.tool === 'select' && state.selectedIds.length === 1) {
@@ -691,12 +812,18 @@
     }
 
     /* ── พรีวิวเอนทิตี้ที่กำลังวาดอยู่ (รวมเครื่องมือย้าย/คัดลอก/หมุน/มิเรอร์ ที่ใช้จุดยึด+เคอร์เซอร์แบบเดียวกัน) ── */
-    var GUIDE_LINE_TOOLS = { line: 1, polyline: 1, move: 1, copy: 1, rotate: 1, mirror: 1 };
+    var GUIDE_LINE_TOOLS = { line: 1, polyline: 1, move: 1, copy: 1, rotate: 1, mirror: 1, dim: 1 };
     var eff = (state.tool !== 'select' && state._cursorWorld) ? effectivePoint(applyOrtho(state._cursorWorld)) : null;
     if (eff && state.pendingPoints.length) {
       var anchor = state.pendingPoints[state.pendingPoints.length - 1];
       ctx.strokeStyle = col.preview; ctx.lineWidth = 1.6; ctx.setLineDash([5, 4]);
-      if (GUIDE_LINE_TOOLS[state.tool]) {
+      if (state.tool === 'dim' && state.pendingPoints.length === 2) {
+        var dp1 = state.pendingPoints[0], dp2 = state.pendingPoints[1];
+        var dpdx = dp2.x - dp1.x, dpdy = dp2.y - dp1.y, dplen = Math.hypot(dpdx, dpdy);
+        var dOffset = dplen ? ((eff.x - dp1.x) * (-dpdy / dplen) + (eff.y - dp1.y) * (dpdx / dplen)) : 0;
+        var dlp = dimLinePoints({ p1: dp1, p2: dp2, offset: dOffset });
+        strokePolylinePts([dp1, dlp.dimP1], false); strokePolylinePts([dp2, dlp.dimP2], false); strokePolylinePts([dlp.dimP1, dlp.dimP2], false);
+      } else if (GUIDE_LINE_TOOLS[state.tool]) {
         var s1 = worldToScreen(anchor.x, anchor.y), s2 = worldToScreen(eff.x, eff.y);
         ctx.beginPath(); ctx.moveTo(s1.x, s1.y); ctx.lineTo(s2.x, s2.y); ctx.stroke();
         if (state.tool === 'polyline' && state.pendingPoints.length > 1) {
@@ -821,7 +948,7 @@
     clearTimeout(saveTimer);
     saveTimer = setTimeout(function () {
       try {
-        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ entities: state.entities, layers: state.layers, view: state.view }));
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ entities: state.entities, layers: state.layers, activeLayer: state.activeLayer, layerSeq: state.layerSeq, view: state.view }));
         var el = $('statSave'); el.textContent = t('autosaveSaved');
         clearTimeout(el._clearTimer);
         el._clearTimer = setTimeout(function () { el.textContent = ''; }, 2500);
@@ -836,6 +963,8 @@
       if (saved && Array.isArray(saved.entities)) {
         state.entities = saved.entities;
         if (saved.layers) state.layers = saved.layers;
+        if (saved.activeLayer && state.layers[saved.activeLayer]) state.activeLayer = saved.activeLayer;
+        if (saved.layerSeq) state.layerSeq = saved.layerSeq;
         if (saved.view) state.view = saved.view;
         $('statSave').textContent = t('restoredDraft');
       }
@@ -847,7 +976,7 @@
     var best = null, bestDist = Infinity;
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
-      if (layer.visible === false) return;
+      if (layer.visible === false || layer.locked) return;
       var d = distPointToEntity(worldPt, e);
       if (d < thresholdMm && d < bestDist) { bestDist = d; best = e.id; }
     });
@@ -881,17 +1010,36 @@
   var TOOL_BTN_IDS = {
     select: 'toolSelectBtn', line: 'toolLineBtn', polyline: 'toolPolylineBtn', rect: 'toolRectBtn', circle: 'toolCircleBtn', arc: 'toolArcBtn',
     move: 'toolMoveBtn', copy: 'toolCopyBtn', rotate: 'toolRotateBtn', mirror: 'toolMirrorBtn', scale: 'toolScaleBtn',
-    trim: 'toolTrimBtn', extend: 'toolExtendBtn', fillet: 'toolFilletBtn', offset: 'toolOffsetBtn', arrayrect: 'toolArrayRectBtn'
+    trim: 'toolTrimBtn', extend: 'toolExtendBtn', fillet: 'toolFilletBtn', offset: 'toolOffsetBtn', arrayrect: 'toolArrayRectBtn',
+    dim: 'toolDimBtn', raddim: 'toolRaddimBtn', text: 'toolTextBtn'
   };
   var distLbl = document.querySelector('label[data-i18n="distLbl"]'), angLbl = document.querySelector('label[data-i18n="angLbl"]');
-  var arrayRow = $('arrayRow');
+  var arrayRow = $('arrayRow'), textRow = $('textRow'), textContentInput = $('textContentInput'), textHeightInput = $('textHeightInput');
   function setTool(tool) {
     state.tool = tool; state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null; state.gripDrag = null;
     Object.keys(TOOL_BTN_IDS).forEach(function (k) { $(TOOL_BTN_IDS[k]).classList.toggle('active', k === tool); });
     viewport.style.cursor = tool === 'select' ? 'default' : 'crosshair';
     arrayRow.classList.toggle('show', tool === 'arrayrect');
     updatePreciseRowUI();
+    updateTextRowUI();
     render();
+  }
+  function updateTextRowUI() {
+    var show = state.tool === 'text' && state.pendingPoints.length === 1;
+    textRow.classList.toggle('show', show);
+    if (show) { textHeightInput.value = state.textDefaultHeight; textContentInput.value = ''; textContentInput.focus(); }
+  }
+  function applyTextRow() {
+    if (state.tool !== 'text' || state.pendingPoints.length !== 1) return;
+    var content = textContentInput.value;
+    if (!content.trim()) { cancelDrawing(); return; }
+    var h = parseFloat(textHeightInput.value);
+    if (!isFinite(h) || h <= 0) h = state.textDefaultHeight;
+    state.textDefaultHeight = h;
+    pushHistory();
+    state.entities.push({ id: genId(), type: 'text', layer: state.activeLayer, p: state.pendingPoints[0], text: content, height: h });
+    updateCountUI(); scheduleSave();
+    finishDrawing(); updateTextRowUI(); render();
   }
   /* เปลี่ยนป้าย/ซ่อน-โชว์ช่องระยะ/มุม ตามความหมายจริงของเครื่องมือปัจจุบัน (วงกลม=รัศมี, หมุน=มุมหมุนอย่างเดียว,
      สเกล=อัตราส่วน, ออฟเซ็ต/มุมโค้ง=ระยะ/รัศมีอย่างเดียว, มิเรอร์=ไม่ใช้ช่องตัวเลขเลย) */
@@ -908,7 +1056,8 @@
   }
   function updatePreciseRowUI() {
     updatePreciseLabels();
-    var show = (state.tool !== 'select' && state.tool !== 'trim' && state.tool !== 'extend' && state.tool !== 'arrayrect' && state.pendingPoints.length > 0) ||
+    var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, text: 1 };
+    var show = (!PRECISE_ROW_EXCLUDED[state.tool] && state.pendingPoints.length > 0) ||
       (state.tool === 'offset' && state.offsetSourceId) || (state.tool === 'fillet' && state.pendingEntityIds.length === 2);
     preciseRow.classList.toggle('show', show);
     var showFinish = state.tool === 'polyline' && state.pendingPoints.length >= 2;
@@ -918,9 +1067,9 @@
   function clearPreciseInputs() { distInput.value = ''; angInput.value = ''; }
   function cancelDrawing() {
     state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null;
-    updatePreciseRowUI(); render();
+    updatePreciseRowUI(); updateTextRowUI(); render();
   }
-  function finishDrawing() { state.pendingPoints = []; updatePreciseRowUI(); }
+  function finishDrawing() { state.pendingPoints = []; updatePreciseRowUI(); updateTextRowUI(); }
   function finishPolyline() {
     if (state.pendingPoints.length >= 2) {
       pushHistory();
@@ -998,8 +1147,26 @@
         transformSelectedEntities(function (p) { return mirrorPointAcrossLine(p, mA, mB); }, { mirrorLine: { a: mA, b: mB }, convertRect: true, duplicate: state.mirrorKeepOriginal });
         updateCountUI(); scheduleSave(); updateSelectionUI(); finishDrawing();
       }
+    } else if (state.tool === 'dim') {
+      if (state.pendingPoints.length < 2) {
+        var dLast = state.pendingPoints[state.pendingPoints.length - 1];
+        if (!dLast || Math.hypot(dLast.x - pt.x, dLast.y - pt.y) > DUP_EPS) state.pendingPoints.push(pt);
+      } else {
+        var d1 = state.pendingPoints[0], d2 = state.pendingPoints[1];
+        var ddx = d2.x - d1.x, ddy = d2.y - d1.y, dlen = Math.hypot(ddx, ddy);
+        if (dlen > DUP_EPS) {
+          var offset = (pt.x - d1.x) * (-ddy / dlen) + (pt.y - d1.y) * (ddx / dlen);
+          pushHistory();
+          state.entities.push({ id: genId(), type: 'dim', layer: state.activeLayer, p1: d1, p2: d2, offset: offset });
+          updateCountUI(); scheduleSave();
+        }
+        finishDrawing();
+      }
+    } else if (state.tool === 'text') {
+      state.pendingPoints = [pt]; // จุดเดียว — เนื้อหาข้อความกรอกผ่าน textRow แยกต่างหาก (ดู applyTextRow)
     }
     updatePreciseRowUI();
+    updateTextRowUI();
     clearPreciseInputs();
     render();
   }
@@ -1133,6 +1300,18 @@
     state.offsetSourceId = null;
     clearPreciseInputs(); updatePreciseRowUI(); render();
   }
+  /* มิติรัศมี (raddim): คลิกวงกลม/ส่วนโค้งแล้วสร้าง snapshot รัศมี ณ ตำแหน่งที่คลิก (ทิศทางขีดนำ) — ไม่ผูก
+     กับเอนทิตี้ต้นทางอีกต่อไป แก้วงกลมทีหลังจะไม่กระทบมิติที่วางไปแล้ว (ข้อจำกัดที่ตั้งใจ ทำให้ง่ายและคาดเดาได้) */
+  function handleRaddimClick(raw) {
+    var hit = hitTestEntity(raw);
+    if (!hit) return;
+    var e = state.entities.filter(function (x) { return x.id === hit; })[0];
+    if (!e || (e.type !== 'circle' && e.type !== 'arc')) return;
+    var angle = Math.atan2(raw.y - e.center.y, raw.x - e.center.x);
+    pushHistory();
+    state.entities.push({ id: genId(), type: 'raddim', layer: state.activeLayer, center: { x: e.center.x, y: e.center.y }, radius: e.radius, angle: angle });
+    updateCountUI(); scheduleSave(); render();
+  }
   /* ── โหมด "เลือก": จุดจับ (grip) ก่อน แล้วค่อยคลิกเอนทิตี้/ลากเลือกเป็นกลุ่ม ── */
   function handleSelectMouseDown(raw, sp, shiftKey) {
     if (state.selectedIds.length === 1) {
@@ -1164,7 +1343,7 @@
     var picked = [];
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
-      if (layer.visible === false) return;
+      if (layer.visible === false || layer.locked) return;
       var pts = entityBoundsPoints(e);
       var allIn = pts.every(function (p) { return p.x >= xmin && p.x <= xmax && p.y >= ymin && p.y <= ymax; });
       var anyIn = pts.some(function (p) { return p.x >= xmin && p.x <= xmax && p.y >= ymin && p.y <= ymax; });
@@ -1205,6 +1384,7 @@
     if (state.tool === 'trim' || state.tool === 'extend') { handleTrimExtendClick(raw); return; }
     if (state.tool === 'fillet') { handleFilletClick(raw); return; }
     if (state.tool === 'offset') { handleOffsetClick(raw); return; }
+    if (state.tool === 'raddim') { handleRaddimClick(raw); return; }
     if (state.tool === 'arrayrect') return; // อาเรย์ทำงานผ่านปุ่ม "แทรกอาเรย์" ไม่ใช้คลิกบน canvas
     handlePointInput(effectivePoint(applyOrtho(raw)));
   });
@@ -1270,6 +1450,7 @@
       else if (state.tool === 'trim' || state.tool === 'extend') handleTrimExtendClick(raw);
       else if (state.tool === 'fillet') handleFilletClick(raw);
       else if (state.tool === 'offset') handleOffsetClick(raw);
+      else if (state.tool === 'raddim') handleRaddimClick(raw);
       else if (state.tool !== 'arrayrect') handlePointInput(effectivePoint(applyOrtho(raw)));
       render();
     }
@@ -1341,8 +1522,15 @@
     var spx = parseFloat($('arrSpX').value) || 0, spy = parseFloat($('arrSpY').value) || 0;
     doArrayRect(rows, cols, spx, spy);
   });
+  $('textApplyBtn').addEventListener('click', applyTextRow);
+  [textContentInput, textHeightInput].forEach(function (inp) {
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); applyTextRow(); }
+      else if (e.key === 'Escape') { e.preventDefault(); cancelDrawing(); inp.blur(); }
+    });
+  });
   var langToggle = $('langToggle');
-  if (langToggle) langToggle.addEventListener('click', function () { setUILang(getUILang() === 'en' ? 'th' : 'en'); applyStaticI18n(); updatePropsPanel(); });
+  if (langToggle) langToggle.addEventListener('click', function () { setUILang(getUILang() === 'en' ? 'th' : 'en'); applyStaticI18n(); updatePropsPanel(); renderLayersPanel(); });
 
   /* ══════════════════ แผงคุณสมบัติ — แก้ไขพิกัด/รัศมี/มุมของเอนทิตี้ที่เลือกอยู่ตัวเดียวได้ตรงๆ ══════════════════ */
   var propsCard = $('propsCard'), propsTitle = $('propsTitle'), propsGrid = $('propsGrid');
@@ -1352,16 +1540,19 @@
     var e = state.entities.filter(function (x) { return x.id === state.selectedIds[0]; })[0];
     if (!e) { propsCard.hidden = true; return; }
     propsCard.hidden = false;
-    var TITLE_KEY = { line: 'propsTitleLine', polyline: 'propsTitlePolyline', rect: 'propsTitleRect', circle: 'propsTitleCircle', arc: 'propsTitleArc' };
+    var TITLE_KEY = {
+      line: 'propsTitleLine', polyline: 'propsTitlePolyline', rect: 'propsTitleRect', circle: 'propsTitleCircle',
+      arc: 'propsTitleArc', dim: 'propsTitleDim', raddim: 'propsTitleRaddim', text: 'propsTitleText'
+    };
     propsTitle.textContent = t(TITLE_KEY[e.type] || e.type);
-    if (e.type === 'polyline') { propsGrid.innerHTML = '<div class="cad-props-note">' + t('propPolylineNote', { n: e.points.length }) + '</div>'; return; }
-    var fields = [];
-    if (e.type === 'line' || e.type === 'rect') {
+    var fields = [], noteHtml = '';
+    if (e.type === 'polyline') { noteHtml = '<div class="cad-props-note">' + t('propPolylineNote', { n: e.points.length }) + '</div>'; }
+    else if (e.type === 'line' || e.type === 'rect' || e.type === 'dim') {
       fields = [
         { k: 'propX1', v: e.p1.x, set: function (v) { e.p1.x = v; } }, { k: 'propY1', v: e.p1.y, set: function (v) { e.p1.y = v; } },
         { k: 'propX2', v: e.p2.x, set: function (v) { e.p2.x = v; } }, { k: 'propY2', v: e.p2.y, set: function (v) { e.p2.y = v; } }
       ];
-    } else if (e.type === 'circle') {
+    } else if (e.type === 'circle' || e.type === 'raddim') {
       fields = [
         { k: 'propCx', v: e.center.x, set: function (v) { e.center.x = v; } }, { k: 'propCy', v: e.center.y, set: function (v) { e.center.y = v; } },
         { k: 'propR', v: e.radius, set: function (v) { e.radius = Math.max(0.01, v); } }
@@ -1373,11 +1564,21 @@
         { k: 'propStartDeg', v: e.startAngle * 180 / Math.PI, set: function (v) { e.startAngle = v * Math.PI / 180; } },
         { k: 'propEndDeg', v: e.endAngle * 180 / Math.PI, set: function (v) { e.endAngle = v * Math.PI / 180; } }
       ];
+    } else if (e.type === 'text') {
+      fields = [
+        { k: 'propHeight', v: e.height, set: function (v) { e.height = Math.max(0.1, v); } }
+      ];
     }
-    propsGrid.innerHTML = fields.map(function (f, i) {
+    var textFieldHtml = e.type === 'text' ? '<label>' + t('propText') + '<input type="text" id="propTextContent" value="' + e.text.replace(/"/g, '&quot;') + '"></label>' : '';
+    var numFieldsHtml = fields.map(function (f, i) {
       return '<label>' + t(f.k) + '<input type="text" inputmode="decimal" data-fidx="' + i + '" value="' + fmtMm(f.v) + '"></label>';
     }).join('');
-    Array.prototype.forEach.call(propsGrid.querySelectorAll('input'), function (inp, i) {
+    var layerOptsHtml = Object.keys(state.layers).map(function (lid) {
+      return '<option value="' + lid + '"' + (e.layer === lid ? ' selected' : '') + '>' + (state.layers[lid].name || lid) + '</option>';
+    }).join('');
+    var layerFieldHtml = '<label>' + t('propLayer') + '<select id="propLayerSel">' + layerOptsHtml + '</select></label>';
+    propsGrid.innerHTML = noteHtml + textFieldHtml + numFieldsHtml + layerFieldHtml;
+    Array.prototype.forEach.call(propsGrid.querySelectorAll('input[data-fidx]'), function (inp, i) {
       inp.addEventListener('change', function () {
         var v = parseFloat(inp.value);
         if (!isFinite(v)) { inp.value = fmtMm(fields[i].v); return; }
@@ -1386,7 +1587,61 @@
         scheduleSave(); render(); updatePropsPanel();
       });
     });
+    var textInp = $('propTextContent');
+    if (textInp) textInp.addEventListener('change', function () { pushHistory(); e.text = textInp.value; scheduleSave(); render(); });
+    var layerSel = $('propLayerSel');
+    if (layerSel) layerSel.addEventListener('change', function () { pushHistory(); e.layer = layerSel.value; scheduleSave(); render(); });
   }
+
+  /* ══════════════════ แผงจัดการเลเยอร์ — เพิ่ม/ลบ/เปลี่ยนชื่อ/สี/ซ่อน/ล็อก, เลือกเลเยอร์ที่กำลังวาดอยู่ ══════════════════
+     เลเยอร์ '0' เป็นเลเยอร์ถาวร ลบไม่ได้ (ตามธรรมเนียมโปรแกรม CAD ทั่วไป) — ลบเลเยอร์อื่นแล้วเอนทิตี้ในนั้นย้ายไปเลเยอร์ 0
+     ล็อกเลเยอร์ = เลือก/แก้เอนทิตี้ในเลเยอร์นั้นไม่ได้ (hitTestEntity/finishDragSelect ข้ามให้แล้ว) แต่ยังวาดเอนทิตี้ใหม่ทับ
+     ไปลงเลเยอร์นั้นได้ถ้าตั้งเป็นเลเยอร์ใช้งานอยู่ (ข้อจำกัดที่ตั้งใจ ไม่ปิดกั้นการวาดเพื่อความง่าย) */
+  var layersList = $('layersList');
+  function renderLayersPanel() {
+    if (!layersList) return;
+    var ids = Object.keys(state.layers);
+    layersList.innerHTML = ids.map(function (lid) {
+      var ly = state.layers[lid];
+      var isActive = lid === state.activeLayer;
+      return '<div class="cad-layer-row' + (isActive ? ' active' : '') + '" data-lid="' + lid + '">' +
+        '<button type="button" class="cad-layer-icon" data-act="setactive" title="' + t('layerActiveLbl') + '">' + (isActive ? '🔘' : '⚪') + '</button>' +
+        '<input type="color" class="cad-layer-color" data-act="color" value="' + (ly.color || '#1F2430') + '">' +
+        '<input type="text" class="cad-layer-name" data-act="rename" value="' + (ly.name || lid).replace(/"/g, '&quot;') + '" placeholder="' + t('layerNamePlaceholder') + '">' +
+        '<button type="button" class="cad-layer-icon" data-act="visible" title="' + (ly.visible === false ? 'show' : 'hide') + '">' + (ly.visible === false ? '🚫' : '👁️') + '</button>' +
+        '<button type="button" class="cad-layer-icon" data-act="lock">' + (ly.locked ? '🔒' : '🔓') + '</button>' +
+        '<button type="button" class="cad-layer-icon" data-act="delete"' + (lid === '0' ? ' disabled' : '') + '>🗑️</button>' +
+        '</div>';
+    }).join('');
+    Array.prototype.forEach.call(layersList.querySelectorAll('[data-act]'), function (el) {
+      var row = el.closest('.cad-layer-row'), lid = row.getAttribute('data-lid'), act = el.getAttribute('data-act');
+      if (act === 'setactive') el.addEventListener('click', function () { state.activeLayer = lid; renderLayersPanel(); });
+      else if (act === 'color') el.addEventListener('change', function () { state.layers[lid].color = el.value; scheduleSave(); render(); });
+      else if (act === 'rename') el.addEventListener('change', function () { state.layers[lid].name = el.value || lid; scheduleSave(); updatePropsPanel(); });
+      else if (act === 'visible') el.addEventListener('click', function () { state.layers[lid].visible = state.layers[lid].visible === false; scheduleSave(); render(); renderLayersPanel(); });
+      else if (act === 'lock') el.addEventListener('click', function () { state.layers[lid].locked = !state.layers[lid].locked; scheduleSave(); renderLayersPanel(); });
+      else if (act === 'delete') el.addEventListener('click', function () { deleteLayer(lid); });
+    });
+  }
+  function addLayer() {
+    var id = String(state.layerSeq++);
+    while (state.layers[id]) id = String(state.layerSeq++);
+    state.layers[id] = { name: 'เลเยอร์ ' + id, color: '#2554C7', visible: true, locked: false };
+    state.activeLayer = id;
+    scheduleSave(); renderLayersPanel();
+  }
+  function deleteLayer(lid) {
+    if (lid === '0') return;
+    var name = state.layers[lid] ? (state.layers[lid].name || lid) : lid;
+    if (!window.confirm(t('layerDeleteConfirm', { name: name }))) return;
+    pushHistory();
+    state.entities.forEach(function (e) { if (e.layer === lid) e.layer = '0'; });
+    delete state.layers[lid];
+    if (state.activeLayer === lid) state.activeLayer = '0';
+    updateCountUI(); scheduleSave(); renderLayersPanel(); updatePropsPanel(); render();
+  }
+  var layerAddBtn = $('layerAddBtn');
+  if (layerAddBtn) layerAddBtn.addEventListener('click', addLayer);
 
   /* ══════════════════ init ══════════════════ */
   function boot() {
@@ -1396,7 +1651,7 @@
     $('osnapToggleBtn').classList.toggle('active', state.osnapOn);
     $('orthoToggleBtn').classList.toggle('active', state.orthoOn);
     $('mirrorKeepBtn').classList.toggle('active', state.mirrorKeepOriginal);
-    updateUndoRedoUI(); updateSelectionUI(); updateCountUI(); updateZoomUI();
+    updateUndoRedoUI(); updateSelectionUI(); updateCountUI(); updateZoomUI(); renderLayersPanel();
     resizeCanvas();
   }
   var rsz = null;
