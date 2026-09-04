@@ -10,6 +10,9 @@
    Stage 4: ใส่มิติเส้น (linear dimension) + มิติรัศมี (radius dimension) + คำอธิบายข้อความ
    (text annotation), แผงจัดการเลเยอร์เต็มรูปแบบ (เพิ่ม/ลบ/เปลี่ยนชื่อ/สี/ซ่อน/ล็อก/ย้าย
    เอนทิตี้ข้ามเลเยอร์)
+   Stage 5: ส่งออกแบบเป็น PNG (แรสเตอร์)/SVG (เวกเตอร์ สเกลจริงหน่วย มม.)/DXF (มาตรฐานแลกเปลี่ยนไฟล์ CAD
+   ใช้เปิดต่อในโปรแกรมอื่นได้), นำเข้าไฟล์ DXF (LINE/CIRCLE/ARC/LWPOLYLINE/TEXT), พิมพ์/บันทึกเป็น PDF
+   ผ่านกลไกพิมพ์ของเบราว์เซอร์
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -67,7 +70,14 @@
       propText: 'ข้อความ', propHeight: 'ความสูงตัวอักษร (มม.)', propLayer: 'เลเยอร์',
       layersTitle: 'เลเยอร์', layerAddBtn: '➕ เลเยอร์ใหม่', layerNamePlaceholder: 'ชื่อเลเยอร์',
       layerActiveLbl: 'ใช้งานอยู่', layerDeleteConfirm: 'ลบเลเยอร์ "{name}"? เอนทิตี้ในเลเยอร์นี้จะถูกย้ายไปเลเยอร์ 0',
-      layerCantDeleteLast: 'ต้องมีอย่างน้อย 1 เลเยอร์'
+      layerCantDeleteLast: 'ต้องมีอย่างน้อย 1 เลเยอร์',
+      exportPngBtn: '📷 PNG', exportSvgBtn: '🗺️ SVG', exportDxfBtn: '📐 DXF', importDxfBtn: '📥 นำเข้า DXF',
+      printBtn: '🖨️ พิมพ์/PDF',
+      exportEmptyWarn: 'ยังไม่มีเอนทิตี้ให้ส่งออก (หรือทุกเลเยอร์ถูกซ่อนอยู่)',
+      popupBlocked: 'เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — กรุณาอนุญาตป๊อปอัปสำหรับเว็บนี้แล้วลองใหม่',
+      importDxfSuccess: 'นำเข้า {n} เอนทิตี้จากไฟล์ DXF เรียบร้อย (ถูกเลือกไว้ให้แล้ว)',
+      importDxfError: 'อ่านไฟล์นี้ไม่ได้ — ไม่ใช่ไฟล์ DXF หรือไฟล์เสียหาย',
+      importDxfEmpty: 'ไม่พบเอนทิตี้ที่รองรับในไฟล์ DXF นี้ (รองรับ LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)'
     },
     en: {
       docTitle: 'CAD Drafting | Tanot',
@@ -119,7 +129,14 @@
       propText: 'Text', propHeight: 'Text height (mm)', propLayer: 'Layer',
       layersTitle: 'Layers', layerAddBtn: '➕ New layer', layerNamePlaceholder: 'Layer name',
       layerActiveLbl: 'Active', layerDeleteConfirm: 'Delete layer "{name}"? Its entities will move to layer 0',
-      layerCantDeleteLast: 'At least 1 layer is required'
+      layerCantDeleteLast: 'At least 1 layer is required',
+      exportPngBtn: '📷 PNG', exportSvgBtn: '🗺️ SVG', exportDxfBtn: '📐 DXF', importDxfBtn: '📥 Import DXF',
+      printBtn: '🖨️ Print/PDF',
+      exportEmptyWarn: 'Nothing to export yet (or every layer is hidden)',
+      popupBlocked: 'Your browser blocked the print window — please allow pop-ups for this site and try again',
+      importDxfSuccess: 'Imported {n} entities from the DXF file (now selected)',
+      importDxfError: "Couldn't read this file — not a DXF file, or it's corrupted",
+      importDxfEmpty: 'No supported entities found in this DXF file (supports LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)'
     }
   };
   function getUILang() { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
@@ -1642,6 +1659,287 @@
   }
   var layerAddBtn = $('layerAddBtn');
   if (layerAddBtn) layerAddBtn.addEventListener('click', addLayer);
+
+  /* ══════════════════ ส่งออก/นำเข้าไฟล์ (Stage 5) ══════════════════
+     PNG: แรสเตอร์ snapshot ของทั้งแบบ (auto-fit, พื้นหลังขาวเสมอไม่ว่าจะเปิดธีมไหนอยู่ — เอาไว้แชร์/พิมพ์ให้อ่านง่าย)
+     SVG: เวกเตอร์ สเกลจริงหน่วยมิลลิเมตร (viewBox + width/height เป็น "mm" ตรงๆ) แก้ไขต่อในโปรแกรมเวกเตอร์อื่นได้
+     DXF: มาตรฐานแลกเปลี่ยนไฟล์ CAD (ASCII R12) เปิดต่อใน AutoCAD/LibreCAD/QCAD ฯลฯ ได้ — ดูหมายเหตุขอบเขตที่
+          entityToDxfChunks() ด้านล่าง
+     พิมพ์/PDF: ไม่ได้เขียน PDF byte-stream เอง (ซับซ้อนเกินสัดส่วนของสเตจนี้) แต่เปิดหน้าต่างใหม่ใส่ SVG ที่สเกล
+          จริงแล้วเรียกกลไกพิมพ์ของเบราว์เซอร์ (window.print) แทน — ผู้ใช้เลือก "บันทึกเป็น PDF" จาก dialog พิมพ์เอง
+     ทุกฟังก์ชันส่งออกใช้ computeSceneBBox() (เฉพาะเอนทิตี้ในเลเยอร์ที่มองเห็นอยู่ตอนนี้ — ส่งออกตามที่ตาเห็นจริง) */
+  var EXPORT_PAD_MM = 20;    // ระยะขอบรอบแบบตอนส่งออก (มม.)
+  var EXPORT_LINE_MM = 0.3;  // ความหนาเส้นมาตรฐานตอนส่งออก (มม. — ใกล้เคียงเส้นบางในงานเขียนแบบจริง)
+
+  function computeSceneBBox() {
+    var minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    state.entities.forEach(function (e) {
+      var layer = state.layers[e.layer] || state.layers['0'];
+      if (layer.visible === false) return;
+      entityBoundsPoints(e).forEach(function (p) {
+        if (p.x < minx) minx = p.x; if (p.x > maxx) maxx = p.x;
+        if (p.y < miny) miny = p.y; if (p.y > maxy) maxy = p.y;
+      });
+    });
+    if (!isFinite(minx)) return null;
+    return { minx: minx - EXPORT_PAD_MM, miny: miny - EXPORT_PAD_MM, maxx: maxx + EXPORT_PAD_MM, maxy: maxy + EXPORT_PAD_MM };
+  }
+
+  function downloadBlob(content, filename, mime) {
+    var blob = content instanceof Blob ? content : new Blob([content], { type: mime });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+  function pad2(n) { return n < 10 ? '0' + n : String(n); }
+  function exportFilenameBase() {
+    var d = new Date();
+    return 'tanot-cad-' + d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) + '-' + pad2(d.getHours()) + pad2(d.getMinutes());
+  }
+
+  /* วาดเอนทิตี้ทั้งหมด (ที่มองเห็น) ลงบน context ที่กำหนด — ใช้ระบบพิกัดของตัวเองแยกจาก state.view เสมอ
+     (ไม่ผูกกับตำแหน่งที่กำลังมองอยู่บนจอ ณ ขณะกดส่งออก — auto-fit ทั้งแบบทุกครั้ง) */
+  function renderEntitiesForExport(c, bbox, pxPerMm) {
+    var h = (bbox.maxy - bbox.miny) * pxPerMm;
+    function w2s(x, y) { return { x: (x - bbox.minx) * pxPerMm, y: h - (y - bbox.miny) * pxPerMm }; }
+    function poly(pts, closed) {
+      if (pts.length < 2) return;
+      c.beginPath();
+      var s0 = w2s(pts[0].x, pts[0].y); c.moveTo(s0.x, s0.y);
+      for (var i = 1; i < pts.length; i++) { var s = w2s(pts[i].x, pts[i].y); c.lineTo(s.x, s.y); }
+      if (closed) c.closePath();
+      c.stroke();
+    }
+    c.fillStyle = '#FFFFFF'; c.fillRect(0, 0, (bbox.maxx - bbox.minx) * pxPerMm, h);
+    c.lineWidth = Math.max(1, EXPORT_LINE_MM * pxPerMm);
+    state.entities.forEach(function (e) {
+      var layer = state.layers[e.layer] || state.layers['0'];
+      if (layer.visible === false) return;
+      c.strokeStyle = layer.color || '#1F2430'; c.fillStyle = c.strokeStyle;
+      if (e.type === 'line') poly([e.p1, e.p2], false);
+      else if (e.type === 'polyline') poly(e.points, !!e.closed);
+      else if (e.type === 'rect') poly(rectCorners(e), true);
+      else if (e.type === 'circle') { var cc = w2s(e.center.x, e.center.y); c.beginPath(); c.ellipse(cc.x, cc.y, e.radius * pxPerMm, e.radius * pxPerMm, 0, 0, Math.PI * 2); c.stroke(); }
+      else if (e.type === 'arc') poly(arcPoints(e), false);
+      else if (e.type === 'dim') {
+        var dl = dimLinePoints(e);
+        poly([e.p1, dl.dimP1], false); poly([e.p2, dl.dimP2], false); poly([dl.dimP1, dl.dimP2], false);
+        var dm = mid(dl.dimP1, dl.dimP2), dms = w2s(dm.x, dm.y);
+        var dLen = Math.hypot(e.p2.x - e.p1.x, e.p2.y - e.p1.y);
+        c.font = Math.max(9, 3 * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'bottom';
+        c.fillText(fmtMm(dLen) + ' ' + t('mmUnit'), dms.x, dms.y - 4);
+      } else if (e.type === 'raddim') {
+        var rlp = raddimLeaderPoint(e), rs1 = w2s(e.center.x, e.center.y), rs2 = w2s(rlp.x, rlp.y);
+        c.beginPath(); c.moveTo(rs1.x, rs1.y); c.lineTo(rs2.x, rs2.y); c.stroke();
+        c.font = Math.max(9, 3 * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
+        c.fillText('R' + fmtMm(e.radius), rs2.x + 4, rs2.y);
+      } else if (e.type === 'text') {
+        var tsp = w2s(e.p.x, e.p.y);
+        c.font = Math.max(6, e.height * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'bottom';
+        c.fillText(e.text, tsp.x, tsp.y);
+      }
+    });
+  }
+  function exportPNG() {
+    var bbox = computeSceneBBox();
+    if (!bbox) { alert(t('exportEmptyWarn')); return; }
+    var pxPerMm = 4; // ความละเอียดพิมพ์ที่ดี (~4px/mm ที่มาตราส่วน 1:1)
+    var w = (bbox.maxx - bbox.minx) * pxPerMm, h = (bbox.maxy - bbox.miny) * pxPerMm;
+    var MAXPX = 6000; // กันไฟล์ใหญ่เกินไปถ้าแบบกว้างมาก — ลดความละเอียดลงตามสัดส่วนแทนที่จะปฏิเสธ
+    if (w > MAXPX || h > MAXPX) { var sc = MAXPX / Math.max(w, h); pxPerMm *= sc; w *= sc; h *= sc; }
+    var off = document.createElement('canvas'); off.width = Math.max(1, Math.round(w)); off.height = Math.max(1, Math.round(h));
+    renderEntitiesForExport(off.getContext('2d'), bbox, pxPerMm);
+    off.toBlob(function (blob) { if (blob) downloadBlob(blob, exportFilenameBase() + '.png', 'image/png'); }, 'image/png');
+  }
+
+  function svgEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function buildSvgMarkup() {
+    var bbox = computeSceneBBox();
+    if (!bbox) return null;
+    var w = bbox.maxx - bbox.minx, h = bbox.maxy - bbox.miny;
+    function sx(x) { return (x - bbox.minx).toFixed(3); }
+    function sy(y) { return (h - (y - bbox.miny)).toFixed(3); }
+    function polyPath(pts, closed) {
+      if (pts.length < 2) return '';
+      var d = 'M ' + sx(pts[0].x) + ' ' + sy(pts[0].y);
+      for (var i = 1; i < pts.length; i++) d += ' L ' + sx(pts[i].x) + ' ' + sy(pts[i].y);
+      if (closed) d += ' Z';
+      return d;
+    }
+    var parts = ['<?xml version="1.0" encoding="UTF-8"?>',
+      '<svg xmlns="http://www.w3.org/2000/svg" width="' + w.toFixed(2) + 'mm" height="' + h.toFixed(2) + 'mm" viewBox="0 0 ' + w.toFixed(3) + ' ' + h.toFixed(3) + '">',
+      '<rect x="0" y="0" width="' + w.toFixed(3) + '" height="' + h.toFixed(3) + '" fill="#FFFFFF"/>',
+      '<g fill="none" stroke-width="' + EXPORT_LINE_MM + '" font-family="Prompt, sans-serif">'];
+    state.entities.forEach(function (e) {
+      var layer = state.layers[e.layer] || state.layers['0'];
+      if (layer.visible === false) return;
+      var color = layer.color || '#1F2430';
+      if (e.type === 'line') parts.push('<path d="' + polyPath([e.p1, e.p2], false) + '" stroke="' + color + '"/>');
+      else if (e.type === 'polyline') parts.push('<path d="' + polyPath(e.points, !!e.closed) + '" stroke="' + color + '"/>');
+      else if (e.type === 'rect') parts.push('<path d="' + polyPath(rectCorners(e), true) + '" stroke="' + color + '"/>');
+      else if (e.type === 'circle') parts.push('<circle cx="' + sx(e.center.x) + '" cy="' + sy(e.center.y) + '" r="' + e.radius.toFixed(3) + '" stroke="' + color + '"/>');
+      else if (e.type === 'arc') parts.push('<path d="' + polyPath(arcPoints(e), false) + '" stroke="' + color + '"/>');
+      else if (e.type === 'dim') {
+        var dl = dimLinePoints(e), dm = mid(dl.dimP1, dl.dimP2);
+        var dLen = Math.hypot(e.p2.x - e.p1.x, e.p2.y - e.p1.y);
+        parts.push('<path d="' + polyPath([e.p1, dl.dimP1], false) + '" stroke="' + color + '"/>');
+        parts.push('<path d="' + polyPath([e.p2, dl.dimP2], false) + '" stroke="' + color + '"/>');
+        parts.push('<path d="' + polyPath([dl.dimP1, dl.dimP2], false) + '" stroke="' + color + '"/>');
+        parts.push('<text x="' + sx(dm.x) + '" y="' + (parseFloat(sy(dm.y)) - 1).toFixed(3) + '" font-size="3" fill="' + color + '" text-anchor="middle">' + svgEsc(fmtMm(dLen) + ' ' + t('mmUnit')) + '</text>');
+      } else if (e.type === 'raddim') {
+        var rlp = raddimLeaderPoint(e);
+        parts.push('<path d="' + polyPath([e.center, rlp], false) + '" stroke="' + color + '"/>');
+        parts.push('<text x="' + sx(rlp.x) + '" y="' + sy(rlp.y) + '" font-size="3" fill="' + color + '">' + svgEsc('R' + fmtMm(e.radius)) + '</text>');
+      } else if (e.type === 'text') {
+        parts.push('<text x="' + sx(e.p.x) + '" y="' + sy(e.p.y) + '" font-size="' + e.height.toFixed(2) + '" fill="' + color + '">' + svgEsc(e.text) + '</text>');
+      }
+    });
+    parts.push('</g></svg>');
+    return { svg: parts.join('\n'), w: w, h: h };
+  }
+  function exportSVG() {
+    var built = buildSvgMarkup();
+    if (!built) { alert(t('exportEmptyWarn')); return; }
+    downloadBlob(built.svg, exportFilenameBase() + '.svg', 'image/svg+xml');
+  }
+  function exportPrintPDF() {
+    var built = buildSvgMarkup();
+    if (!built) { alert(t('exportEmptyWarn')); return; }
+    var win = window.open('', '_blank');
+    if (!win) { alert(t('popupBlocked')); return; }
+    win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>' + svgEsc(exportFilenameBase()) + '</title>' +
+      '<style>@page{size:auto;margin:10mm}body{margin:0;display:flex;justify-content:center}</style></head><body>' + built.svg + '</body></html>');
+    win.document.close();
+    win.addEventListener('load', function () { setTimeout(function () { win.print(); }, 200); });
+  }
+
+  /* DXF (Drawing Exchange Format) รูปแบบ ASCII R12 แบบย่อ — เปิดต่อในโปรแกรม CAD อื่นได้ (AutoCAD/LibreCAD/QCAD ฯลฯ)
+     ขอบเขตที่ตัดออกไปโดยตั้งใจ: (1) ทุกเอนทิตี้ส่งไปที่เลเยอร์ "0" ของ DXF เดียวกันหมด ไม่แยกตามเลเยอร์ของ Tanot
+     — เลเยอร์ "0" มีอยู่ในตัวมาตรฐาน DXF อยู่แล้ว ทำให้ไม่ต้องประกาศ TABLES/LAYER section เพิ่ม ไฟล์เล็กและใช้งาน
+     ร่วมกับโปรแกรมอ่าน DXF ได้กว้างที่สุด (แลกกับการไม่รักษาการแบ่งเลเยอร์ข้ามโปรแกรม)
+     (2) มิติเส้น/มิติรัศมี/ข้อความ ถูก "แตก" เป็น LINE/TEXT พื้นฐานแทนการใช้ DXF DIMENSION entity เต็มรูปแบบ (ซึ่งต้อง
+     มีฟิลด์บังคับจำนวนมากและผูก associative geometry) เพื่อรับประกันว่าโปรแกรมอ่าน DXF ใดๆ ก็แสดงผลได้ถูกต้อง */
+  function dxfLine(a, b) { return ['0', 'LINE', '8', '0', '10', a.x.toFixed(4), '20', a.y.toFixed(4), '30', '0', '11', b.x.toFixed(4), '21', b.y.toFixed(4), '31', '0']; }
+  function dxfCircle(center, r) { return ['0', 'CIRCLE', '8', '0', '10', center.x.toFixed(4), '20', center.y.toFixed(4), '30', '0', '40', r.toFixed(4)]; }
+  function dxfArc(center, r, a0, a1) {
+    return ['0', 'ARC', '8', '0', '10', center.x.toFixed(4), '20', center.y.toFixed(4), '30', '0', '40', r.toFixed(4),
+      '50', (a0 * 180 / Math.PI).toFixed(3), '51', (a1 * 180 / Math.PI).toFixed(3)];
+  }
+  function dxfText(p, height, str) { return ['0', 'TEXT', '8', '0', '10', p.x.toFixed(4), '20', p.y.toFixed(4), '30', '0', '40', height.toFixed(4), '1', str]; }
+  function dxfLwpolyline(pts, closed) {
+    var lines = ['0', 'LWPOLYLINE', '8', '0', '90', String(pts.length), '70', closed ? '1' : '0'];
+    pts.forEach(function (p) { lines.push('10', p.x.toFixed(4), '20', p.y.toFixed(4)); });
+    return lines;
+  }
+  function entityToDxfChunks(e) {
+    if (e.type === 'line') return dxfLine(e.p1, e.p2);
+    if (e.type === 'polyline') return dxfLwpolyline(e.points, !!e.closed);
+    if (e.type === 'rect') return dxfLwpolyline(rectCorners(e), true);
+    if (e.type === 'circle') return dxfCircle(e.center, e.radius);
+    if (e.type === 'arc') return dxfArc(e.center, e.radius, e.startAngle, e.endAngle);
+    if (e.type === 'text') return dxfText(e.p, e.height, e.text);
+    if (e.type === 'dim') {
+      var dl = dimLinePoints(e), dm = mid(dl.dimP1, dl.dimP2);
+      var dLen = Math.hypot(e.p2.x - e.p1.x, e.p2.y - e.p1.y);
+      return [].concat(dxfLine(e.p1, dl.dimP1), dxfLine(e.p2, dl.dimP2), dxfLine(dl.dimP1, dl.dimP2), dxfText({ x: dm.x, y: dm.y }, 3, fmtMm(dLen) + 'mm'));
+    }
+    if (e.type === 'raddim') {
+      var rlp = raddimLeaderPoint(e);
+      return [].concat(dxfLine(e.center, rlp), dxfText(rlp, 3, 'R' + fmtMm(e.radius)));
+    }
+    return [];
+  }
+  function exportDXF() {
+    var bbox = computeSceneBBox();
+    if (!bbox) { alert(t('exportEmptyWarn')); return; }
+    var lines = ['0', 'SECTION', '2', 'HEADER', '9', '$ACADVER', '1', 'AC1009', '0', 'ENDSEC', '0', 'SECTION', '2', 'ENTITIES'];
+    state.entities.forEach(function (e) {
+      var layer = state.layers[e.layer] || state.layers['0'];
+      if (layer.visible === false) return;
+      lines = lines.concat(entityToDxfChunks(e));
+    });
+    lines = lines.concat(['0', 'ENDSEC', '0', 'EOF']);
+    downloadBlob(lines.join('\r\n') + '\r\n', exportFilenameBase() + '.dxf', 'application/dxf');
+  }
+
+  /* นำเข้า DXF: อ่านเฉพาะ ENTITIES section รองรับ LINE/CIRCLE/ARC/LWPOLYLINE/TEXT (ชนิดที่ตัวส่งออกของเราเองสร้าง
+     และเป็นชุดพื้นฐานที่สุดที่โปรแกรม CAD อื่นก็ใช้กันทั่วไป) — เอนทิตี้ที่นำเข้าจะถูก "เพิ่ม" ต่อท้ายแบบปัจจุบัน
+     (ไม่ล้างของเดิม) ลงเลเยอร์ที่ใช้งานอยู่ตอนนี้ทั้งหมด (ไฟล์ DXF ต้นทางอาจมีเลเยอร์ที่ไม่ตรงกับของเรา) */
+  function isFiniteNum(v) { return typeof v === 'number' && isFinite(v); }
+  function parseDxf(text) {
+    var lines = text.split(/\r\n|\r|\n/);
+    var pairs = [];
+    for (var i = 0; i + 1 < lines.length; i += 2) pairs.push({ code: (lines[i] || '').trim(), value: (lines[i + 1] || '').replace(/\r$/, '') });
+    var idx = 0;
+    while (idx < pairs.length - 1 && !(pairs[idx].code === '0' && pairs[idx].value.trim() === 'SECTION' &&
+      pairs[idx + 1].code === '2' && pairs[idx + 1].value.trim() === 'ENTITIES')) idx++;
+    idx += 2; // ข้าม 0/SECTION + 2/ENTITIES ไปยังเอนทิตี้แรก
+    var out = [];
+    while (idx < pairs.length) {
+      if (pairs[idx].code !== '0') { idx++; continue; }
+      var typeVal = pairs[idx].value.trim();
+      if (typeVal === 'ENDSEC' || !typeVal) break;
+      idx++;
+      var g = {}, verts = [];
+      while (idx < pairs.length && pairs[idx].code !== '0') {
+        var code = pairs[idx].code, val = pairs[idx].value;
+        if (typeVal === 'LWPOLYLINE' && code === '10') verts.push({ x: parseFloat(val), y: 0 });
+        else if (typeVal === 'LWPOLYLINE' && code === '20' && verts.length) verts[verts.length - 1].y = parseFloat(val);
+        else g[code] = val;
+        idx++;
+      }
+      var ent = null;
+      if (typeVal === 'LINE') {
+        var p1 = { x: parseFloat(g['10']), y: parseFloat(g['20']) }, p2 = { x: parseFloat(g['11']), y: parseFloat(g['21']) };
+        if (isFiniteNum(p1.x) && isFiniteNum(p1.y) && isFiniteNum(p2.x) && isFiniteNum(p2.y)) ent = { type: 'line', layer: state.activeLayer, p1: p1, p2: p2 };
+      } else if (typeVal === 'CIRCLE') {
+        var cc = { x: parseFloat(g['10']), y: parseFloat(g['20']) }, r = parseFloat(g['40']);
+        if (isFiniteNum(cc.x) && isFiniteNum(cc.y) && isFiniteNum(r) && r > 0) ent = { type: 'circle', layer: state.activeLayer, center: cc, radius: r };
+      } else if (typeVal === 'ARC') {
+        var ac = { x: parseFloat(g['10']), y: parseFloat(g['20']) }, ar = parseFloat(g['40']);
+        var a0 = parseFloat(g['50']), a1 = parseFloat(g['51']);
+        if (isFiniteNum(ac.x) && isFiniteNum(ac.y) && isFiniteNum(ar) && ar > 0 && isFiniteNum(a0) && isFiniteNum(a1))
+          ent = { type: 'arc', layer: state.activeLayer, center: ac, radius: ar, startAngle: a0 * Math.PI / 180, endAngle: a1 * Math.PI / 180 };
+      } else if (typeVal === 'LWPOLYLINE') {
+        var validVerts = verts.filter(function (p) { return isFiniteNum(p.x) && isFiniteNum(p.y); });
+        if (validVerts.length >= 2) ent = { type: 'polyline', layer: state.activeLayer, points: validVerts, closed: g['70'] === '1' };
+      } else if (typeVal === 'TEXT') {
+        var tp = { x: parseFloat(g['10']), y: parseFloat(g['20']) }, th = parseFloat(g['40']);
+        if (isFiniteNum(tp.x) && isFiniteNum(tp.y) && (g['1'] || '').length) ent = { type: 'text', layer: state.activeLayer, p: tp, text: g['1'], height: (isFiniteNum(th) && th > 0) ? th : 3 };
+      }
+      if (ent) { ent.id = genId(); out.push(ent); }
+    }
+    return out;
+  }
+  function importDXF(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var ents;
+      try { ents = parseDxf(String(reader.result)); } catch (err) { ents = null; }
+      if (ents === null) { alert(t('importDxfError')); return; }
+      if (!ents.length) { alert(t('importDxfEmpty')); return; }
+      pushHistory();
+      state.entities = state.entities.concat(ents);
+      state.selectedIds = ents.map(function (e) { return e.id; });
+      updateCountUI(); updateSelectionUI(); scheduleSave(); render();
+      alert(t('importDxfSuccess', { n: ents.length }));
+    };
+    reader.onerror = function () { alert(t('importDxfError')); };
+    reader.readAsText(file);
+  }
+  $('exportPngBtn').addEventListener('click', exportPNG);
+  $('exportSvgBtn').addEventListener('click', exportSVG);
+  $('exportDxfBtn').addEventListener('click', exportDXF);
+  $('printBtn').addEventListener('click', exportPrintPDF);
+  var importDxfInput = $('importDxfInput');
+  $('importDxfBtn').addEventListener('click', function () { importDxfInput.click(); });
+  importDxfInput.addEventListener('change', function () {
+    var file = importDxfInput.files && importDxfInput.files[0];
+    importDxfInput.value = ''; // เคลียร์ทันที เผื่อผู้ใช้อยากนำเข้าไฟล์ชื่อเดิมซ้ำ (change event ไม่ยิงถ้า value ไม่เปลี่ยน)
+    if (file) importDXF(file);
+  });
 
   /* ══════════════════ init ══════════════════ */
   function boot() {
