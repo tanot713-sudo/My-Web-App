@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>งานเขียนแบบ CAD | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#2554C7">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
+  --brand:#2554C7;--brand-dk:#1B3D96;--brand-sf:#E8EEFC;
+  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--err:#E5484D;--warn:#E08700;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
+  line-height:1.6;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto}
+.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
+.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+.crumb .sep{margin:0 7px;color:#C9CEDC}
+.head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:12px 0 6px;flex-wrap:wrap}
+.head{display:flex;align-items:center;gap:14px}
+.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:24px;
+  background:linear-gradient(135deg,#2554C7,#5D8AF0);color:#fff;display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(37,84,199,.32)}
+h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
+.lang-toggle{display:inline-flex;align-items:center;gap:2px;background:var(--line);border:none;border-radius:20px;
+  padding:3px;cursor:pointer;font-family:var(--ome-f);flex-shrink:0}
+.lang-toggle span{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:16px;color:var(--muted)}
+.lang-toggle span.active{background:var(--card);color:var(--brand-dk);box-shadow:0 1px 3px rgba(24,31,54,.08)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1.5px solid var(--line);
+  background:var(--card);border-radius:11px;padding:8px 13px;font-family:inherit;font-size:13px;font-weight:700;
+  color:var(--ink);cursor:pointer;transition:.15s;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:var(--brand);color:var(--brand-dk)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:7px 11px;font-size:12.5px}
+.btn.active{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.icon-only{padding:8px;width:36px;height:36px}
+
+.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:14px;margin-top:14px}
+
+/* ── แถบเครื่องมือ ── */
+.cad-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.cad-tb-group{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-right:8px;border-right:1px solid var(--line)}
+.cad-tb-group:last-child{border-right:none}
+.cad-tb-group label{font-size:11.5px;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:5px}
+.cad-tb-group select{font-family:inherit;font-size:12.5px;padding:6px 7px;border-radius:8px;border:1.5px solid var(--line);
+  background:var(--card);color:var(--ink)}
+@media(max-width:700px){.cad-tb-group{border-right:none;padding-right:0}}
+
+/* ── วิวพอร์ตวาดแบบ ── */
+.cad-viewport{position:relative;width:100%;height:560px;border-radius:12px;overflow:hidden;
+  background:#FFFFFF;border:1px solid var(--line);touch-action:none;cursor:crosshair}
+.cad-viewport canvas{display:block;width:100%;height:100%}
+[data-theme="dark"] .cad-viewport{background:#0F1420}
+@media(max-width:600px){.cad-viewport{height:420px}}
+
+/* ── แถบสถานะใต้วิวพอร์ต ── */
+.cad-status{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:9px;
+  font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cad-status b{color:var(--ink);font-weight:700}
+.cad-status .sep{color:#C9CEDC}
+.cad-status .flash{color:var(--brand-dk);font-weight:700}
+
+.cad-hint{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.7}
+footer{margin-top:30px;text-align:center;font-size:12.5px;color:#9AA3B8}
+footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+</style>
+</head>
+<body class="ome-tool-page" data-doctitle-key="docTitle">
+<div class="wrap">
+  <nav class="crumb"><a href="documents.html" data-i18n="crumbResp">งานที่รับผิดชอบ</a><span class="sep">/</span><span data-i18n="crumbCad">งานเขียนแบบ (CAD)</span></nav>
+
+  <div class="head-row">
+    <div class="head">
+      <div class="head-ic">📐</div>
+      <div>
+        <h1 data-i18n="pageTitle">งานเขียนแบบ CAD</h1>
+        <p class="head-sub" data-i18n="pageDesc">วาดแบบ 2 มิติด้วยพิกัดมิลลิเมตรจริง — ซูม/แพนดูแบบ วาดเส้นคร่าวๆ ทดสอบ (ระบบใส่ระยะเป๊ะ/สแนปวัตถุ/มิติจะตามมาในเวอร์ชันถัดไป)</p>
+      </div>
+    </div>
+    <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
+      <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="cad-toolbar">
+      <div class="cad-tb-group">
+        <button class="btn sm active" id="toolSelectBtn" type="button" data-i18n="toolSelect">🖱️ เลือก</button>
+        <button class="btn sm" id="toolLineBtn" type="button" data-i18n="toolLine">／ เส้น</button>
+      </div>
+      <div class="cad-tb-group">
+        <button class="btn sm icon-only" id="undoBtn" type="button" title="เลิกทำ" disabled>↩️</button>
+        <button class="btn sm icon-only" id="redoBtn" type="button" title="ทำซ้ำ" disabled>↪️</button>
+        <button class="btn sm" id="deleteBtn" type="button" disabled data-i18n="deleteSel">🗑️ ลบที่เลือก</button>
+      </div>
+      <div class="cad-tb-group">
+        <button class="btn sm icon-only" id="zoomOutBtn" type="button" title="ซูมออก">－</button>
+        <button class="btn sm" id="zoomFitBtn" type="button" data-i18n="zoomFit">พอดีจอ</button>
+        <button class="btn sm icon-only" id="zoomInBtn" type="button" title="ซูมเข้า">＋</button>
+      </div>
+      <div class="cad-tb-group">
+        <button class="btn sm" id="snapToggleBtn" type="button" data-i18n="snapToggle">🧲 สแนปกริด</button>
+        <label data-i18n="snapStepLbl">ระยะกริด<select id="snapStepSel">
+          <option value="1">1 มม.</option>
+          <option value="5">5 มม.</option>
+          <option value="10" selected>10 มม.</option>
+          <option value="50">50 มม.</option>
+          <option value="100">100 มม.</option>
+        </select></label>
+      </div>
+      <div class="cad-tb-group">
+        <button class="btn sm" id="clearAllBtn" type="button" data-i18n="clearAll">🧹 ล้างทั้งหมด</button>
+      </div>
+    </div>
+
+    <div class="cad-viewport" id="cadViewport">
+      <canvas id="cadCanvas"></canvas>
+    </div>
+
+    <div class="cad-status">
+      <span data-i18n="coordLbl">พิกัด:</span> <b id="statCoord">X 0.0, Y 0.0 มม.</b>
+      <span class="sep">·</span>
+      <span data-i18n="zoomLbl">ซูม:</span> <b id="statZoom">100%</b>
+      <span class="sep">·</span>
+      <span data-i18n="entCountLbl">เส้น:</span> <b id="statCount">0</b>
+      <span class="sep">·</span>
+      <span id="statSave" class="flash"></span>
+    </div>
+
+    <p class="cad-hint" data-i18n="hintText">🖱️ ลากขวา/กลาง หรือลากด้วยนิ้วเพื่อเลื่อนมุมมอง · หมุนล้อเมาส์/บีบสองนิ้วเพื่อซูม · เลือกเครื่องมือ "เส้น" แล้วคลิกสองจุดเพื่อวาด · Esc ยกเลิกการวาด · Delete ลบเส้นที่เลือก</p>
+  </div>
+
+</div>
+<script src="cad.js"></script>
+<script src="auth-gate.js"></script>
+</body>
+</html>

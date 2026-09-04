@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v387';
+const CACHE = 'ome-v388';
 const PRECACHE = [
   './',
   './index.html',
@@ -40,6 +40,8 @@ const PRECACHE = [
   './doc-check.html',
   './doc-check-file.html',
   './doc-check.js',
+  './cad.html',
+  './cad.js',
   './report-dashboard.html',
   './report-dashboard.js',
   './typing.html',
