@@ -55,6 +55,22 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
   background:var(--card);color:var(--ink)}
 @media(max-width:700px){.cad-tb-group{border-right:none;padding-right:0}}
 
+/* ── แถวใส่ระยะ/มุมเป๊ะๆ ระหว่างวาด — โผล่ขึ้นมาเฉพาะตอนมีจุดยึดค้างอยู่ (กำลังวาด)
+   ตั้งใจ "จอง" พื้นที่ไว้เสมอด้วยความสูงคงที่ (ไม่ใช้ display:none/height:auto) แล้วสลับแค่
+   visibility — กันวิวพอร์ตวาดแบบขยับ/reflow ตอนเริ่มวาด (ไม่งั้นเคอร์เซอร์จะกระโดดหนีตำแหน่ง
+   เมาส์จริงตอนคลิกจุดถัดไป เพราะพื้นที่ใต้ toolbar เปลี่ยนสูงกลางอากาศ) ── */
+.cad-precise-row{display:flex;flex-wrap:wrap;align-items:center;row-gap:6px;visibility:hidden;pointer-events:none;min-height:44px;
+  padding:0 10px;background:var(--brand-sf);border-radius:10px;margin-bottom:10px;border:none}
+.cad-precise-row.show{visibility:visible;pointer-events:auto}
+@media(max-width:560px){.cad-precise-hint{display:none}}
+.cad-precise-row label{font-size:11.5px;color:var(--brand-dk);font-weight:700;display:flex;align-items:center;gap:5px}
+.cad-precise-row input{font-family:inherit;font-size:13px;padding:6px 8px;border-radius:8px;border:1.5px solid var(--brand);
+  background:var(--card);color:var(--ink);width:90px;-webkit-appearance:none}
+.cad-precise-row input:focus{outline:none;box-shadow:0 0 0 2px var(--brand-sf)}
+.cad-precise-hint{font-size:11.5px;color:var(--brand-dk);font-weight:500}
+#finishPolylineBtn{display:none}
+#finishPolylineBtn.show{display:inline-flex}
+
 /* ── วิวพอร์ตวาดแบบ ── */
 .cad-viewport{position:relative;width:100%;height:560px;border-radius:12px;overflow:hidden;
   background:#FFFFFF;border:1px solid var(--line);touch-action:none;cursor:crosshair}
@@ -96,6 +112,10 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       <div class="cad-tb-group">
         <button class="btn sm active" id="toolSelectBtn" type="button" data-i18n="toolSelect">🖱️ เลือก</button>
         <button class="btn sm" id="toolLineBtn" type="button" data-i18n="toolLine">／ เส้น</button>
+        <button class="btn sm" id="toolPolylineBtn" type="button" data-i18n="toolPolyline">⌇ พอลีไลน์</button>
+        <button class="btn sm" id="toolRectBtn" type="button" data-i18n="toolRect">▭ สี่เหลี่ยม</button>
+        <button class="btn sm" id="toolCircleBtn" type="button" data-i18n="toolCircle">○ วงกลม</button>
+        <button class="btn sm" id="toolArcBtn" type="button" data-i18n="toolArc">◜ ส่วนโค้ง</button>
       </div>
       <div class="cad-tb-group">
         <button class="btn sm icon-only" id="undoBtn" type="button" title="เลิกทำ" disabled>↩️</button>
@@ -118,8 +138,19 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
         </select></label>
       </div>
       <div class="cad-tb-group">
+        <button class="btn sm" id="osnapToggleBtn" type="button" data-i18n="osnapToggle">🎯 จับจุดวัตถุ</button>
+        <button class="btn sm" id="orthoToggleBtn" type="button" data-i18n="orthoToggle">⊥ ตั้งฉาก (F8)</button>
+      </div>
+      <div class="cad-tb-group">
         <button class="btn sm" id="clearAllBtn" type="button" data-i18n="clearAll">🧹 ล้างทั้งหมด</button>
       </div>
+    </div>
+
+    <div class="cad-tb-group cad-precise-row" id="preciseRow">
+      <label data-i18n="distLbl">ระยะ (มม.)<input type="text" id="distInput" inputmode="decimal" autocomplete="off"></label>
+      <label data-i18n="angLbl">มุม (°)<input type="text" id="angInput" inputmode="decimal" autocomplete="off"></label>
+      <button class="btn sm" id="finishPolylineBtn" type="button" data-i18n="finishPolyline">✔️ จบเส้นพอลีไลน์</button>
+      <span class="cad-precise-hint" data-i18n="preciseHint">พิมพ์ระยะแล้วกด Enter (ไม่ใส่มุม = ใช้ทิศทางเมาส์ปัจจุบัน)</span>
     </div>
 
     <div class="cad-viewport" id="cadViewport">
@@ -136,7 +167,7 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       <span id="statSave" class="flash"></span>
     </div>
 
-    <p class="cad-hint" data-i18n="hintText">🖱️ ลากขวา/กลาง หรือลากด้วยนิ้วเพื่อเลื่อนมุมมอง · หมุนล้อเมาส์/บีบสองนิ้วเพื่อซูม · เลือกเครื่องมือ "เส้น" แล้วคลิกสองจุดเพื่อวาด · Esc ยกเลิกการวาด · Delete ลบเส้นที่เลือก</p>
+    <p class="cad-hint" data-i18n="hintText">🖱️ ลากขวา/กลาง หรือลากด้วยนิ้วเพื่อเลื่อนมุมมอง · หมุนล้อเมาส์/บีบสองนิ้วเพื่อซูม · เลือกเครื่องมือวาดแล้วคลิกจุดตามลำดับ · พิมพ์ตัวเลขได้ทันทีระหว่างวาดเพื่อใส่ระยะเป๊ะ · Esc ยกเลิกการวาด · Delete ลบเอนทิตี้ที่เลือก · F8 สลับโหมดตั้งฉาก</p>
   </div>
 
 </div>
