@@ -13,6 +13,10 @@
    Stage 5: ส่งออกแบบเป็น PNG (แรสเตอร์)/SVG (เวกเตอร์ สเกลจริงหน่วย มม.)/DXF (มาตรฐานแลกเปลี่ยนไฟล์ CAD
    ใช้เปิดต่อในโปรแกรมอื่นได้), นำเข้าไฟล์ DXF (LINE/CIRCLE/ARC/LWPOLYLINE/TEXT), พิมพ์/บันทึกเป็น PDF
    ผ่านกลไกพิมพ์ของเบราว์เซอร์
+   Stage 4b/5b (ทำ Stage 4-5 ให้ครบตามแผนเดิม 7 stage): เพิ่มมิติเส้นผ่าศูนย์กลาง (diadim) + มิติมุม (angdim) +
+   ลูกศรชี้ (leader) + ลายแรเงา (hatch) + สไตล์มิติเริ่มต้น (ความสูงตัวอักษร/ขนาดหัวลูกศร ปรับได้ทั้งค่าเริ่มต้น
+   และรายเอนทิตี้), และ plot PDF ตามมาตราส่วนจริงด้วย jsPDF (เลือกกระดาษ A4/A3/A1 + แนว + มาตราส่วนมาตรฐาน
+   1:1 ถึง 1:500 หรือพอดีหน้ากระดาษ) แยกจากปุ่ม "พิมพ์/PDF" เดิมที่ยังคงไว้เป็นทางลัดพิมพ์แบบง่าย
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -77,7 +81,24 @@
       popupBlocked: 'เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — กรุณาอนุญาตป๊อปอัปสำหรับเว็บนี้แล้วลองใหม่',
       importDxfSuccess: 'นำเข้า {n} เอนทิตี้จากไฟล์ DXF เรียบร้อย (ถูกเลือกไว้ให้แล้ว)',
       importDxfError: 'อ่านไฟล์นี้ไม่ได้ — ไม่ใช่ไฟล์ DXF หรือไฟล์เสียหาย',
-      importDxfEmpty: 'ไม่พบเอนทิตี้ที่รองรับในไฟล์ DXF นี้ (รองรับ LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)'
+      importDxfEmpty: 'ไม่พบเอนทิตี้ที่รองรับในไฟล์ DXF นี้ (รองรับ LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)',
+      toolDiadim: '⌀⌀ มิติเส้นผ่าศูนย์กลาง', toolAngdim: '∠ มิติมุม', toolLeader: '➹ ลูกศรชี้', toolHatch: '▤ แรเงา',
+      diadimHint: 'คลิกวงกลมหรือส่วนโค้งที่จะใส่มิติเส้นผ่าศูนย์กลาง',
+      angdimHintPick: 'คลิกเลือกเส้นตรง 2 เส้นที่จะวัดมุม',
+      angdimHintPlace: 'คลิกตำแหน่งที่จะวางส่วนโค้งแสดงมุม',
+      leaderHint: 'คลิกจุดที่จะชี้ แล้วคลิกตำแหน่งข้อความ แล้วพิมพ์ข้อความ',
+      hatchHintPick: 'คลิกสี่เหลี่ยม/วงกลม/พอลีไลน์ปิด ที่จะแรเงา',
+      hatchHintApply: 'ปรับระยะห่าง/มุมลายเส้น แล้วกด "แรเงา" เพื่อยืนยัน',
+      hatchSpacingLbl: 'ระยะห่างลาย (มม.)', hatchAngleLbl: 'มุมลาย (°)', hatchApplyBtn: '✔️ แรเงา',
+      dimStyleTitle: 'สไตล์มิติเริ่มต้น', dimTextHeightLbl: 'ตัวอักษรมิติ (มม.)', dimArrowSizeLbl: 'หัวลูกศร (มม.)',
+      propsTitleDiadim: 'คุณสมบัติ: มิติเส้นผ่าศูนย์กลาง', propsTitleAngdim: 'คุณสมบัติ: มิติมุม',
+      propsTitleLeader: 'คุณสมบัติ: ลูกศรชี้', propsTitleHatch: 'คุณสมบัติ: แรเงา',
+      propArrowSize: 'ขนาดหัวลูกศร (มม.)', propSpacing: 'ระยะห่างลาย (มม.)', propHatchAngle: 'มุมลาย (°)',
+      plotTitle: 'จัดพิมพ์ตามมาตราส่วนจริง (PDF)', plotPaperLbl: 'ขนาดกระดาษ', plotOrientLbl: 'แนวกระดาษ',
+      plotScaleLbl: 'มาตราส่วน', plotGenerateBtn: '📄 สร้าง PDF', plotHint: 'เลือกกระดาษ/แนว/มาตราส่วน แล้วกด "สร้าง PDF" — วาดแบบตามมาตราส่วนจริงแบบเวกเตอร์ พร้อมกรอบและป้ายมาตราส่วน',
+      plotOrientPortrait: 'แนวตั้ง', plotOrientLandscape: 'แนวนอน', plotOrientAuto: 'อัตโนมัติ', plotScaleFit: 'พอดีหน้ากระดาษ',
+      pdfLibMissing: 'โหลดไลบรารีสร้าง PDF ไม่สำเร็จ — เช็คอินเทอร์เน็ตแล้วลองใหม่',
+      plotOverflowConfirm: 'แบบมีขนาดใหญ่กว่ากระดาษที่มาตราส่วนนี้ — พิมพ์ต่อไปโดยอาจมีบางส่วนล้นขอบกระดาษ?'
     },
     en: {
       docTitle: 'CAD Drafting | Tanot',
@@ -136,7 +157,24 @@
       popupBlocked: 'Your browser blocked the print window — please allow pop-ups for this site and try again',
       importDxfSuccess: 'Imported {n} entities from the DXF file (now selected)',
       importDxfError: "Couldn't read this file — not a DXF file, or it's corrupted",
-      importDxfEmpty: 'No supported entities found in this DXF file (supports LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)'
+      importDxfEmpty: 'No supported entities found in this DXF file (supports LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)',
+      toolDiadim: '⌀⌀ Diameter dim', toolAngdim: '∠ Angle dim', toolLeader: '➹ Leader', toolHatch: '▤ Hatch',
+      diadimHint: 'Click a circle or arc to add a diameter dimension',
+      angdimHintPick: 'Click 2 straight lines to measure the angle between them',
+      angdimHintPlace: 'Click where to place the angle arc',
+      leaderHint: 'Click the point to indicate, then click where the text goes, then type it in',
+      hatchHintPick: 'Click a rectangle / circle / closed polyline to hatch',
+      hatchHintApply: 'Adjust the line spacing/angle, then click "Hatch" to confirm',
+      hatchSpacingLbl: 'Line spacing (mm)', hatchAngleLbl: 'Line angle (°)', hatchApplyBtn: '✔️ Hatch',
+      dimStyleTitle: 'Default dimension style', dimTextHeightLbl: 'Dim text (mm)', dimArrowSizeLbl: 'Arrowhead (mm)',
+      propsTitleDiadim: 'Properties: Diameter dim', propsTitleAngdim: 'Properties: Angle dim',
+      propsTitleLeader: 'Properties: Leader', propsTitleHatch: 'Properties: Hatch',
+      propArrowSize: 'Arrowhead size (mm)', propSpacing: 'Line spacing (mm)', propHatchAngle: 'Line angle (°)',
+      plotTitle: 'Plot to scale (PDF)', plotPaperLbl: 'Paper size', plotOrientLbl: 'Orientation',
+      plotScaleLbl: 'Scale', plotGenerateBtn: '📄 Generate PDF', plotHint: 'Pick paper/orientation/scale, then click "Generate PDF" — draws the plan to true scale as vector graphics, with a border and scale label',
+      plotOrientPortrait: 'Portrait', plotOrientLandscape: 'Landscape', plotOrientAuto: 'Auto', plotScaleFit: 'Fit to page',
+      pdfLibMissing: 'Could not load the PDF library — check your connection and try again',
+      plotOverflowConfirm: 'The drawing is larger than the page at this scale — plot anyway (some parts may run off the page)?'
     }
   };
   function getUILang() { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
@@ -187,10 +225,14 @@
     osnapOn: true, orthoOn: false,
     mirrorKeepOriginal: true,
     textDefaultHeight: 12,   // ความสูงตัวอักษรเริ่มต้น (มม.) สำหรับเครื่องมือข้อความ
+    dimStyle: { textHeight: 3, arrowSize: 2.5 }, // สไตล์มิติเริ่มต้น (มม.) — ใช้ตอนสร้าง dim/raddim/diadim/angdim
+                             // ใหม่ทุกครั้ง (เอนทิตี้แต่ละตัวเก็บค่าของตัวเองแยก แก้ทีหลังผ่านแผงคุณสมบัติได้
+                             // ไม่กระทบของเดิม — ไม่ใช่ระบบ named style เต็มรูปแบบแบบ AutoCAD ตั้งใจให้ง่ายกว่านั้น)
     pendingPoints: [],       // จุดที่คลิกไปแล้วระหว่างวาด/ย้าย/หมุน/มิเรอร์/มิติเส้นเอนทิตี้ปัจจุบัน
-    pendingEntityIds: [],    // เอนทิตี้ที่คลิกเลือกไว้แล้วสำหรับเครื่องมือ fillet (ต้องการ 2 เส้น)
+    pendingEntityIds: [],    // เอนทิตี้ที่คลิกเลือกไว้แล้วสำหรับเครื่องมือ fillet/มิติมุม (ต้องการ 2 เส้น)
     trimCutterId: null,      // เอนทิตี้ที่เป็นเส้นตัด/เส้นขอบ สำหรับเครื่องมือ trim/extend
     offsetSourceId: null,    // เอนทิตี้ต้นทางสำหรับเครื่องมือ offset
+    hatchSourcePts: null,    // จุดขอบเขต (snapshot) ของเอนทิตี้ที่เลือกไว้แล้วสำหรับเครื่องมือแรเงา (ก่อนกด "แรเงา")
     gripDrag: null,          // { entityId, ref } ระหว่างลากจุดจับ (grip) แก้รูปทรง
     dragSelect: null,        // { startWorld, startScreen, curScreen, additive } ระหว่างลากเลือกเป็นกลุ่ม
     history: [], redoStack: [],
@@ -205,10 +247,21 @@
      rect:     {p1:{x,y}, p2:{x,y}}                         (มุมตรงข้ามกัน แนวแกนตรงเสมอ)
      circle:   {center:{x,y}, radius}
      arc:      {center:{x,y}, radius, startAngle, endAngle} (เรเดียน, กวาดทวนเข็มจาก start ไป end เสมอ)
-     dim:      {p1:{x,y}, p2:{x,y}, offset}                 (มิติเส้นตรง — offset = ระยะตั้งฉากมีเครื่องหมาย
+     dim:      {p1:{x,y}, p2:{x,y}, offset, textHeight, arrowSize} (มิติเส้นตรง — offset = ระยะตั้งฉากมีเครื่องหมาย
                                                               จาก p1-p2 ไปยังตำแหน่งเส้นมิติที่วางจริง)
-     raddim:   {center:{x,y}, radius, angle}                (มิติรัศมี — snapshot ค่า ณ ตอนสร้าง ไม่ผูกกับ
+     raddim:   {center:{x,y}, radius, angle, textHeight, arrowSize} (มิติรัศมี — snapshot ค่า ณ ตอนสร้าง ไม่ผูกกับ
                                                               วงกลม/ส่วนโค้งต้นทางอีกต่อไป, angle = ทิศทางขีดนำ)
+     diadim:   {center:{x,y}, radius, angle, textHeight, arrowSize} (มิติเส้นผ่าศูนย์กลาง — รูปแบบเดียวกับ raddim
+                                                              เป๊ะ ต่างแค่ตอน render/export ที่ลากเส้นทะลุผ่าน
+                                                              ศูนย์กลางทั้ง 2 ด้านแทนขีดเดียว และป้ายใช้ ⌀ ไม่ใช่ R)
+     angdim:   {center:{x,y}, radius, startAngle, endAngle, textHeight, arrowSize} (มิติมุม — รูปแบบเดียวกับ arc
+                                                              เป๊ะ (ใช้ arcPoints/แปลงรูปทรงร่วมกับ arc ได้เลย)
+                                                              ต่างแค่ตอน render ที่เพิ่มเส้นช่วยขยาย+หัวลูกศร+ป้ายมุม)
+     leader:   {p1:{x,y}, p2:{x,y}, text, height}            (ลูกศรชี้ — p1 คือปลายลูกศรที่ชี้ไปยังจุดสนใจ, p2 คือ
+                                                              จุดเริ่มข้อความ)
+     hatch:    {points:[{x,y},...], spacing, angle}          (ลายแรเงา — snapshot ขอบเขตปิด ณ ตอนสร้าง ไม่ผูกกับ
+                                                              เอนทิตี้ต้นทางอีกต่อไป, เส้นลายคำนวณสดทุกครั้งจาก
+                                                              points/spacing/angle ผ่าน hatchLines())
      text:     {p:{x,y}, text, height}                       (คำอธิบายข้อความ — p คือมุมล่างซ้ายของข้อความ) */
 
   var viewport = $('cadViewport'), canvas = $('cadCanvas'), ctx = canvas.getContext('2d');
@@ -267,7 +320,49 @@
     };
   }
   function raddimLeaderPoint(e) { return { x: e.center.x + e.radius * Math.cos(e.angle), y: e.center.y + e.radius * Math.sin(e.angle) }; }
+  /* มิติเส้นผ่าศูนย์กลาง (diadim) ใช้รูปแบบข้อมูลเดียวกับ raddim เป๊ะ ({center,radius,angle}) — จุดปลายด้านหนึ่ง
+     คือ raddimLeaderPoint(e) เดิม อีกด้านคือจุดตรงข้ามผ่านศูนย์กลาง คำนวณสดทุกครั้งจากสองค่านี้ */
+  function diaEndpoints(e) {
+    var p1 = raddimLeaderPoint(e);
+    return { p1: p1, p2: { x: 2 * e.center.x - p1.x, y: 2 * e.center.y - p1.y } };
+  }
   function estimateTextWidth(text, height) { return (text || '').length * height * 0.58; } // ประมาณความกว้าง (ไม่มีการวัดฟอนต์จริงในสเตจนี้)
+  /* จุดอยู่ในรูปหลายเหลี่ยมปิดไหม (even-odd rule) — ใช้กับการคลิกเลือกลายแรเงา (คลิกที่ไหนในพื้นที่ก็เลือกได้ ไม่ใช่
+     แค่ตรงเส้นลายพอดี เหมือนโปรแกรม CAD ทั่วไป) */
+  function pointInPolygon(p, pts) {
+    var inside = false;
+    for (var i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      var xi = pts[i].x, yi = pts[i].y, xj = pts[j].x, yj = pts[j].y;
+      var intersect = ((yi > p.y) !== (yj > p.y)) && (p.x < (xj - xi) * (p.y - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+  /* คำนวณเส้นลายแรเงา (hatch): หมุนพิกัดให้เส้นลายอยู่แนวนอนชั่วคราว (ทำงานง่ายกว่ามาก), กวาดเส้นแนวนอนทีละ
+     spacing ตัดกับขอบเขตรูปหลายเหลี่ยมด้วย even-odd scanline algorithm มาตรฐาน (นับจุดตัดตามแนวนอน จับคู่เข้า-ออก
+     สลับกัน) แล้วหมุนกลับ — คำนวณสดทุกครั้งที่ใช้ (ไม่เก็บผลลัพธ์ไว้) จาก points/spacing/angle เท่านั้น */
+  function hatchLines(e) {
+    var cosN = Math.cos(-e.angle), sinN = Math.sin(-e.angle), cosP = Math.cos(e.angle), sinP = Math.sin(e.angle);
+    function toLocal(p) { return { x: p.x * cosN - p.y * sinN, y: p.x * sinN + p.y * cosN }; }
+    function toWorld(p) { return { x: p.x * cosP - p.y * sinP, y: p.x * sinP + p.y * cosP }; }
+    var pts = e.points.map(toLocal);
+    var n = pts.length;
+    if (n < 3) return [];
+    var minY = Infinity, maxY = -Infinity;
+    pts.forEach(function (p) { if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y; });
+    var spacing = Math.max(0.1, e.spacing || 5);
+    var segs = [], startK = Math.ceil((minY + 1e-6) / spacing);
+    for (var k = startK; k * spacing <= maxY - 1e-6; k++) {
+      var y = k * spacing, xs = [];
+      for (var i = 0; i < n; i++) {
+        var a = pts[i], b = pts[(i + 1) % n];
+        if ((a.y <= y && b.y > y) || (b.y <= y && a.y > y)) xs.push(a.x + (y - a.y) / (b.y - a.y) * (b.x - a.x));
+      }
+      xs.sort(function (p1, p2) { return p1 - p2; });
+      for (var j = 0; j + 1 < xs.length; j += 2) segs.push([toWorld({ x: xs[j], y: y }), toWorld({ x: xs[j + 1], y: y })]);
+    }
+    return segs;
+  }
   function distPointToRect(p, xmin, ymin, xmax, ymax) {
     var dx = Math.max(xmin - p.x, 0, p.x - xmax), dy = Math.max(ymin - p.y, 0, p.y - ymax);
     return Math.hypot(dx, dy);
@@ -286,9 +381,20 @@
       return dd;
     }
     if (e.type === 'circle') return Math.abs(Math.hypot(p.x - e.center.x, p.y - e.center.y) - e.radius);
-    if (e.type === 'arc') return distPointToArc(p, e);
+    if (e.type === 'arc' || e.type === 'angdim') return distPointToArc(p, e);
     if (e.type === 'dim') { var dl = dimLinePoints(e); return distPointToSegment(p, dl.dimP1, dl.dimP2); }
     if (e.type === 'raddim') return distPointToSegment(p, e.center, raddimLeaderPoint(e));
+    if (e.type === 'diadim') { var de = diaEndpoints(e); return distPointToSegment(p, de.p1, de.p2); }
+    if (e.type === 'leader') {
+      var lw = estimateTextWidth(e.text, e.height);
+      return Math.min(distPointToSegment(p, e.p1, e.p2), distPointToRect(p, e.p2.x, e.p2.y, e.p2.x + lw, e.p2.y + e.height));
+    }
+    if (e.type === 'hatch') {
+      if (pointInPolygon(p, e.points)) return 0;
+      var hd = Infinity;
+      for (var k = 0; k < e.points.length; k++) hd = Math.min(hd, distPointToSegment(p, e.points[k], e.points[(k + 1) % e.points.length]));
+      return hd;
+    }
     if (e.type === 'text') {
       var w = estimateTextWidth(e.text, e.height);
       return distPointToRect(p, e.p.x, e.p.y, e.p.x + w, e.p.y + e.height);
@@ -339,7 +445,7 @@
       c.forEach(function (p) { pts.push({ p: p, kind: 'end' }); });
       for (var j = 0; j < 4; j++) pts.push({ p: mid(c[j], c[(j + 1) % 4]), kind: 'mid' });
     } else if (e.type === 'circle') { pts.push({ p: e.center, kind: 'center' }); }
-    else if (e.type === 'arc') {
+    else if (e.type === 'arc' || e.type === 'angdim') {
       pts.push({ p: e.center, kind: 'center' });
       pts.push({ p: { x: e.center.x + e.radius * Math.cos(e.startAngle), y: e.center.y + e.radius * Math.sin(e.startAngle) }, kind: 'end' });
       pts.push({ p: { x: e.center.x + e.radius * Math.cos(e.endAngle), y: e.center.y + e.radius * Math.sin(e.endAngle) }, kind: 'end' });
@@ -347,6 +453,8 @@
       var dl0 = dimLinePoints(e);
       pts.push({ p: dl0.dimP1, kind: 'end' }, { p: dl0.dimP2, kind: 'end' });
     } else if (e.type === 'raddim') { pts.push({ p: e.center, kind: 'center' }, { p: raddimLeaderPoint(e), kind: 'end' }); }
+    else if (e.type === 'diadim') { var de0 = diaEndpoints(e); pts.push({ p: e.center, kind: 'center' }, { p: de0.p1, kind: 'end' }, { p: de0.p2, kind: 'end' }); }
+    else if (e.type === 'leader') { pts.push({ p: e.p1, kind: 'end' }, { p: e.p2, kind: 'end' }); }
     else if (e.type === 'text') { pts.push({ p: e.p, kind: 'end' }); }
     return pts;
   }
@@ -366,9 +474,12 @@
     if (e.type === 'polyline') return e.points;
     if (e.type === 'rect') return [e.p1, e.p2];
     if (e.type === 'circle') return [{ x: e.center.x - e.radius, y: e.center.y - e.radius }, { x: e.center.x + e.radius, y: e.center.y + e.radius }];
-    if (e.type === 'arc') { var pts = arcPoints(e, 16); pts.push(e.center); return pts; }
+    if (e.type === 'arc' || e.type === 'angdim') { var pts = arcPoints(e, 16); pts.push(e.center); return pts; }
     if (e.type === 'dim') { var dl1 = dimLinePoints(e); return [e.p1, e.p2, dl1.dimP1, dl1.dimP2]; }
     if (e.type === 'raddim') return [e.center, raddimLeaderPoint(e)];
+    if (e.type === 'diadim') { var de1 = diaEndpoints(e); return [de1.p1, de1.p2]; }
+    if (e.type === 'leader') { var lw2 = estimateTextWidth(e.text, e.height); return [e.p1, e.p2, { x: e.p2.x + lw2, y: e.p2.y + e.height }]; }
+    if (e.type === 'hatch') return e.points;
     if (e.type === 'text') { var w2 = estimateTextWidth(e.text, e.height); return [e.p, { x: e.p.x + w2, y: e.p.y + e.height }]; }
     return [];
   }
@@ -425,9 +536,11 @@
     else if (e.type === 'polyline') { e.points = e.points.map(fn); }
     else if (e.type === 'rect') { e.p1 = fn(e.p1); e.p2 = fn(e.p2); }
     else if (e.type === 'circle') { e.center = fn(e.center); }
-    else if (e.type === 'arc') { e.center = fn(e.center); }
+    else if (e.type === 'arc' || e.type === 'angdim') { e.center = fn(e.center); }
     else if (e.type === 'dim') { e.p1 = fn(e.p1); e.p2 = fn(e.p2); }
-    else if (e.type === 'raddim') { e.center = fn(e.center); }
+    else if (e.type === 'raddim' || e.type === 'diadim') { e.center = fn(e.center); }
+    else if (e.type === 'leader') { e.p1 = fn(e.p1); e.p2 = fn(e.p2); }
+    else if (e.type === 'hatch') { e.points = e.points.map(fn); }
     else if (e.type === 'text') { e.p = fn(e.p); }
     return e;
   }
@@ -447,18 +560,24 @@
       if (!selSet[e.id]) return e;
       var src = mods.convertRect && e.type === 'rect' ? rectToPolyline(e) : deepClone(e);
       mapEntityPoints(src, fn);
-      if (mods.rotateDeltaRad != null && src.type === 'arc') { src.startAngle += mods.rotateDeltaRad; src.endAngle += mods.rotateDeltaRad; }
-      if (mods.rotateDeltaRad != null && src.type === 'raddim') src.angle += mods.rotateDeltaRad;
+      if (mods.rotateDeltaRad != null && (src.type === 'arc' || src.type === 'angdim')) { src.startAngle += mods.rotateDeltaRad; src.endAngle += mods.rotateDeltaRad; }
+      if (mods.rotateDeltaRad != null && (src.type === 'raddim' || src.type === 'diadim')) src.angle += mods.rotateDeltaRad;
+      if (mods.rotateDeltaRad != null && src.type === 'hatch') src.angle += mods.rotateDeltaRad;
       if (mods.mirrorLine) {
         var phi = Math.atan2(mods.mirrorLine.b.y - mods.mirrorLine.a.y, mods.mirrorLine.b.x - mods.mirrorLine.a.x);
         var reflectAng = function (a) { return 2 * phi - a; };
-        if (src.type === 'arc') { var ns = reflectAng(src.endAngle), ne = reflectAng(src.startAngle); src.startAngle = ns; src.endAngle = ne; }
-        else if (src.type === 'raddim') src.angle = reflectAng(src.angle);
+        if (src.type === 'arc' || src.type === 'angdim') { var ns = reflectAng(src.endAngle), ne = reflectAng(src.startAngle); src.startAngle = ns; src.endAngle = ne; }
+        else if (src.type === 'raddim' || src.type === 'diadim') src.angle = reflectAng(src.angle);
+        else if (src.type === 'hatch') src.angle = reflectAng(src.angle);
         else if (src.type === 'dim') src.offset = -src.offset; // มิเรอร์กลับด้าน (chirality) ต้องพลิกเครื่องหมาย offset ด้วย ไม่งั้นเส้นมิติจะไปโผล่ผิดฝั่ง
       }
-      if (mods.scaleFactor != null && (src.type === 'circle' || src.type === 'arc' || src.type === 'raddim')) src.radius *= mods.scaleFactor;
+      if (mods.scaleFactor != null && (src.type === 'circle' || src.type === 'arc' || src.type === 'raddim' || src.type === 'diadim' || src.type === 'angdim')) src.radius *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'dim') src.offset *= mods.scaleFactor;
-      if (mods.scaleFactor != null && src.type === 'text') src.height *= mods.scaleFactor;
+      if (mods.scaleFactor != null && (src.type === 'text' || src.type === 'leader')) src.height *= mods.scaleFactor;
+      if (mods.scaleFactor != null && src.type === 'hatch') src.spacing *= mods.scaleFactor;
+      if (mods.scaleFactor != null && (src.type === 'dim' || src.type === 'raddim' || src.type === 'diadim' || src.type === 'angdim')) {
+        src.textHeight *= mods.scaleFactor; src.arrowSize *= mods.scaleFactor; // สไตล์มิติ (ตัวอักษร/หัวลูกศร) ก็ต้องสเกลตามแบบด้วย ไม่งั้นดูไม่สมส่วนหลังสเกล
+      }
       if (mods.duplicate) { src.id = genId(); added.push(src); return e; }
       return src;
     });
@@ -606,14 +725,15 @@
       return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }, { p: c[1], ref: 'p2x-p1y' }, { p: c[3], ref: 'p1x-p2y' }];
     }
     if (e.type === 'circle') return [{ p: e.center, ref: 'center' }, { p: { x: e.center.x + e.radius, y: e.center.y }, ref: 'radius' }];
-    if (e.type === 'arc') {
+    if (e.type === 'arc' || e.type === 'angdim') {
       var mAng = (e.startAngle + e.endAngle) / 2;
       return [{ p: e.center, ref: 'center' }, { p: { x: e.center.x + e.radius * Math.cos(mAng), y: e.center.y + e.radius * Math.sin(mAng) }, ref: 'radius' }];
     }
     if (e.type === 'dim') { var dl2 = dimLinePoints(e); return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }, { p: dl2.dimP1, ref: 'dimoffset' }]; }
-    if (e.type === 'raddim') return [{ p: e.center, ref: 'center' }, { p: raddimLeaderPoint(e), ref: 'raddimleader' }];
+    if (e.type === 'raddim' || e.type === 'diadim') return [{ p: e.center, ref: 'center' }, { p: raddimLeaderPoint(e), ref: 'raddimleader' }];
+    if (e.type === 'leader') return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }];
     if (e.type === 'text') return [{ p: e.p, ref: 'p' }];
-    return [];
+    return []; // hatch: ไม่มีจุดจับต่อจุด — ย้าย/หมุน/มิเรอร์/สเกลทั้งก้อนผ่านเครื่องมือแก้ไขปกติเท่านั้น
   }
   function applyGripEdit(e, ref, pt) {
     if (ref === 'p1') e.p1 = { x: pt.x, y: pt.y };
@@ -754,8 +874,12 @@
       if (closed) ctx.closePath();
       ctx.stroke();
     }
-    function drawArrowHead(screenPt, dirAngle, color) {
-      var len = 8, wid = 3, dx = Math.cos(dirAngle), dy = Math.sin(dirAngle), px = -dy, py = dx;
+    /* หัวลูกศร/ป้ายตัวเลขมิติ — ขนาดคำนวณจาก "สไตล์มิติ" ของเอนทิตี้นั้นๆ (มม.) คูณด้วยระดับซูมปัจจุบัน แทนค่าคงที่
+       เป็นพิกเซลตายตัวแบบเดิม (ให้ตรงกับสไตล์ที่ผู้ใช้ปรับได้จริง ใช้ค่าเดียวกันตอนส่งออก/plot PDF ด้วย) */
+    function dimArrowPx(e) { return Math.max(4, (e.arrowSize || state.dimStyle.arrowSize) * state.view.scale); }
+    function dimTextPx(e) { return Math.max(7, (e.textHeight || state.dimStyle.textHeight) * state.view.scale); }
+    function drawArrowHead(screenPt, dirAngle, color, lenPx) {
+      var len = lenPx || 8, wid = len * 0.375, dx = Math.cos(dirAngle), dy = Math.sin(dirAngle), px = -dy, py = dx;
       var bx = screenPt.x - dx * len, by = screenPt.y - dy * len;
       ctx.beginPath();
       ctx.moveTo(screenPt.x, screenPt.y);
@@ -764,12 +888,12 @@
       ctx.closePath();
       ctx.fillStyle = color; ctx.fill();
     }
-    function drawDimText(midScreen, text, screenAngle, color) {
+    function drawDimText(midScreen, text, screenAngle, color, fontPx) {
       var a = screenAngle;
       if (a > Math.PI / 2 || a < -Math.PI / 2) a += Math.PI;
       ctx.save();
       ctx.translate(midScreen.x, midScreen.y); ctx.rotate(a);
-      ctx.fillStyle = color; ctx.font = '11px Prompt, sans-serif';
+      ctx.fillStyle = color; ctx.font = (fontPx || 11) + 'px Prompt, sans-serif';
       ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
       ctx.fillText(text, 0, -4);
       ctx.restore();
@@ -796,17 +920,48 @@
         strokePolylinePts([dl.dimP1, dl.dimP2], false);
         var ds1 = worldToScreen(dl.dimP1.x, dl.dimP1.y), ds2 = worldToScreen(dl.dimP2.x, dl.dimP2.y);
         var dAng = Math.atan2(ds2.y - ds1.y, ds2.x - ds1.x);
-        drawArrowHead(ds1, dAng + Math.PI, col_); drawArrowHead(ds2, dAng, col_);
+        drawArrowHead(ds1, dAng + Math.PI, col_, dimArrowPx(e)); drawArrowHead(ds2, dAng, col_, dimArrowPx(e));
         var dMid = { x: (ds1.x + ds2.x) / 2, y: (ds1.y + ds2.y) / 2 };
         var dLen = Math.hypot(e.p2.x - e.p1.x, e.p2.y - e.p1.y);
-        drawDimText(dMid, fmtMm(dLen) + ' ' + t('mmUnit'), dAng, col_);
+        drawDimText(dMid, fmtMm(dLen) + ' ' + t('mmUnit'), dAng, col_, dimTextPx(e));
       } else if (e.type === 'raddim') {
         var rlp = raddimLeaderPoint(e);
         var rs1 = worldToScreen(e.center.x, e.center.y), rs2 = worldToScreen(rlp.x, rlp.y);
         ctx.beginPath(); ctx.moveTo(rs1.x, rs1.y); ctx.lineTo(rs2.x, rs2.y); ctx.stroke();
         var rAng = Math.atan2(rs2.y - rs1.y, rs2.x - rs1.x);
-        drawArrowHead(rs2, rAng, col_);
-        drawDimText({ x: rs2.x + Math.cos(rAng) * 14, y: rs2.y + Math.sin(rAng) * 14 }, 'R' + fmtMm(e.radius), rAng, col_);
+        drawArrowHead(rs2, rAng, col_, dimArrowPx(e));
+        drawDimText({ x: rs2.x + Math.cos(rAng) * 14, y: rs2.y + Math.sin(rAng) * 14 }, 'R' + fmtMm(e.radius), rAng, col_, dimTextPx(e));
+      } else if (e.type === 'diadim') {
+        var de = diaEndpoints(e);
+        var das1 = worldToScreen(de.p1.x, de.p1.y), das2 = worldToScreen(de.p2.x, de.p2.y);
+        ctx.beginPath(); ctx.moveTo(das1.x, das1.y); ctx.lineTo(das2.x, das2.y); ctx.stroke();
+        var daAng = Math.atan2(das2.y - das1.y, das2.x - das1.x);
+        drawArrowHead(das1, daAng + Math.PI, col_, dimArrowPx(e)); drawArrowHead(das2, daAng, col_, dimArrowPx(e));
+        drawDimText({ x: das2.x + Math.cos(daAng) * 14, y: das2.y + Math.sin(daAng) * 14 }, '⌀' + fmtMm(e.radius * 2), daAng, col_, dimTextPx(e));
+      } else if (e.type === 'angdim') {
+        var TICK = e.radius * 0.12 + 3 / state.view.scale;
+        var av1 = worldToScreen(e.center.x, e.center.y);
+        var ae1 = worldToScreen(e.center.x + (e.radius + TICK) * Math.cos(e.startAngle), e.center.y + (e.radius + TICK) * Math.sin(e.startAngle));
+        var ae2 = worldToScreen(e.center.x + (e.radius + TICK) * Math.cos(e.endAngle), e.center.y + (e.radius + TICK) * Math.sin(e.endAngle));
+        ctx.beginPath(); ctx.moveTo(av1.x, av1.y); ctx.lineTo(ae1.x, ae1.y); ctx.moveTo(av1.x, av1.y); ctx.lineTo(ae2.x, ae2.y); ctx.stroke();
+        strokePolylinePts(arcPoints(e), false);
+        var as1 = worldToScreen(e.center.x + e.radius * Math.cos(e.startAngle), e.center.y + e.radius * Math.sin(e.startAngle));
+        var as2 = worldToScreen(e.center.x + e.radius * Math.cos(e.endAngle), e.center.y + e.radius * Math.sin(e.endAngle));
+        drawArrowHead(as1, e.startAngle + Math.PI / 2, col_, dimArrowPx(e)); drawArrowHead(as2, e.endAngle - Math.PI / 2, col_, dimArrowPx(e));
+        var aMidAng = e.startAngle + normAngle(e.endAngle - e.startAngle) / 2;
+        var aMidScreen = worldToScreen(e.center.x + e.radius * Math.cos(aMidAng), e.center.y + e.radius * Math.sin(aMidAng));
+        var angDeg = normAngle(e.endAngle - e.startAngle) * 180 / Math.PI;
+        drawDimText(aMidScreen, angDeg.toFixed(1) + '°', aMidAng + Math.PI / 2, col_, dimTextPx(e));
+      } else if (e.type === 'leader') {
+        var lps1 = worldToScreen(e.p1.x, e.p1.y), lps2 = worldToScreen(e.p2.x, e.p2.y);
+        ctx.beginPath(); ctx.moveTo(lps1.x, lps1.y); ctx.lineTo(lps2.x, lps2.y); ctx.stroke();
+        var lAng = Math.atan2(lps2.y - lps1.y, lps2.x - lps1.x);
+        drawArrowHead(lps1, lAng + Math.PI, col_, Math.max(4, e.height * 0.5 * state.view.scale));
+        ctx.fillStyle = col_; ctx.font = Math.max(6, e.height * state.view.scale) + 'px Prompt, sans-serif';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+        ctx.fillText(e.text, lps2.x, lps2.y);
+      } else if (e.type === 'hatch') {
+        hatchLines(e).forEach(function (seg) { strokePolylinePts(seg, false); });
       } else if (e.type === 'text') {
         var tsp = worldToScreen(e.p.x, e.p.y);
         ctx.fillStyle = col_; ctx.font = Math.max(6, e.height * state.view.scale) + 'px Prompt, sans-serif';
@@ -965,7 +1120,7 @@
     clearTimeout(saveTimer);
     saveTimer = setTimeout(function () {
       try {
-        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ entities: state.entities, layers: state.layers, activeLayer: state.activeLayer, layerSeq: state.layerSeq, view: state.view }));
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ entities: state.entities, layers: state.layers, activeLayer: state.activeLayer, layerSeq: state.layerSeq, view: state.view, dimStyle: state.dimStyle }));
         var el = $('statSave'); el.textContent = t('autosaveSaved');
         clearTimeout(el._clearTimer);
         el._clearTimer = setTimeout(function () { el.textContent = ''; }, 2500);
@@ -983,6 +1138,7 @@
         if (saved.activeLayer && state.layers[saved.activeLayer]) state.activeLayer = saved.activeLayer;
         if (saved.layerSeq) state.layerSeq = saved.layerSeq;
         if (saved.view) state.view = saved.view;
+        if (saved.dimStyle) state.dimStyle = saved.dimStyle;
         $('statSave').textContent = t('restoredDraft');
       }
     } catch (e) {}
@@ -1028,35 +1184,58 @@
     select: 'toolSelectBtn', line: 'toolLineBtn', polyline: 'toolPolylineBtn', rect: 'toolRectBtn', circle: 'toolCircleBtn', arc: 'toolArcBtn',
     move: 'toolMoveBtn', copy: 'toolCopyBtn', rotate: 'toolRotateBtn', mirror: 'toolMirrorBtn', scale: 'toolScaleBtn',
     trim: 'toolTrimBtn', extend: 'toolExtendBtn', fillet: 'toolFilletBtn', offset: 'toolOffsetBtn', arrayrect: 'toolArrayRectBtn',
-    dim: 'toolDimBtn', raddim: 'toolRaddimBtn', text: 'toolTextBtn'
+    dim: 'toolDimBtn', raddim: 'toolRaddimBtn', diadim: 'toolDiadimBtn', angdim: 'toolAngdimBtn', text: 'toolTextBtn', leader: 'toolLeaderBtn', hatch: 'toolHatchBtn'
   };
   var distLbl = document.querySelector('label[data-i18n="distLbl"]'), angLbl = document.querySelector('label[data-i18n="angLbl"]');
   var arrayRow = $('arrayRow'), textRow = $('textRow'), textContentInput = $('textContentInput'), textHeightInput = $('textHeightInput');
+  var hatchRow = $('hatchRow'), hatchSpacingInput = $('hatchSpacing'), hatchAngleInput = $('hatchAngle');
+  var TEXT_ROW_POINTS_NEEDED = { text: 1, leader: 2 }; // จำนวนจุดที่ต้องคลิกก่อน textRow จะโผล่ (ข้อความ=1 จุด, ลูกศรชี้=2 จุด)
   function setTool(tool) {
-    state.tool = tool; state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null; state.gripDrag = null;
+    state.tool = tool; state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null; state.hatchSourcePts = null; state.gripDrag = null;
     Object.keys(TOOL_BTN_IDS).forEach(function (k) { $(TOOL_BTN_IDS[k]).classList.toggle('active', k === tool); });
     viewport.style.cursor = tool === 'select' ? 'default' : 'crosshair';
     arrayRow.classList.toggle('show', tool === 'arrayrect');
     updatePreciseRowUI();
     updateTextRowUI();
+    updateHatchRowUI();
     render();
   }
   function updateTextRowUI() {
-    var show = state.tool === 'text' && state.pendingPoints.length === 1;
+    var needed = TEXT_ROW_POINTS_NEEDED[state.tool];
+    var show = needed != null && state.pendingPoints.length === needed;
     textRow.classList.toggle('show', show);
     if (show) { textHeightInput.value = state.textDefaultHeight; textContentInput.value = ''; textContentInput.focus(); }
   }
   function applyTextRow() {
-    if (state.tool !== 'text' || state.pendingPoints.length !== 1) return;
+    var needed = TEXT_ROW_POINTS_NEEDED[state.tool];
+    if (needed == null || state.pendingPoints.length !== needed) return;
     var content = textContentInput.value;
     if (!content.trim()) { cancelDrawing(); return; }
     var h = parseFloat(textHeightInput.value);
     if (!isFinite(h) || h <= 0) h = state.textDefaultHeight;
     state.textDefaultHeight = h;
     pushHistory();
-    state.entities.push({ id: genId(), type: 'text', layer: state.activeLayer, p: state.pendingPoints[0], text: content, height: h });
+    if (state.tool === 'text') state.entities.push({ id: genId(), type: 'text', layer: state.activeLayer, p: state.pendingPoints[0], text: content, height: h });
+    else state.entities.push({ id: genId(), type: 'leader', layer: state.activeLayer, p1: state.pendingPoints[0], p2: state.pendingPoints[1], text: content, height: h });
     updateCountUI(); scheduleSave();
     finishDrawing(); updateTextRowUI(); render();
+  }
+  /* แถวปรับระยะห่าง/มุมลาย ก่อนกดปุ่ม "แรเงา" ยืนยันสร้างจริง — โผล่หลังจากคลิกเลือกเอนทิตี้ขอบเขตแล้วเท่านั้น */
+  function updateHatchRowUI() {
+    var show = state.tool === 'hatch' && !!state.hatchSourcePts;
+    hatchRow.classList.toggle('show', show);
+    if (show && !hatchSpacingInput.value) { hatchSpacingInput.value = '5'; hatchAngleInput.value = '45'; }
+  }
+  function applyHatchRow() {
+    if (!state.hatchSourcePts) return;
+    var spacing = parseFloat(hatchSpacingInput.value);
+    if (!isFinite(spacing) || spacing <= 0) spacing = 5;
+    var angleDeg = parseFloat(hatchAngleInput.value);
+    if (!isFinite(angleDeg)) angleDeg = 45;
+    pushHistory();
+    state.entities.push({ id: genId(), type: 'hatch', layer: state.activeLayer, points: state.hatchSourcePts, spacing: spacing, angle: angleDeg * Math.PI / 180 });
+    state.hatchSourcePts = null;
+    updateCountUI(); scheduleSave(); updateHatchRowUI(); render();
   }
   /* เปลี่ยนป้าย/ซ่อน-โชว์ช่องระยะ/มุม ตามความหมายจริงของเครื่องมือปัจจุบัน (วงกลม=รัศมี, หมุน=มุมหมุนอย่างเดียว,
      สเกล=อัตราส่วน, ออฟเซ็ต/มุมโค้ง=ระยะ/รัศมีอย่างเดียว, มิเรอร์=ไม่ใช้ช่องตัวเลขเลย) */
@@ -1073,7 +1252,7 @@
   }
   function updatePreciseRowUI() {
     updatePreciseLabels();
-    var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, text: 1 };
+    var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, hatch: 1 };
     var show = (!PRECISE_ROW_EXCLUDED[state.tool] && state.pendingPoints.length > 0) ||
       (state.tool === 'offset' && state.offsetSourceId) || (state.tool === 'fillet' && state.pendingEntityIds.length === 2);
     preciseRow.classList.toggle('show', show);
@@ -1083,8 +1262,8 @@
   }
   function clearPreciseInputs() { distInput.value = ''; angInput.value = ''; }
   function cancelDrawing() {
-    state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null;
-    updatePreciseRowUI(); updateTextRowUI(); render();
+    state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null; state.hatchSourcePts = null;
+    updatePreciseRowUI(); updateTextRowUI(); updateHatchRowUI(); render();
   }
   function finishDrawing() { state.pendingPoints = []; updatePreciseRowUI(); updateTextRowUI(); }
   function finishPolyline() {
@@ -1174,13 +1353,15 @@
         if (dlen > DUP_EPS) {
           var offset = (pt.x - d1.x) * (-ddy / dlen) + (pt.y - d1.y) * (ddx / dlen);
           pushHistory();
-          state.entities.push({ id: genId(), type: 'dim', layer: state.activeLayer, p1: d1, p2: d2, offset: offset });
+          state.entities.push({ id: genId(), type: 'dim', layer: state.activeLayer, p1: d1, p2: d2, offset: offset, textHeight: state.dimStyle.textHeight, arrowSize: state.dimStyle.arrowSize });
           updateCountUI(); scheduleSave();
         }
         finishDrawing();
       }
     } else if (state.tool === 'text') {
       state.pendingPoints = [pt]; // จุดเดียว — เนื้อหาข้อความกรอกผ่าน textRow แยกต่างหาก (ดู applyTextRow)
+    } else if (state.tool === 'leader') {
+      if (state.pendingPoints.length < 2) state.pendingPoints.push(pt); // 2 จุด (ปลายลูกศร + จุดข้อความ) แล้วกรอกข้อความผ่าน textRow เหมือนกัน
     }
     updatePreciseRowUI();
     updateTextRowUI();
@@ -1326,8 +1507,69 @@
     if (!e || (e.type !== 'circle' && e.type !== 'arc')) return;
     var angle = Math.atan2(raw.y - e.center.y, raw.x - e.center.x);
     pushHistory();
-    state.entities.push({ id: genId(), type: 'raddim', layer: state.activeLayer, center: { x: e.center.x, y: e.center.y }, radius: e.radius, angle: angle });
+    state.entities.push({ id: genId(), type: 'raddim', layer: state.activeLayer, center: { x: e.center.x, y: e.center.y }, radius: e.radius, angle: angle, textHeight: state.dimStyle.textHeight, arrowSize: state.dimStyle.arrowSize });
     updateCountUI(); scheduleSave(); render();
+  }
+  /* มิติเส้นผ่าศูนย์กลาง (diadim): เหมือน handleRaddimClick เป๊ะ ต่างแค่ type ที่สร้าง (การ render/export ต่างกัน) */
+  function handleDiadimClick(raw) {
+    var hit = hitTestEntity(raw);
+    if (!hit) return;
+    var e = state.entities.filter(function (x) { return x.id === hit; })[0];
+    if (!e || (e.type !== 'circle' && e.type !== 'arc')) return;
+    var angle = Math.atan2(raw.y - e.center.y, raw.x - e.center.x);
+    pushHistory();
+    state.entities.push({ id: genId(), type: 'diadim', layer: state.activeLayer, center: { x: e.center.x, y: e.center.y }, radius: e.radius, angle: angle, textHeight: state.dimStyle.textHeight, arrowSize: state.dimStyle.arrowSize });
+    updateCountUI(); scheduleSave(); render();
+  }
+  /* มิติมุม (angdim): คลิกเลือกเส้นตรง 2 เส้น (ใช้ pendingEntityIds ร่วมกับ fillet) แล้วคลิกจุดที่ 3 เพื่อวางส่วนโค้ง
+     — หาจุดตัดของเส้นทั้งสอง (ต่อเส้นไม่มีที่สิ้นสุด) เป็นจุดยอดมุม, ทิศทางแต่ละเส้นจากจุดยอดไปยัง "ปลายที่ไกล
+     จากจุดตัดที่สุด" คือทิศเริ่ม/จบ (กันปัญหาเลือกทิศผิดถ้าจุดตัดอยู่นอกช่วงเส้นจริง), รัศมีส่วนโค้ง = ระยะจากจุด
+     ยอดถึงจุดคลิกที่ 3, เลือกกวาดทิศทางที่ "ผ่าน" ทิศของจุดคลิกที่ 3 จริง (เหมือน computeArcFrom3Points) */
+  function handleAngdimClick(raw) {
+    if (state.pendingEntityIds.length < 2) {
+      var hit = hitTestEntity(raw);
+      if (!hit) return;
+      var e = state.entities.filter(function (x) { return x.id === hit; })[0];
+      if (!e || e.type !== 'line' || state.pendingEntityIds.indexOf(hit) !== -1) return;
+      state.pendingEntityIds.push(hit);
+      render();
+      return;
+    }
+    var lineA = state.entities.filter(function (x) { return x.id === state.pendingEntityIds[0]; })[0];
+    var lineB = state.entities.filter(function (x) { return x.id === state.pendingEntityIds[1]; })[0];
+    state.pendingEntityIds = [];
+    if (!lineA || !lineB) { render(); return; }
+    var V = lineIntersectInfinite(lineA.p1, lineA.p2, lineB.p1, lineB.p2);
+    if (!V) { render(); return; } // เส้นขนานกัน วัดมุมไม่ได้
+    function farEnd(line) {
+      var d1 = Math.hypot(line.p1.x - V.x, line.p1.y - V.y), d2 = Math.hypot(line.p2.x - V.x, line.p2.y - V.y);
+      return d1 > d2 ? line.p1 : line.p2;
+    }
+    var ra1 = Math.atan2(farEnd(lineA).y - V.y, farEnd(lineA).x - V.x);
+    var ra2 = Math.atan2(farEnd(lineB).y - V.y, farEnd(lineB).x - V.x);
+    var radius = Math.max(1, Math.hypot(raw.x - V.x, raw.y - V.y));
+    var clickAng = Math.atan2(raw.y - V.y, raw.x - V.x);
+    var span = normAngle(ra2 - ra1), relClick = normAngle(clickAng - ra1);
+    var startAngle, endAngle;
+    if (relClick <= span) { startAngle = ra1; endAngle = ra1 + span; } else { startAngle = ra2; endAngle = ra2 + normAngle(ra1 - ra2); }
+    pushHistory();
+    state.entities.push({ id: genId(), type: 'angdim', layer: state.activeLayer, center: { x: V.x, y: V.y }, radius: radius, startAngle: startAngle, endAngle: endAngle, textHeight: state.dimStyle.textHeight, arrowSize: state.dimStyle.arrowSize });
+    updateCountUI(); scheduleSave(); render();
+  }
+  /* แรเงา (hatch): คลิกเลือกเอนทิตี้ขอบเขตปิด (สี่เหลี่ยม/วงกลม/พอลีไลน์ปิด) — snapshot จุดขอบเขตไว้ก่อน แล้วให้
+     ปรับระยะห่าง/มุมลายในแถว hatchRow ก่อนกด "แรเงา" ยืนยันสร้างจริง (ดู applyHatchRow) */
+  function handleHatchClick(raw) {
+    var hit = hitTestEntity(raw);
+    if (!hit) return;
+    var e = state.entities.filter(function (x) { return x.id === hit; })[0];
+    if (!e) return;
+    var pts = null;
+    if (e.type === 'rect') pts = rectCorners(e);
+    else if (e.type === 'polyline' && e.closed && e.points.length > 2) pts = e.points.slice();
+    else if (e.type === 'circle') pts = arcPoints({ center: e.center, radius: e.radius, startAngle: 0, endAngle: Math.PI * 2 }, 64);
+    if (!pts) return;
+    state.hatchSourcePts = pts;
+    updateHatchRowUI(); render();
   }
   /* ── โหมด "เลือก": จุดจับ (grip) ก่อน แล้วค่อยคลิกเอนทิตี้/ลากเลือกเป็นกลุ่ม ── */
   function handleSelectMouseDown(raw, sp, shiftKey) {
@@ -1402,6 +1644,9 @@
     if (state.tool === 'fillet') { handleFilletClick(raw); return; }
     if (state.tool === 'offset') { handleOffsetClick(raw); return; }
     if (state.tool === 'raddim') { handleRaddimClick(raw); return; }
+    if (state.tool === 'diadim') { handleDiadimClick(raw); return; }
+    if (state.tool === 'angdim') { handleAngdimClick(raw); return; }
+    if (state.tool === 'hatch') { handleHatchClick(raw); return; }
     if (state.tool === 'arrayrect') return; // อาเรย์ทำงานผ่านปุ่ม "แทรกอาเรย์" ไม่ใช้คลิกบน canvas
     handlePointInput(effectivePoint(applyOrtho(raw)));
   });
@@ -1468,6 +1713,9 @@
       else if (state.tool === 'fillet') handleFilletClick(raw);
       else if (state.tool === 'offset') handleOffsetClick(raw);
       else if (state.tool === 'raddim') handleRaddimClick(raw);
+      else if (state.tool === 'diadim') handleDiadimClick(raw);
+      else if (state.tool === 'angdim') handleAngdimClick(raw);
+      else if (state.tool === 'hatch') handleHatchClick(raw);
       else if (state.tool !== 'arrayrect') handlePointInput(effectivePoint(applyOrtho(raw)));
       render();
     }
@@ -1479,7 +1727,7 @@
      ระหว่างวาด (มีจุดยึดค้างอยู่) พิมพ์เลข/จุด/ลบได้เลยโดยไม่ต้องคลิกช่องอินพุตก่อน — คีย์นั้นจะถูก "โยน"
      ไปที่ช่องระยะให้อัตโนมัติ เหมือนโปรแกรม CAD ทั่วไป (Dynamic Input) */
   function hasPendingOp() {
-    return state.pendingPoints.length > 0 || !!state.trimCutterId || !!state.offsetSourceId || state.pendingEntityIds.length > 0;
+    return state.pendingPoints.length > 0 || !!state.trimCutterId || !!state.offsetSourceId || !!state.hatchSourcePts || state.pendingEntityIds.length > 0;
   }
   window.addEventListener('keydown', function (e) {
     var tag = document.activeElement.tagName;
@@ -1546,6 +1794,20 @@
       else if (e.key === 'Escape') { e.preventDefault(); cancelDrawing(); inp.blur(); }
     });
   });
+  $('hatchApplyBtn').addEventListener('click', applyHatchRow);
+  [hatchSpacingInput, hatchAngleInput].forEach(function (inp) {
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); applyHatchRow(); }
+      else if (e.key === 'Escape') { e.preventDefault(); cancelDrawing(); inp.blur(); }
+    });
+  });
+  var dimTextHeightInput = $('dimTextHeightInput'), dimArrowSizeInput = $('dimArrowSizeInput');
+  if (dimTextHeightInput) dimTextHeightInput.addEventListener('change', function () {
+    var v = parseFloat(dimTextHeightInput.value); if (isFinite(v) && v > 0) { state.dimStyle.textHeight = v; scheduleSave(); }
+  });
+  if (dimArrowSizeInput) dimArrowSizeInput.addEventListener('change', function () {
+    var v = parseFloat(dimArrowSizeInput.value); if (isFinite(v) && v > 0) { state.dimStyle.arrowSize = v; scheduleSave(); }
+  });
   var langToggle = $('langToggle');
   if (langToggle) langToggle.addEventListener('click', function () { setUILang(getUILang() === 'en' ? 'th' : 'en'); applyStaticI18n(); updatePropsPanel(); renderLayersPanel(); });
 
@@ -1559,7 +1821,8 @@
     propsCard.hidden = false;
     var TITLE_KEY = {
       line: 'propsTitleLine', polyline: 'propsTitlePolyline', rect: 'propsTitleRect', circle: 'propsTitleCircle',
-      arc: 'propsTitleArc', dim: 'propsTitleDim', raddim: 'propsTitleRaddim', text: 'propsTitleText'
+      arc: 'propsTitleArc', dim: 'propsTitleDim', raddim: 'propsTitleRaddim', diadim: 'propsTitleDiadim',
+      angdim: 'propsTitleAngdim', text: 'propsTitleText', leader: 'propsTitleLeader', hatch: 'propsTitleHatch'
     };
     propsTitle.textContent = t(TITLE_KEY[e.type] || e.type);
     var fields = [], noteHtml = '';
@@ -1569,24 +1832,33 @@
         { k: 'propX1', v: e.p1.x, set: function (v) { e.p1.x = v; } }, { k: 'propY1', v: e.p1.y, set: function (v) { e.p1.y = v; } },
         { k: 'propX2', v: e.p2.x, set: function (v) { e.p2.x = v; } }, { k: 'propY2', v: e.p2.y, set: function (v) { e.p2.y = v; } }
       ];
-    } else if (e.type === 'circle' || e.type === 'raddim') {
+    } else if (e.type === 'circle' || e.type === 'raddim' || e.type === 'diadim') {
       fields = [
         { k: 'propCx', v: e.center.x, set: function (v) { e.center.x = v; } }, { k: 'propCy', v: e.center.y, set: function (v) { e.center.y = v; } },
         { k: 'propR', v: e.radius, set: function (v) { e.radius = Math.max(0.01, v); } }
       ];
-    } else if (e.type === 'arc') {
+    } else if (e.type === 'arc' || e.type === 'angdim') {
       fields = [
         { k: 'propCx', v: e.center.x, set: function (v) { e.center.x = v; } }, { k: 'propCy', v: e.center.y, set: function (v) { e.center.y = v; } },
         { k: 'propR', v: e.radius, set: function (v) { e.radius = Math.max(0.01, v); } },
         { k: 'propStartDeg', v: e.startAngle * 180 / Math.PI, set: function (v) { e.startAngle = v * Math.PI / 180; } },
         { k: 'propEndDeg', v: e.endAngle * 180 / Math.PI, set: function (v) { e.endAngle = v * Math.PI / 180; } }
       ];
-    } else if (e.type === 'text') {
+    } else if (e.type === 'text' || e.type === 'leader') {
       fields = [
         { k: 'propHeight', v: e.height, set: function (v) { e.height = Math.max(0.1, v); } }
       ];
+    } else if (e.type === 'hatch') {
+      fields = [
+        { k: 'propSpacing', v: e.spacing, set: function (v) { e.spacing = Math.max(0.1, v); } },
+        { k: 'propHatchAngle', v: e.angle * 180 / Math.PI, set: function (v) { e.angle = v * Math.PI / 180; } }
+      ];
     }
-    var textFieldHtml = e.type === 'text' ? '<label>' + t('propText') + '<input type="text" id="propTextContent" value="' + e.text.replace(/"/g, '&quot;') + '"></label>' : '';
+    if (e.type === 'dim' || e.type === 'raddim' || e.type === 'diadim' || e.type === 'angdim') {
+      fields.push({ k: 'propHeight', v: e.textHeight, set: function (v) { e.textHeight = Math.max(0.1, v); } });
+      fields.push({ k: 'propArrowSize', v: e.arrowSize, set: function (v) { e.arrowSize = Math.max(0.1, v); } });
+    }
+    var textFieldHtml = (e.type === 'text' || e.type === 'leader') ? '<label>' + t('propText') + '<input type="text" id="propTextContent" value="' + e.text.replace(/"/g, '&quot;') + '"></label>' : '';
     var numFieldsHtml = fields.map(function (f, i) {
       return '<label>' + t(f.k) + '<input type="text" inputmode="decimal" data-fidx="' + i + '" value="' + fmtMm(f.v) + '"></label>';
     }).join('');
@@ -1733,8 +2005,31 @@
       } else if (e.type === 'raddim') {
         var rlp = raddimLeaderPoint(e), rs1 = w2s(e.center.x, e.center.y), rs2 = w2s(rlp.x, rlp.y);
         c.beginPath(); c.moveTo(rs1.x, rs1.y); c.lineTo(rs2.x, rs2.y); c.stroke();
-        c.font = Math.max(9, 3 * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
+        c.font = Math.max(9, (e.textHeight || 3) * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
         c.fillText('R' + fmtMm(e.radius), rs2.x + 4, rs2.y);
+      } else if (e.type === 'diadim') {
+        var de = diaEndpoints(e), dds1 = w2s(de.p1.x, de.p1.y), dds2 = w2s(de.p2.x, de.p2.y);
+        c.beginPath(); c.moveTo(dds1.x, dds1.y); c.lineTo(dds2.x, dds2.y); c.stroke();
+        c.font = Math.max(9, (e.textHeight || 3) * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
+        c.fillText('⌀' + fmtMm(e.radius * 2), dds2.x + 4, dds2.y);
+      } else if (e.type === 'angdim') {
+        poly(arcPoints(e), false);
+        var aas1 = w2s(e.center.x, e.center.y);
+        var aae1 = w2s(e.center.x + e.radius * Math.cos(e.startAngle), e.center.y + e.radius * Math.sin(e.startAngle));
+        var aae2 = w2s(e.center.x + e.radius * Math.cos(e.endAngle), e.center.y + e.radius * Math.sin(e.endAngle));
+        c.beginPath(); c.moveTo(aas1.x, aas1.y); c.lineTo(aae1.x, aae1.y); c.moveTo(aas1.x, aas1.y); c.lineTo(aae2.x, aae2.y); c.stroke();
+        var aMidAng = e.startAngle + normAngle(e.endAngle - e.startAngle) / 2;
+        var aMidS = w2s(e.center.x + e.radius * Math.cos(aMidAng), e.center.y + e.radius * Math.sin(aMidAng));
+        var angDeg = normAngle(e.endAngle - e.startAngle) * 180 / Math.PI;
+        c.font = Math.max(9, (e.textHeight || 3) * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'bottom';
+        c.fillText(angDeg.toFixed(1) + '°', aMidS.x, aMidS.y - 4);
+      } else if (e.type === 'leader') {
+        poly([e.p1, e.p2], false);
+        var lps2 = w2s(e.p2.x, e.p2.y);
+        c.font = Math.max(6, e.height * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'bottom';
+        c.fillText(e.text, lps2.x, lps2.y);
+      } else if (e.type === 'hatch') {
+        hatchLines(e).forEach(function (seg) { poly(seg, false); });
       } else if (e.type === 'text') {
         var tsp = w2s(e.p.x, e.p.y);
         c.font = Math.max(6, e.height * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'bottom';
@@ -1791,7 +2086,26 @@
       } else if (e.type === 'raddim') {
         var rlp = raddimLeaderPoint(e);
         parts.push('<path d="' + polyPath([e.center, rlp], false) + '" stroke="' + color + '"/>');
-        parts.push('<text x="' + sx(rlp.x) + '" y="' + sy(rlp.y) + '" font-size="3" fill="' + color + '">' + svgEsc('R' + fmtMm(e.radius)) + '</text>');
+        parts.push('<text x="' + sx(rlp.x) + '" y="' + sy(rlp.y) + '" font-size="' + (e.textHeight || 3) + '" fill="' + color + '">' + svgEsc('R' + fmtMm(e.radius)) + '</text>');
+      } else if (e.type === 'diadim') {
+        var de = diaEndpoints(e);
+        parts.push('<path d="' + polyPath([de.p1, de.p2], false) + '" stroke="' + color + '"/>');
+        parts.push('<text x="' + sx(de.p2.x) + '" y="' + sy(de.p2.y) + '" font-size="' + (e.textHeight || 3) + '" fill="' + color + '">' + svgEsc('⌀' + fmtMm(e.radius * 2)) + '</text>');
+      } else if (e.type === 'angdim') {
+        parts.push('<path d="' + polyPath(arcPoints(e), false) + '" stroke="' + color + '"/>');
+        var ae1 = { x: e.center.x + e.radius * Math.cos(e.startAngle), y: e.center.y + e.radius * Math.sin(e.startAngle) };
+        var ae2 = { x: e.center.x + e.radius * Math.cos(e.endAngle), y: e.center.y + e.radius * Math.sin(e.endAngle) };
+        parts.push('<path d="' + polyPath([e.center, ae1], false) + '" stroke="' + color + '"/>');
+        parts.push('<path d="' + polyPath([e.center, ae2], false) + '" stroke="' + color + '"/>');
+        var aMidAng = e.startAngle + normAngle(e.endAngle - e.startAngle) / 2;
+        var aMid = { x: e.center.x + e.radius * Math.cos(aMidAng), y: e.center.y + e.radius * Math.sin(aMidAng) };
+        var angDeg = normAngle(e.endAngle - e.startAngle) * 180 / Math.PI;
+        parts.push('<text x="' + sx(aMid.x) + '" y="' + sy(aMid.y) + '" font-size="' + (e.textHeight || 3) + '" fill="' + color + '" text-anchor="middle">' + svgEsc(angDeg.toFixed(1) + '°') + '</text>');
+      } else if (e.type === 'leader') {
+        parts.push('<path d="' + polyPath([e.p1, e.p2], false) + '" stroke="' + color + '"/>');
+        parts.push('<text x="' + sx(e.p2.x) + '" y="' + sy(e.p2.y) + '" font-size="' + e.height.toFixed(2) + '" fill="' + color + '">' + svgEsc(e.text) + '</text>');
+      } else if (e.type === 'hatch') {
+        hatchLines(e).forEach(function (seg) { parts.push('<path d="' + polyPath(seg, false) + '" stroke="' + color + '"/>'); });
       } else if (e.type === 'text') {
         parts.push('<text x="' + sx(e.p.x) + '" y="' + sy(e.p.y) + '" font-size="' + e.height.toFixed(2) + '" fill="' + color + '">' + svgEsc(e.text) + '</text>');
       }
@@ -1847,7 +2161,25 @@
     }
     if (e.type === 'raddim') {
       var rlp = raddimLeaderPoint(e);
-      return [].concat(dxfLine(e.center, rlp), dxfText(rlp, 3, 'R' + fmtMm(e.radius)));
+      return [].concat(dxfLine(e.center, rlp), dxfText(rlp, e.textHeight || 3, 'R' + fmtMm(e.radius)));
+    }
+    if (e.type === 'diadim') {
+      var de = diaEndpoints(e);
+      return [].concat(dxfLine(de.p1, de.p2), dxfText(de.p2, e.textHeight || 3, 'dia' + fmtMm(e.radius * 2)));
+    }
+    if (e.type === 'angdim') {
+      var ae1 = { x: e.center.x + e.radius * Math.cos(e.startAngle), y: e.center.y + e.radius * Math.sin(e.startAngle) };
+      var ae2 = { x: e.center.x + e.radius * Math.cos(e.endAngle), y: e.center.y + e.radius * Math.sin(e.endAngle) };
+      var aMidAng = e.startAngle + normAngle(e.endAngle - e.startAngle) / 2;
+      var aMid = { x: e.center.x + e.radius * Math.cos(aMidAng), y: e.center.y + e.radius * Math.sin(aMidAng) };
+      var angDeg = normAngle(e.endAngle - e.startAngle) * 180 / Math.PI;
+      return [].concat(dxfArc(e.center, e.radius, e.startAngle, e.endAngle), dxfLine(e.center, ae1), dxfLine(e.center, ae2), dxfText(aMid, e.textHeight || 3, angDeg.toFixed(1) + 'deg'));
+    }
+    if (e.type === 'leader') return [].concat(dxfLine(e.p1, e.p2), dxfText(e.p2, e.height, e.text));
+    if (e.type === 'hatch') {
+      var chunks = [];
+      hatchLines(e).forEach(function (seg) { chunks = chunks.concat(dxfLine(seg[0], seg[1])); });
+      return chunks;
     }
     return [];
   }
@@ -1929,6 +2261,120 @@
     reader.onerror = function () { alert(t('importDxfError')); };
     reader.readAsText(file);
   }
+  /* ══════════════════ จัดพิมพ์ตามมาตราส่วนจริง (Stage 5b): PDF เวกเตอร์ด้วย jsPDF (โหลดจาก CDN ใน cad.html
+     เหมือนที่ word.html/excel.html ใช้อยู่แล้ว — เวอร์ชันเดียวกันเป๊ะ) เลือกกระดาษมาตรฐาน (A4/A3/A1) + แนว
+     (ตั้ง/นอน/อัตโนมัติ) + มาตราส่วนวิศวกรรม/สถาปัตย์มาตรฐาน (1:1 ถึง 1:500) หรือพอดีหน้ากระดาษอัตโนมัติ
+     ต่างจากปุ่ม "พิมพ์/PDF" เดิม (Stage 5, ใช้กลไกพิมพ์เบราว์เซอร์) ตรงที่อันนี้คุมมาตราส่วน/ขนาดกระดาษได้ตรงเป๊ะ
+     ไม่ขึ้นกับการตั้งค่าเครื่องพิมพ์ของผู้ใช้ — เหมาะสำหรับพิมพ์แบบก่อสร้าง/แบบวิศวกรรมจริงจัง */
+  var PLOT_PAPER_MM = { A4: { w: 210, h: 297 }, A3: { w: 297, h: 420 }, A1: { w: 594, h: 841 } };
+  function hexToRgb(hex) {
+    var h = (hex || '#1F2430').replace('#', '');
+    if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
+    var num = parseInt(h, 16) || 0x1F2430;
+    return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+  }
+  function plotPDF() {
+    var bbox = computeSceneBBox();
+    if (!bbox) { alert(t('exportEmptyWarn')); return; }
+    if (!(window.jspdf && window.jspdf.jsPDF)) { alert(t('pdfLibMissing')); return; }
+    var paperKey = $('plotPaperSel').value, orient = $('plotOrientSel').value, scaleSel = $('plotScaleSel').value;
+    var paper = PLOT_PAPER_MM[paperKey] || PLOT_PAPER_MM.A4;
+    var drawW = bbox.maxx - bbox.minx, drawH = bbox.maxy - bbox.miny;
+    var MARGIN = 15, scaleFactor, pw, ph, scaleLabel;
+    if (scaleSel === 'fit') {
+      var cands = orient === 'auto' ? ['portrait', 'landscape'] : [orient];
+      var best = null;
+      cands.forEach(function (o) {
+        var cw = o === 'landscape' ? paper.h : paper.w, ch = o === 'landscape' ? paper.w : paper.h;
+        var sf = Math.min((cw - 2 * MARGIN) / drawW, (ch - 2 * MARGIN) / drawH);
+        if (!best || sf > best.sf) best = { o: o, sf: sf, w: cw, h: ch };
+      });
+      orient = best.o; scaleFactor = best.sf; pw = best.w; ph = best.h;
+      var ratio = 1 / scaleFactor;
+      scaleLabel = '1:' + (ratio >= 10 ? Math.round(ratio) : ratio.toFixed(1));
+    } else {
+      var scaleN = parseFloat(scaleSel);
+      scaleFactor = 1 / scaleN; scaleLabel = '1:' + scaleN;
+      if (orient === 'auto') {
+        var fitsP = (drawW * scaleFactor + 2 * MARGIN <= paper.w) && (drawH * scaleFactor + 2 * MARGIN <= paper.h);
+        var fitsL = (drawW * scaleFactor + 2 * MARGIN <= paper.h) && (drawH * scaleFactor + 2 * MARGIN <= paper.w);
+        orient = fitsP ? 'portrait' : (fitsL ? 'landscape' : 'portrait');
+      }
+      pw = orient === 'landscape' ? paper.h : paper.w; ph = orient === 'landscape' ? paper.w : paper.h;
+      var neededW = drawW * scaleFactor + 2 * MARGIN, neededH = drawH * scaleFactor + 2 * MARGIN;
+      if (neededW > pw + 0.5 || neededH > ph + 0.5) { if (!window.confirm(t('plotOverflowConfirm'))) return; }
+    }
+    var pdf = new window.jspdf.jsPDF({ orientation: orient === 'landscape' ? 'landscape' : 'portrait', unit: 'mm', format: [pw, ph] });
+    var offX = (pw - drawW * scaleFactor) / 2, offY = (ph - drawH * scaleFactor) / 2;
+    function w2p(x, y) { return { x: offX + (x - bbox.minx) * scaleFactor, y: ph - offY - (y - bbox.miny) * scaleFactor }; }
+    function pdfPoly(pts, closed) {
+      for (var i = 0; i < pts.length - 1; i++) { var a = w2p(pts[i].x, pts[i].y), b = w2p(pts[i + 1].x, pts[i + 1].y); pdf.line(a.x, a.y, b.x, b.y); }
+      if (closed && pts.length > 2) { var a2 = w2p(pts[pts.length - 1].x, pts[pts.length - 1].y), b2 = w2p(pts[0].x, pts[0].y); pdf.line(a2.x, a2.y, b2.x, b2.y); }
+    }
+    function pdfArrow(tipWorld, dirAngleWorld, sizeMm, rgb) {
+      var lenMm = Math.max(0.5, sizeMm * scaleFactor), wid = lenMm * 0.375;
+      var dx = Math.cos(dirAngleWorld), dy = -Math.sin(dirAngleWorld), px = -dy, py = dx;
+      var tip = w2p(tipWorld.x, tipWorld.y);
+      var bx = tip.x - dx * lenMm, by = tip.y - dy * lenMm;
+      pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
+      pdf.triangle(tip.x, tip.y, bx + px * wid, by + py * wid, bx - px * wid, by - py * wid, 'F');
+    }
+    pdf.setLineWidth(Math.max(0.05, EXPORT_LINE_MM));
+    var inkRgb = hexToRgb('#1F2430');
+    state.entities.forEach(function (e) {
+      var layer = state.layers[e.layer] || state.layers['0'];
+      if (layer.visible === false) return;
+      var rgb = hexToRgb(layer.color || '#1F2430');
+      pdf.setDrawColor(rgb[0], rgb[1], rgb[2]); pdf.setTextColor(rgb[0], rgb[1], rgb[2]);
+      if (e.type === 'line') pdfPoly([e.p1, e.p2], false);
+      else if (e.type === 'polyline') pdfPoly(e.points, !!e.closed);
+      else if (e.type === 'rect') pdfPoly(rectCorners(e), true);
+      else if (e.type === 'circle') { var cc = w2p(e.center.x, e.center.y); pdf.ellipse(cc.x, cc.y, e.radius * scaleFactor, e.radius * scaleFactor, 'S'); }
+      else if (e.type === 'arc') pdfPoly(arcPoints(e), false);
+      else if (e.type === 'dim') {
+        var dl = dimLinePoints(e);
+        pdfPoly([e.p1, dl.dimP1], false); pdfPoly([e.p2, dl.dimP2], false); pdfPoly([dl.dimP1, dl.dimP2], false);
+        var dAngW = Math.atan2(dl.dimP2.y - dl.dimP1.y, dl.dimP2.x - dl.dimP1.x);
+        pdfArrow(dl.dimP1, dAngW + Math.PI, e.arrowSize || 3, rgb); pdfArrow(dl.dimP2, dAngW, e.arrowSize || 3, rgb);
+        var dm = mid(dl.dimP1, dl.dimP2), dmP = w2p(dm.x, dm.y);
+        var dLen = Math.hypot(e.p2.x - e.p1.x, e.p2.y - e.p1.y);
+        pdf.setFontSize((e.textHeight || 3) * 2.83465);
+        pdf.text(fmtMm(dLen) + ' mm', dmP.x, dmP.y - 1, { align: 'center' });
+      } else if (e.type === 'raddim') {
+        var rlp = raddimLeaderPoint(e), rp2 = w2p(rlp.x, rlp.y);
+        var rAngW = Math.atan2(rlp.y - e.center.y, rlp.x - e.center.x);
+        pdfPoly([e.center, rlp], false); pdfArrow(rlp, rAngW, e.arrowSize || 3, rgb);
+        pdf.setFontSize((e.textHeight || 3) * 2.83465); pdf.text('R' + fmtMm(e.radius), rp2.x + 2, rp2.y + 1);
+      } else if (e.type === 'diadim') {
+        var de = diaEndpoints(e), dp2 = w2p(de.p2.x, de.p2.y);
+        var daAngW = Math.atan2(de.p2.y - de.p1.y, de.p2.x - de.p1.x);
+        pdfPoly([de.p1, de.p2], false);
+        pdfArrow(de.p1, daAngW + Math.PI, e.arrowSize || 3, rgb); pdfArrow(de.p2, daAngW, e.arrowSize || 3, rgb);
+        pdf.setFontSize((e.textHeight || 3) * 2.83465); pdf.text('dia' + fmtMm(e.radius * 2), dp2.x + 2, dp2.y + 1);
+      } else if (e.type === 'angdim') {
+        pdfPoly(arcPoints(e), false);
+        var ae1 = { x: e.center.x + e.radius * Math.cos(e.startAngle), y: e.center.y + e.radius * Math.sin(e.startAngle) };
+        var ae2 = { x: e.center.x + e.radius * Math.cos(e.endAngle), y: e.center.y + e.radius * Math.sin(e.endAngle) };
+        pdfPoly([e.center, ae1], false); pdfPoly([e.center, ae2], false);
+        var aMidAng = e.startAngle + normAngle(e.endAngle - e.startAngle) / 2;
+        var aMidP = w2p(e.center.x + e.radius * Math.cos(aMidAng), e.center.y + e.radius * Math.sin(aMidAng));
+        var angDeg = normAngle(e.endAngle - e.startAngle) * 180 / Math.PI;
+        pdf.setFontSize((e.textHeight || 3) * 2.83465); pdf.text(angDeg.toFixed(1) + 'deg', aMidP.x, aMidP.y - 1, { align: 'center' });
+      } else if (e.type === 'leader') {
+        var lAngW = Math.atan2(e.p2.y - e.p1.y, e.p2.x - e.p1.x), lp2 = w2p(e.p2.x, e.p2.y);
+        pdfPoly([e.p1, e.p2], false); pdfArrow(e.p1, lAngW + Math.PI, e.height * 0.5, rgb);
+        pdf.setFontSize(e.height * 2.83465); pdf.text(e.text, lp2.x, lp2.y);
+      } else if (e.type === 'hatch') { hatchLines(e).forEach(function (seg) { pdfPoly(seg, false); }); }
+      else if (e.type === 'text') { var tp = w2p(e.p.x, e.p.y); pdf.setFontSize(e.height * 2.83465); pdf.text(e.text, tp.x, tp.y); }
+    });
+    pdf.setDrawColor(inkRgb[0], inkRgb[1], inkRgb[2]); pdf.setLineWidth(0.3);
+    pdf.rect(MARGIN / 2, MARGIN / 2, pw - MARGIN, ph - MARGIN, 'S');
+    pdf.setFontSize(9); pdf.setTextColor(inkRgb[0], inkRgb[1], inkRgb[2]);
+    pdf.text(t('plotScaleLbl') + ' ' + scaleLabel + '  ·  ' + paperKey + '  ·  ' + exportFilenameBase(), pw - MARGIN / 2 - 2, ph - MARGIN / 2 - 2, { align: 'right' });
+    pdf.save(exportFilenameBase() + '.pdf');
+  }
+  $('plotGenerateBtn').addEventListener('click', plotPDF);
+
   $('exportPngBtn').addEventListener('click', exportPNG);
   $('exportSvgBtn').addEventListener('click', exportSVG);
   $('exportDxfBtn').addEventListener('click', exportDXF);
@@ -1949,6 +2395,8 @@
     $('osnapToggleBtn').classList.toggle('active', state.osnapOn);
     $('orthoToggleBtn').classList.toggle('active', state.orthoOn);
     $('mirrorKeepBtn').classList.toggle('active', state.mirrorKeepOriginal);
+    if (dimTextHeightInput) dimTextHeightInput.value = state.dimStyle.textHeight;
+    if (dimArrowSizeInput) dimArrowSizeInput.value = state.dimStyle.arrowSize;
     updateUndoRedoUI(); updateSelectionUI(); updateCountUI(); updateZoomUI(); renderLayersPanel();
     resizeCanvas();
   }

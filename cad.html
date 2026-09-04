@@ -53,6 +53,9 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .cad-tb-group label{font-size:11.5px;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:5px}
 .cad-tb-group select{font-family:inherit;font-size:12.5px;padding:6px 7px;border-radius:8px;border:1.5px solid var(--line);
   background:var(--card);color:var(--ink)}
+.cad-tb-group label input{font-family:inherit;font-size:12.5px;padding:6px 7px;border-radius:8px;border:1.5px solid var(--line);
+  background:var(--card);color:var(--ink);width:58px;-webkit-appearance:none}
+.cad-tb-group label input:focus{outline:none;border-color:var(--brand)}
 @media(max-width:700px){.cad-tb-group{border-right:none;padding-right:0}}
 
 /* ── แถวใส่ระยะ/มุมเป๊ะๆ ระหว่างวาด — โผล่ขึ้นมาเฉพาะตอนมีจุดยึดค้างอยู่ (กำลังวาด)
@@ -111,6 +114,12 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
   border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
 .cad-layer-row .cad-layer-name:focus{outline:none;border-color:var(--brand)}
 
+/* ── จัดพิมพ์ตามมาตราส่วนจริง (PDF) ── */
+.cad-plot-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:4px}
+.cad-plot-row label{font-size:11.5px;color:var(--muted);font-weight:700;display:flex;flex-direction:column;gap:5px}
+.cad-plot-row select{font-family:inherit;font-size:13px;padding:7px 9px;border-radius:8px;border:1.5px solid var(--line);
+  background:var(--bg);color:var(--ink)}
+
 footer{margin-top:30px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
 </style>
@@ -162,7 +171,15 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       <div class="cad-tb-group">
         <button class="btn sm" id="toolDimBtn" type="button" data-i18n="toolDim">📏 มิติเส้น</button>
         <button class="btn sm" id="toolRaddimBtn" type="button" data-i18n="toolRaddim">⌀ มิติรัศมี</button>
+        <button class="btn sm" id="toolDiadimBtn" type="button" data-i18n="toolDiadim">⌀⌀ มิติเส้นผ่าศูนย์กลาง</button>
+        <button class="btn sm" id="toolAngdimBtn" type="button" data-i18n="toolAngdim">∠ มิติมุม</button>
+        <button class="btn sm" id="toolLeaderBtn" type="button" data-i18n="toolLeader">➹ ลูกศรชี้</button>
         <button class="btn sm" id="toolTextBtn" type="button" data-i18n="toolText">🅰️ ข้อความ</button>
+        <button class="btn sm" id="toolHatchBtn" type="button" data-i18n="toolHatch">▤ แรเงา</button>
+      </div>
+      <div class="cad-tb-group">
+        <label data-i18n="dimTextHeightLbl">ตัวอักษรมิติ (มม.)<input type="text" id="dimTextHeightInput" inputmode="decimal" autocomplete="off" value="3"></label>
+        <label data-i18n="dimArrowSizeLbl">หัวลูกศร (มม.)<input type="text" id="dimArrowSizeInput" inputmode="decimal" autocomplete="off" value="2.5"></label>
       </div>
       <div class="cad-tb-group">
         <button class="btn sm icon-only" id="undoBtn" type="button" title="เลิกทำ" disabled>↩️</button>
@@ -224,6 +241,13 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       <span class="cad-precise-hint" data-i18n="textHint">คลิกตำแหน่งที่จะวางข้อความ แล้วพิมพ์ข้อความ</span>
     </div>
 
+    <div class="cad-tb-group cad-precise-row" id="hatchRow">
+      <label data-i18n="hatchSpacingLbl">ระยะห่างลาย (มม.)<input type="text" id="hatchSpacing" inputmode="decimal" autocomplete="off" value="5"></label>
+      <label data-i18n="hatchAngleLbl">มุมลาย (°)<input type="text" id="hatchAngle" inputmode="decimal" autocomplete="off" value="45"></label>
+      <button class="btn sm" id="hatchApplyBtn" type="button" data-i18n="hatchApplyBtn">✔️ แรเงา</button>
+      <span class="cad-precise-hint" data-i18n="hatchHintApply">ปรับระยะห่าง/มุมลายเส้น แล้วกด "แรเงา" เพื่อยืนยัน</span>
+    </div>
+
     <div class="cad-viewport" id="cadViewport">
       <canvas id="cadCanvas"></canvas>
     </div>
@@ -254,7 +278,39 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
     <div class="cad-layers-list" id="layersList"></div>
   </div>
 
+  <div class="card cad-plot-card">
+    <div class="cad-props-title" data-i18n="plotTitle">จัดพิมพ์ตามมาตราส่วนจริง (PDF)</div>
+    <div class="cad-plot-row">
+      <label data-i18n="plotPaperLbl">ขนาดกระดาษ<select id="plotPaperSel">
+        <option value="A4" selected>A4</option>
+        <option value="A3">A3</option>
+        <option value="A1">A1</option>
+      </select></label>
+      <label data-i18n="plotOrientLbl">แนวกระดาษ<select id="plotOrientSel">
+        <option value="portrait" data-i18n="plotOrientPortrait" selected>แนวตั้ง</option>
+        <option value="landscape" data-i18n="plotOrientLandscape">แนวนอน</option>
+        <option value="auto" data-i18n="plotOrientAuto">อัตโนมัติ</option>
+      </select></label>
+      <label data-i18n="plotScaleLbl">มาตราส่วน<select id="plotScaleSel">
+        <option value="fit" data-i18n="plotScaleFit" selected>พอดีหน้ากระดาษ</option>
+        <option value="1">1:1</option>
+        <option value="2">1:2</option>
+        <option value="5">1:5</option>
+        <option value="10">1:10</option>
+        <option value="20">1:20</option>
+        <option value="25">1:25</option>
+        <option value="50">1:50</option>
+        <option value="100">1:100</option>
+        <option value="200">1:200</option>
+        <option value="500">1:500</option>
+      </select></label>
+      <button class="btn sm" id="plotGenerateBtn" type="button" data-i18n="plotGenerateBtn">📄 สร้าง PDF</button>
+    </div>
+    <p class="cad-hint" data-i18n="plotHint">เลือกกระดาษ/แนว/มาตราส่วน แล้วกด "สร้าง PDF" — วาดแบบตามมาตราส่วนจริงแบบเวกเตอร์ พร้อมกรอบและป้ายมาตราส่วน</p>
+  </div>
+
 </div>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="cad.js"></script>
 <script src="auth-gate.js"></script>
 </body>
