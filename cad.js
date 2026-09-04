@@ -98,7 +98,15 @@
       plotScaleLbl: 'มาตราส่วน', plotGenerateBtn: '📄 สร้าง PDF', plotHint: 'เลือกกระดาษ/แนว/มาตราส่วน แล้วกด "สร้าง PDF" — วาดแบบตามมาตราส่วนจริงแบบเวกเตอร์ พร้อมกรอบและป้ายมาตราส่วน',
       plotOrientPortrait: 'แนวตั้ง', plotOrientLandscape: 'แนวนอน', plotOrientAuto: 'อัตโนมัติ', plotScaleFit: 'พอดีหน้ากระดาษ',
       pdfLibMissing: 'โหลดไลบรารีสร้าง PDF ไม่สำเร็จ — เช็คอินเทอร์เน็ตแล้วลองใหม่',
-      plotOverflowConfirm: 'แบบมีขนาดใหญ่กว่ากระดาษที่มาตราส่วนนี้ — พิมพ์ต่อไปโดยอาจมีบางส่วนล้นขอบกระดาษ?'
+      plotOverflowConfirm: 'แบบมีขนาดใหญ่กว่ากระดาษที่มาตราส่วนนี้ — พิมพ์ต่อไปโดยอาจมีบางส่วนล้นขอบกระดาษ?',
+      toolBlock: '📦 แทรกบล็อก', toolTitleBlock: '🗂️ ตารางรายการแบบ',
+      blockSizeLbl: 'ขนาดจริง (มม.)', blockRotLbl: 'มุมหมุน (°)', blockMirrorToggle: '🔄 มิเรอร์', blockApplyBtn: '✔️ แทรก',
+      blockHint: 'เลือกสัญลักษณ์จากรายการ แล้วคลิกตำแหน่งที่จะแทรก ปรับขนาด/มุม/มิเรอร์ แล้วกด "แทรก"',
+      titleBlockHint: 'คลิกตำแหน่งมุมล่างซ้ายที่จะวางตารางรายการแบบ (แก้ข้อความ/ขนาดทีหลังได้ด้วยเครื่องมือเลือกปกติ)',
+      blockDoor1: 'ประตูบานเดี่ยว', blockDoor2: 'ประตูบานคู่', blockWindow: 'หน้าต่าง',
+      blockToilet: 'โถสุขภัณฑ์', blockSink: 'อ่างล้างหน้า', blockBathtub: 'อ่างอาบน้ำ',
+      blockOutlet: 'เต้ารับไฟฟ้า', blockSwitch: 'สวิตช์ไฟ', blockLight: 'โคมไฟเพดาน',
+      propsTitleBlock: 'คุณสมบัติ: บล็อก/สัญลักษณ์', propBlockSize: 'ขนาดจริง (มม.)', propBlockRotation: 'มุมหมุน (°)', propBlockMirror: 'มิเรอร์'
     },
     en: {
       docTitle: 'CAD Drafting | Tanot',
@@ -174,7 +182,15 @@
       plotScaleLbl: 'Scale', plotGenerateBtn: '📄 Generate PDF', plotHint: 'Pick paper/orientation/scale, then click "Generate PDF" — draws the plan to true scale as vector graphics, with a border and scale label',
       plotOrientPortrait: 'Portrait', plotOrientLandscape: 'Landscape', plotOrientAuto: 'Auto', plotScaleFit: 'Fit to page',
       pdfLibMissing: 'Could not load the PDF library — check your connection and try again',
-      plotOverflowConfirm: 'The drawing is larger than the page at this scale — plot anyway (some parts may run off the page)?'
+      plotOverflowConfirm: 'The drawing is larger than the page at this scale — plot anyway (some parts may run off the page)?',
+      toolBlock: '📦 Insert block', toolTitleBlock: '🗂️ Title block',
+      blockSizeLbl: 'Real size (mm)', blockRotLbl: 'Rotation (°)', blockMirrorToggle: '🔄 Mirror', blockApplyBtn: '✔️ Insert',
+      blockHint: 'Pick a symbol from the list, click where to place it, adjust size/rotation/mirror, then click "Insert"',
+      titleBlockHint: 'Click the bottom-left corner where the title block goes (edit its text/size afterward with the normal select tool)',
+      blockDoor1: 'Single door', blockDoor2: 'Double door', blockWindow: 'Window',
+      blockToilet: 'Toilet', blockSink: 'Sink', blockBathtub: 'Bathtub',
+      blockOutlet: 'Electrical outlet', blockSwitch: 'Light switch', blockLight: 'Ceiling light',
+      propsTitleBlock: 'Properties: Block/symbol', propBlockSize: 'Real size (mm)', propBlockRotation: 'Rotation (°)', propBlockMirror: 'Mirror'
     }
   };
   function getUILang() { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
@@ -262,6 +278,9 @@
      hatch:    {points:[{x,y},...], spacing, angle}          (ลายแรเงา — snapshot ขอบเขตปิด ณ ตอนสร้าง ไม่ผูกกับ
                                                               เอนทิตี้ต้นทางอีกต่อไป, เส้นลายคำนวณสดทุกครั้งจาก
                                                               points/spacing/angle ผ่าน hatchLines())
+     block:    {blockId, p:{x,y}, scale, rotation, mirrored}  (บล็อก/สัญลักษณ์จากคลัง BLOCK_LIBRARY — p คือจุดแทรก,
+                                                              scale = อัตราส่วนจากขนาดจริงที่ผู้ใช้กำหนด/baseSize
+                                                              ของสัญลักษณ์, rotation หน่วยเรเดียน, mirrored พลิกซ้าย-ขวา)
      text:     {p:{x,y}, text, height}                       (คำอธิบายข้อความ — p คือมุมล่างซ้ายของข้อความ) */
 
   var viewport = $('cadViewport'), canvas = $('cadCanvas'), ctx = canvas.getContext('2d');
@@ -399,6 +418,13 @@
       var w = estimateTextWidth(e.text, e.height);
       return distPointToRect(p, e.p.x, e.p.y, e.p.x + w, e.p.y + e.height);
     }
+    if (e.type === 'block') {
+      var sym = BLOCK_LIBRARY[e.blockId];
+      if (!sym) return Infinity;
+      var bd = Infinity;
+      sym.entities.forEach(function (sub) { bd = Math.min(bd, distPointToEntity(p, transformBlockSubEntity(sub, e))); });
+      return bd;
+    }
     return Infinity;
   }
   /* วงกลมผ่าน 3 จุด (circumcircle) — คืน center/radius/startAngle/endAngle โดยเลือกทิศกวาด (จาก p1 ไป p2)
@@ -456,6 +482,7 @@
     else if (e.type === 'diadim') { var de0 = diaEndpoints(e); pts.push({ p: e.center, kind: 'center' }, { p: de0.p1, kind: 'end' }, { p: de0.p2, kind: 'end' }); }
     else if (e.type === 'leader') { pts.push({ p: e.p1, kind: 'end' }, { p: e.p2, kind: 'end' }); }
     else if (e.type === 'text') { pts.push({ p: e.p, kind: 'end' }); }
+    else if (e.type === 'block') { pts.push({ p: e.p, kind: 'end' }); }
     return pts;
   }
   function entitySegments(e) {
@@ -481,7 +508,106 @@
     if (e.type === 'leader') { var lw2 = estimateTextWidth(e.text, e.height); return [e.p1, e.p2, { x: e.p2.x + lw2, y: e.p2.y + e.height }]; }
     if (e.type === 'hatch') return e.points;
     if (e.type === 'text') { var w2 = estimateTextWidth(e.text, e.height); return [e.p, { x: e.p.x + w2, y: e.p.y + e.height }]; }
+    if (e.type === 'block') {
+      var sym = BLOCK_LIBRARY[e.blockId];
+      if (!sym) return [e.p];
+      var bpts = [];
+      sym.entities.forEach(function (sub) { entityBoundsPoints(transformBlockSubEntity(sub, e)).forEach(function (p) { bpts.push(p); }); });
+      return bpts.length ? bpts : [e.p];
+    }
     return [];
+  }
+
+  /* ══════════════════ บล็อก/สัญลักษณ์ (Stage 6) ══════════════════
+     คลังสัญลักษณ์มาตรฐานงานสถาปัตย์/งานระบบ — แต่ละสัญลักษณ์นิยามในพิกัดท้องถิ่น (origin 0,0 = จุดแทรก) หน่วย มม.
+     ที่ "ขนาดจริงมาตรฐาน" ของตัวเอง (baseSize) เช่น ประตูกว้าง 900 มม. ตอนแทรกจริงผู้ใช้พิมพ์ "ขนาดจริง" ที่ต้องการ
+     แล้วระบบคำนวณ scale = ขนาดที่พิมพ์ / baseSize ให้เอง (ใช้งานง่ายกว่าพิมพ์ตัวคูณสเกลตรงๆ)
+     เอนทิตี้ย่อยในสัญลักษณ์รองรับเฉพาะชนิดพื้นฐาน (line/polyline/rect/circle/arc/text) เท่านั้น — ไม่ซ้อนบล็อกในบล็อก
+     หรือใส่มิติเส้น/ลายแรเงาไว้ข้างในเพื่อความเรียบง่าย (ขอบเขตที่ตัดออกไปตั้งใจ) */
+  var BLOCK_LIBRARY = {
+    door1: { nameKey: 'blockDoor1', baseSize: 900, entities: [
+      { type: 'line', p1: { x: 0, y: 0 }, p2: { x: 0, y: 900 } },
+      { type: 'arc', center: { x: 0, y: 0 }, radius: 900, startAngle: 0, endAngle: Math.PI / 2 }
+    ] },
+    door2: { nameKey: 'blockDoor2', baseSize: 1800, entities: [
+      { type: 'line', p1: { x: 0, y: 0 }, p2: { x: 0, y: 900 } },
+      { type: 'arc', center: { x: 0, y: 0 }, radius: 900, startAngle: 0, endAngle: Math.PI / 2 },
+      { type: 'line', p1: { x: 1800, y: 0 }, p2: { x: 1800, y: 900 } },
+      { type: 'arc', center: { x: 1800, y: 0 }, radius: 900, startAngle: Math.PI / 2, endAngle: Math.PI }
+    ] },
+    window1: { nameKey: 'blockWindow', baseSize: 1200, entities: [
+      { type: 'rect', p1: { x: 0, y: -50 }, p2: { x: 1200, y: 50 } },
+      { type: 'line', p1: { x: 0, y: -16.667 }, p2: { x: 1200, y: -16.667 } },
+      { type: 'line', p1: { x: 0, y: 16.667 }, p2: { x: 1200, y: 16.667 } }
+    ] },
+    toilet: { nameKey: 'blockToilet', baseSize: 400, entities: [
+      { type: 'rect', p1: { x: -200, y: 400 }, p2: { x: 200, y: 550 } },
+      { type: 'circle', center: { x: 0, y: 150 }, radius: 180 }
+    ] },
+    sink: { nameKey: 'blockSink', baseSize: 500, entities: [
+      { type: 'rect', p1: { x: -250, y: 0 }, p2: { x: 250, y: 400 } },
+      { type: 'circle', center: { x: 0, y: 200 }, radius: 150 }
+    ] },
+    bathtub: { nameKey: 'blockBathtub', baseSize: 700, entities: [
+      { type: 'rect', p1: { x: 0, y: 0 }, p2: { x: 700, y: 1600 } },
+      { type: 'rect', p1: { x: 60, y: 60 }, p2: { x: 640, y: 1540 } }
+    ] },
+    outlet: { nameKey: 'blockOutlet', baseSize: 150, entities: [
+      { type: 'circle', center: { x: 0, y: 0 }, radius: 75 },
+      { type: 'line', p1: { x: -50, y: -50 }, p2: { x: 50, y: 50 } },
+      { type: 'line', p1: { x: -50, y: 50 }, p2: { x: 50, y: -50 } }
+    ] },
+    switch: { nameKey: 'blockSwitch', baseSize: 150, entities: [
+      { type: 'circle', center: { x: 0, y: 0 }, radius: 75 },
+      { type: 'text', p: { x: 20, y: -20 }, text: 'S', height: 100 }
+    ] },
+    light: { nameKey: 'blockLight', baseSize: 300, entities: [
+      { type: 'circle', center: { x: 0, y: 0 }, radius: 150 },
+      { type: 'line', p1: { x: -106, y: -106 }, p2: { x: 106, y: 106 } },
+      { type: 'line', p1: { x: -106, y: 106 }, p2: { x: 106, y: -106 } }
+    ] }
+  };
+  /* แปลงเอนทิตี้ย่อย (พิกัดท้องถิ่น) ของสัญลักษณ์ เป็นเอนทิตี้จริงในพิกัดโลก ตามค่าของ instance (จุดแทรก/สเกล/
+     มุมหมุน/มิเรอร์) — มิเรอร์ทำโดยพลิกแกน X ท้องถิ่นก่อนหมุน (x → -x), ส่วนโค้งต้องพลิกทิศกวาด+สลับ start/end ด้วย
+     (ใช้หลักการเดียวกับการมิเรอร์ข้ามเส้นแนวตั้งที่ reflectAng ในเครื่องมือมิเรอร์ทั่วไปใช้: มุมใหม่ = π - มุมเดิม) */
+  function transformBlockSubEntity(sub, inst) {
+    var mirrored = !!inst.mirrored, rot = inst.rotation || 0, scl = inst.scale || 1;
+    function localToWorld(p) {
+      var lx = mirrored ? -p.x : p.x, ly = p.y;
+      var c = Math.cos(rot), s = Math.sin(rot);
+      return { x: inst.p.x + (lx * c - ly * s) * scl, y: inst.p.y + (lx * s + ly * c) * scl };
+    }
+    var copy = deepClone(sub);
+    mapEntityPoints(copy, localToWorld);
+    if (copy.type === 'circle' || copy.type === 'arc') copy.radius *= scl;
+    if (copy.type === 'arc') {
+      if (mirrored) { copy.startAngle = Math.PI - sub.endAngle + rot; copy.endAngle = Math.PI - sub.startAngle + rot; }
+      else { copy.startAngle = sub.startAngle + rot; copy.endAngle = sub.endAngle + rot; }
+    }
+    if (copy.type === 'text') copy.height *= scl;
+    return copy;
+  }
+  /* แทรกตารางรายการแบบ (title block) แบบไทยมาตรฐาน — เป็นเอนทิตี้พื้นฐานล้วนๆ (line/rect/text) ไม่ใช่บล็อกที่แก้
+     ทีหลังแบบ "smart" — ตั้งใจให้ง่าย: แก้ข้อความ/ขยับ/ย่อ-ขยายทีหลังได้ด้วยเครื่องมือเลือก+แก้ไขปกติทั้งหมด
+     ขนาดเริ่มต้น 3000×800 มม., ตัวอักษรสูง 120 มม. (พอดีตัวที่มาตราส่วน 1:50 ~2.4มม.บนกระดาษ ตามธรรมเนียมงานพิมพ์) */
+  function buildTitleBlockEntities(anchor, layer) {
+    var W = 3000, H = 800, TH = 120;
+    var x0 = anchor.x, y0 = anchor.y;
+    var mk = function (type, extra) { return Object.assign({ id: genId(), type: type, layer: layer }, extra); };
+    var out = [];
+    out.push(mk('rect', { p1: { x: x0, y: y0 }, p2: { x: x0 + W, y: y0 + H } }));
+    out.push(mk('line', { p1: { x: x0, y: y0 + H - 400 }, p2: { x: x0 + W, y: y0 + H - 400 } }));
+    [1, 2, 3].forEach(function (i) {
+      var lx = x0 + i * (W / 4);
+      out.push(mk('line', { p1: { x: lx, y: y0 }, p2: { x: lx, y: y0 + H - 400 } }));
+    });
+    out.push(mk('text', { p: { x: x0 + 40, y: y0 + H - 130 }, text: 'ชื่อโครงการ: .................................................', height: TH }));
+    out.push(mk('text', { p: { x: x0 + 40, y: y0 + H - 320 }, text: 'ชื่อแบบ: .................................................', height: TH }));
+    var labels = ['มาตราส่วน: ...........', 'วันที่: ...........', 'ผู้ออกแบบ: ...........', 'เลขที่แบบ: ...........'];
+    labels.forEach(function (lbl, i) {
+      out.push(mk('text', { p: { x: x0 + i * (W / 4) + 30, y: y0 + 30 }, text: lbl, height: TH * 0.7 }));
+    });
+    return out;
   }
 
   /* ══════════════════ เรขาคณิตสำหรับเครื่องมือแก้ไข (ย้าย/หมุน/มิเรอร์/สเกล/ตัด-ต่อเส้น/มุมโค้ง) ══════════════════ */
@@ -542,6 +668,7 @@
     else if (e.type === 'leader') { e.p1 = fn(e.p1); e.p2 = fn(e.p2); }
     else if (e.type === 'hatch') { e.points = e.points.map(fn); }
     else if (e.type === 'text') { e.p = fn(e.p); }
+    else if (e.type === 'block') { e.p = fn(e.p); }
     return e;
   }
 
@@ -563,6 +690,7 @@
       if (mods.rotateDeltaRad != null && (src.type === 'arc' || src.type === 'angdim')) { src.startAngle += mods.rotateDeltaRad; src.endAngle += mods.rotateDeltaRad; }
       if (mods.rotateDeltaRad != null && (src.type === 'raddim' || src.type === 'diadim')) src.angle += mods.rotateDeltaRad;
       if (mods.rotateDeltaRad != null && src.type === 'hatch') src.angle += mods.rotateDeltaRad;
+      if (mods.rotateDeltaRad != null && src.type === 'block') src.rotation += mods.rotateDeltaRad;
       if (mods.mirrorLine) {
         var phi = Math.atan2(mods.mirrorLine.b.y - mods.mirrorLine.a.y, mods.mirrorLine.b.x - mods.mirrorLine.a.x);
         var reflectAng = function (a) { return 2 * phi - a; };
@@ -570,11 +698,13 @@
         else if (src.type === 'raddim' || src.type === 'diadim') src.angle = reflectAng(src.angle);
         else if (src.type === 'hatch') src.angle = reflectAng(src.angle);
         else if (src.type === 'dim') src.offset = -src.offset; // มิเรอร์กลับด้าน (chirality) ต้องพลิกเครื่องหมาย offset ด้วย ไม่งั้นเส้นมิติจะไปโผล่ผิดฝั่ง
+        else if (src.type === 'block') { src.rotation = reflectAng(src.rotation); src.mirrored = !src.mirrored; }
       }
       if (mods.scaleFactor != null && (src.type === 'circle' || src.type === 'arc' || src.type === 'raddim' || src.type === 'diadim' || src.type === 'angdim')) src.radius *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'dim') src.offset *= mods.scaleFactor;
       if (mods.scaleFactor != null && (src.type === 'text' || src.type === 'leader')) src.height *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'hatch') src.spacing *= mods.scaleFactor;
+      if (mods.scaleFactor != null && src.type === 'block') src.scale *= mods.scaleFactor;
       if (mods.scaleFactor != null && (src.type === 'dim' || src.type === 'raddim' || src.type === 'diadim' || src.type === 'angdim')) {
         src.textHeight *= mods.scaleFactor; src.arrowSize *= mods.scaleFactor; // สไตล์มิติ (ตัวอักษร/หัวลูกศร) ก็ต้องสเกลตามแบบด้วย ไม่งั้นดูไม่สมส่วนหลังสเกล
       }
@@ -732,7 +862,7 @@
     if (e.type === 'dim') { var dl2 = dimLinePoints(e); return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }, { p: dl2.dimP1, ref: 'dimoffset' }]; }
     if (e.type === 'raddim' || e.type === 'diadim') return [{ p: e.center, ref: 'center' }, { p: raddimLeaderPoint(e), ref: 'raddimleader' }];
     if (e.type === 'leader') return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }];
-    if (e.type === 'text') return [{ p: e.p, ref: 'p' }];
+    if (e.type === 'text' || e.type === 'block') return [{ p: e.p, ref: 'p' }];
     return []; // hatch: ไม่มีจุดจับต่อจุด — ย้าย/หมุน/มิเรอร์/สเกลทั้งก้อนผ่านเครื่องมือแก้ไขปกติเท่านั้น
   }
   function applyGripEdit(e, ref, pt) {
@@ -898,6 +1028,23 @@
       ctx.fillText(text, 0, -4);
       ctx.restore();
     }
+    /* วาดเอนทิตี้พื้นฐาน 5 ชนิด (line/polyline/rect/circle/arc/text) — แยกออกมาเป็นฟังก์ชันเดียว เพราะต้องใช้ซ้ำ
+       ตอนวาดเอนทิตี้ย่อยภายในบล็อก/สัญลักษณ์ (block) ด้วย (สัญลักษณ์ในคลังประกอบด้วยชนิดพื้นฐานนี้เท่านั้น) */
+    function drawPrimitive(e2, col_) {
+      if (e2.type === 'line') strokePolylinePts([e2.p1, e2.p2], false);
+      else if (e2.type === 'polyline') strokePolylinePts(e2.points, !!e2.closed);
+      else if (e2.type === 'rect') strokePolylinePts(rectCorners(e2), true);
+      else if (e2.type === 'circle') {
+        var c0 = worldToScreen(e2.center.x, e2.center.y);
+        ctx.beginPath(); ctx.ellipse(c0.x, c0.y, e2.radius * state.view.scale, e2.radius * state.view.scale, 0, 0, Math.PI * 2); ctx.stroke();
+      } else if (e2.type === 'arc') strokePolylinePts(arcPoints(e2), false);
+      else if (e2.type === 'text') {
+        var tsp2 = worldToScreen(e2.p.x, e2.p.y);
+        ctx.fillStyle = col_; ctx.font = Math.max(6, e2.height * state.view.scale) + 'px Prompt, sans-serif';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+        ctx.fillText(e2.text, tsp2.x, tsp2.y);
+      }
+    }
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
       if (layer.visible === false) return;
@@ -906,13 +1053,11 @@
       var col_ = isCutterOrPick ? col.osnap : (selected ? col.selected : (layer.color || col.entity));
       ctx.strokeStyle = col_;
       ctx.lineWidth = (selected || isCutterOrPick) ? 2.5 : 1.6;
-      if (e.type === 'line') strokePolylinePts([e.p1, e.p2], false);
-      else if (e.type === 'polyline') strokePolylinePts(e.points, !!e.closed);
-      else if (e.type === 'rect') strokePolylinePts(rectCorners(e), true);
-      else if (e.type === 'circle') {
-        var c0 = worldToScreen(e.center.x, e.center.y);
-        ctx.beginPath(); ctx.ellipse(c0.x, c0.y, e.radius * state.view.scale, e.radius * state.view.scale, 0, 0, Math.PI * 2); ctx.stroke();
-      } else if (e.type === 'arc') strokePolylinePts(arcPoints(e), false);
+      if (e.type === 'line' || e.type === 'polyline' || e.type === 'rect' || e.type === 'circle' || e.type === 'arc' || e.type === 'text') drawPrimitive(e, col_);
+      else if (e.type === 'block') {
+        var sym = BLOCK_LIBRARY[e.blockId];
+        if (sym) sym.entities.forEach(function (sub) { drawPrimitive(transformBlockSubEntity(sub, e), col_); });
+      }
       else if (e.type === 'dim') {
         var dl = dimLinePoints(e);
         strokePolylinePts([e.p1, dl.dimP1], false);
@@ -962,11 +1107,6 @@
         ctx.fillText(e.text, lps2.x, lps2.y);
       } else if (e.type === 'hatch') {
         hatchLines(e).forEach(function (seg) { strokePolylinePts(seg, false); });
-      } else if (e.type === 'text') {
-        var tsp = worldToScreen(e.p.x, e.p.y);
-        ctx.fillStyle = col_; ctx.font = Math.max(6, e.height * state.view.scale) + 'px Prompt, sans-serif';
-        ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
-        ctx.fillText(e.text, tsp.x, tsp.y);
       }
     });
     /* จุดจับ (grips) — วาดเฉพาะตอนเลือกอยู่ตัวเดียวและเครื่องมือคือ "เลือก" (กันสับสนตอนใช้เครื่องมือแก้ไขอื่น) */
@@ -1184,20 +1324,24 @@
     select: 'toolSelectBtn', line: 'toolLineBtn', polyline: 'toolPolylineBtn', rect: 'toolRectBtn', circle: 'toolCircleBtn', arc: 'toolArcBtn',
     move: 'toolMoveBtn', copy: 'toolCopyBtn', rotate: 'toolRotateBtn', mirror: 'toolMirrorBtn', scale: 'toolScaleBtn',
     trim: 'toolTrimBtn', extend: 'toolExtendBtn', fillet: 'toolFilletBtn', offset: 'toolOffsetBtn', arrayrect: 'toolArrayRectBtn',
-    dim: 'toolDimBtn', raddim: 'toolRaddimBtn', diadim: 'toolDiadimBtn', angdim: 'toolAngdimBtn', text: 'toolTextBtn', leader: 'toolLeaderBtn', hatch: 'toolHatchBtn'
+    dim: 'toolDimBtn', raddim: 'toolRaddimBtn', diadim: 'toolDiadimBtn', angdim: 'toolAngdimBtn', text: 'toolTextBtn', leader: 'toolLeaderBtn', hatch: 'toolHatchBtn',
+    block: 'toolBlockBtn', titleblock: 'toolTitleBlockBtn'
   };
   var distLbl = document.querySelector('label[data-i18n="distLbl"]'), angLbl = document.querySelector('label[data-i18n="angLbl"]');
   var arrayRow = $('arrayRow'), textRow = $('textRow'), textContentInput = $('textContentInput'), textHeightInput = $('textHeightInput');
   var hatchRow = $('hatchRow'), hatchSpacingInput = $('hatchSpacing'), hatchAngleInput = $('hatchAngle');
+  var blockLibSel = $('blockLibSel'), insertRow = $('insertRow'), blockSizeInput = $('blockSizeInput'), blockRotInput = $('blockRotInput'), blockMirrorBtn = $('blockMirrorBtn');
   var TEXT_ROW_POINTS_NEEDED = { text: 1, leader: 2 }; // จำนวนจุดที่ต้องคลิกก่อน textRow จะโผล่ (ข้อความ=1 จุด, ลูกศรชี้=2 จุด)
   function setTool(tool) {
     state.tool = tool; state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null; state.hatchSourcePts = null; state.gripDrag = null;
     Object.keys(TOOL_BTN_IDS).forEach(function (k) { $(TOOL_BTN_IDS[k]).classList.toggle('active', k === tool); });
     viewport.style.cursor = tool === 'select' ? 'default' : 'crosshair';
     arrayRow.classList.toggle('show', tool === 'arrayrect');
+    if (tool === 'block') blockMirrorBtn.classList.remove('active'); // เริ่มทุกครั้งที่ยัง ไม่มิเรอร์
     updatePreciseRowUI();
     updateTextRowUI();
     updateHatchRowUI();
+    updateInsertRowUI();
     render();
   }
   function updateTextRowUI() {
@@ -1237,6 +1381,36 @@
     state.hatchSourcePts = null;
     updateCountUI(); scheduleSave(); updateHatchRowUI(); render();
   }
+  /* แถวปรับขนาดจริง/มุมหมุน/มิเรอร์ ก่อนกดปุ่ม "แทรก" ยืนยันวางบล็อก — โผล่หลังจากคลิกจุดแทรกแล้วเท่านั้น */
+  function updateInsertRowUI() {
+    var show = state.tool === 'block' && state.pendingPoints.length === 1;
+    insertRow.classList.toggle('show', show);
+    if (show) { var sym = BLOCK_LIBRARY[blockLibSel.value]; blockSizeInput.value = sym ? sym.baseSize : ''; blockRotInput.value = '0'; }
+  }
+  function applyInsertRow() {
+    if (state.tool !== 'block' || state.pendingPoints.length !== 1) return;
+    var sym = BLOCK_LIBRARY[blockLibSel.value];
+    if (!sym) return;
+    var sizeMm = parseFloat(blockSizeInput.value);
+    if (!isFinite(sizeMm) || sizeMm <= 0) sizeMm = sym.baseSize;
+    var rotDeg = parseFloat(blockRotInput.value);
+    if (!isFinite(rotDeg)) rotDeg = 0;
+    pushHistory();
+    state.entities.push({
+      id: genId(), type: 'block', layer: state.activeLayer, blockId: blockLibSel.value, p: state.pendingPoints[0],
+      scale: sizeMm / sym.baseSize, rotation: rotDeg * Math.PI / 180, mirrored: blockMirrorBtn.classList.contains('active')
+    });
+    updateCountUI(); scheduleSave();
+    finishDrawing(); updateInsertRowUI(); render();
+  }
+  /* ตารางรายการแบบ (title block): คลิกจุดเดียว = มุมล่างซ้าย แล้วแทรกทันที ไม่มีขั้นตอนปรับค่าก่อน (ปรับทีหลังผ่าน
+     เครื่องมือเลือก+แก้ไขปกติได้เต็มที่ เพราะเป็นแค่เอนทิตี้พื้นฐานล้วนๆ ไม่ใช่บล็อกที่ผูกกับต้นแบบ) */
+  function handleTitleBlockClick(raw) {
+    pushHistory();
+    var ents = buildTitleBlockEntities(raw, state.activeLayer);
+    state.entities = state.entities.concat(ents);
+    updateCountUI(); scheduleSave(); render();
+  }
   /* เปลี่ยนป้าย/ซ่อน-โชว์ช่องระยะ/มุม ตามความหมายจริงของเครื่องมือปัจจุบัน (วงกลม=รัศมี, หมุน=มุมหมุนอย่างเดียว,
      สเกล=อัตราส่วน, ออฟเซ็ต/มุมโค้ง=ระยะ/รัศมีอย่างเดียว, มิเรอร์=ไม่ใช้ช่องตัวเลขเลย) */
   function updatePreciseLabels() {
@@ -1252,7 +1426,7 @@
   }
   function updatePreciseRowUI() {
     updatePreciseLabels();
-    var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, hatch: 1 };
+    var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, hatch: 1, block: 1, titleblock: 1 };
     var show = (!PRECISE_ROW_EXCLUDED[state.tool] && state.pendingPoints.length > 0) ||
       (state.tool === 'offset' && state.offsetSourceId) || (state.tool === 'fillet' && state.pendingEntityIds.length === 2);
     preciseRow.classList.toggle('show', show);
@@ -1263,9 +1437,9 @@
   function clearPreciseInputs() { distInput.value = ''; angInput.value = ''; }
   function cancelDrawing() {
     state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null; state.hatchSourcePts = null;
-    updatePreciseRowUI(); updateTextRowUI(); updateHatchRowUI(); render();
+    updatePreciseRowUI(); updateTextRowUI(); updateHatchRowUI(); updateInsertRowUI(); render();
   }
-  function finishDrawing() { state.pendingPoints = []; updatePreciseRowUI(); updateTextRowUI(); }
+  function finishDrawing() { state.pendingPoints = []; updatePreciseRowUI(); updateTextRowUI(); updateInsertRowUI(); }
   function finishPolyline() {
     if (state.pendingPoints.length >= 2) {
       pushHistory();
@@ -1362,9 +1536,12 @@
       state.pendingPoints = [pt]; // จุดเดียว — เนื้อหาข้อความกรอกผ่าน textRow แยกต่างหาก (ดู applyTextRow)
     } else if (state.tool === 'leader') {
       if (state.pendingPoints.length < 2) state.pendingPoints.push(pt); // 2 จุด (ปลายลูกศร + จุดข้อความ) แล้วกรอกข้อความผ่าน textRow เหมือนกัน
+    } else if (state.tool === 'block') {
+      state.pendingPoints = [pt]; // จุดแทรกจุดเดียว — ขนาด/มุม/มิเรอร์ปรับผ่าน insertRow แยกต่างหาก (ดู applyInsertRow)
     }
     updatePreciseRowUI();
     updateTextRowUI();
+    updateInsertRowUI();
     clearPreciseInputs();
     render();
   }
@@ -1647,6 +1824,7 @@
     if (state.tool === 'diadim') { handleDiadimClick(raw); return; }
     if (state.tool === 'angdim') { handleAngdimClick(raw); return; }
     if (state.tool === 'hatch') { handleHatchClick(raw); return; }
+    if (state.tool === 'titleblock') { handleTitleBlockClick(effectivePoint(applyOrtho(raw))); return; }
     if (state.tool === 'arrayrect') return; // อาเรย์ทำงานผ่านปุ่ม "แทรกอาเรย์" ไม่ใช้คลิกบน canvas
     handlePointInput(effectivePoint(applyOrtho(raw)));
   });
@@ -1716,6 +1894,7 @@
       else if (state.tool === 'diadim') handleDiadimClick(raw);
       else if (state.tool === 'angdim') handleAngdimClick(raw);
       else if (state.tool === 'hatch') handleHatchClick(raw);
+      else if (state.tool === 'titleblock') handleTitleBlockClick(effectivePoint(applyOrtho(raw)));
       else if (state.tool !== 'arrayrect') handlePointInput(effectivePoint(applyOrtho(raw)));
       render();
     }
@@ -1801,6 +1980,20 @@
       else if (e.key === 'Escape') { e.preventDefault(); cancelDrawing(); inp.blur(); }
     });
   });
+  Object.keys(BLOCK_LIBRARY).forEach(function (bid) {
+    var opt = document.createElement('option'); opt.value = bid; opt.textContent = t(BLOCK_LIBRARY[bid].nameKey);
+    opt.setAttribute('data-i18n', BLOCK_LIBRARY[bid].nameKey); // ให้ applyStaticI18n() แปลภาษาให้อัตโนมัติตอนสลับภาษาทีหลัง
+    blockLibSel.appendChild(opt);
+  });
+  blockLibSel.addEventListener('change', function () { if (state.tool === 'block' && state.pendingPoints.length === 1) updateInsertRowUI(); });
+  blockMirrorBtn.addEventListener('click', function () { blockMirrorBtn.classList.toggle('active'); });
+  $('blockApplyBtn').addEventListener('click', applyInsertRow);
+  [blockSizeInput, blockRotInput].forEach(function (inp) {
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); applyInsertRow(); }
+      else if (e.key === 'Escape') { e.preventDefault(); cancelDrawing(); inp.blur(); }
+    });
+  });
   var dimTextHeightInput = $('dimTextHeightInput'), dimArrowSizeInput = $('dimArrowSizeInput');
   if (dimTextHeightInput) dimTextHeightInput.addEventListener('change', function () {
     var v = parseFloat(dimTextHeightInput.value); if (isFinite(v) && v > 0) { state.dimStyle.textHeight = v; scheduleSave(); }
@@ -1822,7 +2015,7 @@
     var TITLE_KEY = {
       line: 'propsTitleLine', polyline: 'propsTitlePolyline', rect: 'propsTitleRect', circle: 'propsTitleCircle',
       arc: 'propsTitleArc', dim: 'propsTitleDim', raddim: 'propsTitleRaddim', diadim: 'propsTitleDiadim',
-      angdim: 'propsTitleAngdim', text: 'propsTitleText', leader: 'propsTitleLeader', hatch: 'propsTitleHatch'
+      angdim: 'propsTitleAngdim', text: 'propsTitleText', leader: 'propsTitleLeader', hatch: 'propsTitleHatch', block: 'propsTitleBlock'
     };
     propsTitle.textContent = t(TITLE_KEY[e.type] || e.type);
     var fields = [], noteHtml = '';
@@ -1853,12 +2046,19 @@
         { k: 'propSpacing', v: e.spacing, set: function (v) { e.spacing = Math.max(0.1, v); } },
         { k: 'propHatchAngle', v: e.angle * 180 / Math.PI, set: function (v) { e.angle = v * Math.PI / 180; } }
       ];
+    } else if (e.type === 'block') {
+      var symP = BLOCK_LIBRARY[e.blockId] || { baseSize: 1 };
+      fields = [
+        { k: 'propBlockSize', v: e.scale * symP.baseSize, set: function (v) { e.scale = Math.max(0.001, v) / symP.baseSize; } },
+        { k: 'propBlockRotation', v: e.rotation * 180 / Math.PI, set: function (v) { e.rotation = v * Math.PI / 180; } }
+      ];
     }
     if (e.type === 'dim' || e.type === 'raddim' || e.type === 'diadim' || e.type === 'angdim') {
       fields.push({ k: 'propHeight', v: e.textHeight, set: function (v) { e.textHeight = Math.max(0.1, v); } });
       fields.push({ k: 'propArrowSize', v: e.arrowSize, set: function (v) { e.arrowSize = Math.max(0.1, v); } });
     }
     var textFieldHtml = (e.type === 'text' || e.type === 'leader') ? '<label>' + t('propText') + '<input type="text" id="propTextContent" value="' + e.text.replace(/"/g, '&quot;') + '"></label>' : '';
+    var mirrorFieldHtml = e.type === 'block' ? '<label style="flex-direction:row;align-items:center;gap:7px"><input type="checkbox" id="propBlockMirror"' + (e.mirrored ? ' checked' : '') + '>' + t('propBlockMirror') + '</label>' : '';
     var numFieldsHtml = fields.map(function (f, i) {
       return '<label>' + t(f.k) + '<input type="text" inputmode="decimal" data-fidx="' + i + '" value="' + fmtMm(f.v) + '"></label>';
     }).join('');
@@ -1866,7 +2066,7 @@
       return '<option value="' + lid + '"' + (e.layer === lid ? ' selected' : '') + '>' + (state.layers[lid].name || lid) + '</option>';
     }).join('');
     var layerFieldHtml = '<label>' + t('propLayer') + '<select id="propLayerSel">' + layerOptsHtml + '</select></label>';
-    propsGrid.innerHTML = noteHtml + textFieldHtml + numFieldsHtml + layerFieldHtml;
+    propsGrid.innerHTML = noteHtml + textFieldHtml + numFieldsHtml + mirrorFieldHtml + layerFieldHtml;
     Array.prototype.forEach.call(propsGrid.querySelectorAll('input[data-fidx]'), function (inp, i) {
       inp.addEventListener('change', function () {
         var v = parseFloat(inp.value);
@@ -1878,6 +2078,8 @@
     });
     var textInp = $('propTextContent');
     if (textInp) textInp.addEventListener('change', function () { pushHistory(); e.text = textInp.value; scheduleSave(); render(); });
+    var mirrorInp = $('propBlockMirror');
+    if (mirrorInp) mirrorInp.addEventListener('change', function () { pushHistory(); e.mirrored = mirrorInp.checked; scheduleSave(); render(); });
     var layerSel = $('propLayerSel');
     if (layerSel) layerSel.addEventListener('change', function () { pushHistory(); e.layer = layerSel.value; scheduleSave(); render(); });
   }
@@ -1986,15 +2188,27 @@
     }
     c.fillStyle = '#FFFFFF'; c.fillRect(0, 0, (bbox.maxx - bbox.minx) * pxPerMm, h);
     c.lineWidth = Math.max(1, EXPORT_LINE_MM * pxPerMm);
+    function drawPrim(e2) {
+      if (e2.type === 'line') poly([e2.p1, e2.p2], false);
+      else if (e2.type === 'polyline') poly(e2.points, !!e2.closed);
+      else if (e2.type === 'rect') poly(rectCorners(e2), true);
+      else if (e2.type === 'circle') { var cc = w2s(e2.center.x, e2.center.y); c.beginPath(); c.ellipse(cc.x, cc.y, e2.radius * pxPerMm, e2.radius * pxPerMm, 0, 0, Math.PI * 2); c.stroke(); }
+      else if (e2.type === 'arc') poly(arcPoints(e2), false);
+      else if (e2.type === 'text') {
+        var tsp2 = w2s(e2.p.x, e2.p.y);
+        c.font = Math.max(6, e2.height * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'bottom';
+        c.fillText(e2.text, tsp2.x, tsp2.y);
+      }
+    }
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
       if (layer.visible === false) return;
       c.strokeStyle = layer.color || '#1F2430'; c.fillStyle = c.strokeStyle;
-      if (e.type === 'line') poly([e.p1, e.p2], false);
-      else if (e.type === 'polyline') poly(e.points, !!e.closed);
-      else if (e.type === 'rect') poly(rectCorners(e), true);
-      else if (e.type === 'circle') { var cc = w2s(e.center.x, e.center.y); c.beginPath(); c.ellipse(cc.x, cc.y, e.radius * pxPerMm, e.radius * pxPerMm, 0, 0, Math.PI * 2); c.stroke(); }
-      else if (e.type === 'arc') poly(arcPoints(e), false);
+      if (e.type === 'line' || e.type === 'polyline' || e.type === 'rect' || e.type === 'circle' || e.type === 'arc' || e.type === 'text') drawPrim(e);
+      else if (e.type === 'block') {
+        var sym = BLOCK_LIBRARY[e.blockId];
+        if (sym) sym.entities.forEach(function (sub) { drawPrim(transformBlockSubEntity(sub, e)); });
+      }
       else if (e.type === 'dim') {
         var dl = dimLinePoints(e);
         poly([e.p1, dl.dimP1], false); poly([e.p2, dl.dimP2], false); poly([dl.dimP1, dl.dimP2], false);
@@ -2030,10 +2244,6 @@
         c.fillText(e.text, lps2.x, lps2.y);
       } else if (e.type === 'hatch') {
         hatchLines(e).forEach(function (seg) { poly(seg, false); });
-      } else if (e.type === 'text') {
-        var tsp = w2s(e.p.x, e.p.y);
-        c.font = Math.max(6, e.height * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'bottom';
-        c.fillText(e.text, tsp.x, tsp.y);
       }
     });
   }
@@ -2067,15 +2277,23 @@
       '<svg xmlns="http://www.w3.org/2000/svg" width="' + w.toFixed(2) + 'mm" height="' + h.toFixed(2) + 'mm" viewBox="0 0 ' + w.toFixed(3) + ' ' + h.toFixed(3) + '">',
       '<rect x="0" y="0" width="' + w.toFixed(3) + '" height="' + h.toFixed(3) + '" fill="#FFFFFF"/>',
       '<g fill="none" stroke-width="' + EXPORT_LINE_MM + '" font-family="Prompt, sans-serif">'];
+    function primSvg(e2, color) {
+      if (e2.type === 'line') parts.push('<path d="' + polyPath([e2.p1, e2.p2], false) + '" stroke="' + color + '"/>');
+      else if (e2.type === 'polyline') parts.push('<path d="' + polyPath(e2.points, !!e2.closed) + '" stroke="' + color + '"/>');
+      else if (e2.type === 'rect') parts.push('<path d="' + polyPath(rectCorners(e2), true) + '" stroke="' + color + '"/>');
+      else if (e2.type === 'circle') parts.push('<circle cx="' + sx(e2.center.x) + '" cy="' + sy(e2.center.y) + '" r="' + e2.radius.toFixed(3) + '" stroke="' + color + '"/>');
+      else if (e2.type === 'arc') parts.push('<path d="' + polyPath(arcPoints(e2), false) + '" stroke="' + color + '"/>');
+      else if (e2.type === 'text') parts.push('<text x="' + sx(e2.p.x) + '" y="' + sy(e2.p.y) + '" font-size="' + e2.height.toFixed(2) + '" fill="' + color + '">' + svgEsc(e2.text) + '</text>');
+    }
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
       if (layer.visible === false) return;
       var color = layer.color || '#1F2430';
-      if (e.type === 'line') parts.push('<path d="' + polyPath([e.p1, e.p2], false) + '" stroke="' + color + '"/>');
-      else if (e.type === 'polyline') parts.push('<path d="' + polyPath(e.points, !!e.closed) + '" stroke="' + color + '"/>');
-      else if (e.type === 'rect') parts.push('<path d="' + polyPath(rectCorners(e), true) + '" stroke="' + color + '"/>');
-      else if (e.type === 'circle') parts.push('<circle cx="' + sx(e.center.x) + '" cy="' + sy(e.center.y) + '" r="' + e.radius.toFixed(3) + '" stroke="' + color + '"/>');
-      else if (e.type === 'arc') parts.push('<path d="' + polyPath(arcPoints(e), false) + '" stroke="' + color + '"/>');
+      if (e.type === 'line' || e.type === 'polyline' || e.type === 'rect' || e.type === 'circle' || e.type === 'arc' || e.type === 'text') primSvg(e, color);
+      else if (e.type === 'block') {
+        var sym = BLOCK_LIBRARY[e.blockId];
+        if (sym) sym.entities.forEach(function (sub) { primSvg(transformBlockSubEntity(sub, e), color); });
+      }
       else if (e.type === 'dim') {
         var dl = dimLinePoints(e), dm = mid(dl.dimP1, dl.dimP2);
         var dLen = Math.hypot(e.p2.x - e.p1.x, e.p2.y - e.p1.y);
@@ -2106,8 +2324,6 @@
         parts.push('<text x="' + sx(e.p2.x) + '" y="' + sy(e.p2.y) + '" font-size="' + e.height.toFixed(2) + '" fill="' + color + '">' + svgEsc(e.text) + '</text>');
       } else if (e.type === 'hatch') {
         hatchLines(e).forEach(function (seg) { parts.push('<path d="' + polyPath(seg, false) + '" stroke="' + color + '"/>'); });
-      } else if (e.type === 'text') {
-        parts.push('<text x="' + sx(e.p.x) + '" y="' + sy(e.p.y) + '" font-size="' + e.height.toFixed(2) + '" fill="' + color + '">' + svgEsc(e.text) + '</text>');
       }
     });
     parts.push('</g></svg>');
@@ -2154,6 +2370,13 @@
     if (e.type === 'circle') return dxfCircle(e.center, e.radius);
     if (e.type === 'arc') return dxfArc(e.center, e.radius, e.startAngle, e.endAngle);
     if (e.type === 'text') return dxfText(e.p, e.height, e.text);
+    if (e.type === 'block') {
+      var sym = BLOCK_LIBRARY[e.blockId];
+      if (!sym) return [];
+      var chunks2 = [];
+      sym.entities.forEach(function (sub) { chunks2 = chunks2.concat(entityToDxfChunks(transformBlockSubEntity(sub, e))); });
+      return chunks2;
+    }
     if (e.type === 'dim') {
       var dl = dimLinePoints(e), dm = mid(dl.dimP1, dl.dimP2);
       var dLen = Math.hypot(e.p2.x - e.p1.x, e.p2.y - e.p1.y);
@@ -2321,16 +2544,24 @@
     }
     pdf.setLineWidth(Math.max(0.05, EXPORT_LINE_MM));
     var inkRgb = hexToRgb('#1F2430');
+    function pdfPrim(e2) {
+      if (e2.type === 'line') pdfPoly([e2.p1, e2.p2], false);
+      else if (e2.type === 'polyline') pdfPoly(e2.points, !!e2.closed);
+      else if (e2.type === 'rect') pdfPoly(rectCorners(e2), true);
+      else if (e2.type === 'circle') { var cc = w2p(e2.center.x, e2.center.y); pdf.ellipse(cc.x, cc.y, e2.radius * scaleFactor, e2.radius * scaleFactor, 'S'); }
+      else if (e2.type === 'arc') pdfPoly(arcPoints(e2), false);
+      else if (e2.type === 'text') { var tp2 = w2p(e2.p.x, e2.p.y); pdf.setFontSize(e2.height * 2.83465); pdf.text(e2.text, tp2.x, tp2.y); }
+    }
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
       if (layer.visible === false) return;
       var rgb = hexToRgb(layer.color || '#1F2430');
       pdf.setDrawColor(rgb[0], rgb[1], rgb[2]); pdf.setTextColor(rgb[0], rgb[1], rgb[2]);
-      if (e.type === 'line') pdfPoly([e.p1, e.p2], false);
-      else if (e.type === 'polyline') pdfPoly(e.points, !!e.closed);
-      else if (e.type === 'rect') pdfPoly(rectCorners(e), true);
-      else if (e.type === 'circle') { var cc = w2p(e.center.x, e.center.y); pdf.ellipse(cc.x, cc.y, e.radius * scaleFactor, e.radius * scaleFactor, 'S'); }
-      else if (e.type === 'arc') pdfPoly(arcPoints(e), false);
+      if (e.type === 'line' || e.type === 'polyline' || e.type === 'rect' || e.type === 'circle' || e.type === 'arc' || e.type === 'text') pdfPrim(e);
+      else if (e.type === 'block') {
+        var sym = BLOCK_LIBRARY[e.blockId];
+        if (sym) sym.entities.forEach(function (sub) { pdfPrim(transformBlockSubEntity(sub, e)); });
+      }
       else if (e.type === 'dim') {
         var dl = dimLinePoints(e);
         pdfPoly([e.p1, dl.dimP1], false); pdfPoly([e.p2, dl.dimP2], false); pdfPoly([dl.dimP1, dl.dimP2], false);
@@ -2365,7 +2596,6 @@
         pdfPoly([e.p1, e.p2], false); pdfArrow(e.p1, lAngW + Math.PI, e.height * 0.5, rgb);
         pdf.setFontSize(e.height * 2.83465); pdf.text(e.text, lp2.x, lp2.y);
       } else if (e.type === 'hatch') { hatchLines(e).forEach(function (seg) { pdfPoly(seg, false); }); }
-      else if (e.type === 'text') { var tp = w2p(e.p.x, e.p.y); pdf.setFontSize(e.height * 2.83465); pdf.text(e.text, tp.x, tp.y); }
     });
     pdf.setDrawColor(inkRgb[0], inkRgb[1], inkRgb[2]); pdf.setLineWidth(0.3);
     pdf.rect(MARGIN / 2, MARGIN / 2, pw - MARGIN, ph - MARGIN, 'S');

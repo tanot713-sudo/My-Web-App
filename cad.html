@@ -182,6 +182,11 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
         <label data-i18n="dimArrowSizeLbl">หัวลูกศร (มม.)<input type="text" id="dimArrowSizeInput" inputmode="decimal" autocomplete="off" value="2.5"></label>
       </div>
       <div class="cad-tb-group">
+        <button class="btn sm" id="toolBlockBtn" type="button" data-i18n="toolBlock">📦 แทรกบล็อก</button>
+        <select id="blockLibSel"></select>
+        <button class="btn sm" id="toolTitleBlockBtn" type="button" data-i18n="toolTitleBlock">🗂️ ตารางรายการแบบ</button>
+      </div>
+      <div class="cad-tb-group">
         <button class="btn sm icon-only" id="undoBtn" type="button" title="เลิกทำ" disabled>↩️</button>
         <button class="btn sm icon-only" id="redoBtn" type="button" title="ทำซ้ำ" disabled>↪️</button>
         <button class="btn sm" id="deleteBtn" type="button" disabled data-i18n="deleteSel">🗑️ ลบที่เลือก</button>
@@ -246,6 +251,14 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       <label data-i18n="hatchAngleLbl">มุมลาย (°)<input type="text" id="hatchAngle" inputmode="decimal" autocomplete="off" value="45"></label>
       <button class="btn sm" id="hatchApplyBtn" type="button" data-i18n="hatchApplyBtn">✔️ แรเงา</button>
       <span class="cad-precise-hint" data-i18n="hatchHintApply">ปรับระยะห่าง/มุมลายเส้น แล้วกด "แรเงา" เพื่อยืนยัน</span>
+    </div>
+
+    <div class="cad-tb-group cad-precise-row" id="insertRow">
+      <label data-i18n="blockSizeLbl">ขนาดจริง (มม.)<input type="text" id="blockSizeInput" inputmode="decimal" autocomplete="off"></label>
+      <label data-i18n="blockRotLbl">มุมหมุน (°)<input type="text" id="blockRotInput" inputmode="decimal" autocomplete="off" value="0"></label>
+      <button class="btn sm" id="blockMirrorBtn" type="button" data-i18n="blockMirrorToggle">🔄 มิเรอร์</button>
+      <button class="btn sm" id="blockApplyBtn" type="button" data-i18n="blockApplyBtn">✔️ แทรก</button>
+      <span class="cad-precise-hint" data-i18n="blockHint">เลือกสัญลักษณ์จากรายการ แล้วคลิกตำแหน่งที่จะแทรก ปรับขนาด/มุม/มิเรอร์ แล้วกด "แทรก"</span>
     </div>
 
     <div class="cad-viewport" id="cadViewport">
