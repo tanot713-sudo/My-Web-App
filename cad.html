@@ -86,6 +86,16 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .cad-status .flash{color:var(--brand-dk);font-weight:700}
 
 .cad-hint{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.7}
+
+/* ── แผงคุณสมบัติ — แก้ไขพิกัด/รัศมี/มุมของเอนทิตี้ที่เลือกอยู่ตัวเดียวได้ตรงๆ ── */
+.cad-props-title{font-size:13px;font-weight:800;color:var(--brand-dk);margin-bottom:10px}
+.cad-props-grid{display:flex;flex-wrap:wrap;gap:10px}
+.cad-props-grid label{font-size:11.5px;color:var(--muted);font-weight:700;display:flex;flex-direction:column;gap:5px}
+.cad-props-grid input{font-family:inherit;font-size:13px;padding:7px 9px;border-radius:8px;border:1.5px solid var(--line);
+  background:var(--bg);color:var(--ink);width:120px;-webkit-appearance:none}
+.cad-props-grid input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-sf)}
+.cad-props-note{font-size:12.5px;color:var(--muted);line-height:1.6}
+
 footer{margin-top:30px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
 </style>
@@ -116,6 +126,23 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
         <button class="btn sm" id="toolRectBtn" type="button" data-i18n="toolRect">▭ สี่เหลี่ยม</button>
         <button class="btn sm" id="toolCircleBtn" type="button" data-i18n="toolCircle">○ วงกลม</button>
         <button class="btn sm" id="toolArcBtn" type="button" data-i18n="toolArc">◜ ส่วนโค้ง</button>
+      </div>
+      <div class="cad-tb-group">
+        <button class="btn sm" id="toolMoveBtn" type="button" disabled data-i18n="toolMove">✥ ย้าย</button>
+        <button class="btn sm" id="toolCopyBtn" type="button" disabled data-i18n="toolCopy">⧉ คัดลอก</button>
+        <button class="btn sm" id="toolRotateBtn" type="button" disabled data-i18n="toolRotate">↻ หมุน</button>
+        <button class="btn sm" id="toolMirrorBtn" type="button" disabled data-i18n="toolMirror">⇋ มิเรอร์</button>
+        <button class="btn sm active" id="mirrorKeepBtn" type="button" title="เก็บต้นฉบับ" data-i18n="mirrorKeepToggle">🗐 เก็บต้นฉบับ</button>
+        <button class="btn sm" id="toolScaleBtn" type="button" disabled data-i18n="toolScale">⤢ สเกล</button>
+      </div>
+      <div class="cad-tb-group">
+        <button class="btn sm" id="toolTrimBtn" type="button" data-i18n="toolTrim">✂️ ตัดเส้น</button>
+        <button class="btn sm" id="toolExtendBtn" type="button" data-i18n="toolExtend">⤴ ต่อเส้น</button>
+        <button class="btn sm" id="toolFilletBtn" type="button" data-i18n="toolFillet">◠ มุมโค้ง</button>
+        <button class="btn sm" id="toolOffsetBtn" type="button" data-i18n="toolOffset">∥ ออฟเซ็ต</button>
+      </div>
+      <div class="cad-tb-group">
+        <button class="btn sm" id="toolArrayRectBtn" type="button" disabled data-i18n="toolArrayRect">▦ อาเรย์</button>
       </div>
       <div class="cad-tb-group">
         <button class="btn sm icon-only" id="undoBtn" type="button" title="เลิกทำ" disabled>↩️</button>
@@ -153,6 +180,15 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       <span class="cad-precise-hint" data-i18n="preciseHint">พิมพ์ระยะแล้วกด Enter (ไม่ใส่มุม = ใช้ทิศทางเมาส์ปัจจุบัน)</span>
     </div>
 
+    <div class="cad-tb-group cad-precise-row" id="arrayRow">
+      <label data-i18n="arrRowsLbl">แถว<input type="text" id="arrRows" inputmode="numeric" autocomplete="off" value="2"></label>
+      <label data-i18n="arrColsLbl">คอลัมน์<input type="text" id="arrCols" inputmode="numeric" autocomplete="off" value="2"></label>
+      <label data-i18n="arrSpXLbl">ห่างแนวนอน (มม.)<input type="text" id="arrSpX" inputmode="decimal" autocomplete="off" value="100"></label>
+      <label data-i18n="arrSpYLbl">ห่างแนวตั้ง (มม.)<input type="text" id="arrSpY" inputmode="decimal" autocomplete="off" value="100"></label>
+      <button class="btn sm" id="arrApplyBtn" type="button" data-i18n="arrApplyBtn">✔️ แทรกอาเรย์</button>
+      <span class="cad-precise-hint" data-i18n="arrayHint">เลือกเอนทิตี้ก่อน แล้วกำหนดจำนวนแถว/คอลัมน์และระยะห่าง</span>
+    </div>
+
     <div class="cad-viewport" id="cadViewport">
       <canvas id="cadCanvas"></canvas>
     </div>
@@ -168,6 +204,11 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
     </div>
 
     <p class="cad-hint" data-i18n="hintText">🖱️ ลากขวา/กลาง หรือลากด้วยนิ้วเพื่อเลื่อนมุมมอง · หมุนล้อเมาส์/บีบสองนิ้วเพื่อซูม · เลือกเครื่องมือวาดแล้วคลิกจุดตามลำดับ · พิมพ์ตัวเลขได้ทันทีระหว่างวาดเพื่อใส่ระยะเป๊ะ · Esc ยกเลิกการวาด · Delete ลบเอนทิตี้ที่เลือก · F8 สลับโหมดตั้งฉาก</p>
+  </div>
+
+  <div class="card cad-props-card" id="propsCard" hidden>
+    <div class="cad-props-title" id="propsTitle">คุณสมบัติ</div>
+    <div class="cad-props-grid" id="propsGrid"></div>
   </div>
 
 </div>

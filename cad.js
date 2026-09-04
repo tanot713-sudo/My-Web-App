@@ -1,17 +1,12 @@
 /* ══════════════════════════════════════════════════════════════════
-   Tanot — cad.js (งานเขียนแบบ CAD, Stage 1+2)
-   Stage 1 วางรากฐาน: ระบบพิกัดโลกเป็นมิลลิเมตรจริงแยกจากพิกเซลจอเด็ดขาด, แพน/ซูม,
-   กริด+ไม้บรรทัดปรับสเกลอัตโนมัติ, สแนปกริด, โมเดล entity/layer ทั่วไป, เครื่องมือ
-   เส้นหยาบๆ, ทำซ้ำ/เลิกทำ, บันทึกอัตโนมัติ
-
-   Stage 2 ต่อยอด: เพิ่มชนิดเอนทิตี้ (polyline/สี่เหลี่ยม/วงกลม/ส่วนโค้ง 3 จุด), ระบบ
-   ใส่ระยะ-มุมเป๊ะๆ ระหว่างวาด (พิมพ์ตัวเลขได้ทันทีโดยไม่ต้องคลิกช่องอินพุตก่อน — พิมพ์
-   "3500" แล้ว Enter จะวางจุดถัดไปห่างจากจุดยึด 3500 มม. ตามทิศทางเมาส์ปัจจุบันถ้าไม่ใส่
-   มุม), จับจุดวัตถุ (ปลายเส้น/จุดกึ่งกลาง/ศูนย์กลาง/จุดตัด/ตั้งฉาก) และโหมดตั้งฉาก (Ortho)
-
-   เครื่องมือวาดทุกตัวใช้ pendingPoints[] ร่วมกัน (จุดที่คลิกไปแล้วระหว่างวาดเอนทิตี้
-   ปัจจุบัน) ต่างกันแค่จำนวนจุดที่ต้องใช้ก่อน commit — ทำให้เพิ่มเครื่องมือใหม่ในอนาคต
-   (dimension ฯลฯ) ใช้โครงเดิมได้โดยไม่ต้องรื้อระบบ input/preview/osnap
+   Tanot — cad.js (งานเขียนแบบ CAD, Stage 1+2+3)
+   Stage 1: ระบบพิกัดโลกมิลลิเมตรจริง, แพน/ซูม, กริด+ไม้บรรทัด, สแนปกริด, โมเดล entity/layer
+   ทั่วไป, เครื่องมือเส้น, undo/redo, บันทึกอัตโนมัติ
+   Stage 2: ชนิดเอนทิตี้ครบ (polyline/สี่เหลี่ยม/วงกลม/ส่วนโค้ง), ใส่ระยะ-มุมเป๊ะๆ, จับจุด
+   วัตถุ (osnap), โหมดตั้งฉาก (ortho)
+   Stage 3: เลือกได้หลายชิ้น (shift-คลิก/ลากเลือกเป็นกลุ่ม), จุดจับ (grips) ลากแก้รูปทรง
+   ตรงๆ, แผงคุณสมบัติ (แก้พิกัด/รัศมี/มุมตรงๆ), เครื่องมือแก้ไข: ย้าย/คัดลอก/หมุน/มิเรอร์/
+   สเกล/ตัดเส้น(trim)/ต่อเส้น(extend)/มุมโค้ง(fillet)/ออฟเซ็ต/อาเรย์สี่เหลี่ยม
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -32,11 +27,34 @@
       distLbl: 'ระยะ (มม.)', angLbl: 'มุม (°)', finishPolyline: '✔️ จบเส้นพอลีไลน์',
       preciseHint: 'พิมพ์ระยะแล้วกด Enter (ไม่ใส่มุม = ใช้ทิศทางเมาส์ปัจจุบัน)',
       coordLbl: 'พิกัด:', zoomLbl: 'ซูม:', entCountLbl: 'เอนทิตี้:',
-      hintText: '🖱️ ลากขวา/กลาง หรือลากด้วยนิ้วเพื่อเลื่อนมุมมอง · หมุนล้อเมาส์/บีบสองนิ้วเพื่อซูม · เลือกเครื่องมือวาดแล้วคลิกจุดตามลำดับ · พิมพ์ตัวเลขได้ทันทีระหว่างวาดเพื่อใส่ระยะเป๊ะ · Esc ยกเลิกการวาด · Delete ลบเอนทิตี้ที่เลือก · F8 สลับโหมดตั้งฉาก',
+      hintText: '🖱️ ลากขวา/กลาง หรือลากด้วยนิ้วเพื่อเลื่อนมุมมอง · หมุนล้อเมาส์/บีบสองนิ้วเพื่อซูม · เลือกเครื่องมือวาดแล้วคลิกจุดตามลำดับ · พิมพ์ตัวเลขได้ทันทีระหว่างวาดเพื่อใส่ระยะเป๊ะ · Shift+คลิกหรือลากคลุมเพื่อเลือกหลายชิ้น · ลากจุดสี่เหลี่ยมบนเอนทิตี้ที่เลือกเพื่อแก้รูปทรงตรงๆ · Esc ยกเลิก · Delete ลบที่เลือก · F8 สลับโหมดตั้งฉาก',
       mmUnit: 'มม.',
       autosaveSaved: 'บันทึกอัตโนมัติแล้ว', restoredDraft: 'กู้คืนแบบร่างล่าสุดที่บันทึกอัตโนมัติไว้',
       clearConfirm: 'ล้างทั้งหมด? ทุกเอนทิตี้ในแบบนี้จะถูกลบ (ยังกด "เลิกทำ" ย้อนกลับได้)',
-      snapEnd: 'ปลาย', snapMid: 'กึ่งกลาง', snapCenter: 'ศูนย์กลาง', snapInt: 'จุดตัด', snapPerp: 'ตั้งฉาก'
+      snapEnd: 'ปลาย', snapMid: 'กึ่งกลาง', snapCenter: 'ศูนย์กลาง', snapInt: 'จุดตัด', snapPerp: 'ตั้งฉาก',
+      toolMove: '✥ ย้าย', toolCopy: '⧉ คัดลอก', toolRotate: '↻ หมุน', toolMirror: '⇋ มิเรอร์',
+      mirrorKeepToggle: '🗐 เก็บต้นฉบับ', toolScale: '⤢ สเกล',
+      toolTrim: '✂️ ตัดเส้น', toolExtend: '⤴ ต่อเส้น', toolFillet: '◠ มุมโค้ง', toolOffset: '∥ ออฟเซ็ต',
+      toolArrayRect: '▦ อาเรย์',
+      radiusLbl: 'รัศมี (มม.)', rotAngLbl: 'มุมหมุน (°)', scaleFactorLbl: 'อัตราส่วนสเกล',
+      offsetDistLbl: 'ระยะออฟเซ็ต (มม.)', filletRadiusLbl: 'รัศมีมุมโค้ง (มม.)',
+      transformHint: 'คลิกจุดฐาน แล้วคลิก/พิมพ์ค่าเพื่อยืนยัน',
+      mirrorHint: 'คลิก 2 จุดกำหนดแนวมิเรอร์',
+      trimHint: 'คลิกเส้นตัด (cutting edge) ก่อน แล้วคลิกส่วนของเส้นอื่นที่จะตัดออก',
+      extendHint: 'คลิกเส้นขอบ (boundary) ก่อน แล้วคลิกปลายเส้นที่จะต่อให้ไปชน',
+      filletHintPick: 'คลิกเลือกเส้นตรง 2 เส้นที่จะทำมุมโค้ง',
+      filletHintRadius: 'พิมพ์รัศมีแล้วกด Enter เพื่อสร้างมุมโค้ง',
+      offsetHintPick: 'คลิกเอนทิตี้ที่จะออฟเซ็ต',
+      offsetHintSide: 'พิมพ์ระยะ (ไม่บังคับ) แล้วคลิกด้านที่ต้องการ',
+      arrRowsLbl: 'แถว', arrColsLbl: 'คอลัมน์', arrSpXLbl: 'ห่างแนวนอน (มม.)', arrSpYLbl: 'ห่างแนวตั้ง (มม.)',
+      arrApplyBtn: '✔️ แทรกอาเรย์', arrayHint: 'เลือกเอนทิตี้ก่อน แล้วกำหนดจำนวนแถว/คอลัมน์และระยะห่าง',
+      propsTitleLine: 'คุณสมบัติ: เส้น', propsTitlePolyline: 'คุณสมบัติ: พอลีไลน์', propsTitleRect: 'คุณสมบัติ: สี่เหลี่ยม',
+      propsTitleCircle: 'คุณสมบัติ: วงกลม', propsTitleArc: 'คุณสมบัติ: ส่วนโค้ง',
+      propX1: 'X1 (มม.)', propY1: 'Y1 (มม.)', propX2: 'X2 (มม.)', propY2: 'Y2 (มม.)',
+      propCx: 'ศูนย์กลาง X (มม.)', propCy: 'ศูนย์กลาง Y (มม.)', propR: 'รัศมี (มม.)',
+      propStartDeg: 'มุมเริ่ม (°)', propEndDeg: 'มุมจบ (°)',
+      propPolylineNote: 'พอลีไลน์มี {n} จุด — ลากจุดสี่เหลี่ยมบนเส้นเพื่อแก้แต่ละจุดโดยตรง',
+      selCountLbl: 'เลือกอยู่ {n} ชิ้น'
     },
     en: {
       docTitle: 'CAD Drafting | Tanot',
@@ -51,11 +69,34 @@
       distLbl: 'Distance (mm)', angLbl: 'Angle (°)', finishPolyline: '✔️ Finish polyline',
       preciseHint: 'Type a distance and press Enter (leave angle blank to use the current mouse direction)',
       coordLbl: 'Coord:', zoomLbl: 'Zoom:', entCountLbl: 'Entities:',
-      hintText: '🖱️ Right/middle-drag or drag with a finger to pan · scroll wheel / pinch to zoom · pick a draw tool then click points in order · type a number any time while drawing for a precise distance · Esc cancels the current draw · Delete removes the selected entity · F8 toggles ortho',
+      hintText: '🖱️ Right/middle-drag or drag with a finger to pan · scroll wheel / pinch to zoom · pick a draw tool then click points in order · type a number any time while drawing for a precise distance · Shift+click or drag a box to select multiple · drag a square grip on a selected entity to reshape it directly · Esc cancels · Delete removes selection · F8 toggles ortho',
       mmUnit: 'mm',
       autosaveSaved: 'Autosaved', restoredDraft: 'Restored your last autosaved draft',
       clearConfirm: 'Clear everything? Every entity in this drawing will be removed (you can still Undo).',
-      snapEnd: 'endpoint', snapMid: 'midpoint', snapCenter: 'center', snapInt: 'intersection', snapPerp: 'perpendicular'
+      snapEnd: 'endpoint', snapMid: 'midpoint', snapCenter: 'center', snapInt: 'intersection', snapPerp: 'perpendicular',
+      toolMove: '✥ Move', toolCopy: '⧉ Copy', toolRotate: '↻ Rotate', toolMirror: '⇋ Mirror',
+      mirrorKeepToggle: '🗐 Keep original', toolScale: '⤢ Scale',
+      toolTrim: '✂️ Trim', toolExtend: '⤴ Extend', toolFillet: '◠ Fillet', toolOffset: '∥ Offset',
+      toolArrayRect: '▦ Array',
+      radiusLbl: 'Radius (mm)', rotAngLbl: 'Rotation angle (°)', scaleFactorLbl: 'Scale factor',
+      offsetDistLbl: 'Offset distance (mm)', filletRadiusLbl: 'Fillet radius (mm)',
+      transformHint: 'Click a base point, then click/type a value to confirm',
+      mirrorHint: 'Click 2 points to define the mirror line',
+      trimHint: 'Click the cutting edge first, then click the part of another line to trim away',
+      extendHint: 'Click the boundary edge first, then click the end of a line to extend it to meet it',
+      filletHintPick: 'Click 2 straight lines to fillet',
+      filletHintRadius: 'Type a radius and press Enter to create the fillet',
+      offsetHintPick: 'Click the entity to offset',
+      offsetHintSide: 'Type a distance (optional), then click the side you want',
+      arrRowsLbl: 'Rows', arrColsLbl: 'Columns', arrSpXLbl: 'X spacing (mm)', arrSpYLbl: 'Y spacing (mm)',
+      arrApplyBtn: '✔️ Insert array', arrayHint: 'Select entities first, then set rows/columns and spacing',
+      propsTitleLine: 'Properties: Line', propsTitlePolyline: 'Properties: Polyline', propsTitleRect: 'Properties: Rectangle',
+      propsTitleCircle: 'Properties: Circle', propsTitleArc: 'Properties: Arc',
+      propX1: 'X1 (mm)', propY1: 'Y1 (mm)', propX2: 'X2 (mm)', propY2: 'Y2 (mm)',
+      propCx: 'Center X (mm)', propCy: 'Center Y (mm)', propR: 'Radius (mm)',
+      propStartDeg: 'Start angle (°)', propEndDeg: 'End angle (°)',
+      propPolylineNote: 'Polyline has {n} points — drag a square grip on the line to edit each point directly',
+      selCountLbl: '{n} selected'
     }
   };
   function getUILang() { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
@@ -99,15 +140,22 @@
     layers: { '0': { color: '#1F2430', visible: true } },
     activeLayer: '0',
     view: { cx: 0, cy: 0, scale: 0.5 }, // cx,cy = พิกัดโลก (mm) ที่อยู่กึ่งกลางจอ, scale = px ต่อ mm
-    tool: 'select',         // 'select' | 'line' | 'polyline' | 'rect' | 'circle' | 'arc'
-    selectedId: null,
+    tool: 'select',         // 'select' | เครื่องมือวาด | 'move'|'copy'|'rotate'|'mirror'|'scale'|'trim'|'extend'|'fillet'|'offset'|'arrayrect'
+    selectedIds: [],         // Stage 3: เลือกได้หลายชิ้น (เดิม Stage 1-2 เป็น selectedId เดี่ยว)
     snapOn: true, snapStep: 10,
     osnapOn: true, orthoOn: false,
-    pendingPoints: [],       // จุดที่คลิกไปแล้วระหว่างวาดเอนทิตี้ปัจจุบัน (ความยาวที่ต้องใช้ขึ้นกับ tool)
+    mirrorKeepOriginal: true,
+    pendingPoints: [],       // จุดที่คลิกไปแล้วระหว่างวาด/ย้าย/หมุน/มิเรอร์เอนทิตี้ปัจจุบัน
+    pendingEntityIds: [],    // เอนทิตี้ที่คลิกเลือกไว้แล้วสำหรับเครื่องมือ fillet (ต้องการ 2 เส้น)
+    trimCutterId: null,      // เอนทิตี้ที่เป็นเส้นตัด/เส้นขอบ สำหรับเครื่องมือ trim/extend
+    offsetSourceId: null,    // เอนทิตี้ต้นทางสำหรับเครื่องมือ offset
+    gripDrag: null,          // { entityId, ref } ระหว่างลากจุดจับ (grip) แก้รูปทรง
+    dragSelect: null,        // { startWorld, startScreen, curScreen, additive } ระหว่างลากเลือกเป็นกลุ่ม
     history: [], redoStack: [],
     cw: 0, ch: 0,            // ขนาด canvas เป็น CSS px (อัปเดตตอน resize)
     _cursorWorld: null, _cursorScreen: null
   };
+  var GRIP_PX = 9;           // รัศมีคลิกโดนจุดจับ (grip) เป็นพิกเซล
 
   /* รูปแบบข้อมูลต่อ type:
      line:     {p1:{x,y}, p2:{x,y}}
@@ -247,6 +295,259 @@
     return [];
   }
 
+  /* ══════════════════ เรขาคณิตสำหรับเครื่องมือแก้ไข (ย้าย/หมุน/มิเรอร์/สเกล/ตัด-ต่อเส้น/มุมโค้ง) ══════════════════ */
+  function rotateAround(p, base, rad) {
+    var dx = p.x - base.x, dy = p.y - base.y, c = Math.cos(rad), s = Math.sin(rad);
+    return { x: base.x + dx * c - dy * s, y: base.y + dx * s + dy * c };
+  }
+  function scaleAround(p, base, factor) { return { x: base.x + (p.x - base.x) * factor, y: base.y + (p.y - base.y) * factor }; }
+  function mirrorPointAcrossLine(p, a, b) {
+    var dx = b.x - a.x, dy = b.y - a.y, lenSq = dx * dx + dy * dy;
+    if (!lenSq) return { x: p.x, y: p.y };
+    var tt = ((p.x - a.x) * dx + (p.y - a.y) * dy) / lenSq;
+    var projX = a.x + tt * dx, projY = a.y + tt * dy;
+    return { x: 2 * projX - p.x, y: 2 * projY - p.y };
+  }
+  function lineIntersectInfinite(a1, a2, b1, b2) {
+    var d1x = a2.x - a1.x, d1y = a2.y - a1.y, d2x = b2.x - b1.x, d2y = b2.y - b1.y;
+    var denom = d1x * d2y - d1y * d2x;
+    if (Math.abs(denom) < 1e-9) return null;
+    var tt = ((b1.x - a1.x) * d2y - (b1.y - a1.y) * d2x) / denom;
+    return { x: a1.x + tt * d1x, y: a1.y + tt * d1y };
+  }
+  /* จุดตัดของ "รังสี" (จุดเริ่ม + ทิศทาง ยิงไม่มีที่สิ้นสุด) กับ "ส่วนของเส้นตรง" ที่มีขอบเขตจริง — ใช้กับ extend
+     (ต่อเส้นให้ไปชนขอบ) คืน t (ระยะตามทิศทาง dir จาก origin, ต้องเป็นบวกและอยู่ในขอบเขตของ b ด้วย) */
+  function rayIntersectSegment(origin, dir, a, b) {
+    var dx = b.x - a.x, dy = b.y - a.y;
+    var denom = dir.x * dy - dir.y * dx;
+    if (Math.abs(denom) < 1e-9) return null;
+    var tt = ((a.x - origin.x) * dy - (a.y - origin.y) * dx) / denom;
+    var u = ((a.x - origin.x) * dir.y - (a.y - origin.y) * dir.x) / denom;
+    if (u < 0 || u > 1) return null;
+    return { t: tt, point: { x: origin.x + tt * dir.x, y: origin.y + tt * dir.y } };
+  }
+  function paramOnLine(p, a, b) {
+    var dx = b.x - a.x, dy = b.y - a.y, lenSq = dx * dx + dy * dy;
+    return lenSq ? ((p.x - a.x) * dx + (p.y - a.y) * dy) / lenSq : 0;
+  }
+  function pointAtParam(a, b, tt) { return { x: a.x + (b.x - a.x) * tt, y: a.y + (b.y - a.y) * tt }; }
+  function vsub(a, b) { return { x: a.x - b.x, y: a.y - b.y }; }
+  function vnorm(v) { var len = Math.hypot(v.x, v.y); return len ? { x: v.x / len, y: v.y / len } : { x: 0, y: 0 }; }
+  function vdot(a, b) { return a.x * b.x + a.y * b.y; }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  /* แปลงเอนทิตี้ 'rect' (แกนตรงเสมอ ผูกด้วย p1/p2 มุมตรงข้าม) ให้เป็น polyline ปิด 4 จุด — ต้องทำก่อนหมุน/มิเรอร์
+     เสมอ เพราะการหมุน/มิเรอร์ทั่วไปทำให้สี่เหลี่ยมไม่ขนานแกน X/Y อีกต่อไป ซึ่งโมเดล p1/p2 แทนไม่ได้ */
+  function rectToPolyline(e) { return { id: e.id, type: 'polyline', layer: e.layer, points: rectCorners(e), closed: true }; }
+
+  /* map ฟังก์ชัน fn ทับทุกจุดของเอนทิตี้ (แก้ e ตรงๆ, ไม่คืนค่าใหม่) — ใช้ร่วมกับ ย้าย/หมุน/มิเรอร์/สเกล
+     หมายเหตุ: รัศมีของวงกลม/ส่วนโค้งไม่ถูกแตะโดยฟังก์ชันนี้ (ผู้เรียกต้องจัดการเองถ้าเป็นการสเกล) */
+  function mapEntityPoints(e, fn) {
+    if (e.type === 'line') { e.p1 = fn(e.p1); e.p2 = fn(e.p2); }
+    else if (e.type === 'polyline') { e.points = e.points.map(fn); }
+    else if (e.type === 'rect') { e.p1 = fn(e.p1); e.p2 = fn(e.p2); }
+    else if (e.type === 'circle') { e.center = fn(e.center); }
+    else if (e.type === 'arc') { e.center = fn(e.center); }
+    return e;
+  }
+
+  /* ย้าย/คัดลอก/หมุน/มิเรอร์/สเกล เอนทิตี้ที่เลือกไว้ทั้งหมดพร้อมกัน — ฟังก์ชันกลางตัวเดียว ต่างกันแค่ mods
+     mods.duplicate: สร้างสำเนาใหม่แทนแก้ของเดิม (คัดลอก/มิเรอร์แบบเก็บต้นฉบับ)
+     mods.rotateDeltaRad: มุมหมุน (เรเดียน) — ใช้ปรับ startAngle/endAngle ของส่วนโค้งด้วย (จุดศูนย์กลางหมุนผ่าน fn อยู่แล้ว)
+     mods.mirrorLine: {a,b} เส้นมิเรอร์ — ใช้คำนวณมุมสะท้อนใหม่ของส่วนโค้ง (มิเรอร์กลับทิศทางกวาดด้วย)
+     mods.scaleFactor: อัตราส่วนสเกล — ใช้คูณรัศมีวงกลม/ส่วนโค้งด้วย (จุดศูนย์กลางสเกลผ่าน fn อยู่แล้ว)
+     mods.convertRect: แปลง rect เป็น polyline ก่อน map จุด (จำเป็นสำหรับหมุน/มิเรอร์ ไม่จำเป็นสำหรับย้าย/สเกล) */
+  function transformSelectedEntities(fn, mods) {
+    mods = mods || {};
+    var selSet = {};
+    state.selectedIds.forEach(function (id) { selSet[id] = true; });
+    var added = [];
+    var updated = state.entities.map(function (e) {
+      if (!selSet[e.id]) return e;
+      var src = mods.convertRect && e.type === 'rect' ? rectToPolyline(e) : deepClone(e);
+      mapEntityPoints(src, fn);
+      if (mods.rotateDeltaRad != null && src.type === 'arc') { src.startAngle += mods.rotateDeltaRad; src.endAngle += mods.rotateDeltaRad; }
+      if (mods.mirrorLine && src.type === 'arc') {
+        var phi = Math.atan2(mods.mirrorLine.b.y - mods.mirrorLine.a.y, mods.mirrorLine.b.x - mods.mirrorLine.a.x);
+        var reflectAng = function (a) { return 2 * phi - a; };
+        var ns = reflectAng(src.endAngle), ne = reflectAng(src.startAngle);
+        src.startAngle = ns; src.endAngle = ne;
+      }
+      if (mods.scaleFactor != null && (src.type === 'circle' || src.type === 'arc')) src.radius *= mods.scaleFactor;
+      if (mods.duplicate) { src.id = genId(); added.push(src); return e; }
+      return src;
+    });
+    state.entities = mods.duplicate ? updated.concat(added) : updated;
+    if (mods.duplicate) state.selectedIds = added.map(function (s) { return s.id; });
+  }
+
+  /* อาเรย์สี่เหลี่ยม (rectangular array): ทำสำเนาเอนทิตี้ที่เลือกไว้เรียงเป็นตาราง rows×cols ตามระยะห่างที่กำหนด
+     (ไม่รวมตำแหน่งเดิมที่ (0,0) ซึ่งคือของเดิมอยู่แล้ว) */
+  function doArrayRect(rows, cols, spx, spy) {
+    if (!state.selectedIds.length || rows < 1 || cols < 1) return;
+    var selSet = {};
+    state.selectedIds.forEach(function (id) { selSet[id] = true; });
+    var sources = state.entities.filter(function (e) { return selSet[e.id]; });
+    if (!sources.length) return;
+    var added = [];
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        if (r === 0 && c === 0) continue;
+        (function (dx, dy) {
+          sources.forEach(function (e) {
+            var clone = deepClone(e); clone.id = genId();
+            mapEntityPoints(clone, function (p) { return { x: p.x + dx, y: p.y + dy }; });
+            added.push(clone);
+          });
+        })(c * spx, r * spy);
+      }
+    }
+    pushHistory();
+    state.entities = state.entities.concat(added);
+    updateCountUI(); scheduleSave(); render();
+  }
+
+  /* ตัดเส้น (trim): หาจุดตัดทั้งหมดของ lineEntity กับส่วนของ cutterEntity แล้วลบช่วงที่มีจุดคลิกอยู่ระหว่าง
+     จุดตัดที่ใกล้ที่สุดสองข้าง (หรือลบถึงปลายเส้นถ้าคลิกอยู่นอกสุด) — คืน array ของ {p1,p2} เส้นที่เหลือ (0-2 เส้น) */
+  function trimLineAgainst(lineEntity, cutterEntity, clickPt) {
+    var segs = entitySegments(cutterEntity);
+    if (!segs.length) return null; // วงกลม/ส่วนโค้งยังไม่รองรับเป็นเส้นตัดในสเตจนี้
+    var ts = [];
+    segs.forEach(function (s) {
+      var ip = segIntersect(lineEntity.p1, lineEntity.p2, s[0], s[1]);
+      if (ip) ts.push(paramOnLine(ip, lineEntity.p1, lineEntity.p2));
+    });
+    if (!ts.length) return null;
+    ts.sort(function (a, b) { return a - b; });
+    var clickT = clamp(paramOnLine(clickPt, lineEntity.p1, lineEntity.p2), 0, 1);
+    var lo = null, hi = null;
+    ts.forEach(function (tt) {
+      if (tt <= clickT && (lo === null || tt > lo)) lo = tt;
+      if (tt >= clickT && (hi === null || tt < hi)) hi = tt;
+    });
+    var EPS = 1e-4, pieces = [];
+    if (lo !== null && lo > EPS) pieces.push({ p1: lineEntity.p1, p2: pointAtParam(lineEntity.p1, lineEntity.p2, lo) });
+    if (hi !== null && hi < 1 - EPS) pieces.push({ p1: pointAtParam(lineEntity.p1, lineEntity.p2, hi), p2: lineEntity.p2 });
+    return pieces;
+  }
+
+  /* ต่อเส้น (extend): หาปลายที่ใกล้จุดคลิกที่สุด (ปลายอิสระ) แล้วยิงรังสีจากปลายอีกด้าน ผ่านปลายอิสระ ออกไปหา
+     ส่วนของ boundaryEntity ที่ใกล้ที่สุด (ต้องอยู่ "เลยปลายอิสระออกไป" เท่านั้น ไม่ใช่ย้อนกลับเข้ามา) */
+  function extendLineTo(lineEntity, boundaryEntity, clickPt) {
+    var d1 = Math.hypot(clickPt.x - lineEntity.p1.x, clickPt.y - lineEntity.p1.y);
+    var d2 = Math.hypot(clickPt.x - lineEntity.p2.x, clickPt.y - lineEntity.p2.y);
+    var freeIsP1 = d1 < d2;
+    var anchor = freeIsP1 ? lineEntity.p2 : lineEntity.p1;
+    var free = freeIsP1 ? lineEntity.p1 : lineEntity.p2;
+    var len = Math.hypot(free.x - anchor.x, free.y - anchor.y);
+    if (!len) return null;
+    var dir = { x: (free.x - anchor.x) / len, y: (free.y - anchor.y) / len };
+    var segs = entitySegments(boundaryEntity);
+    var bestT = null, bestPt = null;
+    segs.forEach(function (s) {
+      var r = rayIntersectSegment(anchor, dir, s[0], s[1]);
+      if (r && r.t > len + 1e-6 && (bestT === null || r.t < bestT)) { bestT = r.t; bestPt = r.point; }
+    });
+    if (!bestPt) return null;
+    var updated = deepClone(lineEntity);
+    if (freeIsP1) updated.p1 = bestPt; else updated.p2 = bestPt;
+    return updated;
+  }
+
+  /* มุมโค้ง (fillet): หาจุดตัดของเส้นตรงทั้งสอง (ต่อเส้นออกไปไม่มีที่สิ้นสุด) แล้ววางส่วนโค้งรัศมีที่กำหนดให้
+     สัมผัสเส้นทั้งสองพอดี — ปลายที่ "ใกล้จุดตัดที่สุด" ของแต่ละเส้นจะถูกตัดออกแล้วแทนที่ด้วยจุดสัมผัส */
+  function computeFillet(lineA, lineB, radius) {
+    var V = lineIntersectInfinite(lineA.p1, lineA.p2, lineB.p1, lineB.p2);
+    if (!V) return null;
+    function pickKept(line) {
+      var da = Math.hypot(line.p1.x - V.x, line.p1.y - V.y), db = Math.hypot(line.p2.x - V.x, line.p2.y - V.y);
+      return da > db ? { kept: line.p1, trimmedEnd: 'p2' } : { kept: line.p2, trimmedEnd: 'p1' };
+    }
+    var ka = pickKept(lineA), kb = pickKept(lineB);
+    var u1 = vnorm(vsub(ka.kept, V)), u2 = vnorm(vsub(kb.kept, V));
+    var theta = Math.acos(clamp(vdot(u1, u2), -1, 1));
+    if (theta < 1e-3 || Math.abs(theta - Math.PI) < 1e-3) return null; // เส้นขนาน/ทับเส้นตรง ทำมุมโค้งไม่ได้
+    var dist = radius / Math.tan(theta / 2);
+    var T1 = { x: V.x + dist * u1.x, y: V.y + dist * u1.y };
+    var T2 = { x: V.x + dist * u2.x, y: V.y + dist * u2.y };
+    var bis = vnorm({ x: u1.x + u2.x, y: u1.y + u2.y });
+    var cdist = radius / Math.sin(theta / 2);
+    var C = { x: V.x + cdist * bis.x, y: V.y + cdist * bis.y };
+    var a1 = Math.atan2(T1.y - C.y, T1.x - C.x), a2 = Math.atan2(T2.y - C.y, T2.x - C.x);
+    var span = normAngle(a2 - a1), startAngle, endAngle;
+    if (span <= Math.PI) { startAngle = a1; endAngle = a1 + span; } else { startAngle = a2; endAngle = a2 + normAngle(a1 - a2); }
+    return {
+      lineAUpdate: { end: ka.trimmedEnd, point: T1 }, lineBUpdate: { end: kb.trimmedEnd, point: T2 },
+      arc: { center: C, radius: radius, startAngle: startAngle, endAngle: endAngle }
+    };
+  }
+
+  /* ออฟเซ็ต (offset): สร้างสำเนาขนานของเอนทิตี้ ห่างออกไปตามระยะที่กำหนด ทางด้านที่จุด sidePoint อยู่
+     รองรับ เส้น/วงกลม/ส่วนโค้ง/สี่เหลี่ยม (พอลีไลน์ยังไม่รองรับในสเตจนี้ — การต่อมุมที่ถูกต้องซับซ้อนเกินขอบเขต) */
+  function offsetEntity(e, distance, sidePoint) {
+    if (e.type === 'line') {
+      var dx = e.p2.x - e.p1.x, dy = e.p2.y - e.p1.y, len = Math.hypot(dx, dy);
+      if (!len) return null;
+      var side = (dx * (sidePoint.y - e.p1.y) - dy * (sidePoint.x - e.p1.x)) > 0 ? 1 : -1;
+      var ux = (-dy / len) * side, uy = (dx / len) * side;
+      return { id: genId(), type: 'line', layer: e.layer, p1: { x: e.p1.x + ux * distance, y: e.p1.y + uy * distance }, p2: { x: e.p2.x + ux * distance, y: e.p2.y + uy * distance } };
+    }
+    if (e.type === 'circle' || e.type === 'arc') {
+      var growing = Math.hypot(sidePoint.x - e.center.x, sidePoint.y - e.center.y) > e.radius;
+      var nr = e.radius + (growing ? distance : -distance);
+      if (nr <= 0) return null;
+      return e.type === 'circle'
+        ? { id: genId(), type: 'circle', layer: e.layer, center: { x: e.center.x, y: e.center.y }, radius: nr }
+        : { id: genId(), type: 'arc', layer: e.layer, center: { x: e.center.x, y: e.center.y }, radius: nr, startAngle: e.startAngle, endAngle: e.endAngle };
+    }
+    if (e.type === 'rect') {
+      var minx = Math.min(e.p1.x, e.p2.x), maxx = Math.max(e.p1.x, e.p2.x);
+      var miny = Math.min(e.p1.y, e.p2.y), maxy = Math.max(e.p1.y, e.p2.y);
+      var outward = sidePoint.x < minx || sidePoint.x > maxx || sidePoint.y < miny || sidePoint.y > maxy;
+      var sign = outward ? 1 : -1;
+      var nminx = minx - sign * distance, nmaxx = maxx + sign * distance, nminy = miny - sign * distance, nmaxy = maxy + sign * distance;
+      if (nmaxx <= nminx || nmaxy <= nminy) return null;
+      return { id: genId(), type: 'rect', layer: e.layer, p1: { x: nminx, y: nminy }, p2: { x: nmaxx, y: nmaxy } };
+    }
+    return null;
+  }
+
+  /* จุดจับ (grips): จุดที่ลากได้ตรงๆ บนเอนทิตี้ที่เลือกอยู่ตัวเดียว — ref บอกว่าจะเขียนค่ากลับตรงไหนของเอนทิตี้ */
+  function entityGrips(e) {
+    if (e.type === 'line') return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }];
+    if (e.type === 'polyline') return e.points.map(function (p, i) { return { p: p, ref: { idx: i } }; });
+    if (e.type === 'rect') {
+      var c = rectCorners(e);
+      return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }, { p: c[1], ref: 'p2x-p1y' }, { p: c[3], ref: 'p1x-p2y' }];
+    }
+    if (e.type === 'circle') return [{ p: e.center, ref: 'center' }, { p: { x: e.center.x + e.radius, y: e.center.y }, ref: 'radius' }];
+    if (e.type === 'arc') {
+      var mAng = (e.startAngle + e.endAngle) / 2;
+      return [{ p: e.center, ref: 'center' }, { p: { x: e.center.x + e.radius * Math.cos(mAng), y: e.center.y + e.radius * Math.sin(mAng) }, ref: 'radius' }];
+    }
+    return [];
+  }
+  function applyGripEdit(e, ref, pt) {
+    if (ref === 'p1') e.p1 = { x: pt.x, y: pt.y };
+    else if (ref === 'p2') e.p2 = { x: pt.x, y: pt.y };
+    else if (ref === 'center') e.center = { x: pt.x, y: pt.y };
+    else if (ref === 'radius') e.radius = Math.max(0.01, Math.hypot(pt.x - e.center.x, pt.y - e.center.y));
+    else if (ref === 'p2x-p1y') { e.p2.x = pt.x; e.p1.y = pt.y; }
+    else if (ref === 'p1x-p2y') { e.p1.x = pt.x; e.p2.y = pt.y; }
+    else if (ref && typeof ref === 'object' && 'idx' in ref) e.points[ref.idx] = { x: pt.x, y: pt.y };
+  }
+  function hitTestGrip(worldPt) {
+    if (state.selectedIds.length !== 1) return null;
+    var e = state.entities.filter(function (x) { return x.id === state.selectedIds[0]; })[0];
+    if (!e) return null;
+    var thresholdMm = GRIP_PX / state.view.scale, best = null, bestD = thresholdMm;
+    entityGrips(e).forEach(function (g) {
+      var d = Math.hypot(worldPt.x - g.p.x, worldPt.y - g.p.y);
+      if (d < bestD) { bestD = d; best = { entityId: e.id, ref: g.ref }; }
+    });
+    return best;
+  }
+
   /* ══════════════════ กริด: หาระยะห่าง "กลมๆ" ที่พอดีจอ ตามระดับซูมปัจจุบัน ══════════════════ */
   function niceStep(targetPx, scale) {
     var raw = targetPx / scale;
@@ -363,9 +664,10 @@
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
       if (layer.visible === false) return;
-      var selected = e.id === state.selectedId;
-      ctx.strokeStyle = selected ? col.selected : (layer.color || col.entity);
-      ctx.lineWidth = selected ? 2.5 : 1.6;
+      var selected = state.selectedIds.indexOf(e.id) !== -1;
+      var isCutterOrPick = e.id === state.trimCutterId || e.id === state.offsetSourceId || state.pendingEntityIds.indexOf(e.id) !== -1;
+      ctx.strokeStyle = isCutterOrPick ? col.osnap : (selected ? col.selected : (layer.color || col.entity));
+      ctx.lineWidth = (selected || isCutterOrPick) ? 2.5 : 1.6;
       if (e.type === 'line') strokePolylinePts([e.p1, e.p2], false);
       else if (e.type === 'polyline') strokePolylinePts(e.points, !!e.closed);
       else if (e.type === 'rect') strokePolylinePts(rectCorners(e), true);
@@ -373,21 +675,28 @@
         var c0 = worldToScreen(e.center.x, e.center.y);
         ctx.beginPath(); ctx.ellipse(c0.x, c0.y, e.radius * state.view.scale, e.radius * state.view.scale, 0, 0, Math.PI * 2); ctx.stroke();
       } else if (e.type === 'arc') strokePolylinePts(arcPoints(e), false);
-      if (selected) {
-        ctx.fillStyle = col.selected;
-        entitySnapPoints(e).filter(function (sp) { return sp.kind === 'end' || sp.kind === 'center'; }).forEach(function (sp) {
-          var p = worldToScreen(sp.p.x, sp.p.y);
-          ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2); ctx.fill();
+    });
+    /* จุดจับ (grips) — วาดเฉพาะตอนเลือกอยู่ตัวเดียวและเครื่องมือคือ "เลือก" (กันสับสนตอนใช้เครื่องมือแก้ไขอื่น) */
+    if (state.tool === 'select' && state.selectedIds.length === 1) {
+      var selE = state.entities.filter(function (x) { return x.id === state.selectedIds[0]; })[0];
+      if (selE) {
+        entityGrips(selE).forEach(function (g) {
+          var isDragging = state.gripDrag && state.gripDrag.entityId === selE.id && JSON.stringify(state.gripDrag.ref) === JSON.stringify(g.ref);
+          var gp = worldToScreen(g.p.x, g.p.y), gs = 5;
+          ctx.fillStyle = isDragging ? col.preview : '#FFFFFF';
+          ctx.strokeStyle = col.selected; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.rect(gp.x - gs, gp.y - gs, gs * 2, gs * 2); ctx.fill(); ctx.stroke();
         });
       }
-    });
+    }
 
-    /* ── พรีวิวเอนทิตี้ที่กำลังวาดอยู่ ── */
+    /* ── พรีวิวเอนทิตี้ที่กำลังวาดอยู่ (รวมเครื่องมือย้าย/คัดลอก/หมุน/มิเรอร์ ที่ใช้จุดยึด+เคอร์เซอร์แบบเดียวกัน) ── */
+    var GUIDE_LINE_TOOLS = { line: 1, polyline: 1, move: 1, copy: 1, rotate: 1, mirror: 1 };
     var eff = (state.tool !== 'select' && state._cursorWorld) ? effectivePoint(applyOrtho(state._cursorWorld)) : null;
     if (eff && state.pendingPoints.length) {
       var anchor = state.pendingPoints[state.pendingPoints.length - 1];
       ctx.strokeStyle = col.preview; ctx.lineWidth = 1.6; ctx.setLineDash([5, 4]);
-      if (state.tool === 'line' || state.tool === 'polyline') {
+      if (GUIDE_LINE_TOOLS[state.tool]) {
         var s1 = worldToScreen(anchor.x, anchor.y), s2 = worldToScreen(eff.x, eff.y);
         ctx.beginPath(); ctx.moveTo(s1.x, s1.y); ctx.lineTo(s2.x, s2.y); ctx.stroke();
         if (state.tool === 'polyline' && state.pendingPoints.length > 1) {
@@ -426,6 +735,20 @@
         ctx.strokeStyle = col.preview; ctx.lineWidth = 1.3;
         ctx.beginPath(); ctx.moveTo(epx.x - 5, epx.y); ctx.lineTo(epx.x + 5, epx.y); ctx.moveTo(epx.x, epx.y - 5); ctx.lineTo(epx.x, epx.y + 5); ctx.stroke();
       }
+    }
+
+    /* ── กรอบลากเลือกเป็นกลุ่ม — สีฟ้าทึบ (ลากซ้ายไปขวา = window select เอาที่อยู่ในกรอบล้วนๆ) หรือ
+       เขียวประ (ลากขวาไปซ้าย = crossing select เอาที่แตะกรอบก็ได้ เหมือนโปรแกรม CAD ทั่วไป) ── */
+    if (state.dragSelect && state.dragSelect.curScreen) {
+      var ds = state.dragSelect;
+      var x0 = Math.min(ds.startScreen.x, ds.curScreen.x), x1 = Math.max(ds.startScreen.x, ds.curScreen.x);
+      var y0 = Math.min(ds.startScreen.y, ds.curScreen.y), y1 = Math.max(ds.startScreen.y, ds.curScreen.y);
+      var isCrossing = ds.curScreen.x < ds.startScreen.x;
+      ctx.fillStyle = isCrossing ? 'rgba(23,178,106,.10)' : 'rgba(37,84,199,.10)';
+      ctx.strokeStyle = isCrossing ? '#17B26A' : col.entity;
+      ctx.lineWidth = 1.3; ctx.setLineDash(isCrossing ? [5, 4] : []);
+      ctx.fillRect(x0, y0, x1 - x0, y1 - y0); ctx.strokeRect(x0 + 0.5, y0 + 0.5, x1 - x0, y1 - y0);
+      ctx.setLineDash([]);
     }
 
     /* ── ไม้บรรทัด (วาดทับกริด/เอนทิตี้ทีหลังสุดเสมอ กันโดนเส้นทะลุขึ้นมา) ── */
@@ -472,18 +795,24 @@
     if (!state.history.length) return;
     state.redoStack.push(deepClone(state.entities));
     state.entities = state.history.pop();
-    state.selectedId = null;
+    state.selectedIds = [];
     updateUndoRedoUI(); updateSelectionUI(); updateCountUI(); scheduleSave(); render();
   }
   function redo() {
     if (!state.redoStack.length) return;
     state.history.push(deepClone(state.entities));
     state.entities = state.redoStack.pop();
-    state.selectedId = null;
+    state.selectedIds = [];
     updateUndoRedoUI(); updateSelectionUI(); updateCountUI(); scheduleSave(); render();
   }
   function updateUndoRedoUI() { $('undoBtn').disabled = state.history.length === 0; $('redoBtn').disabled = state.redoStack.length === 0; }
-  function updateSelectionUI() { $('deleteBtn').disabled = !state.selectedId; }
+  var TRANSFORM_BTN_IDS = ['toolMoveBtn', 'toolCopyBtn', 'toolRotateBtn', 'toolMirrorBtn', 'toolScaleBtn', 'toolArrayRectBtn'];
+  function updateSelectionUI() {
+    var n = state.selectedIds.length;
+    $('deleteBtn').disabled = n === 0;
+    TRANSFORM_BTN_IDS.forEach(function (id) { var el = $(id); if (el) el.disabled = n === 0; });
+    updatePropsPanel();
+  }
   function updateCountUI() { $('statCount').textContent = state.entities.length.toLocaleString(getUILang() === 'en' ? 'en-US' : 'th-TH'); }
 
   /* ══════════════════ บันทึกอัตโนมัติ ══════════════════ */
@@ -549,23 +878,48 @@
   }
 
   /* ══════════════════ เครื่องมือวาด ══════════════════ */
-  var TOOL_BTN_IDS = { select: 'toolSelectBtn', line: 'toolLineBtn', polyline: 'toolPolylineBtn', rect: 'toolRectBtn', circle: 'toolCircleBtn', arc: 'toolArcBtn' };
+  var TOOL_BTN_IDS = {
+    select: 'toolSelectBtn', line: 'toolLineBtn', polyline: 'toolPolylineBtn', rect: 'toolRectBtn', circle: 'toolCircleBtn', arc: 'toolArcBtn',
+    move: 'toolMoveBtn', copy: 'toolCopyBtn', rotate: 'toolRotateBtn', mirror: 'toolMirrorBtn', scale: 'toolScaleBtn',
+    trim: 'toolTrimBtn', extend: 'toolExtendBtn', fillet: 'toolFilletBtn', offset: 'toolOffsetBtn', arrayrect: 'toolArrayRectBtn'
+  };
+  var distLbl = document.querySelector('label[data-i18n="distLbl"]'), angLbl = document.querySelector('label[data-i18n="angLbl"]');
+  var arrayRow = $('arrayRow');
   function setTool(tool) {
-    state.tool = tool; state.pendingPoints = [];
+    state.tool = tool; state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null; state.gripDrag = null;
     Object.keys(TOOL_BTN_IDS).forEach(function (k) { $(TOOL_BTN_IDS[k]).classList.toggle('active', k === tool); });
     viewport.style.cursor = tool === 'select' ? 'default' : 'crosshair';
+    arrayRow.classList.toggle('show', tool === 'arrayrect');
     updatePreciseRowUI();
     render();
   }
+  /* เปลี่ยนป้าย/ซ่อน-โชว์ช่องระยะ/มุม ตามความหมายจริงของเครื่องมือปัจจุบัน (วงกลม=รัศมี, หมุน=มุมหมุนอย่างเดียว,
+     สเกล=อัตราส่วน, ออฟเซ็ต/มุมโค้ง=ระยะ/รัศมีอย่างเดียว, มิเรอร์=ไม่ใช้ช่องตัวเลขเลย) */
+  function updatePreciseLabels() {
+    var distText = t('distLbl'), angText = t('angLbl'), distShow = true, angShow = true;
+    if (state.tool === 'circle') distText = t('radiusLbl');
+    else if (state.tool === 'rotate') { distShow = false; angText = t('rotAngLbl'); }
+    else if (state.tool === 'scale') { distText = t('scaleFactorLbl'); angShow = false; }
+    else if (state.tool === 'offset') { distText = t('offsetDistLbl'); angShow = false; }
+    else if (state.tool === 'fillet') { distText = t('filletRadiusLbl'); angShow = false; }
+    else if (state.tool === 'mirror') { distShow = false; angShow = false; }
+    distLbl.childNodes[0].textContent = distText; distLbl.style.display = distShow ? '' : 'none';
+    angLbl.childNodes[0].textContent = angText; angLbl.style.display = angShow ? '' : 'none';
+  }
   function updatePreciseRowUI() {
-    var show = state.tool !== 'select' && state.pendingPoints.length > 0;
+    updatePreciseLabels();
+    var show = (state.tool !== 'select' && state.tool !== 'trim' && state.tool !== 'extend' && state.tool !== 'arrayrect' && state.pendingPoints.length > 0) ||
+      (state.tool === 'offset' && state.offsetSourceId) || (state.tool === 'fillet' && state.pendingEntityIds.length === 2);
     preciseRow.classList.toggle('show', show);
     var showFinish = state.tool === 'polyline' && state.pendingPoints.length >= 2;
     finishPolyBtn.classList.toggle('show', showFinish);
     if (!show) { distInput.value = ''; angInput.value = ''; }
   }
   function clearPreciseInputs() { distInput.value = ''; angInput.value = ''; }
-  function cancelDrawing() { state.pendingPoints = []; updatePreciseRowUI(); render(); }
+  function cancelDrawing() {
+    state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null;
+    updatePreciseRowUI(); render();
+  }
   function finishDrawing() { state.pendingPoints = []; updatePreciseRowUI(); }
   function finishPolyline() {
     if (state.pendingPoints.length >= 2) {
@@ -615,6 +969,35 @@
     } else if (state.tool === 'polyline') {
       var last = state.pendingPoints[state.pendingPoints.length - 1];
       if (!last || Math.hypot(last.x - pt.x, last.y - pt.y) > DUP_EPS) state.pendingPoints.push(pt);
+    } else if (state.tool === 'move' || state.tool === 'copy') {
+      if (!state.pendingPoints.length) { state.pendingPoints = [pt]; }
+      else {
+        var mBase = state.pendingPoints[0], mdx = pt.x - mBase.x, mdy = pt.y - mBase.y;
+        if (Math.hypot(mdx, mdy) > DUP_EPS) {
+          pushHistory();
+          transformSelectedEntities(function (p) { return { x: p.x + mdx, y: p.y + mdy }; }, { duplicate: state.tool === 'copy' });
+          updateCountUI(); scheduleSave(); updateSelectionUI();
+        }
+        finishDrawing();
+      }
+    } else if (state.tool === 'rotate') {
+      if (!state.pendingPoints.length) { state.pendingPoints = [pt]; }
+      else {
+        var rBase = state.pendingPoints[0], rDeg = Math.atan2(pt.y - rBase.y, pt.x - rBase.x) * 180 / Math.PI;
+        pushHistory();
+        transformSelectedEntities(function (p) { return rotateAround(p, rBase, rDeg * Math.PI / 180); }, { rotateDeltaRad: rDeg * Math.PI / 180, convertRect: true });
+        scheduleSave(); finishDrawing();
+      }
+    } else if (state.tool === 'scale') {
+      state.pendingPoints = [pt]; // คลิกแค่กำหนด/ปรับจุดฐาน — อัตราส่วนต้องพิมพ์ในช่องแล้วกด Enter เท่านั้น (กันความกำกวม)
+    } else if (state.tool === 'mirror') {
+      state.pendingPoints.push(pt);
+      if (state.pendingPoints.length >= 2) {
+        var mA = state.pendingPoints[0], mB = state.pendingPoints[1];
+        pushHistory();
+        transformSelectedEntities(function (p) { return mirrorPointAcrossLine(p, mA, mB); }, { mirrorLine: { a: mA, b: mB }, convertRect: true, duplicate: state.mirrorKeepOriginal });
+        updateCountUI(); scheduleSave(); updateSelectionUI(); finishDrawing();
+      }
     }
     updatePreciseRowUI();
     clearPreciseInputs();
@@ -625,11 +1008,27 @@
      คืนค่า true ถ้าใช้ค่าที่พิมพ์ไปจริง (ให้ผู้เรียกรู้ว่าไม่ต้องทำอย่างอื่นซ้อน เช่น จบพอลีไลน์) */
   function commitPreciseInput() {
     if (!state.pendingPoints.length) return false;
+    var anchor = state.pendingPoints[state.pendingPoints.length - 1];
+    if (state.tool === 'rotate') {
+      var rDeg2 = parseFloat(angInput.value.trim());
+      if (!isFinite(rDeg2)) return false;
+      pushHistory();
+      transformSelectedEntities(function (p) { return rotateAround(p, anchor, rDeg2 * Math.PI / 180); }, { rotateDeltaRad: rDeg2 * Math.PI / 180, convertRect: true });
+      scheduleSave(); finishDrawing(); clearPreciseInputs(); render();
+      return true;
+    }
+    if (state.tool === 'scale') {
+      var factor = parseFloat(distInput.value.trim());
+      if (!isFinite(factor) || factor <= 0) return false;
+      pushHistory();
+      transformSelectedEntities(function (p) { return scaleAround(p, anchor, factor); }, { scaleFactor: factor });
+      updateCountUI(); scheduleSave(); finishDrawing(); clearPreciseInputs(); render();
+      return true;
+    }
     var distStr = distInput.value.trim();
     if (!distStr) return false;
     var dist = parseFloat(distStr);
     if (!isFinite(dist) || dist <= 0) return false;
-    var anchor = state.pendingPoints[state.pendingPoints.length - 1];
     if (state.tool === 'circle') { handlePointInput({ x: anchor.x + dist, y: anchor.y }); return true; }
     var angStr = angInput.value.trim(), angleDeg;
     if (angStr && isFinite(parseFloat(angStr))) angleDeg = parseFloat(angStr);
@@ -644,17 +1043,18 @@
   }
 
   function deleteSelected() {
-    if (!state.selectedId) return;
+    if (!state.selectedIds.length) return;
     pushHistory();
-    state.entities = state.entities.filter(function (e) { return e.id !== state.selectedId; });
-    state.selectedId = null;
+    var selSet = {}; state.selectedIds.forEach(function (id) { selSet[id] = true; });
+    state.entities = state.entities.filter(function (e) { return !selSet[e.id]; });
+    state.selectedIds = [];
     updateSelectionUI(); updateCountUI(); scheduleSave(); render();
   }
   function clearAll() {
     if (!state.entities.length) return;
     if (!window.confirm(t('clearConfirm'))) return;
     pushHistory();
-    state.entities = []; state.selectedId = null;
+    state.entities = []; state.selectedIds = [];
     updateSelectionUI(); updateCountUI(); scheduleSave(); render();
   }
 
@@ -662,6 +1062,118 @@
   var panState = null;
   function updateCoordUI(w) { $('statCoord').textContent = 'X ' + w.x.toFixed(1) + ', Y ' + w.y.toFixed(1) + ' ' + t('mmUnit'); }
   function eventScreenPos(e) { var r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+
+  /* ── เครื่องมือ trim/extend: คลิกแรกเลือกเส้นตัด/เส้นขอบ คลิกต่อไปเลือกเป้าหมายที่จะแก้ ── */
+  function handleTrimExtendClick(raw) {
+    var hit = hitTestEntity(raw);
+    if (!state.trimCutterId) { if (hit) { state.trimCutterId = hit; render(); } return; }
+    if (!hit || hit === state.trimCutterId) return;
+    var targetE = state.entities.filter(function (x) { return x.id === hit; })[0];
+    var cutterE = state.entities.filter(function (x) { return x.id === state.trimCutterId; })[0];
+    if (!targetE || !cutterE || targetE.type !== 'line') return;
+    if (state.tool === 'trim') {
+      var pieces = trimLineAgainst(targetE, cutterE, raw);
+      if (pieces) {
+        pushHistory();
+        state.entities = state.entities.filter(function (x) { return x.id !== hit; });
+        pieces.forEach(function (pc) { state.entities.push({ id: genId(), type: 'line', layer: targetE.layer, p1: pc.p1, p2: pc.p2 }); });
+        updateCountUI(); scheduleSave(); render();
+      }
+    } else {
+      var updated = extendLineTo(targetE, cutterE, raw);
+      if (updated) {
+        pushHistory();
+        var idx = state.entities.findIndex(function (x) { return x.id === hit; });
+        state.entities[idx] = updated;
+        scheduleSave(); render();
+      }
+    }
+  }
+  /* ── เครื่องมือ fillet: คลิกเลือกเส้นตรง 2 เส้น แล้วพิมพ์รัศมี+Enter (ดู keydown ของ distInput) ── */
+  function handleFilletClick(raw) {
+    var hit = hitTestEntity(raw);
+    if (!hit) return;
+    var e = state.entities.filter(function (x) { return x.id === hit; })[0];
+    if (!e || e.type !== 'line' || state.pendingEntityIds.indexOf(hit) !== -1) return;
+    state.pendingEntityIds.push(hit);
+    if (state.pendingEntityIds.length > 2) state.pendingEntityIds.shift();
+    updatePreciseRowUI(); render();
+  }
+  function applyFillet(idA, idB, radius) {
+    var eA = state.entities.filter(function (x) { return x.id === idA; })[0];
+    var eB = state.entities.filter(function (x) { return x.id === idB; })[0];
+    if (!eA || !eB) return false;
+    var res = computeFillet(eA, eB, radius);
+    if (!res) return false;
+    pushHistory();
+    eA[res.lineAUpdate.end] = res.lineAUpdate.point;
+    eB[res.lineBUpdate.end] = res.lineBUpdate.point;
+    state.entities.push({ id: genId(), type: 'arc', layer: state.activeLayer, center: res.arc.center, radius: res.arc.radius, startAngle: res.arc.startAngle, endAngle: res.arc.endAngle });
+    updateCountUI(); scheduleSave(); render();
+    return true;
+  }
+  /* ── เครื่องมือ offset: คลิกแรกเลือกเอนทิตี้ต้นทาง คลิกที่สองบอกด้าน (+ระยะเป๊ะถ้าพิมพ์ไว้) ── */
+  function handleOffsetClick(raw) {
+    if (!state.offsetSourceId) {
+      var hit = hitTestEntity(raw);
+      if (hit) { state.offsetSourceId = hit; updatePreciseRowUI(); render(); }
+      return;
+    }
+    var src = state.entities.filter(function (x) { return x.id === state.offsetSourceId; })[0];
+    if (!src) { state.offsetSourceId = null; updatePreciseRowUI(); return; }
+    var typedDist = parseFloat(distInput.value.trim());
+    var dist = isFinite(typedDist) && typedDist > 0 ? typedDist : distPointToEntity(raw, src);
+    if (!(dist > 0)) return;
+    var ne = offsetEntity(src, dist, raw);
+    if (ne) {
+      pushHistory();
+      state.entities.push(ne);
+      updateCountUI(); scheduleSave();
+    }
+    state.offsetSourceId = null;
+    clearPreciseInputs(); updatePreciseRowUI(); render();
+  }
+  /* ── โหมด "เลือก": จุดจับ (grip) ก่อน แล้วค่อยคลิกเอนทิตี้/ลากเลือกเป็นกลุ่ม ── */
+  function handleSelectMouseDown(raw, sp, shiftKey) {
+    if (state.selectedIds.length === 1) {
+      var gp = hitTestGrip(raw);
+      if (gp) { pushHistory(); state.gripDrag = gp; return; }
+    }
+    var hit = hitTestEntity(raw);
+    if (hit) {
+      if (shiftKey) {
+        var idx = state.selectedIds.indexOf(hit);
+        if (idx >= 0) state.selectedIds.splice(idx, 1); else state.selectedIds.push(hit);
+      } else state.selectedIds = [hit];
+      updateSelectionUI(); render();
+      return;
+    }
+    if (!shiftKey) state.selectedIds = [];
+    state.dragSelect = { startWorld: raw, startScreen: sp, curScreen: sp, additive: shiftKey };
+    updateSelectionUI(); render();
+  }
+  function finishDragSelect() {
+    var ds = state.dragSelect; state.dragSelect = null;
+    if (!ds || !ds.curScreen) return;
+    var moved = Math.hypot(ds.curScreen.x - ds.startScreen.x, ds.curScreen.y - ds.startScreen.y) > 3;
+    if (!moved) { render(); return; }
+    var endWorld = screenToWorld(ds.curScreen.x, ds.curScreen.y);
+    var xmin = Math.min(ds.startWorld.x, endWorld.x), xmax = Math.max(ds.startWorld.x, endWorld.x);
+    var ymin = Math.min(ds.startWorld.y, endWorld.y), ymax = Math.max(ds.startWorld.y, endWorld.y);
+    var crossing = ds.curScreen.x < ds.startScreen.x; // ลากขวา→ซ้าย = crossing (แตะกรอบก็เอา), ซ้าย→ขวา = window (ต้องอยู่ในกรอบทั้งชิ้น)
+    var picked = [];
+    state.entities.forEach(function (e) {
+      var layer = state.layers[e.layer] || state.layers['0'];
+      if (layer.visible === false) return;
+      var pts = entityBoundsPoints(e);
+      var allIn = pts.every(function (p) { return p.x >= xmin && p.x <= xmax && p.y >= ymin && p.y <= ymax; });
+      var anyIn = pts.some(function (p) { return p.x >= xmin && p.x <= xmax && p.y >= ymin && p.y <= ymax; });
+      if (crossing ? anyIn : allIn) picked.push(e.id);
+    });
+    if (ds.additive) picked.forEach(function (id) { if (state.selectedIds.indexOf(id) === -1) state.selectedIds.push(id); });
+    else state.selectedIds = picked;
+    updateSelectionUI(); render();
+  }
   canvas.addEventListener('mousemove', function (e) {
     var sp = eventScreenPos(e);
     state._cursorScreen = sp; state._cursorWorld = screenToWorld(sp.x, sp.y);
@@ -670,6 +1182,11 @@
     if (panState) {
       var dx = (sp.x - panState.startScreenX) / state.view.scale, dy = (sp.y - panState.startScreenY) / state.view.scale;
       state.view.cx = panState.startCx - dx; state.view.cy = panState.startCy + dy;
+    } else if (state.gripDrag) {
+      var ge = state.entities.filter(function (x) { return x.id === state.gripDrag.entityId; })[0];
+      if (ge) { applyGripEdit(ge, state.gripDrag.ref, effectivePoint(state._cursorWorld)); }
+    } else if (state.dragSelect) {
+      state.dragSelect.curScreen = sp;
     }
     render();
   });
@@ -684,7 +1201,11 @@
     }
     if (e.button !== 0) return;
     var raw = screenToWorld(sp.x, sp.y);
-    if (state.tool === 'select') { state.selectedId = hitTestEntity(raw); updateSelectionUI(); render(); return; }
+    if (state.tool === 'select') { handleSelectMouseDown(raw, sp, e.shiftKey); return; }
+    if (state.tool === 'trim' || state.tool === 'extend') { handleTrimExtendClick(raw); return; }
+    if (state.tool === 'fillet') { handleFilletClick(raw); return; }
+    if (state.tool === 'offset') { handleOffsetClick(raw); return; }
+    if (state.tool === 'arrayrect') return; // อาเรย์ทำงานผ่านปุ่ม "แทรกอาเรย์" ไม่ใช้คลิกบน canvas
     handlePointInput(effectivePoint(applyOrtho(raw)));
   });
   canvas.addEventListener('dblclick', function (e) {
@@ -696,7 +1217,11 @@
     }
     finishPolyline();
   });
-  window.addEventListener('mouseup', function () { if (panState) { panState = null; viewport.style.cursor = state.tool === 'select' ? 'default' : 'crosshair'; } });
+  window.addEventListener('mouseup', function () {
+    if (panState) { panState = null; viewport.style.cursor = state.tool === 'select' ? 'default' : 'crosshair'; }
+    if (state.gripDrag) { state.gripDrag = null; scheduleSave(); updatePropsPanel(); render(); }
+    if (state.dragSelect) finishDragSelect();
+  });
   canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   canvas.addEventListener('wheel', function (e) {
     e.preventDefault();
@@ -741,22 +1266,29 @@
   canvas.addEventListener('touchend', function (e) {
     if (touchState && touchState.mode === 'pan1' && !touchState.moved && Date.now() - touchState.startTime < 500) {
       var raw = { x: (touchState.startX - state.cw / 2) / state.view.scale + state.view.cx, y: -(touchState.startY - state.ch / 2) / state.view.scale + state.view.cy };
-      if (state.tool === 'select') { state.selectedId = hitTestEntity(raw); updateSelectionUI(); }
-      else handlePointInput(effectivePoint(applyOrtho(raw)));
+      if (state.tool === 'select') handleSelectMouseDown(raw, { x: touchState.startX, y: touchState.startY }, false);
+      else if (state.tool === 'trim' || state.tool === 'extend') handleTrimExtendClick(raw);
+      else if (state.tool === 'fillet') handleFilletClick(raw);
+      else if (state.tool === 'offset') handleOffsetClick(raw);
+      else if (state.tool !== 'arrayrect') handlePointInput(effectivePoint(applyOrtho(raw)));
       render();
     }
+    if (state.dragSelect) state.dragSelect = null;
     touchState = null;
   });
 
   /* ══════════════════ คีย์ลัด + ระบบพิมพ์ตัวเลขได้ทันที ══════════════════
      ระหว่างวาด (มีจุดยึดค้างอยู่) พิมพ์เลข/จุด/ลบได้เลยโดยไม่ต้องคลิกช่องอินพุตก่อน — คีย์นั้นจะถูก "โยน"
      ไปที่ช่องระยะให้อัตโนมัติ เหมือนโปรแกรม CAD ทั่วไป (Dynamic Input) */
+  function hasPendingOp() {
+    return state.pendingPoints.length > 0 || !!state.trimCutterId || !!state.offsetSourceId || state.pendingEntityIds.length > 0;
+  }
   window.addEventListener('keydown', function (e) {
     var tag = document.activeElement.tagName;
     var typingInField = tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA';
     if (!typingInField && e.key === 'F8') { e.preventDefault(); toggleOrtho(); return; }
-    if (!typingInField && e.key === 'Escape') { if (state.pendingPoints.length) { e.preventDefault(); cancelDrawing(); } return; }
-    if (!typingInField && (e.key === 'Delete' || e.key === 'Backspace') && state.tool === 'select' && state.selectedId) { e.preventDefault(); deleteSelected(); return; }
+    if (!typingInField && e.key === 'Escape') { if (hasPendingOp()) { e.preventDefault(); cancelDrawing(); } return; }
+    if (!typingInField && (e.key === 'Delete' || e.key === 'Backspace') && state.tool === 'select' && state.selectedIds.length) { e.preventDefault(); deleteSelected(); return; }
     if (!typingInField && e.key === 'Backspace' && state.pendingPoints.length) {
       e.preventDefault();
       state.pendingPoints.pop(); updatePreciseRowUI(); render();
@@ -764,17 +1296,22 @@
     }
     if (!typingInField && (e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); return; }
     if (!typingInField && (e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { e.preventDefault(); redo(); return; }
-    if (!typingInField && state.pendingPoints.length && state.tool !== 'select' && /^[0-9.\-]$/.test(e.key)) {
+    if (!typingInField && state.pendingPoints.length && state.tool !== 'select' && state.tool !== 'rotate' && state.tool !== 'scale' && /^[0-9.\-]$/.test(e.key)) {
       e.preventDefault();
-      distInput.value = e.key;
-      distInput.focus();
-      try { distInput.setSelectionRange(1, 1); } catch (er) {}
+      var fld = state.tool === 'rotate' ? angInput : distInput;
+      fld.value = e.key; fld.focus();
+      try { fld.setSelectionRange(1, 1); } catch (er) {}
     }
   });
   [distInput, angInput].forEach(function (inp) {
     inp.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') {
         e.preventDefault();
+        if (state.tool === 'fillet' && state.pendingEntityIds.length === 2) {
+          var rr = parseFloat(distInput.value.trim());
+          if (isFinite(rr) && rr > 0 && applyFillet(state.pendingEntityIds[0], state.pendingEntityIds[1], rr)) { state.pendingEntityIds = []; clearPreciseInputs(); updatePreciseRowUI(); }
+          return;
+        }
         var ok = commitPreciseInput();
         if (!ok && state.tool === 'polyline' && state.pendingPoints.length >= 2) finishPolyline();
       } else if (e.key === 'Escape') { e.preventDefault(); cancelDrawing(); inp.blur(); }
@@ -797,8 +1334,59 @@
   $('osnapToggleBtn').addEventListener('click', function () { state.osnapOn = !state.osnapOn; $('osnapToggleBtn').classList.toggle('active', state.osnapOn); render(); });
   $('orthoToggleBtn').addEventListener('click', toggleOrtho);
   $('finishPolylineBtn').addEventListener('click', finishPolyline);
+  $('mirrorKeepBtn').addEventListener('click', function () { state.mirrorKeepOriginal = !state.mirrorKeepOriginal; $('mirrorKeepBtn').classList.toggle('active', state.mirrorKeepOriginal); });
+  $('arrApplyBtn').addEventListener('click', function () {
+    var rows = Math.max(1, parseInt($('arrRows').value, 10) || 1);
+    var cols = Math.max(1, parseInt($('arrCols').value, 10) || 1);
+    var spx = parseFloat($('arrSpX').value) || 0, spy = parseFloat($('arrSpY').value) || 0;
+    doArrayRect(rows, cols, spx, spy);
+  });
   var langToggle = $('langToggle');
-  if (langToggle) langToggle.addEventListener('click', function () { setUILang(getUILang() === 'en' ? 'th' : 'en'); applyStaticI18n(); });
+  if (langToggle) langToggle.addEventListener('click', function () { setUILang(getUILang() === 'en' ? 'th' : 'en'); applyStaticI18n(); updatePropsPanel(); });
+
+  /* ══════════════════ แผงคุณสมบัติ — แก้ไขพิกัด/รัศมี/มุมของเอนทิตี้ที่เลือกอยู่ตัวเดียวได้ตรงๆ ══════════════════ */
+  var propsCard = $('propsCard'), propsTitle = $('propsTitle'), propsGrid = $('propsGrid');
+  function updatePropsPanel() {
+    if (!propsCard) return;
+    if (state.selectedIds.length !== 1) { propsCard.hidden = true; return; }
+    var e = state.entities.filter(function (x) { return x.id === state.selectedIds[0]; })[0];
+    if (!e) { propsCard.hidden = true; return; }
+    propsCard.hidden = false;
+    var TITLE_KEY = { line: 'propsTitleLine', polyline: 'propsTitlePolyline', rect: 'propsTitleRect', circle: 'propsTitleCircle', arc: 'propsTitleArc' };
+    propsTitle.textContent = t(TITLE_KEY[e.type] || e.type);
+    if (e.type === 'polyline') { propsGrid.innerHTML = '<div class="cad-props-note">' + t('propPolylineNote', { n: e.points.length }) + '</div>'; return; }
+    var fields = [];
+    if (e.type === 'line' || e.type === 'rect') {
+      fields = [
+        { k: 'propX1', v: e.p1.x, set: function (v) { e.p1.x = v; } }, { k: 'propY1', v: e.p1.y, set: function (v) { e.p1.y = v; } },
+        { k: 'propX2', v: e.p2.x, set: function (v) { e.p2.x = v; } }, { k: 'propY2', v: e.p2.y, set: function (v) { e.p2.y = v; } }
+      ];
+    } else if (e.type === 'circle') {
+      fields = [
+        { k: 'propCx', v: e.center.x, set: function (v) { e.center.x = v; } }, { k: 'propCy', v: e.center.y, set: function (v) { e.center.y = v; } },
+        { k: 'propR', v: e.radius, set: function (v) { e.radius = Math.max(0.01, v); } }
+      ];
+    } else if (e.type === 'arc') {
+      fields = [
+        { k: 'propCx', v: e.center.x, set: function (v) { e.center.x = v; } }, { k: 'propCy', v: e.center.y, set: function (v) { e.center.y = v; } },
+        { k: 'propR', v: e.radius, set: function (v) { e.radius = Math.max(0.01, v); } },
+        { k: 'propStartDeg', v: e.startAngle * 180 / Math.PI, set: function (v) { e.startAngle = v * Math.PI / 180; } },
+        { k: 'propEndDeg', v: e.endAngle * 180 / Math.PI, set: function (v) { e.endAngle = v * Math.PI / 180; } }
+      ];
+    }
+    propsGrid.innerHTML = fields.map(function (f, i) {
+      return '<label>' + t(f.k) + '<input type="text" inputmode="decimal" data-fidx="' + i + '" value="' + fmtMm(f.v) + '"></label>';
+    }).join('');
+    Array.prototype.forEach.call(propsGrid.querySelectorAll('input'), function (inp, i) {
+      inp.addEventListener('change', function () {
+        var v = parseFloat(inp.value);
+        if (!isFinite(v)) { inp.value = fmtMm(fields[i].v); return; }
+        pushHistory();
+        fields[i].set(v);
+        scheduleSave(); render(); updatePropsPanel();
+      });
+    });
+  }
 
   /* ══════════════════ init ══════════════════ */
   function boot() {
@@ -807,6 +1395,7 @@
     $('snapToggleBtn').classList.toggle('active', state.snapOn);
     $('osnapToggleBtn').classList.toggle('active', state.osnapOn);
     $('orthoToggleBtn').classList.toggle('active', state.orthoOn);
+    $('mirrorKeepBtn').classList.toggle('active', state.mirrorKeepOriginal);
     updateUndoRedoUI(); updateSelectionUI(); updateCountUI(); updateZoomUI();
     resizeCanvas();
   }
