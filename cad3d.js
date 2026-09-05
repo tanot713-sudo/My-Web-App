@@ -87,21 +87,54 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
   function saveSteps() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state.steps)); } catch (e) {} }
   function loadSteps() { try { var r = localStorage.getItem(STORE_KEY); if (r) { var s = JSON.parse(r); if (Array.isArray(s)) state.steps = s; } } catch (e) {} }
 
+  /* ══════════════════ Stage 10c: ร่างบนระนาบ (Front/Top/Right) ══════════════════
+     ก่อนหน้านี้ profile (u,v) ของภาพร่าง 2 มิติถูกวางบนระนาบ XY โลก (z=0) ตายตัวเสมอ ตอนนี้เลือกได้ว่า
+     จะวางบนระนาบไหนใน 3 ระนาบมาตรฐาน (ตามธรรมเนียม SolidWorks): Top (XY, ค่าเริ่มต้นเดิม) / Front (XZ) /
+     Right (YZ) — extrude จะยืดตามทิศทาง "ตั้งฉากกับระนาบ" แทนแกน Z ตายตัว และแกนหมุน (revolve) เปลี่ยนไป
+     ตามระนาบด้วย (ดูหมายเหตุที่ axisVectorForPlane ด้านล่าง)
+     ฟังก์ชันเหล่านี้เป็นคณิตศาสตร์ล้วนๆ ไม่ต้องพึ่ง oc เลย (ทดสอบแยกได้โดยไม่ต้องมี OCCT/เบราว์เซอร์) —
+     ใช้แค่ตอนแปลงเป็นจริง (ห่อด้วย oc.gp_Pnt_3/oc.gp_Dir_4/oc.gp_Vec_4) ในฟังก์ชันที่ต้องใช้ oc เท่านั้น */
+  function mapPlanePoint(plane, u, v) {
+    if (plane === 'front') return { x: u, y: 0, z: v };
+    if (plane === 'right') return { x: 0, y: u, z: v };
+    return { x: u, y: v, z: 0 }; // top (ค่าเริ่มต้นเดิม)
+  }
+  function planeNormalVec(plane) {
+    if (plane === 'front') return { x: 0, y: 1, z: 0 };
+    if (plane === 'right') return { x: 1, y: 0, z: 0 };
+    return { x: 0, y: 0, z: 1 }; // top
+  }
+  function extrudeVecForPlane(plane, h) {
+    var n = planeNormalVec(plane);
+    return { x: n.x * h, y: n.y * h, z: n.z * h };
+  }
+  /* axis 'x'/'y' หมายถึง "แกนที่ 1/2 ของ profile เอง" (แกน u/v) ไม่ใช่แกนโลกตรงๆ — พอแมปผ่านระนาบแล้ว
+     จะกลายเป็นแกนโลกที่ต่างกันไปตามระนาบ (ดูตารางในคอมเมนต์ dimsLabel/AXIS_LABELS_BY_PLANE ด้านล่าง)
+     revolveAxisStraddle() ยังใช้ตรรกะเดิมได้ทั้งหมดโดยไม่ต้องแก้ เพราะเช็กจากพิกัด (u,v) ของ profile เอง
+     ตรงๆ อยู่แล้ว ไม่สนใจว่าจะแมปไปเป็นแกนโลกไหน */
+  function axisVectorForPlane(plane, axis) {
+    if (plane === 'front') return axis === 'y' ? { x: 0, y: 0, z: 1 } : { x: 1, y: 0, z: 0 };
+    if (plane === 'right') return axis === 'y' ? { x: 0, y: 0, z: 1 } : { x: 0, y: 1, z: 0 };
+    return axis === 'y' ? { x: 0, y: 1, z: 0 } : { x: 1, y: 0, z: 0 }; // top (ค่าเริ่มต้นเดิม)
+  }
+  function extrudeAxisLetter(plane) { return plane === 'front' ? 'y' : (plane === 'right' ? 'x' : 'z'); }
+
   /* ══════════════════ สร้างรูปทรง OCCT จริงจากสูตร ══════════════════ */
   /* เส้นขอบปิด (profile) จากแบบ 2 มิติ -> TopoDS_Wire — profile.points (สี่เหลี่ยม/พอลีไลน์ปิด) ต่อ
-     จุดเป็นเส้นตรงทีละช่วงวนกลับมาปิดวง หรือ profile.circle (วงกลม) สร้างเป็นขอบวงกลมเต็มวงเส้นเดียว */
-  function buildWireFromProfile(oc, profile) {
+     จุดเป็นเส้นตรงทีละช่วงวนกลับมาปิดวง หรือ profile.circle (วงกลม) สร้างเป็นขอบวงกลมเต็มวงเส้นเดียว —
+     แปลงพิกัด (u,v) ของ profile ผ่าน mapPlanePoint() ตามระนาบที่เลือกก่อนสร้างจุด/วงกลมจริงเสมอ */
+  function buildWireFromProfile(oc, profile, plane) {
     var builder = new oc.BRepBuilderAPI_MakeWire_1();
     if (profile.points && profile.points.length > 2) {
       var pts = profile.points;
       for (var i = 0; i < pts.length; i++) {
-        var a = pts[i], b = pts[(i + 1) % pts.length];
-        var edge = new oc.BRepBuilderAPI_MakeEdge_3(new oc.gp_Pnt_3(a.x, a.y, 0), new oc.gp_Pnt_3(b.x, b.y, 0)).Edge();
+        var pa = mapPlanePoint(plane, pts[i].x, pts[i].y), pb = mapPlanePoint(plane, pts[(i + 1) % pts.length].x, pts[(i + 1) % pts.length].y);
+        var edge = new oc.BRepBuilderAPI_MakeEdge_3(new oc.gp_Pnt_3(pa.x, pa.y, pa.z), new oc.gp_Pnt_3(pb.x, pb.y, pb.z)).Edge();
         builder.Add_1(edge);
       }
     } else if (profile.circle) {
-      var c = profile.circle;
-      var ax2 = new oc.gp_Ax2_3(new oc.gp_Pnt_3(c.cx, c.cy, 0), new oc.gp_Dir_4(0, 0, 1));
+      var c = profile.circle, center = mapPlanePoint(plane, c.cx, c.cy), n = planeNormalVec(plane);
+      var ax2 = new oc.gp_Ax2_3(new oc.gp_Pnt_3(center.x, center.y, center.z), new oc.gp_Dir_4(n.x, n.y, n.z));
       builder.Add_1(new oc.BRepBuilderAPI_MakeEdge_8(new oc.gp_Circ_2(ax2, c.r)).Edge());
     }
     return builder.Wire();
@@ -129,15 +162,17 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
      overload แบบมีมุมทำให้เกิดขอบ/หน้าประกบกันพอดีที่จุดเริ่ม-จบการหมุน ซึ่ง OCCT มักสร้างทรงตันที่ถูกต้อง
      ไม่ได้ (เป็นสาเหตุ error ตัวเลข pointer ดิบๆ ที่เจอตอน revolve 360° จริงบน production) */
   function buildSketchSolid(oc, dims) {
-    var face = new oc.BRepBuilderAPI_MakeFace_15(buildWireFromProfile(oc, dims.profile), true).Face();
+    var plane = dims.plane || 'top';
+    var face = new oc.BRepBuilderAPI_MakeFace_15(buildWireFromProfile(oc, dims.profile, plane), true).Face();
     if (dims.mode === 'revolve') {
-      var axisDir = dims.axis === 'y' ? new oc.gp_Dir_4(0, 1, 0) : new oc.gp_Dir_4(1, 0, 0);
-      var ax1 = new oc.gp_Ax1_2(new oc.gp_Pnt_3(0, 0, 0), axisDir);
+      var av = axisVectorForPlane(plane, dims.axis);
+      var ax1 = new oc.gp_Ax1_2(new oc.gp_Pnt_3(0, 0, 0), new oc.gp_Dir_4(av.x, av.y, av.z));
       var angleDeg = Math.max(0.01, dims.angle || 360);
       if (angleDeg >= 359.99) return new oc.BRepPrimAPI_MakeRevol_2(face, ax1, false).Shape();
       return new oc.BRepPrimAPI_MakeRevol_1(face, ax1, angleDeg * Math.PI / 180, false).Shape();
     }
-    return new oc.BRepPrimAPI_MakePrism_1(face, new oc.gp_Vec_4(0, 0, dims.height || 10), false, true).Shape();
+    var ev = extrudeVecForPlane(plane, dims.height || 10);
+    return new oc.BRepPrimAPI_MakePrism_1(face, new oc.gp_Vec_4(ev.x, ev.y, ev.z), false, true).Shape();
   }
   function buildPrimitive(oc, kind, dims, pos) {
     var shape;
@@ -225,19 +260,20 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     scene.add(xform.getHelper ? xform.getHelper() : xform);
 
     /* ── จุดจับลากกำหนด "ความสูง" ตอนอัดขึ้นตรง (extrude) จากภาพร่าง 2 มิติ — คนละอันกับ xform ด้านบน
-       (นั่นลากตำแหน่งทั้งชิ้น ส่วนนี้ลากแค่ตัวเลขความสูงตามแกน Z เดียว) โชว์แกน Z อย่างเดียวด้วย
-       showX/showY = false (รองรับใน TransformControls ของ three.js) เพราะ extrude ของ OCCT
-       เดินตามแกน Z เสมอในสเตจนี้ ลากแล้วช่อง "สูง (มม.)" อัปเดตตามอัตโนมัติ (พิมพ์เองก็ยังได้เหมือนเดิม
-       เพื่อความแม่นยำเป๊ะๆ) — attach เป็นลูกของ previewAnchor ตัวเดียวกับที่ xform คุมตำแหน่งอยู่ เพื่อให้
-       จุดจับความสูงเคลื่อนตามไปด้วยเวลาลากย้ายตำแหน่งทั้งชิ้น */
+       (นั่นลากตำแหน่งทั้งชิ้น ส่วนนี้ลากแค่ตัวเลขความสูงตามแกนเดียว) โชว์แกนเดียวเท่านั้นด้วย showX/showY/
+       showZ (รองรับใน TransformControls ของ three.js) — Stage 10c: แกนที่โชว์ตอนนี้ขึ้นกับ "ระนาบร่าง"
+       ที่เลือกด้วย (Top=Z, Front=Y, Right=X) ตั้งค่าจริงใน updateHeightHandle() ทุกครั้งที่ preview
+       เปลี่ยน ไม่ hardcode ไว้ตรงนี้แล้วเหมือนก่อนหน้านี้ (ตอนสร้างยังไม่รู้ว่าจะใช้ระนาบไหน) — attach
+       เป็นลูกของ previewAnchor ตัวเดียวกับที่ xform คุมตำแหน่งอยู่ เพื่อให้จุดจับความสูงเคลื่อนตามไปด้วย
+       เวลาลากย้ายตำแหน่งทั้งชิ้น */
     heightXform = new TransformControls(camera, renderer.domElement);
     heightXform.setMode('translate');
-    heightXform.showX = false; heightXform.showY = false;
     heightXform.addEventListener('dragging-changed', function (e) { controls.enabled = !e.value; });
     heightXform.addEventListener('objectChange', function () {
       if (!heightHandle) return;
-      var h = Math.max(0.01, round2(heightHandle.position.z));
-      heightHandle.position.z = h;
+      var comp = heightXform.showX ? 'x' : (heightXform.showY ? 'y' : 'z');
+      var h = Math.max(0.01, round2(heightHandle.position[comp]));
+      heightHandle.position[comp] = h;
       $('sketchHeight').value = h;
       updateHeightGuideLine();
     });
@@ -256,6 +292,15 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
   /* preview ของ "จากภาพร่าง 2 มิติ" ตั้งใจให้เป็นแค่เส้นขอบแบนราบ (ไม่พองเป็นทรง 3 มิติจริงเหมือนกล่อง/
      ทรงกระบอก/ทรงกลม) เพราะการ extrude/revolve จริงต้องผ่าน OCCT เท่านั้น (three.js ไม่มี solid kernel) —
      เห็นแค่ "จะใช้เส้นขอบไหน" ก่อน ส่วนความสูง/มุมหมุนจริงจะเห็นผลหลังกดยืนยันแล้วเท่านั้น */
+  /* THREE.ShapeGeometry วางแบนอยู่ในระนาบ XY ท้องถิ่นเสมอ (z=0) — พอเลือกระนาบร่างเป็น Front/Right
+     ต้องหมุนตัว mesh ทั้งก้อนให้ไปนอนในระนาบโลกที่ถูกต้อง คำนวณผ่าน "เมทริกซ์ฐาน" (basis) ตรงๆ แทนการไล่
+     หมุนทีละแกน (Euler) เพื่อไม่ให้พลาดทิศทาง — เวกเตอร์แต่ละแกนตรงนี้ต้องตรงกับ mapPlanePoint() เป๊ะๆ
+     (ทดสอบแล้วว่า local (u,v,0) แปลงเป็น mapPlanePoint(plane,u,v) พอดีหลังคูณเมทริกซ์นี้) */
+  function planePreviewBasis(plane) {
+    if (plane === 'front') return { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 0, 1), z: new THREE.Vector3(0, 1, 0) };
+    if (plane === 'right') return { x: new THREE.Vector3(0, 1, 0), y: new THREE.Vector3(0, 0, 1), z: new THREE.Vector3(1, 0, 0) };
+    return { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) }; // top (ไม่หมุนเลย)
+  }
   function buildSketchPreviewMesh(dims) {
     if (!dims || !dims.profile) return null;
     var shape2d = new THREE.Shape();
@@ -269,7 +314,10 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
       shape2d.absarc(c.cx, c.cy, c.r, 0, Math.PI * 2, false);
     } else return null;
     var mat = new THREE.MeshStandardMaterial({ color: 0xF5A524, transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide });
-    return new THREE.Mesh(new THREE.ShapeGeometry(shape2d), mat);
+    var mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape2d), mat);
+    var basis = planePreviewBasis(dims.plane || 'top');
+    mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(basis.x, basis.y, basis.z));
+    return mesh;
   }
   function buildPreviewMesh(kind, dims) {
     var anchor = new THREE.Object3D();
@@ -300,24 +348,30 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     updateHeightHandle(f);
   }
   /* จุดจับลากความสูง extrude — มีให้ใช้เฉพาะตอนเลือก "จากภาพร่าง 2 มิติ" + โหมด "อัดขึ้นตรง" + เลือก
-     โปรไฟล์แล้วเท่านั้น (กรณีอื่นไม่มีความหมายอะไรให้ลาก) attach เป็นลูกของ previewAnchor (พิกัดท้องถิ่น
-     z ของ handle นี้ = ความสูง extrude ตรงๆ เพราะ inner mesh ของ sketch วางอยู่ที่ z=0 ท้องถิ่นเสมอ) */
+     โปรไฟล์แล้วเท่านั้น (กรณีอื่นไม่มีความหมายอะไรให้ลาก) attach เป็นลูกของ previewAnchor
+     Stage 10c: ตำแหน่ง/แกนที่ลากได้ของ handle นี้ขึ้นกับ "ระนาบร่าง" ที่เลือกด้วย (extrudeVecForPlane/
+     extrudeAxisLetter) — เดิมเดินตามแกน Z เสมอ (ระนาบ Top เท่านั้น) ตอนนี้ Front=แกน Y, Right=แกน X */
   function updateHeightHandle(f) {
     var show = f.kind === 'sketch' && f.dims.mode === 'extrude' && !!f.dims.profile;
     if (heightHandle) { heightXform.detach(); previewAnchor.remove(heightHandle); heightHandle = null; }
     if (heightLine) { heightLine = null; } // (ถูกลบไปพร้อม previewAnchor เก่าแล้วตอน scene.remove ด้านบน)
     if (!show) return;
+    var plane = f.dims.plane || 'top';
+    var vec = extrudeVecForPlane(plane, Math.max(0.01, f.dims.height || 20));
     heightHandle = new THREE.Object3D();
-    heightHandle.position.set(0, 0, Math.max(0.01, f.dims.height || 20));
+    heightHandle.position.set(vec.x, vec.y, vec.z);
     previewAnchor.add(heightHandle);
+    var axisLetter = extrudeAxisLetter(plane);
+    heightXform.showX = axisLetter === 'x'; heightXform.showY = axisLetter === 'y'; heightXform.showZ = axisLetter === 'z';
     updateHeightGuideLine();
     heightXform.attach(heightHandle);
   }
-  /* เส้นประแนวตั้งจากฐาน (z=0) ถึงจุดจับ — ให้เห็นระยะ extrude ชัดเจนเวลาลาก ไม่ใช่แค่เห็นลูกศรลอยๆ */
+  /* เส้นประจากฐาน (จุดกำเนิดท้องถิ่น) ถึงจุดจับ — ให้เห็นระยะ extrude ชัดเจนเวลาลาก ไม่ใช่แค่เห็นลูกศรลอยๆ
+     (ใช้ heightHandle.position ตรงๆ ไม่ผูกกับแกนใดแกนหนึ่ง เพื่อให้ใช้ได้ทั้ง 3 ระนาบ) */
   function updateHeightGuideLine() {
     if (heightLine) { previewAnchor.remove(heightLine); heightLine = null; }
     if (!heightHandle) return;
-    var pts = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, heightHandle.position.z)];
+    var pts = [new THREE.Vector3(0, 0, 0), heightHandle.position.clone()];
     heightLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineDashedMaterial({ color: 0xF5A524, dashSize: 4, gapSize: 3 }));
     heightLine.computeLineDistances();
     previewAnchor.add(heightLine);
@@ -447,6 +501,16 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     $('sketchAngleWrap').hidden = !revolve;
     updateSketchAxisWarn();
   }
+  /* Stage 10c: axis 'x'/'y' หมายถึงแกนที่ 1/2 ของ profile เอง (ดูหมายเหตุที่ axisVectorForPlane) ไม่ใช่
+     แกนโลกตรงๆ — ป้ายกำกับใน dropdown เลยต้องเปลี่ยนไปตามระนาบที่เลือกเพื่อไม่ให้ผู้ใช้งง (ค่า value ของ
+     option ไม่ต้องเปลี่ยน แค่ label ที่โชว์) */
+  var AXIS_LABELS_BY_PLANE = { top: ['แกน X', 'แกน Y'], front: ['แกน X', 'แกน Z'], right: ['แกน Y', 'แกน Z'] };
+  function updateAxisOptionLabels() {
+    var labels = AXIS_LABELS_BY_PLANE[$('sketchPlaneSel').value] || AXIS_LABELS_BY_PLANE.top;
+    var opts = $('sketchAxisSel').options;
+    opts[0].textContent = labels[0];
+    opts[1].textContent = labels[1];
+  }
   /* เตือนล่วงหน้าก่อนกด "วาง/รวม" ถ้าโปรไฟล์+แกนหมุนที่เลือกอยู่จะคร่อมแกน (จะสร้างทรงตันไม่ได้แน่ๆ) —
      ให้ผู้ใช้เห็นปัญหาทันทีตอนเลือก ไม่ต้องรอไปเจอตอนกด "วาง" แล้วเสียเวลารอ OCCT คำนวณก่อนถึงจะรู้ */
   function updateSketchAxisWarn() {
@@ -464,6 +528,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
       var idx = parseInt($('sketchProfileSel').value, 10);
       dims = {
         profile: (isFinite(idx) && loadedProfiles[idx]) ? loadedProfiles[idx] : null,
+        plane: $('sketchPlaneSel').value,
         mode: $('sketchModeSel').value, height: num('sketchHeight', 20), axis: $('sketchAxisSel').value, angle: num('sketchAngle', 360)
       };
     } else dims = { r: num('sphR', 25) };
@@ -487,13 +552,15 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
   /* ══════════════════ รายการขั้นตอน (Stage 10b: feature tree แก้ย้อนหลังได้) ══════════════════ */
   var KIND_LABEL = { box: 'กล่อง', cylinder: 'ทรงกระบอก', sphere: 'ทรงกลม', sketch: 'ภาพร่าง 2 มิติ' };
   var OP_LABEL = { add: 'เริ่มจาก', union: 'รวมกับ', cut: 'ตัดออกด้วย', intersect: 'หาส่วนร่วมกับ' };
+  var PLANE_LABEL = { top: 'ระนาบบน (Top)', front: 'ระนาบหน้า (Front)', right: 'ระนาบข้าง (Right)' };
   function dimsLabel(step) {
     if (step.kind === 'box') return step.dims.x + '×' + step.dims.y + '×' + step.dims.z + ' มม.';
     if (step.kind === 'cylinder') return 'R' + step.dims.r + ' × สูง ' + step.dims.h + ' มม.';
     if (step.kind === 'sketch') {
-      return step.dims.mode === 'revolve'
+      var planeTxt = ' บน' + (PLANE_LABEL[step.dims.plane] || PLANE_LABEL.top);
+      return (step.dims.mode === 'revolve'
         ? '(หมุนรอบแกน' + step.dims.axis.toUpperCase() + ' ' + step.dims.angle + '°)'
-        : '(อัดขึ้นตรงสูง ' + step.dims.height + ' มม.)';
+        : '(อัดขึ้นตรงสูง ' + step.dims.height + ' มม.)') + planeTxt;
     }
     return 'R' + step.dims.r + ' มม.';
   }
@@ -525,6 +592,8 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     else if (step.kind === 'cylinder') { $('cylR').value = step.dims.r; $('cylH').value = step.dims.h; }
     else if (step.kind === 'sphere') { $('sphR').value = step.dims.r; }
     else if (step.kind === 'sketch') {
+      $('sketchPlaneSel').value = step.dims.plane || 'top';
+      updateAxisOptionLabels();
       refreshProfileList(); // อ่านแบบ 2 มิติล่าสุดใหม่ (rebuildPreview() ในตัวถูกเรียกซ้ำอีกทีด้านล่าง ไม่ซ้ำซ้อนเสียหาย)
       var matchIdx = -1;
       for (var i = 0; i < loadedProfiles.length; i++) { if (profilesEqual(loadedProfiles[i], step.dims.profile)) { matchIdx = i; break; } }
@@ -602,6 +671,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     rebuildPreview();
 
     updateSketchModeUI();
+    updateAxisOptionLabels();
     shapeKindSel.addEventListener('change', function () {
       updateDimsUI();
       if (shapeKindSel.value === 'sketch') refreshProfileList(); else rebuildPreview();
@@ -611,6 +681,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     });
     ['sketchProfileSel', 'sketchAxisSel'].forEach(function (id) { $(id).addEventListener('change', function () { rebuildPreview(); updateSketchAxisWarn(); }); });
     $('sketchModeSel').addEventListener('change', function () { updateSketchModeUI(); rebuildPreview(); });
+    $('sketchPlaneSel').addEventListener('change', function () { updateAxisOptionLabels(); rebuildPreview(); updateSketchAxisWarn(); });
     $('sketchReloadBtn').addEventListener('click', refreshProfileList);
     ['posX', 'posY', 'posZ'].forEach(function (id) {
       $(id).addEventListener('input', repositionPreview);

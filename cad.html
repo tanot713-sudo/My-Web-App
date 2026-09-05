@@ -144,7 +144,7 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
   background:var(--bg);color:var(--ink);width:92px}
 .c3-form select{width:auto}
 .c3-form input:focus,.c3-form select:focus{outline:none;border-color:var(--brand)}
-.c3-dims{display:flex;gap:8px}
+.c3-dims{display:flex;flex-wrap:wrap;gap:8px}
 [hidden]{display:none!important}
 .c3-steps{display:flex;flex-direction:column;gap:6px;margin-top:4px}
 .c3-step-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;font-size:13px}
@@ -431,6 +431,13 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
           <select id="sketchProfileSel" style="width:220px"></select>
         </label>
         <button class="btn sm" id="sketchReloadBtn" type="button">🔄 โหลดใหม่</button>
+        <label>ระนาบร่าง
+          <select id="sketchPlaneSel">
+            <option value="top">ระนาบบน (Top)</option>
+            <option value="front">ระนาบหน้า (Front)</option>
+            <option value="right">ระนาบข้าง (Right)</option>
+          </select>
+        </label>
         <label>วิธีขึ้นรูป
           <select id="sketchModeSel">
             <option value="extrude">อัดขึ้นตรง (Extrude)</option>
@@ -464,7 +471,8 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
     </div>
     <p class="hint">ชิ้นแรกจะถูกวางเป็น "ชิ้นงานหลัก" โดยตรง ชิ้นถัดไปให้เลือกวิธีรวม (รวม/ตัดออก/ส่วนร่วม) แล้วกดปุ่มเพื่อรวมเข้ากับชิ้นงานหลัก
       · <b>รูปทรงสีส้มโปร่งแสงในมุมมอง 3 มิติด้านล่างคือตัวอย่างชิ้นที่กำลังจะเพิ่ม — ลากลูกศรสีเพื่อวางตำแหน่งเองได้เลย ไม่ต้องพิมพ์ตัวเลข</b>
-      · "จากภาพร่าง 2 มิติ" อ่านแบบที่วาดไว้ล่าสุดในแท็บ <a href="#" id="goto2dLink">ร่างภาพ 2 มิติ</a> — รองรับเฉพาะสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดเท่านั้น (เส้นตรงหลายเส้น/เส้นโค้งสปไลน์/ส่วนโค้งยังไม่รองรับในสเตจนี้)</p>
+      · "จากภาพร่าง 2 มิติ" อ่านแบบที่วาดไว้ล่าสุดในแท็บ <a href="#" id="goto2dLink">ร่างภาพ 2 มิติ</a> — รองรับเฉพาะสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดเท่านั้น (เส้นตรงหลายเส้น/เส้นโค้งสปไลน์/ส่วนโค้งยังไม่รองรับในสเตจนี้)
+      · <b>ระนาบร่าง</b> กำหนดว่าภาพร่าง 2 มิติจะไปวางอยู่ในระนาบไหนของโลก 3 มิติ — ระนาบบน (Top) เดิม/ระนาบหน้า (Front)/ระนาบข้าง (Right) ตามธรรมเนียม SolidWorks ทิศทางอัดขึ้นตรง/แกนหมุนจะเปลี่ยนตามระนาบที่เลือกให้อัตโนมัติ</p>
   </div>
 
   <div class="card">
