@@ -419,7 +419,7 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
   <!-- ══════════════════ สรุปเนื้อหาบทเรียน (เนื้อหากฎหมายจริง ต่อวิชา — ทยอยเพิ่มทีละวิชา) ══════════════════ -->
   <div class="card" id="clLessonCard" style="display:none">
     <div class="lhd-row"><h2 style="margin-bottom:0">📚 สรุปเนื้อหาบทเรียน</h2>
-      <button class="btn sm" id="clExportPdf" type="button">📄 Export PDF ทั้งวิชา</button></div>
+      <button class="btn sm" id="clExportPdf" type="button">Export PDF ทั้งวิชา</button></div>
     <p class="mini" id="clExportPdfStatus" style="margin:4px 0 6px"></p>
     <p class="mini" style="margin-bottom:10px">⚠️ สรุปช่วยทบทวนเบื้องต้น เขียนจากความรู้ทั่วไป ไม่ใช่ตัวบทกฎหมายที่อัปเดตล่าสุดแบบเรียลไทม์ กฎหมายมีการแก้ไขเพิ่มเติมได้ ต้องตรวจทานกับตัวบทจริง/หนังสือเรียนที่ใช้สอบก่อนเชื่อ 100% เสมอ</p>
     <div id="clLessonBody"></div>
@@ -441,7 +441,7 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
         <input type="number" id="clMockCount" value="5" min="1" max="30">
       </div>
       <div class="field" style="flex:2 1 200px"><label>&nbsp;</label>
-        <button class="btn primary sm" id="clMockStart" type="button">🎲 เริ่มทำข้อสอบจำลอง</button>
+        <button class="btn primary sm" id="clMockStart" type="button">เริ่มทำข้อสอบจำลอง</button>
       </div>
     </div>
     <div id="clMockArea"></div>
@@ -451,7 +451,7 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
   <div class="card" id="clDrillCard" style="display:none">
     <h2>⚡ ฝึกจำเลขมาตรา (Drill)</h2>
     <p class="mini" style="margin-bottom:10px">โจทย์สถานการณ์สั้นๆ ทายว่าเป็นมาตราอะไร ตอบเร็ว เช็กเร็ว ทำได้หลายรอบต่อวัน เหมาะฝึกความไวก่อนสอบ</p>
-    <button class="btn primary sm" id="clDrillStart" type="button">🎲 เริ่ม Drill</button>
+    <button class="btn primary sm" id="clDrillStart" type="button">เริ่ม Drill</button>
     <div id="clDrillArea"></div>
   </div>
 
@@ -474,12 +474,12 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
     </div>
 
     <div style="margin-top:14px" id="bpAutoFlashWrap">
-      <button class="btn sm" id="bpAutoFlash" type="button">⚡ สร้าง flashcard จากคำที่ขีดเน้นในบทเรียน (วิชานี้)</button>
+      <button class="btn sm" id="bpAutoFlash" type="button">สร้าง flashcard จากคำที่ขีดเน้นในบทเรียน (วิชานี้)</button>
       <div class="status" id="bpAutoFlashStatus"></div>
     </div>
 
     <div style="margin-top:16px">
-      <button class="btn sm" id="bpReviewBtn" type="button">🔁 เริ่มทบทวนวันนี้ (FSRS)</button>
+      <button class="btn sm" id="bpReviewBtn" type="button">เริ่มทบทวนวันนี้ (FSRS)</button>
       <span class="mini" id="bpReviewCount"></span>
     </div>
     <div id="bpReviewArea"></div>
@@ -508,7 +508,7 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
       <div class="timer-num" id="bpWrTimerNum">--:--</div>
       <textarea id="bpWrAnswer" rows="8" placeholder="เขียนคำตอบที่นี่…" style="margin-top:12px"></textarea>
       <ul class="chk-list" id="bpWrChecklist" style="text-align:left"></ul>
-      <button class="btn primary sm" id="bpWrSave" type="button" style="margin-top:10px">✅ บันทึกผลฝึก</button>
+      <button class="btn primary sm" id="bpWrSave" type="button" style="margin-top:10px">บันทึกผลฝึก</button>
     </div>
     <table class="wr-table" id="bpWrTable" style="display:none">
       <thead><tr><th>วันที่</th><th>วิชา</th><th>เวลาที่ใช้</th><th>เช็กลิสต์ผ่าน</th><th></th></tr></thead>
@@ -531,14 +531,14 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
     </div>
     <textarea id="bpOcrText" rows="6" placeholder="ข้อความที่แปลงได้จะขึ้นตรงนี้ — แก้ไข/ตรวจทานก่อนบันทึก" style="margin-top:8px;display:none"></textarea>
     <div class="frow" style="margin-top:8px">
-      <button class="btn primary sm" id="bpOcrSave" type="button" style="display:none">✅ บันทึกเป็นโน้ตเดียว</button>
-      <button class="btn sm" id="bpMatraSplitBtn" type="button" style="display:none">✂️ แบ่งเป็นรายมาตรา</button>
+      <button class="btn primary sm" id="bpOcrSave" type="button" style="display:none">บันทึกเป็นโน้ตเดียว</button>
+      <button class="btn sm" id="bpMatraSplitBtn" type="button" style="display:none">แบ่งเป็นรายมาตรา</button>
     </div>
     <div id="bpMatraSplitWrap" style="display:none;margin-top:10px">
       <p class="mini" id="bpMatraSplitStatus"></p>
       <ul class="chk-list" id="bpMatraList"></ul>
       <div class="frow" style="margin-top:8px">
-        <button class="btn primary sm" id="bpMatraSaveBtn" type="button">✅ บันทึกมาตราที่เลือกเป็นโน้ตแยก</button>
+        <button class="btn primary sm" id="bpMatraSaveBtn" type="button">บันทึกมาตราที่เลือกเป็นโน้ตแยก</button>
         <button class="btn sm" id="bpMatraCancelBtn" type="button">ยกเลิก</button>
       </div>
     </div>
@@ -550,7 +550,7 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
   <div class="card">
     <h2>📂 ไฟล์ในโฟลเดอร์ Drive ของฉัน</h2>
     <p class="mini">ไฟล์ที่คุณอัปโหลดไว้แล้วในโฟลเดอร์ <b>เนติ-ตั๋วทนาย-อัยการ-ผู้พิพากษา</b> (เช่น ธงคำตอบที่สแกน/ถ่ายไว้) — ต้องเชื่อมต่อ Google Drive ก่อน (การ์ดด้านล่าง) รายการนี้อ่านจากโฟลเดอร์ส่วนตัวของคุณเท่านั้น ไม่มีใครอื่นเห็น</p>
-    <button class="btn sm" id="bpDriveListBtn" type="button">🔄 โหลดรายชื่อไฟล์จาก Drive</button>
+    <button class="btn sm" id="bpDriveListBtn" type="button">โหลดรายชื่อไฟล์จาก Drive</button>
     <div class="status" id="bpDriveListStatus"></div>
     <ul class="note-list" id="bpDriveFileList"></ul>
 
@@ -570,7 +570,7 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
     <h2>☁️ ซิงก์ Google Drive ส่วนตัว</h2>
     <p class="mini">โน้ต/flashcard/ประวัติฝึกเขียนตอบ/ผลประเมินเส้นทางอาชีพ จะถูกสำรองไว้ในโฟลเดอร์ Drive ของคุณเอง (<b>เนติ-ตั๋วทนาย-อัยการ-ผู้พิพากษา</b>) ไม่ผ่านเซิร์ฟเวอร์ใดๆ ของเรา — ไม่เชื่อมต่อก็ใช้งานได้ปกติ ข้อมูลจะเก็บในเครื่องนี้อย่างเดียว (IndexedDB/localStorage)</p>
     <div class="drive-row">
-      <button class="btn sm" id="driveConnectBtn" type="button">🔗 เชื่อมต่อ Google Drive</button>
+      <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
     </div>
   </div>
@@ -578,7 +578,7 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
   <div class="card">
     <h2>🧹 ล้างข้อมูลเก่า</h2>
     <div class="frow" style="align-items:center">
-      <button class="btn sm" id="bpCleanNotesBtn" type="button">🧹 ล้างคำที่ไม่ต้องการออกจากโน้ตที่มีอยู่แล้ว</button>
+      <button class="btn sm" id="bpCleanNotesBtn" type="button">ล้างคำที่ไม่ต้องการออกจากโน้ตที่มีอยู่แล้ว</button>
       <span class="mini" id="bpCleanNotesStatus"></span>
     </div>
     <p class="mini">ใช้อันนี้ถ้าโน้ตที่แยกไว้ก่อนหน้ายังมีคำอย่าง "สำนักงานคณะกรรมการกฤษฎีกา" หรือเลขหน้าปนอยู่ (เช่นแยกไว้ก่อนที่ระบบจะตัดคำพวกนี้ให้อัตโนมัติ) กดครั้งเดียวล้างทุกโน้ตที่มีอยู่ในเครื่องนี้เลย</p>

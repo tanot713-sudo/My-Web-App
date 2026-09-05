@@ -75,20 +75,20 @@
     { key: 'language', label: 'ภาษา', href: 'languages.html' },
     { key: 'daily', label: 'ชีวิตประจำวัน', children: [
         { key: 'invest', label: 'การลงทุน', href: 'invest.html', children: [
-            { key: 'global-stock', label: 'หุ้นต่างประเทศ',  icon: '🌐', href: 'invest-global-stock.html' },
-            { key: 'thai-stock',   label: 'หุ้นไทย',          icon: '📈', href: 'invest-thai-stock.html' },
-            { key: 'gold',         label: 'ทองคำ',            icon: '🪙', href: 'invest-gold.html' },
-            { key: 'commodities',  label: 'ค่าเงิน & วัตถุดิบ', icon: '🌍', href: 'invest-commodities.html' },
-            { key: 'news',         label: 'ข่าวหุ้น',          icon: '📰', href: 'invest-news.html' },
-            { key: 'portfolio',    label: 'พอร์ตจำลอง',        icon: '💼', href: 'invest-portfolio.html' },
-            { key: 'business',     label: 'ลงทุนทำธุรกิจ',    icon: '🏪', href: 'invest-business.html' },
-            { key: 'gov-bond',     label: 'พันธบัตรรัฐบาล',   icon: '🏛️', href: 'invest-gov-bond.html' },
-            { key: 'gsb-lottery',  label: 'สลากออมสิน',       icon: '🎟️', href: 'invest-gsb-lottery.html' },
-            { key: 'baac-lottery', label: 'สลาก ธ.ก.ส.',      icon: '🌾', href: 'invest-baac-lottery.html' },
-            { key: 'thai-fund',    label: 'กองทุนไทย',        icon: '📊', href: 'invest-thai-fund.html' },
-            { key: 'global-fund',  label: 'กองทุนต่างประเทศ', icon: '🧺', href: 'invest-global-fund.html' },
-            { key: 'bitcoin',      label: 'Bitcoin',          icon: '₿', href: 'invest-bitcoin.html' },
-            { key: 'lottery',      label: 'สลากกินแบ่งรัฐบาล', icon: '🎰', href: 'invest-lottery.html' }
+            { key: 'global-stock', label: 'หุ้นต่างประเทศ',  href: 'invest-global-stock.html' },
+            { key: 'thai-stock',   label: 'หุ้นไทย',          href: 'invest-thai-stock.html' },
+            { key: 'gold',         label: 'ทองคำ',            href: 'invest-gold.html' },
+            { key: 'commodities',  label: 'ค่าเงิน & วัตถุดิบ', href: 'invest-commodities.html' },
+            { key: 'news',         label: 'ข่าวหุ้น',          href: 'invest-news.html' },
+            { key: 'portfolio',    label: 'พอร์ตจำลอง',        href: 'invest-portfolio.html' },
+            { key: 'business',     label: 'ลงทุนทำธุรกิจ',    href: 'invest-business.html' },
+            { key: 'gov-bond',     label: 'พันธบัตรรัฐบาล',   href: 'invest-gov-bond.html' },
+            { key: 'gsb-lottery',  label: 'สลากออมสิน',       href: 'invest-gsb-lottery.html' },
+            { key: 'baac-lottery', label: 'สลาก ธ.ก.ส.',      href: 'invest-baac-lottery.html' },
+            { key: 'thai-fund',    label: 'กองทุนไทย',        href: 'invest-thai-fund.html' },
+            { key: 'global-fund',  label: 'กองทุนต่างประเทศ', href: 'invest-global-fund.html' },
+            { key: 'bitcoin',      label: 'Bitcoin',          href: 'invest-bitcoin.html' },
+            { key: 'lottery',      label: 'สลากกินแบ่งรัฐบาล', href: 'invest-lottery.html' }
           ]
         },
         { key: 'finance',   label: 'รายรับรายจ่าย', href: 'budget.html' },
@@ -249,10 +249,10 @@
     var settingsPanel = document.createElement('div');
     settingsPanel.className = 'ome-settings-panel';
     var SETTINGS_ROWS = [
-      { ic: '🎨', label: 'เลือกธีมเว็บ' },
-      { ic: '🔤', label: 'ปรับขนาดตัวอักษร' },
-      { ic: '🗑️', label: 'ล้างข้อมูล' },
-      { ic: '❓', label: 'Help', divider: true }
+      { label: 'เลือกธีมเว็บ' },
+      { label: 'ปรับขนาดตัวอักษร' },
+      { label: 'ล้างข้อมูล' },
+      { label: 'Help', divider: true }
     ];
     SETTINGS_ROWS.forEach(function (r) {
       if (r.divider) {
@@ -263,7 +263,7 @@
       var row = document.createElement('button');
       row.type = 'button';
       row.className = 'ome-settings-row';
-      row.innerHTML = '<span class="ic">' + r.ic + '</span><span>' + r.label + '</span>';
+      row.innerHTML = '<span>' + r.label + '</span>';
       settingsPanel.appendChild(row);
     });
     document.body.appendChild(settingsPanel);

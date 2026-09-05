@@ -142,7 +142,7 @@
   var panel = document.createElement('div');
   panel.className = 'ome-ai-panel';
   panel.innerHTML =
-    '<div class="ome-ai-head"><b>💬 ผู้ช่วย AI ถาม-ตอบ</b><button class="ome-ai-close" type="button" title="ปิด">✕</button></div>' +
+    '<div class="ome-ai-head"><b>ผู้ช่วย AI ถาม-ตอบ</b><button class="ome-ai-close" type="button" title="ปิด">✕</button></div>' +
     '<div class="ome-ai-disclaimer">AI ตัวเล็กรันในเครื่องคุณเอง ไม่ส่งข้อความออกไปไหน — ไม่ใช่ agent เหมาะกับคำถามพื้นฐานเท่านั้น</div>' +
     '<div class="ome-ai-log"></div>' +
     '<div class="ome-ai-status"></div>' +
@@ -153,10 +153,10 @@
         '<button class="ome-ai-btn send" type="button">ส่ง</button>' +
       '</div>' +
       '<div class="ome-ai-foot">' +
-        '<label class="ome-ai-speak-lbl"><input type="checkbox">🔊 พูดคำตอบด้วยเสียง</label>' +
+        '<label class="ome-ai-speak-lbl"><input type="checkbox">พูดคำตอบด้วยเสียง</label>' +
         '<div class="ome-ai-footbtns">' +
-          '<button class="ome-ai-sumbtn" type="button" title="สรุปเนื้อหาหน้านี้">📝 สรุปหน้านี้</button>' +
-          '<button class="ome-ai-newbtn" type="button">🔄 เริ่มแชทใหม่</button>' +
+          '<button class="ome-ai-sumbtn" type="button" title="สรุปเนื้อหาหน้านี้">สรุปหน้านี้</button>' +
+          '<button class="ome-ai-newbtn" type="button">เริ่มแชทใหม่</button>' +
         '</div>' +
       '</div>' +
     '</div>';

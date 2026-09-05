@@ -116,7 +116,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <div class="sumbox"><div class="lbl">มูลค่าพอร์ตรวม</div><div class="val" id="sTotal">—</div><div class="sub" id="sTotalSub"></div></div>
       <div class="sumbox"><div class="lbl">กำไร/ขาดทุนรวม</div><div class="val" id="sPl">—</div><div class="sub" id="sPlPct"></div></div>
     </div>
-    <p class="mini" style="margin-top:10px">เริ่มต้นด้วยเงินสมมติ <b id="sStart">—</b> · คำนวณจาก<b>ราคาที่ซื้อ/ขายจริง</b>เท่านั้น ยังไม่รวมเงินปันผล (ไม่มีข้อมูลปฏิทินปันผลรายหุ้นให้ดึงได้ฟรี) · <button class="btn sm" id="resetBtn" type="button" style="margin-left:4px">🔄 เริ่มพอร์ตใหม่</button></p>
+    <p class="mini" style="margin-top:10px">เริ่มต้นด้วยเงินสมมติ <b id="sStart">—</b> · คำนวณจาก<b>ราคาที่ซื้อ/ขายจริง</b>เท่านั้น ยังไม่รวมเงินปันผล (ไม่มีข้อมูลปฏิทินปันผลรายหุ้นให้ดึงได้ฟรี) · <button class="btn sm" id="resetBtn" type="button" style="margin-left:4px">เริ่มพอร์ตใหม่</button></p>
   </div>
 
   <!-- ซื้อ-ขาย -->
@@ -145,7 +145,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- หุ้นที่ถือ -->
   <div class="card">
-    <h2>📁 หุ้นที่ถือ <button class="btn sm" id="refreshBtn" type="button" style="margin-left:auto">🔄 รีเฟรชราคา</button></h2>
+    <h2>📁 หุ้นที่ถือ <button class="btn sm" id="refreshBtn" type="button" style="margin-left:auto">รีเฟรชราคา</button></h2>
     <div class="tbl-wrap"><table id="holdTable"></table></div>
     <div id="holdEmpty" class="tbl-empty">ยังไม่มีหุ้นในพอร์ต — ลองซื้อจากด้านบนได้เลย</div>
   </div>
@@ -162,7 +162,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <h2>☁️ สำรองพอร์ตจำลองขึ้น Google Drive</h2>
     <p class="mini">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตด้านบนจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าหุ้น/ทองคำ ไม่ปนกัน)</p>
     <div class="drive-row" style="margin-top:10px">
-      <button class="btn sm" id="driveConnectBtn" type="button">🔗 เชื่อมต่อ Google Drive</button>
+      <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
     </div>
   </div>

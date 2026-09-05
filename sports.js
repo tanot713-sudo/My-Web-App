@@ -19,18 +19,18 @@ function pick(obj) { return obj ? (getUILang() === 'en' ? obj.en : obj.th) : '';
 var I18N = {
   th: {
     pageTitle: 'เรียนกีฬา', crumbResp: 'งานที่รับผิดชอบ', crumbSports: 'เรียนกีฬา',
-    markReadBtn: '✓ เข้าใจแล้ว ไปต่อ',
+    markReadBtn: 'เข้าใจแล้ว ไปต่อ',
     lockedMsg: 'บทเรียนนี้ยังล็อกอยู่ — ทำข้อก่อนหน้าให้ผ่านก่อน',
-    trackDoneMsg: '🎉 จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
+    trackDoneMsg: 'จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
     toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
     toastBadge: 'ได้รับเหรียญตรา: "{badge}"!',
     toastLevelUp: 'เลเวลอัป! เลเวล {level} — {title}'
   },
   en: {
     pageTitle: 'Learn Sports', crumbResp: 'Responsibilities', crumbSports: 'Learn Sports',
-    markReadBtn: '✓ Got it, continue',
+    markReadBtn: 'Got it, continue',
     lockedMsg: 'This lesson is locked — pass the previous one first.',
-    trackDoneMsg: '🎉 Lesson complete! Pick the next lesson from the ☰ menu above.',
+    trackDoneMsg: 'Lesson complete! Pick the next lesson from the ☰ menu above.',
     toastTrackDone: 'Lesson "{track}" complete! 🎉',
     toastBadge: 'Badge earned: "{badge}"!',
     toastLevelUp: 'Level up! Level {level} — {title}'

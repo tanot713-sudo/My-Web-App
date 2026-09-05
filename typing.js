@@ -245,11 +245,11 @@ var I18N = {
     statsWpm: 'คำ/นาที', statsAcc: 'ความแม่นยำ', statsTime: 'เวลา',
     resultTitle: 'จบบทเรียนแล้ว!', resultWpm: 'ความเร็ว', resultAcc: 'ความแม่นยำ', resultBest: 'สถิติที่ดีที่สุด',
     btnRetry: 'ฝึกซ้ำ', btnNext: 'บทถัดไป', btnRestartHint: 'พิมพ์เพื่อเริ่มบทเรียน',
-    thaiKbHint: '⚠️ อย่าลืมสลับคีย์บอร์ดเป็นภาษาไทยก่อนเริ่มพิมพ์',
+    thaiKbHint: 'อย่าลืมสลับคีย์บอร์ดเป็นภาษาไทยก่อนเริ่มพิมพ์',
     clickToFocus: 'คลิกที่นี่เพื่อเริ่มพิมพ์',
     lockedMsg: 'บทนี้ยังไม่ปลดล็อก — ทำบทก่อนหน้าให้ความแม่นยำอย่างน้อย ' + UNLOCK_MIN_ACC + '% ก่อน',
     fingerLabel: 'นิ้ว', showFingerColors: 'แสดงสีโซนนิ้ว',
-    sprintEn: '⚡ ทดสอบจับเวลา 60 วิ (อังกฤษ)', sprintTh: '⚡ ทดสอบจับเวลา 60 วิ (ไทย)',
+    sprintEn: 'ทดสอบจับเวลา 60 วิ (อังกฤษ)', sprintTh: 'ทดสอบจับเวลา 60 วิ (ไทย)',
     sprintResultTitle: 'หมดเวลา!', sprintBest: 'สถิติที่ดีที่สุด', statsTimeLeft: 'เวลาที่เหลือ',
     backToLessons: 'กลับไปฝึกบทเรียน'
   },
@@ -259,11 +259,11 @@ var I18N = {
     statsWpm: 'WPM', statsAcc: 'Accuracy', statsTime: 'Time',
     resultTitle: 'Lesson complete!', resultWpm: 'Speed', resultAcc: 'Accuracy', resultBest: 'Best score',
     btnRetry: 'Retry', btnNext: 'Next Lesson', btnRestartHint: 'Start typing to begin',
-    thaiKbHint: '⚠️ Remember to switch your keyboard to Thai before you start typing',
+    thaiKbHint: 'Remember to switch your keyboard to Thai before you start typing',
     clickToFocus: 'Click here to start typing',
     lockedMsg: 'This lesson is locked — complete the previous one with at least ' + UNLOCK_MIN_ACC + '% accuracy first',
     fingerLabel: 'Finger', showFingerColors: 'Show finger color zones',
-    sprintEn: '⚡ 60-Second Sprint (English)', sprintTh: '⚡ 60-Second Sprint (Thai)',
+    sprintEn: '60-Second Sprint (English)', sprintTh: '60-Second Sprint (Thai)',
     sprintResultTitle: "Time's up!", sprintBest: 'Best score', statsTimeLeft: 'Time Left',
     backToLessons: 'Back to lessons'
   }

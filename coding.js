@@ -890,26 +890,26 @@ var I18N = {
     conceptLabel: 'คำอธิบาย', runBtn: '▶ รัน', running: 'กำลังรัน…',
     outputLabel: 'ผลลัพธ์ (console.log)', previewLabel: 'พรีวิว', testsLabel: 'ผลตรวจ',
     noOutput: '(ยังไม่มีผลลัพธ์ — ลองกดรันดู)', timeoutMsg: 'โค้ดรันนานเกินไป (อาจมีลูปไม่รู้จบ) — ระบบหยุดให้แล้ว ลองตรวจสอบเงื่อนไขการวนซ้ำดูอีกครั้ง',
-    allPassed: '✅ ผ่านหมดทุกข้อ! ปลดล็อกข้อถัดไปแล้ว', notAllPassed: 'ยังไม่ผ่านครบทุกข้อ ลองแก้โค้ดแล้วรันใหม่อีกครั้ง',
+    allPassed: 'ผ่านหมดทุกข้อ! ปลดล็อกข้อถัดไปแล้ว', notAllPassed: 'ยังไม่ผ่านครบทุกข้อ ลองแก้โค้ดแล้วรันใหม่อีกครั้ง',
     lockedMsg: 'ข้อนี้ยังไม่ปลดล็อก — ทำข้อก่อนหน้าให้ผ่านก่อน',
     exerciseTitle: 'แบบฝึกหัด {n}', tryExample: 'ลองรันตัวอย่างนี้ดูได้เลย แล้วลองแก้โค้ดเล่นดู',
-    openFullBtn: '🔗 เปิดดูเต็มจอ',
+    openFullBtn: 'เปิดดูเต็มจอ',
     toastTrackDone: 'จบแทร็ก "{track}" แล้ว! 🎉', toastBadge: 'ได้เหรียญตรา "{badge}"!',
     toastLevelUp: 'เลเวลอัป! ระดับ {level} — {title}',
-    markReadBtn: '✓ ทำเครื่องหมายว่าอ่านแล้ว'
+    markReadBtn: 'ทำเครื่องหมายว่าอ่านแล้ว'
   },
   en: {
     pageTitle: 'Coding', crumbResp: 'Responsibilities', crumbCoding: 'Coding',
     conceptLabel: 'Explanation', runBtn: '▶ Run', running: 'Running…',
     outputLabel: 'Output (console.log)', previewLabel: 'Preview', testsLabel: 'Test Results',
     noOutput: '(No output yet — try clicking Run)', timeoutMsg: 'Your code took too long to run (possibly an infinite loop) — it was stopped automatically. Check your loop condition.',
-    allPassed: '✅ All tests passed! Next exercise unlocked.', notAllPassed: "Not all tests passed yet — fix your code and run again.",
+    allPassed: 'All tests passed! Next exercise unlocked.', notAllPassed: "Not all tests passed yet — fix your code and run again.",
     lockedMsg: 'This exercise is locked — pass the previous one first.',
     exerciseTitle: 'Exercise {n}', tryExample: 'Try running this example, then experiment with the code.',
-    openFullBtn: '🔗 Open Fullscreen',
+    openFullBtn: 'Open Fullscreen',
     toastTrackDone: 'Track "{track}" complete! 🎉', toastBadge: 'Badge earned: "{badge}"!',
     toastLevelUp: 'Level up! Level {level} — {title}',
-    markReadBtn: '✓ Mark as Read'
+    markReadBtn: 'Mark as Read'
   }
 };
 function t(key, vars) {

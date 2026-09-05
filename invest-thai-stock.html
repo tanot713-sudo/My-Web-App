@@ -285,7 +285,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
         <label>ชื่อย่อหุ้น (เช่น PTT, ADVANC)</label>
         <input type="text" id="sym" placeholder="PTT" autocomplete="off" spellcheck="false">
       </div>
-      <button class="btn" id="fetchBtn" type="button">🔄 ลองดึงราคา</button>
+      <button class="btn" id="fetchBtn" type="button">ลองดึงราคา</button>
     </div>
     <div class="frow" style="margin-top:12px">
       <div class="field"><label>ราคาตอนนี้ (บาท)</label><input type="number" id="price" inputmode="decimal" step="0.01" placeholder="เช่น 35.50"></div>
@@ -294,8 +294,8 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     </div>
     <div class="status" id="fetchStatus">ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจาก Streaming ก็พอ (ดูราคาปัจจุบัน + สูง/ต่ำของรอบ)</div>
     <div style="margin-top:10px;display:flex;gap:9px;flex-wrap:wrap">
-      <button class="btn primary" id="analyzeBtn" type="button">ประเมินให้หน่อย →</button>
-      <button class="btn sm" id="demoBtn" type="button">📊 ดูกราฟตัวอย่าง (ฝึกอ่าน)</button>
+      <button class="btn primary" id="analyzeBtn" type="button">ประเมินให้หน่อย</button>
+      <button class="btn sm" id="demoBtn" type="button">ดูกราฟตัวอย่าง (ฝึกอ่าน)</button>
     </div>
     <details style="margin-top:10px">
       <summary>วางราคาย้อนหลังเอง (ทางเลือก)</summary>
@@ -311,7 +311,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <div class="card" id="set50Card">
     <h2>🔎 หุ้น SET50</h2>
     <div class="s50-bar">
-      <button class="btn primary sm" id="scanBtn" type="button">🔎 หาหุ้นน่าสนใจ</button>
+      <button class="btn primary sm" id="scanBtn" type="button">หาหุ้นน่าสนใจ</button>
       <label class="scan-filter"><input type="checkbox" id="greenOnly"> เฉพาะไฟเขียว</label>
     </div>
     <div class="mini" id="scanStatus"></div>
@@ -381,7 +381,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- สรุปหุ้นด้วย AI -->
   <div class="card" id="aiSumCard" style="display:none">
     <h2>🤖 สรุปหุ้นด้วย AI</h2>
-    <button class="btn primary sm" id="aiSumBtn" type="button">🤖 สรุปให้หน่อย</button>
+    <button class="btn primary sm" id="aiSumBtn" type="button">สรุปให้หน่อย</button>
     <div class="status" id="aiSumStatus"></div>
     <div class="ai-sum-out" id="aiSumOut" style="display:none"></div>
   </div>
@@ -400,7 +400,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     </div>
     <div style="margin-top:12px;display:flex;gap:9px;flex-wrap:wrap">
       <button class="btn primary" id="calcBtn" type="button">คำนวณ</button>
-      <button class="btn sm" id="saveBtn" type="button" style="display:none">💾 บันทึกเข้าพอร์ต</button>
+      <button class="btn sm" id="saveBtn" type="button" style="display:none">บันทึกเข้าพอร์ต</button>
     </div>
 
     <div class="result" id="riskResult">
@@ -426,7 +426,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <h2>☁️ สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
     <p class="mini">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตและสมุดเทรดด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง) — กันข้อมูลหายถ้าล้างเบราว์เซอร์ และดึงคืนได้เมื่อเปิดจากเครื่อง/เบราว์เซอร์อื่น</p>
     <div class="drive-row" style="margin-top:10px">
-      <button class="btn sm" id="driveConnectBtn" type="button">🔗 เชื่อมต่อ Google Drive</button>
+      <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
     </div>
   </div>

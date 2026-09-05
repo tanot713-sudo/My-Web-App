@@ -283,7 +283,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
         <label>ชื่อย่อหุ้น (เช่น AAPL, MSFT)</label>
         <input type="text" id="sym" placeholder="AAPL" autocomplete="off" spellcheck="false">
       </div>
-      <button class="btn" id="fetchBtn" type="button">🔄 ลองดึงราคา</button>
+      <button class="btn" id="fetchBtn" type="button">ลองดึงราคา</button>
     </div>
     <div class="frow" style="margin-top:12px">
       <div class="field"><label>ราคาตอนนี้ (USD)</label><input type="number" id="price" inputmode="decimal" step="0.01" placeholder="เช่น 180.50"></div>
@@ -293,8 +293,8 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <div class="mini" id="priceFx"></div>
     <div class="status" id="fetchStatus">ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจากแอปเทรดที่ใช้ก็พอ (ดูราคาปัจจุบัน + สูง/ต่ำของรอบ)</div>
     <div style="margin-top:10px;display:flex;gap:9px;flex-wrap:wrap">
-      <button class="btn primary" id="analyzeBtn" type="button">ประเมินให้หน่อย →</button>
-      <button class="btn sm" id="demoBtn" type="button">📊 ดูกราฟตัวอย่าง (ฝึกอ่าน)</button>
+      <button class="btn primary" id="analyzeBtn" type="button">ประเมินให้หน่อย</button>
+      <button class="btn sm" id="demoBtn" type="button">ดูกราฟตัวอย่าง (ฝึกอ่าน)</button>
     </div>
     <details style="margin-top:10px">
       <summary>วางราคาย้อนหลังเอง (ทางเลือก)</summary>
@@ -310,7 +310,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
         <p class="mini" style="margin:2px 0 8px">เปิดไว้เพื่อดูยอด ≈ บาท กำกับควบคู่กับตัวเลข USD ในหน้านี้ (ไม่บังคับ ไม่กระทบการคำนวณหลักซึ่งเป็น USD เสมอ)</p>
         <div class="frow">
           <div class="field"><label>อัตราแลกเปลี่ยน <span class="unit">(บาทต่อ 1 USD)</span></label><input type="number" id="fxRate" inputmode="decimal" step="0.01" placeholder="เช่น 36.00"></div>
-          <button class="btn sm" id="fxFetchBtn" type="button">🔄 ดึงอัตราปัจจุบัน</button>
+          <button class="btn sm" id="fxFetchBtn" type="button">ดึงอัตราปัจจุบัน</button>
         </div>
         <div class="status" id="fxStatus"></div>
         <label class="scan-filter" style="margin-top:8px"><input type="checkbox" id="fxShowChk"> แสดงยอดเทียบเงินบาท (≈ ฿) ในหน้านี้</label>
@@ -322,7 +322,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <div class="card" id="ulCard">
     <h2>🔎 หุ้นดัง (US)</h2>
     <div class="ul-bar">
-      <button class="btn primary sm" id="scanBtn" type="button">🔎 หาหุ้นน่าสนใจ</button>
+      <button class="btn primary sm" id="scanBtn" type="button">หาหุ้นน่าสนใจ</button>
       <label class="scan-filter"><input type="checkbox" id="greenOnly"> เฉพาะไฟเขียว</label>
     </div>
     <div class="mini" id="scanStatus"></div>
@@ -397,7 +397,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <p class="mini">ค่าคอมฯ ของโบรกไทยที่เทรดหุ้น US แต่ละเจ้าคิดต่างกันมาก (บางเจ้าคิด % บางเจ้าคิดเหมาจ่ายต่อออเดอร์) และมักมีค่าธรรมเนียมแปลงเงินบาท↔ดอลลาร์แยกต่างหาก (~0.25–1%) — ปรับตัวเลขให้ตรงกับโบรกที่ใช้จริง</p>
     <div style="margin-top:12px;display:flex;gap:9px;flex-wrap:wrap">
       <button class="btn primary" id="calcBtn" type="button">คำนวณ</button>
-      <button class="btn sm" id="saveBtn" type="button" style="display:none">💾 บันทึกเข้าพอร์ต</button>
+      <button class="btn sm" id="saveBtn" type="button" style="display:none">บันทึกเข้าพอร์ต</button>
     </div>
 
     <div class="result" id="riskResult">
@@ -423,7 +423,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <h2>☁️ สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
     <p class="mini">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตและสมุดเทรดด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าหุ้นไทย ไม่ปนกัน) — กันข้อมูลหายถ้าล้างเบราว์เซอร์ และดึงคืนได้เมื่อเปิดจากเครื่อง/เบราว์เซอร์อื่น</p>
     <div class="drive-row" style="margin-top:10px">
-      <button class="btn sm" id="driveConnectBtn" type="button">🔗 เชื่อมต่อ Google Drive</button>
+      <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
     </div>
   </div>

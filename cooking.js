@@ -18,35 +18,35 @@ function pick(obj) { return obj ? (getUILang() === 'en' ? obj.en : obj.th) : '';
 var I18N = {
   th: {
     pageTitle: 'เรียนทำอาหาร', crumbResp: 'งานที่รับผิดชอบ', crumbCooking: 'เรียนทำอาหาร',
-    markReadBtn: '✓ เข้าใจแล้ว ไปต่อ',
+    markReadBtn: 'เข้าใจแล้ว ไปต่อ',
     lockedMsg: 'บทเรียนนี้ยังล็อกอยู่ — ทำข้อก่อนหน้าให้ผ่านก่อน',
-    trackDoneMsg: '🎉 จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
+    trackDoneMsg: 'จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
     toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
     toastBadge: 'ได้รับเหรียญตรา: "{badge}"!',
     toastLevelUp: 'เลเวลอัป! เลเวล {level} — {title}',
-    speakBtn: '🔊 อ่านออกเสียง', speakingBtn: '🔊 กำลังอ่าน…',
-    stepModeOn: '📋 ดูทีละขั้นตอน', stepModeOff: '📄 ดูทั้งหมด',
-    stepPrev: '← ก่อนหน้า', stepNext: 'ถัดไป →', stepOf: 'ขั้นที่ {n} / {total}',
-    notesLabel: '📝 บันทึกของฉัน (เห็นเฉพาะคุณ)', notesPlaceholder: 'จดโน้ตส่วนตัวเกี่ยวกับบทเรียนนี้ได้ที่นี่…', notesSaved: 'บันทึกแล้ว ✓',
-    convBtn: '🧮 แปลงหน่วยตวง', convTitle: 'ตัวแปลงหน่วยตวง',
+    speakBtn: 'อ่านออกเสียง', speakingBtn: 'กำลังอ่าน…',
+    stepModeOn: 'ดูทีละขั้นตอน', stepModeOff: 'ดูทั้งหมด',
+    stepPrev: 'ก่อนหน้า', stepNext: 'ถัดไป', stepOf: 'ขั้นที่ {n} / {total}',
+    notesLabel: 'บันทึกของฉัน (เห็นเฉพาะคุณ)', notesPlaceholder: 'จดโน้ตส่วนตัวเกี่ยวกับบทเรียนนี้ได้ที่นี่…', notesSaved: 'บันทึกแล้ว',
+    convBtn: 'แปลงหน่วยตวง', convTitle: 'ตัวแปลงหน่วยตวง',
     convVolume: 'ปริมาตร', convWeight: 'น้ำหนัก (โดยประมาณ — ขึ้นกับความหนาแน่นของวัตถุดิบจริง)', convTemp: 'อุณหภูมิ',
-    timerStart: '▶ เริ่ม', timerPause: '⏸ พัก', timerReset: '↺ รีเซ็ต', timerDone: '⏰ หมดเวลา!'
+    timerStart: '▶ เริ่ม', timerPause: '⏸ พัก', timerReset: 'รีเซ็ต', timerDone: '⏰ หมดเวลา!'
   },
   en: {
     pageTitle: 'Learn Cooking', crumbResp: 'Responsibilities', crumbCooking: 'Learn Cooking',
-    markReadBtn: '✓ Got it, continue',
+    markReadBtn: 'Got it, continue',
     lockedMsg: 'This lesson is locked — pass the previous one first.',
-    trackDoneMsg: '🎉 Lesson complete! Pick the next lesson from the ☰ menu above.',
+    trackDoneMsg: 'Lesson complete! Pick the next lesson from the ☰ menu above.',
     toastTrackDone: 'Lesson "{track}" complete! 🎉',
     toastBadge: 'Badge earned: "{badge}"!',
     toastLevelUp: 'Level up! Level {level} — {title}',
-    speakBtn: '🔊 Read aloud', speakingBtn: '🔊 Reading…',
-    stepModeOn: '📋 Step-by-step', stepModeOff: '📄 View all',
-    stepPrev: '← Back', stepNext: 'Next →', stepOf: 'Step {n} / {total}',
-    notesLabel: '📝 My notes (private to you)', notesPlaceholder: 'Jot down personal notes about this lesson here…', notesSaved: 'Saved ✓',
-    convBtn: '🧮 Unit converter', convTitle: 'Unit Converter',
+    speakBtn: 'Read aloud', speakingBtn: 'Reading…',
+    stepModeOn: 'Step-by-step', stepModeOff: 'View all',
+    stepPrev: 'Back', stepNext: 'Next', stepOf: 'Step {n} / {total}',
+    notesLabel: 'My notes (private to you)', notesPlaceholder: 'Jot down personal notes about this lesson here…', notesSaved: 'Saved',
+    convBtn: 'Unit converter', convTitle: 'Unit Converter',
     convVolume: 'Volume', convWeight: 'Weight (approximate — depends on the actual ingredient\'s density)', convTemp: 'Temperature',
-    timerStart: '▶ Start', timerPause: '⏸ Pause', timerReset: '↺ Reset', timerDone: '⏰ Time\'s up!'
+    timerStart: '▶ Start', timerPause: '⏸ Pause', timerReset: 'Reset', timerDone: '⏰ Time\'s up!'
   }
 };
 function t(key, vars) {
