@@ -279,7 +279,7 @@
       });
       html += '</tbody></table>';
       html += '<div class="log-group-sub" style="margin-top:6px">ผลจริงสะสม <b>' + baht(actualTotal) + '</b> เทียบค่าคาดหวังตามจำนวนงวดที่ผ่านมา (' + pastCount + ' งวด) <b>' + baht(expectedSoFar) + '</b> — ' +
-        (actualTotal >= expectedSoFar ? 'ได้มากกว่าค่าคาดหวัง 🎉' : 'ได้น้อยกว่าค่าคาดหวัง (ปกติมาก ผลรายบุคคลสุ่มต่างจาก EV ได้เสมอ)') + '</div>';
+        (actualTotal >= expectedSoFar ? 'ได้มากกว่าค่าคาดหวัง' : 'ได้น้อยกว่าค่าคาดหวัง (ปกติมาก ผลรายบุคคลสุ่มต่างจาก EV ได้เสมอ)') + '</div>';
     });
 
     box.innerHTML = html;

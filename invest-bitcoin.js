@@ -394,7 +394,7 @@
     fetchFxRate().then(function (rate) {
       fxRate = rate; saveFxCache(rate);
       $('fxRate').value = rate.toFixed(2);
-      setFxStatus('🟢 อัตราจาก Yahoo Finance (THB=X) · เมื่อสักครู่', 'ok');
+      setFxStatus('อัตราจาก Yahoo Finance (THB=X) · เมื่อสักครู่', 'ok');
       updatePriceFx();
     }, function () {
       var c = loadFxCache();
@@ -435,10 +435,10 @@
   function runFng() {
     fetchFng().then(function (o) {
       saveFngCache(o);
-      renderFngValue(o.value, o.classification, 'real', '🟢 ข้อมูลสด · Alternative.me');
+      renderFngValue(o.value, o.classification, 'real', 'ข้อมูลสด · Alternative.me');
     }, function () {
       var c = loadFngCache();
-      if (c) renderFngValue(c.value, c.classification, 'real', '🟡 ดึงสดไม่ได้ — ใช้ค่าที่บันทึกไว้ (' + cacheAgeText(c.ts) + ')');
+      if (c) renderFngValue(c.value, c.classification, 'real', 'ดึงสดไม่ได้ — ใช้ค่าที่บันทึกไว้ (' + cacheAgeText(c.ts) + ')');
       else {
         $('fngLabel').textContent = 'ดึงข้อมูลไม่ได้ตอนนี้';
         var badge = $('fngBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge paste'; badge.textContent = 'ลองรีเฟรชหน้านี้อีกครั้งภายหลัง';
@@ -575,9 +575,9 @@
   function setSourceBadge(src, days) {
     var el = $('chartSource'); if (!el) return;
     if (src) lastSource = src; else src = lastSource;
-    if (src.kind === 'demo') { el.className = 'src-badge demo'; el.textContent = '🟡 ข้อมูลตัวอย่าง — ไม่ใช่ราคาจริง (ไว้ฝึกอ่านกราฟ)'; }
-    else if (src.kind === 'paste') { el.className = 'src-badge paste'; el.textContent = '✍️ ราคาที่วางเอง · ' + days + ' วัน'; }
-    else { el.className = 'src-badge real'; el.textContent = '🟢 ' + (src.label || 'ราคาจริง') + ' · ' + (src.stale ? ('ราคาล่าสุด ' + cacheAgeText(src.cachedAt)) : 'ราคาจริง') + ' · ' + days + ' วัน'; }
+    if (src.kind === 'demo') { el.className = 'src-badge demo'; el.textContent = 'ข้อมูลตัวอย่าง — ไม่ใช่ราคาจริง (ไว้ฝึกอ่านกราฟ)'; }
+    else if (src.kind === 'paste') { el.className = 'src-badge paste'; el.textContent = 'ราคาที่วางเอง · ' + days + ' วัน'; }
+    else { el.className = 'src-badge real'; el.textContent = '' + (src.label || 'ราคาจริง') + ' · ' + (src.stale ? ('ราคาล่าสุด ' + cacheAgeText(src.cachedAt)) : 'ราคาจริง') + ' · ' + days + ' วัน'; }
   }
   function useSeries(s, msg, cls, src) {
     lastSeries = s;
@@ -677,7 +677,7 @@
     var res = riskCalc({ capital: capital, riskPct: riskPct, entry: entry, stop: stop, comm: comm, resistance: lastAnalysis ? lastAnalysis.resistance : NaN });
     var box = $('riskResult');
     if (res.error) {
-      $('riskHeadline').innerHTML = '<span style="color:var(--err)">⚠️ ' + res.error + '</span>';
+      $('riskHeadline').innerHTML = '<span style="color:var(--err)">' + res.error + '</span>';
       $('riskKv').innerHTML = ''; $('tpRow').innerHTML = ''; box.classList.add('show'); $('saveBtn').style.display = 'none'; return;
     }
     $('riskHeadline').innerHTML = 'ควรซื้อได้ประมาณ <b>' + fmt(res.qty, 6) + ' BTC</b> (≈ ' + fmt0(res.qty * 1e8) + ' sats) ใช้เงิน ≈ <b>' + usd0(res.cost) + '</b>' + fxSpan(res.cost);
@@ -687,7 +687,7 @@
     kv += '<div class="k">ราคาคุ้มทุน (รวมค่าคอมฯ ไป-กลับ)</div><div class="v">' + fmt(res.breakeven) + '</div>';
     if (isFinite(res.rr)) kv += '<div class="k">ความคุ้ม (กำไรคาดหวัง : ความเสี่ยง) ถึงแนวต้าน</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
     $('riskKv').innerHTML = kv;
-    $('tpRow').innerHTML = '<span class="tp-chip">🎯 ทยอยขายไม้ 1 (TP1): ' + fmt(res.tp1) + '</span><span class="tp-chip">🎯 ไม้ 2 (TP2): ' + fmt(res.tp2) + '</span><span class="tp-chip">🎯 ไม้ 3 (TP3, ที่เหลือ trail stop): ' + fmt(res.tp3) + '</span>';
+    $('tpRow').innerHTML = '<span class="tp-chip">ทยอยขายไม้ 1 (TP1): ' + fmt(res.tp1) + '</span><span class="tp-chip">ไม้ 2 (TP2): ' + fmt(res.tp2) + '</span><span class="tp-chip">ไม้ 3 (TP3, ที่เหลือ trail stop): ' + fmt(res.tp3) + '</span>';
     if (res.note) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">ℹ️ ' + res.note + '</div>';
     box.classList.add('show');
     $('saveBtn').style.display = 'inline-flex';
@@ -748,11 +748,11 @@
   function sellVerdict(a) {
     var det = a.det || {}, ps = det.psar;
     var cls, headline;
-    if (ps && !ps.up) { cls = 'no'; headline = '🔴 พิจารณาขาย — สัญญาณเทรนด์กลับตัว (SAR พลิกลง)'; }
-    else if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) { cls = 'no'; headline = '🔴 พิจารณาขาย/ตัดขาดทุน — ราคาหลุดแนวโน้ม (ต่ำกว่าเส้นค่าเฉลี่ย)'; }
-    else if (isFinite(a.rsi) && a.rsi > 70) { cls = 'warn'; headline = '🟡 พิจารณาล็อกกำไรบางส่วน — RSI สูง ราคาร้อนแรง อาจย่อ'; }
-    else if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) { cls = 'warn'; headline = '🟡 ใกล้แนวต้าน — พิจารณาล็อกกำไรบางส่วน'; }
-    else { cls = 'go'; headline = '🟢 ยังอยู่ในแนวโน้มขึ้น — ถือต่อได้ เลื่อนจุดตัดขาดทุนตามแนวด้านล่าง'; }
+    if (ps && !ps.up) { cls = 'no'; headline = 'พิจารณาขาย — สัญญาณเทรนด์กลับตัว (SAR พลิกลง)'; }
+    else if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) { cls = 'no'; headline = 'พิจารณาขาย/ตัดขาดทุน — ราคาหลุดแนวโน้ม (ต่ำกว่าเส้นค่าเฉลี่ย)'; }
+    else if (isFinite(a.rsi) && a.rsi > 70) { cls = 'warn'; headline = 'พิจารณาล็อกกำไรบางส่วน — RSI สูง ราคาร้อนแรง อาจย่อ'; }
+    else if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) { cls = 'warn'; headline = 'ใกล้แนวต้าน — พิจารณาล็อกกำไรบางส่วน'; }
+    else { cls = 'go'; headline = 'ยังอยู่ในแนวโน้มขึ้น — ถือต่อได้ เลื่อนจุดตัดขาดทุนตามแนวด้านล่าง'; }
 
     var levels = [
       {
@@ -824,7 +824,7 @@
     var lv = btcAnswers.noLeverage;
     checks.push({
       ok: lv === 'yes' ? true : lv === 'no' ? false : null,
-      txt: lv === 'yes' ? 'ไม่ใช้เลเวอเรจ/มาร์จิ้น (เทรด spot เท่านั้น) ✓ ยืนยันแล้ว'
+      txt: lv === 'yes' ? 'ไม่ใช้เลเวอเรจ/มาร์จิ้น (เทรด spot เท่านั้น) ยืนยันแล้ว'
         : lv === 'no' ? 'กำลังใช้เลเวอเรจ/มาร์จิ้น — เสี่ยงถูกบังคับปิดสถานะ (liquidation) จากความผันผวนระยะสั้น แนะนำเทรด spot เท่านั้น'
         : 'ยืนยันก่อนว่าเทรด spot ไม่ใช้เลเวอเรจ/มาร์จิ้น (กดปุ่มด้านบน)'
     });
@@ -835,12 +835,12 @@
     var fails = checks.filter(function (c) { return c.ok === false; }).length;
     var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
     var box = $('checkResult'), v = $('checkVerdict');
-    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = '⛔ ยังไม่ควรเข้า — ติด ' + fails + ' ข้อ ควรแก้ให้ครบก่อนซื้อ'; }
-    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = '⚠️ ข้อมูลไม่พอประเมินครบ — กด "ประเมิน"/"ดึงราคา" แล้ว "คำนวณ" และตอบคำถามด้านบนก่อน'; }
-    else { v.className = 'verdict-box go'; v.textContent = '✅ เข้าได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)'; }
+    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = 'ยังไม่ควรเข้า — ติด ' + fails + ' ข้อ ควรแก้ให้ครบก่อนซื้อ'; }
+    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = 'ข้อมูลไม่พอประเมินครบ — กด "ประเมิน"/"ดึงราคา" แล้ว "คำนวณ" และตอบคำถามด้านบนก่อน'; }
+    else { v.className = 'verdict-box go'; v.textContent = 'เข้าได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)'; }
     var html = '';
     checks.forEach(function (c) {
-      var ic = c.ok === true ? '✅' : c.ok === false ? '❌' : '◻️';
+      var ic = c.ok === true ? '' : c.ok === false ? '' : '◻️';
       html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
     });
     $('chkList').innerHTML = html;
@@ -859,9 +859,9 @@
     var msg = 'ค่าคาดหวังต่อไม้ ≈ <b>' + (exp >= 0 ? '+' : '') + exp.toFixed(2) + ' R</b> ' +
       '(ถ้าเสี่ยงไม้ละ $1,000 ≈ ' + (exp >= 0 ? '+' : '−') + usd0(Math.abs(exp) * 1000) + ' ต่อไม้โดยเฉลี่ย)<br>' +
       '<span style="font-weight:500">ต้องชนะอย่างน้อย ~' + beWin.toFixed(0) + '% ถึงจะเสมอตัวที่ R นี้</span>';
-    if (exp > 0.1) { box.className = 'verdict-box go'; box.innerHTML = '✅ ได้เปรียบระยะยาว<br>' + msg + '<br><span style="font-weight:500">ถ้าทำตามวินัยสม่ำเสมอ (คุมความเสี่ยงเท่ากันทุกไม้) มีโอกาสกำไรระยะยาว</span>'; }
-    else if (exp > 0) { box.className = 'verdict-box warn'; box.innerHTML = '⚠️ แทบเสมอตัว<br>' + msg + '<br><span style="font-weight:500">หักค่าคอมฯแล้วอาจขาดทุน — ต้องเพิ่มกำไรตอนชนะ หรือลดขาดทุนตอนแพ้</span>'; }
-    else { box.className = 'verdict-box no'; box.innerHTML = '⛔ ขาดทุนระยะยาว<br>' + msg + '<br><span style="font-weight:500">ถึงชนะบ่อยก็ไม่พอ — ต้อง "ปล่อยกำไรให้ยาว ตัดขาดทุนให้ไว" (เพิ่ม R ตอนชนะ)</span>'; }
+    if (exp > 0.1) { box.className = 'verdict-box go'; box.innerHTML = 'ได้เปรียบระยะยาว<br>' + msg + '<br><span style="font-weight:500">ถ้าทำตามวินัยสม่ำเสมอ (คุมความเสี่ยงเท่ากันทุกไม้) มีโอกาสกำไรระยะยาว</span>'; }
+    else if (exp > 0) { box.className = 'verdict-box warn'; box.innerHTML = 'แทบเสมอตัว<br>' + msg + '<br><span style="font-weight:500">หักค่าคอมฯแล้วอาจขาดทุน — ต้องเพิ่มกำไรตอนชนะ หรือลดขาดทุนตอนแพ้</span>'; }
+    else { box.className = 'verdict-box no'; box.innerHTML = 'ขาดทุนระยะยาว<br>' + msg + '<br><span style="font-weight:500">ถึงชนะบ่อยก็ไม่พอ — ต้อง "ปล่อยกำไรให้ยาว ตัดขาดทุนให้ไว" (เพิ่ม R ตอนชนะ)</span>'; }
     box.style.display = 'block';
   }
 
@@ -977,7 +977,7 @@
     },
     setBtn: function () {
       var b = $('driveConnectBtn'); if (!b) return;
-      b.textContent = this.connected ? '🔗 เชื่อมต่อ Google Drive แล้ว' : '🔗 เชื่อมต่อ Google Drive';
+      b.textContent = this.connected ? 'เชื่อมต่อ Google Drive แล้ว' : 'เชื่อมต่อ Google Drive';
     },
     init: function () {
       try { this.connected = localStorage.getItem(DRIVE_CONNECTED_KEY) === '1'; } catch (e) {}
@@ -1076,8 +1076,8 @@
           renderPf(); renderJournal();
           return self.upload({ portfolio: mergedPf, journal: mergedJn, savedAt: new Date().toISOString() });
         })
-        .then(function () { self.setStatus('✅ ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); })
-        .catch(function (e) { self.setStatus('❌ ' + (e.message || e), 'err'); });
+        .then(function () { self.setStatus('ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); })
+        .catch(function (e) { self.setStatus('' + (e.message || e), 'err'); });
     },
     scheduleSync: function () {
       var self = this;
@@ -1093,14 +1093,14 @@
       self.setStatus('กำลังซิงก์…', '');
       self.ensureFolder().then(function () { return self.findFile(); })
         .then(function () { return self.upload({ portfolio: loadPf(), journal: loadJn(), savedAt: new Date().toISOString() }); })
-        .then(function () { self.setStatus('✅ ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
+        .then(function () { self.setStatus('ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
         .catch(function (e) {
           var msg = String(e && e.message || e);
           if (msg.indexOf('401') !== -1 || msg.indexOf('403') !== -1) {
             self.accessToken = null;
             self.setStatus('เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', 'err');
           } else {
-            self.setStatus('❌ ซิงก์ไม่สำเร็จ: ' + msg, 'err');
+            self.setStatus('ซิงก์ไม่สำเร็จ: ' + msg, 'err');
           }
         })
         .finally(function () {
@@ -1126,8 +1126,8 @@
       var d = $('saveBtn')._data; if (!d) return;
       var pf = loadPf(); pf.push({ qty: d.qty, cost: d.cost, ts: Date.now() });
       savePf(pf); renderPf();
-      $('saveBtn').textContent = '✓ บันทึกแล้ว';
-      setTimeout(function () { $('saveBtn').innerHTML = '💾 บันทึกเข้าพอร์ต'; }, 1500);
+      $('saveBtn').textContent = 'บันทึกแล้ว';
+      setTimeout(function () { $('saveBtn').innerHTML = 'บันทึกเข้าพอร์ต'; }, 1500);
     });
     $('chkForm').addEventListener('click', function (e) {
       var btn = e.target.closest('.yn-btn'); if (!btn) return;

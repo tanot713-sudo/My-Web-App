@@ -83,17 +83,17 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
 
   /* ══════════════════ คลังวัตถุจากทรงพื้นฐาน (เดิม) ══════════════════ */
   var OBJECT_DEFS = [
-    { key: 'wall', label: 'ผนัง', icon: '🧱', group: 'โครงสร้าง', color: 0xE0DDD3, build: function (c) {
+    { key: 'wall', label: 'ผนัง', icon: '', group: 'โครงสร้าง', color: 0xE0DDD3, build: function (c) {
         var g = new THREE.Group();
         var m = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.4, 0.15), new THREE.MeshStandardMaterial({ color: c }));
         m.position.y = 1.2; g.add(m); return g;
       } },
-    { key: 'door', label: 'ประตู', icon: '🚪', group: 'โครงสร้าง', color: 0x8B5E3C, build: function (c) {
+    { key: 'door', label: 'ประตู', icon: '', group: 'โครงสร้าง', color: 0x8B5E3C, build: function (c) {
         var g = new THREE.Group();
         var m = new THREE.Mesh(new THREE.BoxGeometry(0.95, 2.1, 0.06), new THREE.MeshStandardMaterial({ color: c }));
         m.position.y = 1.05; g.add(m); return g;
       } },
-    { key: 'window', label: 'หน้าต่าง', icon: '🪟', group: 'โครงสร้าง', color: 0x9FD8E8, build: function (c) {
+    { key: 'window', label: 'หน้าต่าง', icon: '', group: 'โครงสร้าง', color: 0x9FD8E8, build: function (c) {
         var g = new THREE.Group();
         var frame = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.2, 0.08), new THREE.MeshStandardMaterial({ color: 0xFFFFFF }));
         frame.position.y = 1.5; g.add(frame);
@@ -101,12 +101,12 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
         glass.position.set(0, 1.5, 0.01); g.add(glass);
         return g;
       } },
-    { key: 'column', label: 'เสา', icon: '🏛️', group: 'โครงสร้าง', color: 0xC9C4B8, build: function (c) {
+    { key: 'column', label: 'เสา', icon: '', group: 'โครงสร้าง', color: 0xC9C4B8, build: function (c) {
         var g = new THREE.Group();
         var m = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 2.7, 16), new THREE.MeshStandardMaterial({ color: c }));
         m.position.y = 1.35; g.add(m); return g;
       } },
-    { key: 'table', label: 'โต๊ะ', icon: '🍽️', group: 'เฟอร์นิเจอร์', color: 0xB78C56, build: function (c) {
+    { key: 'table', label: 'โต๊ะ', icon: '', group: 'เฟอร์นิเจอร์', color: 0xB78C56, build: function (c) {
         var g = new THREE.Group();
         var top = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.05, 0.7), new THREE.MeshStandardMaterial({ color: c }));
         top.position.y = 0.75; g.add(top);
@@ -117,7 +117,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
         });
         return g;
       } },
-    { key: 'chair', label: 'เก้าอี้', icon: '🪑', group: 'เฟอร์นิเจอร์', color: 0x6B7A8F, build: function (c) {
+    { key: 'chair', label: 'เก้าอี้', icon: '', group: 'เฟอร์นิเจอร์', color: 0x6B7A8F, build: function (c) {
         var g = new THREE.Group();
         var seat = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.05, 0.45), new THREE.MeshStandardMaterial({ color: c }));
         seat.position.y = 0.46; g.add(seat);
@@ -130,7 +130,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
         });
         return g;
       } },
-    { key: 'sofa', label: 'โซฟา', icon: '🛋️', group: 'เฟอร์นิเจอร์', color: 0x7C5C4A, build: function (c) {
+    { key: 'sofa', label: 'โซฟา', icon: '', group: 'เฟอร์นิเจอร์', color: 0x7C5C4A, build: function (c) {
         var g = new THREE.Group();
         var mat = new THREE.MeshStandardMaterial({ color: c });
         var base = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.4, 0.85), mat);
@@ -142,12 +142,12 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
         var arm2 = new THREE.Mesh(armGeo, mat); arm2.position.set(-0.8, 0.42, 0); g.add(arm2);
         return g;
       } },
-    { key: 'cabinet', label: 'ตู้', icon: '🗄️', group: 'เฟอร์นิเจอร์', color: 0x9C7A4E, build: function (c) {
+    { key: 'cabinet', label: 'ตู้', icon: '', group: 'เฟอร์นิเจอร์', color: 0x9C7A4E, build: function (c) {
         var g = new THREE.Group();
         var body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.8, 0.5), new THREE.MeshStandardMaterial({ color: c }));
         body.position.y = 0.9; g.add(body); return g;
       } },
-    { key: 'bed', label: 'เตียง', icon: '🛏️', group: 'เฟอร์นิเจอร์', color: 0xD8C8B0, build: function (c) {
+    { key: 'bed', label: 'เตียง', icon: '', group: 'เฟอร์นิเจอร์', color: 0xD8C8B0, build: function (c) {
         var g = new THREE.Group();
         var frame = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.3, 2.0), new THREE.MeshStandardMaterial({ color: 0x6B4A30 }));
         frame.position.y = 0.18; g.add(frame);
@@ -157,22 +157,22 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
         pillow.position.set(0, 0.62, -0.75); g.add(pillow);
         return g;
       } },
-    { key: 'cone', label: 'กรวยจราจร', icon: '🚧', group: 'ไซต์งาน', color: 0xFF6B1A, build: function (c) {
+    { key: 'cone', label: 'กรวยจราจร', icon: '', group: 'ไซต์งาน', color: 0xFF6B1A, build: function (c) {
         var g = new THREE.Group();
         var m = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.55, 20), new THREE.MeshStandardMaterial({ color: c }));
         m.position.y = 0.27; g.add(m); return g;
       } },
-    { key: 'barrel', label: 'ถังเก็บของ', icon: '🛢️', group: 'ไซต์งาน', color: 0x2E6DB4, build: function (c) {
+    { key: 'barrel', label: 'ถังเก็บของ', icon: '', group: 'ไซต์งาน', color: 0x2E6DB4, build: function (c) {
         var g = new THREE.Group();
         var m = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.9, 20), new THREE.MeshStandardMaterial({ color: c }));
         m.position.y = 0.45; g.add(m); return g;
       } },
-    { key: 'crate', label: 'ลัง/พาเลท', icon: '📦', group: 'ไซต์งาน', color: 0xB08654, build: function (c) {
+    { key: 'crate', label: 'ลัง/พาเลท', icon: '', group: 'ไซต์งาน', color: 0xB08654, build: function (c) {
         var g = new THREE.Group();
         var m = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.15, 1.2), new THREE.MeshStandardMaterial({ color: c }));
         m.position.y = 0.08; g.add(m); return g;
       } },
-    { key: 'ladder', label: 'บันได', icon: '🪜', group: 'ไซต์งาน', color: 0xC9A227, build: function (c) {
+    { key: 'ladder', label: 'บันได', icon: '', group: 'ไซต์งาน', color: 0xC9A227, build: function (c) {
         var g = new THREE.Group();
         var mat = new THREE.MeshStandardMaterial({ color: c });
         var railGeo = new THREE.BoxGeometry(0.06, 2.2, 0.06);
@@ -184,7 +184,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
         }
         return g;
       } },
-    { key: 'sign', label: 'ป้ายเตือน', icon: '⚠️', group: 'ไซต์งาน', color: 0xF5C518, build: function (c) {
+    { key: 'sign', label: 'ป้ายเตือน', icon: '', group: 'ไซต์งาน', color: 0xF5C518, build: function (c) {
         var g = new THREE.Group();
         var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.4, 8), new THREE.MeshStandardMaterial({ color: 0x555555 }));
         pole.position.y = 0.7; g.add(pole);
@@ -192,7 +192,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
         board.position.y = 1.3; g.add(board);
         return g;
       } },
-    { key: 'scaffold', label: 'นั่งร้าน', icon: '🏗️', group: 'ไซต์งาน', color: 0x8A8F99, build: function (c) {
+    { key: 'scaffold', label: 'นั่งร้าน', icon: '', group: 'ไซต์งาน', color: 0x8A8F99, build: function (c) {
         var g = new THREE.Group();
         var mat = new THREE.MeshStandardMaterial({ color: c });
         var postGeo = new THREE.CylinderGeometry(0.04, 0.04, 2.0, 8);
@@ -571,10 +571,10 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     card.style.display = '';
     var isProc = rec.type === 'proc';
     var def = isProc ? defByKey(rec.key) : null;
-    var label = isProc ? (def.icon + ' ' + def.label) : ('📷 ' + (rec.name || 'โมเดลที่นำเข้า'));
+    var label = isProc ? (def.icon + ' ' + def.label) : ('' + (rec.name || 'โมเดลที่นำเข้า'));
 
     var html = '<div class="s3-insp-row"><span class="lbl">' + label + '</span>' +
-      '<button class="btn sm" id="s3Del" type="button">🗑 ลบ</button></div>';
+      '<button class="btn sm" id="s3Del" type="button">ลบ</button></div>';
 
     html += '<div class="s3-insp-row"><span class="lbl">ตำแหน่ง</span><div class="s3-nudge">' +
       '<button type="button" data-nudge="x-1" aria-label="ขยับซ้าย">◀</button>' +
@@ -835,7 +835,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       var rows = list.map(function (m) {
         return '<div class="s3-mymodel-row" data-id="' + m.id + '">' +
           '<button class="s3-cat-btn" type="button" data-model-id="' + m.id + '">' +
-            '<span class="ic">📷</span><span class="lb">' + escHtml(m.name) + '</span></button>' +
+            '<span class="ic"></span><span class="lb">' + escHtml(m.name) + '</span></button>' +
           '<button class="s3-mymodel-del" type="button" data-del-id="' + m.id + '" aria-label="ลบโมเดล ' + escHtml(m.name) + '">🗑</button>' +
         '</div>';
       }).join('');

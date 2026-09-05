@@ -381,7 +381,7 @@
         var res = checkTicket(ticket, draw);
         var out = $('ltCheckOut');
         if (res.hits.length) {
-          out.innerHTML = '<div class="sumbox" style="margin-top:10px"><div class="lbl">ผลการตรวจ</div><div class="val grow">🎉 ถูกรางวัล: ' + res.hits.join(', ') + '</div></div>';
+          out.innerHTML = '<div class="sumbox" style="margin-top:10px"><div class="lbl">ผลการตรวจ</div><div class="val grow">ถูกรางวัล: ' + res.hits.join(', ') + '</div></div>';
         } else {
           out.innerHTML = '<div class="sumbox" style="margin-top:10px"><div class="lbl">ผลการตรวจ</div><div class="val">ไม่ถูกรางวัลใดเลยในงวดนี้</div></div>';
         }

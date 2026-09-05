@@ -488,7 +488,6 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
   </div>
 
   <div class="head">
-    <div class="head-ic">📊</div>
     <div>
       <h1 data-i18n="pageTitle">นำเสนอรายงาน</h1>
       <div class="head-sub" data-i18n="pageSub">อัปโหลดไฟล์ Excel/CSV แล้วดู แก้ไข เรียง กรองข้อมูลได้ในเว็บ</div>
@@ -514,10 +513,10 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
   </div>
 
   <div class="card" id="uploadCard">
-    <h2 data-i18n="uploadTitle">📤 อัปโหลดไฟล์</h2>
+    <h2 data-i18n="uploadTitle">อัปโหลดไฟล์</h2>
     <div class="drop-zone" id="dropZone">
       <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden>
-      <div class="drop-ic-wrap">📁</div>
+      <div class="drop-ic-wrap"></div>
       <div class="drop-txt" data-i18n="dropText">ลากไฟล์มาวางตรงนี้ หรือ</div>
       <button class="btn primary" id="pickBtn" type="button" data-i18n="pickBtn">เลือกไฟล์</button>
       <div class="drop-hint" data-i18n="dropHint">รองรับ .xlsx .xls .csv — ไฟล์ประมวลผลในเครื่องคุณทั้งหมด</div>
@@ -526,7 +525,7 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
   </div>
 
   <div class="card" id="resumeCard" style="display:none">
-    <h2 data-i18n="resumeTitle">💾 พบข้อมูลที่ทำค้างไว้</h2>
+    <h2 data-i18n="resumeTitle">พบข้อมูลที่ทำค้างไว้</h2>
     <p class="mini" id="resumeInfo"></p>
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn primary sm" id="resumeBtn" type="button" data-i18n="resumeBtn">ดำเนินการต่อ</button>
@@ -535,12 +534,12 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
   </div>
 
   <div class="card" id="reportsCard" style="display:none">
-    <h2><span data-i18n="reportsTitle">📁 รายงานของฉัน</span> <span class="mini" id="reportsMeta" style="margin-left:auto"></span></h2>
+    <h2><span data-i18n="reportsTitle">รายงานของฉัน</span> <span class="mini" id="reportsMeta" style="margin-left:auto"></span></h2>
     <div id="reportsList"></div>
   </div>
 
   <div class="card" id="sheetCard" style="display:none">
-    <h2 data-i18n="sheetTitle">📑 เลือกชีต</h2>
+    <h2 data-i18n="sheetTitle">เลือกชีต</h2>
     <p class="mini" id="sheetModeHint"></p>
     <div class="chip-row">
       <button class="chip" id="sheetModeCombine" type="button" data-i18n="sheetModeCombine">รวมทุกชีตเป็นตารางเดียว</button>
@@ -550,16 +549,16 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
   </div>
 
   <div class="card" id="headerCard" style="display:none">
-    <h2 data-i18n="headerTitle">🔤 เลือกแถวหัวตาราง</h2>
+    <h2 data-i18n="headerTitle">เลือกแถวหัวตาราง</h2>
     <p class="mini" data-i18n="headerHint">คลิกแถวที่เป็นชื่อคอลัมน์ (ปกติเป็นแถวแรกสุด) — ดูตัวอย่าง 8 แถวแรกของไฟล์</p>
     <div class="tbl-wrap"><table id="headerPreviewTable"></table></div>
     <button class="btn primary sm" id="confirmHeaderBtn" type="button" style="margin-top:10px" data-i18n="confirmHeaderBtn">ใช้แถวนี้เป็นหัวตาราง</button>
   </div>
 
   <div class="card" id="dataCard" style="display:none">
-    <h2><span data-i18n="dataTitle">📋 ข้อมูล</span> <span class="mini" id="dataMeta" style="margin-left:auto"></span></h2>
+    <h2><span data-i18n="dataTitle">ข้อมูล</span> <span class="mini" id="dataMeta" style="margin-left:auto"></span></h2>
     <div class="toolbar-row">
-      <div class="search-wrap"><span class="ic">🔍</span><input type="text" id="globalSearch" data-i18n-placeholder="searchPh" placeholder="ค้นหาทุกคอลัมน์…"></div>
+      <div class="search-wrap"><span class="ic"></span><input type="text" id="globalSearch" data-i18n-placeholder="searchPh" placeholder="ค้นหาทุกคอลัมน์…"></div>
       <button class="btn sm" id="addRowBtn" type="button" data-i18n="addRowBtn">+ เพิ่มแถว</button>
       <button class="btn sm" id="addColBtn" type="button" data-i18n="addColBtn">+ เพิ่มคอลัมน์</button>
       <button class="btn sm" id="addFormulaColBtn" type="button" data-i18n="addFormulaColBtn">+ ƒx คอลัมน์สูตร</button>
@@ -608,12 +607,12 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
         <label><span data-i18n="domainTemplateLbl">แม่แบบ</span> <select id="domainOverrideSel">
           <option value="" data-i18n="domainAutoOption">อัตโนมัติ</option>
           <option value="none" data-i18n="domainNoneOption">ทั่วไป (ไม่ใช้แม่แบบ)</option>
-          <option value="maintenance" data-i18n="domainMaintenanceOption">🛠️ ซ่อมบำรุง</option>
-          <option value="project" data-i18n="domainProjectOption">📁 โครงการ</option>
-          <option value="legal" data-i18n="domainLegalOption">⚖️ กฎหมาย</option>
-          <option value="risk" data-i18n="domainRiskOption">⚠️ ความเสี่ยง</option>
-          <option value="finance" data-i18n="domainFinanceOption">💰 รายรับ-รายจ่าย</option>
-          <option value="reading" data-i18n="domainReadingOption">📚 การอ่านหนังสือ</option>
+          <option value="maintenance" data-i18n="domainMaintenanceOption">ซ่อมบำรุง</option>
+          <option value="project" data-i18n="domainProjectOption">โครงการ</option>
+          <option value="legal" data-i18n="domainLegalOption">กฎหมาย</option>
+          <option value="risk" data-i18n="domainRiskOption">ความเสี่ยง</option>
+          <option value="finance" data-i18n="domainFinanceOption">รายรับ-รายจ่าย</option>
+          <option value="reading" data-i18n="domainReadingOption">การอ่านหนังสือ</option>
         </select></label>
       </div>
       <div class="chart-ctrl-row" style="margin-top:-4px">
@@ -637,12 +636,12 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
       </div>
     </div>
     <div class="card" id="numStatCard" style="display:none">
-      <h2><span data-i18n="numStatTitle">🔢 สรุปตัวเลข</span> <button class="card-color-btn" type="button" data-role="numStat" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
+      <h2><span data-i18n="numStatTitle">สรุปตัวเลข</span> <button class="card-color-btn" type="button" data-role="numStat" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
       <div class="stat-row" id="numStatRow"></div>
     </div>
     <div class="chart-grid">
     <div class="card" id="barChartCard" style="display:none">
-      <h2><span id="barChartTitle">📊 กราฟแท่ง</span> <button class="card-color-btn" type="button" data-role="bar" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
+      <h2><span id="barChartTitle">กราฟแท่ง</span> <button class="card-color-btn" type="button" data-role="bar" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
       <div class="chart-ctrl-row">
         <label><span data-i18n="chartTypeLbl">ชนิดกราฟ</span> <select id="barTypeSel">
           <option value="bar" data-i18n="typeBar">แท่งแนวตั้ง</option><option value="barH" data-i18n="typeBarH">แท่งแนวนอน</option>
@@ -652,10 +651,10 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
         <label><span data-i18n="sumValueLbl">รวมค่า</span> <select id="barNumSel"></select></label>
       </div>
       <div class="chart-wrap"><canvas id="barChart"></canvas></div>
-      <p class="mini" data-i18n="hintBarClick">👆 แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น</p>
+      <p class="mini" data-i18n="hintBarClick">แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น</p>
     </div>
     <div class="card" id="lineChartCard" style="display:none">
-      <h2><span id="lineChartTitle">📈 แนวโน้มตามเวลา</span> <button class="card-color-btn" type="button" data-role="line" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
+      <h2><span id="lineChartTitle">แนวโน้มตามเวลา</span> <button class="card-color-btn" type="button" data-role="line" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
       <div class="chart-ctrl-row">
         <label><span data-i18n="chartTypeLbl">ชนิดกราฟ</span> <select id="lineTypeSel">
           <option value="line" data-i18n="typeLine">เส้น</option><option value="bar" data-i18n="typeBar">แท่งแนวตั้ง</option><option value="barH" data-i18n="typeBarH">แท่งแนวนอน</option>
@@ -666,10 +665,10 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
         <label class="trendline-chk"><input type="checkbox" id="trendlineChk"> <span data-i18n="trendlineLbl">แสดงเส้นแนวโน้ม + พยากรณ์</span></label>
       </div>
       <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
-      <p class="mini" data-i18n="hintLineClick">👆 แตะกราฟเพื่อกรองตารางเฉพาะช่วงนั้น</p>
+      <p class="mini" data-i18n="hintLineClick">แตะกราฟเพื่อกรองตารางเฉพาะช่วงนั้น</p>
     </div>
     <div class="card" id="pieChartCard" style="display:none">
-      <h2><span id="pieChartTitle">🥧 สัดส่วน</span> <button class="card-color-btn" type="button" data-role="pie" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
+      <h2><span id="pieChartTitle">สัดส่วน</span> <button class="card-color-btn" type="button" data-role="pie" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้">🎨</button></h2>
       <div class="chart-ctrl-row">
         <label><span data-i18n="chartTypeLbl">ชนิดกราฟ</span> <select id="pieTypeSel">
           <option value="doughnut" data-i18n="typeDoughnut">โดนัท</option><option value="pie" data-i18n="typePie">วงกลม</option>
@@ -678,11 +677,11 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
         <label><span data-i18n="showByLbl">แสดงสัดส่วนตาม</span> <select id="pieCatSel"></select></label>
       </div>
       <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
-      <p class="mini" data-i18n="hintBarClick">👆 แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น</p>
+      <p class="mini" data-i18n="hintBarClick">แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น</p>
     </div>
     </div>
     <div class="card" id="dashTableCard" style="display:none">
-      <h2 data-i18n="dashTableTitle">📋 ตารางข้อมูล</h2>
+      <h2 data-i18n="dashTableTitle">ตารางข้อมูล</h2>
       <div class="toolbar-row" style="margin-bottom:6px">
         <button class="btn sm" id="dashExportXlsxBtn" type="button" data-i18n="exportXlsxBtn">Excel</button>
         <button class="btn sm" id="dashExportCsvBtn" type="button" data-i18n="exportCsvBtn">CSV</button>
@@ -706,7 +705,7 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
       <p class="mini" id="dashTableMeta"></p>
     </div>
     <div class="card" id="dashboardEmptyCard" style="display:none">
-      <h2 data-i18n="dashboardEmptyTitle">📊 แดชบอร์ด</h2>
+      <h2 data-i18n="dashboardEmptyTitle">แดชบอร์ด</h2>
       <p class="mini">ยังสรุปเป็นกราฟไม่ได้ — ต้องมีอย่างน้อย 1 คอลัมน์ตัวเลข หรือ 1 คอลัมน์หมวดหมู่ที่ไม่ใช่ข้อความอิสระเกินไป</p>
     </div>
   </div>

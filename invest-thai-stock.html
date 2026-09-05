@@ -269,7 +269,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>หุ้นไทย</nav>
 
   <div class="head">
-    <div class="head-ic">📈</div>
     <div>
       <h1>หุ้นไทย — ตัวช่วยเข้า/ออก</h1>
       <div class="head-sub">มือใหม่ก็ใช้ได้ · เครื่องอ่านให้ · เน้นคุมเงินและความเสี่ยง</div>
@@ -309,7 +308,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- SET50 browser + screener -->
   <div class="card" id="set50Card">
-    <h2>🔎 หุ้น SET50</h2>
+    <h2>หุ้น SET50</h2>
     <div class="s50-bar">
       <button class="btn primary sm" id="scanBtn" type="button">หาหุ้นน่าสนใจ</button>
       <label class="scan-filter"><input type="checkbox" id="greenOnly"> เฉพาะไฟเขียว</label>
@@ -343,7 +342,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- กราฟราคา -->
   <div class="card" id="chartCard" style="display:none">
-    <h2>📊 กราฟราคา</h2>
+    <h2>กราฟราคา</h2>
     <div class="src-badge" id="chartSource"></div>
     <div class="chart-toolbar">
       <div class="tf-group" id="tfGroup">
@@ -367,20 +366,20 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <span><i style="background:#ef5350"></i>แท่งลง</span>
       <span><i style="background:#F5A524"></i>เฉลี่ย 20 วัน</span>
       <span><i style="background:#3B9BEA"></i>เฉลี่ย 50 วัน</span>
-      <span>👆 แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
+      <span>แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
     </div>
   </div>
 
   <!-- ข่าวหุ้นตัวที่กำลังดู -->
   <div class="card" id="stockNewsCard" style="display:none">
-    <h2 id="stockNewsTitle">📰 ข่าวหุ้น</h2>
+    <h2 id="stockNewsTitle">ข่าวหุ้น</h2>
     <div id="stockNewsBlock" class="news-block"></div>
-    <p class="mini" style="margin-top:8px">📅 อยากดู Opportunity Day (บริษัทพบผู้ลงทุน) ของหุ้นนี้ — <a id="oppdayLink" href="https://www.set.or.th/oppday" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700;text-decoration:none">ค้นหาที่หน้า Opportunity Day ของตลาดหลักทรัพย์ฯ ↗</a></p>
+    <p class="mini" style="margin-top:8px">อยากดู Opportunity Day (บริษัทพบผู้ลงทุน) ของหุ้นนี้ — <a id="oppdayLink" href="https://www.set.or.th/oppday" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700;text-decoration:none">ค้นหาที่หน้า Opportunity Day ของตลาดหลักทรัพย์ฯ ↗</a></p>
   </div>
 
   <!-- สรุปหุ้นด้วย AI -->
   <div class="card" id="aiSumCard" style="display:none">
-    <h2>🤖 สรุปหุ้นด้วย AI</h2>
+    <h2>สรุปหุ้นด้วย AI</h2>
     <button class="btn primary sm" id="aiSumBtn" type="button">สรุปให้หน่อย</button>
     <div class="status" id="aiSumStatus"></div>
     <div class="ai-sum-out" id="aiSumOut" style="display:none"></div>
@@ -412,7 +411,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- เช็กลิสต์ก่อนเข้าไม้ -->
   <div class="card">
-    <h2>✅ ตรวจก่อนเข้าไม้ — ควรซื้อไหม?</h2>
+    <h2>ตรวจก่อนเข้าไม้ — ควรซื้อไหม?</h2>
     <p class="mini">เช็กวินัย 6 ข้อ ก่อนกดซื้อจริง (กันซื้อตามอารมณ์/ไล่ราคา) — กด "ประเมิน" และ "คำนวณ" ด้านบนก่อน แล้วกดปุ่มนี้</p>
     <div style="margin-top:10px"><button class="btn" id="checkBtn" type="button">ตรวจเช็กลิสต์</button></div>
     <div id="checkResult" style="display:none">
@@ -423,7 +422,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- สำรองขึ้น Google Drive -->
   <div class="card">
-    <h2>☁️ สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
+    <h2>สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
     <p class="mini">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตและสมุดเทรดด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง) — กันข้อมูลหายถ้าล้างเบราว์เซอร์ และดึงคืนได้เมื่อเปิดจากเครื่อง/เบราว์เซอร์อื่น</p>
     <div class="drive-row" style="margin-top:10px">
       <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
@@ -433,7 +432,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- พอร์ต -->
   <div class="card">
-    <h2>📁 พอร์ตของฉัน</h2>
+    <h2>พอร์ตของฉัน</h2>
     <p class="mini">เพิ่มหุ้นที่ถืออยู่ได้ตรงนี้ แล้วกด "ควรขาย?" เพื่อให้เครื่องช่วยดูจังหวะขาย (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
       <div class="field" style="flex:1 1 90px"><label>ชื่อหุ้น</label><input type="text" id="pfSym" placeholder="PTT" autocomplete="off" spellcheck="false"></div>
@@ -446,7 +445,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- สมุดเทรด + สถิติ -->
   <div class="card">
-    <h2>📓 สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)</h2>
+    <h2>สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)</h2>
     <p class="mini">บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง (จำในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
       <div class="field" style="flex:1 1 90px"><label>หุ้น</label><input type="text" id="jSym" placeholder="PTT" spellcheck="false"></div>
@@ -461,7 +460,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- Expectancy -->
   <div class="card">
-    <h2>🎲 ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?</h2>
+    <h2>ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?</h2>
     <p class="mini">ความจริงที่มือใหม่มักไม่รู้: <b>ชนะบ่อยไม่ได้แปลว่ากำไร</b> — สิ่งที่สำคัญคือ "กำไรตอนถูก" ต้องใหญ่กว่า "ขาดทุนตอนผิด"</p>
     <div class="frow" style="margin-top:10px">
       <div class="field"><label>อัตราชนะ <span class="unit">(% ของไม้ที่ชนะ)</span></label><input type="number" id="eWin" inputmode="decimal" value="45"></div>
@@ -474,7 +473,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- เงินเย็นเช็ก / reality-check -->
   <div class="card reality">
-    <h2>🛟 อ่านก่อนเอาเงินมาลงทุน (สำคัญมาก)</h2>
+    <h2>อ่านก่อนเอาเงินมาลงทุน (สำคัญมาก)</h2>
     <ul class="reality-list">
       <li>ลงทุนหุ้น <b>เฉพาะเงินที่ไม่ต้องใช้อย่างน้อย 3–5 ปี</b> — เงินที่หายได้โดยไม่กระทบชีวิต</li>
       <li>มี <b>เงินสำรองฉุกเฉิน 3–6 เดือน</b> ก่อนเริ่มเสมอ</li>
@@ -489,7 +488,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- เรียนรู้: อ่านกราฟ -->
   <details class="card lesson" style="box-shadow:var(--sh)">
-    <summary style="font-size:14px">📈 อ่านกราฟเป็นใน 5 นาที (มีรูป)</summary>
+    <summary style="font-size:14px">อ่านกราฟเป็นใน 5 นาที (มีรูป)</summary>
     <div class="details-body">
       <h3>1. แท่งเทียน 1 แท่ง = ราคา 1 วัน</h3>
       <figure>
@@ -543,13 +542,13 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       </figure>
 
       <h3>5. แล้วดูกราฟจริงด้านบนยังไง</h3>
-      <p>กดปุ่ม "📊 ดูตัวอย่างกราฟ" ที่ขั้นที่ 1 เพื่อลองเล่นกับกราฟจริงได้เลย — สลับช่วงเวลา (1เดือน–1ปี), เปิด-ปิดเส้นเฉลี่ย, แตะบนกราฟเพื่อดูราคาแต่ละวัน แล้วไฟจราจรจะสรุปให้ว่าโดยรวมน่าสนใจไหม</p>
+      <p>กดปุ่ม "ดูตัวอย่างกราฟ" ที่ขั้นที่ 1 เพื่อลองเล่นกับกราฟจริงได้เลย — สลับช่วงเวลา (1เดือน–1ปี), เปิด-ปิดเส้นเฉลี่ย, แตะบนกราฟเพื่อดูราคาแต่ละวัน แล้วไฟจราจรจะสรุปให้ว่าโดยรวมน่าสนใจไหม</p>
     </div>
   </details>
 
   <!-- เรียนรู้ -->
   <details class="card lesson" style="box-shadow:var(--sh)">
-    <summary style="font-size:14px">📚 เรียนรู้ — มือใหม่อ่านตรงนี้ก่อน</summary>
+    <summary style="font-size:14px">เรียนรู้ — มือใหม่อ่านตรงนี้ก่อน</summary>
     <div class="details-body">
       <h3>สวิงเทรดคืออะไร</h3>
       <p>ซื้อแล้วถือ "ไม่กี่วันถึงไม่กี่สัปดาห์" รอราคาขยับขึ้นตามจังหวะ แล้วขายทำกำไร — ไม่ใช่ซื้อขายรัวๆ ในวันเดียว และไม่ใช่ถือยาวเป็นปี</p>
@@ -563,16 +562,16 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <p>ทุกครั้งที่ซื้อและขายมีค่าคอมฯ (ปกติผ่านเน็ต ~0.157% ต่อครั้ง) ราคาต้องขึ้นเกิน "จุดคุ้มทุน" ก่อนถึงจะเริ่มมีกำไรจริง เครื่องคำนวณให้แล้ว</p>
       <h3>อ่านไฟจราจรยังไง</h3>
       <ul>
-        <li>🟢 เขียว = ราคาน่าสนใจ อยู่ช่วงถูกของรอบและเริ่มมีแรงซื้อ — ค่อยพิจารณา (ไม่ใช่สั่งให้ซื้อ)</li>
-        <li>🟡 เหลือง = กลางๆ ยังไม่มีจังหวะเด่น รอดูก่อน</li>
-        <li>🔴 แดง = ราคาแพงเทียบรอบ/สัญญาณอ่อน ระวังการไล่ซื้อ</li>
+        <li>เขียว = ราคาน่าสนใจ อยู่ช่วงถูกของรอบและเริ่มมีแรงซื้อ — ค่อยพิจารณา (ไม่ใช่สั่งให้ซื้อ)</li>
+        <li>เหลือง = กลางๆ ยังไม่มีจังหวะเด่น รอดูก่อน</li>
+        <li>แดง = ราคาแพงเทียบรอบ/สัญญาณอ่อน ระวังการไล่ซื้อ</li>
       </ul>
       <h3>เอาตัวเลขจาก Streaming ตรงไหน</h3>
       <p>เปิดหุ้นที่สนใจใน Streaming: "ราคาตอนนี้" คือราคาล่าสุดตัวใหญ่ ส่วน "สูงสุด/ต่ำสุดของรอบ" ดูช่อง High/Low (หรือ 52W High/Low ก็ได้ถ้าหาช่วงสั้นไม่เจอ) แล้วนำมากรอกในขั้นที่ 1</p>
     </div>
   </details>
 
-  <div class="disc">⚠️ เครื่องนี้เป็นตัวช่วยคิดและฝึกวินัย ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · การตัดสินใจและความเสี่ยงเป็นของคุณเอง · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
+  <div class="disc">เครื่องนี้เป็นตัวช่วยคิดและฝึกวินัย ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · การตัดสินใจและความเสี่ยงเป็นของคุณเอง · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
 
 </div>
 

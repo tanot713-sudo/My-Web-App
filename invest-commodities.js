@@ -18,19 +18,19 @@
      kind: 'yahoo' = ticker เดี่ยวดึงตรง, 'cross' = คำนวณจาก 2 ticker,
            'thaigold' = ราคาทองไทย (thai-gold-api, ไม่มีกราฟย้อนหลัง) */
   var ASSETS = [
-    { key: 'usdthb', label: 'บาทดอลลาร์', icon: '🔄', kind: 'yahoo', sym: 'THB=X', unit: 'บาท/USD', dp: 3 },
-    { key: 'gc', label: 'ทองคำ COMEX', icon: '🪙', kind: 'yahoo', sym: 'GC=F', unit: 'USD/ออนซ์', dp: 1 },
+    { key: 'usdthb', label: 'บาทดอลลาร์', icon: '', kind: 'yahoo', sym: 'THB=X', unit: 'บาท/USD', dp: 3 },
+    { key: 'gc', label: 'ทองคำ COMEX', icon: '', kind: 'yahoo', sym: 'GC=F', unit: 'USD/ออนซ์', dp: 1 },
     { key: 'goldbar', label: 'ทองคำแท่ง', icon: '▬', kind: 'thaigold', field: 'bar', unit: 'บาท/บาททองคำ', dp: 0 },
-    { key: 'goldjew', label: 'ทองรูปพรรณ', icon: '💍', kind: 'thaigold', field: 'jewelry', unit: 'บาท/บาททองคำ', dp: 0 },
-    { key: 'wti', label: 'น้ำมัน WTI', icon: '🛢️', kind: 'yahoo', sym: 'CL=F', unit: 'USD/บาร์เรล', dp: 2 },
-    { key: 'brent', label: 'น้ำมันดิบ Brent', icon: '🛢️', kind: 'yahoo', sym: 'BZ=F', unit: 'USD/บาร์เรล', dp: 2 },
-    { key: 'ng', label: 'ก๊าซธรรมชาติ', icon: '🔥', kind: 'yahoo', sym: 'NG=F', unit: 'USD/MMBtu', dp: 3 },
-    { key: 'copper', label: 'ทองแดง', icon: '🟤', kind: 'yahoo', sym: 'HG=F', unit: 'USD/ปอนด์', dp: 3 },
-    { key: 'steel', label: 'เหล็ก (HRC)', icon: '⚙️', kind: 'yahoo', sym: 'HRC=F', unit: 'USD/ตันสั้น', dp: 1 },
-    { key: 'sugar', label: 'น้ำตาลทราย', icon: '🍬', kind: 'yahoo', sym: 'SB=F', unit: 'เซนต์/ปอนด์', dp: 2 },
-    { key: 'coffee', label: 'กาแฟ', icon: '☕', kind: 'yahoo', sym: 'KC=F', unit: 'เซนต์/ปอนด์', dp: 2 },
-    { key: 'rice', label: 'ข้าว (Rough Rice)', icon: '🌾', kind: 'yahoo', sym: 'ZR=F', unit: 'USD/100cwt', dp: 2 },
-    { key: 'dxy', label: 'ดัชนีดอลลาร์', icon: '💵', kind: 'yahoo', sym: 'DX-Y.NYB', unit: 'จุด', dp: 2 },
+    { key: 'goldjew', label: 'ทองรูปพรรณ', icon: '', kind: 'thaigold', field: 'jewelry', unit: 'บาท/บาททองคำ', dp: 0 },
+    { key: 'wti', label: 'น้ำมัน WTI', icon: '', kind: 'yahoo', sym: 'CL=F', unit: 'USD/บาร์เรล', dp: 2 },
+    { key: 'brent', label: 'น้ำมันดิบ Brent', icon: '', kind: 'yahoo', sym: 'BZ=F', unit: 'USD/บาร์เรล', dp: 2 },
+    { key: 'ng', label: 'ก๊าซธรรมชาติ', icon: '', kind: 'yahoo', sym: 'NG=F', unit: 'USD/MMBtu', dp: 3 },
+    { key: 'copper', label: 'ทองแดง', icon: '', kind: 'yahoo', sym: 'HG=F', unit: 'USD/ปอนด์', dp: 3 },
+    { key: 'steel', label: 'เหล็ก (HRC)', icon: '', kind: 'yahoo', sym: 'HRC=F', unit: 'USD/ตันสั้น', dp: 1 },
+    { key: 'sugar', label: 'น้ำตาลทราย', icon: '', kind: 'yahoo', sym: 'SB=F', unit: 'เซนต์/ปอนด์', dp: 2 },
+    { key: 'coffee', label: 'กาแฟ', icon: '', kind: 'yahoo', sym: 'KC=F', unit: 'เซนต์/ปอนด์', dp: 2 },
+    { key: 'rice', label: 'ข้าว (Rough Rice)', icon: '', kind: 'yahoo', sym: 'ZR=F', unit: 'USD/100cwt', dp: 2 },
+    { key: 'dxy', label: 'ดัชนีดอลลาร์', icon: '', kind: 'yahoo', sym: 'DX-Y.NYB', unit: 'จุด', dp: 2 },
     { key: 'jpythb', label: 'เยนเทียบบาท', icon: '🇯🇵', kind: 'cross', a: 'THB=X', b: 'JPY=X', op: 'div', mul: 100, unit: 'บาท/100เยน', dp: 3 },
     { key: 'eurthb', label: 'ยูโรเทียบบาท', icon: '🇪🇺', kind: 'cross', a: 'EURUSD=X', b: 'THB=X', op: 'mul', mul: 1, unit: 'บาท/ยูโร', dp: 3 },
     { key: 'cnythb', label: 'หยวนเทียบบาท', icon: '🇨🇳', kind: 'cross', a: 'THB=X', b: 'CNY=X', op: 'div', mul: 1, unit: 'บาท/หยวน', dp: 3 }
@@ -414,7 +414,7 @@
       $('histTitle').textContent = 'ราคาทองไทยไม่มีข้อมูลย้อนหลังจากแหล่งฟรี';
       $('histTable').innerHTML = '';
       getThaiGold().then(function (r) {
-        setDetailStatus(r.stale ? '🟡 ดึงสดไม่ได้ — ใช้ราคาที่บันทึกไว้ล่าสุด' : '🟢 ราคาสดวันนี้' + (r.data.updateDate ? (' · ' + r.data.updateDate) : ''), 'real');
+        setDetailStatus(r.stale ? 'ดึงสดไม่ได้ — ใช้ราคาที่บันทึกไว้ล่าสุด' : 'ราคาสดวันนี้' + (r.data.updateDate ? (' · ' + r.data.updateDate) : ''), 'real');
         writeCard(a, r.data[a.field], NaN);
       }, function () { setDetailStatus('ดึงราคาทองไทยไม่ได้ตอนนี้', 'paste'); });
       return;
@@ -435,7 +435,7 @@
       if (curKey !== key) return; /* ผู้ใช้กดการ์ดอื่นไปแล้วระหว่างรอโหลด */
       if (!r.s.times.length) throw new Error('empty');
       fullData = r.s;
-      setDetailStatus(r.stale ? '🟡 ดึงสดไม่ได้ — ใช้ข้อมูลที่บันทึกไว้ล่าสุด' : '🟢 ราคาจาก Yahoo Finance', 'real');
+      setDetailStatus(r.stale ? 'ดึงสดไม่ได้ — ใช้ข้อมูลที่บันทึกไว้ล่าสุด' : 'ราคาจาก Yahoo Finance', 'real');
       if (!buildChart(r.s)) setDetailStatus('โหลดไลบรารีกราฟไม่ได้ (ลองออนไลน์แล้วรีเฟรช)', 'paste');
       renderHistTable(r.s, a);
     }, function () {

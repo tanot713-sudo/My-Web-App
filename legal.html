@@ -253,7 +253,7 @@
                 setActiveDraftId(id);
                 setContent(html);
                 setNameModal(false);
-                flash('✅ บันทึกแบบร่าง "' + (draftName.trim() || TEMPLATES[activeType].title) + '" แล้ว');
+                flash('บันทึกแบบร่าง "' + (draftName.trim() || TEMPLATES[activeType].title) + '" แล้ว');
             };
 
             const deleteDraft = (id) => {
@@ -312,9 +312,9 @@
 
                     await DriveSync.uploadFile(DRIVE_FILE_NAME, folderId, existing?.id,
                         { drafts: mergedDrafts, checked: mergedChecked, savedAt: new Date().toISOString() });
-                    setSyncStatus('✅ ซิงก์สำเร็จ');
+                    setSyncStatus('ซิงก์สำเร็จ');
                 } catch (e) {
-                    setSyncStatus('❌ ' + (e.message || e));
+                    setSyncStatus('' + (e.message || e));
                 } finally {
                     setSyncing(false);
                 }

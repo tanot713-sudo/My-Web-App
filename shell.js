@@ -40,7 +40,7 @@
   function applyTheme(t) {
     document.documentElement.setAttribute('data-theme', t);
     var btn = document.getElementById('omeThemeBtn');
-    if (btn) btn.textContent = t === 'dark' ? '☀️' : '🌙';
+    if (btn) btn.textContent = t === 'dark' ? '' : '';
   }
   applyTheme(getTheme());
 
@@ -226,7 +226,7 @@
     themeBtn.id = 'omeThemeBtn';
     themeBtn.className = 'ome-theme-btn';
     themeBtn.setAttribute('aria-label', 'สลับโหมดสว่าง/มืด');
-    themeBtn.textContent = getTheme() === 'dark' ? '☀️' : '🌙';
+    themeBtn.textContent = getTheme() === 'dark' ? '' : '';
     themeBtn.addEventListener('click', function () {
       var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       try { localStorage.setItem('ome:theme', next); } catch (e) {}

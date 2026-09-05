@@ -49,7 +49,7 @@ window.FirebaseSync = (function () {
       fb.authMod.onAuthStateChanged(fb.auth, function (user) {
         if (user) {
           state.uid = user.uid;
-          if (opts.onStatus) opts.onStatus('✅ ซิงก์เรียลไทม์กับ ' + (user.email || 'บัญชีนี้') + ' แล้ว', 'ok');
+          if (opts.onStatus) opts.onStatus('ซิงก์เรียลไทม์กับ ' + (user.email || 'บัญชีนี้') + ' แล้ว', 'ok');
           if (opts.onSignedIn) opts.onSignedIn(user.uid);
         } else {
           state.uid = null;
@@ -58,7 +58,7 @@ window.FirebaseSync = (function () {
         }
       });
     }).catch(function (e) {
-      if (opts.onStatus) opts.onStatus('❌ โหลดตัวซิงก์ไม่สำเร็จ: ' + (e && e.message ? e.message : e), 'err');
+      if (opts.onStatus) opts.onStatus('โหลดตัวซิงก์ไม่สำเร็จ: ' + (e && e.message ? e.message : e), 'err');
     });
     return {
       signIn: function () {
@@ -67,7 +67,7 @@ window.FirebaseSync = (function () {
           return fb.authMod.signInWithPopup(fb.auth, provider).catch(function (e) {
             /* แสดงข้อความให้ผู้ใช้เห็นตรงนี้แล้ว ไม่ throw ต่อ กัน unhandled promise rejection
                เพราะปุ่มเชื่อมต่อในหน้าที่เรียก signIn() ไม่ได้ผูก .catch() ไว้ */
-            if (opts.onStatus) opts.onStatus('❌ เชื่อมต่อไม่สำเร็จ: ' + (e && e.message ? e.message : e), 'err');
+            if (opts.onStatus) opts.onStatus('เชื่อมต่อไม่สำเร็จ: ' + (e && e.message ? e.message : e), 'err');
           });
         });
       },

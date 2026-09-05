@@ -429,9 +429,9 @@
                     await DriveSync.uploadFile(DRIVE_FILE_NAME, folderId, existing?.id,
                         { xp: mergedXp, completed: mergedCompleted, written: mergedWritten, notes: mergedNotes,
                           srs: mergedSrs, exams: mergedExams, savedAt: new Date().toISOString() });
-                    setSyncStatus('✅ ซิงก์สำเร็จ');
+                    setSyncStatus('ซิงก์สำเร็จ');
                 } catch (e) {
-                    setSyncStatus('❌ ' + (e.message || e));
+                    setSyncStatus('' + (e.message || e));
                 } finally {
                     setSyncing(false);
                 }
@@ -691,7 +691,7 @@
                                 <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
                                     {revList.length === 0 ? (
                                         <>
-                                            <h2 className="text-xl font-bold text-slate-800 mb-2">ยังไม่มีข้อครบกำหนดทบทวน 🎉</h2>
+                                            <h2 className="text-xl font-bold text-slate-800 mb-2">ยังไม่มีข้อครบกำหนดทบทวน</h2>
                                             <p className="text-sm text-slate-500 mb-8 leading-relaxed">
                                                 ทุกข้อที่ตอบในแท็บ "งานเรียน" หรือ "สอบรวม" จะเข้าคิวทบทวนอัตโนมัติ<br/>
                                                 ตอบถูก → รอบถัดไปห่างขึ้น (1 → 3 → 7 → 14 → 30 วัน), ตอบผิด → กลับมาถามพรุ่งนี้
@@ -1037,13 +1037,13 @@
                                                                         </div>
                                                                     ) : (
                                                                         <p className={`text-sm font-semibold ${selfMark === 'correct' ? 'text-success' : 'text-slate-500'}`}>
-                                                                            {selfMark === 'correct' ? '🎉 บันทึกว่าตอบถูกแล้ว' : '💡 ไม่เป็นไร ลองทบทวนประเด็นสำคัญด้านบนอีกครั้ง'}
+                                                                            {selfMark === 'correct' ? 'บันทึกว่าตอบถูกแล้ว' : 'ไม่เป็นไร ลองทบทวนประเด็นสำคัญด้านบนอีกครั้ง'}
                                                                         </p>
                                                                     )}
                                                                 </div>
                                                             ) : (
                                                                 <div className="p-4 rounded-xl mb-4 border bg-emerald-50 border-emerald-200">
-                                                                    <h4 className="font-bold text-emerald-700 mb-1">✅ บันทึกคำตอบแล้ว (+50 XP)</h4>
+                                                                    <h4 className="font-bold text-emerald-700 mb-1">บันทึกคำตอบแล้ว (+50 XP)</h4>
                                                                     <p className="text-sm text-slate-600">หัวข้อนี้ยังไม่มีคำตอบอ้างอิงในระบบ ลองนำคำตอบไปทบทวนกับเอกสาร/ผู้เชี่ยวชาญเพิ่มเติมได้</p>
                                                                 </div>
                                                             )}

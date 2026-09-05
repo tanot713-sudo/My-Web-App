@@ -45,8 +45,8 @@ var I18N = {
     quizPromptDrumEar: 'เสียงที่ได้ยินคือชิ้นกลองไหน?',
     quizPromptViolinString: 'เสียงที่ได้ยินคือสายเปล่าเส้นไหน?',
     correctMsg: 'ถูกต้อง! ปลดล็อกข้อถัดไปแล้ว',
-    trackDoneMsg: 'จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
-    toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
+    trackDoneMsg: 'จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ด้านบนได้เลย',
+    toastTrackDone: 'จบบทเรียน "{track}" แล้ว!',
     toastBadge: 'ได้รับเหรียญตรา: "{badge}"!',
     toastLevelUp: 'เลเวลอัป! เลเวล {level} — {title}'
   },
@@ -79,8 +79,8 @@ var I18N = {
     quizPromptDrumEar: 'Which drum piece is this sound?',
     quizPromptViolinString: 'Which open string is this sound?',
     correctMsg: 'Correct! Next one unlocked.',
-    trackDoneMsg: 'Lesson complete! Pick the next lesson from the ☰ menu above.',
-    toastTrackDone: 'Lesson "{track}" complete! 🎉',
+    trackDoneMsg: 'Lesson complete! Pick the next lesson from the menu above.',
+    toastTrackDone: 'Lesson "{track}" complete!',
     toastBadge: 'Badge earned: "{badge}"!',
     toastLevelUp: 'Level up! Level {level} — {title}'
   }
@@ -700,10 +700,10 @@ function quizIntervalItem(letter, octave, key) {
 /* จังหวะ (Rhythm Dictation) — แต่ละแพทเทิร์นรวมความยาว 4 จังหวะเท่ากันหมด ต่างกันแค่การแบ่งย่อย
    ให้แยกด้วยหูว่าเป็นรูปแบบไหน (durations: หน่วยจังหวะ ตัวดำ=1, เขบ็ต1ชั้น=0.5) */
 var RHYTHM_PATTERNS = {
-  steady: { durations: [1, 1, 1, 1], label: { th: 'เรียบเสมอ (♩ ♩ ♩ ♩)', en: 'Even (♩ ♩ ♩ ♩)' } },
-  shortShortLong: { durations: [0.5, 0.5, 1, 1, 1], label: { th: 'สั้น-สั้น-ยาว-ยาว-ยาว (♪ ♪ ♩ ♩ ♩)', en: 'Short-short-long-long-long (♪ ♪ ♩ ♩ ♩)' } },
-  longShortShort: { durations: [1, 0.5, 0.5, 1, 1], label: { th: 'ยาว-สั้น-สั้น-ยาว-ยาว (♩ ♪ ♪ ♩ ♩)', en: 'Long-short-short-long-long (♩ ♪ ♪ ♩ ♩)' } },
-  fourEighths: { durations: [0.5, 0.5, 0.5, 0.5, 1, 1], label: { th: 'สั้นสี่ตัว-ยาวสองตัว (♪ ♪ ♪ ♪ ♩ ♩)', en: 'Four short-two long (♪ ♪ ♪ ♪ ♩ ♩)' } }
+  steady: { durations: [1, 1, 1, 1], label: { th: 'เรียบเสมอ ( )', en: 'Even ( )' } },
+  shortShortLong: { durations: [0.5, 0.5, 1, 1, 1], label: { th: 'สั้น-สั้น-ยาว-ยาว-ยาว ( )', en: 'Short-short-long-long-long ( )' } },
+  longShortShort: { durations: [1, 0.5, 0.5, 1, 1], label: { th: 'ยาว-สั้น-สั้น-ยาว-ยาว ( )', en: 'Long-short-short-long-long ( )' } },
+  fourEighths: { durations: [0.5, 0.5, 0.5, 0.5, 1, 1], label: { th: 'สั้นสี่ตัว-ยาวสองตัว ( )', en: 'Four short-two long ( )' } }
 };
 var RHYTHM_PATTERN_KEYS = ['steady', 'shortShortLong', 'longShortShort', 'fourEighths'];
 var RHYTHM_PATTERN_LABELS = {};
@@ -930,16 +930,16 @@ var TRACKS = [
         [
           'บันไดเสียงเมเจอร์ (Major Scale) คือชุดโน้ต 8 ตัวเรียงกันตามรูปแบบระยะห่างที่ตายตัว: เต็มเสียง-เต็มเสียง-ครึ่งเสียง-เต็มเสียง-เต็มเสียง-เต็มเสียง-ครึ่งเสียง (ย่อว่า W-W-H-W-W-W-H)',
           "'เต็มเสียง' (Whole step) และ 'ครึ่งเสียง' (Half step) คือระยะห่างระหว่างโน้ต 2 ตัวที่อยู่ติดกัน — บนคีย์เปียโน ครึ่งเสียงคือ 1 คีย์ถัดไป (นับรวมคีย์ดำ) ส่วนเต็มเสียงคือข้าม 2 คีย์",
-          'บันไดเสียง C Major คือ C-D-E-F-G-A-B แล้ววนกลับมา C (สูงกว่าเดิม 1 ออกเทฟ) — ใช้แค่คีย์ขาวทั้งหมด ไม่มีเครื่องหมาย # หรือ ♭ เลย จึงเป็นบันไดเสียงแรกที่นักดนตรีมือใหม่มักเรียนก่อน'
+          'บันไดเสียง C Major คือ C-D-E-F-G-A-B แล้ววนกลับมา C (สูงกว่าเดิม 1 ออกเทฟ) — ใช้แค่คีย์ขาวทั้งหมด ไม่มีเครื่องหมาย # หรือ เลย จึงเป็นบันไดเสียงแรกที่นักดนตรีมือใหม่มักเรียนก่อน'
         ],
         [
           'The Major Scale is a set of 8 notes arranged in a fixed pattern of gaps: Whole-Whole-Half-Whole-Whole-Whole-Half (shortened to W-W-H-W-W-W-H).',
           "A 'Whole step' and 'Half step' are the distance between two adjacent notes — on a piano keyboard, a half step is one key over (counting black keys), and a whole step skips two keys.",
           "The C Major scale is C-D-E-F-G-A-B, then back to C (one octave higher) — using only white keys, with no sharps or flats at all. That's usually the first scale beginner musicians learn."
         ]),
-      readingItem('ทำไม C Major ไม่มี # หรือ ♭', 'Why C Major Has No Sharps or Flats',
+      readingItem('ทำไม C Major ไม่มี # หรือ', 'Why C Major Has No Sharps or Flats',
         [
-          'ทำไม C Major ไม่ต้องมี # หรือ ♭ เลย? เพราะครึ่งเสียงตามธรรมชาติบนคีย์เปียโน (ไม่มีคีย์ดำคั่น) เกิดขึ้นพอดีระหว่าง E-F และ B-C เท่านั้น',
+          'ทำไม C Major ไม่ต้องมี # หรือ เลย? เพราะครึ่งเสียงตามธรรมชาติบนคีย์เปียโน (ไม่มีคีย์ดำคั่น) เกิดขึ้นพอดีระหว่าง E-F และ B-C เท่านั้น',
           'ลองไล่ดู: C→D (เต็มเสียง), D→E (เต็มเสียง), E→F (ครึ่งเสียง — ไม่มีคีย์ดำคั่น!), F→G (เต็มเสียง), G→A (เต็มเสียง), A→B (เต็มเสียง), B→C (ครึ่งเสียง — ไม่มีคีย์ดำคั่นอีกครั้ง!) — ตรงกับรูปแบบ W-W-H-W-W-W-H เป๊ะ',
           'บทถัดไปจะให้ทายว่าโน้ตตัวที่เท่าไหร่ในบันไดเสียง C Major คือตัวอะไร ลองท่องบันไดเสียง C-D-E-F-G-A-B-C ให้คล่องก่อนเริ่มทำ'
         ],
@@ -987,7 +987,7 @@ var TRACKS = [
         ]),
       readingItem('คอร์ดไทรแอดทั้ง 7 ใน C Major', 'The 7 Triads of C Major',
         [
-          "ถ้าสร้างไทรแอดบนโน้ตทุกตัวของบันไดเสียง C Major (ใช้แค่โน้ตในบันไดเสียง ไม่มี # หรือ ♭) จะได้คอร์ดที่ 'อยู่ในคีย์' (diatonic) ทั้งหมด 7 คอร์ด แต่ละคอร์ดมีคุณภาพต่างกันตามธรรมชาติ",
+          "ถ้าสร้างไทรแอดบนโน้ตทุกตัวของบันไดเสียง C Major (ใช้แค่โน้ตในบันไดเสียง ไม่มี # หรือ ) จะได้คอร์ดที่ 'อยู่ในคีย์' (diatonic) ทั้งหมด 7 คอร์ด แต่ละคอร์ดมีคุณภาพต่างกันตามธรรมชาติ",
           'I=C Major, ii=D minor, iii=E minor, IV=F Major, V=G Major, vi=A minor, vii°=B diminished (ตัวใหญ่แทนเมเจอร์ ตัวเล็กแทนไมเนอร์ สัญลักษณ์ ° แทนดิมินิชด์)',
           'สังเกตแพทเทิร์น: เมเจอร์-ไมเนอร์-ไมเนอร์-เมเจอร์-เมเจอร์-ไมเนอร์-ดิมินิชด์ (M-m-m-M-M-m-dim) แพทเทิร์นนี้เกิดจาก W-W-H-W-W-W-H ของบันไดเสียงเมเจอร์เป๊ะๆ — บทนี้จะฝึกแค่ 6 คอร์ดแรก (เมเจอร์/ไมเนอร์) ยังไม่รวม vii° diminished ซึ่งมีเสียงตึงเครียดเฉพาะตัว'
         ],
@@ -1228,12 +1228,12 @@ var TRACKS = [
         [
           'ฝึกหูดนตรี (Ear Training) คือการฝึกให้หูจดจำและแยกแยะเสียงดนตรีได้ โดยไม่ต้องดูโน้ตเลย — ทักษะนี้ช่วยให้เล่นตามเพลงที่ได้ยินได้ (play by ear), แกะเพลง, และแต่งเพลงได้ไวขึ้น',
           "ทุกคนฝึกฟังแบบนี้ได้ ไม่จำเป็นต้องมี 'พรสวรรค์หูทิพย์' — เริ่มจากทักษะพื้นฐานที่สุดก่อน: แยกเสียงสูง/ต่ำ และแยกว่าสองเสียงเหมือนกันหรือต่างกัน แล้วค่อยไปถึงการแยกคอร์ดเมเจอร์/ไมเนอร์ด้วยหู",
-          'กดปุ่ม 🔊 ฟังเสียง ได้ไม่จำกัดจำนวนครั้งในแต่ละข้อ ฟังซ้ำได้เรื่อยๆ จนกว่าจะมั่นใจแล้วค่อยตอบ'
+          'กดปุ่ม ฟังเสียง ได้ไม่จำกัดจำนวนครั้งในแต่ละข้อ ฟังซ้ำได้เรื่อยๆ จนกว่าจะมั่นใจแล้วค่อยตอบ'
         ],
         [
           "Ear Training means training your ear to recognize and distinguish musical sounds without looking at any notation — this skill helps you play songs by ear, transcribe music, and compose faster.",
           "Anyone can train this — you don't need a 'natural gift.' Start with the most basic skills: telling high from low pitch, and telling whether two pitches are the same or different, then move up to recognizing major vs minor chords by ear.",
-          "Click the 🔊 Listen button as many times as you like on each question — replay until you're confident, then answer."
+          "Click the Listen button as many times as you like on each question — replay until you're confident, then answer."
         ]),
       quizPitchCompareItem('C', 4, 'G', 4),
       quizPitchCompareItem('G', 4, 'C', 4),
@@ -1281,12 +1281,12 @@ var TRACKS = [
         [
           'จับจังหวะ (Rhythm Dictation) คือการฟังแล้วแยกแยะรูปแบบจังหวะโดยไม่ต้องดูโน้ต — ใช้เสียงระดับเดียวกันซ้ำๆ เน้นที่ "ความยาว-สั้นของแต่ละเสียง" เท่านั้น',
           'แต่ละแพทเทิร์นในแบบฝึกหัดยาวเท่ากัน (4 จังหวะ) แต่แบ่งย่อยต่างกัน — ฟังให้ดีว่าตรงไหน "สั้น" (เสียงถี่ๆ) ตรงไหน "ยาว" (เสียงห่างๆ) แล้วเทียบกับตัวเลือก',
-          'กดปุ่ม 🔊 ฟังซ้ำได้เรื่อยๆ ลองนับจังหวะเบาๆ ในใจไปด้วยจะช่วยแยกแยะได้ง่ายขึ้น'
+          'กดปุ่ม ฟังซ้ำได้เรื่อยๆ ลองนับจังหวะเบาๆ ในใจไปด้วยจะช่วยแยกแยะได้ง่ายขึ้น'
         ],
         [
           "Rhythm dictation means listening and identifying a rhythmic pattern without looking at notation — using the same pitch repeated, focused purely on each note's short/long duration.",
           'Each pattern in the exercises is the same total length (4 beats) but subdivided differently — listen carefully for where it\'s "short" (quick notes) versus "long" (spaced-out notes), then compare to the options.',
-          'Press 🔊 to listen as many times as you like — quietly counting the beat along in your head helps you tell them apart.'
+          'Press to listen as many times as you like — quietly counting the beat along in your head helps you tell them apart.'
         ]),
       quizRhythmItem('steady'), quizRhythmItem('shortShortLong'),
       quizRhythmItem('longShortShort'), quizRhythmItem('fourEighths'),
@@ -1335,12 +1335,12 @@ var TRACKS = [
       readingItem('ทำไมต้องมีคีย์อื่น', 'Why Other Keys Exist',
         [
           'บันไดเสียงเมเจอร์ทุกคีย์ต้องเรียงตามแพทเทิร์น W-W-H-W-W-W-H เสมอ — C Major ใช้แค่คีย์ขาวได้พอดีเพราะครึ่งเสียงธรรมชาติ (E-F, B-C) ตรงกับตำแหน่งในแพทเทิร์นพอดี',
-          'แต่ถ้าเริ่มบันไดเสียงจากโน้ตอื่น (เช่น G หรือ F) ตำแหน่งครึ่งเสียงธรรมชาติจะไม่ตรงกับแพทเทิร์นอีกต่อไป จึงต้องปรับโน้ตบางตัวด้วยเครื่องหมาย # (ชาร์ป, สูงขึ้นครึ่งเสียง) หรือ ♭ (แฟลต, ต่ำลงครึ่งเสียง) เพื่อรักษาแพทเทิร์นไว้',
-          "แต่ละคีย์เมเจอร์จึงมี 'เครื่องหมายกุญแจเสียง' (key signature) ของตัวเอง — จำนวน # หรือ ♭ ที่ต้องใช้คงที่ตลอดทั้งเพลง เขียนไว้ครั้งเดียวตรงต้นบรรทัดหลังกุญแจ"
+          'แต่ถ้าเริ่มบันไดเสียงจากโน้ตอื่น (เช่น G หรือ F) ตำแหน่งครึ่งเสียงธรรมชาติจะไม่ตรงกับแพทเทิร์นอีกต่อไป จึงต้องปรับโน้ตบางตัวด้วยเครื่องหมาย # (ชาร์ป, สูงขึ้นครึ่งเสียง) หรือ (แฟลต, ต่ำลงครึ่งเสียง) เพื่อรักษาแพทเทิร์นไว้',
+          "แต่ละคีย์เมเจอร์จึงมี 'เครื่องหมายกุญแจเสียง' (key signature) ของตัวเอง — จำนวน # หรือ ที่ต้องใช้คงที่ตลอดทั้งเพลง เขียนไว้ครั้งเดียวตรงต้นบรรทัดหลังกุญแจ"
         ],
         [
           "Every major scale must follow the W-W-H-W-W-W-H pattern exactly — C Major happens to use only white keys because its natural half steps (E-F, B-C) line up perfectly with the pattern's positions.",
-          "But starting the scale from a different note (like G or F) means the natural half-step positions no longer line up with the pattern, so some notes must be adjusted with a # (sharp, raise by a half step) or ♭ (flat, lower by a half step) to preserve the pattern.",
+          "But starting the scale from a different note (like G or F) means the natural half-step positions no longer line up with the pattern, so some notes must be adjusted with a # (sharp, raise by a half step) or (flat, lower by a half step) to preserve the pattern.",
           "Each major key therefore has its own 'key signature' — a fixed set of sharps or flats used throughout the whole piece, written once at the start of the staff right after the clef."
         ]),
       readingItem('บันไดเสียง G Major (1 ชาร์ป)', 'The G Major Scale (1 Sharp)',
@@ -1358,7 +1358,7 @@ var TRACKS = [
         [
           'บันไดเสียง F Major: F-G-A-Bb-C-D-E-F — เหมือน C Major ทุกอย่าง ยกเว้นโน้ตตัวที่ 4 ต้องเป็น Bb (ไม่ใช่ B ธรรมดา)',
           'ทำไมต้องเป็น Bb ไม่ใช่ B: ไล่ตามแพทเทิร์นจาก F จะได้ G(W) A(W) Bb(H) C(W) D(W) E(W) F(H) — ถ้าใช้ B ธรรมดา ระยะจาก A ไป B จะกลายเป็นเต็มเสียง ทำให้ตำแหน่งที่ 3-4 ยาวเกินไป (ผิดแพทเทิร์น)',
-          "เครื่องหมายกุญแจเสียงของ F Major คือ '1 แฟลต' (Bb) — คีย์เมเจอร์ที่มี ♭ น้อยที่สุด"
+          "เครื่องหมายกุญแจเสียงของ F Major คือ '1 แฟลต' (Bb) — คีย์เมเจอร์ที่มี น้อยที่สุด"
         ],
         [
           "The F Major scale: F-G-A-Bb-C-D-E-F — identical to C Major except the 4th note must be Bb (not plain B).",
@@ -1367,12 +1367,12 @@ var TRACKS = [
         ]),
       readingItem('วงกลมคู่ห้า (Circle of Fifths)', 'The Circle of Fifths',
         [
-          "วงกลมคู่ห้า (Circle of Fifths) คือแผนภาพวงกลมที่เรียงคีย์เมเจอร์ทั้ง 12 คีย์ตามจำนวน #/♭ — เริ่มจาก C Major (ไม่มี #/♭) ที่ 12 นาฬิกา วนตามเข็มนาฬิกาแต่ละคีย์เพิ่ม # อีก 1 ตัว (G=1#, D=2#, A=3# ...) วนทวนเข็มแต่ละคีย์เพิ่ม ♭ อีก 1 ตัว (F=1♭, Bb=2♭, Eb=3♭ ...)",
+          "วงกลมคู่ห้า (Circle of Fifths) คือแผนภาพวงกลมที่เรียงคีย์เมเจอร์ทั้ง 12 คีย์ตามจำนวน #/ — เริ่มจาก C Major (ไม่มี #/ ) ที่ 12 นาฬิกา วนตามเข็มนาฬิกาแต่ละคีย์เพิ่ม # อีก 1 ตัว (G=1#, D=2#, A=3# ...) วนทวนเข็มแต่ละคีย์เพิ่ม อีก 1 ตัว (F=1 , Bb=2 , Eb=3 ...)",
           "เหตุผลที่เรียกว่า 'คู่ห้า': แต่ละคีย์ถัดไปตามเข็มนาฬิกาห่างจากคีย์ก่อนหน้าเป็นระยะ 'คู่ห้าสมบูรณ์' (perfect 5th) พอดี เช่น C ไป G คือคู่ห้า, G ไป D คือคู่ห้า ต่อเนื่องกันไปเรื่อยๆ",
           'นักดนตรีใช้วงกลมนี้ช่วยจำเครื่องหมายกุญแจเสียงของทุกคีย์ได้เร็ว และช่วยแต่งเพลง/เปลี่ยนคีย์ (modulate) ได้ง่ายขึ้น เพราะคีย์ที่อยู่ใกล้กันบนวงกลมมักฟังเข้ากันได้ดี'
         ],
         [
-          "The Circle of Fifths is a circular diagram arranging all 12 major keys by their number of sharps/flats — starting at C Major (no sharps/flats) at 12 o'clock, going clockwise each key adds one more sharp (G=1♯, D=2♯, A=3♯...), going counterclockwise each key adds one more flat (F=1♭, Bb=2♭, Eb=3♭...).",
+          "The Circle of Fifths is a circular diagram arranging all 12 major keys by their number of sharps/flats — starting at C Major (no sharps/flats) at 12 o'clock, going clockwise each key adds one more sharp (G=1 , D=2 , A=3 ...), going counterclockwise each key adds one more flat (F=1 , Bb=2 , Eb=3 ...).",
           "Why 'fifths': each next key clockwise is exactly a 'perfect fifth' away from the previous one — e.g. C to G is a fifth, G to D is a fifth, and so on continuously.",
           "Musicians use this circle to quickly recall every key's signature, and it helps with composing/modulating (changing keys), since keys near each other on the circle tend to sound compatible."
         ]),
@@ -1492,26 +1492,26 @@ function loadBadges() { try { return JSON.parse(localStorage.getItem(BADGES_KEY)
 function saveBadges(b) { try { localStorage.setItem(BADGES_KEY, JSON.stringify(b)); } catch (e) {} }
 
 var BADGE_DEFS = [
-  { id: 'first-pass', icon: '🥉', th: 'ก้าวแรก', en: 'First Step' },
-  { id: 'track-staff-clef', icon: '🎼', th: 'รู้จักบรรทัดเพลง', en: 'Staff Reader' },
-  { id: 'track-note-reading-treble', icon: '🎵', th: 'เจ้าแห่งโน้ตซอล', en: 'Treble Note Master' },
+  { id: 'first-pass', icon: '', th: 'ก้าวแรก', en: 'First Step' },
+  { id: 'track-staff-clef', icon: '', th: 'รู้จักบรรทัดเพลง', en: 'Staff Reader' },
+  { id: 'track-note-reading-treble', icon: '', th: 'เจ้าแห่งโน้ตซอล', en: 'Treble Note Master' },
   { id: 'track-bass-clef', icon: '𝄢', th: 'เจ้าแห่งโน้ตฟา', en: 'Bass Note Master' },
   { id: 'track-note-values', icon: '⏱️', th: 'เจ้าจังหวะ', en: 'Rhythm Master' },
-  { id: 'track-time-signatures', icon: '🥁', th: 'เจ้าเครื่องหมายจังหวะ', en: 'Time Signature Master' },
-  { id: 'track-scales', icon: '🪜', th: 'เจ้าบันไดเสียง', en: 'Scale Master' },
-  { id: 'track-chords', icon: '🎶', th: 'เจ้าคอร์ด', en: 'Chord Master' },
-  { id: 'track-piano', icon: '🎹', th: 'เจ้าเปียโน', en: 'Piano Master' },
-  { id: 'track-guitar', icon: '🎸', th: 'เจ้ากีตาร์', en: 'Guitar Master' },
-  { id: 'track-ukulele', icon: '🪕', th: 'เจ้าอูคูเลเล่', en: 'Ukulele Master' },
-  { id: 'track-drums', icon: '🪘', th: 'เจ้ากลอง', en: 'Drum Master' },
-  { id: 'track-violin', icon: '🎻', th: 'เจ้าไวโอลิน', en: 'Violin Master' },
-  { id: 'track-ear-training', icon: '👂', th: 'นักฟังเสียง', en: 'Ear Training Master' },
-  { id: 'track-ear-training-advanced', icon: '🎧', th: 'เจ้าหูทอง', en: 'Golden Ear' },
-  { id: 'track-first-song', icon: '🎤', th: 'เพลงแรกของฉัน', en: 'First Song Complete' },
-  { id: 'track-beyond-c-major', icon: '🗝️', th: 'เจ้ากุญแจเสียง', en: 'Key Signature Master' },
-  { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
-  { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
-  { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สทฤษฎีเบื้องต้น!', en: 'Theory Basics Complete!' }
+  { id: 'track-time-signatures', icon: '', th: 'เจ้าเครื่องหมายจังหวะ', en: 'Time Signature Master' },
+  { id: 'track-scales', icon: '', th: 'เจ้าบันไดเสียง', en: 'Scale Master' },
+  { id: 'track-chords', icon: '', th: 'เจ้าคอร์ด', en: 'Chord Master' },
+  { id: 'track-piano', icon: '', th: 'เจ้าเปียโน', en: 'Piano Master' },
+  { id: 'track-guitar', icon: '', th: 'เจ้ากีตาร์', en: 'Guitar Master' },
+  { id: 'track-ukulele', icon: '', th: 'เจ้าอูคูเลเล่', en: 'Ukulele Master' },
+  { id: 'track-drums', icon: '', th: 'เจ้ากลอง', en: 'Drum Master' },
+  { id: 'track-violin', icon: '', th: 'เจ้าไวโอลิน', en: 'Violin Master' },
+  { id: 'track-ear-training', icon: '', th: 'นักฟังเสียง', en: 'Ear Training Master' },
+  { id: 'track-ear-training-advanced', icon: '', th: 'เจ้าหูทอง', en: 'Golden Ear' },
+  { id: 'track-first-song', icon: '', th: 'เพลงแรกของฉัน', en: 'First Song Complete' },
+  { id: 'track-beyond-c-major', icon: '', th: 'เจ้ากุญแจเสียง', en: 'Key Signature Master' },
+  { id: 'streak-3', icon: '', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
+  { id: 'streak-7', icon: '', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
+  { id: 'all-tracks', icon: '', th: 'จบคอร์สทฤษฎีเบื้องต้น!', en: 'Theory Basics Complete!' }
 ];
 function badgeLabel(def) { return getUILang() === 'en' ? def.en : def.th; }
 
@@ -1574,7 +1574,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
         var b = document.createElement('div');
         b.className = 'mx-badge' + (earned.indexOf(def.id) !== -1 ? ' earned' : '');
         b.textContent = def.icon;
-        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : ' 🔒');
+        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : '');
         badgeRowEl.appendChild(b);
       });
     }
@@ -1631,7 +1631,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     renderGamifyBar();
     spawnConfetti();
     var toasts = [];
-    if (trackJustCompleted) toasts.push({ icon: '🏁', text: t('toastTrackDone', { track: pick(track.label) }) });
+    if (trackJustCompleted) toasts.push({ icon: '', text: t('toastTrackDone', { track: pick(track.label) }) });
     newBadges.forEach(function (id) {
       var def = BADGE_DEFS.filter(function (d) { return d.id === id; })[0];
       if (def) toasts.push({ icon: def.icon, text: t('toastBadge', { badge: badgeLabel(def) }) });
@@ -1709,7 +1709,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'mx-item' + (i === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
-      btn.textContent = (passed ? '✅ ' : unlocked ? (item.kind === 'reading' ? '📖 ' : '🎵 ') : '🔒 ') + itemLabel(track, item, i);
+      btn.textContent = (passed ? '' : unlocked ? (item.kind === 'reading' ? '' : '') : '') + itemLabel(track, item, i);
       btn.addEventListener('click', function () {
         if (unlocked) selectItem(i);
         else showLockMsg();

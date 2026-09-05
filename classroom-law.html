@@ -303,18 +303,18 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 
 <div class="clhb-backdrop" id="clHbBackdrop"></div>
 <nav class="clhb-panel" id="clHbPanel">
-  <div class="clhb-hd">⚖️ เรียนกฎหมาย</div>
+  <div class="clhb-hd">เรียนกฎหมาย</div>
   <ul class="clhb-list">
-    <li><a href="#dashboard" data-view="dashboard">📊 สถิติ</a></li>
-    <li><a href="#goals" data-view="goals">🎯 เป้าหมาย</a></li>
-    <li><a href="#allnotes" data-view="allnotes">📓 โน้ตทั้งหมด</a></li>
+    <li><a href="#dashboard" data-view="dashboard">สถิติ</a></li>
+    <li><a href="#goals" data-view="goals">เป้าหมาย</a></li>
+    <li><a href="#allnotes" data-view="allnotes">โน้ตทั้งหมด</a></li>
   </ul>
   <div class="clhb-group-hd">วิชาที่ใช้สอบจริง</div>
   <ul class="clhb-list" id="clSubjectNav"></ul>
   <div class="clhb-group-hd">รายวิชากฎหมาย</div>
   <ul class="clhb-list" id="clCourseNav"></ul>
   <ul class="clhb-list">
-    <li><a href="#tools" data-view="tools">🛠️ เครื่องมือรวม (Drive/ตั้งค่า)</a></li>
+    <li><a href="#tools" data-view="tools">เครื่องมือรวม (Drive/ตั้งค่า)</a></li>
   </ul>
 </nav>
 
@@ -322,7 +322,6 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 <nav class="crumb"><a href="index.html">หน้าหลัก</a><span class="sep">/</span>เรียนกฎหมาย</nav>
 <div class="head">
   <button class="clhb-toggle" id="clHbToggle" type="button" aria-label="เปิดเมนู">☰</button>
-  <div class="head-ic">⚖️</div>
   <div>
     <h1>เรียนกฎหมาย</h1>
     <div class="head-sub">โน้ต + flashcard ทบทวน + ฝึกเขียนตอบจับเวลา + นับถอยหลังสนามสอบ + ซิงก์ Drive ส่วนตัว</div>
@@ -332,28 +331,28 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 <!-- ══════════════════ สถิติกราฟการเรียน (หน้าแรกที่เปิดเข้ามาเจอ) ══════════════════ -->
 <div class="view" id="viewDashboard">
   <div class="card">
-    <h2>📊 สถิติกราฟการเรียน</h2>
+    <h2>สถิติกราฟการเรียน</h2>
     <div class="stat-row" id="clStatRow"></div>
   </div>
   <div class="card">
-    <h2>📚 จำนวนโน้ตต่อวิชา</h2>
+    <h2>จำนวนโน้ตต่อวิชา</h2>
     <p class="mini">เห็นทันทีว่าวิชาไหนมีเนื้อหาเยอะ/น้อยเทียบกัน</p>
     <div class="bar-chart" id="clSubjBars"></div>
   </div>
   <div class="card">
-    <h2>🪜 ความก้าวหน้าการทบทวน (SRS)</h2>
+    <h2>ความก้าวหน้าการทบทวน (SRS)</h2>
     <p class="mini">สัดส่วนโน้ตตามขั้นบันไดทบทวน — ยิ่งอยู่ขั้นท้ายๆ มาก ยิ่งจำได้มั่นคง</p>
     <div class="srs-track" id="clSrsTrack"></div>
     <div class="srs-legend" id="clSrsLegend"></div>
   </div>
   <div class="card">
-    <h2>🔥 กิจกรรม 30 วันล่าสุด</h2>
+    <h2>กิจกรรม 30 วันล่าสุด</h2>
     <p class="mini">รวมการเพิ่มโน้ต + ทบทวน flashcard + ฝึกเขียนตอบ ต่อวัน</p>
     <div class="act-graph" id="clActGraph"></div>
     <div class="act-graph-lbl"><span id="clActFrom"></span><span id="clActTo"></span></div>
   </div>
   <div class="card">
-    <h2>✍️ สถิติฝึกเขียนตอบ</h2>
+    <h2>สถิติฝึกเขียนตอบ</h2>
     <div class="bar-chart" id="clWrBars"></div>
     <p class="note-empty" id="clWrStatsEmpty" style="display:none">ยังไม่มีประวัติฝึกเขียนตอบ</p>
   </div>
@@ -362,11 +361,11 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 <!-- ══════════════════ เป้าหมาย (พาเนลแยก ไม่ใช่หน้าแรก) ══════════════════ -->
 <div class="view" id="viewGoals" style="display:none">
   <div class="card">
-    <h2>🎯 เป้าหมาย 3 สายอาชีพ</h2>
+    <h2>เป้าหมาย 3 สายอาชีพ</h2>
     <div class="goal-row">
-      <div class="goal-chip"><span class="ic">👨‍⚖️</span><div><b>ผู้พิพากษา</b><span class="sub">สอบผู้ช่วยผู้พิพากษา (ก.ต.)</span></div></div>
-      <div class="goal-chip"><span class="ic">🏛️</span><div><b>อัยการ</b><span class="sub">สอบอัยการผู้ช่วย (ก.อ.)</span></div></div>
-      <div class="goal-chip"><span class="ic">💼</span><div><b>ทนายความ (Law Firm)</b><span class="sub">ตั๋วทนายความ (สภาทนายความ)</span></div></div>
+      <div class="goal-chip"><span class="ic"></span><div><b>ผู้พิพากษา</b><span class="sub">สอบผู้ช่วยผู้พิพากษา (ก.ต.)</span></div></div>
+      <div class="goal-chip"><span class="ic"></span><div><b>อัยการ</b><span class="sub">สอบอัยการผู้ช่วย (ก.อ.)</span></div></div>
+      <div class="goal-chip"><span class="ic"></span><div><b>ทนายความ (Law Firm)</b><span class="sub">ตั๋วทนายความ (สภาทนายความ)</span></div></div>
     </div>
     <p class="mini">ทั้ง 3 สายต้องผ่าน "เนติบัณฑิต" เป็นพื้นฐานร่วมกัน (หรือมีวุฒินิติศาสตร์ที่เข้าเกณฑ์) ก่อนแยกเส้นทางเฉพาะสาย — ดูรายละเอียดเกณฑ์แต่ละสายในการ์ด "เช็กเส้นทาง" ด้านล่าง</p>
   </div>
@@ -378,7 +377,7 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
   </div>
 
   <div class="card">
-    <h2>🧭 เช็กเส้นทาง 3 สายอาชีพ</h2>
+    <h2>เช็กเส้นทาง 3 สายอาชีพ</h2>
     <p class="mini">กรอกคุณสมบัติปัจจุบันของคุณ ระบบจะประเมินว่าตอนนี้เข้าเกณฑ์สมัครสนามไหนได้แล้ว และยังขาดอะไรของแต่ละสาย</p>
     <div class="frow">
       <div class="field"><label>เนติบัณฑิตแล้วหรือยัง</label>
@@ -396,7 +395,7 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
     </div>
     <button class="btn primary sm" id="bpCareerBtn" type="button" style="margin-top:12px">ประเมินเส้นทาง</button>
     <div class="career-result" id="bpCareerResult"></div>
-    <p class="mini" style="margin-top:10px">⚠️ เกณฑ์จริงมีรายละเอียดปลีกย่อยเยอะกว่านี้และเปลี่ยนได้ตามระเบียบ ก.ต./ก.อ./สภาทนายความแต่ละปี ผลประเมินนี้เป็นแนวทางคร่าวๆ ไม่ใช่การยืนยันสิทธิ์สมัครสอบจริง ต้องเช็กกับประกาศทางการอีกครั้งเสมอ</p>
+    <p class="mini" style="margin-top:10px">เกณฑ์จริงมีรายละเอียดปลีกย่อยเยอะกว่านี้และเปลี่ยนได้ตามระเบียบ ก.ต./ก.อ./สภาทนายความแต่ละปี ผลประเมินนี้เป็นแนวทางคร่าวๆ ไม่ใช่การยืนยันสิทธิ์สมัครสอบจริง ต้องเช็กกับประกาศทางการอีกครั้งเสมอ</p>
   </div>
 </div>
 
@@ -405,36 +404,36 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 
   <!-- ══════════════════ ค้นหามาตรา/ฎีกา รวมทุกวิชา (ไม่ผูกกับวิชาที่เลือก — เห็นตลอด) ══════════════════ -->
   <div class="card">
-    <h2>🔎 ค้นหามาตรา/ฎีกา (ทุกวิชา)</h2>
+    <h2>ค้นหามาตรา/ฎีกา (ทุกวิชา)</h2>
     <p class="mini" style="margin-bottom:10px">พิมพ์เลขมาตรา (เช่น <code>150</code>) หรือเลขฎีกา/คำสำคัญ (เช่น <code>747/2544</code>, <code>กลฉ้อฉล</code>) — ระบบค้นทุกจุดในสรุปเนื้อหาบทเรียนและข้อสอบตัวอย่างของทุกวิชาที่มีอยู่ในเว็บให้ทันที มีประโยชน์มากตอนอ่านทวนใกล้สอบ</p>
     <input type="text" id="clRefSearch" placeholder="เช่น มาตรา 150, หรือ 747/2544, หรือ กลฉ้อฉล">
     <div id="clRefResults" style="margin-top:10px"></div>
   </div>
 
   <div class="card" id="clNotesTitleCard" style="display:none">
-    <h2>📖 <span id="clSubjTitle"></span></h2>
+    <h2><span id="clSubjTitle"></span></h2>
     <p class="mini" id="clSubjFull"></p>
   </div>
 
   <!-- ══════════════════ สรุปเนื้อหาบทเรียน (เนื้อหากฎหมายจริง ต่อวิชา — ทยอยเพิ่มทีละวิชา) ══════════════════ -->
   <div class="card" id="clLessonCard" style="display:none">
-    <div class="lhd-row"><h2 style="margin-bottom:0">📚 สรุปเนื้อหาบทเรียน</h2>
+    <div class="lhd-row"><h2 style="margin-bottom:0">สรุปเนื้อหาบทเรียน</h2>
       <button class="btn sm" id="clExportPdf" type="button">Export PDF ทั้งวิชา</button></div>
     <p class="mini" id="clExportPdfStatus" style="margin:4px 0 6px"></p>
-    <p class="mini" style="margin-bottom:10px">⚠️ สรุปช่วยทบทวนเบื้องต้น เขียนจากความรู้ทั่วไป ไม่ใช่ตัวบทกฎหมายที่อัปเดตล่าสุดแบบเรียลไทม์ กฎหมายมีการแก้ไขเพิ่มเติมได้ ต้องตรวจทานกับตัวบทจริง/หนังสือเรียนที่ใช้สอบก่อนเชื่อ 100% เสมอ</p>
+    <p class="mini" style="margin-bottom:10px">สรุปช่วยทบทวนเบื้องต้น เขียนจากความรู้ทั่วไป ไม่ใช่ตัวบทกฎหมายที่อัปเดตล่าสุดแบบเรียลไทม์ กฎหมายมีการแก้ไขเพิ่มเติมได้ ต้องตรวจทานกับตัวบทจริง/หนังสือเรียนที่ใช้สอบก่อนเชื่อ 100% เสมอ</p>
     <div id="clLessonBody"></div>
   </div>
 
   <!-- ══════════════════ ข้อสอบตัวอย่าง (แยกจากสรุปเนื้อหาบทเรียนโดยตั้งใจ — ตามที่ผู้ใช้ขอ) ══════════════════ -->
   <div class="card" id="clExamCard" style="display:none">
-    <h2>🎯 ข้อสอบตัวอย่าง</h2>
-    <p class="mini" style="margin-bottom:10px">⚠️ โจทย์+แนวคำตอบตัวอย่าง เขียนขึ้นเพื่อฝึกทำความเข้าใจ ไม่ใช่ข้อสอบจริง/ธงคำตอบทางการ ลองวินิจฉัยเองก่อนกดดูเฉลยเสมอ</p>
+    <h2>ข้อสอบตัวอย่าง</h2>
+    <p class="mini" style="margin-bottom:10px">โจทย์+แนวคำตอบตัวอย่าง เขียนขึ้นเพื่อฝึกทำความเข้าใจ ไม่ใช่ข้อสอบจริง/ธงคำตอบทางการ ลองวินิจฉัยเองก่อนกดดูเฉลยเสมอ</p>
     <div id="clExamBody"></div>
   </div>
 
   <!-- ══════════════════ ข้อสอบจำลอง (Mock Exam) — สุ่มจากธนาคารข้อสอบด้านบน จับเวลาเอง ══════════════════ -->
   <div class="card" id="clMockCard" style="display:none">
-    <h2>🧪 ข้อสอบจำลอง (Mock Exam)</h2>
+    <h2>ข้อสอบจำลอง (Mock Exam)</h2>
     <p class="mini" style="margin-bottom:10px">สุ่มโจทย์จากธนาคารข้อสอบตัวอย่างของวิชานี้ จับเวลาเอง ทำครบทุกข้อแล้วค่อยเปิดแนวคำตอบเทียบทีเดียว เหมือนจำลองสถานการณ์สอบจริง (ต่างจากข้อสอบตัวอย่างด้านบนที่เปิดเฉลยดูได้เลยทีละข้อ)</p>
     <div class="frow" id="clMockSetup">
       <div class="field" style="flex:1 1 120px"><label>จำนวนข้อ</label>
@@ -449,14 +448,14 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 
   <!-- ══════════════════ ฝึกจำเลขมาตรา (drill สั้นๆ) — ต่างจาก mock exam ตรงเป็นชุดสั้น ทำซ้ำได้หลายรอบ ══════════════════ -->
   <div class="card" id="clDrillCard" style="display:none">
-    <h2>⚡ ฝึกจำเลขมาตรา (Drill)</h2>
+    <h2>ฝึกจำเลขมาตรา (Drill)</h2>
     <p class="mini" style="margin-bottom:10px">โจทย์สถานการณ์สั้นๆ ทายว่าเป็นมาตราอะไร ตอบเร็ว เช็กเร็ว ทำได้หลายรอบต่อวัน เหมาะฝึกความไวก่อนสอบ</p>
     <button class="btn primary sm" id="clDrillStart" type="button">เริ่ม Drill</button>
     <div id="clDrillArea"></div>
   </div>
 
   <div class="card">
-    <h2>📝 สมุดโน้ต + Flashcard (ทบทวนแบบเว้นระยะ)</h2>
+    <h2>สมุดโน้ต + Flashcard (ทบทวนแบบเว้นระยะ)</h2>
     <div class="frow">
       <div class="field" style="flex:1 1 160px"><label>วิชา/หมวด</label>
         <input type="text" id="bpNoteSubj" placeholder="เช่น ป.พ.พ. บรรพ 1">
@@ -518,9 +517,9 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
   </div>
 
   <div class="card">
-    <h2>📷 นำเข้าข้อความ → ตรวจทาน → บันทึกโน้ต</h2>
-    <p class="mini">ถ่ายรูปหน้าเอกสาร หรือกด "แยกข้อความ" จากไฟล์ใน Drive (การ์ด "เครื่องมือรวม") — ระบบแปลงข้อความให้อัตโนมัติแต่ <b>ต้องตรวจทานก่อนบันทึกเสมอ</b> โดยเฉพาะตัวเลขมาตรา/เลขที่ฎีกาที่ผิดแล้วอันตราย ถ่ายในที่แสงสว่างสม่ำเสมอ ไม่เอียง ไม่มีเงา จะช่วยให้แม่นยำขึ้นมาก · ถ้าเป็นตัวบทกฎหมายทั้งฉบับ (มีหลายมาตรา) ใช้ปุ่ม "✂️ แบ่งเป็นรายมาตรา" ด้านล่างแทนการบันทึกเป็นก้อนเดียว จะได้การ์ดท่องทีละมาตราสำหรับทบทวนแบบ Flashcard</p>
-    <label class="ocr-drop" for="bpOcrFile" id="bpOcrDrop">📷 แตะเพื่อถ่ายรูป/เลือกรูปหน้าเอกสาร</label>
+    <h2>นำเข้าข้อความ → ตรวจทาน → บันทึกโน้ต</h2>
+    <p class="mini">ถ่ายรูปหน้าเอกสาร หรือกด "แยกข้อความ" จากไฟล์ใน Drive (การ์ด "เครื่องมือรวม") — ระบบแปลงข้อความให้อัตโนมัติแต่ <b>ต้องตรวจทานก่อนบันทึกเสมอ</b> โดยเฉพาะตัวเลขมาตรา/เลขที่ฎีกาที่ผิดแล้วอันตราย ถ่ายในที่แสงสว่างสม่ำเสมอ ไม่เอียง ไม่มีเงา จะช่วยให้แม่นยำขึ้นมาก · ถ้าเป็นตัวบทกฎหมายทั้งฉบับ (มีหลายมาตรา) ใช้ปุ่ม "แบ่งเป็นรายมาตรา" ด้านล่างแทนการบันทึกเป็นก้อนเดียว จะได้การ์ดท่องทีละมาตราสำหรับทบทวนแบบ Flashcard</p>
+    <label class="ocr-drop" for="bpOcrFile" id="bpOcrDrop">แตะเพื่อถ่ายรูป/เลือกรูปหน้าเอกสาร</label>
     <input type="file" id="bpOcrFile" accept="image/*" capture="environment" style="display:none">
     <img id="bpOcrPreview" class="ocr-preview" alt="ตัวอย่างรูปที่เลือก">
     <div class="status" id="bpOcrStatus"></div>
@@ -548,26 +547,26 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 <!-- ══════════════════ เครื่องมือรวม (ไม่ผูกกับวิชาใดวิชาหนึ่ง) ══════════════════ -->
 <div class="view" id="viewTools" style="display:none">
   <div class="card">
-    <h2>📂 ไฟล์ในโฟลเดอร์ Drive ของฉัน</h2>
+    <h2>ไฟล์ในโฟลเดอร์ Drive ของฉัน</h2>
     <p class="mini">ไฟล์ที่คุณอัปโหลดไว้แล้วในโฟลเดอร์ <b>เนติ-ตั๋วทนาย-อัยการ-ผู้พิพากษา</b> (เช่น ธงคำตอบที่สแกน/ถ่ายไว้) — ต้องเชื่อมต่อ Google Drive ก่อน (การ์ดด้านล่าง) รายการนี้อ่านจากโฟลเดอร์ส่วนตัวของคุณเท่านั้น ไม่มีใครอื่นเห็น</p>
     <button class="btn sm" id="bpDriveListBtn" type="button">โหลดรายชื่อไฟล์จาก Drive</button>
     <div class="status" id="bpDriveListStatus"></div>
     <ul class="note-list" id="bpDriveFileList"></ul>
 
     <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
-      <p class="mini" style="margin-bottom:8px">📤 <b>อัปโหลดไฟล์เข้า Drive ผ่านแอปนี้โดยตรง</b> (จำเป็น เพราะสิทธิ์ที่แอปขอไว้เห็นได้เฉพาะไฟล์ที่อัปโหลดผ่านแอปเท่านั้น ไม่เห็นไฟล์ที่ลากเข้า Drive เองจากเว็บ Google)</p>
+      <p class="mini" style="margin-bottom:8px"><b>อัปโหลดไฟล์เข้า Drive ผ่านแอปนี้โดยตรง</b> (จำเป็น เพราะสิทธิ์ที่แอปขอไว้เห็นได้เฉพาะไฟล์ที่อัปโหลดผ่านแอปเท่านั้น ไม่เห็นไฟล์ที่ลากเข้า Drive เองจากเว็บ Google)</p>
       <div class="field" style="max-width:260px">
         <label>อัปโหลดเข้าโฟลเดอร์ไหน</label>
         <select id="bpUploadTargetFolder"><option value="">(โฟลเดอร์หลัก)</option></select>
       </div>
-      <label class="ocr-drop" for="bpUploadFiles" id="bpUploadDrop" style="margin-top:8px">📤 แตะเพื่อเลือกไฟล์อัปโหลด (เลือกได้หลายไฟล์พร้อมกัน)</label>
+      <label class="ocr-drop" for="bpUploadFiles" id="bpUploadDrop" style="margin-top:8px">แตะเพื่อเลือกไฟล์อัปโหลด (เลือกได้หลายไฟล์พร้อมกัน)</label>
       <input type="file" id="bpUploadFiles" multiple style="display:none">
       <div class="status" id="bpUploadStatus"></div>
     </div>
   </div>
 
   <div class="card">
-    <h2>☁️ ซิงก์ Google Drive ส่วนตัว</h2>
+    <h2>ซิงก์ Google Drive ส่วนตัว</h2>
     <p class="mini">โน้ต/flashcard/ประวัติฝึกเขียนตอบ/ผลประเมินเส้นทางอาชีพ จะถูกสำรองไว้ในโฟลเดอร์ Drive ของคุณเอง (<b>เนติ-ตั๋วทนาย-อัยการ-ผู้พิพากษา</b>) ไม่ผ่านเซิร์ฟเวอร์ใดๆ ของเรา — ไม่เชื่อมต่อก็ใช้งานได้ปกติ ข้อมูลจะเก็บในเครื่องนี้อย่างเดียว (IndexedDB/localStorage)</p>
     <div class="drive-row">
       <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
@@ -576,7 +575,7 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
   </div>
 
   <div class="card">
-    <h2>🧹 ล้างข้อมูลเก่า</h2>
+    <h2>ล้างข้อมูลเก่า</h2>
     <div class="frow" style="align-items:center">
       <button class="btn sm" id="bpCleanNotesBtn" type="button">ล้างคำที่ไม่ต้องการออกจากโน้ตที่มีอยู่แล้ว</button>
       <span class="mini" id="bpCleanNotesStatus"></span>
@@ -586,7 +585,7 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
   </div>
 
   <details class="card lesson" style="box-shadow:var(--sh)">
-    <summary style="font-size:14px">📚 เรียนรู้ / เกี่ยวกับเครื่องมือนี้</summary>
+    <summary style="font-size:14px">เรียนรู้ / เกี่ยวกับเครื่องมือนี้</summary>
     <div class="details-body">
       <h3>ทำไมไม่มีเนื้อหาข้อสอบ/ธงคำตอบให้พร้อมในนี้</h3>
       <p>"คำถามพร้อมธงคำตอบ" ของเนติบัณฑิตยสภาเป็นสิ่งพิมพ์ลิขสิทธิ์ที่ขายจริง เว็บนี้จะไม่ฝัง/แจกจ่ายเนื้อหาที่มีลิขสิทธิ์คนอื่นในตัวโค้ดของเว็บ (ซึ่งจะเห็นได้จากทุกคนที่เข้าเว็บ) — แต่การเก็บสำเนาที่คุณซื้อไว้ใน Google Drive ส่วนตัวของคุณเองเพื่อใช้ศึกษาไม่ใช่ปัญหา (เข้าข่ายข้อยกเว้นเพื่อการศึกษาส่วนตัวตามกฎหมายลิขสิทธิ์) ใช้การ์ด "ไฟล์ในโฟลเดอร์ Drive ของฉัน" เปิดดู/แยกข้อความจากไฟล์ที่คุณอัปโหลดไว้แล้วได้เลย หรือถ่ายรูปสดผ่าน "นำเข้าข้อความ" ก็ได้</p>
@@ -603,7 +602,7 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
     </div>
   </details>
 
-  <div class="disc">⚠️ เครื่องมือนี้ช่วยจัดระเบียบการเตรียมสอบเท่านั้น ไม่ใช่แหล่งเนื้อหากฎหมายที่สมบูรณ์หรือคำรับรองว่าจะสอบผ่าน เกณฑ์คุณสมบัติ/วันสอบ/ระเบียบห้องสอบต้องยึดตามประกาศทางการล่าสุดของแต่ละหน่วยงานเป็นหลักเสมอ · ข้อมูลที่กรอกเก็บในเครื่องคุณเท่านั้น (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
+  <div class="disc">เครื่องมือนี้ช่วยจัดระเบียบการเตรียมสอบเท่านั้น ไม่ใช่แหล่งเนื้อหากฎหมายที่สมบูรณ์หรือคำรับรองว่าจะสอบผ่าน เกณฑ์คุณสมบัติ/วันสอบ/ระเบียบห้องสอบต้องยึดตามประกาศทางการล่าสุดของแต่ละหน่วยงานเป็นหลักเสมอ · ข้อมูลที่กรอกเก็บในเครื่องคุณเท่านั้น (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
 </div>
 
 </div>

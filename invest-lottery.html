@@ -116,7 +116,6 @@ select{font-family:inherit}
   <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>สลากกินแบ่งรัฐบาล</nav>
 
   <div class="head">
-    <div class="head-ic">🎰</div>
     <div>
       <h1>สลากกินแบ่งรัฐบาล — สถิติย้อนหลัง + ตรวจหวย + สุ่มเลข 6 หลัก</h1>
       <div class="head-sub">ข้อมูลย้อนหลังจริง ไม่ใช่การพยากรณ์ผลจับรางวัล</div>
@@ -125,7 +124,7 @@ select{font-family:inherit}
 
   <!-- คำเตือนก่อนเริ่ม -->
   <div class="card warn-card">
-    <h2>⚠️ คำเตือนก่อนเริ่ม</h2>
+    <h2>คำเตือนก่อนเริ่ม</h2>
     <p style="font-size:13px">สลากกินแบ่งรัฐบาล <b>ไม่มีการคืนเงินต้น</b> ต่างจากสลากออมสิน/ธ.ก.ส. ที่ทำไปแล้วในแอปนี้ (ซึ่งได้เงินต้นคืนเต็มเสมอถ้าถือจนครบกำหนด) — เงินที่ใช้ซื้อสลากคือค่าใช้จ่ายล้วนๆ</p>
     <p style="font-size:13px;margin-top:6px">แต่ละงวดจับรางวัลด้วยเครื่องที่ตรวจสอบได้และเป็น<b>อิสระจากงวดก่อนหน้าเสมอ</b> — ไม่มีเลขที่ "ยังไม่ออกจะออกเร็วๆ นี้" สถิติความถี่ในหน้านี้เป็นข้อมูลเชิงพรรณนาเพื่อการศึกษาเท่านั้น</p>
     <p style="font-size:13px;margin-top:6px">การตั้งงบซื้อสลากไว้ล่วงหน้า (เช่นไม่เกิน 800 บาท/เดือน) เป็นวินัยทางการเงินที่ดี — ควรทำแบบนี้เสมอไม่ว่าจะซื้อมากหรือน้อย</p>
@@ -133,7 +132,7 @@ select{font-family:inherit}
 
   <!-- ดึงข้อมูลย้อนหลัง -->
   <div class="card">
-    <h2>📊 ดึงข้อมูลย้อนหลัง</h2>
+    <h2>ดึงข้อมูลย้อนหลัง</h2>
     <div class="frow">
       <div class="field"><label>ช่วงย้อนหลัง</label>
         <select id="ltWindow" style="font-size:14px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
@@ -161,7 +160,7 @@ select{font-family:inherit}
 
   <!-- สถิติความถี่ -->
   <div class="card">
-    <h2>🔢 สถิติความถี่</h2>
+    <h2>สถิติความถี่</h2>
     <div class="freq-caveat">ความถี่ในอดีต ไม่ใช่ความน่าจะเป็นในอนาคต — แต่ละงวดสุ่มเป็นอิสระจากงวดก่อนหน้าเสมอ</div>
     <div class="frow">
       <div class="field"><label>หมวด</label>
@@ -185,7 +184,7 @@ select{font-family:inherit}
 
   <!-- ตรวจหวย -->
   <div class="card">
-    <h2>🎫 ตรวจหวย</h2>
+    <h2>ตรวจหวย</h2>
     <div class="frow">
       <div class="field"><label>เลขที่ซื้อ (6 หลัก)</label><input type="text" id="ltTicket" maxlength="6" inputmode="numeric" placeholder="เช่น 123456"></div>
       <button class="btn primary" id="ltCheckBtn" type="button">ตรวจกับงวดล่าสุด</button>
@@ -196,7 +195,7 @@ select{font-family:inherit}
 
   <!-- สุ่มเลขไปซื้อ -->
   <div class="card">
-    <h2>🎰 สุ่มเลขไปซื้อ</h2>
+    <h2>สุ่มเลขไปซื้อ</h2>
     <div class="reels" id="ltReels">
       <span class="reel-digit">0</span><span class="reel-digit">0</span><span class="reel-digit">0</span>
       <span class="reel-digit">0</span><span class="reel-digit">0</span><span class="reel-digit">0</span>
@@ -217,7 +216,7 @@ select{font-family:inherit}
 
   <!-- เรียนรู้ -->
   <details class="card lesson">
-    <summary style="font-size:14px">📚 เรียนรู้ — สลากกินแบ่งรัฐบาลแบบเข้าใจง่าย</summary>
+    <summary style="font-size:14px">เรียนรู้ — สลากกินแบ่งรัฐบาลแบบเข้าใจง่าย</summary>
     <div class="details-body">
       <h3>ต่างจากสลากออมสิน/ธ.ก.ส. อย่างไร</h3>
       <p>สลากออมสิน/สลาก ธ.ก.ส. (ทำไปแล้วในแอปนี้) คืนเงินต้นเต็มเสมอถ้าถือจนครบกำหนด ผลตอบแทนหลักมาจากดอกเบี้ยเล็กน้อย+โอกาสถูกรางวัล — แต่<b>สลากกินแบ่งรัฐบาลไม่มีการคืนเงินต้น</b> เงินที่จ่ายซื้อคือค่าใช้จ่ายทั้งหมด ได้เฉพาะเมื่อถูกรางวัลเท่านั้น</p>
@@ -232,7 +231,7 @@ select{font-family:inherit}
     </div>
   </details>
 
-  <div class="disc">⚠️ ข้อมูลย้อนหลังใช้เพื่อการศึกษาเท่านั้น ไม่ใช่การพยากรณ์ผลจับรางวัลหรือคำแนะนำการเล่นหวย ผลจับรางวัลจริงเป็นการสุ่มอิสระทุกงวด · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
+  <div class="disc">ข้อมูลย้อนหลังใช้เพื่อการศึกษาเท่านั้น ไม่ใช่การพยากรณ์ผลจับรางวัลหรือคำแนะนำการเล่นหวย ผลจับรางวัลจริงเป็นการสุ่มอิสระทุกงวด · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
 </div>
 
 <script src="invest-lottery.js" defer></script>

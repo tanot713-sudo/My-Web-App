@@ -20,8 +20,8 @@ var I18N = {
     pageTitle: 'เรียนทำอาหาร', crumbResp: 'งานที่รับผิดชอบ', crumbCooking: 'เรียนทำอาหาร',
     markReadBtn: 'เข้าใจแล้ว ไปต่อ',
     lockedMsg: 'บทเรียนนี้ยังล็อกอยู่ — ทำข้อก่อนหน้าให้ผ่านก่อน',
-    trackDoneMsg: 'จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
-    toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
+    trackDoneMsg: 'จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ด้านบนได้เลย',
+    toastTrackDone: 'จบบทเรียน "{track}" แล้ว!',
     toastBadge: 'ได้รับเหรียญตรา: "{badge}"!',
     toastLevelUp: 'เลเวลอัป! เลเวล {level} — {title}',
     speakBtn: 'อ่านออกเสียง', speakingBtn: 'กำลังอ่าน…',
@@ -36,8 +36,8 @@ var I18N = {
     pageTitle: 'Learn Cooking', crumbResp: 'Responsibilities', crumbCooking: 'Learn Cooking',
     markReadBtn: 'Got it, continue',
     lockedMsg: 'This lesson is locked — pass the previous one first.',
-    trackDoneMsg: 'Lesson complete! Pick the next lesson from the ☰ menu above.',
-    toastTrackDone: 'Lesson "{track}" complete! 🎉',
+    trackDoneMsg: 'Lesson complete! Pick the next lesson from the menu above.',
+    toastTrackDone: 'Lesson "{track}" complete!',
     toastBadge: 'Badge earned: "{badge}"!',
     toastLevelUp: 'Level up! Level {level} — {title}',
     speakBtn: 'Read aloud', speakingBtn: 'Reading…',
@@ -719,12 +719,12 @@ function loadBadges() { try { return JSON.parse(localStorage.getItem(BADGES_KEY)
 function saveBadges(b) { try { localStorage.setItem(BADGES_KEY, JSON.stringify(b)); } catch (e) {} }
 
 var BADGE_DEFS = [
-  { id: 'first-pass', icon: '🥉', th: 'ก้าวแรกในครัว', en: 'First Step' },
-  { id: 'track-kitchen-basics', icon: '🔪', th: 'เจ้าพื้นฐานครัว', en: 'Kitchen Fundamentals Master' },
+  { id: 'first-pass', icon: '', th: 'ก้าวแรกในครัว', en: 'First Step' },
+  { id: 'track-kitchen-basics', icon: '', th: 'เจ้าพื้นฐานครัว', en: 'Kitchen Fundamentals Master' },
   { id: 'track-thai-recipes', icon: '🇹🇭', th: 'เจ้าตำรับอาหารไทย', en: 'Thai Recipes Master' },
-  { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
-  { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักครัว', en: '7-Day Streak' },
-  { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สที่มีทั้งหมด!', en: 'All Lessons Complete!' }
+  { id: 'streak-3', icon: '', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
+  { id: 'streak-7', icon: '', th: 'สัปดาห์นักครัว', en: '7-Day Streak' },
+  { id: 'all-tracks', icon: '', th: 'จบคอร์สที่มีทั้งหมด!', en: 'All Lessons Complete!' }
 ];
 function badgeLabel(def) { return getUILang() === 'en' ? def.en : def.th; }
 
@@ -789,7 +789,7 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
         var b = document.createElement('div');
         b.className = 'ck-badge' + (earned.indexOf(def.id) !== -1 ? ' earned' : '');
         b.textContent = def.icon;
-        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : ' 🔒');
+        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : '');
         badgeRowEl.appendChild(b);
       });
     }
@@ -845,7 +845,7 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
     renderGamifyBar();
     spawnConfetti();
     var toasts = [];
-    if (trackJustCompleted) toasts.push({ icon: '🏁', text: t('toastTrackDone', { track: pick(track.label) }) });
+    if (trackJustCompleted) toasts.push({ icon: '', text: t('toastTrackDone', { track: pick(track.label) }) });
     newBadges.forEach(function (id) {
       var def = BADGE_DEFS.filter(function (d) { return d.id === id; })[0];
       if (def) toasts.push({ icon: def.icon, text: t('toastBadge', { badge: badgeLabel(def) }) });
@@ -916,7 +916,7 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'ck-item' + (i === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
-      btn.textContent = (passed ? '✅ ' : unlocked ? '📖 ' : '🔒 ') + itemLabel(track, item);
+      btn.textContent = (passed ? '' : unlocked ? '' : '') + itemLabel(track, item);
       btn.addEventListener('click', function () {
         if (unlocked) selectItem(i);
         else showLockMsg();

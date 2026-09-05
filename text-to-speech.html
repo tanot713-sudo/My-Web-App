@@ -85,14 +85,13 @@ details[open]>summary::before{transform:rotate(90deg)}
 <div class="wrap">
 <nav class="crumb"><a href="index.html">หน้าหลัก</a><span class="sep">/</span>แปลงข้อความเป็นเสียง</nav>
 <div class="head">
-  <div class="head-ic">🗣️</div>
   <div>
     <h1>แปลงเสียง ↔ ข้อความ</h1>
   </div>
 </div>
 
 <div class="card">
-  <h2>✍️ ข้อความ</h2>
+  <h2>ข้อความ</h2>
   <div class="frow" style="align-items:center;margin-bottom:10px">
     <button class="btn sm" id="importFileBtn" type="button">แนบไฟล์</button>
     <input type="file" id="importFileInput" accept=".txt,.docx,.xlsx,.xls,.csv,.pptx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
@@ -103,12 +102,12 @@ details[open]>summary::before{transform:rotate(90deg)}
   </div>
   <p class="mini">รองรับ .txt · .docx · .xlsx/.xls/.csv · .pptx · .pdf · รูปภาพ (.png/.jpg/.webp/.bmp)</p>
   <div class="status" id="importStatus"></div>
-  <textarea id="ttsText" rows="6" placeholder="พิมพ์หรือวางข้อความที่นี่ (ไทยหรืออังกฤษก็ได้) หรือกด 📎 แนบไฟล์ด้านบน" style="margin-top:8px"></textarea>
+  <textarea id="ttsText" rows="6" placeholder="พิมพ์หรือวางข้อความที่นี่ (ไทยหรืออังกฤษก็ได้) หรือกด แนบไฟล์ด้านบน" style="margin-top:8px"></textarea>
   <div class="char-count" id="ttsCharCount">0 ตัวอักษร</div>
 </div>
 
 <div class="card">
-  <h2>🔊 ฟังทันที (เสียงจากเบราว์เซอร์)</h2>
+  <h2>ฟังทันที (เสียงจากเบราว์เซอร์)</h2>
   <p class="mini" id="wsThaiNote">กำลังตรวจสอบเสียงที่มีในเครื่องนี้…</p>
   <div class="frow" style="margin-top:8px">
     <div class="field" style="flex:2 1 220px"><label>เสียง</label>
@@ -128,7 +127,7 @@ details[open]>summary::before{transform:rotate(90deg)}
 </div>
 
 <div class="card">
-  <h2>💾 สร้างไฟล์เสียงดาวน์โหลดได้ (.wav / .mp3)<span class="badge robot">เสียง AI (MMS-TTS)</span></h2>
+  <h2>สร้างไฟล์เสียงดาวน์โหลดได้ (.wav / .mp3)<span class="badge robot">เสียง AI (MMS-TTS)</span></h2>
   <div class="frow" style="margin-top:8px">
     <div class="field"><label>ภาษา</label>
       <select id="dlLang">
@@ -154,7 +153,7 @@ details[open]>summary::before{transform:rotate(90deg)}
 </div>
 
 <div class="card">
-  <h2>🎧 เสียง/วิดีโอ → ข้อความ</h2>
+  <h2>เสียง/วิดีโอ → ข้อความ</h2>
   <p class="mini">อัปโหลดไฟล์เสียงหรือวิดีโอ (mp3, wav, mp4, webm ฯลฯ)</p>
   <div class="frow" style="margin-top:8px">
     <div class="field"><label>ไฟล์เสียง/วิดีโอ</label>
@@ -189,7 +188,7 @@ details[open]>summary::before{transform:rotate(90deg)}
 </div>
 
 <details class="card lesson" style="box-shadow:var(--sh)">
-  <summary style="font-size:14px">📚 เรียนรู้ / ความต่างของโหมดต่างๆ</summary>
+  <summary style="font-size:14px">เรียนรู้ / ความต่างของโหมดต่างๆ</summary>
   <div class="details-body">
     <h3>ทำไมมี 2 โหมด</h3>
     <p>โหมด "ฟังทันที" ใช้เสียงที่เบราว์เซอร์/ระบบปฏิบัติการของคุณมีอยู่แล้ว ฟังลื่นและตอบสนองทันที แต่ไม่รับประกันว่าจะมีเสียงไทยติดตั้งไว้ทุกเครื่อง และดาวน์โหลดเป็นไฟล์ไม่ได้ (เพราะเสียงมาจากระบบปฏิบัติการโดยตรง หน้าเว็บเข้าถึงข้อมูลเสียงไม่ได้) ส่วนโหมด "สร้างไฟล์เสียง" ใช้โมเดล AI (MMS-TTS) ที่ดาวน์โหลดมารันในเบราว์เซอร์ ให้ไฟล์เสียงจริงที่ดาวน์โหลดเก็บไว้ฟังภายหลังได้ เหมาะกับงานอย่างแปลงข้อความที่สแกนจากหนังสือเป็นไฟล์เสียงไว้ฟัง</p>

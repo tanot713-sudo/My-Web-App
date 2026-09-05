@@ -79,7 +79,7 @@
       dataTitle: 'ข้อมูล', searchPh: 'ค้นหาทุกคอลัมน์…', addRowBtn: '+ เพิ่มแถว',
       addColBtn: '+ เพิ่มคอลัมน์', delColTitle: 'ลบคอลัมน์นี้', newColumnDefaultLabel: 'คอลัมน์ใหม่',
       renameColPrompt: 'ตั้งชื่อคอลัมน์', dblclickRenameHint: 'ดับเบิลคลิกชื่อคอลัมน์เพื่อเปลี่ยนชื่อ',
-      fillHandleHint: 'ลากเพื่อเติมอัตโนมัติ — กด Ctrl ค้างไว้ระหว่างลาก หรือกดปุ่ม ⚙️ ที่ขึ้นมาหลังลากเสร็จ เพื่อสลับโหมด (ไล่เลข/ทำซ้ำ)',
+      fillHandleHint: 'ลากเพื่อเติมอัตโนมัติ — กด Ctrl ค้างไว้ระหว่างลาก หรือกดปุ่ม ที่ขึ้นมาหลังลากเสร็จ เพื่อสลับโหมด (ไล่เลข/ทำซ้ำ)',
       delSelBtn: 'ลบที่เลือก', undoBtn: 'เลิกทำ', redoBtn: 'ทำซ้ำ', clearFilterBtn: 'ล้างตัวกรอง',
       addFormulaColBtn: '+ ƒx คอลัมน์สูตร',
       fcAddTitle: 'ƒx เพิ่มคอลัมน์สูตร', fcEditTitle: 'ƒx แก้ไขคอลัมน์สูตร',
@@ -270,7 +270,7 @@
       dataTitle: 'Data', searchPh: 'Search all columns…', addRowBtn: '+ Add Row',
       addColBtn: '+ Add Column', delColTitle: 'Delete this column', newColumnDefaultLabel: 'New column',
       renameColPrompt: 'Rename column', dblclickRenameHint: 'Double-click a column name to rename it',
-      fillHandleHint: 'Drag to auto-fill — hold Ctrl while dragging, or tap the ⚙️ button that appears after, to toggle mode (series/repeat)',
+      fillHandleHint: 'Drag to auto-fill — hold Ctrl while dragging, or tap the button that appears after, to toggle mode (series/repeat)',
       delSelBtn: 'Delete Selected', undoBtn: 'Undo', redoBtn: 'Redo', clearFilterBtn: 'Clear Filters',
       addFormulaColBtn: '+ ƒx Formula Column',
       fcAddTitle: 'ƒx Add Formula Column', fcEditTitle: 'ƒx Edit Formula Column',
@@ -3047,8 +3047,8 @@
     var op = lastFillOp;
     var html = '<div class="fp-title">' + escapeHtml(t('autoFillOptionsTitle')) + '</div>' +
       '<div class="fp-list">' +
-      '<div class="fp-item" data-mode="series"><span>📈 ' + escapeHtml(t('autoFillSeriesOpt')) + '</span></div>' +
-      '<div class="fp-item" data-mode="copy"><span>🔁 ' + escapeHtml(t('autoFillCopyOpt')) + '</span></div>' +
+      '<div class="fp-item" data-mode="series"><span>' + escapeHtml(t('autoFillSeriesOpt')) + '</span></div>' +
+      '<div class="fp-item" data-mode="copy"><span>' + escapeHtml(t('autoFillCopyOpt')) + '</span></div>' +
       '</div>';
     openPopover(html, anchorEl, function (el, close) {
       [].forEach.call(el.querySelectorAll('.fp-item'), function (item) {
@@ -3138,7 +3138,7 @@
   /* ── เลือกชนิดกราฟเองได้ต่อการ์ด (แท่งแนวตั้ง/แนวนอน/เส้น/วงกลม/โดนัท) — ข้อมูลชุดเดียวกัน (labels+data)
      วาดเป็นชนิดไหนก็ได้ทั้งนั้น จึงใช้ตัวสร้าง config กลางตัวเดียวให้ทั้ง 3 การ์ด แทนที่จะผูกตายตัวว่า
      การ์ดไหนต้องเป็นกราฟแท่ง/เส้น/วงกลมเท่านั้นเหมือนเดิม */
-  var CHART_TYPE_ICON = { bar: '📊', barH: '📊', line: '📈', pie: '🥧', doughnut: '🥧' };
+  var CHART_TYPE_ICON = { bar: '', barH: '', line: '', pie: '', doughnut: '' };
   function hexToRgba(hex, alpha) {
     var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
     return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
@@ -4986,7 +4986,7 @@
       '.chart-wrap{position:relative;height:280px;margin-top:4px}' +
       '.foot{font-size:11.5px;color:var(--muted);text-align:center;margin-top:22px}' +
       '</style></head><body><div class="wrap">' +
-      '<h1>📊 ' + title + '</h1>' +
+      '<h1>' + title + '</h1>' +
       '<div class="sub">' + escapeHtml(t('exportedAt', { date: new Date().toLocaleString(locale()), n: state.rows.length.toLocaleString(locale()) })) + '</div>';
 
     if (showNum) html += '<div class="card"><h2>' + escapeHtml(t('numStatTitle')) + '</h2><div class="stat-row">' + $('numStatRow').innerHTML + '</div></div>';
@@ -5062,7 +5062,7 @@
       'table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}' +
       'th.num,td.num{text-align:right}.foot{font-size:11.5px;color:var(--muted);text-align:center;margin-top:22px}' +
       '</style></head><body><div class="wrap">' +
-      '<h1>🧩 ' + title + '</h1>' +
+      '<h1>' + title + '</h1>' +
       '<div class="sub">' + escapeHtml(t('exportedAt', { date: new Date().toLocaleString(locale()), n: state.rows.length.toLocaleString(locale()) })) + '</div>' +
       body +
       '<div class="foot">' + escapeHtml(t('exportedFooter')) + '</div></div>' +

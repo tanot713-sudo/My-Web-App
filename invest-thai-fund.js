@@ -277,12 +277,12 @@
     var html = '';
     html += '<div class="tax-line"><span>เกณฑ์ Thai ESG ปี ' + r.year + '</span><span class="v">ลดหย่อนได้สูงสุด ' + baht(r.esgRule.cap) + ' · ถือ ' + r.esgRule.holdYears + ' ปี</span></div>';
     html += '<div class="tax-line"><span>RMF — ใช้สิทธิได้</span><span class="v">' + baht(r.rmfUsed) + ' / ที่ใส่ ' + baht(r.rmfWant) + '</span></div>';
-    if (r.rmfCapped) html += '<div class="tax-cap-note">⚠️ RMF เกินสิทธิ (เพดานเดี่ยว ' + baht(r.rmfCap) + ' หรือโดนเพดานกลุ่มเกษียณรวมกันไป) ส่วนเกินลดหย่อนไม่ได้</div>';
+    if (r.rmfCapped) html += '<div class="tax-cap-note">RMF เกินสิทธิ (เพดานเดี่ยว ' + baht(r.rmfCap) + ' หรือโดนเพดานกลุ่มเกษียณรวมกันไป) ส่วนเกินลดหย่อนไม่ได้</div>';
     html += '<div class="tax-line"><span>SSF — ใช้สิทธิได้</span><span class="v">' + baht(r.ssfUsed) + ' / ที่ใส่ ' + baht(r.ssfWant) + '</span></div>';
-    if (r.ssfCapped) html += '<div class="tax-cap-note">⚠️ SSF เกินสิทธิ (เพดานเดี่ยว ' + baht(r.ssfCap) + ' หรือโดนเพดานกลุ่มเกษียณรวมกันไป) ส่วนเกินลดหย่อนไม่ได้</div>';
+    if (r.ssfCapped) html += '<div class="tax-cap-note">SSF เกินสิทธิ (เพดานเดี่ยว ' + baht(r.ssfCap) + ' หรือโดนเพดานกลุ่มเกษียณรวมกันไป) ส่วนเกินลดหย่อนไม่ได้</div>';
     html += '<div class="tax-line"><span>Thai ESG — ใช้สิทธิได้</span><span class="v">' + baht(r.esgUsed) + ' / ที่ใส่ ' + baht(r.esgWant) + '</span></div>';
-    if (r.esgCapped) html += '<div class="tax-cap-note">⚠️ Thai ESG เกินเพดาน ' + baht(r.esgCap) + ' (30% ของเงินได้ สูงสุด 300,000 บาท แยกจาก RMF/SSF) ส่วนเกินลดหย่อนไม่ได้</div>';
-    if (r.combinedCapHit) html += '<div class="tax-cap-note">⚠️ RMF+SSF+กลุ่มเกษียณอื่นที่กรอกไว้ รวมกันเกิน 500,000 บาท ระบบตัดสิทธิ์ส่วนเกินให้ RMF ก่อน แล้วเหลือเท่าไรถึงให้ SSF</div>';
+    if (r.esgCapped) html += '<div class="tax-cap-note">Thai ESG เกินเพดาน ' + baht(r.esgCap) + ' (30% ของเงินได้ สูงสุด 300,000 บาท แยกจาก RMF/SSF) ส่วนเกินลดหย่อนไม่ได้</div>';
+    if (r.combinedCapHit) html += '<div class="tax-cap-note">RMF+SSF+กลุ่มเกษียณอื่นที่กรอกไว้ รวมกันเกิน 500,000 บาท ระบบตัดสิทธิ์ส่วนเกินให้ RMF ก่อน แล้วเหลือเท่าไรถึงให้ SSF</div>';
     $('txDetail').innerHTML = html;
   }
 

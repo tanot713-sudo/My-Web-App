@@ -1410,7 +1410,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     '← → ↑ ↓ ↔ ⇒ ⇐ ⇔ ▲ ▼ ◀ ▶',
     '€ £ ¥ ฿ ¢ ₩ ₫ ₽ $',
     '½ ¼ ¾ ⅓ ⅔ ⅛',
-    '✓ ✗ ★ ☆ ♦ ♥ ♣ ♠ ☎ ✉ ✎ ⚠',
+    '',
     '“ ” ‘ ’ « » — – ๆ ฯ ๚ ๛'
   ];
   function buildSymbolGrid() {
@@ -1418,7 +1418,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     SYMBOL_SET.forEach(function (row) {
       var wrap = document.createElement('div');
       wrap.className = 'wd-sym-grid';
-      row.split(' ').filter(function (s) { return s && s !== '☎' ? true : !!s; }).forEach(function (sym) {
+      row.split(' ').filter(function (s) { return s && s !== '' ? true : !!s; }).forEach(function (sym) {
         if (!sym) return;
         var b = document.createElement('button');
         b.type = 'button';

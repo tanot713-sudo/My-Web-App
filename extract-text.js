@@ -45,13 +45,13 @@
   function handleFile(file) {
     if (!file) return;
     currentFile = file;
-    $('dropMain').textContent = '📄 ' + file.name;
+    $('dropMain').textContent = '' + file.name;
     $('dropSub').textContent = (file.size / 1024).toFixed(0) + ' KB — แตะเพื่อเลือกไฟล์อื่น';
     $('resultCard').style.display = 'none';
     actionStatus('', '');
 
     if (!window.TanotFileReader) {
-      readStatus('❌ โหลดตัวอ่านไฟล์ไม่สำเร็จ (อาจเป็นเพราะเน็ตช้า/ถูกบล็อก) ลองรีเฟรชหน้าใหม่', 'err');
+      readStatus('โหลดตัวอ่านไฟล์ไม่สำเร็จ (อาจเป็นเพราะเน็ตช้า/ถูกบล็อก) ลองรีเฟรชหน้าใหม่', 'err');
       return;
     }
     readStatus('⏳ กำลังอ่านไฟล์ ' + file.name + '…', '');
@@ -61,16 +61,16 @@
     }).then(function (text) {
       text = (text || '').trim();
       if (!text) {
-        readStatus('❌ ไม่พบข้อความในไฟล์นี้', 'err');
+        readStatus('ไม่พบข้อความในไฟล์นี้', 'err');
         return;
       }
       $('resultText').value = text;
       updateCharCount();
       $('resultCard').style.display = '';
       $('splitPdfBtn').style.display = file.name.toLowerCase().endsWith('.pdf') ? '' : 'none';
-      readStatus('✅ ดึงข้อความจาก ' + file.name + ' แล้ว (' + text.length + ' ตัวอักษร) — ตรวจทานก่อนนำไปใช้เสมอ', 'ok');
+      readStatus('ดึงข้อความจาก ' + file.name + ' แล้ว (' + text.length + ' ตัวอักษร) — ตรวจทานก่อนนำไปใช้เสมอ', 'ok');
     }).catch(function (err) {
-      readStatus('❌ อ่านไฟล์ไม่สำเร็จ: ' + (err && err.message ? err.message : err), 'err');
+      readStatus('อ่านไฟล์ไม่สำเร็จ: ' + (err && err.message ? err.message : err), 'err');
     });
   }
 
@@ -79,7 +79,7 @@
   function splitPdfPages() {
     if (!currentFile) return;
     if (!window.PDFLib || !window.JSZip) {
-      actionStatus('❌ โหลดไลบรารีแยกหน้า PDF ไม่สำเร็จ — เช็คอินเทอร์เน็ตแล้วลองรีเฟรชหน้าใหม่', 'err');
+      actionStatus('โหลดไลบรารีแยกหน้า PDF ไม่สำเร็จ — เช็คอินเทอร์เน็ตแล้วลองรีเฟรชหน้าใหม่', 'err');
       return;
     }
     $('splitPdfBtn').disabled = true;
@@ -109,10 +109,10 @@
       }
       return chain.then(function () { return zip.generateAsync({ type: 'blob' }); }).then(function (blob) {
         downloadBlob(blob, 'pages_' + base + '.zip');
-        actionStatus('✅ แยกเป็น ' + n + ' ไฟล์ ดาวน์โหลด pages_' + base + '.zip แล้ว', 'ok');
+        actionStatus('แยกเป็น ' + n + ' ไฟล์ ดาวน์โหลด pages_' + base + '.zip แล้ว', 'ok');
       });
     }).catch(function (err) {
-      actionStatus('❌ แยกหน้า PDF ไม่สำเร็จ: ' + (err && err.message ? err.message : err), 'err');
+      actionStatus('แยกหน้า PDF ไม่สำเร็จ: ' + (err && err.message ? err.message : err), 'err');
     }).finally(function () {
       $('splitPdfBtn').disabled = false;
     });
@@ -147,11 +147,11 @@
       var text = $('resultText').value;
       if (!text) return;
       navigator.clipboard.writeText(text).then(function () {
-        actionStatus('✅ คัดลอกข้อความแล้ว', 'ok');
+        actionStatus('คัดลอกข้อความแล้ว', 'ok');
       }).catch(function () {
         $('resultText').select();
         document.execCommand('copy');
-        actionStatus('✅ คัดลอกข้อความแล้ว', 'ok');
+        actionStatus('คัดลอกข้อความแล้ว', 'ok');
       });
     });
     $('downloadTxtBtn').addEventListener('click', function () {
@@ -159,7 +159,7 @@
       if (!text || !currentFile) return;
       var base = currentFile.name.replace(/\.[^.]+$/, '');
       downloadBlob(new Blob([text], { type: 'text/plain;charset=utf-8' }), 'text_' + base + '.txt');
-      actionStatus('✅ ดาวน์โหลด text_' + base + '.txt แล้ว', 'ok');
+      actionStatus('ดาวน์โหลด text_' + base + '.txt แล้ว', 'ok');
     });
     $('splitPdfBtn').addEventListener('click', splitPdfPages);
   }

@@ -335,7 +335,7 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
       item.type = 'button';
       item.className = 'tt-lesson' + (i === state.lessonIndex && !state.sprintMode ? ' active' : '') + (unlocked ? '' : ' locked');
       var best = progress[progressKey(track.id, i)];
-      item.innerHTML = '<span class="tt-lesson-title">' + (unlocked ? '' : '🔒 ') + (i + 1) + '. ' + lesson.title + '</span>' +
+      item.innerHTML = '<span class="tt-lesson-title">' + (unlocked ? '' : '') + (i + 1) + '. ' + lesson.title + '</span>' +
         (best ? '<span class="tt-lesson-best">' + Math.round(best.wpm) + ' ' + t('statsWpm') + '</span>' : '');
       item.addEventListener('click', function () {
         if (unlocked) selectLesson(i);

@@ -127,7 +127,7 @@
     var stUpdated = $('stUpdated'); if (stUpdated) stUpdated.textContent = '…';
     fetchNews(query).then(function (r) {
       if (curQuery !== query) return;
-      setBadge(r.stale ? ('🟡 ดึงสดไม่ได้ — ใช้ข่าวที่บันทึกไว้ ' + cacheAgeText(r.cachedAt)) : ('🟢 ข่าวล่าสุด "' + label + '"'), 'real');
+      setBadge(r.stale ? ('ดึงสดไม่ได้ — ใช้ข่าวที่บันทึกไว้ ' + cacheAgeText(r.cachedAt)) : ('ข่าวล่าสุด "' + label + '"'), 'real');
       renderNews(r);
     }, function () {
       if (curQuery !== query) return;

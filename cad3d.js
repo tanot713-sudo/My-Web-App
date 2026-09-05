@@ -693,11 +693,11 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     var hasActive = state.steps.some(function (s) { return !s.suppressed; });
     if (editingIndex !== null) {
       opWrap.hidden = isBaseStepIndex(editingIndex);
-      addShapeBtn.textContent = '💾 บันทึกการแก้ไข';
+      addShapeBtn.textContent = 'บันทึกการแก้ไข';
       $('cancelEditBtn').hidden = false;
     } else {
       opWrap.hidden = !hasActive;
-      addShapeBtn.textContent = hasActive ? '✔️ รวมเข้ากับชิ้นงานหลัก' : '✔️ วางเป็นชิ้นงานหลัก';
+      addShapeBtn.textContent = hasActive ? 'รวมเข้ากับชิ้นงานหลัก' : 'วางเป็นชิ้นงานหลัก';
       $('cancelEditBtn').hidden = true;
     }
     $('undoStepBtn').disabled = !state.steps.length;
@@ -730,7 +730,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
       var editTag = i === editingIndex ? ' <b class="c3-editing-tag">(กำลังแก้ไข)</b>' : '';
       return '<div class="c3-step-row' + (s.suppressed ? ' c3-step-suppressed' : '') + '">' +
         '<b>' + (i + 1) + '.</b><span>' + OP_LABEL[s.op] + KIND_LABEL[s.kind] + ' ' + dimsLabel(s) + posTxt + editTag + '</span>' +
-        '<button class="btn sm icon-only" type="button" data-act="toggle" data-idx="' + i + '" title="' + (s.suppressed ? 'เปิดใช้งานขั้นตอนนี้' : 'ปิดใช้งานชั่วคราว (ไม่ลบ)') + '">' + (s.suppressed ? '🚫' : '👁️') + '</button>' +
+        '<button class="btn sm icon-only" type="button" data-act="toggle" data-idx="' + i + '" title="' + (s.suppressed ? 'เปิดใช้งานขั้นตอนนี้' : 'ปิดใช้งานชั่วคราว (ไม่ลบ)') + '">' + (s.suppressed ? '' : '') + '</button>' +
         '<button class="btn sm icon-only" type="button" data-act="edit" data-idx="' + i + '" title="แก้ไขขั้นตอนนี้">✏️</button>' +
         '<button class="btn sm icon-only" type="button" data-act="delete" data-idx="' + i + '" title="ลบขั้นตอนนี้">🗑️</button>' +
       '</div>';
@@ -767,7 +767,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
         sel.value = String(matchIdx);
       } else if (loadedProfiles.length) { // มีโปรไฟล์อื่นอยู่ แต่ตัวเดิมของขั้นตอนนี้หาไม่เจอในนั้น
         var opt = document.createElement('option');
-        opt.value = ''; opt.textContent = '⚠️ ไม่พบเส้นขอบเดิม — กรุณาเลือกใหม่';
+        opt.value = ''; opt.textContent = 'ไม่พบเส้นขอบเดิม — กรุณาเลือกใหม่';
         sel.insertBefore(opt, sel.firstChild);
         sel.value = '';
       } // ถ้า loadedProfiles ว่างเปล่าอยู่แล้ว refreshProfileList() ใส่ placeholder ที่สื่อความหมายเดียวกันไว้ให้แล้ว
@@ -1180,7 +1180,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
       if (loadedProfiles.length) {
         addShapeBtn.click();
       } else {
-        alert('ยังไม่พบเส้นขอบปิดที่วาดไว้ — วาดสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดในแท็บ "ร่างภาพ 2 มิติ" ก่อน แล้วลองกด "⚡ ยืดเป็น 3 มิติ" อีกครั้ง');
+        alert('ยังไม่พบเส้นขอบปิดที่วาดไว้ — วาดสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดในแท็บ "ร่างภาพ 2 มิติ" ก่อน แล้วลองกด "ยืดเป็น 3 มิติ" อีกครั้ง');
       }
     });
 

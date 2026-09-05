@@ -894,7 +894,7 @@ var I18N = {
     lockedMsg: 'ข้อนี้ยังไม่ปลดล็อก — ทำข้อก่อนหน้าให้ผ่านก่อน',
     exerciseTitle: 'แบบฝึกหัด {n}', tryExample: 'ลองรันตัวอย่างนี้ดูได้เลย แล้วลองแก้โค้ดเล่นดู',
     openFullBtn: 'เปิดดูเต็มจอ',
-    toastTrackDone: 'จบแทร็ก "{track}" แล้ว! 🎉', toastBadge: 'ได้เหรียญตรา "{badge}"!',
+    toastTrackDone: 'จบแทร็ก "{track}" แล้ว!', toastBadge: 'ได้เหรียญตรา "{badge}"!',
     toastLevelUp: 'เลเวลอัป! ระดับ {level} — {title}',
     markReadBtn: 'ทำเครื่องหมายว่าอ่านแล้ว'
   },
@@ -907,7 +907,7 @@ var I18N = {
     lockedMsg: 'This exercise is locked — pass the previous one first.',
     exerciseTitle: 'Exercise {n}', tryExample: 'Try running this example, then experiment with the code.',
     openFullBtn: 'Open Fullscreen',
-    toastTrackDone: 'Track "{track}" complete! 🎉', toastBadge: 'Badge earned: "{badge}"!',
+    toastTrackDone: 'Track "{track}" complete!', toastBadge: 'Badge earned: "{badge}"!',
     toastLevelUp: 'Level up! Level {level} — {title}',
     markReadBtn: 'Mark as Read'
   }
@@ -961,30 +961,30 @@ function loadBadges() { try { return JSON.parse(localStorage.getItem(BADGES_KEY)
 function saveBadges(b) { try { localStorage.setItem(BADGES_KEY, JSON.stringify(b)); } catch (e) {} }
 
 var BADGE_DEFS = [
-  { id: 'first-pass', icon: '🥉', th: 'ก้าวแรก', en: 'First Step' },
-  { id: 'track-js-variables', icon: '🔤', th: 'เจ้าแห่งตัวแปร', en: 'Variable Master' },
-  { id: 'track-js-conditionals', icon: '🔀', th: 'เซียนเงื่อนไข', en: 'Logic Master' },
-  { id: 'track-js-loops', icon: '🔁', th: 'นักวนซ้ำ', en: 'Loop Master' },
-  { id: 'track-js-functions', icon: '🧩', th: 'เจ้าฟังก์ชัน', en: 'Function Master' },
-  { id: 'track-js-arrays', icon: '📦', th: 'นักอาร์เรย์', en: 'Array Master' },
-  { id: 'track-js-objects', icon: '🗂️', th: 'นักอ็อบเจกต์', en: 'Object Master' },
-  { id: 'track-html-basics', icon: '🧱', th: 'สถาปนิก HTML', en: 'HTML Architect' },
-  { id: 'track-html-css', icon: '🎨', th: 'ดีไซเนอร์ CSS', en: 'CSS Designer' },
-  { id: 'track-html-flexbox', icon: '📐', th: 'นักจัดวาง Flexbox', en: 'Flexbox Layout Pro' },
-  { id: 'track-html-grid', icon: '🔲', th: 'นักจัดวาง Grid', en: 'Grid Layout Pro' },
-  { id: 'track-html-responsive-forms', icon: '📱', th: 'นักออกแบบตอบสนอง', en: 'Responsive Pro' },
-  { id: 'track-js-dom', icon: '🕹️', th: 'เจ้าแห่ง DOM', en: 'DOM Master' },
-  { id: 'track-js-events-forms', icon: '📝', th: 'นักฟอร์ม', en: 'Forms Master' },
+  { id: 'first-pass', icon: '', th: 'ก้าวแรก', en: 'First Step' },
+  { id: 'track-js-variables', icon: '', th: 'เจ้าแห่งตัวแปร', en: 'Variable Master' },
+  { id: 'track-js-conditionals', icon: '', th: 'เซียนเงื่อนไข', en: 'Logic Master' },
+  { id: 'track-js-loops', icon: '', th: 'นักวนซ้ำ', en: 'Loop Master' },
+  { id: 'track-js-functions', icon: '', th: 'เจ้าฟังก์ชัน', en: 'Function Master' },
+  { id: 'track-js-arrays', icon: '', th: 'นักอาร์เรย์', en: 'Array Master' },
+  { id: 'track-js-objects', icon: '', th: 'นักอ็อบเจกต์', en: 'Object Master' },
+  { id: 'track-html-basics', icon: '', th: 'สถาปนิก HTML', en: 'HTML Architect' },
+  { id: 'track-html-css', icon: '', th: 'ดีไซเนอร์ CSS', en: 'CSS Designer' },
+  { id: 'track-html-flexbox', icon: '', th: 'นักจัดวาง Flexbox', en: 'Flexbox Layout Pro' },
+  { id: 'track-html-grid', icon: '', th: 'นักจัดวาง Grid', en: 'Grid Layout Pro' },
+  { id: 'track-html-responsive-forms', icon: '', th: 'นักออกแบบตอบสนอง', en: 'Responsive Pro' },
+  { id: 'track-js-dom', icon: '', th: 'เจ้าแห่ง DOM', en: 'DOM Master' },
+  { id: 'track-js-events-forms', icon: '', th: 'นักฟอร์ม', en: 'Forms Master' },
   { id: 'track-js-async', icon: '⏳', th: 'เจ้าแห่ง Async', en: 'Async Master' },
-  { id: 'track-js-localstorage', icon: '💾', th: 'นักเก็บข้อมูล', en: 'Storage Master' },
-  { id: 'track-project-landing-page', icon: '🏠', th: 'นักสร้าง Landing Page', en: 'Landing Page Builder' },
-  { id: 'track-project-todo-list', icon: '📋', th: 'นักสร้างแอป To-Do', en: 'To-Do App Builder' },
-  { id: 'track-project-contact-form', icon: '📨', th: 'นักสร้างฟอร์ม', en: 'Form Builder' },
-  { id: 'track-project-api-fetch', icon: '🌐', th: 'นักสร้างแอป API', en: 'API App Builder' },
-  { id: 'track-career-path', icon: '🎓', th: 'พร้อมหารายได้!', en: 'Career Ready!' },
-  { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
-  { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
-  { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สแรก!', en: 'Course Complete!' }
+  { id: 'track-js-localstorage', icon: '', th: 'นักเก็บข้อมูล', en: 'Storage Master' },
+  { id: 'track-project-landing-page', icon: '', th: 'นักสร้าง Landing Page', en: 'Landing Page Builder' },
+  { id: 'track-project-todo-list', icon: '', th: 'นักสร้างแอป To-Do', en: 'To-Do App Builder' },
+  { id: 'track-project-contact-form', icon: '', th: 'นักสร้างฟอร์ม', en: 'Form Builder' },
+  { id: 'track-project-api-fetch', icon: '', th: 'นักสร้างแอป API', en: 'API App Builder' },
+  { id: 'track-career-path', icon: '', th: 'พร้อมหารายได้!', en: 'Career Ready!' },
+  { id: 'streak-3', icon: '', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
+  { id: 'streak-7', icon: '', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
+  { id: 'all-tracks', icon: '', th: 'จบคอร์สแรก!', en: 'Course Complete!' }
 ];
 function badgeLabel(def) { return getUILang() === 'en' ? def.en : def.th; }
 
@@ -1081,7 +1081,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
         var b = document.createElement('div');
         b.className = 'cx-badge' + (earned.indexOf(def.id) !== -1 ? ' earned' : '');
         b.textContent = def.icon;
-        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : ' 🔒');
+        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : '');
         badgeRowEl.appendChild(b);
       });
     }
@@ -1141,7 +1141,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
 
     var toastQueue = [];
     if (trackJustCompleted) {
-      toastQueue.push({ icon: '🎉', text: t('toastTrackDone', { track: getUILang() === 'en' ? track.labelEn : track.label }) });
+      toastQueue.push({ icon: '', text: t('toastTrackDone', { track: getUILang() === 'en' ? track.labelEn : track.label }) });
     }
     newBadges.forEach(function (id) {
       var def = null;
@@ -1212,7 +1212,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
     var conceptBtn = document.createElement('button');
     conceptBtn.type = 'button';
     conceptBtn.className = 'cx-item' + (state.itemIndex === 0 ? ' active' : '');
-    conceptBtn.textContent = '📖 ' + t('conceptLabel');
+    conceptBtn.textContent = '' + t('conceptLabel');
     conceptBtn.addEventListener('click', function () { selectItem(0); });
     itemList.appendChild(conceptBtn);
 
@@ -1223,7 +1223,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
       var item = document.createElement('button');
       item.type = 'button';
       item.className = 'cx-item' + (idx === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
-      item.textContent = (passed ? '✅ ' : unlocked ? '' : '🔒 ') + (idx) + '. ' + ex.title;
+      item.textContent = (passed ? '' : unlocked ? '' : '') + (idx) + '. ' + ex.title;
       item.addEventListener('click', function () {
         if (unlocked) selectItem(idx);
         else showLockMsg();
@@ -1359,7 +1359,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
     results.forEach(function (r) {
       var row = document.createElement('div');
       row.className = 'cx-test-row ' + (r.pass ? 'pass' : 'fail');
-      row.textContent = (r.pass ? '✔ ' : '✘ ') + r.label;
+      row.textContent = (r.pass ? '' : '') + r.label;
       testsList.appendChild(row);
     });
   }
@@ -1413,7 +1413,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
       if (resd.runtimeError) {
         var errLineD = document.createElement('div');
         errLineD.className = 'cx-output-line err';
-        errLineD.textContent = '❌ ' + resd.runtimeError;
+        errLineD.textContent = '' + resd.runtimeError;
         outputLog.appendChild(errLineD);
       }
       if (resd.previewHtml !== undefined) htmlPreview.srcdoc = resd.previewHtml;
@@ -1439,7 +1439,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
     if (res.runtimeError) {
       var errLine = document.createElement('div');
       errLine.className = 'cx-output-line err';
-      errLine.textContent = '❌ ' + res.runtimeError;
+      errLine.textContent = '' + res.runtimeError;
       outputLog.appendChild(errLine);
     }
     if (state.itemIndex > 0) {

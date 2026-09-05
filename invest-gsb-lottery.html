@@ -111,7 +111,6 @@ select{font-family:inherit}
   <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>สลากออมสิน</nav>
 
   <div class="head">
-    <div class="head-ic">🎟️</div>
     <div>
       <h1>สลากออมสิน — คำนวณค่าคาดหวัง (EV) เงินรางวัล + ติดตามผลจับรางวัล</h1>
       <div class="head-sub">ตัวช่วยคิดค่าคาดหวังของสลากออมสินธนาคารออมสิน ไม่ใช่การรับประกันผลตอบแทน</div>
@@ -120,7 +119,7 @@ select{font-family:inherit}
 
   <!-- ข้อมูลสลากและตารางรางวัล -->
   <div class="card">
-    <h2>📋 ข้อมูลสลากและตารางรางวัล (Prize Tiers)</h2>
+    <h2>ข้อมูลสลากและตารางรางวัล (Prize Tiers)</h2>
     <div class="frow">
       <div class="field"><label>ราคาต่อหน่วย (บาท)</label><input type="number" id="gbUnitPrice" inputmode="numeric" value="100"></div>
       <div class="field"><label>จำนวนหน่วยที่ถือ</label><input type="number" id="gbUnits" inputmode="numeric" value="100"></div>
@@ -163,7 +162,7 @@ select{font-family:inherit}
 
   <!-- เทียบเงินฝากประจำ -->
   <div class="card">
-    <h2>⚖️ เทียบกับเงินฝากประจำ</h2>
+    <h2>เทียบกับเงินฝากประจำ</h2>
     <div class="frow">
       <div class="field"><label>อัตราดอกเบี้ยเงินฝากประจำที่จะเทียบ (%)</label><input type="number" id="cmpDepRate" inputmode="decimal" step="0.01" value="1.5"></div>
       <button class="btn sm" id="cmpBtn" type="button">เทียบผลตอบแทน</button>
@@ -172,12 +171,12 @@ select{font-family:inherit}
     <div id="cmpOut" style="display:none">
       <div class="cmp">
         <div class="col acc">
-          <h3>🎟️ สลากออมสิน (ค่าคาดหวัง)</h3>
+          <h3>สลากออมสิน (ค่าคาดหวัง)</h3>
           <div class="line"><span>เงินต้น</span><span class="v" id="cmpLotPrincipal">—</span></div>
           <div class="line"><span>กำไรคาดหวัง (หลังภาษีตาม toggle)</span><span class="v" id="cmpLotGain">—</span></div>
         </div>
         <div class="col div">
-          <h3>🏦 เงินฝากประจำ</h3>
+          <h3>เงินฝากประจำ</h3>
           <div class="line"><span>เงินต้น</span><span class="v" id="cmpDepPrincipal">—</span></div>
           <div class="line"><span>ดอกเบี้ยรวมก่อนภาษี</span><span class="v" id="cmpDepGross">—</span></div>
           <div class="line"><span>ดอกเบี้ยรวมหลังหักภาษี 15%</span><span class="v" id="cmpDepNet">—</span></div>
@@ -191,7 +190,7 @@ select{font-family:inherit}
 
   <!-- สมุดสลาก -->
   <div class="card">
-    <h2>📅 สมุดสลากของฉัน + ติดตามผลจับรางวัล</h2>
+    <h2>สมุดสลากของฉัน + ติดตามผลจับรางวัล</h2>
     <div class="frow">
       <div class="field" style="flex:1 1 160px"><label>ชื่อ/รุ่นสลาก</label><input type="text" id="lgName" list="gsbNameList" placeholder="เช่น สลากออมสินพิเศษ 1 ปี"><datalist id="gsbNameList"></datalist></div>
       <div class="field"><label>วันที่ซื้อ</label><input type="date" id="lgPurchDate"></div>
@@ -213,7 +212,7 @@ select{font-family:inherit}
 
   <!-- เรียนรู้ -->
   <details class="card lesson">
-    <summary style="font-size:14px">📚 เรียนรู้ — สลากออมสินแบบเข้าใจง่าย</summary>
+    <summary style="font-size:14px">เรียนรู้ — สลากออมสินแบบเข้าใจง่าย</summary>
     <div class="details-body">
       <h3>สลากออมสินคืออะไร</h3>
       <p>เป็นการฝากเงินรูปแบบหนึ่งที่มีการลุ้นรางวัลแถมมา — ต่างจากหวยทั่วไปตรงที่ <b>ได้เงินต้นคืนเต็มจำนวนเสมอถ้าถือจนครบกำหนด</b> ไม่ว่าจะถูกรางวัลหรือไม่ก็ตาม เป็นสินค้าออมเงินที่มีความเสี่ยงต่ำมาก แต่ผลตอบแทนส่วนใหญ่มาจากโอกาสถูกรางวัลมากกว่าดอกเบี้ยที่มักน้อยมาก</p>
@@ -228,7 +227,7 @@ select{font-family:inherit}
     </div>
   </details>
 
-  <div class="disc">⚠️ ตัวเลขเป็นค่าคาดหวังทางสถิติจากสมมติฐานที่กรอก ไม่ใช่การรับประกันผลตอบแทน ไม่ใช่คำแนะนำการลงทุนหรือคำแนะนำภาษี · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
+  <div class="disc">ตัวเลขเป็นค่าคาดหวังทางสถิติจากสมมติฐานที่กรอก ไม่ใช่การรับประกันผลตอบแทน ไม่ใช่คำแนะนำการลงทุนหรือคำแนะนำภาษี · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
 </div>
 
 <script src="invest-gsb-lottery.js" defer></script>

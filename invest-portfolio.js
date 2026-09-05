@@ -221,7 +221,7 @@
     },
     setBtn: function () {
       var b = $('driveConnectBtn'); if (!b) return;
-      b.textContent = this.connected ? '🔗 เชื่อมต่อ Google Drive แล้ว' : '🔗 เชื่อมต่อ Google Drive';
+      b.textContent = this.connected ? 'เชื่อมต่อ Google Drive แล้ว' : 'เชื่อมต่อ Google Drive';
     },
     init: function () {
       try { this.connected = localStorage.getItem(DRIVE_CONNECTED_KEY) === '1'; } catch (e) {}
@@ -319,8 +319,8 @@
           renderAll();
           return self.upload(state);
         })
-        .then(function () { self.setStatus('✅ ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); })
-        .catch(function (e) { self.setStatus('❌ ' + (e.message || e), 'err'); });
+        .then(function () { self.setStatus('ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); })
+        .catch(function (e) { self.setStatus('' + (e.message || e), 'err'); });
     },
     scheduleSync: function () {
       var self = this;
@@ -336,14 +336,14 @@
       self.setStatus('กำลังซิงก์…', '');
       self.ensureFolder().then(function () { return self.findFile(); })
         .then(function () { return self.upload(state); })
-        .then(function () { self.setStatus('✅ ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
+        .then(function () { self.setStatus('ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
         .catch(function (e) {
           var msg = String(e && e.message || e);
           if (msg.indexOf('401') !== -1 || msg.indexOf('403') !== -1) {
             self.accessToken = null;
             self.setStatus('เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', 'err');
           } else {
-            self.setStatus('❌ ซิงก์ไม่สำเร็จ: ' + msg, 'err');
+            self.setStatus('ซิงก์ไม่สำเร็จ: ' + msg, 'err');
           }
         })
         .finally(function () {

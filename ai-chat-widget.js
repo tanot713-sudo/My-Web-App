@@ -277,7 +277,7 @@
        ด้านบน เผื่ออยากอ่านคำอธิบาย/ใช้งานจากเครื่องอื่นทีหลัง) แค่พิมพ์/อัดเสียงส่งไม่ได้เท่านั้น */
     if (isIOS()) {
       panel.querySelector('.ome-ai-disclaimer').innerHTML =
-        '⚠️ <b>ฟีเจอร์นี้ (AI รันในเครื่อง) ยังไม่รองรับ iPhone/iPad ตอนนี้</b> — มีรายงานยืนยันแล้วว่า ' +
+        '<b>ฟีเจอร์นี้ (AI รันในเครื่อง) ยังไม่รองรับ iPhone/iPad ตอนนี้</b> — มีรายงานยืนยันแล้วว่า ' +
         'ทำให้หน้าเว็บรีเฟรชเองระหว่างโหลดโมเดล (หน่วยความจำต่อแท็บของ Safari/iOS จำกัดเกินกว่าจะรันโมเดล ' +
         'ขนาดนี้ได้อย่างเสถียร) ปิดไว้ก่อนกันข้อมูลที่ทำค้างอยู่หน้าอื่นหาย — ลองใช้งานจากคอมพิวเตอร์แทนได้ครับ';
       inputEl.placeholder = 'ใช้งานไม่ได้บน iPhone/iPad ตอนนี้ (ดูคำอธิบายด้านบน)';
@@ -312,14 +312,14 @@
     function playPcm(samples, sampleRate) {
       try {
         var ctx = unlockAudioCtx();
-        if (!ctx) { setStatus('❌ เบราว์เซอร์นี้ไม่รองรับ AudioContext', 'err'); return; }
+        if (!ctx) { setStatus('เบราว์เซอร์นี้ไม่รองรับ AudioContext', 'err'); return; }
         var buf = ctx.createBuffer(1, samples.length, sampleRate);
         buf.getChannelData(0).set(samples);
         var src = ctx.createBufferSource();
         src.buffer = buf;
         src.connect(ctx.destination);
         src.start(0);
-      } catch (e) { setStatus('❌ เล่นเสียงไม่ได้: ' + (e && e.message ? e.message : e), 'err'); }
+      } catch (e) { setStatus('เล่นเสียงไม่ได้: ' + (e && e.message ? e.message : e), 'err'); }
     }
     function speakText(text) {
       if (!text) return;
@@ -334,10 +334,10 @@
         } else if (msg.type === 'item-done') {
           cleanup(); setStatus('', ''); playPcm(msg.audio, msg.samplingRate);
         } else if (msg.type === 'item-error') {
-          cleanup(); setStatus('❌ พูดคำตอบไม่สำเร็จ: ' + msg.message, 'err');
+          cleanup(); setStatus('พูดคำตอบไม่สำเร็จ: ' + msg.message, 'err');
         }
       }
-      function onErr(e) { cleanup(); setStatus('❌ Web Worker error: ' + (e.message || ''), 'err'); }
+      function onErr(e) { cleanup(); setStatus('Web Worker error: ' + (e.message || ''), 'err'); }
       function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
       w.addEventListener('message', onMsg);
       w.addEventListener('error', onErr);
@@ -378,7 +378,7 @@
           var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
           setStatus('กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) ' + msg.file + ' ' + pct, '');
         } else if (msg.type === 'fallback') {
-          setStatus('⚠️ ' + msg.message, ''); // จะถูกทับด้วยสถานะถัดไปเองเมื่อโหลดตัวสำรองเสร็จ
+          setStatus('' + msg.message, ''); // จะถูกทับด้วยสถานะถัดไปเองเมื่อโหลดตัวสำรองเสร็จ
         } else if (msg.type === 'model-info') {
           console.info('[ai-chat] ใช้โมเดล', msg.modelId, 'บน', msg.device);
         } else if (msg.type === 'token') {
@@ -398,7 +398,7 @@
           cleanup();
           if (replyBubble) replyBubble.remove();
           messages.pop();
-          setStatus('❌ ตอบไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
+          setStatus('ตอบไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
           setBusy(false); inputEl.focus();
         }
       }
@@ -406,7 +406,7 @@
         cleanup();
         if (replyBubble) replyBubble.remove();
         messages.pop();
-        setStatus('❌ ตอบไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
+        setStatus('ตอบไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
         setBusy(false); inputEl.focus();
       }
       function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
@@ -428,7 +428,7 @@
         setStatus('เนื้อหาในหน้านี้สั้นเกินไปที่จะสรุปได้', 'err');
         return;
       }
-      appendBubble('user', '📝 สรุปเนื้อหาหน้านี้ให้หน่อย');
+      appendBubble('user', 'สรุปเนื้อหาหน้านี้ให้หน่อย');
       setBusy(true);
       setStatus('กำลังสรุปเนื้อหาหน้านี้… (ครั้งแรกอาจต้องโหลดโมเดล ~350MB ก่อน)', '');
 
@@ -449,7 +449,7 @@
           var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
           setStatus('กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) ' + msg.file + ' ' + pct, '');
         } else if (msg.type === 'fallback') {
-          setStatus('⚠️ ' + msg.message, '');
+          setStatus('' + msg.message, '');
         } else if (msg.type === 'model-info') {
           console.info('[ai-chat] ใช้โมเดล', msg.modelId, 'บน', msg.device);
         } else if (msg.type === 'token') {
@@ -465,14 +465,14 @@
         } else if (msg.type === 'error') {
           cleanup();
           if (replyBubble) replyBubble.remove();
-          setStatus('❌ สรุปไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
+          setStatus('สรุปไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
           setBusy(false); inputEl.focus();
         }
       }
       function onErr(e) {
         cleanup();
         if (replyBubble) replyBubble.remove();
-        setStatus('❌ สรุปไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
+        setStatus('สรุปไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
         setBusy(false); inputEl.focus();
       }
       function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
@@ -551,17 +551,17 @@
       if (isBusy && !isRecording) return;
       if (!isRecording) {
         if (typeof MediaRecorder === 'undefined' || !navigator.mediaDevices) {
-          setStatus('❌ เบราว์เซอร์นี้ไม่รองรับการอัดเสียงผ่านไมค์', 'err'); return;
+          setStatus('เบราว์เซอร์นี้ไม่รองรับการอัดเสียงผ่านไมค์', 'err'); return;
         }
         isRecording = true;
         micBtn.classList.add('recording'); micBtn.textContent = '⏹️';
         inputEl.disabled = true; sendBtn.disabled = true; // เว้น micBtn ไว้ให้กดหยุดได้ (setBusy จะปิดหมดรวม mic)
-        setStatus('🎙️ กำลังฟัง… แตะไมค์อีกครั้งเพื่อหยุด', '');
+        setStatus('กำลังฟัง… แตะไมค์อีกครั้งเพื่อหยุด', '');
         startRecording().catch(function (err) {
           isRecording = false;
           micBtn.classList.remove('recording'); micBtn.textContent = '🎤';
           inputEl.disabled = false; sendBtn.disabled = false;
-          setStatus('❌ เปิดไมค์ไม่สำเร็จ: ' + (err && err.message ? err.message : 'ตรวจสอบสิทธิ์ไมโครโฟน'), 'err');
+          setStatus('เปิดไมค์ไม่สำเร็จ: ' + (err && err.message ? err.message : 'ตรวจสอบสิทธิ์ไมโครโฟน'), 'err');
         });
       } else {
         isRecording = false;
@@ -571,13 +571,13 @@
         stopRecording().then(decodeBlobToPcm).then(transcribe).then(function (text) {
           text = (text || '').trim();
           setBusy(false);
-          if (!text) { setStatus('⚠️ ไม่ได้ยินคำพูด ลองพูดใหม่อีกครั้ง', 'err'); return; }
+          if (!text) { setStatus('ไม่ได้ยินคำพูด ลองพูดใหม่อีกครั้ง', 'err'); return; }
           setStatus('', '');
           inputEl.value = text;
           sendMessage(true); // true = บังคับพูดคำตอบกลับด้วยเสียงเสมอในโหมดไมค์
         }).catch(function (err) {
           setBusy(false);
-          setStatus('❌ ถอดเสียงไม่สำเร็จ: ' + (err && err.message ? err.message : String(err)), 'err');
+          setStatus('ถอดเสียงไม่สำเร็จ: ' + (err && err.message ? err.message : String(err)), 'err');
         });
       }
     });

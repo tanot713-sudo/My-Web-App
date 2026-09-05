@@ -126,7 +126,6 @@ select{font-family:inherit}
   <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>กองทุนไทย</nav>
 
   <div class="head">
-    <div class="head-ic">📊</div>
     <div>
       <h1>กองทุนรวมไทย — วางแผน DCA + ประหยัดภาษี</h1>
       <div class="head-sub">หุ้น/ตราสารหนี้/ผสม · RMF · SSF · Thai ESG · ทยอยซื้อทุกเดือน</div>
@@ -135,7 +134,7 @@ select{font-family:inherit}
 
   <!-- แผน DCA -->
   <div class="card">
-    <h2>💰 แผนทยอยซื้อ (DCA)</h2>
+    <h2>แผนทยอยซื้อ (DCA)</h2>
     <div class="frow">
       <div class="field"><label>ซื้อ "สะสมมูลค่า" /เดือน</label><input type="number" id="accM" inputmode="numeric" value="3000"></div>
       <div class="field"><label>ซื้อ "ปันผล" /เดือน</label><input type="number" id="divM" inputmode="numeric" value="3000"></div>
@@ -157,13 +156,13 @@ select{font-family:inherit}
 
       <div class="cmp">
         <div class="col acc">
-          <h3>🟢 แบบสะสมมูลค่า</h3>
+          <h3>แบบสะสมมูลค่า</h3>
           <div class="line"><span>ลงทั้งหมด</span><span class="v" id="aC">—</span></div>
           <div class="line"><span>มูลค่าปลายทาง</span><span class="v" id="aV">—</span></div>
           <div class="line"><span>ปันผลรับ</span><span class="v">— (ทบในกอง)</span></div>
         </div>
         <div class="col div">
-          <h3>🟣 แบบปันผล</h3>
+          <h3>แบบปันผล</h3>
           <div class="line"><span>ลงทั้งหมด</span><span class="v" id="dC">—</span></div>
           <div class="line"><span>มูลค่าปลายทาง</span><span class="v" id="dV">—</span></div>
           <div class="line"><span>ปันผลรับสะสม</span><span class="v" id="dCash">—</span></div>
@@ -184,7 +183,7 @@ select{font-family:inherit}
 
   <!-- คำนวณภาษี -->
   <div class="card">
-    <h2>🧾 คำนวณเงินลดหย่อนภาษี (RMF / SSF / Thai ESG)</h2>
+    <h2>คำนวณเงินลดหย่อนภาษี (RMF / SSF / Thai ESG)</h2>
     <div class="frow">
       <div class="field"><label>ปีภาษีที่จะซื้อ <span class="unit">(กระทบเพดาน Thai ESG)</span></label><input type="number" id="txYear" inputmode="numeric"></div>
       <div class="field" style="flex:1 1 260px"><label>เงินได้สุทธิที่ต้องเสียภาษีต่อปี <span class="unit">(หลังหักลดหย่อนอื่นแล้ว)</span></label>
@@ -222,19 +221,19 @@ select{font-family:inherit}
         </div>
       </details>
     </div>
-    <p class="mini" style="font-size:12px;color:var(--muted);margin-top:10px">⚠️ ประมาณการ ไม่ใช่คำแนะนำภาษี — ไม่ได้รวมค่าลดหย่อนอื่นนอกเหนือจากกลุ่มเกษียณที่กรอก (เช่น ประกันชีวิต บริจาค ดอกเบี้ยบ้าน) และไม่ได้ตรวจสอบเงื่อนไขการถือครองให้ครบตามกำหนด (RMF/SSF/ESG มีบทลงโทษถ้าขายก่อนกำหนด) โปรดตรวจสอบกับกรมสรรพากรหรือที่ปรึกษาภาษีก่อนตัดสินใจจริง</p>
+    <p class="mini" style="font-size:12px;color:var(--muted);margin-top:10px">ประมาณการ ไม่ใช่คำแนะนำภาษี — ไม่ได้รวมค่าลดหย่อนอื่นนอกเหนือจากกลุ่มเกษียณที่กรอก (เช่น ประกันชีวิต บริจาค ดอกเบี้ยบ้าน) และไม่ได้ตรวจสอบเงื่อนไขการถือครองให้ครบตามกำหนด (RMF/SSF/ESG มีบทลงโทษถ้าขายก่อนกำหนด) โปรดตรวจสอบกับกรมสรรพากรหรือที่ปรึกษาภาษีก่อนตัดสินใจจริง</p>
   </div>
 
   <!-- ระดับความเสี่ยง -->
   <div class="card">
-    <h2>🎯 ระดับความเสี่ยงกองทุน (1–8)</h2>
+    <h2>ระดับความเสี่ยงกองทุน (1–8)</h2>
     <div class="risk-scale" id="riskScale"></div>
     <p style="font-size:12px;color:var(--muted);margin-top:8px">ระดับความเสี่ยงพิมพ์อยู่บนหน้าแรกของ Fund Factsheet ทุกกองเสมอ — ยิ่งเลขสูง ยิ่งผันผวนสูง ไม่ใช่ "แย่กว่า" แต่ต้องรับความผันผวนได้มากกว่า</p>
   </div>
 
   <!-- เติมไม้ตอนย่อ -->
   <div class="card">
-    <h2>📉 ตลาดย่อ = โอกาสเติมไม้ (ทางเลือก)</h2>
+    <h2>ตลาดย่อ = โอกาสเติมไม้ (ทางเลือก)</h2>
     <div class="frow">
       <div class="field"><label>ดัชนี SET ตอนนี้</label><input type="number" id="idxNow" inputmode="decimal" step="0.01" placeholder="เช่น 1350"></div>
       <div class="field"><label>จุดสูงสุดที่เคยทำ (ATH)</label><input type="number" id="idxAth" inputmode="decimal" step="0.01" placeholder="เช่น 1850"></div>
@@ -251,7 +250,7 @@ select{font-family:inherit}
 
   <!-- สมุดซื้อจริง -->
   <div class="card">
-    <h2>📁 สมุดซื้อจริงของฉัน</h2>
+    <h2>สมุดซื้อจริงของฉัน</h2>
     <div class="frow">
       <div class="field" style="flex:1 1 160px"><label>ชื่อกองทุน</label><input type="text" id="lgFund" list="fundList" placeholder="เช่น SCBRMS50, KFSEQ-A"><datalist id="fundList"></datalist></div>
       <div class="field"><label>ประเภท (เพื่อภาษี)</label>
@@ -270,7 +269,7 @@ select{font-family:inherit}
 
   <!-- วันที่พร้อมขายแบบไม่เสียสิทธิ์ภาษี -->
   <div class="card">
-    <h2>🔓 วันที่พร้อมขายแบบไม่เสียสิทธิ์ภาษี</h2>
+    <h2>วันที่พร้อมขายแบบไม่เสียสิทธิ์ภาษี</h2>
     <div class="frow">
       <div class="field"><label>ปีเกิด <span class="unit">(สำหรับเช็คเงื่อนไขอายุ 55 ปีของ RMF เท่านั้น)</span></label><input type="number" id="elBirthYear" inputmode="numeric" placeholder="เช่น 2538"></div>
     </div>
@@ -280,7 +279,7 @@ select{font-family:inherit}
 
   <!-- เรียนรู้ -->
   <details class="card lesson">
-    <summary style="font-size:14px">📚 เรียนรู้ — กองทุนรวมไทยแบบเข้าใจง่าย</summary>
+    <summary style="font-size:14px">เรียนรู้ — กองทุนรวมไทยแบบเข้าใจง่าย</summary>
     <div class="details-body">
       <h3>กองทุนรวมคืออะไร</h3>
       <p>เงินของหลายคนถูกนำมารวมกันให้ผู้จัดการกองทุน (บลจ.) มืออาชีพนำไปลงทุนแทน กระจายความเสี่ยงได้มากกว่าซื้อหุ้นเดี่ยว เหมาะกับคนไม่มีเวลาติดตามตลาดเอง</p>
@@ -299,7 +298,7 @@ select{font-family:inherit}
     </div>
   </details>
 
-  <div class="disc">⚠️ ตัวเลขเป็นการประมาณจากสมมติฐานที่กรอก ผลจริงขึ้นกับตลาดและอาจติดลบได้ · การคำนวณภาษีเป็นการประมาณเบื้องต้น ไม่ใช่คำแนะนำภาษี · ไม่ใช่คำแนะนำการลงทุน · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
+  <div class="disc">ตัวเลขเป็นการประมาณจากสมมติฐานที่กรอก ผลจริงขึ้นกับตลาดและอาจติดลบได้ · การคำนวณภาษีเป็นการประมาณเบื้องต้น ไม่ใช่คำแนะนำภาษี · ไม่ใช่คำแนะนำการลงทุน · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
 </div>
 
 <script src="invest-thai-fund.js" defer></script>

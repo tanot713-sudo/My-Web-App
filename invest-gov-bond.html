@@ -105,7 +105,6 @@ select{font-family:inherit}
   <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>พันธบัตรรัฐบาล</nav>
 
   <div class="head">
-    <div class="head-ic">🏛️</div>
     <div>
       <h1>พันธบัตรรัฐบาล — คำนวณผลตอบแทน + ติดตามตารางจ่ายดอกเบี้ย</h1>
       <div class="head-sub">ออมทรัพย์ & ทั่วไป · อัตราผลตอบแทนแท้จริง (YTM) · หลังหักภาษี 15% · เทียบเงินฝากประจำ</div>
@@ -114,7 +113,7 @@ select{font-family:inherit}
 
   <!-- คำนวณผลตอบแทน -->
   <div class="card">
-    <h2>💰 คำนวณผลตอบแทนพันธบัตร</h2>
+    <h2>คำนวณผลตอบแทนพันธบัตร</h2>
     <div class="frow">
       <div class="field"><label>มูลค่าหน้าตั๋ว (บาท)</label><input type="number" id="bfFace" inputmode="numeric" value="100000"></div>
       <div class="field"><label>อัตราดอกเบี้ยหน้าตั๋ว/ปี (%)</label><input type="number" id="bfCoupon" inputmode="decimal" step="0.01" value="3"></div>
@@ -142,7 +141,7 @@ select{font-family:inherit}
 
   <!-- เทียบเงินฝากประจำ -->
   <div class="card">
-    <h2>⚖️ เทียบกับเงินฝากประจำธนาคาร</h2>
+    <h2>เทียบกับเงินฝากประจำธนาคาร</h2>
     <div class="frow">
       <div class="field"><label>อัตราดอกเบี้ยเงินฝากประจำที่จะเทียบ (%)</label><input type="number" id="cmpDepRate" inputmode="decimal" step="0.01" value="1.5"></div>
       <button class="btn sm" id="cmpBtn" type="button">เทียบผลตอบแทน</button>
@@ -151,13 +150,13 @@ select{font-family:inherit}
     <div id="cmpOut" style="display:none">
       <div class="cmp">
         <div class="col acc">
-          <h3>🏛️ พันธบัตร</h3>
+          <h3>พันธบัตร</h3>
           <div class="line"><span>เงินต้น</span><span class="v" id="cmpBondPrincipal">—</span></div>
           <div class="line"><span>ดอกเบี้ยรวมก่อนภาษี</span><span class="v" id="cmpBondGross">—</span></div>
           <div class="line"><span>ดอกเบี้ยรวมหลังหักภาษี 15%</span><span class="v" id="cmpBondNet">—</span></div>
         </div>
         <div class="col div">
-          <h3>🏦 เงินฝากประจำ</h3>
+          <h3>เงินฝากประจำ</h3>
           <div class="line"><span>เงินต้น</span><span class="v" id="cmpDepPrincipal">—</span></div>
           <div class="line"><span>ดอกเบี้ยรวมก่อนภาษี</span><span class="v" id="cmpDepGross">—</span></div>
           <div class="line"><span>ดอกเบี้ยรวมหลังหักภาษี 15%</span><span class="v" id="cmpDepNet">—</span></div>
@@ -172,7 +171,7 @@ select{font-family:inherit}
 
   <!-- สมุดพันธบัตร -->
   <div class="card">
-    <h2>📅 ตารางจ่ายดอกเบี้ย + สมุดพันธบัตรของฉัน</h2>
+    <h2>ตารางจ่ายดอกเบี้ย + สมุดพันธบัตรของฉัน</h2>
     <div class="frow">
       <div class="field" style="flex:1 1 160px"><label>ชื่อ/รุ่นพันธบัตร</label><input type="text" id="lgName" list="bondNameList" placeholder="เช่น ออมพลัส 2569"><datalist id="bondNameList"></datalist></div>
       <div class="field"><label>วันที่ซื้อ</label><input type="date" id="lgPurchDate"></div>
@@ -194,7 +193,7 @@ select{font-family:inherit}
 
   <!-- เรียนรู้ -->
   <details class="card lesson">
-    <summary style="font-size:14px">📚 เรียนรู้ — พันธบัตรรัฐบาลแบบเข้าใจง่าย</summary>
+    <summary style="font-size:14px">เรียนรู้ — พันธบัตรรัฐบาลแบบเข้าใจง่าย</summary>
     <div class="details-body">
       <h3>พันธบัตรรัฐบาลคืออะไร</h3>
       <p>เป็นตราสารหนี้ที่รัฐบาลออกเพื่อกู้เงินจากประชาชน แลกกับดอกเบี้ยตามที่กำหนด และคืนเงินต้นเมื่อครบกำหนด — มีรัฐบาลค้ำประกัน ความเสี่ยงผิดนัดชำระต่ำมากเมื่อเทียบกับตราสารหนี้เอกชน</p>
@@ -209,7 +208,7 @@ select{font-family:inherit}
     </div>
   </details>
 
-  <div class="disc">⚠️ ตัวเลขเป็นการประมาณจากสมมติฐานที่กรอก ไม่ใช่คำแนะนำการลงทุนหรือคำแนะนำภาษี · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
+  <div class="disc">ตัวเลขเป็นการประมาณจากสมมติฐานที่กรอก ไม่ใช่คำแนะนำการลงทุนหรือคำแนะนำภาษี · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
 </div>
 
 <script src="invest-gov-bond.js" defer></script>

@@ -2414,11 +2414,11 @@
       var ly = state.layers[lid];
       var isActive = lid === state.activeLayer;
       return '<div class="cad-layer-row' + (isActive ? ' active' : '') + '" data-lid="' + lid + '">' +
-        '<button type="button" class="cad-layer-icon" data-act="setactive" title="' + t('layerActiveLbl') + '">' + (isActive ? '🔘' : '⚪') + '</button>' +
+        '<button type="button" class="cad-layer-icon" data-act="setactive" title="' + t('layerActiveLbl') + '">' + (isActive ? '' : '') + '</button>' +
         '<input type="color" class="cad-layer-color" data-act="color" value="' + (ly.color || '#1F2430') + '">' +
         '<input type="text" class="cad-layer-name" data-act="rename" value="' + (ly.name || lid).replace(/"/g, '&quot;') + '" placeholder="' + t('layerNamePlaceholder') + '">' +
-        '<button type="button" class="cad-layer-icon" data-act="visible" title="' + (ly.visible === false ? 'show' : 'hide') + '">' + (ly.visible === false ? '🚫' : '👁️') + '</button>' +
-        '<button type="button" class="cad-layer-icon" data-act="lock">' + (ly.locked ? '🔒' : '🔓') + '</button>' +
+        '<button type="button" class="cad-layer-icon" data-act="visible" title="' + (ly.visible === false ? 'show' : 'hide') + '">' + (ly.visible === false ? '' : '') + '</button>' +
+        '<button type="button" class="cad-layer-icon" data-act="lock">' + (ly.locked ? '' : '') + '</button>' +
         '<button type="button" class="cad-layer-icon" data-act="delete"' + (lid === '0' ? ' disabled' : '') + '>🗑️</button>' +
         '</div>';
     }).join('');

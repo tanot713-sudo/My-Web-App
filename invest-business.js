@@ -22,7 +22,7 @@
 
   var IDEAS = [
     {
-      id: 'freelance', icon: '🧑‍💻', title: 'ขายทักษะ/ที่ปรึกษาฟรีแลนซ์',
+      id: 'freelance', icon: '', title: 'ขายทักษะ/ที่ปรึกษาฟรีแลนซ์',
       tagline: 'ใช้ทักษะที่มีอยู่แล้วรับงานนอกเวลา',
       phases: [
         { tools: [
@@ -49,7 +49,7 @@
       ]
     },
     {
-      id: 'course', icon: '🎓', title: 'สอน/ทำคอร์สออนไลน์',
+      id: 'course', icon: '', title: 'สอน/ทำคอร์สออนไลน์',
       tagline: 'ถ่ายทอดความรู้เป็นคอร์สหรือติวเตอร์',
       phases: [
         { tools: [
@@ -76,7 +76,7 @@
       ]
     },
     {
-      id: 'online-sales', icon: '🛍️', title: 'ขายสินค้าออนไลน์',
+      id: 'online-sales', icon: '', title: 'ขายสินค้าออนไลน์',
       tagline: 'ผลิตเองหรือหาสินค้ามาขายผ่านมาร์เก็ตเพลส/โซเชียล',
       phases: [
         { tools: [
@@ -102,7 +102,7 @@
       ]
     },
     {
-      id: 'tools-apps', icon: '🧰', title: 'ทำเครื่องมือ/แอปขายหรือให้เช่า',
+      id: 'tools-apps', icon: '', title: 'ทำเครื่องมือ/แอปขายหรือให้เช่า',
       tagline: 'สร้างของที่ใช้ซ้ำได้ ขายทีเดียวหรือเก็บค่าสมาชิก',
       phases: [
         { tools: [
@@ -128,7 +128,7 @@
       ]
     },
     {
-      id: 'rental', icon: '🏠', title: 'ให้เช่าทรัพย์สินที่มี',
+      id: 'rental', icon: '', title: 'ให้เช่าทรัพย์สินที่มี',
       tagline: 'ห้อง/รถ/อุปกรณ์ที่ไม่ได้ใช้เต็มเวลา',
       phases: [
         { tools: [
@@ -163,7 +163,7 @@
   function toolListHtml(tools) {
     var html = '<ul class="tool-list">';
     tools.forEach(function (t) {
-      html += '<li><b>' + t.name + '</b><div class="mini">' + t.why + '</div><div class="tool-get">📍 หาได้จาก: ' + t.get + '</div></li>';
+      html += '<li><b>' + t.name + '</b><div class="mini">' + t.why + '</div><div class="tool-get">หาได้จาก: ' + t.get + '</div></li>';
     });
     html += '</ul>';
     return html;
@@ -266,7 +266,7 @@
 
     var v = $('bzVerdict');
     v.className = 'verdict-box ' + r.cls;
-    v.innerHTML = (r.cls === 'go' ? '🟢 ' : r.cls === 'no' ? '🔴 ' : '🟡 ') + r.txt;
+    v.innerHTML = (r.cls === 'go' ? '' : r.cls === 'no' ? '' : '') + r.txt;
   }
 
   /* ── เช็กลิสต์ "พร้อมเริ่มหรือยัง?" ── */
@@ -299,12 +299,12 @@
     var fails = checks.filter(function (c) { return c.ok === false; }).length;
     var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
     var box = $('bzChkResult'), v = $('bzChkVerdict');
-    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = '⛔ ยังไม่พร้อม — ติด ' + fails + ' ข้อ ควรแก้ให้ครบก่อนเริ่ม'; }
-    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = '⚠️ ตอบให้ครบก่อนประเมิน — เหลือ ' + unknowns + ' ข้อ'; }
-    else { v.className = 'verdict-box go'; v.textContent = '✅ พร้อมเริ่มได้ตามเกณฑ์ — ผ่านครบทุกข้อ (แต่ยังไม่การันตีความสำเร็จ)'; }
+    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = 'ยังไม่พร้อม — ติด ' + fails + ' ข้อ ควรแก้ให้ครบก่อนเริ่ม'; }
+    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = 'ตอบให้ครบก่อนประเมิน — เหลือ ' + unknowns + ' ข้อ'; }
+    else { v.className = 'verdict-box go'; v.textContent = 'พร้อมเริ่มได้ตามเกณฑ์ — ผ่านครบทุกข้อ (แต่ยังไม่การันตีความสำเร็จ)'; }
     var html = '';
     checks.forEach(function (c) {
-      var ic = c.ok === true ? '✅' : c.ok === false ? '❌' : '◻️';
+      var ic = c.ok === true ? '' : c.ok === false ? '' : '◻️';
       html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
     });
     $('bzChkList').innerHTML = html;

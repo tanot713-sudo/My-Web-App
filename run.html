@@ -387,9 +387,9 @@ $('check').addEventListener('click', async ()=>{
     await pyodide.runPythonAsync(
       'import importlib, tool_run\nimportlib.reload(tool_run)\n' +
       'e, w = tool_run.check(' + JSON.stringify(inName) + ')\n' +
-      'for x in w: print("⚠️ " + x)\n' +
-      'for x in e: print("❌ " + x)\n' +
-      'if not e and not w: print("✅ ข้อมูลครบถ้วน")\n');
+      'for x in w: print(" " + x)\n' +
+      'for x in e: print(" " + x)\n' +
+      'if not e and not w: print("ข้อมูลครบถ้วน")\n');
   }catch(e){ log(String(e), 'err'); }
 });
 
@@ -570,9 +570,9 @@ async function uploadPendingToDrive(){
       await uploadFileToDrive(item.name, item.blob, folderId, item.kind);
       done++;
     }
-    driveSetStatus(`✅ บันทึกขึ้น Google Drive แล้ว ${done} ไฟล์ (โฟลเดอร์ "${DRIVE_FOLDER_NAME}")`, 'ok');
+    driveSetStatus(`บันทึกขึ้น Google Drive แล้ว ${done} ไฟล์ (โฟลเดอร์ "${DRIVE_FOLDER_NAME}")`, 'ok');
   }catch(e){
-    driveSetStatus('❌ ' + (e.message || e), 'err');
+    driveSetStatus('' + (e.message || e), 'err');
   }finally{
     $('driveBtn').disabled = false;
   }
@@ -665,7 +665,7 @@ async function runCompare(){
     res.destroy();
     renderCompare(rows, files.length);
   }catch(e){
-    cmpSetStatus('❌ ' + (e.message || e), 'err');
+    cmpSetStatus('' + (e.message || e), 'err');
   }finally{
     $('cmpBtn').disabled = false;
   }
@@ -724,7 +724,7 @@ async function renderHistory(){
     html += '</tbody></table>';
     $('histList').innerHTML = html;
   }catch(e){
-    histSetStatus('❌ ' + (e.message || e), 'err');
+    histSetStatus('' + (e.message || e), 'err');
   }finally{
     $('histBtn').disabled = false;
   }
@@ -757,11 +757,11 @@ $('histList')?.addEventListener('click', async (ev) => {
       $('dropHint').textContent = (bytes.length / 1024).toFixed(0) + ' KB — โหลดจาก Google Drive แล้ว กด "สร้างเอกสาร" ได้เลย';
       enable();
       updateCmpBtnState();
-      histSetStatus('✅ ตั้ง "' + f.name + '" เป็นไฟล์ข้อมูลแล้ว', 'ok');
+      histSetStatus('ตั้ง "' + f.name + '" เป็นไฟล์ข้อมูลแล้ว', 'ok');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }catch(e){
-    histSetStatus('❌ ' + (e.message || e), 'err');
+    histSetStatus('' + (e.message || e), 'err');
   }finally{
     btn.disabled = false;
   }

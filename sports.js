@@ -21,8 +21,8 @@ var I18N = {
     pageTitle: 'เรียนกีฬา', crumbResp: 'งานที่รับผิดชอบ', crumbSports: 'เรียนกีฬา',
     markReadBtn: 'เข้าใจแล้ว ไปต่อ',
     lockedMsg: 'บทเรียนนี้ยังล็อกอยู่ — ทำข้อก่อนหน้าให้ผ่านก่อน',
-    trackDoneMsg: 'จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ☰ ด้านบนได้เลย',
-    toastTrackDone: 'จบบทเรียน "{track}" แล้ว! 🎉',
+    trackDoneMsg: 'จบบทเรียนนี้แล้ว! เลือกบทเรียนถัดไปจากเมนู ด้านบนได้เลย',
+    toastTrackDone: 'จบบทเรียน "{track}" แล้ว!',
     toastBadge: 'ได้รับเหรียญตรา: "{badge}"!',
     toastLevelUp: 'เลเวลอัป! เลเวล {level} — {title}'
   },
@@ -30,8 +30,8 @@ var I18N = {
     pageTitle: 'Learn Sports', crumbResp: 'Responsibilities', crumbSports: 'Learn Sports',
     markReadBtn: 'Got it, continue',
     lockedMsg: 'This lesson is locked — pass the previous one first.',
-    trackDoneMsg: 'Lesson complete! Pick the next lesson from the ☰ menu above.',
-    toastTrackDone: 'Lesson "{track}" complete! 🎉',
+    trackDoneMsg: 'Lesson complete! Pick the next lesson from the menu above.',
+    toastTrackDone: 'Lesson "{track}" complete!',
     toastBadge: 'Badge earned: "{badge}"!',
     toastLevelUp: 'Level up! Level {level} — {title}'
   }
@@ -455,7 +455,7 @@ var TRACKS = [
         svgFactStrip([
           { title: '11 v 11', sub: 'players per side', color: '#2F9E44' },
           { title: '2 x 45 min', sub: 'match halves', color: '#2F9E44' },
-          { title: '🚫 Hands', sub: 'outfield players', color: '#E8590C' }
+          { title: 'Hands', sub: 'outfield players', color: '#E8590C' }
         ], 'football match facts: 11 vs 11, 2x45 minutes, no hands')),
       readingItem('การล้ำหน้าและใบเหลือง-แดง', 'Offside & Cards',
         [
@@ -470,8 +470,8 @@ var TRACKS = [
         ],
         svgFactStrip([
           { title: 'Offside', sub: 'nearer goal than ball+DF', color: '#F5A524' },
-          { title: '🟨🟨 = 🟥', sub: '2 yellows = red', color: '#E8590C' },
-          { title: '🟥 Sent Off', sub: 'play a man down', color: '#C92A2A' }
+          { title: '=', sub: '2 yellows = red', color: '#E8590C' },
+          { title: 'Sent Off', sub: 'play a man down', color: '#C92A2A' }
         ], 'football offside and card rules diagram')),
       readingItem('ตำแหน่งผู้เล่นและแผนการเล่น 4-4-2', 'Player Positions & the 4-4-2 Formation',
         [
@@ -587,7 +587,7 @@ var TRACKS = [
         svgFactStrip([
           { title: '5-6 fouls', sub: 'personal foul limit', color: '#E8590C' },
           { title: '24 sec', sub: 'shot clock', color: '#D9822B' },
-          { title: '🚫 Double Dribble', sub: 'lose possession', color: '#C92A2A' }
+          { title: 'Double Dribble', sub: 'lose possession', color: '#C92A2A' }
         ], 'basketball dribbling and foul rules diagram')),
       readingItem('5 ตำแหน่งผู้เล่นบาสเกตบอล', 'The 5 Basketball Positions',
         [
@@ -744,8 +744,8 @@ var TRACKS = [
           'Two main serve types: the Float Serve (a serve with no spin, making the ball\'s flight unpredictable and hard to read) and the Jump Serve (a jumping serve struck hard and fast like an attack, popular at higher levels because it puts heavy pressure on the receiving team).'
         ],
         svgFactStrip([
-          { title: '🚫 4 Hits', sub: 'over 3 touches', color: '#E8590C' },
-          { title: '🚫 Double Touch', sub: 'same player x2', color: '#E8590C' },
+          { title: '4 Hits', sub: 'over 3 touches', color: '#E8590C' },
+          { title: 'Double Touch', sub: 'same player x2', color: '#E8590C' },
           { title: 'Float / Jump', sub: '2 serve types', color: '#1971C2' }
         ], 'volleyball common faults and serve types diagram')),
       readingItem('เทคนิคการตบบอล (Spike/Attack) และการเซ็ต', 'Spike/Attack Technique & Setting',
@@ -814,7 +814,7 @@ var TRACKS = [
         ],
         svgFactStrip([
           { title: 'Underarm', sub: 'below the waist', color: '#1971C2' },
-          { title: '🚫 Service Fault', sub: 'lose point instantly', color: '#E8590C' },
+          { title: 'Service Fault', sub: 'lose point instantly', color: '#E8590C' },
           { title: 'Even→R / Odd→L', sub: 'doubles courts', color: '#2F9E44' }
         ], 'badminton serving and common fault facts diagram')),
       readingItem('เส้นสนามเดี่ยว vs เส้นสนามคู่', 'Singles vs Doubles Court Lines',
@@ -856,7 +856,7 @@ var TRACKS = [
         ],
         svgFactStrip([
           { title: 'Let', sub: 'replay, no penalty', color: '#1971C2' },
-          { title: '🚫 Net Touch', sub: 'while ball in play', color: '#E8590C' },
+          { title: 'Net Touch', sub: 'while ball in play', color: '#E8590C' },
           { title: 'Forehand / Backhand', sub: '2 grips', color: '#2F9E44' }
         ], 'badminton more faults and grip facts diagram')),
       readingItem('กลยุทธ์การเล่นคู่: รูปแบบยืนหน้า-หลัง กับ ซ้าย-ขวา', 'Doubles Strategy: Front-Back vs Side-by-Side Formations',
@@ -967,7 +967,7 @@ var TRACKS = [
         ],
         svgFactStrip([
           { title: 'Tie-Break', sub: 'first to 7 at 6-6', color: '#1971C2' },
-          { title: '🚫 Foot Fault', sub: 'stepping on baseline', color: '#E8590C' },
+          { title: 'Foot Fault', sub: 'stepping on baseline', color: '#E8590C' },
           { title: 'No-Ad', sub: 'sudden death at 40-40', color: '#2F6DA6' }
         ], 'tennis tiebreak foot fault and no-ad rules diagram')),
       readingItem('ประเภทการตีลูกพื้นฐาน: Forehand, Backhand และ Volley', 'Basic Shot Types: Forehand, Backhand & Volley',
@@ -1573,7 +1573,7 @@ var TRACKS = [
         ],
         svgFactStrip([
           { title: 'Shido', sub: 'penalty, x3 = loss', color: '#E8590C' },
-          { title: '🚫 Direct Leg Grab', sub: 'banned since ~2013', color: '#C92A2A' },
+          { title: 'Direct Leg Grab', sub: 'banned since ~2013', color: '#C92A2A' },
           { title: 'Hansoku-make', sub: 'disqualification', color: '#C92A2A' }
         ], 'judo prohibited acts diagram'))
     ]
@@ -1761,21 +1761,21 @@ function loadBadges() { try { return JSON.parse(localStorage.getItem(BADGES_KEY)
 function saveBadges(b) { try { localStorage.setItem(BADGES_KEY, JSON.stringify(b)); } catch (e) {} }
 
 var BADGE_DEFS = [
-  { id: 'first-pass', icon: '🥉', th: 'ก้าวแรก', en: 'First Step' },
-  { id: 'track-football-basics', icon: '⚽', th: 'เจ้ากติกาฟุตบอล', en: 'Football Rules Master' },
-  { id: 'track-basketball-basics', icon: '🏀', th: 'เจ้ากติกาบาสเกตบอล', en: 'Basketball Rules Master' },
-  { id: 'track-volleyball-basics', icon: '🏐', th: 'เจ้ากติกาวอลเลย์บอล', en: 'Volleyball Rules Master' },
-  { id: 'track-badminton-basics', icon: '🏸', th: 'เจ้ากติกาแบดมินตัน', en: 'Badminton Rules Master' },
-  { id: 'track-tennis-basics', icon: '🎾', th: 'เจ้ากติกาเทนนิส', en: 'Tennis Rules Master' },
-  { id: 'track-table-tennis-basics', icon: '🏓', th: 'เจ้ากติกาเทเบิลเทนนิส', en: 'Table Tennis Rules Master' },
+  { id: 'first-pass', icon: '', th: 'ก้าวแรก', en: 'First Step' },
+  { id: 'track-football-basics', icon: '', th: 'เจ้ากติกาฟุตบอล', en: 'Football Rules Master' },
+  { id: 'track-basketball-basics', icon: '', th: 'เจ้ากติกาบาสเกตบอล', en: 'Basketball Rules Master' },
+  { id: 'track-volleyball-basics', icon: '', th: 'เจ้ากติกาวอลเลย์บอล', en: 'Volleyball Rules Master' },
+  { id: 'track-badminton-basics', icon: '', th: 'เจ้ากติกาแบดมินตัน', en: 'Badminton Rules Master' },
+  { id: 'track-tennis-basics', icon: '', th: 'เจ้ากติกาเทนนิส', en: 'Tennis Rules Master' },
+  { id: 'track-table-tennis-basics', icon: '', th: 'เจ้ากติกาเทเบิลเทนนิส', en: 'Table Tennis Rules Master' },
   { id: 'track-muay-thai-basics', icon: '🇹🇭', th: 'เจ้ากติกามวยไทย', en: 'Muay Thai Rules Master' },
-  { id: 'track-taekwondo-basics', icon: '🥋', th: 'เจ้ากติกาเทควันโด', en: 'Taekwondo Rules Master' },
-  { id: 'track-boxing-basics', icon: '🥊', th: 'เจ้ากติกามวยสากล', en: 'Boxing Rules Master' },
-  { id: 'track-judo-basics', icon: '🤼', th: 'เจ้ากติกายูโด', en: 'Judo Rules Master' },
+  { id: 'track-taekwondo-basics', icon: '', th: 'เจ้ากติกาเทควันโด', en: 'Taekwondo Rules Master' },
+  { id: 'track-boxing-basics', icon: '', th: 'เจ้ากติกามวยสากล', en: 'Boxing Rules Master' },
+  { id: 'track-judo-basics', icon: '', th: 'เจ้ากติกายูโด', en: 'Judo Rules Master' },
   { id: 'track-bjj-basics', icon: '🇧🇷', th: 'เจ้ากติกา BJJ', en: 'BJJ Rules Master' },
-  { id: 'streak-3', icon: '🔥', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
-  { id: 'streak-7', icon: '🔥', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
-  { id: 'all-tracks', icon: '🏆', th: 'จบคอร์สที่มีทั้งหมด!', en: 'All Lessons Complete!' }
+  { id: 'streak-3', icon: '', th: 'ขยัน 3 วันติด', en: '3-Day Streak' },
+  { id: 'streak-7', icon: '', th: 'สัปดาห์นักสู้', en: '7-Day Streak' },
+  { id: 'all-tracks', icon: '', th: 'จบคอร์สที่มีทั้งหมด!', en: 'All Lessons Complete!' }
 ];
 function badgeLabel(def) { return getUILang() === 'en' ? def.en : def.th; }
 
@@ -1837,7 +1837,7 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
         var b = document.createElement('div');
         b.className = 'sp-badge' + (earned.indexOf(def.id) !== -1 ? ' earned' : '');
         b.textContent = def.icon;
-        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : ' 🔒');
+        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : '');
         badgeRowEl.appendChild(b);
       });
     }
@@ -1894,7 +1894,7 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
     renderGamifyBar();
     spawnConfetti();
     var toasts = [];
-    if (trackJustCompleted) toasts.push({ icon: '🏁', text: t('toastTrackDone', { track: pick(track.label) }) });
+    if (trackJustCompleted) toasts.push({ icon: '', text: t('toastTrackDone', { track: pick(track.label) }) });
     newBadges.forEach(function (id) {
       var def = BADGE_DEFS.filter(function (d) { return d.id === id; })[0];
       if (def) toasts.push({ icon: def.icon, text: t('toastBadge', { badge: badgeLabel(def) }) });
@@ -1967,7 +1967,7 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'sp-item' + (i === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
-      btn.textContent = (passed ? '✅ ' : unlocked ? '📖 ' : '🔒 ') + itemLabel(track, item);
+      btn.textContent = (passed ? '' : unlocked ? '' : '') + itemLabel(track, item);
       btn.addEventListener('click', function () {
         if (unlocked) selectItem(i);
         else showLockMsg();

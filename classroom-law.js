@@ -957,7 +957,7 @@
       ? '<div class="lchips">' + parts.map(function (p, i) {
           var isRead = !!readMap[p.title];
           return '<button type="button" class="lchip' + (isRead ? ' done' : '') + '" data-lidx="' + i + '">' +
-            esc(lessonChipLabel(p.title)) + (isRead ? ' ✓' : '') + '</button>';
+            esc(lessonChipLabel(p.title)) + (isRead ? '' : '') + '</button>';
         }).join('') + '</div>'
       : '';
 
@@ -968,14 +968,14 @@
       '<select class="ttsbar-voice" id="clTtsVoice"></select>' +
       '<select class="ttsbar-rate" id="clTtsRate"><option value="0.85">0.85x</option><option value="1" selected>1x</option>' +
       '<option value="1.15">1.15x</option><option value="1.3">1.3x</option></select>' +
-      '<button class="btn primary sm" id="clTtsPlaylistBtn" type="button">🎧 เล่นทั้งวิชาต่อเนื่อง</button></div>' +
+      '<button class="btn primary sm" id="clTtsPlaylistBtn" type="button">เล่นทั้งวิชาต่อเนื่อง</button></div>' +
       '<div class="ttsbar-controls" id="clTtsControls" style="display:none">' +
       '<span class="ttsbar-now" id="clTtsNow"></span>' +
       '<button class="btn sm" id="clTtsPrev" type="button">⏮ ก่อนหน้า</button>' +
       '<button class="btn sm" id="clTtsPauseBtn" type="button">⏸ พัก</button>' +
       '<button class="btn sm" id="clTtsNext" type="button">⏭ ถัดไป</button>' +
       '<button class="btn sm" id="clTtsStopBtn" type="button">⏹ หยุด</button></div>' +
-      (!window.speechSynthesis ? '<p class="mini" style="margin-top:6px">⚠️ เบราว์เซอร์นี้ไม่รองรับเสียงอ่านสด (Web Speech API) — ลองเปิดด้วย Chrome</p>' : '') +
+      (!window.speechSynthesis ? '<p class="mini" style="margin-top:6px">เบราว์เซอร์นี้ไม่รองรับเสียงอ่านสด (Web Speech API) — ลองเปิดด้วย Chrome</p>' : '') +
       '</div>';
 
     function renderPart(p, i, openIt) {
@@ -983,8 +983,8 @@
       var noteText = noteMap[p.title] || '';
       return '<details class="lesson" id="lpart-' + i + '"' + (openIt ? ' open' : '') + '>' +
         '<summary><span class="lsum-txt">' + esc(p.title) + '</span>' +
-        '<button type="button" class="tts-playbtn" data-ttsplay="' + i + '">🔊 ฟัง</button>' +
-        '<button type="button" class="lnote-btn' + (noteText ? ' has' : '') + '" data-lnotebtn="' + i + '">📝 โน้ต' + (noteText ? ' ✓' : '') + '</button>' +
+        '<button type="button" class="tts-playbtn" data-ttsplay="' + i + '">ฟัง</button>' +
+        '<button type="button" class="lnote-btn' + (noteText ? ' has' : '') + '" data-lnotebtn="' + i + '">โน้ต' + (noteText ? '' : '') + '</button>' +
         '<label class="lread"><input type="checkbox" data-lread="' + i + '"' + (isRead ? ' checked' : '') + '> อ่านแล้ว</label></summary>' +
         '<div class="details-body">' + mdToHtml(p.md) +
         '<div class="lnote-wrap" id="lnotewrap-' + i + '" style="display:' + (noteText ? '' : 'none') + '">' +
@@ -1069,7 +1069,7 @@
         if (btn) {
           var has = !!ta.value.trim();
           btn.classList.toggle('has', has);
-          btn.textContent = has ? '📝 โน้ต ✓' : '📝 โน้ต';
+          btn.textContent = has ? 'โน้ต' : 'โน้ต';
         }
       });
     });
@@ -1134,7 +1134,7 @@
         pdf.addImage(c2.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageWmm, sh / pxPerMm);
       }
       pdf.save(subject.label.replace(/[^\wก-๙\-]+/g, '_') + '-สรุปเนื้อหา.pdf');
-      if (status) status.textContent = '✅ ดาวน์โหลด PDF แล้ว (' + totalPages + ' หน้า)';
+      if (status) status.textContent = 'ดาวน์โหลด PDF แล้ว (' + totalPages + ' หน้า)';
     } catch (e) {
       if (status) status.textContent = 'สร้าง PDF ไม่สำเร็จ: ' + e.message;
     } finally {
@@ -1218,7 +1218,7 @@
     if (!controls) return; // อาจสลับหน้าไปแล้ว ไม่มีแถบให้อัปเดต
     if (!ttsState) { controls.style.display = 'none'; return; }
     controls.style.display = '';
-    var nowEl = $('clTtsNow'); if (nowEl) nowEl.textContent = '🔊 กำลังอ่าน: ' + ttsState.label;
+    var nowEl = $('clTtsNow'); if (nowEl) nowEl.textContent = 'กำลังอ่าน: ' + ttsState.label;
     var pauseBtn = $('clTtsPauseBtn'); if (pauseBtn) pauseBtn.textContent = ttsState.paused ? '▶️ เล่นต่อ' : '⏸ พัก';
     var prevBtn = $('clTtsPrev'), nextBtn = $('clTtsNext');
     if (prevBtn) prevBtn.style.display = ttsState.playlist ? '' : 'none';
@@ -1407,7 +1407,7 @@
       {
         topic: 5,
         q: 'โครงการรับจำนำข้าวช่วยชาวนา — ชาวนานำข้าวเปลือกส่งมอบให้รัฐและได้รับเงินตามราคาที่รัฐกำหนดทันที กระทรวงพาณิชย์ค้างชำระเงินให้ชาวนากว่า 1.3 แสนล้านบาท ผิดนัดมา 6 เดือน (1) สัญญาระหว่างชาวนากับรัฐบาลเป็นสัญญาจำนำ (มาตรา 747) หรือสัญญาซื้อขาย (มาตรา 453) (2) เป็นนิติกรรมอำพราง (มาตรา 155) หรือไม่',
-        a: '**(1) ประเภทสัญญา**: สัญญาจำนำแท้จริงตามมาตรา 747 ลูกหนี้ส่งมอบทรัพย์เป็นประกันหนี้เท่านั้น กรรมสิทธิ์ไม่โอน และลูกหนี้มีสิทธิไถ่ถอนทรัพย์คืนเมื่อชำระหนี้ แต่ในโครงการนี้ชาวนาส่งมอบข้าวเปลือกและรับเงินตามราคาทันทีโดยไม่มีเจตนาจะไถ่ถอนข้าวคืนในภายหลัง กรรมสิทธิ์ในข้าวเปลือกโอนไปยังรัฐทันที ลักษณะทางเศรษฐกิจที่แท้จริงจึงเข้าองค์ประกอบ**สัญญาซื้อขาย**ตามมาตรา 453 มากกว่า แม้จะเรียกชื่อโครงการว่า "จำนำ" ก็ตาม\n\n**(2) นิติกรรมอำพราง**: หากเจตนาที่แท้จริงร่วมกันของคู่สัญญาคือซื้อขาย แต่จงใจทำสัญญาโดยใช้ชื่อ/รูปแบบว่า "จำนำ" เพื่อวัตถุประสงค์ทางนโยบาย/บัญชี อาจเข้าลักษณะนิติกรรมอำพรางตามมาตรา 155 วรรคสอง — สัญญาจำนำที่ปรากฏเป็นโมฆะ (เพราะเป็นเจตนาลวง) ให้ใช้บทบัญญัติเรื่องซื้อขายซึ่งเป็นนิติกรรมที่แท้จริงบังคับแทน ⚠️ ประเด็นนี้เป็นประเด็นถกเถียงเชิงนโยบายที่ซับซ้อน ควรศึกษาเพิ่มเติมประกอบก่อนนำไปตอบข้อสอบจริง'
+        a: '**(1) ประเภทสัญญา**: สัญญาจำนำแท้จริงตามมาตรา 747 ลูกหนี้ส่งมอบทรัพย์เป็นประกันหนี้เท่านั้น กรรมสิทธิ์ไม่โอน และลูกหนี้มีสิทธิไถ่ถอนทรัพย์คืนเมื่อชำระหนี้ แต่ในโครงการนี้ชาวนาส่งมอบข้าวเปลือกและรับเงินตามราคาทันทีโดยไม่มีเจตนาจะไถ่ถอนข้าวคืนในภายหลัง กรรมสิทธิ์ในข้าวเปลือกโอนไปยังรัฐทันที ลักษณะทางเศรษฐกิจที่แท้จริงจึงเข้าองค์ประกอบ**สัญญาซื้อขาย**ตามมาตรา 453 มากกว่า แม้จะเรียกชื่อโครงการว่า "จำนำ" ก็ตาม\n\n**(2) นิติกรรมอำพราง**: หากเจตนาที่แท้จริงร่วมกันของคู่สัญญาคือซื้อขาย แต่จงใจทำสัญญาโดยใช้ชื่อ/รูปแบบว่า "จำนำ" เพื่อวัตถุประสงค์ทางนโยบาย/บัญชี อาจเข้าลักษณะนิติกรรมอำพรางตามมาตรา 155 วรรคสอง — สัญญาจำนำที่ปรากฏเป็นโมฆะ (เพราะเป็นเจตนาลวง) ให้ใช้บทบัญญัติเรื่องซื้อขายซึ่งเป็นนิติกรรมที่แท้จริงบังคับแทน ประเด็นนี้เป็นประเด็นถกเถียงเชิงนโยบายที่ซับซ้อน ควรศึกษาเพิ่มเติมประกอบก่อนนำไปตอบข้อสอบจริง'
       },
       {
         topic: 1,
@@ -1432,7 +1432,7 @@
       {
         topic: 4,
         q: 'เดนสั่งซื้อประกันชีวิตจากบริษัทไทยมั่นคง ให้ดาวภริยาเป็นผู้รับประโยชน์ นายแพทย์ดิเรกตรวจพบว่าเดนเป็นมะเร็งลำไส้ แต่ไม่บอกความจริงให้เดนทราบ (บอกเฉพาะดาว) และกรอกใบรับรองสุขภาพว่าเดนมีสุขภาพดีต่อบริษัท เดนเสียชีวิตด้วยมะเร็งหลังทำสัญญา 3 เดือน บริษัทตรวจพบความจริงจึงบอกล้างสัญญาโดยอ้างกลฉ้อฉล ดาวโต้แย้งว่าบริษัทไม่มีสิทธิบอกล้างเพราะเป็นกรณีบุคคลภายนอกทำกลฉ้อฉล จงวินิจฉัยว่าสัญญาประกันชีวิตนี้มีผลสมบูรณ์ หรือมีเหตุให้บอกล้างได้หรือไม่',
-        a: 'หมอดิเรกเป็น**บุคคลภายนอก** (ไม่ใช่คู่สัญญาประกันภัย) ที่เป็นผู้ปกปิดความจริงเรื่องมะเร็งต่อบริษัท ต้องพิจารณาตามหลักกลฉ้อฉลโดยบุคคลภายนอก (**มาตรา 159 วรรคสาม**): จะเป็นโมฆียะได้ก็ต่อเมื่อ**คู่กรณีอีกฝ่าย (เดน) รู้หรือควรรู้ถึงกลฉ้อฉลนั้นด้วย** — ข้อเท็จจริงปรากฏชัดว่าหมอดิเรกแจ้งความจริงเฉพาะแก่ดาวเท่านั้น ไม่ได้แจ้งให้เดนทราบ จึงไม่ปรากฏว่าเดนเองรู้หรือควรรู้ถึงการปกปิดของหมอดิเรก — ดังนั้นแม้จะมีกลฉ้อฉลจากหมอดิเรกจริง แต่เมื่อเดนซึ่งเป็นคู่สัญญาไม่รู้เห็นด้วย บริษัทไทยมั่นคงจึง**ไม่มีสิทธิบอกล้าง**สัญญาประกันชีวิตด้วยเหตุกลฉ้อฉลได้ (ตรงตามที่ดาวโต้แย้ง) — ⚠️ พิจารณาเพิ่มเติมในมุมมาตรา 865 (หน้าที่เปิดเผยข้อความจริงเป็นหน้าที่ของ "ผู้เอาประกันภัย" คือตัวเดนเอง) เมื่อเดนเองก็ไม่ทราบความจริงเรื่องโรคของตน (หมอไม่บอก) จึงไม่มีการปกปิดโดยตัวเดนเช่นกัน **สัญญาประกันชีวิตจึงมีผลสมบูรณ์ ดาวมีสิทธิได้รับเงินตามกรมธรรม์**'
+        a: 'หมอดิเรกเป็น**บุคคลภายนอก** (ไม่ใช่คู่สัญญาประกันภัย) ที่เป็นผู้ปกปิดความจริงเรื่องมะเร็งต่อบริษัท ต้องพิจารณาตามหลักกลฉ้อฉลโดยบุคคลภายนอก (**มาตรา 159 วรรคสาม**): จะเป็นโมฆียะได้ก็ต่อเมื่อ**คู่กรณีอีกฝ่าย (เดน) รู้หรือควรรู้ถึงกลฉ้อฉลนั้นด้วย** — ข้อเท็จจริงปรากฏชัดว่าหมอดิเรกแจ้งความจริงเฉพาะแก่ดาวเท่านั้น ไม่ได้แจ้งให้เดนทราบ จึงไม่ปรากฏว่าเดนเองรู้หรือควรรู้ถึงการปกปิดของหมอดิเรก — ดังนั้นแม้จะมีกลฉ้อฉลจากหมอดิเรกจริง แต่เมื่อเดนซึ่งเป็นคู่สัญญาไม่รู้เห็นด้วย บริษัทไทยมั่นคงจึง**ไม่มีสิทธิบอกล้าง**สัญญาประกันชีวิตด้วยเหตุกลฉ้อฉลได้ (ตรงตามที่ดาวโต้แย้ง) — พิจารณาเพิ่มเติมในมุมมาตรา 865 (หน้าที่เปิดเผยข้อความจริงเป็นหน้าที่ของ "ผู้เอาประกันภัย" คือตัวเดนเอง) เมื่อเดนเองก็ไม่ทราบความจริงเรื่องโรคของตน (หมอไม่บอก) จึงไม่มีการปกปิดโดยตัวเดนเช่นกัน **สัญญาประกันชีวิตจึงมีผลสมบูรณ์ ดาวมีสิทธิได้รับเงินตามกรมธรรม์**'
       },
       {
         topic: 6,
@@ -1452,7 +1452,7 @@
       {
         topic: 6,
         q: 'นายจักรเขียนพินัยกรรมถูกต้องตามแบบ ระบุข้อกำหนดเกี่ยวกับการจัดการศพของตนว่า "หากข้าพเจ้าตายหลังบิดา ให้มารดาจัดการศพตามหลักศาสนาของมารดา / หากข้าพเจ้าตายหลังมารดา ให้บิดาจัดการศพตามหลักศาสนาของบิดา / หากข้าพเจ้าตายหลังทั้งบิดาและมารดา ให้ผู้จัดการมรดกจัดการศพอย่างไรก็ได้" ข้อกำหนดพินัยกรรมดังกล่าวเป็นข้อกำหนดที่มีเงื่อนไขบังคับก่อนหรือเงื่อนไขบังคับหลังหรือไม่ อย่างไร',
-        a: 'ข้อกำหนดทั้ง 3 ข้อ นำเหตุการณ์ในอนาคตที่ไม่แน่นอน (ลำดับการตายก่อนหลังระหว่างนายจักรกับบิดา/มารดา) มากำหนดว่าใครจะมีหน้าที่จัดการศพตามหลักศาสนาใด ซึ่งมีลักษณะเข้าองค์ประกอบของ**เงื่อนไข**ตามมาตรา 182 (เหตุการณ์ในอนาคตที่ไม่แน่นอน) — แต่ประเด็นสำคัญคือ**เงื่อนไขบังคับก่อน-หลังตามมาตรา 183 ใช้กับการกำหนดความ "เป็นผล" หรือ "สิ้นผล" ของนิติกรรม** (คือการก่อ/เปลี่ยนแปลง/โอน/สงวน/ระงับสิทธิ) ในที่นี้ข้อกำหนดเรื่องการจัดการศพไม่ได้กำหนดความเป็นผล/สิ้นผลของพินัยกรรมทั้งฉบับ (พินัยกรรมยังคงมีผลตามปกติไม่ว่าใครจะตายก่อนหลัง) หากแต่เป็นเพียง**คำสั่งเสีย/ข้อกำหนดเสริม**ที่ระบุตัวผู้มีหน้าที่ปฏิบัติตามพฤติการณ์ที่จะเกิดขึ้นจริงเท่านั้น จึง**ไม่ใช่เงื่อนไขบังคับก่อนหรือบังคับหลังของนิติกรรมพินัยกรรมในความหมายตามมาตรา 183** ⚠️ เป็นประเด็นถกเถียงเชิงวิชาการที่ละเอียดอ่อน ควรศึกษาเพิ่มเติมประกอบ'
+        a: 'ข้อกำหนดทั้ง 3 ข้อ นำเหตุการณ์ในอนาคตที่ไม่แน่นอน (ลำดับการตายก่อนหลังระหว่างนายจักรกับบิดา/มารดา) มากำหนดว่าใครจะมีหน้าที่จัดการศพตามหลักศาสนาใด ซึ่งมีลักษณะเข้าองค์ประกอบของ**เงื่อนไข**ตามมาตรา 182 (เหตุการณ์ในอนาคตที่ไม่แน่นอน) — แต่ประเด็นสำคัญคือ**เงื่อนไขบังคับก่อน-หลังตามมาตรา 183 ใช้กับการกำหนดความ "เป็นผล" หรือ "สิ้นผล" ของนิติกรรม** (คือการก่อ/เปลี่ยนแปลง/โอน/สงวน/ระงับสิทธิ) ในที่นี้ข้อกำหนดเรื่องการจัดการศพไม่ได้กำหนดความเป็นผล/สิ้นผลของพินัยกรรมทั้งฉบับ (พินัยกรรมยังคงมีผลตามปกติไม่ว่าใครจะตายก่อนหลัง) หากแต่เป็นเพียง**คำสั่งเสีย/ข้อกำหนดเสริม**ที่ระบุตัวผู้มีหน้าที่ปฏิบัติตามพฤติการณ์ที่จะเกิดขึ้นจริงเท่านั้น จึง**ไม่ใช่เงื่อนไขบังคับก่อนหรือบังคับหลังของนิติกรรมพินัยกรรมในความหมายตามมาตรา 183** เป็นประเด็นถกเถียงเชิงวิชาการที่ละเอียดอ่อน ควรศึกษาเพิ่มเติมประกอบ'
       },
       {
         topic: 8,
@@ -1542,7 +1542,7 @@
       {
         topic: 12,
         q: 'ขาวไปยืมเงินจากดำ เมื่อครบกำหนดขาวไม่สามารถชำระหนี้ได้ จึงเสนอให้ดำเดินทางไปเชียงใหม่ด้วยกัน โดยตกลงว่าถ้าดำยินยอมขยายเวลาปลดหนี้ให้ขาวอีกหนึ่งปี ขาวจะออกค่าใช้จ่ายเดินทางและที่พักให้ดำด้วย ดำยินยอมตามนั้น (ก) สัญญาตามเรื่องนี้เป็นสัญญาอะไร (ข) เมื่อไปถึงเชียงใหม่ ขาวไม่มีเงินเพียงพอชำระค่าเดินทางและที่พักให้ดำตามที่ตกลง ดำอาจเรียกร้องให้ขาวชำระหนี้เดิมได้หรือไม่',
-        a: '**(ก)** เป็น**สัญญาประนีประนอมยอมความ** (หรืออย่างน้อยข้อตกลงแปลงหนี้บางส่วน) ที่ขาวและดำตกลงเปลี่ยนแปลงเงื่อนไขของหนี้เดิม โดยขาวยอมให้ประโยชน์เพิ่มเติม (ออกค่าเดินทาง/ที่พักให้ดำ) แลกกับดำยอมขยายเวลาชำระหนี้ออกไปอีก 1 ปี — ทั้งสองฝ่ายต่างยอมผ่อนผันสิทธิ/หน้าที่ของตนเพื่อระงับข้อโต้แย้งเรื่องหนี้ค้างชำระระหว่างกัน\n\n**(ข)** เมื่อขาวไม่มีเงินเพียงพอชำระค่าเดินทาง/ที่พักตามที่ตกลงไว้ ขาวย่อมเป็นฝ่าย**ผิดสัญญา**ในส่วนที่ตนรับปากไว้ ซึ่งเป็นเงื่อนไขสำคัญที่ทำให้ดำยอมขยายเวลาชำระหนี้ให้ — เมื่อขาวไม่อาจปฏิบัติตามข้อตกลงใหม่ได้ **ดำย่อมมีสิทธิเรียกร้องให้ขาวกลับไปชำระหนี้เดิมได้** เพราะเงื่อนไขที่ทำให้ดำยอมผ่อนผัน (การได้ไปเที่ยวเชียงใหม่โดยขาวออกค่าใช้จ่ายให้) ไม่เกิดขึ้นจริงตามที่ตกลงกัน ⚠️ ประเด็นผลของสัญญาประนีประนอมยอมความที่ผิดสัญญามีรายละเอียดซับซ้อน ควรศึกษาเพิ่มเติมประกอบ'
+        a: '**(ก)** เป็น**สัญญาประนีประนอมยอมความ** (หรืออย่างน้อยข้อตกลงแปลงหนี้บางส่วน) ที่ขาวและดำตกลงเปลี่ยนแปลงเงื่อนไขของหนี้เดิม โดยขาวยอมให้ประโยชน์เพิ่มเติม (ออกค่าเดินทาง/ที่พักให้ดำ) แลกกับดำยอมขยายเวลาชำระหนี้ออกไปอีก 1 ปี — ทั้งสองฝ่ายต่างยอมผ่อนผันสิทธิ/หน้าที่ของตนเพื่อระงับข้อโต้แย้งเรื่องหนี้ค้างชำระระหว่างกัน\n\n**(ข)** เมื่อขาวไม่มีเงินเพียงพอชำระค่าเดินทาง/ที่พักตามที่ตกลงไว้ ขาวย่อมเป็นฝ่าย**ผิดสัญญา**ในส่วนที่ตนรับปากไว้ ซึ่งเป็นเงื่อนไขสำคัญที่ทำให้ดำยอมขยายเวลาชำระหนี้ให้ — เมื่อขาวไม่อาจปฏิบัติตามข้อตกลงใหม่ได้ **ดำย่อมมีสิทธิเรียกร้องให้ขาวกลับไปชำระหนี้เดิมได้** เพราะเงื่อนไขที่ทำให้ดำยอมผ่อนผัน (การได้ไปเที่ยวเชียงใหม่โดยขาวออกค่าใช้จ่ายให้) ไม่เกิดขึ้นจริงตามที่ตกลงกัน ประเด็นผลของสัญญาประนีประนอมยอมความที่ผิดสัญญามีรายละเอียดซับซ้อน ควรศึกษาเพิ่มเติมประกอบ'
       },
       {
         topic: 12,
@@ -1601,7 +1601,7 @@
     }
 
     var searchHtml = '<div class="exsearch">' +
-      '<input type="text" id="exqSearch" placeholder="🔍 ค้นด้วยคำสำคัญหรือเลขมาตรา เช่น กลฉ้อฉล, มาตรา 150">' +
+      '<input type="text" id="exqSearch" placeholder="ค้นด้วยคำสำคัญหรือเลขมาตรา เช่น กลฉ้อฉล, มาตรา 150">' +
       (hasTopics ? '<select id="exqTopicFilter"><option value="">ทุกหัวข้อ</option>' +
         topicSet.map(function (t) { return '<option value="' + t + '">' + esc(examTopicLabel(t)) + '</option>'; }).join('') +
         '</select>' : '') +
@@ -1610,10 +1610,10 @@
     function renderItem(item, i) {
       return '<details class="lesson examq" id="exq-' + i + '"><summary><span class="lsum-txt">ข้อ ' + (i + 1) + '. ' +
         esc(item.q.length > 60 ? item.q.slice(0, 60) + '…' : item.q) + '</span>' +
-        (window.speechSynthesis ? '<button type="button" class="tts-playbtn" data-ttsexam="' + i + '">🔊 ฟังโจทย์</button>' : '') +
+        (window.speechSynthesis ? '<button type="button" class="tts-playbtn" data-ttsexam="' + i + '">ฟังโจทย์</button>' : '') +
         '</summary>' +
         '<div class="details-body">' + mdToHtml('**โจทย์**\n\n' + item.q) +
-        '<details style="margin-top:8px"><summary>👁️ ดูแนวคำตอบ</summary>' +
+        '<details style="margin-top:8px"><summary>ดูแนวคำตอบ</summary>' +
         '<div class="details-body">' + mdToHtml(item.a) + '</div></details>' +
         '</div></details>';
     }
@@ -1727,7 +1727,7 @@
       '<div class="mock-q">' + mdToHtml('**โจทย์**\n\n' + item.q) + '</div>' +
       '<div class="frow" style="margin-top:12px">' +
       (isLast
-        ? '<button class="btn primary sm" id="clMockFinish" type="button">✅ ส่งคำตอบ / ดูสรุปผล</button>'
+        ? '<button class="btn primary sm" id="clMockFinish" type="button">ส่งคำตอบ / ดูสรุปผล</button>'
         : '<button class="btn primary sm" id="clMockNext" type="button">ข้อต่อไป →</button>') +
       '<button class="btn sm" id="clMockAbort" type="button">ยกเลิก</button></div>';
     if (isLast) { $('clMockFinish').addEventListener('click', finishMockExam); }
@@ -1743,14 +1743,14 @@
       return '<details class="lesson"><summary>ข้อ ' + (n + 1) + '. ' +
         esc(item.q.length > 60 ? item.q.slice(0, 60) + '…' : item.q) + '</summary>' +
         '<div class="details-body">' + mdToHtml('**โจทย์**\n\n' + item.q) +
-        '<details style="margin-top:8px"><summary>👁️ ดูแนวคำตอบ</summary><div class="details-body">' +
+        '<details style="margin-top:8px"><summary>ดูแนวคำตอบ</summary><div class="details-body">' +
         mdToHtml(item.a) + '</div></details></div></details>';
     }).join('');
     $('clMockArea').innerHTML =
-      '<div class="verdict-box go">🎉 ทำครบ ' + idxs.length + ' ข้อ ใช้เวลาไป ' + fmtMmSs(elapsedMs) + '</div>' +
+      '<div class="verdict-box go">ทำครบ ' + idxs.length + ' ข้อ ใช้เวลาไป ' + fmtMmSs(elapsedMs) + '</div>' +
       '<p class="mini" style="margin:10px 0">ลองเทียบคำตอบที่เขียน/คิดไว้กับแนวคำตอบด้านล่าง แล้วประเมินตัวเองตามจริง</p>' +
       reviewHtml +
-      '<div class="frow" style="margin-top:14px"><button class="btn sm" id="clMockAgain" type="button">🎲 ทำชุดใหม่</button></div>';
+      '<div class="frow" style="margin-top:14px"><button class="btn sm" id="clMockAgain" type="button">ทำชุดใหม่</button></div>';
     logActivity('mockexam');
     mockState = null;
     $('clMockAgain').addEventListener('click', function () { $('clMockArea').innerHTML = ''; $('clMockSetup').style.display = ''; });
@@ -1813,14 +1813,14 @@
     area.innerHTML =
       '<div class="drill-card" id="clDrillCardBox">' +
       '<div class="drill-scenario">' + esc(item.scenario) + '</div>' +
-      '<div class="drill-ans">➡️ ' + esc(item.answer) + '</div>' +
+      '<div class="drill-ans">' + esc(item.answer) + '</div>' +
       '<div class="drill-why">' + esc(item.why) + '</div>' +
       '</div>' +
       '<div class="frow" style="margin-top:10px;justify-content:center" id="clDrillPreAnswer">' +
-      '<button class="btn primary sm" id="clDrillReveal" type="button">👁️ ดูเฉลย</button></div>' +
+      '<button class="btn primary sm" id="clDrillReveal" type="button">ดูเฉลย</button></div>' +
       '<div class="frow" style="margin-top:10px;justify-content:center;display:none" id="clDrillPostAnswer">' +
-      '<button class="btn sm fsrs-again" id="clDrillWrong" type="button">✗ ตอบผิด</button>' +
-      '<button class="btn sm fsrs-easy" id="clDrillRight" type="button">✓ ตอบถูก</button></div>' +
+      '<button class="btn sm fsrs-again" id="clDrillWrong" type="button">ตอบผิด</button>' +
+      '<button class="btn sm fsrs-easy" id="clDrillRight" type="button">ตอบถูก</button></div>' +
       '<div class="drill-progress">ทำไปแล้ว ' + drillState.total + ' ข้อ · <span class="drill-score">ถูก ' + drillState.correct + '/' + drillState.total + '</span>' +
       ' &nbsp;<button class="btn sm" id="clDrillStop" type="button">หยุด</button></div>';
     $('clDrillReveal').addEventListener('click', function () {
@@ -1885,7 +1885,7 @@
     if (!results.length) { box.innerHTML = '<p class="mini">ไม่พบผลลัพธ์สำหรับ "' + esc(query) + '" ครับ</p>'; return; }
     var shown = results.slice(0, 40);
     box.innerHTML = shown.map(function (r, i) {
-      return '<div class="refres-item"><div class="refres-loc">📍 ' + esc(r.subjLabel) + ' — ' + esc(r.loc) + ' (' + esc(r.kind) + ')' +
+      return '<div class="refres-item"><div class="refres-loc">' + esc(r.subjLabel) + ' — ' + esc(r.loc) + ' (' + esc(r.kind) + ')' +
         ' <button type="button" class="lnote-btn" data-refjump="' + i + '" style="margin-left:6px">ไปดู →</button></div>' +
         '<div class="refres-snip">' + r.snippetHtml + '</div></div>';
     }).join('') + (results.length > 40 ? '<p class="mini" style="margin-top:6px">พบทั้งหมด ' + results.length + ' จุด แสดง 40 จุดแรก — ลองพิมพ์คำที่เจาะจงขึ้นเพื่อกรองผลลัพธ์ให้แคบลง</p>' : '');
@@ -1959,19 +1959,19 @@
 
   /* ══════════════════ สนามสอบ & นับถอยหลัง ══════════════════ */
   var EXAM_TYPES = [
-    { key: 'neti1', name: 'เนติบัณฑิต ภาค 1', icon: '⚖️', url: 'https://www.thethaibar.or.th/thaibarweb/',
+    { key: 'neti1', name: 'เนติบัณฑิต ภาค 1', icon: '', url: 'https://www.thethaibar.or.th/thaibarweb/',
       prep: ['บัตรประจำตัวสอบ', 'บัตรประชาชน', 'ปากกา/ดินสอตามที่ระเบียบกำหนด'],
       banned: ['ตำรา/เอกสารกฎหมายทุกชนิด', 'อุปกรณ์สื่อสาร/นาฬิกาอัจฉริยะ', 'เครื่องคำนวณ (เว้นข้อสอบระบุอนุญาต)'] },
-    { key: 'neti2', name: 'เนติบัณฑิต ภาค 2', icon: '⚖️', url: 'https://www.thethaibar.or.th/thaibarweb/',
+    { key: 'neti2', name: 'เนติบัณฑิต ภาค 2', icon: '', url: 'https://www.thethaibar.or.th/thaibarweb/',
       prep: ['บัตรประจำตัวสอบ', 'บัตรประชาชน', 'ปากกา/ดินสอตามที่ระเบียบกำหนด'],
       banned: ['ตำรา/เอกสารกฎหมายทุกชนิด', 'อุปกรณ์สื่อสาร/นาฬิกาอัจฉริยะ', 'เครื่องคำนวณ (เว้นข้อสอบระบุอนุญาต)'] },
-    { key: 'judge', name: 'ผู้ช่วยผู้พิพากษา (ก.ต.)', icon: '👨‍⚖️', url: 'https://ojc.coj.go.th/',
+    { key: 'judge', name: 'ผู้ช่วยผู้พิพากษา (ก.ต.)', icon: '', url: 'https://ojc.coj.go.th/',
       prep: ['บัตรประจำตัวสอบ', 'บัตรประชาชน', 'เอกสารรับรองคุณสมบัติตามประกาศรับสมัคร'],
       banned: ['ตำรา/เอกสารกฎหมายทุกชนิด', 'อุปกรณ์สื่อสาร/นาฬิกาอัจฉริยะ'] },
-    { key: 'prosecutor', name: 'อัยการผู้ช่วย (ก.อ.)', icon: '🏛️', url: 'https://www3.ago.go.th/',
+    { key: 'prosecutor', name: 'อัยการผู้ช่วย (ก.อ.)', icon: '', url: 'https://www3.ago.go.th/',
       prep: ['บัตรประจำตัวสอบ', 'บัตรประชาชน', 'เอกสารรับรองคุณสมบัติตามประกาศรับสมัคร'],
       banned: ['ตำรา/เอกสารกฎหมายทุกชนิด', 'อุปกรณ์สื่อสาร/นาฬิกาอัจฉริยะ'] },
-    { key: 'lawyer', name: 'ตั๋วทนายความ (สภาทนายความ)', icon: '💼', url: 'https://lawyerscouncil.or.th/',
+    { key: 'lawyer', name: 'ตั๋วทนายความ (สภาทนายความ)', icon: '', url: 'https://lawyerscouncil.or.th/',
       prep: ['บัตรประจำตัวสอบ', 'บัตรประชาชน', 'ใบสมัครอบรม/หลักฐานฝึกงานตามเส้นทางที่เลือก (ตั๋วรุ่น/ตั๋วปี)'],
       banned: ['ตำรา/เอกสารกฎหมายทุกชนิด', 'อุปกรณ์สื่อสาร/นาฬิกาอัจฉริยะ'] }
   ];
@@ -2076,7 +2076,7 @@
   function careerBoxHtml(title, icon, r) {
     var bg = r.verdict === 'go' ? '#E9F9F0' : r.verdict === 'warn' ? '#FFF6E4' : '#FDECEC';
     var fg = r.verdict === 'go' ? '#0B7F52' : r.verdict === 'warn' ? '#8A6212' : '#B23838';
-    var items = r.met.map(function (m) { return '<li>✅ ' + esc(m) + '</li>'; })
+    var items = r.met.map(function (m) { return '<li>' + esc(m) + '</li>'; })
       .concat(r.missing.map(function (m) { return '<li>◻️ ' + esc(m) + '</li>'; })).join('');
     return '<div class="career-box" style="background:' + bg + ';color:' + fg + '">' +
       '<div class="ttl">' + icon + ' ' + title + '</div><ul>' + items + '</ul></div>';
@@ -2092,9 +2092,9 @@
     DriveSync.scheduleSync();
     var r = evalCareer(o);
     $('bpCareerResult').innerHTML =
-      careerBoxHtml('ผู้พิพากษา', '👨‍⚖️', r.judge) +
-      careerBoxHtml('อัยการ', '🏛️', r.prosecutor) +
-      careerBoxHtml('ทนายความ (Law Firm)', '💼', r.lawyer);
+      careerBoxHtml('ผู้พิพากษา', '', r.judge) +
+      careerBoxHtml('อัยการ', '', r.prosecutor) +
+      careerBoxHtml('ทนายความ (Law Firm)', '', r.lawyer);
   }
   function loadCareerIntoForm() {
     var o = {};
@@ -2229,7 +2229,7 @@
     });
     if (added) { saveNotes(notes); logActivity('note'); renderNoteList(); renderReviewCount(); }
     status.textContent = added
-      ? '✅ สร้างการ์ดใหม่ ' + added + ' ใบจาก ' + items.length + ' คำที่ขีดเน้นทั้งหมด (ข้ามที่มีอยู่แล้ว)'
+      ? 'สร้างการ์ดใหม่ ' + added + ' ใบจาก ' + items.length + ' คำที่ขีดเน้นทั้งหมด (ข้ามที่มีอยู่แล้ว)'
       : 'ไม่มีคำใหม่ — สร้างการ์ดจากคำที่ขีดเน้นทั้งหมดไปแล้วก่อนหน้านี้';
     status.className = 'status ok';
   }
@@ -2263,7 +2263,7 @@
     $('bpNoteSubj').value = n.subj || '';
     $('bpNoteQ').value = n.q || '';
     $('bpNoteA').value = n.a || '';
-    $('bpNoteAdd').textContent = '💾 บันทึกการแก้ไข';
+    $('bpNoteAdd').textContent = 'บันทึกการแก้ไข';
     $('bpNoteCancelEdit').style.display = '';
     $('bpNoteSubj').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -2295,7 +2295,7 @@
     }
     navigator.storage.estimate().then(function (est) {
       var fmtMB = function (bytes) { return (bytes / 1048576).toFixed(bytes < 1048576 ? 2 : 1); };
-      el.textContent = '📊 พื้นที่จัดเก็บที่ใช้ในเว็บนี้ (ทุกเครื่องมือรวมกัน): ' + fmtMB(est.usage || 0) + ' MB จากโควตาที่เบราว์เซอร์ให้ ~' + fmtMB(est.quota || 0) + ' MB';
+      el.textContent = 'พื้นที่จัดเก็บที่ใช้ในเว็บนี้ (ทุกเครื่องมือรวมกัน): ' + fmtMB(est.usage || 0) + ' MB จากโควตาที่เบราว์เซอร์ให้ ~' + fmtMB(est.quota || 0) + ' MB';
     }).catch(function () { el.textContent = ''; });
   }
   function renderNoteList() {
@@ -2328,7 +2328,7 @@
       return '<li class="note-group-hd">' +
         '<span class="tag">' + (g.subj ? esc(g.subj) : 'ไม่ระบุวิชา') + '</span>' +
         '<span class="mini">' + g.items.length + ' โน้ต</span>' +
-        '<button class="note-del-all" data-delsubj="' + esc(g.subj) + '">🗑 ลบทั้งหมดในวิชานี้</button>' +
+        '<button class="note-del-all" data-delsubj="' + esc(g.subj) + '">ลบทั้งหมดในวิชานี้</button>' +
       '</li>' +
       g.items.map(function (n) {
         return '<li class="note-item" data-id="' + n.id + '">' +
@@ -2372,7 +2372,7 @@
   }
   function renderReviewCount() {
     var n = dueNotes().length;
-    $('bpReviewCount').textContent = n ? ' — วันนี้มี ' + n + ' การ์ดที่ถึงกำหนดทบทวน' : ' — วันนี้ไม่มีการ์ดค้างทบทวน 🎉';
+    $('bpReviewCount').textContent = n ? ' — วันนี้มี ' + n + ' การ์ดที่ถึงกำหนดทบทวน' : ' — วันนี้ไม่มีการ์ดค้างทบทวน';
   }
   /* ══════════════════ ตารางทบทวน — โมเดล FSRS (Free Spaced Repetition Scheduler) ══════════════════
      แทนขั้นบันไดตายตัวเดิม ([1,3,7,14,30] วัน) ด้วยโมเดล stability (ความเสถียรของความจำ หน่วยเป็นวัน)
@@ -2427,13 +2427,13 @@
   function startReview() {
     reviewQueue = dueNotes();
     reviewIdx = 0;
-    if (!reviewQueue.length) { $('bpReviewArea').innerHTML = '<p class="note-empty">ไม่มีการ์ดที่ถึงกำหนดทบทวนวันนี้ 🎉</p>'; return; }
+    if (!reviewQueue.length) { $('bpReviewArea').innerHTML = '<p class="note-empty">ไม่มีการ์ดที่ถึงกำหนดทบทวนวันนี้</p>'; return; }
     renderReviewCard();
   }
   function renderReviewCard() {
     var area = $('bpReviewArea');
     if (reviewIdx >= reviewQueue.length) {
-      area.innerHTML = '<p class="note-empty">ทบทวนครบทุกการ์ดของวันนี้แล้ว 🎉</p>';
+      area.innerHTML = '<p class="note-empty">ทบทวนครบทุกการ์ดของวันนี้แล้ว</p>';
       renderReviewCount(); renderNoteList();
       return;
     }
@@ -2443,10 +2443,10 @@
       '<div class="a">' + esc(n.a || '(ไม่มีเนื้อหาเพิ่มเติม)') + '</div>' +
       '<div class="hint">แตะการ์ดเพื่อดูคำตอบ แล้วให้คะแนนความจำตามจริง</div></div>' +
       '<div class="flash-btns">' +
-        '<button class="btn sm fsrs-again" id="bpFlashAgain" type="button">😵 Again</button>' +
-        '<button class="btn sm fsrs-hard" id="bpFlashHard" type="button">😕 Hard</button>' +
-        '<button class="btn sm fsrs-good" id="bpFlashGood" type="button">🙂 Good</button>' +
-        '<button class="btn sm fsrs-easy" id="bpFlashEasy" type="button">😄 Easy</button>' +
+        '<button class="btn sm fsrs-again" id="bpFlashAgain" type="button">Again</button>' +
+        '<button class="btn sm fsrs-hard" id="bpFlashHard" type="button">Hard</button>' +
+        '<button class="btn sm fsrs-good" id="bpFlashGood" type="button">Good</button>' +
+        '<button class="btn sm fsrs-easy" id="bpFlashEasy" type="button">Easy</button>' +
       '</div>' +
       '<div class="flash-progress">การ์ดที่ ' + (reviewIdx + 1) + ' / ' + reviewQueue.length + '</div>';
     $('bpFlashCard').addEventListener('click', function () { this.classList.toggle('show'); });
@@ -2585,12 +2585,12 @@
     renderNoteList();
     renderReviewCount();
     var status = $('bpCleanNotesStatus');
-    if (status) status.textContent = changed ? ('✅ ล้างข้อความไม่ต้องการออกจาก ' + changed + ' โน้ตแล้ว') : 'ไม่พบข้อความที่ต้องล้างในโน้ตที่มีอยู่ตอนนี้';
+    if (status) status.textContent = changed ? ('ล้างข้อความไม่ต้องการออกจาก ' + changed + ' โน้ตแล้ว') : 'ไม่พบข้อความที่ต้องล้างในโน้ตที่มีอยู่ตอนนี้';
   }
   function showTextForReview(text, subjHint, statusMsg) {
     text = stripBoilerplate(text);
     $('bpOcrStatus').className = 'status ok';
-    $('bpOcrStatus').textContent = statusMsg || '✅ แปลงข้อความเสร็จแล้ว — ตรวจทานให้ดีก่อนบันทึก (โดยเฉพาะเลขมาตรา/เลขฎีกา)';
+    $('bpOcrStatus').textContent = statusMsg || 'แปลงข้อความเสร็จแล้ว — ตรวจทานให้ดีก่อนบันทึก (โดยเฉพาะเลขมาตรา/เลขฎีกา)';
     if (subjHint && !$('bpOcrSubj').value) $('bpOcrSubj').value = subjHint;
     $('bpOcrText').value = text || '';
     $('bpOcrText').style.display = '';
@@ -2669,14 +2669,14 @@
         showTextForReview((result.data && result.data.text) || '');
       }).catch(function (err) {
         status.className = 'status err';
-        status.textContent = '❌ แปลงข้อความไม่สำเร็จ: ' + (err && err.message ? err.message : err);
+        status.textContent = 'แปลงข้อความไม่สำเร็จ: ' + (err && err.message ? err.message : err);
       });
     });
     $('bpOcrSave').addEventListener('click', function () {
       var text = $('bpOcrText').value;
       if (!text.trim()) return;
       addNote($('bpOcrSubj').value, text.split('\n')[0].slice(0, 80) || 'โน้ตที่นำเข้า', text);
-      resetOcrUi('✅ บันทึกเป็นโน้ตแล้ว');
+      resetOcrUi('บันทึกเป็นโน้ตแล้ว');
     });
     $('bpMatraSplitBtn').addEventListener('click', function () {
       var text = $('bpOcrText').value;
@@ -2684,7 +2684,7 @@
       if (!sections.length) {
         $('bpMatraSplitWrap').style.display = 'none';
         $('bpOcrStatus').className = 'status err';
-        $('bpOcrStatus').textContent = '❌ ไม่พบรูปแบบ "มาตรา <เลข>" อย่างน้อย 2 มาตราขึ้นไปในข้อความนี้ — ลองกด "บันทึกเป็นโน้ตเดียว" แทน';
+        $('bpOcrStatus').textContent = 'ไม่พบรูปแบบ "มาตรา <เลข>" อย่างน้อย 2 มาตราขึ้นไปในข้อความนี้ — ลองกด "บันทึกเป็นโน้ตเดียว" แทน';
         return;
       }
       renderMatraPreview(sections);
@@ -2705,7 +2705,7 @@
       });
       if (!n) return;
       $('bpMatraSplitWrap').style.display = 'none';
-      resetOcrUi('✅ บันทึกแยกเป็นโน้ตแล้ว ' + n + ' มาตรา');
+      resetOcrUi('บันทึกแยกเป็นโน้ตแล้ว ' + n + ' มาตรา');
     });
   }
   function resetOcrUi(msg) {
@@ -2720,11 +2720,11 @@
   }
 
   /* ══════════════════ ไฟล์ในโฟลเดอร์ Drive ของฉัน (browse — อ่านเฉพาะโฟลเดอร์ส่วนตัวของผู้ใช้เอง) ══════════════════ */
-  var FILE_ICONS = { 'application/pdf': '📕', 'image/': '🖼️' };
+  var FILE_ICONS = { 'application/pdf': '', 'image/': '' };
   function fileIcon(mime) {
     if (mime === 'application/pdf') return FILE_ICONS['application/pdf'];
     if (mime && mime.indexOf('image/') === 0) return FILE_ICONS['image/'];
-    return '📄';
+    return '';
   }
   var FOLDER_MIME = 'application/vnd.google-apps.folder';
   /* เดิน BFS หาโฟลเดอร์ย่อยทั้งหมด (ลึกได้ถึง maxDepth ชั้น) เพราะผู้ใช้มักจัดไฟล์เป็นหมวดย่อย
@@ -2791,10 +2791,10 @@
           var canExtract = f.mimeType === 'application/pdf' || (f.mimeType && f.mimeType.indexOf('image/') === 0);
           return '<li class="note-item" data-fid="' + f.id + '" data-mime="' + esc(f.mimeType) + '" data-name="' + esc(f.name) + '">' +
             '<div class="hd"><span class="tag">' + fileIcon(f.mimeType) + ' ' + esc(f.name) + '</span></div>' +
-            '<div class="meta">' + (f._path ? '📁 ' + esc(f._path) + ' · ' : '') + 'แก้ไขล่าสุด: ' + new Date(f.modifiedTime).toLocaleString('th-TH') + '</div>' +
+            '<div class="meta">' + (f._path ? '' + esc(f._path) + ' · ' : '') + 'แก้ไขล่าสุด: ' + new Date(f.modifiedTime).toLocaleString('th-TH') + '</div>' +
             '<div class="frow" style="margin-top:6px">' +
-              '<a class="btn sm" href="' + f.webViewLink + '" target="_blank" rel="noopener">👁 เปิดดู</a>' +
-              (canExtract ? '<button class="btn sm" type="button" data-extract="' + f.id + '">📝 แยกข้อความ</button>' : '') +
+              '<a class="btn sm" href="' + f.webViewLink + '" target="_blank" rel="noopener">เปิดดู</a>' +
+              (canExtract ? '<button class="btn sm" type="button" data-extract="' + f.id + '">แยกข้อความ</button>' : '') +
             '</div></li>';
         }).join('');
         Array.prototype.forEach.call(list.querySelectorAll('[data-extract]'), function (b) {
@@ -2806,7 +2806,7 @@
       })
       .catch(function (e) {
         status.className = 'status err';
-        status.textContent = '❌ ' + (e.message || e);
+        status.textContent = '' + (e.message || e);
       });
   }
 
@@ -2837,7 +2837,7 @@
       function next() {
         if (i >= list.length) {
           status.className = 'status ok';
-          status.textContent = '✅ อัปโหลดครบ ' + list.length + ' ไฟล์แล้ว';
+          status.textContent = 'อัปโหลดครบ ' + list.length + ' ไฟล์แล้ว';
           listDriveFiles();
           return Promise.resolve();
         }
@@ -2848,7 +2848,7 @@
       return next();
     }).catch(function (e) {
       status.className = 'status err';
-      status.textContent = '❌ ' + (e.message || e);
+      status.textContent = '' + (e.message || e);
     });
   }
 
@@ -2862,12 +2862,12 @@
         return extractImageText(buf, mime);
       })
       .then(function (text) {
-        status.className = 'status ok'; status.textContent = '✅ แยกข้อความจาก "' + name + '" เสร็จแล้ว';
+        status.className = 'status ok'; status.textContent = 'แยกข้อความจาก "' + name + '" เสร็จแล้ว';
         showTextForReview(text, name.replace(/\.[^.]+$/, ''));
       })
       .catch(function (e) {
         status.className = 'status err';
-        status.textContent = '❌ แยกข้อความไม่สำเร็จ: ' + (e.message || e);
+        status.textContent = 'แยกข้อความไม่สำเร็จ: ' + (e.message || e);
       });
   }
   /* ต่อข้อความจาก PDF ทีละบรรทัดจริงตามที่ pdf.js รายงาน (แต่ละชิ้นข้อความมี hasEOL บอกว่า
@@ -2927,7 +2927,7 @@
     },
     setBtn: function () {
       var b = $('driveConnectBtn'); if (!b) return;
-      b.textContent = this.connected ? '🔗 เชื่อมต่อ Google Drive แล้ว' : '🔗 เชื่อมต่อ Google Drive';
+      b.textContent = this.connected ? 'เชื่อมต่อ Google Drive แล้ว' : 'เชื่อมต่อ Google Drive';
     },
     init: function () {
       try { this.connected = localStorage.getItem(DRIVE_CONNECTED_KEY) === '1'; } catch (e) {}
@@ -3042,8 +3042,8 @@
           renderNoteList(); renderReviewCount(); renderWritingHistory(); renderExams(); loadCareerIntoForm();
           return self.upload(self.payload());
         })
-        .then(function () { self.setStatus('✅ ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); listDriveFiles(); })
-        .catch(function (e) { self.setStatus('❌ ' + (e.message || e), 'err'); });
+        .then(function () { self.setStatus('ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); listDriveFiles(); })
+        .catch(function (e) { self.setStatus('' + (e.message || e), 'err'); });
     },
     scheduleSync: function () {
       var self = this;
@@ -3059,14 +3059,14 @@
       self.setStatus('กำลังซิงก์…', '');
       notesReady.then(function () { return self.ensureFolder(); }).then(function () { return self.findFile(); })
         .then(function () { return self.upload(self.payload()); })
-        .then(function () { self.setStatus('✅ ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
+        .then(function () { self.setStatus('ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
         .catch(function (e) {
           var msg = String(e && e.message || e);
           if (msg.indexOf('401') !== -1 || msg.indexOf('403') !== -1) {
             self.accessToken = null;
             self.setStatus('เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', 'err');
           } else {
-            self.setStatus('❌ ซิงก์ไม่สำเร็จ: ' + msg, 'err');
+            self.setStatus('ซิงก์ไม่สำเร็จ: ' + msg, 'err');
           }
         })
         .finally(function () {

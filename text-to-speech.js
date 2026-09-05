@@ -52,7 +52,7 @@
     if (!file) return;
     if (!window.TanotFileReader) {
       $('importStatus').className = 'status err';
-      $('importStatus').textContent = '❌ โหลดตัวอ่านไฟล์ไม่สำเร็จ (อาจเป็นเพราะเน็ตช้า/ถูกบล็อก) ลองรีเฟรชหน้าใหม่';
+      $('importStatus').textContent = 'โหลดตัวอ่านไฟล์ไม่สำเร็จ (อาจเป็นเพราะเน็ตช้า/ถูกบล็อก) ลองรีเฟรชหน้าใหม่';
       return;
     }
     $('importFileBtn').disabled = true;
@@ -65,16 +65,16 @@
       text = (text || '').trim();
       if (!text) {
         $('importStatus').className = 'status err';
-        $('importStatus').textContent = '❌ ไม่พบข้อความในไฟล์นี้';
+        $('importStatus').textContent = 'ไม่พบข้อความในไฟล์นี้';
         return;
       }
       $('ttsText').value = text;
       updateCharCount();
       $('importStatus').className = 'status ok';
-      $('importStatus').textContent = '✅ นำเข้าข้อความจาก ' + file.name + ' แล้ว (' + text.length + ' ตัวอักษร) — ตรวจทานก่อนกด "สร้างไฟล์เสียง" ได้';
+      $('importStatus').textContent = 'นำเข้าข้อความจาก ' + file.name + ' แล้ว (' + text.length + ' ตัวอักษร) — ตรวจทานก่อนกด "สร้างไฟล์เสียง" ได้';
     }).catch(function (err) {
       $('importStatus').className = 'status err';
-      $('importStatus').textContent = '❌ อ่านไฟล์ไม่สำเร็จ: ' + (err && err.message ? err.message : err);
+      $('importStatus').textContent = 'อ่านไฟล์ไม่สำเร็จ: ' + (err && err.message ? err.message : err);
     }).finally(function () {
       $('importFileBtn').disabled = false;
     });
@@ -90,7 +90,7 @@
     var sel = $('wsVoice');
     if (!window.speechSynthesis) {
       sel.innerHTML = '<option value="">(เบราว์เซอร์นี้ไม่รองรับ Web Speech API)</option>';
-      $('wsThaiNote').textContent = '⚠️ เบราว์เซอร์นี้ไม่รองรับการฟังเสียงสด — ใช้การ์ด "สร้างไฟล์เสียง" ด้านล่างแทนได้';
+      $('wsThaiNote').textContent = 'เบราว์เซอร์นี้ไม่รองรับการฟังเสียงสด — ใช้การ์ด "สร้างไฟล์เสียง" ด้านล่างแทนได้';
       $('wsPlayBtn').disabled = true;
       return;
     }
@@ -106,8 +106,8 @@
     var defaultIdx = wsVoices.findIndex(function (v) { return v.default; });
     if (defaultIdx >= 0) sel.value = String(defaultIdx);
     $('wsThaiNote').textContent = thaiVoices.length
-      ? ('✅ พบเสียงภาษาไทยในเครื่องนี้ ' + thaiVoices.length + ' เสียง: ' + thaiVoices.map(function (v) { return v.name; }).join(', '))
-      : '⚠️ ไม่พบเสียงภาษาไทยในเบราว์เซอร์/เครื่องนี้ตอนนี้ — ลองใช้ Chrome หรือเปิดใช้ภาษาไทยในการตั้งค่าเสียงพูดของอุปกรณ์ ถ้าไม่มีให้ข้ามไปใช้การ์ด "สร้างไฟล์เสียง" ด้านล่างแทน (รองรับไทยเสมอ)';
+      ? ('พบเสียงภาษาไทยในเครื่องนี้ ' + thaiVoices.length + ' เสียง: ' + thaiVoices.map(function (v) { return v.name; }).join(', '))
+      : 'ไม่พบเสียงภาษาไทยในเบราว์เซอร์/เครื่องนี้ตอนนี้ — ลองใช้ Chrome หรือเปิดใช้ภาษาไทยในการตั้งค่าเสียงพูดของอุปกรณ์ ถ้าไม่มีให้ข้ามไปใช้การ์ด "สร้างไฟล์เสียง" ด้านล่างแทน (รองรับไทยเสมอ)';
   }
   function wsPlay() {
     var text = $('ttsText').value;
@@ -118,7 +118,7 @@
     var idx = parseInt($('wsVoice').value, 10);
     if (wsVoices[idx]) { u.voice = wsVoices[idx]; u.lang = wsVoices[idx].lang; }
     u.rate = parseFloat($('wsRate').value) || 1;
-    u.onstart = function () { $('wsStatus').className = 'status ok'; $('wsStatus').textContent = '🔊 กำลังเล่น…'; };
+    u.onstart = function () { $('wsStatus').className = 'status ok'; $('wsStatus').textContent = 'กำลังเล่น…'; };
     u.onend = function () { $('wsStatus').className = 'status'; $('wsStatus').textContent = 'เล่นจบแล้ว'; };
     u.onerror = function (e) {
       if (e && e.error === 'interrupted') return; // ผู้ใช้กดหยุด/เล่นใหม่เอง ไม่ใช่ข้อผิดพลาดจริง
@@ -133,7 +133,7 @@
       $('wsStatus').className = 'status'; $('wsStatus').textContent = '⏸ หยุดชั่วคราว';
     } else if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
-      $('wsStatus').className = 'status ok'; $('wsStatus').textContent = '🔊 กำลังเล่น…';
+      $('wsStatus').className = 'status ok'; $('wsStatus').textContent = 'กำลังเล่น…';
     }
   }
   function wsStop() {
@@ -531,7 +531,7 @@
             var mp3Url = URL.createObjectURL(mp3Blob);
             showResult(wavUrl, mp3Url);
             $('dlStatus').className = 'status ok';
-            $('dlStatus').textContent = '✅ สร้างไฟล์เสียงเสร็จแล้ว — เล่นฟังหรือดาวน์โหลดได้ด้านล่าง';
+            $('dlStatus').textContent = 'สร้างไฟล์เสียงเสร็จแล้ว — เล่นฟังหรือดาวน์โหลดได้ด้านล่าง';
           });
         });
       })
@@ -541,7 +541,7 @@
            ค้าง vs. ปัญหาโมเดลจริง — ถ้า error หน้าเว็บบอก dtype ไม่ตรงกับที่โค้ดล่าสุดควรใช้ แปลว่า
            browser/service worker ยังไม่ได้โหลดโค้ดใหม่จริง ไม่ใช่โมเดลพัง) */
         var usedDtype = TTS_DTYPE_OVERRIDES[modelId] || 'ดีฟอลต์ของเบราว์เซอร์ (มักเป็น q8)';
-        $('dlStatus').textContent = '❌ สร้างไฟล์เสียงไม่สำเร็จ: ' + (e && e.message ? e.message : e)
+        $('dlStatus').textContent = 'สร้างไฟล์เสียงไม่สำเร็จ: ' + (e && e.message ? e.message : e)
           + ' [model=' + modelId + ', dtype=' + usedDtype + ']';
       })
       .finally(function () { $('dlGenerateBtn').disabled = false; });
@@ -622,11 +622,11 @@
         $('asrResult').value = text.trim();
         $('asrResultWrap').style.display = 'block';
         $('asrStatus').className = 'status ok';
-        $('asrStatus').textContent = text.trim() ? '✅ ถอดเสียงเสร็จแล้ว' : '⚠️ ถอดเสียงเสร็จแต่ไม่พบคำพูดในไฟล์นี้';
+        $('asrStatus').textContent = text.trim() ? 'ถอดเสียงเสร็จแล้ว' : 'ถอดเสียงเสร็จแต่ไม่พบคำพูดในไฟล์นี้';
       })
       .catch(function (e) {
         $('asrStatus').className = 'status err';
-        $('asrStatus').textContent = '❌ ถอดเสียงไม่สำเร็จ: ' + (e && e.message ? e.message : e);
+        $('asrStatus').textContent = 'ถอดเสียงไม่สำเร็จ: ' + (e && e.message ? e.message : e);
       })
       .finally(function () { $('asrGoBtn').disabled = false; });
   }
@@ -634,7 +634,7 @@
     var text = $('asrResult').value;
     if (!text) return;
     navigator.clipboard.writeText(text).then(function () {
-      $('asrStatus').className = 'status ok'; $('asrStatus').textContent = '📋 คัดลอกข้อความแล้ว';
+      $('asrStatus').className = 'status ok'; $('asrStatus').textContent = 'คัดลอกข้อความแล้ว';
     }).catch(function () {
       $('asrResult').select();
       document.execCommand('copy');

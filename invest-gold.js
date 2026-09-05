@@ -306,11 +306,11 @@
     var b1 = num($('barBuy').value), b2 = num($('barSell').value), j1 = num($('jewelryBuy').value), j2 = num($('jewelrySell').value);
     var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge paste';
     if (![b1, b2, j1, j2].every(isFinite)) {
-      badge.textContent = '✍️ กรอกเอง';
+      badge.textContent = 'กรอกเอง';
       setGoldThStatus('กำลังกรอกราคาเอง… กรอกให้ครบทั้ง 4 ช่องเพื่อใช้งาน');
       return;
     }
-    badge.textContent = '✍️ ใช้ราคาที่กรอกเอง';
+    badge.textContent = 'ใช้ราคาที่กรอกเอง';
     setGoldThStatus('ใช้ราคาที่กรอกเองแล้ว', 'ok');
     if (!$('dcaStart').value) $('dcaStart').value = b1.toFixed(2);
     if (!$('gdNow').value) $('gdNow').value = b1.toFixed(2);
@@ -328,7 +328,7 @@
       saveGoldThCache(o);
       fillGoldThFields(o);
       var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge real';
-      badge.textContent = '🟢 ราคาสด' + (o.updateDate ? (' · ปรับปรุง ' + o.updateDate + ' ' + (o.updateTime || '')) : '');
+      badge.textContent = 'ราคาสด' + (o.updateDate ? (' · ปรับปรุง ' + o.updateDate + ' ' + (o.updateTime || '')) : '');
       setGoldThStatus('ดึงราคาสำเร็จ', 'ok');
     }, function () {
       if (tryNum < GOLD_TH_RETRIES) {
@@ -340,11 +340,11 @@
       if (c) {
         fillGoldThFields(c);
         var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge real';
-        badge.textContent = '🟡 ดึงสดไม่ได้ — ใช้ราคาที่บันทึกไว้ (' + cacheAgeText(c.ts) + ')';
+        badge.textContent = 'ดึงสดไม่ได้ — ใช้ราคาที่บันทึกไว้ (' + cacheAgeText(c.ts) + ')';
         setGoldThStatus('ดึงสดไม่ได้ตอนนี้ (ลองแล้ว ' + GOLD_TH_RETRIES + ' ครั้ง) — ใช้ราคาที่บันทึกไว้', 'ok');
       } else {
         var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge paste';
-        badge.textContent = '✍️ กรอกเอง';
+        badge.textContent = 'กรอกเอง';
         setGoldThStatus('ดึงราคาทองอัตโนมัติไม่ได้ตอนนี้ (ลองแล้ว ' + GOLD_TH_RETRIES + ' ครั้ง) — กรอกเองในช่องด้านบน หรือลองรีเฟรชอีกครั้ง', 'err');
       }
     });
@@ -355,10 +355,10 @@
     var el = $('gSrcBadge');
     if (meta.kind === 'real') {
       el.className = 'src-badge real';
-      el.textContent = '🟢 แนวโน้มจากราคาทองคำโลก (GC=F)' + (meta.stale ? (' · ล่าสุด ' + cacheAgeText(meta.cachedAt)) : '') + (meta.days ? (' · ' + meta.days + ' วัน') : '');
+      el.textContent = 'แนวโน้มจากราคาทองคำโลก (GC=F)' + (meta.stale ? (' · ล่าสุด ' + cacheAgeText(meta.cachedAt)) : '') + (meta.days ? (' · ' + meta.days + ' วัน') : '');
     } else if (meta.kind === 'manual') {
       el.className = 'src-badge paste';
-      el.textContent = '✍️ ประเมินจากราคาที่กรอกเอง';
+      el.textContent = 'ประเมินจากราคาที่กรอกเอง';
     } else {
       el.className = 'src-badge paste';
       el.textContent = 'ดึงแนวโน้มราคาทองโลกไม่ได้ตอนนี้ — กรอกด้านล่างเพื่อประเมินเอง';
@@ -630,7 +630,7 @@
     },
     setBtn: function () {
       var b = $('driveConnectBtn'); if (!b) return;
-      b.textContent = this.connected ? '🔗 เชื่อมต่อ Google Drive แล้ว' : '🔗 เชื่อมต่อ Google Drive';
+      b.textContent = this.connected ? 'เชื่อมต่อ Google Drive แล้ว' : 'เชื่อมต่อ Google Drive';
     },
     init: function () {
       try { this.connected = localStorage.getItem(DRIVE_CONNECTED_KEY) === '1'; } catch (e) {}
@@ -727,8 +727,8 @@
           renderGoldLog();
           return self.upload({ log: merged, savedAt: new Date().toISOString() });
         })
-        .then(function () { self.setStatus('✅ ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); })
-        .catch(function (e) { self.setStatus('❌ ' + (e.message || e), 'err'); });
+        .then(function () { self.setStatus('ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); })
+        .catch(function (e) { self.setStatus('' + (e.message || e), 'err'); });
     },
     scheduleSync: function () {
       var self = this;
@@ -744,14 +744,14 @@
       self.setStatus('กำลังซิงก์…', '');
       self.ensureFolder().then(function () { return self.findFile(); })
         .then(function () { return self.upload({ log: loadGoldLog(), savedAt: new Date().toISOString() }); })
-        .then(function () { self.setStatus('✅ ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
+        .then(function () { self.setStatus('ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
         .catch(function (e) {
           var msg = String(e && e.message || e);
           if (msg.indexOf('401') !== -1 || msg.indexOf('403') !== -1) {
             self.accessToken = null;
             self.setStatus('เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', 'err');
           } else {
-            self.setStatus('❌ ซิงก์ไม่สำเร็จ: ' + msg, 'err');
+            self.setStatus('ซิงก์ไม่สำเร็จ: ' + msg, 'err');
           }
         })
         .finally(function () {
