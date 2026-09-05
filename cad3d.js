@@ -19,6 +19,7 @@
    ══════════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 
@@ -32,6 +33,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 
   var state = { steps: [], oc: null, lastShape: null, lastStlBytes: null };
   var scene, camera, renderer, controls, mesh, viewportEl;
+  var xform, previewAnchor;
   var overlayEl = $('c3Overlay'), spinnerEl = $('c3Spinner'), overlayTextEl = $('c3OverlayText');
 
   /* ══════════════════ โหลด OpenCascade.js แบบ lazy จาก CDN (ครั้งแรกเท่านั้น, cache promise ไว้) ══════════════════
@@ -118,9 +120,59 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     dir.position.set(150, 300, 200);
     scene.add(dir);
     scene.add(new THREE.GridHelper(400, 40, 0xB8BEC9, 0xDADEE6));
+
+    /* ── จุดจับลากวางตำแหน่งรูปทรงที่กำลังจะเพิ่ม (ก่อนกด "วาง/รวม") — เฉพาะเลื่อนตำแหน่ง (translate)
+       เพราะฝั่ง OCCT (buildPrimitive) รองรับแค่การเลื่อนตำแหน่งเท่านั้นในสเตจนี้ ลากแล้วช่องตัวเลข
+       ตำแหน่ง X/Y/Z ด้านบนจะอัปเดตตามให้อัตโนมัติ (และพิมพ์ตัวเลขเองก็ยังใช้ได้เหมือนเดิม) ── */
+    xform = new TransformControls(camera, renderer.domElement);
+    xform.setMode('translate');
+    xform.addEventListener('dragging-changed', function (e) { controls.enabled = !e.value; });
+    xform.addEventListener('objectChange', function () {
+      if (!previewAnchor) return;
+      $('posX').value = round2(previewAnchor.position.x);
+      $('posY').value = round2(previewAnchor.position.y);
+      $('posZ').value = round2(previewAnchor.position.z);
+    });
+    scene.add(xform.getHelper ? xform.getHelper() : xform);
+
     resize();
     window.addEventListener('resize', resize);
     renderer.setAnimationLoop(function () { controls.update(); renderer.render(scene, camera); });
+  }
+  function round2(v) { return Math.round(v * 100) / 100; }
+  /* ── รูปทรงโปร่งแสงสีส้ม (preview) ของ "ชิ้นที่กำลังจะเพิ่ม" — ใช้ geometry ของ three.js ตรงๆ
+     (ไม่ผ่าน OCCT) เพื่อให้ลากดูตำแหน่งได้ลื่นไหลทันที รูปทรงจริงจะคำนวณผ่าน OCCT ตอนกดยืนยันเท่านั้น
+     ห่อด้วย Object3D "anchor" เพราะ BRepPrimAPI_MakeBox/MakeCylinder ของ OCCT ยึดมุม/ฐานที่จุดกำเนิด
+     ไม่ได้ยึดกึ่งกลางแบบ THREE.BoxGeometry/CylinderGeometry — เลยต้องขยับตัว mesh ให้เยื้องจาก anchor
+     ให้ตรงกับตำแหน่งที่ OCCT จะวางจริง แต่ตัว anchor เองยังคงเป็น "จุดตำแหน่งที่ป้อนให้ OCCT" ตรงๆ */
+  function buildPreviewMesh(kind, dims) {
+    var anchor = new THREE.Object3D();
+    var mat = new THREE.MeshStandardMaterial({ color: 0xF5A524, transparent: true, opacity: 0.55, depthWrite: false });
+    var inner;
+    if (kind === 'box') {
+      inner = new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.01, dims.x), Math.max(0.01, dims.y), Math.max(0.01, dims.z)), mat);
+      inner.position.set(dims.x / 2, dims.y / 2, dims.z / 2);
+    } else if (kind === 'cylinder') {
+      inner = new THREE.Mesh(new THREE.CylinderGeometry(Math.max(0.01, dims.r), Math.max(0.01, dims.r), Math.max(0.01, dims.h), 32), mat);
+      inner.rotation.x = Math.PI / 2; // three.js ทรงกระบอกยึดแกน Y เป็นค่าเริ่มต้น หมุนให้ตรงกับ OCCT ที่ยึดแกน Z
+      inner.position.set(0, 0, dims.h / 2);
+    } else {
+      inner = new THREE.Mesh(new THREE.SphereGeometry(Math.max(0.01, dims.r), 24, 16), mat);
+    }
+    anchor.add(inner);
+    return anchor;
+  }
+  function rebuildPreview() {
+    var f = readForm();
+    if (previewAnchor) { xform.detach(); scene.remove(previewAnchor); }
+    previewAnchor = buildPreviewMesh(f.kind, f.dims);
+    previewAnchor.position.set(f.pos.x, f.pos.y, f.pos.z);
+    scene.add(previewAnchor);
+    xform.attach(previewAnchor);
+  }
+  function repositionPreview() {
+    if (!previewAnchor) return;
+    previewAnchor.position.set(num('posX', 0), num('posY', 0), num('posZ', 0));
   }
   function resize() {
     if (!viewportEl || !renderer) return;
@@ -272,8 +324,15 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     updateDimsUI();
     updateAddUI();
     rebuildAndRender();
+    rebuildPreview();
 
-    shapeKindSel.addEventListener('change', updateDimsUI);
+    shapeKindSel.addEventListener('change', function () { updateDimsUI(); rebuildPreview(); });
+    ['boxX', 'boxY', 'boxZ', 'cylR', 'cylH', 'sphR'].forEach(function (id) {
+      $(id).addEventListener('input', rebuildPreview);
+    });
+    ['posX', 'posY', 'posZ'].forEach(function (id) {
+      $(id).addEventListener('input', repositionPreview);
+    });
     addShapeBtn.addEventListener('click', function () {
       var f = readForm();
       var step = { op: state.steps.length ? opSel.value : 'add', kind: f.kind, dims: f.dims, pos: f.pos };
