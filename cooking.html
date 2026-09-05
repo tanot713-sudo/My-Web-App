@@ -18,12 +18,11 @@
    ══════════════════════════════════════════════════════════════════ */
 :root{
   --bg:#F6F7FB; --card:#FFFFFF; --ink:#1F2430; --muted:#727C93; --line:#EAEDF5;
-  --ck:#EA580C; --ck-dk:#C2410C; --ck-sf:#FFF3E9; --ck2:#DC2626;
+  --ck:var(--ome-brand); --ck-dk:var(--ome-brand-dk); --ck-sf:var(--ome-brand-sf); --ck2:#DC2626;
   --ok:#17B26A; --err:#E5484D;
   --f:'Prompt',system-ui,-apple-system,sans-serif;
   --r:16px; --sh:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.06);
 }
-[data-theme="dark"] body.ome-tool-page{--ck-sf:#33200F}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--f);background:var(--bg);color:var(--ink);
   line-height:1.7;font-size:15px;font-weight:400;padding:0 20px 80px;-webkit-font-smoothing:antialiased}

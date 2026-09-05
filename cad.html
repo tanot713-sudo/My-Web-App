@@ -13,7 +13,7 @@
 <script src="shell.js" defer></script>
 <style>
 :root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
-  --brand:#2554C7;--brand-dk:#1B3D96;--brand-sf:#E8EEFC;
+  --brand:var(--ome-brand);--brand-dk:var(--ome-brand-dk);--brand-sf:var(--ome-brand-sf);
   --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--err:#E5484D;--warn:#E08700;
   --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -169,7 +169,6 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
 .c3-spinner{width:34px;height:34px;border-radius:50%;border:3.5px solid var(--brand-sf);border-top-color:var(--brand);animation:c3spin 1s linear infinite}
 @keyframes c3spin{to{transform:rotate(360deg)}}
 .c3-error{color:var(--err);font-weight:700}
-[data-theme="dark"]{--brand-sf:#1B2946}
 [data-theme="dark"] .c3-viewport-wrap,[data-theme="dark"] .c3-overlay{background:#0B0E16}
 /* Stage 11: แถบเครื่องมือลอย ตอนกำลังร่างภาพตรงในมุมมอง 3 มิติ (เหมือน SolidWorks) */
 .c3-sketch-toolbar{position:absolute;top:10px;left:10px;right:10px;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:6px;
