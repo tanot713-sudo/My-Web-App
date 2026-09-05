@@ -48,6 +48,31 @@ h1{font-size:clamp(23px,4.4vw,32px);font-weight:700;line-height:1.3;position:rel
 
 footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 @media(max-width:600px){body{padding:0 14px 60px}.hero{padding:24px 20px}}
+
+/* ── ทางลัด: bento grid ของเครื่องมือที่ใช้บ่อย (แทนที่จะต้องเปิดลิ้นชักเมนูทุกครั้ง) ──
+   ขนาดการ์ดไม่เท่ากันตั้งใจ — 3 การ์ดใหญ่ (.featured) ให้กับเครื่องมือที่มีเนื้อหา/หมวดย่อย
+   เยอะที่สุดในเว็บ (การลงทุน 14 หมวด, CAD เต็มรูปแบบ 2D/3D, ภาษา 17 ภาษา) ส่วนที่เหลือเป็น
+   การ์ดขนาดปกติ — แถบสีซ้ายจัดกลุ่มตามหมวดงาน (ไม่ใช่ไอคอนตกแต่ง) */
+.sec-title{margin:30px 0 12px;font-size:14px;font-weight:600;color:var(--muted);
+  display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--line)}
+.bento{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-flow:dense;gap:12px}
+.bento-tile{grid-column:span 1;display:flex;flex-direction:column;justify-content:center;gap:5px;
+  background:var(--card);border-radius:var(--ome-card-r,16px);box-shadow:var(--sh);padding:16px 18px;
+  text-decoration:none;color:var(--ink);border-left:4px solid var(--accent,var(--brand));
+  transition:transform .18s,box-shadow .18s}
+.bento-tile:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(24,31,54,.08),0 16px 30px rgba(24,31,54,.1)}
+.bento-tile.featured{grid-column:span 2;padding:20px 22px}
+.bt-name{font-weight:700;font-size:15px;line-height:1.35}
+.bento-tile.featured .bt-name{font-size:17.5px}
+.bt-desc{font-size:12.5px;color:var(--muted);line-height:1.55}
+.bento-more{display:inline-block;margin-top:16px;font-size:13.5px;font-weight:700;color:var(--brand-dk);
+  text-decoration:none}
+.bento-more:hover{text-decoration:underline}
+@media(max-width:600px){
+  .bento{grid-template-columns:1fr}
+  .bento-tile,.bento-tile.featured{grid-column:span 1;padding:15px 16px}
+}
 </style>
 </head>
 <body class="ome-tool-page">
@@ -64,6 +89,55 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   <h1 id="greet">สวัสดี</h1>
   <p class="sub">วันนี้อยากทำอะไรดี — เลือกจากเมนู ด้านบนซ้ายได้เลย</p>
 </div>
+
+<div class="sec-title">ทางลัด</div>
+<div class="bento">
+  <a class="bento-tile featured" href="invest.html" style="--accent:var(--amber)">
+    <span class="bt-name">การลงทุน</span>
+    <span class="bt-desc">หุ้นไทย/ต่างประเทศ กองทุน ทองคำ ค่าเงิน พอร์ตจำลอง สลาก และอีกรวม 14 หมวด ครบในที่เดียว</span>
+  </a>
+  <a class="bento-tile featured" href="cad.html" style="--accent:var(--sky)">
+    <span class="bt-name">งานเขียนแบบ CAD</span>
+    <span class="bt-desc">เขียนแบบ 2D/3D เต็มรูปแบบ พร้อมเครื่องมือวัด บล็อก เส้นโค้ง และส่งออกไฟล์ใช้งานจริง</span>
+  </a>
+  <a class="bento-tile featured" href="languages.html" style="--accent:var(--violet)">
+    <span class="bt-name">ภาษา</span>
+    <span class="bt-desc">สมุดวลี ทวนคำศัพท์แบบเว้นช่วง ฝึกเขียน และแบบทดสอบวัดระดับ รวม 17 ภาษา</span>
+  </a>
+  <a class="bento-tile" href="budget.html" style="--accent:var(--amber)">
+    <span class="bt-name">รายรับรายจ่าย</span>
+    <span class="bt-desc">บันทึกรายวัน + สรุปงบประมาณ</span>
+  </a>
+  <a class="bento-tile" href="doc-check.html" style="--accent:var(--sky)">
+    <span class="bt-name">ตรวจสอบเอกสาร</span>
+    <span class="bt-desc">เช็กความถูกต้อง/ครบถ้วนของไฟล์เอกสาร</span>
+  </a>
+  <a class="bento-tile" href="word.html" style="--accent:var(--sky)">
+    <span class="bt-name">งาน Word</span>
+    <span class="bt-desc">ร่าง/แก้เอกสาร Word อัตโนมัติ</span>
+  </a>
+  <a class="bento-tile" href="excel.html" style="--accent:var(--sky)">
+    <span class="bt-name">งาน Excel</span>
+    <span class="bt-desc">สร้าง/คำนวณตาราง Excel อัตโนมัติ</span>
+  </a>
+  <a class="bento-tile" href="text-to-speech.html" style="--accent:var(--rose)">
+    <span class="bt-name">แปลงเสียง ↔ ข้อความ</span>
+    <span class="bt-desc">อ่านออกเสียงไฟล์เอกสาร หรือถอดเสียงพูดเป็นข้อความ</span>
+  </a>
+  <a class="bento-tile" href="classroom-law.html" style="--accent:var(--violet)">
+    <span class="bt-name">เรียนกฎหมาย</span>
+    <span class="bt-desc">ทวนความจำเป็นรอบ + แบบฝึกหัดตามหลักสูตร</span>
+  </a>
+  <a class="bento-tile" href="coding.html" style="--accent:var(--brand)">
+    <span class="bt-name">การเขียนโค้ด</span>
+    <span class="bt-desc">ฝึกเขียนโค้ดพร้อมรันผลจริงในเบราว์เซอร์</span>
+  </a>
+  <a class="bento-tile" href="report-dashboard.html" style="--accent:var(--sky)">
+    <span class="bt-name">นำเสนอรายงาน</span>
+    <span class="bt-desc">สร้างสไลด์/แดชบอร์ดนำเสนอจากข้อมูลที่มี</span>
+  </a>
+</div>
+<a class="bento-more" href="#" id="bentoMoreBtn">ดูเมนูทั้งหมด →</a>
 
 </div>
 
@@ -92,6 +166,18 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   }
   updateNixie();
   setInterval(updateNixie, 1000);
+
+  /* ปุ่ม "ดูเมนูทั้งหมด" — เปิดลิ้นชักเมนูเดียวกับปุ่มแฮมเบอร์เกอร์ (สร้างโดย shell.js ซึ่งเป็น
+     defer script รันหลังบรรทัดนี้ แต่ event handler ข้างล่างถูกเรียกตอนคลิกจริงเท่านั้น
+     ซึ่งช้ากว่าตอน shell.js สร้างปุ่มเสร็จแล้วเสมอ จึงไม่ต้องรอ/เช็กลำดับโหลด) */
+  var moreBtn = document.getElementById('bentoMoreBtn');
+  if (moreBtn) {
+    moreBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      var hamburger = document.querySelector('.ome-hamburger');
+      if (hamburger) hamburger.click();
+    });
+  }
 })();
 </script>
 </body>
