@@ -123,8 +123,9 @@
     setBadge('กำลังโหลดข่าว "' + label + '"…');
     $('newsBody').innerHTML = '<div class="news-loading">กำลังโหลด…</div>';
     var stTopic = $('stTopic'); if (stTopic) stTopic.textContent = label;
-    var stCount = $('stCount'); if (stCount) stCount.textContent = '…';
-    var stUpdated = $('stUpdated'); if (stUpdated) stUpdated.textContent = '…';
+    /* stCount/stUpdated ปล่อยให้เป็น skeleton (.ome-skeleton ใน HTML ตอนโหลดครั้งแรก
+       หรือค่าจริงจากคำค้นก่อนหน้าตอนสลับหมวด) จนกว่า fetch จะเสร็จ — ไม่เขียนทับด้วย
+       "…" เพราะ skeleton สื่อว่ากำลังโหลดชัดเจนกว่าอยู่แล้ว */
     fetchNews(query).then(function (r) {
       if (curQuery !== query) return;
       setBadge(r.stale ? ('ดึงสดไม่ได้ — ใช้ข่าวที่บันทึกไว้ ' + cacheAgeText(r.cachedAt)) : ('ข่าวล่าสุด "' + label + '"'), 'real');
@@ -134,6 +135,8 @@
       setBadge('ดึงข่าวไม่สำเร็จตอนนี้ — ลองรีเฟรช หรือเปิด Google News ค้นเองที่ ↗', 'paste');
       var direct = 'https://news.google.com/search?q=' + encodeURIComponent(query) + '&hl=th&gl=TH&ceid=TH:th';
       $('newsBody').innerHTML = '<div class="news-empty">ดึงข่าวอัตโนมัติไม่ได้ตอนนี้ — <a href="' + direct + '" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700">ค้นหาเองที่ Google News ↗</a></div>';
+      var stCountErr = $('stCount'); if (stCountErr) stCountErr.textContent = '—';
+      var stUpdatedErr = $('stUpdated'); if (stUpdatedErr) stUpdatedErr.textContent = '—';
     });
   }
 
