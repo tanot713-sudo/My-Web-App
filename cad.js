@@ -17,6 +17,13 @@
    ลูกศรชี้ (leader) + ลายแรเงา (hatch) + สไตล์มิติเริ่มต้น (ความสูงตัวอักษร/ขนาดหัวลูกศร ปรับได้ทั้งค่าเริ่มต้น
    และรายเอนทิตี้), และ plot PDF ตามมาตราส่วนจริงด้วย jsPDF (เลือกกระดาษ A4/A3/A1 + แนว + มาตราส่วนมาตรฐาน
    1:1 ถึง 1:500 หรือพอดีหน้ากระดาษ) แยกจากปุ่ม "พิมพ์/PDF" เดิมที่ยังคงไว้เป็นทางลัดพิมพ์แบบง่าย
+   Stage 6: คลังบล็อก/สัญลักษณ์มาตรฐาน (ประตู/หน้าต่าง/สุขภัณฑ์/ไฟฟ้า ฯลฯ) + เครื่องมือแทรกบล็อกคำนวณสเกลจากขนาด
+   จริงที่พิมพ์ + ตารางรายการแบบ (title block) มาตรฐานไทย
+   Stage 7 (จุดเริ่มของแผนขยายงานวิศวกรรมเครื่องกล — spline/NURBS → planegcs → OpenCascade.js ฯลฯ): เพิ่มเอนทิตี้
+   เส้นโค้งสปไลน์ (spline) — คลิกจุดควบคุมเรียงกันเหมือนพอลีไลน์ แต่วาดเป็นเส้นโค้งเรียบผ่านจุดเหล่านั้นจริง
+   (Catmull-Rom interpolating spline) แทนเส้นตรงต่อกัน ใช้รูปแบบข้อมูล {points,closed} เดียวกับพอลีไลน์เป๊ะ
+   (ได้ mapEntityPoints/entityGrips/transform ฟรีจากโครงสร้างเดิม) ต่างแค่ตอน render/hit-test/bounds/export ที่
+   สุ่มจุดตามเส้นโค้งจริงผ่าน splinePoints() แทนการต่อจุดควบคุมตรงๆ
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -106,7 +113,9 @@
       blockDoor1: 'ประตูบานเดี่ยว', blockDoor2: 'ประตูบานคู่', blockWindow: 'หน้าต่าง',
       blockToilet: 'โถสุขภัณฑ์', blockSink: 'อ่างล้างหน้า', blockBathtub: 'อ่างอาบน้ำ',
       blockOutlet: 'เต้ารับไฟฟ้า', blockSwitch: 'สวิตช์ไฟ', blockLight: 'โคมไฟเพดาน',
-      propsTitleBlock: 'คุณสมบัติ: บล็อก/สัญลักษณ์', propBlockSize: 'ขนาดจริง (มม.)', propBlockRotation: 'มุมหมุน (°)', propBlockMirror: 'มิเรอร์'
+      propsTitleBlock: 'คุณสมบัติ: บล็อก/สัญลักษณ์', propBlockSize: 'ขนาดจริง (มม.)', propBlockRotation: 'มุมหมุน (°)', propBlockMirror: 'มิเรอร์',
+      toolSpline: '∿ สปไลน์', splineHint: 'คลิกจุดควบคุมเรียงกัน แล้วกด "จบเส้นพอลีไลน์" หรือดับเบิลคลิกเพื่อจบเป็นเส้นโค้งเรียบ',
+      propsTitleSpline: 'คุณสมบัติ: สปไลน์', propSplineNote: 'สปไลน์มี {n} จุดควบคุม — ลากจุดสี่เหลี่ยมบนเส้นเพื่อแก้รูปทรงโค้งโดยตรง'
     },
     en: {
       docTitle: 'CAD Drafting | Tanot',
@@ -190,7 +199,9 @@
       blockDoor1: 'Single door', blockDoor2: 'Double door', blockWindow: 'Window',
       blockToilet: 'Toilet', blockSink: 'Sink', blockBathtub: 'Bathtub',
       blockOutlet: 'Electrical outlet', blockSwitch: 'Light switch', blockLight: 'Ceiling light',
-      propsTitleBlock: 'Properties: Block/symbol', propBlockSize: 'Real size (mm)', propBlockRotation: 'Rotation (°)', propBlockMirror: 'Mirror'
+      propsTitleBlock: 'Properties: Block/symbol', propBlockSize: 'Real size (mm)', propBlockRotation: 'Rotation (°)', propBlockMirror: 'Mirror',
+      toolSpline: '∿ Spline', splineHint: 'Click control points in order, then click "Finish polyline" or double-click to finish as a smooth curve',
+      propsTitleSpline: 'Properties: Spline', propSplineNote: 'Spline has {n} control points — drag a square grip on the curve to reshape it directly'
     }
   };
   function getUILang() { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
@@ -281,7 +292,11 @@
      block:    {blockId, p:{x,y}, scale, rotation, mirrored}  (บล็อก/สัญลักษณ์จากคลัง BLOCK_LIBRARY — p คือจุดแทรก,
                                                               scale = อัตราส่วนจากขนาดจริงที่ผู้ใช้กำหนด/baseSize
                                                               ของสัญลักษณ์, rotation หน่วยเรเดียน, mirrored พลิกซ้าย-ขวา)
-     text:     {p:{x,y}, text, height}                       (คำอธิบายข้อความ — p คือมุมล่างซ้ายของข้อความ) */
+     text:     {p:{x,y}, text, height}                       (คำอธิบายข้อความ — p คือมุมล่างซ้ายของข้อความ)
+     spline:   {points:[{x,y},...], closed:bool}              (เส้นโค้งสปไลน์ — รูปแบบข้อมูลเดียวกับ polyline เป๊ะ
+                                                              (points = จุดควบคุม) ต่างแค่ตอน render/hit-test/bounds/
+                                                              export ที่สุ่มจุดตามเส้นโค้ง Catmull-Rom จริงผ่าน
+                                                              splinePoints() แทนการต่อจุดควบคุมด้วยเส้นตรง) */
 
   var viewport = $('cadViewport'), canvas = $('cadCanvas'), ctx = canvas.getContext('2d');
   var distInput = $('distInput'), angInput = $('angInput'), preciseRow = $('preciseRow'), finishPolyBtn = $('finishPolylineBtn');
@@ -316,6 +331,32 @@
       pts.push({ x: e.center.x + e.radius * Math.cos(a), y: e.center.y + e.radius * Math.sin(a) });
     }
     return pts;
+  }
+  /* จุดตามเส้นโค้งสปไลน์ (Catmull-Rom interpolating spline ผ่านจุดควบคุมทุกจุดจริง ไม่ใช่แค่ผ่านใกล้ๆ แบบ B-spline
+     ทั่วไป — เลือกแบบนี้เพราะผู้ใช้คลิกจุดที่ต้องการให้เส้นโค้ง "ผ่านตรงนั้นเป๊ะ" เหมือนพฤติกรรมเริ่มต้นของคำสั่ง
+     SPLINE ในโปรแกรม CAD ทั่วไป) — ที่ปลายสุด (ไม่ปิด) ใช้จุดปลายซ้ำแทนจุดควบคุมที่ไม่มีจริง (clamped ends)
+     segN = จำนวนช่วงย่อยต่อ 1 ช่วงจุดควบคุม (ยิ่งมากยิ่งเรียบ, ใช้ค่าน้อยลงได้ตอนต้องการแค่กะ bounds คร่าวๆ) */
+  function catmullRomPoint(p0, p1, p2, p3, tt) {
+    var t2 = tt * tt, t3 = t2 * tt;
+    return {
+      x: 0.5 * ((2 * p1.x) + (-p0.x + p2.x) * tt + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
+      y: 0.5 * ((2 * p1.y) + (-p0.y + p2.y) * tt + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3)
+    };
+  }
+  function splinePoints(e, segN) {
+    segN = segN || 16;
+    var pts = e.points, n = pts.length;
+    if (n < 2) return pts.slice();
+    if (n === 2) return [pts[0], pts[1]]; // สองจุด = ไม่มีเส้นโค้งให้คำนวณ เป็นแค่เส้นตรง
+    var closed = !!e.closed;
+    function at(i) { return closed ? pts[((i % n) + n) % n] : pts[Math.max(0, Math.min(n - 1, i))]; }
+    var out = [], segs = closed ? n : n - 1;
+    for (var i = 0; i < segs; i++) {
+      var p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+      for (var j = 0; j < segN; j++) out.push(catmullRomPoint(p0, p1, p2, p3, j / segN));
+    }
+    if (closed) out.push(out[0]); else out.push(pts[n - 1]);
+    return out;
   }
   function distPointToArc(p, e) {
     var ang = Math.atan2(p.y - e.center.y, p.x - e.center.x);
@@ -401,6 +442,11 @@
     }
     if (e.type === 'circle') return Math.abs(Math.hypot(p.x - e.center.x, p.y - e.center.y) - e.radius);
     if (e.type === 'arc' || e.type === 'angdim') return distPointToArc(p, e);
+    if (e.type === 'spline') {
+      var sp = splinePoints(e), sd = Infinity;
+      for (var si = 0; si < sp.length - 1; si++) sd = Math.min(sd, distPointToSegment(p, sp[si], sp[si + 1]));
+      return sd;
+    }
     if (e.type === 'dim') { var dl = dimLinePoints(e); return distPointToSegment(p, dl.dimP1, dl.dimP2); }
     if (e.type === 'raddim') return distPointToSegment(p, e.center, raddimLeaderPoint(e));
     if (e.type === 'diadim') { var de = diaEndpoints(e); return distPointToSegment(p, de.p1, de.p2); }
@@ -483,6 +529,7 @@
     else if (e.type === 'leader') { pts.push({ p: e.p1, kind: 'end' }, { p: e.p2, kind: 'end' }); }
     else if (e.type === 'text') { pts.push({ p: e.p, kind: 'end' }); }
     else if (e.type === 'block') { pts.push({ p: e.p, kind: 'end' }); }
+    else if (e.type === 'spline') { e.points.forEach(function (p) { pts.push({ p: p, kind: 'end' }); }); } // จุดควบคุมเท่านั้น (จุดกึ่งกลางเส้นตรงจะไม่ตรงกับเส้นโค้งจริง เลยไม่ใส่)
     return pts;
   }
   function entitySegments(e) {
@@ -515,6 +562,7 @@
       sym.entities.forEach(function (sub) { entityBoundsPoints(transformBlockSubEntity(sub, e)).forEach(function (p) { bpts.push(p); }); });
       return bpts.length ? bpts : [e.p];
     }
+    if (e.type === 'spline') return splinePoints(e, 8); // 8 พอสำหรับ bounds/zoomFit/drag-select คร่าวๆ ไม่ต้องเรียบเท่าตอน render จริง
     return [];
   }
 
@@ -669,6 +717,7 @@
     else if (e.type === 'hatch') { e.points = e.points.map(fn); }
     else if (e.type === 'text') { e.p = fn(e.p); }
     else if (e.type === 'block') { e.p = fn(e.p); }
+    else if (e.type === 'spline') { e.points = e.points.map(fn); }
     return e;
   }
 
@@ -863,6 +912,7 @@
     if (e.type === 'raddim' || e.type === 'diadim') return [{ p: e.center, ref: 'center' }, { p: raddimLeaderPoint(e), ref: 'raddimleader' }];
     if (e.type === 'leader') return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }];
     if (e.type === 'text' || e.type === 'block') return [{ p: e.p, ref: 'p' }];
+    if (e.type === 'spline') return e.points.map(function (p, i) { return { p: p, ref: { idx: i } }; }); // ref รูปแบบเดียวกับ polyline — applyGripEdit จัดการให้ฟรีอยู่แล้ว
     return []; // hatch: ไม่มีจุดจับต่อจุด — ย้าย/หมุน/มิเรอร์/สเกลทั้งก้อนผ่านเครื่องมือแก้ไขปกติเท่านั้น
   }
   function applyGripEdit(e, ref, pt) {
@@ -1107,6 +1157,8 @@
         ctx.fillText(e.text, lps2.x, lps2.y);
       } else if (e.type === 'hatch') {
         hatchLines(e).forEach(function (seg) { strokePolylinePts(seg, false); });
+      } else if (e.type === 'spline') {
+        strokePolylinePts(splinePoints(e), !!e.closed);
       }
     });
     /* จุดจับ (grips) — วาดเฉพาะตอนเลือกอยู่ตัวเดียวและเครื่องมือคือ "เลือก" (กันสับสนตอนใช้เครื่องมือแก้ไขอื่น) */
@@ -1124,7 +1176,7 @@
     }
 
     /* ── พรีวิวเอนทิตี้ที่กำลังวาดอยู่ (รวมเครื่องมือย้าย/คัดลอก/หมุน/มิเรอร์ ที่ใช้จุดยึด+เคอร์เซอร์แบบเดียวกัน) ── */
-    var GUIDE_LINE_TOOLS = { line: 1, polyline: 1, move: 1, copy: 1, rotate: 1, mirror: 1, dim: 1 };
+    var GUIDE_LINE_TOOLS = { line: 1, polyline: 1, spline: 1, move: 1, copy: 1, rotate: 1, mirror: 1, dim: 1 };
     var eff = (state.tool !== 'select' && state._cursorWorld) ? effectivePoint(applyOrtho(state._cursorWorld)) : null;
     if (eff && state.pendingPoints.length) {
       var anchor = state.pendingPoints[state.pendingPoints.length - 1];
@@ -1138,8 +1190,10 @@
       } else if (GUIDE_LINE_TOOLS[state.tool]) {
         var s1 = worldToScreen(anchor.x, anchor.y), s2 = worldToScreen(eff.x, eff.y);
         ctx.beginPath(); ctx.moveTo(s1.x, s1.y); ctx.lineTo(s2.x, s2.y); ctx.stroke();
-        if (state.tool === 'polyline' && state.pendingPoints.length > 1) {
-          ctx.setLineDash([]); strokePolylinePts(state.pendingPoints, false); ctx.setLineDash([5, 4]);
+        if ((state.tool === 'polyline' || state.tool === 'spline') && state.pendingPoints.length > 1) {
+          ctx.setLineDash([]);
+          strokePolylinePts(state.tool === 'spline' ? splinePoints({ points: state.pendingPoints, closed: false }) : state.pendingPoints, false);
+          ctx.setLineDash([5, 4]);
         }
       } else if (state.tool === 'rect') {
         strokePolylinePts(rectCorners({ p1: anchor, p2: eff }), true);
@@ -1321,7 +1375,7 @@
 
   /* ══════════════════ เครื่องมือวาด ══════════════════ */
   var TOOL_BTN_IDS = {
-    select: 'toolSelectBtn', line: 'toolLineBtn', polyline: 'toolPolylineBtn', rect: 'toolRectBtn', circle: 'toolCircleBtn', arc: 'toolArcBtn',
+    select: 'toolSelectBtn', line: 'toolLineBtn', polyline: 'toolPolylineBtn', rect: 'toolRectBtn', circle: 'toolCircleBtn', arc: 'toolArcBtn', spline: 'toolSplineBtn',
     move: 'toolMoveBtn', copy: 'toolCopyBtn', rotate: 'toolRotateBtn', mirror: 'toolMirrorBtn', scale: 'toolScaleBtn',
     trim: 'toolTrimBtn', extend: 'toolExtendBtn', fillet: 'toolFilletBtn', offset: 'toolOffsetBtn', arrayrect: 'toolArrayRectBtn',
     dim: 'toolDimBtn', raddim: 'toolRaddimBtn', diadim: 'toolDiadimBtn', angdim: 'toolAngdimBtn', text: 'toolTextBtn', leader: 'toolLeaderBtn', hatch: 'toolHatchBtn',
@@ -1430,7 +1484,7 @@
     var show = (!PRECISE_ROW_EXCLUDED[state.tool] && state.pendingPoints.length > 0) ||
       (state.tool === 'offset' && state.offsetSourceId) || (state.tool === 'fillet' && state.pendingEntityIds.length === 2);
     preciseRow.classList.toggle('show', show);
-    var showFinish = state.tool === 'polyline' && state.pendingPoints.length >= 2;
+    var showFinish = (state.tool === 'polyline' || state.tool === 'spline') && state.pendingPoints.length >= 2;
     finishPolyBtn.classList.toggle('show', showFinish);
     if (!show) { distInput.value = ''; angInput.value = ''; }
   }
@@ -1443,7 +1497,7 @@
   function finishPolyline() {
     if (state.pendingPoints.length >= 2) {
       pushHistory();
-      state.entities.push({ id: genId(), type: 'polyline', layer: state.activeLayer, points: state.pendingPoints.slice(), closed: false });
+      state.entities.push({ id: genId(), type: state.tool === 'spline' ? 'spline' : 'polyline', layer: state.activeLayer, points: state.pendingPoints.slice(), closed: false });
       updateCountUI(); scheduleSave();
     }
     finishDrawing(); render();
@@ -1485,7 +1539,7 @@
         }
         finishDrawing();
       } else updatePreciseRowUI();
-    } else if (state.tool === 'polyline') {
+    } else if (state.tool === 'polyline' || state.tool === 'spline') {
       var last = state.pendingPoints[state.pendingPoints.length - 1];
       if (!last || Math.hypot(last.x - pt.x, last.y - pt.y) > DUP_EPS) state.pendingPoints.push(pt);
     } else if (state.tool === 'move' || state.tool === 'copy') {
@@ -1829,7 +1883,7 @@
     handlePointInput(effectivePoint(applyOrtho(raw)));
   });
   canvas.addEventListener('dblclick', function (e) {
-    if (state.tool !== 'polyline') return;
+    if (state.tool !== 'polyline' && state.tool !== 'spline') return;
     e.preventDefault();
     if (state.pendingPoints.length >= 2) {
       var n = state.pendingPoints.length, a = state.pendingPoints[n - 1], b = state.pendingPoints[n - 2];
@@ -1938,7 +1992,7 @@
           return;
         }
         var ok = commitPreciseInput();
-        if (!ok && state.tool === 'polyline' && state.pendingPoints.length >= 2) finishPolyline();
+        if (!ok && (state.tool === 'polyline' || state.tool === 'spline') && state.pendingPoints.length >= 2) finishPolyline();
       } else if (e.key === 'Escape') { e.preventDefault(); cancelDrawing(); inp.blur(); }
       else if (e.key === 'Tab' && inp === distInput) { e.preventDefault(); angInput.focus(); angInput.select(); }
     });
@@ -2015,11 +2069,12 @@
     var TITLE_KEY = {
       line: 'propsTitleLine', polyline: 'propsTitlePolyline', rect: 'propsTitleRect', circle: 'propsTitleCircle',
       arc: 'propsTitleArc', dim: 'propsTitleDim', raddim: 'propsTitleRaddim', diadim: 'propsTitleDiadim',
-      angdim: 'propsTitleAngdim', text: 'propsTitleText', leader: 'propsTitleLeader', hatch: 'propsTitleHatch', block: 'propsTitleBlock'
+      angdim: 'propsTitleAngdim', text: 'propsTitleText', leader: 'propsTitleLeader', hatch: 'propsTitleHatch', block: 'propsTitleBlock', spline: 'propsTitleSpline'
     };
     propsTitle.textContent = t(TITLE_KEY[e.type] || e.type);
     var fields = [], noteHtml = '';
     if (e.type === 'polyline') { noteHtml = '<div class="cad-props-note">' + t('propPolylineNote', { n: e.points.length }) + '</div>'; }
+    else if (e.type === 'spline') { noteHtml = '<div class="cad-props-note">' + t('propSplineNote', { n: e.points.length }) + '</div>'; }
     else if (e.type === 'line' || e.type === 'rect' || e.type === 'dim') {
       fields = [
         { k: 'propX1', v: e.p1.x, set: function (v) { e.p1.x = v; } }, { k: 'propY1', v: e.p1.y, set: function (v) { e.p1.y = v; } },
@@ -2244,6 +2299,8 @@
         c.fillText(e.text, lps2.x, lps2.y);
       } else if (e.type === 'hatch') {
         hatchLines(e).forEach(function (seg) { poly(seg, false); });
+      } else if (e.type === 'spline') {
+        poly(splinePoints(e), !!e.closed);
       }
     });
   }
@@ -2324,6 +2381,8 @@
         parts.push('<text x="' + sx(e.p2.x) + '" y="' + sy(e.p2.y) + '" font-size="' + e.height.toFixed(2) + '" fill="' + color + '">' + svgEsc(e.text) + '</text>');
       } else if (e.type === 'hatch') {
         hatchLines(e).forEach(function (seg) { parts.push('<path d="' + polyPath(seg, false) + '" stroke="' + color + '"/>'); });
+      } else if (e.type === 'spline') {
+        parts.push('<path d="' + polyPath(splinePoints(e), !!e.closed) + '" stroke="' + color + '"/>');
       }
     });
     parts.push('</g></svg>');
@@ -2404,6 +2463,7 @@
       hatchLines(e).forEach(function (seg) { chunks = chunks.concat(dxfLine(seg[0], seg[1])); });
       return chunks;
     }
+    if (e.type === 'spline') return dxfLwpolyline(splinePoints(e, 16), !!e.closed); // ไม่มี DXF SPLINE entity เต็มรูปแบบในสเตจนี้ (ตามหลักการเดียวกับ dim/hatch: แตกเป็นชนิดพื้นฐานเพื่อให้โปรแกรมอ่าน DXF ใดๆ ก็แสดงถูก)
     return [];
   }
   function exportDXF() {
@@ -2596,6 +2656,7 @@
         pdfPoly([e.p1, e.p2], false); pdfArrow(e.p1, lAngW + Math.PI, e.height * 0.5, rgb);
         pdf.setFontSize(e.height * 2.83465); pdf.text(e.text, lp2.x, lp2.y);
       } else if (e.type === 'hatch') { hatchLines(e).forEach(function (seg) { pdfPoly(seg, false); }); }
+      else if (e.type === 'spline') { pdfPoly(splinePoints(e), !!e.closed); }
     });
     pdf.setDrawColor(inkRgb[0], inkRgb[1], inkRgb[2]); pdf.setLineWidth(0.3);
     pdf.rect(MARGIN / 2, MARGIN / 2, pw - MARGIN, ph - MARGIN, 'S');
