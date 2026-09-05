@@ -42,6 +42,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
   var state = { steps: [], oc: null, lastShape: null, lastStlBytes: null };
   var scene, camera, renderer, controls, mesh, viewportEl;
   var xform, previewAnchor;
+  var heightXform, heightHandle, heightLine;
   var overlayEl = $('c3Overlay'), spinnerEl = $('c3Spinner'), overlayTextEl = $('c3OverlayText');
 
   /* ══════════════════ โหลด OpenCascade.js แบบ lazy จาก CDN (ครั้งแรกเท่านั้น, cache promise ไว้) ══════════════════
@@ -195,6 +196,25 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     });
     scene.add(xform.getHelper ? xform.getHelper() : xform);
 
+    /* ── จุดจับลากกำหนด "ความสูง" ตอนอัดขึ้นตรง (extrude) จากภาพร่าง 2 มิติ — คนละอันกับ xform ด้านบน
+       (นั่นลากตำแหน่งทั้งชิ้น ส่วนนี้ลากแค่ตัวเลขความสูงตามแกน Z เดียว) โชว์แกน Z อย่างเดียวด้วย
+       showX/showY = false (รองรับใน TransformControls ของ three.js) เพราะ extrude ของ OCCT
+       เดินตามแกน Z เสมอในสเตจนี้ ลากแล้วช่อง "สูง (มม.)" อัปเดตตามอัตโนมัติ (พิมพ์เองก็ยังได้เหมือนเดิม
+       เพื่อความแม่นยำเป๊ะๆ) — attach เป็นลูกของ previewAnchor ตัวเดียวกับที่ xform คุมตำแหน่งอยู่ เพื่อให้
+       จุดจับความสูงเคลื่อนตามไปด้วยเวลาลากย้ายตำแหน่งทั้งชิ้น */
+    heightXform = new TransformControls(camera, renderer.domElement);
+    heightXform.setMode('translate');
+    heightXform.showX = false; heightXform.showY = false;
+    heightXform.addEventListener('dragging-changed', function (e) { controls.enabled = !e.value; });
+    heightXform.addEventListener('objectChange', function () {
+      if (!heightHandle) return;
+      var h = Math.max(0.01, round2(heightHandle.position.z));
+      heightHandle.position.z = h;
+      $('sketchHeight').value = h;
+      updateHeightGuideLine();
+    });
+    scene.add(heightXform.getHelper ? heightXform.getHelper() : heightXform);
+
     resize();
     window.addEventListener('resize', resize);
     renderer.setAnimationLoop(function () { controls.update(); renderer.render(scene, camera); });
@@ -249,6 +269,30 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     previewAnchor.position.set(f.pos.x, f.pos.y, f.pos.z);
     scene.add(previewAnchor);
     xform.attach(previewAnchor);
+    updateHeightHandle(f);
+  }
+  /* จุดจับลากความสูง extrude — มีให้ใช้เฉพาะตอนเลือก "จากภาพร่าง 2 มิติ" + โหมด "อัดขึ้นตรง" + เลือก
+     โปรไฟล์แล้วเท่านั้น (กรณีอื่นไม่มีความหมายอะไรให้ลาก) attach เป็นลูกของ previewAnchor (พิกัดท้องถิ่น
+     z ของ handle นี้ = ความสูง extrude ตรงๆ เพราะ inner mesh ของ sketch วางอยู่ที่ z=0 ท้องถิ่นเสมอ) */
+  function updateHeightHandle(f) {
+    var show = f.kind === 'sketch' && f.dims.mode === 'extrude' && !!f.dims.profile;
+    if (heightHandle) { heightXform.detach(); previewAnchor.remove(heightHandle); heightHandle = null; }
+    if (heightLine) { heightLine = null; } // (ถูกลบไปพร้อม previewAnchor เก่าแล้วตอน scene.remove ด้านบน)
+    if (!show) return;
+    heightHandle = new THREE.Object3D();
+    heightHandle.position.set(0, 0, Math.max(0.01, f.dims.height || 20));
+    previewAnchor.add(heightHandle);
+    updateHeightGuideLine();
+    heightXform.attach(heightHandle);
+  }
+  /* เส้นประแนวตั้งจากฐาน (z=0) ถึงจุดจับ — ให้เห็นระยะ extrude ชัดเจนเวลาลาก ไม่ใช่แค่เห็นลูกศรลอยๆ */
+  function updateHeightGuideLine() {
+    if (heightLine) { previewAnchor.remove(heightLine); heightLine = null; }
+    if (!heightHandle) return;
+    var pts = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, heightHandle.position.z)];
+    heightLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineDashedMaterial({ color: 0xF5A524, dashSize: 4, gapSize: 3 }));
+    heightLine.computeLineDistances();
+    previewAnchor.add(heightLine);
   }
   function repositionPreview() {
     if (!previewAnchor) return;
