@@ -107,6 +107,7 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
           <option value="box" data-i18n="shapeBox">กล่อง (Box)</option>
           <option value="cylinder" data-i18n="shapeCylinder">ทรงกระบอก (Cylinder)</option>
           <option value="sphere" data-i18n="shapeSphere">ทรงกลม (Sphere)</option>
+          <option value="sketch" data-i18n="shapeSketch">จากภาพร่าง 2 มิติ (Extrude/Revolve)</option>
         </select>
       </label>
       <div class="c3-dims" id="dimsBox">
@@ -120,6 +121,26 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       </div>
       <div class="c3-dims" id="dimsSphere" hidden>
         <label data-i18n="dimR">รัศมี (มม.)<input type="text" id="sphR" inputmode="decimal" value="25"></label>
+      </div>
+      <div class="c3-dims" id="dimsSketch" hidden>
+        <label data-i18n="sketchProfileLbl">เส้นขอบจากแบบ 2 มิติ
+          <select id="sketchProfileSel" style="width:220px"></select>
+        </label>
+        <button class="btn sm" id="sketchReloadBtn" type="button" data-i18n="sketchReloadBtn">🔄 โหลดใหม่</button>
+        <label data-i18n="sketchModeLbl">วิธีขึ้นรูป
+          <select id="sketchModeSel">
+            <option value="extrude" data-i18n="sketchExtrude">อัดขึ้นตรง (Extrude)</option>
+            <option value="revolve" data-i18n="sketchRevolve">หมุนรอบแกน (Revolve)</option>
+          </select>
+        </label>
+        <label id="sketchExtrudeWrap" data-i18n="sketchHeightLbl">สูง (มม.)<input type="text" id="sketchHeight" inputmode="decimal" value="20"></label>
+        <label id="sketchRevolveWrap" hidden data-i18n="sketchAxisLbl">แกนหมุน
+          <select id="sketchAxisSel">
+            <option value="x">แกน X</option>
+            <option value="y">แกน Y</option>
+          </select>
+        </label>
+        <label id="sketchAngleWrap" hidden data-i18n="sketchAngleLbl">มุมหมุน (°)<input type="text" id="sketchAngle" inputmode="decimal" value="360"></label>
       </div>
       <div class="c3-dims">
         <label data-i18n="posX">ตำแหน่ง X (มม.)<input type="text" id="posX" inputmode="decimal" value="0"></label>
@@ -136,7 +157,8 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       <button class="btn sm primary" id="addShapeBtn" type="button" data-i18n="addShapeBtn">✔️ วางเป็นชิ้นงานหลัก</button>
     </div>
     <p class="hint" data-i18n="addShapeHint">ชิ้นแรกจะถูกวางเป็น "ชิ้นงานหลัก" โดยตรง ชิ้นถัดไปให้เลือกวิธีรวม (รวม/ตัดออก/ส่วนร่วม) แล้วกดปุ่มเพื่อรวมเข้ากับชิ้นงานหลัก
-      · <b>รูปทรงสีส้มโปร่งแสงในมุมมอง 3 มิติด้านล่างคือตัวอย่างชิ้นที่กำลังจะเพิ่ม — ลากลูกศรสีเพื่อวางตำแหน่งเองได้เลย ไม่ต้องพิมพ์ตัวเลข</b></p>
+      · <b>รูปทรงสีส้มโปร่งแสงในมุมมอง 3 มิติด้านล่างคือตัวอย่างชิ้นที่กำลังจะเพิ่ม — ลากลูกศรสีเพื่อวางตำแหน่งเองได้เลย ไม่ต้องพิมพ์ตัวเลข</b>
+      · "จากภาพร่าง 2 มิติ" อ่านแบบที่วาดไว้ล่าสุดในหน้า <a href="cad.html">งานเขียนแบบ CAD</a> — รองรับเฉพาะสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดเท่านั้น (เส้นตรงหลายเส้น/เส้นโค้งสปไลน์/ส่วนโค้งยังไม่รองรับในสเตจนี้)</p>
   </div>
 
   <div class="card">

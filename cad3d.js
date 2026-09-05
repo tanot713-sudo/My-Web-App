@@ -16,6 +16,14 @@
    - แปลงรูปทรงเป็นตาข่ายสามเหลี่ยม (mesh) สำหรับแสดงผลผ่าน STL ชั่วคราวในหน่วยความจำ (StlAPI_Writer
      เขียนลง virtual filesystem ของ Emscripten แล้วอ่านกลับด้วย STLLoader ของ three.js ที่มีอยู่แล้ว
      ในโปรเจกต์ — ปลอดภัยกว่าและโค้ดสั้นกว่าการเดินเอง TopExp_Explorer/BRep_Tool.Triangulation ทีละหน้า)
+
+   ส่วนขยาย: "จากภาพร่าง 2 มิติ" — ดึงเส้นขอบปิดจากแบบที่วาดไว้ในหน้า cad.html (อ่านตรงจาก localStorage
+   คีย์เดียวกับที่ cad.js ใช้บันทึกอัตโนมัติ) แล้วอัดขึ้นตรง (extrude, BRepPrimAPI_MakePrism) หรือหมุนรอบแกน
+   (revolve, BRepPrimAPI_MakeRevol) ให้เป็นชิ้นงาน 3 มิติจริง — รองรับเฉพาะเส้นขอบที่ "ปิด" อยู่แล้วในตัวเอง
+   โดยไม่ต้องเดา: สี่เหลี่ยม/วงกลม/พอลีไลน์ปิด เท่านั้น (เส้นตรงหลายเส้นต่อกันเป็นวงปิด/เส้นโค้งส่วนโค้ง/
+   สปไลน์ ยังไม่รองรับ — ต้องใช้อัลกอริทึมเดินกราฟหาวงปิดที่ซับซ้อนกว่านี้ ตัดออกไปตั้งใจในสเตจนี้)
+   preview ของชนิดนี้เป็นแค่เส้นขอบแบนราบ (ไม่พองเป็น 3 มิติจริงแบบ preview ของกล่อง/ทรงกระบอก/ทรงกลม)
+   เพราะการ extrude/revolve จริงต้องผ่าน OCCT เท่านั้น เห็นผลจริงหลังกดยืนยันแล้วเท่านั้น
    ══════════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -59,10 +67,40 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
   function loadSteps() { try { var r = localStorage.getItem(STORE_KEY); if (r) { var s = JSON.parse(r); if (Array.isArray(s)) state.steps = s; } } catch (e) {} }
 
   /* ══════════════════ สร้างรูปทรง OCCT จริงจากสูตร ══════════════════ */
+  /* เส้นขอบปิด (profile) จากแบบ 2 มิติ -> TopoDS_Wire — profile.points (สี่เหลี่ยม/พอลีไลน์ปิด) ต่อ
+     จุดเป็นเส้นตรงทีละช่วงวนกลับมาปิดวง หรือ profile.circle (วงกลม) สร้างเป็นขอบวงกลมเต็มวงเส้นเดียว */
+  function buildWireFromProfile(oc, profile) {
+    var builder = new oc.BRepBuilderAPI_MakeWire_1();
+    if (profile.points && profile.points.length > 2) {
+      var pts = profile.points;
+      for (var i = 0; i < pts.length; i++) {
+        var a = pts[i], b = pts[(i + 1) % pts.length];
+        var edge = new oc.BRepBuilderAPI_MakeEdge_3(new oc.gp_Pnt_3(a.x, a.y, 0), new oc.gp_Pnt_3(b.x, b.y, 0)).Edge();
+        builder.Add_1(edge);
+      }
+    } else if (profile.circle) {
+      var c = profile.circle;
+      var ax2 = new oc.gp_Ax2_3(new oc.gp_Pnt_3(c.cx, c.cy, 0), new oc.gp_Dir_4(0, 0, 1));
+      builder.Add_1(new oc.BRepBuilderAPI_MakeEdge_8(new oc.gp_Circ_2(ax2, c.r)).Edge());
+    }
+    return builder.Wire();
+  }
+  /* ขึ้นรูป 3 มิติจากเส้นขอบปิด: อัดขึ้นตรง (extrude, ตามแกน Z) หรือหมุนรอบแกน (revolve, รอบแกน X/Y ที่ผ่าน
+     จุดกำเนิดโลก — ตำแหน่ง (pos) ใช้เลื่อนผลลัพธ์หลังขึ้นรูปแล้ว เหมือนรูปทรงพื้นฐานชนิดอื่น) */
+  function buildSketchSolid(oc, dims) {
+    var face = new oc.BRepBuilderAPI_MakeFace_15(buildWireFromProfile(oc, dims.profile), true).Face();
+    if (dims.mode === 'revolve') {
+      var axisDir = dims.axis === 'y' ? new oc.gp_Dir_4(0, 1, 0) : new oc.gp_Dir_4(1, 0, 0);
+      var ax1 = new oc.gp_Ax1_2(new oc.gp_Pnt_3(0, 0, 0), axisDir);
+      return new oc.BRepPrimAPI_MakeRevol_1(face, ax1, Math.max(0.01, dims.angle || 360) * Math.PI / 180, false).Shape();
+    }
+    return new oc.BRepPrimAPI_MakePrism_1(face, new oc.gp_Vec_4(0, 0, dims.height || 10), false, true).Shape();
+  }
   function buildPrimitive(oc, kind, dims, pos) {
     var shape;
     if (kind === 'box') shape = new oc.BRepPrimAPI_MakeBox_2(Math.max(0.01, dims.x), Math.max(0.01, dims.y), Math.max(0.01, dims.z)).Shape();
     else if (kind === 'cylinder') shape = new oc.BRepPrimAPI_MakeCylinder_1(Math.max(0.01, dims.r), Math.max(0.01, dims.h)).Shape();
+    else if (kind === 'sketch') shape = buildSketchSolid(oc, dims);
     else shape = new oc.BRepPrimAPI_MakeSphere_1(Math.max(0.01, dims.r)).Shape();
     if (pos.x || pos.y || pos.z) {
       var trsf = new oc.gp_Trsf_1();
@@ -145,6 +183,24 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
      ห่อด้วย Object3D "anchor" เพราะ BRepPrimAPI_MakeBox/MakeCylinder ของ OCCT ยึดมุม/ฐานที่จุดกำเนิด
      ไม่ได้ยึดกึ่งกลางแบบ THREE.BoxGeometry/CylinderGeometry — เลยต้องขยับตัว mesh ให้เยื้องจาก anchor
      ให้ตรงกับตำแหน่งที่ OCCT จะวางจริง แต่ตัว anchor เองยังคงเป็น "จุดตำแหน่งที่ป้อนให้ OCCT" ตรงๆ */
+  /* preview ของ "จากภาพร่าง 2 มิติ" ตั้งใจให้เป็นแค่เส้นขอบแบนราบ (ไม่พองเป็นทรง 3 มิติจริงเหมือนกล่อง/
+     ทรงกระบอก/ทรงกลม) เพราะการ extrude/revolve จริงต้องผ่าน OCCT เท่านั้น (three.js ไม่มี solid kernel) —
+     เห็นแค่ "จะใช้เส้นขอบไหน" ก่อน ส่วนความสูง/มุมหมุนจริงจะเห็นผลหลังกดยืนยันแล้วเท่านั้น */
+  function buildSketchPreviewMesh(dims) {
+    if (!dims || !dims.profile) return null;
+    var shape2d = new THREE.Shape();
+    if (dims.profile.points && dims.profile.points.length > 2) {
+      var pts = dims.profile.points;
+      shape2d.moveTo(pts[0].x, pts[0].y);
+      for (var i = 1; i < pts.length; i++) shape2d.lineTo(pts[i].x, pts[i].y);
+      shape2d.closePath();
+    } else if (dims.profile.circle) {
+      var c = dims.profile.circle;
+      shape2d.absarc(c.cx, c.cy, c.r, 0, Math.PI * 2, false);
+    } else return null;
+    var mat = new THREE.MeshStandardMaterial({ color: 0xF5A524, transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide });
+    return new THREE.Mesh(new THREE.ShapeGeometry(shape2d), mat);
+  }
   function buildPreviewMesh(kind, dims) {
     var anchor = new THREE.Object3D();
     var mat = new THREE.MeshStandardMaterial({ color: 0xF5A524, transparent: true, opacity: 0.55, depthWrite: false });
@@ -156,10 +212,12 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
       inner = new THREE.Mesh(new THREE.CylinderGeometry(Math.max(0.01, dims.r), Math.max(0.01, dims.r), Math.max(0.01, dims.h), 32), mat);
       inner.rotation.x = Math.PI / 2; // three.js ทรงกระบอกยึดแกน Y เป็นค่าเริ่มต้น หมุนให้ตรงกับ OCCT ที่ยึดแกน Z
       inner.position.set(0, 0, dims.h / 2);
+    } else if (kind === 'sketch') {
+      inner = buildSketchPreviewMesh(dims);
     } else {
       inner = new THREE.Mesh(new THREE.SphereGeometry(Math.max(0.01, dims.r), 24, 16), mat);
     }
-    anchor.add(inner);
+    if (inner) anchor.add(inner);
     return anchor;
   }
   function rebuildPreview() {
@@ -243,17 +301,67 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 
   /* ══════════════════ ฟอร์มเพิ่มรูปทรง ══════════════════ */
   var shapeKindSel = $('shapeKindSel'), addShapeBtn = $('addShapeBtn'), opWrap = $('opWrap'), opSel = $('opSel');
-  var dimsBox = $('dimsBox'), dimsCylinder = $('dimsCylinder'), dimsSphere = $('dimsSphere');
+  var dimsBox = $('dimsBox'), dimsCylinder = $('dimsCylinder'), dimsSphere = $('dimsSphere'), dimsSketch = $('dimsSketch');
+  var loadedProfiles = [];
   function updateDimsUI() {
     var k = shapeKindSel.value;
-    dimsBox.hidden = k !== 'box'; dimsCylinder.hidden = k !== 'cylinder'; dimsSphere.hidden = k !== 'sphere';
+    dimsBox.hidden = k !== 'box'; dimsCylinder.hidden = k !== 'cylinder'; dimsSphere.hidden = k !== 'sphere'; dimsSketch.hidden = k !== 'sketch';
   }
   function num(id, fallback) { var v = parseFloat($(id).value); return isFinite(v) ? v : fallback; }
+  /* ══════════════════ อ่านเส้นขอบปิดจากแบบ 2 มิติ (cad.html) ══════════════════
+     อ่านตรงจาก localStorage คีย์เดียวกับที่ cad.js ใช้บันทึกอัตโนมัติ — รองรับเฉพาะ 3 ชนิดที่ "ปิด" อยู่
+     แล้วในตัวโดยไม่ต้องเดาว่าเส้นหลายเส้นประกอบกันเป็นวงปิดหรือไม่ (ขอบเขตที่ตัดออกไปตั้งใจในสเตจนี้:
+     เส้นตรงหลายเส้นต่อกัน/เส้นโค้งส่วนโค้ง/สปไลน์ — ต้องใช้อัลกอริทึมเดินกราฟหาวงปิดที่ซับซ้อนกว่านี้) */
+  function read2DProfiles() {
+    var profiles = [];
+    try {
+      var raw = localStorage.getItem('tanot:cad:autosave');
+      if (!raw) return profiles;
+      var ents = JSON.parse(raw).entities;
+      if (!Array.isArray(ents)) return profiles;
+      ents.forEach(function (e) {
+        if (e.type === 'rect') {
+          var w = Math.abs(e.p2.x - e.p1.x), d = Math.abs(e.p2.y - e.p1.y);
+          var x0 = Math.min(e.p1.x, e.p2.x), y0 = Math.min(e.p1.y, e.p2.y);
+          profiles.push({ label: 'สี่เหลี่ยม ' + w.toFixed(0) + '×' + d.toFixed(0) + ' มม.', points: [{ x: x0, y: y0 }, { x: x0 + w, y: y0 }, { x: x0 + w, y: y0 + d }, { x: x0, y: y0 + d }] });
+        } else if (e.type === 'circle') {
+          profiles.push({ label: 'วงกลม R' + e.radius.toFixed(0) + ' มม.', circle: { cx: e.center.x, cy: e.center.y, r: e.radius } });
+        } else if (e.type === 'polyline' && e.closed && Array.isArray(e.points) && e.points.length > 2) {
+          profiles.push({ label: 'พอลีไลน์ปิด (' + e.points.length + ' จุด)', points: e.points.map(function (p) { return { x: p.x, y: p.y }; }) });
+        }
+      });
+    } catch (err) {}
+    return profiles;
+  }
+  function refreshProfileList() {
+    loadedProfiles = read2DProfiles();
+    var sel = $('sketchProfileSel');
+    if (!loadedProfiles.length) {
+      sel.innerHTML = '<option value="">(ไม่พบเส้นขอบปิด — วาดในหน้างานเขียนแบบ CAD ก่อน)</option>';
+      sel.disabled = true;
+    } else {
+      sel.disabled = false;
+      sel.innerHTML = loadedProfiles.map(function (p, i) { return '<option value="' + i + '">' + p.label + '</option>'; }).join('');
+    }
+    rebuildPreview();
+  }
+  function updateSketchModeUI() {
+    var revolve = $('sketchModeSel').value === 'revolve';
+    $('sketchExtrudeWrap').hidden = revolve;
+    $('sketchRevolveWrap').hidden = !revolve;
+    $('sketchAngleWrap').hidden = !revolve;
+  }
   function readForm() {
     var kind = shapeKindSel.value, dims;
     if (kind === 'box') dims = { x: num('boxX', 100), y: num('boxY', 80), z: num('boxZ', 40) };
     else if (kind === 'cylinder') dims = { r: num('cylR', 20), h: num('cylH', 60) };
-    else dims = { r: num('sphR', 25) };
+    else if (kind === 'sketch') {
+      var idx = parseInt($('sketchProfileSel').value, 10);
+      dims = {
+        profile: (isFinite(idx) && loadedProfiles[idx]) ? loadedProfiles[idx] : null,
+        mode: $('sketchModeSel').value, height: num('sketchHeight', 20), axis: $('sketchAxisSel').value, angle: num('sketchAngle', 360)
+      };
+    } else dims = { r: num('sphR', 25) };
     return { kind: kind, dims: dims, pos: { x: num('posX', 0), y: num('posY', 0), z: num('posZ', 0) } };
   }
   function updateAddUI() {
@@ -265,11 +373,16 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
   }
 
   /* ══════════════════ รายการขั้นตอน ══════════════════ */
-  var KIND_LABEL = { box: 'กล่อง', cylinder: 'ทรงกระบอก', sphere: 'ทรงกลม' };
+  var KIND_LABEL = { box: 'กล่อง', cylinder: 'ทรงกระบอก', sphere: 'ทรงกลม', sketch: 'ภาพร่าง 2 มิติ' };
   var OP_LABEL = { add: 'เริ่มจาก', union: 'รวมกับ', cut: 'ตัดออกด้วย', intersect: 'หาส่วนร่วมกับ' };
   function dimsLabel(step) {
     if (step.kind === 'box') return step.dims.x + '×' + step.dims.y + '×' + step.dims.z + ' มม.';
     if (step.kind === 'cylinder') return 'R' + step.dims.r + ' × สูง ' + step.dims.h + ' มม.';
+    if (step.kind === 'sketch') {
+      return step.dims.mode === 'revolve'
+        ? '(หมุนรอบแกน' + step.dims.axis.toUpperCase() + ' ' + step.dims.angle + '°)'
+        : '(อัดขึ้นตรงสูง ' + step.dims.height + ' มม.)';
+    }
     return 'R' + step.dims.r + ' มม.';
   }
   function updateStepsUI() {
@@ -326,15 +439,23 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     rebuildAndRender();
     rebuildPreview();
 
-    shapeKindSel.addEventListener('change', function () { updateDimsUI(); rebuildPreview(); });
-    ['boxX', 'boxY', 'boxZ', 'cylR', 'cylH', 'sphR'].forEach(function (id) {
+    updateSketchModeUI();
+    shapeKindSel.addEventListener('change', function () {
+      updateDimsUI();
+      if (shapeKindSel.value === 'sketch') refreshProfileList(); else rebuildPreview();
+    });
+    ['boxX', 'boxY', 'boxZ', 'cylR', 'cylH', 'sphR', 'sketchHeight', 'sketchAngle'].forEach(function (id) {
       $(id).addEventListener('input', rebuildPreview);
     });
+    ['sketchProfileSel', 'sketchAxisSel'].forEach(function (id) { $(id).addEventListener('change', rebuildPreview); });
+    $('sketchModeSel').addEventListener('change', function () { updateSketchModeUI(); rebuildPreview(); });
+    $('sketchReloadBtn').addEventListener('click', refreshProfileList);
     ['posX', 'posY', 'posZ'].forEach(function (id) {
       $(id).addEventListener('input', repositionPreview);
     });
     addShapeBtn.addEventListener('click', function () {
       var f = readForm();
+      if (f.kind === 'sketch' && !f.dims.profile) { alert('กรุณาเลือกเส้นขอบปิดจากแบบ 2 มิติก่อน (หรือกด "โหลดใหม่" ถ้าเพิ่งวาดเพิ่ม)'); return; }
       var step = { op: state.steps.length ? opSel.value : 'add', kind: f.kind, dims: f.dims, pos: f.pos };
       state.steps.push(step);
       saveSteps(); updateAddUI(); rebuildAndRender();
