@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v395';
+const CACHE = 'ome-v396';
 const PRECACHE = [
   './',
   './index.html',
@@ -114,6 +114,17 @@ const PRECACHE = [
   './vendor/three/jsm/environments/RoomEnvironment.js',
   './vendor/three/jsm/webxr/ARButton.js',
   './vendor/gsap.min.js',
+  './vendor/planegcs/index.js',
+  './vendor/planegcs/planegcs_dist/enums.js',
+  './vendor/planegcs/planegcs_dist/constraints.js',
+  './vendor/planegcs/planegcs_dist/constraint_param_index.js',
+  './vendor/planegcs/planegcs_dist/planegcs.js',
+  './vendor/planegcs/planegcs_dist/planegcs.wasm',
+  './vendor/planegcs/sketch/sketch_primitive.js',
+  './vendor/planegcs/sketch/sketch_index.js',
+  './vendor/planegcs/sketch/gcs_wrapper.js',
+  './vendor/planegcs/sketch/emsc_vectors.js',
+  './vendor/planegcs/sketch/geom_params.js',
   './credits.html',
   './theme.css',
   './shell.js',

@@ -24,6 +24,13 @@
    (Catmull-Rom interpolating spline) แทนเส้นตรงต่อกัน ใช้รูปแบบข้อมูล {points,closed} เดียวกับพอลีไลน์เป๊ะ
    (ได้ mapEntityPoints/entityGrips/transform ฟรีจากโครงสร้างเดิม) ต่างแค่ตอน render/hit-test/bounds/export ที่
    สุ่มจุดตามเส้นโค้งจริงผ่าน splinePoints() แทนการต่อจุดควบคุมตรงๆ
+   Stage 8: ตัวแก้สมการข้อจำกัดเรขาคณิต 2 มิติ (2D geometric constraint solver) ผ่าน planegcs (wasm ของ
+   FreeCAD's PlaneGCS, vendor ไว้ที่ vendor/planegcs/ โหลดแบบ lazy dynamic import() เฉพาะตอนใช้เครื่องมือ
+   นี้ครั้งแรก) รองรับข้อจำกัด 11 ชนิด: จุดตรงกัน/แนวนอน/แนวตั้ง/ขนาน/ตั้งฉาก/เท่ากัน/สัมผัส/ระยะห่างคงที่/
+   มุมคงที่/สมมาตร/ตรึงตำแหน่ง — ใช้ได้เฉพาะเอนทิตี้ line/circle เท่านั้น (ขอบเขตที่ตัดออกไปตั้งใจ ไม่รองรับ
+   arc/polyline ในสเตจนี้) แก้สมการแบบ "กดยืนยัน" ไม่ใช่ live-solve ทุกการแก้ไข: แก้สมการอัตโนมัติทันทีที่
+   เพิ่มข้อจำกัดใหม่ และมีปุ่ม "แก้สมการทั้งหมด" ให้กดซ้ำเองได้ทุกเมื่อ (เช่น หลังลากจุดจับแก้ไขเอนทิตี้ที่มี
+   ข้อจำกัดอยู่แล้วให้หลุดตำแหน่งไป)
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -115,7 +122,17 @@
       blockOutlet: 'เต้ารับไฟฟ้า', blockSwitch: 'สวิตช์ไฟ', blockLight: 'โคมไฟเพดาน',
       propsTitleBlock: 'คุณสมบัติ: บล็อก/สัญลักษณ์', propBlockSize: 'ขนาดจริง (มม.)', propBlockRotation: 'มุมหมุน (°)', propBlockMirror: 'มิเรอร์',
       toolSpline: '∿ สปไลน์', splineHint: 'คลิกจุดควบคุมเรียงกัน แล้วกด "จบเส้นพอลีไลน์" หรือดับเบิลคลิกเพื่อจบเป็นเส้นโค้งเรียบ',
-      propsTitleSpline: 'คุณสมบัติ: สปไลน์', propSplineNote: 'สปไลน์มี {n} จุดควบคุม — ลากจุดสี่เหลี่ยมบนเส้นเพื่อแก้รูปทรงโค้งโดยตรง'
+      propsTitleSpline: 'คุณสมบัติ: สปไลน์', propSplineNote: 'สปไลน์มี {n} จุดควบคุม — ลากจุดสี่เหลี่ยมบนเส้นเพื่อแก้รูปทรงโค้งโดยตรง',
+      toolConstraint: '🔗 ข้อจำกัด',
+      constraintCoincident: 'จุดตรงกัน (เส้น 2 เส้น)', constraintHorizontal: 'แนวนอน (เส้น 1 เส้น)', constraintVertical: 'แนวตั้ง (เส้น 1 เส้น)',
+      constraintParallel: 'ขนาน (เส้น 2 เส้น)', constraintPerpendicular: 'ตั้งฉาก (เส้น 2 เส้น)', constraintEqual: 'เท่ากัน (เส้น/วงกลม 2 ชิ้นชนิดเดียวกัน)',
+      constraintTangent: 'สัมผัส (เส้น-วงกลม หรือ วงกลม-วงกลม)', constraintDistance: 'ระยะห่างคงที่ (เส้น 1 เส้น)', constraintAngle: 'มุมคงที่ (เส้น 2 เส้น)',
+      constraintSymmetric: 'สมมาตร (เส้น 2 เส้น + แกน 1 เส้น)', constraintFix: 'ตรึงตำแหน่ง (เส้น/วงกลม 1 ชิ้น)',
+      constraintsTitle: 'ข้อจำกัดเรขาคณิต', constraintSolveBtn: '🧮 แก้สมการทั้งหมด',
+      constraintHint: 'เลือกชนิดข้อจำกัด แล้วคลิกเส้น/วงกลมตามจำนวนที่ต้องการ (ระยะ/มุมคงที่ต้องพิมพ์ค่าในช่องระยะ/มุมด้านบนแล้วกด Enter) — ใช้ได้กับเส้นตรงและวงกลมเท่านั้น',
+      constraintEmpty: 'ยังไม่มีข้อจำกัด', constraintWrongTypes: 'ชนิดเอนทิตี้ที่เลือกไม่ตรงกับข้อจำกัดนี้ (เช่น เท่ากัน/สัมผัส ต้องเป็นชนิดที่รองรับ)',
+      constraintConflict: 'แก้สมการไม่สำเร็จ — ข้อจำกัดนี้ขัดแย้งกับข้อจำกัดที่มีอยู่ (ยกเลิกข้อจำกัดนี้แล้ว)',
+      constraintLibLoadError: 'โหลดตัวแก้สมการไม่สำเร็จ — เช็คอินเทอร์เน็ตแล้วลองใหม่'
     },
     en: {
       docTitle: 'CAD Drafting | Tanot',
@@ -201,7 +218,17 @@
       blockOutlet: 'Electrical outlet', blockSwitch: 'Light switch', blockLight: 'Ceiling light',
       propsTitleBlock: 'Properties: Block/symbol', propBlockSize: 'Real size (mm)', propBlockRotation: 'Rotation (°)', propBlockMirror: 'Mirror',
       toolSpline: '∿ Spline', splineHint: 'Click control points in order, then click "Finish polyline" or double-click to finish as a smooth curve',
-      propsTitleSpline: 'Properties: Spline', propSplineNote: 'Spline has {n} control points — drag a square grip on the curve to reshape it directly'
+      propsTitleSpline: 'Properties: Spline', propSplineNote: 'Spline has {n} control points — drag a square grip on the curve to reshape it directly',
+      toolConstraint: '🔗 Constraint',
+      constraintCoincident: 'Coincident (2 lines)', constraintHorizontal: 'Horizontal (1 line)', constraintVertical: 'Vertical (1 line)',
+      constraintParallel: 'Parallel (2 lines)', constraintPerpendicular: 'Perpendicular (2 lines)', constraintEqual: 'Equal (2 lines or 2 circles, same type)',
+      constraintTangent: 'Tangent (line-circle or circle-circle)', constraintDistance: 'Fixed distance (1 line)', constraintAngle: 'Fixed angle (2 lines)',
+      constraintSymmetric: 'Symmetric (2 lines + 1 axis line)', constraintFix: 'Fix in place (1 line or circle)',
+      constraintsTitle: 'Geometric constraints', constraintSolveBtn: '🧮 Solve all',
+      constraintHint: 'Pick a constraint type, then click the line(s)/circle(s) it needs (fixed distance/angle need a value typed into the distance/angle box above, then Enter) — lines and circles only',
+      constraintEmpty: 'No constraints yet', constraintWrongTypes: "The entity types you picked don't fit this constraint (e.g. Equal/Tangent need supported types)",
+      constraintConflict: 'Could not solve — this constraint conflicts with an existing one (it has been removed)',
+      constraintLibLoadError: 'Could not load the constraint solver — check your connection and try again'
     }
   };
   function getUILang() { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
@@ -229,6 +256,7 @@
   var $ = function (id) { return document.getElementById(id); };
   function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
   function genId() { return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function entityById(id) { return state.entities.filter(function (e) { return e.id === id; })[0]; } // ใช้เยอะใน Stage 8 (constraint solver) — จุดอื่นในไฟล์ที่ต้องหาเอนทิตี้จาก id ยังใช้ .filter(...)[0] ตรงๆ ตามเดิม ไม่แก้ย้อนหลัง
   function mid(a, b) { return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
   function normAngle(a) { a = a % (2 * Math.PI); if (a < 0) a += 2 * Math.PI; return a; }
 
@@ -260,6 +288,7 @@
     trimCutterId: null,      // เอนทิตี้ที่เป็นเส้นตัด/เส้นขอบ สำหรับเครื่องมือ trim/extend
     offsetSourceId: null,    // เอนทิตี้ต้นทางสำหรับเครื่องมือ offset
     hatchSourcePts: null,    // จุดขอบเขต (snapshot) ของเอนทิตี้ที่เลือกไว้แล้วสำหรับเครื่องมือแรเงา (ก่อนกด "แรเงา")
+    constraints: [],         // Stage 8: [{id, type, entities:[entityId,...], value}] — ดูรายละเอียดที่ CONSTRAINT_DEFS
     gripDrag: null,          // { entityId, ref } ระหว่างลากจุดจับ (grip) แก้รูปทรง
     dragSelect: null,        // { startWorld, startScreen, curScreen, additive } ระหว่างลากเลือกเป็นกลุ่ม
     history: [], redoStack: [],
@@ -941,6 +970,215 @@
     return best;
   }
 
+  /* ══════════════════ Stage 8: ตัวแก้สมการข้อจำกัดเรขาคณิต 2 มิติ (planegcs) ══════════════════
+     รองรับเฉพาะเอนทิตี้ line/circle เท่านั้น (ตัดขอบเขต arc/polyline ออกตั้งใจ) — แต่ละข้อจำกัดเก็บแค่
+     {id, type, entities:[entityId,...], value} ไม่ได้เก็บ id ของจุด/เส้นฝั่ง planegcs ไว้เลย เพราะจุด/เส้น
+     ฝั่ง gcs ถูกสร้างขึ้นใหม่ทุกครั้งที่แก้สมการ (สดจากพิกัดปัจจุบันของเอนทิตี้ใน state.entities) ผ่าน
+     buildGcsProblem() — เลี่ยงปัญหาข้อมูลสองชุดไม่ตรงกันได้ง่ายกว่าเก็บ mapping ค้างไว้ */
+  var constraintTypeSel = $('constraintTypeSel'), constraintSolveBtn = $('constraintSolveBtn'), constraintsList = $('constraintsList');
+  function gcsPtId(entityId, which) { return 'pt_' + entityId + '_' + which; }   // which: 'p1' | 'p2' | 'c' (จุดศูนย์กลางวงกลม)
+  function gcsLnId(entityId) { return 'ln_' + entityId; }
+  function gcsCiId(entityId) { return 'ci_' + entityId; }
+  /* หาคู่ปลายเส้นที่ใกล้กันที่สุดระหว่างเส้น 2 เส้น (สำหรับ coincident/symmetric ที่ผูกกับ "ปลายเส้น" ไม่ใช่ทั้งเส้น) */
+  function nearestEndpointPair(idA, idB) {
+    var a = entityById(idA), b = entityById(idB), pairs = [['p1', 'p1'], ['p1', 'p2'], ['p2', 'p1'], ['p2', 'p2']], best = null, bestD = Infinity;
+    pairs.forEach(function (pr) {
+      var d = Math.hypot(a[pr[0]].x - b[pr[1]].x, a[pr[0]].y - b[pr[1]].y);
+      if (d < bestD) { bestD = d; best = { a: pr[0], b: pr[1] }; }
+    });
+    return best;
+  }
+  function isLineOrCircle(e) { return !!e && (e.type === 'line' || e.type === 'circle'); }
+  /* ตารางนิยามข้อจำกัดแต่ละชนิด: needed = จำนวนเอนทิตี้ที่ต้องคลิกเลือก, value = 'distance'|'angle'|null (ต้อง
+     พิมพ์ค่าเพิ่มไหม), validate = ชนิดเอนทิตี้ที่เลือกมาต้องตรงเงื่อนไขไหม, build = แปลงเป็น constraint object
+     ของ planegcs (ตาม field ที่ planegcs กำหนด — อ้างอิงจาก planegcs_dist/constraints.ts ต้นทาง) */
+  var CONSTRAINT_DEFS = {
+    coincident: { needed: 2, valueKind: null,
+      validate: function (es) { return es[0].type === 'line' && es[1].type === 'line'; },
+      build: function (ids) { var np = nearestEndpointPair(ids[0], ids[1]); return { type: 'p2p_coincident', p1_id: gcsPtId(ids[0], np.a), p2_id: gcsPtId(ids[1], np.b) }; } },
+    horizontal: { needed: 1, valueKind: null,
+      validate: function (es) { return es[0].type === 'line'; },
+      build: function (ids) { return { type: 'horizontal_l', l_id: gcsLnId(ids[0]) }; } },
+    vertical: { needed: 1, valueKind: null,
+      validate: function (es) { return es[0].type === 'line'; },
+      build: function (ids) { return { type: 'vertical_l', l_id: gcsLnId(ids[0]) }; } },
+    parallel: { needed: 2, valueKind: null,
+      validate: function (es) { return es[0].type === 'line' && es[1].type === 'line'; },
+      build: function (ids) { return { type: 'parallel', l1_id: gcsLnId(ids[0]), l2_id: gcsLnId(ids[1]) }; } },
+    perpendicular: { needed: 2, valueKind: null,
+      validate: function (es) { return es[0].type === 'line' && es[1].type === 'line'; },
+      build: function (ids) { return { type: 'perpendicular_ll', l1_id: gcsLnId(ids[0]), l2_id: gcsLnId(ids[1]) }; } },
+    equal: { needed: 2, valueKind: null,
+      validate: function (es) { return es[0].type === es[1].type && isLineOrCircle(es[0]); },
+      build: function (ids) {
+        return entityById(ids[0]).type === 'circle'
+          ? { type: 'equal_radius_cc', c1_id: gcsCiId(ids[0]), c2_id: gcsCiId(ids[1]) }
+          : { type: 'equal_length', l1_id: gcsLnId(ids[0]), l2_id: gcsLnId(ids[1]) };
+      } },
+    tangent: { needed: 2, valueKind: null,
+      validate: function (es) { return isLineOrCircle(es[0]) && isLineOrCircle(es[1]) && !(es[0].type === 'line' && es[1].type === 'line'); },
+      build: function (ids) {
+        var e0 = entityById(ids[0]), e1 = entityById(ids[1]);
+        if (e0.type === 'circle' && e1.type === 'circle') return { type: 'tangent_cc', c1_id: gcsCiId(ids[0]), c2_id: gcsCiId(ids[1]) };
+        var lineId = e0.type === 'line' ? ids[0] : ids[1], circId = e0.type === 'circle' ? ids[0] : ids[1];
+        return { type: 'tangent_lc', l_id: gcsLnId(lineId), c_id: gcsCiId(circId) };
+      } },
+    distance: { needed: 1, valueKind: 'distance',
+      validate: function (es) { return es[0].type === 'line'; },
+      build: function (ids, value) { return { type: 'p2p_distance', p1_id: gcsPtId(ids[0], 'p1'), p2_id: gcsPtId(ids[0], 'p2'), distance: value }; } },
+    angle: { needed: 2, valueKind: 'angle',
+      validate: function (es) { return es[0].type === 'line' && es[1].type === 'line'; },
+      build: function (ids, value) { return { type: 'l2l_angle_ll', l1_id: gcsLnId(ids[0]), l2_id: gcsLnId(ids[1]), angle: value * Math.PI / 180 }; } },
+    symmetric: { needed: 3, valueKind: null,
+      validate: function (es) { return es[0].type === 'line' && es[1].type === 'line' && es[2].type === 'line'; },
+      build: function (ids) { var np = nearestEndpointPair(ids[0], ids[1]); return { type: 'p2p_symmetric_ppl', p1_id: gcsPtId(ids[0], np.a), p2_id: gcsPtId(ids[1], np.b), l_id: gcsLnId(ids[2]) }; } },
+    fix: { needed: 1, valueKind: null, validate: function (es) { return isLineOrCircle(es[0]); }, build: null } // ไม่สร้าง constraint object — จัดการผ่าน fixed:true ตอนสร้างจุดใน buildGcsProblem() แทน
+  };
+  var CONSTRAINT_TYPE_KEY = {
+    coincident: 'constraintCoincident', horizontal: 'constraintHorizontal', vertical: 'constraintVertical', parallel: 'constraintParallel',
+    perpendicular: 'constraintPerpendicular', equal: 'constraintEqual', tangent: 'constraintTangent', distance: 'constraintDistance',
+    angle: 'constraintAngle', symmetric: 'constraintSymmetric', fix: 'constraintFix'
+  };
+  function entityIndexLabel(id) { var i = state.entities.findIndex(function (e) { return e.id === id; }); return '#' + (i + 1); }
+  function constraintRowLabel(c) {
+    var label = t(CONSTRAINT_TYPE_KEY[c.type]).replace(/\s*\(.*\)$/, '') + ': ' + c.entities.map(entityIndexLabel).join(' · ');
+    if (c.value != null) label += ' = ' + fmtMm(c.value) + (c.type === 'angle' ? '°' : (' ' + t('mmUnit')));
+    return label;
+  }
+  /* ลบข้อจำกัดที่อ้างถึงเอนทิตี้ที่ไม่มีอยู่แล้ว (ถูกลบทิ้งไปโดยเครื่องมือลบ/ล้างทั้งหมด) ป้องกัน solve พังเพราะ id ค้าง */
+  function pruneConstraints() {
+    var before = state.constraints.length;
+    state.constraints = state.constraints.filter(function (c) { return c.entities.every(function (id) { return !!entityById(id); }); });
+    if (state.constraints.length !== before) renderConstraintsPanel();
+  }
+  /* รวบรวมเอนทิตี้ที่ถูกอ้างถึงโดยข้อจำกัดอย่างน้อย 1 อัน แปลงเป็น sketch primitive ของ planegcs (จุด+เส้น/วงกลม)
+     จุดที่ถูกอ้างถึงโดยข้อจำกัด "ตรึงตำแหน่ง" (fix) จะได้ fixed:true (ไม่ขยับตอนแก้สมการ) */
+  function buildGcsProblem() {
+    var referenced = {};
+    state.constraints.forEach(function (c) { c.entities.forEach(function (id) { referenced[id] = true; }); });
+    var fixedPoints = {};
+    state.constraints.forEach(function (c) {
+      if (c.type !== 'fix') return;
+      var e = entityById(c.entities[0]);
+      if (e) fixedPoints[e.type === 'circle' ? gcsPtId(c.entities[0], 'c') : gcsPtId(c.entities[0], 'p1')] = true;
+    });
+    var prims = [], referencedIds = Object.keys(referenced);
+    referencedIds.forEach(function (id) {
+      var e = entityById(id);
+      if (!e) return;
+      if (e.type === 'line') {
+        var p1id = gcsPtId(id, 'p1'), p2id = gcsPtId(id, 'p2');
+        prims.push({ id: p1id, type: 'point', x: e.p1.x, y: e.p1.y, fixed: !!fixedPoints[p1id] });
+        prims.push({ id: p2id, type: 'point', x: e.p2.x, y: e.p2.y, fixed: !!fixedPoints[p2id] });
+        prims.push({ id: gcsLnId(id), type: 'line', p1_id: p1id, p2_id: p2id });
+      } else if (e.type === 'circle') {
+        var cid = gcsPtId(id, 'c');
+        prims.push({ id: cid, type: 'point', x: e.center.x, y: e.center.y, fixed: !!fixedPoints[cid] });
+        prims.push({ id: gcsCiId(id), type: 'circle', c_id: cid, radius: e.radius });
+      }
+    });
+    return { prims: prims, referencedIds: referencedIds };
+  }
+  /* โหลด planegcs แบบ lazy (dynamic import) ครั้งแรกที่ใช้เครื่องมือนี้เท่านั้น — cache promise ไว้กันโหลดซ้ำ
+     vendor ไว้ที่ vendor/planegcs/ (wasm ~500KB) ไม่ผูกกับ CDN ภายนอก (ต่างจาก jsPDF ที่ยังใช้ CDN) เพราะ
+     ไลบรารีนี้ไม่มี prebuilt CDN bundle ที่ใช้ตรงๆ แบบไม่ต้องมี bundler ได้เลย ต้อง vendor ไฟล์ ESM+wasm เอง */
+  var _planegcsPromise = null;
+  function loadPlanegcs() {
+    if (!_planegcsPromise) {
+      _planegcsPromise = import('./vendor/planegcs/index.js').then(function (mod) {
+        return {
+          make_gcs_wrapper: function () { return mod.make_gcs_wrapper('./vendor/planegcs/planegcs_dist/planegcs.wasm'); },
+          Algorithm: mod.Algorithm, SolveStatus: mod.SolveStatus
+        };
+      });
+    }
+    return _planegcsPromise;
+  }
+  /* แก้สมการข้อจำกัดทั้งหมดที่มีอยู่ ณ ตอนนี้ แล้วเขียนพิกัดที่แก้แล้วกลับเข้าเอนทิตี้จริง — คืน true ถ้าสำเร็จ
+     (หรือไม่มีข้อจำกัดให้แก้เลย ถือว่าสำเร็จ), false ถ้าแก้ไม่ได้ (ขัดแย้งกัน/โหลดไลบรารีไม่สำเร็จ) โดยไม่แตะ
+     เอนทิตี้เลยในกรณีหลัง (ของเดิมยังอยู่ครบ) */
+  function solveSketch() {
+    pruneConstraints();
+    var constraintEntries = state.constraints.filter(function (c) { return c.type !== 'fix'; });
+    if (!constraintEntries.length) return Promise.resolve(true);
+    var built = buildGcsProblem();
+    var constraintPrims = constraintEntries.map(function (c, i) {
+      var def = CONSTRAINT_DEFS[c.type];
+      var obj = def.build(c.entities, c.value);
+      obj.id = 'cn_' + i + '_' + c.id;
+      return obj;
+    });
+    return loadPlanegcs().then(function (mod) {
+      var gcs;
+      return Promise.resolve(mod.make_gcs_wrapper()).then(function (wrapper) {
+        gcs = wrapper;
+        gcs.push_primitives_and_params(built.prims.concat(constraintPrims));
+        var status = gcs.solve(mod.Algorithm.DogLeg);
+        if (status !== mod.SolveStatus.Success && status !== mod.SolveStatus.Converged) return false;
+        gcs.apply_solution();
+        pushHistory();
+        built.referencedIds.forEach(function (id) {
+          var e = entityById(id);
+          if (!e) return;
+          if (e.type === 'line') {
+            var p1 = gcs.sketch_index.get_sketch_point(gcsPtId(id, 'p1')), p2 = gcs.sketch_index.get_sketch_point(gcsPtId(id, 'p2'));
+            e.p1 = { x: p1.x, y: p1.y }; e.p2 = { x: p2.x, y: p2.y };
+          } else if (e.type === 'circle') {
+            var cc = gcs.sketch_index.get_sketch_point(gcsPtId(id, 'c')), circ = gcs.sketch_index.get_sketch_circle(gcsCiId(id));
+            e.center = { x: cc.x, y: cc.y }; e.radius = circ.radius;
+          }
+        });
+        updateCountUI(); scheduleSave(); render(); updatePropsPanel();
+        return true;
+      }).finally(function () { if (gcs) gcs.destroy_gcs_module(); });
+    }, function () { alert(t('constraintLibLoadError')); return false; });
+  }
+  /* เพิ่มข้อจำกัดใหม่ 1 อัน แล้วแก้สมการทันที — ถ้าแก้ไม่ได้ (ขัดแย้งกับข้อจำกัดเดิม) ยกเลิกข้อจำกัดที่เพิ่งเพิ่มทิ้ง
+     (ไม่ปล่อยให้แบบอยู่ในสถานะแก้สมการไม่ได้ค้างไว้) แล้วแจ้งเตือนผู้ใช้ */
+  function finalizeConstraint(type, entityIds, value) {
+    var c = { id: genId(), type: type, entities: entityIds, value: value != null ? value : null };
+    state.constraints.push(c);
+    solveSketch().then(function (ok) {
+      if (!ok) { state.constraints = state.constraints.filter(function (x) { return x.id !== c.id; }); alert(t('constraintConflict')); }
+      scheduleSave(); renderConstraintsPanel(); render();
+    });
+  }
+  /* คลิกเอนทิตี้ระหว่างใช้เครื่องมือ "ข้อจำกัด" — สะสมใน pendingEntityIds (ใช้ตัวเดียวกับ fillet/มิติมุม) จน
+     ครบจำนวนที่ชนิดข้อจำกัดที่เลือกไว้ต้องการ ถ้าไม่ต้องพิมพ์ค่าเพิ่ม (valueKind null) จะสร้างข้อจำกัดทันที
+     ถ้าต้องพิมพ์ค่า (ระยะ/มุม) จะโผล่แถว preciseRow รอผู้ใช้พิมพ์แล้วกด Enter (ดู keydown handler ของ distInput/angInput) */
+  function handleConstraintClick(raw) {
+    var hit = hitTestEntity(raw);
+    if (!hit) return;
+    var e = entityById(hit);
+    if (!isLineOrCircle(e) || state.pendingEntityIds.indexOf(hit) !== -1) return;
+    var def = CONSTRAINT_DEFS[constraintTypeSel.value];
+    state.pendingEntityIds.push(hit);
+    if (state.pendingEntityIds.length > def.needed) state.pendingEntityIds.shift();
+    if (state.pendingEntityIds.length === def.needed) {
+      var ents = state.pendingEntityIds.map(entityById);
+      if (!def.validate(ents)) { alert(t('constraintWrongTypes')); state.pendingEntityIds = []; }
+      else if (!def.valueKind) { finalizeConstraint(constraintTypeSel.value, state.pendingEntityIds.slice(), null); state.pendingEntityIds = []; }
+    }
+    updatePreciseRowUI(); render();
+  }
+  function renderConstraintsPanel() {
+    if (!constraintsList) return;
+    if (!state.constraints.length) { constraintsList.innerHTML = '<div class="cad-props-note">' + t('constraintEmpty') + '</div>'; return; }
+    constraintsList.innerHTML = state.constraints.map(function (c) {
+      return '<div class="cad-layer-row" data-cid="' + c.id + '"><span style="flex:1">' + constraintRowLabel(c) + '</span>' +
+        '<button type="button" class="cad-layer-icon" data-act="delcon">🗑️</button></div>';
+    }).join('');
+    Array.prototype.forEach.call(constraintsList.querySelectorAll('[data-act="delcon"]'), function (btn) {
+      btn.addEventListener('click', function () {
+        var cid = btn.closest('[data-cid]').getAttribute('data-cid');
+        state.constraints = state.constraints.filter(function (c) { return c.id !== cid; });
+        scheduleSave(); renderConstraintsPanel();
+      });
+    });
+  }
+  if (constraintTypeSel) constraintTypeSel.addEventListener('change', function () { state.pendingEntityIds = []; updatePreciseRowUI(); render(); });
+  if (constraintSolveBtn) constraintSolveBtn.addEventListener('click', function () { solveSketch().then(function (ok) { if (!ok) alert(t('constraintConflict')); }); });
+
   /* ══════════════════ กริด: หาระยะห่าง "กลมๆ" ที่พอดีจอ ตามระดับซูมปัจจุบัน ══════════════════ */
   function niceStep(targetPx, scale) {
     var raw = targetPx / scale;
@@ -1314,7 +1552,7 @@
     clearTimeout(saveTimer);
     saveTimer = setTimeout(function () {
       try {
-        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ entities: state.entities, layers: state.layers, activeLayer: state.activeLayer, layerSeq: state.layerSeq, view: state.view, dimStyle: state.dimStyle }));
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ entities: state.entities, layers: state.layers, activeLayer: state.activeLayer, layerSeq: state.layerSeq, view: state.view, dimStyle: state.dimStyle, constraints: state.constraints }));
         var el = $('statSave'); el.textContent = t('autosaveSaved');
         clearTimeout(el._clearTimer);
         el._clearTimer = setTimeout(function () { el.textContent = ''; }, 2500);
@@ -1333,6 +1571,7 @@
         if (saved.layerSeq) state.layerSeq = saved.layerSeq;
         if (saved.view) state.view = saved.view;
         if (saved.dimStyle) state.dimStyle = saved.dimStyle;
+        if (Array.isArray(saved.constraints)) state.constraints = saved.constraints;
         $('statSave').textContent = t('restoredDraft');
       }
     } catch (e) {}
@@ -1379,7 +1618,7 @@
     move: 'toolMoveBtn', copy: 'toolCopyBtn', rotate: 'toolRotateBtn', mirror: 'toolMirrorBtn', scale: 'toolScaleBtn',
     trim: 'toolTrimBtn', extend: 'toolExtendBtn', fillet: 'toolFilletBtn', offset: 'toolOffsetBtn', arrayrect: 'toolArrayRectBtn',
     dim: 'toolDimBtn', raddim: 'toolRaddimBtn', diadim: 'toolDiadimBtn', angdim: 'toolAngdimBtn', text: 'toolTextBtn', leader: 'toolLeaderBtn', hatch: 'toolHatchBtn',
-    block: 'toolBlockBtn', titleblock: 'toolTitleBlockBtn'
+    block: 'toolBlockBtn', titleblock: 'toolTitleBlockBtn', constraint: 'toolConstraintBtn'
   };
   var distLbl = document.querySelector('label[data-i18n="distLbl"]'), angLbl = document.querySelector('label[data-i18n="angLbl"]');
   var arrayRow = $('arrayRow'), textRow = $('textRow'), textContentInput = $('textContentInput'), textHeightInput = $('textHeightInput');
@@ -1475,14 +1714,19 @@
     else if (state.tool === 'offset') { distText = t('offsetDistLbl'); angShow = false; }
     else if (state.tool === 'fillet') { distText = t('filletRadiusLbl'); angShow = false; }
     else if (state.tool === 'mirror') { distShow = false; angShow = false; }
+    else if (state.tool === 'constraint') {
+      var cdef0 = CONSTRAINT_DEFS[constraintTypeSel.value];
+      distShow = cdef0.valueKind === 'distance'; angShow = cdef0.valueKind === 'angle';
+    }
     distLbl.childNodes[0].textContent = distText; distLbl.style.display = distShow ? '' : 'none';
     angLbl.childNodes[0].textContent = angText; angLbl.style.display = angShow ? '' : 'none';
   }
   function updatePreciseRowUI() {
     updatePreciseLabels();
-    var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, hatch: 1, block: 1, titleblock: 1 };
+    var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, hatch: 1, block: 1, titleblock: 1, constraint: 1 };
     var show = (!PRECISE_ROW_EXCLUDED[state.tool] && state.pendingPoints.length > 0) ||
-      (state.tool === 'offset' && state.offsetSourceId) || (state.tool === 'fillet' && state.pendingEntityIds.length === 2);
+      (state.tool === 'offset' && state.offsetSourceId) || (state.tool === 'fillet' && state.pendingEntityIds.length === 2) ||
+      (state.tool === 'constraint' && CONSTRAINT_DEFS[constraintTypeSel.value].valueKind && state.pendingEntityIds.length === CONSTRAINT_DEFS[constraintTypeSel.value].needed);
     preciseRow.classList.toggle('show', show);
     var showFinish = (state.tool === 'polyline' || state.tool === 'spline') && state.pendingPoints.length >= 2;
     finishPolyBtn.classList.toggle('show', showFinish);
@@ -1644,6 +1888,7 @@
     var selSet = {}; state.selectedIds.forEach(function (id) { selSet[id] = true; });
     state.entities = state.entities.filter(function (e) { return !selSet[e.id]; });
     state.selectedIds = [];
+    pruneConstraints();
     updateSelectionUI(); updateCountUI(); scheduleSave(); render();
   }
   function clearAll() {
@@ -1651,6 +1896,7 @@
     if (!window.confirm(t('clearConfirm'))) return;
     pushHistory();
     state.entities = []; state.selectedIds = [];
+    pruneConstraints();
     updateSelectionUI(); updateCountUI(); scheduleSave(); render();
   }
 
@@ -1879,6 +2125,7 @@
     if (state.tool === 'angdim') { handleAngdimClick(raw); return; }
     if (state.tool === 'hatch') { handleHatchClick(raw); return; }
     if (state.tool === 'titleblock') { handleTitleBlockClick(effectivePoint(applyOrtho(raw))); return; }
+    if (state.tool === 'constraint') { handleConstraintClick(raw); return; }
     if (state.tool === 'arrayrect') return; // อาเรย์ทำงานผ่านปุ่ม "แทรกอาเรย์" ไม่ใช้คลิกบน canvas
     handlePointInput(effectivePoint(applyOrtho(raw)));
   });
@@ -1949,6 +2196,7 @@
       else if (state.tool === 'angdim') handleAngdimClick(raw);
       else if (state.tool === 'hatch') handleHatchClick(raw);
       else if (state.tool === 'titleblock') handleTitleBlockClick(effectivePoint(applyOrtho(raw)));
+      else if (state.tool === 'constraint') handleConstraintClick(raw);
       else if (state.tool !== 'arrayrect') handlePointInput(effectivePoint(applyOrtho(raw)));
       render();
     }
@@ -1989,6 +2237,17 @@
         if (state.tool === 'fillet' && state.pendingEntityIds.length === 2) {
           var rr = parseFloat(distInput.value.trim());
           if (isFinite(rr) && rr > 0 && applyFillet(state.pendingEntityIds[0], state.pendingEntityIds[1], rr)) { state.pendingEntityIds = []; clearPreciseInputs(); updatePreciseRowUI(); }
+          return;
+        }
+        if (state.tool === 'constraint') {
+          var cdef1 = CONSTRAINT_DEFS[constraintTypeSel.value];
+          if (cdef1.valueKind && state.pendingEntityIds.length === cdef1.needed) {
+            var cval = parseFloat((cdef1.valueKind === 'distance' ? distInput : angInput).value.trim());
+            if (isFinite(cval) && (cdef1.valueKind !== 'distance' || cval > 0)) {
+              finalizeConstraint(constraintTypeSel.value, state.pendingEntityIds.slice(), cval);
+              state.pendingEntityIds = []; clearPreciseInputs(); updatePreciseRowUI();
+            }
+          }
           return;
         }
         var ok = commitPreciseInput();
@@ -2056,7 +2315,7 @@
     var v = parseFloat(dimArrowSizeInput.value); if (isFinite(v) && v > 0) { state.dimStyle.arrowSize = v; scheduleSave(); }
   });
   var langToggle = $('langToggle');
-  if (langToggle) langToggle.addEventListener('click', function () { setUILang(getUILang() === 'en' ? 'th' : 'en'); applyStaticI18n(); updatePropsPanel(); renderLayersPanel(); });
+  if (langToggle) langToggle.addEventListener('click', function () { setUILang(getUILang() === 'en' ? 'th' : 'en'); applyStaticI18n(); updatePropsPanel(); renderLayersPanel(); renderConstraintsPanel(); });
 
   /* ══════════════════ แผงคุณสมบัติ — แก้ไขพิกัด/รัศมี/มุมของเอนทิตี้ที่เลือกอยู่ตัวเดียวได้ตรงๆ ══════════════════ */
   var propsCard = $('propsCard'), propsTitle = $('propsTitle'), propsGrid = $('propsGrid');
@@ -2688,7 +2947,7 @@
     $('mirrorKeepBtn').classList.toggle('active', state.mirrorKeepOriginal);
     if (dimTextHeightInput) dimTextHeightInput.value = state.dimStyle.textHeight;
     if (dimArrowSizeInput) dimArrowSizeInput.value = state.dimStyle.arrowSize;
-    updateUndoRedoUI(); updateSelectionUI(); updateCountUI(); updateZoomUI(); renderLayersPanel();
+    updateUndoRedoUI(); updateSelectionUI(); updateCountUI(); updateZoomUI(); renderLayersPanel(); renderConstraintsPanel();
     resizeCanvas();
   }
   var rsz = null;

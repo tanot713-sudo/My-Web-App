@@ -188,6 +188,22 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
         <button class="btn sm" id="toolTitleBlockBtn" type="button" data-i18n="toolTitleBlock">🗂️ ตารางรายการแบบ</button>
       </div>
       <div class="cad-tb-group">
+        <button class="btn sm" id="toolConstraintBtn" type="button" data-i18n="toolConstraint">🔗 ข้อจำกัด</button>
+        <select id="constraintTypeSel">
+          <option value="coincident" data-i18n="constraintCoincident">จุดตรงกัน (เส้น 2 เส้น)</option>
+          <option value="horizontal" data-i18n="constraintHorizontal">แนวนอน (เส้น 1 เส้น)</option>
+          <option value="vertical" data-i18n="constraintVertical">แนวตั้ง (เส้น 1 เส้น)</option>
+          <option value="parallel" data-i18n="constraintParallel">ขนาน (เส้น 2 เส้น)</option>
+          <option value="perpendicular" data-i18n="constraintPerpendicular">ตั้งฉาก (เส้น 2 เส้น)</option>
+          <option value="equal" data-i18n="constraintEqual">เท่ากัน (เส้น/วงกลม 2 ชิ้นชนิดเดียวกัน)</option>
+          <option value="tangent" data-i18n="constraintTangent">สัมผัส (เส้น-วงกลม หรือ วงกลม-วงกลม)</option>
+          <option value="distance" data-i18n="constraintDistance">ระยะห่างคงที่ (เส้น 1 เส้น)</option>
+          <option value="angle" data-i18n="constraintAngle">มุมคงที่ (เส้น 2 เส้น)</option>
+          <option value="symmetric" data-i18n="constraintSymmetric">สมมาตร (เส้น 2 เส้น + แกน 1 เส้น)</option>
+          <option value="fix" data-i18n="constraintFix">ตรึงตำแหน่ง (เส้น/วงกลม 1 ชิ้น)</option>
+        </select>
+      </div>
+      <div class="cad-tb-group">
         <button class="btn sm icon-only" id="undoBtn" type="button" title="เลิกทำ" disabled>↩️</button>
         <button class="btn sm icon-only" id="redoBtn" type="button" title="ทำซ้ำ" disabled>↪️</button>
         <button class="btn sm" id="deleteBtn" type="button" disabled data-i18n="deleteSel">🗑️ ลบที่เลือก</button>
@@ -290,6 +306,15 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       <button class="btn sm" id="layerAddBtn" type="button" data-i18n="layerAddBtn">➕ เลเยอร์ใหม่</button>
     </div>
     <div class="cad-layers-list" id="layersList"></div>
+  </div>
+
+  <div class="card cad-layers-card">
+    <div class="cad-layers-head">
+      <div class="cad-props-title" data-i18n="constraintsTitle">ข้อจำกัดเรขาคณิต</div>
+      <button class="btn sm" id="constraintSolveBtn" type="button" data-i18n="constraintSolveBtn">🧮 แก้สมการทั้งหมด</button>
+    </div>
+    <p class="cad-hint" data-i18n="constraintHint">เลือกชนิดข้อจำกัด แล้วคลิกเส้น/วงกลมตามจำนวนที่ต้องการ (ระยะ/มุมคงที่ต้องพิมพ์ค่าในช่องระยะ/มุมด้านบนแล้วกด Enter) — ใช้ได้กับเส้นตรงและวงกลมเท่านั้น</p>
+    <div class="cad-layers-list" id="constraintsList"></div>
   </div>
 
   <div class="card cad-plot-card">
