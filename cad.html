@@ -15,7 +15,9 @@
 :root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
   --brand:var(--ome-brand);--brand-dk:var(--ome-brand-dk);--brand-sf:var(--ome-brand-sf);
   --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--err:#E5484D;--warn:#E08700;
-  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06);
+  /* หน้านี้แน่นด้วยแถบเครื่องมือ เลยใช้ padding การ์ดแคบกว่าหน้าอื่นตั้งใจ */
+  --ome-card-pad:14px}
 *{box-sizing:border-box;margin:0;padding:0}
 body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
   line-height:1.6;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
@@ -44,7 +46,7 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .btn.active{background:var(--brand);border-color:var(--brand);color:#fff}
 .btn.icon-only{padding:8px;width:36px;height:36px}
 
-.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:14px;margin-top:14px}
+.card{background:var(--card);border-radius:var(--ome-card-r);box-shadow:var(--sh);padding:var(--ome-card-pad);margin-top:var(--ome-card-gap)}
 
 /* ── แถบเครื่องมือ ── */
 .cad-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}

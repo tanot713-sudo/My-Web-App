@@ -1081,7 +1081,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
         var b = document.createElement('div');
         b.className = 'cx-badge' + (earned.indexOf(def.id) !== -1 ? ' earned' : '');
         b.textContent = def.icon;
-        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : '');
+        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : ' 🔒');
         badgeRowEl.appendChild(b);
       });
     }
@@ -1223,7 +1223,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
       var item = document.createElement('button');
       item.type = 'button';
       item.className = 'cx-item' + (idx === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
-      item.textContent = (passed ? '' : unlocked ? '' : '') + (idx) + '. ' + ex.title;
+      item.textContent = (passed ? '✅ ' : unlocked ? '' : '🔒 ') + (idx) + '. ' + ex.title;
       item.addEventListener('click', function () {
         if (unlocked) selectItem(idx);
         else showLockMsg();
@@ -1359,7 +1359,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
     results.forEach(function (r) {
       var row = document.createElement('div');
       row.className = 'cx-test-row ' + (r.pass ? 'pass' : 'fail');
-      row.textContent = (r.pass ? '' : '') + r.label;
+      row.textContent = (r.pass ? '✔ ' : '✘ ') + r.label;
       testsList.appendChild(row);
     });
   }

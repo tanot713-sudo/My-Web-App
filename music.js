@@ -1574,7 +1574,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
         var b = document.createElement('div');
         b.className = 'mx-badge' + (earned.indexOf(def.id) !== -1 ? ' earned' : '');
         b.textContent = def.icon;
-        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : '');
+        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : ' 🔒');
         badgeRowEl.appendChild(b);
       });
     }
@@ -1709,7 +1709,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'mx-item' + (i === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
-      btn.textContent = (passed ? '' : unlocked ? (item.kind === 'reading' ? '' : '') : '') + itemLabel(track, item, i);
+      btn.textContent = (passed ? '✅ ' : unlocked ? (item.kind === 'reading' ? '📖 ' : '🎵 ') : '🔒 ') + itemLabel(track, item, i);
       btn.addEventListener('click', function () {
         if (unlocked) selectItem(i);
         else showLockMsg();

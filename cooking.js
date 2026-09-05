@@ -789,7 +789,7 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
         var b = document.createElement('div');
         b.className = 'ck-badge' + (earned.indexOf(def.id) !== -1 ? ' earned' : '');
         b.textContent = def.icon;
-        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : '');
+        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : ' 🔒');
         badgeRowEl.appendChild(b);
       });
     }
@@ -916,7 +916,7 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'ck-item' + (i === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
-      btn.textContent = (passed ? '' : unlocked ? '' : '') + itemLabel(track, item);
+      btn.textContent = (passed ? '✅ ' : unlocked ? '📖 ' : '🔒 ') + itemLabel(track, item);
       btn.addEventListener('click', function () {
         if (unlocked) selectItem(i);
         else showLockMsg();

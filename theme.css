@@ -13,6 +13,21 @@
   --ome-f:'Prompt',system-ui,-apple-system,sans-serif;
   --ome-r:16px; --ome-sh:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.06);
   --ome-nav-h:48px;
+
+  /* ── มาตราระยะห่างกลาง (spacing scale) — ยึดหน่วย 4px เป็นฐาน
+     ใช้แทนเลข px ที่เคย hardcode กระจายไปแต่ละหน้า เพื่อให้ระยะห่างสม่ำเสมอกัน
+     ยังไม่ได้บังคับให้ทุกหน้าเปลี่ยนมาใช้ — เป็นชุดอ้างอิงกลางให้หน้าที่แก้ใหม่/แก้ต่อ
+     เรียกใช้แทนตัวเลขลอยๆ (ดู CENTRAL_UI_SYSTEM.md) */
+  --ome-sp-1:4px; --ome-sp-2:8px; --ome-sp-3:12px; --ome-sp-4:16px;
+  --ome-sp-5:24px; --ome-sp-6:32px; --ome-sp-7:48px;
+
+  /* ── มาตราขนาดตัวอักษรกลาง (type scale) — อิงจากขนาดที่ใช้จริงเยอะสุดในเว็บนี้แล้ว
+     (h1=21px, body=15px, .mini=12.5px ซ้ำกันหลายสิบหน้า) ไม่ใช่เลขคิดใหม่ */
+  --ome-fs-xs:12.5px; --ome-fs-sm:13.5px; --ome-fs-base:15px; --ome-fs-md:16px;
+  --ome-fs-lg:18px; --ome-fs-xl:21px; --ome-fs-2xl:24px; --ome-fs-3xl:28px;
+
+  /* ── มาตรฐานการ์ด (ใช้ตรงกันแล้วใน 19 หน้า เอามาตั้งเป็นตัวแปรกลาง) ── */
+  --ome-card-r:16px; --ome-card-pad:18px; --ome-card-gap:14px;
 }
 [data-theme="dark"]{
   --ome-bg:#12151C; --ome-card:#1B2030; --ome-ink:#E6EAF2; --ome-muted:#8B94A8;
@@ -168,3 +183,41 @@ body{padding-bottom:0!important}
 [data-theme="dark"] .ome-app-page .shadow-sm,
 [data-theme="dark"] .ome-app-page .shadow-md,
 [data-theme="dark"] .ome-app-page .shadow-lg{box-shadow:var(--ome-sh)!important}
+
+/* ══════════════════════════════════════════════════════════════════
+   รวมศูนย์ UI/UX เฟส 2 — จุดที่มีผลทันทีทั้งเว็บโดยไม่ต้องแก้ทีละหน้า
+   (focus ring เข้าถึงง่าย, ปุ่มกดมีเฟดแบ็กเบาๆ, ยูทิลิตี้กลางให้ทุกหน้าเรียกใช้)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── focus ring เดียวกันทั้งเว็บตอนกด Tab ไปที่ปุ่ม/ลิงก์/ช่องกรอก ─────────
+   ไม่ทับ outline ตอนคลิกด้วยเมาส์ (focus-visible เท่านั้น) เพื่อไม่ให้ดูรกเวลาใช้เมาส์ */
+:focus-visible{outline:2px solid var(--ome-brand)!important;outline-offset:2px!important;border-radius:4px}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ── ปุ่มกดแล้วยุบเบาๆ (purposeful micro-interaction, <150ms) — ให้ผลทันที
+     กับปุ่มทุกหน้าที่ยังไม่ได้กำหนด :active ของตัวเองไว้ (ส่วนใหญ่ของเว็บนี้) */
+  button, .btn, a.btn{transition:transform .12s ease}
+  button:active, .btn:active, a.btn:active{transform:scale(.97)}
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* ── ยูทิลิตี้ skeleton loading — ใช้แทนเลข/ข้อความค้าง "0"/"—" ระหว่างรอข้อมูล
+   จากเน็ต (ราคาหุ้น/ทอง ฯลฯ) เรียกใช้: <span class="ome-skeleton" style="width:60px"></span> */
+.ome-skeleton{display:inline-block;height:1em;border-radius:6px;background:linear-gradient(90deg,
+  var(--ome-line) 25%,var(--ome-brand-sf) 50%,var(--ome-line) 75%);background-size:200% 100%;
+  vertical-align:middle}
+@media (prefers-reduced-motion: no-preference){
+  .ome-skeleton{animation:ome-skeleton-sweep 1.4s ease-in-out infinite}
+}
+@keyframes ome-skeleton-sweep{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── ยูทิลิตี้ "บันทึกสำเร็จ" กระพริบเขียวสั้นๆ — ใส่ class นี้ชั่วคราวหลังบันทึก
+   สำเร็จ (JS: el.classList.add('ome-flash-ok'); setTimeout(()=>el.classList.remove(...),900)) */
+.ome-flash-ok{animation:ome-flash-ok-kf .9s ease}
+@keyframes ome-flash-ok-kf{
+  0%{background-color:var(--ome-brand-sf)}
+  100%{background-color:transparent}
+}
