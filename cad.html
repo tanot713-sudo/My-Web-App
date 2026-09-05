@@ -133,7 +133,9 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
   color:var(--muted);cursor:pointer;transition:.15s}
 .cad-maintab:hover{border-color:var(--brand);color:var(--brand-dk)}
 .cad-maintab.active{background:var(--brand);border-color:var(--brand);color:#fff}
-@media(max-width:520px){.cad-maintabs{flex-direction:column}}
+/* Stage 11b: ปุ่มลัดเริ่มร่างภาพ 3 มิติทันที ใช้ได้จากแท็บไหนก็ได้ (ดันไปชิดขวาของแถวแท็บ) */
+#quickSketch3dBtn{margin-left:auto}
+@media(max-width:520px){.cad-maintabs{flex-direction:column}#quickSketch3dBtn{margin-left:0}}
 
 /* ── สไตล์ที่ย้ายมาจาก cad3d.html เดิม (แท็บมุมมอง 3 มิติ) ── */
 .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
@@ -208,6 +210,7 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
   <div class="cad-maintabs" role="tablist">
     <button class="cad-maintab active" id="tabBtn2d" type="button" role="tab" aria-selected="true" data-i18n="tab2dLbl">📐 ร่างภาพ 2 มิติ</button>
     <button class="cad-maintab" id="tabBtn3d" type="button" role="tab" aria-selected="false" data-i18n="tab3dLbl">🧊 มุมมอง 3 มิติ</button>
+    <button class="btn sm primary" id="quickSketch3dBtn" type="button" title="สลับไปแท็บ 3 มิติ + เริ่มร่างภาพทันที คลิกเดียว (แทนการเลือกชนิดรูปทรง + กดปุ่มร่างภาพเอง)">✏️ ร่างภาพ 3 มิติทันที</button>
   </div>
 
   <div id="panel2d">
@@ -663,6 +666,14 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
   if (quickBtn) quickBtn.addEventListener('click', function () {
     showTab('3d');
     window.dispatchEvent(new Event('cad3d:quickextrude'));
+  });
+  /* Stage 11b: ปุ่มลัด "✏️ ร่างภาพ 3 มิติทันที" — ใช้ได้จากแท็บไหนก็ได้ (อยู่บนแถวแท็บ ไม่ใช่ในแท็บใดแท็บ
+     หนึ่ง) รวม 3 ขั้นตอนเดิม (สลับแท็บ + เลือกชนิดรูปทรงเป็น "จากภาพร่าง 2 มิติ" + กด "ร่างภาพใหม่ตรงนี้")
+     ให้เหลือคลิกเดียว ตามฟีดแบ็กผู้ใช้ว่าต้องคลิกเยอะเกินไปกว่าจะเริ่มวาดในมุมมอง 3 มิติได้ */
+  var quickSketch3dBtn = document.getElementById('quickSketch3dBtn');
+  if (quickSketch3dBtn) quickSketch3dBtn.addEventListener('click', function () {
+    showTab('3d');
+    window.dispatchEvent(new Event('cad3d:startlivesketch'));
   });
   showTab(location.hash === '#3d' ? '3d' : '2d'); // รองรับ deep-link จาก cad3d.html (redirect เดิม) ที่ชี้มา #3d
 })();

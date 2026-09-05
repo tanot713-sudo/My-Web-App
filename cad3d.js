@@ -975,12 +975,18 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     $('sketchFinishBtn').hidden = tool !== 'polyline';
     updateLiveSketchHint();
   }
+  /* Stage 11b: ฟีดแบ็กผู้ใช้ตรงๆ ว่า "วาดเสร็จก็ไม่เห็นผลทันที" (ต้องกด "วางเป็นชิ้นงานหลัก" แยกอีกที) —
+     วาดจบรูปแล้วสั่งคอมมิตเป็นชิ้นงาน 3 มิติทันทีเลย (จำลองการกด addShapeBtn ให้เอง) แทนที่จะรอผู้ใช้กดเอง
+     ใช้ค่า "สูง"/ระนาบ/วิธีขึ้นรูปที่ตั้งไว้อยู่ในฟอร์มตอนนั้น (ปกติ 20mm อัดขึ้นตรง จากปุ่มลัด) ปรับความสูง
+     ทีหลังได้ทั้งลากจุดจับในวิวหรือแก้ไขขั้นตอนย้อนหลังผ่าน ✏️ ตามปกติ — ถ้า validation ไม่ผ่าน (เช่น ยัง
+     ไม่มีเส้นขอบ) addShapeBtn เดิมจะเตือนเองอยู่แล้ว ไม่ต้องเขียนโค้ดเตือนซ้ำตรงนี้ */
   function commitLiveSketchProfile(profile) {
     clearLiveSketchPreview();
     liveSketchProfiles.push(profile);
     exitLiveSketch();
     refreshProfileList(); // อ่านของแบบ 2 มิติใหม่ + ต่อท้ายด้วย liveSketchProfiles แล้วเลือกตัวล่าสุด (ตัวที่เพิ่งวาดเสร็จ) ให้อัตโนมัติ
     updateAddUI();
+    addShapeBtn.click();
   }
   function finishRectShape() {
     var a = liveSketchPts[0], b = liveSketchPts[1];
@@ -1176,6 +1182,21 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
       } else {
         alert('ยังไม่พบเส้นขอบปิดที่วาดไว้ — วาดสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดในแท็บ "ร่างภาพ 2 มิติ" ก่อน แล้วลองกด "⚡ ยืดเป็น 3 มิติ" อีกครั้ง');
       }
+    });
+
+    /* Stage 11b: ปุ่มลัด "✏️ ร่างภาพ 3 มิติทันที" ที่มุมบนของหน้า ยิงมา (ผ่าน cad.html หลังสลับแท็บให้แล้ว
+       เหมือนกัน) — ต่างจาก cad3d:quickextrude ตรงที่ปุ่มนี้ตั้งใจจะ "เริ่มวาดใหม่ตรงนี้" ไม่ใช่ดึงภาพที่วาด
+       ไว้แล้วในแท็บ 2 มิติมาใช้ ตั้งค่าเริ่มต้น (ระนาบบน + อัดขึ้นตรง เผื่อค้างค่าจากรอบก่อน) แล้วเข้าโหมด
+       ร่างภาพในวิวพอร์ตทันที (enterLiveSketch จัดการเปิดแถบเครื่องมือ/ปิด OrbitControls ให้เอง) — รวม
+       "สลับแท็บ + เลือกชนิดรูปทรง + กดปุ่มร่างภาพ" (3 ขั้นตอนเดิม) ให้เหลือคลิกเดียวจากตรงไหนของหน้าก็ได้
+       ตามฟีดแบ็กผู้ใช้ */
+    window.addEventListener('cad3d:startlivesketch', function () {
+      shapeKindSel.value = 'sketch';
+      updateDimsUI();
+      $('sketchPlaneSel').value = 'top';
+      $('sketchModeSel').value = 'extrude';
+      onSketchPlaneChanged();
+      enterLiveSketch();
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
