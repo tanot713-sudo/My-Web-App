@@ -88,6 +88,15 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
   var editingIndex = null; // Stage 10b: index ของขั้นตอนที่กำลังแก้ไขอยู่ (null = โหมดเพิ่มขั้นตอนใหม่ตามปกติ)
   var pickedPlaneBasis = null; // Stage 10d: อ็อบเจกต์ฐานของหน้าที่เลือกเองล่าสุด (null = ยังไม่เคยเลือก)
   var pickMode = false; // Stage 10d: กำลังรอให้ผู้ใช้คลิกหน้าในวิวพอร์ตอยู่หรือไม่
+  /* Stage 11: ร่างภาพตรงในมุมมอง 3 มิติ (เหมือน SolidWorks) — วาดสี่เหลี่ยม/วงกลม/เส้นหลายจุดปิดรูปด้วย
+     การคลิกในวิวพอร์ตตรงๆ แทนการสลับไปวาดที่แท็บ 2 มิติ ดูฟังก์ชันกลุ่ม "เริ่ม/จบการร่างภาพในวิว" ด้านล่าง */
+  var liveSketchActive = false;
+  var liveSketchTool = 'rect'; // 'rect' | 'circle' | 'polyline'
+  var liveSketchPts = []; // จุด (u,v) ที่คลิกไว้แล้วของรูปที่กำลังวาดอยู่ (ยังไม่ปิดรูป)
+  var liveSketchPlaneSnapshot = null; // { raw, normal:THREE.Vector3, origin:THREE.Vector3 } ล็อกไว้ตอนเริ่มร่าง กันระนาบเปลี่ยนกลางคัน
+  var liveSketchPreviewGroup = null; // THREE.Group เส้น/จุด preview ระหว่างวาด (คนละก้อนกับ previewAnchor ของรูปทรงพื้นฐาน)
+  var liveSketchDownPos = null; // แยกคลิกจริงจากการลากเล็กน้อย (เมาส์สั่น) เหมือน pickDownPos ของ Stage 10d
+  var liveSketchProfiles = []; // เส้นขอบที่ร่างในวิว 3 มิติสะสมไว้ (รอดจากการกด "โหลดใหม่" ซึ่งอ่านจากแบบ 2 มิติเท่านั้น)
   var scene, camera, renderer, controls, mesh, viewportEl;
   var xform, previewAnchor;
   var heightXform, heightHandle, heightLine;
@@ -166,6 +175,24 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
   function extrudeAxisLetter(plane) {
     if (isPlaneObject(plane)) return null;
     return plane === 'front' ? 'y' : (plane === 'right' ? 'x' : 'z');
+  }
+  /* Stage 11: จุดกำเนิดของระนาบ — string ทั้ง 3 แบบเดิมยึดจุดกำเนิดโลกเสมอ (0,0,0) ต่างจากอ็อบเจกต์ฐาน
+     (หน้าที่เลือกเอง) ที่มี origin จริงลอยอยู่กลางอากาศ */
+  function planeOriginVec(plane) {
+    if (isPlaneObject(plane)) return plane.origin;
+    return { x: 0, y: 0, z: 0 };
+  }
+  function dot3(a, b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+  /* Stage 11: ฟังก์ชันผกผันของ mapPlanePoint — แปลงจุดในโลก 3 มิติ (world point, สมมติว่าอยู่บนระนาบนี้
+     พอดีอยู่แล้ว เช่นจากการยิง Raycaster ตัดกับระนาบจริง) กลับเป็นพิกัด (u,v) บนระนาบ ใช้หลักการเดียวกับ
+     การฉายเวกเตอร์ตั้งฉาก (orthogonal projection): เพราะ xDir/yDir ของทุกระนาบเป็นเวกเตอร์หน่วยตั้งฉากกัน
+     เสมอ (unit + orthogonal ทั้ง 3 กรณี string เดิมและอ็อบเจกต์ฐานที่สร้างจาก buildPlaneBasisFromNormal)
+     การ dot product จุดที่ลบ origin ออกแล้วกับ xDir/yDir จึงคืนค่า u/v ที่ถูกต้องพอดี ไม่ต้องแก้สมการเชิงเส้น
+     เต็มรูปแบบ (ยืนยันด้วย unit test round-trip กับ mapPlanePoint ทั้ง string และอ็อบเจกต์ฐาน รวมถึงกรณีเอียง) */
+  function unmapPlanePoint(plane, worldPt) {
+    var origin = planeOriginVec(plane);
+    var rel = { x: worldPt.x - origin.x, y: worldPt.y - origin.y, z: worldPt.z - origin.z };
+    return { x: dot3(rel, axisVectorForPlane(plane, 'x')), y: dot3(rel, axisVectorForPlane(plane, 'y')) };
   }
 
   /* ══════════════════ Stage 10d: หา "หน้าเรียบ" จากการคลิกบนตาข่ายที่แสดงผล ══════════════════
@@ -606,7 +633,9 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
      ซึ่งเดินตาม entities array ตามลำดับวาดจริง) แทนการปล่อยให้ browser เลือกตัวแรกสุด (ค่าเริ่มต้นเดิม) —
      ลดขั้นตอน "ต้องมาเลือกเองจาก dropdown" ทุกครั้งที่วาดรูปใหม่ ยังกด "โหลดใหม่"/เปลี่ยนเป็นภาพอื่นเองได้ตามปกติ */
   function refreshProfileList() {
-    loadedProfiles = read2DProfiles();
+    // Stage 11: ต่อท้ายด้วยภาพที่ร่างตรงในวิว 3 มิติ (liveSketchProfiles) เสมอ — ทำให้ภาพที่เพิ่งร่างเสร็จ
+    // กลายเป็น "ตัวสุดท้าย" ในลิสต์และถูกเลือกอัตโนมัติทันที (logic เลือกตัวล่าสุดด้านล่างไม่ต้องแก้เลย)
+    loadedProfiles = read2DProfiles().concat(liveSketchProfiles);
     var sel = $('sketchProfileSel');
     if (!loadedProfiles.length) {
       sel.innerHTML = '<option value="">(ไม่พบเส้นขอบปิด — วาดในหน้างานเขียนแบบ CAD ก่อน)</option>';
@@ -816,6 +845,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
   }
   function enterPickMode() {
     if (!mesh) { alert('ยังไม่มีชิ้นงาน 3 มิติให้เลือกหน้า — สร้างรูปทรงอย่างน้อย 1 ขั้นตอนก่อน'); return; }
+    if (liveSketchActive) exitLiveSketch(); // คนละโหมดกัน ห้ามเปิดพร้อมกัน (Stage 11)
     pickMode = true;
     viewportEl.classList.add('c3-pick-cursor');
     controls.enabled = false; // กันไม่ให้ลาก orbit ทับการคลิกเลือกหน้า
@@ -856,6 +886,167 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     exitPickMode();
   }
 
+  /* ══════════════════ Stage 11: ร่างภาพตรงในมุมมอง 3 มิติ (เหมือน SolidWorks จริง) ══════════════════
+     ต่างจาก Stage 10d (คลิกหน้าเพื่อ "เลือกระนาบ" เฉยๆ) — สเตจนี้ให้ "วาดเส้นขอบปิด" เองตรงๆ ในวิวพอร์ต
+     ด้วยการคลิกวางจุดบนระนาบร่างที่กำลังใช้งานอยู่ (มาตรฐาน 3 แบบ หรือหน้าที่เลือกเองจาก Stage 10d ก็ได้)
+     หลักการออกแบบสำคัญ: ผลลัพธ์เป็นแค่ "profile" object รูปแบบเดียวกับที่ read2DProfiles() คืนมาทุกประการ
+     ({points:[...]} หรือ {circle:{cx,cy,r}}) แล้วยัดเข้า loadedProfiles/sketchProfileSel เหมือนอ่านมาจาก
+     แบบ 2 มิติจริง — pipeline ทั้งหมดด้านล่าง (buildWireFromProfile/buildSketchSolid/preview/commit) ใช้
+     ต่อได้ทันทีโดยไม่ต้องแก้เลยแม้แต่บรรทัดเดียว (reuse สูงสุดตามที่ตั้งใจไว้)
+
+     ขอบเขต MVP ของสเตจนี้ (ตั้งใจจำกัดไว้ก่อน): ร่างได้ทีละ 1 รูปต่อการกด "ร่างภาพใหม่ตรงนี้" 1 ครั้ง (วาด
+     เสร็จแล้วออกจากโหมดร่างอัตโนมัติทันที ไม่ได้ต่อเนื่องหลายรูปในเซสชันเดียว) รูปทรงที่วาดได้มี 3 แบบ
+     (สี่เหลี่ยม/วงกลม/เส้นหลายจุดปิดรูป) ไม่มี snap ยึดจุด/เส้นเดิม ไม่มีเครื่องมือมิติ (dimension) บังคับ
+     ขนาดเป๊ะๆ ตอนวาด ไม่รองรับส่วนโค้ง/สปไลน์ ไม่รองรับแก้ไขจุดที่วางไปแล้ว (ผิดต้องกด "ยกเลิก" แล้วเริ่ม
+     ใหม่ทั้งรูป) — ขยายเป็นสเตจถัดไปได้ตามความจำเป็นจริง ไม่ต่างจากแนวทางเดิมของ Stage 9/10 ในไฟล์นี้ */
+  var LIVE_SKETCH_TOOL_LABEL = { rect: 'สี่เหลี่ยม', circle: 'วงกลม', polyline: 'เส้นหลายจุด' };
+  function activeSketchPlaneValue() {
+    var v = $('sketchPlaneSel').value;
+    return (v === 'picked' && pickedPlaneBasis) ? pickedPlaneBasis : v;
+  }
+  function ensureLiveSketchPreviewGroup() {
+    if (!liveSketchPreviewGroup) { liveSketchPreviewGroup = new THREE.Group(); scene.add(liveSketchPreviewGroup); }
+    return liveSketchPreviewGroup;
+  }
+  function clearLiveSketchPreview() {
+    if (!liveSketchPreviewGroup) return;
+    while (liveSketchPreviewGroup.children.length) {
+      var c = liveSketchPreviewGroup.children.pop();
+      if (c.geometry) c.geometry.dispose();
+      if (c.material) c.material.dispose();
+    }
+  }
+  function worldPtsFromUV(uvArr) {
+    var planeRaw = liveSketchPlaneSnapshot.raw;
+    return uvArr.map(function (uv) { var w = mapPlanePoint(planeRaw, uv.x, uv.y); return new THREE.Vector3(w.x, w.y, w.z); });
+  }
+  /* วาดเส้น/จุด "กำลังจะเป็น" ตามเครื่องมือที่เลือกอยู่ — เรียกทุกครั้งที่เมาส์ขยับระหว่างร่างอยู่ (rubber-band
+     preview) เห็นผลลัพธ์ทันทีก่อนคลิกจริง ตรงตามพฤติกรรมเครื่องมือ CAD ทั่วไป */
+  function updateLiveSketchPreview(cursorUV) {
+    var group = ensureLiveSketchPreviewGroup();
+    clearLiveSketchPreview();
+    var lineMat = new THREE.LineBasicMaterial({ color: 0x2F6FED, depthTest: false });
+    var ptMat = new THREE.PointsMaterial({ color: 0xE8590C, size: 11, sizeAttenuation: false, depthTest: false });
+    if (liveSketchTool === 'rect' && liveSketchPts.length === 1 && cursorUV) {
+      var a = liveSketchPts[0], b = cursorUV;
+      var corners = [{ x: a.x, y: a.y }, { x: b.x, y: a.y }, { x: b.x, y: b.y }, { x: a.x, y: b.y }, { x: a.x, y: a.y }];
+      group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(worldPtsFromUV(corners)), lineMat));
+    } else if (liveSketchTool === 'circle' && liveSketchPts.length === 1 && cursorUV) {
+      var c = liveSketchPts[0], r = Math.hypot(cursorUV.x - c.x, cursorUV.y - c.y);
+      var segs = 48, circlePts = [];
+      for (var i = 0; i <= segs; i++) { var t = (i / segs) * Math.PI * 2; circlePts.push({ x: c.x + Math.cos(t) * r, y: c.y + Math.sin(t) * r }); }
+      group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(worldPtsFromUV(circlePts)), lineMat));
+    } else if (liveSketchTool === 'polyline' && liveSketchPts.length >= 1) {
+      var chain = cursorUV ? liveSketchPts.concat([cursorUV]) : liveSketchPts.slice();
+      if (chain.length > 1) group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(worldPtsFromUV(chain)), lineMat));
+    }
+    if (liveSketchPts.length) group.add(new THREE.Points(new THREE.BufferGeometry().setFromPoints(worldPtsFromUV(liveSketchPts)), ptMat));
+  }
+  function updateLiveSketchHint(customMsg) {
+    var el = $('c3SketchHint');
+    if (!el) return;
+    if (customMsg) { el.textContent = customMsg; return; }
+    if (liveSketchTool === 'rect') el.textContent = liveSketchPts.length === 0 ? 'คลิกมุมแรกของสี่เหลี่ยม' : 'คลิกมุมตรงข้ามเพื่อจบรูป';
+    else if (liveSketchTool === 'circle') el.textContent = liveSketchPts.length === 0 ? 'คลิกจุดศูนย์กลางวงกลม' : 'คลิกอีกจุดเพื่อกำหนดรัศมี';
+    else el.textContent = liveSketchPts.length < 3
+      ? ('คลิกจุดถัดไป (วางแล้ว ' + liveSketchPts.length + ' จุด, ต้องอย่างน้อย 3 จุด)')
+      : ('คลิกจุดถัดไป หรือกด "เสร็จ" เพื่อปิดรูป (วางแล้ว ' + liveSketchPts.length + ' จุด)');
+  }
+  /* ยิง Raycaster จากตำแหน่งเมาส์ตัดกับ "ระนาบร่าง" จริง (THREE.Plane จาก origin+normal ที่ล็อกไว้ตอนเริ่ม
+     ร่าง) แล้วแปลงจุดที่ตัดกันกลับเป็นพิกัด (u,v) ผ่าน unmapPlanePoint() — คืน null ถ้าเมาส์ชี้ขนานกับระนาบ
+     พอดี (ไม่มีจุดตัด เช่น มองระนาบเป๊ะๆ ด้านข้าง) */
+  function liveSketchRayHit(clientX, clientY) {
+    var rect = renderer.domElement.getBoundingClientRect();
+    var ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    raycaster.setFromCamera(ndc, camera);
+    var thPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(liveSketchPlaneSnapshot.normal, liveSketchPlaneSnapshot.origin);
+    var hit = new THREE.Vector3();
+    if (!raycaster.ray.intersectPlane(thPlane, hit)) return null;
+    return unmapPlanePoint(liveSketchPlaneSnapshot.raw, { x: hit.x, y: hit.y, z: hit.z });
+  }
+  function setLiveSketchTool(tool) {
+    liveSketchTool = tool;
+    liveSketchPts = [];
+    clearLiveSketchPreview();
+    ['rect', 'circle', 'polyline'].forEach(function (t) {
+      var btn = $(t === 'rect' ? 'sketchToolRectBtn' : (t === 'circle' ? 'sketchToolCircleBtn' : 'sketchToolPolylineBtn'));
+      btn.classList.toggle('active', t === tool);
+    });
+    $('sketchFinishBtn').hidden = tool !== 'polyline';
+    updateLiveSketchHint();
+  }
+  function commitLiveSketchProfile(profile) {
+    clearLiveSketchPreview();
+    liveSketchProfiles.push(profile);
+    exitLiveSketch();
+    refreshProfileList(); // อ่านของแบบ 2 มิติใหม่ + ต่อท้ายด้วย liveSketchProfiles แล้วเลือกตัวล่าสุด (ตัวที่เพิ่งวาดเสร็จ) ให้อัตโนมัติ
+    updateAddUI();
+  }
+  function finishRectShape() {
+    var a = liveSketchPts[0], b = liveSketchPts[1];
+    var x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
+    var w = x1 - x0, d = y1 - y0;
+    if (w < 0.5 || d < 0.5) { liveSketchPts = []; clearLiveSketchPreview(); updateLiveSketchHint('สี่เหลี่ยมเล็กเกินไป — ลองคลิกใหม่'); return; }
+    commitLiveSketchProfile({ label: 'ร่างในวิว 3 มิติ: สี่เหลี่ยม ' + w.toFixed(0) + '×' + d.toFixed(0) + ' มม.', points: [{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }] });
+  }
+  function finishCircleShape() {
+    var c = liveSketchPts[0], p = liveSketchPts[1];
+    var r = Math.hypot(p.x - c.x, p.y - c.y);
+    if (r < 0.5) { liveSketchPts = []; clearLiveSketchPreview(); updateLiveSketchHint('รัศมีเล็กเกินไป — ลองคลิกใหม่'); return; }
+    commitLiveSketchProfile({ label: 'ร่างในวิว 3 มิติ: วงกลม R' + r.toFixed(0) + ' มม.', circle: { cx: c.x, cy: c.y, r: r } });
+  }
+  function finishPolylineShape() {
+    if (liveSketchTool !== 'polyline' || liveSketchPts.length < 3) { updateLiveSketchHint('ต้องมีอย่างน้อย 3 จุดจึงจะปิดเป็นรูปได้'); return; }
+    commitLiveSketchProfile({ label: 'ร่างในวิว 3 มิติ: เส้นหลายจุดปิดรูป (' + liveSketchPts.length + ' จุด)', points: liveSketchPts.map(function (p) { return { x: p.x, y: p.y }; }) });
+  }
+  function handleLiveSketchClick(clientX, clientY) {
+    var uv = liveSketchRayHit(clientX, clientY);
+    if (!uv) { updateLiveSketchHint('มุมมองนี้ขนานกับระนาบร่างพอดี มองไม่เห็นจุดตัด — หมุนมุมมองแล้วลองใหม่'); return; }
+    liveSketchPts.push(uv);
+    if (liveSketchTool === 'rect' && liveSketchPts.length === 2) finishRectShape();
+    else if (liveSketchTool === 'circle' && liveSketchPts.length === 2) finishCircleShape();
+    else { updateLiveSketchHint(); updateLiveSketchPreview(uv); }
+  }
+  /* เริ่มร่างภาพ: ล็อกระนาบปัจจุบัน (จาก sketchPlaneSel/pickedPlaneBasis) ไว้เป็น snapshot กันสับสนถ้าผู้ใช้
+     ดันไปเปลี่ยน dropdown ระนาบระหว่างที่กำลังวาดค้างอยู่ (ซึ่งเป็นไปไม่ได้อยู่แล้วเพราะซ่อนฟอร์มไว้ทั้งหมด
+     ระหว่างร่าง แต่ล็อกไว้ให้ชัดเจนเผื่ออนาคต) — ปิด OrbitControls เหมือน pick-mode ของ Stage 10d */
+  function enterLiveSketch() {
+    if (pickMode) exitPickMode();
+    if (editingIndex !== null) exitEditMode();
+    shapeKindSel.value = 'sketch';
+    updateDimsUI();
+    var raw = activeSketchPlaneValue();
+    var n = planeNormalVec(raw), o = planeOriginVec(raw);
+    liveSketchPlaneSnapshot = { raw: raw, normal: new THREE.Vector3(n.x, n.y, n.z), origin: new THREE.Vector3(o.x, o.y, o.z) };
+    liveSketchActive = true;
+    liveSketchPts = [];
+    controls.enabled = false;
+    viewportEl.classList.add('c3-pick-cursor');
+    $('c3SketchToolbar').hidden = false;
+    setLiveSketchTool('rect');
+  }
+  function exitLiveSketch() {
+    liveSketchActive = false;
+    liveSketchPts = [];
+    controls.enabled = true;
+    viewportEl.classList.remove('c3-pick-cursor');
+    $('c3SketchToolbar').hidden = true;
+    clearLiveSketchPreview();
+  }
+  function onLiveSketchPointerDown(e) { if (liveSketchActive) liveSketchDownPos = { x: e.clientX, y: e.clientY }; }
+  function onLiveSketchPointerUp(e) {
+    if (!liveSketchActive || !liveSketchDownPos) return;
+    var dx = e.clientX - liveSketchDownPos.x, dy = e.clientY - liveSketchDownPos.y;
+    liveSketchDownPos = null;
+    if (Math.hypot(dx, dy) > 5) return; // มือสั่น/ลากเล็กน้อย ไม่นับเป็นคลิกวางจุด
+    handleLiveSketchClick(e.clientX, e.clientY);
+  }
+  function onLiveSketchPointerMove(e) {
+    if (!liveSketchActive) return;
+    var uv = liveSketchRayHit(e.clientX, e.clientY);
+    if (uv) updateLiveSketchPreview(uv);
+  }
+
   /* ══════════════════ ผูกปุ่ม + boot ══════════════════ */
   function boot() {
     loadSteps();
@@ -869,6 +1060,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     updateAxisOptionLabels();
     shapeKindSel.addEventListener('change', function () {
       if (pickMode) exitPickMode();
+      if (liveSketchActive) exitLiveSketch();
       updateDimsUI();
       if (shapeKindSel.value === 'sketch') refreshProfileList(); else rebuildPreview();
     });
@@ -882,7 +1074,26 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     $('pickFaceBtn').addEventListener('click', function () { if (pickMode) exitPickMode(); else enterPickMode(); });
     $('c3Viewport').addEventListener('pointerdown', onViewportPointerDown);
     $('c3Viewport').addEventListener('pointerup', onViewportPointerUp);
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && pickMode) exitPickMode(); });
+    /* Stage 11: ปุ่มเริ่มร่างภาพตรงในวิว 3 มิติ + แถบเครื่องมือลอย + pointer handler แยกจากของ Stage 10d
+       ด้านบน (คนละโหมดกัน ไม่มีทางเปิดพร้อมกันได้ — enterLiveSketch()/enterPickMode() ปิดอีกฝั่งให้เองเสมอ) */
+    $('startLiveSketchBtn').addEventListener('click', enterLiveSketch);
+    $('sketchToolRectBtn').addEventListener('click', function () { setLiveSketchTool('rect'); });
+    $('sketchToolCircleBtn').addEventListener('click', function () { setLiveSketchTool('circle'); });
+    $('sketchToolPolylineBtn').addEventListener('click', function () { setLiveSketchTool('polyline'); });
+    $('sketchFinishBtn').addEventListener('click', finishPolylineShape);
+    $('sketchCancelBtn').addEventListener('click', exitLiveSketch);
+    $('c3Viewport').addEventListener('pointerdown', onLiveSketchPointerDown);
+    $('c3Viewport').addEventListener('pointerup', onLiveSketchPointerUp);
+    $('c3Viewport').addEventListener('pointermove', onLiveSketchPointerMove);
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (pickMode) exitPickMode();
+      if (liveSketchActive) {
+        // Esc ครั้งแรก (มีจุดวางค้างอยู่) แค่ล้างรูปที่วาดค้าง — Esc อีกครั้ง (ไม่มีจุดค้างแล้ว) ถึงจะออกจากโหมดร่างทั้งหมด
+        if (liveSketchPts.length) { liveSketchPts = []; clearLiveSketchPreview(); updateLiveSketchHint(); }
+        else exitLiveSketch();
+      }
+    });
     ['posX', 'posY', 'posZ'].forEach(function (id) {
       $(id).addEventListener('input', repositionPreview);
     });
@@ -951,6 +1162,8 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
        เขียนตรรกะซ้ำ) — ถ้าไม่มีภาพร่างปิดให้ใช้เลย จะเตือนแทนการเพิ่มรูปทรงว่างเปล่า */
     window.addEventListener('cad3d:quickextrude', function () {
       if (editingIndex !== null) exitEditMode();
+      if (pickMode) exitPickMode();
+      if (liveSketchActive) exitLiveSketch();
       shapeKindSel.value = 'sketch';
       updateDimsUI();
       $('sketchPlaneSel').value = 'top';

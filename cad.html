@@ -169,6 +169,11 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
 .c3-error{color:var(--err);font-weight:700}
 [data-theme="dark"]{--brand-sf:#1B2946}
 [data-theme="dark"] .c3-viewport-wrap,[data-theme="dark"] .c3-overlay{background:#0B0E16}
+/* Stage 11: แถบเครื่องมือลอย ตอนกำลังร่างภาพตรงในมุมมอง 3 มิติ (เหมือน SolidWorks) */
+.c3-sketch-toolbar{position:absolute;top:10px;left:10px;right:10px;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+  background:var(--card);padding:8px;border-radius:10px;box-shadow:0 3px 14px rgba(0,0,0,.25)}
+.c3-sketch-toolbar .hint{flex-basis:100%;margin:2px 0 0}
+[data-theme="dark"] .c3-sketch-toolbar{background:#111827}
 
 /* ── กล่องแจ้งเตือน/ยืนยันแบบกำหนดเอง (แทน alert()/confirm() ของเบราว์เซอร์) — พื้นสีขาวเสมอตั้งใจ
    ไม่สลับตามธีมมืด/สว่างของเว็บ (อ่านง่าย/สม่ำเสมอทุกเครื่อง ต่างจากกล่อง native เดิมที่ขึ้นกับธีมของ
@@ -453,6 +458,7 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
           <select id="sketchProfileSel" style="width:220px"></select>
         </label>
         <button class="btn sm" id="sketchReloadBtn" type="button">🔄 โหลดใหม่</button>
+        <button class="btn sm primary" id="startLiveSketchBtn" type="button">✏️ ร่างภาพใหม่ตรงนี้</button>
         <label id="sketchExtrudeWrap">สูง (มม.)<input type="text" id="sketchHeight" inputmode="decimal" value="20"></label>
         <details class="c3-advanced" id="sketchAdvanced">
           <summary>⚙️ ตัวเลือกเพิ่มเติม (ระนาบ/วิธีขึ้นรูป)</summary>
@@ -523,8 +529,16 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
         <div class="c3-spinner" id="c3Spinner"></div>
         <div id="c3OverlayText">เพิ่มรูปทรงแรกด้านบนเพื่อเริ่มสร้างชิ้นงาน</div>
       </div>
+      <div class="c3-sketch-toolbar" id="c3SketchToolbar" hidden>
+        <button class="btn sm active" id="sketchToolRectBtn" type="button" data-tool="rect">▭ สี่เหลี่ยม</button>
+        <button class="btn sm" id="sketchToolCircleBtn" type="button" data-tool="circle">◯ วงกลม</button>
+        <button class="btn sm" id="sketchToolPolylineBtn" type="button" data-tool="polyline">✏️ เส้นหลายจุด</button>
+        <button class="btn sm primary" id="sketchFinishBtn" type="button" hidden>✔️ เสร็จ (ปิดรูป)</button>
+        <button class="btn sm danger" id="sketchCancelBtn" type="button">✖️ ยกเลิก</button>
+        <span class="hint" id="c3SketchHint">คลิกมุมแรกของสี่เหลี่ยม</span>
+      </div>
     </div>
-    <p class="hint">ลากซ้ายเพื่อหมุนมุมมอง · ลากขวาเพื่อเลื่อน · หมุนล้อเมาส์/บีบสองนิ้วเพื่อซูม</p>
+    <p class="hint">ลากซ้ายเพื่อหมุนมุมมอง · ลากขวาเพื่อเลื่อน · หมุนล้อเมาส์/บีบสองนิ้วเพื่อซูม · <b>✏️ ร่างภาพใหม่ตรงนี้</b> (ด้านบน) ให้วาดรูปสี่เหลี่ยม/วงกลม/เส้นหลายจุดปิดรูปตรงในมุมมอง 3 มิตินี้ได้เลย โดยไม่ต้องสลับไปแท็บ 2 มิติ</p>
   </div>
 
   <div class="card">
