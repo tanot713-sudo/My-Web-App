@@ -31,6 +31,18 @@
    แยก scope ของตัวเองเหมือนเดิมทุกอย่าง ไม่ต้องแก้ตรรกะภายในเลย มีแค่จุดเดียวที่เพิ่ม: ฟัง custom event
    'cad3d:tabshown' ที่ยิงมาจาก cad.html ตอนผู้ใช้สลับมาแท็บนี้ เพื่อ resize() วิวพอร์ตใหม่ (ตอนแท็บถูกซ่อน
    อยู่ ขนาด viewport เป็น 0 เพราะ CSS "hidden" ทำให้ boot() ตอนแรกไม่รู้ขนาดจริงที่จะใช้)
+
+   Stage 10b: "feature tree" แก้ย้อนหลังได้ — state.steps เดิมเป็น feature list อยู่แล้วโดยธรรมชาติ
+   (rebuildShape() replay ทั้งสายใหม่ทุกครั้งอยู่แล้ว) แต่ UI เดิมแก้ได้แค่ตัวท้ายสุด (undo/reset) สเตจนี้
+   เพิ่ม 3 การกระทำต่อขั้นตอน โดยไม่แตะ pipeline การสร้างรูปทรงเลย:
+   - แก้ไข (editStep): โหลดข้อมูลขั้นตอนนั้นกลับเข้าฟอร์ม "เพิ่มรูปทรง" ด้านบน แล้วกด "บันทึกการแก้ไข"
+     แทนที่ข้อมูลเดิมที่ index นั้นตรงๆ ("จากภาพร่าง 2 มิติ" พิเศษหน่อย: profile เดิมเป็นสำเนาข้อมูลดิบ ไม่ใช่
+     index อ้างอิง เลยต้องเทียบ JSON กับรายการ profile ปัจจุบันเพื่อหาช่องที่ตรงกัน — ถ้าภาพ 2 มิติเปลี่ยนไป
+     จนหาไม่เจอ จะบังคับให้เลือกใหม่แทนการเดา/คงค่าที่มองไม่เห็นไว้เงียบๆ)
+   - ลบ (deleteStep): ลบขั้นตอนกลางๆ ได้ ไม่ใช่แค่ตัวท้ายเหมือน undo เดิม
+   - ปิด/เปิดใช้งานชั่วคราว (toggleSuppress): เก็บข้อมูลไว้แต่ข้ามตอน rebuildShape() — มีประโยชน์ตอนหา
+     ว่าขั้นตอนไหนทำให้ boolean chain พังโดยไม่ต้องลบทิ้งจริง
+   ตั้งใจไม่ทำ: สลับลำดับขั้นตอน (reorder) — boolean op มีผลตามลำดับ สลับมั่วอาจได้ผลลัพธ์ผิดแบบเงียบๆ
    ══════════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -47,6 +59,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
   var $ = function (id) { return document.getElementById(id); };
 
   var state = { steps: [], oc: null, lastShape: null, lastStlBytes: null };
+  var editingIndex = null; // Stage 10b: index ของขั้นตอนที่กำลังแก้ไขอยู่ (null = โหมดเพิ่มขั้นตอนใหม่ตามปกติ)
   var scene, camera, renderer, controls, mesh, viewportEl;
   var xform, previewAnchor;
   var heightXform, heightHandle, heightLine;
@@ -149,10 +162,18 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
   function rebuildShape(oc, steps) {
     var current = null;
     steps.forEach(function (step) {
+      if (step.suppressed) return; // Stage 10b: ปิดใช้งานชั่วคราว — ข้ามไปเลย เหมือนไม่มีขั้นตอนนี้อยู่
       var prim = buildPrimitive(oc, step.kind, step.dims, step.pos);
       current = current ? booleanOp(oc, step.op, current, prim) : prim;
     });
     return current;
+  }
+  /* ขั้นตอน "หลัก" ที่ rebuildShape() จะใช้เป็นฐาน (ไม่ใช้ op ของมันเลย) คือขั้นตอนแรกที่ไม่ถูกปิดใช้งาน
+     ไม่ใช่ index 0 เสมอไป (ถ้าขั้นแรกๆ ถูกปิดใช้งานอยู่) ใช้เช็กว่าตอนแก้ไขขั้นตอนหนึ่งควรโชว์ตัวเลือก
+     "วิธีรวม" หรือไม่ */
+  function isBaseStepIndex(idx) {
+    for (var i = 0; i < state.steps.length; i++) { if (!state.steps[i].suppressed) return i === idx; }
+    return false;
   }
   /* ตาข่ายสามเหลี่ยมสำหรับแสดงผล — เขียนเป็น STL ชั่วคราวลง virtual FS ของ Emscripten แล้วอ่านกลับด้วย
      STLLoader ของ three.js (ที่ vendor ไว้อยู่แล้วในโปรเจกต์) แทนการเดิน TopExp_Explorer/
@@ -449,14 +470,21 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     return { kind: kind, dims: dims, pos: { x: num('posX', 0), y: num('posY', 0), z: num('posZ', 0) } };
   }
   function updateAddUI() {
-    var has = state.steps.length > 0;
-    opWrap.hidden = !has;
-    addShapeBtn.textContent = has ? '✔️ รวมเข้ากับชิ้นงานหลัก' : '✔️ วางเป็นชิ้นงานหลัก';
-    $('undoStepBtn').disabled = !has;
-    $('resetBtn').disabled = !has;
+    var hasActive = state.steps.some(function (s) { return !s.suppressed; });
+    if (editingIndex !== null) {
+      opWrap.hidden = isBaseStepIndex(editingIndex);
+      addShapeBtn.textContent = '💾 บันทึกการแก้ไข';
+      $('cancelEditBtn').hidden = false;
+    } else {
+      opWrap.hidden = !hasActive;
+      addShapeBtn.textContent = hasActive ? '✔️ รวมเข้ากับชิ้นงานหลัก' : '✔️ วางเป็นชิ้นงานหลัก';
+      $('cancelEditBtn').hidden = true;
+    }
+    $('undoStepBtn').disabled = !state.steps.length;
+    $('resetBtn').disabled = !state.steps.length;
   }
 
-  /* ══════════════════ รายการขั้นตอน ══════════════════ */
+  /* ══════════════════ รายการขั้นตอน (Stage 10b: feature tree แก้ย้อนหลังได้) ══════════════════ */
   var KIND_LABEL = { box: 'กล่อง', cylinder: 'ทรงกระบอก', sphere: 'ทรงกลม', sketch: 'ภาพร่าง 2 มิติ' };
   var OP_LABEL = { add: 'เริ่มจาก', union: 'รวมกับ', cut: 'ตัดออกด้วย', intersect: 'หาส่วนร่วมกับ' };
   function dimsLabel(step) {
@@ -474,8 +502,58 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     if (!state.steps.length) { list.innerHTML = '<div class="hint">ยังไม่มีขั้นตอน</div>'; return; }
     list.innerHTML = state.steps.map(function (s, i) {
       var p = s.pos, posTxt = (p.x || p.y || p.z) ? (' ที่ตำแหน่ง (' + p.x + ', ' + p.y + ', ' + p.z + ')') : '';
-      return '<div class="c3-step-row"><b>' + (i + 1) + '.</b><span>' + OP_LABEL[s.op] + KIND_LABEL[s.kind] + ' ' + dimsLabel(s) + posTxt + '</span></div>';
+      var editTag = i === editingIndex ? ' <b class="c3-editing-tag">(กำลังแก้ไข)</b>' : '';
+      return '<div class="c3-step-row' + (s.suppressed ? ' c3-step-suppressed' : '') + '">' +
+        '<b>' + (i + 1) + '.</b><span>' + OP_LABEL[s.op] + KIND_LABEL[s.kind] + ' ' + dimsLabel(s) + posTxt + editTag + '</span>' +
+        '<button class="btn sm icon-only" type="button" data-act="toggle" data-idx="' + i + '" title="' + (s.suppressed ? 'เปิดใช้งานขั้นตอนนี้' : 'ปิดใช้งานชั่วคราว (ไม่ลบ)') + '">' + (s.suppressed ? '🚫' : '👁️') + '</button>' +
+        '<button class="btn sm icon-only" type="button" data-act="edit" data-idx="' + i + '" title="แก้ไขขั้นตอนนี้">✏️</button>' +
+        '<button class="btn sm icon-only" type="button" data-act="delete" data-idx="' + i + '" title="ลบขั้นตอนนี้">🗑️</button>' +
+      '</div>';
     }).join('');
+  }
+  function profilesEqual(a, b) { return !!a && !!b && JSON.stringify(a) === JSON.stringify(b); }
+  /* โหลดข้อมูลขั้นตอนที่ index ที่กำหนดกลับเข้าฟอร์ม "เพิ่มรูปทรงพื้นฐาน" ด้านบนเพื่อแก้ไข — ไม่แตะ
+     state.steps จริงจนกว่าจะกด "บันทึกการแก้ไข" (ปุ่มเดียวกับ addShapeBtn เดิม สลับความหมายตาม
+     editingIndex) */
+  function editStep(idx) {
+    var step = state.steps[idx];
+    if (!step) return;
+    editingIndex = idx;
+    shapeKindSel.value = step.kind;
+    updateDimsUI();
+    if (step.kind === 'box') { $('boxX').value = step.dims.x; $('boxY').value = step.dims.y; $('boxZ').value = step.dims.z; }
+    else if (step.kind === 'cylinder') { $('cylR').value = step.dims.r; $('cylH').value = step.dims.h; }
+    else if (step.kind === 'sphere') { $('sphR').value = step.dims.r; }
+    else if (step.kind === 'sketch') {
+      refreshProfileList(); // อ่านแบบ 2 มิติล่าสุดใหม่ (rebuildPreview() ในตัวถูกเรียกซ้ำอีกทีด้านล่าง ไม่ซ้ำซ้อนเสียหาย)
+      var matchIdx = -1;
+      for (var i = 0; i < loadedProfiles.length; i++) { if (profilesEqual(loadedProfiles[i], step.dims.profile)) { matchIdx = i; break; } }
+      var sel = $('sketchProfileSel');
+      if (matchIdx >= 0) {
+        sel.value = String(matchIdx);
+      } else if (loadedProfiles.length) { // มีโปรไฟล์อื่นอยู่ แต่ตัวเดิมของขั้นตอนนี้หาไม่เจอในนั้น
+        var opt = document.createElement('option');
+        opt.value = ''; opt.textContent = '⚠️ ไม่พบเส้นขอบเดิม — กรุณาเลือกใหม่';
+        sel.insertBefore(opt, sel.firstChild);
+        sel.value = '';
+      } // ถ้า loadedProfiles ว่างเปล่าอยู่แล้ว refreshProfileList() ใส่ placeholder ที่สื่อความหมายเดียวกันไว้ให้แล้ว
+      $('sketchModeSel').value = step.dims.mode;
+      updateSketchModeUI();
+      $('sketchHeight').value = step.dims.height;
+      $('sketchAxisSel').value = step.dims.axis;
+      $('sketchAngle').value = step.dims.angle;
+    }
+    $('posX').value = step.pos.x; $('posY').value = step.pos.y; $('posZ').value = step.pos.z;
+    if (!isBaseStepIndex(idx)) opSel.value = step.op;
+    updateSketchAxisWarn();
+    rebuildPreview();
+    updateAddUI();
+    updateStepsUI();
+  }
+  function exitEditMode() {
+    editingIndex = null;
+    updateAddUI();
+    updateStepsUI();
   }
 
   /* ══════════════════ ส่งออกไฟล์ ══════════════════ */
@@ -544,16 +622,46 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
         alert('เส้นขอบที่เลือกอยู่คร่อมแกนหมุน (มีทั้งฝั่งบวกและฝั่งลบของแกน' + f.dims.axis.toUpperCase() + ') หมุนแล้วจะซ้อนทับตัวเอง สร้างเป็นทรงตันไม่ได้ — กรุณาย้ายภาพร่างในแท็บ "ร่างภาพ 2 มิติ" ให้อยู่ฝั่งเดียวของแกนก่อน หรือเปลี่ยนแกนหมุน');
         return;
       }
-      var step = { op: state.steps.length ? opSel.value : 'add', kind: f.kind, dims: f.dims, pos: f.pos };
-      state.steps.push(step);
+      if (editingIndex !== null) {
+        var old = state.steps[editingIndex];
+        var op = isBaseStepIndex(editingIndex) ? 'add' : opSel.value;
+        state.steps[editingIndex] = { op: op, kind: f.kind, dims: f.dims, pos: f.pos, suppressed: old.suppressed };
+        editingIndex = null;
+      } else {
+        var hasActive = state.steps.some(function (s) { return !s.suppressed; });
+        state.steps.push({ op: hasActive ? opSel.value : 'add', kind: f.kind, dims: f.dims, pos: f.pos, suppressed: false });
+      }
       saveSteps(); updateAddUI(); rebuildAndRender();
     });
+    $('cancelEditBtn').addEventListener('click', exitEditMode);
     $('undoStepBtn').addEventListener('click', function () {
-      state.steps.pop(); saveSteps(); updateAddUI(); rebuildAndRender();
+      state.steps.pop();
+      if (editingIndex !== null && editingIndex >= state.steps.length) editingIndex = null; // ขั้นตอนที่กำลังแก้ไขถูกลบไปพร้อม undo
+      saveSteps(); updateAddUI(); rebuildAndRender();
     });
     $('resetBtn').addEventListener('click', function () {
       if (!window.confirm('เริ่มใหม่ทั้งหมด? ขั้นตอนทั้งหมดที่สร้างไว้จะถูกลบ')) return;
-      state.steps = []; saveSteps(); updateAddUI(); rebuildAndRender();
+      state.steps = []; editingIndex = null; saveSteps(); updateAddUI(); rebuildAndRender();
+    });
+    /* Event delegation เดียวจับทั้ง 3 ปุ่มต่อแถว (แก้ไข/ลบ/ปิดใช้งานชั่วคราว) แทนการผูก listener ทีละแถว
+       เพราะ updateStepsUI() re-render ทั้งลิสต์ใหม่ทุกครั้งด้วย innerHTML (ผูกทีละแถวจะหลุดทุกครั้งที่ re-render) */
+    $('stepsList').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-act]');
+      if (!btn) return;
+      var idx = parseInt(btn.getAttribute('data-idx'), 10);
+      var act = btn.getAttribute('data-act');
+      if (act === 'edit') {
+        editStep(idx);
+      } else if (act === 'toggle') {
+        state.steps[idx].suppressed = !state.steps[idx].suppressed;
+        saveSteps(); updateAddUI(); rebuildAndRender();
+      } else if (act === 'delete') {
+        if (!window.confirm('ลบขั้นตอนที่ ' + (idx + 1) + '? (ขั้นตอนถัดไปจะต่อกันใหม่ตามลำดับที่เหลือ ผลลัพธ์อาจเปลี่ยนไปถ้าลบขั้นตอนกลางๆ)')) return;
+        state.steps.splice(idx, 1);
+        if (editingIndex === idx) editingIndex = null;
+        else if (editingIndex !== null && editingIndex > idx) editingIndex--;
+        saveSteps(); updateAddUI(); rebuildAndRender();
+      }
     });
     $('exportStepBtn').addEventListener('click', exportStep);
     $('exportStlBtn').addEventListener('click', exportStl);

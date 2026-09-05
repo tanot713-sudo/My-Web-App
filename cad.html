@@ -150,6 +150,9 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
 .c3-step-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;font-size:13px}
 .c3-step-row b{color:var(--brand-dk)}
 .c3-step-row span{flex:1}
+.c3-step-suppressed{opacity:.5}
+.c3-step-suppressed span{text-decoration:line-through}
+.c3-editing-tag{color:var(--brand-dk);text-decoration:none!important}
 .c3-viewport-wrap{position:relative;height:min(62vh,560px);border-radius:14px;overflow:hidden;background:#E7ECF4;margin-top:6px}
 .c3-viewport-wrap canvas{display:block;width:100%;height:100%}
 .c3-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
@@ -457,6 +460,7 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
         </select>
       </label>
       <button class="btn sm primary" id="addShapeBtn" type="button">✔️ วางเป็นชิ้นงานหลัก</button>
+      <button class="btn sm" id="cancelEditBtn" type="button" hidden>✖️ ยกเลิกแก้ไข</button>
     </div>
     <p class="hint">ชิ้นแรกจะถูกวางเป็น "ชิ้นงานหลัก" โดยตรง ชิ้นถัดไปให้เลือกวิธีรวม (รวม/ตัดออก/ส่วนร่วม) แล้วกดปุ่มเพื่อรวมเข้ากับชิ้นงานหลัก
       · <b>รูปทรงสีส้มโปร่งแสงในมุมมอง 3 มิติด้านล่างคือตัวอย่างชิ้นที่กำลังจะเพิ่ม — ลากลูกศรสีเพื่อวางตำแหน่งเองได้เลย ไม่ต้องพิมพ์ตัวเลข</b>
@@ -470,6 +474,7 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       <button class="btn sm" id="undoStepBtn" type="button" disabled>↩️ ย้อนขั้นตอนล่าสุด</button>
       <button class="btn sm danger" id="resetBtn" type="button" disabled>🧹 เริ่มใหม่ทั้งหมด</button>
     </div>
+    <p class="hint">🖊️ คลิก ✏️ ที่ขั้นตอนไหนก็ได้เพื่อแก้ไขขนาด/ตำแหน่ง/วิธีรวมย้อนหลัง (ไม่ต้องลบแล้วสร้างใหม่) · 👁️ ปิดใช้งานขั้นตอนชั่วคราวโดยไม่ลบทิ้ง (มีประโยชน์ตอนหาว่าขั้นตอนไหนทำให้ผลลัพธ์พัง) · 🗑️ ลบขั้นตอนนั้นถาวร</p>
   </div>
 
   <div class="card">
