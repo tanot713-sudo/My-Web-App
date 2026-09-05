@@ -54,8 +54,7 @@
         { key: 'word',       label: 'งาน Word', href: 'word.html' },
         { key: 'excel',      label: 'งาน Excel', href: 'excel.html' },
         { key: 'powerpoint', label: 'งาน PowerPoint', href: soonHref('งาน PowerPoint') },
-        { key: 'cad',        label: 'งานเขียนแบบ (CAD)', href: 'cad.html' },
-        { key: 'cad3d',      label: 'โมเดล 3 มิติวิศวกรรม (CAD)', href: 'cad3d.html' },
+        { key: 'cad',        label: 'งานเขียนแบบ CAD (2D/3D)', href: 'cad.html' },
         { key: 'est-cost',   label: 'ประเมินราคา PM/CM', href: 'run.html?tool=est-cost' },
         { key: 'extract-text', label: 'ดึงข้อความออกจากเอกสาร', href: 'extract-text.html' },
         { key: 'report-dashboard', label: 'นำเสนอรายงาน', href: 'report-dashboard.html' }

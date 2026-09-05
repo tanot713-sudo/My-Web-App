@@ -24,6 +24,13 @@
    สปไลน์ ยังไม่รองรับ — ต้องใช้อัลกอริทึมเดินกราฟหาวงปิดที่ซับซ้อนกว่านี้ ตัดออกไปตั้งใจในสเตจนี้)
    preview ของชนิดนี้เป็นแค่เส้นขอบแบนราบ (ไม่พองเป็น 3 มิติจริงแบบ preview ของกล่อง/ทรงกระบอก/ทรงกลม)
    เพราะการ extrude/revolve จริงต้องผ่าน OCCT เท่านั้น เห็นผลจริงหลังกดยืนยันแล้วเท่านั้น
+
+   Stage 10a: เดิมไฟล์นี้อยู่คู่กับหน้าแยกต่างหาก cad3d.html แต่ตอนนี้ถูกรวมเข้าไปเป็นแท็บ
+   "มุมมอง 3 มิติ" ในหน้า cad.html เดียวกับเครื่องมือเขียนแบบ 2 มิติแล้ว (cad3d.html เดิมเหลือไว้แค่
+   เป็นหน้า redirect ไปหา cad.html#3d เพื่อไม่ให้ลิงก์/บุ๊กมาร์กเก่าพัง) — ไฟล์นี้เองยังทำงานเป็น IIFE
+   แยก scope ของตัวเองเหมือนเดิมทุกอย่าง ไม่ต้องแก้ตรรกะภายในเลย มีแค่จุดเดียวที่เพิ่ม: ฟัง custom event
+   'cad3d:tabshown' ที่ยิงมาจาก cad.html ตอนผู้ใช้สลับมาแท็บนี้ เพื่อ resize() วิวพอร์ตใหม่ (ตอนแท็บถูกซ่อน
+   อยู่ ขนาด viewport เป็น 0 เพราะ CSS "hidden" ทำให้ boot() ตอนแรกไม่รู้ขนาดจริงที่จะใช้)
    ══════════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -534,7 +541,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
       var f = readForm();
       if (f.kind === 'sketch' && !f.dims.profile) { alert('กรุณาเลือกเส้นขอบปิดจากแบบ 2 มิติก่อน (หรือกด "โหลดใหม่" ถ้าเพิ่งวาดเพิ่ม)'); return; }
       if (f.kind === 'sketch' && f.dims.mode === 'revolve' && revolveAxisStraddle(f.dims.profile, f.dims.axis)) {
-        alert('เส้นขอบที่เลือกอยู่คร่อมแกนหมุน (มีทั้งฝั่งบวกและฝั่งลบของแกน' + f.dims.axis.toUpperCase() + ') หมุนแล้วจะซ้อนทับตัวเอง สร้างเป็นทรงตันไม่ได้ — กรุณาย้ายภาพร่างในหน้างานเขียนแบบ CAD ให้อยู่ฝั่งเดียวของแกนก่อน หรือเปลี่ยนแกนหมุน');
+        alert('เส้นขอบที่เลือกอยู่คร่อมแกนหมุน (มีทั้งฝั่งบวกและฝั่งลบของแกน' + f.dims.axis.toUpperCase() + ') หมุนแล้วจะซ้อนทับตัวเอง สร้างเป็นทรงตันไม่ได้ — กรุณาย้ายภาพร่างในแท็บ "ร่างภาพ 2 มิติ" ให้อยู่ฝั่งเดียวของแกนก่อน หรือเปลี่ยนแกนหมุน');
         return;
       }
       var step = { op: state.steps.length ? opSel.value : 'add', kind: f.kind, dims: f.dims, pos: f.pos };
@@ -551,6 +558,12 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     $('exportStepBtn').addEventListener('click', exportStep);
     $('exportStlBtn').addEventListener('click', exportStl);
     $('exportGlbBtn').addEventListener('click', exportGlb);
+
+    /* Stage 10a: ตอนนี้อยู่ในหน้าเดียวกับ cad.html (แท็บ "มุมมอง 3 มิติ") — ระหว่างที่แท็บนี้ถูกซ่อน
+       ("hidden" attribute = display:none) ค่า clientWidth/Height ของ viewport เป็น 0 ทำให้ resize()
+       ตอน boot() ข้ามการตั้งขนาด renderer ไป (ดู resize() ด้านบน) พอผู้ใช้กดสลับมาแท็บนี้จริง หน้า cad.html
+       จะยิง custom event นี้ให้ resize() คำนวณขนาดใหม่จากขนาดจริงของ viewport ที่เพิ่งโผล่ */
+    window.addEventListener('cad3d:tabshown', resize);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();

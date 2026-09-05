@@ -40,9 +40,10 @@
   var I18N = {
     th: {
       docTitle: 'งานเขียนแบบ CAD | Tanot',
-      crumbResp: 'งานที่รับผิดชอบ', crumbCad: 'งานเขียนแบบ (CAD)',
+      crumbResp: 'งานที่รับผิดชอบ', crumbCad: 'งานเขียนแบบ CAD (2D + 3D)',
       pageTitle: 'งานเขียนแบบ CAD',
-      pageDesc: 'วาดแบบ 2 มิติด้วยพิกัดมิลลิเมตรจริง — เส้น/พอลีไลน์/สี่เหลี่ยม/วงกลม/ส่วนโค้ง พิมพ์ระยะ-มุมเป๊ะได้ จับจุดวัตถุ + โหมดตั้งฉาก',
+      pageDesc: 'วาดแบบ 2 มิติด้วยพิกัดมิลลิเมตรจริง แล้วขึ้นรูปเป็นทรงตัน 3 มิติต่อได้ในหน้าเดียวกัน — เส้น/พอลีไลน์/สี่เหลี่ยม/วงกลม/ส่วนโค้ง พิมพ์ระยะ-มุมเป๊ะได้ จับจุดวัตถุ + โหมดตั้งฉาก',
+      tab2dLbl: '📐 ร่างภาพ 2 มิติ', tab3dLbl: '🧊 มุมมอง 3 มิติ',
       toolSelect: '🖱️ เลือก', toolLine: '／ เส้น', toolPolyline: '⌇ พอลีไลน์', toolRect: '▭ สี่เหลี่ยม',
       toolCircle: '○ วงกลม', toolArc: '◜ ส่วนโค้ง', deleteSel: '🗑️ ลบที่เลือก',
       zoomFit: 'พอดีจอ', snapToggle: '🧲 สแนปกริด', snapStepLbl: 'ระยะกริด',
@@ -132,13 +133,15 @@
       constraintHint: 'เลือกชนิดข้อจำกัด แล้วคลิกเส้น/วงกลมตามจำนวนที่ต้องการ (ระยะ/มุมคงที่ต้องพิมพ์ค่าในช่องระยะ/มุมด้านบนแล้วกด Enter) — ใช้ได้กับเส้นตรงและวงกลมเท่านั้น',
       constraintEmpty: 'ยังไม่มีข้อจำกัด', constraintWrongTypes: 'ชนิดเอนทิตี้ที่เลือกไม่ตรงกับข้อจำกัดนี้ (เช่น เท่ากัน/สัมผัส ต้องเป็นชนิดที่รองรับ)',
       constraintConflict: 'แก้สมการไม่สำเร็จ — ข้อจำกัดนี้ขัดแย้งกับข้อจำกัดที่มีอยู่ (ยกเลิกข้อจำกัดนี้แล้ว)',
-      constraintLibLoadError: 'โหลดตัวแก้สมการไม่สำเร็จ — เช็คอินเทอร์เน็ตแล้วลองใหม่'
+      constraintLibLoadError: 'โหลดตัวแก้สมการไม่สำเร็จ — เช็คอินเทอร์เน็ตแล้วลองใหม่',
+      backLink: '← กลับหน้างานที่รับผิดชอบ'
     },
     en: {
       docTitle: 'CAD Drafting | Tanot',
-      crumbResp: 'Responsibilities', crumbCad: 'CAD Drafting',
+      crumbResp: 'Responsibilities', crumbCad: 'CAD Drafting (2D + 3D)',
       pageTitle: 'CAD Drafting',
-      pageDesc: '2D drafting with real millimeter coordinates — line/polyline/rectangle/circle/arc, precise distance & angle entry, object snap + ortho mode',
+      pageDesc: '2D drafting with real millimeter coordinates, now with 3D solid modeling in the same page — line/polyline/rectangle/circle/arc, precise distance & angle entry, object snap + ortho mode',
+      tab2dLbl: '📐 2D Sketch', tab3dLbl: '🧊 3D View',
       toolSelect: '🖱️ Select', toolLine: '／ Line', toolPolyline: '⌇ Polyline', toolRect: '▭ Rectangle',
       toolCircle: '○ Circle', toolArc: '◜ Arc', deleteSel: '🗑️ Delete selected',
       zoomFit: 'Fit view', snapToggle: '🧲 Grid snap', snapStepLbl: 'Grid step',
@@ -228,7 +231,8 @@
       constraintHint: 'Pick a constraint type, then click the line(s)/circle(s) it needs (fixed distance/angle need a value typed into the distance/angle box above, then Enter) — lines and circles only',
       constraintEmpty: 'No constraints yet', constraintWrongTypes: "The entity types you picked don't fit this constraint (e.g. Equal/Tangent need supported types)",
       constraintConflict: 'Could not solve — this constraint conflicts with an existing one (it has been removed)',
-      constraintLibLoadError: 'Could not load the constraint solver — check your connection and try again'
+      constraintLibLoadError: 'Could not load the constraint solver — check your connection and try again',
+      backLink: '← Back to responsibilities'
     }
   };
   function getUILang() { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }

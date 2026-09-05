@@ -122,6 +122,43 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 
 footer{margin-top:30px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
+
+/* ── Stage 10a: แท็บสลับ "ร่างภาพ 2 มิติ / มุมมอง 3 มิติ" รวมสองเครื่องมือไว้หน้าเดียวกัน ── */
+.cad-maintabs{display:flex;gap:8px;margin:14px 0 4px}
+.cad-maintab{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);
+  background:var(--card);border-radius:11px;padding:9px 16px;font-family:inherit;font-size:13.5px;font-weight:700;
+  color:var(--muted);cursor:pointer;transition:.15s}
+.cad-maintab:hover{border-color:var(--brand);color:var(--brand-dk)}
+.cad-maintab.active{background:var(--brand);border-color:var(--brand);color:#fff}
+@media(max-width:520px){.cad-maintabs{flex-direction:column}}
+
+/* ── สไตล์ที่ย้ายมาจาก cad3d.html เดิม (แท็บมุมมอง 3 มิติ) ── */
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.danger{border-color:var(--err);color:var(--err)}
+.card h2{font-size:14px;font-weight:800;margin-bottom:8px}
+.hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.55}
+.warn-note{font-size:12.5px;color:var(--warn);background:#FFF7E8;border:1px solid #F5DFAE;border-radius:10px;padding:9px 12px;margin-top:10px}
+.c3-form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.c3-form label{font-size:11.5px;color:var(--muted);font-weight:700;display:flex;flex-direction:column;gap:5px}
+.c3-form select,.c3-form input{font-family:inherit;font-size:13px;padding:7px 9px;border-radius:8px;border:1.5px solid var(--line);
+  background:var(--bg);color:var(--ink);width:92px}
+.c3-form select{width:auto}
+.c3-form input:focus,.c3-form select:focus{outline:none;border-color:var(--brand)}
+.c3-dims{display:flex;gap:8px}
+[hidden]{display:none!important}
+.c3-steps{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.c3-step-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;font-size:13px}
+.c3-step-row b{color:var(--brand-dk)}
+.c3-step-row span{flex:1}
+.c3-viewport-wrap{position:relative;height:min(62vh,560px);border-radius:14px;overflow:hidden;background:#E7ECF4;margin-top:6px}
+.c3-viewport-wrap canvas{display:block;width:100%;height:100%}
+.c3-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  background:rgba(231,236,244,.92);text-align:center;padding:20px;font-size:13.5px;color:var(--muted)}
+.c3-spinner{width:34px;height:34px;border-radius:50%;border:3.5px solid var(--brand-sf);border-top-color:var(--brand);animation:c3spin 1s linear infinite}
+@keyframes c3spin{to{transform:rotate(360deg)}}
+.c3-error{color:var(--err);font-weight:700}
+[data-theme="dark"]{--brand-sf:#1B2946}
+[data-theme="dark"] .c3-viewport-wrap,[data-theme="dark"] .c3-overlay{background:#0B0E16}
 </style>
 </head>
 <body class="ome-tool-page" data-doctitle-key="docTitle">
@@ -141,6 +178,14 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
     </button>
   </div>
 
+  <!-- Stage 10a: รวมงานเขียนแบบ 2 มิติ (cad.js) กับโมเดล 3 มิติ (cad3d.js) ไว้หน้าเดียวกัน สลับด้วยแท็บ
+       ด้านล่างนี้ (คนละสคริปต์คนละ closure เดิมทั้งคู่ ไม่แก้ตรรกะภายใน แค่โชว์/ซ่อนพาแนล) -->
+  <div class="cad-maintabs" role="tablist">
+    <button class="cad-maintab active" id="tabBtn2d" type="button" role="tab" aria-selected="true" data-i18n="tab2dLbl">📐 ร่างภาพ 2 มิติ</button>
+    <button class="cad-maintab" id="tabBtn3d" type="button" role="tab" aria-selected="false" data-i18n="tab3dLbl">🧊 มุมมอง 3 มิติ</button>
+  </div>
+
+  <div id="panel2d">
   <div class="card">
     <div class="cad-toolbar">
       <div class="cad-tb-group">
@@ -347,10 +392,137 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
     </div>
     <p class="cad-hint" data-i18n="plotHint">เลือกกระดาษ/แนว/มาตราส่วน แล้วกด "สร้าง PDF" — วาดแบบตามมาตราส่วนจริงแบบเวกเตอร์ พร้อมกรอบและป้ายมาตราส่วน</p>
   </div>
+  </div><!-- /panel2d -->
 
+  <div id="panel3d" hidden>
+  <div class="warn-note">🧪 <b>Stage 9 (proof of concept)</b> — เวอร์ชันแรกของโมเดล 3 มิติแบบ solid: รองรับกล่อง/ทรงกระบอก/ทรงกลม
+    + รวม/ตัด/หาส่วนร่วม ต่อกันเป็น "ชิ้นงานหลัก" เดียว (ยังไม่รองรับหลายชิ้นงานอิสระพร้อมกัน, มุมโค้ง/champfer,
+    หรือหมุนตำแหน่ง — จะเพิ่มในสเตจถัดไปตามความจำเป็นจริง) เคอร์เนล 3 มิติ (~15-50MB) โหลดจาก CDN ครั้งแรกที่เปิดหน้านี้
+    เท่านั้น อาจใช้เวลาสักครู่ตามความเร็วอินเทอร์เน็ต</div>
+
+  <div class="card">
+    <h2>1) เพิ่มรูปทรงพื้นฐาน</h2>
+    <div class="c3-form">
+      <label>ชนิดรูปทรง
+        <select id="shapeKindSel">
+          <option value="box">กล่อง (Box)</option>
+          <option value="cylinder">ทรงกระบอก (Cylinder)</option>
+          <option value="sphere">ทรงกลม (Sphere)</option>
+          <option value="sketch">จากภาพร่าง 2 มิติ (Extrude/Revolve)</option>
+        </select>
+      </label>
+      <div class="c3-dims" id="dimsBox">
+        <label>กว้าง X (มม.)<input type="text" id="boxX" inputmode="decimal" value="100"></label>
+        <label>ลึก Y (มม.)<input type="text" id="boxY" inputmode="decimal" value="80"></label>
+        <label>สูง Z (มม.)<input type="text" id="boxZ" inputmode="decimal" value="40"></label>
+      </div>
+      <div class="c3-dims" id="dimsCylinder" hidden>
+        <label>รัศมี (มม.)<input type="text" id="cylR" inputmode="decimal" value="20"></label>
+        <label>สูง Z (มม.)<input type="text" id="cylH" inputmode="decimal" value="60"></label>
+      </div>
+      <div class="c3-dims" id="dimsSphere" hidden>
+        <label>รัศมี (มม.)<input type="text" id="sphR" inputmode="decimal" value="25"></label>
+      </div>
+      <div class="c3-dims" id="dimsSketch" hidden>
+        <label>เส้นขอบจากแบบ 2 มิติ
+          <select id="sketchProfileSel" style="width:220px"></select>
+        </label>
+        <button class="btn sm" id="sketchReloadBtn" type="button">🔄 โหลดใหม่</button>
+        <label>วิธีขึ้นรูป
+          <select id="sketchModeSel">
+            <option value="extrude">อัดขึ้นตรง (Extrude)</option>
+            <option value="revolve">หมุนรอบแกน (Revolve)</option>
+          </select>
+        </label>
+        <label id="sketchExtrudeWrap">สูง (มม.)<input type="text" id="sketchHeight" inputmode="decimal" value="20"></label>
+        <label id="sketchRevolveWrap" hidden>แกนหมุน
+          <select id="sketchAxisSel">
+            <option value="x">แกน X</option>
+            <option value="y">แกน Y</option>
+          </select>
+        </label>
+        <label id="sketchAngleWrap" hidden>มุมหมุน (°)<input type="text" id="sketchAngle" inputmode="decimal" value="360"></label>
+        <div class="hint c3-error" id="sketchAxisWarn" hidden>⚠️ เส้นขอบนี้อยู่คร่อมแกนหมุน (มีทั้งฝั่งบวกและฝั่งลบของแกน) หมุนแล้วจะซ้อนทับตัวเอง สร้างเป็นทรงตันไม่ได้ — ย้ายภาพร่างในแท็บ "ร่างภาพ 2 มิติ" ให้อยู่ฝั่งเดียวของแกนก่อน หรือเปลี่ยนแกนหมุน</div>
+      </div>
+      <div class="c3-dims">
+        <label>ตำแหน่ง X (มม.)<input type="text" id="posX" inputmode="decimal" value="0"></label>
+        <label>ตำแหน่ง Y (มม.)<input type="text" id="posY" inputmode="decimal" value="0"></label>
+        <label>ตำแหน่ง Z (มม.)<input type="text" id="posZ" inputmode="decimal" value="0"></label>
+      </div>
+      <label id="opWrap" hidden>วิธีรวมกับชิ้นงานหลัก
+        <select id="opSel">
+          <option value="union">รวม (Union)</option>
+          <option value="cut">ตัดออก (Cut)</option>
+          <option value="intersect">ส่วนร่วม (Intersect)</option>
+        </select>
+      </label>
+      <button class="btn sm primary" id="addShapeBtn" type="button">✔️ วางเป็นชิ้นงานหลัก</button>
+    </div>
+    <p class="hint">ชิ้นแรกจะถูกวางเป็น "ชิ้นงานหลัก" โดยตรง ชิ้นถัดไปให้เลือกวิธีรวม (รวม/ตัดออก/ส่วนร่วม) แล้วกดปุ่มเพื่อรวมเข้ากับชิ้นงานหลัก
+      · <b>รูปทรงสีส้มโปร่งแสงในมุมมอง 3 มิติด้านล่างคือตัวอย่างชิ้นที่กำลังจะเพิ่ม — ลากลูกศรสีเพื่อวางตำแหน่งเองได้เลย ไม่ต้องพิมพ์ตัวเลข</b>
+      · "จากภาพร่าง 2 มิติ" อ่านแบบที่วาดไว้ล่าสุดในแท็บ <a href="#" id="goto2dLink">ร่างภาพ 2 มิติ</a> — รองรับเฉพาะสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดเท่านั้น (เส้นตรงหลายเส้น/เส้นโค้งสปไลน์/ส่วนโค้งยังไม่รองรับในสเตจนี้)</p>
+  </div>
+
+  <div class="card">
+    <h2>2) ลำดับขั้นตอนของชิ้นงาน</h2>
+    <div class="c3-steps" id="stepsList"></div>
+    <div class="c3-form" style="margin-top:10px">
+      <button class="btn sm" id="undoStepBtn" type="button" disabled>↩️ ย้อนขั้นตอนล่าสุด</button>
+      <button class="btn sm danger" id="resetBtn" type="button" disabled>🧹 เริ่มใหม่ทั้งหมด</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3) มุมมอง 3 มิติ</h2>
+    <div class="c3-viewport-wrap" id="c3Viewport">
+      <div class="c3-overlay" id="c3Overlay">
+        <div class="c3-spinner" id="c3Spinner"></div>
+        <div id="c3OverlayText">เพิ่มรูปทรงแรกด้านบนเพื่อเริ่มสร้างชิ้นงาน</div>
+      </div>
+    </div>
+    <p class="hint">ลากซ้ายเพื่อหมุนมุมมอง · ลากขวาเพื่อเลื่อน · หมุนล้อเมาส์/บีบสองนิ้วเพื่อซูม</p>
+  </div>
+
+  <div class="card">
+    <h2>4) ส่งออกไฟล์</h2>
+    <div class="c3-form">
+      <button class="btn sm" id="exportStepBtn" type="button" disabled>📐 STEP</button>
+      <button class="btn sm" id="exportStlBtn" type="button" disabled>🖨️ STL</button>
+      <button class="btn sm" id="exportGlbBtn" type="button" disabled>🧊 GLB</button>
+    </div>
+    <p class="hint">STEP เปิดต่อในโปรแกรม CAD วิศวกรรมอื่นได้ (SolidWorks/Fusion 360/FreeCAD ฯลฯ) · STL/GLB ใช้พิมพ์ 3 มิติหรือแสดงผลทั่วไป</p>
+  </div>
+  </div><!-- /panel3d -->
+
+  <footer><a href="documents.html" data-i18n="backLink">← กลับหน้างานที่รับผิดชอบ</a></footer>
 </div>
+<script type="importmap">
+{"imports":{"three":"./vendor/three/three.module.min.js","three/addons/":"./vendor/three/jsm/"}}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="cad.js"></script>
+<script type="module" src="cad3d.js"></script>
 <script src="auth-gate.js"></script>
+<script>
+(function () {
+  'use strict';
+  function showTab(tab) {
+    var is3d = tab === '3d';
+    document.getElementById('panel2d').hidden = is3d;
+    document.getElementById('panel3d').hidden = !is3d;
+    document.getElementById('tabBtn2d').classList.toggle('active', !is3d);
+    document.getElementById('tabBtn2d').setAttribute('aria-selected', String(!is3d));
+    document.getElementById('tabBtn3d').classList.toggle('active', is3d);
+    document.getElementById('tabBtn3d').setAttribute('aria-selected', String(is3d));
+    if (is3d) window.dispatchEvent(new Event('cad3d:tabshown')); // ให้ cad3d.js resize() วิวพอร์ตใหม่ (ตอนซ่อนอยู่ clientWidth/Height เป็น 0)
+    if (location.hash !== '#' + tab) history.replaceState(null, '', '#' + tab);
+  }
+  document.getElementById('tabBtn2d').addEventListener('click', function () { showTab('2d'); });
+  document.getElementById('tabBtn3d').addEventListener('click', function () { showTab('3d'); });
+  var goto2d = document.getElementById('goto2dLink');
+  if (goto2d) goto2d.addEventListener('click', function (e) { e.preventDefault(); showTab('2d'); });
+  showTab(location.hash === '#3d' ? '3d' : '2d'); // รองรับ deep-link จาก cad3d.html (redirect เดิม) ที่ชี้มา #3d
+})();
+</script>
 </body>
 </html>
