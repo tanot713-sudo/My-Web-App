@@ -85,14 +85,36 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     }
     return builder.Wire();
   }
+  /* เส้นขอบที่จะหมุน (revolve) ต้องอยู่ฝั่งเดียวของแกนหมุนทั้งหมด (ไม่คร่อมแกน) ไม่งั้นผลลัพธ์จะซ้อนทับ
+     ตัวเอง (self-intersecting) ซึ่ง OCCT สร้างเป็นทรงตันที่ถูกต้องไม่ได้ — เช็กจากพิกัด 2 มิติของ profile
+     ตรงๆ ก่อนเรียก OCCT เลย (ไม่ต้องพึ่ง oc) เพื่อเตือนผู้ใช้ด้วยข้อความที่เข้าใจได้ แทนที่จะปล่อยให้ OCCT
+     โยน exception เป็นแค่ตัวเลข pointer ดิบๆ ที่อ่านไม่รู้เรื่อง (ข้อจำกัดที่รู้กันของ opencascade.js) */
+  function revolveAxisStraddle(profile, axis) {
+    var key = axis === 'y' ? 'x' : 'y'; // หมุนรอบแกน X เช็กช่วงพิกัด Y ของ profile (และกลับกัน)
+    var lo = Infinity, hi = -Infinity;
+    if (profile.points && profile.points.length) {
+      profile.points.forEach(function (p) { var v = p[key]; if (v < lo) lo = v; if (v > hi) hi = v; });
+    } else if (profile.circle) {
+      var center = key === 'x' ? profile.circle.cx : profile.circle.cy;
+      lo = center - profile.circle.r; hi = center + profile.circle.r;
+    } else return false;
+    var EPS = 1e-6;
+    return lo < -EPS && hi > EPS;
+  }
   /* ขึ้นรูป 3 มิติจากเส้นขอบปิด: อัดขึ้นตรง (extrude, ตามแกน Z) หรือหมุนรอบแกน (revolve, รอบแกน X/Y ที่ผ่าน
-     จุดกำเนิดโลก — ตำแหน่ง (pos) ใช้เลื่อนผลลัพธ์หลังขึ้นรูปแล้ว เหมือนรูปทรงพื้นฐานชนิดอื่น) */
+     จุดกำเนิดโลก — ตำแหน่ง (pos) ใช้เลื่อนผลลัพธ์หลังขึ้นรูปแล้ว เหมือนรูปทรงพื้นฐานชนิดอื่น)
+     หมุนเต็มรอบ (มุม >= 360°) ต้องใช้ BRepPrimAPI_MakeRevol_2 (overload ที่ไม่รับมุม เป็นตัวสร้างสำหรับ
+     "หมุนเต็มวง" โดยเฉพาะของ OCCT) แทนการยัดมุม 2π เข้า overload ที่รับมุม (_1) ตรงๆ — การส่ง 2π เข้า
+     overload แบบมีมุมทำให้เกิดขอบ/หน้าประกบกันพอดีที่จุดเริ่ม-จบการหมุน ซึ่ง OCCT มักสร้างทรงตันที่ถูกต้อง
+     ไม่ได้ (เป็นสาเหตุ error ตัวเลข pointer ดิบๆ ที่เจอตอน revolve 360° จริงบน production) */
   function buildSketchSolid(oc, dims) {
     var face = new oc.BRepBuilderAPI_MakeFace_15(buildWireFromProfile(oc, dims.profile), true).Face();
     if (dims.mode === 'revolve') {
       var axisDir = dims.axis === 'y' ? new oc.gp_Dir_4(0, 1, 0) : new oc.gp_Dir_4(1, 0, 0);
       var ax1 = new oc.gp_Ax1_2(new oc.gp_Pnt_3(0, 0, 0), axisDir);
-      return new oc.BRepPrimAPI_MakeRevol_1(face, ax1, Math.max(0.01, dims.angle || 360) * Math.PI / 180, false).Shape();
+      var angleDeg = Math.max(0.01, dims.angle || 360);
+      if (angleDeg >= 359.99) return new oc.BRepPrimAPI_MakeRevol_2(face, ax1, false).Shape();
+      return new oc.BRepPrimAPI_MakeRevol_1(face, ax1, angleDeg * Math.PI / 180, false).Shape();
     }
     return new oc.BRepPrimAPI_MakePrism_1(face, new oc.gp_Vec_4(0, 0, dims.height || 10), false, true).Shape();
   }
@@ -344,12 +366,23 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
       sel.innerHTML = loadedProfiles.map(function (p, i) { return '<option value="' + i + '">' + p.label + '</option>'; }).join('');
     }
     rebuildPreview();
+    updateSketchAxisWarn();
   }
   function updateSketchModeUI() {
     var revolve = $('sketchModeSel').value === 'revolve';
     $('sketchExtrudeWrap').hidden = revolve;
     $('sketchRevolveWrap').hidden = !revolve;
     $('sketchAngleWrap').hidden = !revolve;
+    updateSketchAxisWarn();
+  }
+  /* เตือนล่วงหน้าก่อนกด "วาง/รวม" ถ้าโปรไฟล์+แกนหมุนที่เลือกอยู่จะคร่อมแกน (จะสร้างทรงตันไม่ได้แน่ๆ) —
+     ให้ผู้ใช้เห็นปัญหาทันทีตอนเลือก ไม่ต้องรอไปเจอตอนกด "วาง" แล้วเสียเวลารอ OCCT คำนวณก่อนถึงจะรู้ */
+  function updateSketchAxisWarn() {
+    var warnEl = $('sketchAxisWarn');
+    if (shapeKindSel.value !== 'sketch' || $('sketchModeSel').value !== 'revolve') { warnEl.hidden = true; return; }
+    var idx = parseInt($('sketchProfileSel').value, 10);
+    var profile = (isFinite(idx) && loadedProfiles[idx]) ? loadedProfiles[idx] : null;
+    warnEl.hidden = !profile || !revolveAxisStraddle(profile, $('sketchAxisSel').value);
   }
   function readForm() {
     var kind = shapeKindSel.value, dims;
@@ -447,7 +480,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     ['boxX', 'boxY', 'boxZ', 'cylR', 'cylH', 'sphR', 'sketchHeight', 'sketchAngle'].forEach(function (id) {
       $(id).addEventListener('input', rebuildPreview);
     });
-    ['sketchProfileSel', 'sketchAxisSel'].forEach(function (id) { $(id).addEventListener('change', rebuildPreview); });
+    ['sketchProfileSel', 'sketchAxisSel'].forEach(function (id) { $(id).addEventListener('change', function () { rebuildPreview(); updateSketchAxisWarn(); }); });
     $('sketchModeSel').addEventListener('change', function () { updateSketchModeUI(); rebuildPreview(); });
     $('sketchReloadBtn').addEventListener('click', refreshProfileList);
     ['posX', 'posY', 'posZ'].forEach(function (id) {
@@ -456,6 +489,10 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     addShapeBtn.addEventListener('click', function () {
       var f = readForm();
       if (f.kind === 'sketch' && !f.dims.profile) { alert('กรุณาเลือกเส้นขอบปิดจากแบบ 2 มิติก่อน (หรือกด "โหลดใหม่" ถ้าเพิ่งวาดเพิ่ม)'); return; }
+      if (f.kind === 'sketch' && f.dims.mode === 'revolve' && revolveAxisStraddle(f.dims.profile, f.dims.axis)) {
+        alert('เส้นขอบที่เลือกอยู่คร่อมแกนหมุน (มีทั้งฝั่งบวกและฝั่งลบของแกน' + f.dims.axis.toUpperCase() + ') หมุนแล้วจะซ้อนทับตัวเอง สร้างเป็นทรงตันไม่ได้ — กรุณาย้ายภาพร่างในหน้างานเขียนแบบ CAD ให้อยู่ฝั่งเดียวของแกนก่อน หรือเปลี่ยนแกนหมุน');
+        return;
+      }
       var step = { op: state.steps.length ? opSel.value : 'add', kind: f.kind, dims: f.dims, pos: f.pos };
       state.steps.push(step);
       saveSteps(); updateAddUI(); rebuildAndRender();
