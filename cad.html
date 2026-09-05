@@ -155,6 +155,7 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
 .c3-editing-tag{color:var(--brand-dk);text-decoration:none!important}
 .c3-viewport-wrap{position:relative;height:min(62vh,560px);border-radius:14px;overflow:hidden;background:#E7ECF4;margin-top:6px}
 .c3-viewport-wrap canvas{display:block;width:100%;height:100%}
+.c3-viewport-wrap.c3-pick-cursor canvas{cursor:crosshair}
 .c3-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
   background:rgba(231,236,244,.92);text-align:center;padding:20px;font-size:13.5px;color:var(--muted)}
 .c3-spinner{width:34px;height:34px;border-radius:50%;border:3.5px solid var(--brand-sf);border-top-color:var(--brand);animation:c3spin 1s linear infinite}
@@ -436,8 +437,11 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
             <option value="top">ระนาบบน (Top)</option>
             <option value="front">ระนาบหน้า (Front)</option>
             <option value="right">ระนาบข้าง (Right)</option>
+            <option value="picked" id="pickedPlaneOption" disabled>หน้าที่เลือกเอง (ยังไม่ได้เลือก)</option>
           </select>
         </label>
+        <button class="btn sm" id="pickFaceBtn" type="button">📌 เลือกหน้าจากชิ้นงาน</button>
+        <span class="hint" id="pickFaceStatus"></span>
         <label>วิธีขึ้นรูป
           <select id="sketchModeSel">
             <option value="extrude">อัดขึ้นตรง (Extrude)</option>
@@ -472,7 +476,8 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
     <p class="hint">ชิ้นแรกจะถูกวางเป็น "ชิ้นงานหลัก" โดยตรง ชิ้นถัดไปให้เลือกวิธีรวม (รวม/ตัดออก/ส่วนร่วม) แล้วกดปุ่มเพื่อรวมเข้ากับชิ้นงานหลัก
       · <b>รูปทรงสีส้มโปร่งแสงในมุมมอง 3 มิติด้านล่างคือตัวอย่างชิ้นที่กำลังจะเพิ่ม — ลากลูกศรสีเพื่อวางตำแหน่งเองได้เลย ไม่ต้องพิมพ์ตัวเลข</b>
       · "จากภาพร่าง 2 มิติ" อ่านแบบที่วาดไว้ล่าสุดในแท็บ <a href="#" id="goto2dLink">ร่างภาพ 2 มิติ</a> — รองรับเฉพาะสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดเท่านั้น (เส้นตรงหลายเส้น/เส้นโค้งสปไลน์/ส่วนโค้งยังไม่รองรับในสเตจนี้)
-      · <b>ระนาบร่าง</b> กำหนดว่าภาพร่าง 2 มิติจะไปวางอยู่ในระนาบไหนของโลก 3 มิติ — ระนาบบน (Top) เดิม/ระนาบหน้า (Front)/ระนาบข้าง (Right) ตามธรรมเนียม SolidWorks ทิศทางอัดขึ้นตรง/แกนหมุนจะเปลี่ยนตามระนาบที่เลือกให้อัตโนมัติ</p>
+      · <b>ระนาบร่าง</b> กำหนดว่าภาพร่าง 2 มิติจะไปวางอยู่ในระนาบไหนของโลก 3 มิติ — ระนาบบน (Top) เดิม/ระนาบหน้า (Front)/ระนาบข้าง (Right) ตามธรรมเนียม SolidWorks ทิศทางอัดขึ้นตรง/แกนหมุนจะเปลี่ยนตามระนาบที่เลือกให้อัตโนมัติ
+      · <b>📌 เลือกหน้าจากชิ้นงาน</b> (ใหม่): คลิกปุ่มนี้แล้วคลิกหน้าเรียบของชิ้นงาน 3 มิติจริงในวิวพอร์ตด้านล่าง เพื่อร่างภาพลงบนหน้านั้นตรงๆ (แทนการเลือกระนาบมาตรฐาน 3 แบบด้านบน) — รองรับเฉพาะหน้าเรียบเท่านั้น (หน้าโค้งคลิกไม่ติด) และรองรับเฉพาะโหมด "อัดขึ้นตรง" เท่านั้น (ไม่รองรับหมุนรอบแกน) นอกจากนี้เป็นการอ้างอิงตำแหน่ง "ครั้งเดียว" ตอนคลิก — ถ้าแก้ไขขั้นตอนก่อนหน้าจนรูปทรงเปลี่ยนไป ตำแหน่งหน้าที่บันทึกไว้จะไม่ขยับตาม ต้องเลือกหน้าใหม่เอง</p>
   </div>
 
   <div class="card">

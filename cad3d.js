@@ -43,6 +43,32 @@
    - ปิด/เปิดใช้งานชั่วคราว (toggleSuppress): เก็บข้อมูลไว้แต่ข้ามตอน rebuildShape() — มีประโยชน์ตอนหา
      ว่าขั้นตอนไหนทำให้ boolean chain พังโดยไม่ต้องลบทิ้งจริง
    ตั้งใจไม่ทำ: สลับลำดับขั้นตอน (reorder) — boolean op มีผลตามลำดับ สลับมั่วอาจได้ผลลัพธ์ผิดแบบเงียบๆ
+
+   Stage 10c: ร่างบนระนาบมาตรฐาน 3 แบบ (Top/Front/Right) แทนระนาบ XY ตายตัวเดิม — ดูฟังก์ชัน
+   mapPlanePoint/planeNormalVec/extrudeVecForPlane/axisVectorForPlane/extrudeAxisLetter ด้านล่าง
+
+   Stage 10d: "คลิกหน้าจริงของชิ้นงานเพื่อร่างบนหน้านั้น" — ต่อยอดจาก Stage 10c โดยขยาย "ระนาบ" (plane)
+   จากเดิมที่เป็น string ('top'/'front'/'right') ให้รับอ็อบเจกต์ฐาน (basis object) ได้ด้วย:
+   { origin:{x,y,z}, normal:{x,y,z}, xDir:{x,y,z}, yDir:{x,y,z} } — ทุกฟังก์ชัน map...Point/axis...ForPlane
+   ด้านบนแก้ให้เช็ก "เป็นอ็อบเจกต์ไหม" ก่อน (isPlaneObject) แล้วค่อย fallback ไปกรณี string เดิม พิสูจน์แล้วว่าพฤติกรรม
+   เดิมของ 3 ระนาบ string ไม่เปลี่ยนแปลงเลย (unit test)
+
+   วิธีหา "หน้า" จากการคลิก: ใช้ three.js Raycaster ยิงเข้า mesh ที่แสดงผลอยู่แล้ว (ตาข่ายจาก STL, ไม่ใช่
+   TopoDS_Face ของ OCCT โดยตรง) หาสามเหลี่ยมที่โดนคลิก แล้วรวบรวมสามเหลี่ยมอื่นๆ ที่ "อยู่ระนาบเดียวกัน"
+   (ทิศ normal เดียวกัน + ระยะตั้งฉากจากจุดกำเนิดเท่ากัน ภายใน tolerance) — ตั้งใจเลือกวิธีนี้แทนการเดิน
+   TopExp_Explorer + BRepAdaptor_Surface (วิธีมาตรฐานของ OCCT เอง) เพราะ (ก) ไม่ต้องเพิ่ม per-face meshing
+   pipeline ใหม่ ใช้ mesh ที่มีอยู่แล้วตรงๆ (ข) เป็นคณิตศาสตร์ล้วนๆ ทดสอบได้เต็มที่แบบไม่ต้องพึ่ง OCCT/CDN เลย
+   ต่างจากเส้นทาง OCCT ที่ยังไม่เคยรันจริงได้ในแซนด์บ็อกซ์นี้เลยสักครั้ง — ข้อจำกัดที่ยอมรับ: ตรวจจับ "หน้า"
+   แบบ coplanar ล้วนๆ ไม่ได้เดิน adjacency จริง เลยถ้ามีหน้าเรียบคนละหน้าที่บังเอิญอยู่ระนาบเดียวกันเป๊ะ (เช่น
+   ผิวกล่อง 2 ก้อนชนกันพอดี) จะถูกนับรวมเป็นหน้าเดียวกันผิดพลาด (กรณีหายากมาก ยอมรับได้)
+
+   ข้อจำกัดอื่นที่ตั้งใจยอมรับในสเตจนี้: (1) รองรับเฉพาะโหมด "อัดขึ้นตรง" บนหน้าที่เลือกเอง ไม่รองรับ "หมุน
+   รอบแกน" (แกนหมุนของ revolve บนระนาบ string เดิมยึดผ่านจุดกำเนิดโลกเสมอ ซึ่งไม่มีความหมายสำหรับระนาบที่
+   ลอยอยู่กลางอากาศ ต้องคิดเรื่องตำแหน่งแกนใหม่ทั้งหมด ตัดออกไปก่อน) (2) จุดจับลากความสูง (height-drag
+   handle จาก Stage ก่อนหน้า) ใช้ไม่ได้กับหน้าที่เลือกเอง เพราะทิศตั้งฉากของหน้าที่คลิกไม่จำเป็นต้องตรงกับ
+   แกนโลกแกนใดแกนหนึ่งเสมอไป (TransformControls แบบ showX/Y/Z ล็อกได้แค่แกนโลก) — ใช้กรอกตัวเลขความสูง
+   แทนเท่านั้นสำหรับกรณีนี้ (3) เป็นการอ้างอิงตำแหน่ง "ครั้งเดียว" (one-shot) ไม่ associative — ถ้าขั้นตอน
+   ก่อนหน้าถูกแก้ไขทีหลังจนรูปทรงเปลี่ยนไป ตำแหน่งหน้าที่บันทึกไว้จะไม่ขยับตาม ต้องเลือกหน้าใหม่เอง
    ══════════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -60,9 +86,12 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 
   var state = { steps: [], oc: null, lastShape: null, lastStlBytes: null };
   var editingIndex = null; // Stage 10b: index ของขั้นตอนที่กำลังแก้ไขอยู่ (null = โหมดเพิ่มขั้นตอนใหม่ตามปกติ)
+  var pickedPlaneBasis = null; // Stage 10d: อ็อบเจกต์ฐานของหน้าที่เลือกเองล่าสุด (null = ยังไม่เคยเลือก)
+  var pickMode = false; // Stage 10d: กำลังรอให้ผู้ใช้คลิกหน้าในวิวพอร์ตอยู่หรือไม่
   var scene, camera, renderer, controls, mesh, viewportEl;
   var xform, previewAnchor;
   var heightXform, heightHandle, heightLine;
+  var raycaster = new THREE.Raycaster(); // Stage 10d
   var overlayEl = $('c3Overlay'), spinnerEl = $('c3Spinner'), overlayTextEl = $('c3OverlayText');
 
   /* ══════════════════ โหลด OpenCascade.js แบบ lazy จาก CDN (ครั้งแรกเท่านั้น, cache promise ไว้) ══════════════════
@@ -94,12 +123,25 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
      ตามระนาบด้วย (ดูหมายเหตุที่ axisVectorForPlane ด้านล่าง)
      ฟังก์ชันเหล่านี้เป็นคณิตศาสตร์ล้วนๆ ไม่ต้องพึ่ง oc เลย (ทดสอบแยกได้โดยไม่ต้องมี OCCT/เบราว์เซอร์) —
      ใช้แค่ตอนแปลงเป็นจริง (ห่อด้วย oc.gp_Pnt_3/oc.gp_Dir_4/oc.gp_Vec_4) ในฟังก์ชันที่ต้องใช้ oc เท่านั้น */
+  /* Stage 10d: "ระนาบ" (plane) ตอนนี้เป็นได้ 2 แบบ — string เดิม ('top'/'front'/'right') หรืออ็อบเจกต์ฐาน
+     เต็มรูปแบบ { origin:{x,y,z}, normal:{x,y,z}, xDir:{x,y,z}, yDir:{x,y,z} } (จากการคลิกเลือกหน้าจริง) —
+     ทุกฟังก์ชันด้านล่างเช็กแบบนี้ก่อนเสมอแล้วค่อย fallback ไปกรณี string 3 แบบเดิม (พฤติกรรมของ 3 แบบเดิม
+     ไม่เปลี่ยนแปลงเลย ยืนยันด้วย unit test) */
+  function isPlaneObject(plane) { return !!plane && typeof plane === 'object'; }
   function mapPlanePoint(plane, u, v) {
+    if (isPlaneObject(plane)) {
+      return {
+        x: plane.origin.x + plane.xDir.x * u + plane.yDir.x * v,
+        y: plane.origin.y + plane.xDir.y * u + plane.yDir.y * v,
+        z: plane.origin.z + plane.xDir.z * u + plane.yDir.z * v
+      };
+    }
     if (plane === 'front') return { x: u, y: 0, z: v };
     if (plane === 'right') return { x: 0, y: u, z: v };
     return { x: u, y: v, z: 0 }; // top (ค่าเริ่มต้นเดิม)
   }
   function planeNormalVec(plane) {
+    if (isPlaneObject(plane)) return plane.normal;
     if (plane === 'front') return { x: 0, y: 1, z: 0 };
     if (plane === 'right') return { x: 1, y: 0, z: 0 };
     return { x: 0, y: 0, z: 1 }; // top
@@ -111,13 +153,76 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
   /* axis 'x'/'y' หมายถึง "แกนที่ 1/2 ของ profile เอง" (แกน u/v) ไม่ใช่แกนโลกตรงๆ — พอแมปผ่านระนาบแล้ว
      จะกลายเป็นแกนโลกที่ต่างกันไปตามระนาบ (ดูตารางในคอมเมนต์ dimsLabel/AXIS_LABELS_BY_PLANE ด้านล่าง)
      revolveAxisStraddle() ยังใช้ตรรกะเดิมได้ทั้งหมดโดยไม่ต้องแก้ เพราะเช็กจากพิกัด (u,v) ของ profile เอง
-     ตรงๆ อยู่แล้ว ไม่สนใจว่าจะแมปไปเป็นแกนโลกไหน */
+     ตรงๆ อยู่แล้ว ไม่สนใจว่าจะแมปไปเป็นแกนโลกไหน (ไม่ใช้กับระนาบที่เลือกเอง — โหมดหมุนรอบแกนไม่รองรับกรณีนั้น) */
   function axisVectorForPlane(plane, axis) {
+    if (isPlaneObject(plane)) return axis === 'y' ? plane.yDir : plane.xDir;
     if (plane === 'front') return axis === 'y' ? { x: 0, y: 0, z: 1 } : { x: 1, y: 0, z: 0 };
     if (plane === 'right') return axis === 'y' ? { x: 0, y: 0, z: 1 } : { x: 0, y: 1, z: 0 };
     return axis === 'y' ? { x: 0, y: 1, z: 0 } : { x: 1, y: 0, z: 0 }; // top (ค่าเริ่มต้นเดิม)
   }
-  function extrudeAxisLetter(plane) { return plane === 'front' ? 'y' : (plane === 'right' ? 'x' : 'z'); }
+  /* คืนค่า null สำหรับระนาบที่เลือกเอง (object) — หมายถึง "ไม่มีแกนโลกแกนเดียวที่ตรงกับทิศตั้งฉากของ
+     ระนาบนี้เสมอไป" ใช้เป็นสัญญาณให้ updateHeightHandle() ซ่อนจุดจับลากความสูงไปเลยสำหรับกรณีนี้
+     (ดูหมายเหตุ Stage 10d ที่หัวไฟล์) */
+  function extrudeAxisLetter(plane) {
+    if (isPlaneObject(plane)) return null;
+    return plane === 'front' ? 'y' : (plane === 'right' ? 'x' : 'z');
+  }
+
+  /* ══════════════════ Stage 10d: หา "หน้าเรียบ" จากการคลิกบนตาข่ายที่แสดงผล ══════════════════
+     ฟังก์ชันกลุ่มนี้เป็นคณิตศาสตร์ล้วนๆ (เวกเตอร์ 3 มิติแบบ plain object ไม่พึ่ง THREE.Vector3 หรือ OCCT
+     เลย) ทดสอบแยกได้เต็มที่ในแซนด์บ็อกซ์ที่ CDN ถูกบล็อกอยู่ */
+  function cross3(a, b) { return { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x }; }
+  function normalize3(v) { var l = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z) || 1; return { x: v.x / l, y: v.y / l, z: v.z / l }; }
+  /* normal ของสามเหลี่ยม (a,b,c) แต่ละจุดเป็น {x,y,z} — คืน null ถ้าสามเหลี่ยมเสื่อม (พื้นที่ ~0) */
+  function triangleNormal(a, b, c) {
+    var u = { x: b.x - a.x, y: b.y - a.y, z: b.z - a.z };
+    var v = { x: c.x - a.x, y: c.y - a.y, z: c.z - a.z };
+    var n = cross3(u, v);
+    var len = Math.sqrt(n.x * n.x + n.y * n.y + n.z * n.z);
+    if (len < 1e-12) return null;
+    return { x: n.x / len, y: n.y / len, z: n.z / len };
+  }
+  /* positions: array แบบแบน [x0,y0,z0, x1,y1,z1, x2,y2,z2, ...] ไม่มี index (ตรงกับ
+     BufferGeometry.attributes.position.array ที่ STLLoader สร้างให้ — ทุก 9 ค่า = 1 สามเหลี่ยม) —
+     คืนสามเหลี่ยม (ตามลำดับ triangle index) ที่ "อยู่ระนาบเดียวกัน" กับสามเหลี่ยมที่ refTriIndex ทั้งหมด
+     (normal ทิศเดียวกันภายในมุม tolerance + ระยะตั้งฉากจากจุดกำเนิดเท่ากันภายใน tolerance) */
+  function findCoplanarTriangles(positions, refTriIndex, normalCosTol, distTol) {
+    var triCount = Math.floor(positions.length / 9);
+    if (refTriIndex < 0 || refTriIndex >= triCount) return null;
+    function triPts(t) {
+      var o = t * 9;
+      return [
+        { x: positions[o], y: positions[o + 1], z: positions[o + 2] },
+        { x: positions[o + 3], y: positions[o + 4], z: positions[o + 5] },
+        { x: positions[o + 6], y: positions[o + 7], z: positions[o + 8] }
+      ];
+    }
+    var refPts = triPts(refTriIndex);
+    var refN = triangleNormal(refPts[0], refPts[1], refPts[2]);
+    if (!refN) return null;
+    var refD = refN.x * refPts[0].x + refN.y * refPts[0].y + refN.z * refPts[0].z;
+    var matched = [];
+    for (var t = 0; t < triCount; t++) {
+      var pts = triPts(t);
+      var n = triangleNormal(pts[0], pts[1], pts[2]);
+      if (!n) continue;
+      var cos = n.x * refN.x + n.y * refN.y + n.z * refN.z;
+      if (cos < normalCosTol) continue;
+      var d = refN.x * pts[0].x + refN.y * pts[0].y + refN.z * pts[0].z;
+      if (Math.abs(d - refD) > distTol) continue;
+      matched.push(t);
+    }
+    return { normal: refN, offset: refD, triangles: matched };
+  }
+  /* สร้างแกน x/y ในระนาบตั้งฉากกับ normal แบบตายตัว (deterministic) ไม่มีความหมายพิเศษว่าแกนไหนคือ "ขวา/
+     บน" ของหน้านั้น (ผู้ใช้ยังลากภาพร่าง 2 มิติในระนาบนี้ได้ปกติ แค่ทิศ u/v อาจไม่ตรงสัญชาตญาณเป๊ะ) —
+     เลือกแกนโลกที่ไม่ขนานกับ normal มาช่วย cross ก่อน กัน edge case ที่ normal ขนานแกน X พอดี */
+  function buildPlaneBasisFromNormal(normal, origin) {
+    var helper = Math.abs(normal.x) < 0.9 ? { x: 1, y: 0, z: 0 } : { x: 0, y: 1, z: 0 };
+    var xDir = normalize3(cross3(helper, normal));
+    var yDir = normalize3(cross3(normal, xDir));
+    return { origin: { x: origin.x, y: origin.y, z: origin.z }, normal: normal, xDir: xDir, yDir: yDir };
+  }
 
   /* ══════════════════ สร้างรูปทรง OCCT จริงจากสูตร ══════════════════ */
   /* เส้นขอบปิด (profile) จากแบบ 2 มิติ -> TopoDS_Wire — profile.points (สี่เหลี่ยม/พอลีไลน์ปิด) ต่อ
@@ -297,6 +402,13 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
      หมุนทีละแกน (Euler) เพื่อไม่ให้พลาดทิศทาง — เวกเตอร์แต่ละแกนตรงนี้ต้องตรงกับ mapPlanePoint() เป๊ะๆ
      (ทดสอบแล้วว่า local (u,v,0) แปลงเป็น mapPlanePoint(plane,u,v) พอดีหลังคูณเมทริกซ์นี้) */
   function planePreviewBasis(plane) {
+    if (isPlaneObject(plane)) {
+      return {
+        x: new THREE.Vector3(plane.xDir.x, plane.xDir.y, plane.xDir.z),
+        y: new THREE.Vector3(plane.yDir.x, plane.yDir.y, plane.yDir.z),
+        z: new THREE.Vector3(plane.normal.x, plane.normal.y, plane.normal.z)
+      };
+    }
     if (plane === 'front') return { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 0, 1), z: new THREE.Vector3(0, 1, 0) };
     if (plane === 'right') return { x: new THREE.Vector3(0, 1, 0), y: new THREE.Vector3(0, 0, 1), z: new THREE.Vector3(1, 0, 0) };
     return { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) }; // top (ไม่หมุนเลย)
@@ -315,8 +427,13 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     } else return null;
     var mat = new THREE.MeshStandardMaterial({ color: 0xF5A524, transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide });
     var mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape2d), mat);
-    var basis = planePreviewBasis(dims.plane || 'top');
+    var plane = dims.plane || 'top';
+    var basis = planePreviewBasis(plane);
     mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(basis.x, basis.y, basis.z));
+    /* ระนาบ string เดิม (top/front/right) มี origin คงที่ (0,0,0) เสมอ (previewAnchor.position จากฟอร์ม
+       ตำแหน่ง X/Y/Z จัดการการเลื่อนทั้งชิ้นอยู่แล้ว) แต่ระนาบที่เลือกเองมี origin จริงอยู่กลางอากาศ (จุดที่
+       คลิกบนหน้าจริง) ต้องออฟเซตตรงนี้เพิ่ม (ฟอร์มตำแหน่ง X/Y/Z ยังใช้ "เลื่อนต่อ" จาก origin นี้ได้ปกติ) */
+    if (isPlaneObject(plane)) mesh.position.set(plane.origin.x, plane.origin.y, plane.origin.z);
     return mesh;
   }
   function buildPreviewMesh(kind, dims) {
@@ -357,11 +474,15 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     if (heightLine) { heightLine = null; } // (ถูกลบไปพร้อม previewAnchor เก่าแล้วตอน scene.remove ด้านบน)
     if (!show) return;
     var plane = f.dims.plane || 'top';
+    var axisLetter = extrudeAxisLetter(plane);
+    /* Stage 10d: ระนาบที่เลือกเอง (object) ไม่มีแกนโลกแกนเดียวที่ตรงกับทิศตั้งฉากเสมอไป (extrudeAxisLetter
+       คืน null) — TransformControls ล็อกแกนได้แค่แกนโลก (showX/Y/Z) เท่านั้น เลยไม่แสดงจุดจับให้ลากในกรณี
+       นี้ ใช้กรอกตัวเลขความสูงแทน (ข้อจำกัดที่ยอมรับ ดูหมายเหตุ Stage 10d ที่หัวไฟล์) */
+    if (!axisLetter) return;
     var vec = extrudeVecForPlane(plane, Math.max(0.01, f.dims.height || 20));
     heightHandle = new THREE.Object3D();
     heightHandle.position.set(vec.x, vec.y, vec.z);
     previewAnchor.add(heightHandle);
-    var axisLetter = extrudeAxisLetter(plane);
     heightXform.showX = axisLetter === 'x'; heightXform.showY = axisLetter === 'y'; heightXform.showZ = axisLetter === 'z';
     updateHeightGuideLine();
     heightXform.attach(heightHandle);
@@ -526,9 +647,10 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     else if (kind === 'cylinder') dims = { r: num('cylR', 20), h: num('cylH', 60) };
     else if (kind === 'sketch') {
       var idx = parseInt($('sketchProfileSel').value, 10);
+      var planeSelVal = $('sketchPlaneSel').value;
       dims = {
         profile: (isFinite(idx) && loadedProfiles[idx]) ? loadedProfiles[idx] : null,
-        plane: $('sketchPlaneSel').value,
+        plane: (planeSelVal === 'picked' && pickedPlaneBasis) ? pickedPlaneBasis : planeSelVal,
         mode: $('sketchModeSel').value, height: num('sketchHeight', 20), axis: $('sketchAxisSel').value, angle: num('sketchAngle', 360)
       };
     } else dims = { r: num('sphR', 25) };
@@ -553,11 +675,14 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
   var KIND_LABEL = { box: 'กล่อง', cylinder: 'ทรงกระบอก', sphere: 'ทรงกลม', sketch: 'ภาพร่าง 2 มิติ' };
   var OP_LABEL = { add: 'เริ่มจาก', union: 'รวมกับ', cut: 'ตัดออกด้วย', intersect: 'หาส่วนร่วมกับ' };
   var PLANE_LABEL = { top: 'ระนาบบน (Top)', front: 'ระนาบหน้า (Front)', right: 'ระนาบข้าง (Right)' };
+  /* Stage 10d: step.dims.plane อาจเป็นอ็อบเจกต์ฐาน (หน้าที่เลือกเอง) แทน string เดิม — แสดงป้ายกำกับ
+     พิเศษแทนการเทียบ string ตรงๆ */
+  function planeLabelFor(plane) { return isPlaneObject(plane) ? 'หน้าที่เลือกเอง (Picked Face)' : (PLANE_LABEL[plane] || PLANE_LABEL.top); }
   function dimsLabel(step) {
     if (step.kind === 'box') return step.dims.x + '×' + step.dims.y + '×' + step.dims.z + ' มม.';
     if (step.kind === 'cylinder') return 'R' + step.dims.r + ' × สูง ' + step.dims.h + ' มม.';
     if (step.kind === 'sketch') {
-      var planeTxt = ' บน' + (PLANE_LABEL[step.dims.plane] || PLANE_LABEL.top);
+      var planeTxt = ' บน' + planeLabelFor(step.dims.plane);
       return (step.dims.mode === 'revolve'
         ? '(หมุนรอบแกน' + step.dims.axis.toUpperCase() + ' ' + step.dims.angle + '°)'
         : '(อัดขึ้นตรงสูง ' + step.dims.height + ' มม.)') + planeTxt;
@@ -592,7 +717,14 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     else if (step.kind === 'cylinder') { $('cylR').value = step.dims.r; $('cylH').value = step.dims.h; }
     else if (step.kind === 'sphere') { $('sphR').value = step.dims.r; }
     else if (step.kind === 'sketch') {
-      $('sketchPlaneSel').value = step.dims.plane || 'top';
+      if (isPlaneObject(step.dims.plane)) {
+        pickedPlaneBasis = step.dims.plane;
+        markPickedPlaneAvailable();
+        $('sketchPlaneSel').value = 'picked';
+      } else {
+        $('sketchPlaneSel').value = step.dims.plane || 'top';
+      }
+      onSketchPlaneChanged();
       updateAxisOptionLabels();
       refreshProfileList(); // อ่านแบบ 2 มิติล่าสุดใหม่ (rebuildPreview() ในตัวถูกเรียกซ้ำอีกทีด้านล่าง ไม่ซ้ำซ้อนเสียหาย)
       var matchIdx = -1;
@@ -661,6 +793,65 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     }, function (err) { console.error('[cad3d] ส่งออก GLB ไม่สำเร็จ:', err); alert('ส่งออก GLB ไม่สำเร็จ'); }, { binary: true });
   }
 
+  /* ══════════════════ Stage 10d: เลือกหน้าจริงของชิ้นงานเพื่อร่างบนหน้านั้น ══════════════════ */
+  function markPickedPlaneAvailable(triCount) {
+    var opt = $('pickedPlaneOption');
+    opt.disabled = false;
+    opt.textContent = 'หน้าที่เลือกเอง' + (triCount ? (' (เลือกแล้ว — ' + triCount + ' เหลี่ยม)') : ' (เลือกแล้ว)');
+  }
+  /* ระนาบที่เลือกเองไม่รองรับ "หมุนรอบแกน" (ดูหมายเหตุ Stage 10d ที่หัวไฟล์) — สลับตัวเลือกโหมด/ปิดใช้งาน
+     ตัวเลือก revolve ให้ตรงกับระนาบที่เลือกอยู่ตอนนี้ทุกครั้งที่เปลี่ยนระนาบ */
+  function onSketchPlaneChanged() {
+    var isPicked = $('sketchPlaneSel').value === 'picked';
+    var revolveOpt = $('sketchModeSel').querySelector('option[value="revolve"]');
+    if (revolveOpt) revolveOpt.disabled = isPicked;
+    if (isPicked && $('sketchModeSel').value === 'revolve') $('sketchModeSel').value = 'extrude';
+    updateAxisOptionLabels();
+    updateSketchModeUI();
+    rebuildPreview();
+  }
+  function enterPickMode() {
+    if (!mesh) { alert('ยังไม่มีชิ้นงาน 3 มิติให้เลือกหน้า — สร้างรูปทรงอย่างน้อย 1 ขั้นตอนก่อน'); return; }
+    pickMode = true;
+    viewportEl.classList.add('c3-pick-cursor');
+    controls.enabled = false; // กันไม่ให้ลาก orbit ทับการคลิกเลือกหน้า
+    $('pickFaceStatus').textContent = 'คลิกที่หน้าเรียบของชิ้นงานด้านล่าง (กด Esc เพื่อยกเลิก)';
+  }
+  function exitPickMode() {
+    pickMode = false;
+    viewportEl.classList.remove('c3-pick-cursor');
+    controls.enabled = true;
+    $('pickFaceStatus').textContent = '';
+  }
+  var pickDownPos = null;
+  function onViewportPointerDown(e) { pickDownPos = { x: e.clientX, y: e.clientY }; }
+  function onViewportPointerUp(e) {
+    if (!pickMode || !pickDownPos) return;
+    var dx = e.clientX - pickDownPos.x, dy = e.clientY - pickDownPos.y;
+    pickDownPos = null;
+    if (Math.hypot(dx, dy) > 5) return; // ลากกล้อง (orbit) ไม่ใช่คลิกเลือกหน้า
+    handleFaceClick(e.clientX, e.clientY);
+  }
+  function handleFaceClick(clientX, clientY) {
+    if (!mesh || !mesh.geometry || !mesh.geometry.attributes.position) { exitPickMode(); return; }
+    var rect = renderer.domElement.getBoundingClientRect();
+    var ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    raycaster.setFromCamera(ndc, camera);
+    var hits = raycaster.intersectObject(mesh, false);
+    if (!hits.length) { $('pickFaceStatus').textContent = 'ไม่โดนชิ้นงาน — ลองคลิกใหม่อีกครั้ง (กด Esc เพื่อยกเลิก)'; return; }
+    var hit = hits[0];
+    if (typeof hit.faceIndex !== 'number') { $('pickFaceStatus').textContent = 'อ่านหน้านี้ไม่สำเร็จ — ลองคลิกจุดอื่น (กด Esc เพื่อยกเลิก)'; return; }
+    var positions = mesh.geometry.attributes.position.array;
+    // มุม tolerance ~3° (cos(3°)≈0.9986) และระยะ tolerance 0.05mm — พอสำหรับความคลาดเคลื่อนของการ mesh จริง
+    var coplanar = findCoplanarTriangles(positions, hit.faceIndex, 0.9986, 0.05);
+    if (!coplanar) { $('pickFaceStatus').textContent = 'อ่านหน้านี้ไม่สำเร็จ — ลองคลิกจุดอื่นบนหน้าเดียวกัน (กด Esc เพื่อยกเลิก)'; return; }
+    pickedPlaneBasis = buildPlaneBasisFromNormal(coplanar.normal, { x: hit.point.x, y: hit.point.y, z: hit.point.z });
+    markPickedPlaneAvailable(coplanar.triangles.length);
+    $('sketchPlaneSel').value = 'picked';
+    onSketchPlaneChanged();
+    exitPickMode();
+  }
+
   /* ══════════════════ ผูกปุ่ม + boot ══════════════════ */
   function boot() {
     loadSteps();
@@ -673,6 +864,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     updateSketchModeUI();
     updateAxisOptionLabels();
     shapeKindSel.addEventListener('change', function () {
+      if (pickMode) exitPickMode();
       updateDimsUI();
       if (shapeKindSel.value === 'sketch') refreshProfileList(); else rebuildPreview();
     });
@@ -681,8 +873,12 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     });
     ['sketchProfileSel', 'sketchAxisSel'].forEach(function (id) { $(id).addEventListener('change', function () { rebuildPreview(); updateSketchAxisWarn(); }); });
     $('sketchModeSel').addEventListener('change', function () { updateSketchModeUI(); rebuildPreview(); });
-    $('sketchPlaneSel').addEventListener('change', function () { updateAxisOptionLabels(); rebuildPreview(); updateSketchAxisWarn(); });
+    $('sketchPlaneSel').addEventListener('change', function () { onSketchPlaneChanged(); updateSketchAxisWarn(); });
     $('sketchReloadBtn').addEventListener('click', refreshProfileList);
+    $('pickFaceBtn').addEventListener('click', function () { if (pickMode) exitPickMode(); else enterPickMode(); });
+    $('c3Viewport').addEventListener('pointerdown', onViewportPointerDown);
+    $('c3Viewport').addEventListener('pointerup', onViewportPointerUp);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && pickMode) exitPickMode(); });
     ['posX', 'posY', 'posZ'].forEach(function (id) {
       $(id).addEventListener('input', repositionPreview);
     });
