@@ -910,13 +910,13 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
       if (editingIndex !== null && editingIndex >= state.steps.length) editingIndex = null; // ขั้นตอนที่กำลังแก้ไขถูกลบไปพร้อม undo
       saveSteps(); updateAddUI(); rebuildAndRender();
     });
-    $('resetBtn').addEventListener('click', function () {
-      if (!window.confirm('เริ่มใหม่ทั้งหมด? ขั้นตอนทั้งหมดที่สร้างไว้จะถูกลบ')) return;
+    $('resetBtn').addEventListener('click', async function () {
+      if (!(await window.tanotConfirm('เริ่มใหม่ทั้งหมด? ขั้นตอนทั้งหมดที่สร้างไว้จะถูกลบ'))) return;
       state.steps = []; editingIndex = null; saveSteps(); updateAddUI(); rebuildAndRender();
     });
     /* Event delegation เดียวจับทั้ง 3 ปุ่มต่อแถว (แก้ไข/ลบ/ปิดใช้งานชั่วคราว) แทนการผูก listener ทีละแถว
        เพราะ updateStepsUI() re-render ทั้งลิสต์ใหม่ทุกครั้งด้วย innerHTML (ผูกทีละแถวจะหลุดทุกครั้งที่ re-render) */
-    $('stepsList').addEventListener('click', function (e) {
+    $('stepsList').addEventListener('click', async function (e) {
       var btn = e.target.closest('[data-act]');
       if (!btn) return;
       var idx = parseInt(btn.getAttribute('data-idx'), 10);
@@ -927,7 +927,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
         state.steps[idx].suppressed = !state.steps[idx].suppressed;
         saveSteps(); updateAddUI(); rebuildAndRender();
       } else if (act === 'delete') {
-        if (!window.confirm('ลบขั้นตอนที่ ' + (idx + 1) + '? (ขั้นตอนถัดไปจะต่อกันใหม่ตามลำดับที่เหลือ ผลลัพธ์อาจเปลี่ยนไปถ้าลบขั้นตอนกลางๆ)')) return;
+        if (!(await window.tanotConfirm('ลบขั้นตอนที่ ' + (idx + 1) + '? (ขั้นตอนถัดไปจะต่อกันใหม่ตามลำดับที่เหลือ ผลลัพธ์อาจเปลี่ยนไปถ้าลบขั้นตอนกลางๆ)'))) return;
         state.steps.splice(idx, 1);
         if (editingIndex === idx) editingIndex = null;
         else if (editingIndex !== null && editingIndex > idx) editingIndex--;

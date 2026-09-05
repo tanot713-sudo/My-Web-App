@@ -169,6 +169,16 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
 .c3-error{color:var(--err);font-weight:700}
 [data-theme="dark"]{--brand-sf:#1B2946}
 [data-theme="dark"] .c3-viewport-wrap,[data-theme="dark"] .c3-overlay{background:#0B0E16}
+
+/* ── กล่องแจ้งเตือน/ยืนยันแบบกำหนดเอง (แทน alert()/confirm() ของเบราว์เซอร์) — พื้นสีขาวเสมอตั้งใจ
+   ไม่สลับตามธีมมืด/สว่างของเว็บ (อ่านง่าย/สม่ำเสมอทุกเครื่อง ต่างจากกล่อง native เดิมที่ขึ้นกับธีมของ
+   ระบบผู้ใช้แต่ละคน) ── */
+.tanot-modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,18,30,.55);z-index:9999;
+  align-items:center;justify-content:center;padding:20px}
+.tanot-modal-box{background:#FFFFFF;color:#1F2430;border-radius:14px;padding:22px 24px;max-width:420px;
+  width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35);font-family:inherit}
+.tanot-modal-msg{font-size:14px;line-height:1.7;white-space:pre-wrap;margin-bottom:18px}
+.tanot-modal-btns{display:flex;justify-content:flex-end;gap:8px}
 </style>
 </head>
 <body class="ome-tool-page" data-doctitle-key="docTitle">
@@ -532,6 +542,83 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
 </div>
 <script type="importmap">
 {"imports":{"three":"./vendor/three/three.module.min.js","three/addons/":"./vendor/three/jsm/"}}
+</script>
+<script>
+/* ══════════════════ กล่องแจ้งเตือน/ยืนยันแบบกำหนดเอง (แทนที่ alert()/confirm() ของเบราว์เซอร์) ══════════════════
+   alert()/confirm() ของเบราว์เซอร์เป็นกล่อง native ที่หน้าเว็บกำหนดสี/หน้าตาเองไม่ได้เลย (ขึ้นกับธีมของ
+   ระบบปฏิบัติการ/เบราว์เซอร์ผู้ใช้แต่ละคน — บนเครื่องที่ตั้งธีมมืดไว้ กล่องจะกลายเป็นสีเข้มไปด้วย อ่านยาก/
+   ดูไม่เข้ากับหน้าเว็บ) จุดนี้สร้างกล่องของตัวเอง (พื้นสีขาวเสมอ ไม่ว่าจะสลับธีมมืด/สว่างของเว็บหรือไม่ก็ตาม
+   ตามที่ผู้ใช้ขอ) มาแทนที่ — ทำงานร่วมกับ cad.js/cad3d.js ได้โดยไม่ต้องแก้จุดเรียก alert() เดิมเลยสักที่
+   เดียว (override window.alert ตรงๆ) ส่วน confirm() override ตรงๆ ไม่ได้ (ของเดิม block รอผลลัพธ์แบบ
+   synchronous แต่กล่องกำหนดเองต้องรอคนกดปุ่ม ซึ่งเป็น asynchronous เสมอ) เลยเปิดฟังก์ชันใหม่
+   window.tanotConfirm(message) คืนค่าเป็น Promise<boolean> ให้จุดเรียกเดิมไม่กี่จุด (5 จุดในทั้งโปรเจกต์)
+   เปลี่ยนมาใช้ await แทน */
+(function () {
+  'use strict';
+  var overlayEl, msgEl, cancelBtn, okBtn;
+  var queue = [];
+  var showing = false;
+  function ensureDom() {
+    if (overlayEl) return;
+    overlayEl = document.createElement('div');
+    overlayEl.className = 'tanot-modal-overlay';
+    overlayEl.innerHTML =
+      '<div class="tanot-modal-box" role="alertdialog" aria-modal="true">' +
+        '<div class="tanot-modal-msg"></div>' +
+        '<div class="tanot-modal-btns">' +
+          '<button type="button" class="btn tanot-modal-cancel" hidden>ยกเลิก</button>' +
+          '<button type="button" class="btn primary tanot-modal-ok">ตกลง</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlayEl);
+    msgEl = overlayEl.querySelector('.tanot-modal-msg');
+    cancelBtn = overlayEl.querySelector('.tanot-modal-cancel');
+    okBtn = overlayEl.querySelector('.tanot-modal-ok');
+  }
+  function showNext() {
+    if (showing || !queue.length) return;
+    showing = true;
+    var job = queue.shift();
+    ensureDom();
+    msgEl.textContent = job.message;
+    cancelBtn.hidden = !job.isConfirm;
+    overlayEl.style.display = 'flex';
+    okBtn.focus();
+    function cleanup(result) {
+      overlayEl.style.display = 'none';
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      overlayEl.removeEventListener('mousedown', onBackdrop);
+      document.removeEventListener('keydown', onKey);
+      showing = false;
+      job.resolve(result);
+      showNext(); // แสดงคิวถัดไป (ถ้ามีเรียกซ้อนกันมา)
+    }
+    function onOk() { cleanup(true); }
+    function onCancel() { cleanup(false); }
+    function onBackdrop(e) { if (e.target === overlayEl) cleanup(false); } // คลิกพื้นหลังมืด = ยกเลิก (ปลอดภัยกว่าถือเป็นตกลง)
+    function onKey(e) {
+      if (e.key === 'Escape') cleanup(false);
+      else if (e.key === 'Enter') cleanup(true);
+    }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    overlayEl.addEventListener('mousedown', onBackdrop);
+    document.addEventListener('keydown', onKey);
+  }
+  function enqueue(message, isConfirm) {
+    return new Promise(function (resolve) {
+      queue.push({ message: String(message), isConfirm: isConfirm, resolve: resolve });
+      showNext();
+    });
+  }
+  window.tanotAlert = function (message) { return enqueue(message, false); };
+  window.tanotConfirm = function (message) { return enqueue(message, true); };
+  /* จุดเรียก alert() เดิมทั้งหมดในโปรเจกต์ (cad.js/cad3d.js) ไม่ได้พึ่งพฤติกรรม block ของ alert() ของเดิม
+     เลยสักจุด (เรียกแล้ว return/จบฟังก์ชันต่อทันที ไม่รอผู้ใช้กดปิดก่อน) เลย override ตรงๆ แบบ fire-and-
+     forget ได้อย่างปลอดภัย ไม่ต้องแก้โค้ดที่เรียกอยู่เดิมแม้แต่จุดเดียว */
+  window.alert = function (message) { window.tanotAlert(message); };
+})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="cad.js"></script>

@@ -1895,9 +1895,9 @@
     pruneConstraints();
     updateSelectionUI(); updateCountUI(); scheduleSave(); render();
   }
-  function clearAll() {
+  async function clearAll() {
     if (!state.entities.length) return;
-    if (!window.confirm(t('clearConfirm'))) return;
+    if (!(await window.tanotConfirm(t('clearConfirm')))) return;
     pushHistory();
     state.entities = []; state.selectedIds = [];
     pruneConstraints();
@@ -2439,10 +2439,10 @@
     state.activeLayer = id;
     scheduleSave(); renderLayersPanel();
   }
-  function deleteLayer(lid) {
+  async function deleteLayer(lid) {
     if (lid === '0') return;
     var name = state.layers[lid] ? (state.layers[lid].name || lid) : lid;
-    if (!window.confirm(t('layerDeleteConfirm', { name: name }))) return;
+    if (!(await window.tanotConfirm(t('layerDeleteConfirm', { name: name })))) return;
     pushHistory();
     state.entities.forEach(function (e) { if (e.layer === lid) e.layer = '0'; });
     delete state.layers[lid];
@@ -2819,7 +2819,7 @@
     var num = parseInt(h, 16) || 0x1F2430;
     return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
   }
-  function plotPDF() {
+  async function plotPDF() {
     var bbox = computeSceneBBox();
     if (!bbox) { alert(t('exportEmptyWarn')); return; }
     if (!(window.jspdf && window.jspdf.jsPDF)) { alert(t('pdfLibMissing')); return; }
@@ -2848,7 +2848,7 @@
       }
       pw = orient === 'landscape' ? paper.h : paper.w; ph = orient === 'landscape' ? paper.w : paper.h;
       var neededW = drawW * scaleFactor + 2 * MARGIN, neededH = drawH * scaleFactor + 2 * MARGIN;
-      if (neededW > pw + 0.5 || neededH > ph + 0.5) { if (!window.confirm(t('plotOverflowConfirm'))) return; }
+      if (neededW > pw + 0.5 || neededH > ph + 0.5) { if (!(await window.tanotConfirm(t('plotOverflowConfirm')))) return; }
     }
     var pdf = new window.jspdf.jsPDF({ orientation: orient === 'landscape' ? 'landscape' : 'portrait', unit: 'mm', format: [pw, ph] });
     var offX = (pw - drawW * scaleFactor) / 2, offY = (ph - drawH * scaleFactor) / 2;
