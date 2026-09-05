@@ -602,6 +602,9 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     } catch (err) {}
     return profiles;
   }
+  /* เลือกภาพร่างล่าสุดให้อัตโนมัติเสมอ (ตัวสุดท้ายในลิสต์ = วาดล่าสุด ตามลำดับที่ read2DProfiles() คืนมา
+     ซึ่งเดินตาม entities array ตามลำดับวาดจริง) แทนการปล่อยให้ browser เลือกตัวแรกสุด (ค่าเริ่มต้นเดิม) —
+     ลดขั้นตอน "ต้องมาเลือกเองจาก dropdown" ทุกครั้งที่วาดรูปใหม่ ยังกด "โหลดใหม่"/เปลี่ยนเป็นภาพอื่นเองได้ตามปกติ */
   function refreshProfileList() {
     loadedProfiles = read2DProfiles();
     var sel = $('sketchProfileSel');
@@ -611,6 +614,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     } else {
       sel.disabled = false;
       sel.innerHTML = loadedProfiles.map(function (p, i) { return '<option value="' + i + '">' + p.label + '</option>'; }).join('');
+      sel.value = String(loadedProfiles.length - 1);
     }
     rebuildPreview();
     updateSketchAxisWarn();
@@ -939,6 +943,27 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
        ตอน boot() ข้ามการตั้งขนาด renderer ไป (ดู resize() ด้านบน) พอผู้ใช้กดสลับมาแท็บนี้จริง หน้า cad.html
        จะยิง custom event นี้ให้ resize() คำนวณขนาดใหม่จากขนาดจริงของ viewport ที่เพิ่งโผล่ */
     window.addEventListener('cad3d:tabshown', resize);
+
+    /* ปุ่มลัด "⚡ ยืดเป็น 3 มิติ" ที่แท็บ 2D ยิงมา (ผ่าน cad.html หลังสลับแท็บให้แล้ว) — ตั้งชนิดเป็น
+       "จากภาพร่าง 2 มิติ" รีเซ็ตระนาบ/โหมดกลับเป็นค่าเริ่มต้น (ระนาบบน + อัดขึ้นตรง เผื่อค้างค่าจากรอบก่อน)
+       เลือกภาพร่างล่าสุดให้อัตโนมัติ (refreshProfileList() จัดการให้) แล้วกด "วางเป็นชิ้นงานหลัก"/"รวมเข้ากับ
+       ชิ้นงานหลัก" ให้เองทันที เหมือนผู้ใช้กดปุ่มนั้นเอง (reuse โค้ด validation/commit เดิมทั้งหมด ไม่ต้อง
+       เขียนตรรกะซ้ำ) — ถ้าไม่มีภาพร่างปิดให้ใช้เลย จะเตือนแทนการเพิ่มรูปทรงว่างเปล่า */
+    window.addEventListener('cad3d:quickextrude', function () {
+      if (editingIndex !== null) exitEditMode();
+      shapeKindSel.value = 'sketch';
+      updateDimsUI();
+      $('sketchPlaneSel').value = 'top';
+      $('sketchModeSel').value = 'extrude';
+      onSketchPlaneChanged();
+      refreshProfileList();
+      updateAddUI();
+      if (loadedProfiles.length) {
+        addShapeBtn.click();
+      } else {
+        alert('ยังไม่พบเส้นขอบปิดที่วาดไว้ — วาดสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดในแท็บ "ร่างภาพ 2 มิติ" ก่อน แล้วลองกด "⚡ ยืดเป็น 3 มิติ" อีกครั้ง');
+      }
+    });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();

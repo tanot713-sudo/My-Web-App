@@ -81,6 +81,9 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 [data-theme="dark"] .cad-viewport{background:#0F1420}
 @media(max-width:600px){.cad-viewport{height:420px}}
 
+/* ── ปุ่มลัด "ยืดเป็น 3 มิติ" ใต้วิวพอร์ต 2D — วาดรูปปิดเสร็จกดปุ่มเดียวข้ามไปแท็บ 3 มิติพร้อมยืดให้เลย ── */
+.cad-quick3d-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px}
+
 /* ── แถบสถานะใต้วิวพอร์ต ── */
 .cad-status{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:9px;
   font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -145,6 +148,9 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
 .c3-form select{width:auto}
 .c3-form input:focus,.c3-form select:focus{outline:none;border-color:var(--brand)}
 .c3-dims{display:flex;flex-wrap:wrap;gap:8px}
+.c3-advanced{flex-basis:100%;border-top:1px dashed var(--line);padding-top:8px;margin-top:2px}
+.c3-advanced summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--brand-dk)}
+.c3-advanced .c3-dims{margin-top:8px}
 [hidden]{display:none!important}
 .c3-steps{display:flex;flex-direction:column;gap:6px;margin-top:4px}
 .c3-step-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;font-size:13px}
@@ -331,6 +337,11 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       <canvas id="cadCanvas"></canvas>
     </div>
 
+    <div class="cad-quick3d-row">
+      <button class="btn sm primary" id="quickExtrudeBtn" type="button">⚡ ยืดเป็น 3 มิติ (Extrude)</button>
+      <span class="hint">วาดรูปปิด (สี่เหลี่ยม/วงกลม/พอลีไลน์ปิด) แล้วกดปุ่มนี้ได้เลย — ยืดขึ้นเป็นชิ้นงาน 3 มิติทันทีด้วยค่าเริ่มต้น (ปรับความสูงทีหลังได้ด้วยการลากในมุมมอง 3 มิติ)</span>
+    </div>
+
     <div class="cad-status">
       <span data-i18n="coordLbl">พิกัด:</span> <b id="statCoord">X 0.0, Y 0.0 มม.</b>
       <span class="sep">·</span>
@@ -432,31 +443,36 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
           <select id="sketchProfileSel" style="width:220px"></select>
         </label>
         <button class="btn sm" id="sketchReloadBtn" type="button">🔄 โหลดใหม่</button>
-        <label>ระนาบร่าง
-          <select id="sketchPlaneSel">
-            <option value="top">ระนาบบน (Top)</option>
-            <option value="front">ระนาบหน้า (Front)</option>
-            <option value="right">ระนาบข้าง (Right)</option>
-            <option value="picked" id="pickedPlaneOption" disabled>หน้าที่เลือกเอง (ยังไม่ได้เลือก)</option>
-          </select>
-        </label>
-        <button class="btn sm" id="pickFaceBtn" type="button">📌 เลือกหน้าจากชิ้นงาน</button>
-        <span class="hint" id="pickFaceStatus"></span>
-        <label>วิธีขึ้นรูป
-          <select id="sketchModeSel">
-            <option value="extrude">อัดขึ้นตรง (Extrude)</option>
-            <option value="revolve">หมุนรอบแกน (Revolve)</option>
-          </select>
-        </label>
         <label id="sketchExtrudeWrap">สูง (มม.)<input type="text" id="sketchHeight" inputmode="decimal" value="20"></label>
-        <label id="sketchRevolveWrap" hidden>แกนหมุน
-          <select id="sketchAxisSel">
-            <option value="x">แกน X</option>
-            <option value="y">แกน Y</option>
-          </select>
-        </label>
-        <label id="sketchAngleWrap" hidden>มุมหมุน (°)<input type="text" id="sketchAngle" inputmode="decimal" value="360"></label>
-        <div class="hint c3-error" id="sketchAxisWarn" hidden>⚠️ เส้นขอบนี้อยู่คร่อมแกนหมุน (มีทั้งฝั่งบวกและฝั่งลบของแกน) หมุนแล้วจะซ้อนทับตัวเอง สร้างเป็นทรงตันไม่ได้ — ย้ายภาพร่างในแท็บ "ร่างภาพ 2 มิติ" ให้อยู่ฝั่งเดียวของแกนก่อน หรือเปลี่ยนแกนหมุน</div>
+        <details class="c3-advanced" id="sketchAdvanced">
+          <summary>⚙️ ตัวเลือกเพิ่มเติม (ระนาบ/วิธีขึ้นรูป)</summary>
+          <div class="c3-dims">
+            <label>ระนาบร่าง
+              <select id="sketchPlaneSel">
+                <option value="top">ระนาบบน (Top)</option>
+                <option value="front">ระนาบหน้า (Front)</option>
+                <option value="right">ระนาบข้าง (Right)</option>
+                <option value="picked" id="pickedPlaneOption" disabled>หน้าที่เลือกเอง (ยังไม่ได้เลือก)</option>
+              </select>
+            </label>
+            <button class="btn sm" id="pickFaceBtn" type="button">📌 เลือกหน้าจากชิ้นงาน</button>
+            <span class="hint" id="pickFaceStatus"></span>
+            <label>วิธีขึ้นรูป
+              <select id="sketchModeSel">
+                <option value="extrude">อัดขึ้นตรง (Extrude)</option>
+                <option value="revolve">หมุนรอบแกน (Revolve)</option>
+              </select>
+            </label>
+            <label id="sketchRevolveWrap" hidden>แกนหมุน
+              <select id="sketchAxisSel">
+                <option value="x">แกน X</option>
+                <option value="y">แกน Y</option>
+              </select>
+            </label>
+            <label id="sketchAngleWrap" hidden>มุมหมุน (°)<input type="text" id="sketchAngle" inputmode="decimal" value="360"></label>
+            <div class="hint c3-error" id="sketchAxisWarn" hidden>⚠️ เส้นขอบนี้อยู่คร่อมแกนหมุน (มีทั้งฝั่งบวกและฝั่งลบของแกน) หมุนแล้วจะซ้อนทับตัวเอง สร้างเป็นทรงตันไม่ได้ — ย้ายภาพร่างในแท็บ "ร่างภาพ 2 มิติ" ให้อยู่ฝั่งเดียวของแกนก่อน หรือเปลี่ยนแกนหมุน</div>
+          </div>
+        </details>
       </div>
       <div class="c3-dims">
         <label>ตำแหน่ง X (มม.)<input type="text" id="posX" inputmode="decimal" value="0"></label>
@@ -475,8 +491,8 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
     </div>
     <p class="hint">ชิ้นแรกจะถูกวางเป็น "ชิ้นงานหลัก" โดยตรง ชิ้นถัดไปให้เลือกวิธีรวม (รวม/ตัดออก/ส่วนร่วม) แล้วกดปุ่มเพื่อรวมเข้ากับชิ้นงานหลัก
       · <b>รูปทรงสีส้มโปร่งแสงในมุมมอง 3 มิติด้านล่างคือตัวอย่างชิ้นที่กำลังจะเพิ่ม — ลากลูกศรสีเพื่อวางตำแหน่งเองได้เลย ไม่ต้องพิมพ์ตัวเลข</b>
-      · "จากภาพร่าง 2 มิติ" อ่านแบบที่วาดไว้ล่าสุดในแท็บ <a href="#" id="goto2dLink">ร่างภาพ 2 มิติ</a> — รองรับเฉพาะสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดเท่านั้น (เส้นตรงหลายเส้น/เส้นโค้งสปไลน์/ส่วนโค้งยังไม่รองรับในสเตจนี้)
-      · <b>ระนาบร่าง</b> กำหนดว่าภาพร่าง 2 มิติจะไปวางอยู่ในระนาบไหนของโลก 3 มิติ — ระนาบบน (Top) เดิม/ระนาบหน้า (Front)/ระนาบข้าง (Right) ตามธรรมเนียม SolidWorks ทิศทางอัดขึ้นตรง/แกนหมุนจะเปลี่ยนตามระนาบที่เลือกให้อัตโนมัติ
+      · "จากภาพร่าง 2 มิติ" อ่านแบบที่วาดไว้ล่าสุดในแท็บ <a href="#" id="goto2dLink">ร่างภาพ 2 มิติ</a> โดยอัตโนมัติเสมอ (เลือกภาพที่วาดล่าสุดให้ ไม่ต้องกด "โหลดใหม่" เอง) — รองรับเฉพาะสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดเท่านั้น (เส้นตรงหลายเส้น/เส้นโค้งสปไลน์/ส่วนโค้งยังไม่รองรับในสเตจนี้)
+      · ต้องการแค่ยืดขึ้นตรงบนระนาบบน (ค่าเริ่มต้น) ก็กด "วางเป็นชิ้นงานหลัก" ได้เลยโดยไม่ต้องเปิด <b>⚙️ ตัวเลือกเพิ่มเติม</b> — เปิดส่วนนั้นเฉพาะตอนอยากเปลี่ยนระนาบ (Top/Front/Right/หน้าที่เลือกเอง) หรือเปลี่ยนเป็นหมุนรอบแกน (Revolve) เท่านั้น
       · <b>📌 เลือกหน้าจากชิ้นงาน</b> (ใหม่): คลิกปุ่มนี้แล้วคลิกหน้าเรียบของชิ้นงาน 3 มิติจริงในวิวพอร์ตด้านล่าง เพื่อร่างภาพลงบนหน้านั้นตรงๆ (แทนการเลือกระนาบมาตรฐาน 3 แบบด้านบน) — รองรับเฉพาะหน้าเรียบเท่านั้น (หน้าโค้งคลิกไม่ติด) และรองรับเฉพาะโหมด "อัดขึ้นตรง" เท่านั้น (ไม่รองรับหมุนรอบแกน) นอกจากนี้เป็นการอ้างอิงตำแหน่ง "ครั้งเดียว" ตอนคลิก — ถ้าแก้ไขขั้นตอนก่อนหน้าจนรูปทรงเปลี่ยนไป ตำแหน่งหน้าที่บันทึกไว้จะไม่ขยับตาม ต้องเลือกหน้าใหม่เอง</p>
   </div>
 
@@ -539,6 +555,14 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
   document.getElementById('tabBtn3d').addEventListener('click', function () { showTab('3d'); });
   var goto2d = document.getElementById('goto2dLink');
   if (goto2d) goto2d.addEventListener('click', function (e) { e.preventDefault(); showTab('2d'); });
+  /* ปุ่มลัด "⚡ ยืดเป็น 3 มิติ" ในแท็บ 2D — สลับไปแท็บ 3 มิติแล้วยิง custom event ให้ cad3d.js (โมดูลแยก
+     ปิด scope ตัวเอง) จัดการต่อ: ตั้งชนิดรูปทรงเป็น "จากภาพร่าง 2 มิติ" + เลือกภาพล่าสุดอัตโนมัติ + ยืดขึ้น
+     ด้วยค่าเริ่มต้น (ระนาบบน, อัดขึ้นตรง) ทันทีโดยไม่ต้องกดอะไรเพิ่ม — เหมือนกด "วางเป็นชิ้นงานหลัก" ให้เอง */
+  var quickBtn = document.getElementById('quickExtrudeBtn');
+  if (quickBtn) quickBtn.addEventListener('click', function () {
+    showTab('3d');
+    window.dispatchEvent(new Event('cad3d:quickextrude'));
+  });
   showTab(location.hash === '#3d' ? '3d' : '2d'); // รองรับ deep-link จาก cad3d.html (redirect เดิม) ที่ชี้มา #3d
 })();
 </script>
