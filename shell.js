@@ -60,6 +60,26 @@
   }
   applyTheme(getTheme());
 
+  /* ── ภาษา UI: จุดกลางเดียวให้ทุกเครื่องมือที่รองรับ 2 ภาษาอ่าน/เขียนร่วมกัน ──────────
+     เดิมแต่ละเครื่องมือ (cad/word/excel/doc-check ใช้ 'tanot:doclang' ร่วมกันอยู่แล้ว ส่วน
+     music/sports/coding/cooking/typing/report-dashboard ใช้คนละคีย์แยกกัน) ทำให้สลับภาษา
+     ที่เครื่องมือหนึ่งแล้วไปเปิดอีกเครื่องมือ ต้องกดสลับใหม่ทุกครั้ง — ย้ายมารวมเป็นคีย์เดียว
+     ที่นี่ ('ome:lang') แต่ละไฟล์เครื่องมือ (ดู commit ที่แก้พร้อมกัน) ชี้ LANG_KEY ของตัวเอง
+     มาที่คีย์นี้แทน และ expose window.omeApplyLang ไว้ให้จุดกลางนี้เรียกตอนสลับจากเมนูตั้งค่า
+     (ปุ่มสลับภาษาเดิมของแต่ละหน้ายังใช้ได้ปกติ แค่เขียน/อ่านคีย์เดียวกันแล้ว) */
+  function getUILangGlobal() {
+    try {
+      var v = localStorage.getItem('ome:lang');
+      if (v === 'en' || v === 'th') return v;
+    } catch (e) {}
+    return 'th';
+  }
+  function setUILangGlobal(lang) {
+    try { localStorage.setItem('ome:lang', lang); } catch (e) {}
+    if (typeof window.omeApplyLang === 'function') window.omeApplyLang();
+  }
+  window.OME_LANG = { get: getUILangGlobal, set: setUILangGlobal };
+
   /* ── โครงสร้างเมนูทั้งเว็บ ──────────────────────────────────────────
      key ไม่ซ้ำกัน, href = ลิงก์ไปหน้านั้น (ไม่ใส่ = เป็นแค่หมวดหมู่ให้กดขยาย),
      icon = ใช้กับ invest.html hub tiles (window.INVEST_CATS), children = รายการย่อย */
@@ -298,6 +318,41 @@
     markSelectedSwatch();
     themeRow.addEventListener('click', function () { swatchWrap.classList.toggle('open'); });
     settingsPanel.appendChild(swatchWrap);
+
+    /* แถว "ภาษา" — จุดกลางเดียวสลับภาษาของทุกเครื่องมือที่รองรับ 2 ภาษา (กลไกเดียวกับ
+       แถบเลือกธีมเว็บด้านบน) กดแล้วกางตัวเลือก ไทย/English เลือกแล้วอัปเดตทันทีถ้าเครื่องมือ
+       ในหน้าปัจจุบันมี window.omeApplyLang (ไม่มีก็แค่บันทึกค่าไว้ ให้หน้าเครื่องมือถัดไปอ่านเจอ) */
+    var LANGS = [{ id: 'th', label: 'ไทย' }, { id: 'en', label: 'English' }];
+    var langRow = document.createElement('button');
+    langRow.type = 'button';
+    langRow.className = 'ome-settings-row';
+    langRow.innerHTML = '<span>ภาษา</span>';
+    settingsPanel.appendChild(langRow);
+
+    var langWrap = document.createElement('div');
+    langWrap.className = 'ome-theme-swatches';
+    function markSelectedLang() {
+      var cur = getUILangGlobal();
+      var nodes = langWrap.querySelectorAll('.ome-theme-swatch');
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].classList.toggle('sel', nodes[i].getAttribute('data-lang-id') === cur);
+      }
+    }
+    LANGS.forEach(function (l) {
+      var lb = document.createElement('button');
+      lb.type = 'button';
+      lb.className = 'ome-theme-swatch';
+      lb.setAttribute('data-lang-id', l.id);
+      lb.innerHTML = '<span>' + l.label + '</span>';
+      lb.addEventListener('click', function () {
+        setUILangGlobal(l.id);
+        markSelectedLang();
+      });
+      langWrap.appendChild(lb);
+    });
+    markSelectedLang();
+    langRow.addEventListener('click', function () { langWrap.classList.toggle('open'); });
+    settingsPanel.appendChild(langWrap);
 
     var SETTINGS_ROWS = [
       { label: 'ปรับขนาดตัวอักษร' },

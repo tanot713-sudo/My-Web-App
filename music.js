@@ -10,7 +10,7 @@
 /* ══════════════════════════════════════════════════════════════════
    i18n
    ══════════════════════════════════════════════════════════════════ */
-var UI_LANG_KEY = 'tanot:musiclang';
+var UI_LANG_KEY = 'ome:lang'; /* จุดกลางเดียวทั้งเว็บ (เดิม 'tanot:musiclang') */
 function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
 function setUILang(l) { try { localStorage.setItem(UI_LANG_KEY, l); } catch (e) {} }
 function pick(obj) { return obj ? (getUILang() === 'en' ? obj.en : obj.th) : ''; }
@@ -1985,6 +1985,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       applyI18n();
     });
   }
+  window.omeApplyLang = applyI18n;
 
   applyI18n();
 }

@@ -232,7 +232,7 @@ function setFingerColorsOn(on) { try { localStorage.setItem(FINGER_COLOR_KEY, on
 /* ══════════════════════════════════════════════════════════════════
    ภาษา UI (ไทย/อังกฤษ) — คนละ key กับหน้าอื่น (แต่ละหน้าเก็บของตัวเอง ดูเหตุผลเดียวกับ doc-check.js)
    ══════════════════════════════════════════════════════════════════ */
-var UI_LANG_KEY = 'tanot:typinglang';
+var UI_LANG_KEY = 'ome:lang'; /* จุดกลางเดียวทั้งเว็บ (เดิม 'tanot:typinglang') */
 function getUILang() {
   try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; }
 }
@@ -689,6 +689,16 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
       if (statTimeLabel) statTimeLabel.textContent = state.sprintMode ? t('statsTimeLeft') : t('statsTime');
     });
   }
+  window.omeApplyLang = function () {
+    applyI18n();
+    renderTrackTabs();
+    renderLessonList();
+    var track = trackById(state.trackId);
+    trackDesc.textContent = track.desc;
+    renderKeyboard(currentLang());
+    highlightNextKey(currentLang());
+    if (statTimeLabel) statTimeLabel.textContent = state.sprintMode ? t('statsTimeLeft') : t('statsTime');
+  };
 
   applyI18n();
   selectTrack(state.trackId);

@@ -34,7 +34,7 @@
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
-  var LANG_KEY = 'tanot:doclang';
+  var LANG_KEY = 'ome:lang'; /* จุดกลางเดียวทั้งเว็บ (เดิม 'tanot:doclang' ใช้ร่วมกับ word/excel/doc-check) */
   var AUTOSAVE_KEY = 'tanot:cad:autosave';
 
   var I18N = {
@@ -2320,6 +2320,9 @@
   });
   var langToggle = $('langToggle');
   if (langToggle) langToggle.addEventListener('click', function () { setUILang(getUILang() === 'en' ? 'th' : 'en'); applyStaticI18n(); updatePropsPanel(); renderLayersPanel(); renderConstraintsPanel(); });
+  /* จุดกลางเดียว (เมนูตั้งค่า → ภาษา ใน shell.js) เรียกอันนี้หลังเขียน localStorage เอง
+     ไม่ต้องเรียก setUILang() ซ้ำ แค่รีเฟรชป้ายตามค่าที่เขียนไว้แล้ว */
+  window.omeApplyLang = function () { applyStaticI18n(); updatePropsPanel(); renderLayersPanel(); renderConstraintsPanel(); };
 
   /* ══════════════════ แผงคุณสมบัติ — แก้ไขพิกัด/รัศมี/มุมของเอนทิตี้ที่เลือกอยู่ตัวเดียวได้ตรงๆ ══════════════════ */
   var propsCard = $('propsCard'), propsTitle = $('propsTitle'), propsGrid = $('propsGrid');

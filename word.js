@@ -33,7 +33,7 @@ var LT_ENDPOINT = 'https://api.languagetool.org/v2/check';
 var DEFAULT_DOC_FONT = 'TH Sarabun New';
 var DEFAULT_DOC_SIZE = 32; /* half-points = 16pt (ขนาดมาตรฐานเอกสารราชการไทย) */
 var AUTOSAVE_KEY = 'tanot:word:autosave';
-var UI_LANG_KEY = 'tanot:doclang';
+var UI_LANG_KEY = 'ome:lang'; /* จุดกลางเดียวทั้งเว็บ (เดิม 'tanot:doclang') */
 
 /* ── ขนาดกระดาษ: มิลลิเมตร (จอ) + twips (docx) ── */
 var PAGE_SIZES = {
@@ -1942,6 +1942,9 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
       applyStaticI18n(); buildLangOptions(); renderIssues(); renderFootnotes(); updateHeaderFooterUI();
     });
   }
+  window.omeApplyLang = function () {
+    applyStaticI18n(); buildLangOptions(); renderIssues(); renderFootnotes(); updateHeaderFooterUI();
+  };
   applyPageSetup();
   updateHeaderFooterUI();
   renderFootnotes();

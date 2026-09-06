@@ -7,7 +7,7 @@
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
-  var LANG_KEY = 'tanot:doclang';
+  var LANG_KEY = 'ome:lang'; /* จุดกลางเดียวทั้งเว็บ (เดิม 'tanot:doclang') */
   var AUTOSAVE_KEY = 'tanot:sheet:autosave';
 
   var I18N = {
@@ -881,6 +881,7 @@
       applyStaticI18n();
     });
   }
+  window.omeApplyLang = function () { applyStaticI18n(); };
 
   /* ── init ── */
   var rsz = null;

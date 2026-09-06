@@ -11,7 +11,7 @@
 /* ══════════════════════════════════════════════════════════════════
    i18n
    ══════════════════════════════════════════════════════════════════ */
-var UI_LANG_KEY = 'tanot:sportslang';
+var UI_LANG_KEY = 'ome:lang'; /* จุดกลางเดียวทั้งเว็บ (เดิม 'tanot:sportslang') */
 function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
 function setUILang(l) { try { localStorage.setItem(UI_LANG_KEY, l); } catch (e) {} }
 function pick(obj) { return obj ? (getUILang() === 'en' ? obj.en : obj.th) : ''; }
@@ -2039,6 +2039,7 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
       applyI18n();
     });
   }
+  window.omeApplyLang = applyI18n;
 
   applyI18n();
 }

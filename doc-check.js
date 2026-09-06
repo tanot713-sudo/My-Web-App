@@ -77,7 +77,7 @@ async function fileToBase64(file) {
    ภาษาที่ใช้แสดงผล UI (ไทย/อังกฤษ) — แยกจาก "ภาษาของเอกสาร" (state.lang) ด้านบน
    เก็บด้วย localStorage คนละ key กับ ui-locale ของแอปหลัก เพราะหน้านี้แยกออกมา
    ══════════════════════════════════════════════════════════════════ */
-var UI_LANG_KEY = 'tanot:doclang';
+var UI_LANG_KEY = 'ome:lang'; /* จุดกลางเดียวทั้งเว็บ (เดิม 'tanot:doclang') */
 
 function getUILang() {
   try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; }
@@ -536,6 +536,7 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
       render();
     });
   }
+  window.omeApplyLang = function () { applyStaticI18n(); buildLangOptions(); render(); };
 
   function setStatus(msg, isErr, showSpinner) {
     statusMsg.innerHTML = '';

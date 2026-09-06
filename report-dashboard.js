@@ -20,7 +20,7 @@
   var HEADER_PREVIEW_ROWS = 8;
 
   /* ══════════════════ i18n ไทย/อังกฤษ — แพทเทิร์นเดียวกับ excel.js/word.js (clone-and-adapt) ══════════════════ */
-  var UI_LANG_KEY = 'tanot:reportlang';
+  var UI_LANG_KEY = 'ome:lang'; /* จุดกลางเดียวทั้งเว็บ (เดิม 'tanot:reportlang') */
   function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   function setUILang(l) { try { localStorage.setItem(UI_LANG_KEY, l); } catch (e) {} }
   function locale() { return getUILang() === 'en' ? 'en-US' : 'th-TH'; }
@@ -5141,6 +5141,18 @@
         }
       });
     }
+    window.omeApplyLang = function () {
+      if (state.drill) clearDrill();
+      applyStaticI18n();
+      updateSaveUI();
+      renderResumeInfo();
+      renderReportsList();
+      if (state.rows.length) {
+        updateStatRow();
+        updateSelectionUI();
+        if (currentView === 'dashboard') renderDashboard(); else renderTable();
+      }
+    };
     $('pickBtn').addEventListener('click', function () { $('fileInput').click(); });
     $('fileInput').addEventListener('change', function () { handleFile($('fileInput').files[0]); });
 

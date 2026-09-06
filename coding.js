@@ -880,7 +880,7 @@ function domSpecToHtml(domSpec, previewCss) {
 /* ══════════════════════════════════════════════════════════════════
    ภาษา UI (ไทย/อังกฤษ)
    ══════════════════════════════════════════════════════════════════ */
-var UI_LANG_KEY = 'tanot:codinglang';
+var UI_LANG_KEY = 'ome:lang'; /* จุดกลางเดียวทั้งเว็บ (เดิม 'tanot:codinglang') */
 function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
 function setUILang(l) { try { localStorage.setItem(UI_LANG_KEY, l); } catch (e) {} }
 
@@ -1496,6 +1496,9 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
       selectItem(state.itemIndex);
     });
   }
+  window.omeApplyLang = function () {
+    applyI18n(); renderTrackTabs(); renderItemList(); selectItem(state.itemIndex);
+  };
 
   applyI18n();
   renderTrackTabs();
