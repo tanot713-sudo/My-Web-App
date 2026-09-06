@@ -268,6 +268,12 @@ body{padding-bottom:0!important}
    hardcode ไว้เฉพาะ dark เหมือนเดิม ไม่ผูกกับสีธีม (นโยบายเดียวกับหน้าอื่นทั้งเว็บ) */
 [data-theme="dark"] body.ome-app-page,
 [data-accent] body.ome-app-page{background:var(--ome-bg)!important}
+/* เฟส 8: หน้ากลุ่มนี้ hardcode ฟอนต์ 'Prompt' ไว้ใน tailwind.config ของตัวเอง (ไม่อ้างอิง
+   var(--ome-f) เหมือนหน้าเครื่องมือ) เลย override เสริมให้ตามเมนู "ตัวอักษร" ด้วย — .font-sans
+   คือคลาสที่ Tailwind สร้างจาก fontFamily.sans ที่หน้าพวกนี้ประกาศเอง บางจุดใช้ class นี้ตรงๆ
+   ซึ่งจะชนะการสืบทอดจาก body ถ้าไม่ override ทับ */
+body.ome-app-page,
+body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
 [data-theme="dark"] .ome-app-page .bg-white,
 [data-accent] .ome-app-page .bg-white{background-color:var(--ome-card)!important}
 [data-theme="dark"] .ome-app-page .bg-slate-50,

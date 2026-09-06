@@ -77,6 +77,58 @@
   }
   window.OME_STYLE = { get: getStyleType, set: setStyleGlobal };
 
+  /* ── ตัวอักษร (เฟส 8 — เลือกฟอนต์ได้ทั้งเว็บ) ──────────────────────────────────
+     ใช้ตัวแปรกลาง --ome-f ที่มีอยู่แล้ว (นิยามครั้งเดียวใน theme.css, ทุก component ของ shell
+     เอง (nav/drawer/settings panel) กับหน้าเครื่องมือ (body.ome-tool-page) อ้างอิงผ่าน
+     var(--ome-f) อยู่แล้วทั้งหมด) — เปลี่ยนแค่ค่าตัวแปรนี้ด้วย inline style บน <html> (ชนะ
+     specificity ของ :root ใน theme.css เสมอ ไม่ต้องแก้ไฟล์ไหนเพิ่มสำหรับหน้ากลุ่มนี้) หน้า React
+     4 หน้า (ome-app-page) hardcode 'Prompt' ไว้ใน tailwind.config ของตัวเอง เลยมี override เสริม
+     ที่ theme.css ให้ตามด้วย (ดูคอมเมนต์ในนั้น) — ฟอนต์แต่ละตัวเลือกมาเพราะรองรับภาษาไทยครบ
+     (เว็บนี้เนื้อหาส่วนใหญ่เป็นภาษาไทย) "TH Sarabun New" ที่หน่วยงานราชการนิยมใช้ไม่มีบน Google
+     Fonts จึงใช้ตระกูล "Sarabun" ที่เป็นฟอนต์ตระกูลเดียวกันแทน */
+  var FONTS = [
+    { id: 'prompt',   label: 'Prompt (ปกติ)',     family: "'Prompt',system-ui,-apple-system,sans-serif",
+      google: 'Prompt:wght@300;400;500;600;700' },
+    { id: 'sarabun',  label: 'Sarabun',            family: "'Sarabun',system-ui,-apple-system,sans-serif",
+      google: 'Sarabun:wght@300;400;500;600;700' },
+    { id: 'kanit',    label: 'Kanit',              family: "'Kanit',system-ui,-apple-system,sans-serif",
+      google: 'Kanit:wght@300;400;500;600;700' },
+    { id: 'mitr',     label: 'Mitr',               family: "'Mitr',system-ui,-apple-system,sans-serif",
+      google: 'Mitr:wght@300;400;500;600;700' },
+    { id: 'ibmplex',  label: 'IBM Plex Sans Thai', family: "'IBM Plex Sans Thai',system-ui,-apple-system,sans-serif",
+      google: 'IBM+Plex+Sans+Thai:wght@300;400;500;600;700' },
+    { id: 'notosans', label: 'Noto Sans Thai',     family: "'Noto Sans Thai',system-ui,-apple-system,sans-serif",
+      google: 'Noto+Sans+Thai:wght@300;400;500;600;700' }
+  ];
+  window.OME_FONTS = FONTS;
+  var loadedFontIds = {};
+  function ensureFontLoaded(f) {
+    if (f.id === 'prompt' || loadedFontIds[f.id]) return; /* prompt โหลดอยู่แล้วทุกหน้าจาก <head> เดิม */
+    loadedFontIds[f.id] = true;
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=' + f.google + '&display=swap';
+    document.head.appendChild(link);
+  }
+  function getFont() {
+    try {
+      var saved = localStorage.getItem('ome:font');
+      for (var i = 0; i < FONTS.length; i++) { if (FONTS[i].id === saved) return saved; }
+    } catch (e) {}
+    return 'prompt';
+  }
+  function applyFont(id) {
+    var f = FONTS[0];
+    for (var i = 0; i < FONTS.length; i++) { if (FONTS[i].id === id) f = FONTS[i]; }
+    ensureFontLoaded(f);
+    document.documentElement.style.setProperty('--ome-f', f.family);
+  }
+  function setFontGlobal(id) {
+    try { localStorage.setItem('ome:font', id); } catch (e) {}
+    applyFont(id);
+  }
+  window.OME_FONT = { get: getFont, set: setFontGlobal };
+
   /* ── แปลงค่าเก่า (เฟส 4) ที่เคยเก็บสี+ความสว่างไว้ในคีย์เดียว 'ome:theme' เช่น 'flooks'/'crypto'
      ให้เป็นโมเดลใหม่ครั้งเดียวตอนโหลดหน้าแรกหลังอัปเดต — ย้ายค่าสีไปที่ 'ome:accent' ใหม่ รีเซ็ต
      'ome:theme' กลับเป็น 'light' (ธีมสีชุดเก่าทุกอันเป็นเวอร์ชันสว่างเท่านั้น ไม่มีมืด จึงรีเซ็ต
@@ -123,6 +175,7 @@
   }
   document.documentElement.setAttribute('data-accent', getAccent());
   document.documentElement.setAttribute('data-style', getStyleType());
+  applyFont(getFont());
   applyTheme(getTheme());
 
   /* ── ภาษา UI: จุดกลางเดียวให้ทุกเครื่องมือที่รองรับ 2 ภาษาอ่าน/เขียนร่วมกัน ──────────
@@ -451,8 +504,50 @@
     langRow.addEventListener('click', function () { langWrap.classList.toggle('open'); });
     settingsPanel.appendChild(langWrap);
 
+    /* แถว "ตัวอักษร" (เฟส 8 — เดิมชื่อ "ปรับขนาดตัวอักษร" เป็นแค่ปุ่มค้างไว้เฉยๆ ไม่มีฟังก์ชันจริง
+       เปลี่ยนชื่อ + ต่อสายจริงตรงนี้ตามที่ผู้ใช้ขอ) กดแล้วกางรายชื่อฟอนต์ให้เลือก — แต่ละชื่อ
+       แสดงด้วยฟอนต์จริงของตัวเอง (ไม่ใช่ตัวอักษรเดียวกันหมด) ช่วยพรีวิวหน้าตาก่อนเลือกจริง
+       โหลดไฟล์ฟอนต์ (Google Fonts) แบบ lazy — โหลดตอนกดขยายรายการครั้งแรกเท่านั้น ไม่โหลดล่วงหน้า
+       ทุกหน้าทั้งที่อาจไม่มีใครเปิดเมนูนี้เลย (ประหยัด request เว็บให้เบาเหมือนเดิม) */
+    var fontRow = document.createElement('button');
+    fontRow.type = 'button';
+    fontRow.className = 'ome-settings-row';
+    fontRow.innerHTML = '<span>ตัวอักษร</span>';
+    settingsPanel.appendChild(fontRow);
+
+    var fontWrap = document.createElement('div');
+    fontWrap.className = 'ome-theme-swatches';
+    function markSelectedFont() {
+      var cur = getFont();
+      var nodes = fontWrap.querySelectorAll('.ome-theme-swatch');
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].classList.toggle('sel', nodes[i].getAttribute('data-font-id') === cur);
+      }
+    }
+    FONTS.forEach(function (f) {
+      var sw = document.createElement('button');
+      sw.type = 'button';
+      sw.className = 'ome-theme-swatch';
+      sw.setAttribute('data-font-id', f.id);
+      sw.innerHTML = '<span style="font-family:' + f.family + '">' + f.label + '</span>';
+      sw.addEventListener('click', function () {
+        setFontGlobal(f.id);
+        markSelectedFont();
+      });
+      fontWrap.appendChild(sw);
+    });
+    markSelectedFont();
+    var fontsPreviewed = false;
+    fontRow.addEventListener('click', function () {
+      if (!fontsPreviewed) {
+        fontsPreviewed = true;
+        FONTS.forEach(function (f) { ensureFontLoaded(f); });
+      }
+      fontWrap.classList.toggle('open');
+    });
+    settingsPanel.appendChild(fontWrap);
+
     var SETTINGS_ROWS = [
-      { label: 'ปรับขนาดตัวอักษร' },
       { label: 'ล้างข้อมูล' },
       { label: 'Help', divider: true }
     ];
