@@ -35,52 +35,95 @@
   --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
 }
 
-/* ── ธีมทางเลือก (เฟส 4 ของงานรวมศูนย์ UI/UX) — ถอดโทนสีจากภาพ UI/UX อ้างอิงที่ผู้ใช้ส่งมา
-   คุมเฉพาะโทเคนพื้นผิวหลัก (bg/card/ink/muted/line/brand*) เหมือนที่ [data-theme="dark"] ทำ —
+/* ── สีธีม (เฟส 6 — แยกแกน "สี" ออกจากแกน "สว่าง/มืด" เดิม) ────────────────────────
+   เดิม [data-theme="X"] ผูกสี+ความสว่างไว้ด้วยกัน (เลือกสีได้แต่ติดสว่างเสมอ) ผู้ใช้อยากได้
+   2 แกนอิสระ: data-accent = ตัวตนสี (9 แบบ รวม mint เดิม), data-theme = สว่าง/มืดล้วนๆ
+   (ใช้ต่อได้ทุกสี) รวมกันเป็น [data-accent="X"][data-theme="dark"] สำหรับเวอร์ชันมืดของสีนั้น —
+   คุมเฉพาะโทเคนพื้นผิวหลัก (bg/card/ink/muted/line/brand*) เหมือน [data-theme="dark"] เดิมทำ
    ตั้งใจไม่แตะสีความหมาย (--ok/--err/--warn/--violet/--amber/--rose/--sky ที่แต่ละหน้า hardcode
    เอง) เพื่อไม่ให้ความหมายสี (เขียว=กำไร/ผ่าน, แดง=ขาดทุน/ผิด ฯลฯ) เพี้ยนไปตามธีมที่เลือก
    พื้นหลังหน้าเป็นสีทึบล้วน (ไม่ใช้ gradient จากภาพต้นฉบับตรงๆ) เพราะ --ome-bg ถูกใช้เป็นสี fill
    เรียบๆ ของ element เล็กๆ หลายร้อยจุดทั่วเว็บ (hover, ช่อง input, แถบ progress ฯลฯ) ใส่ gradient
    เข้าไปจะเพี้ยนตรงจุดเล็กๆ พวกนั้น */
-[data-theme="flooks"]{
+[data-accent="flooks"]{
   --ome-bg:#F3F1EA; --ome-card:#FFFFFF; --ome-ink:#1A1A1A; --ome-muted:#8A8578;
   --ome-line:#ECE8DC; --ome-brand:#FFC700; --ome-brand-dk:#8A6800; --ome-brand-sf:#FFF6D6;
   --ome-sh:0 1px 2px rgba(40,32,0,.06), 0 8px 24px rgba(40,32,0,.08);
 }
-[data-theme="gymes"]{
+[data-accent="flooks"][data-theme="dark"]{
+  --ome-bg:#1C1710; --ome-card:#282017; --ome-ink:#F2ECDD; --ome-muted:#A69A80;
+  --ome-line:#3A3020; --ome-brand:#FFC700; --ome-brand-dk:#FFD84D; --ome-brand-sf:#4A3D14;
+  --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+[data-accent="gymes"]{
   --ome-bg:#F5F5F7; --ome-card:#FFFFFF; --ome-ink:#17171A; --ome-muted:#82828A;
   --ome-line:#EAEAEE; --ome-brand:#E5384D; --ome-brand-dk:#B81E36; --ome-brand-sf:#FDEBEC;
   --ome-sh:0 1px 2px rgba(20,20,24,.05), 0 8px 24px rgba(20,20,24,.07);
 }
-[data-theme="glass"]{
+[data-accent="gymes"][data-theme="dark"]{
+  --ome-bg:#161618; --ome-card:#201F22; --ome-ink:#F0EFF2; --ome-muted:#9C9AA0;
+  --ome-line:#332F34; --ome-brand:#FF4D63; --ome-brand-dk:#FF7A8C; --ome-brand-sf:#3D1A20;
+  --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+[data-accent="skypastel"]{
   --ome-bg:#EDF1FA; --ome-card:#FFFFFF; --ome-ink:#202634; --ome-muted:#707B93;
   --ome-line:#E1E7F5; --ome-brand:#3D7CF4; --ome-brand-dk:#2C5DC4; --ome-brand-sf:#E7EEFD;
   --ome-sh:0 1px 2px rgba(30,50,120,.05), 0 8px 28px rgba(60,80,160,.08);
 }
-[data-theme="coach"]{
+[data-accent="skypastel"][data-theme="dark"]{
+  --ome-bg:#131A28; --ome-card:#1C2536; --ome-ink:#E8EEFB; --ome-muted:#8D9AB8;
+  --ome-line:#2E3B52; --ome-brand:#5B94FF; --ome-brand-dk:#8FB4FF; --ome-brand-sf:#1E2F4D;
+  --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+[data-accent="coach"]{
   --ome-bg:#EAF4F0; --ome-card:#FFFFFF; --ome-ink:#1D2B27; --ome-muted:#6D8079;
   --ome-line:#DCEBE5; --ome-brand:#1C9C88; --ome-brand-dk:#0F7A69; --ome-brand-sf:#DFF5EF;
   --ome-sh:0 1px 2px rgba(20,60,50,.05), 0 8px 24px rgba(20,80,65,.08);
 }
-[data-theme="finset"]{
+[data-accent="coach"][data-theme="dark"]{
+  --ome-bg:#101C19; --ome-card:#182722; --ome-ink:#E4F2ED; --ome-muted:#87A69C;
+  --ome-line:#283A34; --ome-brand:#2DBFA8; --ome-brand-dk:#5EDCC6; --ome-brand-sf:#163831;
+  --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+[data-accent="finset"]{
   --ome-bg:#F7F6FC; --ome-card:#FFFFFF; --ome-ink:#221F35; --ome-muted:#837E9C;
   --ome-line:#ECEAF6; --ome-brand:#7C6FEA; --ome-brand-dk:#5B4CD6; --ome-brand-sf:#EFEBFC;
   --ome-sh:0 1px 2px rgba(50,40,100,.05), 0 8px 24px rgba(60,50,120,.08);
 }
-[data-theme="bubblegum"]{
+[data-accent="finset"][data-theme="dark"]{
+  --ome-bg:#161426; --ome-card:#201D33; --ome-ink:#EBE8F7; --ome-muted:#9A93B8;
+  --ome-line:#332E4D; --ome-brand:#9689FF; --ome-brand-dk:#B6ACFF; --ome-brand-sf:#2A2450;
+  --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+[data-accent="bubblegum"]{
   --ome-bg:#F3EEF0; --ome-card:#FFFFFF; --ome-ink:#221420; --ome-muted:#8F8390;
   --ome-line:#F0E4EA; --ome-brand:#EC1E79; --ome-brand-dk:#B8125C; --ome-brand-sf:#FDE8F1;
   --ome-sh:0 1px 2px rgba(80,10,50,.06), 0 8px 24px rgba(80,10,50,.09);
 }
-[data-theme="construct"]{
+[data-accent="bubblegum"][data-theme="dark"]{
+  --ome-bg:#1E1219; --ome-card:#291A23; --ome-ink:#F5E9EF; --ome-muted:#A88E9B;
+  --ome-line:#3D2A34; --ome-brand:#FF4D96; --ome-brand-dk:#FF85B8; --ome-brand-sf:#401A2E;
+  --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+[data-accent="construct"]{
   --ome-bg:#F7F1E7; --ome-card:#FFFFFF; --ome-ink:#2A2018; --ome-muted:#8C8070;
   --ome-line:#ECE3D3; --ome-brand:#E8743B; --ome-brand-dk:#B85221; --ome-brand-sf:#FBE7D9;
   --ome-sh:0 1px 2px rgba(60,40,10,.06), 0 8px 24px rgba(60,40,10,.08);
 }
-[data-theme="crypto"]{
+[data-accent="construct"][data-theme="dark"]{
+  --ome-bg:#1D160E; --ome-card:#281F15; --ome-ink:#F3EBDF; --ome-muted:#A69985;
+  --ome-line:#3D3121; --ome-brand:#FF9257; --ome-brand-dk:#FFB584; --ome-brand-sf:#432714;
+  --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+[data-accent="crypto"]{
   --ome-bg:#EAF2FE; --ome-card:#FFFFFF; --ome-ink:#131B2E; --ome-muted:#6B7A96;
   --ome-line:#DCE8FB; --ome-brand:#2F7BFF; --ome-brand-dk:#1955C4; --ome-brand-sf:#E4EEFF;
   --ome-sh:0 1px 2px rgba(10,40,100,.06), 0 8px 26px rgba(10,60,140,.09);
+}
+[data-accent="crypto"][data-theme="dark"]{
+  --ome-bg:#0E1626; --ome-card:#162034; --ome-ink:#E6EDFB; --ome-muted:#8496B8;
+  --ome-line:#28344C; --ome-brand:#5B96FF; --ome-brand-dk:#8FB6FF; --ome-brand-sf:#1A2C4D;
+  --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
 }
 
 /* ── ให้ footer ติดล่างสุดของจอเสมอ แม้เนื้อหาสั้น (sticky footer) ────
@@ -176,20 +219,12 @@ body{padding-bottom:0!important}
 .ome-theme-swatch.sel::after{content:'✓';margin-left:auto;font-size:12px;font-weight:700}
 
 /* ── รีแมปโทเคนพื้นผิวของหน้าเครื่องมือตามธีมที่เลือก (documents.html / run.html ใช้ตัวแปรชุดเดิม)
-   ใช้รายชื่อธีมแบบระบุตรงๆ (ไม่ใช้ :not([data-theme="light"]) แบบเหมารวม) เพราะ sub-rule ด้านล่าง
-   (.hero/.drop/.note/.info/code/.track/.cmp-table) hardcode สีเข้มไว้เฉพาะสำหรับพื้นหลังมืดของ
-   [data-theme="dark"] เท่านั้น — ถ้าธีมใหม่ (พื้นหลังสว่างทุกธีม) ไปโดน sub-rule พวกนั้นด้วยจะกลาย
-   เป็นกล่องดำแทรกอยู่กลางธีมสว่าง จึงต้องแยก block นี้ (รีแมปพื้นผิวหลัก ใช้ได้กับทุกธีม) ออกจาก
-   sub-rule ด้านล่าง (เฉพาะ dark เท่านั้น) ให้ชัดเจน */
+   เดิมต้องระบุชื่อธีมทีละอันเพราะสี+ความสว่างผูกกันในตัวแปรเดียว (data-theme) ตอนนี้แยกเป็น
+   data-accent (สี) กับ data-theme (สว่าง/มืดล้วนๆ) แล้ว เลยรีแมปแค่ "มี data-accent อยู่ไหม
+   (สีอะไรก็ได้) หรือ data-theme=dark ไหม" ก็พอ — ไม่ต้องแจกแจงทีละชื่อสีอีกต่อไป (mint เริ่มต้น
+   ก็ set data-accent="mint" ไว้เหมือนกัน รีแมปแล้วได้ค่าเดิมเป๊ะ ไม่มีผลต่างจากไม่รีแมป) */
 [data-theme="dark"] body.ome-tool-page,
-[data-theme="flooks"] body.ome-tool-page,
-[data-theme="gymes"] body.ome-tool-page,
-[data-theme="glass"] body.ome-tool-page,
-[data-theme="coach"] body.ome-tool-page,
-[data-theme="finset"] body.ome-tool-page,
-[data-theme="bubblegum"] body.ome-tool-page,
-[data-theme="construct"] body.ome-tool-page,
-[data-theme="crypto"] body.ome-tool-page{
+[data-accent] body.ome-tool-page{
   --bg:var(--ome-bg); --card:var(--ome-card); --ink:var(--ome-ink); --muted:var(--ome-muted);
   --line:var(--ome-line); --brand:var(--ome-brand); --brand-dk:var(--ome-brand-dk);
   --brand-sf:var(--ome-brand-sf); --sh:var(--ome-sh);
@@ -211,16 +246,12 @@ body{padding-bottom:0!important}
 [data-theme="dark"] body.ome-tool-page .cmp-table tr.cmp-flag{background:#2E1A1A}
 [data-theme="dark"] body.ome-tool-page .cmp-table tr.cmp-flag td{color:#F0A0A0}
 
-/* ── การ์ดต้อนรับ (.hero) ของธีมใหม่ — ผสมสีอ่อนของแบรนด์ธีมนั้นแทน gradient พาสเทลฟ้า/มินต์/ส้ม
-   ที่แต่ละหน้า hardcode ไว้เอง (ไม่ต้องไล่แก้ทีละหน้า ใช้สูตรเดียวจาก --ome-brand-sf/--ome-card) ── */
-[data-theme="flooks"] body.ome-tool-page .hero,
-[data-theme="gymes"] body.ome-tool-page .hero,
-[data-theme="glass"] body.ome-tool-page .hero,
-[data-theme="coach"] body.ome-tool-page .hero,
-[data-theme="finset"] body.ome-tool-page .hero,
-[data-theme="bubblegum"] body.ome-tool-page .hero,
-[data-theme="construct"] body.ome-tool-page .hero,
-[data-theme="crypto"] body.ome-tool-page .hero{
+/* ── การ์ดต้อนรับ (.hero) ของสีธีมใหม่ (ไม่ใช่ mint เริ่มต้น) — ผสมสีอ่อนของแบรนด์สีนั้นแทน
+   gradient พาสเทลฟ้า/มินต์/ส้มที่แต่ละหน้า hardcode ไว้เอง ใช้ได้ทั้งโหมดสว่าง/มืด (เพราะ
+   --ome-brand-sf/--ome-card เปลี่ยนค่าตามแต่ละโหมดอยู่แล้ว) — specificity สูงกว่า sub-rule
+   ของ [data-theme="dark"] .hero ด้านล่าง (mint-only moody gradient) เลยชนะเฉพาะตอนเลือกสีอื่น
+   ที่ไม่ใช่ mint เท่านั้น mint ยังได้ moody gradient เดิมตอนกดมืดเหมือนเดิมทุกจุด */
+[data-accent]:not([data-accent="mint"]) body.ome-tool-page .hero{
   background:linear-gradient(120deg, var(--ome-brand-sf) 0%, var(--ome-card) 55%, var(--ome-brand-sf) 100%);
 }
 

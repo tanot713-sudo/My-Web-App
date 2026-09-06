@@ -28,27 +28,59 @@
     document.head.appendChild(s);
   })();
 
-  /* ── รายชื่อธีมที่เลือกได้ (เฟส 4 ของงานรวมศูนย์ UI/UX) — ถอดโทนสีจากภาพ UI/UX อ้างอิงที่ผู้ใช้
-     ส่งมา ทุกธีมกำหนดค่าจริงไว้ที่ theme.css (ที่นี่เก็บแค่ id/label/สีจุดสวอตช์ไว้สร้างเมนูเลือก) */
-  var THEMES = [
-    { id: 'light',  label: 'สว่าง (ปกติ)',      swatch: '#12A594' },
-    { id: 'dark',   label: 'มืด (ปกติ)',        swatch: '#2BC4B2' },
-    { id: 'flooks', label: 'เหลืองพลัง',        swatch: '#FFC700' },
-    { id: 'gymes',  label: 'แดงสปอร์ต',         swatch: '#E5384D' },
-    { id: 'glass',  label: 'แก้วพาสเทล',        swatch: '#3D7CF4' },
-    { id: 'coach',  label: 'มินต์-ลาเวนเดอร์',   swatch: '#1C9C88' },
-    { id: 'finset', label: 'ม่วงการเงิน',        swatch: '#7C6FEA' },
-    { id: 'bubblegum', label: 'ชมพูสดใส',       swatch: '#EC1E79' },
-    { id: 'construct', label: 'ส้มก่อสร้าง',     swatch: '#E8743B' },
-    { id: 'crypto',    label: 'ฟ้าคริปโต',       swatch: '#2F7BFF' }
+  /* ── รายชื่อสีธีมที่เลือกได้ (เฟส 6 — แยกแกน "สี" ออกจากแกน "สว่าง/มืด" ตามที่ผู้ใช้ขอ) ──────
+     เดิม (เฟส 4) สี+ความสว่างผูกกันในค่าเดียว ('flooks'/'dark' อยู่ลิสต์เดียวกัน) ทำให้เลือกสีอื่น
+     แล้วติดสว่างตลอด ตอนนี้แยกเป็น 2 แกนอิสระ: ACCENTS (สีล้วนๆ 9 แบบ รวม mint เดิม) x สว่าง/มืด
+     (ปุ่ม ☀️/🌙 เดิม) รวมกันเป็น data-accent + data-theme บน <html> พร้อมกัน — ค่าจริงของแต่ละสี
+     (ทั้งเวอร์ชันสว่าง/มืด) กำหนดไว้ที่ theme.css ที่นี่เก็บแค่ id/label/สีจุดสวอตช์ */
+  var ACCENTS = [
+    { id: 'mint',   label: 'เขียวมิ้นต์ (ปกติ)',   swatch: '#12A594' },
+    { id: 'flooks', label: 'เหลืองพลัง',          swatch: '#FFC700' },
+    { id: 'gymes',  label: 'แดงสปอร์ต',           swatch: '#E5384D' },
+    { id: 'skypastel', label: 'ฟ้าพาสเทล',        swatch: '#3D7CF4' },
+    { id: 'coach',  label: 'มินต์-ลาเวนเดอร์',     swatch: '#1C9C88' },
+    { id: 'finset', label: 'ม่วงการเงิน',          swatch: '#7C6FEA' },
+    { id: 'bubblegum', label: 'ชมพูสดใส',         swatch: '#EC1E79' },
+    { id: 'construct', label: 'ส้มก่อสร้าง',       swatch: '#E8743B' },
+    { id: 'crypto',    label: 'ฟ้าคริปโต',         swatch: '#2F7BFF' }
   ];
-  window.OME_THEMES = THEMES;
+  window.OME_ACCENTS = ACCENTS;
 
-  /* ── ธีม: อ่านค่าที่เคยเลือก > ตามระบบ ─────────────────────────── */
+  /* ── แปลงค่าเก่า (เฟส 4) ที่เคยเก็บสี+ความสว่างไว้ในคีย์เดียว 'ome:theme' เช่น 'flooks'/'crypto'
+     ให้เป็นโมเดลใหม่ครั้งเดียวตอนโหลดหน้าแรกหลังอัปเดต — ย้ายค่าสีไปที่ 'ome:accent' ใหม่ รีเซ็ต
+     'ome:theme' กลับเป็น 'light' (ธีมสีชุดเก่าทุกอันเป็นเวอร์ชันสว่างเท่านั้น ไม่มีมืด จึงรีเซ็ต
+     ความสว่างให้ตรงของเดิมเป๊ะ) — 'light'/'dark' เดิมไม่ต้องย้ายอะไร อยู่แกนสว่าง/มืดถูกที่อยู่แล้ว */
+  (function migrateOldThemeKey() {
+    try {
+      var old = localStorage.getItem('ome:theme');
+      var oldIsAccent = old && old !== 'light' && old !== 'dark';
+      if (oldIsAccent && !localStorage.getItem('ome:accent')) {
+        var mapped = old === 'glass' ? 'skypastel' : old; /* id เดิมชื่อ glass เปลี่ยนเป็น skypastel แล้ว */
+        localStorage.setItem('ome:accent', mapped);
+        localStorage.setItem('ome:theme', 'light');
+      }
+    } catch (e) {}
+  })();
+
+  /* ── สีธีม: อ่านค่าที่เคยเลือก > mint (ปกติ) ───────────────────── */
+  function getAccent() {
+    try {
+      var saved = localStorage.getItem('ome:accent');
+      for (var i = 0; i < ACCENTS.length; i++) { if (ACCENTS[i].id === saved) return saved; }
+    } catch (e) {}
+    return 'mint';
+  }
+  function setAccentGlobal(id) {
+    try { localStorage.setItem('ome:accent', id); } catch (e) {}
+    document.documentElement.setAttribute('data-accent', id);
+  }
+  window.OME_ACCENT = { get: getAccent, set: setAccentGlobal };
+
+  /* ── สว่าง/มืด: อ่านค่าที่เคยเลือก > ตามระบบ (แกนนี้แยกจากสีธีมแล้ว ใช้ได้กับทุกสี) ────── */
   function getTheme() {
     try {
       var saved = localStorage.getItem('ome:theme');
-      for (var i = 0; i < THEMES.length; i++) { if (THEMES[i].id === saved) return saved; }
+      if (saved === 'light' || saved === 'dark') return saved;
     } catch (e) {}
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark' : 'light';
@@ -58,6 +90,7 @@
     var btn = document.getElementById('omeThemeBtn');
     if (btn) btn.textContent = t === 'dark' ? '☀️' : '🌙';
   }
+  document.documentElement.setAttribute('data-accent', getAccent());
   applyTheme(getTheme());
 
   /* ── ภาษา UI: จุดกลางเดียวให้ทุกเครื่องมือที่รองรับ 2 ภาษาอ่าน/เขียนร่วมกัน ──────────
@@ -296,21 +329,20 @@
     var swatchWrap = document.createElement('div');
     swatchWrap.className = 'ome-theme-swatches';
     function markSelectedSwatch() {
-      var cur = document.documentElement.getAttribute('data-theme');
+      var cur = getAccent();
       var nodes = swatchWrap.querySelectorAll('.ome-theme-swatch');
       for (var i = 0; i < nodes.length; i++) {
-        nodes[i].classList.toggle('sel', nodes[i].getAttribute('data-theme-id') === cur);
+        nodes[i].classList.toggle('sel', nodes[i].getAttribute('data-accent-id') === cur);
       }
     }
-    THEMES.forEach(function (th) {
+    ACCENTS.forEach(function (ac) {
       var sw = document.createElement('button');
       sw.type = 'button';
       sw.className = 'ome-theme-swatch';
-      sw.setAttribute('data-theme-id', th.id);
-      sw.innerHTML = '<span class="dot" style="background:' + th.swatch + '"></span><span>' + th.label + '</span>';
+      sw.setAttribute('data-accent-id', ac.id);
+      sw.innerHTML = '<span class="dot" style="background:' + ac.swatch + '"></span><span>' + ac.label + '</span>';
       sw.addEventListener('click', function () {
-        try { localStorage.setItem('ome:theme', th.id); } catch (e) {}
-        applyTheme(th.id);
+        setAccentGlobal(ac.id);
         markSelectedSwatch();
       });
       swatchWrap.appendChild(sw);
