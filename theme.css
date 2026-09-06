@@ -531,3 +531,69 @@ body{padding-bottom:0!important}
   box-shadow:var(--ome-sh), 0 0 28px color-mix(in srgb, var(--ome-brand) 18%, transparent)!important}
 [data-style="aurora"] body.ome-tool-page .btn{
   border:1.5px solid color-mix(in srgb, var(--ome-brand) 45%, var(--ome-line) 55%)!important}
+
+/* ══════════════════════════════════════════════════════════════════
+   รวมศูนย์ UI/UX เฟส 7.1 — ขยาย "ประเภทธีม" ให้ครอบคลุม 4 หน้า React+Tailwind (ome-app-page)
+   ผู้ใช้ขอให้ทำเพิ่มหลังเห็นว่าเฟส 7 มีผลแค่ body.ome-tool-page เท่านั้น
+
+   หน้าพวกนี้ (classroom-business/engineering, languages, legal) ไม่มี .card/.btn ร่วมกันแบบ
+   หน้าเครื่องมือ (ใช้ Tailwind utility ตรงๆ) — surface หลักที่ยกขึ้นมาระบุเนื้อหาคือ .bg-white
+   (พิสูจน์แล้วว่าปลอดภัย: grep แล้วใช้เฉพาะกับการ์ด/แผง/หัวข้อ/แถบข้างจริงๆ ไม่ชนกับ badge/pill
+   เล็กๆ เพราะพวกนั้นใช้ .bg-white/10, .bg-white/20 ซึ่งเป็นคนละคลาสกัน ไม่ถูก selector นี้จับ)
+   ผูกกับ token เดียวกับที่แก้สีไปแล้วในเฟส 6.1 (--ome-card/--ome-line/--ome-sh) ตามสูตรเดียวกับ
+   เฟส 7 ด้านบนเป๊ะ ต่างแค่เปลี่ยน .card → .bg-white
+
+   ตั้งใจไม่แตะ border-radius (skip ไปเลยทุกประเภทธีม ต่างจากเฟส 7 ของหน้าเครื่องมือ) เพราะ
+   .bg-white ในหน้าพวกนี้ใช้ร่วมกับ rounded-* หลายขนาดปนกัน (rounded-2xl/rounded-xl/rounded-lg)
+   ในองค์ประกอบต่างชนิดกัน (การ์ดใหญ่/แถบข้าง/หัวข้อ) เปลี่ยนมุมทีเดียวทั้งหมดเสี่ยงทำเลย์เอาต์
+   บางจุดเพี้ยน — เอฟเฟกต์พื้นผิว (โปร่งแสง/เงา/ขอบ) ที่เหลือก็สื่อความรู้สึกของแต่ละประเภทธีม
+   ได้ชัดเจนอยู่แล้วโดยไม่ต้องแตะทรง
+
+   ตั้งใจไม่แตะปุ่มหลัก (.bg-primary/.bg-secondary/.bg-brand) เช่นกัน — ต่างจากหน้าเครื่องมือที่
+   .btn เป็นสีกลาง (var(--card)) ไม่ใช่สีแบรนด์ ปุ่มพวกนี้ในหน้า React ใช้สีแบรนด์ล้วนเป็นตัวชี้นำ
+   การกระทำหลัก (primary CTA) การทำให้โปร่งแสง/จางสี/ลบสีออก (เช่น neumorph ที่กลืนเป็นสีพื้น) จะ
+   ลดความชัดเจนของปุ่มสำคัญลง เก็บไว้เป็นสีทึบเหมือนเดิมเพื่อความปลอดภัยด้าน usability */
+
+[data-style="glass"] .ome-app-page .bg-white{
+  background:color-mix(in srgb, var(--ome-card) 62%, transparent)!important;
+  backdrop-filter:blur(18px) saturate(160%)!important;-webkit-backdrop-filter:blur(18px) saturate(160%)!important;
+  border-color:color-mix(in srgb, var(--ome-line) 55%, transparent)!important}
+[data-style="glass"] .ome-app-page .shadow-sm,
+[data-style="glass"] .ome-app-page .shadow-md,
+[data-style="glass"] .ome-app-page .shadow-lg{box-shadow:0 8px 32px color-mix(in srgb, var(--ome-ink) 12%, transparent)!important}
+
+[data-style="neumorph"] .ome-app-page .bg-white{
+  background:var(--ome-bg)!important;border-color:transparent!important;
+  box-shadow:8px 8px 18px color-mix(in srgb, var(--ome-ink) 14%, transparent),
+    -8px -8px 18px color-mix(in srgb, white 55%, transparent)!important}
+[data-theme="dark"][data-style="neumorph"] .ome-app-page .bg-white{
+  box-shadow:8px 8px 18px color-mix(in srgb, black 55%, transparent),
+    -8px -8px 18px color-mix(in srgb, var(--ome-card) 65%, transparent)!important}
+
+[data-style="neubrutal"] .ome-app-page .bg-white{
+  border:2.5px solid var(--ome-ink)!important;box-shadow:6px 6px 0 var(--ome-ink)!important}
+
+[data-style="outline"] .ome-app-page .bg-white{
+  border-color:var(--ome-line)!important;box-shadow:none!important}
+
+[data-style="clay"] .ome-app-page .bg-white{
+  border-color:transparent!important;
+  box-shadow:var(--ome-sh),
+    inset 2px 2px 4px color-mix(in srgb, white 40%, transparent),
+    inset -3px -3px 8px color-mix(in srgb, var(--ome-ink) 10%, transparent)!important}
+
+[data-style="mica"] .ome-app-page .bg-white{
+  background:color-mix(in srgb, var(--ome-card) 88%, transparent)!important;
+  backdrop-filter:blur(6px)!important;-webkit-backdrop-filter:blur(6px)!important;
+  border-color:color-mix(in srgb, var(--ome-line) 80%, transparent)!important}
+
+[data-style="aurora"] .ome-app-page{
+  background-image:radial-gradient(ellipse 70% 40% at 20% -10%, color-mix(in srgb, var(--ome-brand) 20%, transparent), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 110%, color-mix(in srgb, var(--ome-brand-sf) 65%, transparent), transparent 60%)!important;
+  background-attachment:fixed!important}
+[data-style="aurora"] .ome-app-page .bg-white{
+  background-color:var(--ome-card)!important;border-color:transparent!important;
+  background-image:linear-gradient(var(--ome-card), var(--ome-card)),
+    linear-gradient(120deg, var(--ome-brand), var(--ome-brand-sf) 45%, var(--ome-brand-dk))!important;
+  background-origin:border-box!important;background-clip:padding-box, border-box!important;
+  box-shadow:var(--ome-sh), 0 0 28px color-mix(in srgb, var(--ome-brand) 18%, transparent)!important}
