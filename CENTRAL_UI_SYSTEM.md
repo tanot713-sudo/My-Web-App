@@ -131,10 +131,26 @@ rule เดียวใน `theme.css`: `[data-theme="dark"] body.ome-tool-page,
 gradient moody เดิมตอนกดมืด (ของเดิมก่อนมีเฟส 4 เลย ไม่แตะ) เพราะ specificity ของ rule สี
 ชนะเฉพาะตอนเลือกสีอื่นที่ไม่ใช่ mint เท่านั้น
 
+**เฟส 6.1 — แก้หน้า React+Tailwind ให้ตามสีธีมด้วย** (`ome-app-page`: classroom-business/
+engineering, languages, legal) ผู้ใช้แจ้งว่าหน้าพวกนี้ยังไม่เปลี่ยนสีตามธีมที่เลือกเลย —
+เดิม override utility class ของ Tailwind (`bg-white`/`text-slate-800`/ฯลฯ) เป็นเลขสี hardcode
+ตายตัวและมีแค่เงื่อนไข `[data-theme="dark"]` (ผูกกับ mint dark ตรงๆ) แก้โดยเปลี่ยนเลข hardcode
+เป็น `var(--ome-*)` ทั้งหมด (เปลี่ยนตามสี+ความสว่างที่เลือกอัตโนมัติอยู่แล้ว) แล้วขยาย selector
+เป็น `[data-accent]` ด้วย (ครอบคลุมทุกสีทั้งสว่าง/มืด ไม่ใช่แค่ dark) — เฉพาะ utility ที่เป็น
+"พื้นผิวกลาง/แบรนด์" เท่านั้น (bg-white, bg-slate-50/gray-50, bg-slate-100/gray-100,
+bg-brandLight, border-brand, text-slate-*/gray-*, border-slate-*/gray-*, textarea/input)
+ส่วน utility ที่เป็น "สีความหมาย" (amber-50/emerald-50/green-50/red-50/blue-50 ใช้เป็นกล่อง
+เตือน/สำเร็จ/ผิดพลาด/ข้อมูล) ยังคง hardcode เฉพาะ dark เหมือนเดิม ไม่ผูกกับสีธีม (นโยบายเดียว
+กับที่เหลือทั้งเว็บ) — จุดที่ไม่มีตัวแปรตรงตัว (bg-slate-100/gray-100 ที่เดิมเป็นเฉดที่ 3 ระหว่าง
+card กับ bg, text-slate-700/600 ที่เดิมเป็นเฉดกลางระหว่าง ink กับ muted) ใช้ `color-mix(in srgb,
+...)` ผสมจาก 2 โทเคนแทน เพื่อให้ได้เฉดกลางที่ปรับตามสีธีมอัตโนมัติโดยไม่ต้องคิดค่าใหม่ทีละสี
+
+**ยังทดสอบด้วยตาไม่ได้ในรอบนี้**: 3 ใน 4 หน้านี้โหลด React/Babel จาก unpkg.com (CDN ภายนอก)
+ซึ่ง sandbox ทดสอบของ Claude บล็อกโดเมนนี้ไว้ ทำให้เห็นแค่พื้นหลังหน้า (ยืนยันถูกต้องแล้ว —
+เปลี่ยนสีตามธีมจริง) แต่มองไม่เห็นสีการ์ด/ตัวอักษรจริงที่ React render ออกมา (กลไกเป็นแพทเทิร์น
+เดียวกับที่พิสูจน์แล้วว่าใช้ได้จริงในหน้าอื่นทั้งเว็บ มั่นใจว่าถูกต้อง แต่ควรลองดูบนเว็บจริงอีกที)
+
 **นอกขอบเขต** (ไม่ retint อัตโนมัติ, จะต้องแก้เพิ่มทีละไฟล์ถ้าต้องการในอนาคต):
-- หน้า React+Tailwind (`ome-app-page`: classroom-business/engineering, languages, legal)
-  ใช้ Tailwind utility class (`bg-white`ฯลฯ) มี override เฉพาะ `dark` เท่านั้น สีธีมใหม่จะเห็น
-  เป็น Tailwind ค่าเริ่มต้น (ขาว/เทาอ่อน) ไม่ใช่สีที่เลือก
 - 4 หน้าที่ไม่มี `ome-tool-page`/`ome-app-page` เลย (404, bar-prep, cad3d, credits)
 - กราฟ/ชาร์ตที่วาดด้วย JS ตรงๆ (sparkline ราคาทอง, lightweight-charts หุ้น, canvas ของ CAD)
   ใช้สี hex ฝังในโค้ด ไม่ได้อ่านจาก CSS variable เลย

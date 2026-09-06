@@ -255,17 +255,34 @@ body{padding-bottom:0!important}
   background:linear-gradient(120deg, var(--ome-brand-sf) 0%, var(--ome-card) 55%, var(--ome-brand-sf) 100%);
 }
 
-/* ── โหมดมืดสำหรับหน้า React+Tailwind (override utility ที่ใช้บ่อย) ── */
-[data-theme="dark"] body.ome-app-page{background:var(--ome-bg)!important}
-[data-theme="dark"] .ome-app-page .bg-white{background-color:#1B2030!important}
+/* ── หน้า React+Tailwind (classroom-business/engineering, languages.html, legal.html) ──────
+   เดิม override เฉพาะ [data-theme="dark"] อย่างเดียว (hardcode ค่าสีเข้มของ mint ตรงๆ) พอมี
+   สีธีมอื่นเพิ่ม (เฟส 4+) หน้าพวกนี้เลยไม่ขยับตามเลยทั้งโหมดสว่าง/มืด (ผู้ใช้แจ้งว่า "ภาษา/
+   งานกฎหมาย/ห้องเรียน" ไม่เปลี่ยนสี) — แก้โดยเปลี่ยนค่า hardcode เป็น var(--ome-*) ทั้งหมด
+   (ตัวแปรพวกนี้เปลี่ยนตามสี+ความสว่างอยู่แล้วอัตโนมัติ) แล้วขยาย selector จาก [data-theme="dark"]
+   อย่างเดียว เป็น [data-accent] ด้วย (มี data-accent = สีอะไรก็ได้ ทั้งสว่าง/มืด) — เฉพาะ
+   utility class ที่เป็น "พื้นผิวกลาง/แบรนด์" (ขาว/เทา/brand) เท่านั้น ส่วน utility ที่เป็น
+   "สีความหมาย" (amber/emerald/green/red/blue-50 ใช้เป็นกล่องเตือน/สำเร็จ/ผิดพลาด/ข้อมูล) ยังคง
+   hardcode ไว้เฉพาะ dark เหมือนเดิม ไม่ผูกกับสีธีม (นโยบายเดียวกับหน้าอื่นทั้งเว็บ) */
+[data-theme="dark"] body.ome-app-page,
+[data-accent] body.ome-app-page{background:var(--ome-bg)!important}
+[data-theme="dark"] .ome-app-page .bg-white,
+[data-accent] .ome-app-page .bg-white{background-color:var(--ome-card)!important}
 [data-theme="dark"] .ome-app-page .bg-slate-50,
-[data-theme="dark"] .ome-app-page .bg-gray-50{background-color:#12151C!important}
+[data-theme="dark"] .ome-app-page .bg-gray-50,
+[data-accent] .ome-app-page .bg-slate-50,
+[data-accent] .ome-app-page .bg-gray-50{background-color:var(--ome-bg)!important}
 [data-theme="dark"] .ome-app-page .bg-slate-100,
-[data-theme="dark"] .ome-app-page .bg-gray-100{background-color:#171B26!important}
+[data-theme="dark"] .ome-app-page .bg-gray-100,
+[data-accent] .ome-app-page .bg-slate-100,
+[data-accent] .ome-app-page .bg-gray-100{background-color:color-mix(in srgb, var(--ome-card) 50%, var(--ome-bg) 50%)!important}
 [data-theme="dark"] .ome-app-page .bg-blue-50{background-color:#182236!important}
-[data-theme="dark"] .ome-app-page .bg-brandLight{background-color:#173832!important}
+[data-theme="dark"] .ome-app-page .bg-brandLight,
+[data-accent] .ome-app-page .bg-brandLight{background-color:var(--ome-brand-sf)!important}
 [data-theme="dark"] .ome-app-page .border-blue-50,
-[data-theme="dark"] .ome-app-page .border-brand{border-color:#2BC4B2!important}
+[data-theme="dark"] .ome-app-page .border-brand,
+[data-accent] .ome-app-page .border-blue-50,
+[data-accent] .ome-app-page .border-brand{border-color:var(--ome-brand)!important}
 [data-theme="dark"] .ome-app-page .bg-amber-50{background-color:#2A2415!important}
 [data-theme="dark"] .ome-app-page .bg-emerald-50,
 [data-theme="dark"] .ome-app-page .bg-green-50{background-color:#14261E!important}
@@ -273,19 +290,35 @@ body{padding-bottom:0!important}
 [data-theme="dark"] .ome-app-page .text-slate-800,
 [data-theme="dark"] .ome-app-page .text-slate-900,
 [data-theme="dark"] .ome-app-page .text-gray-800,
-[data-theme="dark"] .ome-app-page .text-gray-900{color:#E6EAF2!important}
+[data-theme="dark"] .ome-app-page .text-gray-900,
+[data-accent] .ome-app-page .text-slate-800,
+[data-accent] .ome-app-page .text-slate-900,
+[data-accent] .ome-app-page .text-gray-800,
+[data-accent] .ome-app-page .text-gray-900{color:var(--ome-ink)!important}
 [data-theme="dark"] .ome-app-page .text-slate-700,
 [data-theme="dark"] .ome-app-page .text-slate-600,
 [data-theme="dark"] .ome-app-page .text-gray-700,
-[data-theme="dark"] .ome-app-page .text-gray-600{color:#C2CBDD!important}
+[data-theme="dark"] .ome-app-page .text-gray-600,
+[data-accent] .ome-app-page .text-slate-700,
+[data-accent] .ome-app-page .text-slate-600,
+[data-accent] .ome-app-page .text-gray-700,
+[data-accent] .ome-app-page .text-gray-600{color:color-mix(in srgb, var(--ome-ink) 65%, var(--ome-muted) 35%)!important}
 [data-theme="dark"] .ome-app-page .text-slate-500,
 [data-theme="dark"] .ome-app-page .text-slate-400,
 [data-theme="dark"] .ome-app-page .text-gray-500,
-[data-theme="dark"] .ome-app-page .text-gray-400{color:#8B94A8!important}
+[data-theme="dark"] .ome-app-page .text-gray-400,
+[data-accent] .ome-app-page .text-slate-500,
+[data-accent] .ome-app-page .text-slate-400,
+[data-accent] .ome-app-page .text-gray-500,
+[data-accent] .ome-app-page .text-gray-400{color:var(--ome-muted)!important}
 [data-theme="dark"] .ome-app-page .border-slate-100,
 [data-theme="dark"] .ome-app-page .border-slate-200,
 [data-theme="dark"] .ome-app-page .border-gray-100,
-[data-theme="dark"] .ome-app-page .border-gray-200{border-color:#2A3040!important}
+[data-theme="dark"] .ome-app-page .border-gray-200,
+[data-accent] .ome-app-page .border-slate-100,
+[data-accent] .ome-app-page .border-slate-200,
+[data-accent] .ome-app-page .border-gray-100,
+[data-accent] .ome-app-page .border-gray-200{border-color:var(--ome-line)!important}
 [data-theme="dark"] .ome-app-page .border-blue-100{border-color:#2B3A57!important}
 [data-theme="dark"] .ome-app-page .border-amber-100,
 [data-theme="dark"] .ome-app-page .border-amber-200{border-color:#4A3D1E!important}
@@ -293,13 +326,21 @@ body{padding-bottom:0!important}
 [data-theme="dark"] .ome-app-page .border-emerald-200{border-color:#1E4A35!important}
 [data-theme="dark"] .ome-app-page .border-red-100{border-color:#573030!important}
 [data-theme="dark"] .ome-app-page textarea,
-[data-theme="dark"] .ome-app-page input[type="text"]{
-  background-color:#12151C!important;color:#E6EAF2!important;border-color:#2A3040!important}
+[data-theme="dark"] .ome-app-page input[type="text"],
+[data-accent] .ome-app-page textarea,
+[data-accent] .ome-app-page input[type="text"]{
+  background-color:var(--ome-bg)!important;color:var(--ome-ink)!important;border-color:var(--ome-line)!important}
+/* hover เก็บไว้เฉพาะ dark เหมือนเดิม (ไม่ขยายไปโหมดสว่าง) เพราะ mix กับสีขาวแล้วในโหมดสว่าง
+   ที่ card ก็ขาวอยู่แล้ว จะกลายเป็น hover ที่มองไม่ออกว่าเปลี่ยน (ของเดิม Tailwind gray-50
+   เป็น hover สีเทาอ่อนที่ใช้ได้ดีอยู่แล้วบนพื้นสว่างทุกสี ไม่ต้อง override) */
 [data-theme="dark"] .ome-app-page .hover\:bg-slate-50:hover,
-[data-theme="dark"] .ome-app-page .hover\:bg-gray-50:hover{background-color:#202635!important}
+[data-theme="dark"] .ome-app-page .hover\:bg-gray-50:hover{background-color:color-mix(in srgb, var(--ome-card) 85%, white 15%)!important}
 [data-theme="dark"] .ome-app-page .shadow-sm,
 [data-theme="dark"] .ome-app-page .shadow-md,
-[data-theme="dark"] .ome-app-page .shadow-lg{box-shadow:var(--ome-sh)!important}
+[data-theme="dark"] .ome-app-page .shadow-lg,
+[data-accent] .ome-app-page .shadow-sm,
+[data-accent] .ome-app-page .shadow-md,
+[data-accent] .ome-app-page .shadow-lg{box-shadow:var(--ome-sh)!important}
 
 /* ══════════════════════════════════════════════════════════════════
    รวมศูนย์ UI/UX เฟส 2 — จุดที่มีผลทันทีทั้งเว็บโดยไม่ต้องแก้ทีละหน้า
