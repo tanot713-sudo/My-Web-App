@@ -17374,7 +17374,7 @@
                         {view === 'stream' ? (
                         <div className="flex-1 overflow-y-auto bg-gray-50">
                             <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
-                                <div className="rounded-2xl bg-gradient-to-br from-brand via-teal-700 to-cyan-800 p-6 sm:p-8 text-white shadow-lg">
+                                <div className="rounded-2xl bg-gradient-to-br from-brand to-[var(--ome-brand-dk)] p-6 sm:p-8 text-white shadow-lg">
                                     <p className="text-xs uppercase tracking-widest text-teal-100 mb-2">Language Practice</p>
                                     <h2 className="text-2xl font-bold mb-2">ฝึกภาษาแบบพิมพ์คำแปล</h2>
                                     <p className="text-teal-50 text-sm max-w-xl">รวม {LANG_IDS.length} ภาษา {totalCategories} หมวดวลี ฝึกพิมพ์คำแปลเพื่อสะสม XP</p>

@@ -177,6 +177,29 @@ border-secondary`, `hover:`/`focus:` ของ secondary, `from-primary`/`to-sec
 รวมถึง gradient stops และตัวที่มี opacity modifier (`/10`, `/20`) — ยังต้องรอผู้ใช้ช่วยดูบนเว็บ
 จริงอีกรอบเช่นเดิม เพราะข้อจำกัด CDN บล็อกใน sandbox ยังเหมือนเดิม
 
+**เฟส 6.3 — หน้า languages.html หลุดจุดเดียวที่เฟส 6.2 มองข้าม**: ผู้ใช้ทดสอบเว็บจริงหลังเฟส 6.2
+แล้วส่งภาพมาอีกรอบ พบว่า "เหลืองพลัง" เลือกแล้วแถบต้อนรับของหน้า languages.html ยังไล่จากเหลือง
+(ซ้าย) ไปเขียว/ฟ้าอมเขียว (ขวา) อยู่ — ต่างจาก classroom-*.html ตรงที่หน้านี้ gradient ต้อนรับใช้
+`from-brand via-teal-700 to-cyan-800` (มี 3 จุดสี ไม่ใช่ 2 แบบ classroom-*) เฟส 6.1/6.2 แก้แค่
+`from-brand` (จุดเดียว) เพราะตอนนั้นยังไม่เจอว่ามี `via`/`to` hardcode ต่อท้ายอยู่ด้วย
+
+หน้านี้ต่างจาก 3 หน้าที่เหลือตรงที่ logic ของ React component อยู่ใน `languages.jsx` (ซอร์สจริง)
+แล้ว compile เป็น `languages.compiled.js` ด้วย esbuild ผ่าน `./build-languages.sh` (ไม่มี Babel-
+in-browser แล้ว) เลยแก้ที่ `languages.jsx` โดยตรง (บรรทัดของ `bg-gradient-to-br` ในส่วน
+LanguagesStreamView) แล้ว build ใหม่ ไม่ใช่ไปแก้ใน `.compiled.js` ตรงๆ
+
+แก้โดยตัด `via-teal-700 to-cyan-800` (hardcode ไม่ผูกกับ token ไหนเลย ต่างจาก `primary`/
+`secondary` ของ classroom-* ที่อย่างน้อยยังเป็น custom color ที่ override ได้) ออก แทนด้วย
+Tailwind arbitrary-value syntax ตรงๆ: `to-[var(--ome-brand-dk)]` — อ้างตัวแปร CSS ของเว็บโดยตรง
+ไม่ต้องเพิ่ม override ใน theme.css อีกชั้น (ยืนยันแล้วว่า Tailwind CDN เวอร์ชันนี้รองรับ arbitrary
+value อยู่แล้ว เพราะบันเดิลเดิมมีการใช้ `h-[15px]` แบบเดียวกันอยู่ก่อน) ผลคือ gradient ต้อนรับ
+ไล่จาก `--ome-brand` (สดใส) ไป `--ome-brand-dk` (เข้ม) ของสีที่เลือกเสมอ
+
+ทดสอบ: `./build-languages.sh` ผ่าน (มี `node --check` ในตัวสคริปต์อยู่แล้ว), grep ยืนยันไม่เหลือ
+`via-/to-` แบบ hardcode สี teal/cyan/emerald/green ใน compiled bundle อีกแล้ว, จำลอง gradient
+utility ที่ Tailwind จะ generate ด้วยหน้าเทสต์แยก ยืนยันด้วย `getComputedStyle` ว่าไล่สีถูกต้อง
+ตาม accent+ความสว่าง (ทดสอบ mint/flooks ทั้งสว่าง/มืด, gymes มืด)
+
 **นอกขอบเขต** (ไม่ retint อัตโนมัติ, จะต้องแก้เพิ่มทีละไฟล์ถ้าต้องการในอนาคต):
 - 4 หน้าที่ไม่มี `ome-tool-page`/`ome-app-page` เลย (404, bar-prep, cad3d, credits)
 - กราฟ/ชาร์ตที่วาดด้วย JS ตรงๆ (sparkline ราคาทอง, lightweight-charts หุ้น, canvas ของ CAD)
