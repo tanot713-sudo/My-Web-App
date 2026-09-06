@@ -67,6 +67,21 @@
   --ome-line:#ECEAF6; --ome-brand:#7C6FEA; --ome-brand-dk:#5B4CD6; --ome-brand-sf:#EFEBFC;
   --ome-sh:0 1px 2px rgba(50,40,100,.05), 0 8px 24px rgba(60,50,120,.08);
 }
+[data-theme="bubblegum"]{
+  --ome-bg:#F3EEF0; --ome-card:#FFFFFF; --ome-ink:#221420; --ome-muted:#8F8390;
+  --ome-line:#F0E4EA; --ome-brand:#EC1E79; --ome-brand-dk:#B8125C; --ome-brand-sf:#FDE8F1;
+  --ome-sh:0 1px 2px rgba(80,10,50,.06), 0 8px 24px rgba(80,10,50,.09);
+}
+[data-theme="construct"]{
+  --ome-bg:#F7F1E7; --ome-card:#FFFFFF; --ome-ink:#2A2018; --ome-muted:#8C8070;
+  --ome-line:#ECE3D3; --ome-brand:#E8743B; --ome-brand-dk:#B85221; --ome-brand-sf:#FBE7D9;
+  --ome-sh:0 1px 2px rgba(60,40,10,.06), 0 8px 24px rgba(60,40,10,.08);
+}
+[data-theme="crypto"]{
+  --ome-bg:#EAF2FE; --ome-card:#FFFFFF; --ome-ink:#131B2E; --ome-muted:#6B7A96;
+  --ome-line:#DCE8FB; --ome-brand:#2F7BFF; --ome-brand-dk:#1955C4; --ome-brand-sf:#E4EEFF;
+  --ome-sh:0 1px 2px rgba(10,40,100,.06), 0 8px 26px rgba(10,60,140,.09);
+}
 
 /* ── ให้ footer ติดล่างสุดของจอเสมอ แม้เนื้อหาสั้น (sticky footer) ────
    padding-bottom เดิมของแต่ละหน้าเคยไว้เว้นที่ก่อน footer ของตัวเอง (ตอนยังไม่มี
@@ -171,7 +186,10 @@ body{padding-bottom:0!important}
 [data-theme="gymes"] body.ome-tool-page,
 [data-theme="glass"] body.ome-tool-page,
 [data-theme="coach"] body.ome-tool-page,
-[data-theme="finset"] body.ome-tool-page{
+[data-theme="finset"] body.ome-tool-page,
+[data-theme="bubblegum"] body.ome-tool-page,
+[data-theme="construct"] body.ome-tool-page,
+[data-theme="crypto"] body.ome-tool-page{
   --bg:var(--ome-bg); --card:var(--ome-card); --ink:var(--ome-ink); --muted:var(--ome-muted);
   --line:var(--ome-line); --brand:var(--ome-brand); --brand-dk:var(--ome-brand-dk);
   --brand-sf:var(--ome-brand-sf); --sh:var(--ome-sh);
@@ -199,7 +217,10 @@ body{padding-bottom:0!important}
 [data-theme="gymes"] body.ome-tool-page .hero,
 [data-theme="glass"] body.ome-tool-page .hero,
 [data-theme="coach"] body.ome-tool-page .hero,
-[data-theme="finset"] body.ome-tool-page .hero{
+[data-theme="finset"] body.ome-tool-page .hero,
+[data-theme="bubblegum"] body.ome-tool-page .hero,
+[data-theme="construct"] body.ome-tool-page .hero,
+[data-theme="crypto"] body.ome-tool-page .hero{
   background:linear-gradient(120deg, var(--ome-brand-sf) 0%, var(--ome-card) 55%, var(--ome-brand-sf) 100%);
 }
 

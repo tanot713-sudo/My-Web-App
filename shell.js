@@ -37,7 +37,10 @@
     { id: 'gymes',  label: 'แดงสปอร์ต',         swatch: '#E5384D' },
     { id: 'glass',  label: 'แก้วพาสเทล',        swatch: '#3D7CF4' },
     { id: 'coach',  label: 'มินต์-ลาเวนเดอร์',   swatch: '#1C9C88' },
-    { id: 'finset', label: 'ม่วงการเงิน',        swatch: '#7C6FEA' }
+    { id: 'finset', label: 'ม่วงการเงิน',        swatch: '#7C6FEA' },
+    { id: 'bubblegum', label: 'ชมพูสดใส',       swatch: '#EC1E79' },
+    { id: 'construct', label: 'ส้มก่อสร้าง',     swatch: '#E8743B' },
+    { id: 'crypto',    label: 'ฟ้าคริปโต',       swatch: '#2F7BFF' }
   ];
   window.OME_THEMES = THEMES;
 
