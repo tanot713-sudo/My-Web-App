@@ -46,6 +46,37 @@
   ];
   window.OME_ACCENTS = ACCENTS;
 
+  /* ── ประเภทธีม (เฟส 7 — แกนที่ 3 อิสระ: "พื้นผิว" เช่น กระจกฝ้า/นูนนิ่ม/ดิบเท่ ฯลฯ) ──────
+     อิสระจากทั้งสี (data-accent) และความสว่าง (data-theme) — เลือกสีอะไร + สว่าง/มืดแบบไหนก็ได้
+     ประเภทธีมเดียวกันจะให้ "ลักษณะพื้นผิว" เดียวกันเสมอ (เช่น กระจกฝ้า+สีน้ำเงิน / กระจกฝ้า+สีแดง
+     ก็ยังเบลอเหมือนกัน แค่คนละสี) ค่าจริงของแต่ละประเภท (กำหนด .card/.btn ยังไง) อยู่ที่ theme.css
+     ขอบเขต: มีผลเฉพาะหน้า body.ome-tool-page (หน้าเครื่องมือส่วนใหญ่ที่ใช้ระบบโทเคน --ome-* ตรงๆ)
+     ไม่รวม body.ome-app-page (4 หน้า React+Tailwind) เพราะโครงสร้าง class ต่างกันมาก จะทำเพิ่มทีหลัง
+     ถ้าต้องการ — "เรียบมาตรฐาน" (flat) คือค่าเริ่มต้น ไม่มี override ใดๆ เท่ากับพฤติกรรมเดิมก่อนเฟสนี้ */
+  var STYLES = [
+    { id: 'flat',      label: 'เรียบมาตรฐาน', icon: '⬜' },
+    { id: 'glass',     label: 'กระจกฝ้า',     icon: '🧊' },
+    { id: 'neumorph',  label: 'นูนนิ่ม',       icon: '🫧' },
+    { id: 'neubrutal', label: 'ดิบเท่',        icon: '◼️' },
+    { id: 'outline',   label: 'เส้นขอบ',       icon: '▭' },
+    { id: 'clay',      label: 'คลุกดิน',       icon: '🟤' },
+    { id: 'mica',      label: 'อะคริลิกฝ้า',   icon: '🌫️' },
+    { id: 'aurora',    label: 'ม่านสีลอย',     icon: '🌌' }
+  ];
+  window.OME_STYLES = STYLES;
+  function getStyleType() {
+    try {
+      var saved = localStorage.getItem('ome:style');
+      for (var i = 0; i < STYLES.length; i++) { if (STYLES[i].id === saved) return saved; }
+    } catch (e) {}
+    return 'flat';
+  }
+  function setStyleGlobal(id) {
+    try { localStorage.setItem('ome:style', id); } catch (e) {}
+    document.documentElement.setAttribute('data-style', id);
+  }
+  window.OME_STYLE = { get: getStyleType, set: setStyleGlobal };
+
   /* ── แปลงค่าเก่า (เฟส 4) ที่เคยเก็บสี+ความสว่างไว้ในคีย์เดียว 'ome:theme' เช่น 'flooks'/'crypto'
      ให้เป็นโมเดลใหม่ครั้งเดียวตอนโหลดหน้าแรกหลังอัปเดต — ย้ายค่าสีไปที่ 'ome:accent' ใหม่ รีเซ็ต
      'ome:theme' กลับเป็น 'light' (ธีมสีชุดเก่าทุกอันเป็นเวอร์ชันสว่างเท่านั้น ไม่มีมืด จึงรีเซ็ต
@@ -91,6 +122,7 @@
     if (btn) btn.textContent = t === 'dark' ? '☀️' : '🌙';
   }
   document.documentElement.setAttribute('data-accent', getAccent());
+  document.documentElement.setAttribute('data-style', getStyleType());
   applyTheme(getTheme());
 
   /* ── ภาษา UI: จุดกลางเดียวให้ทุกเครื่องมือที่รองรับ 2 ภาษาอ่าน/เขียนร่วมกัน ──────────
@@ -350,6 +382,39 @@
     markSelectedSwatch();
     themeRow.addEventListener('click', function () { swatchWrap.classList.toggle('open'); });
     settingsPanel.appendChild(swatchWrap);
+
+    /* แถบย่อย "ประเภทธีม" — อยู่ในกลุ่มเดียวกับ "เลือกธีมเว็บ" ด้านบน (คนละแกนกัน: สี vs พื้นผิว)
+       ตามที่ผู้ใช้ขอ "ในธีมเพิ่มแถบย่อยประเภทธีม" กลไกเดียวกับสวอตช์สี แค่ไม่มีจุดสี ใช้ไอคอนแทน */
+    var styleRow = document.createElement('button');
+    styleRow.type = 'button';
+    styleRow.className = 'ome-settings-row';
+    styleRow.innerHTML = '<span>ประเภทธีม</span>';
+    settingsPanel.appendChild(styleRow);
+
+    var styleWrap = document.createElement('div');
+    styleWrap.className = 'ome-theme-swatches';
+    function markSelectedStyle() {
+      var cur = getStyleType();
+      var nodes = styleWrap.querySelectorAll('.ome-theme-swatch');
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].classList.toggle('sel', nodes[i].getAttribute('data-style-id') === cur);
+      }
+    }
+    STYLES.forEach(function (st) {
+      var sw = document.createElement('button');
+      sw.type = 'button';
+      sw.className = 'ome-theme-swatch';
+      sw.setAttribute('data-style-id', st.id);
+      sw.innerHTML = '<span class="ome-style-ic">' + st.icon + '</span><span>' + st.label + '</span>';
+      sw.addEventListener('click', function () {
+        setStyleGlobal(st.id);
+        markSelectedStyle();
+      });
+      styleWrap.appendChild(sw);
+    });
+    markSelectedStyle();
+    styleRow.addEventListener('click', function () { styleWrap.classList.toggle('open'); });
+    settingsPanel.appendChild(styleWrap);
 
     /* แถว "ภาษา" — จุดกลางเดียวสลับภาษาของทุกเครื่องมือที่รองรับ 2 ภาษา (กลไกเดียวกับ
        แถบเลือกธีมเว็บด้านบน) กดแล้วกางตัวเลือก ไทย/English เลือกแล้วอัปเดตทันทีถ้าเครื่องมือ
