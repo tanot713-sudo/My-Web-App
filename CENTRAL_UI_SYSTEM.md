@@ -145,10 +145,37 @@ bg-brandLight, border-brand, text-slate-*/gray-*, border-slate-*/gray-*, textare
 card กับ bg, text-slate-700/600 ที่เดิมเป็นเฉดกลางระหว่าง ink กับ muted) ใช้ `color-mix(in srgb,
 ...)` ผสมจาก 2 โทเคนแทน เพื่อให้ได้เฉดกลางที่ปรับตามสีธีมอัตโนมัติโดยไม่ต้องคิดค่าใหม่ทีละสี
 
-**ยังทดสอบด้วยตาไม่ได้ในรอบนี้**: 3 ใน 4 หน้านี้โหลด React/Babel จาก unpkg.com (CDN ภายนอก)
-ซึ่ง sandbox ทดสอบของ Claude บล็อกโดเมนนี้ไว้ ทำให้เห็นแค่พื้นหลังหน้า (ยืนยันถูกต้องแล้ว —
-เปลี่ยนสีตามธีมจริง) แต่มองไม่เห็นสีการ์ด/ตัวอักษรจริงที่ React render ออกมา (กลไกเป็นแพทเทิร์น
-เดียวกับที่พิสูจน์แล้วว่าใช้ได้จริงในหน้าอื่นทั้งเว็บ มั่นใจว่าถูกต้อง แต่ควรลองดูบนเว็บจริงอีกที)
+**ยังทดสอบด้วยตาไม่ได้ในรอบนี้ (ตอนเฟส 6.1)**: 3 ใน 4 หน้านี้โหลด React/Babel จาก unpkg.com
+(CDN ภายนอก) ซึ่ง sandbox ทดสอบของ Claude บล็อกโดเมนนี้ไว้ ทำให้เห็นแค่พื้นหลังหน้า (ยืนยัน
+ถูกต้องแล้ว — เปลี่ยนสีตามธีมจริง) แต่มองไม่เห็นสีการ์ด/ตัวอักษรจริงที่ React render ออกมา —
+ผู้ใช้เลยช่วยแคปหน้าจอจากเว็บจริงมาตรวจ พบจุดที่ยังไม่ถูก แก้ต่อในเฟส 6.2 ด้านล่าง
+
+**เฟส 6.2 — แก้ custom color "primary/secondary/brand" ที่ผูก hex ตายตัวใน tailwind.config
+ของแต่ละหน้า** ผู้ใช้ส่งภาพหน้าจอจากเว็บจริงมาตรวจหลังเฟส 6.1 พบว่าปุ่ม/ไอคอน/แถบไล่สีต้อนรับ
+ในหน้า classroom-business/engineering ยังเป็นสีเขียวมิ้นต์ตลอดไม่ว่าจะเลือกสีธีมไหน — สาเหตุจริง
+ไม่ใช่ปัญหาจากเฟส 6.1 (utility ของ Tailwind ธรรมดาที่แก้ไปแล้ว) แต่เป็น custom color ที่แต่ละ
+หน้าประกาศเองใน `tailwind.config` (`primary:'#0B7F72'`, `secondary:'#12A594'` ในหน้า classroom-*
+กับ legal, `brand:'#12A594'`, `brandLight:'#E7F6F4'` ในหน้า languages) ซึ่งบังเอิญ hex ตรงกับ
+mint เป๊ะ (เพราะตอนออกแบบมีแค่ธีมมิ้นต์) เลยดูเหมือนใช้ได้ตอนธีมมิ้นต์ แต่ hardcode ไว้ตายตัว
+ไม่ขยับตามเลือกสีอื่นเลย ใช้กับ utility หลายแบบ (`bg-/text-/border-primary`, `bg-/text-/
+border-secondary`, `hover:`/`focus:` ของ secondary, `from-primary`/`to-secondary` ใน gradient
+ต้อนรับ, `bg-/text-/border-brand`, `bg-brandLight`, `bg-brand/10`, `border-brand/20`)
+
+แก้โดยเพิ่ม override ใน `theme.css` แมป utility เหล่านี้กลับไปที่คู่โทเคนเดิมของมันตรงๆ
+(`primary`→`--ome-brand-dk`, `secondary`→`--ome-brand`, `brand`→`--ome-brand`, `brandLight`→
+`--ome-brand-sf` — ตรงกับ hex เดิมเป๊ะที่ธีมมิ้นต์ ไม่มีอะไรเปลี่ยนตอนเลือกมิ้นต์) ด้วยแพทเทิร์น
+เดียวกับเฟส 6.1 (`[data-theme="dark"] .ome-app-page .bg-primary, [data-accent] .ome-app-page
+.bg-primary{...}`) ส่วน gradient stop (`--tw-gradient-from`/`--tw-gradient-to`) override ตรงตัว
+แปรที่ Tailwind ใช้ประกอบ gradient เอง ไม่ต้องยุ่งกับ `--tw-gradient-stops` ที่ class ต้นทางตั้งไว้
+แล้ว และตัดสี `via-teal-800` (hardcode เขียวเข้มไว้กลาง gradient ต้อนรับ ไม่ผูกกับ token ไหนเลย)
+ออกจาก className ตรงๆ ในทั้ง 2 ไฟล์ ให้เหลือ gradient 2 สี `from-primary to-secondary` ที่ตาม
+ธีมได้ครบ
+
+ทดสอบด้วยหน้าจำลอง (ประกาศ `.bg-primary`/`.bg-secondary`/ฯลฯ เองแบบเดียวกับที่ Tailwind CDN
+จะ generate ให้ เพราะ sandbox โหลด CDN จริงไม่ได้) ยืนยันด้วย `getComputedStyle` ว่าทุก utility
+ที่แก้ไล่สีตาม accent+ความสว่างที่ตั้งค่าไว้ถูกต้องครบ (ทดสอบ mint/gymes/crypto ทั้งสว่าง/มืด)
+รวมถึง gradient stops และตัวที่มี opacity modifier (`/10`, `/20`) — ยังต้องรอผู้ใช้ช่วยดูบนเว็บ
+จริงอีกรอบเช่นเดิม เพราะข้อจำกัด CDN บล็อกใน sandbox ยังเหมือนเดิม
 
 **นอกขอบเขต** (ไม่ retint อัตโนมัติ, จะต้องแก้เพิ่มทีละไฟล์ถ้าต้องการในอนาคต):
 - 4 หน้าที่ไม่มี `ome-tool-page`/`ome-app-page` เลย (404, bar-prep, cad3d, credits)

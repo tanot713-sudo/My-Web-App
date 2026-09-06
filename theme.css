@@ -283,6 +283,28 @@ body{padding-bottom:0!important}
 [data-theme="dark"] .ome-app-page .border-brand,
 [data-accent] .ome-app-page .border-blue-50,
 [data-accent] .ome-app-page .border-brand{border-color:var(--ome-brand)!important}
+/* languages.html ใช้ custom color "brand"/"brandLight" (ผูก hex ตายตัวไว้ใน tailwind.config
+   ของไฟล์นั้น) ครอบคลุม utility ที่ใช้จริงทั้งหมดในบันเดิล languages.compiled.js */
+[data-theme="dark"] .ome-app-page .bg-brand,
+[data-accent] .ome-app-page .bg-brand{background-color:var(--ome-brand)!important}
+[data-theme="dark"] .ome-app-page .text-brand,
+[data-theme="dark"] .ome-app-page .hover\:text-brand:hover,
+[data-accent] .ome-app-page .text-brand,
+[data-accent] .ome-app-page .hover\:text-brand:hover{color:var(--ome-brand)!important}
+[data-theme="dark"] .ome-app-page .hover\:border-brand:hover,
+[data-theme="dark"] .ome-app-page .focus\:border-brand:focus,
+[data-accent] .ome-app-page .hover\:border-brand:hover,
+[data-accent] .ome-app-page .focus\:border-brand:focus{border-color:var(--ome-brand)!important}
+[data-theme="dark"] .ome-app-page .hover\:bg-brandLight:hover,
+[data-accent] .ome-app-page .hover\:bg-brandLight:hover{background-color:var(--ome-brand-sf)!important}
+[data-theme="dark"] .ome-app-page .from-brand,
+[data-accent] .ome-app-page .from-brand{--tw-gradient-from:var(--ome-brand)!important}
+[data-theme="dark"] .ome-app-page .from-brandLight,
+[data-accent] .ome-app-page .from-brandLight{--tw-gradient-from:var(--ome-brand-sf)!important}
+[data-theme="dark"] .ome-app-page .bg-brand\/10,
+[data-accent] .ome-app-page .bg-brand\/10{background-color:color-mix(in srgb, var(--ome-brand) 10%, transparent)!important}
+[data-theme="dark"] .ome-app-page .border-brand\/20,
+[data-accent] .ome-app-page .border-brand\/20{border-color:color-mix(in srgb, var(--ome-brand) 20%, transparent)!important}
 [data-theme="dark"] .ome-app-page .bg-amber-50{background-color:#2A2415!important}
 [data-theme="dark"] .ome-app-page .bg-emerald-50,
 [data-theme="dark"] .ome-app-page .bg-green-50{background-color:#14261E!important}
@@ -325,6 +347,32 @@ body{padding-bottom:0!important}
 [data-theme="dark"] .ome-app-page .border-green-100,
 [data-theme="dark"] .ome-app-page .border-emerald-200{border-color:#1E4A35!important}
 [data-theme="dark"] .ome-app-page .border-red-100{border-color:#573030!important}
+/* classroom-business.html/classroom-engineering.html/legal.html ใช้ custom color
+   "primary"/"secondary" (ผูก hex ตายตัว #0B7F72/#12A594 ซึ่งบังเอิญตรงกับ mint พอดี เลยดู
+   เหมือนใช้ได้ตอนธีมมิ้นต์ แต่พอเปลี่ยนสีอื่นเลยไม่ขยับ) แมปกลับไปที่คู่โทเคนเดิมของมัน:
+   primary → brand-dk (สีเข้ม), secondary → brand (สีหลัก) */
+[data-theme="dark"] .ome-app-page .bg-primary,
+[data-accent] .ome-app-page .bg-primary{background-color:var(--ome-brand-dk)!important}
+[data-theme="dark"] .ome-app-page .text-primary,
+[data-accent] .ome-app-page .text-primary{color:var(--ome-brand-dk)!important}
+[data-theme="dark"] .ome-app-page .border-primary,
+[data-accent] .ome-app-page .border-primary{border-color:var(--ome-brand-dk)!important}
+[data-theme="dark"] .ome-app-page .from-primary,
+[data-accent] .ome-app-page .from-primary{--tw-gradient-from:var(--ome-brand-dk)!important}
+[data-theme="dark"] .ome-app-page .bg-secondary,
+[data-accent] .ome-app-page .bg-secondary{background-color:var(--ome-brand)!important}
+[data-theme="dark"] .ome-app-page .text-secondary,
+[data-theme="dark"] .ome-app-page .hover\:text-secondary:hover,
+[data-accent] .ome-app-page .text-secondary,
+[data-accent] .ome-app-page .hover\:text-secondary:hover{color:var(--ome-brand)!important}
+[data-theme="dark"] .ome-app-page .border-secondary,
+[data-theme="dark"] .ome-app-page .hover\:border-secondary:hover,
+[data-theme="dark"] .ome-app-page .focus\:border-secondary:focus,
+[data-accent] .ome-app-page .border-secondary,
+[data-accent] .ome-app-page .hover\:border-secondary:hover,
+[data-accent] .ome-app-page .focus\:border-secondary:focus{border-color:var(--ome-brand)!important}
+[data-theme="dark"] .ome-app-page .to-secondary,
+[data-accent] .ome-app-page .to-secondary{--tw-gradient-to:var(--ome-brand)!important}
 [data-theme="dark"] .ome-app-page textarea,
 [data-theme="dark"] .ome-app-page input[type="text"],
 [data-accent] .ome-app-page textarea,
