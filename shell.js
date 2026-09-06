@@ -28,11 +28,24 @@
     document.head.appendChild(s);
   })();
 
+  /* ── รายชื่อธีมที่เลือกได้ (เฟส 4 ของงานรวมศูนย์ UI/UX) — ถอดโทนสีจากภาพ UI/UX อ้างอิงที่ผู้ใช้
+     ส่งมา ทุกธีมกำหนดค่าจริงไว้ที่ theme.css (ที่นี่เก็บแค่ id/label/สีจุดสวอตช์ไว้สร้างเมนูเลือก) */
+  var THEMES = [
+    { id: 'light',  label: 'สว่าง (ปกติ)',      swatch: '#12A594' },
+    { id: 'dark',   label: 'มืด (ปกติ)',        swatch: '#2BC4B2' },
+    { id: 'flooks', label: 'เหลืองพลัง',        swatch: '#FFC700' },
+    { id: 'gymes',  label: 'แดงสปอร์ต',         swatch: '#E5384D' },
+    { id: 'glass',  label: 'แก้วพาสเทล',        swatch: '#3D7CF4' },
+    { id: 'coach',  label: 'มินต์-ลาเวนเดอร์',   swatch: '#1C9C88' },
+    { id: 'finset', label: 'ม่วงการเงิน',        swatch: '#7C6FEA' }
+  ];
+  window.OME_THEMES = THEMES;
+
   /* ── ธีม: อ่านค่าที่เคยเลือก > ตามระบบ ─────────────────────────── */
   function getTheme() {
     try {
       var saved = localStorage.getItem('ome:theme');
-      if (saved === 'light' || saved === 'dark') return saved;
+      for (var i = 0; i < THEMES.length; i++) { if (THEMES[i].id === saved) return saved; }
     } catch (e) {}
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark' : 'light';
@@ -248,8 +261,42 @@
     /* ── แผงตั้งค่า (dropdown เล็กใต้ปุ่มฟันเฟือง) ── */
     var settingsPanel = document.createElement('div');
     settingsPanel.className = 'ome-settings-panel';
+
+    /* แถว "เลือกธีมเว็บ" — กดแล้วกางรายการสวอตช์สีให้เลือกตรงนี้เลย ไม่ต้องเปิดหน้าใหม่
+       (ก่อนหน้านี้เป็นปุ่มค้างไว้เฉยๆ ไม่มีฟังก์ชันจริง — ต่อสายจริงตรงนี้) */
+    var themeRow = document.createElement('button');
+    themeRow.type = 'button';
+    themeRow.className = 'ome-settings-row';
+    themeRow.innerHTML = '<span>เลือกธีมเว็บ</span>';
+    settingsPanel.appendChild(themeRow);
+
+    var swatchWrap = document.createElement('div');
+    swatchWrap.className = 'ome-theme-swatches';
+    function markSelectedSwatch() {
+      var cur = document.documentElement.getAttribute('data-theme');
+      var nodes = swatchWrap.querySelectorAll('.ome-theme-swatch');
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].classList.toggle('sel', nodes[i].getAttribute('data-theme-id') === cur);
+      }
+    }
+    THEMES.forEach(function (th) {
+      var sw = document.createElement('button');
+      sw.type = 'button';
+      sw.className = 'ome-theme-swatch';
+      sw.setAttribute('data-theme-id', th.id);
+      sw.innerHTML = '<span class="dot" style="background:' + th.swatch + '"></span><span>' + th.label + '</span>';
+      sw.addEventListener('click', function () {
+        try { localStorage.setItem('ome:theme', th.id); } catch (e) {}
+        applyTheme(th.id);
+        markSelectedSwatch();
+      });
+      swatchWrap.appendChild(sw);
+    });
+    markSelectedSwatch();
+    themeRow.addEventListener('click', function () { swatchWrap.classList.toggle('open'); });
+    settingsPanel.appendChild(swatchWrap);
+
     var SETTINGS_ROWS = [
-      { label: 'เลือกธีมเว็บ' },
       { label: 'ปรับขนาดตัวอักษร' },
       { label: 'ล้างข้อมูล' },
       { label: 'Help', divider: true }
