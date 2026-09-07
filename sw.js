@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v425';
+const CACHE = 'ome-v426';
 const PRECACHE = [
   './',
   './index.html',
@@ -45,7 +45,20 @@ const PRECACHE = [
   './cad3d.html',
   './cad3d.js',
   './report-dashboard.html',
-  './report-dashboard.js',
+  './report-dashboard.utils.final43.js',
+  './report-dashboard.performance.final43.js',
+  './report-dashboard.complete.final43.local.js',
+  './report-dashboard.bi-plus.final43.js',
+  './report-dashboard.final62.projectcontrol.js',
+  './report-dashboard.safety.final1.js',
+  './report-dashboard.hr.final1.js',
+  './report-dashboard.itops.final1.js',
+  './report-dashboard.maintenance.final1.js',
+  './report-dashboard.lawfirm.final1.js',
+  './report-dashboard.risk.final1.js',
+  './report-dashboard.finance.final1.js',
+  './report-dashboard.reading.final1.js',
+  './report-dashboard.kpidashboard.final1.js',
   './typing.html',
   './typing.js',
   './coding.html',

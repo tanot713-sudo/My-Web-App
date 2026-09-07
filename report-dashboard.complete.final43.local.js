@@ -14,13 +14,23 @@
   'use strict';
 
   var $ = function (id) { return document.getElementById(id); };
+  function showUiNotice(message, type) {
+    type = type || 'info';
+    var old = document.getElementById('tanotUiNotice');
+    if (old) old.remove();
+    var el = document.createElement('div');
+    el.id = 'tanotUiNotice';
+    el.style.cssText='position:fixed;right:20px;bottom:20px;z-index:11000;background:#fff;color:#111827;border:1px solid #E5E7EB;border-left:4px solid '+(type==='error'?'#DC2626':type==='success'?'#16A34A':'#2563EB')+';border-radius:10px;box-shadow:0 14px 40px rgba(15,23,42,.16);padding:11px 14px;max-width:360px;font:600 12px/1.5 Arial,sans-serif;';
+    el.textContent=String(message||''); document.body.appendChild(el); setTimeout(function(){if(el.parentNode)el.remove();},2600);
+  }
+
 
   var PAGE_SIZE = 50;
   var HISTORY_MAX = 20;
   var HEADER_PREVIEW_ROWS = 8;
 
   /* ══════════════════ i18n ไทย/อังกฤษ — แพทเทิร์นเดียวกับ excel.js/word.js (clone-and-adapt) ══════════════════ */
-  var UI_LANG_KEY = 'ome:lang'; /* จุดกลางเดียวทั้งเว็บ (เดิม 'tanot:reportlang') */
+  var UI_LANG_KEY = 'tanot:reportlang';
   function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   function setUILang(l) { try { localStorage.setItem(UI_LANG_KEY, l); } catch (e) {} }
   function locale() { return getUILang() === 'en' ? 'en-US' : 'th-TH'; }
@@ -31,11 +41,11 @@
       pageTitle: 'นำเสนอรายงาน', pageSub: 'อัปโหลดไฟล์ Excel/CSV แล้วดู แก้ไข เรียง กรองข้อมูลได้ในเว็บ',
       statTotalLbl: 'รายการทั้งหมด', statColsLbl: 'คอลัมน์', statShownLbl: 'กำลังแสดง', statSelectedLbl: 'เลือกไว้',
       unitRows: 'แถว', unitCols: 'คอลัมน์',
-      tabTable: 'ตาราง (แก้ไข)', tabDashboard: 'แดชบอร์ด', tabCustom: 'กำหนดเอง',
-      addWidgetBtn: 'เพิ่มกล่อง',
+      tabTable: '📋 ตาราง (แก้ไข)', tabDashboard: '📊 แดชบอร์ด', tabCustom: '🧩 กำหนดเอง',
+      addWidgetBtn: '➕ เพิ่มกล่อง',
       customEmptyHint: 'ลากมุมกล่องเพื่อย่อ-ขยาย ลากหัวกล่องเพื่อย้ายตำแหน่ง — เริ่มจากกด "เพิ่มกล่อง" ด้านบน',
-      addWidgetPickTitle: 'เลือกชนิดกล่อง', wtKpi: 'ตัวเลข (KPI)', wtChart: 'กราฟ', wtText: 'ข้อความ', wtTable: 'ตาราง',
-      wtKpiLabel: 'กล่องตัวเลข', wtChartLabel: 'กล่องกราฟ', wtTextLabel: 'กล่องข้อความ', wtTableLabel: 'กล่องตาราง',
+      addWidgetPickTitle: 'เลือกชนิดกล่อง', wtKpi: '🔢 ตัวเลข (KPI)', customTplMaintenance: '🛠️ แม่แบบ Maintenance', customTplExecutive: '📊 แม่แบบ Executive', wtChart: '📊 กราฟ', wtText: '📝 ข้อความ', wtTable: '📋 ตาราง',
+      wtKpiLabel: 'กล่องตัวเลข', wtChartLabel: 'กล่องกราฟ', wtTextLabel: 'กล่องข้อความ', wtTableLabel: 'กล่องตาราง', wtSnapshotLabel: 'กล่องสแนปช็อต',
       wtEditTitle: 'แก้ไขกล่องนี้', wtRemoveTitle: 'ลบกล่องนี้',
       cwColumnLbl: 'คอลัมน์', cwAggLbl: 'วิธีคำนวณ', cwLabelLbl: 'ป้ายชื่อ (ไม่บังคับ)',
       cwAggSum: 'ผลรวม', cwAggAvg: 'ค่าเฉลี่ย', cwAggCount: 'จำนวนแถวทั้งหมด', cwAggMin: 'ค่าต่ำสุด', cwAggMax: 'ค่าสูงสุด',
@@ -48,39 +58,39 @@
       cardAccentColorLbl: 'สีหลัก (กราฟ/ตัวเลข)', cardGradientLbl: 'ไล่เฉดสี', cardColorResetBtn: 'ล้างสี',
       moreColorsLbl: 'สีอื่นๆ', autoFillOptionsHint: 'ตัวเลือกเติมอัตโนมัติ', autoFillOptionsTitle: 'เลือกรูปแบบการเติม',
       autoFillSeriesOpt: 'ไล่ต่อเป็นลำดับ', autoFillCopyOpt: 'ทำซ้ำค่าเดิม',
-      customBgBtn: 'พื้นหลัง', dashboardBgBtn: 'พื้นหลังแดชบอร์ด', loadTemplateBtn: 'โหลดจากแดชบอร์ด',
-      bgModeColor: 'สี', bgModePattern: 'ลวดลาย', bgModeImage: 'รูปภาพ',
+      customBgBtn: '🎨 พื้นหลัง', dashboardBgBtn: '🎨 พื้นหลังแดชบอร์ด', loadTemplateBtn: '📥 โหลดจากแดชบอร์ด',
+      bgModeColor: '🎨 สี', bgModePattern: '🔳 ลวดลาย', bgModeImage: '🖼️ รูปภาพ',
       bgPatternLbl: 'เลือกลวดลาย', bgPatternColorLbl: 'สีลวดลาย', bgImageLbl: 'อัปโหลดรูปภาพ',
       bgImageFitLbl: 'การแสดงผล', bgFit_cover: 'เต็มพื้นที่ (ครอบตัด)', bgFit_contain: 'พอดีรูป', bgFit_repeat: 'เรียงต่อกัน',
       bgOpacityLbl: 'ความชัด/โปร่งใส', bgImageReadFailHint: 'อ่านไฟล์รูปภาพไม่สำเร็จ ลองไฟล์อื่นดูครับ',
       loadTemplateNoneHint: 'ยังไม่มีการ์ดในแท็บ "แดชบอร์ด" ให้โหลด — อัปโหลดข้อมูลก่อน',
       loadTemplateSnapshotNote: ' (สแนปช็อต ณ ตอนโหลด ไม่อัปเดตตามข้อมูลสด)',
-      drillText: 'กำลังกรอง: {label} = {value}', drillClearBtn: 'ล้างตัวกรองนี้',
-      uploadTitle: 'อัปโหลดไฟล์', dropText: 'ลากไฟล์มาวางตรงนี้ หรือ', pickBtn: 'เลือกไฟล์',
+      drillText: '🔍 กำลังกรอง: {label} = {value}', drillClearBtn: '✕ ล้างตัวกรองนี้',
+      uploadTitle: '📤 อัปโหลดไฟล์', dropText: 'ลากไฟล์มาวางตรงนี้ หรือ', pickBtn: 'เลือกไฟล์',
       dropHint: 'รองรับ .xlsx .xls .csv — ไฟล์ประมวลผลในเครื่องคุณทั้งหมด',
       statusReading: 'กำลังอ่านไฟล์…',
       statusLibFail: 'โหลดไลบรารีอ่านไฟล์ไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)',
       statusReadFail: 'อ่านไฟล์ไม่สำเร็จ ลองใหม่อีกครั้ง',
       statusOpenFail: 'ไฟล์นี้เปิดไม่ได้ — ตรวจว่าเป็น .xlsx/.xls/.csv ที่ไม่เสียหาย',
       statusSheetEmpty: 'ชีตนี้ไม่มีข้อมูล — ลองเลือกชีตอื่น',
-      resumeTitle: 'พบข้อมูลที่ทำค้างไว้', resumeBtn: 'ดำเนินการต่อ', discardBtn: 'เริ่มใหม่',
+      resumeTitle: '💾 พบข้อมูลที่ทำค้างไว้', resumeBtn: 'ดำเนินการต่อ', discardBtn: 'เริ่มใหม่',
       resumeInfo: '{name} · {n} แถว · บันทึกไว้เมื่อ {date}', resumeFallbackName: 'ไฟล์ที่แล้ว',
-      reportsTitle: 'รายงานของฉัน', reportsMeta: '{n} รายงาน',
+      reportsTitle: '📁 รายงานของฉัน', reportsMeta: '{n} รายงาน',
       reportRowMeta: '{n} แถว · บันทึกล่าสุด {time}', openBtn: 'เปิด',
       deleteReportConfirm: 'ลบรายงาน "{name}" ถาวร (กู้คืนไม่ได้)?', renameReportPrompt: 'เปลี่ยนชื่อรายงาน:',
       saveAsReportPrompt: 'ตั้งชื่อรายงานนี้:', reportDefaultBase: 'รายงาน',
-      sheetTitle: 'เลือกชีต',
+      sheetTitle: '📑 เลือกชีต',
       sheetModeHint: 'พบ {n} ชีตในไฟล์นี้ เลือกวิธีนำเข้า:',
-      sheetModeCombine: 'รวมทุกชีตเป็นตารางเดียว', sheetModeSingle: 'เลือกชีตเดียว',
+      sheetModeCombine: '📚 รวมทุกชีตเป็นตารางเดียว', sheetModeSingle: '📄 เลือกชีตเดียว',
       sourceSheetLabel: 'ชีตต้นทาง', combinedSheetsSuffix: 'รวม {n} ชีต',
-      headerTitle: 'เลือกแถวหัวตาราง',
+      headerTitle: '🔤 เลือกแถวหัวตาราง',
       headerHint: 'คลิกแถวที่เป็นชื่อคอลัมน์ (ปกติเป็นแถวแรกสุด) — ดูตัวอย่าง 8 แถวแรกของไฟล์',
-      confirmHeaderBtn: 'ใช้แถวนี้เป็นหัวตาราง',
-      dataTitle: 'ข้อมูล', searchPh: 'ค้นหาทุกคอลัมน์…', addRowBtn: '+ เพิ่มแถว',
+      confirmHeaderBtn: 'ใช้แถวนี้เป็นหัวตาราง →',
+      dataTitle: '📋 ข้อมูล', searchPh: 'ค้นหาทุกคอลัมน์…', addRowBtn: '+ เพิ่มแถว',
       addColBtn: '+ เพิ่มคอลัมน์', delColTitle: 'ลบคอลัมน์นี้', newColumnDefaultLabel: 'คอลัมน์ใหม่',
       renameColPrompt: 'ตั้งชื่อคอลัมน์', dblclickRenameHint: 'ดับเบิลคลิกชื่อคอลัมน์เพื่อเปลี่ยนชื่อ',
-      fillHandleHint: 'ลากเพื่อเติมอัตโนมัติ — กด Ctrl ค้างไว้ระหว่างลาก หรือกดปุ่ม ที่ขึ้นมาหลังลากเสร็จ เพื่อสลับโหมด (ไล่เลข/ทำซ้ำ)',
-      delSelBtn: 'ลบที่เลือก', undoBtn: 'เลิกทำ', redoBtn: 'ทำซ้ำ', clearFilterBtn: 'ล้างตัวกรอง',
+      fillHandleHint: 'ลากเพื่อเติมอัตโนมัติ — กด Ctrl ค้างไว้ระหว่างลาก หรือกดปุ่ม ⚙️ ที่ขึ้นมาหลังลากเสร็จ เพื่อสลับโหมด (ไล่เลข/ทำซ้ำ)',
+      delSelBtn: '🗑️ ลบที่เลือก', undoBtn: '↩️ เลิกทำ', redoBtn: '↪️ ทำซ้ำ', clearFilterBtn: 'ล้างตัวกรอง',
       addFormulaColBtn: '+ ƒx คอลัมน์สูตร',
       fcAddTitle: 'ƒx เพิ่มคอลัมน์สูตร', fcEditTitle: 'ƒx แก้ไขคอลัมน์สูตร',
       fcNameLbl: 'ชื่อคอลัมน์', fcNamePh: 'เช่น ยอดรวม',
@@ -88,40 +98,40 @@
       fcHint: 'ตัวดำเนินการ: + − × / ^(ยกกำลัง) และเทียบค่า &gt; &gt;= &lt; &lt;= == !=<br>ฟังก์ชัน: IF(เงื่อนไข,จริง,เท็จ) · AND(...) · OR(...) · NOT(x) · ROUND(x,ทศนิยม) · ABS(x) · MIN(...) · MAX(...) · SUM(...) · CONCAT(...)',
       fcErrNoName: 'กรุณาตั้งชื่อคอลัมน์', fcErrNoFormula: 'กรุณาพิมพ์สูตร',
       fcErrDupeName: 'มีคอลัมน์ชื่อนี้อยู่แล้ว ตั้งชื่ออื่น', fcErrorTitlePrefix: 'สูตรผิดพลาด: ',
-      fcDeleteBtn: 'ลบคอลัมน์นี้', fcDeleteConfirm: 'ลบคอลัมน์สูตรนี้ใช่ไหม?',
+      fcDeleteBtn: '🗑️ ลบคอลัมน์นี้', fcDeleteConfirm: 'ลบคอลัมน์สูตรนี้ใช่ไหม?',
       delColUsedInFormulaConfirm: 'คอลัมน์นี้ถูกใช้ในสูตรของคอลัมน์ "{cols}" — ถ้าลบ สูตรเหล่านั้นจะคำนวณไม่ได้อีกต่อไป ต้องการลบต่อหรือไม่?',
-      cancelBtn: 'ยกเลิก', saveBtn: 'บันทึก',
+      cancelBtn: 'ยกเลิก', saveBtn: 'บันทึก', confirmBtn: 'ดำเนินการต่อ',
       selCountLbl: 'จำนวนเซลล์', selNonEmptyLbl: 'มีค่า', selSumLbl: 'ผลรวม', selAvgLbl: 'เฉลี่ย',
       selMinLbl: 'ต่ำสุด', selMaxLbl: 'สูงสุด',
-      cfBtnTitle: 'จัดรูปแบบตามเงื่อนไข', cfTitle: 'จัดรูปแบบตามเงื่อนไข — {col}',
+      cfBtnTitle: 'จัดรูปแบบตามเงื่อนไข', cfTitle: '🎨 จัดรูปแบบตามเงื่อนไข — {col}',
       cfModeNone: 'ไม่มี', cfModeScale: 'มาตราสี', cfModeBar: 'แถบข้อมูล', cfModeRules: 'ไฮไลต์ตามเงื่อนไข',
       cfScaleLow: 'ค่าน้อย', cfScaleHigh: 'ค่ามาก', cfBarColor: 'สีแถบ',
-      cfAddRuleBtn: '+ เพิ่มเงื่อนไข', cfResetBtn: 'ล้างรูปแบบ', cfRuleDel: 'ลบเงื่อนไขนี้',
+      cfAddRuleBtn: '+ เพิ่มเงื่อนไข', cfResetBtn: '🗑️ ล้างรูปแบบ', cfRuleDel: 'ลบเงื่อนไขนี้',
       cfNoRules: 'ยังไม่มีเงื่อนไข กด "+ เพิ่มเงื่อนไข" เพื่อเริ่ม',
       cfOpEq: 'เท่ากับ', cfOpNeq: 'ไม่เท่ากับ', cfOpContains: 'มีคำว่า',
-      dataHealthBtn: 'ตรวจสุขภาพข้อมูล', dhTitle: 'ตรวจสุขภาพข้อมูล', dhCloseBtn: 'ปิด',
+      dataHealthBtn: '🩺 ตรวจสุขภาพข้อมูล', dhTitle: '🩺 ตรวจสุขภาพข้อมูล', dhCloseBtn: 'ปิด',
       dhColHeader: 'คอลัมน์', dhBlankHeader: 'ว่าง', dhUniqueHeader: 'ไม่ซ้ำ',
       dhMinHeader: 'ต่ำสุด', dhMaxHeader: 'สูงสุด', dhAvgHeader: 'เฉลี่ย', dhMedianHeader: 'มัธยฐาน',
       dhTrimBtn: 'ตัดช่องว่าง', dhTrimTitle: 'ตัดช่องว่างหัว-ท้ายข้อความทุกเซลล์ในคอลัมน์นี้',
       dhDupSummary: 'พบแถวข้อมูลซ้ำกันทั้งหมด {n} แถว (นับเฉพาะคอลัมน์ข้อมูลต้นฉบับ ไม่รวมคอลัมน์สูตร)',
-      dhNoDup: 'ไม่พบแถวข้อมูลซ้ำเลย', dhDedupeBtn: 'ลบแถวซ้ำ ({n} แถว)',
+      dhNoDup: '✅ ไม่พบแถวข้อมูลซ้ำเลย', dhDedupeBtn: '🗑️ ลบแถวซ้ำ ({n} แถว)',
       dhNoRows: 'ยังไม่มีข้อมูล', dhEmptyDash: '—',
-      dhFuzzyBtn: 'ตรวจตัวสะกด', dhFuzzyTitle: 'ตรวจหาค่าที่สะกดต่างกันแต่อาจหมายถึงสิ่งเดียวกัน (เช่น "กรุงเทพ"/"กรุงเทพฯ")',
-      dhFuzzyTitleFor: 'ตัวสะกดใกล้เคียง: {col}',
-      dhFuzzyNone: 'ไม่พบตัวสะกดที่คล้ายกันในคอลัมน์นี้',
-      dhFuzzyMergeInto: 'รวมเป็น:', dhFuzzyMergeBtn: 'รวม', dhBackBtn: 'กลับ',
-      kpiTargetSectionTitle: 'เป้าหมาย + เปรียบเทียบ', kpiTargetLbl: 'เป้าหมาย (ไม่บังคับ)', kpiTargetPh: 'เช่น 100000',
+      dhFuzzyBtn: '🔍 ตรวจตัวสะกด', dhFuzzyTitle: 'ตรวจหาค่าที่สะกดต่างกันแต่อาจหมายถึงสิ่งเดียวกัน (เช่น "กรุงเทพ"/"กรุงเทพฯ")',
+      dhFuzzyTitleFor: '🔍 ตัวสะกดใกล้เคียง: {col}',
+      dhFuzzyNone: '✅ ไม่พบตัวสะกดที่คล้ายกันในคอลัมน์นี้',
+      dhFuzzyMergeInto: 'รวมเป็น:', dhFuzzyMergeBtn: 'รวม', dhBackBtn: '← กลับ',
+      kpiTargetSectionTitle: '🎯 เป้าหมาย + เปรียบเทียบ', kpiTargetLbl: 'เป้าหมาย (ไม่บังคับ)', kpiTargetPh: 'เช่น 100000',
       kpiTargetDirLbl: 'ทิศทางที่ดี', kpiTargetDirUp: 'ค่ายิ่งมากยิ่งดี', kpiTargetDirDown: 'ค่ายิ่งน้อยยิ่งดี',
       kpiOfTarget: 'ของเป้า', kpiCompareDateLbl: 'เทียบกับเดือนก่อน (ไม่บังคับ)', kpiCompareDateNone: 'ไม่เทียบ',
       kpiVsPeriod: 'เทียบ {period}', kpiNoCompareData: 'ข้อมูลไม่พอสำหรับเปรียบเทียบ',
-      freezeColBtn: 'ตรึงคอลัมน์', freezeColTitle: 'ตรึงคอลัมน์', freezeColPickLbl: 'ตรึงถึงคอลัมน์',
+      freezeColBtn: '📌 ตรึงคอลัมน์', freezeColTitle: '📌 ตรึงคอลัมน์', freezeColPickLbl: 'ตรึงถึงคอลัมน์',
       freezeColNoneOption: 'ไม่ตรึง',
-      groupByBtn: 'จัดกลุ่ม', groupByTitle: 'จัดกลุ่มแถวในตาราง',
+      groupByBtn: '📊 จัดกลุ่ม', groupByTitle: '📊 จัดกลุ่มแถวในตาราง',
       groupByColLbl: 'จัดกลุ่มตามคอลัมน์', groupByNoneOption: 'ไม่จัดกลุ่ม',
       groupSubtotalColLbl: 'รวมยอดคอลัมน์ (ไม่บังคับ)', groupSubtotalCountOnly: 'นับจำนวนอย่างเดียว',
       groupSubtotalLbl: 'รวม', groupPagerHiddenNote: 'กำลังจัดกลุ่มอยู่ — แสดงทุกแถวที่ตรงตัวกรอง ไม่แบ่งหน้า',
-      autoSummaryBtn: 'สรุปอัตโนมัติ', autoSummaryTitle: 'สรุปอัตโนมัติ (คำนวณจากข้อมูลจริง)',
-      autoSummaryCopyBtn: 'คัดลอก', autoSummaryCopied: 'คัดลอกแล้ว!', autoSummaryCopyFail: 'คัดลอกไม่สำเร็จ ลองเลือกข้อความเองแล้วกด Ctrl+C',
+      autoSummaryBtn: '📝 สรุปอัตโนมัติ', autoSummaryTitle: '📝 สรุปอัตโนมัติ (คำนวณจากข้อมูลจริง)',
+      autoSummaryCopyBtn: '📋 คัดลอก', autoSummaryCopied: 'คัดลอกแล้ว!', autoSummaryCopyFail: 'คัดลอกไม่สำเร็จ ลองเลือกข้อความเองแล้วกด Ctrl+C',
       summaryTotalRows: 'ข้อมูลทั้งหมด {n} รายการ ({m} คอลัมน์)',
       summaryColSum: '{col} รวมทั้งหมด {sum}',
       summaryMomGrowth: ' เพิ่มขึ้น {pct}% จากเดือนก่อนหน้า ({prev})',
@@ -135,79 +145,85 @@
       fErrColNotFound: 'ไม่พบคอลัมน์ชื่อ "{label}"', fErrSelfRef: 'สูตรอ้างอิงคอลัมน์ตัวเองไม่ได้',
       fErrRefFormulaCol: 'สูตรอ้างอิงคอลัมน์สูตร "{label}" ไม่ได้ (อ้างอิงได้เฉพาะคอลัมน์ข้อมูลต้นฉบับ)',
       fErrDivZero: 'หารด้วยศูนย์', fErrArgCount: '{fn} ต้องมี {n} อาร์กิวเมนต์', fErrUnknownFn: 'ไม่รู้จักฟังก์ชัน "{fn}"',
-      saveReportBtn: 'บันทึกเป็นรายงาน', savedReportBtn: 'บันทึกแล้ว: {name}',
-      myReportsBtn: 'รายงานของฉัน', exportXlsxBtn: 'Excel', exportCsvBtn: 'CSV', newFileBtn: 'ไฟล์ใหม่',
+      saveReportBtn: '💾 บันทึกเป็นรายงาน', savedReportBtn: '💾 บันทึกแล้ว: {name}',
+      myReportsBtn: '📁 รายงานของฉัน', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 ไฟล์ใหม่',
       dataEmptyTxt: 'ไม่พบแถวที่ตรงกับตัวกรอง', colFallback: 'คอลัมน์ {n}',
       filterMin: 'ต่ำสุด', filterMax: 'สูงสุด', filterQ: 'กรอง…', delRowTitle: 'ลบแถวนี้',
       filterIconTitle: 'กรองคอลัมน์นี้', filterSearchPh: 'ค้นหาค่า…', filterSelectAllBtn: 'เลือกทั้งหมด',
       filterSelectNoneBtn: 'ไม่เลือกเลย', filterEmptyList: 'ไม่พบค่าที่ตรงกับคำค้นหา',
       filterApplyBtn: 'ใช้ตัวกรอง', filterCancelBtn: 'ยกเลิก', filterClearThisBtn: 'ล้างตัวกรองนี้',
-      addFilterBtn: '+ ตัวกรอง', clearAllFiltersBtn: 'ล้างตัวกรองทั้งหมด',
+      addFilterBtn: '+ ตัวกรอง', clearAllFiltersBtn: '✕ ล้างตัวกรองทั้งหมด',
       filterChipValues: '{col}: {n} ค่า', filterChipValue1: '{col}: {v}',
       filterChipMin: '{col}: ≥ {v}', filterChipMax: '{col}: ≤ {v}', filterChipRange: '{col}: {min}–{max}',
       addFilterPickTitle: 'เลือกคอลัมน์ที่จะกรอง',
-      columnsBtn: 'คอลัมน์', columnsPopoverTitle: 'เลือกคอลัมน์ที่จะแสดง', columnsSearchPh: 'ค้นหาคอลัมน์…',
+      columnsBtn: '👁️ คอลัมน์', columnsPopoverTitle: 'เลือกคอลัมน์ที่จะแสดง', columnsSearchPh: 'ค้นหาคอลัมน์…',
       columnsCloseBtn: 'ปิด', columnsHiddenNote: 'ซ่อนอยู่ {n} คอลัมน์',
-      pagerPrev: 'ก่อนหน้า', pagerNext: 'ถัดไป', pagerInfo: 'หน้า {page} / {total} ({n} แถว)',
+      pagerPrev: '← ก่อนหน้า', pagerNext: 'ถัดไป →', pagerInfo: 'หน้า {page} / {total} ({n} แถว)',
       metaFilteredSuffix: ' (กรองเหลือ {m})',
       saveStatusSaving: 'กำลังบันทึก…', saveStatusSavedNamed: 'บันทึกเป็นรายงาน "{name}" แล้ว',
       saveStatusFail: 'บันทึกไม่สำเร็จ ลองอีกครั้ง', saveStatusAuto: 'บันทึกอัตโนมัติแล้ว · {time}',
       newFileConfirm: 'ยังไม่ได้บันทึกเป็นรายงาน — เริ่มไฟล์ใหม่จะแทนที่ข้อมูลนี้ ดำเนินการต่อไหม?',
       myReportsConfirm: 'ยังไม่ได้บันทึกเป็นรายงาน — ออกไปดูรายการรายงานจะแทนที่ข้อมูลนี้ ดำเนินการต่อไหม?',
-      exportImgBtn: 'บันทึกเป็นรูปภาพ', exportPdfBtn: 'บันทึกเป็น PDF',
-      exportHtmlBtn: 'บันทึกเป็น HTML', printBtn: 'พิมพ์',
-      numStatTitle: 'สรุปตัวเลข', statTileSub: 'เฉลี่ย {avg} · ต่ำสุด {min} · สูงสุด {max}',
+      exportImgBtn: '📷 บันทึกเป็นรูปภาพ', exportPdfBtn: '📄 บันทึกเป็น PDF',
+      exportHtmlBtn: '📃 บันทึกเป็น HTML', printBtn: '🖨️ พิมพ์',
+      numStatTitle: '🔢 สรุปตัวเลข', statTileSub: 'เฉลี่ย {avg} · ต่ำสุด {min} · สูงสุด {max}',
       domainTemplateLbl: 'แม่แบบ', domainAutoOption: 'อัตโนมัติ', domainNoneOption: 'ทั่วไป (ไม่ใช้แม่แบบ)',
-      domainMaintenanceOption: 'ซ่อมบำรุง', domainProjectOption: 'โครงการ', domainLegalOption: 'กฎหมาย',
-      domainRiskOption: 'ความเสี่ยง',
-      domainTitleMaintenance: 'แดชบอร์ดซ่อมบำรุง', domainTitleProject: 'แดชบอร์ดโครงการ', domainTitleLegal: 'แดชบอร์ดกฎหมาย',
-      domainTitleRisk: 'แดชบอร์ดความเสี่ยง',
+      domainMaintenanceOption: '🛠️ ซ่อมบำรุง', domainProjectOption: '📁 โครงการ', domainLegalOption: '⚖️ กฎหมาย',
+      domainRiskOption: '⚠️ ความเสี่ยง', domainSafetyOption: '🦺 ความปลอดภัย', domainHrOption: '👥 บุคคล (HR)', domainItopsOption: '🖥️ IT / DevOps', domainKpidashboardOption: '📊 KPI Dashboard',
+      domainTitleMaintenance: '🛠️ แดชบอร์ดซ่อมบำรุง', domainTitleProject: '📁 แดชบอร์ดโครงการ', domainTitleLegal: '⚖️ แดชบอร์ดกฎหมาย',
+      domainTitleRisk: '⚠️ แดชบอร์ดความเสี่ยง',
       domainDetectedHint: 'ตรวจพบว่าตารางนี้น่าจะเป็นตาราง{name} — เลือกแม่แบบอื่นได้จากด้านบนถ้าไม่ตรง',
-      domainTitleNone: 'แดชบอร์ดเฉพาะทาง',
+      domainTitleNone: '🧩 แดชบอร์ดเฉพาะทาง',
       domainNoMatchHint: 'ยังไม่พบรูปแบบตารางที่ตรงกับแม่แบบใดในตอนนี้ — เลือกแม่แบบเองได้จากด้านบนถ้าต้องการ',
       domainNameMaintenance: 'ซ่อมบำรุง', domainNameProject: 'โครงการ', domainNameLegal: 'กฎหมาย', domainNameRisk: 'ความเสี่ยง',
       rKpiTotal: 'ความเสี่ยงทั้งหมด', rKpiCategories: 'จำนวนหมวดหมู่', rKpiAvgScore: 'คะแนนความเสี่ยงเฉลี่ย',
       rKpiHighCount: 'ความเสี่ยงระดับสูง',
-      rChartByCategory: 'จำนวนความเสี่ยงต่อประเภท', rChartByStatus: 'จำนวนความเสี่ยงต่อสถานะ',
-      rChartByOwner: 'จำนวนความเสี่ยงต่อผู้รับผิดชอบ',
-      rMatrixTitle: 'ตารางความเสี่ยง (โอกาสเกิด × ผลกระทบ)',
+      rChartByCategory: '📊 จำนวนความเสี่ยงต่อประเภท', rChartByStatus: '📊 จำนวนความเสี่ยงต่อสถานะ',
+      rChartByOwner: '📊 จำนวนความเสี่ยงต่อผู้รับผิดชอบ',
+      rMatrixTitle: '🔥 ตารางความเสี่ยง (โอกาสเกิด × ผลกระทบ)',
       rMatrixAxisNote: 'แกนนอน = โอกาสเกิด (น้อย→มาก) · แกนตั้ง = ผลกระทบ (มาก→น้อย จากบนลงล่าง) · ตัวเลขในช่อง = จำนวนความเสี่ยง',
-      domainFinanceOption: 'รายรับ-รายจ่าย', domainReadingOption: 'การอ่านหนังสือ',
-      domainTitleFinance: 'แดชบอร์ดรายรับ-รายจ่าย', domainTitleReading: 'แดชบอร์ดการอ่านหนังสือ',
+      domainFinanceOption: '💰 รายรับ-รายจ่าย', domainReadingOption: '📚 การอ่านหนังสือ',
+      domainTitleFinance: '💰 แดชบอร์ดรายรับ-รายจ่าย', domainTitleReading: '📚 แดชบอร์ดการอ่านหนังสือ',
       domainNameFinance: 'รายรับ-รายจ่าย', domainNameReading: 'การอ่านหนังสือ',
       fKpiIncome: 'รายรับรวม', fKpiExpense: 'รายจ่ายรวม', fKpiNet: 'คงเหลือสุทธิ', fKpiTxnCount: 'จำนวนรายการ',
-      fChartExpenseByCategory: 'รายจ่ายตามหมวดหมู่', fChartNetByMonth: 'คงเหลือสุทธิรายเดือน',
+      fChartExpenseByCategory: '📊 รายจ่ายตามหมวดหมู่', fChartNetByMonth: '📈 คงเหลือสุทธิรายเดือน',
       rdKpiTotalBooks: 'จำนวนหนังสือทั้งหมด', rdKpiTotalPages: 'จำนวนหน้ารวม',
       rdKpiAvgRating: 'คะแนนเฉลี่ย', rdKpiGenres: 'จำนวนแนว',
-      rdChartByGenre: 'จำนวนเล่มต่อแนว', rdChartByMonth: 'จำนวนเล่มที่อ่านจบต่อเดือน',
+      rdChartByGenre: '📊 จำนวนเล่มต่อแนว', rdChartByMonth: '📈 จำนวนเล่มที่อ่านจบต่อเดือน',
       mKpiTotalWO: 'Work Order ทั้งหมด', mKpiDowntime: 'Downtime รวม (ชม.)', mKpiCost: 'ต้นทุนซ่อมรวม',
-      mKpiMttr: 'เวลาซ่อมเฉลี่ย (ชม.)', mKpiOnTimePct: '% เสร็จตรงแผน',
-      mChartStatus: 'จำนวนงานต่อสถานะ', mChartCostByType: 'ต้นทุนซ่อมต่อประเภทเครื่องจักร',
-      mChartCountByPriority: 'จำนวนงานต่อระดับความสำคัญ',
+      mKpiMttr: 'เวลาซ่อมเฉลี่ย (ชม.)', mKpiOnTimePct: '% เสร็จตรงแผน', mKpiMtbf: 'MTBF โดยประมาณ (วัน)', mKpiLate: 'งานเกินกำหนด', mKpiEq: 'จำนวนเครื่องจักร/อุปกรณ์', mTopFailure: 'Top 10 Failure Mode', mTopEquipment: 'Top 10 Equipment', dashboardRankingLbl: 'อันดับ', rankingTop10: 'Top 10', rankingBottom10: 'Bottom 10', rankingAll: 'ทั้งหมด', customSaveLayout: '💾 บันทึก Layout', customDuplicate: '⧉ ทำสำเนา', customTemplates: '📚 Template ของฉัน', customClear: '🗑️ ล้าง Layout', fullscreenBtn: '⛶ เต็มจอ', executivePdfBtn: '📑 Executive PDF', templateSaved: 'บันทึก Template แล้ว', templateLoaded: 'โหลด Template แล้ว', mtbfEstimateNote: 'คำนวณจากช่วงเวลาระหว่างเหตุขัดข้องของแต่ละอุปกรณ์',
+      mChartStatus: '📊 จำนวนงานต่อสถานะ', mChartCostByType: '📊 ต้นทุนซ่อมต่อประเภทเครื่องจักร',
+      mChartCountByPriority: '📊 จำนวนงานต่อระดับความสำคัญ', mChartFailureMode: '📊 จำนวนงานตามอาการเสีย',
       pKpiBudget: 'งบประมาณรวม', pKpiActual: 'ใช้จริงรวม', pKpiRemaining: 'งบคงเหลือ',
       pKpiAvgProgress: 'ความคืบหน้าเฉลี่ย', pKpiOverdue: 'โครงการล่าช้า',
-      pChartProgress: 'ความคืบหน้า (%) ต่อโครงการ', pChartActualCost: 'ใช้จริงต่อโครงการ',
+      pChartProgress: '📊 ความคืบหน้า (%) ต่อโครงการ', pChartActualCost: '📊 ใช้จริงต่อโครงการ',
       lKpiSections: 'จำนวนมาตรา', lKpiCategories: 'จำนวนหมวดหมู่',
-      lChartByCategory: 'จำนวนมาตราต่อหมวดหมู่', lChartByReadStatus: 'จำนวนมาตราต่อสถานะการอ่าน',
-      lChartByLawName: 'จำนวนมาตราต่อกฎหมาย',
+      lChartByCategory: '📊 จำนวนมาตราต่อหมวดหมู่', lChartByReadStatus: '📊 จำนวนมาตราต่อสถานะการอ่าน',
+      lChartByLawName: '📊 จำนวนมาตราต่อกฎหมาย',
       chartTypeLbl: 'ชนิดกราฟ', groupByLbl: 'จัดกลุ่มตาม', sumValueLbl: 'รวมค่า',
       timeAxisLbl: 'แกนเวลา', showByLbl: 'แสดงสัดส่วนตาม', countOption: 'จำนวนรายการ (นับ)',
       typeBar: 'แท่งแนวตั้ง', typeBarH: 'แท่งแนวนอน', typeLine: 'เส้น', typePie: 'วงกลม', typeDoughnut: 'โดนัท',
-      barChartTitleDefault: 'กราฟแท่ง', lineChartTitleDefault: 'แนวโน้มตามเวลา', pieChartTitleDefault: 'สัดส่วน',
+      barChartTitleDefault: '📊 กราฟแท่ง', lineChartTitleDefault: '📈 แนวโน้มตามเวลา', pieChartTitleDefault: '🥧 สัดส่วน',
       barChartTitleWithNum: '{cat} ตามผลรวม {num}', barChartTitleCount: 'จำนวนรายการตาม {cat}',
       lineChartTitleWithNum: 'แนวโน้ม {num} ตามเวลา ({date})', lineChartTitleCount: 'จำนวนรายการตามเวลา ({date})',
       pieChartTitleTpl: 'สัดส่วนจำนวนรายการตาม {cat}',
-      hintBarClick: 'แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น', hintLineClick: 'แตะกราฟเพื่อกรองตารางเฉพาะช่วงนั้น',
-      dashTableTitle: 'ตารางข้อมูล',
-      dashTableMetaFull: '{n} แถว · แก้ไขข้อมูลได้ที่แท็บ "{tab}"',
-      dashTableMetaCapped: 'แสดง {shown} จาก {total} แถว · ดูทั้งหมด/แก้ไขได้ที่แท็บ "{tab}"',
+      hintBarClick: '👆 แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น', hintLineClick: '👆 แตะกราฟเพื่อกรองตารางเฉพาะช่วงนั้น',
+      dashTableTitle: '📋 ตารางข้อมูล',
+      /* Stage 6 (ตามที่ผู้ใช้ขอ): ตัดข้อความ "· แก้ไขข้อมูลได้ที่แท็บ..." ท้ายบรรทัดออก เหลือแค่จำนวนแถว */
+      dashTableMetaFull: '{n} แถว',
+      dashTableMetaCapped: 'แสดง {shown} จาก {total} แถว',
+      /* Stage 6: ปุ่ม Excel/CSV/คอลัมน์ ของ "ตารางข้อมูล" ในแท็บ Details ตัดไอคอนออก — ใช้คีย์แยกจาก
+         exportXlsxBtn/exportCsvBtn/columnsBtn เดิม เพราะคีย์นั้นใช้ร่วมกับปุ่มในแท็บ "ตาราง (แก้ไข)" ด้วย
+         ไม่อยากให้กระทบปุ่มที่นั่น */
+      dashExportXlsxBtn: 'Excel', dashExportCsvBtn: 'CSV', dashColsBtn: 'คอลัมน์',
       dashModeLbl: 'มุมมองตาราง', dashModeFlat: 'รายการ', dashModePivot: 'Pivot',
       pivotRowsLbl: 'แถว', pivotColsLbl: 'คอลัมน์', pivotValueLbl: 'ค่า', pivotAggLbl: 'รวมด้วย',
       pivotNoneOption: '(ไม่มี)', aggSum: 'ผลรวม', aggAvg: 'ค่าเฉลี่ย',
       pivotTotalLbl: 'รวม', pivotGrandTotalLbl: 'รวมทั้งหมด',
       pivotEmptyHint: 'เลือกคอลัมน์ที่จะใช้เป็น "แถว" ของ Pivot ก่อน',
       pivotCapNote: ' (แสดง {n} จาก {total} รายการแรก)',
-      dashboardEmptyTitle: 'แดชบอร์ด',
+      dashboardEmptyTitle: '📊 แดชบอร์ด',
+      dashboardInsightsTitle: 'สรุปสำคัญ', dashboardViewLbl: 'มุมมอง', dashboardViewExecutive: 'ภาพรวม', dashboardViewAnalysis: 'วิเคราะห์', dashboardViewTable: 'ตาราง', dashboardFilterTitle: 'ตัวกรอง Dashboard', dashboardDateColLbl: 'วันที่', dashboardFromLbl: 'ตั้งแต่', dashboardToLbl: 'ถึง', dashboardThisMonth: 'เดือนนี้', dashboardLastMonth: 'เดือนก่อน', dashboardAllTime: 'ทั้งหมด', dashboardAllValues: 'ทั้งหมด', dashboardResetFilters: 'รีเซ็ตตัวกรอง', dashboardVsPrevious: 'เทียบช่วงก่อน', dashboardInsightFiltered: 'กำลังแสดง {n} รายการ ({pct}% ของข้อมูลทั้งหมด)', dashboardInsightTotal: '{col}: รวม {val}', dashboardInsightTop: '{col} ที่พบมากที่สุด: {val} ({n} รายการ)', dashboardInsightOverdue: 'พบงานค้าง/เกินกำหนด {n} รายการ', dashboardDataQuality: 'คุณภาพข้อมูล {pct}%', dashboardMaintenanceEquipment: 'เครื่องจักร / อุปกรณ์',
       chartLibFail: 'โหลดไลบรารีทำกราฟไม่สำเร็จ (ลองออนไลน์แล้วรีเฟรช)',
       noChartPossible: 'ยังสรุปเป็นกราฟไม่ได้ — ต้องมีอย่างน้อย 1 คอลัมน์ตัวเลข หรือ 1 คอลัมน์หมวดหมู่ที่ไม่ใช่ข้อความอิสระเกินไป',
       noRowsMatch: 'ไม่มีแถวข้อมูลที่ตรงกับตัวกรองที่ตั้งไว้ตอนนี้',
@@ -222,11 +238,11 @@
       pageTitle: 'Report Dashboard', pageSub: 'Upload an Excel/CSV file to view, edit, sort, and filter your data right in the browser',
       statTotalLbl: 'Total Rows', statColsLbl: 'Columns', statShownLbl: 'Showing', statSelectedLbl: 'Selected',
       unitRows: 'rows', unitCols: 'columns',
-      tabTable: 'Table (Edit)', tabDashboard: 'Dashboard', tabCustom: 'Custom',
-      addWidgetBtn: 'Add Box',
+      tabTable: '📋 Table (Edit)', tabDashboard: '📊 Dashboard', tabCustom: '🧩 Custom',
+      addWidgetBtn: '➕ Add Box',
       customEmptyHint: 'Drag a corner to resize, drag the header to move — start by clicking "Add Box" above',
-      addWidgetPickTitle: 'Choose a box type', wtKpi: 'Number (KPI)', wtChart: 'Chart', wtText: 'Text', wtTable: 'Table',
-      wtKpiLabel: 'Number box', wtChartLabel: 'Chart box', wtTextLabel: 'Text box', wtTableLabel: 'Table box',
+      addWidgetPickTitle: 'Choose a box type', wtKpi: '🔢 Number (KPI)', customTplMaintenance: '🛠️ Maintenance Template', customTplExecutive: '📊 Executive Template', wtChart: '📊 Chart', wtText: '📝 Text', wtTable: '📋 Table',
+      wtKpiLabel: 'Number box', wtChartLabel: 'Chart box', wtTextLabel: 'Text box', wtTableLabel: 'Table box', wtSnapshotLabel: 'Snapshot box',
       wtEditTitle: 'Edit this box', wtRemoveTitle: 'Remove this box',
       cwColumnLbl: 'Column', cwAggLbl: 'Aggregation', cwLabelLbl: 'Label (optional)',
       cwAggSum: 'Sum', cwAggAvg: 'Average', cwAggCount: 'Total row count', cwAggMin: 'Minimum', cwAggMax: 'Maximum',
@@ -239,39 +255,39 @@
       cardAccentColorLbl: 'Accent color (chart/number)', cardGradientLbl: 'Gradient', cardColorResetBtn: 'Reset',
       moreColorsLbl: 'More colors', autoFillOptionsHint: 'Auto Fill Options', autoFillOptionsTitle: 'Choose fill type',
       autoFillSeriesOpt: 'Continue series', autoFillCopyOpt: 'Repeat value',
-      customBgBtn: 'Background', dashboardBgBtn: 'Dashboard Background', loadTemplateBtn: 'Load from Dashboard',
-      bgModeColor: 'Color', bgModePattern: 'Pattern', bgModeImage: 'Image',
+      customBgBtn: '🎨 Background', dashboardBgBtn: '🎨 Dashboard Background', loadTemplateBtn: '📥 Load from Dashboard',
+      bgModeColor: '🎨 Color', bgModePattern: '🔳 Pattern', bgModeImage: '🖼️ Image',
       bgPatternLbl: 'Choose a pattern', bgPatternColorLbl: 'Pattern color', bgImageLbl: 'Upload image',
       bgImageFitLbl: 'Display', bgFit_cover: 'Fill (crop)', bgFit_contain: 'Fit', bgFit_repeat: 'Tile',
       bgOpacityLbl: 'Opacity', bgImageReadFailHint: 'Could not read that image file — try another one.',
       loadTemplateNoneHint: 'No cards in the "Dashboard" tab to load yet — upload data first',
       loadTemplateSnapshotNote: ' (snapshot at load time, not live-updating)',
-      drillText: 'Filtering: {label} = {value}', drillClearBtn: 'Clear this filter',
-      uploadTitle: 'Upload File', dropText: 'Drag a file here, or', pickBtn: 'Choose File',
+      drillText: '🔍 Filtering: {label} = {value}', drillClearBtn: '✕ Clear this filter',
+      uploadTitle: '📤 Upload File', dropText: 'Drag a file here, or', pickBtn: 'Choose File',
       dropHint: 'Supports .xlsx .xls .csv — everything is processed on your device',
       statusReading: 'Reading file…',
       statusLibFail: "Couldn't load the file-reading library (go online and refresh)",
       statusReadFail: "Couldn't read the file — please try again",
       statusOpenFail: "Couldn't open this file — make sure it's a valid, uncorrupted .xlsx/.xls/.csv",
       statusSheetEmpty: 'This sheet has no data — try another sheet',
-      resumeTitle: 'Found Unsaved Work', resumeBtn: 'Continue', discardBtn: 'Start Over',
+      resumeTitle: '💾 Found Unsaved Work', resumeBtn: 'Continue', discardBtn: 'Start Over',
       resumeInfo: '{name} · {n} rows · saved {date}', resumeFallbackName: 'Previous file',
-      reportsTitle: 'My Reports', reportsMeta: '{n} reports',
+      reportsTitle: '📁 My Reports', reportsMeta: '{n} reports',
       reportRowMeta: '{n} rows · last saved {time}', openBtn: 'Open',
       deleteReportConfirm: 'Permanently delete report "{name}"? This cannot be undone.', renameReportPrompt: 'Rename report:',
       saveAsReportPrompt: 'Name this report:', reportDefaultBase: 'Report',
-      sheetTitle: 'Choose Sheet',
+      sheetTitle: '📑 Choose Sheet',
       sheetModeHint: 'Found {n} sheets in this file — choose how to import:',
-      sheetModeCombine: 'Combine all sheets into one table', sheetModeSingle: 'Choose one sheet',
+      sheetModeCombine: '📚 Combine all sheets into one table', sheetModeSingle: '📄 Choose one sheet',
       sourceSheetLabel: 'Source Sheet', combinedSheetsSuffix: 'combined {n} sheets',
-      headerTitle: 'Choose the Header Row',
+      headerTitle: '🔤 Choose the Header Row',
       headerHint: 'Click the row that contains your column names (usually the first row) — showing the first 8 rows',
-      confirmHeaderBtn: 'Use this row as the header',
-      dataTitle: 'Data', searchPh: 'Search all columns…', addRowBtn: '+ Add Row',
+      confirmHeaderBtn: 'Use this row as the header →',
+      dataTitle: '📋 Data', searchPh: 'Search all columns…', addRowBtn: '+ Add Row',
       addColBtn: '+ Add Column', delColTitle: 'Delete this column', newColumnDefaultLabel: 'New column',
       renameColPrompt: 'Rename column', dblclickRenameHint: 'Double-click a column name to rename it',
-      fillHandleHint: 'Drag to auto-fill — hold Ctrl while dragging, or tap the button that appears after, to toggle mode (series/repeat)',
-      delSelBtn: 'Delete Selected', undoBtn: 'Undo', redoBtn: 'Redo', clearFilterBtn: 'Clear Filters',
+      fillHandleHint: 'Drag to auto-fill — hold Ctrl while dragging, or tap the ⚙️ button that appears after, to toggle mode (series/repeat)',
+      delSelBtn: '🗑️ Delete Selected', undoBtn: '↩️ Undo', redoBtn: '↪️ Redo', clearFilterBtn: 'Clear Filters',
       addFormulaColBtn: '+ ƒx Formula Column',
       fcAddTitle: 'ƒx Add Formula Column', fcEditTitle: 'ƒx Edit Formula Column',
       fcNameLbl: 'Column name', fcNamePh: 'e.g. Total',
@@ -279,40 +295,40 @@
       fcHint: 'Operators: + − × / ^(power) and comparisons &gt; &gt;= &lt; &lt;= == !=<br>Functions: IF(cond,then,else) · AND(...) · OR(...) · NOT(x) · ROUND(x,decimals) · ABS(x) · MIN(...) · MAX(...) · SUM(...) · CONCAT(...)',
       fcErrNoName: 'Please name the column', fcErrNoFormula: 'Please enter a formula',
       fcErrDupeName: 'A column with this name already exists', fcErrorTitlePrefix: 'Formula error: ',
-      fcDeleteBtn: 'Delete this column', fcDeleteConfirm: 'Delete this formula column?',
+      fcDeleteBtn: '🗑️ Delete this column', fcDeleteConfirm: 'Delete this formula column?',
       delColUsedInFormulaConfirm: 'This column is used in the formula of column "{cols}" — deleting it will break those formulas. Delete anyway?',
-      cancelBtn: 'Cancel', saveBtn: 'Save',
+      cancelBtn: 'Cancel', saveBtn: 'Save', confirmBtn: 'Continue',
       selCountLbl: 'Cells', selNonEmptyLbl: 'Non-empty', selSumLbl: 'Sum', selAvgLbl: 'Average',
       selMinLbl: 'Min', selMaxLbl: 'Max',
-      cfBtnTitle: 'Conditional formatting', cfTitle: 'Conditional Formatting — {col}',
+      cfBtnTitle: 'Conditional formatting', cfTitle: '🎨 Conditional Formatting — {col}',
       cfModeNone: 'None', cfModeScale: 'Color scale', cfModeBar: 'Data bar', cfModeRules: 'Highlight rules',
       cfScaleLow: 'Low value', cfScaleHigh: 'High value', cfBarColor: 'Bar color',
-      cfAddRuleBtn: '+ Add rule', cfResetBtn: 'Clear formatting', cfRuleDel: 'Delete this rule',
+      cfAddRuleBtn: '+ Add rule', cfResetBtn: '🗑️ Clear formatting', cfRuleDel: 'Delete this rule',
       cfNoRules: 'No rules yet — click "+ Add rule" to start',
       cfOpEq: 'equals', cfOpNeq: 'not equal to', cfOpContains: 'contains',
-      dataHealthBtn: 'Data Health Check', dhTitle: 'Data Health Check', dhCloseBtn: 'Close',
+      dataHealthBtn: '🩺 Data Health Check', dhTitle: '🩺 Data Health Check', dhCloseBtn: 'Close',
       dhColHeader: 'Column', dhBlankHeader: 'Blank', dhUniqueHeader: 'Unique',
       dhMinHeader: 'Min', dhMaxHeader: 'Max', dhAvgHeader: 'Avg', dhMedianHeader: 'Median',
       dhTrimBtn: 'Trim', dhTrimTitle: 'Trim leading/trailing whitespace from every cell in this column',
       dhDupSummary: 'Found {n} duplicate row(s) (based on source data columns only, formula columns excluded)',
-      dhNoDup: 'No duplicate rows found', dhDedupeBtn: 'Remove duplicates ({n} rows)',
+      dhNoDup: '✅ No duplicate rows found', dhDedupeBtn: '🗑️ Remove duplicates ({n} rows)',
       dhNoRows: 'No data yet', dhEmptyDash: '—',
-      dhFuzzyBtn: 'Check spelling', dhFuzzyTitle: 'Find values spelled differently that likely mean the same thing (e.g. "Bangkok"/"BKK")',
-      dhFuzzyTitleFor: 'Similar spellings: {col}',
-      dhFuzzyNone: 'No similar spellings found in this column',
-      dhFuzzyMergeInto: 'Merge into:', dhFuzzyMergeBtn: 'Merge', dhBackBtn: 'Back',
-      kpiTargetSectionTitle: 'Target + Comparison', kpiTargetLbl: 'Target (optional)', kpiTargetPh: 'e.g. 100000',
+      dhFuzzyBtn: '🔍 Check spelling', dhFuzzyTitle: 'Find values spelled differently that likely mean the same thing (e.g. "Bangkok"/"BKK")',
+      dhFuzzyTitleFor: '🔍 Similar spellings: {col}',
+      dhFuzzyNone: '✅ No similar spellings found in this column',
+      dhFuzzyMergeInto: 'Merge into:', dhFuzzyMergeBtn: 'Merge', dhBackBtn: '← Back',
+      kpiTargetSectionTitle: '🎯 Target + Comparison', kpiTargetLbl: 'Target (optional)', kpiTargetPh: 'e.g. 100000',
       kpiTargetDirLbl: 'Good direction', kpiTargetDirUp: 'Higher is better', kpiTargetDirDown: 'Lower is better',
       kpiOfTarget: 'of target', kpiCompareDateLbl: 'Compare to previous month (optional)', kpiCompareDateNone: 'No comparison',
       kpiVsPeriod: 'vs {period}', kpiNoCompareData: 'Not enough data to compare',
-      freezeColBtn: 'Freeze Columns', freezeColTitle: 'Freeze Columns', freezeColPickLbl: 'Freeze through column',
+      freezeColBtn: '📌 Freeze Columns', freezeColTitle: '📌 Freeze Columns', freezeColPickLbl: 'Freeze through column',
       freezeColNoneOption: 'No freeze',
-      groupByBtn: 'Group', groupByTitle: 'Group Table Rows',
+      groupByBtn: '📊 Group', groupByTitle: '📊 Group Table Rows',
       groupByColLbl: 'Group by column', groupByNoneOption: 'No grouping',
       groupSubtotalColLbl: 'Subtotal column (optional)', groupSubtotalCountOnly: 'Count only',
       groupSubtotalLbl: 'Subtotal', groupPagerHiddenNote: 'Grouping is active — showing all filtered rows, no pagination',
-      autoSummaryBtn: 'Auto Summary', autoSummaryTitle: 'Auto Summary (computed from real data)',
-      autoSummaryCopyBtn: 'Copy', autoSummaryCopied: 'Copied!', autoSummaryCopyFail: 'Copy failed — try selecting the text and pressing Ctrl+C',
+      autoSummaryBtn: '📝 Auto Summary', autoSummaryTitle: '📝 Auto Summary (computed from real data)',
+      autoSummaryCopyBtn: '📋 Copy', autoSummaryCopied: 'Copied!', autoSummaryCopyFail: 'Copy failed — try selecting the text and pressing Ctrl+C',
       summaryTotalRows: 'Total of {n} records ({m} columns).',
       summaryColSum: '{col} totals {sum}.',
       summaryMomGrowth: ' Up {pct}% from the previous month ({prev}).',
@@ -326,79 +342,81 @@
       fErrColNotFound: 'Column "{label}" not found', fErrSelfRef: 'A formula cannot reference its own column',
       fErrRefFormulaCol: 'Cannot reference formula column "{label}" (only source data columns are allowed)',
       fErrDivZero: 'Division by zero', fErrArgCount: '{fn} requires {n} argument(s)', fErrUnknownFn: 'Unknown function "{fn}"',
-      saveReportBtn: 'Save as Report', savedReportBtn: 'Saved: {name}',
-      myReportsBtn: 'My Reports', exportXlsxBtn: 'Excel', exportCsvBtn: 'CSV', newFileBtn: 'New File',
+      saveReportBtn: '💾 Save as Report', savedReportBtn: '💾 Saved: {name}',
+      myReportsBtn: '📁 My Reports', exportXlsxBtn: '⬇️ Excel', exportCsvBtn: '⬇️ CSV', newFileBtn: '📤 New File',
       dataEmptyTxt: 'No rows match the current filters', colFallback: 'Column {n}',
       filterMin: 'Min', filterMax: 'Max', filterQ: 'Filter…', delRowTitle: 'Delete this row',
       filterIconTitle: 'Filter this column', filterSearchPh: 'Search values…', filterSelectAllBtn: 'Select all',
       filterSelectNoneBtn: 'Select none', filterEmptyList: 'No values match your search',
       filterApplyBtn: 'Apply filter', filterCancelBtn: 'Cancel', filterClearThisBtn: 'Clear this filter',
-      addFilterBtn: '+ Filter', clearAllFiltersBtn: 'Clear all filters',
+      addFilterBtn: '+ Filter', clearAllFiltersBtn: '✕ Clear all filters',
       filterChipValues: '{col}: {n} values', filterChipValue1: '{col}: {v}',
       filterChipMin: '{col}: ≥ {v}', filterChipMax: '{col}: ≤ {v}', filterChipRange: '{col}: {min}–{max}',
       addFilterPickTitle: 'Choose a column to filter',
-      columnsBtn: 'Columns', columnsPopoverTitle: 'Choose columns to show', columnsSearchPh: 'Search columns…',
+      columnsBtn: '👁️ Columns', columnsPopoverTitle: 'Choose columns to show', columnsSearchPh: 'Search columns…',
       columnsCloseBtn: 'Close', columnsHiddenNote: '{n} columns hidden',
-      pagerPrev: 'Prev', pagerNext: 'Next', pagerInfo: 'Page {page} / {total} ({n} rows)',
+      pagerPrev: '← Prev', pagerNext: 'Next →', pagerInfo: 'Page {page} / {total} ({n} rows)',
       metaFilteredSuffix: ' (filtered to {m})',
       saveStatusSaving: 'Saving…', saveStatusSavedNamed: 'Saved as report "{name}"',
       saveStatusFail: "Couldn't save — please try again", saveStatusAuto: 'Autosaved · {time}',
       newFileConfirm: "This hasn't been saved as a report yet — starting a new file will replace this data. Continue?",
       myReportsConfirm: "This hasn't been saved as a report yet — leaving to view your reports will replace this data. Continue?",
-      exportImgBtn: 'Save as Image', exportPdfBtn: 'Save as PDF',
-      exportHtmlBtn: 'Save as HTML', printBtn: 'Print',
-      numStatTitle: 'Number Summary', statTileSub: 'avg {avg} · min {min} · max {max}',
+      exportImgBtn: '📷 Save as Image', exportPdfBtn: '📄 Save as PDF',
+      exportHtmlBtn: '📃 Save as HTML', printBtn: '🖨️ Print',
+      numStatTitle: '🔢 Number Summary', statTileSub: 'avg {avg} · min {min} · max {max}',
       domainTemplateLbl: 'Template', domainAutoOption: 'Auto', domainNoneOption: 'Generic (no template)',
-      domainMaintenanceOption: 'Maintenance', domainProjectOption: 'Project', domainLegalOption: 'Legal',
-      domainRiskOption: 'Risk',
-      domainTitleMaintenance: 'Maintenance Dashboard', domainTitleProject: 'Project Dashboard', domainTitleLegal: 'Legal Dashboard',
-      domainTitleRisk: 'Risk Dashboard',
+      domainMaintenanceOption: '🛠️ Maintenance', domainProjectOption: '📁 Project', domainLegalOption: '⚖️ Legal',
+      domainRiskOption: '⚠️ Risk', domainSafetyOption: '🦺 Safety', domainHrOption: '👥 HR', domainItopsOption: '🖥️ IT / DevOps', domainKpidashboardOption: '📊 KPI Dashboard',
+      domainTitleMaintenance: '🛠️ Maintenance Dashboard', domainTitleProject: '📁 Project Dashboard', domainTitleLegal: '⚖️ Legal Dashboard',
+      domainTitleRisk: '⚠️ Risk Dashboard',
       domainDetectedHint: 'Detected this as a {name} table — pick a different template above if it’s wrong',
-      domainTitleNone: 'Specialized Dashboard',
+      domainTitleNone: '🧩 Specialized Dashboard',
       domainNoMatchHint: 'No template matched this table automatically — pick one above if you’d like.',
       domainNameMaintenance: 'Maintenance', domainNameProject: 'Project', domainNameLegal: 'Legal', domainNameRisk: 'Risk',
       rKpiTotal: 'Total Risks', rKpiCategories: 'Total Categories', rKpiAvgScore: 'Avg Risk Score',
       rKpiHighCount: 'High Risks',
-      rChartByCategory: 'Risks by Category', rChartByStatus: 'Risks by Status',
-      rChartByOwner: 'Risks by Owner',
-      rMatrixTitle: 'Risk Matrix (Likelihood × Impact)',
+      rChartByCategory: '📊 Risks by Category', rChartByStatus: '📊 Risks by Status',
+      rChartByOwner: '📊 Risks by Owner',
+      rMatrixTitle: '🔥 Risk Matrix (Likelihood × Impact)',
       rMatrixAxisNote: 'X-axis = Likelihood (low→high) · Y-axis = Impact (high→low, top to bottom) · numbers = risk count per cell',
-      domainFinanceOption: 'Income/Expense', domainReadingOption: 'Reading Tracker',
-      domainTitleFinance: 'Income/Expense Dashboard', domainTitleReading: 'Reading Dashboard',
+      domainFinanceOption: '💰 Income/Expense', domainReadingOption: '📚 Reading Tracker',
+      domainTitleFinance: '💰 Income/Expense Dashboard', domainTitleReading: '📚 Reading Dashboard',
       domainNameFinance: 'Income/Expense', domainNameReading: 'Reading',
       fKpiIncome: 'Total Income', fKpiExpense: 'Total Expense', fKpiNet: 'Net Balance', fKpiTxnCount: 'Transactions',
-      fChartExpenseByCategory: 'Expense by Category', fChartNetByMonth: 'Net Balance by Month',
+      fChartExpenseByCategory: '📊 Expense by Category', fChartNetByMonth: '📈 Net Balance by Month',
       rdKpiTotalBooks: 'Total Books', rdKpiTotalPages: 'Total Pages',
       rdKpiAvgRating: 'Avg Rating', rdKpiGenres: 'Total Genres',
-      rdChartByGenre: 'Books by Genre', rdChartByMonth: 'Books Finished by Month',
+      rdChartByGenre: '📊 Books by Genre', rdChartByMonth: '📈 Books Finished by Month',
       mKpiTotalWO: 'Total Work Orders', mKpiDowntime: 'Total Downtime (hrs)', mKpiCost: 'Total Repair Cost',
       mKpiMttr: 'Avg Repair Time (hrs)', mKpiOnTimePct: '% Completed On Plan',
-      mChartStatus: 'Work Orders by Status', mChartCostByType: 'Repair Cost by Equipment Type',
-      mChartCountByPriority: 'Work Orders by Priority',
+      mChartStatus: '📊 Work Orders by Status', mChartCostByType: '📊 Repair Cost by Equipment Type',
+      mChartCountByPriority: '📊 Work Orders by Priority', mChartFailureMode: '📊 Work Orders by Failure Mode',
       pKpiBudget: 'Total Budget', pKpiActual: 'Total Actual Cost', pKpiRemaining: 'Budget Remaining',
       pKpiAvgProgress: 'Avg Progress', pKpiOverdue: 'Overdue Projects',
-      pChartProgress: 'Progress (%) by Project', pChartActualCost: 'Actual Cost by Project',
+      pChartProgress: '📊 Progress (%) by Project', pChartActualCost: '📊 Actual Cost by Project',
       lKpiSections: 'Total Sections', lKpiCategories: 'Total Categories',
-      lChartByCategory: 'Sections by Category', lChartByReadStatus: 'Sections by Read Status',
-      lChartByLawName: 'Sections by Law',
+      lChartByCategory: '📊 Sections by Category', lChartByReadStatus: '📊 Sections by Read Status',
+      lChartByLawName: '📊 Sections by Law',
       chartTypeLbl: 'Chart type', groupByLbl: 'Group by', sumValueLbl: 'Value',
       timeAxisLbl: 'Time axis', showByLbl: 'Break down by', countOption: 'Row count',
       typeBar: 'Column', typeBarH: 'Bar', typeLine: 'Line', typePie: 'Pie', typeDoughnut: 'Doughnut',
-      barChartTitleDefault: 'Bar Chart', lineChartTitleDefault: 'Trend Over Time', pieChartTitleDefault: 'Breakdown',
+      barChartTitleDefault: '📊 Bar Chart', lineChartTitleDefault: '📈 Trend Over Time', pieChartTitleDefault: '🥧 Breakdown',
       barChartTitleWithNum: '{cat} by total {num}', barChartTitleCount: 'Row count by {cat}',
       lineChartTitleWithNum: '{num} trend over time ({date})', lineChartTitleCount: 'Row count over time ({date})',
       pieChartTitleTpl: 'Row count breakdown by {cat}',
-      hintBarClick: 'Tap the chart to filter the table to that group', hintLineClick: 'Tap the chart to filter the table to that period',
-      dashTableTitle: 'Data Table',
-      dashTableMetaFull: '{n} rows · edit data in the "{tab}" tab',
-      dashTableMetaCapped: 'Showing {shown} of {total} rows · see all/edit in the "{tab}" tab',
+      hintBarClick: '👆 Tap the chart to filter the table to that group', hintLineClick: '👆 Tap the chart to filter the table to that period',
+      dashTableTitle: '📋 Data Table',
+      dashTableMetaFull: '{n} rows',
+      dashTableMetaCapped: 'Showing {shown} of {total} rows',
+      dashExportXlsxBtn: 'Excel', dashExportCsvBtn: 'CSV', dashColsBtn: 'Columns',
       dashModeLbl: 'Table view', dashModeFlat: 'List', dashModePivot: 'Pivot',
       pivotRowsLbl: 'Rows', pivotColsLbl: 'Columns', pivotValueLbl: 'Value', pivotAggLbl: 'Summarize by',
       pivotNoneOption: '(None)', aggSum: 'Sum', aggAvg: 'Average',
       pivotTotalLbl: 'Total', pivotGrandTotalLbl: 'Grand Total',
       pivotEmptyHint: 'Choose a column to use as the Pivot "Rows" first',
       pivotCapNote: ' (showing the first {n} of {total})',
-      dashboardEmptyTitle: 'Dashboard',
+      dashboardEmptyTitle: '📊 Dashboard',
+      dashboardInsightsTitle: 'Key Insights', dashboardViewLbl: 'View', dashboardViewExecutive: 'Executive', dashboardViewAnalysis: 'Analysis', dashboardViewTable: 'Table', dashboardFilterTitle: 'Dashboard Filters', dashboardDateColLbl: 'Date', dashboardFromLbl: 'From', dashboardToLbl: 'To', dashboardThisMonth: 'This Month', dashboardLastMonth: 'Last Month', dashboardAllTime: 'All Time', dashboardAllValues: 'All', dashboardResetFilters: 'Reset Filters', dashboardVsPrevious: 'vs previous period', dashboardInsightFiltered: 'Showing {n} rows ({pct}% of all data)', dashboardInsightTotal: '{col}: total {val}', dashboardInsightTop: 'Top {col}: {val} ({n} rows)', dashboardInsightOverdue: '{n} overdue/late items found', dashboardDataQuality: 'Data quality: {pct}%', dashboardMaintenanceEquipment: 'Equipment / Assets',
       chartLibFail: "Couldn't load the charting library (go online and refresh)",
       noChartPossible: 'Not enough structure to chart yet — you need at least 1 numeric column or 1 category-like column',
       noRowsMatch: 'No rows match the current filter',
@@ -444,10 +462,14 @@
     history: [],           // snapshots for undo: { columns, rows, nextRowId }
     redoStack: [],         // snapshots for redo (สลับกับ history ตอน undo/redo) — ล้างทิ้งทุกครั้งที่มีการแก้ไขใหม่
     drill: null,           // { key, label, value } — จากคลิกแท่ง/ชิ้นวงกลมในแดชบอร์ด กรองทั้งตาราง+แดชบอร์ด
+    dashboardFilters: {},   // ตัวกรองกลางของ Dashboard — category/text exact match ต่อคอลัมน์
+    dashboardDateCol: null, // คอลัมน์วันที่ของ Global Dashboard Filter
+    dashboardDateFrom: '',
+    dashboardDateTo: '',
     chartChoice: { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null, lineTrend: false }, // null = auto
     chartType: { slot1: null, slot2: null, slot3: null }, // null = ดีฟอลต์ของสล็อตนั้น (bar/line/doughnut)
     dashTable: { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} }, // ตารางในแดชบอร์ด: โหมดรายการ/pivot + ตัวกรองของตัวเอง (ไม่ผูกกับ state.filters ของแท็บแก้ไข)
-    domainOverride: null,  // '' หรือ null = อัตโนมัติ (เดาจากชื่อคอลัมน์), 'none'|'maintenance'|'project'|'legal' = ผู้ใช้เลือกเอง
+    domainOverride: null,  // '' หรือ null = อัตโนมัติ (เดาจากชื่อคอลัมน์), 'none'|'maintenance'|'project'|'legal'|'risk'|'finance'|'reading'|'safety'|'hr'|'itops' = ผู้ใช้เลือกเอง
     customWidgets: [],    // [{id,type:'kpi'|'chart'|'table'|'text',x,y,w,h,config}] มุมมอง "กำหนดเอง" — ต่างจาก dashTable/domainOverride
                            // ตรงที่ต้อง "จำ" ข้ามเซสชัน (ผู้ใช้จัดวางเองด้วยมือ) จึงบันทึกไปกับรายงานด้วย
     cardColors: {},        // role ('numStat'|'bar'|'line'|'pie'|'domainKpi'|'domainMatrix'|'domainChart1'|'domainChart2') ->
@@ -462,7 +484,11 @@
     freezeCols: 0,         // จำนวนคอลัมน์ข้อมูลจริงที่ตรึงไว้จากซ้าย (Freeze pane) 0 = ไม่ตรึง ไม่นับคอลัมน์ checkbox
     groupBy: null,         // colKey หรือ null = ไม่จัดกลุ่ม — จัดกลุ่มแถวในตาราง (แท็บ "ตาราง (แก้ไข)") ตามค่าคอลัมน์นี้
     groupSubtotalCol: null, // colKey (ตัวเลข) หรือ null = นับจำนวนอย่างเดียว — คอลัมน์ที่รวมยอดย่อยต่อกลุ่ม
-    collapsedGroups: {}    // groupKey -> true = ยุบกลุ่มนี้ไว้ (ไม่ persist ข้ามเซสชัน ตั้งใจให้รีเซ็ตทุกครั้งที่เปิดใหม่)
+    collapsedGroups: {},   // groupKey -> true = ยุบกลุ่มนี้ไว้ (ไม่ persist ข้ามเซสชัน ตั้งใจให้รีเซ็ตทุกครั้งที่เปิดใหม่)
+    dashboardViewMode: 'executive', // executive | analysis | table — หน้าหลักของ Dashboard
+    chartRanking: 'top10',
+    savedLayouts: [],
+    bi: { model: { roles: {}, tables: [], relationships: [] }, measures: [], interactions: { clickFilter: true, highlight: true }, pages: {}, parameters: { topN: 10 } }
   };
 
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
@@ -561,6 +587,7 @@
         columns: state.columns, rows: state.rows, nextRowId: state.nextRowId,
         reportId: state.reportId, reportName: state.reportName,
         customWidgets: state.customWidgets, cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg,
+        dashboardFilters: state.dashboardFilters, dashboardDateCol: state.dashboardDateCol, dashboardDateFrom: state.dashboardDateFrom, dashboardDateTo: state.dashboardDateTo, dashboardViewMode: state.dashboardViewMode, chartRanking: state.chartRanking, savedLayouts: state.savedLayouts,
         condFormat: state.condFormat, freezeCols: state.freezeCols, groupBy: state.groupBy, groupSubtotalCol: state.groupSubtotalCol,
         savedAt: Date.now()
       };
@@ -572,6 +599,7 @@
           id: state.reportId, name: state.reportName, fileName: state.fileName, sheetName: state.activeSheet,
           combineMode: state.combineMode, sheetNames: state.sheetNames,
           columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets,
+          dashboardFilters: state.dashboardFilters, dashboardDateCol: state.dashboardDateCol, dashboardDateFrom: state.dashboardDateFrom, dashboardDateTo: state.dashboardDateTo, dashboardViewMode: state.dashboardViewMode,
           cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, condFormat: state.condFormat,
           freezeCols: state.freezeCols, groupBy: state.groupBy, groupSubtotalCol: state.groupSubtotalCol, savedAt: Date.now()
         });
@@ -666,9 +694,67 @@
     reader.readAsArrayBuffer(file);
   }
 
+  /* Final 28: Smart Import — for workbooks with a strong structured header, choose the best sheet/header
+     automatically so a first-time user can go from Upload -> evaluated Dashboard without manual sheet/header steps.
+     Manual picker remains available for ambiguous workbooks. */
+  function normalizeHeaderToken(v) {
+    return String(v == null ? '' : v).toLowerCase().replace(/[\s_\-\/\(\)\[\]\.:%]/g,'');
+  }
+  function scoreHeaderRow(row) {
+    var toks = row.map(normalizeHeaderToken).filter(Boolean);
+    var joined = toks.join('|');
+    var score = 0;
+    if (/(^|\|)wbs($|\|)/.test(joined) || joined.indexOf('wbs') >= 0) score += 4;
+    if (joined.indexOf('taskname') >= 0 || joined.indexOf('task') >= 0) score += 4;
+    if (joined.indexOf('start') >= 0) score += 3;
+    if (joined.indexOf('finish') >= 0 || joined.indexOf('end') >= 0) score += 3;
+    if (joined.indexOf('actual') >= 0) score += 3;
+    if (joined.indexOf('plan') >= 0) score += 3;
+    if (joined.indexOf('spi') >= 0 || joined.indexOf('actualplan') >= 0) score += 2;
+    if (joined.indexOf('duration') >= 0) score += 1;
+    return score;
+  }
+  function findBestAutoImport(wb) {
+    var best = null;
+    (wb.SheetNames || []).forEach(function(name){
+      var sh = wb.Sheets[name];
+      if (!sh) return;
+      var aoa;
+      try { aoa = XLSX.utils.sheet_to_json(sh,{header:1,raw:true,defval:null}); } catch(e) { return; }
+      var max = Math.min(15, aoa.length);
+      for (var i=0;i<max;i++) {
+        var row = aoa[i] || [];
+        var sc = scoreHeaderRow(row);
+        var dataCount = 0;
+        for (var r=i+1;r<Math.min(aoa.length,i+8);r++) {
+          if ((aoa[r]||[]).some(function(v){return v!==null&&v!==undefined&&v!=='';})) dataCount++;
+        }
+        sc += Math.min(3, dataCount);
+        if (!best || sc > best.score) best = {sheet:name, headerRow:i, score:sc};
+      }
+    });
+    return best;
+  }
   function onWorkbookParsed(wb, fileName) {
     state.workbook = wb; state.fileName = fileName; state.sheetNames = wb.SheetNames;
     setUploadStatus('', '');
+    var best = findBestAutoImport(wb);
+    if (best && best.score >= 8) {
+      state.combineMode = false;
+      state.activeSheet = best.sheet;
+      var sh = wb.Sheets[best.sheet];
+      var aoa = XLSX.utils.sheet_to_json(sh,{header:1,raw:true,defval:null});
+      while (aoa.length && aoa[aoa.length-1].every(function(c){return c===null||c==='';})) aoa.pop();
+      if (aoa.length) {
+        state.rawAoA = aoa;
+        state.headerRowIdx = best.headerRow;
+        renderHeaderPreview();
+        setUploadStatus('ตรวจพบโครงสร้างข้อมูลอัตโนมัติ: '+best.sheet+' · แถวหัวตาราง '+(best.headerRow+1),'ok');
+        /* ประเมินผลต่อทันที — ผู้ใช้ยังสามารถกลับมาแก้ Header ภายหลังได้ */
+        confirmHeader();
+        return;
+      }
+    }
     if (wb.SheetNames.length > 1) {
       showSheetPicker();
     } else {
@@ -755,15 +841,111 @@
     });
   }
 
+
+  /* Final 26: Smart Setup — make the first useful dashboard automatically. */
+  function autoConfigureDashboard(showNotice){
+    try{
+      if(!state.rows || !state.rows.length) return;
+      if(typeof ensureBIState==='function') ensureBIState();
+      if(typeof inferBIModel==='function') inferBIModel();
+      var detected=(typeof detectDomain==='function')?detectDomain():null;
+      var roles=(state.bi&&state.bi.model&&state.bi.model.roles)||{};
+      var scadaLike=!!(roles.actual&&roles.plan&&roles.start&&roles.end);
+      var projectLike=!!detected&&detected.id==='project';
+      if(scadaLike||projectLike){
+        state.domainOverride='project';
+        if($('dashboardTemplateSel'))$('dashboardTemplateSel').value='project';
+      }else if(detected){
+        state.domainOverride=detected.id;
+        if($('dashboardTemplateSel'))$('dashboardTemplateSel').value=detected.id;
+      }else{
+        state.domainOverride=null;
+        if($('dashboardTemplateSel'))$('dashboardTemplateSel').value='';
+      }
+      if($('dashboardDensitySel'))$('dashboardDensitySel').value=state.dashboardDensity||'comfortable';
+      if(roles.task&&$('barCatSel'))$('barCatSel').value=roles.task;
+      if(roles.actual&&$('lineNumSel'))$('lineNumSel').value=roles.actual;
+      if(roles.plan&&$('barNumSel'))$('barNumSel').value=roles.plan;
+      if(roles.start&&$('lineDateSel'))$('lineDateSel').value=roles.start;
+      state.dashboardViewMode='executive';
+      persistDebounced();
+      if(showNotice){
+        var toast=document.createElement('div');toast.className='final26-auto-toast';
+        toast.textContent='Smart Setup: Dashboard configured automatically.';
+        document.body.appendChild(toast);
+        setTimeout(function(){if(toast.parentNode)toast.parentNode.removeChild(toast);},3500);
+      }
+    }catch(e){console.warn('Smart Setup skipped',e);}
+  }
+
+  function openQuickStart(){
+    if(typeof window.__tanotModal!=='function') return;
+    var host=$('dashboardMappingModal'); if(!host) return;
+    var body='<div class="final26-help-grid">'+
+      '<div class="final26-help-item"><b>1. Upload</b><span>เลือก Excel/CSV แล้วระบบจะตรวจ header และชนิดข้อมูลให้อัตโนมัติ</span></div>'+
+      '<div class="final26-help-item"><b>2. Project Control</b><span>สำหรับ Project/SCADA ระบบจะเลือก template ที่เหมาะสมให้</span></div>'+
+      '<div class="final26-help-item"><b>3. Filter</b><span>Filter ด้านบนจะกระทบ KPI, Chart และ Table พร้อมกัน</span></div>'+
+      '<div class="final26-help-item"><b>4. Design</b><span>ปรับ Font, สี, Alignment และ Layout จาก Design</span></div>'+
+      '<div class="final26-help-item"><b>5. Custom</b><span>นำ widget จาก Dashboard ไปแก้ต่อโดยไม่กระทบต้นฉบับ</span></div>'+
+      '<div class="final26-help-item"><b>6. Export</b><span>ใช้ Presentation หรือ PDF/Excel ตามต้องการ</span></div>'+
+      '</div>';
+    var ui=window.__tanotModal('Quick Start · วิธีใช้งาน',body,'<button type="button" class="final25-btn-primary" data-close>เข้าใจแล้ว</button>');
+    var c=ui.body.querySelector('[data-close]'); if(c)c.addEventListener('click',ui.close);
+  }
+
+  // Shared UI hooks for optional BI layer. Keep these globals stable so the secondary BI script
+  // never depends on a private closure variable that may not exist in its scope.
+  function showBIToast(message, type) { showUiNotice(message, type || 'info'); }
+
+  /* ── auto-fit ความกว้างคอลัมน์ให้เองตั้งแต่ครั้งแรกที่นำเข้าไฟล์ ──────────────────────
+     ผู้ใช้แจ้งว่าต้องลากขยายคอลัมน์เองทุกครั้งถึงจะเห็นหัวตาราง/ตัวเลขเต็ม (ค่าเริ่มต้นแคบเกินไป
+     จนโดนไอคอนเรียงลำดับ/กรองที่จองพื้นที่ไว้ทางขวาบัง) — เดิมมีฟังก์ชัน autoFitColumns() คำนวณ
+     ความกว้างให้อยู่แล้ว แต่ทำงานเฉพาะตอนกดปุ่ม "Auto Fit Column" เอง (อ่านจาก DOM ของตารางที่
+     render ไปแล้ว) เพิ่มฟังก์ชันนี้เพื่อคำนวณแบบเดียวกันจากข้อมูลในหน่วยความจำ (ยังไม่ต้อง render
+     ตารางก่อน) แล้วเซฟลง localStorage ล่วงหน้าไว้เลยตอนเพิ่งนำเข้าไฟล์ — upgradeSizing() (เรียก
+     ทุกครั้งหลัง render ตารางอยู่แล้ว) จะอ่านค่านี้ไปใช้ได้ทันทีโดยไม่ต้องแก้จุดอื่นเพิ่ม
+     ตั้งใจไม่ทับถ้าไฟล์นี้เคยมีค่าที่บันทึกไว้แล้ว (เช่น ผู้ใช้เคยลากปรับเองไว้ก่อนหน้า หรือเปิดไฟล์
+     เดิมซ้ำ) กันไม่ให้ไปรีเซ็ตความกว้างที่ผู้ใช้ตั้งเองทับโดยไม่ได้ตั้งใจ */
+  function autoFitColumnsFromState(fileName, columns, rows) {
+    try {
+      var key = fileName || '__unsaved__';
+      var prefs = JSON.parse(localStorage.getItem('tanot:tableSizes:v2') || '{}');
+      if (prefs[key] && prefs[key].cols && Object.keys(prefs[key].cols).length) return;
+      var sample = (rows || []).slice(0, 200);
+      var cols = {};
+      (columns || []).forEach(function (col) {
+        var max = Math.max(86, String(col.label || '').length * 7 + 44);
+        sample.forEach(function (r) {
+          /* ใช้ cellEditValue() ตัวเดียวกับที่ renderTable() ใช้จริงตอนสร้างค่าใน <input> ของเซลล์
+             (แปลง Date เป็น "YYYY-MM-DD" 10 ตัวอักษรเสมอ) แทนการ String(v) ตรงๆ — ถ้าใช้ String(v)
+             กับ Date object ตรงๆ จะได้สตริงยาวเวอร์แบบ "Fri Dec 27 2024 00:00:00 GMT+0700 (...)"
+             ทำให้คอลัมน์วันที่กว้างเกินจริงไปมาก ไม่ตรงกับความยาวข้อความที่ผู้ใช้เห็นจริงในตาราง */
+          var v = cellEditValue(r[col.key], col.type);
+          if (v) max = Math.max(max, v.length * 7 + 36);
+        });
+        /* หัวตาราง #dataTable จองที่ว่างทางขวาไว้คงที่ 92px เสมอ (padding-left:10px +
+           padding-right:82px ตาม CSS "FINAL40 — clearly separated header actions") สำหรับปุ่ม
+           filter/ไอคอนเรียงลำดับ/ปุ่มลบคอลัมน์ — ถ้าคำนวณความกว้างจากความยาวป้ายชื่ออย่างเดียว
+           โดยไม่บวกเผื่อส่วนนี้ คอลัมน์ป้ายสั้น (เช่น DURATION/START/FINISH) จะได้ความกว้างที่แคบกว่า
+           พื้นที่ที่ไอคอนกินไปเอง ทำให้ตัวหนังสือแทบไม่เหลือที่แสดงเลย (ยืนยันแล้วจาก DevTools ว่า
+           width ที่คำนวณออกมาถูกต้องตามสูตรเป๊ะ แต่ไม่พอหักลบกับ padding ที่จองไว้) */
+        cols[col.key] = Math.min(520, max + 92);
+      });
+      prefs[key] = { cols: cols, rows: (prefs[key] && prefs[key].rows) || {} };
+      localStorage.setItem('tanot:tableSizes:v2', JSON.stringify(prefs));
+    } catch (e) {}
+  }
+
   function confirmHeader() {
     var built = state.combineMode
       ? buildColumnsAndRowsCombined(state.workbook, state.sheetNames, state.headerRowIdx)
       : buildColumnsAndRows(state.rawAoA, state.headerRowIdx);
     state.columns = built.columns; state.rows = built.rows; state.nextRowId = built.nextRowId;
+    autoFitColumnsFromState(state.fileName, state.columns, state.rows);
     state.filters = {}; state.globalQuery = ''; $('globalSearch').value = '';
     state.sortCol = null; state.sortDir = null;
     state.selected = {}; state.page = 1; state.history = []; state.redoStack = [];
-    state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null, lineTrend: false };
+    state.drill = null; state.dashboardFilters = {}; state.dashboardDateCol = null; state.dashboardDateFrom = ''; state.dashboardDateTo = ''; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null, lineTrend: false };
     state.chartType = { slot1: null, slot2: null, slot3: null };
     state.dashTable = { mode: 'flat', pivotRow: null, pivotCol: '', pivotVal: '', pivotAgg: 'sum', filters: {}, hiddenCols: {} };
     state.domainOverride = null;
@@ -785,7 +967,8 @@
     $('reportsCard').style.display = 'none';
     $('dataMeta').textContent = (state.fileName || '') + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
     $('viewTabs').style.display = 'flex';
-    setView('table'); // เรียก renderTable() ให้เองในตัว
+    autoConfigureDashboard(true);
+    setView('dashboard');
     persistDebounced();
   }
 
@@ -812,8 +995,9 @@
        (renderTable() ก็เรียกซ้ำอีกชั้นเองอยู่แล้วตอนสลับไปตาราง ไม่เป็นไร เรียกซ้ำได้ ไม่มีผลข้างเคียง) */
     recomputeFormulas();
     if (view === 'dashboard') renderDashboard();
-    else if (view === 'custom') renderCustomView();
-    else renderTable();
+    else if (view === 'custom') {
+      requestAnimationFrame(function(){ if(currentView==='custom') renderCustomView(); });
+    } else renderTable();
   }
 
   function buildColumnsAndRows(aoa, headerIdx) {
@@ -895,10 +1079,16 @@
     if (type === 'date' && v instanceof Date && !isNaN(v)) return v.toISOString().slice(0, 10);
     return String(v);
   }
+  function isValidDateInputValue(v) { return /^\d{4}-\d{2}-\d{2}$/.test(String(v || '')); }
+  function inputTypeForCell(v, type) { if (type !== 'date') return type === 'number' ? 'number' : 'text'; return isValidDateInputValue(v) ? 'date' : 'text'; }
 
   /* ══════════════════ กรอง/เรียง/แบ่งหน้า ══════════════════ */
   function matchesDrill(row) {
     if (!state.drill) return true;
+    /* Stage 9 (ตามที่ผู้ใช้ขอ — Attention Center): drill เดิมรองรับแค่ col=value ตรงตัว (คลิกกราฟ) แต่การ์ด
+       "เกินกำหนด/ข้อมูลไม่ครบ/ค่าผิดปกติ" ต้องกรองด้วยเงื่อนไข ไม่ใช่ค่าตายตัว เพิ่ม predicate function
+       เป็นทางเลือกแทน — ถ้ามี predicate ใช้มันเลย ไม่ต้องเทียบ key/value */
+    if (typeof state.drill.predicate === 'function') return state.drill.predicate(row);
     var v = row[state.drill.key];
     /* คอลัมน์วันที่: ต้องแปลงเป็น yyyy-mm-dd แบบเดียวกับ label บนแกนกราฟเส้น (aggregateByDate) ก่อนเทียบ —
        ไม่งั้น String(Date object) จะได้รูปแบบยาวที่ไม่มีทางตรงกับ label ที่คลิกเลย กรองไม่เจอสักแถว */
@@ -923,7 +1113,10 @@
           if (v == null || (col.type === 'date' ? (v > maxV) : (num(v) > maxV))) return false;
         }
       } else {
-        if (f.q) {
+        if (Array.isArray(f.values)) {
+          var sv = v == null ? '' : String(v);
+          if (f.values.indexOf(sv) === -1) return false;
+        } else if (f.q) {
           var hay = (v == null ? '' : String(v)).toLowerCase();
           if (hay.indexOf(String(f.q).toLowerCase()) === -1) return false;
         }
@@ -1462,6 +1655,7 @@
 
   /* ══════════════════ วาดตาราง ══════════════════ */
   function renderTable() {
+    var dataTableEl=$('dataTable'); if(!dataTableEl) return false;
     recomputeFormulas();
     var all = getFilteredSorted();
     var totalPages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
@@ -1488,9 +1682,9 @@
       state.columns.map(function (col) {
         var f = state.filters[col.key];
         var cfOn = state.condFormat[col.key] && state.condFormat[col.key].mode && state.condFormat[col.key].mode !== 'none';
-        var cfBtn = '<button type="button" class="cf-btn' + (cfOn ? ' on' : '') + '" data-col="' + col.key + '" title="' + escapeAttr(t('cfBtnTitle')) + '">🎨</button>';
+        var cfBtn = '';
         if (col.type === 'number' || col.type === 'date') {
-          var minV = f && f.min != null ? f.min : '', maxV = f && f.max != null ? f.max : '';
+          var minV = f && f.min != null ? f.min : '', maxV = f && f.max != null ? f.max : ''; if (col.type === 'date') { minV = isValidDateInputValue(minV) ? minV : ''; maxV = isValidDateInputValue(maxV) ? maxV : ''; }
           var inType = col.type === 'date' ? 'date' : 'number';
           return '<td><div class="filter-cell"><div class="filter-range">' +
             '<input class="filter-in" type="' + inType + '" data-col="' + col.key + '" data-k="min" value="' + escapeAttr(minV) + '" placeholder="' + escapeAttr(t('filterMin')) + '">' +
@@ -1514,7 +1708,7 @@
         '<td><input type="checkbox" class="rowchk" data-id="' + row.__id + '"' + (state.selected[row.__id] ? ' checked' : '') + '></td>' +
         state.columns.map(function (col) {
           var v = cellEditValue(row[col.key], col.type);
-          var inputType = col.type === 'number' ? 'number' : (col.type === 'date' ? 'date' : 'text');
+          var inputType = inputTypeForCell(v, col.type);
           /* คอลัมน์สูตร: อ่านอย่างเดียว (readonly ไม่ใช่ disabled — ยังโฟกัส/เลือก/คัดลอกได้ปกติ แค่พิมพ์
              ทับค่าที่คำนวณเองไม่ได้ ค่าจะถูกคำนวณทับใหม่เสมอโดย recomputeFormulas() อยู่แล้วด้วย) */
           return '<td class="' + (col.type === 'number' ? 'num' : '') + (col.formula ? ' formula-cell' : '') + '" data-id="' + row.__id + '" data-col="' + col.key + '"' + cellCfStyle(col, row, cfRanges) + '><input class="cell-in" type="' + inputType +
@@ -1568,11 +1762,10 @@
       pageRows.forEach(function (row) { tbody += renderDataRow(row); });
     }
     tbody += '</tbody>';
-    $('dataTable').innerHTML = thead + tbody;
-    $('dataEmpty').textContent = t('dataEmptyTxt');
-    $('dataEmpty').style.display = all.length ? 'none' : 'block';
+    dataTableEl.innerHTML = thead + tbody;
+    var dataEmptyEl=$('dataEmpty'); if(dataEmptyEl){dataEmptyEl.textContent=t('dataEmptyTxt');dataEmptyEl.style.display=all.length?'none':'block';}
     applyFreezeOffsets();
-    $('groupByBtn').classList.toggle('active', !!state.groupBy);
+    var gbBtn=$('groupByBtn'); if(gbBtn) gbBtn.classList.toggle('active', !!state.groupBy);
 
     /* ปิด pager เวลาจัดกลุ่มอยู่ (แสดงทุกแถวรวดเดียว ไม่แบ่งหน้า) — โชว์ข้อความอธิบายแทน */
     if (groups) { $('pager').innerHTML = '<span class="mini">' + escapeHtml(t('groupPagerHiddenNote')) + '</span>'; }
@@ -1581,6 +1774,7 @@
     wireCellSelection();
     wireCellKeyboardNav();
     renderCellSelOverlay();
+    if(window.TanotDashboardHooks && typeof window.TanotDashboardHooks.afterTableRender === 'function'){ try{window.TanotDashboardHooks.afterTableRender();}catch(hookErr){console.error(hookErr);} }
     $('dataMeta').textContent = (state.fileName || '') + dataMetaSheetSuffix() +
       ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows') +
       (all.length !== state.rows.length ? t('metaFilteredSuffix', { m: all.length.toLocaleString(locale()) }) : '');
@@ -1877,7 +2071,7 @@
     var dt = state.dashTable;
     var f = dt.filters[col.key];
     if (col.type === 'number' || col.type === 'date') {
-      var minV = f && f.min != null ? f.min : '', maxV = f && f.max != null ? f.max : '';
+      var minV = f && f.min != null ? f.min : '', maxV = f && f.max != null ? f.max : ''; if (col.type === 'date') { minV = isValidDateInputValue(minV) ? minV : ''; maxV = isValidDateInputValue(maxV) ? maxV : ''; }
       var inType = col.type === 'date' ? 'date' : 'number';
       var html = '<div class="fp-title">' + escapeHtml(col.label) + '</div>' +
         '<div class="fp-range">' +
@@ -2041,27 +2235,31 @@
         if (col) openFormulaColumnPopover(col, btn);
       });
     });
-    /* จัดรูปแบบตามเงื่อนไข (ปุ่ม 🎨 ในแถวตัวกรองแต่ละคอลัมน์) */
-    [].forEach.call($('dataTable').querySelectorAll('.cf-btn'), function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var col = state.columns.filter(function (c) { return c.key === btn.getAttribute('data-col'); })[0];
-        if (col) openCondFormatPopover(col, btn);
-      });
-    });
-    /* เปลี่ยนชื่อคอลัมน์ (ดับเบิลคลิกที่ชื่อ) */
+    /* เปลี่ยนชื่อคอลัมน์ (ดับเบิลคลิกที่ชื่อ) — หน่วง single-click เพื่อไม่ให้ sort/renderTable()
+       แทนที่ span ก่อน event dblclick จะเกิด ทำให้ชื่อคอลัมน์แก้ไม่ได้ */
     [].forEach.call($('dataTable').querySelectorAll('.th-label'), function (span) {
-      span.addEventListener('dblclick', function (e) { e.stopPropagation(); renameColumn(span.getAttribute('data-col')); });
+      span.addEventListener('dblclick', function (e) { e.preventDefault(); e.stopPropagation(); renameColumn(span.getAttribute('data-col')); });
     });
-    /* เรียงคอลัมน์ */
+    /* เรียงคอลัมน์ — single click ถูกหน่วงเล็กน้อยเพื่อเปิดทางให้ double-click ใช้ rename ได้ */
     [].forEach.call($('dataTable').querySelectorAll('thead tr:first-child th[data-col]'), function (th) {
-      th.addEventListener('click', function () {
-        var key = th.getAttribute('data-col');
-        if (state.sortCol !== key) { state.sortCol = key; state.sortDir = 'asc'; }
-        else if (state.sortDir === 'asc') { state.sortDir = 'desc'; }
-        else { state.sortCol = null; state.sortDir = null; }
-        state.page = 1;
-        renderTable();
+      var sortTimer = null;
+      th.addEventListener('click', function (e) {
+        if (e.target.closest('.th-label,.col-del,.col-fx,.final25-filter-btn,.final25-th-actions,.final25-col-grip')) return;
+        if (sortTimer) clearTimeout(sortTimer);
+        sortTimer = setTimeout(function () {
+          var key = th.getAttribute('data-col');
+          if (state.sortCol !== key) { state.sortCol = key; state.sortDir = 'asc'; }
+          else if (state.sortDir === 'asc') { state.sortDir = 'desc'; }
+          else { state.sortCol = null; state.sortDir = null; }
+          state.page = 1;
+          renderTable();
+          sortTimer = null;
+        }, 220);
+      });
+      th.addEventListener('dblclick', function (e) {
+        if (sortTimer) { clearTimeout(sortTimer); sortTimer = null; }
+        var label=e.target.closest('.th-label');
+        if(label){ e.preventDefault(); e.stopPropagation(); renameColumn(th.getAttribute('data-col')); }
       });
     });
     /* กรองต่อคอลัมน์ */
@@ -2401,41 +2599,70 @@
     renderTable();
     persistDebounced();
   }
+  function notifyUser(message, kind){
+    try { if(window.showBIToast){ window.showBIToast(String(message)); return; } } catch(e) {}
+    var old=document.querySelector('.final27-toast'); if(old) old.remove();
+    var d=document.createElement('div'); d.className='final27-toast '+(kind||''); d.textContent=String(message);
+    document.body.appendChild(d); setTimeout(function(){ if(d.parentNode)d.parentNode.removeChild(d); },2200);
+  }
+  function whiteConfirm(title, message, onYes, yesLabel, noLabel){
+    if(typeof window.__tanotModal!=='function'){ onYes && onYes(); return; }
+    var ui=window.__tanotModal(title||'Confirm', '<div class="final27-confirm-message">'+escapeHtml(message||'')+'</div>',
+      '<button type="button" class="final25-btn-ghost" data-no>'+escapeHtml(noLabel||t('cancelBtn')||'Cancel')+'</button><button type="button" class="final25-btn-primary" data-yes>'+escapeHtml(yesLabel||'OK')+'</button>');
+    var no=ui.body.parentElement.querySelector('[data-no]'), yes=ui.body.parentElement.querySelector('[data-yes]');
+    if(no) no.addEventListener('click',ui.close);
+    if(yes) yes.addEventListener('click',function(){ui.close();if(onYes)onYes();});
+  }
+  function whitePrompt(title, initialValue, onApply, confirmLabel, cancelLabel){
+    openWhiteTextPrompt(title, initialValue, confirmLabel||'OK', cancelLabel||'Cancel', onApply);
+  }
+
+  function openWhiteTextPrompt(title, initialValue, confirmLabel, cancelLabel, onApply){
+    if(typeof window.__tanotModal!=='function'){ notifyUser('Dialog component is unavailable. Please reload the page.','error'); return; }
+    var ui=window.__tanotModal(title,'<div class="final25-field"><label>Text</label><input id="whiteTextPromptInput" class="final25-input" type="text" value="'+escapeAttr(initialValue||'')+'"></div>',
+      '<button type="button" class="final25-btn-ghost" data-wcancel>'+escapeHtml(cancelLabel||'Cancel')+'</button><button type="button" class="final25-btn-primary" data-wapply>'+escapeHtml(confirmLabel||'Apply')+'</button>');
+    var input=ui.body.querySelector('#whiteTextPromptInput');
+    var apply=ui.body.querySelector('[data-wapply]'), cancel=ui.body.querySelector('[data-wcancel]');
+    if(input)setTimeout(function(){input.focus();input.select();},20);
+    if(cancel)cancel.addEventListener('click',ui.close);
+    if(apply)apply.addEventListener('click',function(){var val=String(input?input.value:'').trim();if(!val){if(input)input.focus();return;}ui.close();if(onApply)onApply(val);});
+    if(input)input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();apply&&apply.click();}});
+  }
+
   function renameColumn(key) {
     var col = state.columns.filter(function (c) { return c.key === key; })[0];
     if (!col) return;
-    var next = window.prompt(t('renameColPrompt'), col.label);
-    if (next === null) return;
-    next = next.trim();
-    if (!next) return;
-    pushHistory();
-    var oldLabel = col.label;
-    col.label = next;
-    cascadeRenameInFormulas(oldLabel, next);
-    renderTable();
-    persistDebounced();
+    openWhiteTextPrompt(t('renameColPrompt') || 'Rename column', col.label, 'OK', 'Cancel', function(next){
+      pushHistory();
+      var oldLabel = col.label;
+      col.label = next;
+      cascadeRenameInFormulas(oldLabel, next);
+      renderTable();
+      persistDebounced();
+    });
   }
   function deleteColumn(key) {
     var col = state.columns.filter(function (c) { return c.key === key; })[0];
-    if (col) {
-      var dependents = formulaDependentsOf(col.label).filter(function (c) { return c.key !== key; });
-      if (dependents.length) {
-        var names = dependents.map(function (c) { return c.label; }).join(', ');
-        if (!window.confirm(t('delColUsedInFormulaConfirm', { cols: names }))) return;
-      }
+    if (!col) return;
+    var dependents = formulaDependentsOf(col.label).filter(function (c) { return c.key !== key; })[0];
+    if (dependents) {
+      var names = formulaDependentsOf(col.label).filter(function (c) { return c.key !== key; }).map(function (c) { return c.label; }).join(', ');
+      whiteConfirm('Delete column', t('delColUsedInFormulaConfirm', { cols: names }), function(){ deleteColumnImmediate(key); }, 'Delete', 'Cancel');
+      return;
     }
+    deleteColumnImmediate(key);
+  }
+  function deleteColumnImmediate(key) {
     pushHistory();
     state.columns = state.columns.filter(function (c) { return c.key !== key; });
     state.rows.forEach(function (r) { delete r[key]; });
-    delete state.filters[key];
-    delete state.condFormat[key];
+    delete state.filters[key]; delete state.condFormat[key];
     if (state.groupBy === key) { state.groupBy = null; state.collapsedGroups = {}; }
     if (state.groupSubtotalCol === key) state.groupSubtotalCol = null;
     if (state.sortCol === key) { state.sortCol = null; state.sortDir = null; }
     if (state.dashTable.hiddenCols) delete state.dashTable.hiddenCols[key];
     if (state.cellSel && (state.cellSel.col0 === key || state.cellSel.col1 === key)) state.cellSel = null;
-    renderTable();
-    persistDebounced();
+    renderTable(); persistDebounced();
   }
   /* เพิ่ม/แก้ไขคอลัมน์สูตร — เปิดจากปุ่ม "+ ƒx คอลัมน์สูตร" (คอลัมน์ใหม่) หรือปุ่ม ƒx ที่หัวคอลัมน์สูตรเดิม */
   function openFormulaColumnPopover(existingCol, anchorEl) {
@@ -2485,9 +2712,7 @@
       });
       var delBtn = el.querySelector('#fcDeleteBtn');
       if (delBtn) delBtn.addEventListener('click', function () {
-        if (!window.confirm(t('fcDeleteConfirm'))) return;
-        deleteColumn(existingCol.key);
-        close();
+        whiteConfirm('Delete formula column', t('fcDeleteConfirm'), function(){ deleteColumn(existingCol.key); close(); }, 'Delete', 'Cancel');
       });
       el.querySelector('#fcCancelBtn').addEventListener('click', close);
       saveBtn.addEventListener('click', function () {
@@ -3047,8 +3272,8 @@
     var op = lastFillOp;
     var html = '<div class="fp-title">' + escapeHtml(t('autoFillOptionsTitle')) + '</div>' +
       '<div class="fp-list">' +
-      '<div class="fp-item" data-mode="series"><span>' + escapeHtml(t('autoFillSeriesOpt')) + '</span></div>' +
-      '<div class="fp-item" data-mode="copy"><span>' + escapeHtml(t('autoFillCopyOpt')) + '</span></div>' +
+      '<div class="fp-item" data-mode="series"><span>📈 ' + escapeHtml(t('autoFillSeriesOpt')) + '</span></div>' +
+      '<div class="fp-item" data-mode="copy"><span>🔁 ' + escapeHtml(t('autoFillCopyOpt')) + '</span></div>' +
       '</div>';
     openPopover(html, anchorEl, function (el, close) {
       [].forEach.call(el.querySelectorAll('.fp-item'), function (item) {
@@ -3104,11 +3329,15 @@
     });
     var entries = order.map(function (k) { return [k, map[k]]; });
     entries.sort(function (a, b) { return b[1] - a[1]; });
-    if (entries.length > MAX_CHART_CATS) {
+    var rank = state.chartRanking || 'top10';
+    var dynN = Math.max(1, Math.min(100, +(state.bi && state.bi.parameters && state.bi.parameters.topN) || 10));
+    if (rank === 'bottom10') entries = entries.slice().reverse().slice(0, dynN);
+    else if (rank === 'top10') {
+      if (entries.length > dynN) { var top10=entries.slice(0,dynN); var rest10=entries.slice(dynN).reduce(function(s,e){return s+e[1];},0); top10.push([t('otherBucket'),rest10]); entries=top10; }
+    } else if (entries.length > MAX_CHART_CATS) {
       var top = entries.slice(0, MAX_CHART_CATS);
       var rest = entries.slice(MAX_CHART_CATS).reduce(function (s, e) { return s + e[1]; }, 0);
-      top.push([t('otherBucket'), rest]);
-      entries = top;
+      top.push([t('otherBucket'), rest]); entries = top;
     }
     return entries;
   }
@@ -3124,6 +3353,24 @@
     return Object.keys(map).sort().map(function (k) { return [k, map[k]]; });
   }
   function destroyChart(key) { if (charts[key]) { try { charts[key].destroy(); } catch (e) {} charts[key] = null; } }
+  /* Stage 8 (ตามที่ผู้ใช้ขอ — บั๊กที่ยืนยันแล้ว): เดิมพอกดดริลดาวน์ (คลิกกราฟวงกลม/แท่ง) จนเหลือ 1 แถว
+     กราฟเส้น/แนวโน้มจะมีจุดข้อมูลไม่พอ (lineEntries.length<2) แล้วโดนสั่ง display:none ทั้งการ์ดไปเลย —
+     ตอนนี้การ์ดคู่กันอยู่ใน Project Control แล้ว พอฝั่งหนึ่งหายไปเฉยๆ กริด 2 คอลัมน์เลยดูเหมือนพังครึ่งนึง
+     เปลี่ยนเป็นซ่อนแค่ canvas แล้วโชว์ข้อความอธิบายแทน การ์ดยังคงอยู่ที่เดิม ไม่ทำให้ผังเพี้ยน */
+  function setChartEmptyNote(cardId, show, msg) {
+    var card = $(cardId); if (!card) return;
+    var wrap = card.querySelector('.chart-wrap'); if (!wrap) return;
+    var cv = wrap.querySelector('canvas');
+    var note = wrap.querySelector('.f61-chart-empty-note');
+    if (show) {
+      if (cv) cv.style.visibility = 'hidden';
+      if (!note) { note = document.createElement('div'); note.className = 'f61-chart-empty-note mini'; wrap.appendChild(note); }
+      note.textContent = msg; note.style.display = '';
+    } else {
+      if (cv) cv.style.visibility = '';
+      if (note) note.style.display = 'none';
+    }
+  }
 
   /* เรียงคอลัมน์จากค่าไม่ซ้ำน้อยไปมาก — คอลัมน์ที่ค่าซ้ำกันบ่อย (เช่น "หมวดหมู่") เหมาะเป็นค่าเริ่มต้นของ
      แกนกราฟ/แถว pivot มากกว่าคอลัมน์ที่ค่าไม่ซ้ำเกือบทุกแถว (เช่น "ชื่อสินค้า" ที่บังเอิญถูกเดาเป็น category
@@ -3138,7 +3385,7 @@
   /* ── เลือกชนิดกราฟเองได้ต่อการ์ด (แท่งแนวตั้ง/แนวนอน/เส้น/วงกลม/โดนัท) — ข้อมูลชุดเดียวกัน (labels+data)
      วาดเป็นชนิดไหนก็ได้ทั้งนั้น จึงใช้ตัวสร้าง config กลางตัวเดียวให้ทั้ง 3 การ์ด แทนที่จะผูกตายตัวว่า
      การ์ดไหนต้องเป็นกราฟแท่ง/เส้น/วงกลมเท่านั้นเหมือนเดิม */
-  var CHART_TYPE_ICON = { bar: '', barH: '', line: '', pie: '', doughnut: '' };
+  var CHART_TYPE_ICON = { bar: '📊', barH: '📊', line: '📈', pie: '🥧', doughnut: '🥧' };
   function hexToRgba(hex, alpha) {
     var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
     return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
@@ -3165,9 +3412,11 @@
       type: 'bar',
       data: { labels: labels, datasets: [{ data: data, backgroundColor: singleColor, borderRadius: 6, maxBarThickness: 46 }] },
       options: { indexAxis: horiz ? 'y' : 'x', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        /* แท่งแนวตั้ง: แกน X เดิมไม่มี ticks กำหนดเลย ชื่อยาวๆ (เช่นชื่องานเต็มประโยคแบบ TOR) เลยล้นทับกัน
+           อ่านไม่ออก ตัดคำที่แกนให้สั้นลง ชื่อเต็มยังเห็นได้ตอนชี้เมาส์ (tooltip ค่าเริ่มต้นใช้ label เต็ม) */
         scales: horiz
           ? { x: { beginAtZero: true, grid: { color: '#EEF0F4' } }, y: { grid: { display: false } } }
-          : { y: { beginAtZero: true, grid: { color: '#EEF0F4' } }, x: { grid: { display: false } } } }
+          : { y: { beginAtZero: true, grid: { color: '#EEF0F4' } }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, callback: function(v){ var s=this.getLabelForValue(v); return s.length>16 ? s.slice(0,15)+'…' : s; } } } } }
     };
   }
 
@@ -3220,6 +3469,13 @@
     renderDashboard();
     if (currentView === 'table') renderTable();
   }
+  /* Stage 9: กรองด้วยเงื่อนไข (predicate) แทนค่าตายตัว — ใช้กับการ์ด Attention Center */
+  function setDrillPredicate(colLabel, valueLabel, predicateFn) {
+    state.drill = { key: null, label: colLabel, value: valueLabel, predicate: predicateFn };
+    updateDrillBanner();
+    renderDashboard();
+    if (currentView === 'table') renderTable();
+  }
   function clearDrill() {
     if (!state.drill) return;
     state.drill = null;
@@ -3228,12 +3484,11 @@
     if (currentView === 'table') renderTable();
   }
   function updateDrillBanner() {
+    var banner=$('drillBanner'), text=$('drillText'); if(!banner) return;
     if (state.drill) {
-      $('drillBanner').style.display = 'flex';
-      $('drillText').textContent = t('drillText', { label: state.drill.label, value: state.drill.value });
-    } else {
-      $('drillBanner').style.display = 'none';
-    }
+      banner.style.display = 'flex';
+      if(text) text.textContent = t('drillText', { label: state.drill.label, value: state.drill.value });
+    } else { banner.style.display = 'none'; }
   }
 
   /* ── Stage 3: เลือกคอลัมน์ที่ใช้ทำกราฟเอง (dropdown ต่อการ์ด) — null/ไม่เคยแตะ = ให้ระบบเดาที่ดีที่สุด
@@ -3273,7 +3528,9 @@
       laborcost: { w: 1, kw: ['laborcost', 'labourcost', 'ค่าแรง'] },
       othercost: { w: 1, kw: ['othercost', 'ค่าใช้จ่ายอื่น'] },
       status: { w: 1, kw: ['status', 'สถานะ'] },
-      priority: { w: 1, kw: ['priority', 'ความสำคัญ', 'ลำดับความสำคัญ'] }
+      priority: { w: 1, kw: ['priority', 'ความสำคัญ', 'ลำดับความสำคัญ'] },
+      failuremode: { w: 2, kw: ['failuremode', 'failure mode', 'อาการเสีย', 'สาเหตุเสีย', 'รูปแบบการเสีย'] },
+      subsystem: { w: 2, kw: ['subsystem', 'ระบบย่อย', 'ระบบที่ขัดข้อง'] }
     },
     project: {
       projectname: { w: 2, kw: ['projectname', 'ชื่อโครงการ', 'โครงการ'] },
@@ -3456,12 +3713,29 @@
         tiles.push({ label: t('mKpiOnTimePct'), value: (onTime / both.length * 100).toLocaleString(locale(), { maximumFractionDigits: 0 }), unit: '%' });
       }
     }
+    if (roles.equipmentno) {
+      var eq = {}; rows.forEach(function (r) { var v = r[roles.equipmentno.key]; if (v !== null && v !== undefined && v !== '') eq[String(v)] = true; });
+      tiles.push({ label: t('dashboardMaintenanceEquipment'), value: Object.keys(eq).length.toLocaleString(locale()) });
+    }
+    if (roles.actend && roles.planfinish) {
+      var late = rows.filter(function(r){ var a=r[roles.actend.key], b=r[roles.planfinish.key]; return a instanceof Date && !isNaN(a) && b instanceof Date && !isNaN(b) && a > b; }).length;
+      tiles.push({ label: t('mKpiLate'), value: late.toLocaleString(locale()) });
+    }
+    if (roles.equipmentno && roles.failuremode && (roles.actstart || roles.actend)) {
+      var dk = roles.actstart || roles.actend, groups = {}, intervals = [];
+      rows.forEach(function(r){ var d=r[dk.key]; if(!(d instanceof Date) || isNaN(d)) return; var eq=String(r[roles.equipmentno.key]||''); var fm=String(r[roles.failuremode.key]||''); if(!eq || !fm) return; (groups[eq]||(groups[eq]=[])).push(d.getTime()); });
+      Object.keys(groups).forEach(function(k){ var a=groups[k].sort(function(x,y){return x-y;}); for(var i=1;i<a.length;i++) intervals.push((a[i]-a[i-1])/86400000); });
+      if(intervals.length){ var mtbf=intervals.reduce(function(s,v){return s+v;},0)/intervals.length; tiles.push({ label:t('mKpiMtbf'), value:mtbf.toLocaleString(locale(),{maximumFractionDigits:1}), unit:'days' }); }
+    }
     var chart1 = null, chart2 = null;
     if (roles.status) {
       var e1 = aggregateByCategory(rows, roles.status.key, null);
       chart1 = { title: t('mChartStatus'), labels: e1.map(function (e) { return e[0]; }), data: e1.map(function (e) { return e[1]; }) };
     }
-    if (roles.equipmenttype && costCols.length) {
+    if (roles.failuremode) {
+      var ef = aggregateByCategory(rows, roles.failuremode.key, null);
+      chart2 = { title: t('mChartFailureMode'), labels: ef.map(function (e) { return e[0]; }), data: ef.map(function (e) { return e[1]; }) };
+    } else if (roles.equipmenttype && costCols.length) {
       var e2 = aggregateByCategory(rows, roles.equipmenttype.key, costCols[0].key);
       chart2 = { title: t('mChartCostByType'), labels: e2.map(function (e) { return e[0]; }), data: e2.map(function (e) { return e[1]; }) };
     } else if (roles.priority) {
@@ -3957,6 +4231,7 @@
     }
     bodyEl.innerHTML = (cfg.snapshot ? '<div class="wt-snapshot-note" style="margin-bottom:2px">' + escapeHtml(t('loadTemplateSnapshotNote')) + '</div>' : '') + '<canvas></canvas>';
     var canvas = bodyEl.querySelector('canvas');
+    if(canvas){ canvas.__tanotCatKey = cfg.catColKey || null; canvas.__tanotWidgetId = widgetId; }
     var chartCfg = buildChartConfig(cfg.chartType || 'bar', labels, data, widgetAccent(cfg));
     customCharts[widgetId] = new Chart(canvas.getContext('2d'), chartCfg);
   }
@@ -4058,7 +4333,7 @@
     }
     renderTableWidgetTable(bodyEl, cfg);
   }
-  function widgetTypeLabel(type) { return type === 'kpi' ? t('wtKpiLabel') : type === 'chart' ? t('wtChartLabel') : type === 'table' ? t('wtTableLabel') : t('wtTextLabel'); }
+  function widgetTypeLabel(type) { return type === 'kpi' ? t('wtKpiLabel') : type === 'chart' ? t('wtChartLabel') : type === 'table' ? t('wtTableLabel') : type === 'snapshot' ? t('wtSnapshotLabel') : t('wtTextLabel'); }
   function renderWidgetBody(widget, itemEl) {
     var bodyEl = itemEl.querySelector('.widget-body');
     if (!bodyEl) return;
@@ -4069,11 +4344,19 @@
     if (widget.type === 'kpi') renderKpiWidget(bodyEl, widget.config);
     else if (widget.type === 'chart') renderChartWidget(bodyEl, widget.config, widget.id);
     else if (widget.type === 'table') renderTableWidget(bodyEl, widget.config, widget);
+    else if (widget.type === 'snapshot') renderSnapshotWidget(bodyEl, widget.config);
     else renderTextWidget(bodyEl, widget.config, widget);
+  }
+  /* กล่อง "สแนปช็อต" — สำหรับ panel เฉพาะทางที่ไม่ใช่ตัวเลข/กราฟ/ตารางแบบทั่วไป (เช่น ตาราง JSA, Risk
+     Matrix, Safety Pyramid, gauge scorecard) คัดลอก HTML ณ ตอนโหลดมาแสดงตรงๆ แบบอ่านอย่างเดียว
+     (ไม่มีคอลัมน์+วิธีคำนวณทั่วไปให้แปลงกลับเป็นกล่องสดได้ เหมือนกล่อง KPI/กราฟสแนปช็อตที่มีอยู่แล้ว) —
+     ดู ensureSnapshotCss()/loadCustomFromDashboard() สำหรับตอนสร้างค่า cfg.html */
+  function renderSnapshotWidget(bodyEl, cfg) {
+    bodyEl.innerHTML = '<div class="wt-snapshot-note" style="margin-bottom:6px">' + escapeHtml(t('loadTemplateSnapshotNote')) + '</div>' + (cfg.html || '');
   }
   function widgetHtml(widget) {
     return '<div class="widget-head">' +
-      '<span class="wt-label">' + escapeHtml(widgetTypeLabel(widget.type)) + '</span>' +
+      '<span class="wt-label" data-widget-title="1">' + escapeHtml(widget.config.title || widgetTypeLabel(widget.type)) + '</span>' +
       '<button type="button" class="w-edit" title="' + escapeAttr(t('wtEditTitle')) + '">⚙️</button>' +
       '<button type="button" class="w-del" title="' + escapeAttr(t('wtRemoveTitle')) + '">✕</button>' +
       '</div><div class="widget-body"></div>';
@@ -4081,6 +4364,7 @@
   function wireWidgetControls(widget, itemEl) {
     var editBtn = itemEl.querySelector('.w-edit');
     if (editBtn) editBtn.addEventListener('click', function () { openWidgetEditPopover(widget, itemEl, editBtn); });
+    var titleEl=itemEl.querySelector('[data-widget-title]'); if(titleEl) titleEl.addEventListener('dblclick',function(e){e.preventDefault();e.stopPropagation();whitePrompt('Widget title / ชื่อกล่อง',widget.config.title||widgetTypeLabel(widget.type),function(n){widget.config.title=n;titleEl.textContent=widget.config.title;persistDebounced();});});
     itemEl.querySelector('.w-del').addEventListener('click', function () {
       if (customCharts[widget.id]) { try { customCharts[widget.id].destroy(); } catch (e) {} delete customCharts[widget.id]; }
       try { customGridInst.removeWidget(itemEl); } catch (e) { itemEl.remove(); }
@@ -4230,7 +4514,7 @@
       var file = e.target.files && e.target.files[0];
       if (!file) return;
       resizeImageToDataUrl(file, 1000, function (dataUrl) {
-        if (!dataUrl) { alert(t('bgImageReadFailHint')); return; }
+        if (!dataUrl) { notifyUser(t('bgImageReadFailHint'),'error'); return; }
         el.querySelector('.' + prefix + '-imgdata').value = dataUrl;
         el.querySelector('.bg-img-preview').style.backgroundImage = 'url(' + dataUrl + ')';
         doApply();
@@ -4251,21 +4535,76 @@
       );
     }, true);
   }
+  function normalizeCustomWidgetPositions() {
+    var widgets = state.customWidgets || [];
+    var placed = [];
+    function num(v, d) { return Number.isFinite(Number(v)) ? Number(v) : d; }
+    function overlap(a,b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+    widgets.forEach(function(w){
+      w.w = Math.max(1, Math.min(12, Math.round(num(w.w, 4))));
+      w.h = Math.max(1, Math.min(20, Math.round(num(w.h, 4))));
+      var x = (w.x == null || !Number.isFinite(Number(w.x))) ? 0 : Math.round(Number(w.x));
+      var y = (w.y == null || !Number.isFinite(Number(w.y))) ? 0 : Math.round(Number(w.y));
+      x = Math.max(0, Math.min(12 - w.w, x)); y = Math.max(0, y);
+      var guard = 0;
+      while (placed.some(function(p){ return overlap({x:x,y:y,w:w.w,h:w.h},p); }) && guard++ < 200) {
+        x++;
+        if (x + w.w > 12) { x = 0; y++; }
+      }
+      w.x = x; w.y = y;
+      placed.push({x:x,y:y,w:w.w,h:w.h});
+    });
+  }
+
+  function hideModalHost(host){ if(!host)return; host.hidden=true; host.style.setProperty('display','none','important'); }
+  function showModalHost(host, cls){ if(!host)return; host.hidden=false; if(cls)host.className=cls; host.style.setProperty('display','grid','important'); }
+  function renderCustomEmptyState(){
+    var g=$('customGrid'); if(!g)return;
+    g.innerHTML='<div class="custom-empty-state"><div class="ce-icon">▦</div><strong>Custom Dashboard</strong><div class="mini">Build your own dashboard by adding widgets, templates, or importing blocks from Dashboard.</div><div class="ce-actions"><button type="button" class="btn primary ce-add">＋ Add Widget</button><button type="button" class="btn ce-load">📥 From Dashboard</button></div></div>';
+    var trigger=$('customToolsBtn')||$('viewTabs');
+    var a=g.querySelector('.ce-add'), l=g.querySelector('.ce-load');
+    if(a)a.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();openAddWidgetPicker(trigger);});
+    if(l)l.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();loadCustomFromDashboard(trigger);});
+  }
+
   function renderCustomView() {
+    var customRoot=$('customView'), customGridEl=$('customGrid');
+    if(!customRoot || !customGridEl) return false;
+    // Do not initialize GridStack while the whole Custom view is hidden.
+    // GridStack measures the grid during init; a hidden grid can yield a null instance.
+    if (currentView !== 'custom' && getComputedStyle(customRoot).display === 'none') return false;
     applyCustomBg();
+    normalizeCustomWidgetPositions();
+    if (!(state.customWidgets || []).length) {
+      if (customGridInst) { try { customGridInst.destroy(true); } catch(e){} customGridInst=null; }
+      Object.keys(customCharts).forEach(function(id){try{customCharts[id].destroy();}catch(e){}});
+      customCharts={};
+      renderCustomEmptyState();
+      return;
+    }
+    function renderCustomFallback(){
+      customGridEl.innerHTML = state.customWidgets.length ? state.customWidgets.map(function(w){ return '<div class="custom-fallback-widget" data-widget-id="'+escapeAttr(w.id)+'"><div class="widget-head"><span class="wt-label">'+escapeHtml(widgetTypeLabel(w.type))+'</span></div><div class="widget-body"></div></div>'; }).join('') : '<div class="mini" style="padding:18px">'+escapeHtml(t('addWidgetPickTitle'))+'</div>';
+      [].forEach.call(state.customWidgets,function(widget){ var item=customGridEl.querySelector('[data-widget-id="'+CSS.escape(widget.id)+'"]'); if(item) renderWidgetBody(widget,item); });
+      var ceh=$('customEmptyHint'); if(ceh) ceh.style.display = 'none';
+    }
     if (typeof GridStack === 'undefined') {
-      $('customGrid').innerHTML = '<p class="mini">' + escapeHtml(t('chartLibFail')) + '</p>';
+      renderCustomFallback();
       return;
     }
     Object.keys(customCharts).forEach(function (id) { try { customCharts[id].destroy(); } catch (e) {} });
     customCharts = {};
     if (customGridInst) { try { customGridInst.destroy(true); } catch (e) {} customGridInst = null; }
-    $('customGrid').innerHTML = '';
+    customGridEl.innerHTML = '';
     // Gridstack v10+ เปลี่ยน default ของฟิลด์ content ให้ใส่เป็น textContent (กัน XSS จาก user data)
     // แทนที่จะเป็น innerHTML เหมือนเวอร์ชันก่อนหน้า — เนื้อหา content ที่เราส่งเป็น markup ที่เราสร้างเอง
     // (ไม่ใช่ข้อความจากผู้ใช้ดิบๆ) จึงต้อง override ให้ใส่เป็น innerHTML ตรงๆ ไม่งั้นกล่องจะโชว์โค้ด HTML เป็นตัวหนังสือ
     GridStack.renderCB = function (el, w) { el.innerHTML = w.content || ''; };
-    customGridInst = GridStack.init({ cellHeight: 90, margin: 8, float: true, handle: '.widget-head' });
+    customGridInst = GridStack.init({ column: 12, cellHeight: 88, margin: 8, float: false, animate: false, handle: '.widget-head', disableOneColumnMode: false }, customGridEl);
+    if (!customGridInst) {
+      console.warn('Custom Dashboard: GridStack could not initialize; using fallback renderer.');
+      renderCustomFallback();
+      return false;
+    }
     state.customWidgets.forEach(function (widget) {
       var el = customGridInst.addWidget({ x: widget.x, y: widget.y, w: widget.w, h: widget.h, id: widget.id, content: widgetHtml(widget) });
       renderWidgetBody(widget, el);
@@ -4278,7 +4617,7 @@
       });
       persistDebounced();
     });
-    $('customEmptyHint').style.display = state.customWidgets.length ? 'none' : 'inline';
+    var ceh2=$('customEmptyHint'); if(ceh2) ceh2.style.display = state.customWidgets.length ? 'none' : 'inline';
   }
 
   function addCustomWidget(type) {
@@ -4306,22 +4645,61 @@
       renderWidgetBody(widget, el);
       wireWidgetControls(widget, el);
       if (type === 'text') { var bodyEl = el.querySelector('.widget-body'); if (bodyEl) bodyEl.focus(); }
+      normalizeCustomWidgetPositions();
+      if (customGridInst && customGridInst.compact) customGridInst.compact();
     }
-    $('customEmptyHint').style.display = 'none';
+    var ceh=$('customEmptyHint'); if(ceh) ceh.style.display = 'none';
     persistDebounced();
   }
 
+  function addCustomTemplate(template) {
+    var numCols = state.columns.filter(function(c){return c.type==='number';});
+    var catCols = state.columns.filter(function(c){return c.type==='category';});
+    var dateCols = state.columns.filter(function(c){return c.type==='date';});
+    var added = [];
+    function push(type, x, y, w, h, config){ var widget={id:genWidgetId(), type:type, x:x, y:y, w:w, h:h, config:config}; state.customWidgets.push(widget); added.push(widget); }
+    if(template==='project') {
+      var d=matchDomainRoles(state.columns, DOMAIN_ROLES.project).roles;
+      var dateProject=(d.start||d.contractStart||dateCols[0]); var endProject=(d.end||d.contractEnd||dateCols[1]||dateCols[0]);
+      if(numCols.length) numCols.slice(0,3).forEach(function(c,i){push('kpi',i*3,0,3,2,{colKey:c.key,agg:'sum',label:c.label});});
+      if(dateProject) push('chart',0,2,8,5,{chartType:'line',catColKey:dateProject.key,numColKey:numCols[0]?numCols[0].key:'',label:'Project Trend'});
+      if(dateProject&&endProject) push('table',8,2,4,5,{mode:'plain',cols:state.columns.slice(0,6).map(function(c){return c.key;}),q:'',sortCol:null,sortDir:'asc',pivotRow:'',pivotCol:'',pivotVal:'',pivotAgg:'sum'});
+      if(dateProject&&endProject) push('chart',0,7,12,5,{chartType:'barH',catColKey:dateProject.key,numColKey:numCols[0]?numCols[0].key:'',label:'Project Control'});
+    } else if(template==='maintenance') {
+      var m=matchDomainRoles(state.columns, DOMAIN_ROLES.maintenance).roles;
+      if(m.downtime) push('kpi',0,0,3,2,{colKey:m.downtime.key,agg:'sum',label:t('mKpiDowntime')});
+      if(m.workorder) push('kpi',3,0,3,2,{colKey:m.workorder.key,agg:'count',label:t('mKpiTotalWO')});
+      if(m.matcost) push('kpi',6,0,3,2,{colKey:m.matcost.key,agg:'sum',label:t('mKpiCost')});
+      if(m.status) push('chart',0,2,6,4,{chartType:'bar',catColKey:m.status.key,numColKey:''});
+      if(m.equipmenttype && (m.matcost||m.laborcost)) push('chart',6,2,6,4,{chartType:'bar',catColKey:m.equipmenttype.key,numColKey:(m.matcost||m.laborcost).key});
+      if(dateCols.length && numCols.length) push('chart',0,6,6,4,{chartType:'line',catColKey:dateCols[0].key,numColKey:numCols[0].key});
+      push('table',6,6,6,4,{mode:'plain',cols:state.columns.slice(0,6).map(function(c){return c.key;}),q:'',sortCol:null,sortDir:'asc',pivotRow:'',pivotCol:'',pivotVal:'',pivotAgg:'sum'});
+    } else {
+      numCols.slice(0,4).forEach(function(c,i){push('kpi',(i%4)*3,Math.floor(i/4)*2,3,2,{colKey:c.key,agg:'sum',label:c.label});});
+      if(catCols.length && numCols.length) push('chart',0,4,6,4,{chartType:'bar',catColKey:catCols[0].key,numColKey:numCols[0].key});
+      if(dateCols.length) push('chart',6,4,6,4,{chartType:'line',catColKey:dateCols[0].key,numColKey:numCols.length?numCols[0].key:''});
+      push('table',0,8,12,4,{mode:'plain',cols:state.columns.slice(0,8).map(function(c){return c.key;}),q:'',sortCol:null,sortDir:'asc',pivotRow:'',pivotCol:'',pivotVal:'',pivotAgg:'sum'});
+    }
+    if(!added.length){ notifyUser(t('loadTemplateNoneHint'),'error'); return; }
+    persistDebounced(); renderCustomView();
+  }
+
   function openAddWidgetPicker(anchorEl) {
+    if (!anchorEl || !anchorEl.offsetParent) anchorEl = $('customToolsBtn') || $('viewTabs');
     var html = '<div class="fp-title">' + escapeHtml(t('addWidgetPickTitle')) + '</div>' +
       '<div class="fp-list add-widget-pick">' +
       '<div class="fp-item" data-type="kpi"><span>' + escapeHtml(t('wtKpi')) + '</span></div>' +
       '<div class="fp-item" data-type="chart"><span>' + escapeHtml(t('wtChart')) + '</span></div>' +
       '<div class="fp-item" data-type="table"><span>' + escapeHtml(t('wtTable')) + '</span></div>' +
       '<div class="fp-item" data-type="text"><span>' + escapeHtml(t('wtText')) + '</span></div>' +
+      '<div class="fp-item" data-special="measure"><span>⚡ Measure KPI</span></div>' +
+      '<div class="fp-item" data-template="maintenance"><span>' + escapeHtml(t('customTplMaintenance')) + '</span></div>' +
+      '<div class="fp-item" data-template="executive"><span>' + escapeHtml(t('customTplExecutive')) + '</span></div>' +
+      '<div class="fp-item" data-template="project"><span>📊 Project Control</span></div>' +
       '</div>';
     openPopover(html, anchorEl, function (el, close) {
       [].forEach.call(el.querySelectorAll('.fp-item'), function (item) {
-        item.addEventListener('click', function () { addCustomWidget(item.getAttribute('data-type')); close(); });
+        item.addEventListener('click', function () { var tpl=item.getAttribute('data-template'); var special=item.getAttribute('data-special'); if(special==='measure'){addMeasureKPIWidget(); close(); return;} if(tpl) addCustomTemplate(tpl); else addCustomWidget(item.getAttribute('data-type')); close(); });
       });
     });
   }
@@ -4335,43 +4713,70 @@
        เฉพาะของแต่ละแม่แบบ ไม่มีคอลัมน์+วิธีคำนวณทั่วไปให้แปลงกลับเป็นกล่องสดได้ตรงๆ จึงคัดลอกเป็น
        "สแนปช็อต" ค่า ณ ตอนโหลดแทน (แจ้งผู้ใช้ชัดเจนว่าไม่อัปเดตตามข้อมูลสด — แก้ไขผ่าน ⚙️ เพื่อเปลี่ยน
        เป็นกล่องสดตามคอลัมน์ที่เลือกเองได้ภายหลัง) */
-  function loadCustomFromDashboard() {
-    /* เรียก renderDashboard() ก่อนเสมอ เผื่อผู้ใช้มาที่แท็บ "กำหนดเอง" ตรงๆ โดยไม่เคยเปิดแท็บ "แดชบอร์ด"
-       เลยในเซสชันนี้ (การ์ด/select ต่างๆ ที่จะอ่านค่ายังไม่เคยถูกคำนวณ/เติมข้อมูลเลย) */
-    renderDashboard();
-    var added = 0;
-    function push(type, w, h, config) {
-      var widget = { id: genWidgetId(), type: type, x: null, y: null, w: w, h: h, config: config };
-      state.customWidgets.push(widget);
-      added++;
-    }
-    var numCols = state.columns.filter(function (c) { return c.type === 'number'; });
-    if ($('numStatCard').style.display !== 'none') {
-      numCols.slice(0, 4).forEach(function (c) { push('kpi', 2, 2, { colKey: c.key, agg: 'sum', label: null }); });
-    }
-    [['bar', 'barCatSel', 'barNumSel', 'barTypeSel'], ['line', 'lineDateSel', 'lineNumSel', 'lineTypeSel'], ['pie', 'pieCatSel', null, 'pieTypeSel']].forEach(function (t3) {
-      var cardId = t3[0] + 'ChartCard';
-      if ($(cardId).style.display === 'none') return;
-      var catSel = $(t3[1]), numSel = t3[2] ? $(t3[2]) : null, typeSel = $(t3[3]);
-      push('chart', 4, 4, { chartType: typeSel ? typeSel.value : 'bar', catColKey: catSel.value, numColKey: numSel ? numSel.value : '' });
-    });
-    if ($('domainDashboardCard').style.display !== 'none') {
-      var kpiTiles = [].slice.call($('domainKpiRow').querySelectorAll('.stat-tile'));
-      kpiTiles.forEach(function (tile) {
-        var lbl = tile.querySelector('.lbl'), val = tile.querySelector('.val');
-        if (!lbl || !val) return;
-        push('kpi', 2, 2, { colKey: null, agg: 'count', label: null, snapshot: { value: val.textContent, label: lbl.textContent } });
+  /* ตามที่ผู้ใช้ขอ: เพิ่มการตรวจจับแม่แบบเฉพาะทางที่กำลังแสดงอยู่จริง (จาก [id$="ControlLayout"] ที่
+     data-built='1' และไม่ถูกซ่อน) แล้วเสนอ 2 อย่างเข้า loadCustomFromDashboard() ด้านล่าง:
+     1) กล่องตัวเลข KPI แยกทีละตัว จากแถว KPI บนสุดของแม่แบบนั้น — ใช้กลไก cfg.snapshot={value,label} ที่มี
+        อยู่แล้วในกล่อง KPI ปกติ (ดู computeKpiWidgetValue ด้านบน) ทำให้ได้กล่องตัวเลขสวยงามเหมือนกล่อง KPI
+        ทั่วไปทุกประการ
+     2) กล่องสแนปช็อตรวมทั้งแผง (ตาราง JSA, Risk Matrix, gauge scorecard, กราฟ SVG เฉพาะทาง ฯลฯ ที่ไม่มี
+        คอลัมน์+วิธีคำนวณทั่วไปให้แปลงเป็นกล่องสดได้) — คัดลอก HTML ทั้งก้อนมาแสดงแบบอ่านอย่างเดียว (widget
+        type ใหม่ 'snapshot' ดู renderSnapshotWidget ด้านบน) พร้อมโคลน CSS ของแม่แบบนั้นมาผูกกับ class
+        scope ใหม่แทนการใช้ id เดิมซ้ำ — กัน document.getElementById('...ControlLayout') ของแม่แบบจริงบน
+        แท็บแดชบอร์ดไปเจอตัวสแนปช็อตในแท็บกำหนดเองแทนโดยไม่ตั้งใจ ถ้าใช้ id ซ้ำกัน */
+  function ensureSnapshotCss(layoutId, wrapClass) {
+    var cssId = 'td-snap-css-' + wrapClass;
+    if (document.getElementById(cssId)) return;
+    var styles = document.querySelectorAll('style');
+    var re = new RegExp('#' + layoutId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+    var css = '';
+    for (var i = 0; i < styles.length; i++) { if (styles[i].textContent.indexOf('#' + layoutId) >= 0) css += styles[i].textContent.replace(re, '.' + wrapClass); }
+    if (!css) return;
+    var el = document.createElement('style'); el.id = cssId; el.textContent = css;
+    document.head.appendChild(el);
+  }
+  function loadCustomFromDashboard(anchorEl) {
+    anchorEl = anchorEl && anchorEl.offsetParent ? anchorEl : ($('customToolsBtn') || $('viewTabs'));
+    if (state.rows.length && !lastDashRows.length) renderDashboard();
+    var items=[];
+    function add(id,type,title,config,w,h){ var el=$(id); if(!el||el.style.display==='none') return; items.push({id:id,type:type,title:title,config:config||{},w:w||4,h:h||4}); }
+    var ncols=state.columns.filter(function(c){return c.type==='number';});
+    if($('numStatCard')&&$('numStatCard').style.display!=='none') ncols.slice(0,4).forEach(function(c,i){items.push({id:'num_'+c.key,type:'kpi',title:c.label,config:{colKey:c.key,agg:'sum',label:c.label},w:3,h:2});});
+    add('barChartCard','chart',$('barChartTitle')?$('barChartTitle').textContent:'Bar Chart',{chartType:$('barTypeSel')?$('barTypeSel').value:'bar',catColKey:$('barCatSel')?$('barCatSel').value:'',numColKey:$('barNumSel')?$('barNumSel').value:''},6,4);
+    add('lineChartCard','chart',$('lineChartTitle')?$('lineChartTitle').textContent:'Trend Chart',{chartType:$('lineTypeSel')?$('lineTypeSel').value:'line',catColKey:$('lineDateSel')?$('lineDateSel').value:'',numColKey:$('lineNumSel')?$('lineNumSel').value:''},6,4);
+    add('pieChartCard','chart',$('pieChartTitle')?$('pieChartTitle').textContent:'Distribution',{chartType:$('pieTypeSel')?$('pieTypeSel').value:'doughnut',catColKey:$('pieCatSel')?$('pieCatSel').value:'',numColKey:''},6,4);
+    add('scadaProgressCard','scadaProgress',$('scadaProgressTitle')?$('scadaProgressTitle').textContent:'SCADA Work Progress',{},12,6);
+    add('scadaTimelineCard','timeline',$('scadaTimelineTitle')?$('scadaTimelineTitle').textContent:'SCADA Project Timeline',{},12,6);
+    add('projectTimelineCard','timeline',$('projectTimelineTitle')?$('projectTimelineTitle').textContent:'Project Timeline',{},12,6);
+    add('projectProgressCard','timeline',$('projectProgressTitle')?$('projectProgressTitle').textContent:'Project Progress',{},12,6);
+    add('dashTableCard','table','Data Table',{mode:'plain',cols:state.columns.slice(0,8).map(function(c){return c.key;}),q:'',sortCol:null,sortDir:'asc',pivotRow:'',pivotCol:'',pivotVal:'',pivotAgg:'sum'},12,5);
+    var specialtyLayout=[].filter.call(document.querySelectorAll('[id$="ControlLayout"]'),function(e){
+      return e.getAttribute('data-built')==='1' && e.className.indexOf('override-hidden')===-1 && e.offsetParent!==null;
+    })[0];
+    if(specialtyLayout){
+      var domainKey=specialtyLayout.id.replace(/ControlLayout$/,'');
+      var wrapClass='td-snap-'+domainKey;
+      ensureSnapshotCss(specialtyLayout.id,wrapClass);
+      var heroH2=specialtyLayout.querySelector('h2');
+      var panelTitle=heroH2?heroH2.textContent.trim():widgetTypeLabel('snapshot');
+      items.push({id:'__snap_full_'+domainKey,type:'snapshot',title:panelTitle,config:{html:'<div class="'+wrapClass+'">'+specialtyLayout.innerHTML+'</div>'},w:12,h:20});
+      var kpiTiles=[].filter.call(specialtyLayout.querySelectorAll('[class]'),function(e){
+        return /(^|\s)[a-z]+-kpi(\s|$)/.test(e.className) && !/(^|\s)[a-z]+-kpis(\s|$)/.test(e.className);
       });
-      ['domainChart1', 'domainChart2'].forEach(function (id) {
-        if ($(id + 'Card').style.display === 'none') return;
-        var chartInst = charts[id === 'domainChart1' ? 'domain1' : 'domain2'];
-        if (!chartInst) return;
-        push('chart', 4, 4, { chartType: 'bar', snapshot: { labels: chartInst.data.labels, data: chartInst.data.datasets[0].data } });
+      kpiTiles.forEach(function(tile,i){
+        var labelEl=tile.querySelector('.l')||tile.querySelector('.pk-label');
+        var valueEl=tile.querySelector('.v')||tile.querySelector('.pk-value');
+        if(!labelEl||!valueEl)return;
+        var lbl=labelEl.textContent.trim(),val=valueEl.textContent.trim();
+        items.push({id:'__snap_kpi_'+domainKey+'_'+i,type:'kpi',title:lbl,config:{snapshot:{value:val,label:lbl}},w:3,h:2});
       });
     }
-    if (!added) { alert(t('loadTemplateNoneHint')); return; }
-    persistDebounced();
-    renderCustomView();
+    if(!items.length){showBIToast('No dashboard blocks are currently visible. Choose a Dashboard template first.');return;}
+    var host=$('dashboardMappingModal');host.hidden=false;host.className='app-modal-host bi-studio-host';host.style.setProperty('display','grid','important');
+    host.innerHTML='<div class="bi-studio bi-import"><div class="bi-studio-head"><div><div class="bi-kicker">Custom Dashboard</div><h2>Import from Dashboard</h2><div class="bi-studio-sub">Choose blocks. They become independent editable Custom widgets.</div></div><button class="bi-close" type="button">×</button></div><div class="bi-studio-body"><div class="bi-toolbar"><button class="btn sm" id="biImportAll" type="button">Select all</button><button class="btn sm" id="biImportNone" type="button">Clear</button></div><div class="bi-import-grid">'+items.map(function(x,i){return '<label class="bi-import-item"><input type="checkbox" data-import="'+i+'" checked><span><b>'+escapeHtml(x.title.replace(/\s+/g,' ').trim())+'</b><small>'+escapeHtml(x.type)+'</small></span></label>';}).join('')+'</div></div><div class="bi-studio-foot"><button class="btn bi-cancel" type="button">Cancel</button><button class="btn primary" id="biDoImport" type="button">Import selected</button></div></div>';
+    host.querySelector('.bi-close').onclick=host.querySelector('.bi-cancel').onclick=function(){hideModalHost(host);};
+    host.onclick=function(e){if(e.target===host)hideModalHost(host);};
+    $('biImportAll').onclick=function(){host.querySelectorAll('[data-import]').forEach(function(x){x.checked=true;});}; $('biImportNone').onclick=function(){host.querySelectorAll('[data-import]').forEach(function(x){x.checked=false;});};
+    $('biDoImport').onclick=function(){var selected=[].slice.call(host.querySelectorAll('[data-import]:checked')).map(function(x){return items[+x.dataset.import];});var y=0;selected.forEach(function(x){var w={id:genWidgetId(),type:x.type==='timeline'?'chart':(x.type==='scadaProgress'?'text':x.type),x:null,y:null,w:x.w,h:x.h,config:Object.assign({},x.config)};if(x.type==='timeline'){w.type='chart';var dateCols=state.columns.filter(function(c){return c.type==='date';}),numCols=state.columns.filter(function(c){return c.type==='number';});w.config={chartType:'line',catColKey:dateCols[0]?dateCols[0].key:null,numColKey:numCols[0]?numCols[0].key:'',title:x.title};}if(x.type==='scadaProgress'){w.type='chart';var r=ensureBIState().model.roles||{};w.config={chartType:'barH',catColKey:r.task||r.project||null,numColKey:r.actual||'' ,title:x.title};}state.customWidgets.push(w);y++;});persistDebounced();hideModalHost(host);renderCustomView();showBIToast(y+' dashboard blocks imported');};
   }
 
   /* ส่วนปรับสี (พื้นหลัง+ไล่เฉด+สีหลัก) ใช้ร่วมกันทุกชนิดกล่อง — table ไม่มีสีหลักเพราะไม่มีจุดที่ใช้สีเดี่ยว
@@ -4438,7 +4843,7 @@
       html = '<div class="fp-title">' + escapeHtml(t('wtEditTitle')) + '</div>' +
         '<div class="fp-range">' +
         '<label>' + escapeHtml(t('cwChartTypeLbl')) + '<select class="ew-charttype">' +
-        ['bar', 'barH', 'line', 'pie', 'doughnut'].map(function (ct) { return '<option value="' + ct + '"' + (widget.config.chartType === ct ? ' selected' : '') + '>' + escapeHtml(t('type' + ct.charAt(0).toUpperCase() + ct.slice(1))) + '</option>'; }).join('') +
+        ['bar', 'barH', 'line', 'area', 'scatter', 'pie', 'doughnut'].map(function (ct) { return '<option value="' + ct + '"' + (widget.config.chartType === ct ? ' selected' : '') + '>' + escapeHtml(t('type' + ct.charAt(0).toUpperCase() + ct.slice(1))) + '</option>'; }).join('') +
         '</select></label>' +
         '<label>' + escapeHtml(t('cwGroupByLbl')) + '<select class="ew-cat">' +
         catCols.map(function (c) { return '<option value="' + c.key + '"' + (widget.config.catColKey === c.key ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>'; }).join('') +
@@ -4513,6 +4918,7 @@
         applyWidgetStyleSection(el, widget);
         if (widget.type === 'kpi') {
           var agg = el.querySelector('.ew-agg').value;
+          widget.config.measureName = el.querySelector('.ew-measure') ? (el.querySelector('.ew-measure').value || null) : null;
           widget.config.agg = agg;
           widget.config.colKey = agg === 'count' ? null : el.querySelector('.ew-col').value;
           widget.config.label = el.querySelector('.ew-label').value.trim() || null;
@@ -4541,10 +4947,252 @@
     }, true);
   }
 
+  function dashboardBaseRows() {
+    var rows = state.rows.slice();
+    var filters = state.dashboardFilters || {};
+    Object.keys(filters).forEach(function (key) {
+      var vals = filters[key];
+      if (!Array.isArray(vals) || !vals.length) return;
+      rows = rows.filter(function (r) {
+        return vals.indexOf(dashValueKey(r[key])) !== -1;
+      });
+    });
+    var dateKey = state.dashboardDateCol;
+    if (dateKey) {
+      var from = state.dashboardDateFrom ? new Date(state.dashboardDateFrom + 'T00:00:00') : null;
+      var to = state.dashboardDateTo ? new Date(state.dashboardDateTo + 'T23:59:59.999') : null;
+      rows = rows.filter(function (r) {
+        var v = r[dateKey];
+        if (!(v instanceof Date) || isNaN(v)) return false;
+        if (from && v < from) return false;
+        if (to && v > to) return false;
+        return true;
+      });
+    }
+    return rows;
+  }
+
+  function dashboardFilterColumns() {
+    return sortByUniqCountAsc(state.columns.filter(function (c) {
+      return (c.type === 'category' || c.type === 'text') && uniqueValuesForFilter(c, state.rows).length <= 80;
+    }), state.rows).slice(0, 4);
+  }
+
+  function uniqueValuesForFilter(col, rows) {
+    var seen = {}, out = [];
+    (rows || state.rows).forEach(function (r) {
+      var k = dashValueKey(r[col.key]);
+      if (seen[k]) return;
+      seen[k] = true;
+      out.push(k);
+    });
+    return out.sort(function (a, b) { return String(a).localeCompare(String(b), locale()); });
+  }
+
+  function dashboardLocalDateString(d) { var y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0'); return y+'-'+m+'-'+day; }
+
+  function dashboardQuickRange(kind, dateKey) {
+    if (!dateKey) return;
+    var dates = state.rows.map(function (r) { return r[dateKey]; }).filter(function (d) { return d instanceof Date && !isNaN(d); });
+    if (!dates.length) return;
+    var max = new Date(Math.max.apply(null, dates));
+    var start = new Date(max), end = new Date(max);
+    if (kind === 'today') { start.setHours(0,0,0,0); end.setHours(23,59,59,999); }
+    else if (kind === 'week') { var day = start.getDay() || 7; start.setDate(start.getDate() - day + 1); start.setHours(0,0,0,0); end.setHours(23,59,59,999); }
+    else if (kind === 'month') { start = new Date(max.getFullYear(), max.getMonth(), 1); end = new Date(max.getFullYear(), max.getMonth()+1, 0,23,59,59,999); }
+    else if (kind === 'lastMonth') { start = new Date(max.getFullYear(), max.getMonth()-1, 1); end = new Date(max.getFullYear(), max.getMonth(), 0,23,59,59,999); }
+    else if (kind === 'ytd') { start = new Date(max.getFullYear(),0,1); end = max; }
+    else { state.dashboardDateFrom=''; state.dashboardDateTo=''; renderDashboard(); return; }
+    state.dashboardDateFrom = dashboardLocalDateString(start);
+    state.dashboardDateTo = dashboardLocalDateString(end);
+    persistDebounced();
+    renderDashboard();
+  }
+
+  function renderDashboardFilters() {
+    var host = $('dashboardFilters');
+    if (!host) return;
+    var dateCols = state.columns.filter(function (c) { return c.type === 'date'; });
+    if (!state.dashboardDateCol && dateCols.length) state.dashboardDateCol = dateCols[0].key;
+    var cats = dashboardFilterColumns();
+    var html = '<div class="db-filter-title">' + escapeHtml(t('dashboardFilterTitle')) + '</div>';
+    html += '<div class="db-filter-controls">';
+    if (dateCols.length) {
+      html += '<label class="db-filter-field"><span>' + escapeHtml(t('dashboardDateColLbl')) + '</span><select id="dashboardDateCol">' +
+        dateCols.map(function(c){ return '<option value="'+c.key+'"'+(state.dashboardDateCol===c.key?' selected':'')+'>'+escapeHtml(c.label)+'</option>'; }).join('') + '</select></label>';
+      html += '<label class="db-filter-field"><span>' + escapeHtml(t('dashboardFromLbl')) + '</span><input id="dashboardDateFrom" type="date" value="'+escapeAttr(state.dashboardDateFrom||'')+'"></label>';
+      html += '<label class="db-filter-field"><span>' + escapeHtml(t('dashboardToLbl')) + '</span><input id="dashboardDateTo" type="date" value="'+escapeAttr(state.dashboardDateTo||'')+'"></label>';
+      html += '<div class="db-quick"><button class="db-quick-btn" data-q="month" type="button">' + escapeHtml(t('dashboardThisMonth')) + '</button><button class="db-quick-btn" data-q="lastMonth" type="button">' + escapeHtml(t('dashboardLastMonth')) + '</button><button class="db-quick-btn" data-q="ytd" type="button">YTD</button><button class="db-quick-btn" data-q="all" type="button">' + escapeHtml(t('dashboardAllTime')) + '</button></div>';
+    }
+    cats.forEach(function(c, idx){
+      var selected = state.dashboardFilters[c.key] || [];
+      var vals = uniqueValuesForFilter(c, state.rows);
+      html += '<label class="db-filter-field"><span>'+escapeHtml(c.label)+'</span><select class="db-cat-filter" data-col="'+c.key+'">' +
+        '<option value="__all__"'+(selected.length===0?' selected':'')+'>'+escapeHtml(t('dashboardAllValues'))+'</option>' +
+        vals.map(function(v){ return '<option value="'+escapeAttr(v)+'"'+(selected.indexOf(v)!==-1?' selected':'')+'>'+escapeHtml(v)+'</option>'; }).join('') + '</select></label>';
+    });
+    html += '<button class="btn sm db-reset" id="dashboardFilterReset" type="button">' + escapeHtml(t('dashboardResetFilters')) + '</button></div>';
+    host.innerHTML = html;
+    var dateSel = $('dashboardDateCol'); if (dateSel) dateSel.addEventListener('change', function(){ state.dashboardDateCol=this.value||null; state.drill=null; updateDrillBanner(); persistDebounced(); renderDashboard(); });
+    var from = $('dashboardDateFrom'); if (from) from.addEventListener('change', function(){ state.dashboardDateFrom=this.value||''; state.drill=null; updateDrillBanner(); persistDebounced(); renderDashboard(); });
+    var to = $('dashboardDateTo'); if (to) to.addEventListener('change', function(){ state.dashboardDateTo=this.value||''; state.drill=null; updateDrillBanner(); persistDebounced(); renderDashboard(); });
+    [].forEach.call(host.querySelectorAll('.db-quick-btn'), function(btn){ btn.addEventListener('click', function(){ dashboardQuickRange(btn.getAttribute('data-q'), state.dashboardDateCol); }); });
+    [].forEach.call(host.querySelectorAll('.db-cat-filter'), function(sel){
+      sel.addEventListener('change', function(){
+        var col=sel.getAttribute('data-col');
+        var value = sel.value;
+        state.dashboardFilters[col] = value === '__all__' ? [] : [value];
+        state.drill = null; updateDrillBanner();
+        persistDebounced();
+        renderDashboard();
+      });
+    });
+    $('dashboardFilterReset').addEventListener('click', function(){ state.dashboardFilters={}; state.dashboardDateFrom=''; state.dashboardDateTo=''; state.drill=null; updateDrillBanner(); persistDebounced(); renderDashboard(); });
+    if(window.TanotDashboardHooks && typeof window.TanotDashboardHooks.afterDashboardFiltersRender === 'function'){ try{window.TanotDashboardHooks.afterDashboardFiltersRender();}catch(hookErr2){console.error(hookErr2);} }
+  }
+
+  function dashboardDataQuality(rows) {
+    if (!state.columns.length || !state.rows.length) return 100;
+    /* ไฟล์ใหญ่: คะแนนเป็นตัวชี้วัดเพื่อ Dashboard ไม่จำเป็นต้องสแกนทุก cell ทุกครั้งที่ filter เปลี่ยน
+       จึงสุ่มตัวอย่างแบบกระจายตำแหน่งสูงสุด 2,000 แถว ส่วนไฟล์เล็กยังคำนวณครบเหมือนเดิม */
+    var source = state.rows, sample = source;
+    if (source.length > 2000) {
+      sample = [];
+      var step = (source.length - 1) / 1999;
+      for (var i = 0; i < 2000; i++) sample.push(source[Math.min(source.length - 1, Math.round(i * step))]);
+    }
+    var totalCells = sample.length * state.columns.length;
+    var nonBlank = 0, validTyped = 0;
+    sample.forEach(function(r){ state.columns.forEach(function(c){ var v=r[c.key]; if(v!==null && v!==undefined && v!==''){ nonBlank++; if(c.type==='number'){ if(typeof v==='number' && isFinite(v)) validTyped++; } else if(c.type==='date'){ if(v instanceof Date && !isNaN(v)) validTyped++; } else validTyped++; }}); });
+    var completeness = totalCells ? (nonBlank / totalCells) : 1;
+    var validity = nonBlank ? (validTyped / nonBlank) : 1;
+    return Math.max(0, Math.min(100, (completeness * 0.65 + validity * 0.35) * 100));
+  }
+
+  function renderDashboardInsights(rows, fullRows) {
+    var card = $('dashboardInsightsCard'), body = $('dashboardInsights');
+    if (!card || !body) return;
+    if (!rows.length) { card.style.display='none'; return; }
+    var insights=[];
+    var pct = fullRows.length ? (rows.length/fullRows.length*100) : 100;
+    insights.push(t('dashboardDataQuality', {pct: dashboardDataQuality(rows).toLocaleString(locale(), {maximumFractionDigits:0})}));
+    if (rows.length !== fullRows.length) insights.push(t('dashboardInsightFiltered', {n: rows.length.toLocaleString(locale()), pct: pct.toLocaleString(locale(), {maximumFractionDigits:1})}));
+    var numCols = state.columns.filter(function(c){return c.type==='number';});
+    numCols.filter(function(c){ return !/^Column\s*\d+$/i.test(String(c.label||'').trim()); }).slice(0,2).forEach(function(c){ var s=statOf(rows,c.key); if(s) insights.push(t('dashboardInsightTotal',{col:c.label,val:s.sum.toLocaleString(locale(),{maximumFractionDigits:2})})); });
+    /* Stage 9 (บั๊กเดียวกันกับที่เจอใน Attention Center): เช็คแค่ "Column N" ภาษาอังกฤษ ไม่ครอบคลุม
+       "คอลัมน์ N" ภาษาไทย (ดู colFallback ในดิกชันนารี) แก้ให้ครอบคลุมทั้งสองภาษา */
+    var cat = dashboardFilterColumns().filter(function(c){ return !/^(Column|คอลัมน์)\s*\d+$/i.test(String(c.label||'').trim()); })[0];
+    if(cat){ var freq={}; rows.forEach(function(r){var k=dashValueKey(r[cat.key]); freq[k]=(freq[k]||0)+1;}); var ks=Object.keys(freq); if(ks.length){ var top=ks.reduce(function(a,b){return freq[b]>freq[a]?b:a;}); insights.push(t('dashboardInsightTop',{col:cat.label,val:top,n:freq[top].toLocaleString(locale())})); } }
+    var domain=detectDomain();
+    if(domain && domain.id==='maintenance'){
+      var roleMap=matchDomainRoles(state.columns, DOMAIN_ROLES.maintenance).roles;
+      if(roleMap.overdue){ var n=rows.filter(function(r){var v=String(r[roleMap.overdue.key]||'').toLowerCase(); return /overdue|เกิน|ล่าช้า|late/.test(v);}).length; if(n) insights.push(t('dashboardInsightOverdue',{n:n.toLocaleString(locale())})); }
+    }
+    body.innerHTML = insights.slice(0,4).map(function(x){return '<div class="insight-item"><span class="insight-dot">•</span><span>'+escapeHtml(x)+'</span></div>';}).join('');
+    card.style.display='block';
+  }
+
+  /* Stage 9 (ตามที่ผู้ใช้ขอ): "Attention Center" ของแท็บ Analytics — เดิมมีแค่โครง HTML/CSS รอไว้
+     (#dashboardAttentionCard/#dashboardAttentionBody) ไม่เคยมี JS เติมเนื้อหาเลย ทำงานกับข้อมูลทั้งหมด
+     แบบทั่วไป (ไม่ผูกกับ template ใดๆ ต่างจาก Project Control) ตรวจจับคอลัมน์เองอัตโนมัติเหมือนกล่อง
+     Key Insights ที่มีอยู่แล้ว แต่ละกล่องคลิกแล้วกรองตารางได้ทันที (ใช้ setDrill/setDrillPredicate) */
+  function detectAttentionDateCol() {
+    var dateCols = state.columns.filter(function (c) { return c.type === 'date'; });
+    if (!dateCols.length) return null;
+    var pref = dateCols.filter(function (c) { return /due|deadline|finish|end|กำหนด|สิ้นสุด|เสร็จ/i.test(c.label || ''); })[0];
+    return pref || dateCols[0];
+  }
+  function renderAttentionCenter(rows) {
+    var card = $('dashboardAttentionCard'), body = $('dashboardAttentionBody');
+    if (!card || !body) return;
+    if (!rows.length) { card.style.display = 'none'; return; }
+    var tiles = [];
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+
+    var dueCol = detectAttentionDateCol();
+    if (dueCol) {
+      var overdueRows = rows.filter(function (r) { var v = r[dueCol.key]; return v instanceof Date && !isNaN(v) && v < today; });
+      if (overdueRows.length) tiles.push({
+        l: 'Overdue', v: overdueRows.length, s: dueCol.label, c: 'bad',
+        drill: function () { setDrillPredicate('Attention', 'Overdue', function (r) { var v = r[dueCol.key]; return v instanceof Date && !isNaN(v) && v < today; }); }
+      });
+    }
+
+    var checkCols = state.columns.slice(0, 20);
+    var missingRows = rows.filter(function (r) { return checkCols.some(function (c) { var v = r[c.key]; return v === null || v === undefined || v === ''; }); });
+    if (missingRows.length) tiles.push({
+      l: 'Missing Data', v: missingRows.length, s: 'rows with blank fields', c: 'warn',
+      drill: function () { setDrillPredicate('Attention', 'Missing data', function (r) { return checkCols.some(function (c) { var v = r[c.key]; return v === null || v === undefined || v === ''; }); }); }
+    });
+
+    /* Stage 9 (บั๊กที่เจอระหว่างทดสอบ): ตัวกรอง "ชื่อคอลัมน์ทั่วไปอัตโนมัติ" เดิมเช็คแค่ /^Column\s*\d+$/i
+       (อังกฤษเท่านั้น) แต่ label จริงที่ผู้ใช้เห็นเป็นภาษาไทยคือ "คอลัมน์ {n}" (ดู colFallback ในดิกชันนารี)
+       เลยหลุดผ่านไปได้ ทำให้เจอ "Top: คอลัมน์ 9 = (ว่าง)" ซึ่งไม่มีประโยชน์อะไร (คอลัมน์นี้ว่างเกือบหมด)
+       แก้ 2 ชั้น: (1) เช็คทั้งสองภาษา (2) ไล่ลองคอลัมน์ถัดไปถ้าค่าที่พบมากที่สุดในคอลัมน์นั้นคือค่าว่างเปล่า
+       แทนที่จะยอมรับคอลัมน์แรกที่เจอเสมอ */
+    var catCandidates = dashboardFilterColumns().filter(function (c) { return !/^(Column|คอลัมน์)\s*\d+$/i.test(String(c.label || '').trim()); });
+    var cat = null, top = null, topFreq = 0;
+    for (var ci = 0; ci < catCandidates.length; ci++) {
+      var freq = {}; rows.forEach(function (r) { var k = dashValueKey(r[catCandidates[ci].key]); freq[k] = (freq[k] || 0) + 1; });
+      var ks = Object.keys(freq).filter(function (k) { return k !== t('emptyValueLabel'); });
+      if (!ks.length) continue;
+      var candTop = ks.reduce(function (a, b) { return freq[b] > freq[a] ? b : a; });
+      cat = catCandidates[ci]; top = candTop; topFreq = freq[candTop]; break;
+    }
+    if (cat) {
+      tiles.push({ l: 'Top: ' + cat.label, v: top, s: topFreq.toLocaleString(locale()) + ' rows', c: 'info', drill: function () { setDrill(cat.key, cat.label, top); } });
+    }
+
+    var numCol = state.columns.filter(function (c) { return c.type === 'number'; })[0];
+    if (numCol) {
+      var vals = rows.map(function (r) { return Number(r[numCol.key]); }).filter(function (n) { return isFinite(n); });
+      if (vals.length >= 4) {
+        var mean = vals.reduce(function (s, n) { return s + n; }, 0) / vals.length;
+        var sd = Math.sqrt(vals.reduce(function (s, n) { return s + (n - mean) * (n - mean); }, 0) / vals.length);
+        if (sd > 0) {
+          var outlierRows = rows.filter(function (r) { var v = Number(r[numCol.key]); return isFinite(v) && Math.abs((v - mean) / sd) > 2; });
+          if (outlierRows.length) tiles.push({
+            l: 'Unusual: ' + numCol.label, v: outlierRows.length, s: '> 2σ from average', c: 'info',
+            drill: function () { setDrillPredicate('Attention', 'Unusual ' + numCol.label, function (r) { var v = Number(r[numCol.key]); return isFinite(v) && Math.abs((v - mean) / sd) > 2; }); }
+          });
+        }
+      }
+    }
+
+    if (!tiles.length) { card.style.display = 'none'; return; }
+    body.innerHTML = tiles.map(function (x, i) {
+      return '<div class="project-attention-card ' + x.c + '" data-attn-i="' + i + '" role="button" tabindex="0"><div class="pa-label">' + escapeHtml(x.l) + '</div><div class="pa-value">' + escapeHtml(String(x.v)) + '</div><div class="pa-sub">' + escapeHtml(x.s) + '</div></div>';
+    }).join('');
+    [].forEach.call(body.querySelectorAll('[data-attn-i]'), function (el) {
+      var x = tiles[+el.getAttribute('data-attn-i')];
+      el.addEventListener('click', x.drill);
+    });
+    card.style.display = 'block';
+  }
+
+  function applyDashboardViewMode() {
+    var mode = state.dashboardViewMode || 'executive';
+    var nodes = {
+      insights: $('dashboardInsightsCard'), domain: $('domainDashboardCard'), num: $('numStatCard'),
+      bar: $('barChartCard'), line: $('lineChartCard'), pie: $('pieChartCard'), table: $('dashTableCard'), empty: $('dashboardEmptyCard')
+    };
+    Object.keys(nodes).forEach(function(k){ if(nodes[k]) nodes[k].style.display = nodes[k].style.display; });
+    if(mode === 'analysis') {
+      if(nodes.table) nodes.table.style.display = 'none';
+    } else if(mode === 'table') {
+      ['insights','domain','num','bar','line','pie','empty'].forEach(function(k){ if(nodes[k]) nodes[k].style.display='none'; });
+    }
+    var sel = $('dashboardViewModeSel'); if(sel) sel.value = mode;
+  }
+
   function renderDashboard() {
     applyDashboardBg();
-    var rows = state.drill ? state.rows.filter(matchesDrill) : state.rows;
+    renderDashboardFilters();
+    var preDrillRows = dashboardBaseRows();
+    var rows = state.drill ? preDrillRows.filter(matchesDrill) : preDrillRows;
     renderDomainDashboard(rows);
+    renderDashboardInsights(rows, state.rows);
+    renderAttentionCenter(rows);
     var numCols = state.columns.filter(function (c) { return c.type === 'number'; });
     var dateCols = state.columns.filter(function (c) { return c.type === 'date'; });
     /* เรียงคอลัมน์หมวดหมู่จากค่าไม่ซ้ำน้อยไปมาก — คอลัมน์ที่ค่าซ้ำกันบ่อย (เช่น "ประเภท") เหมาะเป็นแกน
@@ -4561,8 +5209,19 @@
       numCols.slice(0, 4).forEach(function (col) {
         var s = statOf(rows, col.key);
         if (!s) return;
+        var trendHtml = '';
+        var dateForTrend = state.dashboardDateCol || (state.columns.filter(function(c){return c.type==='date';})[0] || {}).key;
+        if (dateForTrend) {
+          var validDates = rows.map(function(r){return r[dateForTrend];}).filter(function(d){return d instanceof Date && !isNaN(d);});
+          if(validDates.length){
+            var maxD = new Date(Math.max.apply(null,validDates));
+            var curB = periodBoundsFromMaxDate(maxD,0), prevB = periodBoundsFromMaxDate(maxD,1);
+            var curV = aggValuesInRange(rows,dateForTrend,col.key,'sum',curB.start,curB.end), prevV = aggValuesInRange(rows,dateForTrend,col.key,'sum',prevB.start,prevB.end);
+            if(curV !== null && prevV !== null && prevV !== 0){ var delta=((curV-prevV)/Math.abs(prevV))*100; trendHtml='<div class="stat-trend '+(delta>=0?'up':'down')+'">'+(delta>=0?'↑':'↓')+' '+Math.abs(delta).toLocaleString(locale(),{maximumFractionDigits:1})+'% · '+escapeHtml(t('dashboardVsPrevious'))+'</div>'; }
+          }
+        }
         html += '<div class="stat-tile"><div class="lbl">' + escapeHtml(col.label) + '</div>' +
-          '<div class="val"' + (numStatAccent ? ' style="color:' + numStatAccent + '"' : '') + '>' + s.sum.toLocaleString(locale(), { maximumFractionDigits: 2 }) + '</div>' +
+          '<div class="val"' + (numStatAccent ? ' style="color:' + numStatAccent + '"' : '') + '>' + s.sum.toLocaleString(locale(), { maximumFractionDigits: 2 }) + '</div>' + trendHtml +
           '<div class="sub">' + t('statTileSub', {
             avg: s.avg.toLocaleString(locale(), { maximumFractionDigits: 2 }),
             min: s.min.toLocaleString(locale(), { maximumFractionDigits: 2 }),
@@ -4585,7 +5244,9 @@
       fillSelect($('barNumSel'), numCols, barNum ? barNum.key : '', t('countOption'));
       $('barTypeSel').value = barType;
       var barEntries = aggregateByCategory(rows, barCat.key, barNum ? barNum.key : null);
-      $('barChartTitle').textContent = CHART_TYPE_ICON[barType] + ' ' + (barNum ? t('barChartTitleWithNum', { cat: barCat.label, num: barNum.label }) : t('barChartTitleCount', { cat: barCat.label }));
+      /* Stage 7 (ตามที่ผู้ใช้ขอ): ตัดไอคอน CHART_TYPE_ICON ออกจากหัวข้อกราฟนี้ (กราฟที่ย้ายไป Project
+         Control) เหลือแค่ข้อความล้วน */
+      $('barChartTitle').textContent = (barNum ? t('barChartTitleWithNum', { cat: barCat.label, num: barNum.label }) : t('barChartTitleCount', { cat: barCat.label }));
       var barCfg = buildChartConfig(barType, barEntries.map(function (e) { return e[0]; }), barEntries.map(function (e) { return e[1]; }), cardColorAccent('bar'));
       barCfg.options.onClick = function (evt, els) {
         if (!els || !els.length) return;
@@ -4613,7 +5274,7 @@
       $('trendlineChk').disabled = lineType !== 'line';
       $('trendlineChk').checked = !!state.chartChoice.lineTrend;
       if (lineEntries.length >= 2) {
-        $('lineChartTitle').textContent = CHART_TYPE_ICON[lineType] + ' ' + (lineNum ? t('lineChartTitleWithNum', { num: lineNum.label, date: lineDate.label }) : t('lineChartTitleCount', { date: lineDate.label }));
+        $('lineChartTitle').textContent = (lineNum ? t('lineChartTitleWithNum', { num: lineNum.label, date: lineDate.label }) : t('lineChartTitleCount', { date: lineDate.label }));
         var lineCfg = buildChartConfig(lineType, lineEntries.map(function (e) { return e[0]; }), lineEntries.map(function (e) { return e[1]; }), cardColorAccent('line'));
         if (lineType === 'line' && state.chartChoice.lineTrend) {
           addTrendlineToLineConfig(lineCfg, lineEntries.map(function (e) { return e[0]; }), lineEntries.map(function (e) { return e[1]; }), lineNumLabel);
@@ -4625,7 +5286,11 @@
         };
         charts.line = new Chart($('lineChart').getContext('2d'), lineCfg);
         $('lineChartCard').style.display = 'block'; applyCardColor('lineChartCard', 'line'); anyRendered = true;
-      } else $('lineChartCard').style.display = 'none';
+        setChartEmptyNote('lineChartCard', false);
+      } else {
+        $('lineChartCard').style.display = 'block';
+        setChartEmptyNote('lineChartCard', true, 'Not enough time points to show a trend with the current filter.');
+      }
     } else $('lineChartCard').style.display = 'none';
 
     /* ── การ์ด 3: สัดส่วนจำนวนแถวตามคอลัมน์หมวดหมู่ (เลือกคอลัมน์+ชนิดกราฟเองได้ ดีฟอลต์คอลัมน์ที่ 2
@@ -4665,6 +5330,7 @@
     } else {
       $('dashboardEmptyCard').style.display = 'none';
     }
+    applyDashboardViewMode();
   }
 
   /* ══════════════════ Stage 4: บันทึกหลายรายงาน ══════════════════
@@ -4685,12 +5351,12 @@
       setSaveStatus(t('saveStatusSaving'), '');
       return;
     }
-    var name = prompt(t('saveAsReportPrompt'), (state.fileName || t('reportDefaultBase')).replace(/\.[^.]+$/, ''));
-    if (!name) return;
-    name = name.trim(); if (!name) return;
-    var rec = { name: name, fileName: state.fileName, sheetName: state.activeSheet,
+    var initialName=(state.fileName || t('reportDefaultBase')).replace(/\.[^.]+$/, '');
+    whitePrompt(t('saveAsReportPrompt'), initialName, function(name){
+      var rec = { name: name, fileName: state.fileName, sheetName: state.activeSheet,
       combineMode: state.combineMode, sheetNames: state.sheetNames,
       columns: state.columns, rows: state.rows, nextRowId: state.nextRowId, customWidgets: state.customWidgets,
+      dashboardFilters: state.dashboardFilters, dashboardDateCol: state.dashboardDateCol, dashboardDateFrom: state.dashboardDateFrom, dashboardDateTo: state.dashboardDateTo, dashboardViewMode: state.dashboardViewMode,
       cardColors: state.cardColors, customBg: state.customBg, dashboardBg: state.dashboardBg, condFormat: state.condFormat,
       freezeCols: state.freezeCols, groupBy: state.groupBy, groupSubtotalCol: state.groupSubtotalCol, savedAt: Date.now() };
     dbAddReport(rec).then(function (id) {
@@ -4700,6 +5366,7 @@
       persistDebounced(); // อัปเดต draft ปัจจุบันให้มี reportId ผูกไว้ด้วย กัน resume แล้วหลุดการเชื่อมโยง
     }, function () {
       setSaveStatus(t('saveStatusFail'), 'err');
+    });
     });
   }
   function relativeTime(ts) {
@@ -4748,6 +5415,7 @@
       state.combineMode = !!rec.combineMode;
       state.columns = rec.columns; state.rows = rec.rows; state.nextRowId = rec.nextRowId;
       state.reportId = rec.id; state.reportName = rec.name;
+      state.dashboardFilters = rec.dashboardFilters || {}; state.dashboardDateCol = rec.dashboardDateCol || null; state.dashboardDateFrom = rec.dashboardDateFrom || ''; state.dashboardDateTo = rec.dashboardDateTo || ''; state.dashboardViewMode = rec.dashboardViewMode || 'executive';
       state.filters = {}; state.globalQuery = ''; state.sortCol = null; state.sortDir = null;
       state.selected = {}; state.page = 1; state.history = []; state.redoStack = [];
       state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null, lineTrend: false };
@@ -4766,27 +5434,30 @@
       $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
       $('dataMeta').textContent = (state.fileName || rec.name) + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
       $('viewTabs').style.display = 'flex';
-      setView('table');
+      setView('dashboard');
       persistDebounced();
     });
   }
   function renameReport(id) {
     dbGetReport(id).then(function (rec) {
       if (!rec) return;
-      var name = prompt(t('renameReportPrompt'), rec.name);
-      if (!name) return;
-      name = name.trim(); if (!name) return;
-      rec.name = name;
-      dbPutReport(rec).then(function () {
-        if (state.reportId === id) { state.reportName = name; updateSaveUI(); }
-        renderReportsList();
+      whitePrompt(t('renameReportPrompt'), rec.name, function(name){
+        rec.name = name;
+        dbPutReport(rec).then(function () {
+          if (state.reportId === id) { state.reportName = name; updateSaveUI(); }
+          renderReportsList();
+        });
       });
     });
   }
   function deleteReport(id) {
     dbGetReport(id).then(function (rec) {
       if (!rec) return;
-      if (!confirm(t('deleteReportConfirm', { name: rec.name }))) return;
+      whiteConfirm('Delete report', t('deleteReportConfirm', { name: rec.name }), function(){ dbDeleteReport(id).then(function () {
+        if (state.reportId === id) { state.reportId = null; state.reportName = null; updateSaveUI(); persistDebounced(); }
+        renderReportsList();
+      }); }, 'Delete', 'Cancel');
+      return;
       dbDeleteReport(id).then(function () {
         if (state.reportId === id) { state.reportId = null; state.reportName = null; updateSaveUI(); persistDebounced(); }
         renderReportsList();
@@ -4818,16 +5489,16 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
   function exportXlsx() {
-    if (typeof XLSX === 'undefined') { setUploadStatus('', ''); alert(t('exportLibFail')); return; }
-    if (!state.rows.length) { alert(t('exportNoData')); return; }
+    if (typeof XLSX === 'undefined') { setUploadStatus('', ''); notifyUser(t('exportLibFail'),'error'); return; }
+    if (!state.rows.length) { notifyUser(t('exportNoData'),'error'); return; }
     var ws = XLSX.utils.json_to_sheet(buildExportRows());
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, (state.activeSheet || 'Sheet1').slice(0, 31));
     XLSX.writeFile(wb, exportFileBase() + '.xlsx');
   }
   function exportCsv() {
-    if (typeof XLSX === 'undefined') { alert(t('exportLibFail')); return; }
-    if (!state.rows.length) { alert(t('exportNoData')); return; }
+    if (typeof XLSX === 'undefined') { notifyUser(t('exportLibFail'),'error'); return; }
+    if (!state.rows.length) { notifyUser(t('exportNoData'),'error'); return; }
     var ws = XLSX.utils.json_to_sheet(buildExportRows());
     var csv = XLSX.utils.sheet_to_csv(ws);
     var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' }); // BOM กัน Excel เปิดภาษาไทยเพี้ยน
@@ -4881,18 +5552,18 @@
   }
   function dashTableExportSuffix() { return state.dashTable.mode === 'pivot' ? '-pivot' : '-table'; }
   function exportDashTableXlsx() {
-    if (typeof XLSX === 'undefined') { alert(t('exportLibFail')); return; }
+    if (typeof XLSX === 'undefined') { notifyUser(t('exportLibFail'),'error'); return; }
     var rows = buildDashTableExportRows();
-    if (!rows.length) { alert(t('exportNoData')); return; }
+    if (!rows.length) { notifyUser(t('exportNoData'),'error'); return; }
     var ws = XLSX.utils.json_to_sheet(rows);
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, (state.dashTable.mode === 'pivot' ? 'Pivot' : 'Sheet1'));
     XLSX.writeFile(wb, exportFileBase() + dashTableExportSuffix() + '.xlsx');
   }
   function exportDashTableCsv() {
-    if (typeof XLSX === 'undefined') { alert(t('exportLibFail')); return; }
+    if (typeof XLSX === 'undefined') { notifyUser(t('exportLibFail'),'error'); return; }
     var rows = buildDashTableExportRows();
-    if (!rows.length) { alert(t('exportNoData')); return; }
+    if (!rows.length) { notifyUser(t('exportNoData'),'error'); return; }
     var ws = XLSX.utils.json_to_sheet(rows);
     var csv = XLSX.utils.sheet_to_csv(ws);
     var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -4911,7 +5582,7 @@
     return fn().then(function (v) { restore(); return v; }, function (e) { restore(); throw e; });
   }
   function exportDashboardImage() {
-    if (typeof window.html2canvas === 'undefined') { alert(t('exportLibFail')); return; }
+    if (typeof window.html2canvas === 'undefined') { notifyUser(t('exportLibFail'),'error'); return; }
     withControlsHidden(function () {
       return window.html2canvas(activeExportViewEl(), { backgroundColor: '#F3F5F8', scale: 2 });
     }).then(function (canvas) {
@@ -4986,7 +5657,7 @@
       '.chart-wrap{position:relative;height:280px;margin-top:4px}' +
       '.foot{font-size:11.5px;color:var(--muted);text-align:center;margin-top:22px}' +
       '</style></head><body><div class="wrap">' +
-      '<h1>' + title + '</h1>' +
+      '<h1>📊 ' + title + '</h1>' +
       '<div class="sub">' + escapeHtml(t('exportedAt', { date: new Date().toLocaleString(locale()), n: state.rows.length.toLocaleString(locale()) })) + '</div>';
 
     if (showNum) html += '<div class="card"><h2>' + escapeHtml(t('numStatTitle')) + '</h2><div class="stat-row">' + $('numStatRow').innerHTML + '</div></div>';
@@ -5062,7 +5733,7 @@
       'table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}' +
       'th.num,td.num{text-align:right}.foot{font-size:11.5px;color:var(--muted);text-align:center;margin-top:22px}' +
       '</style></head><body><div class="wrap">' +
-      '<h1>' + title + '</h1>' +
+      '<h1>🧩 ' + title + '</h1>' +
       '<div class="sub">' + escapeHtml(t('exportedAt', { date: new Date().toLocaleString(locale()), n: state.rows.length.toLocaleString(locale()) })) + '</div>' +
       body +
       '<div class="foot">' + escapeHtml(t('exportedFooter')) + '</div></div>' +
@@ -5070,7 +5741,7 @@
     return html;
   }
   function exportDashboardHtml() {
-    if (!state.rows.length) { alert(t('exportNoData')); return; }
+    if (!state.rows.length) { notifyUser(t('exportNoData'),'error'); return; }
     var doc = currentView === 'custom' ? buildCustomHtmlDoc() : buildDashboardHtmlDoc();
     var blob = new Blob([doc], { type: 'text/html;charset=utf-8;' });
     downloadBlob(blob, exportFileBase() + '.html');
@@ -5121,7 +5792,10 @@
       date: new Date(saved.savedAt).toLocaleString(locale())
     });
   }
+  var __tanotInitialized = false;
   function init() {
+    if (__tanotInitialized) return;
+    __tanotInitialized = true;
     applyStaticI18n();
     if ($('langToggle')) {
       $('langToggle').addEventListener('click', function () {
@@ -5141,19 +5815,6 @@
         }
       });
     }
-    window.omeApplyLang = function () {
-      if (state.drill) clearDrill();
-      applyStaticI18n();
-      updateSaveUI();
-      renderResumeInfo();
-      renderReportsList();
-      if (state.rows.length) {
-        updateStatRow();
-        updateSelectionUI();
-        if (currentView === 'dashboard') renderDashboard(); else renderTable();
-      }
-    };
-    $('pickBtn').addEventListener('click', function () { $('fileInput').click(); });
     $('fileInput').addEventListener('change', function () { handleFile($('fileInput').files[0]); });
 
     var dz = $('dropZone');
@@ -5186,6 +5847,8 @@
     $('freezeColBtn').addEventListener('click', function () { openFreezeColPopover($('freezeColBtn')); });
     $('groupByBtn').addEventListener('click', function () { openGroupByPopover($('groupByBtn')); });
     $('autoSummaryBtn').addEventListener('click', function () { openAutoSummaryPopover($('autoSummaryBtn')); });
+    if($('quickStartBtn')) $('quickStartBtn').addEventListener('click', openQuickStart);
+    [].forEach.call(document.querySelectorAll('[data-trigger="quickStartBtn"]'),function(x){x.addEventListener('click',function(e){e.preventDefault();openQuickStart();});});
     [].forEach.call($('viewTabs').querySelectorAll('.chip'), function (b) {
       b.addEventListener('click', function () { setView(b.getAttribute('data-view')); });
     });
@@ -5209,13 +5872,13 @@
     /* ปุ่ม "ไฟล์ใหม่" — ถามยืนยันเฉพาะตอนข้อมูลยังไม่ได้บันทึกเป็นรายงาน (reportId ว่าง) เพราะนั่นคือ
        กรณีเดียวที่ข้อมูลจะหายจริง — ถ้าบันทึกเป็นรายงานแล้วสลับได้เลยโดยไม่ต้องถาม (autosave ไว้แล้ว) */
     $('newFileBtn').addEventListener('click', function () {
-      if (!state.reportId && state.rows.length && !confirm(t('newFileConfirm'))) return;
+      if (!state.reportId && state.rows.length) { whiteConfirm(t('newFileConfirm'), t('newFileConfirm'), resetToUpload, t('confirmBtn')||'Continue', t('cancelBtn')||'Cancel'); return; }
       resetToUpload();
     });
     $('myReportsBtn').addEventListener('click', function () {
-      if (!state.reportId && state.rows.length && !confirm(t('myReportsConfirm'))) return;
-      resetToUpload();
-      setTimeout(function () { var el = $('reportsCard'); if (el.style.display !== 'none') el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
+      var go=function(){ resetToUpload(); setTimeout(function () { var el=$('reportsCard'); if(el && el.style.display!=='none') el.scrollIntoView({behavior:'smooth',block:'start'}); },60); };
+      if(!state.reportId && state.rows.length){ whiteConfirm(t('myReportsConfirm'), t('myReportsConfirm'), go, t('confirmBtn')||'Continue', t('cancelBtn')||'Cancel'); return; }
+      go();
     });
     $('saveReportBtn').addEventListener('click', saveAsReport);
     $('exportXlsxBtn').addEventListener('click', exportXlsx);
@@ -5226,6 +5889,7 @@
     $('dashExportXlsxBtn').addEventListener('click', exportDashTableXlsx);
     $('dashExportCsvBtn').addEventListener('click', exportDashTableCsv);
     $('dashColsBtn').addEventListener('click', function () { openColumnVisibilityPopover($('dashColsBtn')); });
+    $('dashboardViewModeSel').addEventListener('change', function () { state.dashboardViewMode = this.value; persistDebounced(); renderDashboard(); });
     $('domainOverrideSel').addEventListener('change', function () {
       state.domainOverride = this.value || null;
       renderDashboard();
@@ -5238,6 +5902,7 @@
     $('globalSearch').addEventListener('input', function () {
       state.globalQuery = $('globalSearch').value; state.page = 1; renderTable();
     });
+    initCustomToolsUi();
 
     renderReportsList();
     dbLoadCurrent().then(function (saved) {
@@ -5251,6 +5916,7 @@
           state.combineMode = !!saved.combineMode;
           state.columns = saved.columns; state.rows = saved.rows; state.nextRowId = saved.nextRowId;
           state.reportId = saved.reportId || null; state.reportName = saved.reportName || null;
+          state.dashboardFilters = saved.dashboardFilters || {}; state.dashboardDateCol = saved.dashboardDateCol || null; state.dashboardDateFrom = saved.dashboardDateFrom || ''; state.dashboardDateTo = saved.dashboardDateTo || ''; state.dashboardViewMode = saved.dashboardViewMode || 'executive'; state.chartRanking = saved.chartRanking || 'top10'; state.savedLayouts = saved.savedLayouts || [];
           state.filters = {}; state.globalQuery = ''; state.sortCol = null; state.sortDir = null;
           state.selected = {}; state.page = 1; state.history = []; state.redoStack = [];
           state.drill = null; state.chartChoice = { barCat: null, barNum: null, pieCat: null, lineDate: null, lineNum: null, lineTrend: false };
@@ -5267,12 +5933,129 @@
           updateDrillBanner(); updateSaveUI();
           $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none';
           $('viewTabs').style.display = 'flex';
-          setView('table'); // เรียก renderTable() ให้เองในตัว
+          autoConfigureDashboard(false);
+          setView('dashboard'); // เรียก renderTable() ให้เองในตัว
         });
         $('discardBtn').addEventListener('click', function () { $('resumeCard').style.display = 'none'; dbClearCurrent(); });
       }
     });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  /* Complete plan: templates, fullscreen, executive PDF, worker analytics */
+  var analyticsWorker = null, analyticsReqId = 0, analyticsCache = null;
+  function startAnalyticsWorker(){try{if(typeof Worker==='undefined')return;analyticsWorker=new Worker('report-dashboard.worker.final43.js');analyticsWorker.onmessage=function(ev){if(ev.data)analyticsCache=ev.data.result;};}catch(e){analyticsWorker=null;}}
+  function requestAnalyticsWorker(rows){if(!analyticsWorker||!rows||rows.length<1000)return;var nums=state.columns.filter(function(c){return c.type==='number';}).slice(0,12).map(function(c){return c.key;});var m=matchDomainRoles(state.columns,DOMAIN_ROLES.maintenance).roles;try{analyticsWorker.postMessage({id:++analyticsReqId,type:'analyze',rows:rows,numericCols:nums,maintenance:{workorder:m.workorder&&m.workorder.key,equipmentno:m.equipmentno&&m.equipmentno.key,downtime:m.downtime&&m.downtime.key,matcost:m.matcost&&m.matcost.key,laborcost:m.laborcost&&m.laborcost.key,othercost:m.othercost&&m.othercost.key,actstart:m.actstart&&m.actstart.key,actend:m.actend&&m.actend.key,planfinish:m.planfinish&&m.planfinish.key,failuremode:m.failuremode&&m.failuremode.key}});}catch(e){}}
+  function openFullscreenElement(el){if(!el)return;if(document.fullscreenElement){try{document.exitFullscreen();}catch(e){}return;}try{if(el.requestFullscreen)el.requestFullscreen();else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();}catch(e){}}
+  function cloneWidgets(ws){return (ws||[]).map(function(w){var n=JSON.parse(JSON.stringify(w));n.id=genWidgetId();return n;});}
+  function snapshotCustomLayout(){return cloneWidgets(state.customWidgets||[]);}
+  function restoreCustomLayout(layout){state.customWidgets=cloneWidgets(layout);persistDebounced();renderCustomView();}
+  function saveCurrentLayout(){
+    openWhiteTextPrompt('Save Layout / ตั้งชื่อ Layout','Layout '+((state.savedLayouts||[]).length+1),'Save','Cancel',function(name){
+      state.savedLayouts=state.savedLayouts||[];
+      state.savedLayouts.push({name:name,createdAt:new Date().toISOString(),widgets:snapshotCustomLayout()});
+      persistDebounced();
+      if(window.showBIToast)window.showBIToast(t('templateSaved'));
+    });
+  }
+  function renderCustomTemplateList(){var layouts=state.savedLayouts||[],html='<div class="fp-title">'+escapeHtml(t('customTemplates'))+'</div><div class="fp-list">';if(!layouts.length)html+='<div class="fp-empty">ยังไม่มี Template / No saved templates</div>';layouts.forEach(function(l,i){html+='<div class="fp-item" style="display:flex;align-items:center;gap:8px"><button type="button" class="template-load" data-layout-index="'+i+'" style="border:0;background:transparent;flex:1;text-align:left;cursor:pointer;font:inherit;color:inherit">'+escapeHtml(l.name)+'</button><button type="button" class="template-del" data-layout-index="'+i+'" title="Delete">🗑️</button></div>';});html+='</div>';openPopover(html,$('customToolsBtn')||$('viewTabs'),function(el,close){[].forEach.call(el.querySelectorAll('.template-load'),function(item){item.addEventListener('click',function(){var l=state.savedLayouts[+item.getAttribute('data-layout-index')];if(l){restoreCustomLayout(l.widgets);if(window.showBIToast)showBIToast(t('templateLoaded'));}close();});});[].forEach.call(el.querySelectorAll('.template-del'),function(item){item.addEventListener('click',function(e){e.stopPropagation();var i=+item.getAttribute('data-layout-index');whiteConfirm('Delete template', 'ลบ Template นี้ใช่หรือไม่?', function(){state.savedLayouts.splice(i,1);persistDebounced();renderCustomTemplateList();}, 'Delete', 'Cancel');});});});}
+  function duplicateCustomLayout(){if(!(state.customWidgets||[]).length){addCustomTemplate('executive');return;}var copy=cloneWidgets(state.customWidgets);state.customWidgets=(state.customWidgets||[]).concat(copy);persistDebounced();renderCustomView();}
+  function clearCustomLayout(){if(!state.customWidgets.length)return;whiteConfirm('Clear custom layout','ล้าง Layout กำหนดเองทั้งหมดใช่หรือไม่?',function(){state.customWidgets=[];persistDebounced();renderCustomView();},'Clear','Cancel');}
+  function exportExecutivePdf(){var C=window.jspdf&&window.jspdf.jsPDF;if(!C||!window.html2canvas){window.print();return;}var view=$('dashboardView');if(!view||view.style.display==='none'){notifyUser(t('exportNoData'),'error');return;}var old=state.dashboardViewMode;state.dashboardViewMode='executive';renderDashboard();withControlsHidden(function(){return window.html2canvas(view,{backgroundColor:'#F3F5F8',scale:2,useCORS:true});}).then(function(canvas){var pdf=new C({orientation:'portrait',unit:'mm',format:'a4'}),margin=12,pw=210,ph=297,contentW=pw-margin*2,contentH=ph-margin*2-12,scale=canvas.width/contentW,maxH=Math.floor(contentH*scale),sy=0,first=true;while(sy<canvas.height){var sh=Math.min(maxH,canvas.height-sy),c=document.createElement('canvas');c.width=canvas.width;c.height=sh;var ctx=c.getContext('2d');ctx.fillStyle='#F3F5F8';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(canvas,0,sy,canvas.width,sh,0,0,c.width,sh);if(!first)pdf.addPage();pdf.setFontSize(9);pdf.text(state.reportName||state.fileName||t('reportDefaultBase'),margin,8);pdf.addImage(c.toDataURL('image/jpeg',.9),'JPEG',margin,margin,contentW,sh/scale);sy+=sh;first=false;}pdf.save(exportFileBase()+'-Executive.pdf');}).finally(function(){state.dashboardViewMode=old;renderDashboard();});}
+  function initCustomToolsUi(){
+    var trigger=$('customToolsBtn'), panel=$('customToolsPanel'), closeBtn=$('customToolsClose');
+    if(!trigger||!panel) return;
+    function closePanel(){ panel.hidden=true; trigger.setAttribute('aria-expanded','false'); }
+    if(trigger.__customToggleWired && panel.__customToolsWired) return;
+    if(!trigger.__customToggleWired){
+      trigger.__customToggleWired=true;
+      trigger.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();panel.hidden=!panel.hidden;trigger.setAttribute('aria-expanded',String(!panel.hidden));});
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!panel.hidden)closePanel();});
+    }
+    if(closeBtn && !closeBtn.__customCloseWired){ closeBtn.__customCloseWired=true; closeBtn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();closePanel();}); }
+    if(panel.__customToolsWired) return;
+    panel.__customToolsWired = true;
+    [].forEach.call(panel.querySelectorAll('[data-custom-trigger]'),function(btn){
+      btn.addEventListener('click',function(e){
+        e.preventDefault(); e.stopPropagation();
+        var id=btn.getAttribute('data-custom-trigger');
+        try {
+          if(id==='addWidgetBtn'){ closePanel(); setTimeout(function(){openAddWidgetPicker(trigger);},0); return; }
+          if(id==='loadTemplateBtn'){ closePanel(); setTimeout(function(){loadCustomFromDashboard(trigger);},0); return; }
+          if(id==='customBgBtn'){ closePanel(); openBgPopover('custom', trigger); return; }
+          var apiFn={customSaveLayoutBtn:saveCurrentLayout,customTemplatesBtn:renderCustomTemplateList,customDuplicateBtn:duplicateCustomLayout,customClearBtn:clearCustomLayout}[id];
+          if(apiFn){ closePanel(); setTimeout(function(){apiFn();},0); return; }
+        } catch(err){ console.error(err); if(window.showBIToast) showBIToast('Unable to open this tool.'); }
+      });
+    });
+    document.addEventListener('mousedown',function(e){ if(!panel.hidden && !panel.contains(e.target) && e.target!==trigger && !trigger.contains(e.target)) closePanel(); });
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     BI Completion Layer — semantic model, measures, cross-filter, drillthrough,
+     pages, parameters and quality tooling.
+     ═══════════════════════════════════════════════════════════════════════ */
+  function ensureBIState(){
+    state.bi=state.bi||{}; state.bi.model=state.bi.model||{roles:{},tables:[],relationships:[]};
+    state.bi.model.roles=state.bi.model.roles||{}; state.bi.model.tables=state.bi.model.tables||[]; state.bi.model.relationships=state.bi.model.relationships||[];
+    state.bi.measures=Array.isArray(state.bi.measures)?state.bi.measures:[];
+    state.bi.interactions=state.bi.interactions||{clickFilter:true,highlight:true}; state.bi.pages=state.bi.pages||{}; state.bi.parameters=state.bi.parameters||{topN:10};
+    return state.bi;
+  }
+  function inferBIModel(){
+    var b=ensureBIState(), cols=state.columns||[], roles={};
+    function pick(keys,types){return cols.filter(function(c){return (!types||types.indexOf(c.type)>=0)&&keys.some(function(k){return normLabel(c.label).indexOf(normLabel(k))>=0;});})[0];}
+    var defs={project:[['project','projectname','ชื่อโครงการ','โครงการ'],['category','text']],task:[['task','taskname','กิจกรรม','งาน'],['category','text']],customer:[['customer','ลูกค้า','หน่วยงาน'],['category','text']],owner:[['owner','incharge','responsible','ผู้รับผิดชอบ'],['category','text']],start:[['start','startdate','contractstart','วันที่เริ่ม'],['date']],end:[['finish','end','enddate','contractend','วันที่สิ้นสุด','กำหนดเสร็จ'],['date']],actual:[['actual','actualprogress','%completeactual','ความคืบหน้าจริง'],['number']],plan:[['plan','planned','%completeplan','ความคืบหน้าแผน'],['number']],spi:[['spi','actual/plan','actualplan'],['number']],status:[['status','สถานะ'],['category','text']],cost:[['cost','actualcost','value','amount','มูลค่า','ค่าใช้จ่าย'],['number']],duration:[['duration','ระยะเวลา','hours','hours','days','วัน'],['number']]};
+    Object.keys(defs).forEach(function(k){var c=pick(defs[k][0],defs[k][1]); if(c)roles[k]=c.key;});
+    b.model.roles=Object.assign(roles,b.model.roles||{});
+    return b.model.roles;
+  }
+  function formatMeasureValue(v,fmt){if(typeof v!=='number'||!isFinite(v))return '—';if(fmt==='percent')return ((Math.abs(v)<=1?v*100:v)).toLocaleString(locale(),{maximumFractionDigits:1})+'%';if(fmt==='currency')return v.toLocaleString(locale(),{style:'currency',currency:'THB',maximumFractionDigits:0});if(fmt==='hours')return v.toLocaleString(locale(),{maximumFractionDigits:1})+' h';if(fmt==='days')return v.toLocaleString(locale(),{maximumFractionDigits:1})+' d';return v.toLocaleString(locale(),{maximumFractionDigits:2});}
+  function evaluateMeasure(m,rows){
+    rows=rows||state.rows||[]; var e=String(m.expression||'').trim(), fnm=e.match(/^(SUM|AVERAGE|AVG|MIN|MAX|COUNT)\s*\(\s*\[([^\]]+)\]\s*\)$/i); if(/^COUNTROWS\s*\(\s*\)$/i.test(e))return {value:rows.length};
+    if(fnm){var c=(state.columns||[]).filter(function(x){return x.label===fnm[2]||x.key===fnm[2];})[0];if(!c)return{value:null};var vals=rows.map(function(r){return Number(r[c.key]);}).filter(function(v){return isFinite(v);}),f=fnm[1].toUpperCase();if(f==='COUNT')return{value:vals.length};if(!vals.length)return{value:null};if(f==='SUM')return{value:vals.reduce(function(a,b){return a+b;},0)};if(f==='AVERAGE'||f==='AVG')return{value:vals.reduce(function(a,b){return a+b;},0)/vals.length};if(f==='MIN')return{value:Math.min.apply(null,vals)};return{value:Math.max.apply(null,vals)};}
+    var dm=e.match(/^DIVIDE\((.*),(.*)\)$/i);if(dm){var a=evaluateMeasure({expression:dm[1].trim()},rows).value,b=evaluateMeasure({expression:dm[2].trim()},rows).value;return{value:(b===0||b==null)?null:a/b};}
+    return {value:null};
+  }
+  function makeDefaultMeasures(){var b=ensureBIState(),r=inferBIModel();function add(n,e,f){if(!b.measures.some(function(x){return x.name===n;}))b.measures.push({id:'m_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name:n,expression:e,format:f});}add('Total Rows','COUNTROWS()','number');if(r.actual){var c=colByBI(r.actual);add('Actual Progress','AVERAGE(['+c.label+'])','percent');}if(r.plan){var c2=colByBI(r.plan);add('Plan Progress','AVERAGE(['+c2.label+'])','percent');}if(r.spi){var c3=colByBI(r.spi);add('SPI','AVERAGE(['+c3.label+'])','number');}}
+  function colByBI(k){return (state.columns||[]).filter(function(c){return c.key===k;})[0]||null;}
+  function openBIModal(tab){ensureBIState();inferBIModel();makeDefaultMeasures();var host=$('dashboardMappingModal');if(!host)return;host.hidden=false;host.className='app-modal-host bi-studio-host';host.style.setProperty('display','grid','important');var b=state.bi,r=b.model.roles||{},fields=[['project','Project'],['task','Task'],['customer','Customer'],['owner','Owner'],['start','Start Date'],['end','End Date'],['actual','Actual'],['plan','Plan'],['spi','SPI'],['status','Status'],['cost','Cost'],['duration','Duration']];function opts(v){return '<option value="">— Not mapped —</option>'+state.columns.map(function(c){return '<option value="'+escapeAttr(c.key)+'"'+(v===c.key?' selected':'')+'>'+escapeHtml(c.label)+' · '+c.type+'</option>';}).join('');}
+    host.innerHTML='<div class="bi-studio"><div class="bi-studio-head"><div><div class="bi-kicker">BI Studio</div><h2>Semantic Model</h2><div class="bi-studio-sub">Fields, measures, interactions, pages and parameters</div></div><button class="bi-close" type="button">×</button></div><div class="bi-studio-tabs"><button data-bit="model">Model</button><button data-bit="measures">Measures</button><button data-bit="interactions">Interactions</button><button data-bit="pages">Pages</button><button data-bit="parameters">Parameters</button><button data-bit="quality">Quality</button></div><div class="bi-studio-body" id="biStudioBody"></div><div class="bi-studio-foot"><button class="btn bi-cancel" type="button">Cancel</button><button class="btn primary bi-save" type="button">Save</button></div></div>';
+    function render(t0){var body=$('biStudioBody');if(t0==='model'){body.innerHTML='<div class="bi-role-grid">'+fields.map(function(f){return '<label><span>'+f[1]+'</span><select data-birole="'+f[0]+'">'+opts(r[f[0]])+'</select></label>';}).join('')+'</div><div class="bi-note"><b>Current model:</b> '+state.rows.length.toLocaleString(locale())+' rows · '+state.columns.length+' fields. The mapping drives Project Control and semantic measures.</div>';}else if(t0==='measures'){body.innerHTML='<div class="bi-toolbar"><strong>Measures</strong><button type="button" class="btn sm" id="biAddM">+ Add Measure</button><button type="button" class="btn sm" id="biAddMKpi">⚡ Add KPI to Custom</button></div><div class="bi-measures">'+b.measures.map(function(m,i){return '<div class="bi-measure-row" data-mi="'+i+'"><input class="bm-name" value="'+escapeAttr(m.name)+'"><input class="bm-expr" value="'+escapeAttr(m.expression)+'"><select class="bm-format"><option value="number"'+(m.format==='number'?' selected':'')+'>Number</option><option value="percent"'+(m.format==='percent'?' selected':'')+'>Percent</option><option value="currency"'+(m.format==='currency'?' selected':'')+'>Currency</option><option value="hours"'+(m.format==='hours'?' selected':'')+'>Hours</option><option value="days"'+(m.format==='days'?' selected':'')+'>Days</option></select><button class="bi-del-m" type="button" data-mi="'+i+'">Delete</button></div>';}).join('')+'</div><div class="bi-note">Examples: COUNTROWS() · SUM([Value]) · AVERAGE([Progress]) · DIVIDE(SUM([Actual]),SUM([Plan])).</div>';if($('biAddM'))$('biAddM').onclick=function(){b.measures.push({id:'m_'+Date.now(),name:'New Measure',expression:'COUNTROWS()',format:'number'});render('measures');};if($('biAddMKpi'))$('biAddMKpi').onclick=function(){addMeasureKPIWidget();};[].forEach.call(body.querySelectorAll('.bi-del-m'),function(x){x.onclick=function(){b.measures.splice(+x.dataset.mi,1);render('measures');};});}else if(t0==='interactions'){body.innerHTML='<label class="bi-check"><input id="biClickFilter" type="checkbox" '+(b.interactions.clickFilter!==false?'checked':'')+'> Click a visual to filter the report</label><label class="bi-check"><input id="biHighlight" type="checkbox" '+(b.interactions.highlight!==false?'checked':'')+'> Keep visual context/highlight where possible</label><div class="bi-note">Dashboard charts, Project Timeline and Dashboard Table use the same filter context.</div>';}else if(t0==='pages'){var ns=[].slice.call(document.querySelectorAll('.dashboard-nav-btn'));body.innerHTML=ns.map(function(x){var k=x.dataset.section,c=b.pages[k]||{};return '<div class="bi-page-row"><input class="bp-name" data-page="'+escapeAttr(k)+'" value="'+escapeAttr(c.label||x.textContent.trim())+'"><label><input type="checkbox" class="bp-hide" data-page="'+escapeAttr(k)+'" '+(c.hidden?'checked':'')+'> Hide</label></div>';}).join('')||'<div class="bi-note">No report pages available.</div>';}else if(t0==='parameters'){body.innerHTML='<div class="bi-role-grid"><label><span>Top N</span><input id="biTopN" type="number" min="1" max="100" value="'+escapeAttr(b.parameters.topN||10)+'"></label><label><span>Default Ranking</span><select id="biRank"><option value="top10"'+((state.chartRanking||'top10')==='top10'?' selected':'')+'>Top N</option><option value="bottom10"'+(state.chartRanking==='bottom10'?' selected':'')+'>Bottom N</option><option value="all"'+(state.chartRanking==='all'?' selected':'')+'>All</option></select></label></div>';}else{var warn=[];if(!state.rows.length)warn.push('No rows');if(Object.keys(r).length<4)warn.push('Less than 4 semantic roles mapped');var pctBad=(state.columns||[]).filter(function(c){return /%|percent|progress|complete|spi/i.test(c.label)&&c.type==='number';}).some(function(c){return state.rows.some(function(x){var v=Number(x[c.key]);return isFinite(v)&&v>100;});});if(pctBad)warn.push('Percent-like values > 100 found; verify 0–1 vs 0–100.');body.innerHTML='<div class="bi-quality '+(!warn.length?'ok':'warn')+'">'+(!warn.length?'✓ Data model checks look healthy.':warn.map(function(x){return '• '+escapeHtml(x);}).join('<br>'))+'</div>';}}
+    [].forEach.call(host.querySelectorAll('[data-bit]'),function(x){x.onclick=function(){host.querySelectorAll('[data-bit]').forEach(function(y){y.classList.remove('on');});x.classList.add('on');render(x.dataset.bit);};});host.querySelector('.bi-close').onclick=host.querySelector('.bi-cancel').onclick=function(){hideModalHost(host);};host.querySelector('.bi-save').onclick=function(){host.querySelectorAll('[data-birole]').forEach(function(x){b.model.roles[x.dataset.birole]=x.value||null;});host.querySelectorAll('.bi-measure-row').forEach(function(x){var m=b.measures[+x.dataset.mi];if(m){m.name=x.querySelector('.bm-name').value.trim()||m.name;m.expression=x.querySelector('.bm-expr').value.trim();m.format=x.querySelector('.bm-format').value;}});if($('biClickFilter'))b.interactions.clickFilter=$('biClickFilter').checked;if($('biHighlight'))b.interactions.highlight=$('biHighlight').checked;if($('biTopN'))b.parameters.topN=Math.max(1,Math.min(100,+$('biTopN').value||10));if($('biRank'))state.chartRanking=$('biRank').value;host.querySelectorAll('.bp-name').forEach(function(x){var k=x.dataset.page;b.pages[k]=b.pages[k]||{};b.pages[k].label=x.value.trim()||k;});host.querySelectorAll('.bp-hide').forEach(function(x){var k=x.dataset.page;b.pages[k]=b.pages[k]||{};b.pages[k].hidden=x.checked;});applyBIPages();persistDebounced();hideModalHost(host);renderDashboard();};host.querySelector('[data-bit="'+(tab||'model')+'"]')?.classList.add('on');render(tab||'model');}
+  function applyBIPages(){ensureBIState();document.querySelectorAll('.dashboard-nav-btn').forEach(function(x){var c=state.bi.pages[x.dataset.section];if(c){if(c.label)x.textContent=c.label;x.style.display=c.hidden?'none':'';}});}
+  function openMeasureChooser(names,onChoose){
+    var opts=names.map(function(n,i){return '<label class="final27-choice"><input type="radio" name="measure-choice" value="'+escapeAttr(n)+'" '+(i===0?'checked':'')+'><span>'+escapeHtml(n)+'</span></label>';}).join('');
+    var ui=window.__tanotModal('Choose Measure','<div class="final27-choice-list">'+opts+'</div>','<button type="button" class="final25-btn-ghost" data-no>Cancel</button><button type="button" class="final25-btn-primary" data-yes>Use Measure</button>');
+    var yes=ui.body.parentElement.querySelector('[data-yes]'),no=ui.body.parentElement.querySelector('[data-no]');
+    if(no)no.addEventListener('click',ui.close);
+    if(yes)yes.addEventListener('click',function(){var r=ui.body.querySelector('input[name="measure-choice"]:checked');var v=r?r.value:'';ui.close();if(v&&onChoose)onChoose(v);});
+  }
+  function addMeasureKPIWidgetByName(n){ ensureBIState(); makeDefaultMeasures(); var m=state.bi.measures.filter(function(x){return x.name===n;})[0]; if(!m)return; state.customWidgets.push({id:genWidgetId(),type:'kpi',x:null,y:null,w:3,h:2,config:{measureName:m.name,label:m.name,agg:'count',colKey:null,style:{}}}); renderCustomView(); persistDebounced(); }
+  function addMeasureKPIWidget(){ensureBIState();makeDefaultMeasures();var names=state.bi.measures.map(function(m){return m.name;});if(names.length>1){openMeasureChooser(names,function(sel){addMeasureKPIWidgetByName(sel);});return;}if(names.length)addMeasureKPIWidgetByName(names[0]);}
+  window.__tanotOpenQuickStart = openQuickStart;
+  window.showBIToast = showBIToast;
+
+  window.TanotDashboard = {
+    __diagnostics: function(){ return {view:currentView,customWidgets:(state.customWidgets||[]).length,customPanelOpen:!!($('customToolsPanel')&&!$('customToolsPanel').hidden),modalVisible:!!($('dashboardMappingModal')&&!$('dashboardMappingModal').hidden)}; },
+    getState: function(){ return state; },
+    setView: setView,
+    renderDashboard: renderDashboard,
+    renderCustomView: renderCustomView,
+    renderTable: renderTable,
+    persist: persistDebounced,
+    openBIModal: openBIModal,
+    addCustomWidget: addCustomWidget,
+    addCustomTemplate: addCustomTemplate,
+    saveCurrentLayout: saveCurrentLayout,
+    renderCustomTemplateList: renderCustomTemplateList,
+    duplicateCustomLayout: duplicateCustomLayout,
+    clearCustomLayout: clearCustomLayout,
+    loadCustomFromDashboard: loadCustomFromDashboard,
+    openAddWidgetPicker: openAddWidgetPicker,
+    openCondFormatPopover: openCondFormatPopover,
+    setDrill: setDrill,
+    getCurrentView: function(){ return currentView; }
+  };
+
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', function(){ try { init(); } catch(e) { console.error(e); } }, {once:true}); } else { try { init(); } catch(e) { console.error(e); } }
+
 })();
