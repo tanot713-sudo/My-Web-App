@@ -30,7 +30,10 @@
   var HEADER_PREVIEW_ROWS = 8;
 
   /* ══════════════════ i18n ไทย/อังกฤษ — แพทเทิร์นเดียวกับ excel.js/word.js (clone-and-adapt) ══════════════════ */
-  var UI_LANG_KEY = 'tanot:reportlang';
+  // เชื่อมกับตัวสลับภาษากลางของเว็บ (ตามที่ผู้ใช้ขอ) — เดิมแยกคีย์ของตัวเอง ('tanot:reportlang')
+  // ทำให้สลับภาษาที่เครื่องมืออื่นแล้วมาเปิดหน้านี้ต้องสลับใหม่ทุกครั้ง ตอนนี้ใช้คีย์กลางเดียวกับ
+  // ทุกหน้า ('ome:lang', นิยามใน shell.js) ค่าที่เก็บ ('en'/'th') ตรงกันพอดีอยู่แล้ว ไม่ต้องแปลงค่า
+  var UI_LANG_KEY = 'ome:lang';
   function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   function setUILang(l) { try { localStorage.setItem(UI_LANG_KEY, l); } catch (e) {} }
   function locale() { return getUILang() === 'en' ? 'en-US' : 'th-TH'; }
@@ -441,6 +444,23 @@
     var lt = $('langToggle');
     if (lt) lt.querySelectorAll('span').forEach(function (s) { s.classList.toggle('active', s.getAttribute('data-lt') === lang); });
   }
+
+  // ใช้ร่วมกันทั้งปุ่ม #langToggle ของหน้านี้เอง และเมนูตั้งค่า "ภาษา" กลางของเว็บ (shell.js เรียก
+  // ผ่าน window.omeApplyLang หลังเขียนค่าใหม่ลง localStorage['ome:lang'] แล้ว) — อ่านค่าปัจจุบันจาก
+  // getUILang() ตรงๆ ไม่ต้องรับพารามิเตอร์ภาษาเข้ามา เพราะจุดเรียกเขียนค่าไว้ก่อนเรียกฟังก์ชันนี้แล้ว
+  function reapplyLangAndRerender() {
+    if (state.drill) clearDrill();
+    applyStaticI18n();
+    updateSaveUI();
+    renderResumeInfo();
+    renderReportsList();
+    if (state.rows.length) {
+      updateStatRow();
+      updateSelectionUI();
+      if (currentView === 'dashboard') renderDashboard(); else renderTable();
+    }
+  }
+  window.omeApplyLang = reapplyLangAndRerender;
 
   var state = {
     fileName: null,
@@ -5802,17 +5822,9 @@
         setUILang(getUILang() === 'en' ? 'th' : 'en');
         /* ล้างตัวกรองจากคลิกกราฟ (drill) ทิ้งตอนสลับภาษา — ค่า "อื่นๆ"/"(ว่าง)" ที่เก็บไว้เป็นข้อความ
            ภาษาเดิม จะไม่ตรงกับข้อความภาษาใหม่ที่ matchesDrill() สร้างใหม่อีกต่อไป กรองแล้วจะเงียบๆ ไม่เจอ
-           สักแถว — เคลียร์ทิ้งไปเลยชัดเจนกว่า */
-        if (state.drill) clearDrill();
-        applyStaticI18n();
-        updateSaveUI();
-        renderResumeInfo();
-        renderReportsList();
-        if (state.rows.length) {
-          updateStatRow();
-          updateSelectionUI();
-          if (currentView === 'dashboard') renderDashboard(); else renderTable();
-        }
+           สักแถว — เคลียร์ทิ้งไปเลยชัดเจนกว่า (ย้ายไปรวมกับ reapplyLangAndRerender() แล้ว ใช้ร่วมกับ
+           เมนูตั้งค่าภาษากลางของเว็บ) */
+        reapplyLangAndRerender();
       });
     }
     $('fileInput').addEventListener('change', function () { handleFile($('fileInput').files[0]); });

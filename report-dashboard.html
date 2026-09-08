@@ -7,6 +7,16 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#12A594">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- ตามที่ผู้ใช้ขอ: เชื่อมกับธีม/ภาษากลางของเว็บ (กด ☰/⚙ แล้วเปลี่ยนได้เหมือนหน้าเครื่องมืออื่น) —
+     เดิมหน้านี้ไม่ได้โหลด theme.css/shell.js เลย เป็นหน้าเดียวที่แยกตัวออกจากระบบกลาง เพิ่มตรงนี้
+     ตามตำแหน่ง/ลำดับเดียวกับหน้าเครื่องมืออื่นทุกหน้า (เช่น excel.html) — ตัวแปรสี :root ของไฟล์นี้
+     ใช้ชื่อเดียวกับที่ theme.css คาดไว้อยู่แล้ว (--bg/--card/--ink/--muted/--line/--brand/--brand-dk/
+     --brand-sf/--sh) เพราะ theme.css มี selector [data-accent] body.ome-tool-page{--bg:var(--ome-bg);...}
+     ที่ remap ให้อัตโนมัติอยู่แล้ว (ทำไว้รองรับหน้าแบบนี้ตั้งแต่ต้น) ไม่ต้องแก้ CSS ภายในไฟล์นี้เพิ่ม
+     ยกเว้นฟอนต์ (ดู var(--ome-f) ที่ --ui-font/body ด้านล่าง) — ยังไม่เพิ่ม auth-gate.js เพราะเป็นคนละ
+     เรื่องกับธีม/ภาษา (ล็อกด้วยรหัสผ่าน) รบกวนยืนยันแยกอีกทีถ้าต้องการให้เพิ่มด้วย -->
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
 <!-- Gridstack.js — กริดลาก/ย่อ-ขยายกล่องเองสำหรับมุมมอง "กำหนดเอง" (MIT, ไม่มี dependency อื่น) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@12.6.0/dist/gridstack.min.css">
 <style>
@@ -29,7 +39,7 @@
    ใช้ position:fixed + transform เลื่อนออกนอกจอตอนปิด ซึ่งยังนับเป็นพื้นที่สกอลล์ได้ในบางเบราว์เซอร์
    แม้มองไม่เห็น ทำให้แกว่งซ้าย-ขวาได้ (rubber-band) เวลาปัดนิ้วบนจอมือถือ */
 html,body{overflow-x:hidden;max-width:100%}
-body.ome-tool-page{font-family:'IBM Plex Sans',Arial, Helvetica, sans-serif;background:var(--bg);color:var(--ink);
+body.ome-tool-page{font-family:var(--ome-f,'IBM Plex Sans'),Arial, Helvetica, sans-serif;background:var(--bg);color:var(--ink);
   line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1320px;margin:0 auto}
 .crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
@@ -894,7 +904,7 @@ body.presentation-mode{overflow:hidden}
 </style>
 <style>
 /* ===== Final 8: UI polish / Excel-like filtering / typography ===== */
-:root{--ui-font:'IBM Plex Sans',Arial,Helvetica,sans-serif;--ui-font-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;}
+:root{--ui-font:var(--ome-f,'IBM Plex Sans'),Arial,Helvetica,sans-serif;--ui-font-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;}
 html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-page select,.ome-tool-page textarea,.ome-tool-page table{font-family:var(--ui-font)!important;}
 .ome-tool-page{font-family:var(--ui-font)!important;}
 /* ── ตัวเลข/ค่า KPI ใช้ IBM Plex Mono (tabular figures) ให้เข้าชุดกับ template AMR O&M ── */
