@@ -446,7 +446,15 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
    ธรรมดา (background/border/box-shadow) ด้วย !important ที่นี่ที่เดียวพอ ไม่ต้องแก้ .card{} ทีละไฟล์
    40+ ไฟล์) ไม่รวม body.ome-app-page (4 หน้า React+Tailwind) เพราะ class โครงสร้างต่างกันมาก จะทำ
    เพิ่มทีหลังถ้าต้องการ — "เรียบมาตรฐาน" (flat, ค่าเริ่มต้น) ไม่มี rule ในนี้เลย เท่ากับพฤติกรรม
-   เดิมก่อนเฟสนี้ทุกอย่าง (การ์ด/ปุ่มแต่ละหน้าใช้ CSS ของตัวเองตามปกติ) */
+   เดิมก่อนเฟสนี้ทุกอย่าง (การ์ด/ปุ่มแต่ละหน้าใช้ CSS ของตัวเองตามปกติ)
+
+   แก้บั๊ก (ผู้ใช้รายงาน): ปุ่ม .btn ทุกตัวรวมถึง .btn.primary/.btn.danger/.btn.active โดนกฎด้านล่าง
+   เปลี่ยนพื้นหลังเป็นสีอ่อน/โปร่งแสงหมด แต่ทั้ง 3 คลาสนี้เกือบทุกหน้ากำหนด color:#fff ตายตัวไว้เพราะ
+   ปกติพื้นหลังเป็น var(--brand)/var(--err) (เข้ม) พอพื้นหลังถูกเปลี่ยนเป็นสีอ่อนของ style เหล่านี้
+   ตัวหนังสือขาวเลยกลืนจนมองไม่เห็น (เช่น ปุ่ม "เลือกไฟล์" ในหน้านำเสนอรายงาน) — เพิ่ม
+   :not(.primary):not(.danger):not(.active) กันปุ่มหลัก/อันตราย/active ไว้ ให้ยังใช้สี
+   var(--brand)/var(--err)+ขาวของแต่ละหน้าเองเหมือนเดิมเสมอ ไม่ว่าจะเลือกประเภทธีมไหน (ปุ่มรองอื่นๆ
+   ยังได้เอฟเฟกต์ของ style ตามปกติ) */
 
 /* กระจกฝ้า (Glassmorphism) — การ์ด/ปุ่มโปร่งแสง เบลอพื้นหลังหลังการ์ด ให้พื้นหน้าเว็บมีสีจางๆ
    ผสมสีธีมไว้ด้วยเพื่อให้เห็นเอฟเฟกต์เบลอชัดขึ้น (พื้นทึบสีเดียวเบลอแล้วจะดูไม่ต่างจากเดิม) */
@@ -459,7 +467,7 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
   backdrop-filter:blur(18px) saturate(160%)!important;-webkit-backdrop-filter:blur(18px) saturate(160%)!important;
   border:1px solid color-mix(in srgb, var(--ome-line) 55%, transparent)!important;
   box-shadow:0 8px 32px color-mix(in srgb, var(--ome-ink) 12%, transparent)!important}
-[data-style="glass"] body.ome-tool-page .btn{
+[data-style="glass"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
   background:color-mix(in srgb, var(--ome-card) 55%, transparent)!important;
   backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;
   border:1px solid color-mix(in srgb, var(--ome-line) 60%, transparent)!important}
@@ -474,11 +482,11 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
 [data-theme="dark"][data-style="neumorph"] body.ome-tool-page .card{
   box-shadow:8px 8px 18px color-mix(in srgb, black 55%, transparent),
     -8px -8px 18px color-mix(in srgb, var(--ome-card) 65%, transparent)!important}
-[data-style="neumorph"] body.ome-tool-page .btn{
+[data-style="neumorph"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
   background:var(--ome-bg)!important;border:none!important;border-radius:14px!important;
   box-shadow:4px 4px 10px color-mix(in srgb, var(--ome-ink) 14%, transparent),
     -4px -4px 10px color-mix(in srgb, white 55%, transparent)!important}
-[data-theme="dark"][data-style="neumorph"] body.ome-tool-page .btn{
+[data-theme="dark"][data-style="neumorph"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
   box-shadow:4px 4px 10px color-mix(in srgb, black 55%, transparent),
     -4px -4px 10px color-mix(in srgb, var(--ome-card) 65%, transparent)!important}
 
@@ -487,17 +495,17 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
 [data-style="neubrutal"] body.ome-tool-page .card{
   background:var(--ome-card)!important;border:2.5px solid var(--ome-ink)!important;
   border-radius:6px!important;box-shadow:6px 6px 0 var(--ome-ink)!important}
-[data-style="neubrutal"] body.ome-tool-page .btn{
+[data-style="neubrutal"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
   border:2.5px solid var(--ome-ink)!important;border-radius:6px!important;
   box-shadow:4px 4px 0 var(--ome-ink)!important;background:var(--ome-card)!important;
   transition:transform .1s ease, box-shadow .1s ease!important}
-[data-style="neubrutal"] body.ome-tool-page .btn:active{
+[data-style="neubrutal"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active):active{
   transform:translate(3px,3px)!important;box-shadow:1px 1px 0 var(--ome-ink)!important}
 
 /* เส้นขอบ (Outline) — ไม่มีเงาเลย ใช้แค่เส้นขอบบางๆ แยกพื้นผิว เรียบที่สุดในบรรดาประเภทธีมทั้งหมด */
 [data-style="outline"] body.ome-tool-page .card{
   background:var(--ome-card)!important;border:1.5px solid var(--ome-line)!important;box-shadow:none!important}
-[data-style="outline"] body.ome-tool-page .btn{
+[data-style="outline"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
   background:transparent!important;border:1.5px solid var(--ome-line)!important;box-shadow:none!important}
 
 /* คลุกดิน (Claymorphism) — โค้งมนมาก คล้ายดินน้ำมัน ใช้เงา inset สว่าง (มุมบนซ้าย) + เงา inset
@@ -507,7 +515,7 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
   box-shadow:var(--ome-sh),
     inset 2px 2px 4px color-mix(in srgb, white 40%, transparent),
     inset -3px -3px 8px color-mix(in srgb, var(--ome-ink) 10%, transparent)!important}
-[data-style="clay"] body.ome-tool-page .btn{
+[data-style="clay"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
   border:none!important;border-radius:16px!important;background:var(--ome-card)!important;
   box-shadow:0 4px 10px color-mix(in srgb, var(--ome-ink) 12%, transparent),
     inset 1px 1px 3px color-mix(in srgb, white 45%, transparent)!important}
@@ -519,7 +527,7 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
   backdrop-filter:blur(6px)!important;-webkit-backdrop-filter:blur(6px)!important;
   border:1px solid color-mix(in srgb, var(--ome-line) 80%, transparent)!important;
   box-shadow:var(--ome-sh)!important}
-[data-style="mica"] body.ome-tool-page .btn{
+[data-style="mica"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
   background:color-mix(in srgb, var(--ome-card) 80%, transparent)!important;
   backdrop-filter:blur(4px)!important;-webkit-backdrop-filter:blur(4px)!important}
 
