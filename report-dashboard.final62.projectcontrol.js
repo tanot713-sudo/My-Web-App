@@ -425,6 +425,11 @@
     var colX=w-right;
     ['Actual','Plan','Δ','Status'].forEach(function(lbl,idx){out+='<text x="'+(colX+[28,75,120,175][idx])+'" y="52" text-anchor="middle" font-size="10" font-weight="800" fill="'+designVar('textColor')+'">'+lbl+'</text>';});
     out+=line(colX,0,colX,h-8,designVar('grid'),1);
+    /* ตามที่ผู้ใช้ขอ: เดิมแท่ง Gantt วางตายตัวที่ y+5 (นับจากบนแถว) ไม่ได้อิงความสูงแถวจริง (rowH) เลย
+       เวลาแถวสูงกว่าปกติ (ชื่อโครงการยาว 2 บรรทัด → rowH+14 ด้านบน) แท่งเลยลอยค้างอยู่ค่อนไปทางขอบบน
+       ของกล่อง ไม่อยู่กึ่งกลางแถวเหมือนชื่อโครงการ (ซึ่งใช้ cy=y+rowH/2 กึ่งกลางจริงอยู่แล้ว) — คำนวณ
+       barY ให้กึ่งกลางแนวตั้งของแท่ง (สูง 14px) ตรงกับกึ่งกลางแถวเสมอไม่ว่า rowH จะเท่าไหร่ */
+    var barH=14, barY=(rowH-barH)/2;
     data.forEach(function(r,i){
       var y=topAxis+i*rowH, s=r.start||min, e=r.end||r.start||max;
       var x1=left+pw*((s-min)/span), x2=left+pw*((e-min)/span), full=Math.max(12,x2-x1);
@@ -442,9 +447,9 @@
       out+='<g clip-path="url(#pc61NameClip)"><circle cx="14" cy="'+cy+'" r="4" fill="'+bc+'"/><text x="25" y="'+(cy+4)+'" font-size="'+nameFontSize+'" font-weight="600" fill="'+designVar('textColor')+'"><title>'+esc(r.name)+'</title>'+nameTspans+'</text></g>';
       var tip='Project: '+r.name+' | Start: '+fmt(s)+' | Finish: '+fmt(e)+' | Actual: '+(r.actual==null?'—':r.actual.toFixed(1)+'%')+' | Plan: '+(r.plan==null?'—':r.plan.toFixed(1)+'%')+' | Status: '+status;
       // Remaining/plan track is intentionally visible light blue-gray, never white.
-      out+='<rect x="'+x1+'" y="'+(y+5)+'" width="'+full+'" height="14" rx="7" fill="#DCE6F0"><title>'+esc(tip)+'</title></rect>';
-      out+='<rect x="'+x1+'" y="'+(y+5)+'" width="'+actualW+'" height="14" rx="7" fill="'+bc+'"><title>'+esc(tip)+'</title></rect>';
-      if(pl!=null){var px=x1+full*pl/100;out+=line(px,y+2,px,y+22,designVar('plan'),2);}
+      out+='<rect x="'+x1+'" y="'+(y+barY)+'" width="'+full+'" height="'+barH+'" rx="7" fill="#DCE6F0"><title>'+esc(tip)+'</title></rect>';
+      out+='<rect x="'+x1+'" y="'+(y+barY)+'" width="'+actualW+'" height="'+barH+'" rx="7" fill="'+bc+'"><title>'+esc(tip)+'</title></rect>';
+      if(pl!=null){var px=x1+full*pl/100;out+=line(px,y+barY-3,px,y+barY+barH+3,designVar('plan'),2);}
       var delta=(r.actual!=null&&r.plan!=null)?r.actual-r.plan:null;
       out+='<text x="'+(colX+28)+'" y="'+(y+15)+'" text-anchor="middle" font-size="10" font-weight="800" fill="'+statusColor+'">'+(r.actual==null?'—':r.actual.toFixed(0)+'%')+'</text>';
       out+='<text x="'+(colX+75)+'" y="'+(y+15)+'" text-anchor="middle" font-size="10" fill="'+designVar('textColor')+'">'+(r.plan==null?'—':r.plan.toFixed(0)+'%')+'</text>';

@@ -983,6 +983,9 @@
     $('sheetCard').style.display = 'none';
     $('headerCard').style.display = 'none';
     $('uploadCard').style.display = 'none';
+    // การ์ดดาวน์โหลดแม่แบบเปล่าอยู่คู่กับ uploadCard เสมอ (ผู้ใช้ขอให้โชว์เฉพาะหน้าอัปโหลด
+    // ไม่ใช่ในตาราง/แดชบอร์ด/กำหนดเอง) — ซ่อน/โชว์พร้อมกันทุกจุดที่ toggle uploadCard
+    $('templateDownloadCard').style.display = 'none';
     $('resumeCard').style.display = 'none';
     $('reportsCard').style.display = 'none';
     $('dataMeta').textContent = (state.fileName || '') + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
@@ -5451,7 +5454,8 @@
     state.freezeCols = rec.freezeCols != null ? (+rec.freezeCols || 0) : (rec.freezeFirstCol ? 1 : 0);
     state.groupBy = rec.groupBy || null; state.groupSubtotalCol = rec.groupSubtotalCol || null; state.collapsedGroups = {};
       updateDrillBanner(); updateSaveUI();
-      $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
+      $('uploadCard').style.display = 'none'; $('templateDownloadCard').style.display = 'none';
+      $('reportsCard').style.display = 'none'; $('resumeCard').style.display = 'none';
       $('dataMeta').textContent = (state.fileName || rec.name) + dataMetaSheetSuffix() + ' · ' + state.rows.length.toLocaleString(locale()) + ' ' + t('unitRows');
       $('viewTabs').style.display = 'flex';
       setView('dashboard');
@@ -5795,6 +5799,7 @@
     $('headerCard').style.display = 'none';
     $('resumeCard').style.display = 'none';
     $('uploadCard').style.display = 'block';
+    $('templateDownloadCard').style.display = 'block';
     $('fileInput').value = '';
     setUploadStatus('', '');
     dbClearCurrent();
@@ -5943,7 +5948,8 @@
     state.freezeCols = saved.freezeCols != null ? (+saved.freezeCols || 0) : (saved.freezeFirstCol ? 1 : 0);
     state.groupBy = saved.groupBy || null; state.groupSubtotalCol = saved.groupSubtotalCol || null; state.collapsedGroups = {};
           updateDrillBanner(); updateSaveUI();
-          $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none'; $('reportsCard').style.display = 'none';
+          $('resumeCard').style.display = 'none'; $('uploadCard').style.display = 'none';
+          $('templateDownloadCard').style.display = 'none'; $('reportsCard').style.display = 'none';
           $('viewTabs').style.display = 'flex';
           autoConfigureDashboard(false);
           setView('dashboard'); // เรียก renderTable() ให้เองในตัว

@@ -1518,9 +1518,11 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
   /* ตามที่ผู้ใช้ขอ (ตัด icon/ปุ่มที่ไม่จำเป็นออกเพื่อความเรียบร้อยบนมือถือ): เดิมปุ่มนี้ลอยอยู่ทุกหน้า
      ตลอดเวลา แม้แต่หน้าอัปโหลดเปล่าๆ ที่ยังไม่มีข้อมูล/ไม่ได้ใช้ Project Control เลย — ซ่อนเป็นค่า
      เริ่มต้น แสดงเฉพาะตอน #projectControlLayout กำลังแสดงอยู่จริง (render()/suppressLayout() ใน
-     report-dashboard.final62.projectcontrol.js toggle คลาส .pc53-show ให้) */
+     report-dashboard.final62.projectcontrol.js toggle คลาส .pc53-show ให้)
+     ตำแหน่ง: ย้ายจากขวาไปซ้าย (ผู้ใช้รายงาน) — หลังเชื่อมกับ shell.js แล้ว หน้านี้มีปุ่มลอย "ผู้ช่วย AI"
+     ของ ai-chat-widget.js อยู่ที่ right:16px;bottom:16px (วงกลม 56px) ทับซ้อนตำแหน่งเดิมของปุ่มนี้พอดี */
   display:none;
-  position:fixed;right:18px;bottom:18px;z-index:4000;
+  position:fixed;left:18px;bottom:18px;z-index:4000;
   align-items:center;gap:6px;height:40px;padding:0 16px;
   border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);
   font:700 13px 'IBM Plex Sans',Arial,Helvetica,sans-serif;cursor:pointer;box-shadow:var(--sh)
