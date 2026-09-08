@@ -25,6 +25,10 @@
      โปรเจกต์ — ทำให้ swatch/แถบกราฟจุดนั้นไม่มีสี (โปร่งใส) มาตลอด กำหนดให้ที่นี่ ผูกกับโทนน้ำเงินใหม่ */
   --pc54-actual:var(--brand);--pc54-today:var(--err)}
 *{box-sizing:border-box;margin:0;padding:0}
+/* กันสกอลล์แนวนอนทั้งหน้าบนมือถือ — ลิ้นชัก/แผง off-canvas (Dashboard Design, Command Palette ฯลฯ)
+   ใช้ position:fixed + transform เลื่อนออกนอกจอตอนปิด ซึ่งยังนับเป็นพื้นที่สกอลล์ได้ในบางเบราว์เซอร์
+   แม้มองไม่เห็น ทำให้แกว่งซ้าย-ขวาได้ (rubber-band) เวลาปัดนิ้วบนจอมือถือ */
+html,body{overflow-x:hidden;max-width:100%}
 body.ome-tool-page{font-family:'IBM Plex Sans',Arial, Helvetica, sans-serif;background:var(--bg);color:var(--ink);
   line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1320px;margin:0 auto}
@@ -544,8 +548,6 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
 @media print{#dashboardFilterCard,#dashExportToolbar,#dashBgToolbar,.widget-fullscreen{display:none!important}.chart-grid{grid-template-columns:1fr!important}}
 
 /* ===== Enterprise / final polish ===== */
-#enterpriseToolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
-#enterpriseToolbar .btn.sm{padding:7px 11px}
 .enterprise-card{margin-top:14px}
 .enterprise-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .enterprise-panel{background:var(--card);border:1px solid rgba(16,24,40,.05);border-radius:14px;padding:14px;min-height:250px}
@@ -1173,6 +1175,9 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
   .dashboard-command-left{grid-column:1/-1;grid-row:2}
   .dashboard-command-right{grid-column:2;grid-row:1}
   .dashboard-report-meta .title,.dashboard-report-meta .meta{max-width:74vw}
+  /* จอแคบ: ปุ่ม/ดรอปดาวน์แถวขวาบน (แม่แบบ/ความหนาแน่น/Design/Fullscreen ฯลฯ) เยอะเกินจะอยู่แถว
+     เดียวได้ — บังคับ nowrap ด้านบน (สำหรับจอกว้าง) ไม่เหมาะกับมือถือ ปล่อยให้ตกบรรทัดแทนล้นจอ */
+  .dashboard-command-right{flex-wrap:wrap!important;justify-content:flex-start!important;width:100%}
 }
 /* FINAL24: compact controls; hide generic inline dashboard filter controls in favor of one button */
 .final25-dbfilter-controls{display:none!important}
@@ -1500,11 +1505,17 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
    .final25-modal ที่มีอยู่แล้วในไฟล์นี้ (พิสูจน์แล้วว่าใช้ได้ดี) โดยใช้ตัวแปรสี/เงาชุดเดียวกับที่
    เหลือทั้งไฟล์ใช้อยู่ (var(--card)/var(--line)/var(--brand)/var(--sh) ฯลฯ) เพื่อให้เข้าชุดกัน */
 .pc53-design-trigger{
+  /* ตามที่ผู้ใช้ขอ (ตัด icon/ปุ่มที่ไม่จำเป็นออกเพื่อความเรียบร้อยบนมือถือ): เดิมปุ่มนี้ลอยอยู่ทุกหน้า
+     ตลอดเวลา แม้แต่หน้าอัปโหลดเปล่าๆ ที่ยังไม่มีข้อมูล/ไม่ได้ใช้ Project Control เลย — ซ่อนเป็นค่า
+     เริ่มต้น แสดงเฉพาะตอน #projectControlLayout กำลังแสดงอยู่จริง (render()/suppressLayout() ใน
+     report-dashboard.final62.projectcontrol.js toggle คลาส .pc53-show ให้) */
+  display:none;
   position:fixed;right:18px;bottom:18px;z-index:4000;
-  display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;
+  align-items:center;gap:6px;height:40px;padding:0 16px;
   border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);
   font:700 13px 'IBM Plex Sans',Arial,Helvetica,sans-serif;cursor:pointer;box-shadow:var(--sh)
 }
+.pc53-design-trigger.pc53-show{display:inline-flex}
 .pc53-design-trigger:hover{border-color:var(--brand);color:var(--brand-dk);background:var(--brand-sf)}
 #pc53DesignPanel{display:none}
 #pc53DesignPanel.open{display:block}
@@ -1707,20 +1718,13 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
   <div class="toolbar-row utility-legacy-row" id="dashBgToolbar" style="display:none">
     <button class="btn sm" id="dashboardBgBtn" type="button" data-i18n="dashboardBgBtn">🎨 พื้นหลังแดชบอร์ด</button>
   </div>
-  <div class="toolbar-row utility-legacy-row" id="enterpriseToolbar" style="display:none">
-    <button class="btn sm" id="presentationBtn" type="button">🖥️ Presentation</button>
-    <button class="btn sm" id="shareReadonlyBtn" type="button">🔗 Share Read-only</button>
-    <button class="btn sm" id="bookmarkBtn" type="button">🔖 Save View</button>
-    <button class="btn sm" id="bookmarksBtn" type="button">📚 Saved Views</button>
-    <button class="btn sm" id="autoRefreshBtn" type="button">⟳ Auto Refresh</button>
-    <button class="btn sm" id="versionBtn" type="button">🕘 Versions</button>
-    <button class="btn sm" id="auditBtn" type="button">🧾 Audit Log</button>
-    <button class="btn sm" id="advancedAnalyticsBtn" type="button">📐 Advanced Analytics</button>
-    <button class="btn sm" id="dashboardStyleBtn" type="button">🎨 Dashboard Style</button>
-    <button class="btn sm" id="dashboardMappingBtn" type="button">Data Mapping</button>
-    <button class="btn sm" id="dashboardQualityBtn" type="button">Quality Check</button>
-    <span id="readonlyBadge" class="readonly-badge" style="display:none">🔒 Read-only</span>
-  </div>
+  <!-- ตามที่ผู้ใช้ขอ (ตัด icon ที่ไม่จำเป็นออก): เดิม #enterpriseToolbar ทั้งแถว (Presentation/Share
+       Read-only/Save View/Saved Views/Auto Refresh/Versions/Audit Log/Dashboard Style/Data Mapping/
+       Quality Check/Advanced Analytics/ป้าย Read-only) ถูกซ่อนถาวรด้วย inline style="display:none"
+       ไม่มีจุดไหนในโค้ดสั่งแสดงเลยสักครั้ง (ตรวจ grep ทั้งไฟล์ core+bi-plus+utils+performance แล้ว) —
+       9 ใน 11 ปุ่มไม่มี event listener ผูกไว้ด้วยซ้ำ (กดแล้วไม่มีอะไรเกิดขึ้นจริงแม้จะเปิดให้เห็นได้)
+       มีแค่ Advanced Analytics ที่ผูกฟังก์ชันจริงแต่เข้าไม่ถึงเช่นกัน — ลบทั้งแถวทิ้ง (การ์ด
+       reportMetaCard/advancedAnalyticsCard ที่ปุ่มพวกนี้เคยเปิดก็ลบไปด้วยแล้วข้างล่าง) -->
 
   <div id="dashboardView" class="dashboard-shell" style="position:relative;display:none">
     <div id="dashboardBgLayer"></div>
@@ -1987,23 +1991,9 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
       <div class="tbl-wrap dash"><table id="dashTable"></table></div>
       <p class="mini" id="dashTableMeta"></p>
     </div>
-    <div class="card enterprise-card" id="reportMetaCard" style="display:none">
-      <h2>ℹ️ Report Information</h2>
-      <div class="enterprise-meta" id="reportMetaGrid"></div>
-    </div>
-    <div class="card enterprise-card" id="advancedAnalyticsCard" style="display:none">
-      <h2>📐 Advanced Analytics</h2>
-      <div class="chart-ctrl-row">
-        <label>Equipment <select id="enterpriseEquipmentSel"></select></label>
-        <label>Analysis <select id="enterpriseAnalysisSel"><option value="pareto">Pareto</option><option value="repeat">Repeat Failure</option><option value="anomaly">Anomaly</option><option value="forecast">Forecast</option></select></label>
-      </div>
-      <div class="enterprise-mini-grid" id="enterpriseMiniGrid"></div>
-      <div class="enterprise-grid">
-        <div class="enterprise-panel"><h3 id="enterpriseChartATitle">Pareto / Failure Analysis</h3><canvas id="enterpriseChartA"></canvas></div>
-        <div class="enterprise-panel"><h3 id="enterpriseChartBTitle">Equipment / Anomaly</h3><canvas id="enterpriseChartB"></canvas></div>
-      </div>
-      <p class="mini" id="enterpriseAnalysisNote"></p>
-    </div>
+    <!-- ตามที่ผู้ใช้ขอ (ตัด icon ที่ไม่จำเป็นออก): reportMetaCard/advancedAnalyticsCard เดิมเปิดใช้ไม่ได้
+         อยู่แล้วเพราะปุ่มเปิด (#enterpriseToolbar ทั้งแถว) ถูกซ่อนถาวรด้วย inline style ไม่มีจุดไหนสั่ง
+         แสดงเลย (ตรวจสอบแล้ว) — ลบทิ้งทั้งคู่ไปพร้อมกัน -->
     <div class="card" id="dashboardEmptyCard" style="display:none">
       <h2 data-i18n="dashboardEmptyTitle">📊 แดชบอร์ด</h2>
       <p class="mini">ยังสรุปเป็นกราฟไม่ได้ — ต้องมีอย่างน้อย 1 คอลัมน์ตัวเลข หรือ 1 คอลัมน์หมวดหมู่ที่ไม่ใช่ข้อความอิสระเกินไป</p>

@@ -550,6 +550,7 @@
     var layout=q('#projectControlLayout');
     if(layout) layout.classList.add('pc-override-hidden');
     qa('.project-control-hidden-source').forEach(function(e){ e.classList.remove('project-control-hidden-source'); });
+    var trig=q('.pc53-design-trigger'); if(trig) trig.classList.remove('pc53-show');
   }
 
   /* บั๊กเรื่องลำดับเวลาที่เจอตอนทดสอบสลับไฟล์หลายรอบ — ดูคอมเมนต์เต็มที่ __tdRevalidate ของ
@@ -586,6 +587,7 @@
     var others=qa('[id$="ControlLayout"]').filter(function(e){return e.id!=='projectControlLayout' && e.getAttribute('data-built')==='1' && e.className.indexOf('override-hidden')===-1;});
     if(others.length) return;
     if(!build())return;
+    var trig=q('.pc53-design-trigger'); if(trig) trig.classList.add('pc53-show');
     relocateAnalyticsCharts();
     var rows=data.rows,today=new Date();today.setHours(0,0,0,0);
     var av=rows.filter(function(r){return r.actual!=null}),pl=rows.filter(function(r){return r.plan!=null});
