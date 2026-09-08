@@ -119,6 +119,9 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
   font-weight:600;margin-bottom:8px}
 [data-theme="dark"] .mx-lock-msg{background:#3A2C10;color:#F5C36B}
 
+/* แก้บั๊ก (ผู้ใช้รายงาน): เพิ่มคลาส "card" ต่อท้าย .mx-main/.mx-gamebar ใน HTML ให้เมนู "ประเภทธีม"
+   ของเว็บ (theme.css, เดิมเล็ง selector .card เท่านั้น) มีผลกับหน้านี้ด้วย ไม่งั้นเปลี่ยนธีมแล้วหน้านี้
+   ไม่ขยับเลยเพราะไม่เคยใช้คลาส .card มาก่อน — ไม่กระทบสไตล์เดิมตอนเลือก "เรียบมาตรฐาน" (ค่าเริ่มต้น) */
 .mx-main{background:var(--card);border-radius:var(--r);box-shadow:0 4px 10px rgba(24,31,54,.06),0 16px 32px rgba(124,58,237,.1);
   padding:22px;position:relative}
 .mx-item-heading{font-size:17px;font-weight:800;margin-bottom:8px;color:var(--mx-dk)}
@@ -178,7 +181,7 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   </div>
 </div>
 
-<div class="mx-gamebar" id="gameBar">
+<div class="mx-gamebar card" id="gameBar">
   <div class="mx-level-chip">
     <div class="mx-level-num" id="levelNum">1</div>
     <div class="mx-level-info">
@@ -204,7 +207,7 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
     <div class="mx-item-list" id="itemList"></div>
   </div>
 
-  <div class="mx-main">
+  <div class="mx-main card">
     <div class="mx-confetti" id="confettiLayer"></div>
     <div class="mx-item-heading" id="itemHeading"></div>
     <div class="mx-instructions" id="instructionsBox"></div>

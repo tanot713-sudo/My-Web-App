@@ -127,6 +127,9 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
   font-weight:600;margin-bottom:8px}
 [data-theme="dark"] .ck-lock-msg{background:#3A2C10;color:#F5C36B}
 
+/* แก้บั๊ก (ผู้ใช้รายงาน): เพิ่มคลาส "card" ต่อท้าย .ck-main/.ck-gamebar ใน HTML ให้เมนู "ประเภทธีม"
+   ของเว็บ (theme.css, เดิมเล็ง selector .card เท่านั้น) มีผลกับหน้านี้ด้วย ไม่งั้นเปลี่ยนธีมแล้วหน้านี้
+   ไม่ขยับเลยเพราะไม่เคยใช้คลาส .card มาก่อน — ไม่กระทบสไตล์เดิมตอนเลือก "เรียบมาตรฐาน" (ค่าเริ่มต้น) */
 .ck-main{background:var(--card);border-radius:var(--r);box-shadow:0 4px 10px rgba(24,31,54,.06),0 16px 32px rgba(234,88,12,.1);
   padding:22px;position:relative}
 .ck-item-heading-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
@@ -242,7 +245,7 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   </div>
 </div>
 
-<div class="ck-gamebar" id="gameBar">
+<div class="ck-gamebar card" id="gameBar">
   <div class="ck-level-chip">
     <div class="ck-level-num" id="levelNum">1</div>
     <div class="ck-level-info">
@@ -273,7 +276,7 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
     <div class="ck-item-list" id="itemList"></div>
   </div>
 
-  <div class="ck-main">
+  <div class="ck-main card">
     <div class="ck-confetti" id="confettiLayer"></div>
     <div class="ck-item-heading-row">
       <div class="ck-item-heading" id="itemHeading"></div>

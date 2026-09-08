@@ -52,7 +52,13 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 /* ── ทางลัด: bento grid ของเครื่องมือที่ใช้บ่อย (แทนที่จะต้องเปิดลิ้นชักเมนูทุกครั้ง) ──
    ขนาดการ์ดไม่เท่ากันตั้งใจ — 3 การ์ดใหญ่ (.featured) ให้กับเครื่องมือที่มีเนื้อหา/หมวดย่อย
    เยอะที่สุดในเว็บ (การลงทุน 14 หมวด, CAD เต็มรูปแบบ 2D/3D, ภาษา 17 ภาษา) ส่วนที่เหลือเป็น
-   การ์ดขนาดปกติ — แถบสีซ้ายจัดกลุ่มตามหมวดงาน (ไม่ใช่ไอคอนตกแต่ง) */
+   การ์ดขนาดปกติ — แถบสีซ้ายจัดกลุ่มตามหมวดงาน (ไม่ใช่ไอคอนตกแต่ง)
+
+   แก้บั๊ก (ผู้ใช้รายงาน): หน้านี้ไม่เคยใช้คลาส .card เลย (ใช้ .bento-tile ของตัวเอง) ทำให้เมนูตั้งค่า
+   "ประเภทธีม" (กระจกฝ้า/นูนนิ่ม/ฯลฯ ใน theme.css) ไม่มีผลอะไรกับหน้านี้เลยเพราะ theme.css เล็ง
+   selector .card เท่านั้น — เพิ่มคลาส "card" ต่อท้าย .bento-tile ในทุกกล่อง (ดูใน HTML ด้านล่าง)
+   ให้ theme.css จับได้ โดยไม่ต้องแก้สไตล์เดิมของ .bento-tile เลยสักบรรทัด (theme.css ใช้ !important
+   ทับเฉพาะตอนเลือกประเภทธีมที่ไม่ใช่ "เรียบมาตรฐาน" เท่านั้น) */
 .sec-title{margin:30px 0 12px;font-size:14px;font-weight:600;color:var(--muted);
   display:flex;align-items:center;gap:8px}
 .sec-title::after{content:'';flex:1;height:1px;background:var(--line)}
@@ -92,47 +98,47 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 
 <div class="sec-title">ทางลัด</div>
 <div class="bento">
-  <a class="bento-tile featured" href="invest.html" style="--accent:var(--amber)">
+  <a class="bento-tile featured card" href="invest.html" style="--accent:var(--amber)">
     <span class="bt-name">การลงทุน</span>
     <span class="bt-desc">หุ้นไทย/ต่างประเทศ กองทุน ทองคำ ค่าเงิน พอร์ตจำลอง สลาก และอีกรวม 14 หมวด ครบในที่เดียว</span>
   </a>
-  <a class="bento-tile featured" href="cad.html" style="--accent:var(--sky)">
+  <a class="bento-tile featured card" href="cad.html" style="--accent:var(--sky)">
     <span class="bt-name">งานเขียนแบบ CAD</span>
     <span class="bt-desc">เขียนแบบ 2D/3D เต็มรูปแบบ พร้อมเครื่องมือวัด บล็อก เส้นโค้ง และส่งออกไฟล์ใช้งานจริง</span>
   </a>
-  <a class="bento-tile featured" href="languages.html" style="--accent:var(--violet)">
+  <a class="bento-tile featured card" href="languages.html" style="--accent:var(--violet)">
     <span class="bt-name">ภาษา</span>
     <span class="bt-desc">สมุดวลี ทวนคำศัพท์แบบเว้นช่วง ฝึกเขียน และแบบทดสอบวัดระดับ รวม 17 ภาษา</span>
   </a>
-  <a class="bento-tile" href="budget.html" style="--accent:var(--amber)">
+  <a class="bento-tile card" href="budget.html" style="--accent:var(--amber)">
     <span class="bt-name">รายรับรายจ่าย</span>
     <span class="bt-desc">บันทึกรายวัน + สรุปงบประมาณ</span>
   </a>
-  <a class="bento-tile" href="doc-check.html" style="--accent:var(--sky)">
+  <a class="bento-tile card" href="doc-check.html" style="--accent:var(--sky)">
     <span class="bt-name">ตรวจสอบเอกสาร</span>
     <span class="bt-desc">เช็กความถูกต้อง/ครบถ้วนของไฟล์เอกสาร</span>
   </a>
-  <a class="bento-tile" href="word.html" style="--accent:var(--sky)">
+  <a class="bento-tile card" href="word.html" style="--accent:var(--sky)">
     <span class="bt-name">งาน Word</span>
     <span class="bt-desc">ร่าง/แก้เอกสาร Word อัตโนมัติ</span>
   </a>
-  <a class="bento-tile" href="excel.html" style="--accent:var(--sky)">
+  <a class="bento-tile card" href="excel.html" style="--accent:var(--sky)">
     <span class="bt-name">งาน Excel</span>
     <span class="bt-desc">สร้าง/คำนวณตาราง Excel อัตโนมัติ</span>
   </a>
-  <a class="bento-tile" href="text-to-speech.html" style="--accent:var(--rose)">
+  <a class="bento-tile card" href="text-to-speech.html" style="--accent:var(--rose)">
     <span class="bt-name">แปลงเสียง ↔ ข้อความ</span>
     <span class="bt-desc">อ่านออกเสียงไฟล์เอกสาร หรือถอดเสียงพูดเป็นข้อความ</span>
   </a>
-  <a class="bento-tile" href="classroom-law.html" style="--accent:var(--violet)">
+  <a class="bento-tile card" href="classroom-law.html" style="--accent:var(--violet)">
     <span class="bt-name">เรียนกฎหมาย</span>
     <span class="bt-desc">ทวนความจำเป็นรอบ + แบบฝึกหัดตามหลักสูตร</span>
   </a>
-  <a class="bento-tile" href="coding.html" style="--accent:var(--brand)">
+  <a class="bento-tile card" href="coding.html" style="--accent:var(--brand)">
     <span class="bt-name">การเขียนโค้ด</span>
     <span class="bt-desc">ฝึกเขียนโค้ดพร้อมรันผลจริงในเบราว์เซอร์</span>
   </a>
-  <a class="bento-tile" href="report-dashboard.html" style="--accent:var(--sky)">
+  <a class="bento-tile card" href="report-dashboard.html" style="--accent:var(--sky)">
     <span class="bt-name">นำเสนอรายงาน</span>
     <span class="bt-desc">สร้างสไลด์/แดชบอร์ดนำเสนอจากข้อมูลที่มี</span>
   </a>

@@ -43,6 +43,9 @@ h1{font-size:clamp(22px,4.4vw,30px);font-weight:700;line-height:1.3;position:rel
 .sec-title::after{content:'';flex:1;height:1px;background:var(--line)}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+/* แก้บั๊ก (ผู้ใช้รายงาน): เพิ่มคลาส "card" ต่อท้าย .tile/.stat-panel ใน HTML/JS ด้านล่าง ให้เมนู
+   "ประเภทธีม" ของเว็บ (theme.css, เดิมเล็ง selector .card เท่านั้น) มีผลกับหน้านี้ด้วย — ไม่กระทบสไตล์
+   เดิมตอนเลือก "เรียบมาตรฐาน" (ค่าเริ่มต้น) */
 .tile{display:flex;gap:14px;align-items:flex-start;background:var(--card);border-radius:16px;
   box-shadow:var(--sh);padding:18px 20px;text-decoration:none;color:var(--ink);
   transition:.18s;border:1.5px solid transparent;position:relative}
@@ -108,7 +111,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <p class="sub">เลือกหมวดจากแถบด้านบน — เปิดใช้ครบทุกหมวดแล้วทั้ง 14 หมวด ตั้งแต่หุ้นไทย/ต่างประเทศ กองทุน ทองคำ ค่าเงิน/วัตถุดิบ ข่าวหุ้น พอร์ตจำลอง ไปจนถึงสลากออมสิน/ธ.ก.ส./สลากกินแบ่งรัฐบาล</p>
   </div>
 
-  <details class="stat-panel">
+  <details class="stat-panel card">
     <summary>สรุปด่วน — หมวด/ราคาทอง/บาทดอลลาร์/ข่าวล่าสุด</summary>
     <div class="stat-grid" id="statGrid">
       <div class="stat-box"><div class="stat-ic"></div><div class="stat-txt">
@@ -168,7 +171,9 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     CATS.forEach(function (c) {
       var a = document.createElement('a');
       var built = !!c.page;
-      a.className = 'tile' + (built ? '' : ' soon');
+      // เพิ่ม "card" ให้เมนู "ประเภทธีม" ของเว็บ (theme.css) จับ .tile ได้ด้วย (แก้บั๊กผู้ใช้รายงาน:
+      // หน้านี้ไม่เคยใช้คลาส .card มาก่อน เปลี่ยนธีมแล้วไม่ขยับเลย)
+      a.className = 'tile card' + (built ? '' : ' soon');
       a.href = built ? c.page : 'invest.html?soon=' + c.key;
       a.innerHTML =
         '<span><span class="tile-name">' + c.label + '</span>' +
