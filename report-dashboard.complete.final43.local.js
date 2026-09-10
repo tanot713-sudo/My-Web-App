@@ -172,7 +172,7 @@
       numStatTitle: '🔢 สรุปตัวเลข', statTileSub: 'เฉลี่ย {avg} · ต่ำสุด {min} · สูงสุด {max}',
       domainTemplateLbl: 'แม่แบบ', domainAutoOption: 'อัตโนมัติ', domainNoneOption: 'ทั่วไป (ไม่ใช้แม่แบบ)',
       domainMaintenanceOption: '🛠️ ซ่อมบำรุง', domainProjectOption: '📁 โครงการ', domainLegalOption: '⚖️ กฎหมาย',
-      domainRiskOption: '⚠️ ความเสี่ยง', domainSafetyOption: '🦺 ความปลอดภัย', domainHrOption: '👥 บุคคล (HR)', domainItopsOption: '🖥️ IT / DevOps', domainKpidashboardOption: '📊 KPI Dashboard',
+      domainRiskOption: '⚠️ ความเสี่ยง', domainSafetyOption: '🦺 ความปลอดภัย', domainHrOption: '👥 บุคคล (HR)', domainItopsOption: '🖥️ IT / DevOps', domainKpidashboardOption: '📊 KPI Dashboard', domainOrganizationalOption: '🏢 Organizational Dashboard',
       domainTitleMaintenance: '🛠️ แดชบอร์ดซ่อมบำรุง', domainTitleProject: '📁 แดชบอร์ดโครงการ', domainTitleLegal: '⚖️ แดชบอร์ดกฎหมาย',
       domainTitleRisk: '⚠️ แดชบอร์ดความเสี่ยง',
       domainDetectedHint: 'ตรวจพบว่าตารางนี้น่าจะเป็นตาราง{name} — เลือกแม่แบบอื่นได้จากด้านบนถ้าไม่ตรง',
@@ -369,7 +369,7 @@
       numStatTitle: '🔢 Number Summary', statTileSub: 'avg {avg} · min {min} · max {max}',
       domainTemplateLbl: 'Template', domainAutoOption: 'Auto', domainNoneOption: 'Generic (no template)',
       domainMaintenanceOption: '🛠️ Maintenance', domainProjectOption: '📁 Project', domainLegalOption: '⚖️ Legal',
-      domainRiskOption: '⚠️ Risk', domainSafetyOption: '🦺 Safety', domainHrOption: '👥 HR', domainItopsOption: '🖥️ IT / DevOps', domainKpidashboardOption: '📊 KPI Dashboard',
+      domainRiskOption: '⚠️ Risk', domainSafetyOption: '🦺 Safety', domainHrOption: '👥 HR', domainItopsOption: '🖥️ IT / DevOps', domainKpidashboardOption: '📊 KPI Dashboard', domainOrganizationalOption: '🏢 Organizational Dashboard',
       domainTitleMaintenance: '🛠️ Maintenance Dashboard', domainTitleProject: '📁 Project Dashboard', domainTitleLegal: '⚖️ Legal Dashboard',
       domainTitleRisk: '⚠️ Risk Dashboard',
       domainDetectedHint: 'Detected this as a {name} table — pick a different template above if it’s wrong',
@@ -4080,7 +4080,15 @@
   var DOMAIN_BUILDERS = { maintenance: buildMaintenanceDomain, project: buildProjectDomain, legal: buildLegalDomain, risk: buildRiskDomain, finance: buildFinanceDomain, reading: buildReadingDomain };
   function renderDomainDashboard(rows) {
     var override = state.domainOverride;
-    var picked = override ? (override === 'none' ? null : { id: override, roles: matchDomainRoles(state.columns, DOMAIN_ROLES[override]).roles }) : detectDomain();
+    /* บั๊กที่เจอ (ระหว่างต่อ Organizational Dashboard): แม่แบบที่เป็น "โมดูลเต็ม" แยกไฟล์ของตัวเอง
+       (safety/hr/itops/kpidashboard/organizational — มี layout/render() เป็นของตัวเอง ไม่ผ่านระบบ
+       DOMAIN_BUILDERS การ์ดเล็กนี้เลย) ไม่มี key อยู่ใน DOMAIN_ROLES/DOMAIN_BUILDERS ข้างล่าง พอผู้ใช้เลือก
+       จากดรอปดาวน์ "Template" ตรงๆ (ไม่ใช่ auto-detect) โค้ดเดิมเรียก matchDomainRoles(cols, undefined)
+       แล้ว Object.keys(undefined) throw TypeError ทันที ตัดตอน renderDashboard() ทั้งฟังก์ชันไปเลย — เกิดกับ
+       ทุกแม่แบบกลุ่มนี้อยู่ก่อนแล้ว (ยืนยันด้วยการทดสอบเลือก "hr" เฉยๆ ก็พังเหมือนกัน) ไม่ใช่บั๊กใหม่จาก
+       organizational คนเดียว แก้ให้ override ที่ไม่มีอยู่ใน DOMAIN_BUILDERS ตกไปใช้เส้นทางเดียวกับ 'none'
+       (การ์ดนี้ถูกโมดูลเต็มซ่อนทับด้วย .xxx-hidden-source ของตัวเองอยู่แล้วไม่ว่าจะเซ็ตข้อความอะไรไว้ก่อน) */
+    var picked = override ? (override === 'none' || !DOMAIN_BUILDERS[override] ? null : { id: override, roles: matchDomainRoles(state.columns, DOMAIN_ROLES[override]).roles }) : detectDomain();
     destroyChart('domain1'); destroyChart('domain2');
     if (!rows.length) { $('domainDashboardCard').style.display = 'none'; return false; }
     /* การ์ดนี้เปิดค้างไว้เสมอเมื่อมีข้อมูล (ไม่ซ่อนทั้งการ์ดตอนไม่พบแม่แบบ/ผู้ใช้ปิดไว้) เพราะตัวเลือก

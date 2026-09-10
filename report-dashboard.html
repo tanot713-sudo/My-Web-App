@@ -1770,6 +1770,7 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
             <option value="hr">HR</option>
             <option value="itops">IT Ops</option>
             <option value="kpidashboard">KPI Dashboard</option>
+            <option value="organizational">Organizational Dashboard</option>
           </select>
         </label>
         <label class="dashboard-density-field">Density
@@ -1845,6 +1846,7 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
           <option value="hr" data-i18n="domainHrOption">👥 บุคคล (HR)</option>
           <option value="itops" data-i18n="domainItopsOption">🖥️ IT / DevOps</option>
           <option value="kpidashboard" data-i18n="domainKpidashboardOption">📊 KPI Dashboard</option>
+          <option value="organizational" data-i18n="domainOrganizationalOption">🏢 Organizational Dashboard</option>
         </select></label>
       </div>
       <div class="chart-ctrl-row" style="margin-top:-4px">
@@ -2105,7 +2107,8 @@ var TEMPLATES=[
   {key:'safety',icon:'🦺',label:'ความปลอดภัย',cols:['Incident Date','Incident Type','Severity','Department','Status','Due Date','Project','Finding']},
   {key:'hr',icon:'👥',label:'บุคคล (HR)',cols:['Employee ID','Employee Name','Department','Position','Join Date','Exit Date','Employment Status','Employment Type','Training Status']},
   {key:'itops',icon:'🖥️',label:'IT / DevOps',cols:['Ticket ID','System','Priority','Status','Opened Date','Closed Date','Assignee','Subject']},
-  {key:'kpidashboard',icon:'📊',label:'KPI Dashboard',cols:['KPI Name','Weight','Target','Actual','Min','Max','Frequency','Direction']}
+  {key:'kpidashboard',icon:'📊',label:'KPI Dashboard',cols:['KPI Name','Weight','Target','Actual','Min','Max','Frequency','Direction']},
+  {key:'organizational',icon:'🏢',label:'ผังองค์กร',cols:['Employee ID','Full Name','Nickname','Position','Job Level','Team','System','Work Site','Start Date','Manager ID','Manager Name','Date of Birth','Email','Phone','Gender']}
 ];
 function csvEscape(v){ v=String(v==null?'':v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
 function downloadTemplate(t){
@@ -2961,6 +2964,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script src="report-dashboard.finance.final1.js"></script>
 <script src="report-dashboard.reading.final1.js"></script>
 <script src="report-dashboard.kpidashboard.final1.js"></script>
+<script src="report-dashboard.organizational.final1.js"></script>
 <script src="auth-gate.js"></script>
 </body>
 </html>
