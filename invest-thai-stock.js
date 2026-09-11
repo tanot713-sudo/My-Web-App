@@ -294,9 +294,10 @@
     var enc = encodeURIComponent(base);
     var tries = [
       { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + enc },
-      { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + enc },
       { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
-      { name: 'thingproxy', url: 'https://thingproxy.freeboard.io/fetch/' + base },
+      { name: 'corseu', url: 'https://cors.eu.org/' + base },
+      { name: 'corsworkers', url: 'https://test.cors.workers.dev/?' + base },
+      { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + enc },
       { name: 'ตรง', url: base }
     ];
     var i = 0, best = null;
@@ -1048,9 +1049,10 @@
     var enc = encodeURIComponent(base);
     var tries = [
       { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + enc },
-      { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + enc },
       { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
-      { name: 'thingproxy', url: 'https://thingproxy.freeboard.io/fetch/' + base },
+      { name: 'corseu', url: 'https://cors.eu.org/' + base },
+      { name: 'corsworkers', url: 'https://test.cors.workers.dev/?' + base },
+      { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + enc },
       { name: 'ตรง', url: base }
     ];
     /* หมุนจุดเริ่มต่างกันต่อหุ้น กันสแกน 50 ตัวรัวถล่ม proxy เดียวจนโดน rate-limit พร้อมกันหมด */
@@ -1231,9 +1233,10 @@
     var enc = encodeURIComponent(base);
     var tries = [
       { url: 'https://api.allorigins.win/raw?url=' + enc },
-      { url: 'https://corsproxy.io/?url=' + enc },
       { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
-      { url: 'https://thingproxy.freeboard.io/fetch/' + base },
+      { url: 'https://cors.eu.org/' + base },
+      { url: 'https://test.cors.workers.dev/?' + base },
+      { url: 'https://corsproxy.io/?url=' + enc },
       { url: base }
     ];
     var i = 0;
