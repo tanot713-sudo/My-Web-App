@@ -343,7 +343,42 @@ h1,h2,h3{text-wrap:balance}
   var portfolio = loadPortfolio();
   var holdings = portfolio.holdings.filter(function (h) { return N(h.shares) > 0; });
 
-  /* ── ราคาสด (.BK ผ่าน CORS-proxy chain — รูปแบบเดียวกับ invest-thai-stock.js/invest-portfolio.js) ── */
+  /* ══ Live Market Data Gateway — เส้นทางหลัก ถ้าผู้ใช้ตั้งค่าไว้แล้วในหน้าหุ้นไทย/หุ้นนอก/Bitcoin
+     (คีย์ localStorage เดียวกัน ใช้ร่วมกันทุกหน้า) เชื่อถือได้กว่า CORS-proxy ฟรีมาก
+     ย่อมาจาก invest-thai-stock.js เฉพาะส่วนดึงราคา ไม่รวม UI ตั้งค่า (ตั้งค่าที่หน้าหุ้นไทยแทน) ══ */
+  var LIVE_CFG_KEY = 'tanot:market:live-config:v1';
+  function liveCfg() {
+    var d = { provider: 'gateway', gateway: '', apiKey: '', interval: 5 };
+    try { var x = JSON.parse(localStorage.getItem(LIVE_CFG_KEY) || '{}'); Object.keys(d).forEach(function (k) { if (x[k] != null) d[k] = x[k]; }); } catch (e) {}
+    return d;
+  }
+  function fetchJson(url, timeoutMs) {
+    var ctrl = ('AbortController' in window) ? new AbortController() : null;
+    var to = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs || 6000) : null;
+    return fetch(url, Object.assign({ headers: { 'Accept': 'application/json' } }, ctrl ? { signal: ctrl.signal } : {}))
+      .then(function (r) { if (to) clearTimeout(to); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+  function normalizeLiveQuote(j) {
+    var q = j && (j.quote || j.data || j.result || j); q = q && (q.data || q.quote || q);
+    var price = Number(q && (q.price != null ? q.price : (q.close != null ? q.close : q.last)));
+    if (!isFinite(price)) throw new Error('quote price missing');
+    var prev = Number(q.previous_close != null ? q.previous_close : (q.prev_close != null ? q.prev_close : q.previousClose));
+    return { price: price, prevClose: prev };
+  }
+  function fetchLiveQuote(sym, c) {
+    if (c.provider === 'gateway') {
+      var base = (c.gateway || '').replace(/\/$/, ''); if (!base) return Promise.reject(new Error('gateway not configured'));
+      return fetchJson(base + '/quote?symbol=' + encodeURIComponent(sym)).then(normalizeLiveQuote);
+    }
+    if (c.provider === 'twelvedata') {
+      if (!c.apiKey) return Promise.reject(new Error('Twelve Data API key missing'));
+      return fetchJson('https://api.twelvedata.com/quote?symbol=' + encodeURIComponent(sym) + '&exchange=XBKK&apikey=' + encodeURIComponent(c.apiKey))
+        .then(function (j) { if (j && j.status === 'error') throw new Error(j.message || 'Twelve Data error'); return normalizeLiveQuote(j); });
+    }
+    return Promise.reject(new Error('live gateway not configured'));
+  }
+
+  /* ── ราคาสำรอง (.BK ผ่าน CORS-proxy chain — รูปแบบเดียวกับ invest-thai-stock.js/invest-portfolio.js) ── */
   function fetchOne(url, timeoutMs, parser) {
     var ctrl = ('AbortController' in window) ? new AbortController() : null;
     var to = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs || 8000) : null;
@@ -375,13 +410,18 @@ h1,h2,h3{text-wrap:balance}
   function loadQuote(sym, offset) {
     var cached = loadQuoteCache(sym), fresh = cached && (Date.now() - cached.ts < 3600 * 1000);
     if (fresh) return Promise.resolve(cached);
-    var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '.BK?range=5d&interval=1d';
-    var tries = proxyTries(base, offset), i = 0;
-    function next() {
-      if (i >= tries.length) return cached ? Promise.resolve(cached) : Promise.reject(new Error('fail'));
-      return fetchOne(tries[i++].url, 7000, parseQuoteLite).catch(next);
+    function viaProxyChain() {
+      var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '.BK?range=5d&interval=1d';
+      var tries = proxyTries(base, offset), i = 0;
+      function next() {
+        if (i >= tries.length) return cached ? Promise.resolve(cached) : Promise.reject(new Error('fail'));
+        return fetchOne(tries[i++].url, 7000, parseQuoteLite).catch(next);
+      }
+      return next();
     }
-    return next().then(function (q) { saveQuoteCache(sym, q); return q; }, function (e) { if (cached) return cached; throw e; });
+    var c = liveCfg();
+    var attempt = (c.provider === 'gateway' || c.provider === 'twelvedata') ? fetchLiveQuote(sym, c).catch(viaProxyChain) : viaProxyChain();
+    return attempt.then(function (q) { saveQuoteCache(sym, q); return q; }, function (e) { if (cached) return cached; throw e; });
   }
 
   var WATCH_DEFAULT = ['SET', 'ADVANC', 'PTT', 'CPALL', 'DELTA', 'BDMS'];
@@ -404,10 +444,13 @@ h1,h2,h3{text-wrap:balance}
     $('tkLive').className = 'live' + (live ? ' on' : '');
     $('tkStatus').textContent = live ? live + '/' + syms.length + ' ราคาล่าสุด' : 'ยังดึงราคาไม่ได้ — แสดงจากแคชหรือรอใหม่ภายหลัง';
   }
+  function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
   function loadAllQuotes() {
     var syms = tickerSymbols();
-    return Promise.all(syms.map(function (s, i) { return loadQuote(s, i).then(function (q) { quotes[s] = q; }).catch(function () {}); }))
-      .then(renderTickers);
+    /* หน่วงจุดเริ่มของแต่ละสัญลักษณ์เล็กน้อย กัน 6 ตัวยิงเข้า CORS-proxy เดียวกันพร้อมกันจนโดน rate-limit (429) เอง */
+    return Promise.all(syms.map(function (s, i) {
+      return delay(i * 260).then(function () { return loadQuote(s, i); }).then(function (q) { quotes[s] = q; }).catch(function () {});
+    })).then(renderTickers);
   }
 
   /* ── คำนวณพอร์ต ── */
