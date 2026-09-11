@@ -600,25 +600,92 @@
       $('detailsBox').style.display = 'none';
     }
   }
+  /* ══════ Live Market Data Gateway ═════════════════════════════════════
+     ลำดับความสำคัญ: Tanot Gateway ของตัวเอง (ถ้าตั้งค่าไว้) -> Twelve Data (ใส่ API key เอง) -> Yahoo/ย้อนหลัง (เดิม)
+     ตั้งค่าเดียวกับหน้าหุ้นไทย (localStorage key ร่วมกัน) — ไม่มี backend ของเว็บนี้ Twelve Data key เก็บเฉพาะเครื่อง */
+  var LIVE_CFG_KEY = 'tanot:market:live-config:v1';
+  var liveTimer = null, liveBusy = false, liveLast = null;
+  function liveCfg() {
+    var d = { provider: 'gateway', gateway: '', apiKey: '', interval: 5 };
+    try { var x = JSON.parse(localStorage.getItem(LIVE_CFG_KEY) || '{}'); Object.keys(d).forEach(function (k) { if (x[k] != null) d[k] = x[k]; }); } catch (e) {}
+    return d;
+  }
+  function saveLiveCfg(c) { try { localStorage.setItem(LIVE_CFG_KEY, JSON.stringify(c)); } catch (e) {} }
+  function setLiveUI(kind, label, meta) {
+    var dot = $('marketLiveDot'), title = $('marketLiveLabel'), m = $('marketLiveMeta');
+    if (!dot || !title || !m) return;
+    dot.className = 'market-live-dot ' + (kind === 'live' ? 'live' : kind === 'delay' ? 'delay' : '');
+    title.textContent = 'โหมดข้อมูล: ' + label; m.textContent = meta || '';
+  }
+  function gatewayBase(c) { return (c.gateway || '').replace(/\/$/, ''); }
+  function fetchJson(url, opts) {
+    return fetch(url, Object.assign({ headers: { 'Accept': 'application/json' } }, opts || {})).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+  function normalizeLiveQuote(j, sym) {
+    var q = j && (j.quote || j.data || j.result || j); q = q && (q.data || q.quote || q);
+    var price = Number(q && (q.price != null ? q.price : (q.close != null ? q.close : q.last)));
+    if (!isFinite(price)) throw new Error('quote price missing');
+    var prev = Number(q.previous_close != null ? q.previous_close : (q.prev_close != null ? q.prev_close : q.previousClose));
+    var ch = Number(q.change), pct = Number(q.percent_change != null ? q.percent_change : q.percentChange);
+    if (!isFinite(ch) && isFinite(prev)) ch = price - prev; if (!isFinite(pct) && isFinite(prev) && prev) pct = ch / prev * 100;
+    return { sym: sym, price: price, previous: prev, change: ch, pct: pct, volume: Number(q.volume), timestamp: Number(q.timestamp || q.last_quote_at || Date.now() / 1000) * 1000, marketOpen: q.is_market_open !== false, source: q.source || 'gateway' };
+  }
+  function fetchGatewayQuote(sym, c) {
+    var base = gatewayBase(c); if (!base) return Promise.reject(new Error('gateway not configured'));
+    var u = base + '/quote?symbol=' + encodeURIComponent(sym);
+    return fetchJson(u).then(function (j) { var q = normalizeLiveQuote(j, sym); q.source = 'Tanot Gateway'; return q; });
+  }
+  function fetchTwelveQuote(sym, c) {
+    if (!c.apiKey) return Promise.reject(new Error('Twelve Data API key missing'));
+    var u = 'https://api.twelvedata.com/quote?symbol=' + encodeURIComponent(sym) + '&apikey=' + encodeURIComponent(c.apiKey);
+    return fetchJson(u).then(function (j) { if (j && j.status === 'error') throw new Error(j.message || 'Twelve Data error'); var q = normalizeLiveQuote(j, sym); q.source = 'Twelve Data'; return q; });
+  }
+  function applyLiveQuote(q) {
+    liveLast = q;
+    var p = $('price'); if (p) { p.value = Number(q.price).toFixed(2); p.dispatchEvent(new Event('input', { bubbles: true })); }
+    var e = $('entry'); if (e && !e.value) e.value = Number(q.price).toFixed(2);
+    var ch = isFinite(q.change) ? (q.change >= 0 ? '+' : '−') + Number(Math.abs(q.change)).toFixed(2) : '—';
+    var pct = isFinite(q.pct) ? ' (' + (q.pct >= 0 ? '+' : '') + Number(q.pct).toFixed(2) + '%)' : '';
+    var tm = q.timestamp ? new Date(q.timestamp).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—';
+    setLiveUI('live', 'สด / Real-time', q.source + ' · ' + ch + pct + ' · อัปเดต ' + tm);
+    setStatus('ราคาล่าสุด ' + Number(q.price).toFixed(2) + ' USD · ' + q.source + ' · ' + tm, 'ok');
+  }
+  function refreshLiveQuote() {
+    if (liveBusy) return; var c = liveCfg(), sym = ($('sym') && $('sym').value || '').trim().toUpperCase();
+    if (!sym || c.provider === 'yahoo') { setLiveUI('', 'ย้อนหลัง / Historical', 'ใช้ Yahoo สำหรับกราฟย้อนหลัง'); return; }
+    liveBusy = true;
+    var pr = c.provider === 'twelvedata' ? fetchTwelveQuote(sym, c) : fetchGatewayQuote(sym, c);
+    pr.then(applyLiveQuote).catch(function () { setLiveUI('delay', 'สำรอง / Historical', 'แหล่งข้อมูลสดยังเชื่อมต่อไม่ได้ · ใช้ราคาย้อนหลังเป็น fallback'); }).finally(function () { liveBusy = false; });
+  }
+  function stopLive() { if (liveTimer) { clearInterval(liveTimer); liveTimer = null; } }
+  function startLive() { stopLive(); var c = liveCfg(); if (c.provider === 'yahoo') return; liveTimer = setInterval(refreshLiveQuote, Math.max(5, Number(c.interval) || 5) * 1000); refreshLiveQuote(); }
+  function initLiveControls() {
+    var c = liveCfg(), p = $('marketProvider'), g = $('marketGateway'), k = $('marketApiKey'), iv = $('marketInterval');
+    if (!p) return; p.value = c.provider; g.value = c.gateway || ''; k.value = ''; iv.value = String(c.interval || 5);
+    $('marketSettings').addEventListener('click', function () { var x = $('marketSettingsPanel'); x.hidden = !x.hidden; });
+    $('marketSave').addEventListener('click', function () { var next = { provider: p.value, gateway: g.value.trim(), apiKey: k.value.trim() || c.apiKey, interval: Number(iv.value) || 5 }; saveLiveCfg(next); c = next; startLive(); setStatus('บันทึกการตั้งค่าแล้ว · ระบบจะดึงข้อมูลตามช่วงเวลาที่ตั้ง', 'ok'); });
+    $('marketClear').addEventListener('click', function () { c.apiKey = ''; saveLiveCfg(c); k.value = ''; setStatus('ล้าง API Key จากเครื่องแล้ว', 'ok'); });
+    $('marketRefresh').addEventListener('click', refreshLiveQuote);
+    $('sym').addEventListener('input', function () { stopLive(); var x = liveCfg(); if (x.provider !== 'yahoo') startLive(); });
+    window.addEventListener('beforeunload', stopLive);
+    startLive();
+  }
   function doFetch() {
     var sym = ($('sym').value || '').trim().toUpperCase();
     if (!sym) { setStatus('พิมพ์ชื่อย่อหุ้นก่อน เช่น AAPL', 'err'); return; }
-    setStatus('กำลังดึงราคา ' + sym + '…'); $('fetchBtn').disabled = true;
-    getSeries(sym).then(function (r) {
-      $('fetchBtn').disabled = false;
-      var s = r.series;
-      if (r.stale) {
-        useSeries(s, 'ดึงสดไม่ได้ตอนนี้ — ใช้ราคาที่บันทึกไว้ (' + cacheAgeText(r.cachedAt) + ') · ' + s.closes.length + ' วัน', 'ok', { kind: 'real', label: sym, stale: true, cachedAt: r.cachedAt });
-      } else {
-        var msg = 'ดึงราคา ' + sym + ' สำเร็จ (' + s.closes.length + ' วัน · ผ่าน ' + s.source + ')';
-        if (s.closes.length < 30) msg += ' — ได้ประวัติน้อย กราฟอาจดูแนวโน้มไม่ชัด';
-        useSeries(s, msg, 'ok', { kind: 'real', label: sym });
-      }
+    setStatus('กำลังดึงข้อมูล ' + sym + '…'); $('fetchBtn').disabled = true;
+    var c = liveCfg();
+    var livePromise = c.provider === 'twelvedata' ? fetchTwelveQuote(sym, c) : c.provider === 'gateway' ? fetchGatewayQuote(sym, c) : Promise.reject(new Error('historical'));
+    livePromise.then(function (q) {
+      applyLiveQuote(q);
+      return getSeries(sym).then(function (r) { var s = r.series; useSeries(s, 'ราคา ' + sym + ' สดจาก ' + q.source + ' · กราฟย้อนหลัง ' + s.closes.length + ' วัน', 'ok', { kind: 'real', label: sym }); });
     }).catch(function () {
-      $('fetchBtn').disabled = false;
-      setStatus('ดึงราคาสดไม่ได้ตอนนี้ (บริการฟรีจำกัดเป็นบางเวลา ไม่ใช่ที่เครื่องคุณ) — ลองกดอีกครั้ง หรือกด "ดูกราฟตัวอย่าง (ฝึกอ่าน)" / กรอกราคาเองจากแอปเทรด');
-      $('price').focus();
-    });
+      return getSeries(sym).then(function (r) {
+        var s = r.series;
+        if (r.stale) useSeries(s, 'แหล่งข้อมูลสดใช้ไม่ได้ · ใช้ข้อมูลย้อนหลังที่บันทึกไว้ (' + cacheAgeText(r.cachedAt) + ') · ' + s.closes.length + ' วัน', 'ok', { kind: 'real', label: sym, stale: true, cachedAt: r.cachedAt });
+        else useSeries(s, 'ขณะนี้ใช้ราคาย้อนหลังจาก ' + s.source + ' · ' + s.closes.length + ' วัน', 'ok', { kind: 'real', label: sym });
+      });
+    }).catch(function () { setStatus('ไม่พบข้อมูลของ ' + sym + ' — ตรวจชื่อหุ้นหรือการเชื่อมต่อข้อมูลตลาด', 'err'); }).finally(function () { $('fetchBtn').disabled = false; });
   }
   function doDemo() { useSeries(demoData(), 'กำลังแสดง "ข้อมูลตัวอย่าง" (ไม่ใช่ราคาจริง) — ไว้ลองเล่นกราฟและฝึกอ่าน', 'ok', { kind: 'demo' }); }
   function doPaste() {
@@ -1279,6 +1346,7 @@
   /* ── init ───────────────────────────────────────────────────── */
   function init() {
     $('fetchBtn').addEventListener('click', doFetch);
+    initLiveControls();
     $('analyzeBtn').addEventListener('click', doAnalyze);
     $('demoBtn').addEventListener('click', doDemo);
     $('pasteBtn').addEventListener('click', doPaste);
