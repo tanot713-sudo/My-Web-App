@@ -209,6 +209,7 @@
   /* ── คุมเงิน/ความเสี่ยง ─────────────────────────────────────── */
   function riskCalc(o) {
     var capital = o.capital, riskPct = o.riskPct, entry = o.entry, stop = o.stop, comm = o.comm / 100;
+    var commMin = isFinite(o.commMin) && o.commMin >= 0 ? o.commMin : 50;
     var perShare = entry - stop;
     if (!(perShare > 0)) return { error: 'ราคาตัดขาดทุนต้องต่ำกว่าราคาเข้าซื้อ' };
     var riskBudget = capital * riskPct / 100;
@@ -219,9 +220,15 @@
       var maxLots = Math.floor(capital / entry / 100) * 100;
       if (maxLots >= 100) { shares = maxLots; cost = shares * entry; note = 'จำกัดจำนวนตามเงินที่มี (ทุนไม่พอซื้อเท่าที่ความเสี่ยงอนุญาต)'; }
     }
-    var R = perShare, breakeven = entry * (1 + comm) / (1 - comm);
+    var R = perShare;
+    /* ค่าคอมฯ ต่อขา = max(มูลค่า × %, ขั้นต่ำ/วัน) — โบรกไทยส่วนใหญ่คิดขั้นต่ำ ~50 บาท/วัน
+       ไม้เล็กที่ค่าคอมฯ ตามเปอร์เซ็นต์ยังไม่ถึงขั้นต่ำ จะโดนเก็บที่ขั้นต่ำแทน ทำให้ค่าคอมฯ จริงแพงกว่าอัตราปกติมาก
+       ประมาณขาขายจากมูลค่าซื้อ (ราคาปิดไม้จริงต่างออกไปได้เล็กน้อย) */
+    var buyComm = Math.max(cost * comm, commMin), sellComm = Math.max(cost * comm, commMin), totalComm = buyComm + sellComm;
+    var breakeven = shares > 0 ? entry + totalComm / shares : entry;
+    var commPct = cost > 0 ? totalComm / cost * 100 : 0, minKicksIn = cost * comm < commMin;
     var rr = isFinite(o.resistance) && o.resistance > entry ? (o.resistance - entry) / R : NaN;
-    return { shares: shares, lots: shares / 100, cost: cost, riskBaht: shares * perShare, tp1: entry + R, tp2: entry + 2 * R, tp3: entry + 3 * R, breakeven: breakeven, rr: rr, riskBudget: riskBudget, note: note };
+    return { shares: shares, lots: shares / 100, cost: cost, riskBaht: shares * perShare, tp1: entry + R, tp2: entry + 2 * R, tp3: entry + 3 * R, breakeven: breakeven, commBaht: totalComm, commPct: commPct, minKicksIn: minKicksIn, rr: rr, riskBudget: riskBudget, note: note };
   }
 
   /* ── สร้างชุดข้อมูล (ใช้ร่วมทั้งกราฟ + วิเคราะห์) ─────────────── */
@@ -777,15 +784,16 @@
   /* ── คำนวณเงิน ──────────────────────────────────────────────── */
   function doCalc() {
     var capital = num($('capital').value), riskPct = num($('riskPct').value);
-    var entry = num($('entry').value), stop = num($('stop').value), comm = num($('comm').value);
+    var entry = num($('entry').value), stop = num($('stop').value), comm = num($('comm').value), commMin = num($('commMin').value);
     if (!isFinite(entry)) entry = num($('price').value);
     if (!isFinite(entry)) { setStatus('กรอกราคาเข้าซื้อ (หรือราคาตอนนี้) ก่อน', 'err'); return; }
     if (!isFinite(stop)) { stop = (lastAnalysis && isFinite(lastAnalysis.suggestStop)) ? lastAnalysis.suggestStop : entry * 0.95; $('stop').value = stop.toFixed(2); }
     if (!isFinite(capital) || capital <= 0) { capital = 100000; $('capital').value = capital; }
     if (!isFinite(riskPct) || riskPct <= 0) { riskPct = 2; $('riskPct').value = riskPct; }
     if (!isFinite(comm) || comm < 0) { comm = 0.157; $('comm').value = comm; }
+    if (!isFinite(commMin) || commMin < 0) { commMin = 50; $('commMin').value = commMin; }
 
-    var res = riskCalc({ capital: capital, riskPct: riskPct, entry: entry, stop: stop, comm: comm, resistance: lastAnalysis ? lastAnalysis.resistance : NaN });
+    var res = riskCalc({ capital: capital, riskPct: riskPct, entry: entry, stop: stop, comm: comm, commMin: commMin, resistance: lastAnalysis ? lastAnalysis.resistance : NaN });
     var box = $('riskResult');
     if (res.error) {
       $('riskHeadline').innerHTML = '<span style="color:var(--err)">' + res.error + '</span>';
@@ -795,11 +803,13 @@
     var kv = '';
     kv += '<div class="k">ถ้าผิดทาง (แตะ Stop) เสียไม่เกิน</div><div class="v risk">฿' + fmt0(res.riskBaht) + '</div>';
     kv += '<div class="k">ราคาตัดขาดทุน (Stop)</div><div class="v">' + fmt(stop) + '</div>';
+    kv += '<div class="k">ค่าคอมฯ จริงไป-กลับ</div><div class="v">฿' + fmt0(res.commBaht) + ' (' + fmt(res.commPct, 1) + '%)</div>';
     kv += '<div class="k">ราคาคุ้มทุน (รวมค่าคอมฯ ไป-กลับ)</div><div class="v">' + fmt(res.breakeven) + '</div>';
     if (isFinite(res.rr)) kv += '<div class="k">ความคุ้ม (กำไรคาดหวัง : ความเสี่ยง) ถึงแนวต้าน</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
     $('riskKv').innerHTML = kv;
     $('tpRow').innerHTML = '<span class="tp-chip">ทยอยขายไม้ 1: ' + fmt(res.tp1) + '</span><span class="tp-chip">ไม้ 2: ' + fmt(res.tp2) + '</span><span class="tp-chip">ไม้ 3: ' + fmt(res.tp3) + '</span>';
     if (res.note) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">ℹ️ ' + res.note + '</div>';
+    if (res.minKicksIn) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">⚠️ ไม้นี้เล็กเกินกว่าค่าคอมฯ ตามเปอร์เซ็นต์จะถึงขั้นต่ำ — โบรกจึงเก็บขั้นต่ำ ฿' + fmt0(commMin) + '/วัน แทน ทำให้ค่าคอมฯ จริงคิดเป็น ' + fmt(res.commPct, 1) + '% ไป-กลับ ต้องขึ้นถึง ' + fmt(res.breakeven) + ' บาทถึงจะเท่าทุนจริง — ลองซื้อไม้ใหญ่ขึ้นเพื่อเฉลี่ยค่าคอมฯ ให้ถูกลง</div>';
     box.classList.add('show');
     $('saveBtn').style.display = 'inline-flex';
     $('saveBtn')._data = { sym: ($('sym').value || '').trim().toUpperCase() || 'หุ้น', shares: res.shares, cost: entry };

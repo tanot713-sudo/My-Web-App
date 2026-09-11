@@ -438,6 +438,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <div class="field"><label>ราคาเข้าซื้อ (บาท)</label><input type="number" id="entry" inputmode="decimal" step="0.01" placeholder="= ราคาตอนนี้"></div>
       <div class="field"><label>ราคาตัดขาดทุน (Stop)</label><input type="number" id="stop" inputmode="decimal" step="0.01" placeholder="แนะนำอัตโนมัติ"></div>
       <div class="field"><label>ค่าคอมฯ <span class="unit">(% ต่อครั้ง)</span></label><input type="number" id="comm" inputmode="decimal" step="0.001" value="0.157"></div>
+      <div class="field"><label>ค่าคอมฯ ขั้นต่ำ <span class="unit">(บาท/วัน)</span></label><input type="number" id="commMin" inputmode="numeric" step="1" value="50"></div>
     </div>
     <div style="margin-top:12px;display:flex;gap:9px;flex-wrap:wrap">
       <button class="btn primary" id="calcBtn" type="button">คำนวณ</button>
@@ -601,7 +602,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <h3>ล็อต 100 หุ้นคืออะไร</h3>
       <p>หุ้นไทยซื้อขายเป็นชุดละ 100 หุ้น (1 ล็อต) เครื่องจะปัดจำนวนให้ลงตัวเป็นหลักร้อยให้อัตโนมัติ</p>
       <h3>ค่าคอมฯ และ "ราคาคุ้มทุน"</h3>
-      <p>ทุกครั้งที่ซื้อและขายมีค่าคอมฯ (ปกติผ่านเน็ต ~0.157% ต่อครั้ง) ราคาต้องขึ้นเกิน "จุดคุ้มทุน" ก่อนถึงจะเริ่มมีกำไรจริง เครื่องคำนวณให้แล้ว</p>
+      <p>ทุกครั้งที่ซื้อและขายมีค่าคอมฯ (ปกติผ่านเน็ต ~0.157% ต่อครั้ง) ราคาต้องขึ้นเกิน "จุดคุ้มทุน" ก่อนถึงจะเริ่มมีกำไรจริง เครื่องคำนวณให้แล้ว — แต่โบรกส่วนใหญ่คิด <b>ค่าคอมฯ ขั้นต่ำ ~50 บาท/วัน</b> ด้วย ถ้าไม้เล็กจนค่าคอมฯ ตามเปอร์เซ็นต์ไม่ถึงขั้นต่ำ จะโดนเก็บที่ขั้นต่ำแทน ทำให้จุดคุ้มทุนสูงกว่าที่คิดมาก (เช่น ไม้ ~3,500 บาท ค่าคอมฯ จริงอาจพุ่งไปเกือบ 3% ไป-กลับ) ไม้ยิ่งใหญ่ ยิ่งเฉลี่ยค่าคอมฯ ขั้นต่ำให้ถูกลง</p>
       <h3>อ่านไฟจราจรยังไง</h3>
       <ul>
         <li>เขียว = ราคาน่าสนใจ อยู่ช่วงถูกของรอบและเริ่มมีแรงซื้อ — ค่อยพิจารณา (ไม่ใช่สั่งให้ซื้อ)</li>
