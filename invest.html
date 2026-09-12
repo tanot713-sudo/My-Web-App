@@ -171,6 +171,17 @@ h1,h2,h3{text-wrap:balance}
 .term b{display:block;font-size:12px;font-weight:700}
 .term span{font-size:10.5px;color:var(--muted)}
 
+/* ── ดัชนีความกลัว-โลภ (Alternative.me, ตลาดคริปโต) — เกจแนวนอน 0-100 ── */
+.src-badge-mini{margin-left:auto;font-size:9.5px;font-weight:700;color:var(--muted);white-space:nowrap;display:none}
+.fng-box{text-align:center}
+.fng-num{font-size:36px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fng-label{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px}
+.fng-bar{position:relative;height:8px;border-radius:5px;margin:14px 0 4px;
+  background:linear-gradient(90deg,#E5484D,#F5A524,var(--ok))}
+.fng-marker{position:absolute;top:-3px;width:14px;height:14px;border-radius:50%;background:var(--card);
+  border:3px solid var(--ink);transform:translateX(-50%);left:0;transition:left .3s}
+.fng-scale{display:flex;justify-content:space-between;font-size:9.5px;color:var(--muted)}
+
 .disc{margin-top:20px;padding:14px 18px;border-radius:12px;background:var(--iv-sf);color:var(--iv-dk);font-size:12px;line-height:1.75}
 
 /* ── AI ผู้ช่วยการลงทุน — ไอคอนหุ่นยนต์ลอย ลากวางตำแหน่งได้ ค่าเริ่มต้นมุมล่างซ้าย ── */
@@ -340,6 +351,16 @@ h1,h2,h3{text-wrap:balance}
           <div class="term"><b>Drawdown</b><span>ระยะขาดทุนจากจุดสูงสุด</span></div>
           <div class="term"><b>Diversification</b><span>กระจายความเสี่ยงหลายสินทรัพย์</span></div>
           <div class="term"><b>Concentration</b><span>สัดส่วนกระจุกตัวในสินทรัพย์เดียว</span></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="head"><h2>ดัชนีความกลัว-โลภ (คริปโต)</h2><span class="src-badge-mini" id="fngBadge"></span></div>
+        <div class="fng-box">
+          <div class="fng-num" id="fngNum">—</div>
+          <div class="fng-label" id="fngLabel">กำลังโหลด…</div>
+          <div class="fng-bar"><div class="fng-marker" id="fngMarker"></div></div>
+          <div class="fng-scale"><span>กลัวสุดขีด</span><span>โลภสุดขีด</span></div>
         </div>
       </section>
     </aside>
@@ -579,6 +600,49 @@ h1,h2,h3{text-wrap:balance}
   }
   function loadAllMarkets() { return Promise.all(['thai', 'global', 'commod'].map(loadMarketGroup)); }
 
+  /* ══ ดัชนีความกลัว-โลภ (alternative.me, best-effort — เหมือน invest-bitcoin.js) ══
+     เป็นดัชนีอารมณ์ตลาดคริปโตเท่านั้น ไม่ใช่ของหุ้นไทย/หุ้นนอก — ใส่ไว้เป็นบริบทประกอบเพิ่มเติม
+     ในคอลัมน์ขวาที่ว่าง ไม่ใช่สัญญาณเข้า-ออก */
+  var FNG_LABEL_TH = { 'Extreme Fear': 'กลัวสุดขีด', 'Fear': 'กลัว', 'Neutral': 'เป็นกลาง', 'Greed': 'โลภ', 'Extreme Greed': 'โลภสุดขีด' };
+  function parseFng(t) {
+    var j = JSON.parse(t), d = j && j.data && j.data[0];
+    if (!d || !isFinite(parseInt(d.value, 10))) throw new Error('no data');
+    return { value: parseInt(d.value, 10), classification: d.value_classification };
+  }
+  function fetchFng() {
+    var base = 'https://api.alternative.me/fng/?limit=1&format=json', enc = encodeURIComponent(base);
+    var tries = [
+      base, /* ลองตรงก่อน — API นี้เปิด CORS */
+      'https://api.allorigins.win/raw?url=' + enc,
+      'https://api.codetabs.com/v1/proxy/?quest=' + enc,
+      'https://cors.eu.org/' + base,
+      'https://test.cors.workers.dev/?' + base,
+      'https://corsproxy.io/?url=' + enc
+    ];
+    var i = 0;
+    function next() { if (i >= tries.length) return Promise.reject(new Error('fail')); return fetchOne(tries[i++], 7000, parseFng).catch(next); }
+    return next();
+  }
+  function fngCacheKey() { return 'tanot:invest:cache:hub:fng'; }
+  function saveFngCache(o) { try { localStorage.setItem(fngCacheKey(), JSON.stringify({ ts: Date.now(), value: o.value, classification: o.classification })); } catch (e) {} }
+  function loadFngCache() { try { var o = JSON.parse(localStorage.getItem(fngCacheKey())); return (o && isFinite(o.value)) ? o : null; } catch (e) { return null; } }
+  function renderFng(value, classification, badgeText) {
+    $('fngNum').textContent = value;
+    $('fngLabel').textContent = (FNG_LABEL_TH[classification] || classification) + ' (' + value + '/100)';
+    $('fngMarker').style.left = Math.max(0, Math.min(100, value)) + '%';
+    if (badgeText) { $('fngBadge').style.display = 'inline'; $('fngBadge').textContent = badgeText; }
+  }
+  function loadFng() {
+    fetchFng().then(function (o) {
+      saveFngCache(o);
+      renderFng(o.value, o.classification, '');
+    }, function () {
+      var c = loadFngCache();
+      if (c) renderFng(c.value, c.classification, 'ค่าที่บันทึกไว้');
+      else $('fngLabel').textContent = 'ดึงข้อมูลไม่ได้ตอนนี้';
+    });
+  }
+
   /* ── กดฟันเฟืองต่อกลุ่มตลาด — เลือกจากรายชื่อยอดนิยม (checkbox) แทนพิมพ์เอง
      ("หุ้นไทย" มีช่อง "เพิ่มเอง" เสริมด้วย เพราะหุ้นไทยเลือกได้มากกว่ารายการยอดนิยมที่ใส่ไว้) ── */
   [].forEach.call(document.querySelectorAll('.gear-btn'), function (btn) {
@@ -804,6 +868,7 @@ h1,h2,h3{text-wrap:balance}
   loadHoldingQuotes().then(refreshAll);
   loadUsdThbRate().then(refreshAll);
   loadAllMarkets();
+  loadFng();
   /* ปุ่มรีเฟรชด้วยมือ — โปรกซี CORS ฟรีที่ใช้ดึงราคาไม่เสถียร บางสัญลักษณ์อาจดึงไม่ได้ตอนโหลดหน้าแรก
      (ไม่แคชค่า fail ไว้ จึงลองใหม่ทุกครั้งที่กด ส่วนตัวที่ดึงได้แล้วในชั่วโมงนี้จะเร็วเพราะอ่านจากแคช) */
   $('marketRefreshBtn').addEventListener('click', function () {
