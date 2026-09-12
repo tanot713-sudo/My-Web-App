@@ -10,6 +10,44 @@
   var $ = function (id) { return document.getElementById(id); };
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
 
+  /* ══════ ระบบแปลภาษา (i18n) — รูปแบบเดียวกับหน้าอื่นในโซนลงทุน ══════ */
+  var UI_LANG_KEY = 'ome:lang';
+  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
+  var I18N = {
+    th: {
+      navOverview: 'ภาพรวม', navMyPortfolio: 'พอร์ตของฉัน', navMarket: 'ตลาด & สินทรัพย์', navLottery: 'สลาก & พันธบัตร', navNews: 'ข่าว & ธุรกิจ',
+      crumbHome: 'การลงทุน', crumbThaiStock: 'หุ้นไทย', crumbHere: 'สแกนเนอร์ SET50',
+      pageTitle: 'สแกนเนอร์ SET50', pageDesc: 'ไล่ดึงราคา + วิเคราะห์ไฟจราจรของหุ้น SET50 ทั้ง 50 ตัวให้อัตโนมัติ — แตะแถวเพื่อเปิดหุ้นตัวนั้นในหน้าหุ้นไทย',
+      scanBtn: 'หาหุ้นน่าสนใจ', scanBtnStop: '⏹ หยุด', greenOnlyLabel: 'เฉพาะไฟเขียว',
+      thSym: 'หลักทรัพย์', thLast: 'ล่าสุด', thChg: '+/−', thPct: '%', thSig: 'สัญญาณ', rowLoading: 'กดดู',
+      hint: 'แตะแถวเพื่อดูว่า "น่าลงทุนไหม" · กด "หาหุ้นน่าสนใจ" ให้ระบบไล่ดึงราคา+วิเคราะห์ (ครั้งแรกอาจช้า/ไม่ครบ รอบต่อไปเร็วขึ้นเพราะจำไว้) · <b>ไม่ใช่คำแนะนำซื้อ</b>',
+      disc: 'เครื่องมือนี้เป็นตัวช่วยกรองเบื้องต้นจากราคา/ปริมาณเท่านั้น ไม่ใช่คำแนะนำการลงทุน · ข้อมูลราคาเก็บแคชในเครื่องคุณ',
+      scanDone: 'สแกนสำเร็จ {ok}/{total} ตัว · เจอน่าสนใจ {green} ตัว (ไม่ใช่คำแนะนำซื้อ)', scanProgress: 'กำลังสแกน {idx}/{total} ({sym})…',
+      scannerLink: 'สแกนเนอร์ SET50'
+    },
+    en: {
+      navOverview: 'Overview', navMyPortfolio: 'My Portfolio', navMarket: 'Markets & Assets', navLottery: 'Lottery & Bonds', navNews: 'News & Business',
+      crumbHome: 'Investing', crumbThaiStock: 'Thai Stocks', crumbHere: 'SET50 Scanner',
+      pageTitle: 'SET50 Scanner', pageDesc: 'Automatically fetches prices + analyzes the signal light for all 50 SET50 stocks — tap a row to open that stock on the Thai Stocks page',
+      scanBtn: 'Find interesting stocks', scanBtnStop: '⏹ Stop', greenOnlyLabel: 'Green only',
+      thSym: 'Ticker', thLast: 'Last', thChg: '+/−', thPct: '%', thSig: 'Signal', rowLoading: 'Click to view',
+      hint: 'Tap a row to see if it\'s "worth investing in" · click "Find interesting stocks" to fetch + analyze in bulk (first run may be slow/incomplete, faster next time since it\'s cached) · <b>not a buy recommendation</b>',
+      disc: "This tool is only a basic filter based on price/volume, not investment advice · price data is cached on your device",
+      scanDone: 'Scanned {ok}/{total} · found {green} interesting (not a buy recommendation)', scanProgress: 'Scanning {idx}/{total} ({sym})…',
+      scannerLink: 'SET50 Scanner'
+    }
+  };
+  function t(key, vars) {
+    var s = (I18N[getUILang()] || I18N.th)[key];
+    if (s == null) s = I18N.th[key] || key;
+    if (vars) Object.keys(vars).forEach(function (k) { s = s.split('{' + k + '}').join(vars[k]); });
+    return s;
+  }
+  function applyStaticI18n() {
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-html]').forEach(function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+  }
+
   /* ── อินดิเคเตอร์ (สำเนาจาก invest-thai-stock.js) ── */
   function sma(arr, n) { if (arr.length < n) return NaN; var s = 0; for (var i = arr.length - n; i < arr.length; i++) s += arr[i]; return s / n; }
   function smaSeries(arr, n) { var out = new Array(arr.length), i, s = 0; for (i = 0; i < arr.length; i++) { s += arr[i]; if (i >= n) s -= arr[i - n]; if (i >= n - 1) out[i] = s / n; } return out; }
@@ -127,7 +165,7 @@
   }
   function fillRow(tr, sym, d) {
     if (!d) {
-      tr.innerHTML = '<td class="c-sym">' + sym + '</td><td>–</td><td class="c-chg">–</td><td>–</td><td class="c-sig">กดดู</td>';
+      tr.innerHTML = '<td class="c-sym">' + sym + '</td><td>–</td><td class="c-chg">–</td><td>–</td><td class="c-sig">' + t('rowLoading') + '</td>';
       tr.setAttribute('data-rank', 9); tr.setAttribute('data-light', ''); return;
     }
     var cls = d.chg >= 0 ? 'up' : 'dn', sign = d.chg >= 0 ? '+' : '−';
@@ -169,16 +207,16 @@
   function doScan() {
     if (scanning) { scanning = false; return; }
     var idx = 0, ok = 0, green = 0;
-    scanning = true; $('scanBtn').textContent = '⏹ หยุด';
+    scanning = true; $('scanBtn').textContent = t('scanBtnStop');
     function fin() {
-      scanning = false; $('scanBtn').textContent = 'หาหุ้นน่าสนใจ';
-      $('scanStatus').textContent = 'สแกนสำเร็จ ' + ok + '/' + SET50.length + ' ตัว · เจอน่าสนใจ ' + green + ' ตัว (ไม่ใช่คำแนะนำซื้อ)';
+      scanning = false; $('scanBtn').textContent = t('scanBtn');
+      $('scanStatus').textContent = t('scanDone', { ok: ok, total: SET50.length, green: green });
       sortTable(); applyGreenFilter();
     }
     function step() {
       if (!scanning || idx >= SET50.length) { fin(); return; }
       var sym = SET50[idx++];
-      $('scanStatus').textContent = 'กำลังสแกน ' + idx + '/' + SET50.length + ' (' + sym + ')…';
+      $('scanStatus').textContent = t('scanProgress', { idx: idx, total: SET50.length, sym: sym });
       var cached = loadCache(sym), fresh = cached && (Date.now() - cached.cachedAt < 6 * 3600 * 1000);
       var pr = fresh ? Promise.resolve(cached) : fetchPriceScan(sym, idx).then(function (s) { saveCache(sym, s); return s; }, function () { return cached || null; });
       pr.then(function (s) {
@@ -192,6 +230,7 @@
   }
 
   /* ── init ── */
+  applyStaticI18n();
   $('scanBtn').addEventListener('click', doScan);
   $('greenOnly').addEventListener('change', applyGreenFilter);
   renderSet50Table();
@@ -205,8 +244,8 @@
       var a = document.createElement('a'); a.href = c.page; a.textContent = c.label;
       row.appendChild(a);
     });
-    var scan = document.createElement('a'); scan.href = 'invest-set50-scanner.html'; scan.className = 'on';
-    scan.innerHTML = '<b>สแกนเนอร์ SET50</b>';
+    var scan = document.createElement('a'); scan.href = 'invest-set50-scanner.html'; scan.className = 'on'; scan.id = 'ivScannerLink';
+    scan.innerHTML = '<b>' + t('scannerLink') + '</b>';
     row.appendChild(scan);
   });
   var groupBtns = document.querySelectorAll('#ivGroups button');
@@ -216,4 +255,12 @@
       groupBtns.forEach(function (x) { x.classList.toggle('on', x === b); });
     });
   });
+
+  window.omeApplyLang = function () {
+    applyStaticI18n();
+    var scanLink = document.getElementById('ivScannerLink');
+    if (scanLink) scanLink.innerHTML = '<b>' + t('scannerLink') + '</b>';
+    if (!scanning) $('scanBtn').textContent = t('scanBtn');
+    renderSet50Table();
+  };
 })();

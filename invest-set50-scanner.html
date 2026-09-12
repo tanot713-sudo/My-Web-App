@@ -85,42 +85,42 @@ td.c-sym{font-weight:700;color:var(--act-ink)}
 
 <nav class="ivnav">
   <div class="ivgroups" id="ivGroups">
-    <button data-g="overview" type="button">ภาพรวม</button>
-    <button data-g="portfolio" data-href="invest-portfolio.html" type="button">พอร์ตของฉัน</button>
-    <button class="on" data-g="market" type="button">ตลาด &amp; สินทรัพย์</button>
-    <button data-g="lottery" type="button">สลาก &amp; พันธบัตร</button>
-    <button data-g="news" type="button">ข่าว &amp; ธุรกิจ</button>
+    <button data-g="overview" type="button" data-i18n="navOverview">ภาพรวม</button>
+    <button data-g="portfolio" data-href="invest-portfolio.html" type="button" data-i18n="navMyPortfolio">พอร์ตของฉัน</button>
+    <button class="on" data-g="market" type="button" data-i18n="navMarket">ตลาด &amp; สินทรัพย์</button>
+    <button data-g="lottery" type="button" data-i18n="navLottery">สลาก &amp; พันธบัตร</button>
+    <button data-g="news" type="button" data-i18n="navNews">ข่าว &amp; ธุรกิจ</button>
   </div>
   <div class="ivsub on" id="sub-market"><div class="ivsubrow" id="ivSubRow-market"></div></div>
 </nav>
 
 <div class="wrap">
-  <div class="crumb"><a href="invest.html">การลงทุน</a> ›  <a href="invest-thai-stock.html">หุ้นไทย</a> ›  <b>สแกนเนอร์ SET50</b></div>
+  <div class="crumb"><a href="invest.html" data-i18n="crumbHome">การลงทุน</a> ›  <a href="invest-thai-stock.html" data-i18n="crumbThaiStock">หุ้นไทย</a> ›  <b data-i18n="crumbHere">สแกนเนอร์ SET50</b></div>
 
   <div class="head">
-    <h1>สแกนเนอร์ SET50</h1>
-    <p>ไล่ดึงราคา + วิเคราะห์ไฟจราจรของหุ้น SET50 ทั้ง 50 ตัวให้อัตโนมัติ — แตะแถวเพื่อเปิดหุ้นตัวนั้นในหน้าหุ้นไทย</p>
+    <h1 data-i18n="pageTitle">สแกนเนอร์ SET50</h1>
+    <p data-i18n="pageDesc">ไล่ดึงราคา + วิเคราะห์ไฟจราจรของหุ้น SET50 ทั้ง 50 ตัวให้อัตโนมัติ — แตะแถวเพื่อเปิดหุ้นตัวนั้นในหน้าหุ้นไทย</p>
   </div>
 
   <div class="card">
     <div class="scanbar">
-      <button class="btn" id="scanBtn" type="button">หาหุ้นน่าสนใจ</button>
-      <label class="filterchk"><input type="checkbox" id="greenOnly"> เฉพาะไฟเขียว</label>
+      <button class="btn" id="scanBtn" type="button" data-i18n="scanBtn">หาหุ้นน่าสนใจ</button>
+      <label class="filterchk"><input type="checkbox" id="greenOnly"> <span data-i18n="greenOnlyLabel">เฉพาะไฟเขียว</span></label>
       <span class="status" id="scanStatus"></span>
     </div>
     <div class="s50wrap">
       <table>
         <thead><tr>
-          <th class="c-sym">หลักทรัพย์</th><th class="c-num">ล่าสุด</th>
-          <th class="c-num c-chg">+/−</th><th class="c-num">%</th><th class="c-sig">สัญญาณ</th>
+          <th class="c-sym" data-i18n="thSym">หลักทรัพย์</th><th class="c-num" data-i18n="thLast">ล่าสุด</th>
+          <th class="c-num c-chg" data-i18n="thChg">+/−</th><th class="c-num" data-i18n="thPct">%</th><th class="c-sig" data-i18n="thSig">สัญญาณ</th>
         </tr></thead>
         <tbody id="s50Body"></tbody>
       </table>
     </div>
-    <p class="mini">แตะแถวเพื่อดูว่า "น่าลงทุนไหม" · กด "หาหุ้นน่าสนใจ" ให้ระบบไล่ดึงราคา+วิเคราะห์ (ครั้งแรกอาจช้า/ไม่ครบ รอบต่อไปเร็วขึ้นเพราะจำไว้) · <b>ไม่ใช่คำแนะนำซื้อ</b></p>
+    <p class="mini" data-i18n-html="hint">แตะแถวเพื่อดูว่า "น่าลงทุนไหม" · กด "หาหุ้นน่าสนใจ" ให้ระบบไล่ดึงราคา+วิเคราะห์ (ครั้งแรกอาจช้า/ไม่ครบ รอบต่อไปเร็วขึ้นเพราะจำไว้) · <b>ไม่ใช่คำแนะนำซื้อ</b></p>
   </div>
 
-  <div class="disc">เครื่องมือนี้เป็นตัวช่วยกรองเบื้องต้นจากราคา/ปริมาณเท่านั้น ไม่ใช่คำแนะนำการลงทุน · ข้อมูลราคาเก็บแคชในเครื่องคุณ</div>
+  <div class="disc" data-i18n="disc">เครื่องมือนี้เป็นตัวช่วยกรองเบื้องต้นจากราคา/ปริมาณเท่านั้น ไม่ใช่คำแนะนำการลงทุน · ข้อมูลราคาเก็บแคชในเครื่องคุณ</div>
 </div>
 
 <script src="invest-set50-scanner.js" defer></script>
