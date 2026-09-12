@@ -383,6 +383,36 @@ h1,h2,h3{text-wrap:balance}
   var portfolio = loadPortfolio();
   var holdings = portfolio.holdings.filter(function (h) { return N(h.shares) > 0; });
 
+  /* ══ สินทรัพย์จากหน้าอื่นๆ (หุ้นไทย/หุ้นนอก/Bitcoin) — แต่ละหน้ามีลิสต์ถือครองของตัวเอง
+     คนละไฟล์กับ "พอร์ตจำลอง" ข้างบน (คนละจุดประสงค์ ไม่ได้ผูก cash/ซื้อขายเหมือนกัน)
+     ที่นี่แค่ "ดึงมาโชว์รวม" ในตาราง "สินทรัพย์ในพอร์ต" เท่านั้น ไม่ยุ่งกับข้อมูลเดิมของหน้านั้นๆ เลย —
+     ราคาที่ใช้คือ "ราคาล่าสุดที่หน้านั้นเคยบันทึกไว้" (ไม่ได้ดึงราคาสดซ้ำจากที่นี่ กันงานซ้ำซ้อน/รกเกิน) ══ */
+  function loadExternalHoldings() {
+    var out = [];
+    try {
+      (JSON.parse(localStorage.getItem('tanot:invest:thstock')) || []).forEach(function (h) {
+        if (N(h.shares) > 0) out.push({ sym: String(h.sym || '').toUpperCase(), shares: N(h.shares), avgCost: N(h.cost), cur: h.cur, currency: 'THB', icon: 'TH', unit: 'หุ้น' });
+      });
+    } catch (e) {}
+    try {
+      (JSON.parse(localStorage.getItem('tanot:invest:globalstock')) || []).forEach(function (h) {
+        if (N(h.shares) > 0) out.push({ sym: String(h.sym || '').toUpperCase(), shares: N(h.shares), avgCost: N(h.cost), cur: h.cur, currency: 'USD', icon: 'GL', unit: 'หุ้น' });
+      });
+    } catch (e) {}
+    try {
+      (JSON.parse(localStorage.getItem('tanot:invest:btc')) || []).forEach(function (h) {
+        if (N(h.qty) > 0) out.push({ sym: 'BTC', shares: N(h.qty), avgCost: N(h.cost), cur: h.cur, currency: 'USD', icon: '₿', unit: 'BTC' });
+      });
+    } catch (e) {}
+    return out;
+  }
+  var externalHoldings = loadExternalHoldings();
+  var usdThbRate = 36; /* ค่าเริ่มต้นเผื่อดึงไม่ได้ — อัปเดตจริงถ้าดึง THB=X สำเร็จ (ดู loadUsdThbRate) */
+  function loadUsdThbRate() {
+    if (!externalHoldings.some(function (h) { return h.currency === 'USD'; })) return Promise.resolve(); /* ไม่มีสินทรัพย์สกุล USD ไม่ต้องดึง */
+    return loadOneQuote('THB=X', '', 0, 'px:THB=X').then(function (q) { if (isFinite(q.price)) usdThbRate = q.price; }).catch(function () {});
+  }
+
   /* ══ Live Market Data Gateway — เส้นทางหลัก ถ้าผู้ใช้ตั้งค่าไว้แล้วในหน้าหุ้นไทย/หุ้นนอก/Bitcoin
      (คีย์ localStorage เดียวกัน ใช้ร่วมกันทุกหน้า) เชื่อถือได้กว่า CORS-proxy ฟรีมาก
      ย่อมาจาก invest-thai-stock.js เฉพาะส่วนดึงราคา ไม่รวม UI ตั้งค่า (ตั้งค่าที่หน้าหุ้นไทยแทน) ══ */
@@ -571,7 +601,15 @@ h1,h2,h3{text-wrap:balance}
     holdings.forEach(function (h) {
       var sym = String(h.sym).toUpperCase(), q = holdingQuotes[sym], price = q ? q.price : N(h.avgCost);
       var value = price * N(h.shares), basis = N(h.avgCost) * N(h.shares);
-      rows.push({ sym: sym, shares: N(h.shares), avgCost: N(h.avgCost), price: price, value: value, basis: basis, pl: basis ? (value - basis) / basis * 100 : 0, live: !!q });
+      rows.push({ sym: sym, shares: N(h.shares), avgCost: N(h.avgCost), price: price, value: value, basis: basis, pl: basis ? (value - basis) / basis * 100 : 0, live: !!q, icon: 'TH', unit: 'หุ้น' });
+      invested += value; cost += basis;
+    });
+    /* สินทรัพย์จากหน้าหุ้นไทย/หุ้นนอก/Bitcoin (แยกไฟล์ ไม่ใช่ "พอร์ตจำลอง") — แปลงมูลค่า USD เป็นบาทด้วย usdThbRate */
+    externalHoldings.forEach(function (h) {
+      var fx = h.currency === 'USD' ? usdThbRate : 1;
+      var price = isFinite(h.cur) && h.cur > 0 ? N(h.cur) : N(h.avgCost);
+      var value = price * h.shares * fx, basis = N(h.avgCost) * h.shares * fx;
+      rows.push({ sym: h.sym, shares: h.shares, avgCost: h.avgCost, price: price, value: value, basis: basis, pl: basis ? (value - basis) / basis * 100 : 0, live: isFinite(h.cur) && h.cur > 0, icon: h.icon, unit: h.unit });
       invested += value; cost += basis;
     });
     var cash = N(portfolio.cash), total = cash + invested;
@@ -581,7 +619,12 @@ h1,h2,h3{text-wrap:balance}
   function renderKpis(p) {
     $('kValue').textContent = money(p.total);
     $('kValueSub').textContent = p.rows.length ? p.rows.length + ' สินทรัพย์ · ' + p.rows.filter(function (r) { return r.live; }).length + ' ราคาสด' : 'ยังไม่มีข้อมูลพอร์ต — กด "เพิ่มรายการ"';
-    var totalCost = p.cash + p.cost, pl = p.total - (portfolio.startCash || totalCost), plBase = portfolio.startCash || totalCost;
+    var totalCost = p.cash + p.cost;
+    /* startCash (เงินสมมติเริ่มต้นของ "พอร์ตจำลอง") แม่นกว่า totalCost เพราะรวมกำไร/ขาดทุนที่รับรู้แล้วจากการขายด้วย
+       แต่ใช้ได้เฉพาะตอนพอร์ตมีแค่สินทรัพย์จาก "พอร์ตจำลอง" เท่านั้น — ถ้ามีสินทรัพย์จากหน้าอื่นปนด้วย
+       (หุ้นไทย/หุ้นนอก/Bitcoin มินิลิสต์ ไม่เคยอยู่ใน startCash นี้) จะเทียบกับ totalCost แทนเพื่อไม่ให้เพี้ยน */
+    var plBase = (!externalHoldings.length && portfolio.startCash) ? portfolio.startCash : totalCost;
+    var pl = p.total - plBase;
     var plPct = plBase ? pl / plBase * 100 : 0;
     $('kPl').textContent = (pl >= 0 ? '+' : '') + money(pl);
     $('kPl').style.color = p.rows.length ? (pl >= 0 ? 'var(--ok)' : 'var(--err)') : '';
@@ -596,7 +639,7 @@ h1,h2,h3{text-wrap:balance}
     if (!p.rows.length) { body.innerHTML = '<p class="empty-hint">ยังไม่มีสินทรัพย์ในพอร์ต — ไปที่ <button type="button" class="lnk js-open-tool" data-tool-url="invest-portfolio.html">"พอร์ตของฉัน"</button> เพื่อบันทึกรายการซื้อ-ขายหุ้นด้วยเงินสมมติ</p>'; return; }
     var html = '<table class="tbl"><thead><tr><th>สินทรัพย์</th><th>มูลค่า</th><th>สัดส่วน</th><th>P/L</th></tr></thead><tbody>';
     p.rows.slice().sort(function (a, b) { return b.value - a.value; }).forEach(function (r) {
-      html += '<tr><td><div class="sym"><span class="ic">TH</span>' + esc(r.sym) + ' · ' + r.shares.toLocaleString('th-TH') + ' หุ้น</div></td>' +
+      html += '<tr><td><div class="sym"><span class="ic">' + esc(r.icon) + '</span>' + esc(r.sym) + ' · ' + r.shares.toLocaleString('th-TH') + ' ' + esc(r.unit) + '</div></td>' +
         '<td>' + money(r.value) + '</td><td>' + (p.total ? (r.value / p.total * 100).toFixed(1) : '0') + '%</td>' +
         '<td class="pl ' + (r.pl >= 0 ? 'up' : 'dn') + '">' + pct(r.pl, 1) + '</td></tr>';
     });
@@ -722,6 +765,7 @@ h1,h2,h3{text-wrap:balance}
   }
   refreshAll();
   loadHoldingQuotes().then(refreshAll);
+  loadUsdThbRate().then(refreshAll);
   loadAllMarkets();
 
   /* ══ แถบนำทาง 2 ชั้น — สร้างหมวดย่อยจาก window.INVEST_CATS (ที่มาเดียวกับเมนูแฮมเบอร์เกอร์) ══ */
@@ -790,8 +834,10 @@ h1,h2,h3{text-wrap:balance}
       /* ข้อมูลพอร์ต/ราคาอาจเปลี่ยนระหว่างเปิดป๊อปอัพ — โหลดค่าล่าสุดมาแสดงในหน้านี้ใหม่ */
       portfolio = loadPortfolio();
       holdings = portfolio.holdings.filter(function (h) { return N(h.shares) > 0; });
+      externalHoldings = loadExternalHoldings();
       refreshAll();
       loadHoldingQuotes().then(refreshAll);
+      loadUsdThbRate().then(refreshAll);
     }
     frame.addEventListener('load', function () {
       if (frame.src === 'about:blank') return;
