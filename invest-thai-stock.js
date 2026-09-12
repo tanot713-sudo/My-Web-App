@@ -20,6 +20,334 @@
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
   function fmt0(n) { return isFinite(n) ? Math.round(n).toLocaleString('th-TH') : '—'; }
 
+  /* ══ ภาษา UI (ไทย/English) — จุดกลางเดียวทั้งเว็บคือ localStorage 'ome:lang' (ดู shell.js: window.OME_LANG)
+     รูปแบบเดียวกับ word.js/cad.js/invest.html: I18N dict + t() + data-i18n attributes + window.omeApplyLang
+     ให้เมนูตั้งค่ากลางเรียกตอนสลับภาษา — เพิ่ม data-i18n-html (ใช้ innerHTML แทน textContent) สำหรับ
+     ข้อความที่มี tag ฝัง เช่น <b>/<a> อยู่ข้างใน (data-i18n ธรรมดาจะทำลาย tag ลูกเพราะ textContent ล้าง
+     child node ทั้งหมด) ══ */
+  var UI_LANG_KEY = 'ome:lang';
+  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
+  var I18N = {
+    th: {
+      navOverview: 'ภาพรวม', navMyPortfolio: 'พอร์ตของฉัน', navMarket: 'ตลาด & สินทรัพย์', navLottery: 'สลาก & พันธบัตร', navNews: 'ข่าว & ธุรกิจ',
+      crumbHome: 'การลงทุน', crumbHere: 'หุ้นไทย', pageDefaultTitle: 'หุ้นไทย — ตัวช่วยเข้า/ออก', whyTitleDefault: 'เหตุผลของสัญญาณ', tabNews: 'ข่าวและปฏิทิน',
+      defaultSignal: 'สัญญาณ —', defaultSector: 'หุ้นไทย',
+      step1Title: 'ราคาหุ้นตอนนี้', symLabel: 'ชื่อย่อหุ้น (เช่น PTT, ADVANC)', fetchBtn: 'ลองดึงราคา',
+      priceNowLabel: 'ราคาตอนนี้ (บาท)', priceNowPh: 'เช่น 35.50', priceHiLabel: 'ราคาสูงสุดของรอบ', priceLoLabel: 'ราคาต่ำสุดของรอบ', periodPh: 'ช่วง 3 เดือน',
+      liveModeHistorical: 'โหมดข้อมูล: ย้อนหลัง', liveMetaDefault: 'ตั้งค่าแหล่งข้อมูลสดได้ใน "ตั้งค่าข้อมูลตลาด"',
+      refreshBtn: '↻ รีเฟรช', marketSettingsBtn: '⚙ ตั้งค่าข้อมูลตลาด',
+      fetchStatusDefault: 'ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจาก Streaming ก็พอ (ดูราคาปัจจุบัน + สูง/ต่ำของรอบ)',
+      marketSettingsTitle: 'ข้อมูลตลาดแบบสด', providerLabel: 'แหล่งข้อมูล', providerGateway: 'Tanot Data Gateway (แนะนำ)', providerYahoo: 'Yahoo / ย้อนหลัง',
+      apiKeyLabel: 'Twelve Data API Key', apiKeyNote: '(เก็บในเครื่องเท่านั้น)', apiKeyPh: 'ใส่เมื่อมี API key',
+      intervalLabel: 'รีเฟรชทุก', interval5: '5 วินาที', interval10: '10 วินาที', interval30: '30 วินาที',
+      saveSettingsBtn: 'บันทึกการตั้งค่า', clearApiKeyBtn: 'ล้าง API Key',
+      marketSettingsNote: 'หมายเหตุ: Real-time ของ SET แบบทางการต้องใช้บริการข้อมูลที่มีสิทธิ์ใช้งานจาก SET; สำหรับ GitHub Pages ไม่ควรฝัง API key ไว้ในโค้ดสาธารณะ จึงรองรับ Gateway ฝั่งเซิร์ฟเวอร์เป็นหลัก',
+      analyzeBtn: 'ประเมินให้หน่อย', demoBtn: 'ดูกราฟตัวอย่าง (ฝึกอ่าน)',
+      pasteSummary: 'วางราคาย้อนหลังเอง (ทางเลือก)', pasteHint: 'วางราคาปิดหลายวัน คั่นด้วยเว้นวรรค/บรรทัด/จุลภาค (เรียงเก่า→ใหม่)', pasteBtn: 'ใช้ราคานี้',
+      chartTitle: 'กราฟราคา', tf1m: '1เดือน', tf3m: '3เดือน', tf6m: '6เดือน', tf1y: '1ปี', tgMa20: 'เฉลี่ย 20', tgMa50: 'เฉลี่ย 50',
+      capUp: 'แท่งขึ้น', capDn: 'แท่งลง', capMa20: 'เฉลี่ย 20 วัน', capMa50: 'เฉลี่ย 50 วัน', capTouch: 'แตะบนกราฟเพื่อดูราคาแต่ละวัน',
+      techDetailsSummary: 'ดูรายละเอียดทางเทคนิค (ไม่ต้องเข้าใจก็ได้)',
+      aiSumTitle: 'สรุปหุ้นด้วย AI', aiSumBtn: 'สรุปให้หน่อย',
+      step2Title: 'ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน',
+      capitalLabel: 'เงินลงทุนทั้งพอร์ต (บาท)', capitalPh: 'เช่น 100000', riskPctLabel: 'ยอมเสี่ยงต่อไม้', unitPctPortfolio: '(% ของพอร์ต)',
+      entryLabel: 'ราคาเข้าซื้อ (บาท)', entryPh: '= ราคาตอนนี้', stopLabel: 'ราคาตัดขาดทุน (Stop)', stopPh: 'แนะนำอัตโนมัติ',
+      commLabel: 'ค่าคอมฯ', unitPctPerTrade: '(% ต่อครั้ง)', commMinLabel: 'ค่าคอมฯ ขั้นต่ำ', unitBahtPerDay: '(บาท/วัน)',
+      calcBtn: 'คำนวณ', saveToPortfolioBtn: 'บันทึกเข้าพอร์ต', savedBtn: 'บันทึกแล้ว',
+      checklistTitle: 'ตรวจก่อนเข้าไม้ — ควรซื้อไหม?',
+      checklistDesc: 'เช็กวินัย 6 ข้อ ก่อนกดซื้อจริง (กันซื้อตามอารมณ์/ไล่ราคา) — กด "ประเมิน" และ "คำนวณ" ด้านบนก่อน แล้วกดปุ่มนี้',
+      checkBtn: 'ตรวจเช็กลิสต์',
+      pfTitle: 'พอร์ตของฉัน (หุ้นไทย)', pfSeeAll: 'ดูพอร์ตรวมทั้งเว็บ →',
+      pfDesc: 'เพิ่มหุ้นที่ถืออยู่ได้ตรงนี้ แล้วกด "ควรขาย?" เพื่อให้เครื่องช่วยดูจังหวะขาย (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อในหน้าสมุดเทรด)',
+      pfSymLabel: 'ชื่อหุ้น', pfSharesLabel: 'จำนวนหุ้น', pfCostLabel: 'ราคาต้นทุน/หุ้น', pfAddBtn: '+ เพิ่มเข้าพอร์ต',
+      pfEmptyDefault: 'ยังไม่มีหุ้นในพอร์ต — เพิ่มด้านบน หรือกด "บันทึกเข้าพอร์ต" ในขั้นที่ 2',
+      pfEmptyEmbed: 'ยังไม่มี {sym} ในพอร์ต',
+      pfThSym: 'หุ้น', pfThShares: 'จำนวน', pfThCost: 'ต้นทุน/หุ้น', pfThCur: 'ราคาปัจจุบัน', pfThPl: 'กำไร/ขาดทุน',
+      pfPricePh: 'ราคา', pfSellTitle: 'เช็กควรขาย?', pfSellBtn: 'ควรขาย?', pfDelTitle: 'ลบ',
+      expectancyTitle: 'ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?',
+      expectancyDesc: 'ความจริงที่มือใหม่มักไม่รู้: <b>ชนะบ่อยไม่ได้แปลว่ากำไร</b> — สิ่งที่สำคัญคือ "กำไรตอนถูก" ต้องใหญ่กว่า "ขาดทุนตอนผิด"',
+      eWinLabel: 'อัตราชนะ', unitPctWinTrades: '(% ของไม้ที่ชนะ)', eWinRLabel: 'กำไรเฉลี่ยตอนชนะ', unitR: '(เท่าของความเสี่ยง R)', eLossRLabel: 'ขาดทุนเฉลี่ยตอนแพ้',
+      realityTitle: 'อ่านก่อนเอาเงินมาลงทุน (สำคัญมาก)',
+      reality1: 'ลงทุนหุ้น <b>เฉพาะเงินที่ไม่ต้องใช้อย่างน้อย 3–5 ปี</b> — เงินที่หายได้โดยไม่กระทบชีวิต',
+      reality2: 'มี <b>เงินสำรองฉุกเฉิน 3–6 เดือน</b> ก่อนเริ่มเสมอ',
+      reality3: '<b>ห้ามเด็ดขาด</b>: เอาเงินค่ากิน ค่าเช่า เงินกู้ หรือเงินที่ต้องใช้เร็วๆ มาเทรด',
+      reality4: 'การเทรดหุ้น <b>ไม่ใช่รายได้เสริมที่มั่นคง/เร็ว</b> — มือใหม่ส่วนใหญ่ขาดทุนปีแรก โดยเฉพาะตอนร้อนเงิน',
+      realityCta: 'ถ้าตอนนี้เงินตึงและอยากได้เงินงอกแบบเสี่ยงต่ำ วิธีที่ปลอดภัยกว่าเก็งหุ้นรายตัวมากคือ <b>ทยอยลงทุนกองทุนดัชนี (DCA)</b> — <a href="invest-global-fund.html">ลองเครื่องวางแผนกองทุน S&amp;P500 →</a>',
+      lesson1Summary: 'อ่านกราฟเป็นใน 5 นาที (มีรูป)',
+      l1h1: '1. แท่งเทียน 1 แท่ง = ราคา 1 วัน', l1UpDay: 'วันขึ้น (เขียว)', l1DnDay: 'วันลง (แดง)',
+      l1HighWick: '← ไส้บน = ราคาสูงสุด', l1Body: '← ตัวเทียน = ช่วงเปิด–ปิด', l1LowWick: '← ไส้ล่าง = ราคาต่ำสุด',
+      l1Caption: 'เขียว = วันนั้นปิดสูงกว่าเปิด (ราคาขึ้น) · แดง = ปิดต่ำกว่าเปิด (ราคาลง) · ตัวอ้วนคือช่วงเปิด-ปิด เส้นบาง (ไส้) คือจุดสูงสุด-ต่ำสุดของวัน',
+      l2h1: '2. แนวโน้ม: ขึ้น / ลง / ออกข้าง', l2Up: 'ขาขึ้น', l2Dn: 'ขาลง', l2Side: 'ออกข้าง',
+      l2Caption: 'ยอด/ก้นสูงขึ้นเรื่อยๆ = ขาขึ้น (มองหาจังหวะซื้อ) · ต่ำลงเรื่อยๆ = ขาลง (เลี่ยง) · ไปข้างๆ = ยังไม่มีทิศทาง (รอ)',
+      l3h1: '3. แนวรับ–แนวต้าน', l3Resist: 'แนวต้าน (มักเด้งลง)', l3Support: 'แนวรับ (มักเด้งขึ้น)',
+      l3Caption: 'ราคามักเด้งขึ้นเมื่อลงมาถึง "แนวรับ" และมักย่อลงเมื่อขึ้นไปชน "แนวต้าน" — ใกล้แนวรับในขาขึ้น = จังหวะที่น่าสนใจ',
+      l4h1: '4. เส้นค่าเฉลี่ย (เฉลี่ย 20 / 50 วัน)', l4Avg: 'เฉลี่ย',
+      l4Caption: 'เส้นสีส้มคือค่าเฉลี่ยของราคา ช่วยกรองความแกว่งให้เห็นทิศทางรวมง่ายขึ้น — ราคาอยู่เหนือเส้น = แนวโน้มขึ้น อยู่ใต้เส้น = แนวโน้มลง',
+      l5h1: '5. แล้วดูกราฟจริงด้านบนยังไง',
+      l5Body: 'กดปุ่ม "ดูกราฟตัวอย่าง" ที่ขั้นที่ 1 เพื่อลองเล่นกับกราฟจริงได้เลย — สลับช่วงเวลา (1เดือน–1ปี), เปิด-ปิดเส้นเฉลี่ย, แตะบนกราฟเพื่อดูราคาแต่ละวัน แล้วไฟจราจรจะสรุปให้ว่าโดยรวมน่าสนใจไหม',
+      lesson2Summary: 'เรียนรู้ — มือใหม่อ่านตรงนี้ก่อน',
+      l6h1: 'สวิงเทรดคืออะไร', l6Body: 'ซื้อแล้วถือ "ไม่กี่วันถึงไม่กี่สัปดาห์" รอราคาขยับขึ้นตามจังหวะ แล้วขายทำกำไร — ไม่ใช่ซื้อขายรัวๆ ในวันเดียว และไม่ใช่ถือยาวเป็นปี',
+      l7h1: 'ทำไม "จุดตัดขาดทุน (Stop)" สำคัญที่สุด',
+      l7Body: 'ก่อนซื้อ ให้รู้ก่อนว่า "ถ้าคิดผิด จะยอมขาดทุนที่ราคาไหน" แล้วตั้งไว้ พอราคาถึงจุดนั้นให้ขายตัดใจ ไม่ปล่อยให้ขาดทุนบานปลาย — คนเจ๊งหุ้นส่วนใหญ่เพราะไม่ยอมตัดขาดทุน',
+      l8h1: '"ยอมเสี่ยงต่อไม้ 2%" หมายถึงอะไร',
+      l8Body: 'แต่ละครั้งที่ซื้อ ถ้าผิดทางจริง ควรเสียเงินไม่เกิน ~2% ของพอร์ต เครื่องจะคำนวณให้เองว่าควรซื้อกี่หุ้นถึงจะไม่เกินนี้ ทำให้ไม้เดียวไม่ทำพอร์ตพัง',
+      l9h1: 'ล็อต 100 หุ้นคืออะไร', l9Body: 'หุ้นไทยซื้อขายเป็นชุดละ 100 หุ้น (1 ล็อต) เครื่องจะปัดจำนวนให้ลงตัวเป็นหลักร้อยให้อัตโนมัติ',
+      l10h1: 'ค่าคอมฯ และ "ราคาคุ้มทุน"',
+      l10Body: 'ทุกครั้งที่ซื้อและขายมีค่าคอมฯ (ปกติผ่านเน็ต ~0.157% ต่อครั้ง) ราคาต้องขึ้นเกิน "จุดคุ้มทุน" ก่อนถึงจะเริ่มมีกำไรจริง เครื่องคำนวณให้แล้ว — แต่โบรกส่วนใหญ่คิด <b>ค่าคอมฯ ขั้นต่ำ ~50 บาท/วัน</b> ด้วย ถ้าไม้เล็กจนค่าคอมฯ ตามเปอร์เซ็นต์ไม่ถึงขั้นต่ำ จะโดนเก็บที่ขั้นต่ำแทน ทำให้จุดคุ้มทุนสูงกว่าที่คิดมาก (เช่น ไม้ ~3,500 บาท ค่าคอมฯ จริงอาจพุ่งไปเกือบ 3% ไป-กลับ) ไม้ยิ่งใหญ่ ยิ่งเฉลี่ยค่าคอมฯ ขั้นต่ำให้ถูกลง',
+      l11h1: 'อ่านไฟจราจรยังไง',
+      l11Green: 'เขียว = ราคาน่าสนใจ อยู่ช่วงถูกของรอบและเริ่มมีแรงซื้อ — ค่อยพิจารณา (ไม่ใช่สั่งให้ซื้อ)',
+      l11Yellow: 'เหลือง = กลางๆ ยังไม่มีจังหวะเด่น รอดูก่อน', l11Red: 'แดง = ราคาแพงเทียบรอบ/สัญญาณอ่อน ระวังการไล่ซื้อ',
+      l12h1: 'เอาตัวเลขจาก Streaming ตรงไหน',
+      l12Body: 'เปิดหุ้นที่สนใจใน Streaming: "ราคาตอนนี้" คือราคาล่าสุดตัวใหญ่ ส่วน "สูงสุด/ต่ำสุดของรอบ" ดูช่อง High/Low (หรือ 52W High/Low ก็ได้ถ้าหาช่วงสั้นไม่เจอ) แล้วนำมากรอกในขั้นที่ 1',
+      stockNewsDefault: 'ข่าวหุ้น', stockNewsWithSym: 'ข่าวหุ้น {sym}', stockNewsPrompt: 'ดึงราคาหุ้นในแท็บ "ภาพรวม" ก่อน เพื่อดูข่าวของหุ้นตัวนั้น',
+      oppdayText: 'อยากดู Opportunity Day (บริษัทพบผู้ลงทุน) ของหุ้นนี้ — <a id="oppdayLink" href="https://www.set.or.th/oppday" target="_blank" rel="noopener" style="color:var(--act-ink);font-weight:700">ค้นหาที่หน้า Opportunity Day ของตลาดหลักทรัพย์ฯ ↗</a>',
+      footerDisc: 'เครื่องนี้เป็นตัวช่วยคิดและฝึกวินัย ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · การตัดสินใจและความเสี่ยงเป็นของคุณเอง · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ที่หน้า <a href="invest-trade-journal.html" style="color:var(--act-ink);font-weight:700">สมุดเทรด</a>)',
+
+      liveReal: 'สด / Real-time', liveFallback: 'สำรอง / Historical', liveNoConn: 'แหล่งข้อมูลสดยังเชื่อมต่อไม่ได้ · ใช้ราคาย้อนหลังเป็น fallback', liveYahooMeta: 'ใช้ Yahoo สำหรับกราฟย้อนหลัง',
+      liveModePrefix: 'โหมดข้อมูล: ', updatedAt: 'อัปเดต ', liveHistorical: 'ย้อนหลัง / Historical',
+      settingsSaved: 'บันทึกการตั้งค่าแล้ว · ระบบจะดึงข้อมูลตามช่วงเวลาที่ตั้ง', apiKeyCleared: 'ล้าง API Key จากเครื่องแล้ว',
+      typeSymFirst: 'พิมพ์ชื่อย่อหุ้นก่อน เช่น PTT', fetchingData: 'กำลังดึงข้อมูล {sym}…',
+      latestPriceMsg: 'ราคาล่าสุด {price} บาท · {source} · {time}',
+      liveFromMsg: 'ราคา {sym} สดจาก {source} · กราฟย้อนหลัง {days} วัน',
+      staleDataMsg: 'แหล่งข้อมูลสดใช้ไม่ได้ · ใช้ข้อมูลย้อนหลังที่บันทึกไว้ ({age}) · {days} วัน',
+      histFromMsg: 'ขณะนี้ใช้ราคาย้อนหลังจาก {source} · {days} วัน',
+      notFoundMsg: 'ไม่พบข้อมูลของ {sym} — ตรวจชื่อหุ้นหรือการเชื่อมต่อข้อมูลตลาด',
+      enterPriceFirst: 'กรอกอย่างน้อย "ราคาตอนนี้" ก่อนนะครับ', chartLibFail: 'โหลดไลบรารีกราฟไม่ได้ (ลองออนไลน์แล้วรีเฟรช) — ส่วนไฟจราจร/คำนวณเงินยังใช้ได้',
+      pasteAtLeast5: 'วางราคาปิดอย่างน้อย 5 วันก่อนนะครับ', pastedMsg: 'ใช้ราคาที่วางแล้ว ({days} วัน)',
+      demoMsg: 'กำลังแสดง "ข้อมูลตัวอย่าง" (ไม่ใช่ราคาจริง) — ไว้ลองเล่นกราฟและฝึกอ่าน',
+      demoBadge: 'ข้อมูลตัวอย่าง — ไม่ใช่ราคาจริง (ไว้ฝึกอ่านกราฟ)', pastedBadge: 'ราคาที่วางเอง · {days} วัน', realBadgeLabel: 'ราคาจริง', realBadge: '{label} · {status} · {days} วัน', staleLatestPrice: 'ราคาล่าสุด {age}',
+      justNow: 'เมื่อสักครู่', minsAgo: '{n} นาทีก่อน', hrsAgo: '{n} ชม.ก่อน', daysAgo: '{n} วันก่อน',
+      legendOpen: 'เปิด', legendHigh: 'สูง', legendLow: 'ต่ำ', legendClose: 'ปิด',
+      detEma20: 'เส้นเฉลี่ย 20 วัน (EMA20)', detEma50: 'เส้นเฉลี่ย 50 วัน (EMA50)', detRsi: 'RSI (14)', detMacd: 'MACD histogram',
+      detBbUp: 'กรอบบน (Bollinger)', detBbLo: 'กรอบล่าง (Bollinger)', detAtr: 'ATR (ความผันผวน)', detSupport: 'แนวรับล่าสุด', detResistance: 'แนวต้านล่าสุด',
+      detAdx: 'ความแรงแนวโน้ม (ADX 14)', detAdxStrong: ' · แข็งแรง', detAdxWeak: ' · อ่อน',
+      detSar: 'จุดตัดขาดทุนตาม (Parabolic SAR)', detSarUp: ' · เทรนด์ขึ้น', detSarDn: ' · เทรนด์ลง',
+      vGood: 'น่าสนใจ — ลองพิจารณา', vBad: 'ระวัง — ยังไม่ใช่จังหวะ', vWait: 'รอก่อน — ยังไม่มีจังหวะเด่น',
+      vExpensive: 'ระวัง — ราคาค่อนข้างแพง', vMid: 'รอก่อน — ราคากลางกรอบ',
+      whyCheap: 'ราคาอยู่ช่วงถูกเทียบ 3 เดือน', whyExpensive: 'ราคาอยู่ช่วงแพงเทียบ 3 เดือน',
+      whySellEase: 'แรงขายเริ่มคลาย (RSI ต่ำ กำลังฟื้น)', whyHot: 'ราคาร้อนแรงเกินไป (RSI สูง เสี่ยงย่อ)',
+      whyMomUp: 'โมเมนตัมเริ่มกลับเป็นบวก', whyMomDn: 'โมเมนตัมเริ่มอ่อนลง',
+      whyUptrend: 'ยังอยู่ในแนวโน้มขึ้น', whyDowntrend: 'อยู่ใต้เส้นแนวโน้ม (ขาลง/พักตัว)',
+      whyLowerBand: 'ราคาแตะกรอบล่าง (มักเป็นจังหวะเด้ง)', whyUpperBand: 'ราคาชนกรอบบน',
+      whyMidRange: 'ราคาอยู่กลางกรอบ ยังไม่มีสัญญาณชัด',
+      whyCheapPct: 'ราคาอยู่ค่อนไปทางถูกของรอบ (~{pct}% ของช่วง ต่ำ→สูง)', whyExpensivePct: 'ราคาอยู่ค่อนไปทางแพงของรอบ (~{pct}% ของช่วง ต่ำ→สูง)', whyMidPct: 'ราคาอยู่กลางกรอบ (~{pct}% ของช่วง ต่ำ→สูง)',
+      gapNeedInfo: 'กรอกราคาสูง/ต่ำของรอบ เพื่อประเมินถูก-แพง', gapNeedInfoWhy: 'หรือกด "ดูกราฟตัวอย่าง (ฝึกอ่าน)" เพื่อลองเล่นกราฟ — ตอนนี้ทำได้เฉพาะคำนวณเงินด้านล่าง',
+      stopMustBeLower: 'ราคาตัดขาดทุนต้องต่ำกว่าราคาเข้าซื้อ', minLotNote: 'ขั้นต่ำ 100 หุ้น ทำให้ความเสี่ยงเกิน {pct}% ที่ตั้งไว้เล็กน้อย — พิจารณาขยับ stop ให้แคบลง หรือเพิ่มทุน',
+      capitalLimitNote: 'จำกัดจำนวนตามเงินที่มี (ทุนไม่พอซื้อเท่าที่ความเสี่ยงอนุญาต)',
+      calcHeadline: 'ควรซื้อได้ประมาณ <b>{shares} หุ้น</b> ({lots} ล็อต) ใช้เงิน ≈ <b>฿{cost}</b>',
+      kvRiskIfWrong: 'ถ้าผิดทาง (แตะ Stop) เสียไม่เกิน', kvStopPrice: 'ราคาตัดขาดทุน (Stop)', kvCommRoundtrip: 'ค่าคอมฯ จริงไป-กลับ',
+      kvBreakeven: 'ราคาคุ้มทุน (รวมค่าคอมฯ ไป-กลับ)', kvRR: 'ความคุ้ม (กำไรคาดหวัง : ความเสี่ยง) ถึงแนวต้าน',
+      tpLot1: 'ทยอยขายไม้ 1: {price}', tpLot2: 'ไม้ 2: {price}', tpLot3: 'ไม้ 3: {price}',
+      commMinNote: 'ℹ️ ไม้นี้เล็กเกินกว่าค่าคอมฯ ตามเปอร์เซ็นต์จะถึงขั้นต่ำ — โบรกจึงเก็บขั้นต่ำ ฿{min}/วัน แทน ทำให้ค่าคอมฯ จริงคิดเป็น {pct}% ไป-กลับ ต้องขึ้นถึง {breakeven} บาทถึงจะเท่าทุนจริง — ลองซื้อไม้ใหญ่ขึ้นเพื่อเฉลี่ยค่าคอมฯ ให้ถูกลง',
+      trendUpAdx: 'อยู่ในแนวโน้มขึ้น (ราคาเหนือเส้นเฉลี่ย)', trendNotUpAdx: 'ยังไม่อยู่ในแนวโน้มขึ้น (ราคาใต้เส้นเฉลี่ย)', adxStrongTxt: ' · ADX {adx} เทรนด์แข็งแรง', adxWeakTxt: ' · ADX {adx} เทรนด์อ่อน ควรระวัง',
+      notChasing: 'ไม่ไล่ราคา (ห่างเส้นเฉลี่ย 20 ไม่เกิน 5%)', chasing: 'กำลังไล่ราคา (สูงกว่าเส้นเฉลี่ย 20 เกิน 5%)',
+      needChartFirst: 'แนวโน้ม/การไล่ราคา: ต้องมีข้อมูลกราฟก่อน (กด "ดึงราคา" หรือ "ดูกราฟตัวอย่าง")',
+      rsiOk: 'ไม่ร้อนแรงเกิน (RSI {rsi})', rsiHot: 'ร้อนแรงเกินไป (RSI {rsi} ≥ 70) เสี่ยงย่อ', rsiNeedChart: 'RSI: ต้องมีข้อมูลกราฟก่อน',
+      stopSetOk: 'ตั้งจุดตัดขาดทุน (Stop) แล้ว', stopNotSet: 'ยังไม่ตั้งจุดตัดขาดทุน — กด "คำนวณ" ในขั้นที่ 2 ก่อน',
+      riskOk: 'เสี่ยงต่อไม้ ≤ 2% ({pct}%)', riskHigh: 'เสี่ยงต่อไม้สูงไป ({pct}) — ควร ≤ 2%',
+      rrOk: 'กำไรคาดหวัง:เสี่ยง ≥ 2:1 ({rr}:1)', rrLow: 'กำไร:เสี่ยงน้อยไป ({rr}:1) — ควร ≥ 2:1', rrNeedInfo: 'กำไร:เสี่ยง: ต้องมีแนวต้านจากกราฟ + ตั้ง Stop ก่อน',
+      checklistFail: 'ยังไม่ควรเข้า — ติด {n} ข้อ ควรแก้ให้ครบก่อนซื้อ', checklistUnknown: 'ข้อมูลไม่พอประเมินครบ — กด "ประเมิน"/"ดึงราคา" แล้ว "คำนวณ" ก่อน',
+      checklistGo: 'เข้าได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)',
+      expInvalid: 'กรอกตัวเลขให้ครบ (อัตราชนะ 0–100%, กำไร/ขาดทุนเป็นเท่าของ R)',
+      expMsg: 'ค่าคาดหวังต่อไม้ ≈ <b>{sign}{exp} R</b> (ถ้าเสี่ยงไม้ละ 1,000 บาท ≈ {sign2}฿{bahtExp} ต่อไม้โดยเฉลี่ย)<br><span style="font-weight:500">ต้องชนะอย่างน้อย ~{beWin}% ถึงจะเสมอตัวที่ R นี้</span>',
+      expGood: 'ได้เปรียบระยะยาว<br>{msg}<br><span style="font-weight:500">ถ้าทำตามวินัยสม่ำเสมอ (คุมความเสี่ยงเท่ากันทุกไม้) มีโอกาสกำไรระยะยาว</span>',
+      expBreakeven: 'แทบเสมอตัว<br>{msg}<br><span style="font-weight:500">หักค่าคอมฯแล้วอาจขาดทุน — ต้องเพิ่มกำไรตอนชนะ หรือลดขาดทุนตอนแพ้</span>',
+      expBad: 'ขาดทุนระยะยาว<br>{msg}<br><span style="font-weight:500">ถึงชนะบ่อยก็ไม่พอ — ต้อง "ปล่อยกำไรให้ยาว ตัดขาดทุนให้ไว" (เพิ่ม R ตอนชนะ)</span>',
+      sellSarDn: 'พิจารณาขาย — สัญญาณเทรนด์กลับตัว (SAR พลิกลง)', sellBelowTrend: 'พิจารณาขาย/ตัดขาดทุน — ราคาหลุดแนวโน้ม (ต่ำกว่าเส้นค่าเฉลี่ย)',
+      sellHotRsi: 'พิจารณาล็อกกำไรบางส่วน — RSI สูง ราคาร้อนแรง อาจย่อ', sellNearResist: 'ใกล้แนวต้าน — พิจารณาล็อกกำไรบางส่วน',
+      sellHold: 'ยังอยู่ในแนวโน้มขึ้น — ถือต่อได้ เลื่อนจุดตัดขาดทุนตามแนวด้านล่าง',
+      sarLabel: 'แนวตัดขาดทุนตามเทรนด์ (SAR)', sarNoData: 'ข้อมูลไม่พอคำนวณ (ต้องมีประวัติราคาอย่างน้อย ~3 วัน)',
+      sarUpReason: 'ถ้าราคาปิดหลุดต่ำกว่า {price} ถือว่าเทรนด์ขาขึ้นเริ่มกลับตัว', sarDnReason: 'ราคาหลุดแนวนี้ไปแล้ว (SAR พลิกลง) — เป็นสัญญาณเตือนที่ชัดที่สุด',
+      stopRiskLabel: 'จุดตัดขาดทุนตามความเสี่ยง (ATR/แนวรับ)', noData: 'ข้อมูลไม่พอคำนวณ',
+      stopRiskReason: 'กันขาดทุนหนักถ้าราคาหลุดแนวรับหรือผันผวนเกินค่าเฉลี่ย{atr}', atrSuffix: ' (ATR ≈ {atr})',
+      ema20Label: 'เส้นค่าเฉลี่ย 20 วัน (สัญญาณเตือนแรก)', ema20Reason: 'หลุดเส้นนี้มักเป็นสัญญาณเริ่มอ่อนตัว — ยังไม่ใช่จุดตัดขาดทุนหลัก แต่ควรเริ่มระวัง',
+      resistLabel: 'แนวต้าน (จุดพิจารณาล็อกกำไรบางส่วน)', resistReason: 'ราคามักเจอแรงขายทำกำไรบริเวณนี้ พิจารณาขายบางส่วนหรือเลื่อนจุดตัดขาดทุนตามเพื่อป้องกันกำไร',
+      noCompanyInfo: 'ไม่มีข้อมูลบริษัทในฐานข้อมูล', companyInfoFallback: 'รองรับเฉพาะ 50 หุ้นใน SET50 — <a href="{url}" target="_blank" rel="noopener">ค้นหาข้อมูลบริษัท {sym} เอง ↗</a>',
+      alertEnterSym: 'ใส่ชื่อหุ้นก่อน', alertEnterValid: 'กรอกจำนวนหุ้นและราคาต้นทุนให้ถูกต้อง',
+      fetchingSellPrice: 'กำลังดึงราคา {sym}…', sellFetchFail: 'ดึงราคา {sym} ไม่ได้ตอนนี้ — ลองใหม่อีกครั้ง หรือกรอกราคาปัจจุบันเองในช่อง',
+      sellLatestPrice: 'ราคาล่าสุด {price}', sellSavedAge: ' (บันทึกไว้ {age})', sellCostLabel: ' · ต้นทุน {cost} · ', sellProfit: 'กำไร ', sellLoss: 'ขาดทุน ',
+      searchNewsMyself: 'ค้นหาข่าวเอง ↗', searchingNews: 'กำลังค้นข่าว {sym}… ', moreNews: 'ดูข่าวเพิ่มเติม ', newsAutoFail: 'ดึงข่าวอัตโนมัติไม่ได้ตอนนี้ ',
+      scannerLink: 'สแกนเนอร์ SET50',
+      iosNotSupported: 'ฟีเจอร์นี้ (AI รันในเครื่อง) ยังไม่รองรับ iPhone/iPad ตอนนี้ — หน่วยความจำต่อแท็บของ Safari/iOS จำกัดเกินกว่าจะรันโมเดลได้อย่างเสถียร ลองใช้งานจากคอมพิวเตอร์แทนได้ครับ',
+      needStockData: 'ยังไม่มีข้อมูลหุ้นให้สรุป — ดึงราคาหรือดูกราฟตัวอย่างก่อนนะครับ',
+      summarizing: 'กำลังสรุป… (ครั้งแรกอาจต้องโหลดโมเดล AI ~350MB ก่อน)', loadingModel: 'กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) {file} {pct}',
+      summarizeFail: 'สรุปไม่สำเร็จ ลองอีกครั้ง', summarizeFailWith: 'สรุปไม่สำเร็จ: {msg}', unknownReason: 'ไม่ทราบสาเหตุ',
+      memErrorMsg: 'โหลดโมเดล AI ไม่สำเร็จ เพราะหน่วยความจำที่เบราว์เซอร์เหลือให้ใช้ไม่พอ (มักเกิดถ้าเปิดแท็บ/โปรแกรมอื่นพร้อมกันเยอะ) ลองปิดแท็บ/โปรแกรมอื่นแล้วกดสรุปใหม่อีกครั้ง',
+      thisStock: 'หุ้นนี้', sampleWord: 'ตัวอย่าง', enterEntryFirst: 'กรอกราคาเข้าซื้อ (หรือราคาตอนนี้) ก่อน',
+      ctxStock: 'หุ้น: {v}', ctxLatestPrice: 'ราคาล่าสุด: {v} บาท', ctxVerdict: 'สัญญาณไฟจราจรที่คำนวณแล้ว: {v} ({why})',
+      ctxPros: 'ปัจจัยหนุนที่ตรวจพบ: {v}', ctxCons: 'ปัจจัยเสี่ยงที่ตรวจพบ: {v}',
+      ctxRsi: 'RSI (14 วัน): {v}', ctxRsiHigh: ' (สูง/ร้อนแรง)', ctxRsiLow: ' (ต่ำ/แรงขายเริ่มคลาย)', ctxRsiMid: ' (กลางๆ)',
+      ctxMacd: 'MACD histogram: {v}', ctxMacdPos: ' (เป็นบวก)', ctxMacdNeg: ' (เป็นลบ)',
+      ctxEma: 'เส้นเฉลี่ย 20 วัน: {e20}, เส้นเฉลี่ย 50 วัน: {e50}', ctxEmaUp: ' (ราคาอยู่เหนือเส้นเฉลี่ย — แนวโน้มขึ้น)', ctxEmaDn: ' (ราคาอยู่ใต้เส้นเฉลี่ย — แนวโน้มลง/พักตัว)',
+      ctxSupport: 'แนวรับล่าสุด: {v}', ctxResistance: 'แนวต้านล่าสุด: {v}',
+      ctxAdx: 'ความแรงแนวโน้ม (ADX): {v}', ctxAdxStrong: ' (แข็งแรง)', ctxAdxWeak: ' (อ่อน)',
+      ctxNewsWithCount: 'หัวข้อข่าวล่าสุด ({n} ข่าว): {v}', ctxNoNews: 'หัวข้อข่าวล่าสุด: ไม่มีข้อมูลข่าว'
+    },
+    en: {
+      navOverview: 'Overview', navMyPortfolio: 'My Portfolio', navMarket: 'Markets & Assets', navLottery: 'Lottery & Bonds', navNews: 'News & Business',
+      crumbHome: 'Investing', crumbHere: 'Thai Stocks', pageDefaultTitle: 'Thai Stocks — Entry/Exit Helper', whyTitleDefault: 'Reason for signal', tabNews: 'News & Calendar',
+      defaultSignal: 'Signal —', defaultSector: 'Thai stock',
+      step1Title: 'Current stock price', symLabel: 'Ticker (e.g. PTT, ADVANC)', fetchBtn: 'Try Fetching Price',
+      priceNowLabel: 'Current price (THB)', priceNowPh: 'e.g. 35.50', priceHiLabel: 'Period high', priceLoLabel: 'Period low', periodPh: 'Last 3 months',
+      liveModeHistorical: 'Data mode: Historical', liveMetaDefault: 'Set up a live data source in "Market Data Settings"',
+      refreshBtn: '↻ Refresh', marketSettingsBtn: '⚙ Market Data Settings',
+      fetchStatusDefault: 'Auto-fetch is great, but manually entering from Streaming works too (current price + period high/low)',
+      marketSettingsTitle: 'Live Market Data', providerLabel: 'Data source', providerGateway: 'Tanot Data Gateway (recommended)', providerYahoo: 'Yahoo / Historical',
+      apiKeyLabel: 'Twelve Data API Key', apiKeyNote: '(stored locally only)', apiKeyPh: 'Enter if you have an API key',
+      intervalLabel: 'Refresh every', interval5: '5 seconds', interval10: '10 seconds', interval30: '30 seconds',
+      saveSettingsBtn: 'Save Settings', clearApiKeyBtn: 'Clear API Key',
+      marketSettingsNote: 'Note: official real-time SET data requires a licensed data service; for GitHub Pages, don’t embed API keys in public code — a server-side gateway is the primary supported option.',
+      analyzeBtn: 'Analyze It', demoBtn: 'View Sample Chart (Practice)',
+      pasteSummary: 'Paste historical prices manually (optional)', pasteHint: 'Paste several days of closing prices, separated by space/line/comma (oldest→newest)', pasteBtn: 'Use This Price',
+      chartTitle: 'Price Chart', tf1m: '1mo', tf3m: '3mo', tf6m: '6mo', tf1y: '1yr', tgMa20: 'MA 20', tgMa50: 'MA 50',
+      capUp: 'Up candle', capDn: 'Down candle', capMa20: '20-day average', capMa50: '50-day average', capTouch: 'Tap the chart to see each day’s price',
+      techDetailsSummary: 'View technical details (no need to understand)',
+      aiSumTitle: 'AI Stock Summary', aiSumBtn: 'Summarize It',
+      step2Title: 'How much to invest, and where to sell',
+      capitalLabel: 'Total portfolio capital (THB)', capitalPh: 'e.g. 100000', riskPctLabel: 'Risk per trade', unitPctPortfolio: '(% of portfolio)',
+      entryLabel: 'Entry price (THB)', entryPh: '= current price', stopLabel: 'Stop-loss price', stopPh: 'Suggested automatically',
+      commLabel: 'Commission', unitPctPerTrade: '(% per trade)', commMinLabel: 'Minimum commission', unitBahtPerDay: '(THB/day)',
+      calcBtn: 'Calculate', saveToPortfolioBtn: 'Save to Portfolio', savedBtn: 'Saved',
+      checklistTitle: 'Pre-Trade Checklist — Should You Buy?',
+      checklistDesc: 'Check 6 discipline items before buying for real (stops emotional/chase buying) — click "Analyze" and "Calculate" above first, then click this button',
+      checkBtn: 'Run Checklist',
+      pfTitle: 'My Portfolio (Thai Stocks)', pfSeeAll: 'See portfolio across the whole site →',
+      pfDesc: 'Add holdings here, then tap "Should I sell?" to get help checking the exit timing (stored on your device + auto-backed up to Drive if connected in the trade journal page)',
+      pfSymLabel: 'Ticker', pfSharesLabel: 'Shares', pfCostLabel: 'Cost/share', pfAddBtn: '+ Add to Portfolio',
+      pfEmptyDefault: 'No holdings yet — add above, or click "Save to Portfolio" in step 2',
+      pfEmptyEmbed: 'No {sym} in portfolio yet',
+      pfThSym: 'Stock', pfThShares: 'Shares', pfThCost: 'Cost/share', pfThCur: 'Current price', pfThPl: 'P/L',
+      pfPricePh: 'Price', pfSellTitle: 'Check should I sell?', pfSellBtn: 'Should I sell?', pfDelTitle: 'Delete',
+      expectancyTitle: 'Is Your Trading System "Profitable Long-Term"?',
+      expectancyDesc: 'A truth many beginners don’t know: <b>winning often doesn’t mean profit</b> — what matters is that your "gain when right" must be bigger than your "loss when wrong"',
+      eWinLabel: 'Win rate', unitPctWinTrades: '(% of winning trades)', eWinRLabel: 'Average gain when winning', unitR: '(multiples of risk R)', eLossRLabel: 'Average loss when losing',
+      realityTitle: 'Read Before Investing Real Money (Important)',
+      reality1: 'Only invest in stocks <b>with money you won’t need for at least 3–5 years</b> — money you can afford to lose without affecting your life',
+      reality2: 'Always have <b>3–6 months of emergency savings</b> before you start',
+      reality3: '<b>Never</b>: use money for food, rent, loans, or money you’ll need soon to trade',
+      reality4: 'Stock trading <b>is not a stable/quick side income</b> — most beginners lose money in year one, especially when trading with money they need',
+      realityCta: 'If money is tight right now and you want low-risk growth, a much safer approach than picking individual stocks is <b>dollar-cost averaging into an index fund (DCA)</b> — <a href="invest-global-fund.html">try the S&amp;P 500 fund planner →</a>',
+      lesson1Summary: 'Learn to Read Charts in 5 Minutes (with pictures)',
+      l1h1: '1. One candlestick = one day’s price', l1UpDay: 'Up day (green)', l1DnDay: 'Down day (red)',
+      l1HighWick: '← upper wick = highest price', l1Body: '← body = open–close range', l1LowWick: '← lower wick = lowest price',
+      l1Caption: 'Green = closed higher than it opened (price up) · Red = closed lower than it opened (price down) · The thick body is the open–close range, the thin wicks are the day’s high and low',
+      l2h1: '2. Trend: up / down / sideways', l2Up: 'Uptrend', l2Dn: 'Downtrend', l2Side: 'Sideways',
+      l2Caption: 'Rising highs/lows = uptrend (look for buy opportunities) · Falling highs/lows = downtrend (avoid) · Moving sideways = no clear direction yet (wait)',
+      l3h1: '3. Support–Resistance', l3Resist: 'Resistance (often bounces down)', l3Support: 'Support (often bounces up)',
+      l3Caption: 'Price often bounces up when it falls to "support" and often pulls back when it rises to "resistance" — near support in an uptrend = an interesting opportunity',
+      l4h1: '4. Moving averages (20 / 50-day)', l4Avg: 'Average',
+      l4Caption: 'The orange line is the price average, filtering out noise to show the overall direction more clearly — price above the line = uptrend, below the line = downtrend',
+      l5h1: '5. So how do I read the real chart above',
+      l5Body: 'Click "View Sample Chart" in step 1 to try a real interactive chart right away — switch timeframes (1mo–1yr), toggle moving averages, tap the chart to see each day’s price, and the signal light will summarize whether it looks interesting overall',
+      lesson2Summary: 'Learn — Beginners Read This First',
+      l6h1: 'What is swing trading', l6Body: 'Buy and hold for "a few days to a few weeks", wait for the price to move with the swing, then sell for profit — not rapid same-day trading, and not holding for years',
+      l7h1: 'Why the "stop-loss" is the most important thing',
+      l7Body: 'Before buying, know in advance "if I’m wrong, what price am I willing to lose at" and set it. When price hits that point, sell and accept it — don’t let losses run. Most people who blow up their account do so because they refuse to cut losses',
+      l8h1: 'What does "risking 2% per trade" mean',
+      l8Body: 'Each time you buy, if you’re wrong, you should lose no more than ~2% of your portfolio. The tool calculates how many shares to buy to stay within that, so one bad trade won’t wreck your portfolio',
+      l9h1: 'What is a 100-share lot', l9Body: 'Thai stocks trade in lots of 100 shares. The tool automatically rounds the quantity to whole hundreds',
+      l10h1: 'Commissions and the "breakeven price"',
+      l10Body: 'Every buy and sell incurs a commission (typically ~0.157% per trade online). Price needs to rise past the "breakeven point" before you’re truly in profit — the tool calculates this for you. But most brokers also charge a <b>minimum commission of ~50 THB/day</b> — if a trade is small enough that the percentage-based commission doesn’t reach the minimum, you’ll be charged the minimum instead, pushing your real breakeven much higher (e.g. a ~3,500 THB trade could see real commission spike to nearly 3% round-trip). Bigger trades average out the minimum commission to a lower rate',
+      l11h1: 'How to read the traffic light',
+      l11Green: 'Green = price looks interesting, in a cheap part of its range with buying pressure starting — worth considering (not an order to buy)',
+      l11Yellow: 'Yellow = neutral, no standout opportunity yet, wait and watch', l11Red: 'Red = price is expensive relative to its range / weak signal — be careful chasing it',
+      l12h1: 'Where to get the numbers from Streaming',
+      l12Body: 'Open the stock you’re interested in on Streaming: "current price" is the large latest price figure, and for "period high/low" check the High/Low field (or 52-week High/Low if you can’t find a shorter range), then enter these in step 1',
+      stockNewsDefault: 'Stock News', stockNewsWithSym: '{sym} News', stockNewsPrompt: 'Fetch a stock price in the "Overview" tab first to see its news',
+      oppdayText: 'Want to see this stock’s Opportunity Day (investor meeting)? — <a id="oppdayLink" href="https://www.set.or.th/oppday" target="_blank" rel="noopener" style="color:var(--act-ink);font-weight:700">Search the Stock Exchange of Thailand’s Opportunity Day page ↗</a>',
+      footerDisc: 'This tool is a thinking aid and discipline trainer, not investment advice, and does not guarantee profit · Decisions and risk are your own · Data is stored on your device primarily (back it up to your personal Google Drive on the <a href="invest-trade-journal.html" style="color:var(--act-ink);font-weight:700">trade journal</a> page)',
+
+      liveReal: 'Live / Real-time', liveFallback: 'Fallback / Historical', liveNoConn: 'Live data source not reachable yet · using historical price as fallback', liveYahooMeta: 'Using Yahoo for historical charts',
+      liveModePrefix: 'Data mode: ', updatedAt: 'updated ', liveHistorical: 'Historical',
+      settingsSaved: 'Settings saved · data will refresh at the interval you set', apiKeyCleared: 'API Key cleared from this device',
+      typeSymFirst: 'Type a ticker first, e.g. PTT', fetchingData: 'Fetching {sym} data…',
+      latestPriceMsg: 'Latest price {price} THB · {source} · {time}',
+      liveFromMsg: 'Live price for {sym} from {source} · {days} days of history',
+      staleDataMsg: 'Live source unavailable · using saved historical data ({age}) · {days} days',
+      histFromMsg: 'Currently using historical price from {source} · {days} days',
+      notFoundMsg: 'No data found for {sym} — check the ticker or your market data connection',
+      enterPriceFirst: 'Please enter at least the "current price" first', chartLibFail: 'Couldn’t load the charting library (try going online and refreshing) — the signal light/money calculator still work',
+      pasteAtLeast5: 'Please paste at least 5 days of closing prices', pastedMsg: 'Using pasted price ({days} days)',
+      demoMsg: 'Showing "sample data" (not real prices) — for practicing reading charts',
+      demoBadge: 'Sample data — not real prices (for practicing chart reading)', pastedBadge: 'Pasted price · {days} days', realBadgeLabel: 'Real price', realBadge: '{label} · {status} · {days} days', staleLatestPrice: 'Latest price {age}',
+      justNow: 'just now', minsAgo: '{n} min ago', hrsAgo: '{n} hr ago', daysAgo: '{n} days ago',
+      legendOpen: 'Open', legendHigh: 'High', legendLow: 'Low', legendClose: 'Close',
+      detEma20: '20-day average (EMA20)', detEma50: '50-day average (EMA50)', detRsi: 'RSI (14)', detMacd: 'MACD histogram',
+      detBbUp: 'Upper band (Bollinger)', detBbLo: 'Lower band (Bollinger)', detAtr: 'ATR (volatility)', detSupport: 'Latest support', detResistance: 'Latest resistance',
+      detAdx: 'Trend strength (ADX 14)', detAdxStrong: ' · strong', detAdxWeak: ' · weak',
+      detSar: 'Trailing stop (Parabolic SAR)', detSarUp: ' · uptrend', detSarDn: ' · downtrend',
+      vGood: 'Interesting — worth considering', vBad: 'Caution — not the right time yet', vWait: 'Wait — no standout opportunity yet',
+      vExpensive: 'Caution — price is on the expensive side', vMid: 'Wait — price is mid-range',
+      whyCheap: 'Price is on the cheap side of its 3-month range', whyExpensive: 'Price is on the expensive side of its 3-month range',
+      whySellEase: 'Selling pressure easing (RSI low, starting to recover)', whyHot: 'Price is overheated (RSI high, risk of pullback)',
+      whyMomUp: 'Momentum is turning positive', whyMomDn: 'Momentum is weakening',
+      whyUptrend: 'Still in an uptrend', whyDowntrend: 'Below the trend line (downtrend/consolidation)',
+      whyLowerBand: 'Price is touching the lower band (often a bounce opportunity)', whyUpperBand: 'Price is hitting the upper band',
+      whyMidRange: 'Price is mid-range with no clear signal yet',
+      whyCheapPct: 'Price is on the cheap side of its range (~{pct}% of low→high range)', whyExpensivePct: 'Price is on the expensive side of its range (~{pct}% of low→high range)', whyMidPct: 'Price is mid-range (~{pct}% of low→high range)',
+      gapNeedInfo: 'Enter the period high/low to assess cheap-vs-expensive', gapNeedInfoWhy: 'Or click "View Sample Chart" to try the chart — for now only the money calculator below works',
+      stopMustBeLower: 'Stop-loss price must be lower than the entry price', minLotNote: 'Minimum 100 shares means your risk slightly exceeds the {pct}% you set — consider tightening the stop, or adding capital',
+      capitalLimitNote: 'Limited by available funds (not enough capital to buy as much as your risk setting allows)',
+      calcHeadline: 'You can buy about <b>{shares} shares</b> ({lots} lots), using ≈ <b>฿{cost}</b>',
+      kvRiskIfWrong: 'If wrong (stop hit), lose no more than', kvStopPrice: 'Stop-loss price', kvCommRoundtrip: 'Real round-trip commission',
+      kvBreakeven: 'Breakeven price (incl. round-trip commission)', kvRR: 'Reward:risk to resistance',
+      tpLot1: 'Sell lot 1: {price}', tpLot2: 'Lot 2: {price}', tpLot3: 'Lot 3: {price}',
+      commMinNote: 'ℹ️ This trade is too small for the percentage commission to reach the minimum — your broker charges the ฿{min}/day minimum instead, making real commission {pct}% round-trip. Price needs to reach {breakeven} THB to truly break even — consider a bigger trade to average out the minimum commission',
+      trendUpAdx: 'In an uptrend (price above moving average)', trendNotUpAdx: 'Not yet in an uptrend (price below moving average)', adxStrongTxt: ' · ADX {adx} strong trend', adxWeakTxt: ' · ADX {adx} weak trend, be careful',
+      notChasing: 'Not chasing the price (within 5% of the 20-day average)', chasing: 'Chasing the price (more than 5% above the 20-day average)',
+      needChartFirst: 'Trend/chase check: needs chart data first (click "Fetch Price" or "View Sample Chart")',
+      rsiOk: 'Not overheated (RSI {rsi})', rsiHot: 'Overheated (RSI {rsi} ≥ 70), risk of pullback', rsiNeedChart: 'RSI: needs chart data first',
+      stopSetOk: 'Stop-loss is set', stopNotSet: 'Stop-loss not set yet — click "Calculate" in step 2 first',
+      riskOk: 'Risk per trade ≤ 2% ({pct}%)', riskHigh: 'Risk per trade too high ({pct}) — should be ≤ 2%',
+      rrOk: 'Reward:risk ≥ 2:1 ({rr}:1)', rrLow: 'Reward:risk too low ({rr}:1) — should be ≥ 2:1', rrNeedInfo: 'Reward:risk: needs resistance from the chart + a stop set first',
+      checklistFail: 'Not ready to enter — {n} item(s) failed, fix them all before buying', checklistUnknown: 'Not enough data to fully assess — click "Analyze"/"Fetch Price" then "Calculate" first',
+      checklistGo: 'Ready to enter per plan — all items passed (still not a profit guarantee, follow your plan and always cut losses)',
+      expInvalid: 'Please fill in all numbers (win rate 0–100%, gain/loss in multiples of R)',
+      expMsg: 'Expected value per trade ≈ <b>{sign}{exp} R</b> (if risking 1,000 THB per trade ≈ {sign2}฿{bahtExp} per trade on average)<br><span style="font-weight:500">You need to win at least ~{beWin}% to break even at this R</span>',
+      expGood: 'Positive edge long-term<br>{msg}<br><span style="font-weight:500">If you follow discipline consistently (same risk per trade), you have a chance at long-term profit</span>',
+      expBreakeven: 'Nearly break-even<br>{msg}<br><span style="font-weight:500">After commissions you may lose money — you need bigger wins, or smaller losses</span>',
+      expBad: 'Losing long-term<br>{msg}<br><span style="font-weight:500">Even winning often isn’t enough — you need to "let profits run, cut losses fast" (increase R when winning)</span>',
+      sellSarDn: 'Consider selling — trend reversal signal (SAR flipped down)', sellBelowTrend: 'Consider selling/cutting loss — price broke below trend (below moving average)',
+      sellHotRsi: 'Consider locking in partial profit — RSI high, price overheated, may pull back', sellNearResist: 'Near resistance — consider locking in partial profit',
+      sellHold: 'Still in an uptrend — can keep holding, trail your stop along the levels below',
+      sarLabel: 'Trend-following stop (SAR)', sarNoData: 'Not enough data to calculate (needs at least ~3 days of price history)',
+      sarUpReason: 'If price closes below {price}, the uptrend is considered to be reversing', sarDnReason: 'Price has already broken this level (SAR flipped down) — the clearest warning signal',
+      stopRiskLabel: 'Risk-based stop-loss (ATR/support)', noData: 'Not enough data to calculate',
+      stopRiskReason: 'Limits heavy losses if price breaks support or is more volatile than average{atr}', atrSuffix: ' (ATR ≈ {atr})',
+      ema20Label: '20-day moving average (early warning)', ema20Reason: 'Breaking below this line is often an early weakening signal — not the main stop, but worth watching',
+      resistLabel: 'Resistance (consider partial profit-taking)', resistReason: 'Price often meets profit-taking selling pressure here — consider selling part of the position or trailing your stop to protect gains',
+      noCompanyInfo: 'No company info in the database', companyInfoFallback: 'Only 50 SET50 stocks are supported — <a href="{url}" target="_blank" rel="noopener">search for {sym} company info yourself ↗</a>',
+      alertEnterSym: 'Enter a ticker first', alertEnterValid: 'Enter a valid share count and cost',
+      fetchingSellPrice: 'Fetching {sym} price…', sellFetchFail: 'Couldn’t fetch {sym} price right now — try again, or enter the current price yourself',
+      sellLatestPrice: 'Latest price {price}', sellSavedAge: ' (saved {age})', sellCostLabel: ' · cost {cost} · ', sellProfit: 'profit ', sellLoss: 'loss ',
+      searchNewsMyself: 'Search news myself ↗', searchingNews: 'Searching news for {sym}… ', moreNews: 'More news ', newsAutoFail: 'Couldn’t auto-fetch news right now ',
+      scannerLink: 'SET50 Scanner',
+      iosNotSupported: 'This feature (on-device AI) isn’t supported on iPhone/iPad yet — Safari/iOS per-tab memory is too limited to run the model reliably. Try from a computer instead',
+      needStockData: 'No stock data to summarize yet — fetch a price or view the sample chart first',
+      summarizing: 'Summarizing… (first time may need to download the ~350MB AI model)', loadingModel: 'Loading model (first time only) {file} {pct}',
+      summarizeFail: 'Summary failed, try again', summarizeFailWith: 'Summary failed: {msg}', unknownReason: 'unknown reason',
+      memErrorMsg: 'Failed to load the AI model because the browser doesn’t have enough free memory (usually from having many tabs/programs open at once). Try closing other tabs/programs and summarizing again',
+      thisStock: 'this stock', sampleWord: 'Sample', enterEntryFirst: 'Enter the entry price (or current price) first',
+      ctxStock: 'Stock: {v}', ctxLatestPrice: 'Latest price: {v} baht', ctxVerdict: 'Computed signal: {v} ({why})',
+      ctxPros: 'Detected tailwinds: {v}', ctxCons: 'Detected risks: {v}',
+      ctxRsi: 'RSI (14-day): {v}', ctxRsiHigh: ' (high/overheated)', ctxRsiLow: ' (low/selling pressure easing)', ctxRsiMid: ' (neutral)',
+      ctxMacd: 'MACD histogram: {v}', ctxMacdPos: ' (positive)', ctxMacdNeg: ' (negative)',
+      ctxEma: '20-day MA: {e20}, 50-day MA: {e50}', ctxEmaUp: ' (price above the MAs — uptrend)', ctxEmaDn: ' (price below the MAs — downtrend/consolidation)',
+      ctxSupport: 'Latest support: {v}', ctxResistance: 'Latest resistance: {v}',
+      ctxAdx: 'Trend strength (ADX): {v}', ctxAdxStrong: ' (strong)', ctxAdxWeak: ' (weak)',
+      ctxNewsWithCount: 'Latest headlines ({n} articles): {v}', ctxNoNews: 'Latest headlines: no news data'
+    }
+  };
+  function t(key, vars) {
+    var s = (I18N[getUILang()] || I18N.th)[key]; if (s == null) s = I18N.th[key] || key;
+    if (vars) Object.keys(vars).forEach(function (k) { s = s.split('{' + k + '}').join(vars[k]); });
+    return s;
+  }
+  function applyStaticI18n() {
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-html]').forEach(function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
+  }
+
   /* หน้านี้เปิดเป็นป๊อปอัพ (iframe) จาก invest.html ได้ด้วย ?embed=1&sym=XXX — โฟกัสเฉพาะหุ้นตัวนั้น
      ตัวเดียว: การ์ด "พอร์ตของฉัน (หุ้นไทย)" ด้านล่างจะกรองให้เห็นแค่ตำแหน่งของสัญลักษณ์นี้ (ดู renderPf) */
   var EMBED_SYM = null;
@@ -172,24 +500,24 @@
     var momDn = mac && isFinite(mac.hist) && isFinite(mac.histPrev) ? mac.hist < mac.histPrev : false;
 
     var score = 0, pros = [], cons = [];
-    if (posRange < 0.35) { score += 1; pros.push('ราคาอยู่ช่วงถูกเทียบ 3 เดือน'); }
-    else if (posRange > 0.75) { score -= 1; cons.push('ราคาอยู่ช่วงแพงเทียบ 3 เดือน'); }
+    if (posRange < 0.35) { score += 1; pros.push(t('whyCheap')); }
+    else if (posRange > 0.75) { score -= 1; cons.push(t('whyExpensive')); }
     if (isFinite(r)) {
-      if (r < 38) { score += 1; pros.push('แรงขายเริ่มคลาย (RSI ต่ำ กำลังฟื้น)'); }
-      else if (r > 70) { score -= 1; cons.push('ราคาร้อนแรงเกินไป (RSI สูง เสี่ยงย่อ)'); }
+      if (r < 38) { score += 1; pros.push(t('whySellEase')); }
+      else if (r > 70) { score -= 1; cons.push(t('whyHot')); }
     }
-    if (momUp) { score += 1; pros.push('โมเมนตัมเริ่มกลับเป็นบวก'); }
-    else if (momDn) { score -= 1; cons.push('โมเมนตัมเริ่มอ่อนลง'); }
-    if (uptrend) { score += 1; pros.push('ยังอยู่ในแนวโน้มขึ้น'); }
-    else { score -= 1; cons.push('อยู่ใต้เส้นแนวโน้ม (ขาลง/พักตัว)'); }
-    if (posBB < 0.2) { score += 0.5; pros.push('ราคาแตะกรอบล่าง (มักเป็นจังหวะเด้ง)'); }
-    else if (posBB > 0.9) { score -= 0.5; cons.push('ราคาชนกรอบบน'); }
+    if (momUp) { score += 1; pros.push(t('whyMomUp')); }
+    else if (momDn) { score -= 1; cons.push(t('whyMomDn')); }
+    if (uptrend) { score += 1; pros.push(t('whyUptrend')); }
+    else { score -= 1; cons.push(t('whyDowntrend')); }
+    if (posBB < 0.2) { score += 0.5; pros.push(t('whyLowerBand')); }
+    else if (posBB > 0.9) { score -= 0.5; cons.push(t('whyUpperBand')); }
 
     var light, verdict;
-    if (score >= 2) { light = 'green'; verdict = 'น่าสนใจ — ลองพิจารณา'; }
-    else if (score <= -1) { light = 'red'; verdict = 'ระวัง — ยังไม่ใช่จังหวะ'; }
-    else { light = 'yellow'; verdict = 'รอก่อน — ยังไม่มีจังหวะเด่น'; }
-    var why = (light === 'green' ? pros : light === 'red' ? cons : (pros.concat(cons)))[0] || 'ราคาอยู่กลางกรอบ ยังไม่มีสัญญาณชัด';
+    if (score >= 2) { light = 'green'; verdict = t('vGood'); }
+    else if (score <= -1) { light = 'red'; verdict = t('vBad'); }
+    else { light = 'yellow'; verdict = t('vWait'); }
+    var why = (light === 'green' ? pros : light === 'red' ? cons : (pros.concat(cons)))[0] || t('whyMidRange');
 
     var stopByAtr = isFinite(at) ? price - 1.5 * at : NaN;
     var stopBySup = isFinite(sr.support) ? sr.support * 0.99 : NaN;
@@ -212,9 +540,9 @@
   function analyzeSimple(price, hi, lo) {
     var pos = (price - lo) / Math.max(1e-9, hi - lo), pct = Math.round(pos * 100);
     var light, verdict, why;
-    if (pos < 0.35) { light = 'green'; verdict = 'น่าสนใจ — ลองพิจารณา'; why = 'ราคาอยู่ค่อนไปทางถูกของรอบ (~' + pct + '% ของช่วง ต่ำ→สูง)'; }
-    else if (pos > 0.75) { light = 'red'; verdict = 'ระวัง — ราคาค่อนข้างแพง'; why = 'ราคาอยู่ค่อนไปทางแพงของรอบ (~' + pct + '% ของช่วง ต่ำ→สูง)'; }
-    else { light = 'yellow'; verdict = 'รอก่อน — ราคากลางกรอบ'; why = 'ราคาอยู่กลางกรอบ (~' + pct + '% ของช่วง ต่ำ→สูง)'; }
+    if (pos < 0.35) { light = 'green'; verdict = t('vGood'); why = t('whyCheapPct', { pct: pct }); }
+    else if (pos > 0.75) { light = 'red'; verdict = t('vExpensive'); why = t('whyExpensivePct', { pct: pct }); }
+    else { light = 'yellow'; verdict = t('vMid'); why = t('whyMidPct', { pct: pct }); }
     return { light: light, verdict: verdict, why: why, pros: [], cons: [], price: price, suggestStop: Math.min(lo, price * 0.95), resistance: hi, det: { posRange: pos, support: lo, resistance: hi }, simple: true };
   }
 
@@ -223,14 +551,14 @@
     var capital = o.capital, riskPct = o.riskPct, entry = o.entry, stop = o.stop, comm = o.comm / 100;
     var commMin = isFinite(o.commMin) && o.commMin >= 0 ? o.commMin : 50;
     var perShare = entry - stop;
-    if (!(perShare > 0)) return { error: 'ราคาตัดขาดทุนต้องต่ำกว่าราคาเข้าซื้อ' };
+    if (!(perShare > 0)) return { error: t('stopMustBeLower') };
     var riskBudget = capital * riskPct / 100;
     var shares = Math.floor(riskBudget / perShare / 100) * 100, note = '';
-    if (shares < 100) { shares = 100; note = 'ขั้นต่ำ 100 หุ้น ทำให้ความเสี่ยงเกิน ' + riskPct + '% ที่ตั้งไว้เล็กน้อย — พิจารณาขยับ stop ให้แคบลง หรือเพิ่มทุน'; }
+    if (shares < 100) { shares = 100; note = t('minLotNote', { pct: riskPct }); }
     var cost = shares * entry;
     if (cost > capital) {
       var maxLots = Math.floor(capital / entry / 100) * 100;
-      if (maxLots >= 100) { shares = maxLots; cost = shares * entry; note = 'จำกัดจำนวนตามเงินที่มี (ทุนไม่พอซื้อเท่าที่ความเสี่ยงอนุญาต)'; }
+      if (maxLots >= 100) { shares = maxLots; cost = shares * entry; note = t('capitalLimitNote'); }
     }
     var R = perShare;
     /* ค่าคอมฯ ต่อขา = max(มูลค่า × %, ขั้นต่ำ/วัน) — โบรกไทยส่วนใหญ่คิดขั้นต่ำ ~50 บาท/วัน
@@ -360,11 +688,11 @@
   function cacheAgeText(ts) {
     if (!ts) return '';
     var mins = Math.round((Date.now() - ts) / 60000);
-    if (mins < 1) return 'เมื่อสักครู่';
-    if (mins < 60) return mins + ' นาทีก่อน';
+    if (mins < 1) return t('justNow');
+    if (mins < 60) return t('minsAgo', { n: mins });
     var hrs = Math.round(mins / 60);
-    if (hrs < 24) return hrs + ' ชม.ก่อน';
-    return Math.round(hrs / 24) + ' วันก่อน';
+    if (hrs < 24) return t('hrsAgo', { n: hrs });
+    return t('daysAgo', { n: Math.round(hrs / 24) });
   }
 
   /* ══════ กราฟ lightweight-charts ══════ */
@@ -397,8 +725,8 @@
   function showLegend(time, o) {
     var up = o.close >= o.open;
     $('lwLegend').innerHTML = '<span>' + fmtDate(time) + '</span>' +
-      '<span>เปิด ' + fmt(o.open) + '</span><span>สูง ' + fmt(o.high) + '</span><span>ต่ำ ' + fmt(o.low) + '</span>' +
-      '<span class="' + (up ? 'up' : 'dn') + '">ปิด ' + fmt(o.close) + '</span>';
+      '<span>' + t('legendOpen') + ' ' + fmt(o.open) + '</span><span>' + t('legendHigh') + ' ' + fmt(o.high) + '</span><span>' + t('legendLow') + ' ' + fmt(o.low) + '</span>' +
+      '<span class="' + (up ? 'up' : 'dn') + '">' + t('legendClose') + ' ' + fmt(o.close) + '</span>';
   }
   function updateLegendLast() { if (!fullData) return; var o = fullData.ohlc[fullData.ohlc.length - 1]; showLegend(o.time, o); }
   function onCross(param) {
@@ -497,9 +825,9 @@
   function setSourceBadge(src, days) {
     var el = $('chartSource'); if (!el) return;
     if (src) lastSource = src; else src = lastSource;
-    if (src.kind === 'demo') { el.className = 'src-badge demo'; el.textContent = 'ข้อมูลตัวอย่าง — ไม่ใช่ราคาจริง (ไว้ฝึกอ่านกราฟ)'; }
-    else if (src.kind === 'paste') { el.className = 'src-badge paste'; el.textContent = 'ราคาที่วางเอง · ' + days + ' วัน'; }
-    else { el.className = 'src-badge real'; el.textContent = '' + (src.label || 'ราคาจริง') + ' · ' + (src.stale ? ('ราคาล่าสุด ' + cacheAgeText(src.cachedAt)) : 'ราคาจริง') + ' · ' + days + ' วัน'; }
+    if (src.kind === 'demo') { el.className = 'src-badge demo'; el.textContent = t('demoBadge'); }
+    else if (src.kind === 'paste') { el.className = 'src-badge paste'; el.textContent = t('pastedBadge', { days: days }); }
+    else { el.className = 'src-badge real'; el.textContent = t('realBadge', { label: src.label || t('realBadgeLabel'), status: src.stale ? t('staleLatestPrice', { age: cacheAgeText(src.cachedAt) }) : t('realBadgeLabel'), days: days }); }
   }
   function useSeries(s, msg, cls, src) {
     lastSeries = s;
@@ -510,16 +838,16 @@
     if (msg) setStatus(msg, cls);
     setSourceBadge(src, c.length);
     showAnalysis(analyzeSeries(s));
-    if (!buildChart(s)) setStatus('โหลดไลบรารีกราฟไม่ได้ (ลองออนไลน์แล้วรีเฟรช) — ส่วนไฟจราจร/คำนวณเงินยังใช้ได้', 'err');
+    if (!buildChart(s)) setStatus(t('chartLibFail'), 'err');
   }
 
   /* หัวหุ้น (สไตล์ใหม่) — อัปเดตชื่อ/ราคา/ชิปสัญญาณ + กล่องเหตุผลที่ขยายได้ */
   function updateStockHead(sym) {
     $('shead').style.display = 'flex';
     $('stkSym').textContent = sym;
-    var c = COMPANY_INFO[sym];
+    var c = getCompanyInfo(sym);
     $('stkName').textContent = c ? c.name : sym;
-    $('stkSector').textContent = c ? c.sector : 'หุ้นไทย';
+    $('stkSector').textContent = c ? c.sector : t('defaultSector');
   }
   function showAnalysis(a) {
     lastAnalysis = a;
@@ -541,12 +869,12 @@
 
     if (a.det && !a.simple && isFinite(a.det.rsi)) {
       var d = a.det, rows = [
-        ['เส้นเฉลี่ย 20 วัน (EMA20)', fmt(d.ema20)], ['เส้นเฉลี่ย 50 วัน (EMA50)', fmt(d.ema50)],
-        ['RSI (14)', fmt(d.rsi, 1)], ['MACD histogram', fmt(d.macdHist, 3)],
-        ['กรอบบน (Bollinger)', fmt(d.bbUpper)], ['กรอบล่าง (Bollinger)', fmt(d.bbLower)],
-        ['ATR (ความผันผวน)', fmt(d.atr)], ['แนวรับล่าสุด', fmt(d.support)], ['แนวต้านล่าสุด', fmt(d.resistance)],
-        ['ความแรงแนวโน้ม (ADX 14)', isFinite(d.adx) ? fmt(d.adx, 0) + (d.adx >= 20 ? ' · แข็งแรง' : ' · อ่อน') : '—'],
-        ['จุดตัดขาดทุนตาม (Parabolic SAR)', d.psar ? fmt(d.psar.sar) + (d.psar.up ? ' · เทรนด์ขึ้น' : ' · เทรนด์ลง') : '—']
+        [t('detEma20'), fmt(d.ema20)], [t('detEma50'), fmt(d.ema50)],
+        [t('detRsi'), fmt(d.rsi, 1)], [t('detMacd'), fmt(d.macdHist, 3)],
+        [t('detBbUp'), fmt(d.bbUpper)], [t('detBbLo'), fmt(d.bbLower)],
+        [t('detAtr'), fmt(d.atr)], [t('detSupport'), fmt(d.support)], [t('detResistance'), fmt(d.resistance)],
+        [t('detAdx'), isFinite(d.adx) ? fmt(d.adx, 0) + (d.adx >= 20 ? t('detAdxStrong') : t('detAdxWeak')) : '—'],
+        [t('detSar'), d.psar ? fmt(d.psar.sar) + (d.psar.up ? t('detSarUp') : t('detSarDn')) : '—']
       ], html = '';
       rows.forEach(function (r) { html += '<div class="k">' + r[0] + '</div><div class="v">' + r[1] + '</div>'; });
       $('detKv').innerHTML = html;
@@ -572,11 +900,11 @@
   function doAnalyze() {
     if (lastSeries) { useSeries(lastSeries); return; }
     var price = num($('price').value), hi = num($('hi').value), lo = num($('lo').value);
-    if (!isFinite(price)) { setStatus('กรอกอย่างน้อย "ราคาตอนนี้" ก่อนนะครับ', 'err'); return; }
+    if (!isFinite(price)) { setStatus(t('enterPriceFirst'), 'err'); return; }
     $('chartCard').style.display = 'none';
     if (isFinite(hi) && isFinite(lo) && hi > lo) showAnalysis(analyzeSimple(price, hi, lo));
     else {
-      showAnalysis({ light: 'gray', verdict: 'กรอกราคาสูง/ต่ำของรอบ เพื่อประเมินถูก-แพง', why: 'หรือกด "ดูกราฟตัวอย่าง (ฝึกอ่าน)" เพื่อลองเล่นกราฟ — ตอนนี้ทำได้เฉพาะคำนวณเงินด้านล่าง', pros: [], cons: [], price: price, suggestStop: price * 0.95, resistance: NaN, det: {}, simple: true });
+      showAnalysis({ light: 'gray', verdict: t('gapNeedInfo'), why: t('gapNeedInfoWhy'), pros: [], cons: [], price: price, suggestStop: price * 0.95, resistance: NaN, det: {}, simple: true });
       $('detailsBox').style.display = 'none';
     }
   }
@@ -595,7 +923,7 @@
     var dot = $('marketLiveDot'), title = $('marketLiveLabel'), m = $('marketLiveMeta');
     if (!dot || !title || !m) return;
     dot.className = 'market-live-dot ' + (kind === 'live' ? 'live' : kind === 'delay' ? 'delay' : '');
-    title.textContent = 'โหมดข้อมูล: ' + label; m.textContent = meta || '';
+    title.textContent = t('liveModePrefix') + label; m.textContent = meta || '';
   }
   function gatewayBase(c) { return (c.gateway || '').replace(/\/$/, ''); }
   function fetchJson(url, opts) {
@@ -627,15 +955,15 @@
     var ch = isFinite(q.change) ? (q.change >= 0 ? '+' : '−') + Number(Math.abs(q.change)).toFixed(2) : '—';
     var pct = isFinite(q.pct) ? ' (' + (q.pct >= 0 ? '+' : '') + Number(q.pct).toFixed(2) + '%)' : '';
     var tm = q.timestamp ? new Date(q.timestamp).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—';
-    setLiveUI('live', 'สด / Real-time', q.source + ' · ' + ch + pct + ' · อัปเดต ' + tm);
-    setStatus('ราคาล่าสุด ' + Number(q.price).toFixed(2) + ' บาท · ' + q.source + ' · ' + tm, 'ok');
+    setLiveUI('live', t('liveReal'), q.source + ' · ' + ch + pct + ' · ' + t('updatedAt') + tm);
+    setStatus(t('latestPriceMsg', { price: Number(q.price).toFixed(2), source: q.source, time: tm }), 'ok');
   }
   function refreshLiveQuote() {
     if (liveBusy) return; var c = liveCfg(), sym = ($('sym') && $('sym').value || '').trim().toUpperCase().replace(/\.BK$/, '');
-    if (!sym || c.provider === 'yahoo') { setLiveUI('', 'ย้อนหลัง / Historical', 'ใช้ Yahoo สำหรับกราฟย้อนหลัง'); return; }
+    if (!sym || c.provider === 'yahoo') { setLiveUI('', t('liveHistorical'), t('liveYahooMeta')); return; }
     liveBusy = true;
     var pr = c.provider === 'twelvedata' ? fetchTwelveQuote(sym, c) : fetchGatewayQuote(sym, c);
-    pr.then(applyLiveQuote).catch(function () { setLiveUI('delay', 'สำรอง / Historical', 'แหล่งข้อมูลสดยังเชื่อมต่อไม่ได้ · ใช้ราคาย้อนหลังเป็น fallback'); }).finally(function () { liveBusy = false; });
+    pr.then(applyLiveQuote).catch(function () { setLiveUI('delay', t('liveFallback'), t('liveNoConn')); }).finally(function () { liveBusy = false; });
   }
   function stopLive() { if (liveTimer) { clearInterval(liveTimer); liveTimer = null; } }
   function startLive() { stopLive(); var c = liveCfg(); if (c.provider === 'yahoo') return; liveTimer = setInterval(refreshLiveQuote, Math.max(5, Number(c.interval) || 5) * 1000); refreshLiveQuote(); }
@@ -643,8 +971,8 @@
     var c = liveCfg(), p = $('marketProvider'), g = $('marketGateway'), k = $('marketApiKey'), iv = $('marketInterval');
     if (!p) return; p.value = c.provider; g.value = c.gateway || ''; k.value = ''; iv.value = String(c.interval || 5);
     $('marketSettings').addEventListener('click', function () { var x = $('marketSettingsPanel'); x.hidden = !x.hidden; });
-    $('marketSave').addEventListener('click', function () { var next = { provider: p.value, gateway: g.value.trim(), apiKey: k.value.trim() || c.apiKey, interval: Number(iv.value) || 5 }; saveLiveCfg(next); c = next; startLive(); setStatus('บันทึกการตั้งค่าแล้ว · ระบบจะดึงข้อมูลตามช่วงเวลาที่ตั้ง', 'ok'); });
-    $('marketClear').addEventListener('click', function () { c.apiKey = ''; saveLiveCfg(c); k.value = ''; setStatus('ล้าง API Key จากเครื่องแล้ว', 'ok'); });
+    $('marketSave').addEventListener('click', function () { var next = { provider: p.value, gateway: g.value.trim(), apiKey: k.value.trim() || c.apiKey, interval: Number(iv.value) || 5 }; saveLiveCfg(next); c = next; startLive(); setStatus(t('settingsSaved'), 'ok'); });
+    $('marketClear').addEventListener('click', function () { c.apiKey = ''; saveLiveCfg(c); k.value = ''; setStatus(t('apiKeyCleared'), 'ok'); });
     $('marketRefresh').addEventListener('click', refreshLiveQuote);
     $('sym').addEventListener('input', function () { stopLive(); var x = liveCfg(); if (x.provider !== 'yahoo') startLive(); });
     window.addEventListener('beforeunload', stopLive);
@@ -652,36 +980,36 @@
   }
   function doFetch() {
     var sym = ($('sym').value || '').trim().toUpperCase().replace(/\.BK$/, '');
-    if (!sym) { setStatus('พิมพ์ชื่อย่อหุ้นก่อน เช่น PTT', 'err'); return; }
-    setStatus('กำลังดึงข้อมูล ' + sym + '…'); $('fetchBtn').disabled = true;
+    if (!sym) { setStatus(t('typeSymFirst'), 'err'); return; }
+    setStatus(t('fetchingData', { sym: sym })); $('fetchBtn').disabled = true;
     updateStockHead(sym);
     var c = liveCfg();
     var livePromise = c.provider === 'twelvedata' ? fetchTwelveQuote(sym, c) : c.provider === 'gateway' ? fetchGatewayQuote(sym, c) : Promise.reject(new Error('historical'));
     livePromise.then(function (q) {
       applyLiveQuote(q);
       /* กราฟยังใช้ historical feed เดิม; ราคาการ์ดใช้ quote สดแทน */
-      return getSeries(sym).then(function (r) { var s = r.series; useSeries(s, 'ราคา ' + sym + ' สดจาก ' + q.source + ' · กราฟย้อนหลัง ' + s.closes.length + ' วัน', 'ok', { kind: 'real', label: sym }); showStockNews(sym); });
+      return getSeries(sym).then(function (r) { var s = r.series; useSeries(s, t('liveFromMsg', { sym: sym, source: q.source, days: s.closes.length }), 'ok', { kind: 'real', label: sym }); showStockNews(sym); });
     }).catch(function () {
       return getSeries(sym).then(function (r) {
         var s = r.series;
-        if (r.stale) useSeries(s, 'แหล่งข้อมูลสดใช้ไม่ได้ · ใช้ข้อมูลย้อนหลังที่บันทึกไว้ (' + cacheAgeText(r.cachedAt) + ') · ' + s.closes.length + ' วัน', 'ok', { kind: 'real', label: sym, stale: true, cachedAt: r.cachedAt });
-        else useSeries(s, 'ขณะนี้ใช้ราคาย้อนหลังจาก ' + s.source + ' · ' + s.closes.length + ' วัน', 'ok', { kind: 'real', label: sym });
+        if (r.stale) useSeries(s, t('staleDataMsg', { age: cacheAgeText(r.cachedAt), days: s.closes.length }), 'ok', { kind: 'real', label: sym, stale: true, cachedAt: r.cachedAt });
+        else useSeries(s, t('histFromMsg', { source: s.source, days: s.closes.length }), 'ok', { kind: 'real', label: sym });
         showStockNews(sym);
       });
-    }).catch(function () { setStatus('ไม่พบข้อมูลของ ' + sym + ' — ตรวจชื่อหุ้นหรือการเชื่อมต่อข้อมูลตลาด', 'err'); }).finally(function () { $('fetchBtn').disabled = false; });
+    }).catch(function () { setStatus(t('notFoundMsg', { sym: sym }), 'err'); }).finally(function () { $('fetchBtn').disabled = false; });
   }
   /* ข่าวหุ้นตัวที่กำลังดู — ต่อยอด fetchNewsScan()/parseNewsRss() เดิม (เดิมใช้แค่ในโหมด "ควรขาย?" ของพอร์ต) */
   function showStockNews(sym) {
     $('stockNewsCard').style.display = 'block';
-    $('stockNewsTitle').textContent = 'ข่าวหุ้น ' + sym;
+    $('stockNewsTitle').textContent = t('stockNewsWithSym', { sym: sym });
     renderNewsBlock($('stockNewsBlock'), sym);
   }
-  function doDemo() { $('stockNewsCard').style.display = 'none'; updateStockHead('ตัวอย่าง'); useSeries(demoData(), 'กำลังแสดง "ข้อมูลตัวอย่าง" (ไม่ใช่ราคาจริง) — ไว้ลองเล่นกราฟและฝึกอ่าน', 'ok', { kind: 'demo' }); }
+  function doDemo() { $('stockNewsCard').style.display = 'none'; updateStockHead(t('sampleWord')); useSeries(demoData(), t('demoMsg'), 'ok', { kind: 'demo' }); }
   function doPaste() {
     var s = parsePaste($('pasteBox').value || '');
-    if (!s) { setStatus('วางราคาปิดอย่างน้อย 5 วันก่อนนะครับ', 'err'); return; }
+    if (!s) { setStatus(t('pasteAtLeast5'), 'err'); return; }
     $('stockNewsCard').style.display = 'none';
-    useSeries(s, 'ใช้ราคาที่วางแล้ว (' + s.closes.length + ' วัน)', 'ok', { kind: 'paste' });
+    useSeries(s, t('pastedMsg', { days: s.closes.length }), 'ok', { kind: 'paste' });
   }
 
   /* ══════ สรุปหุ้นด้วย AI — ใช้ ai-chat-worker.js ตัวเดียวกับวิดเจ็ตแชทลอย (ai-chat-widget.js)
@@ -702,6 +1030,17 @@
     'ห้ามให้คำแนะนำซื้อ/ขาย ห้ามทำนายราคาในอนาคต ห้ามเติมตัวเลข บริษัท หรือเหตุการณ์ที่ไม่ได้อยู่ในข้อมูลที่ให้มาเด็ดขาด';
   var AI_SUMMARY_REMINDER = 'ย้ำ: ห้ามให้คำแนะนำซื้อ/ขาย ห้ามทำนายราคาในอนาคต ห้ามเติมตัวเลข/เหตุการณ์ที่ไม่ได้อยู่ในข้อมูลที่ให้มา ' +
     'ตอบตามโครงสร้าง 4 หัวข้อที่กำหนดเท่านั้น เริ่มที่ "สรุปภาพรวม:" ทันที ห้ามขึ้นต้นด้วยคำนำ';
+  var AI_SUMMARY_SYSTEM_PROMPT_EN = 'You are an assistant who summarizes stock data for a novice retail investor. You will be given ' +
+    'pre-computed numbers/technical signals (never calculate or guess extra numbers yourself — use only the numbers given) ' +
+    "and the stock's latest news headlines if any. Your job is to phrase this as plain, easy-to-understand language, not as an investment advisor. " +
+    'Reply in English using ONLY this structure (do not start with any preamble — start directly with "Overview:"):\n\n' +
+    'Overview: (1-2 sentences explaining the current price status in plain terms, from the data given)\n' +
+    'Tailwinds: (up to 3 bullet points, only from the data given — if none, say "No clear tailwinds right now")\n' +
+    'Risks: (up to 3 bullet points, only from the data given — if none, say "No clear risks right now")\n' +
+    'Related news: (a short summary from the headlines given only — if no news was provided, say "No recent news could be fetched right now")\n\n' +
+    'Never give buy/sell advice. Never predict future prices. Never add numbers, companies, or events not present in the data given.';
+  var AI_SUMMARY_REMINDER_EN = 'Reminder: never give buy/sell advice, never predict future prices, never add numbers/events not present in the data given. ' +
+    'Reply using only the 4-section structure above, starting directly with "Overview:" — no preamble.';
 
   function isIOS() {
     if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) return true;
@@ -710,8 +1049,7 @@
   function friendlyChatError(rawMessage) {
     var msg = rawMessage || '';
     if (/bad_alloc|Can't create a session|out of memory/i.test(msg)) {
-      return 'โหลดโมเดล AI ไม่สำเร็จ เพราะหน่วยความจำที่เบราว์เซอร์เหลือให้ใช้ไม่พอ (มักเกิดถ้าเปิดแท็บ/' +
-        'โปรแกรมอื่นพร้อมกันเยอะ) ลองปิดแท็บ/โปรแกรมอื่นแล้วกดสรุปใหม่อีกครั้ง';
+      return t('memErrorMsg');
     }
     return msg;
   }
@@ -722,21 +1060,21 @@
 
   function buildStockContext() {
     var a = lastAnalysis; if (!a) return null;
-    var sym = (lastSource && lastSource.label) ? lastSource.label : (($('sym').value || '').trim().toUpperCase() || 'หุ้นนี้');
-    var lines = ['หุ้น: ' + sym, 'ราคาล่าสุด: ' + fmt(a.price) + ' บาท', 'สัญญาณไฟจราจรที่คำนวณแล้ว: ' + a.verdict + ' (' + a.why + ')'];
-    if (a.pros && a.pros.length) lines.push('ปัจจัยหนุนที่ตรวจพบ: ' + a.pros.join(', '));
-    if (a.cons && a.cons.length) lines.push('ปัจจัยเสี่ยงที่ตรวจพบ: ' + a.cons.join(', '));
+    var sym = (lastSource && lastSource.label) ? lastSource.label : (($('sym').value || '').trim().toUpperCase() || t('thisStock'));
+    var lines = [t('ctxStock', { v: sym }), t('ctxLatestPrice', { v: fmt(a.price) }), t('ctxVerdict', { v: a.verdict, why: a.why })];
+    if (a.pros && a.pros.length) lines.push(t('ctxPros', { v: a.pros.join(', ') }));
+    if (a.cons && a.cons.length) lines.push(t('ctxCons', { v: a.cons.join(', ') }));
     var d = a.det || {};
-    if (isFinite(d.rsi)) lines.push('RSI (14 วัน): ' + fmt(d.rsi, 1) + (d.rsi > 70 ? ' (สูง/ร้อนแรง)' : d.rsi < 38 ? ' (ต่ำ/แรงขายเริ่มคลาย)' : ' (กลางๆ)'));
-    if (isFinite(d.macdHist)) lines.push('MACD histogram: ' + fmt(d.macdHist, 3) + (d.macdHist >= 0 ? ' (เป็นบวก)' : ' (เป็นลบ)'));
-    if (isFinite(d.ema20) && isFinite(d.ema50)) lines.push('เส้นเฉลี่ย 20 วัน: ' + fmt(d.ema20) + ', เส้นเฉลี่ย 50 วัน: ' + fmt(d.ema50) + (a.uptrend ? ' (ราคาอยู่เหนือเส้นเฉลี่ย — แนวโน้มขึ้น)' : ' (ราคาอยู่ใต้เส้นเฉลี่ย — แนวโน้มลง/พักตัว)'));
-    if (isFinite(d.support)) lines.push('แนวรับล่าสุด: ' + fmt(d.support));
-    if (isFinite(d.resistance)) lines.push('แนวต้านล่าสุด: ' + fmt(d.resistance));
-    if (isFinite(d.adx)) lines.push('ความแรงแนวโน้ม (ADX): ' + fmt(d.adx, 0) + (d.adx >= 20 ? ' (แข็งแรง)' : ' (อ่อน)'));
+    if (isFinite(d.rsi)) lines.push(t('ctxRsi', { v: fmt(d.rsi, 1) }) + (d.rsi > 70 ? t('ctxRsiHigh') : d.rsi < 38 ? t('ctxRsiLow') : t('ctxRsiMid')));
+    if (isFinite(d.macdHist)) lines.push(t('ctxMacd', { v: fmt(d.macdHist, 3) }) + (d.macdHist >= 0 ? t('ctxMacdPos') : t('ctxMacdNeg')));
+    if (isFinite(d.ema20) && isFinite(d.ema50)) lines.push(t('ctxEma', { e20: fmt(d.ema20), e50: fmt(d.ema50) }) + (a.uptrend ? t('ctxEmaUp') : t('ctxEmaDn')));
+    if (isFinite(d.support)) lines.push(t('ctxSupport', { v: fmt(d.support) }));
+    if (isFinite(d.resistance)) lines.push(t('ctxResistance', { v: fmt(d.resistance) }));
+    if (isFinite(d.adx)) lines.push(t('ctxAdx', { v: fmt(d.adx, 0) }) + (d.adx >= 20 ? t('ctxAdxStrong') : t('ctxAdxWeak')));
     if (lastNewsItems && lastNewsItems.length) {
-      lines.push('หัวข้อข่าวล่าสุด (' + lastNewsItems.length + ' ข่าว): ' + lastNewsItems.slice(0, 5).map(function (n) { return n.title; }).join(' / '));
+      lines.push(t('ctxNewsWithCount', { n: lastNewsItems.length, v: lastNewsItems.slice(0, 5).map(function (n) { return n.title; }).join(' / ') }));
     } else {
-      lines.push('หัวข้อข่าวล่าสุด: ไม่มีข้อมูลข่าว');
+      lines.push(t('ctxNoNews'));
     }
     return lines.join('\n');
   }
@@ -744,21 +1082,22 @@
   function doAiSummary() {
     if (aiSumBusy) return;
     if (isIOS()) {
-      setAiSumStatus('ฟีเจอร์นี้ (AI รันในเครื่อง) ยังไม่รองรับ iPhone/iPad ตอนนี้ — หน่วยความจำต่อแท็บของ Safari/iOS จำกัดเกินกว่าจะรันโมเดลได้อย่างเสถียร ลองใช้งานจากคอมพิวเตอร์แทนได้ครับ', 'err');
+      setAiSumStatus(t('iosNotSupported'), 'err');
       return;
     }
     var ctx = buildStockContext();
-    if (!ctx) { setAiSumStatus('ยังไม่มีข้อมูลหุ้นให้สรุป — ดึงราคาหรือดูกราฟตัวอย่างก่อนนะครับ', 'err'); return; }
+    if (!ctx) { setAiSumStatus(t('needStockData'), 'err'); return; }
 
     aiSumBusy = true;
     $('aiSumBtn').disabled = true;
     $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
-    setAiSumStatus('กำลังสรุป… (ครั้งแรกอาจต้องโหลดโมเดล AI ~350MB ก่อน)', '');
+    setAiSumStatus(t('summarizing'), '');
 
+    var isEn = getUILang() === 'en';
     var payloadMessages = [
-      { role: 'system', content: AI_SUMMARY_SYSTEM_PROMPT },
+      { role: 'system', content: isEn ? AI_SUMMARY_SYSTEM_PROMPT_EN : AI_SUMMARY_SYSTEM_PROMPT },
       { role: 'user', content: ctx },
-      { role: 'system', content: AI_SUMMARY_REMINDER }
+      { role: 'system', content: isEn ? AI_SUMMARY_REMINDER_EN : AI_SUMMARY_REMINDER }
     ];
     var jobId = ++aiSumJobSeq, replyText = '';
     var w = getAiSumWorker();
@@ -768,7 +1107,7 @@
       if (!msg || msg.jobId !== jobId) return;
       if (msg.type === 'model-progress') {
         var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
-        setAiSumStatus('กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) ' + msg.file + ' ' + pct, '');
+        setAiSumStatus(t('loadingModel', { file: msg.file, pct: pct }), '');
       } else if (msg.type === 'fallback') {
         setAiSumStatus('' + msg.message, '');
       } else if (msg.type === 'token') {
@@ -777,19 +1116,19 @@
         $('aiSumOut').textContent = replyText;
       } else if (msg.type === 'done') {
         cleanup();
-        if (!replyText) setAiSumStatus('สรุปไม่สำเร็จ ลองอีกครั้ง', 'err');
+        if (!replyText) setAiSumStatus(t('summarizeFail'), 'err');
         aiSumBusy = false; $('aiSumBtn').disabled = false;
       } else if (msg.type === 'error') {
         cleanup();
         $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
-        setAiSumStatus('สรุปไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
+        setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(msg.message) }), 'err');
         aiSumBusy = false; $('aiSumBtn').disabled = false;
       }
     }
     function onErr(e) {
       cleanup();
       $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
-      setAiSumStatus('สรุปไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
+      setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(e.message || t('unknownReason')) }), 'err');
       aiSumBusy = false; $('aiSumBtn').disabled = false;
     }
     function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
@@ -802,21 +1141,21 @@
   function sellVerdict(a) {
     var det = a.det || {}, ps = det.psar;
     var cls, headline;
-    if (ps && !ps.up) { cls = 'no'; headline = 'พิจารณาขาย — สัญญาณเทรนด์กลับตัว (SAR พลิกลง)'; }
-    else if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) { cls = 'no'; headline = 'พิจารณาขาย/ตัดขาดทุน — ราคาหลุดแนวโน้ม (ต่ำกว่าเส้นค่าเฉลี่ย)'; }
-    else if (isFinite(a.rsi) && a.rsi > 70) { cls = 'warn'; headline = 'พิจารณาล็อกกำไรบางส่วน — RSI สูง ราคาร้อนแรง อาจย่อ'; }
-    else if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) { cls = 'warn'; headline = 'ใกล้แนวต้าน — พิจารณาล็อกกำไรบางส่วน'; }
-    else { cls = 'go'; headline = 'ยังอยู่ในแนวโน้มขึ้น — ถือต่อได้ เลื่อนจุดตัดขาดทุนตามแนวด้านล่าง'; }
+    if (ps && !ps.up) { cls = 'no'; headline = t('sellSarDn'); }
+    else if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) { cls = 'no'; headline = t('sellBelowTrend'); }
+    else if (isFinite(a.rsi) && a.rsi > 70) { cls = 'warn'; headline = t('sellHotRsi'); }
+    else if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) { cls = 'warn'; headline = t('sellNearResist'); }
+    else { cls = 'go'; headline = t('sellHold'); }
 
     var levels = [
-      { key: 'sar', type: 'stop', label: 'แนวตัดขาดทุนตามเทรนด์ (SAR)', price: ps ? ps.sar : NaN,
-        reason: !ps ? 'ข้อมูลไม่พอคำนวณ (ต้องมีประวัติราคาอย่างน้อย ~3 วัน)' : (ps.up ? 'ถ้าราคาปิดหลุดต่ำกว่า ' + fmt(ps.sar) + ' ถือว่าเทรนด์ขาขึ้นเริ่มกลับตัว' : 'ราคาหลุดแนวนี้ไปแล้ว (SAR พลิกลง) — เป็นสัญญาณเตือนที่ชัดที่สุด') },
-      { key: 'stop', type: 'stop', label: 'จุดตัดขาดทุนตามความเสี่ยง (ATR/แนวรับ)', price: a.suggestStop,
-        reason: !isFinite(a.suggestStop) ? 'ข้อมูลไม่พอคำนวณ' : 'กันขาดทุนหนักถ้าราคาหลุดแนวรับหรือผันผวนเกินค่าเฉลี่ย' + (isFinite(det.atr) ? ' (ATR ≈ ' + fmt(det.atr) + ')' : '') },
-      { key: 'ema20', type: 'warn', label: 'เส้นค่าเฉลี่ย 20 วัน (สัญญาณเตือนแรก)', price: det.ema20,
-        reason: !isFinite(det.ema20) ? 'ข้อมูลไม่พอคำนวณ' : 'หลุดเส้นนี้มักเป็นสัญญาณเริ่มอ่อนตัว — ยังไม่ใช่จุดตัดขาดทุนหลัก แต่ควรเริ่มระวัง' },
-      { key: 'resistance', type: 'tp', label: 'แนวต้าน (จุดพิจารณาล็อกกำไรบางส่วน)', price: isFinite(det.resistance) ? det.resistance : a.resistance,
-        reason: !isFinite(isFinite(det.resistance) ? det.resistance : a.resistance) ? 'ข้อมูลไม่พอคำนวณ' : 'ราคามักเจอแรงขายทำกำไรบริเวณนี้ พิจารณาขายบางส่วนหรือเลื่อนจุดตัดขาดทุนตามเพื่อป้องกันกำไร' }
+      { key: 'sar', type: 'stop', label: t('sarLabel'), price: ps ? ps.sar : NaN,
+        reason: !ps ? t('sarNoData') : (ps.up ? t('sarUpReason', { price: fmt(ps.sar) }) : t('sarDnReason')) },
+      { key: 'stop', type: 'stop', label: t('stopRiskLabel'), price: a.suggestStop,
+        reason: !isFinite(a.suggestStop) ? t('noData') : t('stopRiskReason', { atr: isFinite(det.atr) ? t('atrSuffix', { atr: fmt(det.atr) }) : '' }) },
+      { key: 'ema20', type: 'warn', label: t('ema20Label'), price: det.ema20,
+        reason: !isFinite(det.ema20) ? t('noData') : t('ema20Reason') },
+      { key: 'resistance', type: 'tp', label: t('resistLabel'), price: isFinite(det.resistance) ? det.resistance : a.resistance,
+        reason: !isFinite(isFinite(det.resistance) ? det.resistance : a.resistance) ? t('noData') : t('resistReason') }
     ];
     return { cls: cls, headline: headline, levels: levels };
   }
@@ -898,14 +1237,83 @@
     'วัสดุก่อสร้าง/บรรจุภัณฑ์': ['ความต้องการผูกกับภาคก่อสร้าง/อสังหาฯ ทั้งในและต่างประเทศ', 'ต้นทุนพลังงาน/วัตถุดิบมีผลต่อกำไรโดยตรง'],
     'ประกันชีวิต': ['ผลตอบแทนจากเงินลงทุนอ่อนไหวกับทิศทางดอกเบี้ยและตลาดทุน', 'จับตาสัดส่วนกรมธรรม์ใหม่และอัตราการต่ออายุ']
   };
+  var COMPANY_INFO_EN = {
+    ADVANC: { name: 'Advanced Info Service (AIS)', sector: 'ICT/Telecom', business: "Thailand's largest mobile network operator, also offering broadband and digital services" },
+    AOT: { name: 'Airports of Thailand', sector: 'Transport/Infrastructure', business: "Operator of the country's major airports (Suvarnabhumi, Don Mueang, Chiang Mai, Phuket, Hat Yai); revenue mainly from airport fees and commercial concessions" },
+    AWC: { name: 'Asset World Corp', sector: 'Tourism/Hotels/Food service', business: 'Retail real estate, hotel and office-space group under the TCC conglomerate' },
+    BANPU: { name: 'Banpu', sector: 'Energy/Petrochemicals', business: 'Integrated coal and energy business in Thailand and abroad, including power generation and clean energy' },
+    BBL: { name: 'Bangkok Bank', sector: 'Banking', business: "Thailand's largest commercial bank by assets, focused on large corporate and institutional clients" },
+    BDMS: { name: 'Bangkok Dusit Medical Services', sector: 'Healthcare', business: "Thailand's largest private hospital network (Bangkok Hospital, Samitivej, BNH, etc.)" },
+    BEM: { name: 'Bangkok Expressway and Metro', sector: 'Transport/Infrastructure', business: 'Operator of expressways (tollways) and the Blue/Purple Line MRT trains' },
+    BGRIM: { name: 'B.Grimm Power', sector: 'Energy/Petrochemicals', business: 'Major private power producer focused on cogeneration plants and renewable energy' },
+    BH: { name: 'Bumrungrad Hospital', sector: 'Healthcare', business: 'Premium private hospital focused on international patients and specialized medicine' },
+    BTS: { name: 'BTS Group Holdings', sector: 'Transport/Infrastructure', business: 'Operator of the BTS Skytrain, also in media advertising and real estate' },
+    CBG: { name: 'Carabao Group', sector: 'Food & Beverage', business: 'Maker of Carabao Dang energy drink and other beverages/consumer goods, domestic and overseas' },
+    CENTEL: { name: 'Central Plaza Hotel', sector: 'Tourism/Hotels/Food service', business: 'Hotel business (Centara) and restaurants (KFC, Mister Donut, etc.) under Central Group' },
+    COM7: { name: 'Com7', sector: 'Commerce/Retail', business: 'Major IT/mobile phone retailer (Banana, Studio 7, etc.), an authorized Apple reseller in Thailand' },
+    CPALL: { name: 'CP All', sector: 'Commerce/Retail', business: "Operator of 7-Eleven convenience stores in Thailand, the country's largest, plus wholesale (Makro)" },
+    CPF: { name: 'Charoen Pokphand Foods', sector: 'Food & Beverage', business: 'Integrated agro-industrial and food business (livestock/aquaculture, animal feed, processed food), a global-scale player' },
+    CPN: { name: 'Central Pattana', sector: 'Real Estate Development', business: "Thailand's largest developer and operator of shopping malls (Central), plus residential and office buildings" },
+    CRC: { name: 'Central Retail Corporation', sector: 'Commerce/Retail', business: 'Retail business under Central Group (department stores, supermarkets, etc.) in Thailand and abroad' },
+    DELTA: { name: 'Delta Electronics (Thailand)', sector: 'Electronic Components', business: 'Electronic component maker focused on power supplies and energy management systems for global industry' },
+    EA: { name: 'Energy Absolute', sector: 'Energy/Petrochemicals', business: 'Renewable energy (solar/wind) and electric vehicle/battery business' },
+    EGCO: { name: 'Electricity Generating', sector: 'Energy/Petrochemicals', business: 'Major private power producer in Thailand and abroad' },
+    GLOBAL: { name: 'Siam Global House', sector: 'Commerce/Retail', business: 'Integrated retail of construction materials and home improvement goods' },
+    GPSC: { name: 'Global Power Synergy', sector: 'Energy/Petrochemicals', business: 'Core power business of the PTT Group, producing electricity and steam for industrial customers' },
+    GULF: { name: 'Gulf Energy Development', sector: 'Energy/Petrochemicals', business: 'Major private power producer, expanding into infrastructure and digital businesses' },
+    HMPRO: { name: 'Home Product Center', sector: 'Commerce/Retail', business: 'Home improvement/decor retail business (HomePro, Mega Home)' },
+    INTUCH: { name: 'Intouch Holdings', sector: 'ICT/Telecom', business: 'Holding company with a major stake in ADVANC (AIS); revenue mainly from dividends' },
+    IVL: { name: 'Indorama Ventures', sector: 'Energy/Petrochemicals', business: 'Global-scale petrochemical and fiber (PET/polyester) producer' },
+    KBANK: { name: 'Kasikornbank', sector: 'Banking', business: 'Major Thai commercial bank offering loans, deposits and full financial services' },
+    KCE: { name: 'KCE Electronics', sector: 'Electronic Components', business: 'Printed circuit board (PCB) manufacturer focused on exporting automotive/industrial components' },
+    KKP: { name: 'Kiatnakin Phatra Bank', sector: 'Banking', business: 'Mid-sized commercial bank focused on auto loans and investment banking/wealth management' },
+    KTB: { name: 'Krung Thai Bank', sector: 'Banking', business: 'State-controlled commercial bank focused on government and retail services' },
+    KTC: { name: 'Krungthai Card', sector: 'Finance/Consumer credit', business: 'Major credit card and personal loan provider' },
+    LH: { name: 'Land and Houses', sector: 'Real Estate Development', business: 'Major Thai property developer (housing estates, condominiums)' },
+    MINT: { name: 'Minor International', sector: 'Tourism/Hotels/Food service', business: 'Hotel business (NH, Anantara), restaurants (The Pizza Company, Swensen’s) and lifestyle brand distribution' },
+    MTC: { name: 'Muangthai Capital', sector: 'Finance/Consumer credit', business: 'Provider of vehicle-title loans and micro-lending' },
+    OR: { name: 'PTT Oil and Retail Business', sector: 'Commerce/Retail', business: 'Gas station business (PTT Station) and in-station retail (Cafe Amazon)' },
+    OSP: { name: 'Osotspa', sector: 'Food & Beverage', business: 'Maker of energy drinks (M-150) and consumer goods' },
+    PTT: { name: 'PTT', sector: 'Energy/Petrochemicals', business: "Integrated natural gas, oil and petrochemical business, majority state-owned, Thailand's national energy company" },
+    PTTEP: { name: 'PTT Exploration and Production', sector: 'Energy/Petrochemicals', business: 'Petroleum (oil/gas) exploration and production business, domestic and overseas' },
+    PTTGC: { name: 'PTT Global Chemical', sector: 'Energy/Petrochemicals', business: 'Major petrochemical and chemicals producer under the PTT Group' },
+    RATCH: { name: 'Ratch Group', sector: 'Energy/Petrochemicals', business: 'Private power producer (formerly Ratchaburi Electricity Generating), in Thailand and abroad' },
+    SAWAD: { name: 'Srisawad Corporation', sector: 'Finance/Consumer credit', business: 'Major provider of vehicle-title loans and micro-lending' },
+    SCB: { name: 'Siam Commercial Bank', sector: 'Banking', business: 'Major Thai commercial bank (held via SCB X), full-service retail and corporate banking' },
+    SCC: { name: 'Siam Cement (SCG)', sector: 'Building Materials/Packaging', business: "Major Thai industrial group in construction materials, cement, petrochemicals and packaging" },
+    SCGP: { name: 'SCG Packaging', sector: 'Building Materials/Packaging', business: 'Integrated packaging producer under the SCG Group' },
+    TISCO: { name: 'Tisco Financial Group', sector: 'Banking', business: 'Financial group focused on auto loans and wealth management' },
+    TLI: { name: 'Thai Life Insurance', sector: 'Life Insurance', business: "Major Thai life insurance company" },
+    TOP: { name: 'Thai Oil', sector: 'Energy/Petrochemicals', business: 'Major Thai oil refinery under the PTT Group' },
+    TRUE: { name: 'True Corporation', sector: 'ICT/Telecom', business: 'Telecom operator (mobile/internet) following the True-dtac merger' },
+    TTB: { name: 'TMBThanachart Bank', sector: 'Banking', business: 'Commercial bank formed from the merger of TMB and Thanachart' },
+    TU: { name: 'Thai Union Group', sector: 'Food & Beverage', business: 'Global-scale producer and exporter of processed seafood (canned tuna, etc.)' }
+  };
+  var SECTOR_FACTORS_EN = {
+    'Banking': ['Earnings are sensitive to policy interest rates and loan quality (bad debt/NPL)', 'Watch quarterly earnings releases and Bank of Thailand policy'],
+    'Energy/Petrochemicals': ['Profit swings with global oil/gas prices and refining/marketing margins', 'Government energy policy and price regulation directly affect the business'],
+    'ICT/Telecom': ['Price/promotion competition in the mobile market, plus network investment costs', 'Part of revenue is tied to digital/internet consumer behavior'],
+    'Commerce/Retail': ['Sales are sensitive to consumer purchasing power and tourism', 'Competition from e-commerce and branch/logistics costs'],
+    'Food & Beverage': ['Input costs fluctuate with global commodity prices', 'Part of revenue relies on export markets, sensitive to exchange rates'],
+    'Tourism/Hotels/Food service': ['Revenue is tied to foreign visitor numbers and travel seasonality', 'Sensitive to energy/labor costs and events that disrupt travel'],
+    'Healthcare': ['Part of revenue relies on international patients, sensitive to the baht and cross-border travel', 'Medical staff and technology costs keep rising'],
+    'Transport/Infrastructure': ['Revenue is tied to passenger/traffic volume and concession renewals/extensions', 'A capital-intensive business, sensitive to interest rates and government policy'],
+    'Real Estate Development': ['Sales/transfers are sensitive to mortgage rates and buyers’ borrowing capacity', 'Watch unsold housing inventory and purchasing power in each segment'],
+    'Finance/Consumer credit': ['Loan quality (bad debt) is sensitive to household economic conditions', 'Funding costs move with policy interest rate direction'],
+    'Electronic Components': ['Revenue is tied to the global electronics/auto industry cycle and the baht', 'Sensitive to orders from large overseas customers'],
+    'Building Materials/Packaging': ['Demand is tied to the construction/property sector, domestic and overseas', 'Energy/raw material costs directly affect profit'],
+    'Life Insurance': ['Investment returns are sensitive to interest rates and capital markets', 'Watch new policy mix and renewal rates']
+  };
+  function getCompanyInfo(sym) { return (getUILang() === 'en' ? COMPANY_INFO_EN : COMPANY_INFO)[sym]; }
   function companyInfoUrl(sym) { return 'https://www.google.com/search?q=' + encodeURIComponent(sym + ' บริษัท ทำธุรกิจอะไร'); }
   function companyInfoHtml(sym) {
-    var c = COMPANY_INFO[sym];
+    var c = getCompanyInfo(sym);
     if (!c) {
-      return '<div class="company-card"><div class="cname">ไม่มีข้อมูลบริษัทในฐานข้อมูล</div>' +
-        '<div class="cbiz">รองรับเฉพาะ 50 หุ้นใน SET50 — <a href="' + companyInfoUrl(sym) + '" target="_blank" rel="noopener">ค้นหาข้อมูลบริษัท ' + sym + ' เอง ↗</a></div></div>';
+      return '<div class="company-card"><div class="cname">' + t('noCompanyInfo') + '</div>' +
+        '<div class="cbiz">' + t('companyInfoFallback', { url: companyInfoUrl(sym), sym: sym }) + '</div></div>';
     }
-    var factors = SECTOR_FACTORS[c.sector] || [];
+    var cTh = COMPANY_INFO[sym];
+    var factors = (getUILang() === 'en' ? SECTOR_FACTORS_EN[c.sector] : SECTOR_FACTORS[cTh.sector]) || [];
     var html = '<div class="company-card"><span class="cname">' + c.name + '</span><span class="csector">' + c.sector + '</span>' +
       '<div class="cbiz">' + c.business + '</div>';
     if (factors.length) {
@@ -919,8 +1327,8 @@
   function addHolding() {
     var sym = ($('pfSym').value || '').trim().toUpperCase();
     var shares = num($('pfShares').value), cost = num($('pfCost').value);
-    if (!sym) { window.tanotAlert('ใส่ชื่อหุ้นก่อน'); return; }
-    if (!isFinite(shares) || shares <= 0 || !isFinite(cost) || cost <= 0) { window.tanotAlert('กรอกจำนวนหุ้นและราคาต้นทุนให้ถูกต้อง'); return; }
+    if (!sym) { window.tanotAlert(t('alertEnterSym')); return; }
+    if (!isFinite(shares) || shares <= 0 || !isFinite(cost) || cost <= 0) { window.tanotAlert(t('alertEnterValid')); return; }
     var pf = loadPf(); pf.push({ sym: sym, shares: shares, cost: cost, ts: Date.now() });
     savePf(pf); $('pfSym').value = ''; $('pfShares').value = ''; $('pfCost').value = ''; renderPf();
   }
@@ -929,12 +1337,12 @@
        ลบ/แก้ไขยังอ้างอิงกลับไปที่ array เต็ม (pfAll) ผ่าน object reference กันดัชนีเพี้ยน */
     var pfAll = loadPf(), box = $('pfBox');
     var pf = EMBED_SYM ? pfAll.filter(function (h) { return h.sym === EMBED_SYM; }) : pfAll;
-    if (!pf.length) { box.innerHTML = '<div class="pf-empty">' + (EMBED_SYM ? 'ยังไม่มี ' + EMBED_SYM + ' ในพอร์ต' : 'ยังไม่มีหุ้นในพอร์ต — คำนวณด้านบนแล้วกด "บันทึกเข้าพอร์ต"') + '</div>'; return; }
-    var html = '<table class="pf-table"><thead><tr><th>หุ้น</th><th>จำนวน</th><th>ต้นทุน/หุ้น</th><th>ราคาปัจจุบัน</th><th>กำไร/ขาดทุน</th><th></th></tr></thead><tbody>';
+    if (!pf.length) { box.innerHTML = '<div class="pf-empty">' + (EMBED_SYM ? t('pfEmptyEmbed', { sym: EMBED_SYM }) : t('pfEmptyDefault')) + '</div>'; return; }
+    var html = '<table class="pf-table"><thead><tr><th>' + t('pfThSym') + '</th><th>' + t('pfThShares') + '</th><th>' + t('pfThCost') + '</th><th>' + t('pfThCur') + '</th><th>' + t('pfThPl') + '</th><th></th></tr></thead><tbody>';
     pf.forEach(function (h, i) {
       html += '<tr data-i="' + i + '"><td>' + h.sym + '</td><td>' + fmt0(h.shares) + '</td><td>' + fmt(h.cost) + '</td>' +
-        '<td><input type="number" class="pf-price" inputmode="decimal" step="0.01" placeholder="ราคา" value="' + (h.cur != null ? h.cur : '') + '"></td>' +
-        '<td class="pf-pl">—</td><td class="pf-actions"><button class="pf-sell" title="เช็กควรขาย?">ควรขาย?</button> <button class="pf-del" title="ลบ">✕</button></td></tr>' +
+        '<td><input type="number" class="pf-price" inputmode="decimal" step="0.01" placeholder="' + t('pfPricePh') + '" value="' + (h.cur != null ? h.cur : '') + '"></td>' +
+        '<td class="pf-pl">—</td><td class="pf-actions"><button class="pf-sell" title="' + t('pfSellTitle') + '">' + t('pfSellBtn') + '</button> <button class="pf-del" title="' + t('pfDelTitle') + '">✕</button></td></tr>' +
         '<tr class="pf-sellrow" data-sr="' + i + '"><td colspan="6"></td></tr>';
     });
     html += '</tbody></table>'; box.innerHTML = html;
@@ -951,20 +1359,20 @@
       inp.addEventListener('input', function () { upd(); h.cur = num(inp.value); savePf(pfAll); });
       tr.querySelector('.pf-del').addEventListener('click', function () { var realIdx = pfAll.indexOf(h); if (realIdx >= 0) pfAll.splice(realIdx, 1); savePf(pfAll); renderPf(); });
       tr.querySelector('.pf-sell').addEventListener('click', function () {
-        sellCell.innerHTML = '<div class="sell-verdict warn">กำลังดึงราคา ' + h.sym + '…</div>';
+        sellCell.innerHTML = '<div class="sell-verdict warn">' + t('fetchingSellPrice', { sym: h.sym }) + '</div>';
         getSeries(h.sym).then(function (r) {
           var s = r.series, a = analyzeSeries(s), v = sellVerdict(a), price = s.closes[s.closes.length - 1];
           inp.value = price.toFixed(2); h.cur = price; savePf(pfAll); upd();
           var pl = (price - h.cost) * h.shares, pct = (price / h.cost - 1) * 100;
           sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict ' + v.cls + '">' + v.headline +
-            '<br><span style="font-weight:500">ราคาล่าสุด ' + fmt(price) + (r.stale ? ' (บันทึกไว้ ' + cacheAgeText(r.cachedAt) + ')' : '') +
-            ' · ต้นทุน ' + fmt(h.cost) + ' · ' + (pl >= 0 ? 'กำไร ' : 'ขาดทุน ') + '฿' + fmt0(Math.abs(pl)) + ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)</span>' +
+            '<br><span style="font-weight:500">' + t('sellLatestPrice', { price: fmt(price) }) + (r.stale ? t('sellSavedAge', { age: cacheAgeText(r.cachedAt) }) : '') +
+            t('sellCostLabel', { cost: fmt(h.cost) }) + (pl >= 0 ? t('sellProfit') : t('sellLoss')) + '฿' + fmt0(Math.abs(pl)) + ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)</span>' +
             sellLevelsHtml(v.levels) + '</div>' +
             companyInfoHtml(h.sym) +
             '<div class="news-block"></div></div>';
           renderNewsBlock(sellCell.querySelector('.news-block'), h.sym);
         }, function () {
-          sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict warn">ดึงราคา ' + h.sym + ' ไม่ได้ตอนนี้ — ลองใหม่อีกครั้ง หรือกรอกราคาปัจจุบันเองในช่อง</div>' +
+          sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict warn">' + t('sellFetchFail', { sym: h.sym }) + '</div>' +
             companyInfoHtml(h.sym) + '</div>';
         });
       });
@@ -979,23 +1387,23 @@
     var checks = [];
     if (a && isFinite(det.ema20)) {
       var up = isFinite(det.ema50) ? a.price >= det.ema50 : a.price >= det.ema20;
-      var adxTxt = isFinite(det.adx) ? (' · ADX ' + det.adx.toFixed(0) + (det.adx >= 20 ? ' เทรนด์แข็งแรง' : ' เทรนด์อ่อน ควรระวัง')) : '';
-      checks.push({ ok: up, txt: (up ? 'อยู่ในแนวโน้มขึ้น (ราคาเหนือเส้นเฉลี่ย)' : 'ยังไม่อยู่ในแนวโน้มขึ้น (ราคาใต้เส้นเฉลี่ย)') + adxTxt });
+      var adxTxt = isFinite(det.adx) ? (det.adx >= 20 ? t('adxStrongTxt', { adx: det.adx.toFixed(0) }) : t('adxWeakTxt', { adx: det.adx.toFixed(0) })) : '';
+      checks.push({ ok: up, txt: (up ? t('trendUpAdx') : t('trendNotUpAdx')) + adxTxt });
       var over = (a.price - det.ema20) / det.ema20, notChase = over <= 0.05;
-      checks.push({ ok: notChase, txt: notChase ? 'ไม่ไล่ราคา (ห่างเส้นเฉลี่ย 20 ไม่เกิน 5%)' : 'กำลังไล่ราคา (สูงกว่าเส้นเฉลี่ย 20 เกิน 5%)' });
+      checks.push({ ok: notChase, txt: notChase ? t('notChasing') : t('chasing') });
     } else {
-      checks.push({ ok: null, txt: 'แนวโน้ม/การไล่ราคา: ต้องมีข้อมูลกราฟก่อน (กด "ดึงราคา" หรือ "ดูกราฟตัวอย่าง")' });
+      checks.push({ ok: null, txt: t('needChartFirst') });
     }
-    if (a && isFinite(det.rsi)) checks.push({ ok: det.rsi < 70, txt: det.rsi < 70 ? 'ไม่ร้อนแรงเกิน (RSI ' + det.rsi.toFixed(0) + ')' : 'ร้อนแรงเกินไป (RSI ' + det.rsi.toFixed(0) + ' ≥ 70) เสี่ยงย่อ' });
-    else checks.push({ ok: null, txt: 'RSI: ต้องมีข้อมูลกราฟก่อน' });
+    if (a && isFinite(det.rsi)) checks.push({ ok: det.rsi < 70, txt: det.rsi < 70 ? t('rsiOk', { rsi: det.rsi.toFixed(0) }) : t('rsiHot', { rsi: det.rsi.toFixed(0) }) });
+    else checks.push({ ok: null, txt: t('rsiNeedChart') });
     var stopOk = isFinite(entry) && isFinite(stop) && stop < entry;
-    checks.push({ ok: stopOk, txt: stopOk ? 'ตั้งจุดตัดขาดทุน (Stop) แล้ว' : 'ยังไม่ตั้งจุดตัดขาดทุน — กด "คำนวณ" ในขั้นที่ 2 ก่อน' });
-    checks.push({ ok: isFinite(riskPct) && riskPct <= 2, txt: (isFinite(riskPct) && riskPct <= 2) ? 'เสี่ยงต่อไม้ ≤ 2% (' + riskPct + '%)' : 'เสี่ยงต่อไม้สูงไป (' + (isFinite(riskPct) ? riskPct + '%' : '-') + ') — ควร ≤ 2%' });
+    checks.push({ ok: stopOk, txt: stopOk ? t('stopSetOk') : t('stopNotSet') });
+    checks.push({ ok: isFinite(riskPct) && riskPct <= 2, txt: (isFinite(riskPct) && riskPct <= 2) ? t('riskOk', { pct: riskPct }) : t('riskHigh', { pct: isFinite(riskPct) ? riskPct + '%' : '-' }) });
     if (a && isFinite(a.resistance) && stopOk && a.resistance > entry) {
       var rr = (a.resistance - entry) / (entry - stop), rrOk = rr >= 2;
-      checks.push({ ok: rrOk, txt: rrOk ? 'กำไรคาดหวัง:เสี่ยง ≥ 2:1 (' + rr.toFixed(1) + ':1)' : 'กำไร:เสี่ยงน้อยไป (' + rr.toFixed(1) + ':1) — ควร ≥ 2:1' });
+      checks.push({ ok: rrOk, txt: rrOk ? t('rrOk', { rr: rr.toFixed(1) }) : t('rrLow', { rr: rr.toFixed(1) }) });
     } else {
-      checks.push({ ok: null, txt: 'กำไร:เสี่ยง: ต้องมีแนวต้านจากกราฟ + ตั้ง Stop ก่อน' });
+      checks.push({ ok: null, txt: t('rrNeedInfo') });
     }
     return checks;
   }
@@ -1004,9 +1412,9 @@
     var fails = checks.filter(function (c) { return c.ok === false; }).length;
     var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
     var box = $('checkResult'), v = $('checkVerdict');
-    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = 'ยังไม่ควรเข้า — ติด ' + fails + ' ข้อ ควรแก้ให้ครบก่อนซื้อ'; }
-    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = 'ข้อมูลไม่พอประเมินครบ — กด "ประเมิน"/"ดึงราคา" แล้ว "คำนวณ" ก่อน'; }
-    else { v.className = 'verdict-box go'; v.textContent = 'เข้าได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)'; }
+    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = t('checklistFail', { n: fails }); }
+    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = t('checklistUnknown'); }
+    else { v.className = 'verdict-box go'; v.textContent = t('checklistGo'); }
     var html = '';
     checks.forEach(function (c) {
       var ic = c.ok === true ? '✓' : c.ok === false ? '✕' : '◻️';
@@ -1021,16 +1429,14 @@
     var w = num($('eWin').value) / 100, wr = num($('eWinR').value), lr = num($('eLossR').value);
     var box = $('eResult');
     if (!(w >= 0 && w <= 1) || !isFinite(wr) || !isFinite(lr) || wr < 0 || lr <= 0) {
-      box.className = 'verdict-box warn'; box.textContent = 'กรอกตัวเลขให้ครบ (อัตราชนะ 0–100%, กำไร/ขาดทุนเป็นเท่าของ R)'; box.style.display = 'block'; return;
+      box.className = 'verdict-box warn'; box.textContent = t('expInvalid'); box.style.display = 'block'; return;
     }
     var exp = w * wr - (1 - w) * lr;
     var beWin = lr / (wr + lr) * 100;
-    var msg = 'ค่าคาดหวังต่อไม้ ≈ <b>' + (exp >= 0 ? '+' : '') + exp.toFixed(2) + ' R</b> ' +
-      '(ถ้าเสี่ยงไม้ละ 1,000 บาท ≈ ' + (exp >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(exp) * 1000) + ' ต่อไม้โดยเฉลี่ย)<br>' +
-      '<span style="font-weight:500">ต้องชนะอย่างน้อย ~' + beWin.toFixed(0) + '% ถึงจะเสมอตัวที่ R นี้</span>';
-    if (exp > 0.1) { box.className = 'verdict-box go'; box.innerHTML = 'ได้เปรียบระยะยาว<br>' + msg + '<br><span style="font-weight:500">ถ้าทำตามวินัยสม่ำเสมอ (คุมความเสี่ยงเท่ากันทุกไม้) มีโอกาสกำไรระยะยาว</span>'; }
-    else if (exp > 0) { box.className = 'verdict-box warn'; box.innerHTML = 'แทบเสมอตัว<br>' + msg + '<br><span style="font-weight:500">หักค่าคอมฯแล้วอาจขาดทุน — ต้องเพิ่มกำไรตอนชนะ หรือลดขาดทุนตอนแพ้</span>'; }
-    else { box.className = 'verdict-box no'; box.innerHTML = 'ขาดทุนระยะยาว<br>' + msg + '<br><span style="font-weight:500">ถึงชนะบ่อยก็ไม่พอ — ต้อง "ปล่อยกำไรให้ยาว ตัดขาดทุนให้ไว" (เพิ่ม R ตอนชนะ)</span>'; }
+    var msg = t('expMsg', { sign: exp >= 0 ? '+' : '', exp: exp.toFixed(2), sign2: exp >= 0 ? '+' : '−', bahtExp: fmt0(Math.abs(exp) * 1000), beWin: beWin.toFixed(0) });
+    if (exp > 0.1) { box.className = 'verdict-box go'; box.innerHTML = t('expGood', { msg: msg }); }
+    else if (exp > 0) { box.className = 'verdict-box warn'; box.innerHTML = t('expBreakeven', { msg: msg }); }
+    else { box.className = 'verdict-box no'; box.innerHTML = t('expBad', { msg: msg }); }
     box.style.display = 'block';
   }
 
@@ -1087,16 +1493,16 @@
   function renderNewsBlock(el, sym) {
     if (!el) return;
     lastNewsItems = null;
-    var link = '<a class="news-search-link" target="_blank" rel="noopener" href="' + newsSearchUrl(sym) + '">ค้นหาข่าวเอง ↗</a>';
-    el.innerHTML = 'กำลังค้นข่าว ' + sym + '… ' + link;
+    var link = '<a class="news-search-link" target="_blank" rel="noopener" href="' + newsSearchUrl(sym) + '">' + t('searchNewsMyself') + '</a>';
+    el.innerHTML = t('searchingNews', { sym: sym }) + link;
     fetchNews(sym).then(function (r) {
       var html = '<ul class="news-list">' + r.items.map(function (n) {
         return '<li><a href="' + n.link + '" target="_blank" rel="noopener">' + n.title + '</a><span class="news-date">' + newsDateShort(n.pubDate) + '</span></li>';
-      }).join('') + '</ul>ดูข่าวเพิ่มเติม ' + link;
+      }).join('') + '</ul>' + t('moreNews') + link;
       el.innerHTML = html;
       lastNewsItems = r.items;
     }, function () {
-      el.innerHTML = 'ดึงข่าวอัตโนมัติไม่ได้ตอนนี้ ' + link;
+      el.innerHTML = t('newsAutoFail') + link;
     });
   }
 
@@ -1123,8 +1529,8 @@
         if (c.key === 'thai-stock') a.className = 'on';
         row.appendChild(a);
       });
-      var scan = document.createElement('a'); scan.href = 'invest-set50-scanner.html';
-      scan.innerHTML = '<b>สแกนเนอร์ SET50</b>';
+      var scan = document.createElement('a'); scan.href = 'invest-set50-scanner.html'; scan.id = 'ivScannerLink';
+      scan.innerHTML = '<b>' + t('scannerLink') + '</b>';
       row.appendChild(scan);
     });
     var groupBtns = document.querySelectorAll('#ivGroups button');
@@ -1138,6 +1544,7 @@
 
   /* ── init ───────────────────────────────────────────────────── */
   function init() {
+    applyStaticI18n();
     initNav();
     initPageTabs();
     $('verdictChip').addEventListener('click', function () { $('whyBox').hidden = !$('whyBox').hidden; });
@@ -1157,8 +1564,8 @@
       var d = $('saveBtn')._data; if (!d) return;
       var pf = loadPf(); pf.push({ sym: d.sym, shares: d.shares, cost: d.cost, ts: Date.now() });
       savePf(pf); renderPf();
-      $('saveBtn').textContent = 'บันทึกแล้ว';
-      setTimeout(function () { $('saveBtn').innerHTML = 'บันทึกเข้าพอร์ต'; }, 1500);
+      $('saveBtn').textContent = t('savedBtn');
+      setTimeout(function () { $('saveBtn').innerHTML = t('saveToPortfolioBtn'); }, 1500);
     });
     $('checkBtn').addEventListener('click', doChecklist);
     $('eBtn').addEventListener('click', doExpectancy);
@@ -1176,7 +1583,7 @@
     var capital = num($('capital').value), riskPct = num($('riskPct').value);
     var entry = num($('entry').value), stop = num($('stop').value), comm = num($('comm').value), commMin = num($('commMin').value);
     if (!isFinite(entry)) entry = num($('price').value);
-    if (!isFinite(entry)) { setStatus('กรอกราคาเข้าซื้อ (หรือราคาตอนนี้) ก่อน', 'err'); return; }
+    if (!isFinite(entry)) { setStatus(t('enterEntryFirst'), 'err'); return; }
     if (!isFinite(stop)) { stop = (lastAnalysis && isFinite(lastAnalysis.suggestStop)) ? lastAnalysis.suggestStop : entry * 0.95; $('stop').value = stop.toFixed(2); }
     if (!isFinite(capital) || capital <= 0) { capital = 100000; $('capital').value = capital; }
     if (!isFinite(riskPct) || riskPct <= 0) { riskPct = 2; $('riskPct').value = riskPct; }
@@ -1189,21 +1596,32 @@
       $('riskHeadline').innerHTML = '<span style="color:var(--err)">' + res.error + '</span>';
       $('riskKv').innerHTML = ''; $('tpRow').innerHTML = ''; box.classList.add('show'); $('saveBtn').style.display = 'none'; return;
     }
-    $('riskHeadline').innerHTML = 'ควรซื้อได้ประมาณ <b>' + fmt0(res.shares) + ' หุ้น</b> (' + fmt0(res.lots) + ' ล็อต) ใช้เงิน ≈ <b>฿' + fmt0(res.cost) + '</b>';
+    $('riskHeadline').innerHTML = t('calcHeadline', { shares: fmt0(res.shares), lots: fmt0(res.lots), cost: fmt0(res.cost) });
     var kv = '';
-    kv += '<div class="k">ถ้าผิดทาง (แตะ Stop) เสียไม่เกิน</div><div class="v risk">฿' + fmt0(res.riskBaht) + '</div>';
-    kv += '<div class="k">ราคาตัดขาดทุน (Stop)</div><div class="v">' + fmt(stop) + '</div>';
-    kv += '<div class="k">ค่าคอมฯ จริงไป-กลับ</div><div class="v">฿' + fmt0(res.commBaht) + ' (' + fmt(res.commPct, 1) + '%)</div>';
-    kv += '<div class="k">ราคาคุ้มทุน (รวมค่าคอมฯ ไป-กลับ)</div><div class="v">' + fmt(res.breakeven) + '</div>';
-    if (isFinite(res.rr)) kv += '<div class="k">ความคุ้ม (กำไรคาดหวัง : ความเสี่ยง) ถึงแนวต้าน</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
+    kv += '<div class="k">' + t('kvRiskIfWrong') + '</div><div class="v risk">฿' + fmt0(res.riskBaht) + '</div>';
+    kv += '<div class="k">' + t('kvStopPrice') + '</div><div class="v">' + fmt(stop) + '</div>';
+    kv += '<div class="k">' + t('kvCommRoundtrip') + '</div><div class="v">฿' + fmt0(res.commBaht) + ' (' + fmt(res.commPct, 1) + '%)</div>';
+    kv += '<div class="k">' + t('kvBreakeven') + '</div><div class="v">' + fmt(res.breakeven) + '</div>';
+    if (isFinite(res.rr)) kv += '<div class="k">' + t('kvRR') + '</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
     $('riskKv').innerHTML = kv;
-    $('tpRow').innerHTML = '<span class="tp-chip">ทยอยขายไม้ 1: ' + fmt(res.tp1) + '</span><span class="tp-chip">ไม้ 2: ' + fmt(res.tp2) + '</span><span class="tp-chip">ไม้ 3: ' + fmt(res.tp3) + '</span>';
+    $('tpRow').innerHTML = '<span class="tp-chip">' + t('tpLot1', { price: fmt(res.tp1) }) + '</span><span class="tp-chip">' + t('tpLot2', { price: fmt(res.tp2) }) + '</span><span class="tp-chip">' + t('tpLot3', { price: fmt(res.tp3) }) + '</span>';
     if (res.note) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">ℹ️ ' + res.note + '</div>';
-    if (res.minKicksIn) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">⚠️ ไม้นี้เล็กเกินกว่าค่าคอมฯ ตามเปอร์เซ็นต์จะถึงขั้นต่ำ — โบรกจึงเก็บขั้นต่ำ ฿' + fmt0(commMin) + '/วัน แทน ทำให้ค่าคอมฯ จริงคิดเป็น ' + fmt(res.commPct, 1) + '% ไป-กลับ ต้องขึ้นถึง ' + fmt(res.breakeven) + ' บาทถึงจะเท่าทุนจริง — ลองซื้อไม้ใหญ่ขึ้นเพื่อเฉลี่ยค่าคอมฯ ให้ถูกลง</div>';
+    if (res.minKicksIn) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">⚠️ ' + t('commMinNote', { min: fmt0(commMin), pct: fmt(res.commPct, 1), breakeven: fmt(res.breakeven) }) + '</div>';
     box.classList.add('show');
     $('saveBtn').style.display = 'inline-flex';
-    $('saveBtn')._data = { sym: ($('sym').value || '').trim().toUpperCase() || 'หุ้น', shares: res.shares, cost: entry };
+    $('saveBtn')._data = { sym: ($('sym').value || '').trim().toUpperCase() || t('thisStock'), shares: res.shares, cost: entry };
   }
+
+  window.omeApplyLang = function () {
+    applyStaticI18n();
+    var scanLink = document.getElementById('ivScannerLink');
+    if (scanLink) scanLink.innerHTML = '<b>' + t('scannerLink') + '</b>';
+    if ($('shead').style.display === 'flex' && $('stkSym').textContent) {
+      updateStockHead(lastSource && lastSource.kind === 'demo' ? t('sampleWord') : $('stkSym').textContent);
+    }
+    if (lastSeries) useSeries(lastSeries);
+    renderPf();
+  };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
