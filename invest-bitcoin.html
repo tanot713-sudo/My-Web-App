@@ -258,103 +258,103 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 <div class="wrap">
 
 
-  <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>Bitcoin</nav>
+  <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span class="sep">/</span>Bitcoin</nav>
 
   <div class="head">
     <div>
-      <h1>Bitcoin — ตัวช่วยเข้า/ออก + ออม</h1>
-      <div class="head-sub">ผันผวนสูงกว่าหุ้น/ทองมาก · เน้นคุมความเสี่ยง ห้ามใช้เลเวอเรจ · มือใหม่ก็ใช้ได้</div>
+      <h1 data-i18n="pageTitle">Bitcoin — ตัวช่วยเข้า/ออก + ออม</h1>
+      <div class="head-sub" data-i18n="headSub">ผันผวนสูงกว่าหุ้น/ทองมาก · เน้นคุมความเสี่ยง ห้ามใช้เลเวอเรจ · มือใหม่ก็ใช้ได้</div>
     </div>
   </div>
 
   <!-- STEP 1: ราคา -->
   <div class="card">
-    <h2><span class="step">1</span> ราคา BTC-USD ตอนนี้</h2>
+    <h2><span class="step">1</span> <span data-i18n="step1Title">ราคา BTC-USD ตอนนี้</span></h2>
     <div class="frow">
-      <div class="field"><label>ราคาตอนนี้ (USD)</label><input type="number" id="price" inputmode="decimal" step="0.01" placeholder="เช่น 65000"></div>
-      <div class="field"><label>ราคาสูงสุดของรอบ</label><input type="number" id="hi" inputmode="decimal" step="0.01" placeholder="ช่วง 3 เดือน"></div>
-      <div class="field"><label>ราคาต่ำสุดของรอบ</label><input type="number" id="lo" inputmode="decimal" step="0.01" placeholder="ช่วง 3 เดือน"></div>
+      <div class="field"><label data-i18n="lblPriceNow">ราคาตอนนี้ (USD)</label><input type="number" id="price" inputmode="decimal" step="0.01" placeholder="เช่น 65000" data-i18n-placeholder="phPriceNow"></div>
+      <div class="field"><label data-i18n="lblHi">ราคาสูงสุดของรอบ</label><input type="number" id="hi" inputmode="decimal" step="0.01" placeholder="ช่วง 3 เดือน" data-i18n-placeholder="ph3mo"></div>
+      <div class="field"><label data-i18n="lblLo">ราคาต่ำสุดของรอบ</label><input type="number" id="lo" inputmode="decimal" step="0.01" placeholder="ช่วง 3 เดือน" data-i18n-placeholder="ph3mo"></div>
     </div>
     <div class="mini" id="priceFx"></div>
     <div class="market-livebar" id="marketLiveBar" aria-live="polite">
       <span class="market-live-dot" id="marketLiveDot"></span>
-      <b id="marketLiveLabel">โหมดข้อมูล: ย้อนหลัง</b>
-      <span id="marketLiveMeta">ตั้งค่าแหล่งข้อมูลสดได้ใน "ตั้งค่าข้อมูลตลาด"</span>
-      <button class="btn sm" id="marketRefresh" type="button">↻ รีเฟรช</button>
-      <button class="btn sm" id="marketSettings" type="button">⚙️ ตั้งค่าข้อมูลตลาด</button>
+      <b id="marketLiveLabel" data-i18n="marketModeHist">โหมดข้อมูล: ย้อนหลัง</b>
+      <span id="marketLiveMeta" data-i18n="marketMetaDefault">ตั้งค่าแหล่งข้อมูลสดได้ใน "ตั้งค่าข้อมูลตลาด"</span>
+      <button class="btn sm" id="marketRefresh" type="button" data-i18n="marketRefreshBtn">↻ รีเฟรช</button>
+      <button class="btn sm" id="marketSettings" type="button" data-i18n="marketSettingsBtn">⚙️ ตั้งค่าข้อมูลตลาด</button>
     </div>
-    <div class="status" id="fetchStatus">ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจากแอปเทรด/เอ็กซ์เชนจ์ที่ใช้ก็พอ</div>
+    <div class="status" id="fetchStatus" data-i18n="fetchStatusDefault">ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจากแอปเทรด/เอ็กซ์เชนจ์ที่ใช้ก็พอ</div>
     <div class="market-settings" id="marketSettingsPanel" hidden>
-      <div class="market-settings-title">ข้อมูลตลาดแบบสด</div>
+      <div class="market-settings-title" data-i18n="marketSettingsTitle">ข้อมูลตลาดแบบสด</div>
       <div class="market-settings-grid">
-        <label>แหล่งข้อมูล
-          <select id="marketProvider"><option value="gateway">Tanot Data Gateway (แนะนำ)</option><option value="twelvedata">Twelve Data</option><option value="yahoo">Yahoo / ย้อนหลัง</option></select>
+        <label data-i18n="marketProviderLbl">แหล่งข้อมูล
+          <select id="marketProvider"><option value="gateway" data-i18n="marketProviderGateway">Tanot Data Gateway (แนะนำ)</option><option value="twelvedata" data-i18n="marketProviderTwelve">Twelve Data</option><option value="yahoo" data-i18n="marketProviderYahoo">Yahoo / ย้อนหลัง</option></select>
         </label>
-        <label>Gateway URL
+        <label data-i18n="marketGatewayLbl">Gateway URL
           <input id="marketGateway" type="url" placeholder="https://your-api.example.com/api/market">
         </label>
-        <label>Twelve Data API Key <span>(เก็บในเครื่องเท่านั้น)</span>
-          <input id="marketApiKey" type="password" autocomplete="off" placeholder="ใส่เมื่อมี API key">
+        <label>Twelve Data API Key <span data-i18n="marketApiKeyNote">(เก็บในเครื่องเท่านั้น)</span>
+          <input id="marketApiKey" type="password" autocomplete="off" placeholder="ใส่เมื่อมี API key" data-i18n-placeholder="marketApiKeyPh">
         </label>
-        <label>รีเฟรชทุก
-          <select id="marketInterval"><option value="5">5 วินาที</option><option value="10">10 วินาที</option><option value="30">30 วินาที</option></select>
+        <label data-i18n="marketIntervalLbl">รีเฟรชทุก
+          <select id="marketInterval"><option value="5" data-i18n="marketInterval5">5 วินาที</option><option value="10" data-i18n="marketInterval10">10 วินาที</option><option value="30" data-i18n="marketInterval30">30 วินาที</option></select>
         </label>
       </div>
-      <div class="market-settings-actions"><button class="btn primary sm" id="marketSave" type="button">บันทึกการตั้งค่า</button><button class="btn sm" id="marketClear" type="button">ล้าง API Key</button></div>
-      <p class="mini">หมายเหตุ: ข้อมูลสดของ Twelve Data ใช้ปริมาณจำกัดตามแผนฟรี; สำหรับ GitHub Pages ไม่ควรฝัง API key ไว้ในโค้ดสาธารณะ จึงรองรับ Gateway ฝั่งเซิร์ฟเวอร์เป็นหลัก</p>
+      <div class="market-settings-actions"><button class="btn primary sm" id="marketSave" type="button" data-i18n="marketSaveBtn">บันทึกการตั้งค่า</button><button class="btn sm" id="marketClear" type="button" data-i18n="marketClearBtn">ล้าง API Key</button></div>
+      <p class="mini" data-i18n="marketNote">หมายเหตุ: ข้อมูลสดของ Twelve Data ใช้ปริมาณจำกัดตามแผนฟรี; สำหรับ GitHub Pages ไม่ควรฝัง API key ไว้ในโค้ดสาธารณะ จึงรองรับ Gateway ฝั่งเซิร์ฟเวอร์เป็นหลัก</p>
     </div>
     <div style="margin-top:10px;display:flex;gap:9px;flex-wrap:wrap">
-      <button class="btn" id="fetchBtn" type="button">ลองดึงราคา</button>
-      <button class="btn primary" id="analyzeBtn" type="button">ประเมินให้หน่อย</button>
-      <button class="btn sm" id="demoBtn" type="button">ดูกราฟตัวอย่าง (ฝึกอ่าน)</button>
+      <button class="btn" id="fetchBtn" type="button" data-i18n="fetchBtn">ลองดึงราคา</button>
+      <button class="btn primary" id="analyzeBtn" type="button" data-i18n="analyzeBtn">ประเมินให้หน่อย</button>
+      <button class="btn sm" id="demoBtn" type="button" data-i18n="demoBtn">ดูกราฟตัวอย่าง (ฝึกอ่าน)</button>
     </div>
     <details style="margin-top:10px">
-      <summary>วางราคาย้อนหลังเอง (ทางเลือก)</summary>
+      <summary data-i18n="pasteSummary">วางราคาย้อนหลังเอง (ทางเลือก)</summary>
       <div class="details-body">
-        <p style="font-size:12.5px;color:var(--muted);margin:2px 0 6px">วางราคาปิดหลายวัน คั่นด้วยเว้นวรรค/บรรทัด/จุลภาค (เรียงเก่า→ใหม่)</p>
+        <p style="font-size:12.5px;color:var(--muted);margin:2px 0 6px" data-i18n="pasteHint">วางราคาปิดหลายวัน คั่นด้วยเว้นวรรค/บรรทัด/จุลภาค (เรียงเก่า→ใหม่)</p>
         <textarea id="pasteBox" rows="3" style="width:100%;font-family:inherit;font-size:14px;padding:10px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)" placeholder="64500 64800 65200 64700 65900 66100 ..."></textarea>
-        <button class="btn sm" id="pasteBtn" type="button" style="margin-top:8px">ใช้ราคานี้</button>
+        <button class="btn sm" id="pasteBtn" type="button" style="margin-top:8px" data-i18n="pasteBtn">ใช้ราคานี้</button>
       </div>
     </details>
     <details style="margin-top:10px">
-      <summary>แปลงเป็นเงินบาท (ทางเลือก)</summary>
+      <summary data-i18n="fxSummary">แปลงเป็นเงินบาท (ทางเลือก)</summary>
       <div class="details-body">
-        <p class="mini" style="margin:2px 0 8px">เปิดไว้เพื่อดูยอด ≈ บาท กำกับควบคู่กับตัวเลข USD ในหน้านี้ (ไม่บังคับ ไม่กระทบการคำนวณหลักซึ่งเป็น USD เสมอ)</p>
+        <p class="mini" style="margin:2px 0 8px" data-i18n="fxHint">เปิดไว้เพื่อดูยอด ≈ บาท กำกับควบคู่กับตัวเลข USD ในหน้านี้ (ไม่บังคับ ไม่กระทบการคำนวณหลักซึ่งเป็น USD เสมอ)</p>
         <div class="frow">
-          <div class="field"><label>อัตราแลกเปลี่ยน <span class="unit">(บาทต่อ 1 USD)</span></label><input type="number" id="fxRate" inputmode="decimal" step="0.01" placeholder="เช่น 36.00"></div>
-          <button class="btn sm" id="fxFetchBtn" type="button">ดึงอัตราปัจจุบัน</button>
+          <div class="field"><label data-i18n="fxRateLbl">อัตราแลกเปลี่ยน <span class="unit" data-i18n="fxRateUnit">(บาทต่อ 1 USD)</span></label><input type="number" id="fxRate" inputmode="decimal" step="0.01" placeholder="เช่น 36.00" data-i18n-placeholder="fxRatePh"></div>
+          <button class="btn sm" id="fxFetchBtn" type="button" data-i18n="fxFetchBtn">ดึงอัตราปัจจุบัน</button>
         </div>
         <div class="status" id="fxStatus"></div>
-        <label class="mini" style="display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer"><input type="checkbox" id="fxShowChk" style="width:15px;height:15px;accent-color:var(--brand)"> แสดงยอดเทียบเงินบาท (≈ ฿) ในหน้านี้</label>
+        <label class="mini" style="display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer"><input type="checkbox" id="fxShowChk" style="width:15px;height:15px;accent-color:var(--brand)"> <span data-i18n="fxShowChkLbl">แสดงยอดเทียบเงินบาท (≈ ฿) ในหน้านี้</span></label>
       </div>
     </details>
   </div>
 
   <!-- ไฟจราจร -->
   <div class="card" id="lightCard" style="display:none">
-    <h2>ไฟจราจร</h2>
+    <h2 data-i18n="lightTitle">ไฟจราจร</h2>
     <div class="light gray" id="light">
       <div class="bulb" id="bulb"></div>
       <div><div class="verdict" id="verdict">—</div><div class="why" id="why"></div></div>
     </div>
     <details id="detailsBox" style="display:none">
-      <summary>ดูรายละเอียดทางเทคนิค (ไม่ต้องเข้าใจก็ได้)</summary>
+      <summary data-i18n="detailsSummary">ดูรายละเอียดทางเทคนิค (ไม่ต้องเข้าใจก็ได้)</summary>
       <div class="details-body"><div class="det-kv" id="detKv"></div></div>
     </details>
   </div>
 
   <!-- ดัชนีความกลัว-ความโลภ -->
   <div class="card">
-    <h2>ดัชนีความกลัว-ความโลภ (Fear &amp; Greed)</h2>
-    <p class="mini">สะท้อนอารมณ์ตลาดคริปโตรวม — <b>ไม่ใช่สัญญาณเข้า/ออกโดยตรง</b> ในอดีตช่วง "กลัวสุดขีด" บางครั้งเป็นจังหวะเข้าซื้อที่ดีย้อนหลัง (buy the fear) แต่บางครั้งราคาลงต่อได้อีกมาก — ใช้ประกอบไฟจราจรด้านบนเท่านั้น ห้ามใช้ตัวเลขนี้เพียงอย่างเดียวตัดสินใจซื้อ/ขาย</p>
+    <h2><span data-i18n="fngTitle">ดัชนีความกลัว-ความโลภ (Fear &amp; Greed)</span></h2>
+    <p class="mini" data-i18n-html="fngDesc">สะท้อนอารมณ์ตลาดคริปโตรวม — <b>ไม่ใช่สัญญาณเข้า/ออกโดยตรง</b> ในอดีตช่วง "กลัวสุดขีด" บางครั้งเป็นจังหวะเข้าซื้อที่ดีย้อนหลัง (buy the fear) แต่บางครั้งราคาลงต่อได้อีกมาก — ใช้ประกอบไฟจราจรด้านบนเท่านั้น ห้ามใช้ตัวเลขนี้เพียงอย่างเดียวตัดสินใจซื้อ/ขาย</p>
     <div class="src-badge" id="fngBadge" style="display:none"></div>
     <div class="fng-wrap" id="fngWrap" style="margin-top:8px">
       <div class="fng-num" id="fngNum">—</div>
       <div>
-        <div class="fng-label" id="fngLabel">กำลังโหลด…</div>
+        <div class="fng-label" id="fngLabel" data-i18n="loadingDefault">กำลังโหลด…</div>
         <div class="fng-gauge">
           <div class="fng-bar"><div class="fng-marker" id="fngMarker" style="left:50%"></div></div>
-          <div class="fng-scale"><span>กลัวสุดขีด</span><span>กลาง</span><span>โลภสุดขีด</span></div>
+          <div class="fng-scale"><span data-i18n="fngExtFear">กลัวสุดขีด</span><span data-i18n="fngNeutral">กลาง</span><span data-i18n="fngExtGreed">โลภสุดขีด</span></div>
         </div>
       </div>
     </div>
@@ -362,18 +362,18 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- กราฟราคา -->
   <div class="card" id="chartCard" style="display:none">
-    <h2>กราฟราคา</h2>
+    <h2 data-i18n="chartTitle">กราฟราคา</h2>
     <div class="src-badge" id="chartSource"></div>
     <div class="chart-toolbar">
       <div class="tf-group" id="tfGroup">
-        <button class="tf" data-tf="21" type="button">1เดือน</button>
-        <button class="tf on" data-tf="63" type="button">3เดือน</button>
-        <button class="tf" data-tf="126" type="button">6เดือน</button>
-        <button class="tf" data-tf="252" type="button">1ปี</button>
+        <button class="tf" data-tf="21" type="button" data-i18n="tf1m">1เดือน</button>
+        <button class="tf on" data-tf="63" type="button" data-i18n="tf3m">3เดือน</button>
+        <button class="tf" data-tf="126" type="button" data-i18n="tf6m">6เดือน</button>
+        <button class="tf" data-tf="252" type="button" data-i18n="tf1y">1ปี</button>
       </div>
       <div class="tg-group" id="tgGroup">
-        <button class="tg on" data-tg="ma20" type="button">เฉลี่ย 20</button>
-        <button class="tg on" data-tg="ma50" type="button">เฉลี่ย 50</button>
+        <button class="tg on" data-tg="ma20" type="button" data-i18n="tgMa20">เฉลี่ย 20</button>
+        <button class="tg on" data-tg="ma50" type="button" data-i18n="tgMa50">เฉลี่ย 50</button>
         <button class="tg on" data-tg="vol" type="button">Volume</button>
         <button class="tg" data-tg="rsi" type="button">RSI</button>
       </div>
@@ -382,30 +382,30 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <div class="lw-chart" id="lwChart"></div>
     <div class="lw-rsi" id="lwRsi" style="display:none"></div>
     <div class="chart-cap">
-      <span><i style="background:#26a69a"></i>แท่งขึ้น</span>
-      <span><i style="background:#ef5350"></i>แท่งลง</span>
-      <span><i style="background:#F5A524"></i>เฉลี่ย 20 วัน</span>
-      <span><i style="background:#3B9BEA"></i>เฉลี่ย 50 วัน</span>
-      <span>แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
+      <span><i style="background:#26a69a"></i><span data-i18n="chartCapUp">แท่งขึ้น</span></span>
+      <span><i style="background:#ef5350"></i><span data-i18n="chartCapDown">แท่งลง</span></span>
+      <span><i style="background:#F5A524"></i><span data-i18n="chartCapMa20">เฉลี่ย 20 วัน</span></span>
+      <span><i style="background:#3B9BEA"></i><span data-i18n="chartCapMa50">เฉลี่ย 50 วัน</span></span>
+      <span data-i18n="chartCapTap">แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
     </div>
   </div>
 
   <!-- STEP 2: คุมเงิน -->
   <div class="card">
-    <h2><span class="step">2</span> ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน</h2>
+    <h2><span class="step">2</span> <span data-i18n="step2Title">ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน</span></h2>
     <div class="frow">
-      <div class="field"><label>เงินลงทุนทั้งพอร์ต (USD)</label><input type="number" id="capital" inputmode="numeric" placeholder="เช่น 10000" value="10000"></div>
-      <div class="field"><label>ยอมเสี่ยงต่อไม้ <span class="unit">(% ของพอร์ต)</span></label><input type="number" id="riskPct" inputmode="decimal" step="0.1" value="1"></div>
+      <div class="field"><label data-i18n="lblCapital">เงินลงทุนทั้งพอร์ต (USD)</label><input type="number" id="capital" inputmode="numeric" placeholder="เช่น 10000" data-i18n-placeholder="phCapital" value="10000"></div>
+      <div class="field"><label data-i18n="lblRiskPct">ยอมเสี่ยงต่อไม้ <span class="unit" data-i18n="unitPctPortfolio">(% ของพอร์ต)</span></label><input type="number" id="riskPct" inputmode="decimal" step="0.1" value="1"></div>
     </div>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>ราคาเข้าซื้อ (USD)</label><input type="number" id="entry" inputmode="decimal" step="0.01" placeholder="= ราคาตอนนี้"></div>
-      <div class="field"><label>ราคาตัดขาดทุน (Stop)</label><input type="number" id="stop" inputmode="decimal" step="0.01" placeholder="แนะนำอัตโนมัติ"></div>
-      <div class="field"><label>ค่าคอมฯ <span class="unit">(% ต่อครั้ง)</span></label><input type="number" id="comm" inputmode="decimal" step="0.001" value="0.25"></div>
+      <div class="field"><label data-i18n="lblEntry">ราคาเข้าซื้อ (USD)</label><input type="number" id="entry" inputmode="decimal" step="0.01" placeholder="= ราคาตอนนี้" data-i18n-placeholder="phEntry"></div>
+      <div class="field"><label data-i18n="lblStop">ราคาตัดขาดทุน (Stop)</label><input type="number" id="stop" inputmode="decimal" step="0.01" placeholder="แนะนำอัตโนมัติ" data-i18n-placeholder="phStop"></div>
+      <div class="field"><label data-i18n="lblComm">ค่าคอมฯ <span class="unit" data-i18n="unitPctPerTrade">(% ต่อครั้ง)</span></label><input type="number" id="comm" inputmode="decimal" step="0.001" value="0.25"></div>
     </div>
-    <p class="mini">คริปโตผันผวนสูงกว่าดัชนีหุ้นกว้าง ~3-4 เท่า จึงแนะนำเสี่ยงต่อไม้ <b>≤1%</b> (ไม่ใช่ 2% แบบหุ้น) ค่าคอมฯ แต่ละเอ็กซ์เชนจ์ต่างกันมาก (Bitkub ~0.25%, Binance ~0.1%) และมักมีค่าธรรมเนียมเครือข่าย (network fee) แยกต่างหากที่ยังไม่รวมในนี้ — ปรับให้ตรงกับเอ็กซ์เชนจ์ที่ใช้จริง</p>
+    <p class="mini" data-i18n-html="step2Note">คริปโตผันผวนสูงกว่าดัชนีหุ้นกว้าง ~3-4 เท่า จึงแนะนำเสี่ยงต่อไม้ <b>≤1%</b> (ไม่ใช่ 2% แบบหุ้น) ค่าคอมฯ แต่ละเอ็กซ์เชนจ์ต่างกันมาก (Bitkub ~0.25%, Binance ~0.1%) และมักมีค่าธรรมเนียมเครือข่าย (network fee) แยกต่างหากที่ยังไม่รวมในนี้ — ปรับให้ตรงกับเอ็กซ์เชนจ์ที่ใช้จริง</p>
     <div style="margin-top:12px;display:flex;gap:9px;flex-wrap:wrap">
-      <button class="btn primary" id="calcBtn" type="button">คำนวณ</button>
-      <button class="btn sm" id="saveBtn" type="button" style="display:none">บันทึกเข้าพอร์ต</button>
+      <button class="btn primary" id="calcBtn" type="button" data-i18n="calcBtn">คำนวณ</button>
+      <button class="btn sm" id="saveBtn" type="button" style="display:none" data-i18n="saveToPfBtn">บันทึกเข้าพอร์ต</button>
     </div>
 
     <div class="result" id="riskResult">
@@ -417,13 +417,13 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- เช็กลิสต์ก่อนเข้าไม้ -->
   <div class="card">
-    <h2>ตรวจก่อนเข้าไม้ — ควรซื้อไหม?</h2>
-    <p class="mini">เช็กวินัย 7 ข้อ ก่อนกดซื้อจริง (กันซื้อตามอารมณ์/ไล่ราคา/เลเวอเรจ) — กด "ประเมิน" และ "คำนวณ" ด้านบนก่อน ตอบคำถามด้านล่าง แล้วกดปุ่มนี้</p>
+    <h2 data-i18n="checklistTitle">ตรวจก่อนเข้าไม้ — ควรซื้อไหม?</h2>
+    <p class="mini" data-i18n="checklistDesc">เช็กวินัย 7 ข้อ ก่อนกดซื้อจริง (กันซื้อตามอารมณ์/ไล่ราคา/เลเวอเรจ) — กด "ประเมิน" และ "คำนวณ" ด้านบนก่อน ตอบคำถามด้านล่าง แล้วกดปุ่มนี้</p>
     <div id="chkForm" style="margin-top:10px">
-      <div class="yn-row" data-key="noLeverage"><span>ยืนยันว่าเทรด spot เท่านั้น ไม่ใช้เลเวอเรจ/มาร์จิ้น</span>
-        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button">ใช่</button><button class="yn-btn" data-val="no" type="button">ยัง</button></div></div>
+      <div class="yn-row" data-key="noLeverage"><span data-i18n="chkNoLeverage">ยืนยันว่าเทรด spot เท่านั้น ไม่ใช้เลเวอเรจ/มาร์จิ้น</span>
+        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
     </div>
-    <div style="margin-top:10px"><button class="btn" id="checkBtn" type="button">ตรวจเช็กลิสต์</button></div>
+    <div style="margin-top:10px"><button class="btn" id="checkBtn" type="button" data-i18n="checkBtn">ตรวจเช็กลิสต์</button></div>
     <div id="checkResult" style="display:none">
       <div class="verdict-box" id="checkVerdict"></div>
       <ul class="chk-list" id="chkList"></ul>
@@ -432,35 +432,35 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- สำรองขึ้น Google Drive -->
   <div class="card">
-    <h2>สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
-    <p class="mini">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตและสมุดเทรดด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าอื่น ไม่ปนกัน)</p>
+    <h2 data-i18n="driveTitle">สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
+    <p class="mini" data-i18n="driveDesc">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตและสมุดเทรดด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าอื่น ไม่ปนกัน)</p>
     <div class="drive-row" style="margin-top:10px">
-      <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
+      <button class="btn sm" id="driveConnectBtn" type="button" data-i18n="driveConnectBtn">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
     </div>
   </div>
 
   <!-- พอร์ต -->
   <div class="card">
-    <h2>พอร์ต Bitcoin ของฉัน</h2>
-    <p class="mini">เพิ่ม BTC ที่ถืออยู่ได้ตรงนี้ แล้วกด "ควรขาย?" เพื่อให้เครื่องช่วยดูจังหวะขาย (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
+    <h2 data-i18n="pfTitle">พอร์ต Bitcoin ของฉัน</h2>
+    <p class="mini" data-i18n="pfDesc">เพิ่ม BTC ที่ถืออยู่ได้ตรงนี้ แล้วกด "ควรขาย?" เพื่อให้เครื่องช่วยดูจังหวะขาย (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>จำนวน BTC</label><input type="number" id="pfQty" inputmode="decimal" step="0.000001" placeholder="0.05"></div>
-      <div class="field"><label>ราคาต้นทุน/BTC</label><input type="number" id="pfCost" inputmode="decimal" step="0.01" placeholder="65000"></div>
-      <button class="btn sm" id="pfAdd" type="button">+ เพิ่มเข้าพอร์ต</button>
+      <div class="field"><label data-i18n="lblPfQty">จำนวน BTC</label><input type="number" id="pfQty" inputmode="decimal" step="0.000001" placeholder="0.05"></div>
+      <div class="field"><label data-i18n="lblPfCost">ราคาต้นทุน/BTC</label><input type="number" id="pfCost" inputmode="decimal" step="0.01" placeholder="65000"></div>
+      <button class="btn sm" id="pfAdd" type="button" data-i18n="pfAddBtn">+ เพิ่มเข้าพอร์ต</button>
     </div>
-    <div id="pfBox" style="margin-top:10px"><div class="pf-empty">ยังไม่มี BTC ในพอร์ต — เพิ่มด้านบน หรือกด "บันทึกเข้าพอร์ต" ในขั้นที่ 2</div></div>
+    <div id="pfBox" style="margin-top:10px"><div class="pf-empty" data-i18n="pfEmptyDefault">ยังไม่มี BTC ในพอร์ต — เพิ่มด้านบน หรือกด "บันทึกเข้าพอร์ต" ในขั้นที่ 2</div></div>
   </div>
 
   <!-- สมุดเทรด + สถิติ -->
   <div class="card">
-    <h2>สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)</h2>
-    <p class="mini">บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง (จำในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
+    <h2 data-i18n="jTitle">สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)</h2>
+    <p class="mini" data-i18n="jDesc">บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง (จำในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>ราคาเข้า</label><input type="number" id="jEntry" inputmode="decimal" step="0.01"></div>
-      <div class="field"><label>ราคาออก</label><input type="number" id="jExit" inputmode="decimal" step="0.01"></div>
-      <div class="field"><label>จำนวน BTC</label><input type="number" id="jQty" inputmode="decimal" step="0.000001"></div>
-      <button class="btn sm" id="jAdd" type="button">+ บันทึก</button>
+      <div class="field"><label data-i18n="lblJEntry">ราคาเข้า</label><input type="number" id="jEntry" inputmode="decimal" step="0.01"></div>
+      <div class="field"><label data-i18n="lblJExit">ราคาออก</label><input type="number" id="jExit" inputmode="decimal" step="0.01"></div>
+      <div class="field"><label data-i18n="lblJQty">จำนวน BTC</label><input type="number" id="jQty" inputmode="decimal" step="0.000001"></div>
+      <button class="btn sm" id="jAdd" type="button" data-i18n="jAddBtn">+ บันทึก</button>
     </div>
     <div id="jStats" class="j-stats" style="display:none"></div>
     <div id="jBox"></div>
@@ -468,82 +468,82 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- Expectancy -->
   <div class="card">
-    <h2>ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?</h2>
-    <p class="mini">ความจริงที่มือใหม่มักไม่รู้: <b>ชนะบ่อยไม่ได้แปลว่ากำไร</b> — สิ่งที่สำคัญคือ "กำไรตอนถูก" ต้องใหญ่กว่า "ขาดทุนตอนผิด"</p>
+    <h2 data-i18n="eTitle">ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?</h2>
+    <p class="mini" data-i18n-html="eDesc">ความจริงที่มือใหม่มักไม่รู้: <b>ชนะบ่อยไม่ได้แปลว่ากำไร</b> — สิ่งที่สำคัญคือ "กำไรตอนถูก" ต้องใหญ่กว่า "ขาดทุนตอนผิด"</p>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>อัตราชนะ <span class="unit">(% ของไม้ที่ชนะ)</span></label><input type="number" id="eWin" inputmode="decimal" value="45"></div>
-      <div class="field"><label>กำไรเฉลี่ยตอนชนะ <span class="unit">(เท่าของความเสี่ยง R)</span></label><input type="number" id="eWinR" inputmode="decimal" step="0.1" value="2"></div>
-      <div class="field"><label>ขาดทุนเฉลี่ยตอนแพ้ <span class="unit">(R)</span></label><input type="number" id="eLossR" inputmode="decimal" step="0.1" value="1"></div>
-      <button class="btn sm" id="eBtn" type="button">คำนวณ</button>
+      <div class="field"><label data-i18n="lblEWin">อัตราชนะ <span class="unit" data-i18n="unitPctWin">(% ของไม้ที่ชนะ)</span></label><input type="number" id="eWin" inputmode="decimal" value="45"></div>
+      <div class="field"><label data-i18n="lblEWinR">กำไรเฉลี่ยตอนชนะ <span class="unit" data-i18n="unitRMultiple">(เท่าของความเสี่ยง R)</span></label><input type="number" id="eWinR" inputmode="decimal" step="0.1" value="2"></div>
+      <div class="field"><label data-i18n="lblELossR">ขาดทุนเฉลี่ยตอนแพ้ <span class="unit">(R)</span></label><input type="number" id="eLossR" inputmode="decimal" step="0.1" value="1"></div>
+      <button class="btn sm" id="eBtn" type="button" data-i18n="calcBtn">คำนวณ</button>
     </div>
     <div id="eResult" class="verdict-box" style="display:none;margin-top:12px"></div>
   </div>
 
   <!-- ออม Bitcoin แบบ DCA -->
   <div class="card">
-    <h2>ออม Bitcoin แบบ DCA (ทางเลือกความเสี่ยงต่ำกว่า)</h2>
-    <p class="mini">ทยอยซื้อจำนวนเงินเท่าเดิมทุกเดือน ไม่ต้องเดาจังหวะตลาด — ลดความเสี่ยงจากการเดาจังหวะซื้อ แต่ไม่ป้องกันการขาดทุนถ้าราคาลงต่อเนื่องระยะยาว เครื่องคำนวณนี้เป็นแค่ตัวช่วยวางแผน ไม่มีการบันทึก (คำนวณใหม่ทุกครั้ง แยกจากพอร์ต/สมุดเทรดด้านบนที่บันทึกจริง)</p>
+    <h2 data-i18n="dcaTitle">ออม Bitcoin แบบ DCA (ทางเลือกความเสี่ยงต่ำกว่า)</h2>
+    <p class="mini" data-i18n="dcaDesc">ทยอยซื้อจำนวนเงินเท่าเดิมทุกเดือน ไม่ต้องเดาจังหวะตลาด — ลดความเสี่ยงจากการเดาจังหวะซื้อ แต่ไม่ป้องกันการขาดทุนถ้าราคาลงต่อเนื่องระยะยาว เครื่องคำนวณนี้เป็นแค่ตัวช่วยวางแผน ไม่มีการบันทึก (คำนวณใหม่ทุกครั้ง แยกจากพอร์ต/สมุดเทรดด้านบนที่บันทึกจริง)</p>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>ออมเดือนละ <span class="unit">(USD)</span></label><input type="number" id="dcaPmt" inputmode="numeric" value="100"></div>
-      <div class="field"><label>ราคา BTC เริ่มต้น <span class="unit">(USD)</span></label><input type="number" id="dcaStart" inputmode="decimal" step="0.01" placeholder="รอราคาจากขั้นที่ 1"></div>
-      <div class="field"><label>วางแผนล่วงหน้า <span class="unit">(ปี)</span></label><input type="number" id="dcaYears" inputmode="numeric" value="5"></div>
-      <div class="field"><label>สมมติราคาโตเฉลี่ย <span class="unit">(%/ปี)</span></label><input type="number" id="dcaCagr" inputmode="decimal" step="0.1" value="15"></div>
+      <div class="field"><label data-i18n="lblDcaPmt">ออมเดือนละ <span class="unit">(USD)</span></label><input type="number" id="dcaPmt" inputmode="numeric" value="100"></div>
+      <div class="field"><label data-i18n="lblDcaStart">ราคา BTC เริ่มต้น <span class="unit">(USD)</span></label><input type="number" id="dcaStart" inputmode="decimal" step="0.01" placeholder="รอราคาจากขั้นที่ 1" data-i18n-placeholder="phDcaStart"></div>
+      <div class="field"><label data-i18n="lblDcaYears">วางแผนล่วงหน้า <span class="unit">(ปี)</span></label><input type="number" id="dcaYears" inputmode="numeric" value="5"></div>
+      <div class="field"><label data-i18n="lblDcaCagr">สมมติราคาโตเฉลี่ย <span class="unit">(%/ปี)</span></label><input type="number" id="dcaCagr" inputmode="decimal" step="0.1" value="15"></div>
     </div>
-    <div style="margin-top:12px"><button class="btn primary" id="dcaBtn" type="button">คำนวณแผน</button></div>
+    <div style="margin-top:12px"><button class="btn primary" id="dcaBtn" type="button" data-i18n="dcaCalcBtn">คำนวณแผน</button></div>
 
     <div id="dcaOut" style="display:none">
       <div class="sumrow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px">
-        <div style="background:var(--bg);border-radius:13px;padding:14px 15px"><div class="mini" style="margin:0">เงินที่ลงทั้งหมด</div><div style="font-size:20px;font-weight:800;margin-top:3px" id="dcaContrib">—</div></div>
-        <div style="background:var(--bg);border-radius:13px;padding:14px 15px"><div class="mini" style="margin:0">BTC สะสม</div><div style="font-size:20px;font-weight:800;margin-top:3px;color:var(--ok)" id="dcaQty">—</div><div class="mini" id="dcaSats"></div></div>
-        <div style="background:var(--bg);border-radius:13px;padding:14px 15px"><div class="mini" style="margin:0">มูลค่าประมาณสิ้นแผน</div><div style="font-size:20px;font-weight:800;margin-top:3px" id="dcaValue">—</div></div>
-        <div style="background:var(--bg);border-radius:13px;padding:14px 15px"><div class="mini" style="margin:0">กำไร/ขาดทุนจากราคาที่เปลี่ยน</div><div style="font-size:20px;font-weight:800;margin-top:3px" id="dcaGain">—</div></div>
+        <div style="background:var(--bg);border-radius:13px;padding:14px 15px"><div class="mini" style="margin:0" data-i18n="dcaContribLabel">เงินที่ลงทั้งหมด</div><div style="font-size:20px;font-weight:800;margin-top:3px" id="dcaContrib">—</div></div>
+        <div style="background:var(--bg);border-radius:13px;padding:14px 15px"><div class="mini" style="margin:0" data-i18n="dcaQtyLabel">BTC สะสม</div><div style="font-size:20px;font-weight:800;margin-top:3px;color:var(--ok)" id="dcaQty">—</div><div class="mini" id="dcaSats"></div></div>
+        <div style="background:var(--bg);border-radius:13px;padding:14px 15px"><div class="mini" style="margin:0" data-i18n="dcaValueLabel">มูลค่าประมาณสิ้นแผน</div><div style="font-size:20px;font-weight:800;margin-top:3px" id="dcaValue">—</div></div>
+        <div style="background:var(--bg);border-radius:13px;padding:14px 15px"><div class="mini" style="margin:0" data-i18n="dcaGainLabel">กำไร/ขาดทุนจากราคาที่เปลี่ยน</div><div style="font-size:20px;font-weight:800;margin-top:3px" id="dcaGain">—</div></div>
       </div>
       <div class="chart-wrap">
         <svg class="chart" id="dcaChart" viewBox="0 0 640 220" preserveAspectRatio="none"></svg>
         <div class="chart-cap">
-          <span><i style="background:#F7931A"></i>มูลค่ารวม</span>
-          <span><i style="background:#8B94A8"></i>เงินที่ใส่ (ต้นทุน)</span>
+          <span><i style="background:#F7931A"></i><span data-i18n="dcaCapTotal">มูลค่ารวม</span></span>
+          <span><i style="background:#8B94A8"></i><span data-i18n="dcaCapContrib">เงินที่ใส่ (ต้นทุน)</span></span>
         </div>
       </div>
-      <details><summary>ดูตารางรายปี</summary><div class="details-body" style="overflow-x:auto"><div id="dcaYrTable"></div></div></details>
+      <details><summary data-i18n="dcaYrSummary">ดูตารางรายปี</summary><div class="details-body" style="overflow-x:auto"><div id="dcaYrTable"></div></div></details>
     </div>
   </div>
 
   <!-- เงินเย็นเช็ก / reality-check -->
   <div class="card reality">
-    <h2>อ่านก่อนเอาเงินมาลงทุนใน Bitcoin (สำคัญมาก)</h2>
+    <h2 data-i18n="realityTitle">อ่านก่อนเอาเงินมาลงทุนใน Bitcoin (สำคัญมาก)</h2>
     <ul class="reality-list">
-      <li>ลงทุน <b>เฉพาะเงินที่ไม่ต้องใช้อย่างน้อย 3–5 ปี</b> และรับได้ถ้าหายทั้งหมด</li>
-      <li>มี <b>เงินสำรองฉุกเฉิน 3–6 เดือน</b> ก่อนเริ่มเสมอ</li>
-      <li><b>ห้ามเด็ดขาด</b>: เลเวอเรจ/มาร์จิ้น/ฟิวเจอร์ส — เทรด spot เท่านั้น เลเวอเรจคริปโตเป็นสาเหตุอันดับต้นที่ทำให้พอร์ตถูกบังคับปิดสถานะ (liquidation) จากความผันผวนระยะสั้น นักเทรดเลเวอเรจคริปโตส่วนใหญ่ขาดทุน</li>
-      <li>สูตรคุมความเสี่ยง: <b>ขนาดไม้ = (เงินทุน × %ความเสี่ยง) ÷ ระยะห่างจากจุดตัดขาดทุน</b> — ใช้เครื่องคำนวณขั้นที่ 2 ด้านบนแทนการเดา</li>
-      <li>BTC ผันผวนสูงกว่าดัชนีหุ้นกว้าง ~3-4 เท่า — เสี่ยงต่อไม้ 0.5–1% (ไม่ใช่ 2% แบบหุ้น) และ stop ควรกว้างกว่าหุ้นตามสัดส่วน</li>
-      <li>ขายทำกำไรเป็น steps (TP1/TP2/TP3, ทยอยขายบางส่วน) แทนขายหมดทีเดียวหรือถือยาวไม่มีแผน</li>
+      <li data-i18n-html="reality1">ลงทุน <b>เฉพาะเงินที่ไม่ต้องใช้อย่างน้อย 3–5 ปี</b> และรับได้ถ้าหายทั้งหมด</li>
+      <li data-i18n-html="reality2">มี <b>เงินสำรองฉุกเฉิน 3–6 เดือน</b> ก่อนเริ่มเสมอ</li>
+      <li data-i18n-html="reality3"><b>ห้ามเด็ดขาด</b>: เลเวอเรจ/มาร์จิ้น/ฟิวเจอร์ส — เทรด spot เท่านั้น เลเวอเรจคริปโตเป็นสาเหตุอันดับต้นที่ทำให้พอร์ตถูกบังคับปิดสถานะ (liquidation) จากความผันผวนระยะสั้น นักเทรดเลเวอเรจคริปโตส่วนใหญ่ขาดทุน</li>
+      <li data-i18n-html="reality4">สูตรคุมความเสี่ยง: <b>ขนาดไม้ = (เงินทุน × %ความเสี่ยง) ÷ ระยะห่างจากจุดตัดขาดทุน</b> — ใช้เครื่องคำนวณขั้นที่ 2 ด้านบนแทนการเดา</li>
+      <li data-i18n="reality5">BTC ผันผวนสูงกว่าดัชนีหุ้นกว้าง ~3-4 เท่า — เสี่ยงต่อไม้ 0.5–1% (ไม่ใช่ 2% แบบหุ้น) และ stop ควรกว้างกว่าหุ้นตามสัดส่วน</li>
+      <li data-i18n="reality6">ขายทำกำไรเป็น steps (TP1/TP2/TP3, ทยอยขายบางส่วน) แทนขายหมดทีเดียวหรือถือยาวไม่มีแผน</li>
     </ul>
     <div class="reality-cta">
-      ถ้าไม่อยากจับจังหวะเข้า-ออกเลย ทางเลือกความเสี่ยงต่ำกว่าคือ <b>ทยอยซื้อสะสม (DCA)</b> — ใช้การ์ด "ออม Bitcoin แบบ DCA" ด้านบน หรือกระจายไปสินทรัพย์อื่นด้วย
-      <a href="invest-gold.html">ทองคำ →</a> หรือ <a href="invest-global-fund.html">กองทุน S&amp;P500 →</a>
+      <span data-i18n="realityCtaText">ถ้าไม่อยากจับจังหวะเข้า-ออกเลย ทางเลือกความเสี่ยงต่ำกว่าคือ </span><b data-i18n="realityCtaDca">ทยอยซื้อสะสม (DCA)</b><span data-i18n="realityCtaMid"> — ใช้การ์ด "ออม Bitcoin แบบ DCA" ด้านบน หรือกระจายไปสินทรัพย์อื่นด้วย</span>
+      <a href="invest-gold.html" data-i18n="realityGoldLink">ทองคำ →</a> <span data-i18n="realityOr">หรือ</span> <a href="invest-global-fund.html" data-i18n="realityFundLink">กองทุน S&amp;P500 →</a>
     </div>
   </div>
 
   <!-- เรียนรู้ -->
   <details class="card lesson" style="box-shadow:var(--sh)">
-    <summary style="font-size:14px">เรียนรู้ — ความเสี่ยงเฉพาะของ Bitcoin ใน 5 นาที</summary>
+    <summary style="font-size:14px" data-i18n="lessonSummary">เรียนรู้ — ความเสี่ยงเฉพาะของ Bitcoin ใน 5 นาที</summary>
     <div class="details-body">
-      <h3>ทำไมห้ามใช้เลเวอเรจ/มาร์จิ้น</h3>
-      <p>เลเวอเรจคือการยืมเงินมาเทรดเพื่อขยายกำไร/ขาดทุน — เมื่อ BTC ผันผวนแรงในช่วงเวลาสั้นๆ (เกิดขึ้นบ่อย) ตำแหน่งที่ใช้เลเวอเรจสูงมักถูก "บังคับปิดสถานะ" (liquidation) อัตโนมัติก่อนที่ราคาจะกลับมาตามที่คาด แม้ทิศทางที่คาดไว้จะถูกต้องในระยะยาวก็ตาม — เทรด spot (ซื้อด้วยเงินตัวเอง ไม่ยืม) เท่านั้นจึงปลอดภัยกว่ามากสำหรับมือใหม่</p>
-      <h3>ทำไมต้องเสี่ยงต่อไม้แค่ 0.5–1% (ไม่ใช่ 2% แบบหุ้น)</h3>
-      <p>BTC ผันผวนรายวันสูงกว่าหุ้นบลูชิปไทยทั่วไปหลายเท่า — วันที่ราคาขยับ 5-10% ถือเป็นเรื่องปกติสำหรับ BTC แต่จะถือเป็นเหตุการณ์รุนแรงมากสำหรับหุ้น SET50 ทั่วไป ดังนั้นถ้าใช้เกณฑ์เสี่ยง 2% แบบหุ้น จุดตัดขาดทุนอาจโดนสัญญาณรบกวนปกติทำให้ขายทิ้งบ่อยเกินไป การลดเสี่ยงต่อไม้ลงมาที่ 0.5-1% ช่วยให้ตั้ง stop ให้กว้างพอสำหรับความผันผวนปกติ โดยที่ขนาดไม้ยังเล็กพอไม่ทำพอร์ตพังถ้าผิดทาง</p>
-      <h3>DCA vs จับจังหวะเข้า — เลือกแบบไหนดี</h3>
-      <p>DCA (ทยอยซื้อจำนวนเงินเท่าเดิมทุกเดือน) เหมาะกับมือใหม่มากกว่า เพราะไม่ต้องเดาจังหวะที่ถูกต้องเป๊ะ ลดผลกระทบจากการซื้อพลาดจังหวะครั้งเดียว — แต่ไม่ได้ป้องกันการขาดทุนถ้าราคาลงต่อเนื่องระยะยาว การจับจังหวะเข้า-ออก (เครื่องมือขั้นที่ 1-2 ด้านบน) ให้โอกาสกำไรเร็วกว่าถ้าทำถูก แต่ต้องมีวินัยคุมความเสี่ยงเข้มงวดกว่ามาก</p>
-      <h3>อ่านดัชนีความกลัว-ความโลภยังไง</h3>
-      <p>ตัวเลข 0-100: ต่ำ = ตลาดกลัว, สูง = ตลาดโลภ ใช้เป็นบริบทประกอบเท่านั้น ไม่ใช่สัญญาณซื้อ/ขายอัตโนมัติ — ตลาดสามารถ "กลัว" ต่อเนื่องได้นานระหว่างขาลง และ "โลภ" ต่อเนื่องได้นานระหว่างขาขึ้น</p>
-      <h3>ยังไม่เคยอ่านกราฟแท่งเทียนมาก่อน?</h3>
-      <p>บทเรียนอ่านกราฟแท่งเทียน/แนวโน้ม/แนวรับ-แนวต้าน/เส้นค่าเฉลี่ยแบบมีรูป มีอยู่แล้วที่หน้า <a href="invest-global-stock.html" style="color:var(--brand-dk);font-weight:600">หุ้นต่างประเทศ</a> (อยู่ในอคคอร์เดียน "เรียนรู้" ด้านล่างของหน้านั้น) ใช้หลักการเดียวกันกับกราฟ Bitcoin ด้านบนนี้ทุกอย่าง</p>
+      <h3 data-i18n="lsn1h">ทำไมห้ามใช้เลเวอเรจ/มาร์จิ้น</h3>
+      <p data-i18n="lsn1p">เลเวอเรจคือการยืมเงินมาเทรดเพื่อขยายกำไร/ขาดทุน — เมื่อ BTC ผันผวนแรงในช่วงเวลาสั้นๆ (เกิดขึ้นบ่อย) ตำแหน่งที่ใช้เลเวอเรจสูงมักถูก "บังคับปิดสถานะ" (liquidation) อัตโนมัติก่อนที่ราคาจะกลับมาตามที่คาด แม้ทิศทางที่คาดไว้จะถูกต้องในระยะยาวก็ตาม — เทรด spot (ซื้อด้วยเงินตัวเอง ไม่ยืม) เท่านั้นจึงปลอดภัยกว่ามากสำหรับมือใหม่</p>
+      <h3 data-i18n="lsn2h">ทำไมต้องเสี่ยงต่อไม้แค่ 0.5–1% (ไม่ใช่ 2% แบบหุ้น)</h3>
+      <p data-i18n="lsn2p">BTC ผันผวนรายวันสูงกว่าหุ้นบลูชิปไทยทั่วไปหลายเท่า — วันที่ราคาขยับ 5-10% ถือเป็นเรื่องปกติสำหรับ BTC แต่จะถือเป็นเหตุการณ์รุนแรงมากสำหรับหุ้น SET50 ทั่วไป ดังนั้นถ้าใช้เกณฑ์เสี่ยง 2% แบบหุ้น จุดตัดขาดทุนอาจโดนสัญญาณรบกวนปกติทำให้ขายทิ้งบ่อยเกินไป การลดเสี่ยงต่อไม้ลงมาที่ 0.5-1% ช่วยให้ตั้ง stop ให้กว้างพอสำหรับความผันผวนปกติ โดยที่ขนาดไม้ยังเล็กพอไม่ทำพอร์ตพังถ้าผิดทาง</p>
+      <h3 data-i18n="lsn3h">DCA vs จับจังหวะเข้า — เลือกแบบไหนดี</h3>
+      <p data-i18n="lsn3p">DCA (ทยอยซื้อจำนวนเงินเท่าเดิมทุกเดือน) เหมาะกับมือใหม่มากกว่า เพราะไม่ต้องเดาจังหวะที่ถูกต้องเป๊ะ ลดผลกระทบจากการซื้อพลาดจังหวะครั้งเดียว — แต่ไม่ได้ป้องกันการขาดทุนถ้าราคาลงต่อเนื่องระยะยาว การจับจังหวะเข้า-ออก (เครื่องมือขั้นที่ 1-2 ด้านบน) ให้โอกาสกำไรเร็วกว่าถ้าทำถูก แต่ต้องมีวินัยคุมความเสี่ยงเข้มงวดกว่ามาก</p>
+      <h3 data-i18n="lsn4h">อ่านดัชนีความกลัว-ความโลภยังไง</h3>
+      <p data-i18n="lsn4p">ตัวเลข 0-100: ต่ำ = ตลาดกลัว, สูง = ตลาดโลภ ใช้เป็นบริบทประกอบเท่านั้น ไม่ใช่สัญญาณซื้อ/ขายอัตโนมัติ — ตลาดสามารถ "กลัว" ต่อเนื่องได้นานระหว่างขาลง และ "โลภ" ต่อเนื่องได้นานระหว่างขาขึ้น</p>
+      <h3 data-i18n="lsn5h">ยังไม่เคยอ่านกราฟแท่งเทียนมาก่อน?</h3>
+      <p data-i18n-html="lsn5p">บทเรียนอ่านกราฟแท่งเทียน/แนวโน้ม/แนวรับ-แนวต้าน/เส้นค่าเฉลี่ยแบบมีรูป มีอยู่แล้วที่หน้า <a href="invest-global-stock.html" style="color:var(--brand-dk);font-weight:600">หุ้นต่างประเทศ</a> (อยู่ในอคคอร์เดียน "เรียนรู้" ด้านล่างของหน้านั้น) ใช้หลักการเดียวกันกับกราฟ Bitcoin ด้านบนนี้ทุกอย่าง</p>
     </div>
   </details>
 
-  <div class="disc">เครื่องนี้เป็นตัวช่วยคิดและฝึกวินัย ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · การตัดสินใจและความเสี่ยงเป็นของคุณเอง · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
+  <div class="disc" data-i18n="footerDisc">เครื่องนี้เป็นตัวช่วยคิดและฝึกวินัย ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · การตัดสินใจและความเสี่ยงเป็นของคุณเอง · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
 
 </div>
 
