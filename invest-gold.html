@@ -149,192 +149,192 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 <div class="wrap">
 
 
-  <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>ทองคำ</nav>
+  <nav class="crumb"><a href="invest.html" data-i18n="crumbHome">การลงทุน</a><span class="sep">/</span><span data-i18n="crumbHere">ทองคำ</span></nav>
 
   <div class="head">
     <div>
-      <h1>ทองคำ — ราคาวันนี้ + วางแผนออมทอง</h1>
-      <div class="head-sub">เน้นถือ/ออมระยะยาว ไม่ใช่เครื่องสวิงเทรด · มือใหม่ก็ใช้ได้</div>
+      <h1 data-i18n="pageTitle">ทองคำ — ราคาวันนี้ + วางแผนออมทอง</h1>
+      <div class="head-sub" data-i18n="headSub">เน้นถือ/ออมระยะยาว ไม่ใช่เครื่องสวิงเทรด · มือใหม่ก็ใช้ได้</div>
     </div>
   </div>
 
   <!-- ราคาทองวันนี้ -->
   <div class="card">
-    <h2>ราคาทองวันนี้ (บาท/บาททองคำ)</h2>
+    <h2 data-i18n="priceTitle">ราคาทองวันนี้ (บาท/บาททองคำ)</h2>
     <div class="src-badge" id="goldThBadge" style="display:none"></div>
     <div class="frow">
-      <div class="field"><label>ทองคำแท่ง — ราคาซื้อ <span class="unit">(คุณจ่าย)</span></label><input type="number" id="barBuy" inputmode="decimal" step="0.01" placeholder="เช่น 70950"></div>
-      <div class="field"><label>ทองคำแท่ง — ราคาขายคืน <span class="unit">(คุณได้รับ)</span></label><input type="number" id="barSell" inputmode="decimal" step="0.01" placeholder="เช่น 70850"></div>
+      <div class="field"><label><span data-i18n="barBuyLabel">ทองคำแท่ง — ราคาซื้อ</span> <span class="unit" data-i18n="boughtUnit">(คุณจ่าย)</span></label><input type="number" id="barBuy" inputmode="decimal" step="0.01" placeholder="เช่น 70950"></div>
+      <div class="field"><label><span data-i18n="barSellLabel">ทองคำแท่ง — ราคาขายคืน</span> <span class="unit" data-i18n="receivedUnit">(คุณได้รับ)</span></label><input type="number" id="barSell" inputmode="decimal" step="0.01" placeholder="เช่น 70850"></div>
     </div>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>ทองรูปพรรณ — ราคาซื้อ <span class="unit">(คุณจ่าย)</span></label><input type="number" id="jewelryBuy" inputmode="decimal" step="0.01" placeholder="เช่น 71950"></div>
-      <div class="field"><label>ทองรูปพรรณ — ราคาขายคืน <span class="unit">(คุณได้รับ)</span></label><input type="number" id="jewelrySell" inputmode="decimal" step="0.01" placeholder="เช่น 69523"></div>
+      <div class="field"><label><span data-i18n="jewelryBuyLabel">ทองรูปพรรณ — ราคาซื้อ</span> <span class="unit" data-i18n="boughtUnit">(คุณจ่าย)</span></label><input type="number" id="jewelryBuy" inputmode="decimal" step="0.01" placeholder="เช่น 71950"></div>
+      <div class="field"><label><span data-i18n="jewelrySellLabel">ทองรูปพรรณ — ราคาขายคืน</span> <span class="unit" data-i18n="receivedUnit">(คุณได้รับ)</span></label><input type="number" id="jewelrySell" inputmode="decimal" step="0.01" placeholder="เช่น 69523"></div>
     </div>
-    <div class="status" id="goldThStatus">กำลังดึงราคาทองวันนี้…</div>
-    <div style="margin-top:10px"><button class="btn sm" id="goldThRefresh" type="button">รีเฟรชราคา</button></div>
-    <p class="mini">ราคาเป็น "บาท ต่อ บาททองคำ" (น้ำหนักทองคำแบบไทย ~15.244 กรัม) · ส่วนต่างซื้อ-ขายคืน (spread) ของทองรูปพรรณกว้างกว่าทองแท่งมาก เพราะรวมค่ากำเหน็จที่ไม่ได้คืนตอนขาย</p>
+    <div class="status" id="goldThStatus" data-i18n="goldThStatusDefault">กำลังดึงราคาทองวันนี้…</div>
+    <div style="margin-top:10px"><button class="btn sm" id="goldThRefresh" type="button" data-i18n="refreshPriceBtn">รีเฟรชราคา</button></div>
+    <p class="mini" data-i18n="priceHint">ราคาเป็น "บาท ต่อ บาททองคำ" (น้ำหนักทองคำแบบไทย ~15.244 กรัม) · ส่วนต่างซื้อ-ขายคืน (spread) ของทองรูปพรรณกว้างกว่าทองแท่งมาก เพราะรวมค่ากำเหน็จที่ไม่ได้คืนตอนขาย</p>
   </div>
 
   <!-- ไฟจราจร -->
   <div class="card">
-    <h2>ถูก/แพงตอนนี้ไหม</h2>
-    <p class="mini">ประเมินจาก<b>แนวโน้มราคาทองคำโลก (GC=F, USD/ออนซ์)</b> เป็นตัวแทนทิศทาง — ราคาไทยด้านบนคือราคาที่ซื้อขายจริง เคลื่อนไปทางเดียวกันแต่ตัวเลขต่างกันเพราะค่าเงินบาท + พรีเมียมนำเข้า ไม่ใช่คำแนะนำการลงทุน</p>
-    <div class="src-badge" id="gSrcBadge">กำลังตรวจแนวโน้ม…</div>
+    <h2 data-i18n="verdictTitle">ถูก/แพงตอนนี้ไหม</h2>
+    <p class="mini" data-i18n-html="verdictDesc">ประเมินจาก<b>แนวโน้มราคาทองคำโลก (GC=F, USD/ออนซ์)</b> เป็นตัวแทนทิศทาง — ราคาไทยด้านบนคือราคาที่ซื้อขายจริง เคลื่อนไปทางเดียวกันแต่ตัวเลขต่างกันเพราะค่าเงินบาท + พรีเมียมนำเข้า ไม่ใช่คำแนะนำการลงทุน</p>
+    <div class="src-badge" id="gSrcBadge" data-i18n="gSrcBadgeDefault">กำลังตรวจแนวโน้ม…</div>
     <div class="light gray" id="gLight">
       <div class="bulb" id="gBulb"></div>
-      <div><div class="verdict" id="gVerdict">กำลังโหลด…</div><div class="why" id="gWhy"></div></div>
+      <div><div class="verdict" id="gVerdict" data-i18n="gVerdictLoadingDefault">กำลังโหลด…</div><div class="why" id="gWhy"></div></div>
     </div>
     <details id="gDetailsBox" style="display:none">
-      <summary>ดูรายละเอียดทางเทคนิค (USD/ออนซ์ ไม่ต้องเข้าใจก็ได้)</summary>
+      <summary data-i18n="techDetailsSummary">ดูรายละเอียดทางเทคนิค (USD/ออนซ์ ไม่ต้องเข้าใจก็ได้)</summary>
       <div class="details-body"><div class="det-kv" id="gDetKv"></div></div>
     </details>
     <div id="gManualWrap" style="display:none;margin-top:12px;border-top:1px dashed var(--line);padding-top:12px">
-      <p class="mini">ดึงแนวโน้มอัตโนมัติไม่ได้ตอนนี้ — กรอกเองเพื่อประเมิน (ราคาทองโลกหาได้จากเว็บ/แอปข่าวการเงินทั่วไป)</p>
+      <p class="mini" data-i18n="manualHint">ดึงแนวโน้มอัตโนมัติไม่ได้ตอนนี้ — กรอกเองเพื่อประเมิน (ราคาทองโลกหาได้จากเว็บ/แอปข่าวการเงินทั่วไป)</p>
       <div class="frow" style="margin-top:8px">
-        <div class="field"><label>ราคาทองโลกตอนนี้ <span class="unit">(USD/ออนซ์)</span></label><input type="number" id="gPriceUsd" inputmode="decimal" step="0.01" placeholder="เช่น 2650"></div>
-        <div class="field"><label>สูงสุดของรอบ <span class="unit">(USD/ออนซ์)</span></label><input type="number" id="gHiUsd" inputmode="decimal" step="0.01"></div>
-        <div class="field"><label>ต่ำสุดของรอบ <span class="unit">(USD/ออนซ์)</span></label><input type="number" id="gLoUsd" inputmode="decimal" step="0.01"></div>
+        <div class="field"><label><span data-i18n="gPriceUsdLabel">ราคาทองโลกตอนนี้</span> <span class="unit" data-i18n="unitUsdOz">(USD/ออนซ์)</span></label><input type="number" id="gPriceUsd" inputmode="decimal" step="0.01" placeholder="เช่น 2650"></div>
+        <div class="field"><label><span data-i18n="gHiUsdLabel">สูงสุดของรอบ</span> <span class="unit" data-i18n="unitUsdOz">(USD/ออนซ์)</span></label><input type="number" id="gHiUsd" inputmode="decimal" step="0.01"></div>
+        <div class="field"><label><span data-i18n="gLoUsdLabel">ต่ำสุดของรอบ</span> <span class="unit" data-i18n="unitUsdOz">(USD/ออนซ์)</span></label><input type="number" id="gLoUsd" inputmode="decimal" step="0.01"></div>
       </div>
-      <div style="margin-top:10px"><button class="btn sm" id="gManualBtn" type="button">ประเมินจากราคานี้</button></div>
+      <div style="margin-top:10px"><button class="btn sm" id="gManualBtn" type="button" data-i18n="manualEvalBtn">ประเมินจากราคานี้</button></div>
     </div>
   </div>
 
   <!-- วางแผนออมทอง (DCA) -->
   <div class="card">
-    <h2>วางแผนออมทอง (DCA)</h2>
-    <p class="mini">ทยอยซื้อทองจำนวนเงินเท่าเดิมทุกเดือน ไม่ต้องเดาจังหวะตลาด — เหมาะกับการถือทองเป็นตัวช่วยกระจายความเสี่ยงระยะยาว</p>
+    <h2 data-i18n="dcaTitle">วางแผนออมทอง (DCA)</h2>
+    <p class="mini" data-i18n="dcaDesc">ทยอยซื้อทองจำนวนเงินเท่าเดิมทุกเดือน ไม่ต้องเดาจังหวะตลาด — เหมาะกับการถือทองเป็นตัวช่วยกระจายความเสี่ยงระยะยาว</p>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>ออมเดือนละ <span class="unit">(บาท)</span></label><input type="number" id="dcaPmt" inputmode="numeric" value="3000"></div>
-      <div class="field"><label>หน่วยที่แสดงผล</label>
-        <select id="dcaUnit"><option value="baht">บาททองคำ</option><option value="gram">กรัม</option></select></div>
-      <div class="field"><label>วางแผนล่วงหน้า <span class="unit">(ปี)</span></label><input type="number" id="dcaYears" inputmode="numeric" value="10"></div>
+      <div class="field"><label><span data-i18n="dcaPmtLabel">ออมเดือนละ</span> <span class="unit" data-i18n="unitBaht">(บาท)</span></label><input type="number" id="dcaPmt" inputmode="numeric" value="3000"></div>
+      <div class="field"><label data-i18n="dcaUnitLabel">หน่วยที่แสดงผล</label>
+        <select id="dcaUnit"><option value="baht" data-i18n="unitBahtGold">บาททองคำ</option><option value="gram" data-i18n="unitGram">กรัม</option></select></div>
+      <div class="field"><label><span data-i18n="dcaYearsLabel">วางแผนล่วงหน้า</span> <span class="unit" data-i18n="unitYears">(ปี)</span></label><input type="number" id="dcaYears" inputmode="numeric" value="10"></div>
     </div>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>ราคาทองเริ่มต้น <span class="unit">(บาท/บาททองคำ)</span></label><input type="number" id="dcaStart" inputmode="decimal" step="0.01" placeholder="รอราคาวันนี้โหลด…"></div>
-      <div class="field"><label>สมมติราคาทองโตเฉลี่ย <span class="unit">(%/ปี)</span></label><input type="number" id="dcaCagr" inputmode="decimal" step="0.1" value="5"></div>
+      <div class="field"><label><span data-i18n="dcaStartLabel">ราคาทองเริ่มต้น</span> <span class="unit" data-i18n="unitBahtPerBahtGold">(บาท/บาททองคำ)</span></label><input type="number" id="dcaStart" inputmode="decimal" step="0.01" data-i18n-placeholder="dcaStartPh" placeholder="รอราคาวันนี้โหลด…"></div>
+      <div class="field"><label><span data-i18n="dcaCagrLabel">สมมติราคาทองโตเฉลี่ย</span> <span class="unit" data-i18n="unitPctYear">(%/ปี)</span></label><input type="number" id="dcaCagr" inputmode="decimal" step="0.1" value="5"></div>
     </div>
-    <div style="margin-top:12px"><button class="btn primary" id="dcaBtn" type="button">คำนวณแผน</button></div>
+    <div style="margin-top:12px"><button class="btn primary" id="dcaBtn" type="button" data-i18n="calcPlanBtn">คำนวณแผน</button></div>
 
     <div id="dcaOut" style="display:none">
       <div class="sumrow" style="margin-top:16px">
-        <div class="sumbox"><div class="lbl">เงินที่ลงทั้งหมด</div><div class="val" id="dcaContrib">—</div><div class="sub" id="dcaContribSub"></div></div>
-        <div class="sumbox"><div class="lbl">น้ำหนักทองที่สะสมได้</div><div class="val grow" id="dcaWeight">—</div><div class="sub" id="dcaWeightSub"></div></div>
-        <div class="sumbox"><div class="lbl">มูลค่าประมาณสิ้นแผน</div><div class="val" id="dcaValue">—</div></div>
-        <div class="sumbox"><div class="lbl">กำไรจากราคาที่เปลี่ยน</div><div class="val" id="dcaGain">—</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="dcaContribLabel">เงินที่ลงทั้งหมด</div><div class="val" id="dcaContrib">—</div><div class="sub" id="dcaContribSub"></div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="dcaWeightLabel">น้ำหนักทองที่สะสมได้</div><div class="val grow" id="dcaWeight">—</div><div class="sub" id="dcaWeightSub"></div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="dcaValueLabel">มูลค่าประมาณสิ้นแผน</div><div class="val" id="dcaValue">—</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="dcaGainLabel">กำไรจากราคาที่เปลี่ยน</div><div class="val" id="dcaGain">—</div></div>
       </div>
       <div class="chart-wrap">
         <svg class="chart" id="dcaChart" viewBox="0 0 640 220" preserveAspectRatio="none"></svg>
         <div class="chart-cap">
-          <span><i style="background:#F5A524"></i>มูลค่ารวม</span>
-          <span><i style="background:#8B94A8"></i>เงินที่ใส่ (ต้นทุน)</span>
+          <span><i style="background:#F5A524"></i><span data-i18n="chartValue">มูลค่ารวม</span></span>
+          <span><i style="background:#8B94A8"></i><span data-i18n="chartCost">เงินที่ใส่ (ต้นทุน)</span></span>
         </div>
       </div>
-      <details><summary>ดูตารางรายปี</summary><div class="details-body" style="overflow-x:auto"><div id="dcaYrTable"></div></div></details>
+      <details><summary data-i18n="viewYearTableSummary">ดูตารางรายปี</summary><div class="details-body" style="overflow-x:auto"><div id="dcaYrTable"></div></div></details>
     </div>
   </div>
 
   <!-- ตลาดย่อ = โอกาสเติมทอง -->
   <div class="card">
-    <h2>ตลาดย่อ = โอกาสเติมทอง (ทางเลือก)</h2>
+    <h2 data-i18n="ddTitle">ตลาดย่อ = โอกาสเติมทอง (ทางเลือก)</h2>
     <div class="frow">
-      <div class="field"><label>ราคาทองตอนนี้ <span class="unit">(บาท/บาททองคำ)</span></label><input type="number" id="gdNow" inputmode="decimal" step="0.01" placeholder="เติมจากราคาวันนี้อัตโนมัติ"></div>
-      <div class="field"><label>จุดสูงสุดที่เคยเห็น (ATH) <span class="unit">(บาท/บาททองคำ)</span></label><input type="number" id="gdAth" inputmode="decimal" step="0.01" placeholder="กรอกเอง"></div>
-      <button class="btn sm" id="gdBtn" type="button">ดูคำแนะนำ</button>
+      <div class="field"><label><span data-i18n="gdNowLabel">ราคาทองตอนนี้</span> <span class="unit" data-i18n="unitBahtPerBahtGold">(บาท/บาททองคำ)</span></label><input type="number" id="gdNow" inputmode="decimal" step="0.01" data-i18n-placeholder="gdNowPh" placeholder="เติมจากราคาวันนี้อัตโนมัติ"></div>
+      <div class="field"><label><span data-i18n="gdAthLabel">จุดสูงสุดที่เคยเห็น (ATH)</span> <span class="unit" data-i18n="unitBahtPerBahtGold">(บาท/บาททองคำ)</span></label><input type="number" id="gdAth" inputmode="decimal" step="0.01" data-i18n-placeholder="gdAthPh" placeholder="กรอกเอง"></div>
+      <button class="btn sm" id="gdBtn" type="button" data-i18n="ddBtn">ดูคำแนะนำ</button>
     </div>
     <div id="gdOut" style="font-size:13.5px;margin-top:10px;display:none"></div>
     <div class="tranche" id="gdTranche">
-      <div class="tr-box" data-dd="10"><div class="d">−10%</div><div class="m">ย่อเล็ก</div><div class="x">×1.25</div></div>
-      <div class="tr-box" data-dd="20"><div class="d">−20%</div><div class="m">ย่อแรง</div><div class="x">×1.5</div></div>
-      <div class="tr-box" data-dd="30"><div class="d">−30%</div><div class="m">ย่อหนักมาก</div><div class="x">×2</div></div>
+      <div class="tr-box" data-dd="10"><div class="d">−10%</div><div class="m" data-i18n="tr10m">ย่อเล็ก</div><div class="x">×1.25</div></div>
+      <div class="tr-box" data-dd="20"><div class="d">−20%</div><div class="m" data-i18n="tr20m">ย่อแรง</div><div class="x">×1.5</div></div>
+      <div class="tr-box" data-dd="30"><div class="d">−30%</div><div class="m" data-i18n="tr30m">ย่อหนักมาก</div><div class="x">×2</div></div>
     </div>
-    <p class="mini" style="margin-top:8px">แนวคิด: ราคาย่อ = ได้ของถูกลง ถ้ามีเงินสำรองค่อยเพิ่มเงินซื้อตามระดับที่ตั้งไว้ล่วงหน้า (ไม่ใช่การทำนายว่าจะลงอีกไหม) · ATH ต้องกรอกเอง เพราะราคาทองไทยไม่มีข้อมูลย้อนหลังจากแหล่งฟรี</p>
+    <p class="mini" style="margin-top:8px" data-i18n="ddHint">แนวคิด: ราคาย่อ = ได้ของถูกลง ถ้ามีเงินสำรองค่อยเพิ่มเงินซื้อตามระดับที่ตั้งไว้ล่วงหน้า (ไม่ใช่การทำนายว่าจะลงอีกไหม) · ATH ต้องกรอกเอง เพราะราคาทองไทยไม่มีข้อมูลย้อนหลังจากแหล่งฟรี</p>
   </div>
 
   <!-- สัดส่วนทองในพอร์ต -->
   <div class="card">
-    <h2>สัดส่วนทองในพอร์ต</h2>
-    <p class="mini">แนวทางทั่วไปที่มักถูกพูดถึง (ไม่ใช่กฎตายตัว): ถือทอง ~5–10% ของพอร์ตรวม เป็นตัวช่วยกระจายความเสี่ยง ไม่ใช่สินทรัพย์หลัก เพราะทองไม่ให้ปันผล/ดอกเบี้ย</p>
+    <h2 data-i18n="allocTitle">สัดส่วนทองในพอร์ต</h2>
+    <p class="mini" data-i18n="allocDesc">แนวทางทั่วไปที่มักถูกพูดถึง (ไม่ใช่กฎตายตัว): ถือทอง ~5–10% ของพอร์ตรวม เป็นตัวช่วยกระจายความเสี่ยง ไม่ใช่สินทรัพย์หลัก เพราะทองไม่ให้ปันผล/ดอกเบี้ย</p>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>มูลค่าพอร์ตรวมโดยประมาณ <span class="unit">(บาท)</span></label><input type="number" id="alPortfolio" inputmode="numeric" placeholder="เช่น 300000"></div>
-      <div class="field"><label>มูลค่าทองที่ถืออยู่ตอนนี้ <span class="unit">(บาท)</span></label><input type="number" id="alGoldNow" inputmode="numeric" placeholder="เติมจากสมุดทองอัตโนมัติ"></div>
-      <button class="btn sm" id="alBtn" type="button">คำนวณสัดส่วน</button>
+      <div class="field"><label><span data-i18n="alPortfolioLabel">มูลค่าพอร์ตรวมโดยประมาณ</span> <span class="unit" data-i18n="unitBaht">(บาท)</span></label><input type="number" id="alPortfolio" inputmode="numeric" data-i18n-placeholder="alPortfolioPh" placeholder="เช่น 300000"></div>
+      <div class="field"><label><span data-i18n="alGoldNowLabel">มูลค่าทองที่ถืออยู่ตอนนี้</span> <span class="unit" data-i18n="unitBaht">(บาท)</span></label><input type="number" id="alGoldNow" inputmode="numeric" data-i18n-placeholder="alGoldNowPh" placeholder="เติมจากสมุดทองอัตโนมัติ"></div>
+      <button class="btn sm" id="alBtn" type="button" data-i18n="alBtn">คำนวณสัดส่วน</button>
     </div>
     <div id="alOut" class="verdict-box" style="display:none;margin-top:12px"></div>
   </div>
 
   <!-- สำรองขึ้น Google Drive -->
   <div class="card">
-    <h2>สำรองสมุดทองขึ้น Google Drive</h2>
-    <p class="mini">เชื่อมต่อครั้งเดียว จากนั้นสมุดทองด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าหุ้น ไม่ปนกัน)</p>
+    <h2 data-i18n="driveTitle">สำรองสมุดทองขึ้น Google Drive</h2>
+    <p class="mini" data-i18n="driveDesc">เชื่อมต่อครั้งเดียว จากนั้นสมุดทองด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าหุ้น ไม่ปนกัน)</p>
     <div class="drive-row" style="margin-top:10px">
-      <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
+      <button class="btn sm" id="driveConnectBtn" type="button" data-i18n="driveConnectBtn">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
     </div>
   </div>
 
   <!-- สมุดทองของฉัน -->
   <div class="card">
-    <h2>สมุดทองของฉัน</h2>
-    <p class="mini">บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและมูลค่าปัจจุบัน (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
+    <h2 data-i18n="logTitle">สมุดทองของฉัน</h2>
+    <p class="mini" data-i18n="logDesc">บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและมูลค่าปัจจุบัน (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>ชนิด</label>
-        <select id="lgType"><option value="bar">ทองคำแท่ง</option><option value="jewelry">ทองรูปพรรณ</option></select></div>
-      <div class="field"><label>หน่วย</label>
-        <select id="lgUnit"><option value="baht">บาททองคำ</option><option value="gram">กรัม</option></select></div>
-      <div class="field"><label>เงินที่จ่าย <span class="unit">(บาท)</span></label><input type="number" id="lgAmt" inputmode="numeric" placeholder="เช่น 35000"></div>
-      <div class="field"><label>ราคา/หน่วยที่ซื้อ <span class="unit">(บาท)</span></label><input type="number" id="lgPrice" inputmode="decimal" step="0.01" placeholder="เช่น 70950"></div>
-      <button class="btn sm" id="lgAdd" type="button">+ เพิ่ม</button>
+      <div class="field"><label data-i18n="lgTypeLabel">ชนิด</label>
+        <select id="lgType"><option value="bar" data-i18n="typeBar">ทองคำแท่ง</option><option value="jewelry" data-i18n="typeJewelry">ทองรูปพรรณ</option></select></div>
+      <div class="field"><label data-i18n="lgUnitLabel">หน่วย</label>
+        <select id="lgUnit"><option value="baht" data-i18n="unitBahtGold">บาททองคำ</option><option value="gram" data-i18n="unitGram">กรัม</option></select></div>
+      <div class="field"><label><span data-i18n="lgAmtLabel">เงินที่จ่าย</span> <span class="unit" data-i18n="unitBaht">(บาท)</span></label><input type="number" id="lgAmt" inputmode="numeric" data-i18n-placeholder="lgAmtPh" placeholder="เช่น 35000"></div>
+      <div class="field"><label><span data-i18n="lgPriceLabel">ราคา/หน่วยที่ซื้อ</span> <span class="unit" data-i18n="unitBaht">(บาท)</span></label><input type="number" id="lgPrice" inputmode="decimal" step="0.01" data-i18n-placeholder="lgPricePh" placeholder="เช่น 70950"></div>
+      <button class="btn sm" id="lgAdd" type="button" data-i18n="lgAddBtn">+ เพิ่ม</button>
     </div>
-    <div id="lgBox" style="margin-top:10px"><div class="log-empty">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและมูลค่าปัจจุบัน</div></div>
+    <div id="lgBox" style="margin-top:10px"><div class="log-empty" data-i18n="lgEmptyDefault">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและมูลค่าปัจจุบัน</div></div>
   </div>
 
   <!-- ปัจจัยที่มีผลต่อราคาทองคำ -->
   <details class="card lesson" style="box-shadow:var(--sh)">
-    <summary style="font-size:14px">ปัจจัยที่มีผลต่อราคาทองคำ</summary>
+    <summary style="font-size:14px" data-i18n="factorsSummary">ปัจจัยที่มีผลต่อราคาทองคำ</summary>
     <div class="details-body">
-      <h3>ปัจจัยทางตรง</h3>
+      <h3 data-i18n="factDirectH">ปัจจัยทางตรง</h3>
       <ul>
-        <li><b>อัตราดอกเบี้ยที่แท้จริง (real rates)</b> — ทองไม่ให้ดอกเบี้ย/ปันผล ยิ่งดอกเบี้ยจริงสูง ยิ่งไม่จูงใจให้ถือทองเทียบกับพันธบัตร</li>
-        <li><b>ค่าเงินดอลลาร์สหรัฐฯ</b> <span class="chip" id="dxyChip">กำลังโหลด…</span> — ทองตั้งราคาเป็นดอลลาร์ ดอลลาร์แข็งมักกดราคาทอง (ผกผันกัน)</li>
-        <li><b>ดอกเบี้ยพันธบัตรสหรัฐฯ 10 ปี</b> <span class="chip" id="tnxChip">กำลังโหลด…</span> — ใช้ประกอบดูทิศทางดอกเบี้ยคร่าวๆ (ไม่ใช่ real rate โดยตรง)</li>
-        <li><b>การซื้อทองสำรองของธนาคารกลาง</b> — ช่วงหลังหลายประเทศ (โดยเฉพาะตลาดเกิดใหม่) ซื้อทองสะสมทุนสำรองต่อเนื่อง เป็นแรงหนุนราคาระยะยาว</li>
-        <li><b>การคาดการณ์เงินเฟ้อ</b> — ทองมักถูกมองเป็นสินทรัพย์ป้องกันเงินเฟ้อ</li>
+        <li><b data-i18n="factRealB">อัตราดอกเบี้ยที่แท้จริง (real rates)</b><span data-i18n="factRealRest"> — ทองไม่ให้ดอกเบี้ย/ปันผล ยิ่งดอกเบี้ยจริงสูง ยิ่งไม่จูงใจให้ถือทองเทียบกับพันธบัตร</span></li>
+        <li><b data-i18n="factUsdB">ค่าเงินดอลลาร์สหรัฐฯ</b> <span class="chip" id="dxyChip" data-i18n="chipLoadingDefault">กำลังโหลด…</span><span data-i18n="factUsdRest"> — ทองตั้งราคาเป็นดอลลาร์ ดอลลาร์แข็งมักกดราคาทอง (ผกผันกัน)</span></li>
+        <li><b data-i18n="factTnxB">ดอกเบี้ยพันธบัตรสหรัฐฯ 10 ปี</b> <span class="chip" id="tnxChip" data-i18n="chipLoadingDefault">กำลังโหลด…</span><span data-i18n="factTnxRest"> — ใช้ประกอบดูทิศทางดอกเบี้ยคร่าวๆ (ไม่ใช่ real rate โดยตรง)</span></li>
+        <li><b data-i18n="factCbB">การซื้อทองสำรองของธนาคารกลาง</b><span data-i18n="factCbRest"> — ช่วงหลังหลายประเทศ (โดยเฉพาะตลาดเกิดใหม่) ซื้อทองสะสมทุนสำรองต่อเนื่อง เป็นแรงหนุนราคาระยะยาว</span></li>
+        <li><b data-i18n="factInfB">การคาดการณ์เงินเฟ้อ</b><span data-i18n="factInfRest"> — ทองมักถูกมองเป็นสินทรัพย์ป้องกันเงินเฟ้อ</span></li>
       </ul>
-      <h3>ปัจจัยทางอ้อม</h3>
+      <h3 data-i18n="factIndirectH">ปัจจัยทางอ้อม</h3>
       <ul>
-        <li><b>ความเสี่ยงภูมิรัฐศาสตร์/สงคราม</b> — ความไม่แน่นอนสูงมักดันให้คนหันมาถือทองเป็นสินทรัพย์ปลอดภัย (safe haven)</li>
-        <li><b>ความกลัวเศรษฐกิจถดถอย</b> — สัญญาณเศรษฐกิจอ่อนแอมักหนุนความต้องการถือสินทรัพย์ปลอดภัย</li>
-        <li><b>ความผันผวนตลาดหุ้น</b> — ตลาดหุ้นผันผวน/ร่วงแรง มักมีเงินบางส่วนไหลเข้าทอง</li>
-        <li><b>วิกฤตค่าเงิน/เงินทุนไหลออก</b> — ในประเทศตลาดเกิดใหม่ ทองมักเป็นที่พักเงินยามค่าเงินท้องถิ่นผันผวนหนัก</li>
+        <li><b data-i18n="factGeoB">ความเสี่ยงภูมิรัฐศาสตร์/สงคราม</b><span data-i18n="factGeoRest"> — ความไม่แน่นอนสูงมักดันให้คนหันมาถือทองเป็นสินทรัพย์ปลอดภัย (safe haven)</span></li>
+        <li><b data-i18n="factRecB">ความกลัวเศรษฐกิจถดถอย</b><span data-i18n="factRecRest"> — สัญญาณเศรษฐกิจอ่อนแอมักหนุนความต้องการถือสินทรัพย์ปลอดภัย</span></li>
+        <li><b data-i18n="factVolB">ความผันผวนตลาดหุ้น</b><span data-i18n="factVolRest"> — ตลาดหุ้นผันผวน/ร่วงแรง มักมีเงินบางส่วนไหลเข้าทอง</span></li>
+        <li><b data-i18n="factCcB">วิกฤตค่าเงิน/เงินทุนไหลออก</b><span data-i18n="factCcRest"> — ในประเทศตลาดเกิดใหม่ ทองมักเป็นที่พักเงินยามค่าเงินท้องถิ่นผันผวนหนัก</span></li>
       </ul>
-      <p class="mini">หมายเหตุ: ตัวเลขจริงบางตัว (อัตราดอกเบี้ยที่แท้จริง/TIPS, ข้อมูลซื้อทองของธนาคารกลาง, คาดการณ์เงินเฟ้อ) ไม่มี API ฟรีที่ดึงจากเบราว์เซอร์ได้ตรงๆ — ส่วนนี้จึงเป็นข้อมูลความรู้ทั่วไป ไม่ใช่ตัวเลขสด ต่างจาก 2 รายการด้านบนที่มีชิปตัวเลขกำกับ</p>
+      <p class="mini" data-i18n="factNote">หมายเหตุ: ตัวเลขจริงบางตัว (อัตราดอกเบี้ยที่แท้จริง/TIPS, ข้อมูลซื้อทองของธนาคารกลาง, คาดการณ์เงินเฟ้อ) ไม่มี API ฟรีที่ดึงจากเบราว์เซอร์ได้ตรงๆ — ส่วนนี้จึงเป็นข้อมูลความรู้ทั่วไป ไม่ใช่ตัวเลขสด ต่างจาก 2 รายการด้านบนที่มีชิปตัวเลขกำกับ</p>
     </div>
   </details>
 
   <!-- เรียนรู้ -->
   <details class="card lesson" style="box-shadow:var(--sh)">
-    <summary style="font-size:14px">เรียนรู้ — มือใหม่อ่านตรงนี้ก่อน</summary>
+    <summary style="font-size:14px" data-i18n="lessonSummary">เรียนรู้ — มือใหม่อ่านตรงนี้ก่อน</summary>
     <div class="details-body">
-      <h3>"บาททองคำ" คืออะไร</h3>
-      <p>หน่วยน้ำหนักทองคำแบบไทย เท่ากับ ~15.244 กรัม (ไม่ใช่หน่วยเงินบาท) ร้านทองไทยส่วนใหญ่ซื้อขายเป็นหน่วยนี้ ราคาที่ประกาศจึงเป็น "บาท ต่อ บาททองคำ"</p>
-      <h3>ทำไมต้องแยกราคาซื้อ/ขายคืน (spread)</h3>
-      <p>ร้านทองมีส่วนต่างระหว่างราคาที่ขายให้คุณกับราคาที่รับซื้อคืนเสมอ (กำไรของร้าน) — ยิ่ง spread กว้าง ยิ่งต้องรอราคาขึ้นมากขึ้นถึงจะเริ่มมีกำไรจริง</p>
-      <h3>ทองคำแท่ง vs ทองรูปพรรณ ต่างกันยังไง</h3>
-      <p><b>ทองคำแท่ง</b>: spread แคบ เหมาะกับการลงทุน ซื้อ-ขายคืนใกล้เคียงราคาเนื้อทอง<br><b>ทองรูปพรรณ</b>: มี "ค่ากำเหน็จ" (ค่าแรงขึ้นรูป) บวกเพิ่มตอนซื้อ แต่ตอนขายคืนร้านมักรับซื้อที่ราคาเนื้อทองเท่านั้น — ค่ากำเหน็จที่จ่ายไปจะไม่ได้คืน ถ้าซื้อเพื่อการลงทุนล้วนๆ ทองแท่งจึงคุ้มกว่า</p>
-      <h3>ทำไมราคาทองไทย ≠ ราคาทองโลกตรงๆ</h3>
-      <p>ราคาทองไทยคำนวณจากราคาทองโลก (USD/ออนซ์) × อัตราแลกเปลี่ยนบาท/ดอลลาร์ + พรีเมียมนำเข้า/ต้นทุนในประเทศ ดังนั้นแม้ราคาทองโลกไม่เปลี่ยน แต่ถ้าเงินบาทอ่อนค่าลง ราคาทองไทยก็ขยับขึ้นได้เช่นกัน</p>
-      <h3>อ่านไฟจราจรยังไง</h3>
+      <h3 data-i18n="lsn1h">"บาททองคำ" คืออะไร</h3>
+      <p data-i18n="lsn1p">หน่วยน้ำหนักทองคำแบบไทย เท่ากับ ~15.244 กรัม (ไม่ใช่หน่วยเงินบาท) ร้านทองไทยส่วนใหญ่ซื้อขายเป็นหน่วยนี้ ราคาที่ประกาศจึงเป็น "บาท ต่อ บาททองคำ"</p>
+      <h3 data-i18n="lsn2h">ทำไมต้องแยกราคาซื้อ/ขายคืน (spread)</h3>
+      <p data-i18n="lsn2p">ร้านทองมีส่วนต่างระหว่างราคาที่ขายให้คุณกับราคาที่รับซื้อคืนเสมอ (กำไรของร้าน) — ยิ่ง spread กว้าง ยิ่งต้องรอราคาขึ้นมากขึ้นถึงจะเริ่มมีกำไรจริง</p>
+      <h3 data-i18n="lsn3h">ทองคำแท่ง vs ทองรูปพรรณ ต่างกันยังไง</h3>
+      <p data-i18n-html="lsn3p"><b>ทองคำแท่ง</b>: spread แคบ เหมาะกับการลงทุน ซื้อ-ขายคืนใกล้เคียงราคาเนื้อทอง<br><b>ทองรูปพรรณ</b>: มี "ค่ากำเหน็จ" (ค่าแรงขึ้นรูป) บวกเพิ่มตอนซื้อ แต่ตอนขายคืนร้านมักรับซื้อที่ราคาเนื้อทองเท่านั้น — ค่ากำเหน็จที่จ่ายไปจะไม่ได้คืน ถ้าซื้อเพื่อการลงทุนล้วนๆ ทองแท่งจึงคุ้มกว่า</p>
+      <h3 data-i18n="lsn4h">ทำไมราคาทองไทย ≠ ราคาทองโลกตรงๆ</h3>
+      <p data-i18n="lsn4p">ราคาทองไทยคำนวณจากราคาทองโลก (USD/ออนซ์) × อัตราแลกเปลี่ยนบาท/ดอลลาร์ + พรีเมียมนำเข้า/ต้นทุนในประเทศ ดังนั้นแม้ราคาทองโลกไม่เปลี่ยน แต่ถ้าเงินบาทอ่อนค่าลง ราคาทองไทยก็ขยับขึ้นได้เช่นกัน</p>
+      <h3 data-i18n="lsn5h">อ่านไฟจราจรยังไง</h3>
       <ul>
-        <li>เขียว = ราคาน่าสนใจเทียบแนวโน้มล่าสุด — ค่อยพิจารณา (ไม่ใช่สั่งให้ซื้อ)</li>
-        <li>เหลือง = กลางๆ ยังไม่มีจังหวะเด่น</li>
-        <li>แดง = ราคาแพงเทียบแนวโน้ม ระวังการไล่ซื้อ</li>
+        <li data-i18n="l5Green">เขียว = ราคาน่าสนใจเทียบแนวโน้มล่าสุด — ค่อยพิจารณา (ไม่ใช่สั่งให้ซื้อ)</li>
+        <li data-i18n="l5Yellow">เหลือง = กลางๆ ยังไม่มีจังหวะเด่น</li>
+        <li data-i18n="l5Red">แดง = ราคาแพงเทียบแนวโน้ม ระวังการไล่ซื้อ</li>
       </ul>
-      <h3>ออมทอง (DCA) ต่างจากซื้อทีเดียวยังไง</h3>
-      <p>ซื้อจำนวนเงินเท่าเดิมทุกเดือนไม่ว่าราคาขึ้นหรือลง ทำให้ได้ต้นทุนเฉลี่ย ไม่ต้องเดาจังหวะตลาด เหมาะกับการถือทองเป็นตัวช่วยกระจายความเสี่ยงระยะยาวมากกว่าการเก็งกำไรระยะสั้น</p>
+      <h3 data-i18n="lsn6h">ออมทอง (DCA) ต่างจากซื้อทีเดียวยังไง</h3>
+      <p data-i18n="lsn6p">ซื้อจำนวนเงินเท่าเดิมทุกเดือนไม่ว่าราคาขึ้นหรือลง ทำให้ได้ต้นทุนเฉลี่ย ไม่ต้องเดาจังหวะตลาด เหมาะกับการถือทองเป็นตัวช่วยกระจายความเสี่ยงระยะยาวมากกว่าการเก็งกำไรระยะสั้น</p>
     </div>
   </details>
 
-  <div class="disc">เครื่องนี้เป็นตัวช่วยคิดและให้ความรู้ ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · ราคาทองอ้างอิงจากแหล่งข้อมูลสาธารณะ อาจคลาดเคลื่อนจากราคาจริง ณ ร้านทอง เทียบกับประกาศราคาจากสมาคมค้าทองคำก่อนตัดสินใจซื้อขายจริง · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
+  <div class="disc" data-i18n="disc">เครื่องนี้เป็นตัวช่วยคิดและให้ความรู้ ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · ราคาทองอ้างอิงจากแหล่งข้อมูลสาธารณะ อาจคลาดเคลื่อนจากราคาจริง ณ ร้านทอง เทียบกับประกาศราคาจากสมาคมค้าทองคำก่อนตัดสินใจซื้อขายจริง · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
 
 </div>
 

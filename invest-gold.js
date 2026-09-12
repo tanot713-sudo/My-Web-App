@@ -14,12 +14,230 @@
   var LOG_KEY = 'tanot:invest:gold';
   var GRAM_PER_BAHT = 15.244;
   var lastGoldPlan = { pmt: 3000 };
+  var lastVerdictMode = 'real';
 
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
   function fmt0(n) { return isFinite(n) ? Math.round(n).toLocaleString('th-TH') : '—'; }
   function baht(n) { if (!isFinite(n)) return '—'; var neg = n < 0; return (neg ? '−' : '') + '฿' + Math.round(Math.abs(n)).toLocaleString('th-TH'); }
   function toBahtWeight(w, unit) { return unit === 'gram' ? w / GRAM_PER_BAHT : w; }
+
+  /* ══════ ระบบแปลภาษา (i18n) — รูปแบบเดียวกับหน้าอื่นในโซนลงทุน ══════ */
+  var UI_LANG_KEY = 'ome:lang';
+  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
+  var I18N = {
+    th: {
+      crumbHome: 'การลงทุน', crumbHere: 'ทองคำ',
+      pageTitle: 'ทองคำ — ราคาวันนี้ + วางแผนออมทอง', headSub: 'เน้นถือ/ออมระยะยาว ไม่ใช่เครื่องสวิงเทรด · มือใหม่ก็ใช้ได้',
+      priceTitle: 'ราคาทองวันนี้ (บาท/บาททองคำ)',
+      barBuyLabel: 'ทองคำแท่ง — ราคาซื้อ', boughtUnit: '(คุณจ่าย)', barSellLabel: 'ทองคำแท่ง — ราคาขายคืน', receivedUnit: '(คุณได้รับ)',
+      jewelryBuyLabel: 'ทองรูปพรรณ — ราคาซื้อ', jewelrySellLabel: 'ทองรูปพรรณ — ราคาขายคืน',
+      goldThStatusDefault: 'กำลังดึงราคาทองวันนี้…', refreshPriceBtn: 'รีเฟรชราคา',
+      priceHint: 'ราคาเป็น "บาท ต่อ บาททองคำ" (น้ำหนักทองคำแบบไทย ~15.244 กรัม) · ส่วนต่างซื้อ-ขายคืน (spread) ของทองรูปพรรณกว้างกว่าทองแท่งมาก เพราะรวมค่ากำเหน็จที่ไม่ได้คืนตอนขาย',
+      verdictTitle: 'ถูก/แพงตอนนี้ไหม',
+      verdictDesc: 'ประเมินจาก<b>แนวโน้มราคาทองคำโลก (GC=F, USD/ออนซ์)</b> เป็นตัวแทนทิศทาง — ราคาไทยด้านบนคือราคาที่ซื้อขายจริง เคลื่อนไปทางเดียวกันแต่ตัวเลขต่างกันเพราะค่าเงินบาท + พรีเมียมนำเข้า ไม่ใช่คำแนะนำการลงทุน',
+      gSrcBadgeDefault: 'กำลังตรวจแนวโน้ม…', gVerdictLoadingDefault: 'กำลังโหลด…', chipLoadingDefault: 'กำลังโหลด…',
+      techDetailsSummary: 'ดูรายละเอียดทางเทคนิค (USD/ออนซ์ ไม่ต้องเข้าใจก็ได้)',
+      manualHint: 'ดึงแนวโน้มอัตโนมัติไม่ได้ตอนนี้ — กรอกเองเพื่อประเมิน (ราคาทองโลกหาได้จากเว็บ/แอปข่าวการเงินทั่วไป)',
+      gPriceUsdLabel: 'ราคาทองโลกตอนนี้', unitUsdOz: '(USD/ออนซ์)', gHiUsdLabel: 'สูงสุดของรอบ', gLoUsdLabel: 'ต่ำสุดของรอบ', manualEvalBtn: 'ประเมินจากราคานี้',
+      dcaTitle: 'วางแผนออมทอง (DCA)', dcaDesc: 'ทยอยซื้อทองจำนวนเงินเท่าเดิมทุกเดือน ไม่ต้องเดาจังหวะตลาด — เหมาะกับการถือทองเป็นตัวช่วยกระจายความเสี่ยงระยะยาว',
+      dcaPmtLabel: 'ออมเดือนละ', unitBaht: '(บาท)', dcaUnitLabel: 'หน่วยที่แสดงผล', unitBahtGold: 'บาททองคำ', unitGram: 'กรัม',
+      dcaYearsLabel: 'วางแผนล่วงหน้า', unitYears: '(ปี)', dcaStartLabel: 'ราคาทองเริ่มต้น', unitBahtPerBahtGold: '(บาท/บาททองคำ)', dcaStartPh: 'รอราคาวันนี้โหลด…',
+      dcaCagrLabel: 'สมมติราคาทองโตเฉลี่ย', unitPctYear: '(%/ปี)', calcPlanBtn: 'คำนวณแผน',
+      dcaContribLabel: 'เงินที่ลงทั้งหมด', dcaWeightLabel: 'น้ำหนักทองที่สะสมได้', dcaValueLabel: 'มูลค่าประมาณสิ้นแผน', dcaGainLabel: 'กำไรจากราคาที่เปลี่ยน',
+      chartValue: 'มูลค่ารวม', chartCost: 'เงินที่ใส่ (ต้นทุน)', viewYearTableSummary: 'ดูตารางรายปี',
+      ddTitle: 'ตลาดย่อ = โอกาสเติมทอง (ทางเลือก)', gdNowLabel: 'ราคาทองตอนนี้', gdNowPh: 'เติมจากราคาวันนี้อัตโนมัติ',
+      gdAthLabel: 'จุดสูงสุดที่เคยเห็น (ATH)', gdAthPh: 'กรอกเอง', ddBtn: 'ดูคำแนะนำ',
+      tr10m: 'ย่อเล็ก', tr20m: 'ย่อแรง', tr30m: 'ย่อหนักมาก',
+      ddHint: 'แนวคิด: ราคาย่อ = ได้ของถูกลง ถ้ามีเงินสำรองค่อยเพิ่มเงินซื้อตามระดับที่ตั้งไว้ล่วงหน้า (ไม่ใช่การทำนายว่าจะลงอีกไหม) · ATH ต้องกรอกเอง เพราะราคาทองไทยไม่มีข้อมูลย้อนหลังจากแหล่งฟรี',
+      allocTitle: 'สัดส่วนทองในพอร์ต', allocDesc: 'แนวทางทั่วไปที่มักถูกพูดถึง (ไม่ใช่กฎตายตัว): ถือทอง ~5–10% ของพอร์ตรวม เป็นตัวช่วยกระจายความเสี่ยง ไม่ใช่สินทรัพย์หลัก เพราะทองไม่ให้ปันผล/ดอกเบี้ย',
+      alPortfolioLabel: 'มูลค่าพอร์ตรวมโดยประมาณ', alPortfolioPh: 'เช่น 300000', alGoldNowLabel: 'มูลค่าทองที่ถืออยู่ตอนนี้', alGoldNowPh: 'เติมจากสมุดทองอัตโนมัติ', alBtn: 'คำนวณสัดส่วน',
+      driveTitle: 'สำรองสมุดทองขึ้น Google Drive',
+      driveDesc: 'เชื่อมต่อครั้งเดียว จากนั้นสมุดทองด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าหุ้น ไม่ปนกัน)',
+      driveConnectBtn: 'เชื่อมต่อ Google Drive', driveConnectedBtn: 'เชื่อมต่อ Google Drive แล้ว',
+      logTitle: 'สมุดทองของฉัน', logDesc: 'บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและมูลค่าปัจจุบัน (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)',
+      lgTypeLabel: 'ชนิด', typeBar: 'ทองคำแท่ง', typeJewelry: 'ทองรูปพรรณ', lgUnitLabel: 'หน่วย',
+      lgAmtLabel: 'เงินที่จ่าย', lgAmtPh: 'เช่น 35000', lgPriceLabel: 'ราคา/หน่วยที่ซื้อ', lgPricePh: 'เช่น 70950', lgAddBtn: '+ เพิ่ม',
+      lgEmptyDefault: 'ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและมูลค่าปัจจุบัน',
+      factorsSummary: 'ปัจจัยที่มีผลต่อราคาทองคำ', factDirectH: 'ปัจจัยทางตรง',
+      factRealB: 'อัตราดอกเบี้ยที่แท้จริง (real rates)', factRealRest: ' — ทองไม่ให้ดอกเบี้ย/ปันผล ยิ่งดอกเบี้ยจริงสูง ยิ่งไม่จูงใจให้ถือทองเทียบกับพันธบัตร',
+      factUsdB: 'ค่าเงินดอลลาร์สหรัฐฯ', factUsdRest: ' — ทองตั้งราคาเป็นดอลลาร์ ดอลลาร์แข็งมักกดราคาทอง (ผกผันกัน)',
+      factTnxB: 'ดอกเบี้ยพันธบัตรสหรัฐฯ 10 ปี', factTnxRest: ' — ใช้ประกอบดูทิศทางดอกเบี้ยคร่าวๆ (ไม่ใช่ real rate โดยตรง)',
+      factCbB: 'การซื้อทองสำรองของธนาคารกลาง', factCbRest: ' — ช่วงหลังหลายประเทศ (โดยเฉพาะตลาดเกิดใหม่) ซื้อทองสะสมทุนสำรองต่อเนื่อง เป็นแรงหนุนราคาระยะยาว',
+      factInfB: 'การคาดการณ์เงินเฟ้อ', factInfRest: ' — ทองมักถูกมองเป็นสินทรัพย์ป้องกันเงินเฟ้อ',
+      factIndirectH: 'ปัจจัยทางอ้อม',
+      factGeoB: 'ความเสี่ยงภูมิรัฐศาสตร์/สงคราม', factGeoRest: ' — ความไม่แน่นอนสูงมักดันให้คนหันมาถือทองเป็นสินทรัพย์ปลอดภัย (safe haven)',
+      factRecB: 'ความกลัวเศรษฐกิจถดถอย', factRecRest: ' — สัญญาณเศรษฐกิจอ่อนแอมักหนุนความต้องการถือสินทรัพย์ปลอดภัย',
+      factVolB: 'ความผันผวนตลาดหุ้น', factVolRest: ' — ตลาดหุ้นผันผวน/ร่วงแรง มักมีเงินบางส่วนไหลเข้าทอง',
+      factCcB: 'วิกฤตค่าเงิน/เงินทุนไหลออก', factCcRest: ' — ในประเทศตลาดเกิดใหม่ ทองมักเป็นที่พักเงินยามค่าเงินท้องถิ่นผันผวนหนัก',
+      factNote: 'หมายเหตุ: ตัวเลขจริงบางตัว (อัตราดอกเบี้ยที่แท้จริง/TIPS, ข้อมูลซื้อทองของธนาคารกลาง, คาดการณ์เงินเฟ้อ) ไม่มี API ฟรีที่ดึงจากเบราว์เซอร์ได้ตรงๆ — ส่วนนี้จึงเป็นข้อมูลความรู้ทั่วไป ไม่ใช่ตัวเลขสด ต่างจาก 2 รายการด้านบนที่มีชิปตัวเลขกำกับ',
+      lessonSummary: 'เรียนรู้ — มือใหม่อ่านตรงนี้ก่อน',
+      lsn1h: '"บาททองคำ" คืออะไร', lsn1p: 'หน่วยน้ำหนักทองคำแบบไทย เท่ากับ ~15.244 กรัม (ไม่ใช่หน่วยเงินบาท) ร้านทองไทยส่วนใหญ่ซื้อขายเป็นหน่วยนี้ ราคาที่ประกาศจึงเป็น "บาท ต่อ บาททองคำ"',
+      lsn2h: 'ทำไมต้องแยกราคาซื้อ/ขายคืน (spread)', lsn2p: 'ร้านทองมีส่วนต่างระหว่างราคาที่ขายให้คุณกับราคาที่รับซื้อคืนเสมอ (กำไรของร้าน) — ยิ่ง spread กว้าง ยิ่งต้องรอราคาขึ้นมากขึ้นถึงจะเริ่มมีกำไรจริง',
+      lsn3h: 'ทองคำแท่ง vs ทองรูปพรรณ ต่างกันยังไง',
+      lsn3p: '<b>ทองคำแท่ง</b>: spread แคบ เหมาะกับการลงทุน ซื้อ-ขายคืนใกล้เคียงราคาเนื้อทอง<br><b>ทองรูปพรรณ</b>: มี "ค่ากำเหน็จ" (ค่าแรงขึ้นรูป) บวกเพิ่มตอนซื้อ แต่ตอนขายคืนร้านมักรับซื้อที่ราคาเนื้อทองเท่านั้น — ค่ากำเหน็จที่จ่ายไปจะไม่ได้คืน ถ้าซื้อเพื่อการลงทุนล้วนๆ ทองแท่งจึงคุ้มกว่า',
+      lsn4h: 'ทำไมราคาทองไทย ≠ ราคาทองโลกตรงๆ', lsn4p: 'ราคาทองไทยคำนวณจากราคาทองโลก (USD/ออนซ์) × อัตราแลกเปลี่ยนบาท/ดอลลาร์ + พรีเมียมนำเข้า/ต้นทุนในประเทศ ดังนั้นแม้ราคาทองโลกไม่เปลี่ยน แต่ถ้าเงินบาทอ่อนค่าลง ราคาทองไทยก็ขยับขึ้นได้เช่นกัน',
+      lsn5h: 'อ่านไฟจราจรยังไง',
+      l5Green: 'เขียว = ราคาน่าสนใจเทียบแนวโน้มล่าสุด — ค่อยพิจารณา (ไม่ใช่สั่งให้ซื้อ)', l5Yellow: 'เหลือง = กลางๆ ยังไม่มีจังหวะเด่น', l5Red: 'แดง = ราคาแพงเทียบแนวโน้ม ระวังการไล่ซื้อ',
+      lsn6h: 'ออมทอง (DCA) ต่างจากซื้อทีเดียวยังไง', lsn6p: 'ซื้อจำนวนเงินเท่าเดิมทุกเดือนไม่ว่าราคาขึ้นหรือลง ทำให้ได้ต้นทุนเฉลี่ย ไม่ต้องเดาจังหวะตลาด เหมาะกับการถือทองเป็นตัวช่วยกระจายความเสี่ยงระยะยาวมากกว่าการเก็งกำไรระยะสั้น',
+      disc: 'เครื่องนี้เป็นตัวช่วยคิดและให้ความรู้ ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · ราคาทองอ้างอิงจากแหล่งข้อมูลสาธารณะ อาจคลาดเคลื่อนจากราคาจริง ณ ร้านทอง เทียบกับประกาศราคาจากสมาคมค้าทองคำก่อนตัดสินใจซื้อขายจริง · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)',
+      ageJustNow: 'เมื่อสักครู่', ageMinsAgo: '{n} นาทีก่อน', ageHrsAgo: '{n} ชม.ก่อน', ageDaysAgo: '{n} วันก่อน',
+      whyCheapRange: 'ราคาอยู่ช่วงถูกเทียบ 3 เดือน', whyExpensiveRange: 'ราคาอยู่ช่วงแพงเทียบ 3 เดือน',
+      whyRsiLow: 'แรงขายเริ่มคลาย (RSI ต่ำ กำลังฟื้น)', whyRsiHigh: 'ราคาร้อนแรงเกินไป (RSI สูง เสี่ยงย่อ)',
+      whyMomUp: 'โมเมนตัมเริ่มกลับเป็นบวก', whyMomDn: 'โมเมนตัมเริ่มอ่อนลง',
+      whyUptrend: 'ยังอยู่ในแนวโน้มขึ้น', whyDowntrend: 'อยู่ใต้เส้นแนวโน้ม (ขาลง/พักตัว)',
+      whyBbLow: 'ราคาแตะกรอบล่าง (มักเป็นจังหวะเด้ง)', whyBbHigh: 'ราคาชนกรอบบน', whyNeutral: 'ราคาอยู่กลางกรอบ ยังไม่มีสัญญาณชัด',
+      vInterestingGold: 'น่าสนใจ — ราคาทองอยู่ในโซนถูกเทียบแนวโน้ม', vCarefulGold: 'ระวัง — ราคาทองแพงเทียบแนวโน้ม', vMidGold: 'กลางๆ — ยังไม่มีจังหวะเด่น',
+      whyCheapPct: 'ราคาอยู่ค่อนไปทางถูกของรอบ (~{pct}% ของช่วง ต่ำ→สูง)', whyExpensivePct: 'ราคาอยู่ค่อนไปทางแพงของรอบ (~{pct}% ของช่วง ต่ำ→สูง)', whyMidPct: 'ราคาอยู่กลางกรอบ (~{pct}% ของช่วง ต่ำ→สูง)',
+      goldThFetching: 'กำลังดึงราคาทองวันนี้…', manualEnterAll: 'กำลังกรอกราคาเอง… กรอกให้ครบทั้ง 4 ช่องเพื่อใช้งาน',
+      badgeManualText: 'กรอกเอง', manualUsedStatus: 'ใช้ราคาที่กรอกเองแล้ว', badgeManualUsedText: 'ใช้ราคาที่กรอกเอง',
+      fetchSuccess: 'ดึงราคาสำเร็จ', fetchRetrying: 'ดึงราคาไม่สำเร็จ กำลังลองอีกครั้ง… ({n}/{total})',
+      badgeRealLive: 'ราคาสด', badgeRealLiveUpdated: ' · ปรับปรุง {date} {time}',
+      badgeStaleCache: 'ดึงสดไม่ได้ — ใช้ราคาที่บันทึกไว้ ({age})', statusStaleCache: 'ดึงสดไม่ได้ตอนนี้ (ลองแล้ว {n} ครั้ง) — ใช้ราคาที่บันทึกไว้',
+      statusFetchFailNoCache: 'ดึงราคาทองอัตโนมัติไม่ได้ตอนนี้ (ลองแล้ว {n} ครั้ง) — กรอกเองในช่องด้านบน หรือลองรีเฟรชอีกครั้ง',
+      badgeIntlTrend: 'แนวโน้มจากราคาทองคำโลก (GC=F)', badgeStaleSuffix: ' · ล่าสุด {age}', badgeDaysSuffix: ' · {days} วัน',
+      badgeManualEval: 'ประเมินจากราคาที่กรอกเอง', badgeFetchFail: 'ดึงแนวโน้มราคาทองโลกไม่ได้ตอนนี้ — กรอกด้านล่างเพื่อประเมินเอง', gVerdictNoData: 'ยังไม่มีข้อมูล',
+      detEma20: 'เส้นเฉลี่ย 20 วัน (EMA20)', detEma50: 'เส้นเฉลี่ย 50 วัน (EMA50)', detRsi: 'RSI (14)', detMacd: 'MACD histogram',
+      detSupport: 'แนวรับล่าสุด', detResistance: 'แนวต้านล่าสุด', detAdx: 'ความแรงแนวโน้ม (ADX 14)', detAdxStrong: ' · แข็งแรง', detAdxWeak: ' · อ่อน', detNoData: '—',
+      alertStartPrice: 'กรอกราคาทองเริ่มต้นให้ถูกต้อง (หรือรอราคาวันนี้โหลดก่อน แล้วลองอีกครั้ง)', alertPmt: 'กรอกเงินออมต่อเดือนให้ถูกต้อง',
+      dcaContribSub: '{amt} บาท/เดือน × {months} เดือน', dcaWeightAltGram: '≈ {v} บาททองคำ', dcaWeightAltBaht: '≈ {v} กรัม',
+      yrTableColYear: 'สิ้นปีที่', yrTableColContrib: 'เงินที่ใส่', yrTableColWeight: 'น้ำหนักสะสม', yrTableColValue: 'มูลค่า', yrRowLabel: 'ปีที่ {n}',
+      unitGramShort: ' ก.', unitBahtGoldShort: ' บ.',
+      ddNearAth: 'ตอนนี้ราคาใกล้จุดสูงสุด (ย่อ {dd}%) — ออมปกติเดือนละ {base} พอ ไม่ต้องเร่งเติม',
+      ddNormal: 'ย่อลง <b>{dd}%</b> จากจุดสูงสุด — ยังถือว่าปกติ ออมตามแผนเดือนละ {base}',
+      ddTierMsg: 'ย่อลง <b>{dd}%</b> จากจุดสูงสุด — ตามกฎที่ตั้งไว้ อาจเพิ่มเงินซื้อเดือนนี้เป็น <b>×{mult}</b> ≈ <b>{amt}</b> (ถ้ามีเงินสำรอง)',
+      ddWarn: 'เตือน: การย่อไม่ได้แปลว่าจะไม่ลงต่อ — เติมเท่าที่มีเงินสำรองและไม่กระทบชีวิตประจำวัน',
+      alertPortfolio: 'กรอกมูลค่าพอร์ตรวมโดยประมาณก่อน',
+      allocLow: 'สัดส่วนทอง ≈ {pct}% ของพอร์ต — ต่ำกว่ากรอบทั่วไปที่มักพูดถึง (5–10%) หากอยากมีทองไว้กระจายความเสี่ยงมากขึ้น ค่อยๆ เพิ่มได้',
+      allocGood: 'สัดส่วนทอง ≈ {pct}% ของพอร์ต — อยู่ในกรอบที่นักลงทุนมือใหม่มักใช้เป็นแนวทาง (5–10%)',
+      allocHigh: 'สัดส่วนทอง ≈ {pct}% ของพอร์ต — สูงกว่ากรอบทั่วไป ทองไม่ให้ปันผล/ดอกเบี้ย ถือมากไปอาจฉุดผลตอบแทนระยะยาวของพอร์ตโดยรวม',
+      allocNote: 'ตัวเลข 5–10% เป็นแนวทางที่มักถูกพูดถึงทั่วไป ไม่ใช่กฎตายตัวหรือคำแนะนำการลงทุน',
+      lgGroupSummaryGold: 'รวมซื้อ {amt} · {weight} บาททองคำ (≈ {gram} กรัม) · ต้นทุนเฉลี่ย {avg}/บาททองคำ',
+      lgGroupValueNow: ' · มูลค่าตอนนี้ {val} <b style="color:{color}">({sign}{pl}, {sign2}{pct}%)</b>',
+      jewelryNote: 'ร้านทองส่วนใหญ่รับซื้อคืนทองรูปพรรณที่ราคาเนื้อทอง (เท่าทองแท่ง) — ค่ากำเหน็จที่จ่ายไปตอนซื้อจะไม่ได้คืน จึงคำนวณมูลค่าปัจจุบันด้วยราคาขายคืนทองแท่งเช่นกัน',
+      logThDate: 'วันที่', logThType: 'ชนิด', logThPaid: 'เงินที่จ่าย', logThPricePerUnit: 'ราคา/หน่วยที่ซื้อ', logThWeight: 'น้ำหนักที่ได้',
+      typeJewelryShort: 'รูปพรรณ', typeBarShort: 'แท่ง',
+      alertAmtPrice: 'กรอกเงินที่จ่ายและราคา/หน่วยที่ซื้อให้ถูกต้อง', chipFetchFail: '— ดึงไม่ได้ตอนนี้',
+      alertGPriceUsd: 'กรอกราคาทองโลกตอนนี้ก่อน', alertGHiLo: 'กรอกราคาสูงสุด/ต่ำสุดของรอบด้วยเพื่อประเมิน',
+      driveConnectFailedAuto: 'เชื่อมต่ออัตโนมัติไม่สำเร็จ (อาจเพราะเบราว์เซอร์บล็อก cookie ข้ามโดเมน) — กดปุ่มเชื่อมต่ออีกครั้ง',
+      driveConnectFailed: 'เชื่อมต่อไม่สำเร็จ: {err}', driveLoadingGis: 'กำลังโหลด Google Identity Services… รออีก 2-3 วิแล้วลองใหม่', driveRequesting: 'กำลังขอสิทธิ์เชื่อมต่อ…',
+      driveErrSearchFolder: 'ค้นหาโฟลเดอร์ไม่สำเร็จ ({status})', driveErrCreateFolder: 'สร้างโฟลเดอร์ไม่สำเร็จ ({status})',
+      driveErrSearchFile: 'ค้นหาไฟล์ไม่สำเร็จ ({status})', driveErrDownload: 'ดาวน์โหลดไม่สำเร็จ ({status})', driveErrUpload: 'บันทึกขึ้น Drive ไม่สำเร็จ ({status})',
+      driveSyncing: 'กำลังซิงก์…', driveSyncedAt: 'ซิงก์กับ Google Drive แล้ว · {t}', driveLastSync: 'ซิงก์ล่าสุด {t}',
+      driveSessionExpired: 'เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', driveSyncFailed: 'ซิงก์ไม่สำเร็จ: {msg}'
+    },
+    en: {
+      crumbHome: 'Investing', crumbHere: 'Gold',
+      pageTitle: "Gold — Today's Price + Savings Planner", headSub: 'Focused on long-term holding/saving, not a swing-trading tool · beginner-friendly',
+      priceTitle: "Today's Gold Price (baht/baht-weight)",
+      barBuyLabel: 'Gold bar — buy price', boughtUnit: '(you pay)', barSellLabel: 'Gold bar — sell-back price', receivedUnit: '(you receive)',
+      jewelryBuyLabel: 'Gold jewelry — buy price', jewelrySellLabel: 'Gold jewelry — sell-back price',
+      goldThStatusDefault: "Fetching today's gold price…", refreshPriceBtn: 'Refresh price',
+      priceHint: 'Prices are "baht per baht-weight" (the Thai gold weight unit, ~15.244 grams) · the buy/sell-back spread on jewelry is much wider than on bars, because it includes a making charge that is not refunded on resale',
+      verdictTitle: 'Is it cheap or expensive right now',
+      verdictDesc: 'Assessed from <b>the global gold price trend (GC=F, USD/oz)</b> as a directional proxy — the Thai price above is the real traded price, moving the same direction but with different numbers due to the baht exchange rate + import premium. Not investment advice',
+      gSrcBadgeDefault: 'Checking trend…', gVerdictLoadingDefault: 'Loading…', chipLoadingDefault: 'Loading…',
+      techDetailsSummary: 'View technical details (USD/oz, no need to understand it)',
+      manualHint: "Couldn't auto-fetch the trend right now — enter it yourself to assess (find the global gold price from any financial news site/app)",
+      gPriceUsdLabel: 'Global gold price now', unitUsdOz: '(USD/oz)', gHiUsdLabel: 'Period high', gLoUsdLabel: 'Period low', manualEvalBtn: 'Assess from this price',
+      dcaTitle: 'Gold Savings Plan (DCA)', dcaDesc: 'Buy the same amount of gold every month without timing the market — suited to holding gold as a long-term diversification tool',
+      dcaPmtLabel: 'Save per month', unitBaht: '(baht)', dcaUnitLabel: 'Display unit', unitBahtGold: 'Baht-weight', unitGram: 'Grams',
+      dcaYearsLabel: 'Plan ahead', unitYears: '(years)', dcaStartLabel: 'Starting gold price', unitBahtPerBahtGold: '(baht/baht-weight)', dcaStartPh: "Waiting for today's price to load…",
+      dcaCagrLabel: 'Assumed average gold growth', unitPctYear: '(%/year)', calcPlanBtn: 'Calculate Plan',
+      dcaContribLabel: 'Total contributed', dcaWeightLabel: 'Gold weight accumulated', dcaValueLabel: 'Estimated value at plan end', dcaGainLabel: 'Gain from price change',
+      chartValue: 'Total value', chartCost: 'Money contributed (cost)', viewYearTableSummary: 'View year-by-year table',
+      ddTitle: 'Market dip = a chance to add gold (optional)', gdNowLabel: 'Gold price now', gdNowPh: "Auto-filled from today's price",
+      gdAthLabel: 'All-time high (ATH) seen', gdAthPh: 'Enter yourself', ddBtn: 'Get recommendation',
+      tr10m: 'Small dip', tr20m: 'Sharp dip', tr30m: 'Very heavy dip',
+      ddHint: "Concept: a price dip = things get cheaper. If you have reserve funds, add to your purchase at levels you set in advance (this is not a prediction of further declines) · the ATH must be entered manually, since Thai gold prices have no free historical data source",
+      allocTitle: 'Gold Allocation in Your Portfolio', allocDesc: "A common general guideline (not a fixed rule): hold ~5–10% of your total portfolio in gold as a diversification tool, not a core asset, since gold pays no dividends/interest",
+      alPortfolioLabel: 'Estimated total portfolio value', alPortfolioPh: 'e.g. 300000', alGoldNowLabel: 'Current gold holding value', alGoldNowPh: 'Auto-filled from your gold log', alBtn: 'Calculate Allocation',
+      driveTitle: 'Back Up Gold Log to Google Drive',
+      driveDesc: 'Connect once, and your gold log below will sync to Drive automatically on every change (a file in your own "OME_Progress" folder — separate from the stock pages, no mixing)',
+      driveConnectBtn: 'Connect Google Drive', driveConnectedBtn: 'Google Drive connected',
+      logTitle: 'My Gold Log', logDesc: 'Log every purchase to know your average cost and current value (stored on your device + auto-synced to Drive if connected above)',
+      lgTypeLabel: 'Type', typeBar: 'Gold bar', typeJewelry: 'Gold jewelry', lgUnitLabel: 'Unit',
+      lgAmtLabel: 'Amount paid', lgAmtPh: 'e.g. 35000', lgPriceLabel: 'Price/unit paid', lgPricePh: 'e.g. 70950', lgAddBtn: '+ Add',
+      lgEmptyDefault: 'No entries yet — log every purchase to know your average cost and current value',
+      factorsSummary: 'Factors That Affect the Gold Price', factDirectH: 'Direct factors',
+      factRealB: 'Real interest rates', factRealRest: ' — gold pays no interest/dividends, so higher real rates make holding gold less attractive versus bonds',
+      factUsdB: 'US dollar strength', factUsdRest: ' — gold is priced in dollars, a stronger dollar usually pushes the gold price down (inverse relationship)',
+      factTnxB: 'US 10-year treasury yield', factTnxRest: " — used as a rough gauge of interest-rate direction (not a direct real rate)",
+      factCbB: 'Central bank gold reserve buying', factCbRest: ' — in recent years many countries (especially emerging markets) have continuously bought gold to build reserves, a long-term price support',
+      factInfB: 'Inflation expectations', factInfRest: ' — gold is often viewed as an inflation hedge',
+      factIndirectH: 'Indirect factors',
+      factGeoB: 'Geopolitical risk/war', factGeoRest: ' — high uncertainty usually pushes people toward gold as a safe haven asset',
+      factRecB: 'Recession fears', factRecRest: ' — weak economic signals usually boost demand for safe-haven assets',
+      factVolB: 'Stock market volatility', factVolRest: ' — when stock markets are volatile/falling sharply, some money usually flows into gold',
+      factCcB: 'Currency crises/capital outflows', factCcRest: ' — in emerging markets, gold is often a place to park money when the local currency is highly volatile',
+      factNote: "Note: some real figures (real interest rates/TIPS, central bank gold purchase data, inflation expectations) have no free API that can be fetched directly from a browser — this section is therefore general knowledge, not a live number, unlike the 2 items above which have a live number chip",
+      lessonSummary: 'Learn — beginners read this first',
+      lsn1h: 'What is a "baht-weight"', lsn1p: 'The Thai gold weight unit, equal to ~15.244 grams (not the baht currency) — most Thai gold shops trade in this unit, so posted prices are "baht per baht-weight"',
+      lsn2h: 'Why the buy/sell-back price (spread) differs', lsn2p: 'A gold shop always has a gap between the price it sells to you and the price it buys back (the shop\'s margin) — the wider the spread, the more the price needs to rise before you start making a real profit',
+      lsn3h: 'Gold bars vs. gold jewelry — what\'s the difference',
+      lsn3p: '<b>Gold bars</b>: a narrow spread, suited to investing, buy/sell-back prices are close to the raw gold price<br><b>Gold jewelry</b>: has a "making charge" (crafting labor cost) added on purchase, but on resale the shop usually buys back only at the raw gold price — the making charge paid is not refunded. For pure investment purposes, gold bars are more worthwhile',
+      lsn4h: "Why the Thai gold price ≠ the global gold price directly", lsn4p: 'The Thai gold price is calculated from the global gold price (USD/oz) × the baht/dollar exchange rate + import premium/domestic costs — so even if the global gold price doesn\'t change, if the baht weakens, the Thai gold price can still rise',
+      lsn5h: 'How to read the signal light',
+      l5Green: 'Green = interesting price relative to the recent trend — worth considering (not a buy order)', l5Yellow: 'Yellow = neutral, no standout opportunity yet', l5Red: 'Red = expensive relative to the trend, be careful chasing the price',
+      lsn6h: 'How does gold saving (DCA) differ from buying all at once', lsn6p: "Buy the same amount every month regardless of whether the price is up or down, giving you an average cost without needing to time the market — suited to holding gold as a long-term diversification tool rather than short-term speculation",
+      disc: 'This tool helps you think and learn — it is not investment advice and does not guarantee profit · gold prices reference public data sources and may differ from the actual price at a gold shop — check against the price announced by the Gold Traders Association before deciding to trade for real · data is stored primarily on your device (optional personal Google Drive backup available)',
+      ageJustNow: 'just now', ageMinsAgo: '{n} min ago', ageHrsAgo: '{n} hr ago', ageDaysAgo: '{n} days ago',
+      whyCheapRange: 'Price is in the cheap part of the 3-month range', whyExpensiveRange: 'Price is in the expensive part of the 3-month range',
+      whyRsiLow: 'Selling pressure easing (RSI low, starting to recover)', whyRsiHigh: 'Price is overheated (RSI high, risk of a pullback)',
+      whyMomUp: 'Momentum is turning positive', whyMomDn: 'Momentum is weakening',
+      whyUptrend: 'Still in an uptrend', whyDowntrend: 'Below the trend line (downtrend/consolidation)',
+      whyBbLow: 'Price is touching the lower band (often a bounce point)', whyBbHigh: 'Price is hitting the upper band', whyNeutral: 'Price is in the middle of the range, no clear signal yet',
+      vInterestingGold: "Interesting — gold price is in a cheap zone relative to the trend", vCarefulGold: "Careful — gold price is expensive relative to the trend", vMidGold: 'Neutral — no standout opportunity yet',
+      whyCheapPct: 'Price is toward the cheap end of the range (~{pct}% of low→high)', whyExpensivePct: 'Price is toward the expensive end of the range (~{pct}% of low→high)', whyMidPct: 'Price is in the middle of the range (~{pct}% of low→high)',
+      goldThFetching: "Fetching today's gold price…", manualEnterAll: 'Entering price manually… fill in all 4 fields to use this',
+      badgeManualText: 'Entered manually', manualUsedStatus: 'Now using the manually entered price', badgeManualUsedText: 'Using manually entered price',
+      fetchSuccess: 'Fetched price successfully', fetchRetrying: 'Fetch failed, retrying… ({n}/{total})',
+      badgeRealLive: 'Live price', badgeRealLiveUpdated: ' · updated {date} {time}',
+      badgeStaleCache: 'Live fetch failed — using saved price ({age})', statusStaleCache: 'Live fetch failed right now (tried {n} times) — using the saved price',
+      statusFetchFailNoCache: "Couldn't auto-fetch the gold price right now (tried {n} times) — enter it yourself in the fields above, or try refreshing again",
+      badgeIntlTrend: 'Trend from the global gold price (GC=F)', badgeStaleSuffix: ' · latest {age}', badgeDaysSuffix: ' · {days} days',
+      badgeManualEval: 'Assessed from manually entered price', badgeFetchFail: "Couldn't fetch the global gold trend right now — enter it below to assess yourself", gVerdictNoData: 'No data yet',
+      detEma20: '20-day MA (EMA20)', detEma50: '50-day MA (EMA50)', detRsi: 'RSI (14)', detMacd: 'MACD histogram',
+      detSupport: 'Latest support', detResistance: 'Latest resistance', detAdx: 'Trend strength (ADX 14)', detAdxStrong: ' · strong', detAdxWeak: ' · weak', detNoData: '—',
+      alertStartPrice: 'Enter a valid starting gold price (or wait for today\'s price to load first, then try again)', alertPmt: 'Enter a valid monthly savings amount',
+      dcaContribSub: '{amt} baht/month × {months} months', dcaWeightAltGram: '≈ {v} baht-weight', dcaWeightAltBaht: '≈ {v} grams',
+      yrTableColYear: 'End of year', yrTableColContrib: 'Contributed', yrTableColWeight: 'Accumulated weight', yrTableColValue: 'Value', yrRowLabel: 'Year {n}',
+      unitGramShort: ' g', unitBahtGoldShort: ' bw',
+      ddNearAth: 'The price is currently near its all-time high (dip {dd}%) — a normal saving of {base}/month is enough, no need to add extra',
+      ddNormal: 'Down <b>{dd}%</b> from the all-time high — still considered normal, save as planned at {base}/month',
+      ddTierMsg: 'Down <b>{dd}%</b> from the all-time high — per the rule you set, consider increasing this month\'s purchase to <b>×{mult}</b> ≈ <b>{amt}</b> (if you have reserve funds)',
+      ddWarn: "Warning: a dip doesn't mean it won't fall further — only add what you have in reserve funds, without affecting your daily life",
+      alertPortfolio: 'Enter an estimated total portfolio value first',
+      allocLow: 'Gold allocation ≈ {pct}% of the portfolio — below the commonly cited range (5–10%). If you want more diversification from gold, you can gradually increase it',
+      allocGood: 'Gold allocation ≈ {pct}% of the portfolio — within the range beginner investors commonly use as a guideline (5–10%)',
+      allocHigh: 'Gold allocation ≈ {pct}% of the portfolio — above the common range. Gold pays no dividends/interest, so holding too much may drag down the portfolio\'s long-term overall return',
+      allocNote: "The 5–10% figure is a commonly cited guideline, not a fixed rule or investment advice",
+      lgGroupSummaryGold: 'Total bought {amt} · {weight} baht-weight (≈ {gram} grams) · average cost {avg}/baht-weight',
+      lgGroupValueNow: ' · current value {val} <b style="color:{color}">({sign}{pl}, {sign2}{pct}%)</b>',
+      jewelryNote: "Most gold shops buy back jewelry at the raw gold price (same as bars) — the making charge paid on purchase is not refunded, so the current value is calculated using the bar sell-back price as well",
+      logThDate: 'Date', logThType: 'Type', logThPaid: 'Amount paid', logThPricePerUnit: 'Price/unit paid', logThWeight: 'Weight received',
+      typeJewelryShort: 'Jewelry', typeBarShort: 'Bar',
+      alertAmtPrice: 'Enter a valid amount paid and price/unit', chipFetchFail: '— could not fetch right now',
+      alertGPriceUsd: 'Enter the current global gold price first', alertGHiLo: 'Enter the period high/low as well to assess',
+      driveConnectFailedAuto: "Automatic reconnect failed (possibly because the browser blocks cross-domain cookies) — click Connect again",
+      driveConnectFailed: 'Connect failed: {err}', driveLoadingGis: 'Loading Google Identity Services… wait a couple of seconds and try again', driveRequesting: 'Requesting connection permission…',
+      driveErrSearchFolder: 'Folder search failed ({status})', driveErrCreateFolder: 'Folder creation failed ({status})',
+      driveErrSearchFile: 'File search failed ({status})', driveErrDownload: 'Download failed ({status})', driveErrUpload: 'Saving to Drive failed ({status})',
+      driveSyncing: 'Syncing…', driveSyncedAt: 'Synced with Google Drive · {t}', driveLastSync: 'Last synced {t}',
+      driveSessionExpired: 'Session expired — click Connect Drive again', driveSyncFailed: 'Sync failed: {msg}'
+    }
+  };
+  function t(key, vars) {
+    var s = (I18N[getUILang()] || I18N.th)[key];
+    if (s == null) s = I18N.th[key] || key;
+    if (vars) Object.keys(vars).forEach(function (k) { s = s.split('{' + k + '}').join(vars[k]); });
+    return s;
+  }
+  function applyStaticI18n() {
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-html]').forEach(function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+  }
 
   /* ── อินดิเคเตอร์ (สูตรมาตรฐาน, ใช้ประเมินแนวโน้มราคาทองโลก GC=F — asset-agnostic) ── */
   function sma(arr, n) {
@@ -127,24 +345,24 @@
     var momDn = mac && isFinite(mac.hist) && isFinite(mac.histPrev) ? mac.hist < mac.histPrev : false;
 
     var score = 0, pros = [], cons = [];
-    if (posRange < 0.35) { score += 1; pros.push('ราคาอยู่ช่วงถูกเทียบ 3 เดือน'); }
-    else if (posRange > 0.75) { score -= 1; cons.push('ราคาอยู่ช่วงแพงเทียบ 3 เดือน'); }
+    if (posRange < 0.35) { score += 1; pros.push(t('whyCheapRange')); }
+    else if (posRange > 0.75) { score -= 1; cons.push(t('whyExpensiveRange')); }
     if (isFinite(r)) {
-      if (r < 38) { score += 1; pros.push('แรงขายเริ่มคลาย (RSI ต่ำ กำลังฟื้น)'); }
-      else if (r > 70) { score -= 1; cons.push('ราคาร้อนแรงเกินไป (RSI สูง เสี่ยงย่อ)'); }
+      if (r < 38) { score += 1; pros.push(t('whyRsiLow')); }
+      else if (r > 70) { score -= 1; cons.push(t('whyRsiHigh')); }
     }
-    if (momUp) { score += 1; pros.push('โมเมนตัมเริ่มกลับเป็นบวก'); }
-    else if (momDn) { score -= 1; cons.push('โมเมนตัมเริ่มอ่อนลง'); }
-    if (uptrend) { score += 1; pros.push('ยังอยู่ในแนวโน้มขึ้น'); }
-    else { score -= 1; cons.push('อยู่ใต้เส้นแนวโน้ม (ขาลง/พักตัว)'); }
-    if (posBB < 0.2) { score += 0.5; pros.push('ราคาแตะกรอบล่าง (มักเป็นจังหวะเด้ง)'); }
-    else if (posBB > 0.9) { score -= 0.5; cons.push('ราคาชนกรอบบน'); }
+    if (momUp) { score += 1; pros.push(t('whyMomUp')); }
+    else if (momDn) { score -= 1; cons.push(t('whyMomDn')); }
+    if (uptrend) { score += 1; pros.push(t('whyUptrend')); }
+    else { score -= 1; cons.push(t('whyDowntrend')); }
+    if (posBB < 0.2) { score += 0.5; pros.push(t('whyBbLow')); }
+    else if (posBB > 0.9) { score -= 0.5; cons.push(t('whyBbHigh')); }
 
     var light, verdict;
-    if (score >= 2) { light = 'green'; verdict = 'น่าสนใจ — ราคาทองอยู่ในโซนถูกเทียบแนวโน้ม'; }
-    else if (score <= -1) { light = 'red'; verdict = 'ระวัง — ราคาทองแพงเทียบแนวโน้ม'; }
-    else { light = 'yellow'; verdict = 'กลางๆ — ยังไม่มีจังหวะเด่น'; }
-    var why = (light === 'green' ? pros : light === 'red' ? cons : (pros.concat(cons)))[0] || 'ราคาอยู่กลางกรอบ ยังไม่มีสัญญาณชัด';
+    if (score >= 2) { light = 'green'; verdict = t('vInterestingGold'); }
+    else if (score <= -1) { light = 'red'; verdict = t('vCarefulGold'); }
+    else { light = 'yellow'; verdict = t('vMidGold'); }
+    var why = (light === 'green' ? pros : light === 'red' ? cons : (pros.concat(cons)))[0] || t('whyNeutral');
 
     return {
       light: light, verdict: verdict, why: why, pros: pros, cons: cons, score: score,
@@ -156,9 +374,9 @@
   function analyzeSimple(price, hi, lo) {
     var pos = (price - lo) / Math.max(1e-9, hi - lo), pct = Math.round(pos * 100);
     var light, verdict, why;
-    if (pos < 0.35) { light = 'green'; verdict = 'น่าสนใจ — ราคาทองอยู่ในโซนถูกเทียบแนวโน้ม'; why = 'ราคาอยู่ค่อนไปทางถูกของรอบ (~' + pct + '% ของช่วง ต่ำ→สูง)'; }
-    else if (pos > 0.75) { light = 'red'; verdict = 'ระวัง — ราคาทองแพงเทียบแนวโน้ม'; why = 'ราคาอยู่ค่อนไปทางแพงของรอบ (~' + pct + '% ของช่วง ต่ำ→สูง)'; }
-    else { light = 'yellow'; verdict = 'กลางๆ — ยังไม่มีจังหวะเด่น'; why = 'ราคาอยู่กลางกรอบ (~' + pct + '% ของช่วง ต่ำ→สูง)'; }
+    if (pos < 0.35) { light = 'green'; verdict = t('vInterestingGold'); why = t('whyCheapPct', { pct: pct }); }
+    else if (pos > 0.75) { light = 'red'; verdict = t('vCarefulGold'); why = t('whyExpensivePct', { pct: pct }); }
+    else { light = 'yellow'; verdict = t('vMidGold'); why = t('whyMidPct', { pct: pct }); }
     return { light: light, verdict: verdict, why: why, pros: [], cons: [], price: price, resistance: hi, det: { posRange: pos, support: lo, resistance: hi }, simple: true };
   }
 
@@ -247,11 +465,11 @@
   function cacheAgeText(ts) {
     if (!ts) return '';
     var mins = Math.round((Date.now() - ts) / 60000);
-    if (mins < 1) return 'เมื่อสักครู่';
-    if (mins < 60) return mins + ' นาทีก่อน';
+    if (mins < 1) return t('ageJustNow');
+    if (mins < 60) return t('ageMinsAgo', { n: mins });
     var hrs = Math.round(mins / 60);
-    if (hrs < 24) return hrs + ' ชม.ก่อน';
-    return Math.round(hrs / 24) + ' วันก่อน';
+    if (hrs < 24) return t('ageHrsAgo', { n: hrs });
+    return t('ageDaysAgo', { n: Math.round(hrs / 24) });
   }
 
   /* ── ราคาทองไทย (thai-gold-api community project, MIT) ────────── */
@@ -308,12 +526,12 @@
     var b1 = num($('barBuy').value), b2 = num($('barSell').value), j1 = num($('jewelryBuy').value), j2 = num($('jewelrySell').value);
     var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge paste';
     if (![b1, b2, j1, j2].every(isFinite)) {
-      badge.textContent = 'กรอกเอง';
-      setGoldThStatus('กำลังกรอกราคาเอง… กรอกให้ครบทั้ง 4 ช่องเพื่อใช้งาน');
+      badge.textContent = t('badgeManualText');
+      setGoldThStatus(t('manualEnterAll'));
       return;
     }
-    badge.textContent = 'ใช้ราคาที่กรอกเอง';
-    setGoldThStatus('ใช้ราคาที่กรอกเองแล้ว', 'ok');
+    badge.textContent = t('badgeManualUsedText');
+    setGoldThStatus(t('manualUsedStatus'), 'ok');
     if (!$('dcaStart').value) $('dcaStart').value = b1.toFixed(2);
     if (!$('gdNow').value) $('gdNow').value = b1.toFixed(2);
     if ($('dcaOut').style.display === 'none') doDCA();
@@ -321,7 +539,7 @@
   }
 
   function runThaiFetch() {
-    setGoldThStatus('กำลังดึงราคาทองวันนี้…');
+    setGoldThStatus(t('goldThFetching'));
     $('goldThBadge').style.display = 'none';
     attemptGoldTH(1);
   }
@@ -330,11 +548,11 @@
       saveGoldThCache(o);
       fillGoldThFields(o);
       var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge real';
-      badge.textContent = 'ราคาสด' + (o.updateDate ? (' · ปรับปรุง ' + o.updateDate + ' ' + (o.updateTime || '')) : '');
-      setGoldThStatus('ดึงราคาสำเร็จ', 'ok');
+      badge.textContent = t('badgeRealLive') + (o.updateDate ? t('badgeRealLiveUpdated', { date: o.updateDate, time: o.updateTime || '' }) : '');
+      setGoldThStatus(t('fetchSuccess'), 'ok');
     }, function () {
       if (tryNum < GOLD_TH_RETRIES) {
-        setGoldThStatus('ดึงราคาไม่สำเร็จ กำลังลองอีกครั้ง… (' + (tryNum + 1) + '/' + GOLD_TH_RETRIES + ')');
+        setGoldThStatus(t('fetchRetrying', { n: tryNum + 1, total: GOLD_TH_RETRIES }));
         setTimeout(function () { attemptGoldTH(tryNum + 1); }, GOLD_TH_RETRY_DELAY);
         return;
       }
@@ -342,12 +560,12 @@
       if (c) {
         fillGoldThFields(c);
         var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge real';
-        badge.textContent = 'ดึงสดไม่ได้ — ใช้ราคาที่บันทึกไว้ (' + cacheAgeText(c.ts) + ')';
-        setGoldThStatus('ดึงสดไม่ได้ตอนนี้ (ลองแล้ว ' + GOLD_TH_RETRIES + ' ครั้ง) — ใช้ราคาที่บันทึกไว้', 'ok');
+        badge.textContent = t('badgeStaleCache', { age: cacheAgeText(c.ts) });
+        setGoldThStatus(t('statusStaleCache', { n: GOLD_TH_RETRIES }), 'ok');
       } else {
         var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge paste';
-        badge.textContent = 'กรอกเอง';
-        setGoldThStatus('ดึงราคาทองอัตโนมัติไม่ได้ตอนนี้ (ลองแล้ว ' + GOLD_TH_RETRIES + ' ครั้ง) — กรอกเองในช่องด้านบน หรือลองรีเฟรชอีกครั้ง', 'err');
+        badge.textContent = t('badgeManualText');
+        setGoldThStatus(t('statusFetchFailNoCache', { n: GOLD_TH_RETRIES }), 'err');
       }
     });
   }
@@ -357,19 +575,19 @@
     var el = $('gSrcBadge');
     if (meta.kind === 'real') {
       el.className = 'src-badge real';
-      el.textContent = 'แนวโน้มจากราคาทองคำโลก (GC=F)' + (meta.stale ? (' · ล่าสุด ' + cacheAgeText(meta.cachedAt)) : '') + (meta.days ? (' · ' + meta.days + ' วัน') : '');
+      el.textContent = t('badgeIntlTrend') + (meta.stale ? t('badgeStaleSuffix', { age: cacheAgeText(meta.cachedAt) }) : '') + (meta.days ? t('badgeDaysSuffix', { days: meta.days }) : '');
     } else if (meta.kind === 'manual') {
       el.className = 'src-badge paste';
-      el.textContent = 'ประเมินจากราคาที่กรอกเอง';
+      el.textContent = t('badgeManualEval');
     } else {
       el.className = 'src-badge paste';
-      el.textContent = 'ดึงแนวโน้มราคาทองโลกไม่ได้ตอนนี้ — กรอกด้านล่างเพื่อประเมินเอง';
+      el.textContent = t('badgeFetchFail');
     }
     if (!a) {
       $('gLight').className = 'light gray';
       $('gBulb').textContent = '';
       $('gBulb').style.background = '#B8C0D4';
-      $('gVerdict').textContent = 'ยังไม่มีข้อมูล';
+      $('gVerdict').textContent = t('gVerdictNoData');
       $('gWhy').textContent = '';
       $('gDetailsBox').style.display = 'none';
       return;
@@ -385,10 +603,10 @@
     $('gWhy').textContent = a.why;
     if (a.det && !a.simple && isFinite(a.det.rsi)) {
       var d = a.det, rows = [
-        ['เส้นเฉลี่ย 20 วัน (EMA20)', fmt(d.ema20) + ' USD'], ['เส้นเฉลี่ย 50 วัน (EMA50)', fmt(d.ema50) + ' USD'],
-        ['RSI (14)', fmt(d.rsi, 1)], ['MACD histogram', fmt(d.macdHist, 3)],
-        ['แนวรับล่าสุด', fmt(d.support) + ' USD'], ['แนวต้านล่าสุด', fmt(d.resistance) + ' USD'],
-        ['ความแรงแนวโน้ม (ADX 14)', isFinite(d.adx) ? fmt(d.adx, 0) + (d.adx >= 20 ? ' · แข็งแรง' : ' · อ่อน') : '—']
+        [t('detEma20'), fmt(d.ema20) + ' USD'], [t('detEma50'), fmt(d.ema50) + ' USD'],
+        [t('detRsi'), fmt(d.rsi, 1)], [t('detMacd'), fmt(d.macdHist, 3)],
+        [t('detSupport'), fmt(d.support) + ' USD'], [t('detResistance'), fmt(d.resistance) + ' USD'],
+        [t('detAdx'), isFinite(d.adx) ? fmt(d.adx, 0) + (d.adx >= 20 ? t('detAdxStrong') : t('detAdxWeak')) : t('detNoData')]
       ], html = '';
       rows.forEach(function (r) { html += '<div class="k">' + r[0] + '</div><div class="v">' + r[1] + '</div>'; });
       $('gDetKv').innerHTML = html;
@@ -398,6 +616,7 @@
   function runIntlAnalysis() {
     getSeries('GC=F').then(function (r) {
       var a = analyzeSeries(r.series);
+      lastVerdictMode = 'real';
       showGoldVerdict(a, { kind: 'real', stale: r.stale, cachedAt: r.cachedAt, days: r.series.closes.length });
       $('gManualWrap').style.display = 'none';
     }, function () {
@@ -434,13 +653,13 @@
     $('dcaChart').innerHTML = svg;
   }
   function dcaYearTable(r, unit) {
-    var html = '<table class="yr-table"><thead><tr><th>สิ้นปีที่</th><th>เงินที่ใส่</th><th>น้ำหนักสะสม</th><th>มูลค่า</th></tr></thead><tbody>';
+    var html = '<table class="yr-table"><thead><tr><th>' + t('yrTableColYear') + '</th><th>' + t('yrTableColContrib') + '</th><th>' + t('yrTableColWeight') + '</th><th>' + t('yrTableColValue') + '</th></tr></thead><tbody>';
     var yrs = Math.round(r.series.length / 12), i;
     for (i = 1; i <= yrs; i++) {
       var idx = i * 12 - 1;
       if (idx >= r.series.length) break;
       var row = r.series[idx], w = unit === 'gram' ? row.weight * GRAM_PER_BAHT : row.weight;
-      html += '<tr><td>ปีที่ ' + i + '</td><td>' + baht(row.contrib) + '</td><td>' + fmt(w, 4) + (unit === 'gram' ? ' ก.' : ' บ.') + '</td><td>' + baht(row.value) + '</td></tr>';
+      html += '<tr><td>' + t('yrRowLabel', { n: i }) + '</td><td>' + baht(row.contrib) + '</td><td>' + fmt(w, 4) + (unit === 'gram' ? t('unitGramShort') : t('unitBahtGoldShort')) + '</td><td>' + baht(row.value) + '</td></tr>';
     }
     html += '</tbody></table>';
     return html;
@@ -452,18 +671,18 @@
     var cagr = num($('dcaCagr').value);
     var unit = $('dcaUnit').value;
     if (!isFinite(cagr)) { cagr = 5; $('dcaCagr').value = 5; }
-    if (!isFinite(startPrice) || startPrice <= 0) { alert('กรอกราคาทองเริ่มต้นให้ถูกต้อง (หรือรอราคาวันนี้โหลดก่อน แล้วลองอีกครั้ง)'); return; }
-    if (pmt <= 0) { alert('กรอกเงินออมต่อเดือนให้ถูกต้อง'); return; }
+    if (!isFinite(startPrice) || startPrice <= 0) { alert(t('alertStartPrice')); return; }
+    if (pmt <= 0) { alert(t('alertPmt')); return; }
     var months = Math.round(years * 12);
     var r = simulateGoldDCA(pmt, startPrice, cagr, months);
     $('dcaOut').style.display = 'block';
 
     var weightDisplay = unit === 'gram' ? r.weight * GRAM_PER_BAHT : r.weight;
-    var altText = unit === 'gram' ? ('≈ ' + fmt(r.weight, 4) + ' บาททองคำ') : ('≈ ' + fmt(r.weight * GRAM_PER_BAHT, 2) + ' กรัม');
+    var altText = unit === 'gram' ? t('dcaWeightAltGram', { v: fmt(r.weight, 4) }) : t('dcaWeightAltBaht', { v: fmt(r.weight * GRAM_PER_BAHT, 2) });
 
     $('dcaContrib').textContent = baht(r.contrib);
-    $('dcaContribSub').textContent = fmt0(pmt) + ' บาท/เดือน × ' + months + ' เดือน';
-    $('dcaWeight').textContent = fmt(weightDisplay, 4) + (unit === 'gram' ? ' กรัม' : ' บาททองคำ');
+    $('dcaContribSub').textContent = t('dcaContribSub', { amt: fmt0(pmt), months: months });
+    $('dcaWeight').textContent = fmt(weightDisplay, 4) + (unit === 'gram' ? ' ' + t('unitGram').toLowerCase() : ' ' + t('unitBahtGold').toLowerCase());
     $('dcaWeightSub').textContent = altText;
     $('dcaValue').textContent = baht(r.value);
     $('dcaGain').textContent = (r.value - r.contrib >= 0 ? '+' : '') + baht(r.value - r.contrib);
@@ -486,10 +705,10 @@
     TR.forEach(function (t) { if (dd >= t.dd) { mult = t.x; tier = t; } });
     if (tier) document.querySelector('#gdTranche .tr-box[data-dd="' + tier.dd + '"]').classList.add('on');
     var msg;
-    if (dd < 1) msg = 'ตอนนี้ราคาใกล้จุดสูงสุด (ย่อ ' + fmt(Math.max(0, dd), 1) + '%) — ออมปกติเดือนละ ' + baht(base) + ' พอ ไม่ต้องเร่งเติม';
-    else if (dd < 10) msg = 'ย่อลง <b>' + fmt(dd, 1) + '%</b> จากจุดสูงสุด — ยังถือว่าปกติ ออมตามแผนเดือนละ ' + baht(base);
-    else msg = 'ย่อลง <b>' + fmt(dd, 1) + '%</b> จากจุดสูงสุด — ตามกฎที่ตั้งไว้ อาจเพิ่มเงินซื้อเดือนนี้เป็น <b>×' + mult + '</b> ≈ <b>' + baht(base * mult) + '</b> (ถ้ามีเงินสำรอง)';
-    out.innerHTML = msg + '<div style="font-size:12px;color:var(--muted);margin-top:6px">เตือน: การย่อไม่ได้แปลว่าจะไม่ลงต่อ — เติมเท่าที่มีเงินสำรองและไม่กระทบชีวิตประจำวัน</div>';
+    if (dd < 1) msg = t('ddNearAth', { dd: fmt(Math.max(0, dd), 1), base: baht(base) });
+    else if (dd < 10) msg = t('ddNormal', { dd: fmt(dd, 1), base: baht(base) });
+    else msg = t('ddTierMsg', { dd: fmt(dd, 1), mult: mult, amt: baht(base * mult) });
+    out.innerHTML = msg + '<div style="font-size:12px;color:var(--muted);margin-top:6px">' + t('ddWarn') + '</div>';
     out.style.display = 'block';
   }
 
@@ -497,15 +716,15 @@
   function doAllocation() {
     var portfolio = num($('alPortfolio').value), goldNow = num($('alGoldNow').value);
     var el = $('alOut');
-    if (!isFinite(portfolio) || portfolio <= 0) { el.className = 'verdict-box warn'; el.textContent = 'กรอกมูลค่าพอร์ตรวมโดยประมาณก่อน'; el.style.display = 'block'; return; }
+    if (!isFinite(portfolio) || portfolio <= 0) { el.className = 'verdict-box warn'; el.textContent = t('alertPortfolio'); el.style.display = 'block'; return; }
     if (!isFinite(goldNow) || goldNow < 0) goldNow = 0;
     var pct = goldNow / portfolio * 100;
     var cls, txt;
-    if (pct < 5) { cls = 'warn'; txt = 'สัดส่วนทอง ≈ ' + fmt(pct, 1) + '% ของพอร์ต — ต่ำกว่ากรอบทั่วไปที่มักพูดถึง (5–10%) หากอยากมีทองไว้กระจายความเสี่ยงมากขึ้น ค่อยๆ เพิ่มได้'; }
-    else if (pct <= 10) { cls = 'go'; txt = 'สัดส่วนทอง ≈ ' + fmt(pct, 1) + '% ของพอร์ต — อยู่ในกรอบที่นักลงทุนมือใหม่มักใช้เป็นแนวทาง (5–10%)'; }
-    else { cls = 'warn'; txt = 'สัดส่วนทอง ≈ ' + fmt(pct, 1) + '% ของพอร์ต — สูงกว่ากรอบทั่วไป ทองไม่ให้ปันผล/ดอกเบี้ย ถือมากไปอาจฉุดผลตอบแทนระยะยาวของพอร์ตโดยรวม'; }
+    if (pct < 5) { cls = 'warn'; txt = t('allocLow', { pct: fmt(pct, 1) }); }
+    else if (pct <= 10) { cls = 'go'; txt = t('allocGood', { pct: fmt(pct, 1) }); }
+    else { cls = 'warn'; txt = t('allocHigh', { pct: fmt(pct, 1) }); }
     el.className = 'verdict-box ' + cls;
-    el.innerHTML = txt + '<div style="font-size:12px;font-weight:500;margin-top:6px;opacity:.85">ตัวเลข 5–10% เป็นแนวทางที่มักถูกพูดถึงทั่วไป ไม่ใช่กฎตายตัวหรือคำแนะนำการลงทุน</div>';
+    el.innerHTML = txt + '<div style="font-size:12px;font-weight:500;margin-top:6px;opacity:.85">' + t('allocNote') + '</div>';
     el.style.display = 'block';
   }
 
@@ -520,10 +739,10 @@
 
   function renderGoldLog() {
     var log = loadGoldLog(), box = $('lgBox');
-    if (!log.length) { box.innerHTML = '<div class="log-empty">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและมูลค่าปัจจุบัน</div>'; updateAllocAuto(0); return; }
+    if (!log.length) { box.innerHTML = '<div class="log-empty">' + t('lgEmptyDefault') + '</div>'; updateAllocAuto(0); return; }
 
     var barSellPrice = num($('barSell').value);
-    var groups = { bar: { label: 'ทองคำแท่ง', amt: 0, weight: 0 }, jewelry: { label: 'ทองรูปพรรณ', amt: 0, weight: 0 } };
+    var groups = { bar: { label: t('typeBar'), amt: 0, weight: 0 }, jewelry: { label: t('typeJewelry'), amt: 0, weight: 0 } };
     log.forEach(function (r) {
       var g = groups[r.type] || groups.bar;
       g.amt += r.amt; g.weight += toBahtWeight(r.weight, r.unit);
@@ -535,22 +754,22 @@
       if (g.weight <= 0) return;
       var avg = g.weight > 0 ? g.amt / g.weight : NaN;
       html += '<div class="log-group-hd">' + g.label + '</div>';
-      html += '<div class="log-group-sub">รวมซื้อ ' + baht(g.amt) + ' · ' + fmt(g.weight, 4) + ' บาททองคำ (≈ ' + fmt(g.weight * GRAM_PER_BAHT, 2) + ' กรัม) · ต้นทุนเฉลี่ย ' + baht(avg) + '/บาททองคำ';
+      html += '<div class="log-group-sub">' + t('lgGroupSummaryGold', { amt: baht(g.amt), weight: fmt(g.weight, 4), gram: fmt(g.weight * GRAM_PER_BAHT, 2), avg: baht(avg) });
       if (isFinite(barSellPrice)) {
         var val = g.weight * barSellPrice, pl = val - g.amt, pct = g.amt > 0 ? pl / g.amt * 100 : 0;
         totalValue += val;
-        html += ' · มูลค่าตอนนี้ ' + baht(val) + ' <b style="color:' + (pl >= 0 ? 'var(--ok)' : 'var(--err)') + '">(' + (pl >= 0 ? '+' : '−') + baht(Math.abs(pl)) + ', ' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)</b>';
+        html += t('lgGroupValueNow', { val: baht(val), color: pl >= 0 ? 'var(--ok)' : 'var(--err)', sign: pl >= 0 ? '+' : '−', pl: baht(Math.abs(pl)), sign2: pct >= 0 ? '+' : '', pct: fmt(pct, 1) });
       }
       html += '</div>';
-      if (key === 'jewelry') html += '<div class="log-group-note">ร้านทองส่วนใหญ่รับซื้อคืนทองรูปพรรณที่ราคาเนื้อทอง (เท่าทองแท่ง) — ค่ากำเหน็จที่จ่ายไปตอนซื้อจะไม่ได้คืน จึงคำนวณมูลค่าปัจจุบันด้วยราคาขายคืนทองแท่งเช่นกัน</div>';
+      if (key === 'jewelry') html += '<div class="log-group-note">' + t('jewelryNote') + '</div>';
     });
 
-    html += '<table class="log-table"><thead><tr><th>วันที่</th><th>ชนิด</th><th>เงินที่จ่าย</th><th>ราคา/หน่วยที่ซื้อ</th><th>น้ำหนักที่ได้</th><th></th></tr></thead><tbody>';
+    html += '<table class="log-table"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThType') + '</th><th>' + t('logThPaid') + '</th><th>' + t('logThPricePerUnit') + '</th><th>' + t('logThWeight') + '</th><th></th></tr></thead><tbody>';
     log.forEach(function (r, i) {
-      var unitLabel = r.unit === 'gram' ? 'ก.' : 'บ.';
+      var unitLabel = r.unit === 'gram' ? t('unitGramShort') : t('unitBahtGoldShort');
       html += '<tr><td>' + new Date(r.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
-        '<td>' + (r.type === 'jewelry' ? 'รูปพรรณ' : 'แท่ง') + '</td><td>' + baht(r.amt) + '</td><td>' + fmt(r.price, 2) + '</td>' +
-        '<td>' + fmt(r.weight, 4) + ' ' + unitLabel + '</td>' +
+        '<td>' + (r.type === 'jewelry' ? t('typeJewelryShort') : t('typeBarShort')) + '</td><td>' + baht(r.amt) + '</td><td>' + fmt(r.price, 2) + '</td>' +
+        '<td>' + fmt(r.weight, 4) + unitLabel + '</td>' +
         '<td><button class="log-del" data-i="' + i + '">✕</button></td></tr>';
     });
     html += '</tbody></table>';
@@ -564,7 +783,7 @@
   function addGoldLog() {
     var type = $('lgType').value, unit = $('lgUnit').value;
     var amt = num($('lgAmt').value), price = num($('lgPrice').value);
-    if (!isFinite(amt) || amt <= 0 || !isFinite(price) || price <= 0) { alert('กรอกเงินที่จ่ายและราคา/หน่วยที่ซื้อให้ถูกต้อง'); return; }
+    if (!isFinite(amt) || amt <= 0 || !isFinite(price) || price <= 0) { alert(t('alertAmtPrice')); return; }
     var log = loadGoldLog();
     log.push({ type: type, unit: unit, amt: amt, price: price, weight: amt / price, ts: Date.now() });
     saveGoldLog(log);
@@ -607,7 +826,7 @@
       writeChip(q);
     }, function () {
       var c = loadQuoteCache(tag);
-      if (c) writeChip(c); else { el.textContent = '— ดึงไม่ได้ตอนนี้'; }
+      if (c) writeChip(c); else { el.textContent = t('chipFetchFail'); }
     });
     function writeChip(q) {
       var pct = isFinite(q.prevClose) && q.prevClose ? (q.price / q.prevClose - 1) * 100 : NaN;
@@ -633,7 +852,7 @@
     },
     setBtn: function () {
       var b = $('driveConnectBtn'); if (!b) return;
-      b.textContent = this.connected ? 'เชื่อมต่อ Google Drive แล้ว' : 'เชื่อมต่อ Google Drive';
+      b.textContent = this.connected ? t('driveConnectedBtn') : t('driveConnectBtn');
     },
     init: function () {
       try { this.connected = localStorage.getItem(DRIVE_CONNECTED_KEY) === '1'; } catch (e) {}
@@ -647,7 +866,7 @@
           use_fedcm_for_prompt: true, // ลดโอกาสต้องกดยืนยันใหม่ทุกครั้งบนเบราว์เซอร์ที่บล็อก third-party cookie (เช่น Chrome รุ่นใหม่)
           callback: function (resp) {
             if (resp.error) {
-              self.setStatus(self.connected ? 'เชื่อมต่ออัตโนมัติไม่สำเร็จ (อาจเพราะเบราว์เซอร์บล็อก cookie ข้ามโดเมน) — กดปุ่มเชื่อมต่ออีกครั้ง' : 'เชื่อมต่อไม่สำเร็จ: ' + resp.error, 'err');
+              self.setStatus(self.connected ? t('driveConnectFailedAuto') : t('driveConnectFailed', { err: resp.error }), 'err');
               return;
             }
             self.accessToken = resp.access_token;
@@ -661,8 +880,8 @@
       })();
     },
     connect: function () {
-      if (!this.tokenClient) { this.setStatus('กำลังโหลด Google Identity Services… รออีก 2-3 วิแล้วลองใหม่', 'err'); return; }
-      this.setStatus('กำลังขอสิทธิ์เชื่อมต่อ…', '');
+      if (!this.tokenClient) { this.setStatus(t('driveLoadingGis'), 'err'); return; }
+      this.setStatus(t('driveRequesting'), '');
       this.tokenClient.requestAccessToken({ prompt: this.accessToken ? '' : 'consent' });
     },
     authFetch: function (url, opts) {
@@ -675,13 +894,13 @@
       if (self.folderId) return Promise.resolve(self.folderId);
       var q = encodeURIComponent("name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false");
       return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error('ค้นหาโฟลเดอร์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error(t('driveErrSearchFolder', { status: r.status })); return r.json(); })
         .then(function (data) {
           if (data.files && data.files.length) { self.folderId = data.files[0].id; return self.folderId; }
           return self.authFetch('https://www.googleapis.com/drive/v3/files', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
-          }).then(function (r) { if (!r.ok) throw new Error('สร้างโฟลเดอร์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+          }).then(function (r) { if (!r.ok) throw new Error(t('driveErrCreateFolder', { status: r.status })); return r.json(); })
             .then(function (d) { self.folderId = d.id; return self.folderId; });
         });
     },
@@ -690,13 +909,13 @@
       if (self.fileId) return Promise.resolve(self.fileId);
       var q = encodeURIComponent("name='" + DRIVE_FILE_NAME + "' and '" + self.folderId + "' in parents and trashed=false");
       return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error('ค้นหาไฟล์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error(t('driveErrSearchFile', { status: r.status })); return r.json(); })
         .then(function (data) { self.fileId = (data.files && data.files[0] && data.files[0].id) || null; return self.fileId; });
     },
     download: function () {
       var self = this;
       return self.authFetch('https://www.googleapis.com/drive/v3/files/' + self.fileId + '?alt=media')
-        .then(function (r) { if (!r.ok) throw new Error('ดาวน์โหลดไม่สำเร็จ (' + r.status + ')'); return r.json(); });
+        .then(function (r) { if (!r.ok) throw new Error(t('driveErrDownload', { status: r.status })); return r.json(); });
     },
     upload: function (obj) {
       var self = this;
@@ -708,7 +927,7 @@
         ? 'https://www.googleapis.com/upload/drive/v3/files/' + self.fileId + '?uploadType=multipart'
         : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id';
       return self.authFetch(url, { method: self.fileId ? 'PATCH' : 'POST', body: form })
-        .then(function (r) { if (!r.ok) throw new Error('บันทึกขึ้น Drive ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error(t('driveErrUpload', { status: r.status })); return r.json(); })
         .then(function (d) { if (d.id) self.fileId = d.id; return d; });
     },
     mergeByTs: function (a, b) {
@@ -721,7 +940,7 @@
     },
     firstSync: function () {
       var self = this;
-      self.setStatus('กำลังซิงก์…', '');
+      self.setStatus(t('driveSyncing'), '');
       self.ensureFolder().then(function () { return self.findFile(); })
         .then(function (fid) { return fid ? self.download() : null; })
         .then(function (remote) {
@@ -730,7 +949,7 @@
           renderGoldLog();
           return self.upload({ log: merged, savedAt: new Date().toISOString() });
         })
-        .then(function () { self.setStatus('ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); })
+        .then(function () { self.setStatus(t('driveSyncedAt', { t: nowTime() }), 'ok'); })
         .catch(function (e) { self.setStatus('' + (e.message || e), 'err'); });
     },
     scheduleSync: function () {
@@ -744,17 +963,17 @@
       var self = this;
       if (self.syncing) { self.pending = true; return; }
       self.pending = false; self.syncing = true;
-      self.setStatus('กำลังซิงก์…', '');
+      self.setStatus(t('driveSyncing'), '');
       self.ensureFolder().then(function () { return self.findFile(); })
         .then(function () { return self.upload({ log: loadGoldLog(), savedAt: new Date().toISOString() }); })
-        .then(function () { self.setStatus('ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
+        .then(function () { self.setStatus(t('driveLastSync', { t: nowTime() }), 'ok'); })
         .catch(function (e) {
           var msg = String(e && e.message || e);
           if (msg.indexOf('401') !== -1 || msg.indexOf('403') !== -1) {
             self.accessToken = null;
-            self.setStatus('เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', 'err');
+            self.setStatus(t('driveSessionExpired'), 'err');
           } else {
-            self.setStatus('ซิงก์ไม่สำเร็จ: ' + msg, 'err');
+            self.setStatus(t('driveSyncFailed', { msg: msg }), 'err');
           }
         })
         .finally(function () {
@@ -766,12 +985,14 @@
 
   /* ── init ───────────────────────────────────────────────────── */
   function init() {
+    applyStaticI18n();
     ['barBuy', 'barSell', 'jewelryBuy', 'jewelrySell'].forEach(function (id) { $(id).addEventListener('input', onManualPriceInput); });
     $('goldThRefresh').addEventListener('click', runThaiFetch);
     $('gManualBtn').addEventListener('click', function () {
       var price = num($('gPriceUsd').value), hi = num($('gHiUsd').value), lo = num($('gLoUsd').value);
-      if (!isFinite(price)) { alert('กรอกราคาทองโลกตอนนี้ก่อน'); return; }
-      if (!isFinite(hi) || !isFinite(lo) || hi <= lo) { alert('กรอกราคาสูงสุด/ต่ำสุดของรอบด้วยเพื่อประเมิน'); return; }
+      if (!isFinite(price)) { alert(t('alertGPriceUsd')); return; }
+      if (!isFinite(hi) || !isFinite(lo) || hi <= lo) { alert(t('alertGHiLo')); return; }
+      lastVerdictMode = 'manual';
       showGoldVerdict(analyzeSimple(price, hi, lo), { kind: 'manual' });
     });
     $('dcaBtn').addEventListener('click', doDCA);
@@ -789,6 +1010,25 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+
+  window.omeApplyLang = function () {
+    applyStaticI18n();
+    renderGoldLog();
+    if (lastVerdictMode === 'manual') {
+      var price = num($('gPriceUsd').value), hi = num($('gHiUsd').value), lo = num($('gLoUsd').value);
+      if (isFinite(price) && isFinite(hi) && isFinite(lo) && hi > lo) showGoldVerdict(analyzeSimple(price, hi, lo), { kind: 'manual' });
+    } else {
+      runIntlAnalysis();
+    }
+    if ($('dcaOut').style.display !== 'none') doDCA();
+    var gdOut = $('gdOut');
+    if (gdOut.style.display !== 'none') doGoldDrawdown();
+    var alOut = $('alOut');
+    if (alOut.style.display !== 'none') doAllocation();
+    renderFactorChip('dxyChip', 'DX-Y.NYB', 'dxy');
+    renderFactorChip('tnxChip', '^TNX', 'tnx');
+    DriveSync.setBtn();
+  };
 
   window.__gold = { simulateGoldDCA: simulateGoldDCA, analyzeSeries: analyzeSeries, analyzeSimple: analyzeSimple, parseGoldTH: parseGoldTH, parseYahoo: parseYahoo, toBahtWeight: toBahtWeight };
 })();
