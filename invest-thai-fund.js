@@ -17,6 +17,165 @@
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
   function baht(n) { return '฿' + fmt0(n); }
 
+  /* ══════ ระบบแปลภาษา (i18n) — รูปแบบเดียวกับหน้าอื่นในโซนลงทุน ══════ */
+  var UI_LANG_KEY = 'ome:lang';
+  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
+  var I18N = {
+    th: {
+      crumbHome: 'การลงทุน', crumbHere: 'กองทุนไทย',
+      pageTitle: 'กองทุนรวมไทย — วางแผน DCA + ประหยัดภาษี', headSub: 'หุ้น/ตราสารหนี้/ผสม · RMF · SSF · Thai ESG · ทยอยซื้อทุกเดือน',
+      dcaTitle: 'แผนทยอยซื้อ (DCA)', accMLabel: 'ซื้อ "สะสมมูลค่า" /เดือน', divMLabel: 'ซื้อ "ปันผล" /เดือน',
+      yearsLabel: 'วางแผนล่วงหน้า', unitYears: '(ปี)', cagrLabel: 'ผลตอบแทนเฉลี่ย/ปี', unitPct: '(%)',
+      feeLabel: 'ค่าธรรมเนียมกองทุน/ปี', dyLabel: 'ปันผลของชนิดปันผล/ปี', calcPlanBtn: 'คำนวณแผน',
+      oContribLabel: 'เงินที่ลงทั้งหมด', oValueLabel: 'มูลค่ารวมโดยประมาณ', oGainLabel: 'กำไรจากการเติบโต', oGainSub: 'ยังไม่รวมภาษี/ค่าธรรมเนียมซื้อ',
+      accColTitle: 'แบบสะสมมูลค่า', divColTitle: 'แบบปันผล',
+      lineInvested: 'ลงทั้งหมด', lineFinalValue: 'มูลค่าปลายทาง', lineDivReceived: 'ปันผลรับ', lineDivReceivedNote: '— (ทบในกอง)', lineDivCumulative: 'ปันผลรับสะสม',
+      chartValue: 'มูลค่ารวม', chartCost: 'เงินที่ใส่ (ต้นทุน)', viewYearTableSummary: 'ดูตารางรายปี',
+      taxTitle: 'คำนวณเงินลดหย่อนภาษี (RMF / SSF / Thai ESG)', txYearLabel: 'ปีภาษีที่จะซื้อ', txYearUnit: '(กระทบเพดาน Thai ESG)',
+      txIncomeLabel: 'เงินได้สุทธิที่ต้องเสียภาษีต่อปี', txIncomeUnit: '(หลังหักลดหย่อนอื่นแล้ว)',
+      txRmfLabel: 'ซื้อ RMF ปีนี้', txSsfLabel: 'ซื้อ SSF ปีนี้', txEsgLabel: 'ซื้อ Thai ESG ปีนี้', unitBaht: '(บาท)',
+      txOtherLabel: 'ลดหย่อนกลุ่มเกษียณอื่นที่ใช้ไปแล้ว', txOtherUnit: '(กบข./PVD/ประกันบำนาญ ฯลฯ, บาท)',
+      taxCalcBtn: 'คำนวณภาษีที่ประหยัดได้', taxFromLogBtn: 'ใช้ยอดจากสมุดซื้อปีนี้',
+      txBeforeLabel: 'ภาษีก่อนหักกองทุนนี้', txAfterLabel: 'ภาษีหลังหักกองทุนนี้', txSavedLabel: 'ประหยัดภาษีได้',
+      viewMultiYearSummary: 'ดูแผนหลายปี (ลงทุนต่อเนื่อง)', txIncomeGrowthLabel: 'เงินได้เติบโตเฉลี่ย/ปี', txProjBtn: 'คำนวณแผนหลายปี',
+      txProjNote: 'สมมติว่าซื้อ RMF/SSF/ESG เท่าเดิมทุกปี (เพดาน Thai ESG จะขยับให้อัตโนมัติถ้าข้ามปี 2570)',
+      taxDisclaimer: 'ประมาณการ ไม่ใช่คำแนะนำภาษี — ไม่ได้รวมค่าลดหย่อนอื่นนอกเหนือจากกลุ่มเกษียณที่กรอก (เช่น ประกันชีวิต บริจาค ดอกเบี้ยบ้าน) และไม่ได้ตรวจสอบเงื่อนไขการถือครองให้ครบตามกำหนด (RMF/SSF/ESG มีบทลงโทษถ้าขายก่อนกำหนด) โปรดตรวจสอบกับกรมสรรพากรหรือที่ปรึกษาภาษีก่อนตัดสินใจจริง',
+      riskTitle: 'ระดับความเสี่ยงกองทุน (1–8)', riskHint: 'ระดับความเสี่ยงพิมพ์อยู่บนหน้าแรกของ Fund Factsheet ทุกกองเสมอ — ยิ่งเลขสูง ยิ่งผันผวนสูง ไม่ใช่ "แย่กว่า" แต่ต้องรับความผันผวนได้มากกว่า',
+      riskLabel1: 'ตลาดเงิน', riskLabel2: 'ตราสารหนี้ระยะสั้น', riskLabel3: 'ตราสารหนี้ทั่วไป', riskLabel4: 'ผสม (หุ้น+หนี้)',
+      riskLabel5: 'หุ้นไทย/ต่างประเทศ', riskLabel6: 'หุ้นเฉพาะกลุ่ม/ประเทศเดียว', riskLabel7: 'ทองคำ/สินค้าโภคภัณฑ์', riskLabel8: 'อนุพันธ์/ทางเลือกซับซ้อน',
+      ddTitle: 'ตลาดย่อ = โอกาสเติมไม้ (ทางเลือก)', idxNowLabel: 'ดัชนี SET ตอนนี้', idxAthLabel: 'จุดสูงสุดที่เคยทำ (ATH)', ddBtn: 'ดูคำแนะนำ',
+      tr10m: 'ย่อเล็ก', tr20m: 'ตลาดหมี', tr30m: 'ย่อแรง',
+      ddHint: 'แนวคิด: เวลาตลาดลง คือได้ของถูกลง ถ้ามีเงินสำรองค่อยเพิ่มเงินซื้อตามระดับที่ตั้งไว้ล่วงหน้า (ไม่ใช่การทำนายว่าจะลงอีกไหม)',
+      logTitle: 'สมุดซื้อจริงของฉัน', lgFundLabel: 'ชื่อกองทุน', lgCatLabel: 'ประเภท (เพื่อภาษี)',
+      catGeneral: 'ทั่วไป', catRmf: 'RMF', catSsf: 'SSF', catEsg: 'Thai ESG',
+      lgAmtLabel: 'เงินที่ซื้อ (บาท)', lgNavLabel: 'ราคา/หน่วย (NAV)', lgAddBtn: '+ เพิ่ม',
+      lgCurLabel: 'NAV ปัจจุบัน (คำนวณกำไร/ขาดทุน)', lgCurPh: 'ราคาต่อหน่วยตอนนี้',
+      lgEmptyDefault: 'ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและกำไร-ขาดทุน แยกตามกองทุน',
+      elTitle: 'วันที่พร้อมขายแบบไม่เสียสิทธิ์ภาษี', elBirthYearLabel: 'ปีเกิด', elBirthYearUnit: '(สำหรับเช็คเงื่อนไขอายุ 55 ปีของ RMF เท่านั้น)',
+      elNote: 'เป็นตัวประมาณจากวันที่บันทึกในสมุดซื้อเท่านั้น ไม่ใช่ข้อมูลจริงจาก บลจ. — ก่อนขายจริงควรตรวจสอบวันครบกำหนดกับ บลจ./สถิติซื้อขายจริงของคุณอีกครั้ง',
+      lessonSummary: 'เรียนรู้ — กองทุนรวมไทยแบบเข้าใจง่าย',
+      lsn1h: 'กองทุนรวมคืออะไร', lsn1p: 'เงินของหลายคนถูกนำมารวมกันให้ผู้จัดการกองทุน (บลจ.) มืออาชีพนำไปลงทุนแทน กระจายความเสี่ยงได้มากกว่าซื้อหุ้นเดี่ยว เหมาะกับคนไม่มีเวลาติดตามตลาดเอง',
+      lsn2h: 'ประเภทกองทุนหลัก',
+      lsn2p: '<b>ตราสารหนี้</b> ลงทุนในพันธบัตร/หุ้นกู้ ความเสี่ยงต่ำ ผลตอบแทนต่ำ · <b>ผสม</b> มีทั้งหุ้นและตราสารหนี้ ความเสี่ยงปานกลาง · <b>หุ้น</b> ลงทุนในหุ้น ผันผวนสูงแต่ผลตอบแทนคาดหวังสูงกว่าระยะยาว · <b>FIF</b> (Foreign Investment Fund) กองทุนไทยที่ไปลงทุนต่างประเทศแทนเรา · <b>REIT/กองทุนอสังหาฯ</b> ลงทุนในอสังหาริมทรัพย์ให้เช่า มักจ่ายผลตอบแทนสม่ำเสมอ · <b>ทองคำ</b> ลงทุนอ้างอิงราคาทองคำโดยไม่ต้องถือทองจริง',
+      lsn3h: 'ระดับความเสี่ยง 1-8 คืออะไร', lsn3p: 'มาตรฐานเดียวกันทั้งอุตสาหกรรม (สมาคมบริษัทจัดการลงทุน/ก.ล.ต.) พิมพ์อยู่บนหน้าแรก Fund Factsheet ทุกกองเสมอ — ดูสเกลสีด้านบน ยิ่งเลขสูงยิ่งผันผวนสูง เลือกให้เหมาะกับระยะเวลาลงทุนและความสามารถรับความเสี่ยงของตัวเอง',
+      lsn4h: 'RMF vs SSF vs Thai ESG ต่างกันยังไง',
+      lsn4p1: '<b>RMF</b> (กองทุนเพื่อการเลี้ยงชีพ): ลดหย่อนได้สูงสุด 30% ของเงินได้ ไม่เกิน 500,000 บาท (รวมกับ SSF และกลุ่มเกษียณอื่นในเพดานเดียวกัน) ต้องถือจนอายุครบ 55 ปี และลงทุนต่อเนื่องอย่างน้อย 5 ปี <b>ห้ามเว้นซื้อเกิน 1 ปีติดต่อกัน</b> (ซื้อปีเว้นปีได้ แต่เว้น 2 ปีติดกันไม่ได้) ขายก่อนกำหนดต้องคืนภาษีที่ลดหย่อนไปพร้อมเงินเพิ่ม',
+      lsn4p2: '<b>SSF</b> (กองทุนรวมเพื่อการออม): ลดหย่อนได้สูงสุด 30% ของเงินได้ ไม่เกิน 200,000 บาท (อยู่ในเพดานรวม 500,000 เดียวกับ RMF) ต้องถือครบ 10 ปีปฏิทินนับจากวันที่ซื้อ',
+      lsn4p3: '<b>Thai ESG</b> (กองทุนรวมไทยเพื่อความยั่งยืน): แยกเพดานต่างหาก ไม่รวมกับ RMF/SSF แต่ <b>เพดาน/ระยะเวลาถือเปลี่ยนตามปีที่ซื้อ</b> — ซื้อปี 2567-2569 ลดหย่อนได้สูงสุด 300,000 บาท ถือ 5 ปีปฏิทิน; ซื้อปี 2570-2575 เพดานลดเหลือ 100,000 บาท และต้องถือนานขึ้นเป็น 8 ปีปฏิทิน (ตามเกณฑ์ที่ประกาศไว้แล้ว) — เป็นกองที่มาแทน LTF เดิม (LTF เก่าที่ยังถืออยู่ก็มีเงื่อนไขถือครบ 7 ปีปฏิทินของตัวเอง ไม่เกี่ยวกับกองใหม่)',
+      lsn5h: 'ทำไมต้อง DCA', lsn5p: 'ซื้อจำนวนเงินเท่าเดิมทุกเดือนไม่ว่าราคาขึ้นหรือลง ทำให้ได้ต้นทุนเฉลี่ย ไม่ต้องเดาจังหวะตลาด เหมาะกับมือใหม่ที่สุด',
+      lsn6h: 'ทำไมหน้านี้ไม่มีราคา NAV สด (ต้องกรอกเอง)',
+      lsn6p: 'สำรวจแล้วไม่พบ API ราคา NAV กองทุนไทยที่ฟรี ไม่ต้องขอคีย์ และเรียกจากเบราว์เซอร์ได้ตรงๆ (ต่างจากราคาทองที่มี thai-gold-api ให้ใช้) — API ทางการของ ก.ล.ต. ต้องขอ subscription key ซึ่งฝังในโค้ดฝั่งเบราว์เซอร์ของเว็บ static แบบนี้ไม่ปลอดภัย (คีย์หลุดสาธารณะทันที) และไม่ยืนยันว่าเปิดให้เรียกตรงจากเบราว์เซอร์ได้จริง จึงให้กรอก NAV เองจากแอป/เว็บของ บลจ. หรือ fund factsheet ของกองทุนนั้นๆ',
+      disc: 'ตัวเลขเป็นการประมาณจากสมมติฐานที่กรอก ผลจริงขึ้นกับตลาดและอาจติดลบได้ · การคำนวณภาษีเป็นการประมาณเบื้องต้น ไม่ใช่คำแนะนำภาษี · ไม่ใช่คำแนะนำการลงทุน · ข้อมูลเก็บในเครื่องคุณเท่านั้น',
+      alertMonthlyAmount: 'ใส่จำนวนเงินซื้อต่อเดือนอย่างน้อยหนึ่งชนิด',
+      oContribSub: '{amt} บาท/เดือน × {months} เดือน', oValueSub: 'ในอีก {years} ปี (สมมติ {cagr}%/ปี)',
+      yrTableColYear: 'สิ้นปีที่', yrTableColContrib: 'เงินที่ใส่', yrTableColValue: 'มูลค่ารวม', yrTableColGain: 'กำไร', yrRowLabel: 'ปีที่ {n}',
+      ddNearAth: 'ตอนนี้ราคาใกล้จุดสูงสุด (ย่อ {dd}%) — DCA ปกติเดือนละ {base} พอ ไม่ต้องเร่งเติม',
+      ddNormal: 'ย่อลง <b>{dd}%</b> จากจุดสูงสุด — ยังถือว่าปกติ DCA ตามแผนเดือนละ {base}',
+      ddTierMsg: 'ย่อลง <b>{dd}%</b> จากจุดสูงสุด — ตามกฎที่ตั้งไว้ อาจเพิ่มเงินซื้อเดือนนี้เป็น <b>×{mult}</b> ≈ <b>{amt}</b> (ถ้ามีเงินสำรอง)',
+      ddWarn: 'เตือน: การย่อไม่ได้แปลว่าจะไม่ลงต่อ — เติมเท่าที่มีเงินสำรองและไม่กระทบชีวิตประจำวัน',
+      alertIncomeRequiredProj: 'กรอกเงินได้สุทธิที่ต้องเสียภาษีต่อปีให้ถูกต้องก่อน', alertIncomeRequired: 'กรอกเงินได้สุทธิที่ต้องเสียภาษีต่อปีให้ถูกต้อง',
+      txProjThYear: 'ปี', txProjThIncome: 'เงินได้สมมติ', txProjThSaved: 'ประหยัดภาษีปีนั้น', txProjThCum: 'สะสม',
+      txSavedSubWithDeduction: 'ใช้สิทธิลดหย่อนรวม {ded} · ประหยัดเฉลี่ย {pct}% ของเงินที่ใส่', txSavedSubNone: 'ยังไม่ได้ใส่จำนวนซื้อ RMF/SSF/ESG',
+      txDetailEsgRule: 'เกณฑ์ Thai ESG ปี {year}', txDetailEsgRuleVal: 'ลดหย่อนได้สูงสุด {cap} · ถือ {years} ปี',
+      txDetailRmfLabel: 'RMF — ใช้สิทธิได้', txDetailSsfLabel: 'SSF — ใช้สิทธิได้', txDetailEsgLabel: 'Thai ESG — ใช้สิทธิได้', txDetailValOfWant: '{used} / ที่ใส่ {want}',
+      txCapNoteRmf: 'RMF เกินสิทธิ (เพดานเดี่ยว {cap} หรือโดนเพดานกลุ่มเกษียณรวมกันไป) ส่วนเกินลดหย่อนไม่ได้',
+      txCapNoteSsf: 'SSF เกินสิทธิ (เพดานเดี่ยว {cap} หรือโดนเพดานกลุ่มเกษียณรวมกันไป) ส่วนเกินลดหย่อนไม่ได้',
+      txCapNoteEsg: 'Thai ESG เกินเพดาน {cap} (30% ของเงินได้ สูงสุด 300,000 บาท แยกจาก RMF/SSF) ส่วนเกินลดหย่อนไม่ได้',
+      txCapNoteCombined: 'RMF+SSF+กลุ่มเกษียณอื่นที่กรอกไว้ รวมกันเกิน 500,000 บาท ระบบตัดสิทธิ์ส่วนเกินให้ RMF ก่อน แล้วเหลือเท่าไรถึงให้ SSF',
+      lgGroupSummary: 'รวมซื้อ {amt} · {units} หน่วย · ต้นทุนเฉลี่ย {avg}/หน่วย', lgGroupValueNow: ' · มูลค่าตอนนี้ {val} <b style="color:{color}">({sign}{pl}, {sign2}{pct}%)</b>',
+      logThDate: 'วันที่', logThFund: 'กองทุน', logThAmt: 'เงิน', logThNav: 'NAV', logThUnits: 'หน่วย',
+      alertFundName: 'กรอกชื่อกองทุน', alertLgFields: 'กรอกเงินที่ซื้อ และราคา/หน่วย (NAV) ให้ครบ',
+      elReadyLabel: 'พร้อมขายแล้ว', elReadyDate: '1 ม.ค. {year}', elNeedsBirthYear: 'กรอกปีเกิดด้านล่างเพื่อเช็คเงื่อนไขอายุ 55 ปี',
+      elEmptyDefault: 'ยังไม่มีรายการซื้อ RMF/SSF/Thai ESG ในสมุดซื้อ — บันทึกก่อนเพื่อดูวันครบกำหนดถือ',
+      elSsfNote: 'นับจากไม้แรกสุดที่บันทึกไว้ ({year}) — แต่ละไม้จริงมีเวลานับของตัวเอง นี่คือค่าประมาณแบบระมัดระวัง (ถือ 10 ปีปฏิทิน)',
+      elEsgNote: 'ใช้เกณฑ์ถือ {years} ปี ตามปีที่ซื้อไม้แรก ({year})',
+      elRmfNote: 'ต้องถือ ≥5 ปี (นับจากไม้แรก {year}) และอายุครบ 55 ปี · ระบบยังไม่เช็คว่าเว้นซื้อเกิน 1 ปีติดต่อกันหรือไม่ (เงื่อนไขต่อเนื่อง) ต้องดูเองด้วย',
+      catFullRmf: 'RMF', catFullSsf: 'SSF', catFullEsg: 'Thai ESG'
+    },
+    en: {
+      crumbHome: 'Investing', crumbHere: 'Thai Fund',
+      pageTitle: 'Thai Mutual Funds — DCA + Tax Savings Planner', headSub: 'Equity/Fixed income/Mixed · RMF · SSF · Thai ESG · buying monthly',
+      dcaTitle: 'Dollar-Cost Averaging Plan (DCA)', accMLabel: 'Buy "Accumulation" /month', divMLabel: 'Buy "Dividend" /month',
+      yearsLabel: 'Plan ahead', unitYears: '(years)', cagrLabel: 'Average return/year', unitPct: '(%)',
+      feeLabel: 'Fund fee/year', dyLabel: 'Dividend class yield/year', calcPlanBtn: 'Calculate Plan',
+      oContribLabel: 'Total contributed', oValueLabel: 'Estimated total value', oGainLabel: 'Growth gain', oGainSub: 'Not yet including tax/purchase fees',
+      accColTitle: 'Accumulation class', divColTitle: 'Dividend class',
+      lineInvested: 'Total invested', lineFinalValue: 'Final value', lineDivReceived: 'Dividends received', lineDivReceivedNote: '— (reinvested in fund)', lineDivCumulative: 'Cumulative dividends received',
+      chartValue: 'Total value', chartCost: 'Money contributed (cost)', viewYearTableSummary: 'View year-by-year table',
+      taxTitle: 'Calculate Tax Deduction (RMF / SSF / Thai ESG)', txYearLabel: 'Tax year of purchase', txYearUnit: '(affects the Thai ESG cap)',
+      txIncomeLabel: 'Net taxable income per year', txIncomeUnit: '(after other deductions)',
+      txRmfLabel: 'RMF bought this year', txSsfLabel: 'SSF bought this year', txEsgLabel: 'Thai ESG bought this year', unitBaht: '(baht)',
+      txOtherLabel: 'Other retirement deductions already used', txOtherUnit: '(GPF/PVD/annuity insurance, etc., baht)',
+      taxCalcBtn: 'Calculate Tax Savings', taxFromLogBtn: "Use this year's purchase log total",
+      txBeforeLabel: 'Tax before this fund deduction', txAfterLabel: 'Tax after this fund deduction', txSavedLabel: 'Tax saved',
+      viewMultiYearSummary: 'View multi-year plan (continued investing)', txIncomeGrowthLabel: 'Average income growth/year', txProjBtn: 'Calculate Multi-Year Plan',
+      txProjNote: 'Assumes buying the same RMF/SSF/ESG amount every year (the Thai ESG cap auto-adjusts if it crosses 2027)',
+      taxDisclaimer: "Estimate only, not tax advice — doesn't include deductions other than the retirement group entered (e.g. life insurance, donations, mortgage interest), and doesn't check that the holding-period conditions are fully met (RMF/SSF/ESG carry penalties for early selling). Please check with the Revenue Department or a tax advisor before deciding for real",
+      riskTitle: 'Fund Risk Level (1–8)', riskHint: 'The risk level is always printed on the first page of every Fund Factsheet — the higher the number, the higher the volatility. It\'s not "worse," it just requires being able to tolerate more volatility',
+      riskLabel1: 'Money market', riskLabel2: 'Short-term fixed income', riskLabel3: 'General fixed income', riskLabel4: 'Mixed (equity+debt)',
+      riskLabel5: 'Thai/foreign equity', riskLabel6: 'Sector/single-country equity', riskLabel7: 'Gold/commodities', riskLabel8: 'Derivatives/complex alternatives',
+      ddTitle: 'Market dip = a chance to add (optional)', idxNowLabel: 'SET index now', idxAthLabel: 'All-time high (ATH)', ddBtn: 'Get recommendation',
+      tr10m: 'Small dip', tr20m: 'Bear market', tr30m: 'Sharp dip',
+      ddHint: "Concept: when the market falls, things get cheaper. If you have reserve funds, add to your purchase at levels you set in advance (this is not a prediction of further declines)",
+      logTitle: 'My Actual Purchase Log', lgFundLabel: 'Fund name', lgCatLabel: 'Category (for tax)',
+      catGeneral: 'General', catRmf: 'RMF', catSsf: 'SSF', catEsg: 'Thai ESG',
+      lgAmtLabel: 'Amount purchased (baht)', lgNavLabel: 'Price/unit (NAV)', lgAddBtn: '+ Add',
+      lgCurLabel: 'Current NAV (to calculate P/L)', lgCurPh: 'Current price per unit',
+      lgEmptyDefault: 'No entries yet — log every purchase to know your average cost and profit/loss, broken down by fund',
+      elTitle: 'Sell-Without-Losing-Tax-Benefit Date', elBirthYearLabel: 'Birth year', elBirthYearUnit: "(only used to check RMF's age-55 condition)",
+      elNote: "This is only an estimate based on the dates recorded in your purchase log, not real data from the fund company — before selling for real, verify the exact due date with the fund company/your real transaction records",
+      lessonSummary: 'Learn — Thai mutual funds made simple',
+      lsn1h: 'What is a mutual fund', lsn1p: "Money from many people is pooled together for a professional fund manager to invest on their behalf — spreading risk more than buying individual stocks, suited to those without time to follow the market themselves",
+      lsn2h: 'Main fund types',
+      lsn2p: '<b>Fixed income</b> invests in bonds/debentures, low risk, low return · <b>Mixed</b> holds both equity and fixed income, moderate risk · <b>Equity</b> invests in stocks, high volatility but higher expected long-term return · <b>FIF</b> (Foreign Investment Fund) a Thai fund that invests abroad on our behalf · <b>REIT/property fund</b> invests in rental real estate, usually pays steady returns · <b>Gold</b> tracks the gold price without holding physical gold',
+      lsn3h: 'What is the 1-8 risk level', lsn3p: 'The same standard across the industry (AIMC/SEC), always printed on the first page of every Fund Factsheet — see the color scale above, the higher the number the higher the volatility. Choose one that fits your investment horizon and your own risk tolerance',
+      lsn4h: "What's the difference between RMF, SSF and Thai ESG",
+      lsn4p1: '<b>RMF</b> (Retirement Mutual Fund): deductible up to 30% of income, capped at 500,000 baht (shared with SSF and other retirement deductions under the same cap). Must be held until age 55 and invested continuously for at least 5 years — <b>never skip buying for more than 1 consecutive year</b> (buying every other year is fine, but 2 consecutive skipped years is not). Selling early requires repaying the tax deduction plus a penalty',
+      lsn4p2: '<b>SSF</b> (Super Savings Fund): deductible up to 30% of income, capped at 200,000 baht (within the same combined 500,000 cap as RMF). Must be held for 10 calendar years from the purchase date',
+      lsn4p3: '<b>Thai ESG</b> (Thailand ESG Fund): a separate cap, not combined with RMF/SSF, but <b>the cap/holding period changes based on the year of purchase</b> — buy in 2024-2026 and deduct up to 300,000 baht, hold 5 calendar years; buy in 2027-2032 and the cap drops to 100,000 baht with a longer 8 calendar-year hold (per the rules already announced) — this fund replaces the old LTF (an old LTF you still hold has its own separate 7 calendar-year holding condition, unrelated to this new fund)',
+      lsn5h: 'Why DCA', lsn5p: "Buy the same amount every month regardless of whether the price is up or down, giving you an average cost without needing to time the market — best suited for beginners",
+      lsn6h: "Why this page has no live NAV price (must be entered manually)",
+      lsn6p: "After research, no free Thai fund NAV API was found that requires no key and can be called directly from the browser (unlike gold prices, which have thai-gold-api available). The SEC's official API requires a subscription key, and embedding that in the browser-side code of a static site like this isn't safe (the key would leak publicly immediately) and it isn't confirmed to actually be callable directly from a browser — so please enter the NAV yourself from the fund company's app/website or that fund's factsheet",
+      disc: 'These figures are estimates based on the assumptions entered; real results depend on the market and can be negative · the tax calculation is a preliminary estimate, not tax advice · not investment advice · data is stored only on your device',
+      alertMonthlyAmount: 'Enter a monthly purchase amount for at least one class',
+      oContribSub: '{amt} baht/month × {months} months', oValueSub: 'in {years} more years (assuming {cagr}%/year)',
+      yrTableColYear: 'End of year', yrTableColContrib: 'Contributed', yrTableColValue: 'Total value', yrTableColGain: 'Gain', yrRowLabel: 'Year {n}',
+      ddNearAth: 'The price is currently near its all-time high (dip {dd}%) — a normal DCA of {base}/month is enough, no need to add extra',
+      ddNormal: 'Down <b>{dd}%</b> from the all-time high — still considered normal, DCA as planned at {base}/month',
+      ddTierMsg: 'Down <b>{dd}%</b> from the all-time high — per the rule you set, consider increasing this month\'s purchase to <b>×{mult}</b> ≈ <b>{amt}</b> (if you have reserve funds)',
+      ddWarn: "Warning: a dip doesn't mean it won't fall further — only add what you have in reserve funds, without affecting your daily life",
+      alertIncomeRequiredProj: 'Enter a valid net taxable income per year first', alertIncomeRequired: 'Enter a valid net taxable income per year',
+      txProjThYear: 'Year', txProjThIncome: 'Assumed income', txProjThSaved: 'Tax saved that year', txProjThCum: 'Cumulative',
+      txSavedSubWithDeduction: 'Using {ded} total deduction · saving an average of {pct}% of the amount contributed', txSavedSubNone: "You haven't entered an RMF/SSF/ESG purchase amount yet",
+      txDetailEsgRule: 'Thai ESG rule for {year}', txDetailEsgRuleVal: 'Deductible up to {cap} · hold {years} years',
+      txDetailRmfLabel: 'RMF — eligible amount', txDetailSsfLabel: 'SSF — eligible amount', txDetailEsgLabel: 'Thai ESG — eligible amount', txDetailValOfWant: '{used} / of {want} entered',
+      txCapNoteRmf: 'RMF exceeds the allowance (either the individual {cap} cap, or hit the combined retirement-group cap) — the excess is not deductible',
+      txCapNoteSsf: 'SSF exceeds the allowance (either the individual {cap} cap, or hit the combined retirement-group cap) — the excess is not deductible',
+      txCapNoteEsg: 'Thai ESG exceeds the {cap} cap (30% of income, capped at 300,000 baht, separate from RMF/SSF) — the excess is not deductible',
+      txCapNoteCombined: 'RMF+SSF+other retirement deductions entered together exceed 500,000 baht — the system allocates the excess cut to RMF first, then whatever remains goes to SSF',
+      lgGroupSummary: 'Total bought {amt} · {units} units · average cost {avg}/unit', lgGroupValueNow: ' · current value {val} <b style="color:{color}">({sign}{pl}, {sign2}{pct}%)</b>',
+      logThDate: 'Date', logThFund: 'Fund', logThAmt: 'Amount', logThNav: 'NAV', logThUnits: 'Units',
+      alertFundName: 'Enter the fund name', alertLgFields: 'Please fill in the amount purchased and price/unit (NAV)',
+      elReadyLabel: 'Ready to sell', elReadyDate: 'Jan 1, {year}', elNeedsBirthYear: "Enter your birth year below to check the age-55 condition",
+      elEmptyDefault: 'No RMF/SSF/Thai ESG purchases in your log yet — log one first to see the holding due date',
+      elSsfNote: "Counted from the earliest logged purchase ({year}) — each individual purchase actually has its own count; this is a conservative estimate (10 calendar-year hold)",
+      elEsgNote: 'Using the {years}-year hold rule based on the year of the first purchase ({year})',
+      elRmfNote: "Must hold ≥5 years (counted from the first purchase in {year}) and reach age 55 · the system does not yet check whether you skipped buying for more than 1 consecutive year (a continuity condition) — you must verify this yourself",
+      catFullRmf: 'RMF', catFullSsf: 'SSF', catFullEsg: 'Thai ESG'
+    }
+  };
+  function t(key, vars) {
+    var s = (I18N[getUILang()] || I18N.th)[key];
+    if (s == null) s = I18N.th[key] || key;
+    if (vars) Object.keys(vars).forEach(function (k) { s = s.split('{' + k + '}').join(vars[k]); });
+    return s;
+  }
+  function applyStaticI18n() {
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-html]').forEach(function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+  }
+
   /* ── จำลอง DCA เดือนต่อเดือน (แพทเทิร์นเดียวกับ invest-global-fund.js) ── */
   function simulate(pmt, annualNetPct, months, divYieldPct) {
     var rm = annualNetPct / 100 / 12;
@@ -65,14 +224,14 @@
   }
 
   function yearTable(p) {
-    var html = '<table class="yr-table"><thead><tr><th>สิ้นปีที่</th><th>เงินที่ใส่</th><th>มูลค่ารวม</th><th>กำไร</th></tr></thead><tbody>';
+    var html = '<table class="yr-table"><thead><tr><th>' + t('yrTableColYear') + '</th><th>' + t('yrTableColContrib') + '</th><th>' + t('yrTableColValue') + '</th><th>' + t('yrTableColGain') + '</th></tr></thead><tbody>';
     var yrs = Math.round(p.months / 12), i;
     for (i = 1; i <= yrs; i++) {
       var idx = i * 12 - 1;
       if (idx >= p.acc.series.length) break;
       var val = p.acc.series[idx].bal + p.div.series[idx].bal;
       var con = p.acc.series[idx].contrib + p.div.series[idx].contrib;
-      html += '<tr><td>ปีที่ ' + i + '</td><td>' + baht(con) + '</td><td>' + baht(val) + '</td><td style="color:var(--ok)">' + baht(val - con) + '</td></tr>';
+      html += '<tr><td>' + t('yrRowLabel', { n: i }) + '</td><td>' + baht(con) + '</td><td>' + baht(val) + '</td><td style="color:var(--ok)">' + baht(val - con) + '</td></tr>';
     }
     html += '</tbody></table>';
     return html;
@@ -87,14 +246,14 @@
       fee: num($('fee').value) || 0, dy: num($('dy').value) || 0
     };
     if (!isFinite(o.cagr)) { o.cagr = 6; $('cagr').value = 6; }
-    if (o.accM + o.divM <= 0) { alert('ใส่จำนวนเงินซื้อต่อเดือนอย่างน้อยหนึ่งชนิด'); return; }
+    if (o.accM + o.divM <= 0) { alert(t('alertMonthlyAmount')); return; }
     var p = plan(o);
     $('planOut').style.display = 'block';
 
     $('oContrib').textContent = baht(p.contribTotal);
-    $('oContribSub').textContent = fmt0(o.accM + o.divM) + ' บาท/เดือน × ' + p.months + ' เดือน';
+    $('oContribSub').textContent = t('oContribSub', { amt: fmt0(o.accM + o.divM), months: p.months });
     $('oValue').textContent = baht(p.valueTotal);
-    $('oValueSub').textContent = 'ในอีก ' + fmt0(o.years) + ' ปี (สมมติ ' + fmt(o.cagr, 1) + '%/ปี)';
+    $('oValueSub').textContent = t('oValueSub', { years: fmt0(o.years), cagr: fmt(o.cagr, 1) });
     $('oGain').textContent = baht(p.valueTotal - p.contribTotal);
 
     $('aC').textContent = baht(p.contribAcc);
@@ -121,10 +280,10 @@
     TR.forEach(function (t) { if (dd >= t.dd) { mult = t.x; tier = t; } });
     if (tier) document.querySelector('.tr-box[data-dd="' + tier.dd + '"]').classList.add('on');
     var msg;
-    if (dd < 1) msg = 'ตอนนี้ราคาใกล้จุดสูงสุด (ย่อ ' + fmt(Math.max(0, dd), 1) + '%) — DCA ปกติเดือนละ ' + baht(base) + ' พอ ไม่ต้องเร่งเติม';
-    else if (dd < 10) msg = 'ย่อลง <b>' + fmt(dd, 1) + '%</b> จากจุดสูงสุด — ยังถือว่าปกติ DCA ตามแผนเดือนละ ' + baht(base);
-    else msg = 'ย่อลง <b>' + fmt(dd, 1) + '%</b> จากจุดสูงสุด — ตามกฎที่ตั้งไว้ อาจเพิ่มเงินซื้อเดือนนี้เป็น <b>×' + mult + '</b> ≈ <b>' + baht(base * mult) + '</b> (ถ้ามีเงินสำรอง)';
-    out.innerHTML = msg + '<div style="font-size:12px;color:var(--muted);margin-top:6px">เตือน: การย่อไม่ได้แปลว่าจะไม่ลงต่อ — เติมเท่าที่มีเงินสำรองและไม่กระทบชีวิตประจำวัน</div>';
+    if (dd < 1) msg = t('ddNearAth', { dd: fmt(Math.max(0, dd), 1), base: baht(base) });
+    else if (dd < 10) msg = t('ddNormal', { dd: fmt(dd, 1), base: baht(base) });
+    else msg = t('ddTierMsg', { dd: fmt(dd, 1), mult: mult, amt: baht(base * mult) });
+    out.innerHTML = msg + '<div style="font-size:12px;color:var(--muted);margin-top:6px">' + t('ddWarn') + '</div>';
     out.style.display = 'block';
   }
 
@@ -242,11 +401,11 @@
       rmf: num($('txRmf').value) || 0, ssf: num($('txSsf').value) || 0, esg: num($('txEsg').value) || 0,
       otherRetire: num($('txOther').value) || 0, year: num($('txYear').value) || new Date().getFullYear()
     };
-    if (!isFinite(o.income) || o.income <= 0) { alert('กรอกเงินได้สุทธิที่ต้องเสียภาษีต่อปีให้ถูกต้องก่อน'); return; }
+    if (!isFinite(o.income) || o.income <= 0) { alert(t('alertIncomeRequiredProj')); return; }
     var years = Math.max(1, Math.round(num($('txProjYears').value) || 5));
     var growth = num($('txIncomeGrowth').value) || 0;
     var rows = projectTaxSaving(o, years, growth);
-    var html = '<table class="yr-table"><thead><tr><th>ปี</th><th>เงินได้สมมติ</th><th>ประหยัดภาษีปีนั้น</th><th>สะสม</th></tr></thead><tbody>';
+    var html = '<table class="yr-table"><thead><tr><th>' + t('txProjThYear') + '</th><th>' + t('txProjThIncome') + '</th><th>' + t('txProjThSaved') + '</th><th>' + t('txProjThCum') + '</th></tr></thead><tbody>';
     rows.forEach(function (r) {
       html += '<tr><td>' + r.year + '</td><td>' + baht(r.income) + '</td><td>' + baht(r.saved) + '</td><td style="color:var(--ok)">' + baht(r.cum) + '</td></tr>';
     });
@@ -263,7 +422,7 @@
       otherRetire: num($('txOther').value) || 0,
       year: num($('txYear').value) || new Date().getFullYear()
     };
-    if (!isFinite(o.income) || o.income <= 0) { alert('กรอกเงินได้สุทธิที่ต้องเสียภาษีต่อปีให้ถูกต้อง'); return; }
+    if (!isFinite(o.income) || o.income <= 0) { alert(t('alertIncomeRequired')); return; }
     var r = computeTaxSaving(o);
 
     $('txOut').style.display = 'block';
@@ -271,18 +430,18 @@
     $('txAfter').textContent = baht(r.taxAfter);
     $('txSaved').textContent = baht(r.saved);
     $('txSavedSub').textContent = r.totalDeduction > 0
-      ? ('ใช้สิทธิลดหย่อนรวม ' + baht(r.totalDeduction) + ' · ประหยัดเฉลี่ย ' + fmt(r.totalDeduction > 0 ? r.saved / r.totalDeduction * 100 : 0, 1) + '% ของเงินที่ใส่')
-      : 'ยังไม่ได้ใส่จำนวนซื้อ RMF/SSF/ESG';
+      ? t('txSavedSubWithDeduction', { ded: baht(r.totalDeduction), pct: fmt(r.totalDeduction > 0 ? r.saved / r.totalDeduction * 100 : 0, 1) })
+      : t('txSavedSubNone');
 
     var html = '';
-    html += '<div class="tax-line"><span>เกณฑ์ Thai ESG ปี ' + r.year + '</span><span class="v">ลดหย่อนได้สูงสุด ' + baht(r.esgRule.cap) + ' · ถือ ' + r.esgRule.holdYears + ' ปี</span></div>';
-    html += '<div class="tax-line"><span>RMF — ใช้สิทธิได้</span><span class="v">' + baht(r.rmfUsed) + ' / ที่ใส่ ' + baht(r.rmfWant) + '</span></div>';
-    if (r.rmfCapped) html += '<div class="tax-cap-note">RMF เกินสิทธิ (เพดานเดี่ยว ' + baht(r.rmfCap) + ' หรือโดนเพดานกลุ่มเกษียณรวมกันไป) ส่วนเกินลดหย่อนไม่ได้</div>';
-    html += '<div class="tax-line"><span>SSF — ใช้สิทธิได้</span><span class="v">' + baht(r.ssfUsed) + ' / ที่ใส่ ' + baht(r.ssfWant) + '</span></div>';
-    if (r.ssfCapped) html += '<div class="tax-cap-note">SSF เกินสิทธิ (เพดานเดี่ยว ' + baht(r.ssfCap) + ' หรือโดนเพดานกลุ่มเกษียณรวมกันไป) ส่วนเกินลดหย่อนไม่ได้</div>';
-    html += '<div class="tax-line"><span>Thai ESG — ใช้สิทธิได้</span><span class="v">' + baht(r.esgUsed) + ' / ที่ใส่ ' + baht(r.esgWant) + '</span></div>';
-    if (r.esgCapped) html += '<div class="tax-cap-note">Thai ESG เกินเพดาน ' + baht(r.esgCap) + ' (30% ของเงินได้ สูงสุด 300,000 บาท แยกจาก RMF/SSF) ส่วนเกินลดหย่อนไม่ได้</div>';
-    if (r.combinedCapHit) html += '<div class="tax-cap-note">RMF+SSF+กลุ่มเกษียณอื่นที่กรอกไว้ รวมกันเกิน 500,000 บาท ระบบตัดสิทธิ์ส่วนเกินให้ RMF ก่อน แล้วเหลือเท่าไรถึงให้ SSF</div>';
+    html += '<div class="tax-line"><span>' + t('txDetailEsgRule', { year: r.year }) + '</span><span class="v">' + t('txDetailEsgRuleVal', { cap: baht(r.esgRule.cap), years: r.esgRule.holdYears }) + '</span></div>';
+    html += '<div class="tax-line"><span>' + t('txDetailRmfLabel') + '</span><span class="v">' + t('txDetailValOfWant', { used: baht(r.rmfUsed), want: baht(r.rmfWant) }) + '</span></div>';
+    if (r.rmfCapped) html += '<div class="tax-cap-note">' + t('txCapNoteRmf', { cap: baht(r.rmfCap) }) + '</div>';
+    html += '<div class="tax-line"><span>' + t('txDetailSsfLabel') + '</span><span class="v">' + t('txDetailValOfWant', { used: baht(r.ssfUsed), want: baht(r.ssfWant) }) + '</span></div>';
+    if (r.ssfCapped) html += '<div class="tax-cap-note">' + t('txCapNoteSsf', { cap: baht(r.ssfCap) }) + '</div>';
+    html += '<div class="tax-line"><span>' + t('txDetailEsgLabel') + '</span><span class="v">' + t('txDetailValOfWant', { used: baht(r.esgUsed), want: baht(r.esgWant) }) + '</span></div>';
+    if (r.esgCapped) html += '<div class="tax-cap-note">' + t('txCapNoteEsg', { cap: baht(r.esgCap) }) + '</div>';
+    if (r.combinedCapHit) html += '<div class="tax-cap-note">' + t('txCapNoteCombined') + '</div>';
     $('txDetail').innerHTML = html;
   }
 
@@ -305,20 +464,20 @@
 
   /* ── สเกลความเสี่ยง 1-8 ──────────────────────────────────────── */
   var RISK_LEVELS = [
-    { n: 1, label: 'ตลาดเงิน', color: '#17B26A' },
-    { n: 2, label: 'ตราสารหนี้ระยะสั้น', color: '#4CC38A' },
-    { n: 3, label: 'ตราสารหนี้ทั่วไป', color: '#8FD19E' },
-    { n: 4, label: 'ผสม (หุ้น+หนี้)', color: '#F5D76E' },
-    { n: 5, label: 'หุ้นไทย/ต่างประเทศ', color: '#F5A524' },
-    { n: 6, label: 'หุ้นเฉพาะกลุ่ม/ประเทศเดียว', color: '#F08A3C' },
-    { n: 7, label: 'ทองคำ/สินค้าโภคภัณฑ์', color: '#EC5E8A' },
-    { n: 8, label: 'อนุพันธ์/ทางเลือกซับซ้อน', color: '#E5484D' }
+    { n: 1, key: 'riskLabel1', color: '#17B26A' },
+    { n: 2, key: 'riskLabel2', color: '#4CC38A' },
+    { n: 3, key: 'riskLabel3', color: '#8FD19E' },
+    { n: 4, key: 'riskLabel4', color: '#F5D76E' },
+    { n: 5, key: 'riskLabel5', color: '#F5A524' },
+    { n: 6, key: 'riskLabel6', color: '#F08A3C' },
+    { n: 7, key: 'riskLabel7', color: '#EC5E8A' },
+    { n: 8, key: 'riskLabel8', color: '#E5484D' }
   ];
   function renderRiskScale() {
     var el = $('riskScale'); if (!el) return;
     var html = '';
     RISK_LEVELS.forEach(function (r) {
-      html += '<div class="risk-seg" style="background:' + r.color + '"><div class="n">' + r.n + '</div><div>' + r.label + '</div></div>';
+      html += '<div class="risk-seg" style="background:' + r.color + '"><div class="n">' + r.n + '</div><div>' + t(r.key) + '</div></div>';
     });
     el.innerHTML = html;
   }
@@ -327,11 +486,11 @@
   function loadLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch (e) { return []; } }
   function saveLog(a) { try { localStorage.setItem(LOG_KEY, JSON.stringify(a)); } catch (e) {} }
 
-  var CAT_LABEL = { general: 'ทั่วไป', rmf: 'RMF', ssf: 'SSF', esg: 'Thai ESG' };
+  function catLabel(cat) { return cat === 'rmf' ? t('catRmf') : cat === 'ssf' ? t('catSsf') : cat === 'esg' ? t('catEsg') : t('catGeneral'); }
 
   function renderLog() {
     var log = loadLog(), box = $('lgBox');
-    if (!log.length) { box.innerHTML = '<div class="log-empty">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและกำไร-ขาดทุน แยกตามกองทุน</div>'; return; }
+    if (!log.length) { box.innerHTML = '<div class="log-empty">' + t('lgEmptyDefault') + '</div>'; return; }
     var cur = num($('lgCur').value);
     var groups = {};
     log.forEach(function (r) {
@@ -342,16 +501,16 @@
     var html = '';
     Object.keys(groups).forEach(function (fund) {
       var g = groups[fund], avg = g.units > 0 ? g.amt / g.units : NaN;
-      html += '<div class="log-group-hd">' + fund + ' <span style="font-weight:600;color:var(--brand-dk);font-size:11.5px">(' + (CAT_LABEL[g.cat] || 'ทั่วไป') + ')</span></div>';
-      html += '<div class="log-group-sub">รวมซื้อ ' + baht(g.amt) + ' · ' + fmt(g.units, 4) + ' หน่วย · ต้นทุนเฉลี่ย ' + fmt(avg, 4) + '/หน่วย';
+      html += '<div class="log-group-hd">' + fund + ' <span style="font-weight:600;color:var(--brand-dk);font-size:11.5px">(' + catLabel(g.cat) + ')</span></div>';
+      html += '<div class="log-group-sub">' + t('lgGroupSummary', { amt: baht(g.amt), units: fmt(g.units, 4), avg: fmt(avg, 4) });
       if (isFinite(cur)) {
         var val = g.units * cur, pl = val - g.amt, pct = g.amt > 0 ? pl / g.amt * 100 : 0;
-        html += ' · มูลค่าตอนนี้ ' + baht(val) + ' <b style="color:' + (pl >= 0 ? 'var(--ok)' : 'var(--err)') + '">(' + (pl >= 0 ? '+' : '−') + baht(Math.abs(pl)) + ', ' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)</b>';
+        html += t('lgGroupValueNow', { val: baht(val), color: pl >= 0 ? 'var(--ok)' : 'var(--err)', sign: pl >= 0 ? '+' : '−', pl: baht(Math.abs(pl)), sign2: pct >= 0 ? '+' : '', pct: fmt(pct, 1) });
       }
       html += '</div>';
     });
 
-    html += '<table class="log-table"><thead><tr><th>วันที่</th><th>กองทุน</th><th>เงิน</th><th>NAV</th><th>หน่วย</th><th></th></tr></thead><tbody>';
+    html += '<table class="log-table"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThFund') + '</th><th>' + t('logThAmt') + '</th><th>' + t('logThNav') + '</th><th>' + t('logThUnits') + '</th><th></th></tr></thead><tbody>';
     log.forEach(function (r, i) {
       html += '<tr><td>' + new Date(r.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
         '<td>' + r.fund + '</td><td>' + baht(r.amt) + '</td><td>' + fmt(r.nav, 4) + '</td><td>' + fmt(r.units, 4) + '</td>' +
@@ -367,8 +526,8 @@
   function addLog() {
     var fund = ($('lgFund').value || '').trim(), cat = $('lgCat').value;
     var amt = num($('lgAmt').value), nav = num($('lgNav').value);
-    if (!fund) { alert('กรอกชื่อกองทุน'); return; }
-    if (!isFinite(amt) || amt <= 0 || !isFinite(nav) || nav <= 0) { alert('กรอกเงินที่ซื้อ และราคา/หน่วย (NAV) ให้ครบ'); return; }
+    if (!fund) { alert(t('alertFundName')); return; }
+    if (!isFinite(amt) || amt <= 0 || !isFinite(nav) || nav <= 0) { alert(t('alertLgFields')); return; }
     var log = loadLog();
     log.push({ fund: fund, cat: cat, amt: amt, nav: nav, units: amt / nav, ts: Date.now() });
     saveLog(log);
@@ -394,18 +553,18 @@
   function loadBirthYear() { var v = num(localStorage.getItem(BIRTHYEAR_KEY)); return isFinite(v) ? v : null; }
   function saveBirthYear(y) { try { localStorage.setItem(BIRTHYEAR_KEY, String(y)); } catch (e) {} }
 
-  var CAT_FULL_LABEL = { rmf: 'RMF', ssf: 'SSF', esg: 'Thai ESG' };
+  var CAT_FULL_KEY = { rmf: 'catFullRmf', ssf: 'catFullSsf', esg: 'catFullEsg' };
 
   function eligibilityFor(cat, purchases, birthYear) {
     if (!purchases.length) return null;
     purchases.sort(function (a, b) { return a.ts - b.ts; });
     var firstYear = new Date(purchases[0].ts).getFullYear();
     if (cat === 'ssf') {
-      return { readyYear: firstYear + 10, note: 'นับจากไม้แรกสุดที่บันทึกไว้ (' + firstYear + ') — แต่ละไม้จริงมีเวลานับของตัวเอง นี่คือค่าประมาณแบบระมัดระวัง (ถือ 10 ปีปฏิทิน)' };
+      return { readyYear: firstYear + 10, note: t('elSsfNote', { year: firstYear }) };
     }
     if (cat === 'esg') {
       var rule = esgRuleForYear(firstYear);
-      return { readyYear: firstYear + rule.holdYears, note: 'ใช้เกณฑ์ถือ ' + rule.holdYears + ' ปี ตามปีที่ซื้อไม้แรก (' + firstYear + ')' };
+      return { readyYear: firstYear + rule.holdYears, note: t('elEsgNote', { years: rule.holdYears, year: firstYear }) };
     }
     if (cat === 'rmf') {
       var yearCond = firstYear + 5;
@@ -413,7 +572,7 @@
       return {
         readyYear: ageCond ? Math.max(yearCond, ageCond) : yearCond,
         needsBirthYear: !ageCond,
-        note: 'ต้องถือ ≥5 ปี (นับจากไม้แรก ' + firstYear + ') และอายุครบ 55 ปี · ระบบยังไม่เช็คว่าเว้นซื้อเกิน 1 ปีติดต่อกันหรือไม่ (เงื่อนไขต่อเนื่อง) ต้องดูเองด้วย'
+        note: t('elRmfNote', { year: firstYear })
       };
     }
     return null;
@@ -433,16 +592,17 @@
       var el = eligibilityFor(cat, groups[cat], birthYear);
       if (!el) return;
       var ready = curYear >= el.readyYear;
-      var html = '<div class="sumbox"><div class="lbl">' + CAT_FULL_LABEL[cat] + '</div>';
-      html += '<div class="val' + (ready ? ' grow' : '') + '">' + (ready ? 'พร้อมขายแล้ว' : ('1 ม.ค. ' + el.readyYear)) + '</div>';
-      if (el.needsBirthYear) html += '<div class="sub" style="color:var(--warn)">กรอกปีเกิดด้านล่างเพื่อเช็คเงื่อนไขอายุ 55 ปี</div>';
+      var html = '<div class="sumbox"><div class="lbl">' + t(CAT_FULL_KEY[cat]) + '</div>';
+      html += '<div class="val' + (ready ? ' grow' : '') + '">' + (ready ? t('elReadyLabel') : t('elReadyDate', { year: el.readyYear })) + '</div>';
+      if (el.needsBirthYear) html += '<div class="sub" style="color:var(--warn)">' + t('elNeedsBirthYear') + '</div>';
       html += '<div class="sub">' + el.note + '</div></div>';
       boxes.push(html);
     });
-    box.innerHTML = boxes.length ? ('<div class="sumrow">' + boxes.join('') + '</div>') : '<div class="log-empty">ยังไม่มีรายการซื้อ RMF/SSF/Thai ESG ในสมุดซื้อ — บันทึกก่อนเพื่อดูวันครบกำหนดถือ</div>';
+    box.innerHTML = boxes.length ? ('<div class="sumrow">' + boxes.join('') + '</div>') : '<div class="log-empty">' + t('elEmptyDefault') + '</div>';
   }
 
   function init() {
+    applyStaticI18n();
     $('calcBtn').addEventListener('click', doCalc);
     $('ddBtn').addEventListener('click', doDrawdown);
     $('lgAdd').addEventListener('click', addLog);
@@ -464,6 +624,17 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+
+  window.omeApplyLang = function () {
+    applyStaticI18n();
+    renderRiskScale();
+    doCalc();
+    renderLog();
+    renderEligibility();
+    if ($('txOut').style.display !== 'none') doTaxCalc();
+    var ddOut = $('ddOut');
+    if (ddOut.style.display !== 'none') doDrawdown();
+  };
 
   window.__thaifund = {
     simulate: simulate, plan: plan, thaiTax: thaiTax, computeTaxSaving: computeTaxSaving,
