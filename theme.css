@@ -257,6 +257,24 @@ body{padding-bottom:0!important}
   background:linear-gradient(120deg, var(--ome-brand-sf) 0%, var(--ome-card) 55%, var(--ome-brand-sf) 100%);
 }
 
+/* ── พื้นหลังโซนลงทุนทุกหน้า (invest*.html — ระบุด้วย data-invest-key ที่ทุกหน้าใส่ไว้อยู่แล้ว)
+   รวมศูนย์มาจากเดิมที่ทำไว้เฉพาะหน้า invest.html (ภาพรวม) — ผู้ใช้ขอให้ทุกหน้าลงทุนใช้พื้นหลัง
+   เดียวกัน จะได้แก้ที่เดียวในอนาคต ย้ายมาไว้ที่นี่แทน (ลบออกจาก invest.html แล้ว):
+   1) ไล่สีอ่อนๆ จากสีธีมที่เลือกที่ขอบบนของหน้า ไปเป็นสีพื้นปกติ (--bg/--card มีชื่อ/ค่าเดียวกัน
+      ทุกหน้าลงทุนอยู่แล้ว จึงอ้างอิงร่วมกันได้ปลอดภัย)
+   2) ลายตกแต่ง SVG (เครือข่ายจุด/ไอคอนการเงิน + กราฟแนวโน้มขาขึ้น) ที่ shell.js เป็นคนแทรกให้ทุก
+      หน้าลงทุนอัตโนมัติ (ดู shell.js: buildInvestBgMotif) — ที่นี่มีแค่การจัดตำแหน่ง/สีเท่านั้น
+   specificity ของ selector มี [data-invest-key] เพิ่มมา สูงกว่า body.ome-tool-page เฉยๆ ที่แต่ละ
+   หน้ายังประกาศ background:var(--bg) ไว้เองอยู่ (ไม่ได้ลบทิ้งทุกไฟล์) เลยชนะได้โดยไม่ต้องพึ่งลำดับ
+   โหลดไฟล์ — ถ้าเลือก "ประเภทธีม" อื่น (glass/aurora ฯลฯ) กฎ !important ของประเภทธีมนั้นจะทับอีกที
+   ตามลำดับชั้นปกติ (ดูหมวด "รวมศูนย์ UI/UX เฟส 7" ด้านล่าง) */
+body.ome-tool-page[data-invest-key]{
+  background:linear-gradient(180deg, color-mix(in srgb, var(--ome-brand) 7%, var(--bg) 93%) 0%, var(--bg) 560px);
+  background-attachment:fixed;
+}
+.bgmotif{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;color:var(--ome-brand);opacity:.85}
+[data-theme="dark"] .bgmotif{opacity:.5}
+
 /* ── หน้า React+Tailwind (classroom-business/engineering, languages.html, legal.html) ──────
    เดิม override เฉพาะ [data-theme="dark"] อย่างเดียว (hardcode ค่าสีเข้มของ mint ตรงๆ) พอมี
    สีธีมอื่นเพิ่ม (เฟส 4+) หน้าพวกนี้เลยไม่ขยับตามเลยทั้งโหมดสว่าง/มืด (ผู้ใช้แจ้งว่า "ภาษา/

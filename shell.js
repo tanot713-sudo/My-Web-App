@@ -36,6 +36,61 @@
     document.head.appendChild(s);
   })();
 
+  /* ── พื้นหลังตกแต่ง SVG ของโซนลงทุน (เครือข่ายจุด/ไอคอนการเงิน + กราฟแนวโน้มขาขึ้น) ──────────
+     เดิมเขียนซ้ำ (ทั้ง CSS และ SVG) ในไฟล์ invest.html หน้าเดียว ผู้ใช้ขอให้ทุกหน้าลงทุนใช้พื้นหลัง
+     เดียวกัน จะได้แก้ที่เดียวในอนาคต — ย้ายมาแทรกจากที่นี่แทน ใช้กับทุกหน้าที่มี data-invest-key
+     (ทุกไฟล์ invest*.html ใส่ attribute นี้ไว้ที่ <body> อยู่แล้วสำหรับกันคนละเรื่อง) ส่วนพื้นไล่สี
+     อ่อนๆ ของทั้งหน้าอยู่ใน theme.css แทน (ล้วนเป็น CSS ไม่ต้องพึ่ง JS) ที่นี่แทรกแค่ตัว SVG ลาย
+     ตกแต่งเท่านั้น สีอ้างอิง currentColor ผูกกับ --ome-brand ในหน้านั้นๆ เอง เลยปรับตามธีม/มืดสว่าง
+     อัตโนมัติไม่ต้องส่งค่าอะไรมาจากที่นี่ */
+  (function injectInvestBgMotif() {
+    if (isEmbedded()) return; /* ในป๊อปอัพ กรอบแคบเกินจะเห็นลายนี้ (ออกแบบไว้โผล่แค่จอกว้าง) ตัดออก */
+    var body = document.body;
+    if (!body || !body.classList.contains('ome-tool-page') || !body.dataset.investKey) return;
+    body.insertAdjacentHTML('afterbegin',
+      '<svg class="bgmotif" aria-hidden="true" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1600 900">' +
+      '<defs><radialGradient id="bgGlow" cx="78%" cy="72%" r="55%">' +
+      '<stop offset="0%" stop-color="currentColor" stop-opacity=".22"/>' +
+      '<stop offset="100%" stop-color="currentColor" stop-opacity="0"/>' +
+      '</radialGradient></defs>' +
+      '<g stroke="currentColor" stroke-opacity=".22" stroke-width="1.2" fill="none">' +
+      '<line x1="20" y1="60" x2="130" y2="140"/><line x1="130" y1="140" x2="90" y2="230"/>' +
+      '<line x1="130" y1="140" x2="230" y2="110"/><line x1="230" y1="110" x2="300" y2="180"/>' +
+      '<line x1="90" y1="230" x2="40" y2="300"/><line x1="90" y1="230" x2="170" y2="280"/>' +
+      '<line x1="170" y1="280" x2="140" y2="360"/><line x1="230" y1="110" x2="260" y2="40"/></g>' +
+      '<g fill="currentColor" fill-opacity=".28">' +
+      '<circle cx="20" cy="60" r="3"/><circle cx="130" cy="140" r="3.5"/><circle cx="90" cy="230" r="3"/>' +
+      '<circle cx="230" cy="110" r="3"/><circle cx="300" cy="180" r="3"/><circle cx="40" cy="300" r="2.5"/>' +
+      '<circle cx="170" cy="280" r="3"/><circle cx="140" cy="360" r="2.5"/><circle cx="260" cy="40" r="2.5"/></g>' +
+      '<g fill="currentColor" fill-opacity=".3" font-family="Arial, sans-serif" font-weight="700">' +
+      '<text x="12" y="115" font-size="30">$</text><text x="250" y="90" font-size="24">€</text>' +
+      '<text x="70" y="205" font-size="22">¥</text></g>' +
+      '<circle cx="255" cy="210" r="18" fill="none" stroke="currentColor" stroke-opacity=".24" stroke-width="1.4"/>' +
+      '<path d="M255,210 L255,192 A18,18 0 0,1 271,220 Z" fill="currentColor" fill-opacity=".18"/>' +
+      '<g fill="currentColor" fill-opacity=".22">' +
+      '<rect x="30" y="330" width="7" height="20"/><rect x="42" y="318" width="7" height="32"/>' +
+      '<rect x="54" y="305" width="7" height="45"/><rect x="66" y="292" width="7" height="58"/>' +
+      '<rect x="78" y="275" width="7" height="75"/></g>' +
+      '<path d="M195,255 c0,-9 6,-14 15,-16 c9,2 15,7 15,16 c0,13 -8,22 -15,26 c-7,-4 -15,-13 -15,-26 Z" ' +
+      'fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="1.4"/>' +
+      '<path d="M300,175 L360,110" stroke="currentColor" stroke-opacity=".26" stroke-width="1.6" fill="none"/>' +
+      '<path d="M338,110 L362,108 L360,132" stroke="currentColor" stroke-opacity=".26" stroke-width="1.6" fill="none" stroke-linejoin="round"/>' +
+      '<rect x="900" y="500" width="700" height="400" fill="url(#bgGlow)"/>' +
+      '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' +
+      '<polyline points="950,860 1080,760 1160,800 1260,650 1360,700 1460,560 1560,600" stroke-width="3" stroke-opacity=".28"/>' +
+      '<polyline points="1000,880 1130,790 1210,825 1310,690 1410,730 1510,600 1600,640" stroke-width="2" stroke-opacity=".16"/></g>' +
+      '<g fill="currentColor" fill-opacity=".3">' +
+      '<circle cx="1080" cy="760" r="3.5"/><circle cx="1160" cy="800" r="3"/><circle cx="1260" cy="650" r="3.5"/>' +
+      '<circle cx="1360" cy="700" r="3"/><circle cx="1460" cy="560" r="4"/><circle cx="1560" cy="600" r="3"/></g>' +
+      '<g stroke="currentColor" stroke-opacity=".18" stroke-width="1">' +
+      '<line x1="1080" y1="760" x2="1260" y2="650"/><line x1="1160" y1="800" x2="1360" y2="700"/>' +
+      '<line x1="1260" y1="650" x2="1460" y2="560"/></g>' +
+      '<g fill="currentColor" fill-opacity=".12">' +
+      '<rect x="1180" y="820" width="10" height="60"/><rect x="1198" y="795" width="10" height="85"/>' +
+      '<rect x="1216" y="770" width="10" height="110"/><rect x="1234" y="740" width="10" height="140"/></g>' +
+      '</svg>');
+  })();
+
   /* ── รายชื่อสีธีมที่เลือกได้ (เฟส 6 — แยกแกน "สี" ออกจากแกน "สว่าง/มืด" ตามที่ผู้ใช้ขอ) ──────
      เดิม (เฟส 4) สี+ความสว่างผูกกันในค่าเดียว ('flooks'/'dark' อยู่ลิสต์เดียวกัน) ทำให้เลือกสีอื่น
      แล้วติดสว่างตลอด ตอนนี้แยกเป็น 2 แกนอิสระ: ACCENTS (สีล้วนๆ 9 แบบ รวม mint เดิม) x สว่าง/มืด
