@@ -83,14 +83,14 @@ h1,h2,h3{text-wrap:balance}
 .kpi .sub.up{color:var(--ok)}.kpi .sub.dn{color:var(--err)}
 
 /* ── โครงหลัก ── */
-.layout{display:grid;grid-template-columns:1.62fr .95fr;gap:16px;margin-top:16px}
+.layout{display:grid;grid-template-columns:1.62fr .95fr;gap:16px;margin-top:16px;align-items:start}
 .stack{display:flex;flex-direction:column;gap:16px}
-.stack > .card:last-child{flex:1;display:flex;flex-direction:column;justify-content:center}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh);padding:19px}
 .card .head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:15px}
 .card .head h2{margin:0;font-size:15px;font-weight:700;letter-spacing:-.005em}
 .card .head a,.card .head button.lnk{font-size:12px;color:var(--iv-dk);text-decoration:none;font-weight:700;white-space:nowrap;background:none;border:0;cursor:pointer;font-family:inherit}
 .empty-hint{font-size:12.5px;color:var(--muted);text-align:center;padding:18px 10px;line-height:1.7}
+.empty-hint .lnk{color:var(--iv-dk);font-weight:700;background:none;border:0;cursor:pointer;font:inherit;padding:0}
 
 .chartwrap{width:100%;overflow-x:auto}
 .chartwrap svg{display:block;width:100%;height:auto;min-width:420px}
@@ -99,6 +99,7 @@ h1,h2,h3{text-wrap:balance}
 .ticker{border:1px solid var(--line);border-radius:12px;padding:11px;background:var(--bg)}
 .ticker b{display:block;font-size:11px;font-weight:700;color:var(--muted)}
 .ticker .px{display:block;font-size:15px;font-weight:800;margin:5px 0 2px;font-variant-numeric:tabular-nums}
+.ticker .unit{display:block;font-size:9px;color:var(--muted);margin-bottom:3px}
 .ticker .chg{font-size:10.5px;font-weight:700;color:var(--muted)}
 .ticker .chg.up{color:var(--ok)}.ticker .chg.dn{color:var(--err)}
 .live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-right:5px;box-shadow:0 0 0 2.5px rgba(23,178,106,.15)}
@@ -163,6 +164,14 @@ h1,h2,h3{text-wrap:balance}
 .ai-panel .ans{margin-top:10px;font-size:12px;line-height:1.6;color:var(--ink);background:var(--bg);border-radius:10px;padding:10px;display:none}
 .ai-panel .ans.on{display:block}
 
+/* ── ป๊อปอัพพอร์ตจำลอง — เปิด invest-portfolio.html ในกรอบลอย เลื่อนได้ แทนการเปลี่ยนหน้า ── */
+.pf-modal-overlay{position:fixed;inset:0;background:rgba(11,18,35,.5);z-index:90;display:flex;align-items:flex-start;justify-content:center;padding:26px 16px;overflow-y:auto}
+.pf-modal-overlay[hidden]{display:none}
+.pf-modal-box{position:relative;width:min(860px,100%);background:var(--card);border-radius:18px;box-shadow:0 24px 60px rgba(10,16,32,.35);overflow:hidden;margin:auto}
+.pf-modal-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:16px;line-height:1;cursor:pointer;z-index:2;box-shadow:0 2px 8px rgba(20,30,54,.12)}
+.pf-modal-box iframe{display:block;width:100%;border:0;min-height:200px}
+@media(max-width:600px){.pf-modal-overlay{padding:0}.pf-modal-box{border-radius:0;min-height:100vh}}
+
 @media(max-width:920px){
   .layout{grid-template-columns:1fr}
   .kpis{grid-template-columns:repeat(2,1fr)}
@@ -185,7 +194,7 @@ h1,h2,h3{text-wrap:balance}
 <nav class="ivnav" id="ivNav">
   <div class="ivgroups" id="ivGroups">
     <button class="on" type="button" data-group="overview"><span class="ic">⌂</span>ภาพรวม</button>
-    <button type="button" data-group="portfolio" data-href="invest-portfolio.html"><span class="ic">◉</span>พอร์ตของฉัน</button>
+    <button type="button" class="js-open-pf" data-group="portfolio"><span class="ic">◉</span>พอร์ตของฉัน</button>
     <button type="button" data-group="market"><span class="ic">◈</span>ตลาด &amp; สินทรัพย์</button>
     <button type="button" data-group="lottery"><span class="ic">🎟</span>สลาก &amp; พันธบัตร</button>
     <button type="button" data-group="news"><span class="ic">✎</span>ข่าว &amp; ธุรกิจ</button>
@@ -249,17 +258,22 @@ h1,h2,h3{text-wrap:balance}
       </section>
 
       <section class="card">
-        <div class="head"><h2>สินทรัพย์ในพอร์ต</h2><a href="invest-portfolio.html">+ เพิ่มสินทรัพย์</a></div>
+        <div class="head"><h2>ตลาดโภคภัณฑ์</h2><a href="invest-commodities.html">ดูทั้งหมด →</a></div>
+        <div class="tickergrid" id="commodGrid" style="grid-template-columns:repeat(4,1fr)"></div>
+      </section>
+
+      <section class="card">
+        <div class="head"><h2>สินทรัพย์ในพอร์ต</h2><a href="invest-portfolio.html" class="js-open-pf">+ เพิ่มสินทรัพย์</a></div>
         <div id="assetsBody"></div>
       </section>
 
       <section class="card">
         <div class="head"><h2>เครื่องมือด่วน</h2></div>
         <div class="quick">
-          <a class="qbtn" href="invest-portfolio.html"><span class="ic">＋</span>เพิ่มรายการ</a>
+          <a class="qbtn js-open-pf" href="invest-portfolio.html"><span class="ic">＋</span>เพิ่มรายการ</a>
           <a class="qbtn" href="#riskCard"><span class="ic">◈</span>วิเคราะห์ความเสี่ยง</a>
           <a class="qbtn" href="invest-business.html"><span class="ic">◎</span>สร้างแผนลงทุน</a>
-          <a class="qbtn" href="invest-portfolio.html"><span class="ic">✓</span>ทบทวนพอร์ต</a>
+          <a class="qbtn js-open-pf" href="invest-portfolio.html"><span class="ic">✓</span>ทบทวนพอร์ต</a>
         </div>
       </section>
     </div>
@@ -300,9 +314,14 @@ h1,h2,h3{text-wrap:balance}
     </aside>
   </div>
 
-  <div class="disc">
-    เครื่องมือในโซนนี้เป็น <b>ตัวช่วยคิดและบริหารความเสี่ยง</b> ไม่ใช่คำแนะนำการลงทุนหรือการพยากรณ์ราคา —
-    การตัดสินใจซื้อ-ขายและความเสี่ยงเป็นของคุณเอง ข้อมูลทั้งหมดเก็บในเครื่องคุณ ไม่ถูกส่งออกไปไหน คะแนน Portfolio Health เป็นสูตรคำนวณอย่างง่าย (heuristic) เพื่อช่วยจัดลำดับสิ่งที่ควรตรวจเท่านั้น
+
+</div>
+
+<!-- ป๊อปอัพพอร์ตจำลอง — โหลด invest-portfolio.html ในกรอบลอย แทนการเปลี่ยนหน้า -->
+<div class="pf-modal-overlay" id="pfModalOverlay" hidden>
+  <div class="pf-modal-box">
+    <button class="pf-modal-close" id="pfModalClose" type="button" aria-label="ปิด">×</button>
+    <iframe id="pfModalFrame" src="about:blank" title="พอร์ตจำลอง"></iframe>
   </div>
 </div>
 
@@ -453,6 +472,42 @@ h1,h2,h3{text-wrap:balance}
     })).then(renderTickers);
   }
 
+  /* ── ตลาดโภคภัณฑ์ — ticker Yahoo Finance ตรง (ไม่มี .BK) เฉพาะตัวที่มี ticker สาธารณะจริง
+     (เหมือน invest-commodities.js — ถ่านหิน/ยางพารา ฯลฯ ไม่มี ticker ฟรีที่มั่นใจได้ จึงไม่ใส่) ── */
+  var COMMOD_LIST = [
+    { sym: 'GC=F', label: 'ทองคำ', unit: 'USD/ออนซ์', dp: 1 },
+    { sym: 'CL=F', label: 'น้ำมัน WTI', unit: 'USD/บาร์เรล', dp: 2 },
+    { sym: 'HRC=F', label: 'เหล็ก (HRC)', unit: 'USD/ตันสั้น', dp: 1 },
+    { sym: 'HG=F', label: 'ทองแดง', unit: 'USD/ปอนด์', dp: 3 }
+  ];
+  var commodQuotes = {};
+  function loadCommodityQuote(sym, offset) {
+    var cacheSym = 'cm:' + sym;
+    var cached = loadQuoteCache(cacheSym), fresh = cached && (Date.now() - cached.ts < 3600 * 1000);
+    if (fresh) return Promise.resolve(cached);
+    var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=5d&interval=1d';
+    var tries = proxyTries(base, offset), i = 0;
+    function next() {
+      if (i >= tries.length) return cached ? Promise.resolve(cached) : Promise.reject(new Error('fail'));
+      return fetchOne(tries[i++].url, 7000, parseQuoteLite).catch(next);
+    }
+    return next().then(function (q) { saveQuoteCache(cacheSym, q); return q; }, function (e) { if (cached) return cached; throw e; });
+  }
+  function renderCommodities() {
+    $('commodGrid').innerHTML = COMMOD_LIST.map(function (c) {
+      var q = commodQuotes[c.sym];
+      var chg = q && isFinite(q.prevClose) && q.prevClose ? (q.price / q.prevClose - 1) * 100 : NaN;
+      return '<div class="ticker"><b>' + esc(c.label) + '</b><span class="px">' + (q ? N(q.price).toLocaleString('th-TH', { maximumFractionDigits: c.dp }) : '—') + '</span>' +
+        '<span class="unit">' + esc(c.unit) + '</span>' +
+        '<span class="chg ' + (isFinite(chg) ? (chg >= 0 ? 'up' : 'dn') : '') + '">' + (isFinite(chg) ? pct(chg, 2) : 'รอราคา') + '</span></div>';
+    }).join('');
+  }
+  function loadCommodities() {
+    return Promise.all(COMMOD_LIST.map(function (c, i) {
+      return delay(i * 260).then(function () { return loadCommodityQuote(c.sym, i); }).then(function (q) { commodQuotes[c.sym] = q; }).catch(function () {});
+    })).then(renderCommodities);
+  }
+
   /* ── คำนวณพอร์ต ── */
   function computePortfolio() {
     var rows = [], invested = 0, cost = 0;
@@ -481,7 +536,7 @@ h1,h2,h3{text-wrap:balance}
 
   function renderAssets(p) {
     var body = $('assetsBody');
-    if (!p.rows.length) { body.innerHTML = '<p class="empty-hint">ยังไม่มีสินทรัพย์ในพอร์ต — ไปที่ "พอร์ตของฉัน" เพื่อบันทึกรายการซื้อ-ขายหุ้นด้วยเงินสมมติ</p>'; return; }
+    if (!p.rows.length) { body.innerHTML = '<p class="empty-hint">ยังไม่มีสินทรัพย์ในพอร์ต — ไปที่ <button type="button" class="lnk js-open-pf">"พอร์ตของฉัน"</button> เพื่อบันทึกรายการซื้อ-ขายหุ้นด้วยเงินสมมติ</p>'; return; }
     var html = '<table class="tbl"><thead><tr><th>สินทรัพย์</th><th>มูลค่า</th><th>สัดส่วน</th><th>P/L</th></tr></thead><tbody>';
     p.rows.slice().sort(function (a, b) { return b.value - a.value; }).forEach(function (r) {
       html += '<tr><td><div class="sym"><span class="ic">TH</span>' + esc(r.sym) + ' · ' + r.shares.toLocaleString('th-TH') + ' หุ้น</div></td>' +
@@ -610,6 +665,7 @@ h1,h2,h3{text-wrap:balance}
   }
   refreshAll();
   loadAllQuotes().then(refreshAll);
+  loadCommodities();
 
   /* ══ แถบนำทาง 2 ชั้น — สร้างหมวดย่อยจาก window.INVEST_CATS (ที่มาเดียวกับเมนูแฮมเบอร์เกอร์) ══ */
   var GROUP_OF = { 'thai-stock': 'market', 'global-stock': 'market', 'thai-fund': 'market', 'global-fund': 'market', 'gold': 'market', 'bitcoin': 'market', 'commodities': 'market',
@@ -648,6 +704,7 @@ h1,h2,h3{text-wrap:balance}
 
   var groupBtns = document.querySelectorAll('#ivGroups button[data-group]');
   groupBtns.forEach(function (b) {
+    if (b.classList.contains('js-open-pf')) return; /* พอร์ตของฉัน — เปิดป๊อปอัพแทน (ผูก event แยกด้านล่าง) */
     b.addEventListener('click', function () {
       if (b.dataset.href) { location.href = b.dataset.href; return; }
       groupBtns.forEach(function (x) { x.classList.toggle('on', x === b); });
@@ -656,6 +713,42 @@ h1,h2,h3{text-wrap:balance}
       if (sub) sub.classList.add('on');
     });
   });
+
+  /* ══ ป๊อปอัพพอร์ตจำลอง — เปิด invest-portfolio.html ในกรอบลอย เลื่อนได้ แทนการเปลี่ยนหน้า
+     (ข้อมูลอยู่ localStorage เดียวกัน same-origin จึงอ่านความสูงจริงของ iframe มาปรับกรอบให้พอดีได้) ══ */
+  (function () {
+    var overlay = $('pfModalOverlay'), frame = $('pfModalFrame'), closeBtn = $('pfModalClose');
+    function openPfModal() {
+      frame.style.height = '70vh';
+      frame.src = 'invest-portfolio.html?embed=1';
+      overlay.hidden = false;
+      document.documentElement.style.overflow = 'hidden';
+    }
+    function closePfModal() {
+      overlay.hidden = true;
+      document.documentElement.style.overflow = '';
+      frame.src = 'about:blank';
+      /* พอร์ตอาจเปลี่ยนระหว่างเปิดป๊อปอัพ — โหลดค่าล่าสุดมาแสดงในหน้านี้ใหม่ */
+      portfolio = loadPortfolio();
+      holdings = portfolio.holdings.filter(function (h) { return N(h.shares) > 0; });
+      refreshAll();
+      loadAllQuotes().then(refreshAll);
+    }
+    frame.addEventListener('load', function () {
+      if (frame.src === 'about:blank') return;
+      try {
+        var h = frame.contentWindow.document.documentElement.scrollHeight;
+        frame.style.height = Math.min(Math.max(h, 320), window.innerHeight * 0.86) + 'px';
+      } catch (e) {}
+    });
+    document.addEventListener('click', function (e) {
+      var trigger = e.target.closest('.js-open-pf');
+      if (trigger) { e.preventDefault(); openPfModal(); return; }
+      if (e.target === overlay) closePfModal();
+    });
+    closeBtn.addEventListener('click', closePfModal);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !overlay.hidden) closePfModal(); });
+  })();
 
   /* ══ AI ผู้ช่วยการลงทุน — ไอคอนลอยลากได้ + ตอบจากข้อมูลพอร์ตจริงในเครื่อง ══ */
   (function () {

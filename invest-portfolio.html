@@ -91,6 +91,16 @@ td.dn{color:var(--err);font-weight:700}
 footer{margin-top:22px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--sky);text-decoration:none;font-weight:600}
 @media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:18px}}
+
+/* ── เปิดในกรอบป๊อปอัพจาก invest.html (?embed=1) — ซ่อน breadcrumb ซ้ำซ้อน ลด padding บนสุด ── */
+body.embedded{padding-top:14px}
+body.embedded .crumb{display:none}
+
+.sumbox .lbl-row{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.edit-ic{background:none;border:0;color:var(--muted);cursor:pointer;font-size:12px;padding:2px;line-height:1}
+.edit-ic:hover{color:var(--brand-dk)}
+.cash-edit-row{display:flex;gap:6px;align-items:center;margin-top:4px}
+.cash-edit-row input{padding:6px 8px;font-size:14px}
 </style>
 </head>
 <body class="ome-tool-page" data-invest-key="portfolio">
@@ -110,7 +120,15 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <div class="card">
     <h2>สรุปพอร์ต</h2>
     <div class="sumrow">
-      <div class="sumbox"><div class="lbl">เงินสดคงเหลือ</div><div class="val" id="sCash">—</div></div>
+      <div class="sumbox">
+        <div class="lbl-row"><span class="lbl">เงินสดคงเหลือ</span><button class="edit-ic" id="cashEditBtn" type="button" aria-label="แก้ไขเงินสด">✎ แก้ไข</button></div>
+        <div class="val" id="sCash">—</div>
+        <div class="cash-edit-row" id="cashEditRow" style="display:none">
+          <input type="number" id="cashEditInput" inputmode="decimal" style="width:100%">
+          <button class="btn sm primary" id="cashEditSave" type="button">บันทึก</button>
+          <button class="btn sm" id="cashEditCancel" type="button">ยกเลิก</button>
+        </div>
+      </div>
       <div class="sumbox"><div class="lbl">มูลค่าหุ้นที่ถือ</div><div class="val" id="sHoldVal">—</div></div>
       <div class="sumbox"><div class="lbl">มูลค่าพอร์ตรวม</div><div class="val" id="sTotal">—</div><div class="sub" id="sTotalSub"></div></div>
       <div class="sumbox"><div class="lbl">กำไร/ขาดทุนรวม</div><div class="val" id="sPl">—</div><div class="sub" id="sPlPct"></div></div>
@@ -129,6 +147,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <div class="frow">
         <div class="field"><label>ชื่อย่อหุ้น</label><input type="text" id="buySym" placeholder="เช่น PTT" autocomplete="off" spellcheck="false"></div>
         <div class="field"><label>จำนวนหุ้น</label><input type="number" id="buyShares" inputmode="numeric" placeholder="เช่น 100"></div>
+        <div class="field"><label>วันที่ซื้อ (ย้อนหลังได้)</label><input type="date" id="buyDate"></div>
         <button class="btn primary" id="buyBtn" type="button">ดึงราคา + ซื้อ</button>
       </div>
     </div>

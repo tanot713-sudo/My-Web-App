@@ -19,6 +19,10 @@
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
   function fmt0(n) { return isFinite(n) ? Math.round(n).toLocaleString('th-TH') : '—'; }
   function baht(n, d) { if (!isFinite(n)) return '—'; var neg = n < 0; return (neg ? '−' : '') + '฿' + fmt(Math.abs(n), d == null ? 0 : d); }
+  function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+  /* หน้านี้เปิดเป็นป๊อปอัพ (iframe) จาก invest.html ได้ด้วย ?embed=1 — ซ่อน breadcrumb ให้ดูเป็นกล่องเดียวกัน */
+  if (new URLSearchParams(location.search).get('embed')) document.body.classList.add('embedded');
 
   /* ── สถานะพอร์ต ─────────────────────────────────────────────── */
   function defaultState() { return { cash: START_CASH, startCash: START_CASH, holdings: [], tx: [] }; }
@@ -73,6 +77,30 @@
     return fetchPrice(sym, offset);
   }
 
+  /* ── ราคาย้อนหลัง (สำหรับซื้อย้อนหลัง) — ดึงแท่งรายวันช่วง ~12 วันก่อนวันที่เลือก
+     แล้วใช้ราคาปิดของวันทำการล่าสุดที่ไม่เกินวันนั้น (เผื่อวันหยุด/เสาร์-อาทิตย์) ── */
+  function parseHistoricalClose(t) {
+    var j = JSON.parse(t), res = j && j.chart && j.chart.result && j.chart.result[0];
+    var closes = res && res.indicators && res.indicators.quote && res.indicators.quote[0] && res.indicators.quote[0].close;
+    var ts = res && res.timestamp;
+    if (!closes || !ts || !closes.length) throw new Error('no historical data');
+    for (var i = closes.length - 1; i >= 0; i--) {
+      if (isFinite(closes[i])) return { price: closes[i], ts: ts[i] * 1000 };
+    }
+    throw new Error('no valid close');
+  }
+  function fetchHistoricalPrice(sym, dateStr, offset) {
+    var period2 = Math.floor(new Date(dateStr + 'T00:00:00').getTime() / 1000) + 86400;
+    var period1 = period2 - 12 * 86400;
+    var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '.BK?period1=' + period1 + '&period2=' + period2 + '&interval=1d';
+    var tries = proxyTries(base, offset), i = 0;
+    function next() {
+      if (i >= tries.length) return Promise.reject(new Error('fail'));
+      return fetchOne(tries[i++].url, 8000, parseHistoricalClose).catch(next);
+    }
+    return next();
+  }
+
   /* ── ซื้อ/ขาย ───────────────────────────────────────────────── */
   function findHolding(sym) {
     for (var i = 0; i < state.holdings.length; i++) if (state.holdings[i].sym === sym) return state.holdings[i];
@@ -83,12 +111,19 @@
   function doBuy() {
     var sym = ($('buySym').value || '').trim().toUpperCase().replace(/\.BK$/, '');
     var shares = num($('buyShares').value);
+    var dateStr = $('buyDate') ? $('buyDate').value : '';
+    var backdated = !!dateStr && dateStr !== todayStr();
     if (!sym) { setTradeStatus('พิมพ์ชื่อย่อหุ้นก่อน เช่น PTT', 'err'); return; }
     if (!isFinite(shares) || shares <= 0) { setTradeStatus('กรอกจำนวนหุ้นให้ถูกต้อง', 'err'); return; }
-    setTradeStatus('กำลังดึงราคา ' + sym + '…');
+    if (dateStr && dateStr > todayStr()) { setTradeStatus('เลือกวันที่ในอนาคตไม่ได้', 'err'); return; }
+    setTradeStatus(backdated ? 'กำลังดึงราคาย้อนหลัง ' + sym + ' วันที่ ' + dateStr + '…' : 'กำลังดึงราคา ' + sym + '…');
     $('buyBtn').disabled = true;
-    getPrice(sym, 0, true).then(function (price) {
+    var pricePromise = backdated
+      ? fetchHistoricalPrice(sym, dateStr, 0)
+      : getPrice(sym, 0, true).then(function (price) { return { price: price, ts: Date.now() }; });
+    pricePromise.then(function (res) {
       $('buyBtn').disabled = false;
+      var price = res.price, txTs = res.ts;
       var cost = shares * price;
       if (cost > state.cash + 1e-6) {
         setTradeStatus('เงินสดไม่พอ — ต้องใช้ ' + baht(cost) + ' แต่มีเงินสด ' + baht(state.cash), 'err');
@@ -98,14 +133,16 @@
       if (h) { h.avgCost = (h.shares * h.avgCost + shares * price) / (h.shares + shares); h.shares += shares; }
       else state.holdings.push({ sym: sym, shares: shares, avgCost: price });
       state.cash -= cost;
-      state.tx.unshift({ ts: Date.now(), type: 'buy', sym: sym, shares: shares, price: price, amount: cost });
+      state.tx.unshift({ ts: txTs, type: 'buy', sym: sym, shares: shares, price: price, amount: cost });
       saveState(state);
-      $('buySym').value = ''; $('buyShares').value = '';
-      setTradeStatus('ซื้อ ' + sym + ' ' + fmt0(shares) + ' หุ้น ที่ ' + fmt(price) + ' บาท สำเร็จ — ใช้เงิน ' + baht(cost), 'ok');
+      $('buySym').value = ''; $('buyShares').value = ''; $('buyDate') && ($('buyDate').value = '');
+      setTradeStatus('ซื้อ ' + sym + ' ' + fmt0(shares) + ' หุ้น ที่ ' + fmt(price) + ' บาท' + (backdated ? ' (ราคาปิดวันที่ ' + new Date(txTs).toLocaleDateString('th-TH') + ')' : '') + ' สำเร็จ — ใช้เงิน ' + baht(cost), 'ok');
       renderAll();
     }, function () {
       $('buyBtn').disabled = false;
-      setTradeStatus('ดึงราคา ' + sym + ' ไม่ได้ตอนนี้ (สัญลักษณ์อาจไม่ถูกต้อง หรือบริการฟรีจำกัดชั่วคราว) — ลองใหม่อีกครั้ง', 'err');
+      setTradeStatus(backdated
+        ? 'ดึงราคาย้อนหลัง ' + sym + ' วันที่ ' + dateStr + ' ไม่ได้ (อาจไม่มีข้อมูลช่วงนั้น หรือสัญลักษณ์ไม่ถูกต้อง) — ลองใหม่หรือเลือกวันอื่น'
+        : 'ดึงราคา ' + sym + ' ไม่ได้ตอนนี้ (สัญลักษณ์อาจไม่ถูกต้อง หรือบริการฟรีจำกัดชั่วคราว) — ลองใหม่อีกครั้ง', 'err');
     });
   }
   function doSell() {
@@ -186,7 +223,8 @@
     if (!state.tx.length) { tbl.innerHTML = ''; empty.style.display = 'block'; return; }
     empty.style.display = 'none';
     var rows = '<thead><tr><th>วันที่</th><th>ประเภท</th><th>หุ้น</th><th>จำนวน</th><th>ราคา</th><th>มูลค่า</th><th>กำไรที่รับรู้</th></tr></thead><tbody>';
-    state.tx.slice(0, 100).forEach(function (t) {
+    /* เรียงตามเวลาจริงเสมอ (ไม่ใช่ลำดับที่บันทึก) — เพราะรายการซื้อย้อนหลังอาจถูกเพิ่มทีหลังแต่มี ts เก่ากว่า */
+    state.tx.slice().sort(function (a, b) { return b.ts - a.ts; }).slice(0, 100).forEach(function (t) {
       var dateTxt = new Date(t.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + ' ' + new Date(t.ts).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
       rows += '<tr><td>' + dateTxt + '</td><td><span class="tx-type ' + t.type + '">' + (t.type === 'buy' ? 'ซื้อ' : 'ขาย') + '</span></td>' +
         '<td>' + t.sym + '</td><td>' + fmt0(t.shares) + '</td><td>' + fmt(t.price) + '</td><td>' + baht(t.amount) + '</td>' +
@@ -355,12 +393,36 @@
   };
 
   /* ── init ───────────────────────────────────────────────────── */
+  function editCash() {
+    $('cashEditInput').value = Math.round(state.cash);
+    $('cashEditRow').style.display = 'flex';
+    $('sCash').style.display = 'none';
+    $('cashEditInput').focus();
+  }
+  function cancelEditCash() {
+    $('cashEditRow').style.display = 'none';
+    $('sCash').style.display = '';
+  }
+  function saveEditCash() {
+    var v = num($('cashEditInput').value);
+    if (!isFinite(v) || v < 0) { alert('กรอกจำนวนเงินสดให้ถูกต้อง (ต้องไม่ติดลบ)'); return; }
+    state.cash = v;
+    saveState(state);
+    cancelEditCash();
+    renderAll();
+  }
+
   function init() {
     renderAll();
+    if ($('buyDate')) $('buyDate').max = todayStr();
     $('buyBtn').addEventListener('click', doBuy);
     $('sellBtn').addEventListener('click', doSell);
     $('resetBtn').addEventListener('click', doReset);
     $('refreshBtn').addEventListener('click', refreshAllPrices);
+    $('cashEditBtn').addEventListener('click', editCash);
+    $('cashEditCancel').addEventListener('click', cancelEditCash);
+    $('cashEditSave').addEventListener('click', saveEditCash);
+    $('cashEditInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveEditCash(); if (e.key === 'Escape') cancelEditCash(); });
     [].forEach.call(document.querySelectorAll('#tradeTabs button'), function (b) {
       b.addEventListener('click', function () {
         [].forEach.call(document.querySelectorAll('#tradeTabs button'), function (x) { x.classList.toggle('on', x === b); });
