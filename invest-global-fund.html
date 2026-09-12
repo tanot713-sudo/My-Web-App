@@ -111,116 +111,116 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 <div class="wrap">
 
 
-  <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>กองทุนต่างประเทศ (S&amp;P500)</nav>
+  <nav class="crumb"><a href="invest.html" data-i18n="crumbHome">การลงทุน</a><span class="sep">/</span><span data-i18n="crumbHere">กองทุนต่างประเทศ (S&amp;P500)</span></nav>
 
   <div class="head">
     <div>
-      <h1>กองทุน S&amp;P500 — วางแผน DCA</h1>
-      <div class="head-sub">SCB · แบบสะสมมูลค่า + แบบปันผล · ทยอยซื้อทุกเดือน</div>
+      <h1 data-i18n="pageTitle">กองทุน S&amp;P500 — วางแผน DCA</h1>
+      <div class="head-sub" data-i18n="headSub">SCB · แบบสะสมมูลค่า + แบบปันผล · ทยอยซื้อทุกเดือน</div>
     </div>
   </div>
 
   <!-- แผน DCA -->
   <div class="card">
-    <h2>แผนทยอยซื้อ (DCA)</h2>
+    <h2 data-i18n="dcaTitle">แผนทยอยซื้อ (DCA)</h2>
     <div class="frow">
-      <div class="field"><label>ซื้อ "สะสมมูลค่า" /เดือน</label><input type="number" id="accM" inputmode="numeric" value="5000"></div>
-      <div class="field"><label>ซื้อ "ปันผล" /เดือน</label><input type="number" id="divM" inputmode="numeric" value="5000"></div>
-      <div class="field"><label>วางแผนล่วงหน้า <span class="unit">(ปี)</span></label><input type="number" id="years" inputmode="numeric" value="10"></div>
+      <div class="field"><label data-i18n="accMLabel">ซื้อ "สะสมมูลค่า" /เดือน</label><input type="number" id="accM" inputmode="numeric" value="5000"></div>
+      <div class="field"><label data-i18n="divMLabel">ซื้อ "ปันผล" /เดือน</label><input type="number" id="divM" inputmode="numeric" value="5000"></div>
+      <div class="field"><label><span data-i18n="yearsLabel">วางแผนล่วงหน้า</span> <span class="unit" data-i18n="unitYears">(ปี)</span></label><input type="number" id="years" inputmode="numeric" value="10"></div>
     </div>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>ผลตอบแทนเฉลี่ย/ปี <span class="unit">(%)</span></label><input type="number" id="cagr" inputmode="decimal" step="0.1" value="7"></div>
-      <div class="field"><label>ค่าธรรมเนียมกองทุน/ปี <span class="unit">(%)</span></label><input type="number" id="fee" inputmode="decimal" step="0.01" value="0.6"></div>
-      <div class="field"><label>ปันผลของชนิดปันผล/ปี <span class="unit">(%)</span></label><input type="number" id="dy" inputmode="decimal" step="0.1" value="1.5"></div>
+      <div class="field"><label><span data-i18n="cagrLabel">ผลตอบแทนเฉลี่ย/ปี</span> <span class="unit" data-i18n="unitPct">(%)</span></label><input type="number" id="cagr" inputmode="decimal" step="0.1" value="7"></div>
+      <div class="field"><label><span data-i18n="feeLabel">ค่าธรรมเนียมกองทุน/ปี</span> <span class="unit" data-i18n="unitPct">(%)</span></label><input type="number" id="fee" inputmode="decimal" step="0.01" value="0.6"></div>
+      <div class="field"><label><span data-i18n="dyLabel">ปันผลของชนิดปันผล/ปี</span> <span class="unit" data-i18n="unitPct">(%)</span></label><input type="number" id="dy" inputmode="decimal" step="0.1" value="1.5"></div>
     </div>
-    <div style="margin-top:12px"><button class="btn primary" id="calcBtn" type="button">คำนวณแผน</button></div>
+    <div style="margin-top:12px"><button class="btn primary" id="calcBtn" type="button" data-i18n="calcPlanBtn">คำนวณแผน</button></div>
 
     <div id="planOut" style="display:none">
       <div class="sumrow" style="margin-top:16px">
-        <div class="sumbox"><div class="lbl">เงินที่ลงทั้งหมด</div><div class="val" id="oContrib">—</div><div class="sub" id="oContribSub"></div></div>
-        <div class="sumbox"><div class="lbl">มูลค่ารวมโดยประมาณ</div><div class="val grow" id="oValue">—</div><div class="sub" id="oValueSub"></div></div>
-        <div class="sumbox"><div class="lbl">กำไรจากการเติบโต</div><div class="val" id="oGain">—</div><div class="sub">ยังไม่รวมภาษี/ค่าธรรมเนียมซื้อ</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="oContribLabel">เงินที่ลงทั้งหมด</div><div class="val" id="oContrib">—</div><div class="sub" id="oContribSub"></div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="oValueLabel">มูลค่ารวมโดยประมาณ</div><div class="val grow" id="oValue">—</div><div class="sub" id="oValueSub"></div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="oGainLabel">กำไรจากการเติบโต</div><div class="val" id="oGain">—</div><div class="sub" data-i18n="oGainSub">ยังไม่รวมภาษี/ค่าธรรมเนียมซื้อ</div></div>
       </div>
 
       <div class="cmp">
         <div class="col acc">
-          <h3>แบบสะสมมูลค่า</h3>
-          <div class="line"><span>ลงทั้งหมด</span><span class="v" id="aC">—</span></div>
-          <div class="line"><span>มูลค่าปลายทาง</span><span class="v" id="aV">—</span></div>
-          <div class="line"><span>ปันผลรับ</span><span class="v">— (ทบในกอง)</span></div>
+          <h3 data-i18n="accColTitle">แบบสะสมมูลค่า</h3>
+          <div class="line"><span data-i18n="lineInvested">ลงทั้งหมด</span><span class="v" id="aC">—</span></div>
+          <div class="line"><span data-i18n="lineFinalValue">มูลค่าปลายทาง</span><span class="v" id="aV">—</span></div>
+          <div class="line"><span data-i18n="lineDivReceived">ปันผลรับ</span><span class="v" data-i18n="lineDivReceivedNote">— (ทบในกอง)</span></div>
         </div>
         <div class="col div">
-          <h3>แบบปันผล</h3>
-          <div class="line"><span>ลงทั้งหมด</span><span class="v" id="dC">—</span></div>
-          <div class="line"><span>มูลค่าปลายทาง</span><span class="v" id="dV">—</span></div>
-          <div class="line"><span>ปันผลรับสะสม</span><span class="v" id="dCash">—</span></div>
+          <h3 data-i18n="divColTitle">แบบปันผล</h3>
+          <div class="line"><span data-i18n="lineInvested">ลงทั้งหมด</span><span class="v" id="dC">—</span></div>
+          <div class="line"><span data-i18n="lineFinalValue">มูลค่าปลายทาง</span><span class="v" id="dV">—</span></div>
+          <div class="line"><span data-i18n="lineDivCumulative">ปันผลรับสะสม</span><span class="v" id="dCash">—</span></div>
         </div>
       </div>
 
       <div class="chart-wrap">
         <svg class="chart" id="chart" viewBox="0 0 640 220" preserveAspectRatio="none"></svg>
         <div class="chart-cap">
-          <span><i style="background:#12A594"></i>มูลค่ารวม</span>
-          <span><i style="background:#8B94A8"></i>เงินที่ใส่ (ต้นทุน)</span>
+          <span><i style="background:#12A594"></i><span data-i18n="chartValue">มูลค่ารวม</span></span>
+          <span><i style="background:#8B94A8"></i><span data-i18n="chartCost">เงินที่ใส่ (ต้นทุน)</span></span>
         </div>
       </div>
 
-      <details><summary>ดูตารางรายปี</summary><div class="details-body" style="overflow-x:auto"><div id="yrTable"></div></div></details>
+      <details><summary data-i18n="viewYearTableSummary">ดูตารางรายปี</summary><div class="details-body" style="overflow-x:auto"><div id="yrTable"></div></div></details>
     </div>
   </div>
 
   <!-- เติมไม้ตอนย่อ -->
   <div class="card">
-    <h2>ตลาดย่อ = โอกาสเติมไม้ (ทางเลือก)</h2>
+    <h2 data-i18n="ddTitle">ตลาดย่อ = โอกาสเติมไม้ (ทางเลือก)</h2>
     <div class="frow">
-      <div class="field"><label>ดัชนี S&amp;P500 ตอนนี้</label><input type="number" id="idxNow" inputmode="decimal" step="0.01" placeholder="เช่น 5200"></div>
-      <div class="field"><label>จุดสูงสุดที่เคยทำ (ATH)</label><input type="number" id="idxAth" inputmode="decimal" step="0.01" placeholder="เช่น 6100"></div>
-      <button class="btn sm" id="ddBtn" type="button">ดูคำแนะนำ</button>
+      <div class="field"><label data-i18n="idxNowLabel">ดัชนี S&amp;P500 ตอนนี้</label><input type="number" id="idxNow" inputmode="decimal" step="0.01" placeholder="เช่น 5200"></div>
+      <div class="field"><label data-i18n="idxAthLabel">จุดสูงสุดที่เคยทำ (ATH)</label><input type="number" id="idxAth" inputmode="decimal" step="0.01" placeholder="เช่น 6100"></div>
+      <button class="btn sm" id="ddBtn" type="button" data-i18n="ddBtn">ดูคำแนะนำ</button>
     </div>
     <div id="ddOut" style="font-size:13.5px;margin-top:10px;display:none"></div>
     <div class="tranche" id="tranche">
-      <div class="tr-box" data-dd="10"><div class="d">−10%</div><div class="m">ย่อเล็ก</div><div class="x">×1.25</div></div>
-      <div class="tr-box" data-dd="20"><div class="d">−20%</div><div class="m">ตลาดหมี</div><div class="x">×1.5</div></div>
-      <div class="tr-box" data-dd="30"><div class="d">−30%</div><div class="m">ย่อแรง</div><div class="x">×2</div></div>
+      <div class="tr-box" data-dd="10"><div class="d">−10%</div><div class="m" data-i18n="tr10m">ย่อเล็ก</div><div class="x">×1.25</div></div>
+      <div class="tr-box" data-dd="20"><div class="d">−20%</div><div class="m" data-i18n="tr20m">ตลาดหมี</div><div class="x">×1.5</div></div>
+      <div class="tr-box" data-dd="30"><div class="d">−30%</div><div class="m" data-i18n="tr30m">ย่อแรง</div><div class="x">×2</div></div>
     </div>
-    <p style="font-size:12px;color:var(--muted);margin-top:8px">แนวคิด: เวลาตลาดลง คือได้ของถูกลง ถ้ามีเงินสำรองค่อยเพิ่มเงินซื้อตามระดับที่ตั้งไว้ล่วงหน้า (ไม่ใช่การทำนายว่าจะลงอีกไหม)</p>
+    <p style="font-size:12px;color:var(--muted);margin-top:8px" data-i18n="ddHint">แนวคิด: เวลาตลาดลง คือได้ของถูกลง ถ้ามีเงินสำรองค่อยเพิ่มเงินซื้อตามระดับที่ตั้งไว้ล่วงหน้า (ไม่ใช่การทำนายว่าจะลงอีกไหม)</p>
   </div>
 
   <!-- สมุดซื้อจริง -->
   <div class="card">
-    <h2>สมุดซื้อจริงของฉัน</h2>
+    <h2 data-i18n="logTitle">สมุดซื้อจริงของฉัน</h2>
     <div class="frow">
-      <div class="field"><label>ชนิด</label>
+      <div class="field"><label data-i18n="classField">ชนิด</label>
         <select id="lgClass" style="font-family:inherit;font-size:14px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
-          <option value="สะสมมูลค่า">สะสมมูลค่า</option><option value="ปันผล">ปันผล</option>
+          <option value="สะสมมูลค่า" data-i18n="classAcc">สะสมมูลค่า</option><option value="ปันผล" data-i18n="classDiv">ปันผล</option>
         </select></div>
-      <div class="field"><label>เงินที่ซื้อ (บาท)</label><input type="number" id="lgAmt" inputmode="numeric" placeholder="5000"></div>
-      <div class="field"><label>ราคา/หน่วย (NAV)</label><input type="number" id="lgNav" inputmode="decimal" step="0.0001" placeholder="เช่น 15.2345"></div>
-      <button class="btn sm" id="lgAdd" type="button">+ เพิ่ม</button>
+      <div class="field"><label data-i18n="lgAmtLabel">เงินที่ซื้อ (บาท)</label><input type="number" id="lgAmt" inputmode="numeric" placeholder="5000"></div>
+      <div class="field"><label data-i18n="lgNavLabel">ราคา/หน่วย (NAV)</label><input type="number" id="lgNav" inputmode="decimal" step="0.0001" placeholder="เช่น 15.2345"></div>
+      <button class="btn sm" id="lgAdd" type="button" data-i18n="lgAddBtn">+ เพิ่ม</button>
     </div>
     <div class="frow" style="margin-top:10px">
-      <div class="field" style="flex:1 1 160px"><label>NAV ปัจจุบัน (คำนวณกำไร/ขาดทุน)</label><input type="number" id="lgCur" inputmode="decimal" step="0.0001" placeholder="ราคาต่อหน่วยตอนนี้"></div>
+      <div class="field" style="flex:1 1 160px"><label data-i18n="lgCurLabel">NAV ปัจจุบัน (คำนวณกำไร/ขาดทุน)</label><input type="number" id="lgCur" inputmode="decimal" step="0.0001" data-i18n-placeholder="lgCurPh" placeholder="ราคาต่อหน่วยตอนนี้"></div>
     </div>
-    <div id="lgBox"><div class="log-empty">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและกำไร-ขาดทุน</div></div>
+    <div id="lgBox"><div class="log-empty" data-i18n="lgEmptyDefault">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและกำไร-ขาดทุน</div></div>
   </div>
 
   <!-- เรียนรู้ -->
   <details class="card lesson">
-    <summary style="font-size:14px">เรียนรู้ — กองทุน S&amp;P500 แบบเข้าใจง่าย</summary>
+    <summary style="font-size:14px" data-i18n="lessonSummary">เรียนรู้ — กองทุน S&amp;P500 แบบเข้าใจง่าย</summary>
     <div class="details-body">
-      <h3>S&amp;P500 คืออะไร</h3>
-      <p>กองทุนนี้ลงทุนตามดัชนีหุ้นบริษัทใหญ่ ~500 ตัวของสหรัฐฯ (เช่น Apple, Microsoft) เท่ากับกระจายความเสี่ยงในบริษัทชั้นนำทั้งตลาดในกองเดียว</p>
-      <h3>สะสมมูลค่า vs ปันผล ต่างกันยังไง</h3>
-      <p><b>สะสมมูลค่า</b>: เอาปันผลไปลงทุนต่อในกองอัตโนมัติ (ทบต้น) มูลค่าปลายทางมักสูงกว่า เหมาะกับคนไม่ต้องใช้เงินระหว่างทาง</p>
-      <p><b>ปันผล</b>: จ่ายเงินสดกลับมาให้เป็นงวดๆ ได้กระแสเงินสด แต่มูลค่ากองโตช้ากว่าเพราะเงินถูกจ่ายออก</p>
-      <h3>DCA (ทยอยซื้อทุกเดือน) ดียังไง</h3>
-      <p>ซื้อจำนวนเงินเท่าเดิมทุกเดือนไม่ว่าราคาขึ้นหรือลง ทำให้ได้ต้นทุนเฉลี่ย ไม่ต้องเดาจังหวะตลาด เหมาะกับมือใหม่ที่สุด — ที่คุณทำอยู่ (5,000×2/เดือน) คือ DCA แล้ว</p>
-      <h3>แล้ว "ควรขายเมื่อไร"</h3>
-      <p>กองแบบนี้ไม่เน้นจับจังหวะขาย ให้ขายเมื่อ (1) ถึงเป้าหมายที่ตั้งไว้ เช่น ครบเงินก้อนที่อยากได้ (2) ต้องใช้เงินจริง (3) ปรับสมดุลพอร์ต — ไม่ใช่ขายเพราะตกใจตอนตลาดลง</p>
+      <h3 data-i18n="lsn1h">S&amp;P500 คืออะไร</h3>
+      <p data-i18n="lsn1p">กองทุนนี้ลงทุนตามดัชนีหุ้นบริษัทใหญ่ ~500 ตัวของสหรัฐฯ (เช่น Apple, Microsoft) เท่ากับกระจายความเสี่ยงในบริษัทชั้นนำทั้งตลาดในกองเดียว</p>
+      <h3 data-i18n="lsn2h">สะสมมูลค่า vs ปันผล ต่างกันยังไง</h3>
+      <p data-i18n-html="lsn2p1"><b>สะสมมูลค่า</b>: เอาปันผลไปลงทุนต่อในกองอัตโนมัติ (ทบต้น) มูลค่าปลายทางมักสูงกว่า เหมาะกับคนไม่ต้องใช้เงินระหว่างทาง</p>
+      <p data-i18n-html="lsn2p2"><b>ปันผล</b>: จ่ายเงินสดกลับมาให้เป็นงวดๆ ได้กระแสเงินสด แต่มูลค่ากองโตช้ากว่าเพราะเงินถูกจ่ายออก</p>
+      <h3 data-i18n="lsn3h">DCA (ทยอยซื้อทุกเดือน) ดียังไง</h3>
+      <p data-i18n="lsn3p">ซื้อจำนวนเงินเท่าเดิมทุกเดือนไม่ว่าราคาขึ้นหรือลง ทำให้ได้ต้นทุนเฉลี่ย ไม่ต้องเดาจังหวะตลาด เหมาะกับมือใหม่ที่สุด — ที่คุณทำอยู่ (5,000×2/เดือน) คือ DCA แล้ว</p>
+      <h3 data-i18n="lsn4h">แล้ว "ควรขายเมื่อไร"</h3>
+      <p data-i18n="lsn4p">กองแบบนี้ไม่เน้นจับจังหวะขาย ให้ขายเมื่อ (1) ถึงเป้าหมายที่ตั้งไว้ เช่น ครบเงินก้อนที่อยากได้ (2) ต้องใช้เงินจริง (3) ปรับสมดุลพอร์ต — ไม่ใช่ขายเพราะตกใจตอนตลาดลง</p>
     </div>
   </details>
 
-  <div class="disc">ตัวเลขเป็นการประมาณจากสมมติฐานที่กรอก ผลจริงขึ้นกับตลาดและอาจติดลบได้ · ไม่ใช่คำแนะนำการลงทุน · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
+  <div class="disc" data-i18n="disc">ตัวเลขเป็นการประมาณจากสมมติฐานที่กรอก ผลจริงขึ้นกับตลาดและอาจติดลบได้ · ไม่ใช่คำแนะนำการลงทุน · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
 </div>
 
 <script src="invest-global-fund.js" defer></script>
