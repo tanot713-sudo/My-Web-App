@@ -474,13 +474,20 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
    var(--brand)/var(--err)+ขาวของแต่ละหน้าเองเหมือนเดิมเสมอ ไม่ว่าจะเลือกประเภทธีมไหน (ปุ่มรองอื่นๆ
    ยังได้เอฟเฟกต์ของ style ตามปกติ) */
 
+/* เพิ่ม .kpi (การ์ด KPI 4 อันบนสุดของหน้า invest.html — ผู้ใช้รายงานว่าเลือก "ประเภทธีม" แล้ว
+   กล่องนี้ไม่ขยับตามเหมือนกล่องอื่น) เข้าไปในทุก selector ของ .card ด้านล่างนี้ — ใช้ชื่อ class
+   เฉพาะของ invest.html หน้าเดียว (เช็คแล้วไม่ชนกับหน้าอื่น) เลยผูกเพิ่มตรงนี้ได้โดยไม่กระทบหน้าอื่น
+   แทนที่จะไปเปลี่ยนชื่อ class ในไฟล์ invest.html ให้เป็น .card แทน (จะกระทบ CSS/JS อื่นที่อ้างอิง
+   .kpi อยู่เดิมเยอะ) */
+
 /* กระจกฝ้า (Glassmorphism) — การ์ด/ปุ่มโปร่งแสง เบลอพื้นหลังหลังการ์ด ให้พื้นหน้าเว็บมีสีจางๆ
    ผสมสีธีมไว้ด้วยเพื่อให้เห็นเอฟเฟกต์เบลอชัดขึ้น (พื้นทึบสีเดียวเบลอแล้วจะดูไม่ต่างจากเดิม) */
 [data-style="glass"] body.ome-tool-page{
   background-image:radial-gradient(circle at 12% -10%, color-mix(in srgb, var(--ome-brand) 16%, transparent), transparent 55%),
     radial-gradient(circle at 90% 110%, color-mix(in srgb, var(--ome-brand-sf) 70%, transparent), transparent 55%)!important;
   background-attachment:fixed!important}
-[data-style="glass"] body.ome-tool-page .card{
+[data-style="glass"] body.ome-tool-page .card,
+[data-style="glass"] body.ome-tool-page .kpi{
   background:color-mix(in srgb, var(--ome-card) 62%, transparent)!important;
   backdrop-filter:blur(18px) saturate(160%)!important;-webkit-backdrop-filter:blur(18px) saturate(160%)!important;
   border:1px solid color-mix(in srgb, var(--ome-line) 55%, transparent)!important;
@@ -493,11 +500,13 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
 /* นูนนิ่ม (Neumorphism/Soft UI) — การ์ด/ปุ่มกลืนเป็นสีเดียวกับพื้นหลัง ไม่มีเส้นขอบ ใช้เงาคู่
    (สว่าง/มืด) แทนให้ดูนูนออกมาจากพื้น สูตรเงาต่างกันระหว่างโหมดสว่าง/มืดเพราะ "แสงตกกระทบ" ที่ให้
    ความรู้สึกนูนต้องเป็นเงาสว่างกว่าพื้นเสมอ (โหมดสว่างใช้สีขาวจริง โหมดมืดใช้ผสม --ome-card แทน) */
-[data-style="neumorph"] body.ome-tool-page .card{
+[data-style="neumorph"] body.ome-tool-page .card,
+[data-style="neumorph"] body.ome-tool-page .kpi{
   background:var(--ome-bg)!important;border:none!important;border-radius:22px!important;
   box-shadow:8px 8px 18px color-mix(in srgb, var(--ome-ink) 14%, transparent),
     -8px -8px 18px color-mix(in srgb, white 55%, transparent)!important}
-[data-theme="dark"][data-style="neumorph"] body.ome-tool-page .card{
+[data-theme="dark"][data-style="neumorph"] body.ome-tool-page .card,
+[data-theme="dark"][data-style="neumorph"] body.ome-tool-page .kpi{
   box-shadow:8px 8px 18px color-mix(in srgb, black 55%, transparent),
     -8px -8px 18px color-mix(in srgb, var(--ome-card) 65%, transparent)!important}
 [data-style="neumorph"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
@@ -510,7 +519,8 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
 
 /* ดิบเท่ (Neubrutalism) — เส้นขอบหนาสีตัวอักษรหลัก + เงาทึบแบบ offset ไม่เบลอ มุมเกือบเหลี่ยม
    กดปุ่มแล้วขยับตามเงาให้รู้สึกเหมือนกดจริง (:active) */
-[data-style="neubrutal"] body.ome-tool-page .card{
+[data-style="neubrutal"] body.ome-tool-page .card,
+[data-style="neubrutal"] body.ome-tool-page .kpi{
   background:var(--ome-card)!important;border:2.5px solid var(--ome-ink)!important;
   border-radius:6px!important;box-shadow:6px 6px 0 var(--ome-ink)!important}
 [data-style="neubrutal"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
@@ -521,14 +531,16 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
   transform:translate(3px,3px)!important;box-shadow:1px 1px 0 var(--ome-ink)!important}
 
 /* เส้นขอบ (Outline) — ไม่มีเงาเลย ใช้แค่เส้นขอบบางๆ แยกพื้นผิว เรียบที่สุดในบรรดาประเภทธีมทั้งหมด */
-[data-style="outline"] body.ome-tool-page .card{
+[data-style="outline"] body.ome-tool-page .card,
+[data-style="outline"] body.ome-tool-page .kpi{
   background:var(--ome-card)!important;border:1.5px solid var(--ome-line)!important;box-shadow:none!important}
 [data-style="outline"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
   background:transparent!important;border:1.5px solid var(--ome-line)!important;box-shadow:none!important}
 
 /* คลุกดิน (Claymorphism) — โค้งมนมาก คล้ายดินน้ำมัน ใช้เงา inset สว่าง (มุมบนซ้าย) + เงา inset
    เข้ม (มุมล่างขวา) ผสมกับเงาลอย (drop shadow) ปกติ ให้ดูนูนหนาแบบดินปั้น ไม่แบนเหมือนนูนนิ่ม */
-[data-style="clay"] body.ome-tool-page .card{
+[data-style="clay"] body.ome-tool-page .card,
+[data-style="clay"] body.ome-tool-page .kpi{
   background:var(--ome-card)!important;border:none!important;border-radius:28px!important;
   box-shadow:var(--ome-sh),
     inset 2px 2px 4px color-mix(in srgb, white 40%, transparent),
@@ -540,7 +552,8 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
 
 /* อะคริลิกฝ้า (Fluent Mica/Acrylic) — โปร่งแสงเบามาก เบลอน้อยกว่ากระจกฝ้าเยอะ (Mica ของ Windows
    เน้น "ทึบเกือบหมด แค่ให้รู้สึกถึงพื้นหลัง" ต่างจาก Acrylic/Glass ที่โปร่งแสงชัดเจน) */
-[data-style="mica"] body.ome-tool-page .card{
+[data-style="mica"] body.ome-tool-page .card,
+[data-style="mica"] body.ome-tool-page .kpi{
   background:color-mix(in srgb, var(--ome-card) 88%, transparent)!important;
   backdrop-filter:blur(6px)!important;-webkit-backdrop-filter:blur(6px)!important;
   border:1px solid color-mix(in srgb, var(--ome-line) 80%, transparent)!important;
@@ -555,7 +568,8 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
   background-image:radial-gradient(ellipse 70% 40% at 20% -10%, color-mix(in srgb, var(--ome-brand) 20%, transparent), transparent 60%),
     radial-gradient(ellipse 60% 40% at 90% 110%, color-mix(in srgb, var(--ome-brand-sf) 65%, transparent), transparent 60%)!important;
   background-attachment:fixed!important}
-[data-style="aurora"] body.ome-tool-page .card{
+[data-style="aurora"] body.ome-tool-page .card,
+[data-style="aurora"] body.ome-tool-page .kpi{
   background-color:var(--ome-card)!important;border:1px solid transparent!important;
   background-image:linear-gradient(var(--ome-card), var(--ome-card)),
     linear-gradient(120deg, var(--ome-brand), var(--ome-brand-sf) 45%, var(--ome-brand-dk))!important;
