@@ -18,13 +18,14 @@
   --brand:var(--ome-brand);--brand-dk:var(--ome-brand-dk);--brand-sf:var(--ome-brand-sf);
   --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--err:#E5484D;--warn:#E08700;
   --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06);
-  /* โทนกรมท่า+ฟ้าเฉพาะแถบนำทาง/แดชบอร์ดของโซนลงทุน — คนละแกนกับ --brand ของทั้งเว็บ ไม่กระทบหน้าอื่น */
-  --iv:#1769E8;--iv-dk:#0F4FB8;--iv-sf:#E8F1FF;--navy:#0B1D35;--navy2:#123A66;
-  --hero-bg:linear-gradient(160deg,#EAF2FF 0%,#F1F7FF 60%,#F7FAFF 100%);
-  --hero-cloud-a:#ffffff;--hero-cloud-b:#cfe3ff}
-[data-theme="dark"]{--iv:#5B94FF;--iv-dk:#8FB4FF;--iv-sf:#1B2C4D;
-  --hero-bg:linear-gradient(160deg,#152439 0%,#16233a 60%,#141d30 100%);
-  --hero-cloud-a:#5B94FF;--hero-cloud-b:#5B94FF}
+  /* แถบนำทาง/แดชบอร์ดของโซนลงทุน — เดิม hardcode กรมท่า+ฟ้าตายตัว คนละแกนกับสีธีมที่เลือกได้ในเมนู
+     ตั้งค่า (data-accent) เลยไม่ขยับตามเวลาเปลี่ยนสี ตอนนี้ผสมจาก --ome-brand แทน (ทุกสีธีม + มืด/สว่าง
+     ปรับตามอัตโนมัติ เพราะ --ome-brand เองก็ปรับตามอยู่แล้ว ไม่ต้องมี [data-theme="dark"] ซ้ำอีกชั้น) */
+  --iv:var(--ome-brand);--iv-dk:var(--ome-brand-dk);--iv-sf:var(--ome-brand-sf);
+  --navy:color-mix(in srgb, var(--ome-brand) 35%, #050810 65%);
+  --navy2:color-mix(in srgb, var(--ome-brand) 50%, #0b1220 50%);
+  --hero-bg:linear-gradient(120deg, var(--ome-brand-sf) 0%, var(--card) 55%, var(--ome-brand-sf) 100%);
+  --hero-chart:var(--ome-brand)}
 *{box-sizing:border-box;margin:0;padding:0}
 body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
   line-height:1.6;font-size:15px;padding:0 0 70px;-webkit-font-smoothing:antialiased}
@@ -36,11 +37,9 @@ h1,h2,h3{text-wrap:balance}
 .ivnav{background:linear-gradient(180deg,var(--navy),var(--navy2))}
 .ivgroups{display:flex;gap:2px;overflow-x:auto;padding:0 14px;max-width:1180px;margin:0 auto;scrollbar-width:none}
 .ivgroups::-webkit-scrollbar{display:none}
-.ivgroups button{font:inherit;border:0;background:transparent;cursor:pointer;display:flex;align-items:center;gap:8px;flex:0 0 auto;padding:13px 15px;
+.ivgroups button{font:inherit;border:0;background:transparent;cursor:pointer;flex:0 0 auto;padding:13px 15px;
   color:#A9BFD8;font-size:13px;font-weight:600;white-space:nowrap;border-bottom:2.5px solid transparent}
-.ivgroups .ic{width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.08);display:grid;place-items:center;font-size:11.5px;flex-shrink:0}
 .ivgroups button.on{color:#fff;border-color:#fff}
-.ivgroups button.on .ic{background:#fff;color:var(--navy2)}
 .ivgroups button:hover{color:#fff}
 .ivsub{background:rgba(0,0,0,.16);border-top:1px solid rgba(255,255,255,.07);display:none}
 .ivsub.on{display:block}
@@ -51,12 +50,10 @@ h1,h2,h3{text-wrap:balance}
 .ivsubrow a b{width:19px;height:19px;border-radius:6px;background:rgba(255,255,255,.07);display:grid;place-items:center;font-size:9.5px;font-weight:700;color:#C8D6EC}
 .ivsubrow a:hover{background:rgba(255,255,255,.1);color:#fff}
 
-/* ── กล่องต้อนรับ + ค้นหา + เมฆนุ่มๆ ── */
+/* ── กล่องต้อนรับ + ค้นหา + ลายเส้นกราฟจางๆ (feel การลงทุน) ── */
 .hero{margin-top:22px;border-radius:22px;padding:26px 30px;background:var(--hero-bg);position:relative;overflow:hidden}
-.hero .cloud{position:absolute;filter:blur(28px);pointer-events:none;border-radius:48% 52% 55% 45% / 55% 45% 55% 45%}
-.hero .cloud.c1{width:260px;height:170px;top:-60px;right:20px;background:var(--hero-cloud-a);opacity:.75}
-.hero .cloud.c2{width:200px;height:140px;bottom:-70px;right:180px;background:var(--hero-cloud-b);opacity:.55}
-.hero .cloud.c3{width:150px;height:100px;top:40px;right:260px;background:var(--hero-cloud-a);opacity:.45}
+.hero .chartmotif{position:absolute;right:0;top:0;width:58%;height:100%;opacity:.5;pointer-events:none;color:var(--hero-chart)}
+[data-theme="dark"] .hero .chartmotif{opacity:.32}
 .hero .inner{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .hero .eyebrow{font-size:11.5px;color:var(--iv-dk);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .hero h1{font-size:28px;margin:4px 0 0;font-weight:800;letter-spacing:-.015em}
@@ -229,10 +226,10 @@ h1,h2,h3{text-wrap:balance}
 
 <nav class="ivnav" id="ivNav">
   <div class="ivgroups" id="ivGroups">
-    <button class="on" type="button" data-group="overview"><span class="ic">⌂</span>ภาพรวม</button>
-    <button type="button" data-group="market"><span class="ic">◈</span>ตลาด &amp; สินทรัพย์</button>
-    <button type="button" data-group="lottery"><span class="ic">🎟</span>สลาก &amp; พันธบัตร</button>
-    <button type="button" data-group="news"><span class="ic">✎</span>ข่าว &amp; ธุรกิจ</button>
+    <button class="on" type="button" data-group="overview">ภาพรวม</button>
+    <button type="button" data-group="market">ตลาด &amp; สินทรัพย์</button>
+    <button type="button" data-group="lottery">สลาก &amp; พันธบัตร</button>
+    <button type="button" data-group="news">ข่าว &amp; ธุรกิจ</button>
   </div>
   <div class="ivsub" id="ivSub-market"><div class="ivsubrow" id="ivSubRow-market"></div></div>
   <div class="ivsub" id="ivSub-lottery"><div class="ivsubrow" id="ivSubRow-lottery"></div></div>
@@ -241,7 +238,21 @@ h1,h2,h3{text-wrap:balance}
 
 <div class="wrap">
   <section class="hero">
-    <span class="cloud c1"></span><span class="cloud c2"></span><span class="cloud c3"></span>
+    <svg class="chartmotif" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="heroChartFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="currentColor" stop-opacity=".28"/>
+          <stop offset="100%" stop-color="currentColor" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <g stroke="currentColor" stroke-opacity=".18" stroke-width="1">
+        <line x1="0" y1="35" x2="340" y2="35"/><line x1="0" y1="80" x2="340" y2="80"/><line x1="0" y1="125" x2="340" y2="125"/>
+      </g>
+      <path d="M0,140 L38,122 L72,133 L112,92 L150,101 L190,58 L228,70 L268,32 L306,44 L340,17 L340,170 L0,170 Z" fill="url(#heroChartFill)"/>
+      <polyline points="0,140 38,122 72,133 112,92 150,101 190,58 228,70 268,32 306,44 340,17" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="190" cy="58" r="4.5" fill="currentColor"/>
+      <circle cx="340" cy="17" r="4.5" fill="currentColor"/>
+    </svg>
     <div class="inner">
       <div>
         <h1>การลงทุน</h1>
