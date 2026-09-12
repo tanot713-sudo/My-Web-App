@@ -201,11 +201,24 @@ h1,h2,h3{text-wrap:balance}
 .ai-panel .ans.on{display:block}
 
 /* ── ป๊อปอัพเครื่องมือ — เปิดหน้าเครื่องมือในกรอบลอย เลื่อนได้ แทนการเปลี่ยนหน้า (ใช้ร่วมกันหลายหน้า) ── */
-.tool-modal-overlay{position:fixed;inset:0;background:rgba(11,18,35,.5);z-index:90;display:flex;align-items:flex-start;justify-content:center;padding:26px 16px;overflow-y:auto}
+/* z-index สูงกว่าทั้ง .ome-nav (แถบบนสุด ☰ ของ shell.js, 100) และวิดเจ็ตแชท AI ลอยมุมขวาล่าง (170)
+   เพราะตอนนี้ป๊อปอัพจอกว้างเต็มจอชนกับทั้งสองอย่างตรงๆ (เดิม 90 ทำให้ทั้งคู่โผล่ทับป๊อปอัพ ไม่มีใคร
+   สังเกตตอนที่ป๊อปอัพยังเป็นการ์ดลอยกลางจอเล็กกว่าจอมาก) ตอนนี้เป็นการ์ดเต็มจอจริง ต้องกันของหลัง
+   ไม่ให้โผล่ทับเลย ให้ความรู้สึกเหมือนเปิดเป็นหน้าเพจเต็มจอปกติจริงๆ */
+.tool-modal-overlay{position:fixed;inset:0;background:rgba(11,18,35,.5);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:26px 16px;overflow-y:auto}
 .tool-modal-overlay[hidden]{display:none}
 .tool-modal-box{position:relative;width:min(860px,100%);background:var(--card);border-radius:18px;box-shadow:0 24px 60px rgba(10,16,32,.35);overflow:hidden;margin:auto}
 .tool-modal-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:16px;line-height:1;cursor:pointer;z-index:2;box-shadow:0 2px 8px rgba(20,30,54,.12)}
 .tool-modal-box iframe{display:block;width:100%;border:0;min-height:200px}
+/* ── จอกว้าง (คอม/แท็บเล็ตแนวนอน) — เดิมเป็นการ์ดลอยกลางจอกว้างไม่เกิน 860px สูงพอดีเนื้อหา
+   ผู้ใช้ขอให้เต็มจอเวลาใช้บนคอม (ไม่กระทบมือถือ — media query มือถือด้านล่างแยกกันคนละอัน ไม่แตะ)
+   ขยายเป็นเต็มความกว้าง/ความสูงจอแทน เนื้อหาข้างในแต่ละเครื่องมือเองก็มี .wrap จำกัดความกว้างอยู่แล้ว
+   จึงยังอ่านง่ายไม่ยืดเป็นเส้นบางๆ แค่มีพื้นที่ว่างรอบๆ เหมือนเปิดเป็นหน้าเพจเต็มจอปกติ */
+@media(min-width:601px){
+  .tool-modal-overlay{padding:0}
+  .tool-modal-box{width:100%;height:100vh;max-width:100%;border-radius:0;box-shadow:none;margin:0}
+  .tool-modal-box iframe{height:100%!important}
+}
 @media(max-width:600px){.tool-modal-overlay{padding:0}.tool-modal-box{border-radius:0;min-height:100vh}}
 
 @media(max-width:920px){
@@ -957,8 +970,11 @@ h1,h2,h3{text-wrap:balance}
      จึงอ่านความสูงจริงของ iframe มาปรับกรอบให้พอดีได้) ══ */
   (function () {
     var overlay = $('toolModalOverlay'), frame = $('toolModalFrame'), closeBtn = $('toolModalClose');
+    function isWideModal() { return window.innerWidth > 600; } /* ตรงกับ breakpoint ของ CSS ด้านบน */
     function openToolModal(url) {
-      frame.style.height = '70vh';
+      /* จอกว้าง: กล่องเป็นเต็มจอ (100vh) ตายตัวอยู่แล้วจาก CSS ให้ iframe เต็มไปเลยไม่ต้องรอวัดเนื้อหา
+         (กันอาการกระตุกโตขึ้นทีหลัง) ส่วนมือถือยังคงพฤติกรรมเดิม (เริ่ม 70vh แล้วค่อยวัดจริงตอนโหลดเสร็จ) */
+      frame.style.height = isWideModal() ? '100%' : '70vh';
       frame.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'embed=1';
       overlay.hidden = false;
       overlay.scrollTop = 0; /* overlay เป็น element เดิมที่ใช้ซ้ำทุกครั้ง — ถ้าเลื่อนค้างจากรอบก่อน
@@ -979,6 +995,7 @@ h1,h2,h3{text-wrap:balance}
     }
     frame.addEventListener('load', function () {
       if (frame.src === 'about:blank') return;
+      if (isWideModal()) return; /* จอกว้างเต็มจอตายตัวอยู่แล้ว (100% จาก CSS) ไม่ต้องวัด/ปรับความสูงเอง */
       try {
         var h = frame.contentWindow.document.documentElement.scrollHeight;
         frame.style.height = Math.min(Math.max(h, 320), window.innerHeight * 0.86) + 'px';
