@@ -21,6 +21,111 @@
   function baht(n, d) { if (!isFinite(n)) return '—'; var neg = n < 0; return (neg ? '−' : '') + '฿' + fmt(Math.abs(n), d == null ? 0 : d); }
   function todayStr() { return new Date().toISOString().slice(0, 10); }
 
+  /* ══════ ระบบสองภาษา (ไทย/อังกฤษ) — ตามธรรมเนียมเดียวกับ invest-gold.js ══════ */
+  var UI_LANG_KEY = 'ome:lang';
+  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
+  var I18N = {
+    th: {
+      navInvest: 'การลงทุน', pageTitle: 'พอร์ตจำลอง',
+      sumTitle: 'สรุปพอร์ต', lblCash: 'เงินสดคงเหลือ', editCashBtn: '✎ แก้ไข',
+      saveBtn: 'บันทึก', cancelBtn: 'ยกเลิก',
+      lblHoldVal: 'มูลค่าหุ้นที่ถือ', lblTotal: 'มูลค่าพอร์ตรวม', lblPl: 'กำไร/ขาดทุนรวม',
+      resetBtn: 'เริ่มพอร์ตใหม่',
+      tradeTitle: 'ซื้อ / ขายหุ้น', tabBuy: 'ซื้อ', tabSell: 'ขาย',
+      lblSym: 'ชื่อย่อหุ้น', phSym: 'เช่น PTT', lblShares: 'จำนวนหุ้น', phShares: 'เช่น 100',
+      lblBuyDate: 'วันที่ซื้อ (ย้อนหลังได้)', buyBtn: 'ดึงราคา + ซื้อ',
+      lblSellSym: 'หุ้นที่ถือ', sellBtn: 'ดึงราคา + ขาย',
+      holdTitle: 'หุ้นที่ถือ', refreshBtn: 'รีเฟรชราคา',
+      holdEmpty: 'ยังไม่มีหุ้นในพอร์ต — ลองซื้อจากด้านบนได้เลย',
+      txTitle: 'ประวัติการซื้อขาย', txEmpty: 'ยังไม่มีรายการ',
+      driveTitle: 'สำรองพอร์ตจำลองขึ้น Google Drive',
+      driveConnectBtn: 'เชื่อมต่อ Google Drive', driveConnectedBtn: 'เชื่อมต่อ Google Drive แล้ว',
+      sTotalSubStale: 'ราคาบางตัวอาจยังไม่รีเฟรช — กด "รีเฟรชราคา"',
+      thHoldSym: 'หุ้น', thHoldShares: 'จำนวน', thHoldAvg: 'ทุนเฉลี่ย', thHoldPrice: 'ราคาล่าสุด', thHoldVal: 'มูลค่า', thHoldPl: 'กำไร/ขาดทุน',
+      priceNotFetched: 'ยังไม่ดึง',
+      optHoldSuffix: 'มี {n} หุ้น',
+      thTxDate: 'วันที่', thTxType: 'ประเภท', thTxSym: 'หุ้น', thTxShares: 'จำนวน', thTxPrice: 'ราคา', thTxAmt: 'มูลค่า', thTxPl: 'กำไรที่รับรู้',
+      txTypeBuy: 'ซื้อ', txTypeSell: 'ขาย',
+      errEnterSym: 'พิมพ์ชื่อย่อหุ้นก่อน เช่น PTT', errShares: 'กรอกจำนวนหุ้นให้ถูกต้อง',
+      errFutureDate: 'เลือกวันที่ในอนาคตไม่ได้',
+      statusFetchingHist: 'กำลังดึงราคาย้อนหลัง {sym} วันที่ {date}…', statusFetching: 'กำลังดึงราคา {sym}…',
+      errNoCash: 'เงินสดไม่พอ — ต้องใช้ {cost} แต่มีเงินสด {cash}',
+      buySuccess: 'ซื้อ {sym} {shares} หุ้น ที่ {price} บาท{backdated} สำเร็จ — ใช้เงิน {cost}',
+      buySuccessBackdatedSuffix: ' (ราคาปิดวันที่ {date})',
+      buyFailHist: 'ดึงราคาย้อนหลัง {sym} วันที่ {date} ไม่ได้ (อาจไม่มีข้อมูลช่วงนั้น หรือสัญลักษณ์ไม่ถูกต้อง) — ลองใหม่หรือเลือกวันอื่น',
+      buyFail: 'ดึงราคา {sym} ไม่ได้ตอนนี้ (สัญลักษณ์อาจไม่ถูกต้อง หรือบริการฟรีจำกัดชั่วคราว) — ลองใหม่อีกครั้ง',
+      errNoSellSym: 'ยังไม่มีหุ้นในพอร์ตให้ขาย', errNoHolding: 'ไม่พบหุ้นนี้ในพอร์ต',
+      errSharesWithMax: 'กรอกจำนวนหุ้นให้ถูกต้อง (มีอยู่ {n} หุ้น)',
+      sellSuccess: 'ขาย {sym} {shares} หุ้น ที่ {price} บาท สำเร็จ — {plWord} {pl}',
+      plWordProfit: 'กำไร', plWordLoss: 'ขาดทุน',
+      sellFail: 'ดึงราคา {sym} ไม่ได้ตอนนี้ — ลองใหม่อีกครั้ง',
+      resetConfirm: 'เริ่มพอร์ตจำลองใหม่ทั้งหมด? เงินสด/หุ้นที่ถือ/ประวัติการซื้อขายทั้งหมดจะถูกล้าง (กู้คืนไม่ได้)',
+      resetOkLabel: 'เริ่มใหม่', errCashInvalid: 'กรอกจำนวนเงินสดให้ถูกต้อง (ต้องไม่ติดลบ)',
+      driveAutoFail: 'เชื่อมต่ออัตโนมัติไม่สำเร็จ (อาจเพราะเบราว์เซอร์บล็อก cookie ข้ามโดเมน) — กดปุ่มเชื่อมต่ออีกครั้ง',
+      driveConnectFail: 'เชื่อมต่อไม่สำเร็จ: {err}', driveLoadingGis: 'กำลังโหลด Google Identity Services… รออีก 2-3 วิแล้วลองใหม่',
+      driveRequesting: 'กำลังขอสิทธิ์เชื่อมต่อ…', driveErrSearchFolder: 'ค้นหาโฟลเดอร์ไม่สำเร็จ ({code})',
+      driveErrCreateFolder: 'สร้างโฟลเดอร์ไม่สำเร็จ ({code})', driveErrSearchFile: 'ค้นหาไฟล์ไม่สำเร็จ ({code})',
+      driveErrDownload: 'ดาวน์โหลดไม่สำเร็จ ({code})', driveErrUpload: 'บันทึกขึ้น Drive ไม่สำเร็จ ({code})',
+      driveSyncing: 'กำลังซิงก์…', driveSyncedAt: 'ซิงก์กับ Google Drive แล้ว · {time}', driveLastSync: 'ซิงก์ล่าสุด {time}',
+      driveSessionExpired: 'เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', driveSyncFailed: 'ซิงก์ไม่สำเร็จ: {err}'
+    },
+    en: {
+      navInvest: 'Investing', pageTitle: 'Simulated Portfolio',
+      sumTitle: 'Portfolio Summary', lblCash: 'Cash balance', editCashBtn: '✎ Edit',
+      saveBtn: 'Save', cancelBtn: 'Cancel',
+      lblHoldVal: 'Holdings value', lblTotal: 'Total portfolio value', lblPl: 'Total profit/loss',
+      resetBtn: 'Start new portfolio',
+      tradeTitle: 'Buy / Sell Stock', tabBuy: 'Buy', tabSell: 'Sell',
+      lblSym: 'Stock symbol', phSym: 'e.g. PTT', lblShares: 'Number of shares', phShares: 'e.g. 100',
+      lblBuyDate: 'Purchase date (can be backdated)', buyBtn: 'Fetch price + Buy',
+      lblSellSym: 'Stock held', sellBtn: 'Fetch price + Sell',
+      holdTitle: 'Holdings', refreshBtn: 'Refresh prices',
+      holdEmpty: 'No stocks in your portfolio yet — try buying one above',
+      txTitle: 'Trade History', txEmpty: 'No transactions yet',
+      driveTitle: 'Back up simulated portfolio to Google Drive',
+      driveConnectBtn: 'Connect Google Drive', driveConnectedBtn: 'Google Drive connected',
+      sTotalSubStale: 'Some prices may not be refreshed yet — press "Refresh prices"',
+      thHoldSym: 'Stock', thHoldShares: 'Shares', thHoldAvg: 'Avg cost', thHoldPrice: 'Latest price', thHoldVal: 'Value', thHoldPl: 'Profit/Loss',
+      priceNotFetched: 'Not fetched yet',
+      optHoldSuffix: 'has {n} shares',
+      thTxDate: 'Date', thTxType: 'Type', thTxSym: 'Stock', thTxShares: 'Shares', thTxPrice: 'Price', thTxAmt: 'Amount', thTxPl: 'Realized P/L',
+      txTypeBuy: 'Buy', txTypeSell: 'Sell',
+      errEnterSym: 'Enter a stock symbol first, e.g. PTT', errShares: 'Enter a valid number of shares',
+      errFutureDate: "Can't pick a future date",
+      statusFetchingHist: 'Fetching historical price for {sym} on {date}…', statusFetching: 'Fetching price for {sym}…',
+      errNoCash: 'Not enough cash — needs {cost} but you have {cash}',
+      buySuccess: 'Bought {sym} {shares} shares at {price} THB{backdated} — used {cost}',
+      buySuccessBackdatedSuffix: ' (closing price on {date})',
+      buyFailHist: "Couldn't fetch the historical price for {sym} on {date} (may have no data for that period, or the symbol is wrong) — try again or pick another date",
+      buyFail: "Couldn't fetch the price for {sym} right now (symbol may be wrong, or the free service is temporarily limited) — try again",
+      errNoSellSym: 'No stock in your portfolio to sell', errNoHolding: 'This stock was not found in your portfolio',
+      errSharesWithMax: 'Enter a valid number of shares (you have {n} shares)',
+      sellSuccess: 'Sold {sym} {shares} shares at {price} THB — {plWord} {pl}',
+      plWordProfit: 'profit of', plWordLoss: 'loss of',
+      sellFail: "Couldn't fetch the price for {sym} right now — try again",
+      resetConfirm: 'Start a completely new simulated portfolio? Cash/holdings/trade history will all be cleared (cannot be undone)',
+      resetOkLabel: 'Start over', errCashInvalid: 'Enter a valid cash amount (cannot be negative)',
+      driveAutoFail: 'Automatic connection failed (the browser may be blocking cross-domain cookies) — press the connect button again',
+      driveConnectFail: 'Connection failed: {err}', driveLoadingGis: 'Loading Google Identity Services… wait a couple seconds and try again',
+      driveRequesting: 'Requesting connection permission…', driveErrSearchFolder: 'Folder search failed ({code})',
+      driveErrCreateFolder: 'Folder creation failed ({code})', driveErrSearchFile: 'File search failed ({code})',
+      driveErrDownload: 'Download failed ({code})', driveErrUpload: 'Save to Drive failed ({code})',
+      driveSyncing: 'Syncing…', driveSyncedAt: 'Synced with Google Drive · {time}', driveLastSync: 'Last synced {time}',
+      driveSessionExpired: 'Session expired — press the connect Drive button again', driveSyncFailed: 'Sync failed: {err}'
+    }
+  };
+  function t(key, vars) {
+    var s = (I18N[getUILang()] || I18N.th)[key];
+    if (s == null) s = (I18N.th[key] != null ? I18N.th[key] : key);
+    if (vars) { for (var k in vars) { s = s.split('{' + k + '}').join(vars[k]); } }
+    return s;
+  }
+  function applyStaticI18n() {
+    [].forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    [].forEach.call(document.querySelectorAll('[data-i18n-html]'), function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+    [].forEach.call(document.querySelectorAll('[data-i18n-placeholder]'), function (el) { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+  }
+
   /* หน้านี้เปิดเป็นป๊อปอัพ (iframe) จาก invest.html ได้ด้วย ?embed=1 — ซ่อน breadcrumb ให้ดูเป็นกล่องเดียวกัน */
   if (new URLSearchParams(location.search).get('embed')) document.body.classList.add('embedded');
 
@@ -113,10 +218,10 @@
     var shares = num($('buyShares').value);
     var dateStr = $('buyDate') ? $('buyDate').value : '';
     var backdated = !!dateStr && dateStr !== todayStr();
-    if (!sym) { setTradeStatus('พิมพ์ชื่อย่อหุ้นก่อน เช่น PTT', 'err'); return; }
-    if (!isFinite(shares) || shares <= 0) { setTradeStatus('กรอกจำนวนหุ้นให้ถูกต้อง', 'err'); return; }
-    if (dateStr && dateStr > todayStr()) { setTradeStatus('เลือกวันที่ในอนาคตไม่ได้', 'err'); return; }
-    setTradeStatus(backdated ? 'กำลังดึงราคาย้อนหลัง ' + sym + ' วันที่ ' + dateStr + '…' : 'กำลังดึงราคา ' + sym + '…');
+    if (!sym) { setTradeStatus(t('errEnterSym'), 'err'); return; }
+    if (!isFinite(shares) || shares <= 0) { setTradeStatus(t('errShares'), 'err'); return; }
+    if (dateStr && dateStr > todayStr()) { setTradeStatus(t('errFutureDate'), 'err'); return; }
+    setTradeStatus(backdated ? t('statusFetchingHist', { sym: sym, date: dateStr }) : t('statusFetching', { sym: sym }));
     $('buyBtn').disabled = true;
     var pricePromise = backdated
       ? fetchHistoricalPrice(sym, dateStr, 0)
@@ -126,7 +231,7 @@
       var price = res.price, txTs = res.ts;
       var cost = shares * price;
       if (cost > state.cash + 1e-6) {
-        setTradeStatus('เงินสดไม่พอ — ต้องใช้ ' + baht(cost) + ' แต่มีเงินสด ' + baht(state.cash), 'err');
+        setTradeStatus(t('errNoCash', { cost: baht(cost), cash: baht(state.cash) }), 'err');
         return;
       }
       var h = findHolding(sym);
@@ -136,23 +241,26 @@
       state.tx.unshift({ ts: txTs, type: 'buy', sym: sym, shares: shares, price: price, amount: cost });
       saveState(state);
       $('buySym').value = ''; $('buyShares').value = ''; $('buyDate') && ($('buyDate').value = '');
-      setTradeStatus('ซื้อ ' + sym + ' ' + fmt0(shares) + ' หุ้น ที่ ' + fmt(price) + ' บาท' + (backdated ? ' (ราคาปิดวันที่ ' + new Date(txTs).toLocaleDateString('th-TH') + ')' : '') + ' สำเร็จ — ใช้เงิน ' + baht(cost), 'ok');
+      setTradeStatus(t('buySuccess', {
+        sym: sym, shares: fmt0(shares), price: fmt(price), cost: baht(cost),
+        backdated: backdated ? t('buySuccessBackdatedSuffix', { date: new Date(txTs).toLocaleDateString('th-TH') }) : ''
+      }), 'ok');
       renderAll();
     }, function () {
       $('buyBtn').disabled = false;
       setTradeStatus(backdated
-        ? 'ดึงราคาย้อนหลัง ' + sym + ' วันที่ ' + dateStr + ' ไม่ได้ (อาจไม่มีข้อมูลช่วงนั้น หรือสัญลักษณ์ไม่ถูกต้อง) — ลองใหม่หรือเลือกวันอื่น'
-        : 'ดึงราคา ' + sym + ' ไม่ได้ตอนนี้ (สัญลักษณ์อาจไม่ถูกต้อง หรือบริการฟรีจำกัดชั่วคราว) — ลองใหม่อีกครั้ง', 'err');
+        ? t('buyFailHist', { sym: sym, date: dateStr })
+        : t('buyFail', { sym: sym }), 'err');
     });
   }
   function doSell() {
     var sym = $('sellSym').value;
     var shares = num($('sellShares').value);
-    if (!sym) { setTradeStatus('ยังไม่มีหุ้นในพอร์ตให้ขาย', 'err'); return; }
+    if (!sym) { setTradeStatus(t('errNoSellSym'), 'err'); return; }
     var h = findHolding(sym);
-    if (!h) { setTradeStatus('ไม่พบหุ้นนี้ในพอร์ต', 'err'); return; }
-    if (!isFinite(shares) || shares <= 0 || shares > h.shares) { setTradeStatus('กรอกจำนวนหุ้นให้ถูกต้อง (มีอยู่ ' + fmt0(h.shares) + ' หุ้น)', 'err'); return; }
-    setTradeStatus('กำลังดึงราคา ' + sym + '…');
+    if (!h) { setTradeStatus(t('errNoHolding'), 'err'); return; }
+    if (!isFinite(shares) || shares <= 0 || shares > h.shares) { setTradeStatus(t('errSharesWithMax', { n: fmt0(h.shares) }), 'err'); return; }
+    setTradeStatus(t('statusFetching', { sym: sym }));
     $('sellBtn').disabled = true;
     getPrice(sym, 1, true).then(function (price) {
       $('sellBtn').disabled = false;
@@ -163,15 +271,15 @@
       state.tx.unshift({ ts: Date.now(), type: 'sell', sym: sym, shares: shares, price: price, amount: proceeds, realizedPl: realizedPl });
       saveState(state);
       $('sellShares').value = '';
-      setTradeStatus('ขาย ' + sym + ' ' + fmt0(shares) + ' หุ้น ที่ ' + fmt(price) + ' บาท สำเร็จ — ' + (realizedPl >= 0 ? 'กำไร ' : 'ขาดทุน ') + baht(Math.abs(realizedPl)), realizedPl >= 0 ? 'ok' : 'err');
+      setTradeStatus(t('sellSuccess', { sym: sym, shares: fmt0(shares), price: fmt(price), plWord: realizedPl >= 0 ? t('plWordProfit') : t('plWordLoss'), pl: baht(Math.abs(realizedPl)) }), realizedPl >= 0 ? 'ok' : 'err');
       renderAll();
     }, function () {
       $('sellBtn').disabled = false;
-      setTradeStatus('ดึงราคา ' + sym + ' ไม่ได้ตอนนี้ — ลองใหม่อีกครั้ง', 'err');
+      setTradeStatus(t('sellFail', { sym: sym }), 'err');
     });
   }
   function doReset() {
-    window.tanotConfirm('เริ่มพอร์ตจำลองใหม่ทั้งหมด? เงินสด/หุ้นที่ถือ/ประวัติการซื้อขายทั้งหมดจะถูกล้าง (กู้คืนไม่ได้)', { danger: true, okLabel: 'เริ่มใหม่' }).then(function (ok) {
+    window.tanotConfirm(t('resetConfirm'), { danger: true, okLabel: t('resetOkLabel') }).then(function (ok) {
       if (!ok) return;
       state = defaultState();
       saveState(state);
@@ -193,7 +301,7 @@
     $('sCash').textContent = baht(state.cash);
     $('sHoldVal').textContent = baht(holdVal);
     $('sTotal').textContent = baht(total);
-    $('sTotalSub').textContent = state.holdings.length ? 'ราคาบางตัวอาจยังไม่รีเฟรช — กด "รีเฟรชราคา"' : '';
+    $('sTotalSub').textContent = state.holdings.length ? t('sTotalSubStale') : '';
     var plEl = $('sPl');
     plEl.textContent = (pl >= 0 ? '+' : '') + baht(pl);
     plEl.className = 'val ' + (pl > 0 ? 'up' : pl < 0 ? 'dn' : '');
@@ -203,15 +311,15 @@
     var tbl = $('holdTable'), empty = $('holdEmpty'), sel = $('sellSym');
     if (!state.holdings.length) { tbl.innerHTML = ''; empty.style.display = 'block'; sel.innerHTML = ''; return; }
     empty.style.display = 'none';
-    var rows = '<thead><tr><th>หุ้น</th><th>จำนวน</th><th>ทุนเฉลี่ย</th><th>ราคาล่าสุด</th><th>มูลค่า</th><th>กำไร/ขาดทุน</th></tr></thead><tbody>';
+    var rows = '<thead><tr><th>' + t('thHoldSym') + '</th><th>' + t('thHoldShares') + '</th><th>' + t('thHoldAvg') + '</th><th>' + t('thHoldPrice') + '</th><th>' + t('thHoldVal') + '</th><th>' + t('thHoldPl') + '</th></tr></thead><tbody>';
     var selHtml = '';
     state.holdings.forEach(function (h) {
       var c = priceCache[h.sym], price = c ? c.price : NaN, val = h.shares * (isFinite(price) ? price : h.avgCost);
       var pl = isFinite(price) ? (price - h.avgCost) * h.shares : NaN, pct = isFinite(pl) ? pl / (h.avgCost * h.shares) * 100 : NaN;
       rows += '<tr><td>' + h.sym + '</td><td>' + fmt0(h.shares) + '</td><td>' + fmt(h.avgCost) + '</td>' +
-        '<td>' + (isFinite(price) ? fmt(price) : 'ยังไม่ดึง') + '</td><td>' + baht(val) + '</td>' +
+        '<td>' + (isFinite(price) ? fmt(price) : t('priceNotFetched')) + '</td><td>' + baht(val) + '</td>' +
         '<td class="' + (pl > 0 ? 'up' : pl < 0 ? 'dn' : '') + '">' + (isFinite(pl) ? (pl >= 0 ? '+' : '') + baht(pl) + (isFinite(pct) ? ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)' : '') : '—') + '</td></tr>';
-      selHtml += '<option value="' + h.sym + '">' + h.sym + ' (มี ' + fmt0(h.shares) + ' หุ้น)</option>';
+      selHtml += '<option value="' + h.sym + '">' + h.sym + ' (' + t('optHoldSuffix', { n: fmt0(h.shares) }) + ')</option>';
     });
     rows += '</tbody>';
     tbl.innerHTML = rows;
@@ -223,13 +331,13 @@
     var tbl = $('txTable'), empty = $('txEmpty');
     if (!state.tx.length) { tbl.innerHTML = ''; empty.style.display = 'block'; return; }
     empty.style.display = 'none';
-    var rows = '<thead><tr><th>วันที่</th><th>ประเภท</th><th>หุ้น</th><th>จำนวน</th><th>ราคา</th><th>มูลค่า</th><th>กำไรที่รับรู้</th></tr></thead><tbody>';
+    var rows = '<thead><tr><th>' + t('thTxDate') + '</th><th>' + t('thTxType') + '</th><th>' + t('thTxSym') + '</th><th>' + t('thTxShares') + '</th><th>' + t('thTxPrice') + '</th><th>' + t('thTxAmt') + '</th><th>' + t('thTxPl') + '</th></tr></thead><tbody>';
     /* เรียงตามเวลาจริงเสมอ (ไม่ใช่ลำดับที่บันทึก) — เพราะรายการซื้อย้อนหลังอาจถูกเพิ่มทีหลังแต่มี ts เก่ากว่า */
-    state.tx.slice().sort(function (a, b) { return b.ts - a.ts; }).slice(0, 100).forEach(function (t) {
-      var dateTxt = new Date(t.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + ' ' + new Date(t.ts).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-      rows += '<tr><td>' + dateTxt + '</td><td><span class="tx-type ' + t.type + '">' + (t.type === 'buy' ? 'ซื้อ' : 'ขาย') + '</span></td>' +
-        '<td>' + t.sym + '</td><td>' + fmt0(t.shares) + '</td><td>' + fmt(t.price) + '</td><td>' + baht(t.amount) + '</td>' +
-        '<td class="' + (t.realizedPl > 0 ? 'up' : t.realizedPl < 0 ? 'dn' : '') + '">' + (t.type === 'sell' && isFinite(t.realizedPl) ? (t.realizedPl >= 0 ? '+' : '') + baht(t.realizedPl) : '—') + '</td></tr>';
+    state.tx.slice().sort(function (a, b) { return b.ts - a.ts; }).slice(0, 100).forEach(function (tx) {
+      var dateTxt = new Date(tx.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + ' ' + new Date(tx.ts).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      rows += '<tr><td>' + dateTxt + '</td><td><span class="tx-type ' + tx.type + '">' + (tx.type === 'buy' ? t('txTypeBuy') : t('txTypeSell')) + '</span></td>' +
+        '<td>' + tx.sym + '</td><td>' + fmt0(tx.shares) + '</td><td>' + fmt(tx.price) + '</td><td>' + baht(tx.amount) + '</td>' +
+        '<td class="' + (tx.realizedPl > 0 ? 'up' : tx.realizedPl < 0 ? 'dn' : '') + '">' + (tx.type === 'sell' && isFinite(tx.realizedPl) ? (tx.realizedPl >= 0 ? '+' : '') + baht(tx.realizedPl) : '—') + '</td></tr>';
     });
     rows += '</tbody>';
     tbl.innerHTML = rows;
@@ -261,7 +369,7 @@
     },
     setBtn: function () {
       var b = $('driveConnectBtn'); if (!b) return;
-      b.textContent = this.connected ? 'เชื่อมต่อ Google Drive แล้ว' : 'เชื่อมต่อ Google Drive';
+      b.textContent = this.connected ? t('driveConnectedBtn') : t('driveConnectBtn');
     },
     init: function () {
       try { this.connected = localStorage.getItem(DRIVE_CONNECTED_KEY) === '1'; } catch (e) {}
@@ -275,7 +383,7 @@
           use_fedcm_for_prompt: true,
           callback: function (resp) {
             if (resp.error) {
-              self.setStatus(self.connected ? 'เชื่อมต่ออัตโนมัติไม่สำเร็จ (อาจเพราะเบราว์เซอร์บล็อก cookie ข้ามโดเมน) — กดปุ่มเชื่อมต่ออีกครั้ง' : 'เชื่อมต่อไม่สำเร็จ: ' + resp.error, 'err');
+              self.setStatus(self.connected ? t('driveAutoFail') : t('driveConnectFail', { err: resp.error }), 'err');
               return;
             }
             self.accessToken = resp.access_token;
@@ -289,8 +397,8 @@
       })();
     },
     connect: function () {
-      if (!this.tokenClient) { this.setStatus('กำลังโหลด Google Identity Services… รออีก 2-3 วิแล้วลองใหม่', 'err'); return; }
-      this.setStatus('กำลังขอสิทธิ์เชื่อมต่อ…', '');
+      if (!this.tokenClient) { this.setStatus(t('driveLoadingGis'), 'err'); return; }
+      this.setStatus(t('driveRequesting'), '');
       this.tokenClient.requestAccessToken({ prompt: this.accessToken ? '' : 'consent' });
     },
     authFetch: function (url, opts) {
@@ -303,13 +411,13 @@
       if (self.folderId) return Promise.resolve(self.folderId);
       var q = encodeURIComponent("name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false");
       return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error('ค้นหาโฟลเดอร์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error(t('driveErrSearchFolder', { code: r.status })); return r.json(); })
         .then(function (data) {
           if (data.files && data.files.length) { self.folderId = data.files[0].id; return self.folderId; }
           return self.authFetch('https://www.googleapis.com/drive/v3/files', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
-          }).then(function (r) { if (!r.ok) throw new Error('สร้างโฟลเดอร์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+          }).then(function (r) { if (!r.ok) throw new Error(t('driveErrCreateFolder', { code: r.status })); return r.json(); })
             .then(function (d) { self.folderId = d.id; return self.folderId; });
         });
     },
@@ -318,13 +426,13 @@
       if (self.fileId) return Promise.resolve(self.fileId);
       var q = encodeURIComponent("name='" + DRIVE_FILE_NAME + "' and '" + self.folderId + "' in parents and trashed=false");
       return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error('ค้นหาไฟล์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error(t('driveErrSearchFile', { code: r.status })); return r.json(); })
         .then(function (data) { self.fileId = (data.files && data.files[0] && data.files[0].id) || null; return self.fileId; });
     },
     download: function () {
       var self = this;
       return self.authFetch('https://www.googleapis.com/drive/v3/files/' + self.fileId + '?alt=media')
-        .then(function (r) { if (!r.ok) throw new Error('ดาวน์โหลดไม่สำเร็จ (' + r.status + ')'); return r.json(); });
+        .then(function (r) { if (!r.ok) throw new Error(t('driveErrDownload', { code: r.status })); return r.json(); });
     },
     upload: function (obj) {
       var self = this;
@@ -336,7 +444,7 @@
         ? 'https://www.googleapis.com/upload/drive/v3/files/' + self.fileId + '?uploadType=multipart'
         : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id';
       return self.authFetch(url, { method: self.fileId ? 'PATCH' : 'POST', body: form })
-        .then(function (r) { if (!r.ok) throw new Error('บันทึกขึ้น Drive ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error(t('driveErrUpload', { code: r.status })); return r.json(); })
         .then(function (d) { if (d.id) self.fileId = d.id; return d; });
     },
     /* พอร์ตนี้เป็นสถานะเดียว (ไม่ใช่ log แบบเพิ่มได้เรื่อยๆ) — merge แบบง่าย: ใช้ฝั่งที่มี tx ล่าสุดใหม่กว่า
@@ -349,7 +457,7 @@
     },
     firstSync: function () {
       var self = this;
-      self.setStatus('กำลังซิงก์…', '');
+      self.setStatus(t('driveSyncing'), '');
       self.ensureFolder().then(function () { return self.findFile(); })
         .then(function (fid) { return fid ? self.download() : null; })
         .then(function (remote) {
@@ -359,7 +467,7 @@
           renderAll();
           return self.upload(state);
         })
-        .then(function () { self.setStatus('ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); })
+        .then(function () { self.setStatus(t('driveSyncedAt', { time: nowTime() }), 'ok'); })
         .catch(function (e) { self.setStatus('' + (e.message || e), 'err'); });
     },
     scheduleSync: function () {
@@ -373,17 +481,17 @@
       var self = this;
       if (self.syncing) { self.pending = true; return; }
       self.pending = false; self.syncing = true;
-      self.setStatus('กำลังซิงก์…', '');
+      self.setStatus(t('driveSyncing'), '');
       self.ensureFolder().then(function () { return self.findFile(); })
         .then(function () { return self.upload(state); })
-        .then(function () { self.setStatus('ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
+        .then(function () { self.setStatus(t('driveLastSync', { time: nowTime() }), 'ok'); })
         .catch(function (e) {
           var msg = String(e && e.message || e);
           if (msg.indexOf('401') !== -1 || msg.indexOf('403') !== -1) {
             self.accessToken = null;
-            self.setStatus('เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', 'err');
+            self.setStatus(t('driveSessionExpired'), 'err');
           } else {
-            self.setStatus('ซิงก์ไม่สำเร็จ: ' + msg, 'err');
+            self.setStatus(t('driveSyncFailed', { err: msg }), 'err');
           }
         })
         .finally(function () {
@@ -407,7 +515,7 @@
   }
   function saveEditCash() {
     var v = num($('cashEditInput').value);
-    if (!isFinite(v) || v < 0) { window.tanotAlert('กรอกจำนวนเงินสดให้ถูกต้อง (ต้องไม่ติดลบ)'); return; }
+    if (!isFinite(v) || v < 0) { window.tanotAlert(t('errCashInvalid')); return; }
     state.cash = v;
     saveState(state);
     cancelEditCash();
@@ -415,6 +523,7 @@
   }
 
   function init() {
+    applyStaticI18n();
     renderAll();
     if ($('buyDate')) $('buyDate').max = todayStr();
     $('buyBtn').addEventListener('click', doBuy);
@@ -428,9 +537,9 @@
     [].forEach.call(document.querySelectorAll('#tradeTabs button'), function (b) {
       b.addEventListener('click', function () {
         [].forEach.call(document.querySelectorAll('#tradeTabs button'), function (x) { x.classList.toggle('on', x === b); });
-        var t = b.getAttribute('data-tab');
-        $('buyPane').style.display = t === 'buy' ? 'block' : 'none';
-        $('sellPane').style.display = t === 'sell' ? 'block' : 'none';
+        var tab = b.getAttribute('data-tab');
+        $('buyPane').style.display = tab === 'buy' ? 'block' : 'none';
+        $('sellPane').style.display = tab === 'sell' ? 'block' : 'none';
         setTradeStatus('');
       });
     });
@@ -439,6 +548,12 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+
+  window.omeApplyLang = function () {
+    applyStaticI18n();
+    renderAll();
+    DriveSync.setBtn();
+  };
 
   window.__portfolio = { defaultState: defaultState, findHolding: findHolding };
 })();

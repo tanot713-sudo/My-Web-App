@@ -113,56 +113,56 @@ body.embedded #driveCard{display:none}
 <script src="auth-gate.js"></script>
 <div class="wrap">
 
-  <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>พอร์ตจำลอง</nav>
+  <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span class="sep">/</span><span data-i18n="pageTitle">พอร์ตจำลอง</span></nav>
 
   <div class="head">
     <div>
-      <h1>พอร์ตจำลอง</h1>
+      <h1 data-i18n="pageTitle">พอร์ตจำลอง</h1>
     </div>
   </div>
 
   <!-- สรุปพอร์ต -->
   <div class="card">
-    <h2>สรุปพอร์ต</h2>
+    <h2 data-i18n="sumTitle">สรุปพอร์ต</h2>
     <div class="sumrow">
       <div class="sumbox">
-        <div class="lbl-row"><span class="lbl">เงินสดคงเหลือ</span><button class="edit-ic" id="cashEditBtn" type="button" aria-label="แก้ไขเงินสด">✎ แก้ไข</button></div>
+        <div class="lbl-row"><span class="lbl" data-i18n="lblCash">เงินสดคงเหลือ</span><button class="edit-ic" id="cashEditBtn" type="button" aria-label="แก้ไขเงินสด" data-i18n="editCashBtn">✎ แก้ไข</button></div>
         <div class="val" id="sCash">—</div>
         <div class="cash-edit-row" id="cashEditRow" hidden>
           <input type="number" id="cashEditInput" inputmode="decimal" class="cash-edit-input">
           <div class="cash-edit-actions">
-            <button class="btn sm primary" id="cashEditSave" type="button">บันทึก</button>
-            <button class="btn sm" id="cashEditCancel" type="button">ยกเลิก</button>
+            <button class="btn sm primary" id="cashEditSave" type="button" data-i18n="saveBtn">บันทึก</button>
+            <button class="btn sm" id="cashEditCancel" type="button" data-i18n="cancelBtn">ยกเลิก</button>
           </div>
         </div>
       </div>
-      <div class="sumbox"><div class="lbl">มูลค่าหุ้นที่ถือ</div><div class="val" id="sHoldVal">—</div></div>
-      <div class="sumbox"><div class="lbl">มูลค่าพอร์ตรวม</div><div class="val" id="sTotal">—</div><div class="sub" id="sTotalSub"></div></div>
-      <div class="sumbox"><div class="lbl">กำไร/ขาดทุนรวม</div><div class="val" id="sPl">—</div><div class="sub" id="sPlPct"></div></div>
+      <div class="sumbox"><div class="lbl" data-i18n="lblHoldVal">มูลค่าหุ้นที่ถือ</div><div class="val" id="sHoldVal">—</div></div>
+      <div class="sumbox"><div class="lbl" data-i18n="lblTotal">มูลค่าพอร์ตรวม</div><div class="val" id="sTotal">—</div><div class="sub" id="sTotalSub"></div></div>
+      <div class="sumbox"><div class="lbl" data-i18n="lblPl">กำไร/ขาดทุนรวม</div><div class="val" id="sPl">—</div><div class="sub" id="sPlPct"></div></div>
     </div>
-    <p style="margin-top:10px"><button class="btn sm" id="resetBtn" type="button">เริ่มพอร์ตใหม่</button></p>
+    <p style="margin-top:10px"><button class="btn sm" id="resetBtn" type="button" data-i18n="resetBtn">เริ่มพอร์ตใหม่</button></p>
   </div>
 
   <!-- ซื้อ-ขาย -->
   <div class="card">
-    <h2>ซื้อ / ขายหุ้น</h2>
+    <h2 data-i18n="tradeTitle">ซื้อ / ขายหุ้น</h2>
     <div class="tabs" id="tradeTabs">
-      <button class="on" data-tab="buy" type="button">ซื้อ</button>
-      <button data-tab="sell" type="button">ขาย</button>
+      <button class="on" data-tab="buy" type="button" data-i18n="tabBuy">ซื้อ</button>
+      <button data-tab="sell" type="button" data-i18n="tabSell">ขาย</button>
     </div>
     <div id="buyPane">
       <div class="frow">
-        <div class="field"><label>ชื่อย่อหุ้น</label><input type="text" id="buySym" placeholder="เช่น PTT" autocomplete="off" spellcheck="false"></div>
-        <div class="field"><label>จำนวนหุ้น</label><input type="number" id="buyShares" inputmode="numeric" placeholder="เช่น 100"></div>
-        <div class="field"><label>วันที่ซื้อ (ย้อนหลังได้)</label><input type="date" id="buyDate"></div>
-        <button class="btn primary" id="buyBtn" type="button">ดึงราคา + ซื้อ</button>
+        <div class="field"><label data-i18n="lblSym">ชื่อย่อหุ้น</label><input type="text" id="buySym" placeholder="เช่น PTT" data-i18n-placeholder="phSym" autocomplete="off" spellcheck="false"></div>
+        <div class="field"><label data-i18n="lblShares">จำนวนหุ้น</label><input type="number" id="buyShares" inputmode="numeric" placeholder="เช่น 100" data-i18n-placeholder="phShares"></div>
+        <div class="field"><label data-i18n="lblBuyDate">วันที่ซื้อ (ย้อนหลังได้)</label><input type="date" id="buyDate"></div>
+        <button class="btn primary" id="buyBtn" type="button" data-i18n="buyBtn">ดึงราคา + ซื้อ</button>
       </div>
     </div>
     <div id="sellPane" style="display:none">
       <div class="frow">
-        <div class="field" style="flex:2 1 180px"><label>หุ้นที่ถือ</label><select id="sellSym"></select></div>
-        <div class="field"><label>จำนวนหุ้น</label><input type="number" id="sellShares" inputmode="numeric" placeholder="เช่น 100"></div>
-        <button class="btn danger" id="sellBtn" type="button">ดึงราคา + ขาย</button>
+        <div class="field" style="flex:2 1 180px"><label data-i18n="lblSellSym">หุ้นที่ถือ</label><select id="sellSym"></select></div>
+        <div class="field"><label data-i18n="lblShares">จำนวนหุ้น</label><input type="number" id="sellShares" inputmode="numeric" placeholder="เช่น 100" data-i18n-placeholder="phShares"></div>
+        <button class="btn danger" id="sellBtn" type="button" data-i18n="sellBtn">ดึงราคา + ขาย</button>
       </div>
     </div>
     <div class="status" id="tradeStatus"></div>
@@ -170,23 +170,23 @@ body.embedded #driveCard{display:none}
 
   <!-- หุ้นที่ถือ -->
   <div class="card">
-    <h2>หุ้นที่ถือ <button class="btn sm" id="refreshBtn" type="button" style="margin-left:auto">รีเฟรชราคา</button></h2>
+    <h2><span data-i18n="holdTitle">หุ้นที่ถือ</span> <button class="btn sm" id="refreshBtn" type="button" style="margin-left:auto" data-i18n="refreshBtn">รีเฟรชราคา</button></h2>
     <div class="tbl-wrap"><table id="holdTable"></table></div>
-    <div id="holdEmpty" class="tbl-empty">ยังไม่มีหุ้นในพอร์ต — ลองซื้อจากด้านบนได้เลย</div>
+    <div id="holdEmpty" class="tbl-empty" data-i18n="holdEmpty">ยังไม่มีหุ้นในพอร์ต — ลองซื้อจากด้านบนได้เลย</div>
   </div>
 
   <!-- ประวัติการซื้อขาย -->
   <div class="card">
-    <h2>ประวัติการซื้อขาย</h2>
+    <h2 data-i18n="txTitle">ประวัติการซื้อขาย</h2>
     <div class="tbl-wrap"><table id="txTable"></table></div>
-    <div id="txEmpty" class="tbl-empty">ยังไม่มีรายการ</div>
+    <div id="txEmpty" class="tbl-empty" data-i18n="txEmpty">ยังไม่มีรายการ</div>
   </div>
 
   <!-- สำรองขึ้น Google Drive — ซ่อนในโหมดป๊อปอัพ (OAuth ของ Google ทำงานในกรอบ iframe ไม่ได้ดี) -->
   <div class="card" id="driveCard">
-    <h2>สำรองพอร์ตจำลองขึ้น Google Drive</h2>
+    <h2 data-i18n="driveTitle">สำรองพอร์ตจำลองขึ้น Google Drive</h2>
     <div class="drive-row" style="margin-top:10px">
-      <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
+      <button class="btn sm" id="driveConnectBtn" type="button" data-i18n="driveConnectBtn">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
     </div>
   </div>
