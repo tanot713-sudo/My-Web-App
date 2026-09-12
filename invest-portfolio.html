@@ -47,8 +47,10 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .frow{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end}
 .field{display:flex;flex-direction:column;gap:4px;flex:1 1 120px;min-width:110px}
 .field label{font-size:12px;color:var(--muted);font-weight:600}
-input[type=number],input[type=text],select{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:11px;
+input[type=number],input[type=text],input[type=date],select{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:11px;
   border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none}
+input[type=date]{color-scheme:light}
+[data-theme="dark"] input[type=date]{color-scheme:dark}
 input:focus,select:focus{outline:none;border-color:var(--brand)}
 [data-theme="dark"] input,[data-theme="dark"] select{background:#12151C}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
@@ -112,7 +114,6 @@ body.embedded .crumb{display:none}
   <div class="head">
     <div>
       <h1>พอร์ตจำลอง</h1>
-      <div class="head-sub">ฝึกซื้อ-ขายหุ้นด้วยเงินสมมติ ไม่มีความเสี่ยงจริง — ราคาจาก Yahoo Finance</div>
     </div>
   </div>
 
@@ -133,7 +134,7 @@ body.embedded .crumb{display:none}
       <div class="sumbox"><div class="lbl">มูลค่าพอร์ตรวม</div><div class="val" id="sTotal">—</div><div class="sub" id="sTotalSub"></div></div>
       <div class="sumbox"><div class="lbl">กำไร/ขาดทุนรวม</div><div class="val" id="sPl">—</div><div class="sub" id="sPlPct"></div></div>
     </div>
-    <p class="mini" style="margin-top:10px">เริ่มต้นด้วยเงินสมมติ <b id="sStart">—</b> · คำนวณจาก<b>ราคาที่ซื้อ/ขายจริง</b>เท่านั้น ยังไม่รวมเงินปันผล (ไม่มีข้อมูลปฏิทินปันผลรายหุ้นให้ดึงได้ฟรี) · <button class="btn sm" id="resetBtn" type="button" style="margin-left:4px">เริ่มพอร์ตใหม่</button></p>
+    <p style="margin-top:10px"><button class="btn sm" id="resetBtn" type="button">เริ่มพอร์ตใหม่</button></p>
   </div>
 
   <!-- ซื้อ-ขาย -->
@@ -178,14 +179,12 @@ body.embedded .crumb{display:none}
   <!-- สำรองขึ้น Google Drive -->
   <div class="card">
     <h2>สำรองพอร์ตจำลองขึ้น Google Drive</h2>
-    <p class="mini">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตด้านบนจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าหุ้น/ทองคำ ไม่ปนกัน)</p>
     <div class="drive-row" style="margin-top:10px">
       <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
     </div>
   </div>
 
-  <div class="disc">พอร์ตจำลองนี้ใช้เงินสมมติเพื่อฝึกฝนเท่านั้น ไม่ใช่การลงทุนจริงและไม่ใช่คำแนะนำการลงทุน · ราคาซื้อ-ขายอ้างอิงจาก Yahoo Finance อาจดีเลย์/คลาดเคลื่อนจากราคาตลาดจริง (ไม่ใช่ราคาที่เทรดได้จริง) · ไม่รวมค่าคอมมิชชัน/ภาษี/เงินปันผล</div>
 
 </div>
 

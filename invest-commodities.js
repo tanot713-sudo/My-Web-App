@@ -19,24 +19,31 @@
 
   /* ── รายการสินทรัพย์ ──────────────────────────────────────────
      kind: 'yahoo' = ticker เดี่ยวดึงตรง, 'cross' = คำนวณจาก 2 ticker,
-           'thaigold' = ราคาทองไทย (thai-gold-api, ไม่มีกราฟย้อนหลัง) */
+           'thaigold' = ราคาทองไทย (thai-gold-api, ไม่มีกราฟย้อนหลัง)
+     group: ใช้จัดกลุ่มแถวปุ่มเลือกสินทรัพย์ (pillRow) กันเป็นแถวยาวปนกันไม่มีหมวด */
+  var GROUPS = [
+    { key: 'fx', label: 'ค่าเงิน' },
+    { key: 'metal', label: 'ทองคำ & โลหะ' },
+    { key: 'energy', label: 'พลังงาน' },
+    { key: 'agri', label: 'เกษตร' }
+  ];
   var ASSETS = [
-    { key: 'usdthb', label: 'บาทดอลลาร์', icon: '', kind: 'yahoo', sym: 'THB=X', unit: 'บาท/USD', dp: 3 },
-    { key: 'gc', label: 'ทองคำ COMEX', icon: '', kind: 'yahoo', sym: 'GC=F', unit: 'USD/ออนซ์', dp: 1 },
-    { key: 'goldbar', label: 'ทองคำแท่ง', icon: '▬', kind: 'thaigold', field: 'bar', unit: 'บาท/บาททองคำ', dp: 0 },
-    { key: 'goldjew', label: 'ทองรูปพรรณ', icon: '', kind: 'thaigold', field: 'jewelry', unit: 'บาท/บาททองคำ', dp: 0 },
-    { key: 'wti', label: 'น้ำมัน WTI', icon: '', kind: 'yahoo', sym: 'CL=F', unit: 'USD/บาร์เรล', dp: 2 },
-    { key: 'brent', label: 'น้ำมันดิบ Brent', icon: '', kind: 'yahoo', sym: 'BZ=F', unit: 'USD/บาร์เรล', dp: 2 },
-    { key: 'ng', label: 'ก๊าซธรรมชาติ', icon: '', kind: 'yahoo', sym: 'NG=F', unit: 'USD/MMBtu', dp: 3 },
-    { key: 'copper', label: 'ทองแดง', icon: '', kind: 'yahoo', sym: 'HG=F', unit: 'USD/ปอนด์', dp: 3 },
-    { key: 'steel', label: 'เหล็ก (HRC)', icon: '', kind: 'yahoo', sym: 'HRC=F', unit: 'USD/ตันสั้น', dp: 1 },
-    { key: 'sugar', label: 'น้ำตาลทราย', icon: '', kind: 'yahoo', sym: 'SB=F', unit: 'เซนต์/ปอนด์', dp: 2 },
-    { key: 'coffee', label: 'กาแฟ', icon: '', kind: 'yahoo', sym: 'KC=F', unit: 'เซนต์/ปอนด์', dp: 2 },
-    { key: 'rice', label: 'ข้าว (Rough Rice)', icon: '', kind: 'yahoo', sym: 'ZR=F', unit: 'USD/100cwt', dp: 2 },
-    { key: 'dxy', label: 'ดัชนีดอลลาร์', icon: '', kind: 'yahoo', sym: 'DX-Y.NYB', unit: 'จุด', dp: 2 },
-    { key: 'jpythb', label: 'เยนเทียบบาท', icon: '🇯🇵', kind: 'cross', a: 'THB=X', b: 'JPY=X', op: 'div', mul: 100, unit: 'บาท/100เยน', dp: 3 },
-    { key: 'eurthb', label: 'ยูโรเทียบบาท', icon: '🇪🇺', kind: 'cross', a: 'EURUSD=X', b: 'THB=X', op: 'mul', mul: 1, unit: 'บาท/ยูโร', dp: 3 },
-    { key: 'cnythb', label: 'หยวนเทียบบาท', icon: '🇨🇳', kind: 'cross', a: 'THB=X', b: 'CNY=X', op: 'div', mul: 1, unit: 'บาท/หยวน', dp: 3 }
+    { key: 'usdthb', label: 'บาทดอลลาร์', icon: '', kind: 'yahoo', sym: 'THB=X', unit: 'บาท/USD', dp: 3, group: 'fx' },
+    { key: 'gc', label: 'ทองคำ COMEX', icon: '', kind: 'yahoo', sym: 'GC=F', unit: 'USD/ออนซ์', dp: 1, group: 'metal' },
+    { key: 'goldbar', label: 'ทองคำแท่ง', icon: '▬', kind: 'thaigold', field: 'bar', unit: 'บาท/บาททองคำ', dp: 0, group: 'metal' },
+    { key: 'goldjew', label: 'ทองรูปพรรณ', icon: '', kind: 'thaigold', field: 'jewelry', unit: 'บาท/บาททองคำ', dp: 0, group: 'metal' },
+    { key: 'wti', label: 'น้ำมัน WTI', icon: '', kind: 'yahoo', sym: 'CL=F', unit: 'USD/บาร์เรล', dp: 2, group: 'energy' },
+    { key: 'brent', label: 'น้ำมันดิบ Brent', icon: '', kind: 'yahoo', sym: 'BZ=F', unit: 'USD/บาร์เรล', dp: 2, group: 'energy' },
+    { key: 'ng', label: 'ก๊าซธรรมชาติ', icon: '', kind: 'yahoo', sym: 'NG=F', unit: 'USD/MMBtu', dp: 3, group: 'energy' },
+    { key: 'copper', label: 'ทองแดง', icon: '', kind: 'yahoo', sym: 'HG=F', unit: 'USD/ปอนด์', dp: 3, group: 'metal' },
+    { key: 'steel', label: 'เหล็ก (HRC)', icon: '', kind: 'yahoo', sym: 'HRC=F', unit: 'USD/ตันสั้น', dp: 1, group: 'metal' },
+    { key: 'sugar', label: 'น้ำตาลทราย', icon: '', kind: 'yahoo', sym: 'SB=F', unit: 'เซนต์/ปอนด์', dp: 2, group: 'agri' },
+    { key: 'coffee', label: 'กาแฟ', icon: '', kind: 'yahoo', sym: 'KC=F', unit: 'เซนต์/ปอนด์', dp: 2, group: 'agri' },
+    { key: 'rice', label: 'ข้าว (Rough Rice)', icon: '', kind: 'yahoo', sym: 'ZR=F', unit: 'USD/100cwt', dp: 2, group: 'agri' },
+    { key: 'dxy', label: 'ดัชนีดอลลาร์', icon: '', kind: 'yahoo', sym: 'DX-Y.NYB', unit: 'จุด', dp: 2, group: 'fx' },
+    { key: 'jpythb', label: 'เยนเทียบบาท', icon: '🇯🇵', kind: 'cross', a: 'THB=X', b: 'JPY=X', op: 'div', mul: 100, unit: 'บาท/100เยน', dp: 3, group: 'fx' },
+    { key: 'eurthb', label: 'ยูโรเทียบบาท', icon: '🇪🇺', kind: 'cross', a: 'EURUSD=X', b: 'THB=X', op: 'mul', mul: 1, unit: 'บาท/ยูโร', dp: 3, group: 'fx' },
+    { key: 'cnythb', label: 'หยวนเทียบบาท', icon: '🇨🇳', kind: 'cross', a: 'THB=X', b: 'CNY=X', op: 'div', mul: 1, unit: 'บาท/หยวน', dp: 3, group: 'fx' }
   ];
   var byKey = {}; ASSETS.forEach(function (a) { byKey[a.key] = a; });
   /* สินทรัพย์หลักที่โชว์ราคา+% ในแถวสถิติด้านบน (แยกจากแถวปุ่มเลือกที่มีครบทุกตัว — เหมือนแถวบนสุดของเว็บอ้างอิง) */
@@ -256,10 +263,15 @@
     });
     $('statRow').innerHTML = statHtml;
 
-    /* แถวปุ่มเลือก: pill ครบทุกสินทรัพย์ (ไม่โชว์ราคา) — ตัวเลือกจริงสำหรับสลับกราฟด้านล่าง */
+    /* แถวปุ่มเลือก: pill ครบทุกสินทรัพย์ (ไม่โชว์ราคา) — ตัวเลือกจริงสำหรับสลับกราฟด้านล่าง
+       จัดเป็นกลุ่มตาม GROUPS กันเป็นแถวยาวปนกันไม่มีหมวดหมู่ */
     var pillHtml = '';
-    ASSETS.forEach(function (a) {
-      pillHtml += '<button type="button" class="pill" data-key="' + a.key + '"><span class="ic">' + a.icon + '</span>' + a.label + '</button>';
+    GROUPS.forEach(function (g) {
+      var items = ASSETS.filter(function (a) { return a.group === g.key; });
+      if (!items.length) return;
+      pillHtml += '<div class="pill-group"><span class="pill-group-lbl">' + g.label + '</span><div class="pill-group-row">' +
+        items.map(function (a) { return '<button type="button" class="pill" data-key="' + a.key + '"><span class="ic">' + a.icon + '</span>' + a.label + '</button>'; }).join('') +
+        '</div></div>';
     });
     $('pillRow').innerHTML = pillHtml;
 

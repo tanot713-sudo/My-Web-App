@@ -61,8 +61,10 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
    เหมือนแอปการเงิน/ตลาดหุ้นทั่วไป (Prompt รองรับ font-feature นี้อยู่แล้ว) */
 .stat-card .pr,.stat-card .chg,.ohlc-box .v,.hist-table td{font-variant-numeric:tabular-nums}
 
-/* ── แถวปุ่มเลือกสินทรัพย์ (pill แยกจากแถวสถิติ — เหมือนแถวปุ่มใต้สถิติของเว็บอ้างอิง) ── */
-.pill-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+/* ── แถวปุ่มเลือกสินทรัพย์ (pill แยกจากแถวสถิติ) — จัดเป็นกลุ่มตามหมวด กันเป็นแถวยาวปนกัน ── */
+.pill-row{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.pill-group-lbl{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase;display:block;margin-bottom:6px}
+.pill-group-row{display:flex;flex-wrap:wrap;gap:7px}
 .pill{display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12.5px;font-weight:700;
   padding:7px 13px;border-radius:20px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
 .pill .ic{font-size:14px}
@@ -128,7 +130,6 @@ body.embedded .crumb{display:none}
   <div class="head">
     <div>
       <h1>ค่าเงิน &amp; วัตถุดิบ</h1>
-      <div class="head-sub">กราฟราคาสินค้าโภคภัณฑ์และค่าเงินหลัก — แตะการ์ดเพื่อดูกราฟ</div>
     </div>
   </div>
 
@@ -136,7 +137,6 @@ body.embedded .crumb{display:none}
     <div class="src-badge real">ข้อมูล EOD (วันก่อนหน้า)</div>
     <div class="stat-row" id="statRow"></div>
     <div class="pill-row" id="pillRow"></div>
-    <p class="mini" style="margin-top:12px">ราคาสินค้าโภคภัณฑ์/ค่าเงินโลกดึงจาก Yahoo Finance (ผ่านหลายเส้นทาง best-effort) · ราคาทองไทยดึงจาก thai-gold-api เหมือนหน้า<a href="invest-gold.html" style="color:var(--brand-dk);font-weight:700;text-decoration:none">ทองคำ</a> · การ์ดที่ขึ้น "ดึงไม่ได้" คือลองดึงแล้วไม่สำเร็จจริงๆ ไม่ใช่ข้อมูลปลอม</p>
   </div>
 
   <div class="card">
@@ -178,15 +178,6 @@ body.embedded .crumb{display:none}
     <div class="hist-wrap"><table class="hist-table" id="histTable"></table></div>
   </div>
 
-  <details class="card" style="box-shadow:var(--sh)">
-    <summary style="font-size:14px;font-weight:700;cursor:pointer">ℹ️ ทำไมบางสินค้าไม่มีในรายการ</summary>
-    <div style="font-size:13.5px;color:#4a5262;margin-top:10px;line-height:1.7">
-      ถ่านหิน, ค่าระวางเรือ (freight), ยางพารา, ปาล์มน้ำมัน และมันสำปะหลัง ยังไม่มีในรายการด้านบน เพราะยังไม่พบแหล่งข้อมูลราคาสาธารณะที่ดึงได้ฟรีจากเบราว์เซอร์โดยตรงที่มั่นใจว่าแม่นยำ —
-      ไม่อยากใส่ตัวเลขที่ดึงไม่ได้จริงหรือคาดเดาราคาขึ้นมาเอง ถ้าในอนาคตเจอแหล่งข้อมูลที่เชื่อถือได้จะเพิ่มให้ภายหลัง
-    </div>
-  </details>
-
-  <div class="disc">เครื่องมือนี้ให้ข้อมูลราคาเพื่อดูภาพรวมเท่านั้น ไม่ใช่คำแนะนำการลงทุน · ราคาจาก Yahoo Finance/thai-gold-api อาจคลาดเคลื่อนหรือดึงไม่สำเร็จบางช่วง เทียบกับแหล่งทางการก่อนตัดสินใจซื้อขายจริง</div>
 
 </div>
 

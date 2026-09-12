@@ -196,7 +196,6 @@
     plEl.textContent = (pl >= 0 ? '+' : '') + baht(pl);
     plEl.className = 'val ' + (pl > 0 ? 'up' : pl < 0 ? 'dn' : '');
     $('sPlPct').textContent = (pct >= 0 ? '+' : '') + fmt(pct, 2) + '%';
-    $('sStart').textContent = baht(state.startCash);
   }
   function renderHoldings() {
     var tbl = $('holdTable'), empty = $('holdEmpty'), sel = $('sellSym');

@@ -99,10 +99,22 @@ h1,h2,h3{text-wrap:balance}
 .ticker{border:1px solid var(--line);border-radius:12px;padding:11px;background:var(--bg)}
 .ticker b{display:block;font-size:11px;font-weight:700;color:var(--muted)}
 .ticker .px{display:block;font-size:15px;font-weight:800;margin:5px 0 2px;font-variant-numeric:tabular-nums}
-.ticker .unit{display:block;font-size:9px;color:var(--muted);margin-bottom:3px}
 .ticker .chg{font-size:10.5px;font-weight:700;color:var(--muted)}
 .ticker .chg.up{color:var(--ok)}.ticker .chg.dn{color:var(--err)}
 .live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-right:5px;box-shadow:0 0 0 2.5px rgba(23,178,106,.15)}
+
+/* ── กลุ่มตลาดย่อย (หุ้นไทย/หุ้นต่างประเทศ&Bitcoin/โภคภัณฑ์) ในการ์ด "ตลาด" เดียว ── */
+.mkt-group+.mkt-group{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.mkt-head{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.mkt-head b{font-size:12.5px;font-weight:700}
+.mkt-head a{margin-left:auto;font-size:12px;color:var(--iv-dk);text-decoration:none;font-weight:700}
+.gear-btn{border:0;background:none;color:var(--muted);opacity:.55;font-size:13px;cursor:pointer;padding:2px;line-height:1;border-radius:6px}
+.gear-btn:hover{opacity:1;color:var(--iv-dk)}
+.gear-panel{margin-top:10px;padding:10px;background:var(--bg);border-radius:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.gear-panel[hidden]{display:none}
+.gear-panel input{flex:1 1 200px;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;background:var(--card);color:var(--ink)}
+.gear-panel .gp-save{border:0;background:var(--iv);color:#fff;border-radius:8px;padding:7px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.gear-panel .gp-reset{border:0;background:none;color:var(--muted);font:inherit;font-size:11.5px;text-decoration:underline;cursor:pointer;padding:0}
 
 .tbl{width:100%;border-collapse:collapse;font-size:12.5px}
 .tbl th{text-align:left;font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:8px;border-bottom:1px solid var(--line)}
@@ -253,13 +265,22 @@ h1,h2,h3{text-wrap:balance}
       </section>
 
       <section class="card">
-        <div class="head"><h2><span class="live" id="tkLive"></span>ตลาดที่คุณติดตาม</h2><span style="font-size:11px;color:var(--muted)" id="tkStatus">กำลังโหลด…</span></div>
-        <div class="tickergrid" id="tickerGrid"></div>
-      </section>
-
-      <section class="card">
-        <div class="head"><h2>ตลาดโภคภัณฑ์</h2><a href="invest-commodities.html" class="js-open-tool" data-tool-url="invest-commodities.html">ดูทั้งหมด →</a></div>
-        <div class="tickergrid" id="commodGrid" style="grid-template-columns:repeat(4,1fr)"></div>
+        <div class="head"><h2><span class="live" id="tkLive"></span>ตลาด</h2><span style="font-size:11px;color:var(--muted)" id="tkStatus">กำลังโหลด…</span></div>
+        <div class="mkt-group">
+          <div class="mkt-head"><b>หุ้นไทย</b><button class="gear-btn" type="button" data-group="thai" aria-label="เลือกสัญลักษณ์ที่แสดง">⚙</button></div>
+          <div class="tickergrid" id="mkGrid-thai"></div>
+          <div class="gear-panel" id="gearPanel-thai" hidden></div>
+        </div>
+        <div class="mkt-group">
+          <div class="mkt-head"><b>หุ้นต่างประเทศ &amp; Bitcoin</b><button class="gear-btn" type="button" data-group="global" aria-label="เลือกสัญลักษณ์ที่แสดง">⚙</button></div>
+          <div class="tickergrid" id="mkGrid-global"></div>
+          <div class="gear-panel" id="gearPanel-global" hidden></div>
+        </div>
+        <div class="mkt-group">
+          <div class="mkt-head"><b>โภคภัณฑ์</b><button class="gear-btn" type="button" data-group="commod" aria-label="เลือกสัญลักษณ์ที่แสดง">⚙</button><a href="invest-commodities.html" class="js-open-tool" data-tool-url="invest-commodities.html">ดูทั้งหมด →</a></div>
+          <div class="tickergrid" id="mkGrid-commod"></div>
+          <div class="gear-panel" id="gearPanel-commod" hidden></div>
+        </div>
       </section>
 
       <section class="card">
@@ -426,11 +447,12 @@ h1,h2,h3{text-wrap:balance}
   function quoteCacheKey(sym) { return 'tanot:invest:cache:hub:q:' + sym; }
   function loadQuoteCache(sym) { try { var o = JSON.parse(localStorage.getItem(quoteCacheKey(sym))); return (o && isFinite(o.price)) ? o : null; } catch (e) { return null; } }
   function saveQuoteCache(sym, q) { try { localStorage.setItem(quoteCacheKey(sym), JSON.stringify({ ts: Date.now(), price: q.price, prevClose: q.prevClose })); } catch (e) {} }
-  function loadQuote(sym, offset) {
-    var cached = loadQuoteCache(sym), fresh = cached && (Date.now() - cached.ts < 3600 * 1000);
+  function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function loadOneQuote(sym, suffix, offset, cacheSym) {
+    var cached = loadQuoteCache(cacheSym), fresh = cached && (Date.now() - cached.ts < 3600 * 1000);
     if (fresh) return Promise.resolve(cached);
     function viaProxyChain() {
-      var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '.BK?range=5d&interval=1d';
+      var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + suffix + '?range=5d&interval=1d';
       var tries = proxyTries(base, offset), i = 0;
       function next() {
         if (i >= tries.length) return cached ? Promise.resolve(cached) : Promise.reject(new Error('fail'));
@@ -438,81 +460,116 @@ h1,h2,h3{text-wrap:balance}
       }
       return next();
     }
-    var c = liveCfg();
-    var attempt = (c.provider === 'gateway' || c.provider === 'twelvedata') ? fetchLiveQuote(sym, c).catch(viaProxyChain) : viaProxyChain();
-    return attempt.then(function (q) { saveQuoteCache(sym, q); return q; }, function (e) { if (cached) return cached; throw e; });
+    var attempt;
+    if (suffix === '.BK') { /* หุ้นไทย — ลอง Live Gateway ก่อนถ้าตั้งค่าไว้แล้ว (เหมือนหน้าหุ้นไทย/บิตคอยน์/หุ้นนอก) */
+      var c = liveCfg();
+      attempt = (c.provider === 'gateway' || c.provider === 'twelvedata') ? fetchLiveQuote(sym, c).catch(viaProxyChain) : viaProxyChain();
+    } else {
+      attempt = viaProxyChain();
+    }
+    return attempt.then(function (q) { saveQuoteCache(cacheSym, q); return q; }, function (e) { if (cached) return cached; throw e; });
   }
+  function loadQuote(sym, offset) { return loadOneQuote(sym, '.BK', offset, 'bk:' + sym); } /* ราคาถือครองในพอร์ต — ใช้แคชร่วมกับการ์ด "หุ้นไทย" ถ้าสัญลักษณ์ตรงกัน */
 
-  var WATCH_DEFAULT = ['SET', 'ADVANC', 'PTT', 'CPALL', 'DELTA', 'BDMS'];
-  var quotes = {};
-  function tickerSymbols() {
-    var syms = holdings.map(function (h) { return String(h.sym).toUpperCase(); });
-    var out = syms.slice(0, 6);
-    WATCH_DEFAULT.forEach(function (s) { if (out.length < 6 && out.indexOf(s) < 0) out.push(s); });
-    return out;
+  /* ══ กลุ่มตลาดย่อยในการ์ด "ตลาด" — หุ้นไทย / หุ้นต่างประเทศ & Bitcoin / โภคภัณฑ์
+     ผู้ใช้กดไอคอนฟันเฟืองเลือกสัญลักษณ์ที่อยากให้แสดงเองได้ต่อกลุ่ม (บันทึกใน localStorage)
+     ถ้ายังไม่เคยปรับ กลุ่ม "หุ้นไทย" จะเอาหุ้นที่ถืออยู่ในพอร์ตขึ้นก่อนแล้วเติมจากค่าเริ่มต้น เหมือนเดิม
+     ส่วนหุ้นต่างประเทศ/โภคภัณฑ์ ไม่มี .BK ต่อท้าย (ticker ตรงจาก Yahoo Finance) — ถ่านหิน/ยางพารา/ปาล์ม/
+     มันสำปะหลัง/ค่าระวางเรือ ยังไม่มีในตัวเลือก เพราะยังไม่พบ ticker สาธารณะฟรีที่มั่นใจได้ (เหมือนหน้า
+     ค่าเงิน & วัตถุดิบ) ══ */
+  var MARKET_GROUPS = {
+    thai: { suffix: '.BK', defaultSyms: ['SET', 'ADVANC', 'PTT', 'CPALL', 'DELTA', 'BDMS'] },
+    global: { suffix: '', defaultSyms: ['AAPL', 'MSFT', 'BTC-USD'] },
+    commod: { suffix: '', defaultSyms: ['GC=F', 'CL=F', 'HRC=F', 'HG=F'] }
+  };
+  function watchKey(g) { return 'tanot:invest:hub:watch:' + g; }
+  function loadCustomWatch(g) {
+    try { var v = JSON.parse(localStorage.getItem(watchKey(g))); if (Array.isArray(v) && v.length) return v; } catch (e) {}
+    return null;
   }
-  function renderTickers() {
-    var syms = tickerSymbols(), grid = $('tickerGrid'), live = 0;
-    grid.innerHTML = syms.map(function (s) {
+  function saveCustomWatch(g, syms) { try { localStorage.setItem(watchKey(g), JSON.stringify(syms)); } catch (e) {} }
+  function clearCustomWatch(g) { try { localStorage.removeItem(watchKey(g)); } catch (e) {} }
+  function groupSymbols(g) {
+    var custom = loadCustomWatch(g);
+    if (custom) return custom;
+    if (g === 'thai') {
+      var syms = holdings.map(function (h) { return String(h.sym).toUpperCase(); });
+      var out = syms.slice(0, 6);
+      MARKET_GROUPS.thai.defaultSyms.forEach(function (s) { if (out.length < 6 && out.indexOf(s) < 0) out.push(s); });
+      return out;
+    }
+    return MARKET_GROUPS[g].defaultSyms;
+  }
+  var marketQuotes = { thai: {}, global: {}, commod: {} };
+  function renderMarketGroup(g) {
+    var syms = groupSymbols(g), grid = $('mkGrid-' + g), quotes = marketQuotes[g];
+    grid.innerHTML = syms.length ? syms.map(function (s) {
       var q = quotes[s];
       var chg = q && isFinite(q.prevClose) && q.prevClose ? (q.price / q.prevClose - 1) * 100 : NaN;
       return '<div class="ticker"><b>' + esc(s) + '</b><span class="px">' + (q ? N(q.price).toLocaleString('th-TH', { maximumFractionDigits: 2 }) : '—') + '</span>' +
         '<span class="chg ' + (isFinite(chg) ? (chg >= 0 ? 'up' : 'dn') : '') + '">' + (isFinite(chg) ? pct(chg, 2) : 'รอราคา') + '</span></div>';
-    }).join('');
-    syms.forEach(function (s) { if (quotes[s]) live++; });
-    $('tkLive').className = 'live' + (live ? ' on' : '');
-    $('tkStatus').textContent = live ? live + '/' + syms.length + ' ราคาล่าสุด' : 'ยังดึงราคาไม่ได้ — แสดงจากแคชหรือรอใหม่ภายหลัง';
-  }
-  function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
-  function loadAllQuotes() {
-    var syms = tickerSymbols();
-    /* หน่วงจุดเริ่มของแต่ละสัญลักษณ์เล็กน้อย กัน 6 ตัวยิงเข้า CORS-proxy เดียวกันพร้อมกันจนโดน rate-limit (429) เอง */
-    return Promise.all(syms.map(function (s, i) {
-      return delay(i * 260).then(function () { return loadQuote(s, i); }).then(function (q) { quotes[s] = q; }).catch(function () {});
-    })).then(renderTickers);
-  }
-
-  /* ── ตลาดโภคภัณฑ์ — ticker Yahoo Finance ตรง (ไม่มี .BK) เฉพาะตัวที่มี ticker สาธารณะจริง
-     (เหมือน invest-commodities.js — ถ่านหิน/ยางพารา ฯลฯ ไม่มี ticker ฟรีที่มั่นใจได้ จึงไม่ใส่) ── */
-  var COMMOD_LIST = [
-    { sym: 'GC=F', label: 'ทองคำ', unit: 'USD/ออนซ์', dp: 1 },
-    { sym: 'CL=F', label: 'น้ำมัน WTI', unit: 'USD/บาร์เรล', dp: 2 },
-    { sym: 'HRC=F', label: 'เหล็ก (HRC)', unit: 'USD/ตันสั้น', dp: 1 },
-    { sym: 'HG=F', label: 'ทองแดง', unit: 'USD/ปอนด์', dp: 3 }
-  ];
-  var commodQuotes = {};
-  function loadCommodityQuote(sym, offset) {
-    var cacheSym = 'cm:' + sym;
-    var cached = loadQuoteCache(cacheSym), fresh = cached && (Date.now() - cached.ts < 3600 * 1000);
-    if (fresh) return Promise.resolve(cached);
-    var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=5d&interval=1d';
-    var tries = proxyTries(base, offset), i = 0;
-    function next() {
-      if (i >= tries.length) return cached ? Promise.resolve(cached) : Promise.reject(new Error('fail'));
-      return fetchOne(tries[i++].url, 7000, parseQuoteLite).catch(next);
+    }).join('') : '<p class="empty-hint">ยังไม่ได้เลือกสัญลักษณ์ — กด ⚙ เพื่อเพิ่ม</p>';
+    if (g === 'thai') {
+      var live = syms.filter(function (s) { return quotes[s]; }).length;
+      $('tkLive').className = 'live' + (live ? ' on' : '');
+      $('tkStatus').textContent = live ? live + '/' + syms.length + ' ราคาล่าสุด' : 'ยังดึงราคาไม่ได้ — แสดงจากแคชหรือรอใหม่ภายหลัง';
     }
-    return next().then(function (q) { saveQuoteCache(cacheSym, q); return q; }, function (e) { if (cached) return cached; throw e; });
   }
-  function renderCommodities() {
-    $('commodGrid').innerHTML = COMMOD_LIST.map(function (c) {
-      var q = commodQuotes[c.sym];
-      var chg = q && isFinite(q.prevClose) && q.prevClose ? (q.price / q.prevClose - 1) * 100 : NaN;
-      return '<div class="ticker"><b>' + esc(c.label) + '</b><span class="px">' + (q ? N(q.price).toLocaleString('th-TH', { maximumFractionDigits: c.dp }) : '—') + '</span>' +
-        '<span class="unit">' + esc(c.unit) + '</span>' +
-        '<span class="chg ' + (isFinite(chg) ? (chg >= 0 ? 'up' : 'dn') : '') + '">' + (isFinite(chg) ? pct(chg, 2) : 'รอราคา') + '</span></div>';
-    }).join('');
+  function loadMarketGroup(g) {
+    var syms = groupSymbols(g), suffix = MARKET_GROUPS[g].suffix;
+    /* หน่วงจุดเริ่มของแต่ละสัญลักษณ์เล็กน้อย กันยิงเข้า CORS-proxy เดียวกันพร้อมกันจนโดน rate-limit (429) เอง */
+    return Promise.all(syms.map(function (s, i) {
+      return delay(i * 260).then(function () { return loadOneQuote(s, suffix, i, (suffix ? 'bk:' : 'px:') + s); }).then(function (q) { marketQuotes[g][s] = q; }).catch(function () {});
+    })).then(function () { renderMarketGroup(g); });
   }
-  function loadCommodities() {
-    return Promise.all(COMMOD_LIST.map(function (c, i) {
-      return delay(i * 260).then(function () { return loadCommodityQuote(c.sym, i); }).then(function (q) { commodQuotes[c.sym] = q; }).catch(function () {});
-    })).then(renderCommodities);
+  function loadAllMarkets() { return Promise.all(['thai', 'global', 'commod'].map(loadMarketGroup)); }
+
+  /* ── กดฟันเฟืองต่อกลุ่มตลาด — เปิดกล่องเล็กๆ ให้พิมพ์สัญลักษณ์ที่อยากดู (คั่นด้วยจุลภาค) แทนของเดิม ── */
+  [].forEach.call(document.querySelectorAll('.gear-btn'), function (btn) {
+    var g = btn.getAttribute('data-group'), panel = $('gearPanel-' + g);
+    btn.addEventListener('click', function () {
+      var open = panel.hidden;
+      document.querySelectorAll('.gear-panel').forEach(function (p) { p.hidden = true; });
+      if (!open) return;
+      panel.hidden = false;
+      panel.innerHTML =
+        '<input type="text" value="' + esc(groupSymbols(g).join(', ')) + '" placeholder="เช่น PTT, ADVANC, SET" spellcheck="false">' +
+        '<button type="button" class="gp-save">บันทึก</button>' +
+        '<button type="button" class="gp-reset">ใช้ค่าเริ่มต้น</button>';
+      panel.querySelector('input').focus();
+      panel.querySelector('.gp-save').addEventListener('click', function () {
+        var syms = panel.querySelector('input').value.split(',').map(function (s) { return s.trim().toUpperCase(); }).filter(Boolean);
+        if (syms.length) saveCustomWatch(g, syms); else clearCustomWatch(g);
+        panel.hidden = true;
+        loadMarketGroup(g);
+      });
+      panel.querySelector('.gp-reset').addEventListener('click', function () {
+        clearCustomWatch(g);
+        panel.hidden = true;
+        loadMarketGroup(g);
+      });
+    });
+  });
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.gear-btn, .gear-panel')) return;
+    document.querySelectorAll('.gear-panel').forEach(function (p) { p.hidden = true; });
+  });
+
+  /* ── ราคาหุ้นที่ถือในพอร์ตจริง (แยกจากการ์ดตลาดด้านบนที่ผู้ใช้ปรับเองได้ — ต้องได้ราคาเสมอไม่ว่าจะ
+     ปรับการ์ด "หุ้นไทย" ไปโชว์สัญลักษณ์อื่นหรือไม่ก็ตาม ใช้แคชร่วมกันกับการ์ดหุ้นไทยผ่าน cacheSym เดียวกัน) ── */
+  var holdingQuotes = {};
+  function loadHoldingQuotes() {
+    var syms = holdings.map(function (h) { return String(h.sym).toUpperCase(); });
+    return Promise.all(syms.map(function (s, i) {
+      return delay(i * 260).then(function () { return loadQuote(s, i); }).then(function (q) { holdingQuotes[s] = q; }).catch(function () {});
+    }));
   }
 
   /* ── คำนวณพอร์ต ── */
   function computePortfolio() {
     var rows = [], invested = 0, cost = 0;
     holdings.forEach(function (h) {
-      var sym = String(h.sym).toUpperCase(), q = quotes[sym], price = q ? q.price : N(h.avgCost);
+      var sym = String(h.sym).toUpperCase(), q = holdingQuotes[sym], price = q ? q.price : N(h.avgCost);
       var value = price * N(h.shares), basis = N(h.avgCost) * N(h.shares);
       rows.push({ sym: sym, shares: N(h.shares), avgCost: N(h.avgCost), price: price, value: value, basis: basis, pl: basis ? (value - basis) / basis * 100 : 0, live: !!q });
       invested += value; cost += basis;
@@ -664,8 +721,8 @@ h1,h2,h3{text-wrap:balance}
     renderChart(recordSnapshot(p.total));
   }
   refreshAll();
-  loadAllQuotes().then(refreshAll);
-  loadCommodities();
+  loadHoldingQuotes().then(refreshAll);
+  loadAllMarkets();
 
   /* ══ แถบนำทาง 2 ชั้น — สร้างหมวดย่อยจาก window.INVEST_CATS (ที่มาเดียวกับเมนูแฮมเบอร์เกอร์) ══ */
   var GROUP_OF = { 'thai-stock': 'market', 'global-stock': 'market', 'thai-fund': 'market', 'global-fund': 'market', 'gold': 'market', 'bitcoin': 'market', 'commodities': 'market',
@@ -734,7 +791,7 @@ h1,h2,h3{text-wrap:balance}
       portfolio = loadPortfolio();
       holdings = portfolio.holdings.filter(function (h) { return N(h.shares) > 0; });
       refreshAll();
-      loadAllQuotes().then(refreshAll);
+      loadHoldingQuotes().then(refreshAll);
     }
     frame.addEventListener('load', function () {
       if (frame.src === 'about:blank') return;
