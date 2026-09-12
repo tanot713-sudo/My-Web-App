@@ -91,44 +91,44 @@ tr:last-child td{border-bottom:0}
 
 <nav class="ivnav">
   <div class="ivgroups" id="ivGroups">
-    <button data-href="invest.html" type="button">ภาพรวม</button>
-    <button data-href="invest-portfolio.html" type="button">พอร์ตของฉัน</button>
-    <button class="on" data-href="invest-thai-stock.html" type="button">ตลาด &amp; สินทรัพย์</button>
-    <button data-href="invest.html" type="button">สลาก &amp; พันธบัตร</button>
-    <button data-href="invest.html" type="button">ข่าว &amp; ธุรกิจ</button>
+    <button data-href="invest.html" type="button" data-i18n="navOverview">ภาพรวม</button>
+    <button data-href="invest-portfolio.html" type="button" data-i18n="navMyPortfolio">พอร์ตของฉัน</button>
+    <button class="on" data-href="invest-thai-stock.html" type="button" data-i18n="navMarket">ตลาด &amp; สินทรัพย์</button>
+    <button data-href="invest.html" type="button" data-i18n="navLottery">สลาก &amp; พันธบัตร</button>
+    <button data-href="invest.html" type="button" data-i18n="navNews">ข่าว &amp; ธุรกิจ</button>
   </div>
 </nav>
 
 <div class="wrap">
-  <div class="crumb"><a href="invest.html">การลงทุน</a> ›  <a href="invest-thai-stock.html">หุ้นไทย</a> ›  <b>สมุดเทรด</b></div>
+  <div class="crumb"><a href="invest.html" data-i18n="crumbHome">การลงทุน</a> ›  <a href="invest-thai-stock.html" data-i18n="crumbThaiStock">หุ้นไทย</a> ›  <b data-i18n="crumbHere">สมุดเทรด</b></div>
 
   <div class="head">
-    <h1>สมุดเทรด + สถิติ</h1>
-    <p>บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง</p>
+    <h1 data-i18n="pageTitle">สมุดเทรด + สถิติ</h1>
+    <p data-i18n="pageDesc">บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง</p>
   </div>
 
   <div class="card">
     <div id="jStats" class="jstats" style="display:none"></div>
     <div class="grid4" style="margin-bottom:12px">
-      <div class="f"><label>หุ้น</label><input id="jSym" placeholder="PTT" spellcheck="false"></div>
-      <div class="f"><label>ราคาเข้า</label><input id="jEntry" inputmode="decimal" placeholder="34.75"></div>
-      <div class="f"><label>ราคาออก</label><input id="jExit" inputmode="decimal" placeholder="36.30"></div>
-      <div class="f"><label>จำนวนหุ้น</label><input id="jShares" inputmode="numeric" placeholder="300"></div>
+      <div class="f"><label data-i18n="jSymLabel">หุ้น</label><input id="jSym" placeholder="PTT" spellcheck="false"></div>
+      <div class="f"><label data-i18n="jEntryLabel">ราคาเข้า</label><input id="jEntry" inputmode="decimal" placeholder="34.75"></div>
+      <div class="f"><label data-i18n="jExitLabel">ราคาออก</label><input id="jExit" inputmode="decimal" placeholder="36.30"></div>
+      <div class="f"><label data-i18n="jSharesLabel">จำนวนหุ้น</label><input id="jShares" inputmode="numeric" placeholder="300"></div>
     </div>
-    <button class="btn" id="jAdd" type="button">+ บันทึกไม้</button>
+    <button class="btn" id="jAdd" type="button" data-i18n="jAddBtn">+ บันทึกไม้</button>
     <div id="jBox"></div>
   </div>
 
   <div class="card">
-    <h2>สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
-    <p class="mini">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตหุ้นไทย (ในหน้าหุ้นไทย) และสมุดเทรดนี้จะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง) — กันข้อมูลหายถ้าล้างเบราว์เซอร์ และดึงคืนได้เมื่อเปิดจากเครื่อง/เบราว์เซอร์อื่น</p>
+    <h2 data-i18n="driveTitle">สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
+    <p class="mini" data-i18n="driveDesc">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตหุ้นไทย (ในหน้าหุ้นไทย) และสมุดเทรดนี้จะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง) — กันข้อมูลหายถ้าล้างเบราว์เซอร์ และดึงคืนได้เมื่อเปิดจากเครื่อง/เบราว์เซอร์อื่น</p>
     <div class="drivebar">
-      <button class="btn" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
+      <button class="btn" id="driveConnectBtn" type="button" data-i18n="driveConnectBtn">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
     </div>
   </div>
 
-  <div class="disc">เครื่องมือนี้เป็นตัวช่วยฝึกวินัยและดูสถิติจริงของตัวเอง ไม่ใช่คำแนะนำการลงทุน · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
+  <div class="disc" data-i18n="disc">เครื่องมือนี้เป็นตัวช่วยฝึกวินัยและดูสถิติจริงของตัวเอง ไม่ใช่คำแนะนำการลงทุน · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
 </div>
 
 <script src="invest-drivesync.js" defer></script>

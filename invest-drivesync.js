@@ -20,6 +20,39 @@ window.InvestDrive = (function () {
   function $(id) { return document.getElementById(id); }
   function nowTime() { return new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }); }
 
+  /* ══════ ระบบแปลภาษา (i18n) — โมดูลกลาง ใช้ dict แยกของตัวเอง (ไม่พึ่งของหน้าเว็บ
+     เพราะไฟล์นี้โหลดก่อน/แยกจาก JS ของแต่ละหน้า) รูปแบบเดียวกับหน้าอื่นในโซนลงทุน ══════ */
+  var UI_LANG_KEY = 'ome:lang';
+  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
+  var I18N = {
+    th: {
+      driveConnectBtn: 'เชื่อมต่อ Google Drive', driveConnectedBtn: 'เชื่อมต่อ Google Drive แล้ว',
+      driveConnectFailedAuto: 'เชื่อมต่ออัตโนมัติไม่สำเร็จ (อาจเพราะเบราว์เซอร์บล็อก cookie ข้ามโดเมน) — กดปุ่มเชื่อมต่ออีกครั้ง',
+      driveConnectFailed: 'เชื่อมต่อไม่สำเร็จ: {err}', driveLoadingGis: 'กำลังโหลด Google Identity Services… รออีก 2-3 วิแล้วลองใหม่',
+      driveRequesting: 'กำลังขอสิทธิ์เชื่อมต่อ…', driveErrSearchFolder: 'ค้นหาโฟลเดอร์ไม่สำเร็จ ({status})',
+      driveErrCreateFolder: 'สร้างโฟลเดอร์ไม่สำเร็จ ({status})', driveErrSearchFile: 'ค้นหาไฟล์ไม่สำเร็จ ({status})',
+      driveErrDownload: 'ดาวน์โหลดไม่สำเร็จ ({status})', driveErrUpload: 'บันทึกขึ้น Drive ไม่สำเร็จ ({status})',
+      driveSyncing: 'กำลังซิงก์…', driveSyncedAt: 'ซิงก์กับ Google Drive แล้ว · {t}', driveLastSync: 'ซิงก์ล่าสุด {t}',
+      driveSessionExpired: 'เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', driveSyncFailed: 'ซิงก์ไม่สำเร็จ: {msg}'
+    },
+    en: {
+      driveConnectBtn: 'Connect Google Drive', driveConnectedBtn: 'Google Drive connected',
+      driveConnectFailedAuto: 'Automatic reconnect failed (possibly because the browser blocks cross-domain cookies) — click Connect again',
+      driveConnectFailed: 'Connect failed: {err}', driveLoadingGis: 'Loading Google Identity Services… wait a couple of seconds and try again',
+      driveRequesting: 'Requesting connection permission…', driveErrSearchFolder: 'Folder search failed ({status})',
+      driveErrCreateFolder: 'Folder creation failed ({status})', driveErrSearchFile: 'File search failed ({status})',
+      driveErrDownload: 'Download failed ({status})', driveErrUpload: 'Saving to Drive failed ({status})',
+      driveSyncing: 'Syncing…', driveSyncedAt: 'Synced with Google Drive · {t}', driveLastSync: 'Last synced {t}',
+      driveSessionExpired: 'Session expired — click Connect Drive again', driveSyncFailed: 'Sync failed: {msg}'
+    }
+  };
+  function t(key, vars) {
+    var s = (I18N[getUILang()] || I18N.th)[key];
+    if (s == null) s = I18N.th[key] || key;
+    if (vars) Object.keys(vars).forEach(function (k) { s = s.split('{' + k + '}').join(vars[k]); });
+    return s;
+  }
+
   function loadPf() { try { return JSON.parse(localStorage.getItem(PF_KEY)) || []; } catch (e) { return []; } }
   function savePf(a) { try { localStorage.setItem(PF_KEY, JSON.stringify(a)); } catch (e) {} DriveSync.scheduleSync(); }
   function loadJn() { try { return JSON.parse(localStorage.getItem(JN_KEY)) || []; } catch (e) { return []; } }
@@ -42,7 +75,7 @@ window.InvestDrive = (function () {
     },
     setBtn: function () {
       var b = $('driveConnectBtn'); if (!b) return;
-      b.textContent = this.connected ? 'เชื่อมต่อ Google Drive แล้ว' : 'เชื่อมต่อ Google Drive';
+      b.textContent = this.connected ? t('driveConnectedBtn') : t('driveConnectBtn');
     },
     init: function () {
       try { this.connected = localStorage.getItem(DRIVE_CONNECTED_KEY) === '1'; } catch (e) {}
@@ -56,7 +89,7 @@ window.InvestDrive = (function () {
           use_fedcm_for_prompt: true, // ลดโอกาสต้องกดยืนยันใหม่ทุกครั้งบนเบราว์เซอร์ที่บล็อก third-party cookie (เช่น Chrome รุ่นใหม่)
           callback: function (resp) {
             if (resp.error) {
-              self.setStatus(self.connected ? 'เชื่อมต่ออัตโนมัติไม่สำเร็จ (อาจเพราะเบราว์เซอร์บล็อก cookie ข้ามโดเมน) — กดปุ่มเชื่อมต่ออีกครั้ง' : 'เชื่อมต่อไม่สำเร็จ: ' + resp.error, 'err');
+              self.setStatus(self.connected ? t('driveConnectFailedAuto') : t('driveConnectFailed', { err: resp.error }), 'err');
               return;
             }
             self.accessToken = resp.access_token;
@@ -70,8 +103,8 @@ window.InvestDrive = (function () {
       })();
     },
     connect: function () {
-      if (!this.tokenClient) { this.setStatus('กำลังโหลด Google Identity Services… รออีก 2-3 วิแล้วลองใหม่', 'err'); return; }
-      this.setStatus('กำลังขอสิทธิ์เชื่อมต่อ…', '');
+      if (!this.tokenClient) { this.setStatus(t('driveLoadingGis'), 'err'); return; }
+      this.setStatus(t('driveRequesting'), '');
       this.tokenClient.requestAccessToken({ prompt: this.accessToken ? '' : 'consent' });
     },
     authFetch: function (url, opts) {
@@ -84,13 +117,13 @@ window.InvestDrive = (function () {
       if (self.folderId) return Promise.resolve(self.folderId);
       var q = encodeURIComponent("name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false");
       return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error('ค้นหาโฟลเดอร์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error(t('driveErrSearchFolder', { status: r.status })); return r.json(); })
         .then(function (data) {
           if (data.files && data.files.length) { self.folderId = data.files[0].id; return self.folderId; }
           return self.authFetch('https://www.googleapis.com/drive/v3/files', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
-          }).then(function (r) { if (!r.ok) throw new Error('สร้างโฟลเดอร์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+          }).then(function (r) { if (!r.ok) throw new Error(t('driveErrCreateFolder', { status: r.status })); return r.json(); })
             .then(function (d) { self.folderId = d.id; return self.folderId; });
         });
     },
@@ -99,13 +132,13 @@ window.InvestDrive = (function () {
       if (self.fileId) return Promise.resolve(self.fileId);
       var q = encodeURIComponent("name='" + DRIVE_FILE_NAME + "' and '" + self.folderId + "' in parents and trashed=false");
       return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error('ค้นหาไฟล์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error(t('driveErrSearchFile', { status: r.status })); return r.json(); })
         .then(function (data) { self.fileId = (data.files && data.files[0] && data.files[0].id) || null; return self.fileId; });
     },
     download: function () {
       var self = this;
       return self.authFetch('https://www.googleapis.com/drive/v3/files/' + self.fileId + '?alt=media')
-        .then(function (r) { if (!r.ok) throw new Error('ดาวน์โหลดไม่สำเร็จ (' + r.status + ')'); return r.json(); });
+        .then(function (r) { if (!r.ok) throw new Error(t('driveErrDownload', { status: r.status })); return r.json(); });
     },
     upload: function (obj) {
       var self = this;
@@ -117,7 +150,7 @@ window.InvestDrive = (function () {
         ? 'https://www.googleapis.com/upload/drive/v3/files/' + self.fileId + '?uploadType=multipart'
         : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id';
       return self.authFetch(url, { method: self.fileId ? 'PATCH' : 'POST', body: form })
-        .then(function (r) { if (!r.ok) throw new Error('บันทึกขึ้น Drive ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error(t('driveErrUpload', { status: r.status })); return r.json(); })
         .then(function (d) { if (d.id) self.fileId = d.id; return d; });
     },
     /* ผสาน portfolio/journal จาก Drive กับเครื่องนี้ โดย ts (เวลาสร้างรายการ) เป็นตัวกันซ้ำ */
@@ -131,7 +164,7 @@ window.InvestDrive = (function () {
     },
     firstSync: function () {
       var self = this;
-      self.setStatus('กำลังซิงก์…', '');
+      self.setStatus(t('driveSyncing'), '');
       self.ensureFolder().then(function () { return self.findFile(); })
         .then(function (fid) { return fid ? self.download() : null; })
         .then(function (remote) {
@@ -144,7 +177,7 @@ window.InvestDrive = (function () {
           if (onJnChange) onJnChange();
           return self.upload({ portfolio: mergedPf, journal: mergedJn, savedAt: new Date().toISOString() });
         })
-        .then(function () { self.setStatus('ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); })
+        .then(function () { self.setStatus(t('driveSyncedAt', { t: nowTime() }), 'ok'); })
         .catch(function (e) { self.setStatus('' + (e.message || e), 'err'); });
     },
     scheduleSync: function () {
@@ -158,17 +191,17 @@ window.InvestDrive = (function () {
       var self = this;
       if (self.syncing) { self.pending = true; return; }
       self.pending = false; self.syncing = true;
-      self.setStatus('กำลังซิงก์…', '');
+      self.setStatus(t('driveSyncing'), '');
       self.ensureFolder().then(function () { return self.findFile(); })
         .then(function () { return self.upload({ portfolio: loadPf(), journal: loadJn(), savedAt: new Date().toISOString() }); })
-        .then(function () { self.setStatus('ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
+        .then(function () { self.setStatus(t('driveLastSync', { t: nowTime() }), 'ok'); })
         .catch(function (e) {
           var msg = String(e && e.message || e);
           if (msg.indexOf('401') !== -1 || msg.indexOf('403') !== -1) {
             self.accessToken = null;
-            self.setStatus('เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', 'err');
+            self.setStatus(t('driveSessionExpired'), 'err');
           } else {
-            self.setStatus('ซิงก์ไม่สำเร็จ: ' + msg, 'err');
+            self.setStatus(t('driveSyncFailed', { msg: msg }), 'err');
           }
         })
         .finally(function () {
