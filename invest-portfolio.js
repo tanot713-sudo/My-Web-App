@@ -396,13 +396,14 @@
   /* ── init ───────────────────────────────────────────────────── */
   function editCash() {
     $('cashEditInput').value = Math.round(state.cash);
-    $('cashEditRow').style.display = 'flex';
-    $('sCash').style.display = 'none';
+    $('cashEditRow').hidden = false;
+    $('sCash').hidden = true;
     $('cashEditInput').focus();
+    $('cashEditInput').select();
   }
   function cancelEditCash() {
-    $('cashEditRow').style.display = 'none';
-    $('sCash').style.display = '';
+    $('cashEditRow').hidden = true;
+    $('sCash').hidden = false;
   }
   function saveEditCash() {
     var v = num($('cashEditInput').value);

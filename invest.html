@@ -104,6 +104,10 @@ h1,h2,h3{text-wrap:balance}
 .ticker .chg{font-size:10.5px;font-weight:700;color:var(--muted)}
 .ticker .chg.up{color:var(--ok)}.ticker .chg.dn{color:var(--err)}
 .live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-right:5px;box-shadow:0 0 0 2.5px rgba(23,178,106,.15)}
+.mkt-refresh{margin-left:8px;border:0;background:none;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 4px;border-radius:6px;line-height:1}
+.mkt-refresh:hover{color:var(--iv-dk)}
+.mkt-refresh.spin{animation:mktspin .7s linear infinite}
+@keyframes mktspin{to{transform:rotate(360deg)}}
 
 /* ── กลุ่มตลาดย่อย (หุ้นไทย/หุ้นต่างประเทศ&Bitcoin/โภคภัณฑ์) ในการ์ด "ตลาด" เดียว ── */
 .mkt-group+.mkt-group{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
@@ -114,9 +118,12 @@ h1,h2,h3{text-wrap:balance}
 .gear-btn:hover{opacity:1;color:var(--iv-dk)}
 .gear-panel{margin-top:10px;padding:12px;background:var(--bg);border-radius:10px}
 .gear-panel[hidden]{display:none}
-.gp-check-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px 10px}
-.gp-check{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink);cursor:pointer}
-.gp-check input{margin:0;flex-shrink:0}
+.gp-check-grid{display:flex;flex-wrap:wrap;gap:7px}
+.gp-check{position:relative;display:inline-flex;align-items:center;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;
+  border:1.5px solid var(--line);border-radius:20px;padding:6px 13px;background:var(--card);transition:.12s;user-select:none}
+.gp-check:hover{border-color:var(--iv)}
+.gp-check.on{background:var(--iv);border-color:var(--iv);color:#fff}
+.gp-check input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
 .gear-panel .gp-extra{display:block;width:100%;box-sizing:border-box;margin-top:10px;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;background:var(--card);color:var(--ink)}
 .gp-actions{display:flex;gap:10px;align-items:center;margin-top:10px}
 .gear-panel .gp-save{border:0;background:var(--iv);color:#fff;border-radius:8px;padding:7px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
@@ -142,7 +149,7 @@ h1,h2,h3{text-wrap:balance}
 .ring b{width:60px;height:60px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:19px;font-weight:800}
 .scorebox p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.65}
 
-.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.quick{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .qbtn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;border:1px solid var(--line);border-radius:13px;background:var(--bg);font-size:11.5px;font-weight:600;color:var(--ink);text-decoration:none;text-align:center;transition:.15s}
 .qbtn:hover{border-color:var(--iv);transform:translateY(-1px)}
 .qbtn .ic{width:32px;height:32px;border-radius:10px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;font-size:15px}
@@ -227,7 +234,6 @@ h1,h2,h3{text-wrap:balance}
     <span class="cloud c1"></span><span class="cloud c2"></span><span class="cloud c3"></span>
     <div class="inner">
       <div>
-        <div class="eyebrow">Tanot</div>
         <h1>การลงทุน</h1>
       </div>
       <label class="hero-search">
@@ -271,7 +277,7 @@ h1,h2,h3{text-wrap:balance}
       </section>
 
       <section class="card">
-        <div class="head"><h2><span class="live" id="tkLive"></span>ตลาด</h2><span style="font-size:11px;color:var(--muted)" id="tkStatus">กำลังโหลด…</span></div>
+        <div class="head"><h2><span class="live" id="tkLive"></span>ตลาด</h2><span style="font-size:11px;color:var(--muted)" id="tkStatus">กำลังโหลด…</span><button type="button" id="marketRefreshBtn" class="mkt-refresh" title="รีเฟรชราคาทั้งหมด">↻</button></div>
         <div class="mkt-group">
           <div class="mkt-head"><b>หุ้นไทย</b><button class="gear-btn" type="button" data-group="thai" aria-label="เลือกสัญลักษณ์ที่แสดง">⚙</button></div>
           <div class="tickergrid" id="mkGrid-thai"></div>
@@ -297,10 +303,8 @@ h1,h2,h3{text-wrap:balance}
       <section class="card">
         <div class="head"><h2>เครื่องมือด่วน</h2></div>
         <div class="quick">
-          <a class="qbtn js-open-tool" data-tool-url="invest-portfolio.html" href="invest-portfolio.html"><span class="ic">＋</span>เพิ่มรายการ</a>
           <a class="qbtn" href="#riskCard"><span class="ic">◈</span>วิเคราะห์ความเสี่ยง</a>
           <a class="qbtn" href="invest-business.html"><span class="ic">◎</span>สร้างแผนลงทุน</a>
-          <a class="qbtn js-open-tool" data-tool-url="invest-portfolio.html" href="invest-portfolio.html"><span class="ic">✓</span>ทบทวนพอร์ต</a>
         </div>
       </section>
     </div>
@@ -549,15 +553,16 @@ h1,h2,h3{text-wrap:balance}
     return MARKET_GROUPS[g].defaultSyms;
   }
   var marketQuotes = { thai: {}, global: {}, commod: {} };
+  var INDEX_SYMS = ['SET']; /* ดัชนี ไม่ใช่หุ้นบริษัท — เปิดป๊อปอัพดูรายละเอียดหุ้นรายตัวไม่ได้ */
   function renderMarketGroup(g) {
     var syms = groupSymbols(g), grid = $('mkGrid-' + g), quotes = marketQuotes[g];
     /* ตอนนี้เปิดป๊อปอัพดูรายละเอียดได้เฉพาะ "หุ้นไทย" ก่อน (ทำหน้านี้ให้เสร็จสมบูรณ์แล้วค่อยขยายกลุ่มอื่นทีหลัง) */
-    var clickable = g === 'thai';
     grid.innerHTML = syms.length ? syms.map(function (s) {
       var q = quotes[s];
+      var clickable = g === 'thai' && INDEX_SYMS.indexOf(s) < 0;
       var chg = q && isFinite(q.prevClose) && q.prevClose ? (q.price / q.prevClose - 1) * 100 : NaN;
       return '<div class="ticker' + (clickable ? ' js-open-tool' : '') + '"' + (clickable ? ' data-tool-url="invest-thai-stock.html?sym=' + encodeURIComponent(s) + '"' : '') + '><b>' + esc(s) + '</b><span class="px">' + (q ? N(q.price).toLocaleString('th-TH', { maximumFractionDigits: 2 }) : '—') + '</span>' +
-        '<span class="chg ' + (isFinite(chg) ? (chg >= 0 ? 'up' : 'dn') : '') + '">' + (isFinite(chg) ? pct(chg, 2) : 'รอราคา') + '</span></div>';
+        '<span class="chg ' + (isFinite(chg) ? (chg >= 0 ? 'up' : 'dn') : '') + '">' + (isFinite(chg) ? pct(chg, 2) : '—') + '</span></div>';
     }).join('') : '<p class="empty-hint">ยังไม่ได้เลือกสัญลักษณ์ — กด ⚙ เพื่อเพิ่ม</p>';
     if (g === 'thai') {
       var live = syms.filter(function (s) { return quotes[s]; }).length;
@@ -588,10 +593,14 @@ h1,h2,h3{text-wrap:balance}
       var extra = current.filter(function (s) { return candKeys.indexOf(s) < 0; });
       panel.innerHTML =
         '<div class="gp-check-grid">' + candKeys.map(function (s) {
-          return '<label class="gp-check"><input type="checkbox" value="' + esc(s) + '"' + (current.indexOf(s) >= 0 ? ' checked' : '') + '> ' + esc(meta.candidates[s]) + '</label>';
+          var on = current.indexOf(s) >= 0;
+          return '<label class="gp-check' + (on ? ' on' : '') + '"><input type="checkbox" value="' + esc(s) + '"' + (on ? ' checked' : '') + '> ' + esc(meta.candidates[s]) + '</label>';
         }).join('') + '</div>' +
         (meta.allowCustom ? '<input type="text" class="gp-extra" value="' + esc(extra.join(', ')) + '" placeholder="เพิ่มเอง เช่น KTB, OR (คั่นด้วยจุลภาค)" spellcheck="false">' : '') +
         '<div class="gp-actions"><button type="button" class="gp-save">บันทึก</button><button type="button" class="gp-reset">ใช้ค่าเริ่มต้น</button></div>';
+      [].forEach.call(panel.querySelectorAll('.gp-check input'), function (c) {
+        c.addEventListener('change', function () { c.closest('.gp-check').classList.toggle('on', c.checked); });
+      });
       panel.querySelector('.gp-save').addEventListener('click', function () {
         var checked = [].map.call(panel.querySelectorAll('.gp-check input:checked'), function (c) { return c.value; });
         var extraInput = panel.querySelector('.gp-extra');
@@ -795,6 +804,12 @@ h1,h2,h3{text-wrap:balance}
   loadHoldingQuotes().then(refreshAll);
   loadUsdThbRate().then(refreshAll);
   loadAllMarkets();
+  /* ปุ่มรีเฟรชด้วยมือ — โปรกซี CORS ฟรีที่ใช้ดึงราคาไม่เสถียร บางสัญลักษณ์อาจดึงไม่ได้ตอนโหลดหน้าแรก
+     (ไม่แคชค่า fail ไว้ จึงลองใหม่ทุกครั้งที่กด ส่วนตัวที่ดึงได้แล้วในชั่วโมงนี้จะเร็วเพราะอ่านจากแคช) */
+  $('marketRefreshBtn').addEventListener('click', function () {
+    var btn = this; btn.classList.add('spin');
+    loadAllMarkets().finally(function () { btn.classList.remove('spin'); });
+  });
 
   /* ══ แถบนำทาง 2 ชั้น — สร้างหมวดย่อยจาก window.INVEST_CATS (ที่มาเดียวกับเมนูแฮมเบอร์เกอร์) ══ */
   var GROUP_OF = { 'thai-stock': 'market', 'global-stock': 'market', 'thai-fund': 'market', 'global-fund': 'market', 'gold': 'market', 'bitcoin': 'market', 'commodities': 'market',

@@ -97,12 +97,16 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 /* ── เปิดในกรอบป๊อปอัพจาก invest.html (?embed=1) — ซ่อน breadcrumb ซ้ำซ้อน ลด padding บนสุด ── */
 body.embedded{padding-top:14px}
 body.embedded .crumb{display:none}
+body.embedded #driveCard{display:none}
 
 .sumbox .lbl-row{display:flex;align-items:center;justify-content:space-between;gap:6px}
 .edit-ic{background:none;border:0;color:var(--muted);cursor:pointer;font-size:12px;padding:2px;line-height:1}
 .edit-ic:hover{color:var(--brand-dk)}
-.cash-edit-row{display:flex;gap:6px;align-items:center;margin-top:4px}
-.cash-edit-row input{padding:6px 8px;font-size:14px}
+.cash-edit-row{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.cash-edit-row[hidden]{display:none}
+.cash-edit-input{width:100%;box-sizing:border-box;font-family:inherit;font-size:19px;font-weight:800;letter-spacing:-.01em;
+  padding:4px 8px;border:1.5px solid var(--brand);border-radius:8px;background:var(--card);color:var(--ink)}
+.cash-edit-actions{display:flex;gap:6px}
 </style>
 </head>
 <body class="ome-tool-page" data-invest-key="portfolio">
@@ -124,10 +128,12 @@ body.embedded .crumb{display:none}
       <div class="sumbox">
         <div class="lbl-row"><span class="lbl">เงินสดคงเหลือ</span><button class="edit-ic" id="cashEditBtn" type="button" aria-label="แก้ไขเงินสด">✎ แก้ไข</button></div>
         <div class="val" id="sCash">—</div>
-        <div class="cash-edit-row" id="cashEditRow" style="display:none">
-          <input type="number" id="cashEditInput" inputmode="decimal" style="width:100%">
-          <button class="btn sm primary" id="cashEditSave" type="button">บันทึก</button>
-          <button class="btn sm" id="cashEditCancel" type="button">ยกเลิก</button>
+        <div class="cash-edit-row" id="cashEditRow" hidden>
+          <input type="number" id="cashEditInput" inputmode="decimal" class="cash-edit-input">
+          <div class="cash-edit-actions">
+            <button class="btn sm primary" id="cashEditSave" type="button">บันทึก</button>
+            <button class="btn sm" id="cashEditCancel" type="button">ยกเลิก</button>
+          </div>
         </div>
       </div>
       <div class="sumbox"><div class="lbl">มูลค่าหุ้นที่ถือ</div><div class="val" id="sHoldVal">—</div></div>
@@ -176,8 +182,8 @@ body.embedded .crumb{display:none}
     <div id="txEmpty" class="tbl-empty">ยังไม่มีรายการ</div>
   </div>
 
-  <!-- สำรองขึ้น Google Drive -->
-  <div class="card">
+  <!-- สำรองขึ้น Google Drive — ซ่อนในโหมดป๊อปอัพ (OAuth ของ Google ทำงานในกรอบ iframe ไม่ได้ดี) -->
+  <div class="card" id="driveCard">
     <h2>สำรองพอร์ตจำลองขึ้น Google Drive</h2>
     <div class="drive-row" style="margin-top:10px">
       <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
