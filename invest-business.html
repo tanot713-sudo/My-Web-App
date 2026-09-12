@@ -128,51 +128,43 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 <div class="wrap">
 
 
-  <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>ลงทุนทำธุรกิจ</nav>
+  <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span class="sep">/</span><span data-i18n="pageTitleShort">ลงทุนทำธุรกิจ</span></nav>
 
   <div class="head">
     <div>
-      <h1>ลงทุนทำธุรกิจ — เช็กความพร้อม + จุดคุ้มทุน</h1>
-      <div class="head-sub">ตัวช่วยประเมินไอเดียธุรกิจ/รายได้เสริม ก่อนลงเงินจริง</div>
+      <h1 data-i18n="pageTitle">ลงทุนทำธุรกิจ — เช็กความพร้อม + จุดคุ้มทุน</h1>
+      <div class="head-sub" data-i18n="headSub">ตัวช่วยประเมินไอเดียธุรกิจ/รายได้เสริม ก่อนลงเงินจริง</div>
     </div>
   </div>
 
   <!-- ไอเดียอ้างอิง -->
   <div class="card">
-    <h2>ไอเดียอ้างอิง (แรงบันดาลใจ)</h2>
-    <p class="mini">ตัวอย่างช่องทางรายได้เสริมที่คนทั่วไปเริ่มได้ — ไม่ผูกกับการคำนวณด้านล่าง แตะการ์ดเพื่อดูเครื่องมือที่ต้องใช้ตั้งแต่เริ่มจนส่งงาน</p>
-    <div id="bzIdeaListWrap">
-      <div class="idea-grid">
-        <div class="idea-card" data-id="freelance"><span class="ic"></span><b>ขายทักษะ/ที่ปรึกษาฟรีแลนซ์</b>ใช้ทักษะที่มีอยู่แล้วรับงานนอกเวลา</div>
-        <div class="idea-card" data-id="course"><span class="ic"></span><b>สอน/ทำคอร์สออนไลน์</b>ถ่ายทอดความรู้เป็นคอร์สหรือติวเตอร์</div>
-        <div class="idea-card" data-id="online-sales"><span class="ic"></span><b>ขายสินค้าออนไลน์</b>ผลิตเองหรือหาสินค้ามาขายผ่านมาร์เก็ตเพลส/โซเชียล</div>
-        <div class="idea-card" data-id="tools-apps"><span class="ic"></span><b>ทำเครื่องมือ/แอปขายหรือให้เช่า</b>สร้างของที่ใช้ซ้ำได้ ขายทีเดียวหรือเก็บค่าสมาชิก</div>
-        <div class="idea-card" data-id="rental"><span class="ic"></span><b>ให้เช่าทรัพย์สินที่มี</b>ห้อง/รถ/อุปกรณ์ที่ไม่ได้ใช้เต็มเวลา</div>
-      </div>
-    </div>
+    <h2 data-i18n="ideasTitle">ไอเดียอ้างอิง (แรงบันดาลใจ)</h2>
+    <p class="mini" data-i18n="ideasDesc">ตัวอย่างช่องทางรายได้เสริมที่คนทั่วไปเริ่มได้ — ไม่ผูกกับการคำนวณด้านล่าง แตะการ์ดเพื่อดูเครื่องมือที่ต้องใช้ตั้งแต่เริ่มจนส่งงาน</p>
+    <div id="bzIdeaListWrap"></div>
     <div id="bzIdeaDetail" style="display:none"></div>
   </div>
 
   <!-- เครื่องคำนวณจุดคุ้มทุน -->
   <div class="card">
-    <h2>เครื่องคำนวณจุดคุ้มทุน</h2>
+    <h2 data-i18n="calcTitle">เครื่องคำนวณจุดคุ้มทุน</h2>
     <div class="frow">
-      <div class="field"><label>เงินลงทุนเริ่มต้น <span class="unit">(บาท)</span></label><input type="number" id="bzStartup" inputmode="numeric" value="20000"></div>
-      <div class="field"><label>ต้นทุนคงที่ต่อเดือน <span class="unit">(บาท)</span></label><input type="number" id="bzFixed" inputmode="numeric" value="3000"></div>
-      <div class="field"><label>ราคาขายเฉลี่ย/หน่วย <span class="unit">(บาท)</span></label><input type="number" id="bzPrice" inputmode="decimal" step="0.01" value="250"></div>
+      <div class="field"><label data-i18n="lblStartup">เงินลงทุนเริ่มต้น <span class="unit">(บาท)</span></label><input type="number" id="bzStartup" inputmode="numeric" value="20000"></div>
+      <div class="field"><label data-i18n="lblFixed">ต้นทุนคงที่ต่อเดือน <span class="unit">(บาท)</span></label><input type="number" id="bzFixed" inputmode="numeric" value="3000"></div>
+      <div class="field"><label data-i18n="lblPrice">ราคาขายเฉลี่ย/หน่วย <span class="unit">(บาท)</span></label><input type="number" id="bzPrice" inputmode="decimal" step="0.01" value="250"></div>
     </div>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>ต้นทุนผันแปร/หน่วย <span class="unit">(บาท)</span></label><input type="number" id="bzVar" inputmode="decimal" step="0.01" value="100"></div>
-      <div class="field"><label>ปริมาณขายที่คาดหวัง/เดือน <span class="unit">(หน่วย, ไม่บังคับ)</span></label><input type="number" id="bzVol" inputmode="numeric" value="60"></div>
+      <div class="field"><label data-i18n="lblVar">ต้นทุนผันแปร/หน่วย <span class="unit">(บาท)</span></label><input type="number" id="bzVar" inputmode="decimal" step="0.01" value="100"></div>
+      <div class="field"><label data-i18n="lblVol">ปริมาณขายที่คาดหวัง/เดือน <span class="unit">(หน่วย, ไม่บังคับ)</span></label><input type="number" id="bzVol" inputmode="numeric" value="60"></div>
     </div>
-    <div style="margin-top:12px"><button class="btn primary" id="bzCalcBtn" type="button">คำนวณ</button></div>
+    <div style="margin-top:12px"><button class="btn primary" id="bzCalcBtn" type="button" data-i18n="calcBtn">คำนวณ</button></div>
 
     <div id="bzOut" style="display:none">
       <div class="sumrow" style="margin-top:16px">
-        <div class="sumbox"><div class="lbl">กำไรต่อหน่วย</div><div class="val" id="bzProfitUnit">—</div></div>
-        <div class="sumbox"><div class="lbl">จุดคุ้มทุน</div><div class="val" id="bzBreakeven">—</div><div class="sub">หน่วย/เดือน</div></div>
-        <div class="sumbox"><div class="lbl">กำไร/ขาดทุนคาดการณ์</div><div class="val" id="bzProjected">—</div><div class="sub">ต่อเดือน ที่ปริมาณคาดหวัง</div></div>
-        <div class="sumbox"><div class="lbl">ระยะเวลาคืนทุน</div><div class="val" id="bzPayback">—</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="lblProfitUnit">กำไรต่อหน่วย</div><div class="val" id="bzProfitUnit">—</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="lblBreakeven">จุดคุ้มทุน</div><div class="val" id="bzBreakeven">—</div><div class="sub" data-i18n="unitPerMonth">หน่วย/เดือน</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="lblProjected">กำไร/ขาดทุนคาดการณ์</div><div class="val" id="bzProjected">—</div><div class="sub" data-i18n="subProjected">ต่อเดือน ที่ปริมาณคาดหวัง</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="lblPayback">ระยะเวลาคืนทุน</div><div class="val" id="bzPayback">—</div></div>
       </div>
       <div class="verdict-box" id="bzVerdict" style="margin-top:12px"></div>
     </div>
@@ -180,22 +172,22 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- เช็กลิสต์พร้อมเริ่มหรือยัง -->
   <div class="card">
-    <h2>เช็กลิสต์ "พร้อมเริ่มหรือยัง?"</h2>
-    <p class="mini">ตอบตามจริง 4 ข้อ + กรอกทุนที่มีอยู่จริง 1 ช่อง แล้วกด "ตรวจเช็กลิสต์" — กันเริ่มธุรกิจแบบไม่พร้อม</p>
+    <h2 data-i18n="chkTitle">เช็กลิสต์ "พร้อมเริ่มหรือยัง?"</h2>
+    <p class="mini" data-i18n="chkDesc">ตอบตามจริง 4 ข้อ + กรอกทุนที่มีอยู่จริง 1 ช่อง แล้วกด "ตรวจเช็กลิสต์" — กันเริ่มธุรกิจแบบไม่พร้อม</p>
     <div id="bzChkForm" style="margin-top:10px">
-      <div class="yn-row" data-key="emergency"><span>มีเงินสำรองฉุกเฉินอย่างน้อย 3–6 เดือนของค่าใช้จ่าย (ไม่นับเงินที่จะเอามาลงทุน) แล้ว</span>
-        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button">ใช่</button><button class="yn-btn" data-val="no" type="button">ยัง</button></div></div>
-      <div class="yn-row" data-key="contract"><span>เช็คสัญญาจ้างงานปัจจุบันเรื่องข้อห้ามแข่งขัน (non-compete) และผลประโยชน์ทับซ้อนแล้ว</span>
-        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button">ใช่</button><button class="yn-btn" data-val="no" type="button">ยัง</button></div></div>
-      <div class="yn-row" data-key="time"><span>มีเวลาจริงเพียงพอต่อสัปดาห์ นอกเหนือจากงานประจำ</span>
-        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button">ใช่</button><button class="yn-btn" data-val="no" type="button">ยัง</button></div></div>
-      <div class="yn-row" data-key="license"><span>ธุรกิจนี้ไม่ต้องมีใบอนุญาต/คุณสมบัติเฉพาะ หรือมีครบแล้ว (เช่น ใบอนุญาตขายอาหาร ตั๋ววิชาชีพ)</span>
-        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button">ใช่</button><button class="yn-btn" data-val="no" type="button">ยัง</button></div></div>
+      <div class="yn-row" data-key="emergency"><span data-i18n="chkEmergency">มีเงินสำรองฉุกเฉินอย่างน้อย 3–6 เดือนของค่าใช้จ่าย (ไม่นับเงินที่จะเอามาลงทุน) แล้ว</span>
+        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
+      <div class="yn-row" data-key="contract"><span data-i18n="chkContract">เช็คสัญญาจ้างงานปัจจุบันเรื่องข้อห้ามแข่งขัน (non-compete) และผลประโยชน์ทับซ้อนแล้ว</span>
+        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
+      <div class="yn-row" data-key="time"><span data-i18n="chkTime">มีเวลาจริงเพียงพอต่อสัปดาห์ นอกเหนือจากงานประจำ</span>
+        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
+      <div class="yn-row" data-key="license"><span data-i18n="chkLicense">ธุรกิจนี้ไม่ต้องมีใบอนุญาต/คุณสมบัติเฉพาะ หรือมีครบแล้ว (เช่น ใบอนุญาตขายอาหาร ตั๋ววิชาชีพ)</span>
+        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
     </div>
     <div class="frow" style="margin-top:10px">
-      <div class="field" style="flex:1 1 200px"><label>ทุนที่มีอยู่จริงตอนนี้ <span class="unit">(บาท)</span></label><input type="number" id="bzOwnCapital" inputmode="numeric" placeholder="เช่น 25000"></div>
+      <div class="field" style="flex:1 1 200px"><label data-i18n="lblOwnCapital">ทุนที่มีอยู่จริงตอนนี้ <span class="unit">(บาท)</span></label><input type="number" id="bzOwnCapital" inputmode="numeric" placeholder="เช่น 25000" data-i18n-placeholder="phOwnCapital"></div>
     </div>
-    <div style="margin-top:10px"><button class="btn" id="bzChkBtn" type="button">ตรวจเช็กลิสต์</button></div>
+    <div style="margin-top:10px"><button class="btn" id="bzChkBtn" type="button" data-i18n="chkBtn">ตรวจเช็กลิสต์</button></div>
     <div id="bzChkResult" style="display:none;margin-top:12px">
       <div class="verdict-box" id="bzChkVerdict"></div>
       <ul class="chk-list" id="bzChkList"></ul>
@@ -204,31 +196,31 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- บันทึกไอเดียที่กำลังพิจารณา -->
   <div class="card">
-    <h2>บันทึกไอเดียที่กำลังพิจารณา</h2>
-    <p class="mini">บันทึกผลคำนวณของแต่ละไอเดียไว้เทียบกัน (เก็บในเครื่องคุณเท่านั้น)</p>
+    <h2 data-i18n="logTitle">บันทึกไอเดียที่กำลังพิจารณา</h2>
+    <p class="mini" data-i18n="logDesc">บันทึกผลคำนวณของแต่ละไอเดียไว้เทียบกัน (เก็บในเครื่องคุณเท่านั้น)</p>
     <div class="frow" style="margin-top:10px">
-      <div class="field" style="flex:2 1 200px"><label>ชื่อไอเดีย</label><input type="text" id="bzIdeaName" placeholder="เช่น ขายขนมออนไลน์" autocomplete="off"></div>
-      <button class="btn sm" id="bzAddBtn" type="button">+ บันทึกไอเดียนี้</button>
+      <div class="field" style="flex:2 1 200px"><label data-i18n="lblIdeaName">ชื่อไอเดีย</label><input type="text" id="bzIdeaName" placeholder="เช่น ขายขนมออนไลน์" data-i18n-placeholder="phIdeaName" autocomplete="off"></div>
+      <button class="btn sm" id="bzAddBtn" type="button" data-i18n="addBtn">+ บันทึกไอเดียนี้</button>
     </div>
-    <div id="bzLogBox" style="margin-top:10px"><div class="log-empty">ยังไม่มีไอเดียที่บันทึก — กรอกเครื่องคำนวณด้านบนแล้วกด "บันทึกไอเดียนี้"</div></div>
+    <div id="bzLogBox" style="margin-top:10px"><div class="log-empty" data-i18n="logEmptyDefault">ยังไม่มีไอเดียที่บันทึก — กรอกเครื่องคำนวณด้านบนแล้วกด "บันทึกไอเดียนี้"</div></div>
   </div>
 
   <!-- เรียนรู้ -->
   <details class="card lesson">
-    <summary style="font-size:14px">เรียนรู้ — ก่อนเริ่มธุรกิจ/รายได้เสริม</summary>
+    <summary style="font-size:14px" data-i18n="lessonSummary">เรียนรู้ — ก่อนเริ่มธุรกิจ/รายได้เสริม</summary>
     <div class="details-body">
-      <h3>รายได้เสริม vs ธุรกิจหลัก ต่างกันยังไง</h3>
-      <p>ระดับความเสี่ยง/เวลาที่ทุ่มเทต่างกัน มือใหม่ควรเริ่มเป็นรายได้เสริมคู่กับงานประจำก่อน ค่อยพิจารณาออกมาทำเต็มตัวเมื่อกระแสเงินสดพิสูจน์ตัวเองแล้ว เช่น มีกำไรสม่ำเสมอเกินจุดคุ้มทุนหลายเดือนติดกัน</p>
-      <h3>จุดคุ้มทุนคำนวณยังไง (ตัวอย่าง)</h3>
-      <p>ขายเบเกอรี่ ราคา 250 บาท ต้นทุนผันแปร (วัตถุดิบ) 100 บาท → กำไรต่อหน่วย 150 บาท ถ้าต้นทุนคงที่ (ค่าเช่า/ค่าไฟ) 3,000 บาท/เดือน → ต้องขาย 3,000 ÷ 150 = 20 หน่วย/เดือนถึงจะคุ้มทุน — ตัวเลขในเครื่องคำนวณด้านบนมาจากสูตรนี้ และแนะนำให้ขายเผื่อกันชนอย่างน้อย ~20% เหนือจุดคุ้มทุน เพราะยอดขายจริงมักผันผวนกว่าที่คาด</p>
-      <h3>ทำไมต้องเช็คสัญญาจ้างก่อนเริ่ม</h3>
-      <p>สัญญาจ้างงานหลายฉบับมีข้อห้ามแข่งขัน (non-compete) ผลประโยชน์ทับซ้อน (conflict of interest) และเงื่อนไขทรัพย์สินทางปัญญา — ถ้าฝ่าฝืนอาจถูกเลิกจ้างหรือฟ้องร้องได้ แม้ธุรกิจจะเล็กแค่ไหนก็ตาม เช็คให้ชัดก่อนเริ่มดีที่สุด</p>
-      <h3>ความเสี่ยงที่มือใหม่มักมองข้าม</h3>
-      <p>ประเมินต้นทุนคงที่/เวลาต่ำไปกว่าความจริง · ช่วงขาดสภาพคล่องก่อนถึงจุดคุ้มทุน (มีรายจ่ายแต่ยังไม่มีกำไร) · ความรับผิดส่วนตัวถ้าไม่แยกนิติบุคคล · ภาระภาษีที่ต้องยื่นเพิ่มเมื่อมีรายได้อีกทาง</p>
+      <h3 data-i18n="lsn1h">รายได้เสริม vs ธุรกิจหลัก ต่างกันยังไง</h3>
+      <p data-i18n="lsn1p">ระดับความเสี่ยง/เวลาที่ทุ่มเทต่างกัน มือใหม่ควรเริ่มเป็นรายได้เสริมคู่กับงานประจำก่อน ค่อยพิจารณาออกมาทำเต็มตัวเมื่อกระแสเงินสดพิสูจน์ตัวเองแล้ว เช่น มีกำไรสม่ำเสมอเกินจุดคุ้มทุนหลายเดือนติดกัน</p>
+      <h3 data-i18n="lsn2h">จุดคุ้มทุนคำนวณยังไง (ตัวอย่าง)</h3>
+      <p data-i18n="lsn2p">ขายเบเกอรี่ ราคา 250 บาท ต้นทุนผันแปร (วัตถุดิบ) 100 บาท → กำไรต่อหน่วย 150 บาท ถ้าต้นทุนคงที่ (ค่าเช่า/ค่าไฟ) 3,000 บาท/เดือน → ต้องขาย 3,000 ÷ 150 = 20 หน่วย/เดือนถึงจะคุ้มทุน — ตัวเลขในเครื่องคำนวณด้านบนมาจากสูตรนี้ และแนะนำให้ขายเผื่อกันชนอย่างน้อย ~20% เหนือจุดคุ้มทุน เพราะยอดขายจริงมักผันผวนกว่าที่คาด</p>
+      <h3 data-i18n="lsn3h">ทำไมต้องเช็คสัญญาจ้างก่อนเริ่ม</h3>
+      <p data-i18n="lsn3p">สัญญาจ้างงานหลายฉบับมีข้อห้ามแข่งขัน (non-compete) ผลประโยชน์ทับซ้อน (conflict of interest) และเงื่อนไขทรัพย์สินทางปัญญา — ถ้าฝ่าฝืนอาจถูกเลิกจ้างหรือฟ้องร้องได้ แม้ธุรกิจจะเล็กแค่ไหนก็ตาม เช็คให้ชัดก่อนเริ่มดีที่สุด</p>
+      <h3 data-i18n="lsn4h">ความเสี่ยงที่มือใหม่มักมองข้าม</h3>
+      <p data-i18n="lsn4p">ประเมินต้นทุนคงที่/เวลาต่ำไปกว่าความจริง · ช่วงขาดสภาพคล่องก่อนถึงจุดคุ้มทุน (มีรายจ่ายแต่ยังไม่มีกำไร) · ความรับผิดส่วนตัวถ้าไม่แยกนิติบุคคล · ภาระภาษีที่ต้องยื่นเพิ่มเมื่อมีรายได้อีกทาง</p>
     </div>
   </details>
 
-  <div class="disc">ตัวเลขเป็นการประมาณจากสมมติฐานที่กรอก ผลจริงของธุรกิจขึ้นกับตลาดและอาจขาดทุนได้ · ไม่ใช่คำแนะนำการลงทุนหรือกฎหมาย · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
+  <div class="disc" data-i18n="footerDisc">ตัวเลขเป็นการประมาณจากสมมติฐานที่กรอก ผลจริงของธุรกิจขึ้นกับตลาดและอาจขาดทุนได้ · ไม่ใช่คำแนะนำการลงทุนหรือกฎหมาย · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
 </div>
 
 <script src="invest-business.js" defer></script>
