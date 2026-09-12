@@ -18,11 +18,19 @@
   }
   function soonHref(label) { return 'soon.html?label=' + encodeURIComponent(label); }
 
+  /* ── โหมดฝังในป๊อปอัพ (?embed=1) — เปิดหน้าเดิมในกรอบลอยจากหน้าอื่น (เช่น invest.html) โดยไม่โหลด
+     ซ้ำ: แถบนำทางบนสุด/เมนูลิ้นชัก/วิดเจ็ตแชท AI ลอย/ฟุตเตอร์ เพราะหน้าที่เปิดป๊อปอัพมีของพวกนี้อยู่แล้ว
+     ธีม (applyTheme) และ window.INVEST_CATS ยังทำงานตามปกติ — หน้าที่ฝังยังพึ่งพาสิ่งเหล่านี้ได้ */
+  function isEmbedded() {
+    try { return new URLSearchParams(location.search).get('embed') === '1'; } catch (e) { return false; }
+  }
+
   /* ── วิดเจ็ตแชท AI ลอย (ปุ่ม 💬 มุมขวาล่างทุกหน้า) — เดิมเป็นหน้าแยก ai-chat.html ย้ายมาเป็นวิดเจ็ต
      ลอยแทนตามที่ผู้ใช้ขอ ฉีด <script> เข้าไปจากที่นี่แทนที่จะต้องแก้ <head>/<body> ของทุกหน้า (30+ไฟล์)
      เอง — ตัว ai-chat-widget.js สร้าง DOM/CSS/logic ของวิดเจ็ตเองทั้งหมด ไม่โหลดโมเดล AI ใดๆ ตอนนี้
      (โหลดเฉพาะตอนผู้ใช้กดส่งข้อความ/ใช้ไมค์ครั้งแรกจริงๆ) */
   (function injectAiChatWidget() {
+    if (isEmbedded()) return; /* ในป๊อปอัพ หน้าที่เปิดป๊อปอัพมีวิดเจ็ตแชทของตัวเองอยู่แล้ว ไม่ต้องซ้ำ */
     var s = document.createElement('script');
     s.src = BASE + 'ai-chat-widget.js';
     document.head.appendChild(s);
@@ -692,9 +700,13 @@
     }
   }
 
+  function initShellChrome() {
+    if (!isEmbedded()) { buildNav(); buildFooter(); } /* ในป๊อปอัพ ไม่ต้องมีแถบนำทาง/เมนูลิ้นชัก/ฟุตเตอร์ซ้ำ */
+    registerSW();
+  }
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { buildNav(); buildFooter(); registerSW(); });
+    document.addEventListener('DOMContentLoaded', initShellChrome);
   } else {
-    buildNav(); buildFooter(); registerSW();
+    initShellChrome();
   }
 })();

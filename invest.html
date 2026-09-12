@@ -164,13 +164,13 @@ h1,h2,h3{text-wrap:balance}
 .ai-panel .ans{margin-top:10px;font-size:12px;line-height:1.6;color:var(--ink);background:var(--bg);border-radius:10px;padding:10px;display:none}
 .ai-panel .ans.on{display:block}
 
-/* ── ป๊อปอัพพอร์ตจำลอง — เปิด invest-portfolio.html ในกรอบลอย เลื่อนได้ แทนการเปลี่ยนหน้า ── */
-.pf-modal-overlay{position:fixed;inset:0;background:rgba(11,18,35,.5);z-index:90;display:flex;align-items:flex-start;justify-content:center;padding:26px 16px;overflow-y:auto}
-.pf-modal-overlay[hidden]{display:none}
-.pf-modal-box{position:relative;width:min(860px,100%);background:var(--card);border-radius:18px;box-shadow:0 24px 60px rgba(10,16,32,.35);overflow:hidden;margin:auto}
-.pf-modal-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:16px;line-height:1;cursor:pointer;z-index:2;box-shadow:0 2px 8px rgba(20,30,54,.12)}
-.pf-modal-box iframe{display:block;width:100%;border:0;min-height:200px}
-@media(max-width:600px){.pf-modal-overlay{padding:0}.pf-modal-box{border-radius:0;min-height:100vh}}
+/* ── ป๊อปอัพเครื่องมือ — เปิดหน้าเครื่องมือในกรอบลอย เลื่อนได้ แทนการเปลี่ยนหน้า (ใช้ร่วมกันหลายหน้า) ── */
+.tool-modal-overlay{position:fixed;inset:0;background:rgba(11,18,35,.5);z-index:90;display:flex;align-items:flex-start;justify-content:center;padding:26px 16px;overflow-y:auto}
+.tool-modal-overlay[hidden]{display:none}
+.tool-modal-box{position:relative;width:min(860px,100%);background:var(--card);border-radius:18px;box-shadow:0 24px 60px rgba(10,16,32,.35);overflow:hidden;margin:auto}
+.tool-modal-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:16px;line-height:1;cursor:pointer;z-index:2;box-shadow:0 2px 8px rgba(20,30,54,.12)}
+.tool-modal-box iframe{display:block;width:100%;border:0;min-height:200px}
+@media(max-width:600px){.tool-modal-overlay{padding:0}.tool-modal-box{border-radius:0;min-height:100vh}}
 
 @media(max-width:920px){
   .layout{grid-template-columns:1fr}
@@ -194,7 +194,7 @@ h1,h2,h3{text-wrap:balance}
 <nav class="ivnav" id="ivNav">
   <div class="ivgroups" id="ivGroups">
     <button class="on" type="button" data-group="overview"><span class="ic">⌂</span>ภาพรวม</button>
-    <button type="button" class="js-open-pf" data-group="portfolio"><span class="ic">◉</span>พอร์ตของฉัน</button>
+    <button type="button" class="js-open-tool" data-tool-url="invest-portfolio.html" data-group="portfolio"><span class="ic">◉</span>พอร์ตของฉัน</button>
     <button type="button" data-group="market"><span class="ic">◈</span>ตลาด &amp; สินทรัพย์</button>
     <button type="button" data-group="lottery"><span class="ic">🎟</span>สลาก &amp; พันธบัตร</button>
     <button type="button" data-group="news"><span class="ic">✎</span>ข่าว &amp; ธุรกิจ</button>
@@ -258,22 +258,22 @@ h1,h2,h3{text-wrap:balance}
       </section>
 
       <section class="card">
-        <div class="head"><h2>ตลาดโภคภัณฑ์</h2><a href="invest-commodities.html">ดูทั้งหมด →</a></div>
+        <div class="head"><h2>ตลาดโภคภัณฑ์</h2><a href="invest-commodities.html" class="js-open-tool" data-tool-url="invest-commodities.html">ดูทั้งหมด →</a></div>
         <div class="tickergrid" id="commodGrid" style="grid-template-columns:repeat(4,1fr)"></div>
       </section>
 
       <section class="card">
-        <div class="head"><h2>สินทรัพย์ในพอร์ต</h2><a href="invest-portfolio.html" class="js-open-pf">+ เพิ่มสินทรัพย์</a></div>
+        <div class="head"><h2>สินทรัพย์ในพอร์ต</h2><a href="invest-portfolio.html" class="js-open-tool" data-tool-url="invest-portfolio.html">+ เพิ่มสินทรัพย์</a></div>
         <div id="assetsBody"></div>
       </section>
 
       <section class="card">
         <div class="head"><h2>เครื่องมือด่วน</h2></div>
         <div class="quick">
-          <a class="qbtn js-open-pf" href="invest-portfolio.html"><span class="ic">＋</span>เพิ่มรายการ</a>
+          <a class="qbtn js-open-tool" data-tool-url="invest-portfolio.html" href="invest-portfolio.html"><span class="ic">＋</span>เพิ่มรายการ</a>
           <a class="qbtn" href="#riskCard"><span class="ic">◈</span>วิเคราะห์ความเสี่ยง</a>
           <a class="qbtn" href="invest-business.html"><span class="ic">◎</span>สร้างแผนลงทุน</a>
-          <a class="qbtn js-open-pf" href="invest-portfolio.html"><span class="ic">✓</span>ทบทวนพอร์ต</a>
+          <a class="qbtn js-open-tool" data-tool-url="invest-portfolio.html" href="invest-portfolio.html"><span class="ic">✓</span>ทบทวนพอร์ต</a>
         </div>
       </section>
     </div>
@@ -317,11 +317,11 @@ h1,h2,h3{text-wrap:balance}
 
 </div>
 
-<!-- ป๊อปอัพพอร์ตจำลอง — โหลด invest-portfolio.html ในกรอบลอย แทนการเปลี่ยนหน้า -->
-<div class="pf-modal-overlay" id="pfModalOverlay" hidden>
-  <div class="pf-modal-box">
-    <button class="pf-modal-close" id="pfModalClose" type="button" aria-label="ปิด">×</button>
-    <iframe id="pfModalFrame" src="about:blank" title="พอร์ตจำลอง"></iframe>
+<!-- ป๊อปอัพเครื่องมือ — โหลดหน้าเครื่องมือ (พอร์ตจำลอง/ค่าเงิน & วัตถุดิบ ฯลฯ) ในกรอบลอย แทนการเปลี่ยนหน้า -->
+<div class="tool-modal-overlay" id="toolModalOverlay" hidden>
+  <div class="tool-modal-box">
+    <button class="tool-modal-close" id="toolModalClose" type="button" aria-label="ปิด">×</button>
+    <iframe id="toolModalFrame" src="about:blank" title="เครื่องมือ"></iframe>
   </div>
 </div>
 
@@ -536,7 +536,7 @@ h1,h2,h3{text-wrap:balance}
 
   function renderAssets(p) {
     var body = $('assetsBody');
-    if (!p.rows.length) { body.innerHTML = '<p class="empty-hint">ยังไม่มีสินทรัพย์ในพอร์ต — ไปที่ <button type="button" class="lnk js-open-pf">"พอร์ตของฉัน"</button> เพื่อบันทึกรายการซื้อ-ขายหุ้นด้วยเงินสมมติ</p>'; return; }
+    if (!p.rows.length) { body.innerHTML = '<p class="empty-hint">ยังไม่มีสินทรัพย์ในพอร์ต — ไปที่ <button type="button" class="lnk js-open-tool" data-tool-url="invest-portfolio.html">"พอร์ตของฉัน"</button> เพื่อบันทึกรายการซื้อ-ขายหุ้นด้วยเงินสมมติ</p>'; return; }
     var html = '<table class="tbl"><thead><tr><th>สินทรัพย์</th><th>มูลค่า</th><th>สัดส่วน</th><th>P/L</th></tr></thead><tbody>';
     p.rows.slice().sort(function (a, b) { return b.value - a.value; }).forEach(function (r) {
       html += '<tr><td><div class="sym"><span class="ic">TH</span>' + esc(r.sym) + ' · ' + r.shares.toLocaleString('th-TH') + ' หุ้น</div></td>' +
@@ -704,7 +704,7 @@ h1,h2,h3{text-wrap:balance}
 
   var groupBtns = document.querySelectorAll('#ivGroups button[data-group]');
   groupBtns.forEach(function (b) {
-    if (b.classList.contains('js-open-pf')) return; /* พอร์ตของฉัน — เปิดป๊อปอัพแทน (ผูก event แยกด้านล่าง) */
+    if (b.classList.contains('js-open-tool')) return; /* พอร์ตของฉัน — เปิดป๊อปอัพแทน (ผูก event แยกด้านล่าง) */
     b.addEventListener('click', function () {
       if (b.dataset.href) { location.href = b.dataset.href; return; }
       groupBtns.forEach(function (x) { x.classList.toggle('on', x === b); });
@@ -714,21 +714,23 @@ h1,h2,h3{text-wrap:balance}
     });
   });
 
-  /* ══ ป๊อปอัพพอร์ตจำลอง — เปิด invest-portfolio.html ในกรอบลอย เลื่อนได้ แทนการเปลี่ยนหน้า
-     (ข้อมูลอยู่ localStorage เดียวกัน same-origin จึงอ่านความสูงจริงของ iframe มาปรับกรอบให้พอดีได้) ══ */
+  /* ══ ป๊อปอัพเครื่องมือ — เปิดหน้าเครื่องมือ (พอร์ตจำลอง/ค่าเงิน & วัตถุดิบ ฯลฯ) ในกรอบลอยเลื่อนได้
+     แทนการเปลี่ยนหน้า ใช้ตัวเดียวร่วมกันทุกปุ่มผ่าน data-tool-url (?embed=1 ให้ shell.js ของหน้านั้น
+     ไม่สร้างแถบนำทาง/เมนูลิ้นชัก/วิดเจ็ตแชท/ฟุตเตอร์ซ้ำ — ข้อมูลยัง localStorage เดียวกัน same-origin
+     จึงอ่านความสูงจริงของ iframe มาปรับกรอบให้พอดีได้) ══ */
   (function () {
-    var overlay = $('pfModalOverlay'), frame = $('pfModalFrame'), closeBtn = $('pfModalClose');
-    function openPfModal() {
+    var overlay = $('toolModalOverlay'), frame = $('toolModalFrame'), closeBtn = $('toolModalClose');
+    function openToolModal(url) {
       frame.style.height = '70vh';
-      frame.src = 'invest-portfolio.html?embed=1';
+      frame.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'embed=1';
       overlay.hidden = false;
       document.documentElement.style.overflow = 'hidden';
     }
-    function closePfModal() {
+    function closeToolModal() {
       overlay.hidden = true;
       document.documentElement.style.overflow = '';
       frame.src = 'about:blank';
-      /* พอร์ตอาจเปลี่ยนระหว่างเปิดป๊อปอัพ — โหลดค่าล่าสุดมาแสดงในหน้านี้ใหม่ */
+      /* ข้อมูลพอร์ต/ราคาอาจเปลี่ยนระหว่างเปิดป๊อปอัพ — โหลดค่าล่าสุดมาแสดงในหน้านี้ใหม่ */
       portfolio = loadPortfolio();
       holdings = portfolio.holdings.filter(function (h) { return N(h.shares) > 0; });
       refreshAll();
@@ -742,12 +744,12 @@ h1,h2,h3{text-wrap:balance}
       } catch (e) {}
     });
     document.addEventListener('click', function (e) {
-      var trigger = e.target.closest('.js-open-pf');
-      if (trigger) { e.preventDefault(); openPfModal(); return; }
-      if (e.target === overlay) closePfModal();
+      var trigger = e.target.closest('.js-open-tool');
+      if (trigger) { e.preventDefault(); openToolModal(trigger.dataset.toolUrl); return; }
+      if (e.target === overlay) closeToolModal();
     });
-    closeBtn.addEventListener('click', closePfModal);
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !overlay.hidden) closePfModal(); });
+    closeBtn.addEventListener('click', closeToolModal);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !overlay.hidden) closeToolModal(); });
   })();
 
   /* ══ AI ผู้ช่วยการลงทุน — ไอคอนลอยลากได้ + ตอบจากข้อมูลพอร์ตจริงในเครื่อง ══ */

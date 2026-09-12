@@ -14,6 +14,9 @@
 
   var $ = function (id) { return document.getElementById(id); };
 
+  /* หน้านี้เปิดเป็นป๊อปอัพ (iframe) จาก invest.html ได้ด้วย ?embed=1 — ซ่อน breadcrumb ให้ดูเป็นกล่องเดียวกัน */
+  if (new URLSearchParams(location.search).get('embed')) document.body.classList.add('embedded');
+
   /* ── รายการสินทรัพย์ ──────────────────────────────────────────
      kind: 'yahoo' = ticker เดี่ยวดึงตรง, 'cross' = คำนวณจาก 2 ticker,
            'thaigold' = ราคาทองไทย (thai-gold-api, ไม่มีกราฟย้อนหลัง) */
