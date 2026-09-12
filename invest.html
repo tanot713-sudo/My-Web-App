@@ -27,7 +27,11 @@
   --hero-bg:linear-gradient(120deg, var(--ome-brand-sf) 0%, var(--card) 55%, var(--ome-brand-sf) 100%);
   --hero-chart:var(--ome-brand)}
 *{box-sizing:border-box;margin:0;padding:0}
-body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
+/* พื้นหลังทั้งหน้า (ไม่ใช่แค่ในกล่อง hero) — ไล่สีอ่อนๆ จากสีธีมที่เลือกด้านบน ไปเป็นสีพื้นปกติ
+   ให้ feel การลงทุนแบบเนียนๆ ทั้งหน้า สีไล่มาจาก --ome-brand เอง เลยปรับตามธีม/มืดสว่างอัตโนมัติ */
+body.ome-tool-page{font-family:var(--ome-f);color:var(--ink);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--ome-brand) 7%, var(--bg) 93%) 0%, var(--bg) 560px);
+  background-attachment:fixed;
   line-height:1.6;font-size:15px;padding:0 0 70px;-webkit-font-smoothing:antialiased}
 a{color:inherit}
 h1,h2,h3{text-wrap:balance}
