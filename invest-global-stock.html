@@ -280,103 +280,103 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 <div class="wrap">
 
 
-  <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>หุ้นต่างประเทศ</nav>
+  <nav class="crumb"><a href="invest.html" data-i18n="crumbHome">การลงทุน</a><span class="sep">/</span><span data-i18n="crumbHere">หุ้นต่างประเทศ</span></nav>
 
   <div class="head">
     <div>
-      <h1>หุ้นต่างประเทศ — ตัวช่วยเข้า/ออก</h1>
-      <div class="head-sub">หุ้นสหรัฐฯ (US) · มือใหม่ก็ใช้ได้ · เน้นคุมเงินและความเสี่ยง</div>
+      <h1 data-i18n="pageTitle">หุ้นต่างประเทศ — ตัวช่วยเข้า/ออก</h1>
+      <div class="head-sub" data-i18n="headSub">หุ้นสหรัฐฯ (US) · มือใหม่ก็ใช้ได้ · เน้นคุมเงินและความเสี่ยง</div>
     </div>
   </div>
 
   <div class="top-grid">
   <!-- STEP 1: ราคา -->
   <div class="card">
-    <h2><span class="step">1</span> ราคาหุ้นตอนนี้</h2>
+    <h2><span class="step">1</span> <span data-i18n="step1Title">ราคาหุ้นตอนนี้</span></h2>
     <div class="frow">
       <div class="field" style="flex:1 1 140px">
-        <label>ชื่อย่อหุ้น (เช่น AAPL, MSFT)</label>
+        <label data-i18n="symLabel">ชื่อย่อหุ้น (เช่น AAPL, MSFT)</label>
         <input type="text" id="sym" placeholder="AAPL" autocomplete="off" spellcheck="false">
       </div>
-      <button class="btn" id="fetchBtn" type="button">ลองดึงราคา</button>
+      <button class="btn" id="fetchBtn" type="button" data-i18n="fetchBtn">ลองดึงราคา</button>
     </div>
     <div class="frow" style="margin-top:12px">
-      <div class="field"><label>ราคาตอนนี้ (USD)</label><input type="number" id="price" inputmode="decimal" step="0.01" placeholder="เช่น 180.50"></div>
-      <div class="field"><label>ราคาสูงสุดของรอบ</label><input type="number" id="hi" inputmode="decimal" step="0.01" placeholder="ช่วง 3 เดือน"></div>
-      <div class="field"><label>ราคาต่ำสุดของรอบ</label><input type="number" id="lo" inputmode="decimal" step="0.01" placeholder="ช่วง 3 เดือน"></div>
+      <div class="field"><label data-i18n="priceNowLabel">ราคาตอนนี้ (USD)</label><input type="number" id="price" inputmode="decimal" step="0.01" data-i18n-placeholder="priceNowPh" placeholder="เช่น 180.50"></div>
+      <div class="field"><label data-i18n="priceHiLabel">ราคาสูงสุดของรอบ</label><input type="number" id="hi" inputmode="decimal" step="0.01" data-i18n-placeholder="periodPh" placeholder="ช่วง 3 เดือน"></div>
+      <div class="field"><label data-i18n="priceLoLabel">ราคาต่ำสุดของรอบ</label><input type="number" id="lo" inputmode="decimal" step="0.01" data-i18n-placeholder="periodPh" placeholder="ช่วง 3 เดือน"></div>
     </div>
     <div class="mini" id="priceFx"></div>
     <div class="market-livebar" id="marketLiveBar" aria-live="polite">
       <span class="market-live-dot" id="marketLiveDot"></span>
-      <b id="marketLiveLabel">โหมดข้อมูล: ย้อนหลัง</b>
-      <span id="marketLiveMeta">ตั้งค่าแหล่งข้อมูลสดได้ใน "ตั้งค่าข้อมูลตลาด"</span>
-      <button class="btn sm" id="marketRefresh" type="button">↻ รีเฟรช</button>
-      <button class="btn sm" id="marketSettings" type="button">⚙️ ตั้งค่าข้อมูลตลาด</button>
+      <b id="marketLiveLabel" data-i18n="liveModeHistorical">โหมดข้อมูล: ย้อนหลัง</b>
+      <span id="marketLiveMeta" data-i18n="liveMetaDefault">ตั้งค่าแหล่งข้อมูลสดได้ใน "ตั้งค่าข้อมูลตลาด"</span>
+      <button class="btn sm" id="marketRefresh" type="button" data-i18n="refreshBtn">↻ รีเฟรช</button>
+      <button class="btn sm" id="marketSettings" type="button" data-i18n="marketSettingsBtn">⚙️ ตั้งค่าข้อมูลตลาด</button>
     </div>
-    <div class="status" id="fetchStatus">ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจากแอปเทรดที่ใช้ก็พอ (ดูราคาปัจจุบัน + สูง/ต่ำของรอบ)</div>
+    <div class="status" id="fetchStatus" data-i18n="fetchStatusDefault">ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจากแอปเทรดที่ใช้ก็พอ (ดูราคาปัจจุบัน + สูง/ต่ำของรอบ)</div>
     <div class="market-settings" id="marketSettingsPanel" hidden>
-      <div class="market-settings-title">ข้อมูลตลาดแบบสด</div>
+      <div class="market-settings-title" data-i18n="marketSettingsTitle">ข้อมูลตลาดแบบสด</div>
       <div class="market-settings-grid">
-        <label>แหล่งข้อมูล
-          <select id="marketProvider"><option value="gateway">Tanot Data Gateway (แนะนำ)</option><option value="twelvedata">Twelve Data</option><option value="yahoo">Yahoo / ย้อนหลัง</option></select>
+        <label><span data-i18n="providerLabel">แหล่งข้อมูล</span>
+          <select id="marketProvider"><option value="gateway" data-i18n="providerGateway">Tanot Data Gateway (แนะนำ)</option><option value="twelvedata">Twelve Data</option><option value="yahoo" data-i18n="providerYahoo">Yahoo / ย้อนหลัง</option></select>
         </label>
-        <label>Gateway URL
+        <label><span data-i18n="gatewayUrlLabel">Gateway URL</span>
           <input id="marketGateway" type="url" placeholder="https://your-api.example.com/api/market">
         </label>
-        <label>Twelve Data API Key <span>(เก็บในเครื่องเท่านั้น)</span>
-          <input id="marketApiKey" type="password" autocomplete="off" placeholder="ใส่เมื่อมี API key">
+        <label><span data-i18n="apiKeyLabel">Twelve Data API Key</span> <span data-i18n="apiKeyNote">(เก็บในเครื่องเท่านั้น)</span>
+          <input id="marketApiKey" type="password" autocomplete="off" data-i18n-placeholder="apiKeyPh" placeholder="ใส่เมื่อมี API key">
         </label>
-        <label>รีเฟรชทุก
-          <select id="marketInterval"><option value="5">5 วินาที</option><option value="10">10 วินาที</option><option value="30">30 วินาที</option></select>
+        <label><span data-i18n="intervalLabel">รีเฟรชทุก</span>
+          <select id="marketInterval"><option value="5" data-i18n="interval5">5 วินาที</option><option value="10" data-i18n="interval10">10 วินาที</option><option value="30" data-i18n="interval30">30 วินาที</option></select>
         </label>
       </div>
-      <div class="market-settings-actions"><button class="btn primary sm" id="marketSave" type="button">บันทึกการตั้งค่า</button><button class="btn sm" id="marketClear" type="button">ล้าง API Key</button></div>
-      <p class="mini">หมายเหตุ: ข้อมูลสดของ Twelve Data ใช้ปริมาณจำกัดตามแผนฟรี; สำหรับ GitHub Pages ไม่ควรฝัง API key ไว้ในโค้ดสาธารณะ จึงรองรับ Gateway ฝั่งเซิร์ฟเวอร์เป็นหลัก</p>
+      <div class="market-settings-actions"><button class="btn primary sm" id="marketSave" type="button" data-i18n="saveSettingsBtn">บันทึกการตั้งค่า</button><button class="btn sm" id="marketClear" type="button" data-i18n="clearApiKeyBtn">ล้าง API Key</button></div>
+      <p class="mini" data-i18n="marketSettingsNote">หมายเหตุ: ข้อมูลสดของ Twelve Data ใช้ปริมาณจำกัดตามแผนฟรี; สำหรับ GitHub Pages ไม่ควรฝัง API key ไว้ในโค้ดสาธารณะ จึงรองรับ Gateway ฝั่งเซิร์ฟเวอร์เป็นหลัก</p>
     </div>
     <div style="margin-top:10px;display:flex;gap:9px;flex-wrap:wrap">
-      <button class="btn primary" id="analyzeBtn" type="button">ประเมินให้หน่อย</button>
-      <button class="btn sm" id="demoBtn" type="button">ดูกราฟตัวอย่าง (ฝึกอ่าน)</button>
+      <button class="btn primary" id="analyzeBtn" type="button" data-i18n="analyzeBtn">ประเมินให้หน่อย</button>
+      <button class="btn sm" id="demoBtn" type="button" data-i18n="demoBtn">ดูกราฟตัวอย่าง (ฝึกอ่าน)</button>
     </div>
     <details style="margin-top:10px">
-      <summary>วางราคาย้อนหลังเอง (ทางเลือก)</summary>
+      <summary data-i18n="pasteSummary">วางราคาย้อนหลังเอง (ทางเลือก)</summary>
       <div class="details-body">
-        <p style="font-size:12.5px;color:var(--muted);margin:2px 0 6px">วางราคาปิดหลายวัน คั่นด้วยเว้นวรรค/บรรทัด/จุลภาค (เรียงเก่า→ใหม่)</p>
+        <p style="font-size:12.5px;color:var(--muted);margin:2px 0 6px" data-i18n="pasteHint">วางราคาปิดหลายวัน คั่นด้วยเว้นวรรค/บรรทัด/จุลภาค (เรียงเก่า→ใหม่)</p>
         <textarea id="pasteBox" rows="3" style="width:100%;font-family:inherit;font-size:14px;padding:10px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)" placeholder="178.50 179.75 180.00 179.80 181.25 182.50 ..."></textarea>
-        <button class="btn sm" id="pasteBtn" type="button" style="margin-top:8px">ใช้ราคานี้</button>
+        <button class="btn sm" id="pasteBtn" type="button" style="margin-top:8px" data-i18n="pasteBtn">ใช้ราคานี้</button>
       </div>
     </details>
     <details style="margin-top:10px">
-      <summary>แปลงเป็นเงินบาท (ทางเลือก)</summary>
+      <summary data-i18n="fxSummary">แปลงเป็นเงินบาท (ทางเลือก)</summary>
       <div class="details-body">
-        <p class="mini" style="margin:2px 0 8px">เปิดไว้เพื่อดูยอด ≈ บาท กำกับควบคู่กับตัวเลข USD ในหน้านี้ (ไม่บังคับ ไม่กระทบการคำนวณหลักซึ่งเป็น USD เสมอ)</p>
+        <p class="mini" style="margin:2px 0 8px" data-i18n="fxDesc">เปิดไว้เพื่อดูยอด ≈ บาท กำกับควบคู่กับตัวเลข USD ในหน้านี้ (ไม่บังคับ ไม่กระทบการคำนวณหลักซึ่งเป็น USD เสมอ)</p>
         <div class="frow">
-          <div class="field"><label>อัตราแลกเปลี่ยน <span class="unit">(บาทต่อ 1 USD)</span></label><input type="number" id="fxRate" inputmode="decimal" step="0.01" placeholder="เช่น 36.00"></div>
-          <button class="btn sm" id="fxFetchBtn" type="button">ดึงอัตราปัจจุบัน</button>
+          <div class="field"><label><span data-i18n="fxRateLabel">อัตราแลกเปลี่ยน</span> <span class="unit" data-i18n="unitBahtPerUsd">(บาทต่อ 1 USD)</span></label><input type="number" id="fxRate" inputmode="decimal" step="0.01" data-i18n-placeholder="fxRatePh" placeholder="เช่น 36.00"></div>
+          <button class="btn sm" id="fxFetchBtn" type="button" data-i18n="fxFetchBtn">ดึงอัตราปัจจุบัน</button>
         </div>
         <div class="status" id="fxStatus"></div>
-        <label class="scan-filter" style="margin-top:8px"><input type="checkbox" id="fxShowChk"> แสดงยอดเทียบเงินบาท (≈ ฿) ในหน้านี้</label>
+        <label class="scan-filter" style="margin-top:8px"><input type="checkbox" id="fxShowChk"> <span data-i18n="fxShowLabel">แสดงยอดเทียบเงินบาท (≈ ฿) ในหน้านี้</span></label>
       </div>
     </details>
   </div>
 
   <!-- หุ้นดัง (US) browser + screener -->
   <div class="card" id="ulCard">
-    <h2>หุ้นดัง (US)</h2>
+    <h2 data-i18n="ulTitle">หุ้นดัง (US)</h2>
     <div class="ul-bar">
-      <button class="btn primary sm" id="scanBtn" type="button">หาหุ้นน่าสนใจ</button>
-      <label class="scan-filter"><input type="checkbox" id="greenOnly"> เฉพาะไฟเขียว</label>
+      <button class="btn primary sm" id="scanBtn" type="button" data-i18n="scanBtn">หาหุ้นน่าสนใจ</button>
+      <label class="scan-filter"><input type="checkbox" id="greenOnly"> <span data-i18n="greenOnlyLabel">เฉพาะไฟเขียว</span></label>
     </div>
     <div class="mini" id="scanStatus"></div>
     <div class="ul-tablewrap">
       <table class="ul-table">
         <thead><tr>
-          <th class="c-sym">หลักทรัพย์</th><th class="c-num">ล่าสุด</th>
-          <th class="c-num c-chg">+/−</th><th class="c-num">%</th><th class="c-sig">สัญญาณ</th>
+          <th class="c-sym" data-i18n="ulThSym">หลักทรัพย์</th><th class="c-num" data-i18n="ulThLast">ล่าสุด</th>
+          <th class="c-num c-chg" data-i18n="ulThChg">+/−</th><th class="c-num" data-i18n="ulThPct">%</th><th class="c-sig" data-i18n="ulThSig">สัญญาณ</th>
         </tr></thead>
         <tbody id="ulBody"></tbody>
       </table>
     </div>
-    <p class="mini" style="margin-top:8px">แตะแถวเพื่อดูว่า "น่าลงทุนไหม" · กด "หาหุ้นน่าสนใจ" ให้ระบบไล่ดึงราคา+วิเคราะห์ (ครั้งแรกอาจช้า/ไม่ครบ รอบต่อไปเร็วขึ้นเพราะจำไว้) · <b>ไม่ใช่คำแนะนำซื้อ</b></p>
+    <p class="mini" style="margin-top:8px" data-i18n-html="ulHint">แตะแถวเพื่อดูว่า "น่าลงทุนไหม" · กด "หาหุ้นน่าสนใจ" ให้ระบบไล่ดึงราคา+วิเคราะห์ (ครั้งแรกอาจช้า/ไม่ครบ รอบต่อไปเร็วขึ้นเพราะจำไว้) · <b>ไม่ใช่คำแนะนำซื้อ</b></p>
   </div>
   </div><!-- /top-grid -->
 
@@ -388,57 +388,57 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     </div>
 
     <details id="detailsBox" style="display:none">
-      <summary>ดูรายละเอียดทางเทคนิค (ไม่ต้องเข้าใจก็ได้)</summary>
+      <summary data-i18n="techDetailsSummary">ดูรายละเอียดทางเทคนิค (ไม่ต้องเข้าใจก็ได้)</summary>
       <div class="details-body"><div class="det-kv" id="detKv"></div></div>
     </details>
   </div>
 
   <!-- กราฟราคา -->
   <div class="card" id="chartCard" style="display:none">
-    <h2>กราฟราคา</h2>
+    <h2 data-i18n="chartTitle">กราฟราคา</h2>
     <div class="src-badge" id="chartSource"></div>
     <div class="chart-toolbar">
       <div class="tf-group" id="tfGroup">
-        <button class="tf" data-tf="21" type="button">1เดือน</button>
-        <button class="tf on" data-tf="63" type="button">3เดือน</button>
-        <button class="tf" data-tf="126" type="button">6เดือน</button>
-        <button class="tf" data-tf="252" type="button">1ปี</button>
+        <button class="tf" data-tf="21" type="button" data-i18n="tf1m">1เดือน</button>
+        <button class="tf on" data-tf="63" type="button" data-i18n="tf3m">3เดือน</button>
+        <button class="tf" data-tf="126" type="button" data-i18n="tf6m">6เดือน</button>
+        <button class="tf" data-tf="252" type="button" data-i18n="tf1y">1ปี</button>
       </div>
       <div class="tg-group" id="tgGroup">
-        <button class="tg on" data-tg="ma20" type="button">เฉลี่ย 20</button>
-        <button class="tg on" data-tg="ma50" type="button">เฉลี่ย 50</button>
-        <button class="tg on" data-tg="vol" type="button">Volume</button>
-        <button class="tg" data-tg="rsi" type="button">RSI</button>
+        <button class="tg on" data-tg="ma20" type="button" data-i18n="tgMa20">เฉลี่ย 20</button>
+        <button class="tg on" data-tg="ma50" type="button" data-i18n="tgMa50">เฉลี่ย 50</button>
+        <button class="tg on" data-tg="vol" type="button" data-i18n="tgVol">Volume</button>
+        <button class="tg" data-tg="rsi" type="button" data-i18n="tgRsi">RSI</button>
       </div>
     </div>
     <div class="lw-legend" id="lwLegend"></div>
     <div class="lw-chart" id="lwChart"></div>
     <div class="lw-rsi" id="lwRsi" style="display:none"></div>
     <div class="chart-cap">
-      <span><i style="background:#26a69a"></i>แท่งขึ้น</span>
-      <span><i style="background:#ef5350"></i>แท่งลง</span>
-      <span><i style="background:#F5A524"></i>เฉลี่ย 20 วัน</span>
-      <span><i style="background:#3B9BEA"></i>เฉลี่ย 50 วัน</span>
-      <span>แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
+      <span><i style="background:#26a69a"></i><span data-i18n="capUp">แท่งขึ้น</span></span>
+      <span><i style="background:#ef5350"></i><span data-i18n="capDn">แท่งลง</span></span>
+      <span><i style="background:#F5A524"></i><span data-i18n="capMa20">เฉลี่ย 20 วัน</span></span>
+      <span><i style="background:#3B9BEA"></i><span data-i18n="capMa50">เฉลี่ย 50 วัน</span></span>
+      <span data-i18n="capTouch">แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
     </div>
   </div>
 
   <!-- STEP 2: คุมเงิน -->
   <div class="card">
-    <h2><span class="step">2</span> ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน</h2>
+    <h2><span class="step">2</span> <span data-i18n="step2Title">ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน</span></h2>
     <div class="frow">
-      <div class="field"><label>เงินลงทุนทั้งพอร์ต (USD)</label><input type="number" id="capital" inputmode="numeric" placeholder="เช่น 10000" value="10000"></div>
-      <div class="field"><label>ยอมเสี่ยงต่อไม้ <span class="unit">(% ของพอร์ต)</span></label><input type="number" id="riskPct" inputmode="decimal" step="0.1" value="2"></div>
+      <div class="field"><label data-i18n="capitalLabel">เงินลงทุนทั้งพอร์ต (USD)</label><input type="number" id="capital" inputmode="numeric" data-i18n-placeholder="capitalPh" placeholder="เช่น 10000" value="10000"></div>
+      <div class="field"><label><span data-i18n="riskPctLabel">ยอมเสี่ยงต่อไม้</span> <span class="unit" data-i18n="unitPctPortfolio">(% ของพอร์ต)</span></label><input type="number" id="riskPct" inputmode="decimal" step="0.1" value="2"></div>
     </div>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>ราคาเข้าซื้อ (USD)</label><input type="number" id="entry" inputmode="decimal" step="0.01" placeholder="= ราคาตอนนี้"></div>
-      <div class="field"><label>ราคาตัดขาดทุน (Stop)</label><input type="number" id="stop" inputmode="decimal" step="0.01" placeholder="แนะนำอัตโนมัติ"></div>
-      <div class="field"><label>ค่าคอมฯ <span class="unit">(% ต่อครั้ง)</span></label><input type="number" id="comm" inputmode="decimal" step="0.001" value="0.20"></div>
+      <div class="field"><label data-i18n="entryLabel">ราคาเข้าซื้อ (USD)</label><input type="number" id="entry" inputmode="decimal" step="0.01" data-i18n-placeholder="entryPh" placeholder="= ราคาตอนนี้"></div>
+      <div class="field"><label data-i18n="stopLabel">ราคาตัดขาดทุน (Stop)</label><input type="number" id="stop" inputmode="decimal" step="0.01" data-i18n-placeholder="stopPh" placeholder="แนะนำอัตโนมัติ"></div>
+      <div class="field"><label><span data-i18n="commLabel">ค่าคอมฯ</span> <span class="unit" data-i18n="unitPctPerTrade">(% ต่อครั้ง)</span></label><input type="number" id="comm" inputmode="decimal" step="0.001" value="0.20"></div>
     </div>
-    <p class="mini">ค่าคอมฯ ของโบรกไทยที่เทรดหุ้น US แต่ละเจ้าคิดต่างกันมาก (บางเจ้าคิด % บางเจ้าคิดเหมาจ่ายต่อออเดอร์) และมักมีค่าธรรมเนียมแปลงเงินบาท↔ดอลลาร์แยกต่างหาก (~0.25–1%) — ปรับตัวเลขให้ตรงกับโบรกที่ใช้จริง</p>
+    <p class="mini" data-i18n="commNote">ค่าคอมฯ ของโบรกไทยที่เทรดหุ้น US แต่ละเจ้าคิดต่างกันมาก (บางเจ้าคิด % บางเจ้าคิดเหมาจ่ายต่อออเดอร์) และมักมีค่าธรรมเนียมแปลงเงินบาท↔ดอลลาร์แยกต่างหาก (~0.25–1%) — ปรับตัวเลขให้ตรงกับโบรกที่ใช้จริง</p>
     <div style="margin-top:12px;display:flex;gap:9px;flex-wrap:wrap">
-      <button class="btn primary" id="calcBtn" type="button">คำนวณ</button>
-      <button class="btn sm" id="saveBtn" type="button" style="display:none">บันทึกเข้าพอร์ต</button>
+      <button class="btn primary" id="calcBtn" type="button" data-i18n="calcBtn">คำนวณ</button>
+      <button class="btn sm" id="saveBtn" type="button" style="display:none" data-i18n="saveToPortfolioBtn">บันทึกเข้าพอร์ต</button>
     </div>
 
     <div class="result" id="riskResult">
@@ -450,9 +450,9 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- เช็กลิสต์ก่อนเข้าไม้ -->
   <div class="card">
-    <h2>ตรวจก่อนเข้าไม้ — ควรซื้อไหม?</h2>
-    <p class="mini">เช็กวินัย 6 ข้อ ก่อนกดซื้อจริง (กันซื้อตามอารมณ์/ไล่ราคา) — กด "ประเมิน" และ "คำนวณ" ด้านบนก่อน แล้วกดปุ่มนี้</p>
-    <div style="margin-top:10px"><button class="btn" id="checkBtn" type="button">ตรวจเช็กลิสต์</button></div>
+    <h2 data-i18n="checklistTitle">ตรวจก่อนเข้าไม้ — ควรซื้อไหม?</h2>
+    <p class="mini" data-i18n="checklistDesc">เช็กวินัย 6 ข้อ ก่อนกดซื้อจริง (กันซื้อตามอารมณ์/ไล่ราคา) — กด "ประเมิน" และ "คำนวณ" ด้านบนก่อน แล้วกดปุ่มนี้</p>
+    <div style="margin-top:10px"><button class="btn" id="checkBtn" type="button" data-i18n="checkBtn">ตรวจเช็กลิสต์</button></div>
     <div id="checkResult" style="display:none">
       <div class="verdict-box" id="checkVerdict"></div>
       <ul class="chk-list" id="chkList"></ul>
@@ -461,37 +461,37 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- สำรองขึ้น Google Drive -->
   <div class="card">
-    <h2>สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
-    <p class="mini">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตและสมุดเทรดด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าหุ้นไทย ไม่ปนกัน) — กันข้อมูลหายถ้าล้างเบราว์เซอร์ และดึงคืนได้เมื่อเปิดจากเครื่อง/เบราว์เซอร์อื่น</p>
+    <h2 data-i18n="driveTitle">สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
+    <p class="mini" data-i18n="driveDesc">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตและสมุดเทรดด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าหุ้นไทย ไม่ปนกัน) — กันข้อมูลหายถ้าล้างเบราว์เซอร์ และดึงคืนได้เมื่อเปิดจากเครื่อง/เบราว์เซอร์อื่น</p>
     <div class="drive-row" style="margin-top:10px">
-      <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
+      <button class="btn sm" id="driveConnectBtn" type="button" data-i18n="driveConnectBtn">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
     </div>
   </div>
 
   <!-- พอร์ต -->
   <div class="card">
-    <h2>พอร์ตของฉัน</h2>
-    <p class="mini">เพิ่มหุ้นที่ถืออยู่ได้ตรงนี้ แล้วกด "ควรขาย?" เพื่อให้เครื่องช่วยดูจังหวะขาย (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
+    <h2 data-i18n="pfTitle">พอร์ตของฉัน</h2>
+    <p class="mini" data-i18n="pfDesc">เพิ่มหุ้นที่ถืออยู่ได้ตรงนี้ แล้วกด "ควรขาย?" เพื่อให้เครื่องช่วยดูจังหวะขาย (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
-      <div class="field" style="flex:1 1 90px"><label>ชื่อหุ้น</label><input type="text" id="pfSym" placeholder="AAPL" autocomplete="off" spellcheck="false"></div>
-      <div class="field"><label>จำนวนหุ้น</label><input type="number" id="pfShares" inputmode="numeric" placeholder="10"></div>
-      <div class="field"><label>ราคาต้นทุน/หุ้น</label><input type="number" id="pfCost" inputmode="decimal" step="0.01" placeholder="180.50"></div>
-      <button class="btn sm" id="pfAdd" type="button">+ เพิ่มเข้าพอร์ต</button>
+      <div class="field" style="flex:1 1 90px"><label data-i18n="pfSymLabel">ชื่อหุ้น</label><input type="text" id="pfSym" placeholder="AAPL" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label data-i18n="pfSharesLabel">จำนวนหุ้น</label><input type="number" id="pfShares" inputmode="numeric" placeholder="10"></div>
+      <div class="field"><label data-i18n="pfCostLabel">ราคาต้นทุน/หุ้น</label><input type="number" id="pfCost" inputmode="decimal" step="0.01" placeholder="180.50"></div>
+      <button class="btn sm" id="pfAdd" type="button" data-i18n="pfAddBtn">+ เพิ่มเข้าพอร์ต</button>
     </div>
-    <div id="pfBox" style="margin-top:10px"><div class="pf-empty">ยังไม่มีหุ้นในพอร์ต — เพิ่มด้านบน หรือกด "บันทึกเข้าพอร์ต" ในขั้นที่ 2</div></div>
+    <div id="pfBox" style="margin-top:10px"><div class="pf-empty" data-i18n="pfEmptyDefault">ยังไม่มีหุ้นในพอร์ต — เพิ่มด้านบน หรือกด "บันทึกเข้าพอร์ต" ในขั้นที่ 2</div></div>
   </div>
 
   <!-- สมุดเทรด + สถิติ -->
   <div class="card">
-    <h2>สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)</h2>
-    <p class="mini">บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง (จำในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
+    <h2 data-i18n="journalTitle">สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)</h2>
+    <p class="mini" data-i18n="journalDesc">บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง (จำในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
-      <div class="field" style="flex:1 1 90px"><label>หุ้น</label><input type="text" id="jSym" placeholder="AAPL" spellcheck="false"></div>
-      <div class="field"><label>ราคาเข้า</label><input type="number" id="jEntry" inputmode="decimal" step="0.01"></div>
-      <div class="field"><label>ราคาออก</label><input type="number" id="jExit" inputmode="decimal" step="0.01"></div>
-      <div class="field"><label>จำนวนหุ้น</label><input type="number" id="jShares" inputmode="numeric"></div>
-      <button class="btn sm" id="jAdd" type="button">+ บันทึก</button>
+      <div class="field" style="flex:1 1 90px"><label data-i18n="jSymLabel">หุ้น</label><input type="text" id="jSym" placeholder="AAPL" spellcheck="false"></div>
+      <div class="field"><label data-i18n="jEntryLabel">ราคาเข้า</label><input type="number" id="jEntry" inputmode="decimal" step="0.01"></div>
+      <div class="field"><label data-i18n="jExitLabel">ราคาออก</label><input type="number" id="jExit" inputmode="decimal" step="0.01"></div>
+      <div class="field"><label data-i18n="jSharesLabel">จำนวนหุ้น</label><input type="number" id="jShares" inputmode="numeric"></div>
+      <button class="btn sm" id="jAdd" type="button" data-i18n="jAddBtn">+ บันทึก</button>
     </div>
     <div id="jStats" class="j-stats" style="display:none"></div>
     <div id="jBox"></div>
@@ -499,28 +499,28 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- Expectancy -->
   <div class="card">
-    <h2>ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?</h2>
-    <p class="mini">ความจริงที่มือใหม่มักไม่รู้: <b>ชนะบ่อยไม่ได้แปลว่ากำไร</b> — สิ่งที่สำคัญคือ "กำไรตอนถูก" ต้องใหญ่กว่า "ขาดทุนตอนผิด"</p>
+    <h2 data-i18n="expectancyTitle">ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?</h2>
+    <p class="mini" data-i18n-html="expectancyDesc">ความจริงที่มือใหม่มักไม่รู้: <b>ชนะบ่อยไม่ได้แปลว่ากำไร</b> — สิ่งที่สำคัญคือ "กำไรตอนถูก" ต้องใหญ่กว่า "ขาดทุนตอนผิด"</p>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>อัตราชนะ <span class="unit">(% ของไม้ที่ชนะ)</span></label><input type="number" id="eWin" inputmode="decimal" value="45"></div>
-      <div class="field"><label>กำไรเฉลี่ยตอนชนะ <span class="unit">(เท่าของความเสี่ยง R)</span></label><input type="number" id="eWinR" inputmode="decimal" step="0.1" value="2"></div>
-      <div class="field"><label>ขาดทุนเฉลี่ยตอนแพ้ <span class="unit">(R)</span></label><input type="number" id="eLossR" inputmode="decimal" step="0.1" value="1"></div>
-      <button class="btn sm" id="eBtn" type="button">คำนวณ</button>
+      <div class="field"><label><span data-i18n="eWinLabel">อัตราชนะ</span> <span class="unit" data-i18n="unitPctWinTrades">(% ของไม้ที่ชนะ)</span></label><input type="number" id="eWin" inputmode="decimal" value="45"></div>
+      <div class="field"><label><span data-i18n="eWinRLabel">กำไรเฉลี่ยตอนชนะ</span> <span class="unit" data-i18n="unitR">(เท่าของความเสี่ยง R)</span></label><input type="number" id="eWinR" inputmode="decimal" step="0.1" value="2"></div>
+      <div class="field"><label><span data-i18n="eLossRLabel">ขาดทุนเฉลี่ยตอนแพ้</span> <span class="unit" data-i18n="unitR2">(R)</span></label><input type="number" id="eLossR" inputmode="decimal" step="0.1" value="1"></div>
+      <button class="btn sm" id="eBtn" type="button" data-i18n="calcBtn">คำนวณ</button>
     </div>
     <div id="eResult" class="verdict-box" style="display:none;margin-top:12px"></div>
   </div>
 
   <!-- เงินเย็นเช็ก / reality-check -->
   <div class="card reality">
-    <h2>อ่านก่อนเอาเงินมาลงทุน (สำคัญมาก)</h2>
+    <h2 data-i18n="realityTitle">อ่านก่อนเอาเงินมาลงทุน (สำคัญมาก)</h2>
     <ul class="reality-list">
-      <li>ลงทุนหุ้น <b>เฉพาะเงินที่ไม่ต้องใช้อย่างน้อย 3–5 ปี</b> — เงินที่หายได้โดยไม่กระทบชีวิต</li>
-      <li>มี <b>เงินสำรองฉุกเฉิน 3–6 เดือน</b> ก่อนเริ่มเสมอ</li>
-      <li><b>ห้ามเด็ดขาด</b>: เอาเงินค่ากิน ค่าเช่า เงินกู้ หรือเงินที่ต้องใช้เร็วๆ มาเทรด</li>
-      <li>การเทรดหุ้น <b>ไม่ใช่รายได้เสริมที่มั่นคง/เร็ว</b> — มือใหม่ส่วนใหญ่ขาดทุนปีแรก โดยเฉพาะตอนร้อนเงิน</li>
-      <li>หุ้นต่างประเทศมี <b>ความเสี่ยงอัตราแลกเปลี่ยน</b> เพิ่มเข้ามาอีกชั้น — ถึงหุ้นจะกำไรเป็น USD แต่ถ้าเงินบาทแข็งขึ้นมาก กำไรตีกลับเป็นบาทอาจลดลงได้</li>
+      <li data-i18n-html="reality1">ลงทุนหุ้น <b>เฉพาะเงินที่ไม่ต้องใช้อย่างน้อย 3–5 ปี</b> — เงินที่หายได้โดยไม่กระทบชีวิต</li>
+      <li data-i18n-html="reality2">มี <b>เงินสำรองฉุกเฉิน 3–6 เดือน</b> ก่อนเริ่มเสมอ</li>
+      <li data-i18n-html="reality3"><b>ห้ามเด็ดขาด</b>: เอาเงินค่ากิน ค่าเช่า เงินกู้ หรือเงินที่ต้องใช้เร็วๆ มาเทรด</li>
+      <li data-i18n-html="reality4">การเทรดหุ้น <b>ไม่ใช่รายได้เสริมที่มั่นคง/เร็ว</b> — มือใหม่ส่วนใหญ่ขาดทุนปีแรก โดยเฉพาะตอนร้อนเงิน</li>
+      <li data-i18n-html="reality5">หุ้นต่างประเทศมี <b>ความเสี่ยงอัตราแลกเปลี่ยน</b> เพิ่มเข้ามาอีกชั้น — ถึงหุ้นจะกำไรเป็น USD แต่ถ้าเงินบาทแข็งขึ้นมาก กำไรตีกลับเป็นบาทอาจลดลงได้</li>
     </ul>
-    <div class="reality-cta">
+    <div class="reality-cta" data-i18n-html="realityCta">
       ถ้าตอนนี้เงินตึงและอยากได้เงินงอกแบบเสี่ยงต่ำ วิธีที่ปลอดภัยกว่าเก็งหุ้นรายตัวมากคือ
       <b>ทยอยลงทุนกองทุนดัชนี (DCA)</b> — <a href="invest-global-fund.html">ลองเครื่องวางแผนกองทุน S&amp;P500 →</a>
     </div>
@@ -528,90 +528,90 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
 
   <!-- เรียนรู้: อ่านกราฟ -->
   <details class="card lesson" style="box-shadow:var(--sh)">
-    <summary style="font-size:14px">อ่านกราฟเป็นใน 5 นาที (มีรูป)</summary>
+    <summary style="font-size:14px" data-i18n="lesson1Summary">อ่านกราฟเป็นใน 5 นาที (มีรูป)</summary>
     <div class="details-body">
-      <h3>1. แท่งเทียน 1 แท่ง = ราคา 1 วัน</h3>
+      <h3 data-i18n="l1h1">1. แท่งเทียน 1 แท่ง = ราคา 1 วัน</h3>
       <figure>
         <svg class="svg-lesson" viewBox="0 0 320 210" xmlns="http://www.w3.org/2000/svg">
           <line x1="95" y1="22" x2="95" y2="178" stroke="#26a69a" stroke-width="2.5"/>
           <rect x="76" y="62" width="38" height="82" rx="2" fill="#26a69a"/>
-          <text x="95" y="200" font-size="13" text-anchor="middle" fill="#26a69a" font-weight="700">วันขึ้น (เขียว)</text>
+          <text x="95" y="200" font-size="13" text-anchor="middle" fill="#26a69a" font-weight="700" data-i18n="l1UpDay">วันขึ้น (เขียว)</text>
           <line x1="235" y1="30" x2="235" y2="188" stroke="#ef5350" stroke-width="2.5"/>
           <rect x="216" y="70" width="38" height="72" rx="2" fill="#ef5350"/>
-          <text x="235" y="200" font-size="13" text-anchor="middle" fill="#ef5350" font-weight="700">วันลง (แดง)</text>
-          <text x="150" y="40" font-size="11" fill="currentColor">← ไส้บน = ราคาสูงสุด</text>
-          <text x="150" y="104" font-size="11" fill="currentColor">← ตัวเทียน = ช่วงเปิด–ปิด</text>
-          <text x="150" y="168" font-size="11" fill="currentColor">← ไส้ล่าง = ราคาต่ำสุด</text>
+          <text x="235" y="200" font-size="13" text-anchor="middle" fill="#ef5350" font-weight="700" data-i18n="l1DnDay">วันลง (แดง)</text>
+          <text x="150" y="40" font-size="11" fill="currentColor" data-i18n="l1HighWick">← ไส้บน = ราคาสูงสุด</text>
+          <text x="150" y="104" font-size="11" fill="currentColor" data-i18n="l1Body">← ตัวเทียน = ช่วงเปิด–ปิด</text>
+          <text x="150" y="168" font-size="11" fill="currentColor" data-i18n="l1LowWick">← ไส้ล่าง = ราคาต่ำสุด</text>
         </svg>
-        <figcaption>เขียว = วันนั้นปิดสูงกว่าเปิด (ราคาขึ้น) · แดง = ปิดต่ำกว่าเปิด (ราคาลง) · ตัวอ้วนคือช่วงเปิด-ปิด เส้นบาง (ไส้) คือจุดสูงสุด-ต่ำสุดของวัน</figcaption>
+        <figcaption data-i18n="l1Caption">เขียว = วันนั้นปิดสูงกว่าเปิด (ราคาขึ้น) · แดง = ปิดต่ำกว่าเปิด (ราคาลง) · ตัวอ้วนคือช่วงเปิด-ปิด เส้นบาง (ไส้) คือจุดสูงสุด-ต่ำสุดของวัน</figcaption>
       </figure>
 
-      <h3>2. แนวโน้ม: ขึ้น / ลง / ออกข้าง</h3>
+      <h3 data-i18n="l2h1">2. แนวโน้ม: ขึ้น / ลง / ออกข้าง</h3>
       <figure>
         <svg class="svg-lesson" viewBox="0 0 440 130" xmlns="http://www.w3.org/2000/svg" fill="none">
           <polyline points="15,105 45,88 75,95 105,60 135,70 145,40" stroke="#26a69a" stroke-width="2.5" stroke-linejoin="round"/>
-          <text x="80" y="125" font-size="12" text-anchor="middle" fill="#26a69a" font-weight="700">ขาขึ้น</text>
+          <text x="80" y="125" font-size="12" text-anchor="middle" fill="#26a69a" font-weight="700" data-i18n="l2Up">ขาขึ้น</text>
           <polyline points="165,40 195,58 225,50 255,82 285,74 295,105" stroke="#ef5350" stroke-width="2.5" stroke-linejoin="round"/>
-          <text x="230" y="125" font-size="12" text-anchor="middle" fill="#ef5350" font-weight="700">ขาลง</text>
+          <text x="230" y="125" font-size="12" text-anchor="middle" fill="#ef5350" font-weight="700" data-i18n="l2Dn">ขาลง</text>
           <polyline points="315,72 345,60 360,80 390,62 405,80 430,66" stroke="#8B94A8" stroke-width="2.5" stroke-linejoin="round"/>
-          <text x="375" y="125" font-size="12" text-anchor="middle" fill="#8B94A8" font-weight="700">ออกข้าง</text>
+          <text x="375" y="125" font-size="12" text-anchor="middle" fill="#8B94A8" font-weight="700" data-i18n="l2Side">ออกข้าง</text>
         </svg>
-        <figcaption>ยอด/ก้นสูงขึ้นเรื่อยๆ = ขาขึ้น (มองหาจังหวะซื้อ) · ต่ำลงเรื่อยๆ = ขาลง (เลี่ยง) · ไปข้างๆ = ยังไม่มีทิศทาง (รอ)</figcaption>
+        <figcaption data-i18n="l2Caption">ยอด/ก้นสูงขึ้นเรื่อยๆ = ขาขึ้น (มองหาจังหวะซื้อ) · ต่ำลงเรื่อยๆ = ขาลง (เลี่ยง) · ไปข้างๆ = ยังไม่มีทิศทาง (รอ)</figcaption>
       </figure>
 
-      <h3>3. แนวรับ–แนวต้าน</h3>
+      <h3 data-i18n="l3h1">3. แนวรับ–แนวต้าน</h3>
       <figure>
         <svg class="svg-lesson" viewBox="0 0 440 150" xmlns="http://www.w3.org/2000/svg" fill="none">
           <line x1="10" y1="32" x2="430" y2="32" stroke="#ef5350" stroke-width="1.5" stroke-dasharray="6 4"/>
           <line x1="10" y1="118" x2="430" y2="118" stroke="#26a69a" stroke-width="1.5" stroke-dasharray="6 4"/>
           <polyline points="20,60 60,34 100,70 150,116 200,80 250,34 300,70 350,116 400,86" stroke="#3B9BEA" stroke-width="2.5" stroke-linejoin="round"/>
-          <text x="14" y="26" font-size="11" fill="#ef5350" font-weight="700">แนวต้าน (มักเด้งลง)</text>
-          <text x="14" y="136" font-size="11" fill="#26a69a" font-weight="700">แนวรับ (มักเด้งขึ้น)</text>
+          <text x="14" y="26" font-size="11" fill="#ef5350" font-weight="700" data-i18n="l3Resist">แนวต้าน (มักเด้งลง)</text>
+          <text x="14" y="136" font-size="11" fill="#26a69a" font-weight="700" data-i18n="l3Support">แนวรับ (มักเด้งขึ้น)</text>
         </svg>
-        <figcaption>ราคามักเด้งขึ้นเมื่อลงมาถึง "แนวรับ" และมักย่อลงเมื่อขึ้นไปชน "แนวต้าน" — ใกล้แนวรับในขาขึ้น = จังหวะที่น่าสนใจ</figcaption>
+        <figcaption data-i18n="l3Caption">ราคามักเด้งขึ้นเมื่อลงมาถึง "แนวรับ" และมักย่อลงเมื่อขึ้นไปชน "แนวต้าน" — ใกล้แนวรับในขาขึ้น = จังหวะที่น่าสนใจ</figcaption>
       </figure>
 
-      <h3>4. เส้นค่าเฉลี่ย (เฉลี่ย 20 / 50 วัน)</h3>
+      <h3 data-i18n="l4h1">4. เส้นค่าเฉลี่ย (เฉลี่ย 20 / 50 วัน)</h3>
       <figure>
         <svg class="svg-lesson" viewBox="0 0 440 130" xmlns="http://www.w3.org/2000/svg" fill="none">
           <polyline points="15,95 45,70 60,90 90,55 120,78 150,48 180,66 210,40 240,58 270,36 300,52 330,30 360,46 400,28" stroke="#8B94A8" stroke-width="1.5" opacity="0.8"/>
           <polyline points="15,90 60,80 120,70 180,58 240,50 300,42 360,36 400,32" stroke="#F5A524" stroke-width="3" stroke-linejoin="round"/>
-          <text x="405" y="26" font-size="11" fill="#F5A524" font-weight="700">เฉลี่ย</text>
+          <text x="405" y="26" font-size="11" fill="#F5A524" font-weight="700" data-i18n="l4Avg">เฉลี่ย</text>
         </svg>
-        <figcaption>เส้นสีส้มคือค่าเฉลี่ยของราคา ช่วยกรองความแกว่งให้เห็นทิศทางรวมง่ายขึ้น — ราคาอยู่เหนือเส้น = แนวโน้มขึ้น อยู่ใต้เส้น = แนวโน้มลง</figcaption>
+        <figcaption data-i18n="l4Caption">เส้นสีส้มคือค่าเฉลี่ยของราคา ช่วยกรองความแกว่งให้เห็นทิศทางรวมง่ายขึ้น — ราคาอยู่เหนือเส้น = แนวโน้มขึ้น อยู่ใต้เส้น = แนวโน้มลง</figcaption>
       </figure>
 
-      <h3>5. แล้วดูกราฟจริงด้านบนยังไง</h3>
-      <p>กดปุ่ม "ดูตัวอย่างกราฟ" ที่ขั้นที่ 1 เพื่อลองเล่นกับกราฟจริงได้เลย — สลับช่วงเวลา (1เดือน–1ปี), เปิด-ปิดเส้นเฉลี่ย, แตะบนกราฟเพื่อดูราคาแต่ละวัน แล้วไฟจราจรจะสรุปให้ว่าโดยรวมน่าสนใจไหม</p>
+      <h3 data-i18n="l5h1">5. แล้วดูกราฟจริงด้านบนยังไง</h3>
+      <p data-i18n="l5Body">กดปุ่ม "ดูตัวอย่างกราฟ" ที่ขั้นที่ 1 เพื่อลองเล่นกับกราฟจริงได้เลย — สลับช่วงเวลา (1เดือน–1ปี), เปิด-ปิดเส้นเฉลี่ย, แตะบนกราฟเพื่อดูราคาแต่ละวัน แล้วไฟจราจรจะสรุปให้ว่าโดยรวมน่าสนใจไหม</p>
     </div>
   </details>
 
   <!-- เรียนรู้ -->
   <details class="card lesson" style="box-shadow:var(--sh)">
-    <summary style="font-size:14px">เรียนรู้ — มือใหม่อ่านตรงนี้ก่อน</summary>
+    <summary style="font-size:14px" data-i18n="lesson2Summary">เรียนรู้ — มือใหม่อ่านตรงนี้ก่อน</summary>
     <div class="details-body">
-      <h3>สวิงเทรดคืออะไร</h3>
-      <p>ซื้อแล้วถือ "ไม่กี่วันถึงไม่กี่สัปดาห์" รอราคาขยับขึ้นตามจังหวะ แล้วขายทำกำไร — ไม่ใช่ซื้อขายรัวๆ ในวันเดียว และไม่ใช่ถือยาวเป็นปี</p>
-      <h3>ทำไม "จุดตัดขาดทุน (Stop)" สำคัญที่สุด</h3>
-      <p>ก่อนซื้อ ให้รู้ก่อนว่า "ถ้าคิดผิด จะยอมขาดทุนที่ราคาไหน" แล้วตั้งไว้ พอราคาถึงจุดนั้นให้ขายตัดใจ ไม่ปล่อยให้ขาดทุนบานปลาย — คนเจ๊งหุ้นส่วนใหญ่เพราะไม่ยอมตัดขาดทุน</p>
-      <h3>"ยอมเสี่ยงต่อไม้ 2%" หมายถึงอะไร</h3>
-      <p>แต่ละครั้งที่ซื้อ ถ้าผิดทางจริง ควรเสียเงินไม่เกิน ~2% ของพอร์ต เครื่องจะคำนวณให้เองว่าควรซื้อกี่หุ้นถึงจะไม่เกินนี้ ทำให้ไม้เดียวไม่ทำพอร์ตพัง</p>
-      <h3>ซื้อกี่หุ้นก็ได้ ไม่ต้องเป็นล็อต</h3>
-      <p>หุ้นสหรัฐฯ ซื้อขายเป็นหุ้นเดี่ยวได้เลย ไม่ต้องซื้อเป็นชุดละ 100 หุ้นแบบหุ้นไทย เครื่องจะคำนวณจำนวนหุ้นเต็มหุ้นให้ตรงกับความเสี่ยงที่ตั้งไว้โดยตรง</p>
-      <h3>ค่าคอมฯ และ "ราคาคุ้มทุน"</h3>
-      <p>ทุกครั้งที่ซื้อและขายมีค่าคอมฯ บวกกับค่าธรรมเนียมแปลงเงินบาท↔ดอลลาร์ (ดูรายละเอียดที่ขั้นที่ 2) ราคาต้องขึ้นเกิน "จุดคุ้มทุน" ก่อนถึงจะเริ่มมีกำไรจริง เครื่องคำนวณให้แล้ว</p>
-      <h3>อ่านไฟจราจรยังไง</h3>
+      <h3 data-i18n="l6h1">สวิงเทรดคืออะไร</h3>
+      <p data-i18n="l6Body">ซื้อแล้วถือ "ไม่กี่วันถึงไม่กี่สัปดาห์" รอราคาขยับขึ้นตามจังหวะ แล้วขายทำกำไร — ไม่ใช่ซื้อขายรัวๆ ในวันเดียว และไม่ใช่ถือยาวเป็นปี</p>
+      <h3 data-i18n="l7h1">ทำไม "จุดตัดขาดทุน (Stop)" สำคัญที่สุด</h3>
+      <p data-i18n="l7Body">ก่อนซื้อ ให้รู้ก่อนว่า "ถ้าคิดผิด จะยอมขาดทุนที่ราคาไหน" แล้วตั้งไว้ พอราคาถึงจุดนั้นให้ขายตัดใจ ไม่ปล่อยให้ขาดทุนบานปลาย — คนเจ๊งหุ้นส่วนใหญ่เพราะไม่ยอมตัดขาดทุน</p>
+      <h3 data-i18n="l8h1">"ยอมเสี่ยงต่อไม้ 2%" หมายถึงอะไร</h3>
+      <p data-i18n="l8Body">แต่ละครั้งที่ซื้อ ถ้าผิดทางจริง ควรเสียเงินไม่เกิน ~2% ของพอร์ต เครื่องจะคำนวณให้เองว่าควรซื้อกี่หุ้นถึงจะไม่เกินนี้ ทำให้ไม้เดียวไม่ทำพอร์ตพัง</p>
+      <h3 data-i18n="l9h1">ซื้อกี่หุ้นก็ได้ ไม่ต้องเป็นล็อต</h3>
+      <p data-i18n="l9Body">หุ้นสหรัฐฯ ซื้อขายเป็นหุ้นเดี่ยวได้เลย ไม่ต้องซื้อเป็นชุดละ 100 หุ้นแบบหุ้นไทย เครื่องจะคำนวณจำนวนหุ้นเต็มหุ้นให้ตรงกับความเสี่ยงที่ตั้งไว้โดยตรง</p>
+      <h3 data-i18n="l10h1">ค่าคอมฯ และ "ราคาคุ้มทุน"</h3>
+      <p data-i18n="l10Body">ทุกครั้งที่ซื้อและขายมีค่าคอมฯ บวกกับค่าธรรมเนียมแปลงเงินบาท↔ดอลลาร์ (ดูรายละเอียดที่ขั้นที่ 2) ราคาต้องขึ้นเกิน "จุดคุ้มทุน" ก่อนถึงจะเริ่มมีกำไรจริง เครื่องคำนวณให้แล้ว</p>
+      <h3 data-i18n="l11h1">อ่านไฟจราจรยังไง</h3>
       <ul>
-        <li>เขียว = ราคาน่าสนใจ อยู่ช่วงถูกของรอบและเริ่มมีแรงซื้อ — ค่อยพิจารณา (ไม่ใช่สั่งให้ซื้อ)</li>
-        <li>เหลือง = กลางๆ ยังไม่มีจังหวะเด่น รอดูก่อน</li>
-        <li>แดง = ราคาแพงเทียบรอบ/สัญญาณอ่อน ระวังการไล่ซื้อ</li>
+        <li data-i18n="l11Green">เขียว = ราคาน่าสนใจ อยู่ช่วงถูกของรอบและเริ่มมีแรงซื้อ — ค่อยพิจารณา (ไม่ใช่สั่งให้ซื้อ)</li>
+        <li data-i18n="l11Yellow">เหลือง = กลางๆ ยังไม่มีจังหวะเด่น รอดูก่อน</li>
+        <li data-i18n="l11Red">แดง = ราคาแพงเทียบรอบ/สัญญาณอ่อน ระวังการไล่ซื้อ</li>
       </ul>
-      <h3>เอาตัวเลขจากแอปเทรดตรงไหน</h3>
-      <p>เปิดหุ้นที่สนใจในแอปเทรดที่ใช้ (เช่น InnovestX Global, SCB Easy Invest, หรือแพลตฟอร์มโบรกอื่น): "ราคาตอนนี้" คือราคาล่าสุดตัวใหญ่ ส่วน "สูงสุด/ต่ำสุดของรอบ" ดูช่อง High/Low (หรือ 52W High/Low ก็ได้ถ้าหาช่วงสั้นไม่เจอ) แล้วนำมากรอกในขั้นที่ 1</p>
+      <h3 data-i18n="l12h1">เอาตัวเลขจากแอปเทรดตรงไหน</h3>
+      <p data-i18n="l12Body">เปิดหุ้นที่สนใจในแอปเทรดที่ใช้ (เช่น InnovestX Global, SCB Easy Invest, หรือแพลตฟอร์มโบรกอื่น): "ราคาตอนนี้" คือราคาล่าสุดตัวใหญ่ ส่วน "สูงสุด/ต่ำสุดของรอบ" ดูช่อง High/Low (หรือ 52W High/Low ก็ได้ถ้าหาช่วงสั้นไม่เจอ) แล้วนำมากรอกในขั้นที่ 1</p>
     </div>
   </details>
 
-  <div class="disc">เครื่องนี้เป็นตัวช่วยคิดและฝึกวินัย ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · การตัดสินใจและความเสี่ยงเป็นของคุณเอง · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
+  <div class="disc" data-i18n="footerDisc">เครื่องนี้เป็นตัวช่วยคิดและฝึกวินัย ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · การตัดสินใจและความเสี่ยงเป็นของคุณเอง · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
 
 </div>
 
