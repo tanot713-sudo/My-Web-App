@@ -12,14 +12,67 @@
 
   var $ = function (id) { return document.getElementById(id); };
 
+  /* ══════ ระบบสองภาษา (ไทย/อังกฤษ) — ตามธรรมเนียมเดียวกับ invest-gold.js ══════
+     หมายเหตุ: คำค้น (q) ที่ยิงไปยัง Google News คงเป็นภาษาไทยเสมอไม่ว่าภาษา UI
+     จะเป็นอะไร (hl=th&gl=TH คงที่) เพราะหน้านี้เป็นฮับข่าวตลาดหุ้นไทยโดยเฉพาะ
+     — แปลเฉพาะป้ายชิป/ข้อความแสดงผลเท่านั้น */
+  var UI_LANG_KEY = 'ome:lang';
+  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
+  var I18N = {
+    th: {
+      navInvest: 'การลงทุน', pageTitle: 'ข่าวหุ้น',
+      headSub: 'รวมหัวข้อข่าวตลาดหุ้นไทยล่าสุด — แตะหัวข้อเพื่อไปอ่านต้นฉบับ',
+      stCountLbl: 'พบข่าว', stTopicLbl: 'หมวดที่เลือก', stUpdatedLbl: 'อัปเดตล่าสุด',
+      searchPh: 'ค้นข่าวหุ้น/บริษัทที่สนใจ เช่น PTT, ปันผล, กนง.', searchBtn: 'ค้นหา',
+      oppdayHint: 'อยากดูปฏิทิน/วิดีโอ Opportunity Day (บริษัทจดทะเบียนพบผู้ลงทุน) ของจริง — <a href="https://www.set.or.th/oppday" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700;text-decoration:none">ไปที่หน้า Opportunity Day ของตลาดหลักทรัพย์ฯ โดยตรง ↗</a> (หน้านี้ไม่มี API สาธารณะให้ดึงปฏิทินมาแสดงเอง จึงพาไปที่ต้นฉบับแทน)',
+      loadingNewsDefault: 'กำลังโหลดข่าว…', loadingDefault: 'กำลังโหลด…',
+      footerDisc: 'หน้านี้แสดงเฉพาะ<b>หัวข้อข่าว + ที่มา + เวลา + ลิงก์ไปต้นฉบับ</b> ไม่ได้นำเนื้อหาข่าวมาเผยแพร่ซ้ำ — ข่าวดึงจาก Google News RSS (สาธารณะ) ผ่านหลายเส้นทาง best-effort อาจดึงไม่สำเร็จบางช่วง ไม่ใช่คำแนะนำการลงทุน',
+      chipMarket: 'ตลาดหุ้นไทย', chipEcon: 'เศรษฐกิจไทย', chipRate: 'ดอกเบี้ย/กนง.', chipIpo: 'ข่าว IPO', chipDiv: 'ปันผลหุ้น', chipOppday: 'Opportunity Day',
+      newsCountItems: '{n} รายการ', ageJustNow: 'เมื่อสักครู่', ageMinAgo: '{n} นาทีก่อน', ageHrAgo: '{n} ชม.ก่อน', ageDaysAgo: '{n} วันก่อน',
+      newsEmpty: 'ไม่พบข่าวสำหรับคำค้นนี้ ลองคำค้นอื่นดูครับ',
+      loadingTopic: 'กำลังโหลดข่าว "{label}"…',
+      staleUseSaved: 'ดึงสดไม่ได้ — ใช้ข่าวที่บันทึกไว้ {age}', latestFor: 'ข่าวล่าสุด "{label}"',
+      fetchFail: 'ดึงข่าวไม่สำเร็จตอนนี้ — ลองรีเฟรช หรือเปิด Google News ค้นเองที่ ↗',
+      fetchFailBody: 'ดึงข่าวอัตโนมัติไม่ได้ตอนนี้ — <a href="{url}" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700">ค้นหาเองที่ Google News ↗</a>'
+    },
+    en: {
+      navInvest: 'Investing', pageTitle: 'Stock News',
+      headSub: "A roundup of the latest Thai stock market headlines — tap a headline to read the original",
+      stCountLbl: 'Found', stTopicLbl: 'Selected topic', stUpdatedLbl: 'Last updated',
+      searchPh: 'Search for stocks/companies, e.g. PTT, dividends, BOT rate', searchBtn: 'Search',
+      oppdayHint: 'Want the real Opportunity Day calendar/videos (listed companies meeting investors)? — <a href="https://www.set.or.th/oppday" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700;text-decoration:none">Go straight to the Stock Exchange of Thailand\'s Opportunity Day page ↗</a> (this page has no public API to pull the calendar itself, so it links to the source instead)',
+      loadingNewsDefault: 'Loading news…', loadingDefault: 'Loading…',
+      footerDisc: 'This page shows only <b>headlines + source + time + a link to the original</b> — it does not republish news content. News is fetched from Google News RSS (public) via several best-effort routes, and fetching may occasionally fail. Not investment advice.',
+      chipMarket: 'Thai Stock Market', chipEcon: 'Thai Economy', chipRate: 'Interest Rate/BOT', chipIpo: 'IPO News', chipDiv: 'Stock Dividends', chipOppday: 'Opportunity Day',
+      newsCountItems: '{n} items', ageJustNow: 'just now', ageMinAgo: '{n} min ago', ageHrAgo: '{n} hr ago', ageDaysAgo: '{n} days ago',
+      newsEmpty: 'No news found for this search — try a different search term',
+      loadingTopic: 'Loading news for "{label}"…',
+      staleUseSaved: 'Live fetch failed — using saved news from {age}', latestFor: 'Latest news for "{label}"',
+      fetchFail: "Couldn't fetch news right now — try refreshing, or open Google News to search yourself ↗",
+      fetchFailBody: 'Couldn\'t auto-fetch news right now — <a href="{url}" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700">search it yourself on Google News ↗</a>'
+    }
+  };
+  function t(key, vars) {
+    var s = (I18N[getUILang()] || I18N.th)[key];
+    if (s == null) s = (I18N.th[key] != null ? I18N.th[key] : key);
+    if (vars) { for (var k in vars) { s = s.split('{' + k + '}').join(vars[k]); } }
+    return s;
+  }
+  function applyStaticI18n() {
+    [].forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    [].forEach.call(document.querySelectorAll('[data-i18n-html]'), function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+    [].forEach.call(document.querySelectorAll('[data-i18n-placeholder]'), function (el) { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+  }
+
   var CHIPS = [
-    { key: 'market', label: 'ตลาดหุ้นไทย', q: 'ตลาดหุ้นไทย OR SET Index' },
-    { key: 'econ', label: 'เศรษฐกิจไทย', q: 'เศรษฐกิจไทย' },
-    { key: 'rate', label: 'ดอกเบี้ย/กนง.', q: 'กนง. OR ดอกเบี้ยนโยบาย ธนาคารแห่งประเทศไทย' },
-    { key: 'ipo', label: 'ข่าว IPO', q: 'หุ้น IPO เข้าตลาด' },
-    { key: 'div', label: 'ปันผลหุ้น', q: 'ปันผลหุ้น XD' },
-    { key: 'oppday', label: 'Opportunity Day', q: 'Opportunity Day บริษัทจดทะเบียนพบผู้ลงทุน' }
+    { key: 'market', labelKey: 'chipMarket', q: 'ตลาดหุ้นไทย OR SET Index' },
+    { key: 'econ', labelKey: 'chipEcon', q: 'เศรษฐกิจไทย' },
+    { key: 'rate', labelKey: 'chipRate', q: 'กนง. OR ดอกเบี้ยนโยบาย ธนาคารแห่งประเทศไทย' },
+    { key: 'ipo', labelKey: 'chipIpo', q: 'หุ้น IPO เข้าตลาด' },
+    { key: 'div', labelKey: 'chipDiv', q: 'ปันผลหุ้น XD' },
+    { key: 'oppday', labelKey: 'chipOppday', q: 'Opportunity Day บริษัทจดทะเบียนพบผู้ลงทุน' }
   ];
+  function chipLabel(c) { return t(c.labelKey); }
   /* Opportunity Day (บริษัทจดทะเบียนพบผู้ลงทุน) จัดโดยตลาดหลักทรัพย์ฯ — เว็บ set.or.th/oppday
      เป็นเว็บแอปที่ต้องเรนเดอร์ด้วย JS ไม่มี API/RSS สาธารณะให้ดึงข้อมูลปฏิทินได้ตรงๆ (ตรวจแล้วไม่พบ)
      จึงให้ "ข่าวเกี่ยวกับ Opportunity Day" ผ่านชิปค้นข่าวด้านบนแทน + ลิงก์ไปหน้าปฏิทินจริงของ SET ตรงนี้ */
@@ -64,9 +117,9 @@
     var d = pubDate ? new Date(pubDate) : null;
     if (!d || isNaN(d)) return '';
     var mins = Math.round((Date.now() - d.getTime()) / 60000);
-    if (mins < 60) return mins <= 1 ? 'เมื่อสักครู่' : mins + ' นาทีก่อน';
+    if (mins < 60) return mins <= 1 ? t('ageJustNow') : t('ageMinAgo', { n: mins });
     var hrs = Math.round(mins / 60);
-    if (hrs < 24) return hrs + ' ชม.ก่อน';
+    if (hrs < 24) return t('ageHrAgo', { n: hrs });
     return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: hrs > 24 * 300 ? '2-digit' : undefined });
   }
   function fetchNewsScan(query) {
@@ -94,19 +147,19 @@
   function cacheAgeText(ts) {
     if (!ts) return '';
     var mins = Math.round((Date.now() - ts) / 60000);
-    if (mins < 1) return 'เมื่อสักครู่';
-    if (mins < 60) return mins + ' นาทีก่อน';
+    if (mins < 1) return t('ageJustNow');
+    if (mins < 60) return t('ageMinAgo', { n: mins });
     var hrs = Math.round(mins / 60);
-    return hrs < 24 ? (hrs + ' ชม.ก่อน') : (Math.round(hrs / 24) + ' วันก่อน');
+    return hrs < 24 ? t('ageHrAgo', { n: hrs }) : t('ageDaysAgo', { n: Math.round(hrs / 24) });
   }
 
   function setBadge(msg, cls) { var el = $('srcBadge'); el.textContent = msg; el.className = 'src-badge' + (cls ? ' ' + cls : ''); }
 
   function renderNews(r) {
     var body = $('newsBody');
-    var stCount = $('stCount'); if (stCount) stCount.textContent = r.items.length + ' รายการ';
-    var stUpdated = $('stUpdated'); if (stUpdated) stUpdated.textContent = r.stale ? cacheAgeText(r.cachedAt) : 'เมื่อสักครู่';
-    if (!r.items.length) { body.innerHTML = '<div class="news-empty">ไม่พบข่าวสำหรับคำค้นนี้ ลองคำค้นอื่นดูครับ</div>'; return; }
+    var stCount = $('stCount'); if (stCount) stCount.textContent = t('newsCountItems', { n: r.items.length });
+    var stUpdated = $('stUpdated'); if (stUpdated) stUpdated.textContent = r.stale ? cacheAgeText(r.cachedAt) : t('ageJustNow');
+    if (!r.items.length) { body.innerHTML = '<div class="news-empty">' + t('newsEmpty') + '</div>'; return; }
     var html = '<ul class="news-list">' + r.items.map(function (n) {
       var meta = [];
       if (n.source) meta.push('<span class="src">' + n.source + '</span>');
@@ -118,24 +171,25 @@
     body.innerHTML = html;
   }
 
+  var lastChipKey = null;
   function runQuery(query, label) {
     var mySeq = ++seq;
     curQuery = query; curLabel = label;
-    setBadge('กำลังโหลดข่าว "' + label + '"…');
-    $('newsBody').innerHTML = '<div class="news-loading">กำลังโหลด…</div>';
+    setBadge(t('loadingTopic', { label: label }));
+    $('newsBody').innerHTML = '<div class="news-loading">' + t('loadingDefault') + '</div>';
     var stTopic = $('stTopic'); if (stTopic) stTopic.textContent = label;
     /* stCount/stUpdated ปล่อยให้เป็น skeleton (.ome-skeleton ใน HTML ตอนโหลดครั้งแรก
        หรือค่าจริงจากคำค้นก่อนหน้าตอนสลับหมวด) จนกว่า fetch จะเสร็จ — ไม่เขียนทับด้วย
        "…" เพราะ skeleton สื่อว่ากำลังโหลดชัดเจนกว่าอยู่แล้ว */
     fetchNews(query).then(function (r) {
       if (curQuery !== query) return;
-      setBadge(r.stale ? ('ดึงสดไม่ได้ — ใช้ข่าวที่บันทึกไว้ ' + cacheAgeText(r.cachedAt)) : ('ข่าวล่าสุด "' + label + '"'), 'real');
+      setBadge(r.stale ? t('staleUseSaved', { age: cacheAgeText(r.cachedAt) }) : t('latestFor', { label: label }), 'real');
       renderNews(r);
     }, function () {
       if (curQuery !== query) return;
-      setBadge('ดึงข่าวไม่สำเร็จตอนนี้ — ลองรีเฟรช หรือเปิด Google News ค้นเองที่ ↗', 'paste');
+      setBadge(t('fetchFail'), 'paste');
       var direct = 'https://news.google.com/search?q=' + encodeURIComponent(query) + '&hl=th&gl=TH&ceid=TH:th';
-      $('newsBody').innerHTML = '<div class="news-empty">ดึงข่าวอัตโนมัติไม่ได้ตอนนี้ — <a href="' + direct + '" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700">ค้นหาเองที่ Google News ↗</a></div>';
+      $('newsBody').innerHTML = '<div class="news-empty">' + t('fetchFailBody', { url: direct }) + '</div>';
       var stCountErr = $('stCount'); if (stCountErr) stCountErr.textContent = '—';
       var stUpdatedErr = $('stUpdated'); if (stUpdatedErr) stUpdatedErr.textContent = '—';
     });
@@ -143,25 +197,32 @@
 
   function selectChip(key) {
     var c = CHIPS.filter(function (x) { return x.key === key; })[0]; if (!c) return;
+    lastChipKey = key;
     [].forEach.call(document.querySelectorAll('.chip'), function (b) { b.classList.toggle('on', b.getAttribute('data-key') === key); });
     $('qInput').value = '';
     try { localStorage.setItem(LAST_QKEY, key); } catch (e) {}
-    runQuery(c.q, c.label);
+    runQuery(c.q, chipLabel(c));
   }
   function runCustomSearch() {
     var v = $('qInput').value.trim();
     if (!v) return;
+    lastChipKey = null;
     [].forEach.call(document.querySelectorAll('.chip'), function (b) { b.classList.remove('on'); });
     runQuery(v + ' หุ้น OR ตลาดหุ้น', v);
   }
 
-  function init() {
+  function renderChips() {
     var html = '';
-    CHIPS.forEach(function (c) { html += '<button type="button" class="chip" data-key="' + c.key + '">' + c.label + '</button>'; });
+    CHIPS.forEach(function (c) { html += '<button type="button" class="chip' + (c.key === lastChipKey ? ' on' : '') + '" data-key="' + c.key + '">' + chipLabel(c) + '</button>'; });
     $('chipRow').innerHTML = html;
     [].forEach.call(document.querySelectorAll('.chip'), function (b) {
       b.addEventListener('click', function () { selectChip(b.getAttribute('data-key')); });
     });
+  }
+
+  function init() {
+    applyStaticI18n();
+    renderChips();
     $('qBtn').addEventListener('click', runCustomSearch);
     $('qInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') runCustomSearch(); });
 
@@ -171,6 +232,12 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+
+  window.omeApplyLang = function () {
+    applyStaticI18n();
+    renderChips();
+    if (lastChipKey) selectChip(lastChipKey);
+  };
 
   window.__news = { parseNewsRss: parseNewsRss, CHIPS: CHIPS };
 })();
