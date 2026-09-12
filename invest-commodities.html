@@ -125,16 +125,16 @@ body.embedded .crumb{display:none}
 <script src="auth-gate.js"></script>
 <div class="wrap">
 
-  <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>ค่าเงิน &amp; วัตถุดิบ</nav>
+  <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span class="sep">/</span><span data-i18n="pageTitle">ค่าเงิน &amp; วัตถุดิบ</span></nav>
 
   <div class="head">
     <div>
-      <h1>ค่าเงิน &amp; วัตถุดิบ</h1>
+      <h1 data-i18n="pageTitle">ค่าเงิน &amp; วัตถุดิบ</h1>
     </div>
   </div>
 
   <div class="card">
-    <div class="src-badge real">ข้อมูล EOD (วันก่อนหน้า)</div>
+    <div class="src-badge real" data-i18n="srcBadgeEod">ข้อมูล EOD (วันก่อนหน้า)</div>
     <div class="stat-row" id="statRow"></div>
     <div class="pill-row" id="pillRow"></div>
   </div>
@@ -150,31 +150,31 @@ body.embedded .crumb{display:none}
         <button data-ct="line" type="button">Line</button>
       </div>
     </div>
-    <div class="src-badge" id="dSrcBadge" style="margin-top:12px">กำลังโหลด…</div>
+    <div class="src-badge" id="dSrcBadge" style="margin-top:12px" data-i18n="loadingDefault">กำลังโหลด…</div>
     <div class="ohlc-row" id="ohlcRow" style="display:none">
-      <div class="ohlc-box"><div class="k">เปิด</div><div class="v" id="oOpen">—</div></div>
-      <div class="ohlc-box"><div class="k">สูง</div><div class="v" id="oHigh">—</div></div>
-      <div class="ohlc-box"><div class="k">ต่ำ</div><div class="v" id="oLow">—</div></div>
-      <div class="ohlc-box"><div class="k">ปิด</div><div class="v" id="oClose">—</div></div>
-      <div class="ohlc-box"><div class="k">เปลี่ยนแปลง</div><div class="v" id="oChg">—</div></div>
+      <div class="ohlc-box"><div class="k" data-i18n="ohlcOpen">เปิด</div><div class="v" id="oOpen">—</div></div>
+      <div class="ohlc-box"><div class="k" data-i18n="ohlcHigh">สูง</div><div class="v" id="oHigh">—</div></div>
+      <div class="ohlc-box"><div class="k" data-i18n="ohlcLow">ต่ำ</div><div class="v" id="oLow">—</div></div>
+      <div class="ohlc-box"><div class="k" data-i18n="ohlcClose">ปิด</div><div class="v" id="oClose">—</div></div>
+      <div class="ohlc-box"><div class="k" data-i18n="ohlcChg">เปลี่ยนแปลง</div><div class="v" id="oChg">—</div></div>
     </div>
     <div class="tf-group" id="tfGroup">
-      <button class="tf" data-tf="21" type="button">1เดือน</button>
-      <button class="tf on" data-tf="63" type="button">3เดือน</button>
-      <button class="tf" data-tf="126" type="button">6เดือน</button>
-      <button class="tf" data-tf="252" type="button">1ปี</button>
+      <button class="tf" data-tf="21" type="button" data-i18n="tf1m">1เดือน</button>
+      <button class="tf on" data-tf="63" type="button" data-i18n="tf3m">3เดือน</button>
+      <button class="tf" data-tf="126" type="button" data-i18n="tf6m">6เดือน</button>
+      <button class="tf" data-tf="252" type="button" data-i18n="tf1y">1ปี</button>
     </div>
     <div class="lw-chart" id="lwChart"></div>
     <div id="chartEmpty" class="chart-empty" style="display:none"></div>
     <div class="chart-cap" id="chartCap" style="display:none">
-      <span><i style="background:#26a69a"></i>แท่งขึ้น</span>
-      <span><i style="background:#ef5350"></i>แท่งลง</span>
-      <span>แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
+      <span><i style="background:#26a69a"></i><span data-i18n="chartCapUp">แท่งขึ้น</span></span>
+      <span><i style="background:#ef5350"></i><span data-i18n="chartCapDown">แท่งลง</span></span>
+      <span data-i18n="chartCapTap">แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
     </div>
   </div>
 
   <div class="card">
-    <h2><span id="histTitle">ข้อมูลราคาย้อนหลัง</span></h2>
+    <h2><span id="histTitle" data-i18n="histTitleDefault">ข้อมูลราคาย้อนหลัง</span></h2>
     <div class="hist-wrap"><table class="hist-table" id="histTable"></table></div>
   </div>
 

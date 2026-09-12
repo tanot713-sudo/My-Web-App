@@ -14,38 +14,113 @@
 
   var $ = function (id) { return document.getElementById(id); };
 
+  /* ══════ ระบบสองภาษา (ไทย/อังกฤษ) — ตามธรรมเนียมเดียวกับ invest-gold.js ══════ */
+  var UI_LANG_KEY = 'ome:lang';
+  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
+  var I18N = {
+    th: {
+      navInvest: 'การลงทุน', pageTitle: 'ค่าเงิน & วัตถุดิบ',
+      srcBadgeEod: 'ข้อมูล EOD (วันก่อนหน้า)', loadingDefault: 'กำลังโหลด…',
+      ohlcOpen: 'เปิด', ohlcHigh: 'สูง', ohlcLow: 'ต่ำ', ohlcClose: 'ปิด', ohlcChg: 'เปลี่ยนแปลง',
+      tf1m: '1เดือน', tf3m: '3เดือน', tf6m: '6เดือน', tf1y: '1ปี',
+      chartCapUp: 'แท่งขึ้น', chartCapDown: 'แท่งลง', chartCapTap: 'แตะบนกราฟเพื่อดูราคาแต่ละวัน',
+      histTitleDefault: 'ข้อมูลราคาย้อนหลัง',
+      histTitleWithAsset: 'ข้อมูลราคา {label} — ล่าสุด {n} วัน',
+      histThDate: 'วันที่', histThOpen: 'เปิด', histThHigh: 'สูง', histThLow: 'ต่ำ', histThClose: 'ปิด', histThChg: 'เปลี่ยนแปลง',
+      fetchFailShort: 'ดึงไม่ได้',
+      goldNoHistEmpty: 'ราคาทองไทยไม่มีข้อมูลย้อนหลังจากแหล่งฟรี — ดูกราฟแนวโน้มราคาทองโลก (COMEX) แทนได้จากการ์ด "ทองคำ COMEX" ด้านบน',
+      goldNoHistTitle: 'ราคาทองไทยไม่มีข้อมูลย้อนหลังจากแหล่งฟรี',
+      goldLiveToday: 'ราคาสดวันนี้', goldStale: 'ดึงสดไม่ได้ — ใช้ราคาที่บันทึกไว้ล่าสุด', goldFail: 'ดึงราคาทองไทยไม่ได้ตอนนี้',
+      loadingChart: 'กำลังโหลดกราฟ…',
+      seriesReal: 'ราคาจาก Yahoo Finance', seriesStale: 'ดึงสดไม่ได้ — ใช้ข้อมูลที่บันทึกไว้ล่าสุด',
+      chartLibFail: 'โหลดไลบรารีกราฟไม่ได้ (ลองออนไลน์แล้วรีเฟรช)',
+      seriesFail: 'ดึงข้อมูลไม่สำเร็จตอนนี้ — ลองรีเฟรชอีกครั้ง หรือเลือกสินทรัพย์อื่นก่อน',
+      chartEmptyFail: 'ดึงกราฟไม่ได้ตอนนี้', histTitleFail: 'ดึงข้อมูลราคาย้อนหลังไม่ได้ตอนนี้',
+      groupFx: 'ค่าเงิน', groupMetal: 'ทองคำ & โลหะ', groupEnergy: 'พลังงาน', groupAgri: 'เกษตร',
+      labelUsdthb: 'บาทดอลลาร์', labelGc: 'ทองคำ COMEX', labelGoldbar: 'ทองคำแท่ง', labelGoldjew: 'ทองรูปพรรณ',
+      labelWti: 'น้ำมัน WTI', labelBrent: 'น้ำมันดิบ Brent', labelNg: 'ก๊าซธรรมชาติ', labelCopper: 'ทองแดง',
+      labelSteel: 'เหล็ก (HRC)', labelSugar: 'น้ำตาลทราย', labelCoffee: 'กาแฟ', labelRice: 'ข้าว (Rough Rice)',
+      labelDxy: 'ดัชนีดอลลาร์', labelJpythb: 'เยนเทียบบาท', labelEurthb: 'ยูโรเทียบบาท', labelCnythb: 'หยวนเทียบบาท',
+      unitUsdthb: 'บาท/USD', unitGc: 'USD/ออนซ์', unitGoldw: 'บาท/บาททองคำ', unitOilBbl: 'USD/บาร์เรล',
+      unitNg: 'USD/MMBtu', unitCopper: 'USD/ปอนด์', unitSteel: 'USD/ตันสั้น', unitCentLb: 'เซนต์/ปอนด์',
+      unitRice: 'USD/100cwt', unitDxy: 'จุด', unitJpythb: 'บาท/100เยน', unitEurthb: 'บาท/ยูโร', unitCnythb: 'บาท/หยวน'
+    },
+    en: {
+      navInvest: 'Investing', pageTitle: 'FX & Commodities',
+      srcBadgeEod: 'EOD data (previous day)', loadingDefault: 'Loading…',
+      ohlcOpen: 'Open', ohlcHigh: 'High', ohlcLow: 'Low', ohlcClose: 'Close', ohlcChg: 'Change',
+      tf1m: '1M', tf3m: '3M', tf6m: '6M', tf1y: '1Y',
+      chartCapUp: 'Up candle', chartCapDown: 'Down candle', chartCapTap: 'Tap the chart to see each day’s price',
+      histTitleDefault: 'Price history',
+      histTitleWithAsset: 'Price history for {label} — last {n} days',
+      histThDate: 'Date', histThOpen: 'Open', histThHigh: 'High', histThLow: 'Low', histThClose: 'Close', histThChg: 'Change',
+      fetchFailShort: 'Unavailable',
+      goldNoHistEmpty: 'No free historical data for Thai gold price — see the global gold (COMEX) trend chart instead via the "Gold (COMEX)" card above',
+      goldNoHistTitle: 'No free historical data for Thai gold price',
+      goldLiveToday: "Today's live price", goldStale: 'Live fetch failed — using last saved price', goldFail: "Couldn't fetch Thai gold price right now",
+      loadingChart: 'Loading chart…',
+      seriesReal: 'Price from Yahoo Finance', seriesStale: 'Live fetch failed — using last saved data',
+      chartLibFail: "Couldn't load the chart library (try again online and refresh)",
+      seriesFail: "Couldn't fetch data right now — try refreshing, or pick another asset first",
+      chartEmptyFail: "Couldn't fetch the chart right now", histTitleFail: "Couldn't fetch price history right now",
+      groupFx: 'FX', groupMetal: 'Gold & Metals', groupEnergy: 'Energy', groupAgri: 'Agriculture',
+      labelUsdthb: 'USD/THB', labelGc: 'Gold (COMEX)', labelGoldbar: 'Gold Bar (Thai)', labelGoldjew: 'Gold Jewelry (Thai)',
+      labelWti: 'WTI Crude Oil', labelBrent: 'Brent Crude Oil', labelNg: 'Natural Gas', labelCopper: 'Copper',
+      labelSteel: 'Steel (HRC)', labelSugar: 'Sugar', labelCoffee: 'Coffee', labelRice: 'Rice (Rough Rice)',
+      labelDxy: 'US Dollar Index', labelJpythb: 'JPY/THB', labelEurthb: 'EUR/THB', labelCnythb: 'CNY/THB',
+      unitUsdthb: 'THB/USD', unitGc: 'USD/oz', unitGoldw: 'THB/baht-weight', unitOilBbl: 'USD/barrel',
+      unitNg: 'USD/MMBtu', unitCopper: 'USD/lb', unitSteel: 'USD/short ton', unitCentLb: 'cents/lb',
+      unitRice: 'USD/100cwt', unitDxy: 'points', unitJpythb: 'THB/100 JPY', unitEurthb: 'THB/EUR', unitCnythb: 'THB/CNY'
+    }
+  };
+  function t(key, vars) {
+    var s = (I18N[getUILang()] || I18N.th)[key];
+    if (s == null) s = (I18N.th[key] != null ? I18N.th[key] : key);
+    if (vars) { for (var k in vars) { s = s.split('{' + k + '}').join(vars[k]); } }
+    return s;
+  }
+  function applyStaticI18n() {
+    [].forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    [].forEach.call(document.querySelectorAll('[data-i18n-html]'), function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+    [].forEach.call(document.querySelectorAll('[data-i18n-placeholder]'), function (el) { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+  }
+
   /* หน้านี้เปิดเป็นป๊อปอัพ (iframe) จาก invest.html ได้ด้วย ?embed=1 — ซ่อน breadcrumb ให้ดูเป็นกล่องเดียวกัน */
   if (new URLSearchParams(location.search).get('embed')) document.body.classList.add('embedded');
 
   /* ── รายการสินทรัพย์ ──────────────────────────────────────────
      kind: 'yahoo' = ticker เดี่ยวดึงตรง, 'cross' = คำนวณจาก 2 ticker,
            'thaigold' = ราคาทองไทย (thai-gold-api, ไม่มีกราฟย้อนหลัง)
-     group: ใช้จัดกลุ่มแถวปุ่มเลือกสินทรัพย์ (pillRow) กันเป็นแถวยาวปนกันไม่มีหมวด */
+     group: ใช้จัดกลุ่มแถวปุ่มเลือกสินทรัพย์ (pillRow) กันเป็นแถวยาวปนกันไม่มีหมวด
+     labelKey/unitKey: คีย์ i18n สำหรับชื่อ/หน่วย — ใช้ assetLabel()/assetUnit() แปลตามภาษาปัจจุบัน */
   var GROUPS = [
-    { key: 'fx', label: 'ค่าเงิน' },
-    { key: 'metal', label: 'ทองคำ & โลหะ' },
-    { key: 'energy', label: 'พลังงาน' },
-    { key: 'agri', label: 'เกษตร' }
+    { key: 'fx', labelKey: 'groupFx' },
+    { key: 'metal', labelKey: 'groupMetal' },
+    { key: 'energy', labelKey: 'groupEnergy' },
+    { key: 'agri', labelKey: 'groupAgri' }
   ];
   var ASSETS = [
-    { key: 'usdthb', label: 'บาทดอลลาร์', icon: '', kind: 'yahoo', sym: 'THB=X', unit: 'บาท/USD', dp: 3, group: 'fx' },
-    { key: 'gc', label: 'ทองคำ COMEX', icon: '', kind: 'yahoo', sym: 'GC=F', unit: 'USD/ออนซ์', dp: 1, group: 'metal' },
-    { key: 'goldbar', label: 'ทองคำแท่ง', icon: '▬', kind: 'thaigold', field: 'bar', unit: 'บาท/บาททองคำ', dp: 0, group: 'metal' },
-    { key: 'goldjew', label: 'ทองรูปพรรณ', icon: '', kind: 'thaigold', field: 'jewelry', unit: 'บาท/บาททองคำ', dp: 0, group: 'metal' },
-    { key: 'wti', label: 'น้ำมัน WTI', icon: '', kind: 'yahoo', sym: 'CL=F', unit: 'USD/บาร์เรล', dp: 2, group: 'energy' },
-    { key: 'brent', label: 'น้ำมันดิบ Brent', icon: '', kind: 'yahoo', sym: 'BZ=F', unit: 'USD/บาร์เรล', dp: 2, group: 'energy' },
-    { key: 'ng', label: 'ก๊าซธรรมชาติ', icon: '', kind: 'yahoo', sym: 'NG=F', unit: 'USD/MMBtu', dp: 3, group: 'energy' },
-    { key: 'copper', label: 'ทองแดง', icon: '', kind: 'yahoo', sym: 'HG=F', unit: 'USD/ปอนด์', dp: 3, group: 'metal' },
-    { key: 'steel', label: 'เหล็ก (HRC)', icon: '', kind: 'yahoo', sym: 'HRC=F', unit: 'USD/ตันสั้น', dp: 1, group: 'metal' },
-    { key: 'sugar', label: 'น้ำตาลทราย', icon: '', kind: 'yahoo', sym: 'SB=F', unit: 'เซนต์/ปอนด์', dp: 2, group: 'agri' },
-    { key: 'coffee', label: 'กาแฟ', icon: '', kind: 'yahoo', sym: 'KC=F', unit: 'เซนต์/ปอนด์', dp: 2, group: 'agri' },
-    { key: 'rice', label: 'ข้าว (Rough Rice)', icon: '', kind: 'yahoo', sym: 'ZR=F', unit: 'USD/100cwt', dp: 2, group: 'agri' },
-    { key: 'dxy', label: 'ดัชนีดอลลาร์', icon: '', kind: 'yahoo', sym: 'DX-Y.NYB', unit: 'จุด', dp: 2, group: 'fx' },
-    { key: 'jpythb', label: 'เยนเทียบบาท', icon: '🇯🇵', kind: 'cross', a: 'THB=X', b: 'JPY=X', op: 'div', mul: 100, unit: 'บาท/100เยน', dp: 3, group: 'fx' },
-    { key: 'eurthb', label: 'ยูโรเทียบบาท', icon: '🇪🇺', kind: 'cross', a: 'EURUSD=X', b: 'THB=X', op: 'mul', mul: 1, unit: 'บาท/ยูโร', dp: 3, group: 'fx' },
-    { key: 'cnythb', label: 'หยวนเทียบบาท', icon: '🇨🇳', kind: 'cross', a: 'THB=X', b: 'CNY=X', op: 'div', mul: 1, unit: 'บาท/หยวน', dp: 3, group: 'fx' }
+    { key: 'usdthb', labelKey: 'labelUsdthb', icon: '', kind: 'yahoo', sym: 'THB=X', unitKey: 'unitUsdthb', dp: 3, group: 'fx' },
+    { key: 'gc', labelKey: 'labelGc', icon: '', kind: 'yahoo', sym: 'GC=F', unitKey: 'unitGc', dp: 1, group: 'metal' },
+    { key: 'goldbar', labelKey: 'labelGoldbar', icon: '▬', kind: 'thaigold', field: 'bar', unitKey: 'unitGoldw', dp: 0, group: 'metal' },
+    { key: 'goldjew', labelKey: 'labelGoldjew', icon: '', kind: 'thaigold', field: 'jewelry', unitKey: 'unitGoldw', dp: 0, group: 'metal' },
+    { key: 'wti', labelKey: 'labelWti', icon: '', kind: 'yahoo', sym: 'CL=F', unitKey: 'unitOilBbl', dp: 2, group: 'energy' },
+    { key: 'brent', labelKey: 'labelBrent', icon: '', kind: 'yahoo', sym: 'BZ=F', unitKey: 'unitOilBbl', dp: 2, group: 'energy' },
+    { key: 'ng', labelKey: 'labelNg', icon: '', kind: 'yahoo', sym: 'NG=F', unitKey: 'unitNg', dp: 3, group: 'energy' },
+    { key: 'copper', labelKey: 'labelCopper', icon: '', kind: 'yahoo', sym: 'HG=F', unitKey: 'unitCopper', dp: 3, group: 'metal' },
+    { key: 'steel', labelKey: 'labelSteel', icon: '', kind: 'yahoo', sym: 'HRC=F', unitKey: 'unitSteel', dp: 1, group: 'metal' },
+    { key: 'sugar', labelKey: 'labelSugar', icon: '', kind: 'yahoo', sym: 'SB=F', unitKey: 'unitCentLb', dp: 2, group: 'agri' },
+    { key: 'coffee', labelKey: 'labelCoffee', icon: '', kind: 'yahoo', sym: 'KC=F', unitKey: 'unitCentLb', dp: 2, group: 'agri' },
+    { key: 'rice', labelKey: 'labelRice', icon: '', kind: 'yahoo', sym: 'ZR=F', unitKey: 'unitRice', dp: 2, group: 'agri' },
+    { key: 'dxy', labelKey: 'labelDxy', icon: '', kind: 'yahoo', sym: 'DX-Y.NYB', unitKey: 'unitDxy', dp: 2, group: 'fx' },
+    { key: 'jpythb', labelKey: 'labelJpythb', icon: '🇯🇵', kind: 'cross', a: 'THB=X', b: 'JPY=X', op: 'div', mul: 100, unitKey: 'unitJpythb', dp: 3, group: 'fx' },
+    { key: 'eurthb', labelKey: 'labelEurthb', icon: '🇪🇺', kind: 'cross', a: 'EURUSD=X', b: 'THB=X', op: 'mul', mul: 1, unitKey: 'unitEurthb', dp: 3, group: 'fx' },
+    { key: 'cnythb', labelKey: 'labelCnythb', icon: '🇨🇳', kind: 'cross', a: 'THB=X', b: 'CNY=X', op: 'div', mul: 1, unitKey: 'unitCnythb', dp: 3, group: 'fx' }
   ];
   var byKey = {}; ASSETS.forEach(function (a) { byKey[a.key] = a; });
+  function assetLabel(a) { return t(a.labelKey); }
+  function assetUnit(a) { return t(a.unitKey); }
+  function groupLabel(g) { return t(g.labelKey); }
   /* สินทรัพย์หลักที่โชว์ราคา+% ในแถวสถิติด้านบน (แยกจากแถวปุ่มเลือกที่มีครบทุกตัว — เหมือนแถวบนสุดของเว็บอ้างอิง) */
   var STAT_KEYS = ['usdthb', 'gc', 'goldbar', 'goldjew', 'wti'];
 
@@ -217,7 +292,7 @@
   function writeCard(a, price, chgPct, spark) {
     var el = cardEl(a); if (!el) return;
     var prEl = el.querySelector('.pr'), chgEl = el.querySelector('.chg'), sparkEl = el.querySelector('.spark');
-    if (!isFinite(price)) { prEl.textContent = 'ดึงไม่ได้'; prEl.className = 'pr na'; chgEl.textContent = ''; if (sparkEl) sparkEl.innerHTML = ''; return; }
+    if (!isFinite(price)) { prEl.textContent = t('fetchFailShort'); prEl.className = 'pr na'; chgEl.textContent = ''; if (sparkEl) sparkEl.innerHTML = ''; return; }
     prEl.textContent = fmt(price, a.dp); prEl.className = 'pr';
     if (isFinite(chgPct)) {
       chgEl.textContent = (chgPct >= 0 ? '▲' : '▼') + fmt(Math.abs(chgPct), 2) + '%';
@@ -256,8 +331,8 @@
       var a = byKey[k];
       statHtml += '<button type="button" class="stat-card" data-key="' + a.key + '">' +
         '<span class="ic">' + a.icon + '</span>' +
-        '<span class="nm">' + a.label + '</span>' +
-        '<span class="pr na">กำลังโหลด…</span>' +
+        '<span class="nm">' + assetLabel(a) + '</span>' +
+        '<span class="pr na">' + t('loadingDefault') + '</span>' +
         '<span class="chg"></span>' +
         '<span class="spark"></span></button>';
     });
@@ -269,8 +344,8 @@
     GROUPS.forEach(function (g) {
       var items = ASSETS.filter(function (a) { return a.group === g.key; });
       if (!items.length) return;
-      pillHtml += '<div class="pill-group"><span class="pill-group-lbl">' + g.label + '</span><div class="pill-group-row">' +
-        items.map(function (a) { return '<button type="button" class="pill" data-key="' + a.key + '"><span class="ic">' + a.icon + '</span>' + a.label + '</button>'; }).join('') +
+      pillHtml += '<div class="pill-group"><span class="pill-group-lbl">' + groupLabel(g) + '</span><div class="pill-group-row">' +
+        items.map(function (a) { return '<button type="button" class="pill" data-key="' + a.key + '"><span class="ic">' + a.icon + '</span>' + assetLabel(a) + '</button>'; }).join('') +
         '</div></div>';
     });
     $('pillRow').innerHTML = pillHtml;
@@ -370,7 +445,7 @@
   /* ── ตารางราคาย้อนหลัง (ล่าสุด 30 วัน — เหมือนตารางท้ายหน้าของเว็บอ้างอิง) ── */
   var HIST_DAYS = 30;
   function renderHistTable(s, a) {
-    var titleEl = $('histTitle'); if (titleEl) titleEl.textContent = 'ข้อมูลราคา ' + a.label + ' — ล่าสุด ' + Math.min(HIST_DAYS, s.times.length) + ' วัน';
+    var titleEl = $('histTitle'); if (titleEl) titleEl.textContent = t('histTitleWithAsset', { label: assetLabel(a), n: Math.min(HIST_DAYS, s.times.length) });
     var tbl = $('histTable'); if (!tbl) return;
     var n = s.times.length;
     if (!n) { tbl.innerHTML = ''; return; }
@@ -386,7 +461,7 @@
         '<td>' + fmt(bar.close, a.dp) + '</td>' +
         '<td class="chg ' + (chg > 0 ? 'up' : chg < 0 ? 'dn' : '') + '">' + (chg >= 0 ? '+' : '') + fmt(chg, a.dp) + (isFinite(pct) ? ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 2) + '%)' : '') + '</td></tr>';
     }
-    tbl.innerHTML = '<thead><tr><th>วันที่</th><th>เปิด</th><th>สูง</th><th>ต่ำ</th><th>ปิด</th><th>เปลี่ยนแปลง</th></tr></thead><tbody>' + rows + '</tbody>';
+    tbl.innerHTML = '<thead><tr><th>' + t('histThDate') + '</th><th>' + t('histThOpen') + '</th><th>' + t('histThHigh') + '</th><th>' + t('histThLow') + '</th><th>' + t('histThClose') + '</th><th>' + t('histThChg') + '</th></tr></thead><tbody>' + rows + '</tbody>';
   }
 
   /* คำนวณ series cross จาก 2 series จริง (จับคู่ตามวันที่ตรงกัน) — ประมาณค่าต่อองค์ประกอบ OHLC
@@ -416,28 +491,28 @@
     curKey = key;
     try { localStorage.setItem(LAST_KEY, key); } catch (e) {}
     [].forEach.call(document.querySelectorAll('.stat-card, .pill'), function (el) { el.classList.toggle('on', el.getAttribute('data-key') === key); });
-    $('dIcon').textContent = a.icon; $('dName').textContent = a.label; $('dUnit').textContent = a.unit;
+    $('dIcon').textContent = a.icon; $('dName').textContent = assetLabel(a); $('dUnit').textContent = assetUnit(a);
     $('ohlcRow').style.display = 'none';
     fullData = null;
 
     if (a.kind === 'thaigold') {
-      setDetailStatus('กำลังโหลด…');
+      setDetailStatus(t('loadingDefault'));
       if (chart) { try { chart.remove(); } catch (e) {} chart = null; seriesObj = null; }
       $('lwChart').style.display = 'none';
       $('chartCap').style.display = 'none';
       $('chartEmpty').style.display = 'block';
-      $('chartEmpty').textContent = 'ราคาทองไทยไม่มีข้อมูลย้อนหลังจากแหล่งฟรี — ดูกราฟแนวโน้มราคาทองโลก (COMEX) แทนได้จากการ์ด "ทองคำ COMEX" ด้านบน';
-      $('histTitle').textContent = 'ราคาทองไทยไม่มีข้อมูลย้อนหลังจากแหล่งฟรี';
+      $('chartEmpty').textContent = t('goldNoHistEmpty');
+      $('histTitle').textContent = t('goldNoHistTitle');
       $('histTable').innerHTML = '';
       getThaiGold().then(function (r) {
-        setDetailStatus(r.stale ? 'ดึงสดไม่ได้ — ใช้ราคาที่บันทึกไว้ล่าสุด' : 'ราคาสดวันนี้' + (r.data.updateDate ? (' · ' + r.data.updateDate) : ''), 'real');
+        setDetailStatus(r.stale ? t('goldStale') : t('goldLiveToday') + (r.data.updateDate ? (' · ' + r.data.updateDate) : ''), 'real');
         writeCard(a, r.data[a.field], NaN);
-      }, function () { setDetailStatus('ดึงราคาทองไทยไม่ได้ตอนนี้', 'paste'); });
+      }, function () { setDetailStatus(t('goldFail'), 'paste'); });
       return;
     }
 
-    setDetailStatus('กำลังโหลดกราฟ…');
-    $('lwChart').style.display = 'none'; $('chartEmpty').style.display = 'block'; $('chartEmpty').textContent = 'กำลังโหลด…';
+    setDetailStatus(t('loadingChart'));
+    $('lwChart').style.display = 'none'; $('chartEmpty').style.display = 'block'; $('chartEmpty').textContent = t('loadingDefault');
 
     var seriesPromise;
     if (a.kind === 'yahoo') {
@@ -451,20 +526,21 @@
       if (curKey !== key) return; /* ผู้ใช้กดการ์ดอื่นไปแล้วระหว่างรอโหลด */
       if (!r.s.times.length) throw new Error('empty');
       fullData = r.s;
-      setDetailStatus(r.stale ? 'ดึงสดไม่ได้ — ใช้ข้อมูลที่บันทึกไว้ล่าสุด' : 'ราคาจาก Yahoo Finance', 'real');
-      if (!buildChart(r.s)) setDetailStatus('โหลดไลบรารีกราฟไม่ได้ (ลองออนไลน์แล้วรีเฟรช)', 'paste');
+      setDetailStatus(r.stale ? t('seriesStale') : t('seriesReal'), 'real');
+      if (!buildChart(r.s)) setDetailStatus(t('chartLibFail'), 'paste');
       renderHistTable(r.s, a);
     }, function () {
       if (curKey !== key) return;
-      setDetailStatus('ดึงข้อมูลไม่สำเร็จตอนนี้ — ลองรีเฟรชอีกครั้ง หรือเลือกสินทรัพย์อื่นก่อน', 'paste');
-      $('chartEmpty').textContent = 'ดึงกราฟไม่ได้ตอนนี้';
-      $('histTitle').textContent = 'ดึงข้อมูลราคาย้อนหลังไม่ได้ตอนนี้';
+      setDetailStatus(t('seriesFail'), 'paste');
+      $('chartEmpty').textContent = t('chartEmptyFail');
+      $('histTitle').textContent = t('histTitleFail');
       $('histTable').innerHTML = '';
     });
   }
 
   /* ── init ───────────────────────────────────────────────────── */
   function init() {
+    applyStaticI18n();
     buildGrid();
     [].forEach.call(document.querySelectorAll('#tfGroup .tf'), function (b) {
       b.addEventListener('click', function () { applyTF(+b.getAttribute('data-tf')); });
@@ -482,6 +558,12 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+
+  window.omeApplyLang = function () {
+    applyStaticI18n();
+    buildGrid();
+    if (curKey) selectAsset(curKey);
+  };
 
   window.__commodities = { crossVal: crossVal, ASSETS: ASSETS };
 })();
