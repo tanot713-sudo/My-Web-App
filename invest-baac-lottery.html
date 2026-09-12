@@ -108,126 +108,126 @@ select{font-family:inherit}
 <div class="wrap">
 
 
-  <nav class="crumb"><a href="invest.html">การลงทุน</a><span class="sep">/</span>สลาก ธ.ก.ส.</nav>
+  <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span class="sep">/</span><span data-i18n="pageTitleShort">สลาก ธ.ก.ส.</span></nav>
 
   <div class="head">
     <div>
-      <h1>สลาก ธ.ก.ส. — คำนวณค่าคาดหวัง (EV) เงินรางวัล + ติดตามผลจับรางวัล</h1>
-      <div class="head-sub">ตัวช่วยคิดค่าคาดหวังของสลากออมทรัพย์ ธ.ก.ส. ไม่ใช่การรับประกันผลตอบแทน</div>
+      <h1 data-i18n="pageTitle">สลาก ธ.ก.ส. — คำนวณค่าคาดหวัง (EV) เงินรางวัล + ติดตามผลจับรางวัล</h1>
+      <div class="head-sub" data-i18n="headSub">ตัวช่วยคิดค่าคาดหวังของสลากออมทรัพย์ ธ.ก.ส. ไม่ใช่การรับประกันผลตอบแทน</div>
     </div>
   </div>
 
   <!-- ข้อมูลสลากและตารางรางวัล -->
   <div class="card">
-    <h2>ข้อมูลสลากและตารางรางวัล (Prize Tiers)</h2>
+    <h2 data-i18n="tiersCardTitle">ข้อมูลสลากและตารางรางวัล (Prize Tiers)</h2>
     <div class="frow">
-      <div class="field"><label>ราคาต่อหน่วย (บาท) <span class="unit">(ต่างกันตามชุดสลาก 100–500 บาท)</span></label><input type="number" id="gbUnitPrice" inputmode="numeric" value="100"></div>
-      <div class="field"><label>จำนวนหน่วยที่ถือ</label><input type="number" id="gbUnits" inputmode="numeric" value="100"></div>
-      <div class="field"><label>วันที่ซื้อ</label><input type="date" id="gbPurchDate"></div>
-      <div class="field"><label>วันครบกำหนด</label><input type="date" id="gbMaturity"></div>
+      <div class="field"><label data-i18n="lblUnitPrice">ราคาต่อหน่วย (บาท) </label><span class="unit" data-i18n="lblUnitPriceUnit" style="margin-left:-3px">(ต่างกันตามชุดสลาก 100–500 บาท)</span><input type="number" id="gbUnitPrice" inputmode="numeric" value="100"></div>
+      <div class="field"><label data-i18n="lblUnitsHeld">จำนวนหน่วยที่ถือ</label><input type="number" id="gbUnits" inputmode="numeric" value="100"></div>
+      <div class="field"><label data-i18n="lblPurchDate">วันที่ซื้อ</label><input type="date" id="gbPurchDate"></div>
+      <div class="field"><label data-i18n="lblMaturity">วันครบกำหนด</label><input type="date" id="gbMaturity"></div>
     </div>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>ความถี่จับรางวัล</label>
+      <div class="field"><label data-i18n="lblDrawFreq">ความถี่จับรางวัล</label>
         <select id="gbDrawFreq" style="font-size:14px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
-          <option value="16" selected>ทุกเดือน (1 ครั้ง) — วันที่ 16</option>
-          <option value="1,16">ทุกเดือน (2 ครั้ง) — วันที่ 1 และ 16</option>
+          <option value="16" selected data-i18n="freqOnceLong">ทุกเดือน (1 ครั้ง) — วันที่ 16</option>
+          <option value="1,16" data-i18n="freqTwiceLong">ทุกเดือน (2 ครั้ง) — วันที่ 1 และ 16</option>
         </select></div>
-      <div class="field"><label>อัตราดอกเบี้ยรับประกัน/ปี (%) <span class="unit">(ตัวอย่างเท่านั้น — แก้ตามใบสลากจริง)</span></label><input type="number" id="gbGuarRate" inputmode="decimal" step="0.01" value="0.1"></div>
+      <div class="field"><label data-i18n="lblGuarRate">อัตราดอกเบี้ยรับประกัน/ปี (%) </label><span class="unit" data-i18n="lblGuarRateUnit" style="margin-left:-3px">(ตัวอย่างเท่านั้น — แก้ตามใบสลากจริง)</span><input type="number" id="gbGuarRate" inputmode="decimal" step="0.01" value="0.1"></div>
     </div>
     <label style="display:flex;align-items:center;gap:6px;margin-top:10px;cursor:pointer">
       <input type="checkbox" id="gbTaxExempt" checked style="width:15px;height:15px;accent-color:var(--brand)">
-      ดอกเบี้ย/เงินรางวัลได้รับยกเว้นภาษี (ยกเลิกติ๊กถ้ารุ่นที่ถือหักภาษี ณ ที่จ่าย 15%)
+      <span data-i18n="taxExemptLabel">ดอกเบี้ย/เงินรางวัลได้รับยกเว้นภาษี (ยกเลิกติ๊กถ้ารุ่นที่ถือหักภาษี ณ ที่จ่าย 15%)</span>
     </label>
 
     <div style="margin-top:14px">
       <div id="tierBox"></div>
-      <button class="btn sm" id="tierAddBtn" type="button" style="margin-top:8px">+ เพิ่มระดับรางวัล</button>
+      <button class="btn sm" id="tierAddBtn" type="button" style="margin-top:8px" data-i18n="tierAddBtn">+ เพิ่มระดับรางวัล</button>
     </div>
-    <p style="font-size:11.5px;color:var(--muted);margin-top:8px">กรอกตารางระดับรางวัลจากใบสลาก/เว็บ ธ.ก.ส. จริง — เพื่อนำมาคำนวณค่าคาดหวัง (ตารางรางวัลเปลี่ยนทุกงวด/ชุด แอปนี้จึงไม่มีตัวเลขให้ล่วงหน้า)</p>
+    <p style="font-size:11.5px;color:var(--muted);margin-top:8px" data-i18n="tiersHint">กรอกตารางระดับรางวัลจากใบสลาก/เว็บ ธ.ก.ส. จริง — เพื่อนำมาคำนวณค่าคาดหวัง (ตารางรางวัลเปลี่ยนทุกงวด/ชุด แอปนี้จึงไม่มีตัวเลขให้ล่วงหน้า)</p>
 
-    <div style="margin-top:12px"><button class="btn primary" id="gbCalcBtn" type="button">คำนวณค่าคาดหวัง</button></div>
+    <div style="margin-top:12px"><button class="btn primary" id="gbCalcBtn" type="button" data-i18n="calcBtn">คำนวณค่าคาดหวัง</button></div>
 
     <div id="gbOut" style="display:none">
       <div class="sumrow" style="margin-top:16px">
-        <div class="sumbox"><div class="lbl">จำนวนงวดจับรางวัลทั้งหมด</div><div class="val" id="gbDrawCount">—</div></div>
-        <div class="sumbox"><div class="lbl">ค่าคาดหวังต่อหน่วยต่องวด</div><div class="val" id="gbEvUnit">—</div></div>
-        <div class="sumbox"><div class="lbl">โอกาสถูกอย่างน้อย 1 รางวัล/งวด</div><div class="val" id="gbProbOne">—</div></div>
-        <div class="sumbox"><div class="lbl">เงินรางวัลที่คาดว่าจะได้รวม</div><div class="val" id="gbPrizeTotal">—</div></div>
-        <div class="sumbox"><div class="lbl">ดอกเบี้ยรับประกันรวม</div><div class="val" id="gbInterestTotal">—</div></div>
-        <div class="sumbox"><div class="lbl">ผลตอบแทนรวมที่คาดหวัง</div><div class="val grow" id="gbTotalReturn">—</div><div class="sub">เงินต้น + ดอกเบี้ย + เงินรางวัล</div></div>
-        <div class="sumbox"><div class="lbl">อัตราผลตอบแทนคาดหวัง/ปี</div><div class="val grow" id="gbAnnPct">—</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="lblDrawCount">จำนวนงวดจับรางวัลทั้งหมด</div><div class="val" id="gbDrawCount">—</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="lblEvUnit">ค่าคาดหวังต่อหน่วยต่องวด</div><div class="val" id="gbEvUnit">—</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="lblProbOne">โอกาสถูกอย่างน้อย 1 รางวัล/งวด</div><div class="val" id="gbProbOne">—</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="lblPrizeTotal">เงินรางวัลที่คาดว่าจะได้รวม</div><div class="val" id="gbPrizeTotal">—</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="lblInterestTotal">ดอกเบี้ยรับประกันรวม</div><div class="val" id="gbInterestTotal">—</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="lblTotalReturn">ผลตอบแทนรวมที่คาดหวัง</div><div class="val grow" id="gbTotalReturn">—</div><div class="sub" data-i18n="lblTotalReturnSub">เงินต้น + ดอกเบี้ย + เงินรางวัล</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="lblAnnPct">อัตราผลตอบแทนคาดหวัง/ปี</div><div class="val grow" id="gbAnnPct">—</div></div>
       </div>
     </div>
   </div>
 
   <!-- เทียบเงินฝากประจำ -->
   <div class="card">
-    <h2>เทียบกับเงินฝากประจำ</h2>
+    <h2 data-i18n="cmpTitle">เทียบกับเงินฝากประจำ</h2>
     <div class="frow">
-      <div class="field"><label>อัตราดอกเบี้ยเงินฝากประจำที่จะเทียบ (%)</label><input type="number" id="cmpDepRate" inputmode="decimal" step="0.01" value="1.5"></div>
-      <button class="btn sm" id="cmpBtn" type="button">เทียบผลตอบแทน</button>
+      <div class="field"><label data-i18n="lblDepRate">อัตราดอกเบี้ยเงินฝากประจำที่จะเทียบ (%)</label><input type="number" id="cmpDepRate" inputmode="decimal" step="0.01" value="1.5"></div>
+      <button class="btn sm" id="cmpBtn" type="button" data-i18n="cmpBtn">เทียบผลตอบแทน</button>
     </div>
-    <p style="font-size:12px;color:var(--muted);margin-top:8px">ใช้เงินต้นและผลการคำนวณจากการ์ดด้านบน (กดคำนวณการ์ดนั้นก่อน)</p>
+    <p style="font-size:12px;color:var(--muted);margin-top:8px" data-i18n="cmpHint">ใช้เงินต้นและผลการคำนวณจากการ์ดด้านบน (กดคำนวณการ์ดนั้นก่อน)</p>
     <div id="cmpOut" style="display:none">
       <div class="cmp">
         <div class="col acc">
-          <h3>สลาก ธ.ก.ส. (ค่าคาดหวัง)</h3>
-          <div class="line"><span>เงินต้น</span><span class="v" id="cmpLotPrincipal">—</span></div>
-          <div class="line"><span>กำไรคาดหวัง (หลังภาษีตาม toggle)</span><span class="v" id="cmpLotGain">—</span></div>
+          <h3 data-i18n="cmpColLottery">สลาก ธ.ก.ส. (ค่าคาดหวัง)</h3>
+          <div class="line"><span data-i18n="cmpPrincipal">เงินต้น</span><span class="v" id="cmpLotPrincipal">—</span></div>
+          <div class="line"><span data-i18n="cmpGainExpected">กำไรคาดหวัง (หลังภาษีตาม toggle)</span><span class="v" id="cmpLotGain">—</span></div>
         </div>
         <div class="col div">
-          <h3>เงินฝากประจำ</h3>
-          <div class="line"><span>เงินต้น</span><span class="v" id="cmpDepPrincipal">—</span></div>
-          <div class="line"><span>ดอกเบี้ยรวมก่อนภาษี</span><span class="v" id="cmpDepGross">—</span></div>
-          <div class="line"><span>ดอกเบี้ยรวมหลังหักภาษี 15%</span><span class="v" id="cmpDepNet">—</span></div>
+          <h3 data-i18n="cmpColDeposit">เงินฝากประจำ</h3>
+          <div class="line"><span data-i18n="cmpPrincipal">เงินต้น</span><span class="v" id="cmpDepPrincipal">—</span></div>
+          <div class="line"><span data-i18n="cmpGross">ดอกเบี้ยรวมก่อนภาษี</span><span class="v" id="cmpDepGross">—</span></div>
+          <div class="line"><span data-i18n="cmpNet">ดอกเบี้ยรวมหลังหักภาษี 15%</span><span class="v" id="cmpDepNet">—</span></div>
         </div>
       </div>
       <div class="sumrow" style="margin-top:12px">
-        <div class="sumbox"><div class="lbl">สรุป</div><div class="val" id="cmpDiff" style="font-size:15px">—</div></div>
+        <div class="sumbox"><div class="lbl" data-i18n="cmpSummary">สรุป</div><div class="val" id="cmpDiff" style="font-size:15px">—</div></div>
       </div>
     </div>
   </div>
 
   <!-- สมุดสลาก -->
   <div class="card">
-    <h2>สมุดสลากของฉัน + ติดตามผลจับรางวัล</h2>
+    <h2 data-i18n="lgTitle">สมุดสลากของฉัน + ติดตามผลจับรางวัล</h2>
     <div class="frow">
-      <div class="field" style="flex:1 1 160px"><label>ชื่อ/รุ่นสลาก</label><input type="text" id="lgName" list="baacNameList" placeholder="เช่น สลากออมทรัพย์ ธ.ก.ส."><datalist id="baacNameList"></datalist></div>
-      <div class="field"><label>วันที่ซื้อ</label><input type="date" id="lgPurchDate"></div>
-      <div class="field"><label>วันครบกำหนด</label><input type="date" id="lgMaturity"></div>
+      <div class="field" style="flex:1 1 160px"><label data-i18n="lblLotteryName">ชื่อ/รุ่นสลาก</label><input type="text" id="lgName" list="baacNameList" data-i18n-placeholder="phLotteryName" placeholder="เช่น สลากออมทรัพย์ ธ.ก.ส."><datalist id="baacNameList"></datalist></div>
+      <div class="field"><label data-i18n="lblPurchDate">วันที่ซื้อ</label><input type="date" id="lgPurchDate"></div>
+      <div class="field"><label data-i18n="lblMaturity">วันครบกำหนด</label><input type="date" id="lgMaturity"></div>
     </div>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label>ราคาต่อหน่วย (บาท)</label><input type="number" id="lgUnitPrice" inputmode="numeric" value="100"></div>
-      <div class="field"><label>จำนวนหน่วย</label><input type="number" id="lgUnits" inputmode="numeric" value="100"></div>
-      <div class="field"><label>ความถี่จับรางวัล</label>
+      <div class="field"><label data-i18n="lblUnitPriceLg">ราคาต่อหน่วย (บาท)</label><input type="number" id="lgUnitPrice" inputmode="numeric" value="100"></div>
+      <div class="field"><label data-i18n="lblUnits">จำนวนหน่วย</label><input type="number" id="lgUnits" inputmode="numeric" value="100"></div>
+      <div class="field"><label data-i18n="lblDrawFreq">ความถี่จับรางวัล</label>
         <select id="lgDrawFreq" style="font-size:14px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
-          <option value="16" selected>ทุกเดือน (1 ครั้ง)</option>
-          <option value="1,16">ทุกเดือน (2 ครั้ง)</option>
+          <option value="16" selected data-i18n="freqOnce">ทุกเดือน (1 ครั้ง)</option>
+          <option value="1,16" data-i18n="freqTwice">ทุกเดือน (2 ครั้ง)</option>
         </select></div>
-      <div class="field"><label>ค่าคาดหวังต่อหน่วยต่องวด (บาท) <span class="unit">(จากการ์ดด้านบน แก้ได้)</span></label><input type="number" id="lgEvPerDraw" inputmode="decimal" step="0.0001" value="0"></div>
-      <button class="btn sm" id="lgAdd" type="button">+ บันทึก</button>
+      <div class="field"><label data-i18n="lblEvPerDraw">ค่าคาดหวังต่อหน่วยต่องวด (บาท) </label><span class="unit" data-i18n="lblEvPerDrawUnit" style="margin-left:-3px">(จากการ์ดด้านบน แก้ได้)</span><input type="number" id="lgEvPerDraw" inputmode="decimal" step="0.0001" value="0"></div>
+      <button class="btn sm" id="lgAdd" type="button" data-i18n="addBtn">+ บันทึก</button>
     </div>
-    <div id="lgBox"><div class="log-empty">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อสลาก จะได้ตารางวันจับรางวัลและติดตามว่างวดไหนถูกรางวัลหรือไม่ (ผลจริงต้องตรวจสอบเองจากธนาคาร/เว็บ ธ.ก.ส. แล้วบันทึกไว้ที่นี่)</div></div>
+    <div id="lgBox"><div class="log-empty" data-i18n="lgEmptyDefault">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อสลาก จะได้ตารางวันจับรางวัลและติดตามว่างวดไหนถูกรางวัลหรือไม่ (ผลจริงต้องตรวจสอบเองจากธนาคาร/เว็บ ธ.ก.ส. แล้วบันทึกไว้ที่นี่)</div></div>
   </div>
 
   <!-- เรียนรู้ -->
   <details class="card lesson">
-    <summary style="font-size:14px">เรียนรู้ — สลาก ธ.ก.ส. แบบเข้าใจง่าย</summary>
+    <summary style="font-size:14px" data-i18n="lessonSummary">เรียนรู้ — สลาก ธ.ก.ส. แบบเข้าใจง่าย</summary>
     <div class="details-body">
-      <h3>สลากออมทรัพย์ ธ.ก.ส. คืออะไร</h3>
-      <p>เป็นการฝากเงินรูปแบบหนึ่งที่มีการลุ้นรางวัลแถมมา (คล้ายสลากออมสินของธนาคารออมสิน แต่ออกโดยธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร) — ต่างจากหวยทั่วไปตรงที่ <b>ได้เงินต้นคืนเต็มจำนวนเสมอถ้าถือจนครบกำหนด</b> ไม่ว่าจะถูกรางวัลหรือไม่ก็ตาม มีหลายชุดให้เลือก ราคาต่อหน่วยต่างกันตามชุด (พบทั้ง 100 และ 500 บาท) ควรเช็คราคาจริงจากใบสลากก่อนกรอก</p>
-      <h3>ทำไมใช้ "ค่าคาดหวัง (Expected Value)" แทนสัญญาว่าจะได้กำไร</h3>
-      <p>ผลลัพธ์จริงของแต่ละคนสุ่มมาก อาจถูกรางวัลใหญ่หรือไม่ถูกอะไรเลยตลอดอายุสลาก — ค่าคาดหวัง (EV) เป็น<b>ค่าเฉลี่ยระยะยาว</b>ถ้ามีคนซื้อ/ถือแบบเดียวกันจำนวนมากซ้ำๆ ไม่ใช่การรับประกันว่าคุณจะได้เท่านี้จริง เครื่องคำนวณด้านบนช่วยให้เห็นภาพรวมทางสถิติ ไม่ใช่คำทำนายผลจับรางวัลจริง</p>
-      <h3>ภาษีดอกเบี้ย/เงินรางวัล</h3>
-      <p>สลากออมทรัพย์ทั่วไป ดอกเบี้ยและเงินรางวัลมักได้รับยกเว้นภาษีเงินได้บุคคลธรรมดา แต่บางชุด/รุ่นอาจถูกหักภาษี ณ ที่จ่ายตามประกาศกรมสรรพากร — ข้อมูลไม่ชัดเจนพอจะฟันธงอัตราเดียวสำหรับทุกชุด จึงปรับได้ด้วย checkbox ในการ์ดคำนวณด้านบน</p>
-      <h3>ทำไมหน้านี้ไม่มีตารางรางวัล/อัตราดอกเบี้ยจริงให้</h3>
-      <p>ตารางรางวัลและอัตราดอกเบี้ยเปลี่ยนไปแทบทุกชุดที่ ธ.ก.ส. ออกใหม่ (เช่น ชุดถุงเงิน ชุดกระพ้อมทอง ชุดกระพ้อมเงิน) — ใส่ตัวเลขผิดในเครื่องคำนวณกระทบเงินจริงของคุณ จึงให้กรอกจากใบสลากหรือเว็บ ธ.ก.ส. โดยตรงเสมอ</p>
-      <h3>ข้อควรระวัง</h3>
-      <p>เงินต้นมักได้คืนเต็มถ้าถือจนครบกำหนด แต่โอกาสถูกรางวัลใหญ่ต่ำมาก (มักน้อยกว่า 1 ในหลายแสนหรือหลายล้านต่อหน่วยต่องวด) — เหมาะเป็นส่วนเสริมของการออมที่มีความสนุกจากการลุ้น ไม่ควรใช้แทนแผนการเงินหลักหรือคาดหวังว่าจะได้กำไรก้อนใหญ่แน่นอน</p>
+      <h3 data-i18n="lsn1h">สลากออมทรัพย์ ธ.ก.ส. คืออะไร</h3>
+      <p data-i18n-html="lsn1p">เป็นการฝากเงินรูปแบบหนึ่งที่มีการลุ้นรางวัลแถมมา (คล้ายสลากออมสินของธนาคารออมสิน แต่ออกโดยธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร) — ต่างจากหวยทั่วไปตรงที่ <b>ได้เงินต้นคืนเต็มจำนวนเสมอถ้าถือจนครบกำหนด</b> ไม่ว่าจะถูกรางวัลหรือไม่ก็ตาม มีหลายชุดให้เลือก ราคาต่อหน่วยต่างกันตามชุด (พบทั้ง 100 และ 500 บาท) ควรเช็คราคาจริงจากใบสลากก่อนกรอก</p>
+      <h3 data-i18n="lsn2h">ทำไมใช้ "ค่าคาดหวัง (Expected Value)" แทนสัญญาว่าจะได้กำไร</h3>
+      <p data-i18n-html="lsn2p">ผลลัพธ์จริงของแต่ละคนสุ่มมาก อาจถูกรางวัลใหญ่หรือไม่ถูกอะไรเลยตลอดอายุสลาก — ค่าคาดหวัง (EV) เป็น<b>ค่าเฉลี่ยระยะยาว</b>ถ้ามีคนซื้อ/ถือแบบเดียวกันจำนวนมากซ้ำๆ ไม่ใช่การรับประกันว่าคุณจะได้เท่านี้จริง เครื่องคำนวณด้านบนช่วยให้เห็นภาพรวมทางสถิติ ไม่ใช่คำทำนายผลจับรางวัลจริง</p>
+      <h3 data-i18n="lsn3h">ภาษีดอกเบี้ย/เงินรางวัล</h3>
+      <p data-i18n="lsn3p">สลากออมทรัพย์ทั่วไป ดอกเบี้ยและเงินรางวัลมักได้รับยกเว้นภาษีเงินได้บุคคลธรรมดา แต่บางชุด/รุ่นอาจถูกหักภาษี ณ ที่จ่ายตามประกาศกรมสรรพากร — ข้อมูลไม่ชัดเจนพอจะฟันธงอัตราเดียวสำหรับทุกชุด จึงปรับได้ด้วย checkbox ในการ์ดคำนวณด้านบน</p>
+      <h3 data-i18n="lsn4h">ทำไมหน้านี้ไม่มีตารางรางวัล/อัตราดอกเบี้ยจริงให้</h3>
+      <p data-i18n="lsn4p">ตารางรางวัลและอัตราดอกเบี้ยเปลี่ยนไปแทบทุกชุดที่ ธ.ก.ส. ออกใหม่ (เช่น ชุดถุงเงิน ชุดกระพ้อมทอง ชุดกระพ้อมเงิน) — ใส่ตัวเลขผิดในเครื่องคำนวณกระทบเงินจริงของคุณ จึงให้กรอกจากใบสลากหรือเว็บ ธ.ก.ส. โดยตรงเสมอ</p>
+      <h3 data-i18n="lsn5h">ข้อควรระวัง</h3>
+      <p data-i18n="lsn5p">เงินต้นมักได้คืนเต็มถ้าถือจนครบกำหนด แต่โอกาสถูกรางวัลใหญ่ต่ำมาก (มักน้อยกว่า 1 ในหลายแสนหรือหลายล้านต่อหน่วยต่องวด) — เหมาะเป็นส่วนเสริมของการออมที่มีความสนุกจากการลุ้น ไม่ควรใช้แทนแผนการเงินหลักหรือคาดหวังว่าจะได้กำไรก้อนใหญ่แน่นอน</p>
     </div>
   </details>
 
-  <div class="disc">ตัวเลขเป็นค่าคาดหวังทางสถิติจากสมมติฐานที่กรอก ไม่ใช่การรับประกันผลตอบแทน ไม่ใช่คำแนะนำการลงทุนหรือคำแนะนำภาษี · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
+  <div class="disc" data-i18n="footerDisc">ตัวเลขเป็นค่าคาดหวังทางสถิติจากสมมติฐานที่กรอก ไม่ใช่การรับประกันผลตอบแทน ไม่ใช่คำแนะนำการลงทุนหรือคำแนะนำภาษี · ข้อมูลเก็บในเครื่องคุณเท่านั้น</div>
 </div>
 
 <script src="invest-baac-lottery.js" defer></script>

@@ -16,6 +16,143 @@
   function baht(n) { return '฿' + fmt0(n); }
   function pct(n, d) { return isFinite(n) ? fmt(n, d == null ? 3 : d) + '%' : '—'; }
 
+  /* ══════ ระบบสองภาษา (ไทย/อังกฤษ) — ตามธรรมเนียมเดียวกับ invest-gold.js / invest-gsb-lottery.js ══════ */
+  var UI_LANG_KEY = 'ome:lang';
+  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
+  var I18N = {
+    th: {
+      navInvest: 'การลงทุน', pageTitleShort: 'สลาก ธ.ก.ส.',
+      pageTitle: 'สลาก ธ.ก.ส. — คำนวณค่าคาดหวัง (EV) เงินรางวัล + ติดตามผลจับรางวัล',
+      headSub: 'ตัวช่วยคิดค่าคาดหวังของสลากออมทรัพย์ ธ.ก.ส. ไม่ใช่การรับประกันผลตอบแทน',
+      tiersCardTitle: 'ข้อมูลสลากและตารางรางวัล (Prize Tiers)',
+      lblUnitPrice: 'ราคาต่อหน่วย (บาท) ', lblUnitPriceUnit: '(ต่างกันตามชุดสลาก 100–500 บาท)',
+      lblUnitPriceLg: 'ราคาต่อหน่วย (บาท)',
+      lblUnitsHeld: 'จำนวนหน่วยที่ถือ', lblUnits: 'จำนวนหน่วย',
+      lblPurchDate: 'วันที่ซื้อ', lblMaturity: 'วันครบกำหนด', lblDrawFreq: 'ความถี่จับรางวัล',
+      freqOnceLong: 'ทุกเดือน (1 ครั้ง) — วันที่ 16', freqTwiceLong: 'ทุกเดือน (2 ครั้ง) — วันที่ 1 และ 16',
+      freqOnce: 'ทุกเดือน (1 ครั้ง)', freqTwice: 'ทุกเดือน (2 ครั้ง)',
+      lblGuarRate: 'อัตราดอกเบี้ยรับประกัน/ปี (%) ', lblGuarRateUnit: '(ตัวอย่างเท่านั้น — แก้ตามใบสลากจริง)',
+      taxExemptLabel: 'ดอกเบี้ย/เงินรางวัลได้รับยกเว้นภาษี (ยกเลิกติ๊กถ้ารุ่นที่ถือหักภาษี ณ ที่จ่าย 15%)',
+      tierAddBtn: '+ เพิ่มระดับรางวัล',
+      tiersHint: 'กรอกตารางระดับรางวัลจากใบสลาก/เว็บ ธ.ก.ส. จริง — เพื่อนำมาคำนวณค่าคาดหวัง (ตารางรางวัลเปลี่ยนทุกงวด/ชุด แอปนี้จึงไม่มีตัวเลขให้ล่วงหน้า)',
+      calcBtn: 'คำนวณค่าคาดหวัง',
+      lblDrawCount: 'จำนวนงวดจับรางวัลทั้งหมด', lblEvUnit: 'ค่าคาดหวังต่อหน่วยต่องวด',
+      lblProbOne: 'โอกาสถูกอย่างน้อย 1 รางวัล/งวด', lblPrizeTotal: 'เงินรางวัลที่คาดว่าจะได้รวม',
+      lblInterestTotal: 'ดอกเบี้ยรับประกันรวม', lblTotalReturn: 'ผลตอบแทนรวมที่คาดหวัง',
+      lblTotalReturnSub: 'เงินต้น + ดอกเบี้ย + เงินรางวัล', lblAnnPct: 'อัตราผลตอบแทนคาดหวัง/ปี',
+      cmpTitle: 'เทียบกับเงินฝากประจำ', lblDepRate: 'อัตราดอกเบี้ยเงินฝากประจำที่จะเทียบ (%)', cmpBtn: 'เทียบผลตอบแทน',
+      cmpHint: 'ใช้เงินต้นและผลการคำนวณจากการ์ดด้านบน (กดคำนวณการ์ดนั้นก่อน)',
+      cmpColLottery: 'สลาก ธ.ก.ส. (ค่าคาดหวัง)', cmpColDeposit: 'เงินฝากประจำ',
+      cmpPrincipal: 'เงินต้น', cmpGainExpected: 'กำไรคาดหวัง (หลังภาษีตาม toggle)',
+      cmpGross: 'ดอกเบี้ยรวมก่อนภาษี', cmpNet: 'ดอกเบี้ยรวมหลังหักภาษี 15%', cmpSummary: 'สรุป',
+      cmpDiffLotWins: 'สลาก ธ.ก.ส. (ค่าคาดหวัง) ได้มากกว่า {v} ตลอด {n} ปี — ผลจริงรายบุคคลจะสุ่มต่างจากค่าคาดหวังนี้ได้มาก',
+      cmpDiffDepWins: 'เงินฝากประจำได้มากกว่า {v} ตลอด {n} ปี — ผลจริงรายบุคคลจะสุ่มต่างจากค่าคาดหวังนี้ได้มาก',
+      lgTitle: 'สมุดสลากของฉัน + ติดตามผลจับรางวัล',
+      lblLotteryName: 'ชื่อ/รุ่นสลาก', phLotteryName: 'เช่น สลากออมทรัพย์ ธ.ก.ส.',
+      lblEvPerDraw: 'ค่าคาดหวังต่อหน่วยต่องวด (บาท) ', lblEvPerDrawUnit: '(จากการ์ดด้านบน แก้ได้)',
+      addBtn: '+ บันทึก',
+      lgEmptyDefault: 'ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อสลาก จะได้ตารางวันจับรางวัลและติดตามว่างวดไหนถูกรางวัลหรือไม่ (ผลจริงต้องตรวจสอบเองจากธนาคาร/เว็บ ธ.ก.ส. แล้วบันทึกไว้ที่นี่)',
+      lgEmptyAfterAdd: 'ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อสลาก จะได้ตารางวันจับรางวัลและติดตามผลรางวัลจริงเทียบค่าคาดหวัง',
+      logThDate: 'วันที่ซื้อ', logThName: 'ชื่อ/รุ่น', logThUnits: 'หน่วย', logThMaturity: 'ครบกำหนด',
+      groupSummary: 'ถือ {units} หน่วย × {price} · จับรางวัล{freq}',
+      schedThDate: 'งวดวันที่', schedThStatus: 'สถานะ', schedThAmt: 'ผลรางวัล (บาท)',
+      statusRecorded: 'บันทึกแล้ว', statusPending: 'รอบันทึกผล', statusNotYet: 'ยังไม่ถึงวันจับ',
+      actualVsExpected: 'ผลจริงสะสม {actual} เทียบค่าคาดหวังตามจำนวนงวดที่ผ่านมา ({n} งวด) {expected} — {compare}',
+      compareAbove: 'ได้มากกว่าค่าคาดหวัง', compareBelow: 'ได้น้อยกว่าค่าคาดหวัง (ปกติมาก ผลรายบุคคลสุ่มต่างจาก EV ได้เสมอ)',
+      lessonSummary: 'เรียนรู้ — สลาก ธ.ก.ส. แบบเข้าใจง่าย',
+      lsn1h: 'สลากออมทรัพย์ ธ.ก.ส. คืออะไร',
+      lsn1p: 'เป็นการฝากเงินรูปแบบหนึ่งที่มีการลุ้นรางวัลแถมมา (คล้ายสลากออมสินของธนาคารออมสิน แต่ออกโดยธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร) — ต่างจากหวยทั่วไปตรงที่ <b>ได้เงินต้นคืนเต็มจำนวนเสมอถ้าถือจนครบกำหนด</b> ไม่ว่าจะถูกรางวัลหรือไม่ก็ตาม มีหลายชุดให้เลือก ราคาต่อหน่วยต่างกันตามชุด (พบทั้ง 100 และ 500 บาท) ควรเช็คราคาจริงจากใบสลากก่อนกรอก',
+      lsn2h: 'ทำไมใช้ "ค่าคาดหวัง (Expected Value)" แทนสัญญาว่าจะได้กำไร',
+      lsn2p: 'ผลลัพธ์จริงของแต่ละคนสุ่มมาก อาจถูกรางวัลใหญ่หรือไม่ถูกอะไรเลยตลอดอายุสลาก — ค่าคาดหวัง (EV) เป็น<b>ค่าเฉลี่ยระยะยาว</b>ถ้ามีคนซื้อ/ถือแบบเดียวกันจำนวนมากซ้ำๆ ไม่ใช่การรับประกันว่าคุณจะได้เท่านี้จริง เครื่องคำนวณด้านบนช่วยให้เห็นภาพรวมทางสถิติ ไม่ใช่คำทำนายผลจับรางวัลจริง',
+      lsn3h: 'ภาษีดอกเบี้ย/เงินรางวัล',
+      lsn3p: 'สลากออมทรัพย์ทั่วไป ดอกเบี้ยและเงินรางวัลมักได้รับยกเว้นภาษีเงินได้บุคคลธรรมดา แต่บางชุด/รุ่นอาจถูกหักภาษี ณ ที่จ่ายตามประกาศกรมสรรพากร — ข้อมูลไม่ชัดเจนพอจะฟันธงอัตราเดียวสำหรับทุกชุด จึงปรับได้ด้วย checkbox ในการ์ดคำนวณด้านบน',
+      lsn4h: 'ทำไมหน้านี้ไม่มีตารางรางวัล/อัตราดอกเบี้ยจริงให้',
+      lsn4p: 'ตารางรางวัลและอัตราดอกเบี้ยเปลี่ยนไปแทบทุกชุดที่ ธ.ก.ส. ออกใหม่ (เช่น ชุดถุงเงิน ชุดกระพ้อมทอง ชุดกระพ้อมเงิน) — ใส่ตัวเลขผิดในเครื่องคำนวณกระทบเงินจริงของคุณ จึงให้กรอกจากใบสลากหรือเว็บ ธ.ก.ส. โดยตรงเสมอ',
+      lsn5h: 'ข้อควรระวัง',
+      lsn5p: 'เงินต้นมักได้คืนเต็มถ้าถือจนครบกำหนด แต่โอกาสถูกรางวัลใหญ่ต่ำมาก (มักน้อยกว่า 1 ในหลายแสนหรือหลายล้านต่อหน่วยต่องวด) — เหมาะเป็นส่วนเสริมของการออมที่มีความสนุกจากการลุ้น ไม่ควรใช้แทนแผนการเงินหลักหรือคาดหวังว่าจะได้กำไรก้อนใหญ่แน่นอน',
+      footerDisc: 'ตัวเลขเป็นค่าคาดหวังทางสถิติจากสมมติฐานที่กรอก ไม่ใช่การรับประกันผลตอบแทน ไม่ใช่คำแนะนำการลงทุนหรือคำแนะนำภาษี · ข้อมูลเก็บในเครื่องคุณเท่านั้น',
+      alertUnitPrice: 'กรอกราคาต่อหน่วยให้ถูกต้อง', alertUnitsHeld: 'กรอกจำนวนหน่วยที่ถือให้ถูกต้อง',
+      alertDatesOrder: 'กรอกวันที่ซื้อและวันครบกำหนดให้ถูกต้อง (ครบกำหนดต้องอยู่หลังวันที่ซื้อ)',
+      alertCalcFirst: 'กดคำนวณค่าคาดหวังก่อน', alertDepRate: 'กรอกอัตราดอกเบี้ยเงินฝากประจำให้ถูกต้อง',
+      alertLotteryName: 'กรอกชื่อ/รุ่นสลาก', alertDates: 'กรอกวันที่ซื้อและวันครบกำหนดให้ถูกต้อง',
+      alertUnitPriceAndUnits: 'กรอกราคาต่อหน่วยและจำนวนหน่วยให้ถูกต้อง',
+      tierColLabel: 'ระดับรางวัล', tierColAmount: 'เงินรางวัล/หน่วย (บาท)', tierColWinners: 'จำนวนรางวัล/งวด',
+      tierColTotal: 'หน่วยทั้งหมดในงวด', tierPhLabel: 'เช่น รางวัลที่ 5'
+    },
+    en: {
+      navInvest: 'Investing', pageTitleShort: 'BAAC Savings Lottery',
+      pageTitle: 'BAAC Savings Lottery — Expected Value (EV) Calculator + Draw Result Tracker',
+      headSub: 'A tool for thinking about the expected value of Bank for Agriculture and Agricultural Cooperatives (BAAC) savings lottery bonds — not a guarantee of returns',
+      tiersCardTitle: 'Lottery Info and Prize Tiers',
+      lblUnitPrice: 'Price per unit (THB) ', lblUnitPriceUnit: '(varies by series — 100–500 THB)',
+      lblUnitPriceLg: 'Price per unit (THB)',
+      lblUnitsHeld: 'Units held', lblUnits: 'Units',
+      lblPurchDate: 'Purchase date', lblMaturity: 'Maturity date', lblDrawFreq: 'Draw frequency',
+      freqOnceLong: 'Monthly (once) — the 16th', freqTwiceLong: 'Monthly (twice) — the 1st and 16th',
+      freqOnce: 'Monthly (once)', freqTwice: 'Monthly (twice)',
+      lblGuarRate: 'Guaranteed interest rate/year (%) ', lblGuarRateUnit: '(example only — adjust to match your actual bond)',
+      taxExemptLabel: 'Interest/prizes are tax-exempt (uncheck if your series has 15% withholding tax)',
+      tierAddBtn: '+ Add prize tier',
+      tiersHint: "Enter the prize tier table from your lottery bond certificate or the BAAC website — used to calculate the expected value (the prize table changes almost every draw/series, so this app doesn't provide figures in advance)",
+      calcBtn: 'Calculate expected value',
+      lblDrawCount: 'Total number of draws', lblEvUnit: 'Expected value per unit per draw',
+      lblProbOne: 'Chance of winning at least 1 prize/draw', lblPrizeTotal: 'Total expected prize money',
+      lblInterestTotal: 'Total guaranteed interest', lblTotalReturn: 'Total expected return',
+      lblTotalReturnSub: 'Principal + interest + prize money', lblAnnPct: 'Expected annual return rate',
+      cmpTitle: 'Compare with a Fixed Deposit', lblDepRate: 'Fixed-deposit rate to compare against (%)', cmpBtn: 'Compare returns',
+      cmpHint: 'Uses the principal and results from the calculator card above (calculate that card first)',
+      cmpColLottery: 'BAAC Lottery (Expected Value)', cmpColDeposit: 'Fixed Deposit',
+      cmpPrincipal: 'Principal', cmpGainExpected: 'Expected gain (after tax per toggle)',
+      cmpGross: 'Total interest before tax', cmpNet: 'Total interest after 15% tax', cmpSummary: 'Summary',
+      cmpDiffLotWins: 'The BAAC lottery (expected value) earns {v} more over {n} years — an individual\'s actual result can vary a lot from this expected value',
+      cmpDiffDepWins: "The fixed deposit earns {v} more over {n} years — an individual's actual result can vary a lot from this expected value",
+      lgTitle: 'My Lottery Log + Draw Result Tracker',
+      lblLotteryName: 'Lottery name/series', phLotteryName: 'e.g. BAAC Savings Lottery Bond',
+      lblEvPerDraw: 'Expected value per unit per draw (THB) ', lblEvPerDrawUnit: '(from the card above, editable)',
+      addBtn: '+ Log',
+      lgEmptyDefault: "No entries yet — log every lottery bond you buy to get a draw schedule and track which draws you've won (real results must be checked yourself from the bank/BAAC website, then logged here)",
+      lgEmptyAfterAdd: 'No entries yet — log every lottery bond you buy to get a draw schedule and track your actual winnings against the expected value',
+      logThDate: 'Purchase date', logThName: 'Name/series', logThUnits: 'Units', logThMaturity: 'Maturity',
+      groupSummary: 'Holding {units} units × {price} · draws {freq}',
+      schedThDate: 'Draw date', schedThStatus: 'Status', schedThAmt: 'Prize (THB)',
+      statusRecorded: 'Recorded', statusPending: 'Awaiting entry', statusNotYet: 'Not drawn yet',
+      actualVsExpected: 'Actual winnings so far {actual} vs. expected value for the draws elapsed ({n} draws) {expected} — {compare}',
+      compareAbove: 'above the expected value', compareBelow: 'below the expected value (very normal — an individual\'s results always vary from EV)',
+      lessonSummary: 'Learn — BAAC Savings Lottery Made Simple',
+      lsn1h: 'What is a BAAC savings lottery bond',
+      lsn1p: "A type of deposit with a bonus chance to win prizes (similar to the Government Savings Bank's savings lottery, but issued by the Bank for Agriculture and Agricultural Cooperatives) — unlike an ordinary lottery, <b>you always get your full principal back if you hold to maturity</b>, whether you win a prize or not. Several series are available, with the price per unit varying by series (both 100 and 500 THB are seen) — check the actual price on your certificate before entering it.",
+      lsn2h: 'Why use "Expected Value" instead of a promised profit',
+      lsn2p: "Any one person's actual result is very random — you might win a big prize or nothing at all over the bond's whole life. Expected value (EV) is a <b>long-run average</b> if many people bought/held the same way repeatedly — it's not a guarantee you'll actually get this amount. The calculator above gives you the statistical big picture, not a prediction of the actual draw result.",
+      lsn3h: 'Tax on interest/prizes',
+      lsn3p: "For regular savings lottery bonds, interest and prizes are usually exempt from personal income tax, but some series may have withholding tax deducted per Revenue Department notices — the rules aren't clear enough to state one single rate for every series, so it can be adjusted with the checkbox in the calculator card above.",
+      lsn4h: 'Why this page has no real prize table/interest rate',
+      lsn4p: 'The prize table and interest rate change with almost every new series BAAC issues (e.g. the Money Bag series, Gold Winnow series, Silver Winnow series) — entering the wrong numbers into the calculator would affect your real money, so you\'re always asked to enter them from your actual certificate or the BAAC website directly.',
+      lsn5h: 'Things to watch out for',
+      lsn5p: "Your principal is usually returned in full if you hold to maturity, but the chance of winning a big prize is very low (often less than 1 in several hundred thousand or several million per unit per draw) — suited as a supplement to savings that adds some fun anticipation, not as a substitute for your main financial plan or with the expectation of a large guaranteed profit.",
+      footerDisc: 'These figures are a statistical expected value based on what you enter, not a guarantee of returns, and not investment or tax advice · data is stored on your device only',
+      alertUnitPrice: 'Enter a valid price per unit', alertUnitsHeld: 'Enter a valid number of units held',
+      alertDatesOrder: 'Enter valid purchase and maturity dates (maturity must be after the purchase date)',
+      alertCalcFirst: 'Calculate the expected value first', alertDepRate: 'Enter a valid fixed-deposit interest rate',
+      alertLotteryName: 'Enter the lottery name/series', alertDates: 'Enter valid purchase and maturity dates',
+      alertUnitPriceAndUnits: 'Enter a valid price per unit and number of units',
+      tierColLabel: 'Prize tier', tierColAmount: 'Prize per unit (THB)', tierColWinners: 'Number of winners/draw',
+      tierColTotal: 'Total units in the draw', tierPhLabel: 'e.g. 5th prize'
+    }
+  };
+  function t(key, vars) {
+    var s = (I18N[getUILang()] || I18N.th)[key];
+    if (s == null) s = (I18N.th[key] != null ? I18N.th[key] : key);
+    if (vars) { for (var k in vars) { s = s.split('{' + k + '}').join(vars[k]); } }
+    return s;
+  }
+  function applyStaticI18n() {
+    [].forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    [].forEach.call(document.querySelectorAll('[data-i18n-html]'), function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+    [].forEach.call(document.querySelectorAll('[data-i18n-placeholder]'), function (el) { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+  }
+  var FREQ_KEY = { '16': 'freqOnce', '1,16': 'freqTwice' };
+  function freqLabel(freq) { return t(FREQ_KEY[freq] || 'freqOnce'); }
+
   /* ── บวกเดือนแบบกันวันที่ overflow (คัดลอกจาก invest-gov-bond.js) ── */
   function addMonths(date, months) {
     var d = new Date(date.getTime());
@@ -66,19 +203,19 @@
 
   /* ── ค่าคาดหวัง (Expected Value) จากตารางระดับรางวัลหลายชั้น ──
      สมมติฐาน: แต่ละระดับรางวัลและแต่ละหน่วยที่ถือเป็นอิสระต่อกัน (simplifying assumption สำหรับมือใหม่) */
-  function tierProbability(t) {
-    if (!(t.totalUnits > 0) || !(t.winners >= 0)) return NaN;
-    return t.winners / t.totalUnits;
+  function tierProbability(tier) {
+    if (!(tier.totalUnits > 0) || !(tier.winners >= 0)) return NaN;
+    return tier.winners / tier.totalUnits;
   }
   function evPerUnitPerDraw(tiers) {
     var sum = 0;
-    tiers.forEach(function (t) { var p = tierProbability(t); if (isFinite(p)) sum += p * (t.amount || 0); });
+    tiers.forEach(function (tier) { var p = tierProbability(tier); if (isFinite(p)) sum += p * (tier.amount || 0); });
     return sum;
   }
   function probAtLeastOnePerDraw(tiers, unitsHeld) {
     var probNone = 1;
-    tiers.forEach(function (t) {
-      var p = tierProbability(t);
+    tiers.forEach(function (tier) {
+      var p = tierProbability(tier);
       if (isFinite(p)) probNone *= Math.pow(1 - p, unitsHeld);
     });
     return isFinite(probNone) ? 1 - probNone : NaN;
@@ -152,13 +289,13 @@
   function renderTierRows() {
     var box = $('tierBox');
     var html = '<table class="log-table tier-table"><thead><tr>' +
-      '<th>ระดับรางวัล</th><th>เงินรางวัล/หน่วย (บาท)</th><th>จำนวนรางวัล/งวด</th><th>หน่วยทั้งหมดในงวด</th><th></th></tr></thead><tbody>';
-    tiers.forEach(function (t, i) {
+      '<th>' + t('tierColLabel') + '</th><th>' + t('tierColAmount') + '</th><th>' + t('tierColWinners') + '</th><th>' + t('tierColTotal') + '</th><th></th></tr></thead><tbody>';
+    tiers.forEach(function (tier, i) {
       html += '<tr data-ti="' + i + '">' +
-        '<td><input type="text" class="t-label" value="' + (t.label || '').replace(/"/g, '&quot;') + '" placeholder="เช่น รางวัลที่ 5"></td>' +
-        '<td><input type="number" class="t-amount" value="' + (t.amount || '') + '" inputmode="decimal"></td>' +
-        '<td><input type="number" class="t-winners" value="' + (t.winners || '') + '" inputmode="numeric"></td>' +
-        '<td><input type="number" class="t-total" value="' + (t.totalUnits || '') + '" inputmode="numeric"></td>' +
+        '<td><input type="text" class="t-label" value="' + (tier.label || '').replace(/"/g, '&quot;') + '" placeholder="' + t('tierPhLabel') + '"></td>' +
+        '<td><input type="number" class="t-amount" value="' + (tier.amount || '') + '" inputmode="decimal"></td>' +
+        '<td><input type="number" class="t-winners" value="' + (tier.winners || '') + '" inputmode="numeric"></td>' +
+        '<td><input type="number" class="t-total" value="' + (tier.totalUnits || '') + '" inputmode="numeric"></td>' +
         '<td><button class="tier-del" data-i="' + i + '" type="button">✕</button></td></tr>';
     });
     html += '</tbody></table>';
@@ -177,9 +314,9 @@
         purchDate = parseYMD($('gbPurchDate').value), maturity = parseYMD($('gbMaturity').value),
         guarRate = num($('gbGuarRate').value), taxExempt = $('gbTaxExempt').checked,
         drawDays = parseDrawDays($('gbDrawFreq').value);
-    if (!isFinite(unitPrice) || unitPrice <= 0) { alert('กรอกราคาต่อหน่วยให้ถูกต้อง'); return; }
-    if (!isFinite(units) || units <= 0) { alert('กรอกจำนวนหน่วยที่ถือให้ถูกต้อง'); return; }
-    if (!purchDate || !maturity || !(maturity > purchDate)) { alert('กรอกวันที่ซื้อและวันครบกำหนดให้ถูกต้อง (ครบกำหนดต้องอยู่หลังวันที่ซื้อ)'); return; }
+    if (!isFinite(unitPrice) || unitPrice <= 0) { alert(t('alertUnitPrice')); return; }
+    if (!isFinite(units) || units <= 0) { alert(t('alertUnitsHeld')); return; }
+    if (!purchDate || !maturity || !(maturity > purchDate)) { alert(t('alertDatesOrder')); return; }
     if (!isFinite(guarRate) || guarRate < 0) guarRate = 0;
 
     var principal = unitPrice * units;
@@ -209,9 +346,9 @@
   }
 
   function doCompare() {
-    if (!lastCalc) { alert('กดคำนวณค่าคาดหวังก่อน'); return; }
+    if (!lastCalc) { alert(t('alertCalcFirst')); return; }
     var depRate = num($('cmpDepRate').value);
-    if (!isFinite(depRate) || depRate < 0) { alert('กรอกอัตราดอกเบี้ยเงินฝากประจำให้ถูกต้อง'); return; }
+    if (!isFinite(depRate) || depRate < 0) { alert(t('alertDepRate')); return; }
     var r = compareLotteryVsDeposit(lastCalc.principal, lastCalc.years, lastCalc.expectedResult, depRate);
     $('cmpOut').style.display = 'block';
     $('cmpLotPrincipal').textContent = baht(r.principal);
@@ -220,22 +357,21 @@
     $('cmpDepGross').textContent = baht(r.depGross);
     $('cmpDepNet').textContent = baht(r.depAfterTax);
     var diff = r.lotteryGainNet - r.depAfterTax;
-    $('cmpDiff').textContent = (diff >= 0 ? 'สลาก ธ.ก.ส. (ค่าคาดหวัง) ได้มากกว่า ' : 'เงินฝากประจำได้มากกว่า ') + baht(Math.abs(diff)) + ' ตลอด ' + fmt(r.years, 1) + ' ปี — ผลจริงรายบุคคลจะสุ่มต่างจากค่าคาดหวังนี้ได้มาก';
+    $('cmpDiff').textContent = t(diff >= 0 ? 'cmpDiffLotWins' : 'cmpDiffDepWins', { v: baht(Math.abs(diff)), n: fmt(r.years, 1) });
   }
 
   /* ── สมุดสลาก + ติดตามผลจับรางวัลรายงวด ── */
   function loadLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch (e) { return []; } }
   function saveLog(a) { try { localStorage.setItem(LOG_KEY, JSON.stringify(a)); } catch (e) {} }
-  var DRAW_LABEL = { '16': 'ทุกเดือน (1 ครั้ง)', '1,16': 'ทุกเดือน (2 ครั้ง)' };
 
   function addLog() {
     var name = ($('lgName').value || '').trim();
     var purchDate = parseYMD($('lgPurchDate').value), maturity = parseYMD($('lgMaturity').value);
     var unitPrice = num($('lgUnitPrice').value), units = num($('lgUnits').value),
         drawFreq = $('lgDrawFreq').value, evPerDraw = num($('lgEvPerDraw').value) || 0;
-    if (!name) { alert('กรอกชื่อ/รุ่นสลาก'); return; }
-    if (!purchDate || !maturity || !(maturity > purchDate)) { alert('กรอกวันที่ซื้อและวันครบกำหนดให้ถูกต้อง'); return; }
-    if (!isFinite(unitPrice) || unitPrice <= 0 || !isFinite(units) || units <= 0) { alert('กรอกราคาต่อหน่วยและจำนวนหน่วยให้ถูกต้อง'); return; }
+    if (!name) { alert(t('alertLotteryName')); return; }
+    if (!purchDate || !maturity || !(maturity > purchDate)) { alert(t('alertDates')); return; }
+    if (!isFinite(unitPrice) || unitPrice <= 0 || !isFinite(units) || units <= 0) { alert(t('alertUnitPriceAndUnits')); return; }
     var log = loadLog();
     log.push({
       name: name, purchDate: $('lgPurchDate').value, maturity: $('lgMaturity').value,
@@ -249,9 +385,9 @@
 
   function renderLog() {
     var log = loadLog(), box = $('lgBox');
-    if (!log.length) { box.innerHTML = '<div class="log-empty">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อสลาก จะได้ตารางวันจับรางวัลและติดตามผลรางวัลจริงเทียบค่าคาดหวัง</div>'; return; }
+    if (!log.length) { box.innerHTML = '<div class="log-empty">' + t('lgEmptyAfterAdd') + '</div>'; return; }
     var today = new Date();
-    var html = '<table class="log-table"><thead><tr><th>วันที่ซื้อ</th><th>ชื่อ/รุ่น</th><th>หน่วย</th><th>ครบกำหนด</th><th></th></tr></thead><tbody>';
+    var html = '<table class="log-table"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThName') + '</th><th>' + t('logThUnits') + '</th><th>' + t('logThMaturity') + '</th><th></th></tr></thead><tbody>';
     log.forEach(function (r, i) {
       html += '<tr><td>' + thaiDate(parseYMD(r.purchDate)) + '</td><td>' + r.name + '</td>' +
         '<td>' + fmt0(r.units) + '</td><td>' + thaiDate(parseYMD(r.maturity)) + '</td>' +
@@ -268,18 +404,20 @@
       var expectedSoFar = (r.evPerDraw || 0) * r.units * pastCount;
 
       html += '<div class="log-group-hd">' + r.name + '</div>';
-      html += '<div class="log-group-sub">ถือ ' + fmt0(r.units) + ' หน่วย × ' + baht(r.unitPrice) + ' · จับรางวัล' + (DRAW_LABEL[r.drawFreq] || '') + '</div>';
-      html += '<table class="log-table"><thead><tr><th>งวดวันที่</th><th>สถานะ</th><th>ผลรางวัล (บาท)</th></tr></thead><tbody>';
+      html += '<div class="log-group-sub">' + t('groupSummary', { units: fmt0(r.units), price: baht(r.unitPrice), freq: freqLabel(r.drawFreq) }) + '</div>';
+      html += '<table class="log-table"><thead><tr><th>' + t('schedThDate') + '</th><th>' + t('schedThStatus') + '</th><th>' + t('schedThAmt') + '</th></tr></thead><tbody>';
       sched.forEach(function (row) {
         var key = ymd(row.date), isPast = row.date <= today, recorded = r.results && r.results.hasOwnProperty(key);
         var val = recorded ? r.results[key] : '';
         html += '<tr><td>' + thaiDate(row.date) + '</td>' +
-          '<td>' + (isPast ? (recorded ? '<span class="cp-badge got">บันทึกแล้ว</span>' : '<span class="cp-badge wait">รอบันทึกผล</span>') : '<span class="cp-badge wait">ยังไม่ถึงวันจับ</span>') + '</td>' +
+          '<td>' + (isPast ? (recorded ? '<span class="cp-badge got">' + t('statusRecorded') + '</span>' : '<span class="cp-badge wait">' + t('statusPending') + '</span>') : '<span class="cp-badge wait">' + t('statusNotYet') + '</span>') + '</td>' +
           '<td>' + (isPast ? '<input type="number" inputmode="decimal" class="draw-input" data-li="' + li + '" data-key="' + key + '" value="' + val + '" placeholder="0">' : '<span style="color:var(--muted)">—</span>') + '</td></tr>';
       });
       html += '</tbody></table>';
-      html += '<div class="log-group-sub" style="margin-top:6px">ผลจริงสะสม <b>' + baht(actualTotal) + '</b> เทียบค่าคาดหวังตามจำนวนงวดที่ผ่านมา (' + pastCount + ' งวด) <b>' + baht(expectedSoFar) + '</b> — ' +
-        (actualTotal >= expectedSoFar ? 'ได้มากกว่าค่าคาดหวัง' : 'ได้น้อยกว่าค่าคาดหวัง (ปกติมาก ผลรายบุคคลสุ่มต่างจาก EV ได้เสมอ)') + '</div>';
+      html += '<div class="log-group-sub" style="margin-top:6px">' + t('actualVsExpected', {
+        actual: '<b>' + baht(actualTotal) + '</b>', n: pastCount, expected: '<b>' + baht(expectedSoFar) + '</b>',
+        compare: actualTotal >= expectedSoFar ? t('compareAbove') : t('compareBelow')
+      }) + '</div>';
     });
 
     box.innerHTML = html;
@@ -311,6 +449,7 @@
   }
 
   function init() {
+    applyStaticI18n();
     var saved = loadState();
     tiers = (saved && saved.tiers && saved.tiers.length) ? saved.tiers : defaultTiers();
     if (saved) {
@@ -329,6 +468,15 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+
+  window.omeApplyLang = function () {
+    applyStaticI18n();
+    readTiersFromUI(); /* กันไม่ให้ค่าที่พิมพ์ในตารางระดับรางวัลหายตอนสลับภาษา (ยังไม่ commit ผ่าน doCalc/เพิ่ม/ลบแถว) */
+    renderTierRows();
+    if ($('gbOut').style.display !== 'none') doCalc();
+    if ($('cmpOut').style.display !== 'none') doCompare();
+    renderLog();
+  };
 
   window.__baaclottery = {
     drawSchedule: drawSchedule, parseDrawDays: parseDrawDays, addMonths: addMonths, ymd: ymd,
