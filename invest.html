@@ -230,7 +230,6 @@ h1,h2,h3{text-wrap:balance}
 <nav class="ivnav" id="ivNav">
   <div class="ivgroups" id="ivGroups">
     <button class="on" type="button" data-group="overview"><span class="ic">⌂</span>ภาพรวม</button>
-    <button type="button" class="js-open-tool" data-tool-url="invest-portfolio.html" data-group="portfolio"><span class="ic">◉</span>พอร์ตของฉัน</button>
     <button type="button" data-group="market"><span class="ic">◈</span>ตลาด &amp; สินทรัพย์</button>
     <button type="button" data-group="lottery"><span class="ic">🎟</span>สลาก &amp; พันธบัตร</button>
     <button type="button" data-group="news"><span class="ic">✎</span>ข่าว &amp; ธุรกิจ</button>
@@ -509,9 +508,23 @@ h1,h2,h3{text-wrap:balance}
   function loadQuoteCache(sym) { try { var o = JSON.parse(localStorage.getItem(quoteCacheKey(sym))); return (o && isFinite(o.price)) ? o : null; } catch (e) { return null; } }
   function saveQuoteCache(sym, q) { try { localStorage.setItem(quoteCacheKey(sym), JSON.stringify({ ts: Date.now(), price: q.price, prevClose: q.prevClose })); } catch (e) {} }
   function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
-  function loadOneQuote(sym, suffix, offset, cacheSym) {
+  /* ตลาดปิดแน่ๆ ช่วงไหนบ้าง (เดา “คร่าวๆ” พอกันยิง fetch เปล่าๆ ตอนรู้อยู่แล้วว่าราคาไม่ขยับ
+     ไม่ได้เช็คปฏิทินวันหยุดจริง — คริปโต/ฟิวเจอร์สเทรดต่อเนื่องเกือบตลอด เลยข้ามการเช็คนี้ไปเลย) */
+  function marketLikelyOpen(sym, suffix) {
+    var isContinuous = /-USD$/.test(sym) || /=F$/.test(sym) || sym === 'DX-Y.NYB';
+    if (isContinuous) return true;
+    var now = new Date(), day = now.getDay(); /* 0=อาทิตย์, 6=เสาร์ (เวลาเครื่องผู้ใช้ — พอเป็นตัวกันหยาบๆ) */
+    if (day === 0 || day === 6) return false;
+    if (suffix === '.BK') { var thaiHour = (now.getUTCHours() + 7) % 24; return thaiHour >= 9 && thaiHour < 17; }
+    return true; /* หุ้นนอกวันธรรมดา — ไม่เช็คชั่วโมงละเอียดเพราะตลาดโลกคาบเกี่ยวกันหลายโซนเวลา */
+  }
+  function loadOneQuote(sym, suffix, offset, cacheSym, force) {
     var cached = loadQuoteCache(cacheSym), fresh = cached && (Date.now() - cached.ts < 3600 * 1000);
-    if (fresh) return Promise.resolve(cached);
+    if (fresh && !force) return Promise.resolve(cached);
+    /* มีค่าที่เคยดึงได้อยู่แล้ว + ตอนนี้ตลาดปิดแน่ๆ (เช่น เสาร์-อาทิตย์) — ใช้ค่าล่าสุดที่มีเลย ไม่ต้องยิงจริง
+       ราคาปิดวันศุกร์ก็คือราคาล่าสุดจริงๆ อยู่ดี ไม่ใช่ข้อมูลเก่าที่ผิด แค่ยังไม่มีข้อมูลใหม่กว่านี้ให้ดึง
+       (กดปุ่มรีเฟรชเองข้ามเงื่อนไขนี้ได้ — force=true แปลว่าผู้ใช้ตั้งใจลองจริงๆ) */
+    if (cached && !force && !marketLikelyOpen(sym, suffix)) return Promise.resolve(cached);
     function viaProxyChain() {
       var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + suffix + '?range=5d&interval=1d';
       var tries = proxyTries(base, offset), i = 0;
@@ -591,14 +604,14 @@ h1,h2,h3{text-wrap:balance}
       $('tkStatus').textContent = live ? live + '/' + syms.length + ' ราคาล่าสุด' : 'ยังดึงราคาไม่ได้ — แสดงจากแคชหรือรอใหม่ภายหลัง';
     }
   }
-  function loadMarketGroup(g) {
+  function loadMarketGroup(g, force) {
     var syms = groupSymbols(g), suffix = MARKET_GROUPS[g].suffix;
     /* หน่วงจุดเริ่มของแต่ละสัญลักษณ์เล็กน้อย กันยิงเข้า CORS-proxy เดียวกันพร้อมกันจนโดน rate-limit (429) เอง */
     return Promise.all(syms.map(function (s, i) {
-      return delay(i * 260).then(function () { return loadOneQuote(s, suffix, i, (suffix ? 'bk:' : 'px:') + s); }).then(function (q) { marketQuotes[g][s] = q; }).catch(function () {});
+      return delay(i * 260).then(function () { return loadOneQuote(s, suffix, i, (suffix ? 'bk:' : 'px:') + s, force); }).then(function (q) { marketQuotes[g][s] = q; }).catch(function () {});
     })).then(function () { renderMarketGroup(g); });
   }
-  function loadAllMarkets() { return Promise.all(['thai', 'global', 'commod'].map(loadMarketGroup)); }
+  function loadAllMarkets(force) { return Promise.all(['thai', 'global', 'commod'].map(function (g) { return loadMarketGroup(g, force); })); }
 
   /* ══ ดัชนีความกลัว-โลภ (alternative.me, best-effort — เหมือน invest-bitcoin.js) ══
      เป็นดัชนีอารมณ์ตลาดคริปโตเท่านั้น ไม่ใช่ของหุ้นไทย/หุ้นนอก — ใส่ไว้เป็นบริบทประกอบเพิ่มเติม
@@ -873,7 +886,7 @@ h1,h2,h3{text-wrap:balance}
      (ไม่แคชค่า fail ไว้ จึงลองใหม่ทุกครั้งที่กด ส่วนตัวที่ดึงได้แล้วในชั่วโมงนี้จะเร็วเพราะอ่านจากแคช) */
   $('marketRefreshBtn').addEventListener('click', function () {
     var btn = this; btn.classList.add('spin');
-    loadAllMarkets().finally(function () { btn.classList.remove('spin'); });
+    loadAllMarkets(true).finally(function () { btn.classList.remove('spin'); });
   });
 
   /* ══ แถบนำทาง 2 ชั้น — สร้างหมวดย่อยจาก window.INVEST_CATS (ที่มาเดียวกับเมนูแฮมเบอร์เกอร์) ══ */
@@ -913,7 +926,6 @@ h1,h2,h3{text-wrap:balance}
 
   var groupBtns = document.querySelectorAll('#ivGroups button[data-group]');
   groupBtns.forEach(function (b) {
-    if (b.classList.contains('js-open-tool')) return; /* พอร์ตของฉัน — เปิดป๊อปอัพแทน (ผูก event แยกด้านล่าง) */
     b.addEventListener('click', function () {
       if (b.dataset.href) { location.href = b.dataset.href; return; }
       groupBtns.forEach(function (x) { x.classList.toggle('on', x === b); });
@@ -933,6 +945,8 @@ h1,h2,h3{text-wrap:balance}
       frame.style.height = '70vh';
       frame.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'embed=1';
       overlay.hidden = false;
+      overlay.scrollTop = 0; /* overlay เป็น element เดิมที่ใช้ซ้ำทุกครั้ง — ถ้าเลื่อนค้างจากรอบก่อน
+        เปิดใหม่จะโผล่กลางเนื้อหาเดิมแทนที่จะเริ่มจากบนสุด (การ์ดบนสุดโดนตัดครึ่ง) ต้องรีเซ็ตทุกครั้งที่เปิด */
       document.documentElement.style.overflow = 'hidden';
     }
     function closeToolModal() {
