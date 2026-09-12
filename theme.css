@@ -611,3 +611,20 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
     linear-gradient(120deg, var(--ome-brand), var(--ome-brand-sf) 45%, var(--ome-brand-dk))!important;
   background-origin:border-box!important;background-clip:padding-box, border-box!important;
   box-shadow:var(--ome-sh), 0 0 28px color-mix(in srgb, var(--ome-brand) 18%, transparent)!important}
+
+/* ══════════════════════════════════════════════════════════════════
+   กล่องยืนยัน/แจ้งเตือนกลาง (tanotConfirm/tanotAlert ใน shell.js) — ใช้แทน
+   confirm()/alert() ของเบราว์เซอร์ ซึ่งเป็นกล่องดำของระบบปฏิบัติการเอง
+   แต่งด้วย CSS ไม่ได้เลยไม่ว่าเบราว์เซอร์ไหน (ข้อจำกัดของแพลตฟอร์ม ไม่ใช่โค้ด
+   เว็บ) — นี่คือ HTML/CSS ของเราเอง จึงหน้าตาตรงกับธีมเว็บได้จริง ══ */
+.tanot-modal-overlay{position:fixed;inset:0;background:rgba(11,18,35,.5);z-index:9999;
+  display:flex;align-items:center;justify-content:center;padding:20px}
+.tanot-modal-box{background:var(--ome-card);color:var(--ome-ink);border-radius:16px;
+  box-shadow:0 24px 60px rgba(10,16,32,.35);padding:22px;width:100%;max-width:360px;
+  font-family:var(--ome-f);font-size:14px;line-height:1.65}
+.tanot-modal-msg{white-space:pre-wrap}
+.tanot-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.tanot-modal-actions button{font:inherit;font-weight:700;font-size:13.5px;border-radius:10px;
+  padding:9px 16px;cursor:pointer;border:1.5px solid var(--ome-line);background:var(--ome-card);color:var(--ome-ink)}
+.tanot-modal-actions button.primary{background:var(--ome-brand);border-color:var(--ome-brand);color:#fff}
+.tanot-modal-actions button.danger{background:var(--ome-err);border-color:var(--ome-err);color:#fff}

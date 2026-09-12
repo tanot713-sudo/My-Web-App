@@ -20,6 +20,14 @@
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
   function fmt0(n) { return isFinite(n) ? Math.round(n).toLocaleString('th-TH') : '—'; }
 
+  /* หน้านี้เปิดเป็นป๊อปอัพ (iframe) จาก invest.html ได้ด้วย ?embed=1&sym=XXX — โฟกัสเฉพาะหุ้นตัวนั้น
+     ตัวเดียว: การ์ด "พอร์ตของฉัน (หุ้นไทย)" ด้านล่างจะกรองให้เห็นแค่ตำแหน่งของสัญลักษณ์นี้ (ดู renderPf) */
+  var EMBED_SYM = null;
+  if (new URLSearchParams(location.search).get('embed')) {
+    document.body.classList.add('embedded');
+    EMBED_SYM = (new URLSearchParams(location.search).get('sym') || '').trim().toUpperCase() || null;
+  }
+
   /* พอร์ต (หุ้นไทย) — เก็บ+สำรองผ่านโมดูลกลาง invest-drivesync.js (ใช้ร่วมกับสมุดเทรดในหน้าแยก) */
   var loadPf = window.InvestDrive.loadPf, savePf = window.InvestDrive.savePf, DriveSync = window.InvestDrive.DriveSync;
 
@@ -911,14 +919,17 @@
   function addHolding() {
     var sym = ($('pfSym').value || '').trim().toUpperCase();
     var shares = num($('pfShares').value), cost = num($('pfCost').value);
-    if (!sym) { alert('ใส่ชื่อหุ้นก่อน'); return; }
-    if (!isFinite(shares) || shares <= 0 || !isFinite(cost) || cost <= 0) { alert('กรอกจำนวนหุ้นและราคาต้นทุนให้ถูกต้อง'); return; }
+    if (!sym) { window.tanotAlert('ใส่ชื่อหุ้นก่อน'); return; }
+    if (!isFinite(shares) || shares <= 0 || !isFinite(cost) || cost <= 0) { window.tanotAlert('กรอกจำนวนหุ้นและราคาต้นทุนให้ถูกต้อง'); return; }
     var pf = loadPf(); pf.push({ sym: sym, shares: shares, cost: cost, ts: Date.now() });
     savePf(pf); $('pfSym').value = ''; $('pfShares').value = ''; $('pfCost').value = ''; renderPf();
   }
   function renderPf() {
-    var pf = loadPf(), box = $('pfBox');
-    if (!pf.length) { box.innerHTML = '<div class="pf-empty">ยังไม่มีหุ้นในพอร์ต — คำนวณด้านบนแล้วกด "บันทึกเข้าพอร์ต"</div>'; return; }
+    /* ในโหมดป๊อปอัพโฟกัสหุ้นตัวเดียว (EMBED_SYM) กรองให้เห็นแค่ตำแหน่งของสัญลักษณ์นั้น —
+       ลบ/แก้ไขยังอ้างอิงกลับไปที่ array เต็ม (pfAll) ผ่าน object reference กันดัชนีเพี้ยน */
+    var pfAll = loadPf(), box = $('pfBox');
+    var pf = EMBED_SYM ? pfAll.filter(function (h) { return h.sym === EMBED_SYM; }) : pfAll;
+    if (!pf.length) { box.innerHTML = '<div class="pf-empty">' + (EMBED_SYM ? 'ยังไม่มี ' + EMBED_SYM + ' ในพอร์ต' : 'ยังไม่มีหุ้นในพอร์ต — คำนวณด้านบนแล้วกด "บันทึกเข้าพอร์ต"') + '</div>'; return; }
     var html = '<table class="pf-table"><thead><tr><th>หุ้น</th><th>จำนวน</th><th>ต้นทุน/หุ้น</th><th>ราคาปัจจุบัน</th><th>กำไร/ขาดทุน</th><th></th></tr></thead><tbody>';
     pf.forEach(function (h, i) {
       html += '<tr data-i="' + i + '"><td>' + h.sym + '</td><td>' + fmt0(h.shares) + '</td><td>' + fmt(h.cost) + '</td>' +
@@ -937,13 +948,13 @@
         cell.textContent = (pl >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(pl)) + ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)';
         cell.className = 'pf-pl ' + (pl >= 0 ? 'up' : 'down');
       }
-      inp.addEventListener('input', function () { upd(); h.cur = num(inp.value); savePf(pf); });
-      tr.querySelector('.pf-del').addEventListener('click', function () { pf.splice(i, 1); savePf(pf); renderPf(); });
+      inp.addEventListener('input', function () { upd(); h.cur = num(inp.value); savePf(pfAll); });
+      tr.querySelector('.pf-del').addEventListener('click', function () { var realIdx = pfAll.indexOf(h); if (realIdx >= 0) pfAll.splice(realIdx, 1); savePf(pfAll); renderPf(); });
       tr.querySelector('.pf-sell').addEventListener('click', function () {
         sellCell.innerHTML = '<div class="sell-verdict warn">กำลังดึงราคา ' + h.sym + '…</div>';
         getSeries(h.sym).then(function (r) {
           var s = r.series, a = analyzeSeries(s), v = sellVerdict(a), price = s.closes[s.closes.length - 1];
-          inp.value = price.toFixed(2); h.cur = price; savePf(pf); upd();
+          inp.value = price.toFixed(2); h.cur = price; savePf(pfAll); upd();
           var pl = (price - h.cost) * h.shares, pct = (price / h.cost - 1) * 100;
           sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict ' + v.cls + '">' + v.headline +
             '<br><span style="font-weight:500">ราคาล่าสุด ' + fmt(price) + (r.stale ? ' (บันทึกไว้ ' + cacheAgeText(r.cachedAt) + ')' : '') +

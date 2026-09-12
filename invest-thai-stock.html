@@ -242,6 +242,14 @@ details[open]>summary::before{transform:rotate(45deg)}
 .reality-cta a{color:var(--act-ink);font-weight:700}
 .disc{font-size:var(--t1);color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
 @media(max-width:600px){h1{font-size:var(--t4)}}
+
+/* ── เปิดในกรอบป๊อปอัพจาก invest.html (?embed=1&sym=XXX) — ดูรายละเอียดหุ้นตัวเดียวแบบโฟกัส
+   ตัดส่วนที่ไม่จำเป็นในบริบทป๊อปอัพออก: แถบนำทาง/breadcrumb ของหน้านี้เอง, ช่องดึงราคาด้วยมือ
+   (เปิดมาก็มีราคาให้แล้วจาก ?sym=), บทเรียน/เตือนเงินเย็น (จะไปรวมหน้าเดียวทีหลัง), disclaimer ท้ายหน้า,
+   ฟอร์มเพิ่มหุ้นเข้าพอร์ต (โชว์แค่ตำแหน่งของสัญลักษณ์นี้ตัวเดียวพอ) ── */
+body.embedded{padding-top:14px}
+body.embedded .ivnav,body.embedded .crumb,body.embedded #stepPriceCard,body.embedded .reality,body.embedded .lesson,body.embedded .disc{display:none}
+body.embedded .pf-addform{display:none}
 </style>
 </head>
 <body class="ome-tool-page" data-invest-key="thai-stock">
@@ -294,7 +302,7 @@ details[open]>summary::before{transform:rotate(45deg)}
   <div class="tabpanel on" id="p-ov">
 
   <!-- STEP 1: ราคา -->
-  <div class="card">
+  <div class="card" id="stepPriceCard">
     <h2><span class="step">1</span> ราคาหุ้นตอนนี้</h2>
     <div class="frow">
       <div class="field" style="flex:1 1 140px">
@@ -430,7 +438,7 @@ details[open]>summary::before{transform:rotate(45deg)}
   <div class="card">
     <div class="head"><h2>พอร์ตของฉัน (หุ้นไทย)</h2><a href="invest-portfolio.html" style="font-size:var(--t1);font-weight:700;color:var(--act-ink)">ดูพอร์ตรวมทั้งเว็บ →</a></div>
     <p class="status">เพิ่มหุ้นที่ถืออยู่ได้ตรงนี้ แล้วกด "ควรขาย?" เพื่อให้เครื่องช่วยดูจังหวะขาย (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อในหน้าสมุดเทรด)</p>
-    <div class="frow" style="margin-top:10px">
+    <div class="frow pf-addform" style="margin-top:10px">
       <div class="field" style="flex:1 1 90px"><label>ชื่อหุ้น</label><input type="text" id="pfSym" placeholder="PTT" autocomplete="off" spellcheck="false"></div>
       <div class="field"><label>จำนวนหุ้น</label><input type="number" id="pfShares" inputmode="numeric" placeholder="100"></div>
       <div class="field"><label>ราคาต้นทุน/หุ้น</label><input type="number" id="pfCost" inputmode="decimal" step="0.01" placeholder="35.50"></div>

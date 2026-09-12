@@ -700,6 +700,57 @@
     }
   }
 
+  /* ── กล่องยืนยัน/แจ้งเตือนของเว็บเอง (แทน confirm()/alert() ของเบราว์เซอร์)
+     ใช้เพราะกล่อง confirm()/alert() ของเบราว์เซอร์เป็นกล่องของระบบปฏิบัติการ
+     (ดำ/เทา แล้วแต่เครื่อง) แต่งด้วย CSS จากเว็บไม่ได้เลยไม่ว่ากรณีไหน ทุกหน้า
+     เรียกใช้ผ่าน window.tanotConfirm(msg, opts) / window.tanotAlert(msg) แทน
+     confirm()/alert() ตรงๆ ได้เลย ทั้งคู่คืน Promise ══ */
+  function tanotModal(msg, buttons) {
+    return new Promise(function (resolve) {
+      var overlay = document.createElement('div');
+      overlay.className = 'tanot-modal-overlay';
+      var box = document.createElement('div');
+      box.className = 'tanot-modal-box';
+      var p = document.createElement('div');
+      p.className = 'tanot-modal-msg';
+      p.textContent = msg;
+      box.appendChild(p);
+      var actions = document.createElement('div');
+      actions.className = 'tanot-modal-actions';
+      function done(value) {
+        if (!overlay.parentNode) return;
+        document.body.removeChild(overlay);
+        document.removeEventListener('keydown', onKey);
+        resolve(value);
+      }
+      function onKey(e) { if (e.key === 'Escape') done(false); }
+      buttons.forEach(function (b) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = b.cls || '';
+        btn.textContent = b.label;
+        btn.addEventListener('click', function () { done(b.value); });
+        actions.appendChild(btn);
+      });
+      box.appendChild(actions);
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+      if (actions.lastChild) actions.lastChild.focus();
+      document.addEventListener('keydown', onKey);
+    });
+  }
+  window.tanotConfirm = function (msg, opts) {
+    opts = opts || {};
+    return tanotModal(msg, [
+      { label: opts.cancelLabel || 'ยกเลิก', value: false },
+      { label: opts.okLabel || 'ตกลง', value: true, cls: opts.danger ? 'danger' : 'primary' }
+    ]);
+  };
+  window.tanotAlert = function (msg, opts) {
+    opts = opts || {};
+    return tanotModal(msg, [{ label: opts.okLabel || 'ตกลง', value: true, cls: 'primary' }]);
+  };
+
   function initShellChrome() {
     if (!isEmbedded()) { buildNav(); buildFooter(); } /* ในป๊อปอัพ ไม่ต้องมีแถบนำทาง/เมนูลิ้นชัก/ฟุตเตอร์ซ้ำ */
     registerSW();

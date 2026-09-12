@@ -97,6 +97,8 @@ h1,h2,h3{text-wrap:balance}
 
 .tickergrid{display:grid;grid-template-columns:repeat(6,1fr);gap:9px}
 .ticker{border:1px solid var(--line);border-radius:12px;padding:11px;background:var(--bg)}
+.ticker.js-open-tool{cursor:pointer;transition:.12s}
+.ticker.js-open-tool:hover{border-color:var(--iv);transform:translateY(-1px)}
 .ticker b{display:block;font-size:11px;font-weight:700;color:var(--muted)}
 .ticker .px{display:block;font-size:15px;font-weight:800;margin:5px 0 2px;font-variant-numeric:tabular-nums}
 .ticker .chg{font-size:10.5px;font-weight:700;color:var(--muted)}
@@ -110,9 +112,13 @@ h1,h2,h3{text-wrap:balance}
 .mkt-head a{margin-left:auto;font-size:12px;color:var(--iv-dk);text-decoration:none;font-weight:700}
 .gear-btn{border:0;background:none;color:var(--muted);opacity:.55;font-size:13px;cursor:pointer;padding:2px;line-height:1;border-radius:6px}
 .gear-btn:hover{opacity:1;color:var(--iv-dk)}
-.gear-panel{margin-top:10px;padding:10px;background:var(--bg);border-radius:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.gear-panel{margin-top:10px;padding:12px;background:var(--bg);border-radius:10px}
 .gear-panel[hidden]{display:none}
-.gear-panel input{flex:1 1 200px;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;background:var(--card);color:var(--ink)}
+.gp-check-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px 10px}
+.gp-check{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink);cursor:pointer}
+.gp-check input{margin:0;flex-shrink:0}
+.gear-panel .gp-extra{display:block;width:100%;box-sizing:border-box;margin-top:10px;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;background:var(--card);color:var(--ink)}
+.gp-actions{display:flex;gap:10px;align-items:center;margin-top:10px}
 .gear-panel .gp-save{border:0;background:var(--iv);color:#fff;border-radius:8px;padding:7px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .gear-panel .gp-reset{border:0;background:none;color:var(--muted);font:inherit;font-size:11.5px;text-decoration:underline;cursor:pointer;padding:0}
 
@@ -508,9 +514,21 @@ h1,h2,h3{text-wrap:balance}
      มันสำปะหลัง/ค่าระวางเรือ ยังไม่มีในตัวเลือก เพราะยังไม่พบ ticker สาธารณะฟรีที่มั่นใจได้ (เหมือนหน้า
      ค่าเงิน & วัตถุดิบ) ══ */
   var MARKET_GROUPS = {
-    thai: { suffix: '.BK', defaultSyms: ['SET', 'ADVANC', 'PTT', 'CPALL', 'DELTA', 'BDMS'] },
-    global: { suffix: '', defaultSyms: ['AAPL', 'MSFT', 'BTC-USD'] },
-    commod: { suffix: '', defaultSyms: ['GC=F', 'CL=F', 'HRC=F', 'HG=F'] }
+    thai: {
+      suffix: '.BK', defaultSyms: ['SET', 'ADVANC', 'PTT', 'CPALL', 'DELTA', 'BDMS'], allowCustom: true,
+      candidates: { SET: 'ดัชนี SET', ADVANC: 'ADVANC (AIS)', PTT: 'PTT', CPALL: 'CPALL (7-Eleven)', DELTA: 'DELTA', BDMS: 'BDMS (รพ.กรุงเทพ)',
+        KBANK: 'KBANK', SCB: 'SCB', AOT: 'AOT (สนามบิน)', BBL: 'BBL', SCC: 'SCC (ปูนซิเมนต์ไทย)', TRUE: 'TRUE',
+        GULF: 'GULF', BANPU: 'BANPU', IVL: 'IVL', TOP: 'TOP', PTTEP: 'PTTEP', CPF: 'CPF', BH: 'BH (รพ.บำรุงราษฎร์)', HMPRO: 'HMPRO' }
+    },
+    global: {
+      suffix: '', defaultSyms: ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'BTC-USD'],
+      candidates: { AAPL: 'Apple', MSFT: 'Microsoft', GOOGL: 'Google (Alphabet)', AMZN: 'Amazon', NVDA: 'NVIDIA', META: 'Meta', TSLA: 'Tesla', 'BTC-USD': 'Bitcoin', 'ETH-USD': 'Ethereum' }
+    },
+    commod: {
+      suffix: '', defaultSyms: ['GC=F', 'SI=F', 'CL=F', 'NG=F', 'HRC=F', 'HG=F'],
+      candidates: { 'GC=F': 'ทองคำ', 'SI=F': 'เงิน (Silver)', 'CL=F': 'น้ำมัน WTI', 'BZ=F': 'น้ำมันดิบ Brent', 'NG=F': 'ก๊าซธรรมชาติ',
+        'HG=F': 'ทองแดง', 'HRC=F': 'เหล็ก (HRC)', 'SB=F': 'น้ำตาลทราย', 'KC=F': 'กาแฟ', 'ZR=F': 'ข้าว (Rough Rice)', 'DX-Y.NYB': 'ดัชนีดอลลาร์' }
+    }
   };
   function watchKey(g) { return 'tanot:invest:hub:watch:' + g; }
   function loadCustomWatch(g) {
@@ -533,10 +551,12 @@ h1,h2,h3{text-wrap:balance}
   var marketQuotes = { thai: {}, global: {}, commod: {} };
   function renderMarketGroup(g) {
     var syms = groupSymbols(g), grid = $('mkGrid-' + g), quotes = marketQuotes[g];
+    /* ตอนนี้เปิดป๊อปอัพดูรายละเอียดได้เฉพาะ "หุ้นไทย" ก่อน (ทำหน้านี้ให้เสร็จสมบูรณ์แล้วค่อยขยายกลุ่มอื่นทีหลัง) */
+    var clickable = g === 'thai';
     grid.innerHTML = syms.length ? syms.map(function (s) {
       var q = quotes[s];
       var chg = q && isFinite(q.prevClose) && q.prevClose ? (q.price / q.prevClose - 1) * 100 : NaN;
-      return '<div class="ticker"><b>' + esc(s) + '</b><span class="px">' + (q ? N(q.price).toLocaleString('th-TH', { maximumFractionDigits: 2 }) : '—') + '</span>' +
+      return '<div class="ticker' + (clickable ? ' js-open-tool' : '') + '"' + (clickable ? ' data-tool-url="invest-thai-stock.html?sym=' + encodeURIComponent(s) + '"' : '') + '><b>' + esc(s) + '</b><span class="px">' + (q ? N(q.price).toLocaleString('th-TH', { maximumFractionDigits: 2 }) : '—') + '</span>' +
         '<span class="chg ' + (isFinite(chg) ? (chg >= 0 ? 'up' : 'dn') : '') + '">' + (isFinite(chg) ? pct(chg, 2) : 'รอราคา') + '</span></div>';
     }).join('') : '<p class="empty-hint">ยังไม่ได้เลือกสัญลักษณ์ — กด ⚙ เพื่อเพิ่ม</p>';
     if (g === 'thai') {
@@ -554,21 +574,29 @@ h1,h2,h3{text-wrap:balance}
   }
   function loadAllMarkets() { return Promise.all(['thai', 'global', 'commod'].map(loadMarketGroup)); }
 
-  /* ── กดฟันเฟืองต่อกลุ่มตลาด — เปิดกล่องเล็กๆ ให้พิมพ์สัญลักษณ์ที่อยากดู (คั่นด้วยจุลภาค) แทนของเดิม ── */
+  /* ── กดฟันเฟืองต่อกลุ่มตลาด — เลือกจากรายชื่อยอดนิยม (checkbox) แทนพิมพ์เอง
+     ("หุ้นไทย" มีช่อง "เพิ่มเอง" เสริมด้วย เพราะหุ้นไทยเลือกได้มากกว่ารายการยอดนิยมที่ใส่ไว้) ── */
   [].forEach.call(document.querySelectorAll('.gear-btn'), function (btn) {
-    var g = btn.getAttribute('data-group'), panel = $('gearPanel-' + g);
+    var g = btn.getAttribute('data-group'), panel = $('gearPanel-' + g), meta = MARKET_GROUPS[g];
     btn.addEventListener('click', function () {
       var open = panel.hidden;
       document.querySelectorAll('.gear-panel').forEach(function (p) { p.hidden = true; });
       if (!open) return;
       panel.hidden = false;
+      var current = groupSymbols(g);
+      var candKeys = Object.keys(meta.candidates);
+      var extra = current.filter(function (s) { return candKeys.indexOf(s) < 0; });
       panel.innerHTML =
-        '<input type="text" value="' + esc(groupSymbols(g).join(', ')) + '" placeholder="เช่น PTT, ADVANC, SET" spellcheck="false">' +
-        '<button type="button" class="gp-save">บันทึก</button>' +
-        '<button type="button" class="gp-reset">ใช้ค่าเริ่มต้น</button>';
-      panel.querySelector('input').focus();
+        '<div class="gp-check-grid">' + candKeys.map(function (s) {
+          return '<label class="gp-check"><input type="checkbox" value="' + esc(s) + '"' + (current.indexOf(s) >= 0 ? ' checked' : '') + '> ' + esc(meta.candidates[s]) + '</label>';
+        }).join('') + '</div>' +
+        (meta.allowCustom ? '<input type="text" class="gp-extra" value="' + esc(extra.join(', ')) + '" placeholder="เพิ่มเอง เช่น KTB, OR (คั่นด้วยจุลภาค)" spellcheck="false">' : '') +
+        '<div class="gp-actions"><button type="button" class="gp-save">บันทึก</button><button type="button" class="gp-reset">ใช้ค่าเริ่มต้น</button></div>';
       panel.querySelector('.gp-save').addEventListener('click', function () {
-        var syms = panel.querySelector('input').value.split(',').map(function (s) { return s.trim().toUpperCase(); }).filter(Boolean);
+        var checked = [].map.call(panel.querySelectorAll('.gp-check input:checked'), function (c) { return c.value; });
+        var extraInput = panel.querySelector('.gp-extra');
+        var extraSyms = extraInput ? extraInput.value.split(',').map(function (s) { return s.trim().toUpperCase(); }).filter(Boolean) : [];
+        var syms = checked.concat(extraSyms.filter(function (s) { return checked.indexOf(s) < 0; }));
         if (syms.length) saveCustomWatch(g, syms); else clearCustomWatch(g);
         panel.hidden = true;
         loadMarketGroup(g);

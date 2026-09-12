@@ -171,10 +171,12 @@
     });
   }
   function doReset() {
-    if (!confirm('เริ่มพอร์ตจำลองใหม่ทั้งหมด? เงินสด/หุ้นที่ถือ/ประวัติการซื้อขายทั้งหมดจะถูกล้าง (กู้คืนไม่ได้)')) return;
-    state = defaultState();
-    saveState(state);
-    renderAll();
+    window.tanotConfirm('เริ่มพอร์ตจำลองใหม่ทั้งหมด? เงินสด/หุ้นที่ถือ/ประวัติการซื้อขายทั้งหมดจะถูกล้าง (กู้คืนไม่ได้)', { danger: true, okLabel: 'เริ่มใหม่' }).then(function (ok) {
+      if (!ok) return;
+      state = defaultState();
+      saveState(state);
+      renderAll();
+    });
   }
 
   /* ── เรนเดอร์ ───────────────────────────────────────────────── */
@@ -404,7 +406,7 @@
   }
   function saveEditCash() {
     var v = num($('cashEditInput').value);
-    if (!isFinite(v) || v < 0) { alert('กรอกจำนวนเงินสดให้ถูกต้อง (ต้องไม่ติดลบ)'); return; }
+    if (!isFinite(v) || v < 0) { window.tanotAlert('กรอกจำนวนเงินสดให้ถูกต้อง (ต้องไม่ติดลบ)'); return; }
     state.cash = v;
     saveState(state);
     cancelEditCash();
