@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สมุดเทรด | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<!-- Google Identity Services — สำหรับสำรองพอร์ต/สมุดเทรดขึ้น Google Drive (ไม่บังคับ) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --bg:#F6F7FB;--card:#FFFFFF;--well:#F2F4F9;--line:#E4E8F0;--line-soft:#EDF0F6;
+  --ink:#1F2430;--ink2:#454C60;--muted:#727C93;
+  --act:var(--ome-brand);--act-ink:var(--ome-brand-dk);--act-soft:var(--ome-brand-sf);
+  --ok:#17B26A;--ok-soft:#E8F9F0;--err:#E5484D;--err-soft:#FDEEEE;
+  --navy:#0B1D35;--navink:#93A2BE;--navink-on:#FFFFFF;--navline:#1B2A44;
+  --t1:11px;--t2:12.5px;--t3:14px;--t4:17px;--t5:22px;--r:10px;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06);
+}
+[data-theme="dark"] body.ome-tool-page{
+  --bg:var(--ome-bg);--card:var(--ome-card);--well:#1A2233;--line:var(--ome-line);--line-soft:#1E2534;
+  --ink:var(--ome-ink);--ink2:#C3CADC;--muted:var(--ome-muted);
+  --act:var(--ome-brand);--act-ink:var(--ome-brand-dk);--act-soft:var(--ome-brand-sf);
+  --ok:#31C97E;--ok-soft:#0F2A20;--err:#F0666B;--err-soft:#341A1C;
+  --navy:#0B1420;--navink:#7E8CA6;--navline:#1B2333;--sh:var(--ome-sh);
+}
+*{box-sizing:border-box}
+body.ome-tool-page{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ome-f);font-size:var(--t3);line-height:1.6;-webkit-font-smoothing:antialiased;padding-bottom:40px}
+h1,h2{margin:0;font-weight:700}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit;color:inherit}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px}
+
+.ivnav{background:var(--navy);border-bottom:1px solid var(--navline)}
+.ivgroups{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;max-width:1180px;margin:0 auto;padding:0 14px}
+.ivgroups::-webkit-scrollbar{display:none}
+.ivgroups button{font:inherit;border:0;background:transparent;flex:0 0 auto;padding:13px 13px;font-size:var(--t2);font-weight:600;color:var(--navink);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.ivgroups button:hover{color:var(--navink-on)}
+.ivgroups button.on{color:var(--navink-on);border-color:var(--act)}
+
+.crumb{display:flex;gap:7px;align-items:center;font-size:var(--t1);color:var(--muted);padding:16px 0 12px}
+.crumb b{color:var(--ink);font-weight:700}
+.head{margin-bottom:14px}
+.head h1{font-size:var(--t5);letter-spacing:-.01em}
+.head p{font-size:var(--t2);color:var(--muted);margin-top:4px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.card+.card{margin-top:14px}
+.card h2{font-size:var(--t3);margin-bottom:10px}
+
+.jstats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.jstat{background:var(--well);border-radius:10px;padding:11px 13px}
+.jstat span{display:block;font-size:var(--t1);color:var(--muted);font-weight:600}
+.jstat b{font-size:var(--t4);font-weight:800;margin-top:3px;display:block}
+
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f label{font-size:var(--t1);color:var(--muted);font-weight:700}
+.f input{border:1px solid var(--line);background:var(--well);border-radius:7px;padding:9px 10px;font-size:var(--t3);font-weight:600;font-family:'JetBrains Mono',monospace}
+.f input:focus{outline:2px solid var(--act);outline-offset:1px}
+.btn{border:1px solid var(--act);background:var(--act);color:#fff;font-size:var(--t2);font-weight:700;padding:9px 15px;border-radius:7px;cursor:pointer}
+.btn:hover{background:var(--act-ink);border-color:var(--act-ink)}
+.btn.wide{width:100%;padding:10px}
+
+table{width:100%;border-collapse:collapse;font-size:var(--t2);margin-top:14px}
+th{text-align:right;font-size:var(--t1);color:var(--muted);font-weight:700;padding:8px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--line-soft)}
+tr:last-child td{border-bottom:0}
+.win{color:var(--ok);font-weight:700}.loss{color:var(--err);font-weight:700}
+.jdel{background:none;border:0;color:var(--err);cursor:pointer;font-size:14px}
+.empty{font-size:var(--t2);color:var(--muted);padding:8px 0}
+
+.drivebar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.status{font-size:var(--t2);color:var(--muted)}
+.status.ok{color:var(--ok)}.status.err{color:var(--err)}
+.mini{font-size:var(--t1);color:var(--muted);line-height:1.6;margin-bottom:10px}
+.disc{font-size:var(--t1);color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
+@media(max-width:600px){ .grid4,.jstats{grid-template-columns:1fr 1fr} }
+</style>
+</head>
+<body class="ome-tool-page" data-invest-key="thai-stock">
+<script src="auth-gate.js"></script>
+
+<nav class="ivnav">
+  <div class="ivgroups" id="ivGroups">
+    <button data-href="invest.html" type="button">ภาพรวม</button>
+    <button data-href="invest-portfolio.html" type="button">พอร์ตของฉัน</button>
+    <button class="on" data-href="invest-thai-stock.html" type="button">ตลาด &amp; สินทรัพย์</button>
+    <button data-href="invest.html" type="button">สลาก &amp; พันธบัตร</button>
+    <button data-href="invest.html" type="button">ข่าว &amp; ธุรกิจ</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="crumb"><a href="invest.html">การลงทุน</a> ›  <a href="invest-thai-stock.html">หุ้นไทย</a> ›  <b>สมุดเทรด</b></div>
+
+  <div class="head">
+    <h1>สมุดเทรด + สถิติ</h1>
+    <p>บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง</p>
+  </div>
+
+  <div class="card">
+    <div id="jStats" class="jstats" style="display:none"></div>
+    <div class="grid4" style="margin-bottom:12px">
+      <div class="f"><label>หุ้น</label><input id="jSym" placeholder="PTT" spellcheck="false"></div>
+      <div class="f"><label>ราคาเข้า</label><input id="jEntry" inputmode="decimal" placeholder="34.75"></div>
+      <div class="f"><label>ราคาออก</label><input id="jExit" inputmode="decimal" placeholder="36.30"></div>
+      <div class="f"><label>จำนวนหุ้น</label><input id="jShares" inputmode="numeric" placeholder="300"></div>
+    </div>
+    <button class="btn" id="jAdd" type="button">+ บันทึกไม้</button>
+    <div id="jBox"></div>
+  </div>
+
+  <div class="card">
+    <h2>สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
+    <p class="mini">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตหุ้นไทย (ในหน้าหุ้นไทย) และสมุดเทรดนี้จะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง) — กันข้อมูลหายถ้าล้างเบราว์เซอร์ และดึงคืนได้เมื่อเปิดจากเครื่อง/เบราว์เซอร์อื่น</p>
+    <div class="drivebar">
+      <button class="btn" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
+      <span class="status" id="driveStatusTxt"></span>
+    </div>
+  </div>
+
+  <div class="disc">เครื่องมือนี้เป็นตัวช่วยฝึกวินัยและดูสถิติจริงของตัวเอง ไม่ใช่คำแนะนำการลงทุน · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
+</div>
+
+<script src="invest-drivesync.js" defer></script>
+<script src="invest-trade-journal.js" defer></script>
+</body>
+</html>

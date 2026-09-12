@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สแกนเนอร์ SET50 | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12A594">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+:root{
+  --bg:#F6F7FB;--card:#FFFFFF;--well:#F2F4F9;--line:#E4E8F0;--line-soft:#EDF0F6;
+  --ink:#1F2430;--ink2:#454C60;--muted:#727C93;
+  --act:var(--ome-brand);--act-ink:var(--ome-brand-dk);--act-soft:var(--ome-brand-sf);
+  --ok:#17B26A;--ok-soft:#E8F9F0;--err:#E5484D;--err-soft:#FDEEEE;--amber:#F5A524;
+  --navy:#0B1D35;--navink:#93A2BE;--navink-on:#FFFFFF;--navline:#1B2A44;
+  --t1:11px;--t2:12.5px;--t3:14px;--t4:17px;--t5:22px;--r:10px;
+  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06);
+}
+[data-theme="dark"] body.ome-tool-page{
+  --bg:var(--ome-bg);--card:var(--ome-card);--well:#1A2233;--line:var(--ome-line);--line-soft:#1E2534;
+  --ink:var(--ome-ink);--ink2:#C3CADC;--muted:var(--ome-muted);
+  --act:var(--ome-brand);--act-ink:var(--ome-brand-dk);--act-soft:var(--ome-brand-sf);
+  --ok:#31C97E;--ok-soft:#0F2A20;--err:#F0666B;--err-soft:#341A1C;
+  --navy:#0B1420;--navink:#7E8CA6;--navline:#1B2333;--sh:var(--ome-sh);
+}
+*{box-sizing:border-box}
+body.ome-tool-page{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ome-f);font-size:var(--t3);line-height:1.6;-webkit-font-smoothing:antialiased;padding-bottom:40px}
+h1,h2{margin:0;font-weight:700}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit;color:inherit}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px}
+
+.ivnav{background:var(--navy);border-bottom:1px solid var(--navline)}
+.ivgroups{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;max-width:1180px;margin:0 auto;padding:0 14px}
+.ivgroups::-webkit-scrollbar{display:none}
+.ivgroups button{font:inherit;border:0;background:transparent;flex:0 0 auto;padding:13px 13px;font-size:var(--t2);font-weight:600;color:var(--navink);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.ivgroups button:hover{color:var(--navink-on)}
+.ivgroups button.on{color:var(--navink-on);border-color:var(--act)}
+.ivsub{background:rgba(0,0,0,.18);border-top:1px solid var(--navline)}
+.ivsubrow{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;max-width:1180px;margin:0 auto;padding:0 14px}
+.ivsubrow::-webkit-scrollbar{display:none}
+.ivsubrow a{flex:0 0 auto;padding:9px 11px;margin:4px 0;font-size:var(--t1);font-weight:600;color:var(--navink);border-radius:7px;white-space:nowrap}
+.ivsubrow a:hover{color:var(--navink-on);background:rgba(255,255,255,.06)}
+.ivsubrow a.on{color:var(--navy);background:var(--act)}
+
+.crumb{display:flex;gap:7px;align-items:center;font-size:var(--t1);color:var(--muted);padding:16px 0 12px}
+.crumb b{color:var(--ink);font-weight:700}
+.head{margin-bottom:14px}
+.head h1{font-size:var(--t5);letter-spacing:-.01em}
+.head p{font-size:var(--t2);color:var(--muted);margin-top:4px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.scanbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.btn{border:1px solid var(--act);background:var(--act);color:#fff;font-size:var(--t2);font-weight:700;padding:9px 15px;border-radius:7px;cursor:pointer}
+.btn:hover{background:var(--act-ink);border-color:var(--act-ink)}
+.filterchk{display:inline-flex;align-items:center;gap:7px;font-size:var(--t2);font-weight:600;color:var(--muted);cursor:pointer}
+.filterchk input{width:15px;height:15px;accent-color:var(--act)}
+.status{font-size:var(--t1);color:var(--muted)}
+.s50wrap{max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:var(--t2)}
+thead th{position:sticky;top:0;background:var(--well);color:var(--muted);font-weight:700;font-size:var(--t1);text-transform:uppercase;letter-spacing:.02em;padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);z-index:1}
+th.c-sym,td.c-sym{text-align:left}
+th.c-sig,td.c-sig{text-align:center}
+td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line-soft)}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--act-soft)}
+tbody tr:last-child td{border-bottom:0}
+td.c-sym{font-weight:700;color:var(--act-ink)}
+.up{color:var(--ok);font-weight:700}.dn{color:var(--err);font-weight:700}
+.sigdot{display:inline-block;width:8px;height:8px;border-radius:50%}
+.sigdot.green{background:var(--ok)}.sigdot.yellow{background:var(--amber)}.sigdot.red{background:var(--err)}
+.mini{font-size:var(--t1);color:var(--muted);line-height:1.6;margin-top:10px}
+.disc{font-size:var(--t1);color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
+@media(max-width:520px){ th.c-chg,td.c-chg{display:none} }
+</style>
+</head>
+<body class="ome-tool-page" data-invest-key="thai-stock">
+<script src="auth-gate.js"></script>
+
+<nav class="ivnav">
+  <div class="ivgroups" id="ivGroups">
+    <button data-g="overview" type="button">ภาพรวม</button>
+    <button data-g="portfolio" data-href="invest-portfolio.html" type="button">พอร์ตของฉัน</button>
+    <button class="on" data-g="market" type="button">ตลาด &amp; สินทรัพย์</button>
+    <button data-g="lottery" type="button">สลาก &amp; พันธบัตร</button>
+    <button data-g="news" type="button">ข่าว &amp; ธุรกิจ</button>
+  </div>
+  <div class="ivsub on" id="sub-market"><div class="ivsubrow" id="ivSubRow-market"></div></div>
+</nav>
+
+<div class="wrap">
+  <div class="crumb"><a href="invest.html">การลงทุน</a> ›  <a href="invest-thai-stock.html">หุ้นไทย</a> ›  <b>สแกนเนอร์ SET50</b></div>
+
+  <div class="head">
+    <h1>สแกนเนอร์ SET50</h1>
+    <p>ไล่ดึงราคา + วิเคราะห์ไฟจราจรของหุ้น SET50 ทั้ง 50 ตัวให้อัตโนมัติ — แตะแถวเพื่อเปิดหุ้นตัวนั้นในหน้าหุ้นไทย</p>
+  </div>
+
+  <div class="card">
+    <div class="scanbar">
+      <button class="btn" id="scanBtn" type="button">หาหุ้นน่าสนใจ</button>
+      <label class="filterchk"><input type="checkbox" id="greenOnly"> เฉพาะไฟเขียว</label>
+      <span class="status" id="scanStatus"></span>
+    </div>
+    <div class="s50wrap">
+      <table>
+        <thead><tr>
+          <th class="c-sym">หลักทรัพย์</th><th class="c-num">ล่าสุด</th>
+          <th class="c-num c-chg">+/−</th><th class="c-num">%</th><th class="c-sig">สัญญาณ</th>
+        </tr></thead>
+        <tbody id="s50Body"></tbody>
+      </table>
+    </div>
+    <p class="mini">แตะแถวเพื่อดูว่า "น่าลงทุนไหม" · กด "หาหุ้นน่าสนใจ" ให้ระบบไล่ดึงราคา+วิเคราะห์ (ครั้งแรกอาจช้า/ไม่ครบ รอบต่อไปเร็วขึ้นเพราะจำไว้) · <b>ไม่ใช่คำแนะนำซื้อ</b></p>
+  </div>
+
+  <div class="disc">เครื่องมือนี้เป็นตัวช่วยกรองเบื้องต้นจากราคา/ปริมาณเท่านั้น ไม่ใช่คำแนะนำการลงทุน · ข้อมูลราคาเก็บแคชในเครื่องคุณ</div>
+</div>
+
+<script src="invest-set50-scanner.js" defer></script>
+</body>
+</html>

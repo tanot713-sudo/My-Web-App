@@ -3,14 +3,15 @@
    • กราฟแท่งเทียนจริงด้วย lightweight-charts (TradingView, Apache-2.0)
    • ดึงราคา .BK แบบ best-effort หลายเส้นทาง (มัก CORS บน static → มีตัวอย่าง/กรอกเองสำรอง)
    • คำนวณอินดิเคเตอร์เอง (SMA/EMA/RSI/MACD/Bollinger/ATR) → แปลเป็นไฟจราจร
-   • แกนหลัก: คุมเงิน/ความเสี่ยง (ล็อต 100, stop, TP, จุดคุ้มทุน) — พอร์ตเก็บใน localStorage
+   • แกนหลัก: คุมเงิน/ความเสี่ยง (ล็อต 100, stop, TP, จุดคุ้มทุน รวมค่าคอมฯ ขั้นต่ำ/วัน) — พอร์ตเก็บใน localStorage
+   Stage 4: สแกนเนอร์ SET50 / สมุดเทรด / สำรองขึ้น Drive ย้ายไปหน้าแยก (invest-set50-scanner.html,
+   invest-trade-journal.html) — พอร์ตของฉัน (ภาพรวมทั้งเว็บ) ชี้ไป invest-portfolio.html แทน
    หมายเหตุ: ตัวช่วยคิด ไม่ใช่คำแนะนำการลงทุน
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
 
   var $ = function (id) { return document.getElementById(id); };
-  var PF_KEY = 'tanot:invest:thstock';
   var lastSeries = null;
   var lastAnalysis = null;
   var lastNewsItems = null; // หัวข้อข่าวล่าสุดของหุ้นตัวที่กำลังดู (เติมโดย renderNewsBlock) — ให้ "สรุปหุ้นด้วย AI" อ้างอิงได้
@@ -18,6 +19,9 @@
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
   function fmt0(n) { return isFinite(n) ? Math.round(n).toLocaleString('th-TH') : '—'; }
+
+  /* พอร์ต (หุ้นไทย) — เก็บ+สำรองผ่านโมดูลกลาง invest-drivesync.js (ใช้ร่วมกับสมุดเทรดในหน้าแยก) */
+  var loadPf = window.InvestDrive.loadPf, savePf = window.InvestDrive.savePf, DriveSync = window.InvestDrive.DriveSync;
 
   /* ── อินดิเคเตอร์ (สูตรมาตรฐาน) ─────────────────────────────── */
   function sma(arr, n) {
@@ -308,8 +312,6 @@
       { name: 'ตรง', url: base }
     ];
     var i = 0, best = null;
-    /* ไล่ทุกเส้นทาง เลือกอันที่ได้ "จำนวนวันมากสุด" — กัน proxy ที่คืนข้อมูลสั้น (เช่น 10 วัน);
-       พอได้ ≥60 วันก็หยุด (ถือว่าพอดูแนวโน้ม) */
     function next() {
       if (i >= tries.length) return best ? Promise.resolve(best) : Promise.reject(new Error('all failed'));
       var t = tries[i++];
@@ -338,7 +340,6 @@
       var s = toSeries(o.t, o.o, o.h, o.l, o.c, o.v); s.cachedAt = o.ts; return s;
     } catch (e) { return null; }
   }
-  /* ดึงสด → cache; ถ้าพลาดแต่มี cache → คืน cache (stale) เพื่อไม่ให้ error */
   function getSeries(sym) {
     return fetchPrice(sym).then(function (s) {
       saveCache(sym, s); return { series: s, stale: false };
@@ -466,7 +467,6 @@
     ma50S = chart.addLineSeries({ color: '#3B9BEA', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
     chart.subscribeCrosshairMove(onCross);
     applyTF(curTF); applyToggles(); setupThemeObserver(); setupResize();
-    /* บังคับปรับขนาด/วาดใหม่หลัง layout นิ่ง (กัน canvas กว้าง 0 บน iOS) */
     if (window.requestAnimationFrame) requestAnimationFrame(reflow);
     setTimeout(reflow, 120);
     return true;
@@ -505,18 +505,31 @@
     if (!buildChart(s)) setStatus('โหลดไลบรารีกราฟไม่ได้ (ลองออนไลน์แล้วรีเฟรช) — ส่วนไฟจราจร/คำนวณเงินยังใช้ได้', 'err');
   }
 
+  /* หัวหุ้น (สไตล์ใหม่) — อัปเดตชื่อ/ราคา/ชิปสัญญาณ + กล่องเหตุผลที่ขยายได้ */
+  function updateStockHead(sym) {
+    $('shead').style.display = 'flex';
+    $('stkSym').textContent = sym;
+    var c = COMPANY_INFO[sym];
+    $('stkName').textContent = c ? c.name : sym;
+    $('stkSector').textContent = c ? c.sector : 'หุ้นไทย';
+  }
   function showAnalysis(a) {
     lastAnalysis = a;
-    $('lightCard').style.display = 'block';
-    /* วาดวงกลมสีด้วย CSS แทน emoji 🟢🟡🔴 — บางอุปกรณ์/เบราว์เซอร์ไม่มีฟอนต์รองรับ
-       emoji วงกลมสี (โดยเฉพาะ 🟢/🟡 ที่เพิ่งเข้า Unicode ทีหลัง) แสดงเป็นกล่องว่างแทน
-       ซึ่งทำให้ไฟจราจร (จุดขายหลักของหน้านี้) สื่อความหมายไม่ได้เลย */
     var bulbColors = { green: 'var(--ok)', yellow: 'var(--amber)', red: 'var(--err)' };
-    $('light').className = 'light ' + a.light;
-    $('bulb').textContent = '';
-    $('bulb').style.background = bulbColors[a.light] || '#B8C0D4';
-    $('verdict').textContent = a.verdict;
-    $('why').textContent = a.why;
+    $('verdictDot').style.background = bulbColors[a.light] || '#B8C0D4';
+    $('verdictTxt').textContent = a.verdict;
+    $('whyTitle').textContent = a.verdict;
+    var lines = [a.why];
+    if (a.pros && a.pros.length > 1) lines = lines.concat(a.pros.slice(1));
+    if (a.cons && a.cons.length) lines = lines.concat(a.cons);
+    $('whyList').innerHTML = lines.map(function (x) { return '<li>' + x + '</li>'; }).join('');
+    $('px').textContent = fmt(a.price);
+    var prevClose = (lastSeries && lastSeries.closes.length > 1) ? lastSeries.closes[lastSeries.closes.length - 2] : NaN;
+    if (isFinite(prevClose) && prevClose) {
+      var diff = a.price - prevClose, pct = diff / prevClose * 100;
+      $('chg').textContent = (diff >= 0 ? '+' : '−') + fmt(Math.abs(diff)) + ' (' + (diff >= 0 ? '+' : '−') + fmt(Math.abs(pct)) + '%)';
+      $('chg').className = 'delta num ' + (diff >= 0 ? 'up' : 'dn');
+    } else { $('chg').textContent = '—'; $('chg').className = 'delta num'; }
 
     if (a.det && !a.simple && isFinite(a.det.rsi)) {
       var d = a.det, rows = [
@@ -633,6 +646,7 @@
     var sym = ($('sym').value || '').trim().toUpperCase().replace(/\.BK$/, '');
     if (!sym) { setStatus('พิมพ์ชื่อย่อหุ้นก่อน เช่น PTT', 'err'); return; }
     setStatus('กำลังดึงข้อมูล ' + sym + '…'); $('fetchBtn').disabled = true;
+    updateStockHead(sym);
     var c = liveCfg();
     var livePromise = c.provider === 'twelvedata' ? fetchTwelveQuote(sym, c) : c.provider === 'gateway' ? fetchGatewayQuote(sym, c) : Promise.reject(new Error('historical'));
     livePromise.then(function (q) {
@@ -654,7 +668,7 @@
     $('stockNewsTitle').textContent = 'ข่าวหุ้น ' + sym;
     renderNewsBlock($('stockNewsBlock'), sym);
   }
-  function doDemo() { $('stockNewsCard').style.display = 'none'; useSeries(demoData(), 'กำลังแสดง "ข้อมูลตัวอย่าง" (ไม่ใช่ราคาจริง) — ไว้ลองเล่นกราฟและฝึกอ่าน', 'ok', { kind: 'demo' }); }
+  function doDemo() { $('stockNewsCard').style.display = 'none'; updateStockHead('ตัวอย่าง'); useSeries(demoData(), 'กำลังแสดง "ข้อมูลตัวอย่าง" (ไม่ใช่ราคาจริง) — ไว้ลองเล่นกราฟและฝึกอ่าน', 'ok', { kind: 'demo' }); }
   function doPaste() {
     var s = parsePaste($('pasteBox').value || '');
     if (!s) { setStatus('วางราคาปิดอย่างน้อย 5 วันก่อนนะครับ', 'err'); return; }
@@ -662,7 +676,7 @@
     useSeries(s, 'ใช้ราคาที่วางแล้ว (' + s.closes.length + ' วัน)', 'ok', { kind: 'paste' });
   }
 
-  /* ══════ สรุปหุ้นด้วย AI (Stage 4) — ใช้ ai-chat-worker.js ตัวเดียวกับวิดเจ็ตแชทลอย (ai-chat-widget.js)
+  /* ══════ สรุปหุ้นด้วย AI — ใช้ ai-chat-worker.js ตัวเดียวกับวิดเจ็ตแชทลอย (ai-chat-widget.js)
      รันในเครื่องผู้ใช้เอง ไม่ส่งข้อมูลออกไปไหน แนวทาง "guided summarization" เดียวกับปุ่ม "📝 สรุปหน้านี้"
      ของวิดเจ็ตแชท (โครงสร้างหัวข้อตายตัว ช่วยโมเดลเล็ก 0.5B ตอบสม่ำเสมอ/อ่านง่ายขึ้น) ต่างกันตรงที่นี่ไม่ได้
      ป้อน "เนื้อหาหน้าเว็บดิบ" ให้โมเดลอ่านเอง แต่ป้อน "ตัวเลข/สัญญาณที่หน้านี้คำนวณไว้ให้แล้ว" (RSI/MACD/
@@ -681,9 +695,6 @@
   var AI_SUMMARY_REMINDER = 'ย้ำ: ห้ามให้คำแนะนำซื้อ/ขาย ห้ามทำนายราคาในอนาคต ห้ามเติมตัวเลข/เหตุการณ์ที่ไม่ได้อยู่ในข้อมูลที่ให้มา ' +
     'ตอบตามโครงสร้าง 4 หัวข้อที่กำหนดเท่านั้น เริ่มที่ "สรุปภาพรวม:" ทันที ห้ามขึ้นต้นด้วยคำนำ';
 
-  /* iOS gate + ข้อความ error ที่เข้าใจง่าย — ก็อปมาจาก ai-chat-widget.js ตรงๆ (แพทเทิร์น clone-and-adapt
-     ของเว็บนี้) เพราะเป็นไฟล์แยกกัน ไม่ได้แชร์โมดูลกัน ดูคอมเมนต์เต็มที่ ai-chat-widget.js ว่าทำไมต้องปิด
-     บน iOS (หน้าเว็บรีเฟรชเองกลางคันตอนโหลดโมเดล — มีรายงานยืนยันจริงจากผู้ใช้) */
   function isIOS() {
     if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) return true;
     return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
@@ -701,8 +712,6 @@
   function getAiSumWorker() { if (!aiSumChatWorker) aiSumChatWorker = new Worker('./ai-chat-worker.js', { type: 'module' }); return aiSumChatWorker; }
   function setAiSumStatus(text, cls) { var el = $('aiSumStatus'); if (!el) return; el.textContent = text || ''; el.className = 'status' + (cls ? ' ' + cls : ''); }
 
-  /* รวมข้อมูลที่คำนวณไว้แล้วทั้งหมดเป็นข้อความ (เฉพาะตัวเลขจริงที่มี — isFinite เช็คทุกตัวกันค่า NaN/undefined
-     หลุดเข้าไปให้โมเดลอ่านเป็นข้อมูลปลอมๆ) ให้โมเดลอ่านแล้วเรียบเรียงต่อเท่านั้น ไม่ต้องคำนวณเพิ่มเอง */
   function buildStockContext() {
     var a = lastAnalysis; if (!a) return null;
     var sym = (lastSource && lastSource.label) ? lastSource.label : (($('sym').value || '').trim().toUpperCase() || 'หุ้นนี้');
@@ -778,196 +787,40 @@
     function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
     w.addEventListener('message', onMsg);
     w.addEventListener('error', onErr);
-    w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages, maxNewTokens: 400 });
+    w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });
   }
 
-  /* ── คำนวณเงิน ──────────────────────────────────────────────── */
-  function doCalc() {
-    var capital = num($('capital').value), riskPct = num($('riskPct').value);
-    var entry = num($('entry').value), stop = num($('stop').value), comm = num($('comm').value), commMin = num($('commMin').value);
-    if (!isFinite(entry)) entry = num($('price').value);
-    if (!isFinite(entry)) { setStatus('กรอกราคาเข้าซื้อ (หรือราคาตอนนี้) ก่อน', 'err'); return; }
-    if (!isFinite(stop)) { stop = (lastAnalysis && isFinite(lastAnalysis.suggestStop)) ? lastAnalysis.suggestStop : entry * 0.95; $('stop').value = stop.toFixed(2); }
-    if (!isFinite(capital) || capital <= 0) { capital = 100000; $('capital').value = capital; }
-    if (!isFinite(riskPct) || riskPct <= 0) { riskPct = 2; $('riskPct').value = riskPct; }
-    if (!isFinite(comm) || comm < 0) { comm = 0.157; $('comm').value = comm; }
-    if (!isFinite(commMin) || commMin < 0) { commMin = 50; $('commMin').value = commMin; }
+  /* ── ควรขาย? สำหรับหุ้นที่ถือ ─────────────────────────────── */
+  function sellVerdict(a) {
+    var det = a.det || {}, ps = det.psar;
+    var cls, headline;
+    if (ps && !ps.up) { cls = 'no'; headline = 'พิจารณาขาย — สัญญาณเทรนด์กลับตัว (SAR พลิกลง)'; }
+    else if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) { cls = 'no'; headline = 'พิจารณาขาย/ตัดขาดทุน — ราคาหลุดแนวโน้ม (ต่ำกว่าเส้นค่าเฉลี่ย)'; }
+    else if (isFinite(a.rsi) && a.rsi > 70) { cls = 'warn'; headline = 'พิจารณาล็อกกำไรบางส่วน — RSI สูง ราคาร้อนแรง อาจย่อ'; }
+    else if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) { cls = 'warn'; headline = 'ใกล้แนวต้าน — พิจารณาล็อกกำไรบางส่วน'; }
+    else { cls = 'go'; headline = 'ยังอยู่ในแนวโน้มขึ้น — ถือต่อได้ เลื่อนจุดตัดขาดทุนตามแนวด้านล่าง'; }
 
-    var res = riskCalc({ capital: capital, riskPct: riskPct, entry: entry, stop: stop, comm: comm, commMin: commMin, resistance: lastAnalysis ? lastAnalysis.resistance : NaN });
-    var box = $('riskResult');
-    if (res.error) {
-      $('riskHeadline').innerHTML = '<span style="color:var(--err)">' + res.error + '</span>';
-      $('riskKv').innerHTML = ''; $('tpRow').innerHTML = ''; box.classList.add('show'); $('saveBtn').style.display = 'none'; return;
-    }
-    $('riskHeadline').innerHTML = 'ควรซื้อได้ประมาณ <b>' + fmt0(res.shares) + ' หุ้น</b> (' + fmt0(res.lots) + ' ล็อต) ใช้เงิน ≈ <b>฿' + fmt0(res.cost) + '</b>';
-    var kv = '';
-    kv += '<div class="k">ถ้าผิดทาง (แตะ Stop) เสียไม่เกิน</div><div class="v risk">฿' + fmt0(res.riskBaht) + '</div>';
-    kv += '<div class="k">ราคาตัดขาดทุน (Stop)</div><div class="v">' + fmt(stop) + '</div>';
-    kv += '<div class="k">ค่าคอมฯ จริงไป-กลับ</div><div class="v">฿' + fmt0(res.commBaht) + ' (' + fmt(res.commPct, 1) + '%)</div>';
-    kv += '<div class="k">ราคาคุ้มทุน (รวมค่าคอมฯ ไป-กลับ)</div><div class="v">' + fmt(res.breakeven) + '</div>';
-    if (isFinite(res.rr)) kv += '<div class="k">ความคุ้ม (กำไรคาดหวัง : ความเสี่ยง) ถึงแนวต้าน</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
-    $('riskKv').innerHTML = kv;
-    $('tpRow').innerHTML = '<span class="tp-chip">ทยอยขายไม้ 1: ' + fmt(res.tp1) + '</span><span class="tp-chip">ไม้ 2: ' + fmt(res.tp2) + '</span><span class="tp-chip">ไม้ 3: ' + fmt(res.tp3) + '</span>';
-    if (res.note) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">ℹ️ ' + res.note + '</div>';
-    if (res.minKicksIn) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">⚠️ ไม้นี้เล็กเกินกว่าค่าคอมฯ ตามเปอร์เซ็นต์จะถึงขั้นต่ำ — โบรกจึงเก็บขั้นต่ำ ฿' + fmt0(commMin) + '/วัน แทน ทำให้ค่าคอมฯ จริงคิดเป็น ' + fmt(res.commPct, 1) + '% ไป-กลับ ต้องขึ้นถึง ' + fmt(res.breakeven) + ' บาทถึงจะเท่าทุนจริง — ลองซื้อไม้ใหญ่ขึ้นเพื่อเฉลี่ยค่าคอมฯ ให้ถูกลง</div>';
-    box.classList.add('show');
-    $('saveBtn').style.display = 'inline-flex';
-    $('saveBtn')._data = { sym: ($('sym').value || '').trim().toUpperCase() || 'หุ้น', shares: res.shares, cost: entry };
+    var levels = [
+      { key: 'sar', type: 'stop', label: 'แนวตัดขาดทุนตามเทรนด์ (SAR)', price: ps ? ps.sar : NaN,
+        reason: !ps ? 'ข้อมูลไม่พอคำนวณ (ต้องมีประวัติราคาอย่างน้อย ~3 วัน)' : (ps.up ? 'ถ้าราคาปิดหลุดต่ำกว่า ' + fmt(ps.sar) + ' ถือว่าเทรนด์ขาขึ้นเริ่มกลับตัว' : 'ราคาหลุดแนวนี้ไปแล้ว (SAR พลิกลง) — เป็นสัญญาณเตือนที่ชัดที่สุด') },
+      { key: 'stop', type: 'stop', label: 'จุดตัดขาดทุนตามความเสี่ยง (ATR/แนวรับ)', price: a.suggestStop,
+        reason: !isFinite(a.suggestStop) ? 'ข้อมูลไม่พอคำนวณ' : 'กันขาดทุนหนักถ้าราคาหลุดแนวรับหรือผันผวนเกินค่าเฉลี่ย' + (isFinite(det.atr) ? ' (ATR ≈ ' + fmt(det.atr) + ')' : '') },
+      { key: 'ema20', type: 'warn', label: 'เส้นค่าเฉลี่ย 20 วัน (สัญญาณเตือนแรก)', price: det.ema20,
+        reason: !isFinite(det.ema20) ? 'ข้อมูลไม่พอคำนวณ' : 'หลุดเส้นนี้มักเป็นสัญญาณเริ่มอ่อนตัว — ยังไม่ใช่จุดตัดขาดทุนหลัก แต่ควรเริ่มระวัง' },
+      { key: 'resistance', type: 'tp', label: 'แนวต้าน (จุดพิจารณาล็อกกำไรบางส่วน)', price: isFinite(det.resistance) ? det.resistance : a.resistance,
+        reason: !isFinite(isFinite(det.resistance) ? det.resistance : a.resistance) ? 'ข้อมูลไม่พอคำนวณ' : 'ราคามักเจอแรงขายทำกำไรบริเวณนี้ พิจารณาขายบางส่วนหรือเลื่อนจุดตัดขาดทุนตามเพื่อป้องกันกำไร' }
+    ];
+    return { cls: cls, headline: headline, levels: levels };
   }
-
-  /* ── พอร์ต ──────────────────────────────────────────────────── */
-  function loadPf() { try { return JSON.parse(localStorage.getItem(PF_KEY)) || []; } catch (e) { return []; } }
-  function savePf(a) { try { localStorage.setItem(PF_KEY, JSON.stringify(a)); } catch (e) {} DriveSync.scheduleSync(); }
-  function renderPf() {
-    var pf = loadPf(), box = $('pfBox');
-    if (!pf.length) { box.innerHTML = '<div class="pf-empty">ยังไม่มีหุ้นในพอร์ต — คำนวณด้านบนแล้วกด "บันทึกเข้าพอร์ต"</div>'; return; }
-    var html = '<table class="pf-table"><thead><tr><th>หุ้น</th><th>จำนวน</th><th>ต้นทุน/หุ้น</th><th>ราคาปัจจุบัน</th><th>กำไร/ขาดทุน</th><th></th></tr></thead><tbody>';
-    pf.forEach(function (h, i) {
-      html += '<tr data-i="' + i + '"><td>' + h.sym + '</td><td>' + fmt0(h.shares) + '</td><td>' + fmt(h.cost) + '</td>' +
-        '<td><input type="number" class="pf-price" inputmode="decimal" step="0.01" placeholder="ราคา" value="' + (h.cur != null ? h.cur : '') + '"></td>' +
-        '<td class="pf-pl">—</td><td class="pf-actions"><button class="pf-sell" title="เช็กควรขาย?">ควรขาย?</button> <button class="pf-del" title="ลบ">✕</button></td></tr>' +
-        '<tr class="pf-sellrow" data-sr="' + i + '"><td colspan="6"></td></tr>';
+  function sellLevelsHtml(levels) {
+    var html = '<ul class="sell-levels">';
+    levels.forEach(function (lv) {
+      html += '<li><div class="row ' + lv.type + '"><span>' + lv.label + '</span><span class="price">' +
+        (isFinite(lv.price) ? fmt(lv.price) : '—') + '</span></div><div class="reason">' + lv.reason + '</div></li>';
     });
-    html += '</tbody></table>'; box.innerHTML = html;
-    [].forEach.call(box.querySelectorAll('tr[data-i]'), function (tr) {
-      var i = +tr.getAttribute('data-i'), h = pf[i], inp = tr.querySelector('.pf-price'), cell = tr.querySelector('.pf-pl');
-      var sellCell = box.querySelector('tr[data-sr="' + i + '"] td');
-      function upd() {
-        var cur = num(inp.value);
-        if (!isFinite(cur)) { cell.textContent = '—'; cell.className = 'pf-pl'; return; }
-        var pl = (cur - h.cost) * h.shares, pct = (cur / h.cost - 1) * 100;
-        cell.textContent = (pl >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(pl)) + ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)';
-        cell.className = 'pf-pl ' + (pl >= 0 ? 'up' : 'down');
-      }
-      inp.addEventListener('input', function () { upd(); h.cur = num(inp.value); savePf(pf); });
-      tr.querySelector('.pf-del').addEventListener('click', function () { pf.splice(i, 1); savePf(pf); renderPf(); });
-      tr.querySelector('.pf-sell').addEventListener('click', function () {
-        sellCell.innerHTML = '<div class="sell-verdict warn">กำลังดึงราคา ' + h.sym + '…</div>';
-        getSeries(h.sym).then(function (r) {
-          var s = r.series, a = analyzeSeries(s), v = sellVerdict(a), price = s.closes[s.closes.length - 1];
-          inp.value = price.toFixed(2); h.cur = price; savePf(pf); upd();
-          var pl = (price - h.cost) * h.shares, pct = (price / h.cost - 1) * 100;
-          sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict ' + v.cls + '">' + v.headline +
-            '<br><span style="font-weight:500">ราคาล่าสุด ' + fmt(price) + (r.stale ? ' (บันทึกไว้ ' + cacheAgeText(r.cachedAt) + ')' : '') +
-            ' · ต้นทุน ' + fmt(h.cost) + ' · ' + (pl >= 0 ? 'กำไร ' : 'ขาดทุน ') + '฿' + fmt0(Math.abs(pl)) + ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)</span>' +
-            sellLevelsHtml(v.levels) + '</div>' +
-            companyInfoHtml(h.sym) +
-            '<div class="news-block"></div></div>';
-          renderNewsBlock(sellCell.querySelector('.news-block'), h.sym);
-        }, function () {
-          sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict warn">ดึงราคา ' + h.sym + ' ไม่ได้ตอนนี้ — ลองใหม่อีกครั้ง หรือกรอกราคาปัจจุบันเองในช่อง</div>' +
-            companyInfoHtml(h.sym) + '</div>';
-        });
-      });
-      upd();
-    });
+    html += '</ul>';
+    return html;
   }
-
-  /* ── เช็กลิสต์ก่อนเข้าไม้ (GO/NO-GO) ─────────────────────────── */
-  function checklistChecks() {
-    var a = lastAnalysis, det = (a && a.det) ? a.det : {};
-    var entry = num($('entry').value), stop = num($('stop').value), riskPct = num($('riskPct').value);
-    var checks = [];
-    if (a && isFinite(det.ema20)) {
-      var up = isFinite(det.ema50) ? a.price >= det.ema50 : a.price >= det.ema20;
-      var adxTxt = isFinite(det.adx) ? (' · ADX ' + det.adx.toFixed(0) + (det.adx >= 20 ? ' เทรนด์แข็งแรง' : ' เทรนด์อ่อน ควรระวัง')) : '';
-      checks.push({ ok: up, txt: (up ? 'อยู่ในแนวโน้มขึ้น (ราคาเหนือเส้นเฉลี่ย)' : 'ยังไม่อยู่ในแนวโน้มขึ้น (ราคาใต้เส้นเฉลี่ย)') + adxTxt });
-      var over = (a.price - det.ema20) / det.ema20, notChase = over <= 0.05;
-      checks.push({ ok: notChase, txt: notChase ? 'ไม่ไล่ราคา (ห่างเส้นเฉลี่ย 20 ไม่เกิน 5%)' : 'กำลังไล่ราคา (สูงกว่าเส้นเฉลี่ย 20 เกิน 5%)' });
-    } else {
-      checks.push({ ok: null, txt: 'แนวโน้ม/การไล่ราคา: ต้องมีข้อมูลกราฟก่อน (กด "ดึงราคา" หรือ "ดูกราฟตัวอย่าง")' });
-    }
-    if (a && isFinite(det.rsi)) checks.push({ ok: det.rsi < 70, txt: det.rsi < 70 ? 'ไม่ร้อนแรงเกิน (RSI ' + det.rsi.toFixed(0) + ')' : 'ร้อนแรงเกินไป (RSI ' + det.rsi.toFixed(0) + ' ≥ 70) เสี่ยงย่อ' });
-    else checks.push({ ok: null, txt: 'RSI: ต้องมีข้อมูลกราฟก่อน' });
-    var stopOk = isFinite(entry) && isFinite(stop) && stop < entry;
-    checks.push({ ok: stopOk, txt: stopOk ? 'ตั้งจุดตัดขาดทุน (Stop) แล้ว' : 'ยังไม่ตั้งจุดตัดขาดทุน — กด "คำนวณ" ในขั้นที่ 2 ก่อน' });
-    checks.push({ ok: isFinite(riskPct) && riskPct <= 2, txt: (isFinite(riskPct) && riskPct <= 2) ? 'เสี่ยงต่อไม้ ≤ 2% (' + riskPct + '%)' : 'เสี่ยงต่อไม้สูงไป (' + (isFinite(riskPct) ? riskPct + '%' : '-') + ') — ควร ≤ 2%' });
-    if (a && isFinite(a.resistance) && stopOk && a.resistance > entry) {
-      var rr = (a.resistance - entry) / (entry - stop), rrOk = rr >= 2;
-      checks.push({ ok: rrOk, txt: rrOk ? 'กำไรคาดหวัง:เสี่ยง ≥ 2:1 (' + rr.toFixed(1) + ':1)' : 'กำไร:เสี่ยงน้อยไป (' + rr.toFixed(1) + ':1) — ควร ≥ 2:1' });
-    } else {
-      checks.push({ ok: null, txt: 'กำไร:เสี่ยง: ต้องมีแนวต้านจากกราฟ + ตั้ง Stop ก่อน' });
-    }
-    return checks;
-  }
-  function doChecklist() {
-    var checks = checklistChecks();
-    var fails = checks.filter(function (c) { return c.ok === false; }).length;
-    var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
-    var box = $('checkResult'), v = $('checkVerdict');
-    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = 'ยังไม่ควรเข้า — ติด ' + fails + ' ข้อ ควรแก้ให้ครบก่อนซื้อ'; }
-    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = 'ข้อมูลไม่พอประเมินครบ — กด "ประเมิน"/"ดึงราคา" แล้ว "คำนวณ" ก่อน'; }
-    else { v.className = 'verdict-box go'; v.textContent = 'เข้าได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)'; }
-    var html = '';
-    checks.forEach(function (c) {
-      var ic = c.ok === true ? '' : c.ok === false ? '' : '◻️';
-      html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
-    });
-    $('chkList').innerHTML = html;
-    box.style.display = 'block';
-  }
-
-  /* ── Expectancy ─────────────────────────────────────────────── */
-  function doExpectancy() {
-    var w = num($('eWin').value) / 100, wr = num($('eWinR').value), lr = num($('eLossR').value);
-    var box = $('eResult');
-    if (!(w >= 0 && w <= 1) || !isFinite(wr) || !isFinite(lr) || wr < 0 || lr <= 0) {
-      box.className = 'verdict-box warn'; box.textContent = 'กรอกตัวเลขให้ครบ (อัตราชนะ 0–100%, กำไร/ขาดทุนเป็นเท่าของ R)'; box.style.display = 'block'; return;
-    }
-    var exp = w * wr - (1 - w) * lr;
-    var beWin = lr / (wr + lr) * 100; /* อัตราชนะที่ต้องมีเพื่อเสมอตัว */
-    var msg = 'ค่าคาดหวังต่อไม้ ≈ <b>' + (exp >= 0 ? '+' : '') + exp.toFixed(2) + ' R</b> ' +
-      '(ถ้าเสี่ยงไม้ละ 1,000 บาท ≈ ' + (exp >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(exp) * 1000) + ' ต่อไม้โดยเฉลี่ย)<br>' +
-      '<span style="font-weight:500">ต้องชนะอย่างน้อย ~' + beWin.toFixed(0) + '% ถึงจะเสมอตัวที่ R นี้</span>';
-    if (exp > 0.1) { box.className = 'verdict-box go'; box.innerHTML = 'ได้เปรียบระยะยาว<br>' + msg + '<br><span style="font-weight:500">ถ้าทำตามวินัยสม่ำเสมอ (คุมความเสี่ยงเท่ากันทุกไม้) มีโอกาสกำไรระยะยาว</span>'; }
-    else if (exp > 0) { box.className = 'verdict-box warn'; box.innerHTML = 'แทบเสมอตัว<br>' + msg + '<br><span style="font-weight:500">หักค่าคอมฯแล้วอาจขาดทุน — ต้องเพิ่มกำไรตอนชนะ หรือลดขาดทุนตอนแพ้</span>'; }
-    else { box.className = 'verdict-box no'; box.innerHTML = 'ขาดทุนระยะยาว<br>' + msg + '<br><span style="font-weight:500">ถึงชนะบ่อยก็ไม่พอ — ต้อง "ปล่อยกำไรให้ยาว ตัดขาดทุนให้ไว" (เพิ่ม R ตอนชนะ)</span>'; }
-    box.style.display = 'block';
-  }
-
-  /* ── สมุดเทรด + สถิติ ────────────────────────────────────────── */
-  var JN_KEY = 'tanot:invest:thjournal';
-  function loadJn() { try { return JSON.parse(localStorage.getItem(JN_KEY)) || []; } catch (e) { return []; } }
-  function saveJn(a) { try { localStorage.setItem(JN_KEY, JSON.stringify(a)); } catch (e) {} DriveSync.scheduleSync(); }
-  function addJournal() {
-    var sym = ($('jSym').value || '').trim().toUpperCase() || 'หุ้น';
-    var en = num($('jEntry').value), ex = num($('jExit').value), sh = num($('jShares').value);
-    if (!isFinite(en) || !isFinite(ex) || !isFinite(sh) || sh <= 0) { alert('กรอกราคาเข้า ราคาออก และจำนวนหุ้นให้ครบ'); return; }
-    var jn = loadJn(); jn.push({ sym: sym, en: en, ex: ex, sh: sh, pl: (ex - en) * sh, ts: Date.now() });
-    saveJn(jn); $('jEntry').value = ''; $('jExit').value = ''; $('jShares').value = ''; renderJournal();
-  }
-  function renderJournal() {
-    var jn = loadJn(), box = $('jBox'), stats = $('jStats');
-    if (!jn.length) { box.innerHTML = '<div class="pf-empty" style="font-size:13px;color:var(--muted);padding:8px 0">ยังไม่มีไม้ที่บันทึก — ปิดไม้แล้วบันทึกทุกครั้ง จะเห็นสถิติจริงของตัวเอง</div>'; stats.style.display = 'none'; return; }
-    var wins = jn.filter(function (r) { return r.pl > 0; }), losses = jn.filter(function (r) { return r.pl <= 0; });
-    var total = jn.reduce(function (s, r) { return s + r.pl; }, 0);
-    var winRate = wins.length / jn.length * 100;
-    var avgWin = wins.length ? wins.reduce(function (s, r) { return s + r.pl; }, 0) / wins.length : 0;
-    var avgLoss = losses.length ? Math.abs(losses.reduce(function (s, r) { return s + r.pl; }, 0) / losses.length) : 0;
-    var expBaht = (winRate / 100) * avgWin - (1 - winRate / 100) * avgLoss;
-    stats.style.display = 'grid';
-    stats.innerHTML =
-      '<div class="j-stat"><div class="lbl">จำนวนไม้</div><div class="val">' + jn.length + '</div></div>' +
-      '<div class="j-stat"><div class="lbl">อัตราชนะ</div><div class="val">' + winRate.toFixed(0) + '%</div></div>' +
-      '<div class="j-stat"><div class="lbl">กำไร/ขาดทุนรวม</div><div class="val" style="color:' + (total >= 0 ? 'var(--ok)' : 'var(--err)') + '">' + (total >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(total)) + '</div></div>' +
-      '<div class="j-stat"><div class="lbl">คาดหวัง/ไม้</div><div class="val" style="color:' + (expBaht >= 0 ? 'var(--ok)' : 'var(--err)') + '">' + (expBaht >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(expBaht)) + '</div></div>';
-    var html = '<table class="j-table"><thead><tr><th>หุ้น</th><th>เข้า</th><th>ออก</th><th>จำนวน</th><th>ผล</th><th></th></tr></thead><tbody>';
-    jn.slice().reverse().forEach(function (r, ri) {
-      var idx = jn.length - 1 - ri;
-      html += '<tr><td>' + r.sym + '</td><td>' + fmt(r.en) + '</td><td>' + fmt(r.ex) + '</td><td>' + fmt0(r.sh) + '</td>' +
-        '<td class="' + (r.pl >= 0 ? 'j-win' : 'j-loss') + '">' + (r.pl >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(r.pl)) + '</td>' +
-        '<td><button class="j-del" data-i="' + idx + '">✕</button></td></tr>';
-    });
-    html += '</tbody></table>'; box.innerHTML = html;
-    [].forEach.call(box.querySelectorAll('.j-del'), function (b) { b.addEventListener('click', function () { var jn = loadJn(); jn.splice(+b.getAttribute('data-i'), 1); saveJn(jn); renderJournal(); }); });
-  }
-
-  /* ══════ SET50 browser + สแกนเนอร์ ══════ */
-  var SET50 = ['ADVANC', 'AOT', 'AWC', 'BANPU', 'BBL', 'BDMS', 'BEM', 'BGRIM', 'BH', 'BTS',
-    'CBG', 'CENTEL', 'COM7', 'CPALL', 'CPF', 'CPN', 'CRC', 'DELTA', 'EA', 'EGCO',
-    'GLOBAL', 'GPSC', 'GULF', 'HMPRO', 'INTUCH', 'IVL', 'KBANK', 'KCE', 'KKP', 'KTB',
-    'KTC', 'LH', 'MINT', 'MTC', 'OR', 'OSP', 'PTT', 'PTTEP', 'PTTGC', 'RATCH',
-    'SAWAD', 'SCB', 'SCC', 'SCGP', 'TISCO', 'TLI', 'TOP', 'TRUE', 'TTB', 'TU'];
 
   /* ══════ ข้อมูลบริษัท/กลุ่มธุรกิจ (ข้อมูลอ้างอิงสาธารณะ) ══════ */
   var COMPANY_INFO = {
@@ -1054,116 +907,7 @@
     return html;
   }
 
-  function fetchPriceScan(sym, startAt) {
-    var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '.BK?range=1y&interval=1d';
-    var enc = encodeURIComponent(base);
-    var tries = [
-      { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + enc },
-      { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
-      { name: 'corseu', url: 'https://cors.eu.org/' + base },
-      { name: 'corsworkers', url: 'https://test.cors.workers.dev/?' + base },
-      { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + enc },
-      { name: 'ตรง', url: base }
-    ];
-    /* หมุนจุดเริ่มต่างกันต่อหุ้น กันสแกน 50 ตัวรัวถล่ม proxy เดียวจนโดน rate-limit พร้อมกันหมด */
-    var offset = ((startAt || 0) % tries.length + tries.length) % tries.length;
-    tries = tries.slice(offset).concat(tries.slice(0, offset));
-    var i = 0, best = null;
-    function next() {
-      if (i >= tries.length) return best ? Promise.resolve(best) : Promise.reject(new Error('fail'));
-      var t = tries[i++];
-      return fetchOne(t.url, 7000).then(function (s) {
-        s.source = t.name; if (!best || s.closes.length > best.closes.length) best = s;
-        if (best.closes.length >= 40) return best; return next();
-      }, function () { return next(); });
-    }
-    return next();
-  }
-
-  function selectSet50(sym) {
-    $('sym').value = sym; doFetch();
-    var lc = $('lightCard'); if (lc && lc.scrollIntoView) setTimeout(function () { lc.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 250);
-  }
-  /* ── ตาราง SET50 ── */
-  var s50Rows = {};
-  function rankOf(l) { return l === 'green' ? 0 : l === 'yellow' ? 1 : l === 'red' ? 2 : 9; }
-  function sigIcon(l) {
-    var color = l === 'green' ? 'var(--ok)' : l === 'yellow' ? 'var(--amber)' : l === 'red' ? 'var(--err)' : '';
-    return color ? '<span class="sig-dot" style="background:' + color + '"></span>' : '·';
-  }
-  function dataFromSeries(s) {
-    if (!s || s.closes.length < 2) return null;
-    var last = s.closes[s.closes.length - 1], prev = s.closes[s.closes.length - 2];
-    var light = ''; if (s.closes.length >= 20) { try { light = analyzeSeries(s).light; } catch (e) {} }
-    return { last: last, chg: last - prev, pct: prev ? (last - prev) / prev * 100 : 0, light: light };
-  }
-  function fillRow(tr, sym, d) {
-    if (!d) {
-      tr.innerHTML = '<td class="c-sym">' + sym + '</td><td class="muted">–</td><td class="muted c-chg">–</td><td class="muted">–</td><td class="c-sig muted">กดดู</td>';
-      tr.setAttribute('data-rank', 9); tr.setAttribute('data-light', ''); return;
-    }
-    var cls = d.chg >= 0 ? 'up' : 'dn', sign = d.chg >= 0 ? '+' : '−';
-    tr.innerHTML = '<td class="c-sym">' + sym + '</td>' +
-      '<td>' + fmt(d.last) + '</td>' +
-      '<td class="c-chg ' + cls + '">' + sign + fmt(Math.abs(d.chg)) + '</td>' +
-      '<td class="' + cls + '">' + sign + fmt(Math.abs(d.pct), 2) + '%</td>' +
-      '<td class="c-sig">' + sigIcon(d.light) + '</td>';
-    tr.setAttribute('data-rank', rankOf(d.light)); tr.setAttribute('data-light', d.light || '');
-  }
-  function renderSet50Table() {
-    var body = $('s50Body'); if (!body) return;
-    body.innerHTML = ''; s50Rows = {};
-    SET50.forEach(function (sym) {
-      var tr = document.createElement('tr'); tr.setAttribute('data-sym', sym);
-      fillRow(tr, sym, dataFromSeries(loadCache(sym)));
-      tr.addEventListener('click', function () { selectSet50(sym); });
-      body.appendChild(tr); s50Rows[sym] = tr;
-    });
-    applyGreenFilter();
-  }
-  function sortTable() {
-    var body = $('s50Body'); if (!body) return;
-    var rows = [].slice.call(body.querySelectorAll('tr'));
-    rows.sort(function (a, b) {
-      var ra = +a.getAttribute('data-rank'), rb = +b.getAttribute('data-rank');
-      if (ra !== rb) return ra - rb;
-      return a.getAttribute('data-sym') < b.getAttribute('data-sym') ? -1 : 1;
-    });
-    rows.forEach(function (r) { body.appendChild(r); });
-  }
-  function applyGreenFilter() {
-    var go = $('greenOnly') && $('greenOnly').checked;
-    Object.keys(s50Rows).forEach(function (sym) {
-      var tr = s50Rows[sym]; tr.style.display = (go && tr.getAttribute('data-light') !== 'green') ? 'none' : '';
-    });
-  }
-
-  var scanning = false;
-  function doScan() {
-    if (scanning) { scanning = false; return; }
-    var idx = 0, ok = 0, green = 0;
-    scanning = true; $('scanBtn').textContent = '⏹ หยุด';
-    function fin() {
-      scanning = false; $('scanBtn').textContent = 'หาหุ้นน่าสนใจ';
-      $('scanStatus').textContent = 'สแกนสำเร็จ ' + ok + '/' + SET50.length + ' ตัว · เจอน่าสนใจ ' + green + ' ตัว (ไม่ใช่คำแนะนำซื้อ)';
-      sortTable(); applyGreenFilter();
-    }
-    function step() {
-      if (!scanning || idx >= SET50.length) { fin(); return; }
-      var sym = SET50[idx++];
-      $('scanStatus').textContent = 'กำลังสแกน ' + idx + '/' + SET50.length + ' (' + sym + ')…';
-      var cached = loadCache(sym), fresh = cached && (Date.now() - cached.cachedAt < 6 * 3600 * 1000);
-      var pr = fresh ? Promise.resolve(cached) : fetchPriceScan(sym, idx).then(function (s) { saveCache(sym, s); return s; }, function () { return cached || null; });
-      pr.then(function (s) {
-        var d = dataFromSeries(s);
-        if (d) { ok++; if (d.light === 'green') green++; if (s50Rows[sym]) fillRow(s50Rows[sym], sym, d); }
-        if (idx % 5 === 0) { sortTable(); applyGreenFilter(); }
-        setTimeout(step, 150);
-      });
-    }
-    step();
-  }
-
+  /* ── พอร์ต (หุ้นไทย) — เพิ่ม/ลบ/เช็ก "ควรขาย?" ─────────────────── */
   function addHolding() {
     var sym = ($('pfSym').value || '').trim().toUpperCase();
     var shares = num($('pfShares').value), cost = num($('pfCost').value);
@@ -1172,52 +916,111 @@
     var pf = loadPf(); pf.push({ sym: sym, shares: shares, cost: cost, ts: Date.now() });
     savePf(pf); $('pfSym').value = ''; $('pfShares').value = ''; $('pfCost').value = ''; renderPf();
   }
-
-  /* ── "ควรขายไหม" สำหรับหุ้นที่ถือ ─────────────────────────────── */
-  function sellVerdict(a) {
-    var det = a.det || {}, ps = det.psar;
-    var cls, headline;
-    if (ps && !ps.up) { cls = 'no'; headline = 'พิจารณาขาย — สัญญาณเทรนด์กลับตัว (SAR พลิกลง)'; }
-    else if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) { cls = 'no'; headline = 'พิจารณาขาย/ตัดขาดทุน — ราคาหลุดแนวโน้ม (ต่ำกว่าเส้นค่าเฉลี่ย)'; }
-    else if (isFinite(a.rsi) && a.rsi > 70) { cls = 'warn'; headline = 'พิจารณาล็อกกำไรบางส่วน — RSI สูง ราคาร้อนแรง อาจย่อ'; }
-    else if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) { cls = 'warn'; headline = 'ใกล้แนวต้าน — พิจารณาล็อกกำไรบางส่วน'; }
-    else { cls = 'go'; headline = 'ยังอยู่ในแนวโน้มขึ้น — ถือต่อได้ เลื่อนจุดตัดขาดทุนตามแนวด้านล่าง'; }
-
-    /* ราคาหลายระดับตามสถานการณ์ — คำนวณทุกครั้งจากตัวเลขที่ analyzeSeries มีอยู่แล้ว ไม่ขึ้นกับ branch ไหน trigger */
-    var levels = [
-      {
-        key: 'sar', type: 'stop', label: 'แนวตัดขาดทุนตามเทรนด์ (SAR)',
-        price: ps ? ps.sar : NaN,
-        reason: !ps ? 'ข้อมูลไม่พอคำนวณ (ต้องมีประวัติราคาอย่างน้อย ~3 วัน)'
-          : (ps.up ? 'ถ้าราคาปิดหลุดต่ำกว่า ' + fmt(ps.sar) + ' ถือว่าเทรนด์ขาขึ้นเริ่มกลับตัว' : 'ราคาหลุดแนวนี้ไปแล้ว (SAR พลิกลง) — เป็นสัญญาณเตือนที่ชัดที่สุด')
-      },
-      {
-        key: 'stop', type: 'stop', label: 'จุดตัดขาดทุนตามความเสี่ยง (ATR/แนวรับ)',
-        price: a.suggestStop,
-        reason: !isFinite(a.suggestStop) ? 'ข้อมูลไม่พอคำนวณ'
-          : 'กันขาดทุนหนักถ้าราคาหลุดแนวรับหรือผันผวนเกินค่าเฉลี่ย' + (isFinite(det.atr) ? ' (ATR ≈ ' + fmt(det.atr) + ')' : '')
-      },
-      {
-        key: 'ema20', type: 'warn', label: 'เส้นค่าเฉลี่ย 20 วัน (สัญญาณเตือนแรก)',
-        price: det.ema20,
-        reason: !isFinite(det.ema20) ? 'ข้อมูลไม่พอคำนวณ' : 'หลุดเส้นนี้มักเป็นสัญญาณเริ่มอ่อนตัว — ยังไม่ใช่จุดตัดขาดทุนหลัก แต่ควรเริ่มระวัง'
-      },
-      {
-        key: 'resistance', type: 'tp', label: 'แนวต้าน (จุดพิจารณาล็อกกำไรบางส่วน)',
-        price: isFinite(det.resistance) ? det.resistance : a.resistance,
-        reason: !isFinite(isFinite(det.resistance) ? det.resistance : a.resistance) ? 'ข้อมูลไม่พอคำนวณ' : 'ราคามักเจอแรงขายทำกำไรบริเวณนี้ พิจารณาขายบางส่วนหรือเลื่อนจุดตัดขาดทุนตามเพื่อป้องกันกำไร'
-      }
-    ];
-    return { cls: cls, headline: headline, levels: levels };
-  }
-  function sellLevelsHtml(levels) {
-    var html = '<ul class="sell-levels">';
-    levels.forEach(function (lv) {
-      html += '<li><div class="row ' + lv.type + '"><span>' + lv.label + '</span><span class="price">' +
-        (isFinite(lv.price) ? fmt(lv.price) : '—') + '</span></div><div class="reason">' + lv.reason + '</div></li>';
+  function renderPf() {
+    var pf = loadPf(), box = $('pfBox');
+    if (!pf.length) { box.innerHTML = '<div class="pf-empty">ยังไม่มีหุ้นในพอร์ต — คำนวณด้านบนแล้วกด "บันทึกเข้าพอร์ต"</div>'; return; }
+    var html = '<table class="pf-table"><thead><tr><th>หุ้น</th><th>จำนวน</th><th>ต้นทุน/หุ้น</th><th>ราคาปัจจุบัน</th><th>กำไร/ขาดทุน</th><th></th></tr></thead><tbody>';
+    pf.forEach(function (h, i) {
+      html += '<tr data-i="' + i + '"><td>' + h.sym + '</td><td>' + fmt0(h.shares) + '</td><td>' + fmt(h.cost) + '</td>' +
+        '<td><input type="number" class="pf-price" inputmode="decimal" step="0.01" placeholder="ราคา" value="' + (h.cur != null ? h.cur : '') + '"></td>' +
+        '<td class="pf-pl">—</td><td class="pf-actions"><button class="pf-sell" title="เช็กควรขาย?">ควรขาย?</button> <button class="pf-del" title="ลบ">✕</button></td></tr>' +
+        '<tr class="pf-sellrow" data-sr="' + i + '"><td colspan="6"></td></tr>';
     });
-    html += '</ul>';
-    return html;
+    html += '</tbody></table>'; box.innerHTML = html;
+    [].forEach.call(box.querySelectorAll('tr[data-i]'), function (tr) {
+      var i = +tr.getAttribute('data-i'), h = pf[i], inp = tr.querySelector('.pf-price'), cell = tr.querySelector('.pf-pl');
+      var sellCell = box.querySelector('tr[data-sr="' + i + '"] td');
+      function upd() {
+        var cur = num(inp.value);
+        if (!isFinite(cur)) { cell.textContent = '—'; cell.className = 'pf-pl'; return; }
+        var pl = (cur - h.cost) * h.shares, pct = (cur / h.cost - 1) * 100;
+        cell.textContent = (pl >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(pl)) + ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)';
+        cell.className = 'pf-pl ' + (pl >= 0 ? 'up' : 'down');
+      }
+      inp.addEventListener('input', function () { upd(); h.cur = num(inp.value); savePf(pf); });
+      tr.querySelector('.pf-del').addEventListener('click', function () { pf.splice(i, 1); savePf(pf); renderPf(); });
+      tr.querySelector('.pf-sell').addEventListener('click', function () {
+        sellCell.innerHTML = '<div class="sell-verdict warn">กำลังดึงราคา ' + h.sym + '…</div>';
+        getSeries(h.sym).then(function (r) {
+          var s = r.series, a = analyzeSeries(s), v = sellVerdict(a), price = s.closes[s.closes.length - 1];
+          inp.value = price.toFixed(2); h.cur = price; savePf(pf); upd();
+          var pl = (price - h.cost) * h.shares, pct = (price / h.cost - 1) * 100;
+          sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict ' + v.cls + '">' + v.headline +
+            '<br><span style="font-weight:500">ราคาล่าสุด ' + fmt(price) + (r.stale ? ' (บันทึกไว้ ' + cacheAgeText(r.cachedAt) + ')' : '') +
+            ' · ต้นทุน ' + fmt(h.cost) + ' · ' + (pl >= 0 ? 'กำไร ' : 'ขาดทุน ') + '฿' + fmt0(Math.abs(pl)) + ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)</span>' +
+            sellLevelsHtml(v.levels) + '</div>' +
+            companyInfoHtml(h.sym) +
+            '<div class="news-block"></div></div>';
+          renderNewsBlock(sellCell.querySelector('.news-block'), h.sym);
+        }, function () {
+          sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict warn">ดึงราคา ' + h.sym + ' ไม่ได้ตอนนี้ — ลองใหม่อีกครั้ง หรือกรอกราคาปัจจุบันเองในช่อง</div>' +
+            companyInfoHtml(h.sym) + '</div>';
+        });
+      });
+      upd();
+    });
+  }
+
+  /* ── เช็กลิสต์ก่อนเข้าไม้ (GO/NO-GO) ─────────────────────────── */
+  function checklistChecks() {
+    var a = lastAnalysis, det = (a && a.det) ? a.det : {};
+    var entry = num($('entry').value), stop = num($('stop').value), riskPct = num($('riskPct').value);
+    var checks = [];
+    if (a && isFinite(det.ema20)) {
+      var up = isFinite(det.ema50) ? a.price >= det.ema50 : a.price >= det.ema20;
+      var adxTxt = isFinite(det.adx) ? (' · ADX ' + det.adx.toFixed(0) + (det.adx >= 20 ? ' เทรนด์แข็งแรง' : ' เทรนด์อ่อน ควรระวัง')) : '';
+      checks.push({ ok: up, txt: (up ? 'อยู่ในแนวโน้มขึ้น (ราคาเหนือเส้นเฉลี่ย)' : 'ยังไม่อยู่ในแนวโน้มขึ้น (ราคาใต้เส้นเฉลี่ย)') + adxTxt });
+      var over = (a.price - det.ema20) / det.ema20, notChase = over <= 0.05;
+      checks.push({ ok: notChase, txt: notChase ? 'ไม่ไล่ราคา (ห่างเส้นเฉลี่ย 20 ไม่เกิน 5%)' : 'กำลังไล่ราคา (สูงกว่าเส้นเฉลี่ย 20 เกิน 5%)' });
+    } else {
+      checks.push({ ok: null, txt: 'แนวโน้ม/การไล่ราคา: ต้องมีข้อมูลกราฟก่อน (กด "ดึงราคา" หรือ "ดูกราฟตัวอย่าง")' });
+    }
+    if (a && isFinite(det.rsi)) checks.push({ ok: det.rsi < 70, txt: det.rsi < 70 ? 'ไม่ร้อนแรงเกิน (RSI ' + det.rsi.toFixed(0) + ')' : 'ร้อนแรงเกินไป (RSI ' + det.rsi.toFixed(0) + ' ≥ 70) เสี่ยงย่อ' });
+    else checks.push({ ok: null, txt: 'RSI: ต้องมีข้อมูลกราฟก่อน' });
+    var stopOk = isFinite(entry) && isFinite(stop) && stop < entry;
+    checks.push({ ok: stopOk, txt: stopOk ? 'ตั้งจุดตัดขาดทุน (Stop) แล้ว' : 'ยังไม่ตั้งจุดตัดขาดทุน — กด "คำนวณ" ในขั้นที่ 2 ก่อน' });
+    checks.push({ ok: isFinite(riskPct) && riskPct <= 2, txt: (isFinite(riskPct) && riskPct <= 2) ? 'เสี่ยงต่อไม้ ≤ 2% (' + riskPct + '%)' : 'เสี่ยงต่อไม้สูงไป (' + (isFinite(riskPct) ? riskPct + '%' : '-') + ') — ควร ≤ 2%' });
+    if (a && isFinite(a.resistance) && stopOk && a.resistance > entry) {
+      var rr = (a.resistance - entry) / (entry - stop), rrOk = rr >= 2;
+      checks.push({ ok: rrOk, txt: rrOk ? 'กำไรคาดหวัง:เสี่ยง ≥ 2:1 (' + rr.toFixed(1) + ':1)' : 'กำไร:เสี่ยงน้อยไป (' + rr.toFixed(1) + ':1) — ควร ≥ 2:1' });
+    } else {
+      checks.push({ ok: null, txt: 'กำไร:เสี่ยง: ต้องมีแนวต้านจากกราฟ + ตั้ง Stop ก่อน' });
+    }
+    return checks;
+  }
+  function doChecklist() {
+    var checks = checklistChecks();
+    var fails = checks.filter(function (c) { return c.ok === false; }).length;
+    var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
+    var box = $('checkResult'), v = $('checkVerdict');
+    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = 'ยังไม่ควรเข้า — ติด ' + fails + ' ข้อ ควรแก้ให้ครบก่อนซื้อ'; }
+    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = 'ข้อมูลไม่พอประเมินครบ — กด "ประเมิน"/"ดึงราคา" แล้ว "คำนวณ" ก่อน'; }
+    else { v.className = 'verdict-box go'; v.textContent = 'เข้าได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)'; }
+    var html = '';
+    checks.forEach(function (c) {
+      var ic = c.ok === true ? '✓' : c.ok === false ? '✕' : '◻️';
+      html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
+    });
+    $('chkList').innerHTML = html;
+    box.style.display = 'block';
+  }
+
+  /* ── Expectancy ─────────────────────────────────────────────── */
+  function doExpectancy() {
+    var w = num($('eWin').value) / 100, wr = num($('eWinR').value), lr = num($('eLossR').value);
+    var box = $('eResult');
+    if (!(w >= 0 && w <= 1) || !isFinite(wr) || !isFinite(lr) || wr < 0 || lr <= 0) {
+      box.className = 'verdict-box warn'; box.textContent = 'กรอกตัวเลขให้ครบ (อัตราชนะ 0–100%, กำไร/ขาดทุนเป็นเท่าของ R)'; box.style.display = 'block'; return;
+    }
+    var exp = w * wr - (1 - w) * lr;
+    var beWin = lr / (wr + lr) * 100;
+    var msg = 'ค่าคาดหวังต่อไม้ ≈ <b>' + (exp >= 0 ? '+' : '') + exp.toFixed(2) + ' R</b> ' +
+      '(ถ้าเสี่ยงไม้ละ 1,000 บาท ≈ ' + (exp >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(exp) * 1000) + ' ต่อไม้โดยเฉลี่ย)<br>' +
+      '<span style="font-weight:500">ต้องชนะอย่างน้อย ~' + beWin.toFixed(0) + '% ถึงจะเสมอตัวที่ R นี้</span>';
+    if (exp > 0.1) { box.className = 'verdict-box go'; box.innerHTML = 'ได้เปรียบระยะยาว<br>' + msg + '<br><span style="font-weight:500">ถ้าทำตามวินัยสม่ำเสมอ (คุมความเสี่ยงเท่ากันทุกไม้) มีโอกาสกำไรระยะยาว</span>'; }
+    else if (exp > 0) { box.className = 'verdict-box warn'; box.innerHTML = 'แทบเสมอตัว<br>' + msg + '<br><span style="font-weight:500">หักค่าคอมฯแล้วอาจขาดทุน — ต้องเพิ่มกำไรตอนชนะ หรือลดขาดทุนตอนแพ้</span>'; }
+    else { box.className = 'verdict-box no'; box.innerHTML = 'ขาดทุนระยะยาว<br>' + msg + '<br><span style="font-weight:500">ถึงชนะบ่อยก็ไม่พอ — ต้อง "ปล่อยกำไรให้ยาว ตัดขาดทุนให้ไว" (เพิ่ม R ตอนชนะ)</span>'; }
+    box.style.display = 'block';
   }
 
   /* ══════ ข่าวล่าสุด (best-effort) — ไม่บล็อกอะไร ถ้าดึงไม่ได้มีลิงก์ค้นเองเสมอ ══════ */
@@ -1272,7 +1075,7 @@
   }
   function renderNewsBlock(el, sym) {
     if (!el) return;
-    lastNewsItems = null; // ล้างของหุ้นตัวก่อนหน้าไว้ก่อน กันสรุป AI หยิบข่าวหุ้นผิดตัวไปใช้ระหว่างรอโหลด
+    lastNewsItems = null;
     var link = '<a class="news-search-link" target="_blank" rel="noopener" href="' + newsSearchUrl(sym) + '">ค้นหาข่าวเอง ↗</a>';
     el.innerHTML = 'กำลังค้นข่าว ' + sym + '… ' + link;
     fetchNews(sym).then(function (r) {
@@ -1286,163 +1089,47 @@
     });
   }
 
-  /* ══════ สำรองพอร์ต + สมุดเทรดขึ้น Google Drive (ไม่บังคับ) ══════
-     ใช้ OAuth client เดียวกับหน้าอื่นในเว็บนี้ (scope drive.file — แตะได้เฉพาะไฟล์ที่แอปนี้สร้างเอง)
-     เชื่อมต่อครั้งแรกต้องกดปุ่ม (ข้อจำกัดเบราว์เซอร์ต้องมี user gesture) จากนั้นซิงก์อัตโนมัติเบื้องหลังทุกครั้งที่ข้อมูลเปลี่ยน */
-  var DRIVE_CLIENT_ID = '497048581273-akpavakt6m34lhqbjf1irg3m8vl6u27u.apps.googleusercontent.com';
-  var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-  var DRIVE_FOLDER_NAME = 'OME_Progress';
-  var DRIVE_FILE_NAME = 'invest-data.json';
-  var DRIVE_CONNECTED_KEY = 'tanot:invest:driveConnected';
-  function nowTime() { return new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }); }
+  /* ── แท็บภายในหน้า (ภาพรวม / ข่าวและปฏิทิน) ── */
+  function initPageTabs() {
+    var tabs = document.querySelectorAll('#pageTabs button');
+    tabs.forEach(function (b) {
+      b.addEventListener('click', function () {
+        tabs.forEach(function (x) { x.classList.toggle('on', x === b); });
+        document.querySelectorAll('.tabpanel').forEach(function (p) { p.classList.toggle('on', p.id === 'p-' + b.dataset.t); });
+        if (b.dataset.t === 'ov') setTimeout(reflow, 60);
+      });
+    });
+  }
 
-  var DriveSync = {
-    tokenClient: null, accessToken: null, folderId: null, fileId: null,
-    connected: false, syncing: false, pending: false, timer: null,
-
-    setStatus: function (text, cls) {
-      var el = $('driveStatusTxt'); if (!el) return;
-      el.textContent = text; el.className = 'status' + (cls ? ' ' + cls : '');
-    },
-    setBtn: function () {
-      var b = $('driveConnectBtn'); if (!b) return;
-      b.textContent = this.connected ? 'เชื่อมต่อ Google Drive แล้ว' : 'เชื่อมต่อ Google Drive';
-    },
-    init: function () {
-      try { this.connected = localStorage.getItem(DRIVE_CONNECTED_KEY) === '1'; } catch (e) {}
-      this.setBtn();
-      var self = this;
-      (function wait() {
-        if (!window.google || !google.accounts || !google.accounts.oauth2) { setTimeout(wait, 300); return; }
-        self.tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: DRIVE_CLIENT_ID,
-          scope: DRIVE_SCOPE,
-          use_fedcm_for_prompt: true, // ลดโอกาสต้องกดยืนยันใหม่ทุกครั้งบนเบราว์เซอร์ที่บล็อก third-party cookie (เช่น Chrome รุ่นใหม่)
-          callback: function (resp) {
-            if (resp.error) {
-              self.setStatus(self.connected ? 'เชื่อมต่ออัตโนมัติไม่สำเร็จ (อาจเพราะเบราว์เซอร์บล็อก cookie ข้ามโดเมน) — กดปุ่มเชื่อมต่ออีกครั้ง' : 'เชื่อมต่อไม่สำเร็จ: ' + resp.error, 'err');
-              return;
-            }
-            self.accessToken = resp.access_token;
-            self.connected = true;
-            try { localStorage.setItem(DRIVE_CONNECTED_KEY, '1'); } catch (e) {}
-            self.setBtn();
-            self.firstSync();
-          }
-        });
-        if (self.connected) self.tokenClient.requestAccessToken({ prompt: '' }); /* ลองต่อเงียบๆ ถ้าเคยเชื่อมต่อแล้ว */
-      })();
-    },
-    connect: function () {
-      if (!this.tokenClient) { this.setStatus('กำลังโหลด Google Identity Services… รออีก 2-3 วิแล้วลองใหม่', 'err'); return; }
-      this.setStatus('กำลังขอสิทธิ์เชื่อมต่อ…', '');
-      this.tokenClient.requestAccessToken({ prompt: this.accessToken ? '' : 'consent' });
-    },
-    authFetch: function (url, opts) {
-      opts = opts || {}; opts.headers = opts.headers || {};
-      opts.headers.Authorization = 'Bearer ' + this.accessToken;
-      return fetch(url, opts);
-    },
-    ensureFolder: function () {
-      var self = this;
-      if (self.folderId) return Promise.resolve(self.folderId);
-      var q = encodeURIComponent("name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false");
-      return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error('ค้นหาโฟลเดอร์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
-        .then(function (data) {
-          if (data.files && data.files.length) { self.folderId = data.files[0].id; return self.folderId; }
-          return self.authFetch('https://www.googleapis.com/drive/v3/files', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
-          }).then(function (r) { if (!r.ok) throw new Error('สร้างโฟลเดอร์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
-            .then(function (d) { self.folderId = d.id; return self.folderId; });
-        });
-    },
-    findFile: function () {
-      var self = this;
-      if (self.fileId) return Promise.resolve(self.fileId);
-      var q = encodeURIComponent("name='" + DRIVE_FILE_NAME + "' and '" + self.folderId + "' in parents and trashed=false");
-      return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error('ค้นหาไฟล์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
-        .then(function (data) { self.fileId = (data.files && data.files[0] && data.files[0].id) || null; return self.fileId; });
-    },
-    download: function () {
-      var self = this;
-      return self.authFetch('https://www.googleapis.com/drive/v3/files/' + self.fileId + '?alt=media')
-        .then(function (r) { if (!r.ok) throw new Error('ดาวน์โหลดไม่สำเร็จ (' + r.status + ')'); return r.json(); });
-    },
-    upload: function (obj) {
-      var self = this;
-      var metadata = self.fileId ? {} : { name: DRIVE_FILE_NAME, parents: [self.folderId] };
-      var form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-      form.append('file', new Blob([JSON.stringify(obj)], { type: 'application/json' }));
-      var url = self.fileId
-        ? 'https://www.googleapis.com/upload/drive/v3/files/' + self.fileId + '?uploadType=multipart'
-        : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id';
-      return self.authFetch(url, { method: self.fileId ? 'PATCH' : 'POST', body: form })
-        .then(function (r) { if (!r.ok) throw new Error('บันทึกขึ้น Drive ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
-        .then(function (d) { if (d.id) self.fileId = d.id; return d; });
-    },
-    /* ผสาน portfolio/journal จาก Drive กับเครื่องนี้ โดย ts (เวลาสร้างรายการ) เป็นตัวกันซ้ำ */
-    mergeByTs: function (a, b) {
-      var map = {};
-      (a || []).forEach(function (x) { if (x && x.ts != null) map[x.ts] = x; });
-      (b || []).forEach(function (x) { if (x && x.ts != null) map[x.ts] = x; });
-      var out = Object.keys(map).map(function (k) { return map[k]; });
-      out.sort(function (x, y) { return (x.ts || 0) - (y.ts || 0); });
-      return out;
-    },
-    firstSync: function () {
-      var self = this;
-      self.setStatus('กำลังซิงก์…', '');
-      self.ensureFolder().then(function () { return self.findFile(); })
-        .then(function (fid) { return fid ? self.download() : null; })
-        .then(function (remote) {
-          var mergedPf = self.mergeByTs(remote && remote.portfolio, loadPf());
-          var mergedJn = self.mergeByTs(remote && remote.journal, loadJn());
-          /* เขียนตรงลง localStorage (ไม่ผ่าน savePf/saveJn) กันเกิดคิวซิงก์ซ้ำซ้อน — ฟังก์ชันนี้อัปโหลดเองด้านล่างอยู่แล้ว */
-          try { localStorage.setItem(PF_KEY, JSON.stringify(mergedPf)); } catch (e) {}
-          try { localStorage.setItem(JN_KEY, JSON.stringify(mergedJn)); } catch (e) {}
-          renderPf(); renderJournal();
-          return self.upload({ portfolio: mergedPf, journal: mergedJn, savedAt: new Date().toISOString() });
-        })
-        .then(function () { self.setStatus('ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); })
-        .catch(function (e) { self.setStatus('' + (e.message || e), 'err'); });
-    },
-    scheduleSync: function () {
-      var self = this;
-      if (!self.connected || !self.accessToken) return;
-      self.pending = true;
-      if (self.timer) clearTimeout(self.timer);
-      self.timer = setTimeout(function () { self.pushNow(); }, 1800);
-    },
-    pushNow: function () {
-      var self = this;
-      if (self.syncing) { self.pending = true; return; }
-      self.pending = false; self.syncing = true;
-      self.setStatus('กำลังซิงก์…', '');
-      self.ensureFolder().then(function () { return self.findFile(); })
-        .then(function () { return self.upload({ portfolio: loadPf(), journal: loadJn(), savedAt: new Date().toISOString() }); })
-        .then(function () { self.setStatus('ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
-        .catch(function (e) {
-          var msg = String(e && e.message || e);
-          if (msg.indexOf('401') !== -1 || msg.indexOf('403') !== -1) {
-            self.accessToken = null;
-            self.setStatus('เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', 'err');
-          } else {
-            self.setStatus('ซิงก์ไม่สำเร็จ: ' + msg, 'err');
-          }
-        })
-        .finally(function () {
-          self.syncing = false;
-          if (self.pending) self.scheduleSync();
-        });
-    }
-  };
+  /* ── แถบนำทาง: กลุ่ม/แท็บย่อยจาก window.INVEST_CATS ── */
+  function initNav() {
+    function waitCats(cb) { if (window.INVEST_CATS) cb(window.INVEST_CATS); else setTimeout(function () { waitCats(cb); }, 30); }
+    waitCats(function (CATS) {
+      var row = $('ivSubRow-market'); if (!row) return;
+      CATS.forEach(function (c) {
+        if (['thai-stock', 'global-stock', 'thai-fund', 'global-fund', 'gold', 'bitcoin', 'commodities'].indexOf(c.key) < 0) return;
+        var a = document.createElement('a'); a.href = c.page; a.textContent = c.label;
+        if (c.key === 'thai-stock') a.className = 'on';
+        row.appendChild(a);
+      });
+      var scan = document.createElement('a'); scan.href = 'invest-set50-scanner.html';
+      scan.innerHTML = '<b>สแกนเนอร์ SET50</b>';
+      row.appendChild(scan);
+    });
+    var groupBtns = document.querySelectorAll('#ivGroups button');
+    groupBtns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (b.dataset.href) { location.href = b.dataset.href; return; }
+        groupBtns.forEach(function (x) { x.classList.toggle('on', x === b); });
+      });
+    });
+  }
 
   /* ── init ───────────────────────────────────────────────────── */
   function init() {
+    initNav();
+    initPageTabs();
+    $('verdictChip').addEventListener('click', function () { $('whyBox').hidden = !$('whyBox').hidden; });
     $('fetchBtn').addEventListener('click', doFetch);
     initLiveControls();
     $('analyzeBtn').addEventListener('click', doAnalyze);
@@ -1464,17 +1151,49 @@
     });
     $('checkBtn').addEventListener('click', doChecklist);
     $('eBtn').addEventListener('click', doExpectancy);
-    $('jAdd').addEventListener('click', addJournal);
-    $('scanBtn').addEventListener('click', doScan);
-    $('greenOnly').addEventListener('change', applyGreenFilter);
     $('pfAdd').addEventListener('click', addHolding);
-    $('driveConnectBtn') && $('driveConnectBtn').addEventListener('click', function () { DriveSync.connect(); });
     $('aiSumBtn').addEventListener('click', doAiSummary);
-    renderSet50Table();
     renderPf();
-    renderJournal();
+    DriveSync.onPfChange(renderPf);
     DriveSync.init();
+
+    /* ?sym=XXX — มาจากสแกนเนอร์ SET50 หรือลิงก์ตรง */
+    var qsym = new URLSearchParams(location.search).get('sym');
+    if (qsym) { $('sym').value = qsym.toUpperCase(); doFetch(); }
   }
+  function doCalc() {
+    var capital = num($('capital').value), riskPct = num($('riskPct').value);
+    var entry = num($('entry').value), stop = num($('stop').value), comm = num($('comm').value), commMin = num($('commMin').value);
+    if (!isFinite(entry)) entry = num($('price').value);
+    if (!isFinite(entry)) { setStatus('กรอกราคาเข้าซื้อ (หรือราคาตอนนี้) ก่อน', 'err'); return; }
+    if (!isFinite(stop)) { stop = (lastAnalysis && isFinite(lastAnalysis.suggestStop)) ? lastAnalysis.suggestStop : entry * 0.95; $('stop').value = stop.toFixed(2); }
+    if (!isFinite(capital) || capital <= 0) { capital = 100000; $('capital').value = capital; }
+    if (!isFinite(riskPct) || riskPct <= 0) { riskPct = 2; $('riskPct').value = riskPct; }
+    if (!isFinite(comm) || comm < 0) { comm = 0.157; $('comm').value = comm; }
+    if (!isFinite(commMin) || commMin < 0) { commMin = 50; $('commMin').value = commMin; }
+
+    var res = riskCalc({ capital: capital, riskPct: riskPct, entry: entry, stop: stop, comm: comm, commMin: commMin, resistance: lastAnalysis ? lastAnalysis.resistance : NaN });
+    var box = $('riskResult');
+    if (res.error) {
+      $('riskHeadline').innerHTML = '<span style="color:var(--err)">' + res.error + '</span>';
+      $('riskKv').innerHTML = ''; $('tpRow').innerHTML = ''; box.classList.add('show'); $('saveBtn').style.display = 'none'; return;
+    }
+    $('riskHeadline').innerHTML = 'ควรซื้อได้ประมาณ <b>' + fmt0(res.shares) + ' หุ้น</b> (' + fmt0(res.lots) + ' ล็อต) ใช้เงิน ≈ <b>฿' + fmt0(res.cost) + '</b>';
+    var kv = '';
+    kv += '<div class="k">ถ้าผิดทาง (แตะ Stop) เสียไม่เกิน</div><div class="v risk">฿' + fmt0(res.riskBaht) + '</div>';
+    kv += '<div class="k">ราคาตัดขาดทุน (Stop)</div><div class="v">' + fmt(stop) + '</div>';
+    kv += '<div class="k">ค่าคอมฯ จริงไป-กลับ</div><div class="v">฿' + fmt0(res.commBaht) + ' (' + fmt(res.commPct, 1) + '%)</div>';
+    kv += '<div class="k">ราคาคุ้มทุน (รวมค่าคอมฯ ไป-กลับ)</div><div class="v">' + fmt(res.breakeven) + '</div>';
+    if (isFinite(res.rr)) kv += '<div class="k">ความคุ้ม (กำไรคาดหวัง : ความเสี่ยง) ถึงแนวต้าน</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
+    $('riskKv').innerHTML = kv;
+    $('tpRow').innerHTML = '<span class="tp-chip">ทยอยขายไม้ 1: ' + fmt(res.tp1) + '</span><span class="tp-chip">ไม้ 2: ' + fmt(res.tp2) + '</span><span class="tp-chip">ไม้ 3: ' + fmt(res.tp3) + '</span>';
+    if (res.note) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">ℹ️ ' + res.note + '</div>';
+    if (res.minKicksIn) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">⚠️ ไม้นี้เล็กเกินกว่าค่าคอมฯ ตามเปอร์เซ็นต์จะถึงขั้นต่ำ — โบรกจึงเก็บขั้นต่ำ ฿' + fmt0(commMin) + '/วัน แทน ทำให้ค่าคอมฯ จริงคิดเป็น ' + fmt(res.commPct, 1) + '% ไป-กลับ ต้องขึ้นถึง ' + fmt(res.breakeven) + ' บาทถึงจะเท่าทุนจริง — ลองซื้อไม้ใหญ่ขึ้นเพื่อเฉลี่ยค่าคอมฯ ให้ถูกลง</div>';
+    box.classList.add('show');
+    $('saveBtn').style.display = 'inline-flex';
+    $('saveBtn')._data = { sym: ($('sym').value || '').trim().toUpperCase() || 'หุ้น', shares: res.shares, cost: entry };
+  }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
