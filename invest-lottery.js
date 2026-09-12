@@ -41,6 +41,129 @@
   }
   function thaiDate(d) { return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }); }
 
+  /* ══════ ระบบสองภาษา (ไทย/อังกฤษ) — ตามธรรมเนียมเดียวกับ invest-gold.js ══════ */
+  var UI_LANG_KEY = 'ome:lang';
+  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
+  var I18N = {
+    th: {
+      navInvest: 'การลงทุน', pageTitleShort: 'สลากกินแบ่งรัฐบาล',
+      pageTitle: 'สลากกินแบ่งรัฐบาล — สถิติย้อนหลัง + ตรวจหวย + สุ่มเลข 6 หลัก',
+      headSub: 'ข้อมูลย้อนหลังจริง ไม่ใช่การพยากรณ์ผลจับรางวัล',
+      warnTitle: 'คำเตือนก่อนเริ่ม',
+      warn1: 'สลากกินแบ่งรัฐบาล <b>ไม่มีการคืนเงินต้น</b> ต่างจากสลากออมสิน/ธ.ก.ส. ที่ทำไปแล้วในแอปนี้ (ซึ่งได้เงินต้นคืนเต็มเสมอถ้าถือจนครบกำหนด) — เงินที่ใช้ซื้อสลากคือค่าใช้จ่ายล้วนๆ',
+      warn2: 'แต่ละงวดจับรางวัลด้วยเครื่องที่ตรวจสอบได้และเป็น<b>อิสระจากงวดก่อนหน้าเสมอ</b> — ไม่มีเลขที่ "ยังไม่ออกจะออกเร็วๆ นี้" สถิติความถี่ในหน้านี้เป็นข้อมูลเชิงพรรณนาเพื่อการศึกษาเท่านั้น',
+      warn3: 'การตั้งงบซื้อสลากไว้ล่วงหน้า (เช่นไม่เกิน 800 บาท/เดือน) เป็นวินัยทางการเงินที่ดี — ควรทำแบบนี้เสมอไม่ว่าจะซื้อมากหรือน้อย',
+      loadTitle: 'ดึงข้อมูลย้อนหลัง', lblWindow: 'ช่วงย้อนหลัง',
+      win1m: '1 เดือน', win3m: '3 เดือน', win4m: '4 เดือน', win6m: '6 เดือน', win1y: '1 ปี', win5y: '5 ปี', win10y: '10 ปี', win20y: '20 ปี', win30y: '30 ปี',
+      loadBtn: 'ดึงข้อมูลย้อนหลัง', stopBtn: '⏹ หยุด', clearCacheBtn: 'ล้างแคช',
+      methodology: 'ดึงจากไฟล์ผลรางวัลย้อนหลังต่องวดโดยตรง (ไม่ผ่านพร็อกซี) — งวดที่ยังไม่มีข้อมูลจะถูกข้ามอัตโนมัติ ไม่ถือเป็นข้อผิดพลาด · ข้อมูลที่ดึงแล้วถูกเก็บไว้ในเครื่องถาวร ครั้งต่อไปจะเร็วขึ้น',
+      freqTitle: 'สถิติความถี่', freqCaveat: 'ความถี่ในอดีต ไม่ใช่ความน่าจะเป็นในอนาคต — แต่ละงวดสุ่มเป็นอิสระจากงวดก่อนหน้าเสมอ',
+      lblTier: 'หมวด',
+      tierTwoDigit: 'เลขท้าย 2 ตัว', tierThreeFirst: 'เลขหน้า 3 ตัว', tierThreeLast: 'เลขท้าย 3 ตัว',
+      tierFirst: 'รางวัลที่ 1 (ความถี่รายหลัก)', tierSecond: 'รางวัลที่ 2 (ความถี่รายหลัก)', tierThird: 'รางวัลที่ 3 (ความถี่รายหลัก)',
+      statEmptyDefault: 'กด "ดึงข้อมูลย้อนหลัง" ด้านบนก่อน เพื่อดูสถิติความถี่',
+      whyPosSummary: 'ทำไมรางวัลที่ 1/2/3 แสดงความถี่รายหลัก ไม่ใช่เลข 6 หลักเต็ม',
+      whyPosBody: 'เลข 6 หลักมีความเป็นไปได้ถึง 1 ล้านแบบ แต่ตัวอย่างที่ดึงมามีเพียงไม่กี่ร้อยงวด ถ้านับความถี่เลข 6 หลักเต็มจะได้ตารางที่แทบทุกเลขออก 0 หรือ 1 ครั้งเท่ากันหมด ไม่มีสาระให้ดู จึงนับความถี่ของ<b>แต่ละหลัก แยกตามตำแหน่ง</b> (หลักแสน หมื่น พัน ร้อย สิบ หน่วย) แทน ซึ่งมีตัวอย่างมากพอที่จะเป็นสถิติเชิงพรรณนาที่มีความหมาย — แต่ก็ยังไม่ใช่การพยากรณ์อยู่ดี',
+      checkTitle: 'ตรวจหวย', lblTicket: 'เลขที่ซื้อ (6 หลัก)', phTicket: 'เช่น 123456', checkBtn: 'ตรวจกับงวดล่าสุด',
+      spinTitle: 'สุ่มเลขไปซื้อ', spinBtn: 'หมุน',
+      lblSpinFull: 'เลขเต็ม 6 หลัก', lblSpinFront: 'เลขหน้า 3 ตัว', lblSpinBack3: 'เลขท้าย 3 ตัว', lblSpinBack2: 'เลขท้าย 2 ตัว',
+      spinNote: 'ร้านขายสลากมักซื้อได้ทั้งเลขเต็ม 6 หลัก หรือเลขสั้นกว่านี้ (3 ตัวหน้า/หลัง, 2 ตัวท้าย) แล้วแต่ร้าน',
+      lblBudget: 'งบซื้อสลากเดือนนี้ (เตือนตัวเอง)', phBudget: 'เช่น 800',
+      lessonSummary: 'เรียนรู้ — สลากกินแบ่งรัฐบาลแบบเข้าใจง่าย',
+      lsn1h: 'ต่างจากสลากออมสิน/ธ.ก.ส. อย่างไร',
+      lsn1p: 'สลากออมสิน/สลาก ธ.ก.ส. (ทำไปแล้วในแอปนี้) คืนเงินต้นเต็มเสมอถ้าถือจนครบกำหนด ผลตอบแทนหลักมาจากดอกเบี้ยเล็กน้อย+โอกาสถูกรางวัล — แต่<b>สลากกินแบ่งรัฐบาลไม่มีการคืนเงินต้น</b> เงินที่จ่ายซื้อคือค่าใช้จ่ายทั้งหมด ได้เฉพาะเมื่อถูกรางวัลเท่านั้น',
+      lsn2h: 'ค่าคาดหวังโดยรวมติดลบ',
+      lsn2p: 'ราคาสลากรวมค่าการตลาด ค่าดำเนินการ และส่วนที่จัดสรรคืนเป็นรางวัลไม่ครบ 100% ของยอดขาย ในทางสถิติระยะยาว ผู้ซื้อสลากโดยรวมจ่ายมากกว่าที่ได้รับคืนเป็นรางวัล — เป็นค่าใช้จ่ายเพื่อความบันเทิง/ลุ้นโชค ไม่ใช่การลงทุนที่คาดหวังกำไรได้',
+      lsn3h: "Gambler's Fallacy — เลขที่ \"ยังไม่ออก\" ไม่ได้แปลว่าจะออกเร็วๆ นี้",
+      lsn3p: 'เครื่องจับรางวัลแต่ละงวดเป็นอิสระจากงวดก่อนหน้าโดยสิ้นเชิง เลขที่ไม่เคยออกในอดีตไม่ได้มีโอกาสออกในงวดถัดไปมากกว่าเลขอื่น และเลขที่เพิ่งออกก็ไม่ได้มีโอกาสออกซ้ำน้อยกว่า — ความเชื่อว่าเลข "ค้างมานาน" จะ "ถึงคิว" ออก เป็นความเข้าใจผิดทางสถิติที่พบบ่อย (gambler\'s fallacy)',
+      lsn4h: 'วิธีคำนวณวันจับรางวัลในหน้านี้',
+      lsn4p: 'ใช้กฎทั่วไป (วันที่ 1 และ 16 ของทุกเดือน) — จากการตรวจสอบจริงพบว่าวันที่เลื่อนช่วงปีใหม่/วันครู/วันแรงงานไม่ตรงกันทุกปีตามที่คาด ระบบจึงลองหลายวันที่เป็นไปได้รอบช่วงเสี่ยงเหล่านี้ (เช่น ต้นเดือน ม.ค., ต้นเดือน พ.ค., ปลายเดือน ธ.ค.) แล้วใช้วันที่ที่มีข้อมูลจริงเท่านั้น — วันที่ไม่มีงวด (404) ถูกข้ามอัตโนมัติ ไม่ถือเป็นความผิดพลาด และ<b>ไม่รับประกันว่าจะครอบคลุมทุกกรณีพิเศษในอดีต 100%</b>',
+      lsn5h: 'แหล่งข้อมูล',
+      lsn5p: 'ข้อมูลผลรางวัลย้อนหลังดึงจากโปรเจกต์ชุมชนบน GitHub (ดูรายละเอียดที่หน้าเครดิต) ไม่มีการรับประกันความถูกต้อง 100% หรือ uptime — ควรตรวจสอบผลรางวัลจริงกับเว็บทางการก่อนขึ้นเงินรางวัลเสมอ',
+      footerDisc: 'ข้อมูลย้อนหลังใช้เพื่อการศึกษาเท่านั้น ไม่ใช่การพยากรณ์ผลจับรางวัลหรือคำแนะนำการเล่นหวย ผลจับรางวัลจริงเป็นการสุ่มอิสระทุกงวด · ข้อมูลเก็บในเครื่องคุณเท่านั้น',
+      posLabelSaen: 'แสน', posLabelMuen: 'หมื่น', posLabelPhan: 'พัน', posLabelRoi: 'ร้อย', posLabelSip: 'สิบ', posLabelNuay: 'หน่วย',
+      posGroupPrefix: 'หลัก{label}',
+      rangeNoteTooOld: 'ข้อมูลมีย้อนหลังจริงถึงปี 2550 (~19 ปี) เท่านั้น ช่วงที่เลือกยาวกว่าที่มีข้อมูลจริง ระบบใช้เท่าที่มีข้อมูล',
+      preparingList: 'กำลังเตรียมรายการงวด…', loadedDone: 'ดึงข้อมูลเสร็จแล้ว',
+      loadingProgress: 'กำลังดึงข้อมูลย้อนหลัง {done}/{total} งวด…',
+      confirmClearCache: 'ล้างข้อมูลย้อนหลังที่แคชไว้ทั้งหมด?',
+      noDataInRange: 'ยังไม่มีข้อมูลในช่วงนี้ — กด "ดึงข้อมูลย้อนหลัง" ก่อน',
+      noDataInTier: 'ไม่มีข้อมูลหมวดนี้ในช่วงที่เลือก',
+      thNumber: 'เลข', thTimesOut: 'จำนวนครั้งที่ออก',
+      alertTicketLen: 'กรอกเลข 6 หลักให้ถูกต้อง',
+      findingLatest: 'กำลังค้นหางวดล่าสุด…', checkingDraw: 'กำลังตรวจสอบงวด {date}…',
+      checkedAgainst: 'ตรวจกับงวดวันที่ {date}', checkFail: 'ดึงผลงวดล่าสุดไม่สำเร็จตอนนี้ ลองใหม่อีกครั้ง',
+      resultLbl: 'ผลการตรวจ', hitResult: 'ถูกรางวัล: {hits}', noHit: 'ไม่ถูกรางวัลใดเลยในงวดนี้',
+      hitFirst: 'รางวัลที่ 1', hitSecond: 'รางวัลที่ 2', hitThird: 'รางวัลที่ 3', hitNearFirst: 'ข้างเคียงรางวัลที่ 1',
+      hitFourth: 'รางวัลที่ 4', hitFifth: 'รางวัลที่ 5', hitThreeFront: 'เลขหน้า 3 ตัว', hitThreeBack: 'เลขท้าย 3 ตัว', hitTwoDigit: 'เลขท้าย 2 ตัว',
+      spinHistTitle: 'ประวัติการสุ่มล่าสุด', thTime: 'เวลา', thNum: 'เลข'
+    },
+    en: {
+      navInvest: 'Investing', pageTitleShort: 'Government Lottery',
+      pageTitle: 'Government Lottery — Historical Stats + Ticket Checker + Number Randomizer',
+      headSub: 'Real historical data, not a prediction of draw results',
+      warnTitle: 'Read Before You Start',
+      warn1: 'The government lottery <b>does not return your principal</b>, unlike the GSB/BAAC savings lottery already on this app (which always returns your full principal if held to maturity) — money spent on lottery tickets is a pure expense',
+      warn2: 'Each draw uses a verifiable machine and is <b>always independent of the previous draw</b> — there is no such thing as a number that "hasn\'t come up yet and is due soon." The frequency stats on this page are purely descriptive, for educational purposes only',
+      warn3: 'Setting a lottery-ticket budget in advance (e.g. no more than 800 THB/month) is good financial discipline — you should always do this, whether you buy a little or a lot',
+      loadTitle: 'Fetch Historical Data', lblWindow: 'Lookback period',
+      win1m: '1 month', win3m: '3 months', win4m: '4 months', win6m: '6 months', win1y: '1 year', win5y: '5 years', win10y: '10 years', win20y: '20 years', win30y: '30 years',
+      loadBtn: 'Fetch historical data', stopBtn: '⏹ Stop', clearCacheBtn: 'Clear cache',
+      methodology: "Fetched directly from per-draw result files (no proxy) — draws with no data are skipped automatically and not treated as an error · fetched data is stored permanently on your device, so it's faster next time",
+      freqTitle: 'Frequency Statistics', freqCaveat: 'Past frequency, not future probability — each draw is always independent of the previous one',
+      lblTier: 'Category',
+      tierTwoDigit: 'Last 2 digits', tierThreeFirst: 'First 3 digits', tierThreeLast: 'Last 3 digits',
+      tierFirst: '1st prize (per-digit frequency)', tierSecond: '2nd prize (per-digit frequency)', tierThird: '3rd prize (per-digit frequency)',
+      statEmptyDefault: 'Press "Fetch historical data" above first to see frequency stats',
+      whyPosSummary: 'Why 1st/2nd/3rd prize show per-digit frequency, not the full 6-digit number',
+      whyPosBody: 'A 6-digit number has up to 1 million possibilities, but the sample fetched is only a few hundred draws. Counting frequency by full 6-digit number would produce a table where almost every number appears 0 or 1 times — not meaningful to look at. So instead this counts the frequency of <b>each digit, by position</b> (hundred-thousands, ten-thousands, thousands, hundreds, tens, units), which has enough samples to be a meaningful descriptive statistic — though it\'s still not a prediction',
+      checkTitle: 'Check a Ticket', lblTicket: 'Ticket number (6 digits)', phTicket: 'e.g. 123456', checkBtn: 'Check against the latest draw',
+      spinTitle: 'Randomize a Number to Buy', spinBtn: 'Spin',
+      lblSpinFull: 'Full 6-digit number', lblSpinFront: 'First 3 digits', lblSpinBack3: 'Last 3 digits', lblSpinBack2: 'Last 2 digits',
+      spinNote: 'Lottery vendors usually sell the full 6-digit number, or shorter versions (first/last 3 digits, last 2 digits) depending on the vendor',
+      lblBudget: "This month's lottery budget (a reminder to yourself)", phBudget: 'e.g. 800',
+      lessonSummary: 'Learn — The Government Lottery Made Simple',
+      lsn1h: 'How is it different from the GSB/BAAC lottery',
+      lsn1p: 'The GSB/BAAC lottery (already covered on this app) always returns your full principal if held to maturity, with the main return coming from small interest + a chance of winning a prize — but <b>the government lottery has no principal return</b>. The money paid is entirely an expense, and you only get anything back if you win a prize',
+      lsn2h: 'The overall expected value is negative',
+      lsn2p: "Ticket prices include marketing costs, operating costs, and the portion allocated to prizes doesn't add up to 100% of sales revenue. Statistically over the long run, lottery buyers as a group pay more than they get back in prizes — it's an entertainment/thrill expense, not an investment with an expected profit",
+      lsn3h: "Gambler's Fallacy — a number that \"hasn't come up\" doesn't mean it's due soon",
+      lsn3p: 'Each draw\'s machine is entirely independent of the previous draw. A number that has never come up historically is no more likely to come up next draw than any other number, and a number that just came up is no less likely to repeat — the belief that a number "overdue" is "due" to come up is a common statistical misconception (the gambler\'s fallacy)',
+      lsn4h: 'How draw dates are calculated on this page',
+      lsn4p: 'This uses the general rule (the 1st and 16th of every month) — real-world checking found that the shifted dates around New Year/Teacher\'s Day/Labor Day don\'t match every year as expected, so the system tries several candidate dates around these risk periods (e.g. early January, early May, late December) and only uses dates that actually have real data — dates with no draw (404) are skipped automatically and not treated as an error, and <b>there is no guarantee this covers 100% of every historical special case</b>',
+      lsn5h: 'Data source',
+      lsn5p: "Historical draw results are fetched from a community project on GitHub (see the credits page for details) — there's no guarantee of 100% accuracy or uptime — you should always verify real results against the official website before cashing in a prize",
+      footerDisc: 'Historical data is for educational purposes only, not a prediction of draw results or gambling advice. Real draw results are an independent random draw every time · data is stored on your device only',
+      posLabelSaen: 'hundred-thousands', posLabelMuen: 'ten-thousands', posLabelPhan: 'thousands', posLabelRoi: 'hundreds', posLabelSip: 'tens', posLabelNuay: 'units',
+      posGroupPrefix: '{label} digit',
+      rangeNoteTooOld: 'Real historical data only goes back to 2007 (~19 years). The selected range is longer than the available data, so the system uses whatever data exists',
+      preparingList: 'Preparing the list of draws…', loadedDone: 'Fetch complete',
+      loadingProgress: 'Fetching historical data {done}/{total} draws…',
+      confirmClearCache: 'Clear all cached historical data?',
+      noDataInRange: 'No data in this range yet — press "Fetch historical data" first',
+      noDataInTier: 'No data for this category in the selected range',
+      thNumber: 'Number', thTimesOut: 'Times drawn',
+      alertTicketLen: 'Enter a valid 6-digit number',
+      findingLatest: 'Finding the latest draw…', checkingDraw: 'Checking draw {date}…',
+      checkedAgainst: 'Checked against the draw on {date}', checkFail: "Couldn't fetch the latest draw right now — try again",
+      resultLbl: 'Result', hitResult: 'Won: {hits}', noHit: 'No prize won in this draw',
+      hitFirst: '1st Prize', hitSecond: '2nd Prize', hitThird: '3rd Prize', hitNearFirst: 'Near 1st Prize',
+      hitFourth: '4th Prize', hitFifth: '5th Prize', hitThreeFront: 'First 3 digits', hitThreeBack: 'Last 3 digits', hitTwoDigit: 'Last 2 digits',
+      spinHistTitle: 'Recent Spin History', thTime: 'Time', thNum: 'Number'
+    }
+  };
+  function t(key, vars) {
+    var s = (I18N[getUILang()] || I18N.th)[key];
+    if (s == null) s = (I18N.th[key] != null ? I18N.th[key] : key);
+    if (vars) { for (var k in vars) { s = s.split('{' + k + '}').join(vars[k]); } }
+    return s;
+  }
+  function applyStaticI18n() {
+    [].forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    [].forEach.call(document.querySelectorAll('[data-i18n-html]'), function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+    [].forEach.call(document.querySelectorAll('[data-i18n-placeholder]'), function (el) { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+  }
+
   /* ══════════════════════════════════════════════════════════════════
      ดึงไฟล์ผลรางวัลรายวันจาก GitHub raw (CORS เปิด ไม่ต้องพร็อกซี —
      ต่างจากทุกหน้าอื่นในแอปนี้ที่ต้องไล่ 5-proxy chain)
@@ -194,7 +317,7 @@
   /* รางวัลที่ 1/2/3: เลข 6 หลักเป๊ะมีให้เลือกล้านแบบ ตัวอย่างไม่กี่ร้อยงวดจะไม่มีเลขซ้ำเลยเกือบทั้งหมด
      (แสดงความถี่เลข 6 หลักเต็มจะได้ตารางที่ "ทุกอย่าง = 0 หรือ 1" ไม่มีสาระ) —
      จึงนับความถี่ "แต่ละหลัก แยกตามตำแหน่ง" แทน ซึ่งมีตัวอย่างมากพอสรุปทางสถิติเชิงพรรณนาได้จริง */
-  var POSITION_LABELS = ['แสน', 'หมื่น', 'พัน', 'ร้อย', 'สิบ', 'หน่วย'];
+  var POSITION_KEYS = ['posLabelSaen', 'posLabelMuen', 'posLabelPhan', 'posLabelRoi', 'posLabelSip', 'posLabelNuay'];
   function digitPositionFrequency(draws, tier) {
     var pos = [{}, {}, {}, {}, {}, {}];
     draws.forEach(function (d) {
@@ -236,15 +359,15 @@
     if (ticket.length !== 6 || !draw) return null;
     var two = ticket.slice(-2), threeFront = ticket.slice(0, 3), threeBack = ticket.slice(-3);
     var hits = [];
-    if (draw.first === ticket) hits.push('รางวัลที่ 1');
-    if ((draw.second || []).indexOf(ticket) !== -1) hits.push('รางวัลที่ 2');
-    if ((draw.third || []).indexOf(ticket) !== -1) hits.push('รางวัลที่ 3');
-    if (draw.nearFirst && draw.nearFirst.indexOf(ticket) !== -1) hits.push('ข้างเคียงรางวัลที่ 1');
-    if (draw.fourth && draw.fourth.indexOf(ticket) !== -1) hits.push('รางวัลที่ 4');
-    if (draw.fifth && draw.fifth.indexOf(ticket) !== -1) hits.push('รางวัลที่ 5');
-    if (draw.threeFirst && draw.threeFirst.indexOf(threeFront) !== -1) hits.push('เลขหน้า 3 ตัว');
-    if (draw.threeLast && draw.threeLast.indexOf(threeBack) !== -1) hits.push('เลขท้าย 3 ตัว');
-    if (draw.twoDigit === two) hits.push('เลขท้าย 2 ตัว');
+    if (draw.first === ticket) hits.push(t('hitFirst'));
+    if ((draw.second || []).indexOf(ticket) !== -1) hits.push(t('hitSecond'));
+    if ((draw.third || []).indexOf(ticket) !== -1) hits.push(t('hitThird'));
+    if (draw.nearFirst && draw.nearFirst.indexOf(ticket) !== -1) hits.push(t('hitNearFirst'));
+    if (draw.fourth && draw.fourth.indexOf(ticket) !== -1) hits.push(t('hitFourth'));
+    if (draw.fifth && draw.fifth.indexOf(ticket) !== -1) hits.push(t('hitFifth'));
+    if (draw.threeFirst && draw.threeFirst.indexOf(threeFront) !== -1) hits.push(t('hitThreeFront'));
+    if (draw.threeLast && draw.threeLast.indexOf(threeBack) !== -1) hits.push(t('hitThreeBack'));
+    if (draw.twoDigit === two) hits.push(t('hitTwoDigit'));
     return { ticket: ticket, drawDate: draw.date, hits: hits };
   }
 
@@ -297,7 +420,7 @@
     var earliest = parseYMD(EARLIEST_ARCHIVE);
     var el = $('ltRangeNote');
     if (fromDate < earliest) {
-      el.textContent = 'ข้อมูลมีย้อนหลังจริงถึงปี 2550 (~19 ปี) เท่านั้น ช่วงที่เลือกยาวกว่าที่มีข้อมูลจริง ระบบใช้เท่าที่มีข้อมูล';
+      el.textContent = t('rangeNoteTooOld');
     } else {
       el.textContent = '';
     }
@@ -310,15 +433,15 @@
     $('ltLoadBtn').disabled = true;
     $('ltStopBtn').hidden = false;
     $('ltProgressFill').style.width = '0%';
-    $('ltProgressText').textContent = 'กำลังเตรียมรายการงวด…';
+    $('ltProgressText').textContent = t('preparingList');
     loadHistory(range.fromDate, range.toDate, function (done, total) {
       var pct = total ? Math.round(done / total * 100) : 100;
       $('ltProgressFill').style.width = pct + '%';
-      $('ltProgressText').textContent = 'กำลังดึงข้อมูลย้อนหลัง ' + done + '/' + total + ' งวด…';
+      $('ltProgressText').textContent = t('loadingProgress', { done: done, total: total });
     }).then(function () {
       $('ltLoadBtn').disabled = false;
       $('ltStopBtn').hidden = true;
-      $('ltProgressText').textContent = 'ดึงข้อมูลเสร็จแล้ว';
+      $('ltProgressText').textContent = t('loadedDone');
       renderRangeNote(range.fromDate);
       renderFrequency();
     });
@@ -329,9 +452,9 @@
   }
 
   function doClearCache() {
-    if (!confirm('ล้างข้อมูลย้อนหลังที่แคชไว้ทั้งหมด?')) return;
+    if (!confirm(t('confirmClearCache'))) return;
     try { localStorage.removeItem(HIST_KEY); } catch (e) {}
-    $('ltStatOut').innerHTML = '<div class="log-empty">กด "ดึงข้อมูลย้อนหลัง" ด้านบนก่อน เพื่อดูสถิติความถี่</div>';
+    $('ltStatOut').innerHTML = '<div class="log-empty">' + t('statEmptyDefault') + '</div>';
     $('ltRangeNote').textContent = '';
   }
 
@@ -341,14 +464,14 @@
     var cache = loadHistCache();
     var draws = drawsInWindow(cache, range.fromDate, range.toDate);
     var out = $('ltStatOut');
-    if (!draws.length) { out.innerHTML = '<div class="log-empty">ยังไม่มีข้อมูลในช่วงนี้ — กด "ดึงข้อมูลย้อนหลัง" ก่อน</div>'; return; }
+    if (!draws.length) { out.innerHTML = '<div class="log-empty">' + t('noDataInRange') + '</div>'; return; }
 
     if (tier === 'first' || tier === 'second' || tier === 'third') {
       var pos = digitPositionFrequency(draws, tier);
       var html = '<div class="pos-groups">';
       pos.forEach(function (counts, i) {
         var max = 0; Object.keys(counts).forEach(function (k) { if (counts[k] > max) max = counts[k]; });
-        html += '<div class="pos-group"><div class="pos-label">หลัก' + POSITION_LABELS[i] + '</div>';
+        html += '<div class="pos-group"><div class="pos-label">' + t('posGroupPrefix', { label: t(POSITION_KEYS[i]) }) + '</div>';
         for (var d = 0; d <= 9; d++) {
           var c = counts[d] || 0, w = max ? Math.round(c / max * 100) : 0;
           html += '<div class="pos-bar-row"><span class="d">' + d + '</span><span class="bar"><i style="width:' + w + '%"></i></span><span class="c">' + c + '</span></div>';
@@ -362,8 +485,8 @@
       var entries = Object.keys(counts2).map(function (k) { return { v: k, c: counts2[k] }; });
       entries.sort(function (a, b) { return b.c - a.c || (a.v < b.v ? -1 : 1); });
       var top = entries.slice(0, 20);
-      if (!top.length) { out.innerHTML = '<div class="log-empty">ไม่มีข้อมูลหมวดนี้ในช่วงที่เลือก</div>'; return; }
-      var html2 = '<table class="log-table"><thead><tr><th>เลข</th><th>จำนวนครั้งที่ออก</th></tr></thead><tbody>';
+      if (!top.length) { out.innerHTML = '<div class="log-empty">' + t('noDataInTier') + '</div>'; return; }
+      var html2 = '<table class="log-table"><thead><tr><th>' + t('thNumber') + '</th><th>' + t('thTimesOut') + '</th></tr></thead><tbody>';
       top.forEach(function (e) { html2 += '<tr><td>' + e.v + '</td><td>' + e.c + '</td></tr>'; });
       html2 += '</tbody></table>';
       out.innerHTML = html2;
@@ -372,22 +495,22 @@
 
   function doCheckTicket() {
     var ticket = ($('ltTicket').value || '').replace(/\D/g, '');
-    if (ticket.length !== 6) { alert('กรอกเลข 6 หลักให้ถูกต้อง'); return; }
-    $('ltCheckStatus').textContent = 'กำลังค้นหางวดล่าสุด…';
+    if (ticket.length !== 6) { alert(t('alertTicketLen')); return; }
+    $('ltCheckStatus').textContent = t('findingLatest');
     $('ltCheckOut').innerHTML = '';
-    findLatestDraw(function (tryDate) { $('ltCheckStatus').textContent = 'กำลังตรวจสอบงวด ' + tryDate + '…'; })
+    findLatestDraw(function (tryDate) { $('ltCheckStatus').textContent = t('checkingDraw', { date: tryDate }); })
       .then(function (draw) {
-        $('ltCheckStatus').textContent = 'ตรวจกับงวดวันที่ ' + thaiDate(parseYMD(draw.date));
+        $('ltCheckStatus').textContent = t('checkedAgainst', { date: thaiDate(parseYMD(draw.date)) });
         var res = checkTicket(ticket, draw);
         var out = $('ltCheckOut');
         if (res.hits.length) {
-          out.innerHTML = '<div class="sumbox" style="margin-top:10px"><div class="lbl">ผลการตรวจ</div><div class="val grow">ถูกรางวัล: ' + res.hits.join(', ') + '</div></div>';
+          out.innerHTML = '<div class="sumbox" style="margin-top:10px"><div class="lbl">' + t('resultLbl') + '</div><div class="val grow">' + t('hitResult', { hits: res.hits.join(', ') }) + '</div></div>';
         } else {
-          out.innerHTML = '<div class="sumbox" style="margin-top:10px"><div class="lbl">ผลการตรวจ</div><div class="val">ไม่ถูกรางวัลใดเลยในงวดนี้</div></div>';
+          out.innerHTML = '<div class="sumbox" style="margin-top:10px"><div class="lbl">' + t('resultLbl') + '</div><div class="val">' + t('noHit') + '</div></div>';
         }
       })
       .catch(function () {
-        $('ltCheckStatus').textContent = 'ดึงผลงวดล่าสุดไม่สำเร็จตอนนี้ ลองใหม่อีกครั้ง';
+        $('ltCheckStatus').textContent = t('checkFail');
       });
   }
 
@@ -407,8 +530,8 @@
     var list = []; try { list = JSON.parse(localStorage.getItem(SPIN_KEY)) || []; } catch (e) {}
     var el = $('ltSpinHistory');
     if (!list.length) { el.innerHTML = ''; return; }
-    var html = '<div style="font-weight:700;font-size:13px;margin:10px 0 4px">ประวัติการสุ่มล่าสุด</div>' +
-      '<table class="log-table"><thead><tr><th>เวลา</th><th>เลข</th></tr></thead><tbody>';
+    var html = '<div style="font-weight:700;font-size:13px;margin:10px 0 4px">' + t('spinHistTitle') + '</div>' +
+      '<table class="log-table"><thead><tr><th>' + t('thTime') + '</th><th>' + t('thNum') + '</th></tr></thead><tbody>';
     list.forEach(function (r) {
       html += '<tr><td>' + new Date(r.ts).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + '</td><td>' + r.n + '</td></tr>';
     });
@@ -417,6 +540,7 @@
   }
 
   function init() {
+    applyStaticI18n();
     $('ltLoadBtn').addEventListener('click', doLoadHistory);
     $('ltStopBtn').addEventListener('click', doStopLoad);
     $('ltClearCacheBtn').addEventListener('click', doClearCache);
@@ -434,6 +558,13 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+
+  window.omeApplyLang = function () {
+    applyStaticI18n();
+    renderFrequency();
+    renderSpinHistory();
+    if ($('ltRangeNote').textContent) renderRangeNote(currentWindowRange().fromDate);
+  };
 
   window.__lottery = {
     parseDrawText: parseDrawText, candidateDrawDates: candidateDrawDates,
