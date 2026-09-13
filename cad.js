@@ -92,10 +92,12 @@
       importDxfError: 'อ่านไฟล์นี้ไม่ได้ — ไม่ใช่ไฟล์ DXF หรือไฟล์เสียหาย',
       importDxfEmpty: 'ไม่พบเอนทิตี้ที่รองรับในไฟล์ DXF นี้ (รองรับ LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)',
       toolDiadim: 'มิติเส้นผ่าศูนย์กลาง', toolAngdim: 'มิติมุม', toolLeader: 'ลูกศรชี้', toolTextLeader: 'ข้อความ+เส้นชี้', toolHatch: 'แรเงา', toolCentermark: 'เครื่องหมายกึ่งกลาง', toolOrdinate: 'มิติพิกัด (Ordinate)',
+      toolBalloon: 'ป้ายบอลลูน', toolMultileader: 'เส้นชี้หลายจุด', toolSurfaceFinish: 'ความหยาบผิว',
       hatchSpacingLbl: 'ระยะห่างลาย (มม.)', hatchAngleLbl: 'มุมลาย (°)', hatchApplyBtn: 'แรเงา',
       dimStyleTitle: 'สไตล์มิติเริ่มต้น', dimTextHeightLbl: 'ตัวอักษรมิติ (มม.)', dimArrowSizeLbl: 'หัวลูกศร (มม.)', centerMarkSizeLbl: 'เครื่องหมายกึ่งกลาง (มม.)',
       propsTitleDiadim: 'คุณสมบัติ: มิติเส้นผ่าศูนย์กลาง', propsTitleAngdim: 'คุณสมบัติ: มิติมุม',
       propsTitleLeader: 'คุณสมบัติ: ลูกศรชี้', propsTitleTextLeader: 'คุณสมบัติ: ข้อความ+เส้นชี้', propsTitleHatch: 'คุณสมบัติ: แรเงา',
+      propsTitleBalloon: 'คุณสมบัติ: ป้ายบอลลูน', propsTitleMultileader: 'คุณสมบัติ: เส้นชี้หลายจุด', propsTitleSurfaceFinish: 'คุณสมบัติ: ความหยาบผิว',
       propArrowSize: 'ขนาดหัวลูกศร (มม.)', propSpacing: 'ระยะห่างลาย (มม.)', propHatchAngle: 'มุมลาย (°)',
       plotTitle: 'จัดพิมพ์ตามมาตราส่วนจริง (PDF)', plotPaperLbl: 'ขนาดกระดาษ', plotOrientLbl: 'แนวกระดาษ',
       plotScaleLbl: 'มาตราส่วน', plotGenerateBtn: 'สร้าง PDF',
@@ -176,10 +178,12 @@
       importDxfError: "Couldn't read this file — not a DXF file, or it's corrupted",
       importDxfEmpty: 'No supported entities found in this DXF file (supports LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)',
       toolDiadim: 'Diameter dim', toolAngdim: 'Angle dim', toolLeader: 'Leader', toolTextLeader: 'Text-Leader', toolHatch: 'Hatch', toolCentermark: 'Center mark', toolOrdinate: 'Ordinate dim',
+      toolBalloon: 'Balloon', toolMultileader: 'Multileader', toolSurfaceFinish: 'Surface finish',
       hatchSpacingLbl: 'Line spacing (mm)', hatchAngleLbl: 'Line angle (°)', hatchApplyBtn: 'Hatch',
       dimStyleTitle: 'Default dimension style', dimTextHeightLbl: 'Dim text (mm)', dimArrowSizeLbl: 'Arrowhead (mm)', centerMarkSizeLbl: 'Center mark (mm)',
       propsTitleDiadim: 'Properties: Diameter dim', propsTitleAngdim: 'Properties: Angle dim',
       propsTitleLeader: 'Properties: Leader', propsTitleTextLeader: 'Properties: Text-Leader', propsTitleHatch: 'Properties: Hatch',
+      propsTitleBalloon: 'Properties: Balloon', propsTitleMultileader: 'Properties: Multileader', propsTitleSurfaceFinish: 'Properties: Surface finish',
       propArrowSize: 'Arrowhead size (mm)', propSpacing: 'Line spacing (mm)', propHatchAngle: 'Line angle (°)',
       plotTitle: 'Plot to scale (PDF)', plotPaperLbl: 'Paper size', plotOrientLbl: 'Orientation',
       plotScaleLbl: 'Scale', plotGenerateBtn: 'Generate PDF',
@@ -406,6 +410,18 @@
      คำนวณสดทุกครั้ง (ไม่ baked) — ย้ายจุด e.p ทีหลังแล้วค่าจะอัปเดตถูกต้องอัตโนมัติ */
   function ordinateValue(e) { return e.axis === 'x' ? e.p.x : e.p.y; }
   function ordinateLabel(e) { return (e.axis === 'x' ? 'X' : 'Y') + fmtMm(ordinateValue(e)); }
+  /* สัญลักษณ์ความหยาบผิว (surface finish): "เครื่องหมายถูก" มาตรฐาน ISO แบบง่าย — เส้นเฉียงลงสั้นแล้วเฉียงขึ้น
+     ยาวกว่า (ทำมุมชันกว่า) จากจุด p แล้วต่อด้วยค่าความหยาบผิว (e.value) ที่ปลาย q3 — ขนาดสัมพัทธ์กับ e.height
+     เหมือนความสูงตัวอักษรของ text/leader ทั่วไป */
+  function surfaceFinishPoints(e) {
+    var h = e.height;
+    var q2 = { x: e.p.x + h * 0.6, y: e.p.y - h * 0.6 };
+    var q3 = { x: e.p.x + h * 1.6, y: e.p.y + h * 1.2 };
+    return { q1: e.p, q2: q2, q3: q3 };
+  }
+  /* รัศมีวงกลมป้ายบอลลูน (balloon) — คำนวณสดจาก e.height เสมอ (ไม่เก็บแยก) เพื่อให้สเกลตามความสูงตัวอักษร
+     ได้อัตโนมัติเหมือนเอนทิตี้ annotate ตัวอื่นๆ ในไฟล์นี้ */
+  function balloonRadius(e) { return e.height * 0.9; }
   function estimateTextWidth(text, height) { return (text || '').length * height * 0.58; } // ประมาณความกว้าง (ไม่มีการวัดฟอนต์จริงในสเตจนี้)
   /* จุดอยู่ในรูปหลายเหลี่ยมปิดไหม (even-odd rule) — ใช้กับการคลิกเลือกลายแรเงา (คลิกที่ไหนในพื้นที่ก็เลือกได้ ไม่ใช่
      แค่ตรงเส้นลายพอดี เหมือนโปรแกรม CAD ทั่วไป) */
@@ -497,6 +513,19 @@
       var ow = estimateTextWidth(ordinateLabel(e), e.textHeight);
       return Math.min(distPointToSegment(p, e.p, e.leaderEnd), distPointToRect(p, e.leaderEnd.x, e.leaderEnd.y, e.leaderEnd.x + ow, e.leaderEnd.y + e.textHeight));
     }
+    if (e.type === 'surfacefinish') {
+      var sfPts = surfaceFinishPoints(e);
+      var sfw = estimateTextWidth(e.text, e.height);
+      return Math.min(distPointToSegment(p, sfPts.q1, sfPts.q2), distPointToSegment(p, sfPts.q2, sfPts.q3), distPointToRect(p, sfPts.q3.x, sfPts.q3.y, sfPts.q3.x + sfw, sfPts.q3.y + e.height));
+    }
+    if (e.type === 'balloon') {
+      var br = balloonRadius(e);
+      return Math.min(distPointToSegment(p, e.p1, e.p2), Math.max(0, Math.hypot(p.x - e.p2.x, p.y - e.p2.y) - br));
+    }
+    if (e.type === 'multileader') {
+      var mlw = estimateTextWidth(e.text, e.height);
+      return Math.min(distPointToSegment(p, e.p1a, e.p2), distPointToSegment(p, e.p1b, e.p2), distPointToRect(p, e.p2.x, e.p2.y, e.p2.x + mlw, e.p2.y + e.height));
+    }
     return Infinity;
   }
   /* วงกลมผ่าน 3 จุด (circumcircle) — คืน center/radius/startAngle/endAngle โดยเลือกทิศกวาด (จาก p1 ไป p2)
@@ -558,6 +587,9 @@
     else if (e.type === 'spline') { e.points.forEach(function (p) { pts.push({ p: p, kind: 'end' }); }); } // จุดควบคุมเท่านั้น (จุดกึ่งกลางเส้นตรงจะไม่ตรงกับเส้นโค้งจริง เลยไม่ใส่)
     else if (e.type === 'centermark') { pts.push({ p: e.center, kind: 'center' }); }
     else if (e.type === 'ordinate') { pts.push({ p: e.p, kind: 'end' }, { p: e.leaderEnd, kind: 'end' }); }
+    else if (e.type === 'surfacefinish') { pts.push({ p: e.p, kind: 'end' }); }
+    else if (e.type === 'balloon') { pts.push({ p: e.p1, kind: 'end' }, { p: e.p2, kind: 'center' }); }
+    else if (e.type === 'multileader') { pts.push({ p: e.p1a, kind: 'end' }, { p: e.p1b, kind: 'end' }, { p: e.p2, kind: 'end' }); }
     return pts;
   }
   function entitySegments(e) {
@@ -597,6 +629,9 @@
     if (e.type === 'spline') return splinePoints(e, 8); // 8 พอสำหรับ bounds/zoomFit/drag-select คร่าวๆ ไม่ต้องเรียบเท่าตอน render จริง
     if (e.type === 'centermark') return [{ x: e.center.x - e.size, y: e.center.y - e.size }, { x: e.center.x + e.size, y: e.center.y + e.size }];
     if (e.type === 'ordinate') { var ow2 = estimateTextWidth(ordinateLabel(e), e.textHeight); return [e.p, e.leaderEnd, { x: e.leaderEnd.x + ow2, y: e.leaderEnd.y + e.textHeight }]; }
+    if (e.type === 'surfacefinish') { var sfp = surfaceFinishPoints(e); var sfw2 = estimateTextWidth(e.text, e.height); return [sfp.q1, sfp.q2, sfp.q3, { x: sfp.q3.x + sfw2, y: sfp.q3.y + e.height }]; }
+    if (e.type === 'balloon') { var br2 = balloonRadius(e); return [e.p1, { x: e.p2.x - br2, y: e.p2.y - br2 }, { x: e.p2.x + br2, y: e.p2.y + br2 }]; }
+    if (e.type === 'multileader') { var mlw2 = estimateTextWidth(e.text, e.height); return [e.p1a, e.p1b, e.p2, { x: e.p2.x + mlw2, y: e.p2.y + e.height }]; }
     return [];
   }
 
@@ -754,6 +789,9 @@
     else if (e.type === 'spline') { e.points = e.points.map(fn); }
     else if (e.type === 'centermark') { e.center = fn(e.center); }
     else if (e.type === 'ordinate') { e.p = fn(e.p); e.leaderEnd = fn(e.leaderEnd); }
+    else if (e.type === 'surfacefinish') { e.p = fn(e.p); }
+    else if (e.type === 'balloon') { e.p1 = fn(e.p1); e.p2 = fn(e.p2); }
+    else if (e.type === 'multileader') { e.p1a = fn(e.p1a); e.p1b = fn(e.p1b); e.p2 = fn(e.p2); }
     return e;
   }
 
@@ -787,7 +825,7 @@
       }
       if (mods.scaleFactor != null && (src.type === 'circle' || src.type === 'arc' || src.type === 'raddim' || src.type === 'diadim' || src.type === 'angdim')) src.radius *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'dim') src.offset *= mods.scaleFactor;
-      if (mods.scaleFactor != null && (src.type === 'text' || src.type === 'leader' || src.type === 'textleader')) src.height *= mods.scaleFactor;
+      if (mods.scaleFactor != null && (src.type === 'text' || src.type === 'leader' || src.type === 'textleader' || src.type === 'surfacefinish' || src.type === 'balloon' || src.type === 'multileader')) src.height *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'ordinate') src.textHeight *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'hatch') src.spacing *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'centermark') src.size *= mods.scaleFactor;
@@ -1092,6 +1130,9 @@
     if (e.type === 'spline') return e.points.map(function (p, i) { return { p: p, ref: { idx: i } }; }); // ref รูปแบบเดียวกับ polyline — applyGripEdit จัดการให้ฟรีอยู่แล้ว
     if (e.type === 'centermark') return [{ p: e.center, ref: 'center' }];
     if (e.type === 'ordinate') return [{ p: e.p, ref: 'p' }, { p: e.leaderEnd, ref: 'leaderEnd' }];
+    if (e.type === 'surfacefinish') return [{ p: e.p, ref: 'p' }];
+    if (e.type === 'balloon') return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }];
+    if (e.type === 'multileader') return [{ p: e.p1a, ref: 'p1a' }, { p: e.p1b, ref: 'p1b' }, { p: e.p2, ref: 'p2' }];
     return []; // hatch: ไม่มีจุดจับต่อจุด — ย้าย/หมุน/มิเรอร์/สเกลทั้งก้อนผ่านเครื่องมือแก้ไขปกติเท่านั้น
   }
   function applyGripEdit(e, ref, pt) {
@@ -1107,6 +1148,8 @@
       var dx = e.p2.x - e.p1.x, dy = e.p2.y - e.p1.y, len = Math.hypot(dx, dy);
       e.offset = len ? ((pt.x - e.p1.x) * (-dy / len) + (pt.y - e.p1.y) * (dx / len)) : 0;
     } else if (ref === 'raddimleader') { e.radius = Math.max(0.01, Math.hypot(pt.x - e.center.x, pt.y - e.center.y)); e.angle = Math.atan2(pt.y - e.center.y, pt.x - e.center.x); }
+    else if (ref === 'p1a') e.p1a = { x: pt.x, y: pt.y };
+    else if (ref === 'p1b') e.p1b = { x: pt.x, y: pt.y };
     else if (ref && typeof ref === 'object' && 'idx' in ref) e.points[ref.idx] = { x: pt.x, y: pt.y };
   }
   function hitTestGrip(worldPt) {
@@ -1563,6 +1606,33 @@
         ctx.fillStyle = col_; ctx.font = Math.max(6, e.textHeight * state.view.scale) + 'px Prompt, sans-serif';
         ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
         ctx.fillText(ordinateLabel(e), ops2.x, ops2.y);
+      } else if (e.type === 'surfacefinish') {
+        var sfPts_ = surfaceFinishPoints(e);
+        var sfS1 = worldToScreen(sfPts_.q1.x, sfPts_.q1.y), sfS2 = worldToScreen(sfPts_.q2.x, sfPts_.q2.y), sfS3 = worldToScreen(sfPts_.q3.x, sfPts_.q3.y);
+        ctx.beginPath(); ctx.moveTo(sfS1.x, sfS1.y); ctx.lineTo(sfS2.x, sfS2.y); ctx.lineTo(sfS3.x, sfS3.y); ctx.stroke();
+        ctx.fillStyle = col_; ctx.font = Math.max(6, e.height * state.view.scale) + 'px Prompt, sans-serif';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+        ctx.fillText(e.text, sfS3.x, sfS3.y);
+      } else if (e.type === 'balloon') {
+        var blS1 = worldToScreen(e.p1.x, e.p1.y), blS2 = worldToScreen(e.p2.x, e.p2.y);
+        ctx.beginPath(); ctx.moveTo(blS1.x, blS1.y); ctx.lineTo(blS2.x, blS2.y); ctx.stroke();
+        var blAng = Math.atan2(blS2.y - blS1.y, blS2.x - blS1.x);
+        drawArrowHead(blS1, blAng + Math.PI, col_, Math.max(4, e.height * 0.5 * state.view.scale));
+        var blR = balloonRadius(e) * state.view.scale;
+        ctx.beginPath(); ctx.arc(blS2.x, blS2.y, blR, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = col_; ctx.font = Math.max(6, e.height * state.view.scale) + 'px Prompt, sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(e.text, blS2.x, blS2.y);
+      } else if (e.type === 'multileader') {
+        var mlSa = worldToScreen(e.p1a.x, e.p1a.y), mlSb = worldToScreen(e.p1b.x, e.p1b.y), mlS2 = worldToScreen(e.p2.x, e.p2.y);
+        [mlSa, mlSb].forEach(function (tail) {
+          ctx.beginPath(); ctx.moveTo(tail.x, tail.y); ctx.lineTo(mlS2.x, mlS2.y); ctx.stroke();
+          var mlAng = Math.atan2(mlS2.y - tail.y, mlS2.x - tail.x);
+          drawArrowHead(tail, mlAng + Math.PI, col_, Math.max(4, e.height * 0.5 * state.view.scale));
+        });
+        ctx.fillStyle = col_; ctx.font = Math.max(6, e.height * state.view.scale) + 'px Prompt, sans-serif';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+        ctx.fillText(e.text, mlS2.x, mlS2.y);
       }
     });
     /* จุดจับ (grips) — วาดเฉพาะตอนเลือกอยู่ตัวเดียวและเครื่องมือคือ "เลือก" (กันสับสนตอนใช้เครื่องมือแก้ไขอื่น) */
@@ -1785,6 +1855,7 @@
     move: 'toolMoveBtn', copy: 'toolCopyBtn', rotate: 'toolRotateBtn', mirror: 'toolMirrorBtn', scale: 'toolScaleBtn', stretch: 'toolStretchBtn',
     trim: 'toolTrimBtn', extend: 'toolExtendBtn', fillet: 'toolFilletBtn', chamfer: 'toolChamferBtn', 'break': 'toolBreakBtn', join: 'toolJoinBtn', offset: 'toolOffsetBtn', arrayrect: 'toolArrayRectBtn', arraypolar: 'toolArrayPolarBtn',
     dim: 'toolDimBtn', raddim: 'toolRaddimBtn', diadim: 'toolDiadimBtn', angdim: 'toolAngdimBtn', text: 'toolTextBtn', leader: 'toolLeaderBtn', textleader: 'toolTextLeaderBtn', hatch: 'toolHatchBtn', centermark: 'toolCentermarkBtn', ordinate: 'toolOrdinateBtn',
+    surfacefinish: 'toolSurfaceFinishBtn', balloon: 'toolBalloonBtn', multileader: 'toolMultileaderBtn',
     block: 'toolBlockBtn', titleblock: 'toolTitleBlockBtn', constraint: 'toolConstraintBtn'
   };
   var distLbl = document.querySelector('label[data-i18n="distLbl"]'), angLbl = document.querySelector('label[data-i18n="angLbl"]');
@@ -1793,8 +1864,8 @@
   var hatchRow = $('hatchRow'), hatchSpacingInput = $('hatchSpacing'), hatchAngleInput = $('hatchAngle');
   var blockLibSel = $('blockLibSel'), insertRow = $('insertRow'), blockSizeInput = $('blockSizeInput'), blockRotInput = $('blockRotInput'), blockMirrorBtn = $('blockMirrorBtn');
   var arrayPolarRow = $('arrayPolarRow'), arrPolarCountInput = $('arrPolarCount'), arrPolarAngleInput = $('arrPolarAngle');
-  var TEXT_ROW_POINTS_NEEDED = { text: 1, leader: 2, textleader: 2 }; // จำนวนจุดที่ต้องคลิกก่อน textRow จะโผล่ (ข้อความ=1 จุด, ลูกศรชี้/ข้อความ+เส้นชี้=2 จุด)
-  var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, 'break': 1, join: 1, arrayrect: 1, arraypolar: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, textleader: 1, hatch: 1, block: 1, titleblock: 1, constraint: 1, centermark: 1 };
+  var TEXT_ROW_POINTS_NEEDED = { text: 1, leader: 2, textleader: 2, surfacefinish: 1, balloon: 2, multileader: 3 }; // จำนวนจุดที่ต้องคลิกก่อน textRow จะโผล่
+  var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, 'break': 1, join: 1, arrayrect: 1, arraypolar: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, textleader: 1, surfacefinish: 1, balloon: 1, multileader: 1, hatch: 1, block: 1, titleblock: 1, constraint: 1, centermark: 1 };
   /* ห้าแถวป้อนค่าละเอียด (preciseRow/arrayRow/textRow/hatchRow/insertRow) ใช้ visibility:hidden (ไม่ใช่
      display:none) ตอนไม่โผล่ เพื่อกันวิวพอร์ตขยับกลางอากาศตอนคลิกจุดถัดไประหว่างวาด (ดูคอมเมนต์ที่นิยาม
      .cad-precise-row ใน cad.html) — แต่ถ้าปล่อยให้ทั้ง 5 แถว "จอง" ที่ว่างพร้อมกันตลอดเวลาแม้ไม่มีแถวไหน
@@ -1808,7 +1879,7 @@
     preciseRow.style.display = (!PRECISE_ROW_EXCLUDED[tool] || tool === 'constraint') ? '' : 'none';
     arrayRow.style.display = tool === 'arrayrect' ? '' : 'none';
     arrayPolarRow.style.display = tool === 'arraypolar' ? '' : 'none';
-    textRow.style.display = (tool === 'text' || tool === 'leader' || tool === 'textleader') ? '' : 'none';
+    textRow.style.display = TEXT_ROW_POINTS_NEEDED.hasOwnProperty(tool) ? '' : 'none';
     hatchRow.style.display = tool === 'hatch' ? '' : 'none';
     insertRow.style.display = tool === 'block' ? '' : 'none';
   }
@@ -1851,6 +1922,9 @@
     pushHistory();
     if (state.tool === 'text') state.entities.push({ id: genId(), type: 'text', layer: state.activeLayer, p: state.pendingPoints[0], text: content, height: h });
     else if (state.tool === 'textleader') state.entities.push({ id: genId(), type: 'textleader', layer: state.activeLayer, p1: state.pendingPoints[0], p2: state.pendingPoints[1], text: content, height: h });
+    else if (state.tool === 'surfacefinish') state.entities.push({ id: genId(), type: 'surfacefinish', layer: state.activeLayer, p: state.pendingPoints[0], text: content, height: h });
+    else if (state.tool === 'balloon') state.entities.push({ id: genId(), type: 'balloon', layer: state.activeLayer, p1: state.pendingPoints[0], p2: state.pendingPoints[1], text: content, height: h });
+    else if (state.tool === 'multileader') state.entities.push({ id: genId(), type: 'multileader', layer: state.activeLayer, p1a: state.pendingPoints[0], p1b: state.pendingPoints[1], p2: state.pendingPoints[2], text: content, height: h });
     else state.entities.push({ id: genId(), type: 'leader', layer: state.activeLayer, p1: state.pendingPoints[0], p2: state.pendingPoints[1], text: content, height: h });
     updateCountUI(); scheduleSave();
     finishDrawing(); updateTextRowUI(); render();
@@ -2047,6 +2121,12 @@
       state.pendingPoints = [pt]; // จุดเดียว — เนื้อหาข้อความกรอกผ่าน textRow แยกต่างหาก (ดู applyTextRow)
     } else if (state.tool === 'leader' || state.tool === 'textleader') {
       if (state.pendingPoints.length < 2) state.pendingPoints.push(pt); // 2 จุด (ปลายเส้นชี้ + จุดข้อความ) แล้วกรอกข้อความผ่าน textRow เหมือนกัน
+    } else if (state.tool === 'surfacefinish') {
+      state.pendingPoints = [pt]; // จุดเดียว — ค่าความหยาบผิวกรอกผ่าน textRow เหมือนเครื่องมือข้อความ
+    } else if (state.tool === 'balloon') {
+      if (state.pendingPoints.length < 2) state.pendingPoints.push(pt); // 2 จุด (จุดชี้ + ตำแหน่งวงกลมป้าย) แล้วกรอกเลขป้ายผ่าน textRow
+    } else if (state.tool === 'multileader') {
+      if (state.pendingPoints.length < 3) state.pendingPoints.push(pt); // 3 จุด (จุดชี้ 2 จุด + จุดข้อความร่วม 1 จุด) — รองรับแค่ 2 เส้นชี้ในสเตจนี้
     } else if (state.tool === 'ordinate') {
       /* มิติพิกัด (ordinate): คลิกจุดที่ 1 = จุดที่จะวัดพิกัด, คลิกจุดที่ 2 = ปลายเส้นชี้/ตำแหน่งตัวเลข —
          ทิศทางลากตัดสินว่าวัดแกนไหน (ลากขึ้น/ลงเป็นหลัก = ค่า X, ลากซ้าย/ขวาเป็นหลัก = ค่า Y) ตามหลักการ
@@ -2447,6 +2527,22 @@
     handlePointInput(effectivePoint(applyOrtho(raw)));
   });
   canvas.addEventListener('dblclick', function (e) {
+    if (state.tool === 'select') {
+      /* ดับเบิลคลิกเอนทิตี้ที่มีข้อความ (text/leader/textleader/surfacefinish/balloon/multileader) ด้วยเครื่องมือ
+         "เลือก" — เลือกให้แล้วโฟกัสช่องแก้ข้อความในแผงคุณสมบัติทันที ไม่ต้องไล่หาเอง (ทางลัดแก้/ลบข้อความอธิบายเดิม
+         ที่มีอยู่แล้ว — ลบยังคงใช้ปุ่ม/คีย์ Delete ตามปกติ) */
+      var sp = eventScreenPos(e);
+      var hit = hitTestEntity(screenToWorld(sp.x, sp.y));
+      if (hit) {
+        var he = state.entities.filter(function (x) { return x.id === hit; })[0];
+        if (he && typeof he.text === 'string') {
+          state.selectedIds = [hit]; updateSelectionUI(); render();
+          var ti = $('propTextContent');
+          if (ti) { ti.focus(); try { ti.select(); } catch (er) {} }
+          return;
+        }
+      }
+    }
     if (state.tool !== 'polyline' && state.tool !== 'spline') return;
     e.preventDefault();
     if (state.pendingPoints.length >= 2) {
@@ -2660,7 +2756,8 @@
     var TITLE_KEY = {
       line: 'propsTitleLine', polyline: 'propsTitlePolyline', rect: 'propsTitleRect', circle: 'propsTitleCircle',
       arc: 'propsTitleArc', dim: 'propsTitleDim', raddim: 'propsTitleRaddim', diadim: 'propsTitleDiadim',
-      angdim: 'propsTitleAngdim', text: 'propsTitleText', leader: 'propsTitleLeader', textleader: 'propsTitleTextLeader', hatch: 'propsTitleHatch', block: 'propsTitleBlock', spline: 'propsTitleSpline', centermark: 'propsTitleCentermark', ordinate: 'propsTitleOrdinate'
+      angdim: 'propsTitleAngdim', text: 'propsTitleText', leader: 'propsTitleLeader', textleader: 'propsTitleTextLeader', hatch: 'propsTitleHatch', block: 'propsTitleBlock', spline: 'propsTitleSpline', centermark: 'propsTitleCentermark', ordinate: 'propsTitleOrdinate',
+      surfacefinish: 'propsTitleSurfaceFinish', balloon: 'propsTitleBalloon', multileader: 'propsTitleMultileader'
     };
     propsTitle.textContent = t(TITLE_KEY[e.type] || e.type);
     var fields = [], noteHtml = '';
@@ -2683,7 +2780,7 @@
         { k: 'propStartDeg', v: e.startAngle * 180 / Math.PI, set: function (v) { e.startAngle = v * Math.PI / 180; } },
         { k: 'propEndDeg', v: e.endAngle * 180 / Math.PI, set: function (v) { e.endAngle = v * Math.PI / 180; } }
       ];
-    } else if (e.type === 'text' || e.type === 'leader' || e.type === 'textleader') {
+    } else if (e.type === 'text' || e.type === 'leader' || e.type === 'textleader' || e.type === 'surfacefinish' || e.type === 'balloon' || e.type === 'multileader') {
       fields = [
         { k: 'propHeight', v: e.height, set: function (v) { e.height = Math.max(0.1, v); } }
       ];
@@ -2715,7 +2812,7 @@
     }
     var textFieldHtml = e.type === 'textleader'
       ? '<label style="flex-basis:100%">' + t('propText') + '<textarea id="propTextContent" rows="2">' + e.text.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</textarea></label>'
-      : (e.type === 'text' || e.type === 'leader') ? '<label>' + t('propText') + '<input type="text" id="propTextContent" value="' + e.text.replace(/"/g, '&quot;') + '"></label>' : '';
+      : (e.type === 'text' || e.type === 'leader' || e.type === 'surfacefinish' || e.type === 'balloon' || e.type === 'multileader') ? '<label>' + t('propText') + '<input type="text" id="propTextContent" value="' + e.text.replace(/"/g, '&quot;') + '"></label>' : '';
     var mirrorFieldHtml = e.type === 'block' ? '<label style="flex-direction:row;align-items:center;gap:7px"><input type="checkbox" id="propBlockMirror"' + (e.mirrored ? ' checked' : '') + '>' + t('propBlockMirror') + '</label>' : '';
     var numFieldsHtml = fields.map(function (f, i) {
       return '<label>' + t(f.k) + '<input type="text" inputmode="decimal" data-fidx="' + i + '" value="' + fmtMm(f.v) + '"></label>';
@@ -3041,6 +3138,23 @@
         var ops2 = w2s(e.leaderEnd.x, e.leaderEnd.y);
         c.font = Math.max(6, e.textHeight * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'bottom';
         c.fillText(ordinateLabel(e), ops2.x, ops2.y);
+      } else if (e.type === 'surfacefinish') {
+        var sfPts2 = surfaceFinishPoints(e);
+        poly([sfPts2.q1, sfPts2.q2, sfPts2.q3], false);
+        var sfS3b = w2s(sfPts2.q3.x, sfPts2.q3.y);
+        c.font = Math.max(6, e.height * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'bottom';
+        c.fillText(e.text, sfS3b.x, sfS3b.y);
+      } else if (e.type === 'balloon') {
+        poly([e.p1, e.p2], false);
+        var blS2b = w2s(e.p2.x, e.p2.y), blRb = balloonRadius(e) * pxPerMm;
+        c.beginPath(); c.ellipse(blS2b.x, blS2b.y, blRb, blRb, 0, 0, Math.PI * 2); c.stroke();
+        c.font = Math.max(6, e.height * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.fillText(e.text, blS2b.x, blS2b.y);
+      } else if (e.type === 'multileader') {
+        poly([e.p1a, e.p2], false); poly([e.p1b, e.p2], false);
+        var mlS2b = w2s(e.p2.x, e.p2.y);
+        c.font = Math.max(6, e.height * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'bottom';
+        c.fillText(e.text, mlS2b.x, mlS2b.y);
       }
     });
   }
@@ -3135,6 +3249,18 @@
       } else if (e.type === 'ordinate') {
         parts.push('<path d="' + polyPath([e.p, e.leaderEnd], false) + '" stroke="' + color + '"/>');
         parts.push('<text x="' + sx(e.leaderEnd.x) + '" y="' + sy(e.leaderEnd.y) + '" font-size="' + e.textHeight.toFixed(2) + '" fill="' + color + '">' + svgEsc(ordinateLabel(e)) + '</text>');
+      } else if (e.type === 'surfacefinish') {
+        var sfp3 = surfaceFinishPoints(e);
+        parts.push('<path d="' + polyPath([sfp3.q1, sfp3.q2, sfp3.q3], false) + '" stroke="' + color + '"/>');
+        parts.push('<text x="' + sx(sfp3.q3.x) + '" y="' + sy(sfp3.q3.y) + '" font-size="' + e.height.toFixed(2) + '" fill="' + color + '">' + svgEsc(e.text) + '</text>');
+      } else if (e.type === 'balloon') {
+        parts.push('<path d="' + polyPath([e.p1, e.p2], false) + '" stroke="' + color + '"/>');
+        parts.push('<circle cx="' + sx(e.p2.x) + '" cy="' + sy(e.p2.y) + '" r="' + balloonRadius(e).toFixed(3) + '" stroke="' + color + '"/>');
+        parts.push('<text x="' + sx(e.p2.x) + '" y="' + sy(e.p2.y) + '" font-size="' + e.height.toFixed(2) + '" fill="' + color + '" text-anchor="middle" dominant-baseline="middle">' + svgEsc(e.text) + '</text>');
+      } else if (e.type === 'multileader') {
+        parts.push('<path d="' + polyPath([e.p1a, e.p2], false) + '" stroke="' + color + '"/>');
+        parts.push('<path d="' + polyPath([e.p1b, e.p2], false) + '" stroke="' + color + '"/>');
+        parts.push('<text x="' + sx(e.p2.x) + '" y="' + sy(e.p2.y) + '" font-size="' + e.height.toFixed(2) + '" fill="' + color + '">' + svgEsc(e.text) + '</text>');
       }
     });
     parts.push('</g></svg>');
@@ -3225,6 +3351,12 @@
     if (e.type === 'spline') return dxfLwpolyline(splinePoints(e, 16), !!e.closed); // ไม่มี DXF SPLINE entity เต็มรูปแบบในสเตจนี้ (ตามหลักการเดียวกับ dim/hatch: แตกเป็นชนิดพื้นฐานเพื่อให้โปรแกรมอ่าน DXF ใดๆ ก็แสดงถูก)
     if (e.type === 'centermark') return [].concat(dxfLine({ x: e.center.x - e.size, y: e.center.y }, { x: e.center.x + e.size, y: e.center.y }), dxfLine({ x: e.center.x, y: e.center.y - e.size }, { x: e.center.x, y: e.center.y + e.size }));
     if (e.type === 'ordinate') return [].concat(dxfLine(e.p, e.leaderEnd), dxfText(e.leaderEnd, e.textHeight, ordinateLabel(e)));
+    if (e.type === 'surfacefinish') {
+      var sfp4 = surfaceFinishPoints(e);
+      return [].concat(dxfLine(sfp4.q1, sfp4.q2), dxfLine(sfp4.q2, sfp4.q3), dxfText(sfp4.q3, e.height, e.text));
+    }
+    if (e.type === 'balloon') return [].concat(dxfLine(e.p1, e.p2), dxfCircle(e.p2, balloonRadius(e)), dxfText({ x: e.p2.x - e.height * 0.3, y: e.p2.y - e.height * 0.3 }, e.height, e.text));
+    if (e.type === 'multileader') return [].concat(dxfLine(e.p1a, e.p2), dxfLine(e.p1b, e.p2), dxfText(e.p2, e.height, e.text));
     return [];
   }
   function exportDXF() {
@@ -3429,6 +3561,21 @@
         var opdfp2 = w2p(e.leaderEnd.x, e.leaderEnd.y);
         pdfPoly([e.p, e.leaderEnd], false);
         pdf.setFontSize(e.textHeight * 2.83465); pdf.text(ordinateLabel(e), opdfp2.x, opdfp2.y);
+      } else if (e.type === 'surfacefinish') {
+        var sfp5 = surfaceFinishPoints(e), sfp5p3 = w2p(sfp5.q3.x, sfp5.q3.y);
+        pdfPoly([sfp5.q1, sfp5.q2, sfp5.q3], false);
+        pdf.setFontSize(e.height * 2.83465); pdf.text(e.text, sfp5p3.x, sfp5p3.y);
+      } else if (e.type === 'balloon') {
+        var blAngW = Math.atan2(e.p2.y - e.p1.y, e.p2.x - e.p1.x), blp2 = w2p(e.p2.x, e.p2.y);
+        pdfPoly([e.p1, e.p2], false); pdfArrow(e.p1, blAngW + Math.PI, e.height * 0.5, rgb);
+        pdf.circle(blp2.x, blp2.y, balloonRadius(e) * scaleFactor, 'S');
+        pdf.setFontSize(e.height * 2.83465); pdf.text(e.text, blp2.x, blp2.y, { align: 'center', baseline: 'middle' });
+      } else if (e.type === 'multileader') {
+        var mlAngA = Math.atan2(e.p2.y - e.p1a.y, e.p2.x - e.p1a.x), mlAngB = Math.atan2(e.p2.y - e.p1b.y, e.p2.x - e.p1b.x);
+        var mlp2 = w2p(e.p2.x, e.p2.y);
+        pdfPoly([e.p1a, e.p2], false); pdfArrow(e.p1a, mlAngA + Math.PI, e.height * 0.5, rgb);
+        pdfPoly([e.p1b, e.p2], false); pdfArrow(e.p1b, mlAngB + Math.PI, e.height * 0.5, rgb);
+        pdf.setFontSize(e.height * 2.83465); pdf.text(e.text, mlp2.x, mlp2.y);
       }
     });
     pdf.setDrawColor(inkRgb[0], inkRgb[1], inkRgb[2]); pdf.setLineWidth(0.3);
