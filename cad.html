@@ -147,7 +147,11 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .cad-layers-list{display:flex;flex-direction:column;gap:6px}
 .cad-layer-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:10px;border:1.5px solid var(--line)}
 .cad-layer-row.active{border-color:var(--brand);background:var(--brand-sf)}
-.cad-layer-row .cad-layer-icon{border:none;background:none;font-size:15px;cursor:pointer;padding:4px;line-height:1;border-radius:6px;flex-shrink:0}
+.cad-layer-row .cad-layer-icon{border:none;background:none;color:var(--ink);cursor:pointer;padding:4px;line-height:1;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.cad-layer-row .cad-layer-icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.cad-layer-row .cad-layer-icon svg .fill{fill:currentColor;stroke:none}
+.cad-layer-row .cad-layer-icon[data-act="setactive"]{color:var(--muted)}
+.cad-layer-row.active .cad-layer-icon[data-act="setactive"]{color:var(--brand)}
 .cad-layer-row .cad-layer-icon:hover{background:var(--line)}
 .cad-layer-row .cad-layer-icon:disabled{opacity:.35;cursor:not-allowed}
 .cad-layer-row .cad-layer-color{width:26px;height:26px;padding:0;border:1.5px solid var(--line);border-radius:6px;cursor:pointer;flex-shrink:0;background:none}

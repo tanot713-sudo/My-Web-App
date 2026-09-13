@@ -79,6 +79,7 @@
       propText: 'ข้อความ', propHeight: 'ความสูงตัวอักษร (มม.)', propLayer: 'เลเยอร์',
       layersTitle: 'เลเยอร์', layerAddBtn: 'เลเยอร์ใหม่', layerNamePlaceholder: 'ชื่อเลเยอร์',
       layerActiveLbl: 'ใช้งานอยู่', layerDeleteConfirm: 'ลบเลเยอร์ "{name}"? เอนทิตี้ในเลเยอร์นี้จะถูกย้ายไปเลเยอร์ 0',
+      layerShowLbl: 'แสดงเลเยอร์', layerHideLbl: 'ซ่อนเลเยอร์', layerLockLbl: 'ล็อกเลเยอร์', layerUnlockLbl: 'ปลดล็อกเลเยอร์', layerDeleteLbl: 'ลบเลเยอร์',
       layerCantDeleteLast: 'ต้องมีอย่างน้อย 1 เลเยอร์',
       exportMenuBtn: 'ส่งออก ▾', exportPngBtn: 'PNG', exportSvgBtn: 'SVG', exportDxfBtn: 'DXF', importDxfBtn: 'นำเข้า DXF',
       printBtn: 'พิมพ์/PDF',
@@ -158,6 +159,7 @@
       propText: 'Text', propHeight: 'Text height (mm)', propLayer: 'Layer',
       layersTitle: 'Layers', layerAddBtn: 'New layer', layerNamePlaceholder: 'Layer name',
       layerActiveLbl: 'Active', layerDeleteConfirm: 'Delete layer "{name}"? Its entities will move to layer 0',
+      layerShowLbl: 'Show layer', layerHideLbl: 'Hide layer', layerLockLbl: 'Lock layer', layerUnlockLbl: 'Unlock layer', layerDeleteLbl: 'Delete layer',
       layerCantDeleteLast: 'At least 1 layer is required',
       exportMenuBtn: 'Export ▾', exportPngBtn: 'PNG', exportSvgBtn: 'SVG', exportDxfBtn: 'DXF', importDxfBtn: 'Import DXF',
       printBtn: 'Print/PDF',
@@ -2376,19 +2378,27 @@
      ล็อกเลเยอร์ = เลือก/แก้เอนทิตี้ในเลเยอร์นั้นไม่ได้ (hitTestEntity/finishDragSelect ข้ามให้แล้ว) แต่ยังวาดเอนทิตี้ใหม่ทับ
      ไปลงเลเยอร์นั้นได้ถ้าตั้งเป็นเลเยอร์ใช้งานอยู่ (ข้อจำกัดที่ตั้งใจ ไม่ปิดกั้นการวาดเพื่อความง่าย) */
   var layersList = $('layersList');
+  var LAYER_ICON_ACTIVE = '<svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"></circle><circle cx="9" cy="9" r="2.6" class="fill"></circle></svg>';
+  var LAYER_ICON_INACTIVE = '<svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"></circle></svg>';
+  var LAYER_ICON_EYE_ON = '<svg viewBox="0 0 18 18"><path d="M1.5 9C3.5 4.5 6.5 2.5 9 2.5S14.5 4.5 16.5 9C14.5 13.5 11.5 15.5 9 15.5S3.5 13.5 1.5 9Z"></path><circle cx="9" cy="9" r="2.4"></circle></svg>';
+  var LAYER_ICON_EYE_OFF = '<svg viewBox="0 0 18 18"><path d="M1.5 9C3.5 4.5 6.5 2.5 9 2.5S14.5 4.5 16.5 9C14.5 13.5 11.5 15.5 9 15.5S3.5 13.5 1.5 9Z"></path><line x1="2.5" y1="15" x2="15.5" y2="3"></line></svg>';
+  var LAYER_ICON_LOCK_CLOSED = '<svg viewBox="0 0 18 18"><rect x="4.5" y="8" width="9" height="7" rx="1.4"></rect><path d="M6.5 8V5.8a2.5 2.5 0 0 1 5 0V8"></path></svg>';
+  var LAYER_ICON_LOCK_OPEN = '<svg viewBox="0 0 18 18"><rect x="4.5" y="8" width="9" height="7" rx="1.4"></rect><path d="M6.5 8V5.8a2.5 2.5 0 0 1 4.9-.9"></path></svg>';
+  var LAYER_ICON_TRASH = '<svg viewBox="0 0 18 18"><path d="M3.5 5h11"></path><path d="M7 5V3.5h4V5"></path><path d="M5 5l.7 9a1 1 0 0 0 1 .9h4.6a1 1 0 0 0 1-.9L13 5"></path><line x1="7.3" y1="7.5" x2="7.6" y2="12.5"></line><line x1="10.7" y1="7.5" x2="10.4" y2="12.5"></line></svg>';
   function renderLayersPanel() {
     if (!layersList) return;
     var ids = Object.keys(state.layers);
     layersList.innerHTML = ids.map(function (lid) {
       var ly = state.layers[lid];
       var isActive = lid === state.activeLayer;
+      var hidden = ly.visible === false, locked = !!ly.locked;
       return '<div class="cad-layer-row' + (isActive ? ' active' : '') + '" data-lid="' + lid + '">' +
-        '<button type="button" class="cad-layer-icon" data-act="setactive" title="' + t('layerActiveLbl') + '">' + (isActive ? '' : '') + '</button>' +
+        '<button type="button" class="cad-layer-icon" data-act="setactive" title="' + t('layerActiveLbl') + '">' + (isActive ? LAYER_ICON_ACTIVE : LAYER_ICON_INACTIVE) + '</button>' +
         '<input type="color" class="cad-layer-color" data-act="color" value="' + (ly.color || '#1F2430') + '">' +
         '<input type="text" class="cad-layer-name" data-act="rename" value="' + (ly.name || lid).replace(/"/g, '&quot;') + '" placeholder="' + t('layerNamePlaceholder') + '">' +
-        '<button type="button" class="cad-layer-icon" data-act="visible" title="' + (ly.visible === false ? 'show' : 'hide') + '">' + (ly.visible === false ? '' : '') + '</button>' +
-        '<button type="button" class="cad-layer-icon" data-act="lock">' + (ly.locked ? '' : '') + '</button>' +
-        '<button type="button" class="cad-layer-icon" data-act="delete"' + (lid === '0' ? ' disabled' : '') + '>🗑️</button>' +
+        '<button type="button" class="cad-layer-icon" data-act="visible" title="' + (hidden ? t('layerShowLbl') : t('layerHideLbl')) + '">' + (hidden ? LAYER_ICON_EYE_OFF : LAYER_ICON_EYE_ON) + '</button>' +
+        '<button type="button" class="cad-layer-icon" data-act="lock" title="' + (locked ? t('layerUnlockLbl') : t('layerLockLbl')) + '">' + (locked ? LAYER_ICON_LOCK_CLOSED : LAYER_ICON_LOCK_OPEN) + '</button>' +
+        '<button type="button" class="cad-layer-icon" data-act="delete" title="' + t('layerDeleteLbl') + '"' + (lid === '0' ? ' disabled' : '') + '>' + LAYER_ICON_TRASH + '</button>' +
         '</div>';
     }).join('');
     Array.prototype.forEach.call(layersList.querySelectorAll('[data-act]'), function (el) {
