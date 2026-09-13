@@ -186,7 +186,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <div class="details-body"><div class="det-kv" id="gDetKv"></div></div>
     </details>
     <div id="gManualWrap" style="display:none;margin-top:12px;border-top:1px dashed var(--line);padding-top:12px">
-      <p class="mini" data-i18n="manualHint">ดึงแนวโน้มอัตโนมัติไม่ได้ตอนนี้ — กรอกเองเพื่อประเมิน (ราคาทองโลกหาได้จากเว็บ/แอปข่าวการเงินทั่วไป)</p>
       <div class="frow" style="margin-top:8px">
         <div class="field"><label><span data-i18n="gPriceUsdLabel">ราคาทองโลกตอนนี้</span> <span class="unit" data-i18n="unitUsdOz">(USD/ออนซ์)</span></label><input type="number" id="gPriceUsd" inputmode="decimal" step="0.01" placeholder="เช่น 2650"></div>
         <div class="field"><label><span data-i18n="gHiUsdLabel">สูงสุดของรอบ</span> <span class="unit" data-i18n="unitUsdOz">(USD/ออนซ์)</span></label><input type="number" id="gHiUsd" inputmode="decimal" step="0.01"></div>
@@ -259,7 +258,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- สำรองขึ้น Google Drive -->
   <div class="card">
     <h2 data-i18n="driveTitle">สำรองสมุดทองขึ้น Google Drive</h2>
-    <p class="mini" data-i18n="driveDesc">เชื่อมต่อครั้งเดียว จากนั้นสมุดทองด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าหุ้น ไม่ปนกัน)</p>
     <div class="drive-row" style="margin-top:10px">
       <button class="btn sm" id="driveConnectBtn" type="button" data-i18n="driveConnectBtn">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
@@ -269,7 +267,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- สมุดทองของฉัน -->
   <div class="card">
     <h2 data-i18n="logTitle">สมุดทองของฉัน</h2>
-    <p class="mini" data-i18n="logDesc">บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและมูลค่าปัจจุบัน (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
       <div class="field"><label data-i18n="lgTypeLabel">ชนิด</label>
         <select id="lgType"><option value="bar" data-i18n="typeBar">ทองคำแท่ง</option><option value="jewelry" data-i18n="typeJewelry">ทองรูปพรรณ</option></select></div>
@@ -279,7 +276,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <div class="field"><label><span data-i18n="lgPriceLabel">ราคา/หน่วยที่ซื้อ</span> <span class="unit" data-i18n="unitBaht">(บาท)</span></label><input type="number" id="lgPrice" inputmode="decimal" step="0.01" data-i18n-placeholder="lgPricePh" placeholder="เช่น 70950"></div>
       <button class="btn sm" id="lgAdd" type="button" data-i18n="lgAddBtn">+ เพิ่ม</button>
     </div>
-    <div id="lgBox" style="margin-top:10px"><div class="log-empty" data-i18n="lgEmptyDefault">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและมูลค่าปัจจุบัน</div></div>
+    <div id="lgBox" style="margin-top:10px"><div class="log-empty" data-i18n="lgEmptyDefault">ยังไม่มีรายการ</div></div>
   </div>
 
   <!-- ปัจจัยที่มีผลต่อราคาทองคำ -->
