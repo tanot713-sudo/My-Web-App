@@ -58,7 +58,13 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .cad-tb-group label input{font-family:inherit;font-size:12.5px;padding:6px 7px;border-radius:8px;border:1.5px solid var(--line);
   background:var(--card);color:var(--ink);width:58px;-webkit-appearance:none}
 .cad-tb-group label input:focus{outline:none;border-color:var(--brand)}
-@media(max-width:700px){.cad-tb-group{border-right:none;padding-right:0}}
+/* ── จอแคบ: แถบเครื่องมือมีปุ่มเกือบ 50 ปุ่ม ถ้าปล่อยให้ wrap ตามปกติจะกลายเป็นแถวเดี่ยวยาว
+   เป็นพันพิกเซลกว่าจะถึงวิวพอร์ตวาดจริงด้านล่าง — ให้เลื่อนแนวนอนเป็นแถบเดียวแทน (แพตเทิร์นเดียวกับ
+   แอป CAD บนมือถือทั่วไป) กลุ่มยังแบ่งด้วยเส้นคั่นเหมือนเดิม แค่ไม่ตัดขึ้นบรรทัดใหม่ ── */
+@media(max-width:900px){
+  .cad-toolbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+  .cad-toolbar>.cad-tb-group{flex-wrap:nowrap;flex-shrink:0}
+}
 
 /* ── แถวใส่ระยะ/มุมเป๊ะๆ ระหว่างวาด — โผล่ขึ้นมาเฉพาะตอนมีจุดยึดค้างอยู่ (กำลังวาด)
    ตั้งใจ "จอง" พื้นที่ไว้เสมอด้วยความสูงคงที่ (ไม่ใช้ display:none/height:auto) แล้วสลับแค่
@@ -248,7 +254,7 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
         <button class="btn sm" id="toolDiadimBtn" type="button" data-i18n="toolDiadim">⌀⌀ มิติเส้นผ่าศูนย์กลาง</button>
         <button class="btn sm" id="toolAngdimBtn" type="button" data-i18n="toolAngdim">∠ มิติมุม</button>
         <button class="btn sm" id="toolLeaderBtn" type="button" data-i18n="toolLeader">ลูกศรชี้</button>
-        <button class="btn sm" id="toolTextBtn" type="button" data-i18n="toolText">🅰️ ข้อความ</button>
+        <button class="btn sm" id="toolTextBtn" type="button" data-i18n="toolText">ข้อความ</button>
         <button class="btn sm" id="toolHatchBtn" type="button" data-i18n="toolHatch">▤ แรเงา</button>
       </div>
       <div class="cad-tb-group">
@@ -277,8 +283,8 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
         </select>
       </div>
       <div class="cad-tb-group">
-        <button class="btn sm icon-only" id="undoBtn" type="button" title="เลิกทำ" disabled>↩️</button>
-        <button class="btn sm icon-only" id="redoBtn" type="button" title="ทำซ้ำ" disabled>↪️</button>
+        <button class="btn sm icon-only" id="undoBtn" type="button" title="เลิกทำ" disabled>↩</button>
+        <button class="btn sm icon-only" id="redoBtn" type="button" title="ทำซ้ำ" disabled>↪</button>
         <button class="btn sm" id="deleteBtn" type="button" disabled data-i18n="deleteSel">ลบที่เลือก</button>
       </div>
       <div class="cad-tb-group">
