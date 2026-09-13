@@ -231,7 +231,6 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
     <div class="head">
       <div>
         <h1 data-i18n="pageTitle">งานเขียนแบบ CAD</h1>
-        <p class="head-sub" data-i18n="pageDesc">วาดแบบ 2 มิติด้วยพิกัดมิลลิเมตรจริง — ซูม/แพนดูแบบ วาดเส้นคร่าวๆ ทดสอบ (ระบบใส่ระยะเป๊ะ/สแนปวัตถุ/มิติจะตามมาในเวอร์ชันถัดไป)</p>
       </div>
     </div>
     <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
@@ -358,7 +357,6 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
         <label data-i18n="distLbl">ระยะ (มม.)<input type="text" id="distInput" inputmode="decimal" autocomplete="off"></label>
         <label data-i18n="angLbl">มุม (°)<input type="text" id="angInput" inputmode="decimal" autocomplete="off"></label>
         <button class="btn sm" id="finishPolylineBtn" type="button" data-i18n="finishPolyline">จบเส้นพอลีไลน์</button>
-        <span class="cad-precise-hint" data-i18n="preciseHint">พิมพ์ระยะแล้วกด Enter (ไม่ใส่มุม = ใช้ทิศทางเมาส์ปัจจุบัน)</span>
       </div>
 
       <div class="cad-tb-group cad-precise-row" id="arrayRow">
@@ -367,21 +365,18 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
         <label data-i18n="arrSpXLbl">ห่างแนวนอน (มม.)<input type="text" id="arrSpX" inputmode="decimal" autocomplete="off" value="100"></label>
         <label data-i18n="arrSpYLbl">ห่างแนวตั้ง (มม.)<input type="text" id="arrSpY" inputmode="decimal" autocomplete="off" value="100"></label>
         <button class="btn sm" id="arrApplyBtn" type="button" data-i18n="arrApplyBtn">แทรกอาเรย์</button>
-        <span class="cad-precise-hint" data-i18n="arrayHint">เลือกเอนทิตี้ก่อน แล้วกำหนดจำนวนแถว/คอลัมน์และระยะห่าง</span>
       </div>
 
       <div class="cad-tb-group cad-precise-row" id="textRow">
         <label class="cad-text-content-lbl" data-i18n="textContentLbl">ข้อความ<input type="text" id="textContentInput" autocomplete="off"></label>
         <label data-i18n="textHeightLbl">ความสูงตัวอักษร (มม.)<input type="text" id="textHeightInput" inputmode="decimal" autocomplete="off" value="12"></label>
         <button class="btn sm" id="textApplyBtn" type="button" data-i18n="textApplyBtn">วางข้อความ</button>
-        <span class="cad-precise-hint" data-i18n="textHint">คลิกตำแหน่งที่จะวางข้อความ แล้วพิมพ์ข้อความ</span>
       </div>
 
       <div class="cad-tb-group cad-precise-row" id="hatchRow">
         <label data-i18n="hatchSpacingLbl">ระยะห่างลาย (มม.)<input type="text" id="hatchSpacing" inputmode="decimal" autocomplete="off" value="5"></label>
         <label data-i18n="hatchAngleLbl">มุมลาย (°)<input type="text" id="hatchAngle" inputmode="decimal" autocomplete="off" value="45"></label>
         <button class="btn sm" id="hatchApplyBtn" type="button" data-i18n="hatchApplyBtn">แรเงา</button>
-        <span class="cad-precise-hint" data-i18n="hatchHintApply">ปรับระยะห่าง/มุมลายเส้น แล้วกด "แรเงา" เพื่อยืนยัน</span>
       </div>
 
       <div class="cad-tb-group cad-precise-row" id="insertRow">
@@ -389,7 +384,6 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
         <label data-i18n="blockRotLbl">มุมหมุน (°)<input type="text" id="blockRotInput" inputmode="decimal" autocomplete="off" value="0"></label>
         <button class="btn sm" id="blockMirrorBtn" type="button" data-i18n="blockMirrorToggle">มิเรอร์</button>
         <button class="btn sm" id="blockApplyBtn" type="button" data-i18n="blockApplyBtn">แทรก</button>
-        <span class="cad-precise-hint" data-i18n="blockHint">เลือกสัญลักษณ์จากรายการ แล้วคลิกตำแหน่งที่จะแทรก ปรับขนาด/มุม/มิเรอร์ แล้วกด "แทรก"</span>
       </div>
 
       <div class="cad-viewport" id="cadViewport">
@@ -398,7 +392,6 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
 
       <div class="cad-quick3d-row">
         <button class="btn sm primary" id="quickExtrudeBtn" type="button">ยืดเป็น 3 มิติ (Extrude)</button>
-        <span class="hint">วาดรูปปิด (สี่เหลี่ยม/วงกลม/พอลีไลน์ปิด) แล้วกดปุ่มนี้ได้เลย — ยืดขึ้นเป็นชิ้นงาน 3 มิติทันทีด้วยค่าเริ่มต้น (ปรับความสูงทีหลังได้ด้วยการลากในมุมมอง 3 มิติ)</span>
       </div>
 
       <div class="cad-status">
@@ -411,7 +404,6 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
         <span id="statSave" class="flash"></span>
       </div>
 
-      <p class="cad-hint" data-i18n="hintText">ลากขวา/กลาง หรือลากด้วยนิ้วเพื่อเลื่อนมุมมอง · หมุนล้อเมาส์/บีบสองนิ้วเพื่อซูม · เลือกเครื่องมือวาดแล้วคลิกจุดตามลำดับ · พิมพ์ตัวเลขได้ทันทีระหว่างวาดเพื่อใส่ระยะเป๊ะ · Esc ยกเลิกการวาด · Delete ลบเอนทิตี้ที่เลือก · F8 สลับโหมดตั้งฉาก</p>
     </div>
     </div><!-- /cad-main -->
 
@@ -451,7 +443,6 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
             <option value="fix" data-i18n="constraintFix">ตรึงตำแหน่ง (เส้น/วงกลม 1 ชิ้น)</option>
           </select>
         </div>
-        <p class="cad-hint" data-i18n="constraintHint">เลือกชนิดข้อจำกัด แล้วคลิกเส้น/วงกลมตามจำนวนที่ต้องการ (ระยะ/มุมคงที่ต้องพิมพ์ค่าในช่องระยะ/มุมด้านบนแล้วกด Enter) — ใช้ได้กับเส้นตรงและวงกลมเท่านั้น</p>
         <div class="cad-layers-list" id="constraintsList"></div>
       </div>
 
@@ -483,7 +474,6 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
           </select></label>
           <button class="btn sm" id="plotGenerateBtn" type="button" data-i18n="plotGenerateBtn">สร้าง PDF</button>
         </div>
-        <p class="cad-hint" data-i18n="plotHint">เลือกกระดาษ/แนว/มาตราส่วน แล้วกด "สร้าง PDF" — วาดแบบตามมาตราส่วนจริงแบบเวกเตอร์ พร้อมกรอบและป้ายมาตราส่วน</p>
       </div>
     </aside>
 
@@ -491,11 +481,6 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
   </div><!-- /panel2d -->
 
   <div id="panel3d" hidden>
-  <div class="warn-note"><b>Stage 9 (proof of concept)</b> — เวอร์ชันแรกของโมเดล 3 มิติแบบ solid: รองรับกล่อง/ทรงกระบอก/ทรงกลม
-    + รวม/ตัด/หาส่วนร่วม ต่อกันเป็น "ชิ้นงานหลัก" เดียว (ยังไม่รองรับหลายชิ้นงานอิสระพร้อมกัน, มุมโค้ง/champfer,
-    หรือหมุนตำแหน่ง — จะเพิ่มในสเตจถัดไปตามความจำเป็นจริง) เคอร์เนล 3 มิติ (~15-50MB) โหลดจาก CDN ครั้งแรกที่เปิดหน้านี้
-    เท่านั้น อาจใช้เวลาสักครู่ตามความเร็วอินเทอร์เน็ต</div>
-
   <div class="card">
     <h2>1) เพิ่มรูปทรงพื้นฐาน</h2>
     <div class="c3-form">
@@ -571,11 +556,6 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       <button class="btn sm primary" id="addShapeBtn" type="button">วางเป็นชิ้นงานหลัก</button>
       <button class="btn sm" id="cancelEditBtn" type="button" hidden>ยกเลิกแก้ไข</button>
     </div>
-    <p class="hint">ชิ้นแรกจะถูกวางเป็น "ชิ้นงานหลัก" โดยตรง ชิ้นถัดไปให้เลือกวิธีรวม (รวม/ตัดออก/ส่วนร่วม) แล้วกดปุ่มเพื่อรวมเข้ากับชิ้นงานหลัก
-      · <b>รูปทรงสีส้มโปร่งแสงในมุมมอง 3 มิติด้านล่างคือตัวอย่างชิ้นที่กำลังจะเพิ่ม — ลากลูกศรสีเพื่อวางตำแหน่งเองได้เลย ไม่ต้องพิมพ์ตัวเลข</b>
-      · "จากภาพร่าง 2 มิติ" อ่านแบบที่วาดไว้ล่าสุดในแท็บ <a href="#" id="goto2dLink">ร่างภาพ 2 มิติ</a> โดยอัตโนมัติเสมอ (เลือกภาพที่วาดล่าสุดให้ ไม่ต้องกด "โหลดใหม่" เอง) — รองรับเฉพาะสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดเท่านั้น (เส้นตรงหลายเส้น/เส้นโค้งสปไลน์/ส่วนโค้งยังไม่รองรับในสเตจนี้)
-      · ต้องการแค่ยืดขึ้นตรงบนระนาบบน (ค่าเริ่มต้น) ก็กด "วางเป็นชิ้นงานหลัก" ได้เลยโดยไม่ต้องเปิด <b>ตัวเลือกเพิ่มเติม</b> — เปิดส่วนนั้นเฉพาะตอนอยากเปลี่ยนระนาบ (Top/Front/Right/หน้าที่เลือกเอง) หรือเปลี่ยนเป็นหมุนรอบแกน (Revolve) เท่านั้น
-      · <b>เลือกหน้าจากชิ้นงาน</b> (ใหม่): คลิกปุ่มนี้แล้วคลิกหน้าเรียบของชิ้นงาน 3 มิติจริงในวิวพอร์ตด้านล่าง เพื่อร่างภาพลงบนหน้านั้นตรงๆ (แทนการเลือกระนาบมาตรฐาน 3 แบบด้านบน) — รองรับเฉพาะหน้าเรียบเท่านั้น (หน้าโค้งคลิกไม่ติด) และรองรับเฉพาะโหมด "อัดขึ้นตรง" เท่านั้น (ไม่รองรับหมุนรอบแกน) นอกจากนี้เป็นการอ้างอิงตำแหน่ง "ครั้งเดียว" ตอนคลิก — ถ้าแก้ไขขั้นตอนก่อนหน้าจนรูปทรงเปลี่ยนไป ตำแหน่งหน้าที่บันทึกไว้จะไม่ขยับตาม ต้องเลือกหน้าใหม่เอง</p>
   </div>
 
   <div class="card">
@@ -585,7 +565,6 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       <button class="btn sm" id="undoStepBtn" type="button" disabled>ย้อนขั้นตอนล่าสุด</button>
       <button class="btn sm danger" id="resetBtn" type="button" disabled>เริ่มใหม่ทั้งหมด</button>
     </div>
-    <p class="hint">คลิก ที่ขั้นตอนไหนก็ได้เพื่อแก้ไขขนาด/ตำแหน่ง/วิธีรวมย้อนหลัง (ไม่ต้องลบแล้วสร้างใหม่) · ปิดใช้งานขั้นตอนชั่วคราวโดยไม่ลบทิ้ง (มีประโยชน์ตอนหาว่าขั้นตอนไหนทำให้ผลลัพธ์พัง) · ลบขั้นตอนนั้นถาวร</p>
   </div>
 
   <div class="card">
@@ -604,7 +583,6 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
         <span class="hint" id="c3SketchHint">คลิกมุมแรกของสี่เหลี่ยม</span>
       </div>
     </div>
-    <p class="hint">ลากซ้ายเพื่อหมุนมุมมอง · ลากขวาเพื่อเลื่อน · หมุนล้อเมาส์/บีบสองนิ้วเพื่อซูม · <b>ร่างภาพใหม่ตรงนี้</b> (ด้านบน) ให้วาดรูปสี่เหลี่ยม/วงกลม/เส้นหลายจุดปิดรูปตรงในมุมมอง 3 มิตินี้ได้เลย โดยไม่ต้องสลับไปแท็บ 2 มิติ</p>
   </div>
 
   <div class="card">
@@ -614,7 +592,6 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       <button class="btn sm" id="exportStlBtn" type="button" disabled>STL</button>
       <button class="btn sm" id="exportGlbBtn" type="button" disabled>GLB</button>
     </div>
-    <p class="hint">STEP เปิดต่อในโปรแกรม CAD วิศวกรรมอื่นได้ (SolidWorks/Fusion 360/FreeCAD ฯลฯ) · STL/GLB ใช้พิมพ์ 3 มิติหรือแสดงผลทั่วไป</p>
   </div>
   </div><!-- /panel3d -->
 
