@@ -15,6 +15,8 @@
   var GRAM_PER_BAHT = 15.244;
   var lastGoldPlan = { pmt: 3000 };
   var lastVerdictMode = 'real';
+  var lastAnalysis = null;
+  var gAnswers = { spotOnly: null };
 
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
@@ -103,6 +105,36 @@
       typeJewelryShort: 'รูปพรรณ', typeBarShort: 'แท่ง',
       alertAmtPrice: 'กรอกเงินที่จ่ายและราคา/หน่วยที่ซื้อให้ถูกต้อง', chipFetchFail: '— ดึงไม่ได้ตอนนี้',
       alertGPriceUsd: 'กรอกราคาทองโลกตอนนี้ก่อน', alertGHiLo: 'กรอกราคาสูงสุด/ต่ำสุดของรอบด้วยเพื่อประเมิน',
+      rcTitle: 'ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน',
+      rcCapitalLabel: 'เงินลงทุนทั้งพอร์ต (บาท)', rcCapitalPh: 'เช่น 300000',
+      rcRiskPctLabel: 'ยอมเสี่ยงต่อครั้ง', rcUnitPctPortfolio: '(% ของพอร์ต)',
+      rcEntryLabel: 'ราคาซื้อ (บาท/บาททองคำ)', rcEntryPh: '= ราคาทองคำแท่งวันนี้',
+      rcStopLabel: 'ราคาตัดขาดทุน (บาท/บาททองคำ)', rcStopPh: 'แนะนำอัตโนมัติ',
+      rcCalcBtn: 'คำนวณ',
+      rcErrNeedEntry: 'กรอกราคาซื้อ (หรือรอราคาทองวันนี้โหลด) ก่อน',
+      rcErrStop: 'ราคาตัดขาดทุนต้องต่ำกว่าราคาซื้อ',
+      rcCapLimitedNote: 'จำกัดจำนวนตามเงินที่มี (ทุนไม่พอซื้อเท่าที่ความเสี่ยงอนุญาต)',
+      rcQtyLine: 'ควรซื้อได้ประมาณ <b>{qty} บาททองคำ</b> ใช้เงิน ≈ <b>{cost}</b>',
+      rcKvIfWrong: 'ถ้าผิดทาง (แตะ Stop) เสียไม่เกิน', rcKvStop: 'ราคาตัดขาดทุน (Stop)',
+      rcKvRr: 'ความคุ้ม (กำไรคาดหวัง : ความเสี่ยง) ถึงแนวต้าน (ประมาณจากแนวโน้มราคาทองโลก)',
+      checklistTitle: 'เช็กลิสต์ก่อนซื้อ — ควรซื้อไหม?',
+      chkSpotOnly: 'ยืนยันว่าซื้อทองจริง (ทองคำแท่ง/รูปพรรณ) ไม่ใช่สัญญาซื้อขายล่วงหน้า/มาร์จิ้น',
+      ynYes: 'ใช่', ynNo: 'ยัง', checkBtn: 'ตรวจเช็กลิสต์',
+      chkTrendUp: 'อยู่ในแนวโน้มขึ้น (ราคาเหนือเส้นเฉลี่ย)', chkTrendDn: 'ยังไม่อยู่ในแนวโน้มขึ้น (ราคาใต้เส้นเฉลี่ย)',
+      chkAdxSuffix: ' · ADX {v} {label}', chkAdxStrong: 'เทรนด์แข็งแรง', chkAdxWeak: 'เทรนด์อ่อน ควรระวัง',
+      chkNoChase: 'ไม่ไล่ราคา (ห่างเส้นเฉลี่ย 20 ไม่เกิน 5%)', chkChasing: 'กำลังไล่ราคา (สูงกว่าเส้นเฉลี่ย 20 เกิน 5%)',
+      chkTrendNeedData: 'แนวโน้ม/การไล่ราคา: ต้องรอราคาทองโลกโหลดก่อน',
+      chkRsiOk: 'ไม่ร้อนแรงเกิน (RSI {v})', chkRsiHot: 'ร้อนแรงเกินไป (RSI {v} ≥ 70) เสี่ยงย่อ', chkRsiNeedData: 'RSI: ต้องรอราคาทองโลกโหลดก่อน',
+      chkStopSet: 'ตั้งจุดตัดขาดทุน (Stop) แล้ว', chkStopUnset: 'ยังไม่ตั้งจุดตัดขาดทุน — กด "คำนวณ" ด้านบนก่อน',
+      chkRiskOk: 'เสี่ยงต่อครั้ง ≤ 2% ({v}%)', chkRiskHigh: 'เสี่ยงต่อครั้งสูงไป ({v}) — ควร ≤ 2%',
+      chkRrOk: 'กำไรคาดหวัง:เสี่ยง ≥ 2:1 ({v}:1)', chkRrLow: 'กำไร:เสี่ยงน้อยไป ({v}:1) — ควร ≥ 2:1',
+      chkRrNeedData: 'กำไร:เสี่ยง: ต้องมีแนวต้านจากกราฟ + ตั้ง Stop ก่อน',
+      chkSpotYes: 'ยืนยันแล้วว่าซื้อทองจริง ไม่ใช่สัญญาซื้อขายล่วงหน้า/มาร์จิ้น',
+      chkSpotNo: 'กำลังจะใช้สัญญาซื้อขายล่วงหน้า/มาร์จิ้น — เสี่ยงถูกบังคับปิดสถานะจากความผันผวนระยะสั้น แนะนำซื้อทองจริงแทน',
+      chkSpotUnknown: 'ยืนยันก่อนว่าซื้อทองจริง ไม่ใช่สัญญาซื้อขายล่วงหน้า/มาร์จิ้น (กดปุ่มด้านบน)',
+      checklistFail: 'ยังไม่ควรซื้อ — ติด {n} ข้อ ควรแก้ให้ครบก่อนซื้อ',
+      checklistUnknown: 'ข้อมูลไม่พอประเมินครบ — กด "คำนวณ" ด้านบนและตอบคำถามก่อน',
+      checklistGo: 'ซื้อได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)',
       driveConnectFailedAuto: 'เชื่อมต่ออัตโนมัติไม่สำเร็จ (อาจเพราะเบราว์เซอร์บล็อก cookie ข้ามโดเมน) — กดปุ่มเชื่อมต่ออีกครั้ง',
       driveConnectFailed: 'เชื่อมต่อไม่สำเร็จ: {err}', driveLoadingGis: 'กำลังโหลด Google Identity Services… รออีก 2-3 วิแล้วลองใหม่', driveRequesting: 'กำลังขอสิทธิ์เชื่อมต่อ…',
       driveErrSearchFolder: 'ค้นหาโฟลเดอร์ไม่สำเร็จ ({status})', driveErrCreateFolder: 'สร้างโฟลเดอร์ไม่สำเร็จ ({status})',
@@ -187,6 +219,36 @@
       typeJewelryShort: 'Jewelry', typeBarShort: 'Bar',
       alertAmtPrice: 'Enter a valid amount paid and price/unit', chipFetchFail: '— could not fetch right now',
       alertGPriceUsd: 'Enter the current global gold price first', alertGHiLo: 'Enter the period high/low as well to assess',
+      rcTitle: 'If you buy, how much should you put in, and where should you sell',
+      rcCapitalLabel: 'Total capital (THB)', rcCapitalPh: 'e.g. 300000',
+      rcRiskPctLabel: 'Risk tolerance per purchase', rcUnitPctPortfolio: '(% of portfolio)',
+      rcEntryLabel: 'Purchase price (THB/baht-weight)', rcEntryPh: "= today's gold bar price",
+      rcStopLabel: 'Stop-loss price (THB/baht-weight)', rcStopPh: 'Auto-suggested',
+      rcCalcBtn: 'Calculate',
+      rcErrNeedEntry: "Enter the purchase price first (or wait for today's gold price to load)",
+      rcErrStop: 'The stop-loss price must be below the purchase price',
+      rcCapLimitedNote: 'Limited by available funds (capital is not enough to buy the full amount the risk setting would allow)',
+      rcQtyLine: 'You could buy about <b>{qty} baht-weight of gold</b> using ≈ <b>{cost}</b>',
+      rcKvIfWrong: 'If wrong (hits Stop), you lose no more than', rcKvStop: 'Stop-loss price (Stop)',
+      rcKvRr: 'Reward:risk to resistance (approximated from the global gold trend)',
+      checklistTitle: 'Pre-purchase check — should you buy?',
+      chkSpotOnly: "Confirm you're buying real gold (bars/jewelry), not a futures contract/margin",
+      ynYes: 'Yes', ynNo: 'Not yet', checkBtn: 'Check the checklist',
+      chkTrendUp: 'In an uptrend (price above the moving average)', chkTrendDn: 'Not yet in an uptrend (price below the moving average)',
+      chkAdxSuffix: ' · ADX {v} {label}', chkAdxStrong: 'strong trend', chkAdxWeak: 'weak trend, be careful',
+      chkNoChase: 'Not chasing the price (within 5% of the 20-day average)', chkChasing: 'Chasing the price (more than 5% above the 20-day average)',
+      chkTrendNeedData: 'Trend/price-chasing: needs the global gold price to load first',
+      chkRsiOk: 'Not overheated (RSI {v})', chkRsiHot: 'Overheated (RSI {v} ≥ 70), risk of a pullback', chkRsiNeedData: 'RSI: needs the global gold price to load first',
+      chkStopSet: 'Stop-loss (Stop) is set', chkStopUnset: 'Stop-loss not set yet — press "Calculate" above first',
+      chkRiskOk: 'Risk per purchase ≤ 2% ({v}%)', chkRiskHigh: 'Risk per purchase is too high ({v}) — should be ≤ 2%',
+      chkRrOk: 'Reward:risk ≥ 2:1 ({v}:1)', chkRrLow: 'Reward:risk too low ({v}:1) — should be ≥ 2:1',
+      chkRrNeedData: 'Reward:risk: needs resistance from the chart + a Stop set first',
+      chkSpotYes: 'Confirmed: buying real gold, not a futures contract/margin',
+      chkSpotNo: 'Planning to use a futures contract/margin — risk of forced liquidation from short-term volatility; buying real gold is recommended instead',
+      chkSpotUnknown: "Confirm first that you're buying real gold, not a futures contract/margin (press the button above)",
+      checklistFail: 'Not ready to buy yet — {n} item(s) failed; fix them all before buying',
+      checklistUnknown: 'Not enough information to fully assess — press "Calculate" above and answer the questions first',
+      checklistGo: 'Ready to buy per plan — passed every item (still no profit guarantee — follow the plan and always cut losses)',
       driveConnectFailedAuto: "Automatic reconnect failed (possibly because the browser blocks cross-domain cookies) — click Connect again",
       driveConnectFailed: 'Connect failed: {err}', driveLoadingGis: 'Loading Google Identity Services… wait a couple of seconds and try again', driveRequesting: 'Requesting connection permission…',
       driveErrSearchFolder: 'Folder search failed ({status})', driveErrCreateFolder: 'Folder creation failed ({status})',
@@ -332,9 +394,18 @@
     else { light = 'yellow'; verdict = t('vMidGold'); }
     var why = (light === 'green' ? pros : light === 'red' ? cons : (pros.concat(cons)))[0] || t('whyNeutral');
 
+    /* จุดตัดขาดทุนที่แนะนำ (USD/ออนซ์ — อ้างอิงแนวโน้มราคาทองโลก) เอาไว้คำนวณ % ระยะห่างจากราคา
+       แล้วนำ % นั้นไปใช้กับราคาบาท/บาททองคำจริงที่ผู้ใช้จ่ายจริง (ไม่แปลงหน่วยตรงๆ เพราะไม่มีอัตราแปลงในหน้านี้) */
+    var stopByAtr = isFinite(at) ? price - 1.5 * at : NaN;
+    var stopBySup = isFinite(sr.support) ? sr.support * 0.99 : NaN;
+    var stop = NaN;
+    if (isFinite(stopBySup) && stopBySup < price) stop = stopBySup;
+    if (isFinite(stopByAtr) && stopByAtr < price && (!isFinite(stop) || stopByAtr > stop)) stop = stopByAtr;
+    if (!isFinite(stop) || stop <= 0) stop = price * 0.95;
+
     return {
       light: light, verdict: verdict, why: why, pros: pros, cons: cons, score: score,
-      price: price, resistance: sr.resistance, uptrend: uptrend, rsi: r, adx: adxV,
+      price: price, resistance: sr.resistance, uptrend: uptrend, rsi: r, adx: adxV, suggestStop: stop,
       det: { ema20: ema20, ema50: ema50, rsi: r, macdHist: mac ? mac.hist : NaN,
              support: sr.support, resistance: sr.resistance, posRange: posRange, adx: adxV }
     };
@@ -345,7 +416,119 @@
     if (pos < 0.35) { light = 'green'; verdict = t('vInterestingGold'); why = t('whyCheapPct', { pct: pct }); }
     else if (pos > 0.75) { light = 'red'; verdict = t('vCarefulGold'); why = t('whyExpensivePct', { pct: pct }); }
     else { light = 'yellow'; verdict = t('vMidGold'); why = t('whyMidPct', { pct: pct }); }
-    return { light: light, verdict: verdict, why: why, pros: [], cons: [], price: price, resistance: hi, det: { posRange: pos, support: lo, resistance: hi }, simple: true };
+    return { light: light, verdict: verdict, why: why, pros: [], cons: [], price: price, resistance: hi, suggestStop: Math.min(lo, price * 0.95), det: { posRange: pos, support: lo, resistance: hi }, simple: true };
+  }
+
+  /* ── ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน (บาท/บาททองคำ) ──────────────
+     สัญญาณแนวโน้ม/RSI/แนวต้านมาจาก analyzeSeries() ที่วิ่งบนราคาทองโลก USD/oz
+     แต่คำนวณเงิน-ความเสี่ยงเป็นบาท/บาททองคำ (สิ่งที่ผู้ใช้จ่ายจริง) — หน้านี้ไม่มีอัตราแปลง USD↔บาท
+     จึงยืม "ระยะห่าง % จากราคา" ของฝั่ง USD มาประมาณค่าเทียบเคียงในฝั่งบาทแทนตรงๆ (ไม่แปลงหน่วยจริง) ── */
+  function riskCalc(o) {
+    var capital = o.capital, riskPct = o.riskPct, entry = o.entry, stop = o.stop;
+    var perUnit = entry - stop;
+    if (!(perUnit > 0)) return { error: t('rcErrStop') };
+    var riskBudget = capital * riskPct / 100;
+    var qty = riskBudget / perUnit, note = ''; /* ไม่ floor — ซื้อทองเป็นเศษบาททองคำได้ */
+    var cost = qty * entry;
+    if (cost > capital) {
+      var maxQty = capital / entry;
+      if (maxQty > 0) { qty = maxQty; cost = qty * entry; note = t('rcCapLimitedNote'); }
+    }
+    var rr = NaN;
+    if (isFinite(o.usdPrice) && o.usdPrice > 0 && isFinite(o.usdResistance) && o.usdResistance > o.usdPrice) {
+      var stopPct = perUnit / entry;
+      var approxUsdStop = o.usdPrice * (1 - stopPct);
+      if (approxUsdStop < o.usdPrice) rr = (o.usdResistance - o.usdPrice) / (o.usdPrice - approxUsdStop);
+    }
+    return { qty: qty, cost: cost, riskBaht: qty * perUnit, rr: rr, riskBudget: riskBudget, note: note };
+  }
+  function doCalc() {
+    var capital = num($('rcCapital').value), riskPct = num($('rcRiskPct').value);
+    var entry = num($('rcEntry').value), stop = num($('rcStop').value);
+    var box = $('rcResult');
+    box.style.display = 'block';
+    if (!isFinite(entry)) { $('rcHeadline').innerHTML = '<span style="color:var(--err)">' + t('rcErrNeedEntry') + '</span>'; $('rcKv').innerHTML = ''; return; }
+    if (!isFinite(stop)) {
+      stop = (lastAnalysis && isFinite(lastAnalysis.suggestStop) && isFinite(lastAnalysis.price) && lastAnalysis.price > 0)
+        ? entry * (lastAnalysis.suggestStop / lastAnalysis.price)
+        : entry * 0.95;
+      $('rcStop').value = stop.toFixed(2);
+    }
+    if (!isFinite(capital) || capital <= 0) { capital = 300000; $('rcCapital').value = capital; }
+    if (!isFinite(riskPct) || riskPct <= 0) { riskPct = 2; $('rcRiskPct').value = riskPct; }
+
+    var res = riskCalc({
+      capital: capital, riskPct: riskPct, entry: entry, stop: stop,
+      usdPrice: lastAnalysis ? lastAnalysis.price : NaN,
+      usdResistance: lastAnalysis ? lastAnalysis.resistance : NaN
+    });
+    if (res.error) { $('rcHeadline').innerHTML = '<span style="color:var(--err)">' + res.error + '</span>'; $('rcKv').innerHTML = ''; return; }
+    $('rcHeadline').innerHTML = t('rcQtyLine', { qty: fmt(res.qty, 4), cost: baht(res.cost) });
+    var kv = '';
+    kv += '<div class="k">' + t('rcKvIfWrong') + '</div><div class="v">' + baht(res.riskBaht) + '</div>';
+    kv += '<div class="k">' + t('rcKvStop') + '</div><div class="v">' + fmt(stop) + '</div>';
+    if (isFinite(res.rr)) kv += '<div class="k">' + t('rcKvRr') + '</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
+    if (res.note) kv += '<div class="k" style="color:var(--warn)">ℹ️</div><div class="v" style="color:var(--warn);font-size:12px">' + res.note + '</div>';
+    $('rcKv').innerHTML = kv;
+  }
+
+  /* ── เช็กลิสต์ก่อนซื้อ ─────────────────────────────────────────── */
+  function checklistChecks() {
+    var a = lastAnalysis, det = (a && a.det) ? a.det : {};
+    var entry = num($('rcEntry').value), stop = num($('rcStop').value), riskPct = num($('rcRiskPct').value);
+    var checks = [];
+    if (a && isFinite(det.ema20)) {
+      var up = isFinite(det.ema50) ? a.price >= det.ema50 : a.price >= det.ema20;
+      var adxTxt = isFinite(det.adx) ? t('chkAdxSuffix', { v: det.adx.toFixed(0), label: det.adx >= 20 ? t('chkAdxStrong') : t('chkAdxWeak') }) : '';
+      checks.push({ ok: up, txt: (up ? t('chkTrendUp') : t('chkTrendDn')) + adxTxt });
+      var over = (a.price - det.ema20) / det.ema20, notChase = over <= 0.05;
+      checks.push({ ok: notChase, txt: notChase ? t('chkNoChase') : t('chkChasing') });
+    } else {
+      checks.push({ ok: null, txt: t('chkTrendNeedData') });
+    }
+    if (a && isFinite(det.rsi)) checks.push({ ok: det.rsi < 70, txt: det.rsi < 70 ? t('chkRsiOk', { v: det.rsi.toFixed(0) }) : t('chkRsiHot', { v: det.rsi.toFixed(0) }) });
+    else checks.push({ ok: null, txt: t('chkRsiNeedData') });
+    var stopOk = isFinite(entry) && isFinite(stop) && stop < entry;
+    checks.push({ ok: stopOk, txt: stopOk ? t('chkStopSet') : t('chkStopUnset') });
+    checks.push({
+      ok: isFinite(riskPct) && riskPct <= 2,
+      txt: (isFinite(riskPct) && riskPct <= 2) ? t('chkRiskOk', { v: riskPct }) : t('chkRiskHigh', { v: isFinite(riskPct) ? riskPct + '%' : '-' })
+    });
+    if (a && stopOk && isFinite(a.resistance) && a.resistance > a.price && isFinite(a.price) && a.price > 0) {
+      var stopPct = (entry - stop) / entry;
+      var approxUsdStop = a.price * (1 - stopPct);
+      var rr = approxUsdStop < a.price ? (a.resistance - a.price) / (a.price - approxUsdStop) : NaN;
+      if (isFinite(rr)) {
+        var rrOk = rr >= 2;
+        checks.push({ ok: rrOk, txt: rrOk ? t('chkRrOk', { v: rr.toFixed(1) }) : t('chkRrLow', { v: rr.toFixed(1) }) });
+      } else {
+        checks.push({ ok: null, txt: t('chkRrNeedData') });
+      }
+    } else {
+      checks.push({ ok: null, txt: t('chkRrNeedData') });
+    }
+    var so = gAnswers.spotOnly;
+    checks.push({
+      ok: so === 'yes' ? true : so === 'no' ? false : null,
+      txt: so === 'yes' ? t('chkSpotYes') : so === 'no' ? t('chkSpotNo') : t('chkSpotUnknown')
+    });
+    return checks;
+  }
+  function doChecklist() {
+    var checks = checklistChecks();
+    var fails = checks.filter(function (c) { return c.ok === false; }).length;
+    var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
+    var box = $('checkResult'), v = $('checkVerdict');
+    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = t('checklistFail', { n: fails }); }
+    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = t('checklistUnknown'); }
+    else { v.className = 'verdict-box go'; v.textContent = t('checklistGo'); }
+    var html = '';
+    checks.forEach(function (c) {
+      var ic = c.ok === true ? '' : c.ok === false ? '' : '◻️';
+      html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
+    });
+    $('chkList').innerHTML = html;
+    box.style.display = 'block';
   }
 
   /* ── สร้างชุดข้อมูลจาก Yahoo (ใช้ GC=F เป็นตัวแทนราคาทองโลก) ── */
@@ -485,6 +668,7 @@
     $('jewelrySell').value = o.jewelrySellPrice.toFixed(2);
     if (!$('dcaStart').value) $('dcaStart').value = o.barBuyPrice.toFixed(2);
     if (!$('gdNow').value) $('gdNow').value = o.barBuyPrice.toFixed(2);
+    if (!$('rcEntry').value) $('rcEntry').value = o.barBuyPrice.toFixed(2);
     if ($('dcaOut').style.display === 'none') doDCA();
   }
   var GOLD_TH_RETRIES = 2; /* จำนวนครั้งที่ลองดึงราคาสดทั้งหมด ก่อนตกไป cache/กรอกเอง */
@@ -540,6 +724,7 @@
 
   /* ── ไฟจราจร "ถูก/แพงตอนนี้ไหม" จากแนวโน้มราคาทองโลก (GC=F) ──── */
   function showGoldVerdict(a, meta) {
+    if (a) lastAnalysis = a;
     var el = $('gSrcBadge');
     if (meta.kind === 'real') {
       el.className = 'src-badge real';
@@ -967,6 +1152,15 @@
     $('gdBtn').addEventListener('click', doGoldDrawdown);
     $('alBtn').addEventListener('click', doAllocation);
     $('lgAdd').addEventListener('click', addGoldLog);
+    $('rcCalcBtn').addEventListener('click', doCalc);
+    $('chkForm').addEventListener('click', function (e) {
+      var btn = e.target.closest('.yn-btn'); if (!btn) return;
+      var row = btn.closest('.yn-row'), key = row.getAttribute('data-key'), val = btn.getAttribute('data-val');
+      gAnswers[key] = val;
+      [].forEach.call(row.querySelectorAll('.yn-btn'), function (b) { b.classList.remove('on', 'yes', 'no'); });
+      btn.classList.add('on', val);
+    });
+    $('checkBtn').addEventListener('click', doChecklist);
     $('driveConnectBtn') && $('driveConnectBtn').addEventListener('click', function () { DriveSync.connect(); });
 
     renderGoldLog();
@@ -993,6 +1187,8 @@
     if (gdOut.style.display !== 'none') doGoldDrawdown();
     var alOut = $('alOut');
     if (alOut.style.display !== 'none') doAllocation();
+    if ($('rcResult').style.display !== 'none') doCalc();
+    if ($('checkResult').style.display !== 'none') doChecklist();
     renderFactorChip('dxyChip', 'DX-Y.NYB', 'dxy');
     renderFactorChip('tnxChip', '^TNX', 'tnx');
     DriveSync.setBtn();

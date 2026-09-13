@@ -119,6 +119,24 @@ svg.chart{display:block;width:100%;height:auto}
 .tr-box .m{color:var(--muted);font-size:12px;margin-top:2px}
 .tr-box .x{font-weight:800;color:var(--brand-dk);margin-top:4px}
 
+.result{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px}
+.yn-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.yn-row:last-child{border-bottom:none}
+.yn-btns{display:flex;gap:6px;flex-shrink:0}
+.yn-btn{padding:5px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);
+  font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted)}
+.yn-btn.on.yes{background:#E9F9F0;border-color:#17B26A;color:#0B7F52}
+.yn-btn.on.no{background:#FDECEC;border-color:#E5484D;color:#B23838}
+[data-theme="dark"] .yn-btn.on.yes{background:#14261E;border-color:#17B26A;color:#5EDCAB}
+[data-theme="dark"] .yn-btn.on.no{background:#301B1B;border-color:#E5484D;color:#F0A0A0}
+.chk-list{list-style:none;margin:12px 0 0;padding:0}
+.chk-list li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line)}
+.chk-list li:last-child{border-bottom:none}
+.chk-list .ic{flex-shrink:0;font-size:15px}
+.chk-list li.pass{color:var(--ink)}
+.chk-list li.fail{color:#B23838;font-weight:600}
+[data-theme="dark"] .chk-list li.fail{color:#F0A0A0}
+
 /* ── กล่องสรุป ── */
 .verdict-box{border-radius:13px;padding:14px 16px;font-size:14px;font-weight:600;line-height:1.5}
 .verdict-box.go{background:#E9F9F0;color:#0B7F52}
@@ -192,6 +210,38 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
         <div class="field"><label><span data-i18n="gLoUsdLabel">ต่ำสุดของรอบ</span> <span class="unit" data-i18n="unitUsdOz">(USD/ออนซ์)</span></label><input type="number" id="gLoUsd" inputmode="decimal" step="0.01"></div>
       </div>
       <div style="margin-top:10px"><button class="btn sm" id="gManualBtn" type="button" data-i18n="manualEvalBtn">ประเมินจากราคานี้</button></div>
+    </div>
+  </div>
+
+  <!-- ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน -->
+  <div class="card">
+    <h2 data-i18n="rcTitle">ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน</h2>
+    <div class="frow">
+      <div class="field"><label data-i18n="rcCapitalLabel">เงินลงทุนทั้งพอร์ต (บาท)</label><input type="number" id="rcCapital" inputmode="numeric" data-i18n-placeholder="rcCapitalPh" placeholder="เช่น 300000" value="300000"></div>
+      <div class="field"><label><span data-i18n="rcRiskPctLabel">ยอมเสี่ยงต่อครั้ง</span> <span class="unit" data-i18n="rcUnitPctPortfolio">(% ของพอร์ต)</span></label><input type="number" id="rcRiskPct" inputmode="decimal" step="0.1" value="2"></div>
+    </div>
+    <div class="frow" style="margin-top:10px">
+      <div class="field"><label data-i18n="rcEntryLabel">ราคาซื้อ (บาท/บาททองคำ)</label><input type="number" id="rcEntry" inputmode="decimal" step="0.01" data-i18n-placeholder="rcEntryPh" placeholder="= ราคาทองคำแท่งวันนี้"></div>
+      <div class="field"><label data-i18n="rcStopLabel">ราคาตัดขาดทุน (บาท/บาททองคำ)</label><input type="number" id="rcStop" inputmode="decimal" step="0.01" data-i18n-placeholder="rcStopPh" placeholder="แนะนำอัตโนมัติ"></div>
+    </div>
+    <div style="margin-top:12px"><button class="btn primary" id="rcCalcBtn" type="button" data-i18n="rcCalcBtn">คำนวณ</button></div>
+    <div class="result" id="rcResult" style="display:none">
+      <div id="rcHeadline" style="font-size:15px;font-weight:700"></div>
+      <div class="det-kv" id="rcKv" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <!-- เช็กลิสต์ก่อนซื้อ -->
+  <div class="card">
+    <h2 data-i18n="checklistTitle">เช็กลิสต์ก่อนซื้อ — ควรซื้อไหม?</h2>
+    <div id="chkForm" style="margin-top:10px">
+      <div class="yn-row" data-key="spotOnly"><span data-i18n="chkSpotOnly">ยืนยันว่าซื้อทองจริง (ทองคำแท่ง/รูปพรรณ) ไม่ใช่สัญญาซื้อขายล่วงหน้า/มาร์จิ้น</span>
+        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
+    </div>
+    <div style="margin-top:10px"><button class="btn" id="checkBtn" type="button" data-i18n="checkBtn">ตรวจเช็กลิสต์</button></div>
+    <div id="checkResult" style="display:none">
+      <div class="verdict-box" id="checkVerdict"></div>
+      <ul class="chk-list" id="chkList"></ul>
     </div>
   </div>
 
