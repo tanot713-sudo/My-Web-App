@@ -55,7 +55,6 @@
       lblTier: 'หมวด',
       tierTwoDigit: 'เลขท้าย 2 ตัว', tierThreeFirst: 'เลขหน้า 3 ตัว', tierThreeLast: 'เลขท้าย 3 ตัว',
       tierFirst: 'รางวัลที่ 1 (ความถี่รายหลัก)', tierSecond: 'รางวัลที่ 2 (ความถี่รายหลัก)', tierThird: 'รางวัลที่ 3 (ความถี่รายหลัก)',
-      statEmptyDefault: 'กด "ดึงข้อมูลย้อนหลัง" ด้านบนก่อน เพื่อดูสถิติความถี่',
       checkTitle: 'ตรวจหวย', lblTicket: 'เลขที่ซื้อ (6 หลัก)', phTicket: 'เช่น 123456', checkBtn: 'ตรวจกับงวดล่าสุด',
       spinTitle: 'สุ่มเลขไปซื้อ', spinBtn: 'หมุน',
       lblSpinFull: 'เลขเต็ม 6 หลัก', lblSpinFront: 'เลขหน้า 3 ตัว', lblSpinBack3: 'เลขท้าย 3 ตัว', lblSpinBack2: 'เลขท้าย 2 ตัว',
@@ -66,7 +65,7 @@
       preparingList: 'กำลังเตรียมรายการงวด…', loadedDone: 'ดึงข้อมูลเสร็จแล้ว',
       loadingProgress: 'กำลังดึงข้อมูลย้อนหลัง {done}/{total} งวด…',
       confirmClearCache: 'ล้างข้อมูลย้อนหลังที่แคชไว้ทั้งหมด?',
-      noDataInRange: 'ยังไม่มีข้อมูลในช่วงนี้ — กด "ดึงข้อมูลย้อนหลัง" ก่อน',
+      noDataInRange: 'ยังไม่มีข้อมูลในช่วงนี้',
       noDataInTier: 'ไม่มีข้อมูลหมวดนี้ในช่วงที่เลือก',
       thNumber: 'เลข', thTimesOut: 'จำนวนครั้งที่ออก',
       alertTicketLen: 'กรอกเลข 6 หลักให้ถูกต้อง',
@@ -87,7 +86,6 @@
       lblTier: 'Category',
       tierTwoDigit: 'Last 2 digits', tierThreeFirst: 'First 3 digits', tierThreeLast: 'Last 3 digits',
       tierFirst: '1st prize (per-digit frequency)', tierSecond: '2nd prize (per-digit frequency)', tierThird: '3rd prize (per-digit frequency)',
-      statEmptyDefault: 'Press "Fetch historical data" above first to see frequency stats',
       checkTitle: 'Check a Ticket', lblTicket: 'Ticket number (6 digits)', phTicket: 'e.g. 123456', checkBtn: 'Check against the latest draw',
       spinTitle: 'Randomize a Number to Buy', spinBtn: 'Spin',
       lblSpinFull: 'Full 6-digit number', lblSpinFront: 'First 3 digits', lblSpinBack3: 'Last 3 digits', lblSpinBack2: 'Last 2 digits',
@@ -98,7 +96,7 @@
       preparingList: 'Preparing the list of draws…', loadedDone: 'Fetch complete',
       loadingProgress: 'Fetching historical data {done}/{total} draws…',
       confirmClearCache: 'Clear all cached historical data?',
-      noDataInRange: 'No data in this range yet — press "Fetch historical data" first',
+      noDataInRange: 'No data in this range yet',
       noDataInTier: 'No data for this category in the selected range',
       thNumber: 'Number', thTimesOut: 'Times drawn',
       alertTicketLen: 'Enter a valid 6-digit number',
@@ -412,7 +410,7 @@
   function doClearCache() {
     if (!confirm(t('confirmClearCache'))) return;
     try { localStorage.removeItem(HIST_KEY); } catch (e) {}
-    $('ltStatOut').innerHTML = '<div class="log-empty">' + t('statEmptyDefault') + '</div>';
+    $('ltStatOut').innerHTML = '<div class="log-empty"></div>';
     $('ltRangeNote').textContent = '';
   }
 
