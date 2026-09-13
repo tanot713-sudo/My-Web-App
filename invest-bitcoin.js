@@ -1004,7 +1004,13 @@
   }
   function gatewayBase(c) { return (c.gateway || '').replace(/\/$/, ''); }
   function fetchJson(url, opts) {
-    return fetch(url, Object.assign({ headers: { 'Accept': 'application/json' } }, opts || {})).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+    return fetch(url, Object.assign({ headers: { 'Accept': 'application/json' } }, opts || {})).then(function (r) {
+      return r.text().then(function (txt) {
+        var j = null; try { j = txt ? JSON.parse(txt) : null; } catch (e) {}
+        if (!r.ok) throw new Error((j && (j.message || j.error)) || ('HTTP ' + r.status));
+        return j || {};
+      });
+    });
   }
   function normalizeLiveQuote(j, sym) {
     var q = j && (j.quote || j.data || j.result || j); q = q && (q.data || q.quote || q);
@@ -1040,7 +1046,10 @@
     if (c.provider === 'yahoo') { setLiveUI('', t('marketModeHist'), t('marketMetaHistoricalUse')); return; }
     liveBusy = true;
     var pr = c.provider === 'twelvedata' ? fetchTwelveQuote(TD_SYM, c) : fetchGatewayQuote(SYM, c);
-    pr.then(applyLiveQuote).catch(function () { setLiveUI('delay', t('marketModeFallback'), t('marketMetaFallback')); }).finally(function () { liveBusy = false; });
+    pr.then(applyLiveQuote).catch(function (err) {
+      var reason = err && err.message;
+      setLiveUI('delay', t('marketModeFallback'), reason ? (t('marketMetaFallback') + ' — ' + reason) : t('marketMetaFallback'));
+    }).finally(function () { liveBusy = false; });
   }
   function stopLive() { if (liveTimer) { clearInterval(liveTimer); liveTimer = null; } }
   function startLive() { stopLive(); var c = liveCfg(); if (c.provider === 'yahoo') return; liveTimer = setInterval(refreshLiveQuote, Math.max(5, Number(c.interval) || 5) * 1000); refreshLiveQuote(); }

@@ -871,7 +871,7 @@
      ลำดับความสำคัญ: Tanot Gateway ของตัวเอง (ถ้าตั้งค่าไว้) -> Twelve Data (ใส่ API key เอง) -> Yahoo/ย้อนหลัง (เดิม)
      ตั้งค่าเดียวกับหน้าหุ้นไทย (localStorage key ร่วมกัน) — ไม่มี backend ของเว็บนี้ Twelve Data key เก็บเฉพาะเครื่อง */
   var LIVE_CFG_KEY = 'tanot:market:live-config:v1';
-  var liveTimer = null, liveBusy = false, liveLast = null;
+  var liveTimer = null, liveBusy = false, liveLast = null, symInputDebounce = null;
   function liveCfg() {
     var d = { provider: 'gateway', gateway: '', apiKey: '', interval: 5 };
     try { var x = JSON.parse(localStorage.getItem(LIVE_CFG_KEY) || '{}'); Object.keys(d).forEach(function (k) { if (x[k] != null) d[k] = x[k]; }); } catch (e) {}
@@ -886,7 +886,13 @@
   }
   function gatewayBase(c) { return (c.gateway || '').replace(/\/$/, ''); }
   function fetchJson(url, opts) {
-    return fetch(url, Object.assign({ headers: { 'Accept': 'application/json' } }, opts || {})).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+    return fetch(url, Object.assign({ headers: { 'Accept': 'application/json' } }, opts || {})).then(function (r) {
+      return r.text().then(function (txt) {
+        var j = null; try { j = txt ? JSON.parse(txt) : null; } catch (e) {}
+        if (!r.ok) throw new Error((j && (j.message || j.error)) || ('HTTP ' + r.status));
+        return j || {};
+      });
+    });
   }
   function normalizeLiveQuote(j, sym) {
     var q = j && (j.quote || j.data || j.result || j); q = q && (q.data || q.quote || q);
@@ -922,7 +928,10 @@
     if (!sym || c.provider === 'yahoo') { setLiveUI('', t('liveHistoricalLabel'), t('liveHistoricalMeta')); return; }
     liveBusy = true;
     var pr = c.provider === 'twelvedata' ? fetchTwelveQuote(sym, c) : fetchGatewayQuote(sym, c);
-    pr.then(applyLiveQuote).catch(function () { setLiveUI('delay', t('liveFallbackLabel'), t('liveFallbackMeta')); }).finally(function () { liveBusy = false; });
+    pr.then(applyLiveQuote).catch(function (err) {
+      var reason = err && err.message;
+      setLiveUI('delay', t('liveFallbackLabel'), reason ? (t('liveFallbackMeta') + ' — ' + reason) : t('liveFallbackMeta'));
+    }).finally(function () { liveBusy = false; });
   }
   function stopLive() { if (liveTimer) { clearInterval(liveTimer); liveTimer = null; } }
   function startLive() { stopLive(); var c = liveCfg(); if (c.provider === 'yahoo') return; liveTimer = setInterval(refreshLiveQuote, Math.max(5, Number(c.interval) || 5) * 1000); refreshLiveQuote(); }
@@ -933,7 +942,11 @@
     $('marketSave').addEventListener('click', function () { var next = { provider: p.value, gateway: g.value.trim(), apiKey: k.value.trim() || c.apiKey, interval: Number(iv.value) || 5 }; saveLiveCfg(next); c = next; startLive(); setStatus(t('settingsSaved'), 'ok'); });
     $('marketClear').addEventListener('click', function () { c.apiKey = ''; saveLiveCfg(c); k.value = ''; setStatus(t('apiKeyCleared'), 'ok'); });
     $('marketRefresh').addEventListener('click', refreshLiveQuote);
-    $('sym').addEventListener('input', function () { stopLive(); var x = liveCfg(); if (x.provider !== 'yahoo') startLive(); });
+    $('sym').addEventListener('input', function () {
+      stopLive();
+      clearTimeout(symInputDebounce);
+      symInputDebounce = setTimeout(function () { var x = liveCfg(); if (x.provider !== 'yahoo') startLive(); }, 700);
+    });
     window.addEventListener('beforeunload', stopLive);
     startLive();
   }
