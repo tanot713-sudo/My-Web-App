@@ -124,7 +124,7 @@ select{font-family:inherit}
         </select></div>
     </div>
     <div class="frow" style="margin-top:10px">
-      <div class="field"><label data-i18n="lblPrice">ราคาที่ซื้อ (บาท) <span class="unit" data-i18n="lblPriceUnit">(ปกติ = ราคาพาร์ ปรับได้ถ้าซื้อตลาดรอง)</span></label><input type="number" id="bfPrice" inputmode="numeric" value="100000"></div>
+      <div class="field"><label data-i18n="lblPrice">ราคาที่ซื้อ (บาท)</label><input type="number" id="bfPrice" inputmode="numeric" value="100000"></div>
       <div class="field"><label data-i18n="lblYears">จำนวนปีจนครบกำหนด</label><input type="number" id="bfYears" inputmode="numeric" value="5"></div>
     </div>
     <div style="margin-top:12px"><button class="btn primary" id="bfCalcBtn" type="button" data-i18n="calcBtn">คำนวณผลตอบแทน</button></div>
@@ -145,7 +145,6 @@ select{font-family:inherit}
       <div class="field"><label data-i18n="lblDepRate">อัตราดอกเบี้ยเงินฝากประจำที่จะเทียบ (%)</label><input type="number" id="cmpDepRate" inputmode="decimal" step="0.01" value="1.5"></div>
       <button class="btn sm" id="cmpBtn" type="button" data-i18n="cmpBtn">เทียบผลตอบแทน</button>
     </div>
-    <p style="font-size:12px;color:var(--muted);margin-top:8px" data-i18n="cmpHint">ใช้เงินต้นและจำนวนปีจากการ์ดคำนวณผลตอบแทนด้านบน (กดคำนวณการ์ดนั้นก่อน)</p>
     <div id="cmpOut" style="display:none">
       <div class="cmp">
         <div class="col acc">
@@ -164,7 +163,6 @@ select{font-family:inherit}
       <div class="sumrow" style="margin-top:12px">
         <div class="sumbox"><div class="lbl" data-i18n="cmpSummary">สรุป</div><div class="val" id="cmpDiff" style="font-size:15px">—</div></div>
       </div>
-      <p style="font-size:11.5px;color:var(--muted);margin-top:8px" data-i18n-html="cmpFootnote">ดอกเบี้ยเงินฝาก<b>ออมทรัพย์</b>ทั่วไปมีเพดานยกเว้นภาษีรวมกันไม่เกิน 20,000 บาท/ปี (คนละกรณีกับเงินฝาก<b>ประจำ</b>ซึ่งมักถูกหักภาษีตามปกติ) และเงินฝากธนาคารได้รับความคุ้มครองจากสถาบันคุ้มครองเงินฝาก (DPA) สูงสุด 1,000,000 บาท/คน/สถาบันเท่านั้น ต่างจากพันธบัตรรัฐบาลที่มีรัฐบาลค้ำประกันความเสี่ยงต่ำมากไม่ว่าจำนวนเท่าไร</p>
     </div>
   </div>
 
@@ -187,7 +185,7 @@ select{font-family:inherit}
         </select></div>
       <button class="btn sm" id="lgAdd" type="button" data-i18n="addBtn">+ บันทึก</button>
     </div>
-    <div id="lgBox"><div class="log-empty" data-i18n="lgEmptyDefault">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อพันธบัตร จะได้ตารางจ่ายดอกเบี้ยและติดตามว่างวดไหนได้รับแล้ว</div></div>
+    <div id="lgBox"><div class="log-empty" data-i18n="lgEmptyDefault">ยังไม่มีรายการ</div></div>
   </div>
 
 </div>
