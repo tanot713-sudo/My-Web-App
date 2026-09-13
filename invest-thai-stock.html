@@ -340,7 +340,7 @@ body.embedded .pf-addform{display:none}
       <button class="btn sm" id="marketRefresh" type="button" data-i18n="refreshBtn">↻ รีเฟรช</button>
       <button class="btn sm" id="marketSettings" type="button" data-i18n="marketSettingsBtn">⚙ ตั้งค่าข้อมูลตลาด</button>
     </div>
-    <div class="status" id="fetchStatus" data-i18n="fetchStatusDefault">ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจาก Streaming ก็พอ (ดูราคาปัจจุบัน + สูง/ต่ำของรอบ)</div>
+    <div class="status" id="fetchStatus"></div>
     <div class="market-settings" id="marketSettingsPanel" hidden>
       <div class="market-settings-title" data-i18n="marketSettingsTitle">ข้อมูลตลาดแบบสด</div>
       <div class="market-settings-grid">
@@ -442,7 +442,6 @@ body.embedded .pf-addform{display:none}
   <!-- เช็กลิสต์ก่อนเข้าไม้ -->
   <div class="card">
     <h2 data-i18n="checklistTitle">ตรวจก่อนเข้าไม้ — ควรซื้อไหม?</h2>
-    <p class="status" data-i18n="checklistDesc">เช็กวินัย 6 ข้อ ก่อนกดซื้อจริง (กันซื้อตามอารมณ์/ไล่ราคา) — กด "ประเมิน" และ "คำนวณ" ด้านบนก่อน แล้วกดปุ่มนี้</p>
     <div style="margin-top:10px"><button class="btn" id="checkBtn" type="button" data-i18n="checkBtn">ตรวจเช็กลิสต์</button></div>
     <div id="checkResult" style="display:none">
       <div class="verdict-box" id="checkVerdict" style="margin-top:12px"></div>
@@ -453,14 +452,13 @@ body.embedded .pf-addform{display:none}
   <!-- พอร์ต (หุ้นไทย) -->
   <div class="card">
     <div class="head"><h2 data-i18n="pfTitle">พอร์ตของฉัน (หุ้นไทย)</h2><a href="invest-portfolio.html" style="font-size:var(--t1);font-weight:700;color:var(--act-ink)" data-i18n="pfSeeAll">ดูพอร์ตรวมทั้งเว็บ →</a></div>
-    <p class="status" data-i18n="pfDesc">เพิ่มหุ้นที่ถืออยู่ได้ตรงนี้ แล้วกด "ควรขาย?" เพื่อให้เครื่องช่วยดูจังหวะขาย (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อในหน้าสมุดเทรด)</p>
     <div class="frow pf-addform" style="margin-top:10px">
       <div class="field" style="flex:1 1 90px"><label data-i18n="pfSymLabel">ชื่อหุ้น</label><input type="text" id="pfSym" placeholder="PTT" autocomplete="off" spellcheck="false"></div>
       <div class="field"><label data-i18n="pfSharesLabel">จำนวนหุ้น</label><input type="number" id="pfShares" inputmode="numeric" placeholder="100"></div>
       <div class="field"><label data-i18n="pfCostLabel">ราคาต้นทุน/หุ้น</label><input type="number" id="pfCost" inputmode="decimal" step="0.01" placeholder="35.50"></div>
       <button class="btn sm" id="pfAdd" type="button" data-i18n="pfAddBtn">+ เพิ่มเข้าพอร์ต</button>
     </div>
-    <div id="pfBox" style="margin-top:10px"><div class="pf-empty" data-i18n="pfEmptyDefault">ยังไม่มีหุ้นในพอร์ต — เพิ่มด้านบน หรือกด "บันทึกเข้าพอร์ต" ในขั้นที่ 2</div></div>
+    <div id="pfBox" style="margin-top:10px"><div class="pf-empty" data-i18n="pfEmptyDefault">ยังไม่มีหุ้นในพอร์ต</div></div>
   </div>
 
   <!-- Expectancy -->
@@ -497,7 +495,7 @@ body.embedded .pf-addform{display:none}
     <div class="card" id="stockNewsCard">
       <h2 id="stockNewsTitle" data-i18n="stockNewsDefault">ข่าวหุ้น</h2>
       <div id="stockNewsBlock" class="news-block" data-i18n="stockNewsPrompt">ดึงราคาหุ้นในแท็บ "ภาพรวม" ก่อน เพื่อดูข่าวของหุ้นตัวนั้น</div>
-      <p class="status" style="margin-top:8px" data-i18n-html="oppdayText">อยากดู Opportunity Day (บริษัทพบผู้ลงทุน) ของหุ้นนี้ — <a id="oppdayLink" href="https://www.set.or.th/oppday" target="_blank" rel="noopener" style="color:var(--act-ink);font-weight:700">ค้นหาที่หน้า Opportunity Day ของตลาดหลักทรัพย์ฯ ↗</a></p>
+      <p class="status" style="margin-top:8px"><a id="oppdayLink" href="https://www.set.or.th/oppday" target="_blank" rel="noopener" style="color:var(--act-ink);font-weight:700" data-i18n="oppdayLinkText">Opportunity Day ↗</a></p>
     </div>
   </div>
 
