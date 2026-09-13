@@ -55,6 +55,10 @@ Client-side file text-extraction already exists here and is the template to reus
 ### 3D tooling (`sim-objects.js`)
 Self-hosted Three.js (`vendor/three/`, including a `jsm/` mirror of the addons ESM modules) + GSAP + `three-mesh-bvh`/`three-bvh-csg` (vendored UMD builds) for boolean mesh operations. Personal model library persists to IndexedDB, not localStorage (binary model data).
 
+## Response style
+
+When you finish a task in this repo, **do not close with a heavy formatted summary** — no `## สรุป...` heading, no bold-labeled bullet recap of everything you touched. The user said explicitly (Sept 2026) not to do this going forward. Just say plainly, in a line or two of plain text, what changed and that it's deployed; if there's something the user actually needs to decide or check, say that directly instead of wrapping it in a report structure. This applies to routine "I made the changes, tested them, shipped them" replies — it doesn't forbid genuinely explaining something complicated when asked, or answering a question that requires structure to answer clearly.
+
 ## Licensing / attribution
 
 `credits.html` is the canonical list of every third-party library/API used and its license. **Any time a new external library or free/no-key API is added, add an entry there** — this has been done consistently for every addition so far (Lightweight Charts, thai-gold-api, Alternative.me Fear & Greed, LanguageTool, etc.) and reviewers rely on it being complete.
