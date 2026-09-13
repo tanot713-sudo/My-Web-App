@@ -88,9 +88,9 @@
       importDxfSuccess: 'นำเข้า {n} เอนทิตี้จากไฟล์ DXF เรียบร้อย (ถูกเลือกไว้ให้แล้ว)',
       importDxfError: 'อ่านไฟล์นี้ไม่ได้ — ไม่ใช่ไฟล์ DXF หรือไฟล์เสียหาย',
       importDxfEmpty: 'ไม่พบเอนทิตี้ที่รองรับในไฟล์ DXF นี้ (รองรับ LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)',
-      toolDiadim: 'มิติเส้นผ่าศูนย์กลาง', toolAngdim: 'มิติมุม', toolLeader: 'ลูกศรชี้', toolHatch: 'แรเงา',
+      toolDiadim: 'มิติเส้นผ่าศูนย์กลาง', toolAngdim: 'มิติมุม', toolLeader: 'ลูกศรชี้', toolHatch: 'แรเงา', toolCentermark: 'เครื่องหมายกึ่งกลาง',
       hatchSpacingLbl: 'ระยะห่างลาย (มม.)', hatchAngleLbl: 'มุมลาย (°)', hatchApplyBtn: 'แรเงา',
-      dimStyleTitle: 'สไตล์มิติเริ่มต้น', dimTextHeightLbl: 'ตัวอักษรมิติ (มม.)', dimArrowSizeLbl: 'หัวลูกศร (มม.)',
+      dimStyleTitle: 'สไตล์มิติเริ่มต้น', dimTextHeightLbl: 'ตัวอักษรมิติ (มม.)', dimArrowSizeLbl: 'หัวลูกศร (มม.)', centerMarkSizeLbl: 'เครื่องหมายกึ่งกลาง (มม.)',
       propsTitleDiadim: 'คุณสมบัติ: มิติเส้นผ่าศูนย์กลาง', propsTitleAngdim: 'คุณสมบัติ: มิติมุม',
       propsTitleLeader: 'คุณสมบัติ: ลูกศรชี้', propsTitleHatch: 'คุณสมบัติ: แรเงา',
       propArrowSize: 'ขนาดหัวลูกศร (มม.)', propSpacing: 'ระยะห่างลาย (มม.)', propHatchAngle: 'มุมลาย (°)',
@@ -107,6 +107,7 @@
       propsTitleBlock: 'คุณสมบัติ: บล็อก/สัญลักษณ์', propBlockSize: 'ขนาดจริง (มม.)', propBlockRotation: 'มุมหมุน (°)', propBlockMirror: 'มิเรอร์',
       toolSpline: 'สปไลน์',
       propsTitleSpline: 'คุณสมบัติ: สปไลน์', propSplineNote: 'สปไลน์มี {n} จุดควบคุม — ลากจุดสี่เหลี่ยมบนเส้นเพื่อแก้รูปทรงโค้งโดยตรง',
+      propsTitleCentermark: 'คุณสมบัติ: เครื่องหมายกึ่งกลาง', propCenterMarkSize: 'ขนาดเครื่องหมาย (มม.)',
       toolConstraint: 'ข้อจำกัด',
       constraintCoincident: 'จุดตรงกัน (เส้น 2 เส้น)', constraintHorizontal: 'แนวนอน (เส้น 1 เส้น)', constraintVertical: 'แนวตั้ง (เส้น 1 เส้น)',
       constraintParallel: 'ขนาน (เส้น 2 เส้น)', constraintPerpendicular: 'ตั้งฉาก (เส้น 2 เส้น)', constraintEqual: 'เท่ากัน (เส้น/วงกลม 2 ชิ้นชนิดเดียวกัน)',
@@ -168,9 +169,9 @@
       importDxfSuccess: 'Imported {n} entities from the DXF file (now selected)',
       importDxfError: "Couldn't read this file — not a DXF file, or it's corrupted",
       importDxfEmpty: 'No supported entities found in this DXF file (supports LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)',
-      toolDiadim: 'Diameter dim', toolAngdim: 'Angle dim', toolLeader: 'Leader', toolHatch: 'Hatch',
+      toolDiadim: 'Diameter dim', toolAngdim: 'Angle dim', toolLeader: 'Leader', toolHatch: 'Hatch', toolCentermark: 'Center mark',
       hatchSpacingLbl: 'Line spacing (mm)', hatchAngleLbl: 'Line angle (°)', hatchApplyBtn: 'Hatch',
-      dimStyleTitle: 'Default dimension style', dimTextHeightLbl: 'Dim text (mm)', dimArrowSizeLbl: 'Arrowhead (mm)',
+      dimStyleTitle: 'Default dimension style', dimTextHeightLbl: 'Dim text (mm)', dimArrowSizeLbl: 'Arrowhead (mm)', centerMarkSizeLbl: 'Center mark (mm)',
       propsTitleDiadim: 'Properties: Diameter dim', propsTitleAngdim: 'Properties: Angle dim',
       propsTitleLeader: 'Properties: Leader', propsTitleHatch: 'Properties: Hatch',
       propArrowSize: 'Arrowhead size (mm)', propSpacing: 'Line spacing (mm)', propHatchAngle: 'Line angle (°)',
@@ -187,6 +188,7 @@
       propsTitleBlock: 'Properties: Block/symbol', propBlockSize: 'Real size (mm)', propBlockRotation: 'Rotation (°)', propBlockMirror: 'Mirror',
       toolSpline: 'Spline',
       propsTitleSpline: 'Properties: Spline', propSplineNote: 'Spline has {n} control points — drag a square grip on the curve to reshape it directly',
+      propsTitleCentermark: 'Properties: Center mark', propCenterMarkSize: 'Mark size (mm)',
       toolConstraint: 'Constraint',
       constraintCoincident: 'Coincident (2 lines)', constraintHorizontal: 'Horizontal (1 line)', constraintVertical: 'Vertical (1 line)',
       constraintParallel: 'Parallel (2 lines)', constraintPerpendicular: 'Perpendicular (2 lines)', constraintEqual: 'Equal (2 lines or 2 circles, same type)',
@@ -255,7 +257,7 @@
     osnapOn: true, orthoOn: false,
     mirrorKeepOriginal: true,
     textDefaultHeight: 12,   // ความสูงตัวอักษรเริ่มต้น (มม.) สำหรับเครื่องมือข้อความ
-    dimStyle: { textHeight: 3, arrowSize: 2.5 }, // สไตล์มิติเริ่มต้น (มม.) — ใช้ตอนสร้าง dim/raddim/diadim/angdim
+    dimStyle: { textHeight: 3, arrowSize: 2.5, centerMarkSize: 4 }, // สไตล์มิติเริ่มต้น (มม.) — ใช้ตอนสร้าง dim/raddim/diadim/angdim/centermark
                              // ใหม่ทุกครั้ง (เอนทิตี้แต่ละตัวเก็บค่าของตัวเองแยก แก้ทีหลังผ่านแผงคุณสมบัติได้
                              // ไม่กระทบของเดิม — ไม่ใช่ระบบ named style เต็มรูปแบบแบบ AutoCAD ตั้งใจให้ง่ายกว่านั้น)
     pendingPoints: [],       // จุดที่คลิกไปแล้วระหว่างวาด/ย้าย/หมุน/มิเรอร์/มิติเส้นเอนทิตี้ปัจจุบัน
@@ -475,6 +477,7 @@
       sym.entities.forEach(function (sub) { bd = Math.min(bd, distPointToEntity(p, transformBlockSubEntity(sub, e))); });
       return bd;
     }
+    if (e.type === 'centermark') return Math.min(distPointToSegment(p, { x: e.center.x - e.size, y: e.center.y }, { x: e.center.x + e.size, y: e.center.y }), distPointToSegment(p, { x: e.center.x, y: e.center.y - e.size }, { x: e.center.x, y: e.center.y + e.size }));
     return Infinity;
   }
   /* วงกลมผ่าน 3 จุด (circumcircle) — คืน center/radius/startAngle/endAngle โดยเลือกทิศกวาด (จาก p1 ไป p2)
@@ -534,6 +537,7 @@
     else if (e.type === 'text') { pts.push({ p: e.p, kind: 'end' }); }
     else if (e.type === 'block') { pts.push({ p: e.p, kind: 'end' }); }
     else if (e.type === 'spline') { e.points.forEach(function (p) { pts.push({ p: p, kind: 'end' }); }); } // จุดควบคุมเท่านั้น (จุดกึ่งกลางเส้นตรงจะไม่ตรงกับเส้นโค้งจริง เลยไม่ใส่)
+    else if (e.type === 'centermark') { pts.push({ p: e.center, kind: 'center' }); }
     return pts;
   }
   function entitySegments(e) {
@@ -567,6 +571,7 @@
       return bpts.length ? bpts : [e.p];
     }
     if (e.type === 'spline') return splinePoints(e, 8); // 8 พอสำหรับ bounds/zoomFit/drag-select คร่าวๆ ไม่ต้องเรียบเท่าตอน render จริง
+    if (e.type === 'centermark') return [{ x: e.center.x - e.size, y: e.center.y - e.size }, { x: e.center.x + e.size, y: e.center.y + e.size }];
     return [];
   }
 
@@ -722,6 +727,7 @@
     else if (e.type === 'text') { e.p = fn(e.p); }
     else if (e.type === 'block') { e.p = fn(e.p); }
     else if (e.type === 'spline') { e.points = e.points.map(fn); }
+    else if (e.type === 'centermark') { e.center = fn(e.center); }
     return e;
   }
 
@@ -757,6 +763,7 @@
       if (mods.scaleFactor != null && src.type === 'dim') src.offset *= mods.scaleFactor;
       if (mods.scaleFactor != null && (src.type === 'text' || src.type === 'leader')) src.height *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'hatch') src.spacing *= mods.scaleFactor;
+      if (mods.scaleFactor != null && src.type === 'centermark') src.size *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'block') src.scale *= mods.scaleFactor;
       if (mods.scaleFactor != null && (src.type === 'dim' || src.type === 'raddim' || src.type === 'diadim' || src.type === 'angdim')) {
         src.textHeight *= mods.scaleFactor; src.arrowSize *= mods.scaleFactor; // สไตล์มิติ (ตัวอักษร/หัวลูกศร) ก็ต้องสเกลตามแบบด้วย ไม่งั้นดูไม่สมส่วนหลังสเกล
@@ -917,6 +924,7 @@
     if (e.type === 'leader') return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }];
     if (e.type === 'text' || e.type === 'block') return [{ p: e.p, ref: 'p' }];
     if (e.type === 'spline') return e.points.map(function (p, i) { return { p: p, ref: { idx: i } }; }); // ref รูปแบบเดียวกับ polyline — applyGripEdit จัดการให้ฟรีอยู่แล้ว
+    if (e.type === 'centermark') return [{ p: e.center, ref: 'center' }];
     return []; // hatch: ไม่มีจุดจับต่อจุด — ย้าย/หมุน/มิเรอร์/สเกลทั้งก้อนผ่านเครื่องมือแก้ไขปกติเท่านั้น
   }
   function applyGripEdit(e, ref, pt) {
@@ -1372,6 +1380,9 @@
         hatchLines(e).forEach(function (seg) { strokePolylinePts(seg, false); });
       } else if (e.type === 'spline') {
         strokePolylinePts(splinePoints(e), !!e.closed);
+      } else if (e.type === 'centermark') {
+        strokePolylinePts([{ x: e.center.x - e.size, y: e.center.y }, { x: e.center.x + e.size, y: e.center.y }], false);
+        strokePolylinePts([{ x: e.center.x, y: e.center.y - e.size }, { x: e.center.x, y: e.center.y + e.size }], false);
       }
     });
     /* จุดจับ (grips) — วาดเฉพาะตอนเลือกอยู่ตัวเดียวและเครื่องมือคือ "เลือก" (กันสับสนตอนใช้เครื่องมือแก้ไขอื่น) */
@@ -1546,7 +1557,7 @@
         if (saved.activeLayer && state.layers[saved.activeLayer]) state.activeLayer = saved.activeLayer;
         if (saved.layerSeq) state.layerSeq = saved.layerSeq;
         if (saved.view) state.view = saved.view;
-        if (saved.dimStyle) state.dimStyle = saved.dimStyle;
+        if (saved.dimStyle) { for (var dsKey in saved.dimStyle) state.dimStyle[dsKey] = saved.dimStyle[dsKey]; } // merge ไม่ทับทั้งก้อน กันฟิลด์ใหม่ (เช่น centerMarkSize) หายไปถ้าข้อมูลเก่าก่อนมีฟิลด์นี้ไม่มี
         if (Array.isArray(saved.constraints)) state.constraints = saved.constraints;
         $('statSave').textContent = t('restoredDraft');
       }
@@ -1593,7 +1604,7 @@
     select: 'toolSelectBtn', line: 'toolLineBtn', polyline: 'toolPolylineBtn', rect: 'toolRectBtn', circle: 'toolCircleBtn', arc: 'toolArcBtn', spline: 'toolSplineBtn',
     move: 'toolMoveBtn', copy: 'toolCopyBtn', rotate: 'toolRotateBtn', mirror: 'toolMirrorBtn', scale: 'toolScaleBtn',
     trim: 'toolTrimBtn', extend: 'toolExtendBtn', fillet: 'toolFilletBtn', offset: 'toolOffsetBtn', arrayrect: 'toolArrayRectBtn',
-    dim: 'toolDimBtn', raddim: 'toolRaddimBtn', diadim: 'toolDiadimBtn', angdim: 'toolAngdimBtn', text: 'toolTextBtn', leader: 'toolLeaderBtn', hatch: 'toolHatchBtn',
+    dim: 'toolDimBtn', raddim: 'toolRaddimBtn', diadim: 'toolDiadimBtn', angdim: 'toolAngdimBtn', text: 'toolTextBtn', leader: 'toolLeaderBtn', hatch: 'toolHatchBtn', centermark: 'toolCentermarkBtn',
     block: 'toolBlockBtn', titleblock: 'toolTitleBlockBtn', constraint: 'toolConstraintBtn'
   };
   var distLbl = document.querySelector('label[data-i18n="distLbl"]'), angLbl = document.querySelector('label[data-i18n="angLbl"]');
@@ -1601,7 +1612,7 @@
   var hatchRow = $('hatchRow'), hatchSpacingInput = $('hatchSpacing'), hatchAngleInput = $('hatchAngle');
   var blockLibSel = $('blockLibSel'), insertRow = $('insertRow'), blockSizeInput = $('blockSizeInput'), blockRotInput = $('blockRotInput'), blockMirrorBtn = $('blockMirrorBtn');
   var TEXT_ROW_POINTS_NEEDED = { text: 1, leader: 2 }; // จำนวนจุดที่ต้องคลิกก่อน textRow จะโผล่ (ข้อความ=1 จุด, ลูกศรชี้=2 จุด)
-  var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, hatch: 1, block: 1, titleblock: 1, constraint: 1 };
+  var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, hatch: 1, block: 1, titleblock: 1, constraint: 1, centermark: 1 };
   /* ห้าแถวป้อนค่าละเอียด (preciseRow/arrayRow/textRow/hatchRow/insertRow) ใช้ visibility:hidden (ไม่ใช่
      display:none) ตอนไม่โผล่ เพื่อกันวิวพอร์ตขยับกลางอากาศตอนคลิกจุดถัดไประหว่างวาด (ดูคอมเมนต์ที่นิยาม
      .cad-precise-row ใน cad.html) — แต่ถ้าปล่อยให้ทั้ง 5 แถว "จอง" ที่ว่างพร้อมกันตลอดเวลาแม้ไม่มีแถวไหน
@@ -1991,6 +2002,19 @@
     state.entities.push({ id: genId(), type: 'diadim', layer: state.activeLayer, center: { x: e.center.x, y: e.center.y }, radius: e.radius, angle: angle, textHeight: state.dimStyle.textHeight, arrowSize: state.dimStyle.arrowSize });
     updateCountUI(); scheduleSave(); render();
   }
+  /* เครื่องหมายกึ่งกลาง (centermark): คลิกวงกลม/ส่วนโค้งเดียวก็วางเครื่องหมายกากบาทเล็กๆ ที่จุดศูนย์กลาง
+     ทันที (ไม่มีขั้นตอนป้อนค่าเพิ่มเติมเหมือน raddim/diadim) ขนาดกากบาทหดลงถ้าวงกลมเล็กกว่าค่าเริ่มต้น
+     กันไม่ให้กากบาทยื่นล้นออกนอกวงกลมดูแปลก */
+  function handleCentermarkClick(raw) {
+    var hit = hitTestEntity(raw);
+    if (!hit) return;
+    var e = state.entities.filter(function (x) { return x.id === hit; })[0];
+    if (!e || (e.type !== 'circle' && e.type !== 'arc')) return;
+    pushHistory();
+    var size = Math.min(state.dimStyle.centerMarkSize, e.radius * 0.8);
+    state.entities.push({ id: genId(), type: 'centermark', layer: state.activeLayer, center: { x: e.center.x, y: e.center.y }, size: size });
+    updateCountUI(); scheduleSave(); render();
+  }
   /* มิติมุม (angdim): คลิกเลือกเส้นตรง 2 เส้น (ใช้ pendingEntityIds ร่วมกับ fillet) แล้วคลิกจุดที่ 3 เพื่อวางส่วนโค้ง
      — หาจุดตัดของเส้นทั้งสอง (ต่อเส้นไม่มีที่สิ้นสุด) เป็นจุดยอดมุม, ทิศทางแต่ละเส้นจากจุดยอดไปยัง "ปลายที่ไกล
      จากจุดตัดที่สุด" คือทิศเริ่ม/จบ (กันปัญหาเลือกทิศผิดถ้าจุดตัดอยู่นอกช่วงเส้นจริง), รัศมีส่วนโค้ง = ระยะจากจุด
@@ -2117,6 +2141,7 @@
     if (state.tool === 'diadim') { handleDiadimClick(raw); return; }
     if (state.tool === 'angdim') { handleAngdimClick(raw); return; }
     if (state.tool === 'hatch') { handleHatchClick(raw); return; }
+    if (state.tool === 'centermark') { handleCentermarkClick(raw); return; }
     if (state.tool === 'titleblock') { handleTitleBlockClick(effectivePoint(applyOrtho(raw))); return; }
     if (state.tool === 'constraint') { handleConstraintClick(raw); return; }
     if (state.tool === 'arrayrect') return; // อาเรย์ทำงานผ่านปุ่ม "แทรกอาเรย์" ไม่ใช้คลิกบน canvas
@@ -2300,9 +2325,12 @@
       else if (e.key === 'Escape') { e.preventDefault(); cancelDrawing(); inp.blur(); }
     });
   });
-  var dimTextHeightInput = $('dimTextHeightInput'), dimArrowSizeInput = $('dimArrowSizeInput');
+  var dimTextHeightInput = $('dimTextHeightInput'), dimArrowSizeInput = $('dimArrowSizeInput'), centerMarkSizeInput = $('centerMarkSizeInput');
   if (dimTextHeightInput) dimTextHeightInput.addEventListener('change', function () {
     var v = parseFloat(dimTextHeightInput.value); if (isFinite(v) && v > 0) { state.dimStyle.textHeight = v; scheduleSave(); }
+  });
+  if (centerMarkSizeInput) centerMarkSizeInput.addEventListener('change', function () {
+    var v = parseFloat(centerMarkSizeInput.value); if (isFinite(v) && v > 0) { state.dimStyle.centerMarkSize = v; scheduleSave(); }
   });
   if (dimArrowSizeInput) dimArrowSizeInput.addEventListener('change', function () {
     var v = parseFloat(dimArrowSizeInput.value); if (isFinite(v) && v > 0) { state.dimStyle.arrowSize = v; scheduleSave(); }
@@ -2324,7 +2352,7 @@
     var TITLE_KEY = {
       line: 'propsTitleLine', polyline: 'propsTitlePolyline', rect: 'propsTitleRect', circle: 'propsTitleCircle',
       arc: 'propsTitleArc', dim: 'propsTitleDim', raddim: 'propsTitleRaddim', diadim: 'propsTitleDiadim',
-      angdim: 'propsTitleAngdim', text: 'propsTitleText', leader: 'propsTitleLeader', hatch: 'propsTitleHatch', block: 'propsTitleBlock', spline: 'propsTitleSpline'
+      angdim: 'propsTitleAngdim', text: 'propsTitleText', leader: 'propsTitleLeader', hatch: 'propsTitleHatch', block: 'propsTitleBlock', spline: 'propsTitleSpline', centermark: 'propsTitleCentermark'
     };
     propsTitle.textContent = t(TITLE_KEY[e.type] || e.type);
     var fields = [], noteHtml = '';
@@ -2361,6 +2389,11 @@
       fields = [
         { k: 'propBlockSize', v: e.scale * symP.baseSize, set: function (v) { e.scale = Math.max(0.001, v) / symP.baseSize; } },
         { k: 'propBlockRotation', v: e.rotation * 180 / Math.PI, set: function (v) { e.rotation = v * Math.PI / 180; } }
+      ];
+    } else if (e.type === 'centermark') {
+      fields = [
+        { k: 'propCx', v: e.center.x, set: function (v) { e.center.x = v; } }, { k: 'propCy', v: e.center.y, set: function (v) { e.center.y = v; } },
+        { k: 'propCenterMarkSize', v: e.size, set: function (v) { e.size = Math.max(0.1, v); } }
       ];
     }
     if (e.type === 'dim' || e.type === 'raddim' || e.type === 'diadim' || e.type === 'angdim') {
@@ -2619,6 +2652,9 @@
         hatchLines(e).forEach(function (seg) { poly(seg, false); });
       } else if (e.type === 'spline') {
         poly(splinePoints(e), !!e.closed);
+      } else if (e.type === 'centermark') {
+        poly([{ x: e.center.x - e.size, y: e.center.y }, { x: e.center.x + e.size, y: e.center.y }], false);
+        poly([{ x: e.center.x, y: e.center.y - e.size }, { x: e.center.x, y: e.center.y + e.size }], false);
       }
     });
   }
@@ -2701,6 +2737,9 @@
         hatchLines(e).forEach(function (seg) { parts.push('<path d="' + polyPath(seg, false) + '" stroke="' + color + '"/>'); });
       } else if (e.type === 'spline') {
         parts.push('<path d="' + polyPath(splinePoints(e), !!e.closed) + '" stroke="' + color + '"/>');
+      } else if (e.type === 'centermark') {
+        parts.push('<path d="' + polyPath([{ x: e.center.x - e.size, y: e.center.y }, { x: e.center.x + e.size, y: e.center.y }], false) + '" stroke="' + color + '"/>');
+        parts.push('<path d="' + polyPath([{ x: e.center.x, y: e.center.y - e.size }, { x: e.center.x, y: e.center.y + e.size }], false) + '" stroke="' + color + '"/>');
       }
     });
     parts.push('</g></svg>');
@@ -2782,6 +2821,7 @@
       return chunks;
     }
     if (e.type === 'spline') return dxfLwpolyline(splinePoints(e, 16), !!e.closed); // ไม่มี DXF SPLINE entity เต็มรูปแบบในสเตจนี้ (ตามหลักการเดียวกับ dim/hatch: แตกเป็นชนิดพื้นฐานเพื่อให้โปรแกรมอ่าน DXF ใดๆ ก็แสดงถูก)
+    if (e.type === 'centermark') return [].concat(dxfLine({ x: e.center.x - e.size, y: e.center.y }, { x: e.center.x + e.size, y: e.center.y }), dxfLine({ x: e.center.x, y: e.center.y - e.size }, { x: e.center.x, y: e.center.y + e.size }));
     return [];
   }
   function exportDXF() {
@@ -2975,6 +3015,10 @@
         pdf.setFontSize(e.height * 2.83465); pdf.text(e.text, lp2.x, lp2.y);
       } else if (e.type === 'hatch') { hatchLines(e).forEach(function (seg) { pdfPoly(seg, false); }); }
       else if (e.type === 'spline') { pdfPoly(splinePoints(e), !!e.closed); }
+      else if (e.type === 'centermark') {
+        pdfPoly([{ x: e.center.x - e.size, y: e.center.y }, { x: e.center.x + e.size, y: e.center.y }], false);
+        pdfPoly([{ x: e.center.x, y: e.center.y - e.size }, { x: e.center.x, y: e.center.y + e.size }], false);
+      }
     });
     pdf.setDrawColor(inkRgb[0], inkRgb[1], inkRgb[2]); pdf.setLineWidth(0.3);
     pdf.rect(MARGIN / 2, MARGIN / 2, pw - MARGIN, ph - MARGIN, 'S');
@@ -3006,6 +3050,7 @@
     $('mirrorKeepBtn').classList.toggle('active', state.mirrorKeepOriginal);
     if (dimTextHeightInput) dimTextHeightInput.value = state.dimStyle.textHeight;
     if (dimArrowSizeInput) dimArrowSizeInput.value = state.dimStyle.arrowSize;
+    if (centerMarkSizeInput) centerMarkSizeInput.value = state.dimStyle.centerMarkSize;
     updateUndoRedoUI(); updateSelectionUI(); updateCountUI(); updateZoomUI(); renderLayersPanel(); renderConstraintsPanel();
     updatePreciseZoneEligibility(state.tool);
     resizeCanvas();
