@@ -65,7 +65,37 @@
       ctxMacd: 'MACD histogram: {v}', ctxMacdPos: ' (เป็นบวก)', ctxMacdNeg: ' (เป็นลบ)',
       ctxEma: 'เส้นเฉลี่ย 20 วัน: {e20}, เส้นเฉลี่ย 50 วัน: {e50}', ctxEmaUp: ' (ราคาอยู่เหนือเส้นเฉลี่ย — แนวโน้มขึ้น)', ctxEmaDn: ' (ราคาอยู่ใต้เส้นเฉลี่ย — แนวโน้มลง/พักตัว)',
       ctxSupport: 'แนวรับล่าสุด: {v}', ctxResistance: 'แนวต้านล่าสุด: {v}',
-      ctxAdx: 'ความแรงแนวโน้ม (ADX): {v}', ctxAdxStrong: ' (แข็งแรง)', ctxAdxWeak: ' (อ่อน)'
+      ctxAdx: 'ความแรงแนวโน้ม (ADX): {v}', ctxAdxStrong: ' (แข็งแรง)', ctxAdxWeak: ' (อ่อน)',
+      rcTitle: 'ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน', rcUnitNote: 'กรอกราคาซื้อ/ราคาตัดขาดทุนเป็นหน่วยเดียวกับราคาที่แสดงด้านบน ({unit})',
+      rcCapitalLabel: 'เงินลงทุนทั้งหมด', rcCapitalPh: 'เช่น 100000',
+      rcRiskPctLabel: 'ยอมเสี่ยงต่อครั้ง', rcUnitPctPortfolio: '(% ของพอร์ต)',
+      rcEntryLabel: 'ราคาซื้อ', rcEntryPh: '= ราคาปัจจุบันของสินทรัพย์ที่เลือก',
+      rcStopLabel: 'ราคาตัดขาดทุน', rcStopPh: 'แนะนำอัตโนมัติ',
+      rcCalcBtn: 'คำนวณ',
+      rcErrNeedEntry: 'กรอกราคาซื้อ (หรือรอราคาปัจจุบันโหลด) ก่อน',
+      rcErrStop: 'ราคาตัดขาดทุนต้องต่ำกว่าราคาซื้อ',
+      rcCapLimitedNote: 'จำกัดจำนวนตามเงินที่มี (ทุนไม่พอซื้อเท่าที่ความเสี่ยงอนุญาต)',
+      rcQtyLine: 'ควรซื้อได้ประมาณ <b>{qty} หน่วย</b> ใช้เงิน ≈ <b>{cost}</b>',
+      rcKvIfWrong: 'ถ้าผิดทาง (แตะ Stop) เสียไม่เกิน', rcKvStop: 'ราคาตัดขาดทุน (Stop)',
+      rcKvRr: 'ความคุ้ม (กำไรคาดหวัง : ความเสี่ยง) ถึงแนวต้าน',
+      checklistTitle: 'เช็กลิสต์ก่อนซื้อ — ควรซื้อไหม?',
+      chkLeverageQ: 'ยืนยันว่าเข้าใจความเสี่ยงเลเวอเรจ/มาร์จิ้นของสัญญาที่จะซื้อ (เช่น ฟิวเจอร์ส/CFD) และไม่ใช้เลเวอเรจเกินที่รับความเสี่ยงได้',
+      ynYes: 'ใช่', ynNo: 'ยัง', checkBtn: 'ตรวจเช็กลิสต์',
+      chkTrendUp: 'อยู่ในแนวโน้มขึ้น (ราคาเหนือเส้นเฉลี่ย)', chkTrendDn: 'ยังไม่อยู่ในแนวโน้มขึ้น (ราคาใต้เส้นเฉลี่ย)',
+      chkAdxSuffix: ' · ADX {v} {label}', chkAdxStrong: 'เทรนด์แข็งแรง', chkAdxWeak: 'เทรนด์อ่อน ควรระวัง',
+      chkNoChase: 'ไม่ไล่ราคา (ห่างเส้นเฉลี่ย 20 ไม่เกิน 5%)', chkChasing: 'กำลังไล่ราคา (สูงกว่าเส้นเฉลี่ย 20 เกิน 5%)',
+      chkTrendNeedData: 'แนวโน้ม/การไล่ราคา: ต้องรอข้อมูลราคาโหลดก่อน',
+      chkRsiOk: 'ไม่ร้อนแรงเกิน (RSI {v})', chkRsiHot: 'ร้อนแรงเกินไป (RSI {v} ≥ 70) เสี่ยงย่อ', chkRsiNeedData: 'RSI: ต้องรอข้อมูลราคาโหลดก่อน',
+      chkStopSet: 'ตั้งจุดตัดขาดทุน (Stop) แล้ว', chkStopUnset: 'ยังไม่ตั้งจุดตัดขาดทุน — กด "คำนวณ" ด้านบนก่อน',
+      chkRiskOk: 'เสี่ยงต่อครั้ง ≤ 2% ({v}%)', chkRiskHigh: 'เสี่ยงต่อครั้งสูงไป ({v}) — ควร ≤ 2%',
+      chkRrOk: 'กำไรคาดหวัง:เสี่ยง ≥ 2:1 ({v}:1)', chkRrLow: 'กำไร:เสี่ยงน้อยไป ({v}:1) — ควร ≥ 2:1',
+      chkRrNeedData: 'กำไร:เสี่ยง: ต้องมีแนวต้านจากกราฟ + ตั้ง Stop ก่อน',
+      chkLeverageYes: 'ยืนยันแล้วว่าเข้าใจความเสี่ยงเลเวอเรจ/มาร์จิ้น และไม่ใช้เลเวอเรจเกินตัว',
+      chkLeverageNo: 'ยังไม่เข้าใจ/อาจใช้เลเวอเรจเกินตัว — เสี่ยงถูกบังคับปิดสถานะจากความผันผวนระยะสั้น',
+      chkLeverageUnknown: 'ยืนยันก่อนว่าเข้าใจความเสี่ยงเลเวอเรจ/มาร์จิ้นของสัญญาที่จะซื้อ (กดปุ่มด้านบน)',
+      checklistFail: 'ยังไม่ควรซื้อ — ติด {n} ข้อ ควรแก้ให้ครบก่อนซื้อ',
+      checklistUnknown: 'ข้อมูลไม่พอประเมินครบ — กด "คำนวณ" ด้านบนและตอบคำถามก่อน',
+      checklistGo: 'ซื้อได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)'
     },
     en: {
       navInvest: 'Investing', pageTitle: 'FX & Commodities',
@@ -114,7 +144,37 @@
       ctxMacd: 'MACD histogram: {v}', ctxMacdPos: ' (positive)', ctxMacdNeg: ' (negative)',
       ctxEma: '20-day MA: {e20}, 50-day MA: {e50}', ctxEmaUp: ' (price above the MAs — uptrend)', ctxEmaDn: ' (price below the MAs — downtrend/consolidation)',
       ctxSupport: 'Latest support: {v}', ctxResistance: 'Latest resistance: {v}',
-      ctxAdx: 'Trend strength (ADX): {v}', ctxAdxStrong: ' (strong)', ctxAdxWeak: ' (weak)'
+      ctxAdx: 'Trend strength (ADX): {v}', ctxAdxStrong: ' (strong)', ctxAdxWeak: ' (weak)',
+      rcTitle: 'If you buy, how much should you put in, and where should you sell', rcUnitNote: 'Enter the purchase/stop-loss price in the same unit shown above ({unit})',
+      rcCapitalLabel: 'Total capital', rcCapitalPh: 'e.g. 100000',
+      rcRiskPctLabel: 'Risk tolerance per purchase', rcUnitPctPortfolio: '(% of portfolio)',
+      rcEntryLabel: 'Purchase price', rcEntryPh: "= this asset's current price",
+      rcStopLabel: 'Stop-loss price', rcStopPh: 'Auto-suggested',
+      rcCalcBtn: 'Calculate',
+      rcErrNeedEntry: 'Enter the purchase price first (or wait for the current price to load)',
+      rcErrStop: 'The stop-loss price must be below the purchase price',
+      rcCapLimitedNote: 'Limited by available funds (capital is not enough to buy the full amount the risk setting would allow)',
+      rcQtyLine: 'You could buy about <b>{qty} unit(s)</b> using ≈ <b>{cost}</b>',
+      rcKvIfWrong: 'If wrong (hits Stop), you lose no more than', rcKvStop: 'Stop-loss price (Stop)',
+      rcKvRr: 'Reward:risk to resistance',
+      checklistTitle: 'Pre-purchase check — should you buy?',
+      chkLeverageQ: "Confirm you understand the leverage/margin risk of the instrument you're buying (e.g. futures/CFD) and aren't over-leveraged for your risk tolerance",
+      ynYes: 'Yes', ynNo: 'Not yet', checkBtn: 'Check the checklist',
+      chkTrendUp: 'In an uptrend (price above the moving average)', chkTrendDn: 'Not yet in an uptrend (price below the moving average)',
+      chkAdxSuffix: ' · ADX {v} {label}', chkAdxStrong: 'strong trend', chkAdxWeak: 'weak trend, be careful',
+      chkNoChase: 'Not chasing the price (within 5% of the 20-day average)', chkChasing: 'Chasing the price (more than 5% above the 20-day average)',
+      chkTrendNeedData: 'Trend/price-chasing: needs the price data to load first',
+      chkRsiOk: 'Not overheated (RSI {v})', chkRsiHot: 'Overheated (RSI {v} ≥ 70), risk of a pullback', chkRsiNeedData: 'RSI: needs the price data to load first',
+      chkStopSet: 'Stop-loss (Stop) is set', chkStopUnset: 'Stop-loss not set yet — press "Calculate" above first',
+      chkRiskOk: 'Risk per purchase ≤ 2% ({v}%)', chkRiskHigh: 'Risk per purchase is too high ({v}) — should be ≤ 2%',
+      chkRrOk: 'Reward:risk ≥ 2:1 ({v}:1)', chkRrLow: 'Reward:risk too low ({v}:1) — should be ≥ 2:1',
+      chkRrNeedData: 'Reward:risk: needs resistance from the chart + a Stop set first',
+      chkLeverageYes: "Confirmed: understands the leverage/margin risk and isn't over-leveraged",
+      chkLeverageNo: 'Not yet understood/possibly over-leveraged — risk of forced liquidation from short-term volatility',
+      chkLeverageUnknown: "Confirm first that you understand the leverage/margin risk of the instrument (press the button above)",
+      checklistFail: 'Not ready to buy yet — {n} item(s) failed; fix them all before buying',
+      checklistUnknown: 'Not enough information to fully assess — press "Calculate" above and answer the questions first',
+      checklistGo: 'Ready to buy per plan — passed every item (still no profit guarantee — follow the plan and always cut losses)'
     }
   };
   function t(key, vars) {
@@ -172,6 +232,7 @@
   var curKey = null, curTF = 63, curType = 'candle';
   var chart = null, seriesObj = null, LWC = null, fullData = null;
   var lastAnalysis = null;
+  var cAnswers = { noLeverage: null };
 
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
@@ -672,6 +733,7 @@
       $('vWhy').textContent = '';
       $('vDetailsBox').style.display = 'none';
       $('aiSumCard').style.display = 'none';
+      $('rcUnitNote').textContent = '';
       return;
     }
     var bulbColors = { green: 'var(--ok)', yellow: 'var(--amber)', red: 'var(--err)' };
@@ -695,6 +757,107 @@
     $('aiSumCard').style.display = 'block';
     $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
     setAiSumStatus('', '');
+
+    /* บอกหน่วยเงินของราคาซื้อ/ราคาตัดขาดทุนในการ์ดคำนวณความเสี่ยงด้านล่าง ให้ตรงกับหน่วยของสินทรัพย์ที่เลือกอยู่
+       (หน้านี้มีหลายสินทรัพย์คนละสกุล/หน่วยกัน ต่างจากหน้าหุ้น/บิตคอยน์ที่มีสกุลเดียวคงที่) */
+    $('rcUnitNote').textContent = t('rcUnitNote', { unit: assetUnit(asset) });
+  }
+
+  /* ── ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน — คำนวณตรงๆ ในหน่วยของสินทรัพย์ที่เลือกอยู่
+     (ไม่มีปัญหาหน่วยไม่ตรงแบบหน้าทองคำ เพราะ analyzeSeries() ที่นี่วิ่งบนราคาจริงของสินทรัพย์นั้นเอง) ── */
+  function riskCalc(o) {
+    var capital = o.capital, riskPct = o.riskPct, entry = o.entry, stop = o.stop;
+    var perUnit = entry - stop;
+    if (!(perUnit > 0)) return { error: t('rcErrStop') };
+    var riskBudget = capital * riskPct / 100;
+    var qty = riskBudget / perUnit, note = '';
+    var cost = qty * entry;
+    if (cost > capital) {
+      var maxQty = capital / entry;
+      if (maxQty > 0) { qty = maxQty; cost = qty * entry; note = t('rcCapLimitedNote'); }
+    }
+    var rr = (isFinite(o.resistance) && o.resistance > entry) ? (o.resistance - entry) / perUnit : NaN;
+    return { qty: qty, cost: cost, riskAmt: qty * perUnit, rr: rr, riskBudget: riskBudget, note: note };
+  }
+  function doCalc() {
+    var asset = byKey[curKey]; if (!asset) return;
+    var capital = num($('rcCapital').value), riskPct = num($('rcRiskPct').value);
+    var entry = num($('rcEntry').value), stop = num($('rcStop').value);
+    var box = $('rcResult');
+    box.style.display = 'block';
+    if (!isFinite(entry)) {
+      entry = (lastAnalysis && isFinite(lastAnalysis.price)) ? lastAnalysis.price : NaN;
+      if (isFinite(entry)) $('rcEntry').value = entry.toFixed(asset.dp);
+    }
+    if (!isFinite(entry)) { $('rcHeadline').innerHTML = '<span style="color:var(--err)">' + t('rcErrNeedEntry') + '</span>'; $('rcKv').innerHTML = ''; return; }
+    if (!isFinite(stop)) {
+      stop = (lastAnalysis && isFinite(lastAnalysis.suggestStop)) ? lastAnalysis.suggestStop : entry * 0.95;
+      $('rcStop').value = stop.toFixed(asset.dp);
+    }
+    if (!isFinite(capital) || capital <= 0) { capital = 100000; $('rcCapital').value = capital; }
+    if (!isFinite(riskPct) || riskPct <= 0) { riskPct = 2; $('rcRiskPct').value = riskPct; }
+
+    var res = riskCalc({ capital: capital, riskPct: riskPct, entry: entry, stop: stop, resistance: lastAnalysis ? lastAnalysis.resistance : NaN });
+    if (res.error) { $('rcHeadline').innerHTML = '<span style="color:var(--err)">' + res.error + '</span>'; $('rcKv').innerHTML = ''; return; }
+    $('rcHeadline').innerHTML = t('rcQtyLine', { qty: fmt(res.qty, 4), cost: fmt(res.cost, 0) });
+    var kv = '';
+    kv += '<div class="k">' + t('rcKvIfWrong') + '</div><div class="v">' + fmt(res.riskAmt, 0) + '</div>';
+    kv += '<div class="k">' + t('rcKvStop') + '</div><div class="v">' + fmt(stop, asset.dp) + '</div>';
+    if (isFinite(res.rr)) kv += '<div class="k">' + t('rcKvRr') + '</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
+    if (res.note) kv += '<div class="k" style="color:var(--warn)">ℹ️</div><div class="v" style="color:var(--warn);font-size:12px">' + res.note + '</div>';
+    $('rcKv').innerHTML = kv;
+  }
+
+  /* ── เช็กลิสต์ก่อนซื้อ ─────────────────────────────────────────── */
+  function checklistChecks() {
+    var a = lastAnalysis, det = (a && a.det) ? a.det : {};
+    var entry = num($('rcEntry').value), stop = num($('rcStop').value), riskPct = num($('rcRiskPct').value);
+    var checks = [];
+    if (a && isFinite(det.ema20)) {
+      var up = isFinite(det.ema50) ? a.price >= det.ema50 : a.price >= det.ema20;
+      var adxTxt = isFinite(det.adx) ? t('chkAdxSuffix', { v: det.adx.toFixed(0), label: det.adx >= 20 ? t('chkAdxStrong') : t('chkAdxWeak') }) : '';
+      checks.push({ ok: up, txt: (up ? t('chkTrendUp') : t('chkTrendDn')) + adxTxt });
+      var over = (a.price - det.ema20) / det.ema20, notChase = over <= 0.05;
+      checks.push({ ok: notChase, txt: notChase ? t('chkNoChase') : t('chkChasing') });
+    } else {
+      checks.push({ ok: null, txt: t('chkTrendNeedData') });
+    }
+    if (a && isFinite(det.rsi)) checks.push({ ok: det.rsi < 70, txt: det.rsi < 70 ? t('chkRsiOk', { v: det.rsi.toFixed(0) }) : t('chkRsiHot', { v: det.rsi.toFixed(0) }) });
+    else checks.push({ ok: null, txt: t('chkRsiNeedData') });
+    var stopOk = isFinite(entry) && isFinite(stop) && stop < entry;
+    checks.push({ ok: stopOk, txt: stopOk ? t('chkStopSet') : t('chkStopUnset') });
+    checks.push({
+      ok: isFinite(riskPct) && riskPct <= 2,
+      txt: (isFinite(riskPct) && riskPct <= 2) ? t('chkRiskOk', { v: riskPct }) : t('chkRiskHigh', { v: isFinite(riskPct) ? riskPct + '%' : '-' })
+    });
+    if (a && stopOk && isFinite(a.resistance) && a.resistance > entry) {
+      var rr = (a.resistance - entry) / (entry - stop), rrOk = rr >= 2;
+      checks.push({ ok: rrOk, txt: rrOk ? t('chkRrOk', { v: rr.toFixed(1) }) : t('chkRrLow', { v: rr.toFixed(1) }) });
+    } else {
+      checks.push({ ok: null, txt: t('chkRrNeedData') });
+    }
+    var lv = cAnswers.noLeverage;
+    checks.push({
+      ok: lv === 'yes' ? true : lv === 'no' ? false : null,
+      txt: lv === 'yes' ? t('chkLeverageYes') : lv === 'no' ? t('chkLeverageNo') : t('chkLeverageUnknown')
+    });
+    return checks;
+  }
+  function doChecklist() {
+    var checks = checklistChecks();
+    var fails = checks.filter(function (c) { return c.ok === false; }).length;
+    var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
+    var box = $('checkResult'), v = $('checkVerdict');
+    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = t('checklistFail', { n: fails }); }
+    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = t('checklistUnknown'); }
+    else { v.className = 'verdict-box go'; v.textContent = t('checklistGo'); }
+    var html = '';
+    checks.forEach(function (c) {
+      var ic = c.ok === true ? '' : c.ok === false ? '' : '◻️';
+      html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
+    });
+    $('chkList').innerHTML = html;
+    box.style.display = 'block';
   }
 
   /* ══════ สรุปด้วย AI — ใช้ ai-chat-worker.js ตัวเดียวกับวิดเจ็ตแชทลอย (ai-chat-widget.js)
@@ -814,6 +977,7 @@
 
   function selectAsset(key) {
     var a = byKey[key]; if (!a) return;
+    var switchingAsset = curKey !== key; /* false เมื่อเรียกซ้ำจาก omeApplyLang ตอนสลับภาษา (asset เดิม) */
     curKey = key;
     try { localStorage.setItem(LAST_KEY, key); } catch (e) {}
     [].forEach.call(document.querySelectorAll('.stat-card, .pill'), function (el) { el.classList.toggle('on', el.getAttribute('data-key') === key); });
@@ -825,6 +989,14 @@
     $('vLight').className = 'light gray'; $('vBulb').style.background = '#B8C0D4';
     $('vVerdict').textContent = t('loadingDefault'); $('vWhy').textContent = '';
     $('vDetailsBox').style.display = 'none'; $('aiSumCard').style.display = 'none';
+
+    /* รีเซ็ตช่องราคาซื้อ/ตัดขาดทุนและผลลัพธ์ของการ์ดคำนวณความเสี่ยง/เช็กลิสต์ทิ้ง เฉพาะตอนสลับไปสินทรัพย์อื่นจริงๆ
+       (แต่ละสินทรัพย์คนละหน่วย/สกุลเงินกัน ใช้เลขค้างจากตัวก่อนหน้าไม่ได้ — แต่ตอนสลับแค่ภาษาไม่ต้องรีเซ็ต
+       กัน omeApplyLang เรียกซ้ำแล้วผลที่เพิ่งคำนวณไว้หายไปโดยไม่จำเป็น) */
+    if (switchingAsset) {
+      $('rcEntry').value = ''; $('rcStop').value = '';
+      $('rcResult').style.display = 'none'; $('checkResult').style.display = 'none';
+    }
 
     if (a.kind === 'thaigold') {
       setDetailStatus(t('loadingDefault'));
@@ -887,6 +1059,15 @@
       });
     });
     $('aiSumBtn').addEventListener('click', doAiSummary);
+    $('rcCalcBtn').addEventListener('click', doCalc);
+    $('chkForm').addEventListener('click', function (e) {
+      var btn = e.target.closest('.yn-btn'); if (!btn) return;
+      var row = btn.closest('.yn-row'), key = row.getAttribute('data-key'), val = btn.getAttribute('data-val');
+      cAnswers[key] = val;
+      [].forEach.call(row.querySelectorAll('.yn-btn'), function (b) { b.classList.remove('on', 'yes', 'no'); });
+      btn.classList.add('on', val);
+    });
+    $('checkBtn').addEventListener('click', doChecklist);
     var last = null;
     try { last = localStorage.getItem(LAST_KEY); } catch (e) {}
     selectAsset(byKey[last] ? last : 'gc');
@@ -898,6 +1079,8 @@
     applyStaticI18n();
     buildGrid();
     if (curKey) selectAsset(curKey);
+    if ($('rcResult').style.display !== 'none') doCalc();
+    if ($('checkResult').style.display !== 'none') doChecklist();
   };
 
   window.__commodities = { crossVal: crossVal, ASSETS: ASSETS };

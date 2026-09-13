@@ -145,6 +145,41 @@ details[open]>summary::before{transform:rotate(90deg)}
 .det-kv .k{color:var(--muted)}
 .det-kv .v{font-weight:600;text-align:right}
 
+.frow{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 130px;min-width:120px}
+.field label{font-size:12px;color:var(--muted);font-weight:600}
+.field .unit{font-size:11px;color:var(--muted);font-weight:500}
+input[type=number]{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:11px;
+  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none}
+input:focus{outline:none;border-color:var(--brand)}
+[data-theme="dark"] input{background:#12151C}
+
+.result{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px}
+.yn-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.yn-row:last-child{border-bottom:none}
+.yn-btns{display:flex;gap:6px;flex-shrink:0}
+.yn-btn{padding:5px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);
+  font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted)}
+.yn-btn.on.yes{background:#E9F9F0;border-color:#17B26A;color:#0B7F52}
+.yn-btn.on.no{background:#FDECEC;border-color:#E5484D;color:#B23838}
+[data-theme="dark"] .yn-btn.on.yes{background:#14261E;border-color:#17B26A;color:#5EDCAB}
+[data-theme="dark"] .yn-btn.on.no{background:#301B1B;border-color:#E5484D;color:#F0A0A0}
+.chk-list{list-style:none;margin:12px 0 0;padding:0}
+.chk-list li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line)}
+.chk-list li:last-child{border-bottom:none}
+.chk-list .ic{flex-shrink:0;font-size:15px}
+.chk-list li.pass{color:var(--ink)}
+.chk-list li.fail{color:#B23838;font-weight:600}
+[data-theme="dark"] .chk-list li.fail{color:#F0A0A0}
+
+.verdict-box{border-radius:13px;padding:14px 16px;font-size:14px;font-weight:600;line-height:1.5}
+.verdict-box.go{background:#E9F9F0;color:#0B7F52}
+.verdict-box.no{background:#FDECEC;color:#B23838}
+.verdict-box.warn{background:#FFF6E4;color:#8A6212}
+[data-theme="dark"] .verdict-box.go{background:#14261E;color:#5EDCAB}
+[data-theme="dark"] .verdict-box.no{background:#301B1B;color:#F0A0A0}
+[data-theme="dark"] .verdict-box.warn{background:#2A2415;color:#E8C88A}
+
 .disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
 footer{margin-top:22px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--sky);text-decoration:none;font-weight:600}
@@ -226,6 +261,41 @@ body.embedded .crumb{display:none}
     <button class="btn primary sm" id="aiSumBtn" type="button" data-i18n="aiSumBtn">สรุปให้หน่อย</button>
     <div class="status" id="aiSumStatus"></div>
     <div class="ai-sum-out" id="aiSumOut" style="display:none;margin-top:11px;background:var(--bg);border-radius:9px;padding:12px 13px;font-size:13.5px;line-height:1.75;white-space:pre-wrap"></div>
+  </div>
+
+  <!-- ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน -->
+  <div class="card">
+    <h2 data-i18n="rcTitle">ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน</h2>
+    <div class="mini" id="rcUnitNote"></div>
+    <div class="frow" style="margin-top:10px">
+      <div class="field"><label data-i18n="rcCapitalLabel">เงินลงทุนทั้งหมด</label><input type="number" id="rcCapital" inputmode="decimal" step="1" data-i18n-placeholder="rcCapitalPh" placeholder="เช่น 100000"></div>
+      <div class="field"><label><span data-i18n="rcRiskPctLabel">ยอมเสี่ยงต่อครั้ง</span> <span class="unit" data-i18n="rcUnitPctPortfolio">(% ของพอร์ต)</span></label><input type="number" id="rcRiskPct" inputmode="decimal" step="0.1" value="2"></div>
+    </div>
+    <div class="frow" style="margin-top:10px">
+      <div class="field"><label data-i18n="rcEntryLabel">ราคาซื้อ</label><input type="number" id="rcEntry" inputmode="decimal" step="any" data-i18n-placeholder="rcEntryPh" placeholder="= ราคาปัจจุบันของสินทรัพย์ที่เลือก"></div>
+      <div class="field"><label data-i18n="rcStopLabel">ราคาตัดขาดทุน</label><input type="number" id="rcStop" inputmode="decimal" step="any" data-i18n-placeholder="rcStopPh" placeholder="แนะนำอัตโนมัติ"></div>
+    </div>
+    <div style="margin-top:10px"><button class="btn primary sm" id="rcCalcBtn" type="button" data-i18n="rcCalcBtn">คำนวณ</button></div>
+    <div class="result" id="rcResult" style="display:none">
+      <div id="rcHeadline" style="font-size:14.5px;font-weight:700"></div>
+      <div class="det-kv" id="rcKv" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- เช็กลิสต์ก่อนซื้อ -->
+  <div class="card">
+    <h2 data-i18n="checklistTitle">เช็กลิสต์ก่อนซื้อ — ควรซื้อไหม?</h2>
+    <div id="chkForm">
+      <div class="yn-row" data-key="noLeverage">
+        <span data-i18n="chkLeverageQ">ยืนยันว่าเข้าใจความเสี่ยงเลเวอเรจ/มาร์จิ้นของสัญญาที่จะซื้อ (เช่น ฟิวเจอร์ส/CFD) และไม่ใช้เลเวอเรจเกินที่รับความเสี่ยงได้</span>
+        <span class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></span>
+      </div>
+    </div>
+    <div style="margin-top:10px"><button class="btn sm" id="checkBtn" type="button" data-i18n="checkBtn">ตรวจเช็กลิสต์</button></div>
+    <div id="checkResult" style="display:none;margin-top:12px">
+      <div class="verdict-box" id="checkVerdict"></div>
+      <ul class="chk-list" id="chkList"></ul>
+    </div>
   </div>
 
   <div class="card">
