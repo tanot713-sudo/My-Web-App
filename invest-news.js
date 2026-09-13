@@ -21,12 +21,10 @@
   var I18N = {
     th: {
       navInvest: 'การลงทุน', pageTitle: 'ข่าวหุ้น',
-      headSub: 'รวมหัวข้อข่าวตลาดหุ้นไทยล่าสุด — แตะหัวข้อเพื่อไปอ่านต้นฉบับ',
       stCountLbl: 'พบข่าว', stTopicLbl: 'หมวดที่เลือก', stUpdatedLbl: 'อัปเดตล่าสุด',
       searchPh: 'ค้นข่าวหุ้น/บริษัทที่สนใจ เช่น PTT, ปันผล, กนง.', searchBtn: 'ค้นหา',
       oppdayHint: 'อยากดูปฏิทิน/วิดีโอ Opportunity Day (บริษัทจดทะเบียนพบผู้ลงทุน) ของจริง — <a href="https://www.set.or.th/oppday" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700;text-decoration:none">ไปที่หน้า Opportunity Day ของตลาดหลักทรัพย์ฯ โดยตรง ↗</a> (หน้านี้ไม่มี API สาธารณะให้ดึงปฏิทินมาแสดงเอง จึงพาไปที่ต้นฉบับแทน)',
       loadingNewsDefault: 'กำลังโหลดข่าว…', loadingDefault: 'กำลังโหลด…',
-      footerDisc: 'หน้านี้แสดงเฉพาะ<b>หัวข้อข่าว + ที่มา + เวลา + ลิงก์ไปต้นฉบับ</b> ไม่ได้นำเนื้อหาข่าวมาเผยแพร่ซ้ำ — ข่าวดึงจาก Google News RSS (สาธารณะ) ผ่านหลายเส้นทาง best-effort อาจดึงไม่สำเร็จบางช่วง ไม่ใช่คำแนะนำการลงทุน',
       chipMarket: 'ตลาดหุ้นไทย', chipEcon: 'เศรษฐกิจไทย', chipRate: 'ดอกเบี้ย/กนง.', chipIpo: 'ข่าว IPO', chipDiv: 'ปันผลหุ้น', chipOppday: 'Opportunity Day',
       newsCountItems: '{n} รายการ', ageJustNow: 'เมื่อสักครู่', ageMinAgo: '{n} นาทีก่อน', ageHrAgo: '{n} ชม.ก่อน', ageDaysAgo: '{n} วันก่อน',
       newsEmpty: 'ไม่พบข่าวสำหรับคำค้นนี้ ลองคำค้นอื่นดูครับ',
@@ -37,12 +35,10 @@
     },
     en: {
       navInvest: 'Investing', pageTitle: 'Stock News',
-      headSub: "A roundup of the latest Thai stock market headlines — tap a headline to read the original",
       stCountLbl: 'Found', stTopicLbl: 'Selected topic', stUpdatedLbl: 'Last updated',
       searchPh: 'Search for stocks/companies, e.g. PTT, dividends, BOT rate', searchBtn: 'Search',
       oppdayHint: 'Want the real Opportunity Day calendar/videos (listed companies meeting investors)? — <a href="https://www.set.or.th/oppday" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700;text-decoration:none">Go straight to the Stock Exchange of Thailand\'s Opportunity Day page ↗</a> (this page has no public API to pull the calendar itself, so it links to the source instead)',
       loadingNewsDefault: 'Loading news…', loadingDefault: 'Loading…',
-      footerDisc: 'This page shows only <b>headlines + source + time + a link to the original</b> — it does not republish news content. News is fetched from Google News RSS (public) via several best-effort routes, and fetching may occasionally fail. Not investment advice.',
       chipMarket: 'Thai Stock Market', chipEcon: 'Thai Economy', chipRate: 'Interest Rate/BOT', chipIpo: 'IPO News', chipDiv: 'Stock Dividends', chipOppday: 'Opportunity Day',
       newsCountItems: '{n} items', ageJustNow: 'just now', ageMinAgo: '{n} min ago', ageHrAgo: '{n} hr ago', ageDaysAgo: '{n} days ago',
       newsEmpty: 'No news found for this search — try a different search term',
