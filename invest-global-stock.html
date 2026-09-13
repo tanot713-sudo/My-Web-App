@@ -312,7 +312,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <button class="btn sm" id="marketRefresh" type="button" data-i18n="refreshBtn">↻ รีเฟรช</button>
       <button class="btn sm" id="marketSettings" type="button" data-i18n="marketSettingsBtn">⚙️ ตั้งค่าข้อมูลตลาด</button>
     </div>
-    <div class="status" id="fetchStatus" data-i18n="fetchStatusDefault">ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจากแอปเทรดที่ใช้ก็พอ (ดูราคาปัจจุบัน + สูง/ต่ำของรอบ)</div>
+    <div class="status" id="fetchStatus"></div>
     <div class="market-settings" id="marketSettingsPanel" hidden>
       <div class="market-settings-title" data-i18n="marketSettingsTitle">ข้อมูลตลาดแบบสด</div>
       <div class="market-settings-grid">
@@ -374,7 +374,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
         <tbody id="ulBody"></tbody>
       </table>
     </div>
-    <p class="mini" style="margin-top:8px" data-i18n-html="ulHint">แตะแถวเพื่อดูว่า "น่าลงทุนไหม" · กด "หาหุ้นน่าสนใจ" ให้ระบบไล่ดึงราคา+วิเคราะห์ (ครั้งแรกอาจช้า/ไม่ครบ รอบต่อไปเร็วขึ้นเพราะจำไว้) · <b>ไม่ใช่คำแนะนำซื้อ</b></p>
   </div>
   </div><!-- /top-grid -->
 
@@ -433,7 +432,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <div class="field"><label data-i18n="stopLabel">ราคาตัดขาดทุน (Stop)</label><input type="number" id="stop" inputmode="decimal" step="0.01" data-i18n-placeholder="stopPh" placeholder="แนะนำอัตโนมัติ"></div>
       <div class="field"><label><span data-i18n="commLabel">ค่าคอมฯ</span> <span class="unit" data-i18n="unitPctPerTrade">(% ต่อครั้ง)</span></label><input type="number" id="comm" inputmode="decimal" step="0.001" value="0.20"></div>
     </div>
-    <p class="mini" data-i18n="commNote">ค่าคอมฯ ของโบรกไทยที่เทรดหุ้น US แต่ละเจ้าคิดต่างกันมาก (บางเจ้าคิด % บางเจ้าคิดเหมาจ่ายต่อออเดอร์) และมักมีค่าธรรมเนียมแปลงเงินบาท↔ดอลลาร์แยกต่างหาก (~0.25–1%) — ปรับตัวเลขให้ตรงกับโบรกที่ใช้จริง</p>
     <div style="margin-top:12px;display:flex;gap:9px;flex-wrap:wrap">
       <button class="btn primary" id="calcBtn" type="button" data-i18n="calcBtn">คำนวณ</button>
       <button class="btn sm" id="saveBtn" type="button" style="display:none" data-i18n="saveToPortfolioBtn">บันทึกเข้าพอร์ต</button>
@@ -460,7 +458,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- สำรองขึ้น Google Drive -->
   <div class="card">
     <h2 data-i18n="driveTitle">สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
-    <p class="mini" data-i18n="driveDesc">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตและสมุดเทรดด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าหุ้นไทย ไม่ปนกัน) — กันข้อมูลหายถ้าล้างเบราว์เซอร์ และดึงคืนได้เมื่อเปิดจากเครื่อง/เบราว์เซอร์อื่น</p>
     <div class="drive-row" style="margin-top:10px">
       <button class="btn sm" id="driveConnectBtn" type="button" data-i18n="driveConnectBtn">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
@@ -470,20 +467,18 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- พอร์ต -->
   <div class="card">
     <h2 data-i18n="pfTitle">พอร์ตของฉัน</h2>
-    <p class="mini" data-i18n="pfDesc">เพิ่มหุ้นที่ถืออยู่ได้ตรงนี้ แล้วกด "ควรขาย?" เพื่อให้เครื่องช่วยดูจังหวะขาย (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
       <div class="field" style="flex:1 1 90px"><label data-i18n="pfSymLabel">ชื่อหุ้น</label><input type="text" id="pfSym" placeholder="AAPL" autocomplete="off" spellcheck="false"></div>
       <div class="field"><label data-i18n="pfSharesLabel">จำนวนหุ้น</label><input type="number" id="pfShares" inputmode="numeric" placeholder="10"></div>
       <div class="field"><label data-i18n="pfCostLabel">ราคาต้นทุน/หุ้น</label><input type="number" id="pfCost" inputmode="decimal" step="0.01" placeholder="180.50"></div>
       <button class="btn sm" id="pfAdd" type="button" data-i18n="pfAddBtn">+ เพิ่มเข้าพอร์ต</button>
     </div>
-    <div id="pfBox" style="margin-top:10px"><div class="pf-empty" data-i18n="pfEmptyDefault">ยังไม่มีหุ้นในพอร์ต — เพิ่มด้านบน หรือกด "บันทึกเข้าพอร์ต" ในขั้นที่ 2</div></div>
+    <div id="pfBox" style="margin-top:10px"><div class="pf-empty" data-i18n="pfEmptyDefault">ยังไม่มีหุ้นในพอร์ต</div></div>
   </div>
 
   <!-- สมุดเทรด + สถิติ -->
   <div class="card">
     <h2 data-i18n="journalTitle">สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)</h2>
-    <p class="mini" data-i18n="journalDesc">บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง (จำในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
       <div class="field" style="flex:1 1 90px"><label data-i18n="jSymLabel">หุ้น</label><input type="text" id="jSym" placeholder="AAPL" spellcheck="false"></div>
       <div class="field"><label data-i18n="jEntryLabel">ราคาเข้า</label><input type="number" id="jEntry" inputmode="decimal" step="0.01"></div>
