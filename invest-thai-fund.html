@@ -215,7 +215,6 @@ select{font-family:inherit}
             <div class="field"><label><span data-i18n="txIncomeGrowthLabel">เงินได้เติบโตเฉลี่ย/ปี</span> <span class="unit" data-i18n="unitPct">(%)</span></label><input type="number" id="txIncomeGrowth" inputmode="decimal" step="0.1" value="0"></div>
             <button class="btn sm" id="txProjBtn" type="button" data-i18n="txProjBtn">คำนวณแผนหลายปี</button>
           </div>
-          <p style="font-size:11.5px;color:var(--muted);margin-top:8px" data-i18n="txProjNote">สมมติว่าซื้อ RMF/SSF/ESG เท่าเดิมทุกปี (เพดาน Thai ESG จะขยับให้อัตโนมัติถ้าข้ามปี 2570)</p>
           <div id="txProjTable" style="overflow-x:auto;margin-top:6px"></div>
         </div>
       </details>
@@ -226,7 +225,6 @@ select{font-family:inherit}
   <div class="card">
     <h2 data-i18n="riskTitle">ระดับความเสี่ยงกองทุน (1–8)</h2>
     <div class="risk-scale" id="riskScale"></div>
-    <p style="font-size:12px;color:var(--muted);margin-top:8px" data-i18n="riskHint">ระดับความเสี่ยงพิมพ์อยู่บนหน้าแรกของ Fund Factsheet ทุกกองเสมอ — ยิ่งเลขสูง ยิ่งผันผวนสูง ไม่ใช่ "แย่กว่า" แต่ต้องรับความผันผวนได้มากกว่า</p>
   </div>
 
   <!-- เติมไม้ตอนย่อ -->
@@ -261,7 +259,7 @@ select{font-family:inherit}
     <div class="frow" style="margin-top:10px">
       <div class="field" style="flex:1 1 160px"><label data-i18n="lgCurLabel">NAV ปัจจุบัน (คำนวณกำไร/ขาดทุน)</label><input type="number" id="lgCur" inputmode="decimal" step="0.0001" data-i18n-placeholder="lgCurPh" placeholder="ราคาต่อหน่วยตอนนี้"></div>
     </div>
-    <div id="lgBox"><div class="log-empty" data-i18n="lgEmptyDefault">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและกำไร-ขาดทุน แยกตามกองทุน</div></div>
+    <div id="lgBox"><div class="log-empty" data-i18n="lgEmptyDefault">ยังไม่มีรายการ</div></div>
   </div>
 
   <!-- วันที่พร้อมขายแบบไม่เสียสิทธิ์ภาษี -->
@@ -271,7 +269,6 @@ select{font-family:inherit}
       <div class="field"><label><span data-i18n="elBirthYearLabel">ปีเกิด</span> <span class="unit" data-i18n="elBirthYearUnit">(สำหรับเช็คเงื่อนไขอายุ 55 ปีของ RMF เท่านั้น)</span></label><input type="number" id="elBirthYear" inputmode="numeric" placeholder="เช่น 2538"></div>
     </div>
     <div id="elBox" style="margin-top:10px"></div>
-    <p style="font-size:11.5px;color:var(--muted);margin-top:8px" data-i18n="elNote">เป็นตัวประมาณจากวันที่บันทึกในสมุดซื้อเท่านั้น ไม่ใช่ข้อมูลจริงจาก บลจ. — ก่อนขายจริงควรตรวจสอบวันครบกำหนดกับ บลจ./สถิติซื้อขายจริงของคุณอีกครั้ง</p>
   </div>
 
 </div>
