@@ -77,9 +77,10 @@
       textContentLbl: 'ข้อความ', textHeightLbl: 'ความสูงตัวอักษร (มม.)', textApplyBtn: 'วางข้อความ',
       propsTitleDim: 'คุณสมบัติ: มิติเส้น', propsTitleRaddim: 'คุณสมบัติ: มิติรัศมี', propsTitleText: 'คุณสมบัติ: ข้อความ',
       propText: 'ข้อความ', propHeight: 'ความสูงตัวอักษร (มม.)', propLayer: 'เลเยอร์',
-      layersTitle: 'เลเยอร์', layerAddBtn: 'เลเยอร์ใหม่', layerNamePlaceholder: 'ชื่อเลเยอร์',
+      layersTitle: 'เลเยอร์', layerAddBtn: 'เลเยอร์ใหม่', layerAddFolderBtn: 'โฟลเดอร์ใหม่', layerNamePlaceholder: 'ชื่อเลเยอร์', layerNewFolderDefaultName: 'โฟลเดอร์ใหม่',
       layerActiveLbl: 'ใช้งานอยู่', layerDeleteConfirm: 'ลบเลเยอร์ "{name}"? เอนทิตี้ในเลเยอร์นี้จะถูกย้ายไปเลเยอร์ 0',
-      layerShowLbl: 'แสดงเลเยอร์', layerHideLbl: 'ซ่อนเลเยอร์', layerLockLbl: 'ล็อกเลเยอร์', layerUnlockLbl: 'ปลดล็อกเลเยอร์', layerDeleteLbl: 'ลบเลเยอร์', layerDragLbl: 'ลากเพื่อจัดลำดับ',
+      layerFolderDeleteConfirm: 'ลบโฟลเดอร์ "{name}"? เลเยอร์ข้างในจะย้ายออกมาระดับบนสุด (ไม่ลบเลเยอร์หรือเอนทิตี้ใดๆ)',
+      layerShowLbl: 'แสดงเลเยอร์', layerHideLbl: 'ซ่อนเลเยอร์', layerLockLbl: 'ล็อกเลเยอร์', layerUnlockLbl: 'ปลดล็อกเลเยอร์', layerDeleteLbl: 'ลบเลเยอร์', layerDragLbl: 'ลากเพื่อจัดลำดับ', layerToggleLbl: 'ย่อ/ขยายโฟลเดอร์',
       layerCantDeleteLast: 'ต้องมีอย่างน้อย 1 เลเยอร์',
       exportMenuBtn: 'ส่งออก ▾', exportPngBtn: 'PNG', exportSvgBtn: 'SVG', exportDxfBtn: 'DXF', importDxfBtn: 'นำเข้า DXF',
       printBtn: 'พิมพ์/PDF',
@@ -158,9 +159,10 @@
       textContentLbl: 'Text', textHeightLbl: 'Text height (mm)', textApplyBtn: 'Place text',
       propsTitleDim: 'Properties: Dimension', propsTitleRaddim: 'Properties: Radius dim', propsTitleText: 'Properties: Text',
       propText: 'Text', propHeight: 'Text height (mm)', propLayer: 'Layer',
-      layersTitle: 'Layers', layerAddBtn: 'New layer', layerNamePlaceholder: 'Layer name',
+      layersTitle: 'Layers', layerAddBtn: 'New layer', layerAddFolderBtn: 'New folder', layerNamePlaceholder: 'Layer name', layerNewFolderDefaultName: 'New folder',
       layerActiveLbl: 'Active', layerDeleteConfirm: 'Delete layer "{name}"? Its entities will move to layer 0',
-      layerShowLbl: 'Show layer', layerHideLbl: 'Hide layer', layerLockLbl: 'Lock layer', layerUnlockLbl: 'Unlock layer', layerDeleteLbl: 'Delete layer', layerDragLbl: 'Drag to reorder',
+      layerFolderDeleteConfirm: 'Delete folder "{name}"? Layers inside will move to the top level (no layers or entities are deleted)',
+      layerShowLbl: 'Show layer', layerHideLbl: 'Hide layer', layerLockLbl: 'Lock layer', layerUnlockLbl: 'Unlock layer', layerDeleteLbl: 'Delete layer', layerDragLbl: 'Drag to reorder', layerToggleLbl: 'Collapse/expand folder',
       layerCantDeleteLast: 'At least 1 layer is required',
       exportMenuBtn: 'Export ▾', exportPngBtn: 'PNG', exportSvgBtn: 'SVG', exportDxfBtn: 'DXF', importDxfBtn: 'Import DXF',
       printBtn: 'Print/PDF',
@@ -1200,7 +1202,7 @@
     var segs = [];
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
-      if (layer.visible === false) return;
+      if (!layerEffective(e.layer).visible) return;
       entitySnapPoints(e).forEach(function (sp) {
         var d = Math.hypot(worldPt.x - sp.p.x, worldPt.y - sp.p.y);
         if (d < bestD) { bestD = d; best = { x: sp.p.x, y: sp.p.y, kind: sp.kind }; }
@@ -1332,7 +1334,7 @@
     }
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
-      if (layer.visible === false) return;
+      if (!layerEffective(e.layer).visible) return;
       var selected = state.selectedIds.indexOf(e.id) !== -1;
       var isCutterOrPick = e.id === state.trimCutterId || e.id === state.offsetSourceId || state.pendingEntityIds.indexOf(e.id) !== -1;
       var col_ = isCutterOrPick ? col.osnap : (selected ? col.selected : (layer.color || col.entity));
@@ -1589,7 +1591,7 @@
     var best = null, bestDist = Infinity;
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
-      if (layer.visible === false || layer.locked) return;
+      var eff1 = layerEffective(e.layer); if (!eff1.visible || eff1.locked) return;
       var d = distPointToEntity(worldPt, e);
       if (d < thresholdMm && d < bestDist) { bestDist = d; best = e.id; }
     });
@@ -2134,7 +2136,7 @@
     var picked = [];
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
-      if (layer.visible === false || layer.locked) return;
+      var eff2 = layerEffective(e.layer); if (!eff2.visible || eff2.locked) return;
       var pts = entityBoundsPoints(e);
       var allIn = pts.every(function (p) { return p.x >= xmin && p.x <= xmax && p.y >= ymin && p.y <= ymax; });
       var anyIn = pts.some(function (p) { return p.x >= xmin && p.x <= xmax && p.y >= ymin && p.y <= ymax; });
@@ -2448,7 +2450,7 @@
     var numFieldsHtml = fields.map(function (f, i) {
       return '<label>' + t(f.k) + '<input type="text" inputmode="decimal" data-fidx="' + i + '" value="' + fmtMm(f.v) + '"></label>';
     }).join('');
-    var layerOptsHtml = orderedLayerIds().map(function (lid) {
+    var layerOptsHtml = orderedLayerIds().filter(function (lid) { return !state.layers[lid].isFolder; }).map(function (lid) {
       return '<option value="' + lid + '"' + (e.layer === lid ? ' selected' : '') + '>' + (state.layers[lid].name || lid) + '</option>';
     }).join('');
     var layerFieldHtml = '<label>' + t('propLayer') + '<select id="propLayerSel">' + layerOptsHtml + '</select></label>';
@@ -2483,6 +2485,9 @@
   var LAYER_ICON_LOCK_OPEN = '<svg viewBox="0 0 18 18"><rect x="4.5" y="8" width="9" height="7" rx="1.4"></rect><path d="M6.5 8V5.8a2.5 2.5 0 0 1 4.9-.9"></path></svg>';
   var LAYER_ICON_TRASH = '<svg viewBox="0 0 18 18"><path d="M3.5 5h11"></path><path d="M7 5V3.5h4V5"></path><path d="M5 5l.7 9a1 1 0 0 0 1 .9h4.6a1 1 0 0 0 1-.9L13 5"></path><line x1="7.3" y1="7.5" x2="7.6" y2="12.5"></line><line x1="10.7" y1="7.5" x2="10.4" y2="12.5"></line></svg>';
   var LAYER_ICON_GRIP = '<svg viewBox="0 0 18 18"><circle class="fill" cx="6" cy="4.5" r="1.3"></circle><circle class="fill" cx="12" cy="4.5" r="1.3"></circle><circle class="fill" cx="6" cy="9" r="1.3"></circle><circle class="fill" cx="12" cy="9" r="1.3"></circle><circle class="fill" cx="6" cy="13.5" r="1.3"></circle><circle class="fill" cx="12" cy="13.5" r="1.3"></circle></svg>';
+  var LAYER_ICON_FOLDER = '<svg viewBox="0 0 18 18"><path class="fill" d="M2 5.5a1 1 0 0 1 1-1h3.3l1.3 1.6H15a1 1 0 0 1 1 1v6.9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1Z"></path></svg>';
+  var LAYER_ICON_CHEVRON_RIGHT = '<svg viewBox="0 0 18 18"><path d="M6.5 4 12 9 6.5 14"></path></svg>';
+  var LAYER_ICON_CHEVRON_DOWN = '<svg viewBox="0 0 18 18"><path d="M4 6.5 9 12 14 6.5"></path></svg>';
   /* ลำดับแสดงผลเลเยอร์แยกจาก key ของ state.layers (ดูคอมเมนต์ตอนนิยาม state.layerOrder) —
      ฟังก์ชันนี้ "ซ่อม" รายการให้ตรงกับ state.layers เสมอ (เผื่อข้อมูลเก่าก่อนมีฟีเจอร์นี้ไม่มี
      layerOrder เลย หรือมี id ค้าง/ขาดจากการ import ข้อมูลเก่า) แทนที่จะเชื่อ state.layerOrder ตรงๆ */
@@ -2496,14 +2501,39 @@
     state.layerOrder = out;
     return out;
   }
+  /* มองเห็น/ล็อกจริงของเลเยอร์ = ของตัวเองรวมกับของโฟลเดอร์แม่ (ถ้ามี) — โฟลเดอร์ซ่อน/ล็อกแล้ว
+     เลเยอร์ลูกทุกตัวข้างในถือว่าซ่อน/ล็อกไปด้วยเสมอ แม้ตัวเลเยอร์เองจะตั้งเป็นแสดง/ปลดล็อกไว้ก็ตาม
+     (รองรับแค่ 1 ชั้นการซ้อน — โฟลเดอร์ในโฟลเดอร์ไม่รองรับในสเตจนี้) */
+  function layerEffective(lid) {
+    var ly = state.layers[lid] || state.layers['0'];
+    var visible = ly.visible !== false, locked = !!ly.locked;
+    var parent = ly.parentId && state.layers[ly.parentId];
+    if (parent) { if (parent.visible === false) visible = false; if (parent.locked) locked = true; }
+    return { visible: visible, locked: locked };
+  }
   function renderLayersPanel() {
     if (!layersList) return;
-    var ids = orderedLayerIds();
+    var ids = orderedLayerIds().filter(function (lid) {
+      var ly = state.layers[lid];
+      var parent = ly.parentId && state.layers[ly.parentId];
+      return !(parent && parent.collapsed); // ซ่อนเลเยอร์ลูกของโฟลเดอร์ที่พับอยู่ (แค่ในรายการที่แสดง — layerOrder จริงยังเก็บครบ)
+    });
     layersList.innerHTML = ids.map(function (lid) {
       var ly = state.layers[lid];
-      var isActive = lid === state.activeLayer;
       var hidden = ly.visible === false, locked = !!ly.locked;
-      return '<div class="cad-layer-row' + (isActive ? ' active' : '') + '" data-lid="' + lid + '" draggable="true">' +
+      if (ly.isFolder) {
+        return '<div class="cad-layer-row cad-layer-folder-row" data-lid="' + lid + '" draggable="true">' +
+          '<span class="cad-layer-icon cad-layer-grip" title="' + t('layerDragLbl') + '">' + LAYER_ICON_GRIP + '</span>' +
+          '<button type="button" class="cad-layer-icon" data-act="togglecollapse" title="' + t('layerToggleLbl') + '">' + (ly.collapsed ? LAYER_ICON_CHEVRON_RIGHT : LAYER_ICON_CHEVRON_DOWN) + '</button>' +
+          '<span class="cad-layer-icon cad-layer-folder-icon">' + LAYER_ICON_FOLDER + '</span>' +
+          '<input type="text" class="cad-layer-name" data-act="rename" value="' + (ly.name || lid).replace(/"/g, '&quot;') + '" placeholder="' + t('layerNamePlaceholder') + '">' +
+          '<button type="button" class="cad-layer-icon" data-act="visible" title="' + (hidden ? t('layerShowLbl') : t('layerHideLbl')) + '">' + (hidden ? LAYER_ICON_EYE_OFF : LAYER_ICON_EYE_ON) + '</button>' +
+          '<button type="button" class="cad-layer-icon" data-act="lock" title="' + (locked ? t('layerUnlockLbl') : t('layerLockLbl')) + '">' + (locked ? LAYER_ICON_LOCK_CLOSED : LAYER_ICON_LOCK_OPEN) + '</button>' +
+          '<button type="button" class="cad-layer-icon" data-act="delete" title="' + t('layerDeleteLbl') + '">' + LAYER_ICON_TRASH + '</button>' +
+          '</div>';
+      }
+      var isActive = lid === state.activeLayer;
+      return '<div class="cad-layer-row' + (isActive ? ' active' : '') + (ly.parentId ? ' cad-layer-child' : '') + '" data-lid="' + lid + '" draggable="true">' +
         '<span class="cad-layer-icon cad-layer-grip" title="' + t('layerDragLbl') + '">' + LAYER_ICON_GRIP + '</span>' +
         '<button type="button" class="cad-layer-icon" data-act="setactive" title="' + t('layerActiveLbl') + '">' + (isActive ? LAYER_ICON_ACTIVE : LAYER_ICON_INACTIVE) + '</button>' +
         '<input type="color" class="cad-layer-color" data-act="color" value="' + (ly.color || '#1F2430') + '">' +
@@ -2521,10 +2551,13 @@
       else if (act === 'visible') el.addEventListener('click', function () { state.layers[lid].visible = state.layers[lid].visible === false; scheduleSave(); render(); renderLayersPanel(); });
       else if (act === 'lock') el.addEventListener('click', function () { state.layers[lid].locked = !state.layers[lid].locked; scheduleSave(); renderLayersPanel(); });
       else if (act === 'delete') el.addEventListener('click', function () { deleteLayer(lid); });
+      else if (act === 'togglecollapse') el.addEventListener('click', function () { state.layers[lid].collapsed = !state.layers[lid].collapsed; scheduleSave(); renderLayersPanel(); });
     });
     /* ลาก-จัดเรียงลำดับเลเยอร์ใหม่ด้วย HTML5 drag & drop ธรรมดา (ทั้งแถวลากได้ ไม่ใช่แค่ที่ไอคอน
        จับลาก — คลิกที่ input/select ภายในแถวยังใช้งานปกติเพราะเบราว์เซอร์ให้สิทธิ์อีเลเมนต์ฟอร์ม
-       จัดการ mousedown ของตัวเองก่อนเริ่มลากอยู่แล้ว) */
+       จัดการ mousedown ของตัวเองก่อนเริ่มลากอยู่แล้ว) — ลากไปวางกลางแถวโฟลเดอร์ (โซนกลาง ~ครึ่งหนึ่ง
+       ของความสูงแถว) = ย้ายเข้าไปในโฟลเดอร์นั้น, วางขอบบน/ล่าง = จัดลำดับเป็นพี่น้องระดับเดียวกับ
+       เป้าหมาย (รองรับการลากออกจากโฟลเดอร์กลับไปนอกโฟลเดอร์ด้วยในตัว ไม่ต้องเขียนเคสแยก) */
     var dragLid = null;
     Array.prototype.forEach.call(layersList.querySelectorAll('.cad-layer-row'), function (row) {
       row.addEventListener('dragstart', function (e) {
@@ -2535,26 +2568,37 @@
       });
       row.addEventListener('dragend', function () {
         row.classList.remove('dragging');
-        Array.prototype.forEach.call(layersList.querySelectorAll('.cad-layer-row'), function (r) { r.classList.remove('drag-over-before', 'drag-over-after'); });
+        Array.prototype.forEach.call(layersList.querySelectorAll('.cad-layer-row'), function (r) { r.classList.remove('drag-over-before', 'drag-over-after', 'drag-over-into'); });
       });
       row.addEventListener('dragover', function (e) {
-        if (!dragLid || dragLid === row.getAttribute('data-lid')) return;
+        var targetLid = row.getAttribute('data-lid');
+        if (!dragLid || dragLid === targetLid) return;
         e.preventDefault();
+        var targetLy = state.layers[targetLid];
         var rect = row.getBoundingClientRect();
-        var before = (e.clientY - rect.top) < rect.height / 2;
-        row.classList.toggle('drag-over-before', before);
-        row.classList.toggle('drag-over-after', !before);
+        var frac = (e.clientY - rect.top) / rect.height;
+        row.classList.remove('drag-over-before', 'drag-over-after', 'drag-over-into');
+        if (targetLy.isFolder && !state.layers[dragLid].isFolder && frac > 0.25 && frac < 0.75) row.classList.add('drag-over-into');
+        else row.classList.add(frac < 0.5 ? 'drag-over-before' : 'drag-over-after');
       });
-      row.addEventListener('dragleave', function () { row.classList.remove('drag-over-before', 'drag-over-after'); });
+      row.addEventListener('dragleave', function () { row.classList.remove('drag-over-before', 'drag-over-after', 'drag-over-into'); });
       row.addEventListener('drop', function (e) {
         e.preventDefault();
         var targetLid = row.getAttribute('data-lid');
+        var into = row.classList.contains('drag-over-into');
         var before = row.classList.contains('drag-over-before');
-        row.classList.remove('drag-over-before', 'drag-over-after');
+        row.classList.remove('drag-over-before', 'drag-over-after', 'drag-over-into');
         if (!dragLid || dragLid === targetLid) return;
         var order = orderedLayerIds().filter(function (id) { return id !== dragLid; });
-        var idx = order.indexOf(targetLid);
-        order.splice(before ? idx : idx + 1, 0, dragLid);
+        if (into) {
+          state.layers[dragLid].parentId = targetLid;
+          order.splice(order.indexOf(targetLid) + 1, 0, dragLid);
+        } else {
+          var targetLy = state.layers[targetLid];
+          state.layers[dragLid].parentId = targetLy.isFolder ? null : (targetLy.parentId || null);
+          var idx = order.indexOf(targetLid);
+          order.splice(before ? idx : idx + 1, 0, dragLid);
+        }
         state.layerOrder = order;
         dragLid = null;
         scheduleSave(); renderLayersPanel();
@@ -2564,17 +2608,33 @@
   function addLayer() {
     var id = String(state.layerSeq++);
     while (state.layers[id]) id = String(state.layerSeq++);
-    state.layers[id] = { name: 'เลเยอร์ ' + id, color: '#2554C7', visible: true, locked: false };
+    state.layers[id] = { name: 'เลเยอร์ ' + id, color: '#2554C7', visible: true, locked: false, parentId: null };
     state.layerOrder.push(id);
     state.activeLayer = id;
     scheduleSave(); renderLayersPanel();
   }
+  function addLayerFolder() {
+    var id = 'f' + String(state.layerSeq++);
+    while (state.layers[id]) id = 'f' + String(state.layerSeq++);
+    state.layers[id] = { name: t('layerNewFolderDefaultName'), isFolder: true, visible: true, locked: false, collapsed: false, parentId: null };
+    state.layerOrder.push(id);
+    scheduleSave(); renderLayersPanel();
+  }
   async function deleteLayer(lid) {
     if (lid === '0') return;
-    var name = state.layers[lid] ? (state.layers[lid].name || lid) : lid;
-    if (!(await window.tanotConfirm(t('layerDeleteConfirm', { name: name })))) return;
+    var ly = state.layers[lid];
+    if (!ly) return;
+    var name = ly.name || lid;
+    var msg = ly.isFolder ? t('layerFolderDeleteConfirm', { name: name }) : t('layerDeleteConfirm', { name: name });
+    if (!(await window.tanotConfirm(msg))) return;
     pushHistory();
-    state.entities.forEach(function (e) { if (e.layer === lid) e.layer = '0'; });
+    if (ly.isFolder) {
+      /* ลบโฟลเดอร์ = ยกเลิกการจัดกลุ่มเท่านั้น (เลเยอร์ลูกย้ายออกมาระดับบนสุด) ไม่ลบเลเยอร์ลูกจริง —
+         ปลอดภัยกว่า กันข้อมูล/เอนทิตี้หายไปโดยไม่ตั้งใจแค่เพราะลบโฟลเดอร์ที่ใช้จัดระเบียบ */
+      Object.keys(state.layers).forEach(function (id) { if (state.layers[id].parentId === lid) state.layers[id].parentId = null; });
+    } else {
+      state.entities.forEach(function (e) { if (e.layer === lid) e.layer = '0'; });
+    }
     delete state.layers[lid];
     state.layerOrder = state.layerOrder.filter(function (id) { return id !== lid; });
     if (state.activeLayer === lid) state.activeLayer = '0';
@@ -2582,6 +2642,8 @@
   }
   var layerAddBtn = $('layerAddBtn');
   if (layerAddBtn) layerAddBtn.addEventListener('click', addLayer);
+  var layerAddFolderBtn = $('layerAddFolderBtn');
+  if (layerAddFolderBtn) layerAddFolderBtn.addEventListener('click', addLayerFolder);
 
   /* ══════════════════ ส่งออก/นำเข้าไฟล์ (Stage 5) ══════════════════
      PNG: แรสเตอร์ snapshot ของทั้งแบบ (auto-fit, พื้นหลังขาวเสมอไม่ว่าจะเปิดธีมไหนอยู่ — เอาไว้แชร์/พิมพ์ให้อ่านง่าย)
@@ -2598,7 +2660,7 @@
     var minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
-      if (layer.visible === false) return;
+      if (!layerEffective(e.layer).visible) return;
       entityBoundsPoints(e).forEach(function (p) {
         if (p.x < minx) minx = p.x; if (p.x > maxx) maxx = p.x;
         if (p.y < miny) miny = p.y; if (p.y > maxy) maxy = p.y;
@@ -2651,7 +2713,7 @@
     }
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
-      if (layer.visible === false) return;
+      if (!layerEffective(e.layer).visible) return;
       c.strokeStyle = layer.color || '#1F2430'; c.fillStyle = c.strokeStyle;
       if (e.type === 'line' || e.type === 'polyline' || e.type === 'rect' || e.type === 'circle' || e.type === 'arc' || e.type === 'text') drawPrim(e);
       else if (e.type === 'block') {
@@ -2746,7 +2808,7 @@
     }
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
-      if (layer.visible === false) return;
+      if (!layerEffective(e.layer).visible) return;
       var color = layer.color || '#1F2430';
       if (e.type === 'line' || e.type === 'polyline' || e.type === 'rect' || e.type === 'circle' || e.type === 'arc' || e.type === 'text') primSvg(e, color);
       else if (e.type === 'block') {
@@ -2882,7 +2944,7 @@
     var lines = ['0', 'SECTION', '2', 'HEADER', '9', '$ACADVER', '1', 'AC1009', '0', 'ENDSEC', '0', 'SECTION', '2', 'ENTITIES'];
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
-      if (layer.visible === false) return;
+      if (!layerEffective(e.layer).visible) return;
       lines = lines.concat(entityToDxfChunks(e));
     });
     lines = lines.concat(['0', 'ENDSEC', '0', 'EOF']);
@@ -3024,7 +3086,7 @@
     }
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
-      if (layer.visible === false) return;
+      if (!layerEffective(e.layer).visible) return;
       var rgb = hexToRgb(layer.color || '#1F2430');
       pdf.setDrawColor(rgb[0], rgb[1], rgb[2]); pdf.setTextColor(rgb[0], rgb[1], rgb[2]);
       if (e.type === 'line' || e.type === 'polyline' || e.type === 'rect' || e.type === 'circle' || e.type === 'arc' || e.type === 'text') pdfPrim(e);
