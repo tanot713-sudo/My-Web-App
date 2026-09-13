@@ -171,13 +171,11 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     </div>
     <div class="status" id="goldThStatus" data-i18n="goldThStatusDefault">กำลังดึงราคาทองวันนี้…</div>
     <div style="margin-top:10px"><button class="btn sm" id="goldThRefresh" type="button" data-i18n="refreshPriceBtn">รีเฟรชราคา</button></div>
-    <p class="mini" data-i18n="priceHint">ราคาเป็น "บาท ต่อ บาททองคำ" (น้ำหนักทองคำแบบไทย ~15.244 กรัม) · ส่วนต่างซื้อ-ขายคืน (spread) ของทองรูปพรรณกว้างกว่าทองแท่งมาก เพราะรวมค่ากำเหน็จที่ไม่ได้คืนตอนขาย</p>
   </div>
 
   <!-- ไฟจราจร -->
   <div class="card">
     <h2 data-i18n="verdictTitle">ถูก/แพงตอนนี้ไหม</h2>
-    <p class="mini" data-i18n-html="verdictDesc">ประเมินจาก<b>แนวโน้มราคาทองคำโลก (GC=F, USD/ออนซ์)</b> เป็นตัวแทนทิศทาง — ราคาไทยด้านบนคือราคาที่ซื้อขายจริง เคลื่อนไปทางเดียวกันแต่ตัวเลขต่างกันเพราะค่าเงินบาท + พรีเมียมนำเข้า ไม่ใช่คำแนะนำการลงทุน</p>
     <div class="src-badge" id="gSrcBadge" data-i18n="gSrcBadgeDefault">กำลังตรวจแนวโน้ม…</div>
     <div class="light gray" id="gLight">
       <div class="bulb" id="gBulb"></div>
@@ -201,7 +199,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- วางแผนออมทอง (DCA) -->
   <div class="card">
     <h2 data-i18n="dcaTitle">วางแผนออมทอง (DCA)</h2>
-    <p class="mini" data-i18n="dcaDesc">ทยอยซื้อทองจำนวนเงินเท่าเดิมทุกเดือน ไม่ต้องเดาจังหวะตลาด — เหมาะกับการถือทองเป็นตัวช่วยกระจายความเสี่ยงระยะยาว</p>
     <div class="frow" style="margin-top:10px">
       <div class="field"><label><span data-i18n="dcaPmtLabel">ออมเดือนละ</span> <span class="unit" data-i18n="unitBaht">(บาท)</span></label><input type="number" id="dcaPmt" inputmode="numeric" value="3000"></div>
       <div class="field"><label data-i18n="dcaUnitLabel">หน่วยที่แสดงผล</label>
@@ -246,13 +243,11 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <div class="tr-box" data-dd="20"><div class="d">−20%</div><div class="m" data-i18n="tr20m">ย่อแรง</div><div class="x">×1.5</div></div>
       <div class="tr-box" data-dd="30"><div class="d">−30%</div><div class="m" data-i18n="tr30m">ย่อหนักมาก</div><div class="x">×2</div></div>
     </div>
-    <p class="mini" style="margin-top:8px" data-i18n="ddHint">แนวคิด: ราคาย่อ = ได้ของถูกลง ถ้ามีเงินสำรองค่อยเพิ่มเงินซื้อตามระดับที่ตั้งไว้ล่วงหน้า (ไม่ใช่การทำนายว่าจะลงอีกไหม) · ATH ต้องกรอกเอง เพราะราคาทองไทยไม่มีข้อมูลย้อนหลังจากแหล่งฟรี</p>
   </div>
 
   <!-- สัดส่วนทองในพอร์ต -->
   <div class="card">
     <h2 data-i18n="allocTitle">สัดส่วนทองในพอร์ต</h2>
-    <p class="mini" data-i18n="allocDesc">แนวทางทั่วไปที่มักถูกพูดถึง (ไม่ใช่กฎตายตัว): ถือทอง ~5–10% ของพอร์ตรวม เป็นตัวช่วยกระจายความเสี่ยง ไม่ใช่สินทรัพย์หลัก เพราะทองไม่ให้ปันผล/ดอกเบี้ย</p>
     <div class="frow" style="margin-top:10px">
       <div class="field"><label><span data-i18n="alPortfolioLabel">มูลค่าพอร์ตรวมโดยประมาณ</span> <span class="unit" data-i18n="unitBaht">(บาท)</span></label><input type="number" id="alPortfolio" inputmode="numeric" data-i18n-placeholder="alPortfolioPh" placeholder="เช่น 300000"></div>
       <div class="field"><label><span data-i18n="alGoldNowLabel">มูลค่าทองที่ถืออยู่ตอนนี้</span> <span class="unit" data-i18n="unitBaht">(บาท)</span></label><input type="number" id="alGoldNow" inputmode="numeric" data-i18n-placeholder="alGoldNowPh" placeholder="เติมจากสมุดทองอัตโนมัติ"></div>
@@ -306,7 +301,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
         <li><b data-i18n="factVolB">ความผันผวนตลาดหุ้น</b><span data-i18n="factVolRest"> — ตลาดหุ้นผันผวน/ร่วงแรง มักมีเงินบางส่วนไหลเข้าทอง</span></li>
         <li><b data-i18n="factCcB">วิกฤตค่าเงิน/เงินทุนไหลออก</b><span data-i18n="factCcRest"> — ในประเทศตลาดเกิดใหม่ ทองมักเป็นที่พักเงินยามค่าเงินท้องถิ่นผันผวนหนัก</span></li>
       </ul>
-      <p class="mini" data-i18n="factNote">หมายเหตุ: ตัวเลขจริงบางตัว (อัตราดอกเบี้ยที่แท้จริง/TIPS, ข้อมูลซื้อทองของธนาคารกลาง, คาดการณ์เงินเฟ้อ) ไม่มี API ฟรีที่ดึงจากเบราว์เซอร์ได้ตรงๆ — ส่วนนี้จึงเป็นข้อมูลความรู้ทั่วไป ไม่ใช่ตัวเลขสด ต่างจาก 2 รายการด้านบนที่มีชิปตัวเลขกำกับ</p>
     </div>
   </details>
 

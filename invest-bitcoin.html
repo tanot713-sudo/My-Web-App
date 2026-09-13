@@ -300,7 +300,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
         </label>
       </div>
       <div class="market-settings-actions"><button class="btn primary sm" id="marketSave" type="button" data-i18n="marketSaveBtn">บันทึกการตั้งค่า</button><button class="btn sm" id="marketClear" type="button" data-i18n="marketClearBtn">ล้าง API Key</button></div>
-      <p class="mini" data-i18n="marketNote">หมายเหตุ: ข้อมูลสดของ Twelve Data ใช้ปริมาณจำกัดตามแผนฟรี; สำหรับ GitHub Pages ไม่ควรฝัง API key ไว้ในโค้ดสาธารณะ จึงรองรับ Gateway ฝั่งเซิร์ฟเวอร์เป็นหลัก</p>
     </div>
     <div style="margin-top:10px;display:flex;gap:9px;flex-wrap:wrap">
       <button class="btn" id="fetchBtn" type="button" data-i18n="fetchBtn">ลองดึงราคา</button>
@@ -345,7 +344,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- ดัชนีความกลัว-ความโลภ -->
   <div class="card">
     <h2><span data-i18n="fngTitle">ดัชนีความกลัว-ความโลภ (Fear &amp; Greed)</span></h2>
-    <p class="mini" data-i18n-html="fngDesc">สะท้อนอารมณ์ตลาดคริปโตรวม — <b>ไม่ใช่สัญญาณเข้า/ออกโดยตรง</b> ในอดีตช่วง "กลัวสุดขีด" บางครั้งเป็นจังหวะเข้าซื้อที่ดีย้อนหลัง (buy the fear) แต่บางครั้งราคาลงต่อได้อีกมาก — ใช้ประกอบไฟจราจรด้านบนเท่านั้น ห้ามใช้ตัวเลขนี้เพียงอย่างเดียวตัดสินใจซื้อ/ขาย</p>
     <div class="src-badge" id="fngBadge" style="display:none"></div>
     <div class="fng-wrap" id="fngWrap" style="margin-top:8px">
       <div class="fng-num" id="fngNum">—</div>
@@ -401,7 +399,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <div class="field"><label data-i18n="lblStop">ราคาตัดขาดทุน (Stop)</label><input type="number" id="stop" inputmode="decimal" step="0.01" placeholder="แนะนำอัตโนมัติ" data-i18n-placeholder="phStop"></div>
       <div class="field"><label data-i18n="lblComm">ค่าคอมฯ <span class="unit" data-i18n="unitPctPerTrade">(% ต่อครั้ง)</span></label><input type="number" id="comm" inputmode="decimal" step="0.001" value="0.25"></div>
     </div>
-    <p class="mini" data-i18n-html="step2Note">คริปโตผันผวนสูงกว่าดัชนีหุ้นกว้าง ~3-4 เท่า จึงแนะนำเสี่ยงต่อไม้ <b>≤1%</b> (ไม่ใช่ 2% แบบหุ้น) ค่าคอมฯ แต่ละเอ็กซ์เชนจ์ต่างกันมาก (Bitkub ~0.25%, Binance ~0.1%) และมักมีค่าธรรมเนียมเครือข่าย (network fee) แยกต่างหากที่ยังไม่รวมในนี้ — ปรับให้ตรงกับเอ็กซ์เชนจ์ที่ใช้จริง</p>
     <div style="margin-top:12px;display:flex;gap:9px;flex-wrap:wrap">
       <button class="btn primary" id="calcBtn" type="button" data-i18n="calcBtn">คำนวณ</button>
       <button class="btn sm" id="saveBtn" type="button" style="display:none" data-i18n="saveToPfBtn">บันทึกเข้าพอร์ต</button>
@@ -468,7 +465,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- Expectancy -->
   <div class="card">
     <h2 data-i18n="eTitle">ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?</h2>
-    <p class="mini" data-i18n-html="eDesc">ความจริงที่มือใหม่มักไม่รู้: <b>ชนะบ่อยไม่ได้แปลว่ากำไร</b> — สิ่งที่สำคัญคือ "กำไรตอนถูก" ต้องใหญ่กว่า "ขาดทุนตอนผิด"</p>
     <div class="frow" style="margin-top:10px">
       <div class="field"><label data-i18n="lblEWin">อัตราชนะ <span class="unit" data-i18n="unitPctWin">(% ของไม้ที่ชนะ)</span></label><input type="number" id="eWin" inputmode="decimal" value="45"></div>
       <div class="field"><label data-i18n="lblEWinR">กำไรเฉลี่ยตอนชนะ <span class="unit" data-i18n="unitRMultiple">(เท่าของความเสี่ยง R)</span></label><input type="number" id="eWinR" inputmode="decimal" step="0.1" value="2"></div>
@@ -481,7 +477,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- ออม Bitcoin แบบ DCA -->
   <div class="card">
     <h2 data-i18n="dcaTitle">ออม Bitcoin แบบ DCA (ทางเลือกความเสี่ยงต่ำกว่า)</h2>
-    <p class="mini" data-i18n="dcaDesc">ทยอยซื้อจำนวนเงินเท่าเดิมทุกเดือน ไม่ต้องเดาจังหวะตลาด — ลดความเสี่ยงจากการเดาจังหวะซื้อ แต่ไม่ป้องกันการขาดทุนถ้าราคาลงต่อเนื่องระยะยาว เครื่องคำนวณนี้เป็นแค่ตัวช่วยวางแผน ไม่มีการบันทึก (คำนวณใหม่ทุกครั้ง แยกจากพอร์ต/สมุดเทรดด้านบนที่บันทึกจริง)</p>
     <div class="frow" style="margin-top:10px">
       <div class="field"><label data-i18n="lblDcaPmt">ออมเดือนละ <span class="unit">(USD)</span></label><input type="number" id="dcaPmt" inputmode="numeric" value="100"></div>
       <div class="field"><label data-i18n="lblDcaStart">ราคา BTC เริ่มต้น <span class="unit">(USD)</span></label><input type="number" id="dcaStart" inputmode="decimal" step="0.01" placeholder="รอราคาจากขั้นที่ 1" data-i18n-placeholder="phDcaStart"></div>
