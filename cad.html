@@ -161,6 +161,14 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .cad-plot-row select{font-family:inherit;font-size:13px;padding:7px 9px;border-radius:8px;border:1.5px solid var(--line);
   background:var(--bg);color:var(--ink)}
 
+/* ── เมนูดรอปดาวน์ (รวมปุ่มส่งออกหลายฟอร์แมตไว้เมนูเดียว แทนปุ่มแยกเรียงกัน) ── */
+.cad-dropdown{position:relative;display:inline-block}
+.cad-dropdown-menu{position:absolute;top:calc(100% + 4px);left:0;background:var(--card);border:1.5px solid var(--line);
+  border-radius:10px;box-shadow:var(--sh);padding:5px;display:flex;flex-direction:column;gap:2px;z-index:20;min-width:120px}
+.cad-dropdown-menu button{display:block;width:100%;text-align:left;padding:7px 10px;border:none;background:none;
+  border-radius:7px;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer}
+.cad-dropdown-menu button:hover{background:var(--bg)}
+
 footer{margin-top:30px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
 
@@ -346,9 +354,14 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
           <button class="btn sm" id="clearAllBtn" type="button" data-i18n="clearAll">ล้างทั้งหมด</button>
         </div>
         <div class="cad-tb-group">
-          <button class="btn sm" id="exportPngBtn" type="button" data-i18n="exportPngBtn">PNG</button>
-          <button class="btn sm" id="exportSvgBtn" type="button" data-i18n="exportSvgBtn">SVG</button>
-          <button class="btn sm" id="exportDxfBtn" type="button" data-i18n="exportDxfBtn">DXF</button>
+          <div class="cad-dropdown" id="exportDropdownWrap">
+            <button class="btn sm" id="exportMenuBtn" type="button" data-i18n="exportMenuBtn">ส่งออก ▾</button>
+            <div class="cad-dropdown-menu" id="exportMenu" hidden>
+              <button type="button" id="exportPngBtn" data-i18n="exportPngBtn">PNG</button>
+              <button type="button" id="exportSvgBtn" data-i18n="exportSvgBtn">SVG</button>
+              <button type="button" id="exportDxfBtn" data-i18n="exportDxfBtn">DXF</button>
+            </div>
+          </div>
           <button class="btn sm" id="importDxfBtn" type="button" data-i18n="importDxfBtn">นำเข้า DXF</button>
           <input type="file" id="importDxfInput" accept=".dxf,text/plain" style="display:none">
           <button class="btn sm" id="printBtn" type="button" data-i18n="printBtn">พิมพ์/PDF</button>
@@ -718,6 +731,23 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
     window.dispatchEvent(new Event('cad3d:startlivesketch'));
   });
   showTab(location.hash === '#3d' ? '3d' : '2d'); // รองรับ deep-link จาก cad3d.html (redirect เดิม) ที่ชี้มา #3d
+
+  /* เมนูดรอปดาวน์ "ส่งออก" — รวม PNG/SVG/DXF ไว้เมนูเดียวแทนปุ่มแยก 3 ปุ่ม (คลิกปุ่มเปิด/ปิด,
+     คลิกตัวเลือกในเมนูแล้วปิดเมนูเอง, คลิกนอกเมนูก็ปิด) ไม่แตะ id ปุ่มเดิมเลย — cad.js ที่ผูก
+     event ไว้กับ exportPngBtn/exportSvgBtn/exportDxfBtn อยู่แล้วทำงานเหมือนเดิมทุกอย่าง */
+  var exportMenuBtn = document.getElementById('exportMenuBtn'), exportMenu = document.getElementById('exportMenu');
+  if (exportMenuBtn && exportMenu) {
+    exportMenuBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      exportMenu.hidden = !exportMenu.hidden;
+    });
+    exportMenu.addEventListener('click', function (e) {
+      if (e.target.closest('button')) exportMenu.hidden = true;
+    });
+    document.addEventListener('click', function (e) {
+      if (!exportMenu.hidden && !document.getElementById('exportDropdownWrap').contains(e.target)) exportMenu.hidden = true;
+    });
+  }
 })();
 </script>
 </body>
