@@ -74,7 +74,7 @@
       propPolylineNote: 'พอลีไลน์มี {n} จุด — ลากจุดสี่เหลี่ยมบนเส้นเพื่อแก้แต่ละจุดโดยตรง',
       selCountLbl: 'เลือกอยู่ {n} ชิ้น',
       toolDim: 'มิติเส้น', toolRaddim: 'มิติรัศมี', toolText: 'ข้อความ',
-      textContentLbl: 'ข้อความ', textHeightLbl: 'ความสูงตัวอักษร (มม.)', textApplyBtn: 'วางข้อความ',
+      textContentLbl: 'ข้อความ', textContentMultiLbl: 'ข้อความ (ขึ้นบรรทัดใหม่ได้)', textHeightLbl: 'ความสูงตัวอักษร (มม.)', textApplyBtn: 'วางข้อความ',
       propsTitleDim: 'คุณสมบัติ: มิติเส้น', propsTitleRaddim: 'คุณสมบัติ: มิติรัศมี', propsTitleText: 'คุณสมบัติ: ข้อความ',
       propText: 'ข้อความ', propHeight: 'ความสูงตัวอักษร (มม.)', propLayer: 'เลเยอร์',
       layersTitle: 'เลเยอร์', layerAddBtn: 'เลเยอร์ใหม่', layerAddFolderBtn: 'โฟลเดอร์ใหม่', layerNamePlaceholder: 'ชื่อเลเยอร์', layerNewFolderDefaultName: 'โฟลเดอร์ใหม่',
@@ -89,11 +89,11 @@
       importDxfSuccess: 'นำเข้า {n} เอนทิตี้จากไฟล์ DXF เรียบร้อย (ถูกเลือกไว้ให้แล้ว)',
       importDxfError: 'อ่านไฟล์นี้ไม่ได้ — ไม่ใช่ไฟล์ DXF หรือไฟล์เสียหาย',
       importDxfEmpty: 'ไม่พบเอนทิตี้ที่รองรับในไฟล์ DXF นี้ (รองรับ LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)',
-      toolDiadim: 'มิติเส้นผ่าศูนย์กลาง', toolAngdim: 'มิติมุม', toolLeader: 'ลูกศรชี้', toolHatch: 'แรเงา', toolCentermark: 'เครื่องหมายกึ่งกลาง', toolOrdinate: 'มิติพิกัด (Ordinate)',
+      toolDiadim: 'มิติเส้นผ่าศูนย์กลาง', toolAngdim: 'มิติมุม', toolLeader: 'ลูกศรชี้', toolTextLeader: 'ข้อความ+เส้นชี้', toolHatch: 'แรเงา', toolCentermark: 'เครื่องหมายกึ่งกลาง', toolOrdinate: 'มิติพิกัด (Ordinate)',
       hatchSpacingLbl: 'ระยะห่างลาย (มม.)', hatchAngleLbl: 'มุมลาย (°)', hatchApplyBtn: 'แรเงา',
       dimStyleTitle: 'สไตล์มิติเริ่มต้น', dimTextHeightLbl: 'ตัวอักษรมิติ (มม.)', dimArrowSizeLbl: 'หัวลูกศร (มม.)', centerMarkSizeLbl: 'เครื่องหมายกึ่งกลาง (มม.)',
       propsTitleDiadim: 'คุณสมบัติ: มิติเส้นผ่าศูนย์กลาง', propsTitleAngdim: 'คุณสมบัติ: มิติมุม',
-      propsTitleLeader: 'คุณสมบัติ: ลูกศรชี้', propsTitleHatch: 'คุณสมบัติ: แรเงา',
+      propsTitleLeader: 'คุณสมบัติ: ลูกศรชี้', propsTitleTextLeader: 'คุณสมบัติ: ข้อความ+เส้นชี้', propsTitleHatch: 'คุณสมบัติ: แรเงา',
       propArrowSize: 'ขนาดหัวลูกศร (มม.)', propSpacing: 'ระยะห่างลาย (มม.)', propHatchAngle: 'มุมลาย (°)',
       plotTitle: 'จัดพิมพ์ตามมาตราส่วนจริง (PDF)', plotPaperLbl: 'ขนาดกระดาษ', plotOrientLbl: 'แนวกระดาษ',
       plotScaleLbl: 'มาตราส่วน', plotGenerateBtn: 'สร้าง PDF',
@@ -156,7 +156,7 @@
       propPolylineNote: 'Polyline has {n} points — drag a square grip on the line to edit each point directly',
       selCountLbl: '{n} selected',
       toolDim: 'Dimension', toolRaddim: 'Radius dim', toolText: 'Text',
-      textContentLbl: 'Text', textHeightLbl: 'Text height (mm)', textApplyBtn: 'Place text',
+      textContentLbl: 'Text', textContentMultiLbl: 'Text (line breaks allowed)', textHeightLbl: 'Text height (mm)', textApplyBtn: 'Place text',
       propsTitleDim: 'Properties: Dimension', propsTitleRaddim: 'Properties: Radius dim', propsTitleText: 'Properties: Text',
       propText: 'Text', propHeight: 'Text height (mm)', propLayer: 'Layer',
       layersTitle: 'Layers', layerAddBtn: 'New layer', layerAddFolderBtn: 'New folder', layerNamePlaceholder: 'Layer name', layerNewFolderDefaultName: 'New folder',
@@ -171,11 +171,11 @@
       importDxfSuccess: 'Imported {n} entities from the DXF file (now selected)',
       importDxfError: "Couldn't read this file — not a DXF file, or it's corrupted",
       importDxfEmpty: 'No supported entities found in this DXF file (supports LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)',
-      toolDiadim: 'Diameter dim', toolAngdim: 'Angle dim', toolLeader: 'Leader', toolHatch: 'Hatch', toolCentermark: 'Center mark', toolOrdinate: 'Ordinate dim',
+      toolDiadim: 'Diameter dim', toolAngdim: 'Angle dim', toolLeader: 'Leader', toolTextLeader: 'Text-Leader', toolHatch: 'Hatch', toolCentermark: 'Center mark', toolOrdinate: 'Ordinate dim',
       hatchSpacingLbl: 'Line spacing (mm)', hatchAngleLbl: 'Line angle (°)', hatchApplyBtn: 'Hatch',
       dimStyleTitle: 'Default dimension style', dimTextHeightLbl: 'Dim text (mm)', dimArrowSizeLbl: 'Arrowhead (mm)', centerMarkSizeLbl: 'Center mark (mm)',
       propsTitleDiadim: 'Properties: Diameter dim', propsTitleAngdim: 'Properties: Angle dim',
-      propsTitleLeader: 'Properties: Leader', propsTitleHatch: 'Properties: Hatch',
+      propsTitleLeader: 'Properties: Leader', propsTitleTextLeader: 'Properties: Text-Leader', propsTitleHatch: 'Properties: Hatch',
       propArrowSize: 'Arrowhead size (mm)', propSpacing: 'Line spacing (mm)', propHatchAngle: 'Line angle (°)',
       plotTitle: 'Plot to scale (PDF)', plotPaperLbl: 'Paper size', plotOrientLbl: 'Orientation',
       plotScaleLbl: 'Scale', plotGenerateBtn: 'Generate PDF',
@@ -218,7 +218,7 @@
     document.querySelectorAll('[data-i18n]').forEach(function (el) {
       var key = el.getAttribute('data-i18n');
       /* ป้ายบางอันมี input/select ซ้อนอยู่ข้างใน — เขียนทับแค่ text node แรก ไม่ทำ control หาย */
-      if (el.querySelector('select, input')) { el.childNodes[0].textContent = t(key); return; }
+      if (el.querySelector('select, input, textarea')) { el.childNodes[0].textContent = t(key); return; }
       el.textContent = t(key);
     });
     /* ปุ่มไอคอนล้วน (ไม่มีตัวหนังสือ) — แปลแค่ title (tooltip) เอง ไม่แตะเนื้อหาที่เห็น (สัญลักษณ์/SVG) */
@@ -462,9 +462,10 @@
     if (e.type === 'dim') { var dl = dimLinePoints(e); return distPointToSegment(p, dl.dimP1, dl.dimP2); }
     if (e.type === 'raddim') return distPointToSegment(p, e.center, raddimLeaderPoint(e));
     if (e.type === 'diadim') { var de = diaEndpoints(e); return distPointToSegment(p, de.p1, de.p2); }
-    if (e.type === 'leader') {
-      var lw = estimateTextWidth(e.text, e.height);
-      return Math.min(distPointToSegment(p, e.p1, e.p2), distPointToRect(p, e.p2.x, e.p2.y, e.p2.x + lw, e.p2.y + e.height));
+    if (e.type === 'leader' || e.type === 'textleader') {
+      var lLines = e.type === 'textleader' ? e.text.split('\n') : [e.text];
+      var lw = Math.max.apply(null, lLines.map(function (ln) { return estimateTextWidth(ln, e.height); }));
+      return Math.min(distPointToSegment(p, e.p1, e.p2), distPointToRect(p, e.p2.x, e.p2.y, e.p2.x + lw, e.p2.y + e.height * lLines.length));
     }
     if (e.type === 'hatch') {
       if (pointInPolygon(p, e.points)) return 0;
@@ -543,7 +544,7 @@
       pts.push({ p: dl0.dimP1, kind: 'end' }, { p: dl0.dimP2, kind: 'end' });
     } else if (e.type === 'raddim') { pts.push({ p: e.center, kind: 'center' }, { p: raddimLeaderPoint(e), kind: 'end' }); }
     else if (e.type === 'diadim') { var de0 = diaEndpoints(e); pts.push({ p: e.center, kind: 'center' }, { p: de0.p1, kind: 'end' }, { p: de0.p2, kind: 'end' }); }
-    else if (e.type === 'leader') { pts.push({ p: e.p1, kind: 'end' }, { p: e.p2, kind: 'end' }); }
+    else if (e.type === 'leader' || e.type === 'textleader') { pts.push({ p: e.p1, kind: 'end' }, { p: e.p2, kind: 'end' }); }
     else if (e.type === 'text') { pts.push({ p: e.p, kind: 'end' }); }
     else if (e.type === 'block') { pts.push({ p: e.p, kind: 'end' }); }
     else if (e.type === 'spline') { e.points.forEach(function (p) { pts.push({ p: p, kind: 'end' }); }); } // จุดควบคุมเท่านั้น (จุดกึ่งกลางเส้นตรงจะไม่ตรงกับเส้นโค้งจริง เลยไม่ใส่)
@@ -571,7 +572,11 @@
     if (e.type === 'dim') { var dl1 = dimLinePoints(e); return [e.p1, e.p2, dl1.dimP1, dl1.dimP2]; }
     if (e.type === 'raddim') return [e.center, raddimLeaderPoint(e)];
     if (e.type === 'diadim') { var de1 = diaEndpoints(e); return [de1.p1, de1.p2]; }
-    if (e.type === 'leader') { var lw2 = estimateTextWidth(e.text, e.height); return [e.p1, e.p2, { x: e.p2.x + lw2, y: e.p2.y + e.height }]; }
+    if (e.type === 'leader' || e.type === 'textleader') {
+      var bLines = e.type === 'textleader' ? e.text.split('\n') : [e.text];
+      var lw2 = Math.max.apply(null, bLines.map(function (ln) { return estimateTextWidth(ln, e.height); }));
+      return [e.p1, e.p2, { x: e.p2.x + lw2, y: e.p2.y + e.height * bLines.length }];
+    }
     if (e.type === 'hatch') return e.points;
     if (e.type === 'text') { var w2 = estimateTextWidth(e.text, e.height); return [e.p, { x: e.p.x + w2, y: e.p.y + e.height }]; }
     if (e.type === 'block') {
@@ -734,7 +739,7 @@
     else if (e.type === 'arc' || e.type === 'angdim') { e.center = fn(e.center); }
     else if (e.type === 'dim') { e.p1 = fn(e.p1); e.p2 = fn(e.p2); }
     else if (e.type === 'raddim' || e.type === 'diadim') { e.center = fn(e.center); }
-    else if (e.type === 'leader') { e.p1 = fn(e.p1); e.p2 = fn(e.p2); }
+    else if (e.type === 'leader' || e.type === 'textleader') { e.p1 = fn(e.p1); e.p2 = fn(e.p2); }
     else if (e.type === 'hatch') { e.points = e.points.map(fn); }
     else if (e.type === 'text') { e.p = fn(e.p); }
     else if (e.type === 'block') { e.p = fn(e.p); }
@@ -774,7 +779,7 @@
       }
       if (mods.scaleFactor != null && (src.type === 'circle' || src.type === 'arc' || src.type === 'raddim' || src.type === 'diadim' || src.type === 'angdim')) src.radius *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'dim') src.offset *= mods.scaleFactor;
-      if (mods.scaleFactor != null && (src.type === 'text' || src.type === 'leader')) src.height *= mods.scaleFactor;
+      if (mods.scaleFactor != null && (src.type === 'text' || src.type === 'leader' || src.type === 'textleader')) src.height *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'ordinate') src.textHeight *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'hatch') src.spacing *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'centermark') src.size *= mods.scaleFactor;
@@ -935,7 +940,7 @@
     }
     if (e.type === 'dim') { var dl2 = dimLinePoints(e); return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }, { p: dl2.dimP1, ref: 'dimoffset' }]; }
     if (e.type === 'raddim' || e.type === 'diadim') return [{ p: e.center, ref: 'center' }, { p: raddimLeaderPoint(e), ref: 'raddimleader' }];
-    if (e.type === 'leader') return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }];
+    if (e.type === 'leader' || e.type === 'textleader') return [{ p: e.p1, ref: 'p1' }, { p: e.p2, ref: 'p2' }];
     if (e.type === 'text' || e.type === 'block') return [{ p: e.p, ref: 'p' }];
     if (e.type === 'spline') return e.points.map(function (p, i) { return { p: p, ref: { idx: i } }; }); // ref รูปแบบเดียวกับ polyline — applyGripEdit จัดการให้ฟรีอยู่แล้ว
     if (e.type === 'centermark') return [{ p: e.center, ref: 'center' }];
@@ -1392,6 +1397,12 @@
         ctx.fillStyle = col_; ctx.font = Math.max(6, e.height * state.view.scale) + 'px Prompt, sans-serif';
         ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
         ctx.fillText(e.text, lps2.x, lps2.y);
+      } else if (e.type === 'textleader') {
+        var tlps1 = worldToScreen(e.p1.x, e.p1.y), tlps2 = worldToScreen(e.p2.x, e.p2.y);
+        ctx.beginPath(); ctx.moveTo(tlps1.x, tlps1.y); ctx.lineTo(tlps2.x, tlps2.y); ctx.stroke();
+        ctx.fillStyle = col_; var tlPx = Math.max(6, e.height * state.view.scale);
+        ctx.font = tlPx + 'px Prompt, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+        e.text.split('\n').forEach(function (ln, i) { ctx.fillText(ln, tlps2.x, tlps2.y + i * tlPx * 1.3); });
       } else if (e.type === 'hatch') {
         hatchLines(e).forEach(function (seg) { strokePolylinePts(seg, false); });
       } else if (e.type === 'spline') {
@@ -1626,15 +1637,16 @@
     select: 'toolSelectBtn', line: 'toolLineBtn', polyline: 'toolPolylineBtn', rect: 'toolRectBtn', circle: 'toolCircleBtn', arc: 'toolArcBtn', spline: 'toolSplineBtn',
     move: 'toolMoveBtn', copy: 'toolCopyBtn', rotate: 'toolRotateBtn', mirror: 'toolMirrorBtn', scale: 'toolScaleBtn',
     trim: 'toolTrimBtn', extend: 'toolExtendBtn', fillet: 'toolFilletBtn', offset: 'toolOffsetBtn', arrayrect: 'toolArrayRectBtn',
-    dim: 'toolDimBtn', raddim: 'toolRaddimBtn', diadim: 'toolDiadimBtn', angdim: 'toolAngdimBtn', text: 'toolTextBtn', leader: 'toolLeaderBtn', hatch: 'toolHatchBtn', centermark: 'toolCentermarkBtn', ordinate: 'toolOrdinateBtn',
+    dim: 'toolDimBtn', raddim: 'toolRaddimBtn', diadim: 'toolDiadimBtn', angdim: 'toolAngdimBtn', text: 'toolTextBtn', leader: 'toolLeaderBtn', textleader: 'toolTextLeaderBtn', hatch: 'toolHatchBtn', centermark: 'toolCentermarkBtn', ordinate: 'toolOrdinateBtn',
     block: 'toolBlockBtn', titleblock: 'toolTitleBlockBtn', constraint: 'toolConstraintBtn'
   };
   var distLbl = document.querySelector('label[data-i18n="distLbl"]'), angLbl = document.querySelector('label[data-i18n="angLbl"]');
   var arrayRow = $('arrayRow'), textRow = $('textRow'), textContentInput = $('textContentInput'), textHeightInput = $('textHeightInput');
+  var textContentTextarea = $('textContentTextarea'), textContentLblWrap = $('textContentLblWrap'), textContentMultiLblWrap = $('textContentMultiLblWrap');
   var hatchRow = $('hatchRow'), hatchSpacingInput = $('hatchSpacing'), hatchAngleInput = $('hatchAngle');
   var blockLibSel = $('blockLibSel'), insertRow = $('insertRow'), blockSizeInput = $('blockSizeInput'), blockRotInput = $('blockRotInput'), blockMirrorBtn = $('blockMirrorBtn');
-  var TEXT_ROW_POINTS_NEEDED = { text: 1, leader: 2 }; // จำนวนจุดที่ต้องคลิกก่อน textRow จะโผล่ (ข้อความ=1 จุด, ลูกศรชี้=2 จุด)
-  var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, hatch: 1, block: 1, titleblock: 1, constraint: 1, centermark: 1 };
+  var TEXT_ROW_POINTS_NEEDED = { text: 1, leader: 2, textleader: 2 }; // จำนวนจุดที่ต้องคลิกก่อน textRow จะโผล่ (ข้อความ=1 จุด, ลูกศรชี้/ข้อความ+เส้นชี้=2 จุด)
+  var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, textleader: 1, hatch: 1, block: 1, titleblock: 1, constraint: 1, centermark: 1 };
   /* ห้าแถวป้อนค่าละเอียด (preciseRow/arrayRow/textRow/hatchRow/insertRow) ใช้ visibility:hidden (ไม่ใช่
      display:none) ตอนไม่โผล่ เพื่อกันวิวพอร์ตขยับกลางอากาศตอนคลิกจุดถัดไประหว่างวาด (ดูคอมเมนต์ที่นิยาม
      .cad-precise-row ใน cad.html) — แต่ถ้าปล่อยให้ทั้ง 5 แถว "จอง" ที่ว่างพร้อมกันตลอดเวลาแม้ไม่มีแถวไหน
@@ -1647,7 +1659,7 @@
   function updatePreciseZoneEligibility(tool) {
     preciseRow.style.display = (!PRECISE_ROW_EXCLUDED[tool] || tool === 'constraint') ? '' : 'none';
     arrayRow.style.display = tool === 'arrayrect' ? '' : 'none';
-    textRow.style.display = (tool === 'text' || tool === 'leader') ? '' : 'none';
+    textRow.style.display = (tool === 'text' || tool === 'leader' || tool === 'textleader') ? '' : 'none';
     hatchRow.style.display = tool === 'hatch' ? '' : 'none';
     insertRow.style.display = tool === 'block' ? '' : 'none';
   }
@@ -1668,18 +1680,27 @@
     var needed = TEXT_ROW_POINTS_NEEDED[state.tool];
     var show = needed != null && state.pendingPoints.length === needed;
     textRow.classList.toggle('show', show);
-    if (show) { textHeightInput.value = state.textDefaultHeight; textContentInput.value = ''; textContentInput.focus(); }
+    var isMulti = state.tool === 'textleader';
+    textContentLblWrap.hidden = isMulti;
+    textContentMultiLblWrap.hidden = !isMulti;
+    if (show) {
+      textHeightInput.value = state.textDefaultHeight;
+      if (isMulti) { textContentTextarea.value = ''; textContentTextarea.focus(); }
+      else { textContentInput.value = ''; textContentInput.focus(); }
+    }
   }
   function applyTextRow() {
     var needed = TEXT_ROW_POINTS_NEEDED[state.tool];
     if (needed == null || state.pendingPoints.length !== needed) return;
-    var content = textContentInput.value;
+    var isMulti = state.tool === 'textleader';
+    var content = isMulti ? textContentTextarea.value : textContentInput.value;
     if (!content.trim()) { cancelDrawing(); return; }
     var h = parseFloat(textHeightInput.value);
     if (!isFinite(h) || h <= 0) h = state.textDefaultHeight;
     state.textDefaultHeight = h;
     pushHistory();
     if (state.tool === 'text') state.entities.push({ id: genId(), type: 'text', layer: state.activeLayer, p: state.pendingPoints[0], text: content, height: h });
+    else if (state.tool === 'textleader') state.entities.push({ id: genId(), type: 'textleader', layer: state.activeLayer, p1: state.pendingPoints[0], p2: state.pendingPoints[1], text: content, height: h });
     else state.entities.push({ id: genId(), type: 'leader', layer: state.activeLayer, p1: state.pendingPoints[0], p2: state.pendingPoints[1], text: content, height: h });
     updateCountUI(); scheduleSave();
     finishDrawing(); updateTextRowUI(); render();
@@ -1858,8 +1879,8 @@
       }
     } else if (state.tool === 'text') {
       state.pendingPoints = [pt]; // จุดเดียว — เนื้อหาข้อความกรอกผ่าน textRow แยกต่างหาก (ดู applyTextRow)
-    } else if (state.tool === 'leader') {
-      if (state.pendingPoints.length < 2) state.pendingPoints.push(pt); // 2 จุด (ปลายลูกศร + จุดข้อความ) แล้วกรอกข้อความผ่าน textRow เหมือนกัน
+    } else if (state.tool === 'leader' || state.tool === 'textleader') {
+      if (state.pendingPoints.length < 2) state.pendingPoints.push(pt); // 2 จุด (ปลายเส้นชี้ + จุดข้อความ) แล้วกรอกข้อความผ่าน textRow เหมือนกัน
     } else if (state.tool === 'ordinate') {
       /* มิติพิกัด (ordinate): คลิกจุดที่ 1 = จุดที่จะวัดพิกัด, คลิกจุดที่ 2 = ปลายเส้นชี้/ตำแหน่งตัวเลข —
          ทิศทางลากตัดสินว่าวัดแกนไหน (ลากขึ้น/ลงเป็นหลัก = ค่า X, ลากซ้าย/ขวาเป็นหลัก = ค่า Y) ตามหลักการ
@@ -2392,7 +2413,7 @@
     var TITLE_KEY = {
       line: 'propsTitleLine', polyline: 'propsTitlePolyline', rect: 'propsTitleRect', circle: 'propsTitleCircle',
       arc: 'propsTitleArc', dim: 'propsTitleDim', raddim: 'propsTitleRaddim', diadim: 'propsTitleDiadim',
-      angdim: 'propsTitleAngdim', text: 'propsTitleText', leader: 'propsTitleLeader', hatch: 'propsTitleHatch', block: 'propsTitleBlock', spline: 'propsTitleSpline', centermark: 'propsTitleCentermark', ordinate: 'propsTitleOrdinate'
+      angdim: 'propsTitleAngdim', text: 'propsTitleText', leader: 'propsTitleLeader', textleader: 'propsTitleTextLeader', hatch: 'propsTitleHatch', block: 'propsTitleBlock', spline: 'propsTitleSpline', centermark: 'propsTitleCentermark', ordinate: 'propsTitleOrdinate'
     };
     propsTitle.textContent = t(TITLE_KEY[e.type] || e.type);
     var fields = [], noteHtml = '';
@@ -2415,7 +2436,7 @@
         { k: 'propStartDeg', v: e.startAngle * 180 / Math.PI, set: function (v) { e.startAngle = v * Math.PI / 180; } },
         { k: 'propEndDeg', v: e.endAngle * 180 / Math.PI, set: function (v) { e.endAngle = v * Math.PI / 180; } }
       ];
-    } else if (e.type === 'text' || e.type === 'leader') {
+    } else if (e.type === 'text' || e.type === 'leader' || e.type === 'textleader') {
       fields = [
         { k: 'propHeight', v: e.height, set: function (v) { e.height = Math.max(0.1, v); } }
       ];
@@ -2445,7 +2466,9 @@
       fields.push({ k: 'propHeight', v: e.textHeight, set: function (v) { e.textHeight = Math.max(0.1, v); } });
       fields.push({ k: 'propArrowSize', v: e.arrowSize, set: function (v) { e.arrowSize = Math.max(0.1, v); } });
     }
-    var textFieldHtml = (e.type === 'text' || e.type === 'leader') ? '<label>' + t('propText') + '<input type="text" id="propTextContent" value="' + e.text.replace(/"/g, '&quot;') + '"></label>' : '';
+    var textFieldHtml = e.type === 'textleader'
+      ? '<label style="flex-basis:100%">' + t('propText') + '<textarea id="propTextContent" rows="2">' + e.text.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</textarea></label>'
+      : (e.type === 'text' || e.type === 'leader') ? '<label>' + t('propText') + '<input type="text" id="propTextContent" value="' + e.text.replace(/"/g, '&quot;') + '"></label>' : '';
     var mirrorFieldHtml = e.type === 'block' ? '<label style="flex-direction:row;align-items:center;gap:7px"><input type="checkbox" id="propBlockMirror"' + (e.mirrored ? ' checked' : '') + '>' + t('propBlockMirror') + '</label>' : '';
     var numFieldsHtml = fields.map(function (f, i) {
       return '<label>' + t(f.k) + '<input type="text" inputmode="decimal" data-fidx="' + i + '" value="' + fmtMm(f.v) + '"></label>';
@@ -2753,6 +2776,12 @@
         var lps2 = w2s(e.p2.x, e.p2.y);
         c.font = Math.max(6, e.height * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'bottom';
         c.fillText(e.text, lps2.x, lps2.y);
+      } else if (e.type === 'textleader') {
+        poly([e.p1, e.p2], false);
+        var tlps2 = w2s(e.p2.x, e.p2.y);
+        var tlPx2 = Math.max(6, e.height * pxPerMm);
+        c.font = tlPx2 + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'bottom';
+        e.text.split('\n').forEach(function (ln, i) { c.fillText(ln, tlps2.x, tlps2.y + i * tlPx2 * 1.3); });
       } else if (e.type === 'hatch') {
         hatchLines(e).forEach(function (seg) { poly(seg, false); });
       } else if (e.type === 'spline') {
@@ -2843,6 +2872,12 @@
       } else if (e.type === 'leader') {
         parts.push('<path d="' + polyPath([e.p1, e.p2], false) + '" stroke="' + color + '"/>');
         parts.push('<text x="' + sx(e.p2.x) + '" y="' + sy(e.p2.y) + '" font-size="' + e.height.toFixed(2) + '" fill="' + color + '">' + svgEsc(e.text) + '</text>');
+      } else if (e.type === 'textleader') {
+        parts.push('<path d="' + polyPath([e.p1, e.p2], false) + '" stroke="' + color + '"/>');
+        var tlSpans = e.text.split('\n').map(function (ln, i) {
+          return '<tspan x="' + sx(e.p2.x) + '" dy="' + (i === 0 ? '0' : (e.height * 1.3).toFixed(2)) + '">' + svgEsc(ln) + '</tspan>';
+        }).join('');
+        parts.push('<text x="' + sx(e.p2.x) + '" y="' + sy(e.p2.y) + '" font-size="' + e.height.toFixed(2) + '" fill="' + color + '">' + tlSpans + '</text>');
       } else if (e.type === 'hatch') {
         hatchLines(e).forEach(function (seg) { parts.push('<path d="' + polyPath(seg, false) + '" stroke="' + color + '"/>'); });
       } else if (e.type === 'spline') {
@@ -2928,6 +2963,13 @@
       return [].concat(dxfArc(e.center, e.radius, e.startAngle, e.endAngle), dxfLine(e.center, ae1), dxfLine(e.center, ae2), dxfText(aMid, e.textHeight || 3, angDeg.toFixed(1) + 'deg'));
     }
     if (e.type === 'leader') return [].concat(dxfLine(e.p1, e.p2), dxfText(e.p2, e.height, e.text));
+    if (e.type === 'textleader') {
+      /* DXF ไม่มี TEXT หลายบรรทัดในตัว (ต้องใช้ MTEXT ซึ่งซับซ้อนกว่ามากและโปรแกรมอ่าน DXF บางตัวไม่รองรับ) —
+         แตกเป็น TEXT entity แยกทีละบรรทัดวางเรียงลงมาแทน อ่านได้ในโปรแกรม CAD ใดๆ แน่นอน */
+      var tlChunks = dxfLine(e.p1, e.p2);
+      e.text.split('\n').forEach(function (ln, i) { tlChunks = tlChunks.concat(dxfText({ x: e.p2.x, y: e.p2.y - i * e.height * 1.3 }, e.height, ln)); });
+      return tlChunks;
+    }
     if (e.type === 'hatch') {
       var chunks = [];
       hatchLines(e).forEach(function (seg) { chunks = chunks.concat(dxfLine(seg[0], seg[1])); });
@@ -3127,6 +3169,10 @@
         var lAngW = Math.atan2(e.p2.y - e.p1.y, e.p2.x - e.p1.x), lp2 = w2p(e.p2.x, e.p2.y);
         pdfPoly([e.p1, e.p2], false); pdfArrow(e.p1, lAngW + Math.PI, e.height * 0.5, rgb);
         pdf.setFontSize(e.height * 2.83465); pdf.text(e.text, lp2.x, lp2.y);
+      } else if (e.type === 'textleader') {
+        var tlp2 = w2p(e.p2.x, e.p2.y);
+        pdfPoly([e.p1, e.p2], false);
+        pdf.setFontSize(e.height * 2.83465); pdf.text(e.text.split('\n'), tlp2.x, tlp2.y); // jsPDF วางแต่ละสตริงใน array เป็นคนละบรรทัดให้อัตโนมัติ
       } else if (e.type === 'hatch') { hatchLines(e).forEach(function (seg) { pdfPoly(seg, false); }); }
       else if (e.type === 'spline') { pdfPoly(splinePoints(e), !!e.closed); }
       else if (e.type === 'centermark') {

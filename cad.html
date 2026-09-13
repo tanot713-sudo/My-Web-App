@@ -74,6 +74,15 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .cad-tool-grid .btn{width:38px;height:38px;padding:0;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:17px}
 .cad-tool-grid .btn svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .cad-tool-grid .btn svg.fill{fill:currentColor;stroke:none}
+.cad-tool-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.cad-tool-listitem{display:flex;align-items:center;gap:9px;width:100%;padding:7px 9px;border-radius:8px;
+  border:1.5px solid var(--line);background:none;cursor:pointer;font-family:inherit;font-size:12.5px;
+  color:var(--ink);text-align:left}
+.cad-tool-listitem svg{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.5;
+  stroke-linecap:round;stroke-linejoin:round}
+.cad-tool-listitem svg .fill{fill:currentColor;stroke:none}
+.cad-tool-listitem:hover{background:var(--line)}
+.cad-tool-listitem.active{border-color:var(--brand);background:var(--brand-sf);color:var(--brand-dk)}
 .cad-tool-subrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
 .cad-tool-subrow select{width:100%;font-family:inherit;font-size:12.5px;padding:7px 8px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
 .cad-tool-subrow label{display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:var(--muted);font-weight:700;flex:1;min-width:95px}
@@ -114,6 +123,9 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .cad-precise-row input{font-family:inherit;font-size:13px;padding:6px 8px;border-radius:8px;border:1.5px solid var(--brand);
   background:var(--card);color:var(--ink);width:90px;-webkit-appearance:none}
 .cad-precise-row input:focus{outline:none;box-shadow:0 0 0 2px var(--brand-sf)}
+.cad-precise-row textarea{font-family:inherit;font-size:13px;padding:6px 8px;border-radius:8px;border:1.5px solid var(--brand);
+  background:var(--card);color:var(--ink);width:100%;min-width:200px;resize:vertical}
+.cad-precise-row textarea:focus{outline:none;box-shadow:0 0 0 2px var(--brand-sf)}
 .cad-precise-hint{font-size:11.5px;color:var(--brand-dk);font-weight:500}
 #finishPolylineBtn{display:none}
 #finishPolylineBtn.show{display:inline-flex}
@@ -144,6 +156,9 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .cad-props-grid input{font-family:inherit;font-size:13px;padding:7px 9px;border-radius:8px;border:1.5px solid var(--line);
   background:var(--bg);color:var(--ink);width:120px;-webkit-appearance:none}
 .cad-props-grid input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-sf)}
+.cad-props-grid textarea{font-family:inherit;font-size:13px;padding:7px 9px;border-radius:8px;border:1.5px solid var(--line);
+  background:var(--bg);color:var(--ink);width:100%;min-width:200px;resize:vertical}
+.cad-props-grid textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-sf)}
 .cad-props-note{font-size:12.5px;color:var(--muted);line-height:1.6}
 #textRow label.cad-text-content-lbl{flex:1 1 220px}
 #textRow input#textContentInput{width:100%}
@@ -354,11 +369,14 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
             <button class="btn sm" id="toolRaddimBtn" type="button" data-i18n-title="toolRaddim" title="มิติรัศมี">⌀</button>
             <button class="btn sm" id="toolDiadimBtn" type="button" data-i18n-title="toolDiadim" title="มิติเส้นผ่าศูนย์กลาง">⌀⌀</button>
             <button class="btn sm" id="toolAngdimBtn" type="button" data-i18n-title="toolAngdim" title="มิติมุม">∠</button>
-            <button class="btn sm" id="toolLeaderBtn" type="button" data-i18n-title="toolLeader" title="ลูกศรชี้"><svg viewBox="0 0 18 18"><circle class="fill" cx="2.5" cy="15.5" r="1.3"/><path d="M2.5 15.5 L9 9"/><path d="M9 9 H15"/><path d="M15 9 L12 6M15 9 L12 12"/></svg></button>
             <button class="btn sm" id="toolTextBtn" type="button" data-i18n-title="toolText" title="ข้อความ"><svg viewBox="0 0 18 18"><path d="M3 15 L9 2 L15 15M5.3 10 H12.7"/></svg></button>
             <button class="btn sm" id="toolHatchBtn" type="button" data-i18n-title="toolHatch" title="แรเงา">▤</button>
-            <button class="btn sm" id="toolCentermarkBtn" type="button" data-i18n-title="toolCentermark" title="เครื่องหมายกึ่งกลาง"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"></circle><line x1="9" y1="3.5" x2="9" y2="6.5"></line><line x1="9" y1="11.5" x2="9" y2="14.5"></line><line x1="3.5" y1="9" x2="6.5" y2="9"></line><line x1="11.5" y1="9" x2="14.5" y2="9"></line></svg></button>
-            <button class="btn sm" id="toolOrdinateBtn" type="button" data-i18n-title="toolOrdinate" title="มิติพิกัด"><svg viewBox="0 0 18 18"><path d="M2 2v14h14"></path><circle class="fill" cx="9" cy="9" r="1.3"></circle><line x1="9" y1="9" x2="9" y2="16" stroke-dasharray="2 2"></line></svg></button>
+          </div>
+          <div class="cad-tool-list">
+            <button type="button" class="cad-tool-listitem" id="toolLeaderBtn"><svg viewBox="0 0 18 18"><circle class="fill" cx="2.5" cy="15.5" r="1.3"/><path d="M2.5 15.5 L9 9"/><path d="M9 9 H15"/><path d="M15 9 L12 6M15 9 L12 12"/></svg><span data-i18n="toolLeader">ลูกศรชี้</span></button>
+            <button type="button" class="cad-tool-listitem" id="toolTextLeaderBtn"><svg viewBox="0 0 18 18"><path d="M2.5 15.5 L8 10"/><path d="M8 10 H12"/><rect x="9" y="2.5" width="7" height="5" rx="0.6"/><line x1="10.5" y1="4.2" x2="14.5" y2="4.2"/><line x1="10.5" y1="5.8" x2="13" y2="5.8"/></svg><span data-i18n="toolTextLeader">ข้อความ+เส้นชี้</span></button>
+            <button type="button" class="cad-tool-listitem" id="toolCentermarkBtn"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"></circle><line x1="9" y1="3.5" x2="9" y2="6.5"></line><line x1="9" y1="11.5" x2="9" y2="14.5"></line><line x1="3.5" y1="9" x2="6.5" y2="9"></line><line x1="11.5" y1="9" x2="14.5" y2="9"></line></svg><span data-i18n="toolCentermark">เครื่องหมายกึ่งกลาง</span></button>
+            <button type="button" class="cad-tool-listitem" id="toolOrdinateBtn"><svg viewBox="0 0 18 18"><path d="M2 2v14h14"></path><circle class="fill" cx="9" cy="9" r="1.3"></circle><line x1="9" y1="9" x2="9" y2="16" stroke-dasharray="2 2"></line></svg><span data-i18n="toolOrdinate">มิติพิกัด (Ordinate)</span></button>
           </div>
           <div class="cad-tool-subrow">
             <label data-i18n="dimTextHeightLbl">ตัวอักษรมิติ (มม.)<input type="text" id="dimTextHeightInput" inputmode="decimal" autocomplete="off" value="3"></label>
@@ -442,7 +460,8 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
       </div>
 
       <div class="cad-tb-group cad-precise-row" id="textRow">
-        <label class="cad-text-content-lbl" data-i18n="textContentLbl">ข้อความ<input type="text" id="textContentInput" autocomplete="off"></label>
+        <label class="cad-text-content-lbl" id="textContentLblWrap" data-i18n="textContentLbl">ข้อความ<input type="text" id="textContentInput" autocomplete="off"></label>
+        <label class="cad-text-content-lbl" id="textContentMultiLblWrap" data-i18n="textContentMultiLbl" hidden>ข้อความ (ขึ้นบรรทัดใหม่ได้)<textarea id="textContentTextarea" rows="2"></textarea></label>
         <label data-i18n="textHeightLbl">ความสูงตัวอักษร (มม.)<input type="text" id="textHeightInput" inputmode="decimal" autocomplete="off" value="12"></label>
         <button class="btn sm" id="textApplyBtn" type="button" data-i18n="textApplyBtn">วางข้อความ</button>
       </div>
