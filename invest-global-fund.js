@@ -27,23 +27,22 @@
       dcaTitle: 'แผนทยอยซื้อ (DCA)', accMLabel: 'ซื้อ "สะสมมูลค่า" /เดือน', divMLabel: 'ซื้อ "ปันผล" /เดือน',
       yearsLabel: 'วางแผนล่วงหน้า', unitYears: '(ปี)', cagrLabel: 'ผลตอบแทนเฉลี่ย/ปี', unitPct: '(%)',
       feeLabel: 'ค่าธรรมเนียมกองทุน/ปี', dyLabel: 'ปันผลของชนิดปันผล/ปี', calcPlanBtn: 'คำนวณแผน',
-      oContribLabel: 'เงินที่ลงทั้งหมด', oValueLabel: 'มูลค่ารวมโดยประมาณ', oGainLabel: 'กำไรจากการเติบโต', oGainSub: 'ยังไม่รวมภาษี/ค่าธรรมเนียมซื้อ',
+      oContribLabel: 'เงินที่ลงทั้งหมด', oValueLabel: 'มูลค่ารวมโดยประมาณ', oGainLabel: 'กำไรจากการเติบโต',
       accColTitle: 'แบบสะสมมูลค่า', divColTitle: 'แบบปันผล',
-      lineInvested: 'ลงทั้งหมด', lineFinalValue: 'มูลค่าปลายทาง', lineDivReceived: 'ปันผลรับ', lineDivReceivedNote: '— (ทบในกอง)', lineDivCumulative: 'ปันผลรับสะสม',
+      lineInvested: 'ลงทั้งหมด', lineFinalValue: 'มูลค่าปลายทาง', lineDivReceived: 'ปันผลรับ', lineDivReceivedNote: '—', lineDivCumulative: 'ปันผลรับสะสม',
       chartValue: 'มูลค่ารวม', chartCost: 'เงินที่ใส่ (ต้นทุน)', viewYearTableSummary: 'ดูตารางรายปี',
       ddTitle: 'ตลาดย่อ = โอกาสเติมไม้ (ทางเลือก)', idxNowLabel: 'ดัชนี S&P500 ตอนนี้', idxAthLabel: 'จุดสูงสุดที่เคยทำ (ATH)', ddBtn: 'ดูคำแนะนำ',
       tr10m: 'ย่อเล็ก', tr20m: 'ตลาดหมี', tr30m: 'ย่อแรง',
       logTitle: 'สมุดซื้อจริงของฉัน', classField: 'ชนิด', classAcc: 'สะสมมูลค่า', classDiv: 'ปันผล',
       lgAmtLabel: 'เงินที่ซื้อ (บาท)', lgNavLabel: 'ราคา/หน่วย (NAV)', lgAddBtn: '+ เพิ่ม',
       lgCurLabel: 'NAV ปัจจุบัน (คำนวณกำไร/ขาดทุน)', lgCurPh: 'ราคาต่อหน่วยตอนนี้',
-      lgEmptyDefault: 'ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อ จะได้รู้ต้นทุนเฉลี่ยและกำไร-ขาดทุน',
+      lgEmptyDefault: 'ยังไม่มีรายการ',
       alertMonthlyAmount: 'ใส่จำนวนเงินซื้อต่อเดือนอย่างน้อยหนึ่งชนิด',
       oContribSub: '{amt} บาท/เดือน × {months} เดือน', oValueSub: 'ในอีก {years} ปี (สมมติ {cagr}%/ปี)',
       yrTableColYear: 'สิ้นปีที่', yrTableColContrib: 'เงินที่ใส่', yrTableColValue: 'มูลค่ารวม', yrTableColGain: 'กำไร', yrRowLabel: 'ปีที่ {n}',
       ddNearAth: 'ตอนนี้ราคาใกล้จุดสูงสุด (ย่อ {dd}%) — DCA ปกติเดือนละ {base} พอ ไม่ต้องเร่งเติม',
       ddNormal: 'ย่อลง <b>{dd}%</b> จากจุดสูงสุด — ยังถือว่าปกติ DCA ตามแผนเดือนละ {base}',
       ddTierMsg: 'ย่อลง <b>{dd}%</b> จากจุดสูงสุด — ตามกฎที่ตั้งไว้ อาจเพิ่มเงินซื้อเดือนนี้เป็น <b>×{mult}</b> ≈ <b>{amt}</b> (ถ้ามีเงินสำรอง)',
-      ddWarn: 'เตือน: การย่อไม่ได้แปลว่าจะไม่ลงต่อ — เติมเท่าที่มีเงินสำรองและไม่กระทบชีวิตประจำวัน',
       lgGroupSummary: 'รวมซื้อ {amt} · {units} หน่วย · ต้นทุนเฉลี่ย {avg}/หน่วย', lgGroupValueNow: ' · มูลค่าตอนนี้ {val} <b style="color:{color}">({sign}{pl}, {sign2}{pct}%)</b>',
       logThDate: 'วันที่', logThClass: 'ชนิด', logThAmt: 'เงิน', logThNav: 'NAV', logThUnits: 'หน่วย',
       alertLgFields: 'กรอกเงินที่ซื้อ และราคา/หน่วย (NAV) ให้ครบ'
@@ -54,23 +53,22 @@
       dcaTitle: 'Dollar-Cost Averaging Plan (DCA)', accMLabel: 'Buy "Accumulation" /month', divMLabel: 'Buy "Dividend" /month',
       yearsLabel: 'Plan ahead', unitYears: '(years)', cagrLabel: 'Average return/year', unitPct: '(%)',
       feeLabel: 'Fund fee/year', dyLabel: 'Dividend class yield/year', calcPlanBtn: 'Calculate Plan',
-      oContribLabel: 'Total contributed', oValueLabel: 'Estimated total value', oGainLabel: 'Growth gain', oGainSub: 'Not yet including tax/purchase fees',
+      oContribLabel: 'Total contributed', oValueLabel: 'Estimated total value', oGainLabel: 'Growth gain',
       accColTitle: 'Accumulation class', divColTitle: 'Dividend class',
-      lineInvested: 'Total invested', lineFinalValue: 'Final value', lineDivReceived: 'Dividends received', lineDivReceivedNote: '— (reinvested in fund)', lineDivCumulative: 'Cumulative dividends received',
+      lineInvested: 'Total invested', lineFinalValue: 'Final value', lineDivReceived: 'Dividends received', lineDivReceivedNote: '—', lineDivCumulative: 'Cumulative dividends received',
       chartValue: 'Total value', chartCost: 'Money contributed (cost)', viewYearTableSummary: 'View year-by-year table',
       ddTitle: 'Market dip = a chance to add (optional)', idxNowLabel: 'S&P500 index now', idxAthLabel: 'All-time high (ATH)', ddBtn: 'Get recommendation',
       tr10m: 'Small dip', tr20m: 'Bear market', tr30m: 'Sharp dip',
       logTitle: 'My Actual Purchase Log', classField: 'Class', classAcc: 'Accumulation', classDiv: 'Dividend',
       lgAmtLabel: 'Amount purchased (baht)', lgNavLabel: 'Price/unit (NAV)', lgAddBtn: '+ Add',
       lgCurLabel: 'Current NAV (to calculate P/L)', lgCurPh: 'Current price per unit',
-      lgEmptyDefault: 'No entries yet — log every purchase to know your average cost and profit/loss',
+      lgEmptyDefault: 'No entries yet',
       alertMonthlyAmount: 'Enter a monthly purchase amount for at least one class',
       oContribSub: '{amt} baht/month × {months} months', oValueSub: 'in {years} more years (assuming {cagr}%/year)',
       yrTableColYear: 'End of year', yrTableColContrib: 'Contributed', yrTableColValue: 'Total value', yrTableColGain: 'Gain', yrRowLabel: 'Year {n}',
       ddNearAth: 'The price is currently near its all-time high (dip {dd}%) — a normal DCA of {base}/month is enough, no need to add extra',
       ddNormal: 'Down <b>{dd}%</b> from the all-time high — still considered normal, DCA as planned at {base}/month',
       ddTierMsg: 'Down <b>{dd}%</b> from the all-time high — per the rule you set, consider increasing this month\'s purchase to <b>×{mult}</b> ≈ <b>{amt}</b> (if you have reserve funds)',
-      ddWarn: "Warning: a dip doesn't mean it won't fall further — only add what you have in reserve funds, without affecting your daily life",
       lgGroupSummary: 'Total bought {amt} · {units} units · average cost {avg}/unit', lgGroupValueNow: ' · current value {val} <b style="color:{color}">({sign}{pl}, {sign2}{pct}%)</b>',
       logThDate: 'Date', logThClass: 'Class', logThAmt: 'Amount', logThNav: 'NAV', logThUnits: 'Units',
       alertLgFields: 'Please fill in the amount purchased and price/unit (NAV)'
@@ -200,7 +198,7 @@
     if (dd < 1) msg = t('ddNearAth', { dd: fmt(Math.max(0, dd), 1), base: baht(base) });
     else if (dd < 10) msg = t('ddNormal', { dd: fmt(dd, 1), base: baht(base) });
     else msg = t('ddTierMsg', { dd: fmt(dd, 1), mult: mult, amt: baht(base * mult) });
-    out.innerHTML = msg + '<div style="font-size:12px;color:var(--muted);margin-top:6px">' + t('ddWarn') + '</div>';
+    out.innerHTML = msg;
     out.style.display = 'block';
   }
 
