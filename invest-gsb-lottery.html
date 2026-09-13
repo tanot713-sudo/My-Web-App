@@ -131,7 +131,7 @@ select{font-family:inherit}
           <option value="16" selected data-i18n="freqOnceLong">ทุกเดือน (1 ครั้ง) — วันที่ 16</option>
           <option value="1,16" data-i18n="freqTwiceLong">ทุกเดือน (2 ครั้ง) — วันที่ 1 และ 16</option>
         </select></div>
-      <div class="field"><label data-i18n="lblGuarRate">อัตราดอกเบี้ยรับประกัน/ปี (%) </label><span class="unit" data-i18n="lblGuarRateUnit" style="margin-left:-3px">(ตัวอย่างเท่านั้น — แก้ตามใบสลากจริง)</span><input type="number" id="gbGuarRate" inputmode="decimal" step="0.01" value="0.1"></div>
+      <div class="field"><label data-i18n="lblGuarRate">อัตราดอกเบี้ยรับประกัน/ปี (%) </label><input type="number" id="gbGuarRate" inputmode="decimal" step="0.01" value="0.1"></div>
     </div>
     <label style="display:flex;align-items:center;gap:6px;margin-top:10px;cursor:pointer">
       <input type="checkbox" id="gbTaxExempt" checked style="width:15px;height:15px;accent-color:var(--brand)">
@@ -142,7 +142,6 @@ select{font-family:inherit}
       <div id="tierBox"></div>
       <button class="btn sm" id="tierAddBtn" type="button" style="margin-top:8px" data-i18n="tierAddBtn">+ เพิ่มระดับรางวัล</button>
     </div>
-    <p style="font-size:11.5px;color:var(--muted);margin-top:8px" data-i18n="tiersHint">กรอกตารางระดับรางวัลจากใบสลาก/เว็บธนาคารออมสินจริง — เพื่อนำมาคำนวณค่าคาดหวัง (ตารางรางวัลเปลี่ยนทุกงวด แอปนี้จึงไม่มีตัวเลขให้ล่วงหน้า)</p>
 
     <div style="margin-top:12px"><button class="btn primary" id="gbCalcBtn" type="button" data-i18n="calcBtn">คำนวณค่าคาดหวัง</button></div>
 
@@ -166,7 +165,6 @@ select{font-family:inherit}
       <div class="field"><label data-i18n="lblDepRate">อัตราดอกเบี้ยเงินฝากประจำที่จะเทียบ (%)</label><input type="number" id="cmpDepRate" inputmode="decimal" step="0.01" value="1.5"></div>
       <button class="btn sm" id="cmpBtn" type="button" data-i18n="cmpBtn">เทียบผลตอบแทน</button>
     </div>
-    <p style="font-size:12px;color:var(--muted);margin-top:8px" data-i18n="cmpHint">ใช้เงินต้นและผลการคำนวณจากการ์ดด้านบน (กดคำนวณการ์ดนั้นก่อน)</p>
     <div id="cmpOut" style="display:none">
       <div class="cmp">
         <div class="col acc">
@@ -203,10 +201,10 @@ select{font-family:inherit}
           <option value="16" selected data-i18n="freqOnce">ทุกเดือน (1 ครั้ง)</option>
           <option value="1,16" data-i18n="freqTwice">ทุกเดือน (2 ครั้ง)</option>
         </select></div>
-      <div class="field"><label data-i18n="lblEvPerDraw">ค่าคาดหวังต่อหน่วยต่องวด (บาท) </label><span class="unit" data-i18n="lblEvPerDrawUnit" style="margin-left:-3px">(จากการ์ดด้านบน แก้ได้)</span><input type="number" id="lgEvPerDraw" inputmode="decimal" step="0.0001" value="0"></div>
+      <div class="field"><label data-i18n="lblEvPerDraw">ค่าคาดหวังต่อหน่วยต่องวด (บาท) </label><input type="number" id="lgEvPerDraw" inputmode="decimal" step="0.0001" value="0"></div>
       <button class="btn sm" id="lgAdd" type="button" data-i18n="addBtn">+ บันทึก</button>
     </div>
-    <div id="lgBox"><div class="log-empty" data-i18n="lgEmptyDefault">ยังไม่มีรายการ — บันทึกทุกครั้งที่ซื้อสลาก จะได้ตารางวันจับรางวัลและติดตามว่างวดไหนถูกรางวัลหรือไม่ (ผลจริงต้องตรวจสอบเองจากธนาคาร/เว็บออมสิน แล้วบันทึกไว้ที่นี่)</div></div>
+    <div id="lgBox"><div class="log-empty" data-i18n="lgEmptyDefault">ยังไม่มีรายการ</div></div>
   </div>
 
 </div>
