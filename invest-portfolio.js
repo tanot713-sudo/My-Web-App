@@ -36,11 +36,10 @@
       lblBuyDate: 'วันที่ซื้อ (ย้อนหลังได้)', buyBtn: 'ดึงราคา + ซื้อ',
       lblSellSym: 'หุ้นที่ถือ', sellBtn: 'ดึงราคา + ขาย',
       holdTitle: 'หุ้นที่ถือ', refreshBtn: 'รีเฟรชราคา',
-      holdEmpty: 'ยังไม่มีหุ้นในพอร์ต — ลองซื้อจากด้านบนได้เลย',
+      holdEmpty: 'ยังไม่มีหุ้นในพอร์ต',
       txTitle: 'ประวัติการซื้อขาย', txEmpty: 'ยังไม่มีรายการ',
       driveTitle: 'สำรองพอร์ตจำลองขึ้น Google Drive',
       driveConnectBtn: 'เชื่อมต่อ Google Drive', driveConnectedBtn: 'เชื่อมต่อ Google Drive แล้ว',
-      sTotalSubStale: 'ราคาบางตัวอาจยังไม่รีเฟรช — กด "รีเฟรชราคา"',
       thHoldSym: 'หุ้น', thHoldShares: 'จำนวน', thHoldAvg: 'ทุนเฉลี่ย', thHoldPrice: 'ราคาล่าสุด', thHoldVal: 'มูลค่า', thHoldPl: 'กำไร/ขาดทุน',
       priceNotFetched: 'ยังไม่ดึง',
       optHoldSuffix: 'มี {n} หุ้น',
@@ -80,11 +79,10 @@
       lblBuyDate: 'Purchase date (can be backdated)', buyBtn: 'Fetch price + Buy',
       lblSellSym: 'Stock held', sellBtn: 'Fetch price + Sell',
       holdTitle: 'Holdings', refreshBtn: 'Refresh prices',
-      holdEmpty: 'No stocks in your portfolio yet — try buying one above',
+      holdEmpty: 'No stocks in your portfolio yet',
       txTitle: 'Trade History', txEmpty: 'No transactions yet',
       driveTitle: 'Back up simulated portfolio to Google Drive',
       driveConnectBtn: 'Connect Google Drive', driveConnectedBtn: 'Google Drive connected',
-      sTotalSubStale: 'Some prices may not be refreshed yet — press "Refresh prices"',
       thHoldSym: 'Stock', thHoldShares: 'Shares', thHoldAvg: 'Avg cost', thHoldPrice: 'Latest price', thHoldVal: 'Value', thHoldPl: 'Profit/Loss',
       priceNotFetched: 'Not fetched yet',
       optHoldSuffix: 'has {n} shares',
@@ -301,7 +299,6 @@
     $('sCash').textContent = baht(state.cash);
     $('sHoldVal').textContent = baht(holdVal);
     $('sTotal').textContent = baht(total);
-    $('sTotalSub').textContent = state.holdings.length ? t('sTotalSubStale') : '';
     var plEl = $('sPl');
     plEl.textContent = (pl >= 0 ? '+' : '') + baht(pl);
     plEl.className = 'val ' + (pl > 0 ? 'up' : pl < 0 ? 'dn' : '');
