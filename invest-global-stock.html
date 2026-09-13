@@ -420,6 +420,14 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     </div>
   </div>
 
+  <!-- สรุปหุ้นด้วย AI -->
+  <div class="card" id="aiSumCard" style="display:none">
+    <h2 data-i18n="aiSumTitle">สรุปหุ้นด้วย AI</h2>
+    <button class="btn primary sm" id="aiSumBtn" type="button" data-i18n="aiSumBtn">สรุปให้หน่อย</button>
+    <div class="status" id="aiSumStatus"></div>
+    <div class="ai-sum-out" id="aiSumOut" style="display:none;margin-top:11px;background:var(--bg);border-radius:9px;padding:12px 13px;font-size:13.5px;line-height:1.75;white-space:pre-wrap"></div>
+  </div>
+
   <!-- STEP 2: คุมเงิน -->
   <div class="card">
     <h2><span class="step">2</span> <span data-i18n="step2Title">ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน</span></h2>

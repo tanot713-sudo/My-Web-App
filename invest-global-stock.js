@@ -111,6 +111,19 @@
       calcHeadline: 'ควรซื้อได้ประมาณ <b>{shares} หุ้น</b> ใช้เงิน ≈ <b>{cost}</b>{fx}',
       kvRiskIfWrong: 'ถ้าผิดทาง (แตะ Stop) เสียไม่เกิน', kvStopPrice: 'ราคาตัดขาดทุน (Stop)', kvBreakeven: 'ราคาคุ้มทุน (รวมค่าคอมฯ ไป-กลับ)', kvRR: 'ความคุ้ม (กำไรคาดหวัง : ความเสี่ยง) ถึงแนวต้าน',
       tpLot1: 'ทยอยขายไม้ 1: {price}', tpLot2: 'ไม้ 2: {price}', tpLot3: 'ไม้ 3: {price}', thisStockFallback: 'หุ้น',
+      aiSumTitle: 'สรุปหุ้นด้วย AI', aiSumBtn: 'สรุปให้หน่อย',
+      iosNotSupported: 'ฟีเจอร์นี้ (AI รันในเครื่อง) ยังไม่รองรับ iPhone/iPad ตอนนี้ — หน่วยความจำต่อแท็บของ Safari/iOS จำกัดเกินกว่าจะรันโมเดลได้อย่างเสถียร ลองใช้งานจากคอมพิวเตอร์แทนได้ครับ',
+      needStockData: 'ยังไม่มีข้อมูลหุ้นให้สรุป — ดึงราคาหรือดูกราฟตัวอย่างก่อนนะครับ',
+      summarizing: 'กำลังสรุป… (ครั้งแรกอาจต้องโหลดโมเดล AI ~350MB ก่อน)', loadingModel: 'กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) {file} {pct}',
+      summarizeFail: 'สรุปไม่สำเร็จ ลองอีกครั้ง', summarizeFailWith: 'สรุปไม่สำเร็จ: {msg}', unknownReason: 'ไม่ทราบสาเหตุ',
+      memErrorMsg: 'โหลดโมเดล AI ไม่สำเร็จ เพราะหน่วยความจำที่เบราว์เซอร์เหลือให้ใช้ไม่พอ (มักเกิดถ้าเปิดแท็บ/โปรแกรมอื่นพร้อมกันเยอะ) ลองปิดแท็บ/โปรแกรมอื่นแล้วกดสรุปใหม่อีกครั้ง',
+      ctxStock: 'หุ้น: {v}', ctxLatestPrice: 'ราคาล่าสุด: {v} ดอลลาร์สหรัฐฯ', ctxVerdict: 'สัญญาณไฟจราจรที่คำนวณแล้ว: {v} ({why})',
+      ctxPros: 'ปัจจัยหนุนที่ตรวจพบ: {v}', ctxCons: 'ปัจจัยเสี่ยงที่ตรวจพบ: {v}',
+      ctxRsi: 'RSI (14 วัน): {v}', ctxRsiHigh: ' (สูง/ร้อนแรง)', ctxRsiLow: ' (ต่ำ/แรงขายเริ่มคลาย)', ctxRsiMid: ' (กลางๆ)',
+      ctxMacd: 'MACD histogram: {v}', ctxMacdPos: ' (เป็นบวก)', ctxMacdNeg: ' (เป็นลบ)',
+      ctxEma: 'เส้นเฉลี่ย 20 วัน: {e20}, เส้นเฉลี่ย 50 วัน: {e50}', ctxEmaUp: ' (ราคาอยู่เหนือเส้นเฉลี่ย — แนวโน้มขึ้น)', ctxEmaDn: ' (ราคาอยู่ใต้เส้นเฉลี่ย — แนวโน้มลง/พักตัว)',
+      ctxSupport: 'แนวรับล่าสุด: {v}', ctxResistance: 'แนวต้านล่าสุด: {v}',
+      ctxAdx: 'ความแรงแนวโน้ม (ADX): {v}', ctxAdxStrong: ' (แข็งแรง)', ctxAdxWeak: ' (อ่อน)',
       alertJournalFields: 'กรอกราคาเข้า ราคาออก และจำนวนหุ้นให้ครบ', alertEnterSym: 'ใส่ชื่อหุ้นก่อน', alertEnterValid: 'กรอกจำนวนหุ้นและราคาต้นทุนให้ถูกต้อง',
       fetchingSellPrice: 'กำลังดึงราคา {sym}…', sellFetchFail: 'ดึงราคา {sym} ไม่ได้ตอนนี้ — ลองใหม่อีกครั้ง หรือกรอกราคาปัจจุบันเองในช่อง',
       sellLatestPrice: 'ราคาล่าสุด {price}', sellSavedAge: ' (บันทึกไว้ {age})', sellCostLabel: ' · ต้นทุน {cost} · ', sellProfit: 'กำไร ', sellLoss: 'ขาดทุน ',
@@ -234,6 +247,19 @@
       calcHeadline: 'You should buy about <b>{shares} shares</b>, using ≈ <b>{cost}</b>{fx}',
       kvRiskIfWrong: "If wrong (hits Stop), you lose no more than", kvStopPrice: 'Stop-loss price', kvBreakeven: 'Break-even price (incl. round-trip commission)', kvRR: 'Reward:risk to resistance',
       tpLot1: 'Sell lot 1: {price}', tpLot2: 'Lot 2: {price}', tpLot3: 'Lot 3: {price}', thisStockFallback: 'stock',
+      aiSumTitle: 'AI Stock Summary', aiSumBtn: 'Summarize It',
+      iosNotSupported: 'This feature (on-device AI) isn’t supported on iPhone/iPad yet — Safari/iOS per-tab memory is too limited to run the model reliably. Try from a computer instead',
+      needStockData: 'No stock data to summarize yet — fetch a price or view the sample chart first',
+      summarizing: 'Summarizing… (first time may need to download the ~350MB AI model)', loadingModel: 'Loading model (first time only) {file} {pct}',
+      summarizeFail: 'Summary failed, try again', summarizeFailWith: 'Summary failed: {msg}', unknownReason: 'unknown reason',
+      memErrorMsg: 'Failed to load the AI model because the browser doesn’t have enough free memory (usually from having many tabs/programs open at once). Try closing other tabs/programs and summarizing again',
+      ctxStock: 'Stock: {v}', ctxLatestPrice: 'Latest price: {v} USD', ctxVerdict: 'Computed signal: {v} ({why})',
+      ctxPros: 'Detected tailwinds: {v}', ctxCons: 'Detected risks: {v}',
+      ctxRsi: 'RSI (14-day): {v}', ctxRsiHigh: ' (high/overheated)', ctxRsiLow: ' (low/selling pressure easing)', ctxRsiMid: ' (neutral)',
+      ctxMacd: 'MACD histogram: {v}', ctxMacdPos: ' (positive)', ctxMacdNeg: ' (negative)',
+      ctxEma: '20-day MA: {e20}, 50-day MA: {e50}', ctxEmaUp: ' (price above the MAs — uptrend)', ctxEmaDn: ' (price below the MAs — downtrend/consolidation)',
+      ctxSupport: 'Latest support: {v}', ctxResistance: 'Latest resistance: {v}',
+      ctxAdx: 'Trend strength (ADX): {v}', ctxAdxStrong: ' (strong)', ctxAdxWeak: ' (weak)',
       alertJournalFields: 'Please fill in entry price, exit price, and share count', alertEnterSym: 'Enter a ticker first', alertEnterValid: 'Enter a valid share count and cost',
       fetchingSellPrice: 'Fetching {sym} price…', sellFetchFail: "Couldn't fetch {sym} price right now — try again, or enter the current price yourself",
       sellLatestPrice: 'Latest price {price}', sellSavedAge: ' (saved {age})', sellCostLabel: ' · cost {cost} · ', sellProfit: 'profit ', sellLoss: 'loss ',
@@ -851,9 +877,130 @@
 
     if (!$('entry').value) $('entry').value = a.price.toFixed(2);
     if (!$('stop').value && isFinite(a.suggestStop)) $('stop').value = a.suggestStop.toFixed(2);
+
+    /* การ์ด "สรุปหุ้นด้วย AI" — โชว์เมื่อมีไฟจราจรจริง (ไม่ใช่ light: 'gray' ที่ยังไม่มีข้อมูลราคาเลย)
+       รีเซ็ตผลสรุปเก่าทิ้งทุกครั้งที่เปลี่ยนหุ้น/โหลดข้อมูลใหม่ กันโชว์สรุปของหุ้นตัวก่อนหน้าค้างอยู่ */
+    if (a.light && a.light !== 'gray') {
+      $('aiSumCard').style.display = 'block';
+      $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+      setAiSumStatus('', '');
+    } else {
+      $('aiSumCard').style.display = 'none';
+    }
   }
 
   function setStatus(msg, cls) { var el = $('fetchStatus'); el.textContent = msg; el.className = 'status' + (cls ? ' ' + cls : ''); }
+
+  /* ══════ สรุปหุ้นด้วย AI — ใช้ ai-chat-worker.js ตัวเดียวกับวิดเจ็ตแชทลอย (ai-chat-widget.js)
+     รันในเครื่องผู้ใช้เอง ไม่ส่งข้อมูลออกไปไหน แนวทาง "guided summarization" เดียวกับหน้าหุ้นไทย —
+     ป้อน "ตัวเลข/สัญญาณที่หน้านี้คำนวณไว้ให้แล้ว" (RSI/MACD/แนวรับ-แนวต้าน ฯลฯ จาก analyzeSeries()
+     ด้านบน) ตรงๆ ให้โมเดล กันโมเดลเล็กต้องมาคำนวณ/ตีความตัวเลขเอง ให้ทำหน้าที่แค่ "เรียบเรียงเป็นภาษาพูด"
+     จากผลที่คำนวณแม่นแล้วเท่านั้น (หน้านี้ไม่มีข่าวรายหุ้นแบบหน้าหุ้นไทย จึงไม่มีส่วนข่าวในบริบทที่ป้อน) ── */
+  var AI_SUMMARY_SYSTEM_PROMPT = 'คุณเป็นผู้ช่วยสรุปข้อมูลหุ้นให้นักลงทุนมือใหม่ชาวไทยฟัง จะได้รับตัวเลข/' +
+    'สัญญาณทางเทคนิคที่คำนวณไว้ให้แล้วล่วงหน้า (ห้ามคำนวณหรือเดาตัวเลขเพิ่มเองเด็ดขาด ใช้เฉพาะตัวเลขที่ให้มา) ' +
+    'หน้าที่ของคุณคือเรียบเรียงเป็นภาษาพูดที่เข้าใจง่าย ไม่ใช่ผู้แนะนำการลงทุน ' +
+    'ตอบเป็นภาษาไทยตามโครงสร้างนี้เท่านั้น (ห้ามขึ้นต้นด้วยคำนำ ให้เริ่มที่ "สรุปภาพรวม:" ทันที):\n\n' +
+    'สรุปภาพรวม: (1-2 ประโยค อธิบายสถานะราคาปัจจุบันแบบเข้าใจง่ายจากข้อมูลที่ให้)\n' +
+    'ปัจจัยหนุน: (ไม่เกิน 3 ข้อ จากข้อมูลที่ให้เท่านั้น ถ้าไม่มีให้บอกว่า "ไม่มีปัจจัยหนุนเด่นชัดตอนนี้")\n' +
+    'ปัจจัยเสี่ยง: (ไม่เกิน 3 ข้อ จากข้อมูลที่ให้เท่านั้น ถ้าไม่มีให้บอกว่า "ไม่มีปัจจัยเสี่ยงเด่นชัดตอนนี้")\n\n' +
+    'ห้ามให้คำแนะนำซื้อ/ขาย ห้ามทำนายราคาในอนาคต ห้ามเติมตัวเลข บริษัท หรือเหตุการณ์ที่ไม่ได้อยู่ในข้อมูลที่ให้มาเด็ดขาด';
+  var AI_SUMMARY_REMINDER = 'ย้ำ: ห้ามให้คำแนะนำซื้อ/ขาย ห้ามทำนายราคาในอนาคต ห้ามเติมตัวเลข/เหตุการณ์ที่ไม่ได้อยู่ในข้อมูลที่ให้มา ' +
+    'ตอบตามโครงสร้าง 3 หัวข้อที่กำหนดเท่านั้น เริ่มที่ "สรุปภาพรวม:" ทันที ห้ามขึ้นต้นด้วยคำนำ';
+  var AI_SUMMARY_SYSTEM_PROMPT_EN = 'You are an assistant who summarizes stock data for a novice retail investor. You will be given ' +
+    'pre-computed numbers/technical signals (never calculate or guess extra numbers yourself — use only the numbers given). ' +
+    'Your job is to phrase this as plain, easy-to-understand language, not as an investment advisor. ' +
+    'Reply in English using ONLY this structure (do not start with any preamble — start directly with "Overview:"):\n\n' +
+    'Overview: (1-2 sentences explaining the current price status in plain terms, from the data given)\n' +
+    'Tailwinds: (up to 3 bullet points, only from the data given — if none, say "No clear tailwinds right now")\n' +
+    'Risks: (up to 3 bullet points, only from the data given — if none, say "No clear risks right now")\n\n' +
+    'Never give buy/sell advice. Never predict future prices. Never add numbers, companies, or events not present in the data given.';
+  var AI_SUMMARY_REMINDER_EN = 'Reminder: never give buy/sell advice, never predict future prices, never add numbers/events not present in the data given. ' +
+    'Reply using only the 3-section structure above, starting directly with "Overview:" — no preamble.';
+
+  function isIOS() {
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) return true;
+    return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  }
+  function friendlyChatError(rawMessage) {
+    var msg = rawMessage || '';
+    if (/bad_alloc|Can't create a session|out of memory/i.test(msg)) return t('memErrorMsg');
+    return msg;
+  }
+
+  var aiSumChatWorker = null, aiSumJobSeq = 0, aiSumBusy = false;
+  function getAiSumWorker() { if (!aiSumChatWorker) aiSumChatWorker = new Worker('./ai-chat-worker.js', { type: 'module' }); return aiSumChatWorker; }
+  function setAiSumStatus(text, cls) { var el = $('aiSumStatus'); if (!el) return; el.textContent = text || ''; el.className = 'status' + (cls ? ' ' + cls : ''); }
+
+  function buildStockContext() {
+    var a = lastAnalysis; if (!a) return null;
+    var sym = (lastSource && lastSource.label) ? lastSource.label : (($('sym').value || '').trim().toUpperCase() || t('thisStockFallback'));
+    var lines = [t('ctxStock', { v: sym }), t('ctxLatestPrice', { v: fmt(a.price) }), t('ctxVerdict', { v: a.verdict, why: a.why })];
+    if (a.pros && a.pros.length) lines.push(t('ctxPros', { v: a.pros.join(', ') }));
+    if (a.cons && a.cons.length) lines.push(t('ctxCons', { v: a.cons.join(', ') }));
+    var d = a.det || {};
+    if (isFinite(d.rsi)) lines.push(t('ctxRsi', { v: fmt(d.rsi, 1) }) + (d.rsi > 70 ? t('ctxRsiHigh') : d.rsi < 38 ? t('ctxRsiLow') : t('ctxRsiMid')));
+    if (isFinite(d.macdHist)) lines.push(t('ctxMacd', { v: fmt(d.macdHist, 3) }) + (d.macdHist >= 0 ? t('ctxMacdPos') : t('ctxMacdNeg')));
+    if (isFinite(d.ema20) && isFinite(d.ema50)) lines.push(t('ctxEma', { e20: fmt(d.ema20), e50: fmt(d.ema50) }) + (a.uptrend ? t('ctxEmaUp') : t('ctxEmaDn')));
+    if (isFinite(d.support)) lines.push(t('ctxSupport', { v: fmt(d.support) }));
+    if (isFinite(d.resistance)) lines.push(t('ctxResistance', { v: fmt(d.resistance) }));
+    if (isFinite(d.adx)) lines.push(t('ctxAdx', { v: fmt(d.adx, 0) }) + (d.adx >= 20 ? t('ctxAdxStrong') : t('ctxAdxWeak')));
+    return lines.join('\n');
+  }
+
+  function doAiSummary() {
+    if (aiSumBusy) return;
+    if (isIOS()) { setAiSumStatus(t('iosNotSupported'), 'err'); return; }
+    var ctx = buildStockContext();
+    if (!ctx) { setAiSumStatus(t('needStockData'), 'err'); return; }
+
+    aiSumBusy = true;
+    $('aiSumBtn').disabled = true;
+    $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+    setAiSumStatus(t('summarizing'), '');
+
+    var isEn = getUILang() === 'en';
+    var payloadMessages = [
+      { role: 'system', content: isEn ? AI_SUMMARY_SYSTEM_PROMPT_EN : AI_SUMMARY_SYSTEM_PROMPT },
+      { role: 'user', content: ctx },
+      { role: 'system', content: isEn ? AI_SUMMARY_REMINDER_EN : AI_SUMMARY_REMINDER }
+    ];
+    var jobId = ++aiSumJobSeq, replyText = '';
+    var w = getAiSumWorker();
+
+    function onMsg(e) {
+      var msg = e.data;
+      if (!msg || msg.jobId !== jobId) return;
+      if (msg.type === 'model-progress') {
+        var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
+        setAiSumStatus(t('loadingModel', { file: msg.file, pct: pct }), '');
+      } else if (msg.type === 'fallback') {
+        setAiSumStatus('' + msg.message, '');
+      } else if (msg.type === 'token') {
+        if (!replyText) { setAiSumStatus('', ''); $('aiSumOut').style.display = 'block'; }
+        replyText += msg.token;
+        $('aiSumOut').textContent = replyText;
+      } else if (msg.type === 'done') {
+        cleanup();
+        if (!replyText) setAiSumStatus(t('summarizeFail'), 'err');
+        aiSumBusy = false; $('aiSumBtn').disabled = false;
+      } else if (msg.type === 'error') {
+        cleanup();
+        $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+        setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(msg.message) }), 'err');
+        aiSumBusy = false; $('aiSumBtn').disabled = false;
+      }
+    }
+    function onErr(e) {
+      cleanup();
+      $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+      setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(e.message || t('unknownReason')) }), 'err');
+      aiSumBusy = false; $('aiSumBtn').disabled = false;
+    }
+    function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+    w.addEventListener('message', onMsg);
+    w.addEventListener('error', onErr);
+    w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });
+  }
 
   function doAnalyze() {
     if (lastSeries) { useSeries(lastSeries); return; }
@@ -1704,6 +1851,7 @@
     $('scanBtn').addEventListener('click', doScan);
     $('greenOnly').addEventListener('change', applyGreenFilter);
     $('pfAdd').addEventListener('click', addHolding);
+    $('aiSumBtn').addEventListener('click', doAiSummary);
     $('driveConnectBtn') && $('driveConnectBtn').addEventListener('click', function () { DriveSync.connect(); });
 
     /* ตัวแปลงสกุลเงิน */
