@@ -17,20 +17,18 @@
     th: {
       navOverview: 'ภาพรวม', navMyPortfolio: 'พอร์ตของฉัน', navMarket: 'ตลาด & สินทรัพย์', navLottery: 'สลาก & พันธบัตร', navNews: 'ข่าว & ธุรกิจ',
       crumbHome: 'การลงทุน', crumbThaiStock: 'หุ้นไทย', crumbHere: 'สแกนเนอร์ SET50',
-      pageTitle: 'สแกนเนอร์ SET50', pageDesc: 'ไล่ดึงราคา + วิเคราะห์ไฟจราจรของหุ้น SET50 ทั้ง 50 ตัวให้อัตโนมัติ — แตะแถวเพื่อเปิดหุ้นตัวนั้นในหน้าหุ้นไทย',
+      pageTitle: 'สแกนเนอร์ SET50',
       scanBtn: 'หาหุ้นน่าสนใจ', scanBtnStop: '⏹ หยุด', greenOnlyLabel: 'เฉพาะไฟเขียว',
       thSym: 'หลักทรัพย์', thLast: 'ล่าสุด', thChg: '+/−', thPct: '%', thSig: 'สัญญาณ', rowLoading: 'กดดู',
-      hint: 'แตะแถวเพื่อดูว่า "น่าลงทุนไหม" · กด "หาหุ้นน่าสนใจ" ให้ระบบไล่ดึงราคา+วิเคราะห์ (ครั้งแรกอาจช้า/ไม่ครบ รอบต่อไปเร็วขึ้นเพราะจำไว้) · <b>ไม่ใช่คำแนะนำซื้อ</b>',
       scanDone: 'สแกนสำเร็จ {ok}/{total} ตัว · เจอน่าสนใจ {green} ตัว (ไม่ใช่คำแนะนำซื้อ)', scanProgress: 'กำลังสแกน {idx}/{total} ({sym})…',
       scannerLink: 'สแกนเนอร์ SET50'
     },
     en: {
       navOverview: 'Overview', navMyPortfolio: 'My Portfolio', navMarket: 'Markets & Assets', navLottery: 'Lottery & Bonds', navNews: 'News & Business',
       crumbHome: 'Investing', crumbThaiStock: 'Thai Stocks', crumbHere: 'SET50 Scanner',
-      pageTitle: 'SET50 Scanner', pageDesc: 'Automatically fetches prices + analyzes the signal light for all 50 SET50 stocks — tap a row to open that stock on the Thai Stocks page',
+      pageTitle: 'SET50 Scanner',
       scanBtn: 'Find interesting stocks', scanBtnStop: '⏹ Stop', greenOnlyLabel: 'Green only',
       thSym: 'Ticker', thLast: 'Last', thChg: '+/−', thPct: '%', thSig: 'Signal', rowLoading: 'Click to view',
-      hint: 'Tap a row to see if it\'s "worth investing in" · click "Find interesting stocks" to fetch + analyze in bulk (first run may be slow/incomplete, faster next time since it\'s cached) · <b>not a buy recommendation</b>',
       scanDone: 'Scanned {ok}/{total} · found {green} interesting (not a buy recommendation)', scanProgress: 'Scanning {idx}/{total} ({sym})…',
       scannerLink: 'SET50 Scanner'
     }
