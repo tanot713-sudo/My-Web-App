@@ -492,87 +492,6 @@ body.embedded .pf-addform{display:none}
     </div>
   </div>
 
-  <!-- เรียนรู้: อ่านกราฟ -->
-  <details class="card lesson" style="margin-top:14px">
-    <summary style="font-size:var(--t3)" data-i18n="lesson1Summary">อ่านกราฟเป็นใน 5 นาที (มีรูป)</summary>
-    <div class="details-body">
-      <h3 data-i18n="l1h1">1. แท่งเทียน 1 แท่ง = ราคา 1 วัน</h3>
-      <figure>
-        <svg class="svg-lesson" viewBox="0 0 400 210" xmlns="http://www.w3.org/2000/svg">
-          <line x1="95" y1="22" x2="95" y2="178" stroke="#26a69a" stroke-width="2.5"/>
-          <rect x="76" y="62" width="38" height="82" rx="2" fill="#26a69a"/>
-          <text x="95" y="200" font-size="13" text-anchor="middle" fill="#26a69a" font-weight="700" data-i18n="l1UpDay">วันขึ้น (เขียว)</text>
-          <line x1="305" y1="30" x2="305" y2="188" stroke="#ef5350" stroke-width="2.5"/>
-          <rect x="286" y="70" width="38" height="72" rx="2" fill="#ef5350"/>
-          <text x="305" y="200" font-size="13" text-anchor="middle" fill="#ef5350" font-weight="700" data-i18n="l1DnDay">วันลง (แดง)</text>
-          <text x="130" y="40" font-size="11" fill="currentColor" data-i18n="l1HighWick">← ไส้บน = ราคาสูงสุด</text>
-          <text x="130" y="104" font-size="11" fill="currentColor" data-i18n="l1Body">← ตัวเทียน = ช่วงเปิด–ปิด</text>
-          <text x="130" y="168" font-size="11" fill="currentColor" data-i18n="l1LowWick">← ไส้ล่าง = ราคาต่ำสุด</text>
-        </svg>
-        <figcaption data-i18n="l1Caption">เขียว = วันนั้นปิดสูงกว่าเปิด (ราคาขึ้น) · แดง = ปิดต่ำกว่าเปิด (ราคาลง) · ตัวอ้วนคือช่วงเปิด-ปิด เส้นบาง (ไส้) คือจุดสูงสุด-ต่ำสุดของวัน</figcaption>
-      </figure>
-      <h3 data-i18n="l2h1">2. แนวโน้ม: ขึ้น / ลง / ออกข้าง</h3>
-      <figure>
-        <svg class="svg-lesson" viewBox="0 0 440 130" xmlns="http://www.w3.org/2000/svg" fill="none">
-          <polyline points="15,105 45,88 75,95 105,60 135,70 145,40" stroke="#26a69a" stroke-width="2.5" stroke-linejoin="round"/>
-          <text x="80" y="125" font-size="12" text-anchor="middle" fill="#26a69a" font-weight="700" data-i18n="l2Up">ขาขึ้น</text>
-          <polyline points="165,40 195,58 225,50 255,82 285,74 295,105" stroke="#ef5350" stroke-width="2.5" stroke-linejoin="round"/>
-          <text x="230" y="125" font-size="12" text-anchor="middle" fill="#ef5350" font-weight="700" data-i18n="l2Dn">ขาลง</text>
-          <polyline points="315,72 345,60 360,80 390,62 405,80 430,66" stroke="#8B94A8" stroke-width="2.5" stroke-linejoin="round"/>
-          <text x="375" y="125" font-size="12" text-anchor="middle" fill="#8B94A8" font-weight="700" data-i18n="l2Side">ออกข้าง</text>
-        </svg>
-        <figcaption data-i18n="l2Caption">ยอด/ก้นสูงขึ้นเรื่อยๆ = ขาขึ้น (มองหาจังหวะซื้อ) · ต่ำลงเรื่อยๆ = ขาลง (เลี่ยง) · ไปข้างๆ = ยังไม่มีทิศทาง (รอ)</figcaption>
-      </figure>
-      <h3 data-i18n="l3h1">3. แนวรับ–แนวต้าน</h3>
-      <figure>
-        <svg class="svg-lesson" viewBox="0 0 440 150" xmlns="http://www.w3.org/2000/svg" fill="none">
-          <line x1="10" y1="32" x2="430" y2="32" stroke="#ef5350" stroke-width="1.5" stroke-dasharray="6 4"/>
-          <line x1="10" y1="118" x2="430" y2="118" stroke="#26a69a" stroke-width="1.5" stroke-dasharray="6 4"/>
-          <polyline points="20,60 60,34 100,70 150,116 200,80 250,34 300,70 350,116 400,86" stroke="#3B9BEA" stroke-width="2.5" stroke-linejoin="round"/>
-          <text x="14" y="26" font-size="11" fill="#ef5350" font-weight="700" data-i18n="l3Resist">แนวต้าน (มักเด้งลง)</text>
-          <text x="14" y="136" font-size="11" fill="#26a69a" font-weight="700" data-i18n="l3Support">แนวรับ (มักเด้งขึ้น)</text>
-        </svg>
-        <figcaption data-i18n="l3Caption">ราคามักเด้งขึ้นเมื่อลงมาถึง "แนวรับ" และมักย่อลงเมื่อขึ้นไปชน "แนวต้าน" — ใกล้แนวรับในขาขึ้น = จังหวะที่น่าสนใจ</figcaption>
-      </figure>
-      <h3 data-i18n="l4h1">4. เส้นค่าเฉลี่ย (เฉลี่ย 20 / 50 วัน)</h3>
-      <figure>
-        <svg class="svg-lesson" viewBox="0 0 440 130" xmlns="http://www.w3.org/2000/svg" fill="none">
-          <polyline points="15,95 45,70 60,90 90,55 120,78 150,48 180,66 210,40 240,58 270,36 300,52 330,30 360,46 400,28" stroke="#8B94A8" stroke-width="1.5" opacity="0.8"/>
-          <polyline points="15,90 60,80 120,70 180,58 240,50 300,42 360,36 400,32" stroke="#F5A524" stroke-width="3" stroke-linejoin="round"/>
-          <text x="405" y="26" font-size="11" fill="#F5A524" font-weight="700" data-i18n="l4Avg">เฉลี่ย</text>
-        </svg>
-        <figcaption data-i18n="l4Caption">เส้นสีส้มคือค่าเฉลี่ยของราคา ช่วยกรองความแกว่งให้เห็นทิศทางรวมง่ายขึ้น — ราคาอยู่เหนือเส้น = แนวโน้มขึ้น อยู่ใต้เส้น = แนวโน้มลง</figcaption>
-      </figure>
-      <h3 data-i18n="l5h1">5. แล้วดูกราฟจริงด้านบนยังไง</h3>
-      <p data-i18n="l5Body">กดปุ่ม "ดูกราฟตัวอย่าง" ที่ขั้นที่ 1 เพื่อลองเล่นกับกราฟจริงได้เลย — สลับช่วงเวลา (1เดือน–1ปี), เปิด-ปิดเส้นเฉลี่ย, แตะบนกราฟเพื่อดูราคาแต่ละวัน แล้วไฟจราจรจะสรุปให้ว่าโดยรวมน่าสนใจไหม</p>
-    </div>
-  </details>
-
-  <!-- เรียนรู้ -->
-  <details class="card lesson">
-    <summary style="font-size:var(--t3)" data-i18n="lesson2Summary">เรียนรู้ — มือใหม่อ่านตรงนี้ก่อน</summary>
-    <div class="details-body">
-      <h3 data-i18n="l6h1">สวิงเทรดคืออะไร</h3>
-      <p data-i18n="l6Body">ซื้อแล้วถือ "ไม่กี่วันถึงไม่กี่สัปดาห์" รอราคาขยับขึ้นตามจังหวะ แล้วขายทำกำไร — ไม่ใช่ซื้อขายรัวๆ ในวันเดียว และไม่ใช่ถือยาวเป็นปี</p>
-      <h3 data-i18n="l7h1">ทำไม "จุดตัดขาดทุน (Stop)" สำคัญที่สุด</h3>
-      <p data-i18n="l7Body">ก่อนซื้อ ให้รู้ก่อนว่า "ถ้าคิดผิด จะยอมขาดทุนที่ราคาไหน" แล้วตั้งไว้ พอราคาถึงจุดนั้นให้ขายตัดใจ ไม่ปล่อยให้ขาดทุนบานปลาย — คนเจ๊งหุ้นส่วนใหญ่เพราะไม่ยอมตัดขาดทุน</p>
-      <h3 data-i18n="l8h1">"ยอมเสี่ยงต่อไม้ 2%" หมายถึงอะไร</h3>
-      <p data-i18n="l8Body">แต่ละครั้งที่ซื้อ ถ้าผิดทางจริง ควรเสียเงินไม่เกิน ~2% ของพอร์ต เครื่องจะคำนวณให้เองว่าควรซื้อกี่หุ้นถึงจะไม่เกินนี้ ทำให้ไม้เดียวไม่ทำพอร์ตพัง</p>
-      <h3 data-i18n="l9h1">ล็อต 100 หุ้นคืออะไร</h3>
-      <p data-i18n="l9Body">หุ้นไทยซื้อขายเป็นชุดละ 100 หุ้น (1 ล็อต) เครื่องจะปัดจำนวนให้ลงตัวเป็นหลักร้อยให้อัตโนมัติ</p>
-      <h3 data-i18n="l10h1">ค่าคอมฯ และ "ราคาคุ้มทุน"</h3>
-      <p data-i18n-html="l10Body">ทุกครั้งที่ซื้อและขายมีค่าคอมฯ (ปกติผ่านเน็ต ~0.157% ต่อครั้ง) ราคาต้องขึ้นเกิน "จุดคุ้มทุน" ก่อนถึงจะเริ่มมีกำไรจริง เครื่องคำนวณให้แล้ว — แต่โบรกส่วนใหญ่คิด <b>ค่าคอมฯ ขั้นต่ำ ~50 บาท/วัน</b> ด้วย ถ้าไม้เล็กจนค่าคอมฯ ตามเปอร์เซ็นต์ไม่ถึงขั้นต่ำ จะโดนเก็บที่ขั้นต่ำแทน ทำให้จุดคุ้มทุนสูงกว่าที่คิดมาก (เช่น ไม้ ~3,500 บาท ค่าคอมฯ จริงอาจพุ่งไปเกือบ 3% ไป-กลับ) ไม้ยิ่งใหญ่ ยิ่งเฉลี่ยค่าคอมฯ ขั้นต่ำให้ถูกลง</p>
-      <h3 data-i18n="l11h1">อ่านไฟจราจรยังไง</h3>
-      <ul>
-        <li data-i18n="l11Green">เขียว = ราคาน่าสนใจ อยู่ช่วงถูกของรอบและเริ่มมีแรงซื้อ — ค่อยพิจารณา (ไม่ใช่สั่งให้ซื้อ)</li>
-        <li data-i18n="l11Yellow">เหลือง = กลางๆ ยังไม่มีจังหวะเด่น รอดูก่อน</li>
-        <li data-i18n="l11Red">แดง = ราคาแพงเทียบรอบ/สัญญาณอ่อน ระวังการไล่ซื้อ</li>
-      </ul>
-      <h3 data-i18n="l12h1">เอาตัวเลขจาก Streaming ตรงไหน</h3>
-      <p data-i18n="l12Body">เปิดหุ้นที่สนใจใน Streaming: "ราคาตอนนี้" คือราคาล่าสุดตัวใหญ่ ส่วน "สูงสุด/ต่ำสุดของรอบ" ดูช่อง High/Low (หรือ 52W High/Low ก็ได้ถ้าหาช่วงสั้นไม่เจอ) แล้วนำมากรอกในขั้นที่ 1</p>
-    </div>
-  </details>
-
   </div><!-- /p-ov -->
 
   <!-- ═══ ข่าวและปฏิทิน ═══ -->
@@ -584,7 +503,6 @@ body.embedded .pf-addform{display:none}
     </div>
   </div>
 
-  <div class="disc" data-i18n-html="footerDisc">เครื่องนี้เป็นตัวช่วยคิดและฝึกวินัย ไม่ใช่คำแนะนำการลงทุน และไม่รับประกันกำไร · การตัดสินใจและความเสี่ยงเป็นของคุณเอง · ข้อมูลเก็บในเครื่องคุณเป็นหลัก (สำรองขึ้น Google Drive ส่วนตัวได้ที่หน้า <a href="invest-trade-journal.html" style="color:var(--act-ink);font-weight:700">สมุดเทรด</a>)</div>
 </div>
 
 <script src="invest-drivesync.js" defer></script>
