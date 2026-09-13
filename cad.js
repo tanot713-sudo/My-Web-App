@@ -88,7 +88,7 @@
       importDxfSuccess: 'นำเข้า {n} เอนทิตี้จากไฟล์ DXF เรียบร้อย (ถูกเลือกไว้ให้แล้ว)',
       importDxfError: 'อ่านไฟล์นี้ไม่ได้ — ไม่ใช่ไฟล์ DXF หรือไฟล์เสียหาย',
       importDxfEmpty: 'ไม่พบเอนทิตี้ที่รองรับในไฟล์ DXF นี้ (รองรับ LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)',
-      toolDiadim: 'มิติเส้นผ่าศูนย์กลาง', toolAngdim: 'มิติมุม', toolLeader: 'ลูกศรชี้', toolHatch: 'แรเงา', toolCentermark: 'เครื่องหมายกึ่งกลาง',
+      toolDiadim: 'มิติเส้นผ่าศูนย์กลาง', toolAngdim: 'มิติมุม', toolLeader: 'ลูกศรชี้', toolHatch: 'แรเงา', toolCentermark: 'เครื่องหมายกึ่งกลาง', toolOrdinate: 'มิติพิกัด (Ordinate)',
       hatchSpacingLbl: 'ระยะห่างลาย (มม.)', hatchAngleLbl: 'มุมลาย (°)', hatchApplyBtn: 'แรเงา',
       dimStyleTitle: 'สไตล์มิติเริ่มต้น', dimTextHeightLbl: 'ตัวอักษรมิติ (มม.)', dimArrowSizeLbl: 'หัวลูกศร (มม.)', centerMarkSizeLbl: 'เครื่องหมายกึ่งกลาง (มม.)',
       propsTitleDiadim: 'คุณสมบัติ: มิติเส้นผ่าศูนย์กลาง', propsTitleAngdim: 'คุณสมบัติ: มิติมุม',
@@ -107,7 +107,7 @@
       propsTitleBlock: 'คุณสมบัติ: บล็อก/สัญลักษณ์', propBlockSize: 'ขนาดจริง (มม.)', propBlockRotation: 'มุมหมุน (°)', propBlockMirror: 'มิเรอร์',
       toolSpline: 'สปไลน์',
       propsTitleSpline: 'คุณสมบัติ: สปไลน์', propSplineNote: 'สปไลน์มี {n} จุดควบคุม — ลากจุดสี่เหลี่ยมบนเส้นเพื่อแก้รูปทรงโค้งโดยตรง',
-      propsTitleCentermark: 'คุณสมบัติ: เครื่องหมายกึ่งกลาง', propCenterMarkSize: 'ขนาดเครื่องหมาย (มม.)',
+      propsTitleCentermark: 'คุณสมบัติ: เครื่องหมายกึ่งกลาง', propCenterMarkSize: 'ขนาดเครื่องหมาย (มม.)', propsTitleOrdinate: 'คุณสมบัติ: มิติพิกัด',
       toolConstraint: 'ข้อจำกัด',
       constraintCoincident: 'จุดตรงกัน (เส้น 2 เส้น)', constraintHorizontal: 'แนวนอน (เส้น 1 เส้น)', constraintVertical: 'แนวตั้ง (เส้น 1 เส้น)',
       constraintParallel: 'ขนาน (เส้น 2 เส้น)', constraintPerpendicular: 'ตั้งฉาก (เส้น 2 เส้น)', constraintEqual: 'เท่ากัน (เส้น/วงกลม 2 ชิ้นชนิดเดียวกัน)',
@@ -169,7 +169,7 @@
       importDxfSuccess: 'Imported {n} entities from the DXF file (now selected)',
       importDxfError: "Couldn't read this file — not a DXF file, or it's corrupted",
       importDxfEmpty: 'No supported entities found in this DXF file (supports LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)',
-      toolDiadim: 'Diameter dim', toolAngdim: 'Angle dim', toolLeader: 'Leader', toolHatch: 'Hatch', toolCentermark: 'Center mark',
+      toolDiadim: 'Diameter dim', toolAngdim: 'Angle dim', toolLeader: 'Leader', toolHatch: 'Hatch', toolCentermark: 'Center mark', toolOrdinate: 'Ordinate dim',
       hatchSpacingLbl: 'Line spacing (mm)', hatchAngleLbl: 'Line angle (°)', hatchApplyBtn: 'Hatch',
       dimStyleTitle: 'Default dimension style', dimTextHeightLbl: 'Dim text (mm)', dimArrowSizeLbl: 'Arrowhead (mm)', centerMarkSizeLbl: 'Center mark (mm)',
       propsTitleDiadim: 'Properties: Diameter dim', propsTitleAngdim: 'Properties: Angle dim',
@@ -188,7 +188,7 @@
       propsTitleBlock: 'Properties: Block/symbol', propBlockSize: 'Real size (mm)', propBlockRotation: 'Rotation (°)', propBlockMirror: 'Mirror',
       toolSpline: 'Spline',
       propsTitleSpline: 'Properties: Spline', propSplineNote: 'Spline has {n} control points — drag a square grip on the curve to reshape it directly',
-      propsTitleCentermark: 'Properties: Center mark', propCenterMarkSize: 'Mark size (mm)',
+      propsTitleCentermark: 'Properties: Center mark', propCenterMarkSize: 'Mark size (mm)', propsTitleOrdinate: 'Properties: Ordinate dim',
       toolConstraint: 'Constraint',
       constraintCoincident: 'Coincident (2 lines)', constraintHorizontal: 'Horizontal (1 line)', constraintVertical: 'Vertical (1 line)',
       constraintParallel: 'Parallel (2 lines)', constraintPerpendicular: 'Perpendicular (2 lines)', constraintEqual: 'Equal (2 lines or 2 circles, same type)',
@@ -392,6 +392,10 @@
     var p1 = raddimLeaderPoint(e);
     return { p1: p1, p2: { x: 2 * e.center.x - p1.x, y: 2 * e.center.y - p1.y } };
   }
+  /* มิติพิกัด (ordinate): ค่าตัวเลข = พิกัด X หรือ Y ของจุด e.p เทียบกับจุดกำเนิด (0,0) เสมอในสเตจนี้
+     คำนวณสดทุกครั้ง (ไม่ baked) — ย้ายจุด e.p ทีหลังแล้วค่าจะอัปเดตถูกต้องอัตโนมัติ */
+  function ordinateValue(e) { return e.axis === 'x' ? e.p.x : e.p.y; }
+  function ordinateLabel(e) { return (e.axis === 'x' ? 'X' : 'Y') + fmtMm(ordinateValue(e)); }
   function estimateTextWidth(text, height) { return (text || '').length * height * 0.58; } // ประมาณความกว้าง (ไม่มีการวัดฟอนต์จริงในสเตจนี้)
   /* จุดอยู่ในรูปหลายเหลี่ยมปิดไหม (even-odd rule) — ใช้กับการคลิกเลือกลายแรเงา (คลิกที่ไหนในพื้นที่ก็เลือกได้ ไม่ใช่
      แค่ตรงเส้นลายพอดี เหมือนโปรแกรม CAD ทั่วไป) */
@@ -478,6 +482,10 @@
       return bd;
     }
     if (e.type === 'centermark') return Math.min(distPointToSegment(p, { x: e.center.x - e.size, y: e.center.y }, { x: e.center.x + e.size, y: e.center.y }), distPointToSegment(p, { x: e.center.x, y: e.center.y - e.size }, { x: e.center.x, y: e.center.y + e.size }));
+    if (e.type === 'ordinate') {
+      var ow = estimateTextWidth(ordinateLabel(e), e.textHeight);
+      return Math.min(distPointToSegment(p, e.p, e.leaderEnd), distPointToRect(p, e.leaderEnd.x, e.leaderEnd.y, e.leaderEnd.x + ow, e.leaderEnd.y + e.textHeight));
+    }
     return Infinity;
   }
   /* วงกลมผ่าน 3 จุด (circumcircle) — คืน center/radius/startAngle/endAngle โดยเลือกทิศกวาด (จาก p1 ไป p2)
@@ -538,6 +546,7 @@
     else if (e.type === 'block') { pts.push({ p: e.p, kind: 'end' }); }
     else if (e.type === 'spline') { e.points.forEach(function (p) { pts.push({ p: p, kind: 'end' }); }); } // จุดควบคุมเท่านั้น (จุดกึ่งกลางเส้นตรงจะไม่ตรงกับเส้นโค้งจริง เลยไม่ใส่)
     else if (e.type === 'centermark') { pts.push({ p: e.center, kind: 'center' }); }
+    else if (e.type === 'ordinate') { pts.push({ p: e.p, kind: 'end' }, { p: e.leaderEnd, kind: 'end' }); }
     return pts;
   }
   function entitySegments(e) {
@@ -572,6 +581,7 @@
     }
     if (e.type === 'spline') return splinePoints(e, 8); // 8 พอสำหรับ bounds/zoomFit/drag-select คร่าวๆ ไม่ต้องเรียบเท่าตอน render จริง
     if (e.type === 'centermark') return [{ x: e.center.x - e.size, y: e.center.y - e.size }, { x: e.center.x + e.size, y: e.center.y + e.size }];
+    if (e.type === 'ordinate') { var ow2 = estimateTextWidth(ordinateLabel(e), e.textHeight); return [e.p, e.leaderEnd, { x: e.leaderEnd.x + ow2, y: e.leaderEnd.y + e.textHeight }]; }
     return [];
   }
 
@@ -728,6 +738,7 @@
     else if (e.type === 'block') { e.p = fn(e.p); }
     else if (e.type === 'spline') { e.points = e.points.map(fn); }
     else if (e.type === 'centermark') { e.center = fn(e.center); }
+    else if (e.type === 'ordinate') { e.p = fn(e.p); e.leaderEnd = fn(e.leaderEnd); }
     return e;
   }
 
@@ -762,6 +773,7 @@
       if (mods.scaleFactor != null && (src.type === 'circle' || src.type === 'arc' || src.type === 'raddim' || src.type === 'diadim' || src.type === 'angdim')) src.radius *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'dim') src.offset *= mods.scaleFactor;
       if (mods.scaleFactor != null && (src.type === 'text' || src.type === 'leader')) src.height *= mods.scaleFactor;
+      if (mods.scaleFactor != null && src.type === 'ordinate') src.textHeight *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'hatch') src.spacing *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'centermark') src.size *= mods.scaleFactor;
       if (mods.scaleFactor != null && src.type === 'block') src.scale *= mods.scaleFactor;
@@ -925,12 +937,14 @@
     if (e.type === 'text' || e.type === 'block') return [{ p: e.p, ref: 'p' }];
     if (e.type === 'spline') return e.points.map(function (p, i) { return { p: p, ref: { idx: i } }; }); // ref รูปแบบเดียวกับ polyline — applyGripEdit จัดการให้ฟรีอยู่แล้ว
     if (e.type === 'centermark') return [{ p: e.center, ref: 'center' }];
+    if (e.type === 'ordinate') return [{ p: e.p, ref: 'p' }, { p: e.leaderEnd, ref: 'leaderEnd' }];
     return []; // hatch: ไม่มีจุดจับต่อจุด — ย้าย/หมุน/มิเรอร์/สเกลทั้งก้อนผ่านเครื่องมือแก้ไขปกติเท่านั้น
   }
   function applyGripEdit(e, ref, pt) {
     if (ref === 'p1') e.p1 = { x: pt.x, y: pt.y };
     else if (ref === 'p2') e.p2 = { x: pt.x, y: pt.y };
     else if (ref === 'p') e.p = { x: pt.x, y: pt.y };
+    else if (ref === 'leaderEnd') e.leaderEnd = { x: pt.x, y: pt.y };
     else if (ref === 'center') e.center = { x: pt.x, y: pt.y };
     else if (ref === 'radius') e.radius = Math.max(0.01, Math.hypot(pt.x - e.center.x, pt.y - e.center.y));
     else if (ref === 'p2x-p1y') { e.p2.x = pt.x; e.p1.y = pt.y; }
@@ -1383,6 +1397,12 @@
       } else if (e.type === 'centermark') {
         strokePolylinePts([{ x: e.center.x - e.size, y: e.center.y }, { x: e.center.x + e.size, y: e.center.y }], false);
         strokePolylinePts([{ x: e.center.x, y: e.center.y - e.size }, { x: e.center.x, y: e.center.y + e.size }], false);
+      } else if (e.type === 'ordinate') {
+        var ops1 = worldToScreen(e.p.x, e.p.y), ops2 = worldToScreen(e.leaderEnd.x, e.leaderEnd.y);
+        ctx.beginPath(); ctx.moveTo(ops1.x, ops1.y); ctx.lineTo(ops2.x, ops2.y); ctx.stroke();
+        ctx.fillStyle = col_; ctx.font = Math.max(6, e.textHeight * state.view.scale) + 'px Prompt, sans-serif';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+        ctx.fillText(ordinateLabel(e), ops2.x, ops2.y);
       }
     });
     /* จุดจับ (grips) — วาดเฉพาะตอนเลือกอยู่ตัวเดียวและเครื่องมือคือ "เลือก" (กันสับสนตอนใช้เครื่องมือแก้ไขอื่น) */
@@ -1604,7 +1624,7 @@
     select: 'toolSelectBtn', line: 'toolLineBtn', polyline: 'toolPolylineBtn', rect: 'toolRectBtn', circle: 'toolCircleBtn', arc: 'toolArcBtn', spline: 'toolSplineBtn',
     move: 'toolMoveBtn', copy: 'toolCopyBtn', rotate: 'toolRotateBtn', mirror: 'toolMirrorBtn', scale: 'toolScaleBtn',
     trim: 'toolTrimBtn', extend: 'toolExtendBtn', fillet: 'toolFilletBtn', offset: 'toolOffsetBtn', arrayrect: 'toolArrayRectBtn',
-    dim: 'toolDimBtn', raddim: 'toolRaddimBtn', diadim: 'toolDiadimBtn', angdim: 'toolAngdimBtn', text: 'toolTextBtn', leader: 'toolLeaderBtn', hatch: 'toolHatchBtn', centermark: 'toolCentermarkBtn',
+    dim: 'toolDimBtn', raddim: 'toolRaddimBtn', diadim: 'toolDiadimBtn', angdim: 'toolAngdimBtn', text: 'toolTextBtn', leader: 'toolLeaderBtn', hatch: 'toolHatchBtn', centermark: 'toolCentermarkBtn', ordinate: 'toolOrdinateBtn',
     block: 'toolBlockBtn', titleblock: 'toolTitleBlockBtn', constraint: 'toolConstraintBtn'
   };
   var distLbl = document.querySelector('label[data-i18n="distLbl"]'), angLbl = document.querySelector('label[data-i18n="angLbl"]');
@@ -1838,6 +1858,24 @@
       state.pendingPoints = [pt]; // จุดเดียว — เนื้อหาข้อความกรอกผ่าน textRow แยกต่างหาก (ดู applyTextRow)
     } else if (state.tool === 'leader') {
       if (state.pendingPoints.length < 2) state.pendingPoints.push(pt); // 2 จุด (ปลายลูกศร + จุดข้อความ) แล้วกรอกข้อความผ่าน textRow เหมือนกัน
+    } else if (state.tool === 'ordinate') {
+      /* มิติพิกัด (ordinate): คลิกจุดที่ 1 = จุดที่จะวัดพิกัด, คลิกจุดที่ 2 = ปลายเส้นชี้/ตำแหน่งตัวเลข —
+         ทิศทางลากตัดสินว่าวัดแกนไหน (ลากขึ้น/ลงเป็นหลัก = ค่า X, ลากซ้าย/ขวาเป็นหลัก = ค่า Y) ตามหลักการ
+         มิติพิกัดจริง — จุดอ้างอิง (datum) ใช้จุดกำเนิด (0,0) ของแบบเสมอในสเตจนี้ (ยังไม่รองรับตั้งจุด
+         อ้างอิงเอง) ค่าตัวเลขคำนวณจากตำแหน่ง p สดทุกครั้งตอน render/ส่งออก ไม่ใช่ baked ตอนสร้าง — ย้าย
+         จุดทีหลังแล้วค่าจะอัปเดตตามจริงเหมือนมิติรัศมี/เส้นผ่าศูนย์กลาง */
+      if (state.pendingPoints.length < 1) { state.pendingPoints.push(pt); }
+      else {
+        var od1 = state.pendingPoints[0];
+        var odx = pt.x - od1.x, ody = pt.y - od1.y;
+        if (Math.hypot(odx, ody) > DUP_EPS) {
+          var axis = Math.abs(ody) >= Math.abs(odx) ? 'x' : 'y';
+          pushHistory();
+          state.entities.push({ id: genId(), type: 'ordinate', layer: state.activeLayer, p: od1, leaderEnd: pt, axis: axis, textHeight: state.dimStyle.textHeight });
+          updateCountUI(); scheduleSave();
+        }
+        finishDrawing();
+      }
     } else if (state.tool === 'block') {
       state.pendingPoints = [pt]; // จุดแทรกจุดเดียว — ขนาด/มุม/มิเรอร์ปรับผ่าน insertRow แยกต่างหาก (ดู applyInsertRow)
     }
@@ -2352,7 +2390,7 @@
     var TITLE_KEY = {
       line: 'propsTitleLine', polyline: 'propsTitlePolyline', rect: 'propsTitleRect', circle: 'propsTitleCircle',
       arc: 'propsTitleArc', dim: 'propsTitleDim', raddim: 'propsTitleRaddim', diadim: 'propsTitleDiadim',
-      angdim: 'propsTitleAngdim', text: 'propsTitleText', leader: 'propsTitleLeader', hatch: 'propsTitleHatch', block: 'propsTitleBlock', spline: 'propsTitleSpline', centermark: 'propsTitleCentermark'
+      angdim: 'propsTitleAngdim', text: 'propsTitleText', leader: 'propsTitleLeader', hatch: 'propsTitleHatch', block: 'propsTitleBlock', spline: 'propsTitleSpline', centermark: 'propsTitleCentermark', ordinate: 'propsTitleOrdinate'
     };
     propsTitle.textContent = t(TITLE_KEY[e.type] || e.type);
     var fields = [], noteHtml = '';
@@ -2394,6 +2432,11 @@
       fields = [
         { k: 'propCx', v: e.center.x, set: function (v) { e.center.x = v; } }, { k: 'propCy', v: e.center.y, set: function (v) { e.center.y = v; } },
         { k: 'propCenterMarkSize', v: e.size, set: function (v) { e.size = Math.max(0.1, v); } }
+      ];
+    } else if (e.type === 'ordinate') {
+      fields = [
+        { k: 'propX1', v: e.p.x, set: function (v) { e.p.x = v; } }, { k: 'propY1', v: e.p.y, set: function (v) { e.p.y = v; } },
+        { k: 'propHeight', v: e.textHeight, set: function (v) { e.textHeight = Math.max(0.1, v); } }
       ];
     }
     if (e.type === 'dim' || e.type === 'raddim' || e.type === 'diadim' || e.type === 'angdim') {
@@ -2655,6 +2698,11 @@
       } else if (e.type === 'centermark') {
         poly([{ x: e.center.x - e.size, y: e.center.y }, { x: e.center.x + e.size, y: e.center.y }], false);
         poly([{ x: e.center.x, y: e.center.y - e.size }, { x: e.center.x, y: e.center.y + e.size }], false);
+      } else if (e.type === 'ordinate') {
+        poly([e.p, e.leaderEnd], false);
+        var ops2 = w2s(e.leaderEnd.x, e.leaderEnd.y);
+        c.font = Math.max(6, e.textHeight * pxPerMm) + 'px Prompt, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'bottom';
+        c.fillText(ordinateLabel(e), ops2.x, ops2.y);
       }
     });
   }
@@ -2740,6 +2788,9 @@
       } else if (e.type === 'centermark') {
         parts.push('<path d="' + polyPath([{ x: e.center.x - e.size, y: e.center.y }, { x: e.center.x + e.size, y: e.center.y }], false) + '" stroke="' + color + '"/>');
         parts.push('<path d="' + polyPath([{ x: e.center.x, y: e.center.y - e.size }, { x: e.center.x, y: e.center.y + e.size }], false) + '" stroke="' + color + '"/>');
+      } else if (e.type === 'ordinate') {
+        parts.push('<path d="' + polyPath([e.p, e.leaderEnd], false) + '" stroke="' + color + '"/>');
+        parts.push('<text x="' + sx(e.leaderEnd.x) + '" y="' + sy(e.leaderEnd.y) + '" font-size="' + e.textHeight.toFixed(2) + '" fill="' + color + '">' + svgEsc(ordinateLabel(e)) + '</text>');
       }
     });
     parts.push('</g></svg>');
@@ -2822,6 +2873,7 @@
     }
     if (e.type === 'spline') return dxfLwpolyline(splinePoints(e, 16), !!e.closed); // ไม่มี DXF SPLINE entity เต็มรูปแบบในสเตจนี้ (ตามหลักการเดียวกับ dim/hatch: แตกเป็นชนิดพื้นฐานเพื่อให้โปรแกรมอ่าน DXF ใดๆ ก็แสดงถูก)
     if (e.type === 'centermark') return [].concat(dxfLine({ x: e.center.x - e.size, y: e.center.y }, { x: e.center.x + e.size, y: e.center.y }), dxfLine({ x: e.center.x, y: e.center.y - e.size }, { x: e.center.x, y: e.center.y + e.size }));
+    if (e.type === 'ordinate') return [].concat(dxfLine(e.p, e.leaderEnd), dxfText(e.leaderEnd, e.textHeight, ordinateLabel(e)));
     return [];
   }
   function exportDXF() {
@@ -3018,6 +3070,10 @@
       else if (e.type === 'centermark') {
         pdfPoly([{ x: e.center.x - e.size, y: e.center.y }, { x: e.center.x + e.size, y: e.center.y }], false);
         pdfPoly([{ x: e.center.x, y: e.center.y - e.size }, { x: e.center.x, y: e.center.y + e.size }], false);
+      } else if (e.type === 'ordinate') {
+        var opdfp2 = w2p(e.leaderEnd.x, e.leaderEnd.y);
+        pdfPoly([e.p, e.leaderEnd], false);
+        pdf.setFontSize(e.textHeight * 2.83465); pdf.text(ordinateLabel(e), opdfp2.x, opdfp2.y);
       }
     });
     pdf.setDrawColor(inkRgb[0], inkRgb[1], inkRgb[2]); pdf.setLineWidth(0.3);
