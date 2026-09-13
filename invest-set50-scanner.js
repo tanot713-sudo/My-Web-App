@@ -21,7 +21,6 @@
       scanBtn: 'หาหุ้นน่าสนใจ', scanBtnStop: '⏹ หยุด', greenOnlyLabel: 'เฉพาะไฟเขียว',
       thSym: 'หลักทรัพย์', thLast: 'ล่าสุด', thChg: '+/−', thPct: '%', thSig: 'สัญญาณ', rowLoading: 'กดดู',
       hint: 'แตะแถวเพื่อดูว่า "น่าลงทุนไหม" · กด "หาหุ้นน่าสนใจ" ให้ระบบไล่ดึงราคา+วิเคราะห์ (ครั้งแรกอาจช้า/ไม่ครบ รอบต่อไปเร็วขึ้นเพราะจำไว้) · <b>ไม่ใช่คำแนะนำซื้อ</b>',
-      disc: 'เครื่องมือนี้เป็นตัวช่วยกรองเบื้องต้นจากราคา/ปริมาณเท่านั้น ไม่ใช่คำแนะนำการลงทุน · ข้อมูลราคาเก็บแคชในเครื่องคุณ',
       scanDone: 'สแกนสำเร็จ {ok}/{total} ตัว · เจอน่าสนใจ {green} ตัว (ไม่ใช่คำแนะนำซื้อ)', scanProgress: 'กำลังสแกน {idx}/{total} ({sym})…',
       scannerLink: 'สแกนเนอร์ SET50'
     },
@@ -32,7 +31,6 @@
       scanBtn: 'Find interesting stocks', scanBtnStop: '⏹ Stop', greenOnlyLabel: 'Green only',
       thSym: 'Ticker', thLast: 'Last', thChg: '+/−', thPct: '%', thSig: 'Signal', rowLoading: 'Click to view',
       hint: 'Tap a row to see if it\'s "worth investing in" · click "Find interesting stocks" to fetch + analyze in bulk (first run may be slow/incomplete, faster next time since it\'s cached) · <b>not a buy recommendation</b>',
-      disc: "This tool is only a basic filter based on price/volume, not investment advice · price data is cached on your device",
       scanDone: 'Scanned {ok}/{total} · found {green} interesting (not a buy recommendation)', scanProgress: 'Scanning {idx}/{total} ({sym})…',
       scannerLink: 'SET50 Scanner'
     }
