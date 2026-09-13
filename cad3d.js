@@ -75,6 +75,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 (function () {
   'use strict';
@@ -84,7 +85,12 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 
   var $ = function (id) { return document.getElementById(id); };
 
-  var state = { steps: [], oc: null, lastShape: null, lastStlBytes: null, material: 'aluminum', lastMeshProps: null };
+  var state = {
+    steps: [], oc: null, lastShape: null, lastStlBytes: null, material: 'aluminum', lastMeshProps: null,
+    colorOverride: null,   // สี custom ที่ผู้ใช้ปรับเอง (hex string) — null = ใช้สีของวัสดุที่เลือกตามปกติ
+    reflection: 0.5,       // envMapIntensity ของวัสดุ (0-1) — ยิ่งสูงยิ่งสะท้อนสภาพแวดล้อมชัดขึ้น
+    renderQuality: 'medium' // คุม renderer.setPixelRatio() จริง (ไม่ใช่แค่ label ตกแต่ง) — low/medium/high
+  };
   var editingIndex = null; // Stage 10b: index ของขั้นตอนที่กำลังแก้ไขอยู่ (null = โหมดเพิ่มขั้นตอนใหม่ตามปกติ)
   var pickedPlaneBasis = null; // Stage 10d: อ็อบเจกต์ฐานของหน้าที่เลือกเองล่าสุด (null = ยังไม่เคยเลือก)
   var pickMode = false; // Stage 10d: กำลังรอให้ผู้ใช้คลิกหน้าในวิวพอร์ตอยู่หรือไม่
@@ -391,37 +397,53 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
      ความหนาแน่นเป็นค่าจริงของวัสดุ (ก./ซม.³) ใช้คูณกับปริมาตรจริงที่คำนวณได้ข้างบนเพื่อประมาณน้ำหนัก —
      ไม่ใช่ตัวเลขสมมติ ส่วนสี/ความเป็นโลหะ/ความหยาบผิวปรับให้พอเห็นความต่างของวัสดุบนพื้นผิว render จริง */
   var MATERIALS = {
-    aluminum: { label: 'อะลูมิเนียม', density: 2.70, color: 0xC7CCD4, metalness: 0.75, roughness: 0.35 },
-    steel: { label: 'เหล็กกล้า', density: 7.85, color: 0x7B828D, metalness: 0.85, roughness: 0.30 },
-    wood: { label: 'ไม้โอ๊ก', density: 0.75, color: 0xB07D43, metalness: 0.0, roughness: 0.75 },
-    glass: { label: 'กระจก', density: 2.50, color: 0xA9D8DE, metalness: 0.0, roughness: 0.05, transparent: true, opacity: 0.55 },
-    plastic: { label: 'พลาสติก ABS', density: 1.05, color: 0x3F6FD1, metalness: 0.05, roughness: 0.45 }
+    aluminum: { label: 'อะลูมิเนียม', density: 2.70, color: 0xC7CCD4, metalness: 0.75, roughness: 0.35, desc: 'ความหนาแน่น 2.70 ก./ซม.³ • น้ำหนักเบา ทนการกัดกร่อนได้ดี' },
+    steel: { label: 'เหล็กกล้า', density: 7.85, color: 0x7B828D, metalness: 0.85, roughness: 0.30, desc: 'ความหนาแน่น 7.85 ก./ซม.³ • แข็งแรงสูง แต่มีน้ำหนักมาก' },
+    wood: { label: 'ไม้โอ๊ก', density: 0.75, color: 0xB07D43, metalness: 0.0, roughness: 0.75, desc: 'ความหนาแน่น 0.75 ก./ซม.³ • เบา ไม่นำไฟฟ้า' },
+    glass: { label: 'กระจก', density: 2.50, color: 0xA9D8DE, metalness: 0.0, roughness: 0.05, transparent: true, opacity: 0.55, desc: 'ความหนาแน่น 2.50 ก./ซม.³ • โปร่งแสง เปราะแตกง่าย' },
+    plastic: { label: 'พลาสติก ABS', density: 1.05, color: 0x3F6FD1, metalness: 0.05, roughness: 0.45, desc: 'ความหนาแน่น 1.05 ก./ซม.³ • ขึ้นรูปง่าย น้ำหนักเบามาก' }
   };
+  var SHAPE_KIND_LABEL = { box: 'กล่อง (Box)', cylinder: 'ทรงกระบอก (Cylinder)', sphere: 'ทรงกลม (Sphere)', sketch: 'จากภาพร่าง 2 มิติ' };
   function applyMaterialToMesh() {
     if (!mesh || !mesh.material) return;
     var m = MATERIALS[state.material] || MATERIALS.aluminum;
-    mesh.material.color.setHex(m.color);
+    mesh.material.color.set(state.colorOverride || m.color);
     mesh.material.metalness = m.metalness;
     mesh.material.roughness = m.roughness;
     mesh.material.transparent = !!m.transparent;
     mesh.material.opacity = m.opacity != null ? m.opacity : 1;
+    mesh.material.envMapIntensity = state.reflection;
     mesh.material.needsUpdate = true;
+  }
+  /* คุณภาพการแสดงผล — คุม renderer.setPixelRatio() จริง (ความคมชัด/ภาระ GPU จริง ไม่ใช่แค่ label
+     ตกแต่ง): ต่ำ = คมชัดน้อยกว่าแต่เบาที่สุด, สูง = ใช้ความละเอียดจอจริง (สูงสุด 2x) */
+  var RENDER_QUALITY_RATIO = { low: 1, medium: 1.5, high: 2 };
+  function applyRenderQuality(quality) {
+    if (!renderer) return;
+    var cap = RENDER_QUALITY_RATIO[quality] || RENDER_QUALITY_RATIO.medium;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, cap));
   }
   function fmtNum(n, d) { return n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }); }
   function updatePropsPanel3D() {
-    var volEl = $('c3PropVolume'), areaEl = $('c3PropArea'), bboxEl = $('c3PropBbox'), matEl = $('c3PropMaterialName'), wEl = $('c3PropWeight');
+    var objEl = $('c3PropObject'), volEl = $('c3PropVolume'), areaEl = $('c3PropArea'), matEl = $('c3PropMaterialName'),
+      posEl = $('c3PropPosition'), dimsEl = $('c3PropDims'), wEl = $('c3PropWeight');
     if (!volEl) return;
     var m = MATERIALS[state.material] || MATERIALS.aluminum;
     matEl.textContent = m.label;
+    objEl.textContent = state.steps.length === 0 ? '–' :
+      state.steps.length === 1 ? (SHAPE_KIND_LABEL[state.steps[0].kind] || state.steps[0].kind) :
+      'รูปทรงประกอบ (' + state.steps.length + ' ขั้นตอน)';
+    var basePos = state.steps.length ? state.steps[0].pos : null;
+    posEl.textContent = basePos ? (fmtNum(basePos.x, 0) + ', ' + fmtNum(basePos.y, 0) + ', ' + fmtNum(basePos.z, 0) + ' มม.') : '–';
     var mp = state.lastMeshProps;
     if (!mp) {
-      volEl.textContent = '–'; areaEl.textContent = '–'; bboxEl.textContent = '–'; wEl.textContent = '–';
+      volEl.textContent = '–'; areaEl.textContent = '–'; dimsEl.textContent = '–'; wEl.textContent = '–';
       return;
     }
     var volCm3 = mp.volume / 1000, areaCm2 = mp.area / 100;
     volEl.textContent = fmtNum(volCm3, 1) + ' ซม.³';
     areaEl.textContent = fmtNum(areaCm2, 1) + ' ซม.²';
-    bboxEl.textContent = fmtNum(mp.bbox.w, 1) + ' × ' + fmtNum(mp.bbox.d, 1) + ' × ' + fmtNum(mp.bbox.h, 1);
+    dimsEl.textContent = fmtNum(mp.bbox.w, 1) + ' × ' + fmtNum(mp.bbox.d, 1) + ' × ' + fmtNum(mp.bbox.h, 1) + ' มม.';
     var weightG = volCm3 * m.density;
     wEl.textContent = weightG >= 1000 ? (fmtNum(weightG / 1000, 2) + ' กก.') : (fmtNum(weightG, 1) + ' ก.');
   }
@@ -434,8 +456,12 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     camera = new THREE.PerspectiveCamera(50, 1, 0.1, 5000);
     camera.position.set(220, 180, 260);
     renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    applyRenderQuality(state.renderQuality);
     viewportEl.appendChild(renderer.domElement);
+    /* environment map จริง (ห้องจำลองมาตรฐานของ three.js) ให้แสงสภาพแวดล้อมกับวัสดุ PBR ทุกชิ้น —
+       ทำให้ envMapIntensity ("การสะท้อน" ในแผงคุณสมบัติขั้นสูง) มีผลจริงต่อภาพ ไม่ใช่แค่ตัวเลขเปล่า */
+    var pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 0, 0);
     controls.enableDamping = true; controls.dampingFactor = 0.08;
@@ -1230,15 +1256,34 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     $('exportStlBtn').addEventListener('click', exportStl);
     $('exportGlbBtn').addEventListener('click', exportGlb);
 
-    Array.prototype.forEach.call(document.querySelectorAll('#c3MaterialSwatches .c3-material-swatch'), function (btn) {
+    Array.prototype.forEach.call(document.querySelectorAll('#c3MaterialSwatches .c3-material-item'), function (btn) {
       btn.addEventListener('click', function () {
         state.material = btn.getAttribute('data-material');
-        Array.prototype.forEach.call(document.querySelectorAll('#c3MaterialSwatches .c3-material-swatch'), function (b) {
+        state.colorOverride = null; // เลือกวัสดุใหม่ = กลับไปใช้สีมาตรฐานของวัสดุนั้น ล้างสี custom เดิมทิ้ง
+        var colorInput = $('c3PropColorInput');
+        if (colorInput) colorInput.value = btn.getAttribute('data-hex') || '#c7ccd4';
+        Array.prototype.forEach.call(document.querySelectorAll('#c3MaterialSwatches .c3-material-item'), function (b) {
           b.classList.toggle('active', b === btn);
         });
         applyMaterialToMesh();
         updatePropsPanel3D();
       });
+    });
+    var colorInput = $('c3PropColorInput');
+    if (colorInput) colorInput.addEventListener('input', function () {
+      state.colorOverride = colorInput.value;
+      applyMaterialToMesh();
+    });
+    var reflectionInput = $('c3PropReflection'), reflectionVal = $('c3PropReflectionVal');
+    if (reflectionInput) reflectionInput.addEventListener('input', function () {
+      state.reflection = parseFloat(reflectionInput.value);
+      if (reflectionVal) reflectionVal.textContent = Math.round(state.reflection * 100) + '%';
+      applyMaterialToMesh();
+    });
+    var qualitySel = $('c3RenderQualitySel');
+    if (qualitySel) qualitySel.addEventListener('change', function () {
+      state.renderQuality = qualitySel.value;
+      applyRenderQuality(state.renderQuality);
     });
     updatePropsPanel3D();
 
