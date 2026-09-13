@@ -111,6 +111,40 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .hist-table td.chg.dn{color:var(--err);font-weight:700}
 .hist-empty{font-size:13px;color:var(--muted);padding:14px 4px;text-align:center}
 
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
+  background:var(--card);border-radius:11px;padding:10px 15px;font-family:inherit;font-size:14px;font-weight:700;
+  color:var(--ink);cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-dk);color:#fff}
+.btn.sm{padding:7px 11px;font-size:12.5px}
+.status{font-size:12.5px;color:var(--muted);margin-top:9px;min-height:1.2em}
+.status.err{color:var(--err)}
+.status.ok{color:var(--ok)}
+
+/* ── ไฟจราจร (ถูก/แพงเทียบแนวโน้ม) ── */
+.light{display:flex;gap:14px;align-items:center;border-radius:16px;padding:18px;margin-top:2px}
+.light .bulb{width:56px;height:56px;border-radius:50%;flex-shrink:0;background:#B8C0D4}
+.light .verdict{font-size:18px;font-weight:800;line-height:1.25}
+.light .why{font-size:13.5px;margin-top:3px;opacity:.9}
+.light.green{background:#E9F9F0;color:#0B7F52}
+.light.yellow{background:#FFF6E4;color:#8A6212}
+.light.red{background:#FDECEC;color:#B23838}
+.light.gray{background:var(--bg);color:var(--muted)}
+[data-theme="dark"] .light.green{background:#14261E;color:#5EDCAB}
+[data-theme="dark"] .light.yellow{background:#2A2415;color:#E8C88A}
+[data-theme="dark"] .light.red{background:#301B1B;color:#F0A0A0}
+details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;list-style:none;
+  display:flex;align-items:center;gap:8px;user-select:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:'▸';color:var(--muted);transition:.15s}
+details[open]>summary::before{transform:rotate(90deg)}
+.details-body{padding:0 15px 15px;font-size:13.5px}
+.det-kv{display:grid;grid-template-columns:1fr auto;gap:5px 12px;font-size:13px}
+.det-kv .k{color:var(--muted)}
+.det-kv .v{font-weight:600;text-align:right}
+
 .disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
 footer{margin-top:22px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--sky);text-decoration:none;font-weight:600}
@@ -171,6 +205,27 @@ body.embedded .crumb{display:none}
       <span><i style="background:#ef5350"></i><span data-i18n="chartCapDown">แท่งลง</span></span>
       <span data-i18n="chartCapTap">แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
     </div>
+  </div>
+
+  <!-- ไฟจราจร -->
+  <div class="card">
+    <h2 data-i18n="verdictTitle">ถูก/แพงเทียบแนวโน้ม</h2>
+    <div class="light gray" id="vLight">
+      <div class="bulb" id="vBulb"></div>
+      <div><div class="verdict" id="vVerdict" data-i18n="loadingDefault">กำลังโหลด…</div><div class="why" id="vWhy"></div></div>
+    </div>
+    <details id="vDetailsBox" style="display:none">
+      <summary data-i18n="techDetailsSummary">ดูรายละเอียดทางเทคนิค</summary>
+      <div class="details-body"><div class="det-kv" id="vDetKv"></div></div>
+    </details>
+  </div>
+
+  <!-- สรุปด้วย AI -->
+  <div class="card" id="aiSumCard" style="display:none">
+    <h2 data-i18n="aiSumTitle">สรุปด้วย AI</h2>
+    <button class="btn primary sm" id="aiSumBtn" type="button" data-i18n="aiSumBtn">สรุปให้หน่อย</button>
+    <div class="status" id="aiSumStatus"></div>
+    <div class="ai-sum-out" id="aiSumOut" style="display:none;margin-top:11px;background:var(--bg);border-radius:9px;padding:12px 13px;font-size:13.5px;line-height:1.75;white-space:pre-wrap"></div>
   </div>
 
   <div class="card">

@@ -43,7 +43,29 @@
       labelDxy: 'ดัชนีดอลลาร์', labelJpythb: 'เยนเทียบบาท', labelEurthb: 'ยูโรเทียบบาท', labelCnythb: 'หยวนเทียบบาท',
       unitUsdthb: 'บาท/USD', unitGc: 'USD/ออนซ์', unitGoldw: 'บาท/บาททองคำ', unitOilBbl: 'USD/บาร์เรล',
       unitNg: 'USD/MMBtu', unitCopper: 'USD/ปอนด์', unitSteel: 'USD/ตันสั้น', unitCentLb: 'เซนต์/ปอนด์',
-      unitRice: 'USD/100cwt', unitDxy: 'จุด', unitJpythb: 'บาท/100เยน', unitEurthb: 'บาท/ยูโร', unitCnythb: 'บาท/หยวน'
+      unitRice: 'USD/100cwt', unitDxy: 'จุด', unitJpythb: 'บาท/100เยน', unitEurthb: 'บาท/ยูโร', unitCnythb: 'บาท/หยวน',
+      verdictTitle: 'ถูก/แพงเทียบแนวโน้ม', gVerdictNoData: 'ยังไม่มีข้อมูล', techDetailsSummary: 'ดูรายละเอียดทางเทคนิค',
+      detEma20: 'เส้นเฉลี่ย 20 วัน (EMA20)', detEma50: 'เส้นเฉลี่ย 50 วัน (EMA50)', detRsi: 'RSI (14)', detMacd: 'MACD histogram',
+      detSupport: 'แนวรับล่าสุด', detResistance: 'แนวต้านล่าสุด', detAdx: 'ความแรงแนวโน้ม (ADX 14)', detAdxStrong: ' · แข็งแรง', detAdxWeak: ' · อ่อน', detNoData: '—',
+      whyCheapRange: 'ราคาอยู่ช่วงถูกเทียบ 3 เดือน', whyExpensiveRange: 'ราคาอยู่ช่วงแพงเทียบ 3 เดือน',
+      whyRsiLow: 'แรงขายเริ่มคลาย (RSI ต่ำ กำลังฟื้น)', whyRsiHigh: 'ราคาร้อนแรงเกินไป (RSI สูง เสี่ยงย่อ)',
+      whyMomUp: 'โมเมนตัมเริ่มกลับเป็นบวก', whyMomDn: 'โมเมนตัมเริ่มอ่อนลง',
+      whyUptrend: 'ยังอยู่ในแนวโน้มขึ้น', whyDowntrend: 'อยู่ใต้เส้นแนวโน้ม (ขาลง/พักตัว)',
+      whyBbLow: 'ราคาแตะกรอบล่าง (มักเป็นจังหวะเด้ง)', whyBbHigh: 'ราคาชนกรอบบน', whyNeutral: 'ราคาอยู่กลางกรอบ ยังไม่มีสัญญาณชัด',
+      vInteresting: 'น่าสนใจ — ราคาอยู่ในโซนถูกเทียบแนวโน้ม', vCareful: 'ระวัง — ราคาแพงเทียบแนวโน้ม', vMid: 'กลางๆ — ยังไม่มีจังหวะเด่น',
+      aiSumTitle: 'สรุปด้วย AI', aiSumBtn: 'สรุปให้หน่อย',
+      iosNotSupported: 'ฟีเจอร์นี้ (AI รันในเครื่อง) ยังไม่รองรับ iPhone/iPad ตอนนี้ — หน่วยความจำต่อแท็บของ Safari/iOS จำกัดเกินกว่าจะรันโมเดลได้อย่างเสถียร ลองใช้งานจากคอมพิวเตอร์แทนได้ครับ',
+      needStockData: 'ยังไม่มีข้อมูลราคาให้สรุป — รอข้อมูลราคาโหลดก่อนนะครับ',
+      summarizing: 'กำลังสรุป… (ครั้งแรกอาจต้องโหลดโมเดล AI ~350MB ก่อน)', loadingModel: 'กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) {file} {pct}',
+      summarizeFail: 'สรุปไม่สำเร็จ ลองอีกครั้ง', summarizeFailWith: 'สรุปไม่สำเร็จ: {msg}', unknownReason: 'ไม่ทราบสาเหตุ',
+      memErrorMsg: 'โหลดโมเดล AI ไม่สำเร็จ เพราะหน่วยความจำที่เบราว์เซอร์เหลือให้ใช้ไม่พอ (มักเกิดถ้าเปิดแท็บ/โปรแกรมอื่นพร้อมกันเยอะ) ลองปิดแท็บ/โปรแกรมอื่นแล้วกดสรุปใหม่อีกครั้ง',
+      ctxAsset: 'สินทรัพย์: {label} (หน่วย {unit})', ctxLatestPrice: 'ราคาล่าสุด: {v} {unit}', ctxVerdict: 'สัญญาณไฟจราจรที่คำนวณแล้ว: {v} ({why})',
+      ctxPros: 'ปัจจัยหนุนที่ตรวจพบ: {v}', ctxCons: 'ปัจจัยเสี่ยงที่ตรวจพบ: {v}',
+      ctxRsi: 'RSI (14 วัน): {v}', ctxRsiHigh: ' (สูง/ร้อนแรง)', ctxRsiLow: ' (ต่ำ/แรงขายเริ่มคลาย)', ctxRsiMid: ' (กลางๆ)',
+      ctxMacd: 'MACD histogram: {v}', ctxMacdPos: ' (เป็นบวก)', ctxMacdNeg: ' (เป็นลบ)',
+      ctxEma: 'เส้นเฉลี่ย 20 วัน: {e20}, เส้นเฉลี่ย 50 วัน: {e50}', ctxEmaUp: ' (ราคาอยู่เหนือเส้นเฉลี่ย — แนวโน้มขึ้น)', ctxEmaDn: ' (ราคาอยู่ใต้เส้นเฉลี่ย — แนวโน้มลง/พักตัว)',
+      ctxSupport: 'แนวรับล่าสุด: {v}', ctxResistance: 'แนวต้านล่าสุด: {v}',
+      ctxAdx: 'ความแรงแนวโน้ม (ADX): {v}', ctxAdxStrong: ' (แข็งแรง)', ctxAdxWeak: ' (อ่อน)'
     },
     en: {
       navInvest: 'Investing', pageTitle: 'FX & Commodities',
@@ -70,7 +92,29 @@
       labelDxy: 'US Dollar Index', labelJpythb: 'JPY/THB', labelEurthb: 'EUR/THB', labelCnythb: 'CNY/THB',
       unitUsdthb: 'THB/USD', unitGc: 'USD/oz', unitGoldw: 'THB/baht-weight', unitOilBbl: 'USD/barrel',
       unitNg: 'USD/MMBtu', unitCopper: 'USD/lb', unitSteel: 'USD/short ton', unitCentLb: 'cents/lb',
-      unitRice: 'USD/100cwt', unitDxy: 'points', unitJpythb: 'THB/100 JPY', unitEurthb: 'THB/EUR', unitCnythb: 'THB/CNY'
+      unitRice: 'USD/100cwt', unitDxy: 'points', unitJpythb: 'THB/100 JPY', unitEurthb: 'THB/EUR', unitCnythb: 'THB/CNY',
+      verdictTitle: 'Cheap/expensive vs. trend', gVerdictNoData: 'No data yet', techDetailsSummary: 'View technical details',
+      detEma20: '20-day MA (EMA20)', detEma50: '50-day MA (EMA50)', detRsi: 'RSI (14)', detMacd: 'MACD histogram',
+      detSupport: 'Latest support', detResistance: 'Latest resistance', detAdx: 'Trend strength (ADX 14)', detAdxStrong: ' · strong', detAdxWeak: ' · weak', detNoData: '—',
+      whyCheapRange: 'Price is in the cheap part of the 3-month range', whyExpensiveRange: 'Price is in the expensive part of the 3-month range',
+      whyRsiLow: 'Selling pressure easing (RSI low, starting to recover)', whyRsiHigh: 'Price is overheated (RSI high, risk of a pullback)',
+      whyMomUp: 'Momentum is turning positive', whyMomDn: 'Momentum is weakening',
+      whyUptrend: 'Still in an uptrend', whyDowntrend: 'Below the trend line (downtrend/consolidation)',
+      whyBbLow: 'Price is touching the lower band (often a bounce point)', whyBbHigh: 'Price is hitting the upper band', whyNeutral: 'Price is in the middle of the range, no clear signal yet',
+      vInteresting: 'Interesting — price is in a cheap zone relative to the trend', vCareful: 'Careful — price is expensive relative to the trend', vMid: 'Neutral — no standout opportunity yet',
+      aiSumTitle: 'AI Summary', aiSumBtn: 'Summarize It',
+      iosNotSupported: 'This feature (on-device AI) isn’t supported on iPhone/iPad yet — Safari/iOS per-tab memory is too limited to run the model reliably. Try from a computer instead',
+      needStockData: 'No price data to summarize yet — wait for the price data to load first',
+      summarizing: 'Summarizing… (first time may need to download the ~350MB AI model)', loadingModel: 'Loading model (first time only) {file} {pct}',
+      summarizeFail: 'Summary failed, try again', summarizeFailWith: 'Summary failed: {msg}', unknownReason: 'unknown reason',
+      memErrorMsg: 'Failed to load the AI model because the browser doesn’t have enough free memory (usually from having many tabs/programs open at once). Try closing other tabs/programs and summarizing again',
+      ctxAsset: 'Asset: {label} (unit: {unit})', ctxLatestPrice: 'Latest price: {v} {unit}', ctxVerdict: 'Computed signal: {v} ({why})',
+      ctxPros: 'Detected tailwinds: {v}', ctxCons: 'Detected risks: {v}',
+      ctxRsi: 'RSI (14-day): {v}', ctxRsiHigh: ' (high/overheated)', ctxRsiLow: ' (low/selling pressure easing)', ctxRsiMid: ' (neutral)',
+      ctxMacd: 'MACD histogram: {v}', ctxMacdPos: ' (positive)', ctxMacdNeg: ' (negative)',
+      ctxEma: '20-day MA: {e20}, 50-day MA: {e50}', ctxEmaUp: ' (price above the MAs — uptrend)', ctxEmaDn: ' (price below the MAs — downtrend/consolidation)',
+      ctxSupport: 'Latest support: {v}', ctxResistance: 'Latest resistance: {v}',
+      ctxAdx: 'Trend strength (ADX): {v}', ctxAdxStrong: ' (strong)', ctxAdxWeak: ' (weak)'
     }
   };
   function t(key, vars) {
@@ -127,6 +171,7 @@
   var LAST_KEY = 'tanot:invest:comm:lastKey';
   var curKey = null, curTF = 63, curType = 'candle';
   var chart = null, seriesObj = null, LWC = null, fullData = null;
+  var lastAnalysis = null;
 
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
@@ -482,6 +527,287 @@
     return { times: times, opens: opens, highs: highs, lows: lows, closes: closes };
   }
 
+  /* ── อินดิเคเตอร์ (สูตรมาตรฐาน — เหมือน invest-gold.js/invest-bitcoin.js เป๊ะ, asset-agnostic) ── */
+  function sma(arr, n) {
+    if (arr.length < n) return NaN;
+    var s = 0; for (var i = arr.length - n; i < arr.length; i++) s += arr[i];
+    return s / n;
+  }
+  function emaSeries(arr, n) {
+    if (arr.length < n) return [];
+    var k = 2 / (n + 1), out = [], seed = 0, i;
+    for (i = 0; i < n; i++) seed += arr[i];
+    var prev = seed / n; out[n - 1] = prev;
+    for (i = n; i < arr.length; i++) { prev = arr[i] * k + prev * (1 - k); out[i] = prev; }
+    return out;
+  }
+  function emaLast(arr, n) { var e = emaSeries(arr, n); return e.length ? e[e.length - 1] : NaN; }
+
+  function rsi(arr, n) {
+    n = n || 14;
+    if (arr.length < n + 1) return NaN;
+    var gain = 0, loss = 0, i, ch;
+    for (i = 1; i <= n; i++) { ch = arr[i] - arr[i - 1]; if (ch >= 0) gain += ch; else loss -= ch; }
+    var ag = gain / n, al = loss / n;
+    for (i = n + 1; i < arr.length; i++) {
+      ch = arr[i] - arr[i - 1];
+      ag = (ag * (n - 1) + (ch > 0 ? ch : 0)) / n;
+      al = (al * (n - 1) + (ch < 0 ? -ch : 0)) / n;
+    }
+    if (al === 0) return 100;
+    return 100 - 100 / (1 + ag / al);
+  }
+  function macd(arr) {
+    if (arr.length < 26) return null;
+    var e12 = emaSeries(arr, 12), e26 = emaSeries(arr, 26), line = [], i;
+    for (i = 25; i < arr.length; i++) line.push(e12[i] - e26[i]);
+    if (line.length < 9) return { line: line[line.length - 1], signal: NaN, hist: NaN, histPrev: NaN };
+    var sig = emaSeries(line, 9), last = line.length - 1;
+    var hist = line[last] - sig[last];
+    var histPrev = (line.length >= 2 && sig[last - 1] != null) ? line[last - 1] - sig[last - 1] : NaN;
+    return { line: line[last], signal: sig[last], hist: hist, histPrev: histPrev };
+  }
+  function bollinger(arr, n, k) {
+    n = n || 20; k = k || 2;
+    if (arr.length < n) return null;
+    var mid = sma(arr, n), i, sum = 0;
+    for (i = arr.length - n; i < arr.length; i++) sum += (arr[i] - mid) * (arr[i] - mid);
+    var sd = Math.sqrt(sum / n);
+    return { mid: mid, upper: mid + k * sd, lower: mid - k * sd, sd: sd };
+  }
+  function atr(highs, lows, closes, n) {
+    n = n || 14;
+    if (closes.length < n + 1) return NaN;
+    var trs = [], i;
+    for (i = 1; i < closes.length; i++) trs.push(Math.max(highs[i] - lows[i], Math.abs(highs[i] - closes[i - 1]), Math.abs(lows[i] - closes[i - 1])));
+    var a = 0; for (i = 0; i < n; i++) a += trs[i]; a /= n;
+    for (i = n; i < trs.length; i++) a = (a * (n - 1) + trs[i]) / n;
+    return a;
+  }
+  function supRes(highs, lows, look) {
+    look = look || 20;
+    var hi = -Infinity, lo = Infinity, i, start = Math.max(0, highs.length - 1 - look);
+    for (i = start; i < highs.length - 1; i++) { if (highs[i] > hi) hi = highs[i]; if (lows[i] < lo) lo = lows[i]; }
+    return { support: isFinite(lo) ? lo : NaN, resistance: isFinite(hi) ? hi : NaN };
+  }
+  function adx(highs, lows, closes, n) {
+    n = n || 14;
+    if (closes.length < 2 * n + 1) return NaN;
+    var tr = [], pdm = [], ndm = [], i;
+    for (i = 1; i < closes.length; i++) {
+      var up = highs[i] - highs[i - 1], dn = lows[i - 1] - lows[i];
+      pdm.push(up > dn && up > 0 ? up : 0); ndm.push(dn > up && dn > 0 ? dn : 0);
+      tr.push(Math.max(highs[i] - lows[i], Math.abs(highs[i] - closes[i - 1]), Math.abs(lows[i] - closes[i - 1])));
+    }
+    function wilder(arr) { var out = [], s = 0, j; for (j = 0; j < n; j++) s += arr[j]; out[n - 1] = s; for (j = n; j < arr.length; j++) { s = s - s / n + arr[j]; out[j] = s; } return out; }
+    var trS = wilder(tr), pdmS = wilder(pdm), ndmS = wilder(ndm), dx = [];
+    for (i = n - 1; i < tr.length; i++) {
+      if (!trS[i]) { dx.push(0); continue; }
+      var pdi = 100 * pdmS[i] / trS[i], ndi = 100 * ndmS[i] / trS[i], sum = pdi + ndi;
+      dx.push(sum === 0 ? 0 : 100 * Math.abs(pdi - ndi) / sum);
+    }
+    if (dx.length < n) return NaN;
+    var a = 0; for (i = 0; i < n; i++) a += dx[i]; a /= n;
+    for (i = n; i < dx.length; i++) a = (a * (n - 1) + dx[i]) / n;
+    return a;
+  }
+
+  /* ── วิเคราะห์ (มีซีรีส์เต็ม) → ไฟจราจร — เหมือน invest-gold.js เป๊ะ ใช้ได้กับทุกสินทรัพย์ที่มีซีรีส์ OHLC
+     (yahoo ตรง + cross ที่คำนวณแล้ว) ยกเว้น thaigold (ไม่มีซีรีส์ย้อนหลัง — โชว์สถานะ "ยังไม่มีข้อมูล" แทน) ── */
+  function analyzeSeries(s) {
+    var c = s.closes, price = c[c.length - 1];
+    var ema20 = emaLast(c, 20), ema50 = emaLast(c, 50), r = rsi(c, 14);
+    var mac = macd(c), bb = bollinger(c, 20, 2), at = atr(s.highs, s.lows, c, 14);
+    var sr = supRes(s.highs, s.lows, 20);
+    var adxV = adx(s.highs, s.lows, c, 14);
+    var range = { hi: Math.max.apply(null, c), lo: Math.min.apply(null, c) };
+    var posRange = (price - range.lo) / Math.max(1e-9, range.hi - range.lo);
+    var posBB = bb ? (price - bb.lower) / Math.max(1e-9, bb.upper - bb.lower) : 0.5;
+    var uptrend = isFinite(ema50) ? price >= ema50 : (isFinite(ema20) ? price >= ema20 : true);
+    var momUp = mac && isFinite(mac.hist) && isFinite(mac.histPrev) ? mac.hist > mac.histPrev : false;
+    var momDn = mac && isFinite(mac.hist) && isFinite(mac.histPrev) ? mac.hist < mac.histPrev : false;
+
+    var score = 0, pros = [], cons = [];
+    if (posRange < 0.35) { score += 1; pros.push(t('whyCheapRange')); }
+    else if (posRange > 0.75) { score -= 1; cons.push(t('whyExpensiveRange')); }
+    if (isFinite(r)) {
+      if (r < 38) { score += 1; pros.push(t('whyRsiLow')); }
+      else if (r > 70) { score -= 1; cons.push(t('whyRsiHigh')); }
+    }
+    if (momUp) { score += 1; pros.push(t('whyMomUp')); }
+    else if (momDn) { score -= 1; cons.push(t('whyMomDn')); }
+    if (uptrend) { score += 1; pros.push(t('whyUptrend')); }
+    else { score -= 1; cons.push(t('whyDowntrend')); }
+    if (posBB < 0.2) { score += 0.5; pros.push(t('whyBbLow')); }
+    else if (posBB > 0.9) { score -= 0.5; cons.push(t('whyBbHigh')); }
+
+    var light, verdict;
+    if (score >= 2) { light = 'green'; verdict = t('vInteresting'); }
+    else if (score <= -1) { light = 'red'; verdict = t('vCareful'); }
+    else { light = 'yellow'; verdict = t('vMid'); }
+    var why = (light === 'green' ? pros : light === 'red' ? cons : (pros.concat(cons)))[0] || t('whyNeutral');
+
+    var stopByAtr = isFinite(at) ? price - 1.5 * at : NaN;
+    var stopBySup = isFinite(sr.support) ? sr.support * 0.99 : NaN;
+    var stop = NaN;
+    if (isFinite(stopBySup) && stopBySup < price) stop = stopBySup;
+    if (isFinite(stopByAtr) && stopByAtr < price && (!isFinite(stop) || stopByAtr > stop)) stop = stopByAtr;
+    if (!isFinite(stop) || stop <= 0) stop = price * 0.95;
+
+    return {
+      light: light, verdict: verdict, why: why, pros: pros, cons: cons, score: score,
+      price: price, resistance: sr.resistance, uptrend: uptrend, rsi: r, adx: adxV, suggestStop: stop,
+      det: { ema20: ema20, ema50: ema50, rsi: r, macdHist: mac ? mac.hist : NaN,
+             support: sr.support, resistance: sr.resistance, posRange: posRange, adx: adxV }
+    };
+  }
+
+  /* ── การ์ด "ไฟจราจร" (ถูก/แพงเทียบแนวโน้ม) — อัปเดตทุกครั้งที่สลับสินทรัพย์ใน selectAsset() ── */
+  function showVerdict(a, asset) {
+    if (a) lastAnalysis = a;
+    if (!a) {
+      $('vLight').className = 'light gray';
+      $('vBulb').style.background = '#B8C0D4';
+      $('vVerdict').textContent = t('gVerdictNoData');
+      $('vWhy').textContent = '';
+      $('vDetailsBox').style.display = 'none';
+      $('aiSumCard').style.display = 'none';
+      return;
+    }
+    var bulbColors = { green: 'var(--ok)', yellow: 'var(--amber)', red: 'var(--err)' };
+    $('vLight').className = 'light ' + a.light;
+    $('vBulb').style.background = bulbColors[a.light] || '#B8C0D4';
+    $('vVerdict').textContent = a.verdict;
+    $('vWhy').textContent = a.why;
+    if (a.det && isFinite(a.det.rsi)) {
+      var d = a.det, dp = asset.dp, rows = [
+        [t('detEma20'), fmt(d.ema20, dp)], [t('detEma50'), fmt(d.ema50, dp)],
+        [t('detRsi'), fmt(d.rsi, 1)], [t('detMacd'), fmt(d.macdHist, 4)],
+        [t('detSupport'), fmt(d.support, dp)], [t('detResistance'), fmt(d.resistance, dp)],
+        [t('detAdx'), isFinite(d.adx) ? fmt(d.adx, 0) + (d.adx >= 20 ? t('detAdxStrong') : t('detAdxWeak')) : t('detNoData')]
+      ], html = '';
+      rows.forEach(function (r) { html += '<div class="k">' + r[0] + '</div><div class="v">' + r[1] + '</div>'; });
+      $('vDetKv').innerHTML = html;
+      $('vDetailsBox').style.display = 'block';
+    } else { $('vDetailsBox').style.display = 'none'; }
+
+    /* การ์ด "สรุปด้วย AI" — โชว์เมื่อมีไฟจราจรจริง รีเซ็ตผลสรุปเก่าทิ้งทุกครั้งที่สลับสินทรัพย์/โหลดข้อมูลใหม่ */
+    $('aiSumCard').style.display = 'block';
+    $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+    setAiSumStatus('', '');
+  }
+
+  /* ══════ สรุปด้วย AI — ใช้ ai-chat-worker.js ตัวเดียวกับวิดเจ็ตแชทลอย (ai-chat-widget.js)
+     รันในเครื่องผู้ใช้เอง ไม่ส่งข้อมูลออกไปไหน แนวทาง "guided summarization" เดียวกับหน้าอื่น —
+     ป้อน "ตัวเลข/สัญญาณที่หน้านี้คำนวณไว้ให้แล้ว" (จาก analyzeSeries() ด้านบน) ตรงๆ ให้โมเดล
+     กันโมเดลเล็กต้องมาคำนวณ/ตีความตัวเลขเอง ── */
+  var AI_SUMMARY_SYSTEM_PROMPT = 'คุณเป็นผู้ช่วยสรุปข้อมูลราคาสินค้าโภคภัณฑ์/ค่าเงินให้นักลงทุนมือใหม่ชาวไทยฟัง จะได้รับตัวเลข/' +
+    'สัญญาณทางเทคนิคที่คำนวณไว้ให้แล้วล่วงหน้า (ห้ามคำนวณหรือเดาตัวเลขเพิ่มเองเด็ดขาด ใช้เฉพาะตัวเลขที่ให้มา) ' +
+    'หน้าที่ของคุณคือเรียบเรียงเป็นภาษาพูดที่เข้าใจง่าย ไม่ใช่ผู้แนะนำการลงทุน ' +
+    'ตอบเป็นภาษาไทยตามโครงสร้างนี้เท่านั้น (ห้ามขึ้นต้นด้วยคำนำ ให้เริ่มที่ "สรุปภาพรวม:" ทันที):\n\n' +
+    'สรุปภาพรวม: (1-2 ประโยค อธิบายสถานะราคาปัจจุบันแบบเข้าใจง่ายจากข้อมูลที่ให้)\n' +
+    'ปัจจัยหนุน: (ไม่เกิน 3 ข้อ จากข้อมูลที่ให้เท่านั้น ถ้าไม่มีให้บอกว่า "ไม่มีปัจจัยหนุนเด่นชัดตอนนี้")\n' +
+    'ปัจจัยเสี่ยง: (ไม่เกิน 3 ข้อ จากข้อมูลที่ให้เท่านั้น ถ้าไม่มีให้บอกว่า "ไม่มีปัจจัยเสี่ยงเด่นชัดตอนนี้")\n\n' +
+    'ห้ามให้คำแนะนำซื้อ/ขาย ห้ามทำนายราคาในอนาคต ห้ามเติมตัวเลขหรือเหตุการณ์ที่ไม่ได้อยู่ในข้อมูลที่ให้มาเด็ดขาด';
+  var AI_SUMMARY_REMINDER = 'ย้ำ: ห้ามให้คำแนะนำซื้อ/ขาย ห้ามทำนายราคาในอนาคต ห้ามเติมตัวเลข/เหตุการณ์ที่ไม่ได้อยู่ในข้อมูลที่ให้มา ' +
+    'ตอบตามโครงสร้าง 3 หัวข้อที่กำหนดเท่านั้น เริ่มที่ "สรุปภาพรวม:" ทันที ห้ามขึ้นต้นด้วยคำนำ';
+  var AI_SUMMARY_SYSTEM_PROMPT_EN = 'You are an assistant who summarizes commodity/FX price data for a novice retail investor. You will be given ' +
+    'pre-computed numbers/technical signals (never calculate or guess extra numbers yourself — use only the numbers given). ' +
+    'Your job is to phrase this as plain, easy-to-understand language, not as an investment advisor. ' +
+    'Reply in English using ONLY this structure (do not start with any preamble — start directly with "Overview:"):\n\n' +
+    'Overview: (1-2 sentences explaining the current price status in plain terms, from the data given)\n' +
+    'Tailwinds: (up to 3 bullet points, only from the data given — if none, say "No clear tailwinds right now")\n' +
+    'Risks: (up to 3 bullet points, only from the data given — if none, say "No clear risks right now")\n\n' +
+    'Never give buy/sell advice. Never predict future prices. Never add numbers or events not present in the data given.';
+  var AI_SUMMARY_REMINDER_EN = 'Reminder: never give buy/sell advice, never predict future prices, never add numbers/events not present in the data given. ' +
+    'Reply using only the 3-section structure above, starting directly with "Overview:" — no preamble.';
+
+  function isIOS() {
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) return true;
+    return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  }
+  function friendlyChatError(rawMessage) {
+    var msg = rawMessage || '';
+    if (/bad_alloc|Can't create a session|out of memory/i.test(msg)) return t('memErrorMsg');
+    return msg;
+  }
+
+  var aiSumChatWorker = null, aiSumJobSeq = 0, aiSumBusy = false;
+  function getAiSumWorker() { if (!aiSumChatWorker) aiSumChatWorker = new Worker('./ai-chat-worker.js', { type: 'module' }); return aiSumChatWorker; }
+  function setAiSumStatus(text, cls) { var el = $('aiSumStatus'); if (!el) return; el.textContent = text || ''; el.className = 'status' + (cls ? ' ' + cls : ''); }
+
+  function buildAiSumContext() {
+    var a = lastAnalysis; if (!a || !curKey) return null;
+    var asset = byKey[curKey]; if (!asset) return null;
+    var unit = assetUnit(asset), label = assetLabel(asset);
+    var lines = [t('ctxAsset', { label: label, unit: unit }), t('ctxLatestPrice', { v: fmt(a.price, asset.dp), unit: unit }), t('ctxVerdict', { v: a.verdict, why: a.why })];
+    if (a.pros && a.pros.length) lines.push(t('ctxPros', { v: a.pros.join(', ') }));
+    if (a.cons && a.cons.length) lines.push(t('ctxCons', { v: a.cons.join(', ') }));
+    var d = a.det || {};
+    if (isFinite(d.rsi)) lines.push(t('ctxRsi', { v: fmt(d.rsi, 1) }) + (d.rsi > 70 ? t('ctxRsiHigh') : d.rsi < 38 ? t('ctxRsiLow') : t('ctxRsiMid')));
+    if (isFinite(d.macdHist)) lines.push(t('ctxMacd', { v: fmt(d.macdHist, 4) }) + (d.macdHist >= 0 ? t('ctxMacdPos') : t('ctxMacdNeg')));
+    if (isFinite(d.ema20) && isFinite(d.ema50)) lines.push(t('ctxEma', { e20: fmt(d.ema20, asset.dp), e50: fmt(d.ema50, asset.dp) }) + (a.uptrend ? t('ctxEmaUp') : t('ctxEmaDn')));
+    if (isFinite(d.support)) lines.push(t('ctxSupport', { v: fmt(d.support, asset.dp) }));
+    if (isFinite(d.resistance)) lines.push(t('ctxResistance', { v: fmt(d.resistance, asset.dp) }));
+    if (isFinite(d.adx)) lines.push(t('ctxAdx', { v: fmt(d.adx, 0) }) + (d.adx >= 20 ? t('ctxAdxStrong') : t('ctxAdxWeak')));
+    return lines.join('\n');
+  }
+
+  function doAiSummary() {
+    if (aiSumBusy) return;
+    if (isIOS()) { setAiSumStatus(t('iosNotSupported'), 'err'); return; }
+    var ctx = buildAiSumContext();
+    if (!ctx) { setAiSumStatus(t('needStockData'), 'err'); return; }
+
+    aiSumBusy = true;
+    $('aiSumBtn').disabled = true;
+    $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+    setAiSumStatus(t('summarizing'), '');
+
+    var isEn = getUILang() === 'en';
+    var payloadMessages = [
+      { role: 'system', content: isEn ? AI_SUMMARY_SYSTEM_PROMPT_EN : AI_SUMMARY_SYSTEM_PROMPT },
+      { role: 'user', content: ctx },
+      { role: 'system', content: isEn ? AI_SUMMARY_REMINDER_EN : AI_SUMMARY_REMINDER }
+    ];
+    var jobId = ++aiSumJobSeq, replyText = '';
+    var w = getAiSumWorker();
+
+    function onMsg(e) {
+      var msg = e.data;
+      if (!msg || msg.jobId !== jobId) return;
+      if (msg.type === 'model-progress') {
+        var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
+        setAiSumStatus(t('loadingModel', { file: msg.file, pct: pct }), '');
+      } else if (msg.type === 'fallback') {
+        setAiSumStatus('' + msg.message, '');
+      } else if (msg.type === 'token') {
+        if (!replyText) { setAiSumStatus('', ''); $('aiSumOut').style.display = 'block'; }
+        replyText += msg.token;
+        $('aiSumOut').textContent = replyText;
+      } else if (msg.type === 'done') {
+        cleanup();
+        if (!replyText) setAiSumStatus(t('summarizeFail'), 'err');
+        aiSumBusy = false; $('aiSumBtn').disabled = false;
+      } else if (msg.type === 'error') {
+        cleanup();
+        $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+        setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(msg.message) }), 'err');
+        aiSumBusy = false; $('aiSumBtn').disabled = false;
+      }
+    }
+    function onErr(e) {
+      cleanup();
+      $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+      setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(e.message || t('unknownReason')) }), 'err');
+      aiSumBusy = false; $('aiSumBtn').disabled = false;
+    }
+    function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+    w.addEventListener('message', onMsg);
+    w.addEventListener('error', onErr);
+    w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });
+  }
+
   function setDetailStatus(msg, cls) {
     var el = $('dSrcBadge'); el.textContent = msg; el.className = 'src-badge' + (cls ? ' ' + cls : '');
   }
@@ -495,6 +821,11 @@
     $('ohlcRow').style.display = 'none';
     fullData = null;
 
+    /* รีเซ็ตการ์ดไฟจราจร/สรุปด้วย AI เป็นสถานะ "กำลังโหลด" ทันทีที่สลับสินทรัพย์ กันโชว์ผลของตัวเก่าค้าง */
+    $('vLight').className = 'light gray'; $('vBulb').style.background = '#B8C0D4';
+    $('vVerdict').textContent = t('loadingDefault'); $('vWhy').textContent = '';
+    $('vDetailsBox').style.display = 'none'; $('aiSumCard').style.display = 'none';
+
     if (a.kind === 'thaigold') {
       setDetailStatus(t('loadingDefault'));
       if (chart) { try { chart.remove(); } catch (e) {} chart = null; seriesObj = null; }
@@ -504,6 +835,7 @@
       $('chartEmpty').textContent = t('goldNoHistEmpty');
       $('histTitle').textContent = t('goldNoHistTitle');
       $('histTable').innerHTML = '';
+      showVerdict(null);
       getThaiGold().then(function (r) {
         setDetailStatus(r.stale ? t('goldStale') : t('goldLiveToday') + (r.data.updateDate ? (' · ' + r.data.updateDate) : ''), 'real');
         writeCard(a, r.data[a.field], NaN);
@@ -529,12 +861,14 @@
       setDetailStatus(r.stale ? t('seriesStale') : t('seriesReal'), 'real');
       if (!buildChart(r.s)) setDetailStatus(t('chartLibFail'), 'paste');
       renderHistTable(r.s, a);
+      showVerdict(analyzeSeries(r.s), a);
     }, function () {
       if (curKey !== key) return;
       setDetailStatus(t('seriesFail'), 'paste');
       $('chartEmpty').textContent = t('chartEmptyFail');
       $('histTitle').textContent = t('histTitleFail');
       $('histTable').innerHTML = '';
+      showVerdict(null);
     });
   }
 
@@ -552,6 +886,7 @@
         if (fullData) buildChart(fullData);
       });
     });
+    $('aiSumBtn').addEventListener('click', doAiSummary);
     var last = null;
     try { last = localStorage.getItem(LAST_KEY); } catch (e) {}
     selectAsset(byKey[last] ? last : 'gc');
