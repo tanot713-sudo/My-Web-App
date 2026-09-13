@@ -59,13 +59,15 @@
       clearConfirm: 'ล้างทั้งหมด? ทุกเอนทิตี้ในแบบนี้จะถูกลบ (ยังกด "เลิกทำ" ย้อนกลับได้)',
       snapEnd: 'ปลาย', snapMid: 'กึ่งกลาง', snapCenter: 'ศูนย์กลาง', snapInt: 'จุดตัด', snapPerp: 'ตั้งฉาก',
       toolMove: 'ย้าย', toolCopy: 'คัดลอก', toolRotate: 'หมุน', toolMirror: 'มิเรอร์',
-      mirrorKeepToggle: 'เก็บต้นฉบับ', toolScale: 'สเกล',
-      toolTrim: 'ตัดเส้น', toolExtend: 'ต่อเส้น', toolFillet: 'มุมโค้ง', toolOffset: 'ออฟเซ็ต',
-      toolArrayRect: 'อาเรย์',
+      mirrorKeepToggle: 'เก็บต้นฉบับ', toolScale: 'สเกล', toolStretch: 'ยืด/หด',
+      toolTrim: 'ตัดเส้น', toolExtend: 'ต่อเส้น', toolFillet: 'มุมโค้ง', toolChamfer: 'ตัดมุม', toolOffset: 'ออฟเซ็ต',
+      toolBreak: 'ตัดออกเป็น 2 ท่อน', toolJoin: 'เชื่อมเส้น',
+      toolArrayRect: 'อาเรย์', toolArrayPolar: 'อาเรย์วงกลม',
       radiusLbl: 'รัศมี (มม.)', rotAngLbl: 'มุมหมุน (°)', scaleFactorLbl: 'อัตราส่วนสเกล',
-      offsetDistLbl: 'ระยะออฟเซ็ต (มม.)', filletRadiusLbl: 'รัศมีมุมโค้ง (มม.)',
+      offsetDistLbl: 'ระยะออฟเซ็ต (มม.)', filletRadiusLbl: 'รัศมีมุมโค้ง (มม.)', chamferDistLbl: 'ระยะตัดมุม (มม.)',
       arrRowsLbl: 'แถว', arrColsLbl: 'คอลัมน์', arrSpXLbl: 'ห่างแนวนอน (มม.)', arrSpYLbl: 'ห่างแนวตั้ง (มม.)',
       arrApplyBtn: 'แทรกอาเรย์',
+      arrPolarCountLbl: 'จำนวนชิ้น', arrPolarAngleLbl: 'มุมรวม (°)', arrPolarApplyBtn: 'แทรกอาเรย์วงกลม',
       propsTitleLine: 'คุณสมบัติ: เส้น', propsTitlePolyline: 'คุณสมบัติ: พอลีไลน์', propsTitleRect: 'คุณสมบัติ: สี่เหลี่ยม',
       propsTitleCircle: 'คุณสมบัติ: วงกลม', propsTitleArc: 'คุณสมบัติ: ส่วนโค้ง',
       propX1: 'X1 (มม.)', propY1: 'Y1 (มม.)', propX2: 'X2 (มม.)', propY2: 'Y2 (มม.)',
@@ -141,13 +143,15 @@
       clearConfirm: 'Clear everything? Every entity in this drawing will be removed (you can still Undo).',
       snapEnd: 'endpoint', snapMid: 'midpoint', snapCenter: 'center', snapInt: 'intersection', snapPerp: 'perpendicular',
       toolMove: 'Move', toolCopy: 'Copy', toolRotate: 'Rotate', toolMirror: 'Mirror',
-      mirrorKeepToggle: 'Keep original', toolScale: 'Scale',
-      toolTrim: 'Trim', toolExtend: 'Extend', toolFillet: 'Fillet', toolOffset: 'Offset',
-      toolArrayRect: 'Array',
+      mirrorKeepToggle: 'Keep original', toolScale: 'Scale', toolStretch: 'Stretch',
+      toolTrim: 'Trim', toolExtend: 'Extend', toolFillet: 'Fillet', toolChamfer: 'Chamfer', toolOffset: 'Offset',
+      toolBreak: 'Break', toolJoin: 'Join',
+      toolArrayRect: 'Array', toolArrayPolar: 'Polar array',
       radiusLbl: 'Radius (mm)', rotAngLbl: 'Rotation angle (°)', scaleFactorLbl: 'Scale factor',
-      offsetDistLbl: 'Offset distance (mm)', filletRadiusLbl: 'Fillet radius (mm)',
+      offsetDistLbl: 'Offset distance (mm)', filletRadiusLbl: 'Fillet radius (mm)', chamferDistLbl: 'Chamfer distance (mm)',
       arrRowsLbl: 'Rows', arrColsLbl: 'Columns', arrSpXLbl: 'X spacing (mm)', arrSpYLbl: 'Y spacing (mm)',
       arrApplyBtn: 'Insert array',
+      arrPolarCountLbl: 'Item count', arrPolarAngleLbl: 'Total angle (°)', arrPolarApplyBtn: 'Insert polar array',
       propsTitleLine: 'Properties: Line', propsTitlePolyline: 'Properties: Polyline', propsTitleRect: 'Properties: Rectangle',
       propsTitleCircle: 'Properties: Circle', propsTitleArc: 'Properties: Arc',
       propX1: 'X1 (mm)', propY1: 'Y1 (mm)', propX2: 'X2 (mm)', propY2: 'Y2 (mm)',
@@ -266,6 +270,10 @@
     pendingEntityIds: [],    // เอนทิตี้ที่คลิกเลือกไว้แล้วสำหรับเครื่องมือ fillet/มิติมุม (ต้องการ 2 เส้น)
     trimCutterId: null,      // เอนทิตี้ที่เป็นเส้นตัด/เส้นขอบ สำหรับเครื่องมือ trim/extend
     offsetSourceId: null,    // เอนทิตี้ต้นทางสำหรับเครื่องมือ offset
+    breakTargetId: null,     // เอนทิตี้ที่เลือกไว้แล้วสำหรับเครื่องมือ break (ตัดออกเป็น 2 ท่อน)
+    breakPoint1: null,       // จุดตัดจุดแรก (สแนปลงบนเอนทิตี้แล้ว) สำหรับเครื่องมือ break
+    lastCrossBox: null,      // {xmin,xmax,ymin,ymax} ของกรอบลาก-เลือกล่าสุด (ทั้งแบบ crossing/window) — ใช้กับ
+                             // เครื่องมือ stretch เพื่อรู้ว่าจุดไหนของเอนทิตี้ "อยู่ในกรอบ" (ยืดตาม) บ้าง
     hatchSourcePts: null,    // จุดขอบเขต (snapshot) ของเอนทิตี้ที่เลือกไว้แล้วสำหรับเครื่องมือแรเงา (ก่อนกด "แรเงา")
     constraints: [],         // Stage 8: [{id, type, entities:[entityId,...], value}] — ดูรายละเอียดที่ CONSTRAINT_DEFS
     gripDrag: null,          // { entityId, ref } ระหว่างลากจุดจับ (grip) แก้รูปทรง
@@ -895,6 +903,25 @@
     };
   }
 
+  /* มุมตัด (chamfer): เหมือน fillet เป๊ะตอนหาจุดตัด V และปลายที่จะตัดออกของเส้นทั้งสอง ต่างแค่แทนที่มุมด้วย
+     "เส้นตรง" เชื่อม 2 จุดที่ห่างจาก V เท่ากับระยะที่กำหนด (ระยะเท่ากันทั้งสองเส้น — ยังไม่รองรับระยะไม่เท่ากัน
+     แบบ chamfer 2 ระยะต่างกันของ AutoCAD จริง ตั้งใจให้ง่ายกว่านั้นเหมือนกับที่ fillet ใช้รัศมีเดียว) */
+  function computeChamfer(lineA, lineB, dist) {
+    var V = lineIntersectInfinite(lineA.p1, lineA.p2, lineB.p1, lineB.p2);
+    if (!V) return null;
+    function pickKept(line) {
+      var da = Math.hypot(line.p1.x - V.x, line.p1.y - V.y), db = Math.hypot(line.p2.x - V.x, line.p2.y - V.y);
+      return da > db ? { kept: line.p1, trimmedEnd: 'p2' } : { kept: line.p2, trimmedEnd: 'p1' };
+    }
+    var ka = pickKept(lineA), kb = pickKept(lineB);
+    var u1 = vnorm(vsub(ka.kept, V)), u2 = vnorm(vsub(kb.kept, V));
+    var theta = Math.acos(clamp(vdot(u1, u2), -1, 1));
+    if (theta < 1e-3 || Math.abs(theta - Math.PI) < 1e-3) return null; // เส้นขนาน/ทับเส้นตรง ตัดมุมไม่ได้
+    var T1 = { x: V.x + dist * u1.x, y: V.y + dist * u1.y };
+    var T2 = { x: V.x + dist * u2.x, y: V.y + dist * u2.y };
+    return { lineAUpdate: { end: ka.trimmedEnd, point: T1 }, lineBUpdate: { end: kb.trimmedEnd, point: T2 }, chamferLine: { p1: T1, p2: T2 } };
+  }
+
   /* ออฟเซ็ต (offset): สร้างสำเนาขนานของเอนทิตี้ ห่างออกไปตามระยะที่กำหนด ทางด้านที่จุด sidePoint อยู่
      รองรับ เส้น/วงกลม/ส่วนโค้ง/สี่เหลี่ยม (พอลีไลน์ยังไม่รองรับในสเตจนี้ — การต่อมุมที่ถูกต้องซับซ้อนเกินขอบเขต) */
   function offsetEntity(e, distance, sidePoint) {
@@ -923,6 +950,126 @@
       return { id: genId(), type: 'rect', layer: e.layer, p1: { x: nminx, y: nminy }, p2: { x: nmaxx, y: nmaxy } };
     }
     return null;
+  }
+
+  /* หาจุดที่ "ใกล้ raw ที่สุดบนตัวเอนทิตี้เอง" (สแนปคลิกลงบนเส้น/วงกลม/ส่วนโค้งจริงๆ) — ใช้กับเครื่องมือ break
+     เพื่อให้จุดตัดอยู่บนเส้นเป๊ะแม้คลิกไม่เป๊ะ (รองรับแค่ line/circle/arc ตามขอบเขตของเครื่องมือนี้) */
+  function closestPointOnEntity(e, raw) {
+    if (e.type === 'line') { var tt = clamp(paramOnLine(raw, e.p1, e.p2), 0, 1); return pointAtParam(e.p1, e.p2, tt); }
+    if (e.type === 'circle' || e.type === 'arc') {
+      var ang = Math.atan2(raw.y - e.center.y, raw.x - e.center.x);
+      return { x: e.center.x + e.radius * Math.cos(ang), y: e.center.y + e.radius * Math.sin(ang) };
+    }
+    return raw;
+  }
+  /* สัดส่วน 0..1 ของจุด pt ตามส่วนโค้ง e (0=startAngle, 1=endAngle เดินตามทิศ CCW ปกติของ arc ในไฟล์นี้) */
+  function angleParamOnArc(e, pt) {
+    var ang = Math.atan2(pt.y - e.center.y, pt.x - e.center.x);
+    var span = normAngle(e.endAngle - e.startAngle);
+    return span ? normAngle(ang - e.startAngle) / span : 0;
+  }
+  /* ตัดเส้นออกเป็น 2 ท่อน (break): แบ่งตามจุด 2 จุดที่คลิก (สแนปลงบนเอนทิตี้แล้วผ่าน closestPointOnEntity) ลบ
+     ช่วงระหว่างจุดทั้งสองออก เหลือเป็น 0-2 ชิ้น (เส้น) หรือ 1 ส่วนโค้ง (วงกลม/ส่วนโค้งเดิม) — รองรับ line/circle/arc */
+  function applyBreak(e, ptA, ptB) {
+    pushHistory();
+    var EPS = 1e-4;
+    if (e.type === 'line') {
+      var tA = clamp(paramOnLine(ptA, e.p1, e.p2), 0, 1), tB = clamp(paramOnLine(ptB, e.p1, e.p2), 0, 1);
+      var lo = Math.min(tA, tB), hi = Math.max(tA, tB), pieces = [];
+      if (lo > EPS) pieces.push({ p1: e.p1, p2: pointAtParam(e.p1, e.p2, lo) });
+      if (hi < 1 - EPS) pieces.push({ p1: pointAtParam(e.p1, e.p2, hi), p2: e.p2 });
+      state.entities = state.entities.filter(function (x) { return x.id !== e.id; });
+      pieces.forEach(function (pc) { state.entities.push({ id: genId(), type: 'line', layer: e.layer, p1: pc.p1, p2: pc.p2 }); });
+    } else if (e.type === 'circle') {
+      var angA = Math.atan2(ptA.y - e.center.y, ptA.x - e.center.x), angB = Math.atan2(ptB.y - e.center.y, ptB.x - e.center.x);
+      state.entities = state.entities.filter(function (x) { return x.id !== e.id; });
+      // เก็บส่วนโค้งจากจุดที่ 2 วนทวนไปหาจุดที่ 1 (ตามเข็มที่ลบออกคือช่วง 1→2) — ธรรมเนียม CAD ทั่วไป
+      state.entities.push({ id: genId(), type: 'arc', layer: e.layer, center: { x: e.center.x, y: e.center.y }, radius: e.radius, startAngle: angB, endAngle: angB + normAngle(angA - angB) });
+    } else if (e.type === 'arc') {
+      var pA = clamp(angleParamOnArc(e, ptA), 0, 1), pB = clamp(angleParamOnArc(e, ptB), 0, 1);
+      var loA = Math.min(pA, pB), hiA = Math.max(pA, pB), span = normAngle(e.endAngle - e.startAngle), aPieces = [];
+      if (loA > EPS) aPieces.push({ startAngle: e.startAngle, endAngle: e.startAngle + span * loA });
+      if (hiA < 1 - EPS) aPieces.push({ startAngle: e.startAngle + span * hiA, endAngle: e.endAngle });
+      state.entities = state.entities.filter(function (x) { return x.id !== e.id; });
+      aPieces.forEach(function (pc) { state.entities.push({ id: genId(), type: 'arc', layer: e.layer, center: { x: e.center.x, y: e.center.y }, radius: e.radius, startAngle: pc.startAngle, endAngle: pc.endAngle }); });
+    } else return;
+    updateCountUI(); scheduleSave(); render();
+  }
+  /* เชื่อมเส้น (join): ต้องเป็นเส้นตรง 2 เส้นที่ "ขนานและอยู่แนวเดียวกัน" (collinear) เท่านั้น (ยังไม่รองรับ
+     เชื่อมส่วนโค้งบนวงกลมเดียวกัน หรือเชื่อมพอลีไลน์ในสเตจนี้) — รวมเป็นเส้นเดียวจากจุดปลายที่ห่างกันที่สุดใน 4 จุด */
+  function computeJoin(lineA, lineB) {
+    var d1 = vnorm(vsub(lineA.p2, lineA.p1)), d2 = vnorm(vsub(lineB.p2, lineB.p1));
+    if (Math.abs(d1.x * d2.y - d1.y * d2.x) > 1e-3) return null; // ไม่ขนานกัน
+    if (Math.abs((lineB.p1.x - lineA.p1.x) * d1.y - (lineB.p1.y - lineA.p1.y) * d1.x) > 1e-3) return null; // ขนานแต่คนละแนว
+    var pts = [lineA.p1, lineA.p2, lineB.p1, lineB.p2], best = null, bestD = -1;
+    for (var i = 0; i < 4; i++) for (var j = i + 1; j < 4; j++) {
+      var dd = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
+      if (dd > bestD) { bestD = dd; best = [pts[i], pts[j]]; }
+    }
+    return { p1: best[0], p2: best[1] };
+  }
+  function applyJoin(idA, idB) {
+    var eA = state.entities.filter(function (x) { return x.id === idA; })[0];
+    var eB = state.entities.filter(function (x) { return x.id === idB; })[0];
+    if (!eA || !eB) return false;
+    var res = computeJoin(eA, eB);
+    if (!res) return false;
+    pushHistory();
+    state.entities = state.entities.filter(function (x) { return x.id !== idA && x.id !== idB; });
+    state.entities.push({ id: genId(), type: 'line', layer: eA.layer, p1: res.p1, p2: res.p2 });
+    updateCountUI(); scheduleSave(); render();
+    return true;
+  }
+  /* อาเรย์วงกลม (polar array): ทำสำเนาเอนทิตี้ที่เลือกไว้วนรอบจุด center ตามจำนวน count และมุมรวม totalAngleDeg
+     (หมุนสำเนาแต่ละชิ้นตามไปด้วยเสมอ = "rotate items" — โหมดเดียวที่รองรับในสเตจนี้ ไม่มีโหมด "ไม่หมุนตาม") —
+     ถ้ามุมรวมครบ 360° หารช่วงด้วย count (ช่องว่างท้ายเท่าหัว), ถ้าไม่ครบวงหารด้วย count-1 (ชิ้นสุดท้ายอยู่พอดี
+     ที่ปลายมุมที่กำหนด) */
+  function doArrayPolar(center, count, totalAngleDeg) {
+    if (!state.selectedIds.length || count < 2) return;
+    var selSet = {}; state.selectedIds.forEach(function (id) { selSet[id] = true; });
+    var sources = state.entities.filter(function (e) { return selSet[e.id]; });
+    if (!sources.length) return;
+    var isFullCircle = Math.abs(Math.abs(totalAngleDeg) - 360) < 1e-6;
+    var stepRad = (totalAngleDeg * Math.PI / 180) / (isFullCircle ? count : (count - 1));
+    var added = [];
+    for (var i = 1; i < count; i++) {
+      (function (ang) {
+        sources.forEach(function (e) {
+          var clone = deepClone(e); clone.id = genId();
+          mapEntityPoints(clone, function (p) { return rotateAround(p, center, ang); });
+          if (clone.type === 'arc' || clone.type === 'angdim') { clone.startAngle += ang; clone.endAngle += ang; }
+          else if (clone.type === 'raddim' || clone.type === 'diadim') clone.angle += ang;
+          else if (clone.type === 'hatch') clone.angle += ang;
+          else if (clone.type === 'block') clone.rotation += ang;
+          added.push(clone);
+        });
+      })(stepRad * i);
+    }
+    pushHistory();
+    state.entities = state.entities.concat(added);
+    updateCountUI(); scheduleSave(); render();
+  }
+  /* จุด "ยืดได้" ของเอนทิตี้ตัวหนึ่ง — เหมือน entityGrips ทุกประการยกเว้นตัดจุดจับเสริมที่ไม่ใช่จุดจริงบนรูปทรง
+     ออก (radius/raddimleader/dimoffset ของวงกลม/ส่วนโค้ง/มิติ และมุมสี่เหลี่ยมที่คำนวณจาก p1/p2 อยู่แล้ว) เพื่อให้
+     เครื่องมือ stretch ย้ายเฉพาะ "จุดจริง" ที่อยู่ในกรอบลาก ตรงตามพฤติกรรม STRETCH มาตรฐานของ CAD ทั่วไป */
+  var STRETCH_EXCLUDED_REFS = { radius: 1, raddimleader: 1, dimoffset: 1, 'p2x-p1y': 1, 'p1x-p2y': 1 };
+  function entityStretchPoints(e) {
+    return entityGrips(e).filter(function (g) { return !(typeof g.ref === 'string' && STRETCH_EXCLUDED_REFS[g.ref]); });
+  }
+  /* ยืด/หด (stretch): ย้ายเฉพาะจุดจริงของเอนทิตี้ที่เลือกไว้ ซึ่งอยู่ "ในกรอบลากเลือกล่าสุด" (state.lastCrossBox)
+     เท่านั้น — จุดที่อยู่นอกกรอบไม่ขยับ (ทำให้เส้นที่ปลายหนึ่งอยู่ในกรอบ ปลายอีกด้านอยู่นอกกรอบ ถูก "ยืด" จริงๆ
+     ไม่ใช่แค่ย้ายทั้งเส้น) ถ้าไม่มีกรอบล่าสุดเลย (เช่นเลือกด้วยการคลิกทีละชิ้น) ถือว่าทุกจุดอยู่ "ในกรอบ" เสมอ
+     ผลลัพธ์จะเหมือนเครื่องมือย้ายทั้งชิ้นตามปกติ — ค่าเริ่มต้นที่ปลอดภัยเมื่อไม่รู้ขอบเขตกรอบจริง */
+  function stretchSelectedEntities(dx, dy) {
+    var selSet = {}; state.selectedIds.forEach(function (id) { selSet[id] = true; });
+    var box = state.lastCrossBox;
+    state.entities.forEach(function (e) {
+      if (!selSet[e.id]) return;
+      entityStretchPoints(e).forEach(function (g) {
+        var inside = !box || (g.p.x >= box.xmin && g.p.x <= box.xmax && g.p.y >= box.ymin && g.p.y <= box.ymax);
+        if (inside) applyGripEdit(e, g.ref, { x: g.p.x + dx, y: g.p.y + dy });
+      });
+    });
   }
 
   /* จุดจับ (grips): จุดที่ลากได้ตรงๆ บนเอนทิตี้ที่เลือกอยู่ตัวเดียว — ref บอกว่าจะเขียนค่ากลับตรงไหนของเอนทิตี้ */
@@ -1556,7 +1703,7 @@
     updateUndoRedoUI(); updateSelectionUI(); updateCountUI(); scheduleSave(); render();
   }
   function updateUndoRedoUI() { $('undoBtn').disabled = state.history.length === 0; $('redoBtn').disabled = state.redoStack.length === 0; }
-  var TRANSFORM_BTN_IDS = ['toolMoveBtn', 'toolCopyBtn', 'toolRotateBtn', 'toolMirrorBtn', 'toolScaleBtn', 'toolArrayRectBtn'];
+  var TRANSFORM_BTN_IDS = ['toolMoveBtn', 'toolCopyBtn', 'toolRotateBtn', 'toolMirrorBtn', 'toolScaleBtn', 'toolArrayRectBtn', 'toolArrayPolarBtn', 'toolStretchBtn'];
   function updateSelectionUI() {
     var n = state.selectedIds.length;
     $('deleteBtn').disabled = n === 0;
@@ -1635,8 +1782,8 @@
   /* ══════════════════ เครื่องมือวาด ══════════════════ */
   var TOOL_BTN_IDS = {
     select: 'toolSelectBtn', line: 'toolLineBtn', polyline: 'toolPolylineBtn', rect: 'toolRectBtn', circle: 'toolCircleBtn', arc: 'toolArcBtn', spline: 'toolSplineBtn',
-    move: 'toolMoveBtn', copy: 'toolCopyBtn', rotate: 'toolRotateBtn', mirror: 'toolMirrorBtn', scale: 'toolScaleBtn',
-    trim: 'toolTrimBtn', extend: 'toolExtendBtn', fillet: 'toolFilletBtn', offset: 'toolOffsetBtn', arrayrect: 'toolArrayRectBtn',
+    move: 'toolMoveBtn', copy: 'toolCopyBtn', rotate: 'toolRotateBtn', mirror: 'toolMirrorBtn', scale: 'toolScaleBtn', stretch: 'toolStretchBtn',
+    trim: 'toolTrimBtn', extend: 'toolExtendBtn', fillet: 'toolFilletBtn', chamfer: 'toolChamferBtn', 'break': 'toolBreakBtn', join: 'toolJoinBtn', offset: 'toolOffsetBtn', arrayrect: 'toolArrayRectBtn', arraypolar: 'toolArrayPolarBtn',
     dim: 'toolDimBtn', raddim: 'toolRaddimBtn', diadim: 'toolDiadimBtn', angdim: 'toolAngdimBtn', text: 'toolTextBtn', leader: 'toolLeaderBtn', textleader: 'toolTextLeaderBtn', hatch: 'toolHatchBtn', centermark: 'toolCentermarkBtn', ordinate: 'toolOrdinateBtn',
     block: 'toolBlockBtn', titleblock: 'toolTitleBlockBtn', constraint: 'toolConstraintBtn'
   };
@@ -1645,8 +1792,9 @@
   var textContentTextarea = $('textContentTextarea'), textContentLblWrap = $('textContentLblWrap'), textContentMultiLblWrap = $('textContentMultiLblWrap');
   var hatchRow = $('hatchRow'), hatchSpacingInput = $('hatchSpacing'), hatchAngleInput = $('hatchAngle');
   var blockLibSel = $('blockLibSel'), insertRow = $('insertRow'), blockSizeInput = $('blockSizeInput'), blockRotInput = $('blockRotInput'), blockMirrorBtn = $('blockMirrorBtn');
+  var arrayPolarRow = $('arrayPolarRow'), arrPolarCountInput = $('arrPolarCount'), arrPolarAngleInput = $('arrPolarAngle');
   var TEXT_ROW_POINTS_NEEDED = { text: 1, leader: 2, textleader: 2 }; // จำนวนจุดที่ต้องคลิกก่อน textRow จะโผล่ (ข้อความ=1 จุด, ลูกศรชี้/ข้อความ+เส้นชี้=2 จุด)
-  var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, textleader: 1, hatch: 1, block: 1, titleblock: 1, constraint: 1, centermark: 1 };
+  var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, 'break': 1, join: 1, arrayrect: 1, arraypolar: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, textleader: 1, hatch: 1, block: 1, titleblock: 1, constraint: 1, centermark: 1 };
   /* ห้าแถวป้อนค่าละเอียด (preciseRow/arrayRow/textRow/hatchRow/insertRow) ใช้ visibility:hidden (ไม่ใช่
      display:none) ตอนไม่โผล่ เพื่อกันวิวพอร์ตขยับกลางอากาศตอนคลิกจุดถัดไประหว่างวาด (ดูคอมเมนต์ที่นิยาม
      .cad-precise-row ใน cad.html) — แต่ถ้าปล่อยให้ทั้ง 5 แถว "จอง" ที่ว่างพร้อมกันตลอดเวลาแม้ไม่มีแถวไหน
@@ -1659,12 +1807,13 @@
   function updatePreciseZoneEligibility(tool) {
     preciseRow.style.display = (!PRECISE_ROW_EXCLUDED[tool] || tool === 'constraint') ? '' : 'none';
     arrayRow.style.display = tool === 'arrayrect' ? '' : 'none';
+    arrayPolarRow.style.display = tool === 'arraypolar' ? '' : 'none';
     textRow.style.display = (tool === 'text' || tool === 'leader' || tool === 'textleader') ? '' : 'none';
     hatchRow.style.display = tool === 'hatch' ? '' : 'none';
     insertRow.style.display = tool === 'block' ? '' : 'none';
   }
   function setTool(tool) {
-    state.tool = tool; state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null; state.hatchSourcePts = null; state.gripDrag = null;
+    state.tool = tool; state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null; state.breakTargetId = null; state.breakPoint1 = null; state.hatchSourcePts = null; state.gripDrag = null;
     Object.keys(TOOL_BTN_IDS).forEach(function (k) { $(TOOL_BTN_IDS[k]).classList.toggle('active', k === tool); });
     viewport.style.cursor = tool === 'select' ? 'default' : 'crosshair';
     updatePreciseZoneEligibility(tool);
@@ -1674,6 +1823,7 @@
     updateTextRowUI();
     updateHatchRowUI();
     updateInsertRowUI();
+    updateArrayPolarRowUI();
     render();
   }
   function updateTextRowUI() {
@@ -1723,6 +1873,20 @@
     updateCountUI(); scheduleSave(); updateHatchRowUI(); render();
   }
   /* แถวปรับขนาดจริง/มุมหมุน/มิเรอร์ ก่อนกดปุ่ม "แทรก" ยืนยันวางบล็อก — โผล่หลังจากคลิกจุดแทรกแล้วเท่านั้น */
+  /* แถวจำนวนชิ้น/มุมรวม ก่อนกดปุ่ม "แทรกอาเรย์วงกลม" ยืนยันสร้างจริง — โผล่หลังจากคลิกจุดศูนย์กลางแล้วเท่านั้น */
+  function updateArrayPolarRowUI() {
+    var show = state.tool === 'arraypolar' && state.pendingPoints.length === 1;
+    arrayPolarRow.classList.toggle('show', show);
+    if (show && !arrPolarCountInput.value) { arrPolarCountInput.value = '6'; arrPolarAngleInput.value = '360'; }
+  }
+  function applyArrayPolarRow() {
+    if (state.tool !== 'arraypolar' || state.pendingPoints.length !== 1) return;
+    var count = Math.max(2, parseInt(arrPolarCountInput.value, 10) || 2);
+    var totalAngle = parseFloat(arrPolarAngleInput.value);
+    if (!isFinite(totalAngle) || !totalAngle) totalAngle = 360;
+    doArrayPolar(state.pendingPoints[0], count, totalAngle);
+    finishDrawing(); updateArrayPolarRowUI(); render();
+  }
   function updateInsertRowUI() {
     var show = state.tool === 'block' && state.pendingPoints.length === 1;
     insertRow.classList.toggle('show', show);
@@ -1761,6 +1925,7 @@
     else if (state.tool === 'scale') { distText = t('scaleFactorLbl'); angShow = false; }
     else if (state.tool === 'offset') { distText = t('offsetDistLbl'); angShow = false; }
     else if (state.tool === 'fillet') { distText = t('filletRadiusLbl'); angShow = false; }
+    else if (state.tool === 'chamfer') { distText = t('chamferDistLbl'); angShow = false; }
     else if (state.tool === 'mirror') { distShow = false; angShow = false; }
     else if (state.tool === 'constraint') {
       var cdef0 = CONSTRAINT_DEFS[constraintTypeSel.value];
@@ -1773,6 +1938,7 @@
     updatePreciseLabels();
     var show = (!PRECISE_ROW_EXCLUDED[state.tool] && state.pendingPoints.length > 0) ||
       (state.tool === 'offset' && state.offsetSourceId) || (state.tool === 'fillet' && state.pendingEntityIds.length === 2) ||
+      (state.tool === 'chamfer' && state.pendingEntityIds.length === 2) ||
       (state.tool === 'constraint' && CONSTRAINT_DEFS[constraintTypeSel.value].valueKind && state.pendingEntityIds.length === CONSTRAINT_DEFS[constraintTypeSel.value].needed);
     preciseRow.classList.toggle('show', show);
     var showFinish = (state.tool === 'polyline' || state.tool === 'spline') && state.pendingPoints.length >= 2;
@@ -1781,10 +1947,10 @@
   }
   function clearPreciseInputs() { distInput.value = ''; angInput.value = ''; }
   function cancelDrawing() {
-    state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null; state.hatchSourcePts = null;
-    updatePreciseRowUI(); updateTextRowUI(); updateHatchRowUI(); updateInsertRowUI(); render();
+    state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null; state.breakTargetId = null; state.breakPoint1 = null; state.hatchSourcePts = null;
+    updatePreciseRowUI(); updateTextRowUI(); updateHatchRowUI(); updateInsertRowUI(); updateArrayPolarRowUI(); render();
   }
-  function finishDrawing() { state.pendingPoints = []; updatePreciseRowUI(); updateTextRowUI(); updateInsertRowUI(); }
+  function finishDrawing() { state.pendingPoints = []; updatePreciseRowUI(); updateTextRowUI(); updateInsertRowUI(); updateArrayPolarRowUI(); }
   function finishPolyline() {
     if (state.pendingPoints.length >= 2) {
       pushHistory();
@@ -1901,10 +2067,24 @@
       }
     } else if (state.tool === 'block') {
       state.pendingPoints = [pt]; // จุดแทรกจุดเดียว — ขนาด/มุม/มิเรอร์ปรับผ่าน insertRow แยกต่างหาก (ดู applyInsertRow)
+    } else if (state.tool === 'arraypolar') {
+      state.pendingPoints = [pt]; // จุดศูนย์กลางวงกลม — จำนวนชิ้น/มุมรวมปรับผ่าน arrayPolarRow แยกต่างหาก
+    } else if (state.tool === 'stretch') {
+      if (!state.pendingPoints.length) { state.pendingPoints = [pt]; }
+      else {
+        var stBase = state.pendingPoints[0], stdx = pt.x - stBase.x, stdy = pt.y - stBase.y;
+        if (Math.hypot(stdx, stdy) > DUP_EPS) {
+          pushHistory();
+          stretchSelectedEntities(stdx, stdy);
+          updateCountUI(); scheduleSave(); updateSelectionUI();
+        }
+        finishDrawing();
+      }
     }
     updatePreciseRowUI();
     updateTextRowUI();
     updateInsertRowUI();
+    updateArrayPolarRowUI();
     clearPreciseInputs();
     render();
   }
@@ -2019,6 +2199,29 @@
     updateCountUI(); scheduleSave(); render();
     return true;
   }
+  /* ── เครื่องมือ chamfer: คลิกเลือกเส้นตรง 2 เส้น แล้วพิมพ์ระยะตัดมุม+Enter (เหมือน fillet ทุกประการ) ── */
+  function handleChamferClick(raw) {
+    var hit = hitTestEntity(raw);
+    if (!hit) return;
+    var e = state.entities.filter(function (x) { return x.id === hit; })[0];
+    if (!e || e.type !== 'line' || state.pendingEntityIds.indexOf(hit) !== -1) return;
+    state.pendingEntityIds.push(hit);
+    if (state.pendingEntityIds.length > 2) state.pendingEntityIds.shift();
+    updatePreciseRowUI(); render();
+  }
+  function applyChamfer(idA, idB, dist) {
+    var eA = state.entities.filter(function (x) { return x.id === idA; })[0];
+    var eB = state.entities.filter(function (x) { return x.id === idB; })[0];
+    if (!eA || !eB) return false;
+    var res = computeChamfer(eA, eB, dist);
+    if (!res) return false;
+    pushHistory();
+    eA[res.lineAUpdate.end] = res.lineAUpdate.point;
+    eB[res.lineBUpdate.end] = res.lineBUpdate.point;
+    state.entities.push({ id: genId(), type: 'line', layer: state.activeLayer, p1: res.chamferLine.p1, p2: res.chamferLine.p2 });
+    updateCountUI(); scheduleSave(); render();
+    return true;
+  }
   /* ── เครื่องมือ offset: คลิกแรกเลือกเอนทิตี้ต้นทาง คลิกที่สองบอกด้าน (+ระยะเป๊ะถ้าพิมพ์ไว้) ── */
   function handleOffsetClick(raw) {
     if (!state.offsetSourceId) {
@@ -2039,6 +2242,36 @@
     }
     state.offsetSourceId = null;
     clearPreciseInputs(); updatePreciseRowUI(); render();
+  }
+  /* ── เครื่องมือ break: คลิกแรกเลือกเอนทิตี้ + จุดตัดจุดแรก (สแนปลงบนเอนทิตี้) คลิกที่สองบอกจุดตัดที่สอง
+     แล้วตัดออกทันที (รองรับ line/circle/arc — ดู applyBreak) ── */
+  function handleBreakClick(raw) {
+    if (!state.breakTargetId) {
+      var hit = hitTestEntity(raw);
+      if (hit) {
+        var e0 = state.entities.filter(function (x) { return x.id === hit; })[0];
+        if (e0 && (e0.type === 'line' || e0.type === 'circle' || e0.type === 'arc')) {
+          state.breakTargetId = hit; state.breakPoint1 = closestPointOnEntity(e0, raw); render();
+        }
+      }
+      return;
+    }
+    var e = state.entities.filter(function (x) { return x.id === state.breakTargetId; })[0];
+    var p1 = state.breakPoint1;
+    state.breakTargetId = null; state.breakPoint1 = null;
+    if (!e) return;
+    applyBreak(e, p1, closestPointOnEntity(e, raw));
+  }
+  /* ── เครื่องมือ join: คลิกเลือกเส้นตรง 2 เส้น เชื่อมทันทีถ้าขนาน+แนวเดียวกัน (ดู computeJoin) ── */
+  function handleJoinClick(raw) {
+    var hit = hitTestEntity(raw);
+    if (!hit) return;
+    var e = state.entities.filter(function (x) { return x.id === hit; })[0];
+    if (!e || e.type !== 'line' || state.pendingEntityIds.indexOf(hit) !== -1) return;
+    state.pendingEntityIds.push(hit);
+    if (state.pendingEntityIds.length < 2) { render(); return; }
+    var ids = state.pendingEntityIds.slice(); state.pendingEntityIds = [];
+    applyJoin(ids[0], ids[1]);
   }
   /* มิติรัศมี (raddim): คลิกวงกลม/ส่วนโค้งแล้วสร้าง snapshot รัศมี ณ ตำแหน่งที่คลิก (ทิศทางขีดนำ) — ไม่ผูก
      กับเอนทิตี้ต้นทางอีกต่อไป แก้วงกลมทีหลังจะไม่กระทบมิติที่วางไปแล้ว (ข้อจำกัดที่ตั้งใจ ทำให้ง่ายและคาดเดาได้) */
@@ -2138,6 +2371,7 @@
         var idx = state.selectedIds.indexOf(hit);
         if (idx >= 0) state.selectedIds.splice(idx, 1); else state.selectedIds.push(hit);
       } else state.selectedIds = [hit];
+      state.lastCrossBox = null; // เลือกด้วยการคลิกทีละชิ้น ไม่มี "กรอบ" ให้เครื่องมือ stretch อ้างอิง
       updateSelectionUI(); render();
       return;
     }
@@ -2165,6 +2399,7 @@
     });
     if (ds.additive) picked.forEach(function (id) { if (state.selectedIds.indexOf(id) === -1) state.selectedIds.push(id); });
     else state.selectedIds = picked;
+    state.lastCrossBox = { xmin: xmin, xmax: xmax, ymin: ymin, ymax: ymax }; // ให้เครื่องมือ stretch ใช้ทีหลัง
     updateSelectionUI(); render();
   }
   canvas.addEventListener('mousemove', function (e) {
@@ -2197,6 +2432,9 @@
     if (state.tool === 'select') { handleSelectMouseDown(raw, sp, e.shiftKey); return; }
     if (state.tool === 'trim' || state.tool === 'extend') { handleTrimExtendClick(raw); return; }
     if (state.tool === 'fillet') { handleFilletClick(raw); return; }
+    if (state.tool === 'chamfer') { handleChamferClick(raw); return; }
+    if (state.tool === 'break') { handleBreakClick(raw); return; }
+    if (state.tool === 'join') { handleJoinClick(raw); return; }
     if (state.tool === 'offset') { handleOffsetClick(raw); return; }
     if (state.tool === 'raddim') { handleRaddimClick(raw); return; }
     if (state.tool === 'diadim') { handleDiadimClick(raw); return; }
@@ -2269,6 +2507,9 @@
       if (state.tool === 'select') handleSelectMouseDown(raw, { x: touchState.startX, y: touchState.startY }, false);
       else if (state.tool === 'trim' || state.tool === 'extend') handleTrimExtendClick(raw);
       else if (state.tool === 'fillet') handleFilletClick(raw);
+      else if (state.tool === 'chamfer') handleChamferClick(raw);
+      else if (state.tool === 'break') handleBreakClick(raw);
+      else if (state.tool === 'join') handleJoinClick(raw);
       else if (state.tool === 'offset') handleOffsetClick(raw);
       else if (state.tool === 'raddim') handleRaddimClick(raw);
       else if (state.tool === 'diadim') handleDiadimClick(raw);
@@ -2287,7 +2528,7 @@
      ระหว่างวาด (มีจุดยึดค้างอยู่) พิมพ์เลข/จุด/ลบได้เลยโดยไม่ต้องคลิกช่องอินพุตก่อน — คีย์นั้นจะถูก "โยน"
      ไปที่ช่องระยะให้อัตโนมัติ เหมือนโปรแกรม CAD ทั่วไป (Dynamic Input) */
   function hasPendingOp() {
-    return state.pendingPoints.length > 0 || !!state.trimCutterId || !!state.offsetSourceId || !!state.hatchSourcePts || state.pendingEntityIds.length > 0;
+    return state.pendingPoints.length > 0 || !!state.trimCutterId || !!state.offsetSourceId || !!state.breakTargetId || !!state.hatchSourcePts || state.pendingEntityIds.length > 0;
   }
   window.addEventListener('keydown', function (e) {
     var tag = document.activeElement.tagName;
@@ -2316,6 +2557,11 @@
         if (state.tool === 'fillet' && state.pendingEntityIds.length === 2) {
           var rr = parseFloat(distInput.value.trim());
           if (isFinite(rr) && rr > 0 && applyFillet(state.pendingEntityIds[0], state.pendingEntityIds[1], rr)) { state.pendingEntityIds = []; clearPreciseInputs(); updatePreciseRowUI(); }
+          return;
+        }
+        if (state.tool === 'chamfer' && state.pendingEntityIds.length === 2) {
+          var cd = parseFloat(distInput.value.trim());
+          if (isFinite(cd) && cd > 0 && applyChamfer(state.pendingEntityIds[0], state.pendingEntityIds[1], cd)) { state.pendingEntityIds = []; clearPreciseInputs(); updatePreciseRowUI(); }
           return;
         }
         if (state.tool === 'constraint') {
@@ -2358,6 +2604,7 @@
     var spx = parseFloat($('arrSpX').value) || 0, spy = parseFloat($('arrSpY').value) || 0;
     doArrayRect(rows, cols, spx, spy);
   });
+  $('arrPolarApplyBtn').addEventListener('click', applyArrayPolarRow);
   $('textApplyBtn').addEventListener('click', applyTextRow);
   [textContentInput, textHeightInput].forEach(function (inp) {
     inp.addEventListener('keydown', function (e) {
