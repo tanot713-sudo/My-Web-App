@@ -48,7 +48,33 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 
 .card{background:var(--card);border-radius:var(--ome-card-r);box-shadow:var(--sh);padding:var(--ome-card-pad);margin-top:var(--ome-card-gap)}
 
-/* ── แถบเครื่องมือ ── */
+/* ── โครงหน้าจอ: แถบข้างซ้าย (เครื่องมือ) + กลาง (วิวพอร์ต) + แถบข้างขวา (คุณสมบัติ/เลเยอร์)
+   แทนที่แถบเครื่องมือแนวนอนยาวด้านบนเดิม — เครื่องมือจัดกลุ่มเป็นไอคอนกริดข้างซ้าย เห็นหมวดหมู่
+   ชัดเจนขึ้น ส่วนคุณสมบัติ/เลเยอร์ย้ายมาอยู่ข้างวิวพอร์ตแทนอยู่ใต้สุด (ไม่ต้องเลื่อนจอไปมา) ── */
+.cad-workspace{display:flex;gap:14px;align-items:flex-start}
+.cad-side{flex:0 0 auto}
+.cad-side .card{margin-top:0}
+.cad-side-left{width:210px}
+.cad-side-right{width:270px;display:flex;flex-direction:column;gap:14px}
+.cad-main{flex:1;min-width:0}
+.cad-main .card{margin-top:0}
+.cad-tool-section{margin-bottom:16px}
+.cad-tool-section:last-child{margin-bottom:0}
+.cad-tool-section-lbl{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase;display:block;margin-bottom:8px}
+.cad-tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.cad-tool-grid .btn{width:100%;white-space:normal;line-height:1.25;text-align:center}
+.cad-tool-subrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.cad-tool-subrow select{width:100%;font-family:inherit;font-size:12.5px;padding:7px 8px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+@media(max-width:980px){
+  .cad-workspace{flex-direction:column}
+  .cad-side-left,.cad-side-right{width:100%}
+}
+@media(max-width:900px){
+  .cad-tool-grid{display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  .cad-tool-grid .btn{width:auto;flex-shrink:0;white-space:nowrap}
+}
+
+/* ── แถบเครื่องมือ (แถบบนของวิวพอร์ต — ซูม/สแนป/เลิกทำ/ส่งออก) ── */
 .cad-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
 .cad-tb-group{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-right:8px;border-right:1px solid var(--line)}
 .cad-tb-group:last-child{border-right:none}
@@ -220,217 +246,246 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
   </div>
 
   <div id="panel2d">
-  <div class="card">
-    <div class="cad-toolbar">
-      <div class="cad-tb-group">
-        <button class="btn sm active" id="toolSelectBtn" type="button" data-i18n="toolSelect">เลือก</button>
-        <button class="btn sm" id="toolLineBtn" type="button" data-i18n="toolLine">／ เส้น</button>
-        <button class="btn sm" id="toolPolylineBtn" type="button" data-i18n="toolPolyline">⌇ พอลีไลน์</button>
-        <button class="btn sm" id="toolRectBtn" type="button" data-i18n="toolRect">▭ สี่เหลี่ยม</button>
-        <button class="btn sm" id="toolCircleBtn" type="button" data-i18n="toolCircle">○ วงกลม</button>
-        <button class="btn sm" id="toolArcBtn" type="button" data-i18n="toolArc">◜ ส่วนโค้ง</button>
-        <button class="btn sm" id="toolSplineBtn" type="button" data-i18n="toolSpline">∿ สปไลน์</button>
+  <div class="cad-workspace">
+
+    <!-- ── แถบข้างซ้าย: เครื่องมือวาด/แก้ไข/ใส่คำอธิบาย จัดเป็นกลุ่มไอคอนกริด แทนแถวยาวด้านบนเดิม ── -->
+    <aside class="cad-side cad-side-left">
+      <div class="card">
+        <div class="cad-tool-section">
+          <span class="cad-tool-section-lbl" data-i18n="toolSectionDraw">วาด</span>
+          <div class="cad-tool-grid">
+            <button class="btn sm active" id="toolSelectBtn" type="button" data-i18n="toolSelect">เลือก</button>
+            <button class="btn sm" id="toolLineBtn" type="button" data-i18n="toolLine">／ เส้น</button>
+            <button class="btn sm" id="toolPolylineBtn" type="button" data-i18n="toolPolyline">⌇ พอลีไลน์</button>
+            <button class="btn sm" id="toolRectBtn" type="button" data-i18n="toolRect">▭ สี่เหลี่ยม</button>
+            <button class="btn sm" id="toolCircleBtn" type="button" data-i18n="toolCircle">○ วงกลม</button>
+            <button class="btn sm" id="toolArcBtn" type="button" data-i18n="toolArc">◜ ส่วนโค้ง</button>
+            <button class="btn sm" id="toolSplineBtn" type="button" data-i18n="toolSpline">∿ สปไลน์</button>
+          </div>
+        </div>
+        <div class="cad-tool-section">
+          <span class="cad-tool-section-lbl" data-i18n="toolSectionModify">แก้ไข</span>
+          <div class="cad-tool-grid">
+            <button class="btn sm" id="toolMoveBtn" type="button" disabled data-i18n="toolMove">ย้าย</button>
+            <button class="btn sm" id="toolCopyBtn" type="button" disabled data-i18n="toolCopy">⧉ คัดลอก</button>
+            <button class="btn sm" id="toolRotateBtn" type="button" disabled data-i18n="toolRotate">หมุน</button>
+            <button class="btn sm" id="toolMirrorBtn" type="button" disabled data-i18n="toolMirror">มิเรอร์</button>
+            <button class="btn sm active" id="mirrorKeepBtn" type="button" title="เก็บต้นฉบับ" data-i18n="mirrorKeepToggle">เก็บต้นฉบับ</button>
+            <button class="btn sm" id="toolScaleBtn" type="button" disabled data-i18n="toolScale">⤢ สเกล</button>
+            <button class="btn sm" id="toolArrayRectBtn" type="button" disabled data-i18n="toolArrayRect">▦ อาเรย์</button>
+          </div>
+        </div>
+        <div class="cad-tool-section">
+          <span class="cad-tool-section-lbl" data-i18n="toolSectionEdit">แก้เส้น</span>
+          <div class="cad-tool-grid">
+            <button class="btn sm" id="toolTrimBtn" type="button" data-i18n="toolTrim">ตัดเส้น</button>
+            <button class="btn sm" id="toolExtendBtn" type="button" data-i18n="toolExtend">⤴ ต่อเส้น</button>
+            <button class="btn sm" id="toolFilletBtn" type="button" data-i18n="toolFillet">◠ มุมโค้ง</button>
+            <button class="btn sm" id="toolOffsetBtn" type="button" data-i18n="toolOffset">∥ ออฟเซ็ต</button>
+          </div>
+        </div>
+        <div class="cad-tool-section">
+          <span class="cad-tool-section-lbl" data-i18n="toolSectionAnnotate">ใส่คำอธิบาย</span>
+          <div class="cad-tool-grid">
+            <button class="btn sm" id="toolDimBtn" type="button" data-i18n="toolDim">มิติเส้น</button>
+            <button class="btn sm" id="toolRaddimBtn" type="button" data-i18n="toolRaddim">⌀ มิติรัศมี</button>
+            <button class="btn sm" id="toolDiadimBtn" type="button" data-i18n="toolDiadim">⌀⌀ ผ่าศูนย์กลาง</button>
+            <button class="btn sm" id="toolAngdimBtn" type="button" data-i18n="toolAngdim">∠ มิติมุม</button>
+            <button class="btn sm" id="toolLeaderBtn" type="button" data-i18n="toolLeader">ลูกศรชี้</button>
+            <button class="btn sm" id="toolTextBtn" type="button" data-i18n="toolText">ข้อความ</button>
+            <button class="btn sm" id="toolHatchBtn" type="button" data-i18n="toolHatch">▤ แรเงา</button>
+          </div>
+          <div class="cad-tool-subrow">
+            <label data-i18n="dimTextHeightLbl">ตัวอักษรมิติ (มม.)<input type="text" id="dimTextHeightInput" inputmode="decimal" autocomplete="off" value="3"></label>
+            <label data-i18n="dimArrowSizeLbl">หัวลูกศร (มม.)<input type="text" id="dimArrowSizeInput" inputmode="decimal" autocomplete="off" value="2.5"></label>
+          </div>
+        </div>
+        <div class="cad-tool-section">
+          <span class="cad-tool-section-lbl" data-i18n="toolSectionInsert">แทรก</span>
+          <div class="cad-tool-grid">
+            <button class="btn sm" id="toolBlockBtn" type="button" data-i18n="toolBlock">แทรกบล็อก</button>
+            <button class="btn sm" id="toolTitleBlockBtn" type="button" data-i18n="toolTitleBlock">ตารางรายการแบบ</button>
+          </div>
+          <div class="cad-tool-subrow"><select id="blockLibSel"></select></div>
+        </div>
       </div>
-      <div class="cad-tb-group">
-        <button class="btn sm" id="toolMoveBtn" type="button" disabled data-i18n="toolMove">ย้าย</button>
-        <button class="btn sm" id="toolCopyBtn" type="button" disabled data-i18n="toolCopy">⧉ คัดลอก</button>
-        <button class="btn sm" id="toolRotateBtn" type="button" disabled data-i18n="toolRotate">หมุน</button>
-        <button class="btn sm" id="toolMirrorBtn" type="button" disabled data-i18n="toolMirror">มิเรอร์</button>
-        <button class="btn sm active" id="mirrorKeepBtn" type="button" title="เก็บต้นฉบับ" data-i18n="mirrorKeepToggle">เก็บต้นฉบับ</button>
-        <button class="btn sm" id="toolScaleBtn" type="button" disabled data-i18n="toolScale">⤢ สเกล</button>
+    </aside>
+
+    <!-- ── กลาง: แถบเครื่องมือหน้า (ซูม/สแนป/เลิกทำ/ส่งออก) + วิวพอร์ตวาดแบบ ── -->
+    <div class="cad-main">
+    <div class="card">
+      <div class="cad-toolbar">
+        <div class="cad-tb-group">
+          <button class="btn sm icon-only" id="undoBtn" type="button" title="เลิกทำ" disabled>↩</button>
+          <button class="btn sm icon-only" id="redoBtn" type="button" title="ทำซ้ำ" disabled>↪</button>
+          <button class="btn sm" id="deleteBtn" type="button" disabled data-i18n="deleteSel">ลบที่เลือก</button>
+        </div>
+        <div class="cad-tb-group">
+          <button class="btn sm icon-only" id="zoomOutBtn" type="button" title="ซูมออก">－</button>
+          <button class="btn sm" id="zoomFitBtn" type="button" data-i18n="zoomFit">พอดีจอ</button>
+          <button class="btn sm icon-only" id="zoomInBtn" type="button" title="ซูมเข้า">＋</button>
+        </div>
+        <div class="cad-tb-group">
+          <button class="btn sm" id="snapToggleBtn" type="button" data-i18n="snapToggle">สแนปกริด</button>
+          <label data-i18n="snapStepLbl">ระยะกริด<select id="snapStepSel">
+            <option value="1">1 มม.</option>
+            <option value="5">5 มม.</option>
+            <option value="10" selected>10 มม.</option>
+            <option value="50">50 มม.</option>
+            <option value="100">100 มม.</option>
+          </select></label>
+        </div>
+        <div class="cad-tb-group">
+          <button class="btn sm" id="osnapToggleBtn" type="button" data-i18n="osnapToggle">จับจุดวัตถุ</button>
+          <button class="btn sm" id="orthoToggleBtn" type="button" data-i18n="orthoToggle">⊥ ตั้งฉาก (F8)</button>
+        </div>
+        <div class="cad-tb-group">
+          <button class="btn sm" id="clearAllBtn" type="button" data-i18n="clearAll">ล้างทั้งหมด</button>
+        </div>
+        <div class="cad-tb-group">
+          <button class="btn sm" id="exportPngBtn" type="button" data-i18n="exportPngBtn">PNG</button>
+          <button class="btn sm" id="exportSvgBtn" type="button" data-i18n="exportSvgBtn">SVG</button>
+          <button class="btn sm" id="exportDxfBtn" type="button" data-i18n="exportDxfBtn">DXF</button>
+          <button class="btn sm" id="importDxfBtn" type="button" data-i18n="importDxfBtn">นำเข้า DXF</button>
+          <input type="file" id="importDxfInput" accept=".dxf,text/plain" style="display:none">
+          <button class="btn sm" id="printBtn" type="button" data-i18n="printBtn">พิมพ์/PDF</button>
+        </div>
       </div>
-      <div class="cad-tb-group">
-        <button class="btn sm" id="toolTrimBtn" type="button" data-i18n="toolTrim">ตัดเส้น</button>
-        <button class="btn sm" id="toolExtendBtn" type="button" data-i18n="toolExtend">⤴ ต่อเส้น</button>
-        <button class="btn sm" id="toolFilletBtn" type="button" data-i18n="toolFillet">◠ มุมโค้ง</button>
-        <button class="btn sm" id="toolOffsetBtn" type="button" data-i18n="toolOffset">∥ ออฟเซ็ต</button>
+
+      <div class="cad-tb-group cad-precise-row" id="preciseRow">
+        <label data-i18n="distLbl">ระยะ (มม.)<input type="text" id="distInput" inputmode="decimal" autocomplete="off"></label>
+        <label data-i18n="angLbl">มุม (°)<input type="text" id="angInput" inputmode="decimal" autocomplete="off"></label>
+        <button class="btn sm" id="finishPolylineBtn" type="button" data-i18n="finishPolyline">จบเส้นพอลีไลน์</button>
+        <span class="cad-precise-hint" data-i18n="preciseHint">พิมพ์ระยะแล้วกด Enter (ไม่ใส่มุม = ใช้ทิศทางเมาส์ปัจจุบัน)</span>
       </div>
-      <div class="cad-tb-group">
-        <button class="btn sm" id="toolArrayRectBtn" type="button" disabled data-i18n="toolArrayRect">▦ อาเรย์</button>
+
+      <div class="cad-tb-group cad-precise-row" id="arrayRow">
+        <label data-i18n="arrRowsLbl">แถว<input type="text" id="arrRows" inputmode="numeric" autocomplete="off" value="2"></label>
+        <label data-i18n="arrColsLbl">คอลัมน์<input type="text" id="arrCols" inputmode="numeric" autocomplete="off" value="2"></label>
+        <label data-i18n="arrSpXLbl">ห่างแนวนอน (มม.)<input type="text" id="arrSpX" inputmode="decimal" autocomplete="off" value="100"></label>
+        <label data-i18n="arrSpYLbl">ห่างแนวตั้ง (มม.)<input type="text" id="arrSpY" inputmode="decimal" autocomplete="off" value="100"></label>
+        <button class="btn sm" id="arrApplyBtn" type="button" data-i18n="arrApplyBtn">แทรกอาเรย์</button>
+        <span class="cad-precise-hint" data-i18n="arrayHint">เลือกเอนทิตี้ก่อน แล้วกำหนดจำนวนแถว/คอลัมน์และระยะห่าง</span>
       </div>
-      <div class="cad-tb-group">
-        <button class="btn sm" id="toolDimBtn" type="button" data-i18n="toolDim">มิติเส้น</button>
-        <button class="btn sm" id="toolRaddimBtn" type="button" data-i18n="toolRaddim">⌀ มิติรัศมี</button>
-        <button class="btn sm" id="toolDiadimBtn" type="button" data-i18n="toolDiadim">⌀⌀ มิติเส้นผ่าศูนย์กลาง</button>
-        <button class="btn sm" id="toolAngdimBtn" type="button" data-i18n="toolAngdim">∠ มิติมุม</button>
-        <button class="btn sm" id="toolLeaderBtn" type="button" data-i18n="toolLeader">ลูกศรชี้</button>
-        <button class="btn sm" id="toolTextBtn" type="button" data-i18n="toolText">ข้อความ</button>
-        <button class="btn sm" id="toolHatchBtn" type="button" data-i18n="toolHatch">▤ แรเงา</button>
+
+      <div class="cad-tb-group cad-precise-row" id="textRow">
+        <label class="cad-text-content-lbl" data-i18n="textContentLbl">ข้อความ<input type="text" id="textContentInput" autocomplete="off"></label>
+        <label data-i18n="textHeightLbl">ความสูงตัวอักษร (มม.)<input type="text" id="textHeightInput" inputmode="decimal" autocomplete="off" value="12"></label>
+        <button class="btn sm" id="textApplyBtn" type="button" data-i18n="textApplyBtn">วางข้อความ</button>
+        <span class="cad-precise-hint" data-i18n="textHint">คลิกตำแหน่งที่จะวางข้อความ แล้วพิมพ์ข้อความ</span>
       </div>
-      <div class="cad-tb-group">
-        <label data-i18n="dimTextHeightLbl">ตัวอักษรมิติ (มม.)<input type="text" id="dimTextHeightInput" inputmode="decimal" autocomplete="off" value="3"></label>
-        <label data-i18n="dimArrowSizeLbl">หัวลูกศร (มม.)<input type="text" id="dimArrowSizeInput" inputmode="decimal" autocomplete="off" value="2.5"></label>
+
+      <div class="cad-tb-group cad-precise-row" id="hatchRow">
+        <label data-i18n="hatchSpacingLbl">ระยะห่างลาย (มม.)<input type="text" id="hatchSpacing" inputmode="decimal" autocomplete="off" value="5"></label>
+        <label data-i18n="hatchAngleLbl">มุมลาย (°)<input type="text" id="hatchAngle" inputmode="decimal" autocomplete="off" value="45"></label>
+        <button class="btn sm" id="hatchApplyBtn" type="button" data-i18n="hatchApplyBtn">แรเงา</button>
+        <span class="cad-precise-hint" data-i18n="hatchHintApply">ปรับระยะห่าง/มุมลายเส้น แล้วกด "แรเงา" เพื่อยืนยัน</span>
       </div>
-      <div class="cad-tb-group">
-        <button class="btn sm" id="toolBlockBtn" type="button" data-i18n="toolBlock">แทรกบล็อก</button>
-        <select id="blockLibSel"></select>
-        <button class="btn sm" id="toolTitleBlockBtn" type="button" data-i18n="toolTitleBlock">ตารางรายการแบบ</button>
+
+      <div class="cad-tb-group cad-precise-row" id="insertRow">
+        <label data-i18n="blockSizeLbl">ขนาดจริง (มม.)<input type="text" id="blockSizeInput" inputmode="decimal" autocomplete="off"></label>
+        <label data-i18n="blockRotLbl">มุมหมุน (°)<input type="text" id="blockRotInput" inputmode="decimal" autocomplete="off" value="0"></label>
+        <button class="btn sm" id="blockMirrorBtn" type="button" data-i18n="blockMirrorToggle">มิเรอร์</button>
+        <button class="btn sm" id="blockApplyBtn" type="button" data-i18n="blockApplyBtn">แทรก</button>
+        <span class="cad-precise-hint" data-i18n="blockHint">เลือกสัญลักษณ์จากรายการ แล้วคลิกตำแหน่งที่จะแทรก ปรับขนาด/มุม/มิเรอร์ แล้วกด "แทรก"</span>
       </div>
-      <div class="cad-tb-group">
-        <button class="btn sm" id="toolConstraintBtn" type="button" data-i18n="toolConstraint">ข้อจำกัด</button>
-        <select id="constraintTypeSel">
-          <option value="coincident" data-i18n="constraintCoincident">จุดตรงกัน (เส้น 2 เส้น)</option>
-          <option value="horizontal" data-i18n="constraintHorizontal">แนวนอน (เส้น 1 เส้น)</option>
-          <option value="vertical" data-i18n="constraintVertical">แนวตั้ง (เส้น 1 เส้น)</option>
-          <option value="parallel" data-i18n="constraintParallel">ขนาน (เส้น 2 เส้น)</option>
-          <option value="perpendicular" data-i18n="constraintPerpendicular">ตั้งฉาก (เส้น 2 เส้น)</option>
-          <option value="equal" data-i18n="constraintEqual">เท่ากัน (เส้น/วงกลม 2 ชิ้นชนิดเดียวกัน)</option>
-          <option value="tangent" data-i18n="constraintTangent">สัมผัส (เส้น-วงกลม หรือ วงกลม-วงกลม)</option>
-          <option value="distance" data-i18n="constraintDistance">ระยะห่างคงที่ (เส้น 1 เส้น)</option>
-          <option value="angle" data-i18n="constraintAngle">มุมคงที่ (เส้น 2 เส้น)</option>
-          <option value="symmetric" data-i18n="constraintSymmetric">สมมาตร (เส้น 2 เส้น + แกน 1 เส้น)</option>
-          <option value="fix" data-i18n="constraintFix">ตรึงตำแหน่ง (เส้น/วงกลม 1 ชิ้น)</option>
-        </select>
+
+      <div class="cad-viewport" id="cadViewport">
+        <canvas id="cadCanvas"></canvas>
       </div>
-      <div class="cad-tb-group">
-        <button class="btn sm icon-only" id="undoBtn" type="button" title="เลิกทำ" disabled>↩</button>
-        <button class="btn sm icon-only" id="redoBtn" type="button" title="ทำซ้ำ" disabled>↪</button>
-        <button class="btn sm" id="deleteBtn" type="button" disabled data-i18n="deleteSel">ลบที่เลือก</button>
+
+      <div class="cad-quick3d-row">
+        <button class="btn sm primary" id="quickExtrudeBtn" type="button">ยืดเป็น 3 มิติ (Extrude)</button>
+        <span class="hint">วาดรูปปิด (สี่เหลี่ยม/วงกลม/พอลีไลน์ปิด) แล้วกดปุ่มนี้ได้เลย — ยืดขึ้นเป็นชิ้นงาน 3 มิติทันทีด้วยค่าเริ่มต้น (ปรับความสูงทีหลังได้ด้วยการลากในมุมมอง 3 มิติ)</span>
       </div>
-      <div class="cad-tb-group">
-        <button class="btn sm icon-only" id="zoomOutBtn" type="button" title="ซูมออก">－</button>
-        <button class="btn sm" id="zoomFitBtn" type="button" data-i18n="zoomFit">พอดีจอ</button>
-        <button class="btn sm icon-only" id="zoomInBtn" type="button" title="ซูมเข้า">＋</button>
+
+      <div class="cad-status">
+        <span data-i18n="coordLbl">พิกัด:</span> <b id="statCoord">X 0.0, Y 0.0 มม.</b>
+        <span class="sep">·</span>
+        <span data-i18n="zoomLbl">ซูม:</span> <b id="statZoom">100%</b>
+        <span class="sep">·</span>
+        <span data-i18n="entCountLbl">เส้น:</span> <b id="statCount">0</b>
+        <span class="sep">·</span>
+        <span id="statSave" class="flash"></span>
       </div>
-      <div class="cad-tb-group">
-        <button class="btn sm" id="snapToggleBtn" type="button" data-i18n="snapToggle">สแนปกริด</button>
-        <label data-i18n="snapStepLbl">ระยะกริด<select id="snapStepSel">
-          <option value="1">1 มม.</option>
-          <option value="5">5 มม.</option>
-          <option value="10" selected>10 มม.</option>
-          <option value="50">50 มม.</option>
-          <option value="100">100 มม.</option>
-        </select></label>
-      </div>
-      <div class="cad-tb-group">
-        <button class="btn sm" id="osnapToggleBtn" type="button" data-i18n="osnapToggle">จับจุดวัตถุ</button>
-        <button class="btn sm" id="orthoToggleBtn" type="button" data-i18n="orthoToggle">⊥ ตั้งฉาก (F8)</button>
-      </div>
-      <div class="cad-tb-group">
-        <button class="btn sm" id="clearAllBtn" type="button" data-i18n="clearAll">ล้างทั้งหมด</button>
-      </div>
-      <div class="cad-tb-group">
-        <button class="btn sm" id="exportPngBtn" type="button" data-i18n="exportPngBtn">PNG</button>
-        <button class="btn sm" id="exportSvgBtn" type="button" data-i18n="exportSvgBtn">SVG</button>
-        <button class="btn sm" id="exportDxfBtn" type="button" data-i18n="exportDxfBtn">DXF</button>
-        <button class="btn sm" id="importDxfBtn" type="button" data-i18n="importDxfBtn">นำเข้า DXF</button>
-        <input type="file" id="importDxfInput" accept=".dxf,text/plain" style="display:none">
-        <button class="btn sm" id="printBtn" type="button" data-i18n="printBtn">พิมพ์/PDF</button>
-      </div>
+
+      <p class="cad-hint" data-i18n="hintText">ลากขวา/กลาง หรือลากด้วยนิ้วเพื่อเลื่อนมุมมอง · หมุนล้อเมาส์/บีบสองนิ้วเพื่อซูม · เลือกเครื่องมือวาดแล้วคลิกจุดตามลำดับ · พิมพ์ตัวเลขได้ทันทีระหว่างวาดเพื่อใส่ระยะเป๊ะ · Esc ยกเลิกการวาด · Delete ลบเอนทิตี้ที่เลือก · F8 สลับโหมดตั้งฉาก</p>
     </div>
+    </div><!-- /cad-main -->
 
-    <div class="cad-tb-group cad-precise-row" id="preciseRow">
-      <label data-i18n="distLbl">ระยะ (มม.)<input type="text" id="distInput" inputmode="decimal" autocomplete="off"></label>
-      <label data-i18n="angLbl">มุม (°)<input type="text" id="angInput" inputmode="decimal" autocomplete="off"></label>
-      <button class="btn sm" id="finishPolylineBtn" type="button" data-i18n="finishPolyline">จบเส้นพอลีไลน์</button>
-      <span class="cad-precise-hint" data-i18n="preciseHint">พิมพ์ระยะแล้วกด Enter (ไม่ใส่มุม = ใช้ทิศทางเมาส์ปัจจุบัน)</span>
-    </div>
+    <!-- ── แถบข้างขวา: คุณสมบัติ/เลเยอร์/ข้อจำกัด/พิมพ์ตามมาตราส่วน ── -->
+    <aside class="cad-side cad-side-right">
+      <div class="card cad-props-card" id="propsCard" hidden>
+        <div class="cad-props-title" id="propsTitle">คุณสมบัติ</div>
+        <div class="cad-props-grid" id="propsGrid"></div>
+      </div>
 
-    <div class="cad-tb-group cad-precise-row" id="arrayRow">
-      <label data-i18n="arrRowsLbl">แถว<input type="text" id="arrRows" inputmode="numeric" autocomplete="off" value="2"></label>
-      <label data-i18n="arrColsLbl">คอลัมน์<input type="text" id="arrCols" inputmode="numeric" autocomplete="off" value="2"></label>
-      <label data-i18n="arrSpXLbl">ห่างแนวนอน (มม.)<input type="text" id="arrSpX" inputmode="decimal" autocomplete="off" value="100"></label>
-      <label data-i18n="arrSpYLbl">ห่างแนวตั้ง (มม.)<input type="text" id="arrSpY" inputmode="decimal" autocomplete="off" value="100"></label>
-      <button class="btn sm" id="arrApplyBtn" type="button" data-i18n="arrApplyBtn">แทรกอาเรย์</button>
-      <span class="cad-precise-hint" data-i18n="arrayHint">เลือกเอนทิตี้ก่อน แล้วกำหนดจำนวนแถว/คอลัมน์และระยะห่าง</span>
-    </div>
+      <div class="card cad-layers-card">
+        <div class="cad-layers-head">
+          <div class="cad-props-title" data-i18n="layersTitle">เลเยอร์</div>
+          <button class="btn sm" id="layerAddBtn" type="button" data-i18n="layerAddBtn">เลเยอร์ใหม่</button>
+        </div>
+        <div class="cad-layers-list" id="layersList"></div>
+      </div>
 
-    <div class="cad-tb-group cad-precise-row" id="textRow">
-      <label class="cad-text-content-lbl" data-i18n="textContentLbl">ข้อความ<input type="text" id="textContentInput" autocomplete="off"></label>
-      <label data-i18n="textHeightLbl">ความสูงตัวอักษร (มม.)<input type="text" id="textHeightInput" inputmode="decimal" autocomplete="off" value="12"></label>
-      <button class="btn sm" id="textApplyBtn" type="button" data-i18n="textApplyBtn">วางข้อความ</button>
-      <span class="cad-precise-hint" data-i18n="textHint">คลิกตำแหน่งที่จะวางข้อความ แล้วพิมพ์ข้อความ</span>
-    </div>
+      <div class="card cad-layers-card">
+        <div class="cad-layers-head">
+          <div class="cad-props-title" data-i18n="constraintsTitle">ข้อจำกัดเรขาคณิต</div>
+          <button class="btn sm" id="constraintSolveBtn" type="button" data-i18n="constraintSolveBtn">แก้สมการทั้งหมด</button>
+        </div>
+        <div class="cad-tool-subrow" style="margin-top:0;padding-top:0;border-top:none">
+          <button class="btn sm" id="toolConstraintBtn" type="button" data-i18n="toolConstraint">ข้อจำกัด</button>
+          <select id="constraintTypeSel">
+            <option value="coincident" data-i18n="constraintCoincident">จุดตรงกัน (เส้น 2 เส้น)</option>
+            <option value="horizontal" data-i18n="constraintHorizontal">แนวนอน (เส้น 1 เส้น)</option>
+            <option value="vertical" data-i18n="constraintVertical">แนวตั้ง (เส้น 1 เส้น)</option>
+            <option value="parallel" data-i18n="constraintParallel">ขนาน (เส้น 2 เส้น)</option>
+            <option value="perpendicular" data-i18n="constraintPerpendicular">ตั้งฉาก (เส้น 2 เส้น)</option>
+            <option value="equal" data-i18n="constraintEqual">เท่ากัน (เส้น/วงกลม 2 ชิ้นชนิดเดียวกัน)</option>
+            <option value="tangent" data-i18n="constraintTangent">สัมผัส (เส้น-วงกลม หรือ วงกลม-วงกลม)</option>
+            <option value="distance" data-i18n="constraintDistance">ระยะห่างคงที่ (เส้น 1 เส้น)</option>
+            <option value="angle" data-i18n="constraintAngle">มุมคงที่ (เส้น 2 เส้น)</option>
+            <option value="symmetric" data-i18n="constraintSymmetric">สมมาตร (เส้น 2 เส้น + แกน 1 เส้น)</option>
+            <option value="fix" data-i18n="constraintFix">ตรึงตำแหน่ง (เส้น/วงกลม 1 ชิ้น)</option>
+          </select>
+        </div>
+        <p class="cad-hint" data-i18n="constraintHint">เลือกชนิดข้อจำกัด แล้วคลิกเส้น/วงกลมตามจำนวนที่ต้องการ (ระยะ/มุมคงที่ต้องพิมพ์ค่าในช่องระยะ/มุมด้านบนแล้วกด Enter) — ใช้ได้กับเส้นตรงและวงกลมเท่านั้น</p>
+        <div class="cad-layers-list" id="constraintsList"></div>
+      </div>
 
-    <div class="cad-tb-group cad-precise-row" id="hatchRow">
-      <label data-i18n="hatchSpacingLbl">ระยะห่างลาย (มม.)<input type="text" id="hatchSpacing" inputmode="decimal" autocomplete="off" value="5"></label>
-      <label data-i18n="hatchAngleLbl">มุมลาย (°)<input type="text" id="hatchAngle" inputmode="decimal" autocomplete="off" value="45"></label>
-      <button class="btn sm" id="hatchApplyBtn" type="button" data-i18n="hatchApplyBtn">แรเงา</button>
-      <span class="cad-precise-hint" data-i18n="hatchHintApply">ปรับระยะห่าง/มุมลายเส้น แล้วกด "แรเงา" เพื่อยืนยัน</span>
-    </div>
+      <div class="card cad-plot-card">
+        <div class="cad-props-title" data-i18n="plotTitle">จัดพิมพ์ตามมาตราส่วนจริง (PDF)</div>
+        <div class="cad-plot-row">
+          <label data-i18n="plotPaperLbl">ขนาดกระดาษ<select id="plotPaperSel">
+            <option value="A4" selected>A4</option>
+            <option value="A3">A3</option>
+            <option value="A1">A1</option>
+          </select></label>
+          <label data-i18n="plotOrientLbl">แนวกระดาษ<select id="plotOrientSel">
+            <option value="portrait" data-i18n="plotOrientPortrait" selected>แนวตั้ง</option>
+            <option value="landscape" data-i18n="plotOrientLandscape">แนวนอน</option>
+            <option value="auto" data-i18n="plotOrientAuto">อัตโนมัติ</option>
+          </select></label>
+          <label data-i18n="plotScaleLbl">มาตราส่วน<select id="plotScaleSel">
+            <option value="fit" data-i18n="plotScaleFit" selected>พอดีหน้ากระดาษ</option>
+            <option value="1">1:1</option>
+            <option value="2">1:2</option>
+            <option value="5">1:5</option>
+            <option value="10">1:10</option>
+            <option value="20">1:20</option>
+            <option value="25">1:25</option>
+            <option value="50">1:50</option>
+            <option value="100">1:100</option>
+            <option value="200">1:200</option>
+            <option value="500">1:500</option>
+          </select></label>
+          <button class="btn sm" id="plotGenerateBtn" type="button" data-i18n="plotGenerateBtn">สร้าง PDF</button>
+        </div>
+        <p class="cad-hint" data-i18n="plotHint">เลือกกระดาษ/แนว/มาตราส่วน แล้วกด "สร้าง PDF" — วาดแบบตามมาตราส่วนจริงแบบเวกเตอร์ พร้อมกรอบและป้ายมาตราส่วน</p>
+      </div>
+    </aside>
 
-    <div class="cad-tb-group cad-precise-row" id="insertRow">
-      <label data-i18n="blockSizeLbl">ขนาดจริง (มม.)<input type="text" id="blockSizeInput" inputmode="decimal" autocomplete="off"></label>
-      <label data-i18n="blockRotLbl">มุมหมุน (°)<input type="text" id="blockRotInput" inputmode="decimal" autocomplete="off" value="0"></label>
-      <button class="btn sm" id="blockMirrorBtn" type="button" data-i18n="blockMirrorToggle">มิเรอร์</button>
-      <button class="btn sm" id="blockApplyBtn" type="button" data-i18n="blockApplyBtn">แทรก</button>
-      <span class="cad-precise-hint" data-i18n="blockHint">เลือกสัญลักษณ์จากรายการ แล้วคลิกตำแหน่งที่จะแทรก ปรับขนาด/มุม/มิเรอร์ แล้วกด "แทรก"</span>
-    </div>
-
-    <div class="cad-viewport" id="cadViewport">
-      <canvas id="cadCanvas"></canvas>
-    </div>
-
-    <div class="cad-quick3d-row">
-      <button class="btn sm primary" id="quickExtrudeBtn" type="button">ยืดเป็น 3 มิติ (Extrude)</button>
-      <span class="hint">วาดรูปปิด (สี่เหลี่ยม/วงกลม/พอลีไลน์ปิด) แล้วกดปุ่มนี้ได้เลย — ยืดขึ้นเป็นชิ้นงาน 3 มิติทันทีด้วยค่าเริ่มต้น (ปรับความสูงทีหลังได้ด้วยการลากในมุมมอง 3 มิติ)</span>
-    </div>
-
-    <div class="cad-status">
-      <span data-i18n="coordLbl">พิกัด:</span> <b id="statCoord">X 0.0, Y 0.0 มม.</b>
-      <span class="sep">·</span>
-      <span data-i18n="zoomLbl">ซูม:</span> <b id="statZoom">100%</b>
-      <span class="sep">·</span>
-      <span data-i18n="entCountLbl">เส้น:</span> <b id="statCount">0</b>
-      <span class="sep">·</span>
-      <span id="statSave" class="flash"></span>
-    </div>
-
-    <p class="cad-hint" data-i18n="hintText">ลากขวา/กลาง หรือลากด้วยนิ้วเพื่อเลื่อนมุมมอง · หมุนล้อเมาส์/บีบสองนิ้วเพื่อซูม · เลือกเครื่องมือวาดแล้วคลิกจุดตามลำดับ · พิมพ์ตัวเลขได้ทันทีระหว่างวาดเพื่อใส่ระยะเป๊ะ · Esc ยกเลิกการวาด · Delete ลบเอนทิตี้ที่เลือก · F8 สลับโหมดตั้งฉาก</p>
-  </div>
-
-  <div class="card cad-props-card" id="propsCard" hidden>
-    <div class="cad-props-title" id="propsTitle">คุณสมบัติ</div>
-    <div class="cad-props-grid" id="propsGrid"></div>
-  </div>
-
-  <div class="card cad-layers-card">
-    <div class="cad-layers-head">
-      <div class="cad-props-title" data-i18n="layersTitle">เลเยอร์</div>
-      <button class="btn sm" id="layerAddBtn" type="button" data-i18n="layerAddBtn">เลเยอร์ใหม่</button>
-    </div>
-    <div class="cad-layers-list" id="layersList"></div>
-  </div>
-
-  <div class="card cad-layers-card">
-    <div class="cad-layers-head">
-      <div class="cad-props-title" data-i18n="constraintsTitle">ข้อจำกัดเรขาคณิต</div>
-      <button class="btn sm" id="constraintSolveBtn" type="button" data-i18n="constraintSolveBtn">แก้สมการทั้งหมด</button>
-    </div>
-    <p class="cad-hint" data-i18n="constraintHint">เลือกชนิดข้อจำกัด แล้วคลิกเส้น/วงกลมตามจำนวนที่ต้องการ (ระยะ/มุมคงที่ต้องพิมพ์ค่าในช่องระยะ/มุมด้านบนแล้วกด Enter) — ใช้ได้กับเส้นตรงและวงกลมเท่านั้น</p>
-    <div class="cad-layers-list" id="constraintsList"></div>
-  </div>
-
-  <div class="card cad-plot-card">
-    <div class="cad-props-title" data-i18n="plotTitle">จัดพิมพ์ตามมาตราส่วนจริง (PDF)</div>
-    <div class="cad-plot-row">
-      <label data-i18n="plotPaperLbl">ขนาดกระดาษ<select id="plotPaperSel">
-        <option value="A4" selected>A4</option>
-        <option value="A3">A3</option>
-        <option value="A1">A1</option>
-      </select></label>
-      <label data-i18n="plotOrientLbl">แนวกระดาษ<select id="plotOrientSel">
-        <option value="portrait" data-i18n="plotOrientPortrait" selected>แนวตั้ง</option>
-        <option value="landscape" data-i18n="plotOrientLandscape">แนวนอน</option>
-        <option value="auto" data-i18n="plotOrientAuto">อัตโนมัติ</option>
-      </select></label>
-      <label data-i18n="plotScaleLbl">มาตราส่วน<select id="plotScaleSel">
-        <option value="fit" data-i18n="plotScaleFit" selected>พอดีหน้ากระดาษ</option>
-        <option value="1">1:1</option>
-        <option value="2">1:2</option>
-        <option value="5">1:5</option>
-        <option value="10">1:10</option>
-        <option value="20">1:20</option>
-        <option value="25">1:25</option>
-        <option value="50">1:50</option>
-        <option value="100">1:100</option>
-        <option value="200">1:200</option>
-        <option value="500">1:500</option>
-      </select></label>
-      <button class="btn sm" id="plotGenerateBtn" type="button" data-i18n="plotGenerateBtn">สร้าง PDF</button>
-    </div>
-    <p class="cad-hint" data-i18n="plotHint">เลือกกระดาษ/แนว/มาตราส่วน แล้วกด "สร้าง PDF" — วาดแบบตามมาตราส่วนจริงแบบเวกเตอร์ พร้อมกรอบและป้ายมาตราส่วน</p>
-  </div>
+  </div><!-- /cad-workspace -->
   </div><!-- /panel2d -->
 
   <div id="panel3d" hidden>
