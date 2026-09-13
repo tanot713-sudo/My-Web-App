@@ -121,14 +121,6 @@ select{font-family:inherit}
     </div>
   </div>
 
-  <!-- คำเตือนก่อนเริ่ม -->
-  <div class="card warn-card">
-    <h2 data-i18n="warnTitle">คำเตือนก่อนเริ่ม</h2>
-    <p style="font-size:13px" data-i18n-html="warn1">สลากกินแบ่งรัฐบาล <b>ไม่มีการคืนเงินต้น</b> ต่างจากสลากออมสิน/ธ.ก.ส. ที่ทำไปแล้วในแอปนี้ (ซึ่งได้เงินต้นคืนเต็มเสมอถ้าถือจนครบกำหนด) — เงินที่ใช้ซื้อสลากคือค่าใช้จ่ายล้วนๆ</p>
-    <p style="font-size:13px;margin-top:6px" data-i18n-html="warn2">แต่ละงวดจับรางวัลด้วยเครื่องที่ตรวจสอบได้และเป็น<b>อิสระจากงวดก่อนหน้าเสมอ</b> — ไม่มีเลขที่ "ยังไม่ออกจะออกเร็วๆ นี้" สถิติความถี่ในหน้านี้เป็นข้อมูลเชิงพรรณนาเพื่อการศึกษาเท่านั้น</p>
-    <p style="font-size:13px;margin-top:6px" data-i18n="warn3">การตั้งงบซื้อสลากไว้ล่วงหน้า (เช่นไม่เกิน 800 บาท/เดือน) เป็นวินัยทางการเงินที่ดี — ควรทำแบบนี้เสมอไม่ว่าจะซื้อมากหรือน้อย</p>
-  </div>
-
   <!-- ดึงข้อมูลย้อนหลัง -->
   <div class="card">
     <h2 data-i18n="loadTitle">ดึงข้อมูลย้อนหลัง</h2>
@@ -154,13 +146,11 @@ select{font-family:inherit}
       <div class="progress-text" id="ltProgressText"></div>
     </div>
     <div class="note-box" id="ltRangeNote"></div>
-    <p class="methodology" data-i18n="methodology">ดึงจากไฟล์ผลรางวัลย้อนหลังต่องวดโดยตรง (ไม่ผ่านพร็อกซี) — งวดที่ยังไม่มีข้อมูลจะถูกข้ามอัตโนมัติ ไม่ถือเป็นข้อผิดพลาด · ข้อมูลที่ดึงแล้วถูกเก็บไว้ในเครื่องถาวร ครั้งต่อไปจะเร็วขึ้น</p>
   </div>
 
   <!-- สถิติความถี่ -->
   <div class="card">
     <h2 data-i18n="freqTitle">สถิติความถี่</h2>
-    <div class="freq-caveat" data-i18n="freqCaveat">ความถี่ในอดีต ไม่ใช่ความน่าจะเป็นในอนาคต — แต่ละงวดสุ่มเป็นอิสระจากงวดก่อนหน้าเสมอ</div>
     <div class="frow">
       <div class="field"><label data-i18n="lblTier">หมวด</label>
         <select id="ltStatTier" style="font-size:14px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
@@ -200,7 +190,6 @@ select{font-family:inherit}
       <div class="sumbox"><div class="lbl" data-i18n="lblSpinBack3">เลขท้าย 3 ตัว</div><div class="val" id="ltSpinBack3">—</div></div>
       <div class="sumbox"><div class="lbl" data-i18n="lblSpinBack2">เลขท้าย 2 ตัว</div><div class="val" id="ltSpinBack2">—</div></div>
     </div>
-    <p style="font-size:11.5px;color:var(--muted);margin-top:8px;text-align:center" data-i18n="spinNote">ร้านขายสลากมักซื้อได้ทั้งเลขเต็ม 6 หลัก หรือเลขสั้นกว่านี้ (3 ตัวหน้า/หลัง, 2 ตัวท้าย) แล้วแต่ร้าน</p>
     <div class="frow" style="margin-top:12px">
       <div class="field"><label data-i18n="lblBudget">งบซื้อสลากเดือนนี้ (เตือนตัวเอง)</label><input type="number" id="ltBudget" inputmode="numeric" placeholder="เช่น 800" data-i18n-placeholder="phBudget"></div>
     </div>
