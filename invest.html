@@ -619,7 +619,7 @@ h1,h2,h3{text-wrap:balance}
     }
     if (c.provider === 'twelvedata') {
       if (!c.apiKey) return Promise.reject(new Error('Twelve Data API key missing'));
-      return fetchJson('https://api.twelvedata.com/quote?symbol=' + encodeURIComponent(sym) + '&exchange=XBKK&apikey=' + encodeURIComponent(c.apiKey))
+      return fetchJson('https://api.twelvedata.com/quote?symbol=' + encodeURIComponent(sym) + '&exchange=SET&apikey=' + encodeURIComponent(c.apiKey))
         .then(function (j) { if (j && j.status === 'error') throw new Error(j.message || 'Twelve Data error'); return normalizeLiveQuote(j); });
     }
     return Promise.reject(new Error('live gateway not configured'));

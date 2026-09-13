@@ -887,7 +887,7 @@
   }
   function fetchTwelveQuote(sym, c) {
     if (!c.apiKey) return Promise.reject(new Error('Twelve Data API key missing'));
-    var u = 'https://api.twelvedata.com/quote?symbol=' + encodeURIComponent(sym) + '&exchange=XBKK&apikey=' + encodeURIComponent(c.apiKey);
+    var u = 'https://api.twelvedata.com/quote?symbol=' + encodeURIComponent(sym) + '&exchange=SET&apikey=' + encodeURIComponent(c.apiKey);
     return fetchJson(u).then(function (j) { if (j && j.status === 'error') throw new Error(j.message || 'Twelve Data error'); var q = normalizeLiveQuote(j, sym); q.source = 'Twelve Data'; return q; });
   }
   function applyLiveQuote(q) {
