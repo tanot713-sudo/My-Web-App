@@ -282,7 +282,7 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <button class="btn sm" id="marketRefresh" type="button" data-i18n="marketRefreshBtn">↻ รีเฟรช</button>
       <button class="btn sm" id="marketSettings" type="button" data-i18n="marketSettingsBtn">⚙️ ตั้งค่าข้อมูลตลาด</button>
     </div>
-    <div class="status" id="fetchStatus" data-i18n="fetchStatusDefault">ดึงอัตโนมัติได้ก็ดี ถ้าไม่ได้กรอกเองจากแอปเทรด/เอ็กซ์เชนจ์ที่ใช้ก็พอ</div>
+    <div class="status" id="fetchStatus"></div>
     <div class="market-settings" id="marketSettingsPanel" hidden>
       <div class="market-settings-title" data-i18n="marketSettingsTitle">ข้อมูลตลาดแบบสด</div>
       <div class="market-settings-grid">
@@ -317,7 +317,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
     <details style="margin-top:10px">
       <summary data-i18n="fxSummary">แปลงเป็นเงินบาท (ทางเลือก)</summary>
       <div class="details-body">
-        <p class="mini" style="margin:2px 0 8px" data-i18n="fxHint">เปิดไว้เพื่อดูยอด ≈ บาท กำกับควบคู่กับตัวเลข USD ในหน้านี้ (ไม่บังคับ ไม่กระทบการคำนวณหลักซึ่งเป็น USD เสมอ)</p>
         <div class="frow">
           <div class="field"><label data-i18n="fxRateLbl">อัตราแลกเปลี่ยน <span class="unit" data-i18n="fxRateUnit">(บาทต่อ 1 USD)</span></label><input type="number" id="fxRate" inputmode="decimal" step="0.01" placeholder="เช่น 36.00" data-i18n-placeholder="fxRatePh"></div>
           <button class="btn sm" id="fxFetchBtn" type="button" data-i18n="fxFetchBtn">ดึงอัตราปัจจุบัน</button>
@@ -414,7 +413,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- เช็กลิสต์ก่อนเข้าไม้ -->
   <div class="card">
     <h2 data-i18n="checklistTitle">ตรวจก่อนเข้าไม้ — ควรซื้อไหม?</h2>
-    <p class="mini" data-i18n="checklistDesc">เช็กวินัย 7 ข้อ ก่อนกดซื้อจริง (กันซื้อตามอารมณ์/ไล่ราคา/เลเวอเรจ) — กด "ประเมิน" และ "คำนวณ" ด้านบนก่อน ตอบคำถามด้านล่าง แล้วกดปุ่มนี้</p>
     <div id="chkForm" style="margin-top:10px">
       <div class="yn-row" data-key="noLeverage"><span data-i18n="chkNoLeverage">ยืนยันว่าเทรด spot เท่านั้น ไม่ใช้เลเวอเรจ/มาร์จิ้น</span>
         <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
@@ -429,7 +427,6 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- สำรองขึ้น Google Drive -->
   <div class="card">
     <h2 data-i18n="driveTitle">สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
-    <p class="mini" data-i18n="driveDesc">เชื่อมต่อครั้งเดียว จากนั้นพอร์ตและสมุดเทรดด้านล่างจะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง — คนละไฟล์กับหน้าอื่น ไม่ปนกัน)</p>
     <div class="drive-row" style="margin-top:10px">
       <button class="btn sm" id="driveConnectBtn" type="button" data-i18n="driveConnectBtn">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
@@ -439,19 +436,17 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- พอร์ต -->
   <div class="card">
     <h2 data-i18n="pfTitle">พอร์ต Bitcoin ของฉัน</h2>
-    <p class="mini" data-i18n="pfDesc">เพิ่ม BTC ที่ถืออยู่ได้ตรงนี้ แล้วกด "ควรขาย?" เพื่อให้เครื่องช่วยดูจังหวะขาย (เก็บในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
       <div class="field"><label data-i18n="lblPfQty">จำนวน BTC</label><input type="number" id="pfQty" inputmode="decimal" step="0.000001" placeholder="0.05"></div>
       <div class="field"><label data-i18n="lblPfCost">ราคาต้นทุน/BTC</label><input type="number" id="pfCost" inputmode="decimal" step="0.01" placeholder="65000"></div>
       <button class="btn sm" id="pfAdd" type="button" data-i18n="pfAddBtn">+ เพิ่มเข้าพอร์ต</button>
     </div>
-    <div id="pfBox" style="margin-top:10px"><div class="pf-empty" data-i18n="pfEmptyDefault">ยังไม่มี BTC ในพอร์ต — เพิ่มด้านบน หรือกด "บันทึกเข้าพอร์ต" ในขั้นที่ 2</div></div>
+    <div id="pfBox" style="margin-top:10px"><div class="pf-empty" data-i18n="pfEmptyDefault">ยังไม่มี BTC ในพอร์ต</div></div>
   </div>
 
   <!-- สมุดเทรด + สถิติ -->
   <div class="card">
     <h2 data-i18n="jTitle">สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)</h2>
-    <p class="mini" data-i18n="jDesc">บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง (จำในเครื่องคุณ + สำรองขึ้น Drive อัตโนมัติถ้าเชื่อมต่อด้านบน)</p>
     <div class="frow" style="margin-top:10px">
       <div class="field"><label data-i18n="lblJEntry">ราคาเข้า</label><input type="number" id="jEntry" inputmode="decimal" step="0.01"></div>
       <div class="field"><label data-i18n="lblJExit">ราคาออก</label><input type="number" id="jExit" inputmode="decimal" step="0.01"></div>
