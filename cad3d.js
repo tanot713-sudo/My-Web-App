@@ -84,7 +84,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 
   var $ = function (id) { return document.getElementById(id); };
 
-  var state = { steps: [], oc: null, lastShape: null, lastStlBytes: null };
+  var state = { steps: [], oc: null, lastShape: null, lastStlBytes: null, material: 'aluminum', lastMeshProps: null };
   var editingIndex = null; // Stage 10b: index ของขั้นตอนที่กำลังแก้ไขอยู่ (null = โหมดเพิ่มขั้นตอนใหม่ตามปกติ)
   var pickedPlaneBasis = null; // Stage 10d: อ็อบเจกต์ฐานของหน้าที่เลือกเองล่าสุด (null = ยังไม่เคยเลือก)
   var pickMode = false; // Stage 10d: กำลังรอให้ผู้ใช้คลิกหน้าในวิวพอร์ตอยู่หรือไม่
@@ -358,6 +358,74 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     return { geometry: geometry, bytes: bytes };
   }
 
+  /* ══════════════════ ปริมาตร/พื้นที่ผิว/กล่องล้อมรอบ จากตาข่ายสามเหลี่ยม ══════════════════
+     คำนวณตรงจากจุดยอดของ geometry (STL เป็นสามเหลี่ยมล้วน ไม่มี index) แทนการเรียก OpenCascade
+     GProp/BRepGProp เพิ่มเติม — ได้ค่าที่ถูกต้องตามทรงตันจริง (ไม่ใช่แค่ประมาณจากกล่องล้อมรอบ)
+     โดยไม่ผูกกับชื่อฟังก์ชัน/overload เฉพาะเวอร์ชันของ opencascade.js ที่อาจเปลี่ยนได้ระหว่างเวอร์ชัน:
+     ปริมาตร = ผลรวมปริมาตรทรงพีระมิด (จากจุดกำเนิดไปยังแต่ละสามเหลี่ยม, สูตร divergence theorem),
+     พื้นที่ผิว = ผลรวมพื้นที่สามเหลี่ยมทุกหน้า (จาก cross product) */
+  function computeMeshProps(geometry) {
+    var pos = geometry.getAttribute('position');
+    var volume = 0, area = 0;
+    var minX = Infinity, minY = Infinity, minZ = Infinity, maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+    function track(x, y, z) {
+      if (x < minX) minX = x; if (x > maxX) maxX = x;
+      if (y < minY) minY = y; if (y > maxY) maxY = y;
+      if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+    }
+    for (var i = 0; i < pos.count; i += 3) {
+      var ax = pos.getX(i), ay = pos.getY(i), az = pos.getZ(i);
+      var bx = pos.getX(i + 1), by = pos.getY(i + 1), bz = pos.getZ(i + 1);
+      var cx = pos.getX(i + 2), cy = pos.getY(i + 2), cz = pos.getZ(i + 2);
+      volume += (ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) + az * (bx * cy - by * cx)) / 6;
+      var ux = bx - ax, uy = by - ay, uz = bz - az;
+      var vx = cx - ax, vy = cy - ay, vz = cz - az;
+      var nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+      area += 0.5 * Math.sqrt(nx * nx + ny * ny + nz * nz);
+      track(ax, ay, az); track(bx, by, bz); track(cx, cy, cz);
+    }
+    return { volume: Math.abs(volume), area: area, bbox: { w: maxX - minX, d: maxY - minY, h: maxZ - minZ } };
+  }
+
+  /* ══════════════════ คลังวัสดุอย่างง่าย ══════════════════
+     ความหนาแน่นเป็นค่าจริงของวัสดุ (ก./ซม.³) ใช้คูณกับปริมาตรจริงที่คำนวณได้ข้างบนเพื่อประมาณน้ำหนัก —
+     ไม่ใช่ตัวเลขสมมติ ส่วนสี/ความเป็นโลหะ/ความหยาบผิวปรับให้พอเห็นความต่างของวัสดุบนพื้นผิว render จริง */
+  var MATERIALS = {
+    aluminum: { label: 'อะลูมิเนียม', density: 2.70, color: 0xC7CCD4, metalness: 0.75, roughness: 0.35 },
+    steel: { label: 'เหล็กกล้า', density: 7.85, color: 0x7B828D, metalness: 0.85, roughness: 0.30 },
+    wood: { label: 'ไม้โอ๊ก', density: 0.75, color: 0xB07D43, metalness: 0.0, roughness: 0.75 },
+    glass: { label: 'กระจก', density: 2.50, color: 0xA9D8DE, metalness: 0.0, roughness: 0.05, transparent: true, opacity: 0.55 },
+    plastic: { label: 'พลาสติก ABS', density: 1.05, color: 0x3F6FD1, metalness: 0.05, roughness: 0.45 }
+  };
+  function applyMaterialToMesh() {
+    if (!mesh || !mesh.material) return;
+    var m = MATERIALS[state.material] || MATERIALS.aluminum;
+    mesh.material.color.setHex(m.color);
+    mesh.material.metalness = m.metalness;
+    mesh.material.roughness = m.roughness;
+    mesh.material.transparent = !!m.transparent;
+    mesh.material.opacity = m.opacity != null ? m.opacity : 1;
+    mesh.material.needsUpdate = true;
+  }
+  function fmtNum(n, d) { return n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function updatePropsPanel3D() {
+    var volEl = $('c3PropVolume'), areaEl = $('c3PropArea'), bboxEl = $('c3PropBbox'), matEl = $('c3PropMaterialName'), wEl = $('c3PropWeight');
+    if (!volEl) return;
+    var m = MATERIALS[state.material] || MATERIALS.aluminum;
+    matEl.textContent = m.label;
+    var mp = state.lastMeshProps;
+    if (!mp) {
+      volEl.textContent = '–'; areaEl.textContent = '–'; bboxEl.textContent = '–'; wEl.textContent = '–';
+      return;
+    }
+    var volCm3 = mp.volume / 1000, areaCm2 = mp.area / 100;
+    volEl.textContent = fmtNum(volCm3, 1) + ' ซม.³';
+    areaEl.textContent = fmtNum(areaCm2, 1) + ' ซม.²';
+    bboxEl.textContent = fmtNum(mp.bbox.w, 1) + ' × ' + fmtNum(mp.bbox.d, 1) + ' × ' + fmtNum(mp.bbox.h, 1);
+    var weightG = volCm3 * m.density;
+    wEl.textContent = weightG >= 1000 ? (fmtNum(weightG / 1000, 2) + ' กก.') : (fmtNum(weightG, 1) + ' ก.');
+  }
+
   /* ══════════════════ ฉาก 3 มิติ (three.js, แพตเทิร์นเดียวกับ sim-objects.js) ══════════════════ */
   function initScene() {
     viewportEl = $('c3Viewport');
@@ -568,6 +636,8 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
       if (mesh) { scene.remove(mesh); mesh = null; }
       setOverlay('idle', 'เพิ่มรูปทรงแรกด้านบนเพื่อเริ่มสร้างชิ้นงาน');
       setExportEnabled(false);
+      state.lastMeshProps = null;
+      updatePropsPanel3D();
       return;
     }
     setOverlay('loading', state.oc ? 'กำลังสร้างรูปทรง 3 มิติ...' : 'กำลังโหลดเคอร์เนล 3 มิติ (OpenCascade) จากอินเทอร์เน็ต — ครั้งแรกอาจใช้เวลาสักครู่ตามความเร็วอินเทอร์เน็ต...');
@@ -584,6 +654,9 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
       result.geometry.computeBoundingSphere();
       mesh = new THREE.Mesh(result.geometry, new THREE.MeshStandardMaterial({ color: 0x5D8AF0, metalness: 0.12, roughness: 0.55 }));
       scene.add(mesh);
+      applyMaterialToMesh();
+      state.lastMeshProps = computeMeshProps(result.geometry);
+      updatePropsPanel3D();
       frameCamera(result.geometry.boundingSphere);
       setOverlay('hidden');
       setExportEnabled(true);
@@ -592,6 +665,8 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
       console.error('[cad3d] สร้างรูปทรงไม่สำเร็จ:', err);
       setOverlay('error', 'สร้างรูปทรง 3 มิติไม่สำเร็จ — ' + (err && err.message ? err.message : String(err)) + ' (ดูรายละเอียดเพิ่มเติมใน console ของเบราว์เซอร์)');
       setExportEnabled(false);
+      state.lastMeshProps = null;
+      updatePropsPanel3D();
     });
   }
 
@@ -1154,6 +1229,18 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
     $('exportStepBtn').addEventListener('click', exportStep);
     $('exportStlBtn').addEventListener('click', exportStl);
     $('exportGlbBtn').addEventListener('click', exportGlb);
+
+    Array.prototype.forEach.call(document.querySelectorAll('#c3MaterialSwatches .c3-material-swatch'), function (btn) {
+      btn.addEventListener('click', function () {
+        state.material = btn.getAttribute('data-material');
+        Array.prototype.forEach.call(document.querySelectorAll('#c3MaterialSwatches .c3-material-swatch'), function (b) {
+          b.classList.toggle('active', b === btn);
+        });
+        applyMaterialToMesh();
+        updatePropsPanel3D();
+      });
+    });
+    updatePropsPanel3D();
 
     /* Stage 10a: ตอนนี้อยู่ในหน้าเดียวกับ cad.html (แท็บ "มุมมอง 3 มิติ") — ระหว่างที่แท็บนี้ถูกซ่อน
        ("hidden" attribute = display:none) ค่า clientWidth/Height ของ viewport เป็น 0 ทำให้ resize()

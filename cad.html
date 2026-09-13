@@ -237,6 +237,13 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
   background:var(--card);padding:8px;border-radius:10px;box-shadow:0 3px 14px rgba(0,0,0,.25)}
 .c3-sketch-toolbar .hint{flex-basis:100%;margin:2px 0 0}
 [data-theme="dark"] .c3-sketch-toolbar{background:#111827}
+.c3-props-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.c3-prop{display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line)}
+.c3-prop-lbl{font-size:11px;color:var(--muted);font-weight:700}
+.c3-prop-val{font-size:14.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.c3-materials{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.c3-material-swatch{width:32px;height:32px;border-radius:50%;border:2px solid var(--line);background:var(--sw);cursor:pointer;padding:0;flex-shrink:0}
+.c3-material-swatch.active{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-sf)}
 
 /* ── กล่องแจ้งเตือน/ยืนยันแบบกำหนดเอง (แทน alert()/confirm() ของเบราว์เซอร์) — พื้นสีขาวเสมอตั้งใจ
    ไม่สลับตามธีมมืด/สว่างของเว็บ (อ่านง่าย/สม่ำเสมอทุกเครื่อง ต่างจากกล่อง native เดิมที่ขึ้นกับธีมของ
@@ -621,7 +628,25 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
   </div>
 
   <div class="card">
-    <h2>4) ส่งออกไฟล์</h2>
+    <h2>4) คุณสมบัติขั้นสูงและวัสดุ</h2>
+    <div class="c3-props-grid">
+      <div class="c3-prop"><span class="c3-prop-lbl">ปริมาตร</span><span class="c3-prop-val" id="c3PropVolume">–</span></div>
+      <div class="c3-prop"><span class="c3-prop-lbl">พื้นที่ผิว</span><span class="c3-prop-val" id="c3PropArea">–</span></div>
+      <div class="c3-prop"><span class="c3-prop-lbl">กล่องล้อมรอบ (W×D×H มม.)</span><span class="c3-prop-val" id="c3PropBbox">–</span></div>
+      <div class="c3-prop"><span class="c3-prop-lbl">วัสดุ</span><span class="c3-prop-val" id="c3PropMaterialName">อะลูมิเนียม</span></div>
+      <div class="c3-prop"><span class="c3-prop-lbl">น้ำหนักโดยประมาณ</span><span class="c3-prop-val" id="c3PropWeight">–</span></div>
+    </div>
+    <div class="c3-materials" id="c3MaterialSwatches">
+      <button type="button" class="c3-material-swatch active" data-material="aluminum" style="--sw:#c7ccd4" title="อะลูมิเนียม (2.70 ก./ซม.³)"></button>
+      <button type="button" class="c3-material-swatch" data-material="steel" style="--sw:#7b828d" title="เหล็กกล้า (7.85 ก./ซม.³)"></button>
+      <button type="button" class="c3-material-swatch" data-material="wood" style="--sw:#b07d43" title="ไม้โอ๊ก (0.75 ก./ซม.³)"></button>
+      <button type="button" class="c3-material-swatch" data-material="glass" style="--sw:#a9d8de" title="กระจก (2.50 ก./ซม.³)"></button>
+      <button type="button" class="c3-material-swatch" data-material="plastic" style="--sw:#3f6fd1" title="พลาสติก ABS (1.05 ก./ซม.³)"></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>5) ส่งออกไฟล์</h2>
     <div class="c3-form">
       <button class="btn sm" id="exportStepBtn" type="button" disabled>STEP</button>
       <button class="btn sm" id="exportStlBtn" type="button" disabled>STL</button>
