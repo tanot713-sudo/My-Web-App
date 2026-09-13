@@ -79,7 +79,7 @@
       propText: 'ข้อความ', propHeight: 'ความสูงตัวอักษร (มม.)', propLayer: 'เลเยอร์',
       layersTitle: 'เลเยอร์', layerAddBtn: 'เลเยอร์ใหม่', layerNamePlaceholder: 'ชื่อเลเยอร์',
       layerActiveLbl: 'ใช้งานอยู่', layerDeleteConfirm: 'ลบเลเยอร์ "{name}"? เอนทิตี้ในเลเยอร์นี้จะถูกย้ายไปเลเยอร์ 0',
-      layerShowLbl: 'แสดงเลเยอร์', layerHideLbl: 'ซ่อนเลเยอร์', layerLockLbl: 'ล็อกเลเยอร์', layerUnlockLbl: 'ปลดล็อกเลเยอร์', layerDeleteLbl: 'ลบเลเยอร์',
+      layerShowLbl: 'แสดงเลเยอร์', layerHideLbl: 'ซ่อนเลเยอร์', layerLockLbl: 'ล็อกเลเยอร์', layerUnlockLbl: 'ปลดล็อกเลเยอร์', layerDeleteLbl: 'ลบเลเยอร์', layerDragLbl: 'ลากเพื่อจัดลำดับ',
       layerCantDeleteLast: 'ต้องมีอย่างน้อย 1 เลเยอร์',
       exportMenuBtn: 'ส่งออก ▾', exportPngBtn: 'PNG', exportSvgBtn: 'SVG', exportDxfBtn: 'DXF', importDxfBtn: 'นำเข้า DXF',
       printBtn: 'พิมพ์/PDF',
@@ -159,7 +159,7 @@
       propText: 'Text', propHeight: 'Text height (mm)', propLayer: 'Layer',
       layersTitle: 'Layers', layerAddBtn: 'New layer', layerNamePlaceholder: 'Layer name',
       layerActiveLbl: 'Active', layerDeleteConfirm: 'Delete layer "{name}"? Its entities will move to layer 0',
-      layerShowLbl: 'Show layer', layerHideLbl: 'Hide layer', layerLockLbl: 'Lock layer', layerUnlockLbl: 'Unlock layer', layerDeleteLbl: 'Delete layer',
+      layerShowLbl: 'Show layer', layerHideLbl: 'Hide layer', layerLockLbl: 'Lock layer', layerUnlockLbl: 'Unlock layer', layerDeleteLbl: 'Delete layer', layerDragLbl: 'Drag to reorder',
       layerCantDeleteLast: 'At least 1 layer is required',
       exportMenuBtn: 'Export ▾', exportPngBtn: 'PNG', exportSvgBtn: 'SVG', exportDxfBtn: 'DXF', importDxfBtn: 'Import DXF',
       printBtn: 'Print/PDF',
@@ -243,6 +243,9 @@
   var state = {
     entities: [],           // [{id, type, layer, ...}] พิกัดหน่วย mm เสมอ — ดูรูปแบบตาม type ด้านล่าง
     layers: { '0': { name: 'เลเยอร์ 0', color: null, visible: true, locked: false } }, // color:null = ใช้สีธีมอัตโนมัติ (col.entity ใน render()) แทนสีตายตัว กันปัญหามองไม่เห็นตอนสลับโหมดมืด
+    layerOrder: ['0'],       // ลำดับแสดงผลในแผง Layers — แยกจาก key ของ layers เพราะ id เป็นตัวเลขล้วน
+                             // ('0','1',...) ทำให้ลำดับ property ของ object ถูก JS บังคับเรียงตามค่าตัวเลข
+                             // เสมอ ไม่ตามลำดับ insert — ลาก-จัดเรียงใหม่ต้องมีลำดับแยกต่างหากแบบนี้
     layerSeq: 1,             // ตัวนับสำหรับตั้งชื่อ id เลเยอร์ใหม่ถัดไป ('1','2',...)
     activeLayer: '0',
     view: { cx: 0, cy: 0, scale: 0.5 }, // cx,cy = พิกัดโลก (mm) ที่อยู่กึ่งกลางจอ, scale = px ต่อ mm
@@ -1524,7 +1527,7 @@
     clearTimeout(saveTimer);
     saveTimer = setTimeout(function () {
       try {
-        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ entities: state.entities, layers: state.layers, activeLayer: state.activeLayer, layerSeq: state.layerSeq, view: state.view, dimStyle: state.dimStyle, constraints: state.constraints }));
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ entities: state.entities, layers: state.layers, layerOrder: state.layerOrder, activeLayer: state.activeLayer, layerSeq: state.layerSeq, view: state.view, dimStyle: state.dimStyle, constraints: state.constraints }));
         var el = $('statSave'); el.textContent = t('autosaveSaved');
         clearTimeout(el._clearTimer);
         el._clearTimer = setTimeout(function () { el.textContent = ''; }, 2500);
@@ -1539,6 +1542,7 @@
       if (saved && Array.isArray(saved.entities)) {
         state.entities = saved.entities;
         if (saved.layers) state.layers = saved.layers;
+        state.layerOrder = Array.isArray(saved.layerOrder) ? saved.layerOrder : Object.keys(state.layers);
         if (saved.activeLayer && state.layers[saved.activeLayer]) state.activeLayer = saved.activeLayer;
         if (saved.layerSeq) state.layerSeq = saved.layerSeq;
         if (saved.view) state.view = saved.view;
@@ -2368,7 +2372,7 @@
     var numFieldsHtml = fields.map(function (f, i) {
       return '<label>' + t(f.k) + '<input type="text" inputmode="decimal" data-fidx="' + i + '" value="' + fmtMm(f.v) + '"></label>';
     }).join('');
-    var layerOptsHtml = Object.keys(state.layers).map(function (lid) {
+    var layerOptsHtml = orderedLayerIds().map(function (lid) {
       return '<option value="' + lid + '"' + (e.layer === lid ? ' selected' : '') + '>' + (state.layers[lid].name || lid) + '</option>';
     }).join('');
     var layerFieldHtml = '<label>' + t('propLayer') + '<select id="propLayerSel">' + layerOptsHtml + '</select></label>';
@@ -2402,14 +2406,29 @@
   var LAYER_ICON_LOCK_CLOSED = '<svg viewBox="0 0 18 18"><rect x="4.5" y="8" width="9" height="7" rx="1.4"></rect><path d="M6.5 8V5.8a2.5 2.5 0 0 1 5 0V8"></path></svg>';
   var LAYER_ICON_LOCK_OPEN = '<svg viewBox="0 0 18 18"><rect x="4.5" y="8" width="9" height="7" rx="1.4"></rect><path d="M6.5 8V5.8a2.5 2.5 0 0 1 4.9-.9"></path></svg>';
   var LAYER_ICON_TRASH = '<svg viewBox="0 0 18 18"><path d="M3.5 5h11"></path><path d="M7 5V3.5h4V5"></path><path d="M5 5l.7 9a1 1 0 0 0 1 .9h4.6a1 1 0 0 0 1-.9L13 5"></path><line x1="7.3" y1="7.5" x2="7.6" y2="12.5"></line><line x1="10.7" y1="7.5" x2="10.4" y2="12.5"></line></svg>';
+  var LAYER_ICON_GRIP = '<svg viewBox="0 0 18 18"><circle class="fill" cx="6" cy="4.5" r="1.3"></circle><circle class="fill" cx="12" cy="4.5" r="1.3"></circle><circle class="fill" cx="6" cy="9" r="1.3"></circle><circle class="fill" cx="12" cy="9" r="1.3"></circle><circle class="fill" cx="6" cy="13.5" r="1.3"></circle><circle class="fill" cx="12" cy="13.5" r="1.3"></circle></svg>';
+  /* ลำดับแสดงผลเลเยอร์แยกจาก key ของ state.layers (ดูคอมเมนต์ตอนนิยาม state.layerOrder) —
+     ฟังก์ชันนี้ "ซ่อม" รายการให้ตรงกับ state.layers เสมอ (เผื่อข้อมูลเก่าก่อนมีฟีเจอร์นี้ไม่มี
+     layerOrder เลย หรือมี id ค้าง/ขาดจากการ import ข้อมูลเก่า) แทนที่จะเชื่อ state.layerOrder ตรงๆ */
+  function orderedLayerIds() {
+    var seen = {};
+    var out = state.layerOrder.filter(function (id) {
+      if (!state.layers[id] || seen[id]) return false;
+      seen[id] = true; return true;
+    });
+    Object.keys(state.layers).forEach(function (id) { if (!seen[id]) out.push(id); });
+    state.layerOrder = out;
+    return out;
+  }
   function renderLayersPanel() {
     if (!layersList) return;
-    var ids = Object.keys(state.layers);
+    var ids = orderedLayerIds();
     layersList.innerHTML = ids.map(function (lid) {
       var ly = state.layers[lid];
       var isActive = lid === state.activeLayer;
       var hidden = ly.visible === false, locked = !!ly.locked;
-      return '<div class="cad-layer-row' + (isActive ? ' active' : '') + '" data-lid="' + lid + '">' +
+      return '<div class="cad-layer-row' + (isActive ? ' active' : '') + '" data-lid="' + lid + '" draggable="true">' +
+        '<span class="cad-layer-icon cad-layer-grip" title="' + t('layerDragLbl') + '">' + LAYER_ICON_GRIP + '</span>' +
         '<button type="button" class="cad-layer-icon" data-act="setactive" title="' + t('layerActiveLbl') + '">' + (isActive ? LAYER_ICON_ACTIVE : LAYER_ICON_INACTIVE) + '</button>' +
         '<input type="color" class="cad-layer-color" data-act="color" value="' + (ly.color || '#1F2430') + '">' +
         '<input type="text" class="cad-layer-name" data-act="rename" value="' + (ly.name || lid).replace(/"/g, '&quot;') + '" placeholder="' + t('layerNamePlaceholder') + '">' +
@@ -2427,11 +2446,50 @@
       else if (act === 'lock') el.addEventListener('click', function () { state.layers[lid].locked = !state.layers[lid].locked; scheduleSave(); renderLayersPanel(); });
       else if (act === 'delete') el.addEventListener('click', function () { deleteLayer(lid); });
     });
+    /* ลาก-จัดเรียงลำดับเลเยอร์ใหม่ด้วย HTML5 drag & drop ธรรมดา (ทั้งแถวลากได้ ไม่ใช่แค่ที่ไอคอน
+       จับลาก — คลิกที่ input/select ภายในแถวยังใช้งานปกติเพราะเบราว์เซอร์ให้สิทธิ์อีเลเมนต์ฟอร์ม
+       จัดการ mousedown ของตัวเองก่อนเริ่มลากอยู่แล้ว) */
+    var dragLid = null;
+    Array.prototype.forEach.call(layersList.querySelectorAll('.cad-layer-row'), function (row) {
+      row.addEventListener('dragstart', function (e) {
+        dragLid = row.getAttribute('data-lid');
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setData('text/plain', dragLid); } catch (err) {}
+      });
+      row.addEventListener('dragend', function () {
+        row.classList.remove('dragging');
+        Array.prototype.forEach.call(layersList.querySelectorAll('.cad-layer-row'), function (r) { r.classList.remove('drag-over-before', 'drag-over-after'); });
+      });
+      row.addEventListener('dragover', function (e) {
+        if (!dragLid || dragLid === row.getAttribute('data-lid')) return;
+        e.preventDefault();
+        var rect = row.getBoundingClientRect();
+        var before = (e.clientY - rect.top) < rect.height / 2;
+        row.classList.toggle('drag-over-before', before);
+        row.classList.toggle('drag-over-after', !before);
+      });
+      row.addEventListener('dragleave', function () { row.classList.remove('drag-over-before', 'drag-over-after'); });
+      row.addEventListener('drop', function (e) {
+        e.preventDefault();
+        var targetLid = row.getAttribute('data-lid');
+        var before = row.classList.contains('drag-over-before');
+        row.classList.remove('drag-over-before', 'drag-over-after');
+        if (!dragLid || dragLid === targetLid) return;
+        var order = orderedLayerIds().filter(function (id) { return id !== dragLid; });
+        var idx = order.indexOf(targetLid);
+        order.splice(before ? idx : idx + 1, 0, dragLid);
+        state.layerOrder = order;
+        dragLid = null;
+        scheduleSave(); renderLayersPanel();
+      });
+    });
   }
   function addLayer() {
     var id = String(state.layerSeq++);
     while (state.layers[id]) id = String(state.layerSeq++);
     state.layers[id] = { name: 'เลเยอร์ ' + id, color: '#2554C7', visible: true, locked: false };
+    state.layerOrder.push(id);
     state.activeLayer = id;
     scheduleSave(); renderLayersPanel();
   }
@@ -2442,6 +2500,7 @@
     pushHistory();
     state.entities.forEach(function (e) { if (e.layer === lid) e.layer = '0'; });
     delete state.layers[lid];
+    state.layerOrder = state.layerOrder.filter(function (id) { return id !== lid; });
     if (state.activeLayer === lid) state.activeLayer = '0';
     updateCountUI(); scheduleSave(); renderLayersPanel(); updatePropsPanel(); render();
   }
