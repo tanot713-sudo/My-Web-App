@@ -1597,10 +1597,28 @@
   var hatchRow = $('hatchRow'), hatchSpacingInput = $('hatchSpacing'), hatchAngleInput = $('hatchAngle');
   var blockLibSel = $('blockLibSel'), insertRow = $('insertRow'), blockSizeInput = $('blockSizeInput'), blockRotInput = $('blockRotInput'), blockMirrorBtn = $('blockMirrorBtn');
   var TEXT_ROW_POINTS_NEEDED = { text: 1, leader: 2 }; // จำนวนจุดที่ต้องคลิกก่อน textRow จะโผล่ (ข้อความ=1 จุด, ลูกศรชี้=2 จุด)
+  var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, hatch: 1, block: 1, titleblock: 1, constraint: 1 };
+  /* ห้าแถวป้อนค่าละเอียด (preciseRow/arrayRow/textRow/hatchRow/insertRow) ใช้ visibility:hidden (ไม่ใช่
+     display:none) ตอนไม่โผล่ เพื่อกันวิวพอร์ตขยับกลางอากาศตอนคลิกจุดถัดไประหว่างวาด (ดูคอมเมนต์ที่นิยาม
+     .cad-precise-row ใน cad.html) — แต่ถ้าปล่อยให้ทั้ง 5 แถว "จอง" ที่ว่างพร้อมกันตลอดเวลาแม้ไม่มีแถวไหน
+     เกี่ยวข้องกับเครื่องมือปัจจุบันเลย (เช่นตอนเลือกเครื่องมือ "เลือก") จะเหลือที่ว่างเปล่าประโยชน์รวมกัน
+     ~270px เหนือวิวพอร์ต ฟังก์ชันนี้จึงคุม "สิทธิ์จองที่" (display) แยกจาก "โผล่ไหม" (visibility ผ่าน
+     .show) — มีแค่แถวเดียวที่ตรงกับเครื่องมือปัจจุบันเท่านั้นที่จองที่ไว้ (display:flex+visibility:hidden)
+     ส่วนที่เหลือ display:none ไปเลย ลดที่จองเหลือแค่ 1 แถว โดยยังกันการขยับกลางอากาศระหว่างจุดต่อจุด
+     เหมือนเดิมทุกประการ (การสลับ display เกิดแค่ตอน "เปลี่ยนเครื่องมือ" ซึ่งเมาส์ยังไม่ได้อยู่กลางการคลิก
+     จุดต่อเนื่องอยู่แล้ว) */
+  function updatePreciseZoneEligibility(tool) {
+    preciseRow.style.display = (!PRECISE_ROW_EXCLUDED[tool] || tool === 'constraint') ? '' : 'none';
+    arrayRow.style.display = tool === 'arrayrect' ? '' : 'none';
+    textRow.style.display = (tool === 'text' || tool === 'leader') ? '' : 'none';
+    hatchRow.style.display = tool === 'hatch' ? '' : 'none';
+    insertRow.style.display = tool === 'block' ? '' : 'none';
+  }
   function setTool(tool) {
     state.tool = tool; state.pendingPoints = []; state.pendingEntityIds = []; state.trimCutterId = null; state.offsetSourceId = null; state.hatchSourcePts = null; state.gripDrag = null;
     Object.keys(TOOL_BTN_IDS).forEach(function (k) { $(TOOL_BTN_IDS[k]).classList.toggle('active', k === tool); });
     viewport.style.cursor = tool === 'select' ? 'default' : 'crosshair';
+    updatePreciseZoneEligibility(tool);
     arrayRow.classList.toggle('show', tool === 'arrayrect');
     if (tool === 'block') blockMirrorBtn.classList.remove('active'); // เริ่มทุกครั้งที่ยัง ไม่มิเรอร์
     updatePreciseRowUI();
@@ -1695,7 +1713,6 @@
   }
   function updatePreciseRowUI() {
     updatePreciseLabels();
-    var PRECISE_ROW_EXCLUDED = { select: 1, trim: 1, extend: 1, arrayrect: 1, dim: 1, raddim: 1, diadim: 1, angdim: 1, text: 1, leader: 1, hatch: 1, block: 1, titleblock: 1, constraint: 1 };
     var show = (!PRECISE_ROW_EXCLUDED[state.tool] && state.pendingPoints.length > 0) ||
       (state.tool === 'offset' && state.offsetSourceId) || (state.tool === 'fillet' && state.pendingEntityIds.length === 2) ||
       (state.tool === 'constraint' && CONSTRAINT_DEFS[constraintTypeSel.value].valueKind && state.pendingEntityIds.length === CONSTRAINT_DEFS[constraintTypeSel.value].needed);
@@ -2931,6 +2948,7 @@
     if (dimTextHeightInput) dimTextHeightInput.value = state.dimStyle.textHeight;
     if (dimArrowSizeInput) dimArrowSizeInput.value = state.dimStyle.arrowSize;
     updateUndoRedoUI(); updateSelectionUI(); updateCountUI(); updateZoomUI(); renderLayersPanel(); renderConstraintsPanel();
+    updatePreciseZoneEligibility(state.tool);
     resizeCanvas();
   }
   var rsz = null;
