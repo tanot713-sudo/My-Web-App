@@ -164,10 +164,22 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 /* ── เมนูดรอปดาวน์ (รวมปุ่มส่งออกหลายฟอร์แมตไว้เมนูเดียว แทนปุ่มแยกเรียงกัน) ── */
 .cad-dropdown{position:relative;display:inline-block}
 .cad-dropdown-menu{position:absolute;top:calc(100% + 4px);left:0;background:var(--card);border:1.5px solid var(--line);
-  border-radius:10px;box-shadow:var(--sh);padding:5px;display:flex;flex-direction:column;gap:2px;z-index:20;min-width:120px}
-.cad-dropdown-menu button{display:block;width:100%;text-align:left;padding:7px 10px;border:none;background:none;
+  border-radius:10px;box-shadow:var(--sh);padding:5px;display:flex;flex-direction:column;gap:2px;z-index:20;min-width:160px}
+.cad-dropdown-menu button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:7px 10px;border:none;background:none;
   border-radius:7px;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer}
-.cad-dropdown-menu button:hover{background:var(--bg)}
+.cad-dropdown-menu button:hover:not(:disabled){background:var(--bg)}
+.cad-dropdown-menu button:disabled{opacity:.4;cursor:not-allowed}
+.cad-dropdown-menu button.active{background:var(--brand-sf);color:var(--brand-dk)}
+.cad-dropdown-icon{width:16px;flex-shrink:0;text-align:center;font-size:13px}
+.cad-dropdown-sep{height:1px;background:var(--line);margin:4px 2px}
+.cad-dropdown-field{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;font-size:12px;color:var(--muted);font-weight:700}
+.cad-dropdown-field select{font-family:inherit;font-size:12.5px;padding:5px 6px;border-radius:6px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+
+/* ── แถบเมนูบนสุด (ไฟล์/แก้ไข/มุมมอง) — แทนแถบเครื่องมือแนวนอนเดิม ── */
+.cad-menubar{display:flex;gap:2px;margin-bottom:10px}
+.cad-menubtn{font-family:inherit;font-size:13px;font-weight:700;padding:7px 12px;border:none;background:none;
+  border-radius:8px;color:var(--ink);cursor:pointer}
+.cad-menubtn:hover{background:var(--bg)}
 
 footer{margin-top:30px;text-align:center;font-size:12.5px;color:#9AA3B8}
 footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
@@ -325,46 +337,50 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
     <!-- ── กลาง: แถบเครื่องมือหน้า (ซูม/สแนป/เลิกทำ/ส่งออก) + วิวพอร์ตวาดแบบ ── -->
     <div class="cad-main">
     <div class="card">
-      <div class="cad-toolbar">
-        <div class="cad-tb-group">
-          <button class="btn sm icon-only" id="undoBtn" type="button" title="เลิกทำ" disabled>↩</button>
-          <button class="btn sm icon-only" id="redoBtn" type="button" title="ทำซ้ำ" disabled>↪</button>
-          <button class="btn sm" id="deleteBtn" type="button" disabled data-i18n="deleteSel">ลบที่เลือก</button>
-        </div>
-        <div class="cad-tb-group">
-          <button class="btn sm icon-only" id="zoomOutBtn" type="button" title="ซูมออก">－</button>
-          <button class="btn sm" id="zoomFitBtn" type="button" data-i18n="zoomFit">พอดีจอ</button>
-          <button class="btn sm icon-only" id="zoomInBtn" type="button" title="ซูมเข้า">＋</button>
-        </div>
-        <div class="cad-tb-group">
-          <button class="btn sm" id="snapToggleBtn" type="button" data-i18n="snapToggle">สแนปกริด</button>
-          <label data-i18n="snapStepLbl">ระยะกริด<select id="snapStepSel">
-            <option value="1">1 มม.</option>
-            <option value="5">5 มม.</option>
-            <option value="10" selected>10 มม.</option>
-            <option value="50">50 มม.</option>
-            <option value="100">100 มม.</option>
-          </select></label>
-        </div>
-        <div class="cad-tb-group">
-          <button class="btn sm" id="osnapToggleBtn" type="button" data-i18n="osnapToggle">จับจุดวัตถุ</button>
-          <button class="btn sm" id="orthoToggleBtn" type="button" data-i18n="orthoToggle">⊥ ตั้งฉาก (F8)</button>
-        </div>
-        <div class="cad-tb-group">
-          <button class="btn sm" id="clearAllBtn" type="button" data-i18n="clearAll">ล้างทั้งหมด</button>
-        </div>
-        <div class="cad-tb-group">
-          <div class="cad-dropdown" id="exportDropdownWrap">
-            <button class="btn sm" id="exportMenuBtn" type="button" data-i18n="exportMenuBtn">ส่งออก ▾</button>
-            <div class="cad-dropdown-menu" id="exportMenu" hidden>
-              <button type="button" id="exportPngBtn" data-i18n="exportPngBtn">PNG</button>
-              <button type="button" id="exportSvgBtn" data-i18n="exportSvgBtn">SVG</button>
-              <button type="button" id="exportDxfBtn" data-i18n="exportDxfBtn">DXF</button>
-            </div>
+      <div class="cad-menubar">
+        <div class="cad-dropdown" id="fileMenuWrap">
+          <button class="cad-menubtn" id="fileMenuBtn" type="button" data-i18n="menuFile">ไฟล์</button>
+          <div class="cad-dropdown-menu" id="fileMenu" hidden>
+            <button type="button" id="clearAllBtn"><span class="cad-dropdown-icon">✕</span><span data-i18n="clearAll">ล้างทั้งหมด</span></button>
+            <div class="cad-dropdown-sep"></div>
+            <button type="button" id="importDxfBtn"><span class="cad-dropdown-icon">↥</span><span data-i18n="importDxfBtn">นำเข้า DXF</span></button>
+            <input type="file" id="importDxfInput" accept=".dxf,text/plain" style="display:none">
+            <div class="cad-dropdown-sep"></div>
+            <button type="button" id="exportPngBtn"><span class="cad-dropdown-icon">↧</span><span data-i18n="exportPngBtn">PNG</span></button>
+            <button type="button" id="exportSvgBtn"><span class="cad-dropdown-icon">↧</span><span data-i18n="exportSvgBtn">SVG</span></button>
+            <button type="button" id="exportDxfBtn"><span class="cad-dropdown-icon">↧</span><span data-i18n="exportDxfBtn">DXF</span></button>
+            <div class="cad-dropdown-sep"></div>
+            <button type="button" id="printBtn"><span class="cad-dropdown-icon">⎙</span><span data-i18n="printBtn">พิมพ์/PDF</span></button>
           </div>
-          <button class="btn sm" id="importDxfBtn" type="button" data-i18n="importDxfBtn">นำเข้า DXF</button>
-          <input type="file" id="importDxfInput" accept=".dxf,text/plain" style="display:none">
-          <button class="btn sm" id="printBtn" type="button" data-i18n="printBtn">พิมพ์/PDF</button>
+        </div>
+        <div class="cad-dropdown" id="editMenuWrap">
+          <button class="cad-menubtn" id="editMenuBtn" type="button" data-i18n="menuEdit">แก้ไข</button>
+          <div class="cad-dropdown-menu" id="editMenu" hidden>
+            <button type="button" id="undoBtn" disabled><span class="cad-dropdown-icon">↩</span><span data-i18n="undoLbl">เลิกทำ</span></button>
+            <button type="button" id="redoBtn" disabled><span class="cad-dropdown-icon">↪</span><span data-i18n="redoLbl">ทำซ้ำ</span></button>
+            <div class="cad-dropdown-sep"></div>
+            <button type="button" id="deleteBtn" disabled><span class="cad-dropdown-icon">🗑</span><span data-i18n="deleteSel">ลบที่เลือก</span></button>
+          </div>
+        </div>
+        <div class="cad-dropdown" id="viewMenuWrap">
+          <button class="cad-menubtn" id="viewMenuBtn" type="button" data-i18n="menuView">มุมมอง</button>
+          <div class="cad-dropdown-menu" id="viewMenu" hidden>
+            <button type="button" id="zoomOutBtn"><span class="cad-dropdown-icon">－</span><span data-i18n="zoomOutLbl">ซูมออก</span></button>
+            <button type="button" id="zoomFitBtn"><span class="cad-dropdown-icon">⛶</span><span data-i18n="zoomFit">พอดีจอ</span></button>
+            <button type="button" id="zoomInBtn"><span class="cad-dropdown-icon">＋</span><span data-i18n="zoomInLbl">ซูมเข้า</span></button>
+            <div class="cad-dropdown-sep"></div>
+            <button type="button" id="snapToggleBtn"><span class="cad-dropdown-icon">▦</span><span data-i18n="snapToggle">สแนปกริด</span></button>
+            <label class="cad-dropdown-field" data-i18n="snapStepLbl">ระยะกริด<select id="snapStepSel">
+              <option value="1">1 มม.</option>
+              <option value="5">5 มม.</option>
+              <option value="10" selected>10 มม.</option>
+              <option value="50">50 มม.</option>
+              <option value="100">100 มม.</option>
+            </select></label>
+            <div class="cad-dropdown-sep"></div>
+            <button type="button" id="osnapToggleBtn"><span class="cad-dropdown-icon">⌖</span><span data-i18n="osnapToggle">จับจุดวัตถุ</span></button>
+            <button type="button" id="orthoToggleBtn"><span class="cad-dropdown-icon">⊥</span><span data-i18n="orthoToggle">ตั้งฉาก (F8)</span></button>
+          </div>
         </div>
       </div>
 
@@ -732,22 +748,35 @@ footer a{color:var(--brand-dk);text-decoration:none;font-weight:600}
   });
   showTab(location.hash === '#3d' ? '3d' : '2d'); // รองรับ deep-link จาก cad3d.html (redirect เดิม) ที่ชี้มา #3d
 
-  /* เมนูดรอปดาวน์ "ส่งออก" — รวม PNG/SVG/DXF ไว้เมนูเดียวแทนปุ่มแยก 3 ปุ่ม (คลิกปุ่มเปิด/ปิด,
-     คลิกตัวเลือกในเมนูแล้วปิดเมนูเอง, คลิกนอกเมนูก็ปิด) ไม่แตะ id ปุ่มเดิมเลย — cad.js ที่ผูก
-     event ไว้กับ exportPngBtn/exportSvgBtn/exportDxfBtn อยู่แล้วทำงานเหมือนเดิมทุกอย่าง */
-  var exportMenuBtn = document.getElementById('exportMenuBtn'), exportMenu = document.getElementById('exportMenu');
-  if (exportMenuBtn && exportMenu) {
-    exportMenuBtn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      exportMenu.hidden = !exportMenu.hidden;
-    });
-    exportMenu.addEventListener('click', function (e) {
-      if (e.target.closest('button')) exportMenu.hidden = true;
-    });
-    document.addEventListener('click', function (e) {
-      if (!exportMenu.hidden && !document.getElementById('exportDropdownWrap').contains(e.target)) exportMenu.hidden = true;
-    });
+  /* แถบเมนูบนสุด (ไฟล์/แก้ไข/มุมมอง) — เมนูดรอปดาวน์ทั่วไป แทนแถวปุ่มเครื่องมือแนวนอนเดิม
+     ไม่แตะ id ปุ่มเดิมสักตัว (undoBtn/redoBtn/zoomInBtn/exportPngBtn ฯลฯ) แค่ย้ายตำแหน่งใน DOM
+     ไปอยู่ในเมนู — event ที่ cad.js ผูกไว้กับ id เหล่านี้อยู่แล้วทำงานเหมือนเดิมทุกอย่าง
+     เปิดได้ทีละเมนู (เปิดอันใหม่ปิดอันเก่าอัตโนมัติ), คลิกตัวเลือกหรือคลิกนอกเมนูแล้วปิดเอง */
+  var menuDefs = [
+    { wrap: 'fileMenuWrap', btn: 'fileMenuBtn', menu: 'fileMenu' },
+    { wrap: 'editMenuWrap', btn: 'editMenuBtn', menu: 'editMenu' },
+    { wrap: 'viewMenuWrap', btn: 'viewMenuBtn', menu: 'viewMenu' }
+  ];
+  var menus = menuDefs.map(function (d) {
+    return { wrap: document.getElementById(d.wrap), btn: document.getElementById(d.btn), menu: document.getElementById(d.menu) };
+  }).filter(function (m) { return m.wrap && m.btn && m.menu; });
+  function closeAllMenus(except) {
+    menus.forEach(function (m) { if (m.menu !== except) m.menu.hidden = true; });
   }
+  menus.forEach(function (m) {
+    m.btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var willOpen = m.menu.hidden;
+      closeAllMenus();
+      m.menu.hidden = !willOpen;
+    });
+    m.menu.addEventListener('click', function (e) {
+      if (e.target.closest('button')) m.menu.hidden = true;
+    });
+  });
+  document.addEventListener('click', function (e) {
+    menus.forEach(function (m) { if (!m.menu.hidden && !m.wrap.contains(e.target)) m.menu.hidden = true; });
+  });
 })();
 </script>
 </body>
