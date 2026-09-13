@@ -19,24 +19,22 @@
     th: {
       navOverview: 'ภาพรวม', navMyPortfolio: 'พอร์ตของฉัน', navMarket: 'ตลาด & สินทรัพย์', navLottery: 'สลาก & พันธบัตร', navNews: 'ข่าว & ธุรกิจ',
       crumbHome: 'การลงทุน', crumbThaiStock: 'หุ้นไทย', crumbHere: 'สมุดเทรด',
-      pageTitle: 'สมุดเทรด + สถิติ', pageDesc: 'บันทึกไม้ที่ปิดแล้วทุกไม้ เพื่อดูอัตราชนะและกำไรเฉลี่ยจริง — ไม่หลอกตัวเอง',
+      pageTitle: 'สมุดเทรด + สถิติ',
       jSymLabel: 'หุ้น', jEntryLabel: 'ราคาเข้า', jExitLabel: 'ราคาออก', jSharesLabel: 'จำนวนหุ้น', jAddBtn: '+ บันทึกไม้',
       driveTitle: 'สำรองพอร์ต + สมุดเทรดขึ้น Google Drive',
-      driveDesc: 'เชื่อมต่อครั้งเดียว จากนั้นพอร์ตหุ้นไทย (ในหน้าหุ้นไทย) และสมุดเทรดนี้จะซิงก์ขึ้น Drive ให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง (ไฟล์ในโฟลเดอร์ "OME_Progress" ของคุณเอง) — กันข้อมูลหายถ้าล้างเบราว์เซอร์ และดึงคืนได้เมื่อเปิดจากเครื่อง/เบราว์เซอร์อื่น',
       alertJournalFields: 'กรอกราคาเข้า ราคาออก และจำนวนหุ้นให้ครบ', jSymFallback: 'หุ้น',
-      jEmptyDefault: 'ยังไม่มีไม้ที่บันทึก — ปิดไม้แล้วบันทึกทุกครั้ง จะเห็นสถิติจริงของตัวเอง',
+      jEmptyDefault: 'ยังไม่มีไม้ที่บันทึก',
       jStatCount: 'จำนวนไม้', jStatWinRate: 'อัตราชนะ', jStatTotalPl: 'กำไร/ขาดทุนรวม', jStatExpectancy: 'คาดหวัง/ไม้',
       jThSym: 'หุ้น', jThEntry: 'เข้า', jThExit: 'ออก', jThShares: 'จำนวน', jThResult: 'ผล'
     },
     en: {
       navOverview: 'Overview', navMyPortfolio: 'My Portfolio', navMarket: 'Markets & Assets', navLottery: 'Lottery & Bonds', navNews: 'News & Business',
       crumbHome: 'Investing', crumbThaiStock: 'Thai Stocks', crumbHere: 'Trade Journal',
-      pageTitle: 'Trade Journal + Stats', pageDesc: "Log every closed trade to see your real win rate and average profit — no self-deception",
+      pageTitle: 'Trade Journal + Stats',
       jSymLabel: 'Stock', jEntryLabel: 'Entry price', jExitLabel: 'Exit price', jSharesLabel: 'Shares', jAddBtn: '+ Log Trade',
       driveTitle: 'Back up Portfolio + Trade Journal to Google Drive',
-      driveDesc: 'Connect once, and your Thai stock portfolio (on the Thai Stocks page) and this trade journal will sync to Drive automatically on every change (a file in your own "OME_Progress" folder) — protects your data if you clear your browser, and lets you restore it on another device/browser',
       alertJournalFields: 'Please fill in entry price, exit price, and share count', jSymFallback: 'Stock',
-      jEmptyDefault: 'No trades logged yet — log every closed trade to see your real stats',
+      jEmptyDefault: 'No trades logged yet',
       jStatCount: 'Trades', jStatWinRate: 'Win rate', jStatTotalPl: 'Total P/L', jStatExpectancy: 'Expectancy/trade',
       jThSym: 'Stock', jThEntry: 'Entry', jThExit: 'Exit', jThShares: 'Shares', jThResult: 'Result'
     }
