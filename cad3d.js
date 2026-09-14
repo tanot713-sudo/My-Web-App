@@ -720,15 +720,36 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
         if (e.type === 'rect') {
           var w = Math.abs(e.p2.x - e.p1.x), d = Math.abs(e.p2.y - e.p1.y);
           var x0 = Math.min(e.p1.x, e.p2.x), y0 = Math.min(e.p1.y, e.p2.y);
-          profiles.push({ label: 'สี่เหลี่ยม ' + w.toFixed(0) + '×' + d.toFixed(0) + ' มม.', points: [{ x: x0, y: y0 }, { x: x0 + w, y: y0 }, { x: x0 + w, y: y0 + d }, { x: x0, y: y0 + d }] });
+          profiles.push({ label: 'สี่เหลี่ยม ' + w.toFixed(0) + '×' + d.toFixed(0) + ' มม.', points: [{ x: x0, y: y0 }, { x: x0 + w, y: y0 }, { x: x0 + w, y: y0 + d }, { x: x0, y: y0 + d }], entityId: e.id });
         } else if (e.type === 'circle') {
-          profiles.push({ label: 'วงกลม R' + e.radius.toFixed(0) + ' มม.', circle: { cx: e.center.x, cy: e.center.y, r: e.radius } });
+          profiles.push({ label: 'วงกลม R' + e.radius.toFixed(0) + ' มม.', circle: { cx: e.center.x, cy: e.center.y, r: e.radius }, entityId: e.id });
         } else if (e.type === 'polyline' && e.closed && Array.isArray(e.points) && e.points.length > 2) {
-          profiles.push({ label: 'พอลีไลน์ปิด (' + e.points.length + ' จุด)', points: e.points.map(function (p) { return { x: p.x, y: p.y }; }) });
+          profiles.push({ label: 'พอลีไลน์ปิด (' + e.points.length + ' จุด)', points: e.points.map(function (p) { return { x: p.x, y: p.y }; }), entityId: e.id });
         }
       });
     } catch (err) {}
     return profiles;
+  }
+  /* Stage 12: ซิงก์ dims.profile ของทุกขั้นตอนที่ "มาจากภาพร่าง 2 มิติ" (มี dims.sourceEntityId) ให้ตรงกับ
+     เอนทิตี้ 2D ต้นทางล่าสุดเสมอ — ทำให้ลิงก์ 2D→3D เป็นแบบ associative: กลับไปแก้ไซส์/รูปร่างเอนทิตี้ 2D
+     ต้นทางทีหลัง แล้วสลับมาแท็บ 3 มิติ ชิ้นงาน 3D ที่เคยยืด/หมุนไปแล้วจะขึ้นรูปใหม่ตามภาพ 2D ปัจจุบันให้เอง
+     (เรียกตอนสลับมาแท็บนี้ทุกครั้ง ผ่าน cad3d:tabshown เดียวกับที่ resize() ใช้อยู่แล้ว)
+     ข้อจำกัดที่ตั้งใจ: ถ้าลบเอนทิตี้ 2D ต้นทางไปแล้ว หรือแก้จนไม่ปิดรูปอีกต่อไป จะหาไม่เจอในรายการสด —
+     ปล่อยชิ้นงาน 3D ไว้ที่รูปร่างล่าสุดที่เคยซิงก์สำเร็จ (ไม่ลบ ไม่เตือน เพื่อความง่าย) */
+  function syncSketchProfilesFromLatest2D() {
+    var fresh = read2DProfiles();
+    var byId = {};
+    fresh.forEach(function (p) { if (p.entityId) byId[p.entityId] = p; });
+    var changed = false;
+    state.steps.forEach(function (step) {
+      if (step.kind !== 'sketch' || !step.dims || !step.dims.sourceEntityId) return;
+      var latest = byId[step.dims.sourceEntityId];
+      if (!latest) return; // ต้นทางหาไม่เจอแล้ว (ลบไปแล้ว/ไม่ปิดรูปแล้ว) — ปล่อยไว้เหมือนเดิม
+      var oldGeom = step.dims.profile ? { points: step.dims.profile.points, circle: step.dims.profile.circle } : null;
+      var newGeom = { points: latest.points, circle: latest.circle };
+      if (JSON.stringify(oldGeom) !== JSON.stringify(newGeom)) { step.dims.profile = latest; changed = true; }
+    });
+    if (changed) { saveSteps(); rebuildAndRender(); }
   }
   /* เลือกภาพร่างล่าสุดให้อัตโนมัติเสมอ (ตัวสุดท้ายในลิสต์ = วาดล่าสุด ตามลำดับที่ read2DProfiles() คืนมา
      ซึ่งเดินตาม entities array ตามลำดับวาดจริง) แทนการปล่อยให้ browser เลือกตัวแรกสุด (ค่าเริ่มต้นเดิม) —
@@ -782,8 +803,13 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     else if (kind === 'sketch') {
       var idx = parseInt($('sketchProfileSel').value, 10);
       var planeSelVal = $('sketchPlaneSel').value;
+      var chosenProfile = (isFinite(idx) && loadedProfiles[idx]) ? loadedProfiles[idx] : null;
       dims = {
-        profile: (isFinite(idx) && loadedProfiles[idx]) ? loadedProfiles[idx] : null,
+        profile: chosenProfile,
+        /* จำไว้ว่าภาพร่างนี้ "มาจาก" เอนทิตี้ 2D ตัวไหน (ถ้ามี — ภาพที่ร่างสดในวิว 3 มิติเองไม่มีต้นทางแบบนี้)
+           เพื่อให้ syncSketchProfilesFromLatest2D() ตามไปอัปเดต dims.profile ให้เองทุกครั้งที่กลับมาแท็บนี้
+           ถ้ากลับไปแก้ภาพ 2D ต้นทางทีหลัง — ทำให้ลิงก์ 2D→3D เป็นแบบ associative ในระดับ "อ้างอิงเอนทิตี้เดิม" */
+        sourceEntityId: chosenProfile ? chosenProfile.entityId : null,
         plane: (planeSelVal === 'picked' && pickedPlaneBasis) ? pickedPlaneBasis : planeSelVal,
         mode: $('sketchModeSel').value, height: num('sketchHeight', 20), axis: $('sketchAxisSel').value, angle: num('sketchAngle', 360)
       };
@@ -1292,6 +1318,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
        ตอน boot() ข้ามการตั้งขนาด renderer ไป (ดู resize() ด้านบน) พอผู้ใช้กดสลับมาแท็บนี้จริง หน้า cad.html
        จะยิง custom event นี้ให้ resize() คำนวณขนาดใหม่จากขนาดจริงของ viewport ที่เพิ่งโผล่ */
     window.addEventListener('cad3d:tabshown', resize);
+    window.addEventListener('cad3d:tabshown', syncSketchProfilesFromLatest2D);
 
     /* ปุ่มลัด "⚡ ยืดเป็น 3 มิติ" ที่แท็บ 2D ยิงมา (ผ่าน cad.html หลังสลับแท็บให้แล้ว) — ตั้งชนิดเป็น
        "จากภาพร่าง 2 มิติ" รีเซ็ตระนาบ/โหมดกลับเป็นค่าเริ่มต้น (ระนาบบน + อัดขึ้นตรง เผื่อค้างค่าจากรอบก่อน)
