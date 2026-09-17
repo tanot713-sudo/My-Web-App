@@ -154,7 +154,8 @@
       { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { url: 'https://cors.eu.org/' + base },
       { url: 'https://test.cors.workers.dev/?' + base },
-      { url: 'https://corsproxy.io/?url=' + enc },
+      { url: 'https://api.cors.lol/?url=' + enc },
+      { url: 'https://thingproxy.freeboard.io/fetch/' + base },
       { url: base }
     ];
     offset = ((offset || 0) % tries.length + tries.length) % tries.length;

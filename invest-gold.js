@@ -710,7 +710,8 @@
       { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { name: 'corseu', url: 'https://cors.eu.org/' + base },
       { name: 'corsworkers', url: 'https://test.cors.workers.dev/?' + base },
-      { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + enc },
+      { name: 'corslol', url: 'https://api.cors.lol/?url=' + enc },
+      { name: 'thingproxy', url: 'https://thingproxy.freeboard.io/fetch/' + base },
       { name: 'ตรง', url: base }
     ];
     var i = 0, best = null;
@@ -783,7 +784,8 @@
       { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { url: 'https://cors.eu.org/' + base },
       { url: 'https://test.cors.workers.dev/?' + base },
-      { url: 'https://corsproxy.io/?url=' + enc }
+      { url: 'https://api.cors.lol/?url=' + enc },
+      { url: 'https://thingproxy.freeboard.io/fetch/' + base }
     ];
     var i = 0;
     function next() {
@@ -1101,7 +1103,8 @@
       { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { url: 'https://cors.eu.org/' + base },
       { url: 'https://test.cors.workers.dev/?' + base },
-      { url: 'https://corsproxy.io/?url=' + enc },
+      { url: 'https://api.cors.lol/?url=' + enc },
+      { url: 'https://thingproxy.freeboard.io/fetch/' + base },
       { url: base }
     ];
     var i = 0;

@@ -112,7 +112,8 @@
       { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { name: 'corseu', url: 'https://cors.eu.org/' + base },
       { name: 'corsworkers', url: 'https://test.cors.workers.dev/?' + base },
-      { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + enc },
+      { name: 'corslol', url: 'https://api.cors.lol/?url=' + enc },
+      { name: 'thingproxy', url: 'https://thingproxy.freeboard.io/fetch/' + base },
       { name: 'ตรง', url: base }
     ];
     var offset = ((startAt || 0) % tries.length + tries.length) % tries.length;

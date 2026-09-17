@@ -83,6 +83,9 @@
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.text(); })
       .then(function (t) { if (to) clearTimeout(to); return parser(t); });
   }
+  /* หมายเหตุ (แก้บั๊ก "ดึงข่าวไม่ขึ้น"): corsproxy.io เปลี่ยนนโยบายไปเรียกเก็บ API key แล้ว (ฟรีใช้ไม่ได้
+     อีกต่อไป — คำขอทุกอันจะ 401 ทันที) ตัดออกจากรายการ พร้อมเพิ่มพร็อกซีสำรองอีก 2 ตัวเข้ามาแทนเพื่อให้
+     สายสำรองยังยาวพอ (พร็อกซี CORS สาธารณะฟรีล้มหายตายจากกันเรื่อยๆ ตามธรรมชาติของบริการฟรี) */
   function proxyTries(base, offset) {
     var enc = encodeURIComponent(base);
     var tries = [
@@ -90,7 +93,8 @@
       { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { url: 'https://cors.eu.org/' + base },
       { url: 'https://test.cors.workers.dev/?' + base },
-      { url: 'https://corsproxy.io/?url=' + enc },
+      { url: 'https://api.cors.lol/?url=' + enc },
+      { url: 'https://thingproxy.freeboard.io/fetch/' + base },
       { url: base }
     ];
     offset = ((offset || 0) % tries.length + tries.length) % tries.length;
@@ -109,6 +113,22 @@
     if (!items.length) throw new Error('no items');
     return items;
   }
+  /* rss2json.com — บริการแปลง RSS→JSON โดยเฉพาะ (ไม่ใช่ CORS proxy ทั่วไปที่ยืมมาใช้) ลองก่อนเป็นอันดับแรก
+     เพราะออกแบบมาสำหรับงานนี้ตรงๆ (Google News RSS เป็นตัวอย่างที่ใช้กันทั่วไปในเอกสารของเขาเอง) มักเสถียร
+     กว่าพร็อกซี CORS ทั่วไปที่แค่ยืมมาใช้ผ่านๆ — ข้อจำกัด: ไม่ส่ง tag <source> กลับมาด้วย (schema คงที่ของ
+     เขาไม่มีช่องนี้) ต้องแยกเอาชื่อสำนักข่าวจากท้ายหัวข้อข่าวเอง (Google News ต่อท้ายชื่อสำนักข่าวด้วย " - ชื่อ" เสมอ) */
+  function parseRss2Json(t) {
+    var o = JSON.parse(t);
+    if (!o || o.status !== 'ok' || !Array.isArray(o.items) || !o.items.length) throw new Error('rss2json empty');
+    var items = o.items.slice(0, 20).map(function (it) {
+      var title = it.title || '', source = '';
+      var m = /\s-\s([^-]+)$/.exec(title);
+      if (m) { source = m[1].trim(); title = title.slice(0, title.length - m[0].length).trim(); }
+      return { title: title, link: it.link || '#', pubDate: it.pubDate || '', source: source };
+    }).filter(function (n) { return n.title; });
+    if (!items.length) throw new Error('no items');
+    return items;
+  }
   function newsDateText(pubDate) {
     var d = pubDate ? new Date(pubDate) : null;
     if (!d || isNaN(d)) return '';
@@ -120,10 +140,13 @@
   }
   function fetchNewsScan(query) {
     var base = 'https://news.google.com/rss/search?q=' + encodeURIComponent(query) + '&hl=th&gl=TH&ceid=TH:th';
-    var tries = proxyTries(base, seq++), i = 0;
+    var tries = [{ url: 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(base), parser: parseRss2Json }]
+      .concat(proxyTries(base, seq++).map(function (x) { return { url: x.url, parser: parseNewsRss }; }));
+    var i = 0;
     function next() {
       if (i >= tries.length) return Promise.reject(new Error('all failed'));
-      return fetchOne(tries[i++].url, 8000, parseNewsRss).catch(next);
+      var cur = tries[i++];
+      return fetchOne(cur.url, 8000, cur.parser).catch(next);
     }
     return next();
   }

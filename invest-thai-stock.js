@@ -580,7 +580,8 @@
       { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { name: 'corseu', url: 'https://cors.eu.org/' + base },
       { name: 'corsworkers', url: 'https://test.cors.workers.dev/?' + base },
-      { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + enc },
+      { name: 'corslol', url: 'https://api.cors.lol/?url=' + enc },
+      { name: 'thingproxy', url: 'https://thingproxy.freeboard.io/fetch/' + base },
       { name: 'ตรง', url: base }
     ];
     var i = 0, best = null;
@@ -1407,22 +1408,36 @@
     var d = pubDate ? new Date(pubDate) : null;
     return (d && !isNaN(d)) ? d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : '';
   }
+  /* rss2json.com — บริการแปลง RSS→JSON โดยเฉพาะ ลองก่อนเป็นอันดับแรกเสมอ (เหมือนที่ invest-news.js ใช้)
+     มักเสถียรกว่าพร็อกซี CORS ทั่วไปที่แค่ยืมมาใช้ผ่านๆ เพราะออกแบบมาสำหรับงานนี้ตรงๆ */
+  function parseRss2Json(t) {
+    var o = JSON.parse(t);
+    if (!o || o.status !== 'ok' || !Array.isArray(o.items) || !o.items.length) throw new Error('rss2json empty');
+    var items = o.items.slice(0, 5).map(function (it) {
+      var title = (it.title || '').replace(/\s-\s[^-]+$/, ''); // ตัดชื่อสำนักข่าวท้ายหัวข้อออก (หน้านี้ไม่ได้แสดงที่มาอยู่แล้ว)
+      return { title: title, link: it.link || '#', pubDate: it.pubDate || '' };
+    }).filter(function (n) { return n.title; });
+    if (!items.length) throw new Error('no items');
+    return items;
+  }
   function fetchNewsScan(sym) {
     var base = 'https://news.google.com/rss/search?q=' + encodeURIComponent(sym + ' หุ้น OR บริษัท') + '&hl=th&gl=TH&ceid=TH:th';
     var enc = encodeURIComponent(base);
     var tries = [
-      { url: 'https://api.allorigins.win/raw?url=' + enc },
-      { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
-      { url: 'https://cors.eu.org/' + base },
-      { url: 'https://test.cors.workers.dev/?' + base },
-      { url: 'https://corsproxy.io/?url=' + enc },
-      { url: base }
+      { url: 'https://api.rss2json.com/v1/api.json?rss_url=' + enc, parser: parseRss2Json },
+      { url: 'https://api.allorigins.win/raw?url=' + enc, parser: parseNewsRss },
+      { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc, parser: parseNewsRss },
+      { url: 'https://cors.eu.org/' + base, parser: parseNewsRss },
+      { url: 'https://test.cors.workers.dev/?' + base, parser: parseNewsRss },
+      { url: 'https://api.cors.lol/?url=' + enc, parser: parseNewsRss },
+      { url: 'https://thingproxy.freeboard.io/fetch/' + base, parser: parseNewsRss },
+      { url: base, parser: parseNewsRss }
     ];
     var i = 0;
     function next() {
       if (i >= tries.length) return Promise.reject(new Error('all failed'));
       var t = tries[i++];
-      return fetchOne(t.url, 7000, parseNewsRss).catch(function () { return next(); });
+      return fetchOne(t.url, 7000, t.parser).catch(function () { return next(); });
     }
     return next();
   }
