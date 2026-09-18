@@ -1013,6 +1013,7 @@
           aiSumBusy = false; $('aiSumBtn').disabled = false;
         } else if (msg.type === 'error') {
           cleanup();
+          resetWorkerOnError();
           $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
           setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(msg.message) }), 'err');
           aiSumBusy = false; $('aiSumBtn').disabled = false;
@@ -1020,11 +1021,19 @@
       }
       function onErr(e) {
         cleanup();
+        resetWorkerOnError();
         $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
         setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(e.message || t('unknownReason')) }), 'err');
         aiSumBusy = false; $('aiSumBtn').disabled = false;
       }
       function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+      /* ล้าง Worker ทิ้งทั้งตัวเมื่อโหลดโมเดล/รันพัง (ไม่ใช่แค่ reset promise) — WebAssembly linear
+         memory โตได้ทางเดียว หดกลับไม่ได้ ถ้าปล่อย worker เดิมไว้แล้วลองใหม่ หน่วยความจำที่ถูกจองไปแล้ว
+         ตอนพยายามโหลดโมเดลใหญ่ (1.5B ผ่าน WebGPU) จะยังค้างอยู่ ทำให้ความพยายามถัดไป (แม้เป็นโมเดลเล็ก
+         บน WASM) พังซ้ำด้วย error เดิมทุกครั้งทั้งที่เครื่องมีแรมเหลือเยอะ — terminate() แล้วสร้าง Worker
+         ใหม่ตอนกดอีกครั้งให้ได้หน่วยความจำ WASM สะอาดจริงๆ (แลกกับต้องโหลดโมเดลใหม่ ไม่ได้ใช้ pipeline
+         ที่แคชไว้ในกรณีนี้ — ยอมรับได้เพราะเกิดเฉพาะตอน error เท่านั้น ไม่กระทบเคสสำเร็จปกติ) */
+      function resetWorkerOnError() { try { w.terminate(); } catch (e) {} aiSumChatWorker = null; }
       w.addEventListener('message', onMsg);
       w.addEventListener('error', onErr);
       w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });

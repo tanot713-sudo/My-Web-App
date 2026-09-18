@@ -673,6 +673,7 @@
           aiSumBusy = false; $('aiSumBtn').disabled = false;
         } else if (msg.type === 'error') {
           cleanup();
+          resetWorkerOnError();
           $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
           setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(msg.message) }), 'err');
           aiSumBusy = false; $('aiSumBtn').disabled = false;
@@ -680,11 +681,13 @@
       }
       function onErr(e) {
         cleanup();
+        resetWorkerOnError();
         $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
         setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(e.message || t('unknownReason')) }), 'err');
         aiSumBusy = false; $('aiSumBtn').disabled = false;
       }
       function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+      function resetWorkerOnError() { try { w.terminate(); } catch (e) {} aiSumChatWorker = null; }
       w.addEventListener('message', onMsg);
       w.addEventListener('error', onErr);
       w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });

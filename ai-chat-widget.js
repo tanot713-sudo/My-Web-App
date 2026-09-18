@@ -408,6 +408,7 @@
           setBusy(false); inputEl.focus();
         } else if (msg.type === 'error') {
           cleanup();
+          resetWorkerOnError();
           if (replyBubble) replyBubble.remove();
           messages.pop();
           setStatus('ตอบไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
@@ -416,12 +417,14 @@
       }
       function onErr(e) {
         cleanup();
+        resetWorkerOnError();
         if (replyBubble) replyBubble.remove();
         messages.pop();
         setStatus('ตอบไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
         setBusy(false); inputEl.focus();
       }
       function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+      function resetWorkerOnError() { try { w.terminate(); } catch (e) {} chatWorker = null; }
       w.addEventListener('message', onMsg);
       w.addEventListener('error', onErr);
       w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });
@@ -476,6 +479,7 @@
           setBusy(false); inputEl.focus();
         } else if (msg.type === 'error') {
           cleanup();
+          resetWorkerOnError();
           if (replyBubble) replyBubble.remove();
           setStatus('สรุปไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
           setBusy(false); inputEl.focus();
@@ -483,11 +487,13 @@
       }
       function onErr(e) {
         cleanup();
+        resetWorkerOnError();
         if (replyBubble) replyBubble.remove();
         setStatus('สรุปไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
         setBusy(false); inputEl.focus();
       }
       function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+      function resetWorkerOnError() { try { w.terminate(); } catch (e) {} chatWorker = null; }
       w.addEventListener('message', onMsg);
       w.addEventListener('error', onErr);
       w.postMessage({ type: 'chat', jobId: jobId, messages: summaryMessages, maxNewTokens: 400 });
