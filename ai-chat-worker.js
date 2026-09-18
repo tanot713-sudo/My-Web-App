@@ -62,8 +62,22 @@ function loadPipeline(onProgress, jobId) {
          iOS Safari ทั้งหมดและเบราว์เซอร์อื่นนอก Chrome/Edge เสมอ — ค่อยลองตัวใหญ่เฉพาะตอน "ยืนยันแล้วจริง"
          ว่าแรมเยอะพอ mem>=4) แลกกับคำตอบที่อาจไม่ดีเท่าโมเดลใหญ่บนเครื่องที่ไม่รู้ค่าแต่ที่จริงแรงพอ
          เพื่อความเสถียร (ไม่เสี่ยงแท็บแครช) เป็นหลัก */
+      /* ⚠️ 2026-09-18: ปิดการลองโมเดลใหญ่ไว้ก่อน (ENABLE_BIG_MODEL_ATTEMPT = false) — พบจาก log จริง
+         ของผู้ใช้ (เครื่อง 16GB RAM, navigator.gpu พร้อม, canTryBig เคยเป็น true) ว่าตัวใหญ่ (1.5B/WebGPU)
+         พังด้วย std::bad_alloc ทุกครั้งที่ลอง แล้ว "ลากโมเดลเล็ก (0.5B/WASM) ที่ควรจะรันได้สบายๆ บนเครื่อง
+         แรงขนาดนี้ให้พังตามไปด้วยด้วย error เดิมเป๊ะ" แม้เป็นความพยายามแรกของ worker ที่เพิ่งสร้างใหม่ (ไม่ใช่
+         แค่ปัญหา worker เก่าค้าง) — สาเหตุน่าจะเป็นเพราะ loadWith(BIG) กับ loadWith(SMALL) ใช้ mod (module
+         instance ที่ import() ไว้ครั้งเดียว) ตัวเดียวกันภายใน loadPipeline() เรียกเดียว ทำให้ใช้ WASM linear
+         memory ก้อนเดียวกันร่วมกัน — WASM memory โตได้ทางเดียว หดกลับไม่ได้ ถ้าตัวใหญ่พังหลังจากโตไปมากแล้ว
+         ตัวเล็กที่ตามมาในคำขอเดียวกันเลยไม่มีทางได้ memory สะอาดจริง ต่างจาก error เดิมที่แก้ไปแล้ว (worker
+         singleton ค้างข้าม "คลิก" — อันนั้นแก้ด้วย terminate() ตอน error แล้ว) นี่คือปัญหาคนละชั้น เกิด
+         "ภายในคลิกเดียว" เอง แก้ตรงจุดไม่ได้ง่ายๆ เพราะต้องแยก Worker/JS realm ให้ตัวใหญ่กับตัวเล็กจริงๆ
+         (ไม่ใช่แค่ import() คนละครั้ง) ซึ่งเป็นงานใหญ่กว่านี้ — ปิดไว้ก่อนให้ทุกคนได้ใช้ตัวเล็กเสมอ (โหลดไว
+         กว่า เสถียรกว่า ยังไม่เจอเคสไหนที่ตัวใหญ่ทำงานจริงเลยในการทดสอบที่ผ่านมา) ถ้าจะเปิดกลับมาใหม่ ต้อง
+         แก้ให้ตัวใหญ่กับตัวเล็กแยก Worker กันจริงๆ ก่อน ไม่ใช่แค่เปลี่ยน flag นี้กลับเป็น true เฉยๆ */
+      var ENABLE_BIG_MODEL_ATTEMPT = false;
       var mem = (typeof navigator !== 'undefined') ? navigator.deviceMemory : undefined;
-      var canTryBig = typeof navigator !== 'undefined' && navigator.gpu && mem && mem >= 4;
+      var canTryBig = ENABLE_BIG_MODEL_ATTEMPT && typeof navigator !== 'undefined' && navigator.gpu && mem && mem >= 4;
       console.log('[ai-chat-worker] canTryBig=' + canTryBig + ' (deviceMemory=' + mem + ', hasGpu=' + (typeof navigator !== 'undefined' && !!navigator.gpu) + ')');
       if (canTryBig) {
         return loadWith(MODEL_ID_BIG, 'webgpu').catch(function (err) {
