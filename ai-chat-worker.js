@@ -130,6 +130,7 @@ self.onmessage = function (e) {
   }).then(function () {
     self.postMessage({ type: 'done', jobId: jobId });
   }).catch(function (err) {
+    console.error('[ai-chat-worker] chat/model load failed:', err);
     self.postMessage({ type: 'error', jobId: jobId, message: err && err.message ? err.message : String(err) });
   }).then(function () {
     isBusy = false;
