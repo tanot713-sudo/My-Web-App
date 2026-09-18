@@ -1,21 +1,24 @@
 /* ══════════════════════════════════════════════════════════════════
    Web Worker แยกต่างหากสำหรับรันโมเดลแชท AI (Qwen2.5-Instruct ผ่าน transformers.js)
    ใช้โดยวิดเจ็ตแชทลอย (ai-chat-widget.js) ที่ฉีดเข้าทุกหน้าผ่าน shell.js
-   เหตุผลเดียวกับ tts-worker.js: รัน WASM ในเธรดหลักจะบล็อกหน้าเว็บระหว่างคำนวณ (single-thread
-   asyncify รันแบบ synchronous) ย้ายมารันใน Worker แทนให้ UI/หน้าเว็บว่างอยู่เสมอ
 
-   ต่างจาก tts-worker.js ตรงที่ไม่ต้องมี "พูล" หลายตัวขนานกัน — แชทเป็นงานต่อเนื่องทีละคำตอบ
-   (ไม่ใช่ตัดเป็นท่อนแล้วขนานแบบเสียง) ใช้ Worker ตัวเดียวพอ แต่คงไว้ไม่ให้ terminate ข้ามคำถาม
-   เพื่อให้ pipeline ที่โหลด/แคชไว้แล้วถูกใช้ซ้ำได้ทุกข้อความถัดไปในเซสชันเดียวกัน (ไม่ต้องโหลดโมเดล
-   ใหม่ทุกครั้งที่ถาม) — ฝั่ง ai-chat-widget.js เองก็ไม่ terminate() worker นี้ตอนกด "เริ่มแชทใหม่" ด้วย
-   (แค่รีเซ็ต messages array) เพื่อคง pipeline ที่โหลดไว้แล้วไม่ให้ต้องโหลดซ้ำ
-
-   ⚠️ ประวัติ: เคยลองอัป MODEL_ID เป็น 1.5B-Instruct ตรงๆ บน WASM มาก่อน (ตอบดีกว่าชัดเจน) แต่เจอ
-   "Can't create a session... ERROR_MESSAGE: std::bad_alloc" จริงตอนใช้งาน (แม้บนเดสก์ท็อป) — WASM
-   รันไทม์มีหน่วยความจำ "ก้อนเดียว" ขนาดจำกัดตายตัว (linear memory) 1.5B ใช้ RAM สูงตอนคำนวณจริงเกินกว่า
-   จะรองรับไหวในหลายเครื่อง — ตอนนี้แก้ด้วยกลยุทธ์ "ลองตัวใหญ่ผ่าน WebGPU ก่อน พังค่อยถอยมาตัวเล็กบน WASM"
-   ด้านล่างแทน (ดู loadPipeline) WebGPU ไม่ผูกกับเพดาน WASM linear memory เดียวกัน เพราะข้อมูลอยู่ใน
-   หน่วยความจำการ์ดจอแทน จึงมีโอกาสรัน 1.5B ได้จริงบนเครื่องที่รองรับ */
+   ⚠️ ประวัติปัญหา (2026-08-13 → 2026-09-18) — อ่านก่อนแก้ไฟล์นี้:
+   1) เคยลองโมเดล 1.5B-Instruct ตรงๆ บน WASM มาก่อน (ตอบดีกว่าชัดเจน) แต่เจอ
+      "Can't create a session...std::bad_alloc" จริงตอนใช้งาน (แม้บนเดสก์ท็อป) — WASM มีหน่วยความจำ
+      "ก้อนเดียว" ขนาดจำกัดตายตัว (linear memory) 1.5B ใช้ RAM สูงเกินกว่าจะรองรับไหวหลายเครื่อง
+   2) แก้ด้วยกลยุทธ์ "ลองตัวใหญ่ผ่าน WebGPU ก่อน พังค่อยถอยมาตัวเล็กบน WASM" ภายใน worker เดียวกัน
+      (import() module เดียว ใช้ mod.pipeline() สองรอบ) — แต่พบจาก log จริงของผู้ใช้ (เครื่อง 16GB RAM,
+      WebGPU พร้อม) ว่าตัวใหญ่พังด้วย std::bad_alloc แล้ว "ลากตัวเล็กที่ควรจะรันได้สบายๆ ให้พังตามไปด้วย
+      ด้วย error เดิมเป๊ะ" แม้เป็น worker ที่เพิ่งสร้างใหม่ — สาเหตุคือ loadWith(BIG)/loadWith(SMALL) ใช้
+      module instance เดียวกัน จึงแชร์ WASM linear memory ก้อนเดียวกัน (โตได้ทางเดียว หดไม่ได้)
+   3) แก้ชั่วคราวด้วยการปิดตัวใหญ่ไปเลย (ENABLE_BIG_MODEL_ATTEMPT=false) — ปลอดภัย แต่ทุกคนช้าลง (ตัวเล็ก
+      บน WASM เธรดเดียว ไม่มี SharedArrayBuffer เพราะ GitHub Pages ตั้ง COOP/COEP header เองไม่ได้)
+   4) แก้แบบถาวร (เวอร์ชันนี้): แยก "โมเดลใหญ่" กับ "โมเดลเล็ก" ให้อยู่คนละ Worker/JS realm ไปเลย
+      (คนละ WASM linear memory จริงๆ ไม่แชร์กัน) — worker instance หนึ่งๆ จะลองโหลด "แค่โมเดลเดียว"
+      ตามที่สั่งผ่าน message 'probe' เท่านั้น ไม่มี auto-fallback ข้ามโมเดลภายใน worker เดียวอีกต่อไป
+      ฝั่งหน้าเว็บ (ai-chat-widget.js / invest-*.js) เป็นคนสร้าง 2 worker พร้อมกัน (ถ้าเครื่องรองรับ
+      WebGPU+แรมพอ) แล้วแข่งกันด้วย Promise.any — ตัวไหนพร้อมก่อนก็ใช้ตัวนั้น ตัวใหญ่พังไม่กระทบตัวเล็กเลย
+      เพราะคนละ worker คนละหน่วยความจำจริงๆ (ดู getAiSumWorkerAsync()/getChatWorkerAsync() ฝั่งเรียกใช้) */
 'use strict';
 
 var pipelinePromise = null;
@@ -35,70 +38,30 @@ function configureOnnxWasmPaths(env) {
 var MODEL_ID_BIG = 'onnx-community/Qwen2.5-1.5B-Instruct';   // ลองก่อน ถ้าเครื่องรองรับ WebGPU
 var MODEL_ID_SMALL = 'onnx-community/Qwen2.5-0.5B-Instruct'; // ตัวสำรอง (ใช้แน่ๆ ถ้าตัวใหญ่พัง/ไม่มี WebGPU)
 
-function loadPipeline(onProgress, jobId) {
-  if (!pipelinePromise) {
-    pipelinePromise = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
-      configureOnnxWasmPaths(mod.env);
-
-      function loadWith(modelId, device) {
-        var opts = { dtype: 'q4', progress_callback: onProgress };
-        if (device) opts.device = device;
-        return mod.pipeline('text-generation', modelId, opts).then(function (generator) {
-          activeInfo = { modelId: modelId, device: device || 'wasm' };
-          return { mod: mod, generator: generator };
-        });
-      }
-
-      /* navigator.gpu มีเฉพาะเบราว์เซอร์ที่รองรับ WebGPU จริง (Chrome/Edge รุ่นใหม่ ฯลฯ) — เช็คก่อน
-         เพื่อไม่เสียเวลาลองดาวน์โหลดโมเดล 1.5B ก้อนใหญ่ทิ้งเปล่าๆ บนเบราว์เซอร์ที่ไม่มีทางใช้ได้อยู่แล้ว
-         ⚠️ 2026-08-10: แค่มี navigator.gpu (ตัว adapter/driver รองรับ WebGPU) ไม่ได้แปลว่าการ์ดจอมี VRAM
-         พอรันโมเดล 1.5B จริง — ตัว loadWith().catch() ด้านล่างจับได้แค่กรณี "สร้าง session ไม่สำเร็จ"
-         (พังตอนโหลด) เท่านั้น แต่ถ้าโหลดสำเร็จแล้ว "พังตอน generate จริง" (VRAM ไม่พอกลางคัน) มักเป็น
-         การ crash ระดับ GPU process/driver ที่ JS try/catch หรือ Promise.catch() ดักจับไม่ได้เลย (ต่างจาก
-         std::bad_alloc ฝั่ง WASM ที่อย่างน้อยยัง reject เป็น JS error ให้ดักได้) เบราว์เซอร์กู้คืนด้วยการ
-         reload แท็บเอง ผู้ใช้เห็นเป็นเหมือน "หน้าเว็บรีเฟรชเอง" — ป้องกันไม่ให้เกิดตั้งแต่ต้นทาง (แทนที่จะ
-         พยายามดักจับซึ่งทำไม่ได้จริง) ด้วยการเช็ก navigator.deviceMemory (GB) ประกอบก่อนเสมอ ใช้เกณฑ์
-         เดียวกับ ttsPoolSize() ใน text-to-speech.js/tts-worker.js (ระมัดระวังไว้ก่อนเมื่อไม่รู้ค่า — คือ
-         iOS Safari ทั้งหมดและเบราว์เซอร์อื่นนอก Chrome/Edge เสมอ — ค่อยลองตัวใหญ่เฉพาะตอน "ยืนยันแล้วจริง"
-         ว่าแรมเยอะพอ mem>=4) แลกกับคำตอบที่อาจไม่ดีเท่าโมเดลใหญ่บนเครื่องที่ไม่รู้ค่าแต่ที่จริงแรงพอ
-         เพื่อความเสถียร (ไม่เสี่ยงแท็บแครช) เป็นหลัก */
-      /* ⚠️ 2026-09-18: ปิดการลองโมเดลใหญ่ไว้ก่อน (ENABLE_BIG_MODEL_ATTEMPT = false) — พบจาก log จริง
-         ของผู้ใช้ (เครื่อง 16GB RAM, navigator.gpu พร้อม, canTryBig เคยเป็น true) ว่าตัวใหญ่ (1.5B/WebGPU)
-         พังด้วย std::bad_alloc ทุกครั้งที่ลอง แล้ว "ลากโมเดลเล็ก (0.5B/WASM) ที่ควรจะรันได้สบายๆ บนเครื่อง
-         แรงขนาดนี้ให้พังตามไปด้วยด้วย error เดิมเป๊ะ" แม้เป็นความพยายามแรกของ worker ที่เพิ่งสร้างใหม่ (ไม่ใช่
-         แค่ปัญหา worker เก่าค้าง) — สาเหตุน่าจะเป็นเพราะ loadWith(BIG) กับ loadWith(SMALL) ใช้ mod (module
-         instance ที่ import() ไว้ครั้งเดียว) ตัวเดียวกันภายใน loadPipeline() เรียกเดียว ทำให้ใช้ WASM linear
-         memory ก้อนเดียวกันร่วมกัน — WASM memory โตได้ทางเดียว หดกลับไม่ได้ ถ้าตัวใหญ่พังหลังจากโตไปมากแล้ว
-         ตัวเล็กที่ตามมาในคำขอเดียวกันเลยไม่มีทางได้ memory สะอาดจริง ต่างจาก error เดิมที่แก้ไปแล้ว (worker
-         singleton ค้างข้าม "คลิก" — อันนั้นแก้ด้วย terminate() ตอน error แล้ว) นี่คือปัญหาคนละชั้น เกิด
-         "ภายในคลิกเดียว" เอง แก้ตรงจุดไม่ได้ง่ายๆ เพราะต้องแยก Worker/JS realm ให้ตัวใหญ่กับตัวเล็กจริงๆ
-         (ไม่ใช่แค่ import() คนละครั้ง) ซึ่งเป็นงานใหญ่กว่านี้ — ปิดไว้ก่อนให้ทุกคนได้ใช้ตัวเล็กเสมอ (โหลดไว
-         กว่า เสถียรกว่า ยังไม่เจอเคสไหนที่ตัวใหญ่ทำงานจริงเลยในการทดสอบที่ผ่านมา) ถ้าจะเปิดกลับมาใหม่ ต้อง
-         แก้ให้ตัวใหญ่กับตัวเล็กแยก Worker กันจริงๆ ก่อน ไม่ใช่แค่เปลี่ยน flag นี้กลับเป็น true เฉยๆ */
-      var ENABLE_BIG_MODEL_ATTEMPT = false;
-      var mem = (typeof navigator !== 'undefined') ? navigator.deviceMemory : undefined;
-      var canTryBig = ENABLE_BIG_MODEL_ATTEMPT && typeof navigator !== 'undefined' && navigator.gpu && mem && mem >= 4;
-      console.log('[ai-chat-worker] canTryBig=' + canTryBig + ' (deviceMemory=' + mem + ', hasGpu=' + (typeof navigator !== 'undefined' && !!navigator.gpu) + ')');
-      if (canTryBig) {
-        return loadWith(MODEL_ID_BIG, 'webgpu').catch(function (err) {
-          console.error('[ai-chat-worker] big model (1.5B/WebGPU) failed, falling back to small model:', err);
-          self.postMessage({
-            type: 'fallback', jobId: jobId,
-            message: 'ลองโมเดลใหญ่ (1.5B) ผ่าน WebGPU ไม่สำเร็จ (' + (err && err.message ? err.message : err) + ') ใช้ตัวเล็กแทน'
-          });
-          return loadWith(MODEL_ID_SMALL, undefined);
-        });
-      }
-      return loadWith(MODEL_ID_SMALL, undefined);
+function loadSpecific(modelId, device, onProgress) {
+  return import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
+    configureOnnxWasmPaths(mod.env);
+    var opts = { dtype: 'q4', progress_callback: onProgress };
+    if (device) opts.device = device;
+    return mod.pipeline('text-generation', modelId, opts).then(function (generator) {
+      activeInfo = { modelId: modelId, device: device || 'wasm' };
+      return { mod: mod, generator: generator };
     });
+  });
+}
+
+/* เส้นทางเดิม ใช้เมื่อมีใครส่ง 'chat' มาตรงๆ โดยไม่เคย 'probe' มาก่อน (เช่น languages.jsx ที่ยังไม่ได้
+   ย้ายมาใช้ pattern แข่ง 2 worker ด้านบน) — ปลอดภัยเหมือนเดิมทุกประการ (ลองแค่ตัวเล็ก ไม่แตะตัวใหญ่เลย
+   ในเมื่อยังไม่มี isolation ให้ฝั่งเรียกใช้จัดการ) */
+function loadPipelineAuto(onProgress, jobId) {
+  if (!pipelinePromise) {
+    pipelinePromise = loadSpecific(MODEL_ID_SMALL, undefined, onProgress);
     pipelinePromise.then(function () {
       self.postMessage({ type: 'pipeline-ready', jobId: jobId, modelId: activeInfo.modelId, device: activeInfo.device });
     }, function () {
-      /* โหลดพังทั้งคู่ (ทั้งตัวใหญ่ผ่าน WebGPU ถ้าลอง และตัวเล็กสำรองบน WASM) — เคลียร์ cache ทิ้ง
-         ไม่งั้น pipelinePromise จะค้างเป็น promise ที่ reject แล้วตลอดไปทั้งเซสชัน ทำให้ทุกข้อความถัดไป
-         เจอ error เดิมซ้ำทันทีโดยไม่มีทางลองใหม่เลย แม้ผู้ใช้จะปิดแท็บ/โปรแกรมอื่นที่กินหน่วยความจำไปแล้ว
-         ก็ตาม (เจอจริง: std::bad_alloc ตอนสร้าง session แม้เป็นโมเดลเล็กสุด/บนเดสก์ท็อป) — เคลียร์แล้ว
-         ปล่อยให้ error จริงโผล่ตอนเรียก chat ครั้งนี้แทน ครั้งถัดไปจะลองโหลดใหม่ตั้งแต่ต้นให้เอง */
+      /* พัง — เคลียร์ cache ทิ้ง ไม่งั้น pipelinePromise จะค้างเป็น promise ที่ reject แล้วตลอดไปทั้งเซสชัน
+         ครั้งถัดไปจะลองโหลดใหม่ตั้งแต่ต้นให้เอง (worker นี้เองก็ถูก terminate() จากฝั่งเรียกใช้ตอน error
+         อยู่แล้วในทุกหน้าที่แก้ไปแล้ว แต่กันไว้เผื่อผู้เรียกที่ไม่ทำแบบนั้น) */
       pipelinePromise = null;
     });
   }
@@ -109,7 +72,30 @@ var isBusy = false;
 
 self.onmessage = function (e) {
   var msg = e.data;
-  if (!msg || msg.type !== 'chat') return;
+  if (!msg) return;
+
+  if (msg.type === 'probe') {
+    /* worker instance นี้จะลองโหลด "แค่โมเดลเดียว" ตามที่สั่งเท่านั้น ไม่ auto-fallback ข้ามโมเดลเอง —
+       fallback ทำที่ฝั่งเรียกใช้ด้วยการสร้าง worker คนละตัวแข่งกัน (ดูคอมเมนต์หัวไฟล์) ให้แน่ใจว่าพังแล้ว
+       ไม่ลาก WASM memory ของ worker อื่นพังตาม เพราะแต่ละ worker มี JS realm/WASM memory แยกกันจริง */
+    var modelId = msg.modelId === 'big' ? MODEL_ID_BIG : MODEL_ID_SMALL;
+    var device = msg.modelId === 'big' ? 'webgpu' : undefined;
+    pipelinePromise = loadSpecific(modelId, device, function (p) {
+      if (p && p.status === 'progress' && p.file) {
+        self.postMessage({ type: 'model-progress', jobId: msg.jobId, file: p.file, progress: p.progress });
+      }
+    });
+    pipelinePromise.then(function () {
+      self.postMessage({ type: 'probe-result', jobId: msg.jobId, ok: true, modelId: activeInfo.modelId, device: activeInfo.device });
+    }, function (err) {
+      console.error('[ai-chat-worker] probe(' + msg.modelId + ') failed:', err);
+      pipelinePromise = null;
+      self.postMessage({ type: 'probe-result', jobId: msg.jobId, ok: false, message: err && err.message ? err.message : String(err) });
+    });
+    return;
+  }
+
+  if (msg.type !== 'chat') return;
   var jobId = msg.jobId, messages = msg.messages, maxNewTokens = msg.maxNewTokens || 256;
 
   if (isBusy) {
@@ -124,7 +110,10 @@ self.onmessage = function (e) {
     }
   }
 
-  loadPipeline(onModelProgress, jobId).then(function (loaded) {
+  /* ถ้าเคย 'probe' สำเร็จมาก่อนในเซสชันเดียวกัน (worker นี้คือตัวที่ชนะการแข่งจากฝั่งเรียกใช้) จะเจอ
+     pipelinePromise ตั้งไว้แล้ว loadPipelineAuto() ก็แค่คืนของเดิมกลับไปใช้ต่อ ไม่ต้องโหลดซ้ำ — ถ้ายังไม่
+     เคย probe เลย (ผู้เรียกแบบเก่าที่ส่ง 'chat' ตรงๆ) จะ fallback ไปโหลดตัวเล็กแบบปลอดภัยตามปกติ */
+  loadPipelineAuto(onModelProgress, jobId).then(function (loaded) {
     var mod = loaded.mod, generator = loaded.generator;
     self.postMessage({ type: 'model-info', jobId: jobId, modelId: activeInfo.modelId, device: activeInfo.device });
     /* streamer ส่ง token ทีละตัวกลับหน้าเว็บทันทีที่โมเดลคำนวณเสร็จ (ไม่ต้องรอคำตอบเต็มทั้งก้อน) —

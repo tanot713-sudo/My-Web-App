@@ -245,7 +245,49 @@
     messages = lead.concat(convo);
   }
 
-  function getChatWorker() { if (!chatWorker) chatWorker = new Worker('./ai-chat-worker.js', { type: 'module' }); return chatWorker; }
+  var chatWorkerRacePromise = null;
+  function spawnProbedWorker(modelKind) {
+    return new Promise(function (resolve, reject) {
+      var w = new Worker('./ai-chat-worker.js', { type: 'module' });
+      var probeId = 'probe-' + modelKind + '-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+      function onMsg(e) {
+        var msg = e.data;
+        if (!msg || msg.jobId !== probeId || msg.type !== 'probe-result') return;
+        w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr);
+        if (msg.ok) resolve(w);
+        else { try { w.terminate(); } catch (err) {} reject(new Error(msg.message || 'probe failed')); }
+      }
+      function onErr(e) {
+        w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr);
+        try { w.terminate(); } catch (err) {}
+        reject(e);
+      }
+      w.addEventListener('message', onMsg);
+      w.addEventListener('error', onErr);
+      w.postMessage({ type: 'probe', jobId: probeId, modelId: modelKind });
+    });
+  }
+  /* คืน Promise<Worker> — เครื่องมี WebGPU+แรมพอ จะสร้าง worker แยกกันคนละตัวลองโมเดลใหญ่/เล็กพร้อมกัน
+     (คนละ WASM memory จริงๆ ไม่แชร์กัน ต่างจากที่เคยพังมาก่อน) ตัวไหนพร้อมก่อนก็ใช้ตัวนั้น ตัวใหญ่พัง
+     ไม่กระทบตัวเล็กเลยเพราะคนละ worker — ดูรายละเอียดที่คอมเมนต์หัวไฟล์ ai-chat-worker.js */
+  function getChatWorkerAsync() {
+    if (chatWorker) return Promise.resolve(chatWorker);
+    if (chatWorkerRacePromise) return chatWorkerRacePromise;
+    var mem = (typeof navigator !== 'undefined') ? navigator.deviceMemory : undefined;
+    var canTryBig = typeof navigator !== 'undefined' && !!navigator.gpu && mem && mem >= 4;
+    var candidates = canTryBig ? [spawnProbedWorker('big'), spawnProbedWorker('small')] : [spawnProbedWorker('small')];
+    chatWorkerRacePromise = Promise.any(candidates).then(function (winner) {
+      chatWorker = winner; chatWorkerRacePromise = null;
+      candidates.forEach(function (p) { p.then(function (w) { if (w !== winner) { try { w.terminate(); } catch (err) {} } }, function () {}); });
+      return winner;
+    }, function () {
+      chatWorkerRacePromise = null;
+      var w = new Worker('./ai-chat-worker.js', { type: 'module' });
+      chatWorker = w;
+      return w;
+    });
+    return chatWorkerRacePromise;
+  }
   function getTtsWorker() { if (!ttsWorker) ttsWorker = new Worker('./tts-worker.js', { type: 'module' }); return ttsWorker; }
   function getAsrWorker() { if (!asrWorker) asrWorker = new Worker('./asr-worker.js', { type: 'module' }); return asrWorker; }
   /* ต้องสร้าง/ปลดล็อก AudioContext "ในจังหวะคลิกของผู้ใช้โดยตรง" เท่านั้น (synchronous ในตัว event
@@ -381,53 +423,54 @@
 
       var jobId = ++jobSeq;
       var replyBubble = null, replyText = '';
-      var w = getChatWorker();
 
-      function onMsg(e) {
-        var msg = e.data;
-        if (!msg || msg.jobId !== jobId) return;
-        if (msg.type === 'model-progress') {
-          var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
-          setStatus('กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) ' + msg.file + ' ' + pct, '');
-        } else if (msg.type === 'fallback') {
-          setStatus('' + msg.message, ''); // จะถูกทับด้วยสถานะถัดไปเองเมื่อโหลดตัวสำรองเสร็จ
-        } else if (msg.type === 'model-info') {
-          console.info('[ai-chat] ใช้โมเดล', msg.modelId, 'บน', msg.device);
-        } else if (msg.type === 'token') {
-          if (!replyBubble) { setStatus('', ''); replyBubble = appendBubble('assistant', ''); }
-          replyText += msg.token;
-          replyBubble.textContent = replyText;
-          scrollBottom();
-        } else if (msg.type === 'done') {
-          cleanup();
-          if (replyText) {
-            messages.push({ role: 'assistant', content: replyText });
-            trimMessages();
-            if (forceSpeak || speakChk.checked) speakText(replyText);
-          } else setStatus('ไม่ได้คำตอบกลับมา ลองอีกครั้ง', 'err');
-          setBusy(false); inputEl.focus();
-        } else if (msg.type === 'error') {
+      getChatWorkerAsync().then(function (w) {
+        function onMsg(e) {
+          var msg = e.data;
+          if (!msg || msg.jobId !== jobId) return;
+          if (msg.type === 'model-progress') {
+            var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
+            setStatus('กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) ' + msg.file + ' ' + pct, '');
+          } else if (msg.type === 'fallback') {
+            setStatus('' + msg.message, ''); // จะถูกทับด้วยสถานะถัดไปเองเมื่อโหลดตัวสำรองเสร็จ
+          } else if (msg.type === 'model-info') {
+            console.info('[ai-chat] ใช้โมเดล', msg.modelId, 'บน', msg.device);
+          } else if (msg.type === 'token') {
+            if (!replyBubble) { setStatus('', ''); replyBubble = appendBubble('assistant', ''); }
+            replyText += msg.token;
+            replyBubble.textContent = replyText;
+            scrollBottom();
+          } else if (msg.type === 'done') {
+            cleanup();
+            if (replyText) {
+              messages.push({ role: 'assistant', content: replyText });
+              trimMessages();
+              if (forceSpeak || speakChk.checked) speakText(replyText);
+            } else setStatus('ไม่ได้คำตอบกลับมา ลองอีกครั้ง', 'err');
+            setBusy(false); inputEl.focus();
+          } else if (msg.type === 'error') {
+            cleanup();
+            resetWorkerOnError();
+            if (replyBubble) replyBubble.remove();
+            messages.pop();
+            setStatus('ตอบไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
+            setBusy(false); inputEl.focus();
+          }
+        }
+        function onErr(e) {
           cleanup();
           resetWorkerOnError();
           if (replyBubble) replyBubble.remove();
           messages.pop();
-          setStatus('ตอบไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
+          setStatus('ตอบไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
           setBusy(false); inputEl.focus();
         }
-      }
-      function onErr(e) {
-        cleanup();
-        resetWorkerOnError();
-        if (replyBubble) replyBubble.remove();
-        messages.pop();
-        setStatus('ตอบไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
-        setBusy(false); inputEl.focus();
-      }
-      function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
-      function resetWorkerOnError() { try { w.terminate(); } catch (e) {} chatWorker = null; }
-      w.addEventListener('message', onMsg);
-      w.addEventListener('error', onErr);
-      w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });
+        function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+        function resetWorkerOnError() { try { w.terminate(); } catch (e) {} chatWorker = null; }
+        w.addEventListener('message', onMsg);
+        w.addEventListener('error', onErr);
+        w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });
+      });
     }
     sendBtn.addEventListener('click', function () { unlockAudioCtx(); sendMessage(false); });
     inputEl.addEventListener('keydown', function (e) {
@@ -455,48 +498,49 @@
 
       var jobId = ++jobSeq;
       var replyBubble = null, replyText = '';
-      var w = getChatWorker();
 
-      function onMsg(e) {
-        var msg = e.data;
-        if (!msg || msg.jobId !== jobId) return;
-        if (msg.type === 'model-progress') {
-          var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
-          setStatus('กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) ' + msg.file + ' ' + pct, '');
-        } else if (msg.type === 'fallback') {
-          setStatus('' + msg.message, '');
-        } else if (msg.type === 'model-info') {
-          console.info('[ai-chat] ใช้โมเดล', msg.modelId, 'บน', msg.device);
-        } else if (msg.type === 'token') {
-          if (!replyBubble) { setStatus('', ''); replyBubble = appendBubble('assistant', ''); }
-          replyText += msg.token;
-          replyBubble.textContent = replyText;
-          scrollBottom();
-        } else if (msg.type === 'done') {
-          cleanup();
-          if (!replyText) setStatus('สรุปไม่สำเร็จ ลองอีกครั้ง', 'err');
-          else if (speakChk.checked) speakText(replyText);
-          setBusy(false); inputEl.focus();
-        } else if (msg.type === 'error') {
+      getChatWorkerAsync().then(function (w) {
+        function onMsg(e) {
+          var msg = e.data;
+          if (!msg || msg.jobId !== jobId) return;
+          if (msg.type === 'model-progress') {
+            var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
+            setStatus('กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) ' + msg.file + ' ' + pct, '');
+          } else if (msg.type === 'fallback') {
+            setStatus('' + msg.message, '');
+          } else if (msg.type === 'model-info') {
+            console.info('[ai-chat] ใช้โมเดล', msg.modelId, 'บน', msg.device);
+          } else if (msg.type === 'token') {
+            if (!replyBubble) { setStatus('', ''); replyBubble = appendBubble('assistant', ''); }
+            replyText += msg.token;
+            replyBubble.textContent = replyText;
+            scrollBottom();
+          } else if (msg.type === 'done') {
+            cleanup();
+            if (!replyText) setStatus('สรุปไม่สำเร็จ ลองอีกครั้ง', 'err');
+            else if (speakChk.checked) speakText(replyText);
+            setBusy(false); inputEl.focus();
+          } else if (msg.type === 'error') {
+            cleanup();
+            resetWorkerOnError();
+            if (replyBubble) replyBubble.remove();
+            setStatus('สรุปไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
+            setBusy(false); inputEl.focus();
+          }
+        }
+        function onErr(e) {
           cleanup();
           resetWorkerOnError();
           if (replyBubble) replyBubble.remove();
-          setStatus('สรุปไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
+          setStatus('สรุปไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
           setBusy(false); inputEl.focus();
         }
-      }
-      function onErr(e) {
-        cleanup();
-        resetWorkerOnError();
-        if (replyBubble) replyBubble.remove();
-        setStatus('สรุปไม่สำเร็จ: ' + friendlyChatError(e.message || 'ไม่ทราบสาเหตุ'), 'err');
-        setBusy(false); inputEl.focus();
-      }
-      function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
-      function resetWorkerOnError() { try { w.terminate(); } catch (e) {} chatWorker = null; }
-      w.addEventListener('message', onMsg);
-      w.addEventListener('error', onErr);
-      w.postMessage({ type: 'chat', jobId: jobId, messages: summaryMessages, maxNewTokens: 400 });
+        function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+        function resetWorkerOnError() { try { w.terminate(); } catch (e) {} chatWorker = null; }
+        w.addEventListener('message', onMsg);
+        w.addEventListener('error', onErr);
+        w.postMessage({ type: 'chat', jobId: jobId, messages: summaryMessages, maxNewTokens: 400 });
+      });
     }
     sumBtn.addEventListener('click', function () { unlockAudioCtx(); summarizePage(); });
 

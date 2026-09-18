@@ -934,8 +934,49 @@
     return msg;
   }
 
-  var aiSumChatWorker = null, aiSumJobSeq = 0, aiSumBusy = false;
-  function getAiSumWorker() { if (!aiSumChatWorker) aiSumChatWorker = new Worker('./ai-chat-worker.js', { type: 'module' }); return aiSumChatWorker; }
+  var aiSumChatWorker = null, aiSumWorkerRacePromise = null, aiSumJobSeq = 0, aiSumBusy = false;
+  function spawnProbedWorker(modelKind) {
+    return new Promise(function (resolve, reject) {
+      var w = new Worker('./ai-chat-worker.js', { type: 'module' });
+      var probeId = 'probe-' + modelKind + '-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+      function onMsg(e) {
+        var msg = e.data;
+        if (!msg || msg.jobId !== probeId || msg.type !== 'probe-result') return;
+        w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr);
+        if (msg.ok) resolve(w);
+        else { try { w.terminate(); } catch (err) {} reject(new Error(msg.message || 'probe failed')); }
+      }
+      function onErr(e) {
+        w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr);
+        try { w.terminate(); } catch (err) {}
+        reject(e);
+      }
+      w.addEventListener('message', onMsg);
+      w.addEventListener('error', onErr);
+      w.postMessage({ type: 'probe', jobId: probeId, modelId: modelKind });
+    });
+  }
+  /* คืน Promise<Worker> — เครื่องมี WebGPU+แรมพอ จะสร้าง worker แยกกันคนละตัวลองโมเดลใหญ่/เล็กพร้อมกัน
+     (คนละ WASM memory จริงๆ ไม่แชร์กัน ต่างจากที่เคยพังมาก่อน) ตัวไหนพร้อมก่อนก็ใช้ตัวนั้น ตัวใหญ่พัง
+     ไม่กระทบตัวเล็กเลยเพราะคนละ worker — ดูรายละเอียดที่คอมเมนต์หัวไฟล์ ai-chat-worker.js */
+  function getAiSumWorkerAsync() {
+    if (aiSumChatWorker) return Promise.resolve(aiSumChatWorker);
+    if (aiSumWorkerRacePromise) return aiSumWorkerRacePromise;
+    var mem = (typeof navigator !== 'undefined') ? navigator.deviceMemory : undefined;
+    var canTryBig = typeof navigator !== 'undefined' && !!navigator.gpu && mem && mem >= 4;
+    var candidates = canTryBig ? [spawnProbedWorker('big'), spawnProbedWorker('small')] : [spawnProbedWorker('small')];
+    aiSumWorkerRacePromise = Promise.any(candidates).then(function (winner) {
+      aiSumChatWorker = winner; aiSumWorkerRacePromise = null;
+      candidates.forEach(function (p) { p.then(function (w) { if (w !== winner) { try { w.terminate(); } catch (err) {} } }, function () {}); });
+      return winner;
+    }, function () {
+      aiSumWorkerRacePromise = null;
+      var w = new Worker('./ai-chat-worker.js', { type: 'module' });
+      aiSumChatWorker = w;
+      return w;
+    });
+    return aiSumWorkerRacePromise;
+  }
   function setAiSumStatus(text, cls) { var el = $('aiSumStatus'); if (!el) return; el.textContent = text || ''; el.className = 'status' + (cls ? ' ' + cls : ''); }
 
   function currentSymbolLabel() {
@@ -994,51 +1035,48 @@
         { role: 'system', content: isEn ? AI_SUMMARY_REMINDER_EN : AI_SUMMARY_REMINDER }
       ];
       var jobId = ++aiSumJobSeq, replyText = '';
-      var w = getAiSumWorker();
 
-      function onMsg(e) {
-        var msg = e.data;
-        if (!msg || msg.jobId !== jobId) return;
-        if (msg.type === 'model-progress') {
-          var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
-          setAiSumStatus(t('loadingModel', { file: msg.file, pct: pct }), '');
-        } else if (msg.type === 'fallback') {
-          setAiSumStatus('' + msg.message, '');
-        } else if (msg.type === 'token') {
-          if (!replyText) { setAiSumStatus('', ''); $('aiSumOut').style.display = 'block'; }
-          replyText += msg.token;
-          $('aiSumOut').textContent = replyText;
-        } else if (msg.type === 'done') {
-          cleanup();
-          if (!replyText) setAiSumStatus(t('summarizeFail'), 'err');
-          else if (cache) cache.write(AI_CACHE_PAGE, cacheSym, cacheLang, { text: replyText });
-          aiSumBusy = false; $('aiSumBtn').disabled = false;
-        } else if (msg.type === 'error') {
+      getAiSumWorkerAsync().then(function (w) {
+        if (jobId !== aiSumJobSeq) return; // มีคำขอใหม่กว่าแทรกมาระหว่างรอ worker พร้อม ทิ้งอันนี้ไป
+
+        function onMsg(e) {
+          var msg = e.data;
+          if (!msg || msg.jobId !== jobId) return;
+          if (msg.type === 'model-progress') {
+            var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
+            setAiSumStatus(t('loadingModel', { file: msg.file, pct: pct }), '');
+          } else if (msg.type === 'fallback') {
+            setAiSumStatus('' + msg.message, '');
+          } else if (msg.type === 'token') {
+            if (!replyText) { setAiSumStatus('', ''); $('aiSumOut').style.display = 'block'; }
+            replyText += msg.token;
+            $('aiSumOut').textContent = replyText;
+          } else if (msg.type === 'done') {
+            cleanup();
+            if (!replyText) setAiSumStatus(t('summarizeFail'), 'err');
+            else if (cache) cache.write(AI_CACHE_PAGE, cacheSym, cacheLang, { text: replyText });
+            aiSumBusy = false; $('aiSumBtn').disabled = false;
+          } else if (msg.type === 'error') {
+            cleanup();
+            resetWorkerOnError();
+            $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+            setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(msg.message) }), 'err');
+            aiSumBusy = false; $('aiSumBtn').disabled = false;
+          }
+        }
+        function onErr(e) {
           cleanup();
           resetWorkerOnError();
           $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
-          setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(msg.message) }), 'err');
+          setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(e.message || t('unknownReason')) }), 'err');
           aiSumBusy = false; $('aiSumBtn').disabled = false;
         }
-      }
-      function onErr(e) {
-        cleanup();
-        resetWorkerOnError();
-        $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
-        setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(e.message || t('unknownReason')) }), 'err');
-        aiSumBusy = false; $('aiSumBtn').disabled = false;
-      }
-      function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
-      /* ล้าง Worker ทิ้งทั้งตัวเมื่อโหลดโมเดล/รันพัง (ไม่ใช่แค่ reset promise) — WebAssembly linear
-         memory โตได้ทางเดียว หดกลับไม่ได้ ถ้าปล่อย worker เดิมไว้แล้วลองใหม่ หน่วยความจำที่ถูกจองไปแล้ว
-         ตอนพยายามโหลดโมเดลใหญ่ (1.5B ผ่าน WebGPU) จะยังค้างอยู่ ทำให้ความพยายามถัดไป (แม้เป็นโมเดลเล็ก
-         บน WASM) พังซ้ำด้วย error เดิมทุกครั้งทั้งที่เครื่องมีแรมเหลือเยอะ — terminate() แล้วสร้าง Worker
-         ใหม่ตอนกดอีกครั้งให้ได้หน่วยความจำ WASM สะอาดจริงๆ (แลกกับต้องโหลดโมเดลใหม่ ไม่ได้ใช้ pipeline
-         ที่แคชไว้ในกรณีนี้ — ยอมรับได้เพราะเกิดเฉพาะตอน error เท่านั้น ไม่กระทบเคสสำเร็จปกติ) */
-      function resetWorkerOnError() { try { w.terminate(); } catch (e) {} aiSumChatWorker = null; }
-      w.addEventListener('message', onMsg);
-      w.addEventListener('error', onErr);
-      w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });
+        function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+        function resetWorkerOnError() { try { w.terminate(); } catch (e) {} aiSumChatWorker = null; }
+        w.addEventListener('message', onMsg);
+        w.addEventListener('error', onErr);
+        w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });
+      });
     }
   }
 
