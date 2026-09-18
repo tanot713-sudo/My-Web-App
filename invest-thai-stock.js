@@ -578,6 +578,7 @@
     var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '.BK?range=1y&interval=1d';
     var enc = encodeURIComponent(base);
     var tries = [
+      { name: 'own', url: 'https://tanot-cors-proxy.tanot713.workers.dev/?url=' + enc },
       { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + enc },
       { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { name: 'corseu', url: 'https://cors.eu.org/' + base },
@@ -1432,6 +1433,7 @@
     var enc = encodeURIComponent(base);
     var tries = [
       { url: 'https://api.rss2json.com/v1/api.json?rss_url=' + enc, parser: parseRss2Json },
+      { url: 'https://tanot-cors-proxy.tanot713.workers.dev/?url=' + enc, parser: parseNewsRss },
       { url: 'https://api.allorigins.win/raw?url=' + enc, parser: parseNewsRss },
       { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc, parser: parseNewsRss },
       { url: 'https://cors.eu.org/' + base, parser: parseNewsRss },

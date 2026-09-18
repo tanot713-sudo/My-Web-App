@@ -640,6 +640,7 @@ h1,h2,h3{text-wrap:balance}
   function proxyTries(base, offset) {
     var enc = encodeURIComponent(base);
     var tries = [
+      { url: 'https://tanot-cors-proxy.tanot713.workers.dev/?url=' + enc },
       { url: 'https://api.allorigins.win/raw?url=' + enc },
       { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { url: 'https://cors.eu.org/' + base },
@@ -777,6 +778,7 @@ h1,h2,h3{text-wrap:balance}
     var base = 'https://api.alternative.me/fng/?limit=1&format=json', enc = encodeURIComponent(base);
     var tries = [
       base, /* ลองตรงก่อน — API นี้เปิด CORS */
+      'https://tanot-cors-proxy.tanot713.workers.dev/?url=' + enc,
       'https://api.allorigins.win/raw?url=' + enc,
       'https://api.codetabs.com/v1/proxy/?quest=' + enc,
       'https://cors.eu.org/' + base,

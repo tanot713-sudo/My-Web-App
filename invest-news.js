@@ -89,6 +89,7 @@
   function proxyTries(base, offset) {
     var enc = encodeURIComponent(base);
     var tries = [
+      { url: 'https://tanot-cors-proxy.tanot713.workers.dev/?url=' + enc },
       { url: 'https://api.allorigins.win/raw?url=' + enc },
       { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { url: 'https://cors.eu.org/' + base },
