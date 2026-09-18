@@ -113,7 +113,6 @@
       { name: 'corseu', url: 'https://cors.eu.org/' + base },
       { name: 'corsworkers', url: 'https://test.cors.workers.dev/?' + base },
       { name: 'corslol', url: 'https://api.cors.lol/?url=' + enc },
-      { name: 'corsfix', url: 'https://proxy.corsfix.com/?' + base },
       { name: 'ตรง', url: base }
     ];
     var offset = ((startAt || 0) % tries.length + tries.length) % tries.length;

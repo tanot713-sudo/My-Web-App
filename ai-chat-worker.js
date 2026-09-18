@@ -64,8 +64,10 @@ function loadPipeline(onProgress, jobId) {
          เพื่อความเสถียร (ไม่เสี่ยงแท็บแครช) เป็นหลัก */
       var mem = (typeof navigator !== 'undefined') ? navigator.deviceMemory : undefined;
       var canTryBig = typeof navigator !== 'undefined' && navigator.gpu && mem && mem >= 4;
+      console.log('[ai-chat-worker] canTryBig=' + canTryBig + ' (deviceMemory=' + mem + ', hasGpu=' + (typeof navigator !== 'undefined' && !!navigator.gpu) + ')');
       if (canTryBig) {
         return loadWith(MODEL_ID_BIG, 'webgpu').catch(function (err) {
+          console.error('[ai-chat-worker] big model (1.5B/WebGPU) failed, falling back to small model:', err);
           self.postMessage({
             type: 'fallback', jobId: jobId,
             message: 'ลองโมเดลใหญ่ (1.5B) ผ่าน WebGPU ไม่สำเร็จ (' + (err && err.message ? err.message : err) + ') ใช้ตัวเล็กแทน'

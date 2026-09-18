@@ -671,7 +671,6 @@
       { name: 'corseu', url: 'https://cors.eu.org/' + base },
       { name: 'corsworkers', url: 'https://test.cors.workers.dev/?' + base },
       { name: 'corslol', url: 'https://api.cors.lol/?url=' + enc },
-      { name: 'corsfix', url: 'https://proxy.corsfix.com/?' + base },
       { name: t('directSourceLabel'), url: base }
     ];
     var i = 0, best = null;
@@ -744,7 +743,6 @@
       { url: 'https://cors.eu.org/' + base },
       { url: 'https://test.cors.workers.dev/?' + base },
       { url: 'https://api.cors.lol/?url=' + enc },
-      { url: 'https://proxy.corsfix.com/?' + base },
       { url: base }
     ];
     var i = 0;
@@ -794,7 +792,6 @@
       { url: 'https://cors.eu.org/' + base },
       { url: 'https://test.cors.workers.dev/?' + base },
       { url: 'https://api.cors.lol/?url=' + enc },
-      { url: 'https://proxy.corsfix.com/?' + base }
     ];
     var i = 0;
     function next() { if (i >= tries.length) return Promise.reject(new Error('fail')); return fetchOne(tries[i++].url, 7000, parseFng).catch(next); }

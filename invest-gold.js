@@ -735,7 +735,6 @@
       { name: 'corseu', url: 'https://cors.eu.org/' + base },
       { name: 'corsworkers', url: 'https://test.cors.workers.dev/?' + base },
       { name: 'corslol', url: 'https://api.cors.lol/?url=' + enc },
-      { name: 'corsfix', url: 'https://proxy.corsfix.com/?' + base },
       { name: 'ตรง', url: base }
     ];
     var i = 0, best = null;
@@ -809,7 +808,6 @@
       { url: 'https://cors.eu.org/' + base },
       { url: 'https://test.cors.workers.dev/?' + base },
       { url: 'https://api.cors.lol/?url=' + enc },
-      { url: 'https://proxy.corsfix.com/?' + base }
     ];
     var i = 0;
     function next() {
@@ -1128,7 +1126,6 @@
       { url: 'https://cors.eu.org/' + base },
       { url: 'https://test.cors.workers.dev/?' + base },
       { url: 'https://api.cors.lol/?url=' + enc },
-      { url: 'https://proxy.corsfix.com/?' + base },
       { url: base }
     ];
     var i = 0;
