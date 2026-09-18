@@ -5,6 +5,19 @@
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid"
       }
+    },
+    "aiSummaryCache": {
+      "$page": {
+        "$symbol": {
+          "$date": {
+            "$lang": {
+              ".read": true,
+              ".write": "!data.exists()",
+              ".validate": "newData.hasChildren(['text', 'ts']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 4000 && newData.child('ts').isNumber()"
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -306,6 +306,20 @@ body.embedded .crumb{display:none}
 
 </div>
 
+<!-- แคชผลสรุป AI ข้ามผู้ใช้ผ่าน Firebase (คำนวณครั้งเดียวต่อวันต่อโภคภัณฑ์ อ่านซ้ำได้ฟรี) — bare module
+     specifier ต้องใช้ import map ชี้ไปไฟล์ที่ฝังไว้ในเว็บเอง (vendor/firebase/) เหมือน budget.html -->
+<script type="importmap">
+{
+  "imports": {
+    "@firebase/app": "./vendor/firebase/app.js",
+    "@firebase/database": "./vendor/firebase/database.js",
+    "@firebase/util": "./vendor/firebase/util.js",
+    "@firebase/component": "./vendor/firebase/component.js",
+    "@firebase/logger": "./vendor/firebase/logger.js"
+  }
+}
+</script>
+<script src="ai-summary-cache.js"></script>
 <script src="invest-commodities.js" defer></script>
 </body>
 </html>

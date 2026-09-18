@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v533';
+const CACHE = 'ome-v534';
 const PRECACHE = [
   './',
   './index.html',
@@ -23,6 +23,7 @@ const PRECACHE = [
   './legal.html',
   './budget.html',
   './firebase-sync.js',
+  './ai-summary-cache.js',
   './text-to-speech.html',
   './text-to-speech.js',
   './tts-worker.js',

@@ -59,6 +59,8 @@
       summarizing: 'กำลังสรุป… (ครั้งแรกอาจต้องโหลดโมเดล AI ~350MB ก่อน)', loadingModel: 'กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) {file} {pct}',
       summarizeFail: 'สรุปไม่สำเร็จ ลองอีกครั้ง', summarizeFailWith: 'สรุปไม่สำเร็จ: {msg}', unknownReason: 'ไม่ทราบสาเหตุ',
       memErrorMsg: 'โหลดโมเดล AI ไม่สำเร็จ เพราะหน่วยความจำที่เบราว์เซอร์เหลือให้ใช้ไม่พอ (มักเกิดถ้าเปิดแท็บ/โปรแกรมอื่นพร้อมกันเยอะ) ลองปิดแท็บ/โปรแกรมอื่นแล้วกดสรุปใหม่อีกครั้ง',
+      diskErrorMsg: 'บันทึกไฟล์โมเดล AI ไม่สำเร็จ เพราะพื้นที่จัดเก็บของเบราว์เซอร์สำหรับเว็บไซต์นี้เต็ม (คนละเรื่องกับโปรแกรม/แท็บอื่นที่เปิดอยู่) ลองล้างข้อมูลเว็บไซต์นี้ในเบราว์เซอร์ หรือเพิ่มพื้นที่ว่างในดิสก์แล้วลองใหม่',
+      summarizeCached: 'ผลสรุปนี้มีคนคำนวณไว้แล้ววันนี้ (โหลดจากแคช ไม่ต้องรันโมเดลในเครื่อง)',
       ctxAsset: 'สินทรัพย์: {label} (หน่วย {unit})', ctxLatestPrice: 'ราคาล่าสุด: {v} {unit}', ctxVerdict: 'สัญญาณไฟจราจรที่คำนวณแล้ว: {v} ({why})',
       ctxPros: 'ปัจจัยหนุนที่ตรวจพบ: {v}', ctxCons: 'ปัจจัยเสี่ยงที่ตรวจพบ: {v}',
       ctxRsi: 'RSI (14 วัน): {v}', ctxRsiHigh: ' (สูง/ร้อนแรง)', ctxRsiLow: ' (ต่ำ/แรงขายเริ่มคลาย)', ctxRsiMid: ' (กลางๆ)',
@@ -138,6 +140,8 @@
       summarizing: 'Summarizing… (first time may need to download the ~350MB AI model)', loadingModel: 'Loading model (first time only) {file} {pct}',
       summarizeFail: 'Summary failed, try again', summarizeFailWith: 'Summary failed: {msg}', unknownReason: 'unknown reason',
       memErrorMsg: 'Failed to load the AI model because the browser doesn’t have enough free memory (usually from having many tabs/programs open at once). Try closing other tabs/programs and summarizing again',
+      diskErrorMsg: 'Failed to save the AI model file because this site’s browser storage is full (unrelated to other open tabs/programs). Try clearing this site’s data in your browser, or free up disk space, then try again',
+      summarizeCached: 'Someone already summarized this today (loaded from cache — no local model run needed)',
       ctxAsset: 'Asset: {label} (unit: {unit})', ctxLatestPrice: 'Latest price: {v} {unit}', ctxVerdict: 'Computed signal: {v} ({why})',
       ctxPros: 'Detected tailwinds: {v}', ctxCons: 'Detected risks: {v}',
       ctxRsi: 'RSI (14-day): {v}', ctxRsiHigh: ' (high/overheated)', ctxRsiLow: ' (low/selling pressure easing)', ctxRsiMid: ' (neutral)',
@@ -893,6 +897,7 @@
   function friendlyChatError(rawMessage) {
     var msg = rawMessage || '';
     if (/bad_alloc|Can't create a session|out of memory/i.test(msg)) return t('memErrorMsg');
+    if (/QuotaExceededError|quota.{0,20}exceeded|not enough.{0,10}(space|storage)|no space left/i.test(msg)) return t('diskErrorMsg');
     return msg;
   }
 
@@ -917,6 +922,10 @@
     return lines.join('\n');
   }
 
+  /* แคชผลสรุปผ่าน Firebase (ai-summary-cache.js) — ดูรายละเอียด/ข้อจำกัดที่ตั้งใจไว้ในไฟล์นั้น
+     (invest-global-stock.js เป็นหน้าแรกที่ทำ pattern นี้ ดูคอมเมนต์เต็มๆ ที่นั่น) — หน้านี้เลือกโภคภัณฑ์
+     ได้หลายตัว จึงใช้ curKey (คีย์โภคภัณฑ์ที่กำลังดูอยู่ เช่น 'wti','gold') เป็นส่วนหนึ่งของคีย์แคชด้วย */
+  var AI_CACHE_PAGE = 'commodities';
   function doAiSummary() {
     if (aiSumBusy) return;
     if (isIOS()) { setAiSumStatus(t('iosNotSupported'), 'err'); return; }
@@ -929,47 +938,62 @@
     setAiSumStatus(t('summarizing'), '');
 
     var isEn = getUILang() === 'en';
-    var payloadMessages = [
-      { role: 'system', content: isEn ? AI_SUMMARY_SYSTEM_PROMPT_EN : AI_SUMMARY_SYSTEM_PROMPT },
-      { role: 'user', content: ctx },
-      { role: 'system', content: isEn ? AI_SUMMARY_REMINDER_EN : AI_SUMMARY_REMINDER }
-    ];
-    var jobId = ++aiSumJobSeq, replyText = '';
-    var w = getAiSumWorker();
-
-    function onMsg(e) {
-      var msg = e.data;
-      if (!msg || msg.jobId !== jobId) return;
-      if (msg.type === 'model-progress') {
-        var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
-        setAiSumStatus(t('loadingModel', { file: msg.file, pct: pct }), '');
-      } else if (msg.type === 'fallback') {
-        setAiSumStatus('' + msg.message, '');
-      } else if (msg.type === 'token') {
-        if (!replyText) { setAiSumStatus('', ''); $('aiSumOut').style.display = 'block'; }
-        replyText += msg.token;
-        $('aiSumOut').textContent = replyText;
-      } else if (msg.type === 'done') {
-        cleanup();
-        if (!replyText) setAiSumStatus(t('summarizeFail'), 'err');
+    var cacheSym = curKey || 'unknown', cacheLang = isEn ? 'en' : 'th';
+    var cache = window.AiSummaryCache;
+    (cache ? cache.read(AI_CACHE_PAGE, cacheSym, cacheLang) : Promise.resolve(null)).then(function (hit) {
+      if (hit) {
+        $('aiSumOut').style.display = 'block'; $('aiSumOut').textContent = hit.text;
+        setAiSumStatus(t('summarizeCached'), 'ok');
         aiSumBusy = false; $('aiSumBtn').disabled = false;
-      } else if (msg.type === 'error') {
+        return;
+      }
+      runLocalSummary();
+    });
+
+    function runLocalSummary() {
+      var payloadMessages = [
+        { role: 'system', content: isEn ? AI_SUMMARY_SYSTEM_PROMPT_EN : AI_SUMMARY_SYSTEM_PROMPT },
+        { role: 'user', content: ctx },
+        { role: 'system', content: isEn ? AI_SUMMARY_REMINDER_EN : AI_SUMMARY_REMINDER }
+      ];
+      var jobId = ++aiSumJobSeq, replyText = '';
+      var w = getAiSumWorker();
+
+      function onMsg(e) {
+        var msg = e.data;
+        if (!msg || msg.jobId !== jobId) return;
+        if (msg.type === 'model-progress') {
+          var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
+          setAiSumStatus(t('loadingModel', { file: msg.file, pct: pct }), '');
+        } else if (msg.type === 'fallback') {
+          setAiSumStatus('' + msg.message, '');
+        } else if (msg.type === 'token') {
+          if (!replyText) { setAiSumStatus('', ''); $('aiSumOut').style.display = 'block'; }
+          replyText += msg.token;
+          $('aiSumOut').textContent = replyText;
+        } else if (msg.type === 'done') {
+          cleanup();
+          if (!replyText) setAiSumStatus(t('summarizeFail'), 'err');
+          else if (cache) cache.write(AI_CACHE_PAGE, cacheSym, cacheLang, { text: replyText });
+          aiSumBusy = false; $('aiSumBtn').disabled = false;
+        } else if (msg.type === 'error') {
+          cleanup();
+          $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+          setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(msg.message) }), 'err');
+          aiSumBusy = false; $('aiSumBtn').disabled = false;
+        }
+      }
+      function onErr(e) {
         cleanup();
         $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
-        setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(msg.message) }), 'err');
+        setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(e.message || t('unknownReason')) }), 'err');
         aiSumBusy = false; $('aiSumBtn').disabled = false;
       }
+      function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+      w.addEventListener('message', onMsg);
+      w.addEventListener('error', onErr);
+      w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });
     }
-    function onErr(e) {
-      cleanup();
-      $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
-      setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(e.message || t('unknownReason')) }), 'err');
-      aiSumBusy = false; $('aiSumBtn').disabled = false;
-    }
-    function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
-    w.addEventListener('message', onMsg);
-    w.addEventListener('error', onErr);
-    w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });
   }
 
   function setDetailStatus(msg, cls) {
