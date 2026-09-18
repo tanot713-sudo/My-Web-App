@@ -633,6 +633,10 @@ h1,h2,h3{text-wrap:balance}
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.text(); })
       .then(function (t) { if (to) clearTimeout(to); return parser(t); });
   }
+  /* หมายเหตุ (แก้บั๊ก "ราคาสินทรัพย์บางตัวไม่ขึ้น/หน้าหนวง"): corsproxy.io เปลี่ยนไปเรียกเก็บ API key
+     แล้ว ทุกคำขอฟรีได้ 401 ทันที — ตัดออก เพิ่มพร็อกซีสำรองอีก 2 ตัวแทนให้สายสำรองยังยาวพอ (พร็อกซี CORS
+     สาธารณะฟรีล้มหายตายจากกันเรื่อยๆ ตามธรรมชาติของบริการฟรี ไม่มีใครควบคุมได้ 100%) เหมือนที่แก้ไปแล้วใน
+     invest-news.js/invest-thai-stock.js ฯลฯ */
   function proxyTries(base, offset) {
     var enc = encodeURIComponent(base);
     var tries = [
@@ -640,7 +644,8 @@ h1,h2,h3{text-wrap:balance}
       { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { url: 'https://cors.eu.org/' + base },
       { url: 'https://test.cors.workers.dev/?' + base },
-      { url: 'https://corsproxy.io/?url=' + enc },
+      { url: 'https://api.cors.lol/?url=' + enc },
+      { url: 'https://thingproxy.freeboard.io/fetch/' + base },
       { url: base }
     ];
     offset = ((offset || 0) % tries.length + tries.length) % tries.length;
@@ -777,7 +782,8 @@ h1,h2,h3{text-wrap:balance}
       'https://api.codetabs.com/v1/proxy/?quest=' + enc,
       'https://cors.eu.org/' + base,
       'https://test.cors.workers.dev/?' + base,
-      'https://corsproxy.io/?url=' + enc
+      'https://api.cors.lol/?url=' + enc,
+      'https://thingproxy.freeboard.io/fetch/' + base
     ];
     var i = 0;
     function next() { if (i >= tries.length) return Promise.reject(new Error('fail')); return fetchOne(tries[i++], 7000, parseFng).catch(next); }
