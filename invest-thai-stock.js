@@ -581,7 +581,7 @@
       { name: 'corseu', url: 'https://cors.eu.org/' + base },
       { name: 'corsworkers', url: 'https://test.cors.workers.dev/?' + base },
       { name: 'corslol', url: 'https://api.cors.lol/?url=' + enc },
-      { name: 'thingproxy', url: 'https://thingproxy.freeboard.io/fetch/' + base },
+      { name: 'corsfix', url: 'https://proxy.corsfix.com/?' + base },
       { name: 'ตรง', url: base }
     ];
     var i = 0, best = null;
@@ -1430,7 +1430,7 @@
       { url: 'https://cors.eu.org/' + base, parser: parseNewsRss },
       { url: 'https://test.cors.workers.dev/?' + base, parser: parseNewsRss },
       { url: 'https://api.cors.lol/?url=' + enc, parser: parseNewsRss },
-      { url: 'https://thingproxy.freeboard.io/fetch/' + base, parser: parseNewsRss },
+      { url: 'https://proxy.corsfix.com/?' + base, parser: parseNewsRss },
       { url: base, parser: parseNewsRss }
     ];
     var i = 0;

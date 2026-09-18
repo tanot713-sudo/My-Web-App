@@ -645,7 +645,7 @@ h1,h2,h3{text-wrap:balance}
       { url: 'https://cors.eu.org/' + base },
       { url: 'https://test.cors.workers.dev/?' + base },
       { url: 'https://api.cors.lol/?url=' + enc },
-      { url: 'https://thingproxy.freeboard.io/fetch/' + base },
+      { url: 'https://proxy.corsfix.com/?' + base },
       { url: base }
     ];
     offset = ((offset || 0) % tries.length + tries.length) % tries.length;
@@ -783,7 +783,7 @@ h1,h2,h3{text-wrap:balance}
       'https://cors.eu.org/' + base,
       'https://test.cors.workers.dev/?' + base,
       'https://api.cors.lol/?url=' + enc,
-      'https://thingproxy.freeboard.io/fetch/' + base
+      'https://proxy.corsfix.com/?' + base
     ];
     var i = 0;
     function next() { if (i >= tries.length) return Promise.reject(new Error('fail')); return fetchOne(tries[i++], 7000, parseFng).catch(next); }
