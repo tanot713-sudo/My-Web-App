@@ -140,6 +140,7 @@
       summarizing: 'กำลังสรุป… (ครั้งแรกอาจต้องโหลดโมเดล AI ~350MB ก่อน)', loadingModel: 'กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) {file} {pct}',
       summarizeFail: 'สรุปไม่สำเร็จ ลองอีกครั้ง', summarizeFailWith: 'สรุปไม่สำเร็จ: {msg}', unknownReason: 'ไม่ทราบสาเหตุ',
       memErrorMsg: 'โหลดโมเดล AI ไม่สำเร็จ เพราะหน่วยความจำที่เบราว์เซอร์เหลือให้ใช้ไม่พอ (มักเกิดถ้าเปิดแท็บ/โปรแกรมอื่นพร้อมกันเยอะ) ลองปิดแท็บ/โปรแกรมอื่นแล้วกดสรุปใหม่อีกครั้ง',
+      diskErrorMsg: 'บันทึกไฟล์โมเดล AI ไม่สำเร็จ เพราะพื้นที่จัดเก็บของเบราว์เซอร์สำหรับเว็บไซต์นี้เต็ม (คนละเรื่องกับโปรแกรม/แท็บอื่นที่เปิดอยู่) ลองล้างข้อมูลเว็บไซต์นี้ในเบราว์เซอร์ หรือเพิ่มพื้นที่ว่างในดิสก์แล้วลองใหม่',
       thisStock: 'หุ้นนี้', sampleWord: 'ตัวอย่าง', enterEntryFirst: 'กรอกราคาเข้าซื้อ (หรือราคาตอนนี้) ก่อน',
       ctxStock: 'หุ้น: {v}', ctxLatestPrice: 'ราคาล่าสุด: {v} บาท', ctxVerdict: 'สัญญาณไฟจราจรที่คำนวณแล้ว: {v} ({why})',
       ctxPros: 'ปัจจัยหนุนที่ตรวจพบ: {v}', ctxCons: 'ปัจจัยเสี่ยงที่ตรวจพบ: {v}',
@@ -262,6 +263,7 @@
       summarizing: 'Summarizing… (first time may need to download the ~350MB AI model)', loadingModel: 'Loading model (first time only) {file} {pct}',
       summarizeFail: 'Summary failed, try again', summarizeFailWith: 'Summary failed: {msg}', unknownReason: 'unknown reason',
       memErrorMsg: 'Failed to load the AI model because the browser doesn’t have enough free memory (usually from having many tabs/programs open at once). Try closing other tabs/programs and summarizing again',
+      diskErrorMsg: 'Failed to save the AI model file because this site’s browser storage is full (unrelated to other open tabs/programs). Try clearing this site’s data in your browser, or free up disk space, then try again',
       thisStock: 'this stock', sampleWord: 'Sample', enterEntryFirst: 'Enter the entry price (or current price) first',
       ctxStock: 'Stock: {v}', ctxLatestPrice: 'Latest price: {v} baht', ctxVerdict: 'Computed signal: {v} ({why})',
       ctxPros: 'Detected tailwinds: {v}', ctxCons: 'Detected risks: {v}',
@@ -1000,6 +1002,9 @@
     var msg = rawMessage || '';
     if (/bad_alloc|Can't create a session|out of memory/i.test(msg)) {
       return t('memErrorMsg');
+    }
+    if (/QuotaExceededError|quota.{0,20}exceeded|not enough.{0,10}(space|storage)|no space left/i.test(msg)) {
+      return t('diskErrorMsg');
     }
     return msg;
   }
