@@ -269,13 +269,30 @@
   }
   /* คืน Promise<Worker> — เครื่องมี WebGPU+แรมพอ จะสร้าง worker แยกกันคนละตัวลองโมเดลใหญ่/เล็กพร้อมกัน
      (คนละ WASM memory จริงๆ ไม่แชร์กัน ต่างจากที่เคยพังมาก่อน) ตัวไหนพร้อมก่อนก็ใช้ตัวนั้น ตัวใหญ่พัง
-     ไม่กระทบตัวเล็กเลยเพราะคนละ worker — ดูรายละเอียดที่คอมเมนต์หัวไฟล์ ai-chat-worker.js */
+     ไม่กระทบตัวเล็กเลยเพราะคนละ worker — ดูรายละเอียดที่คอมเมนต์หัวไฟล์ ai-chat-worker.js
+     ⚠️ 2026-09-19: จำผลไว้ใน localStorage ด้วยว่าโมเดลใหญ่เคยพังบนเบราว์เซอร์นี้ไหม (เจอจริงจากผู้ใช้ที่
+     navigator.gpu รายงานว่ารองรับแต่โหลดจริงพังทุกครั้ง) — ถ้าเคยพังแล้ว "ไม่ลองอีกเลย" ในครั้งถัดๆ ไป
+     กันไม่ให้เสียแบนด์วิดท์/ซีพียูไปกับการดาวน์โหลดโมเดลใหญ่ที่รู้อยู่แล้วว่าจะพังซ้ำๆ ทุกครั้งที่แชท
+     ซึ่งทำให้โมเดลเล็ก (ตัวที่ใช้งานได้จริง) โหลดช้าลงไปด้วยเพราะแย่งแบนด์วิดท์กัน — ใช้คีย์เดียวกับ
+     invest-*.js ทุกหน้า (ค้นพบว่าพังบนหน้าไหนก็ไม่ต้องลองซ้ำบนหน้าอื่นของเว็บเดียวกันอีก) */
+  var AI_BIG_MODEL_BLOCKLIST_KEY = 'tanot:aiChat:noBigModel';
   function getChatWorkerAsync() {
     if (chatWorker) return Promise.resolve(chatWorker);
     if (chatWorkerRacePromise) return chatWorkerRacePromise;
     var mem = (typeof navigator !== 'undefined') ? navigator.deviceMemory : undefined;
-    var canTryBig = typeof navigator !== 'undefined' && !!navigator.gpu && mem && mem >= 4;
-    var candidates = canTryBig ? [spawnProbedWorker('big'), spawnProbedWorker('small')] : [spawnProbedWorker('small')];
+    var noBig = false;
+    try { noBig = localStorage.getItem(AI_BIG_MODEL_BLOCKLIST_KEY) === '1'; } catch (e) {}
+    var canTryBig = !noBig && typeof navigator !== 'undefined' && !!navigator.gpu && mem && mem >= 4;
+    var candidates;
+    if (canTryBig) {
+      var bigP = spawnProbedWorker('big').catch(function (err) {
+        try { localStorage.setItem(AI_BIG_MODEL_BLOCKLIST_KEY, '1'); } catch (e2) {}
+        throw err;
+      });
+      candidates = [bigP, spawnProbedWorker('small')];
+    } else {
+      candidates = [spawnProbedWorker('small')];
+    }
     chatWorkerRacePromise = Promise.any(candidates).then(function (winner) {
       chatWorker = winner; chatWorkerRacePromise = null;
       candidates.forEach(function (p) { p.then(function (w) { if (w !== winner) { try { w.terminate(); } catch (err) {} } }, function () {}); });
