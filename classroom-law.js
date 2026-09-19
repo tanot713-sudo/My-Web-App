@@ -2659,14 +2659,21 @@
       var status = $('bpOcrStatus');
       status.className = 'status'; status.textContent = '⏳ กำลังแปลงข้อความ (OCR)… อาจใช้เวลาสักครู่';
       if (!window.Tesseract) { status.className = 'status err'; status.textContent = 'โหลดตัวแปลงข้อความไม่สำเร็จ ลองรีเฟรชหน้าแล้วลองใหม่'; return; }
-      window.Tesseract.recognize(f, 'tha+eng', {
-        logger: function (m) {
-          if (m.status === 'recognizing text') {
-            status.textContent = '⏳ กำลังแปลงข้อความ… ' + Math.round((m.progress || 0) * 100) + '%';
-          }
-        }
-      }).then(function (result) {
-        showTextForReview((result.data && result.data.text) || '');
+      /* ใช้ TanotFileReader.readImageFile() (file-reader.js) แทนเรียก Tesseract ตรงๆ — เตรียมภาพก่อน
+         OCR (ขยายภาพเล็ก, ยืดคอนทราสต์, แปลงขาวดำด้วย Otsu, เคารพ EXIF orientation) ช่วยให้อ่านแม่นขึ้น */
+      var ocrPromise = window.TanotFileReader
+        ? window.TanotFileReader.readImageFile(f, { onProgress: function () {
+            status.textContent = '⏳ กำลังแปลงข้อความ (OCR)… อาจใช้เวลาสักครู่';
+          } })
+        : window.Tesseract.recognize(f, 'tha+eng', {
+            logger: function (m) {
+              if (m.status === 'recognizing text') {
+                status.textContent = '⏳ กำลังแปลงข้อความ… ' + Math.round((m.progress || 0) * 100) + '%';
+              }
+            }
+          }).then(function (result) { return (result.data && result.data.text) || ''; });
+      ocrPromise.then(function (text) {
+        showTextForReview(text || '');
       }).catch(function (err) {
         status.className = 'status err';
         status.textContent = 'แปลงข้อความไม่สำเร็จ: ' + (err && err.message ? err.message : err);
@@ -2904,6 +2911,9 @@
   function extractImageText(arrayBuffer, mime) {
     if (!window.Tesseract) return Promise.reject(new Error('โหลดตัวแปลงข้อความไม่สำเร็จ ลองรีเฟรชหน้าแล้วลองใหม่'));
     var blob = new Blob([arrayBuffer], { type: mime || 'image/jpeg' });
+    /* ใช้ TanotFileReader.readImageFile() (file-reader.js) แทนเรียก Tesseract ตรงๆ — เตรียมภาพก่อน OCR
+       (ขยายภาพเล็ก, ยืดคอนทราสต์, แปลงขาวดำด้วย Otsu) ช่วยให้อ่านแม่นขึ้นชัดเจน */
+    if (window.TanotFileReader) return window.TanotFileReader.readImageFile(blob);
     return window.Tesseract.recognize(blob, 'tha+eng').then(function (result) {
       return (result.data && result.data.text) || '';
     });

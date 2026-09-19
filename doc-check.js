@@ -334,8 +334,13 @@ async function readPdfFile(file) {
 }
 
 async function readImageFileTesseract(file) {
-  var result = await window.Tesseract.recognize(file, 'eng+tha');
-  return splitIntoPages(result.data.text || t('ocrNoText'));
+  /* ใช้ TanotFileReader.readImageFile() (file-reader.js) แทนเรียก Tesseract ตรงๆ — ฟังก์ชันนั้นเตรียม
+     ภาพก่อน OCR ด้วย (ขยายภาพเล็ก, ยืดคอนทราสต์, แปลงขาวดำด้วย Otsu, เคารพ EXIF orientation) ช่วยให้
+     อ่านแม่นขึ้นชัดเจน — เดิมหน้านี้เรียก Tesseract.recognize(file, ...) ตรงๆ ไม่มีการเตรียมภาพเลย */
+  var text = window.TanotFileReader
+    ? await window.TanotFileReader.readImageFile(file)
+    : (await window.Tesseract.recognize(file, 'eng+tha')).data.text;
+  return splitIntoPages(text || t('ocrNoText'));
 }
 
 async function readImageFileVision(file) {

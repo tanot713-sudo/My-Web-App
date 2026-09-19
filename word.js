@@ -320,8 +320,12 @@ async function readPdfFile(file) {
   return { kind: 'text', content: lines.join('\n\n') };
 }
 async function readImageFile(file) {
-  var result = await window.Tesseract.recognize(file, 'eng+tha');
-  return { kind: 'text', content: result.data.text || t('ocrNoText') };
+  /* ใช้ TanotFileReader.readImageFile() (file-reader.js) แทนเรียก Tesseract ตรงๆ — เตรียมภาพก่อน OCR
+     (ขยายภาพเล็ก, ยืดคอนทราสต์, แปลงขาวดำด้วย Otsu, เคารพ EXIF orientation) ช่วยให้อ่านแม่นขึ้นชัดเจน */
+  var text = window.TanotFileReader
+    ? await window.TanotFileReader.readImageFile(file)
+    : (await window.Tesseract.recognize(file, 'eng+tha')).data.text;
+  return { kind: 'text', content: text || t('ocrNoText') };
 }
 async function readAnyFile(file) {
   var name = file.name.toLowerCase();

@@ -2549,7 +2549,7 @@
                 if (!canvasEl) return;
                 if (!window.Tesseract) { setOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
                 setOcrStatus('⏳ กำลังอ่านลายมือ...');
-                window.Tesseract.recognize(canvasEl, 'eng+tha').then(r => {
+                window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, 'eng+tha').then(r => {
                     const t = (r.data.text || '').trim();
                     if (t) { setText(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนส่งตรวจ'); }
                     else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
@@ -2656,7 +2656,7 @@
                 if (!canvasEl) return;
                 if (!window.Tesseract) { setOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
                 setOcrStatus('⏳ กำลังอ่านลายมือ...');
-                window.Tesseract.recognize(canvasEl, 'eng+tha').then(r => {
+                window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, 'eng+tha').then(r => {
                     const t = (r.data.text || '').trim();
                     if (t) { setText(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนส่งตรวจ'); }
                     else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
@@ -2776,7 +2776,7 @@
                 if (!canvasEl) return;
                 if (!window.Tesseract) { setOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
                 setOcrStatus('⏳ กำลังอ่านลายมือ...');
-                window.Tesseract.recognize(canvasEl, 'eng+tha').then(r => {
+                window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, 'eng+tha').then(r => {
                     const t = (r.data.text || '').trim();
                     if (t) { setTyped(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนกดตรวจคำตอบ'); }
                     else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
@@ -2858,7 +2858,7 @@
                 if (!canvasEl) return;
                 if (!window.Tesseract) { setOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
                 setOcrStatus('⏳ กำลังอ่านลายมือ...');
-                window.Tesseract.recognize(canvasEl, 'eng+tha').then(r => {
+                window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, 'eng+tha').then(r => {
                     const t = (r.data.text || '').trim();
                     if (t) { setTyped(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนกดตรวจ'); }
                     else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
@@ -17008,7 +17008,7 @@
                 if (!noteCanvasEl) return;
                 if (!window.Tesseract) { setNoteOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
                 setNoteOcrStatus('⏳ กำลังอ่านลายมือ...');
-                window.Tesseract.recognize(noteCanvasEl, 'eng+tha').then(r => {
+                window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(noteCanvasEl) : noteCanvasEl, 'eng+tha').then(r => {
                     const t = (r.data.text || '').trim();
                     if (t) {
                         const prevText = (notes[langId] && notes[langId].text) || '';

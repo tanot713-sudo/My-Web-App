@@ -2220,7 +2220,7 @@
         return;
       }
       setOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => {
+      window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, "eng+tha").then((r) => {
         const t = (r.data.text || "").trim();
         if (t) {
           setText((prev) => (prev ? prev + " " : "") + t);
@@ -2350,7 +2350,7 @@
         return;
       }
       setOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => {
+      window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, "eng+tha").then((r) => {
         const t = (r.data.text || "").trim();
         if (t) {
           setText((prev) => (prev ? prev + " " : "") + t);
@@ -2493,7 +2493,7 @@
         return;
       }
       setOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => {
+      window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, "eng+tha").then((r) => {
         const t = (r.data.text || "").trim();
         if (t) {
           setTyped((prev) => (prev ? prev + " " : "") + t);
@@ -2585,7 +2585,7 @@
         return;
       }
       setOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => {
+      window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, "eng+tha").then((r) => {
         const t = (r.data.text || "").trim();
         if (t) {
           setTyped((prev) => (prev ? prev + " " : "") + t);
@@ -13279,7 +13279,7 @@
         return;
       }
       setNoteOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      window.Tesseract.recognize(noteCanvasEl, "eng+tha").then((r) => {
+      window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(noteCanvasEl) : noteCanvasEl, "eng+tha").then((r) => {
         const t = (r.data.text || "").trim();
         if (t) {
           const prevText = notes[langId] && notes[langId].text || "";
