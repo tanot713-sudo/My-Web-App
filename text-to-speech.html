@@ -77,6 +77,27 @@ details[open]>summary::before{transform:rotate(90deg)}
 .lesson p{font-size:13px;margin-bottom:4px;opacity:.92}
 
 .disc{font-size:12px;color:var(--muted);line-height:1.6;padding:14px 4px 4px}
+
+/* ── โหมดถอดเสียง (เบราว์เซอร์/คลาวด์) + ล็อกรหัสผ่านโหมดคลาวด์ — ลอกแพทเทิร์นเดียวกับ
+   ocr-engine-toggle/ocr-pw-overlay ของหน้าตรวจสอบเอกสาร (doc-check-file.html) ══════════════ */
+.asr-engine-row{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.asr-engine-label{font-size:12.5px;color:var(--muted);font-weight:600}
+.asr-toggle{display:inline-flex;align-items:center;gap:2px;background:var(--line);border:none;border-radius:20px;padding:2px}
+.asr-toggle span{font-size:12px;font-weight:700;padding:6px 12px;border-radius:16px;color:var(--muted);
+  cursor:pointer;transition:.15s}
+.asr-toggle span.active{background:var(--card);color:var(--brand-dk);box-shadow:0 1px 3px rgba(24,31,54,.08)}
+.asr-engine-note{display:none;font-size:12px;color:var(--muted);margin-top:6px;max-width:60ch;line-height:1.6}
+.asr-neuron-status{font-weight:700}
+.asr-pw-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(15,18,26,.55);
+  align-items:center;justify-content:center;padding:16px}
+.asr-pw-card{background:var(--card);border-radius:16px;padding:26px;width:100%;max-width:320px;box-shadow:var(--sh)}
+.asr-pw-card h3{font-size:16px;font-weight:700;margin-bottom:6px}
+.asr-pw-card p{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6}
+.asr-pw-card input{width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1.5px solid var(--line);
+  background:var(--bg);color:var(--ink);font-size:14px;margin-bottom:10px}
+.asr-pw-card input:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.asr-pw-err{color:var(--err);font-size:12.5px;margin-bottom:8px}
+.asr-pw-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
 </style>
 </head>
 <body class="ome-tool-page">
@@ -166,7 +187,7 @@ details[open]>summary::before{transform:rotate(90deg)}
         <option value="english">อังกฤษ</option>
       </select>
     </div>
-    <div class="field"><label>ขนาดโมเดล</label>
+    <div class="field" id="asrModelField"><label>ขนาดโมเดล</label>
       <select id="asrModel">
         <option value="Xenova/whisper-tiny">เล็ก (เร็ว, ~75MB)</option>
         <option value="Xenova/whisper-base">กลาง (แม่นขึ้น, ~145MB)</option>
@@ -174,6 +195,19 @@ details[open]>summary::before{transform:rotate(90deg)}
         <option value="Xenova/whisper-medium">ใหญ่มาก (แม่นสุด, ~750MB-1GB, โหลด/รันช้ามาก อาจหนักเกินไปสำหรับมือถือ/เครื่องสเปกต่ำ)</option>
       </select>
     </div>
+  </div>
+  <div class="asr-engine-row">
+    <span class="asr-engine-label">ถอดเสียงด้วย</span>
+    <div class="asr-toggle" id="asrEngineToggle">
+      <span data-ae="local" class="active">ในเบราว์เซอร์ (ฟรี)</span>
+      <span data-ae="cloud">คลาวด์ (แม่นกว่า)</span>
+    </div>
+  </div>
+  <div class="asr-engine-note" id="asrEngineNote">
+    โหมดนี้ส่งเสียงไปถอดด้วย Whisper Large v3 บน Cloudflare Workers AI (แม่นกว่าและเร็วกว่าในเบราว์เซอร์มาก
+    เพราะรันบนเซิร์ฟเวอร์ ไม่ใช่เครื่องคุณ) — มีโควตาฟรีวันละ 10,000 Neurons (~3.5 ชม.เสียง) รีเซ็ตเที่ยงคืน UTC
+    (~7 โมงเช้าเวลาไทย) เกินโควตาแล้วมีค่าใช้จ่ายจริง (~$0.0005/นาทีเสียง)
+    <div class="asr-neuron-status" id="asrNeuronStatus"></div>
   </div>
   <div class="frow" style="margin-top:10px">
     <button class="btn primary sm" id="asrGoBtn" type="button">ถอดเสียงเป็นข้อความ</button>
@@ -183,6 +217,19 @@ details[open]>summary::before{transform:rotate(90deg)}
     <textarea id="asrResult" rows="6" readonly style="background:var(--bg)"></textarea>
     <div class="frow" style="margin-top:8px">
       <button class="btn sm" id="asrCopyBtn" type="button">คัดลอกข้อความ</button>
+    </div>
+  </div>
+</div>
+
+<div class="asr-pw-overlay" id="asrPwOverlay">
+  <div class="asr-pw-card">
+    <h3>ใส่รหัสผ่านเพื่อถอดเสียงผ่านคลาวด์</h3>
+    <p>โหมดนี้มีค่าใช้จ่ายต่อการใช้งานเมื่อเกินโควตาฟรีรายวัน จึงล็อกด้วยรหัสผ่านแยกต่างหาก</p>
+    <input type="password" id="asrPwInput" placeholder="รหัสผ่าน" autocomplete="off">
+    <div class="asr-pw-err" id="asrPwErr" style="display:none">รหัสผ่านไม่ถูกต้อง</div>
+    <div class="asr-pw-actions">
+      <button class="btn" id="asrPwCancel" type="button">ยกเลิก</button>
+      <button class="btn primary" id="asrPwSubmit" type="button">ยืนยัน</button>
     </div>
   </div>
 </div>

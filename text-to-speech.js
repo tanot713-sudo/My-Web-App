@@ -584,15 +584,149 @@
       });
     });
   }
+  /* ══════════════════ ถอดเสียงผ่านคลาวด์ (Whisper Large v3 Turbo บน Cloudflare Workers AI) ══════════════════
+     ทางเลือกแม่นกว่า/เร็วกว่าโหมดในเบราว์เซอร์ด้านบนมาก (รันบนเซิร์ฟเวอร์ ไม่ใช่เครื่องผู้ใช้) แต่มี
+     ค่าใช้จ่ายจริงเมื่อเกินโควตาฟรี (10,000 Neurons/วัน ≈ 3.5 ชม.เสียง, whisper-large-v3-turbo กิน
+     46.63 Neurons/นาทีเสียง) — ล็อกด้วยรหัสผ่านเดียวกับโหมด Claude Vision OCR ของหน้าตรวจสอบเอกสาร
+     (doc-check.js) ตามที่ขอให้ใช้ร่วมกัน คุมค่าใช้จ่ายทั้งสองฟีเจอร์ด้วยรหัสเดียว */
+  var WHISPER_WORKER_URL = 'https://tanot-whisper-proxy.tanot713.workers.dev/';
+  var ASR_PW_HASH = '19ed10f154f60ec76aa832459c8631a232686dc39d6a14f7189ae91297f1896b'; // เดียวกับ doc-check.js
+  var ASR_PW_UNLOCK_KEY = 'tanot:asrcloud:unlocked';
+  var ASR_ENGINE_KEY = 'tanot:asr:engine';
+  var NEURON_USAGE_KEY = 'tanot:asrcloud:neuronUsage'; // { date: 'YYYY-MM-DD' (UTC), used: number }
+  var DAILY_NEURON_LIMIT = 10000;
+  var NEURONS_PER_AUDIO_MINUTE = 46.63;
+
+  async function sha256Hex(str) {
+    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+  function isAsrCloudUnlocked() {
+    try { return localStorage.getItem(ASR_PW_UNLOCK_KEY) === '1'; } catch (e) { return false; }
+  }
+  function getAsrEngine() {
+    try { return localStorage.getItem(ASR_ENGINE_KEY) === 'cloud' ? 'cloud' : 'local'; } catch (e) { return 'local'; }
+  }
+  function setAsrEngine(engine) {
+    try { localStorage.setItem(ASR_ENGINE_KEY, engine); } catch (e) {}
+  }
+  function todayUTC() { return new Date().toISOString().slice(0, 10); }
+  function getNeuronUsage() {
+    try {
+      var raw = JSON.parse(localStorage.getItem(NEURON_USAGE_KEY) || 'null');
+      if (raw && raw.date === todayUTC()) return raw.used;
+    } catch (e) {}
+    return 0;
+  }
+  function addNeuronUsage(n) {
+    if (!n || n < 0) return;
+    try { localStorage.setItem(NEURON_USAGE_KEY, JSON.stringify({ date: todayUTC(), used: getNeuronUsage() + n })); } catch (e) {}
+  }
+  function remainingNeurons() { return Math.max(0, DAILY_NEURON_LIMIT - getNeuronUsage()); }
+  function updateNeuronStatusUI() {
+    var el = $('asrNeuronStatus');
+    if (!el) return;
+    el.textContent = 'ใช้ไปแล้ววันนี้ ' + Math.round(getNeuronUsage()) + ' / ' + DAILY_NEURON_LIMIT + ' Neurons (เหลือฟรี ~' +
+      (remainingNeurons() / NEURONS_PER_AUDIO_MINUTE / 60).toFixed(1) + ' ชม.เสียง)';
+  }
+
+  /* แปลง PCM Float32 (16kHz mono ที่ decodeFileToPcm/resampleTo16kMono ให้มาอยู่แล้ว) เป็น base64
+     ของไฟล์ .wav — ใช้ float32ToWavBlob() ที่มีอยู่แล้วในไฟล์นี้ (เดิมใช้ห่อเสียงจาก MMS-TTS) แทนเขียน
+     WAV header ซ้ำเอง Workers AI ต้องการไฟล์เสียงจริงเป็น base64 ไม่ใช่ raw sample ลอยๆ */
+  function pcmToWavBase64(pcm, sampleRate) {
+    return float32ToWavBlob(pcm, sampleRate).arrayBuffer().then(function (buf) {
+      var bytes = new Uint8Array(buf), binary = '', chunkSize = 0x8000;
+      for (var i = 0; i < bytes.length; i += chunkSize) binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+      return btoa(binary);
+    });
+  }
+
+  /* ตัด PCM ยาวๆ เป็นท่อนละ chunkSec วินาที ไม่เหลื่อมกัน (ต่างจากโหมดเบราว์เซอร์ที่ให้ transformers.js
+     จัดการ stride เองภายใน) — เรียก Worker ทีละท่อนแล้วต่อข้อความกลับมาด้วยช่องว่าง ง่ายกว่าและคาดเดา
+     พฤติกรรมได้มากกว่าสำหรับ API เรียกทีละคำขอ (เสี่ยงตกคำที่รอยตัดบ้างเล็กน้อย ยอมรับได้) */
+  function chunkPcm(pcm, sampleRate, chunkSec) {
+    var chunkLen = sampleRate * chunkSec, chunks = [];
+    for (var i = 0; i < pcm.length; i += chunkLen) chunks.push(pcm.subarray(i, Math.min(i + chunkLen, pcm.length)));
+    return chunks;
+  }
+
+  function transcribeChunkCloud(pcm, sampleRate, language) {
+    return pcmToWavBase64(pcm, sampleRate).then(function (base64) {
+      return fetch(WHISPER_WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audio: base64, language: language })
+      });
+    }).then(function (res) {
+      return res.json().then(function (data) {
+        if (!res.ok) throw new Error(data && data.error ? data.error : ('HTTP ' + res.status));
+        return data;
+      });
+    });
+  }
+
+  async function runAsrCloud(pcm, langOpt) {
+    var langMap = { thai: 'th', english: 'en' };
+    var language = langOpt !== 'auto' ? langMap[langOpt] : undefined;
+    var sampleRate = 16000;
+    var totalMinutes = pcm.length / sampleRate / 60;
+    var estimatedNeurons = totalMinutes * NEURONS_PER_AUDIO_MINUTE;
+
+    if (estimatedNeurons > remainingNeurons()) {
+      var estCost = (estimatedNeurons / 1000 * 0.011).toFixed(3);
+      var proceed = window.confirm(
+        'เสียงไฟล์นี้ยาว ~' + totalMinutes.toFixed(1) + ' นาที ต้องใช้ ~' + Math.round(estimatedNeurons) + ' Neurons ' +
+        'แต่วันนี้เหลือโควตาฟรีแค่ ' + Math.round(remainingNeurons()) + ' Neurons (ใช้ไปแล้ว ' + Math.round(getNeuronUsage()) + '/' + DAILY_NEURON_LIMIT + ') — ' +
+        'ถ้าทำต่อส่วนที่เกินจะมีค่าใช้จ่ายจริง (~$' + estCost + ') กดตกลงเพื่อทำต่อ หรือยกเลิกเพื่อหยุด'
+      );
+      if (!proceed) throw new Error('ยกเลิกแล้ว (เกินโควตาฟรีวันนี้)');
+    }
+
+    var chunks = chunkPcm(pcm, sampleRate, 30);
+    var texts = [];
+    for (var i = 0; i < chunks.length; i++) {
+      $('asrStatus').textContent = '⏳ กำลังถอดเสียงผ่านคลาวด์… ท่อน ' + (i + 1) + '/' + chunks.length;
+      var data = await transcribeChunkCloud(chunks[i], sampleRate, language);
+      texts.push((data.text || '').trim());
+      /* บันทึก Neurons จริงจาก response ถ้ามี (แม่นกว่าประมาณจากความยาวเสียงเอง) ไม่มีก็ใช้ค่าประมาณ
+         ของท่อนนี้แทน (ความยาวท่อนเป็นวินาทีคูณอัตรา Neurons/นาที) */
+      var chunkMinutes = chunks[i].length / sampleRate / 60;
+      addNeuronUsage(data.neurons != null ? data.neurons : chunkMinutes * NEURONS_PER_AUDIO_MINUTE);
+      updateNeuronStatusUI();
+    }
+    return texts.join(' ').replace(/\s+/g, ' ').trim();
+  }
+
   function runAsr() {
     var fileInput = $('asrFile');
     var file = fileInput.files && fileInput.files[0];
     if (!file) { $('asrStatus').className = 'status err'; $('asrStatus').textContent = 'เลือกไฟล์เสียง/วิดีโอก่อน'; return; }
-    var modelId = $('asrModel').value;
     var langOpt = $('asrLang').value;
+    var engine = getAsrEngine();
     $('asrGoBtn').disabled = true;
     $('asrResultWrap').style.display = 'none';
     $('asrStatus').className = 'status';
+
+    if (engine === 'cloud') {
+      $('asrStatus').textContent = '⏳ กำลังถอดรหัสไฟล์เสียง…';
+      decodeFileToPcm(file)
+        .then(function (pcm) { return runAsrCloud(pcm, langOpt); })
+        .then(function (text) {
+          $('asrResult').value = text;
+          $('asrResultWrap').style.display = 'block';
+          $('asrStatus').className = 'status ok';
+          $('asrStatus').textContent = text ? 'ถอดเสียงเสร็จแล้ว (คลาวด์)' : 'ถอดเสียงเสร็จแต่ไม่พบคำพูดในไฟล์นี้';
+          updateNeuronStatusUI();
+        })
+        .catch(function (e) {
+          $('asrStatus').className = 'status err';
+          $('asrStatus').textContent = 'ถอดเสียงไม่สำเร็จ: ' + (e && e.message ? e.message : e);
+        })
+        .finally(function () { $('asrGoBtn').disabled = false; });
+      return;
+    }
+
+    var modelId = $('asrModel').value;
     $('asrStatus').textContent = '⏳ กำลังเตรียมโมเดล AI (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
     var transcriberPromise = loadAsrPipeline(modelId, function (p) {
       if (p && p.status === 'progress' && p.file) {
@@ -665,6 +799,61 @@
 
     $('asrGoBtn').addEventListener('click', runAsr);
     $('asrCopyBtn').addEventListener('click', copyAsrResult);
+
+    /* ══ เลือกโหมดถอดเสียง (ในเบราว์เซอร์ฟรี / คลาวด์แม่นกว่า) — ล็อกโหมดคลาวด์ด้วยรหัสผ่าน ══ */
+    var asrEngineToggle = $('asrEngineToggle'), asrEngineNote = $('asrEngineNote'),
+      asrModelField = $('asrModelField'), asrPwOverlay = $('asrPwOverlay'), asrPwInput = $('asrPwInput'),
+      asrPwErr = $('asrPwErr'), asrPwCancel = $('asrPwCancel'), asrPwSubmit = $('asrPwSubmit');
+
+    function applyAsrEngineUI() {
+      if (!asrEngineToggle) return;
+      var engine = getAsrEngine();
+      asrEngineToggle.querySelectorAll('[data-ae]').forEach(function (span) {
+        span.classList.toggle('active', span.getAttribute('data-ae') === engine);
+      });
+      if (asrEngineNote) asrEngineNote.style.display = engine === 'cloud' ? 'block' : 'none';
+      if (asrModelField) asrModelField.style.display = engine === 'cloud' ? 'none' : '';
+      if (engine === 'cloud') updateNeuronStatusUI();
+    }
+    function showAsrPwModal() {
+      if (!asrPwOverlay) return;
+      asrPwErr.style.display = 'none';
+      asrPwInput.value = '';
+      asrPwOverlay.style.display = 'flex';
+      asrPwInput.focus();
+    }
+    function hideAsrPwModal() {
+      if (asrPwOverlay) asrPwOverlay.style.display = 'none';
+    }
+    function submitAsrPw() {
+      var pw = asrPwInput.value;
+      sha256Hex(pw).then(function (hex) {
+        if (hex === ASR_PW_HASH) {
+          try { localStorage.setItem(ASR_PW_UNLOCK_KEY, '1'); } catch (e) {}
+          hideAsrPwModal();
+          setAsrEngine('cloud');
+          applyAsrEngineUI();
+        } else {
+          asrPwErr.style.display = 'block';
+          asrPwInput.value = '';
+          asrPwInput.focus();
+        }
+      });
+    }
+    if (asrEngineToggle) {
+      asrEngineToggle.addEventListener('click', function (e) {
+        var span = e.target.closest('[data-ae]');
+        if (!span) return;
+        var engine = span.getAttribute('data-ae');
+        if (engine === 'cloud' && !isAsrCloudUnlocked()) { showAsrPwModal(); return; }
+        setAsrEngine(engine);
+        applyAsrEngineUI();
+      });
+    }
+    if (asrPwCancel) asrPwCancel.addEventListener('click', hideAsrPwModal);
+    if (asrPwSubmit) asrPwSubmit.addEventListener('click', submitAsrPw);
+    if (asrPwInput) asrPwInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') submitAsrPw(); });
+    applyAsrEngineUI();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
