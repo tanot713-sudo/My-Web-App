@@ -894,6 +894,14 @@
     if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) return true;
     return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
   }
+  /* โมเดลเล็ก (0.5B) บางครั้ง "พูดตาม" ข้อความ system/reminder ที่สั่งห้ามทำนี่นั่นออกมาเป็นเนื้อหาจริง
+     แทนที่จะทำตามคำสั่งเงียบๆ (เจอจริง: ตอบ "ห้ามให้คำแนะนำซื้อ/ขาย" เป็นบรรทัดแยกในคำตอบ) — กรองทิ้งบรรทัด
+     ที่ขึ้นต้นด้วย "ห้าม"/"Never" ออกก่อนแสดงผลและก่อนแคช เพราะไม่ใช่หัวข้อเนื้อหาจริงตามโครงสร้างที่กำหนด */
+  function stripLeakedInstructions(text) {
+    return (text || '').split('\n').filter(function (line) {
+      return !/^\s*(ห้าม|Never\b)/i.test(line);
+    }).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
   function friendlyChatError(rawMessage) {
     var msg = rawMessage || '';
     if (/bad_alloc|Can't create a session|out of memory/i.test(msg)) return t('memErrorMsg');
@@ -999,7 +1007,7 @@
     var cache = window.AiSummaryCache;
     (cache ? cache.read(AI_CACHE_PAGE, cacheSym, cacheLang) : Promise.resolve(null)).then(function (hit) {
       if (hit) {
-        $('aiSumOut').style.display = 'block'; $('aiSumOut').textContent = hit.text;
+        $('aiSumOut').style.display = 'block'; $('aiSumOut').textContent = stripLeakedInstructions(hit.text);
         setAiSumStatus(t('summarizeCached'), 'ok');
         aiSumBusy = false; $('aiSumBtn').disabled = false;
         return;
@@ -1028,11 +1036,12 @@
           } else if (msg.type === 'token') {
             if (!replyText) { setAiSumStatus('', ''); $('aiSumOut').style.display = 'block'; }
             replyText += msg.token;
-            $('aiSumOut').textContent = replyText;
+            $('aiSumOut').textContent = stripLeakedInstructions(replyText);
           } else if (msg.type === 'done') {
             cleanup();
-            if (!replyText) setAiSumStatus(t('summarizeFail'), 'err');
-            else if (cache) cache.write(AI_CACHE_PAGE, cacheSym, cacheLang, { text: replyText });
+            var finalText = stripLeakedInstructions(replyText);
+            if (!finalText) setAiSumStatus(t('summarizeFail'), 'err');
+            else { $('aiSumOut').textContent = finalText; if (cache) cache.write(AI_CACHE_PAGE, cacheSym, cacheLang, { text: finalText }); }
             aiSumBusy = false; $('aiSumBtn').disabled = false;
           } else if (msg.type === 'error') {
             cleanup();
