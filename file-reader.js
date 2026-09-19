@@ -63,6 +63,73 @@ function fixSpacedThaiIfNeeded(text) {
   return text;
 }
 
+/* ── เตรียมภาพให้ Tesseract อ่านแม่นกว่าเดิม ─────────────────────────────────────────
+   Tesseract (เหมือน OCR engine ทั่วไป) แม่นยำขึ้นมากถ้าได้ภาพที่: (1) ตัวอักษรสูงพอ
+   (ภาพถ่ายมือถือความละเอียดต่ำ/ครอปมาเล็กๆ มักมีตัวอักษรเตี้ยเกินไป) (2) ขาวดำ ตัดกันชัดระหว่าง
+   ตัวอักษรกับพื้นหลัง (ภาพสีมีเงา/แสงไม่สม่ำเสมอทำให้ engine สับสน) — ฟังก์ชันนี้ทำ 3 ขั้นตอน
+   มาตรฐานที่ใช้กันทั่วไปก่อนป้อนเข้า OCR:
+     1) ขยายภาพขึ้นถ้าด้านที่ยาวกว่ายังเล็กกว่า MIN_DIM (ไม่ย่อภาพที่ใหญ่อยู่แล้วลง — เสี่ยงเสียราย
+        ละเอียด) กันเคสถ่ายรูปเอกสารมาไกล/ครอปมาเล็ก ตัวอักษรเตี้ยเกินจน engine อ่านไม่ออก
+     2) แปลงเป็นสีเทาแล้วยืดคอนทราสต์ (min-max normalize) ให้เต็มช่วง 0-255 — ภาพถ่ายจริงมักไม่ได้
+        ใช้ช่วงความสว่างเต็มสเปกตรัม (เช่น เงาทำให้มืดสุดไม่ถึง 0, แสงสะท้อนทำให้สว่างสุดไม่ถึง 255)
+     3) แปลงเป็นขาวดำล้วน (binarize) ด้วยเกณฑ์ Otsu (คำนวณ threshold ที่แยกสองกลุ่มพิกเซลได้ดีที่สุด
+        จากฮิสโตแกรมของภาพเอง แทนค่าคงที่ตายตัว) — Tesseract ได้รับการยืนยันจากผู้พัฒนาเองว่าทำงานดี
+        ที่สุดกับภาพขาวดำสองสี ไม่ใช่ grayscale/สีเต็ม
+   ใช้ได้กับทั้งภาพที่ผู้ใช้อัปโหลดตรงๆ และหน้า PDF ที่ render เป็น canvas แล้วก่อนส่งเข้า OCR */
+function preprocessForOcr(srcCanvas) {
+  var MIN_DIM = 1800;
+  var longSide = Math.max(srcCanvas.width, srcCanvas.height);
+  var scale = longSide < MIN_DIM ? MIN_DIM / longSide : 1;
+  var outW = Math.max(1, Math.round(srcCanvas.width * scale));
+  var outH = Math.max(1, Math.round(srcCanvas.height * scale));
+
+  var canvas = document.createElement('canvas');
+  canvas.width = outW; canvas.height = outH;
+  var ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(srcCanvas, 0, 0, outW, outH);
+
+  var imgData = ctx.getImageData(0, 0, outW, outH);
+  var d = imgData.data;
+  var n = outW * outH;
+  var gray = new Uint8ClampedArray(n);
+  var min = 255, max = 0;
+  for (var i = 0, p = 0; p < n; i += 4, p++) {
+    var g = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    gray[p] = g;
+    if (g < min) min = g;
+    if (g > max) max = g;
+  }
+  var range = (max - min) || 1;
+  var hist = new Array(256).fill(0);
+  for (p = 0; p < n; p++) {
+    var v = Math.round((gray[p] - min) * 255 / range);
+    gray[p] = v;
+    hist[v]++;
+  }
+  /* Otsu's method — หา threshold ที่ทำให้ variance ระหว่างสองกลุ่ม (พิกเซลมืด/สว่าง) มากที่สุด */
+  var sum = 0;
+  for (var t = 0; t < 256; t++) sum += t * hist[t];
+  var sumB = 0, wB = 0, wF, varMax = 0, threshold = 127;
+  for (t = 0; t < 256; t++) {
+    wB += hist[t];
+    if (wB === 0) continue;
+    wF = n - wB;
+    if (wF === 0) break;
+    sumB += t * hist[t];
+    var mB = sumB / wB, mF = (sum - sumB) / wF;
+    var varBetween = wB * wF * (mB - mF) * (mB - mF);
+    if (varBetween > varMax) { varMax = varBetween; threshold = t; }
+  }
+  for (p = 0, i = 0; p < n; p++, i += 4) {
+    var bw = gray[p] >= threshold ? 255 : 0;
+    d[i] = d[i + 1] = d[i + 2] = bw;
+  }
+  ctx.putImageData(imgData, 0, 0);
+  return canvas;
+}
+
 function requireLib(globalName, humanName) {
   if (!window[globalName]) {
     throw new Error('โหลดไลบรารีสำหรับอ่านไฟล์ชนิดนี้ไม่สำเร็จ (' + humanName + ') — เช็คอินเทอร์เน็ตแล้วลองรีเฟรชหน้าใหม่');
@@ -150,12 +217,14 @@ async function readPdfFile(file, opts) {
 
     if (opts.onProgress) opts.onProgress({ stage: 'ocr', page: i, total: doc.numPages });
     var Tesseract = requireLib('Tesseract', 'Tesseract.js');
-    var viewport = page.getViewport({ scale: 2 });
+    /* scale 3 (~216 DPI) แทน 2 เดิม (~144 DPI) — ยิ่งความละเอียดสูง ตัวอักษรยิ่งคมชัดตอน OCR อ่าน
+       (preprocessForOcr ด้านล่างจะขยายเพิ่มอีกให้เองถ้าหน้านั้นยังเล็กกว่าเกณฑ์ขั้นต่ำ) */
+    var viewport = page.getViewport({ scale: 3 });
     var canvas = document.createElement('canvas');
     canvas.width = viewport.width; canvas.height = viewport.height;
     var ctx = canvas.getContext('2d');
     await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-    var result = await Tesseract.recognize(canvas, 'eng+tha');
+    var result = await Tesseract.recognize(preprocessForOcr(canvas), 'eng+tha');
     var ocrText = (result.data.text || '').trim();
     parts.push(ocrText || ('(หน้า ' + i + ': OCR อ่านแล้วแต่ไม่พบข้อความ)'));
   }
@@ -165,7 +234,15 @@ async function readPdfFile(file, opts) {
 async function readImageFile(file, opts) {
   var Tesseract = requireLib('Tesseract', 'Tesseract.js');
   if (opts && opts.onProgress) opts.onProgress({ stage: 'ocr', page: 1, total: 1 });
-  var result = await Tesseract.recognize(file, 'eng+tha');
+  /* ผ่าน preprocessForOcr() เสมอ (เดิมส่ง file ดิบเข้า Tesseract ตรงๆ ไม่มีการเตรียมภาพเลย) —
+     imageOrientation:'from-image' ให้เคารพค่า EXIF orientation ของรูปที่ถ่ายจากมือถือ (ไม่งั้นรูป
+     ที่ถือแนวตั้งแต่กล้องบันทึก orientation ไว้ใน metadata แทนที่จะหมุน pixel จริง จะกลายเป็นเอียง/
+     คว่ำตอนวาดลง canvas ทำให้ OCR อ่านไม่ออกเลยทั้งที่ตาเรามองเห็นว่าตั้งตรงปกติ) */
+  var bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+  var rawCanvas = document.createElement('canvas');
+  rawCanvas.width = bitmap.width; rawCanvas.height = bitmap.height;
+  rawCanvas.getContext('2d').drawImage(bitmap, 0, 0);
+  var result = await Tesseract.recognize(preprocessForOcr(rawCanvas), 'eng+tha');
   return (result.data.text || '').trim();
 }
 
@@ -197,6 +274,7 @@ window.TanotFileReader = {
   readPptxFile: readPptxFile,
   readPdfFile: readPdfFile,
   readImageFile: readImageFile,
+  preprocessForOcr: preprocessForOcr,
   isGarbledText: isGarbledText,
   looksLikeSpacedThaiText: looksLikeSpacedThaiText,
   collapseSpacedThaiText: collapseSpacedThaiText
