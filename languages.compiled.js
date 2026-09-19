@@ -2220,8 +2220,11 @@
         return;
       }
       setOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, "eng+tha").then((r) => {
-        const t = (r.data.text || "").trim();
+      (window.TanotFileReader
+        ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
+        : window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => (r.data.text || "").trim())
+      ).then((r) => {
+        const t = (r || "").trim();
         if (t) {
           setText((prev) => (prev ? prev + " " : "") + t);
           setInputMode("type");
@@ -2350,8 +2353,11 @@
         return;
       }
       setOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, "eng+tha").then((r) => {
-        const t = (r.data.text || "").trim();
+      (window.TanotFileReader
+        ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
+        : window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => (r.data.text || "").trim())
+      ).then((r) => {
+        const t = (r || "").trim();
         if (t) {
           setText((prev) => (prev ? prev + " " : "") + t);
           setInputMode("type");
@@ -2493,8 +2499,11 @@
         return;
       }
       setOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, "eng+tha").then((r) => {
-        const t = (r.data.text || "").trim();
+      (window.TanotFileReader
+        ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
+        : window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => (r.data.text || "").trim())
+      ).then((r) => {
+        const t = (r || "").trim();
         if (t) {
           setTyped((prev) => (prev ? prev + " " : "") + t);
           setInputMode("type");
@@ -2585,8 +2594,11 @@
         return;
       }
       setOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, "eng+tha").then((r) => {
-        const t = (r.data.text || "").trim();
+      (window.TanotFileReader
+        ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
+        : window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => (r.data.text || "").trim())
+      ).then((r) => {
+        const t = (r || "").trim();
         if (t) {
           setTyped((prev) => (prev ? prev + " " : "") + t);
           setInputMode("type");
@@ -13279,8 +13291,11 @@
         return;
       }
       setNoteOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(noteCanvasEl) : noteCanvasEl, "eng+tha").then((r) => {
-        const t = (r.data.text || "").trim();
+      (window.TanotFileReader
+        ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(noteCanvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
+        : window.Tesseract.recognize(noteCanvasEl, "eng+tha").then((r) => (r.data.text || "").trim())
+      ).then((r) => {
+        const t = (r || "").trim();
         if (t) {
           const prevText = notes[langId] && notes[langId].text || "";
           updateNote((prevText ? prevText + "\n" : "") + t);

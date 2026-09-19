@@ -137,6 +137,43 @@ function requireLib(globalName, humanName) {
   return window[globalName];
 }
 
+/* ── ตัวเรียก Tesseract ที่ตั้งค่าจริงจัง (ไม่ใช้ Tesseract.recognize() แบบสะดวกที่ตั้งค่าได้จำกัด) ──
+   วิจัยแล้วพบข้อเท็จจริงสำคัญ: Tesseract.js เองตั้งค่าเริ่มต้น PSM (Page Segmentation Mode — วิธีมอง
+   โครงสร้างภาพก่อนอ่าน) เป็น "SINGLE_BLOCK" (6, มองทั้งภาพเป็นก้อนข้อความเดียวก้อนเดียว ไม่วิเคราะห์
+   เค้าโครงหน้าเลย) ต่างจาก Tesseract CLI ที่ใช้ "AUTO" (3, วิเคราะห์เค้าโครงหน้าเองก่อนว่ามีย่อหน้า/
+   คอลัมน์/ขอบภาพยังไง) เป็นค่าเริ่มต้น — AUTO มักแม่นกว่าเห็นชัดสำหรับรูปถ่ายเอกสารเต็มหน้าที่มีขอบ/
+   หลายย่อหน้า เพราะ SINGLE_BLOCK อาจพยายามอ่านขอบภาพ/พื้นหลังปนเป็นข้อความไปด้วย ส่วนข้อความสั้นๆ
+   บรรทัดเดียว (เช่น เขียนด้วยมือในแบบฝึกหัด) ใช้ SINGLE_LINE (7) เหมาะกว่าทั้งสองแบบ เพราะรู้อยู่แล้วว่า
+   เป็นบรรทัดเดียวไม่ต้องเดาโครงสร้าง — ต้องใช้ worker.setParameters() ตั้งค่านี้ได้ ซึ่ง Tesseract.recognize()
+   แบบสะดวก (สร้าง worker ใหม่ทุกครั้งแล้ว terminate ทิ้งเอง) ไม่เปิดช่องให้ตั้งก่อนอ่านได้เลย
+
+   ยังตั้ง user_defined_dpi ไว้ด้วย (300) เพราะรูปที่ผ่าน preprocessForOcr() มาแล้วมักมีความละเอียดสูงกว่า
+   ที่ Tesseract เดาเองจากภาพเปล่าๆ (ไม่มี DPI metadata ติดมากับ canvas/รูปทั่วไป) เดาผิดพลาดได้ ทำให้
+   ตัดสินใจสเกลตัวอักษรภายในผิด — ระบุตรงๆ ให้ engine ไม่ต้องเดา
+
+   ใช้ worker เดียวใช้ซ้ำได้ตลอดอายุหน้าเว็บ (ไม่ terminate ทิ้งหลังอ่านแต่ละครั้งเหมือน Tesseract.recognize()
+   แบบสะดวก) เพื่อไม่ต้องโหลด/init โมเดลภาษาใหม่ทุกครั้งที่มีคนกด OCR ซ้ำในหน้าเดียวกัน */
+var ocrWorkerPromise = null;
+function getOcrWorker() {
+  if (!ocrWorkerPromise) {
+    var Tesseract = requireLib('Tesseract', 'Tesseract.js');
+    ocrWorkerPromise = Tesseract.createWorker('eng+tha', 1 /* OEM_LSTM_ONLY — ตรงกับชุดข้อมูลภาษาที่ Tesseract.js โหลดมาให้เป็นค่าเริ่มต้นอยู่แล้ว */);
+  }
+  return ocrWorkerPromise;
+}
+var PSM_AUTO = '3', PSM_SINGLE_LINE = '7';
+/* opts: { psm: PSM_AUTO|PSM_SINGLE_LINE, onProgress: function(number 0-100) } — คืนข้อความล้วน (trim แล้ว) */
+async function recognizeText(image, opts) {
+  opts = opts || {};
+  var worker = await getOcrWorker();
+  await worker.setParameters({
+    tessedit_pageseg_mode: opts.psm || PSM_AUTO,
+    user_defined_dpi: '300'
+  });
+  var result = await worker.recognize(image);
+  return (result.data.text || '').trim();
+}
+
 async function readTxtFile(file) {
   return (await file.text()).trim();
 }
@@ -216,7 +253,7 @@ async function readPdfFile(file, opts) {
     if (!opts.ocr) { parts.push('(หน้า ' + i + ': ดูเหมือนเป็นภาพสแกน ไม่มีเลเยอร์ข้อความ — เปิด "ใช้ OCR" แล้วลองใหม่ถ้าต้องการอ่านหน้านี้ด้วย)'); continue; }
 
     if (opts.onProgress) opts.onProgress({ stage: 'ocr', page: i, total: doc.numPages });
-    var Tesseract = requireLib('Tesseract', 'Tesseract.js');
+    requireLib('Tesseract', 'Tesseract.js'); // แค่เช็คว่าโหลดแล้ว — ตัวจริงเรียกผ่าน recognizeText()
     /* scale 3 (~216 DPI) แทน 2 เดิม (~144 DPI) — ยิ่งความละเอียดสูง ตัวอักษรยิ่งคมชัดตอน OCR อ่าน
        (preprocessForOcr ด้านล่างจะขยายเพิ่มอีกให้เองถ้าหน้านั้นยังเล็กกว่าเกณฑ์ขั้นต่ำ) */
     var viewport = page.getViewport({ scale: 3 });
@@ -224,15 +261,14 @@ async function readPdfFile(file, opts) {
     canvas.width = viewport.width; canvas.height = viewport.height;
     var ctx = canvas.getContext('2d');
     await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-    var result = await Tesseract.recognize(preprocessForOcr(canvas), 'eng+tha');
-    var ocrText = (result.data.text || '').trim();
+    var ocrText = await recognizeText(preprocessForOcr(canvas), { psm: PSM_AUTO });
     parts.push(ocrText || ('(หน้า ' + i + ': OCR อ่านแล้วแต่ไม่พบข้อความ)'));
   }
   return parts.join('\n\n').trim();
 }
 
 async function readImageFile(file, opts) {
-  var Tesseract = requireLib('Tesseract', 'Tesseract.js');
+  requireLib('Tesseract', 'Tesseract.js'); // แค่เช็คว่าโหลดแล้ว — ตัวจริงเรียกผ่าน recognizeText()
   if (opts && opts.onProgress) opts.onProgress({ stage: 'ocr', page: 1, total: 1 });
   /* ผ่าน preprocessForOcr() เสมอ (เดิมส่ง file ดิบเข้า Tesseract ตรงๆ ไม่มีการเตรียมภาพเลย) —
      imageOrientation:'from-image' ให้เคารพค่า EXIF orientation ของรูปที่ถ่ายจากมือถือ (ไม่งั้นรูป
@@ -242,8 +278,7 @@ async function readImageFile(file, opts) {
   var rawCanvas = document.createElement('canvas');
   rawCanvas.width = bitmap.width; rawCanvas.height = bitmap.height;
   rawCanvas.getContext('2d').drawImage(bitmap, 0, 0);
-  var result = await Tesseract.recognize(preprocessForOcr(rawCanvas), 'eng+tha');
-  return (result.data.text || '').trim();
+  return recognizeText(preprocessForOcr(rawCanvas), { psm: PSM_AUTO });
 }
 
 /* ชนิดไฟล์ที่รองรับ — ใช้ทั้งตัดสินใจ dispatch ที่นี่ และใส่ใน <input accept="..."> ของหน้าที่เรียกใช้ */
@@ -275,6 +310,9 @@ window.TanotFileReader = {
   readPdfFile: readPdfFile,
   readImageFile: readImageFile,
   preprocessForOcr: preprocessForOcr,
+  recognizeText: recognizeText,
+  PSM_AUTO: PSM_AUTO,
+  PSM_SINGLE_LINE: PSM_SINGLE_LINE,
   isGarbledText: isGarbledText,
   looksLikeSpacedThaiText: looksLikeSpacedThaiText,
   collapseSpacedThaiText: collapseSpacedThaiText

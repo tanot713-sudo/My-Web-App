@@ -2549,8 +2549,13 @@
                 if (!canvasEl) return;
                 if (!window.Tesseract) { setOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
                 setOcrStatus('⏳ กำลังอ่านลายมือ...');
-                window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, 'eng+tha').then(r => {
-                    const t = (r.data.text || '').trim();
+                /* recognizeText() ตั้ง PSM_SINGLE_LINE ให้เอง (ข้อความสั้นบรรทัดเดียวจากลายมือ แม่นกว่า
+                   default SINGLE_BLOCK ของ Tesseract.js เพราะรู้อยู่แล้วว่าไม่ต้องวิเคราะห์โครงสร้างหน้า) */
+                (window.TanotFileReader
+                  ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
+                  : window.Tesseract.recognize(canvasEl, 'eng+tha').then(r => (r.data.text || '').trim())
+                ).then(r => {
+                    const t = (r || '').trim();
                     if (t) { setText(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนส่งตรวจ'); }
                     else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
                 }).catch(e => setOcrStatus('❌ แปลงไม่สำเร็จ: ' + (e && e.message ? e.message : e)));
@@ -2656,8 +2661,13 @@
                 if (!canvasEl) return;
                 if (!window.Tesseract) { setOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
                 setOcrStatus('⏳ กำลังอ่านลายมือ...');
-                window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, 'eng+tha').then(r => {
-                    const t = (r.data.text || '').trim();
+                /* recognizeText() ตั้ง PSM_SINGLE_LINE ให้เอง (ข้อความสั้นบรรทัดเดียวจากลายมือ แม่นกว่า
+                   default SINGLE_BLOCK ของ Tesseract.js เพราะรู้อยู่แล้วว่าไม่ต้องวิเคราะห์โครงสร้างหน้า) */
+                (window.TanotFileReader
+                  ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
+                  : window.Tesseract.recognize(canvasEl, 'eng+tha').then(r => (r.data.text || '').trim())
+                ).then(r => {
+                    const t = (r || '').trim();
                     if (t) { setText(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนส่งตรวจ'); }
                     else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
                 }).catch(e => setOcrStatus('❌ แปลงไม่สำเร็จ: ' + (e && e.message ? e.message : e)));
@@ -2776,8 +2786,13 @@
                 if (!canvasEl) return;
                 if (!window.Tesseract) { setOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
                 setOcrStatus('⏳ กำลังอ่านลายมือ...');
-                window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, 'eng+tha').then(r => {
-                    const t = (r.data.text || '').trim();
+                /* recognizeText() ตั้ง PSM_SINGLE_LINE ให้เอง (ข้อความสั้นบรรทัดเดียวจากลายมือ แม่นกว่า
+                   default SINGLE_BLOCK ของ Tesseract.js เพราะรู้อยู่แล้วว่าไม่ต้องวิเคราะห์โครงสร้างหน้า) */
+                (window.TanotFileReader
+                  ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
+                  : window.Tesseract.recognize(canvasEl, 'eng+tha').then(r => (r.data.text || '').trim())
+                ).then(r => {
+                    const t = (r || '').trim();
                     if (t) { setTyped(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนกดตรวจคำตอบ'); }
                     else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
                 }).catch(e => setOcrStatus('❌ แปลงไม่สำเร็จ: ' + (e && e.message ? e.message : e)));
@@ -2858,8 +2873,13 @@
                 if (!canvasEl) return;
                 if (!window.Tesseract) { setOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
                 setOcrStatus('⏳ กำลังอ่านลายมือ...');
-                window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(canvasEl) : canvasEl, 'eng+tha').then(r => {
-                    const t = (r.data.text || '').trim();
+                /* recognizeText() ตั้ง PSM_SINGLE_LINE ให้เอง (ข้อความสั้นบรรทัดเดียวจากลายมือ แม่นกว่า
+                   default SINGLE_BLOCK ของ Tesseract.js เพราะรู้อยู่แล้วว่าไม่ต้องวิเคราะห์โครงสร้างหน้า) */
+                (window.TanotFileReader
+                  ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
+                  : window.Tesseract.recognize(canvasEl, 'eng+tha').then(r => (r.data.text || '').trim())
+                ).then(r => {
+                    const t = (r || '').trim();
                     if (t) { setTyped(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนกดตรวจ'); }
                     else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
                 }).catch(e => setOcrStatus('❌ แปลงไม่สำเร็จ: ' + (e && e.message ? e.message : e)));
@@ -17008,8 +17028,11 @@
                 if (!noteCanvasEl) return;
                 if (!window.Tesseract) { setNoteOcrStatus('❌ โหลด Tesseract.js ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'); return; }
                 setNoteOcrStatus('⏳ กำลังอ่านลายมือ...');
-                window.Tesseract.recognize(window.TanotFileReader ? window.TanotFileReader.preprocessForOcr(noteCanvasEl) : noteCanvasEl, 'eng+tha').then(r => {
-                    const t = (r.data.text || '').trim();
+                (window.TanotFileReader
+                  ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(noteCanvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
+                  : window.Tesseract.recognize(noteCanvasEl, 'eng+tha').then(r => (r.data.text || '').trim())
+                ).then(r => {
+                    const t = (r || '').trim();
                     if (t) {
                         const prevText = (notes[langId] && notes[langId].text) || '';
                         updateNote((prevText ? prevText + '\n' : '') + t);
