@@ -1211,7 +1211,7 @@
         function resetWorkerOnError() { try { w.terminate(); } catch (e) {} aiSumChatWorker = null; }
         w.addEventListener('message', onMsg);
         w.addEventListener('error', onErr);
-        w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages, maxNewTokens: 160 });
+        w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages, maxNewTokens: 220 });
       });
     }
   }
