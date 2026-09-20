@@ -811,6 +811,209 @@
     });
   }
 
+  /* ══════════════════ สรุปประชุมด้วย AI (รันในเบราว์เซอร์ ฟรี) → ส่งออกเป็นไฟล์ Word (.docx) ══════════════════
+     ใช้ ai-chat-worker.js ตัวเดียวกับที่หน้าลงทุนใช้สรุปข่าว (โมเดลเล็ก/ใหญ่แข่งกันหาโหลดได้ก่อนใน worker
+     คนละตัวกัน กันปัญหาหน่วยความจำ WASM ปนกันที่เคยเจอมาก่อน) — บทถอดเสียงประชุมมักยาวเกินกว่าโมเดลเล็ก
+     (context window จำกัด) จะสรุปทีเดียวจบได้ดี จึงตัดเป็นท่อนๆ สรุปย่อทีละท่อนก่อน (map) แล้วเอาสรุปย่อย
+     ทั้งหมดมาสังเคราะห์เป็นสรุปเดียวอีกที (reduce) — ข้อจำกัดตามจริง: (1) ไม่แยกผู้พูด เพราะ Whisper ถอด
+     ได้แค่เนื้อความ ไม่บอกว่าใครพูด (2) โมเดลเล็กฟรีที่รันบนเบราว์เซอร์ได้ คุณภาพสรุปภาษาไทยสู้โมเดลใหญ่
+     ระดับเซิร์ฟเวอร์ไม่ได้ ต้องตรวจทานก่อนใช้จริงเสมอ */
+  function isIOS() {
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) return true;
+    return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  }
+  /* โมเดลเล็กบางครั้ง "พูดตาม" ข้อความ system/reminder ที่สั่งห้ามออกมาเป็นเนื้อหาจริง แทนที่จะทำตามคำสั่ง
+     เงียบๆ — กรองทิ้งบรรทัดที่ขึ้นต้นด้วย "ห้าม"/"Never" (ปัญหาเดียวกับที่เจอในหน้าสรุปข่าวหุ้น) */
+  function stripLeakedInstructions(text) {
+    return (text || '').split('\n').filter(function (line) {
+      return !/^\s*(ห้าม|Never\b)/i.test(line);
+    }).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  function chunkText(text, maxChars) {
+    var paras = text.split(/\n+/), chunks = [], cur = '';
+    for (var i = 0; i < paras.length; i++) {
+      var p = paras[i];
+      if (cur && (cur.length + p.length + 1) > maxChars) { chunks.push(cur); cur = p; }
+      else cur = cur ? cur + '\n' + p : p;
+    }
+    if (cur) chunks.push(cur);
+    return chunks;
+  }
+
+  var meetingSumWorker = null, meetingSumWorkerRacePromise = null;
+  function spawnProbedWorkerForMeeting(modelKind) {
+    return new Promise(function (resolve, reject) {
+      var w = new Worker('./ai-chat-worker.js', { type: 'module' });
+      var probeId = 'probe-' + modelKind + '-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+      function onMsg(e) {
+        var msg = e.data;
+        if (!msg || msg.jobId !== probeId || msg.type !== 'probe-result') return;
+        w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr);
+        if (msg.ok) resolve(w);
+        else { try { w.terminate(); } catch (err) {} reject(new Error(msg.message || 'probe failed')); }
+      }
+      function onErr(e) {
+        w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr);
+        try { w.terminate(); } catch (err) {}
+        reject(e);
+      }
+      w.addEventListener('message', onMsg);
+      w.addEventListener('error', onErr);
+      w.postMessage({ type: 'probe', jobId: probeId, modelId: modelKind });
+    });
+  }
+  /* ใช้ key เดียวกับหน้าลงทุน (tanot:aiChat:noBigModel) — เบราว์เซอร์เดียวกัน ถ้าเคยรู้แล้วว่าโมเดลใหญ่
+     พังบนเครื่องนี้ ไม่ต้องลองซ้ำอีกไม่ว่าจะเข้าหน้าไหนของเว็บ */
+  var AI_BIG_MODEL_BLOCKLIST_KEY = 'tanot:aiChat:noBigModel';
+  function getMeetingSumWorkerAsync() {
+    if (meetingSumWorker) return Promise.resolve(meetingSumWorker);
+    if (meetingSumWorkerRacePromise) return meetingSumWorkerRacePromise;
+    var mem = (typeof navigator !== 'undefined') ? navigator.deviceMemory : undefined;
+    var noBig = false;
+    try { noBig = localStorage.getItem(AI_BIG_MODEL_BLOCKLIST_KEY) === '1'; } catch (e) {}
+    var canTryBig = !noBig && typeof navigator !== 'undefined' && !!navigator.gpu && mem && mem >= 4;
+    var candidates = canTryBig
+      ? [spawnProbedWorkerForMeeting('big').catch(function (err) {
+          try { localStorage.setItem(AI_BIG_MODEL_BLOCKLIST_KEY, '1'); } catch (e2) {}
+          throw err;
+        }), spawnProbedWorkerForMeeting('small')]
+      : [spawnProbedWorkerForMeeting('small')];
+    meetingSumWorkerRacePromise = Promise.any(candidates).then(function (winner) {
+      meetingSumWorker = winner; meetingSumWorkerRacePromise = null;
+      candidates.forEach(function (p) { p.then(function (w) { if (w !== winner) { try { w.terminate(); } catch (err) {} } }, function () {}); });
+      return winner;
+    }, function () {
+      meetingSumWorkerRacePromise = null;
+      var w = new Worker('./ai-chat-worker.js', { type: 'module' });
+      meetingSumWorker = w;
+      return w;
+    });
+    return meetingSumWorkerRacePromise;
+  }
+  /* ส่ง messages ไปคุยกับ worker ทีละครั้ง คืนข้อความตอบกลับแบบเต็ม (รอจน 'done') — ใช้ซ้ำได้หลายครั้ง
+     กับ worker ตัวเดิม (map แล้ว reduce ต้องคุยหลายรอบ ไม่อยากสร้าง/โหลดโมเดลใหม่ทุกรอบ) */
+  function runChatOnce(worker, messages, maxNewTokens) {
+    return new Promise(function (resolve, reject) {
+      var jobId = 'ms-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+      var replyText = '';
+      function onMsg(e) {
+        var msg = e.data;
+        if (!msg || msg.jobId !== jobId) return;
+        if (msg.type === 'token') replyText += msg.token;
+        else if (msg.type === 'done') { cleanup(); resolve(stripLeakedInstructions(replyText)); }
+        else if (msg.type === 'error') { cleanup(); reject(new Error(msg.message || 'chat failed')); }
+      }
+      function onErr(e) { cleanup(); reject(e); }
+      function cleanup() { worker.removeEventListener('message', onMsg); worker.removeEventListener('error', onErr); }
+      worker.addEventListener('message', onMsg);
+      worker.addEventListener('error', onErr);
+      worker.postMessage({ type: 'chat', jobId: jobId, messages: messages, maxNewTokens: maxNewTokens });
+    });
+  }
+
+  var MEETING_CHUNK_SYSTEM = 'คุณเป็นผู้ช่วยสรุปการประชุม อ่านข้อความถอดเสียงประชุมส่วนหนึ่งด้านล่าง แล้วสรุปประเด็นสำคัญที่พูดถึงเป็นข้อๆ สั้นๆ เท่านั้น (ขึ้นต้นแต่ละข้อด้วย "- ") ห้ามทักทาย ห้ามใส่ความเห็นส่วนตัว ห้ามเดาสิ่งที่ไม่ได้พูดถึงในข้อความ';
+  var MEETING_FINAL_SYSTEM = 'คุณเป็นผู้ช่วยเขียนสรุปการประชุมฉบับสมบูรณ์ จากบันทึกย่อหลายช่วงของการประชุมเดียวกันด้านล่าง ให้เขียนตามโครงสร้างหัวข้อนี้เป๊ะๆ (แต่ละหัวข้อขึ้นบรรทัดใหม่ จบด้วย ":" ตามด้วยเนื้อหา):\n\nภาพรวมการประชุม:\n(ย่อหน้าสั้นๆ 2-3 ประโยค)\n\nประเด็นสำคัญที่พูดคุย:\n(รายการ ขึ้นต้นแต่ละข้อด้วย "- ")\n\nการตัดสินใจ:\n(รายการ หรือถ้าไม่มีการตัดสินใจชัดเจนให้เขียนว่า "ไม่มีการตัดสินใจที่ชัดเจนในบันทึกนี้")\n\nงานที่ต้องติดตาม:\n(รายการ หรือถ้าไม่มีให้เขียนว่า "ไม่มีงานที่ต้องติดตามที่ระบุชัดเจน")';
+  var MEETING_FINAL_REMINDER = 'ตอบตามโครงสร้างหัวข้อด้านบนเท่านั้น เริ่มตอบด้วย "ภาพรวมการประชุม:" ทันที ไม่ต้องมีคำนำ ไม่ต้องอธิบายว่ากำลังทำอะไร';
+
+  function setMeetingSumStatus(text, cls) {
+    var el = $('meetingSumStatus'); if (!el) return;
+    el.textContent = text || ''; el.className = 'status' + (cls ? ' ' + cls : '');
+  }
+
+  var meetingSumBusy = false;
+  function doMeetingSummary() {
+    if (meetingSumBusy) return;
+    var transcript = ($('asrResult').value || '').trim();
+    if (!transcript) { setMeetingSumStatus('ยังไม่มีข้อความที่ถอดเสียงไว้', 'err'); return; }
+    if (isIOS()) { setMeetingSumStatus('โหมดนี้ไม่รองรับบน iPhone/iPad (เบราว์เซอร์มือถือรุ่นนี้รันโมเดล AI แบบนี้ไม่เสถียร) — ใช้คอมพิวเตอร์แทน', 'err'); return; }
+    if (typeof window.docx === 'undefined') { setMeetingSumStatus('โหลดไลบรารีสร้างไฟล์ Word ไม่สำเร็จ ลองรีเฟรชหน้านี้ใหม่', 'err'); return; }
+
+    meetingSumBusy = true;
+    $('meetingSumBtn').disabled = true;
+    $('meetingSumWrap').style.display = 'none';
+    setMeetingSumStatus('⏳ กำลังเตรียมโมเดล AI…', '');
+
+    var chunks = chunkText(transcript, 1800);
+
+    getMeetingSumWorkerAsync().then(function (worker) {
+      var chunkSummaries = [];
+      function summarizeNextChunk(i) {
+        if (i >= chunks.length) return Promise.resolve();
+        setMeetingSumStatus('⏳ กำลังสรุปช่วงที่ ' + (i + 1) + '/' + chunks.length + '…', '');
+        return runChatOnce(worker, [
+          { role: 'system', content: MEETING_CHUNK_SYSTEM },
+          { role: 'user', content: chunks[i] }
+        ], 180).then(function (summary) {
+          chunkSummaries.push(summary);
+          return summarizeNextChunk(i + 1);
+        });
+      }
+      return summarizeNextChunk(0).then(function () {
+        if (chunks.length === 1) return chunkSummaries[0];
+        setMeetingSumStatus('⏳ กำลังรวมเป็นสรุปฉบับเดียว…', '');
+        return runChatOnce(worker, [
+          { role: 'system', content: MEETING_FINAL_SYSTEM },
+          { role: 'user', content: chunkSummaries.join('\n\n') },
+          { role: 'system', content: MEETING_FINAL_REMINDER }
+        ], 350);
+      });
+    }).then(function (finalSummary) {
+      finalSummary = (finalSummary || '').trim();
+      if (!finalSummary) { setMeetingSumStatus('สรุปไม่สำเร็จ ไม่ได้คำตอบจากโมเดล', 'err'); return; }
+      $('meetingSumResult').value = finalSummary;
+      $('meetingSumWrap').style.display = 'block';
+      setMeetingSumStatus('สรุปเสร็จแล้ว ตรวจทานก่อนดาวน์โหลดได้เลย', 'ok');
+      return buildMeetingDocxBlob(finalSummary, transcript).then(function (blob) {
+        var link = $('meetingDocxLink');
+        if (link.dataset.prevUrl) URL.revokeObjectURL(link.dataset.prevUrl);
+        var url = URL.createObjectURL(blob);
+        link.href = url;
+        link.dataset.prevUrl = url;
+      });
+    }).catch(function (e) {
+      setMeetingSumStatus('สรุปไม่สำเร็จ: ' + (e && e.message ? e.message : e), 'err');
+    }).finally(function () {
+      meetingSumBusy = false;
+      $('meetingSumBtn').disabled = false;
+    });
+  }
+
+  /* แปลงสรุป (ข้อความมีโครงหัวข้อ "...:" / บูลเล็ต "- ") + บทถอดเสียงเต็ม (เก็บเป็นภาคผนวก) เป็นไฟล์ .docx
+     จริง ใช้ไลบรารี docx.js ตัวเดียวกับหน้า "พิมพ์และแก้ไขเอกสาร" (word.js) แต่สร้างแบบง่ายตรงๆ ไม่ผ่าน
+     กลไกแปลง HTML เต็มรูปแบบของหน้านั้น เพราะที่นี่มีแค่ข้อความล้วนที่มีโครงสร้างชัดเจนอยู่แล้ว */
+  function buildMeetingDocxBlob(summaryText, transcriptText) {
+    var docx = window.docx;
+    var FONT = 'TH Sarabun New', SIZE = 32; // 16pt — ขนาดมาตรฐานเอกสารไทย เดียวกับ word.js
+    function titleP(text) { return new docx.Paragraph({ children: [new docx.TextRun({ text: text, bold: true, font: FONT, size: 48 })], spacing: { after: 60 } }); }
+    function metaP(text) { return new docx.Paragraph({ children: [new docx.TextRun({ text: text, italics: true, font: FONT, size: 24, color: '727C93' })], spacing: { after: 200 } }); }
+    function headingP(text) { return new docx.Paragraph({ children: [new docx.TextRun({ text: text, bold: true, font: FONT, size: 36 })], spacing: { before: 200, after: 100 } }); }
+    function bodyP(text) { return new docx.Paragraph({ children: [new docx.TextRun({ text: text, font: FONT, size: SIZE })], spacing: { after: 80 } }); }
+    function bulletP(text) { return new docx.Paragraph({ children: [new docx.TextRun({ text: text, font: FONT, size: SIZE })], bullet: { level: 0 }, spacing: { after: 40 } }); }
+
+    var children = [
+      titleP('สรุปการประชุม'),
+      metaP('สร้างโดย AI จากข้อความถอดเสียง — ' + new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }))
+    ];
+    summaryText.split('\n').forEach(function (line) {
+      var s = line.trim();
+      if (!s) return;
+      if (/^[-•]\s+/.test(s)) children.push(bulletP(s.replace(/^[-•]\s+/, '')));
+      else if (/:$/.test(s) && s.length < 60) children.push(headingP(s.replace(/:$/, '')));
+      else children.push(bodyP(s));
+    });
+    if (transcriptText) {
+      children.push(new docx.Paragraph({ children: typeof docx.PageBreak === 'function' ? [new docx.PageBreak()] : [] }));
+      children.push(headingP('ภาคผนวก: ข้อความที่ถอดเสียงได้ทั้งหมด'));
+      transcriptText.split('\n').forEach(function (line) { if (line.trim()) children.push(bodyP(line.trim())); });
+    }
+
+    var doc = new docx.Document({
+      sections: [{ children: children }],
+      styles: { default: { document: { run: { font: FONT, size: SIZE } } } }
+    });
+    return docx.Packer.toBlob(doc);
+  }
+
   /* ══════════════════ init ══════════════════ */
   function init() {
     $('ttsText').addEventListener('input', updateCharCount);
@@ -835,6 +1038,7 @@
 
     $('asrGoBtn').addEventListener('click', runAsr);
     $('asrCopyBtn').addEventListener('click', copyAsrResult);
+    $('meetingSumBtn').addEventListener('click', doMeetingSummary);
 
     /* ══ เลือกโหมดถอดเสียง (ในเบราว์เซอร์ฟรี / คลาวด์แม่นกว่า) — ล็อกโหมดคลาวด์ด้วยรหัสผ่าน ══ */
     var asrEngineToggle = $('asrEngineToggle'), asrEngineNote = $('asrEngineNote'),
@@ -903,6 +1107,7 @@
     splitIntoTtsChunks: splitIntoTtsChunks, ttsPoolSize: ttsPoolSize, formatEta: formatEta,
     synthesizeMmsTtsChunks: synthesizeMmsTtsChunks,
     synthesizeMmsTtsChunksInWorkerPool: synthesizeMmsTtsChunksInWorkerPool,
-    synthesizeMmsTtsChunksResponsive: synthesizeMmsTtsChunksResponsive
+    synthesizeMmsTtsChunksResponsive: synthesizeMmsTtsChunksResponsive,
+    chunkText: chunkText, buildMeetingDocxBlob: buildMeetingDocxBlob, isIOS: isIOS
   };
 })();
