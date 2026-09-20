@@ -368,8 +368,18 @@ function textToParagraphsHtml(text) {
 }
 /* ตัดข้อความยาวๆ ที่ไม่มีการขึ้นบรรทัดใหม่เลย (เช่น บทถอดเสียงที่ออกมาเป็นพารากราฟเดียวยาวมาก) เป็นพารากราฟ
    ย่อยๆ ขนาดไม่เกิน PASTE_PARA_MAX_CHARS ตัวอักษร (ตัดที่ช่องว่างใกล้จุดตัดที่สุด กันตัดกลางคำ) — ใช้ตอน
-   วางข้อความในกล่องเนื้อหาหลัก เพราะระบบจัดหน้า (layoutPages) แบ่งเนื้อหา "ภายใน" บล็อกเดียวข้ามหน้าไม่ได้ */
-var PASTE_PARA_MAX_CHARS = 1200; // ค่าอนุรักษ์นิยม เผื่อไว้ให้สั้นกว่า 1 หน้าเสมอไม่ว่าตั้งขนาด/ฟอนต์แบบไหน
+   วางข้อความในกล่องเนื้อหาหลัก เพราะระบบจัดหน้า (layoutPages) แบ่งเนื้อหา "ภายใน" บล็อกเดียวข้ามหน้าไม่ได้
+   ⚠️ ลองใช้ 1200 ตัวอักษร/พารากราฟตอนแรก (~ครึ่งหน้า A4 ปกติ) แล้วเจอปัญหาจริง: กติกาเดิมของ layoutPages
+   ที่ "ไม่ยอมให้พารากราฟเดียวคร่อม 2 หน้า" จะดันทั้งพารากราฟไปหน้าถัดไปทันทีถ้าเหลือที่ไม่พอ ทำให้เสียพื้นที่
+   ว่างท้ายหน้าไปมากถึงเกือบเท่าความสูงของพารากราฟนั้นเอง (พารากราฟใหญ่ = เสี่ยงเสียพื้นที่เยอะเวลาพลาดจังหวะ)
+   ลดขนาดลงมาเป็นพารากราฟสั้นๆ (~15-20% ของหน้า A4 ปกติ) แทน ให้พื้นที่ที่เสียไปต่อครั้งเล็กลงมากแทน */
+var PASTE_PARA_MAX_CHARS = 400;
+/* เกณฑ์ตัดสินใจว่า "ยาวพอที่จะเข้าไปแทรกแซง paste ปกติ" หรือไม่ — แยกจาก PASTE_PARA_MAX_CHARS ข้างบน
+   ตั้งใจ: การวางข้อความสั้น/กลางๆ ตามปกติ (แม้แต่พารากราฟเดียวยาวเป็นพันตัวอักษรที่คัดลอกมาจากที่อื่น พร้อม
+   รูปแบบตัวหนา/สี ฯลฯ) ยังอยากให้ปล่อยผ่านไปใช้ paste ปกติของเบราว์เซอร์เหมือนเดิม ไม่ใช่ทุกอย่างที่ยาวกว่า
+   400 ตัวอักษรจะถูกบังคับกลายเป็น plain text ไปหมด — แทรกแซงเฉพาะตอนวางข้อความก้อนใหญ่จริงๆ ที่ชัดเจนว่า
+   เป็นการ "ทิ้งเอกสาร/บทถอดเสียงยาวๆ" เข้ามาเท่านั้น */
+var PASTE_SPLIT_THRESHOLD = 1200;
 function splitPastedTextIntoParagraphs(text) {
   var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean);
   var paras = [];
@@ -1605,6 +1615,11 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     els.page.style.width = maxW + 'px';
     editor.style.width = maxW + 'px';
     editor.style.padding = PT + 'px 0 ' + defM.mb + 'px 0';
+    /* เนื้อหาจริง (บล็อกแต่ละอัน) ถูกจัดกึ่งกลางด้วย maxWidth+margin:auto ของตัวเอง (applyBlockWidth
+       ด้านล่าง) ไม่ได้ใช้ padding ซ้าย/ขวาของ editor เอง — ข้อความ placeholder ตอนเอกสารว่างเปล่า
+       (.wd-editor:empty::before ใน word.html) ต้องอิงตัวแปรนี้ให้จัดกึ่งกลางแบบเดียวกัน ไม่งั้นจะไปชิด
+       ขอบซ้ายสุดของ editor (กว้างเท่าหน้ากระดาษเต็ม ไม่ใช่ความกว้างพื้นที่พิมพ์จริง) แทน */
+    editor.style.setProperty('--wd-content-w', defM.contentW + 'px');
     /* ล้างสไตล์จัดหน้าของรอบก่อน (ช่องว่างขึ้นหน้า + ความกว้างต่อส่วน) */
     Array.prototype.forEach.call(editor.querySelectorAll('[data-wd-lay]'), function (b) {
       b.style.marginTop = ''; b.style.maxWidth = ''; b.style.marginLeft = ''; b.style.marginRight = '';
@@ -1945,7 +1960,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   editor.addEventListener('paste', function (e) {
     if (!e.clipboardData) return; // clipboard API ใช้ไม่ได้ (หายาก) — ปล่อยให้เบราว์เซอร์ paste ตามปกติ
     var text = e.clipboardData.getData('text/plain');
-    if (!text || text.length <= PASTE_PARA_MAX_CHARS) return;
+    if (!text || text.length <= PASTE_SPLIT_THRESHOLD) return;
     e.preventDefault();
     var paras = splitPastedTextIntoParagraphs(text);
     if (!paras.length) return;
