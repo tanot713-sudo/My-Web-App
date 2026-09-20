@@ -584,6 +584,22 @@
       });
     });
   }
+  function isMobileUA() { return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || ''); }
+  /* หาความยาวไฟล์เสียง/วิดีโอแบบเบาๆ ผ่าน metadata ของ <audio>/<video> element (ไม่ต้องถอดเสียงทั้งไฟล์
+     เหมือน decodeAudioData) ใช้แค่เช็คว่าไฟล์ยาวเกินไปสำหรับมือถือไหมก่อนเริ่มถอดเสียงจริง */
+  function getMediaDuration(file) {
+    return new Promise(function (resolve) {
+      try {
+        var isVideo = /^video\//.test(file.type) || /\.(mp4|mov|m4v|webm|mkv)$/i.test(file.name || '');
+        var el = document.createElement(isVideo ? 'video' : 'audio');
+        var url = URL.createObjectURL(file);
+        el.preload = 'metadata';
+        el.onloadedmetadata = function () { URL.revokeObjectURL(url); resolve(isFinite(el.duration) ? el.duration : null); };
+        el.onerror = function () { URL.revokeObjectURL(url); resolve(null); };
+        el.src = url;
+      } catch (e) { resolve(null); }
+    });
+  }
   /* ══════════════════ ถอดเสียงผ่านคลาวด์ (Whisper Large v3 Turbo บน Cloudflare Workers AI) ══════════════════
      ทางเลือกแม่นกว่า/เร็วกว่าโหมดในเบราว์เซอร์ด้านบนมาก (รันบนเซิร์ฟเวอร์ ไม่ใช่เครื่องผู้ใช้) แต่มี
      ค่าใช้จ่ายจริงเมื่อเกินโควตาฟรี (10,000 Neurons/วัน ≈ 3.5 ชม.เสียง, whisper-large-v3-turbo กิน
@@ -710,6 +726,23 @@
     $('asrResultWrap').style.display = 'none';
     $('asrStatus').className = 'status';
 
+    /* มือถือมีหน่วยความจำแท็บเบราว์เซอร์จำกัดกว่าคอมมาก — ถอดเสียงไฟล์ยาวมาก (เช่นอัดประชุมทั้งวัน)
+       เสี่ยงทำให้แท็บแครชกลางทาง (เสียหมด ไม่เหลือผลลัพธ์บางส่วนให้เลย) เช็คความยาวไฟล์แบบเบาๆ ก่อน
+       (ไม่ถอดเสียงทั้งไฟล์) แล้วเตือนถ้ายาวเกินไปบนมือถือ ให้ผู้ใช้เลือกเองว่าจะเสี่ยงต่อหรือไม่ */
+    if (!isMobileUA()) { proceedRunAsr(file, langOpt, engine); return; }
+    getMediaDuration(file).then(function (durSec) {
+      var mins = durSec ? Math.round(durSec / 60) : null;
+      if (mins && mins > 45) {
+        var proceed = window.confirm(
+          'ไฟล์นี้ยาว ~' + mins + ' นาที การถอดเสียงไฟล์ยาวขนาดนี้บนมือถืออาจทำให้เบราว์เซอร์ค้างหรือแครชกลางทาง ' +
+          '(หน่วยความจำจำกัดกว่าคอม) แนะนำให้ใช้คอมพิวเตอร์แทน หรือตัดไฟล์ให้สั้นลงก่อน — กดตกลงถ้าต้องการลองต่อบนมือถือนี้เลย'
+        );
+        if (!proceed) { $('asrGoBtn').disabled = false; $('asrStatus').textContent = 'ยกเลิกแล้ว'; return; }
+      }
+      proceedRunAsr(file, langOpt, engine);
+    });
+  }
+  function proceedRunAsr(file, langOpt, engine) {
     if (engine === 'cloud') {
       $('asrStatus').textContent = '⏳ กำลังถอดรหัสไฟล์เสียง…';
       decodeFileToPcm(file)
@@ -866,6 +899,7 @@
     synthesizeMmsTts: synthesizeMmsTts, float32ToWavBlob: float32ToWavBlob,
     wavBytesToMp3Blob: wavBytesToMp3Blob, floatTo16BitPCM: floatTo16BitPCM,
     loadAsrPipeline: loadAsrPipeline, decodeFileToPcm: decodeFileToPcm, resampleTo16kMono: resampleTo16kMono,
+    isMobileUA: isMobileUA, getMediaDuration: getMediaDuration,
     splitIntoTtsChunks: splitIntoTtsChunks, ttsPoolSize: ttsPoolSize, formatEta: formatEta,
     synthesizeMmsTtsChunks: synthesizeMmsTtsChunks,
     synthesizeMmsTtsChunksInWorkerPool: synthesizeMmsTtsChunksInWorkerPool,
