@@ -366,6 +366,28 @@ function sanitizeHtml(html) {
 function textToParagraphsHtml(text) {
   return text.split(/\n+/).map(function (line) { return line.trim() ? '<p>' + escapeHtml(line) + '</p>' : ''; }).join('');
 }
+/* ตัดข้อความยาวๆ ที่ไม่มีการขึ้นบรรทัดใหม่เลย (เช่น บทถอดเสียงที่ออกมาเป็นพารากราฟเดียวยาวมาก) เป็นพารากราฟ
+   ย่อยๆ ขนาดไม่เกิน PASTE_PARA_MAX_CHARS ตัวอักษร (ตัดที่ช่องว่างใกล้จุดตัดที่สุด กันตัดกลางคำ) — ใช้ตอน
+   วางข้อความในกล่องเนื้อหาหลัก เพราะระบบจัดหน้า (layoutPages) แบ่งเนื้อหา "ภายใน" บล็อกเดียวข้ามหน้าไม่ได้ */
+var PASTE_PARA_MAX_CHARS = 1200; // ค่าอนุรักษ์นิยม เผื่อไว้ให้สั้นกว่า 1 หน้าเสมอไม่ว่าตั้งขนาด/ฟอนต์แบบไหน
+function splitPastedTextIntoParagraphs(text) {
+  var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean);
+  var paras = [];
+  lines.forEach(function (line) {
+    if (line.length <= PASTE_PARA_MAX_CHARS) { paras.push(line); return; }
+    var start = 0;
+    while (start < line.length) {
+      var end = Math.min(start + PASTE_PARA_MAX_CHARS, line.length);
+      if (end < line.length) {
+        var lastSpace = line.lastIndexOf(' ', end);
+        if (lastSpace > start) end = lastSpace;
+      }
+      paras.push(line.slice(start, end).trim());
+      start = end;
+    }
+  });
+  return paras.filter(Boolean);
+}
 
 /* ══ ดึงข้อความล้วน + map offset กลับเป็นตำแหน่ง DOM (ข้ามเชิงอรรถ/สารบัญ/ตัวคั่นหน้า) ══ */
 var BLOCK_TAGS = { P: 1, DIV: 1, H1: 1, H2: 1, H3: 1, H4: 1, H5: 1, H6: 1, LI: 1, BLOCKQUOTE: 1, TR: 1 };
@@ -1910,6 +1932,27 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     editor.insertBefore(wrap, editor.firstChild);
   }
 
+  /* ── วางข้อความยาวๆ ── ระบบจัดหน้า (layoutPages) แบ่งเนื้อหา "ภายใน" บล็อกเดียวข้ามหน้าไม่ได้ (ดูคอมเมนต์
+     ในนั้น) — ถ้าวางข้อความก้อนใหญ่ที่ไม่มีการขึ้นบรรทัดใหม่เลย (เช่น บทถอดเสียงจาก Whisper ที่ออกมาเป็น
+     พารากราฟเดียวยาวเป็นพันตัวอักษร) ด้วย paste ปกติของเบราว์เซอร์ ทั้งก้อนจะกลายเป็น <p> เดียวที่สูงกว่า
+     1 หน้ากระดาษได้ ทำให้ข้อความไหลทะลุขอบหน้าต่อเนื่องแทนที่จะขึ้นหน้าใหม่ให้ถูกต้อง (เจอปัญหานี้จริงตอน
+     วางบทถอดเสียงประชุมยาวๆ) — แก้ที่ต้นตอโดยดัก paste event ของกล่องเนื้อหาหลักเอง (ไม่รวมหัว/ท้ายกระดาษ
+     ซึ่งสั้นอยู่แล้วไม่มีปัญหานี้) แล้วตัดข้อความเป็นพารากราฟย่อยๆ ก่อนแทรก (splitPastedTextIntoParagraphs
+     ด้านบน) ให้ระบบจัดหน้าเดิมมีจุดแบ่ง (ขอบเขต element) มากพอที่จะทำงานถูกต้องเหมือนพารากราฟทั่วไป
+     ⚠️ ทำเฉพาะตอนวางข้อความ "ยาวเกิน PASTE_PARA_MAX_CHARS" เท่านั้น (จุดที่บั๊กนี้จะเกิดจริง) — การวางสั้นๆ
+     ปกติ (ประโยค/ย่อหน้าสั้นๆ/ตารางจาก Excel ฯลฯ) ยังปล่อยให้เบราว์เซอร์ paste ตามปกติเหมือนเดิมทุกอย่าง
+     รวมถึงคงรูปแบบ (ตัวหนา/สี/ตาราง) จาก HTML clipboard ไว้ได้ ไม่ถูกบังคับให้เป็น plain text เสมอไป */
+  editor.addEventListener('paste', function (e) {
+    if (!e.clipboardData) return; // clipboard API ใช้ไม่ได้ (หายาก) — ปล่อยให้เบราว์เซอร์ paste ตามปกติ
+    var text = e.clipboardData.getData('text/plain');
+    if (!text || text.length <= PASTE_PARA_MAX_CHARS) return;
+    e.preventDefault();
+    var paras = splitPastedTextIntoParagraphs(text);
+    if (!paras.length) return;
+    document.execCommand('insertHTML', false, paras.map(function (p) { return '<p>' + escapeHtml(p) + '</p>'; }).join(''));
+    scheduleAutosave();
+  });
+
   /* ── editor input ── */
   editor.addEventListener('input', function () {
     ensureEditorHasBlocks(); // กันเคส Ctrl+A ลบทั้งหมดแล้วพิมพ์ต่อทันที (editor ว่างเปล่าสนิทอีกรอบ)
@@ -1961,6 +2004,6 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
 
 /* export ให้ทดสอบ logic ล้วนๆ จาก Node */
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { summarizeText: summarizeText, splitSentences: splitSentences, LANGUAGES: LANGUAGES, textToParagraphsHtml: textToParagraphsHtml, PAGE_SIZES: PAGE_SIZES, MARGINS: MARGINS, cssColorToHex: cssColorToHex };
+  module.exports = { summarizeText: summarizeText, splitSentences: splitSentences, LANGUAGES: LANGUAGES, textToParagraphsHtml: textToParagraphsHtml, PAGE_SIZES: PAGE_SIZES, MARGINS: MARGINS, cssColorToHex: cssColorToHex, splitPastedTextIntoParagraphs: splitPastedTextIntoParagraphs };
 }
 })();
