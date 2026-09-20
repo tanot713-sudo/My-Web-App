@@ -744,6 +744,12 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     document.querySelectorAll('[data-i18n-title]').forEach(function (el) { el.title = t(el.getAttribute('data-i18n-title')); });
     document.querySelectorAll('[data-i18n-aria-label]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria-label'))); });
     document.querySelectorAll('[data-i18n-dataplaceholder]').forEach(function (el) { el.setAttribute('data-placeholder', t(el.getAttribute('data-i18n-dataplaceholder'))); });
+    /* ถ้าเอกสารยังว่างเปล่าสนิท (บล็อกแรกที่ ensureEditorHasBlocks() แทรกไว้มีแค่ <br> ไม่มีข้อความจริง)
+       เปลี่ยนภาษาแล้วต้องอัปเดต placeholder ของบล็อกนั้นด้วย ไม่งั้นจะค้างเป็นภาษาเดิมจนกว่าจะรีเฟรช */
+    if (editor && editor.children.length === 1 && editor.firstChild.nodeType === 1 &&
+      !editor.firstChild.textContent && editor.firstChild.querySelector('br')) {
+      editor.firstChild.setAttribute('data-ph', editor.getAttribute('data-placeholder') || '');
+    }
     document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
     document.querySelectorAll('[data-i18n-dataph]').forEach(function (el) { el.setAttribute('data-ph', t(el.getAttribute('data-i18n-dataph'))); });
     if (els.langToggle) els.langToggle.querySelectorAll('span').forEach(function (s) { s.classList.toggle('active', s.getAttribute('data-lt') === lang); });
@@ -1305,6 +1311,22 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     if (text.length > PASTE_SPLIT_THRESHOLD) {
       var paras = splitPastedTextIntoParagraphs(text);
       if (paras.length) {
+        /* ถ้าเอกสารว่างเปล่าสนิท (ยังไม่เคยพิมพ์อะไร ตัวแรกที่ ensureEditorHasBlocks() แทรกไว้มีแค่ <br>)
+           ต้องลบบล็อกว่างนั้นออกก่อน — เพราะถ้าเคอร์เซอร์ยังอยู่ในบล็อกว่างนั้น insertHTML หลาย <p> จะถูก
+           แทรกเป็นลูกซ้อนอยู่ *ภายใน* บล็อกเดียวนั้นแทนที่จะเป็นย่อหน้าแยกกันจริงๆ (ตรวจสอบแค่กล่องเนื้อหา
+           หลัก ไม่แตะหัว/ท้ายกระดาษซึ่งไม่มีกลไกบล็อกว่างนี้) ทำให้บั๊กเดิม (ข้อความยาวไหลทะลุหน้า) กลับมา
+           อีกครั้งทั้งที่ตัดพารากราฟถูกต้องแล้ว */
+        if (editor.children.length === 1 && editor.firstChild.nodeType === 1 &&
+          !editor.firstChild.textContent && editor.firstChild.querySelector('br') &&
+          editor.contains(window.getSelection().anchorNode)) {
+          editor.removeChild(editor.firstChild);
+          var range = document.createRange();
+          range.selectNodeContents(editor);
+          range.collapse(true);
+          var sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
         document.execCommand('insertHTML', false, paras.map(function (p) { return '<p>' + escapeHtml(p) + '</p>'; }).join(''));
         return;
       }
@@ -1951,6 +1973,12 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   function ensureEditorHasBlocks() {
     if (!editor.firstChild) {
       var d = document.createElement('div'); d.appendChild(document.createElement('br'));
+      /* ก็อบปี้ placeholder ของ editor เองมาไว้ที่บล็อกจริงตัวนี้ด้วย (data-ph) — ตัวบล็อกนี้ผ่าน
+         applyBlockWidth() ใน layoutPages() เหมือนย่อหน้าจริงทุกอัน จึงจัดกึ่งกลางถูกตำแหน่งเดียวกับที่
+         พิมพ์จริงเป๊ะ ต่างจาก .wd-editor:empty::before เดิมที่จัดกึ่งกลางแยกเองแบบ CSS ล้วนๆ (ไม่รู้จัก
+         layout จริง) และที่สำคัญคือ query ตัวนี้จะไม่มีวันได้ทำงานอีกต่อไปเพราะ editor จะมีบล็อกนี้อยู่เสมอ
+         ไม่ว่างเปล่าสนิทแบบเดิม (ดูคอมเมนต์ที่ restoreAutosave() ด้านล่าง) */
+      d.setAttribute('data-ph', editor.getAttribute('data-placeholder') || '');
       editor.appendChild(d);
       return;
     }
@@ -1991,17 +2019,24 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
 
   /* ── restore autosave ── */
   (function restoreAutosave() {
+    /* ⚠️ เดิม "if (!raw) return;" อยู่ใน try แล้ว return ออกจากฟังก์ชันทั้งฟังก์ชันเลย (ไม่ใช่แค่ข้าม try
+       block) ทำให้เคส "ไม่มีร่างเก่าเลย" (เปิดเว็บครั้งแรก/ยังไม่เคยพิมพ์อะไร) ข้าม ensureEditorHasBlocks()
+       ท้ายฟังก์ชันไปด้วย — editor เลยว่างเปล่าสนิทจริงๆ (ไม่มี <div><br></div> ครอบ) ผลคือตอน focus() ตั้งแต่
+       เปิดหน้า เคอร์เซอร์เกาะกับกล่อง editor ตรงๆ (ไม่มี margin ซ้าย-ขวา) เลยไปอยู่ชิดซ้ายกระดาษ ทั้งที่
+       placeholder (ข้อความจางๆ) จัดกึ่งกลางถูกต้องอยู่แล้ว — พอเริ่มพิมพ์ค่อยมีบล็อกจริงมาครอบแล้วเคอร์เซอร์
+       ถึงกลับมาตรงตำแหน่ง ย้าย ensureEditorHasBlocks() มาไว้นอกเงื่อนไข "มีร่างเก่าไหม" แทน ให้รันเสมอ */
     try {
       var raw = localStorage.getItem(AUTOSAVE_KEY);
-      if (!raw) return;
-      var saved = JSON.parse(raw);
-      if (saved && typeof saved.html === 'string') {
-        editor.innerHTML = saved.html;
-        state.header = saved.header || ''; state.footer = saved.footer || ''; state.pageNum = !!saved.pageNum;
-        els.docHeader.innerHTML = saved.headerHtml || (saved.header ? escapeHtml(saved.header) : '');
-        els.docFooter.innerHTML = saved.footerHtml || (saved.footer ? escapeHtml(saved.footer) : '');
-        state.pageSize = saved.pageSize || 'A4'; state.orientation = saved.orientation || 'portrait'; state.margins = saved.margins || 'normal';
-        setStatus(t('restoredDraft'));
+      if (raw) {
+        var saved = JSON.parse(raw);
+        if (saved && typeof saved.html === 'string') {
+          editor.innerHTML = saved.html;
+          state.header = saved.header || ''; state.footer = saved.footer || ''; state.pageNum = !!saved.pageNum;
+          els.docHeader.innerHTML = saved.headerHtml || (saved.header ? escapeHtml(saved.header) : '');
+          els.docFooter.innerHTML = saved.footerHtml || (saved.footer ? escapeHtml(saved.footer) : '');
+          state.pageSize = saved.pageSize || 'A4'; state.orientation = saved.orientation || 'portrait'; state.margins = saved.margins || 'normal';
+          setStatus(t('restoredDraft'));
+        }
       }
     } catch (e) {}
     ensureEditorHasBlocks(); // ครอบทั้งเคสไม่มีร่างเก่าเลย (editor ว่างสนิท) และร่างเก่าที่บันทึกไว้ตอนยังมีบั๊กนี้ (text node ลอยหัวเอกสาร)
@@ -2026,6 +2061,11 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   renderIssues();
   updateCounts();
   editor.focus(); // ให้เห็นเคอร์เซอร์กะพริบพร้อมพิมพ์ได้ทันทีตั้งแต่เปิดหน้า ไม่ต้องคลิกก่อน
+  /* ถ้าเว็บนี้ยังไม่เคยปลดล็อกด่านรหัสผ่าน (auth-gate.js) ตอนที่บรรทัด .focus() ด้านบนรันอยู่ หน้าจอยัง
+     ถูกด่านรหัสผ่านบังอยู่เต็มจอ (z-index สูงกว่า) — โฟกัสที่ตั้งไว้ตอนนั้นอาจไม่ติดจริง เพราะกล่องพิมพ์ยัง
+     ไม่ได้แสดงผลจริงให้ผู้ใช้เห็น พอกรอกรหัสผ่านถูกแล้วด่านหายไป ก็ไม่มีอะไรมา focus() กล่องพิมพ์ให้ใหม่อีก
+     รอบ — ดัก event ที่ auth-gate.js ยิงมาตอนปลดล็อกสำเร็จ แล้ว focus() ซ้ำอีกที */
+  window.addEventListener('tanot:authed', function () { editor.focus(); });
   /* จัดหน้าอีกครั้งหลังฟอนต์โหลดเสร็จ (ความสูงบรรทัดเปลี่ยน → ตำแหน่งแบ่งหน้าแม่นขึ้น) */
   setTimeout(function () { try { layoutPages(false); } catch (e) {} }, 60);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { try { layoutPages(false); } catch (e) {} });

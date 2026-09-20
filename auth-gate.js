@@ -61,6 +61,10 @@
             localStorage.setItem(KEY, '1');
           } catch (e) {}
           gate.remove();
+          /* แจ้งให้สคริปต์อื่นของหน้านี้รู้ว่าปลดล็อกแล้ว (เช่น word.js ที่อยาก focus กล่องพิมพ์เอกสารทันที
+             ตั้งแต่เปิดหน้า — แต่ตอนที่มันเรียก .focus() ครั้งแรกตอนสคริปต์รัน ด่านรหัสผ่านนี้ยังบังหน้าจออยู่
+             เลย focus ไม่ติด ต้องรอ event นี้แล้วค่อย focus ใหม่อีกที) */
+          window.dispatchEvent(new Event('tanot:authed'));
         } else {
           document.getElementById('tanot-gate-err').style.display = 'block';
           document.getElementById('tanot-gate-pw').value = '';

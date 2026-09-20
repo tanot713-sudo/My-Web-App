@@ -232,6 +232,11 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
 .wd-editor .wd-toc a:hover{color:var(--sky-dk)}
 .wd-editor .wd-toc a.lvl2{padding-left:18px;font-size:13.5px}
 .wd-editor .wd-toc a.lvl3{padding-left:36px;font-size:13px;color:var(--muted)}
+/* บล็อกแรกที่ ensureEditorHasBlocks() (word.js) แทรกไว้ตอนเอกสารว่างเปล่าสนิท (<div><br></div> พร้อม
+   data-ph) ผ่าน applyBlockWidth() ใน layoutPages() เหมือนย่อหน้าจริงทุกอันอยู่แล้ว จึงจัดกึ่งกลางถูก
+   ตำแหน่งเดียวกับตอนพิมพ์จริงโดยอัตโนมัติ ไม่ต้องพึ่งตัวแปร --wd-content-w แยกแบบ .wd-editor:empty เดิม
+   (เก็บกฎ :empty ไว้เป็น fallback เผื่อกรณีหายาก ensureEditorHasBlocks() ยังไม่ทันรัน) */
+.wd-editor>div:only-child:has(>br:only-child)::before{content:attr(data-ph);color:#B7BECE;pointer-events:none}
 .wd-editor:empty::before{content:attr(data-placeholder);color:#B7BECE;pointer-events:none;
   display:block;max-width:var(--wd-content-w,100%);margin-left:auto;margin-right:auto}
 
