@@ -25,6 +25,7 @@
       restored: 'เปิดงานล่าสุดที่บันทึกไว้',
       importing: 'กำลังนำเข้าไฟล์…', imported: 'นำเข้าไฟล์ “{name}” เรียบร้อยแล้ว',
       importError: 'นำเข้าไฟล์ไม่สำเร็จ: {msg}', importEmpty: 'ไม่พบข้อมูลในไฟล์',
+      importTimeout: 'นำเข้าไฟล์นานผิดปกติ (เกิน 45 วินาที) ไฟล์นี้อาจมีปัญหาความเข้ากันได้ — ลองบันทึกไฟล์ใหม่จาก Excel จริงแล้วอัปโหลดอีกครั้ง',
       exporting: 'กำลังสร้างไฟล์…', exported: 'ดาวน์โหลดไฟล์เรียบร้อยแล้ว',
       exportError: 'ดาวน์โหลดไม่สำเร็จ: {msg}',
       pdfGenerating: 'กำลังสร้างไฟล์ PDF…', pdfDone: 'สร้างไฟล์ PDF เรียบร้อยแล้ว', pdfError: 'สร้าง PDF ไม่สำเร็จ: {msg}',
@@ -61,6 +62,7 @@
       restored: 'Restored your last saved work',
       importing: 'Importing file…', imported: 'Imported “{name}”',
       importError: 'Import failed: {msg}', importEmpty: 'No data found in the file',
+      importTimeout: 'Import is taking unusually long (over 45s) — this file may have a compatibility issue. Try re-saving it from real Excel and uploading again.',
       exporting: 'Generating file…', exported: 'File downloaded',
       exportError: 'Download failed: {msg}',
       pdfGenerating: 'Generating PDF…', pdfDone: 'PDF created successfully', pdfError: 'Couldn\'t create PDF: {msg}',
@@ -403,14 +405,32 @@
     }
     /* .xlsx / .xls → LuckyExcel */
     if (!window.LuckyExcel) { setStatus(t('importError', { msg: 'LuckyExcel' }), true); return; }
+    /* LuckyExcel แปลงไฟล์ในเธรดเดียวกับหน้าเว็บ ไม่มี worker และเจอจริงว่าไฟล์บางไฟล์ (เช่นไฟล์ที่ผ่าน
+       การคัดลอกข้ามเวิร์กบุ๊กมานาน จนสไตล์บางเซลล์อ้างอิงอะไรที่ไม่มีอยู่จริง) ทำให้ LuckyExcel throw
+       exception ข้างในของมันเอง อยู่ใน Promise ที่ตัวมันเองไม่ได้ดัก error ไว้ — ทั้ง callback สำเร็จและ
+       callback error ที่ส่งเข้าไปด้านล่างนี้เลย "ไม่ถูกเรียกเลยตลอดไป" ทำให้หน้าเว็บติดค้างที่ข้อความ
+       "กำลังนำเข้าไฟล์…" ไม่รู้จบ (ดูเหมือนเบราว์เซอร์ค้าง) — ตั้งเวลาคอยเฝ้าไว้ ถ้าเกิน 45 วินาทีแล้ว
+       ยังไม่มี callback ไหนถูกเรียกเลย ให้ถือว่าล้มเหลวแล้วแจ้งผู้ใช้แทนที่จะปล่อยค้างไม่มีกำหนด */
+    var importSettled = false;
+    var importTimeoutId = setTimeout(function () {
+      if (importSettled) return;
+      importSettled = true;
+      setStatus(t('importTimeout'), true);
+    }, 45000);
     LuckyExcel.transformExcelToLucky(file, function (exportJson) {
+      if (importSettled) return; // timeout แจ้งไปแล้วก่อนหน้า — ผลลัพธ์มาช้าเกินไป ไม่ต้องทำอะไรซ้ำ
+      importSettled = true; clearTimeout(importTimeoutId);
       try {
         if (!exportJson || !exportJson.sheets || !exportJson.sheets.length) { setStatus(t('importEmpty'), true); return; }
         createSheet(exportJson.sheets);
         setStatus(t('imported', { name: name }));
         scheduleSave();
       } catch (err) { setStatus(t('importError', { msg: err.message }), true); }
-    }, function (err) { setStatus(t('importError', { msg: (err && err.message) || 'error' }), true); });
+    }, function (err) {
+      if (importSettled) return;
+      importSettled = true; clearTimeout(importTimeoutId);
+      setStatus(t('importError', { msg: (err && err.message) || 'error' }), true);
+    });
   }
 
   /* ── ส่งออกไฟล์ ── */

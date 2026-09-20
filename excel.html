@@ -186,7 +186,16 @@ footer a{color:var(--sky-dk);text-decoration:none;font-weight:600}
 
 <!-- ไลบรารี: SheetJS (อ่าน/เขียน .xlsx/.csv), LuckyExcel (แปลง .xlsx→สเปรดชีต), Luckysheet (กริด/สูตร) -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/luckyexcel@1.0.1/dist/luckyexcel.umd.js"></script>
+<!-- LuckyExcel 1.0.1 vendor ไว้เอง (ไม่ใช้ CDN) แก้บั๊กจริงที่เจอ: ไฟล์ .xlsx ที่เคยผ่านการคัดลอก/วนใช้
+     ข้ามไฟล์กันมานาน (พบใน production — สไตล์บางเซลล์อ้างอิง borderId ที่ไม่มีอยู่จริงใน styles.xml ของ
+     ไฟล์ เช่นไฟล์ที่เคยผ่านการก็อปข้ามเวิร์กบุ๊กหลายรอบจนมี defined name ตกค้างเป็นหมื่นรายการ) ทำให้
+     LuckyExcel เดิม (ต้นทาง) throw exception "Cannot read properties of undefined (reading
+     'getInnerElements')" ตอนอ่านสไตล์ขอบเซลล์ ข้าง ๆ ล้มเงียบ ๆ อยู่ใน Promise ที่ไม่มีใครดัก error
+     — ฝั่งเว็บเลยติดค้างที่ "กำลังนำเข้าไฟล์…" ตลอดไปไม่มีวันจบ (ดูเหมือนเบราว์เซอร์ค้าง) แก้ที่ต้นตอ
+     โดย patch แค่บรรทัดเดียวใน luckyexcel.umd.js: เพิ่มเงื่อนไขเช็คว่า borders[borderIdNum] มีจริงก่อน
+     ใช้งาน ถ้าไม่มีก็แค่ข้ามการใส่ขอบเซลล์นั้นไปเฉย ๆ (แทนที่จะพัง) — ทดสอบกับไฟล์จริงที่เจอปัญหาแล้ว
+     นำเข้าสำเร็จภายในไม่กี่วินาที -->
+<script src="vendor/luckyexcel/luckyexcel.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/luckysheet@2.1.13/dist/plugins/js/plugin.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/luckysheet@2.1.13/dist/luckysheet.umd.js"></script>
 <!-- Chart.js (กราฟเส้นแนวโน้ม+พยากรณ์ ในฟีเจอร์วิเคราะห์ข้อมูล — แยกจากกราฟของ Luckysheet เอง) -->
