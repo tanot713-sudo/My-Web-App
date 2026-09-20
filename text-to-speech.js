@@ -673,11 +673,14 @@
     var estimatedNeurons = totalMinutes * NEURONS_PER_AUDIO_MINUTE;
 
     if (estimatedNeurons > remainingNeurons()) {
-      var estCost = (estimatedNeurons / 1000 * 0.011).toFixed(3);
+      /* คิดค่าใช้จ่ายจากเฉพาะส่วนที่เกินโควตาฟรี ไม่ใช่ยอดรวมทั้งไฟล์ (โควตาฟรี 10,000 Neurons/วัน
+         ไม่เสียเงินอยู่แล้ว เสียเฉพาะส่วนเกิน) */
+      var overageNeurons = estimatedNeurons - remainingNeurons();
+      var estCost = (overageNeurons / 1000 * 0.011).toFixed(3);
       var proceed = window.confirm(
         'เสียงไฟล์นี้ยาว ~' + totalMinutes.toFixed(1) + ' นาที ต้องใช้ ~' + Math.round(estimatedNeurons) + ' Neurons ' +
         'แต่วันนี้เหลือโควตาฟรีแค่ ' + Math.round(remainingNeurons()) + ' Neurons (ใช้ไปแล้ว ' + Math.round(getNeuronUsage()) + '/' + DAILY_NEURON_LIMIT + ') — ' +
-        'ถ้าทำต่อส่วนที่เกินจะมีค่าใช้จ่ายจริง (~$' + estCost + ') กดตกลงเพื่อทำต่อ หรือยกเลิกเพื่อหยุด'
+        'ส่วนที่เกิน ~' + Math.round(overageNeurons) + ' Neurons จะมีค่าใช้จ่ายจริง (~$' + estCost + ') กดตกลงเพื่อทำต่อ หรือยกเลิกเพื่อหยุด'
       );
       if (!proceed) throw new Error('ยกเลิกแล้ว (เกินโควตาฟรีวันนี้)');
     }
