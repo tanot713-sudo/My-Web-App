@@ -1296,12 +1296,26 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   els.redoBtn.addEventListener('click', function () { focusActive(); document.execCommand('redo'); if (isHF()) syncHFFromRegions(); scheduleAutosave(); });
 
   /* ── คลิปบอร์ด ── */
+  /* ใช้ร่วมกันทั้งปุ่ม "วาง" บน toolbar (เรียก navigator.clipboard.readText() เอง) และ paste event ของ
+     กล่องเนื้อหาหลัก (ดักด้วย editor.addEventListener('paste', ...) ด้านล่าง) — กันบั๊กที่เคยเจอว่าแก้แค่
+     จุดเดียว (paste event) แต่ลืมปุ่ม toolbar เลยยังเจอปัญหาข้อความยาวๆ ล้นหน้าเหมือนเดิมถ้าผู้ใช้กดปุ่ม
+     "วาง" แทนการกด Ctrl+V ตรงๆ */
+  function insertPastedPlainText(text) {
+    if (text.length > PASTE_SPLIT_THRESHOLD) {
+      var paras = splitPastedTextIntoParagraphs(text);
+      if (paras.length) {
+        document.execCommand('insertHTML', false, paras.map(function (p) { return '<p>' + escapeHtml(p) + '</p>'; }).join(''));
+        return;
+      }
+    }
+    document.execCommand('insertText', false, text);
+  }
   els.cutBtn.addEventListener('click', function () { focusActive(); document.execCommand('cut'); if (isHF()) syncHFFromRegions(); scheduleAutosave(); });
   els.copyBtn.addEventListener('click', function () { focusActive(); document.execCommand('copy'); });
   els.pasteBtn.addEventListener('click', function () {
     focusActive();
     if (navigator.clipboard && navigator.clipboard.readText) {
-      navigator.clipboard.readText().then(function (txt) { document.execCommand('insertText', false, txt); if (isHF()) syncHFFromRegions(); scheduleAutosave(); })
+      navigator.clipboard.readText().then(function (txt) { insertPastedPlainText(txt); if (isHF()) syncHFFromRegions(); scheduleAutosave(); })
         .catch(function () { setStatus(t('pasteError'), true); });
     } else { setStatus(t('pasteError'), true); }
   });
@@ -1962,9 +1976,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     var text = e.clipboardData.getData('text/plain');
     if (!text || text.length <= PASTE_SPLIT_THRESHOLD) return;
     e.preventDefault();
-    var paras = splitPastedTextIntoParagraphs(text);
-    if (!paras.length) return;
-    document.execCommand('insertHTML', false, paras.map(function (p) { return '<p>' + escapeHtml(p) + '</p>'; }).join(''));
+    insertPastedPlainText(text);
     scheduleAutosave();
   });
 
@@ -2012,6 +2024,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   renderFootnotes();
   renderIssues();
   updateCounts();
+  editor.focus(); // ให้เห็นเคอร์เซอร์กะพริบพร้อมพิมพ์ได้ทันทีตั้งแต่เปิดหน้า ไม่ต้องคลิกก่อน
   /* จัดหน้าอีกครั้งหลังฟอนต์โหลดเสร็จ (ความสูงบรรทัดเปลี่ยน → ตำแหน่งแบ่งหน้าแม่นขึ้น) */
   setTimeout(function () { try { layoutPages(false); } catch (e) {} }, 60);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { try { layoutPages(false); } catch (e) {} });
