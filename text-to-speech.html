@@ -121,7 +121,6 @@ details[open]>summary::before{transform:rotate(90deg)}
       ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน (ช้ากว่าปกติ)
     </label>
   </div>
-  <p class="mini">รองรับ .txt · .docx · .xlsx/.xls/.csv · .pptx · .pdf · รูปภาพ (.png/.jpg/.webp/.bmp)</p>
   <div class="status" id="importStatus"></div>
   <textarea id="ttsText" rows="6" placeholder="พิมพ์หรือวางข้อความที่นี่ (ไทยหรืออังกฤษก็ได้) หรือกด แนบไฟล์ด้านบน" style="margin-top:8px"></textarea>
   <div class="char-count" id="ttsCharCount">0 ตัวอักษร</div>
@@ -129,7 +128,6 @@ details[open]>summary::before{transform:rotate(90deg)}
 
 <div class="card">
   <h2>ฟังทันที (เสียงจากเบราว์เซอร์)</h2>
-  <p class="mini" id="wsThaiNote">กำลังตรวจสอบเสียงที่มีในเครื่องนี้…</p>
   <div class="frow" style="margin-top:8px">
     <div class="field" style="flex:2 1 220px"><label>เสียง</label>
       <select id="wsVoice"></select>
@@ -144,7 +142,6 @@ details[open]>summary::before{transform:rotate(90deg)}
     <button class="btn sm" id="wsStopBtn" type="button">⏹ หยุด</button>
   </div>
   <div class="status" id="wsStatus"></div>
-  <p class="mini">โหมดนี้เล่นเสียงสดเท่านั้น <b>ดาวน์โหลดเป็นไฟล์ไม่ได้</b> (เพราะเสียงมาจากระบบปฏิบัติการ/เบราว์เซอร์โดยตรง ไม่ใช่ข้อมูลเสียงที่หน้าเว็บนี้เข้าถึงได้) — ถ้าต้องการไฟล์ดาวน์โหลด ใช้การ์ดด้านล่างแทน</p>
 </div>
 
 <div class="card">
@@ -175,7 +172,6 @@ details[open]>summary::before{transform:rotate(90deg)}
 
 <div class="card">
   <h2>เสียง/วิดีโอ → ข้อความ</h2>
-  <p class="mini">อัปโหลดไฟล์เสียงหรือวิดีโอ (mp3, wav, mp4, webm ฯลฯ) — รองรับไฟล์จาก iPhone ด้วย เช่น บันทึกเสียง (.m4a) และวิดีโอ (.mov) ใช้งานบนมือถือได้เช่นกัน</p>
   <div class="frow" style="margin-top:8px">
     <div class="field"><label>ไฟล์เสียง/วิดีโอ</label>
       <input type="file" id="asrFile" accept="audio/*,video/*">
@@ -204,9 +200,6 @@ details[open]>summary::before{transform:rotate(90deg)}
     </div>
   </div>
   <div class="asr-engine-note" id="asrEngineNote">
-    โหมดนี้ส่งเสียงไปถอดด้วย Whisper Large v3 บน Cloudflare Workers AI (แม่นกว่าและเร็วกว่าในเบราว์เซอร์มาก
-    เพราะรันบนเซิร์ฟเวอร์ ไม่ใช่เครื่องคุณ) — มีโควตาฟรีวันละ 10,000 Neurons (~3.5 ชม.เสียง) รีเซ็ตเที่ยงคืน UTC
-    (~7 โมงเช้าเวลาไทย) เกินโควตาแล้วมีค่าใช้จ่ายจริง (~$0.0005/นาทีเสียง)
     <div class="asr-neuron-status" id="asrNeuronStatus"></div>
   </div>
   <div class="frow" style="margin-top:10px">
@@ -219,7 +212,6 @@ details[open]>summary::before{transform:rotate(90deg)}
       <button class="btn sm" id="asrCopyBtn" type="button">คัดลอกข้อความ</button>
       <button class="btn primary sm" id="meetingSumBtn" type="button">📝 สรุปประชุมด้วย AI</button>
     </div>
-    <p class="mini" style="margin-top:6px">สรุปด้วยโมเดล AI ที่รันในเบราว์เซอร์ของคุณเอง (ฟรี ไม่ส่งข้อความออกไปไหน) — ข้อความถอดเสียงยังไม่แยกว่าใครพูด และคุณภาพสรุปขึ้นกับความยาว/ความชัดเจนของเสียงต้นฉบับ ควรตรวจทานก่อนใช้งานจริงเสมอ (ไม่รองรับบน iPhone/iPad — ใช้คอมพิวเตอร์แทน)</p>
     <div class="status" id="meetingSumStatus"></div>
     <div id="meetingSumWrap" style="display:none;margin-top:10px">
       <textarea id="meetingSumResult" rows="10" readonly style="background:var(--bg)"></textarea>

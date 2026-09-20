@@ -90,24 +90,18 @@
     var sel = $('wsVoice');
     if (!window.speechSynthesis) {
       sel.innerHTML = '<option value="">(เบราว์เซอร์นี้ไม่รองรับ Web Speech API)</option>';
-      $('wsThaiNote').textContent = 'เบราว์เซอร์นี้ไม่รองรับการฟังเสียงสด — ใช้การ์ด "สร้างไฟล์เสียง" ด้านล่างแทนได้';
       $('wsPlayBtn').disabled = true;
       return;
     }
     if (!wsVoices.length) {
       sel.innerHTML = '<option value="">(ยังไม่พบเสียง — บางเบราว์เซอร์โหลดช้า ลองรอสักครู่)</option>';
-      $('wsThaiNote').textContent = 'กำลังตรวจสอบเสียงที่มีในเครื่องนี้…';
       return;
     }
-    var thaiVoices = wsVoices.filter(function (v) { return /^th/i.test(v.lang); });
     sel.innerHTML = wsVoices.map(function (v, i) {
       return '<option value="' + i + '">' + v.name + ' (' + v.lang + ')' + (v.default ? ' — ค่าเริ่มต้น' : '') + '</option>';
     }).join('');
     var defaultIdx = wsVoices.findIndex(function (v) { return v.default; });
     if (defaultIdx >= 0) sel.value = String(defaultIdx);
-    $('wsThaiNote').textContent = thaiVoices.length
-      ? ('พบเสียงภาษาไทยในเครื่องนี้ ' + thaiVoices.length + ' เสียง: ' + thaiVoices.map(function (v) { return v.name; }).join(', '))
-      : 'ไม่พบเสียงภาษาไทยในเบราว์เซอร์/เครื่องนี้ตอนนี้ — ลองใช้ Chrome หรือเปิดใช้ภาษาไทยในการตั้งค่าเสียงพูดของอุปกรณ์ ถ้าไม่มีให้ข้ามไปใช้การ์ด "สร้างไฟล์เสียง" ด้านล่างแทน (รองรับไทยเสมอ)';
   }
   function wsPlay() {
     var text = $('ttsText').value;
@@ -657,12 +651,34 @@
     });
   }
 
-  /* ตัด PCM ยาวๆ เป็นท่อนละ chunkSec วินาที ไม่เหลื่อมกัน (ต่างจากโหมดเบราว์เซอร์ที่ให้ transformers.js
-     จัดการ stride เองภายใน) — เรียก Worker ทีละท่อนแล้วต่อข้อความกลับมาด้วยช่องว่าง ง่ายกว่าและคาดเดา
-     พฤติกรรมได้มากกว่าสำหรับ API เรียกทีละคำขอ (เสี่ยงตกคำที่รอยตัดบ้างเล็กน้อย ยอมรับได้) */
+  /* หาจุดตัดที่ใกล้ตำแหน่งเป้าหมาย (targetIdx) ที่สุด โดยเลือกจุดที่พลังงานเสียงต่ำสุด (เงียบที่สุด) ในช่วง
+     ค้นหา ±searchSamples รอบๆ เป้าหมาย — ใช้แบ่งท่อนเสียงส่งไปถอดทีละท่อน */
+  function findQuietCutPoint(pcm, targetIdx, searchSamples, frameLen) {
+    var lo = Math.max(0, targetIdx - searchSamples), hi = Math.min(pcm.length, targetIdx + searchSamples);
+    var bestIdx = targetIdx, bestEnergy = Infinity;
+    for (var i = lo; i < hi; i += frameLen) {
+      var end = Math.min(i + frameLen, pcm.length), sum = 0;
+      for (var j = i; j < end; j++) sum += pcm[j] * pcm[j];
+      var energy = sum / (end - i);
+      if (energy < bestEnergy) { bestEnergy = energy; bestIdx = i; }
+    }
+    return bestIdx;
+  }
+  /* ตัด PCM ยาวๆ เป็นท่อนละประมาณ chunkSec วินาที — เดิมตัดตรงจุดตายตัวเป๊ะๆ ทุก chunkSec วินาที ซึ่งเจอ
+     ปัญหาจริงว่าตัดกลางคำ/กลางประโยคบ่อย (โดยเฉพาะเสียงประชุมยาวๆ) ทำให้ Whisper "หลอน" ออกมาเป็นคำ
+     แปลกๆ/ภาษาอื่นปนที่รอยต่อแต่ละท่อน แก้โดยขยับจุดตัดไปหาช่วงที่เงียบที่สุดในรัศมี ±3 วินาทีรอบเป้าหมาย
+     แทน (ค้นด้วย findQuietCutPoint ด้านบน) ให้ท่อนที่ตัดจบพอดีตรงช่วงเงียบ/หยุดพูดแทนกลางคำ */
   function chunkPcm(pcm, sampleRate, chunkSec) {
-    var chunkLen = sampleRate * chunkSec, chunks = [];
-    for (var i = 0; i < pcm.length; i += chunkLen) chunks.push(pcm.subarray(i, Math.min(i + chunkLen, pcm.length)));
+    var chunkLen = sampleRate * chunkSec, searchSamples = sampleRate * 3, frameLen = Math.round(sampleRate * 0.02);
+    var chunks = [], start = 0;
+    while (start < pcm.length) {
+      var target = start + chunkLen;
+      if (target >= pcm.length) { chunks.push(pcm.subarray(start, pcm.length)); break; }
+      var cut = findQuietCutPoint(pcm, target, searchSamples, frameLen);
+      if (cut <= start) cut = target; // กันท่อนว่างเปล่า/จุดตัดถอยหลังไปทับท่อนก่อนหน้า
+      chunks.push(pcm.subarray(start, cut));
+      start = cut;
+    }
     return chunks;
   }
 
@@ -1108,6 +1124,7 @@
     synthesizeMmsTtsChunks: synthesizeMmsTtsChunks,
     synthesizeMmsTtsChunksInWorkerPool: synthesizeMmsTtsChunksInWorkerPool,
     synthesizeMmsTtsChunksResponsive: synthesizeMmsTtsChunksResponsive,
-    chunkText: chunkText, buildMeetingDocxBlob: buildMeetingDocxBlob, isIOS: isIOS
+    chunkText: chunkText, buildMeetingDocxBlob: buildMeetingDocxBlob, isIOS: isIOS,
+    chunkPcm: chunkPcm, findQuietCutPoint: findQuietCutPoint
   };
 })();
