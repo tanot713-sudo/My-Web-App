@@ -12,7 +12,10 @@
   --ome-ok:#17B26A; --ome-warn:#E08700; --ome-err:#E5484D;
   --ome-f:'Prompt',system-ui,-apple-system,sans-serif;
   --ome-r:16px; --ome-sh:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.06);
-  --ome-nav-h:48px;
+  /* บวก safe-area-inset-top เข้าไปในตัวแปรนี้ตัวเดียว — จุดอื่นที่อ้างอิง var(--ome-nav-h) ทั้งหมด
+     (เช่น sticky top ของแถบข้าง, top ของแผงตั้งค่า) จะเลื่อนเผื่อรอยบากอัตโนมัติไปด้วยโดยไม่ต้องแก้
+     ทีละจุด — env() ที่เบราว์เซอร์ไม่รองรับ/ไม่มีรอยบากจะได้ 0px เท่ากับพฤติกรรมเดิมทุกประการ */
+  --ome-nav-h:calc(48px + env(safe-area-inset-top, 0px));
 
   /* ── มาตราระยะห่างกลาง (spacing scale) — ยึดหน่วย 4px เป็นฐาน
      ใช้แทนเลข px ที่เคย hardcode กระจายไปแต่ละหน้า เพื่อให้ระยะห่างสม่ำเสมอกัน
@@ -136,9 +139,9 @@ body{padding-bottom:0!important}
 .ome-footer{margin-top:0}
 
 /* ── แถบนำทางกลาง (ฉีดโดย shell.js) — ปุ่มแฮมเบอร์เกอร์ + ลิ้นชักเมนู ──── */
-.ome-nav{position:sticky;top:0;z-index:100;height:var(--ome-nav-h);
+.ome-nav{position:sticky;top:0;z-index:100;height:var(--ome-nav-h);box-sizing:border-box;
   background:var(--ome-card);border-bottom:1px solid var(--ome-line);
-  display:flex;align-items:center;gap:4px;padding:0 10px;
+  display:flex;align-items:center;gap:4px;padding:env(safe-area-inset-top, 0px) 10px 0;
   font-family:var(--ome-f);font-size:13.5px;box-shadow:0 1px 3px rgba(24,31,54,.04)}
 .ome-nav a,.ome-nav button{font-family:var(--ome-f)}
 .ome-hamburger{width:36px;height:36px;border-radius:10px;border:none;background:transparent;
@@ -159,6 +162,7 @@ body{padding-bottom:0!important}
   opacity:0;pointer-events:none;transition:.2s}
 .ome-drawer-backdrop.open{opacity:1;pointer-events:auto}
 .ome-drawer{position:fixed;top:0;left:0;bottom:0;width:290px;max-width:86vw;background:var(--ome-card);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
   z-index:200;box-shadow:8px 0 30px rgba(0,0,0,.18);transform:translateX(-100%);transition:transform .22s ease;
   display:flex;flex-direction:column;font-family:var(--ome-f)}
 .ome-drawer.open{transform:translateX(0)}
@@ -189,7 +193,7 @@ body{padding-bottom:0!important}
 }
 
 /* ── ฟุตเตอร์กลางล่างสุด (ฉีดโดย shell.js ทุกหน้า) ─────────────────── */
-.ome-footer{text-align:center;padding:26px 16px 34px;font-size:12.5px;font-family:var(--ome-f)}
+.ome-footer{text-align:center;padding:26px 16px calc(34px + env(safe-area-inset-bottom, 0px));font-size:12.5px;font-family:var(--ome-f)}
 .ome-footer a{color:var(--ome-muted);text-decoration:none;font-weight:600}
 .ome-footer a:hover{color:var(--ome-brand-dk);text-decoration:underline}
 
