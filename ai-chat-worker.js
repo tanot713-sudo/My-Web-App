@@ -26,12 +26,15 @@ var activeInfo = null; // { modelId, device } ของ pipeline ที่โห
 
 /* ⚠️ ต้อง pin เวอร์ชัน onnxruntime-web เดียวกับ tts-worker.js (1.24.3) เพราะใช้ vendor bundle
    ชุดเดียวกัน (vendor/transformers/*) ห้ามอัปเดตแยกจากกันโดยไม่เช็ค microsoft/onnxruntime#28306 และ
-   huggingface/transformers.js#1707 ก่อนเสมอ — ดูรายละเอียดเต็มที่คอมเมนต์เดียวกันใน tts-worker.js */
+   huggingface/transformers.js#1707 ก่อนเสมอ — ดูรายละเอียดเต็มที่คอมเมนต์เดียวกันใน tts-worker.js
+   ⚠️ .wasm ตัว asyncify โหลดจาก jsDelivr แทนการฝังในเครื่อง (เกินลิมิต 25 MiB ของ Cloudflare Pages) —
+   ดูเหตุผลเต็มที่คอมเมนต์เหนือ configureOnnxWasmPaths ใน tts-worker.js */
+var ONNX_ASYNCIFY_WASM_CDN_URL = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.3/dist/ort-wasm-simd-threaded.asyncify.wasm';
 function configureOnnxWasmPaths(env) {
   var isSafari = /^((?!chrome|android|crios|fxios|edg).)*safari/i.test(self.navigator.userAgent);
   env.backends.onnx.wasm.wasmPaths = isSafari
     ? { mjs: './vendor/transformers/ort-wasm-simd-threaded.mjs', wasm: './vendor/transformers/ort-wasm-simd-threaded.wasm' }
-    : { mjs: './vendor/transformers/ort-wasm-simd-threaded.asyncify.mjs', wasm: './vendor/transformers/ort-wasm-simd-threaded.asyncify.wasm' };
+    : { mjs: './vendor/transformers/ort-wasm-simd-threaded.asyncify.mjs', wasm: ONNX_ASYNCIFY_WASM_CDN_URL };
   env.backends.onnx.wasm.numThreads = 1; // ไม่มี SharedArrayBuffer อยู่แล้ว บังคับ single-thread กันค้าง
 }
 

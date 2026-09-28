@@ -55,11 +55,18 @@ function ttsPipelineOpts(modelId, onProgress) {
    session กับโมเดล quantized ที่ไม่มี scale tensor ตามฟอร์แมตใหม่ (เจอจริงกับ Whisper ที่ใช้ในหน้านี้
    ผ่าน error "Can't create a session... Missing required scale") ถ้าจะอัปเดตเวอร์ชันในอนาคต ต้องรอ
    ยืนยันว่า issue นี้ถูกแก้แล้วในเวอร์ชันที่จะอัปเดตไปก่อนเสมอ */
+/* ⚠️ 2026-09-28: ort-wasm-simd-threaded.asyncify.wasm หนัก 25.93 MiB เกินลิมิตไฟล์เดียว 25 MiB ของ
+   Cloudflare Pages (ทำ build ล้มตั้งแต่ ~11 ก.ย.) จึงย้ายเฉพาะไฟล์ .wasm ตัวนี้ไปโหลดจาก jsDelivr
+   (pin @1.24.3 เดียวกับที่เหลือ ห้ามใช้ "latest") แทนการฝังในเครื่อง — ไฟล์ .mjs (ตัว glue script)
+   ยังฝังในเครื่องเหมือนเดิม เพราะเป็นไฟล์เล็ก (<50KB ไม่ติดลิมิต) และ import() ของมันเป็น relative
+   path อยู่แล้ว ไม่เจอบั๊ก bare-specifier แบบที่เคยเจอตอนโหลด transformers.js จาก CDN ตรงๆ ใน Worker
+   ไฟล์ .wasm แบบ non-asyncify (threaded, เฉพาะ Safari) ขนาด ~12 MiB ไม่เกินลิมิต ยังฝังในเครื่องต่อไป */
+var ONNX_ASYNCIFY_WASM_CDN_URL = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.3/dist/ort-wasm-simd-threaded.asyncify.wasm';
 function configureOnnxWasmPaths(env) {
   var isSafari = /^((?!chrome|android|crios|fxios|edg).)*safari/i.test(self.navigator.userAgent);
   env.backends.onnx.wasm.wasmPaths = isSafari
     ? { mjs: './vendor/transformers/ort-wasm-simd-threaded.mjs', wasm: './vendor/transformers/ort-wasm-simd-threaded.wasm' }
-    : { mjs: './vendor/transformers/ort-wasm-simd-threaded.asyncify.mjs', wasm: './vendor/transformers/ort-wasm-simd-threaded.asyncify.wasm' };
+    : { mjs: './vendor/transformers/ort-wasm-simd-threaded.asyncify.mjs', wasm: ONNX_ASYNCIFY_WASM_CDN_URL };
   env.backends.onnx.wasm.numThreads = 1; // ไม่มี SharedArrayBuffer อยู่แล้ว บังคับ single-thread กันค้าง (คนละเรื่องกับที่ทำให้หน้าเว็บค้าง — นั่นแก้ด้วยการย้ายมา Worker นี้)
 }
 

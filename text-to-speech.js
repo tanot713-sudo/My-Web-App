@@ -23,12 +23,17 @@
         เอง แค่ชี้ไปไฟล์ที่ฝังในเว็บนี้แทน jsdelivr)
      ⚠️ ไฟล์ vendor onnxruntime-web ทั้งชุด pin ไว้ที่ 1.24.3 ตั้งใจ ห้ามอัปเดตเฉยๆ — ดูเหตุผลเต็มที่
         คอมเมนต์เหนือ configureOnnxWasmPaths ใน tts-worker.js (บั๊ก TransposeDQWeightsForMatMulNBits
-        ในเวอร์ชัน 1.25+ ที่ทำให้สร้าง session พังกับโมเดล quantized บางตัวรวมถึง Whisper) */
+        ในเวอร์ชัน 1.25+ ที่ทำให้สร้าง session พังกับโมเดล quantized บางตัวรวมถึง Whisper)
+     ⚠️ 2026-09-28: ort-wasm-simd-threaded.asyncify.wasm หนัก 25.93 MiB เกินลิมิตไฟล์เดียว 25 MiB ของ
+        Cloudflare Pages จึงย้ายกลับไปโหลดจาก jsDelivr (pin @1.24.3 เดียวกัน ห้ามใช้ "latest") แทนการ
+        ฝังในเครื่อง — ไฟล์ .mjs (glue script) ยังฝังในเครื่องเหมือนเดิม (เล็ก ไม่ติดลิมิต) ส่วนไฟล์
+        .wasm แบบ threaded ปกติ (เฉพาะ Safari) ~12 MiB ไม่เกินลิมิต ยังฝังในเครื่องต่อไป */
+  var ONNX_ASYNCIFY_WASM_CDN_URL = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.3/dist/ort-wasm-simd-threaded.asyncify.wasm';
   function configureOnnxWasmPaths(env) {
     var isSafari = /^((?!chrome|android|crios|fxios|edg).)*safari/i.test(navigator.userAgent);
     env.backends.onnx.wasm.wasmPaths = isSafari
       ? { mjs: './vendor/transformers/ort-wasm-simd-threaded.mjs', wasm: './vendor/transformers/ort-wasm-simd-threaded.wasm' }
-      : { mjs: './vendor/transformers/ort-wasm-simd-threaded.asyncify.mjs', wasm: './vendor/transformers/ort-wasm-simd-threaded.asyncify.wasm' };
+      : { mjs: './vendor/transformers/ort-wasm-simd-threaded.asyncify.mjs', wasm: ONNX_ASYNCIFY_WASM_CDN_URL };
     env.backends.onnx.wasm.numThreads = 1; // ไม่มี SharedArrayBuffer อยู่แล้ว บังคับ single-thread กันค้าง
   }
 
