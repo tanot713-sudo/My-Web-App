@@ -18,7 +18,7 @@
 ## Phase 0 — ฐานราก (ต้องทำก่อนทุกอย่าง)
 
 ### 0a. แพลตฟอร์ม Cloudflare (M)
-1. **แก้ build พัง**: ไม่เก็บ `.wasm` ตัว 25.93 MiB ใน repo แล้ว ให้โหลดจาก jsDelivr แบบ pin `onnxruntime-web@1.24.3` (หรือจาก R2) ส่วนไฟล์ `.mjs` ยังเก็บในเครื่องเหมือนเดิม — ไฟล์ที่ต้องแก้: `text-to-speech.js`, `tts-worker.js`, `asr-worker.js`, `ai-chat-worker.js` + เพิ่ม `credits.html` และเพิ่มการตรวจกันไฟล์เกิน 25 MiB ใน `tests/repo-guards.mjs`
+1. ✅ **เสร็จแล้ว (commit 9950e92)** — **แก้ build พัง**: ไม่เก็บ `.wasm` ตัว 25.93 MiB ใน repo แล้ว ให้โหลดจาก jsDelivr แบบ pin `onnxruntime-web@1.24.3` (หรือจาก R2) ส่วนไฟล์ `.mjs` ยังเก็บในเครื่องเหมือนเดิม — ไฟล์ที่ต้องแก้: `text-to-speech.js`, `tts-worker.js`, `asr-worker.js`, `ai-chat-worker.js` + เพิ่ม `credits.html` และเพิ่มการตรวจกันไฟล์เกิน 25 MiB ใน `tests/repo-guards.mjs`
 2. `wrangler.toml` ที่ root: `pages_build_output_dir="."` + binding `DB` (D1), `FILES` (R2), `AI` — **ไม่มี `package.json` ที่ root** (ถ้ามี Cloudflare จะรัน npm install ทุก build)
 3. ย้าย Worker 3 ตัวมาเป็น Pages Functions (เก็บเวอร์ชันใน repo):
    - `functions/api/_middleware.js` ตรวจ JWT ของ Access (header `Cf-Access-Jwt-Assertion`) ว่า aud ถูก + เป็นอีเมลเจ้าของ
@@ -133,10 +133,131 @@
 
 ## สิ่งที่เจ้าของต้องทำเอง (ผมทำแทนไม่ได้)
 1. เปิด build log ของ Cloudflare Pages ยืนยันว่าล้มเพราะไฟล์เกิน 25 MiB
-2. Zero Trust: สร้าง team + วิธีล็อกอิน (รหัส OTP ทางอีเมล หรือ Google) → เปิด Access policy ในโปรเจกต์ Pages + ทำขั้นตอนลบ `*` → อนุญาตเฉพาะอีเมลตัวเอง ให้ล็อกอินค้างได้ ~1 เดือน → ส่งค่า AUD tag และ team domain มาให้ผม
-3. สร้างฐานข้อมูล D1 + bucket R2 → ส่ง `database_id` มา → วาง `0001_init.sql` ในหน้า console ของ D1
-4. ตั้ง secret ใน Pages: `ANTHROPIC_API_KEY`, `OWNER_EMAIL`, `ACCESS_AUD`, `TEAM_DOMAIN` + สร้างคีย์ VAPID ให้ Worker ตัวจัดตารางแจ้งเตือน (scheduler)
-5. กู้โค้ด OCR Worker: dashboard → `tanot-ocr-proxy` → Edit code → ก๊อปมาเฉพาะโค้ด (ไม่ต้องส่ง API key)
+2. ✅ **เสร็จแล้ว (2026-09-28)** — Zero Trust ตั้งค่าเสร็จ, สร้างแอป `my-web-app-5w2.pages.dev` แยกจาก preview app แล้ว, policy "Allow me only" (Allow + email tanot713@gmail.com) ทดสอบผ่านจริงบน production domain แล้ว
+   - **Team domain**: `fancy-cherry-f763.cloudflareaccess.com` (ไม่ใช่ `tanot.cloudflareaccess.com` — อันนั้นเป็นแค่ team name ที่ตั้งไว้ตอนแรก)
+   - **AUD tag** (ของแอป `my-web-app-5w2.pages.dev`): `f84ccc66f4b1de1e0919624581c1e41569102662e535e5f76e39a077e1e9b830`
+   - ใช้ 2 ค่านี้ใน `functions/api/_middleware.js` (Phase 0a ข้อ 3) ตอนตรวจ JWT — endpoint ดึง public key: `https://fancy-cherry-f763.cloudflareaccess.com/cdn-cgi/access/certs`
+3. ✅ **เสร็จแล้ว (2026-09-28)** — D1 database ชื่อ `tanot-db` (id: `5b56b7fa-8eed-453b-8c2d-81b5004d7b7b`), R2 bucket ชื่อ `tanot-files` (Public Access: Disabled) — ยังไม่ได้วาง schema (`0001_init.sql`) รอเขียนใน Phase 0a ข้อ 5
+4. ✅ **เสร็จแล้ว (2026-09-28)** — ตั้งค่าใน Pages → Variables and secrets ครบ: `OWNER_EMAIL` (Text), `ACCESS_AUD` (Text), `TEAM_DOMAIN` (Text), `ANTHROPIC_API_KEY` (Secret, คีย์ใหม่ชื่อ `tanot-cf-pages` ไม่มีวันหมดอายุ แยกจากคีย์เก่า `tanot-api-key` ที่ Worker OCR เดิมยังใช้อยู่) — ยังไม่ได้สร้างคีย์ VAPID (รอ Phase 3 ตอนทำ Web Push ค่อยทำ ไม่ต้องรีบตอนนี้)
+5. ✅ **เสร็จแล้ว (2026-09-28)** — กู้โค้ด `tanot-ocr-proxy` มาได้ครบแล้ว บันทึกไว้ที่ `docs/ocr-worker-original.js` (สร้างไฟล์นี้ในขั้นแรกของ Phase 0a ข้อ 3 ก่อนเริ่มพอร์ตเป็น `functions/api/ocr.js`) — จุดที่ต้องแก้ตอนพอร์ต: (1) `MODEL = 'claude-sonnet-4-5'` เป็นรุ่นเก่าที่ retired แล้ว ต้องเปลี่ยนเป็นรุ่นปัจจุบัน เช่น `claude-sonnet-5` (2) เพิ่มการตรวจ Access JWT (ใช้ `ACCESS_AUD`/`TEAM_DOMAIN` ที่ตั้งไว้แล้ว) แทนการพึ่ง CORS origin allowlist อย่างเดียว (3) `ALLOWED_ORIGINS` เดิมชี้ไป `tanot713-sudo.github.io` เท่านั้น ต้องเพิ่ม `my-web-app-5w2.pages.dev`
+   - prompt ถอดข้อความ (ห้ามแก้คำผิด, เรียงลำดับตามภาพ, ห้ามแปล/สรุป, ใส่ `[อ่านไม่ออก]` ตรงจุดที่อ่านไม่ออก) เป็นของดีอยู่แล้ว **คงไว้เหมือนเดิมไม่ต้องแก้**
+
+   **โค้ดต้นฉบับที่กู้มา (สำหรับสร้างเป็น `docs/ocr-worker-original.js` ตอนเริ่ม Phase 0a ข้อ 3):**
+   ```js
+   /* ══════════════════════════════════════════════════════════════════
+      Tanot OCR Proxy — Cloudflare Worker
+      คั่นระหว่างเว็บ (doc-check.html) กับ Anthropic API เพื่อไม่ให้ API key
+      หลุดไปอยู่ในโค้ดฝั่งเบราว์เซอร์ — รับรูปภาพจากเว็บ ส่งต่อไป Claude Vision
+      อ่านข้อความในรูป แล้วส่งข้อความที่อ่านได้กลับไป
+
+      วิธี deploy: ดูคำแนะนำที่แชทแยกต่างหาก (ไม่ต้องใช้ CLI ก็ได้ ใช้ dashboard
+      ของ Cloudflare วาง code นี้ตรงๆ ได้เลย)
+      ══════════════════════════════════════════════════════════════════ */
+
+   // ตรวจรุ่นโมเดลล่าสุดได้ที่ https://docs.claude.com/en/docs/about-claude/models
+   // ถ้า deploy แล้วขึ้น error ว่าไม่รู้จักโมเดล ให้เปลี่ยนบรรทัดนี้เป็นชื่อรุ่นปัจจุบัน
+   const MODEL = 'claude-sonnet-4-5';
+
+   // จำกัดให้เรียกได้เฉพาะจาก origin ของเว็บตัวเอง กัน key ถูกคนอื่นแอบใช้ผ่าน worker
+   // เปลี่ยนเป็นโดเมนจริงของเว็บคุณ (ดูจาก URL บนแถบที่อยู่ตอนเปิดเว็บ) — ใส่ได้หลายโดเมน
+   const ALLOWED_ORIGINS = [
+     'https://tanot713-sudo.github.io',
+     'http://localhost:8000', // สำหรับทดสอบในเครื่องตัวเอง (ปรับพอร์ตตามจริง)
+   ];
+
+   function corsHeaders(origin) {
+     const allow = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+     return {
+       'Access-Control-Allow-Origin': allow,
+       'Access-Control-Allow-Methods': 'POST, OPTIONS',
+       'Access-Control-Allow-Headers': 'Content-Type',
+     };
+   }
+
+   export default {
+     async fetch(request, env) {
+       const origin = request.headers.get('Origin') || '';
+
+       if (request.method === 'OPTIONS') {
+         return new Response(null, { headers: corsHeaders(origin) });
+       }
+       if (request.method !== 'POST') {
+         return new Response('Method not allowed', { status: 405, headers: corsHeaders(origin) });
+       }
+
+       let body;
+       try {
+         body = await request.json();
+       } catch (e) {
+         return new Response(JSON.stringify({ error: 'invalid JSON body' }), {
+           status: 400, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+         });
+       }
+
+       const { imageBase64, mediaType, prompt } = body;
+       if (!imageBase64 || !mediaType) {
+         return new Response(JSON.stringify({ error: 'missing imageBase64 or mediaType' }), {
+           status: 400, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+         });
+       }
+
+       // Prompt นี้ปรับตามแนวทางจาก claude-cookbooks (multimodal/best_practices_for_vision.ipynb,
+       // how_to_transcribe_text.ipynb): (1) role assignment ช่วยลด hallucination บนงานภาพ
+       // (2) กฎ "ห้ามแก้คำผิด" คือส่วนสำคัญที่สุดของ prompt นี้ — ปกติโมเดลมักจะ "ช่วย" แก้คำสะกด/
+       // ไวยากรณ์ที่มันเห็นว่าผิดโดยอัตโนมัติ (คล้าย hallucination ที่ cookbook พูดถึง) ซึ่งจะทำลาย
+       // จุดประสงค์ของเครื่องมือนี้ทันที เพราะขั้นตอนถัดไปคือส่งข้อความที่ถอดได้ไปตรวจคำผิดต่อ —
+       // ถ้า Claude แอบแก้คำผิดให้ตั้งแต่ตอน OCR ผู้ใช้จะไม่มีทางเห็นคำผิดตัวจริงในเอกสารเลย
+       const userPrompt = prompt ||
+         'คุณเป็นระบบถอดข้อความ (OCR) มืออาชีพ ทำหน้าที่อ่านข้อความในภาพนี้ให้ตรงกับต้นฉบับที่สุด\n' +
+         'กฎสำคัญ:\n' +
+         '1. ถอดข้อความทุกตัวอักษรตามที่ปรากฏจริงในภาพ (รวมลายมือเขียนถ้ามี) ห้ามแก้คำผิด ไวยากรณ์ ' +
+         'หรือการสะกดใดๆ แม้จะรู้ว่าผิด — ให้คงคำผิดนั้นไว้ตรงๆ เพราะข้อความนี้จะถูกนำไปตรวจคำผิดต่อในขั้นตอนถัดไป\n' +
+         '2. เรียงข้อความตามลำดับที่ปรากฏในภาพจากบนลงล่าง ซ้ายไปขวา คงการขึ้นบรรทัดใหม่/ย่อหน้าตามต้นฉบับ\n' +
+         '3. ห้ามแปล ห้ามสรุป ห้ามใส่คำอธิบายหรือความเห็นใดๆ ห้ามใส่ markdown หรือเครื่องหมายคำพูดครอบ\n' +
+         '4. ถ้าบางจุดอ่านไม่ออกจริงๆ ให้ใส่ [อ่านไม่ออก] แทนที่จุดนั้นแล้วอ่านต่อ\n' +
+         '5. ถ้าในภาพไม่มีข้อความเลยให้ตอบว่า "ไม่พบข้อความในภาพ" คำเดียว\n' +
+         'พิมพ์เฉพาะข้อความที่ถอดได้เท่านั้น ไม่ต้องมีหัวข้อหรือคำนำใดๆ ก่อนเริ่มถอดข้อความ';
+
+       try {
+         const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+           method: 'POST',
+           headers: {
+             'x-api-key': env.ANTHROPIC_API_KEY,
+             'anthropic-version': '2023-06-01',
+             'content-type': 'application/json',
+           },
+           body: JSON.stringify({
+             model: MODEL,
+             max_tokens: 4096,
+             messages: [{
+               role: 'user',
+               content: [
+                 { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageBase64 } },
+                 { type: 'text', text: userPrompt },
+               ],
+             }],
+           }),
+         });
+
+         const data = await anthropicRes.json();
+         if (!anthropicRes.ok) {
+           return new Response(JSON.stringify({ error: data.error?.message || 'Anthropic API error', raw: data }), {
+             status: anthropicRes.status, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+           });
+         }
+
+         const text = (data.content || []).map((c) => c.text || '').join('');
+         return new Response(JSON.stringify({ text }), {
+           status: 200, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+         });
+       } catch (e) {
+         return new Response(JSON.stringify({ error: String(e) }), {
+           status: 500, headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+         });
+       }
+     },
+   };
+   ```
 6. เพิ่ม origin ของ pages.dev ใน Google OAuth client (Drive) และใน Authorized domains ของ Firebase Auth (ใช้ตอนดึงข้อมูล budget ครั้งเดียว)
 7. ต่อ Workers Builds เข้ากับ `workers/scheduler` · ติดตั้งแอปลงหน้าจอโฮม iPhone
 8. หลังย้ายข้อมูลครบทั้ง 2 เครื่อง: ลบ Worker เก่า 3 ตัว → เปลี่ยน GitHub Pages เป็น redirect → ภายหลังค่อยลบโปรเจกต์ Firebase
