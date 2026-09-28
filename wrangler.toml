@@ -1,0 +1,24 @@
+# Cloudflare Pages config — เมื่อมีไฟล์นี้ Cloudflare ใช้ค่าในไฟล์แทนค่าที่ตั้งใน dashboard (bindings + Text vars)
+# ANTHROPIC_API_KEY เป็น Secret ใน dashboard เท่านั้น ห้ามใส่ในไฟล์นี้ (repo เป็นสาธารณะ)
+# ห้ามเพิ่ม package.json ที่ root — Pages จะรัน npm install ทุก build
+name = "my-web-app"
+pages_build_output_dir = "."
+compatibility_date = "2026-09-01"
+
+[vars]
+OWNER_EMAIL = "tanot713@gmail.com"
+ACCESS_AUD = "f84ccc66f4b1de1e0919624581c1e41569102662e535e5f76e39a077e1e9b830"
+TEAM_DOMAIN = "fancy-cherry-f763.cloudflareaccess.com"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tanot-db"
+database_id = "5b56b7fa-8eed-453b-8c2d-81b5004d7b7b"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "tanot-files"
+
+[ai]
+binding = "AI"

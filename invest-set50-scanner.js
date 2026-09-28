@@ -7,6 +7,7 @@
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
+  var OWN_PROXY = /\.pages\.dev$/.test(location.hostname) ? '/api/proxy?url=' : 'https://tanot-cors-proxy.tanot713.workers.dev/?url=';
   var $ = function (id) { return document.getElementById(id); };
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
 
@@ -108,7 +109,7 @@
     var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '.BK?range=1y&interval=1d';
     var enc = encodeURIComponent(base);
     var tries = [
-      { name: 'own', url: 'https://tanot-cors-proxy.tanot713.workers.dev/?url=' + enc },
+      { name: 'own', url: OWN_PROXY + enc },
       { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + enc },
       { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { name: 'corseu', url: 'https://cors.eu.org/' + base },

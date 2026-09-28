@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
@@ -427,6 +427,7 @@ h1,h2,h3{text-wrap:balance}
 <script>
 (function () {
   'use strict';
+  var OWN_PROXY = /\.pages\.dev$/.test(location.hostname) ? '/api/proxy?url=' : 'https://tanot-cors-proxy.tanot713.workers.dev/?url=';
   var $ = function (id) { return document.getElementById(id); };
   var N = function (v) { var n = Number(v); return Number.isFinite(n) ? n : 0; };
   function money(v) { var n = N(v); return (n < 0 ? '-฿' : '฿') + Math.abs(n).toLocaleString('th-TH', { maximumFractionDigits: 0 }); }
@@ -643,7 +644,7 @@ h1,h2,h3{text-wrap:balance}
   function proxyTries(base, offset) {
     var enc = encodeURIComponent(base);
     var tries = [
-      { url: 'https://tanot-cors-proxy.tanot713.workers.dev/?url=' + enc },
+      { url: OWN_PROXY + enc },
       { url: 'https://api.allorigins.win/raw?url=' + enc },
       { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { url: 'https://cors.eu.org/' + base },
@@ -781,7 +782,7 @@ h1,h2,h3{text-wrap:balance}
     var base = 'https://api.alternative.me/fng/?limit=1&format=json', enc = encodeURIComponent(base);
     var tries = [
       base, /* ลองตรงก่อน — API นี้เปิด CORS */
-      'https://tanot-cors-proxy.tanot713.workers.dev/?url=' + enc,
+      OWN_PROXY + enc,
       'https://api.allorigins.win/raw?url=' + enc,
       'https://api.codetabs.com/v1/proxy/?quest=' + enc,
       'https://cors.eu.org/' + base,

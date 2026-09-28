@@ -10,6 +10,7 @@
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
+  var OWN_PROXY = /\.pages\.dev$/.test(location.hostname) ? '/api/proxy?url=' : 'https://tanot-cors-proxy.tanot713.workers.dev/?url=';
 
   var $ = function (id) { return document.getElementById(id); };
   var PF_KEY = 'tanot:invest:btc';
@@ -666,7 +667,7 @@
     var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=1y&interval=1d';
     var enc = encodeURIComponent(base);
     var tries = [
-      { name: 'own', url: 'https://tanot-cors-proxy.tanot713.workers.dev/?url=' + enc },
+      { name: 'own', url: OWN_PROXY + enc },
       { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + enc },
       { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { name: 'corseu', url: 'https://cors.eu.org/' + base },
@@ -739,7 +740,7 @@
     var base = 'https://query1.finance.yahoo.com/v8/finance/chart/THB=X?range=5d&interval=1d';
     var enc = encodeURIComponent(base);
     var tries = [
-      { url: 'https://tanot-cors-proxy.tanot713.workers.dev/?url=' + enc },
+      { url: OWN_PROXY + enc },
       { url: 'https://api.allorigins.win/raw?url=' + enc },
       { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { url: 'https://cors.eu.org/' + base },
@@ -789,7 +790,7 @@
     var base = 'https://api.alternative.me/fng/?limit=1&format=json', enc = encodeURIComponent(base);
     var tries = [
       { url: base }, /* ลองตรงก่อน — API นี้เปิด CORS */
-      { url: 'https://tanot-cors-proxy.tanot713.workers.dev/?url=' + enc },
+      { url: OWN_PROXY + enc },
       { url: 'https://api.allorigins.win/raw?url=' + enc },
       { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { url: 'https://cors.eu.org/' + base },

@@ -8,9 +8,15 @@
    ใช้เพื่อกันคนทั่วไปที่ไม่เกี่ยวข้องเข้ามาใช้งานเว็บโดยบังเอิญเท่านั้น
    ไม่ใช่การป้องกันข้อมูลจริงจากผู้โจมตีที่ตั้งใจ — หากต้องการความปลอดภัย
    จริง ให้ใช้ Cloudflare Access หรือระบบยืนยันตัวตนฝั่งเซิร์ฟเวอร์
+
+   2026-09-28: บนโดเมน Cloudflare Pages (*.pages.dev) Cloudflare Access ครอบทั้งโดเมนแล้ว ด่านนี้จึงไม่ทำงาน
+   ที่นั่น — เหลือไว้เฉพาะ GitHub Pages ที่ยังเปิดอยู่ช่วงย้ายข้อมูล (ROADMAP Phase 0a ข้อ 7) พอเปลี่ยน
+   GitHub Pages เป็น redirect แล้ว ให้ลบไฟล์นี้ + แท็ก <script src="auth-gate.js"> ทั้ง 42 หน้า + PRECACHE ใน sw.js
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
+
+  if (/\.pages\.dev$/.test(location.hostname)) return;
 
   var KEY = 'tanot:auth';
   var HASH = 'de1a17ae081719032bea1292b37cacb0a91b1b09ce5cf17a2ea36c93dda76b26'; // SHA-256 ของรหัสผ่าน (ไม่เก็บ plaintext ไว้ในไฟล์)

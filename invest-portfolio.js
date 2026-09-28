@@ -9,6 +9,7 @@
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
+  var OWN_PROXY = /\.pages\.dev$/.test(location.hostname) ? '/api/proxy?url=' : 'https://tanot-cors-proxy.tanot713.workers.dev/?url=';
 
   var $ = function (id) { return document.getElementById(id); };
   var STATE_KEY = 'tanot:invest:portfolio';
@@ -150,7 +151,7 @@
   function proxyTries(base, offset) {
     var enc = encodeURIComponent(base);
     var tries = [
-      { url: 'https://tanot-cors-proxy.tanot713.workers.dev/?url=' + enc },
+      { url: OWN_PROXY + enc },
       { url: 'https://api.allorigins.win/raw?url=' + enc },
       { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
       { url: 'https://cors.eu.org/' + base },

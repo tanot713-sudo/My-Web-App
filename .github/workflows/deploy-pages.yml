@@ -27,7 +27,7 @@ jobs:
       - name: node --check ทุกไฟล์ .js ของเราเอง (ยกเว้น vendor/ ที่เป็นไลบรารีนอก)
         run: |
           status=0
-          for f in *.js; do
+          for f in *.js functions/api/*.js; do
             echo "checking $f"
             node --check "$f" || status=1
           done

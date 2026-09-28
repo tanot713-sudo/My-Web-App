@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
@@ -71,19 +71,6 @@ body{font-family:var(--f);background:var(--bg);color:var(--ink);
   padding:3px;cursor:pointer;font-family:var(--f)}
 .ocr-toggle span{font-size:12px;font-weight:700;padding:6px 12px;border-radius:16px;color:var(--muted);transition:.15s}
 .ocr-toggle span.active{background:var(--card);color:var(--brand-dk);box-shadow:0 1px 3px rgba(24,31,54,.08)}
-.ocr-engine-note{display:none;font-size:12px;color:var(--muted);margin-top:6px;max-width:56ch;line-height:1.6}
-
-/* ── กล่องรหัสผ่านก่อนใช้ Claude Vision (โหมดมีค่าใช้จ่าย) ── */
-.ocr-pw-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(15,18,26,.55);
-  align-items:center;justify-content:center;padding:20px}
-.ocr-pw-card{background:var(--card);border-radius:16px;padding:26px;width:100%;max-width:320px;box-shadow:var(--sh)}
-.ocr-pw-card h3{font-size:16px;font-weight:700;margin-bottom:6px}
-.ocr-pw-card p{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6}
-.ocr-pw-card input{width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1.5px solid var(--line);
-  background:var(--bg);color:var(--ink);font-size:14.5px;font-family:var(--f);margin-bottom:8px}
-.ocr-pw-card input:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
-.ocr-pw-err{color:var(--err);font-size:12.5px;margin-bottom:8px}
-.ocr-pw-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
 
 /* ── ป้ายประเภทจุดที่พบ ── */
 .kind-badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;margin-bottom:7px}
@@ -206,21 +193,6 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
     <span data-oe="vision" data-i18n="ocrEngineVision">Claude Vision (แม่นยำกว่า ทุกภาษา)</span>
   </div>
 </div>
-<div class="ocr-engine-note" id="ocrEngineNote" data-i18n="ocrEngineNote">โหมดนี้จะส่งรูปที่แนบไปยัง Cloudflare Worker ของเราแล้วต่อไปยัง Anthropic API เพื่ออ่านข้อความ (ไม่ใช่ประมวลผลในเบราว์เซอร์ล้วนๆ เหมือนโหมดฟรี)</div>
-
-<div class="ocr-pw-overlay" id="ocrPwOverlay">
-  <div class="ocr-pw-card">
-    <h3 data-i18n="ocrPwTitle">ใส่รหัสผ่านเพื่อใช้ Claude Vision</h3>
-    <p data-i18n="ocrPwDesc">โหมดนี้มีค่าใช้จ่ายต่อการใช้งาน จึงล็อกด้วยรหัสผ่านแยกต่างหาก</p>
-    <input type="password" id="ocrPwInput" data-i18n-placeholder="ocrPwPlaceholder" placeholder="รหัสผ่าน" autocomplete="off">
-    <div class="ocr-pw-err" id="ocrPwErr" style="display:none" data-i18n="ocrPwErrText">รหัสผ่านไม่ถูกต้อง</div>
-    <div class="ocr-pw-actions">
-      <button class="btn" id="ocrPwCancel" type="button" data-i18n="ocrPwCancel">ยกเลิก</button>
-      <button class="btn primary" id="ocrPwSubmit" type="button" data-i18n="ocrPwSubmit">ยืนยัน</button>
-    </div>
-  </div>
-</div>
-
 <div class="dc-toolbar" id="toolbar">
   <div class="dc-file-chip">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 3v6h6"/></svg>

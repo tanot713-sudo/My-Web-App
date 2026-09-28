@@ -602,24 +602,18 @@
   /* ══════════════════ ถอดเสียงผ่านคลาวด์ (Whisper Large v3 Turbo บน Cloudflare Workers AI) ══════════════════
      ทางเลือกแม่นกว่า/เร็วกว่าโหมดในเบราว์เซอร์ด้านบนมาก (รันบนเซิร์ฟเวอร์ ไม่ใช่เครื่องผู้ใช้) แต่มี
      ค่าใช้จ่ายจริงเมื่อเกินโควตาฟรี (10,000 Neurons/วัน ≈ 3.5 ชม.เสียง, whisper-large-v3-turbo กิน
-     46.63 Neurons/นาทีเสียง) — ล็อกด้วยรหัสผ่านเดียวกับโหมด Claude Vision OCR ของหน้าตรวจสอบเอกสาร
-     (doc-check.js) ตามที่ขอให้ใช้ร่วมกัน คุมค่าใช้จ่ายทั้งสองฟีเจอร์ด้วยรหัสเดียว */
-  var WHISPER_WORKER_URL = 'https://tanot-whisper-proxy.tanot713.workers.dev/';
-  var ASR_PW_HASH = '19ed10f154f60ec76aa832459c8631a232686dc39d6a14f7189ae91297f1896b'; // เดียวกับ doc-check.js
-  var ASR_PW_UNLOCK_KEY = 'tanot:asrcloud:unlocked';
+     46.63 Neurons/นาทีเสียง) — เรียก functions/api/asr.js สิทธิ์ตรวจฝั่งเซิร์ฟเวอร์ด้วย Cloudflare Access +
+     _middleware.js (เดิมล็อกด้วยรหัสผ่านฝั่งเบราว์เซอร์) — /api/* มีเฉพาะบนโดเมน Pages บน GitHub Pages
+     จึงซ่อนตัวเลือกคลาวด์และถอดเสียงในเบราว์เซอร์อย่างเดียว */
+  var ASR_API_URL = '/api/asr';
+  var ASR_CLOUD_AVAILABLE = /\.pages\.dev$/.test(location.hostname);
   var ASR_ENGINE_KEY = 'tanot:asr:engine';
   var NEURON_USAGE_KEY = 'tanot:asrcloud:neuronUsage'; // { date: 'YYYY-MM-DD' (UTC), used: number }
   var DAILY_NEURON_LIMIT = 10000;
   var NEURONS_PER_AUDIO_MINUTE = 46.63;
 
-  async function sha256Hex(str) {
-    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
-  }
-  function isAsrCloudUnlocked() {
-    try { return localStorage.getItem(ASR_PW_UNLOCK_KEY) === '1'; } catch (e) { return false; }
-  }
   function getAsrEngine() {
+    if (!ASR_CLOUD_AVAILABLE) return 'local';
     try { return localStorage.getItem(ASR_ENGINE_KEY) === 'cloud' ? 'cloud' : 'local'; } catch (e) { return 'local'; }
   }
   function setAsrEngine(engine) {
@@ -689,7 +683,7 @@
 
   function transcribeChunkCloud(pcm, sampleRate, language) {
     return pcmToWavBase64(pcm, sampleRate).then(function (base64) {
-      return fetch(WHISPER_WORKER_URL, {
+      return fetch(ASR_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ audio: base64, language: language })
@@ -1061,10 +1055,9 @@
     $('asrCopyBtn').addEventListener('click', copyAsrResult);
     $('meetingSumBtn').addEventListener('click', doMeetingSummary);
 
-    /* ══ เลือกโหมดถอดเสียง (ในเบราว์เซอร์ฟรี / คลาวด์แม่นกว่า) — ล็อกโหมดคลาวด์ด้วยรหัสผ่าน ══ */
+    /* ══ เลือกโหมดถอดเสียง (ในเบราว์เซอร์ฟรี / คลาวด์แม่นกว่า) ══ */
     var asrEngineToggle = $('asrEngineToggle'), asrEngineNote = $('asrEngineNote'),
-      asrModelField = $('asrModelField'), asrPwOverlay = $('asrPwOverlay'), asrPwInput = $('asrPwInput'),
-      asrPwErr = $('asrPwErr'), asrPwCancel = $('asrPwCancel'), asrPwSubmit = $('asrPwSubmit');
+      asrModelField = $('asrModelField');
 
     function applyAsrEngineUI() {
       if (!asrEngineToggle) return;
@@ -1076,44 +1069,15 @@
       if (asrModelField) asrModelField.style.display = engine === 'cloud' ? 'none' : '';
       if (engine === 'cloud') updateNeuronStatusUI();
     }
-    function showAsrPwModal() {
-      if (!asrPwOverlay) return;
-      asrPwErr.style.display = 'none';
-      asrPwInput.value = '';
-      asrPwOverlay.style.display = 'flex';
-      asrPwInput.focus();
-    }
-    function hideAsrPwModal() {
-      if (asrPwOverlay) asrPwOverlay.style.display = 'none';
-    }
-    function submitAsrPw() {
-      var pw = asrPwInput.value;
-      sha256Hex(pw).then(function (hex) {
-        if (hex === ASR_PW_HASH) {
-          try { localStorage.setItem(ASR_PW_UNLOCK_KEY, '1'); } catch (e) {}
-          hideAsrPwModal();
-          setAsrEngine('cloud');
-          applyAsrEngineUI();
-        } else {
-          asrPwErr.style.display = 'block';
-          asrPwInput.value = '';
-          asrPwInput.focus();
-        }
-      });
-    }
     if (asrEngineToggle) {
+      if (!ASR_CLOUD_AVAILABLE) asrEngineToggle.parentNode.style.display = 'none';
       asrEngineToggle.addEventListener('click', function (e) {
         var span = e.target.closest('[data-ae]');
         if (!span) return;
-        var engine = span.getAttribute('data-ae');
-        if (engine === 'cloud' && !isAsrCloudUnlocked()) { showAsrPwModal(); return; }
-        setAsrEngine(engine);
+        setAsrEngine(span.getAttribute('data-ae'));
         applyAsrEngineUI();
       });
     }
-    if (asrPwCancel) asrPwCancel.addEventListener('click', hideAsrPwModal);
-    if (asrPwSubmit) asrPwSubmit.addEventListener('click', submitAsrPw);
-    if (asrPwInput) asrPwInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') submitAsrPw(); });
     applyAsrEngineUI();
   }
 

@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v562';
+const CACHE = 'ome-v563';
 const PRECACHE = [
   './',
   './index.html',
@@ -173,6 +173,62 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+/* ── Cloudflare Access (เฉพาะโดเมน *.pages.dev) ──
+   พอเซสชัน Access หมดอายุ การเปิดหน้าจะถูก redirect ไปหน้าล็อกอินที่โดเมนอื่น ซึ่งแอปบนหน้าจอโฮม iPhone
+   มักค้างอยู่ตรงนั้น จึงแสดงหน้าจากแคชพร้อมลิงก์เข้าสู่ระบบใหม่แทน — แต่ Pages เองก็ redirect ปกติด้วย
+   (ตัด .html ออกจาก URL) และ SW อ่านปลายทางของ opaqueredirect ไม่ได้ เลยต้องถาม /api/session ก่อนว่า
+   ยังล็อกอินอยู่ไหม (endpoint นี้ไม่โดน redirect ของ Pages จะ redirect ก็ต่อเมื่อ Access ไม่ผ่านเท่านั้น) */
+const RELOGIN_PARAM = 'relogin';
+
+async function accessSessionExpired() {
+  try {
+    const r = await fetch('/api/session', { redirect: 'manual', credentials: 'same-origin', cache: 'no-store' });
+    return r.type === 'opaqueredirect' || r.status === 401 || r.status === 403;
+  } catch (err) {
+    return false;
+  }
+}
+
+async function cachedPageFor(url) {
+  const path = url.pathname;
+  const candidates = [url.href];
+  if (path.endsWith('.html')) candidates.push(path.slice(0, -5));
+  else if (!path.endsWith('/')) candidates.push(path + '.html');
+  if (path.endsWith('/index.html') || path.endsWith('/index')) candidates.push(path.replace(/index(\.html)?$/, ''));
+  if (path.endsWith('/')) candidates.push(path + 'index.html');
+  for (const c of candidates) {
+    const hit = await caches.match(c, { ignoreSearch: true });
+    if (hit && hit.ok) return hit;
+  }
+  return null;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+async function handleRedirectedNavigation(req, redirectRes) {
+  if (!/\.pages\.dev$/.test(location.hostname)) return redirectRes;
+  if (!(await accessSessionExpired())) return redirectRes;
+  const url = new URL(req.url);
+  const cached = await cachedPageFor(url);
+  if (!cached) return redirectRes;
+
+  const relogin = new URL(url.href);
+  relogin.searchParams.set(RELOGIN_PARAM, '1');
+  const bar =
+    '<div id="tanot-relogin" style="position:fixed;left:0;right:0;bottom:0;z-index:99999;display:flex;gap:12px;' +
+    'align-items:center;justify-content:center;flex-wrap:wrap;padding:10px 16px calc(10px + env(safe-area-inset-bottom));' +
+    'background:#1B2030;color:#E6EAF2;font:600 13px/1.4 Prompt,system-ui,sans-serif;box-shadow:0 -4px 16px rgba(0,0,0,.25)">' +
+    '<span>เซสชันหมดอายุ — กำลังแสดงหน้าจากแคช</span>' +
+    '<a href="' + escapeHtml(relogin.href) + '" style="color:#fff;background:#12A594;padding:6px 14px;border-radius:999px;' +
+    'text-decoration:none">เข้าสู่ระบบใหม่</a></div>';
+  let html = await cached.text();
+  const i = html.lastIndexOf('</body>');
+  html = i === -1 ? html + bar : html.slice(0, i) + bar + html.slice(i);
+  return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
@@ -195,13 +251,22 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
+  // API (Pages Functions) และหน้าล็อกอินของ Cloudflare Access ต้องไปถึงเครือข่ายเสมอ ห้ามแคช
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/cdn-cgi/')) return;
+
+  // ลิงก์ "เข้าสู่ระบบใหม่" จากแถบเซสชันหมดอายุ — ปล่อยให้เบราว์เซอร์ตาม redirect ไปหน้าล็อกอินเอง
+  if (req.mode === 'navigate' && url.searchParams.has(RELOGIN_PARAM)) return;
+
   const isHTML = req.mode === 'navigate' || /\.html$/.test(url.pathname) || url.pathname.endsWith('/');
   if (isHTML) {
     // network-first: ออนไลน์ได้ของสด ออฟไลน์ fallback แคช
     e.respondWith(
       fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(req, copy));
+        if (res.type === 'opaqueredirect') return handleRedirectedNavigation(req, res);
+        if (res.ok && res.type === 'basic') {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+        }
         return res;
       }).catch(() => caches.match(req, { ignoreSearch: true }))
     );
