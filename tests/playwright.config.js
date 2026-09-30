@@ -19,7 +19,10 @@ module.exports = defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     serviceWorkers: 'block',
-    launchOptions: { executablePath: process.env.PW_CHROMIUM || undefined },
+    // Chromium ตัวเต็ม (new headless) ทั้งในเครื่องและบน CI — chromium-headless-shell ที่เป็นค่าเริ่มต้นวาดตัวอักษรไทยต่างกันเล็กน้อยจน baseline ไม่ตรง
+    channel: 'chromium',
+    timezoneId: 'Asia/Bangkok',
+    locale: 'en-US',
   },
   webServer: {
     command: `python3 -m http.server ${PORT}`,

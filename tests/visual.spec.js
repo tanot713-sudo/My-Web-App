@@ -27,6 +27,8 @@ for (const p of PAGES) {
       const name = `${p.split('?')[0].replace('.html', '')}-${w}-${theme}.png`;
       test(`visual: ${name}`, async ({ page }) => {
         await prepare(page, { theme });
+        // หน้าแรกแสดงวันที่/นาฬิกา — ตรึงเวลาไว้ ไม่งั้น baseline เปลี่ยนทุกวัน
+        await page.clock.setFixedTime(new Date('2026-09-30T10:30:00+07:00'));
         await page.setViewportSize({ width: w, height: 800 });
         await page.goto('/' + p, { waitUntil: 'load' });
         await page.waitForSelector('nav.ome-nav');
