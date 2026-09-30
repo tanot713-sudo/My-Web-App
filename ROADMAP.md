@@ -134,9 +134,9 @@
 ## สิ่งที่เจ้าของต้องทำเอง (ผมทำแทนไม่ได้)
 1. เปิด build log ของ Cloudflare Pages ยืนยันว่าล้มเพราะไฟล์เกิน 25 MiB
 2. ✅ **เสร็จแล้ว (2026-09-28)** — Zero Trust ตั้งค่าเสร็จ, สร้างแอป `my-web-app-5w2.pages.dev` แยกจาก preview app แล้ว, policy "Allow me only" (Allow + email tanot713@gmail.com) ทดสอบผ่านจริงบน production domain แล้ว
-   - **Team domain**: `fancy-cherry-f763.cloudflareaccess.com` (ไม่ใช่ `tanot.cloudflareaccess.com` — อันนั้นเป็นแค่ team name ที่ตั้งไว้ตอนแรก)
+   - **Team domain**: `tanot.cloudflareaccess.com` (ยืนยันจาก Zero Trust → Settings → Team name and domain เมื่อ 2026-09-30 — ค่า `fancy-cherry-f763.cloudflareaccess.com` ที่เคยจดไว้ผิด; ชื่อนี้ยังโผล่เป็นหัวการ์ดหน้าล็อกอินเพราะเป็น Organization name เดิม แก้ได้ที่ Settings → Custom Pages)
    - **AUD tag** (ของแอป `my-web-app-5w2.pages.dev`): `f84ccc66f4b1de1e0919624581c1e41569102662e535e5f76e39a077e1e9b830`
-   - ใช้ 2 ค่านี้ใน `functions/api/_middleware.js` (Phase 0a ข้อ 3) ตอนตรวจ JWT — endpoint ดึง public key: `https://fancy-cherry-f763.cloudflareaccess.com/cdn-cgi/access/certs`
+   - ใช้ 2 ค่านี้ใน `functions/api/_middleware.js` (Phase 0a ข้อ 3) ตอนตรวจ JWT — endpoint ดึง public key: `https://tanot.cloudflareaccess.com/cdn-cgi/access/certs`
 3. ✅ **เสร็จแล้ว (2026-09-28)** — D1 database ชื่อ `tanot-db` (id: `5b56b7fa-8eed-453b-8c2d-81b5004d7b7b`), R2 bucket ชื่อ `tanot-files` (Public Access: Disabled) — ยังไม่ได้วาง schema (`0001_init.sql`) รอเขียนใน Phase 0a ข้อ 5
    - ✅ วาง schema `0001_init.sql` ใน D1 console แล้ว (2026-09-30) — ยืนยันครบ 8 ตาราง: docs, reminders, push_subs, learn_cards, learn_log, ai_cache, ai_usage, files
 4. ✅ **เสร็จแล้ว (2026-09-28)** — ตั้งค่าใน Pages → Variables and secrets ครบ: `OWNER_EMAIL` (Text), `ACCESS_AUD` (Text), `TEAM_DOMAIN` (Text), `ANTHROPIC_API_KEY` (Secret, คีย์ใหม่ชื่อ `tanot-cf-pages` ไม่มีวันหมดอายุ แยกจากคีย์เก่า `tanot-api-key` ที่ Worker OCR เดิมยังใช้อยู่) — ยังไม่ได้สร้างคีย์ VAPID (รอ Phase 3 ตอนทำ Web Push ค่อยทำ ไม่ต้องรีบตอนนี้)

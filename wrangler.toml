@@ -8,7 +8,7 @@ compatibility_date = "2026-09-01"
 [vars]
 OWNER_EMAIL = "tanot713@gmail.com"
 ACCESS_AUD = "f84ccc66f4b1de1e0919624581c1e41569102662e535e5f76e39a077e1e9b830"
-TEAM_DOMAIN = "fancy-cherry-f763.cloudflareaccess.com"
+TEAM_DOMAIN = "tanot.cloudflareaccess.com"
 
 [[d1_databases]]
 binding = "DB"
