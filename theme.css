@@ -1,11 +1,22 @@
 /* ══════════════════════════════════════════════════════════════════
-   Tanot Design System — โทเคนกลางของทั้งเว็บ (เฟส 1)
-   โหลดไฟล์นี้ + shell.js ในทุกหน้า เพื่อให้ nav/สี/ฟอนต์เหมือนกันหมด
-   สลับธีมด้วย attribute:  <html data-theme="light|dark">
-   ══════════════════════════════════════════════════════════════════ */
+   Tanot Design System v2 — ธีมกลางของทั้งเว็บ
+   โหลดคู่กับ theme-boot.js (ใน <head> ไม่ defer) + shell.js ทุกหน้า
+   แกนตั้งค่า 4 แกนบน <html>: data-theme (light|dark) · data-accent (teal|blue|violet|orange|graphite)
+   · data-style (flat|soft|outline) · --ome-f (ฟอนต์) — theme-boot.js ตั้งให้ก่อนวาดจอ
 
+   ลำดับชั้น (cascade layers):
+     tokens → base → components → layouts  อยู่ใน @layer ทั้งหมด จึงแพ้ <style> ของแต่ละหน้าเสมอ
+     โดยไม่ต้องพึ่ง !important — base/components/layouts ทำงานเฉพาะหน้าที่ประกาศ
+     <body data-layout="tool|app|reader|dashboard|hub"> เท่านั้น (ครอบด้วย :where([data-layout])
+     specificity เป็น 0) หน้าเดิมที่ยังไม่ย้าย (Phase 2) จึงหน้าตาเหมือนเดิมทุกพิกเซล
+     compat (ท้ายไฟล์) ตั้งใจไม่ใส่ layer: nav/drawer/footer ของ shell กับกฎรีแมปหน้าเดิม
+     ต้องชนะ style ของหน้าเอง ถ้าย้ายเข้า layer จะกลับแพ้ — ลบทีละส่วนเมื่อย้ายหน้าเสร็จแต่ละรอบ
+   ══════════════════════════════════════════════════════════════════ */
+@layer tokens, base, components, layouts;
+
+@layer tokens {
 :root{
-  /* แกนสี — ธีมเขียวมิ้นต์ AMR */
+  /* ── แกนสีเดิม (สีเน้น teal = ค่าเริ่มต้น) — ชื่อเดิมคงไว้เพราะหน้าเดิมอ้างอยู่ ── */
   --ome-bg:#F6F7FB; --ome-card:#FFFFFF; --ome-ink:#1F2430; --ome-muted:#727C93;
   --ome-line:#EAEDF5; --ome-brand:#12A594; --ome-brand-dk:#0B7F72; --ome-brand-sf:#E7F6F4;
   --ome-violet:#6C63D9; --ome-amber:#F5A524; --ome-rose:#EC5E8A; --ome-sky:#3B9BEA;
@@ -13,121 +24,337 @@
   --ome-f:'Prompt',system-ui,-apple-system,sans-serif;
   --ome-r:16px; --ome-sh:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.06);
   /* บวก safe-area-inset-top เข้าไปในตัวแปรนี้ตัวเดียว — จุดอื่นที่อ้างอิง var(--ome-nav-h) ทั้งหมด
-     (เช่น sticky top ของแถบข้าง, top ของแผงตั้งค่า) จะเลื่อนเผื่อรอยบากอัตโนมัติไปด้วยโดยไม่ต้องแก้
-     ทีละจุด — env() ที่เบราว์เซอร์ไม่รองรับ/ไม่มีรอยบากจะได้ 0px เท่ากับพฤติกรรมเดิมทุกประการ */
+     (เช่น sticky top ของแถบข้าง, top ของแผงตั้งค่า) จะเลื่อนเผื่อรอยบากอัตโนมัติไปด้วย */
   --ome-nav-h:calc(48px + env(safe-area-inset-top, 0px));
 
-  /* ── มาตราระยะห่างกลาง (spacing scale) — ยึดหน่วย 4px เป็นฐาน
-     ใช้แทนเลข px ที่เคย hardcode กระจายไปแต่ละหน้า เพื่อให้ระยะห่างสม่ำเสมอกัน
-     ยังไม่ได้บังคับให้ทุกหน้าเปลี่ยนมาใช้ — เป็นชุดอ้างอิงกลางให้หน้าที่แก้ใหม่/แก้ต่อ
-     เรียกใช้แทนตัวเลขลอยๆ (ดู CENTRAL_UI_SYSTEM.md) */
+  /* ── ระยะห่าง (ฐาน 4px) / ขนาดตัวอักษร / การ์ด — ดู CENTRAL_UI_SYSTEM.md ── */
   --ome-sp-1:4px; --ome-sp-2:8px; --ome-sp-3:12px; --ome-sp-4:16px;
   --ome-sp-5:24px; --ome-sp-6:32px; --ome-sp-7:48px;
-
-  /* ── มาตราขนาดตัวอักษรกลาง (type scale) — อิงจากขนาดที่ใช้จริงเยอะสุดในเว็บนี้แล้ว
-     (h1=21px, body=15px, .mini=12.5px ซ้ำกันหลายสิบหน้า) ไม่ใช่เลขคิดใหม่ */
   --ome-fs-xs:12.5px; --ome-fs-sm:13.5px; --ome-fs-base:15px; --ome-fs-md:16px;
   --ome-fs-lg:18px; --ome-fs-xl:21px; --ome-fs-2xl:24px; --ome-fs-3xl:28px;
-
-  /* ── มาตรฐานการ์ด (ใช้ตรงกันแล้วใน 19 หน้า เอามาตั้งเป็นตัวแปรกลาง) ── */
   --ome-card-r:16px; --ome-card-pad:18px; --ome-card-gap:14px;
+
+  /* ── โทเคน v2 (คอมโพเนนต์กลางใช้ชุดนี้) — ผูกกับแกนสีเดิม เปลี่ยนสีเน้น/มืด แล้วตามกันเอง ── */
+  --ome-surface-0:var(--ome-bg);
+  --ome-surface-1:var(--ome-card);
+  --ome-surface-2:color-mix(in srgb, var(--ome-bg) 65%, var(--ome-card));
+  --ome-text-1:var(--ome-ink);
+  --ome-text-2:var(--ome-muted);
+  --ome-text-3:color-mix(in srgb, var(--ome-muted) 60%, var(--ome-card));
+  --ome-border:var(--ome-line);
+  --ome-border-strong:color-mix(in srgb, var(--ome-line) 55%, var(--ome-muted));
+  --ome-accent:var(--ome-brand);
+  --ome-accent-strong:var(--ome-brand-dk);
+  --ome-accent-soft:var(--ome-brand-sf);
+  --ome-on-accent:#FFFFFF;
+  --ome-info:var(--ome-sky);
+  --ome-ok-soft:color-mix(in srgb, var(--ome-ok) 13%, var(--ome-card));
+  --ome-warn-soft:color-mix(in srgb, var(--ome-warn) 14%, var(--ome-card));
+  --ome-err-soft:color-mix(in srgb, var(--ome-err) 12%, var(--ome-card));
+  --ome-info-soft:color-mix(in srgb, var(--ome-info) 13%, var(--ome-card));
+  --ome-ok-ink:color-mix(in srgb, var(--ome-ok) 70%, var(--ome-ink));
+  --ome-warn-ink:color-mix(in srgb, var(--ome-warn) 70%, var(--ome-ink));
+  --ome-err-ink:color-mix(in srgb, var(--ome-err) 75%, var(--ome-ink));
+  --ome-info-ink:color-mix(in srgb, var(--ome-info) 70%, var(--ome-ink));
+
+  --ome-radius-sm:6px; --ome-radius-md:10px; --ome-radius-lg:14px; --ome-radius-pill:999px;
+  --ome-shadow-1:0 1px 2px rgba(24,31,54,.06);
+  --ome-shadow-2:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.07);
+  --ome-shadow-3:0 16px 48px rgba(24,31,54,.18);
+  --ome-z-sticky:50; --ome-z-nav:100; --ome-z-popover:150; --ome-z-drawer:200;
+  --ome-z-toast:1000; --ome-z-modal:9999;
+  --ome-dur-1:.12s; --ome-dur-2:.2s; --ome-dur-3:.32s; --ome-ease:cubic-bezier(.2,.8,.2,1);
+  --ome-font-reader:'Sarabun',var(--ome-f);
+  --ome-font-mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+
+  /* ── สีกราฟ (chart-theme.js อ่านจากตรงนี้) — 8 สีเรียงลำดับตายตัว ผ่านตัวตรวจ CVD
+     ทั้งสว่าง/มืดบนพื้นการ์ดของเว็บ ห้ามวนสีเกิน 8 ชุด (รวมเป็น "อื่นๆ") — ขึ้นเขียว/ลงแดงตามตลาดไทย ── */
+  --ome-chart-1:#2A78D6; --ome-chart-2:#EB6834; --ome-chart-3:#1BAF7A; --ome-chart-4:#EDA100;
+  --ome-chart-5:#E87BA4; --ome-chart-6:#008300; --ome-chart-7:#4A3AA7; --ome-chart-8:#E34948;
+  --ome-chart-up:var(--ome-ok); --ome-chart-down:var(--ome-err);
+  --ome-chart-grid:color-mix(in srgb, var(--ome-line) 85%, var(--ome-card));
+  --ome-chart-axis:var(--ome-muted);
 }
 [data-theme="dark"]{
   --ome-bg:#12151C; --ome-card:#1B2030; --ome-ink:#E6EAF2; --ome-muted:#8B94A8;
   --ome-line:#2A3040; --ome-brand:#2BC4B2; --ome-brand-dk:#5EDCCB; --ome-brand-sf:#173832;
   --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  --ome-on-accent:#0B1A18;
+  --ome-shadow-1:0 1px 2px rgba(0,0,0,.35);
+  --ome-shadow-2:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  --ome-shadow-3:0 16px 48px rgba(0,0,0,.55);
+  --ome-ok-ink:color-mix(in srgb, var(--ome-ok) 75%, var(--ome-ink));
+  --ome-warn-ink:color-mix(in srgb, var(--ome-warn) 75%, var(--ome-ink));
+  --ome-err-ink:color-mix(in srgb, var(--ome-err) 70%, var(--ome-ink));
+  --ome-info-ink:color-mix(in srgb, var(--ome-info) 70%, var(--ome-ink));
+  --ome-chart-1:#3987E5; --ome-chart-2:#D95926; --ome-chart-3:#199E70; --ome-chart-4:#C98500;
+  --ome-chart-5:#D55181; --ome-chart-6:#008300; --ome-chart-7:#9085E9; --ome-chart-8:#E66767;
 }
 
-/* ── สีธีม (เฟส 6 — แยกแกน "สี" ออกจากแกน "สว่าง/มืด" เดิม) ────────────────────────
-   เดิม [data-theme="X"] ผูกสี+ความสว่างไว้ด้วยกัน (เลือกสีได้แต่ติดสว่างเสมอ) ผู้ใช้อยากได้
-   2 แกนอิสระ: data-accent = ตัวตนสี (9 แบบ รวม mint เดิม), data-theme = สว่าง/มืดล้วนๆ
-   (ใช้ต่อได้ทุกสี) รวมกันเป็น [data-accent="X"][data-theme="dark"] สำหรับเวอร์ชันมืดของสีนั้น —
-   คุมเฉพาะโทเคนพื้นผิวหลัก (bg/card/ink/muted/line/brand*) เหมือน [data-theme="dark"] เดิมทำ
-   ตั้งใจไม่แตะสีความหมาย (--ok/--err/--warn/--violet/--amber/--rose/--sky ที่แต่ละหน้า hardcode
-   เอง) เพื่อไม่ให้ความหมายสี (เขียว=กำไร/ผ่าน, แดง=ขาดทุน/ผิด ฯลฯ) เพี้ยนไปตามธีมที่เลือก
-   พื้นหลังหน้าเป็นสีทึบล้วน (ไม่ใช้ gradient จากภาพต้นฉบับตรงๆ) เพราะ --ome-bg ถูกใช้เป็นสี fill
-   เรียบๆ ของ element เล็กๆ หลายร้อยจุดทั่วเว็บ (hover, ช่อง input, แถบ progress ฯลฯ) ใส่ gradient
-   เข้าไปจะเพี้ยนตรงจุดเล็กๆ พวกนั้น */
-[data-accent="flooks"]{
-  --ome-bg:#F3F1EA; --ome-card:#FFFFFF; --ome-ink:#1A1A1A; --ome-muted:#8A8578;
-  --ome-line:#ECE8DC; --ome-brand:#FFC700; --ome-brand-dk:#8A6800; --ome-brand-sf:#FFF6D6;
-  --ome-sh:0 1px 2px rgba(40,32,0,.06), 0 8px 24px rgba(40,32,0,.08);
-}
-[data-accent="flooks"][data-theme="dark"]{
-  --ome-bg:#1C1710; --ome-card:#282017; --ome-ink:#F2ECDD; --ome-muted:#A69A80;
-  --ome-line:#3A3020; --ome-brand:#FFC700; --ome-brand-dk:#FFD84D; --ome-brand-sf:#4A3D14;
-  --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
-}
-[data-accent="gymes"]{
-  --ome-bg:#F5F5F7; --ome-card:#FFFFFF; --ome-ink:#17171A; --ome-muted:#82828A;
-  --ome-line:#EAEAEE; --ome-brand:#E5384D; --ome-brand-dk:#B81E36; --ome-brand-sf:#FDEBEC;
-  --ome-sh:0 1px 2px rgba(20,20,24,.05), 0 8px 24px rgba(20,20,24,.07);
-}
-[data-accent="gymes"][data-theme="dark"]{
-  --ome-bg:#161618; --ome-card:#201F22; --ome-ink:#F0EFF2; --ome-muted:#9C9AA0;
-  --ome-line:#332F34; --ome-brand:#FF4D63; --ome-brand-dk:#FF7A8C; --ome-brand-sf:#3D1A20;
-  --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
-}
-[data-accent="skypastel"]{
+/* ── สีเน้น 5 แบบ (ชุดคัดสรร) — teal คือ :root/[data-theme=dark] ด้านบน ไม่ต้องมีบล็อกของตัวเอง
+   คุมเฉพาะพื้นผิว/ตัวอักษร/แบรนด์ ไม่แตะสีความหมาย (ok/warn/err) เพื่อไม่ให้เขียว=ผ่าน แดง=ผิด เพี้ยน
+   theme-boot.js แปลงค่าเดิม 9 สีมาเป็นชุดนี้อัตโนมัติ ── */
+[data-accent="blue"]{
   --ome-bg:#EDF1FA; --ome-card:#FFFFFF; --ome-ink:#202634; --ome-muted:#707B93;
   --ome-line:#E1E7F5; --ome-brand:#3D7CF4; --ome-brand-dk:#2C5DC4; --ome-brand-sf:#E7EEFD;
   --ome-sh:0 1px 2px rgba(30,50,120,.05), 0 8px 28px rgba(60,80,160,.08);
 }
-[data-accent="skypastel"][data-theme="dark"]{
+[data-accent="blue"][data-theme="dark"]{
   --ome-bg:#131A28; --ome-card:#1C2536; --ome-ink:#E8EEFB; --ome-muted:#8D9AB8;
   --ome-line:#2E3B52; --ome-brand:#5B94FF; --ome-brand-dk:#8FB4FF; --ome-brand-sf:#1E2F4D;
   --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  --ome-on-accent:#0A1428;
 }
-[data-accent="coach"]{
-  --ome-bg:#EAF4F0; --ome-card:#FFFFFF; --ome-ink:#1D2B27; --ome-muted:#6D8079;
-  --ome-line:#DCEBE5; --ome-brand:#1C9C88; --ome-brand-dk:#0F7A69; --ome-brand-sf:#DFF5EF;
-  --ome-sh:0 1px 2px rgba(20,60,50,.05), 0 8px 24px rgba(20,80,65,.08);
-}
-[data-accent="coach"][data-theme="dark"]{
-  --ome-bg:#101C19; --ome-card:#182722; --ome-ink:#E4F2ED; --ome-muted:#87A69C;
-  --ome-line:#283A34; --ome-brand:#2DBFA8; --ome-brand-dk:#5EDCC6; --ome-brand-sf:#163831;
-  --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
-}
-[data-accent="finset"]{
+[data-accent="violet"]{
   --ome-bg:#F7F6FC; --ome-card:#FFFFFF; --ome-ink:#221F35; --ome-muted:#837E9C;
   --ome-line:#ECEAF6; --ome-brand:#7C6FEA; --ome-brand-dk:#5B4CD6; --ome-brand-sf:#EFEBFC;
   --ome-sh:0 1px 2px rgba(50,40,100,.05), 0 8px 24px rgba(60,50,120,.08);
 }
-[data-accent="finset"][data-theme="dark"]{
+[data-accent="violet"][data-theme="dark"]{
   --ome-bg:#161426; --ome-card:#201D33; --ome-ink:#EBE8F7; --ome-muted:#9A93B8;
   --ome-line:#332E4D; --ome-brand:#9689FF; --ome-brand-dk:#B6ACFF; --ome-brand-sf:#2A2450;
   --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  --ome-on-accent:#15112E;
 }
-[data-accent="bubblegum"]{
-  --ome-bg:#F3EEF0; --ome-card:#FFFFFF; --ome-ink:#221420; --ome-muted:#8F8390;
-  --ome-line:#F0E4EA; --ome-brand:#EC1E79; --ome-brand-dk:#B8125C; --ome-brand-sf:#FDE8F1;
-  --ome-sh:0 1px 2px rgba(80,10,50,.06), 0 8px 24px rgba(80,10,50,.09);
-}
-[data-accent="bubblegum"][data-theme="dark"]{
-  --ome-bg:#1E1219; --ome-card:#291A23; --ome-ink:#F5E9EF; --ome-muted:#A88E9B;
-  --ome-line:#3D2A34; --ome-brand:#FF4D96; --ome-brand-dk:#FF85B8; --ome-brand-sf:#401A2E;
-  --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
-}
-[data-accent="construct"]{
+[data-accent="orange"]{
   --ome-bg:#F7F1E7; --ome-card:#FFFFFF; --ome-ink:#2A2018; --ome-muted:#8C8070;
   --ome-line:#ECE3D3; --ome-brand:#E8743B; --ome-brand-dk:#B85221; --ome-brand-sf:#FBE7D9;
   --ome-sh:0 1px 2px rgba(60,40,10,.06), 0 8px 24px rgba(60,40,10,.08);
 }
-[data-accent="construct"][data-theme="dark"]{
+[data-accent="orange"][data-theme="dark"]{
   --ome-bg:#1D160E; --ome-card:#281F15; --ome-ink:#F3EBDF; --ome-muted:#A69985;
   --ome-line:#3D3121; --ome-brand:#FF9257; --ome-brand-dk:#FFB584; --ome-brand-sf:#432714;
   --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  --ome-on-accent:#2A1406;
 }
-[data-accent="crypto"]{
-  --ome-bg:#EAF2FE; --ome-card:#FFFFFF; --ome-ink:#131B2E; --ome-muted:#6B7A96;
-  --ome-line:#DCE8FB; --ome-brand:#2F7BFF; --ome-brand-dk:#1955C4; --ome-brand-sf:#E4EEFF;
-  --ome-sh:0 1px 2px rgba(10,40,100,.06), 0 8px 26px rgba(10,60,140,.09);
+[data-accent="graphite"]{
+  --ome-bg:#F4F5F7; --ome-card:#FFFFFF; --ome-ink:#18181B; --ome-muted:#71717A;
+  --ome-line:#E4E4E9; --ome-brand:#3F3F46; --ome-brand-dk:#18181B; --ome-brand-sf:#ECECEF;
+  --ome-sh:0 1px 2px rgba(20,20,24,.05), 0 8px 24px rgba(20,20,24,.07);
 }
-[data-accent="crypto"][data-theme="dark"]{
-  --ome-bg:#0E1626; --ome-card:#162034; --ome-ink:#E6EDFB; --ome-muted:#8496B8;
-  --ome-line:#28344C; --ome-brand:#5B96FF; --ome-brand-dk:#8FB6FF; --ome-brand-sf:#1A2C4D;
+[data-accent="graphite"][data-theme="dark"]{
+  --ome-bg:#111113; --ome-card:#1C1C1F; --ome-ink:#EDEDEF; --ome-muted:#9A9AA3;
+  --ome-line:#2E2E33; --ome-brand:#71717A; --ome-brand-dk:#E4E4E7; --ome-brand-sf:#2A2A2F;
   --ome-sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  --ome-on-accent:#FFFFFF;
 }
+}
+
+/* ══ base — เฉพาะหน้าที่มี data-layout ══════════════════════════════ */
+@layer base {
+body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-1);font-family:var(--ome-f);
+  font-size:var(--ome-fs-base);line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+:where([data-layout]) :where(*,*::before,*::after){box-sizing:border-box}
+:where([data-layout]) :where(h1,h2,h3,h4){margin:0 0 .5em;line-height:1.3;font-weight:700;color:var(--ome-text-1)}
+:where([data-layout]) :where(h1){font-size:var(--ome-fs-xl)}
+:where([data-layout]) :where(h2){font-size:var(--ome-fs-lg)}
+:where([data-layout]) :where(h3){font-size:var(--ome-fs-md)}
+:where([data-layout]) :where(p){margin:0 0 .75em}
+:where([data-layout]) :where(a){color:var(--ome-accent-strong);text-underline-offset:2px}
+:where([data-layout]) :where(img,svg,video,canvas){max-width:100%}
+:where([data-layout]) :where(input,select,textarea,button){font:inherit;color:inherit}
+:where([data-layout]) :where(code,kbd,pre){font-family:var(--ome-font-mono);font-size:.92em}
+:where([data-layout]) ::selection{background:color-mix(in srgb, var(--ome-accent) 28%, transparent)}
+:where([data-layout]) :where(.num,.tabular){font-variant-numeric:tabular-nums}
+:where([data-layout]) :where(.muted){color:var(--ome-text-2)}
+:where([data-layout]) [hidden]{display:none!important}
+:where([data-layout]) :where(.sr-only){position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+}
+
+/* ══ components — ชื่อ class ตรงกับที่หน้าเดิมใช้อยู่ (.btn.primary/.card/.field/.frow/.kpi)
+   ตอนย้ายหน้า (Phase 2) ลบ CSS ของหน้าเองออกแล้วได้คอมโพเนนต์กลางแทนทันที ══════════════ */
+@layer components {
+.ome-icon{width:1.15em;height:1.15em;flex-shrink:0;vertical-align:-.2em;stroke-width:2}
+
+/* ปุ่ม: 4 แบบ (ค่าปกติ/primary/ghost/danger) × 3 ขนาด (sm/ค่าปกติ/lg) + .icon ปุ่มไอคอนสี่เหลี่ยม */
+:where([data-layout]) .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;
+  padding:0 16px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);
+  color:var(--ome-text-1);font-size:var(--ome-fs-sm);font-weight:600;line-height:1;white-space:nowrap;
+  text-decoration:none;cursor:pointer;transition:background var(--ome-dur-1),border-color var(--ome-dur-1),color var(--ome-dur-1)}
+:where([data-layout]) .btn:hover:not(:disabled){background:var(--ome-surface-2);border-color:var(--ome-border-strong)}
+:where([data-layout]) .btn:disabled{opacity:.45;cursor:not-allowed}
+:where([data-layout]) .btn.primary{background:var(--ome-accent);border-color:var(--ome-accent);color:var(--ome-on-accent)}
+:where([data-layout]) .btn.primary:hover:not(:disabled){background:color-mix(in srgb, var(--ome-accent) 86%, var(--ome-text-1));
+  border-color:transparent}
+:where([data-layout]) .btn.ghost{background:transparent;border-color:transparent;color:var(--ome-text-2)}
+:where([data-layout]) .btn.ghost:hover:not(:disabled){background:var(--ome-surface-2);color:var(--ome-text-1)}
+:where([data-layout]) .btn.danger{background:var(--ome-err);border-color:var(--ome-err);color:#FFFFFF}
+:where([data-layout]) .btn.danger:hover:not(:disabled){background:color-mix(in srgb, var(--ome-err) 86%, #000)}
+:where([data-layout]) .btn.sm{height:30px;padding:0 10px;gap:6px;font-size:var(--ome-fs-xs);border-radius:var(--ome-radius-sm)}
+:where([data-layout]) .btn.lg{height:46px;padding:0 22px;font-size:var(--ome-fs-md);border-radius:var(--ome-radius-lg)}
+:where([data-layout]) .btn.icon{width:38px;padding:0}
+:where([data-layout]) .btn.sm.icon{width:30px}
+:where([data-layout]) .btn.lg.icon{width:46px}
+
+/* การ์ด — style flat มีเส้นขอบ+เงาบาง, soft ไม่มีขอบ+เงานุ่ม, outline ขอบอย่างเดียว */
+:where([data-layout]) .card{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-card-r);
+  padding:var(--ome-card-pad);box-shadow:var(--ome-shadow-1)}
+:where([data-layout]) .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+:where([data-layout]) .card-head :where(h2,h3){margin:0}
+:where([data-layout]) .stack{display:flex;flex-direction:column;gap:var(--ome-card-gap)}
+:where([data-layout]) .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+:where([data-layout]) .spacer{flex:1}
+
+/* ช่องกรอก — .field ครอบ label + input/select/textarea, .frow เรียงหลายช่องในแถวเดียว */
+:where([data-layout]) .field{display:flex;flex-direction:column;gap:6px;min-width:0}
+:where([data-layout]) .field > label{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
+:where([data-layout]) :is(.input,.select,.textarea,.field input:not([type=checkbox]):not([type=radio]):not([type=range]),.field select,.field textarea){
+  width:100%;height:38px;padding:0 12px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);
+  background:var(--ome-surface-1);color:var(--ome-text-1);font-size:var(--ome-fs-sm);
+  transition:border-color var(--ome-dur-1),box-shadow var(--ome-dur-1)}
+:where([data-layout]) :is(.textarea,.field textarea){height:auto;min-height:96px;padding:10px 12px;line-height:1.6;resize:vertical}
+:where([data-layout]) :is(.input,.select,.textarea,.field input,.field select,.field textarea):focus{outline:none;
+  border-color:var(--ome-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--ome-accent) 22%, transparent)}
+:where([data-layout]) :is(.input,.select,.textarea,.field input,.field select,.field textarea)::placeholder{color:var(--ome-text-3)}
+:where([data-layout]) .field.invalid :is(input,select,textarea){border-color:var(--ome-err)}
+:where([data-layout]) .field .error{font-size:var(--ome-fs-xs);color:var(--ome-err-ink)}
+:where([data-layout]) .frow{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+:where([data-layout]) .frow > .field{flex:1 1 160px}
+
+/* ตาราง — ห่อด้วย .table-wrap ให้เลื่อนแนวนอนได้บนมือถือ, .num ชิดขวา+ตัวเลขความกว้างเท่ากัน */
+:where([data-layout]) .table-wrap{overflow-x:auto;border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);background:var(--ome-surface-1)}
+:where([data-layout]) .table{width:100%;border-collapse:collapse;font-size:var(--ome-fs-sm)}
+:where([data-layout]) .table :is(th,td){padding:10px 14px;text-align:left;border-bottom:1px solid var(--ome-border);white-space:nowrap}
+:where([data-layout]) .table th{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2);background:var(--ome-surface-2)}
+:where([data-layout]) .table tbody tr:last-child td{border-bottom:0}
+:where([data-layout]) .table tbody tr:hover td{background:color-mix(in srgb, var(--ome-surface-2) 60%, transparent)}
+:where([data-layout]) .table :is(th,td).num{text-align:right;font-variant-numeric:tabular-nums}
+
+/* badge (ป้ายสถานะ อ่านอย่างเดียว) / chip (ปุ่มกรองแบบเม็ดยา กดสลับได้) */
+:where([data-layout]) .badge{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:var(--ome-radius-pill);
+  background:var(--ome-surface-2);color:var(--ome-text-2);font-size:12px;font-weight:600;white-space:nowrap}
+:where([data-layout]) .badge.accent{background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
+:where([data-layout]) .badge.ok{background:var(--ome-ok-soft);color:var(--ome-ok-ink)}
+:where([data-layout]) .badge.warn{background:var(--ome-warn-soft);color:var(--ome-warn-ink)}
+:where([data-layout]) .badge.err{background:var(--ome-err-soft);color:var(--ome-err-ink)}
+:where([data-layout]) .badge.info{background:var(--ome-info-soft);color:var(--ome-info-ink)}
+:where([data-layout]) .chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--ome-border);
+  border-radius:var(--ome-radius-pill);background:var(--ome-surface-1);color:var(--ome-text-2);font-size:var(--ome-fs-sm);
+  font-weight:600;cursor:pointer;white-space:nowrap}
+:where([data-layout]) .chip:hover{color:var(--ome-text-1);border-color:var(--ome-border-strong)}
+:where([data-layout]) :is(.chip[aria-pressed="true"],.chip.on){background:var(--ome-accent-soft);border-color:var(--ome-accent);color:var(--ome-accent-strong)}
+
+/* แท็บ (เปลี่ยนมุมมองในหน้า) / segmented (ตัวเลือกสั้นๆ 2–4 ค่า) — สถานะเลือกใช้ aria-selected/aria-pressed หรือ .on */
+:where([data-layout]) .tabs{display:flex;gap:2px;border-bottom:1px solid var(--ome-border);overflow-x:auto;scrollbar-width:none}
+:where([data-layout]) .tab{flex-shrink:0;height:42px;padding:0 14px;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;
+  background:transparent;color:var(--ome-text-2);font-size:var(--ome-fs-sm);font-weight:600;cursor:pointer}
+:where([data-layout]) .tab:hover{color:var(--ome-text-1)}
+:where([data-layout]) :is(.tab[aria-selected="true"],.tab.on){color:var(--ome-text-1);border-bottom-color:var(--ome-accent)}
+:where([data-layout]) .segmented{display:inline-flex;gap:2px;padding:3px;border-radius:var(--ome-radius-md);background:var(--ome-surface-2);
+  border:1px solid var(--ome-border)}
+:where([data-layout]) .segmented > button{height:30px;padding:0 12px;border:0;border-radius:7px;background:transparent;
+  color:var(--ome-text-2);font-size:var(--ome-fs-sm);font-weight:600;cursor:pointer}
+:where([data-layout]) .segmented > :is(button[aria-pressed="true"],button.on){background:var(--ome-surface-1);color:var(--ome-text-1);box-shadow:var(--ome-shadow-1)}
+
+/* KPI — ตัวเลขหลักใช้ตัวเลขปกติ (ไม่ tabular) ตามแนวทาง hero number */
+:where([data-layout]) .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+:where([data-layout]) .kpi{display:flex;flex-direction:column;gap:4px;padding:16px;background:var(--ome-surface-1);
+  border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-1);min-width:0}
+:where([data-layout]) .kpi-label{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
+:where([data-layout]) .kpi-value{font-size:var(--ome-fs-2xl);font-weight:700;line-height:1.2;color:var(--ome-text-1)}
+:where([data-layout]) .kpi-delta{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
+:where([data-layout]) .kpi-delta.up{color:var(--ome-ok-ink)}
+:where([data-layout]) .kpi-delta.down{color:var(--ome-err-ink)}
+
+/* แถบเครื่องมือ */
+:where([data-layout]) .toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px;background:var(--ome-surface-1);
+  border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg)}
+:where([data-layout]) .toolbar .sep{width:1px;height:22px;background:var(--ome-border);margin:0 2px}
+
+/* สถานะว่าง */
+:where([data-layout]) .empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:40px 16px;text-align:center;color:var(--ome-text-2)}
+:where([data-layout]) .empty .ome-icon{width:36px;height:36px;color:var(--ome-text-3)}
+:where([data-layout]) .empty-title{font-size:var(--ome-fs-md);font-weight:700;color:var(--ome-text-1)}
+
+/* toast — กล่องแจ้งผลชั่วคราว ใส่ใน .toast-region (มุมล่างกลาง) */
+:where([data-layout]) .toast-region{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);
+  z-index:var(--ome-z-toast);display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;width:max-content;max-width:calc(100vw - 32px)}
+:where([data-layout]) .toast{pointer-events:auto;display:flex;align-items:center;gap:10px;min-height:44px;padding:10px 16px;
+  border-radius:var(--ome-radius-md);background:var(--ome-text-1);color:var(--ome-surface-1);font-size:var(--ome-fs-sm);
+  font-weight:500;box-shadow:var(--ome-shadow-3)}
+:where([data-layout]) .toast.ok .ome-icon{color:var(--ome-ok)}
+:where([data-layout]) .toast.err .ome-icon{color:var(--ome-err)}
+@media (prefers-reduced-motion: no-preference){
+  :where([data-layout]) .toast{animation:ome-toast-in var(--ome-dur-3) var(--ome-ease)}
+}
+@keyframes ome-toast-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* dialog — ใช้กับ <dialog class="dialog"> ของเบราว์เซอร์ (showModal()) */
+:where([data-layout]) .dialog{width:min(460px, calc(100vw - 32px));padding:0;border:0;border-radius:var(--ome-radius-lg);
+  background:var(--ome-surface-1);color:var(--ome-text-1);box-shadow:var(--ome-shadow-3)}
+:where([data-layout]) .dialog::backdrop{background:rgba(11,18,35,.5)}
+:where([data-layout]) .dialog-head{display:flex;align-items:center;gap:8px;padding:18px 20px 0}
+:where([data-layout]) .dialog-head :where(h2,h3){margin:0;flex:1}
+:where([data-layout]) .dialog-body{padding:14px 20px}
+:where([data-layout]) .dialog-foot{display:flex;justify-content:flex-end;gap:8px;padding:0 20px 18px}
+
+/* list-row — รายการแนวตั้ง (การตั้งค่า/รายการธุรกรรม/ไฟล์) */
+:where([data-layout]) .list{display:flex;flex-direction:column;background:var(--ome-surface-1);border:1px solid var(--ome-border);
+  border-radius:var(--ome-radius-lg);overflow:hidden}
+:where([data-layout]) .list-row{display:flex;align-items:center;gap:12px;min-height:52px;padding:10px 14px;border:0;
+  border-top:1px solid var(--ome-border);background:transparent;color:inherit;text-align:left;text-decoration:none;width:100%}
+:where([data-layout]) .list-row:first-child{border-top:0}
+:where([data-layout]) :is(a.list-row,button.list-row){cursor:pointer}
+:where([data-layout]) :is(a.list-row,button.list-row):hover{background:var(--ome-surface-2)}
+:where([data-layout]) .list-row .lead{display:grid;place-items:center;width:36px;height:36px;border-radius:var(--ome-radius-md);
+  background:var(--ome-accent-soft);color:var(--ome-accent-strong);flex-shrink:0}
+:where([data-layout]) .list-row .grow{flex:1;min-width:0}
+:where([data-layout]) .list-row .title{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+:where([data-layout]) .list-row .meta{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+
+/* ── สไตล์พื้นผิว (data-style) ของคอมโพเนนต์กลาง ── */
+[data-style="soft"] :where([data-layout]) :is(.card,.kpi,.list,.table-wrap,.toolbar){border-color:transparent;box-shadow:var(--ome-shadow-2)}
+[data-style="soft"] :where([data-layout]) .btn:not(.primary):not(.danger):not(.ghost){border-color:transparent;background:var(--ome-surface-2)}
+[data-style="outline"] :where([data-layout]) :is(.card,.kpi,.list,.table-wrap,.toolbar){box-shadow:none;border-width:1.5px}
+}
+
+/* ══ layouts — body[data-layout] ตามประเภทหน้า, เนื้อหาหลักอยู่ใน .page ══════════════════ */
+@layer layouts {
+:where([data-layout]) .page{width:100%;margin:0 auto;padding:var(--ome-sp-5) var(--ome-sp-4) var(--ome-sp-7)}
+:where([data-layout]) .page-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:var(--ome-sp-5)}
+:where([data-layout]) .page-head h1{margin:0;flex:1;min-width:0}
+
+/* tool — เครื่องมือทั่วไป คอลัมน์เดียวกว้างพออ่านสบาย */
+[data-layout="tool"] .page{max-width:960px}
+
+/* app — editor เต็มจอ (Word/Excel/CAD): สูงเท่าจอ เลื่อนภายในพื้นที่ทำงาน ไม่ใช่ทั้งหน้า */
+body[data-layout="app"]{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+[data-layout="app"] .page{flex:1;min-height:0;max-width:none;padding:0;display:flex;flex-direction:column}
+[data-layout="app"] .ome-footer{display:none}
+
+/* reader — บทเรียน/เนื้อหายาว ~72 ตัวอักษรต่อบรรทัด ฟอนต์ Sarabun (หน้าโหลดฟอนต์เองผ่าน OmeTheme.loadFont) */
+[data-layout="reader"] .page{max-width:calc(72ch + 2 * var(--ome-sp-4))}
+[data-layout="reader"] .prose{font-family:var(--ome-font-reader);font-size:17px;line-height:1.85;max-width:72ch}
+[data-layout="reader"] .prose :where(h2,h3){margin-top:1.6em}
+[data-layout="reader"] .prose :where(ul,ol){padding-left:1.4em}
+
+/* dashboard — KPI + กราฟ บนกริด 12 คอลัมน์ (.span-3/4/6/8/12) มือถือเหลือคอลัมน์เดียว */
+[data-layout="dashboard"] .page{max-width:1280px}
+[data-layout="dashboard"] .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--ome-card-gap)}
+[data-layout="dashboard"] .grid > *{grid-column:span 12}
+@media (min-width:900px){
+  [data-layout="dashboard"] .grid > .span-3{grid-column:span 3}
+  [data-layout="dashboard"] .grid > .span-4{grid-column:span 4}
+  [data-layout="dashboard"] .grid > .span-6{grid-column:span 6}
+  [data-layout="dashboard"] .grid > .span-8{grid-column:span 8}
+}
+
+/* hub — หน้ารวมไทล์ */
+[data-layout="hub"] .page{max-width:1100px}
+[data-layout="hub"] .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+[data-layout="hub"] .tile{display:flex;flex-direction:column;gap:8px;padding:16px;background:var(--ome-surface-1);
+  border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-1);color:inherit;text-decoration:none;
+  transition:border-color var(--ome-dur-1),transform var(--ome-dur-1)}
+[data-layout="hub"] .tile:hover{border-color:var(--ome-accent)}
+[data-layout="hub"] .tile .ome-icon{width:22px;height:22px;color:var(--ome-accent-strong)}
+[data-layout="hub"] .tile-title{font-weight:700}
+[data-layout="hub"] .tile-meta{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+[data-style="soft"] [data-layout="hub"] .tile{border-color:transparent;box-shadow:var(--ome-shadow-2)}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   compat — ไม่อยู่ใน layer โดยตั้งใจ (ดูหัวไฟล์) shell + กฎรีแมปของหน้าที่ยังไม่ย้าย
+   ══════════════════════════════════════════════════════════════════ */
 
 /* ── ให้ footer ติดล่างสุดของจอเสมอ แม้เนื้อหาสั้น (sticky footer) ────
    padding-bottom เดิมของแต่ละหน้าเคยไว้เว้นที่ก่อน footer ของตัวเอง (ตอนยังไม่มี
@@ -221,14 +448,12 @@ body{padding-bottom:0!important}
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 .ome-theme-swatch.sel{background:var(--ome-brand-sf);color:var(--ome-brand-dk);font-weight:700}
 .ome-theme-swatch.sel::after{content:'✓';margin-left:auto;font-size:12px;font-weight:700}
-/* ไอคอนแถวเลือก "ประเภทธีม" — ใช้อีโมจิแทนจุดสี (ไม่มีสีให้แสดงเหมือนสวอตช์สี) */
-.ome-theme-swatch .ome-style-ic{width:16px;flex-shrink:0;text-align:center;font-size:13px;line-height:1}
 
 /* ── รีแมปโทเคนพื้นผิวของหน้าเครื่องมือตามธีมที่เลือก (documents.html / run.html ใช้ตัวแปรชุดเดิม)
    เดิมต้องระบุชื่อธีมทีละอันเพราะสี+ความสว่างผูกกันในตัวแปรเดียว (data-theme) ตอนนี้แยกเป็น
    data-accent (สี) กับ data-theme (สว่าง/มืดล้วนๆ) แล้ว เลยรีแมปแค่ "มี data-accent อยู่ไหม
-   (สีอะไรก็ได้) หรือ data-theme=dark ไหม" ก็พอ — ไม่ต้องแจกแจงทีละชื่อสีอีกต่อไป (mint เริ่มต้น
-   ก็ set data-accent="mint" ไว้เหมือนกัน รีแมปแล้วได้ค่าเดิมเป๊ะ ไม่มีผลต่างจากไม่รีแมป) */
+   (สีอะไรก็ได้) หรือ data-theme=dark ไหม" ก็พอ — ไม่ต้องแจกแจงทีละชื่อสีอีกต่อไป (teal เริ่มต้น
+   ก็ set data-accent="teal" ไว้เหมือนกัน รีแมปแล้วได้ค่าเดิมเป๊ะ ไม่มีผลต่างจากไม่รีแมป) */
 [data-theme="dark"] body.ome-tool-page,
 [data-accent] body.ome-tool-page{
   --bg:var(--ome-bg); --card:var(--ome-card); --ink:var(--ome-ink); --muted:var(--ome-muted);
@@ -252,12 +477,10 @@ body{padding-bottom:0!important}
 [data-theme="dark"] body.ome-tool-page .cmp-table tr.cmp-flag{background:#2E1A1A}
 [data-theme="dark"] body.ome-tool-page .cmp-table tr.cmp-flag td{color:#F0A0A0}
 
-/* ── การ์ดต้อนรับ (.hero) ของสีธีมใหม่ (ไม่ใช่ mint เริ่มต้น) — ผสมสีอ่อนของแบรนด์สีนั้นแทน
-   gradient พาสเทลฟ้า/มินต์/ส้มที่แต่ละหน้า hardcode ไว้เอง ใช้ได้ทั้งโหมดสว่าง/มืด (เพราะ
-   --ome-brand-sf/--ome-card เปลี่ยนค่าตามแต่ละโหมดอยู่แล้ว) — specificity สูงกว่า sub-rule
-   ของ [data-theme="dark"] .hero ด้านล่าง (mint-only moody gradient) เลยชนะเฉพาะตอนเลือกสีอื่น
-   ที่ไม่ใช่ mint เท่านั้น mint ยังได้ moody gradient เดิมตอนกดมืดเหมือนเดิมทุกจุด */
-[data-accent]:not([data-accent="mint"]) body.ome-tool-page .hero{
+/* ── การ์ดต้อนรับ (.hero) ของสีเน้นที่ไม่ใช่ teal (ค่าเริ่มต้น) — ผสมสีอ่อนของแบรนด์สีนั้นแทน
+   gradient พาสเทลฟ้า/มินต์/ส้มที่แต่ละหน้า hardcode ไว้เอง ใช้ได้ทั้งโหมดสว่าง/มืด — specificity
+   สูงกว่า [data-theme="dark"] .hero ด้านบน เลยชนะเฉพาะตอนเลือกสีอื่น teal ยังได้ gradient เดิม */
+[data-accent]:not([data-accent="teal"]) body.ome-tool-page .hero{
   background:linear-gradient(120deg, var(--ome-brand-sf) 0%, var(--ome-card) 55%, var(--ome-brand-sf) 100%);
 }
 
@@ -270,8 +493,7 @@ body{padding-bottom:0!important}
       หน้าลงทุนอัตโนมัติ (ดู shell.js: buildInvestBgMotif) — ที่นี่มีแค่การจัดตำแหน่ง/สีเท่านั้น
    specificity ของ selector มี [data-invest-key] เพิ่มมา สูงกว่า body.ome-tool-page เฉยๆ ที่แต่ละ
    หน้ายังประกาศ background:var(--bg) ไว้เองอยู่ (ไม่ได้ลบทิ้งทุกไฟล์) เลยชนะได้โดยไม่ต้องพึ่งลำดับ
-   โหลดไฟล์ — ถ้าเลือก "ประเภทธีม" อื่น (glass/aurora ฯลฯ) กฎ !important ของประเภทธีมนั้นจะทับอีกที
-   ตามลำดับชั้นปกติ (ดูหมวด "รวมศูนย์ UI/UX เฟส 7" ด้านล่าง) */
+   โหลดไฟล์ */
 body.ome-tool-page[data-invest-key]{
   background:linear-gradient(180deg, color-mix(in srgb, var(--ome-brand) 7%, var(--bg) 93%) 0%, var(--bg) 560px);
   background-attachment:fixed;
@@ -459,194 +681,40 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   รวมศูนย์ UI/UX เฟส 7 — "ประเภทธีม" (แกนที่ 3 อิสระ: พื้นผิว)
-   คนละแกนกับสี (data-accent) และความสว่าง (data-theme) เลือกอะไรคู่กันก็ได้ — เลือกสีน้ำเงิน +
-   กระจกฝ้า แล้วเปลี่ยนเป็นสีแดงยังไงก็ยังเบลอเหมือนเดิม แค่คนละสี (ตามที่ผู้ใช้อธิบายไว้)
+   สไตล์พื้นผิว (data-style) ของหน้าที่ยังไม่ย้าย — ชุดคัดสรร 3 แบบ: flat (ค่าเริ่มต้น, ไม่มีกฎ
+   = หน้าตาเดิมของแต่ละหน้า) · soft · outline — theme-boot.js แปลง 8 แบบเดิมมาเป็นชุดนี้
+   หน้าเครื่องมือ: .card/.kpi/.btn (ปุ่มหลัก/อันตราย/active ใช้สีของหน้าเองเสมอ — ปกติเป็นตัวอักษรขาว
+   บนสีแบรนด์ ถ้าเปลี่ยนพื้นเป็นสีอ่อนจะอ่านไม่ออก)
+   หน้า React+Tailwind: .bg-white คือพื้นผิวการ์ด/แผงจริง (ไม่แตะมุมโค้งเพราะใช้ rounded-* ปนหลายขนาด)
+   ══════════════════════════════════════════════════════════════════ */
 
-   ขอบเขต: บังคับใช้เฉพาะ body.ome-tool-page (หน้าเครื่องมือส่วนใหญ่ใช้ .card/.btn ที่นิยามซ้ำกัน
-   ทุกไฟล์ด้วยตัวแปรร่วมชุดเดียวกัน var(--card)/var(--sh)/var(--ome-card-r) ฯลฯ — override property
-   ธรรมดา (background/border/box-shadow) ด้วย !important ที่นี่ที่เดียวพอ ไม่ต้องแก้ .card{} ทีละไฟล์
-   40+ ไฟล์) ไม่รวม body.ome-app-page (4 หน้า React+Tailwind) เพราะ class โครงสร้างต่างกันมาก จะทำ
-   เพิ่มทีหลังถ้าต้องการ — "เรียบมาตรฐาน" (flat, ค่าเริ่มต้น) ไม่มี rule ในนี้เลย เท่ากับพฤติกรรม
-   เดิมก่อนเฟสนี้ทุกอย่าง (การ์ด/ปุ่มแต่ละหน้าใช้ CSS ของตัวเองตามปกติ)
+/* นุ่ม (soft) — ไม่มีเส้นขอบ ใช้เงานุ่มแยกพื้นผิวแทน */
+[data-style="soft"] body.ome-tool-page .card,
+[data-style="soft"] body.ome-tool-page .kpi{
+  border-color:transparent!important;
+  box-shadow:0 1px 3px color-mix(in srgb, var(--ome-ink) 6%, transparent),
+    0 12px 32px color-mix(in srgb, var(--ome-ink) 9%, transparent)!important}
+[data-theme="dark"][data-style="soft"] body.ome-tool-page .card,
+[data-theme="dark"][data-style="soft"] body.ome-tool-page .kpi{
+  box-shadow:0 1px 3px rgba(0,0,0,.45), 0 12px 32px rgba(0,0,0,.4)!important}
+[data-style="soft"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
+  border-color:transparent!important;
+  background:color-mix(in srgb, var(--ome-bg) 65%, var(--ome-card))!important}
+[data-style="soft"] .ome-app-page .bg-white{border-color:transparent!important}
+[data-style="soft"] .ome-app-page .shadow-sm,
+[data-style="soft"] .ome-app-page .shadow-md,
+[data-style="soft"] .ome-app-page .shadow-lg{
+  box-shadow:0 1px 3px color-mix(in srgb, var(--ome-ink) 6%, transparent),
+    0 12px 32px color-mix(in srgb, var(--ome-ink) 9%, transparent)!important}
 
-   แก้บั๊ก (ผู้ใช้รายงาน): ปุ่ม .btn ทุกตัวรวมถึง .btn.primary/.btn.danger/.btn.active โดนกฎด้านล่าง
-   เปลี่ยนพื้นหลังเป็นสีอ่อน/โปร่งแสงหมด แต่ทั้ง 3 คลาสนี้เกือบทุกหน้ากำหนด color:#fff ตายตัวไว้เพราะ
-   ปกติพื้นหลังเป็น var(--brand)/var(--err) (เข้ม) พอพื้นหลังถูกเปลี่ยนเป็นสีอ่อนของ style เหล่านี้
-   ตัวหนังสือขาวเลยกลืนจนมองไม่เห็น (เช่น ปุ่ม "เลือกไฟล์" ในหน้านำเสนอรายงาน) — เพิ่ม
-   :not(.primary):not(.danger):not(.active) กันปุ่มหลัก/อันตราย/active ไว้ ให้ยังใช้สี
-   var(--brand)/var(--err)+ขาวของแต่ละหน้าเองเหมือนเดิมเสมอ ไม่ว่าจะเลือกประเภทธีมไหน (ปุ่มรองอื่นๆ
-   ยังได้เอฟเฟกต์ของ style ตามปกติ) */
-
-/* เพิ่ม .kpi (การ์ด KPI 4 อันบนสุดของหน้า invest.html — ผู้ใช้รายงานว่าเลือก "ประเภทธีม" แล้ว
-   กล่องนี้ไม่ขยับตามเหมือนกล่องอื่น) เข้าไปในทุก selector ของ .card ด้านล่างนี้ — ใช้ชื่อ class
-   เฉพาะของ invest.html หน้าเดียว (เช็คแล้วไม่ชนกับหน้าอื่น) เลยผูกเพิ่มตรงนี้ได้โดยไม่กระทบหน้าอื่น
-   แทนที่จะไปเปลี่ยนชื่อ class ในไฟล์ invest.html ให้เป็น .card แทน (จะกระทบ CSS/JS อื่นที่อ้างอิง
-   .kpi อยู่เดิมเยอะ) */
-
-/* กระจกฝ้า (Glassmorphism) — การ์ด/ปุ่มโปร่งแสง เบลอพื้นหลังหลังการ์ด ให้พื้นหน้าเว็บมีสีจางๆ
-   ผสมสีธีมไว้ด้วยเพื่อให้เห็นเอฟเฟกต์เบลอชัดขึ้น (พื้นทึบสีเดียวเบลอแล้วจะดูไม่ต่างจากเดิม) */
-[data-style="glass"] body.ome-tool-page{
-  background-image:radial-gradient(circle at 12% -10%, color-mix(in srgb, var(--ome-brand) 16%, transparent), transparent 55%),
-    radial-gradient(circle at 90% 110%, color-mix(in srgb, var(--ome-brand-sf) 70%, transparent), transparent 55%)!important;
-  background-attachment:fixed!important}
-[data-style="glass"] body.ome-tool-page .card,
-[data-style="glass"] body.ome-tool-page .kpi{
-  background:color-mix(in srgb, var(--ome-card) 62%, transparent)!important;
-  backdrop-filter:blur(18px) saturate(160%)!important;-webkit-backdrop-filter:blur(18px) saturate(160%)!important;
-  border:1px solid color-mix(in srgb, var(--ome-line) 55%, transparent)!important;
-  box-shadow:0 8px 32px color-mix(in srgb, var(--ome-ink) 12%, transparent)!important}
-[data-style="glass"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
-  background:color-mix(in srgb, var(--ome-card) 55%, transparent)!important;
-  backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;
-  border:1px solid color-mix(in srgb, var(--ome-line) 60%, transparent)!important}
-
-/* นูนนิ่ม (Neumorphism/Soft UI) — การ์ด/ปุ่มกลืนเป็นสีเดียวกับพื้นหลัง ไม่มีเส้นขอบ ใช้เงาคู่
-   (สว่าง/มืด) แทนให้ดูนูนออกมาจากพื้น สูตรเงาต่างกันระหว่างโหมดสว่าง/มืดเพราะ "แสงตกกระทบ" ที่ให้
-   ความรู้สึกนูนต้องเป็นเงาสว่างกว่าพื้นเสมอ (โหมดสว่างใช้สีขาวจริง โหมดมืดใช้ผสม --ome-card แทน) */
-[data-style="neumorph"] body.ome-tool-page .card,
-[data-style="neumorph"] body.ome-tool-page .kpi{
-  background:var(--ome-bg)!important;border:none!important;border-radius:22px!important;
-  box-shadow:8px 8px 18px color-mix(in srgb, var(--ome-ink) 14%, transparent),
-    -8px -8px 18px color-mix(in srgb, white 55%, transparent)!important}
-[data-theme="dark"][data-style="neumorph"] body.ome-tool-page .card,
-[data-theme="dark"][data-style="neumorph"] body.ome-tool-page .kpi{
-  box-shadow:8px 8px 18px color-mix(in srgb, black 55%, transparent),
-    -8px -8px 18px color-mix(in srgb, var(--ome-card) 65%, transparent)!important}
-[data-style="neumorph"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
-  background:var(--ome-bg)!important;border:none!important;border-radius:14px!important;
-  box-shadow:4px 4px 10px color-mix(in srgb, var(--ome-ink) 14%, transparent),
-    -4px -4px 10px color-mix(in srgb, white 55%, transparent)!important}
-[data-theme="dark"][data-style="neumorph"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
-  box-shadow:4px 4px 10px color-mix(in srgb, black 55%, transparent),
-    -4px -4px 10px color-mix(in srgb, var(--ome-card) 65%, transparent)!important}
-
-/* ดิบเท่ (Neubrutalism) — เส้นขอบหนาสีตัวอักษรหลัก + เงาทึบแบบ offset ไม่เบลอ มุมเกือบเหลี่ยม
-   กดปุ่มแล้วขยับตามเงาให้รู้สึกเหมือนกดจริง (:active) */
-[data-style="neubrutal"] body.ome-tool-page .card,
-[data-style="neubrutal"] body.ome-tool-page .kpi{
-  background:var(--ome-card)!important;border:2.5px solid var(--ome-ink)!important;
-  border-radius:6px!important;box-shadow:6px 6px 0 var(--ome-ink)!important}
-[data-style="neubrutal"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
-  border:2.5px solid var(--ome-ink)!important;border-radius:6px!important;
-  box-shadow:4px 4px 0 var(--ome-ink)!important;background:var(--ome-card)!important;
-  transition:transform .1s ease, box-shadow .1s ease!important}
-[data-style="neubrutal"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active):active{
-  transform:translate(3px,3px)!important;box-shadow:1px 1px 0 var(--ome-ink)!important}
-
-/* เส้นขอบ (Outline) — ไม่มีเงาเลย ใช้แค่เส้นขอบบางๆ แยกพื้นผิว เรียบที่สุดในบรรดาประเภทธีมทั้งหมด */
+/* เส้นขอบ (outline) — ไม่มีเงาเลย ใช้แค่เส้นขอบบางๆ แยกพื้นผิว */
 [data-style="outline"] body.ome-tool-page .card,
 [data-style="outline"] body.ome-tool-page .kpi{
   background:var(--ome-card)!important;border:1.5px solid var(--ome-line)!important;box-shadow:none!important}
 [data-style="outline"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
   background:transparent!important;border:1.5px solid var(--ome-line)!important;box-shadow:none!important}
-
-/* คลุกดิน (Claymorphism) — โค้งมนมาก คล้ายดินน้ำมัน ใช้เงา inset สว่าง (มุมบนซ้าย) + เงา inset
-   เข้ม (มุมล่างขวา) ผสมกับเงาลอย (drop shadow) ปกติ ให้ดูนูนหนาแบบดินปั้น ไม่แบนเหมือนนูนนิ่ม */
-[data-style="clay"] body.ome-tool-page .card,
-[data-style="clay"] body.ome-tool-page .kpi{
-  background:var(--ome-card)!important;border:none!important;border-radius:28px!important;
-  box-shadow:var(--ome-sh),
-    inset 2px 2px 4px color-mix(in srgb, white 40%, transparent),
-    inset -3px -3px 8px color-mix(in srgb, var(--ome-ink) 10%, transparent)!important}
-[data-style="clay"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
-  border:none!important;border-radius:16px!important;background:var(--ome-card)!important;
-  box-shadow:0 4px 10px color-mix(in srgb, var(--ome-ink) 12%, transparent),
-    inset 1px 1px 3px color-mix(in srgb, white 45%, transparent)!important}
-
-/* อะคริลิกฝ้า (Fluent Mica/Acrylic) — โปร่งแสงเบามาก เบลอน้อยกว่ากระจกฝ้าเยอะ (Mica ของ Windows
-   เน้น "ทึบเกือบหมด แค่ให้รู้สึกถึงพื้นหลัง" ต่างจาก Acrylic/Glass ที่โปร่งแสงชัดเจน) */
-[data-style="mica"] body.ome-tool-page .card,
-[data-style="mica"] body.ome-tool-page .kpi{
-  background:color-mix(in srgb, var(--ome-card) 88%, transparent)!important;
-  backdrop-filter:blur(6px)!important;-webkit-backdrop-filter:blur(6px)!important;
-  border:1px solid color-mix(in srgb, var(--ome-line) 80%, transparent)!important;
-  box-shadow:var(--ome-sh)!important}
-[data-style="mica"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
-  background:color-mix(in srgb, var(--ome-card) 80%, transparent)!important;
-  backdrop-filter:blur(4px)!important;-webkit-backdrop-filter:blur(4px)!important}
-
-/* ม่านสีลอย (Aurora) — ขอบการ์ดเป็นเส้นไล่สี (gradient border) ผสมกับแสงเรืองรอบการ์ด (glow shadow)
-   สีตามธีม + พื้นหลังหน้ามีแสงจางๆ ลอยเป็นก้อนคล้ายแสงเหนือ ให้บรรยากาศดูมีชีวิตชีวาขึ้น */
-[data-style="aurora"] body.ome-tool-page{
-  background-image:radial-gradient(ellipse 70% 40% at 20% -10%, color-mix(in srgb, var(--ome-brand) 20%, transparent), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 110%, color-mix(in srgb, var(--ome-brand-sf) 65%, transparent), transparent 60%)!important;
-  background-attachment:fixed!important}
-[data-style="aurora"] body.ome-tool-page .card,
-[data-style="aurora"] body.ome-tool-page .kpi{
-  background-color:var(--ome-card)!important;border:1px solid transparent!important;
-  background-image:linear-gradient(var(--ome-card), var(--ome-card)),
-    linear-gradient(120deg, var(--ome-brand), var(--ome-brand-sf) 45%, var(--ome-brand-dk))!important;
-  background-origin:border-box!important;background-clip:padding-box, border-box!important;
-  box-shadow:var(--ome-sh), 0 0 28px color-mix(in srgb, var(--ome-brand) 18%, transparent)!important}
-[data-style="aurora"] body.ome-tool-page .btn{
-  border:1.5px solid color-mix(in srgb, var(--ome-brand) 45%, var(--ome-line) 55%)!important}
-
-/* ══════════════════════════════════════════════════════════════════
-   รวมศูนย์ UI/UX เฟส 7.1 — ขยาย "ประเภทธีม" ให้ครอบคลุม 4 หน้า React+Tailwind (ome-app-page)
-   ผู้ใช้ขอให้ทำเพิ่มหลังเห็นว่าเฟส 7 มีผลแค่ body.ome-tool-page เท่านั้น
-
-   หน้าพวกนี้ (classroom-business/engineering, languages, legal) ไม่มี .card/.btn ร่วมกันแบบ
-   หน้าเครื่องมือ (ใช้ Tailwind utility ตรงๆ) — surface หลักที่ยกขึ้นมาระบุเนื้อหาคือ .bg-white
-   (พิสูจน์แล้วว่าปลอดภัย: grep แล้วใช้เฉพาะกับการ์ด/แผง/หัวข้อ/แถบข้างจริงๆ ไม่ชนกับ badge/pill
-   เล็กๆ เพราะพวกนั้นใช้ .bg-white/10, .bg-white/20 ซึ่งเป็นคนละคลาสกัน ไม่ถูก selector นี้จับ)
-   ผูกกับ token เดียวกับที่แก้สีไปแล้วในเฟส 6.1 (--ome-card/--ome-line/--ome-sh) ตามสูตรเดียวกับ
-   เฟส 7 ด้านบนเป๊ะ ต่างแค่เปลี่ยน .card → .bg-white
-
-   ตั้งใจไม่แตะ border-radius (skip ไปเลยทุกประเภทธีม ต่างจากเฟส 7 ของหน้าเครื่องมือ) เพราะ
-   .bg-white ในหน้าพวกนี้ใช้ร่วมกับ rounded-* หลายขนาดปนกัน (rounded-2xl/rounded-xl/rounded-lg)
-   ในองค์ประกอบต่างชนิดกัน (การ์ดใหญ่/แถบข้าง/หัวข้อ) เปลี่ยนมุมทีเดียวทั้งหมดเสี่ยงทำเลย์เอาต์
-   บางจุดเพี้ยน — เอฟเฟกต์พื้นผิว (โปร่งแสง/เงา/ขอบ) ที่เหลือก็สื่อความรู้สึกของแต่ละประเภทธีม
-   ได้ชัดเจนอยู่แล้วโดยไม่ต้องแตะทรง
-
-   ตั้งใจไม่แตะปุ่มหลัก (.bg-primary/.bg-secondary/.bg-brand) เช่นกัน — ต่างจากหน้าเครื่องมือที่
-   .btn เป็นสีกลาง (var(--card)) ไม่ใช่สีแบรนด์ ปุ่มพวกนี้ในหน้า React ใช้สีแบรนด์ล้วนเป็นตัวชี้นำ
-   การกระทำหลัก (primary CTA) การทำให้โปร่งแสง/จางสี/ลบสีออก (เช่น neumorph ที่กลืนเป็นสีพื้น) จะ
-   ลดความชัดเจนของปุ่มสำคัญลง เก็บไว้เป็นสีทึบเหมือนเดิมเพื่อความปลอดภัยด้าน usability */
-
-[data-style="glass"] .ome-app-page .bg-white{
-  background:color-mix(in srgb, var(--ome-card) 62%, transparent)!important;
-  backdrop-filter:blur(18px) saturate(160%)!important;-webkit-backdrop-filter:blur(18px) saturate(160%)!important;
-  border-color:color-mix(in srgb, var(--ome-line) 55%, transparent)!important}
-[data-style="glass"] .ome-app-page .shadow-sm,
-[data-style="glass"] .ome-app-page .shadow-md,
-[data-style="glass"] .ome-app-page .shadow-lg{box-shadow:0 8px 32px color-mix(in srgb, var(--ome-ink) 12%, transparent)!important}
-
-[data-style="neumorph"] .ome-app-page .bg-white{
-  background:var(--ome-bg)!important;border-color:transparent!important;
-  box-shadow:8px 8px 18px color-mix(in srgb, var(--ome-ink) 14%, transparent),
-    -8px -8px 18px color-mix(in srgb, white 55%, transparent)!important}
-[data-theme="dark"][data-style="neumorph"] .ome-app-page .bg-white{
-  box-shadow:8px 8px 18px color-mix(in srgb, black 55%, transparent),
-    -8px -8px 18px color-mix(in srgb, var(--ome-card) 65%, transparent)!important}
-
-[data-style="neubrutal"] .ome-app-page .bg-white{
-  border:2.5px solid var(--ome-ink)!important;box-shadow:6px 6px 0 var(--ome-ink)!important}
-
 [data-style="outline"] .ome-app-page .bg-white{
   border-color:var(--ome-line)!important;box-shadow:none!important}
-
-[data-style="clay"] .ome-app-page .bg-white{
-  border-color:transparent!important;
-  box-shadow:var(--ome-sh),
-    inset 2px 2px 4px color-mix(in srgb, white 40%, transparent),
-    inset -3px -3px 8px color-mix(in srgb, var(--ome-ink) 10%, transparent)!important}
-
-[data-style="mica"] .ome-app-page .bg-white{
-  background:color-mix(in srgb, var(--ome-card) 88%, transparent)!important;
-  backdrop-filter:blur(6px)!important;-webkit-backdrop-filter:blur(6px)!important;
-  border-color:color-mix(in srgb, var(--ome-line) 80%, transparent)!important}
-
-[data-style="aurora"] .ome-app-page{
-  background-image:radial-gradient(ellipse 70% 40% at 20% -10%, color-mix(in srgb, var(--ome-brand) 20%, transparent), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 110%, color-mix(in srgb, var(--ome-brand-sf) 65%, transparent), transparent 60%)!important;
-  background-attachment:fixed!important}
-[data-style="aurora"] .ome-app-page .bg-white{
-  background-color:var(--ome-card)!important;border-color:transparent!important;
-  background-image:linear-gradient(var(--ome-card), var(--ome-card)),
-    linear-gradient(120deg, var(--ome-brand), var(--ome-brand-sf) 45%, var(--ome-brand-dk))!important;
-  background-origin:border-box!important;background-clip:padding-box, border-box!important;
-  box-shadow:var(--ome-sh), 0 0 28px color-mix(in srgb, var(--ome-brand) 18%, transparent)!important}
 
 /* ══════════════════════════════════════════════════════════════════
    กล่องยืนยัน/แจ้งเตือนกลาง (tanotConfirm/tanotAlert ใน shell.js) — ใช้แทน

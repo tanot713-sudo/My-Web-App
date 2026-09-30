@@ -10,7 +10,8 @@ function menuPages() {
   const start = src.indexOf('var MENU = [');
   const end = src.indexOf('exposeInvestCats');
   const block = src.slice(start, end);
-  const pages = new Set(['index.html']);
+  // theme-preview.html ไม่อยู่ในเมนู (หน้าตัวอย่างธีม v2 / เลือกฟอนต์) แต่ต้องโหลดได้เหมือนกัน
+  const pages = new Set(['index.html', 'theme-preview.html']);
   let m;
   const hrefRe = /href:\s*'([^']+)'/g;
   while ((m = hrefRe.exec(block))) pages.add(m[1]);

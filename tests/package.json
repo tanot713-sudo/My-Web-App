@@ -5,10 +5,12 @@
   "scripts": {
     "guards": "node repo-guards.mjs",
     "test": "playwright test",
-    "test:update": "playwright test visual.spec.js --update-snapshots"
+    "test:update": "playwright test visual.spec.js --update-snapshots",
+    "icons": "node build-icons.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",
-    "esbuild": "0.28.2"
+    "esbuild": "0.28.2",
+    "lucide-static": "1.49.0"
   }
 }

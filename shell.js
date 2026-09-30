@@ -20,7 +20,7 @@
 
   /* ── โหมดฝังในป๊อปอัพ (?embed=1) — เปิดหน้าเดิมในกรอบลอยจากหน้าอื่น (เช่น invest.html) โดยไม่โหลด
      ซ้ำ: แถบนำทางบนสุด/เมนูลิ้นชัก/วิดเจ็ตแชท AI ลอย/ฟุตเตอร์ เพราะหน้าที่เปิดป๊อปอัพมีของพวกนี้อยู่แล้ว
-     ธีม (applyTheme) และ window.INVEST_CATS ยังทำงานตามปกติ — หน้าที่ฝังยังพึ่งพาสิ่งเหล่านี้ได้ */
+     ธีม (theme-boot.js) และ window.INVEST_CATS ยังทำงานตามปกติ — หน้าที่ฝังยังพึ่งพาสิ่งเหล่านี้ได้ */
   function isEmbedded() {
     try { return new URLSearchParams(location.search).get('embed') === '1'; } catch (e) { return false; }
   }
@@ -91,155 +91,32 @@
       '</svg>');
   })();
 
-  /* ── รายชื่อสีธีมที่เลือกได้ (เฟส 6 — แยกแกน "สี" ออกจากแกน "สว่าง/มืด" ตามที่ผู้ใช้ขอ) ──────
-     เดิม (เฟส 4) สี+ความสว่างผูกกันในค่าเดียว ('flooks'/'dark' อยู่ลิสต์เดียวกัน) ทำให้เลือกสีอื่น
-     แล้วติดสว่างตลอด ตอนนี้แยกเป็น 2 แกนอิสระ: ACCENTS (สีล้วนๆ 9 แบบ รวม mint เดิม) x สว่าง/มืด
-     (ปุ่ม ☀️/🌙 เดิม) รวมกันเป็น data-accent + data-theme บน <html> พร้อมกัน — ค่าจริงของแต่ละสี
-     (ทั้งเวอร์ชันสว่าง/มืด) กำหนดไว้ที่ theme.css ที่นี่เก็บแค่ id/label/สีจุดสวอตช์ */
+  /* ── ธีม: ค่าและการตั้งค่าอยู่ที่ theme-boot.js (window.OmeTheme) ซึ่งตั้ง data-theme/accent/style
+     + ฟอนต์ไว้ก่อนวาดจอแล้ว ที่นี่เก็บแค่ป้ายชื่อสำหรับแผงตั้งค่า ── */
+  var OT = window.OmeTheme;
   var ACCENTS = [
-    { id: 'mint',   label: 'เขียวมิ้นต์ (ปกติ)',   swatch: '#12A594' },
-    { id: 'flooks', label: 'เหลืองพลัง',          swatch: '#FFC700' },
-    { id: 'gymes',  label: 'แดงสปอร์ต',           swatch: '#E5384D' },
-    { id: 'skypastel', label: 'ฟ้าพาสเทล',        swatch: '#3D7CF4' },
-    { id: 'coach',  label: 'มินต์-ลาเวนเดอร์',     swatch: '#1C9C88' },
-    { id: 'finset', label: 'ม่วงการเงิน',          swatch: '#7C6FEA' },
-    { id: 'bubblegum', label: 'ชมพูสดใส',         swatch: '#EC1E79' },
-    { id: 'construct', label: 'ส้มก่อสร้าง',       swatch: '#E8743B' },
-    { id: 'crypto',    label: 'ฟ้าคริปโต',         swatch: '#2F7BFF' }
+    { id: 'teal',     label: 'เขียวน้ำทะเล (ปกติ)', swatch: '#12A594' },
+    { id: 'blue',     label: 'น้ำเงิน',            swatch: '#3D7CF4' },
+    { id: 'violet',   label: 'ม่วง',               swatch: '#7C6FEA' },
+    { id: 'orange',   label: 'ส้ม',                swatch: '#E8743B' },
+    { id: 'graphite', label: 'เทาเข้ม',            swatch: '#3F3F46' }
   ];
-  window.OME_ACCENTS = ACCENTS;
-
-  /* ── ประเภทธีม (เฟส 7 — แกนที่ 3 อิสระ: "พื้นผิว" เช่น กระจกฝ้า/นูนนิ่ม/ดิบเท่ ฯลฯ) ──────
-     อิสระจากทั้งสี (data-accent) และความสว่าง (data-theme) — เลือกสีอะไร + สว่าง/มืดแบบไหนก็ได้
-     ประเภทธีมเดียวกันจะให้ "ลักษณะพื้นผิว" เดียวกันเสมอ (เช่น กระจกฝ้า+สีน้ำเงิน / กระจกฝ้า+สีแดง
-     ก็ยังเบลอเหมือนกัน แค่คนละสี) ค่าจริงของแต่ละประเภท (กำหนด .card/.btn ยังไง) อยู่ที่ theme.css
-     ขอบเขต: มีผลเฉพาะหน้า body.ome-tool-page (หน้าเครื่องมือส่วนใหญ่ที่ใช้ระบบโทเคน --ome-* ตรงๆ)
-     ไม่รวม body.ome-app-page (4 หน้า React+Tailwind) เพราะโครงสร้าง class ต่างกันมาก จะทำเพิ่มทีหลัง
-     ถ้าต้องการ — "เรียบมาตรฐาน" (flat) คือค่าเริ่มต้น ไม่มี override ใดๆ เท่ากับพฤติกรรมเดิมก่อนเฟสนี้ */
   var STYLES = [
-    { id: 'flat',      label: 'เรียบมาตรฐาน', icon: '⬜' },
-    { id: 'glass',     label: 'กระจกฝ้า',     icon: '🧊' },
-    { id: 'neumorph',  label: 'นูนนิ่ม',       icon: '🫧' },
-    { id: 'neubrutal', label: 'ดิบเท่',        icon: '◼️' },
-    { id: 'outline',   label: 'เส้นขอบ',       icon: '▭' },
-    { id: 'clay',      label: 'คลุกดิน',       icon: '🟤' },
-    { id: 'mica',      label: 'อะคริลิกฝ้า',   icon: '🌫️' },
-    { id: 'aurora',    label: 'ม่านสีลอย',     icon: '🌌' }
+    { id: 'flat',    label: 'เรียบ (ปกติ)' },
+    { id: 'soft',    label: 'นุ่ม' },
+    { id: 'outline', label: 'เส้นขอบ' }
   ];
-  window.OME_STYLES = STYLES;
-  function getStyleType() {
-    try {
-      var saved = localStorage.getItem('ome:style');
-      for (var i = 0; i < STYLES.length; i++) { if (STYLES[i].id === saved) return saved; }
-    } catch (e) {}
-    return 'flat';
-  }
-  function setStyleGlobal(id) {
-    try { localStorage.setItem('ome:style', id); } catch (e) {}
-    document.documentElement.setAttribute('data-style', id);
-  }
-  window.OME_STYLE = { get: getStyleType, set: setStyleGlobal };
-
-  /* ── ตัวอักษร (เฟส 8 — เลือกฟอนต์ได้ทั้งเว็บ) ──────────────────────────────────
-     ใช้ตัวแปรกลาง --ome-f ที่มีอยู่แล้ว (นิยามครั้งเดียวใน theme.css, ทุก component ของ shell
-     เอง (nav/drawer/settings panel) กับหน้าเครื่องมือ (body.ome-tool-page) อ้างอิงผ่าน
-     var(--ome-f) อยู่แล้วทั้งหมด) — เปลี่ยนแค่ค่าตัวแปรนี้ด้วย inline style บน <html> (ชนะ
-     specificity ของ :root ใน theme.css เสมอ ไม่ต้องแก้ไฟล์ไหนเพิ่มสำหรับหน้ากลุ่มนี้) หน้า React
-     4 หน้า (ome-app-page) hardcode 'Prompt' ไว้ใน tailwind.config ของตัวเอง เลยมี override เสริม
-     ที่ theme.css ให้ตามด้วย (ดูคอมเมนต์ในนั้น) — ฟอนต์แต่ละตัวเลือกมาเพราะรองรับภาษาไทยครบ
-     (เว็บนี้เนื้อหาส่วนใหญ่เป็นภาษาไทย) "TH Sarabun New" ที่หน่วยงานราชการนิยมใช้ไม่มีบน Google
-     Fonts จึงใช้ตระกูล "Sarabun" ที่เป็นฟอนต์ตระกูลเดียวกันแทน */
   var FONTS = [
-    { id: 'prompt',   label: 'Prompt (ปกติ)',     family: "'Prompt',system-ui,-apple-system,sans-serif",
-      google: 'Prompt:wght@300;400;500;600;700' },
-    { id: 'sarabun',  label: 'Sarabun',            family: "'Sarabun',system-ui,-apple-system,sans-serif",
-      google: 'Sarabun:wght@300;400;500;600;700' },
-    { id: 'kanit',    label: 'Kanit',              family: "'Kanit',system-ui,-apple-system,sans-serif",
-      google: 'Kanit:wght@300;400;500;600;700' },
-    { id: 'mitr',     label: 'Mitr',               family: "'Mitr',system-ui,-apple-system,sans-serif",
-      google: 'Mitr:wght@300;400;500;600;700' },
-    { id: 'ibmplex',  label: 'IBM Plex Sans Thai', family: "'IBM Plex Sans Thai',system-ui,-apple-system,sans-serif",
-      google: 'IBM+Plex+Sans+Thai:wght@300;400;500;600;700' },
-    { id: 'notosans', label: 'Noto Sans Thai',     family: "'Noto Sans Thai',system-ui,-apple-system,sans-serif",
-      google: 'Noto+Sans+Thai:wght@300;400;500;600;700' }
+    { id: 'prompt',  label: 'Prompt (ปกติ)' },
+    { id: 'ibmplex', label: 'IBM Plex Sans Thai' }
   ];
-  window.OME_FONTS = FONTS;
-  var loadedFontIds = {};
-  function ensureFontLoaded(f) {
-    if (f.id === 'prompt' || loadedFontIds[f.id]) return; /* prompt โหลดอยู่แล้วทุกหน้าจาก <head> เดิม */
-    loadedFontIds[f.id] = true;
-    var link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=' + f.google + '&display=swap';
-    document.head.appendChild(link);
-  }
-  function getFont() {
-    try {
-      var saved = localStorage.getItem('ome:font');
-      for (var i = 0; i < FONTS.length; i++) { if (FONTS[i].id === saved) return saved; }
-    } catch (e) {}
-    return 'prompt';
-  }
-  function applyFont(id) {
-    var f = FONTS[0];
-    for (var i = 0; i < FONTS.length; i++) { if (FONTS[i].id === id) f = FONTS[i]; }
-    ensureFontLoaded(f);
-    document.documentElement.style.setProperty('--ome-f', f.family);
-  }
-  function setFontGlobal(id) {
-    try { localStorage.setItem('ome:font', id); } catch (e) {}
-    applyFont(id);
-  }
-  window.OME_FONT = { get: getFont, set: setFontGlobal };
-
-  /* ── แปลงค่าเก่า (เฟส 4) ที่เคยเก็บสี+ความสว่างไว้ในคีย์เดียว 'ome:theme' เช่น 'flooks'/'crypto'
-     ให้เป็นโมเดลใหม่ครั้งเดียวตอนโหลดหน้าแรกหลังอัปเดต — ย้ายค่าสีไปที่ 'ome:accent' ใหม่ รีเซ็ต
-     'ome:theme' กลับเป็น 'light' (ธีมสีชุดเก่าทุกอันเป็นเวอร์ชันสว่างเท่านั้น ไม่มีมืด จึงรีเซ็ต
-     ความสว่างให้ตรงของเดิมเป๊ะ) — 'light'/'dark' เดิมไม่ต้องย้ายอะไร อยู่แกนสว่าง/มืดถูกที่อยู่แล้ว */
-  (function migrateOldThemeKey() {
-    try {
-      var old = localStorage.getItem('ome:theme');
-      var oldIsAccent = old && old !== 'light' && old !== 'dark';
-      if (oldIsAccent && !localStorage.getItem('ome:accent')) {
-        var mapped = old === 'glass' ? 'skypastel' : old; /* id เดิมชื่อ glass เปลี่ยนเป็น skypastel แล้ว */
-        localStorage.setItem('ome:accent', mapped);
-        localStorage.setItem('ome:theme', 'light');
-      }
-    } catch (e) {}
-  })();
-
-  /* ── สีธีม: อ่านค่าที่เคยเลือก > mint (ปกติ) ───────────────────── */
-  function getAccent() {
-    try {
-      var saved = localStorage.getItem('ome:accent');
-      for (var i = 0; i < ACCENTS.length; i++) { if (ACCENTS[i].id === saved) return saved; }
-    } catch (e) {}
-    return 'mint';
-  }
-  function setAccentGlobal(id) {
-    try { localStorage.setItem('ome:accent', id); } catch (e) {}
-    document.documentElement.setAttribute('data-accent', id);
-  }
-  window.OME_ACCENT = { get: getAccent, set: setAccentGlobal };
-
-  /* ── สว่าง/มืด: อ่านค่าที่เคยเลือก > ตามระบบ (แกนนี้แยกจากสีธีมแล้ว ใช้ได้กับทุกสี) ────── */
-  function getTheme() {
-    try {
-      var saved = localStorage.getItem('ome:theme');
-      if (saved === 'light' || saved === 'dark') return saved;
-    } catch (e) {}
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark' : 'light';
-  }
-  function applyTheme(t) {
-    document.documentElement.setAttribute('data-theme', t);
+  function themeGet(kind) { return OT ? OT.get(kind) : (kind === 'theme' ? 'light' : ''); }
+  function themeSet(kind, v) { if (OT) OT.set(kind, v); }
+  function syncThemeBtn() {
     var btn = document.getElementById('omeThemeBtn');
-    if (btn) btn.textContent = t === 'dark' ? '☀️' : '🌙';
+    if (btn) btn.textContent = themeGet('theme') === 'dark' ? '☀️' : '🌙';
   }
-  document.documentElement.setAttribute('data-accent', getAccent());
-  document.documentElement.setAttribute('data-style', getStyleType());
-  applyFont(getFont());
-  applyTheme(getTheme());
+  if (OT) OT.onChange(syncThemeBtn);
 
   /* ── ภาษา UI: จุดกลางเดียวให้ทุกเครื่องมือที่รองรับ 2 ภาษาอ่าน/เขียนร่วมกัน ──────────
      เดิมแต่ละเครื่องมือ (cad/word/excel/doc-check ใช้ 'tanot:doclang' ร่วมกันอยู่แล้ว ส่วน
@@ -443,11 +320,9 @@
     themeBtn.id = 'omeThemeBtn';
     themeBtn.className = 'ome-theme-btn';
     themeBtn.setAttribute('aria-label', 'สลับโหมดสว่าง/มืด');
-    themeBtn.textContent = getTheme() === 'dark' ? '☀️' : '🌙';
+    themeBtn.textContent = themeGet('theme') === 'dark' ? '☀️' : '🌙';
     themeBtn.addEventListener('click', function () {
-      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      try { localStorage.setItem('ome:theme', next); } catch (e) {}
-      applyTheme(next);
+      themeSet('theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
     });
     right.appendChild(themeBtn);
 
@@ -477,7 +352,7 @@
     var swatchWrap = document.createElement('div');
     swatchWrap.className = 'ome-theme-swatches';
     function markSelectedSwatch() {
-      var cur = getAccent();
+      var cur = themeGet('accent');
       var nodes = swatchWrap.querySelectorAll('.ome-theme-swatch');
       for (var i = 0; i < nodes.length; i++) {
         nodes[i].classList.toggle('sel', nodes[i].getAttribute('data-accent-id') === cur);
@@ -490,7 +365,7 @@
       sw.setAttribute('data-accent-id', ac.id);
       sw.innerHTML = '<span class="dot" style="background:' + ac.swatch + '"></span><span>' + ac.label + '</span>';
       sw.addEventListener('click', function () {
-        setAccentGlobal(ac.id);
+        themeSet('accent', ac.id);
         markSelectedSwatch();
       });
       swatchWrap.appendChild(sw);
@@ -500,7 +375,7 @@
     settingsPanel.appendChild(swatchWrap);
 
     /* แถบย่อย "ประเภทธีม" — อยู่ในกลุ่มเดียวกับ "เลือกธีมเว็บ" ด้านบน (คนละแกนกัน: สี vs พื้นผิว)
-       ตามที่ผู้ใช้ขอ "ในธีมเพิ่มแถบย่อยประเภทธีม" กลไกเดียวกับสวอตช์สี แค่ไม่มีจุดสี ใช้ไอคอนแทน */
+       ตามที่ผู้ใช้ขอ "ในธีมเพิ่มแถบย่อยประเภทธีม" กลไกเดียวกับสวอตช์สี แค่ไม่มีจุดสี */
     var styleRow = document.createElement('button');
     styleRow.type = 'button';
     styleRow.className = 'ome-settings-row';
@@ -510,7 +385,7 @@
     var styleWrap = document.createElement('div');
     styleWrap.className = 'ome-theme-swatches';
     function markSelectedStyle() {
-      var cur = getStyleType();
+      var cur = themeGet('style');
       var nodes = styleWrap.querySelectorAll('.ome-theme-swatch');
       for (var i = 0; i < nodes.length; i++) {
         nodes[i].classList.toggle('sel', nodes[i].getAttribute('data-style-id') === cur);
@@ -521,9 +396,9 @@
       sw.type = 'button';
       sw.className = 'ome-theme-swatch';
       sw.setAttribute('data-style-id', st.id);
-      sw.innerHTML = '<span class="ome-style-ic">' + st.icon + '</span><span>' + st.label + '</span>';
+      sw.innerHTML = '<span>' + st.label + '</span>';
       sw.addEventListener('click', function () {
-        setStyleGlobal(st.id);
+        themeSet('style', st.id);
         markSelectedStyle();
       });
       styleWrap.appendChild(sw);
@@ -581,7 +456,7 @@
     var fontWrap = document.createElement('div');
     fontWrap.className = 'ome-theme-swatches';
     function markSelectedFont() {
-      var cur = getFont();
+      var cur = themeGet('font');
       var nodes = fontWrap.querySelectorAll('.ome-theme-swatch');
       for (var i = 0; i < nodes.length; i++) {
         nodes[i].classList.toggle('sel', nodes[i].getAttribute('data-font-id') === cur);
@@ -592,9 +467,9 @@
       sw.type = 'button';
       sw.className = 'ome-theme-swatch';
       sw.setAttribute('data-font-id', f.id);
-      sw.innerHTML = '<span style="font-family:' + f.family + '">' + f.label + '</span>';
+      sw.innerHTML = '<span style="font-family:' + (OT ? OT.fonts[f.id].family : 'inherit') + '">' + f.label + '</span>';
       sw.addEventListener('click', function () {
-        setFontGlobal(f.id);
+        themeSet('font', f.id);
         markSelectedFont();
       });
       fontWrap.appendChild(sw);
@@ -604,7 +479,7 @@
     fontRow.addEventListener('click', function () {
       if (!fontsPreviewed) {
         fontsPreviewed = true;
-        FONTS.forEach(function (f) { ensureFontLoaded(f); });
+        if (OT) FONTS.forEach(function (f) { OT.loadFont(OT.fonts[f.id].google); });
       }
       fontWrap.classList.toggle('open');
     });

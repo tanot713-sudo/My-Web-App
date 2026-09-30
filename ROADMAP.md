@@ -36,7 +36,8 @@
 - `repo-guards.mjs` ตรวจ: bump `CACHE` แล้ว, ไฟล์ใน PRECACHE มีจริง, ไม่มีไฟล์เกิน 25 MiB, `languages.compiled.js` ตรงกับ `.jsx`, CDN/vendor ใหม่มีใน `credits.html`
 - ต่อเข้า `.github/workflows/deploy-pages.yml` ให้รันบน PR
 
-### 0c. ธีม v2 — แกนกลาง (M)
+### 0c. ✅ ธีม v2 — แกนกลาง (M) — เสร็จแล้ว (2026-09-30) · รอเจ้าของเลือกฟอนต์หลักที่ `theme-preview.html`
+ต่างจากแผนเดิม: (1) กฎ compat **ไม่ได้อยู่ใน `@layer`** — กฎรีแมป/nav ของ shell ต้องชนะ `<style>` ของหน้าเอง ถ้าใส่ layer จะกลับแพ้ จึงเป็นส่วนท้ายไฟล์ที่ไม่มี layer แทน (ลบทีละส่วนตอน Phase 2) · (2) base/components/layouts ทำงานเฉพาะหน้าที่มี `body[data-layout]` (ครอบ `:where()`) หน้าเดิมจึงไม่เปลี่ยนสักพิกเซล (ภาพ baseline ผ่านครบ) · (3) โทเคนใหม่ขึ้นต้น `--ome-` ทั้งหมด (`--ome-chart-1..8` แทน `--chart-1..8`) กันชนกับตัวแปรของแต่ละหน้า · (4) ใส่ `theme-boot.js` ใน `<head>` ครบทั้ง 42 หน้าแล้ว (ไม่ถือเป็นการย้ายหน้า — แค่ย้ายค่าตั้งธีมจาก `shell.js` มาไว้ที่เดียว) · (5) สีเน้นใช้ชื่อใหม่ `teal/blue/violet/orange/graphite` (แปลงจาก mint/coach→teal, skypastel/crypto→blue, finset/bubblegum→violet, construct/flooks/gymes→orange) · สไตล์ glass/neumorph/clay/mica/aurora→soft, neubrutal→outline · ฟอนต์ kanit/mitr→Prompt, sarabun/notosans→IBM Plex Sans Thai · (6) `theme-color` = สีพื้น nav ตามสีเน้น/โหมด แทนสีแบรนด์ 11 ค่าเดิม
 - **จัด `theme.css` เป็น `@layer tokens, base, components, layouts, compat`** เพื่อให้ style เดิมของแต่ละหน้ายังชนะได้โดยไม่ต้องใช้ `!important` → ย้ายทีละหน้าได้อย่างปลอดภัย
 - **Tokens ใหม่**: พื้นผิว 0/1/2, ตัวอักษร 1/2/3, เส้น, สีเน้น + สีตัวอักษรบนสีเน้น, สีสถานะ ok/warn/err/info (+ แบบจาง), radius 4 ขั้น (6/10/14/999), เงา 3 ขั้น, z-index, motion, สีกราฟ `--chart-1..8` / `--chart-up/down` / grid / axis — และเริ่มใช้ `--ome-sp-*` / `--ome-fs-*` ที่มีอยู่แล้วจริงจัง
 - **คอมโพเนนต์กลาง**: btn (4 แบบ × 3 ขนาด), card, field/input/select, table, badge/chip, tabs, segmented, kpi, toolbar, empty-state, toast, dialog, list-row
