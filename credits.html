@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>เครดิต &amp; ลิขสิทธิ์ | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#3B9BEA">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -18,185 +17,136 @@
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
 <style>
-:root{
-  --bg:#F6F7FB; --card:#FFFFFF; --ink:#1F2430; --muted:#727C93; --line:#EAEDF5;
-  --sky:#3B9BEA; --sky-dk:#2563EB; --sky-sf:#EAF1FE; --ok:#17B26A;
-  --f:'Prompt',system-ui,-apple-system,sans-serif;
-  --r:16px; --sh:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.06);
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--f);background:var(--bg);color:var(--ink);line-height:1.7;font-size:15px;padding:0 20px 80px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1000px;margin:0 auto}
-.crumb-row{padding:24px 0 0}
-.crumb{font-size:13px;color:var(--muted)}
-.crumb a{color:var(--sky-dk);text-decoration:none;font-weight:500}
-.crumb a:hover{text-decoration:underline}
-.crumb span.sep{margin:0 8px;color:#C9CEDC}
-.head{display:flex;align-items:center;gap:16px;margin:16px 0 8px}
-.head-icon{width:54px;height:54px;border-radius:15px;flex-shrink:0;background:linear-gradient(135deg,#3B9BEA,#2563EB);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(59,155,234,.28)}
-.head h1{font-size:25px;font-weight:800;letter-spacing:-.01em}
-.head .sub{font-size:13.5px;color:var(--muted);font-weight:500}
-.intro{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:18px 20px;margin:16px 0;font-size:14.5px;color:#3a4356}
-.intro b{color:var(--ink)}
-h2{font-size:16.5px;font-weight:800;margin:26px 0 12px;display:flex;align-items:center;gap:9px}
-h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--sky)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:720px){.grid{grid-template-columns:1fr}}
-.libcard{background:var(--card);border-radius:14px;box-shadow:var(--sh);padding:15px 17px;display:flex;flex-direction:column;gap:6px}
-.libcard .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.libcard .name{font-weight:800;font-size:15.5px}
-.lic{font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px;background:var(--sky-sf);color:var(--sky-dk);white-space:nowrap}
-.lic.mit{background:#E7F6EF;color:#0B7F52}
-.lic.apache{background:#FDEEE7;color:#B5451B}
-.lic.bsd{background:#EEF0FE;color:#3F4BC4}
-.lic.ofl{background:#F3EBFB;color:#7A3FBF}
-.lic.gpl{background:#FBEAEA;color:#A32E2E}
-.lic.lgpl{background:#FDF3E4;color:#96631A}
-.lic.ccbync{background:#E7EEFD;color:#2255B0}
-.lic.ccbysa{background:#EAF6FB;color:#0E6E8F}
-.libcard .desc{font-size:13.5px;color:#4a5262}
-.libcard .meta{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px}
-.libcard a{color:var(--sky-dk);text-decoration:none;font-weight:600}
-.libcard a:hover{text-decoration:underline}
-.pill{display:inline-block;font-size:11px;font-weight:700;color:#556;background:#EEF2F9;border-radius:6px;padding:1px 8px}
-.note{background:var(--card);border-radius:14px;box-shadow:var(--sh);padding:14px 18px;margin-top:12px;font-size:14px;color:#3a4356}
-.note b{color:var(--ink)}
-.note ul{margin:8px 0 0 18px}
-.note li{margin:5px 0}
-footer{margin-top:40px;text-align:center;font-size:12.5px;color:#9AA3B8}
-footer a{color:var(--sky-dk);text-decoration:none}
+.libs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:var(--ome-sp-3)}
+.lib{display:flex;flex-direction:column;gap:6px}
+.lib-top{display:flex;align-items:center;justify-content:space-between;gap:var(--ome-sp-2)}
+.lib-name{font-weight:700}
+.lib-desc{font-size:var(--ome-fs-sm)}
+.lib-meta{display:flex;align-items:center;gap:var(--ome-sp-2);flex-wrap:wrap;font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+.lib-meta a{font-weight:600}
+.credits-note ul{margin:8px 0 0;padding-left:1.2em}
+.credits-note li{margin:5px 0}
 </style>
 </head>
-<body>
-<div class="wrap">
-  <div class="crumb-row">
-    <nav class="crumb"><a href="./">หน้าหลัก</a><span class="sep">/</span>เครดิต &amp; ลิขสิทธิ์</nav>
-  </div>
+<body data-layout="tool">
+<script src="auth-gate.js"></script>
+<main class="page stack">
+  <div class="page-head"><h1>เครดิต &amp; ลิขสิทธิ์โอเพนซอร์ส</h1></div>
 
-  <div class="head">
-    <div class="head-icon">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/><path d="M9 12l2 2 4-4"/></svg>
-    </div>
-    <div>
-      <h1>เครดิต &amp; ลิขสิทธิ์โอเพนซอร์ส</h1>
-      <div class="sub">Open-source credits &amp; licenses</div>
-    </div>
-  </div>
-
-  <div class="intro">
+  <div class="card">
     เครื่องมือของ Tanot สร้างจากไลบรารีโอเพนซอร์สที่อนุญาตให้ใช้ได้อย่างเสรี (MIT / Apache-2.0 / BSD / SIL OFL)
     รวมถึง<b>ใช้เชิงพาณิชย์ได้</b> เราคงประกาศลิขสิทธิ์และเครดิตของผู้พัฒนาแต่ละรายไว้ในไฟล์ไลบรารีตามเงื่อนไขของสัญญาอนุญาต
-    ขอขอบคุณผู้พัฒนาทุกท่าน 
+    ขอขอบคุณผู้พัฒนาทุกท่าน
   </div>
 
-  <h2><span class="dot"></span>ไลบรารีที่ใช้ในเครื่องมือ</h2>
-  <div class="grid">
-    <div class="libcard"><div class="top"><span class="name">PDF.js</span><span class="lic apache">Apache-2.0</span></div>
-      <div class="desc">อ่าน/แสดงไฟล์ PDF ในเบราว์เซอร์ (โดย Mozilla)</div>
-      <div class="meta"><span class="pill">เอกสาร, เตรียมสอบเนติ, แปลงเสียง ↔ ข้อความ, ดึงข้อความออกจากเอกสาร</span><a href="https://github.com/mozilla/pdf.js" target="_blank" rel="noopener">github.com/mozilla/pdf.js</a></div></div>
+  <section class="stack"><h2>ไลบรารีที่ใช้ในเครื่องมือ</h2>
+  <div class="libs">
+    <div class="card lib"><div class="lib-top"><span class="lib-name">PDF.js</span><span class="badge">Apache-2.0</span></div>
+      <div class="lib-desc">อ่าน/แสดงไฟล์ PDF ในเบราว์เซอร์ (โดย Mozilla)</div>
+      <div class="lib-meta"><span>เอกสาร, เตรียมสอบเนติ, แปลงเสียง ↔ ข้อความ, ดึงข้อความออกจากเอกสาร</span><a href="https://github.com/mozilla/pdf.js" target="_blank" rel="noopener">github.com/mozilla/pdf.js</a></div></div>
 
-    <div class="libcard"><div class="top"><span class="name">Mammoth.js</span><span class="lic bsd">BSD-2-Clause</span></div>
-      <div class="desc">แปลงไฟล์ Word (.docx) เป็น HTML ตอนนำเข้า</div>
-      <div class="meta"><span class="pill">เอกสาร, แปลงเสียง ↔ ข้อความ, ดึงข้อความออกจากเอกสาร</span><a href="https://github.com/mwilliamson/mammoth.js" target="_blank" rel="noopener">github.com/mwilliamson/mammoth.js</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Mammoth.js</span><span class="badge">BSD-2-Clause</span></div>
+      <div class="lib-desc">แปลงไฟล์ Word (.docx) เป็น HTML ตอนนำเข้า</div>
+      <div class="lib-meta"><span>เอกสาร, แปลงเสียง ↔ ข้อความ, ดึงข้อความออกจากเอกสาร</span><a href="https://github.com/mwilliamson/mammoth.js" target="_blank" rel="noopener">github.com/mwilliamson/mammoth.js</a></div></div>
 
-    <div class="libcard"><div class="top"><span class="name">docx</span><span class="lic mit">MIT</span></div>
-      <div class="desc">สร้าง/เขียนไฟล์ Word (.docx) ตอนดาวน์โหลด</div>
-      <div class="meta"><span class="pill">เอกสาร</span><a href="https://github.com/dolanmiu/docx" target="_blank" rel="noopener">github.com/dolanmiu/docx</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">docx</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">สร้าง/เขียนไฟล์ Word (.docx) ตอนดาวน์โหลด</div>
+      <div class="lib-meta"><span>เอกสาร</span><a href="https://github.com/dolanmiu/docx" target="_blank" rel="noopener">github.com/dolanmiu/docx</a></div></div>
 
-    <div class="libcard"><div class="top"><span class="name">Tesseract.js</span><span class="lic apache">Apache-2.0</span></div>
-      <div class="desc">OCR อ่านตัวอักษรจากรูปภาพ/หน้าสแกนเป็นข้อความ</div>
-      <div class="meta"><span class="pill">เอกสาร, เตรียมสอบเนติ, แปลงเสียง ↔ ข้อความ, ดึงข้อความออกจากเอกสาร</span><a href="https://github.com/naptha/tesseract.js" target="_blank" rel="noopener">github.com/naptha/tesseract.js</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Tesseract.js</span><span class="badge">Apache-2.0</span></div>
+      <div class="lib-desc">OCR อ่านตัวอักษรจากรูปภาพ/หน้าสแกนเป็นข้อความ</div>
+      <div class="lib-meta"><span>เอกสาร, เตรียมสอบเนติ, แปลงเสียง ↔ ข้อความ, ดึงข้อความออกจากเอกสาร</span><a href="https://github.com/naptha/tesseract.js" target="_blank" rel="noopener">github.com/naptha/tesseract.js</a></div></div>
 
-    <div class="libcard"><div class="top"><span class="name">JSZip</span><span class="lic mit">MIT</span></div>
-      <div class="desc">แกะไฟล์ .pptx (PowerPoint) เพื่อดึงข้อความจากสไลด์ และรวมไฟล์ PDF รายหน้าเป็น .zip</div>
-      <div class="meta"><span class="pill">แปลงเสียง ↔ ข้อความ, ดึงข้อความออกจากเอกสาร</span><a href="https://github.com/Stuk/jszip" target="_blank" rel="noopener">github.com/Stuk/jszip</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">JSZip</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">แกะไฟล์ .pptx (PowerPoint) เพื่อดึงข้อความจากสไลด์ และรวมไฟล์ PDF รายหน้าเป็น .zip</div>
+      <div class="lib-meta"><span>แปลงเสียง ↔ ข้อความ, ดึงข้อความออกจากเอกสาร</span><a href="https://github.com/Stuk/jszip" target="_blank" rel="noopener">github.com/Stuk/jszip</a></div></div>
 
-    <div class="libcard"><div class="top"><span class="name">pdf-lib</span><span class="lic mit">MIT</span></div>
-      <div class="desc">แยกไฟล์ PDF ออกเป็นไฟล์รายหน้า (สร้างไฟล์ PDF ใหม่ทีละหน้าในเบราว์เซอร์)</div>
-      <div class="meta"><span class="pill">ดึงข้อความออกจากเอกสาร</span><a href="https://github.com/Hopding/pdf-lib" target="_blank" rel="noopener">github.com/Hopding/pdf-lib</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">pdf-lib</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">แยกไฟล์ PDF ออกเป็นไฟล์รายหน้า (สร้างไฟล์ PDF ใหม่ทีละหน้าในเบราว์เซอร์)</div>
+      <div class="lib-meta"><span>ดึงข้อความออกจากเอกสาร</span><a href="https://github.com/Hopding/pdf-lib" target="_blank" rel="noopener">github.com/Hopding/pdf-lib</a></div></div>
 
-    <div class="libcard"><div class="top"><span class="name">html2canvas</span><span class="lic mit">MIT</span></div>
-      <div class="desc">จับภาพหน้าเอกสารเพื่อสร้าง PDF เอง (เลี่ยง header/footer อัตโนมัติของเบราว์เซอร์)</div>
-      <div class="meta"><span class="pill">เอกสาร, นำเสนอรายงาน</span><a href="https://github.com/niklasvh/html2canvas" target="_blank" rel="noopener">github.com/niklasvh/html2canvas</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">html2canvas</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">จับภาพหน้าเอกสารเพื่อสร้าง PDF เอง (เลี่ยง header/footer อัตโนมัติของเบราว์เซอร์)</div>
+      <div class="lib-meta"><span>เอกสาร, นำเสนอรายงาน</span><a href="https://github.com/niklasvh/html2canvas" target="_blank" rel="noopener">github.com/niklasvh/html2canvas</a></div></div>
 
-    <div class="libcard"><div class="top"><span class="name">jsPDF</span><span class="lic mit">MIT</span></div>
-      <div class="desc">สร้างไฟล์ PDF ฝั่งเบราว์เซอร์</div>
-      <div class="meta"><span class="pill">เอกสาร, นำเสนอรายงาน</span><a href="https://github.com/parallax/jsPDF" target="_blank" rel="noopener">github.com/parallax/jsPDF</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">jsPDF</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">สร้างไฟล์ PDF ฝั่งเบราว์เซอร์</div>
+      <div class="lib-meta"><span>เอกสาร, นำเสนอรายงาน</span><a href="https://github.com/parallax/jsPDF" target="_blank" rel="noopener">github.com/parallax/jsPDF</a></div></div>
 
-    <div class="libcard"><div class="top"><span class="name">SheetJS (xlsx)</span><span class="lic apache">Apache-2.0</span></div>
-      <div class="desc">อ่าน/เขียนไฟล์ Excel (.xlsx/.xls) และ .csv</div>
-      <div class="meta"><span class="pill">ตารางคำนวณ, แปลงเสียง ↔ ข้อความ, ดึงข้อความออกจากเอกสาร, นำเสนอรายงาน</span><a href="https://github.com/SheetJS/sheetjs" target="_blank" rel="noopener">github.com/SheetJS/sheetjs</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">SheetJS (xlsx)</span><span class="badge">Apache-2.0</span></div>
+      <div class="lib-desc">อ่าน/เขียนไฟล์ Excel (.xlsx/.xls) และ .csv</div>
+      <div class="lib-meta"><span>ตารางคำนวณ, แปลงเสียง ↔ ข้อความ, ดึงข้อความออกจากเอกสาร, นำเสนอรายงาน</span><a href="https://github.com/SheetJS/sheetjs" target="_blank" rel="noopener">github.com/SheetJS/sheetjs</a></div></div>
 
-    <div class="libcard"><div class="top"><span class="name">Chart.js</span><span class="lic mit">MIT</span></div>
-      <div class="desc">กราฟแท่ง/เส้น/วงกลมมาตรฐานในแดชบอร์ด</div>
-      <div class="meta"><span class="pill">นำเสนอรายงาน</span><a href="https://github.com/chartjs/Chart.js" target="_blank" rel="noopener">github.com/chartjs/Chart.js</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">Apache ECharts</span><span class="lic apache">Apache-2.0</span></div>
-      <div class="desc">กราฟเชิงโต้ตอบขั้นสูง (ซูม/คลิกกรอง) สำหรับมุมมอง BI</div>
-      <div class="meta"><span class="pill">นำเสนอรายงาน</span><a href="https://github.com/apache/echarts" target="_blank" rel="noopener">github.com/apache/echarts</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">GridStack.js</span><span class="lic mit">MIT</span></div>
-      <div class="desc">ลาก/ย่อ-ขยายกล่อง KPI และกราฟในมุมมอง "กำหนดเอง"</div>
-      <div class="meta"><span class="pill">นำเสนอรายงาน</span><a href="https://github.com/gridstack/gridstack.js" target="_blank" rel="noopener">github.com/gridstack/gridstack.js</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">Frappe Gantt</span><span class="lic mit">MIT</span></div>
-      <div class="desc">แผนภูมิแกนต์สำหรับไทม์ไลน์โครงการในแดชบอร์ด</div>
-      <div class="meta"><span class="pill">นำเสนอรายงาน</span><a href="https://github.com/frappe/gantt" target="_blank" rel="noopener">github.com/frappe/gantt</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Chart.js</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">กราฟแท่ง/เส้น/วงกลมมาตรฐานในแดชบอร์ด</div>
+      <div class="lib-meta"><span>นำเสนอรายงาน</span><a href="https://github.com/chartjs/Chart.js" target="_blank" rel="noopener">github.com/chartjs/Chart.js</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Apache ECharts</span><span class="badge">Apache-2.0</span></div>
+      <div class="lib-desc">กราฟเชิงโต้ตอบขั้นสูง (ซูม/คลิกกรอง) สำหรับมุมมอง BI</div>
+      <div class="lib-meta"><span>นำเสนอรายงาน</span><a href="https://github.com/apache/echarts" target="_blank" rel="noopener">github.com/apache/echarts</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">GridStack.js</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">ลาก/ย่อ-ขยายกล่อง KPI และกราฟในมุมมอง "กำหนดเอง"</div>
+      <div class="lib-meta"><span>นำเสนอรายงาน</span><a href="https://github.com/gridstack/gridstack.js" target="_blank" rel="noopener">github.com/gridstack/gridstack.js</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Frappe Gantt</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">แผนภูมิแกนต์สำหรับไทม์ไลน์โครงการในแดชบอร์ด</div>
+      <div class="lib-meta"><span>นำเสนอรายงาน</span><a href="https://github.com/frappe/gantt" target="_blank" rel="noopener">github.com/frappe/gantt</a></div></div>
 
-    <div class="libcard"><div class="top"><span class="name">Luckysheet</span><span class="lic mit">MIT</span></div>
-      <div class="desc">ตารางคำนวณแบบสเปรดชีต (กริด/สูตร/จัดรูปแบบ)</div>
-      <div class="meta"><span class="pill">ตารางคำนวณ</span><a href="https://github.com/mengshukeji/Luckysheet" target="_blank" rel="noopener">github.com/mengshukeji/Luckysheet</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">Lightweight Charts™ (TradingView)</span><span class="lic apache">Apache-2.0</span></div>
-      <div class="desc">กราฟแท่งเทียนราคาหุ้น (crosshair / ซูม / เส้นค่าเฉลี่ย)</div>
-      <div class="meta"><span class="pill">การลงทุน · หุ้นไทย, หุ้นต่างประเทศ, Bitcoin</span><a href="https://github.com/tradingview/lightweight-charts" target="_blank" rel="noopener">github.com/tradingview/lightweight-charts</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">Three.js</span><span class="lic mit">MIT</span></div>
-      <div class="desc">เครื่องมือสร้างกราฟิก 3D บนเบราว์เซอร์ผ่าน WebGL (ฉาก/กล้อง/แสง/OrbitControls)</div>
-      <div class="meta"><span class="pill">จำลองสิ่งของ 3D</span><a href="https://github.com/mrdoob/three.js" target="_blank" rel="noopener">github.com/mrdoob/three.js</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">GSAP</span><span class="lic">ฟรีทุกปลั๊กอิน (Standard License)</span></div>
-      <div class="desc">ไลบรารีอนิเมชัน ใช้ทำทรานซิชันกล้องมุมมองต่างๆ ให้นุ่มนวล</div>
-      <div class="meta"><span class="pill">จำลองสิ่งของ 3D</span><a href="https://gsap.com" target="_blank" rel="noopener">gsap.com</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">three-mesh-bvh</span><span class="lic mit">MIT</span></div>
-      <div class="desc">คำนวณโครงสร้างเชิงพื้นที่ (BVH) เร่งความเร็วการตัด/รวมรูปทรง 3D — โหลดเฉพาะตอนเปิดโหมด "ตัด/รวม" เท่านั้น</div>
-      <div class="meta"><span class="pill">จำลองสิ่งของ 3D</span><a href="https://github.com/gkjohnson/three-mesh-bvh" target="_blank" rel="noopener">github.com/gkjohnson/three-mesh-bvh</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">three-bvh-csg</span><span class="lic mit">MIT</span></div>
-      <div class="desc">คำนวณ Boolean 3D (ตัด/เจาะ/รวม) ระหว่างวัตถุสองชิ้น — โหลดเฉพาะตอนเปิดโหมด "ตัด/รวม" เท่านั้น</div>
-      <div class="meta"><span class="pill">จำลองสิ่งของ 3D</span><a href="https://github.com/gkjohnson/three-bvh-csg" target="_blank" rel="noopener">github.com/gkjohnson/three-bvh-csg</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">lamejs (@breezystack fork)</span><span class="lic lgpl">LGPL-3.0</span></div>
-      <div class="desc">เข้ารหัสไฟล์เสียงเป็น .mp3 ในเบราว์เซอร์ล้วนๆ</div>
-      <div class="meta"><span class="pill">แปลงข้อความเป็นเสียง</span><a href="https://github.com/shijinyu/lamejs" target="_blank" rel="noopener">github.com/shijinyu/lamejs</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">Transformers.js (Hugging Face)</span><span class="lic apache">Apache-2.0</span></div>
-      <div class="desc">รันโมเดล AI ในเบราว์เซอร์ล้วนๆ ทั้งแปลงข้อความเป็นเสียง (MMS-TTS) และถอดเสียงพูดเป็นข้อความ (Whisper) — ตัวไลบรารีฝังในเว็บนี้ แต่ตัวโมเดล AI ต้องดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรก</div>
-      <div class="meta"><span class="pill">แปลงข้อความเป็นเสียง</span><span class="pill">แปลงเสียงเป็นข้อความ</span><a href="https://github.com/huggingface/transformers.js" target="_blank" rel="noopener">github.com/huggingface/transformers.js</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">ONNX Runtime Web</span><span class="lic mit">MIT</span></div>
-      <div class="desc">ตัวรันไทม์ประมวลผลโมเดล AI แบบ WebAssembly — ใช้คู่กับ Transformers.js — pin เวอร์ชัน 1.24.3; ไฟล์ .mjs ฝังในเว็บนี้ ส่วนไฟล์ .wasm ตัว asyncify (25.93 MiB เกินลิมิตไฟล์เดียวของ Cloudflare Pages) โหลดจาก jsDelivr แทน</div>
-      <div class="meta"><span class="pill">แปลงข้อความเป็นเสียง</span><span class="pill">แปลงเสียงเป็นข้อความ</span><a href="https://github.com/microsoft/onnxruntime" target="_blank" rel="noopener">github.com/microsoft/onnxruntime</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">MMS-TTS (Meta)</span><span class="lic ccbync">CC-BY-NC 4.0</span></div>
-      <div class="desc">โมเดล AI แปลงข้อความเป็นเสียงพูดหลายภาษา (Massively Multilingual Speech) — ดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรก ไม่ได้ฝังในโค้ดเว็บนี้ · สัญญาอนุญาตเป็นแบบไม่ใช้เพื่อการค้า (non-commercial) เหมาะกับการใช้งานส่วนตัว/การศึกษาแบบเว็บนี้ · เสียงอังกฤษใช้ไฟล์ที่แปลงไว้แล้วโดยทีม Hugging Face ส่วนเสียงไทย (ไม่มีใครแปลงไว้ให้ใช้กับเบราว์เซอร์มาก่อน) แปลงเป็น ONNX เองจากต้นฉบับ <code>facebook/mms-tts-tha</code> ด้วย Optimum แล้วเผยแพร่ไว้ให้ดาวน์โหลดต่อ · เสียงไทยตัวเลือก "หญิง (โทนพอดแคสต์)" fine-tune จาก MMS-TTS โดย VIZINTZOR แปลงเป็น ONNX โดย phlebotomy1996 (ทั้งคู่เป็นผลงานชุมชนแยกต่างหาก ไม่ใช่ทีมงานเว็บนี้) · เสียงไทยตัวเลือก "หญิง (ทั่วไป)" และ "ชาย (ทั่วไป)" fine-tune จาก MMS-TTS โดย VIZINTZOR เช่นกัน (<code>MMS-TTS-THAI-FEMALEV2</code>/<code>MMS-TTS-THAI-MALEV2</code>) แปลงเป็น ONNX เองด้วยเครื่องมือทางการของ transformers.js เหมือนโมเดลค่าเริ่มต้น</div>
-      <div class="meta"><span class="pill">แปลงข้อความเป็นเสียง</span><a href="https://huggingface.co/facebook/mms-tts-tha" target="_blank" rel="noopener">facebook/mms-tts-tha (ต้นฉบับ)</a><a href="https://huggingface.co/Tanotfin/mms-tts-2081-onnx" target="_blank" rel="noopener">Tanotfin/mms-tts-2081-onnx</a><a href="https://huggingface.co/phlebotomy1996/mms-thai-female-podcast-spk0" target="_blank" rel="noopener">phlebotomy1996/mms-thai-female-podcast-spk0</a><a href="https://huggingface.co/VIZINTZOR/MMS-TTS-THAI-FEMALEV2" target="_blank" rel="noopener">VIZINTZOR/MMS-TTS-THAI-FEMALEV2</a><a href="https://huggingface.co/VIZINTZOR/MMS-TTS-THAI-MALEV2" target="_blank" rel="noopener">VIZINTZOR/MMS-TTS-THAI-MALEV2</a><a href="https://huggingface.co/Tanotfin/mms-tts-2081-FM-onnx" target="_blank" rel="noopener">Tanotfin/mms-tts-2081-FM-onnx</a><a href="https://huggingface.co/Tanotfin/mms-tts-2081-M-onnx" target="_blank" rel="noopener">Tanotfin/mms-tts-2081-M-onnx</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">Whisper (OpenAI)</span><span class="lic mit">MIT</span></div>
-      <div class="desc">โมเดล AI ถอดเสียงพูดเป็นข้อความ รองรับหลายภาษารวมไทย — ดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรก ไม่ได้ฝังในโค้ดเว็บนี้</div>
-      <div class="meta"><span class="pill">แปลงเสียงเป็นข้อความ</span><a href="https://github.com/openai/whisper" target="_blank" rel="noopener">github.com/openai/whisper</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">Firebase JS SDK</span><span class="lic apache">Apache-2.0</span></div>
-      <div class="desc">เชื่อมต่อ Firebase Realtime Database + Google sign-in สำหรับซิงก์ข้อมูลรายรับรายจ่ายข้ามอุปกรณ์แบบเรียลไทม์</div>
-      <div class="meta"><span class="pill">รายรับรายจ่าย</span><a href="https://github.com/firebase/firebase-js-sdk" target="_blank" rel="noopener">github.com/firebase/firebase-js-sdk</a></div></div>
-    <div class="libcard"><div class="top"><span class="name">Hangeul Stroke Order (Adam Stone)</span><span class="lic ccbysa">CC BY-SA 4.0</span></div>
-      <div class="desc">ภาพ SVG แผนภาพลำดับขีดตัวจามอฮันกึล (เกาหลี) 35 ตัว วาดด้วยมือและตรวจสอบแล้วโดย Adam Stone — ใช้ในโหมดฝึกเขียนตัวอักษรภาษาเกาหลี สัญญาอนุญาต ShareAlike กำหนดให้ต้องให้เครดิตเสมอ (แสดงไว้ใต้ภาพทุกครั้งด้วย)</div>
-      <div class="meta"><span class="pill">ฝึกภาษา</span><a href="https://github.com/MagisterAdamus/hangeul-stroke-order" target="_blank" rel="noopener">github.com/MagisterAdamus/hangeul-stroke-order</a></div></div>
-  </div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Luckysheet</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">ตารางคำนวณแบบสเปรดชีต (กริด/สูตร/จัดรูปแบบ)</div>
+      <div class="lib-meta"><span>ตารางคำนวณ</span><a href="https://github.com/mengshukeji/Luckysheet" target="_blank" rel="noopener">github.com/mengshukeji/Luckysheet</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Lightweight Charts™ (TradingView)</span><span class="badge">Apache-2.0</span></div>
+      <div class="lib-desc">กราฟแท่งเทียนราคาหุ้น (crosshair / ซูม / เส้นค่าเฉลี่ย)</div>
+      <div class="lib-meta"><span>การลงทุน · หุ้นไทย, หุ้นต่างประเทศ, Bitcoin</span><a href="https://github.com/tradingview/lightweight-charts" target="_blank" rel="noopener">github.com/tradingview/lightweight-charts</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Three.js</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">เครื่องมือสร้างกราฟิก 3D บนเบราว์เซอร์ผ่าน WebGL (ฉาก/กล้อง/แสง/OrbitControls)</div>
+      <div class="lib-meta"><span>จำลองสิ่งของ 3D</span><a href="https://github.com/mrdoob/three.js" target="_blank" rel="noopener">github.com/mrdoob/three.js</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">GSAP</span><span class="lic">ฟรีทุกปลั๊กอิน (Standard License)</span></div>
+      <div class="lib-desc">ไลบรารีอนิเมชัน ใช้ทำทรานซิชันกล้องมุมมองต่างๆ ให้นุ่มนวล</div>
+      <div class="lib-meta"><span>จำลองสิ่งของ 3D</span><a href="https://gsap.com" target="_blank" rel="noopener">gsap.com</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">three-mesh-bvh</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">คำนวณโครงสร้างเชิงพื้นที่ (BVH) เร่งความเร็วการตัด/รวมรูปทรง 3D — โหลดเฉพาะตอนเปิดโหมด "ตัด/รวม" เท่านั้น</div>
+      <div class="lib-meta"><span>จำลองสิ่งของ 3D</span><a href="https://github.com/gkjohnson/three-mesh-bvh" target="_blank" rel="noopener">github.com/gkjohnson/three-mesh-bvh</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">three-bvh-csg</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">คำนวณ Boolean 3D (ตัด/เจาะ/รวม) ระหว่างวัตถุสองชิ้น — โหลดเฉพาะตอนเปิดโหมด "ตัด/รวม" เท่านั้น</div>
+      <div class="lib-meta"><span>จำลองสิ่งของ 3D</span><a href="https://github.com/gkjohnson/three-bvh-csg" target="_blank" rel="noopener">github.com/gkjohnson/three-bvh-csg</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">lamejs (@breezystack fork)</span><span class="badge warn">LGPL-3.0</span></div>
+      <div class="lib-desc">เข้ารหัสไฟล์เสียงเป็น .mp3 ในเบราว์เซอร์ล้วนๆ</div>
+      <div class="lib-meta"><span>แปลงข้อความเป็นเสียง</span><a href="https://github.com/shijinyu/lamejs" target="_blank" rel="noopener">github.com/shijinyu/lamejs</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Transformers.js (Hugging Face)</span><span class="badge">Apache-2.0</span></div>
+      <div class="lib-desc">รันโมเดล AI ในเบราว์เซอร์ล้วนๆ ทั้งแปลงข้อความเป็นเสียง (MMS-TTS) และถอดเสียงพูดเป็นข้อความ (Whisper) — ตัวไลบรารีฝังในเว็บนี้ แต่ตัวโมเดล AI ต้องดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรก</div>
+      <div class="lib-meta"><span>แปลงข้อความเป็นเสียง</span><span>แปลงเสียงเป็นข้อความ</span><a href="https://github.com/huggingface/transformers.js" target="_blank" rel="noopener">github.com/huggingface/transformers.js</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">ONNX Runtime Web</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">ตัวรันไทม์ประมวลผลโมเดล AI แบบ WebAssembly — ใช้คู่กับ Transformers.js — pin เวอร์ชัน 1.24.3; ไฟล์ .mjs ฝังในเว็บนี้ ส่วนไฟล์ .wasm ตัว asyncify (25.93 MiB เกินลิมิตไฟล์เดียวของ Cloudflare Pages) โหลดจาก jsDelivr แทน</div>
+      <div class="lib-meta"><span>แปลงข้อความเป็นเสียง</span><span>แปลงเสียงเป็นข้อความ</span><a href="https://github.com/microsoft/onnxruntime" target="_blank" rel="noopener">github.com/microsoft/onnxruntime</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">MMS-TTS (Meta)</span><span class="badge">CC-BY-NC 4.0</span></div>
+      <div class="lib-desc">โมเดล AI แปลงข้อความเป็นเสียงพูดหลายภาษา (Massively Multilingual Speech) — ดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรก ไม่ได้ฝังในโค้ดเว็บนี้ · สัญญาอนุญาตเป็นแบบไม่ใช้เพื่อการค้า (non-commercial) เหมาะกับการใช้งานส่วนตัว/การศึกษาแบบเว็บนี้ · เสียงอังกฤษใช้ไฟล์ที่แปลงไว้แล้วโดยทีม Hugging Face ส่วนเสียงไทย (ไม่มีใครแปลงไว้ให้ใช้กับเบราว์เซอร์มาก่อน) แปลงเป็น ONNX เองจากต้นฉบับ <code>facebook/mms-tts-tha</code> ด้วย Optimum แล้วเผยแพร่ไว้ให้ดาวน์โหลดต่อ · เสียงไทยตัวเลือก "หญิง (โทนพอดแคสต์)" fine-tune จาก MMS-TTS โดย VIZINTZOR แปลงเป็น ONNX โดย phlebotomy1996 (ทั้งคู่เป็นผลงานชุมชนแยกต่างหาก ไม่ใช่ทีมงานเว็บนี้) · เสียงไทยตัวเลือก "หญิง (ทั่วไป)" และ "ชาย (ทั่วไป)" fine-tune จาก MMS-TTS โดย VIZINTZOR เช่นกัน (<code>MMS-TTS-THAI-FEMALEV2</code>/<code>MMS-TTS-THAI-MALEV2</code>) แปลงเป็น ONNX เองด้วยเครื่องมือทางการของ transformers.js เหมือนโมเดลค่าเริ่มต้น</div>
+      <div class="lib-meta"><span>แปลงข้อความเป็นเสียง</span><a href="https://huggingface.co/facebook/mms-tts-tha" target="_blank" rel="noopener">facebook/mms-tts-tha (ต้นฉบับ)</a><a href="https://huggingface.co/Tanotfin/mms-tts-2081-onnx" target="_blank" rel="noopener">Tanotfin/mms-tts-2081-onnx</a><a href="https://huggingface.co/phlebotomy1996/mms-thai-female-podcast-spk0" target="_blank" rel="noopener">phlebotomy1996/mms-thai-female-podcast-spk0</a><a href="https://huggingface.co/VIZINTZOR/MMS-TTS-THAI-FEMALEV2" target="_blank" rel="noopener">VIZINTZOR/MMS-TTS-THAI-FEMALEV2</a><a href="https://huggingface.co/VIZINTZOR/MMS-TTS-THAI-MALEV2" target="_blank" rel="noopener">VIZINTZOR/MMS-TTS-THAI-MALEV2</a><a href="https://huggingface.co/Tanotfin/mms-tts-2081-FM-onnx" target="_blank" rel="noopener">Tanotfin/mms-tts-2081-FM-onnx</a><a href="https://huggingface.co/Tanotfin/mms-tts-2081-M-onnx" target="_blank" rel="noopener">Tanotfin/mms-tts-2081-M-onnx</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Whisper (OpenAI)</span><span class="badge">MIT</span></div>
+      <div class="lib-desc">โมเดล AI ถอดเสียงพูดเป็นข้อความ รองรับหลายภาษารวมไทย — ดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรก ไม่ได้ฝังในโค้ดเว็บนี้</div>
+      <div class="lib-meta"><span>แปลงเสียงเป็นข้อความ</span><a href="https://github.com/openai/whisper" target="_blank" rel="noopener">github.com/openai/whisper</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Firebase JS SDK</span><span class="badge">Apache-2.0</span></div>
+      <div class="lib-desc">เชื่อมต่อ Firebase Realtime Database + Google sign-in สำหรับซิงก์ข้อมูลรายรับรายจ่ายข้ามอุปกรณ์แบบเรียลไทม์</div>
+      <div class="lib-meta"><span>รายรับรายจ่าย</span><a href="https://github.com/firebase/firebase-js-sdk" target="_blank" rel="noopener">github.com/firebase/firebase-js-sdk</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Hangeul Stroke Order (Adam Stone)</span><span class="badge">CC BY-SA 4.0</span></div>
+      <div class="lib-desc">ภาพ SVG แผนภาพลำดับขีดตัวจามอฮันกึล (เกาหลี) 35 ตัว วาดด้วยมือและตรวจสอบแล้วโดย Adam Stone — ใช้ในโหมดฝึกเขียนตัวอักษรภาษาเกาหลี สัญญาอนุญาต ShareAlike กำหนดให้ต้องให้เครดิตเสมอ (แสดงไว้ใต้ภาพทุกครั้งด้วย)</div>
+      <div class="lib-meta"><span>ฝึกภาษา</span><a href="https://github.com/MagisterAdamus/hangeul-stroke-order" target="_blank" rel="noopener">github.com/MagisterAdamus/hangeul-stroke-order</a></div></div>
+  </div></section>
 
-  <h2><span class="dot"></span>ฟอนต์</h2>
-  <div class="grid">
-    <div class="libcard"><div class="top"><span class="name">Prompt · IBM Plex Sans Thai · Sarabun · Kanit · Chonburi</span><span class="lic ofl">SIL OFL</span></div>
-      <div class="desc">ฟอนต์จาก Google Fonts — ใช้ได้เสรีรวมถึงเชิงพาณิชย์</div>
-      <div class="meta"><span class="pill">ทั้งเว็บ</span><a href="https://fonts.google.com" target="_blank" rel="noopener">fonts.google.com</a></div></div>
-  </div>
+  <section class="stack"><h2>ฟอนต์</h2>
+  <div class="libs">
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Prompt · IBM Plex Sans Thai · Sarabun · Kanit · Chonburi</span><span class="badge">SIL OFL</span></div>
+      <div class="lib-desc">ฟอนต์จาก Google Fonts — ใช้ได้เสรีรวมถึงเชิงพาณิชย์</div>
+      <div class="lib-meta"><span>ทั้งเว็บ</span><a href="https://fonts.google.com" target="_blank" rel="noopener">fonts.google.com</a></div></div>
+  </div></section>
 
-  <h2><span class="dot"></span>ไอคอน</h2>
-  <div class="grid">
-    <div class="libcard"><div class="top"><span class="name">Lucide</span><span class="lic mit">ISC</span></div>
-      <div class="desc">ชุดไอคอนเส้น SVG — รวมเป็นไฟล์ icons.svg (SVG sprite) ใช้ทั้งเว็บ</div>
-      <div class="meta"><span class="pill">ทั้งเว็บ</span><a href="https://lucide.dev" target="_blank" rel="noopener">lucide.dev</a></div></div>
-  </div>
+  <section class="stack"><h2>ไอคอน</h2>
+  <div class="libs">
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Lucide</span><span class="badge">ISC</span></div>
+      <div class="lib-desc">ชุดไอคอนเส้น SVG — รวมเป็นไฟล์ icons.svg (SVG sprite) ใช้ทั้งเว็บ</div>
+      <div class="lib-meta"><span>ทั้งเว็บ</span><a href="https://lucide.dev" target="_blank" rel="noopener">lucide.dev</a></div></div>
+  </div></section>
 
-  <h2><span class="dot"></span>หมายเหตุลิขสิทธิ์</h2>
-  <div class="note">
+  <section class="stack"><h2>หมายเหตุลิขสิทธิ์</h2>
+  <div class="card credits-note">
     <ul>
       <li><b>ชื่อฟอนต์ลิขสิทธิ์</b> (เช่น Arial, Times New Roman, Calibri, Tahoma, Angsana New, Cordia New, Browallia)
         ถูก<b>อ้างเป็นชื่อในสไตล์ (CSS) เท่านั้น</b> เว็บ<b>ไม่ได้แนบหรือเผยแพร่ไฟล์ฟอนต์</b> — เบราว์เซอร์จะใช้ฟอนต์ที่อยู่ในเครื่องผู้ใช้เอง จึงไม่เข้าข่ายละเมิดลิขสิทธิ์</li>
@@ -208,9 +158,7 @@ footer a{color:var(--sky-dk);text-decoration:none}
       <li>ข้อมูลผลจับรางวัลสลากกินแบ่งรัฐบาลย้อนหลัง (ตั้งแต่ปี 2550) ดึงจาก <a href="https://github.com/vicha-w/thai-lotto-archive" target="_blank" rel="noopener">thai-lotto-archive</a> ซึ่งเป็นโปรเจกต์อาสาสมัครรวบรวมข้อมูลเปิด ไม่พบไฟล์สัญญาอนุญาต (LICENSE) ในโปรเจกต์ จึงใช้ด้วยความระมัดระวังเช่นเดียวกับ thai-gold-api — ไม่มีการรับประกัน uptime หรือความถูกต้องครบถ้วน 100% หน้าเครื่องมือจะแสดงชัดเจนเมื่อดึงข้อมูลบางช่วงไม่สำเร็จ</li>
       <li>หน้าหุ้นไทย หุ้นต่างประเทศ และ Bitcoin มีตัวเลือก "ข้อมูลตลาดแบบสด" ที่ดึงราคาผ่าน API สาธารณะของ <a href="https://twelvedata.com" target="_blank" rel="noopener">Twelve Data</a> เมื่อผู้ใช้ใส่ API key ของตัวเอง (เก็บเฉพาะในเครื่อง ไม่ส่งขึ้น GitHub) — เป็นทางเลือกเสริม ไม่บังคับใช้ ค่าเริ่มต้นยังคงเป็นข้อมูลย้อนหลังผ่าน Yahoo Finance ตามเดิม</li>
     </ul>
-  </div>
-
-</div>
-<script src="auth-gate.js"></script>
+  </div></section>
+</main>
 </body>
 </html>

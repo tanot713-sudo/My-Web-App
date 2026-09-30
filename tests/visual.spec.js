@@ -17,6 +17,8 @@ const PAGES = [
   'doc-check.html',
   'report-dashboard.html',
   'soon.html?label=demo',
+  'credits.html',
+  'area.html?a=work',
 ];
 const WIDTHS = [390, 1100];
 const THEMES = ['light', 'dark'];

@@ -349,6 +349,8 @@ body[data-layout="app"]{height:100dvh;display:flex;flex-direction:column;overflo
 [data-layout="hub"] .tile .ome-icon{width:22px;height:22px;color:var(--ome-accent-strong)}
 [data-layout="hub"] .tile-title{font-weight:700}
 [data-layout="hub"] .tile-meta{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+[data-layout="hub"] .tile .badge{align-self:flex-start}
+[data-layout="hub"] .tile.soon{opacity:.6}
 [data-style="soft"] [data-layout="hub"] .tile{border-color:transparent;box-shadow:var(--ome-shadow-2)}
 }
 
@@ -449,7 +451,7 @@ body{padding-bottom:0!important}
 .ome-theme-swatch.sel{background:var(--ome-brand-sf);color:var(--ome-brand-dk);font-weight:700}
 .ome-theme-swatch.sel::after{content:'✓';margin-left:auto;font-size:12px;font-weight:700}
 
-/* ── รีแมปโทเคนพื้นผิวของหน้าเครื่องมือตามธีมที่เลือก (documents.html / run.html ใช้ตัวแปรชุดเดิม)
+/* ── รีแมปโทเคนพื้นผิวของหน้าเครื่องมือตามธีมที่เลือก (หน้าที่ยังไม่ย้ายใช้ตัวแปรชุดเดิม)
    เดิมต้องระบุชื่อธีมทีละอันเพราะสี+ความสว่างผูกกันในตัวแปรเดียว (data-theme) ตอนนี้แยกเป็น
    data-accent (สี) กับ data-theme (สว่าง/มืดล้วนๆ) แล้ว เลยรีแมปแค่ "มี data-accent อยู่ไหม
    (สีอะไรก็ได้) หรือ data-theme=dark ไหม" ก็พอ — ไม่ต้องแจกแจงทีละชื่อสีอีกต่อไป (teal เริ่มต้น
@@ -471,11 +473,7 @@ body{padding-bottom:0!important}
 [data-theme="dark"] body.ome-tool-page code{background:#242B3B}
 [data-theme="dark"] body.ome-tool-page .track{background:#2A3040}
 [data-theme="dark"] body.ome-tool-page .dot{background:var(--ome-card);border-color:#3A4258}
-[data-theme="dark"] body.ome-tool-page .btn.ghost,
-[data-theme="dark"] body.ome-tool-page .btn.drive{background:var(--ome-card);color:var(--ome-ink)}
-[data-theme="dark"] body.ome-tool-page .tcard{background:var(--ome-card)}
-[data-theme="dark"] body.ome-tool-page .cmp-table tr.cmp-flag{background:#2E1A1A}
-[data-theme="dark"] body.ome-tool-page .cmp-table tr.cmp-flag td{color:#F0A0A0}
+[data-theme="dark"] body.ome-tool-page .btn.ghost{background:var(--ome-card);color:var(--ome-ink)}
 
 /* ── การ์ดต้อนรับ (.hero) ของสีเน้นที่ไม่ใช่ teal (ค่าเริ่มต้น) — ผสมสีอ่อนของแบรนด์สีนั้นแทน
    gradient พาสเทลฟ้า/มินต์/ส้มที่แต่ละหน้า hardcode ไว้เอง ใช้ได้ทั้งโหมดสว่าง/มืด — specificity

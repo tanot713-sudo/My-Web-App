@@ -9,16 +9,22 @@
 // เส้นทางเก่าที่ไม่มีไฟล์จริงบน GitHub Pages
 // เครื่องมือเก่า excel-work / word-work → พาไปหน้าตัวใหม่แบบ standalone
 // ที่เหลือ → พากลับหน้าหลัก
+// หน้านี้ถูกเสิร์ฟจากพาธไหนก็ได้ ลิงก์แบบ relative ใช้ไม่ได้ จึงโหลดธีมด้วย document.write จากฐาน path ตายตัว
 (function () {
+  var BASE = '/My-Web-App/';
   var MAP = { 'excel-work': 'excel.html', 'word-work': 'word.html' };
   var m = (location.pathname || '').match(/\/(excel-work|word-work)\/?$/);
-  location.replace('/My-Web-App/' + (m ? MAP[m[1]] : ''));
+  document.write('<script src="' + BASE + 'theme-boot.js"><\/script><link rel="stylesheet" href="' + BASE + 'theme.css">');
+  location.replace(BASE + (m ? MAP[m[1]] : ''));
 })();
 </script>
 </head>
-<body>
-<p style="font-family:sans-serif;text-align:center;margin-top:3em">
-ไม่พบหน้านี้ — กำลังพากลับ <a href="/My-Web-App/">หน้าหลัก Tanot</a>
-</p>
+<body data-layout="tool">
+<main class="page">
+  <div class="empty">
+    <h1 class="empty-title">ไม่พบหน้านี้ — กำลังพากลับ</h1>
+    <a class="btn" href="/My-Web-App/">หน้าหลัก Tanot</a>
+  </div>
+</main>
 </body>
 </html>
