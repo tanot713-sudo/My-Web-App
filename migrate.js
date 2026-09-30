@@ -5,7 +5,8 @@
   'use strict';
 
   var CFG = window.TANOT_MIGRATE || {};
-  var EXPORT_URL = CFG.exportUrl || 'https://tanot713-sudo.github.io/my-web-app/migrate-export.html';
+  // path ตัวพิมพ์ใหญ่ตามชื่อ repo (My-Web-App) — ตัวเล็กได้หน้า 404 ของ GitHub Pages
+  var EXPORT_URL = CFG.exportUrl || 'https://tanot713-sudo.github.io/My-Web-App/migrate-export.html';
   var EXPORT_ORIGIN = new URL(EXPORT_URL).origin;
   var DONE_KEY = 'tanot:migrate:done';
 

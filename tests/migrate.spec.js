@@ -39,6 +39,11 @@ function lsDump() { const o = {}; for (let i = 0; i < localStorage.length; i++) 
 
 test.beforeEach(async ({ request }) => { await request.get(PD + '/__reset'); });
 
+test('EXPORT_URL จริงชี้ path /My-Web-App/ ของ GitHub Pages (ตัวเล็กได้ 404)', () => {
+  const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'migrate.js'), 'utf8');
+  expect(src).toContain("'https://tanot713-sudo.github.io/My-Web-App/migrate-export.html'");
+});
+
 test('ย้ายจาก github.io → pages.dev: ครบ ตรวจแล้ว ต้นทางไม่ถูกแตะ ค่าเดิมปลายทางไม่ถูกทับถ้าไม่เลือก', async ({ browser, request }) => {
   const ctx = await browser.newContext();
   await ctx.addInitScript((pd) => {
