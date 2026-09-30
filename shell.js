@@ -235,6 +235,8 @@
       ]
     },
     { key: 'settings', area: 'settings', label: 'ตั้งค่า/ข้อมูล', icon: 'settings', href: 'area.html?a=settings', keywords: 'ตั้งค่า ข้อมูล settings', children: [
+        { key: 'data', label: 'ข้อมูลและการซิงก์', icon: 'refresh-cw', href: 'data.html', keywords: 'ซิงก์ สำรอง backup restore sync ข้อมูล drive' },
+        { key: 'migrate', label: 'ย้ายข้อมูลจาก github.io', icon: 'download', href: 'migrate.html', keywords: 'ย้ายข้อมูล migrate github import' },
         { key: 'credits', label: 'เครดิต & ลิขสิทธิ์', icon: 'info', href: 'credits.html', keywords: 'เครดิต ลิขสิทธิ์ credits license' }
       ]
     }
