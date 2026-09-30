@@ -5,10 +5,13 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v569';
+const CACHE = 'ome-v570';
 const PRECACHE = [
   './',
   './index.html',
+  './index.js',
+  './palette.js',
+  './quick-add.js',
   './404.html',
   './documents.html',
   './area.html',

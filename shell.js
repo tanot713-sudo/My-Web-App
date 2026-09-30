@@ -347,6 +347,15 @@
 
     var right = document.createElement('div');
     right.className = 'ome-nav-right';
+    var searchBtn = document.createElement('button');
+    searchBtn.id = 'omeSearchBtn';
+    searchBtn.type = 'button';
+    searchBtn.className = 'ome-theme-btn';
+    searchBtn.setAttribute('aria-label', 'ค้นหา (Ctrl+K)');
+    searchBtn.setAttribute('aria-haspopup', 'dialog');
+    searchBtn.innerHTML = '<svg class="ome-icon" width="16" height="16" aria-hidden="true"><use href="' + BASE + 'icons.svg#i-search"/></svg>';
+    searchBtn.addEventListener('click', function () { openPalette(); });
+    right.appendChild(searchBtn);
     var themeBtn = document.createElement('button');
     themeBtn.id = 'omeThemeBtn';
     themeBtn.className = 'ome-theme-btn';
@@ -711,6 +720,32 @@
     opts = opts || {};
     return tanotModal(msg, [{ label: opts.okLabel || 'ตกลง', value: true, cls: 'primary' }]);
   };
+
+  /* ── ค้นหาด่วน (palette.js) — โหลดตอนใช้ครั้งแรกเท่านั้น ไม่ให้ทุกหน้าแบกโค้ดค้นหาไว้เปล่าๆ ──
+     ปุ่มบน nav กับ Ctrl/⌘+K เรียกฟังก์ชันเดียวกัน; OME_MENU (ด้านบน) คือแหล่งข้อมูลที่ palette อ่าน */
+  var paletteLoading = null;
+  function openPalette() {
+    if (window.OmePalette) { window.OmePalette.toggle(); return; }
+    if (!paletteLoading) {
+      paletteLoading = new Promise(function (resolve, reject) {
+        var s = document.createElement('script');
+        s.src = BASE + 'palette.js';
+        s.onload = resolve;
+        s.onerror = function () { paletteLoading = null; reject(new Error('palette.js')); };
+        document.head.appendChild(s);
+      });
+    }
+    paletteLoading.then(function () { if (window.OmePalette) window.OmePalette.open(); }, function () {});
+  }
+  window.openOmePalette = openPalette;
+  if (!isEmbedded()) {
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        openPalette();
+      }
+    });
+  }
 
   function initShellChrome() {
     if (!isEmbedded()) { buildNav(); buildFooter(); } /* ในป๊อปอัพ ไม่ต้องมีแถบนำทาง/เมนูลิ้นชัก/ฟุตเตอร์ซ้ำ */

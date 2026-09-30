@@ -67,7 +67,7 @@
 
 ## Phase 2 — ย้ายทุกหน้าเข้าธีมกลาง (L, ทยอยเป็นรอบ)
 **สิ่งที่ทำกับทุกหน้า:** เทียบกับภาพ baseline → ลบ `.btn/.card/.field` ของหน้าเอง → เปลี่ยน radius/สีเป็น token → เปลี่ยน emoji ใน UI เป็นไอคอน → ลบ `:root` ที่ไม่ได้ใช้ → ลบข้อความอธิบายที่เจอ (กฎใน CLAUDE.md) → bump `sw.js` · จบแต่ละรอบให้ลบกฎ compat ที่ไม่ใช้แล้ว
-1. หน้ารวม: `soon`, `credits`, `run`, `404`, `area` ✅ ย้ายแล้ว (2026-09-30, รอบ 1 — `soon` เป็นต้นแบบ: `data-layout="tool"` + `.page`/`.empty`; `credits` ใช้ `.card`/`.badge`; `run` ใช้ `.card`/`.btn`/`.table`/`.list-row` + ตัดข้อความอธิบายทั้งหมด (desc/inputHint/notes/sub-note); `404` โหลดธีมด้วย `document.write` เพราะถูกเสิร์ฟจากพาธไหนก็ได้; ลบกฎ compat `.tcard`/`.cmp-table`/`.btn.drive` ที่ไม่มีหน้าไหนใช้แล้ว; เพิ่ม baseline `credits`/`area`) · `index` รอทำใน Phase 3
+1. หน้ารวม: `soon`, `credits`, `run`, `404`, `area` ✅ ย้ายแล้ว (2026-09-30, รอบ 1 — `soon` เป็นต้นแบบ: `data-layout="tool"` + `.page`/`.empty`; `credits` ใช้ `.card`/`.badge`; `run` ใช้ `.card`/`.btn`/`.table`/`.list-row` + ตัดข้อความอธิบายทั้งหมด (desc/inputHint/notes/sub-note); `404` โหลดธีมด้วย `document.write` เพราะถูกเสิร์ฟจากพาธไหนก็ได้; ลบกฎ compat `.tcard`/`.cmp-table`/`.btn.drive` ที่ไม่มีหน้าไหนใช้แล้ว; เพิ่ม baseline `credits`/`area`) · `index` ✅ ย้ายแล้วใน Phase 3 (2026-09-30)
 2. ตระกูล invest (ยุบรวมหน้าไปพร้อมกัน ดู Phase 6)
 3. `classroom-law`, `music`, `sports`, `cooking`, `coding`, `typing`
 4. `budget`, `text-to-speech`, `doc-check`/`doc-check-file`, `extract-text`
@@ -75,8 +75,9 @@
 6. หน้า React 4 หน้า (`languages`, `legal`, `classroom-business`, `classroom-engineering`): คอมไพล์ Tailwind ล่วงหน้าเป็น CSS ที่ผูกกับ token ด้วย `build-react.sh` (แบบเดียวกับ `build-languages.sh`) → เลิกโหลด Tailwind CDN ตอนรันและลบกฎ `!important` ~125 บรรทัดใน `theme.css`
 
 ## Phase 3 — หน้าแรก "วันนี้" + ค้นหาด่วน (M)
-- `index.html` เป็นแดชบอร์ดส่วนตัว: นัดหมาย/การแจ้งเตือน, ใช้จ่ายเดือนนี้เทียบงบ, การ์ดที่ต้องทบทวน + วันติดต่อกัน, สุขภาพ, หุ้นที่ติดตาม, ไฟล์ล่าสุด, ปุ่มเพิ่มด่วน
-- `palette.js` (⌘/Ctrl+K หรือปุ่มบน nav): ค้นหาเมนู (คำค้นไทย/อังกฤษ) + คำสั่ง (เพิ่มรายจ่าย, ตั้งการแจ้งเตือน) + ข้อมูลในเครื่อง
+**สถานะ (2026-09-30, PR รอตรวจ):** ✅ `index.html` + `index.js` (`data-layout="dashboard"`) · ✅ `palette.js` + `quick-add.js` · ✅ API อ่านใน `tanot-data.js` (`TanotData.read/raw/readIdb/onChange`) · ✅ `tests/today.spec.js` · **ยังไม่ทำ:** Web Push (VAPID) + นัดหมาย/การแจ้งเตือน + สุขภาพบนหน้าวันนี้ (ยังไม่มีข้อมูลต้นทาง)
+- `index.html` เป็นแดชบอร์ดส่วนตัว: ใช้จ่ายเดือนนี้เทียบงบ (เทียบช่วงเดียวกันเดือนก่อน), การ์ดที่ต้องทบทวน (ภาษา/กฎหมาย/ธุรกิจ/วิศวกรรม) + วันติดต่อกัน, หุ้นที่ติดตาม (พอร์ตหุ้นไทย/ต่างประเทศ + ราคาล่าสุดจากแคชของหน้าหุ้น — ไม่ยิงเครือข่ายเอง), ไฟล์ล่าสุด (ฉบับร่าง Word/Excel/CAD + รายงาน 5 ฉบับท้าย — Excel/CAD/3D ไม่มีเวลาบันทึกให้เรียงหรือจัดรายการได้ถูก จึงยังไม่ครบ ถ้าจะให้ครบต้องมีรายการ `tanot:recent` ที่ทุกเครื่องมือเขียนตอนบันทึก), ปุ่มเพิ่มด่วน (รายจ่าย/รายรับ/Word/Excel/ค้นหา/เมนู) · ตัดนาฬิกา Nixie และไทล์ทางลัดเดิมออก (เมนูอยู่ที่ลิ้นชัก/palette/`area.html`)
+- `palette.js` (⌘/Ctrl+K หรือปุ่มค้นหาบน nav — `shell.js` โหลดไฟล์นี้ตอนใช้ครั้งแรก): ค้นหาเมนูจาก `OME_MENU` (คำค้นไทย/อังกฤษ ใช้ label + keywords + ชื่อกลุ่ม) + คำสั่ง (เพิ่มรายจ่าย/รายรับผ่าน `quick-add.js`, สลับโหมดสว่าง/มืด) + จำหน้าที่เปิดล่าสุด · ต่างจากแผน: ยังไม่ค้น "ข้อมูลในเครื่อง" และยังไม่มีคำสั่ง "ตั้งการแจ้งเตือน" (รอ Web Push)
 - Web Push (VAPID) — บน iPhone ต้องติดตั้งเป็นแอปลงหน้าจอโฮมก่อน
 
 ## Phase 4 — AI บนคลาวด์ (M) — แก้ปัญหา iPhone ใช้ AI ไม่ได้

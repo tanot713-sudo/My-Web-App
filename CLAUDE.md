@@ -27,6 +27,8 @@ There is no CI/deploy-time build/lint/test command — this is plain HTML/CSS/JS
 
 Also part of theme v2 but opt-in per page: `icons.svg` (Lucide sprite, `<svg class="ome-icon"><use href="icons.svg#i-house"/></svg>`; to add icons, run `node tests/build-icons.mjs name1,name2` (keeps existing icons, pulls from the pinned `lucide-static` devDependency) rather than hand-pasting paths) and `chart-theme.js` (`window.OmeChartTheme`: `get()`, `lightweight()`, `candles()`, `chartjs(Chart)`, `echarts()`, `onChange(fn)` — reads the `--ome-chart-*` tokens, resolved to `rgb()`, and fires on theme/accent/font changes). The 8 chart colors are a fixed, CVD-validated order: never cycle past 8, never reuse status colors as series colors.
 
+`palette.js` (Ctrl/⌘+K or the search button `shell.js` puts on the nav; lazy-loaded on first use) searches `window.OME_MENU` plus commands, and `quick-add.js` (`OmeQuickAdd.open({type})`) appends to `budget:records` and fires `tanot:quickadd`; both inject their own DOM and are styled by the unlayered `.ome-pal`/`.ome-qa` rules at the end of `theme.css`, so they work on pages that haven't migrated to a `data-layout`. `index.html`/`index.js` is the "วันนี้" dashboard (`data-layout="dashboard"`): read-only, no network, reads other pages' data through `TanotData.read/raw/readIdb/onChange` and re-renders on `tanot:data`/`tanot:quickadd`/`storage` — the key shapes it reads are listed in the header of `index.js`; if a page changes the shape of a key listed there, update the dashboard too.
+
 Pages that are PWA-installable also register `sw.js` (see below) via `shell.js`.
 
 ### Service worker / cache versioning (`sw.js`)
@@ -59,6 +61,7 @@ Every page loads `<script src="data-registry.js"></script><script src="tanot-dat
 - `budget.html` doesn't start Firebase sync when `TanotData.enabled` (Firebase delivers the whole array and would delete records that came via D1); Firebase stays GitHub Pages-only.
 - `migrate.html` (pages.dev) opens `migrate-export.html` on github.io as a **popup** (not iframe - storage partitioning) and receives a snapshot via origin-pinned `postMessage`. The export side is read-only; it only adds a `tanot:migrate:exported` marker.
 - `drive-backup.js` = one daily snapshot file in Drive (`OME_Progress/tanot-backup-YYYY-MM-DD-<device>.json`, one per device so two devices backing up the same day don't overwrite each other), same format as the migration snapshot. The per-page DriveSync copies, `firebase-sync.js`, `ai-summary-cache.js` and `vendor/firebase` stay until both devices have migrated (GitHub Pages still depends on them).
+- Read API for aggregate pages: `TanotData.read(key, dflt)` (parsed JSON), `raw(key)`, `readIdb(db, store, {last:N})` (no write tracking, `[]` if the DB/store doesn't exist; `last` reads only the N newest records via cursor) and `onChange(fn)` — use these instead of `localStorage.getItem` so reading a key doesn't count as "the page read it" (which would pop the reload bar when remote data arrives).
 - Tests: `tests/sync-server.mjs` runs the real `functions/api/sync.js` on `node:sqlite` with `migrations/*.sql`; `sync.spec.js` (2 browser contexts) and `migrate.spec.js` (127.0.0.1 = "github.io", localhost = "pages.dev").
 
 ### The `languages.html` React app (`languages.jsx` / `languages.compiled.js` / `build-languages.sh`)
