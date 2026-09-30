@@ -36,10 +36,9 @@
       lblPriceNow: 'ราคาตอนนี้ (USD)', phPriceNow: 'เช่น 65000',
       lblHi: 'ราคาสูงสุดของรอบ', lblLo: 'ราคาต่ำสุดของรอบ', ph3mo: 'ช่วง 3 เดือน',
       marketModeHist: 'โหมดข้อมูล: ย้อนหลัง', marketModeLive: 'โหมดข้อมูล: สด / Real-time', marketModeFallback: 'โหมดข้อมูล: สำรอง / Historical',
-      marketMetaDefault: 'ตั้งค่าแหล่งข้อมูลสดได้ใน "ตั้งค่าข้อมูลตลาด"',
       marketMetaHistoricalUse: 'ใช้ Yahoo สำหรับกราฟย้อนหลัง',
       marketMetaFallback: 'แหล่งข้อมูลสดยังเชื่อมต่อไม่ได้ · ใช้ราคาย้อนหลังเป็น fallback',
-      marketRefreshBtn: '↻ รีเฟรช', marketSettingsBtn: '⚙️ ตั้งค่าข้อมูลตลาด',
+      marketRefreshBtn: 'รีเฟรช', marketSettingsBtn: 'ตั้งค่าข้อมูลตลาด',
       marketSettingsTitle: 'ข้อมูลตลาดแบบสด',
       marketProviderLbl: 'แหล่งข้อมูล', marketProviderGateway: 'Tanot Data Gateway (แนะนำ)', marketProviderTwelve: 'Twelve Data', marketProviderYahoo: 'Yahoo / ย้อนหลัง',
       marketGatewayLbl: 'Gateway URL', marketApiKeyNote: '(เก็บในเครื่องเท่านั้น)', marketApiKeyPh: 'ใส่เมื่อมี API key',
@@ -47,23 +46,22 @@
       marketSaveBtn: 'บันทึกการตั้งค่า', marketClearBtn: 'ล้าง API Key',
       marketSavedMsg: 'บันทึกการตั้งค่าแล้ว · ระบบจะดึงข้อมูลตามช่วงเวลาที่ตั้ง', marketApiKeyCleared: 'ล้าง API Key จากเครื่องแล้ว',
       fetchBtn: 'ลองดึงราคา', analyzeBtn: 'ประเมินให้หน่อย', demoBtn: 'ดูกราฟตัวอย่าง (ฝึกอ่าน)',
-      pasteSummary: 'วางราคาย้อนหลังเอง (ทางเลือก)', pasteHint: 'วางราคาปิดหลายวัน คั่นด้วยเว้นวรรค/บรรทัด/จุลภาค (เรียงเก่า→ใหม่)', pasteBtn: 'ใช้ราคานี้',
+      pasteSummary: 'วางราคาย้อนหลังเอง (ทางเลือก)',pasteBtn: 'ใช้ราคานี้',
       fxSummary: 'แปลงเป็นเงินบาท (ทางเลือก)',
       fxRateLbl: 'อัตราแลกเปลี่ยน', fxRateUnit: '(บาทต่อ 1 USD)', fxRatePh: 'เช่น 36.00', fxFetchBtn: 'ดึงอัตราปัจจุบัน',
       fxShowChkLbl: 'แสดงยอดเทียบเงินบาท (≈ ฿) ในหน้านี้',
       fxFetching: 'กำลังดึงอัตราแลกเปลี่ยน…', fxFromYahoo: 'อัตราจาก Yahoo Finance (THB=X) · เมื่อสักครู่',
       fxStaleCached: 'ดึงสดไม่ได้ — ใช้อัตราที่บันทึกไว้ ({age})', fxFetchFail: 'ดึงอัตโนมัติไม่ได้ตอนนี้ — กรอกอัตราแลกเปลี่ยนเองด้านบน',
       perBtcAtRate: ' ต่อ BTC (ตามอัตราที่ตั้งไว้)',
-      lightTitle: 'ไฟจราจร', detailsSummary: 'ดูรายละเอียดทางเทคนิค (ไม่ต้องเข้าใจก็ได้)',
-      fngTitle: 'ดัชนีความกลัว-ความโลภ (Fear &amp; Greed)',
+      lightTitle: 'ไฟจราจร', detailsSummary: 'ดูรายละเอียดทางเทคนิค ',
+      fngTitle: 'ดัชนีความกลัว-ความโลภ (Fear & Greed)',
       loadingDefault: 'กำลังโหลด…', fngExtFear: 'กลัวสุดขีด', fngNeutral: 'กลาง', fngExtGreed: 'โลภสุดขีด',
       fngLiveSrc: 'ข้อมูลสด · Alternative.me', fngStaleSrc: 'ดึงสดไม่ได้ — ใช้ค่าที่บันทึกไว้ ({age})',
       fngFail: 'ดึงข้อมูลไม่ได้ตอนนี้', fngRetryLater: 'ลองรีเฟรชหน้านี้อีกครั้งภายหลัง',
       fngClassExtFear: 'กลัวสุดขีด', fngClassFear: 'กลัว', fngClassNeutral: 'เป็นกลาง', fngClassGreed: 'โลภ', fngClassExtGreed: 'โลภสุดขีด',
       chartTitle: 'กราฟราคา', tf1m: '1เดือน', tf3m: '3เดือน', tf6m: '6เดือน', tf1y: '1ปี',
       tgMa20: 'เฉลี่ย 20', tgMa50: 'เฉลี่ย 50',
-      chartCapUp: 'แท่งขึ้น', chartCapDown: 'แท่งลง', chartCapMa20: 'เฉลี่ย 20 วัน', chartCapMa50: 'เฉลี่ย 50 วัน', chartCapTap: 'แตะบนกราฟเพื่อดูราคาแต่ละวัน',
-      legendOpen: 'เปิด', legendHigh: 'สูง', legendLow: 'ต่ำ', legendClose: 'ปิด',
+      chartCapUp: 'แท่งขึ้น', chartCapDown: 'แท่งลง', chartCapMa20: 'เฉลี่ย 20 วัน', chartCapMa50: 'เฉลี่ย 50 วัน',      legendOpen: 'เปิด', legendHigh: 'สูง', legendLow: 'ต่ำ', legendClose: 'ปิด',
       step2Title: 'ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน',
       lblCapital: 'เงินลงทุนทั้งพอร์ต (USD)', phCapital: 'เช่น 10000',
       lblRiskPct: 'ยอมเสี่ยงต่อไม้', unitPctPortfolio: '(% ของพอร์ต)',
@@ -76,21 +74,21 @@
       driveTitle: 'สำรองพอร์ต + สมุดเทรดขึ้น Google Drive',
       driveConnectBtn: 'เชื่อมต่อ Google Drive', driveConnectedBtn: 'เชื่อมต่อ Google Drive แล้ว',
       pfTitle: 'พอร์ต Bitcoin ของฉัน',
-      lblPfQty: 'จำนวน BTC', lblPfCost: 'ราคาต้นทุน/BTC', pfAddBtn: '+ เพิ่มเข้าพอร์ต',
+      lblPfQty: 'จำนวน BTC', lblPfCost: 'ราคาต้นทุน/BTC', pfAddBtn: 'เพิ่มเข้าพอร์ต',
       pfEmptyDefault: 'ยังไม่มี BTC ในพอร์ต',
       pfEmptyAlt: 'ยังไม่มี BTC ในพอร์ต — คำนวณด้านบนแล้วกด "บันทึกเข้าพอร์ต"',
       pfColQty: 'จำนวน BTC', pfColCost: 'ต้นทุน/BTC', pfColCur: 'ราคาปัจจุบัน', pfColPl: 'กำไร/ขาดทุน', pfPricePh: 'ราคา',
       pfSellBtnTitle: 'เช็กควรขาย?', pfSellBtn: 'ควรขาย?', pfDelTitle: 'ลบ',
       alertPfInvalid: 'กรอกจำนวน BTC และราคาต้นทุนให้ถูกต้อง',
       jTitle: 'สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)',
-      lblJEntry: 'ราคาเข้า', lblJExit: 'ราคาออก', lblJQty: 'จำนวน BTC', jAddBtn: '+ บันทึก',
+      lblJEntry: 'ราคาเข้า', lblJExit: 'ราคาออก', lblJQty: 'จำนวน BTC', jAddBtn: 'บันทึก',
       alertJInvalid: 'กรอกราคาเข้า ราคาออก และจำนวน BTC ให้ครบ',
       jEmpty: 'ยังไม่มีไม้ที่บันทึก — ปิดไม้แล้วบันทึกทุกครั้ง จะเห็นสถิติจริงของตัวเอง',
       jStatCount: 'จำนวนไม้', jStatWinRate: 'อัตราชนะ', jStatTotalPl: 'กำไร/ขาดทุนรวม', jStatExpectancy: 'คาดหวัง/ไม้',
       jColEntry: 'เข้า', jColExit: 'ออก', jColQty: 'จำนวน BTC', jColResult: 'ผล',
       eTitle: 'ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?',
       lblEWin: 'อัตราชนะ', unitPctWin: '(% ของไม้ที่ชนะ)', lblEWinR: 'กำไรเฉลี่ยตอนชนะ', unitRMultiple: '(เท่าของความเสี่ยง R)', lblELossR: 'ขาดทุนเฉลี่ยตอนแพ้',
-      eExpectancyLine: 'ค่าคาดหวังต่อไม้ ≈ <b>{sign}{exp} R</b> (ถ้าเสี่ยงไม้ละ $1,000 ≈ {sign2}{usdAmt} ต่อไม้โดยเฉลี่ย)<br><span style="font-weight:500">ต้องชนะอย่างน้อย ~{be}% ถึงจะเสมอตัวที่ R นี้</span>',
+      eExpectancyLine: 'ค่าคาดหวังต่อไม้ ≈ <b>{sign}{exp} R</b> (ถ้าเสี่ยงไม้ละ $1,000 ≈ {sign2}{usdAmt} ต่อไม้โดยเฉลี่ย)<br><span class="sub">ต้องชนะอย่างน้อย ~{be}% ถึงจะเสมอตัวที่ R นี้</span>',
       eGoTitle: 'ได้เปรียบระยะยาว', eGoNote: 'ถ้าทำตามวินัยสม่ำเสมอ (คุมความเสี่ยงเท่ากันทุกไม้) มีโอกาสกำไรระยะยาว',
       eWarnTitle: 'แทบเสมอตัว', eWarnNote: 'หักค่าคอมฯแล้วอาจขาดทุน — ต้องเพิ่มกำไรตอนชนะ หรือลดขาดทุนตอนแพ้',
       eNoTitle: 'ขาดทุนระยะยาว', eNoNote: 'ถึงชนะบ่อยก็ไม่พอ — ต้อง "ปล่อยกำไรให้ยาว ตัดขาดทุนให้ไว" (เพิ่ม R ตอนชนะ)',
@@ -102,16 +100,7 @@
       alertDcaStart: 'กรอกราคา BTC เริ่มต้นให้ถูกต้อง (หรือรอราคาจากขั้นที่ 1 โหลดก่อน แล้วลองอีกครั้ง)', alertDcaPmt: 'กรอกเงินออมต่อเดือนให้ถูกต้อง',
       dcaYrCol: 'สิ้นปีที่ {n}', dcaYrColContrib: 'เงินที่ใส่', dcaYrColQty: 'BTC สะสม', dcaYrColVal: 'มูลค่า',
       dcaYrHdYear: 'สิ้นปีที่', dcaYrHdContrib: 'เงินที่ใส่', dcaYrHdQty: 'BTC สะสม', dcaYrHdVal: 'มูลค่า',
-      realityTitle: 'อ่านก่อนเอาเงินมาลงทุนใน Bitcoin (สำคัญมาก)',
-      reality1: 'ลงทุน <b>เฉพาะเงินที่ไม่ต้องใช้อย่างน้อย 3–5 ปี</b> และรับได้ถ้าหายทั้งหมด',
-      reality2: 'มี <b>เงินสำรองฉุกเฉิน 3–6 เดือน</b> ก่อนเริ่มเสมอ',
-      reality3: '<b>ห้ามเด็ดขาด</b>: เลเวอเรจ/มาร์จิ้น/ฟิวเจอร์ส — เทรด spot เท่านั้น เลเวอเรจคริปโตเป็นสาเหตุอันดับต้นที่ทำให้พอร์ตถูกบังคับปิดสถานะ (liquidation) จากความผันผวนระยะสั้น นักเทรดเลเวอเรจคริปโตส่วนใหญ่ขาดทุน',
-      reality4: 'สูตรคุมความเสี่ยง: <b>ขนาดไม้ = (เงินทุน × %ความเสี่ยง) ÷ ระยะห่างจากจุดตัดขาดทุน</b> — ใช้เครื่องคำนวณขั้นที่ 2 ด้านบนแทนการเดา',
-      reality5: 'BTC ผันผวนสูงกว่าดัชนีหุ้นกว้าง ~3-4 เท่า — เสี่ยงต่อไม้ 0.5–1% (ไม่ใช่ 2% แบบหุ้น) และ stop ควรกว้างกว่าหุ้นตามสัดส่วน',
-      reality6: 'ขายทำกำไรเป็น steps (TP1/TP2/TP3, ทยอยขายบางส่วน) แทนขายหมดทีเดียวหรือถือยาวไม่มีแผน',
-      realityCtaText: 'ถ้าไม่อยากจับจังหวะเข้า-ออกเลย ทางเลือกความเสี่ยงต่ำกว่าคือ', realityCtaDca: 'ทยอยซื้อสะสม (DCA)',
       realityCtaMid: ' — ใช้การ์ด "ออม Bitcoin แบบ DCA" ด้านบน หรือกระจายไปสินทรัพย์อื่นด้วย',
-      realityGoldLink: 'ทองคำ →', realityOr: 'หรือ', realityFundLink: 'กองทุน S&amp;P500 →',
       /* วิเคราะห์/ไฟจราจร */
       ageJustNow: 'เมื่อสักครู่', ageMinAgo: '{n} นาทีก่อน', ageHrAgo: '{n} ชม.ก่อน', ageDaysAgo: '{n} วันก่อน',
       proCheapRange: 'ราคาอยู่ช่วงถูกเทียบ 3 เดือน', conExpRange: 'ราคาอยู่ช่วงแพงเทียบ 3 เดือน',
@@ -212,10 +201,9 @@
       lblPriceNow: 'Current price (USD)', phPriceNow: 'e.g. 65000',
       lblHi: 'Cycle high price', lblLo: 'Cycle low price', ph3mo: '3-month range',
       marketModeHist: 'Data mode: Historical', marketModeLive: 'Data mode: Live / Real-time', marketModeFallback: 'Data mode: Fallback / Historical',
-      marketMetaDefault: 'Set a live data source under "Market data settings"',
       marketMetaHistoricalUse: 'Using Yahoo for historical charts',
       marketMetaFallback: "Live data source isn't reachable · using historical price as fallback",
-      marketRefreshBtn: '↻ Refresh', marketSettingsBtn: '⚙️ Market data settings',
+      marketRefreshBtn: 'Refresh', marketSettingsBtn: 'Market data settings',
       marketSettingsTitle: 'Live market data',
       marketProviderLbl: 'Data source', marketProviderGateway: 'Tanot Data Gateway (recommended)', marketProviderTwelve: 'Twelve Data', marketProviderYahoo: 'Yahoo / Historical',
       marketGatewayLbl: 'Gateway URL', marketApiKeyNote: '(stored locally only)', marketApiKeyPh: 'Enter if you have an API key',
@@ -224,23 +212,22 @@
       marketSavedMsg: 'Settings saved · data will refresh at the set interval', marketApiKeyCleared: 'API key cleared from this device',
       updatedAt: 'updated {time}', directSourceLabel: 'Direct',
       fetchBtn: 'Try fetching price', analyzeBtn: 'Assess it for me', demoBtn: 'View sample chart (practice)',
-      pasteSummary: 'Paste historical prices yourself (optional)', pasteHint: 'Paste several days of closing prices, separated by spaces/lines/commas (oldest→newest)', pasteBtn: 'Use this price',
+      pasteSummary: 'Paste historical prices yourself (optional)',pasteBtn: 'Use this price',
       fxSummary: 'Convert to Thai baht (optional)',
       fxRateLbl: 'Exchange rate', fxRateUnit: '(THB per 1 USD)', fxRatePh: 'e.g. 36.00', fxFetchBtn: 'Fetch current rate',
       fxShowChkLbl: 'Show amounts converted to baht (≈ ฿) on this page',
       fxFetching: 'Fetching exchange rate…', fxFromYahoo: 'Rate from Yahoo Finance (THB=X) · just now',
       fxStaleCached: 'Live fetch failed — using the saved rate ({age})', fxFetchFail: "Couldn't auto-fetch right now — enter the exchange rate yourself above",
       perBtcAtRate: ' per BTC (at the rate you set)',
-      lightTitle: 'Traffic Light', detailsSummary: "See technical details (you don't need to understand them)",
-      fngTitle: 'Fear &amp; Greed Index',
+      lightTitle: 'Traffic Light', detailsSummary: 'Technical details',
+      fngTitle: 'Fear & Greed Index',
       loadingDefault: 'Loading…', fngExtFear: 'Extreme Fear', fngNeutral: 'Neutral', fngExtGreed: 'Extreme Greed',
       fngLiveSrc: 'Live data · Alternative.me', fngStaleSrc: 'Live fetch failed — using saved value ({age})',
       fngFail: "Couldn't fetch data right now", fngRetryLater: 'Try refreshing this page again later',
       fngClassExtFear: 'Extreme Fear', fngClassFear: 'Fear', fngClassNeutral: 'Neutral', fngClassGreed: 'Greed', fngClassExtGreed: 'Extreme Greed',
       chartTitle: 'Price Chart', tf1m: '1M', tf3m: '3M', tf6m: '6M', tf1y: '1Y',
       tgMa20: 'MA 20', tgMa50: 'MA 50',
-      chartCapUp: 'Up candle', chartCapDown: 'Down candle', chartCapMa20: '20-day average', chartCapMa50: '50-day average', chartCapTap: 'Tap the chart to see each day’s price',
-      legendOpen: 'Open', legendHigh: 'High', legendLow: 'Low', legendClose: 'Close',
+      chartCapUp: 'Up candle', chartCapDown: 'Down candle', chartCapMa20: '20-day average', chartCapMa50: '50-day average',      legendOpen: 'Open', legendHigh: 'High', legendLow: 'Low', legendClose: 'Close',
       step2Title: 'If you buy, how much should you put in, and where should you sell',
       lblCapital: 'Total capital (USD)', phCapital: 'e.g. 10000',
       lblRiskPct: 'Risk tolerance per trade', unitPctPortfolio: '(% of portfolio)',
@@ -253,14 +240,14 @@
       driveTitle: 'Back up portfolio + trade journal to Google Drive',
       driveConnectBtn: 'Connect Google Drive', driveConnectedBtn: 'Google Drive connected',
       pfTitle: 'My Bitcoin Portfolio',
-      lblPfQty: 'BTC amount', lblPfCost: 'Cost per BTC', pfAddBtn: '+ Add to portfolio',
+      lblPfQty: 'BTC amount', lblPfCost: 'Cost per BTC', pfAddBtn: 'Add to portfolio',
       pfEmptyDefault: 'No BTC in your portfolio yet',
       pfEmptyAlt: 'No BTC in your portfolio yet — calculate above then press "Save to portfolio"',
       pfColQty: 'BTC amount', pfColCost: 'Cost/BTC', pfColCur: 'Current price', pfColPl: 'Profit/Loss', pfPricePh: 'Price',
       pfSellBtnTitle: 'Check should I sell?', pfSellBtn: 'Should I sell?', pfDelTitle: 'Delete',
       alertPfInvalid: 'Enter a valid BTC amount and cost price',
       jTitle: 'Trade Journal + Stats (see your own "skill")',
-      lblJEntry: 'Entry price', lblJExit: 'Exit price', lblJQty: 'BTC amount', jAddBtn: '+ Log',
+      lblJEntry: 'Entry price', lblJExit: 'Exit price', lblJQty: 'BTC amount', jAddBtn: 'Log',
       alertJInvalid: 'Enter the entry price, exit price, and BTC amount completely',
       jEmpty: 'No trades logged yet — log every closed trade to see your real stats',
       jStatCount: 'Trades', jStatWinRate: 'Win rate', jStatTotalPl: 'Total profit/loss', jStatExpectancy: 'Expectancy/trade',
@@ -268,7 +255,7 @@
       eTitle: 'Is your trading system "profitable long-term"?',
       lblEWin: 'Win rate', unitPctWin: '(% of winning trades)', lblEWinR: 'Average win', unitRMultiple: '(multiple of risk R)', lblELossR: 'Average loss',
       eFillErr: 'Fill in all the numbers (win rate 0–100%, profit/loss as a multiple of R)',
-      eExpectancyLine: 'Expected value per trade ≈ <b>{sign}{exp} R</b> (if risking $1,000 per trade ≈ {sign2}{usdAmt} per trade on average)<br><span style="font-weight:500">You need to win at least ~{be}% to break even at this R</span>',
+      eExpectancyLine: 'Expected value per trade ≈ <b>{sign}{exp} R</b> (if risking $1,000 per trade ≈ {sign2}{usdAmt} per trade on average)<br><span class="sub">You need to win at least ~{be}% to break even at this R</span>',
       eGoTitle: 'Profitable long-term', eGoNote: 'If you stick to discipline consistently (risking the same amount every trade), there is a real chance of long-term profit',
       eWarnTitle: 'Nearly break-even', eWarnNote: 'After commissions this may actually be a loss — you need bigger wins, or smaller losses',
       eNoTitle: 'Loses money long-term', eNoNote: 'Even winning often isn\'t enough — you need to "let profits run, cut losses fast" (increase R when you win)',
@@ -280,16 +267,7 @@
       alertDcaStart: 'Enter a valid starting BTC price (or wait for the price from step 1 to load, then try again)', alertDcaPmt: 'Enter a valid monthly savings amount',
       dcaYrCol: 'End of year {n}', dcaYrColContrib: 'Contributed', dcaYrColQty: 'BTC accumulated', dcaYrColVal: 'Value',
       dcaYrHdYear: 'End of year', dcaYrHdContrib: 'Contributed', dcaYrHdQty: 'BTC accumulated', dcaYrHdVal: 'Value',
-      realityTitle: 'Read before putting money into Bitcoin (very important)',
-      reality1: 'Invest <b>only money you won\'t need for at least 3–5 years</b> and can accept losing entirely',
-      reality2: 'Have a <b>3–6 month emergency fund</b> before you ever start',
-      reality3: '<b>Absolutely never</b>: leverage/margin/futures — trade spot only. Crypto leverage is a leading cause of accounts being force-liquidated by short-term volatility; most leveraged crypto traders lose money',
-      reality4: 'Risk-sizing formula: <b>position size = (capital × %risk) ÷ distance to stop-loss</b> — use the step-2 calculator above instead of guessing',
-      reality5: 'BTC is ~3-4x more volatile than a broad stock index — risk 0.5–1% per trade (not 2% like stocks), and the stop should be proportionally wider than for stocks',
-      reality6: 'Take profit in steps (TP1/TP2/TP3, sell portions gradually) instead of selling everything at once or holding indefinitely with no plan',
-      realityCtaText: "If you'd rather not time entries and exits at all, a lower-risk alternative is", realityCtaDca: 'buying gradually (DCA)',
       realityCtaMid: ' — use the "Bitcoin DCA Savings" card above, or diversify into other assets with',
-      realityGoldLink: 'Gold →', realityOr: 'or', realityFundLink: 'S&amp;P500 fund →',
       /* วิเคราะห์/ไฟจราจร */
       ageJustNow: 'just now', ageMinAgo: '{n} min ago', ageHrAgo: '{n} hr ago', ageDaysAgo: '{n} days ago',
       proCheapRange: 'Price is in the cheap zone vs. the last 3 months', conExpRange: 'Price is in the expensive zone vs. the last 3 months',
@@ -609,7 +587,7 @@
     var ohlc = [], vol = [], i;
     for (i = 0; i < times.length; i++) {
       ohlc.push({ time: times[i], open: opens[i], high: highs[i], low: lows[i], close: closes[i] });
-      vol.push({ time: times[i], value: (volumes && volumes[i]) ? volumes[i] : 0, color: closes[i] >= opens[i] ? 'rgba(38,166,154,0.5)' : 'rgba(239,83,80,0.5)' });
+      vol.push({ time: times[i], value: (volumes && volumes[i]) ? volumes[i] : 0, up: closes[i] >= opens[i] });
     }
     return { times: times, closes: closes, highs: highs, lows: lows, ohlc: ohlc, vol: vol,
       ma20: align(smaSeries(closes, 20)), ma50: align(smaSeries(closes, 50)), rsi: align(rsiSeries(closes, 14)) };
@@ -808,7 +786,7 @@
     $('fngNum').textContent = value;
     $('fngLabel').textContent = fngClassLabel(classification) + ' (' + value + '/100)';
     $('fngMarker').style.left = Math.max(0, Math.min(100, value)) + '%';
-    var badge = $('fngBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge ' + badgeCls; badge.textContent = badgeText;
+    var badge = $('fngBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap' + (badgeCls === 'real' ? ' ok' : badgeCls === 'demo' ? ' warn' : ''); badge.textContent = badgeText;
   }
   var lastFng = null;
   function runFng() {
@@ -821,7 +799,7 @@
       else {
         lastFng = null;
         $('fngLabel').textContent = t('fngFail');
-        var badge = $('fngBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge paste'; badge.textContent = t('fngRetryLater');
+        var badge = $('fngBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap'; badge.textContent = t('fngRetryLater');
       }
     });
   }
@@ -830,24 +808,22 @@
   var LWC = null, chart = null, candle = null, volS = null, ma20S = null, ma50S = null, rsiChart = null, rsiS = null;
   var fullData = null, curTF = 63, tg = { ma20: true, ma50: true, vol: true, rsi: false }, syncing = false, themeObs = null;
 
-  function themeColors() {
-    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    return dark ? { bg: '#1B2030', text: '#C2CBDD', grid: '#2A3040', border: '#2A3040' }
-                : { bg: '#FFFFFF', text: '#4A5568', grid: '#EEF1F7', border: '#E4E9F2' };
+  /* สีกราฟทั้งหมดมาจาก chart-theme.js (โทเคน --ome-chart-*): แท่งขึ้น/ลง = up/down, เฉลี่ย 20 = สี 4, เฉลี่ย 50 = สี 1, RSI = สี 7 */
+  var CT = window.OmeChartTheme;
+  function serie() { var c = CT.get(); return { up: c.up, down: c.down, ma20: c.series[3], ma50: c.series[0], rsi: c.series[6] }; }
+  function volColored(arr) {
+    var c = CT.get(), u = CT.alpha(c.up, 0.5), d = CT.alpha(c.down, 0.5);
+    return arr.map(function (b) { return { time: b.time, value: b.value, color: b.up ? u : d }; });
   }
   function chartWidth(el) { return Math.max(240, (el && (el.clientWidth || el.offsetWidth)) || (el && el.parentElement && el.parentElement.clientWidth) || 320); }
   function baseOpts(w, h) {
-    var c = themeColors();
-    return {
-      width: w, height: h,
-      localization: { locale: 'en-US' },
-      layout: { background: { color: c.bg }, textColor: c.text, fontFamily: "'Prompt',system-ui,sans-serif" },
-      grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } },
-      rightPriceScale: { borderColor: c.border },
-      timeScale: { borderColor: c.border, rightOffset: 3, fixLeftEdge: true },
-      crosshair: { mode: (LWC && LWC.CrosshairMode) ? LWC.CrosshairMode.Normal : 1 },
-      handleScroll: true, handleScale: true
-    };
+    var o = CT.lightweight();
+    o.width = w; o.height = h;
+    o.localization = { locale: 'en-US' };
+    o.timeScale.rightOffset = 3; o.timeScale.fixLeftEdge = true;
+    o.crosshair.mode = (LWC && LWC.CrosshairMode) ? LWC.CrosshairMode.Normal : 1;
+    o.handleScroll = true; o.handleScale = true;
+    return o;
   }
   function fmtDate(t) {
     if (typeof t === 'string') { var p = t.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
@@ -876,10 +852,11 @@
     if (rsiChart || !fullData || !LWC) return;
     var el = $('lwRsi'); el.innerHTML = '';
     rsiChart = LWC.createChart(el, baseOpts(chartWidth(el), 110));
-    rsiS = rsiChart.addLineSeries({ color: '#6C63D9', lineWidth: 2, priceLineVisible: false });
+    var sc = serie();
+    rsiS = rsiChart.addLineSeries({ color: sc.rsi, lineWidth: 2, priceLineVisible: false });
     try {
-      rsiS.createPriceLine({ price: 70, color: '#ef5350', lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: '70' });
-      rsiS.createPriceLine({ price: 30, color: '#26a69a', lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: '30' });
+      rsiS.createPriceLine({ price: 70, color: sc.down, lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: '70' });
+      rsiS.createPriceLine({ price: 30, color: sc.up, lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: '30' });
     } catch (e) {}
     var cut = cutoffTime();
     rsiS.setData(fullData.rsi.filter(function (p) { return p.time >= cut; }));
@@ -898,7 +875,7 @@
     curTF = n; if (!fullData || !candle) return;
     var s = Math.max(0, fullData.ohlc.length - n), cut = fullData.times[s];
     candle.setData(fullData.ohlc.slice(s));
-    volS.setData(fullData.vol.slice(s));
+    volS.setData(volColored(fullData.vol.slice(s)));
     ma20S.setData(fullData.ma20.filter(function (p) { return p.time >= cut; }));
     ma50S.setData(fullData.ma50.filter(function (p) { return p.time >= cut; }));
     if (rsiChart && rsiS) rsiS.setData(fullData.rsi.filter(function (p) { return p.time >= cut; }));
@@ -907,16 +884,19 @@
     updateLegendLast();
     [].forEach.call(document.querySelectorAll('#tfGroup .tf'), function (b) { b.classList.toggle('on', +b.getAttribute('data-tf') === n); });
   }
+  function recolor() {
+    if (!chart) return;
+    var sc = serie(), base = CT.lightweight();
+    chart.applyOptions(base);
+    candle.applyOptions(CT.candles());
+    ma20S.applyOptions({ color: sc.ma20 }); ma50S.applyOptions({ color: sc.ma50 });
+    var s = Math.max(0, fullData.ohlc.length - curTF);
+    volS.setData(volColored(fullData.vol.slice(s)));
+    if (rsiChart) { try { rsiChart.remove(); } catch (e) {} rsiChart = null; rsiS = null; buildRsi(); }
+  }
   function setupThemeObserver() {
     if (themeObs) return;
-    themeObs = new MutationObserver(function () {
-      var c = themeColors();
-      [chart, rsiChart].forEach(function (ch) {
-        if (!ch) return;
-        ch.applyOptions({ layout: { background: { color: c.bg }, textColor: c.text }, grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } }, rightPriceScale: { borderColor: c.border }, timeScale: { borderColor: c.border } });
-      });
-    });
-    themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    themeObs = true; CT.onChange(recolor);
   }
   function buildChart(data) {
     if (!window.LightweightCharts) { return false; }
@@ -926,11 +906,12 @@
     $('chartCard').style.display = 'block';
     var el = $('lwChart'); el.innerHTML = '';
     chart = LWC.createChart(el, baseOpts(chartWidth(el), 300));
-    candle = chart.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350', borderVisible: false, wickUpColor: '#26a69a', wickDownColor: '#ef5350' });
+    var sc = serie();
+    candle = chart.addCandlestickSeries(Object.assign({ borderVisible: false }, CT.candles()));
     volS = chart.addHistogramSeries({ priceFormat: { type: 'volume' }, priceScaleId: 'vol' });
     chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
-    ma20S = chart.addLineSeries({ color: '#F5A524', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-    ma50S = chart.addLineSeries({ color: '#3B9BEA', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    ma20S = chart.addLineSeries({ color: sc.ma20, lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    ma50S = chart.addLineSeries({ color: sc.ma50, lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
     chart.subscribeCrosshairMove(onCross);
     applyTF(curTF); applyToggles(); setupThemeObserver(); setupResize();
     if (window.requestAnimationFrame) requestAnimationFrame(reflow);
@@ -955,9 +936,9 @@
   function setSourceBadge(src, days) {
     var el = $('chartSource'); if (!el) return;
     if (src) lastSource = src; else src = lastSource;
-    if (src.kind === 'demo') { el.className = 'src-badge demo'; el.textContent = t('demoSrcBadge'); }
-    else if (src.kind === 'paste') { el.className = 'src-badge paste'; el.textContent = t('pasteSrcBadge', { n: days }); }
-    else { el.className = 'src-badge real'; el.textContent = t('realSrcBadge', { src: src.label || t('realPriceLabel'), stale: src.stale ? t('staleLastPrice', { age: cacheAgeText(src.cachedAt) }) : t('realPriceLabel'), n: days }); }
+    if (src.kind === 'demo') { el.className = 'badge wrap warn'; el.textContent = t('demoSrcBadge'); }
+    else if (src.kind === 'paste') { el.className = 'badge wrap'; el.textContent = t('pasteSrcBadge', { n: days }); }
+    else { el.className = 'badge wrap ok'; el.textContent = t('realSrcBadge', { src: src.label || t('realPriceLabel'), stale: src.stale ? t('staleLastPrice', { age: cacheAgeText(src.cachedAt) }) : t('realPriceLabel'), n: days }); }
   }
   function useSeries(s, msg, cls, src) {
     lastSeries = s;
@@ -979,10 +960,10 @@
     /* วาดวงกลมสีด้วย CSS แทน emoji 🟢🟡🔴 — บางอุปกรณ์/เบราว์เซอร์ไม่มีฟอนต์รองรับ
        emoji วงกลมสี (โดยเฉพาะ 🟢/🟡 ที่เพิ่งเข้า Unicode ทีหลัง) แสดงเป็นกล่องว่างแทน
        ซึ่งทำให้ไฟจราจร (จุดขายหลักของหน้านี้) สื่อความหมายไม่ได้เลย */
-    var bulbColors = { green: 'var(--ok)', yellow: 'var(--amber)', red: 'var(--err)' };
+    var bulbColors = { green: 'var(--ome-ok)', yellow: 'var(--ome-warn)', red: 'var(--ome-err)' };
     $('light').className = 'light ' + a.light;
     $('bulb').textContent = '';
-    $('bulb').style.background = bulbColors[a.light] || '#B8C0D4';
+    $('bulb').style.background = bulbColors[a.light] || 'var(--ome-text-3)';
     $('verdict').textContent = a.verdict;
     $('why').textContent = a.why;
 
@@ -1344,7 +1325,7 @@
     var res = riskCalc({ capital: capital, riskPct: riskPct, entry: entry, stop: stop, comm: comm, resistance: lastAnalysis ? lastAnalysis.resistance : NaN });
     var box = $('riskResult');
     if (res.error) {
-      $('riskHeadline').innerHTML = '<span style="color:var(--err)">' + res.error + '</span>';
+      $('riskHeadline').innerHTML = '<span class="dn">' + res.error + '</span>';
       $('riskKv').innerHTML = ''; $('tpRow').innerHTML = ''; box.classList.add('show'); $('saveBtn').style.display = 'none'; return;
     }
     $('riskHeadline').innerHTML = t('calcQtyLine', { qty: fmt(res.qty, 6), sats: fmt0(res.qty * 1e8), cost: usd0(res.cost) }) + fxSpan(res.cost);
@@ -1354,8 +1335,8 @@
     kv += '<div class="k">' + t('kvBreakeven') + '</div><div class="v">' + fmt(res.breakeven) + '</div>';
     if (isFinite(res.rr)) kv += '<div class="k">' + t('kvRr') + '</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
     $('riskKv').innerHTML = kv;
-    $('tpRow').innerHTML = '<span class="tp-chip">' + t('tpChip1', { v: fmt(res.tp1) }) + '</span><span class="tp-chip">' + t('tpChip2', { v: fmt(res.tp2) }) + '</span><span class="tp-chip">' + t('tpChip3', { v: fmt(res.tp3) }) + '</span>';
-    if (res.note) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">ℹ️ ' + res.note + '</div>';
+    $('tpRow').innerHTML = '<span class="badge accent">' + t('tpChip1', { v: fmt(res.tp1) }) + '</span><span class="badge accent">' + t('tpChip2', { v: fmt(res.tp2) }) + '</span><span class="badge accent">' + t('tpChip3', { v: fmt(res.tp3) }) + '</span>';
+    if (res.note) $('tpRow').innerHTML += '<div class="callout warn">' + res.note + '</div>';
     box.classList.add('show');
     $('saveBtn').style.display = 'inline-flex';
     $('saveBtn')._data = { qty: res.qty, cost: entry };
@@ -1367,14 +1348,14 @@
   function renderPf() {
     var pf = loadPf(), box = $('pfBox');
     if (!pf.length) { box.innerHTML = '<div class="pf-empty">' + t('pfEmptyAlt') + '</div>'; return; }
-    var html = '<table class="pf-table"><thead><tr><th>' + t('pfColQty') + '</th><th>' + t('pfColCost') + '</th><th>' + t('pfColCur') + '</th><th>' + t('pfColPl') + '</th><th></th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="table pf-table"><thead><tr><th>' + t('pfColQty') + '</th><th>' + t('pfColCost') + '</th><th>' + t('pfColCur') + '</th><th>' + t('pfColPl') + '</th><th></th></tr></thead><tbody>';
     pf.forEach(function (h, i) {
       html += '<tr data-i="' + i + '"><td>' + fmt(h.qty, 6) + '</td><td>' + fmt(h.cost) + '</td>' +
-        '<td><input type="number" class="pf-price" inputmode="decimal" step="0.01" placeholder="' + t('pfPricePh') + '" value="' + (h.cur != null ? h.cur : '') + '"></td>' +
+        '<td><input type="number" class="input pf-price" inputmode="decimal" step="0.01" placeholder="' + t('pfPricePh') + '" value="' + (h.cur != null ? h.cur : '') + '"></td>' +
         '<td class="pf-pl">—</td><td class="pf-actions"><button class="pf-sell" title="' + t('pfSellBtnTitle') + '">' + t('pfSellBtn') + '</button> <button class="pf-del" title="' + t('pfDelTitle') + '">✕</button></td></tr>' +
         '<tr class="pf-sellrow" data-sr="' + i + '"><td colspan="5"></td></tr>';
     });
-    html += '</tbody></table>'; box.innerHTML = html;
+    html += '</tbody></table></div>'; box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('tr[data-i]'), function (tr) {
       var i = +tr.getAttribute('data-i'), h = pf[i], inp = tr.querySelector('.pf-price'), cell = tr.querySelector('.pf-pl');
       var sellCell = box.querySelector('tr[data-sr="' + i + '"] td');
@@ -1388,20 +1369,20 @@
       inp.addEventListener('input', function () { upd(); h.cur = num(inp.value); savePf(pf); });
       tr.querySelector('.pf-del').addEventListener('click', function () { pf.splice(i, 1); savePf(pf); renderPf(); });
       tr.querySelector('.pf-sell').addEventListener('click', function () {
-        sellCell.innerHTML = '<div class="sell-verdict warn">' + t('pfSellFetching', { sym: SYM }) + '</div>';
+        sellCell.innerHTML = '<div class="callout warn">' + t('pfSellFetching', { sym: SYM }) + '</div>';
         getSeries(SYM).then(function (r) {
           var s = r.series, a = analyzeSeries(s), v = sellVerdict(a), price = s.closes[s.closes.length - 1];
           inp.value = price.toFixed(2); h.cur = price; savePf(pf); upd();
           var pl = (price - h.cost) * h.qty, pct = (price / h.cost - 1) * 100;
           sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict ' + v.cls + '">' + v.headline +
-            '<br><span style="font-weight:500">' + t('sellDetailPrice', {
+            '<br><span class="sub">' + t('sellDetailPrice', {
               price: fmt(price), stale: r.stale ? t('staleSaved', { age: cacheAgeText(r.cachedAt) }) : '',
               cost: fmt(h.cost), plWord: pl >= 0 ? t('profitWord') : t('lossWord'), pl: usd0(Math.abs(pl)) + fxSpan(pl),
               sign: pct >= 0 ? '+' : '', pct: fmt(pct, 1)
             }) + '</span>' +
             sellLevelsHtml(v.levels) + '</div></div>';
         }, function () {
-          sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict warn">' + t('sellFetchFail', { sym: SYM }) + '</div></div>';
+          sellCell.innerHTML = '<div class="sell-detail"><div class="callout warn">' + t('sellFetchFail', { sym: SYM }) + '</div></div>';
         });
       });
       upd();
@@ -1418,11 +1399,11 @@
   function sellVerdict(a) {
     var det = a.det || {}, ps = det.psar;
     var cls, headline;
-    if (ps && !ps.up) { cls = 'no'; headline = t('sellVerdictSar'); }
-    else if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) { cls = 'no'; headline = t('sellVerdictTrend'); }
+    if (ps && !ps.up) { cls = 'err'; headline = t('sellVerdictSar'); }
+    else if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) { cls = 'err'; headline = t('sellVerdictTrend'); }
     else if (isFinite(a.rsi) && a.rsi > 70) { cls = 'warn'; headline = t('sellVerdictRsi'); }
     else if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) { cls = 'warn'; headline = t('sellVerdictResist'); }
-    else { cls = 'go'; headline = t('sellVerdictGo'); }
+    else { cls = 'ok'; headline = t('sellVerdictGo'); }
 
     var levels = [
       {
@@ -1505,12 +1486,12 @@
     var fails = checks.filter(function (c) { return c.ok === false; }).length;
     var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
     var box = $('checkResult'), v = $('checkVerdict');
-    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = t('checklistFail', { n: fails }); }
-    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = t('checklistUnknown'); }
-    else { v.className = 'verdict-box go'; v.textContent = t('checklistGo'); }
+    if (fails > 0) { v.className = 'callout err'; v.textContent = t('checklistFail', { n: fails }); }
+    else if (unknowns > 0) { v.className = 'callout warn'; v.textContent = t('checklistUnknown'); }
+    else { v.className = 'callout ok'; v.textContent = t('checklistGo'); }
     var html = '';
     checks.forEach(function (c) {
-      var ic = c.ok === true ? '' : c.ok === false ? '' : '◻️';
+      var ic = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + (c.ok === true ? 'check' : c.ok === false ? 'x' : 'minus') + '"/></svg>';
       html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
     });
     $('chkList').innerHTML = html;
@@ -1522,14 +1503,14 @@
     var w = num($('eWin').value) / 100, wr = num($('eWinR').value), lr = num($('eLossR').value);
     var box = $('eResult');
     if (!(w >= 0 && w <= 1) || !isFinite(wr) || !isFinite(lr) || wr < 0 || lr <= 0) {
-      box.className = 'verdict-box warn'; box.textContent = t('eFillErr'); box.style.display = 'block'; return;
+      box.className = 'callout warn'; box.textContent = t('eFillErr'); box.style.display = 'block'; return;
     }
     var exp = w * wr - (1 - w) * lr;
     var beWin = lr / (wr + lr) * 100;
     var msg = t('eExpectancyLine', { sign: exp >= 0 ? '+' : '', exp: exp.toFixed(2), sign2: exp >= 0 ? '+' : '−', usdAmt: usd0(Math.abs(exp) * 1000), be: beWin.toFixed(0) });
-    if (exp > 0.1) { box.className = 'verdict-box go'; box.innerHTML = t('eGoTitle') + '<br>' + msg + '<br><span style="font-weight:500">' + t('eGoNote') + '</span>'; }
-    else if (exp > 0) { box.className = 'verdict-box warn'; box.innerHTML = t('eWarnTitle') + '<br>' + msg + '<br><span style="font-weight:500">' + t('eWarnNote') + '</span>'; }
-    else { box.className = 'verdict-box no'; box.innerHTML = t('eNoTitle') + '<br>' + msg + '<br><span style="font-weight:500">' + t('eNoNote') + '</span>'; }
+    if (exp > 0.1) { box.className = 'callout ok'; box.innerHTML = t('eGoTitle') + '<br>' + msg + '<br><span class="sub">' + t('eGoNote') + '</span>'; }
+    else if (exp > 0) { box.className = 'callout warn'; box.innerHTML = t('eWarnTitle') + '<br>' + msg + '<br><span class="sub">' + t('eWarnNote') + '</span>'; }
+    else { box.className = 'callout err'; box.innerHTML = t('eNoTitle') + '<br>' + msg + '<br><span class="sub">' + t('eNoNote') + '</span>'; }
     box.style.display = 'block';
   }
 
@@ -1544,7 +1525,7 @@
   }
   function renderJournal() {
     var jn = loadJn(), box = $('jBox'), stats = $('jStats');
-    if (!jn.length) { box.innerHTML = '<div class="pf-empty" style="font-size:13px;color:var(--muted);padding:8px 0">' + t('jEmpty') + '</div>'; stats.style.display = 'none'; return; }
+    if (!jn.length) { box.innerHTML = '<div class="pf-empty">' + t('jEmpty') + '</div>'; stats.style.display = 'none'; return; }
     var wins = jn.filter(function (r) { return r.pl > 0; }), losses = jn.filter(function (r) { return r.pl <= 0; });
     var total = jn.reduce(function (s, r) { return s + r.pl; }, 0);
     var winRate = wins.length / jn.length * 100;
@@ -1553,18 +1534,18 @@
     var expUsd = (winRate / 100) * avgWin - (1 - winRate / 100) * avgLoss;
     stats.style.display = 'grid';
     stats.innerHTML =
-      '<div class="j-stat"><div class="lbl">' + t('jStatCount') + '</div><div class="val">' + jn.length + '</div></div>' +
-      '<div class="j-stat"><div class="lbl">' + t('jStatWinRate') + '</div><div class="val">' + winRate.toFixed(0) + '%</div></div>' +
-      '<div class="j-stat"><div class="lbl">' + t('jStatTotalPl') + '</div><div class="val" style="color:' + (total >= 0 ? 'var(--ok)' : 'var(--err)') + '">' + (total >= 0 ? '+' : '−') + usd0(Math.abs(total)) + '</div></div>' +
-      '<div class="j-stat"><div class="lbl">' + t('jStatExpectancy') + '</div><div class="val" style="color:' + (expUsd >= 0 ? 'var(--ok)' : 'var(--err)') + '">' + (expUsd >= 0 ? '+' : '−') + usd0(Math.abs(expUsd)) + '</div></div>';
-    var html = '<table class="j-table"><thead><tr><th>' + t('jColEntry') + '</th><th>' + t('jColExit') + '</th><th>' + t('jColQty') + '</th><th>' + t('jColResult') + '</th><th></th></tr></thead><tbody>';
+      '<div class="kpi"><div class="kpi-label">' + t('jStatCount') + '</div><div class="kpi-value">' + jn.length + '</div></div>' +
+      '<div class="kpi"><div class="kpi-label">' + t('jStatWinRate') + '</div><div class="kpi-value">' + winRate.toFixed(0) + '%</div></div>' +
+      '<div class="kpi"><div class="kpi-label">' + t('jStatTotalPl') + '</div><div class="kpi-value ' + (total >= 0 ? 'up' : 'dn') + '">' + (total >= 0 ? '+' : '−') + usd0(Math.abs(total)) + '</div></div>' +
+      '<div class="kpi"><div class="kpi-label">' + t('jStatExpectancy') + '</div><div class="kpi-value ' + (expUsd >= 0 ? 'up' : 'dn') + '">' + (expUsd >= 0 ? '+' : '−') + usd0(Math.abs(expUsd)) + '</div></div>';
+    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('jColEntry') + '</th><th>' + t('jColExit') + '</th><th>' + t('jColQty') + '</th><th>' + t('jColResult') + '</th><th></th></tr></thead><tbody>';
     jn.slice().reverse().forEach(function (r, ri) {
       var idx = jn.length - 1 - ri;
       html += '<tr><td>' + fmt(r.en) + '</td><td>' + fmt(r.ex) + '</td><td>' + fmt(r.qty, 6) + '</td>' +
-        '<td class="' + (r.pl >= 0 ? 'j-win' : 'j-loss') + '">' + (r.pl >= 0 ? '+' : '−') + usd0(Math.abs(r.pl)) + '</td>' +
-        '<td><button class="j-del" data-i="' + idx + '">✕</button></td></tr>';
+        '<td class="' + (r.pl >= 0 ? 'up' : 'dn') + '">' + (r.pl >= 0 ? '+' : '−') + usd0(Math.abs(r.pl)) + '</td>' +
+        '<td><button class="btn sm ghost icon j-del" aria-label="' + t('pfDelTitle') + '" data-i="' + idx + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
-    html += '</tbody></table>'; box.innerHTML = html;
+    html += '</tbody></table></div>'; box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('.j-del'), function (b) { b.addEventListener('click', function () { var jn = loadJn(); jn.splice(+b.getAttribute('data-i'), 1); saveJn(jn); renderJournal(); }); });
   }
 
@@ -1579,7 +1560,9 @@
     }
     return { qty: qty, price: price, value: qty * price, contrib: contrib, series: series };
   }
+  var lastBtcDca = null;
   function drawBtcDcaChart(r) {
+    lastBtcDca = r;
     var s = r.series, W = 640, H = 220, pad = 8, n = s.length;
     var val = [], con = [], i;
     for (i = 0; i < n; i++) { val.push(s[i].value); con.push(s[i].contrib); }
@@ -1589,13 +1572,15 @@
     function path(a) { var d = '', i; for (i = 0; i < a.length; i++) d += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(a[i]).toFixed(1) + ' '; return d; }
     var area = path(val) + 'L' + x(n - 1).toFixed(1) + ' ' + y(0).toFixed(1) + ' L' + x(0).toFixed(1) + ' ' + y(0).toFixed(1) + ' Z';
     var svg = '';
-    svg += '<path d="' + area + '" fill="#F7931A" opacity="0.12"/>';
-    svg += '<path d="' + path(con) + '" fill="none" stroke="#8B94A8" stroke-width="1.6" stroke-dasharray="5 3"/>';
-    svg += '<path d="' + path(val) + '" fill="none" stroke="#F7931A" stroke-width="2.4" stroke-linejoin="round"/>';
+    var C = window.OmeChartTheme.get();
+    svg += '<path d="' + area + '" fill="' + C.series[1] + '" opacity="0.12"/>';
+    svg += '<path d="' + path(con) + '" fill="none" stroke="' + C.axis + '" stroke-width="1.6" stroke-dasharray="5 3"/>';
+    svg += '<path d="' + path(val) + '" fill="none" stroke="' + C.series[1] + '" stroke-width="2.4" stroke-linejoin="round"/>';
     $('dcaChart').innerHTML = svg;
   }
+  window.OmeChartTheme.onChange(function () { if (lastBtcDca && $('dcaOut').style.display !== 'none') drawBtcDcaChart(lastBtcDca); });
   function dcaYearTable(r) {
-    var html = '<table class="yr-table"><thead><tr><th>' + t('dcaYrHdYear') + '</th><th>' + t('dcaYrHdContrib') + '</th><th>' + t('dcaYrHdQty') + '</th><th>' + t('dcaYrHdVal') + '</th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('dcaYrHdYear') + '</th><th>' + t('dcaYrHdContrib') + '</th><th>' + t('dcaYrHdQty') + '</th><th>' + t('dcaYrHdVal') + '</th></tr></thead><tbody>';
     var yrs = Math.round(r.series.length / 12), i;
     for (i = 1; i <= yrs; i++) {
       var idx = i * 12 - 1;
@@ -1603,7 +1588,7 @@
       var row = r.series[idx];
       html += '<tr><td>' + t('dcaYrCol', { n: i }) + '</td><td>' + usd0(row.contrib) + '</td><td>' + fmt(row.qty, 6) + ' BTC</td><td>' + usd0(row.value) + '</td></tr>';
     }
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     return html;
   }
   function doDCA() {

@@ -5,211 +5,79 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ค่าเงิน &amp; วัตถุดิบ — ราคาสินค้าโภคภัณฑ์และค่าเงิน | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#12A594">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="theme-boot.js"></script>
 <script src="data-registry.js"></script>
 <script src="tanot-data.js"></script>
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
 <script src="vendor/lightweight-charts.standalone.js" defer></script>
+<script src="chart-theme.js" defer></script>
 <style>
-:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
-  --brand:var(--ome-brand);--brand-dk:var(--ome-brand-dk);--brand-sf:var(--ome-brand-sf);
-  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--sky:#3B9BEA;--err:#E5484D;--warn:#E08700;--violet:#6C63D9;
-  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
-*{box-sizing:border-box;margin:0;padding:0}
-body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
-  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:860px;margin:0 auto}
-.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
-.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
-.crumb .sep{margin:0 7px;color:#C9CEDC}
-.head{display:flex;align-items:center;gap:14px;margin:12px 0 6px}
-.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:24px;
-  background:linear-gradient(135deg,#3B9BEA,#6FC1F5);color:#fff;display:grid;place-items:center;
-  box-shadow:0 6px 18px rgba(59,155,234,.3)}
-h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
-.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
-
-.card{background:var(--card);border-radius:var(--ome-card-r);box-shadow:var(--sh);padding:var(--ome-card-pad);margin-top:var(--ome-card-gap)}
-.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
-
-.src-badge{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;display:inline-block;margin-bottom:10px}
-.src-badge.real{background:#E9F9F0;color:#0B7F52}
-.src-badge.paste{background:#EEF1F7;color:#5A6479}
-[data-theme="dark"] .src-badge.real{background:#14261E;color:#5EDCAB}
-[data-theme="dark"] .src-badge.paste{background:#242B3B;color:#A9B4C9}
-
-/* ── แถวสถิติ (การ์ดใหญ่ ราคา+% เฉพาะสินทรัพย์หลัก — เหมือนแถวบนสุดของเว็บอ้างอิง) ── */
 .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px}
-.stat-card{background:var(--bg);border:1.5px solid transparent;border-radius:13px;padding:12px 13px;
-  text-align:left;font-family:inherit;cursor:pointer;transition:.12s;display:flex;flex-direction:column;gap:3px}
-.stat-card:hover{border-color:var(--line)}
-.stat-card.on{background:var(--brand-sf);border-color:var(--brand)}
-.stat-card .ic{font-size:18px}
-.stat-card .nm{font-size:12px;font-weight:700;color:var(--muted);margin-top:2px;line-height:1.3}
-.stat-card .pr{font-size:16px;font-weight:800;margin-top:3px;letter-spacing:-.01em}
-.stat-card .pr.na{color:var(--muted);font-weight:600;font-size:12.5px}
-.stat-card .chg{font-size:11.5px;font-weight:700}
-.stat-card .chg.up{color:var(--ok)}
-.stat-card .chg.dn{color:var(--err)}
-.stat-card .chg.flat{color:var(--muted)}
+.stat-card{background:var(--ome-surface-2);border:1.5px solid transparent;border-radius:var(--ome-radius-lg);padding:12px 13px;
+  text-align:left;font-family:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+.stat-card:hover{border-color:var(--ome-border)}
+.stat-card.on{background:var(--ome-accent-soft);border-color:var(--ome-accent)}
+.stat-card .ic:empty,.pill .ic:empty,.detail-title .ic:empty{display:none}
+.stat-card .nm{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2);margin-top:2px;line-height:1.3}
+.stat-card .pr{font-size:var(--ome-fs-md);font-weight:700;margin-top:3px}
+.stat-card .pr.na{color:var(--ome-text-2);font-weight:600;font-size:var(--ome-fs-xs)}
+.stat-card .chg{font-size:var(--ome-fs-xs);font-weight:700}
+.stat-card .chg.up{color:var(--ome-ok-ink)}
+.stat-card .chg.dn{color:var(--ome-err-ink)}
+.stat-card .chg.flat{color:var(--ome-text-2)}
 .stat-card .spark{display:block;width:100%;height:22px;margin-top:5px}
 .stat-card .spark svg{width:100%;height:100%;display:block}
-/* ตัวเลขราคา — เลขความกว้างเท่ากันเสมอ (tabular figures) กันตัวเลขขยับตอนราคาเปลี่ยน
-   เหมือนแอปการเงิน/ตลาดหุ้นทั่วไป (Prompt รองรับ font-feature นี้อยู่แล้ว) */
-.stat-card .pr,.stat-card .chg,.ohlc-box .v,.hist-table td{font-variant-numeric:tabular-nums}
-
-/* ── แถวปุ่มเลือกสินทรัพย์ (pill แยกจากแถวสถิติ) — จัดเป็นกลุ่มตามหมวด กันเป็นแถวยาวปนกัน ── */
-.pill-row{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-.pill-group-lbl{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase;display:block;margin-bottom:6px}
+.stat-card .pr,.stat-card .chg,.ohlc-box .v{font-variant-numeric:tabular-nums}
+.pill-row{display:flex;flex-direction:column;gap:10px}
+.pill-group-lbl{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600;display:block;margin-bottom:6px}
 .pill-group-row{display:flex;flex-wrap:wrap;gap:7px}
-.pill{display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12.5px;font-weight:700;
-  padding:7px 13px;border-radius:20px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
-.pill .ic{font-size:14px}
-.pill.on{background:var(--brand);border-color:var(--brand);color:#fff}
-
-/* ── รายละเอียด + กราฟ ── */
+.pill{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:var(--ome-radius-pill);border:1px solid var(--ome-border);
+  background:var(--ome-surface-1);color:var(--ome-text-2);font-family:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer}
+.pill:hover{color:var(--ome-text-1);border-color:var(--ome-border-strong)}
+.pill.on{background:var(--ome-accent-soft);border-color:var(--ome-accent);color:var(--ome-accent-strong)}
 .detail-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}
 .detail-title{display:flex;align-items:center;gap:9px}
-.detail-title .ic{font-size:24px}
-.detail-title .nm{font-size:16px;font-weight:800}
-.detail-title .unit{font-size:12px;color:var(--muted);font-weight:600}
-.ctype{display:flex;gap:6px}
-.ctype button{font-family:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:9px;
-  border:1.5px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
-.ctype button.on{background:var(--ink);border-color:var(--ink);color:#fff}
-[data-theme="dark"] .ctype button.on{background:#EAEDF5;border-color:#EAEDF5;color:#12151C}
-
-.ohlc-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:8px;margin-top:12px}
-.ohlc-box{background:var(--bg);border-radius:11px;padding:8px 10px}
-.ohlc-box .k{font-size:11px;color:var(--muted);font-weight:600}
-.ohlc-box .v{font-size:14px;font-weight:800;margin-top:2px}
-.ohlc-box .v.up{color:var(--ok)}
-.ohlc-box .v.dn{color:var(--err)}
-
-.tf-group{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
-.tf{font-family:inherit;font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;
-  border:1.5px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
-.tf.on{background:var(--brand);border-color:var(--brand);color:#fff}
-
-.lw-chart{width:100%;height:260px;margin-top:10px}
-.chart-empty{font-size:13px;color:var(--muted);padding:26px 4px;text-align:center}
-.chart-cap{font-size:12px;color:var(--muted);margin-top:8px;display:flex;gap:14px;flex-wrap:wrap}
-.chart-cap i{width:11px;height:3px;display:inline-block;vertical-align:middle;margin-right:4px;border-radius:2px}
-
-/* ── ตารางราคาย้อนหลัง (เหมือนตารางท้ายหน้าของเว็บอ้างอิง) ── */
-.hist-wrap{overflow-x:auto;margin-top:4px}
-.hist-table{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap}
-.hist-table th,.hist-table td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line)}
-.hist-table th:first-child,.hist-table td:first-child{text-align:left}
-.hist-table th{color:var(--muted);font-weight:600;font-size:11.5px}
-.hist-table td.hi{color:var(--ok)}
-.hist-table td.lo{color:var(--err)}
-.hist-table td.chg.up{color:var(--ok);font-weight:700}
-.hist-table td.chg.dn{color:var(--err);font-weight:700}
-.hist-empty{font-size:13px;color:var(--muted);padding:14px 4px;text-align:center}
-
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
-  background:var(--card);border-radius:11px;padding:10px 15px;font-family:inherit;font-size:14px;font-weight:700;
-  color:var(--ink);cursor:pointer;transition:.15s}
-.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
-.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-.btn.primary:hover{background:var(--brand-dk);color:#fff}
-.btn.sm{padding:7px 11px;font-size:12.5px}
-.status{font-size:12.5px;color:var(--muted);margin-top:9px;min-height:1.2em}
-.status.err{color:var(--err)}
-.status.ok{color:var(--ok)}
-
-/* ── ไฟจราจร (ถูก/แพงเทียบแนวโน้ม) ── */
-.light{display:flex;gap:14px;align-items:center;border-radius:16px;padding:18px;margin-top:2px}
-.light .bulb{width:56px;height:56px;border-radius:50%;flex-shrink:0;background:#B8C0D4}
-.light .verdict{font-size:18px;font-weight:800;line-height:1.25}
-.light .why{font-size:13.5px;margin-top:3px;opacity:.9}
-.light.green{background:#E9F9F0;color:#0B7F52}
-.light.yellow{background:#FFF6E4;color:#8A6212}
-.light.red{background:#FDECEC;color:#B23838}
-.light.gray{background:var(--bg);color:var(--muted)}
-[data-theme="dark"] .light.green{background:#14261E;color:#5EDCAB}
-[data-theme="dark"] .light.yellow{background:#2A2415;color:#E8C88A}
-[data-theme="dark"] .light.red{background:#301B1B;color:#F0A0A0}
-details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;list-style:none;
-  display:flex;align-items:center;gap:8px;user-select:none}
-details>summary::-webkit-details-marker{display:none}
-details>summary::before{content:'▸';color:var(--muted);transition:.15s}
-details[open]>summary::before{transform:rotate(90deg)}
-.details-body{padding:0 15px 15px;font-size:13.5px}
-.det-kv{display:grid;grid-template-columns:1fr auto;gap:5px 12px;font-size:13px}
-.det-kv .k{color:var(--muted)}
-.det-kv .v{font-weight:600;text-align:right}
-
-.frow{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end}
-.field{display:flex;flex-direction:column;gap:4px;flex:1 1 130px;min-width:120px}
-.field label{font-size:12px;color:var(--muted);font-weight:600}
-.field .unit{font-size:11px;color:var(--muted);font-weight:500}
-input[type=number]{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:11px;
-  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none}
-input:focus{outline:none;border-color:var(--brand)}
-[data-theme="dark"] input{background:#12151C}
-
-.result{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px}
-.yn-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
-.yn-row:last-child{border-bottom:none}
-.yn-btns{display:flex;gap:6px;flex-shrink:0}
-.yn-btn{padding:5px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);
-  font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted)}
-.yn-btn.on.yes{background:#E9F9F0;border-color:#17B26A;color:#0B7F52}
-.yn-btn.on.no{background:#FDECEC;border-color:#E5484D;color:#B23838}
-[data-theme="dark"] .yn-btn.on.yes{background:#14261E;border-color:#17B26A;color:#5EDCAB}
-[data-theme="dark"] .yn-btn.on.no{background:#301B1B;border-color:#E5484D;color:#F0A0A0}
-.chk-list{list-style:none;margin:12px 0 0;padding:0}
-.chk-list li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line)}
-.chk-list li:last-child{border-bottom:none}
-.chk-list .ic{flex-shrink:0;font-size:15px}
-.chk-list li.pass{color:var(--ink)}
-.chk-list li.fail{color:#B23838;font-weight:600}
-[data-theme="dark"] .chk-list li.fail{color:#F0A0A0}
-
-.verdict-box{border-radius:13px;padding:14px 16px;font-size:14px;font-weight:600;line-height:1.5}
-.verdict-box.go{background:#E9F9F0;color:#0B7F52}
-.verdict-box.no{background:#FDECEC;color:#B23838}
-.verdict-box.warn{background:#FFF6E4;color:#8A6212}
-[data-theme="dark"] .verdict-box.go{background:#14261E;color:#5EDCAB}
-[data-theme="dark"] .verdict-box.no{background:#301B1B;color:#F0A0A0}
-[data-theme="dark"] .verdict-box.warn{background:#2A2415;color:#E8C88A}
-
-.disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
-footer{margin-top:22px;text-align:center;font-size:12.5px;color:#9AA3B8}
-footer a{color:var(--sky);text-decoration:none;font-weight:600}
-@media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:18px}}
-
-/* ── เปิดในกรอบป๊อปอัพจาก invest.html (?embed=1) — ซ่อน breadcrumb ซ้ำซ้อน ลด padding บนสุด ── */
-body.embedded{padding-top:14px}
-body.embedded .crumb{display:none}
+.detail-title .nm{font-size:var(--ome-fs-md);font-weight:700}
+.detail-title .unit{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600}
+.ohlc-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:8px}
+.ohlc-box{background:var(--ome-surface-2);border-radius:var(--ome-radius-md);padding:8px 10px}
+.ohlc-box .k{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600}
+.ohlc-box .v{font-size:var(--ome-fs-base);font-weight:700;margin-top:2px}
+.ohlc-box .v.up{color:var(--ome-ok-ink)}
+.ohlc-box .v.dn{color:var(--ome-err-ink)}
+.lw-chart{width:100%;height:260px}
+.chart-empty{font-size:var(--ome-fs-sm);color:var(--ome-text-2);padding:26px 4px;text-align:center}
+.hist-table{white-space:nowrap}
+.hist-table td.hi{color:var(--ome-ok-ink)}
+.hist-table td.lo{color:var(--ome-err-ink)}
+.hist-table td.chg.up{color:var(--ome-ok-ink);font-weight:700}
+.hist-table td.chg.dn{color:var(--ome-err-ink);font-weight:700}
+.sw-up{background:var(--ome-chart-up)}.sw-dn{background:var(--ome-chart-down)}
+.unit{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:500}
+.result{display:none;border-top:1px dashed var(--ome-border);padding-top:14px}
+.big-out{font-size:var(--ome-fs-base);font-weight:700;margin-bottom:10px}
+#checkResult .chk-list{margin-top:12px}
 </style>
 </head>
-<body class="ome-tool-page" data-invest-key="commodities">
+<body data-layout="tool" data-invest-key="commodities">
 <script src="auth-gate.js"></script>
-<div class="wrap">
+<main class="page">
 
-  <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span class="sep">/</span><span data-i18n="pageTitle">ค่าเงิน &amp; วัตถุดิบ</span></nav>
+  <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span>›</span><span data-i18n="pageTitle">ค่าเงิน &amp; วัตถุดิบ</span></nav>
 
-  <div class="head">
-    <div>
-      <h1 data-i18n="pageTitle">ค่าเงิน &amp; วัตถุดิบ</h1>
-    </div>
-  </div>
+  <div class="page-head"><h1 data-i18n="pageTitle">ค่าเงิน &amp; วัตถุดิบ</h1></div>
+
+  <div class="stack">
 
   <div class="card">
-    <div class="src-badge real" data-i18n="srcBadgeEod">ข้อมูล EOD (วันก่อนหน้า)</div>
+    <div><span class="badge ok" data-i18n="srcBadgeEod">ข้อมูล EOD (วันก่อนหน้า)</span></div>
     <div class="stat-row" id="statRow"></div>
     <div class="pill-row" id="pillRow"></div>
   </div>
@@ -220,12 +88,12 @@ body.embedded .crumb{display:none}
         <span class="ic" id="dIcon"></span>
         <div><div class="nm" id="dName">—</div><div class="unit" id="dUnit"></div></div>
       </div>
-      <div class="ctype" id="ctypeGroup">
+      <div class="segmented ctype" id="ctypeGroup">
         <button class="on" data-ct="candle" type="button">Candle</button>
         <button data-ct="line" type="button">Line</button>
       </div>
     </div>
-    <div class="src-badge" id="dSrcBadge" style="margin-top:12px" data-i18n="loadingDefault">กำลังโหลด…</div>
+    <div class="badge wrap" id="dSrcBadge" data-i18n="loadingDefault">กำลังโหลด…</div>
     <div class="ohlc-row" id="ohlcRow" style="display:none">
       <div class="ohlc-box"><div class="k" data-i18n="ohlcOpen">เปิด</div><div class="v" id="oOpen">—</div></div>
       <div class="ohlc-box"><div class="k" data-i18n="ohlcHigh">สูง</div><div class="v" id="oHigh">—</div></div>
@@ -233,7 +101,7 @@ body.embedded .crumb{display:none}
       <div class="ohlc-box"><div class="k" data-i18n="ohlcClose">ปิด</div><div class="v" id="oClose">—</div></div>
       <div class="ohlc-box"><div class="k" data-i18n="ohlcChg">เปลี่ยนแปลง</div><div class="v" id="oChg">—</div></div>
     </div>
-    <div class="tf-group" id="tfGroup">
+    <div class="segmented" id="tfGroup" style="align-self:flex-start">
       <button class="tf" data-tf="21" type="button" data-i18n="tf1m">1เดือน</button>
       <button class="tf on" data-tf="63" type="button" data-i18n="tf3m">3เดือน</button>
       <button class="tf" data-tf="126" type="button" data-i18n="tf6m">6เดือน</button>
@@ -242,9 +110,8 @@ body.embedded .crumb{display:none}
     <div class="lw-chart" id="lwChart"></div>
     <div id="chartEmpty" class="chart-empty" style="display:none"></div>
     <div class="chart-cap" id="chartCap" style="display:none">
-      <span><i style="background:#26a69a"></i><span data-i18n="chartCapUp">แท่งขึ้น</span></span>
-      <span><i style="background:#ef5350"></i><span data-i18n="chartCapDown">แท่งลง</span></span>
-      <span data-i18n="chartCapTap">แตะบนกราฟเพื่อดูราคาแต่ละวัน</span>
+      <span><i class="sw-up"></i><span data-i18n="chartCapUp">แท่งขึ้น</span></span>
+      <span><i class="sw-dn"></i><span data-i18n="chartCapDown">แท่งลง</span></span>
     </div>
   </div>
 
@@ -255,9 +122,9 @@ body.embedded .crumb{display:none}
       <div class="bulb" id="vBulb"></div>
       <div><div class="verdict" id="vVerdict" data-i18n="loadingDefault">กำลังโหลด…</div><div class="why" id="vWhy"></div></div>
     </div>
-    <details id="vDetailsBox" style="display:none">
-      <summary data-i18n="techDetailsSummary">ดูรายละเอียดทางเทคนิค</summary>
-      <div class="details-body"><div class="det-kv" id="vDetKv"></div></div>
+    <details class="disclosure" id="vDetailsBox" style="display:none">
+      <summary data-i18n="techDetailsSummary">รายละเอียดทางเทคนิค</summary>
+      <div class="disclosure-body"><div class="kv" id="vDetKv"></div></div>
     </details>
   </div>
 
@@ -265,26 +132,25 @@ body.embedded .crumb{display:none}
   <div class="card" id="aiSumCard" style="display:none">
     <h2 data-i18n="aiSumTitle">สรุปด้วย AI</h2>
     <button class="btn primary sm" id="aiSumBtn" type="button" data-i18n="aiSumBtn">สรุปให้หน่อย</button>
-    <div class="status" id="aiSumStatus"></div>
-    <div class="ai-sum-out" id="aiSumOut" style="display:none;margin-top:11px;background:var(--bg);border-radius:9px;padding:12px 13px;font-size:13.5px;line-height:1.75;white-space:pre-wrap"></div>
+    <div class="status" id="aiSumStatus" style="margin:0"></div>
+    <div class="callout" id="aiSumOut" style="display:none;font-weight:400;line-height:1.75;white-space:pre-wrap"></div>
   </div>
 
   <!-- ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน -->
   <div class="card">
     <h2 data-i18n="rcTitle">ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน</h2>
-    <div class="mini" id="rcUnitNote"></div>
-    <div class="frow" style="margin-top:10px">
+    <div class="frow">
       <div class="field"><label data-i18n="rcCapitalLabel">เงินลงทุนทั้งหมด</label><input type="number" id="rcCapital" inputmode="decimal" step="1" data-i18n-placeholder="rcCapitalPh" placeholder="เช่น 100000"></div>
       <div class="field"><label><span data-i18n="rcRiskPctLabel">ยอมเสี่ยงต่อครั้ง</span> <span class="unit" data-i18n="rcUnitPctPortfolio">(% ของพอร์ต)</span></label><input type="number" id="rcRiskPct" inputmode="decimal" step="0.1" value="2"></div>
     </div>
-    <div class="frow" style="margin-top:10px">
+    <div class="frow">
       <div class="field"><label data-i18n="rcEntryLabel">ราคาซื้อ</label><input type="number" id="rcEntry" inputmode="decimal" step="any" data-i18n-placeholder="rcEntryPh" placeholder="= ราคาปัจจุบันของสินทรัพย์ที่เลือก"></div>
       <div class="field"><label data-i18n="rcStopLabel">ราคาตัดขาดทุน</label><input type="number" id="rcStop" inputmode="decimal" step="any" data-i18n-placeholder="rcStopPh" placeholder="แนะนำอัตโนมัติ"></div>
     </div>
-    <div style="margin-top:10px"><button class="btn primary sm" id="rcCalcBtn" type="button" data-i18n="rcCalcBtn">คำนวณ</button></div>
+    <div><button class="btn primary sm" id="rcCalcBtn" type="button" data-i18n="rcCalcBtn">คำนวณ</button></div>
     <div class="result" id="rcResult" style="display:none">
-      <div id="rcHeadline" style="font-size:14.5px;font-weight:700"></div>
-      <div class="det-kv" id="rcKv" style="margin-top:10px"></div>
+      <div id="rcHeadline" class="big-out"></div>
+      <div class="kv" id="rcKv"></div>
     </div>
   </div>
 
@@ -294,23 +160,24 @@ body.embedded .crumb{display:none}
     <div id="chkForm">
       <div class="yn-row" data-key="noLeverage">
         <span data-i18n="chkLeverageQ">ยืนยันว่าเข้าใจความเสี่ยงเลเวอเรจ/มาร์จิ้นของสัญญาที่จะซื้อ (เช่น ฟิวเจอร์ส/CFD) และไม่ใช้เลเวอเรจเกินที่รับความเสี่ยงได้</span>
-        <span class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></span>
+        <span class="segmented yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></span>
       </div>
     </div>
-    <div style="margin-top:10px"><button class="btn sm" id="checkBtn" type="button" data-i18n="checkBtn">ตรวจเช็กลิสต์</button></div>
-    <div id="checkResult" style="display:none;margin-top:12px">
-      <div class="verdict-box" id="checkVerdict"></div>
+    <div><button class="btn sm" id="checkBtn" type="button" data-i18n="checkBtn">ตรวจเช็กลิสต์</button></div>
+    <div id="checkResult" style="display:none">
+      <div class="callout" id="checkVerdict"></div>
       <ul class="chk-list" id="chkList"></ul>
     </div>
   </div>
 
   <div class="card">
     <h2><span id="histTitle" data-i18n="histTitleDefault">ข้อมูลราคาย้อนหลัง</span></h2>
-    <div class="hist-wrap"><table class="hist-table" id="histTable"></table></div>
+    <div class="table-wrap"><table class="table right hist-table" id="histTable"></table></div>
   </div>
 
 
-</div>
+  </div>
+</main>
 
 <!-- แคชผลสรุป AI ข้ามผู้ใช้ผ่าน Firebase (คำนวณครั้งเดียวต่อวันต่อโภคภัณฑ์ อ่านซ้ำได้ฟรี) — bare module
      specifier ต้องใช้ import map ชี้ไปไฟล์ที่ฝังไว้ในเว็บเอง (vendor/firebase/) เหมือน budget.html -->

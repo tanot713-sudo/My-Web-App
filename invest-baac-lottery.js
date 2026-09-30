@@ -21,6 +21,7 @@
   function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   var I18N = {
     th: {
+      delTitle: 'ลบ',
       navInvest: 'การลงทุน', pageTitleShort: 'สลาก ธ.ก.ส.',
       pageTitle: 'สลาก ธ.ก.ส. — คำนวณค่าคาดหวัง (EV) เงินรางวัล + ติดตามผลจับรางวัล',
       tiersCardTitle: 'ข้อมูลสลากและตารางรางวัล (Prize Tiers)',
@@ -32,7 +33,7 @@
       freqOnce: 'ทุกเดือน (1 ครั้ง)', freqTwice: 'ทุกเดือน (2 ครั้ง)',
       lblGuarRate: 'อัตราดอกเบี้ยรับประกัน/ปี (%) ',
       taxExemptLabel: 'ดอกเบี้ย/เงินรางวัลได้รับยกเว้นภาษี (ยกเลิกติ๊กถ้ารุ่นที่ถือหักภาษี ณ ที่จ่าย 15%)',
-      tierAddBtn: '+ เพิ่มระดับรางวัล',
+      tierAddBtn: 'เพิ่มระดับรางวัล',
       calcBtn: 'คำนวณค่าคาดหวัง',
       lblDrawCount: 'จำนวนงวดจับรางวัลทั้งหมด', lblEvUnit: 'ค่าคาดหวังต่อหน่วยต่องวด',
       lblProbOne: 'โอกาสถูกอย่างน้อย 1 รางวัล/งวด', lblPrizeTotal: 'เงินรางวัลที่คาดว่าจะได้รวม',
@@ -47,7 +48,7 @@
       lgTitle: 'สมุดสลากของฉัน + ติดตามผลจับรางวัล',
       lblLotteryName: 'ชื่อ/รุ่นสลาก', phLotteryName: 'เช่น สลากออมทรัพย์ ธ.ก.ส.',
       lblEvPerDraw: 'ค่าคาดหวังต่อหน่วยต่องวด (บาท) ',
-      addBtn: '+ บันทึก',
+      addBtn: 'บันทึก',
       lgEmptyDefault: 'ยังไม่มีรายการ',
       lgEmptyAfterAdd: 'ยังไม่มีรายการ',
       logThDate: 'วันที่ซื้อ', logThName: 'ชื่อ/รุ่น', logThUnits: 'หน่วย', logThMaturity: 'ครบกำหนด',
@@ -65,6 +66,7 @@
       tierColTotal: 'หน่วยทั้งหมดในงวด', tierPhLabel: 'เช่น รางวัลที่ 5'
     },
     en: {
+      delTitle: 'Delete',
       navInvest: 'Investing', pageTitleShort: 'BAAC Savings Lottery',
       pageTitle: 'BAAC Savings Lottery — Expected Value (EV) Calculator + Draw Result Tracker',
       tiersCardTitle: 'Lottery Info and Prize Tiers',
@@ -76,7 +78,7 @@
       freqOnce: 'Monthly (once)', freqTwice: 'Monthly (twice)',
       lblGuarRate: 'Guaranteed interest rate/year (%) ',
       taxExemptLabel: 'Interest/prizes are tax-exempt (uncheck if your series has 15% withholding tax)',
-      tierAddBtn: '+ Add prize tier',
+      tierAddBtn: 'Add prize tier',
       calcBtn: 'Calculate expected value',
       lblDrawCount: 'Total number of draws', lblEvUnit: 'Expected value per unit per draw',
       lblProbOne: 'Chance of winning at least 1 prize/draw', lblPrizeTotal: 'Total expected prize money',
@@ -91,7 +93,7 @@
       lgTitle: 'My Lottery Log + Draw Result Tracker',
       lblLotteryName: 'Lottery name/series', phLotteryName: 'e.g. BAAC Savings Lottery Bond',
       lblEvPerDraw: 'Expected value per unit per draw (THB) ',
-      addBtn: '+ Log',
+      addBtn: 'Log',
       lgEmptyDefault: 'No entries yet',
       lgEmptyAfterAdd: 'No entries yet',
       logThDate: 'Purchase date', logThName: 'Name/series', logThUnits: 'Units', logThMaturity: 'Maturity',
@@ -258,17 +260,17 @@
   }
   function renderTierRows() {
     var box = $('tierBox');
-    var html = '<table class="log-table tier-table"><thead><tr>' +
+    var html = '<div class="table-wrap"><table class="table tier-table"><thead><tr>' +
       '<th>' + t('tierColLabel') + '</th><th>' + t('tierColAmount') + '</th><th>' + t('tierColWinners') + '</th><th>' + t('tierColTotal') + '</th><th></th></tr></thead><tbody>';
     tiers.forEach(function (tier, i) {
       html += '<tr data-ti="' + i + '">' +
-        '<td><input type="text" class="t-label" value="' + (tier.label || '').replace(/"/g, '&quot;') + '" placeholder="' + t('tierPhLabel') + '"></td>' +
-        '<td><input type="number" class="t-amount" value="' + (tier.amount || '') + '" inputmode="decimal"></td>' +
-        '<td><input type="number" class="t-winners" value="' + (tier.winners || '') + '" inputmode="numeric"></td>' +
-        '<td><input type="number" class="t-total" value="' + (tier.totalUnits || '') + '" inputmode="numeric"></td>' +
-        '<td><button class="tier-del" data-i="' + i + '" type="button">✕</button></td></tr>';
+        '<td><input type="text" class="input t-label" value="' + (tier.label || '').replace(/"/g, '&quot;') + '" placeholder="' + t('tierPhLabel') + '"></td>' +
+        '<td><input type="number" class="input t-amount" value="' + (tier.amount || '') + '" inputmode="decimal"></td>' +
+        '<td><input type="number" class="input t-winners" value="' + (tier.winners || '') + '" inputmode="numeric"></td>' +
+        '<td><input type="number" class="input t-total" value="' + (tier.totalUnits || '') + '" inputmode="numeric"></td>' +
+        '<td><button class="btn sm ghost icon tier-del" data-i="' + i + '" type="button" aria-label="' + t('delTitle') + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('.tier-del'), function (b) {
       b.addEventListener('click', function () { readTiersFromUI(); tiers.splice(+b.getAttribute('data-i'), 1); renderTierRows(); saveState(); });
@@ -357,13 +359,13 @@
     var log = loadLog(), box = $('lgBox');
     if (!log.length) { box.innerHTML = '<div class="log-empty">' + t('lgEmptyAfterAdd') + '</div>'; return; }
     var today = new Date();
-    var html = '<table class="log-table"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThName') + '</th><th>' + t('logThUnits') + '</th><th>' + t('logThMaturity') + '</th><th></th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThName') + '</th><th>' + t('logThUnits') + '</th><th>' + t('logThMaturity') + '</th><th></th></tr></thead><tbody>';
     log.forEach(function (r, i) {
       html += '<tr><td>' + thaiDate(parseYMD(r.purchDate)) + '</td><td>' + r.name + '</td>' +
         '<td>' + fmt0(r.units) + '</td><td>' + thaiDate(parseYMD(r.maturity)) + '</td>' +
-        '<td><button class="log-del" data-i="' + i + '">✕</button></td></tr>';
+        '<td><button class="btn sm ghost icon log-del" aria-label="' + t('delTitle') + '" data-i="' + i + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
 
     log.forEach(function (r, li) {
       var days = parseDrawDays(r.drawFreq);
@@ -375,15 +377,15 @@
 
       html += '<div class="log-group-hd">' + r.name + '</div>';
       html += '<div class="log-group-sub">' + t('groupSummary', { units: fmt0(r.units), price: baht(r.unitPrice), freq: freqLabel(r.drawFreq) }) + '</div>';
-      html += '<table class="log-table"><thead><tr><th>' + t('schedThDate') + '</th><th>' + t('schedThStatus') + '</th><th>' + t('schedThAmt') + '</th></tr></thead><tbody>';
+      html += '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('schedThDate') + '</th><th>' + t('schedThStatus') + '</th><th>' + t('schedThAmt') + '</th></tr></thead><tbody>';
       sched.forEach(function (row) {
         var key = ymd(row.date), isPast = row.date <= today, recorded = r.results && r.results.hasOwnProperty(key);
         var val = recorded ? r.results[key] : '';
         html += '<tr><td>' + thaiDate(row.date) + '</td>' +
-          '<td>' + (isPast ? (recorded ? '<span class="cp-badge got">' + t('statusRecorded') + '</span>' : '<span class="cp-badge wait">' + t('statusPending') + '</span>') : '<span class="cp-badge wait">' + t('statusNotYet') + '</span>') + '</td>' +
-          '<td>' + (isPast ? '<input type="number" inputmode="decimal" class="draw-input" data-li="' + li + '" data-key="' + key + '" value="' + val + '" placeholder="0">' : '<span style="color:var(--muted)">—</span>') + '</td></tr>';
+          '<td>' + (isPast ? (recorded ? '<span class="badge ok">' + t('statusRecorded') + '</span>' : '<span class="badge">' + t('statusPending') + '</span>') : '<span class="badge">' + t('statusNotYet') + '</span>') + '</td>' +
+          '<td>' + (isPast ? '<input type="number" inputmode="decimal" class="input draw-input" data-li="' + li + '" data-key="' + key + '" value="' + val + '" placeholder="0">' : '<span style="color:var(--ome-text-2)">—</span>') + '</td></tr>';
       });
-      html += '</tbody></table>';
+      html += '</tbody></table></div>';
       html += '<div class="log-group-sub" style="margin-top:6px">' + t('actualVsExpected', {
         actual: '<b>' + baht(actualTotal) + '</b>', n: pastCount, expected: '<b>' + baht(expectedSoFar) + '</b>',
         compare: actualTotal >= expectedSoFar ? t('compareAbove') : t('compareBelow')

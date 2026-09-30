@@ -5,221 +5,123 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>การลงทุน | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#12A594">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="theme-boot.js"></script>
 <script src="data-registry.js"></script>
 <script src="tanot-data.js"></script>
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
+<script src="chart-theme.js"></script>
 <style>
-/* พื้นผิว/ตัวอักษรกลาง — ใช้ชื่อตัวแปรเดิมที่ theme.css รีแมปให้อัตโนมัติทุกหน้า (data-theme dark / data-accent)
-   จึงไม่ต้องเขียน [data-theme="dark"] ซ้ำสำหรับกลุ่มนี้ (ดู theme.css: [data-theme="dark"] body.ome-tool-page) */
-:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
-  --brand:var(--ome-brand);--brand-dk:var(--ome-brand-dk);--brand-sf:var(--ome-brand-sf);
-  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--err:#E5484D;--warn:#E08700;
-  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06);
-  /* แถบนำทาง/แดชบอร์ดของโซนลงทุน — เดิม hardcode กรมท่า+ฟ้าตายตัว คนละแกนกับสีธีมที่เลือกได้ในเมนู
-     ตั้งค่า (data-accent) เลยไม่ขยับตามเวลาเปลี่ยนสี ตอนนี้ผสมจาก --ome-brand แทน (ทุกสีธีม + มืด/สว่าง
-     ปรับตามอัตโนมัติ เพราะ --ome-brand เองก็ปรับตามอยู่แล้ว ไม่ต้องมี [data-theme="dark"] ซ้ำอีกชั้น) */
-  --iv:var(--ome-brand);--iv-dk:var(--ome-brand-dk);--iv-sf:var(--ome-brand-sf);
-  --navy:color-mix(in srgb, var(--ome-brand) 35%, #050810 65%);
-  --navy2:color-mix(in srgb, var(--ome-brand) 50%, #0b1220 50%);
-  --hero-bg:linear-gradient(120deg, var(--ome-brand-sf) 0%, var(--card) 55%, var(--ome-brand-sf) 100%);
-  --hero-chart:var(--ome-brand)}
-*{box-sizing:border-box;margin:0;padding:0}
-/* พื้นหลังทั้งหน้า (ไล่สีอ่อนๆ) + ลาย SVG ตกแต่ง (.bgmotif) — ย้ายไปรวมศูนย์ที่ theme.css แล้ว
-   (ใช้กับทุกหน้าลงทุนพร้อมกัน ผ่าน body.ome-tool-page[data-invest-key] ที่ทุกหน้ามีอยู่แล้ว)
-   ตัว SVG เองก็ย้ายไปให้ shell.js แทรกให้อัตโนมัติแทนการเขียนซ้ำในไฟล์นี้ (ดู shell.js) */
-body.ome-tool-page{font-family:var(--ome-f);color:var(--ink);
-  line-height:1.6;font-size:15px;padding:0 0 70px;-webkit-font-smoothing:antialiased}
-a{color:inherit}
-h1,h2,h3{text-wrap:balance}
-.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
-
-/* ── แถบนำทางโซนลงทุน 2 ชั้น (กลุ่มหลัก + หมวดย่อย) ── */
-.ivnav{background:linear-gradient(180deg,var(--navy),var(--navy2))}
-.ivgroups{display:flex;gap:2px;overflow-x:auto;padding:0 14px;max-width:1180px;margin:0 auto;scrollbar-width:none}
-.ivgroups::-webkit-scrollbar{display:none}
-.ivgroups button{font:inherit;border:0;background:transparent;cursor:pointer;flex:0 0 auto;padding:13px 15px;
-  color:#A9BFD8;font-size:13px;font-weight:600;white-space:nowrap;border-bottom:2.5px solid transparent}
-.ivgroups button.on{color:#fff;border-color:#fff}
-.ivgroups button:hover{color:#fff}
-.ivsub{background:rgba(0,0,0,.16);border-top:1px solid rgba(255,255,255,.07);display:none}
-.ivsub.on{display:block}
-.ivsubrow{display:flex;gap:4px;overflow-x:auto;padding:0 14px;max-width:1180px;margin:0 auto;scrollbar-width:none}
-.ivsubrow::-webkit-scrollbar{display:none}
-.ivsubrow a{display:flex;align-items:center;gap:6px;flex:0 0 auto;padding:9px 12px;text-decoration:none;
-  color:#8CA3C2;font-size:12px;font-weight:600;white-space:nowrap;border-radius:8px;margin:5px 0}
-.ivsubrow a b{width:19px;height:19px;border-radius:6px;background:rgba(255,255,255,.07);display:grid;place-items:center;font-size:9.5px;font-weight:700;color:#C8D6EC}
-.ivsubrow a:hover{background:rgba(255,255,255,.1);color:#fff}
-
-/* ── กล่องต้อนรับ + ค้นหา + ลายเส้นกราฟจางๆ (feel การลงทุน) ── */
-.hero{margin-top:22px;border-radius:22px;padding:26px 30px;background:var(--hero-bg);position:relative;overflow:hidden}
-.hero .chartmotif{position:absolute;right:0;top:0;width:58%;height:100%;opacity:.5;pointer-events:none;color:var(--hero-chart)}
-[data-theme="dark"] .hero .chartmotif{opacity:.32}
-.hero .inner{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
-.hero .eyebrow{font-size:11.5px;color:var(--iv-dk);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-.hero h1{font-size:28px;margin:4px 0 0;font-weight:800;letter-spacing:-.015em}
-.hero-search{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:13px;
-  padding:0 14px;height:46px;flex:1 1 320px;max-width:420px;color:var(--muted);box-shadow:0 2px 10px rgba(20,30,54,.05);position:relative}
-.hero-search input{border:0;outline:0;background:transparent;color:var(--ink);font:inherit;font-size:13px;width:100%}
-.hero-search input::placeholder{color:var(--muted)}
-.hero-search:focus-within{border-color:var(--iv)}
-.hero-search-hint{position:absolute;left:0;top:52px;width:100%;background:var(--card);border:1px solid var(--line);
-  border-radius:11px;box-shadow:var(--sh);padding:8px;font-size:11.5px;color:var(--muted);z-index:5;display:none}
+/* เฉพาะหน้าภาพรวมการลงทุน — การ์ด/ปุ่ม/KPI/ตาราง/ชิป มาจาก theme.css (data-layout="dashboard") */
+.layout{display:grid;grid-template-columns:1.62fr .95fr;gap:var(--ome-card-gap);align-items:start;margin-top:var(--ome-card-gap)}
+.layout > .stack{min-width:0}
+.page-head{align-items:center}
+.page-head h1{flex:1 1 auto}
+.hero-search{display:flex;align-items:center;gap:9px;height:42px;flex:1 1 320px;max-width:420px;padding:0 14px;position:relative;
+  background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);color:var(--ome-text-2)}
+.hero-search:focus-within{border-color:var(--ome-accent)}
+.hero-search input{border:0;outline:0;background:transparent;color:var(--ome-text-1);font:inherit;font-size:var(--ome-fs-sm);width:100%}
+.hero-search input::placeholder{color:var(--ome-text-3)}
+.hero-search-hint{position:absolute;left:0;top:48px;width:100%;padding:6px;font-size:var(--ome-fs-xs);z-index:var(--ome-z-popover);display:none;
+  background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);box-shadow:var(--ome-shadow-2)}
 .hero-search-hint.on{display:block}
-.hero-search-hint a{display:block;padding:7px 9px;border-radius:8px;color:var(--ink);text-decoration:none}
-.hero-search-hint a:hover{background:var(--bg)}
+.hero-search-hint a{display:block;padding:7px 9px;border-radius:var(--ome-radius-sm);color:var(--ome-text-1);text-decoration:none}
+.hero-search-hint a:hover{background:var(--ome-surface-2)}
 
-/* ── KPI ── */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh);padding:16px;display:flex;flex-direction:column;gap:9px}
-.kpi .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.kpi .ic{width:64px;height:64px;border-radius:16px;background:var(--bg);display:grid;place-items:center;flex-shrink:0}
-.kpi .ic svg{width:44px;height:44px}
-.kpi .lbl{font-size:11.5px;color:var(--muted);font-weight:600}
-.kpi .val{font-size:23px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
-.kpi .sub{font-size:11px;color:var(--muted);font-weight:600}
-.kpi .sub.up{color:var(--ok)}.kpi .sub.dn{color:var(--err)}
+.kpi-grid{grid-template-columns:repeat(4,1fr)}
+.kpi-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.kpi-ic{display:grid;place-items:center;width:36px;height:36px;border-radius:var(--ome-radius-md);background:var(--ome-accent-soft);color:var(--ome-accent-strong);flex-shrink:0}
+.kpi-value{font-variant-numeric:tabular-nums}
 
-/* ── โครงหลัก ── */
-.layout{display:grid;grid-template-columns:1.62fr .95fr;gap:16px;margin-top:16px;align-items:start}
-.stack{display:flex;flex-direction:column;gap:16px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh);padding:19px}
-.card .head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:15px}
-.card .head h2{margin:0;font-size:15px;font-weight:700;letter-spacing:-.005em}
-.card .head a,.card .head button.lnk{font-size:12px;color:var(--iv-dk);text-decoration:none;font-weight:700;white-space:nowrap;background:none;border:0;cursor:pointer;font-family:inherit}
-.empty-hint{font-size:12.5px;color:var(--muted);text-align:center;padding:18px 10px;line-height:1.7}
-.empty-hint .lnk{color:var(--iv-dk);font-weight:700;background:none;border:0;cursor:pointer;font:inherit;padding:0}
-
+.card-head a,.card-head .lnk,.empty-hint .lnk{font-size:var(--ome-fs-xs);color:var(--ome-accent-strong);text-decoration:none;font-weight:700;white-space:nowrap;background:none;border:0;cursor:pointer;font-family:inherit;padding:0}
+.card-head-meta{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+.empty-hint{font-size:var(--ome-fs-sm);color:var(--ome-text-2);text-align:center;padding:18px 10px;line-height:1.7;margin:0}
 .chartwrap{width:100%;overflow-x:auto}
 .chartwrap svg{display:block;width:100%;height:auto;min-width:420px}
 
 .tickergrid{display:grid;grid-template-columns:repeat(6,1fr);gap:9px}
-.ticker{border:1px solid var(--line);border-radius:12px;padding:11px;background:var(--bg)}
-.ticker.js-open-tool{cursor:pointer;transition:.12s}
-.ticker.js-open-tool:hover{border-color:var(--iv);transform:translateY(-1px)}
-.ticker b{display:block;font-size:11px;font-weight:700;color:var(--muted)}
-.ticker .px{display:block;font-size:15px;font-weight:800;margin:5px 0 2px;font-variant-numeric:tabular-nums}
-.ticker .chg{font-size:10.5px;font-weight:700;color:var(--muted)}
-.ticker .chg.up{color:var(--ok)}.ticker .chg.dn{color:var(--err)}
-.live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-right:5px;box-shadow:0 0 0 2.5px rgba(23,178,106,.15)}
-.mkt-refresh{margin-left:8px;border:0;background:none;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 4px;border-radius:6px;line-height:1}
-.mkt-refresh:hover{color:var(--iv-dk)}
-.mkt-refresh.spin{animation:mktspin .7s linear infinite}
+.ticker{border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px;background:var(--ome-surface-2)}
+.ticker.js-open-tool{cursor:pointer}
+.ticker.js-open-tool:hover{border-color:var(--ome-accent)}
+.ticker b{display:block;font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-2)}
+.ticker .px{display:block;font-size:var(--ome-fs-base);font-weight:700;margin:5px 0 2px;font-variant-numeric:tabular-nums}
+.ticker .chg{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-2)}
+.ticker .chg.up{color:var(--ome-ok-ink)}.ticker .chg.dn{color:var(--ome-err-ink)}
+.live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ome-ok);margin-right:5px}
+.mkt-refresh{margin-left:8px}
+.mkt-refresh.spin .ome-icon{animation:mktspin .7s linear infinite}
 @keyframes mktspin{to{transform:rotate(360deg)}}
-
-/* ── กลุ่มตลาดย่อย (หุ้นไทย/หุ้นต่างประเทศ&Bitcoin/โภคภัณฑ์) ในการ์ด "ตลาด" เดียว ── */
-.mkt-group+.mkt-group{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.mkt-group + .mkt-group{margin-top:16px;padding-top:16px;border-top:1px solid var(--ome-border)}
 .mkt-head{display:flex;align-items:center;gap:7px;margin-bottom:10px}
-.mkt-head b{font-size:12.5px;font-weight:700}
-.mkt-head a{margin-left:auto;font-size:12px;color:var(--iv-dk);text-decoration:none;font-weight:700}
-.gear-btn{border:0;background:none;color:var(--muted);opacity:.55;font-size:13px;cursor:pointer;padding:2px;line-height:1;border-radius:6px}
-.gear-btn:hover{opacity:1;color:var(--iv-dk)}
-.gear-panel{margin-top:10px;padding:12px;background:var(--bg);border-radius:10px}
+.mkt-head b{font-size:var(--ome-fs-sm);font-weight:700}
+.gear-panel{margin-top:10px;padding:12px;background:var(--ome-surface-2);border-radius:var(--ome-radius-md);display:flex;flex-direction:column;gap:10px}
 .gear-panel[hidden]{display:none}
 .gp-check-grid{display:flex;flex-wrap:wrap;gap:7px}
-.gp-check{position:relative;display:inline-flex;align-items:center;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;
-  border:1.5px solid var(--line);border-radius:20px;padding:6px 13px;background:var(--card);transition:.12s;user-select:none}
-.gp-check:hover{border-color:var(--iv)}
-.gp-check.on{background:var(--iv);border-color:var(--iv);color:#fff}
+.gp-check{position:relative;display:inline-flex;align-items:center;height:32px;padding:0 13px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-pill);
+  background:var(--ome-surface-1);font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2);cursor:pointer;user-select:none}
+.gp-check:hover{border-color:var(--ome-border-strong)}
+.gp-check.on{background:var(--ome-accent-soft);border-color:var(--ome-accent);color:var(--ome-accent-strong)}
 .gp-check input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
-.gear-panel .gp-extra{display:block;width:100%;box-sizing:border-box;margin-top:10px;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;background:var(--card);color:var(--ink)}
-.gp-actions{display:flex;gap:10px;align-items:center;margin-top:10px}
-.gear-panel .gp-save{border:0;background:var(--iv);color:#fff;border-radius:8px;padding:7px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
-.gear-panel .gp-reset{border:0;background:none;color:var(--muted);font:inherit;font-size:11.5px;text-decoration:underline;cursor:pointer;padding:0}
+.gp-actions{display:flex;gap:10px;align-items:center}
 
-.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
-.tbl th{text-align:left;font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:8px;border-bottom:1px solid var(--line)}
-.tbl td{padding:11px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
-.tbl tr:last-child td{border-bottom:0}
-.tbl td:first-child,.tbl th:first-child{padding-left:0}
-.sym{display:flex;align-items:center;gap:9px;font-variant-numeric:normal;font-weight:600}
-.sym .ic{width:28px;height:28px;border-radius:8px;background:var(--iv-sf);color:var(--iv-dk);display:grid;place-items:center;font-size:10px;font-weight:700;flex-shrink:0}
-.pl.up{color:var(--ok);font-weight:600}.pl.dn{color:var(--err);font-weight:600}
-
+.table .sym{display:flex;align-items:center;gap:9px;font-weight:600}
+.table .pl.up{color:var(--ome-ok-ink);font-weight:600}.table .pl.dn{color:var(--ome-err-ink);font-weight:600}
 .alloc{display:grid;grid-template-columns:128px 1fr;gap:18px;align-items:center}
-.allocrow{display:flex;justify-content:space-between;font-size:12.5px;padding:6px 0}
-.allocrow .k{display:flex;align-items:center;gap:8px;color:var(--ink);font-weight:500}
+.alloc svg{width:100%}
+.allocrow{display:flex;justify-content:space-between;font-size:var(--ome-fs-sm);padding:6px 0}
+.allocrow .k{display:flex;align-items:center;gap:8px;font-weight:500}
 .allocrow .k i{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .allocrow .v{font-weight:700;font-variant-numeric:tabular-nums}
-
 .scorebox{display:flex;align-items:center;gap:16px}
-.ring{width:76px;height:76px;border-radius:50%;background:conic-gradient(var(--ok) 0 var(--score,0%),var(--line) 0);display:grid;place-items:center;flex-shrink:0}
-.ring b{width:60px;height:60px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:19px;font-weight:800}
-.scorebox p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.65}
-
+.scorebox p{margin:0;font-size:var(--ome-fs-sm);color:var(--ome-text-2);line-height:1.65}
+.ring{width:76px;height:76px;border-radius:50%;background:conic-gradient(var(--ome-ok) 0 var(--score,0%),var(--ome-border) 0);display:grid;place-items:center;flex-shrink:0}
+.ring b{width:60px;height:60px;border-radius:50%;background:var(--ome-surface-1);display:grid;place-items:center;font-size:var(--ome-fs-xl);font-weight:700}
 .quick{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.qbtn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;border:1px solid var(--line);border-radius:13px;background:var(--bg);font-size:11.5px;font-weight:600;color:var(--ink);text-decoration:none;text-align:center;transition:.15s}
-.qbtn:hover{border-color:var(--iv);transform:translateY(-1px)}
-.qbtn .ic{width:32px;height:32px;border-radius:10px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;font-size:15px}
-
-.tasks .task{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
+.qbtn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);background:var(--ome-surface-2);
+  font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-1);text-decoration:none}
+.qbtn:hover{border-color:var(--ome-accent)}
+.qbtn .ome-icon{width:22px;height:22px;color:var(--ome-accent-strong)}
+.tasks .task{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid var(--ome-border)}
 .tasks .task:last-child{border:0}
-.taskic{width:30px;height:30px;border-radius:9px;background:var(--iv-sf);color:var(--iv-dk);display:grid;place-items:center;font-size:12.5px;flex-shrink:0}
-.task b{display:block;font-size:12.5px;font-weight:600}
-.task span{display:block;font-size:11px;color:var(--muted);margin-top:1px}
-
-.newsitem{padding:10px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.taskic{display:grid;place-items:center;width:30px;height:30px;border-radius:var(--ome-radius-md);background:var(--ome-accent-soft);color:var(--ome-accent-strong);flex-shrink:0}
+.task b{display:block;font-size:var(--ome-fs-sm);font-weight:600}
+.task span{display:block;font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:1px}
+.newsitem{padding:10px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-sm)}
 .newsitem:last-child{border:0}
-.newsitem a{font-weight:600;text-decoration:none;color:var(--ink)}
-.newsitem a:hover{color:var(--iv-dk)}
-.newsitem span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
-
-.glossary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.term{border:1px solid var(--line);border-radius:11px;padding:10px;background:var(--bg)}
-.term b{display:block;font-size:12px;font-weight:700}
-.term span{font-size:10.5px;color:var(--muted)}
-
-/* ── ดัชนีความกลัว-โลภ (Alternative.me, ตลาดคริปโต) — เกจแนวนอน 0-100 ── */
-.src-badge-mini{margin-left:auto;font-size:9.5px;font-weight:700;color:var(--muted);white-space:nowrap;display:none}
+.newsitem a{font-weight:600;text-decoration:none;color:var(--ome-text-1)}
+.newsitem a:hover{color:var(--ome-accent-strong)}
+.src-badge-mini{margin-left:auto;font-size:10px;font-weight:700;color:var(--ome-text-2);white-space:nowrap;display:none}
 .fng-box{text-align:center}
-.fng-num{font-size:36px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.fng-label{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px}
-.fng-bar{position:relative;height:8px;border-radius:5px;margin:14px 0 4px;
-  background:linear-gradient(90deg,#E5484D,#F5A524,var(--ok))}
-.fng-marker{position:absolute;top:-3px;width:14px;height:14px;border-radius:50%;background:var(--card);
-  border:3px solid var(--ink);transform:translateX(-50%);left:0;transition:left .3s}
-.fng-scale{display:flex;justify-content:space-between;font-size:9.5px;color:var(--muted)}
+.fng-num{font-size:36px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fng-label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600;margin-top:2px}
+.fng-bar{position:relative;height:8px;border-radius:5px;margin:14px 0 4px;background:linear-gradient(90deg,var(--ome-err),var(--ome-warn),var(--ome-ok))}
+.fng-marker{position:absolute;top:-3px;width:14px;height:14px;border-radius:50%;background:var(--ome-surface-1);border:3px solid var(--ome-text-1);transform:translateX(-50%);left:0;transition:left var(--ome-dur-3)}
+.fng-scale{display:flex;justify-content:space-between;font-size:10px;color:var(--ome-text-2)}
 
-.disc{margin-top:20px;padding:14px 18px;border-radius:12px;background:var(--iv-sf);color:var(--iv-dk);font-size:12px;line-height:1.75}
-
-/* ── AI ผู้ช่วยการลงทุน — ไอคอนหุ่นยนต์ลอย ลากวางตำแหน่งได้ ค่าเริ่มต้นมุมล่างซ้าย ── */
-.ai-fab{position:fixed;left:20px;bottom:20px;width:54px;height:54px;border-radius:50%;border:none;
-  background:linear-gradient(135deg,var(--iv),var(--iv-dk));color:#fff;box-shadow:0 10px 26px rgba(23,105,232,.35),0 2px 6px rgba(0,0,0,.15);
-  display:grid;place-items:center;cursor:grab;touch-action:none;z-index:80;transition:transform .12s}
+.ai-fab{position:fixed;left:20px;bottom:20px;width:54px;height:54px;border-radius:50%;border:none;background:var(--ome-accent);color:var(--ome-on-accent);
+  box-shadow:var(--ome-shadow-3);display:grid;place-items:center;cursor:grab;touch-action:none;z-index:80}
+.ai-fab .ome-icon{width:26px;height:26px}
 .ai-fab:active{cursor:grabbing;transform:scale(.94)}
-.ai-panel{position:fixed;left:20px;bottom:84px;width:min(320px,calc(100vw - 40px));background:var(--card);
-  border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 50px rgba(20,30,54,.22);padding:15px;z-index:81}
-.ai-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.ai-panel-head b{font-size:13.5px;font-weight:700}
-.ai-panel-close{border:0;background:var(--bg);color:var(--muted);width:24px;height:24px;border-radius:50%;font-size:14px;line-height:1;cursor:pointer}
-.ai-panel p{font-size:12px;color:var(--muted);margin:5px 0 11px}
-.ai-panel input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg);color:var(--ink);font:inherit;font-size:12.5px}
-.ai-panel .btn{border:0;background:var(--iv);color:#fff;border-radius:10px;padding:10px 15px;font:inherit;font-weight:700;font-size:12.5px;cursor:pointer;margin-top:9px}
-.ai-panel .ans{margin-top:10px;font-size:12px;line-height:1.6;color:var(--ink);background:var(--bg);border-radius:10px;padding:10px;display:none}
+.ai-panel{position:fixed;left:20px;bottom:84px;width:min(320px,calc(100vw - 40px));background:var(--ome-surface-1);border:1px solid var(--ome-border);
+  border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3);padding:15px;z-index:81;display:flex;flex-direction:column;gap:10px}
+.ai-panel[hidden]{display:none}
+.ai-panel-head{display:flex;align-items:center;justify-content:space-between}
+.ai-panel-head b{font-size:var(--ome-fs-sm);font-weight:700}
+.ai-panel .ans{font-size:var(--ome-fs-xs);line-height:1.6;background:var(--ome-surface-2);border-radius:var(--ome-radius-md);padding:10px;display:none}
 .ai-panel .ans.on{display:block}
 
-/* ── ป๊อปอัพเครื่องมือ — เปิดหน้าเครื่องมือในกรอบลอย เลื่อนได้ แทนการเปลี่ยนหน้า (ใช้ร่วมกันหลายหน้า) ── */
-/* z-index สูงกว่าทั้ง .ome-nav (แถบบนสุด ☰ ของ shell.js, 100) และวิดเจ็ตแชท AI ลอยมุมขวาล่าง (170)
-   เพราะตอนนี้ป๊อปอัพจอกว้างเต็มจอชนกับทั้งสองอย่างตรงๆ (เดิม 90 ทำให้ทั้งคู่โผล่ทับป๊อปอัพ ไม่มีใคร
-   สังเกตตอนที่ป๊อปอัพยังเป็นการ์ดลอยกลางจอเล็กกว่าจอมาก) ตอนนี้เป็นการ์ดเต็มจอจริง ต้องกันของหลัง
-   ไม่ให้โผล่ทับเลย ให้ความรู้สึกเหมือนเปิดเป็นหน้าเพจเต็มจอปกติจริงๆ */
+/* ป๊อปอัพเครื่องมือ — เปิดหน้าเครื่องมือในกรอบลอยเต็มจอ เหนือ nav (--ome-z-nav) และวิดเจ็ตแชท */
 .tool-modal-overlay{position:fixed;inset:0;background:rgba(11,18,35,.5);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:26px 16px;overflow-y:auto}
 .tool-modal-overlay[hidden]{display:none}
-.tool-modal-box{position:relative;width:min(860px,100%);background:var(--card);border-radius:18px;box-shadow:0 24px 60px rgba(10,16,32,.35);overflow:hidden;margin:auto}
-.tool-modal-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:16px;line-height:1;cursor:pointer;z-index:2;box-shadow:0 2px 8px rgba(20,30,54,.12)}
+.tool-modal-box{position:relative;width:min(860px,100%);background:var(--ome-surface-1);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3);overflow:hidden;margin:auto}
+.tool-modal-close{position:absolute;top:10px;right:10px;z-index:2}
 .tool-modal-box iframe{display:block;width:100%;border:0;min-height:200px}
-/* ── จอกว้าง (คอม/แท็บเล็ตแนวนอน) — เดิมเป็นการ์ดลอยกลางจอกว้างไม่เกิน 860px สูงพอดีเนื้อหา
-   ผู้ใช้ขอให้เต็มจอเวลาใช้บนคอม (ไม่กระทบมือถือ — media query มือถือด้านล่างแยกกันคนละอัน ไม่แตะ)
-   ขยายเป็นเต็มความกว้าง/ความสูงจอแทน เนื้อหาข้างในแต่ละเครื่องมือเองก็มี .wrap จำกัดความกว้างอยู่แล้ว
-   จึงยังอ่านง่ายไม่ยืดเป็นเส้นบางๆ แค่มีพื้นที่ว่างรอบๆ เหมือนเปิดเป็นหน้าเพจเต็มจอปกติ */
 @media(min-width:601px){
   .tool-modal-overlay{padding:0}
   .tool-modal-box{width:100%;height:100vh;max-width:100%;border-radius:0;box-shadow:none;margin:0}
@@ -227,169 +129,123 @@ h1,h2,h3{text-wrap:balance}
 }
 @media(max-width:600px){.tool-modal-overlay{padding:0}.tool-modal-box{border-radius:0;min-height:100vh}}
 
+/* แถบนำทางภาพรวม: หมวดย่อยของแต่ละกลุ่มสลับด้วย .on (หน้าอื่นมีแถวเดียว จึงแสดงตลอด) */
+.subnav-sub{display:none}
+.subnav-sub.on{display:block}
+
 @media(max-width:920px){
   .layout{grid-template-columns:1fr}
-  .kpis{grid-template-columns:repeat(2,1fr)}
-  .quick{grid-template-columns:repeat(2,1fr)}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
   .tickergrid{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:520px){
-  .wrap{padding:0 14px}
-  .hero{padding:22px}
-  .hero h1{font-size:24px}
-  .kpis{grid-template-columns:1fr 1fr}
   .alloc{grid-template-columns:1fr}
   .tickergrid{grid-template-columns:repeat(2,1fr)}
 }
 </style>
 </head>
-<body class="ome-tool-page" data-invest-key="hub">
+<body data-layout="dashboard" data-invest-key="hub">
 <script src="auth-gate.js"></script>
-<!-- พื้นหลังตกแต่ง SVG (เครือข่ายจุด/ไอคอนการเงิน + กราฟแนวโน้มขาขึ้น) — shell.js แทรกให้อัตโนมัติ
-     ทุกหน้าลงทุน (ดู shell.js: buildInvestBgMotif) ไม่ต้องเขียนซ้ำในแต่ละไฟล์อีกต่อไป -->
 
-<nav class="ivnav" id="ivNav">
-  <div class="ivgroups" id="ivGroups">
+<nav class="subnav" id="ivNav">
+  <div class="subnav-groups" id="ivGroups">
     <button class="on" type="button" data-group="overview" data-i18n="navOverview">ภาพรวม</button>
     <button type="button" data-group="market" data-i18n="navMarket">ตลาด &amp; สินทรัพย์</button>
     <button type="button" data-group="lottery" data-i18n="navLottery">สลาก &amp; พันธบัตร</button>
     <button type="button" data-group="news" data-i18n="navNews">ข่าว &amp; ธุรกิจ</button>
   </div>
-  <div class="ivsub" id="ivSub-market"><div class="ivsubrow" id="ivSubRow-market"></div></div>
-  <div class="ivsub" id="ivSub-lottery"><div class="ivsubrow" id="ivSubRow-lottery"></div></div>
-  <div class="ivsub" id="ivSub-news"><div class="ivsubrow" id="ivSubRow-news"></div></div>
+  <div class="subnav-sub" id="ivSub-market"><div class="subnav-row" id="ivSubRow-market"></div></div>
+  <div class="subnav-sub" id="ivSub-lottery"><div class="subnav-row" id="ivSubRow-lottery"></div></div>
+  <div class="subnav-sub" id="ivSub-news"><div class="subnav-row" id="ivSubRow-news"></div></div>
 </nav>
 
-<div class="wrap">
-  <section class="hero">
-    <svg class="chartmotif" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <defs>
-        <linearGradient id="heroChartFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="currentColor" stop-opacity=".28"/>
-          <stop offset="100%" stop-color="currentColor" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
-      <g stroke="currentColor" stroke-opacity=".18" stroke-width="1">
-        <line x1="0" y1="35" x2="340" y2="35"/><line x1="0" y1="80" x2="340" y2="80"/><line x1="0" y1="125" x2="340" y2="125"/>
-      </g>
-      <path d="M0,140 L38,122 L72,133 L112,92 L150,101 L190,58 L228,70 L268,32 L306,44 L340,17 L340,170 L0,170 Z" fill="url(#heroChartFill)"/>
-      <polyline points="0,140 38,122 72,133 112,92 150,101 190,58 228,70 268,32 306,44 340,17" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="190" cy="58" r="4.5" fill="currentColor"/>
-      <circle cx="340" cy="17" r="4.5" fill="currentColor"/>
-    </svg>
-    <div class="inner">
-      <div>
-        <h1 data-i18n="heroTitle">การลงทุน</h1>
-      </div>
-      <label class="hero-search">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input type="text" id="heroSearch" data-i18n-placeholder="heroSearchPh" placeholder="ค้นหาสินทรัพย์ ticker หรือหมวด เช่น PTT, ทองคำ, Bitcoin..." autocomplete="off">
-        <div class="hero-search-hint" id="heroSearchHint"></div>
-      </label>
-    </div>
-  </section>
+<main class="page">
+  <div class="page-head">
+    <h1 data-i18n="heroTitle">การลงทุน</h1>
+    <label class="hero-search">
+      <svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-search"/></svg>
+      <input type="text" id="heroSearch" data-i18n-placeholder="heroSearchPh" placeholder="ค้นหาสินทรัพย์ ticker หรือหมวด เช่น PTT, ทองคำ, Bitcoin..." autocomplete="off">
+      <div class="hero-search-hint" id="heroSearchHint"></div>
+    </label>
+  </div>
 
-  <section class="kpis">
-    <div class="kpi"><div class="top"><div class="lbl" data-i18n="kpiValueLbl">มูลค่าพอร์ตรวม</div><div class="ic">
-      <svg viewBox="0 0 36 36"><defs><linearGradient id="gMoney" x1="0" y1="0" x2=".2" y2="1"><stop offset="0" stop-color="#6EE7B7"/><stop offset="1" stop-color="#059669"/></linearGradient></defs>
-        <rect x="3" y="16" width="23" height="14" rx="3" fill="url(#gMoney)"/><rect x="8" y="9" width="25" height="14" rx="3" fill="url(#gMoney)"/>
-        <circle cx="20.5" cy="16" r="4.6" fill="#ECFDF5"/><circle cx="20.5" cy="16" r="4.6" fill="none" stroke="#059669" stroke-width="1.1"/></svg></div></div>
-      <div class="val" id="kValue">฿0</div><div class="sub" id="kValueSub" data-i18n="kValueSubEmpty">ยังไม่มีข้อมูลพอร์ต</div></div>
-    <div class="kpi"><div class="top"><div class="lbl" data-i18n="kpiPlLbl">กำไร/ขาดทุนสะสม</div><div class="ic">
-      <svg viewBox="0 0 36 36"><defs><linearGradient id="gTrend" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#2563EB"/><stop offset="1" stop-color="#93C5FD"/></linearGradient></defs>
-        <rect x="4" y="21" width="6" height="10" rx="2" fill="url(#gTrend)"/><rect x="13" y="15" width="6" height="16" rx="2" fill="url(#gTrend)"/><rect x="22" y="8" width="6" height="23" rx="2" fill="url(#gTrend)"/>
-        <path d="M5 13l6.5-5.5 6 3 8-7.5" stroke="#1D4ED8" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
-      <div class="val" id="kPl">+฿0</div><div class="sub" id="kPlSub">—</div></div>
-    <div class="kpi"><div class="top"><div class="lbl" data-i18n="kpiHealthLbl">Portfolio Health</div><div class="ic">
-      <svg viewBox="0 0 36 36"><defs><linearGradient id="gShield" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C4B5FD"/><stop offset="1" stop-color="#7C3AED"/></linearGradient></defs>
-        <path d="M18 3l12.5 4.2v8.6c0 8.3-6.2 13.9-12.5 15.4-6.3-1.5-12.5-7.1-12.5-15.4V7.2z" fill="url(#gShield)"/>
-        <path d="M18 14.6c-1.7-2.1-5.3-1.7-5.3 1.3 0 2.5 3.2 4.6 5.3 6.3 2.1-1.7 5.3-3.8 5.3-6.3 0-3-3.6-3.4-5.3-1.3z" fill="#fff"/>
-        <circle cx="24.5" cy="24.5" r="3.6" fill="#fff"/><path d="M22.9 24.5l1 1 2-2.1" stroke="#7C3AED" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
-      <div class="val" id="kHealth">—</div><div class="sub" id="kHealthSub" data-i18n="kHealthSubWait">รอข้อมูล</div></div>
-    <div class="kpi"><div class="top"><div class="lbl" data-i18n="kpiCashLbl">เงินสดในพอร์ต</div><div class="ic">
-      <svg viewBox="0 0 36 36"><defs><linearGradient id="gSafe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#475569"/><stop offset="1" stop-color="#1E293B"/></linearGradient>
-        <linearGradient id="gCoin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#D97706"/></linearGradient></defs>
-        <rect x="3" y="3" width="23" height="21" rx="4" fill="url(#gSafe)"/><circle cx="14.5" cy="13.5" r="5.6" fill="none" stroke="#94A3B8" stroke-width="2"/><circle cx="14.5" cy="13.5" r="1.5" fill="#94A3B8"/>
-        <circle cx="23" cy="25" r="6" fill="url(#gCoin)" stroke="#B45309" stroke-width="1"/><circle cx="29.5" cy="23" r="5" fill="url(#gCoin)" stroke="#B45309" stroke-width="1"/></svg></div></div>
-      <div class="val" id="kCash">฿0</div><div class="sub" id="kCashSub">0% ของพอร์ต</div></div>
+  <section class="kpi-grid">
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label" data-i18n="kpiValueLbl">มูลค่าพอร์ตรวม</span><span class="kpi-ic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-wallet"/></svg></span></div>
+      <div class="kpi-value" id="kValue">฿0</div><div class="kpi-delta" id="kValueSub" data-i18n="kValueSubEmpty">ยังไม่มีข้อมูลพอร์ต</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label" data-i18n="kpiPlLbl">กำไร/ขาดทุนสะสม</span><span class="kpi-ic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trending-up"/></svg></span></div>
+      <div class="kpi-value" id="kPl">+฿0</div><div class="kpi-delta" id="kPlSub">—</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label" data-i18n="kpiHealthLbl">Portfolio Health</span><span class="kpi-ic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-heart-pulse"/></svg></span></div>
+      <div class="kpi-value" id="kHealth">—</div><div class="kpi-delta" id="kHealthSub" data-i18n="kHealthSubWait">รอข้อมูล</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label" data-i18n="kpiCashLbl">เงินสดในพอร์ต</span><span class="kpi-ic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-piggy-bank"/></svg></span></div>
+      <div class="kpi-value" id="kCash">฿0</div><div class="kpi-delta" id="kCashSub">0% ของพอร์ต</div></div>
   </section>
 
   <div class="layout">
     <div class="stack">
       <section class="card" id="chartCard">
-        <div class="head"><h2 data-i18n="chartTitle">มูลค่าพอร์ตของคุณ</h2><span style="font-size:11px;color:var(--muted)" data-i18n="chartAutosave">บันทึกอัตโนมัติทุกครั้งที่เปิดหน้านี้</span></div>
+        <div class="card-head"><h2 data-i18n="chartTitle">มูลค่าพอร์ตของคุณ</h2></div>
         <div id="chartBody"></div>
       </section>
 
       <section class="card">
-        <div class="head"><h2><span class="live" id="tkLive"></span><span data-i18n="marketTitle">ตลาด</span></h2><span style="font-size:11px;color:var(--muted)" id="tkStatus" data-i18n="marketLoading">กำลังโหลด…</span><button type="button" id="marketRefreshBtn" class="mkt-refresh" data-i18n-title="marketRefreshTitle" title="รีเฟรชราคาทั้งหมด">↻</button></div>
+        <div class="card-head"><h2><span class="live" id="tkLive"></span><span data-i18n="marketTitle">ตลาด</span></h2><span class="card-head-meta" id="tkStatus" data-i18n="marketLoading">กำลังโหลด…</span><button type="button" id="marketRefreshBtn" class="btn sm ghost icon mkt-refresh" data-i18n-title="marketRefreshTitle" data-i18n-aria-label="marketRefreshTitle" title="รีเฟรชราคาทั้งหมด" aria-label="รีเฟรชราคาทั้งหมด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-refresh-cw"/></svg></button></div>
         <div class="mkt-group">
-          <div class="mkt-head"><b data-i18n="groupThai">หุ้นไทย</b><button class="gear-btn" type="button" data-group="thai" data-i18n-aria-label="gearLabel" aria-label="เลือกสัญลักษณ์ที่แสดง">⚙</button></div>
+          <div class="mkt-head"><b data-i18n="groupThai">หุ้นไทย</b><button class="btn sm ghost icon gear-btn" type="button" data-group="thai" data-i18n-aria-label="gearLabel" aria-label="เลือกสัญลักษณ์ที่แสดง"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-settings"/></svg></button></div>
           <div class="tickergrid" id="mkGrid-thai"></div>
           <div class="gear-panel" id="gearPanel-thai" hidden></div>
         </div>
         <div class="mkt-group">
-          <div class="mkt-head"><b data-i18n="groupGlobal">หุ้นต่างประเทศ &amp; Bitcoin</b><button class="gear-btn" type="button" data-group="global" data-i18n-aria-label="gearLabel" aria-label="เลือกสัญลักษณ์ที่แสดง">⚙</button></div>
+          <div class="mkt-head"><b data-i18n="groupGlobal">หุ้นต่างประเทศ &amp; Bitcoin</b><button class="btn sm ghost icon gear-btn" type="button" data-group="global" data-i18n-aria-label="gearLabel" aria-label="เลือกสัญลักษณ์ที่แสดง"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-settings"/></svg></button></div>
           <div class="tickergrid" id="mkGrid-global"></div>
           <div class="gear-panel" id="gearPanel-global" hidden></div>
         </div>
         <div class="mkt-group">
-          <div class="mkt-head"><b data-i18n="groupCommod">โภคภัณฑ์</b><button class="gear-btn" type="button" data-group="commod" data-i18n-aria-label="gearLabel" aria-label="เลือกสัญลักษณ์ที่แสดง">⚙</button><a href="invest-commodities.html" class="js-open-tool" data-tool-url="invest-commodities.html" data-i18n="commodSeeAll">ดูทั้งหมด →</a></div>
+          <div class="mkt-head"><b data-i18n="groupCommod">โภคภัณฑ์</b><button class="btn sm ghost icon gear-btn" type="button" data-group="commod" data-i18n-aria-label="gearLabel" aria-label="เลือกสัญลักษณ์ที่แสดง"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-settings"/></svg></button></div>
           <div class="tickergrid" id="mkGrid-commod"></div>
           <div class="gear-panel" id="gearPanel-commod" hidden></div>
         </div>
       </section>
 
       <section class="card">
-        <div class="head"><h2 data-i18n="assetsTitle">สินทรัพย์ในพอร์ต</h2><a href="invest-portfolio.html" class="js-open-tool" data-tool-url="invest-portfolio.html" data-i18n="assetsAdd">+ เพิ่มสินทรัพย์</a></div>
+        <div class="card-head"><h2 data-i18n="assetsTitle">สินทรัพย์ในพอร์ต</h2><a href="invest-portfolio.html" class="js-open-tool" data-tool-url="invest-portfolio.html" data-i18n="assetsAdd">เพิ่มสินทรัพย์</a></div>
         <div id="assetsBody"></div>
       </section>
 
       <section class="card">
-        <div class="head"><h2 data-i18n="quickTitle">เครื่องมือด่วน</h2></div>
+        <div class="card-head"><h2 data-i18n="quickTitle">เครื่องมือด่วน</h2></div>
         <div class="quick">
-          <a class="qbtn" href="#riskCard"><span class="ic">◈</span><span data-i18n="quickRisk">วิเคราะห์ความเสี่ยง</span></a>
-          <a class="qbtn" href="invest-business.html"><span class="ic">◎</span><span data-i18n="quickPlan">สร้างแผนลงทุน</span></a>
+          <a class="qbtn" href="#riskCard"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-shield"/></svg><span data-i18n="quickRisk">วิเคราะห์ความเสี่ยง</span></a>
+          <a class="qbtn" href="invest-business.html"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-briefcase"/></svg><span data-i18n="quickPlan">สร้างแผนลงทุน</span></a>
         </div>
       </section>
     </div>
 
     <aside class="stack">
       <section class="card" id="riskCard">
-        <div class="head"><h2 data-i18n="healthTitle">Portfolio Health</h2></div>
+        <div class="card-head"><h2 data-i18n="healthTitle">Portfolio Health</h2></div>
         <div class="scorebox">
           <div class="ring" id="healthRing"><b id="healthScore">—</b></div>
-          <p id="healthText" data-i18n="healthEmpty">เพิ่มสินทรัพย์ในพอร์ตก่อนเพื่อดูคะแนนสุขภาพพอร์ต (คำนวณจากความหลากหลาย/การกระจุกตัว เป็น heuristic เบื้องต้น ไม่ใช่คำแนะนำการลงทุน)</p>
+          <p id="healthText" data-i18n="healthEmpty">เพิ่มสินทรัพย์ในพอร์ตก่อนเพื่อดูคะแนนสุขภาพพอร์ต</p>
         </div>
       </section>
 
       <section class="card">
-        <div class="head"><h2 data-i18n="allocTitle">สัดส่วนสินทรัพย์</h2></div>
+        <div class="card-head"><h2 data-i18n="allocTitle">สัดส่วนสินทรัพย์</h2></div>
         <div id="allocBody"></div>
       </section>
 
       <section class="card tasks">
-        <div class="head"><h2 data-i18n="tasksTitle">รายการที่ต้องทำ</h2></div>
+        <div class="card-head"><h2 data-i18n="tasksTitle">รายการที่ต้องทำ</h2></div>
         <div id="tasksBody"></div>
       </section>
 
       <section class="card">
-        <div class="head"><h2 data-i18n="newsTitle">ข่าวหุ้นล่าสุด</h2><a href="invest-news.html" data-i18n="newsSeeAll">ดูทั้งหมด →</a></div>
+        <div class="card-head"><h2 data-i18n="newsTitle">ข่าวหุ้นล่าสุด</h2><a href="invest-news.html" data-i18n="newsSeeAll">ดูทั้งหมด →</a></div>
         <div id="newsBody"><div class="newsitem"><span data-i18n="newsLoading">กำลังโหลดข่าว…</span></div></div>
       </section>
 
       <section class="card">
-        <div class="head"><h2 data-i18n="glossaryTitle">คำศัพท์ที่ควรรู้</h2></div>
-        <div class="glossary">
-          <div class="term"><b>Rebalance</b><span data-i18n="gRebalance">ปรับสัดส่วนกลับเป้าหมาย</span></div>
-          <div class="term"><b>Drawdown</b><span data-i18n="gDrawdown">ระยะขาดทุนจากจุดสูงสุด</span></div>
-          <div class="term"><b>Diversification</b><span data-i18n="gDiversification">กระจายความเสี่ยงหลายสินทรัพย์</span></div>
-          <div class="term"><b>Concentration</b><span data-i18n="gConcentration">สัดส่วนกระจุกตัวในสินทรัพย์เดียว</span></div>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="head"><h2 data-i18n="fngTitle">ดัชนีความกลัว-โลภ (คริปโต)</h2><span class="src-badge-mini" id="fngBadge"></span></div>
+        <div class="card-head"><h2 data-i18n="fngTitle">ดัชนีความกลัว-โลภ (คริปโต)</h2><span class="src-badge-mini" id="fngBadge"></span></div>
         <div class="fng-box">
           <div class="fng-num" id="fngNum">—</div>
           <div class="fng-label" id="fngLabel" data-i18n="fngLoading">กำลังโหลด…</div>
@@ -400,30 +256,22 @@ h1,h2,h3{text-wrap:balance}
     </aside>
   </div>
 
-
-</div>
+</main>
 
 <!-- ป๊อปอัพเครื่องมือ — โหลดหน้าเครื่องมือ (พอร์ตจำลอง/ค่าเงิน & วัตถุดิบ ฯลฯ) ในกรอบลอย แทนการเปลี่ยนหน้า -->
 <div class="tool-modal-overlay" id="toolModalOverlay" hidden>
   <div class="tool-modal-box">
-    <button class="tool-modal-close" id="toolModalClose" type="button" data-i18n-aria-label="toolClose" aria-label="ปิด">×</button>
+    <button class="btn sm icon tool-modal-close" id="toolModalClose" type="button" data-i18n-aria-label="toolClose" aria-label="ปิด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button>
     <iframe id="toolModalFrame" src="about:blank" data-i18n-title="toolFrameTitle" title="เครื่องมือ"></iframe>
   </div>
 </div>
 
-<!-- AI ผู้ช่วยการลงทุน — ไอคอนหุ่นยนต์ลอย ลากวางตำแหน่งได้ ตอบจากข้อมูลพอร์ตจริงในเครื่อง ไม่ส่งข้อมูลออกไปไหน -->
-<button class="ai-fab" id="aiFab" type="button" data-i18n-aria-label="aiFabLabel" aria-label="เปิด AI ผู้ช่วยการลงทุน" aria-expanded="false">
-  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="4" y="8" width="16" height="12" rx="3.5"/><path d="M12 8V4.5"/><circle cx="12" cy="3" r="1.3" fill="currentColor" stroke="none"/>
-    <circle cx="8.5" cy="14" r="1.4" fill="currentColor" stroke="none"/><circle cx="15.5" cy="14" r="1.4" fill="currentColor" stroke="none"/>
-    <path d="M9 17.5h6"/><path d="M2.5 12.5h1.5M20 12.5h1.5"/>
-  </svg>
-</button>
+<!-- AI ผู้ช่วยการลงทุน — ไอคอนลอยลากวางตำแหน่งได้ ตอบจากข้อมูลพอร์ตจริงในเครื่อง -->
+<button class="ai-fab" id="aiFab" type="button" data-i18n-aria-label="aiFabLabel" aria-label="เปิด AI ผู้ช่วยการลงทุน" aria-expanded="false"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-bot"/></svg></button>
 <div class="ai-panel" id="aiPanel" hidden>
-  <div class="ai-panel-head"><b data-i18n="aiTitle">✦ AI ผู้ช่วยการลงทุน</b><button class="ai-panel-close" id="aiPanelClose" type="button" data-i18n-aria-label="toolClose" aria-label="ปิด">×</button></div>
-  <p data-i18n="aiDesc">ถามจากข้อมูลพอร์ตจริงของคุณ เช่น "พอร์ตใหญ่แค่ไหน" หรือ "อะไรใหญ่ที่สุด"</p>
-  <input id="aiInput" data-i18n-placeholder="aiInputPh" placeholder="พิมพ์คำถาม...">
-  <button class="btn" id="aiAsk" data-i18n="aiAskBtn">วิเคราะห์</button>
+  <div class="ai-panel-head"><b data-i18n="aiTitle">AI ผู้ช่วยการลงทุน</b><button class="btn sm ghost icon" id="aiPanelClose" type="button" data-i18n-aria-label="toolClose" aria-label="ปิด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></div>
+  <input class="input" id="aiInput" data-i18n-placeholder="aiInputPh" placeholder="พิมพ์คำถาม...">
+  <div><button class="btn primary" id="aiAsk" type="button" data-i18n="aiAskBtn">วิเคราะห์</button></div>
   <div class="ans" id="aiAns"></div>
 </div>
 
@@ -450,18 +298,17 @@ h1,h2,h3{text-wrap:balance}
       kpiValueLbl: 'มูลค่าพอร์ตรวม', kpiPlLbl: 'กำไร/ขาดทุนสะสม', kpiHealthLbl: 'Portfolio Health', kpiCashLbl: 'เงินสดในพอร์ต',
       kValueSubEmpty: 'ยังไม่มีข้อมูลพอร์ต — กด "เพิ่มรายการ"', kValueSubN: '{n} สินทรัพย์ · {live} ราคาสด',
       kPlSubDash: '—', kPlSubPct: '{pct} จากต้นทุน', kCashSubPct: '{pct}% ของพอร์ต', kHealthSubWait: 'รอข้อมูล',
-      chartTitle: 'มูลค่าพอร์ตของคุณ', chartAutosave: 'บันทึกอัตโนมัติทุกครั้งที่เปิดหน้านี้',
-      chartEmpty: 'บันทึกมูลค่าพอร์ตของวันนี้แล้ว — กลับมาเปิดหน้านี้อีกครั้งวันหลังเพื่อดูกราฟแนวโน้ม (เก็บย้อนหลังสูงสุด 30 วัน)',
+      chartTitle: 'มูลค่าพอร์ตของคุณ',      chartEmpty: 'บันทึกมูลค่าพอร์ตของวันนี้แล้ว — กลับมาเปิดหน้านี้อีกครั้งวันหลังเพื่อดูกราฟแนวโน้ม (เก็บย้อนหลังสูงสุด 30 วัน)',
       marketTitle: 'ตลาด', marketLoading: 'กำลังโหลด…', marketRefreshTitle: 'รีเฟรชราคาทั้งหมด',
       marketLive: '{live}/{n} ราคาล่าสุด', marketNoLive: 'ยังดึงราคาไม่ได้ — แสดงจากแคชหรือรอใหม่ภายหลัง',
       groupThai: 'หุ้นไทย', groupGlobal: 'หุ้นต่างประเทศ & Bitcoin', groupCommod: 'โภคภัณฑ์',
       gearLabel: 'เลือกสัญลักษณ์ที่แสดง', commodSeeAll: 'ดูทั้งหมด →', tickerEmpty: 'ยังไม่ได้เลือกสัญลักษณ์ — กด ⚙ เพื่อเพิ่ม',
       gpExtraPh: 'เพิ่มเอง เช่น KTB, OR (คั่นด้วยจุลภาค)', gpSave: 'บันทึก', gpReset: 'ใช้ค่าเริ่มต้น',
-      assetsTitle: 'สินทรัพย์ในพอร์ต', assetsAdd: '+ เพิ่มสินทรัพย์', assetsAddInline: '"พอร์ตของฉัน"',
+      assetsTitle: 'สินทรัพย์ในพอร์ต', assetsAdd: 'เพิ่มสินทรัพย์', assetsAddInline: '"พอร์ตของฉัน"',
       assetsEmpty: 'ยังไม่มีสินทรัพย์ในพอร์ต — ไปที่ {link} เพื่อบันทึกรายการซื้อ-ขายหุ้นด้วยเงินสมมติ',
       thAsset: 'สินทรัพย์', thValue: 'มูลค่า', thShare: 'สัดส่วน', thPl: 'P/L', unitShare: 'หุ้น',
       quickTitle: 'เครื่องมือด่วน', quickRisk: 'วิเคราะห์ความเสี่ยง', quickPlan: 'สร้างแผนลงทุน',
-      healthTitle: 'Portfolio Health', healthEmpty: 'เพิ่มสินทรัพย์ในพอร์ตก่อนเพื่อดูคะแนนสุขภาพพอร์ต (คำนวณจากความหลากหลาย/การกระจุกตัว เป็น heuristic เบื้องต้น ไม่ใช่คำแนะนำการลงทุน)',
+      healthTitle: 'Portfolio Health', healthEmpty: 'เพิ่มสินทรัพย์ในพอร์ตก่อนเพื่อดูคะแนนสุขภาพพอร์ต',
       healthGood: 'โครงสร้างพอร์ตกระจายตัวดี (สินทรัพย์ใหญ่สุดคือ {sym} {pct}%)',
       healthBad: 'สัดส่วน {sym} สูงถึง {pct}% ของพอร์ต ควรพิจารณากระจายเพิ่ม',
       allocTitle: 'สัดส่วนสินทรัพย์', allocEmpty: 'ยังไม่มีข้อมูลสัดส่วนสินทรัพย์', allocCash: 'เงินสด', allocOther: 'อื่นๆ',
@@ -471,14 +318,10 @@ h1,h2,h3{text-wrap:balance}
       taskCashT: 'เงินสดเหลือเยอะ', taskCashS: 'ยังไม่ได้ลงทุนกว่าครึ่งของพอร์ต',
       taskReviewT: 'กำหนดรอบทบทวนพอร์ต', taskReviewS: 'แนะนำทบทวนทุก 3 เดือน',
       newsTitle: 'ข่าวหุ้นล่าสุด', newsSeeAll: 'ดูทั้งหมด →', newsLoading: 'กำลังโหลดข่าว…', newsError: 'ดึงข่าวไม่ได้ตอนนี้ — ลองใหม่ภายหลัง',
-      glossaryTitle: 'คำศัพท์ที่ควรรู้',
-      gRebalance: 'ปรับสัดส่วนกลับเป้าหมาย', gDrawdown: 'ระยะขาดทุนจากจุดสูงสุด',
-      gDiversification: 'กระจายความเสี่ยงหลายสินทรัพย์', gConcentration: 'สัดส่วนกระจุกตัวในสินทรัพย์เดียว',
       fngTitle: 'ดัชนีความกลัว-โลภ (คริปโต)', fngLoading: 'กำลังโหลด…', fngError: 'ดึงข้อมูลไม่ได้ตอนนี้',
       fngCached: 'ค่าที่บันทึกไว้', fngExtremeFear: 'กลัวสุดขีด', fngFear: 'กลัว', fngNeutral: 'เป็นกลาง', fngGreed: 'โลภ', fngExtremeGreed: 'โลภสุดขีด',
       toolClose: 'ปิด', toolFrameTitle: 'เครื่องมือ',
-      aiFabLabel: 'เปิด AI ผู้ช่วยการลงทุน', aiTitle: '✦ AI ผู้ช่วยการลงทุน',
-      aiDesc: 'ถามจากข้อมูลพอร์ตจริงของคุณ เช่น "พอร์ตใหญ่แค่ไหน" หรือ "อะไรใหญ่ที่สุด"',
+      aiFabLabel: 'เปิด AI ผู้ช่วยการลงทุน', aiTitle: 'AI ผู้ช่วยการลงทุน',
       aiInputPh: 'พิมพ์คำถาม...', aiAskBtn: 'วิเคราะห์',
       aiNoData: 'ยังไม่มีข้อมูลในพอร์ตเลยครับ — ลองไปที่ "พอร์ตของฉัน" เพื่อบันทึกรายการซื้อขายก่อน แล้วกลับมาถามใหม่ได้',
       aiRisk: 'คะแนน Portfolio Health ตอนนี้ {score}/100 — สินทรัพย์ที่ถือมากสุดคือ {sym} ({pct}% ของพอร์ต)',
@@ -499,18 +342,17 @@ h1,h2,h3{text-wrap:balance}
       kpiValueLbl: 'Total Portfolio Value', kpiPlLbl: 'Total P/L', kpiHealthLbl: 'Portfolio Health', kpiCashLbl: 'Cash in Portfolio',
       kValueSubEmpty: 'No portfolio data yet — tap "Add"', kValueSubN: '{n} assets · {live} live prices',
       kPlSubDash: '—', kPlSubPct: '{pct} from cost', kCashSubPct: '{pct}% of portfolio', kHealthSubWait: 'Waiting for data',
-      chartTitle: 'Your Portfolio Value', chartAutosave: 'Auto-saved every time you open this page',
-      chartEmpty: 'Today’s portfolio value is saved — come back another day to see the trend chart (keeps up to 30 days)',
+      chartTitle: 'Your Portfolio Value',      chartEmpty: 'Today’s portfolio value is saved — come back another day to see the trend chart (keeps up to 30 days)',
       marketTitle: 'Market', marketLoading: 'Loading…', marketRefreshTitle: 'Refresh all prices',
       marketLive: '{live}/{n} latest prices', marketNoLive: 'Couldn’t fetch prices yet — showing cache, try again later',
       groupThai: 'Thai Stocks', groupGlobal: 'Global Stocks & Bitcoin', groupCommod: 'Commodities',
       gearLabel: 'Choose symbols to show', commodSeeAll: 'See all →', tickerEmpty: 'No symbols selected — tap ⚙ to add',
       gpExtraPh: 'Add your own, e.g. KTB, OR (comma-separated)', gpSave: 'Save', gpReset: 'Reset to default',
-      assetsTitle: 'Assets in Portfolio', assetsAdd: '+ Add Asset', assetsAddInline: '"My Portfolio"',
+      assetsTitle: 'Assets in Portfolio', assetsAdd: 'Add Asset', assetsAddInline: '"My Portfolio"',
       assetsEmpty: 'No assets in your portfolio yet — go to {link} to record buy/sell trades with simulated money',
       thAsset: 'Asset', thValue: 'Value', thShare: 'Share', thPl: 'P/L', unitShare: 'shares',
       quickTitle: 'Quick Tools', quickRisk: 'Analyze Risk', quickPlan: 'Build Investment Plan',
-      healthTitle: 'Portfolio Health', healthEmpty: 'Add assets to your portfolio first to see its health score (a rough heuristic based on diversity/concentration — not investment advice)',
+      healthTitle: 'Portfolio Health', healthEmpty: 'Add assets to your portfolio first to see its health score',
       healthGood: 'Well-diversified portfolio (largest holding is {sym} at {pct}%)',
       healthBad: '{sym} makes up {pct}% of your portfolio — consider diversifying more',
       allocTitle: 'Asset Allocation', allocEmpty: 'No allocation data yet', allocCash: 'Cash', allocOther: 'Other',
@@ -520,14 +362,10 @@ h1,h2,h3{text-wrap:balance}
       taskCashT: 'Lots of cash left idle', taskCashS: 'Less than half your portfolio is invested',
       taskReviewT: 'Set a portfolio review schedule', taskReviewS: 'Recommended: review every 3 months',
       newsTitle: 'Latest Stock News', newsSeeAll: 'See all →', newsLoading: 'Loading news…', newsError: 'Couldn’t fetch news right now — try again later',
-      glossaryTitle: 'Terms to Know',
-      gRebalance: 'Adjust allocation back to target', gDrawdown: 'Decline from a peak value',
-      gDiversification: 'Spreading risk across assets', gConcentration: 'Overweight in a single asset',
       fngTitle: 'Fear & Greed Index (Crypto)', fngLoading: 'Loading…', fngError: 'Couldn’t fetch data right now',
       fngCached: 'Cached value', fngExtremeFear: 'Extreme Fear', fngFear: 'Fear', fngNeutral: 'Neutral', fngGreed: 'Greed', fngExtremeGreed: 'Extreme Greed',
       toolClose: 'Close', toolFrameTitle: 'Tool',
-      aiFabLabel: 'Open AI investing assistant', aiTitle: '✦ AI Investing Assistant',
-      aiDesc: 'Ask about your real portfolio data, e.g. "how big is my portfolio" or "what’s my biggest holding"',
+      aiFabLabel: 'Open AI investing assistant', aiTitle: 'AI Investing Assistant',
       aiInputPh: 'Type a question...', aiAskBtn: 'Analyze',
       aiNoData: 'There’s no portfolio data yet — go to "My Portfolio" to record a trade first, then come back and ask again',
       aiRisk: 'Your Portfolio Health score is {score}/100 — your largest holding is {sym} ({pct}% of portfolio)',
@@ -835,8 +673,8 @@ h1,h2,h3{text-wrap:balance}
           var on = current.indexOf(s) >= 0;
           return '<label class="gp-check' + (on ? ' on' : '') + '"><input type="checkbox" value="' + esc(s) + '"' + (on ? ' checked' : '') + '> ' + esc(t('cand' + s)) + '</label>';
         }).join('') + '</div>' +
-        (meta.allowCustom ? '<input type="text" class="gp-extra" value="' + esc(extra.join(', ')) + '" placeholder="' + esc(t('gpExtraPh')) + '" spellcheck="false">' : '') +
-        '<div class="gp-actions"><button type="button" class="gp-save">' + esc(t('gpSave')) + '</button><button type="button" class="gp-reset">' + esc(t('gpReset')) + '</button></div>';
+        (meta.allowCustom ? '<input type="text" class="input gp-extra" value="' + esc(extra.join(', ')) + '" placeholder="' + esc(t('gpExtraPh')) + '" spellcheck="false">' : '') +
+        '<div class="gp-actions"><button type="button" class="btn primary sm gp-save">' + esc(t('gpSave')) + '</button><button type="button" class="btn ghost sm gp-reset">' + esc(t('gpReset')) + '</button></div>';
       [].forEach.call(panel.querySelectorAll('.gp-check input'), function (c) {
         c.addEventListener('change', function () { c.closest('.gp-check').classList.toggle('on', c.checked); });
       });
@@ -903,9 +741,9 @@ h1,h2,h3{text-wrap:balance}
     var pl = p.total - plBase;
     var plPct = plBase ? pl / plBase * 100 : 0;
     $('kPl').textContent = (pl >= 0 ? '+' : '') + money(pl);
-    $('kPl').style.color = p.rows.length ? (pl >= 0 ? 'var(--ok)' : 'var(--err)') : '';
+    $('kPl').className = 'kpi-value' + (p.rows.length ? (pl >= 0 ? ' up' : ' dn') : '');
     $('kPlSub').textContent = p.rows.length ? t('kPlSubPct', { pct: pct(plPct, 2) }) : t('kPlSubDash');
-    $('kPlSub').className = 'sub' + (p.rows.length ? (pl >= 0 ? ' up' : ' dn') : '');
+    $('kPlSub').className = 'kpi-delta' + (p.rows.length ? (pl >= 0 ? ' up' : ' down') : '');
     $('kCash').textContent = money(p.cash);
     $('kCashSub').textContent = t('kCashSubPct', { pct: (p.total ? (p.cash / p.total * 100) : 0).toFixed(1) });
   }
@@ -914,13 +752,13 @@ h1,h2,h3{text-wrap:balance}
     var body = $('assetsBody');
     var linkBtn = '<button type="button" class="lnk js-open-tool" data-tool-url="invest-portfolio.html">' + esc(t('assetsAddInline')) + '</button>';
     if (!p.rows.length) { body.innerHTML = '<p class="empty-hint">' + t('assetsEmpty', { link: linkBtn }) + '</p>'; return; }
-    var html = '<table class="tbl"><thead><tr><th>' + esc(t('thAsset')) + '</th><th>' + esc(t('thValue')) + '</th><th>' + esc(t('thShare')) + '</th><th>' + esc(t('thPl')) + '</th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + esc(t('thAsset')) + '</th><th>' + esc(t('thValue')) + '</th><th>' + esc(t('thShare')) + '</th><th>' + esc(t('thPl')) + '</th></tr></thead><tbody>';
     p.rows.slice().sort(function (a, b) { return b.value - a.value; }).forEach(function (r) {
-      html += '<tr><td><div class="sym"><span class="ic">' + esc(r.icon) + '</span>' + esc(r.sym) + ' · ' + r.shares.toLocaleString('th-TH') + ' ' + esc(r.unit === 'หุ้น' ? t('unitShare') : r.unit) + '</div></td>' +
+      html += '<tr><td><div class="sym"><span class="badge accent">' + esc(r.icon) + '</span>' + esc(r.sym) + ' · ' + r.shares.toLocaleString('th-TH') + ' ' + esc(r.unit === 'หุ้น' ? t('unitShare') : r.unit) + '</div></td>' +
         '<td>' + money(r.value) + '</td><td>' + (p.total ? (r.value / p.total * 100).toFixed(1) : '0') + '%</td>' +
         '<td class="pl ' + (r.pl >= 0 ? 'up' : 'dn') + '">' + pct(r.pl, 1) + '</td></tr>';
     });
-    body.innerHTML = html + '</tbody></table>';
+    body.innerHTML = html + '</tbody></table></div>';
   }
 
   function renderAlloc(p) {
@@ -931,11 +769,11 @@ h1,h2,h3{text-wrap:balance}
     if (!arr.length) { body.innerHTML = '<p class="empty-hint">' + esc(t('allocEmpty')) + '</p>'; return; }
     var top = arr.slice(0, 5), rest = arr.slice(5);
     if (rest.length) top.push({ label: t('allocOther'), value: rest.reduce(function (s, x) { return s + x.value; }, 0) });
-    var colors = ['#1769E8', '#F5A524', '#17B26A', '#EC5E8A', '#7C3AED', '#94A3B8'];
+    var C = window.OmeChartTheme.get(), colors = C.series.slice(0, 5).concat([C.axis]); /* สีชุดเดียวกับกราฟทั้งเว็บ (chart-theme.js) */
     var total = top.reduce(function (s, x) { return s + x.value; }, 0) || 1, cur = 0;
     var stops = top.map(function (a, i) { var pc = a.value / total * 100, s = cur; cur += pc; return colors[i % colors.length] + ' ' + s + '% ' + cur + '%'; });
     var rows = top.map(function (a, i) { return '<div class="allocrow"><span class="k"><i style="background:' + colors[i % colors.length] + '"></i>' + esc(a.label) + '</span><span class="v">' + (a.value / total * 100).toFixed(1) + '%</span></div>'; }).join('');
-    body.innerHTML = '<div class="alloc"><svg viewBox="0 0 36 36" style="border-radius:50%;background:conic-gradient(' + stops.join(',') + ')"><circle cx="18" cy="18" r="11.5" fill="var(--card)"/></svg><div>' + rows + '</div></div>';
+    body.innerHTML = '<div class="alloc"><svg viewBox="0 0 36 36" style="border-radius:50%;background:conic-gradient(' + stops.join(',') + ')"><circle cx="18" cy="18" r="11.5" fill="' + C.surface + '"/></svg><div>' + rows + '</div></div>';
   }
 
   function healthScore(p) {
@@ -950,7 +788,7 @@ h1,h2,h3{text-wrap:balance}
     if (s == null) { $('healthScore').textContent = '—'; $('healthText').textContent = t('healthEmpty'); return; }
     $('healthScore').textContent = s;
     $('healthRing').style.setProperty('--score', s + '%');
-    $('healthRing').style.background = 'conic-gradient(' + (s >= 70 ? 'var(--ok)' : s >= 45 ? 'var(--amber)' : 'var(--err)') + ' ' + s + '%, var(--line) 0)';
+    $('healthRing').style.background = 'conic-gradient(' + (s >= 70 ? 'var(--ome-ok)' : s >= 45 ? 'var(--ome-warn)' : 'var(--ome-err)') + ' ' + s + '%, var(--ome-border) 0)';
     var largest = p.rows.slice().sort(function (a, b) { return b.value - a.value; })[0];
     var largestPct = p.total ? (largest.value / p.total * 100).toFixed(0) : 0;
     $('healthText').textContent = s >= 70
@@ -960,15 +798,15 @@ h1,h2,h3{text-wrap:balance}
 
   function renderTasks(p) {
     var tasks = [];
-    if (!p.rows.length) tasks.push(['＋', t('taskEmptyT'), t('taskEmptyS')]);
+    if (!p.rows.length) tasks.push(['plus', t('taskEmptyT'), t('taskEmptyS')]);
     else {
       var s = healthScore(p);
-      if (s != null && s < 60) tasks.push(['◈', t('taskConcT'), t('taskConcS')]);
-      if (p.total && p.cash / p.total > 0.5) tasks.push(['◎', t('taskCashT'), t('taskCashS')]);
+      if (s != null && s < 60) tasks.push(['shield', t('taskConcT'), t('taskConcS')]);
+      if (p.total && p.cash / p.total > 0.5) tasks.push(['wallet', t('taskCashT'), t('taskCashS')]);
     }
-    tasks.push(['✓', t('taskReviewT'), t('taskReviewS')]);
+    tasks.push(['check', t('taskReviewT'), t('taskReviewS')]);
     $('tasksBody').innerHTML = tasks.slice(0, 4).map(function (t) {
-      return '<div class="task"><span class="taskic">' + t[0] + '</span><div><b>' + esc(t[1]) + '</b><span>' + esc(t[2]) + '</span></div></div>';
+      return '<div class="task"><span class="taskic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + t[0] + '"/></svg></span><div><b>' + esc(t[1]) + '</b><span>' + esc(t[2]) + '</span></div></div>';
     }).join('');
   }
 
@@ -993,11 +831,11 @@ h1,h2,h3{text-wrap:balance}
       var px = pad + i / (hist.length - 1) * (w - pad * 2), py = pad + (1 - (x.v - min) / range) * (h - pad * 1.6);
       return px.toFixed(1) + ',' + py.toFixed(1);
     });
-    var last = hist[hist.length - 1], first = hist[0], up = last.v >= first.v;
+    var last = hist[hist.length - 1], first = hist[0], up = last.v >= first.v, C = window.OmeChartTheme.get();
     body.innerHTML = '<div class="chartwrap"><svg viewBox="0 0 ' + w + ' ' + (h + 22) + '" preserveAspectRatio="xMidYMid meet">' +
-      '<polyline points="' + pts.join(' ') + '" fill="none" stroke="' + (up ? 'var(--ok)' : 'var(--err)') + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '<text x="' + pad + '" y="' + (h + 18) + '" font-size="9" fill="var(--muted)" font-family="Prompt">' + esc(first.d.slice(5)) + '</text>' +
-      '<text x="' + (w - pad - 40) + '" y="' + (h + 18) + '" font-size="9" fill="var(--muted)" font-family="Prompt">' + esc(last.d.slice(5)) + '</text>' +
+      '<polyline points="' + pts.join(' ') + '" fill="none" stroke="' + (up ? C.up : C.down) + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<text x="' + pad + '" y="' + (h + 18) + '" font-size="9" fill="' + C.axis + '" font-family="Prompt">' + esc(first.d.slice(5)) + '</text>' +
+      '<text x="' + (w - pad - 40) + '" y="' + (h + 18) + '" font-size="9" fill="' + C.axis + '" font-family="Prompt">' + esc(last.d.slice(5)) + '</text>' +
       '</svg></div>';
   }
 
@@ -1045,6 +883,7 @@ h1,h2,h3{text-wrap:balance}
   }
   applyStaticI18n();
   refreshAll();
+  window.OmeChartTheme.onChange(refreshAll);
   loadHoldingQuotes().then(refreshAll);
   loadUsdThbRate().then(refreshAll);
   loadAllMarkets();
@@ -1068,15 +907,13 @@ h1,h2,h3{text-wrap:balance}
   /* ══ แถบนำทาง 2 ชั้น — สร้างหมวดย่อยจาก window.INVEST_CATS (ที่มาเดียวกับเมนูแฮมเบอร์เกอร์) ══ */
   var GROUP_OF = { 'thai-stock': 'market', 'global-stock': 'market', 'thai-fund': 'market', 'global-fund': 'market', 'gold': 'market', 'bitcoin': 'market', 'commodities': 'market',
     'gov-bond': 'lottery', 'lottery': 'lottery', 'gsb-lottery': 'lottery', 'baac-lottery': 'lottery', 'news': 'news', 'business': 'news' };
-  var ICON_OF = { 'thai-stock': 'TH', 'global-stock': 'GL', 'thai-fund': 'TF', 'global-fund': 'GF', 'gold': 'Au', 'bitcoin': '₿', 'commodities': 'CM',
-    'gov-bond': 'BD', 'lottery': 'L', 'gsb-lottery': 'GSB', 'baac-lottery': 'BAAC', 'news': 'N', 'business': 'B' };
   function waitCats(cb) { if (window.INVEST_CATS) cb(window.INVEST_CATS); else setTimeout(function () { waitCats(cb); }, 30); }
   waitCats(function (CATS) {
     CATS.forEach(function (c) {
       var g = GROUP_OF[c.key]; if (!g) return;
       var row = $('ivSubRow-' + g); if (!row) return;
       var a = document.createElement('a'); a.href = c.page;
-      a.innerHTML = '<b>' + esc(ICON_OF[c.key] || '') + '</b>' + esc(c.label);
+      a.textContent = c.label;
       row.appendChild(a);
     });
 
@@ -1105,7 +942,7 @@ h1,h2,h3{text-wrap:balance}
     b.addEventListener('click', function () {
       if (b.dataset.href) { location.href = b.dataset.href; return; }
       groupBtns.forEach(function (x) { x.classList.toggle('on', x === b); });
-      document.querySelectorAll('.ivsub').forEach(function (s) { s.classList.remove('on'); });
+      document.querySelectorAll('.subnav-sub').forEach(function (s) { s.classList.remove('on'); });
       var sub = $('ivSub-' + b.dataset.group);
       if (sub) sub.classList.add('on');
     });

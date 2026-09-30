@@ -50,7 +50,7 @@
       pageTitle: 'สลากกินแบ่งรัฐบาล — สถิติย้อนหลัง + ตรวจหวย + สุ่มเลข 6 หลัก',
       loadTitle: 'ดึงข้อมูลย้อนหลัง', lblWindow: 'ช่วงย้อนหลัง',
       win1m: '1 เดือน', win3m: '3 เดือน', win4m: '4 เดือน', win6m: '6 เดือน', win1y: '1 ปี', win5y: '5 ปี', win10y: '10 ปี', win20y: '20 ปี', win30y: '30 ปี',
-      loadBtn: 'ดึงข้อมูลย้อนหลัง', stopBtn: '⏹ หยุด', clearCacheBtn: 'ล้างแคช',
+      loadBtn: 'ดึงข้อมูลย้อนหลัง', stopBtn: 'หยุด', clearCacheBtn: 'ล้างแคช',
       freqTitle: 'สถิติความถี่',
       lblTier: 'หมวด',
       tierTwoDigit: 'เลขท้าย 2 ตัว', tierThreeFirst: 'เลขหน้า 3 ตัว', tierThreeLast: 'เลขท้าย 3 ตัว',
@@ -81,7 +81,7 @@
       pageTitle: 'Government Lottery — Historical Stats + Ticket Checker + Number Randomizer',
       loadTitle: 'Fetch Historical Data', lblWindow: 'Lookback period',
       win1m: '1 month', win3m: '3 months', win4m: '4 months', win6m: '6 months', win1y: '1 year', win5y: '5 years', win10y: '10 years', win20y: '20 years', win30y: '30 years',
-      loadBtn: 'Fetch historical data', stopBtn: '⏹ Stop', clearCacheBtn: 'Clear cache',
+      loadBtn: 'Fetch historical data', stopBtn: 'Stop', clearCacheBtn: 'Clear cache',
       freqTitle: 'Frequency Statistics',
       lblTier: 'Category',
       tierTwoDigit: 'Last 2 digits', tierThreeFirst: 'First 3 digits', tierThreeLast: 'Last 3 digits',
@@ -442,9 +442,9 @@
       entries.sort(function (a, b) { return b.c - a.c || (a.v < b.v ? -1 : 1); });
       var top = entries.slice(0, 20);
       if (!top.length) { out.innerHTML = '<div class="log-empty">' + t('noDataInTier') + '</div>'; return; }
-      var html2 = '<table class="log-table"><thead><tr><th>' + t('thNumber') + '</th><th>' + t('thTimesOut') + '</th></tr></thead><tbody>';
+      var html2 = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('thNumber') + '</th><th>' + t('thTimesOut') + '</th></tr></thead><tbody>';
       top.forEach(function (e) { html2 += '<tr><td>' + e.v + '</td><td>' + e.c + '</td></tr>'; });
-      html2 += '</tbody></table>';
+      html2 += '</tbody></table></div>';
       out.innerHTML = html2;
     }
   }
@@ -460,9 +460,9 @@
         var res = checkTicket(ticket, draw);
         var out = $('ltCheckOut');
         if (res.hits.length) {
-          out.innerHTML = '<div class="sumbox" style="margin-top:10px"><div class="lbl">' + t('resultLbl') + '</div><div class="val grow">' + t('hitResult', { hits: res.hits.join(', ') }) + '</div></div>';
+          out.innerHTML = '<div class="kpi"><div class="kpi-label">' + t('resultLbl') + '</div><div class="kpi-value grow">' + t('hitResult', { hits: res.hits.join(', ') }) + '</div></div>';
         } else {
-          out.innerHTML = '<div class="sumbox" style="margin-top:10px"><div class="lbl">' + t('resultLbl') + '</div><div class="val">' + t('noHit') + '</div></div>';
+          out.innerHTML = '<div class="kpi"><div class="kpi-label">' + t('resultLbl') + '</div><div class="kpi-value">' + t('noHit') + '</div></div>';
         }
       })
       .catch(function () {
@@ -486,12 +486,12 @@
     var list = []; try { list = JSON.parse(localStorage.getItem(SPIN_KEY)) || []; } catch (e) {}
     var el = $('ltSpinHistory');
     if (!list.length) { el.innerHTML = ''; return; }
-    var html = '<div style="font-weight:700;font-size:13px;margin:10px 0 4px">' + t('spinHistTitle') + '</div>' +
-      '<table class="log-table"><thead><tr><th>' + t('thTime') + '</th><th>' + t('thNum') + '</th></tr></thead><tbody>';
+    var html = '<div class="log-group-hd">' + t('spinHistTitle') + '</div>' +
+      '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('thTime') + '</th><th>' + t('thNum') + '</th></tr></thead><tbody>';
     list.forEach(function (r) {
       html += '<tr><td>' + new Date(r.ts).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + '</td><td>' + r.n + '</td></tr>';
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     el.innerHTML = html;
   }
 

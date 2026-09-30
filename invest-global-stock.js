@@ -34,48 +34,38 @@
       pageTitle: 'หุ้นต่างประเทศ — ตัวช่วยเข้า/ออก',
       step1Title: 'ราคาหุ้นตอนนี้', symLabel: 'ชื่อย่อหุ้น (เช่น AAPL, MSFT)', fetchBtn: 'ลองดึงราคา',
       priceNowLabel: 'ราคาตอนนี้ (USD)', priceNowPh: 'เช่น 180.50', priceHiLabel: 'ราคาสูงสุดของรอบ', priceLoLabel: 'ราคาต่ำสุดของรอบ', periodPh: 'ช่วง 3 เดือน',
-      liveModeHistorical: 'โหมดข้อมูล: ย้อนหลัง', liveMetaDefault: 'ตั้งค่าแหล่งข้อมูลสดได้ใน "ตั้งค่าข้อมูลตลาด"',
-      refreshBtn: '↻ รีเฟรช', marketSettingsBtn: '⚙️ ตั้งค่าข้อมูลตลาด',
+      liveModeHistorical: 'โหมดข้อมูล: ย้อนหลัง',      refreshBtn: 'รีเฟรช', marketSettingsBtn: 'ตั้งค่าข้อมูลตลาด',
       marketSettingsTitle: 'ข้อมูลตลาดแบบสด', providerLabel: 'แหล่งข้อมูล', providerGateway: 'Tanot Data Gateway (แนะนำ)', providerYahoo: 'Yahoo / ย้อนหลัง',
       gatewayUrlLabel: 'Gateway URL', apiKeyLabel: 'Twelve Data API Key', apiKeyNote: '(เก็บในเครื่องเท่านั้น)', apiKeyPh: 'ใส่เมื่อมี API key',
       intervalLabel: 'รีเฟรชทุก', interval5: '5 วินาที', interval10: '10 วินาที', interval30: '30 วินาที',
       saveSettingsBtn: 'บันทึกการตั้งค่า', clearApiKeyBtn: 'ล้าง API Key',
       analyzeBtn: 'ประเมินให้หน่อย', demoBtn: 'ดูกราฟตัวอย่าง (ฝึกอ่าน)',
-      pasteSummary: 'วางราคาย้อนหลังเอง (ทางเลือก)', pasteHint: 'วางราคาปิดหลายวัน คั่นด้วยเว้นวรรค/บรรทัด/จุลภาค (เรียงเก่า→ใหม่)', pasteBtn: 'ใช้ราคานี้',
-      fxSummary: 'แปลงเป็นเงินบาท (ทางเลือก)', fxDesc: 'เปิดไว้เพื่อดูยอด ≈ บาท กำกับควบคู่กับตัวเลข USD ในหน้านี้ (ไม่บังคับ ไม่กระทบการคำนวณหลักซึ่งเป็น USD เสมอ)',
-      fxRateLabel: 'อัตราแลกเปลี่ยน', fxRatePh: 'เช่น 36.00', unitBahtPerUsd: '(บาทต่อ 1 USD)', fxFetchBtn: 'ดึงอัตราปัจจุบัน', fxShowLabel: 'แสดงยอดเทียบเงินบาท (≈ ฿) ในหน้านี้',
+      pasteSummary: 'วางราคาย้อนหลังเอง (ทางเลือก)',pasteBtn: 'ใช้ราคานี้',
+      fxSummary: 'แปลงเป็นเงินบาท (ทางเลือก)',      fxRateLabel: 'อัตราแลกเปลี่ยน', fxRatePh: 'เช่น 36.00', unitBahtPerUsd: '(บาทต่อ 1 USD)', fxFetchBtn: 'ดึงอัตราปัจจุบัน', fxShowLabel: 'แสดงยอดเทียบเงินบาท (≈ ฿) ในหน้านี้',
       ulTitle: 'หุ้นดัง (US)', scanBtn: 'หาหุ้นน่าสนใจ', scanBtnStop: '⏹ หยุด', greenOnlyLabel: 'เฉพาะไฟเขียว',
       ulThSym: 'หลักทรัพย์', ulThLast: 'ล่าสุด', ulThChg: '+/−', ulThPct: '%', ulThSig: 'สัญญาณ', ulRowLoading: 'กดดู',
-      techDetailsSummary: 'ดูรายละเอียดทางเทคนิค (ไม่ต้องเข้าใจก็ได้)', chartTitle: 'กราฟราคา',
+      techDetailsSummary: 'ดูรายละเอียดทางเทคนิค ', chartTitle: 'กราฟราคา',
       tf1m: '1เดือน', tf3m: '3เดือน', tf6m: '6เดือน', tf1y: '1ปี',
       tgMa20: 'เฉลี่ย 20', tgMa50: 'เฉลี่ย 50', tgVol: 'Volume', tgRsi: 'RSI',
-      capUp: 'แท่งขึ้น', capDn: 'แท่งลง', capMa20: 'เฉลี่ย 20 วัน', capMa50: 'เฉลี่ย 50 วัน', capTouch: 'แตะบนกราฟเพื่อดูราคาแต่ละวัน',
-      step2Title: 'ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน', capitalLabel: 'เงินลงทุนทั้งพอร์ต (USD)', capitalPh: 'เช่น 10000',
+      capUp: 'แท่งขึ้น', capDn: 'แท่งลง', capMa20: 'เฉลี่ย 20 วัน', capMa50: 'เฉลี่ย 50 วัน',      step2Title: 'ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน', capitalLabel: 'เงินลงทุนทั้งพอร์ต (USD)', capitalPh: 'เช่น 10000',
       riskPctLabel: 'ยอมเสี่ยงต่อไม้', unitPctPortfolio: '(% ของพอร์ต)', entryLabel: 'ราคาเข้าซื้อ (USD)', entryPh: '= ราคาตอนนี้',
       stopLabel: 'ราคาตัดขาดทุน (Stop)', stopPh: 'แนะนำอัตโนมัติ', commLabel: 'ค่าคอมฯ', unitPctPerTrade: '(% ต่อครั้ง)',
       calcBtn: 'คำนวณ', saveToPortfolioBtn: 'บันทึกเข้าพอร์ต', savedBtn: 'บันทึกแล้ว',
-      checklistTitle: 'ตรวจก่อนเข้าไม้ — ควรซื้อไหม?', checklistDesc: 'เช็กวินัย 6 ข้อ ก่อนกดซื้อจริง (กันซื้อตามอารมณ์/ไล่ราคา) — กด "ประเมิน" และ "คำนวณ" ด้านบนก่อน แล้วกดปุ่มนี้', checkBtn: 'ตรวจเช็กลิสต์',
+      checklistTitle: 'ตรวจก่อนเข้าไม้ — ควรซื้อไหม?',checkBtn: 'ตรวจเช็กลิสต์',
       driveTitle: 'สำรองพอร์ต + สมุดเทรดขึ้น Google Drive',
       driveConnectBtn: 'เชื่อมต่อ Google Drive', driveConnectedBtn: 'เชื่อมต่อ Google Drive แล้ว',
       pfTitle: 'พอร์ตของฉัน',
-      pfSymLabel: 'ชื่อหุ้น', pfSharesLabel: 'จำนวนหุ้น', pfCostLabel: 'ราคาต้นทุน/หุ้น', pfAddBtn: '+ เพิ่มเข้าพอร์ต',
+      pfSymLabel: 'ชื่อหุ้น', pfSharesLabel: 'จำนวนหุ้น', pfCostLabel: 'ราคาต้นทุน/หุ้น', pfAddBtn: 'เพิ่มเข้าพอร์ต',
       pfEmptyDefault: 'ยังไม่มีหุ้นในพอร์ต',
       pfThSym: 'หุ้น', pfThShares: 'จำนวน', pfThCost: 'ต้นทุน/หุ้น', pfThCur: 'ราคาปัจจุบัน', pfThPl: 'กำไร/ขาดทุน',
       pfPricePh: 'ราคา', pfSellTitle: 'เช็กควรขาย?', pfSellBtn: 'ควรขาย?', pfDelTitle: 'ลบ',
       journalTitle: 'สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)',
-      jSymLabel: 'หุ้น', jEntryLabel: 'ราคาเข้า', jExitLabel: 'ราคาออก', jSharesLabel: 'จำนวนหุ้น', jAddBtn: '+ บันทึก',
+      jSymLabel: 'หุ้น', jEntryLabel: 'ราคาเข้า', jExitLabel: 'ราคาออก', jSharesLabel: 'จำนวนหุ้น', jAddBtn: 'บันทึก',
       jStatCount: 'จำนวนไม้', jStatWinRate: 'อัตราชนะ', jStatTotalPl: 'กำไร/ขาดทุนรวม', jStatExpectancy: 'คาดหวัง/ไม้',
       jThSym: 'หุ้น', jThEntry: 'เข้า', jThExit: 'ออก', jThShares: 'จำนวน', jThResult: 'ผล',
       jEmptyDefault: 'ยังไม่มีไม้ที่บันทึก — ปิดไม้แล้วบันทึกทุกครั้ง จะเห็นสถิติจริงของตัวเอง', jSymFallback: 'หุ้น',
       expectancyTitle: 'ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?',
       eWinLabel: 'อัตราชนะ', unitPctWinTrades: '(% ของไม้ที่ชนะ)', eWinRLabel: 'กำไรเฉลี่ยตอนชนะ', unitR: '(เท่าของความเสี่ยง R)', eLossRLabel: 'ขาดทุนเฉลี่ยตอนแพ้', unitR2: '(R)',
-      realityTitle: 'อ่านก่อนเอาเงินมาลงทุน (สำคัญมาก)',
-      reality1: 'ลงทุนหุ้น <b>เฉพาะเงินที่ไม่ต้องใช้อย่างน้อย 3–5 ปี</b> — เงินที่หายได้โดยไม่กระทบชีวิต',
-      reality2: 'มี <b>เงินสำรองฉุกเฉิน 3–6 เดือน</b> ก่อนเริ่มเสมอ',
-      reality3: '<b>ห้ามเด็ดขาด</b>: เอาเงินค่ากิน ค่าเช่า เงินกู้ หรือเงินที่ต้องใช้เร็วๆ มาเทรด',
-      reality4: 'การเทรดหุ้น <b>ไม่ใช่รายได้เสริมที่มั่นคง/เร็ว</b> — มือใหม่ส่วนใหญ่ขาดทุนปีแรก โดยเฉพาะตอนร้อนเงิน',
-      reality5: 'หุ้นต่างประเทศมี <b>ความเสี่ยงอัตราแลกเปลี่ยน</b> เพิ่มเข้ามาอีกชั้น — ถึงหุ้นจะกำไรเป็น USD แต่ถ้าเงินบาทแข็งขึ้นมาก กำไรตีกลับเป็นบาทอาจลดลงได้',
-      realityCta: 'ถ้าตอนนี้เงินตึงและอยากได้เงินงอกแบบเสี่ยงต่ำ วิธีที่ปลอดภัยกว่าเก็งหุ้นรายตัวมากคือ <b>ทยอยลงทุนกองทุนดัชนี (DCA)</b> — <a href="invest-global-fund.html">ลองเครื่องวางแผนกองทุน S&amp;P500 →</a>',
       ageJustNow: 'เมื่อสักครู่', ageMinsAgo: '{n} นาทีก่อน', ageHrsAgo: '{n} ชม.ก่อน', ageDaysAgo: '{n} วันก่อน',
       liveModePrefix: 'โหมดข้อมูล: ', liveHistoricalLabel: 'ย้อนหลัง / Historical', liveHistoricalMeta: 'ใช้ Yahoo สำหรับกราฟย้อนหลัง',
       liveLiveLabel: 'สด / Real-time', liveFallbackLabel: 'สำรอง / Historical', liveFallbackMeta: 'แหล่งข้อมูลสดยังเชื่อมต่อไม่ได้ · ใช้ราคาย้อนหลังเป็น fallback',
@@ -141,10 +131,10 @@
       checklistFail: 'ยังไม่ควรเข้า — ติด {n} ข้อ ควรแก้ให้ครบก่อนซื้อ', checklistUnknown: 'ข้อมูลไม่พอประเมินครบ — กด "ประเมิน"/"ดึงราคา" แล้ว "คำนวณ" ก่อน',
       checklistGo: 'เข้าได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)',
       expInvalid: 'กรอกตัวเลขให้ครบ (อัตราชนะ 0–100%, กำไร/ขาดทุนเป็นเท่าของ R)',
-      expMsg: 'ค่าคาดหวังต่อไม้ ≈ <b>{sign}{exp} R</b> (ถ้าเสี่ยงไม้ละ $1,000 ≈ {sign2}{amt} ต่อไม้โดยเฉลี่ย)<br><span style="font-weight:500">ต้องชนะอย่างน้อย ~{be}% ถึงจะเสมอตัวที่ R นี้</span>',
-      expGoodPrefix: 'ได้เปรียบระยะยาว<br>', expGoodSuffix: '<br><span style="font-weight:500">ถ้าทำตามวินัยสม่ำเสมอ (คุมความเสี่ยงเท่ากันทุกไม้) มีโอกาสกำไรระยะยาว</span>',
-      expBreakevenPrefix: 'แทบเสมอตัว<br>', expBreakevenSuffix: '<br><span style="font-weight:500">หักค่าคอมฯแล้วอาจขาดทุน — ต้องเพิ่มกำไรตอนชนะ หรือลดขาดทุนตอนแพ้</span>',
-      expBadPrefix: 'ขาดทุนระยะยาว<br>', expBadSuffix: '<br><span style="font-weight:500">ถึงชนะบ่อยก็ไม่พอ — ต้อง "ปล่อยกำไรให้ยาว ตัดขาดทุนให้ไว" (เพิ่ม R ตอนชนะ)</span>',
+      expMsg: 'ค่าคาดหวังต่อไม้ ≈ <b>{sign}{exp} R</b> (ถ้าเสี่ยงไม้ละ $1,000 ≈ {sign2}{amt} ต่อไม้โดยเฉลี่ย)<br><span class="sub">ต้องชนะอย่างน้อย ~{be}% ถึงจะเสมอตัวที่ R นี้</span>',
+      expGoodPrefix: 'ได้เปรียบระยะยาว<br>', expGoodSuffix: '<br><span class="sub">ถ้าทำตามวินัยสม่ำเสมอ (คุมความเสี่ยงเท่ากันทุกไม้) มีโอกาสกำไรระยะยาว</span>',
+      expBreakevenPrefix: 'แทบเสมอตัว<br>', expBreakevenSuffix: '<br><span class="sub">หักค่าคอมฯแล้วอาจขาดทุน — ต้องเพิ่มกำไรตอนชนะ หรือลดขาดทุนตอนแพ้</span>',
+      expBadPrefix: 'ขาดทุนระยะยาว<br>', expBadSuffix: '<br><span class="sub">ถึงชนะบ่อยก็ไม่พอ — ต้อง "ปล่อยกำไรให้ยาว ตัดขาดทุนให้ไว" (เพิ่ม R ตอนชนะ)</span>',
       scanIdle: 'หาหุ้นน่าสนใจ', scanDone: 'สแกนสำเร็จ {ok}/{total} ตัว · เจอน่าสนใจ {green} ตัว (ไม่ใช่คำแนะนำซื้อ)', scanProgress: 'กำลังสแกน {idx}/{total} ({sym})…',
       sellSarDn: 'พิจารณาขาย — สัญญาณเทรนด์กลับตัว (SAR พลิกลง)', sellBelowTrend: 'พิจารณาขาย/ตัดขาดทุน — ราคาหลุดแนวโน้ม (ต่ำกว่าเส้นค่าเฉลี่ย)',
       sellHotRsi: 'พิจารณาล็อกกำไรบางส่วน — RSI สูง ราคาร้อนแรง อาจย่อ', sellNearResist: 'ใกล้แนวต้าน — พิจารณาล็อกกำไรบางส่วน',
@@ -172,48 +162,38 @@
       pageTitle: 'Global Stocks — Entry/Exit Helper',
       step1Title: 'Current stock price', symLabel: 'Ticker (e.g. AAPL, MSFT)', fetchBtn: 'Try fetching price',
       priceNowLabel: 'Current price (USD)', priceNowPh: 'e.g. 180.50', priceHiLabel: 'Period high', priceLoLabel: 'Period low', periodPh: '3-month range',
-      liveModeHistorical: 'Data mode: Historical', liveMetaDefault: 'Set up a live data source in "Market Data Settings"',
-      refreshBtn: '↻ Refresh', marketSettingsBtn: '⚙️ Market Data Settings',
+      liveModeHistorical: 'Data mode: Historical',      refreshBtn: 'Refresh', marketSettingsBtn: 'Market Data Settings',
       marketSettingsTitle: 'Live Market Data', providerLabel: 'Data source', providerGateway: 'Tanot Data Gateway (recommended)', providerYahoo: 'Yahoo / Historical',
       gatewayUrlLabel: 'Gateway URL', apiKeyLabel: 'Twelve Data API Key', apiKeyNote: '(stored locally only)', apiKeyPh: 'Enter if you have an API key',
       intervalLabel: 'Refresh every', interval5: '5 seconds', interval10: '10 seconds', interval30: '30 seconds',
       saveSettingsBtn: 'Save settings', clearApiKeyBtn: 'Clear API Key',
       analyzeBtn: 'Analyze it for me', demoBtn: 'View sample chart (practice)',
-      pasteSummary: 'Paste historical prices yourself (optional)', pasteHint: 'Paste several days of closing prices, separated by spaces/lines/commas (oldest→newest)', pasteBtn: 'Use this price',
-      fxSummary: 'Convert to Thai baht (optional)', fxDesc: 'Turn on to see an ≈ baht amount alongside the USD figures on this page (optional, never affects the core calculations, which stay in USD)',
-      fxRateLabel: 'Exchange rate', fxRatePh: 'e.g. 36.00', unitBahtPerUsd: '(baht per 1 USD)', fxFetchBtn: 'Fetch current rate', fxShowLabel: 'Show baht-equivalent amounts (≈ ฿) on this page',
+      pasteSummary: 'Paste historical prices yourself (optional)',pasteBtn: 'Use this price',
+      fxSummary: 'Convert to Thai baht (optional)',      fxRateLabel: 'Exchange rate', fxRatePh: 'e.g. 36.00', unitBahtPerUsd: '(baht per 1 USD)', fxFetchBtn: 'Fetch current rate', fxShowLabel: 'Show baht-equivalent amounts (≈ ฿) on this page',
       ulTitle: 'Popular US stocks', scanBtn: 'Find interesting stocks', scanBtnStop: '⏹ Stop', greenOnlyLabel: 'Green only',
       ulThSym: 'Ticker', ulThLast: 'Last', ulThChg: '+/−', ulThPct: '%', ulThSig: 'Signal', ulRowLoading: 'Click to view',
       techDetailsSummary: 'View technical details (no need to understand it)', chartTitle: 'Price chart',
       tf1m: '1mo', tf3m: '3mo', tf6m: '6mo', tf1y: '1yr',
       tgMa20: 'MA 20', tgMa50: 'MA 50', tgVol: 'Volume', tgRsi: 'RSI',
-      capUp: 'Up bar', capDn: 'Down bar', capMa20: '20-day MA', capMa50: '50-day MA', capTouch: 'Tap the chart to see each day\'s price',
-      step2Title: 'If buying, how much to put in and where to sell', capitalLabel: 'Total portfolio capital (USD)', capitalPh: 'e.g. 10000',
+      capUp: 'Up bar', capDn: 'Down bar', capMa20: '20-day MA', capMa50: '50-day MA',      step2Title: 'If buying, how much to put in and where to sell', capitalLabel: 'Total portfolio capital (USD)', capitalPh: 'e.g. 10000',
       riskPctLabel: 'Risk per trade', unitPctPortfolio: '(% of portfolio)', entryLabel: 'Entry price (USD)', entryPh: '= current price',
       stopLabel: 'Stop-loss price', stopPh: 'Auto-suggested', commLabel: 'Commission', unitPctPerTrade: '(% per trade)',
       calcBtn: 'Calculate', saveToPortfolioBtn: 'Save to Portfolio', savedBtn: 'Saved',
-      checklistTitle: 'Pre-Trade Checklist — Should You Buy?', checklistDesc: 'Check 6 discipline items before buying for real (stops emotional/chase buying) — click "Analyze" and "Calculate" above first, then click this button', checkBtn: 'Run Checklist',
+      checklistTitle: 'Pre-Trade Checklist — Should You Buy?',checkBtn: 'Run Checklist',
       driveTitle: 'Back up Portfolio + Trade Journal to Google Drive',
       driveConnectBtn: 'Connect Google Drive', driveConnectedBtn: 'Google Drive connected',
       pfTitle: 'My Portfolio',
-      pfSymLabel: 'Ticker', pfSharesLabel: 'Shares', pfCostLabel: 'Cost/share', pfAddBtn: '+ Add to Portfolio',
+      pfSymLabel: 'Ticker', pfSharesLabel: 'Shares', pfCostLabel: 'Cost/share', pfAddBtn: 'Add to Portfolio',
       pfEmptyDefault: 'No holdings yet',
       pfThSym: 'Stock', pfThShares: 'Shares', pfThCost: 'Cost/share', pfThCur: 'Current price', pfThPl: 'P/L',
       pfPricePh: 'Price', pfSellTitle: 'Check should I sell?', pfSellBtn: 'Should I sell?', pfDelTitle: 'Delete',
       journalTitle: 'Trade Journal + Stats (see your own "track record")',
-      jSymLabel: 'Ticker', jEntryLabel: 'Entry price', jExitLabel: 'Exit price', jSharesLabel: 'Shares', jAddBtn: '+ Save',
+      jSymLabel: 'Ticker', jEntryLabel: 'Entry price', jExitLabel: 'Exit price', jSharesLabel: 'Shares', jAddBtn: 'Save',
       jStatCount: 'Trades', jStatWinRate: 'Win rate', jStatTotalPl: 'Total P/L', jStatExpectancy: 'Expectancy/trade',
       jThSym: 'Stock', jThEntry: 'Entry', jThExit: 'Exit', jThShares: 'Shares', jThResult: 'Result',
       jEmptyDefault: 'No trades logged yet — log every closed trade to see your real stats', jSymFallback: 'Stock',
       expectancyTitle: 'Is your trading system profitable long-term?',
       eWinLabel: 'Win rate', unitPctWinTrades: '(% of winning trades)', eWinRLabel: 'Average gain when winning', unitR: '(multiple of risk R)', eLossRLabel: 'Average loss when losing', unitR2: '(R)',
-      realityTitle: 'Read before you put real money in (important)',
-      reality1: 'Invest in stocks <b>only with money you won\'t need for at least 3–5 years</b> — money you can afford to lose without it affecting your life',
-      reality2: 'Have <b>3–6 months of emergency savings</b> before you start, always',
-      reality3: '<b>Absolutely never</b>: use money for food, rent, loan payments, or anything you need soon, to trade',
-      reality4: 'Stock trading <b>is not a stable/fast side income</b> — most beginners lose money in the first year, especially when trading with money they need',
-      reality5: 'Foreign stocks carry an extra layer of <b>exchange-rate risk</b> — even if a stock gains in USD, if the baht strengthens a lot, the profit converted back to baht can shrink',
-      realityCta: 'If money is tight right now and you want low-risk growth, a much safer approach than picking individual stocks is <b>dollar-cost averaging into an index fund (DCA)</b> — <a href="invest-global-fund.html">try the S&amp;P 500 fund planner →</a>',
       ageJustNow: 'just now', ageMinsAgo: '{n} min ago', ageHrsAgo: '{n} hr ago', ageDaysAgo: '{n} days ago',
       liveModePrefix: 'Data mode: ', liveHistoricalLabel: 'Historical', liveHistoricalMeta: 'Using Yahoo for historical charts',
       liveLiveLabel: 'Live / Real-time', liveFallbackLabel: 'Fallback / Historical', liveFallbackMeta: "Can't connect to the live source right now · falling back to historical prices",
@@ -279,10 +259,10 @@
       checklistFail: 'Not ready to enter — {n} item(s) failed, fix them all before buying', checklistUnknown: 'Not enough data to fully assess — click "Analyze"/"Fetch Price" then "Calculate" first',
       checklistGo: "Ready to enter per plan — all items passed (still no profit guarantee — follow the plan and always cut losses)",
       expInvalid: 'Fill in all the numbers (win rate 0–100%, gain/loss as a multiple of R)',
-      expMsg: 'Expected value per trade ≈ <b>{sign}{exp} R</b> (if risking $1,000 per trade ≈ {sign2}{amt} per trade on average)<br><span style="font-weight:500">You need to win at least ~{be}% to break even at this R</span>',
-      expGoodPrefix: 'Profitable long-term<br>', expGoodSuffix: '<br><span style="font-weight:500">If you follow this discipline consistently (same risk every trade), you have a real shot at long-term profit</span>',
-      expBreakevenPrefix: 'Nearly break-even<br>', expBreakevenSuffix: '<br><span style="font-weight:500">After commissions this may lose money — you need bigger wins or smaller losses</span>',
-      expBadPrefix: 'Losing long-term<br>', expBadSuffix: '<br><span style="font-weight:500">Winning often isn\'t enough — you need to "let winners run, cut losers fast" (increase R when winning)</span>',
+      expMsg: 'Expected value per trade ≈ <b>{sign}{exp} R</b> (if risking $1,000 per trade ≈ {sign2}{amt} per trade on average)<br><span class="sub">You need to win at least ~{be}% to break even at this R</span>',
+      expGoodPrefix: 'Profitable long-term<br>', expGoodSuffix: '<br><span class="sub">If you follow this discipline consistently (same risk every trade), you have a real shot at long-term profit</span>',
+      expBreakevenPrefix: 'Nearly break-even<br>', expBreakevenSuffix: '<br><span class="sub">After commissions this may lose money — you need bigger wins or smaller losses</span>',
+      expBadPrefix: 'Losing long-term<br>', expBadSuffix: '<br><span class="sub">Winning often isn\'t enough — you need to "let winners run, cut losers fast" (increase R when winning)</span>',
       scanIdle: 'Find interesting stocks', scanDone: 'Scanned {ok}/{total} · found {green} interesting (not a buy recommendation)', scanProgress: 'Scanning {idx}/{total} ({sym})…',
       sellSarDn: 'Consider selling — trend reversal signal (SAR flipped down)', sellBelowTrend: 'Consider selling/cutting losses — price broke the trend (below the moving averages)',
       sellHotRsi: 'Consider locking in some profit — RSI high, price overheated, may pull back', sellNearResist: 'Near resistance — consider locking in some profit',
@@ -534,7 +514,7 @@
     var ohlc = [], vol = [], i;
     for (i = 0; i < times.length; i++) {
       ohlc.push({ time: times[i], open: opens[i], high: highs[i], low: lows[i], close: closes[i] });
-      vol.push({ time: times[i], value: (volumes && volumes[i]) ? volumes[i] : 0, color: closes[i] >= opens[i] ? 'rgba(38,166,154,0.5)' : 'rgba(239,83,80,0.5)' });
+      vol.push({ time: times[i], value: (volumes && volumes[i]) ? volumes[i] : 0, up: closes[i] >= opens[i] });
     }
     return { times: times, closes: closes, highs: highs, lows: lows, ohlc: ohlc, vol: vol,
       ma20: align(smaSeries(closes, 20)), ma50: align(smaSeries(closes, 50)), rsi: align(rsiSeries(closes, 14)) };
@@ -711,24 +691,22 @@
   var LWC = null, chart = null, candle = null, volS = null, ma20S = null, ma50S = null, rsiChart = null, rsiS = null;
   var fullData = null, curTF = 63, tg = { ma20: true, ma50: true, vol: true, rsi: false }, syncing = false, themeObs = null;
 
-  function themeColors() {
-    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    return dark ? { bg: '#1B2030', text: '#C2CBDD', grid: '#2A3040', border: '#2A3040' }
-                : { bg: '#FFFFFF', text: '#4A5568', grid: '#EEF1F7', border: '#E4E9F2' };
+  /* สีกราฟทั้งหมดมาจาก chart-theme.js (โทเคน --ome-chart-*): แท่งขึ้น/ลง = up/down, เฉลี่ย 20 = สี 4, เฉลี่ย 50 = สี 1, RSI = สี 7 */
+  var CT = window.OmeChartTheme;
+  function serie() { var c = CT.get(); return { up: c.up, down: c.down, ma20: c.series[3], ma50: c.series[0], rsi: c.series[6] }; }
+  function volColored(arr) {
+    var c = CT.get(), u = CT.alpha(c.up, 0.5), d = CT.alpha(c.down, 0.5);
+    return arr.map(function (b) { return { time: b.time, value: b.value, color: b.up ? u : d }; });
   }
   function chartWidth(el) { return Math.max(240, (el && (el.clientWidth || el.offsetWidth)) || (el && el.parentElement && el.parentElement.clientWidth) || 320); }
   function baseOpts(w, h) {
-    var c = themeColors();
-    return {
-      width: w, height: h,
-      localization: { locale: 'en-US' },
-      layout: { background: { color: c.bg }, textColor: c.text, fontFamily: "'Prompt',system-ui,sans-serif" },
-      grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } },
-      rightPriceScale: { borderColor: c.border },
-      timeScale: { borderColor: c.border, rightOffset: 3, fixLeftEdge: true },
-      crosshair: { mode: (LWC && LWC.CrosshairMode) ? LWC.CrosshairMode.Normal : 1 },
-      handleScroll: true, handleScale: true
-    };
+    var o = CT.lightweight();
+    o.width = w; o.height = h;
+    o.localization = { locale: 'en-US' };
+    o.timeScale.rightOffset = 3; o.timeScale.fixLeftEdge = true;
+    o.crosshair.mode = (LWC && LWC.CrosshairMode) ? LWC.CrosshairMode.Normal : 1;
+    o.handleScroll = true; o.handleScale = true;
+    return o;
   }
   function fmtDate(t) {
     if (typeof t === 'string') { var p = t.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
@@ -757,10 +735,11 @@
     if (rsiChart || !fullData || !LWC) return;
     var el = $('lwRsi'); el.innerHTML = '';
     rsiChart = LWC.createChart(el, baseOpts(chartWidth(el), 110));
-    rsiS = rsiChart.addLineSeries({ color: '#6C63D9', lineWidth: 2, priceLineVisible: false });
+    var sc = serie();
+    rsiS = rsiChart.addLineSeries({ color: sc.rsi, lineWidth: 2, priceLineVisible: false });
     try {
-      rsiS.createPriceLine({ price: 70, color: '#ef5350', lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: '70' });
-      rsiS.createPriceLine({ price: 30, color: '#26a69a', lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: '30' });
+      rsiS.createPriceLine({ price: 70, color: sc.down, lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: '70' });
+      rsiS.createPriceLine({ price: 30, color: sc.up, lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: '30' });
     } catch (e) {}
     var cut = cutoffTime();
     rsiS.setData(fullData.rsi.filter(function (p) { return p.time >= cut; }));
@@ -779,7 +758,7 @@
     curTF = n; if (!fullData || !candle) return;
     var s = Math.max(0, fullData.ohlc.length - n), cut = fullData.times[s];
     candle.setData(fullData.ohlc.slice(s));
-    volS.setData(fullData.vol.slice(s));
+    volS.setData(volColored(fullData.vol.slice(s)));
     ma20S.setData(fullData.ma20.filter(function (p) { return p.time >= cut; }));
     ma50S.setData(fullData.ma50.filter(function (p) { return p.time >= cut; }));
     if (rsiChart && rsiS) rsiS.setData(fullData.rsi.filter(function (p) { return p.time >= cut; }));
@@ -788,16 +767,19 @@
     updateLegendLast();
     [].forEach.call(document.querySelectorAll('#tfGroup .tf'), function (b) { b.classList.toggle('on', +b.getAttribute('data-tf') === n); });
   }
+  function recolor() {
+    if (!chart) return;
+    var sc = serie(), base = CT.lightweight();
+    chart.applyOptions(base);
+    candle.applyOptions(CT.candles());
+    ma20S.applyOptions({ color: sc.ma20 }); ma50S.applyOptions({ color: sc.ma50 });
+    var s = Math.max(0, fullData.ohlc.length - curTF);
+    volS.setData(volColored(fullData.vol.slice(s)));
+    if (rsiChart) { try { rsiChart.remove(); } catch (e) {} rsiChart = null; rsiS = null; buildRsi(); }
+  }
   function setupThemeObserver() {
     if (themeObs) return;
-    themeObs = new MutationObserver(function () {
-      var c = themeColors();
-      [chart, rsiChart].forEach(function (ch) {
-        if (!ch) return;
-        ch.applyOptions({ layout: { background: { color: c.bg }, textColor: c.text }, grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } }, rightPriceScale: { borderColor: c.border }, timeScale: { borderColor: c.border } });
-      });
-    });
-    themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    themeObs = true; CT.onChange(recolor);
   }
   function buildChart(data) {
     if (!window.LightweightCharts) { return false; }
@@ -808,11 +790,12 @@
     $('chartCard').style.display = 'block';
     var el = $('lwChart'); el.innerHTML = '';
     chart = LWC.createChart(el, baseOpts(chartWidth(el), 300));
-    candle = chart.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350', borderVisible: false, wickUpColor: '#26a69a', wickDownColor: '#ef5350' });
+    var sc = serie();
+    candle = chart.addCandlestickSeries(Object.assign({ borderVisible: false }, CT.candles()));
     volS = chart.addHistogramSeries({ priceFormat: { type: 'volume' }, priceScaleId: 'vol' });
     chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
-    ma20S = chart.addLineSeries({ color: '#F5A524', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-    ma50S = chart.addLineSeries({ color: '#3B9BEA', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    ma20S = chart.addLineSeries({ color: sc.ma20, lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    ma50S = chart.addLineSeries({ color: sc.ma50, lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
     chart.subscribeCrosshairMove(onCross);
     applyTF(curTF); applyToggles(); setupThemeObserver(); setupResize();
     /* บังคับปรับขนาด/วาดใหม่หลัง layout นิ่ง (กัน canvas กว้าง 0 บน iOS) */
@@ -838,9 +821,9 @@
   function setSourceBadge(src, days) {
     var el = $('chartSource'); if (!el) return;
     if (src) lastSource = src; else src = lastSource;
-    if (src.kind === 'demo') { el.className = 'src-badge demo'; el.textContent = t('demoBadge'); }
-    else if (src.kind === 'paste') { el.className = 'src-badge paste'; el.textContent = t('pastedBadge', { days: days }); }
-    else { el.className = 'src-badge real'; el.textContent = t('realBadge', { label: src.label || t('realBadgeLabel'), status: src.stale ? t('staleLatestPrice', { age: cacheAgeText(src.cachedAt) }) : t('realBadgeLabel'), days: days }); }
+    if (src.kind === 'demo') { el.className = 'badge wrap warn'; el.textContent = t('demoBadge'); }
+    else if (src.kind === 'paste') { el.className = 'badge wrap'; el.textContent = t('pastedBadge', { days: days }); }
+    else { el.className = 'badge wrap ok'; el.textContent = t('realBadge', { label: src.label || t('realBadgeLabel'), status: src.stale ? t('staleLatestPrice', { age: cacheAgeText(src.cachedAt) }) : t('realBadgeLabel'), days: days }); }
   }
   function useSeries(s, msg, cls, src) {
     lastSeries = s;
@@ -861,10 +844,10 @@
     /* วาดวงกลมสีด้วย CSS แทน emoji 🟢🟡🔴 — บางอุปกรณ์/เบราว์เซอร์ไม่มีฟอนต์รองรับ
        emoji วงกลมสี (โดยเฉพาะ 🟢/🟡 ที่เพิ่งเข้า Unicode ทีหลัง) แสดงเป็นกล่องว่างแทน
        ซึ่งทำให้ไฟจราจร (จุดขายหลักของหน้านี้) สื่อความหมายไม่ได้เลย */
-    var bulbColors = { green: 'var(--ok)', yellow: 'var(--amber)', red: 'var(--err)' };
+    var bulbColors = { green: 'var(--ome-ok)', yellow: 'var(--ome-warn)', red: 'var(--ome-err)' };
     $('light').className = 'light ' + a.light;
     $('bulb').textContent = '';
-    $('bulb').style.background = bulbColors[a.light] || '#B8C0D4';
+    $('bulb').style.background = bulbColors[a.light] || 'var(--ome-text-3)';
     $('verdict').textContent = a.verdict;
     $('why').textContent = a.why;
 
@@ -1239,7 +1222,7 @@
     var res = riskCalc({ capital: capital, riskPct: riskPct, entry: entry, stop: stop, comm: comm, resistance: lastAnalysis ? lastAnalysis.resistance : NaN });
     var box = $('riskResult');
     if (res.error) {
-      $('riskHeadline').innerHTML = '<span style="color:var(--err)">' + res.error + '</span>';
+      $('riskHeadline').innerHTML = '<span class="dn">' + res.error + '</span>';
       $('riskKv').innerHTML = ''; $('tpRow').innerHTML = ''; box.classList.add('show'); $('saveBtn').style.display = 'none'; return;
     }
     $('riskHeadline').innerHTML = t('calcHeadline', { shares: fmt0(res.shares), cost: usd0(res.cost), fx: fxSpan(res.cost) });
@@ -1249,8 +1232,8 @@
     kv += '<div class="k">' + t('kvBreakeven') + '</div><div class="v">' + fmt(res.breakeven) + '</div>';
     if (isFinite(res.rr)) kv += '<div class="k">' + t('kvRR') + '</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
     $('riskKv').innerHTML = kv;
-    $('tpRow').innerHTML = '<span class="tp-chip">' + t('tpLot1', { price: fmt(res.tp1) }) + '</span><span class="tp-chip">' + t('tpLot2', { price: fmt(res.tp2) }) + '</span><span class="tp-chip">' + t('tpLot3', { price: fmt(res.tp3) }) + '</span>';
-    if (res.note) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">ℹ️ ' + res.note + '</div>';
+    $('tpRow').innerHTML = '<span class="badge accent">' + t('tpLot1', { price: fmt(res.tp1) }) + '</span><span class="badge accent">' + t('tpLot2', { price: fmt(res.tp2) }) + '</span><span class="badge accent">' + t('tpLot3', { price: fmt(res.tp3) }) + '</span>';
+    if (res.note) $('tpRow').innerHTML += '<div class="callout warn">' + res.note + '</div>';
     box.classList.add('show');
     $('saveBtn').style.display = 'inline-flex';
     $('saveBtn')._data = { sym: ($('sym').value || '').trim().toUpperCase() || t('thisStockFallback'), shares: res.shares, cost: entry };
@@ -1262,14 +1245,14 @@
   function renderPf() {
     var pf = loadPf(), box = $('pfBox');
     if (!pf.length) { box.innerHTML = '<div class="pf-empty">' + t('pfEmptyDefault') + '</div>'; return; }
-    var html = '<table class="pf-table"><thead><tr><th>' + t('pfThSym') + '</th><th>' + t('pfThShares') + '</th><th>' + t('pfThCost') + '</th><th>' + t('pfThCur') + '</th><th>' + t('pfThPl') + '</th><th></th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="table pf-table"><thead><tr><th>' + t('pfThSym') + '</th><th>' + t('pfThShares') + '</th><th>' + t('pfThCost') + '</th><th>' + t('pfThCur') + '</th><th>' + t('pfThPl') + '</th><th></th></tr></thead><tbody>';
     pf.forEach(function (h, i) {
       html += '<tr data-i="' + i + '"><td>' + h.sym + '</td><td>' + fmt0(h.shares) + '</td><td>' + fmt(h.cost) + '</td>' +
-        '<td><input type="number" class="pf-price" inputmode="decimal" step="0.01" placeholder="' + t('pfPricePh') + '" value="' + (h.cur != null ? h.cur : '') + '"></td>' +
-        '<td class="pf-pl">—</td><td class="pf-actions"><button class="pf-sell" title="' + t('pfSellTitle') + '">' + t('pfSellBtn') + '</button> <button class="pf-del" title="' + t('pfDelTitle') + '">✕</button></td></tr>' +
+        '<td><input type="number" class="input pf-price" inputmode="decimal" step="0.01" placeholder="' + t('pfPricePh') + '" value="' + (h.cur != null ? h.cur : '') + '"></td>' +
+        '<td class="pf-pl">—</td><td class="pf-actions"><button class="btn sm pf-sell" title="' + t('pfSellTitle') + '">' + t('pfSellBtn') + '</button><button class="btn sm ghost icon pf-del" title="' + t('pfDelTitle') + '" aria-label="' + t('pfDelTitle') + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>' +
         '<tr class="pf-sellrow" data-sr="' + i + '"><td colspan="6"></td></tr>';
     });
-    html += '</tbody></table>'; box.innerHTML = html;
+    html += '</tbody></table></div>'; box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('tr[data-i]'), function (tr) {
       var i = +tr.getAttribute('data-i'), h = pf[i], inp = tr.querySelector('.pf-price'), cell = tr.querySelector('.pf-pl');
       var sellCell = box.querySelector('tr[data-sr="' + i + '"] td');
@@ -1283,20 +1266,20 @@
       inp.addEventListener('input', function () { upd(); h.cur = num(inp.value); savePf(pf); });
       tr.querySelector('.pf-del').addEventListener('click', function () { pf.splice(i, 1); savePf(pf); renderPf(); });
       tr.querySelector('.pf-sell').addEventListener('click', function () {
-        sellCell.innerHTML = '<div class="sell-verdict warn">' + t('fetchingSellPrice', { sym: h.sym }) + '</div>';
+        sellCell.innerHTML = '<div class="callout warn">' + t('fetchingSellPrice', { sym: h.sym }) + '</div>';
         getSeries(h.sym).then(function (r) {
           var s = r.series, a = analyzeSeries(s), v = sellVerdict(a), price = s.closes[s.closes.length - 1];
           inp.value = price.toFixed(2); h.cur = price; savePf(pf); upd();
           var pl = (price - h.cost) * h.shares, pct = (price / h.cost - 1) * 100;
           sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict ' + v.cls + '">' + v.headline +
-            '<br><span style="font-weight:500">' + t('sellLatestPrice', { price: fmt(price) }) + (r.stale ? t('sellSavedAge', { age: cacheAgeText(r.cachedAt) }) : '') +
+            '<br><span class="sub">' + t('sellLatestPrice', { price: fmt(price) }) + (r.stale ? t('sellSavedAge', { age: cacheAgeText(r.cachedAt) }) : '') +
             t('sellCostLabel', { cost: fmt(h.cost) }) + (pl >= 0 ? t('sellProfit') : t('sellLoss')) + usd0(Math.abs(pl)) + fxSpan(pl) + ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)</span>' +
             sellLevelsHtml(v.levels) + '</div>' +
             companyInfoHtml(h.sym) +
             '<div class="news-block"></div></div>';
           renderNewsBlock(sellCell.querySelector('.news-block'), h.sym);
         }, function () {
-          sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict warn">' + t('sellFetchFail', { sym: h.sym }) + '</div>' +
+          sellCell.innerHTML = '<div class="sell-detail"><div class="callout warn">' + t('sellFetchFail', { sym: h.sym }) + '</div>' +
             companyInfoHtml(h.sym) + '</div>';
         });
       });
@@ -1336,12 +1319,12 @@
     var fails = checks.filter(function (c) { return c.ok === false; }).length;
     var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
     var box = $('checkResult'), v = $('checkVerdict');
-    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = t('checklistFail', { n: fails }); }
-    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = t('checklistUnknown'); }
-    else { v.className = 'verdict-box go'; v.textContent = t('checklistGo'); }
+    if (fails > 0) { v.className = 'callout err'; v.textContent = t('checklistFail', { n: fails }); }
+    else if (unknowns > 0) { v.className = 'callout warn'; v.textContent = t('checklistUnknown'); }
+    else { v.className = 'callout ok'; v.textContent = t('checklistGo'); }
     var html = '';
     checks.forEach(function (c) {
-      var ic = c.ok === true ? '' : c.ok === false ? '' : '◻️';
+      var ic = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + (c.ok === true ? 'check' : c.ok === false ? 'x' : 'minus') + '"/></svg>';
       html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
     });
     $('chkList').innerHTML = html;
@@ -1353,14 +1336,14 @@
     var w = num($('eWin').value) / 100, wr = num($('eWinR').value), lr = num($('eLossR').value);
     var box = $('eResult');
     if (!(w >= 0 && w <= 1) || !isFinite(wr) || !isFinite(lr) || wr < 0 || lr <= 0) {
-      box.className = 'verdict-box warn'; box.textContent = t('expInvalid'); box.style.display = 'block'; return;
+      box.className = 'callout warn'; box.textContent = t('expInvalid'); box.style.display = 'block'; return;
     }
     var exp = w * wr - (1 - w) * lr;
     var beWin = lr / (wr + lr) * 100; /* อัตราชนะที่ต้องมีเพื่อเสมอตัว */
     var msg = t('expMsg', { sign: exp >= 0 ? '+' : '', exp: exp.toFixed(2), sign2: exp >= 0 ? '+' : '−', amt: usd0(Math.abs(exp) * 1000), be: beWin.toFixed(0) });
-    if (exp > 0.1) { box.className = 'verdict-box go'; box.innerHTML = t('expGoodPrefix') + msg + t('expGoodSuffix'); }
-    else if (exp > 0) { box.className = 'verdict-box warn'; box.innerHTML = t('expBreakevenPrefix') + msg + t('expBreakevenSuffix'); }
-    else { box.className = 'verdict-box no'; box.innerHTML = t('expBadPrefix') + msg + t('expBadSuffix'); }
+    if (exp > 0.1) { box.className = 'callout ok'; box.innerHTML = t('expGoodPrefix') + msg + t('expGoodSuffix'); }
+    else if (exp > 0) { box.className = 'callout warn'; box.innerHTML = t('expBreakevenPrefix') + msg + t('expBreakevenSuffix'); }
+    else { box.className = 'callout err'; box.innerHTML = t('expBadPrefix') + msg + t('expBadSuffix'); }
     box.style.display = 'block';
   }
 
@@ -1377,7 +1360,7 @@
   }
   function renderJournal() {
     var jn = loadJn(), box = $('jBox'), stats = $('jStats');
-    if (!jn.length) { box.innerHTML = '<div class="pf-empty" style="font-size:13px;color:var(--muted);padding:8px 0">' + t('jEmptyDefault') + '</div>'; stats.style.display = 'none'; return; }
+    if (!jn.length) { box.innerHTML = '<div class="pf-empty">' + t('jEmptyDefault') + '</div>'; stats.style.display = 'none'; return; }
     var wins = jn.filter(function (r) { return r.pl > 0; }), losses = jn.filter(function (r) { return r.pl <= 0; });
     var total = jn.reduce(function (s, r) { return s + r.pl; }, 0);
     var winRate = wins.length / jn.length * 100;
@@ -1386,18 +1369,18 @@
     var expUsd = (winRate / 100) * avgWin - (1 - winRate / 100) * avgLoss;
     stats.style.display = 'grid';
     stats.innerHTML =
-      '<div class="j-stat"><div class="lbl">' + t('jStatCount') + '</div><div class="val">' + jn.length + '</div></div>' +
-      '<div class="j-stat"><div class="lbl">' + t('jStatWinRate') + '</div><div class="val">' + winRate.toFixed(0) + '%</div></div>' +
-      '<div class="j-stat"><div class="lbl">' + t('jStatTotalPl') + '</div><div class="val" style="color:' + (total >= 0 ? 'var(--ok)' : 'var(--err)') + '">' + (total >= 0 ? '+' : '−') + usd0(Math.abs(total)) + '</div></div>' +
-      '<div class="j-stat"><div class="lbl">' + t('jStatExpectancy') + '</div><div class="val" style="color:' + (expUsd >= 0 ? 'var(--ok)' : 'var(--err)') + '">' + (expUsd >= 0 ? '+' : '−') + usd0(Math.abs(expUsd)) + '</div></div>';
-    var html = '<table class="j-table"><thead><tr><th>' + t('jThSym') + '</th><th>' + t('jThEntry') + '</th><th>' + t('jThExit') + '</th><th>' + t('jThShares') + '</th><th>' + t('jThResult') + '</th><th></th></tr></thead><tbody>';
+      '<div class="kpi"><div class="kpi-label">' + t('jStatCount') + '</div><div class="kpi-value">' + jn.length + '</div></div>' +
+      '<div class="kpi"><div class="kpi-label">' + t('jStatWinRate') + '</div><div class="kpi-value">' + winRate.toFixed(0) + '%</div></div>' +
+      '<div class="kpi"><div class="kpi-label">' + t('jStatTotalPl') + '</div><div class="kpi-value ' + (total >= 0 ? 'up' : 'dn') + '">' + (total >= 0 ? '+' : '−') + usd0(Math.abs(total)) + '</div></div>' +
+      '<div class="kpi"><div class="kpi-label">' + t('jStatExpectancy') + '</div><div class="kpi-value ' + (expUsd >= 0 ? 'up' : 'dn') + '">' + (expUsd >= 0 ? '+' : '−') + usd0(Math.abs(expUsd)) + '</div></div>';
+    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('jThSym') + '</th><th>' + t('jThEntry') + '</th><th>' + t('jThExit') + '</th><th>' + t('jThShares') + '</th><th>' + t('jThResult') + '</th><th></th></tr></thead><tbody>';
     jn.slice().reverse().forEach(function (r, ri) {
       var idx = jn.length - 1 - ri;
       html += '<tr><td>' + r.sym + '</td><td>' + fmt(r.en) + '</td><td>' + fmt(r.ex) + '</td><td>' + fmt0(r.sh) + '</td>' +
-        '<td class="' + (r.pl >= 0 ? 'j-win' : 'j-loss') + '">' + (r.pl >= 0 ? '+' : '−') + usd0(Math.abs(r.pl)) + '</td>' +
-        '<td><button class="j-del" data-i="' + idx + '">✕</button></td></tr>';
+        '<td class="' + (r.pl >= 0 ? 'up' : 'dn') + '">' + (r.pl >= 0 ? '+' : '−') + usd0(Math.abs(r.pl)) + '</td>' +
+        '<td><button class="btn sm ghost icon j-del" aria-label="' + t('pfDelTitle') + '" data-i="' + idx + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
-    html += '</tbody></table>'; box.innerHTML = html;
+    html += '</tbody></table></div>'; box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('.j-del'), function (b) { b.addEventListener('click', function () { var jn = loadJn(); jn.splice(+b.getAttribute('data-i'), 1); saveJn(jn); renderJournal(); }); });
   }
 
@@ -1532,7 +1515,7 @@
     }
     var cTh = COMPANY_INFO[sym];
     var factors = (getUILang() === 'en' ? SECTOR_FACTORS_EN[c.sector] : SECTOR_FACTORS[cTh.sector]) || [];
-    var html = '<div class="company-card"><span class="cname">' + c.name + '</span><span class="csector">' + c.sector + '</span>' +
+    var html = '<div class="company-card"><span class="cname">' + c.name + '</span><span class="badge accent csector">' + c.sector + '</span>' +
       '<div class="cbiz">' + c.business + '</div>';
     if (factors.length) {
       html += '<ul class="creminders">' + factors.map(function (f) { return '<li>' + f + '</li>'; }).join('') + '</ul>';
@@ -1576,7 +1559,7 @@
   var ulRows = {};
   function rankOf(l) { return l === 'green' ? 0 : l === 'yellow' ? 1 : l === 'red' ? 2 : 9; }
   function sigIcon(l) {
-    var color = l === 'green' ? 'var(--ok)' : l === 'yellow' ? 'var(--amber)' : l === 'red' ? 'var(--err)' : '';
+    var color = l === 'green' ? 'var(--ome-ok)' : l === 'yellow' ? 'var(--ome-warn)' : l === 'red' ? 'var(--ome-err)' : '';
     return color ? '<span class="sig-dot" style="background:' + color + '"></span>' : '·';
   }
   function dataFromSeries(s) {
@@ -1665,11 +1648,11 @@
   function sellVerdict(a) {
     var det = a.det || {}, ps = det.psar;
     var cls, headline;
-    if (ps && !ps.up) { cls = 'no'; headline = t('sellSarDn'); }
-    else if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) { cls = 'no'; headline = t('sellBelowTrend'); }
+    if (ps && !ps.up) { cls = 'err'; headline = t('sellSarDn'); }
+    else if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) { cls = 'err'; headline = t('sellBelowTrend'); }
     else if (isFinite(a.rsi) && a.rsi > 70) { cls = 'warn'; headline = t('sellHotRsi'); }
     else if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) { cls = 'warn'; headline = t('sellNearResist'); }
-    else { cls = 'go'; headline = t('sellHold'); }
+    else { cls = 'ok'; headline = t('sellHold'); }
 
     /* ราคาหลายระดับตามสถานการณ์ — คำนวณทุกครั้งจากตัวเลขที่ analyzeSeries มีอยู่แล้ว ไม่ขึ้นกับ branch ไหน trigger */
     var levels = [

@@ -25,6 +25,7 @@
   function L(o) { return (o && (o[getUILang()] || o.th)) || ''; }
   var I18N = {
     th: {
+      delTitle: 'ลบ',
       navInvest: 'การลงทุน', pageTitleShort: 'ลงทุนทำธุรกิจ',
       pageTitle: 'ลงทุนทำธุรกิจ — เช็กความพร้อม + จุดคุ้มทุน',
       ideasTitle: 'ไอเดียอ้างอิง (แรงบันดาลใจ)',
@@ -43,7 +44,7 @@
       chkLicense: 'ธุรกิจนี้ไม่ต้องมีใบอนุญาต/คุณสมบัติเฉพาะ หรือมีครบแล้ว (เช่น ใบอนุญาตขายอาหาร ตั๋ววิชาชีพ)',
       ynYes: 'ใช่', ynNo: 'ยัง', lblOwnCapital: 'ทุนที่มีอยู่จริงตอนนี้', phOwnCapital: 'เช่น 25000', chkBtn: 'ตรวจเช็กลิสต์',
       logTitle: 'บันทึกไอเดียที่กำลังพิจารณา',
-      lblIdeaName: 'ชื่อไอเดีย', phIdeaName: 'เช่น ขายขนมออนไลน์', addBtn: '+ บันทึกไอเดียนี้',
+      lblIdeaName: 'ชื่อไอเดีย', phIdeaName: 'เช่น ขายขนมออนไลน์', addBtn: 'บันทึกไอเดียนี้',
       logEmptyDefault: 'ยังไม่มีไอเดียที่บันทึก',
       logThIdea: 'ไอเดีย', logThStartup: 'ลงทุนเริ่มต้น', logThBreakeven: 'คุ้มทุน(หน่วย/ด)', logThPayback: 'คืนทุน(ด)', logThProjected: 'กำไรคาด/ด',
       alertPrice: 'กรอกราคาขายเฉลี่ยต่อหน่วยให้ถูกต้อง',
@@ -65,6 +66,7 @@
       toolGetFrom: 'หาได้จาก: {get}'
     },
     en: {
+      delTitle: 'Delete',
       navInvest: 'Investing', pageTitleShort: 'Starting a Business',
       pageTitle: 'Starting a Business — Readiness Check + Break-even Point',
       ideasTitle: 'Reference Ideas (Inspiration)',
@@ -83,7 +85,7 @@
       chkLicense: 'This business needs no license/specific qualification, or you already have it all (e.g. a food-selling license, a professional license)',
       ynYes: 'Yes', ynNo: 'Not yet', lblOwnCapital: 'Capital you actually have now', phOwnCapital: 'e.g. 25000', chkBtn: 'Check the checklist',
       logTitle: 'Log of Ideas You\'re Considering',
-      lblIdeaName: 'Idea name', phIdeaName: 'e.g. selling snacks online', addBtn: '+ Save this idea',
+      lblIdeaName: 'Idea name', phIdeaName: 'e.g. selling snacks online', addBtn: 'Save this idea',
       logEmptyDefault: 'No ideas logged yet',
       logThIdea: 'Idea', logThStartup: 'Startup capital', logThBreakeven: 'Break-even (units/mo)', logThPayback: 'Payback (mo)', logThProjected: 'Projected profit/mo',
       alertPrice: 'Enter a valid average selling price per unit',
@@ -383,14 +385,14 @@
     var projEl = $('bzProjected');
     if (isFinite(r.monthlyProfitAtVol)) {
       projEl.textContent = (r.monthlyProfitAtVol >= 0 ? '+' : '−') + baht(Math.abs(r.monthlyProfitAtVol));
-      projEl.style.color = r.monthlyProfitAtVol >= 0 ? 'var(--ok)' : 'var(--err)';
+      projEl.style.color = r.monthlyProfitAtVol >= 0 ? 'var(--ome-ok-ink)' : 'var(--ome-err-ink)';
     } else { projEl.textContent = '—'; projEl.style.color = ''; }
 
     $('bzPayback').textContent = isFinite(r.paybackMonths) ? (r.paybackMonths <= 0 ? t('immediate') : t('months', { n: fmt(r.paybackMonths, 1) })) : '—';
 
     var v = $('bzVerdict');
-    v.className = 'verdict-box ' + r.cls;
-    v.innerHTML = (r.cls === 'go' ? '' : r.cls === 'no' ? '' : '') + r.txt;
+    v.className = 'callout ' + ({go:'ok',no:'err',warn:'warn'}[r.cls] || '');
+    v.innerHTML = r.txt;
   }
 
   /* ── เช็กลิสต์ "พร้อมเริ่มหรือยัง?" ── */
@@ -423,12 +425,12 @@
     var fails = checks.filter(function (c) { return c.ok === false; }).length;
     var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
     var box = $('bzChkResult'), v = $('bzChkVerdict');
-    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = t('chkFail', { n: fails }); }
-    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = t('chkNeedMore', { n: unknowns }); }
-    else { v.className = 'verdict-box go'; v.textContent = t('chkGo'); }
+    if (fails > 0) { v.className = 'callout err'; v.textContent = t('chkFail', { n: fails }); }
+    else if (unknowns > 0) { v.className = 'callout warn'; v.textContent = t('chkNeedMore', { n: unknowns }); }
+    else { v.className = 'callout ok'; v.textContent = t('chkGo'); }
     var html = '';
     checks.forEach(function (c) {
-      var ic = c.ok === true ? '' : c.ok === false ? '' : '◻️';
+      var ic = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + (c.ok === true ? 'check' : c.ok === false ? 'x' : 'minus') + '"/></svg>';
       html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
     });
     $('bzChkList').innerHTML = html;
@@ -442,15 +444,15 @@
   function renderLog() {
     var log = loadLog(), box = $('bzLogBox');
     if (!log.length) { box.innerHTML = '<div class="log-empty">' + t('logEmptyDefault') + '</div>'; return; }
-    var html = '<table class="log-table"><thead><tr><th>' + t('logThIdea') + '</th><th>' + t('logThStartup') + '</th><th>' + t('logThBreakeven') + '</th><th>' + t('logThPayback') + '</th><th>' + t('logThProjected') + '</th><th></th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('logThIdea') + '</th><th>' + t('logThStartup') + '</th><th>' + t('logThBreakeven') + '</th><th>' + t('logThPayback') + '</th><th>' + t('logThProjected') + '</th><th></th></tr></thead><tbody>';
     log.forEach(function (r, i) {
       html += '<tr><td>' + r.name + '</td><td>' + baht(r.startup) + '</td>' +
         '<td>' + (isFinite(r.breakevenUnits) ? fmt(r.breakevenUnits, 1) : '—') + '</td>' +
         '<td>' + (isFinite(r.paybackMonths) ? fmt(r.paybackMonths, 1) : '—') + '</td>' +
-        '<td style="color:' + (r.monthlyProfitAtVol >= 0 ? 'var(--ok)' : 'var(--err)') + '">' + (isFinite(r.monthlyProfitAtVol) ? ((r.monthlyProfitAtVol >= 0 ? '+' : '−') + baht(Math.abs(r.monthlyProfitAtVol))) : '—') + '</td>' +
-        '<td><button class="log-del" data-i="' + i + '">✕</button></td></tr>';
+        '<td class="' + (r.monthlyProfitAtVol >= 0 ? 'up' : 'dn') + '">' + (isFinite(r.monthlyProfitAtVol) ? ((r.monthlyProfitAtVol >= 0 ? '+' : '−') + baht(Math.abs(r.monthlyProfitAtVol))) : '—') + '</td>' +
+        '<td><button class="btn sm ghost icon log-del" aria-label="' + t('delTitle') + '" data-i="' + i + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('.log-del'), function (b) {
       b.addEventListener('click', function () { var log = loadLog(); log.splice(+b.getAttribute('data-i'), 1); saveLog(log); renderLog(); });

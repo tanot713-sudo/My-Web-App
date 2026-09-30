@@ -28,7 +28,7 @@
   var I18N = {
     th: {
       navInvest: 'การลงทุน', pageTitle: 'พอร์ตจำลอง',
-      sumTitle: 'สรุปพอร์ต', lblCash: 'เงินสดคงเหลือ', editCashBtn: '✎ แก้ไข',
+      sumTitle: 'สรุปพอร์ต', lblCash: 'เงินสดคงเหลือ', editCashBtn: 'แก้ไข',
       saveBtn: 'บันทึก', cancelBtn: 'ยกเลิก',
       lblHoldVal: 'มูลค่าหุ้นที่ถือ', lblTotal: 'มูลค่าพอร์ตรวม', lblPl: 'กำไร/ขาดทุนรวม',
       resetBtn: 'เริ่มพอร์ตใหม่',
@@ -71,7 +71,7 @@
     },
     en: {
       navInvest: 'Investing', pageTitle: 'Simulated Portfolio',
-      sumTitle: 'Portfolio Summary', lblCash: 'Cash balance', editCashBtn: '✎ Edit',
+      sumTitle: 'Portfolio Summary', lblCash: 'Cash balance', editCashBtn: 'Edit',
       saveBtn: 'Save', cancelBtn: 'Cancel',
       lblHoldVal: 'Holdings value', lblTotal: 'Total portfolio value', lblPl: 'Total profit/loss',
       resetBtn: 'Start new portfolio',
@@ -303,7 +303,7 @@
     $('sTotal').textContent = baht(total);
     var plEl = $('sPl');
     plEl.textContent = (pl >= 0 ? '+' : '') + baht(pl);
-    plEl.className = 'val ' + (pl > 0 ? 'up' : pl < 0 ? 'dn' : '');
+    plEl.className = 'kpi-value ' + (pl > 0 ? 'up' : pl < 0 ? 'dn' : '');
     $('sPlPct').textContent = (pct >= 0 ? '+' : '') + fmt(pct, 2) + '%';
   }
   function renderHoldings() {
@@ -334,7 +334,7 @@
     /* เรียงตามเวลาจริงเสมอ (ไม่ใช่ลำดับที่บันทึก) — เพราะรายการซื้อย้อนหลังอาจถูกเพิ่มทีหลังแต่มี ts เก่ากว่า */
     state.tx.slice().sort(function (a, b) { return b.ts - a.ts; }).slice(0, 100).forEach(function (tx) {
       var dateTxt = new Date(tx.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + ' ' + new Date(tx.ts).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-      rows += '<tr><td>' + dateTxt + '</td><td><span class="tx-type ' + tx.type + '">' + (tx.type === 'buy' ? t('txTypeBuy') : t('txTypeSell')) + '</span></td>' +
+      rows += '<tr><td>' + dateTxt + '</td><td><span class="badge ' + (tx.type === 'buy' ? 'ok' : 'err') + '">' + (tx.type === 'buy' ? t('txTypeBuy') : t('txTypeSell')) + '</span></td>' +
         '<td>' + tx.sym + '</td><td>' + fmt0(tx.shares) + '</td><td>' + fmt(tx.price) + '</td><td>' + baht(tx.amount) + '</td>' +
         '<td class="' + (tx.realizedPl > 0 ? 'up' : tx.realizedPl < 0 ? 'dn' : '') + '">' + (tx.type === 'sell' && isFinite(tx.realizedPl) ? (tx.realizedPl >= 0 ? '+' : '') + baht(tx.realizedPl) : '—') + '</td></tr>';
     });

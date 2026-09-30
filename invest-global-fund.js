@@ -22,6 +22,7 @@
   function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   var I18N = {
     th: {
+      delTitle: 'ลบ',
       crumbHome: 'การลงทุน', crumbHere: 'กองทุนต่างประเทศ (S&P500)',
       pageTitle: 'กองทุน S&P500 — วางแผน DCA',
       dcaTitle: 'แผนทยอยซื้อ (DCA)', accMLabel: 'ซื้อ "สะสมมูลค่า" /เดือน', divMLabel: 'ซื้อ "ปันผล" /เดือน',
@@ -34,7 +35,7 @@
       ddTitle: 'ตลาดย่อ = โอกาสเติมไม้ (ทางเลือก)', idxNowLabel: 'ดัชนี S&P500 ตอนนี้', idxAthLabel: 'จุดสูงสุดที่เคยทำ (ATH)', ddBtn: 'ดูคำแนะนำ',
       tr10m: 'ย่อเล็ก', tr20m: 'ตลาดหมี', tr30m: 'ย่อแรง',
       logTitle: 'สมุดซื้อจริงของฉัน', classField: 'ชนิด', classAcc: 'สะสมมูลค่า', classDiv: 'ปันผล',
-      lgAmtLabel: 'เงินที่ซื้อ (บาท)', lgNavLabel: 'ราคา/หน่วย (NAV)', lgAddBtn: '+ เพิ่ม',
+      lgAmtLabel: 'เงินที่ซื้อ (บาท)', lgNavLabel: 'ราคา/หน่วย (NAV)', lgAddBtn: 'เพิ่ม',
       lgCurLabel: 'NAV ปัจจุบัน (คำนวณกำไร/ขาดทุน)', lgCurPh: 'ราคาต่อหน่วยตอนนี้',
       lgEmptyDefault: 'ยังไม่มีรายการ',
       alertMonthlyAmount: 'ใส่จำนวนเงินซื้อต่อเดือนอย่างน้อยหนึ่งชนิด',
@@ -48,6 +49,7 @@
       alertLgFields: 'กรอกเงินที่ซื้อ และราคา/หน่วย (NAV) ให้ครบ'
     },
     en: {
+      delTitle: 'Delete',
       crumbHome: 'Investing', crumbHere: 'Global Fund (S&P500)',
       pageTitle: 'S&P500 Fund — DCA Planner',
       dcaTitle: 'Dollar-Cost Averaging Plan (DCA)', accMLabel: 'Buy "Accumulation" /month', divMLabel: 'Buy "Dividend" /month',
@@ -60,7 +62,7 @@
       ddTitle: 'Market dip = a chance to add (optional)', idxNowLabel: 'S&P500 index now', idxAthLabel: 'All-time high (ATH)', ddBtn: 'Get recommendation',
       tr10m: 'Small dip', tr20m: 'Bear market', tr30m: 'Sharp dip',
       logTitle: 'My Actual Purchase Log', classField: 'Class', classAcc: 'Accumulation', classDiv: 'Dividend',
-      lgAmtLabel: 'Amount purchased (baht)', lgNavLabel: 'Price/unit (NAV)', lgAddBtn: '+ Add',
+      lgAmtLabel: 'Amount purchased (baht)', lgNavLabel: 'Price/unit (NAV)', lgAddBtn: 'Add',
       lgCurLabel: 'Current NAV (to calculate P/L)', lgCurPh: 'Current price per unit',
       lgEmptyDefault: 'No entries yet',
       alertMonthlyAmount: 'Enter a monthly purchase amount for at least one class',
@@ -122,7 +124,9 @@
   }
 
   /* ── กราฟ: มูลค่ารวม vs เงินใส่ ─────────────────────────────── */
+  var lastChartPlan = null;
   function drawChart(p) {
+    lastChartPlan = p;
     var s = p.acc.series, W = 640, H = 220, pad = 8, n = s.length;
     var val = [], con = [], i;
     for (i = 0; i < n; i++) { val.push(p.acc.series[i].bal + p.div.series[i].bal); con.push(p.acc.series[i].contrib + p.div.series[i].contrib); }
@@ -131,24 +135,25 @@
     var y = function (v) { return pad + (1 - v / max) * (H - 2 * pad); };
     function path(a) { var d = '', i; for (i = 0; i < a.length; i++) d += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(a[i]).toFixed(1) + ' '; return d; }
     var area = path(val) + 'L' + x(n - 1).toFixed(1) + ' ' + y(0).toFixed(1) + ' L' + x(0).toFixed(1) + ' ' + y(0).toFixed(1) + ' Z';
-    var svg = '';
-    svg += '<path d="' + area + '" fill="#12A594" opacity="0.10"/>';
-    svg += '<path d="' + path(con) + '" fill="none" stroke="#8B94A8" stroke-width="1.6" stroke-dasharray="5 3"/>';
-    svg += '<path d="' + path(val) + '" fill="none" stroke="#12A594" stroke-width="2.4" stroke-linejoin="round"/>';
+    var C = window.OmeChartTheme.get(), svg = '';
+    svg += '<path d="' + area + '" fill="' + C.series[0] + '" opacity="0.10"/>';
+    svg += '<path d="' + path(con) + '" fill="none" stroke="' + C.axis + '" stroke-width="1.6" stroke-dasharray="5 3"/>';
+    svg += '<path d="' + path(val) + '" fill="none" stroke="' + C.series[0] + '" stroke-width="2.4" stroke-linejoin="round"/>';
     $('chart').innerHTML = svg;
   }
+  window.OmeChartTheme.onChange(function () { if (lastChartPlan && $('planOut').style.display !== 'none') drawChart(lastChartPlan); });
 
   function yearTable(p) {
-    var html = '<table class="yr-table"><thead><tr><th>' + t('yrTableColYear') + '</th><th>' + t('yrTableColContrib') + '</th><th>' + t('yrTableColValue') + '</th><th>' + t('yrTableColGain') + '</th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('yrTableColYear') + '</th><th>' + t('yrTableColContrib') + '</th><th>' + t('yrTableColValue') + '</th><th>' + t('yrTableColGain') + '</th></tr></thead><tbody>';
     var yrs = Math.round(p.months / 12), i;
     for (i = 1; i <= yrs; i++) {
       var idx = i * 12 - 1;
       if (idx >= p.acc.series.length) break;
       var val = p.acc.series[idx].bal + p.div.series[idx].bal;
       var con = p.acc.series[idx].contrib + p.div.series[idx].contrib;
-      html += '<tr><td>' + t('yrRowLabel', { n: i }) + '</td><td>' + baht(con) + '</td><td>' + baht(val) + '</td><td style="color:var(--ok)">' + baht(val - con) + '</td></tr>';
+      html += '<tr><td>' + t('yrRowLabel', { n: i }) + '</td><td>' + baht(con) + '</td><td>' + baht(val) + '</td><td style="color:var(--ome-ok-ink)">' + baht(val - con) + '</td></tr>';
     }
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     return html;
   }
 
@@ -217,22 +222,22 @@
     var html = '';
     Object.keys(groups).forEach(function (cls) {
       var g = groups[cls], avg = g.units > 0 ? g.amt / g.units : NaN;
-      html += '<div style="font-weight:700;font-size:13px;margin:10px 0 2px">' + classLabel(cls) + '</div>';
-      html += '<div style="font-size:12.5px;color:var(--muted)">' + t('lgGroupSummary', { amt: baht(g.amt), units: fmt(g.units, 4), avg: fmt(avg, 4) });
+      html += '<div class="log-group-hd">' + classLabel(cls) + '</div>';
+      html += '<div class="log-group-sub">' + t('lgGroupSummary', { amt: baht(g.amt), units: fmt(g.units, 4), avg: fmt(avg, 4) });
       if (isFinite(cur)) {
         var val = g.units * cur, pl = val - g.amt, pct = g.amt > 0 ? pl / g.amt * 100 : 0;
-        html += t('lgGroupValueNow', { val: baht(val), color: pl >= 0 ? 'var(--ok)' : 'var(--err)', sign: pl >= 0 ? '+' : '−', pl: baht(Math.abs(pl)), sign2: pct >= 0 ? '+' : '', pct: fmt(pct, 1) });
+        html += t('lgGroupValueNow', { val: baht(val), color: pl >= 0 ? 'var(--ome-ok-ink)' : 'var(--ome-err-ink)', sign: pl >= 0 ? '+' : '−', pl: baht(Math.abs(pl)), sign2: pct >= 0 ? '+' : '', pct: fmt(pct, 1) });
       }
       html += '</div>';
     });
 
-    html += '<table class="log-table"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThClass') + '</th><th>' + t('logThAmt') + '</th><th>' + t('logThNav') + '</th><th>' + t('logThUnits') + '</th><th></th></tr></thead><tbody>';
+    html += '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThClass') + '</th><th>' + t('logThAmt') + '</th><th>' + t('logThNav') + '</th><th>' + t('logThUnits') + '</th><th></th></tr></thead><tbody>';
     log.forEach(function (r, i) {
       html += '<tr><td>' + new Date(r.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
         '<td>' + classLabel(r.cls) + '</td><td>' + baht(r.amt) + '</td><td>' + fmt(r.nav, 4) + '</td><td>' + fmt(r.units, 4) + '</td>' +
-        '<td><button class="log-del" data-i="' + i + '">✕</button></td></tr>';
+        '<td><button class="btn sm ghost icon log-del" aria-label="' + t('delTitle') + '" data-i="' + i + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('.log-del'), function (b) {
       b.addEventListener('click', function () { var log = loadLog(); log.splice(+b.getAttribute('data-i'), 1); saveLog(log); renderLog(); });
