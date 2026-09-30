@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v565';
+const CACHE = 'ome-v566';
 const PRECACHE = [
   './',
   './index.html',
@@ -157,6 +157,14 @@ const PRECACHE = [
   './theme-preview.html',
   './theme-preview.js',
   './shell.js',
+  './data-registry.js',
+  './tanot-data.js',
+  './data-import.js',
+  './drive-backup.js',
+  './data.html',
+  './data.js',
+  './migrate.html',
+  './migrate.js',
   './auth-gate.js',
   './manifest.json',
   './icon-192.png',

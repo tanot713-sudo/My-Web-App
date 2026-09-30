@@ -24,10 +24,19 @@ module.exports = defineConfig({
     timezoneId: 'Asia/Bangkok',
     locale: 'en-US',
   },
-  webServer: {
-    command: `python3 -m http.server ${PORT}`,
-    cwd: ROOT,
-    url: `http://localhost:${PORT}/index.html`,
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command: `python3 -m http.server ${PORT}`,
+      cwd: ROOT,
+      url: `http://localhost:${PORT}/index.html`,
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      // sync.spec.js / migrate.spec.js: static + /api/sync ตัวจริงบน SQLite (node:sqlite)
+      command: 'node --no-warnings sync-server.mjs 8124',
+      cwd: __dirname,
+      url: 'http://localhost:8124/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
 });

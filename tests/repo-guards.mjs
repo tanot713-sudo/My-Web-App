@@ -98,6 +98,17 @@ else ok('credits', `${used.size} ไลบรารีมีใน credits.html 
   else ok('theme-boot', 'ทุกหน้าที่ใช้ theme.css โหลด theme-boot.js ก่อน');
 }
 
+/* ── 8. ทุกหน้าที่โหลด theme-boot.js ต้องโหลด data-registry.js + tanot-data.js ต่อทันที (ซิงก์ Phase 1 ดักจับ storage ก่อนสคริปต์ของหน้า) ── */
+{
+  const bad = tracked.filter((f) => /^[^/]+\.html$/.test(f)).filter((f) => {
+    const h = read(f);
+    return h.includes('<script src="theme-boot.js"></script>') &&
+      !h.includes('<script src="theme-boot.js"></script>\n<script src="data-registry.js"></script>\n<script src="tanot-data.js"></script>');
+  });
+  if (bad.length) fail('tanot-data', `ไม่มี data-registry.js + tanot-data.js ต่อจาก theme-boot.js: ${bad.join(', ')}`);
+  else ok('tanot-data', 'ทุกหน้าโหลด tanot-data.js ใน <head>');
+}
+
 /* ── 1. bump CACHE ── */
 {
   const base = process.env.GUARD_BASE || 'origin/main';
