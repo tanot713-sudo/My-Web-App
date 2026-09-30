@@ -235,3 +235,144 @@ test('ทุกหน้าในเมนูโหลดได้ขณะเ�
   expect(A.errors).toEqual([]);
   await A.ctx.close();
 });
+
+/* ── regression: จุดที่ข้อมูลหาย/เขียนทับกันที่เจอตอนรีวิว ── */
+
+function replaceAllNotes(notes) {
+  return new Promise((res) => {
+    const r = indexedDB.open('tanot-barprep', 1);
+    r.onsuccess = () => {
+      const tx = r.result.transaction('notes', 'readwrite'), os = tx.objectStore('notes');
+      os.clear(); notes.forEach((n) => os.put(n));
+      tx.oncomplete = () => { r.result.close(); setTimeout(res, 50); };
+    };
+  });
+}
+
+test('หลายแท็บ: คิวรอส่งของแท็บหนึ่งไม่ถูกอีกแท็บลบทิ้ง', async ({ browser, request }) => {
+  const A = await device(browser);
+  await sync(A.page);
+  const tab2 = await A.ctx.newPage();
+  await tab2.route('**/api/sync**', (r) => r.abort()); // แท็บ 2 ถูกปิดก่อนได้ซิงก์เอง
+  await tab2.goto('/credits.html');
+  await set(A.page, 'tanot:music:xp', '1');
+  await set(tab2, 'tanot:cooking:xp', '2');
+  await sync(A.page);
+  await tab2.close();
+  await A.page.reload();
+  expect((await sync(A.page)).state).toBe('ok');
+  const ids = (await (await request.get(SYNC + '/__dump')).json()).map((d) => d.id);
+  expect(ids).toContain('tanot:music:xp');
+  expect(ids).toContain('tanot:cooking:xp');
+  await A.ctx.close();
+});
+
+test('IndexedDB หลายแท็บ: แท็บที่ถือโน้ตเก่า clear() แล้วเขียนทับ ไม่ลบโน้ตที่อีกแท็บดึงมา', async ({ browser }) => {
+  const A = await device(browser, { idb: [{ id: 'n1', t: 'a' }] });
+  await sync(A.page);
+  const B = await device(browser);
+  await sync(B.page);
+  const B2 = await B.ctx.newPage(); // หน้าโน้ตเปิดค้างอีกแท็บ
+  await B2.goto('/credits.html');
+  const notesB2 = await B2.evaluate(readIdb);
+  await A.page.evaluate(seedIdb, [{ id: 'n2', t: 'from A' }]);
+  await sync(A.page); await sync(B.page); // แท็บ 1 ของ B ดึง n2 มา
+  await B2.evaluate(replaceAllNotes, notesB2.concat([{ id: 'n3', t: 'from B2' }]));
+  expect((await B2.evaluate(readIdb)).map((n) => n.id)).toEqual(['n1', 'n2', 'n3']);
+  await sync(B2); await sync(A.page);
+  expect((await A.page.evaluate(readIdb)).map((n) => n.id)).toEqual(['n1', 'n2', 'n3']);
+  await A.ctx.close(); await B.ctx.close();
+});
+
+function addReport(name) {
+  return new Promise((res) => {
+    const r = indexedDB.open('tanot-report-dashboard', 2);
+    r.onupgradeneeded = () => { r.result.createObjectStore('current', { keyPath: 'id' }); r.result.createObjectStore('reports', { keyPath: 'id', autoIncrement: true }); };
+    r.onsuccess = () => {
+      const tx = r.result.transaction('reports', 'readwrite');
+      tx.objectStore('reports').add({ name });
+      tx.oncomplete = () => { r.result.close(); res(); };
+    };
+  });
+}
+function readReports() {
+  return new Promise((res) => {
+    const r = indexedDB.open('tanot-report-dashboard');
+    r.onsuccess = () => {
+      const d = r.result;
+      if (!d.objectStoreNames.contains('reports')) { d.close(); res([]); return; }
+      const q = d.transaction('reports').objectStore('reports').getAll();
+      q.onsuccess = () => { d.close(); res(q.result.map((x) => x.name).sort()); };
+    };
+  });
+}
+
+test('คลังรายงาน (id autoIncrement): 2 เครื่องมีรายงาน id ซ้ำกัน ไม่ทับกัน', async ({ browser }) => {
+  const A = await device(browser);
+  await A.page.evaluate(addReport, 'report-A');
+  const B = await device(browser);
+  await B.page.evaluate(addReport, 'report-B');
+  await sync(A.page); await sync(B.page); await sync(A.page);
+  expect(await A.page.evaluate(readReports)).toContain('report-A');
+  expect(await B.page.evaluate(readReports)).toContain('report-B');
+  await A.ctx.close(); await B.ctx.close();
+});
+
+test('budget.html บน pages.dev: Firebase ที่ค้างข้อมูลเก่าไม่เขียนทับ/ลบรายการที่มาจาก D1', async ({ browser }) => {
+  const rec = (id) => ({ id, date: '2026-09-01', type: 'expense', categoryId: 'cat-rice', amount: 10, note: '' });
+  const B = await device(browser, { seed: { 'budget:records': JSON.stringify([rec('r1'), rec('rB')]) } });
+  await sync(B.page);
+  const A = await device(browser, { seed: { 'budget:records': JSON.stringify([rec('r1')]) } });
+  // Firebase จำลอง: เคยล็อกอินไว้แล้ว (onAuthStateChanged เรียก onSignedIn เองตอนโหลด) ข้อมูลบน Firebase ยังเป็นชุดเก่า
+  await A.page.route('**/firebase-sync.js', (r) => r.fulfill({ contentType: 'text/javascript', body:
+    'window.FirebaseSync={connect:function(b,o){setTimeout(function(){o.onSignedIn("u")},0);return{signIn:function(){},signOut:function(){},' +
+    'write:function(){return Promise.resolve()},watch:function(p,cb){(window.__fbWatch=window.__fbWatch||{})[p]=cb;return function(){}}}}};' }));
+  await sync(A.page);
+  await A.page.goto('/budget.html');
+  await A.page.waitForTimeout(300);
+  await A.page.evaluate((stale) => window.__fbWatch && window.__fbWatch.records && window.__fbWatch.records(stale), [rec('r1')]);
+  await sync(A.page); await sync(B.page);
+  expect(JSON.parse(await get(B.page, 'budget:records')).map((r) => r.id).sort()).toEqual(['r1', 'rB']);
+  expect(JSON.parse(await get(A.page, 'budget:records')).map((r) => r.id).sort()).toEqual(['r1', 'rB']);
+  await A.ctx.close(); await B.ctx.close();
+});
+
+test('รายการที่เซิร์ฟเวอร์ไม่รับ (id ว่าง) ไม่ทำให้ทั้งรอบซิงก์ล้มตลอดไป', async ({ browser }) => {
+  const A = await device(browser, { seed: { 'lang-practice:srs': JSON.stringify({ '': { due: 1 }, ok: { due: 2 } }), 'tanot:music:xp': '5' } });
+  expect((await sync(A.page)).state).toBe('ok');
+  const B = await device(browser);
+  await sync(B.page);
+  expect(await get(B.page, 'tanot:music:xp')).toBe('5');
+  expect(JSON.parse(await get(B.page, 'lang-practice:srs'))).toEqual({ ok: { due: 2 } });
+  expect(JSON.parse(await get(A.page, 'lang-practice:srs'))).toEqual({ '': { due: 1 }, ok: { due: 2 } });
+  await A.ctx.close(); await B.ctx.close();
+});
+
+test('คีย์ซิงก์หายหมดทุกคีย์แม้มีไม่ถึง 6 คีย์ → ไม่ส่งการลบขึ้นไป', async ({ browser, request }) => {
+  const A = await device(browser, { seed: { 'budget:records': JSON.stringify([{ id: 'r1' }]), 'tanot:music:xp': '3' } });
+  await sync(A.page);
+  await A.page.evaluate(() => ['budget:records', 'tanot:music:xp', 'budget:categories'].forEach((k) => Storage.prototype.removeItem.call(localStorage, k)));
+  await A.page.evaluate(() => localStorage.setItem('tanot-sync:dirty', '{}'));
+  await A.page.reload();
+  await sync(A.page);
+  const dump = await (await request.get(SYNC + '/__dump')).json();
+  expect(dump.filter((d) => d.deleted).length).toBe(0);
+  expect(await get(A.page, 'tanot:music:xp')).toBe('3');
+  await A.ctx.close();
+});
+
+test('นำเข้าแบบเลือกใช้ของที่นำเข้า: ค่าเดิมใน IndexedDB ถูกเก็บลง stash ก่อนเขียนทับ', async ({ browser }) => {
+  const A = await device(browser, { idb: [{ id: 'n1', t: 'ของเดิม' }] });
+  const stash = await A.page.evaluate(async () => {
+    const TD = window.TanotData;
+    const plan = await TD.planImport({ format: 'tanot-snapshot', v: 1, at: 1, origin: 'x', ls: {}, idb: { 'tanot-barprep': { notes: [{ key: 'n1', value: { id: 'n1', t: 'นำเข้า' } }] } } });
+    const i = plan.items.findIndex((it) => it.status === 'conflict');
+    await TD.applyImport(plan, { [i]: 'incoming' }, 'test');
+    return new Promise((res) => {
+      const r = indexedDB.open('tanot-data');
+      r.onsuccess = () => { const q = r.result.transaction('stash').objectStore('stash').getAll(); q.onsuccess = () => res(q.result); };
+    });
+  });
+  expect(JSON.stringify(stash[stash.length - 1].replaced)).toContain('ของเดิม');
+  await A.ctx.close();
+});

@@ -32,10 +32,17 @@ module.exports = defineConfig({
       reuseExistingServer: !process.env.CI,
     },
     {
-      // sync.spec.js / migrate.spec.js: static + /api/sync ตัวจริงบน SQLite (node:sqlite)
+      // sync.spec.js: static + /api/sync ตัวจริงบน SQLite (node:sqlite)
       command: 'node --no-warnings sync-server.mjs 8124',
       cwd: __dirname,
       url: 'http://localhost:8124/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      // migrate.spec.js ใช้เซิร์ฟเวอร์แยก — ถ้าใช้ฐานข้อมูลเดียวกับ sync.spec.js ที่รันขนานกัน ข้อมูลของอีกไฟล์จะโผล่มาในตารางตรวจ
+      command: 'node --no-warnings sync-server.mjs 8125',
+      cwd: __dirname,
+      url: 'http://localhost:8125/index.html',
       reuseExistingServer: !process.env.CI,
     },
   ],

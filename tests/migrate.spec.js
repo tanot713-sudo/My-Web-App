@@ -2,8 +2,8 @@
 const { test, expect } = require('@playwright/test');
 const { prepare } = require('./helpers');
 
-const GH = 'http://127.0.0.1:8124';
-const PD = 'http://localhost:8124';
+const GH = 'http://127.0.0.1:8125';
+const PD = 'http://localhost:8125';
 test.describe.configure({ mode: 'serial' });
 
 const SOURCE = {
@@ -44,7 +44,7 @@ test('ย้ายจาก github.io → pages.dev: ครบ ตรวจแ�
   await ctx.addInitScript((pd) => {
     if (location.origin === pd) {
       window.TANOT_SYNC = { enabled: true, initialDelay: 60000, interval: 1e9 };
-      window.TANOT_MIGRATE = { exportUrl: 'http://127.0.0.1:8124/migrate-export.html' };
+      window.TANOT_MIGRATE = { exportUrl: 'http://127.0.0.1:8125/migrate-export.html' };
     }
   }, PD);
 

@@ -81,8 +81,10 @@
      บนเครื่องที่ยังไม่เคยเปิดหน้านั้น) ทุก store ต้องมี keyPath */
   var IDB = [
     { db: 'tanot-barprep', version: 1, stores: { notes: { keyPath: 'id' } }, sync: ['notes'] },
+    // reports ใช้ id แบบ autoIncrement — แต่ละเครื่องนับ 1,2,3… เอง รายงานคนละฉบับจากคนละเครื่องได้ id ซ้ำแล้วทับกัน → ย้าย/สำรองเท่านั้น
+    // (ซิงก์ได้เมื่อหน้าเปลี่ยนไปใช้ id ที่ไม่ซ้ำข้ามเครื่อง) ห้ามใส่ store แบบ autoIncrement ใน sync
     { db: 'tanot-report-dashboard', version: 2,
-      stores: { current: { keyPath: 'id' }, reports: { keyPath: 'id', autoIncrement: true } }, sync: ['reports'] },
+      stores: { current: { keyPath: 'id' }, reports: { keyPath: 'id', autoIncrement: true } }, sync: [] },
     { db: 'tanot-sim3d', version: 1, stores: { models: { keyPath: 'id', autoIncrement: true } }, sync: [] } // ไฟล์ 3D ไบนารี — ย้าย/สำรองเท่านั้น
   ];
 
@@ -109,7 +111,10 @@
   }
 
   function idbSpec(db) { for (var i = 0; i < IDB.length; i++) if (IDB[i].db === db) return IDB[i]; return null; }
-  function idbSynced(db, store) { var s = idbSpec(db); return !!(s && s.sync.indexOf(store) !== -1); }
+  function idbSynced(db, store) {
+    var s = idbSpec(db);
+    return !!(s && s.sync.indexOf(store) !== -1 && s.stores[store] && !s.stores[store].autoIncrement);
+  }
 
   window.TanotRegistry = { version: 1, ls: LS, idb: IDB, classify: classify, idbSpec: idbSpec, idbSynced: idbSynced };
 })();

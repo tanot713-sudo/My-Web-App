@@ -280,14 +280,17 @@
   var pageBase = Object.create(null);    // ค่าที่หน้านี้อ่าน/เขียนล่าสุด
   var remoteBefore = Object.create(null); // ค่าก่อนเครื่องอื่นเปลี่ยนครั้งแรกในรอบหน้านี้
   var pageRead = Object.create(null);
-  var dirtyMem = null;
 
-  function dirtyMap() {
-    if (!dirtyMem) { dirtyMem = parse(lsGet(DIRTY_KEY) || '{}'); if (!isObj(dirtyMem)) dirtyMem = {}; }
-    return dirtyMem;
+  // คิวอ่าน/เขียนจาก localStorage ทุกครั้ง (ไม่แคชในหน่วยความจำ) — หลายแท็บใช้คิวเดียวกัน แท็บหนึ่งต้องไม่เขียนทับ/ลบคิวของอีกแท็บ
+  function dirtyMap() { var m = parse(lsGet(DIRTY_KEY) || '{}'); return isObj(m) ? m : {}; }
+  function saveDirty(m) { try { lsSet(DIRTY_KEY, JSON.stringify(m)); } catch (e) {} }
+  function markDirty(k) {
+    var m = dirtyMap();
+    m[k] = Math.max(Date.now(), (m[k] || 0) + 1); // เพิ่มขึ้นเสมอ — clearDirty จะได้รู้ว่ามีการแก้ใหม่ระหว่างส่ง
+    saveDirty(m); schedule(2000);
   }
-  function saveDirty() { try { lsSet(DIRTY_KEY, JSON.stringify(dirtyMem || {})); } catch (e) {} }
-  function markDirty(k) { dirtyMap()[k] = Date.now(); saveDirty(); schedule(2000); }
+  // เอาออกจากคิวเฉพาะเมื่อไม่มีใครแก้คีย์นี้ใหม่หลังจากที่อ่าน ts ไว้
+  function clearDirty(k, ts) { var m = dirtyMap(); if (k in m && m[k] === ts) { delete m[k]; saveDirty(m); } }
 
   if (ENABLED) {
     SP.getItem = function (k) {
@@ -319,7 +322,7 @@
       // ไม่ส่งการลบทั้งหมดขึ้นเซิร์ฟเวอร์ (อันตรายเกิน) — ดึงข้อมูลกลับมาใหม่ในรอบถัดไปแทน
       return function () {
         var r = origClear.apply(this, arguments);
-        if (this === LS && !internal) { dirtyMem = {}; resetRequested = true; schedule(500); }
+        if (this === LS && !internal) { resetRequested = true; schedule(500); }
         return r;
       };
     })(SP.clear);
@@ -327,7 +330,6 @@
 
   /* ══════════════ ตัวดักจับ IndexedDB (store ที่ซิงก์) ══════════════ */
   var idbSeen = Object.create(null);      // 'db/store' → {idString:1} ที่หน้าอ่านเห็นแล้ว
-  var idbRemote = Object.create(null);    // 'db/store' → {idString: value} ที่เครื่องอื่นเขียนเข้ามาในรอบหน้านี้
   var txPuts = new WeakMap();
   function storeTag(os) { try { return os.transaction.db.name + '/' + os.name; } catch (e) { return ''; } }
   function osSynced(os) { var t = storeTag(os); var i = t.indexOf('/'); return i > 0 && REG.idbSynced(t.slice(0, i), t.slice(i + 1)); }
@@ -379,20 +381,24 @@
       if (internal || !osSynced(this)) return origClear.apply(this, arguments);
       var os = this, tag = storeTag(os), tx = os.transaction, db = tx.db, name = os.name;
       markDirty('idb:' + tag);
-      var remote = idbRemote[tag];
-      if (remote) {
-        // รายการที่มาจากเครื่องอื่นหลังหน้าโหลดข้อมูลไปแล้ว หน้าไม่รู้จัก → ถ้าหน้าไม่ได้ใส่กลับ ให้คืนหลัง transaction จบ
-        tx.addEventListener('complete', function () {
-          var set = txPuts.get(tx) || {}, seen = idbSeen[tag] || {};
-          var restore = Object.keys(remote).filter(function (id) { return !set[tag + '|' + id] && !seen[id]; });
-          if (!restore.length) return;
-          internal++;
-          try {
-            var t2 = db.transaction(name, 'readwrite'), o2 = t2.objectStore(name);
-            restore.forEach(function (id) { o2.put(remote[id]); });
-          } catch (e) {} finally { internal--; }
+      // รายการที่อยู่ใน store ก่อน clear แต่หน้านี้ไม่เคยอ่านเห็น (มาจากเครื่องอื่น/แท็บอื่นหลังหน้าโหลดข้อมูลไปแล้ว)
+      // → ถ้าหน้าไม่ได้ใส่กลับใน transaction เดียวกัน ให้คืนหลัง transaction จบ (หน้าจะลบได้เฉพาะรายการที่เคยเห็น)
+      var before = origGetAll.call(os);
+      tx.addEventListener('complete', function () {
+        var set = txPuts.get(tx) || {}, seen = idbSeen[tag] || {};
+        var restore = (before.result || []).filter(function (v) {
+          var k = keyOf(os, v);
+          if (k === undefined) return false;
+          var id = JSON.stringify(k);
+          return !set[tag + '|' + id] && !seen[id];
         });
-      }
+        if (!restore.length) return;
+        internal++;
+        try {
+          var t2 = db.transaction(name, 'readwrite'), o2 = t2.objectStore(name);
+          restore.forEach(function (v) { o2.put(v); });
+        } catch (e) {} finally { internal--; }
+      });
       return origClear.apply(this, arguments);
     };
   }
@@ -523,18 +529,16 @@
     }
     return openOrCreate(t.spec).then(function (db) {
       if (!db) return;
-      var remote = idbRemote[t.tag] || (idbRemote[t.tag] = {});
       internal++;
       var done;
       try {
         var tx = db.transaction(t.store, 'readwrite'), os = tx.objectStore(t.store);
         Object.keys(changes).forEach(function (id) {
           var key = JSON.parse(id);
-          if (changes[id] == null) { os.delete(key); delete remote[id]; return; }
+          if (changes[id] == null) { os.delete(key); return; }
           var val = decode(JSON.parse(changes[id]));
           if (typeof os.keyPath === 'string' && val && typeof val === 'object') val[os.keyPath] = key;
           os.put(val);
-          remote[id] = val;
         });
         done = txDone(tx);
       } finally { internal--; }
@@ -570,21 +574,25 @@
   }
 
   /* ส่งส่วนต่างของทุกคีย์ที่ถูกแก้ */
+  function targetFor(tkey) { return tkey.indexOf('idb:') === 0 ? targetOf(tkey, '') : { type: 'ls', key: tkey, rule: classify(tkey) }; }
+  // ต้องตรงกับ validDoc ใน functions/api/sync.js — ถ้าส่งรายการที่เซิร์ฟเวอร์ไม่รับ ทั้งชุดจะได้ 400 และซิงก์ล้มทุกรอบ จึงเก็บไว้ในเครื่องแทน
+  function sendable(ns, id) { return ns.length <= 256 && id.length > 0 && id.length <= 1024; }
   function push(fullCheck) {
-    var dm = dirtyMap();
     return (fullCheck ? reconcile() : Promise.resolve()).then(function () {
+      var dm = dirtyMap();
       var keys = Object.keys(dm);
       var out = [];
       return keys.reduce(function (p, tkey) {
         return p.then(function () {
-          var t = tkey.indexOf('idb:') === 0 ? targetOf(tkey, '') : { type: 'ls', key: tkey, rule: classify(tkey) };
-          if (!t || (t.type === 'ls' && t.rule.kind !== 'sync')) { delete dm[tkey]; return; }
+          var t = targetFor(tkey);
+          if (!t || (t.type === 'ls' && t.rule.kind !== 'sync')) { clearDirty(tkey, dm[tkey]); return; }
           return Promise.all([currentDocs(t), shadowFor(t)]).then(function (r) {
             var cur = r[0], sh = r[1], ns = nsOfTarget(t), ts = dm[tkey] || Date.now();
             if (cur === null) { status.skipped.push(tkey); return; }
             Object.keys(cur).forEach(function (id) {
               var s = sh[id];
               if (s && !s.deleted && s.data === cur[id]) return;
+              if (!sendable(ns, id)) { status.skipped.push(tkey + ' ' + JSON.stringify(id)); return; }
               if (cur[id].length > MAX_DOC) { status.skipped.push(tkey + ' (ใหญ่เกิน)'); return; }
               out.push({ t: t, tkey: tkey, doc: { ns: ns, id: id, data: cur[id], updated_at: ts, deleted: 0 } });
             });
@@ -594,19 +602,19 @@
           });
         });
       }, Promise.resolve()).then(function () { return sendAll(out); }).then(function () {
-        // คีย์ที่ไม่มีส่วนต่างเหลือแล้ว → เอาออกจากคิว
-        return Promise.all(Object.keys(dm).map(function (tkey) {
-          var t = tkey.indexOf('idb:') === 0 ? targetOf(tkey, '') : { type: 'ls', key: tkey, rule: classify(tkey) };
-          if (!t) return null;
+        // คีย์ที่ไม่มีส่วนต่างเหลือแล้ว → เอาออกจากคิว (ถ้าระหว่างนี้มีการแก้ใหม่ ts จะเปลี่ยน clearDirty จะไม่ลบ)
+        return Promise.all(keys.map(function (tkey) {
+          var t = targetFor(tkey), ts0 = dirtyMap()[tkey];
+          if (!t || ts0 === undefined) return null;
           return Promise.all([currentDocs(t), shadowFor(t)]).then(function (r) {
-            var cur = r[0], sh = r[1];
+            var cur = r[0], sh = r[1], ns = nsOfTarget(t);
             if (cur === null) return;
-            var diff = Object.keys(cur).some(function (id) { return !sh[id] || sh[id].deleted || sh[id].data !== cur[id]; }) ||
+            var diff = Object.keys(cur).some(function (id) { return sendable(ns, id) && (!sh[id] || sh[id].deleted || sh[id].data !== cur[id]); }) ||
               Object.keys(sh).some(function (id) { return !(id in cur) && !sh[id].deleted; });
-            if (!diff) delete dm[tkey];
+            if (!diff) clearDirty(tkey, ts0);
           });
         }));
-      }).then(function () { saveDirty(); return saveKeyState(); });
+      }).then(function () { return saveKeyState(); });
     });
   }
 
@@ -633,8 +641,6 @@
             var groups = {};
             res.rejected.forEach(function (d) {
               var t = targetOf(d.ns, d.id); if (!t) return;
-              var tk = targetKey(t);
-              delete dirtyMap()[tk];
               (groups[d.ns + (d.ns === 'ls' ? '\u0000' + d.id : '')] = groups[d.ns + (d.ns === 'ls' ? '\u0000' + d.id : '')] || { t: t, docs: [] }).docs.push(d);
             });
             return Object.keys(groups).reduce(function (p2, g) { return p2.then(function () { return applyRemote(groups[g].t, groups[g].docs); }); }, Promise.resolve());
@@ -658,10 +664,12 @@
       if (ks) {
         var gone = Object.keys(ks).filter(function (k) { return k.indexOf('idb:') !== 0 && !present[k]; });
         var known = Object.keys(ks).filter(function (k) { return k.indexOf('idb:') !== 0; }).length;
-        if (gone.length > 5 && gone.length > known / 2) { resetRequested = true; return; } // storage หายยกชุด ไม่ใช่ผู้ใช้ลบ
+        // storage หายยกชุด ไม่ใช่ผู้ใช้ลบ (รวมกรณีหายครบทุกคีย์แม้มีไม่กี่คีย์)
+        if (gone.length && (gone.length === known || (gone.length > 5 && gone.length > known / 2))) { resetRequested = true; return; }
         gone.forEach(function (k) { if (!dm[k]) dm[k] = now; });
       }
       REG.idb.forEach(function (spec) { spec.sync.forEach(function (s) { var k = 'idb:' + spec.db + '/' + s; if (!(k in dm)) dm[k] = 0; }); });
+      saveDirty(dm);
     });
   }
   function saveKeyState() {
@@ -871,7 +879,22 @@
   }
   function snapshotReplaced(todo, replaced) {
     todo.forEach(function (it) { if (it.type === 'ls') { var c = lsGet(it.key); if (c != null) replaced[it.key] = c; } });
-    return Promise.resolve();
+    // ระเบียน IndexedDB ที่จะถูกเขียนทับ (conflict ที่เลือกใช้ของที่นำเข้า) — เก็บค่าเดิมด้วย ไม่ใช่แค่ localStorage
+    var idbItems = todo.filter(function (it) { return it.type === 'idb' && it.status === 'conflict'; });
+    return idbItems.reduce(function (p, it) {
+      return p.then(function () {
+        return openExisting(it.db).then(function (db) {
+          if (!db) return;
+          if (!db.objectStoreNames.contains(it.store)) { db.close(); return; }
+          internal++;
+          var r;
+          try { r = reqP(db.transaction(it.store).objectStore(it.store).get(it.key)); } finally { internal--; }
+          return r.then(function (v) { db.close(); return v === undefined ? null : encodeDeep(v); }).then(function (v) {
+            if (v != null) replaced['idb:' + it.db + '/' + it.store + ' ' + JSON.stringify(it.key)] = v;
+          });
+        });
+      });
+    }, Promise.resolve());
   }
   function verifyImport(todo, failed) {
     var ok = 0, bad = failed.slice();

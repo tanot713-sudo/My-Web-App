@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════════════
    drive-backup.js — สำรอง snapshot ข้อมูลทั้งเว็บขึ้น Google Drive ของเจ้าของ (แทน DriveSync ที่ก๊อปแยก 12 หน้า)
-   1 ไฟล์ต่อวัน: OME_Progress/tanot-backup-YYYY-MM-DD.json (วันเดียวกันเขียนทับ) — รูปแบบเดียวกับไฟล์ย้ายข้อมูล
+   1 ไฟล์ต่อวันต่อเครื่อง: OME_Progress/tanot-backup-YYYY-MM-DD-<device>.json (วันเดียวกันเครื่องเดียวกันเขียนทับ) — รูปแบบเดียวกับไฟล์ย้ายข้อมูล
    กู้คืน = ดาวน์โหลดไฟล์แล้วผ่านตารางตรวจของ TanotData.planImport (ไม่เขียนทับจนกว่าจะกดนำเข้า)
    ใช้ OAuth client เดิม (scope drive.file = เห็นเฉพาะไฟล์ที่เว็บนี้สร้าง)
    ══════════════════════════════════════════════════════════════════ */
@@ -13,6 +13,7 @@ window.DriveBackup = (function () {
   var PREFIX = 'tanot-backup-';
   var API = 'https://www.googleapis.com';
   var LAST_KEY = 'tanot-sync:driveBackupAt';
+  var DEVICE_KEY = 'tanot-sync:device'; // ตัวเดียวกับ tanot-data.js
 
   var token = null, tokenClient = null, folderId = null, gisP = null;
 
@@ -66,8 +67,15 @@ window.DriveBackup = (function () {
       return authFetch(API + '/drive/v3/files?q=' + q + '&orderBy=name desc&pageSize=60&fields=files(id,name,size,modifiedTime)');
     }).then(function (r) { return r.json(); }).then(function (d) { return d.files || []; });
   }
+  // แยกไฟล์ต่อเครื่อง — 2 เครื่องสำรองวันเดียวกันต้องไม่ทับไฟล์ของกันและกัน (ค่าเฉพาะเครื่อง/ไฟล์ 3D ไม่ได้ซิงก์ มีแค่ในไฟล์ของเครื่องนั้น)
+  function deviceTag() {
+    var d = null;
+    try { d = localStorage.getItem(DEVICE_KEY); } catch (e) {}
+    if (!d) { d = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); try { localStorage.setItem(DEVICE_KEY, d); } catch (e) {} }
+    return d;
+  }
   function backupNow() {
-    var name = PREFIX + new Date().toISOString().slice(0, 10) + '.json';
+    var name = PREFIX + new Date().toISOString().slice(0, 10) + '-' + deviceTag() + '.json';
     return Promise.all([window.TanotData.snapshot(), connect().then(ensureFolder)]).then(function (r) {
       var snap = r[0], fid = r[1];
       var q = encodeURIComponent("name='" + name + "' and '" + fid + "' in parents and trashed=false");
