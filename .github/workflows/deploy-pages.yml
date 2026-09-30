@@ -60,8 +60,6 @@ jobs:
       - name: smoke (ทุกหน้าในเมนู)
         run: npx playwright test smoke.spec.js
       - name: visual (เทียบ baseline)
-        # ยังไม่บล็อก deploy: baseline ถูกสร้างจากเครื่องอื่น ฟอนต์ระบบอาจต่างจาก runner จนกว่าจะ regenerate จาก CI ครั้งแรก
-        continue-on-error: true
         run: npx playwright test visual.spec.js
       - name: Upload Playwright report
         if: always()
