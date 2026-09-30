@@ -3,6 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -33,8 +34,48 @@ jobs:
           done
           exit $status
 
+  tests:
+    # Phase 0b — ชุดทดสอบใน tests/ (มี package.json ของตัวเอง ไม่มีที่ root)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # repo-guards ต้องเทียบกับ base commit
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+      - run: npm ci
+      - name: repo-guards (bump CACHE / PRECACHE / ขนาดไฟล์ / languages.compiled.js / credits)
+        env:
+          GUARD_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: node repo-guards.mjs
+      - run: npx playwright install --with-deps chromium
+      - name: smoke (ทุกหน้าในเมนู)
+        run: npx playwright test smoke.spec.js
+      - name: visual (เทียบ baseline)
+        # ยังไม่บล็อก deploy: baseline ถูกสร้างจากเครื่องอื่น ฟอนต์ระบบอาจต่างจาก runner จนกว่าจะ regenerate จาก CI ครั้งแรก
+        continue-on-error: true
+        run: npx playwright test visual.spec.js
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            tests/playwright-report
+            tests/test-results
+          if-no-files-found: ignore
+
   deploy:
-    needs: check
+    if: github.event_name != 'pull_request'
+    needs: [check, tests]
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
