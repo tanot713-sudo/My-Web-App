@@ -5,6 +5,7 @@
 //  4. languages.compiled.js ต้องตรงกับที่ build จาก languages.jsx
 //  5. CDN/vendor ที่ใช้ต้องมีใน credits.html
 //  6. ห้ามมี package.json ที่ root (Pages จะรัน npm install ทุก build)
+//  7. ทุกหน้าที่ใช้ theme.css โหลด theme-boot.js ก่อน
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -65,7 +66,7 @@ try {
 const credits = read('credits.html').toLowerCase();
 // ช่องโหว่เดิมที่มีอยู่ก่อนเพิ่มตัวตรวจ — รอเจ้าของเติมใน credits.html แล้วค่อยลบออกจากลิสต์นี้ (ห้ามเพิ่มรายการใหม่ที่นี่)
 const CREDITS_BASELINE = new Set([
-  'onnxruntime-web', 'opencascade.js', 'react', 'react-dom', '@babel/standalone', 'lucide', 'tailwindcss',
+  'onnxruntime-web', 'opencascade.js', 'react', 'react-dom', '@babel/standalone', 'tailwindcss',
   'codemirror', 'hanzi-writer', '@k1low/hanzi-writer-data-jp', 'frappe-gantt', 'pyodide', 'luckyexcel', 'planegcs',
 ]);
 const used = new Set();
@@ -83,6 +84,19 @@ const ALIAS = { 'pdfjs-dist': 'pdf.js' };
 const notCredited = [...used].filter((n) => !credits.includes((ALIAS[n] || n).toLowerCase().replace(/^@[^/]+\//, '')) && !CREDITS_BASELINE.has(n));
 if (notCredited.length) fail('credits', `ไลบรารีที่ใช้แต่ไม่มีใน credits.html: ${notCredited.join(', ')}`);
 else ok('credits', `${used.size} ไลบรารีมีใน credits.html (หรืออยู่ใน baseline)`);
+
+/* ── 7. ทุกหน้าที่ใช้ theme.css ต้องโหลด theme-boot.js ก่อน (ไม่ defer) — ไม่งั้นจอกะพริบ และ shell.js ไม่มี OmeTheme ── */
+{
+  const bad = tracked.filter((f) => /^[^/]+\.html$/.test(f)).filter((f) => {
+    const h = read(f);
+    const css = h.indexOf('href="theme.css"');
+    if (css < 0) return false;
+    const boot = h.search(/<script src="theme-boot\.js"><\/script>/);
+    return boot < 0 || boot > css;
+  });
+  if (bad.length) fail('theme-boot', `ไม่มี <script src="theme-boot.js"></script> ก่อน theme.css: ${bad.join(', ')}`);
+  else ok('theme-boot', 'ทุกหน้าที่ใช้ theme.css โหลด theme-boot.js ก่อน');
+}
 
 /* ── 1. bump CACHE ── */
 {

@@ -3,6 +3,16 @@
 เอกสารนี้บันทึกโทเคน/กติกากลางที่อยู่ใน `theme.css` (โหลดทุกหน้าคู่กับ `shell.js`)
 เพื่อให้แก้ไข/เพิ่มหน้าใหม่ในอนาคตอ้างอิงชุดเดียวกัน แทนการ hardcode ตัวเลขใหม่ทุกครั้ง
 
+## ธีม v2 (ROADMAP 0c) — อ่านก่อน
+- ค่าตั้งธีมทั้งหมดอยู่ที่ `theme-boot.js` (`window.OmeTheme`) — สีเน้น 5 (`teal` ปกติ/`blue`/`violet`/`orange`/`graphite`), พื้นผิว 3 (`flat` ปกติ/`soft`/`outline`), ฟอนต์ 2 (`prompt` ปกติ/`ibmplex`)
+- `theme.css` = `@layer tokens, base, components, layouts` + ส่วน compat ท้ายไฟล์ (ไม่มี layer โดยตั้งใจ)
+- คอมโพเนนต์กลาง/เลย์เอาต์ทำงานเมื่อหน้าใส่ `<body data-layout="tool|app|reader|dashboard|hub">` เท่านั้น — ตัวอย่างครบทุกชิ้นที่ `theme-preview.html`
+- ไอคอน: `icons.svg` (Lucide) สร้างด้วย `tests/build-icons.mjs` · สีกราฟ: `chart-theme.js` อ่าน `--ome-chart-*`
+- โทเคน v2: `--ome-surface-0/1/2` `--ome-text-1/2/3` `--ome-border(-strong)` `--ome-accent(-strong/-soft)` `--ome-on-accent`
+  `--ome-ok|warn|err|info` + `-soft` + `-ink` · `--ome-radius-sm|md|lg|pill` (6/10/14/999) · `--ome-shadow-1..3`
+  · `--ome-z-sticky|nav|popover|drawer|toast|modal` · `--ome-dur-1..3` `--ome-ease` · `--ome-chart-1..8|up|down|grid|axis`
+  · `--ome-font-reader` `--ome-font-mono` — ผูกกับโทเคนเดิมด้านล่าง เปลี่ยนสีเน้น/มืดแล้วตามกันเอง
+
 ## โทเคนสี (มีอยู่แล้วตั้งแต่รอบรวมศูนย์สี)
 `--ome-bg` `--ome-card` `--ome-ink` `--ome-muted` `--ome-line` `--ome-brand`
 `--ome-brand-dk` `--ome-brand-sf` `--ome-violet` `--ome-amber` `--ome-rose`

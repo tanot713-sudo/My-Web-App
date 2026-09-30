@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v563';
+const CACHE = 'ome-v564';
 const PRECACHE = [
   './',
   './index.html',
@@ -149,6 +149,11 @@ const PRECACHE = [
   './vendor/planegcs/sketch/geom_params.js',
   './credits.html',
   './theme.css',
+  './theme-boot.js',
+  './chart-theme.js',
+  './icons.svg',
+  './theme-preview.html',
+  './theme-preview.js',
   './shell.js',
   './auth-gate.js',
   './manifest.json',
