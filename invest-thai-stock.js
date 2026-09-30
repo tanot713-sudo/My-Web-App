@@ -1089,7 +1089,8 @@
 
   function doAiSummary() {
     if (aiSumBusy) return;
-    if (isIOS()) {
+    var cloud = !!(window.AiClient && AiClient.available());
+    if (!cloud && isIOS()) {
       setAiSumStatus(t('iosNotSupported'), 'err');
       return;
     }
@@ -1107,6 +1108,23 @@
       { role: 'user', content: ctx },
       { role: 'system', content: isEn ? AI_SUMMARY_REMINDER_EN : AI_SUMMARY_REMINDER }
     ];
+
+    /* คลาวด์ก่อน (Workers AI ผ่าน /api/ai/summarize — แคชใน D1) ถอยมารันโมเดลในเบราว์เซอร์เมื่อออฟไลน์/โควตาเต็ม/ล็อกอินหมดอายุ
+       (ไม่ถอยบน iPhone เพราะโมเดลในเครื่องรันไม่ได้) */
+    if (cloud) {
+      AiClient.summarize({ task: 'stock:thaistock', messages: payloadMessages }).then(function (r) {
+        var finalText = stripLeakedInstructions(r.text);
+        if (!finalText) setAiSumStatus(t('summarizeFail'), 'err');
+        else { $('aiSumOut').style.display = 'block'; $('aiSumOut').textContent = finalText; setAiSumStatus('', ''); }
+        aiSumBusy = false; $('aiSumBtn').disabled = false;
+      }, function (err) {
+        if (AiClient.canFallback(err) && !isIOS()) { runLocalSummary(); return; }
+        setAiSumStatus(t('summarizeFailWith', { msg: AiClient.friendlyMessage(err) }), 'err');
+        aiSumBusy = false; $('aiSumBtn').disabled = false;
+      });
+    } else runLocalSummary();
+
+    function runLocalSummary() {
     var jobId = ++aiSumJobSeq, replyText = '';
 
     getAiSumWorkerAsync().then(function (w) {
@@ -1151,6 +1169,7 @@
       w.addEventListener('error', onErr);
       w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages, maxNewTokens: 220 });
     });
+    }
   }
 
   /* ── ควรขาย? สำหรับหุ้นที่ถือ ─────────────────────────────── */

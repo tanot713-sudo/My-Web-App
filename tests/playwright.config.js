@@ -45,5 +45,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8125/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // ai.spec.js: /api/ai/* + /api/asr ตัวจริงบน SQLite กับ Workers AI ตัวหลอก — แยกพอร์ตเพราะทดสอบนับโควตา/แคชในฐานข้อมูลเดียวกัน
+      command: 'node --no-warnings sync-server.mjs 8126',
+      cwd: __dirname,
+      url: 'http://localhost:8126/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

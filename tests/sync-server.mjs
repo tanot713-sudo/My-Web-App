@@ -1,4 +1,5 @@
-// เซิร์ฟเวอร์ทดสอบ Phase 1: เสิร์ฟไฟล์ static จาก root + รัน functions/api/sync.js ตัวจริง บน SQLite ของ Node (แทน D1)
+// เซิร์ฟเวอร์ทดสอบ Phase 1/4: เสิร์ฟไฟล์ static จาก root + รัน functions/api/sync.js และ functions/api/ai/*, asr.js ตัวจริง บน SQLite ของ Node (แทน D1)
+// Phase 4: env.AI เป็นตัวหลอก (ไม่เรียก Workers AI จริง) — /__ai?mode=ok|quota|down คุมพฤติกรรม, /__ai?limit=N ตั้งเพดาน Neurons/วัน, /__ailog ดูคำขอที่โมเดลได้รับ
 // ใช้ schema จริงจาก migrations/*.sql — รัน: node sync-server.mjs [port]   (POST /__reset ล้างฐานข้อมูล, /__offline=1|0 จำลองเซิร์ฟเวอร์ล่ม)
 import http from 'node:http';
 import fs from 'node:fs';
@@ -8,7 +9,15 @@ import { DatabaseSync } from 'node:sqlite';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = +(process.argv[2] || process.env.SYNC_PORT || 8124);
-const sync = await import(pathToFileURL(path.join(ROOT, 'functions/api/sync.js')).href);
+const load = (f) => import(pathToFileURL(path.join(ROOT, f)).href);
+const sync = await load('functions/api/sync.js');
+const AI_ROUTES = {
+  '/api/ai/chat': await load('functions/api/ai/chat.js'),
+  '/api/ai/summarize': await load('functions/api/ai/summarize.js'),
+  '/api/ai/embed': await load('functions/api/ai/embed.js'),
+  '/api/ai/usage': await load('functions/api/ai/usage.js'),
+  '/api/asr': await load('functions/api/asr.js'),
+};
 
 let sqlite;
 function resetDb() {
@@ -16,6 +25,34 @@ function resetDb() {
   for (const f of fs.readdirSync(path.join(ROOT, 'migrations')).sort()) sqlite.exec(fs.readFileSync(path.join(ROOT, 'migrations', f), 'utf8'));
 }
 resetDb();
+
+// Workers AI ตัวหลอก: gemma (main) ตอบรูปแบบ { response } / สตรีม data:{"response"}, qwen (fast) ตอบรูปแบบ chat-completions + <think> เพื่อทดสอบตัวแปลงทั้ง 2 แบบ
+let aiMode = 'ok', aiLimit, aiLog = [];
+const sse = (obj) => 'data: ' + JSON.stringify(obj) + '\n\n';
+const AI = {
+  async run(model, input) {
+    aiLog.push({ model, input });
+    if (aiMode === 'down') throw new Error('upstream unavailable');
+    if (aiMode === 'quota') throw new Error('4006: you have used up your daily free allocation of 10,000 neurons');
+    if (model.includes('bge-m3')) return { shape: [input.text.length, 8], data: input.text.map((t, i) => Array(8).fill((i + 1) / 10)) };
+    const qwen = model.includes('qwen');
+    if (input.stream) {
+      const parts = qwen
+        ? ['<thi', 'nk>คิดอยู่</think>สวัสดี', 'ครับ']
+        : ['สวัสดี', 'ครับ'];
+      const chunks = parts.map((p) => sse(qwen ? { choices: [{ delta: { content: p } }] } : { response: p }));
+      chunks.push(sse({ response: '', usage: { prompt_tokens: 11, completion_tokens: 7 } }), 'data: [DONE]\n\n');
+      // แบ่งไบต์กลางบรรทัดเพื่อทดสอบตัวอ่านสตรีมที่ต้องต่อบรรทัดข้ามท่อน
+      const bytes = new TextEncoder().encode(chunks.join(''));
+      return new ReadableStream({
+        start(c) { for (let i = 0; i < bytes.length; i += 17) c.enqueue(bytes.slice(i, i + 17)); c.close(); },
+      });
+    }
+    return qwen
+      ? { choices: [{ message: { content: '<think>x</think>สรุปเร็ว' } }], usage: { prompt_tokens: 20, completion_tokens: 9 } }
+      : { response: 'สรุปหลัก', usage: { prompt_tokens: 20, completion_tokens: 9 } };
+  },
+};
 
 // D1 shim: prepare().bind().all()/first()/run() + batch() (ทำใน transaction เดียวแบบ D1)
 class Stmt {
@@ -45,8 +82,15 @@ let offline = false;
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  if (url.pathname === '/__reset') { resetDb(); res.end('ok'); return; }
+  if (url.pathname === '/__reset') { resetDb(); aiMode = 'ok'; aiLimit = undefined; aiLog = []; res.end('ok'); return; }
   if (url.pathname === '/__offline') { offline = url.searchParams.get('v') === '1'; res.end('ok'); return; }
+  if (url.pathname === '/__ai') {
+    if (url.searchParams.has('mode')) aiMode = url.searchParams.get('mode');
+    if (url.searchParams.has('limit')) aiLimit = url.searchParams.get('limit') || undefined;
+    res.end('ok'); return;
+  }
+  if (url.pathname === '/__ailog') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(aiLog)); if (url.searchParams.get('clear')) aiLog = []; return; }
+  if (url.pathname === '/__aidump') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(sqlite.prepare('SELECT key, task, model, result, hits FROM ai_cache').all())); return; }
   if (url.pathname === '/__dump') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(sqlite.prepare('SELECT * FROM docs ORDER BY rev').all())); return; }
   if (url.pathname === '/api/session') { res.setHeader('Content-Type', 'application/json'); res.end('{"email":"test"}'); return; }
   if (url.pathname === '/api/sync') {
@@ -61,6 +105,25 @@ http.createServer(async (req, res) => {
       res.statusCode = out.status;
       out.headers.forEach((v, k) => res.setHeader(k, v));
       res.end(Buffer.from(await out.arrayBuffer()));
+    } catch (e) { res.statusCode = 500; res.end(String(e && e.stack || e)); }
+    return;
+  }
+  if (AI_ROUTES[url.pathname]) {
+    const chunks = [];
+    for await (const c of req) chunks.push(c);
+    const request = new Request(url, { method: req.method, headers: req.headers, body: req.method === 'POST' ? Buffer.concat(chunks) : undefined });
+    const mod = AI_ROUTES[url.pathname];
+    const fn = req.method === 'GET' ? mod.onRequestGet : req.method === 'POST' ? mod.onRequestPost : null;
+    if (!fn) { res.statusCode = 405; res.end(); return; }
+    try {
+      const out = await fn({ request, env: { DB, AI, AI_DAILY_NEURONS: aiLimit }, data: { user: { email: 'test' } } });
+      res.statusCode = out.status;
+      out.headers.forEach((v, k) => res.setHeader(k, v));
+      if (!out.body) { res.end(); return; }
+      // สตรีมจริงทีละท่อน (ไม่รอครบก้อน) เพื่อให้ทดสอบ onToken ฝั่งเบราว์เซอร์ได้
+      const reader = out.body.getReader();
+      for (;;) { const { done, value } = await reader.read(); if (done) break; res.write(value); }
+      res.end();
     } catch (e) { res.statusCode = 500; res.end(String(e && e.stack || e)); }
     return;
   }

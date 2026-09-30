@@ -2,6 +2,8 @@
    ANTHROPIC_API_KEY เป็น secret ที่ตั้งใน Pages dashboard เท่านั้น ห้ามใส่ใน wrangler.toml หรือโค้ด
    ใช้ fetch ตรงแทน SDK เพราะ repo นี้ห้ามมี package.json ที่ root (Pages จะรัน npm install ทุก build) */
 
+import { recordUsage } from '../_lib/ai.js';
+
 const MODEL = 'claude-sonnet-5';
 
 /* prompt ถอดข้อความเดิมจาก Worker ต้นฉบับ — คงไว้ทุกตัวอักษร ข้อสำคัญที่สุดคือ "ห้ามแก้คำผิด" เพราะข้อความที่ได้
@@ -68,5 +70,7 @@ export async function onRequestPost({ request, env }) {
   }
 
   const text = (data.content || []).filter((c) => c.type === 'text').map((c) => c.text).join('');
+  // Anthropic คิดเงินแยกจาก Workers AI — บันทึกแค่จำนวนคำขอ/โทเค็น (neurons = 0) ไม่นับรวมโควตา Neurons
+  await recordUsage(env, 'ocr', { tokensIn: data.usage && data.usage.input_tokens, tokensOut: data.usage && data.usage.output_tokens });
   return json(200, { text });
 }
