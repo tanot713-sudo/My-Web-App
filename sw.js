@@ -5,12 +5,14 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v564';
+const CACHE = 'ome-v565';
 const PRECACHE = [
   './',
   './index.html',
   './404.html',
   './documents.html',
+  './area.html',
+  './area.js',
   './run.html',
   './soon.html',
   './classroom-law.html',
