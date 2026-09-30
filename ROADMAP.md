@@ -25,7 +25,7 @@
    - `functions/api/proxy.js` (แทน cors-proxy, ยังคง allowlist เดิม), `asr.js` (Whisper), `ocr.js` (กู้โค้ดมา, คีย์เก็บเป็น secret)
    - ลบ hash รหัสผ่านฝั่ง client ใน `text-to-speech.js:603`, `doc-check.js:57`
 4. ✅ **เสร็จแล้ว (2026-09-28)** — ต่างจากแผนเดิม 1 จุด: `auth-gate.js` ข้ามตัวเองบน `*.pages.dev` แทนการลบทิ้งทั้ง 42 หน้า เพราะ GitHub Pages ยังเปิดอยู่จนถึงข้อ 7 (ลบจริงตอนเปลี่ยน GitHub Pages เป็น redirect) — **Cloudflare Access** (Zero Trust ฟรี) ครอบ `my-web-app-5w2.pages.dev` ทั้งโดเมน โดยไม่ต้องซื้อโดเมน (ใช้วิธีลบ `*` ที่ subdomain ตามเอกสาร Known issues) → เลิกใช้ `auth-gate.js` ทั้ง 42 หน้า; `<link rel="manifest" crossorigin="use-credentials">`; ใน `sw.js` ถ้าคำตอบถูก redirect ไปหน้าล็อกอิน ให้แสดงหน้าจากแคช + ลิงก์ล็อกอินใหม่
-5. ✅ **เสร็จแล้ว (2026-09-28, รอเจ้าของวางใน D1 console)** — **D1 schema** `migrations/0001_init.sql`: `docs(ns,id,data,updated_at,rev,deleted,device)` + index `rev`, `reminders`, `push_subs`, `learn_cards`, `learn_log`, `ai_cache`, `ai_usage`, `files`
+5. ✅ **เสร็จแล้ว (2026-09-28, วางใน D1 แล้ว 2026-09-30)** — **D1 schema** `migrations/0001_init.sql`: `docs(ns,id,data,updated_at,rev,deleted,device)` + index `rev`, `reminders`, `push_subs`, `learn_cards`, `learn_log`, `ai_cache`, `ai_usage`, `files`
 6. **Scheduler Worker** แยก `workers/scheduler/` (Pages Functions ตั้ง cron ไม่ได้): ทุก 15 นาทีส่งการแจ้งเตือน (Web Push), 07:00 เวลาไทยทำสรุปประจำวัน + สำรอง D1 → R2
 7. GitHub Pages คงไว้แบบอ่านอย่างเดียวจนย้ายข้อมูลครบทั้ง 2 เครื่อง แล้วค่อยเปลี่ยนเป็น redirect
 
@@ -138,7 +138,7 @@
    - **AUD tag** (ของแอป `my-web-app-5w2.pages.dev`): `f84ccc66f4b1de1e0919624581c1e41569102662e535e5f76e39a077e1e9b830`
    - ใช้ 2 ค่านี้ใน `functions/api/_middleware.js` (Phase 0a ข้อ 3) ตอนตรวจ JWT — endpoint ดึง public key: `https://fancy-cherry-f763.cloudflareaccess.com/cdn-cgi/access/certs`
 3. ✅ **เสร็จแล้ว (2026-09-28)** — D1 database ชื่อ `tanot-db` (id: `5b56b7fa-8eed-453b-8c2d-81b5004d7b7b`), R2 bucket ชื่อ `tanot-files` (Public Access: Disabled) — ยังไม่ได้วาง schema (`0001_init.sql`) รอเขียนใน Phase 0a ข้อ 5
-   - ⏳ **ต้องทำต่อ**: เปิด D1 `tanot-db` → Console → วางเนื้อหาทั้งไฟล์ `migrations/0001_init.sql` → Execute (รันซ้ำได้ ไม่พัง)
+   - ✅ วาง schema `0001_init.sql` ใน D1 console แล้ว (2026-09-30) — ยืนยันครบ 8 ตาราง: docs, reminders, push_subs, learn_cards, learn_log, ai_cache, ai_usage, files
 4. ✅ **เสร็จแล้ว (2026-09-28)** — ตั้งค่าใน Pages → Variables and secrets ครบ: `OWNER_EMAIL` (Text), `ACCESS_AUD` (Text), `TEAM_DOMAIN` (Text), `ANTHROPIC_API_KEY` (Secret, คีย์ใหม่ชื่อ `tanot-cf-pages` ไม่มีวันหมดอายุ แยกจากคีย์เก่า `tanot-api-key` ที่ Worker OCR เดิมยังใช้อยู่) — ยังไม่ได้สร้างคีย์ VAPID (รอ Phase 3 ตอนทำ Web Push ค่อยทำ ไม่ต้องรีบตอนนี้)
 5. ✅ **เสร็จแล้ว (2026-09-28)** — กู้โค้ด `tanot-ocr-proxy` มาได้ครบแล้ว บันทึกไว้ที่ `docs/ocr-worker-original.js` (สร้างไฟล์นี้ในขั้นแรกของ Phase 0a ข้อ 3 ก่อนเริ่มพอร์ตเป็น `functions/api/ocr.js`) — จุดที่ต้องแก้ตอนพอร์ต: (1) `MODEL = 'claude-sonnet-4-5'` เป็นรุ่นเก่าที่ retired แล้ว ต้องเปลี่ยนเป็นรุ่นปัจจุบัน เช่น `claude-sonnet-5` (2) เพิ่มการตรวจ Access JWT (ใช้ `ACCESS_AUD`/`TEAM_DOMAIN` ที่ตั้งไว้แล้ว) แทนการพึ่ง CORS origin allowlist อย่างเดียว (3) `ALLOWED_ORIGINS` เดิมชี้ไป `tanot713-sudo.github.io` เท่านั้น ต้องเพิ่ม `my-web-app-5w2.pages.dev`
    - prompt ถอดข้อความ (ห้ามแก้คำผิด, เรียงลำดับตามภาพ, ห้ามแปล/สรุป, ใส่ `[อ่านไม่ออก]` ตรงจุดที่อ่านไม่ออก) เป็นของดีอยู่แล้ว **คงไว้เหมือนเดิมไม่ต้องแก้**
