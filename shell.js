@@ -138,90 +138,119 @@
   }
   window.OME_LANG = { get: getUILangGlobal, set: setUILangGlobal };
 
-  /* ── โครงสร้างเมนูทั้งเว็บ ──────────────────────────────────────────
-     key ไม่ซ้ำกัน, href = ลิงก์ไปหน้านั้น (ไม่ใส่ = เป็นแค่หมวดหมู่ให้กดขยาย),
-     icon = ใช้กับ invest.html hub tiles (window.INVEST_CATS), children = รายการย่อย */
+  /* ── โครงสร้างเมนูทั้งเว็บ — จัดตาม 4 ด้านของชีวิต (ROADMAP 0d) ────────────
+     ชั้นบนสุด = ด้าน (area: today/work/life/edu/hobby/settings) แต่ละด้านมี href ไปหน้า area.html?a=<area>
+     key ไม่ซ้ำกัน, href = ลิงก์ไปหน้านั้น (ไม่ใส่ = เป็นแค่หมวดหมู่ให้กดขยาย), children = รายการย่อย
+     icon = ชื่อไอคอนใน icons.svg (ไม่ใส่ตัว "i-"), keywords = คำค้นไทย/อังกฤษ (ไว้ใช้กับ palette.js Phase 3),
+     status = 'soon' สำหรับหน้าที่ยังไม่ทำ (ไม่ใส่ = พร้อมใช้) — อ่านโดย area.html และ tests/helpers.js */
   var MENU = [
-    { key: 'home', label: 'หน้าหลัก', href: 'index.html' },
-    { key: 'documents', label: 'งานที่รับผิดชอบ', children: [
-        { key: 'doc-check',  label: 'ตรวจสอบเอกสาร', href: 'doc-check.html' },
-        { key: 'word',       label: 'งาน Word', href: 'word.html' },
-        { key: 'excel',      label: 'งาน Excel', href: 'excel.html' },
-        { key: 'powerpoint', label: 'งาน PowerPoint', href: soonHref('งาน PowerPoint') },
-        { key: 'cad',        label: 'งานเขียนแบบ CAD (2D/3D)', href: 'cad.html' },
-        { key: 'est-cost',   label: 'ประเมินราคา PM/CM', href: 'run.html?tool=est-cost' },
-        { key: 'extract-text', label: 'ดึงข้อความออกจากเอกสาร', href: 'extract-text.html' },
-        { key: 'report-dashboard', label: 'นำเสนอรายงาน', href: 'report-dashboard.html' }
-      ]
-    },
-    { key: 'data-collect', label: 'รวบรวมข้อมูล', href: soonHref('รวบรวมข้อมูล') },
-    { key: 'data-compare', label: 'เปรียบเทียบข้อมูล', href: soonHref('เปรียบเทียบข้อมูล') },
-    { key: 'legal', label: 'งานกฎหมาย', children: [
-        { key: 'legal-plaint',        label: 'ร่างคำฟ้อง', href: 'legal.html#plaint' },
-        { key: 'legal-answer',        label: 'ร่างคำให้การ', href: 'legal.html#answer' },
-        { key: 'legal-petition',      label: 'ร่างคำขอ', href: 'legal.html#petition' },
-        { key: 'legal-statement',     label: 'ร่างคำแถลง', href: 'legal.html#statement' },
-        { key: 'legal-counterclaim',  label: 'ร่างฟ้องแย้ง', href: 'legal.html#counterclaim' },
-        { key: 'legal-prayer',        label: 'ร่างคำขอท้ายฟ้อง', href: 'legal.html#prayer' },
-        { key: 'legal-police-report', label: 'ร่างเพื่อนำไปแจ้งความ', href: 'legal.html#police-report' }
-      ]
-    },
-    { key: 'language', label: 'ภาษา', href: 'languages.html' },
-    { key: 'daily', label: 'ชีวิตประจำวัน', children: [
-        { key: 'invest', label: 'การลงทุน', href: 'invest.html', children: [
-            { key: 'global-stock', label: 'หุ้นต่างประเทศ',  href: 'invest-global-stock.html' },
-            { key: 'thai-stock',   label: 'หุ้นไทย',          href: 'invest-thai-stock.html' },
-            { key: 'gold',         label: 'ทองคำ',            href: 'invest-gold.html' },
-            { key: 'commodities',  label: 'ค่าเงิน & วัตถุดิบ', href: 'invest-commodities.html' },
-            { key: 'news',         label: 'ข่าวหุ้น',          href: 'invest-news.html' },
-            { key: 'portfolio',    label: 'พอร์ตจำลอง',        href: 'invest-portfolio.html' },
-            { key: 'business',     label: 'ลงทุนทำธุรกิจ',    href: 'invest-business.html' },
-            { key: 'gov-bond',     label: 'พันธบัตรรัฐบาล',   href: 'invest-gov-bond.html' },
-            { key: 'gsb-lottery',  label: 'สลากออมสิน',       href: 'invest-gsb-lottery.html' },
-            { key: 'baac-lottery', label: 'สลาก ธ.ก.ส.',      href: 'invest-baac-lottery.html' },
-            { key: 'thai-fund',    label: 'กองทุนไทย',        href: 'invest-thai-fund.html' },
-            { key: 'global-fund',  label: 'กองทุนต่างประเทศ', href: 'invest-global-fund.html' },
-            { key: 'bitcoin',      label: 'Bitcoin',          href: 'invest-bitcoin.html' },
-            { key: 'lottery',      label: 'สลากกินแบ่งรัฐบาล', href: 'invest-lottery.html' }
+    { key: 'home', area: 'today', label: 'วันนี้', icon: 'house', href: 'index.html', keywords: 'หน้าแรก home today วันนี้' },
+    { key: 'work', area: 'work', label: 'งาน', icon: 'briefcase', href: 'area.html?a=work', keywords: 'งาน work ทำงาน', children: [
+        { key: 'documents', label: 'เอกสาร', icon: 'folder', children: [
+            { key: 'word',         label: 'งาน Word', icon: 'file-text', href: 'word.html', keywords: 'word เอกสาร docx' },
+            { key: 'excel',        label: 'งาน Excel', icon: 'file-spreadsheet', href: 'excel.html', keywords: 'excel ตาราง xlsx' },
+            { key: 'powerpoint',   label: 'งาน PowerPoint', icon: 'presentation', href: soonHref('งาน PowerPoint'), status: 'soon', keywords: 'powerpoint สไลด์ นำเสนอ pptx' },
+            { key: 'extract-text', label: 'ดึงข้อความออกจากเอกสาร', icon: 'copy', href: 'extract-text.html', keywords: 'ocr ดึงข้อความ pdf' },
+            { key: 'doc-check',    label: 'ตรวจสอบเอกสาร', icon: 'circle-check', href: 'doc-check.html', keywords: 'ตรวจเอกสาร สะกด ไวยากรณ์ proofread' },
+            { key: 'data-compare', label: 'เปรียบเทียบข้อมูล', icon: 'arrow-up-down', href: soonHref('เปรียบเทียบข้อมูล'), status: 'soon', keywords: 'เปรียบเทียบ diff compare' }
           ]
         },
-        { key: 'finance',   label: 'รายรับรายจ่าย', href: 'budget.html' },
-        { key: 'tts',       label: 'แปลงเสียง ↔ ข้อความ', href: 'text-to-speech.html' },
-        { key: 'tax',       label: 'การจ่ายภาษี', href: soonHref('การจ่ายภาษี') },
-        { key: 'insurance', label: 'ประกัน', href: soonHref('ประกัน') },
-        { key: 'health',    label: 'สุขภาพ', href: soonHref('สุขภาพ') },
-        { key: '3d-sim', label: 'จำลอง 3D', children: [
-            { key: '3d-objects', label: 'จำลองสิ่งของ', href: 'sim-objects.html' },
-            { key: '3d-people',  label: 'จำลองคน', href: soonHref('จำลองคน 3D') }
+        { key: 'engineering', label: 'วิศวกรรม', icon: 'wrench', children: [
+            { key: 'cad',         label: 'งานเขียนแบบ CAD (2D/3D)', icon: 'box', href: 'cad.html', keywords: 'cad เขียนแบบ แบบ drawing' },
+            { key: 'est-cost',    label: 'ประเมินราคา PM/CM', icon: 'calculator', href: 'run.html?tool=est-cost', keywords: 'ประเมินราคา ประมาณราคา pm cm boq' },
+            { key: 'maintenance', label: 'บันทึกงานบำรุงรักษา', icon: 'clipboard-list', href: soonHref('บันทึกงานบำรุงรักษา'), status: 'soon', keywords: 'บำรุงรักษา maintenance log' },
+            { key: 'electrical',  label: 'เครื่องคำนวณไฟฟ้า', icon: 'zap', href: soonHref('เครื่องคำนวณไฟฟ้า'), status: 'soon', keywords: 'ไฟฟ้า คำนวณ electrical' }
           ]
         },
-        { key: 'games',     label: 'เกมที่เล่น', href: soonHref('เกมที่เล่น') },
-        { key: 'cooking',   label: 'เรียนทำอาหาร', href: 'cooking.html' },
-        { key: 'books',     label: 'หนังสือ', href: soonHref('หนังสือ') }
+        { key: 'reports', label: 'ข้อมูล/รายงาน', icon: 'chart-column', children: [
+            { key: 'data-collect',     label: 'รวบรวมข้อมูล', icon: 'folder-open', href: soonHref('รวบรวมข้อมูล'), status: 'soon', keywords: 'รวบรวมข้อมูล collect' },
+            { key: 'report-dashboard', label: 'นำเสนอรายงาน', icon: 'chart-pie', href: 'report-dashboard.html', keywords: 'รายงาน report dashboard' }
+          ]
+        },
+        { key: 'legal', label: 'กฎหมาย', icon: 'scale', children: [
+            { key: 'legal-plaint',        label: 'ร่างคำฟ้อง', icon: 'scale', href: 'legal.html#plaint', keywords: 'คำฟ้อง กฎหมาย ฟ้อง' },
+            { key: 'legal-answer',        label: 'ร่างคำให้การ', icon: 'scale', href: 'legal.html#answer', keywords: 'คำให้การ กฎหมาย' },
+            { key: 'legal-petition',      label: 'ร่างคำขอ', icon: 'scale', href: 'legal.html#petition', keywords: 'คำขอ กฎหมาย' },
+            { key: 'legal-statement',     label: 'ร่างคำแถลง', icon: 'scale', href: 'legal.html#statement', keywords: 'คำแถลง กฎหมาย' },
+            { key: 'legal-counterclaim',  label: 'ร่างฟ้องแย้ง', icon: 'scale', href: 'legal.html#counterclaim', keywords: 'ฟ้องแย้ง กฎหมาย' },
+            { key: 'legal-prayer',        label: 'ร่างคำขอท้ายฟ้อง', icon: 'scale', href: 'legal.html#prayer', keywords: 'คำขอท้ายฟ้อง กฎหมาย' },
+            { key: 'legal-police-report', label: 'ร่างเพื่อนำไปแจ้งความ', icon: 'scale', href: 'legal.html#police-report', keywords: 'แจ้งความ ตำรวจ กฎหมาย' }
+          ]
+        },
+        { key: 'tts', label: 'แปลงเสียง ↔ ข้อความ', icon: 'mic', href: 'text-to-speech.html', keywords: 'เสียง ข้อความ tts asr whisper ถอดเสียง อ่านออกเสียง' }
       ]
     },
-    { key: 'special', label: 'ความสามารถพิเศษ', children: [
-        { key: 'music',  label: 'เรียนดนตรี', href: 'music.html' },
-        { key: 'sports', label: 'เรียนกีฬา', href: 'sports.html' },
-        { key: 'coding', label: 'การเขียนโค้ด', href: 'coding.html' },
-        { key: 'typing', label: 'สอนพิมพ์', href: 'typing.html' }
+    { key: 'life', area: 'life', label: 'ชีวิตประจำวัน', icon: 'wallet', href: 'area.html?a=life', keywords: 'ชีวิตประจำวัน life', children: [
+        { key: 'money', label: 'การเงิน', icon: 'coins', children: [
+            { key: 'finance',   label: 'รายรับรายจ่าย', icon: 'wallet', href: 'budget.html', keywords: 'รายรับ รายจ่าย งบ budget' },
+            { key: 'tax',       label: 'การจ่ายภาษี', icon: 'landmark', href: soonHref('การจ่ายภาษี'), status: 'soon', keywords: 'ภาษี tax' },
+            { key: 'insurance', label: 'ประกัน', icon: 'shield', href: soonHref('ประกัน'), status: 'soon', keywords: 'ประกัน insurance' },
+            { key: 'invest', label: 'การลงทุน', icon: 'trending-up', href: 'invest.html', keywords: 'ลงทุน invest หุ้น', children: [
+                { key: 'global-stock', label: 'หุ้นต่างประเทศ',  href: 'invest-global-stock.html' },
+                { key: 'thai-stock',   label: 'หุ้นไทย',          href: 'invest-thai-stock.html' },
+                { key: 'gold',         label: 'ทองคำ',            href: 'invest-gold.html' },
+                { key: 'commodities',  label: 'ค่าเงิน & วัตถุดิบ', href: 'invest-commodities.html' },
+                { key: 'news',         label: 'ข่าวหุ้น',          href: 'invest-news.html' },
+                { key: 'portfolio',    label: 'พอร์ตจำลอง',        href: 'invest-portfolio.html' },
+                { key: 'business',     label: 'ลงทุนทำธุรกิจ',    href: 'invest-business.html' },
+                { key: 'gov-bond',     label: 'พันธบัตรรัฐบาล',   href: 'invest-gov-bond.html' },
+                { key: 'gsb-lottery',  label: 'สลากออมสิน',       href: 'invest-gsb-lottery.html' },
+                { key: 'baac-lottery', label: 'สลาก ธ.ก.ส.',      href: 'invest-baac-lottery.html' },
+                { key: 'thai-fund',    label: 'กองทุนไทย',        href: 'invest-thai-fund.html' },
+                { key: 'global-fund',  label: 'กองทุนต่างประเทศ', href: 'invest-global-fund.html' },
+                { key: 'bitcoin',      label: 'Bitcoin',          href: 'invest-bitcoin.html' },
+                { key: 'lottery',      label: 'สลากกินแบ่งรัฐบาล', href: 'invest-lottery.html' }
+              ]
+            }
+          ]
+        },
+        { key: 'health',   label: 'สุขภาพ', icon: 'heart-pulse', href: soonHref('สุขภาพ'), status: 'soon', keywords: 'สุขภาพ health' },
+        { key: 'receipts', label: 'คลังใบเสร็จ/ประกันสินค้า', icon: 'receipt', href: soonHref('คลังใบเสร็จ/ประกันสินค้า'), status: 'soon', keywords: 'ใบเสร็จ ประกันสินค้า warranty receipt' }
       ]
     },
-    { key: 'classroom', label: 'ห้องเรียน', children: [
-        { key: 'classroom-law',         label: 'เรียนกฎหมาย', href: 'classroom-law.html' },
-        { key: 'classroom-business',    label: 'ธุรกิจ',         href: 'classroom-business.html' },
-        { key: 'classroom-engineering', label: 'วิศวกรรม',       href: 'classroom-engineering.html' }
+    { key: 'edu', area: 'edu', label: 'การศึกษา', icon: 'graduation-cap', href: 'area.html?a=edu', keywords: 'การศึกษา เรียน education', children: [
+        { key: 'review', label: 'ทบทวนวันนี้', icon: 'refresh-cw', href: soonHref('ทบทวนวันนี้'), status: 'soon', keywords: 'ทบทวน flashcard review' },
+        { key: 'classroom', label: 'ห้องเรียน', icon: 'graduation-cap', children: [
+            { key: 'classroom-law',         label: 'เรียนกฎหมาย', icon: 'scale', href: 'classroom-law.html', keywords: 'เรียนกฎหมาย เนติ' },
+            { key: 'classroom-business',    label: 'ธุรกิจ', icon: 'briefcase', href: 'classroom-business.html', keywords: 'เรียนธุรกิจ business' },
+            { key: 'classroom-engineering', label: 'วิศวกรรม', icon: 'wrench', href: 'classroom-engineering.html', keywords: 'เรียนวิศวกรรม engineering' }
+          ]
+        },
+        { key: 'language', label: 'ภาษา', icon: 'languages', href: 'languages.html', keywords: 'ภาษา language อังกฤษ จีน ญี่ปุ่น' },
+        { key: 'books',    label: 'หนังสือ', icon: 'book-open', href: soonHref('หนังสือ'), status: 'soon', keywords: 'หนังสือ book' }
+      ]
+    },
+    { key: 'hobby', area: 'hobby', label: 'งานอดิเรก/ทักษะ', icon: 'music', href: 'area.html?a=hobby', keywords: 'งานอดิเรก ทักษะ hobby', children: [
+        { key: 'music',  label: 'เรียนดนตรี', icon: 'music', href: 'music.html', keywords: 'ดนตรี music' },
+        { key: 'sports', label: 'เรียนกีฬา', icon: 'dumbbell', href: 'sports.html', keywords: 'กีฬา sports' },
+        { key: 'cooking', label: 'เรียนทำอาหาร', icon: 'chef-hat', href: 'cooking.html', keywords: 'ทำอาหาร cooking' },
+        { key: 'coding', label: 'การเขียนโค้ด', icon: 'code', href: 'coding.html', keywords: 'โค้ด code programming' },
+        { key: 'typing', label: 'สอนพิมพ์', icon: 'keyboard', href: 'typing.html', keywords: 'พิมพ์ดีด typing' },
+        { key: 'games',  label: 'เกมที่เล่น', icon: 'gamepad-2', href: soonHref('เกมที่เล่น'), status: 'soon', keywords: 'เกม game' },
+        { key: '3d-sim', label: 'จำลอง 3D', icon: 'box', children: [
+            { key: '3d-objects', label: 'จำลองสิ่งของ', icon: 'box', href: 'sim-objects.html', keywords: '3d จำลอง สิ่งของ three' },
+            { key: '3d-people',  label: 'จำลองคน', icon: 'user', href: soonHref('จำลองคน 3D'), status: 'soon', keywords: '3d คน' }
+          ]
+        }
+      ]
+    },
+    { key: 'settings', area: 'settings', label: 'ตั้งค่า/ข้อมูล', icon: 'settings', href: 'area.html?a=settings', keywords: 'ตั้งค่า ข้อมูล settings', children: [
+        { key: 'credits', label: 'เครดิต & ลิขสิทธิ์', icon: 'info', href: 'credits.html', keywords: 'เครดิต ลิขสิทธิ์ credits license' }
       ]
     }
   ];
+  window.OME_MENU = MENU;
 
   /* หมวดย่อยการลงทุน (เดิมมาจาก invest-nav.js) — คงชื่อ window.INVEST_CATS +
      รูปแบบ {key,label,icon,page} เดิม เพื่อไม่ต้องแก้ invest.html's tile-rendering script */
   (function exposeInvestCats() {
     var investNode = null;
-    MENU.forEach(function (top) {
-      (top.children || []).forEach(function (c) { if (c.key === 'invest') investNode = c; });
-    });
+    (function find(nodes) {
+      nodes.forEach(function (n) {
+        if (n.key === 'invest') investNode = n;
+        else if (n.children) find(n.children);
+      });
+    })(MENU);
     if (!investNode) return;
     window.INVEST_CATS = (investNode.children || []).map(function (c) {
       return { key: c.key, label: c.label, icon: c.icon, page: c.href };
@@ -251,7 +280,7 @@
         var a = document.createElement('a');
         a.className = 'ome-menu-link' + (isActive ? ' active' : '');
         a.href = BASE + n.href;
-        a.innerHTML = (n.icon ? '<span class="ome-menu-ic">' + n.icon + '</span>' : '') + '<span>' + n.label + '</span>';
+        a.innerHTML = (n.icon ? '<svg class="ome-icon ome-menu-ic" aria-hidden="true"><use href="' + BASE + 'icons.svg#i-' + n.icon + '"/></svg>' : '') + '<span>' + n.label + '</span>';
         row.appendChild(a);
       } else {
         var cat = document.createElement('div');
