@@ -935,8 +935,51 @@
     });
   }
 
+  /* ── API อ่านสำหรับหน้าที่รวบรวมข้อมูลหลายด้าน (หน้าวันนี้ / palette) ──
+     อ่านผ่าน origGet + ห่อ internal++ เหมือน snapshot — ไม่นับว่า "หน้านี้เคยอ่านคีย์นั้น" จึงไม่เด้งแถบให้รีโหลดตอนข้อมูลใหม่มาจากเครื่องอื่น
+     (หน้าที่ใช้ต้องฟัง onChange แล้ววาดใหม่เอง) */
+  function readJSON(k, dflt) {
+    var v = parse(lsGet(k));
+    return v === undefined || v === null ? dflt : v;
+  }
+  function readRaw(k) { return lsGet(k); }
+  // opts.last = อ่านเฉพาะ N ระเบียนท้ายสุด (ตามคีย์) ด้วย cursor — ใช้กับ store ที่ระเบียนใหญ่ (รายงาน/ไฟล์ 3D) ไม่ต้องดึงทั้งหมดเข้าหน่วยความจำ
+  function readIdb(db, store, opts) {
+    var last = opts && opts.last;
+    return openExisting(db).then(function (d) {
+      if (!d) return [];
+      if (!d.objectStoreNames.contains(store)) { d.close(); return []; }
+      var os, rows = [];
+      internal++;
+      try {
+        os = d.transaction(store, 'readonly').objectStore(store);
+        if (!last) return reqP(os.getAll()).then(function (r) { d.close(); return r || []; }, function () { d.close(); return []; });
+        return new Promise(function (resolve) {
+          var c = os.openCursor(null, 'prev');
+          c.onsuccess = function () {
+            var cur = c.result;
+            if (cur && rows.length < last) { rows.push(cur.value); cur.continue(); } else { d.close(); resolve(rows); }
+          };
+          c.onerror = function () { d.close(); resolve(rows); };
+        });
+      } finally { internal--; }
+    }).catch(function () { return []; });
+  }
+  // fn(keys) ถูกเรียกเมื่อข้อมูลใหม่มาจากเครื่องอื่น (tanot:data) หรือแท็บอื่นในเครื่องเดียวกันเขียน localStorage (storage) — คืนฟังก์ชันยกเลิก
+  function onChange(fn) {
+    function a(e) { fn((e.detail && e.detail.keys) || []); }
+    function b(e) { fn(e.key ? [e.key] : []); }
+    window.addEventListener('tanot:data', a);
+    window.addEventListener('storage', b);
+    return function () { window.removeEventListener('tanot:data', a); window.removeEventListener('storage', b); };
+  }
+
   window.TanotData = {
     enabled: ENABLED,
+    read: readJSON,
+    raw: readRaw,
+    readIdb: readIdb,
+    onChange: onChange,
     status: function () { status.pending = Object.keys(dirtyMap()).length; return status; },
     syncNow: syncNow,
     snapshot: snapshot,

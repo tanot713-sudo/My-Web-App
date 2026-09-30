@@ -3,9 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tanot — หน้าหลัก</title>
+<title>Tanot — วันนี้</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#12A594">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -17,180 +16,82 @@
 <script src="tanot-data.js"></script>
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
+<script src="index.js" defer></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--ome-f);background:var(--bg,#F6F7FB);color:var(--ink,#1F2430);
-  line-height:1.7;font-size:15px;padding:0 20px 80px;-webkit-font-smoothing:antialiased}
-:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
-  --brand:var(--ome-brand);--brand-dk:var(--ome-brand-dk);--brand-sf:var(--ome-brand-sf);
-  --violet:#6C63D9;--amber:#F5A524;--rose:#EC5E8A;--sky:#3B9BEA;--ok:#17B26A;--err:#E5484D;
-  --f:'Prompt',system-ui,sans-serif;--r:16px;
-  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
-.wrap{max-width:880px;margin:0 auto}
-
-.hero{margin-top:22px;border-radius:22px;padding:32px 34px 28px;
-  background:linear-gradient(120deg,#EAF4FF 0%,#E9FBF7 45%,#FFF4E8 100%);
-  position:relative;overflow:hidden}
-.hero::after{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;
-  border-radius:50%;background:rgba(255,255,255,.5)}
-.eyebrow{font-size:12.5px;color:var(--brand-dk);font-weight:600;margin-bottom:6px;position:relative}
-h1{font-size:clamp(23px,4.4vw,32px);font-weight:700;line-height:1.3;position:relative}
-.sub{margin-top:8px;color:#5A6479;font-size:14px;position:relative}
-
-/* นาฬิกา Nixie Tube — เวลาไทย 24 ชม. มุมขวาบนของการ์ดทักทาย */
-.nixie{position:absolute;top:16px;right:16px;z-index:1;display:flex;align-items:center;gap:2px;
-  background:#1A1512;border-radius:12px;padding:9px 12px;
-  box-shadow:0 4px 14px rgba(0,0,0,.25),inset 0 0 0 1px rgba(255,255,255,.06)}
-.nixie .nx-d{font-family:'Courier New',monospace;font-size:23px;font-weight:700;color:#FFB347;
-  width:17px;text-align:center;text-shadow:0 0 6px rgba(255,150,40,.9),0 0 14px rgba(255,110,20,.6)}
-.nixie .nx-sep{font-family:'Courier New',monospace;font-size:20px;font-weight:700;color:#FF9C3D;
-  opacity:.7;padding:0 1px;text-shadow:0 0 6px rgba(255,150,40,.7)}
-@media(max-width:600px){
-  .nixie{top:12px;right:12px;padding:7px 9px}
-  .nixie .nx-d{font-size:18px;width:14px}
-  .nixie .nx-sep{font-size:16px}
-  .eyebrow{max-width:calc(100% - 145px)}
-}
-
-footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
-@media(max-width:600px){body{padding:0 14px 60px}.hero{padding:24px 20px}}
-
-/* ── ทางลัด: bento grid ของเครื่องมือที่ใช้บ่อย (แทนที่จะต้องเปิดลิ้นชักเมนูทุกครั้ง) ──
-   ขนาดการ์ดไม่เท่ากันตั้งใจ — 3 การ์ดใหญ่ (.featured) ให้กับเครื่องมือที่มีเนื้อหา/หมวดย่อย
-   เยอะที่สุดในเว็บ (การลงทุน 14 หมวด, CAD เต็มรูปแบบ 2D/3D, ภาษา 17 ภาษา) ส่วนที่เหลือเป็น
-   การ์ดขนาดปกติ — แถบสีซ้ายจัดกลุ่มตามหมวดงาน (ไม่ใช่ไอคอนตกแต่ง)
-
-   แก้บั๊ก (ผู้ใช้รายงาน): หน้านี้ไม่เคยใช้คลาส .card เลย (ใช้ .bento-tile ของตัวเอง) ทำให้เมนูตั้งค่า
-   "ประเภทธีม" (กระจกฝ้า/นูนนิ่ม/ฯลฯ ใน theme.css) ไม่มีผลอะไรกับหน้านี้เลยเพราะ theme.css เล็ง
-   selector .card เท่านั้น — เพิ่มคลาส "card" ต่อท้าย .bento-tile ในทุกกล่อง (ดูใน HTML ด้านล่าง)
-   ให้ theme.css จับได้ โดยไม่ต้องแก้สไตล์เดิมของ .bento-tile เลยสักบรรทัด (theme.css ใช้ !important
-   ทับเฉพาะตอนเลือกประเภทธีมที่ไม่ใช่ "เรียบมาตรฐาน" เท่านั้น) */
-.sec-title{margin:30px 0 12px;font-size:14px;font-weight:600;color:var(--muted);
-  display:flex;align-items:center;gap:8px}
-.sec-title::after{content:'';flex:1;height:1px;background:var(--line)}
-.bento{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-flow:dense;gap:12px}
-.bento-tile{grid-column:span 1;display:flex;flex-direction:column;justify-content:center;gap:5px;
-  background:var(--card);border-radius:var(--ome-card-r,16px);box-shadow:var(--sh);padding:16px 18px;
-  text-decoration:none;color:var(--ink);border-left:4px solid var(--accent,var(--brand));
-  transition:transform .18s,box-shadow .18s}
-.bento-tile:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(24,31,54,.08),0 16px 30px rgba(24,31,54,.1)}
-.bento-tile.featured{grid-column:span 2;padding:20px 22px}
-.bt-name{font-weight:700;font-size:15px;line-height:1.35}
-.bento-tile.featured .bt-name{font-size:17.5px}
-.bt-desc{font-size:12.5px;color:var(--muted);line-height:1.55}
-.bento-more{display:inline-block;margin-top:16px;font-size:13.5px;font-weight:700;color:var(--brand-dk);
-  text-decoration:none}
-.bento-more:hover{text-decoration:underline}
-@media(max-width:600px){
-  .bento{grid-template-columns:1fr}
-  .bento-tile,.bento-tile.featured{grid-column:span 1;padding:15px 16px}
-}
+.head-text{flex:1;min-width:0}
+.head-text .muted{margin:0;font-size:var(--ome-fs-sm)}
+.head-text h1{margin:0}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:var(--ome-sp-4)}
+.card-body{display:flex;flex-direction:column;align-items:flex-start;gap:var(--ome-sp-3)}
+.card-body > :is(.bar,.cat-row,.sub,.big){align-self:stretch}
+.big{font-size:var(--ome-fs-3xl);font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+.big small{font-size:var(--ome-fs-sm);font-weight:500;color:var(--ome-text-2)}
+.sub{font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
+.bar{height:8px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-2);overflow:hidden}
+.bar > i{display:block;height:100%;border-radius:inherit;background:var(--ome-accent)}
+.bar.warn > i{background:var(--ome-warn)}
+.bar.err > i{background:var(--ome-err)}
+.cat-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;font-size:var(--ome-fs-sm)}
+.cat-row .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-row .val{font-variant-numeric:tabular-nums;color:var(--ome-text-2)}
+.cat-row .bar{grid-column:1 / -1;height:6px}
+.stat{display:flex;align-items:center;gap:var(--ome-sp-3)}
+.stat .ome-icon{width:28px;height:28px}
+.stat .flame{color:var(--ome-warn)}
+.links{display:flex;flex-wrap:wrap;gap:6px}
+.links a{text-decoration:none}
+.right{margin-left:auto;text-align:right;font-variant-numeric:tabular-nums;flex-shrink:0}
+.right .price{font-weight:600}
+.up{color:var(--ome-ok-ink)}
+.down{color:var(--ome-err-ink)}
+.card .list{border:0;border-radius:0;background:transparent;margin:0 calc(var(--ome-card-pad) * -1) calc(var(--ome-card-pad) * -1)}
 </style>
 </head>
-<body class="ome-tool-page">
+<body data-layout="dashboard">
 <script src="auth-gate.js"></script>
-<div class="wrap">
+<main class="page">
+  <header class="page-head">
+    <div class="head-text">
+      <p class="muted" id="dateLine"></p>
+      <h1 id="greet">สวัสดี</h1>
+    </div>
+  </header>
 
-<div class="hero">
-  <div class="nixie" id="nixieClock" aria-hidden="true">
-    <span class="nx-d">0</span><span class="nx-d">0</span><span class="nx-sep">:</span>
-    <span class="nx-d">0</span><span class="nx-d">0</span><span class="nx-sep">:</span>
-    <span class="nx-d">0</span><span class="nx-d">0</span>
+  <div class="quick">
+    <button class="btn primary" type="button" id="qaExpense"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>รายจ่าย</button>
+    <button class="btn" type="button" id="qaIncome"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>รายรับ</button>
+    <a class="btn" href="word.html"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-text"/></svg>Word</a>
+    <a class="btn" href="excel.html"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-spreadsheet"/></svg>Excel</a>
+    <button class="btn" type="button" id="qaSearch"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-search"/></svg>ค้นหา</button>
+    <button class="btn ghost" type="button" id="qaMenu"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-menu"/></svg>เมนูทั้งหมด</button>
   </div>
-  <div class="eyebrow" id="dateLine">Tanot</div>
-  <h1 id="greet">สวัสดี</h1>
-  <p class="sub">วันนี้อยากทำอะไรดี — เลือกจากเมนู ด้านบนซ้ายได้เลย</p>
-</div>
 
-<div class="sec-title">ทางลัด</div>
-<div class="bento">
-  <a class="bento-tile featured card" href="invest.html" style="--accent:var(--amber)">
-    <span class="bt-name">การลงทุน</span>
-    <span class="bt-desc">หุ้นไทย/ต่างประเทศ กองทุน ทองคำ ค่าเงิน พอร์ตจำลอง สลาก และอีกรวม 14 หมวด ครบในที่เดียว</span>
-  </a>
-  <a class="bento-tile featured card" href="cad.html" style="--accent:var(--sky)">
-    <span class="bt-name">งานเขียนแบบ CAD</span>
-    <span class="bt-desc">เขียนแบบ 2D/3D เต็มรูปแบบ พร้อมเครื่องมือวัด บล็อก เส้นโค้ง และส่งออกไฟล์ใช้งานจริง</span>
-  </a>
-  <a class="bento-tile featured card" href="languages.html" style="--accent:var(--violet)">
-    <span class="bt-name">ภาษา</span>
-    <span class="bt-desc">สมุดวลี ทวนคำศัพท์แบบเว้นช่วง ฝึกเขียน และแบบทดสอบวัดระดับ รวม 17 ภาษา</span>
-  </a>
-  <a class="bento-tile card" href="budget.html" style="--accent:var(--amber)">
-    <span class="bt-name">รายรับรายจ่าย</span>
-    <span class="bt-desc">บันทึกรายวัน + สรุปงบประมาณ</span>
-  </a>
-  <a class="bento-tile card" href="doc-check.html" style="--accent:var(--sky)">
-    <span class="bt-name">ตรวจสอบเอกสาร</span>
-    <span class="bt-desc">เช็กความถูกต้อง/ครบถ้วนของไฟล์เอกสาร</span>
-  </a>
-  <a class="bento-tile card" href="word.html" style="--accent:var(--sky)">
-    <span class="bt-name">งาน Word</span>
-    <span class="bt-desc">ร่าง/แก้เอกสาร Word อัตโนมัติ</span>
-  </a>
-  <a class="bento-tile card" href="excel.html" style="--accent:var(--sky)">
-    <span class="bt-name">งาน Excel</span>
-    <span class="bt-desc">สร้าง/คำนวณตาราง Excel อัตโนมัติ</span>
-  </a>
-  <a class="bento-tile card" href="text-to-speech.html" style="--accent:var(--rose)">
-    <span class="bt-name">แปลงเสียง ↔ ข้อความ</span>
-    <span class="bt-desc">อ่านออกเสียงไฟล์เอกสาร หรือถอดเสียงพูดเป็นข้อความ</span>
-  </a>
-  <a class="bento-tile card" href="classroom-law.html" style="--accent:var(--violet)">
-    <span class="bt-name">เรียนกฎหมาย</span>
-    <span class="bt-desc">ทวนความจำเป็นรอบ + แบบฝึกหัดตามหลักสูตร</span>
-  </a>
-  <a class="bento-tile card" href="coding.html" style="--accent:var(--brand)">
-    <span class="bt-name">การเขียนโค้ด</span>
-    <span class="bt-desc">ฝึกเขียนโค้ดพร้อมรันผลจริงในเบราว์เซอร์</span>
-  </a>
-  <a class="bento-tile card" href="report-dashboard.html" style="--accent:var(--sky)">
-    <span class="bt-name">นำเสนอรายงาน</span>
-    <span class="bt-desc">สร้างสไลด์/แดชบอร์ดนำเสนอจากข้อมูลที่มี</span>
-  </a>
-</div>
-<a class="bento-more" href="#" id="bentoMoreBtn">ดูเมนูทั้งหมด →</a>
+  <div class="grid">
+    <section class="card span-6" aria-labelledby="hSpend">
+      <div class="card-head"><h2 id="hSpend">ใช้จ่ายเดือนนี้</h2><a class="btn ghost sm" href="budget.html">รายรับรายจ่าย</a></div>
+      <div class="card-body" id="spendBody"></div>
+    </section>
 
-</div>
+    <section class="card span-3" aria-labelledby="hReview">
+      <div class="card-head"><h2 id="hReview">ทบทวนวันนี้</h2></div>
+      <div class="card-body" id="reviewBody"></div>
+    </section>
 
-<script>
-(function () {
-  'use strict';
-  var h = new Date().getHours();
-  var greet = h < 12 ? 'สวัสดีตอนเช้า' : h < 17 ? 'สวัสดีตอนบ่าย' : 'สวัสดีตอนเย็น';
-  document.getElementById('greet').textContent = greet;
-  document.getElementById('dateLine').textContent = new Date().toLocaleDateString('th-TH',
-    { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    <section class="card span-3" aria-labelledby="hStreak">
+      <div class="card-head"><h2 id="hStreak">ติดต่อกัน</h2></div>
+      <div class="card-body" id="streakBody"></div>
+    </section>
 
-  var fmt = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Bangkok', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit'
-  });
-  var nxDigits = document.querySelectorAll('#nixieClock .nx-d');
-  function updateNixie() {
-    var hh = '00', mm = '00', ss = '00';
-    fmt.formatToParts(new Date()).forEach(function (p) {
-      if (p.type === 'hour') hh = p.value === '24' ? '00' : p.value;
-      else if (p.type === 'minute') mm = p.value;
-      else if (p.type === 'second') ss = p.value;
-    });
-    var digits = (hh + mm + ss).split('');
-    for (var i = 0; i < nxDigits.length; i++) nxDigits[i].textContent = digits[i];
-  }
-  updateNixie();
-  setInterval(updateNixie, 1000);
+    <section class="card span-6" aria-labelledby="hStock">
+      <div class="card-head"><h2 id="hStock">หุ้นที่ติดตาม</h2><a class="btn ghost sm" href="invest.html">การลงทุน</a></div>
+      <div id="stockBody"></div>
+    </section>
 
-  /* ปุ่ม "ดูเมนูทั้งหมด" — เปิดลิ้นชักเมนูเดียวกับปุ่มแฮมเบอร์เกอร์ (สร้างโดย shell.js ซึ่งเป็น
-     defer script รันหลังบรรทัดนี้ แต่ event handler ข้างล่างถูกเรียกตอนคลิกจริงเท่านั้น
-     ซึ่งช้ากว่าตอน shell.js สร้างปุ่มเสร็จแล้วเสมอ จึงไม่ต้องรอ/เช็กลำดับโหลด) */
-  var moreBtn = document.getElementById('bentoMoreBtn');
-  if (moreBtn) {
-    moreBtn.addEventListener('click', function (e) {
-      e.preventDefault();
-      var hamburger = document.querySelector('.ome-hamburger');
-      if (hamburger) hamburger.click();
-    });
-  }
-})();
-</script>
+    <section class="card span-6" aria-labelledby="hFiles">
+      <div class="card-head"><h2 id="hFiles">ไฟล์ล่าสุด</h2></div>
+      <div id="filesBody"></div>
+    </section>
+  </div>
+</main>
 </body>
 </html>
