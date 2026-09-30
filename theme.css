@@ -223,6 +223,7 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 /* badge (ป้ายสถานะ อ่านอย่างเดียว) / chip (ปุ่มกรองแบบเม็ดยา กดสลับได้) */
 :where([data-layout]) .badge{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:var(--ome-radius-pill);
   background:var(--ome-surface-2);color:var(--ome-text-2);font-size:12px;font-weight:600;white-space:nowrap}
+:where([data-layout]) .badge.wrap{height:auto;min-height:22px;padding:3px 10px;white-space:normal;border-radius:var(--ome-radius-md);max-width:100%;line-height:1.4}
 :where([data-layout]) .badge.accent{background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
 :where([data-layout]) .badge.ok{background:var(--ome-ok-soft);color:var(--ome-ok-ink)}
 :where([data-layout]) .badge.warn{background:var(--ome-warn-soft);color:var(--ome-warn-ink)}
@@ -253,6 +254,9 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 :where([data-layout]) .kpi-label{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
 :where([data-layout]) .kpi-value{font-size:var(--ome-fs-2xl);font-weight:700;line-height:1.2;color:var(--ome-text-1)}
 :where([data-layout]) .kpi-delta{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
+:where([data-layout]) .kpi .sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+:where([data-layout]) :is(.kpi-value.grow,.kpi-value.up){color:var(--ome-ok-ink)}
+:where([data-layout]) .kpi-value.dn{color:var(--ome-err-ink)}
 :where([data-layout]) .kpi-delta.up{color:var(--ome-ok-ink)}
 :where([data-layout]) .kpi-delta.down{color:var(--ome-err-ink)}
 
@@ -301,6 +305,133 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 :where([data-layout]) .list-row .grow{flex:1;min-width:0}
 :where([data-layout]) .list-row .title{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 :where([data-layout]) .list-row .meta{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+
+/* callout — กล่องสรุปผล/แจ้งเตือนในหน้า (ok|warn|err|info) */
+:where([data-layout]) .callout{padding:12px 14px;border-radius:var(--ome-radius-md);background:var(--ome-surface-2);color:var(--ome-text-1);
+  font-size:var(--ome-fs-sm);font-weight:600;line-height:1.55;overflow-wrap:anywhere}
+:where([data-layout]) .callout.ok{background:var(--ome-ok-soft);color:var(--ome-ok-ink)}
+:where([data-layout]) .callout.warn{background:var(--ome-warn-soft);color:var(--ome-warn-ink)}
+:where([data-layout]) .callout.err{background:var(--ome-err-soft);color:var(--ome-err-ink)}
+:where([data-layout]) .callout.info{background:var(--ome-info-soft);color:var(--ome-info-ink)}
+:where([data-layout]) .callout .sub{font-weight:500}
+
+/* kv — รายการ ป้าย : ค่า ชิดขวา */
+:where([data-layout]) .kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:var(--ome-fs-sm)}
+:where([data-layout]) .kv .k{color:var(--ome-text-2)}
+:where([data-layout]) .kv .v{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+:where([data-layout]) .kv .v.risk{color:var(--ome-err-ink)}
+
+/* status — บรรทัดสถานะใต้ฟอร์ม (ผลลัพธ์ของการกดปุ่ม) */
+:where([data-layout]) .status{font-size:var(--ome-fs-xs);color:var(--ome-text-2);min-height:1.2em;margin-top:8px}
+:where([data-layout]) .status.ok{color:var(--ome-ok-ink)}
+:where([data-layout]) .status.err{color:var(--ome-err-ink)}
+
+/* step — วงกลมเลขขั้นตอนหน้าหัวข้อการ์ด */
+:where([data-layout]) .step{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;flex-shrink:0;
+  background:var(--ome-accent);color:var(--ome-on-accent);font-size:var(--ome-fs-xs);font-weight:700}
+
+/* disclosure — <details class="disclosure"> พับ/กางได้ */
+:where([data-layout]) details.disclosure{border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);overflow:hidden}
+:where([data-layout]) details.disclosure > summary{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 14px;cursor:pointer;
+  font-size:var(--ome-fs-sm);font-weight:600;list-style:none;user-select:none}
+:where([data-layout]) details.disclosure > summary::-webkit-details-marker{display:none}
+:where([data-layout]) details.disclosure > summary::before{content:'';width:7px;height:7px;flex-shrink:0;border-right:2px solid var(--ome-text-2);
+  border-bottom:2px solid var(--ome-text-2);transform:rotate(-45deg);transition:transform var(--ome-dur-1)}
+:where([data-layout]) details.disclosure[open] > summary::before{transform:rotate(45deg)}
+:where([data-layout]) details.disclosure > .disclosure-body{padding:0 14px 14px;font-size:var(--ome-fs-sm)}
+
+/* จังหวะแนวตั้งภายในการ์ด + หัวข้อการ์ดของกลุ่มหน้าลงทุน (body[data-invest-key]) — ลูกตัวถัดไปเว้น 12px หัวข้อ h2 ตรงๆ ไม่ต้องใส่ margin เอง
+   จำกัดเฉพาะกลุ่มนี้เพื่อไม่ให้หน้าที่ย้ายรอบก่อน (credits/index ฯลฯ) เปลี่ยนหน้าตา */
+:where([data-invest-key]) .card > * + *{margin-top:var(--ome-sp-3)}
+:where([data-invest-key]) .card > h2{display:flex;align-items:center;gap:8px;margin:0}
+:where([data-invest-key]) :is(.card > h2,.card-head h2){font-size:var(--ome-fs-base)}
+
+/* up/dn — ตัวเลขขึ้น/ลง (เขียว/แดง) */
+:where([data-layout]) .up{color:var(--ome-ok-ink)}
+:where([data-layout]) .dn{color:var(--ome-err-ink)}
+
+/* chk-list — รายการตรวจ ✓/✕ (li.fail = ไม่ผ่าน) และ yn-row — แถวคำถาม ใช่/ยัง คู่กับ .segmented > .yes/.no */
+:where([data-layout]) .chk-list{list-style:none;margin:0;padding:0}
+:where([data-layout]) .chk-list li{display:flex;gap:9px;align-items:flex-start;font-size:var(--ome-fs-sm);padding:7px 0;border-bottom:1px solid var(--ome-border)}
+:where([data-layout]) .chk-list li:last-child{border-bottom:0}
+:where([data-layout]) .chk-list .ic{flex-shrink:0;display:inline-flex;margin-top:.2em}
+:where([data-layout]) .chk-list li.fail{color:var(--ome-err-ink);font-weight:600}
+:where([data-layout]) .yn-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-sm)}
+:where([data-layout]) .yn-row:last-child{border-bottom:0}
+:where([data-layout]) .segmented > button.on.yes{background:var(--ome-ok-soft);color:var(--ome-ok-ink)}
+:where([data-layout]) .segmented > button.on.no{background:var(--ome-err-soft);color:var(--ome-err-ink)}
+
+/* table.right — คอลัมน์ตัวเลขชิดขวา (คอลัมน์แรกชิดซ้าย) */
+:where([data-layout]) .table.right :is(th,td):not(:first-child){text-align:right}
+:where([data-layout]) .table.right :is(th,td){font-variant-numeric:tabular-nums}
+
+/* mini / ledger — ข้อความเล็กสีรอง + ส่วนหัวกลุ่มของสมุดบันทึก (log) */
+:where([data-layout]) .mini{font-size:var(--ome-fs-xs);color:var(--ome-text-2);line-height:1.6}
+:where([data-layout]) .log-empty{font-size:var(--ome-fs-sm);color:var(--ome-text-2);padding:8px 0}
+:where([data-layout]) .log-group-hd{font-weight:700;font-size:var(--ome-fs-sm);margin:10px 0 2px}
+:where([data-layout]) .log-group-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+:where([data-layout]) .log-group-note{font-size:var(--ome-fs-xs);color:var(--ome-warn-ink);margin-top:3px}
+
+/* chart-wrap / chart-cap — กรอบ SVG กราฟ + คำอธิบายสีเส้น (สีเส้นใช้ --ome-chart-N ตัวเดียวกับ chart-theme.js) */
+:where([data-layout]) .chart-wrap{overflow-x:auto}
+:where([data-layout]) svg.chart{display:block;width:100%;height:auto}
+:where([data-layout]) .chart-cap{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+:where([data-layout]) .chart-cap i{width:11px;height:3px;display:inline-block;vertical-align:middle;margin-right:4px;border-radius:2px}
+:where([data-layout]) .chart-cap i.c1{background:var(--ome-chart-1)}
+:where([data-layout]) .chart-cap i.c2{background:var(--ome-chart-2)}
+:where([data-layout]) .chart-cap i.c3{background:var(--ome-chart-3)}
+:where([data-layout]) .chart-cap i.c4{background:var(--ome-chart-4)}
+:where([data-layout]) .chart-cap i.c7{background:var(--ome-chart-7)}
+:where([data-layout]) .chart-cap i.mute{background:var(--ome-text-3)}
+
+/* cmp — เปรียบเทียบ 2 คอลัมน์ (.acc สะสม เขียว / .div รับปันผล ม่วง) */
+:where([data-layout]) .cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+:where([data-layout]) .cmp .col{border:1.5px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:14px}
+:where([data-layout]) .cmp .col.acc{border-color:color-mix(in srgb, var(--ome-ok) 40%, var(--ome-border))}
+:where([data-layout]) .cmp .col.div{border-color:color-mix(in srgb, var(--ome-chart-7) 40%, var(--ome-border))}
+:where([data-layout]) .cmp h3{font-size:var(--ome-fs-sm);margin-bottom:8px}
+:where([data-layout]) .cmp .col.acc h3{color:var(--ome-ok-ink)}
+:where([data-layout]) .cmp .col.div h3{color:var(--ome-chart-7)}
+:where([data-layout]) .cmp .line{display:flex;justify-content:space-between;font-size:var(--ome-fs-sm);margin:5px 0}
+:where([data-layout]) .cmp .line .v{font-weight:700}
+@media (max-width:520px){:where([data-layout]) .cmp{grid-template-columns:1fr}}
+
+/* tranche — กล่องขั้นการเติมไม้ตามระดับย่อ (.on = ขั้นที่ตรงกับตลาดตอนนี้) */
+:where([data-layout]) .tranche{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+:where([data-layout]) .tr-box{border-radius:var(--ome-radius-md);padding:12px;text-align:center;font-size:var(--ome-fs-sm);background:var(--ome-surface-2)}
+:where([data-layout]) .tr-box.on{background:var(--ome-accent-soft);outline:2px solid var(--ome-accent)}
+:where([data-layout]) .tr-box .d{font-weight:700;font-size:var(--ome-fs-base)}
+:where([data-layout]) .tr-box .m{color:var(--ome-text-2);font-size:var(--ome-fs-xs);margin-top:2px}
+:where([data-layout]) .tr-box .x{font-weight:700;color:var(--ome-accent-strong);margin-top:4px}
+
+/* light — ไฟจราจรสรุปสัญญาณ (green|yellow|red|gray) พร้อมหลอดสีกลมด้านซ้าย */
+:where([data-layout]) .light{display:flex;gap:14px;align-items:center;border-radius:var(--ome-radius-lg);padding:16px;background:var(--ome-surface-2);color:var(--ome-text-2)}
+:where([data-layout]) .light .bulb{width:52px;height:52px;border-radius:50%;flex-shrink:0;background:var(--ome-text-3)}
+:where([data-layout]) .light .verdict{font-size:var(--ome-fs-lg);font-weight:700;line-height:1.25}
+:where([data-layout]) .light .why{font-size:var(--ome-fs-sm);margin-top:3px}
+:where([data-layout]) .light.green{background:var(--ome-ok-soft);color:var(--ome-ok-ink)}
+:where([data-layout]) .light.yellow{background:var(--ome-warn-soft);color:var(--ome-warn-ink)}
+:where([data-layout]) .light.red{background:var(--ome-err-soft);color:var(--ome-err-ink)}
+
+/* crumb — เส้นทางหน้า (การลงทุน › หุ้นไทย) */
+:where([data-layout]) .crumb{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-bottom:var(--ome-sp-3)}
+:where([data-layout]) .crumb a{color:var(--ome-accent-strong);font-weight:600;text-decoration:none}
+
+/* subnav — แถบนำทางสองชั้นของกลุ่มหน้า (กลุ่มบน + หน้าย่อยล่าง) เลื่อนแนวนอนได้บนจอแคบ */
+:where([data-layout]) .subnav{background:var(--ome-surface-1);border-bottom:1px solid var(--ome-border)}
+:where([data-layout]) .subnav-groups,:where([data-layout]) .subnav-row{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;
+  max-width:1180px;margin:0 auto;padding:0 var(--ome-sp-3)}
+:where([data-layout]) :is(.subnav-groups,.subnav-row)::-webkit-scrollbar{display:none}
+:where([data-layout]) .subnav-groups button{flex:0 0 auto;height:42px;padding:0 14px;border:0;border-bottom:2px solid transparent;background:transparent;
+  color:var(--ome-text-2);font-size:var(--ome-fs-sm);font-weight:600;white-space:nowrap;cursor:pointer}
+:where([data-layout]) .subnav-groups button:hover{color:var(--ome-text-1)}
+:where([data-layout]) .subnav-groups button.on{color:var(--ome-text-1);border-bottom-color:var(--ome-accent)}
+:where([data-layout]) .subnav-sub{background:var(--ome-surface-2);border-top:1px solid var(--ome-border)}
+:where([data-layout]) .subnav-row{padding-top:6px;padding-bottom:6px}
+:where([data-layout]) .subnav-row a{flex:0 0 auto;padding:6px 11px;border-radius:var(--ome-radius-pill);color:var(--ome-text-2);
+  font-size:var(--ome-fs-xs);font-weight:600;white-space:nowrap;text-decoration:none}
+:where([data-layout]) .subnav-row a:hover{color:var(--ome-text-1);background:var(--ome-surface-1)}
+:where([data-layout]) .subnav-row a.on{background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
 
 /* ── สไตล์พื้นผิว (data-style) ของคอมโพเนนต์กลาง ── */
 [data-style="soft"] :where([data-layout]) :is(.card,.kpi,.list,.table-wrap,.toolbar){border-color:transparent;box-shadow:var(--ome-shadow-2)}
@@ -481,23 +612,6 @@ body{padding-bottom:0!important}
 [data-accent]:not([data-accent="teal"]) body.ome-tool-page .hero{
   background:linear-gradient(120deg, var(--ome-brand-sf) 0%, var(--ome-card) 55%, var(--ome-brand-sf) 100%);
 }
-
-/* ── พื้นหลังโซนลงทุนทุกหน้า (invest*.html — ระบุด้วย data-invest-key ที่ทุกหน้าใส่ไว้อยู่แล้ว)
-   รวมศูนย์มาจากเดิมที่ทำไว้เฉพาะหน้า invest.html (ภาพรวม) — ผู้ใช้ขอให้ทุกหน้าลงทุนใช้พื้นหลัง
-   เดียวกัน จะได้แก้ที่เดียวในอนาคต ย้ายมาไว้ที่นี่แทน (ลบออกจาก invest.html แล้ว):
-   1) ไล่สีอ่อนๆ จากสีธีมที่เลือกที่ขอบบนของหน้า ไปเป็นสีพื้นปกติ (--bg/--card มีชื่อ/ค่าเดียวกัน
-      ทุกหน้าลงทุนอยู่แล้ว จึงอ้างอิงร่วมกันได้ปลอดภัย)
-   2) ลายตกแต่ง SVG (เครือข่ายจุด/ไอคอนการเงิน + กราฟแนวโน้มขาขึ้น) ที่ shell.js เป็นคนแทรกให้ทุก
-      หน้าลงทุนอัตโนมัติ (ดู shell.js: buildInvestBgMotif) — ที่นี่มีแค่การจัดตำแหน่ง/สีเท่านั้น
-   specificity ของ selector มี [data-invest-key] เพิ่มมา สูงกว่า body.ome-tool-page เฉยๆ ที่แต่ละ
-   หน้ายังประกาศ background:var(--bg) ไว้เองอยู่ (ไม่ได้ลบทิ้งทุกไฟล์) เลยชนะได้โดยไม่ต้องพึ่งลำดับ
-   โหลดไฟล์ */
-body.ome-tool-page[data-invest-key]{
-  background:linear-gradient(180deg, color-mix(in srgb, var(--ome-brand) 7%, var(--bg) 93%) 0%, var(--bg) 560px);
-  background-attachment:fixed;
-}
-.bgmotif{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;color:var(--ome-brand);opacity:.85}
-[data-theme="dark"] .bgmotif{opacity:.5}
 
 /* ── หน้า React+Tailwind (classroom-business/engineering, languages.html, legal.html) ──────
    เดิม override เฉพาะ [data-theme="dark"] อย่างเดียว (hardcode ค่าสีเข้มของ mint ตรงๆ) พอมี

@@ -19,6 +19,7 @@
   function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   var I18N = {
     th: {
+      delTitle: 'ลบ',
       navInvest: 'การลงทุน', pageTitleShort: 'พันธบัตรรัฐบาล',
       pageTitle: 'พันธบัตรรัฐบาล — คำนวณผลตอบแทน + ติดตามตารางจ่ายดอกเบี้ย',
       calcTitle: 'คำนวณผลตอบแทนพันธบัตร',
@@ -38,7 +39,7 @@
       cmpDiffDepWins: 'เงินฝากประจำได้มากกว่า {v} หลังหักภาษี ตลอด {n} ปี',
       lgTitle: 'ตารางจ่ายดอกเบี้ย + สมุดพันธบัตรของฉัน',
       lblBondName: 'ชื่อ/รุ่นพันธบัตร', phBondName: 'เช่น ออมพลัส 2569',
-      lblPurchDate: 'วันที่ซื้อ', lblMaturity: 'วันครบกำหนด', addBtn: '+ บันทึก',
+      lblPurchDate: 'วันที่ซื้อ', lblMaturity: 'วันครบกำหนด', addBtn: 'บันทึก',
       lgEmptyDefault: 'ยังไม่มีรายการ',
       logThDate: 'วันที่ซื้อ', logThName: 'ชื่อ/รุ่น', logThFace: 'หน้าตั๋ว', logThCoupon: 'ดอกเบี้ย', logThMaturity: 'ครบกำหนด',
       groupSummary: 'ซื้อ {face} · ดอกเบี้ย {coupon}%/ปี · จ่าย{freq}',
@@ -50,6 +51,7 @@
       alertMaturityOrder: 'วันครบกำหนดต้องอยู่หลังวันที่ซื้อ', alertFaceCoupon: 'กรอกมูลค่าหน้าตั๋วและอัตราดอกเบี้ยให้ถูกต้อง'
     },
     en: {
+      delTitle: 'Delete',
       navInvest: 'Investing', pageTitleShort: 'Government Bonds',
       pageTitle: 'Government Bonds — Return Calculator + Coupon Schedule Tracker',
       calcTitle: 'Bond Return Calculator',
@@ -69,7 +71,7 @@
       cmpDiffDepWins: 'The fixed deposit earns {v} more after tax over {n} years',
       lgTitle: 'Coupon Schedule + My Bond Log',
       lblBondName: 'Bond name/series', phBondName: 'e.g. Om Plus 2026',
-      lblPurchDate: 'Purchase date', lblMaturity: 'Maturity date', addBtn: '+ Log',
+      lblPurchDate: 'Purchase date', lblMaturity: 'Maturity date', addBtn: 'Log',
       lgEmptyDefault: 'No entries yet',
       logThDate: 'Purchase date', logThName: 'Name/series', logThFace: 'Face value', logThCoupon: 'Interest', logThMaturity: 'Maturity',
       groupSummary: 'Bought {face} · interest {coupon}%/year · paid {freq}',
@@ -248,27 +250,27 @@
     var log = loadLog(), box = $('lgBox');
     if (!log.length) { box.innerHTML = '<div class="log-empty">' + t('lgEmptyDefault') + '</div>'; return; }
     var today = new Date();
-    var html = '<table class="log-table"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThName') + '</th><th>' + t('logThFace') + '</th><th>' + t('logThCoupon') + '</th><th>' + t('logThMaturity') + '</th><th></th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThName') + '</th><th>' + t('logThFace') + '</th><th>' + t('logThCoupon') + '</th><th>' + t('logThMaturity') + '</th><th></th></tr></thead><tbody>';
     log.forEach(function (r, i) {
       html += '<tr><td>' + parseYMD(r.purchDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
         '<td>' + r.name + '</td><td>' + baht(r.face) + '</td><td>' + fmt(r.coupon, 2) + '%</td>' +
         '<td>' + parseYMD(r.maturity).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
-        '<td><button class="log-del" data-i="' + i + '">✕</button></td></tr>';
+        '<td><button class="btn sm ghost icon log-del" aria-label="' + t('delTitle') + '" data-i="' + i + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
 
     log.forEach(function (r) {
       var sched = couponSchedule(parseYMD(r.purchDate), parseYMD(r.maturity), r.freq, r.face, r.coupon);
       html += '<div class="log-group-hd">' + r.name + '</div>';
       html += '<div class="log-group-sub">' + t('groupSummary', { face: baht(r.face), coupon: fmt(r.coupon, 2), freq: freqLabel(r.freq) }) + '</div>';
-      html += '<table class="log-table"><thead><tr><th>' + t('schedThDate') + '</th><th>' + t('schedThAmt') + '</th><th>' + t('schedThStatus') + '</th></tr></thead><tbody>';
+      html += '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('schedThDate') + '</th><th>' + t('schedThAmt') + '</th><th>' + t('schedThStatus') + '</th></tr></thead><tbody>';
       sched.forEach(function (row) {
         var got = row.date <= today;
         html += '<tr><td>' + row.date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
-          '<td>' + baht(row.total) + (row.principal ? ' <span style="color:var(--muted);font-size:11px">' + t('principalIncluded') + '</span>' : '') + '</td>' +
-          '<td><span class="cp-badge ' + (got ? 'got">' + t('statusGot') : 'wait">' + t('statusWait')) + '</span></td></tr>';
+          '<td>' + baht(row.total) + (row.principal ? ' <span style="color:var(--ome-text-2);font-size:11px">' + t('principalIncluded') + '</span>' : '') + '</td>' +
+          '<td><span class="badge ' + (got ? 'ok">' + t('statusGot') : '">' + t('statusWait')) + '</span></td></tr>';
       });
-      html += '</tbody></table>';
+      html += '</tbody></table></div>';
     });
 
     box.innerHTML = html;

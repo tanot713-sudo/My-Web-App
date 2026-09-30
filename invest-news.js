@@ -24,7 +24,7 @@
       navInvest: 'การลงทุน', pageTitle: 'ข่าวหุ้น',
       stCountLbl: 'พบข่าว', stTopicLbl: 'หมวดที่เลือก', stUpdatedLbl: 'อัปเดตล่าสุด',
       searchPh: 'ค้นข่าวหุ้น/บริษัทที่สนใจ เช่น PTT, ปันผล, กนง.', searchBtn: 'ค้นหา',
-      oppdayLinkText: 'Opportunity Day ↗',
+      oppdayLinkText: 'Opportunity Day',
       loadingNewsDefault: 'กำลังโหลดข่าว…', loadingDefault: 'กำลังโหลด…',
       chipMarket: 'ตลาดหุ้นไทย', chipEcon: 'เศรษฐกิจไทย', chipRate: 'ดอกเบี้ย/กนง.', chipIpo: 'ข่าว IPO', chipDiv: 'ปันผลหุ้น', chipOppday: 'Opportunity Day',
       newsCountItems: '{n} รายการ', ageJustNow: 'เมื่อสักครู่', ageMinAgo: '{n} นาทีก่อน', ageHrAgo: '{n} ชม.ก่อน', ageDaysAgo: '{n} วันก่อน',
@@ -32,13 +32,13 @@
       loadingTopic: 'กำลังโหลดข่าว "{label}"…',
       staleUseSaved: 'ดึงสดไม่ได้ — ใช้ข่าวที่บันทึกไว้ {age}', latestFor: 'ข่าวล่าสุด "{label}"',
       fetchFail: 'ดึงข่าวไม่สำเร็จตอนนี้ — ลองรีเฟรช หรือเปิด Google News ค้นเองที่ ↗',
-      fetchFailBody: 'ดึงข่าวอัตโนมัติไม่ได้ตอนนี้ — <a href="{url}" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700">ค้นหาเองที่ Google News ↗</a>'
+      fetchFailBody: 'ดึงข่าวอัตโนมัติไม่ได้ตอนนี้ — <a href="{url}" target="_blank" rel="noopener">ค้นหาเองที่ Google News ↗</a>'
     },
     en: {
       navInvest: 'Investing', pageTitle: 'Stock News',
       stCountLbl: 'Found', stTopicLbl: 'Selected topic', stUpdatedLbl: 'Last updated',
       searchPh: 'Search for stocks/companies, e.g. PTT, dividends, BOT rate', searchBtn: 'Search',
-      oppdayLinkText: 'Opportunity Day ↗',
+      oppdayLinkText: 'Opportunity Day',
       loadingNewsDefault: 'Loading news…', loadingDefault: 'Loading…',
       chipMarket: 'Thai Stock Market', chipEcon: 'Thai Economy', chipRate: 'Interest Rate/BOT', chipIpo: 'IPO News', chipDiv: 'Stock Dividends', chipOppday: 'Opportunity Day',
       newsCountItems: '{n} items', ageJustNow: 'just now', ageMinAgo: '{n} min ago', ageHrAgo: '{n} hr ago', ageDaysAgo: '{n} days ago',
@@ -46,7 +46,7 @@
       loadingTopic: 'Loading news for "{label}"…',
       staleUseSaved: 'Live fetch failed — using saved news from {age}', latestFor: 'Latest news for "{label}"',
       fetchFail: "Couldn't fetch news right now — try refreshing, or open Google News to search yourself ↗",
-      fetchFailBody: 'Couldn\'t auto-fetch news right now — <a href="{url}" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700">search it yourself on Google News ↗</a>'
+      fetchFailBody: 'Couldn\'t auto-fetch news right now — <a href="{url}" target="_blank" rel="noopener">search it yourself on Google News ↗</a>'
     }
   };
   function t(key, vars) {
@@ -173,7 +173,7 @@
     return hrs < 24 ? t('ageHrAgo', { n: hrs }) : t('ageDaysAgo', { n: Math.round(hrs / 24) });
   }
 
-  function setBadge(msg, cls) { var el = $('srcBadge'); el.textContent = msg; el.className = 'src-badge' + (cls ? ' ' + cls : ''); }
+  function setBadge(msg, cls) { var el = $('srcBadge'); el.textContent = msg; el.className = 'badge wrap' + (cls === 'real' ? ' ok' : cls === 'demo' ? ' warn' : ''); }
 
   function renderNews(r) {
     var body = $('newsBody');

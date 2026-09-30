@@ -20,7 +20,7 @@
       navOverview: 'ภาพรวม', navMyPortfolio: 'พอร์ตของฉัน', navMarket: 'ตลาด & สินทรัพย์', navLottery: 'สลาก & พันธบัตร', navNews: 'ข่าว & ธุรกิจ',
       crumbHome: 'การลงทุน', crumbThaiStock: 'หุ้นไทย', crumbHere: 'สมุดเทรด',
       pageTitle: 'สมุดเทรด + สถิติ',
-      jSymLabel: 'หุ้น', jEntryLabel: 'ราคาเข้า', jExitLabel: 'ราคาออก', jSharesLabel: 'จำนวนหุ้น', jAddBtn: '+ บันทึกไม้',
+      jSymLabel: 'หุ้น', jEntryLabel: 'ราคาเข้า', jExitLabel: 'ราคาออก', jSharesLabel: 'จำนวนหุ้น', jAddBtn: 'บันทึกไม้', jDelTitle: 'ลบ',
       driveTitle: 'สำรองพอร์ต + สมุดเทรดขึ้น Google Drive',
       alertJournalFields: 'กรอกราคาเข้า ราคาออก และจำนวนหุ้นให้ครบ', jSymFallback: 'หุ้น',
       jEmptyDefault: 'ยังไม่มีไม้ที่บันทึก',
@@ -31,7 +31,7 @@
       navOverview: 'Overview', navMyPortfolio: 'My Portfolio', navMarket: 'Markets & Assets', navLottery: 'Lottery & Bonds', navNews: 'News & Business',
       crumbHome: 'Investing', crumbThaiStock: 'Thai Stocks', crumbHere: 'Trade Journal',
       pageTitle: 'Trade Journal + Stats',
-      jSymLabel: 'Stock', jEntryLabel: 'Entry price', jExitLabel: 'Exit price', jSharesLabel: 'Shares', jAddBtn: '+ Log Trade',
+      jSymLabel: 'Stock', jEntryLabel: 'Entry price', jExitLabel: 'Exit price', jSharesLabel: 'Shares', jAddBtn: 'Log Trade', jDelTitle: 'Delete',
       driveTitle: 'Back up Portfolio + Trade Journal to Google Drive',
       alertJournalFields: 'Please fill in entry price, exit price, and share count', jSymFallback: 'Stock',
       jEmptyDefault: 'No trades logged yet',
@@ -67,18 +67,18 @@
     var expBaht = (winRate / 100) * avgWin - (1 - winRate / 100) * avgLoss;
     stats.style.display = 'grid';
     stats.innerHTML =
-      '<div class="jstat"><span>' + t('jStatCount') + '</span><b>' + jn.length + '</b></div>' +
-      '<div class="jstat"><span>' + t('jStatWinRate') + '</span><b>' + winRate.toFixed(0) + '%</b></div>' +
-      '<div class="jstat"><span>' + t('jStatTotalPl') + '</span><b style="color:' + (total >= 0 ? 'var(--ok)' : 'var(--err)') + '">' + (total >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(total)) + '</b></div>' +
-      '<div class="jstat"><span>' + t('jStatExpectancy') + '</span><b style="color:' + (expBaht >= 0 ? 'var(--ok)' : 'var(--err)') + '">' + (expBaht >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(expBaht)) + '</b></div>';
-    var html = '<table><thead><tr><th>' + t('jThSym') + '</th><th>' + t('jThEntry') + '</th><th>' + t('jThExit') + '</th><th>' + t('jThShares') + '</th><th>' + t('jThResult') + '</th><th></th></tr></thead><tbody>';
+      '<div class="kpi"><span class="kpi-label">' + t('jStatCount') + '</span><span class="kpi-value">' + jn.length + '</span></div>' +
+      '<div class="kpi"><span class="kpi-label">' + t('jStatWinRate') + '</span><span class="kpi-value">' + winRate.toFixed(0) + '%</span></div>' +
+      '<div class="kpi"><span class="kpi-label">' + t('jStatTotalPl') + '</span><span class="kpi-value ' + (total >= 0 ? 'pl-up' : 'pl-dn') + '">' + (total >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(total)) + '</span></div>' +
+      '<div class="kpi"><span class="kpi-label">' + t('jStatExpectancy') + '</span><span class="kpi-value ' + (expBaht >= 0 ? 'pl-up' : 'pl-dn') + '">' + (expBaht >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(expBaht)) + '</span></div>';
+    var html = '<div class="table-wrap"><table class="table"><thead><tr><th>' + t('jThSym') + '</th><th class="num">' + t('jThEntry') + '</th><th class="num">' + t('jThExit') + '</th><th class="num">' + t('jThShares') + '</th><th class="num">' + t('jThResult') + '</th><th></th></tr></thead><tbody>';
     jn.slice().reverse().forEach(function (r, ri) {
       var idx = jn.length - 1 - ri;
       html += '<tr><td>' + r.sym + '</td><td class="num">' + fmt(r.en) + '</td><td class="num">' + fmt(r.ex) + '</td><td class="num">' + fmt0(r.sh) + '</td>' +
-        '<td class="num ' + (r.pl >= 0 ? 'win' : 'loss') + '">' + (r.pl >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(r.pl)) + '</td>' +
-        '<td><button class="jdel" data-i="' + idx + '">✕</button></td></tr>';
+        '<td class="num ' + (r.pl >= 0 ? 'pl-up' : 'pl-dn') + '">' + (r.pl >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(r.pl)) + '</td>' +
+        '<td class="num"><button class="btn sm ghost icon jdel" aria-label="' + t('jDelTitle') + '" data-i="' + idx + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
-    html += '</tbody></table>'; box.innerHTML = html;
+    html += '</tbody></table></div>'; box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('.jdel'), function (b) { b.addEventListener('click', function () { var jn2 = loadJn(); jn2.splice(+b.getAttribute('data-i'), 1); saveJn(jn2); renderJournal(); }); });
   }
 

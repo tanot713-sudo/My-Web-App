@@ -20,12 +20,12 @@
   function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   var I18N = {
     th: {
+      rcKvNote: 'หมายเหตุ',
       navInvest: 'การลงทุน', pageTitle: 'ค่าเงิน & วัตถุดิบ',
       srcBadgeEod: 'ข้อมูล EOD (วันก่อนหน้า)', loadingDefault: 'กำลังโหลด…',
       ohlcOpen: 'เปิด', ohlcHigh: 'สูง', ohlcLow: 'ต่ำ', ohlcClose: 'ปิด', ohlcChg: 'เปลี่ยนแปลง',
       tf1m: '1เดือน', tf3m: '3เดือน', tf6m: '6เดือน', tf1y: '1ปี',
-      chartCapUp: 'แท่งขึ้น', chartCapDown: 'แท่งลง', chartCapTap: 'แตะบนกราฟเพื่อดูราคาแต่ละวัน',
-      histTitleDefault: 'ข้อมูลราคาย้อนหลัง',
+      chartCapUp: 'แท่งขึ้น', chartCapDown: 'แท่งลง',      histTitleDefault: 'ข้อมูลราคาย้อนหลัง',
       histTitleWithAsset: 'ข้อมูลราคา {label} — ล่าสุด {n} วัน',
       histThDate: 'วันที่', histThOpen: 'เปิด', histThHigh: 'สูง', histThLow: 'ต่ำ', histThClose: 'ปิด', histThChg: 'เปลี่ยนแปลง',
       fetchFailShort: 'ดึงไม่ได้',
@@ -69,8 +69,7 @@
       ctxEma: 'เส้นเฉลี่ย 20 วัน: {e20}, เส้นเฉลี่ย 50 วัน: {e50}', ctxEmaUp: ' (ราคาอยู่เหนือเส้นเฉลี่ย — แนวโน้มขึ้น)', ctxEmaDn: ' (ราคาอยู่ใต้เส้นเฉลี่ย — แนวโน้มลง/พักตัว)',
       ctxSupport: 'แนวรับล่าสุด: {v}', ctxResistance: 'แนวต้านล่าสุด: {v}',
       ctxAdx: 'ความแรงแนวโน้ม (ADX): {v}', ctxAdxStrong: ' (แข็งแรง)', ctxAdxWeak: ' (อ่อน)',
-      rcTitle: 'ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน', rcUnitNote: 'กรอกราคาซื้อ/ราคาตัดขาดทุนเป็นหน่วยเดียวกับราคาที่แสดงด้านบน ({unit})',
-      rcCapitalLabel: 'เงินลงทุนทั้งหมด', rcCapitalPh: 'เช่น 100000',
+      rcTitle: 'ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน',      rcCapitalLabel: 'เงินลงทุนทั้งหมด', rcCapitalPh: 'เช่น 100000',
       rcRiskPctLabel: 'ยอมเสี่ยงต่อครั้ง', rcUnitPctPortfolio: '(% ของพอร์ต)',
       rcEntryLabel: 'ราคาซื้อ', rcEntryPh: '= ราคาปัจจุบันของสินทรัพย์ที่เลือก',
       rcStopLabel: 'ราคาตัดขาดทุน', rcStopPh: 'แนะนำอัตโนมัติ',
@@ -101,12 +100,12 @@
       checklistGo: 'ซื้อได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)'
     },
     en: {
+      rcKvNote: 'Note',
       navInvest: 'Investing', pageTitle: 'FX & Commodities',
       srcBadgeEod: 'EOD data (previous day)', loadingDefault: 'Loading…',
       ohlcOpen: 'Open', ohlcHigh: 'High', ohlcLow: 'Low', ohlcClose: 'Close', ohlcChg: 'Change',
       tf1m: '1M', tf3m: '3M', tf6m: '6M', tf1y: '1Y',
-      chartCapUp: 'Up candle', chartCapDown: 'Down candle', chartCapTap: 'Tap the chart to see each day’s price',
-      histTitleDefault: 'Price history',
+      chartCapUp: 'Up candle', chartCapDown: 'Down candle',      histTitleDefault: 'Price history',
       histTitleWithAsset: 'Price history for {label} — last {n} days',
       histThDate: 'Date', histThOpen: 'Open', histThHigh: 'High', histThLow: 'Low', histThClose: 'Close', histThChg: 'Change',
       fetchFailShort: 'Unavailable',
@@ -150,8 +149,7 @@
       ctxEma: '20-day MA: {e20}, 50-day MA: {e50}', ctxEmaUp: ' (price above the MAs — uptrend)', ctxEmaDn: ' (price below the MAs — downtrend/consolidation)',
       ctxSupport: 'Latest support: {v}', ctxResistance: 'Latest resistance: {v}',
       ctxAdx: 'Trend strength (ADX): {v}', ctxAdxStrong: ' (strong)', ctxAdxWeak: ' (weak)',
-      rcTitle: 'If you buy, how much should you put in, and where should you sell', rcUnitNote: 'Enter the purchase/stop-loss price in the same unit shown above ({unit})',
-      rcCapitalLabel: 'Total capital', rcCapitalPh: 'e.g. 100000',
+      rcTitle: 'If you buy, how much should you put in, and where should you sell',      rcCapitalLabel: 'Total capital', rcCapitalPh: 'e.g. 100000',
       rcRiskPctLabel: 'Risk tolerance per purchase', rcUnitPctPortfolio: '(% of portfolio)',
       rcEntryLabel: 'Purchase price', rcEntryPh: "= this asset's current price",
       rcStopLabel: 'Stop-loss price', rcStopPh: 'Auto-suggested',
@@ -282,7 +280,7 @@
       var x = i / (vals.length - 1) * w, y = h - (vals[i] - min) / range * (h - 4) - 2;
       pts.push(x.toFixed(1) + ',' + y.toFixed(1));
     }
-    var color = up ? '#17B26A' : '#E5484D';
+    var C = CT.get(), color = up ? C.up : C.down;
     return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none"><polyline points="' + pts.join(' ') + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>';
   }
   function parseYahooSeries(t) {
@@ -470,32 +468,25 @@
   }
 
   /* ── กราฟแท่งเทียน (lightweight-charts — เหมือน invest-thai-stock.js) ── */
-  function themeColors() {
-    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    return dark ? { bg: '#1B2030', text: '#C2CBDD', grid: '#2A3040', border: '#2A3040' }
-                : { bg: '#FFFFFF', text: '#4A5568', grid: '#EEF1F7', border: '#E4E9F2' };
-  }
+  /* สีกราฟมาจาก chart-theme.js (โทเคน --ome-chart-*) */
+  var CT = window.OmeChartTheme;
   function chartWidth(el) { return Math.max(240, (el && (el.clientWidth || el.offsetWidth)) || 320); }
   function baseOpts(w, h) {
-    var c = themeColors();
-    return {
-      width: w, height: h,
-      localization: { locale: 'en-US' },
-      layout: { background: { color: c.bg }, textColor: c.text, fontFamily: "'Prompt',system-ui,sans-serif" },
-      grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } },
-      rightPriceScale: { borderColor: c.border },
-      timeScale: { borderColor: c.border, rightOffset: 3, fixLeftEdge: true }
-    };
+    var o = CT.lightweight();
+    o.width = w; o.height = h;
+    o.localization = { locale: 'en-US' };
+    o.timeScale.rightOffset = 3; o.timeScale.fixLeftEdge = true;
+    return o;
   }
   var themeObs = null, resizeWired = false;
+  function recolor() {
+    if (!chart || !seriesObj) return;
+    chart.applyOptions(CT.lightweight());
+    seriesObj.applyOptions(curType === 'candle' ? CT.candles() : { color: CT.get().series[0] });
+  }
   function setupThemeObserver() {
     if (themeObs) return;
-    themeObs = new MutationObserver(function () {
-      if (!chart) return;
-      var c = themeColors();
-      chart.applyOptions({ layout: { background: { color: c.bg }, textColor: c.text }, grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } }, rightPriceScale: { borderColor: c.border }, timeScale: { borderColor: c.border } });
-    });
-    themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    themeObs = true; CT.onChange(recolor);
   }
   function setupResize() {
     if (resizeWired) return; resizeWired = true;
@@ -518,9 +509,9 @@
     $('chartEmpty').style.display = 'none'; $('chartCap').style.display = 'flex'; el.style.display = 'block';
     chart = LWC.createChart(el, baseOpts(chartWidth(el), 260));
     if (curType === 'candle') {
-      seriesObj = chart.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350', borderVisible: false, wickUpColor: '#26a69a', wickDownColor: '#ef5350' });
+      seriesObj = chart.addCandlestickSeries(Object.assign({ borderVisible: false }, CT.candles()));
     } else {
-      seriesObj = chart.addLineSeries({ color: '#3B9BEA', lineWidth: 2 });
+      seriesObj = chart.addLineSeries({ color: CT.get().series[0], lineWidth: 2 });
     }
     applyTF(curTF);
     setupThemeObserver(); setupResize();
@@ -734,17 +725,16 @@
     if (a) lastAnalysis = a;
     if (!a) {
       $('vLight').className = 'light gray';
-      $('vBulb').style.background = '#B8C0D4';
+      $('vBulb').style.background = 'var(--ome-text-3)';
       $('vVerdict').textContent = t('gVerdictNoData');
       $('vWhy').textContent = '';
       $('vDetailsBox').style.display = 'none';
       $('aiSumCard').style.display = 'none';
-      $('rcUnitNote').textContent = '';
       return;
     }
-    var bulbColors = { green: 'var(--ok)', yellow: 'var(--amber)', red: 'var(--err)' };
+    var bulbColors = { green: 'var(--ome-ok)', yellow: 'var(--ome-warn)', red: 'var(--ome-err)' };
     $('vLight').className = 'light ' + a.light;
-    $('vBulb').style.background = bulbColors[a.light] || '#B8C0D4';
+    $('vBulb').style.background = bulbColors[a.light] || 'var(--ome-text-3)';
     $('vVerdict').textContent = a.verdict;
     $('vWhy').textContent = a.why;
     if (a.det && isFinite(a.det.rsi)) {
@@ -766,7 +756,6 @@
 
     /* บอกหน่วยเงินของราคาซื้อ/ราคาตัดขาดทุนในการ์ดคำนวณความเสี่ยงด้านล่าง ให้ตรงกับหน่วยของสินทรัพย์ที่เลือกอยู่
        (หน้านี้มีหลายสินทรัพย์คนละสกุล/หน่วยกัน ต่างจากหน้าหุ้น/บิตคอยน์ที่มีสกุลเดียวคงที่) */
-    $('rcUnitNote').textContent = t('rcUnitNote', { unit: assetUnit(asset) });
   }
 
   /* ── ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน — คำนวณตรงๆ ในหน่วยของสินทรัพย์ที่เลือกอยู่
@@ -795,7 +784,7 @@
       entry = (lastAnalysis && isFinite(lastAnalysis.price)) ? lastAnalysis.price : NaN;
       if (isFinite(entry)) $('rcEntry').value = entry.toFixed(asset.dp);
     }
-    if (!isFinite(entry)) { $('rcHeadline').innerHTML = '<span style="color:var(--err)">' + t('rcErrNeedEntry') + '</span>'; $('rcKv').innerHTML = ''; return; }
+    if (!isFinite(entry)) { $('rcHeadline').innerHTML = '<span style="color:var(--ome-err-ink)">' + t('rcErrNeedEntry') + '</span>'; $('rcKv').innerHTML = ''; return; }
     if (!isFinite(stop)) {
       stop = (lastAnalysis && isFinite(lastAnalysis.suggestStop)) ? lastAnalysis.suggestStop : entry * 0.95;
       $('rcStop').value = stop.toFixed(asset.dp);
@@ -804,13 +793,13 @@
     if (!isFinite(riskPct) || riskPct <= 0) { riskPct = 2; $('rcRiskPct').value = riskPct; }
 
     var res = riskCalc({ capital: capital, riskPct: riskPct, entry: entry, stop: stop, resistance: lastAnalysis ? lastAnalysis.resistance : NaN });
-    if (res.error) { $('rcHeadline').innerHTML = '<span style="color:var(--err)">' + res.error + '</span>'; $('rcKv').innerHTML = ''; return; }
+    if (res.error) { $('rcHeadline').innerHTML = '<span style="color:var(--ome-err-ink)">' + res.error + '</span>'; $('rcKv').innerHTML = ''; return; }
     $('rcHeadline').innerHTML = t('rcQtyLine', { qty: fmt(res.qty, 4), cost: fmt(res.cost, 0) });
     var kv = '';
     kv += '<div class="k">' + t('rcKvIfWrong') + '</div><div class="v">' + fmt(res.riskAmt, 0) + '</div>';
     kv += '<div class="k">' + t('rcKvStop') + '</div><div class="v">' + fmt(stop, asset.dp) + '</div>';
     if (isFinite(res.rr)) kv += '<div class="k">' + t('rcKvRr') + '</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
-    if (res.note) kv += '<div class="k" style="color:var(--warn)">ℹ️</div><div class="v" style="color:var(--warn);font-size:12px">' + res.note + '</div>';
+    if (res.note) kv += '<div class="k" style="color:var(--ome-warn-ink)">' + t('rcKvNote') + '</div><div class="v" style="color:var(--ome-warn-ink);font-size:var(--ome-fs-xs)">' + res.note + '</div>';
     $('rcKv').innerHTML = kv;
   }
 
@@ -854,12 +843,12 @@
     var fails = checks.filter(function (c) { return c.ok === false; }).length;
     var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
     var box = $('checkResult'), v = $('checkVerdict');
-    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = t('checklistFail', { n: fails }); }
-    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = t('checklistUnknown'); }
-    else { v.className = 'verdict-box go'; v.textContent = t('checklistGo'); }
+    if (fails > 0) { v.className = 'callout err'; v.textContent = t('checklistFail', { n: fails }); }
+    else if (unknowns > 0) { v.className = 'callout warn'; v.textContent = t('checklistUnknown'); }
+    else { v.className = 'callout ok'; v.textContent = t('checklistGo'); }
     var html = '';
     checks.forEach(function (c) {
-      var ic = c.ok === true ? '' : c.ok === false ? '' : '◻️';
+      var ic = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + (c.ok === true ? 'check' : c.ok === false ? 'x' : 'minus') + '"/></svg>';
       html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
     });
     $('chkList').innerHTML = html;
@@ -1069,7 +1058,7 @@
   }
 
   function setDetailStatus(msg, cls) {
-    var el = $('dSrcBadge'); el.textContent = msg; el.className = 'src-badge' + (cls ? ' ' + cls : '');
+    var el = $('dSrcBadge'); el.textContent = msg; el.className = 'badge wrap' + (cls === 'real' ? ' ok' : cls === 'demo' ? ' warn' : '');
   }
 
   function selectAsset(key) {
@@ -1083,7 +1072,7 @@
     fullData = null;
 
     /* รีเซ็ตการ์ดไฟจราจร/สรุปด้วย AI เป็นสถานะ "กำลังโหลด" ทันทีที่สลับสินทรัพย์ กันโชว์ผลของตัวเก่าค้าง */
-    $('vLight').className = 'light gray'; $('vBulb').style.background = '#B8C0D4';
+    $('vLight').className = 'light gray'; $('vBulb').style.background = 'var(--ome-text-3)';
     $('vVerdict').textContent = t('loadingDefault'); $('vWhy').textContent = '';
     $('vDetailsBox').style.display = 'none'; $('aiSumCard').style.display = 'none';
 

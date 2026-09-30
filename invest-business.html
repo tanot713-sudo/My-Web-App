@@ -5,142 +5,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ลงทุนทำธุรกิจ — เช็กความพร้อม + จุดคุ้มทุน | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#12A594">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="theme-boot.js"></script>
 <script src="data-registry.js"></script>
 <script src="tanot-data.js"></script>
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
 <style>
-:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
-  --brand:var(--ome-brand);--brand-dk:var(--ome-brand-dk);--brand-sf:var(--ome-brand-sf);
-  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--sky:#3B9BEA;--err:#E5484D;--warn:#E08700;--violet:#6C63D9;
-  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
-*{box-sizing:border-box;margin:0;padding:0}
-body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
-  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:820px;margin:0 auto}
-.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
-.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
-.crumb .sep{margin:0 7px;color:#C9CEDC}
-.head{display:flex;align-items:center;gap:14px;margin:12px 0 6px}
-.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:26px;
-  background:linear-gradient(135deg,#6C63D9,#8F88E8);color:#fff;display:grid;place-items:center;
-  box-shadow:0 6px 18px rgba(108,99,217,.3)}
-h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
-.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
-
-.card{background:var(--card);border-radius:var(--ome-card-r);box-shadow:var(--sh);padding:var(--ome-card-pad);margin-top:var(--ome-card-gap)}
-.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
-.frow{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end}
-.field{display:flex;flex-direction:column;gap:4px;flex:1 1 130px;min-width:120px}
-.field label{font-size:12px;color:var(--muted);font-weight:600}
-.field .unit{font-size:11px;color:var(--muted);font-weight:500}
-input[type=number],input[type=text]{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:11px;
-  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none}
-input:focus{outline:none;border-color:var(--brand)}
-[data-theme="dark"] input{background:#12151C}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
-  background:var(--card);border-radius:11px;padding:10px 15px;font-family:inherit;font-size:14px;font-weight:700;
-  color:var(--ink);cursor:pointer;transition:.15s}
-.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
-.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-.btn.primary:hover{background:var(--brand-dk);color:#fff}
-.btn.sm{padding:7px 11px;font-size:12.5px}
-
-.sumrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:4px}
-.sumbox{background:var(--bg);border-radius:13px;padding:14px 15px}
-.sumbox .lbl{font-size:12px;color:var(--muted);font-weight:600}
-.sumbox .val{font-size:21px;font-weight:800;margin-top:3px;letter-spacing:-.01em}
-.sumbox .val.grow{color:var(--ok)}
-.sumbox .sub{font-size:11.5px;color:var(--muted);margin-top:2px}
-
-/* ── กล่องสรุป (เช็กลิสต์) ── */
-.verdict-box{border-radius:13px;padding:14px 16px;font-size:14px;font-weight:600;line-height:1.5}
-.verdict-box.go{background:#E9F9F0;color:#0B7F52}
-.verdict-box.no{background:#FDECEC;color:#B23838}
-.verdict-box.warn{background:#FFF6E4;color:#8A6212}
-[data-theme="dark"] .verdict-box.go{background:#14261E;color:#5EDCAB}
-[data-theme="dark"] .verdict-box.no{background:#301B1B;color:#F0A0A0}
-[data-theme="dark"] .verdict-box.warn{background:#2A2415;color:#E8C88A}
-.chk-list{list-style:none;margin:12px 0 0;padding:0}
-.chk-list li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line)}
-.chk-list li:last-child{border-bottom:none}
-.chk-list .ic{flex-shrink:0;font-size:15px}
-.chk-list li.pass{color:var(--ink)}
-.chk-list li.fail{color:#B23838;font-weight:600}
-[data-theme="dark"] .chk-list li.fail{color:#F0A0A0}
-
-/* ── ไอเดียอ้างอิง ── */
-.idea-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:4px}
-.idea-card{background:var(--bg);border-radius:12px;padding:12px;font-size:12.5px;cursor:pointer;transition:.15s;outline:1.5px solid transparent}
-.idea-card:hover{outline-color:var(--brand);color:var(--brand-dk)}
-.idea-card .ic{font-size:20px;display:block;margin-bottom:6px}
-.idea-card b{display:block;font-size:13px;margin-bottom:2px}
+.idea-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.idea-card{background:var(--ome-surface-2);border-radius:var(--ome-radius-md);padding:12px;font-size:var(--ome-fs-xs);cursor:pointer;outline:1.5px solid transparent}
+.idea-card:hover{outline-color:var(--ome-accent);color:var(--ome-accent-strong)}
+.idea-card b{display:block;font-size:var(--ome-fs-sm);margin-bottom:2px}
 .idea-detail-head{display:flex;gap:10px;align-items:center;margin:12px 0 10px}
-.idea-detail-head .ic{font-size:30px;flex-shrink:0}
-.idea-detail-head b{font-size:15px}
-.phase-h{font-size:13px;font-weight:700;margin:14px 0 6px;color:var(--brand-dk)}
+.idea-detail-head b{font-size:var(--ome-fs-base)}
+.phase-h{font-size:var(--ome-fs-sm);font-weight:700;margin:14px 0 6px;color:var(--ome-accent-strong)}
 .tool-list{list-style:none;margin:0;padding:0}
-.tool-list li{padding:8px 0;border-top:1px dashed var(--line)}
+.tool-list li{padding:8px 0;border-top:1px dashed var(--ome-border)}
 .tool-list li:first-child{border-top:none}
-.tool-list b{display:block;font-size:13.5px}
-.tool-list .mini{margin-top:1px}
-.tool-get{font-size:12px;color:var(--brand-dk);font-weight:600;margin-top:3px}
-
-/* ── เช็กลิสต์ ใช่/ยัง ── */
-.yn-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
-.yn-row:last-child{border-bottom:none}
-.yn-btns{display:flex;gap:6px;flex-shrink:0}
-.yn-btn{padding:5px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);
-  font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted)}
-.yn-btn.on.yes{background:#E9F9F0;border-color:#17B26A;color:#0B7F52}
-.yn-btn.on.no{background:#FDECEC;border-color:#E5484D;color:#B23838}
-[data-theme="dark"] .yn-btn.on.yes{background:#14261E;border-color:#17B26A;color:#5EDCAB}
-[data-theme="dark"] .yn-btn.on.no{background:#301B1B;border-color:#E5484D;color:#F0A0A0}
-
-details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;list-style:none;
-  display:flex;align-items:center;gap:8px;user-select:none}
-details>summary::-webkit-details-marker{display:none}
-details>summary::before{content:'▸';color:var(--muted)}
-details[open]>summary::before{transform:rotate(90deg)}
-.details-body{padding:0 15px 15px;font-size:13px}
-.lesson h3{font-size:13.5px;font-weight:700;margin:12px 0 4px;color:var(--brand-dk)}
-.lesson p{font-size:13px;margin-bottom:4px;opacity:.92}
-
-.log-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
-.log-table th,.log-table td{padding:7px 6px;text-align:right;border-bottom:1px solid var(--line)}
-.log-table th:first-child,.log-table td:first-child{text-align:left}
-.log-table th{color:var(--muted);font-weight:600;font-size:12px}
-.log-empty{font-size:13px;color:var(--muted);padding:8px 0}
-.log-del{background:none;border:none;color:var(--err);cursor:pointer;font-size:15px}
-
-.disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
-footer{margin-top:22px;text-align:center;font-size:12.5px;color:#9AA3B8}
-footer a{color:var(--sky);text-decoration:none;font-weight:600}
-@media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:18px}}
+.tool-list b{display:block;font-size:var(--ome-fs-sm)}
+.tool-get{font-size:var(--ome-fs-xs);color:var(--ome-accent-strong);font-weight:600;margin-top:3px}
+.unit{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:500}
+#bzChkResult .chk-list{margin-top:12px}
 </style>
 </head>
-<body class="ome-tool-page" data-invest-key="business">
+<body data-layout="tool" data-invest-key="business">
 <script src="auth-gate.js"></script>
-<div class="wrap">
+<main class="page">
 
 
-  <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span class="sep">/</span><span data-i18n="pageTitleShort">ลงทุนทำธุรกิจ</span></nav>
+  <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span>›</span><span data-i18n="pageTitleShort">ลงทุนทำธุรกิจ</span></nav>
 
-  <div class="head">
-    <div>
-      <h1 data-i18n="pageTitle">ลงทุนทำธุรกิจ — เช็กความพร้อม + จุดคุ้มทุน</h1>
-    </div>
-  </div>
+  <div class="page-head"><h1 data-i18n="pageTitle">ลงทุนทำธุรกิจ — เช็กความพร้อม + จุดคุ้มทุน</h1></div>
+
+  <div class="stack">
 
   <!-- ไอเดียอ้างอิง -->
   <div class="card">
@@ -157,42 +59,42 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
       <div class="field"><label data-i18n="lblFixed">ต้นทุนคงที่ต่อเดือน <span class="unit">(บาท)</span></label><input type="number" id="bzFixed" inputmode="numeric" value="3000"></div>
       <div class="field"><label data-i18n="lblPrice">ราคาขายเฉลี่ย/หน่วย <span class="unit">(บาท)</span></label><input type="number" id="bzPrice" inputmode="decimal" step="0.01" value="250"></div>
     </div>
-    <div class="frow" style="margin-top:10px">
+    <div class="frow">
       <div class="field"><label data-i18n="lblVar">ต้นทุนผันแปร/หน่วย <span class="unit">(บาท)</span></label><input type="number" id="bzVar" inputmode="decimal" step="0.01" value="100"></div>
       <div class="field"><label data-i18n="lblVol">ปริมาณขายที่คาดหวัง/เดือน <span class="unit">(หน่วย, ไม่บังคับ)</span></label><input type="number" id="bzVol" inputmode="numeric" value="60"></div>
     </div>
-    <div style="margin-top:12px"><button class="btn primary" id="bzCalcBtn" type="button" data-i18n="calcBtn">คำนวณ</button></div>
+    <div><button class="btn primary" id="bzCalcBtn" type="button" data-i18n="calcBtn">คำนวณ</button></div>
 
     <div id="bzOut" style="display:none">
-      <div class="sumrow" style="margin-top:16px">
-        <div class="sumbox"><div class="lbl" data-i18n="lblProfitUnit">กำไรต่อหน่วย</div><div class="val" id="bzProfitUnit">—</div></div>
-        <div class="sumbox"><div class="lbl" data-i18n="lblBreakeven">จุดคุ้มทุน</div><div class="val" id="bzBreakeven">—</div><div class="sub" data-i18n="unitPerMonth">หน่วย/เดือน</div></div>
-        <div class="sumbox"><div class="lbl" data-i18n="lblProjected">กำไร/ขาดทุนคาดการณ์</div><div class="val" id="bzProjected">—</div><div class="sub" data-i18n="subProjected">ต่อเดือน ที่ปริมาณคาดหวัง</div></div>
-        <div class="sumbox"><div class="lbl" data-i18n="lblPayback">ระยะเวลาคืนทุน</div><div class="val" id="bzPayback">—</div></div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label" data-i18n="lblProfitUnit">กำไรต่อหน่วย</div><div class="kpi-value" id="bzProfitUnit">—</div></div>
+        <div class="kpi"><div class="kpi-label" data-i18n="lblBreakeven">จุดคุ้มทุน</div><div class="kpi-value" id="bzBreakeven">—</div><div class="sub" data-i18n="unitPerMonth">หน่วย/เดือน</div></div>
+        <div class="kpi"><div class="kpi-label" data-i18n="lblProjected">กำไร/ขาดทุนคาดการณ์</div><div class="kpi-value" id="bzProjected">—</div><div class="sub" data-i18n="subProjected">ต่อเดือน ที่ปริมาณคาดหวัง</div></div>
+        <div class="kpi"><div class="kpi-label" data-i18n="lblPayback">ระยะเวลาคืนทุน</div><div class="kpi-value" id="bzPayback">—</div></div>
       </div>
-      <div class="verdict-box" id="bzVerdict" style="margin-top:12px"></div>
+      <div class="callout" id="bzVerdict"></div>
     </div>
   </div>
 
   <!-- เช็กลิสต์พร้อมเริ่มหรือยัง -->
   <div class="card">
     <h2 data-i18n="chkTitle">เช็กลิสต์ "พร้อมเริ่มหรือยัง?"</h2>
-    <div id="bzChkForm" style="margin-top:10px">
+    <div id="bzChkForm">
       <div class="yn-row" data-key="emergency"><span data-i18n="chkEmergency">มีเงินสำรองฉุกเฉินอย่างน้อย 3–6 เดือนของค่าใช้จ่าย (ไม่นับเงินที่จะเอามาลงทุน) แล้ว</span>
-        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
+        <div class="segmented yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
       <div class="yn-row" data-key="contract"><span data-i18n="chkContract">เช็คสัญญาจ้างงานปัจจุบันเรื่องข้อห้ามแข่งขัน (non-compete) และผลประโยชน์ทับซ้อนแล้ว</span>
-        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
+        <div class="segmented yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
       <div class="yn-row" data-key="time"><span data-i18n="chkTime">มีเวลาจริงเพียงพอต่อสัปดาห์ นอกเหนือจากงานประจำ</span>
-        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
+        <div class="segmented yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
       <div class="yn-row" data-key="license"><span data-i18n="chkLicense">ธุรกิจนี้ไม่ต้องมีใบอนุญาต/คุณสมบัติเฉพาะ หรือมีครบแล้ว (เช่น ใบอนุญาตขายอาหาร ตั๋ววิชาชีพ)</span>
-        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
+        <div class="segmented yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
     </div>
-    <div class="frow" style="margin-top:10px">
-      <div class="field" style="flex:1 1 200px"><label data-i18n="lblOwnCapital">ทุนที่มีอยู่จริงตอนนี้ <span class="unit">(บาท)</span></label><input type="number" id="bzOwnCapital" inputmode="numeric" placeholder="เช่น 25000" data-i18n-placeholder="phOwnCapital"></div>
+    <div class="frow">
+      <div class="field"><label data-i18n="lblOwnCapital">ทุนที่มีอยู่จริงตอนนี้ <span class="unit">(บาท)</span></label><input type="number" id="bzOwnCapital" inputmode="numeric" placeholder="เช่น 25000" data-i18n-placeholder="phOwnCapital"></div>
     </div>
-    <div style="margin-top:10px"><button class="btn" id="bzChkBtn" type="button" data-i18n="chkBtn">ตรวจเช็กลิสต์</button></div>
-    <div id="bzChkResult" style="display:none;margin-top:12px">
-      <div class="verdict-box" id="bzChkVerdict"></div>
+    <div><button class="btn" id="bzChkBtn" type="button" data-i18n="chkBtn">ตรวจเช็กลิสต์</button></div>
+    <div id="bzChkResult" style="display:none">
+      <div class="callout" id="bzChkVerdict"></div>
       <ul class="chk-list" id="bzChkList"></ul>
     </div>
   </div>
@@ -200,14 +102,15 @@ footer a{color:var(--sky);text-decoration:none;font-weight:600}
   <!-- บันทึกไอเดียที่กำลังพิจารณา -->
   <div class="card">
     <h2 data-i18n="logTitle">บันทึกไอเดียที่กำลังพิจารณา</h2>
-    <div class="frow" style="margin-top:10px">
-      <div class="field" style="flex:2 1 200px"><label data-i18n="lblIdeaName">ชื่อไอเดีย</label><input type="text" id="bzIdeaName" placeholder="เช่น ขายขนมออนไลน์" data-i18n-placeholder="phIdeaName" autocomplete="off"></div>
-      <button class="btn sm" id="bzAddBtn" type="button" data-i18n="addBtn">+ บันทึกไอเดียนี้</button>
+    <div class="frow">
+      <div class="field"><label data-i18n="lblIdeaName">ชื่อไอเดีย</label><input type="text" id="bzIdeaName" placeholder="เช่น ขายขนมออนไลน์" data-i18n-placeholder="phIdeaName" autocomplete="off"></div>
+      <button class="btn sm" id="bzAddBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="addBtn">บันทึกไอเดียนี้</span></button>
     </div>
-    <div id="bzLogBox" style="margin-top:10px"><div class="log-empty" data-i18n="logEmptyDefault">ยังไม่มีไอเดียที่บันทึก</div></div>
+    <div id="bzLogBox"><div class="log-empty" data-i18n="logEmptyDefault">ยังไม่มีไอเดียที่บันทึก</div></div>
   </div>
 
-</div>
+  </div>
+</main>
 
 <script src="invest-business.js" defer></script>
 </body>

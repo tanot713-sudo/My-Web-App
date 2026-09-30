@@ -30,6 +30,8 @@
   function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   var I18N = {
     th: {
+      delTitle: 'ลบ',
+      rcKvNote: 'หมายเหตุ',
       crumbHome: 'การลงทุน', crumbHere: 'ทองคำ',
       pageTitle: 'ทองคำ — ราคาวันนี้ + วางแผนออมทอง',
       priceTitle: 'ราคาทองวันนี้ (บาท/บาททองคำ)',
@@ -55,7 +57,7 @@
       driveConnectBtn: 'เชื่อมต่อ Google Drive', driveConnectedBtn: 'เชื่อมต่อ Google Drive แล้ว',
       logTitle: 'สมุดทองของฉัน',
       lgTypeLabel: 'ชนิด', typeBar: 'ทองคำแท่ง', typeJewelry: 'ทองรูปพรรณ', lgUnitLabel: 'หน่วย',
-      lgAmtLabel: 'เงินที่จ่าย', lgAmtPh: 'เช่น 35000', lgPriceLabel: 'ราคา/หน่วยที่ซื้อ', lgPricePh: 'เช่น 70950', lgAddBtn: '+ เพิ่ม',
+      lgAmtLabel: 'เงินที่จ่าย', lgAmtPh: 'เช่น 35000', lgPriceLabel: 'ราคา/หน่วยที่ซื้อ', lgPricePh: 'เช่น 70950', lgAddBtn: 'เพิ่ม',
       lgEmptyDefault: 'ยังไม่มีรายการ',
       factorsSummary: 'ปัจจัยที่มีผลต่อราคาทองคำ', factDirectH: 'ปัจจัยทางตรง',
       factRealB: 'อัตราดอกเบี้ยที่แท้จริง (real rates)', factRealRest: ' — ทองไม่ให้ดอกเบี้ย/ปันผล ยิ่งดอกเบี้ยจริงสูง ยิ่งไม่จูงใจให้ถือทองเทียบกับพันธบัตร',
@@ -93,15 +95,12 @@
       ddNearAth: 'ตอนนี้ราคาใกล้จุดสูงสุด (ย่อ {dd}%) — ออมปกติเดือนละ {base} พอ ไม่ต้องเร่งเติม',
       ddNormal: 'ย่อลง <b>{dd}%</b> จากจุดสูงสุด — ยังถือว่าปกติ ออมตามแผนเดือนละ {base}',
       ddTierMsg: 'ย่อลง <b>{dd}%</b> จากจุดสูงสุด — ตามกฎที่ตั้งไว้ อาจเพิ่มเงินซื้อเดือนนี้เป็น <b>×{mult}</b> ≈ <b>{amt}</b> (ถ้ามีเงินสำรอง)',
-      ddWarn: 'เตือน: การย่อไม่ได้แปลว่าจะไม่ลงต่อ — เติมเท่าที่มีเงินสำรองและไม่กระทบชีวิตประจำวัน',
       alertPortfolio: 'กรอกมูลค่าพอร์ตรวมโดยประมาณก่อน',
       allocLow: 'สัดส่วนทอง ≈ {pct}% ของพอร์ต — ต่ำกว่ากรอบทั่วไปที่มักพูดถึง (5–10%) หากอยากมีทองไว้กระจายความเสี่ยงมากขึ้น ค่อยๆ เพิ่มได้',
       allocGood: 'สัดส่วนทอง ≈ {pct}% ของพอร์ต — อยู่ในกรอบที่นักลงทุนมือใหม่มักใช้เป็นแนวทาง (5–10%)',
       allocHigh: 'สัดส่วนทอง ≈ {pct}% ของพอร์ต — สูงกว่ากรอบทั่วไป ทองไม่ให้ปันผล/ดอกเบี้ย ถือมากไปอาจฉุดผลตอบแทนระยะยาวของพอร์ตโดยรวม',
-      allocNote: 'ตัวเลข 5–10% เป็นแนวทางที่มักถูกพูดถึงทั่วไป ไม่ใช่กฎตายตัวหรือคำแนะนำการลงทุน',
       lgGroupSummaryGold: 'รวมซื้อ {amt} · {weight} บาททองคำ (≈ {gram} กรัม) · ต้นทุนเฉลี่ย {avg}/บาททองคำ',
       lgGroupValueNow: ' · มูลค่าตอนนี้ {val} <b style="color:{color}">({sign}{pl}, {sign2}{pct}%)</b>',
-      jewelryNote: 'ร้านทองส่วนใหญ่รับซื้อคืนทองรูปพรรณที่ราคาเนื้อทอง (เท่าทองแท่ง) — ค่ากำเหน็จที่จ่ายไปตอนซื้อจะไม่ได้คืน จึงคำนวณมูลค่าปัจจุบันด้วยราคาขายคืนทองแท่งเช่นกัน',
       logThDate: 'วันที่', logThType: 'ชนิด', logThPaid: 'เงินที่จ่าย', logThPricePerUnit: 'ราคา/หน่วยที่ซื้อ', logThWeight: 'น้ำหนักที่ได้',
       typeJewelryShort: 'รูปพรรณ', typeBarShort: 'แท่ง',
       alertAmtPrice: 'กรอกเงินที่จ่ายและราคา/หน่วยที่ซื้อให้ถูกต้อง', chipFetchFail: '— ดึงไม่ได้ตอนนี้',
@@ -159,6 +158,8 @@
       driveSessionExpired: 'เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', driveSyncFailed: 'ซิงก์ไม่สำเร็จ: {msg}'
     },
     en: {
+      delTitle: 'Delete',
+      rcKvNote: 'Note',
       crumbHome: 'Investing', crumbHere: 'Gold',
       pageTitle: "Gold — Today's Price + Savings Planner",
       priceTitle: "Today's Gold Price (baht/baht-weight)",
@@ -184,7 +185,7 @@
       driveConnectBtn: 'Connect Google Drive', driveConnectedBtn: 'Google Drive connected',
       logTitle: 'My Gold Log',
       lgTypeLabel: 'Type', typeBar: 'Gold bar', typeJewelry: 'Gold jewelry', lgUnitLabel: 'Unit',
-      lgAmtLabel: 'Amount paid', lgAmtPh: 'e.g. 35000', lgPriceLabel: 'Price/unit paid', lgPricePh: 'e.g. 70950', lgAddBtn: '+ Add',
+      lgAmtLabel: 'Amount paid', lgAmtPh: 'e.g. 35000', lgPriceLabel: 'Price/unit paid', lgPricePh: 'e.g. 70950', lgAddBtn: 'Add',
       lgEmptyDefault: 'No entries yet',
       factorsSummary: 'Factors That Affect the Gold Price', factDirectH: 'Direct factors',
       factRealB: 'Real interest rates', factRealRest: ' — gold pays no interest/dividends, so higher real rates make holding gold less attractive versus bonds',
@@ -222,15 +223,12 @@
       ddNearAth: 'The price is currently near its all-time high (dip {dd}%) — a normal saving of {base}/month is enough, no need to add extra',
       ddNormal: 'Down <b>{dd}%</b> from the all-time high — still considered normal, save as planned at {base}/month',
       ddTierMsg: 'Down <b>{dd}%</b> from the all-time high — per the rule you set, consider increasing this month\'s purchase to <b>×{mult}</b> ≈ <b>{amt}</b> (if you have reserve funds)',
-      ddWarn: "Warning: a dip doesn't mean it won't fall further — only add what you have in reserve funds, without affecting your daily life",
       alertPortfolio: 'Enter an estimated total portfolio value first',
       allocLow: 'Gold allocation ≈ {pct}% of the portfolio — below the commonly cited range (5–10%). If you want more diversification from gold, you can gradually increase it',
       allocGood: 'Gold allocation ≈ {pct}% of the portfolio — within the range beginner investors commonly use as a guideline (5–10%)',
       allocHigh: 'Gold allocation ≈ {pct}% of the portfolio — above the common range. Gold pays no dividends/interest, so holding too much may drag down the portfolio\'s long-term overall return',
-      allocNote: "The 5–10% figure is a commonly cited guideline, not a fixed rule or investment advice",
       lgGroupSummaryGold: 'Total bought {amt} · {weight} baht-weight (≈ {gram} grams) · average cost {avg}/baht-weight',
       lgGroupValueNow: ' · current value {val} <b style="color:{color}">({sign}{pl}, {sign2}{pct}%)</b>',
-      jewelryNote: "Most gold shops buy back jewelry at the raw gold price (same as bars) — the making charge paid on purchase is not refunded, so the current value is calculated using the bar sell-back price as well",
       logThDate: 'Date', logThType: 'Type', logThPaid: 'Amount paid', logThPricePerUnit: 'Price/unit paid', logThWeight: 'Weight received',
       typeJewelryShort: 'Jewelry', typeBarShort: 'Bar',
       alertAmtPrice: 'Enter a valid amount paid and price/unit', chipFetchFail: '— could not fetch right now',
@@ -478,7 +476,7 @@
     var entry = num($('rcEntry').value), stop = num($('rcStop').value);
     var box = $('rcResult');
     box.style.display = 'block';
-    if (!isFinite(entry)) { $('rcHeadline').innerHTML = '<span style="color:var(--err)">' + t('rcErrNeedEntry') + '</span>'; $('rcKv').innerHTML = ''; return; }
+    if (!isFinite(entry)) { $('rcHeadline').innerHTML = '<span style="color:var(--ome-err-ink)">' + t('rcErrNeedEntry') + '</span>'; $('rcKv').innerHTML = ''; return; }
     if (!isFinite(stop)) {
       stop = (lastAnalysis && isFinite(lastAnalysis.suggestStop) && isFinite(lastAnalysis.price) && lastAnalysis.price > 0)
         ? entry * (lastAnalysis.suggestStop / lastAnalysis.price)
@@ -493,13 +491,13 @@
       usdPrice: lastAnalysis ? lastAnalysis.price : NaN,
       usdResistance: lastAnalysis ? lastAnalysis.resistance : NaN
     });
-    if (res.error) { $('rcHeadline').innerHTML = '<span style="color:var(--err)">' + res.error + '</span>'; $('rcKv').innerHTML = ''; return; }
+    if (res.error) { $('rcHeadline').innerHTML = '<span style="color:var(--ome-err-ink)">' + res.error + '</span>'; $('rcKv').innerHTML = ''; return; }
     $('rcHeadline').innerHTML = t('rcQtyLine', { qty: fmt(res.qty, 4), cost: baht(res.cost) });
     var kv = '';
     kv += '<div class="k">' + t('rcKvIfWrong') + '</div><div class="v">' + baht(res.riskBaht) + '</div>';
     kv += '<div class="k">' + t('rcKvStop') + '</div><div class="v">' + fmt(stop) + '</div>';
     if (isFinite(res.rr)) kv += '<div class="k">' + t('rcKvRr') + '</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
-    if (res.note) kv += '<div class="k" style="color:var(--warn)">ℹ️</div><div class="v" style="color:var(--warn);font-size:12px">' + res.note + '</div>';
+    if (res.note) kv += '<div class="k" style="color:var(--ome-warn-ink)">' + t('rcKvNote') + '</div><div class="v" style="color:var(--ome-warn-ink);font-size:var(--ome-fs-xs)">' + res.note + '</div>';
     $('rcKv').innerHTML = kv;
   }
 
@@ -550,12 +548,12 @@
     var fails = checks.filter(function (c) { return c.ok === false; }).length;
     var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
     var box = $('checkResult'), v = $('checkVerdict');
-    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = t('checklistFail', { n: fails }); }
-    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = t('checklistUnknown'); }
-    else { v.className = 'verdict-box go'; v.textContent = t('checklistGo'); }
+    if (fails > 0) { v.className = 'callout err'; v.textContent = t('checklistFail', { n: fails }); }
+    else if (unknowns > 0) { v.className = 'callout warn'; v.textContent = t('checklistUnknown'); }
+    else { v.className = 'callout ok'; v.textContent = t('checklistGo'); }
     var html = '';
     checks.forEach(function (c) {
-      var ic = c.ok === true ? '' : c.ok === false ? '' : '◻️';
+      var ic = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + (c.ok === true ? 'check' : c.ok === false ? 'x' : 'minus') + '"/></svg>';
       html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
     });
     $('chkList').innerHTML = html;
@@ -910,7 +908,7 @@
   /* ── ผู้ใช้กรอกราคาทองไทยเองในช่อง (แทนที่จะรอดึงอัตโนมัติ) — ให้เห็นผลทันทีที่กรอก ── */
   function onManualPriceInput() {
     var b1 = num($('barBuy').value), b2 = num($('barSell').value), j1 = num($('jewelryBuy').value), j2 = num($('jewelrySell').value);
-    var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge paste';
+    var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap';
     if (![b1, b2, j1, j2].every(isFinite)) {
       badge.textContent = t('badgeManualText');
       setGoldThStatus(t('manualEnterAll'));
@@ -933,7 +931,7 @@
     fetchGoldTH().then(function (o) {
       saveGoldThCache(o);
       fillGoldThFields(o);
-      var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge real';
+      var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap ok';
       badge.textContent = t('badgeRealLive') + (o.updateDate ? t('badgeRealLiveUpdated', { date: o.updateDate, time: o.updateTime || '' }) : '');
       setGoldThStatus(t('fetchSuccess'), 'ok');
     }, function () {
@@ -945,11 +943,11 @@
       var c = loadGoldThCache();
       if (c) {
         fillGoldThFields(c);
-        var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge real';
+        var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap ok';
         badge.textContent = t('badgeStaleCache', { age: cacheAgeText(c.ts) });
         setGoldThStatus(t('statusStaleCache', { n: GOLD_TH_RETRIES }), 'ok');
       } else {
-        var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'src-badge paste';
+        var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap';
         badge.textContent = t('badgeManualText');
         setGoldThStatus(t('statusFetchFailNoCache', { n: GOLD_TH_RETRIES }), 'err');
       }
@@ -961,19 +959,19 @@
     if (a) lastAnalysis = a;
     var el = $('gSrcBadge');
     if (meta.kind === 'real') {
-      el.className = 'src-badge real';
+      el.className = 'badge wrap ok';
       el.textContent = t('badgeIntlTrend') + (meta.stale ? t('badgeStaleSuffix', { age: cacheAgeText(meta.cachedAt) }) : '') + (meta.days ? t('badgeDaysSuffix', { days: meta.days }) : '');
     } else if (meta.kind === 'manual') {
-      el.className = 'src-badge paste';
+      el.className = 'badge wrap';
       el.textContent = t('badgeManualEval');
     } else {
-      el.className = 'src-badge paste';
+      el.className = 'badge wrap';
       el.textContent = t('badgeFetchFail');
     }
     if (!a) {
       $('gLight').className = 'light gray';
       $('gBulb').textContent = '';
-      $('gBulb').style.background = '#B8C0D4';
+      $('gBulb').style.background = 'var(--ome-text-3)';
       $('gVerdict').textContent = t('gVerdictNoData');
       $('gWhy').textContent = '';
       $('gDetailsBox').style.display = 'none';
@@ -983,10 +981,10 @@
     /* วาดวงกลมสีด้วย CSS แทน emoji 🟢🟡🔴 — บางอุปกรณ์/เบราว์เซอร์ไม่มีฟอนต์รองรับ
        emoji วงกลมสี (โดยเฉพาะ 🟢/🟡 ที่เพิ่งเข้า Unicode ทีหลัง) แสดงเป็นกล่องว่างแทน
        ซึ่งทำให้ไฟจราจร (จุดขายหลักของหน้านี้) สื่อความหมายไม่ได้เลย */
-    var bulbColors = { green: 'var(--ok)', yellow: 'var(--amber)', red: 'var(--err)' };
+    var bulbColors = { green: 'var(--ome-ok)', yellow: 'var(--ome-warn)', red: 'var(--ome-err)' };
     $('gLight').className = 'light ' + a.light;
     $('gBulb').textContent = '';
-    $('gBulb').style.background = bulbColors[a.light] || '#B8C0D4';
+    $('gBulb').style.background = bulbColors[a.light] || 'var(--ome-text-3)';
     $('gVerdict').textContent = a.verdict;
     $('gWhy').textContent = a.why;
     if (a.det && !a.simple && isFinite(a.det.rsi)) {
@@ -1030,7 +1028,9 @@
     }
     return { weight: weight, price: price, value: weight * price, contrib: contrib, series: series };
   }
+  var lastGoldChart = null;
   function drawGoldChart(r) {
+    lastGoldChart = r;
     var s = r.series, W = 640, H = 220, pad = 8, n = s.length;
     var val = [], con = [], i;
     for (i = 0; i < n; i++) { val.push(s[i].value); con.push(s[i].contrib); }
@@ -1040,13 +1040,15 @@
     function path(a) { var d = '', i; for (i = 0; i < a.length; i++) d += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(a[i]).toFixed(1) + ' '; return d; }
     var area = path(val) + 'L' + x(n - 1).toFixed(1) + ' ' + y(0).toFixed(1) + ' L' + x(0).toFixed(1) + ' ' + y(0).toFixed(1) + ' Z';
     var svg = '';
-    svg += '<path d="' + area + '" fill="#F5A524" opacity="0.12"/>';
-    svg += '<path d="' + path(con) + '" fill="none" stroke="#8B94A8" stroke-width="1.6" stroke-dasharray="5 3"/>';
-    svg += '<path d="' + path(val) + '" fill="none" stroke="#F5A524" stroke-width="2.4" stroke-linejoin="round"/>';
+    var C = window.OmeChartTheme.get();
+    svg += '<path d="' + area + '" fill="' + C.series[3] + '" opacity="0.12"/>';
+    svg += '<path d="' + path(con) + '" fill="none" stroke="' + C.axis + '" stroke-width="1.6" stroke-dasharray="5 3"/>';
+    svg += '<path d="' + path(val) + '" fill="none" stroke="' + C.series[3] + '" stroke-width="2.4" stroke-linejoin="round"/>';
     $('dcaChart').innerHTML = svg;
   }
+  window.OmeChartTheme.onChange(function () { if (lastGoldChart && $('dcaOut').style.display !== 'none') drawGoldChart(lastGoldChart); });
   function dcaYearTable(r, unit) {
-    var html = '<table class="yr-table"><thead><tr><th>' + t('yrTableColYear') + '</th><th>' + t('yrTableColContrib') + '</th><th>' + t('yrTableColWeight') + '</th><th>' + t('yrTableColValue') + '</th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('yrTableColYear') + '</th><th>' + t('yrTableColContrib') + '</th><th>' + t('yrTableColWeight') + '</th><th>' + t('yrTableColValue') + '</th></tr></thead><tbody>';
     var yrs = Math.round(r.series.length / 12), i;
     for (i = 1; i <= yrs; i++) {
       var idx = i * 12 - 1;
@@ -1054,7 +1056,7 @@
       var row = r.series[idx], w = unit === 'gram' ? row.weight * GRAM_PER_BAHT : row.weight;
       html += '<tr><td>' + t('yrRowLabel', { n: i }) + '</td><td>' + baht(row.contrib) + '</td><td>' + fmt(w, 4) + (unit === 'gram' ? t('unitGramShort') : t('unitBahtGoldShort')) + '</td><td>' + baht(row.value) + '</td></tr>';
     }
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     return html;
   }
   function doDCA() {
@@ -1101,7 +1103,7 @@
     if (dd < 1) msg = t('ddNearAth', { dd: fmt(Math.max(0, dd), 1), base: baht(base) });
     else if (dd < 10) msg = t('ddNormal', { dd: fmt(dd, 1), base: baht(base) });
     else msg = t('ddTierMsg', { dd: fmt(dd, 1), mult: mult, amt: baht(base * mult) });
-    out.innerHTML = msg + '<div style="font-size:12px;color:var(--muted);margin-top:6px">' + t('ddWarn') + '</div>';
+    out.innerHTML = msg;
     out.style.display = 'block';
   }
 
@@ -1109,15 +1111,15 @@
   function doAllocation() {
     var portfolio = num($('alPortfolio').value), goldNow = num($('alGoldNow').value);
     var el = $('alOut');
-    if (!isFinite(portfolio) || portfolio <= 0) { el.className = 'verdict-box warn'; el.textContent = t('alertPortfolio'); el.style.display = 'block'; return; }
+    if (!isFinite(portfolio) || portfolio <= 0) { el.className = 'callout warn'; el.textContent = t('alertPortfolio'); el.style.display = 'block'; return; }
     if (!isFinite(goldNow) || goldNow < 0) goldNow = 0;
     var pct = goldNow / portfolio * 100;
     var cls, txt;
     if (pct < 5) { cls = 'warn'; txt = t('allocLow', { pct: fmt(pct, 1) }); }
     else if (pct <= 10) { cls = 'go'; txt = t('allocGood', { pct: fmt(pct, 1) }); }
     else { cls = 'warn'; txt = t('allocHigh', { pct: fmt(pct, 1) }); }
-    el.className = 'verdict-box ' + cls;
-    el.innerHTML = txt + '<div style="font-size:12px;font-weight:500;margin-top:6px;opacity:.85">' + t('allocNote') + '</div>';
+    el.className = 'callout ' + ({go:'ok',no:'err',warn:'warn'}[cls] || '');
+    el.innerHTML = txt;
     el.style.display = 'block';
   }
 
@@ -1151,21 +1153,20 @@
       if (isFinite(barSellPrice)) {
         var val = g.weight * barSellPrice, pl = val - g.amt, pct = g.amt > 0 ? pl / g.amt * 100 : 0;
         totalValue += val;
-        html += t('lgGroupValueNow', { val: baht(val), color: pl >= 0 ? 'var(--ok)' : 'var(--err)', sign: pl >= 0 ? '+' : '−', pl: baht(Math.abs(pl)), sign2: pct >= 0 ? '+' : '', pct: fmt(pct, 1) });
+        html += t('lgGroupValueNow', { val: baht(val), color: pl >= 0 ? 'var(--ome-ok-ink)' : 'var(--ome-err-ink)', sign: pl >= 0 ? '+' : '−', pl: baht(Math.abs(pl)), sign2: pct >= 0 ? '+' : '', pct: fmt(pct, 1) });
       }
       html += '</div>';
-      if (key === 'jewelry') html += '<div class="log-group-note">' + t('jewelryNote') + '</div>';
     });
 
-    html += '<table class="log-table"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThType') + '</th><th>' + t('logThPaid') + '</th><th>' + t('logThPricePerUnit') + '</th><th>' + t('logThWeight') + '</th><th></th></tr></thead><tbody>';
+    html += '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThType') + '</th><th>' + t('logThPaid') + '</th><th>' + t('logThPricePerUnit') + '</th><th>' + t('logThWeight') + '</th><th></th></tr></thead><tbody>';
     log.forEach(function (r, i) {
       var unitLabel = r.unit === 'gram' ? t('unitGramShort') : t('unitBahtGoldShort');
       html += '<tr><td>' + new Date(r.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
         '<td>' + (r.type === 'jewelry' ? t('typeJewelryShort') : t('typeBarShort')) + '</td><td>' + baht(r.amt) + '</td><td>' + fmt(r.price, 2) + '</td>' +
         '<td>' + fmt(r.weight, 4) + unitLabel + '</td>' +
-        '<td><button class="log-del" data-i="' + i + '">✕</button></td></tr>';
+        '<td><button class="btn sm ghost icon log-del" aria-label="' + t('delTitle') + '" data-i="' + i + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('.log-del'), function (b) {
       b.addEventListener('click', function () { var log = loadGoldLog(); log.splice(+b.getAttribute('data-i'), 1); saveGoldLog(log); renderGoldLog(); });

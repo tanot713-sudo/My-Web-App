@@ -22,6 +22,7 @@
   function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   var I18N = {
     th: {
+      delTitle: 'ลบ',
       crumbHome: 'การลงทุน', crumbHere: 'กองทุนไทย',
       pageTitle: 'กองทุนรวมไทย — วางแผน DCA + ประหยัดภาษี',
       dcaTitle: 'แผนทยอยซื้อ (DCA)', accMLabel: 'ซื้อ "สะสมมูลค่า" /เดือน', divMLabel: 'ซื้อ "ปันผล" /เดือน',
@@ -45,7 +46,7 @@
       tr10m: 'ย่อเล็ก', tr20m: 'ตลาดหมี', tr30m: 'ย่อแรง',
       logTitle: 'สมุดซื้อจริงของฉัน', lgFundLabel: 'ชื่อกองทุน', lgCatLabel: 'ประเภท (เพื่อภาษี)',
       catGeneral: 'ทั่วไป', catRmf: 'RMF', catSsf: 'SSF', catEsg: 'Thai ESG',
-      lgAmtLabel: 'เงินที่ซื้อ (บาท)', lgNavLabel: 'ราคา/หน่วย (NAV)', lgAddBtn: '+ เพิ่ม',
+      lgAmtLabel: 'เงินที่ซื้อ (บาท)', lgNavLabel: 'ราคา/หน่วย (NAV)', lgAddBtn: 'เพิ่ม',
       lgCurLabel: 'NAV ปัจจุบัน (คำนวณกำไร/ขาดทุน)', lgCurPh: 'ราคาต่อหน่วยตอนนี้',
       lgEmptyDefault: 'ยังไม่มีรายการ',
       elTitle: 'วันที่พร้อมขายแบบไม่เสียสิทธิ์ภาษี', elBirthYearLabel: 'ปีเกิด', elBirthYearUnit: '(สำหรับเช็คเงื่อนไขอายุ 55 ปีของ RMF เท่านั้น)',
@@ -55,7 +56,6 @@
       ddNearAth: 'ตอนนี้ราคาใกล้จุดสูงสุด (ย่อ {dd}%) — DCA ปกติเดือนละ {base} พอ ไม่ต้องเร่งเติม',
       ddNormal: 'ย่อลง <b>{dd}%</b> จากจุดสูงสุด — ยังถือว่าปกติ DCA ตามแผนเดือนละ {base}',
       ddTierMsg: 'ย่อลง <b>{dd}%</b> จากจุดสูงสุด — ตามกฎที่ตั้งไว้ อาจเพิ่มเงินซื้อเดือนนี้เป็น <b>×{mult}</b> ≈ <b>{amt}</b> (ถ้ามีเงินสำรอง)',
-      ddWarn: 'เตือน: การย่อไม่ได้แปลว่าจะไม่ลงต่อ — เติมเท่าที่มีเงินสำรองและไม่กระทบชีวิตประจำวัน',
       alertIncomeRequiredProj: 'กรอกเงินได้สุทธิที่ต้องเสียภาษีต่อปีให้ถูกต้องก่อน', alertIncomeRequired: 'กรอกเงินได้สุทธิที่ต้องเสียภาษีต่อปีให้ถูกต้อง',
       txProjThYear: 'ปี', txProjThIncome: 'เงินได้สมมติ', txProjThSaved: 'ประหยัดภาษีปีนั้น', txProjThCum: 'สะสม',
       txSavedSubWithDeduction: 'ใช้สิทธิลดหย่อนรวม {ded} · ประหยัดเฉลี่ย {pct}% ของเงินที่ใส่', txSavedSubNone: 'ยังไม่ได้ใส่จำนวนซื้อ RMF/SSF/ESG',
@@ -76,6 +76,7 @@
       catFullRmf: 'RMF', catFullSsf: 'SSF', catFullEsg: 'Thai ESG'
     },
     en: {
+      delTitle: 'Delete',
       crumbHome: 'Investing', crumbHere: 'Thai Fund',
       pageTitle: 'Thai Mutual Funds — DCA + Tax Savings Planner',
       dcaTitle: 'Dollar-Cost Averaging Plan (DCA)', accMLabel: 'Buy "Accumulation" /month', divMLabel: 'Buy "Dividend" /month',
@@ -99,7 +100,7 @@
       tr10m: 'Small dip', tr20m: 'Bear market', tr30m: 'Sharp dip',
       logTitle: 'My Actual Purchase Log', lgFundLabel: 'Fund name', lgCatLabel: 'Category (for tax)',
       catGeneral: 'General', catRmf: 'RMF', catSsf: 'SSF', catEsg: 'Thai ESG',
-      lgAmtLabel: 'Amount purchased (baht)', lgNavLabel: 'Price/unit (NAV)', lgAddBtn: '+ Add',
+      lgAmtLabel: 'Amount purchased (baht)', lgNavLabel: 'Price/unit (NAV)', lgAddBtn: 'Add',
       lgCurLabel: 'Current NAV (to calculate P/L)', lgCurPh: 'Current price per unit',
       lgEmptyDefault: 'No entries yet',
       elTitle: 'Sell-Without-Losing-Tax-Benefit Date', elBirthYearLabel: 'Birth year', elBirthYearUnit: "(only used to check RMF's age-55 condition)",
@@ -109,7 +110,6 @@
       ddNearAth: 'The price is currently near its all-time high (dip {dd}%) — a normal DCA of {base}/month is enough, no need to add extra',
       ddNormal: 'Down <b>{dd}%</b> from the all-time high — still considered normal, DCA as planned at {base}/month',
       ddTierMsg: 'Down <b>{dd}%</b> from the all-time high — per the rule you set, consider increasing this month\'s purchase to <b>×{mult}</b> ≈ <b>{amt}</b> (if you have reserve funds)',
-      ddWarn: "Warning: a dip doesn't mean it won't fall further — only add what you have in reserve funds, without affecting your daily life",
       alertIncomeRequiredProj: 'Enter a valid net taxable income per year first', alertIncomeRequired: 'Enter a valid net taxable income per year',
       txProjThYear: 'Year', txProjThIncome: 'Assumed income', txProjThSaved: 'Tax saved that year', txProjThCum: 'Cumulative',
       txSavedSubWithDeduction: 'Using {ded} total deduction · saving an average of {pct}% of the amount contributed', txSavedSubNone: "You haven't entered an RMF/SSF/ESG purchase amount yet",
@@ -173,7 +173,9 @@
   }
 
   /* ── กราฟ: มูลค่ารวม vs เงินใส่ ─────────────────────────────── */
+  var lastChartPlan = null;
   function drawChart(p) {
+    lastChartPlan = p;
     var s = p.acc.series, W = 640, H = 220, pad = 8, n = s.length;
     var val = [], con = [], i;
     for (i = 0; i < n; i++) { val.push(p.acc.series[i].bal + p.div.series[i].bal); con.push(p.acc.series[i].contrib + p.div.series[i].contrib); }
@@ -182,24 +184,25 @@
     var y = function (v) { return pad + (1 - v / max) * (H - 2 * pad); };
     function path(a) { var d = '', i; for (i = 0; i < a.length; i++) d += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(a[i]).toFixed(1) + ' '; return d; }
     var area = path(val) + 'L' + x(n - 1).toFixed(1) + ' ' + y(0).toFixed(1) + ' L' + x(0).toFixed(1) + ' ' + y(0).toFixed(1) + ' Z';
-    var svg = '';
-    svg += '<path d="' + area + '" fill="#3B9BEA" opacity="0.10"/>';
-    svg += '<path d="' + path(con) + '" fill="none" stroke="#8B94A8" stroke-width="1.6" stroke-dasharray="5 3"/>';
-    svg += '<path d="' + path(val) + '" fill="none" stroke="#3B9BEA" stroke-width="2.4" stroke-linejoin="round"/>';
+    var C = window.OmeChartTheme.get(), svg = '';
+    svg += '<path d="' + area + '" fill="' + C.series[0] + '" opacity="0.10"/>';
+    svg += '<path d="' + path(con) + '" fill="none" stroke="' + C.axis + '" stroke-width="1.6" stroke-dasharray="5 3"/>';
+    svg += '<path d="' + path(val) + '" fill="none" stroke="' + C.series[0] + '" stroke-width="2.4" stroke-linejoin="round"/>';
     $('chart').innerHTML = svg;
   }
+  window.OmeChartTheme.onChange(function () { if (lastChartPlan && $('planOut').style.display !== 'none') drawChart(lastChartPlan); });
 
   function yearTable(p) {
-    var html = '<table class="yr-table"><thead><tr><th>' + t('yrTableColYear') + '</th><th>' + t('yrTableColContrib') + '</th><th>' + t('yrTableColValue') + '</th><th>' + t('yrTableColGain') + '</th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('yrTableColYear') + '</th><th>' + t('yrTableColContrib') + '</th><th>' + t('yrTableColValue') + '</th><th>' + t('yrTableColGain') + '</th></tr></thead><tbody>';
     var yrs = Math.round(p.months / 12), i;
     for (i = 1; i <= yrs; i++) {
       var idx = i * 12 - 1;
       if (idx >= p.acc.series.length) break;
       var val = p.acc.series[idx].bal + p.div.series[idx].bal;
       var con = p.acc.series[idx].contrib + p.div.series[idx].contrib;
-      html += '<tr><td>' + t('yrRowLabel', { n: i }) + '</td><td>' + baht(con) + '</td><td>' + baht(val) + '</td><td style="color:var(--ok)">' + baht(val - con) + '</td></tr>';
+      html += '<tr><td>' + t('yrRowLabel', { n: i }) + '</td><td>' + baht(con) + '</td><td>' + baht(val) + '</td><td style="color:var(--ome-ok-ink)">' + baht(val - con) + '</td></tr>';
     }
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     return html;
   }
 
@@ -249,7 +252,7 @@
     if (dd < 1) msg = t('ddNearAth', { dd: fmt(Math.max(0, dd), 1), base: baht(base) });
     else if (dd < 10) msg = t('ddNormal', { dd: fmt(dd, 1), base: baht(base) });
     else msg = t('ddTierMsg', { dd: fmt(dd, 1), mult: mult, amt: baht(base * mult) });
-    out.innerHTML = msg + '<div style="font-size:12px;color:var(--muted);margin-top:6px">' + t('ddWarn') + '</div>';
+    out.innerHTML = msg;
     out.style.display = 'block';
   }
 
@@ -371,11 +374,11 @@
     var years = Math.max(1, Math.round(num($('txProjYears').value) || 5));
     var growth = num($('txIncomeGrowth').value) || 0;
     var rows = projectTaxSaving(o, years, growth);
-    var html = '<table class="yr-table"><thead><tr><th>' + t('txProjThYear') + '</th><th>' + t('txProjThIncome') + '</th><th>' + t('txProjThSaved') + '</th><th>' + t('txProjThCum') + '</th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('txProjThYear') + '</th><th>' + t('txProjThIncome') + '</th><th>' + t('txProjThSaved') + '</th><th>' + t('txProjThCum') + '</th></tr></thead><tbody>';
     rows.forEach(function (r) {
-      html += '<tr><td>' + r.year + '</td><td>' + baht(r.income) + '</td><td>' + baht(r.saved) + '</td><td style="color:var(--ok)">' + baht(r.cum) + '</td></tr>';
+      html += '<tr><td>' + r.year + '</td><td>' + baht(r.income) + '</td><td>' + baht(r.saved) + '</td><td style="color:var(--ome-ok-ink)">' + baht(r.cum) + '</td></tr>';
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     $('txProjTable').innerHTML = html;
   }
 
@@ -429,15 +432,17 @@
   }
 
   /* ── สเกลความเสี่ยง 1-8 ──────────────────────────────────────── */
+  /* พื้นสีอ่อนไล่ตามระดับ (เขียว → เหลือง → แดง) จากโทเคนสถานะ — ตัวหนังสือใช้สีข้อความหลัก อ่านได้ทั้งสองโหมด */
+  function riskTint(c) { return 'color-mix(in srgb, ' + c + ' 55%, var(--ome-surface-1))'; }
   var RISK_LEVELS = [
-    { n: 1, key: 'riskLabel1', color: '#17B26A' },
-    { n: 2, key: 'riskLabel2', color: '#4CC38A' },
-    { n: 3, key: 'riskLabel3', color: '#8FD19E' },
-    { n: 4, key: 'riskLabel4', color: '#F5D76E' },
-    { n: 5, key: 'riskLabel5', color: '#F5A524' },
-    { n: 6, key: 'riskLabel6', color: '#F08A3C' },
-    { n: 7, key: 'riskLabel7', color: '#EC5E8A' },
-    { n: 8, key: 'riskLabel8', color: '#E5484D' }
+    { n: 1, key: 'riskLabel1', color: riskTint('var(--ome-ok)') },
+    { n: 2, key: 'riskLabel2', color: riskTint('color-mix(in srgb, var(--ome-ok) 65%, var(--ome-warn))') },
+    { n: 3, key: 'riskLabel3', color: riskTint('color-mix(in srgb, var(--ome-ok) 30%, var(--ome-warn))') },
+    { n: 4, key: 'riskLabel4', color: riskTint('color-mix(in srgb, var(--ome-warn) 70%, var(--ome-ok))') },
+    { n: 5, key: 'riskLabel5', color: riskTint('var(--ome-warn)') },
+    { n: 6, key: 'riskLabel6', color: riskTint('color-mix(in srgb, var(--ome-warn) 60%, var(--ome-err))') },
+    { n: 7, key: 'riskLabel7', color: riskTint('color-mix(in srgb, var(--ome-warn) 25%, var(--ome-err))') },
+    { n: 8, key: 'riskLabel8', color: riskTint('var(--ome-err)') }
   ];
   function renderRiskScale() {
     var el = $('riskScale'); if (!el) return;
@@ -467,22 +472,22 @@
     var html = '';
     Object.keys(groups).forEach(function (fund) {
       var g = groups[fund], avg = g.units > 0 ? g.amt / g.units : NaN;
-      html += '<div class="log-group-hd">' + fund + ' <span style="font-weight:600;color:var(--brand-dk);font-size:11.5px">(' + catLabel(g.cat) + ')</span></div>';
+      html += '<div class="log-group-hd">' + fund + ' <span class="badge accent">(' + catLabel(g.cat) + ')</span></div>';
       html += '<div class="log-group-sub">' + t('lgGroupSummary', { amt: baht(g.amt), units: fmt(g.units, 4), avg: fmt(avg, 4) });
       if (isFinite(cur)) {
         var val = g.units * cur, pl = val - g.amt, pct = g.amt > 0 ? pl / g.amt * 100 : 0;
-        html += t('lgGroupValueNow', { val: baht(val), color: pl >= 0 ? 'var(--ok)' : 'var(--err)', sign: pl >= 0 ? '+' : '−', pl: baht(Math.abs(pl)), sign2: pct >= 0 ? '+' : '', pct: fmt(pct, 1) });
+        html += t('lgGroupValueNow', { val: baht(val), color: pl >= 0 ? 'var(--ome-ok-ink)' : 'var(--ome-err-ink)', sign: pl >= 0 ? '+' : '−', pl: baht(Math.abs(pl)), sign2: pct >= 0 ? '+' : '', pct: fmt(pct, 1) });
       }
       html += '</div>';
     });
 
-    html += '<table class="log-table"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThFund') + '</th><th>' + t('logThAmt') + '</th><th>' + t('logThNav') + '</th><th>' + t('logThUnits') + '</th><th></th></tr></thead><tbody>';
+    html += '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThFund') + '</th><th>' + t('logThAmt') + '</th><th>' + t('logThNav') + '</th><th>' + t('logThUnits') + '</th><th></th></tr></thead><tbody>';
     log.forEach(function (r, i) {
       html += '<tr><td>' + new Date(r.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
         '<td>' + r.fund + '</td><td>' + baht(r.amt) + '</td><td>' + fmt(r.nav, 4) + '</td><td>' + fmt(r.units, 4) + '</td>' +
-        '<td><button class="log-del" data-i="' + i + '">✕</button></td></tr>';
+        '<td><button class="btn sm ghost icon log-del" aria-label="' + t('delTitle') + '" data-i="' + i + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('.log-del'), function (b) {
       b.addEventListener('click', function () { var log = loadLog(); log.splice(+b.getAttribute('data-i'), 1); saveLog(log); renderLog(); });
@@ -558,13 +563,13 @@
       var el = eligibilityFor(cat, groups[cat], birthYear);
       if (!el) return;
       var ready = curYear >= el.readyYear;
-      var html = '<div class="sumbox"><div class="lbl">' + t(CAT_FULL_KEY[cat]) + '</div>';
-      html += '<div class="val' + (ready ? ' grow' : '') + '">' + (ready ? t('elReadyLabel') : t('elReadyDate', { year: el.readyYear })) + '</div>';
-      if (el.needsBirthYear) html += '<div class="sub" style="color:var(--warn)">' + t('elNeedsBirthYear') + '</div>';
+      var html = '<div class="kpi"><div class="kpi-label">' + t(CAT_FULL_KEY[cat]) + '</div>';
+      html += '<div class="kpi-value' + (ready ? ' grow' : '') + '">' + (ready ? t('elReadyLabel') : t('elReadyDate', { year: el.readyYear })) + '</div>';
+      if (el.needsBirthYear) html += '<div class="sub" style="color:var(--ome-warn-ink)">' + t('elNeedsBirthYear') + '</div>';
       html += '<div class="sub">' + el.note + '</div></div>';
       boxes.push(html);
     });
-    box.innerHTML = boxes.length ? ('<div class="sumrow">' + boxes.join('') + '</div>') : '<div class="log-empty">' + t('elEmptyDefault') + '</div>';
+    box.innerHTML = boxes.length ? ('<div class="kpi-grid">' + boxes.join('') + '</div>') : '<div class="log-empty">' + t('elEmptyDefault') + '</div>';
   }
 
   function init() {

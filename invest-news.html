@@ -5,121 +5,66 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ข่าวหุ้น — รวมข่าวตลาดหุ้นไทย | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#12A594">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="theme-boot.js"></script>
 <script src="data-registry.js"></script>
 <script src="tanot-data.js"></script>
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
 <style>
-:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
-  --brand:var(--ome-brand);--brand-dk:var(--ome-brand-dk);--brand-sf:var(--ome-brand-sf);
-  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--sky:#3B9BEA;--err:#E5484D;--warn:#E08700;--violet:#6C63D9;
-  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
-*{box-sizing:border-box;margin:0;padding:0}
-body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
-  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:760px;margin:0 auto}
-.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
-.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
-.crumb .sep{margin:0 7px;color:#C9CEDC}
-.head{display:flex;align-items:center;gap:14px;margin:12px 0 6px}
-.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:24px;
-  background:linear-gradient(135deg,#6C63D9,#9C93F0);color:#fff;display:grid;place-items:center;
-  box-shadow:0 6px 18px rgba(108,99,217,.3)}
-h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
-.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
-
-.card{background:var(--card);border-radius:var(--ome-card-r);box-shadow:var(--sh);padding:var(--ome-card-pad);margin-top:var(--ome-card-gap)}
-.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
-
-.chip-row{display:flex;flex-wrap:wrap;gap:7px}
-.chip{font-family:inherit;font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:20px;
-  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
-.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
-.searchrow{display:flex;gap:8px;margin-top:10px}
-.searchrow input{flex:1;font-family:inherit;font-size:14.5px;padding:10px 12px;border-radius:11px;
-  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);-webkit-appearance:none}
-.searchrow input:focus{outline:none;border-color:var(--brand)}
-[data-theme="dark"] .searchrow input{background:#12151C}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--brand);
-  background:var(--brand);border-radius:11px;padding:0 16px;font-family:inherit;font-size:14px;font-weight:700;
-  color:#fff;cursor:pointer;white-space:nowrap}
-.btn:hover{background:var(--brand-dk);border-color:var(--brand-dk)}
-
-.src-badge{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;display:inline-block;margin-bottom:2px}
-.src-badge.real{background:#E9F9F0;color:#0B7F52}
-.src-badge.paste{background:#EEF1F7;color:#5A6479}
-[data-theme="dark"] .src-badge.real{background:#14261E;color:#5EDCAB}
-[data-theme="dark"] .src-badge.paste{background:#242B3B;color:#A9B4C9}
-
-.news-list{list-style:none;margin-top:10px}
-.news-item{padding:13px 0;border-top:1px solid var(--line)}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px}
+.kpi-value.small{font-size:var(--ome-fs-sm);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.news-list{list-style:none;margin:0;padding:0}
+.news-item{padding:13px 0;border-top:1px solid var(--ome-border)}
 .news-item:first-child{border-top:none;padding-top:4px}
-.news-item a.title{color:var(--ink);text-decoration:none;font-weight:700;font-size:14.5px;line-height:1.5;display:block}
-.news-item a.title:hover{color:var(--brand-dk)}
-.news-meta{display:flex;gap:8px;align-items:center;margin-top:5px;font-size:12px;color:var(--muted)}
-.news-meta .src{font-weight:700;color:var(--violet)}
-.news-empty{font-size:13.5px;color:var(--muted);padding:20px 4px;text-align:center}
-.news-loading{font-size:13.5px;color:var(--muted);padding:20px 4px;text-align:center}
-
-.disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
-footer{margin-top:22px;text-align:center;font-size:12.5px;color:#9AA3B8}
-footer a{color:var(--sky);text-decoration:none;font-weight:600}
-@media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:18px}}
-
-/* ── การ์ดสรุปสถิติ (Stat grid สไตล์ dashboard ของเว็บอ้างอิง) ── */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:16px}
-.stat-box{background:var(--card);border-radius:15px;box-shadow:var(--sh);padding:13px 14px;display:flex;gap:10px;align-items:center}
-.stat-ic{width:34px;height:34px;border-radius:10px;background:var(--brand-sf);display:grid;place-items:center;font-size:16px;flex-shrink:0}
-.stat-txt{min-width:0}
-.stat-lbl{font-size:11px;color:var(--muted);font-weight:600}
-.stat-val{font-size:16px;font-weight:800;margin-top:2px;letter-spacing:-.01em}
-.stat-val.small{font-size:12px;font-weight:700;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.news-item a.title{color:var(--ome-text-1);text-decoration:none;font-weight:700;line-height:1.5;display:block}
+.news-item a.title:hover{color:var(--ome-accent-strong)}
+.news-meta{display:flex;gap:8px;align-items:center;margin-top:5px;font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+.news-meta .src{font-weight:700;color:var(--ome-accent-strong)}
+.news-empty,.news-loading{color:var(--ome-text-2);padding:20px 4px;text-align:center}
+.news-empty a{font-weight:700}
 </style>
 </head>
-<body class="ome-tool-page" data-invest-key="news">
+<body data-layout="tool" data-invest-key="news">
 <script src="auth-gate.js"></script>
-<div class="wrap">
+<main class="page">
 
-  <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span class="sep">/</span><span data-i18n="pageTitle">ข่าวหุ้น</span></nav>
+  <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span>›</span><span data-i18n="pageTitle">ข่าวหุ้น</span></nav>
 
-  <div class="head">
-    <div>
-      <h1 data-i18n="pageTitle">ข่าวหุ้น</h1>
-    </div>
-  </div>
+  <div class="page-head"><h1 data-i18n="pageTitle">ข่าวหุ้น</h1></div>
 
-  <div class="stat-grid" id="statGrid">
-    <div class="stat-box"><div class="stat-ic"></div><div class="stat-txt">
-      <div class="stat-lbl" data-i18n="stCountLbl">พบข่าว</div><div class="stat-val" id="stCount"><span class="ome-skeleton" style="width:50px"></span></div></div></div>
-    <div class="stat-box"><div class="stat-ic"></div><div class="stat-txt">
-      <div class="stat-lbl" data-i18n="stTopicLbl">หมวดที่เลือก</div><div class="stat-val small" id="stTopic">—</div></div></div>
-    <div class="stat-box"><div class="stat-ic"></div><div class="stat-txt">
-      <div class="stat-lbl" data-i18n="stUpdatedLbl">อัปเดตล่าสุด</div><div class="stat-val small" id="stUpdated"><span class="ome-skeleton" style="width:70px"></span></div></div></div>
+  <div class="stack">
+  <div class="kpi-grid" id="statGrid">
+    <div class="kpi"><span class="kpi-label" data-i18n="stCountLbl">พบข่าว</span><span class="kpi-value" id="stCount"><span class="ome-skeleton" style="width:50px"></span></span></div>
+    <div class="kpi"><span class="kpi-label" data-i18n="stTopicLbl">หมวดที่เลือก</span><span class="kpi-value small" id="stTopic">—</span></div>
+    <div class="kpi"><span class="kpi-label" data-i18n="stUpdatedLbl">อัปเดตล่าสุด</span><span class="kpi-value small" id="stUpdated"><span class="ome-skeleton" style="width:70px"></span></span></div>
   </div>
 
   <div class="card">
-    <div class="chip-row" id="chipRow"></div>
-    <div class="searchrow">
-      <input type="text" id="qInput" placeholder="ค้นข่าวหุ้น/บริษัทที่สนใจ เช่น PTT, ปันผล, กนง." data-i18n-placeholder="searchPh" inputmode="text">
-      <button class="btn" id="qBtn" type="button" data-i18n="searchBtn">ค้นหา</button>
+    <div class="stack">
+      <div class="chip-row" id="chipRow"></div>
+      <div class="row">
+        <input class="input" style="flex:1;min-width:200px" type="text" id="qInput" placeholder="ค้นข่าวหุ้น/บริษัทที่สนใจ เช่น PTT, ปันผล, กนง." data-i18n-placeholder="searchPh" inputmode="text">
+        <button class="btn primary" id="qBtn" type="button" data-i18n="searchBtn">ค้นหา</button>
+      </div>
+      <div><a class="btn sm" href="https://www.set.or.th/oppday" target="_blank" rel="noopener"><span data-i18n="oppdayLinkText">Opportunity Day</span><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-external-link"/></svg></a></div>
     </div>
-    <p class="mini" style="margin-top:10px"><a href="https://www.set.or.th/oppday" target="_blank" rel="noopener" style="color:var(--brand-dk);font-weight:700;text-decoration:none" data-i18n="oppdayLinkText">Opportunity Day ↗</a></p>
   </div>
 
   <div class="card">
-    <div class="src-badge" id="srcBadge" data-i18n="loadingNewsDefault">กำลังโหลดข่าว…</div>
-    <div id="newsBody"><div class="news-loading" data-i18n="loadingDefault">กำลังโหลด…</div></div>
+    <div class="stack">
+      <div><span class="badge wrap" id="srcBadge" data-i18n="loadingNewsDefault">กำลังโหลดข่าว…</span></div>
+      <div id="newsBody"><div class="news-loading" data-i18n="loadingDefault">กำลังโหลด…</div></div>
+    </div>
+  </div>
   </div>
 
-</div>
+</main>
 
 <script src="invest-news.js" defer></script>
 </body>

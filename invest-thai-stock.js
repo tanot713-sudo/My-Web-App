@@ -35,17 +35,15 @@
       defaultSignal: 'สัญญาณ —', defaultSector: 'หุ้นไทย',
       step1Title: 'ราคาหุ้นตอนนี้', symLabel: 'ชื่อย่อหุ้น (เช่น PTT, ADVANC)', fetchBtn: 'ลองดึงราคา',
       priceNowLabel: 'ราคาตอนนี้ (บาท)', priceNowPh: 'เช่น 35.50', priceHiLabel: 'ราคาสูงสุดของรอบ', priceLoLabel: 'ราคาต่ำสุดของรอบ', periodPh: 'ช่วง 3 เดือน',
-      liveModeHistorical: 'โหมดข้อมูล: ย้อนหลัง', liveMetaDefault: 'ตั้งค่าแหล่งข้อมูลสดได้ใน "ตั้งค่าข้อมูลตลาด"',
-      refreshBtn: '↻ รีเฟรช', marketSettingsBtn: '⚙ ตั้งค่าข้อมูลตลาด',
+      liveModeHistorical: 'โหมดข้อมูล: ย้อนหลัง',      refreshBtn: 'รีเฟรช', marketSettingsBtn: 'ตั้งค่าข้อมูลตลาด',
       marketSettingsTitle: 'ข้อมูลตลาดแบบสด', providerLabel: 'แหล่งข้อมูล', providerGateway: 'Tanot Data Gateway (แนะนำ)', providerYahoo: 'Yahoo / ย้อนหลัง',
       apiKeyLabel: 'Twelve Data API Key', apiKeyNote: '(เก็บในเครื่องเท่านั้น)', apiKeyPh: 'ใส่เมื่อมี API key',
       intervalLabel: 'รีเฟรชทุก', interval5: '5 วินาที', interval10: '10 วินาที', interval30: '30 วินาที',
       saveSettingsBtn: 'บันทึกการตั้งค่า', clearApiKeyBtn: 'ล้าง API Key',
       analyzeBtn: 'ประเมินให้หน่อย', demoBtn: 'ดูกราฟตัวอย่าง (ฝึกอ่าน)',
-      pasteSummary: 'วางราคาย้อนหลังเอง (ทางเลือก)', pasteHint: 'วางราคาปิดหลายวัน คั่นด้วยเว้นวรรค/บรรทัด/จุลภาค (เรียงเก่า→ใหม่)', pasteBtn: 'ใช้ราคานี้',
+      pasteSummary: 'วางราคาย้อนหลังเอง (ทางเลือก)',pasteBtn: 'ใช้ราคานี้',
       chartTitle: 'กราฟราคา', tf1m: '1เดือน', tf3m: '3เดือน', tf6m: '6เดือน', tf1y: '1ปี', tgMa20: 'เฉลี่ย 20', tgMa50: 'เฉลี่ย 50',
-      capUp: 'แท่งขึ้น', capDn: 'แท่งลง', capMa20: 'เฉลี่ย 20 วัน', capMa50: 'เฉลี่ย 50 วัน', capTouch: 'แตะบนกราฟเพื่อดูราคาแต่ละวัน',
-      techDetailsSummary: 'ดูรายละเอียดทางเทคนิค (ไม่ต้องเข้าใจก็ได้)',
+      capUp: 'แท่งขึ้น', capDn: 'แท่งลง', capMa20: 'เฉลี่ย 20 วัน', capMa50: 'เฉลี่ย 50 วัน',      techDetailsSummary: 'รายละเอียดทางเทคนิค',
       aiSumTitle: 'สรุปหุ้นด้วย AI', aiSumBtn: 'สรุปให้หน่อย',
       step2Title: 'ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน',
       capitalLabel: 'เงินลงทุนทั้งพอร์ต (บาท)', capitalPh: 'เช่น 100000', riskPctLabel: 'ยอมเสี่ยงต่อไม้', unitPctPortfolio: '(% ของพอร์ต)',
@@ -55,21 +53,15 @@
       checklistTitle: 'ตรวจก่อนเข้าไม้ — ควรซื้อไหม?',
       checkBtn: 'ตรวจเช็กลิสต์',
       pfTitle: 'พอร์ตของฉัน (หุ้นไทย)', pfSeeAll: 'ดูพอร์ตรวมทั้งเว็บ →',
-      pfSymLabel: 'ชื่อหุ้น', pfSharesLabel: 'จำนวนหุ้น', pfCostLabel: 'ราคาต้นทุน/หุ้น', pfAddBtn: '+ เพิ่มเข้าพอร์ต',
+      pfSymLabel: 'ชื่อหุ้น', pfSharesLabel: 'จำนวนหุ้น', pfCostLabel: 'ราคาต้นทุน/หุ้น', pfAddBtn: 'เพิ่มเข้าพอร์ต',
       pfEmptyDefault: 'ยังไม่มีหุ้นในพอร์ต',
       pfEmptyEmbed: 'ยังไม่มี {sym} ในพอร์ต',
       pfThSym: 'หุ้น', pfThShares: 'จำนวน', pfThCost: 'ต้นทุน/หุ้น', pfThCur: 'ราคาปัจจุบัน', pfThPl: 'กำไร/ขาดทุน',
       pfPricePh: 'ราคา', pfSellTitle: 'เช็กควรขาย?', pfSellBtn: 'ควรขาย?', pfDelTitle: 'ลบ',
       expectancyTitle: 'ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?',
       eWinLabel: 'อัตราชนะ', unitPctWinTrades: '(% ของไม้ที่ชนะ)', eWinRLabel: 'กำไรเฉลี่ยตอนชนะ', unitR: '(เท่าของความเสี่ยง R)', eLossRLabel: 'ขาดทุนเฉลี่ยตอนแพ้',
-      realityTitle: 'อ่านก่อนเอาเงินมาลงทุน (สำคัญมาก)',
-      reality1: 'ลงทุนหุ้น <b>เฉพาะเงินที่ไม่ต้องใช้อย่างน้อย 3–5 ปี</b> — เงินที่หายได้โดยไม่กระทบชีวิต',
-      reality2: 'มี <b>เงินสำรองฉุกเฉิน 3–6 เดือน</b> ก่อนเริ่มเสมอ',
-      reality3: '<b>ห้ามเด็ดขาด</b>: เอาเงินค่ากิน ค่าเช่า เงินกู้ หรือเงินที่ต้องใช้เร็วๆ มาเทรด',
-      reality4: 'การเทรดหุ้น <b>ไม่ใช่รายได้เสริมที่มั่นคง/เร็ว</b> — มือใหม่ส่วนใหญ่ขาดทุนปีแรก โดยเฉพาะตอนร้อนเงิน',
-      realityCta: 'ถ้าตอนนี้เงินตึงและอยากได้เงินงอกแบบเสี่ยงต่ำ วิธีที่ปลอดภัยกว่าเก็งหุ้นรายตัวมากคือ <b>ทยอยลงทุนกองทุนดัชนี (DCA)</b> — <a href="invest-global-fund.html">ลองเครื่องวางแผนกองทุน S&amp;P500 →</a>',
       stockNewsDefault: 'ข่าวหุ้น', stockNewsWithSym: 'ข่าวหุ้น {sym}', stockNewsPrompt: 'ดึงราคาหุ้นในแท็บ "ภาพรวม" ก่อน เพื่อดูข่าวของหุ้นตัวนั้น',
-      oppdayLinkText: 'Opportunity Day ↗',
+      oppdayLinkText: 'Opportunity Day',
 
       liveReal: 'สด / Real-time', liveFallback: 'สำรอง / Historical', liveNoConn: 'แหล่งข้อมูลสดยังเชื่อมต่อไม่ได้ · ใช้ราคาย้อนหลังเป็น fallback', liveYahooMeta: 'ใช้ Yahoo สำหรับกราฟย้อนหลัง',
       liveModePrefix: 'โหมดข้อมูล: ', updatedAt: 'อัปเดต ', liveHistorical: 'ย้อนหลัง / Historical',
@@ -106,7 +98,7 @@
       kvRiskIfWrong: 'ถ้าผิดทาง (แตะ Stop) เสียไม่เกิน', kvStopPrice: 'ราคาตัดขาดทุน (Stop)', kvCommRoundtrip: 'ค่าคอมฯ จริงไป-กลับ',
       kvBreakeven: 'ราคาคุ้มทุน (รวมค่าคอมฯ ไป-กลับ)', kvRR: 'ความคุ้ม (กำไรคาดหวัง : ความเสี่ยง) ถึงแนวต้าน',
       tpLot1: 'ทยอยขายไม้ 1: {price}', tpLot2: 'ไม้ 2: {price}', tpLot3: 'ไม้ 3: {price}',
-      commMinNote: 'ℹ️ ไม้นี้เล็กเกินกว่าค่าคอมฯ ตามเปอร์เซ็นต์จะถึงขั้นต่ำ — โบรกจึงเก็บขั้นต่ำ ฿{min}/วัน แทน ทำให้ค่าคอมฯ จริงคิดเป็น {pct}% ไป-กลับ ต้องขึ้นถึง {breakeven} บาทถึงจะเท่าทุนจริง — ลองซื้อไม้ใหญ่ขึ้นเพื่อเฉลี่ยค่าคอมฯ ให้ถูกลง',
+      commMinNote: 'ไม้นี้เล็กเกินกว่าค่าคอมฯ ตามเปอร์เซ็นต์จะถึงขั้นต่ำ — โบรกจึงเก็บขั้นต่ำ ฿{min}/วัน แทน ทำให้ค่าคอมฯ จริงคิดเป็น {pct}% ไป-กลับ ต้องขึ้นถึง {breakeven} บาทถึงจะเท่าทุนจริง — ลองซื้อไม้ใหญ่ขึ้นเพื่อเฉลี่ยค่าคอมฯ ให้ถูกลง',
       trendUpAdx: 'อยู่ในแนวโน้มขึ้น (ราคาเหนือเส้นเฉลี่ย)', trendNotUpAdx: 'ยังไม่อยู่ในแนวโน้มขึ้น (ราคาใต้เส้นเฉลี่ย)', adxStrongTxt: ' · ADX {adx} เทรนด์แข็งแรง', adxWeakTxt: ' · ADX {adx} เทรนด์อ่อน ควรระวัง',
       notChasing: 'ไม่ไล่ราคา (ห่างเส้นเฉลี่ย 20 ไม่เกิน 5%)', chasing: 'กำลังไล่ราคา (สูงกว่าเส้นเฉลี่ย 20 เกิน 5%)',
       needChartFirst: 'แนวโน้ม/การไล่ราคา: ต้องมีข้อมูลกราฟก่อน (กด "ดึงราคา" หรือ "ดูกราฟตัวอย่าง")',
@@ -117,10 +109,10 @@
       checklistFail: 'ยังไม่ควรเข้า — ติด {n} ข้อ ควรแก้ให้ครบก่อนซื้อ', checklistUnknown: 'ข้อมูลไม่พอประเมินครบ — กด "ประเมิน"/"ดึงราคา" แล้ว "คำนวณ" ก่อน',
       checklistGo: 'เข้าได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)',
       expInvalid: 'กรอกตัวเลขให้ครบ (อัตราชนะ 0–100%, กำไร/ขาดทุนเป็นเท่าของ R)',
-      expMsg: 'ค่าคาดหวังต่อไม้ ≈ <b>{sign}{exp} R</b> (ถ้าเสี่ยงไม้ละ 1,000 บาท ≈ {sign2}฿{bahtExp} ต่อไม้โดยเฉลี่ย)<br><span style="font-weight:500">ต้องชนะอย่างน้อย ~{beWin}% ถึงจะเสมอตัวที่ R นี้</span>',
-      expGood: 'ได้เปรียบระยะยาว<br>{msg}<br><span style="font-weight:500">ถ้าทำตามวินัยสม่ำเสมอ (คุมความเสี่ยงเท่ากันทุกไม้) มีโอกาสกำไรระยะยาว</span>',
-      expBreakeven: 'แทบเสมอตัว<br>{msg}<br><span style="font-weight:500">หักค่าคอมฯแล้วอาจขาดทุน — ต้องเพิ่มกำไรตอนชนะ หรือลดขาดทุนตอนแพ้</span>',
-      expBad: 'ขาดทุนระยะยาว<br>{msg}<br><span style="font-weight:500">ถึงชนะบ่อยก็ไม่พอ — ต้อง "ปล่อยกำไรให้ยาว ตัดขาดทุนให้ไว" (เพิ่ม R ตอนชนะ)</span>',
+      expMsg: 'ค่าคาดหวังต่อไม้ ≈ <b>{sign}{exp} R</b> (ถ้าเสี่ยงไม้ละ 1,000 บาท ≈ {sign2}฿{bahtExp} ต่อไม้โดยเฉลี่ย)<br><span class="sub">ต้องชนะอย่างน้อย ~{beWin}% ถึงจะเสมอตัวที่ R นี้</span>',
+      expGood: 'ได้เปรียบระยะยาว<br>{msg}<br><span class="sub">ถ้าทำตามวินัยสม่ำเสมอ (คุมความเสี่ยงเท่ากันทุกไม้) มีโอกาสกำไรระยะยาว</span>',
+      expBreakeven: 'แทบเสมอตัว<br>{msg}<br><span class="sub">หักค่าคอมฯแล้วอาจขาดทุน — ต้องเพิ่มกำไรตอนชนะ หรือลดขาดทุนตอนแพ้</span>',
+      expBad: 'ขาดทุนระยะยาว<br>{msg}<br><span class="sub">ถึงชนะบ่อยก็ไม่พอ — ต้อง "ปล่อยกำไรให้ยาว ตัดขาดทุนให้ไว" (เพิ่ม R ตอนชนะ)</span>',
       sellSarDn: 'พิจารณาขาย — สัญญาณเทรนด์กลับตัว (SAR พลิกลง)', sellBelowTrend: 'พิจารณาขาย/ตัดขาดทุน — ราคาหลุดแนวโน้ม (ต่ำกว่าเส้นค่าเฉลี่ย)',
       sellHotRsi: 'พิจารณาล็อกกำไรบางส่วน — RSI สูง ราคาร้อนแรง อาจย่อ', sellNearResist: 'ใกล้แนวต้าน — พิจารณาล็อกกำไรบางส่วน',
       sellHold: 'ยังอยู่ในแนวโน้มขึ้น — ถือต่อได้ เลื่อนจุดตัดขาดทุนตามแนวด้านล่าง',
@@ -158,17 +150,15 @@
       defaultSignal: 'Signal —', defaultSector: 'Thai stock',
       step1Title: 'Current stock price', symLabel: 'Ticker (e.g. PTT, ADVANC)', fetchBtn: 'Try Fetching Price',
       priceNowLabel: 'Current price (THB)', priceNowPh: 'e.g. 35.50', priceHiLabel: 'Period high', priceLoLabel: 'Period low', periodPh: 'Last 3 months',
-      liveModeHistorical: 'Data mode: Historical', liveMetaDefault: 'Set up a live data source in "Market Data Settings"',
-      refreshBtn: '↻ Refresh', marketSettingsBtn: '⚙ Market Data Settings',
+      liveModeHistorical: 'Data mode: Historical',      refreshBtn: 'Refresh', marketSettingsBtn: 'Market Data Settings',
       marketSettingsTitle: 'Live Market Data', providerLabel: 'Data source', providerGateway: 'Tanot Data Gateway (recommended)', providerYahoo: 'Yahoo / Historical',
       apiKeyLabel: 'Twelve Data API Key', apiKeyNote: '(stored locally only)', apiKeyPh: 'Enter if you have an API key',
       intervalLabel: 'Refresh every', interval5: '5 seconds', interval10: '10 seconds', interval30: '30 seconds',
       saveSettingsBtn: 'Save Settings', clearApiKeyBtn: 'Clear API Key',
       analyzeBtn: 'Analyze It', demoBtn: 'View Sample Chart (Practice)',
-      pasteSummary: 'Paste historical prices manually (optional)', pasteHint: 'Paste several days of closing prices, separated by space/line/comma (oldest→newest)', pasteBtn: 'Use This Price',
+      pasteSummary: 'Paste historical prices manually (optional)',pasteBtn: 'Use This Price',
       chartTitle: 'Price Chart', tf1m: '1mo', tf3m: '3mo', tf6m: '6mo', tf1y: '1yr', tgMa20: 'MA 20', tgMa50: 'MA 50',
-      capUp: 'Up candle', capDn: 'Down candle', capMa20: '20-day average', capMa50: '50-day average', capTouch: 'Tap the chart to see each day’s price',
-      techDetailsSummary: 'View technical details (no need to understand)',
+      capUp: 'Up candle', capDn: 'Down candle', capMa20: '20-day average', capMa50: '50-day average',      techDetailsSummary: 'Technical details',
       aiSumTitle: 'AI Stock Summary', aiSumBtn: 'Summarize It',
       step2Title: 'How much to invest, and where to sell',
       capitalLabel: 'Total portfolio capital (THB)', capitalPh: 'e.g. 100000', riskPctLabel: 'Risk per trade', unitPctPortfolio: '(% of portfolio)',
@@ -178,21 +168,15 @@
       checklistTitle: 'Pre-Trade Checklist — Should You Buy?',
       checkBtn: 'Run Checklist',
       pfTitle: 'My Portfolio (Thai Stocks)', pfSeeAll: 'See portfolio across the whole site →',
-      pfSymLabel: 'Ticker', pfSharesLabel: 'Shares', pfCostLabel: 'Cost/share', pfAddBtn: '+ Add to Portfolio',
+      pfSymLabel: 'Ticker', pfSharesLabel: 'Shares', pfCostLabel: 'Cost/share', pfAddBtn: 'Add to Portfolio',
       pfEmptyDefault: 'No holdings yet',
       pfEmptyEmbed: 'No {sym} in portfolio yet',
       pfThSym: 'Stock', pfThShares: 'Shares', pfThCost: 'Cost/share', pfThCur: 'Current price', pfThPl: 'P/L',
       pfPricePh: 'Price', pfSellTitle: 'Check should I sell?', pfSellBtn: 'Should I sell?', pfDelTitle: 'Delete',
       expectancyTitle: 'Is Your Trading System "Profitable Long-Term"?',
       eWinLabel: 'Win rate', unitPctWinTrades: '(% of winning trades)', eWinRLabel: 'Average gain when winning', unitR: '(multiples of risk R)', eLossRLabel: 'Average loss when losing',
-      realityTitle: 'Read Before Investing Real Money (Important)',
-      reality1: 'Only invest in stocks <b>with money you won’t need for at least 3–5 years</b> — money you can afford to lose without affecting your life',
-      reality2: 'Always have <b>3–6 months of emergency savings</b> before you start',
-      reality3: '<b>Never</b>: use money for food, rent, loans, or money you’ll need soon to trade',
-      reality4: 'Stock trading <b>is not a stable/quick side income</b> — most beginners lose money in year one, especially when trading with money they need',
-      realityCta: 'If money is tight right now and you want low-risk growth, a much safer approach than picking individual stocks is <b>dollar-cost averaging into an index fund (DCA)</b> — <a href="invest-global-fund.html">try the S&amp;P 500 fund planner →</a>',
       stockNewsDefault: 'Stock News', stockNewsWithSym: '{sym} News', stockNewsPrompt: 'Fetch a stock price in the "Overview" tab first to see its news',
-      oppdayLinkText: 'Opportunity Day ↗',
+      oppdayLinkText: 'Opportunity Day',
 
       liveReal: 'Live / Real-time', liveFallback: 'Fallback / Historical', liveNoConn: 'Live data source not reachable yet · using historical price as fallback', liveYahooMeta: 'Using Yahoo for historical charts',
       liveModePrefix: 'Data mode: ', updatedAt: 'updated ', liveHistorical: 'Historical',
@@ -229,7 +213,7 @@
       kvRiskIfWrong: 'If wrong (stop hit), lose no more than', kvStopPrice: 'Stop-loss price', kvCommRoundtrip: 'Real round-trip commission',
       kvBreakeven: 'Breakeven price (incl. round-trip commission)', kvRR: 'Reward:risk to resistance',
       tpLot1: 'Sell lot 1: {price}', tpLot2: 'Lot 2: {price}', tpLot3: 'Lot 3: {price}',
-      commMinNote: 'ℹ️ This trade is too small for the percentage commission to reach the minimum — your broker charges the ฿{min}/day minimum instead, making real commission {pct}% round-trip. Price needs to reach {breakeven} THB to truly break even — consider a bigger trade to average out the minimum commission',
+      commMinNote: 'This trade is too small for the percentage commission to reach the minimum — your broker charges the ฿{min}/day minimum instead, making real commission {pct}% round-trip. Price needs to reach {breakeven} THB to truly break even — consider a bigger trade to average out the minimum commission',
       trendUpAdx: 'In an uptrend (price above moving average)', trendNotUpAdx: 'Not yet in an uptrend (price below moving average)', adxStrongTxt: ' · ADX {adx} strong trend', adxWeakTxt: ' · ADX {adx} weak trend, be careful',
       notChasing: 'Not chasing the price (within 5% of the 20-day average)', chasing: 'Chasing the price (more than 5% above the 20-day average)',
       needChartFirst: 'Trend/chase check: needs chart data first (click "Fetch Price" or "View Sample Chart")',
@@ -240,10 +224,10 @@
       checklistFail: 'Not ready to enter — {n} item(s) failed, fix them all before buying', checklistUnknown: 'Not enough data to fully assess — click "Analyze"/"Fetch Price" then "Calculate" first',
       checklistGo: 'Ready to enter per plan — all items passed (still not a profit guarantee, follow your plan and always cut losses)',
       expInvalid: 'Please fill in all numbers (win rate 0–100%, gain/loss in multiples of R)',
-      expMsg: 'Expected value per trade ≈ <b>{sign}{exp} R</b> (if risking 1,000 THB per trade ≈ {sign2}฿{bahtExp} per trade on average)<br><span style="font-weight:500">You need to win at least ~{beWin}% to break even at this R</span>',
-      expGood: 'Positive edge long-term<br>{msg}<br><span style="font-weight:500">If you follow discipline consistently (same risk per trade), you have a chance at long-term profit</span>',
-      expBreakeven: 'Nearly break-even<br>{msg}<br><span style="font-weight:500">After commissions you may lose money — you need bigger wins, or smaller losses</span>',
-      expBad: 'Losing long-term<br>{msg}<br><span style="font-weight:500">Even winning often isn’t enough — you need to "let profits run, cut losses fast" (increase R when winning)</span>',
+      expMsg: 'Expected value per trade ≈ <b>{sign}{exp} R</b> (if risking 1,000 THB per trade ≈ {sign2}฿{bahtExp} per trade on average)<br><span class="sub">You need to win at least ~{beWin}% to break even at this R</span>',
+      expGood: 'Positive edge long-term<br>{msg}<br><span class="sub">If you follow discipline consistently (same risk per trade), you have a chance at long-term profit</span>',
+      expBreakeven: 'Nearly break-even<br>{msg}<br><span class="sub">After commissions you may lose money — you need bigger wins, or smaller losses</span>',
+      expBad: 'Losing long-term<br>{msg}<br><span class="sub">Even winning often isn’t enough — you need to "let profits run, cut losses fast" (increase R when winning)</span>',
       sellSarDn: 'Consider selling — trend reversal signal (SAR flipped down)', sellBelowTrend: 'Consider selling/cutting loss — price broke below trend (below moving average)',
       sellHotRsi: 'Consider locking in partial profit — RSI high, price overheated, may pull back', sellNearResist: 'Near resistance — consider locking in partial profit',
       sellHold: 'Still in an uptrend — can keep holding, trail your stop along the levels below',
@@ -521,7 +505,7 @@
     var ohlc = [], vol = [], i;
     for (i = 0; i < times.length; i++) {
       ohlc.push({ time: times[i], open: opens[i], high: highs[i], low: lows[i], close: closes[i] });
-      vol.push({ time: times[i], value: (volumes && volumes[i]) ? volumes[i] : 0, color: closes[i] >= opens[i] ? 'rgba(38,166,154,0.5)' : 'rgba(239,83,80,0.5)' });
+      vol.push({ time: times[i], value: (volumes && volumes[i]) ? volumes[i] : 0, up: closes[i] >= opens[i] });
     }
     return { times: times, closes: closes, highs: highs, lows: lows, ohlc: ohlc, vol: vol,
       ma20: align(smaSeries(closes, 20)), ma50: align(smaSeries(closes, 50)), rsi: align(rsiSeries(closes, 14)) };
@@ -639,24 +623,22 @@
   var LWC = null, chart = null, candle = null, volS = null, ma20S = null, ma50S = null, rsiChart = null, rsiS = null;
   var fullData = null, curTF = 63, tg = { ma20: true, ma50: true, vol: true, rsi: false }, syncing = false, themeObs = null;
 
-  function themeColors() {
-    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    return dark ? { bg: '#1B2030', text: '#C2CBDD', grid: '#2A3040', border: '#2A3040' }
-                : { bg: '#FFFFFF', text: '#4A5568', grid: '#EEF1F7', border: '#E4E9F2' };
+  /* สีกราฟทั้งหมดมาจาก chart-theme.js (โทเคน --ome-chart-*): แท่งขึ้น/ลง = up/down, เฉลี่ย 20 = สี 4, เฉลี่ย 50 = สี 1, RSI = สี 7 */
+  var CT = window.OmeChartTheme;
+  function serie() { var c = CT.get(); return { up: c.up, down: c.down, ma20: c.series[3], ma50: c.series[0], rsi: c.series[6] }; }
+  function volColored(arr) {
+    var c = CT.get(), u = CT.alpha(c.up, 0.5), d = CT.alpha(c.down, 0.5);
+    return arr.map(function (b) { return { time: b.time, value: b.value, color: b.up ? u : d }; });
   }
   function chartWidth(el) { return Math.max(240, (el && (el.clientWidth || el.offsetWidth)) || (el && el.parentElement && el.parentElement.clientWidth) || 320); }
   function baseOpts(w, h) {
-    var c = themeColors();
-    return {
-      width: w, height: h,
-      localization: { locale: 'en-US' },
-      layout: { background: { color: c.bg }, textColor: c.text, fontFamily: "'Prompt',system-ui,sans-serif" },
-      grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } },
-      rightPriceScale: { borderColor: c.border },
-      timeScale: { borderColor: c.border, rightOffset: 3, fixLeftEdge: true },
-      crosshair: { mode: (LWC && LWC.CrosshairMode) ? LWC.CrosshairMode.Normal : 1 },
-      handleScroll: true, handleScale: true
-    };
+    var o = CT.lightweight();
+    o.width = w; o.height = h;
+    o.localization = { locale: 'en-US' };
+    o.timeScale.rightOffset = 3; o.timeScale.fixLeftEdge = true;
+    o.crosshair.mode = (LWC && LWC.CrosshairMode) ? LWC.CrosshairMode.Normal : 1;
+    o.handleScroll = true; o.handleScale = true;
+    return o;
   }
   function fmtDate(t) {
     if (typeof t === 'string') { var p = t.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
@@ -685,10 +667,11 @@
     if (rsiChart || !fullData || !LWC) return;
     var el = $('lwRsi'); el.innerHTML = '';
     rsiChart = LWC.createChart(el, baseOpts(chartWidth(el), 110));
-    rsiS = rsiChart.addLineSeries({ color: '#6C63D9', lineWidth: 2, priceLineVisible: false });
+    var sc = serie();
+    rsiS = rsiChart.addLineSeries({ color: sc.rsi, lineWidth: 2, priceLineVisible: false });
     try {
-      rsiS.createPriceLine({ price: 70, color: '#ef5350', lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: '70' });
-      rsiS.createPriceLine({ price: 30, color: '#26a69a', lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: '30' });
+      rsiS.createPriceLine({ price: 70, color: sc.down, lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: '70' });
+      rsiS.createPriceLine({ price: 30, color: sc.up, lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: '30' });
     } catch (e) {}
     var cut = cutoffTime();
     rsiS.setData(fullData.rsi.filter(function (p) { return p.time >= cut; }));
@@ -707,7 +690,7 @@
     curTF = n; if (!fullData || !candle) return;
     var s = Math.max(0, fullData.ohlc.length - n), cut = fullData.times[s];
     candle.setData(fullData.ohlc.slice(s));
-    volS.setData(fullData.vol.slice(s));
+    volS.setData(volColored(fullData.vol.slice(s)));
     ma20S.setData(fullData.ma20.filter(function (p) { return p.time >= cut; }));
     ma50S.setData(fullData.ma50.filter(function (p) { return p.time >= cut; }));
     if (rsiChart && rsiS) rsiS.setData(fullData.rsi.filter(function (p) { return p.time >= cut; }));
@@ -716,16 +699,19 @@
     updateLegendLast();
     [].forEach.call(document.querySelectorAll('#tfGroup .tf'), function (b) { b.classList.toggle('on', +b.getAttribute('data-tf') === n); });
   }
+  function recolor() {
+    if (!chart) return;
+    var sc = serie(), base = CT.lightweight();
+    chart.applyOptions(base);
+    candle.applyOptions(CT.candles());
+    ma20S.applyOptions({ color: sc.ma20 }); ma50S.applyOptions({ color: sc.ma50 });
+    var s = Math.max(0, fullData.ohlc.length - curTF);
+    volS.setData(volColored(fullData.vol.slice(s)));
+    if (rsiChart) { try { rsiChart.remove(); } catch (e) {} rsiChart = null; rsiS = null; buildRsi(); }
+  }
   function setupThemeObserver() {
     if (themeObs) return;
-    themeObs = new MutationObserver(function () {
-      var c = themeColors();
-      [chart, rsiChart].forEach(function (ch) {
-        if (!ch) return;
-        ch.applyOptions({ layout: { background: { color: c.bg }, textColor: c.text }, grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } }, rightPriceScale: { borderColor: c.border }, timeScale: { borderColor: c.border } });
-      });
-    });
-    themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    themeObs = true; CT.onChange(recolor);
   }
   function buildChart(data) {
     if (!window.LightweightCharts) { return false; }
@@ -736,11 +722,12 @@
     $('chartCard').style.display = 'block';
     var el = $('lwChart'); el.innerHTML = '';
     chart = LWC.createChart(el, baseOpts(chartWidth(el), 300));
-    candle = chart.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350', borderVisible: false, wickUpColor: '#26a69a', wickDownColor: '#ef5350' });
+    var sc = serie();
+    candle = chart.addCandlestickSeries(Object.assign({ borderVisible: false }, CT.candles()));
     volS = chart.addHistogramSeries({ priceFormat: { type: 'volume' }, priceScaleId: 'vol' });
     chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
-    ma20S = chart.addLineSeries({ color: '#F5A524', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-    ma50S = chart.addLineSeries({ color: '#3B9BEA', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    ma20S = chart.addLineSeries({ color: sc.ma20, lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    ma50S = chart.addLineSeries({ color: sc.ma50, lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
     chart.subscribeCrosshairMove(onCross);
     applyTF(curTF); applyToggles(); setupThemeObserver(); setupResize();
     if (window.requestAnimationFrame) requestAnimationFrame(reflow);
@@ -765,9 +752,9 @@
   function setSourceBadge(src, days) {
     var el = $('chartSource'); if (!el) return;
     if (src) lastSource = src; else src = lastSource;
-    if (src.kind === 'demo') { el.className = 'src-badge demo'; el.textContent = t('demoBadge'); }
-    else if (src.kind === 'paste') { el.className = 'src-badge paste'; el.textContent = t('pastedBadge', { days: days }); }
-    else { el.className = 'src-badge real'; el.textContent = t('realBadge', { label: src.label || t('realBadgeLabel'), status: src.stale ? t('staleLatestPrice', { age: cacheAgeText(src.cachedAt) }) : t('realBadgeLabel'), days: days }); }
+    if (src.kind === 'demo') { el.className = 'badge wrap warn'; el.textContent = t('demoBadge'); }
+    else if (src.kind === 'paste') { el.className = 'badge wrap'; el.textContent = t('pastedBadge', { days: days }); }
+    else { el.className = 'badge wrap ok'; el.textContent = t('realBadge', { label: src.label || t('realBadgeLabel'), status: src.stale ? t('staleLatestPrice', { age: cacheAgeText(src.cachedAt) }) : t('realBadgeLabel'), days: days }); }
   }
   function useSeries(s, msg, cls, src) {
     lastSeries = s;
@@ -791,8 +778,8 @@
   }
   function showAnalysis(a) {
     lastAnalysis = a;
-    var bulbColors = { green: 'var(--ok)', yellow: 'var(--amber)', red: 'var(--err)' };
-    $('verdictDot').style.background = bulbColors[a.light] || '#B8C0D4';
+    var bulbColors = { green: 'var(--ome-ok)', yellow: 'var(--ome-warn)', red: 'var(--ome-err)' };
+    $('verdictDot').style.background = bulbColors[a.light] || 'var(--ome-text-3)';
     $('verdictTxt').textContent = a.verdict;
     $('whyTitle').textContent = a.verdict;
     var lines = [a.why];
@@ -804,8 +791,8 @@
     if (isFinite(prevClose) && prevClose) {
       var diff = a.price - prevClose, pct = diff / prevClose * 100;
       $('chg').textContent = (diff >= 0 ? '+' : '−') + fmt(Math.abs(diff)) + ' (' + (diff >= 0 ? '+' : '−') + fmt(Math.abs(pct)) + '%)';
-      $('chg').className = 'delta num ' + (diff >= 0 ? 'up' : 'dn');
-    } else { $('chg').textContent = '—'; $('chg').className = 'delta num'; }
+      $('chg').className = 'delta ' + (diff >= 0 ? 'up' : 'dn');
+    } else { $('chg').textContent = '—'; $('chg').className = 'delta'; }
 
     if (a.det && !a.simple && isFinite(a.det.rsi)) {
       var d = a.det, rows = [
@@ -1170,11 +1157,11 @@
   function sellVerdict(a) {
     var det = a.det || {}, ps = det.psar;
     var cls, headline;
-    if (ps && !ps.up) { cls = 'no'; headline = t('sellSarDn'); }
-    else if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) { cls = 'no'; headline = t('sellBelowTrend'); }
+    if (ps && !ps.up) { cls = 'err'; headline = t('sellSarDn'); }
+    else if (!a.uptrend || (isFinite(det.ema20) && a.price < det.ema20)) { cls = 'err'; headline = t('sellBelowTrend'); }
     else if (isFinite(a.rsi) && a.rsi > 70) { cls = 'warn'; headline = t('sellHotRsi'); }
     else if (isFinite(a.resistance) && a.price >= a.resistance * 0.98) { cls = 'warn'; headline = t('sellNearResist'); }
-    else { cls = 'go'; headline = t('sellHold'); }
+    else { cls = 'ok'; headline = t('sellHold'); }
 
     var levels = [
       { key: 'sar', type: 'stop', label: t('sarLabel'), price: ps ? ps.sar : NaN,
@@ -1343,7 +1330,7 @@
     }
     var cTh = COMPANY_INFO[sym];
     var factors = (getUILang() === 'en' ? SECTOR_FACTORS_EN[c.sector] : SECTOR_FACTORS[cTh.sector]) || [];
-    var html = '<div class="company-card"><span class="cname">' + c.name + '</span><span class="csector">' + c.sector + '</span>' +
+    var html = '<div class="company-card"><span class="cname">' + c.name + '</span><span class="badge accent csector">' + c.sector + '</span>' +
       '<div class="cbiz">' + c.business + '</div>';
     if (factors.length) {
       html += '<ul class="creminders">' + factors.map(function (f) { return '<li>' + f + '</li>'; }).join('') + '</ul>';
@@ -1367,14 +1354,14 @@
     var pfAll = loadPf(), box = $('pfBox');
     var pf = EMBED_SYM ? pfAll.filter(function (h) { return h.sym === EMBED_SYM; }) : pfAll;
     if (!pf.length) { box.innerHTML = '<div class="pf-empty">' + (EMBED_SYM ? t('pfEmptyEmbed', { sym: EMBED_SYM }) : t('pfEmptyDefault')) + '</div>'; return; }
-    var html = '<table class="pf-table"><thead><tr><th>' + t('pfThSym') + '</th><th>' + t('pfThShares') + '</th><th>' + t('pfThCost') + '</th><th>' + t('pfThCur') + '</th><th>' + t('pfThPl') + '</th><th></th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="table pf-table"><thead><tr><th>' + t('pfThSym') + '</th><th>' + t('pfThShares') + '</th><th>' + t('pfThCost') + '</th><th>' + t('pfThCur') + '</th><th>' + t('pfThPl') + '</th><th></th></tr></thead><tbody>';
     pf.forEach(function (h, i) {
       html += '<tr data-i="' + i + '"><td>' + h.sym + '</td><td>' + fmt0(h.shares) + '</td><td>' + fmt(h.cost) + '</td>' +
-        '<td><input type="number" class="pf-price" inputmode="decimal" step="0.01" placeholder="' + t('pfPricePh') + '" value="' + (h.cur != null ? h.cur : '') + '"></td>' +
-        '<td class="pf-pl">—</td><td class="pf-actions"><button class="pf-sell" title="' + t('pfSellTitle') + '">' + t('pfSellBtn') + '</button> <button class="pf-del" title="' + t('pfDelTitle') + '">✕</button></td></tr>' +
+        '<td><input type="number" class="input pf-price" inputmode="decimal" step="0.01" placeholder="' + t('pfPricePh') + '" value="' + (h.cur != null ? h.cur : '') + '"></td>' +
+        '<td class="pf-pl">—</td><td class="pf-actions"><button class="btn sm pf-sell" title="' + t('pfSellTitle') + '">' + t('pfSellBtn') + '</button><button class="btn sm ghost icon pf-del" title="' + t('pfDelTitle') + '" aria-label="' + t('pfDelTitle') + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>' +
         '<tr class="pf-sellrow" data-sr="' + i + '"><td colspan="6"></td></tr>';
     });
-    html += '</tbody></table>'; box.innerHTML = html;
+    html += '</tbody></table></div>'; box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('tr[data-i]'), function (tr) {
       var i = +tr.getAttribute('data-i'), h = pf[i], inp = tr.querySelector('.pf-price'), cell = tr.querySelector('.pf-pl');
       var sellCell = box.querySelector('tr[data-sr="' + i + '"] td');
@@ -1388,20 +1375,20 @@
       inp.addEventListener('input', function () { upd(); h.cur = num(inp.value); savePf(pfAll); });
       tr.querySelector('.pf-del').addEventListener('click', function () { var realIdx = pfAll.indexOf(h); if (realIdx >= 0) pfAll.splice(realIdx, 1); savePf(pfAll); renderPf(); });
       tr.querySelector('.pf-sell').addEventListener('click', function () {
-        sellCell.innerHTML = '<div class="sell-verdict warn">' + t('fetchingSellPrice', { sym: h.sym }) + '</div>';
+        sellCell.innerHTML = '<div class="callout warn">' + t('fetchingSellPrice', { sym: h.sym }) + '</div>';
         getSeries(h.sym).then(function (r) {
           var s = r.series, a = analyzeSeries(s), v = sellVerdict(a), price = s.closes[s.closes.length - 1];
           inp.value = price.toFixed(2); h.cur = price; savePf(pfAll); upd();
           var pl = (price - h.cost) * h.shares, pct = (price / h.cost - 1) * 100;
           sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict ' + v.cls + '">' + v.headline +
-            '<br><span style="font-weight:500">' + t('sellLatestPrice', { price: fmt(price) }) + (r.stale ? t('sellSavedAge', { age: cacheAgeText(r.cachedAt) }) : '') +
+            '<br><span class="sub">' + t('sellLatestPrice', { price: fmt(price) }) + (r.stale ? t('sellSavedAge', { age: cacheAgeText(r.cachedAt) }) : '') +
             t('sellCostLabel', { cost: fmt(h.cost) }) + (pl >= 0 ? t('sellProfit') : t('sellLoss')) + '฿' + fmt0(Math.abs(pl)) + ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)</span>' +
             sellLevelsHtml(v.levels) + '</div>' +
             companyInfoHtml(h.sym) +
             '<div class="news-block"></div></div>';
           renderNewsBlock(sellCell.querySelector('.news-block'), h.sym);
         }, function () {
-          sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict warn">' + t('sellFetchFail', { sym: h.sym }) + '</div>' +
+          sellCell.innerHTML = '<div class="sell-detail"><div class="callout warn">' + t('sellFetchFail', { sym: h.sym }) + '</div>' +
             companyInfoHtml(h.sym) + '</div>';
         });
       });
@@ -1441,12 +1428,12 @@
     var fails = checks.filter(function (c) { return c.ok === false; }).length;
     var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
     var box = $('checkResult'), v = $('checkVerdict');
-    if (fails > 0) { v.className = 'verdict-box no'; v.textContent = t('checklistFail', { n: fails }); }
-    else if (unknowns > 0) { v.className = 'verdict-box warn'; v.textContent = t('checklistUnknown'); }
-    else { v.className = 'verdict-box go'; v.textContent = t('checklistGo'); }
+    if (fails > 0) { v.className = 'callout err'; v.textContent = t('checklistFail', { n: fails }); }
+    else if (unknowns > 0) { v.className = 'callout warn'; v.textContent = t('checklistUnknown'); }
+    else { v.className = 'callout ok'; v.textContent = t('checklistGo'); }
     var html = '';
     checks.forEach(function (c) {
-      var ic = c.ok === true ? '✓' : c.ok === false ? '✕' : '◻️';
+      var ic = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + (c.ok === true ? 'check' : c.ok === false ? 'x' : 'minus') + '"/></svg>';
       html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
     });
     $('chkList').innerHTML = html;
@@ -1458,14 +1445,14 @@
     var w = num($('eWin').value) / 100, wr = num($('eWinR').value), lr = num($('eLossR').value);
     var box = $('eResult');
     if (!(w >= 0 && w <= 1) || !isFinite(wr) || !isFinite(lr) || wr < 0 || lr <= 0) {
-      box.className = 'verdict-box warn'; box.textContent = t('expInvalid'); box.style.display = 'block'; return;
+      box.className = 'callout warn'; box.textContent = t('expInvalid'); box.style.display = 'block'; return;
     }
     var exp = w * wr - (1 - w) * lr;
     var beWin = lr / (wr + lr) * 100;
     var msg = t('expMsg', { sign: exp >= 0 ? '+' : '', exp: exp.toFixed(2), sign2: exp >= 0 ? '+' : '−', bahtExp: fmt0(Math.abs(exp) * 1000), beWin: beWin.toFixed(0) });
-    if (exp > 0.1) { box.className = 'verdict-box go'; box.innerHTML = t('expGood', { msg: msg }); }
-    else if (exp > 0) { box.className = 'verdict-box warn'; box.innerHTML = t('expBreakeven', { msg: msg }); }
-    else { box.className = 'verdict-box no'; box.innerHTML = t('expBad', { msg: msg }); }
+    if (exp > 0.1) { box.className = 'callout ok'; box.innerHTML = t('expGood', { msg: msg }); }
+    else if (exp > 0) { box.className = 'callout warn'; box.innerHTML = t('expBreakeven', { msg: msg }); }
+    else { box.className = 'callout err'; box.innerHTML = t('expBad', { msg: msg }); }
     box.style.display = 'block';
   }
 
@@ -1636,7 +1623,7 @@
     var res = riskCalc({ capital: capital, riskPct: riskPct, entry: entry, stop: stop, comm: comm, commMin: commMin, resistance: lastAnalysis ? lastAnalysis.resistance : NaN });
     var box = $('riskResult');
     if (res.error) {
-      $('riskHeadline').innerHTML = '<span style="color:var(--err)">' + res.error + '</span>';
+      $('riskHeadline').innerHTML = '<span class="dn">' + res.error + '</span>';
       $('riskKv').innerHTML = ''; $('tpRow').innerHTML = ''; box.classList.add('show'); $('saveBtn').style.display = 'none'; return;
     }
     $('riskHeadline').innerHTML = t('calcHeadline', { shares: fmt0(res.shares), lots: fmt0(res.lots), cost: fmt0(res.cost) });
@@ -1647,9 +1634,9 @@
     kv += '<div class="k">' + t('kvBreakeven') + '</div><div class="v">' + fmt(res.breakeven) + '</div>';
     if (isFinite(res.rr)) kv += '<div class="k">' + t('kvRR') + '</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
     $('riskKv').innerHTML = kv;
-    $('tpRow').innerHTML = '<span class="tp-chip">' + t('tpLot1', { price: fmt(res.tp1) }) + '</span><span class="tp-chip">' + t('tpLot2', { price: fmt(res.tp2) }) + '</span><span class="tp-chip">' + t('tpLot3', { price: fmt(res.tp3) }) + '</span>';
-    if (res.note) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">ℹ️ ' + res.note + '</div>';
-    if (res.minKicksIn) $('tpRow').innerHTML += '<div style="flex:1 1 100%;font-size:12px;color:var(--warn);margin-top:6px">⚠️ ' + t('commMinNote', { min: fmt0(commMin), pct: fmt(res.commPct, 1), breakeven: fmt(res.breakeven) }) + '</div>';
+    $('tpRow').innerHTML = '<span class="badge accent">' + t('tpLot1', { price: fmt(res.tp1) }) + '</span><span class="badge accent">' + t('tpLot2', { price: fmt(res.tp2) }) + '</span><span class="badge accent">' + t('tpLot3', { price: fmt(res.tp3) }) + '</span>';
+    if (res.note) $('tpRow').innerHTML += '<div class="callout warn">' + res.note + '</div>';
+    if (res.minKicksIn) $('tpRow').innerHTML += '<div class="callout warn">' + t('commMinNote', { min: fmt0(commMin), pct: fmt(res.commPct, 1), breakeven: fmt(res.breakeven) }) + '</div>';
     box.classList.add('show');
     $('saveBtn').style.display = 'inline-flex';
     $('saveBtn')._data = { sym: ($('sym').value || '').trim().toUpperCase() || t('thisStock'), shares: res.shares, cost: entry };
