@@ -1,0 +1,30 @@
+// @ts-check
+const { defineConfig } = require('@playwright/test');
+const path = require('path');
+
+const PORT = 8123;
+const ROOT = path.resolve(__dirname, '..');
+
+module.exports = defineConfig({
+  testDir: '.',
+  testMatch: /.*\.spec\.js$/,
+  timeout: 60000,
+  fullyParallel: true,
+  workers: process.env.CI ? 2 : undefined,
+  retries: process.env.CI ? 1 : 0,
+  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
+  // baseline อยู่ใน tests/__screenshots__ (commit เข้า repo) — ชื่อไฟล์ไม่ผูกกับ OS เพราะ CI/เครื่องเจ้าของใช้ Linux Chromium เหมือนกัน
+  snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
+  expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: 'disabled' } },
+  use: {
+    baseURL: `http://localhost:${PORT}`,
+    serviceWorkers: 'block',
+    launchOptions: { executablePath: process.env.PW_CHROMIUM || undefined },
+  },
+  webServer: {
+    command: `python3 -m http.server ${PORT}`,
+    cwd: ROOT,
+    url: `http://localhost:${PORT}/index.html`,
+    reuseExistingServer: !process.env.CI,
+  },
+});

@@ -1,0 +1,14 @@
+{
+  "name": "tanot-tests",
+  "private": true,
+  "description": "ชุดทดสอบของ Tanot — แยก package.json จาก root ตั้งใจ (Cloudflare Pages จะรัน npm install ทุก build ถ้ามี package.json ที่ root)",
+  "scripts": {
+    "guards": "node repo-guards.mjs",
+    "test": "playwright test",
+    "test:update": "playwright test visual.spec.js --update-snapshots"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "esbuild": "0.28.2"
+  }
+}
