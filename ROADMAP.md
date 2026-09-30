@@ -67,7 +67,7 @@
 
 ## Phase 2 — ย้ายทุกหน้าเข้าธีมกลาง (L, ทยอยเป็นรอบ)
 **สิ่งที่ทำกับทุกหน้า:** เทียบกับภาพ baseline → ลบ `.btn/.card/.field` ของหน้าเอง → เปลี่ยน radius/สีเป็น token → เปลี่ยน emoji ใน UI เป็นไอคอน → ลบ `:root` ที่ไม่ได้ใช้ → ลบข้อความอธิบายที่เจอ (กฎใน CLAUDE.md) → bump `sw.js` · จบแต่ละรอบให้ลบกฎ compat ที่ไม่ใช้แล้ว
-1. หน้ารวม: `index`, `soon`, `credits`, `run`, `404`
+1. หน้ารวม: `soon`, `credits`, `run`, `404`, `area` ✅ ย้ายแล้ว (2026-09-30, รอบ 1 — `soon` เป็นต้นแบบ: `data-layout="tool"` + `.page`/`.empty`; `credits` ใช้ `.card`/`.badge`; `run` ใช้ `.card`/`.btn`/`.table`/`.list-row` + ตัดข้อความอธิบายทั้งหมด (desc/inputHint/notes/sub-note); `404` โหลดธีมด้วย `document.write` เพราะถูกเสิร์ฟจากพาธไหนก็ได้; ลบกฎ compat `.tcard`/`.cmp-table`/`.btn.drive` ที่ไม่มีหน้าไหนใช้แล้ว; เพิ่ม baseline `credits`/`area`) · `index` รอทำใน Phase 3
 2. ตระกูล invest (ยุบรวมหน้าไปพร้อมกัน ดู Phase 6)
 3. `classroom-law`, `music`, `sports`, `cooking`, `coding`, `typing`
 4. `budget`, `text-to-speech`, `doc-check`/`doc-check-file`, `extract-text`
