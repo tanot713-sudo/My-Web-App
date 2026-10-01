@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ภาษีเงินได้ | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="theme-boot.js"></script>
+<script src="data-registry.js"></script>
+<script src="tanot-data.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+.tx-page{max-width:1180px}
+.tx-page .page-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tx-page .card > * + *{margin-top:var(--ome-sp-3)}
+.tx-page .card h2{margin:0;font-size:var(--ome-fs-md)}
+.tx-page .card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.tx-grid{display:grid;gap:var(--ome-card-gap);grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.tx-grid{grid-template-columns:minmax(0,6fr) minmax(0,5fr);align-items:start}}
+.tx-page .tabs{margin-bottom:var(--ome-sp-4)}
+.tx-page .kpi-value{font-size:var(--ome-fs-xl)}
+.tx-page .kpi-value small{font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2);margin-left:4px}
+.tx-page .frow > .field{flex-basis:150px}
+.tx-page .field > label{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tx-page .field > label .badge{height:18px;padding:0 6px;font-size:11px}
+.tx-used{font-size:var(--ome-fs-xs);color:var(--ome-warn-ink)}
+.tx-used:empty{display:none}
+.tx-used.info{color:var(--ome-text-2)}
+.tx-page .kv .k.sub{padding-left:12px}
+.tx-page .kv .v.total{font-size:var(--ome-fs-md)}
+.tx-page .kv .sep{grid-column:1/-1;border-top:1px solid var(--ome-border);margin:2px 0}
+.tx-bar{height:8px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-2);overflow:hidden}
+.tx-bar > span{display:block;height:100%;background:var(--ome-accent);border-radius:inherit}
+.tx-bar.full > span{background:var(--ome-warn)}
+.tx-meter{display:flex;flex-direction:column;gap:6px;font-size:var(--ome-fs-sm)}
+.tx-meter .row{justify-content:space-between}
+.tx-cats{display:flex;flex-direction:column;gap:8px}
+.tx-cat{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+.tx-cat select{grid-column:1/-1}
+.tx-cat .amt{font-variant-numeric:tabular-nums;font-weight:600}
+.tx-sim{display:flex;flex-direction:column;gap:12px}
+.tx-sim-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,150px) auto;gap:6px 10px;align-items:center;
+  padding-bottom:12px;border-bottom:1px solid var(--ome-border)}
+.tx-sim-row:last-child{border-bottom:0;padding-bottom:0}
+.tx-sim-row .nm{font-weight:600;font-size:var(--ome-fs-sm)}
+.tx-sim-row .meta{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+.tx-sim-row input{width:100%}
+.tx-sim-row .gain{color:var(--ome-ok-ink);font-weight:600}
+.tx-page .table td.pick{font-weight:700}
+.tx-page .table tr.pick td{background:var(--ome-accent-soft)}
+</style>
+</head>
+<body data-layout="tool">
+<script src="auth-gate.js"></script>
+<main class="page tx-page">
+  <div class="page-head">
+    <h1 data-i18n="title">ภาษีเงินได้บุคคลธรรมดา</h1>
+    <div class="segmented" id="txYear" role="group" aria-label="ปีภาษี"></div>
+  </div>
+
+  <div class="stack">
+    <div class="kpi-grid" id="txKpi"></div>
+    <div id="txAlerts" class="stack" hidden></div>
+  </div>
+
+  <div class="tabs" role="tablist" id="txTabs" style="margin-top:var(--ome-sp-4)">
+    <button class="tab" role="tab" type="button" data-tab="calc" aria-selected="true" data-i18n="tabCalc">รายได้และลดหย่อน</button>
+    <button class="tab" role="tab" type="button" data-tab="sim" aria-selected="false" data-i18n="tabSim">ถ้าซื้อเพิ่ม</button>
+  </div>
+
+  <section class="tx-grid" data-panel="calc" role="tabpanel">
+    <div class="stack" id="txForm">
+      <div class="card">
+        <div class="card-head">
+          <h2 data-i18n="cardIncome">เงินได้</h2>
+          <div class="segmented" id="txProj" role="group">
+            <button type="button" data-proj="0" data-i18n="projRecorded">ที่บันทึก</button>
+            <button type="button" data-proj="1" data-i18n="projYear">ทั้งปี (ประมาณ)</button>
+          </div>
+        </div>
+        <div class="frow" data-fields="salary,service,other,withheld"></div>
+        <details class="disclosure" id="txCatBox">
+          <summary data-i18n="catTitle">หมวดรายได้ใน budget</summary>
+          <div class="disclosure-body"><div class="tx-cats" id="txCats"></div></div>
+        </details>
+      </div>
+      <div class="card"><h2 data-i18n="cardFamily">ส่วนตัวและครอบครัว</h2><div class="frow" data-fields="spouse,children,children2561,parents,disabled,prenatal,socialSecurity"></div></div>
+      <div class="card"><h2 data-i18n="cardInsurance">ประกัน</h2><div class="frow" data-fields="lifeIns,healthIns,parentsHealth,spouseLife,annuity"></div></div>
+      <div class="card"><h2 data-i18n="cardFunds">กองทุนและการออม</h2><div class="frow" data-fields="pvd,gpf,nsf,rmf,ssf,thaiEsg,thaiEsgxNew,thaiEsgxLtf"></div></div>
+      <div class="card"><h2 data-i18n="cardOther">อื่นๆ และเงินบริจาค</h2><div class="frow" data-fields="homeLoan,homeBuild,eReceipt,eReceiptOtop,politic,donationEdu,donation"></div></div>
+    </div>
+    <div class="stack">
+      <div class="card"><h2 data-i18n="cardSummary">สรุปการคำนวณ</h2><div class="kv" id="txSummary"></div></div>
+      <div class="card"><h2 data-i18n="cardRetire">กลุ่มเกษียณ</h2><div class="tx-meter" id="txRetire"></div></div>
+      <div class="card"><h2 data-i18n="cardBrackets">ขั้นภาษี</h2><div class="table-wrap"><table class="table right" id="txBrackets"></table></div></div>
+    </div>
+  </section>
+
+  <section class="tx-grid" data-panel="sim" role="tabpanel" hidden>
+    <div class="card">
+      <div class="card-head">
+        <h2 data-i18n="cardSim">ซื้อเพิ่มก่อนสิ้นปี</h2>
+        <div class="row" style="gap:8px">
+          <span class="badge info" id="txDaysLeft" hidden></span>
+          <button class="btn sm ghost" type="button" id="txSimClear" data-i18n="btnClear">ล้าง</button>
+        </div>
+      </div>
+      <div class="tx-sim" id="txSim"></div>
+    </div>
+    <div class="stack">
+      <div class="kpi-grid" id="txSimKpi"></div>
+      <div class="card"><div class="kv" id="txSimKv"></div></div>
+    </div>
+  </section>
+</main>
+
+<script src="tax-calc.js"></script>
+<script src="tax.js" defer></script>
+</body>
+</html>
