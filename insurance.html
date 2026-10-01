@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ประกัน | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="theme-boot.js"></script>
+<script src="data-registry.js"></script>
+<script src="tanot-data.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<script src="insurance-calc.js" defer></script>
+<script src="insurance.js" defer></script>
+<style>
+.ins-page{max-width:1080px}
+.ins-page .page-head{align-items:center}
+.ins-page .page-head h1{flex:1;margin:0}
+.ins-page .stack > .card > .card-head{margin-bottom:var(--ome-sp-3)}
+.ins-page .kpi-value{font-size:var(--ome-fs-xl)}
+.ins-page .kpi-value small{font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2);margin-left:4px}
+.ins-filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.ins-filter .segmented{max-width:100%;overflow-x:auto;scrollbar-width:none}
+.ins-filter .segmented > button{white-space:nowrap;flex-shrink:0}
+.ins-list .list-row .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ins-list .list-row .end{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.ins-list .list-row .prem{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+@media (max-width:640px){
+  .ins-list .list-row{flex-wrap:wrap}
+  .ins-list .list-row .end{width:100%;justify-content:flex-start;padding-left:48px}
+}
+.ins-tax .table :is(th,td){padding:10px 8px}
+@media (min-width:641px){.ins-tax .table :is(th,td){padding:10px 14px}}
+@media (max-width:640px){.ins-tax .table .cap{display:none}}
+.ins-tax .table .tot td{font-weight:700;background:var(--ome-surface-2)}
+.ins-dialog{width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
+.ins-dialog .dialog-body > * + *{margin-top:var(--ome-sp-3)}
+.ins-dialog .check{display:flex;gap:8px;align-items:center;font-size:var(--ome-fs-sm)}
+.ins-dialog .check input{width:auto;height:auto}
+.ins-files{display:flex;flex-direction:column;gap:6px}
+.ins-file{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);font-size:var(--ome-fs-sm)}
+.ins-file a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ome-text-1)}
+.ins-file .sz{color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
+.ins-msg{color:var(--ome-err-ink);font-size:var(--ome-fs-sm)}
+.ins-msg:empty{display:none}
+[hidden]{display:none !important}
+</style>
+</head>
+<body data-layout="tool">
+<script src="auth-gate.js"></script>
+<main class="page ins-page">
+  <div class="page-head">
+    <h1>ประกัน</h1>
+    <button class="btn primary" type="button" id="addBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มกรมธรรม์</button>
+  </div>
+
+  <div class="stack">
+    <div class="kpi-grid" id="kpis"></div>
+
+    <section class="card" aria-labelledby="hList">
+      <div class="card-head">
+        <h2 id="hList">ทะเบียนกรมธรรม์</h2>
+      </div>
+      <div class="ins-filter">
+        <div class="segmented" id="typeFilter" role="group" aria-label="ประเภท"></div>
+      </div>
+      <div class="ins-list" id="listBody"></div>
+    </section>
+
+    <section class="card ins-tax" aria-labelledby="hTax">
+      <div class="card-head">
+        <h2 id="hTax">เบี้ยลดหย่อนภาษี</h2>
+        <select id="taxYear" class="select" aria-label="ปีภาษี" style="width:auto"></select>
+      </div>
+      <div id="taxBody"></div>
+    </section>
+  </div>
+</main>
+
+<dialog class="dialog ins-dialog" id="dlg" aria-labelledby="dlgTitle">
+  <form method="dialog" id="form" novalidate>
+    <div class="dialog-head"><h2 id="dlgTitle">กรมธรรม์</h2></div>
+    <div class="dialog-body">
+      <div class="frow">
+        <div class="field"><label for="fType">ประเภท</label><select id="fType"></select></div>
+        <div class="field"><label for="fInsurer">บริษัทประกัน</label><input id="fInsurer" type="text" maxlength="80" autocomplete="off"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="fName">ชื่อแผน</label><input id="fName" type="text" maxlength="120" autocomplete="off"></div>
+        <div class="field"><label for="fPolicyNo">เลขกรมธรรม์</label><input id="fPolicyNo" type="text" maxlength="60" autocomplete="off"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="fInsured">ผู้เอาประกัน / ทะเบียนรถ / ที่ตั้ง</label><input id="fInsured" type="text" maxlength="120" autocomplete="off"></div>
+        <div class="field"><label for="fSum">ทุนประกัน (บาท)</label><input id="fSum" type="number" inputmode="decimal" min="0" step="any"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="fPremium">เบี้ยต่องวด (บาท)</label><input id="fPremium" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div class="field"><label for="fFreq">การจ่าย</label><select id="fFreq"></select></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="fStart">วันเริ่มคุ้มครอง</label><input id="fStart" type="date"></div>
+        <div class="field"><label for="fRenew">วันต่ออายุ / ครบกำหนดจ่าย</label><input id="fRenew" type="date"></div>
+        <div class="field"><label for="fEnd">วันสิ้นสุด</label><input id="fEnd" type="date"></div>
+      </div>
+      <div class="frow" id="taxRow">
+        <div class="field"><label for="fTaxCat">ลดหย่อนภาษี</label><select id="fTaxCat"></select></div>
+      </div>
+      <label class="check" id="longRow"><input type="checkbox" id="fLong" checked>สัญญา 10 ปีขึ้นไป</label>
+      <div class="field"><label for="fNote">บันทึก</label><textarea id="fNote" rows="2" maxlength="500"></textarea></div>
+      <div class="field" id="filesRow" hidden>
+        <label>ไฟล์กรมธรรม์</label>
+        <div class="ins-files" id="fileList"></div>
+        <div class="row"><button class="btn sm" type="button" id="attachBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg>แนบไฟล์</button></div>
+        <input type="file" id="fileInput" accept="application/pdf,image/*" multiple hidden>
+      </div>
+      <p class="ins-msg" id="msg" role="alert"></p>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn danger" type="button" id="delBtn" style="margin-right:auto">ลบ</button>
+      <button class="btn" type="button" id="cancelBtn">ยกเลิก</button>
+      <button class="btn primary" type="submit" id="saveBtn">บันทึก</button>
+    </div>
+  </form>
+</dialog>
+</body>
+</html>

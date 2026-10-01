@@ -11,6 +11,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = +(process.argv[2] || process.env.SYNC_PORT || 8124);
 const load = (f) => import(pathToFileURL(path.join(ROOT, f)).href);
 const sync = await load('functions/api/sync.js');
+const files = await load('functions/api/files.js');
 const AI_ROUTES = {
   '/api/ai/chat': await load('functions/api/ai/chat.js'),
   '/api/ai/summarize': await load('functions/api/ai/summarize.js'),
@@ -54,6 +55,14 @@ const AI = {
   },
 };
 
+// R2 ตัวหลอก (Map ในหน่วยความจำ): put/get/delete ตามรูปแบบที่ functions/api/files.js ใช้ — /__files ดูกุญแจที่เก็บอยู่
+const r2 = new Map();
+const FILES = {
+  async put(key, bytes, opts) { r2.set(key, { bytes: Buffer.from(bytes), type: opts && opts.httpMetadata && opts.httpMetadata.contentType }); },
+  async get(key) { const o = r2.get(key); return o ? { body: new ReadableStream({ start(c) { c.enqueue(new Uint8Array(o.bytes)); c.close(); } }) } : null; },
+  async delete(key) { r2.delete(key); },
+};
+
 // D1 shim: prepare().bind().all()/first()/run() + batch() (ทำใน transaction เดียวแบบ D1)
 class Stmt {
   constructor(sql, params = []) { this.sql = sql; this.params = params; }
@@ -82,7 +91,7 @@ let offline = false;
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  if (url.pathname === '/__reset') { resetDb(); aiMode = 'ok'; aiLimit = undefined; aiLog = []; res.end('ok'); return; }
+  if (url.pathname === '/__reset') { resetDb(); r2.clear(); aiMode = 'ok'; aiLimit = undefined; aiLog = []; res.end('ok'); return; }
   if (url.pathname === '/__offline') { offline = url.searchParams.get('v') === '1'; res.end('ok'); return; }
   if (url.pathname === '/__ai') {
     if (url.searchParams.has('mode')) aiMode = url.searchParams.get('mode');
@@ -91,6 +100,7 @@ http.createServer(async (req, res) => {
   }
   if (url.pathname === '/__ailog') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(aiLog)); if (url.searchParams.get('clear')) aiLog = []; return; }
   if (url.pathname === '/__aidump') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(sqlite.prepare('SELECT key, task, model, result, hits FROM ai_cache').all())); return; }
+  if (url.pathname === '/__files') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify([...r2.keys()])); return; }
   if (url.pathname === '/__dump') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(sqlite.prepare('SELECT * FROM docs ORDER BY rev').all())); return; }
   if (url.pathname === '/api/session') { res.setHeader('Content-Type', 'application/json'); res.end('{"email":"test"}'); return; }
   if (url.pathname === '/api/sync') {
@@ -102,6 +112,21 @@ http.createServer(async (req, res) => {
     if (!fn) { res.statusCode = 405; res.end(); return; }
     try {
       const out = await fn({ request, env: { DB }, data: { user: { email: 'test' } } });
+      res.statusCode = out.status;
+      out.headers.forEach((v, k) => res.setHeader(k, v));
+      res.end(Buffer.from(await out.arrayBuffer()));
+    } catch (e) { res.statusCode = 500; res.end(String(e && e.stack || e)); }
+    return;
+  }
+  if (url.pathname === '/api/files') {
+    const chunks = [];
+    for await (const c of req) chunks.push(c);
+    const hasBody = req.method === 'POST';
+    const request = new Request(url, { method: req.method, headers: req.headers, body: hasBody ? Buffer.concat(chunks) : undefined });
+    const fn = { GET: files.onRequestGet, POST: files.onRequestPost, DELETE: files.onRequestDelete }[req.method];
+    if (!fn) { res.statusCode = 405; res.end(); return; }
+    try {
+      const out = await fn({ request, env: { DB, FILES }, data: { user: { email: 'test' } } });
       res.statusCode = out.status;
       out.headers.forEach((v, k) => res.setHeader(k, v));
       res.end(Buffer.from(await out.arrayBuffer()));

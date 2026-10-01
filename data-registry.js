@@ -44,6 +44,7 @@
     { key: 'tanot:elec:inputs', kind: 'local' }, // ค่าที่กรอกในเครื่องคำนวณไฟฟ้า — กระดาษทดของเครื่องนี้ ไม่ต้องซิงก์
 
     // ── รายการที่เพิ่มได้จากหลายเครื่อง (แยกรายการย่อย) ──
+    { key: 'tanot:insurance:policies', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'budget:records', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'budget:categories', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'budget:budgets', kind: 'sync', mode: 'map' },
