@@ -24,6 +24,7 @@ const PAGES = [
   'invest-business.html',
   'invest-set50-scanner.html',
   'invest-trade-journal.html',
+  'electrical.html',
   'budget.html',
   'word.html',
   'excel.html',

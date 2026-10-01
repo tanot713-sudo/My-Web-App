@@ -108,7 +108,7 @@
             { key: 'cad',         label: 'งานเขียนแบบ CAD (2D/3D)', icon: 'box', href: 'cad.html', keywords: 'cad เขียนแบบ แบบ drawing' },
             { key: 'est-cost',    label: 'ประเมินราคา PM/CM', icon: 'calculator', href: 'run.html?tool=est-cost', keywords: 'ประเมินราคา ประมาณราคา pm cm boq' },
             { key: 'maintenance', label: 'บันทึกงานบำรุงรักษา', icon: 'clipboard-list', href: soonHref('บันทึกงานบำรุงรักษา'), status: 'soon', keywords: 'บำรุงรักษา maintenance log' },
-            { key: 'electrical',  label: 'เครื่องคำนวณไฟฟ้า', icon: 'zap', href: soonHref('เครื่องคำนวณไฟฟ้า'), status: 'soon', keywords: 'ไฟฟ้า คำนวณ electrical' }
+            { key: 'electrical',  label: 'เครื่องคำนวณไฟฟ้า', icon: 'zap', href: 'electrical.html', keywords: 'ไฟฟ้า คำนวณ electrical แรงดันตก voltage drop ขนาดสาย ลัดวงจร short circuit คาปาซิเตอร์ pf ฉนวน pi dar กราวด์ หลักดิน ground กับดักฟ้าผ่า arrester bil' }
           ]
         },
         { key: 'reports', label: 'ข้อมูล/รายงาน', icon: 'chart-column', children: [
