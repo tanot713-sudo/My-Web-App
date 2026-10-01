@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เครื่องคำนวณไฟฟ้า | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="theme-boot.js"></script>
+<script src="data-registry.js"></script>
+<script src="tanot-data.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+.ec-page{max-width:1180px}
+.ec-page .card > * + *{margin-top:var(--ome-sp-3)}
+.ec-page .card h2{margin:0;font-size:var(--ome-fs-md)}
+.ec-grid{display:grid;gap:var(--ome-card-gap);grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.ec-grid{grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:start}}
+.ec-page .tabs{margin-bottom:var(--ome-sp-4)}
+.ec-page .table tr.pick td{background:var(--ome-accent-soft);font-weight:600}
+.ec-page .table td.bad{color:var(--ome-err-ink)}
+.ec-page .kpi-value{font-size:var(--ome-fs-xl)}
+.ec-page .kpi-value small{font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2);margin-left:4px}
+.ec-badges{display:flex;gap:6px;flex-wrap:wrap}
+.ec-badges .badge{display:inline-block}
+.ec-page .frow > .field{flex-basis:130px}
+.ec-page [id$="Verdict"]{display:flex;flex-direction:column;gap:8px}
+.ec-page [id$="Verdict"]:empty{display:none}
+</style>
+</head>
+<body data-layout="tool">
+<script src="auth-gate.js"></script>
+<main class="page ec-page">
+  <div class="page-head"><h1 data-i18n="title">เครื่องคำนวณไฟฟ้า</h1></div>
+
+  <div class="tabs" role="tablist" id="ecTabs">
+    <button class="tab" role="tab" type="button" data-tab="vd" aria-selected="true" data-i18n="tabVd">แรงดันตก/ขนาดสาย</button>
+    <button class="tab" role="tab" type="button" data-tab="sc" aria-selected="false" data-i18n="tabSc">กระแสลัดวงจร</button>
+    <button class="tab" role="tab" type="button" data-tab="pf" aria-selected="false" data-i18n="tabPf">คาปาซิเตอร์แก้ PF</button>
+    <button class="tab" role="tab" type="button" data-tab="ir" aria-selected="false" data-i18n="tabIr">ฉนวน PI/DAR</button>
+    <button class="tab" role="tab" type="button" data-tab="gnd" aria-selected="false" data-i18n="tabGnd">ระบบกราวด์</button>
+    <button class="tab" role="tab" type="button" data-tab="sa" aria-selected="false" data-i18n="tabSa">กับดักฟ้าผ่า</button>
+  </div>
+
+  <!-- ══ แรงดันตก / ขนาดสาย ══ -->
+  <section class="ec-grid" data-panel="vd" role="tabpanel">
+    <div class="card">
+      <h2 data-i18n="inputs">ข้อมูลวงจร</h2>
+      <div class="frow">
+        <div class="field"><label for="vdPhase" data-i18n="lblSystem">ระบบ</label>
+          <select id="vdPhase"><option value="3" data-i18n="opt3ph">3 เฟส</option><option value="1" data-i18n="opt1ph">1 เฟส</option></select></div>
+        <div class="field"><label for="vdV" data-i18n="lblVoltage">แรงดัน (V)</label><input id="vdV" type="number" inputmode="decimal" value="400"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="vdI" data-i18n="lblCurrent">กระแสโหลด (A)</label><input id="vdI" type="number" inputmode="decimal" value="100"></div>
+        <div class="field"><label for="vdL" data-i18n="lblLength">ความยาวสาย (m)</label><input id="vdL" type="number" inputmode="decimal" value="80"></div>
+        <div class="field"><label for="vdPf" data-i18n="lblPf">ตัวประกอบกำลัง (cos φ)</label><input id="vdPf" type="number" inputmode="decimal" step="0.01" min="0" max="1" value="0.85"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="vdMat" data-i18n="lblMaterial">ตัวนำ</label>
+          <select id="vdMat"><option value="cu" data-i18n="optCu">ทองแดง</option><option value="al" data-i18n="optAl">อะลูมิเนียม</option></select></div>
+        <div class="field"><label for="vdIns" data-i18n="lblInsulation">ฉนวน</label>
+          <select id="vdIns"><option value="pvc">PVC 70°C</option><option value="xlpe">XLPE 90°C</option></select></div>
+        <div class="field"><label for="vdX" data-i18n="lblX">รีแอกแตนซ์สาย (Ω/km)</label><input id="vdX" type="number" inputmode="decimal" step="0.01" value="0.08"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="vdPar" data-i18n="lblParallel">จำนวนสายขนานต่อเฟส</label><input id="vdPar" type="number" inputmode="numeric" min="1" value="1"></div>
+        <div class="field"><label for="vdLimit" data-i18n="lblLimit">เกณฑ์แรงดันตก (%)</label><input id="vdLimit" type="number" inputmode="decimal" step="0.5" value="3"></div>
+        <div class="field"><label for="vdSize" data-i18n="lblSizeUsed">ขนาดสายที่ใช้ (mm²)</label><select id="vdSize"></select></div>
+      </div>
+      <div class="frow" id="vdAmpRow">
+        <div class="field"><label for="vdLoaded" data-i18n="lblLoaded">สายที่มีกระแสในท่อ</label>
+          <select id="vdLoaded"><option value="3">3</option><option value="2">2</option></select></div>
+        <div class="field"><label for="vdAmb" data-i18n="lblAmbient">อุณหภูมิโดยรอบ (°C)</label>
+          <select id="vdAmb"><option>25</option><option>30</option><option>35</option><option selected>40</option><option>45</option><option>50</option><option>55</option></select></div>
+        <div class="field"><label for="vdDerate" data-i18n="lblDerate">ตัวคูณลดพิกัดอื่น</label><input id="vdDerate" type="number" inputmode="decimal" step="0.01" value="1"></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="kpi-grid" id="vdKpi"></div>
+      <div id="vdVerdict"></div>
+      <div class="table-wrap"><table class="table" id="vdTable"></table></div>
+    </div>
+  </section>
+
+  <!-- ══ กระแสลัดวงจร ══ -->
+  <section class="ec-grid" data-panel="sc" role="tabpanel" hidden>
+    <div class="card">
+      <h2 data-i18n="scSource">หม้อแปลงและแหล่งจ่าย</h2>
+      <div class="frow">
+        <div class="field"><label for="scSr" data-i18n="lblSr">พิกัดหม้อแปลง (kVA)</label><input id="scSr" type="number" inputmode="decimal" list="scSrList" value="1000">
+          <datalist id="scSrList"><option value="50"><option value="100"><option value="160"><option value="250"><option value="315"><option value="400"><option value="500"><option value="630"><option value="800"><option value="1000"><option value="1250"><option value="1500"><option value="1600"><option value="2000"><option value="2500"></datalist></div>
+        <div class="field"><label for="scUk" data-i18n="lblUk">อิมพีแดนซ์ u<sub>k</sub> (%)</label><input id="scUk" type="number" inputmode="decimal" step="0.1" value="6"></div>
+        <div class="field"><label for="scPk" data-i18n="lblPk">กำลังสูญเสียในขดลวด P<sub>k</sub> (kW)</label><input id="scPk" type="number" inputmode="decimal" step="0.1" value="10.5"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="scUn" data-i18n="lblUn">แรงดันด้านแรงต่ำ (V)</label><input id="scUn" type="number" inputmode="decimal" value="400"></div>
+        <div class="field"><label for="scSkq" data-i18n="lblSkq">กำลังลัดวงจรระบบ S″<sub>kQ</sub> (MVA)</label><input id="scSkq" type="number" inputmode="decimal" placeholder="∞"></div>
+        <div class="field"><label for="scMethod" data-i18n="lblMethod">วิธีคำนวณ</label>
+          <select id="scMethod"><option value="1.05">IEC 60909 · c = 1.05</option><option value="1.1">IEC 60909 · c = 1.10</option><option value="1" data-i18n="optSimple">S / (√3·U·uk)</option></select></div>
+      </div>
+      <h2 data-i18n="scCable">สายจากหม้อแปลงถึงตู้ย่อย</h2>
+      <div class="frow">
+        <div class="field"><label for="scMat" data-i18n="lblMaterial">ตัวนำ</label>
+          <select id="scMat"><option value="cu" data-i18n="optCu">ทองแดง</option><option value="al" data-i18n="optAl">อะลูมิเนียม</option></select></div>
+        <div class="field"><label for="scSize" data-i18n="lblSize">ขนาดสาย (mm²)</label><select id="scSize"></select></div>
+        <div class="field"><label for="scPar" data-i18n="lblParallel">จำนวนสายขนานต่อเฟส</label><input id="scPar" type="number" inputmode="numeric" min="1" value="2"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="scL" data-i18n="lblLength">ความยาวสาย (m)</label><input id="scL" type="number" inputmode="decimal" value="50"></div>
+        <div class="field"><label for="scX" data-i18n="lblX">รีแอกแตนซ์สาย (Ω/km)</label><input id="scX" type="number" inputmode="decimal" step="0.01" value="0.08"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="scIcuTr" data-i18n="lblIcuTr">I<sub>cu</sub> เบรกเกอร์ตู้ MDB (kA)</label><input id="scIcuTr" type="number" inputmode="decimal" placeholder="—"></div>
+        <div class="field"><label for="scIcuEnd" data-i18n="lblIcuEnd">I<sub>cu</sub> เบรกเกอร์ตู้ย่อย (kA)</label><input id="scIcuEnd" type="number" inputmode="decimal" placeholder="—"></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="kpi-grid" id="scKpi"></div>
+      <div id="scVerdict"></div>
+      <div class="table-wrap"><table class="table" id="scTable"></table></div>
+    </div>
+  </section>
+
+  <!-- ══ คาปาซิเตอร์แก้ PF ══ -->
+  <section class="ec-grid" data-panel="pf" role="tabpanel" hidden>
+    <div class="card">
+      <h2 data-i18n="inputs">ข้อมูลวงจร</h2>
+      <div class="frow">
+        <div class="field"><label for="pfP" data-i18n="lblP">กำลังจริง P (kW)</label><input id="pfP" type="number" inputmode="decimal" value="400"></div>
+        <div class="field"><label for="pfPf1" data-i18n="lblPf1">PF ปัจจุบัน</label><input id="pfPf1" type="number" inputmode="decimal" step="0.01" min="0.1" max="1" value="0.75"></div>
+        <div class="field"><label for="pfPf2" data-i18n="lblPf2">PF เป้าหมาย</label><input id="pfPf2" type="number" inputmode="decimal" step="0.01" min="0.1" max="1" value="0.95"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="pfPhase" data-i18n="lblSystem">ระบบ</label>
+          <select id="pfPhase"><option value="3" data-i18n="opt3ph">3 เฟส</option><option value="1" data-i18n="opt1ph">1 เฟส</option></select></div>
+        <div class="field"><label for="pfV" data-i18n="lblVoltage">แรงดัน (V)</label><input id="pfV" type="number" inputmode="decimal" value="400"></div>
+        <div class="field"><label for="pfStep" data-i18n="lblStep">ขนาดสเต็ปคาปาซิเตอร์ (kvar)</label><input id="pfStep" type="number" inputmode="decimal" value="25"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="pfSr" data-i18n="lblSr">พิกัดหม้อแปลง (kVA)</label><input id="pfSr" type="number" inputmode="decimal" list="scSrList" value="1000"></div>
+        <div class="field"><label for="pfUk" data-i18n="lblUk">อิมพีแดนซ์ u<sub>k</sub> (%)</label><input id="pfUk" type="number" inputmode="decimal" step="0.1" value="6"></div>
+        <div class="field"><label for="pfRate" data-i18n="lblRate">ค่าเพาเวอร์แฟคเตอร์ (บาท/kvar)</label><input id="pfRate" type="number" inputmode="decimal" step="0.01" value="56.07"></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="kpi-grid" id="pfKpi"></div>
+      <div id="pfVerdict"></div>
+      <div class="card"><div class="kv" id="pfKv"></div></div>
+    </div>
+  </section>
+
+  <!-- ══ ความเป็นฉนวน PI / DAR ══ -->
+  <section class="ec-grid" data-panel="ir" role="tabpanel" hidden>
+    <div class="card">
+      <h2 data-i18n="irWinding">ขดลวด</h2>
+      <div class="frow">
+        <div class="field"><label for="irKind" data-i18n="lblKind">ประเภทขดลวด</label>
+          <select id="irKind">
+            <option value="random" data-i18n="optRandom">Random-wound / ต่ำกว่า 1 kV</option>
+            <option value="form" data-i18n="optForm">Form-wound (หลังปี 1970)</option>
+            <option value="old" data-i18n="optOld">ก่อนปี 1970 / ไม่ทราบ</option>
+          </select></div>
+        <div class="field"><label for="irCls" data-i18n="lblCls">คลาสฉนวน</label>
+          <select id="irCls"><option value="B">B / F / H</option><option value="A">A</option></select></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="irKv" data-i18n="lblKv">แรงดันพิกัด (kV)</label><input id="irKv" type="number" inputmode="decimal" step="0.01" value="0.4"></div>
+        <div class="field"><label for="irTemp" data-i18n="lblTemp">อุณหภูมิขดลวดขณะวัด (°C)</label><input id="irTemp" type="number" inputmode="decimal" value="30"></div>
+      </div>
+      <h2 data-i18n="irReadings">ค่าที่อ่านได้ (MΩ)</h2>
+      <div class="frow">
+        <div class="field"><label for="irR30" data-i18n="lblR30">30 วินาที</label><input id="irR30" type="number" inputmode="decimal" value="1500"></div>
+        <div class="field"><label for="irR60" data-i18n="lblR60">1 นาที</label><input id="irR60" type="number" inputmode="decimal" value="2000"></div>
+        <div class="field"><label for="irR600" data-i18n="lblR600">10 นาที</label><input id="irR600" type="number" inputmode="decimal" value="5200"></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="kpi-grid" id="irKpi"></div>
+      <div id="irVerdict"></div>
+      <div class="card"><div class="kv" id="irKv2"></div></div>
+    </div>
+  </section>
+
+  <!-- ══ ระบบกราวด์ ══ -->
+  <section class="ec-grid" data-panel="gnd" role="tabpanel" hidden>
+    <div class="stack">
+      <div class="card">
+        <h2 data-i18n="gWenner">สภาพต้านทานดิน (Wenner)</h2>
+        <div class="frow">
+          <div class="field"><label for="gWa" data-i18n="lblWa">ระยะห่างหลักวัด a (m)</label><input id="gWa" type="number" inputmode="decimal" step="0.1" value="3"></div>
+          <div class="field"><label for="gWr" data-i18n="lblWr">ค่าที่อ่านได้ R (Ω)</label><input id="gWr" type="number" inputmode="decimal" step="0.01" value="5.3"></div>
+        </div>
+        <div class="kv" id="gWOut"></div>
+      </div>
+      <div class="card">
+        <h2 data-i18n="gRods">หลักดิน</h2>
+        <div class="frow">
+          <div class="field"><label for="gRho" data-i18n="lblRho">สภาพต้านทานดิน ρ (Ω·m)</label><input id="gRho" type="number" inputmode="decimal" value="100"></div>
+          <button class="btn sm" id="gUseRho" type="button" data-i18n="btnUseRho">ใช้ค่าจาก Wenner</button>
+        </div>
+        <div class="frow">
+          <div class="field"><label for="gL" data-i18n="lblRodL">ความยาวหลักดิน (m)</label><input id="gL" type="number" inputmode="decimal" step="0.1" value="2.4"></div>
+          <div class="field"><label for="gD" data-i18n="lblRodD">เส้นผ่านศูนย์กลาง (mm)</label><input id="gD" type="number" inputmode="decimal" step="0.1" value="15.9"></div>
+        </div>
+        <div class="frow">
+          <div class="field"><label for="gN" data-i18n="lblRodN">จำนวนแท่ง (เรียงแนวเดียว)</label><input id="gN" type="number" inputmode="numeric" min="1" max="10" value="1"></div>
+          <div class="field"><label for="gS" data-i18n="lblRodS">ระยะห่างระหว่างแท่ง (m)</label><input id="gS" type="number" inputmode="decimal" step="0.1" value="4.8"></div>
+          <div class="field"><label for="gTarget" data-i18n="lblTarget">ค่าเป้าหมาย (Ω)</label><input id="gTarget" type="number" inputmode="decimal" step="0.1" value="5"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2 data-i18n="gPe">ขนาดสายดิน (adiabatic)</h2>
+        <div class="frow">
+          <div class="field"><label for="gIk" data-i18n="lblIkFault">กระแสลัดลงดิน (kA)</label><input id="gIk" type="number" inputmode="decimal" step="0.1" value="6"></div>
+          <div class="field"><label for="gT" data-i18n="lblTrip">เวลาตัดวงจร (s)</label><input id="gT" type="number" inputmode="decimal" step="0.01" value="0.4"></div>
+          <div class="field"><label for="gK" data-i18n="lblK">ค่า k</label>
+            <select id="gK">
+              <option value="115" data-i18n="optK115">115 · Cu PVC ในสายเคเบิล</option>
+              <option value="143" data-i18n="optK143">143 · Cu PVC แยกเดี่ยว</option>
+              <option value="176" data-i18n="optK176">176 · Cu XLPE แยกเดี่ยว</option>
+            </select></div>
+        </div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="kpi-grid" id="gKpi"></div>
+      <div id="gVerdict"></div>
+      <div class="table-wrap"><table class="table" id="gTable"></table></div>
+    </div>
+  </section>
+
+  <!-- ══ กับดักฟ้าผ่า — protective margin ══ -->
+  <section class="ec-grid" data-panel="sa" role="tabpanel" hidden>
+    <div class="card">
+      <h2 data-i18n="saInsul">ฉนวนอุปกรณ์</h2>
+      <div class="frow">
+        <div class="field"><label for="saUm" data-i18n="lblUm">แรงดันสูงสุดของอุปกรณ์ U<sub>m</sub> (kV)</label><select id="saUm"></select></div>
+        <div class="field"><label for="saBil" data-i18n="lblBil">BIL (kV)</label><input id="saBil" type="number" inputmode="decimal" list="saBilList" value="125"><datalist id="saBilList"></datalist></div>
+      </div>
+      <h2 data-i18n="saArr">กับดักฟ้าผ่า</h2>
+      <div class="frow">
+        <div class="field"><label for="saVres" data-i18n="lblVres">แรงดันตกค้าง U<sub>res</sub> ที่ I<sub>n</sub> (kV)</label><input id="saVres" type="number" inputmode="decimal" step="0.1" value="70"></div>
+        <div class="field"><label for="saLead" data-i18n="lblLead">ความยาวสายต่อ + สายลงดิน (m)</label><input id="saLead" type="number" inputmode="decimal" step="0.1" value="1.5"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="saLp" data-i18n="lblLp">ความเหนี่ยวนำสาย (µH/m)</label><input id="saLp" type="number" inputmode="decimal" step="0.1" value="1"></div>
+        <div class="field"><label for="saDidt" data-i18n="lblDidt">di/dt (kA/µs)</label><input id="saDidt" type="number" inputmode="decimal" step="1" value="10"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="saD" data-i18n="lblSep">ระยะกับดักถึงอุปกรณ์ (m)</label><input id="saD" type="number" inputmode="decimal" step="0.5" value="0"></div>
+        <div class="field"><label for="saS" data-i18n="lblSteep">ความชันหน้าคลื่น (kV/µs)</label><input id="saS" type="number" inputmode="decimal" placeholder="—"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="saBsl" data-i18n="lblBsl">BSL (kV)</label><input id="saBsl" type="number" inputmode="decimal" placeholder="—"></div>
+        <div class="field"><label for="saSipl" data-i18n="lblSipl">SIPL ของกับดัก (kV)</label><input id="saSipl" type="number" inputmode="decimal" placeholder="—"></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="kpi-grid" id="saKpi"></div>
+      <div id="saVerdict"></div>
+      <div class="card"><div class="kv" id="saKv"></div></div>
+    </div>
+  </section>
+</main>
+
+<script src="electrical-calc.js"></script>
+<script src="electrical.js" defer></script>
+</body>
+</html>

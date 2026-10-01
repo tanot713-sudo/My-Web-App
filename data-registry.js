@@ -41,6 +41,7 @@
     { key: 'tanot:barprep:ttsvoice', kind: 'local' },
     { key: 'tanot:dashboardDensity', kind: 'local' },
     { key: 'tanot:tableSizes:v2', kind: 'local' },
+    { key: 'tanot:elec:inputs', kind: 'local' }, // ค่าที่กรอกในเครื่องคำนวณไฟฟ้า — กระดาษทดของเครื่องนี้ ไม่ต้องซิงก์
 
     // ── รายการที่เพิ่มได้จากหลายเครื่อง (แยกรายการย่อย) ──
     { key: 'budget:records', kind: 'sync', mode: 'list', idField: 'id' },
