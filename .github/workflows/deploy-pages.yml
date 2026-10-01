@@ -61,6 +61,8 @@ jobs:
         run: npx playwright test smoke.spec.js
       - name: visual (เทียบ baseline)
         run: npx playwright test visual.spec.js
+      - name: ai (/api/ai/* + ai-client + วิดเจ็ตแชท/หน้าสรุป บน Workers AI ตัวหลอก)
+        run: npx playwright test ai.spec.js
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4

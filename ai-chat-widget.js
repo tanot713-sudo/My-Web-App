@@ -112,7 +112,6 @@
     + '.ome-ai-close{width:28px;height:28px;border-radius:9px;border:none;background:transparent;'
     + 'color:var(--ome-muted);cursor:pointer;font-size:16px}'
     + '.ome-ai-close:hover{background:var(--ome-bg);color:var(--ome-ink)}'
-    + '.ome-ai-disclaimer{font-size:11.5px;color:var(--ome-muted);padding:0 14px 10px;line-height:1.5;flex-shrink:0}'
     + '.ome-ai-log{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:9px}'
     + '.ome-ai-row{display:flex}'
     + '.ome-ai-row.me{justify-content:flex-end}'
@@ -155,7 +154,6 @@
   panel.className = 'ome-ai-panel';
   panel.innerHTML =
     '<div class="ome-ai-head"><b>ผู้ช่วย AI ถาม-ตอบ</b><button class="ome-ai-close" type="button" title="ปิด">✕</button></div>' +
-    '<div class="ome-ai-disclaimer">AI ตัวเล็กรันในเครื่องคุณเอง ไม่ส่งข้อความออกไปไหน — ไม่ใช่ agent เหมาะกับคำถามพื้นฐานเท่านั้น</div>' +
     '<div class="ome-ai-log"></div>' +
     '<div class="ome-ai-status"></div>' +
     '<div class="ome-ai-inputwrap">' +
@@ -313,12 +311,23 @@
      เสียงไม่ออกเลยแม้ synthesize สำเร็จ — แก้โดยเรียกฟังก์ชันนี้ตั้งแต่ตอน click ปุ่มส่ง/ไมค์/เปิดแผง
      (ดูจุดเรียกด้านล่าง) แล้วใช้ context เดียวกันซ้ำตอนเล่นเสียงจริงทีหลัง */
   function unlockAudioCtx() {
+    if (isIOS()) unlockNativeSpeech();
     if (!sharedAudioCtx) {
       var AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) sharedAudioCtx = new AudioCtx();
     }
     if (sharedAudioCtx && sharedAudioCtx.state === 'suspended') sharedAudioCtx.resume();
     return sharedAudioCtx;
+  }
+
+  /* คลาวด์ (Workers AI ผ่าน ai-client.js) ก่อน — โมเดลในเบราว์เซอร์เป็นตัวสำรองเมื่อออฟไลน์/โควตาเต็ม/ล็อกอินหมดอายุ (ไม่รวม iOS) */
+  function cloudOn() { return !!(window.AiClient && AiClient.available()); }
+  /* iOS ให้ speechSynthesis พูดได้เฉพาะหลังมีการสั่งพูด "ในจังหวะแตะของผู้ใช้" ครั้งแรก — ปลดล็อกด้วยประโยคว่างตอนแตะ */
+  var nativeSpeechUnlocked = false;
+  function unlockNativeSpeech() {
+    if (nativeSpeechUnlocked || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+    nativeSpeechUnlocked = true;
+    try { window.speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch (e) {}
   }
 
   function wire() {
@@ -344,14 +353,12 @@
     });
     closeBtn.addEventListener('click', function () { panel.classList.remove('open'); });
 
-    /* ปิดฟีเจอร์บน iOS ทั้งหมด (ดูเหตุผลที่คอมเมนต์ isIOS() ด้านบน) — ยังเปิด/ปิดแผงดูได้ปกติ (wire ไปแล้ว
-       ด้านบน เผื่ออยากอ่านคำอธิบาย/ใช้งานจากเครื่องอื่นทีหลัง) แค่พิมพ์/อัดเสียงส่งไม่ได้เท่านั้น */
-    if (isIOS()) {
-      panel.querySelector('.ome-ai-disclaimer').innerHTML =
-        '<b>ฟีเจอร์นี้ (AI รันในเครื่อง) ยังไม่รองรับ iPhone/iPad ตอนนี้</b> — มีรายงานยืนยันแล้วว่า ' +
-        'ทำให้หน้าเว็บรีเฟรชเองระหว่างโหลดโมเดล (หน่วยความจำต่อแท็บของ Safari/iOS จำกัดเกินกว่าจะรันโมเดล ' +
-        'ขนาดนี้ได้อย่างเสถียร) ปิดไว้ก่อนกันข้อมูลที่ทำค้างอยู่หน้าอื่นหาย — ลองใช้งานจากคอมพิวเตอร์แทนได้ครับ';
-      inputEl.placeholder = 'ใช้งานไม่ได้บน iPhone/iPad ตอนนี้ (ดูคำอธิบายด้านบน)';
+    /* ไม่มีคลาวด์ (GitHub Pages) + iOS → ปิดฟีเจอร์ เพราะโมเดลในเครื่องรันบน iOS ไม่ได้ (ดูเหตุผลที่คอมเมนต์ isIOS() ด้านบน)
+       ยังเปิด/ปิดแผงได้ แค่พิมพ์/อัดเสียงส่งไม่ได้ — บน pages.dev ผ่านด่านนี้ไปใช้คลาวด์ตามปกติ */
+    if (isIOS() && !cloudOn()) {
+      statusEl.textContent = 'ใช้ไม่ได้บน iPhone/iPad ผ่านหน้านี้ (AI รันในเครื่อง) — เปิดที่ my-web-app-5w2.pages.dev แทน';
+      statusEl.className = 'ome-ai-status err';
+      inputEl.placeholder = 'ใช้งานไม่ได้บน iPhone/iPad ตอนนี้';
       inputEl.disabled = true; sendBtn.disabled = true; micBtn.disabled = true;
       newBtn.style.display = 'none'; sumBtn.style.display = 'none'; speakChk.parentElement.style.display = 'none';
       return; // ข้าม wiring ปุ่มส่ง/ไมค์/ฯลฯ ทั้งหมดด้านล่าง กันกดแล้วหลุดไปโหลดโมเดลอยู่ดี
@@ -366,6 +373,16 @@
       inputEl.disabled = b; sendBtn.disabled = b; micBtn.disabled = b; sumBtn.disabled = b;
     }
     function scrollBottom() { logEl.scrollTop = logEl.scrollHeight; }
+    /* คลาวด์: สตรีมคำตอบลงบับเบิลทีละท่อน คืน Promise<ข้อความเต็ม>; ui.bubble = บับเบิลที่สร้างขึ้น (ให้ผู้เรียกลบเมื่อพลาด) */
+    function cloudReply(msgs, maxTokens, ui) {
+      return AiClient.chat({
+        messages: msgs, model: 'main', maxTokens: maxTokens,
+        onToken: function (piece, full) {
+          if (!ui.bubble) { setStatus('', ''); ui.bubble = appendBubble('assistant', ''); }
+          ui.bubble.textContent = full; scrollBottom();
+        }
+      }).then(function (r) { return r.text; });
+    }
     function appendBubble(role, text) {
       var row = document.createElement('div');
       row.className = 'ome-ai-row ' + (role === 'user' ? 'me' : 'bot');
@@ -394,6 +411,13 @@
     }
     function speakText(text) {
       if (!text) return;
+      /* iOS รันโมเดลเสียงพูดในเครื่องไม่ได้ (หน่วยความจำ) → ใช้เสียงของระบบ */
+      if (isIOS() && window.speechSynthesis && window.SpeechSynthesisUtterance) {
+        var u = new SpeechSynthesisUtterance(text);
+        u.lang = /[฀-๿]/.test(text) ? 'th-TH' : 'en-US';
+        window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+        return;
+      }
       var w = getTtsWorker();
       var jobId = ++jobSeq;
       function onMsg(e) {
@@ -438,6 +462,30 @@
         : 'Reminder: respond to this latest message in English only.';
       var payloadMessages = messages.concat([{ role: 'system', content: langHint }]);
 
+      if (cloudOn()) {
+        var ui = { bubble: null };
+        setStatus('กำลังเตรียมคำตอบ…', '');
+        cloudReply(payloadMessages, 800, ui).then(function (text) {
+          messages.push({ role: 'assistant', content: text });
+          trimMessages();
+          if (forceSpeak || speakChk.checked) speakText(text);
+          setBusy(false); inputEl.focus();
+        }, function (err) {
+          if (ui.bubble) ui.bubble.remove();
+          if (AiClient.canFallback(err) && !isIOS()) {
+            setStatus('☁️ ' + AiClient.friendlyMessage(err) + ' — ใช้โมเดลในเครื่องแทน (ครั้งแรกอาจต้องโหลดโมเดล ~350MB)', '');
+            runLocalChat();
+            return;
+          }
+          messages.pop();
+          setStatus('ตอบไม่สำเร็จ: ' + AiClient.friendlyMessage(err), 'err');
+          setBusy(false); inputEl.focus();
+        });
+        return;
+      }
+      runLocalChat();
+
+      function runLocalChat() {
       var jobId = ++jobSeq;
       var replyBubble = null, replyText = '';
 
@@ -488,6 +536,7 @@
         w.addEventListener('error', onErr);
         w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });
       });
+      }
     }
     sendBtn.addEventListener('click', function () { unlockAudioCtx(); sendMessage(false); });
     inputEl.addEventListener('keydown', function (e) {
@@ -513,6 +562,27 @@
         { role: 'system', content: SUMMARY_REMINDER }
       ];
 
+      if (cloudOn()) {
+        var ui = { bubble: null };
+        setStatus('กำลังสรุปเนื้อหาหน้านี้…', '');
+        cloudReply(summaryMessages, 700, ui).then(function (text) {
+          if (speakChk.checked) speakText(text);
+          setBusy(false); inputEl.focus();
+        }, function (err) {
+          if (ui.bubble) ui.bubble.remove();
+          if (AiClient.canFallback(err) && !isIOS()) {
+            setStatus('☁️ ' + AiClient.friendlyMessage(err) + ' — ใช้โมเดลในเครื่องแทน (ครั้งแรกอาจต้องโหลดโมเดล ~350MB)', '');
+            runLocalSummary();
+            return;
+          }
+          setStatus('สรุปไม่สำเร็จ: ' + AiClient.friendlyMessage(err), 'err');
+          setBusy(false); inputEl.focus();
+        });
+        return;
+      }
+      runLocalSummary();
+
+      function runLocalSummary() {
       var jobId = ++jobSeq;
       var replyBubble = null, replyText = '';
 
@@ -558,6 +628,7 @@
         w.addEventListener('error', onErr);
         w.postMessage({ type: 'chat', jobId: jobId, messages: summaryMessages, maxNewTokens: 400 });
       });
+      }
     }
     sumBtn.addEventListener('click', function () { unlockAudioCtx(); summarizePage(); });
 
@@ -583,7 +654,15 @@
         }, function () { ctx.close(); throw new Error('ถอดเสียงที่อัดไม่ได้ ลองอัดใหม่อีกครั้ง'); });
       });
     }
+    /* คลาวด์ (Whisper large-v3-turbo ผ่าน /api/asr) ก่อน — ใช้ได้บน iPhone; ถอยมา Whisper ในเครื่องเมื่อคลาวด์ใช้ไม่ได้ (ไม่รวม iOS) */
     function transcribe(pcm) {
+      if (!cloudOn()) return transcribeLocal(pcm);
+      return AiClient.asr({ pcm: pcm, sampleRate: 16000, language: 'th' }).then(function (r) { return r.text; }, function (err) {
+        if (AiClient.canFallback(err) && !isIOS()) return transcribeLocal(pcm);
+        throw new Error(AiClient.friendlyMessage(err));
+      });
+    }
+    function transcribeLocal(pcm) {
       return new Promise(function (resolve, reject) {
         var w = getAsrWorker();
         var jobId = ++jobSeq;

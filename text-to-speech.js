@@ -620,7 +620,18 @@
     try { localStorage.setItem(ASR_ENGINE_KEY, engine); } catch (e) {}
   }
   function todayUTC() { return new Date().toISOString().slice(0, 10); }
+  /* บน pages.dev ยอดจริงอยู่ที่เซิร์ฟเวอร์ (ai_usage — รวมแชท/สรุป/Whisper ที่ใช้โควตา 10,000 Neurons ร่วมกัน) ดึงมาทับตัวนับในเครื่อง */
+  var serverNeuronUsage = null;
+  function refreshServerNeuronUsage() {
+    if (!(window.AiClient && AiClient.available())) return;
+    AiClient.usage().then(function (u) {
+      serverNeuronUsage = u.used;
+      if (u.limit) DAILY_NEURON_LIMIT = u.limit;
+      updateNeuronStatusUI();
+    }, function () {});
+  }
   function getNeuronUsage() {
+    if (serverNeuronUsage != null) return serverNeuronUsage;
     try {
       var raw = JSON.parse(localStorage.getItem(NEURON_USAGE_KEY) || 'null');
       if (raw && raw.date === todayUTC()) return raw.used;
@@ -727,6 +738,7 @@
       var chunkMinutes = chunks[i].length / sampleRate / 60;
       addNeuronUsage(data.neurons != null ? data.neurons : chunkMinutes * NEURONS_PER_AUDIO_MINUTE);
       updateNeuronStatusUI();
+      refreshServerNeuronUsage();
     }
     return texts.join(' ').replace(/\s+/g, ' ').trim();
   }
@@ -826,8 +838,8 @@
     });
   }
 
-  /* ══════════════════ สรุปประชุมด้วย AI (รันในเบราว์เซอร์ ฟรี) → ส่งออกเป็นไฟล์ Word (.docx) ══════════════════
-     ใช้ ai-chat-worker.js ตัวเดียวกับที่หน้าลงทุนใช้สรุปข่าว (โมเดลเล็ก/ใหญ่แข่งกันหาโหลดได้ก่อนใน worker
+  /* ══════════════════ สรุปประชุมด้วย AI (คลาวด์ก่อน สำรองด้วยโมเดลในเบราว์เซอร์) → ส่งออกเป็นไฟล์ Word (.docx) ══════════════════
+     ทางสำรอง (localMeetingSummary) ใช้ ai-chat-worker.js ตัวเดียวกับที่หน้าลงทุนใช้สรุปข่าว (โมเดลเล็ก/ใหญ่แข่งกันหาโหลดได้ก่อนใน worker
      คนละตัวกัน กันปัญหาหน่วยความจำ WASM ปนกันที่เคยเจอมาก่อน) — บทถอดเสียงประชุมมักยาวเกินกว่าโมเดลเล็ก
      (context window จำกัด) จะสรุปทีเดียวจบได้ดี จึงตัดเป็นท่อนๆ สรุปย่อทีละท่อนก่อน (map) แล้วเอาสรุปย่อย
      ทั้งหมดมาสังเคราะห์เป็นสรุปเดียวอีกที (reduce) — ข้อจำกัดตามจริง: (1) ไม่แยกผู้พูด เพราะ Whisper ถอด
@@ -927,7 +939,12 @@
   }
 
   var MEETING_CHUNK_SYSTEM = 'คุณเป็นผู้ช่วยสรุปการประชุม อ่านข้อความถอดเสียงประชุมส่วนหนึ่งด้านล่าง แล้วสรุปประเด็นสำคัญที่พูดถึงเป็นข้อๆ สั้นๆ เท่านั้น (ขึ้นต้นแต่ละข้อด้วย "- ") ห้ามทักทาย ห้ามใส่ความเห็นส่วนตัว ห้ามเดาสิ่งที่ไม่ได้พูดถึงในข้อความ';
-  var MEETING_FINAL_SYSTEM = 'คุณเป็นผู้ช่วยเขียนสรุปการประชุมฉบับสมบูรณ์ จากบันทึกย่อหลายช่วงของการประชุมเดียวกันด้านล่าง ให้เขียนตามโครงสร้างหัวข้อนี้เป๊ะๆ (แต่ละหัวข้อขึ้นบรรทัดใหม่ จบด้วย ":" ตามด้วยเนื้อหา):\n\nภาพรวมการประชุม:\n(ย่อหน้าสั้นๆ 2-3 ประโยค)\n\nประเด็นสำคัญที่พูดคุย:\n(รายการ ขึ้นต้นแต่ละข้อด้วย "- ")\n\nการตัดสินใจ:\n(รายการ หรือถ้าไม่มีการตัดสินใจชัดเจนให้เขียนว่า "ไม่มีการตัดสินใจที่ชัดเจนในบันทึกนี้")\n\nงานที่ต้องติดตาม:\n(รายการ หรือถ้าไม่มีให้เขียนว่า "ไม่มีงานที่ต้องติดตามที่ระบุชัดเจน")';
+  /* โครงหัวข้อสรุปฉบับสมบูรณ์ใช้ร่วมกัน 2 ทาง: จากบันทึกย่อหลายช่วง (โมเดลในเบราว์เซอร์ ที่บทถอดเสียงยาวเกิน context) หรือจากบทถอดเสียงตรงๆ (คลาวด์) */
+  function meetingFinalSystem(source) {
+    return 'คุณเป็นผู้ช่วยเขียนสรุปการประชุมฉบับสมบูรณ์ จาก' + source + 'ด้านล่าง ให้เขียนตามโครงสร้างหัวข้อนี้เป๊ะๆ' + MEETING_FINAL_STRUCTURE;
+  }
+  var MEETING_FINAL_STRUCTURE = ' (แต่ละหัวข้อขึ้นบรรทัดใหม่ จบด้วย ":" ตามด้วยเนื้อหา):\n\nภาพรวมการประชุม:\n(ย่อหน้าสั้นๆ 2-3 ประโยค)\n\nประเด็นสำคัญที่พูดคุย:\n(รายการ ขึ้นต้นแต่ละข้อด้วย "- ")\n\nการตัดสินใจ:\n(รายการ หรือถ้าไม่มีการตัดสินใจชัดเจนให้เขียนว่า "ไม่มีการตัดสินใจที่ชัดเจนในบันทึกนี้")\n\nงานที่ต้องติดตาม:\n(รายการ หรือถ้าไม่มีให้เขียนว่า "ไม่มีงานที่ต้องติดตามที่ระบุชัดเจน")';
+  var MEETING_FINAL_SYSTEM = meetingFinalSystem('บันทึกย่อหลายช่วงของการประชุมเดียวกัน');
   var MEETING_FINAL_REMINDER = 'ตอบตามโครงสร้างหัวข้อด้านบนเท่านั้น เริ่มตอบด้วย "ภาพรวมการประชุม:" ทันที ไม่ต้องมีคำนำ ไม่ต้องอธิบายว่ากำลังทำอะไร';
 
   function setMeetingSumStatus(text, cls) {
@@ -940,17 +957,51 @@
     if (meetingSumBusy) return;
     var transcript = ($('asrResult').value || '').trim();
     if (!transcript) { setMeetingSumStatus('ยังไม่มีข้อความที่ถอดเสียงไว้', 'err'); return; }
-    if (isIOS()) { setMeetingSumStatus('โหมดนี้ไม่รองรับบน iPhone/iPad (เบราว์เซอร์มือถือรุ่นนี้รันโมเดล AI แบบนี้ไม่เสถียร) — ใช้คอมพิวเตอร์แทน', 'err'); return; }
+    var cloudOk = !!(window.AiClient && AiClient.available());
+    if (!cloudOk && isIOS()) { setMeetingSumStatus('โหมดนี้ไม่รองรับบน iPhone/iPad (เบราว์เซอร์มือถือรุ่นนี้รันโมเดล AI แบบนี้ไม่เสถียร) — ใช้คอมพิวเตอร์แทน', 'err'); return; }
     if (typeof window.docx === 'undefined') { setMeetingSumStatus('โหลดไลบรารีสร้างไฟล์ Word ไม่สำเร็จ ลองรีเฟรชหน้านี้ใหม่', 'err'); return; }
 
     meetingSumBusy = true;
     $('meetingSumBtn').disabled = true;
     $('meetingSumWrap').style.display = 'none';
-    setMeetingSumStatus('⏳ กำลังเตรียมโมเดล AI…', '');
+    setMeetingSumStatus(cloudOk ? '⏳ กำลังสรุปด้วย AI บนคลาวด์…' : '⏳ กำลังเตรียมโมเดล AI…', '');
 
     var chunks = chunkText(transcript, 1800);
 
-    getMeetingSumWorkerAsync().then(function (worker) {
+    /* คลาวด์ก่อน ถอยมาโมเดลในเบราว์เซอร์เมื่อออฟไลน์/โควตาเต็ม/ล็อกอินหมดอายุ (ไม่ถอยบน iPhone — โมเดลในเครื่องรันไม่ได้) */
+    var summaryP = cloudOk
+      ? cloudMeetingSummary(transcript).catch(function (err) {
+          if (!AiClient.canFallback(err) || isIOS()) throw new Error(AiClient.friendlyMessage(err));
+          setMeetingSumStatus('☁️ ' + AiClient.friendlyMessage(err) + ' — สลับไปใช้โมเดลในเบราว์เซอร์แทน…', '');
+          return localMeetingSummary(chunks);
+        })
+      : localMeetingSummary(chunks);
+
+    summaryP.then(function (finalSummary) {
+      finalSummary = (finalSummary || '').trim();
+      if (!finalSummary) { setMeetingSumStatus('สรุปไม่สำเร็จ ไม่ได้คำตอบจากโมเดล', 'err'); return; }
+      $('meetingSumResult').value = finalSummary;
+      $('meetingSumWrap').style.display = 'block';
+      setMeetingSumStatus('สรุปเสร็จแล้ว ตรวจทานก่อนดาวน์โหลดได้เลย', 'ok');
+      return buildMeetingDocxBlob(finalSummary, transcript).then(function (blob) {
+        var link = $('meetingDocxLink');
+        if (link.dataset.prevUrl) URL.revokeObjectURL(link.dataset.prevUrl);
+        var url = URL.createObjectURL(blob);
+        link.href = url;
+        link.dataset.prevUrl = url;
+      });
+    }).catch(function (e) {
+      setMeetingSumStatus('สรุปไม่สำเร็จ: ' + (e && e.message ? e.message : e), 'err');
+    }).finally(function () {
+      meetingSumBusy = false;
+      $('meetingSumBtn').disabled = false;
+      refreshServerNeuronUsage();
+    });
+  }
+
+  /* สรุปด้วยโมเดลในเบราว์เซอร์ (แผนสำรอง): ตัดท่อนสั้นๆ สรุปย่อทีละท่อนแล้วรวมอีกที ตามข้อจำกัด context ของโมเดลเล็ก */
+  function localMeetingSummary(chunks) {
+    return getMeetingSumWorkerAsync().then(function (worker) {
       var chunkSummaries = [];
       function summarizeNextChunk(i) {
         if (i >= chunks.length) return Promise.resolve();
@@ -972,24 +1023,36 @@
           { role: 'system', content: MEETING_FINAL_REMINDER }
         ], 350);
       });
-    }).then(function (finalSummary) {
-      finalSummary = (finalSummary || '').trim();
-      if (!finalSummary) { setMeetingSumStatus('สรุปไม่สำเร็จ ไม่ได้คำตอบจากโมเดล', 'err'); return; }
-      $('meetingSumResult').value = finalSummary;
-      $('meetingSumWrap').style.display = 'block';
-      setMeetingSumStatus('สรุปเสร็จแล้ว ตรวจทานก่อนดาวน์โหลดได้เลย', 'ok');
-      return buildMeetingDocxBlob(finalSummary, transcript).then(function (blob) {
-        var link = $('meetingDocxLink');
-        if (link.dataset.prevUrl) URL.revokeObjectURL(link.dataset.prevUrl);
-        var url = URL.createObjectURL(blob);
-        link.href = url;
-        link.dataset.prevUrl = url;
-      });
-    }).catch(function (e) {
-      setMeetingSumStatus('สรุปไม่สำเร็จ: ' + (e && e.message ? e.message : e), 'err');
-    }).finally(function () {
-      meetingSumBusy = false;
-      $('meetingSumBtn').disabled = false;
+    });
+  }
+
+  /* สรุปด้วยคลาวด์ (Workers AI): context ของ SEA-LION ใหญ่พอให้สรุปบทถอดเสียงทั้งก้อนในคำขอเดียว (ผลแคชใน D1 — สรุปซ้ำบทเดิมไม่เสียโควตา)
+     เฉพาะบทที่ยาวมากจริงๆ (> 40,000 ตัวอักษร ≈ ประชุมหลายชั่วโมง) ค่อยแบ่งท่อนละ ~12,000 ตัวอักษร สรุปย่อด้วยโมเดลเร็วก่อนแล้วรวมด้วยโมเดลหลัก
+     ⚠️ บทถอดเสียงถูกส่งไปประมวลผลที่ Workers AI (Cloudflare) — ต่างจากโมเดลในเบราว์เซอร์ที่ไม่ส่งข้อมูลออกไปไหน */
+  var MEETING_CLOUD_DIRECT_MAX = 40000;
+  function cloudMeetingSummary(transcript) {
+    var reminder = { role: 'system', content: MEETING_FINAL_REMINDER };
+    if (transcript.length <= MEETING_CLOUD_DIRECT_MAX) {
+      return AiClient.summarize({
+        task: 'meeting', maxTokens: 1000,
+        messages: [{ role: 'system', content: meetingFinalSystem('ข้อความถอดเสียงการประชุม') }, { role: 'user', content: transcript }, reminder]
+      }).then(function (r) { return stripLeakedInstructions(r.text); });
+    }
+    var parts = chunkText(transcript, 12000), notes = [];
+    function next(i) {
+      if (i >= parts.length) return Promise.resolve();
+      setMeetingSumStatus('⏳ กำลังสรุปช่วงที่ ' + (i + 1) + '/' + parts.length + ' (คลาวด์)…', '');
+      return AiClient.summarize({
+        task: 'meeting-part', model: 'fast', maxTokens: 600,
+        messages: [{ role: 'system', content: MEETING_CHUNK_SYSTEM }, { role: 'user', content: parts[i] }]
+      }).then(function (r) { notes.push(stripLeakedInstructions(r.text)); return next(i + 1); });
+    }
+    return next(0).then(function () {
+      setMeetingSumStatus('⏳ กำลังรวมเป็นสรุปฉบับเดียว…', '');
+      return AiClient.summarize({
+        task: 'meeting', maxTokens: 1000,
+        messages: [{ role: 'system', content: MEETING_FINAL_SYSTEM }, { role: 'user', content: notes.join('\n\n') }, reminder]
+      }).then(function (r) { return stripLeakedInstructions(r.text); });
     });
   }
 
@@ -1067,7 +1130,7 @@
       });
       if (asrEngineNote) asrEngineNote.style.display = engine === 'cloud' ? 'block' : 'none';
       if (asrModelField) asrModelField.style.display = engine === 'cloud' ? 'none' : '';
-      if (engine === 'cloud') updateNeuronStatusUI();
+      if (engine === 'cloud') { updateNeuronStatusUI(); refreshServerNeuronUsage(); }
     }
     if (asrEngineToggle) {
       if (!ASR_CLOUD_AVAILABLE) asrEngineToggle.parentNode.style.display = 'none';

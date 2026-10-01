@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v571';
+const CACHE = 'ome-v572';
 const PRECACHE = [
   './',
   './index.html',
@@ -34,6 +34,7 @@ const PRECACHE = [
   './tts-worker.js',
   './file-reader.js',
   './vendor/lamejs/lamejs.iife.js',
+  './ai-client.js',
   './ai-chat-widget.js',
   './ai-chat-worker.js',
   './asr-worker.js',

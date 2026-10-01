@@ -1,5 +1,8 @@
 /* แทน Worker tanot-whisper-proxy (ต้นฉบับ: docs/whisper-worker-original.js) — ใช้ binding AI จาก wrangler.toml
-   ฝั่งเว็บ (text-to-speech.js) ยังเป็นคนนับโควตา Neurons รายวันเองจากค่า neurons ที่ส่งกลับไป */
+   ฝั่งเซิร์ฟเวอร์นับ Neurons ลง ai_usage (kind 'asr') ร่วมโควตาเดียวกับ /api/ai/* — ดู functions/_lib/ai.js
+   ฝั่งเว็บ (text-to-speech.js) ยังเตือนก่อนเกินโควตาเองจากค่า neurons ที่ส่งกลับไป */
+
+import { recordUsage, WHISPER_NEURONS_PER_MINUTE } from '../_lib/ai.js';
 
 function json(status, body) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -29,8 +32,13 @@ export async function onRequestPost({ request, env }) {
     return json(502, { error: 'Transcription failed: ' + (err && err.message ? err.message : String(err)) });
   }
 
+  /* ไม่มี usage.neurons กลับมา → ประมาณจากขนาดไฟล์ (WAV 16kHz mono 16-bit = 32,000 ไบต์/วินาที, base64 ใหญ่กว่า 4/3) */
+  const reported = result && result.usage && result.usage.neurons;
+  const estMinutes = (audio.length * 0.75) / 32000 / 60;
+  await recordUsage(env, 'asr', { neurons: reported || estMinutes * WHISPER_NEURONS_PER_MINUTE });
+
   return json(200, {
     text: (result && result.text) || '',
-    neurons: (result && result.usage && result.usage.neurons) || null,
+    neurons: reported || null,
   });
 }
