@@ -27,7 +27,7 @@
 4. ✅ **เสร็จแล้ว (2026-09-28)** — ต่างจากแผนเดิม 1 จุด: `auth-gate.js` ข้ามตัวเองบน `*.pages.dev` แทนการลบทิ้งทั้ง 42 หน้า เพราะ GitHub Pages ยังเปิดอยู่จนถึงข้อ 7 (ลบจริงตอนเปลี่ยน GitHub Pages เป็น redirect) — **Cloudflare Access** (Zero Trust ฟรี) ครอบ `my-web-app-5w2.pages.dev` ทั้งโดเมน โดยไม่ต้องซื้อโดเมน (ใช้วิธีลบ `*` ที่ subdomain ตามเอกสาร Known issues) → เลิกใช้ `auth-gate.js` ทั้ง 42 หน้า; `<link rel="manifest" crossorigin="use-credentials">`; ใน `sw.js` ถ้าคำตอบถูก redirect ไปหน้าล็อกอิน ให้แสดงหน้าจากแคช + ลิงก์ล็อกอินใหม่
 5. ✅ **เสร็จแล้ว (2026-09-28, วางใน D1 แล้ว 2026-09-30)** — **D1 schema** `migrations/0001_init.sql`: `docs(ns,id,data,updated_at,rev,deleted,device)` + index `rev`, `reminders`, `push_subs`, `learn_cards`, `learn_log`, `ai_cache`, `ai_usage`, `files`
 6. **Scheduler Worker** แยก `workers/scheduler/` (Pages Functions ตั้ง cron ไม่ได้): ทุก 15 นาทีส่งการแจ้งเตือน (Web Push), 07:00 เวลาไทยทำสรุปประจำวัน + สำรอง D1 → R2
-7. GitHub Pages คงไว้แบบอ่านอย่างเดียวจนย้ายข้อมูลครบทั้ง 2 เครื่อง แล้วค่อยเปลี่ยนเป็น redirect
+7. ✅ **เสร็จแล้ว (2026-10-02)** — GitHub Pages เป็น redirect ไป pages.dev อย่างเดียว (`.github/scripts/github-pages-redirect.mjs`) เก็บ `migrate-export.html` ไว้ใช้ย้ายข้อมูลซ้ำได้ · ยังไม่ได้ถอด `auth-gate.js` ออกจาก 42 หน้า (ทำแยกทีหลัง)
 
 ### 0b. ✅ ชุดทดสอบอัตโนมัติ (M) — เสร็จแล้ว (2026-09-30) — ทำก่อนแตะธีม
 - `tests/` (มี `package.json` ของตัวเอง ไม่ใช่ที่ root)
@@ -265,7 +265,7 @@
    ```
 6. เพิ่ม origin ของ pages.dev ใน Google OAuth client (Drive) และใน Authorized domains ของ Firebase Auth (ใช้ตอนดึงข้อมูล budget ครั้งเดียว)
 7. ต่อ Workers Builds เข้ากับ `workers/scheduler` · ติดตั้งแอปลงหน้าจอโฮม iPhone
-8. หลังย้ายข้อมูลครบทั้ง 2 เครื่อง: ลบ Worker เก่า 3 ตัว → เปลี่ยน GitHub Pages เป็น redirect → ภายหลังค่อยลบโปรเจกต์ Firebase
+8. ✅ ย้ายข้อมูลครบทั้ง 2 เครื่องแล้ว (2026-09-30) · ✅ GitHub Pages เป็น redirect แล้ว (2026-10-02) · ⏳ เจ้าของลบ Worker เก่า 3 ตัว (`tanot-cors-proxy`, `tanot-whisper-proxy`, `tanot-ocr-proxy`) + คีย์ Anthropic เก่า `tanot-api-key` · ⏳ ภายหลังลบโปรเจกต์ Firebase `tanot-budget`
 
 ## ความเสี่ยง
 - **ข้อมูลหาย** ถ้าปิด GitHub Pages ก่อนย้ายข้อมูลครบทั้ง 2 เครื่อง (storage ผูกกับโดเมน)

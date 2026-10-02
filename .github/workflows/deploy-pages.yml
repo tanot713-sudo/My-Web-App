@@ -67,6 +67,10 @@ jobs:
         run: npx playwright test electrical.spec.js
       - name: tax (กฎภาษีแยกปี + สูตรลดหย่อน/เพดานกลุ่มเกษียณ/บำนาญ เทียบตัวเลขคิดมือ + หน้า tax.html)
         run: npx playwright test tax.spec.js
+      - name: data + pages (ซิงก์ D1, ย้ายข้อมูลจาก github.io, หน้าวันนี้/ค้นหาด่วน, ประกัน + /api/files)
+        run: npx playwright test sync.spec.js migrate.spec.js today.spec.js insurance.spec.js
+      - name: github-redirect (GitHub Pages แบบ redirect ไป pages.dev)
+        run: npx playwright test github-redirect.spec.js
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
@@ -89,10 +93,17 @@ jobs:
         uses: actions/checkout@v4
       - name: Configure Pages
         uses: actions/configure-pages@v5
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # เว็บจริงอยู่ที่ Cloudflare Pages แล้ว — GitHub Pages เหลือแค่ redirect ไป pages.dev (+ migrate-export.html ที่ยังต้องอ่าน storage ของ github.io)
+      - name: Build redirect-only site
+        run: node .github/scripts/github-pages-redirect.mjs _site
       - name: Upload site as Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
