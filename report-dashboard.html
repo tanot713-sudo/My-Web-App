@@ -54,6 +54,108 @@ body[data-layout]{--bg:var(--ome-surface-0);--card:var(--ome-surface-1);--ink:va
 .rd-page :where(h1,h2,h3,h4,p,ul,ol,dl,dd,figure,blockquote){margin:0}
 .rd-page :where(ul,ol){padding:0}
 
+/* ══ ป๊อปโอเวอร์ลอยจากปุ่ม (openPopover → #filterPopover) ══ */
+.filter-popover{position:fixed;z-index:var(--ome-z-drawer);width:240px;max-width:calc(100vw - 20px);padding:var(--ome-sp-3);
+  background:var(--ome-surface-1);color:var(--ome-text-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3)}
+.filter-popover.wide{width:300px}
+.filter-popover.xwide{width:min(620px,calc(100vw - 20px))}
+.filter-popover :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),select,textarea){
+  width:100%;height:32px;padding:0 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);
+  background:var(--ome-surface-1);color:var(--ome-text-1);font:inherit;font-size:var(--ome-fs-xs)}
+.filter-popover textarea{height:auto;padding:8px 10px}
+.filter-popover :is(input,select,textarea):focus{outline:none;border-color:var(--ome-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--ome-accent) 22%,transparent)}
+.filter-popover input[type=color],.rd-dialog input[type=color]{width:42px;height:30px;padding:2px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);cursor:pointer}
+.filter-popover :is(input[type=checkbox],input[type=radio]){accent-color:var(--ome-accent);flex-shrink:0}
+.fp-title{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-1);margin-bottom:var(--ome-sp-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fp-search{margin-bottom:var(--ome-sp-2)}
+.fp-quick{display:flex;gap:var(--ome-sp-2);margin-bottom:6px}
+.fp-quick button,.fp-link{padding:0;border:0;background:transparent;color:var(--ome-accent-strong);font:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer}
+.fp-quick button:hover{text-decoration:underline}
+.fp-link{color:var(--ome-err-ink);padding:4px 0}
+.fp-list{max-height:200px;overflow-y:auto;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);padding:4px 0;margin-bottom:var(--ome-sp-3)}
+.fp-item{display:flex;align-items:center;gap:7px;padding:5px 9px;font-size:var(--ome-fs-xs);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fp-item:hover{background:var(--ome-surface-2)}
+.fp-empty{font-size:var(--ome-fs-xs);color:var(--ome-text-2);padding:8px 9px}
+.fp-range{display:flex;flex-direction:column;gap:var(--ome-sp-2);margin-bottom:var(--ome-sp-3)}
+.fp-range label{display:flex;flex-direction:column;gap:3px;font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
+.fp-actions{display:flex;gap:7px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.fp-btns{display:flex;gap:6px;flex-wrap:wrap}
+.fp-popover-section + .fp-popover-section{margin-top:var(--ome-sp-3)}
+/* สีของตาราง / จัดรูปแบบตามเงื่อนไข / คอลัมน์สูตร */
+.table-color-popover .scope-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:var(--ome-sp-2) 0 var(--ome-sp-3)}
+.table-color-popover .scope-btn{height:30px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);color:var(--ome-text-1);font:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer}
+.table-color-popover .scope-btn.on{border-color:var(--ome-accent);background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
+.table-color-popover .color-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--ome-sp-2)}
+.table-color-popover .color-field{display:flex;align-items:center;gap:7px;font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
+.color-swatch-row{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 var(--ome-sp-2)}
+.color-swatch{width:26px;height:26px;padding:0;border:1px solid var(--ome-border-strong);border-radius:var(--ome-radius-sm);cursor:pointer}
+.color-swatch:hover{transform:scale(1.1)}
+.cf-panel{display:none}
+.cf-rule-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.cf-rule-row input[type=text]{flex:1;min-width:0}
+.cf-rule-row input[type=color]{width:30px;flex-shrink:0}
+.cf-rule-empty{font-size:var(--ome-fs-xs);color:var(--ome-text-2);padding:4px 0 var(--ome-sp-2)}
+.fc-label{display:block;margin:var(--ome-sp-2) 0 4px;font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
+.fc-label:first-of-type{margin-top:0}
+.fc-formula{font-family:var(--ome-font-mono);min-height:56px;resize:vertical}
+.fc-chips{display:flex;flex-wrap:wrap;gap:4px;margin:7px 0}
+.fc-chip{height:24px;padding:0 9px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-pill);background:var(--ome-surface-1);color:var(--ome-accent-strong);font:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer}
+.fc-chip:hover{background:var(--ome-accent-soft);border-color:var(--ome-accent)}
+.fc-error{font-size:var(--ome-fs-xs);color:var(--ome-err-ink);min-height:16px;margin-bottom:4px}
+/* ตรวจสุขภาพข้อมูล */
+.dh-empty{padding:16px 4px;text-align:center;font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
+.dh-table-wrap{max-height:340px;overflow:auto;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);margin-bottom:var(--ome-sp-3)}
+.dh-table{font-size:var(--ome-fs-xs)}
+.dh-table :is(th,td){text-align:right;padding:7px 8px}
+.dh-table th{position:sticky;top:0;background:var(--ome-surface-2)}
+.dh-table tr:last-child td{border-bottom:0}
+.dh-table :is(th,td):first-child{text-align:left}
+.dh-colname{text-align:left!important;font-weight:600;color:var(--ome-text-1)}
+.dh-fx-tag{margin-left:3px;padding:1px 5px;border-radius:var(--ome-radius-sm);background:var(--ome-accent-soft);color:var(--ome-accent-strong);font-size:var(--ome-fs-xs);font-weight:700;font-style:italic}
+.dh-trim-btn,.dh-fuzzy-btn{height:24px;padding:0 9px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);color:var(--ome-accent-strong);font:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer;white-space:nowrap}
+.dh-trim-btn:hover,.dh-fuzzy-btn:hover{background:var(--ome-accent-soft);border-color:var(--ome-accent)}
+.dh-dup-row,.dh-fuzzy-group{display:flex;align-items:center;justify-content:space-between;gap:var(--ome-sp-3);flex-wrap:wrap;padding:9px 10px;background:var(--ome-surface-2);border-radius:var(--ome-radius-sm);margin-bottom:6px}
+.dh-fuzzy-group{display:block}
+.dh-dup-msg{font-size:var(--ome-fs-sm)}
+.dh-dup-msg.ok{color:var(--ome-ok-ink)}
+.dh-fuzzy-list{max-height:340px;overflow:auto;margin-bottom:var(--ome-sp-3)}
+.dh-fuzzy-values{font-size:var(--ome-fs-sm);margin-bottom:6px}
+.dh-fuzzy-row{display:flex;align-items:center;gap:var(--ome-sp-2);flex-wrap:wrap}
+.dh-fuzzy-row label{display:flex;align-items:center;gap:6px;font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+/* สรุปอัตโนมัติ */
+.as-textarea{height:auto;min-height:160px;line-height:1.7;resize:vertical;margin-bottom:6px}
+.as-status{min-height:16px;font-weight:600;color:var(--ome-ok-ink)}
+.as-status.err{color:var(--ome-err-ink)}
+/* พื้นหลังแดชบอร์ด / กำหนดเอง */
+.bg-mode-tabs{display:flex;gap:6px;margin-bottom:var(--ome-sp-2)}
+.bg-mode-tabs .bg-mode-btn{flex:1}
+.bg-pattern-grid{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2);margin:4px 0 var(--ome-sp-2)}
+.bg-pattern-swatch{width:44px;height:34px;padding:0;border:1px solid var(--ome-border-strong);border-radius:var(--ome-radius-sm);background-color:var(--ome-surface-1);cursor:pointer}
+.bg-pattern-swatch.on{outline:2px solid var(--ome-accent);outline-offset:1px}
+.bg-img-preview{width:100%;height:64px;margin:6px 0;border:1px dashed var(--ome-border-strong);border-radius:var(--ome-radius-sm);background-color:var(--ome-surface-2);background-size:cover;background-position:center}
+.bg-fit-row,.bg-opacity-row{display:flex;align-items:center;gap:var(--ome-sp-2);margin-top:6px;font-size:var(--ome-fs-xs)}
+.bg-opacity-row input[type=range]{flex:1}
+.bg-opacity-val{min-width:36px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* ══ กล่องโต้ตอบ (<dialog class="dialog rd-dialog"> จาก TanotReportUtils.modal) ══ */
+.rd-dialog{width:min(560px,calc(100vw - 24px));max-height:min(720px,calc(100dvh - 32px))}
+.rd-dialog[open]{display:flex;flex-direction:column}
+.rd-dialog .dialog-head{padding-bottom:var(--ome-sp-3);border-bottom:1px solid var(--ome-border)}
+.rd-dialog .dialog-head h2{font-size:var(--ome-fs-md)}
+.rd-dialog .dialog-body{overflow:auto;min-height:0}
+.rd-dialog .dialog-foot{padding-top:var(--ome-sp-3);border-top:1px solid var(--ome-border)}
+.rd-dialog .field{margin-bottom:var(--ome-sp-3)}
+.rd-grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--ome-sp-3)}
+.rd-quick{display:flex;gap:var(--ome-sp-2);flex-wrap:wrap;margin:var(--ome-sp-2) 0 var(--ome-sp-3)}
+.rd-quick button{height:28px;padding:0 12px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-pill);background:var(--ome-surface-1);color:var(--ome-text-2);font:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer}
+.rd-quick button:hover{border-color:var(--ome-accent);color:var(--ome-accent-strong);background:var(--ome-accent-soft)}
+.rd-check-list{border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);overflow:auto;max-height:240px}
+.rd-check-row{display:flex;align-items:center;gap:var(--ome-sp-2);padding:8px 10px;font-size:var(--ome-fs-xs);border-bottom:1px solid var(--ome-border);cursor:pointer}
+.rd-check-row:last-child{border-bottom:0}
+.rd-check-row:hover{background:var(--ome-surface-2)}
+.rd-check-row input{accent-color:var(--ome-accent);flex-shrink:0}
+@media(max-width:520px){.rd-grid2{grid-template-columns:1fr}}
+
 /* ══ ตาราง (ฐานของทุกตารางในหน้านี้ + ตารางข้อมูลแท็บ "ตาราง") ══ */
 :where(.rd-page) :where(table){width:100%;border-collapse:collapse;font-size:var(--ome-fs-sm)}
 :where(.rd-page) :where(th,td){padding:9px 10px;text-align:left;border-bottom:1px solid var(--ome-border);white-space:nowrap}
@@ -99,11 +201,11 @@ tr.hdr-pick.on td{background:var(--ome-accent-soft);font-weight:700}
 #dataTable th[data-col] .sort-ic{position:absolute;right:28px;top:50%;transform:translateY(-50%);width:20px;height:20px;margin:0;justify-content:center;align-items:center;pointer-events:none}
 #dataTable th[data-col] .col-del{position:absolute;right:4px;top:50%;transform:translateY(-50%);z-index:30}
 #dataTable th[data-col]::after{content:"";position:absolute;right:75px;top:9px;bottom:9px;width:1px;background:var(--ome-border);pointer-events:none}
-.th-fbtn,.col-del,.rowdel button,.cf-rule-del,.group-toggle{display:inline-grid;place-items:center;width:24px;height:24px;padding:0;border:1px solid transparent;border-radius:var(--ome-radius-sm);
+.th-fbtn, .col-del, .rowdel button, .group-toggle{display:inline-grid;place-items:center;width:24px;height:24px;padding:0;border:1px solid transparent;border-radius:var(--ome-radius-sm);
   background:transparent;color:var(--ome-text-3);cursor:pointer}
 .th-fbtn{border-color:var(--ome-border);background:var(--ome-surface-1);color:var(--ome-text-2)}
 .th-fbtn:hover,.th-fbtn.active{border-color:var(--ome-accent);color:var(--ome-accent-strong);background:var(--ome-accent-soft)}
-.col-del:hover,.rowdel button:hover,.cf-rule-del:hover{color:var(--ome-err-ink);background:var(--ome-err-soft)}
+.col-del:hover, .rowdel button:hover{color:var(--ome-err-ink);background:var(--ome-err-soft)}
 .group-toggle:hover{background:var(--ome-surface-2);color:var(--ome-text-1)}
 th .col-fx{border:0;background:var(--ome-accent-soft);color:var(--ome-accent-strong);cursor:pointer;font-size:var(--ome-fs-xs);font-weight:700;font-style:italic;padding:1px 6px;border-radius:var(--ome-radius-sm);margin-right:5px;vertical-align:middle}
 th .col-fx:hover{background:var(--ome-accent);color:var(--ome-on-accent)}
@@ -303,12 +405,12 @@ html,body{overflow-x:hidden;max-width:100%}
 .card-color-btn{border:none;background:transparent;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px;
   margin-left:auto;opacity:.55;transition:.15s}
 .card-color-btn:hover{opacity:1;background:var(--bg)}
-.fp-range label.cc-checkrow{display:flex;align-items:center;gap:6px;font-weight:400}
+
 /* ลูกเล่นเล็กๆ: การ์ด/กล่องยกตัวขึ้นนิดๆ พร้อมเงาเข้มขึ้นตอน hover ให้ดูมีมิติ ไม่ใช่แผ่นแบนราบ */
 .grid-stack-item-content{transition:transform .15s ease,box-shadow .15s ease}
 
 .grid-stack-item-content:hover{box-shadow:0 8px 20px rgba(16,24,40,.12)}
-.add-widget-pick .fp-item{gap:10px}
+
 /* ── แถบตัวกรองที่ active ของตารางในแดชบอร์ด (แยกจากตัวกรองของแท็บแก้ไข) — เดิมเป็นแถวกรองตรึงอยู่
    ตลอดทีละคอลัมน์ (รกมากเมื่อคอลัมน์เยอะ) เปลี่ยนเป็น: กดปุ่ม 🔽 ที่หัวคอลัมน์ หรือ "+ ตัวกรอง" ที่นี่
    เพื่อเปิด popup เลือกค่า/ช่วงทีละคอลัมน์แทน ── */
@@ -333,43 +435,8 @@ th .th-filter-btn.active{color:var(--brand)}
 /* z-index:200 (> ปุ่มลอย "ผู้ช่วย AI" ของ ai-chat-widget.js ที่ 170) — เจอจริงว่าถ้า popover ไปเปิดใกล้
    มุมขวาล่างจอ (ปุ่ม 🎨 ของการ์ดที่อยู่ท้ายๆ หน้า) ปุ่มแชทลอยจะบังปุ่ม "ใช้สีนี้" ไว้ (z-index เดิม 60 < 170)
    ทำให้แตะแล้วโดนปุ่มแชทแทน ดูเหมือน "กดแล้วไม่มีอะไรเกิดขึ้น" ทั้งที่ popover ทำงานถูกต้องทุกอย่าง */
-.filter-popover{position:fixed;z-index:200;background:var(--card);border:1px solid var(--line);border-radius:12px;
-  box-shadow:var(--sh);padding:12px;width:230px;max-width:calc(100vw - 20px)}
-.filter-popover.wide{width:280px}
-.filter-popover .fp-title{font-size:12px;font-weight:800;color:var(--ink);margin-bottom:8px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.filter-popover .fp-search{width:100%;font-family:inherit;font-size:12.5px;padding:6px 8px;border-radius:8px;
-  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:8px}
-.filter-popover .fp-search:focus{outline:none;border-color:var(--brand)}
-.filter-popover .fp-quick{display:flex;gap:8px;margin-bottom:6px}
-.filter-popover .fp-quick button{font-family:inherit;font-size:11px;font-weight:700;color:var(--brand-dk);
-  background:transparent;border:none;cursor:pointer;padding:0}
-.filter-popover .fp-quick button:hover{text-decoration:underline}
-.filter-popover .fp-list{max-height:200px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;
-  padding:4px 0;margin-bottom:10px}
-.filter-popover .fp-item{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink);
-  padding:5px 9px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.filter-popover .fp-item:hover{background:var(--bg)}
-.filter-popover .fp-item input{accent-color:var(--brand);flex-shrink:0}
-.filter-popover .fp-empty{font-size:12px;color:var(--muted);padding:8px 9px}
-.filter-popover .fp-range{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
-.filter-popover .fp-range label{font-size:11px;color:var(--muted);font-weight:700}
-.filter-popover .fp-range input{width:100%;font-family:inherit;font-size:12.5px;padding:6px 8px;border-radius:8px;
-  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);margin-top:3px}
-.filter-popover .fp-range input:focus{outline:none;border-color:var(--brand)}
-.filter-popover .fp-actions{display:flex;gap:7px;justify-content:space-between;align-items:center;flex-wrap:wrap}
-.filter-popover .fp-actions .fp-link{font-family:inherit;font-size:11.5px;font-weight:700;color:var(--err);
-  background:transparent;border:none;cursor:pointer;padding:4px 0}
-.filter-popover .fp-actions .fp-btns{display:flex;gap:6px;flex-wrap:wrap}
 
 /* Final 38 — centralized table color styling */
-.table-color-popover .scope-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0 10px}
-.table-color-popover .scope-btn{padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);font:700 11px 'IBM Plex Sans',Arial,sans-serif;color:var(--ink);cursor:pointer;text-align:center}
-.table-color-popover .scope-btn.on{border-color:var(--brand);background:var(--brand-sf);color:var(--brand-dk)}
-.table-color-popover .color-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.table-color-popover .color-field{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--muted)}
-.table-color-popover input[type=color]{width:42px;height:30px;padding:1px;border:1px solid var(--line);border-radius:7px;background:#fff;cursor:pointer}
-.table-color-popover .scope-note{font-size:10.5px;color:var(--muted);margin:5px 0 10px;line-height:1.45}
 
 /* หัวคอลัมน์กึ่งกลางเสมอ (ไม่ผูกกับชนิดข้อมูล) — คอลัมน์ตัวเลข/วันที่มีแถวตัวกรองด้านล่างกว้างกว่าคอลัมน์
    ข้อความ (ช่องต่ำสุด-สูงสุด 2 ช่อง เทียบกับช่องกรองช่องเดียว) ถ้าป้ายชื่อคอลัมน์ชิดซ้ายเหมือนเดิมจะดูเอียง
@@ -397,99 +464,15 @@ th .th-filter-btn.active{color:var(--brand)}
 
 /* ── คอลัมน์สูตรคำนวณ (Calculated Column) ── */
 
-.fc-label{font-size:11px;color:var(--muted);font-weight:700;display:block;margin:8px 0 4px}
-.fc-label:first-of-type{margin-top:0}
-.fc-formula{width:100%;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;
-  padding:6px 8px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);
-  resize:vertical;min-height:56px}
-.fc-formula:focus{outline:none;border-color:var(--brand)}
-.fc-chips{display:flex;flex-wrap:wrap;gap:4px;margin:7px 0}
-.fc-chip{font-family:inherit;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;
-  border:1px solid var(--line);background:var(--card);color:var(--brand-dk);cursor:pointer}
-.fc-chip:hover{background:var(--brand-sf);border-color:var(--brand)}
-.fc-error{font-size:11.5px;color:var(--err);min-height:16px;margin-bottom:4px;line-height:1.4}
-.fc-hint{font-size:11px;color:var(--muted);line-height:1.7;margin-bottom:8px}
-
 /* ── จัดรูปแบบตามเงื่อนไข (Conditional Formatting) ── */
 
-.cf-btn{flex-shrink:0;border:none;background:transparent;cursor:pointer;font-size:12px;padding:2px 3px;
-  border-radius:5px;opacity:.5;line-height:1}
-.cf-btn:hover{opacity:1;background:var(--bg)}
-.cf-btn.on{opacity:1}
-.cf-panel{display:none}
-.cf-panel input[type=color]{width:34px;height:26px;border:1.5px solid var(--line);border-radius:6px;
-  padding:2px;cursor:pointer;vertical-align:middle;margin-left:4px}
-.cf-rule-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-.cf-rule-row select{font-family:inherit;font-size:12px;padding:5px 6px;border-radius:7px;
-  border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
-.cf-rule-row input[type=text]{flex:1;min-width:0;font-family:inherit;font-size:12px;padding:5px 7px;
-  border-radius:7px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
-.cf-rule-row input[type=color]{width:26px;height:26px;border:1.5px solid var(--line);border-radius:6px;
-  padding:1px;cursor:pointer;flex-shrink:0;margin:0}
-.cf-rule-row .cf-rule-del{border:none;background:transparent;color:var(--muted);cursor:pointer;
-  font-size:12px;padding:2px 5px;flex-shrink:0;border-radius:6px}
-.cf-rule-row .cf-rule-del:hover{background:var(--bg);color:var(--err)}
-.cf-rule-empty{font-size:12px;color:var(--muted);padding:4px 0 8px}
-
 /* ── ตรวจสุขภาพข้อมูล + ล้างข้อมูลเบื้องต้น (Data Health & Cleaning) ── */
-.filter-popover.xwide{width:min(620px,calc(100vw - 20px))}
-.dh-empty{font-size:13px;color:var(--muted);padding:16px 4px;text-align:center}
-.dh-table-wrap{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-bottom:10px}
-.dh-table{width:100%;border-collapse:collapse;font-size:12px}
-.dh-table th{position:sticky;top:0;background:#F8F9FB;color:var(--muted);font-weight:700;
-  text-transform:uppercase;letter-spacing:.02em;font-size:10px;text-align:right;padding:7px 8px;
-  border-bottom:1px solid var(--line);white-space:nowrap}
-.dh-table th:first-child{text-align:left}
-.dh-table td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;
-  font-variant-numeric:tabular-nums}
-.dh-table tr:last-child td{border-bottom:none}
-.dh-colname{text-align:left!important;font-weight:600;color:var(--ink)}
-.dh-fx-tag{font-size:9px;font-weight:800;font-style:italic;color:var(--brand-dk);background:var(--brand-sf);
-  padding:1px 4px;border-radius:5px;margin-left:3px}
-.dh-trim-btn,.dh-fuzzy-btn{font-family:inherit;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px;
-  border:1px solid var(--line);background:var(--card);color:var(--brand-dk);cursor:pointer;white-space:nowrap}
-.dh-trim-btn:hover,.dh-fuzzy-btn:hover{background:var(--brand-sf);border-color:var(--brand)}
-.dh-dup-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-  padding:9px 10px;background:var(--bg);border-radius:8px;margin-bottom:4px}
-.dh-dup-msg{font-size:12.5px;color:var(--ink)}
-.dh-dup-msg.ok{color:var(--ok)}
-.dh-fuzzy-list{max-height:340px;overflow:auto;margin-bottom:10px}
-.dh-fuzzy-group{padding:9px 10px;background:var(--bg);border-radius:8px;margin-bottom:8px}
-.dh-fuzzy-values{font-size:12.5px;color:var(--ink);margin-bottom:6px}
-.dh-fuzzy-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.dh-fuzzy-row label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
-.dh-fuzzy-canon{font-family:inherit;font-size:12.5px;padding:4px 6px;border-radius:6px;border:1px solid var(--line);
-  background:var(--card);color:var(--ink)}
 
 /* ── สรุปอัตโนมัติ (Auto Summary) ── */
-.as-textarea{width:100%;font-family:inherit;font-size:13px;line-height:1.7;color:var(--ink);
-  background:var(--bg);border:1.5px solid var(--line);border-radius:9px;padding:10px 12px;
-  resize:vertical;margin-bottom:6px}
-.as-status{min-height:16px;font-weight:600;color:var(--ok)}
-.as-status.err{color:var(--err)}
 
 /* ── แถวสวอตช์สีสำเร็จรูป (ปุ่มปรับสีการ์ด/พื้นหลัง/กล่องกำหนดเอง) ── */
-.color-swatch-row{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
-.color-swatch{width:26px;height:26px;border-radius:7px;border:1.5px solid rgba(0,0,0,.12);cursor:pointer;
-  padding:0;transition:transform .1s}
-.color-swatch:hover{transform:scale(1.12)}
-[data-theme="dark"] .color-swatch{border-color:rgba(255,255,255,.22)}
 
 /* ── ป๊อปอัพพื้นหลังแบบ "PowerPoint" (สี/ลวดลาย/รูปภาพ + ความโปร่งใส) ── */
-.bg-mode-tabs{display:flex;gap:6px;margin-bottom:8px}
-.bg-mode-tabs .bg-mode-btn{flex:1}
-.bg-mode-btn.on{background:var(--brand);color:#fff;border-color:var(--brand)}
-.bg-pattern-grid{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
-.bg-pattern-swatch{width:44px;height:34px;border-radius:8px;border:1.5px solid rgba(0,0,0,.12);cursor:pointer;
-  padding:0;background-color:#fff}
-[data-theme="dark"] .bg-pattern-swatch{border-color:rgba(255,255,255,.22);background-color:#1b2028}
-.bg-pattern-swatch.on{outline:2.5px solid var(--brand);outline-offset:1px}
-.bg-img-preview{width:100%;height:64px;border-radius:8px;background-size:cover;background-position:center;
-  background-color:var(--bg);border:1px dashed rgba(0,0,0,.15);margin:6px 0}
-[data-theme="dark"] .bg-img-preview{border-color:rgba(255,255,255,.2)}
-.bg-fit-row,.bg-opacity-row{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12.5px}
-.bg-opacity-row input[type=range]{flex:1}
-.bg-opacity-val{min-width:36px;text-align:right;font-variant-numeric:tabular-nums}
 
 /* ── แถบเครื่องมือตาราง ── */
 .toolbar-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
@@ -562,17 +545,6 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 
 /* ===== Final 4: modern editor controls / resize / typography ===== */
 
-.cell-style-popover{width:300px}
-.cell-style-popover .cs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.cell-style-popover label{font-size:11px;font-weight:700;color:var(--muted)}
-.cell-style-popover input[type="number"],.cell-style-popover select{width:100%;padding:6px 8px;border:1px solid var(--line);
-  border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
-.cell-style-popover input[type="color"]{width:100%;height:34px;padding:2px;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
-.dashboard-style-popover{width:320px}
-.dashboard-style-popover .cs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.dashboard-style-popover label{font-size:11px;font-weight:700;color:var(--muted)}
-.dashboard-style-popover input[type="number"],.dashboard-style-popover input[type="color"]{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
-.dashboard-style-popover input[type="color"]{height:34px;padding:2px}
 #dashboardView.dashboard-compact .card{padding:14px;border-radius:14px}
 #dashboardView.dashboard-compact .stat-tile{padding:12px}
 #dashboardView.dashboard-compact .chart-wrap{height:250px}
@@ -673,14 +645,6 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 
 /* ===== Final 5: isolated resize zones + dashboard typography/colors ===== */
 
-.dashboard-font-preview{font-size:11px;color:var(--muted);padding:7px 9px;border:1px dashed var(--line);border-radius:8px}
-.chart-style-popover{width:min(430px,calc(100vw - 20px))}
-.chart-color-list{max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:9px;padding:5px}
-.chart-color-row{display:grid;grid-template-columns:1fr 46px;gap:8px;align-items:center;padding:5px 7px;border-bottom:1px solid var(--line)}
-.chart-color-row:last-child{border-bottom:0}
-.chart-color-row span{font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chart-color-row input[type=color]{width:42px;height:28px;padding:2px;border:1px solid var(--line);border-radius:7px;background:var(--card)}
-
 /* ===== Final 7: isolated resize handles / reliable custom picker / project target progress ===== */
 
 .widget-picker-modal{position:fixed;inset:0;z-index:2000;align-items:center;justify-content:center;padding:18px}
@@ -717,7 +681,7 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 .dashboard-shell-card h2 .card-color-btn{margin-left:0;flex:0 0 auto}
 .dashboard-shell-card h2 .widget-fullscreen{order:20}
 .dashboard-shell-card h2 .card-color-btn{order:21}
-.dashboard-shell-card h2 .chart-style-btn{order:22}
+
 .dashboard-shell-card h2 .dashboard-title-editable + .widget-fullscreen{margin-left:auto}
 .dashboard-shell .card-color-btn{width:25px;height:25px;border:1px solid var(--line);background:var(--card);border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;opacity:.72;box-shadow:0 1px 2px rgba(16,24,40,.04)}
 .dashboard-shell .card-color-btn:hover{opacity:1;background:var(--bg);border-color:#C9D0DC}
@@ -834,28 +798,10 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
   font-family:var(--ui-font-mono)!important;font-variant-numeric:tabular-nums;
 }
 /* Keep formula editor monospace */
-.fc-formula,.formula-cell input{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;}
+.formula-cell input{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;}
 
 /* Excel-like filter popup */
-.filter-popover.excel-filter{width:300px;padding:10px;border-radius:10px;}
-.excel-filter .ef-title{font-size:12px;font-weight:700;padding:3px 2px 8px;border-bottom:1px solid #EAECF0;margin-bottom:8px;}
-.excel-filter .ef-actions-top{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
-.excel-filter .ef-sort{border:0;background:transparent;padding:5px 4px;font:12px 'IBM Plex Sans',Arial,sans-serif;color:#344054;cursor:pointer;text-align:left;}
-.excel-filter .ef-sort:hover{background:#F2F4F7;border-radius:6px;}
-.excel-filter .ef-search{width:100%;height:32px;padding:6px 9px;border:1px solid #D0D5DD;border-radius:6px;font:12px 'IBM Plex Sans',Arial,sans-serif;margin-bottom:7px;}
-.excel-filter .ef-search:focus{outline:0;border-color:#98A2B3;box-shadow:0 0 0 2px rgba(37,99,235,.10);}
-.excel-filter .ef-quick{display:flex;gap:8px;margin-bottom:6px;}
-.excel-filter .ef-quick button{border:0;background:transparent;color:#175CD3;font:11px 'IBM Plex Sans',Arial,sans-serif;cursor:pointer;padding:2px 0;}
-.excel-filter .ef-list{max-height:230px;overflow:auto;border:1px solid #EAECF0;border-radius:6px;padding:2px 0;background:#fff;}
-.excel-filter .ef-item{display:flex;align-items:center;gap:7px;padding:5px 8px;font:12px 'IBM Plex Sans',Arial,sans-serif;color:#344054;white-space:nowrap;}
-.excel-filter .ef-item:hover{background:#F9FAFB;}
-.excel-filter .ef-item input{width:14px;height:14px;margin:0;accent-color:#2563EB;}
-.excel-filter .ef-footer{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:9px;margin-top:8px;border-top:1px solid #EAECF0;}
-.excel-filter .ef-footer .btn{font:12px 'IBM Plex Sans',Arial,sans-serif;padding:7px 12px;border-radius:7px;}
-.filter-popover.excel-filter{background:var(--card);border:1px solid var(--line);box-shadow:0 18px 48px rgba(16,24,40,.16)}
-.excel-filter .ef-title{color:var(--ink);}
-.excel-filter .ef-sort:hover,.excel-filter .ef-item:hover{background:var(--bg)}
-.excel-filter .ef-search:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-sf)}
+
 /* Quiet icon treatment */
 .card-color-btn,.chart-style-btn,.widget-fullscreen{color:#98A2B3!important;opacity:.48!important;background:transparent!important;}
 .card-color-btn:hover,.chart-style-btn:hover,.widget-fullscreen:hover{opacity:.9!important;color:#475467!important;background:#F2F4F7!important;}
@@ -869,7 +815,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 /* Editable dashboard title */
 .dashboard-title-editable{cursor:text;border-radius:5px;padding:1px 3px;}
 .dashboard-title-editable:hover{background:#F2F4F7;}
-@media(max-width:760px){.filter-popover.excel-filter{width:min(320px,calc(100vw - 16px));}.text-style-grid{grid-template-columns:1fr;}}
+@media(max-width:760px){.text-style-grid{grid-template-columns:1fr;}}
 
 /* Final 10 — reliable text alignment editor + screenshot-style project timeline */
 .widget-body.wb-text-rich{display:flex;flex-direction:column;gap:6px;padding:8px;min-height:0}
@@ -1024,10 +970,10 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 /* Final 22: universal white modal/popup surface and symmetric controls */
 .app-modal-host,.widget-picker-modal{align-items:center!important;justify-content:center!important;}
 .app-modal-host[style*="display:none"],.app-modal-host[style*="display: none"],.widget-picker-modal[style*="display:none"],.widget-picker-modal[style*="display: none"]{display:none!important;}
-.app-modal-host > *, .widget-picker-modal > *, .bi-command-box, .bi-drawer, .filter-popover, .fp-popover{background:#fff!important;color:#111827!important;}
+.app-modal-host > *, .widget-picker-modal > *, .bi-command-box, .bi-drawer{background:#fff!important;color:#111827!important;}
 .app-modal-host .bi-studio,.bi-studio{background:#fff!important;border:1px solid #E5E7EB!important;border-radius:16px!important;box-shadow:0 24px 70px rgba(15,23,42,.18)!important;}
 .app-modal-host .bi-studio-head,.bi-studio-foot{background:#fff!important;}
-.filter-popover,.filter-popover.excel-filter{background:#fff!important;border:1px solid #E5E7EB!important;color:#111827!important;box-shadow:0 18px 48px rgba(15,23,42,.16)!important;}
+
 .bi-command{background:rgba(15,23,42,.28)!important;backdrop-filter:blur(2px);}
 .bi-command-box{background:#fff!important;border:1px solid #E5E7EB!important;}
 .bi-command-head{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid #EEF1F4;background:#fff;}
@@ -1055,7 +1001,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 .dashboard-command-right,.widget-head-actions,.card-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;}
 .dashboard-command-right>*{flex:0 0 auto;}
 /* White compact modal fallback used by dynamic popovers */
-.tanot-modal-white{background:#fff!important;color:#111827!important;border:1px solid #E5E7EB!important;border-radius:14px!important;box-shadow:0 18px 56px rgba(15,23,42,.18)!important;}
+
 </style>
 
 <style id="final25-clean-ui">
@@ -1093,33 +1039,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 /* FINAL24: table filter row hidden. Header filter buttons only. */
 
 /* FINAL24: clean white modal */
-.final25-modal-backdrop{position:fixed;inset:0;z-index:5000;background:rgba(15,23,42,.38);display:grid;place-items:center;padding:18px}
-.final25-modal{width:min(520px,calc(100vw - 28px));max-height:min(720px,calc(100vh - 36px));background:#fff;color:#111827;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 24px 70px rgba(15,23,42,.22);display:flex;flex-direction:column;overflow:hidden}
-.final25-modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #eef0f3}
-.final25-modal-head strong{font-size:14px}
-.final25-modal-x{width:30px;height:30px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#64748b;cursor:pointer;font-size:18px;line-height:1}
-.final25-modal-x:hover{border-color:#cbd5e1;color:#111827;background:#f8fafc}
-.final25-modal-body{padding:14px 16px;overflow:auto}
-.final25-modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid #eef0f3}
-.final25-input,.final25-select{width:100%;height:36px;padding:0 10px;border:1px solid #dbe1e8;border-radius:9px;background:#fff;color:#111827;font:500 12px/1.2 inherit}
-.final25-input:focus,.final25-select:focus{outline:none;border-color:#1e9e5a;box-shadow:0 0 0 3px rgba(30,158,90,.12)}
-.final25-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.final25-field{display:flex;flex-direction:column;gap:5px;margin-bottom:11px}
-.final25-field label{font-size:11px;color:#64748b;font-weight:700}
-.final25-list{border:1px solid #e5e7eb;border-radius:10px;overflow:auto;max-height:240px}
-.final25-list-row{display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:12px;color:#111827;border-bottom:1px solid #f1f3f5}
-.final25-list-row:last-child{border-bottom:none}
-.final25-list-row:hover{background:#f8fafc}
-.final25-list-row input{accent-color:#1e9e5a}
-.final25-quick{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
-.final25-quick button{height:30px;padding:0 10px;border:1px solid #e5e7eb;background:#fff;border-radius:8px;color:#334155;font:600 11px/1 inherit;cursor:pointer}
-.final25-quick button:hover{border-color:#1e9e5a;color:#166534;background:#f0fdf4}
-.final25-summary-chip{display:inline-flex;align-items:center;gap:6px;margin:6px 6px 0 0;padding:5px 8px;border-radius:14px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;font-size:11px;font-weight:700}
-.final25-btn-primary{height:34px;padding:0 13px;border:1px solid #1e9e5a;border-radius:9px;background:#1e9e5a;color:#fff;font:700 12px/1 inherit;cursor:pointer}
-.final25-btn-primary:hover{background:#157a44;border-color:#157a44}
-.final25-btn-ghost{height:34px;padding:0 13px;border:1px solid #dbe1e8;border-radius:9px;background:#fff;color:#475569;font:700 12px/1 inherit;cursor:pointer}
-.final25-btn-ghost:hover{background:#f8fafc}
-.final25-toast{position:fixed;right:18px;bottom:18px;z-index:6000;background:#fff;border:1px solid #dbe1e8;border-radius:10px;box-shadow:0 12px 34px rgba(15,23,42,.16);padding:10px 14px;color:#1f2937;font-size:12px;font-weight:700}
+
 /* FINAL24: dashboard template/density feedback */
 #dashboardDensitySel.final25-changed,#dashboardTemplateSel.final25-changed{box-shadow:0 0 0 2px rgba(30,158,90,.16)}
 /* Keep widget utility icons subtle and aligned */
@@ -1147,12 +1067,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 .dashboard-shell table.dash-align-center th,.dashboard-shell table.dash-align-center td{text-align:center!important;}
 .dashboard-shell table.dash-align-right th,.dashboard-shell table.dash-align-right td{text-align:right!important;}
 .dashboard-shell table.dash-align-justify th,.dashboard-shell table.dash-align-justify td{text-align:justify!important;}
-.final12-style-popover{width:min(430px,calc(100vw - 24px))!important;padding:14px!important;}
-.final12-style-popover .fp-title{font-size:13px!important;margin-bottom:10px!important;}
-.final12-style-popover .cs-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;}
-.final12-style-popover .cs-grid label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;color:var(--muted);}
-.final12-style-popover .cs-grid select,.final12-style-popover .cs-grid input[type=number],.final12-style-popover .cs-grid input[type=color]{width:100%!important;height:35px!important;border:1px solid var(--line)!important;border-radius:8px!important;background:var(--bg)!important;color:var(--ink)!important;padding:5px 8px!important;}
-@media(max-width:520px){.final12-style-popover .cs-grid{grid-template-columns:1fr!important;}}
+
 /* Upload card breathing room */
 
 /* Calm card action icons: aligned in the header, small and muted. */
@@ -1161,8 +1076,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 </style>
 <style id="final12-extra">
 /* Design popovers: wider, cleaner 2-column form instead of cramped one-column text. */
-.final12-style-popover{min-width:360px!important;border-radius:14px!important;box-shadow:0 18px 50px rgba(15,23,42,.18)!important;}
-.final12-style-popover .fp-actions{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);}
+
 /* Dashboard table follows the selected text alignment, even for number columns. */
 .dashboard-shell .dashboard-shell-card table th,.dashboard-shell .dashboard-shell-card table td{transition:text-align .12s;}
 /* Calm utility icons: consistent hit area and baseline. */
@@ -1170,22 +1084,14 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 </style>
 <style id="final16-ui-fix">
 /* Final 16 — polished app dialogs/toasts and readable Dashboard widgets */
-.app-dialog-host{position:fixed;inset:0;z-index:10050;pointer-events:none;display:flex;align-items:center;justify-content:center;padding:20px}
-.app-dialog-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.38);backdrop-filter:blur(2px);pointer-events:auto}
-.app-dialog{position:relative;width:min(520px,calc(100vw - 32px));background:#fff;border:1px solid #E5E7EB;border-radius:16px;box-shadow:0 24px 70px rgba(15,23,42,.25);overflow:hidden;pointer-events:auto;font-family:'IBM Plex Sans',Arial,sans-serif}
-.app-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;border-bottom:1px solid #EEF0F3;font-size:15px;color:#172033}
-.app-dialog-body{padding:18px;font-size:13px;line-height:1.6;color:#475467}.app-dialog-body.warning{color:#8A5B00}.app-dialog-body.error{color:#B42318}.app-dialog-label{display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:700;color:#344054}
-.app-dialog-input{width:100%;height:38px;padding:0 11px;border:1px solid #D0D5DD;border-radius:9px;background:#fff;color:#101828;font:13px 'IBM Plex Sans',Arial,sans-serif;outline:none}.app-dialog-input:focus{border-color:#1E9E5A;box-shadow:0 0 0 3px rgba(30,158,90,.12)}
-.app-dialog-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid #EEF0F3;background:#FAFBFC}
-.app-toast-host{position:fixed;right:22px;bottom:22px;z-index:10060;display:flex;flex-direction:column;gap:8px;pointer-events:none}.app-toast{min-width:220px;max-width:min(380px,calc(100vw - 44px));padding:11px 14px;border-radius:11px;border:1px solid #D9E8DF;background:#F4FBF7;color:#166534;box-shadow:0 12px 30px rgba(15,23,42,.13);font:600 12px 'IBM Plex Sans',Arial,sans-serif;transition:.22s}.app-toast.warning{background:#FFF8E8;border-color:#F4D58B;color:#8A5B00}.app-toast.error{background:#FFF1F1;border-color:#F5C2C0;color:#B42318}.app-toast.hide{opacity:0;transform:translateY(6px)}
-.load-dashboard-dialog{width:min(760px,calc(100vw - 32px))!important}.load-dashboard-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:12px 18px;max-height:min(54vh,520px);overflow:auto;background:#FCFDFD}.load-dashboard-item{display:grid;grid-template-columns:auto 30px minmax(0,1fr);gap:9px;align-items:center;padding:11px 12px;border:1px solid #E7EAEE;border-radius:11px;background:#fff;cursor:pointer;transition:.14s}.load-dashboard-item:hover{border-color:#A7D7B8;background:#F7FCF9}.load-dashboard-item input{accent-color:#1E9E5A}.ldi-icon{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#F0F3F6;font-size:16px}.ldi-text{display:flex;flex-direction:column;gap:3px;min-width:0}.ldi-text b{font:700 12px 'IBM Plex Sans',Arial,sans-serif;color:#172033;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ldi-text small{font:11px 'IBM Plex Sans',Arial,sans-serif;color:#667085;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.load-select-toolbar{display:flex;align-items:center;gap:7px;padding:12px 18px;border-bottom:1px solid #EEF0F3}.load-empty-state{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;min-height:190px;padding:24px;text-align:center;color:#475467}.load-empty-icon{width:54px;height:54px;border-radius:14px;background:#F2F6F3;display:grid;place-items:center;font-size:25px;margin-bottom:4px}.load-empty-state strong{font:700 14px 'IBM Plex Sans',Arial,sans-serif;color:#172033}.load-empty-state span{font:12px 'IBM Plex Sans',Arial,sans-serif;color:#667085}
+
 .widget-picker-dialog{font-family:'IBM Plex Sans',Arial,sans-serif}.widget-picker-head h3,.widget-picker-head .mini,.widget-picker-foot,.widget-picker-item span,.widget-picker-item small{font-family:'IBM Plex Sans',Arial,sans-serif}.widget-picker-item{font-family:'IBM Plex Sans',Arial,sans-serif}.custom-dashboard-shell .grid-stack-item-content{font-family:'IBM Plex Sans',Arial,sans-serif}.custom-dashboard-shell .widget-body.wb-kpi{align-items:var(--kpi-align,flex-start);text-align:var(--widget-align,left)}
 .dashboard-shell .stat-tile{position:relative}.dashboard-shell .stat-tile .lbl,.dashboard-shell .stat-tile .val,.dashboard-shell .stat-tile .sub{display:block;width:100%;text-align:inherit}.dashboard-shell .stat-tile .val{font-variant-numeric:tabular-nums}
 .dashboard-shell .dashboard-shell-card h2 .widget-fullscreen,.dashboard-shell .dashboard-shell-card h2 .card-color-btn,.dashboard-shell .dashboard-shell-card h2 .chart-style-btn{margin-left:6px;vertical-align:middle}
-@media(max-width:760px){.load-dashboard-list{grid-template-columns:1fr}.app-dialog-host{padding:12px}}
+
 </style>
 <style id="final23-ui">
-.icon-only{width:34px!important;min-width:34px!important;padding:0!important;display:inline-flex!important;align-items:center;justify-content:center;font-size:17px!important;}
+
 .custom-tools-bar{display:flex;align-items:center;gap:8px;}
 .custom-command-btn{margin-left:auto;}
 .dashboard-command-right{display:flex;align-items:center;justify-content:flex-end;gap:7px;}
@@ -1197,17 +1103,15 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
     background:#fff!important;color:#172033!important;border:1px solid #e2e8f0!important;
     border-radius:16px!important;box-shadow:0 24px 70px rgba(15,23,42,.20)!important;
   }
-  .final26-auto-toast{position:fixed;right:20px;bottom:20px;z-index:7000;background:#fff;border:1px solid #dce4ec;border-left:4px solid #1e9e5a;border-radius:12px;padding:11px 14px;box-shadow:0 14px 40px rgba(15,23,42,.16);font:700 12px/1.45 'IBM Plex Sans',Arial,sans-serif;color:#243142}
-  .final26-help-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  .final26-help-item{border:1px solid #e2e8f0;border-radius:12px;padding:12px;background:#fbfcfe}
-  .final26-help-item b{display:block;font-size:13px;margin-bottom:4px}
-  .final26-help-item span{font-size:11.5px;color:#667085}
+
+  
+
   #dashboardReportTitle,#dashboardReportMeta{text-align:center!important}
-  @media(max-width:700px){.final26-help-grid{grid-template-columns:1fr}}
+  
 </style>
 
 <style id="final27-ui">
-.final27-toast{position:fixed;right:22px;bottom:22px;z-index:10000;background:#fff;border:1px solid #D9DEE8;color:#111827;border-radius:12px;box-shadow:0 12px 32px rgba(16,24,40,.16);padding:11px 15px;font:600 13px 'IBM Plex Sans',Arial,sans-serif;max-width:360px}.final27-toast.error{border-color:#F1B7B9}.final27-confirm-message{font:400 14px/1.6 'IBM Plex Sans',Arial,sans-serif;color:#334155}.final27-choice-list{display:grid;gap:8px}.final27-choice{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid #E5E7EB;border-radius:10px;background:#fff;cursor:pointer}.final27-choice:hover{background:#F8FAFC}.final27-choice-list input{accent-color:#1E9E5A}
+
 /* unified clean Dashboard control spacing */
 .dashboard-toolbar,.custom-tools-bar{align-items:center!important;gap:8px!important}.dashboard-toolbar .btn,.custom-tools-bar .btn{min-height:34px!important}.widget-head .widget-actions{display:flex!important;align-items:center!important;gap:4px!important}
 </style>
@@ -1227,7 +1131,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 .custom-tools-panel .utility-menu-item{width:100%;justify-content:flex-start;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 12px;margin:4px 0;font:700 13px 'IBM Plex Sans',Arial,sans-serif;cursor:pointer}
 .custom-tools-panel .utility-menu-item:hover{border-color:var(--brand);background:var(--brand-sf);color:var(--brand-dk)}
 .custom-tools-overlay{position:fixed;inset:0;background:rgba(15,23,42,.28);z-index:10030}
-.command-modal-backdrop{z-index:10020!important}
+
 #dashboardCommandBar{min-height:76px}
 .dashboard-command-left{min-width:280px;flex:1 1 320px;text-align:center}
 .dashboard-command-left .dashboard-report-meta{text-align:center}
@@ -1546,7 +1450,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
         <button class="btn sm" id="dashboardFullBtn" type="button">⛶ Fullscreen</button>
       </div>
     </div>
-    <button id="quickStartBtn" type="button" style="display:none">Quick Start</button><div id="utilityMenuPanel" class="utility-menu-panel" hidden>
+    <div id="utilityMenuPanel" class="utility-menu-panel" hidden>
       <div class="utility-menu-head"><strong>Dashboard Tools</strong><button type="button" class="utility-menu-close" id="utilityMenuClose">×</button></div>
       <div class="utility-menu-section">
         <button class="utility-menu-item" data-trigger="presentationBtn">▣ Presentation</button>
@@ -1569,7 +1473,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
         <button class="utility-menu-item" data-trigger="exportPdfBtn">▤ Save as PDF</button>
         <button class="utility-menu-item" data-trigger="exportHtmlBtn">▥ Save as HTML</button>
         <button class="utility-menu-item" data-trigger="printBtn">⎙ Print</button>
-        <button class="utility-menu-item" data-trigger="quickStartBtn">❔ Quick Start</button><button class="utility-menu-item" data-trigger="autoSummaryBtn">✎ Auto Summary</button>
+        <button class="utility-menu-item" data-trigger="autoSummaryBtn">✎ Auto Summary</button>
       </div>
     </div>
     <div id="dashboardNav">
@@ -1907,28 +1811,20 @@ else init();
 (function(){
 'use strict';
 function q(s,r){return (r||document).querySelector(s)}
+function $(id){return document.getElementById(id)}
+var escapeAttr=esc,escapeHtml=esc;
+function openPopover(){var A_=window.TanotDashboard||{};return A_.openPopover&&A_.openPopover.apply(null,arguments)}
+function openCondFormatPopover(){var A_=window.TanotDashboard||{};return A_.openCondFormatPopover&&A_.openCondFormatPopover.apply(null,arguments)}
+function renderCellSelOverlay(){var A_=window.TanotDashboard||{};return A_.renderCellSelOverlay&&A_.renderCellSelOverlay()}
 function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})}
 function S(){return window.TanotDashboard && window.TanotDashboard.getState ? window.TanotDashboard.getState() : null}
 function A(){return window.TanotDashboard||{}}
-function toast(msg){var old=q('.final25-toast');if(old)old.remove();var d=document.createElement('div');d.className='final25-toast';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},1800)}
+function toast(msg,kind){window.TanotReportUtils.toast(msg,kind)}
 function rerender(view){try{if(view==='custom'&&A().renderCustomView) A().renderCustomView(); else if(view==='dashboard'&&A().renderDashboard) A().renderDashboard(); else if(A().renderTable) A().renderTable();}catch(e){console.error(e)}}
 
-/* ---------- popup helper ---------- */
-function modal(title, bodyHTML, footerHTML){
-  var bd=document.createElement('div');bd.className='final25-modal-backdrop';
-  bd.innerHTML='<div class="final25-modal" role="dialog" aria-modal="true"><div class="final25-modal-head"><strong>'+esc(title)+'</strong><button type="button" class="final25-modal-x" aria-label="Close">×</button></div><div class="final25-modal-body">'+bodyHTML+'</div><div class="final25-modal-foot">'+(footerHTML||'<button type="button" class="final25-btn-ghost" data-cancel>Cancel</button>')+'</div></div>';
-  document.body.appendChild(bd);
-  function close(){bd.remove();document.removeEventListener('keydown',onKey)}
-  function onKey(e){if(e.key==='Escape')close()}
-  bd.addEventListener('mousedown',function(e){if(e.target===bd)close()});
-  bd.querySelector('.final25-modal-x').addEventListener('click',close);
-  var c=bd.querySelector('[data-cancel]');if(c)c.addEventListener('click',close);
-  document.addEventListener('keydown',onKey);
-  var api={el:bd,close:close,body:bd.querySelector('.final25-modal-body')};
-  window.__tanotModal=modal;
-  return api;
-}
+/* ---------- popup helper (กล่องโต้ตอบกลางอยู่ใน report-dashboard.utils.final43.js) ---------- */
+function modal(title, bodyHTML, footerHTML){return window.TanotReportUtils.modal(title, bodyHTML, footerHTML)}
 window.__tanotModal=modal;
 
 /* ---------- dashboard filters: one popup, no inline filter controls ---------- */
@@ -1957,19 +1853,19 @@ function dashboardFilterDialog(){
     var vals=new Set(st.rows.map(function(r){var v=r[c.key];return v==null?'':String(v)}));
     return vals.size>1 && vals.size<=80;
   }).slice(0,6);
-  var body='<div class="final25-field"><label>Date Column</label><select class="final25-select" id="f24DateCol"><option value="">None</option>'+
+  var body='<div class="field"><label>Date Column</label><select class="select" id="f24DateCol"><option value="">None</option>'+
     dateCols.map(function(c){return '<option value="'+esc(c.key)+'"'+(st.dashboardDateCol===c.key?' selected':'')+'>'+esc(c.label)+'</option>'}).join('')+
     '</select></div>'+
-    '<div class="final25-grid2"><div class="final25-field"><label>From</label><input class="final25-input" id="f24From" type="date" value="'+esc(validHtmlDate(st.dashboardDateFrom))+'"></div>'+
-    '<div class="final25-field"><label>To</label><input class="final25-input" id="f24To" type="date" value="'+esc(validHtmlDate(st.dashboardDateTo))+'"></div></div>';
-  if(dateCols.length)body+='<div class="final25-quick"><button type="button" data-q="month">This Month</button><button type="button" data-q="lastMonth">Last Month</button><button type="button" data-q="ytd">YTD</button><button type="button" data-q="all">All Time</button></div>';
+    '<div class="rd-grid2"><div class="field"><label>From</label><input class="input" id="f24From" type="date" value="'+esc(validHtmlDate(st.dashboardDateFrom))+'"></div>'+
+    '<div class="field"><label>To</label><input class="input" id="f24To" type="date" value="'+esc(validHtmlDate(st.dashboardDateTo))+'"></div></div>';
+  if(dateCols.length)body+='<div class="rd-quick"><button type="button" data-q="month">This Month</button><button type="button" data-q="lastMonth">Last Month</button><button type="button" data-q="ytd">YTD</button><button type="button" data-q="all">All Time</button></div>';
   cats.forEach(function(c){
     var selected=(st.dashboardFilters[c.key]||[]); var vals=Array.from(new Set(st.rows.map(function(r){var v=r[c.key];return v==null?'':String(v)})));
-    body+='<div class="final25-field"><label>'+esc(c.label)+'</label><div class="final25-list" data-f24-col="'+esc(c.key)+'">'+
-      vals.map(function(v){return '<label class="final25-list-row"><input type="checkbox" value="'+esc(v)+'"'+(selected.indexOf(v)>=0?' checked':'')+'><span>'+esc(v||'(blank)')+'</span></label>'}).join('')+
+    body+='<div class="field"><label>'+esc(c.label)+'</label><div class="rd-check-list" data-f24-col="'+esc(c.key)+'">'+
+      vals.map(function(v){return '<label class="rd-check-row"><input type="checkbox" value="'+esc(v)+'"'+(selected.indexOf(v)>=0?' checked':'')+'><span>'+esc(v||'(blank)')+'</span></label>'}).join('')+
       '</div></div>';
   });
-  var ui=modal('Dashboard Filters',body,'<button type="button" class="final25-btn-ghost" data-reset>Reset</button><button type="button" class="final25-btn-ghost" data-cancel>Cancel</button><button type="button" class="final25-btn-primary" data-apply>Apply</button>');
+  var ui=modal('Dashboard Filters',body,'<button type="button" class="btn" data-reset>Reset</button><button type="button" class="btn" data-cancel>Cancel</button><button type="button" class="btn primary" data-apply>Apply</button>');
   qa('[data-q]',ui.body).forEach(function(b){b.addEventListener('click',function(){
     var st2=S(); var now=new Date(); var y=now.getFullYear(),m=now.getMonth();
     var f='',t='';
@@ -1999,18 +1895,18 @@ function mainTableFilter(key,anchor){
   var f=st.filters[key]||{}; var isRange=col.type==='number'||col.type==='date';
   var vals=uniqueVals(key).slice(0,500);
   var selectedSet=new Set(Array.isArray(f)?f:(f&&f.values?f.values:[]));
-  var body='<div class="final25-field"><label>Search</label><input class="final25-input f24-filter-search" type="search" placeholder="Search values..." autocomplete="off"></div>';
+  var body='<div class="field"><label>Search</label><input class="input f24-filter-search" type="search" placeholder="Search values..." autocomplete="off"></div>';
   if(isRange){
     var minVal = f && typeof f === 'object' ? String(f.min||'') : '';
     var maxVal = f && typeof f === 'object' ? String(f.max||'') : '';
-    body+='<div class="final25-grid2"><div class="final25-field"><label>Minimum</label><input class="final25-input f24-filter-min" type="'+(col.type==='date'?'date':'number')+'" value="'+esc(col.type==='date'?validHtmlDate(minVal):minVal)+'"></div><div class="final25-field"><label>Maximum</label><input class="final25-input f24-filter-max" type="'+(col.type==='date'?'date':'number')+'" value="'+esc(col.type==='date'?validHtmlDate(maxVal):maxVal)+'"></div></div>';
+    body+='<div class="rd-grid2"><div class="field"><label>Minimum</label><input class="input f24-filter-min" type="'+(col.type==='date'?'date':'number')+'" value="'+esc(col.type==='date'?validHtmlDate(minVal):minVal)+'"></div><div class="field"><label>Maximum</label><input class="input f24-filter-max" type="'+(col.type==='date'?'date':'number')+'" value="'+esc(col.type==='date'?validHtmlDate(maxVal):maxVal)+'"></div></div>';
   }
-  body+='<div class="final25-quick"><button type="button" data-select="all">Select all</button><button type="button" data-select="none">Clear</button><button type="button" data-select="nonblank">Non-blank</button></div>'+
-    '<div class="final25-list f24-value-list">'+vals.map(function(v){var sv=v==null?'':String(v);return '<label class="final25-list-row"><input type="checkbox" value="'+esc(sv)+'"'+(selectedSet.has(sv)?' checked':'')+'><span>'+esc(sv||'(blank)')+'</span></label>'}).join('')+'</div>';
-  var ui=modal('Filter · '+col.label,body,'<button type="button" class="final25-btn-ghost" data-clear>Clear filter</button><button type="button" class="final25-btn-ghost" data-cancel>Cancel</button><button type="button" class="final25-btn-primary" data-apply>Apply</button>');
+  body+='<div class="rd-quick"><button type="button" data-select="all">Select all</button><button type="button" data-select="none">Clear</button><button type="button" data-select="nonblank">Non-blank</button></div>'+
+    '<div class="rd-check-list f24-value-list">'+vals.map(function(v){var sv=v==null?'':String(v);return '<label class="rd-check-row"><input type="checkbox" value="'+esc(sv)+'"'+(selectedSet.has(sv)?' checked':'')+'><span>'+esc(sv||'(blank)')+'</span></label>'}).join('')+'</div>';
+  var ui=modal('Filter · '+col.label,body,'<button type="button" class="btn" data-clear>Clear filter</button><button type="button" class="btn" data-cancel>Cancel</button><button type="button" class="btn primary" data-apply>Apply</button>');
   if(!ui||!ui.body){return;}
   var inp=ui.body.querySelector('.f24-filter-search');
-  if(inp)inp.addEventListener('input',function(){var needle=String(inp.value||'').toLowerCase();qa('.final25-list-row',ui.body).forEach(function(r){r.style.display=(r.textContent||'').toLowerCase().indexOf(needle)>=0?'flex':'none'})});
+  if(inp)inp.addEventListener('input',function(){var needle=String(inp.value||'').toLowerCase();qa('.rd-check-row',ui.body).forEach(function(r){r.style.display=(r.textContent||'').toLowerCase().indexOf(needle)>=0?'flex':'none'})});
   qa('[data-select]',ui.body).forEach(function(b){b.addEventListener('click',function(){var checks=qa('.f24-value-list input[type=checkbox]',ui.body);var mode=b.getAttribute('data-select');if(mode==='all')checks.forEach(function(c){c.checked=true});else if(mode==='none')checks.forEach(function(c){c.checked=false});else checks.forEach(function(c){c.checked=c.value!==''})})});
   var clear=q('[data-clear]',ui.body); if(clear)clear.addEventListener('click',function(){if(st.filters)delete st.filters[key];st.page=1;persist();ui.close();rerender('table')});
   var apply=q('[data-apply]',ui.body); if(apply)apply.addEventListener('click',function(){
@@ -2127,15 +2023,15 @@ function saveDashboardView(){
 }
 function openSavedViews(){
   var st=S();if(!st)return;var list=st.savedViews||JSON.parse(localStorage.getItem('tanot:dashboardViews:'+st.fileName)||'[]');
-  var body=list.length?'<div class="final25-list">'+list.map(function(v,i){return '<div class="final25-list-row"><button type="button" data-load-view="'+i+'" class="final25-btn-ghost" style="flex:1;text-align:left">'+esc(v.name)+'</button><button type="button" data-del-view="'+i+'" class="final25-btn-ghost">Delete</button></div>'}).join('')+'</div>':'<p class="mini">No saved views yet.</p>';
-  var ui=modal('Saved Views',body,'<button type="button" class="final25-btn-ghost" data-cancel>Close</button>');
+  var body=list.length?'<div class="rd-check-list">'+list.map(function(v,i){return '<div class="rd-check-row"><button type="button" data-load-view="'+i+'" class="btn" style="flex:1;text-align:left">'+esc(v.name)+'</button><button type="button" data-del-view="'+i+'" class="btn">Delete</button></div>'}).join('')+'</div>':'<p class="mini">No saved views yet.</p>';
+  var ui=modal('Saved Views',body,'<button type="button" class="btn" data-cancel>Close</button>');
   qa('[data-load-view]',ui.body).forEach(function(b){b.addEventListener('click',function(){var v=list[+b.getAttribute('data-load-view')];if(!v)return;st.dashboardFilters=v.filters||{};st.dashboardDateCol=v.dateCol||null;st.dashboardDateFrom=v.from||'';st.dashboardDateTo=v.to||'';st.dashboardViewMode=v.mode||'executive';persist();ui.close();rerender('dashboard')})});
   qa('[data-del-view]',ui.body).forEach(function(b){b.addEventListener('click',function(){list.splice(+b.getAttribute('data-del-view'),1);st.savedViews=list;try{localStorage.setItem('tanot:dashboardViews:'+st.fileName,JSON.stringify(list))}catch(e){}ui.close();openSavedViews()})});
 }
 function openShareReadonly(){
   var link=location.href.replace(/[#?].*$/,'')+'#readonly';
-  var body='<div class="final25-field"><label>Read-only link</label><input class="final25-input" id="f24ShareLink" readonly value="'+esc(link)+'"></div><p class="mini">The link opens this page in read-only presentation mode.</p>';
-  var ui=modal('Share Read-only',body,'<button type="button" class="final25-btn-ghost" data-cancel>Close</button><button type="button" class="final25-btn-primary" data-copy>Copy link</button>');
+  var body='<div class="field"><label>Read-only link</label><input class="input" id="f24ShareLink" readonly value="'+esc(link)+'"></div>';
+  var ui=modal('Share Read-only',body,'<button type="button" class="btn" data-cancel>Close</button><button type="button" class="btn primary" data-copy>Copy link</button>');
   q('[data-copy]',ui.body).addEventListener('click',function(){var inp=q('#f24ShareLink',ui.body);inp.select();navigator.clipboard?.writeText(inp.value).catch(function(){});toast('Link copied');})
 }
 function toggleAutoRefresh(){
@@ -2146,14 +2042,14 @@ function openVersions(){
   var st=S();if(!st)return;var key='tanot:versions:'+st.fileName, list=[];try{list=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
   list.unshift({at:new Date().toISOString(),rows:st.rows.length,columns:st.columns.length,filters:st.dashboardFilters||{}});
   list=list.slice(0,10);try{localStorage.setItem(key,JSON.stringify(list))}catch(e){}
-  var body='<div class="final25-list">'+list.map(function(v,i){return '<div class="final25-list-row"><span style="flex:1">'+esc(new Date(v.at).toLocaleString())+'</span><span>'+v.rows+' rows · '+v.columns+' cols</span></div>'}).join('')+'</div>';
-  modal('Versions',body,'<button type="button" class="final25-btn-ghost" data-cancel>Close</button>');
+  var body='<div class="rd-check-list">'+list.map(function(v,i){return '<div class="rd-check-row"><span style="flex:1">'+esc(new Date(v.at).toLocaleString())+'</span><span>'+v.rows+' rows · '+v.columns+' cols</span></div>'}).join('')+'</div>';
+  modal('Versions',body,'<button type="button" class="btn" data-cancel>Close</button>');
 }
 function openAudit(){
   var st=S();if(!st)return;var key='tanot:audit:'+st.fileName,list=[];try{list=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
   list.unshift({at:new Date().toISOString(),action:'Dashboard opened / tool interaction'});list=list.slice(0,30);try{localStorage.setItem(key,JSON.stringify(list))}catch(e){}
-  var body='<div class="final25-list">'+list.slice(0,20).map(function(v){return '<div class="final25-list-row"><span>'+esc(new Date(v.at).toLocaleString())+'</span><span>'+esc(v.action)+'</span></div>'}).join('')+'</div>';
-  modal('Audit Log',body,'<button type="button" class="final25-btn-ghost" data-cancel>Close</button>');
+  var body='<div class="rd-check-list">'+list.slice(0,20).map(function(v){return '<div class="rd-check-row"><span>'+esc(new Date(v.at).toLocaleString())+'</span><span>'+esc(v.action)+'</span></div>'}).join('')+'</div>';
+  modal('Audit Log',body,'<button type="button" class="btn" data-cancel>Close</button>');
 }
 function wireUtilityMenu(){
   var trigger=q('#utilityHamburgerBtn'),panel=q('#utilityMenuPanel'),close=q('#utilityMenuClose');
@@ -2216,16 +2112,16 @@ function colorColKey(st,col){return (st.fileName||'__unsaved__')+'|'+col}
 function selectedBounds(){var st=S(),sel=st&&st.cellSel,table=q('#dataTable');if(!st||!sel||!table)return null;var rows=qa('tbody tr[data-id]',table),ids=rows.map(function(r){return +r.getAttribute('data-id')});var a=ids.indexOf(+sel.id0),b=ids.indexOf(+sel.id1);if(a<0||b<0)return null;var keys=st.columns.map(function(c){return c.key}),c0=keys.indexOf(sel.col0),c1=keys.indexOf(sel.col1);if(c0<0||c1<0)return null;return{rMin:Math.min(a,b),rMax:Math.max(a,b),cMin:Math.min(c0,c1),cMax:Math.max(c0,c1),rowIds:ids,colKeys:keys}}
 function applyTableRowColColors(){var st=S();if(!st)return;var table=q('#dataTable');if(!table)return;var rp=getRowColorPrefs(),cp=getColColorPrefs(),p=getCellPrefs();qa('tbody tr[data-id]',table).forEach(function(tr){var id=tr.getAttribute('data-id'),rs=rp[colorRowKey(st,id)]||{};qa('td[data-col]',tr).forEach(function(td){var col=td.getAttribute('data-col'),cs=cp[colorColKey(st,col)]||{},cell=p[cellPrefKey(st,id,col)]||{};var bg=cell.background||rs.background||cs.background,fg=cell.color||rs.color||cs.color;if(bg)td.style.backgroundColor=bg;else td.style.removeProperty('background-color');if(fg)td.style.color=fg;else td.style.removeProperty('color');var inp=td.querySelector('input.cell-in');if(inp){if(fg)inp.style.color=fg;else inp.style.removeProperty('color')}})})}
 function applyScopedTableColors(scope,bg,fg){var st=S(),b=selectedBounds();if(!st||!b){toast('Select a cell, row, or column first');return false}var rp=getRowColorPrefs(),cp=getColColorPrefs(),p=getCellPrefs(),cells=getVisibleSelection();if(scope==='cell'){cells.forEach(function(td){var k=cellPrefKey(st,td.getAttribute('data-id'),td.getAttribute('data-col')),cur=p[k]||{};if(bg)cur.background=bg;if(fg)cur.color=fg;p[k]=cur});saveCellPrefs(p)}else if(scope==='row'){for(var r=b.rMin;r<=b.rMax;r++){var rk=colorRowKey(st,b.rowIds[r]),rc=rp[rk]||{};if(bg)rc.background=bg;if(fg)rc.color=fg;rp[rk]=rc}saveRowColorPrefs(rp)}else{for(var c=b.cMin;c<=b.cMax;c++){var ck=colorColKey(st,b.colKeys[c]),cc=cp[ck]||{};if(bg)cc.background=bg;if(fg)cc.color=fg;cp[ck]=cc}saveColColorPrefs(cp)}applyTableRowColColors();renderCellSelOverlay();persistDebounced();toast('Color applied');return true}
-function openTableColorPopover(anchorEl){var b=selectedBounds();if(!b){toast('Select a cell, row, or column first');return}var html='<div class="table-color-popover"><div class="fp-title">Cell / Row / Column Color</div><div class="scope-row"><button type="button" class="scope-btn on" data-scope="cell">Cell</button><button type="button" class="scope-btn" data-scope="row">Row</button><button type="button" class="scope-btn" data-scope="col">Column</button></div><div class="scope-note">เลือกขอบเขตที่ต้องการ แล้วเลือกสีพื้นหลัง/สีตัวอักษร จากนั้นกด Apply</div><div class="color-row"><label class="color-field"><span>Background</span><input type="color" class="tbl-bg" value="#FFFFFF"></label><label class="color-field"><span>Text</span><input type="color" class="tbl-fg" value="#111827"></label></div><div class="fp-actions"><button type="button" class="btn sm ghost tbl-reset">Reset</button><div class="fp-btns"><button type="button" class="btn sm ghost tbl-cancel">Cancel</button><button type="button" class="btn sm tbl-apply">Apply</button></div></div></div>';openPopover(html,anchorEl,function(el,close){[].forEach.call(el.querySelectorAll('.scope-btn'),function(btn){btn.addEventListener('click',function(){[].forEach.call(el.querySelectorAll('.scope-btn'),function(x){x.classList.remove('on')});btn.classList.add('on')})});el.querySelector('.tbl-apply').addEventListener('click',function(){applyScopedTableColors(el.querySelector('.scope-btn.on').getAttribute('data-scope'),el.querySelector('.tbl-bg').value,el.querySelector('.tbl-fg').value);close()});el.querySelector('.tbl-cancel').addEventListener('click',close);el.querySelector('.tbl-reset').addEventListener('click',function(){var sc=el.querySelector('.scope-btn.on').getAttribute('data-scope'),st=S(),bb=selectedBounds(),rp=getRowColorPrefs(),cp=getColColorPrefs(),p=getCellPrefs();if(!st||!bb)return;if(sc==='cell'){getVisibleSelection().forEach(function(td){delete p[cellPrefKey(st,td.getAttribute('data-id'),td.getAttribute('data-col'))]});saveCellPrefs(p)}else if(sc==='row'){for(var r=bb.rMin;r<=bb.rMax;r++)delete rp[colorRowKey(st,bb.rowIds[r])];saveRowColorPrefs(rp)}else{for(var c=bb.cMin;c<=bb.cMax;c++)delete cp[colorColKey(st,bb.colKeys[c])];saveColColorPrefs(cp)}applyTableRowColColors();renderCellSelOverlay();toast('Color reset');close()})})}
+function openTableColorPopover(anchorEl){var b=selectedBounds();if(!b){toast('Select a cell, row, or column first');return}var html='<div class="table-color-popover"><div class="fp-title">Cell / Row / Column Color</div><div class="scope-row"><button type="button" class="scope-btn on" data-scope="cell">Cell</button><button type="button" class="scope-btn" data-scope="row">Row</button><button type="button" class="scope-btn" data-scope="col">Column</button></div><div class="color-row"><label class="color-field"><span>Background</span><input type="color" class="tbl-bg" value="#FFFFFF"></label><label class="color-field"><span>Text</span><input type="color" class="tbl-fg" value="#111827"></label></div><div class="fp-actions"><button type="button" class="btn sm ghost tbl-reset">Reset</button><div class="fp-btns"><button type="button" class="btn sm ghost tbl-cancel">Cancel</button><button type="button" class="btn sm tbl-apply">Apply</button></div></div></div>';openPopover(html,anchorEl,function(el,close){[].forEach.call(el.querySelectorAll('.scope-btn'),function(btn){btn.addEventListener('click',function(){[].forEach.call(el.querySelectorAll('.scope-btn'),function(x){x.classList.remove('on')});btn.classList.add('on')})});el.querySelector('.tbl-apply').addEventListener('click',function(){applyScopedTableColors(el.querySelector('.scope-btn.on').getAttribute('data-scope'),el.querySelector('.tbl-bg').value,el.querySelector('.tbl-fg').value);close()});el.querySelector('.tbl-cancel').addEventListener('click',close);el.querySelector('.tbl-reset').addEventListener('click',function(){var sc=el.querySelector('.scope-btn.on').getAttribute('data-scope'),st=S(),bb=selectedBounds(),rp=getRowColorPrefs(),cp=getColColorPrefs(),p=getCellPrefs();if(!st||!bb)return;if(sc==='cell'){getVisibleSelection().forEach(function(td){delete p[cellPrefKey(st,td.getAttribute('data-id'),td.getAttribute('data-col'))]});saveCellPrefs(p)}else if(sc==='row'){for(var r=bb.rMin;r<=bb.rMax;r++)delete rp[colorRowKey(st,bb.rowIds[r])];saveRowColorPrefs(rp)}else{for(var c=bb.cMin;c<=bb.cMax;c++)delete cp[colorColKey(st,bb.colKeys[c])];saveColColorPrefs(cp)}applyTableRowColColors();renderCellSelOverlay();toast('Color reset');close()})})}
 function openCondFormatColumnPicker(anchorEl){var st=S();if(!st||!st.columns.length)return;var html='<div class="fp-title">Conditional formatting — choose column</div><div class="fp-list">'+st.columns.map(function(c){return '<button type="button" class="fp-item" data-col="'+escapeAttr(c.key)+'"><span>'+escapeHtml(c.label)+'</span></button>'}).join('')+'</div><div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm ghost" data-close>Cancel</button></div></div>';openPopover(html,anchorEl,function(el,close){[].forEach.call(el.querySelectorAll('[data-col]'),function(btn){btn.addEventListener('click',function(){var c=st.columns.filter(function(x){return x.key===btn.getAttribute('data-col')})[0];if(c){close();setTimeout(function(){openCondFormatPopover(c,anchorEl)},0)}})});el.querySelector('[data-close]').addEventListener('click',close)})}
 function openStyleModal(){
-  var body='<div class="final25-grid2">'+
-    '<div class="final25-field"><label>Font</label><select id="f24font" class="final25-select"><option>Arial</option><option>Calibri</option><option>Calibri Light</option><option>Tahoma</option><option>Times New Roman</option><option>TH Sarabun New</option><option>Angsana New</option><option>Cordia New</option></select></div>'+
-    '<div class="final25-field"><label>Font size</label><input id="f24fs" class="final25-input" type="number" min="8" max="48" value="13"></div>'+
+  var body='<div class="rd-grid2">'+
+    '<div class="field"><label>Font</label><select id="f24font" class="select"><option>Arial</option><option>Calibri</option><option>Calibri Light</option><option>Tahoma</option><option>Times New Roman</option><option>TH Sarabun New</option><option>Angsana New</option><option>Cordia New</option></select></div>'+
+    '<div class="field"><label>Font size</label><input id="f24fs" class="input" type="number" min="8" max="48" value="13"></div>'+
     '</div>'+
-    '<div class="final25-grid2"><div class="final25-field"><label>Text color</label><input id="f24fc" class="final25-input" type="color" value="#111827"></div><div class="final25-field"><label>Background</label><input id="f24bgc" class="final25-input" type="color" value="#ffffff"></div></div>'+
-    '<div class="final25-field"><label>Alignment</label><select id="f24align" class="final25-select"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option><option value="justify">Justify</option></select></div>';
-  var ui=modal('Cell / Selection Style',body,'<button type="button" class="final25-btn-ghost" data-cancel>Cancel</button><button type="button" class="final25-btn-primary" data-apply>Apply</button>');
+    '<div class="rd-grid2"><div class="field"><label>Text color</label><input id="f24fc" class="input" type="color" value="#111827"></div><div class="field"><label>Background</label><input id="f24bgc" class="input" type="color" value="#ffffff"></div></div>'+
+    '<div class="field"><label>Alignment</label><select id="f24align" class="select"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option><option value="justify">Justify</option></select></div>';
+  var ui=modal('Cell / Selection Style',body,'<button type="button" class="btn" data-cancel>Cancel</button><button type="button" class="btn primary" data-apply>Apply</button>');
   q('[data-apply]',ui.body).addEventListener('click',function(){styleSelection({fontFamily:q('#f24font',ui.body).value,fontSize:+q('#f24fs',ui.body).value,color:q('#f24fc',ui.body).value,background:q('#f24bgc',ui.body).value,textAlign:q('#f24align',ui.body).value});ui.close()});
 }
 function autoFitColumns(){
@@ -2389,20 +2285,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       lab.setAttribute('for','fileInput'); lab.className='btn primary'; lab.textContent='เลือกไฟล์';
       zone.appendChild(lab);
     }
-    ['dragenter','dragover'].forEach(function(ev){zone.addEventListener(ev,function(e){e.preventDefault();e.stopPropagation();zone.classList.add('drag');},{passive:false})});
-    ['dragleave','drop'].forEach(function(ev){zone.addEventListener(ev,function(e){e.preventDefault();e.stopPropagation();zone.classList.remove('drag')},{passive:false})});
-    zone.addEventListener('drop',function(e){
-      var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
-      if(f && typeof window.handleFile==='function') window.handleFile(f);
-    });
   }
 
   function installModalGuard(){
-    // Every application modal must be white, closable, and keyboard accessible.
-    qa('.app-modal-host,.filter-popover,.utility-menu-panel,.custom-tools-panel').forEach(function(el){
-      el.style.setProperty('background','#fff','important');
-      el.style.setProperty('color','#111827','important');
-    });
+    // ปุ่ม Esc ปิดป๊อปโอเวอร์/แผงเครื่องมือที่เปิดอยู่
     document.addEventListener('keydown',function(e){
       if(e.key!=='Escape')return;
       qa('.app-modal-host:not([hidden]),.filter-popover,.utility-menu-panel,.custom-tools-panel').forEach(function(el){

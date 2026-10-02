@@ -14,15 +14,7 @@
   'use strict';
 
   var $ = function (id) { return document.getElementById(id); };
-  function showUiNotice(message, type) {
-    type = type || 'info';
-    var old = document.getElementById('tanotUiNotice');
-    if (old) old.remove();
-    var el = document.createElement('div');
-    el.id = 'tanotUiNotice';
-    el.style.cssText='position:fixed;right:20px;bottom:20px;z-index:11000;background:#fff;color:#111827;border:1px solid #E5E7EB;border-left:4px solid'+(type==='error'?'#DC2626':type==='success'?'#16A34A':'#2563EB')+';border-radius:10px;box-shadow:0 14px 40px rgba(15,23,42,.16);padding:11px 14px;max-width:360px;font:600 12px/1.5 Arial,sans-serif;';
-    el.textContent=String(message||''); document.body.appendChild(el); setTimeout(function(){if(el.parentNode)el.remove();},2600);
-  }
+  function showUiNotice(message, type) { window.TanotReportUtils.toast(String(message || ''), type); }
 
 
   var PAGE_SIZE = 50;
@@ -78,7 +70,7 @@
       resumeTitle: 'พบข้อมูลที่ทำค้างไว้', resumeBtn: 'ดำเนินการต่อ', discardBtn: 'เริ่มใหม่',
       resumeInfo: '{name} · {n} แถว · บันทึกไว้เมื่อ {date}', resumeFallbackName: 'ไฟล์ที่แล้ว',
       reportsTitle: 'รายงานของฉัน', reportsMeta: '{n} รายงาน',
-      reportRowMeta: '{n} แถว · บันทึกล่าสุด {time}', openBtn: 'เปิด', renameBtn: 'เปลี่ยนชื่อ', deleteBtn: 'ลบ',
+      reportRowMeta: '{n} แถว · บันทึกล่าสุด {time}', confirmTitle: 'ยืนยัน', openBtn: 'เปิด', renameBtn: 'เปลี่ยนชื่อ', deleteBtn: 'ลบ',
       deleteReportConfirm: 'ลบรายงาน "{name}" ถาวร (กู้คืนไม่ได้)?', renameReportPrompt: 'เปลี่ยนชื่อรายงาน:',
       saveAsReportPrompt: 'ตั้งชื่อรายงานนี้:', reportDefaultBase: 'รายงาน',
       sheetTitle: 'เลือกชีต',
@@ -88,14 +80,12 @@
       confirmHeaderBtn: 'ใช้แถวนี้เป็นหัวตาราง',
       dataTitle: 'ข้อมูล', searchPh: 'ค้นหาทุกคอลัมน์…', addRowBtn: 'เพิ่มแถว',
       addColBtn: 'เพิ่มคอลัมน์', delColTitle: 'ลบคอลัมน์นี้', newColumnDefaultLabel: 'คอลัมน์ใหม่',
-      renameColPrompt: 'ตั้งชื่อคอลัมน์', dblclickRenameHint: 'ดับเบิลคลิกชื่อคอลัมน์เพื่อเปลี่ยนชื่อ',
-      fillHandleHint: 'ลากเพื่อเติมอัตโนมัติ — กด Ctrl ค้างไว้ระหว่างลาก หรือกดปุ่ม ที่ขึ้นมาหลังลากเสร็จ เพื่อสลับโหมด (ไล่เลข/ทำซ้ำ)',
+      renameColPrompt: 'ตั้งชื่อคอลัมน์',
       delSelBtn: 'ลบที่เลือก', undoBtn: 'เลิกทำ', redoBtn: 'ทำซ้ำ', clearFilterBtn: 'ล้างตัวกรอง',
       addFormulaColBtn: 'คอลัมน์สูตร',
       fcAddTitle: 'ƒx เพิ่มคอลัมน์สูตร', fcEditTitle: 'ƒx แก้ไขคอลัมน์สูตร',
       fcNameLbl: 'ชื่อคอลัมน์', fcNamePh: 'เช่น ยอดรวม',
       fcFormulaLbl: 'สูตร (คลิกชื่อคอลัมน์ด้านล่างเพื่อแทรก)', fcFormulaPh: 'เช่น [ราคา] * [จำนวน]',
-      fcHint: 'ตัวดำเนินการ: + − × / ^(ยกกำลัง) และเทียบค่า &gt; &gt;= &lt; &lt;= == !=<br>ฟังก์ชัน: IF(เงื่อนไข,จริง,เท็จ) · AND(...) · OR(...) · NOT(x) · ROUND(x,ทศนิยม) · ABS(x) · MIN(...) · MAX(...) · SUM(...) · CONCAT(...)',
       fcErrNoName: 'กรุณาตั้งชื่อคอลัมน์', fcErrNoFormula: 'กรุณาพิมพ์สูตร',
       fcErrDupeName: 'มีคอลัมน์ชื่อนี้อยู่แล้ว ตั้งชื่ออื่น', fcErrorTitlePrefix: 'สูตรผิดพลาด:',
       fcDeleteBtn: 'ลบคอลัมน์นี้', fcDeleteConfirm: 'ลบคอลัมน์สูตรนี้ใช่ไหม?',
@@ -272,7 +262,7 @@
       resumeTitle: 'Found Unsaved Work', resumeBtn: 'Continue', discardBtn: 'Start Over',
       resumeInfo: '{name} · {n} rows · saved {date}', resumeFallbackName: 'Previous file',
       reportsTitle: 'My Reports', reportsMeta: '{n} reports',
-      reportRowMeta: '{n} rows · last saved {time}', openBtn: 'Open', renameBtn: 'Rename', deleteBtn: 'Delete',
+      reportRowMeta: '{n} rows · last saved {time}', confirmTitle: 'Confirm', openBtn: 'Open', renameBtn: 'Rename', deleteBtn: 'Delete',
       deleteReportConfirm: 'Permanently delete report "{name}"? This cannot be undone.', renameReportPrompt: 'Rename report:',
       saveAsReportPrompt: 'Name this report:', reportDefaultBase: 'Report',
       sheetTitle: 'Choose Sheet',
@@ -282,14 +272,12 @@
       confirmHeaderBtn: 'Use this row as the header',
       dataTitle: 'Data', searchPh: 'Search all columns…', addRowBtn: 'Add Row',
       addColBtn: 'Add Column', delColTitle: 'Delete this column', newColumnDefaultLabel: 'New column',
-      renameColPrompt: 'Rename column', dblclickRenameHint: 'Double-click a column name to rename it',
-      fillHandleHint: 'Drag to auto-fill — hold Ctrl while dragging, or tap the button that appears after, to toggle mode (series/repeat)',
+      renameColPrompt: 'Rename column',
       delSelBtn: 'Delete Selected', undoBtn: 'Undo', redoBtn: 'Redo', clearFilterBtn: 'Clear Filters',
       addFormulaColBtn: 'Formula Column',
       fcAddTitle: 'ƒx Add Formula Column', fcEditTitle: 'ƒx Edit Formula Column',
       fcNameLbl: 'Column name', fcNamePh: 'e.g. Total',
       fcFormulaLbl: 'Formula (click a column name below to insert)', fcFormulaPh: 'e.g. [Price] * [Qty]',
-      fcHint: 'Operators: + − × / ^(power) and comparisons &gt; &gt;= &lt; &lt;= == !=<br>Functions: IF(cond,then,else) · AND(...) · OR(...) · NOT(x) · ROUND(x,decimals) · ABS(x) · MIN(...) · MAX(...) · SUM(...) · CONCAT(...)',
       fcErrNoName: 'Please name the column', fcErrNoFormula: 'Please enter a formula',
       fcErrDupeName: 'A column with this name already exists', fcErrorTitlePrefix: 'Formula error:',
       fcDeleteBtn: 'Delete this column', fcDeleteConfirm: 'Delete this formula column?',
@@ -883,27 +871,9 @@
       state.dashboardViewMode='executive';
       persistDebounced();
       if(showNotice){
-        var toast=document.createElement('div');toast.className='final26-auto-toast';
-        toast.textContent='Smart Setup: Dashboard configured automatically.';
-        document.body.appendChild(toast);
-        setTimeout(function(){if(toast.parentNode)toast.parentNode.removeChild(toast);},3500);
+        showUiNotice('Smart Setup: Dashboard configured automatically.','ok');
       }
     }catch(e){console.warn('Smart Setup skipped',e);}
-  }
-
-  function openQuickStart(){
-    if(typeof window.__tanotModal!=='function') return;
-    var host=$('dashboardMappingModal'); if(!host) return;
-    var body='<div class="final26-help-grid">'+
-      '<div class="final26-help-item"><b>1. Upload</b><span>เลือก Excel/CSV แล้วระบบจะตรวจ header และชนิดข้อมูลให้อัตโนมัติ</span></div>'+
-      '<div class="final26-help-item"><b>2. Project Control</b><span>สำหรับ Project/SCADA ระบบจะเลือก template ที่เหมาะสมให้</span></div>'+
-      '<div class="final26-help-item"><b>3. Filter</b><span>Filter ด้านบนจะกระทบ KPI, Chart และ Table พร้อมกัน</span></div>'+
-      '<div class="final26-help-item"><b>4. Design</b><span>ปรับ Font, สี, Alignment และ Layout จาก Design</span></div>'+
-      '<div class="final26-help-item"><b>5. Custom</b><span>นำ widget จาก Dashboard ไปแก้ต่อโดยไม่กระทบต้นฉบับ</span></div>'+
-      '<div class="final26-help-item"><b>6. Export</b><span>ใช้ Presentation หรือ PDF/Excel ตามต้องการ</span></div>'+
-      '</div>';
-    var ui=window.__tanotModal('Quick Start · วิธีใช้งาน',body,'<button type="button" class="final25-btn-primary" data-close>เข้าใจแล้ว</button>');
-    var c=ui.body.querySelector('[data-close]'); if(c)c.addEventListener('click',ui.close);
   }
 
   // Shared UI hooks for optional BI layer. Keep these globals stable so the secondary BI script
@@ -1690,7 +1660,7 @@
           '" title="' + escapeAttr(col.formulaError ? (t('fcErrorTitlePrefix') + col.formulaError) : t('fcEditTitle')) + '">ƒx</button>' : '';
         return '<th class="' + (col.type === 'number' ? 'num' : '') + (sorted ? ' sorted' : '') + '" data-col="' + col.key + '">' +
           fxBtn +
-          '<span class="th-label" data-col="' + col.key + '" title="' + escapeAttr(t('dblclickRenameHint')) + '">' + escapeHtml(col.label) + '</span>' +
+          '<span class="th-label" data-col="' + col.key + '">' + escapeHtml(col.label) + '</span>' +
           '<span class="sort-ic">' + ic + '</span>' +
           '<button type="button" class="col-del" data-col="' + col.key + '" title="' + escapeAttr(t('delColTitle')) + '" aria-label="' + escapeAttr(t('delColTitle')) + '">' + uiIcon('x') + '</button></th>';
       }).join('') +
@@ -2617,17 +2587,12 @@
     renderTable();
     persistDebounced();
   }
-  function notifyUser(message, kind){
-    try { if(window.showBIToast){ window.showBIToast(String(message)); return; } } catch(e) {}
-    var old=document.querySelector('.final27-toast'); if(old) old.remove();
-    var d=document.createElement('div'); d.className='final27-toast '+(kind||''); d.textContent=String(message);
-    document.body.appendChild(d); setTimeout(function(){ if(d.parentNode)d.parentNode.removeChild(d); },2200);
-  }
+  function notifyUser(message, kind){ showUiNotice(message, kind); }
   function whiteConfirm(title, message, onYes, yesLabel, noLabel){
     if(typeof window.__tanotModal!=='function'){ onYes && onYes(); return; }
-    var ui=window.__tanotModal(title||'Confirm', '<div class="final27-confirm-message">'+escapeHtml(message||'')+'</div>',
-      '<button type="button" class="final25-btn-ghost" data-no>'+escapeHtml(noLabel||t('cancelBtn')||'Cancel')+'</button><button type="button" class="final25-btn-primary" data-yes>'+escapeHtml(yesLabel||'OK')+'</button>');
-    var no=ui.body.parentElement.querySelector('[data-no]'), yes=ui.body.parentElement.querySelector('[data-yes]');
+    var ui=window.__tanotModal((title && title!==message) ? title : (t('confirmTitle')||'Confirm'), '<div class="dialog-msg">'+escapeHtml(message||'')+'</div>',
+      '<button type="button" class="btn" data-no>'+escapeHtml(noLabel||t('cancelBtn')||'Cancel')+'</button><button type="button" class="btn primary" data-yes>'+escapeHtml(yesLabel||'OK')+'</button>');
+    var no=ui.body.querySelector('[data-no]'), yes=ui.body.querySelector('[data-yes]');
     if(no) no.addEventListener('click',ui.close);
     if(yes) yes.addEventListener('click',function(){ui.close();if(onYes)onYes();});
   }
@@ -2637,8 +2602,8 @@
 
   function openWhiteTextPrompt(title, initialValue, confirmLabel, cancelLabel, onApply){
     if(typeof window.__tanotModal!=='function'){ notifyUser('Dialog component is unavailable. Please reload the page.','error'); return; }
-    var ui=window.__tanotModal(title,'<div class="final25-field"><label>Text</label><input id="whiteTextPromptInput" class="final25-input" type="text" value="'+escapeAttr(initialValue||'')+'"></div>',
-      '<button type="button" class="final25-btn-ghost" data-wcancel>'+escapeHtml(cancelLabel||'Cancel')+'</button><button type="button" class="final25-btn-primary" data-wapply>'+escapeHtml(confirmLabel||'Apply')+'</button>');
+    var ui=window.__tanotModal(title,'<div class="field"><label>Text</label><input id="whiteTextPromptInput" class="input" type="text" value="'+escapeAttr(initialValue||'')+'"></div>',
+      '<button type="button" class="btn" data-wcancel>'+escapeHtml(cancelLabel||'Cancel')+'</button><button type="button" class="btn primary" data-wapply>'+escapeHtml(confirmLabel||'Apply')+'</button>');
     var input=ui.body.querySelector('#whiteTextPromptInput');
     var apply=ui.body.querySelector('[data-wapply]'), cancel=ui.body.querySelector('[data-wcancel]');
     if(input)setTimeout(function(){input.focus();input.select();},20);
@@ -2695,7 +2660,6 @@
       '<textarea id="fcFormula" class="fc-formula" rows="3" placeholder="' + escapeAttr(t('fcFormulaPh')) + '">' + escapeHtml(isNew ? '' : (existingCol.formula || '')) + '</textarea>' +
       (chips ? '<div class="fc-chips">' + chips + '</div>' : '') +
       '<div class="fc-error" id="fcError"></div>' +
-      '<div class="fc-hint">' + t('fcHint') + '</div>' +
       '<div class="fp-actions">' +
       (isNew ? '<span></span>' : '<button type="button" class="fp-link" id="fcDeleteBtn">' + escapeHtml(t('fcDeleteBtn')) + '</button>') +
       '<div class="fp-btns"><button type="button" class="btn ghost sm" id="fcCancelBtn">' + escapeHtml(t('cancelBtn')) + '</button>' +
@@ -2849,7 +2813,6 @@
     } else {
       var handle = document.createElement('div');
       handle.className = 'cellsel-handle';
-      handle.title = t('fillHandleHint');
       handle.style.left = (r.left + r.width) + 'px'; handle.style.top = (r.top + r.height) + 'px';
       /* pointerdown (ไม่ใช่ mousedown) เพื่อให้ลากด้วยนิ้วบนมือถือ/แท็บเล็ตได้ด้วย ไม่ใช่แค่เมาส์ —
          setPointerCapture กันไม่ให้ event หลุดถ้านิ้วเลื่อนออกจากจุดเล็กๆ นี้ระหว่างลากเร็วๆ */
@@ -5869,8 +5832,6 @@
     $('freezeColBtn').addEventListener('click', function () { openFreezeColPopover($('freezeColBtn')); });
     $('groupByBtn').addEventListener('click', function () { openGroupByPopover($('groupByBtn')); });
     $('autoSummaryBtn').addEventListener('click', function () { openAutoSummaryPopover($('autoSummaryBtn')); });
-    if($('quickStartBtn')) $('quickStartBtn').addEventListener('click', openQuickStart);
-    [].forEach.call(document.querySelectorAll('[data-trigger="quickStartBtn"]'),function(x){x.addEventListener('click',function(e){e.preventDefault();openQuickStart();});});
     [].forEach.call($('viewTabs').querySelectorAll('.tab'), function (b) {
       b.addEventListener('click', function () { setView(b.getAttribute('data-view')); });
     });
@@ -6046,15 +6007,14 @@
     [].forEach.call(host.querySelectorAll('[data-bit]'),function(x){x.onclick=function(){host.querySelectorAll('[data-bit]').forEach(function(y){y.classList.remove('on');});x.classList.add('on');render(x.dataset.bit);};});host.querySelector('.bi-close').onclick=host.querySelector('.bi-cancel').onclick=function(){hideModalHost(host);};host.querySelector('.bi-save').onclick=function(){host.querySelectorAll('[data-birole]').forEach(function(x){b.model.roles[x.dataset.birole]=x.value||null;});host.querySelectorAll('.bi-measure-row').forEach(function(x){var m=b.measures[+x.dataset.mi];if(m){m.name=x.querySelector('.bm-name').value.trim()||m.name;m.expression=x.querySelector('.bm-expr').value.trim();m.format=x.querySelector('.bm-format').value;}});if($('biClickFilter'))b.interactions.clickFilter=$('biClickFilter').checked;if($('biHighlight'))b.interactions.highlight=$('biHighlight').checked;if($('biTopN'))b.parameters.topN=Math.max(1,Math.min(100,+$('biTopN').value||10));if($('biRank'))state.chartRanking=$('biRank').value;host.querySelectorAll('.bp-name').forEach(function(x){var k=x.dataset.page;b.pages[k]=b.pages[k]||{};b.pages[k].label=x.value.trim()||k;});host.querySelectorAll('.bp-hide').forEach(function(x){var k=x.dataset.page;b.pages[k]=b.pages[k]||{};b.pages[k].hidden=x.checked;});applyBIPages();persistDebounced();hideModalHost(host);renderDashboard();};host.querySelector('[data-bit="'+(tab||'model')+'"]')?.classList.add('on');render(tab||'model');}
   function applyBIPages(){ensureBIState();document.querySelectorAll('.dashboard-nav-btn').forEach(function(x){var c=state.bi.pages[x.dataset.section];if(c){if(c.label)x.textContent=c.label;x.style.display=c.hidden?'none':'';}});}
   function openMeasureChooser(names,onChoose){
-    var opts=names.map(function(n,i){return '<label class="final27-choice"><input type="radio" name="measure-choice" value="'+escapeAttr(n)+'" '+(i===0?'checked':'')+'><span>'+escapeHtml(n)+'</span></label>';}).join('');
-    var ui=window.__tanotModal('Choose Measure','<div class="final27-choice-list">'+opts+'</div>','<button type="button" class="final25-btn-ghost" data-no>Cancel</button><button type="button" class="final25-btn-primary" data-yes>Use Measure</button>');
-    var yes=ui.body.parentElement.querySelector('[data-yes]'),no=ui.body.parentElement.querySelector('[data-no]');
+    var opts=names.map(function(n,i){return '<label class="rd-check-row"><input type="radio" name="measure-choice" value="'+escapeAttr(n)+'" '+(i===0?'checked':'')+'><span>'+escapeHtml(n)+'</span></label>';}).join('');
+    var ui=window.__tanotModal('Choose Measure','<div class="rd-check-list">'+opts+'</div>','<button type="button" class="btn" data-no>Cancel</button><button type="button" class="btn primary" data-yes>Use Measure</button>');
+    var yes=ui.body.querySelector('[data-yes]'),no=ui.body.querySelector('[data-no]');
     if(no)no.addEventListener('click',ui.close);
     if(yes)yes.addEventListener('click',function(){var r=ui.body.querySelector('input[name="measure-choice"]:checked');var v=r?r.value:'';ui.close();if(v&&onChoose)onChoose(v);});
   }
   function addMeasureKPIWidgetByName(n){ ensureBIState(); makeDefaultMeasures(); var m=state.bi.measures.filter(function(x){return x.name===n;})[0]; if(!m)return; state.customWidgets.push({id:genWidgetId(),type:'kpi',x:null,y:null,w:3,h:2,config:{measureName:m.name,label:m.name,agg:'count',colKey:null,style:{}}}); renderCustomView(); persistDebounced(); }
   function addMeasureKPIWidget(){ensureBIState();makeDefaultMeasures();var names=state.bi.measures.map(function(m){return m.name;});if(names.length>1){openMeasureChooser(names,function(sel){addMeasureKPIWidgetByName(sel);});return;}if(names.length)addMeasureKPIWidgetByName(names[0]);}
-  window.__tanotOpenQuickStart = openQuickStart;
   window.showBIToast = showBIToast;
 
   window.TanotDashboard = {
@@ -6075,6 +6035,8 @@
     loadCustomFromDashboard: loadCustomFromDashboard,
     openAddWidgetPicker: openAddWidgetPicker,
     openCondFormatPopover: openCondFormatPopover,
+    openPopover: openPopover,
+    renderCellSelOverlay: renderCellSelOverlay,
     setDrill: setDrill,
     getCurrentView: function(){ return currentView; },
     loadWorkbook: onWorkbookParsed // เส้นทางเดียวกับการอัปโหลดไฟล์ — ใช้โดย report-dashboard.mntsrc.js (เปิดข้อมูลบำรุงรักษาตรง)
