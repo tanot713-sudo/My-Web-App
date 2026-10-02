@@ -538,7 +538,29 @@
     };
   }
 
+  /* ── สรุปประจำวันของงาน PM (tanot-push.js → ตาราง reminders scope 'maintenance', kind 'digest') ──
+     1 รายการต่อวัน (ไม่ใช่ทีละเครื่อง) สำหรับ today … today+days−1 — นับด้วย dueList ของวันนั้น โดยถือว่างานที่ยังไม่ทำวันนี้ยังไม่ทำต่อไป
+     (บันทึกใบตรวจแล้วหน้าเว็บลงทะเบียนชุดใหม่ทับ) · due_at = 07:00 เวลาไทยของวันนั้น · วันที่ไม่มีงานไม่ใส่ */
+  function digest(o) {
+    var today = toYmd(o.today || new Date()), days = o.days == null ? 14 : o.days, out = [];
+    for (var i = 0; i < days; i++) {
+      var day = addDays(today, i);
+      var list = dueList({ assets: o.assets, plans: o.plans, settings: o.settings, done: o.done, today: day, ahead: 0 });
+      var overdue = 0, due = 0;
+      list.forEach(function (x) { if (x.state === 'overdue') overdue++; else if (x.state === 'due') due++; });
+      if (!overdue && !due) continue;
+      out.push({
+        id: day, title: 'งานบำรุงรักษา',
+        body: [overdue ? 'เลยกำหนด ' + overdue : '', due ? 'ถึงกำหนด ' + due : ''].filter(Boolean).join(' · '),
+        url: 'maintenance.html#tab=calendar', due_at: Date.UTC(+day.slice(0, 4), +day.slice(5, 7) - 1, +day.slice(8, 10), 0, 0), kind: 'digest',
+        overdue: overdue, due: due
+      });
+    }
+    return out;
+  }
+
   return {
+    digest: digest,
     FREQS: FREQS, FREQ_LABEL: FREQ_LABEL, STEP: STEP, PM_FREQS_DEFAULT: PM_FREQS_DEFAULT,
     WO_HEADERS: WO_HEADERS,
     uid: uid, fnv1a36: fnv1a36, uniqueCode: uniqueCode, woNo: woNo, inspId: inspId,

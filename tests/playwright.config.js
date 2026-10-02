@@ -73,5 +73,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8129/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // push.spec.js: /api/push/* + scheduler (functions/_lib/scheduler.js) + บริการ push ตัวหลอก /__pushsink — แยกพอร์ตเพราะมี /__reset
+      command: 'node --no-warnings sync-server.mjs 8130',
+      cwd: __dirname,
+      url: 'http://localhost:8130/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

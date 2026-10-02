@@ -209,8 +209,22 @@
     return Array.prototype.some.call(document.querySelectorAll('dialog'), function (d) { return d.open; });
   }
   function renderCurrent() {
+    registerReminders();
     if (/^#asset=/.test(location.hash)) { renderAssetView(); return; }
     if (renderers[ui.tab]) renderers[ui.tab]();
+  }
+
+  /* สรุปงาน PM รายวันสำหรับการแจ้งเตือน 07:00 (tanot-push.js — ทำงานเฉพาะ pages.dev) · วาดหน้าใหม่ทุกครั้ง = ข้อมูลอาจเปลี่ยน
+     (บันทึกใบตรวจ/แก้แผน/ซิงก์จากอีกเครื่อง) → คำนวณชุด 14 วันใหม่ ส่งจริงเฉพาะเมื่อชุดเปลี่ยน */
+  var remindTimer = 0;
+  function registerReminders() {
+    if (!window.TanotPush || !window.TanotPush.enabled()) return;
+    clearTimeout(remindTimer);
+    remindTimer = setTimeout(function () {
+      loadAllInsp().then(function (docs) {
+        window.TanotPush.setReminders('maintenance', C.digest({ assets: getAssets(), plans: getPlans(), settings: getSettings(), done: C.doneIndex(docs), today: today(), days: 14 }));
+      }).catch(function () {});
+    }, 1000);
   }
 
   /* ══════════ แท็บอุปกรณ์ ══════════ */
@@ -632,6 +646,8 @@
   });
 
   function route() {
+    var tab = /^#tab=([a-z]+)$/.exec(location.hash); // ลิงก์จากการแจ้งเตือน เช่น #tab=calendar
+    if (tab) { history.replaceState(null, '', location.pathname + location.search); showTab(tab[1]); }
     var inView = /^#asset=/.test(location.hash);
     $('assetView').hidden = !inView; $('listView').hidden = inView;
     if (!inView) { $('assetView').innerHTML = ''; }

@@ -11,6 +11,10 @@ ACCESS_AUD = "f84ccc66f4b1de1e0919624581c1e41569102662e535e5f76e39a077e1e9b830"
 TEAM_DOMAIN = "tanot.cloudflareaccess.com"
 # เพดาน Neurons ต่อวัน (UTC) ที่ /api/ai/* ยอมใช้ — 10000 = โควตาฟรีของ Workers AI (ใช้ร่วมกับ Whisper) ปรับขึ้นถ้าอัปเกรด Workers Paid
 AI_DAILY_NEURONS = "10000"
+# Web Push (VAPID) — public key ใส่ที่นี่ได้ (ต้องตรงกับ workers/scheduler/wrangler.toml) · VAPID_PRIVATE_KEY เป็น Secret ใน dashboard เท่านั้น
+# สร้างคู่คีย์ในเครื่องตัวเอง: node workers/scheduler/gen-vapid.mjs — ว่างไว้ = ปุ่มเปิดการแจ้งเตือนขึ้นว่ายังไม่ได้ตั้งคีย์
+VAPID_PUBLIC_KEY = "BEyPSSA7UDCx9gDq6QXEdsrJI1LkkX855R-23Z-DYZJ7NKBmpXEDvUyM3xahJja8A1qurSEmWarnFRNsR-9_8CE"
+VAPID_SUBJECT = "mailto:tanot713@gmail.com"
 
 [[d1_databases]]
 binding = "DB"

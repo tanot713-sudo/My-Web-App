@@ -1,0 +1,29 @@
+# Tanot Scheduler Worker — deploy ผ่าน Workers Builds (root directory = workers/scheduler) ดู ROADMAP "สิ่งที่เจ้าของต้องทำเอง" ข้อ 7
+# VAPID_PRIVATE_KEY เป็น Secret ที่ตั้งใน dashboard ของ Worker นี้เท่านั้น ห้ามใส่ในไฟล์นี้ (repo เป็นสาธารณะ)
+# VAPID_PUBLIC_KEY ต้องตรงกับค่าใน wrangler.toml ที่ root (Pages) — แก้ต้องแก้ทั้ง 2 ไฟล์
+name = "tanot-scheduler"
+main = "index.js"
+compatibility_date = "2026-09-01"
+workers_dev = false
+preview_urls = false
+
+[triggers]
+# ทุก 15 นาที = ส่งการแจ้งเตือนที่ถึงเวลา · 00:00 UTC = 07:00 เวลาไทย (สรุปประจำวัน + สำรอง D1 → R2)
+crons = ["*/15 * * * *", "0 0 * * *"]
+
+[vars]
+OWNER_EMAIL = "tanot713@gmail.com"
+VAPID_SUBJECT = "mailto:tanot713@gmail.com"
+VAPID_PUBLIC_KEY = "BEyPSSA7UDCx9gDq6QXEdsrJI1LkkX855R-23Z-DYZJ7NKBmpXEDvUyM3xahJja8A1qurSEmWarnFRNsR-9_8CE"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tanot-db"
+database_id = "5b56b7fa-8eed-453b-8c2d-81b5004d7b7b"
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "tanot-files"
+
+[observability]
+enabled = true

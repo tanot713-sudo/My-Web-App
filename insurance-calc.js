@@ -143,11 +143,39 @@
     return addMonths(p.renewDate, m);
   }
 
+  /* ── การแจ้งเตือนต่ออายุ (tanot-push.js → ตาราง reminders scope 'insurance') ──
+     แจ้งก่อนวันต่ออายุ 30 / 7 วัน และวันครบกำหนด เวลา 08:00 เวลาไทย (Date.UTC ตรงๆ — ไม่ขึ้นกับ timezone ของเครื่อง)
+     เฉพาะเวลาที่ยังไม่ถึง (ที่ผ่านไปแล้วไม่ลงทะเบียน) · ข้ามกรมธรรม์ที่สิ้นสุดแล้ว/สิ้นสุดก่อนวันต่ออายุ */
+  var REMIND_LEADS = [30, 7, 0];
+  var TH_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  function thDate(d) { return d.getDate() + ' ' + TH_MONTHS[d.getMonth()] + ' ' + (d.getFullYear() + 543); }
+  function reminders(policies, now) {
+    var t = (now || new Date()).getTime(), out = [];
+    (policies || []).forEach(function (p) {
+      if (!p || !p.id || !p.renewDate || isEnded(p, now)) return;
+      var d = parseDate(p.renewDate);
+      if (!d || (p.endDate && p.endDate < p.renewDate)) return;
+      var label = String(p.name || TYPES[p.type] || 'กรมธรรม์').trim();
+      var body = [label, String(p.insurer || '').trim(), 'ครบกำหนด ' + thDate(d)].filter(Boolean).join(' · ');
+      if (num(p.premium)) body += ' · ฿' + Math.round(num(p.premium)).toLocaleString('en-US');
+      REMIND_LEADS.forEach(function (lead) {
+        var at = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate() - lead, 1, 0); // 08:00 น. เวลาไทย = 01:00 UTC
+        if (at <= t) return;
+        out.push({
+          id: p.id + ':' + p.renewDate + ':' + lead,
+          title: lead ? 'ต่ออายุประกันใน ' + lead + ' วัน' : 'ครบกำหนดต่ออายุประกันวันนี้',
+          body: body, url: 'insurance.html', due_at: at, kind: 'push'
+        });
+      });
+    });
+    return out;
+  }
+
   return {
-    TYPES: TYPES, FREQS: FREQS, TAX_CATS: TAX_CATS, CAPS: CAPS,
+    TYPES: TYPES, FREQS: FREQS, TAX_CATS: TAX_CATS, CAPS: CAPS, REMIND_LEADS: REMIND_LEADS,
     parseDate: parseDate, addMonths: addMonths, daysUntil: daysUntil,
     annualPremium: annualPremium, premiumInYear: premiumInYear, isEnded: isEnded,
     defaultTaxCat: defaultTaxCat, taxCatOf: taxCatOf, taxSummary: taxSummary,
-    renewals: renewals, advanceRenewal: advanceRenewal
+    renewals: renewals, advanceRenewal: advanceRenewal, reminders: reminders
   };
 });
