@@ -42,6 +42,7 @@
     { key: 'tanot:dashboardDensity', kind: 'local' },
     { key: 'tanot:tableSizes:v2', kind: 'local' },
     { key: 'tanot:elec:inputs', kind: 'local' }, // ค่าที่กรอกในเครื่องคำนวณไฟฟ้า — กระดาษทดของเครื่องนี้ ไม่ต้องซิงก์
+    { key: 'tanot:tax:ui', kind: 'local' }, // ปี/แท็บที่เปิดค้างในหน้าภาษี
 
     // ── รายการที่เพิ่มได้จากหลายเครื่อง (แยกรายการย่อย) ──
     { key: 'tanot:insurance:policies', kind: 'sync', mode: 'list', idField: 'id' },
@@ -69,6 +70,7 @@
     { prefix: 'lbe:', suffix: ':exams', kind: 'sync', mode: 'list', idField: 'date' },
     { key: 'legal:drafts', kind: 'sync', mode: 'map' },
     { key: 'legal:checked', kind: 'sync', mode: 'map' },
+    { key: 'tanot:tax:years', kind: 'sync', mode: 'map' }, // หน้าภาษี: แต่ละปีภาษีเป็นคนละ doc
 
     // ── ข้อมูลผู้ใช้อื่นๆ ทั้งก้อน ──
     { prefix: 'tanot:', kind: 'sync' },

@@ -132,7 +132,7 @@
     { key: 'life', area: 'life', label: 'ชีวิตประจำวัน', icon: 'wallet', href: 'area.html?a=life', keywords: 'ชีวิตประจำวัน life', children: [
         { key: 'money', label: 'การเงิน', icon: 'coins', children: [
             { key: 'finance',   label: 'รายรับรายจ่าย', icon: 'wallet', href: 'budget.html', keywords: 'รายรับ รายจ่าย งบ budget' },
-            { key: 'tax',       label: 'การจ่ายภาษี', icon: 'landmark', href: soonHref('การจ่ายภาษี'), status: 'soon', keywords: 'ภาษี tax' },
+            { key: 'tax',       label: 'การจ่ายภาษี', icon: 'landmark', href: 'tax.html', keywords: 'ภาษี tax ภาษีเงินได้ ลดหย่อน ภงด rmf ssf thaiesg ประกัน บำนาญ income tax deduction' },
             { key: 'insurance', label: 'ประกัน', icon: 'shield', href: 'insurance.html', keywords: 'ประกัน insurance กรมธรรม์ เบี้ยประกัน ต่ออายุ ลดหย่อน ประกันชีวิต ประกันสุขภาพ ประกันรถ ประกันบ้าน' },
             { key: 'invest', label: 'การลงทุน', icon: 'trending-up', href: 'invest.html', keywords: 'ลงทุน invest หุ้น', children: [
                 { key: 'global-stock', label: 'หุ้นต่างประเทศ',  href: 'invest-global-stock.html' },

@@ -1,0 +1,60 @@
+{
+  "taxYear": 2569,
+  "adYear": 2026,
+  "review": [
+    "ยกกฎปี 2568 มา แล้วตัดมาตรการที่หมดอายุ — เจ้าของต้องตรวจทานกับประกาศกรมสรรพากรปี 2569 (มาตรการกระตุ้นท้ายปีมักประกาศช่วง พ.ย.–ธ.ค.)",
+    "Easy e-Receipt ต้นปี 2569 ไม่ได้ต่ออายุ (ข่าว ม.ค. 2569) — ถ้ามีประกาศใหม่ ให้เพิ่ม eReceipt / eReceiptOtop ในไฟล์นี้",
+    "ค่าสร้างบ้านใหม่ (สัญญา/จ่าย 9 เม.ย. 2567–31 ธ.ค. 2568) และ ThaiESGX เงินใหม่ หมดอายุแล้ว",
+    "ThaiESGX ส่วนที่สับเปลี่ยนจาก LTF ในปี 2568: ปีที่ 2–5 (2569–2572) ≤ 50,000 ต่อปี",
+    "กำหนดยื่นออนไลน์ 8 เม.ย. เป็นค่าที่กรมสรรพากรขยายให้ทุกปี — ยืนยันอีกครั้งเมื่อประกาศ"
+  ],
+  "brackets": [
+    { "upTo": 150000, "rate": 0 },
+    { "upTo": 300000, "rate": 0.05 },
+    { "upTo": 500000, "rate": 0.10 },
+    { "upTo": 750000, "rate": 0.15 },
+    { "upTo": 1000000, "rate": 0.20 },
+    { "upTo": 2000000, "rate": 0.25 },
+    { "upTo": 5000000, "rate": 0.30 },
+    { "upTo": null, "rate": 0.35 }
+  ],
+  "expenses": {
+    "salaryService": { "rate": 0.5, "cap": 100000 },
+    "other": { "rate": 0.6 }
+  },
+  "minimumTax": { "threshold": 1000000, "rate": 0.005, "exemptUpTo": 5000 },
+  "deductions": {
+    "personal": 60000,
+    "spouse": 60000,
+    "child": 30000,
+    "child2561": 60000,
+    "prenatal": 60000,
+    "parent": 30000,
+    "parentMax": 4,
+    "disabled": 60000,
+    "socialSecurity": null,
+    "lifeIns": 100000,
+    "healthIns": 25000,
+    "lifeHealth": 100000,
+    "parentsHealth": 15000,
+    "spouseLife": 10000,
+    "annuity": { "pct": 0.15, "cap": 200000, "fillLifeFirst": true },
+    "pvd": { "pct": 0.15, "cap": 500000 },
+    "gpf": { "pct": 0.30, "cap": 500000 },
+    "nsf": { "cap": 30000 },
+    "rmf": { "pct": 0.30, "cap": 500000 },
+    "ssf": null,
+    "retireGroup": 500000,
+    "thaiEsg": { "pct": 0.30, "cap": 300000 },
+    "thaiEsgxNew": null,
+    "thaiEsgxLtf": { "cap": 50000 },
+    "homeLoan": 100000,
+    "homeBuild": null,
+    "eReceipt": null,
+    "eReceiptOtop": null,
+    "politic": 10000,
+    "donationEdu": { "mult": 2, "pct": 0.10 },
+    "donation": { "pct": 0.10 }
+  },
+  "deadlines": { "paper": "2027-03-31", "online": "2027-04-08" }
+}

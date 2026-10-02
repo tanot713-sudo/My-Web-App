@@ -65,6 +65,8 @@ jobs:
         run: npx playwright test ai.spec.js
       - name: electrical (สูตรเครื่องคำนวณไฟฟ้าเทียบตัวอย่างที่รู้คำตอบ + หน้า electrical.html)
         run: npx playwright test electrical.spec.js
+      - name: tax (กฎภาษีแยกปี + สูตรลดหย่อน/เพดานกลุ่มเกษียณ/บำนาญ เทียบตัวเลขคิดมือ + หน้า tax.html)
+        run: npx playwright test tax.spec.js
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4

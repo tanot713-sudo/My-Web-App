@@ -1,0 +1,59 @@
+{
+  "taxYear": 2568,
+  "adYear": 2025,
+  "review": [
+    "เขียนจากประมวลรัษฎากร ม.40/42/47/48 + มาตรการรายปีที่ประกาศถึง 2026-10 — เจ้าของต้องตรวจทานกับคู่มือ ภ.ง.ด.90/91 ปี 2568 ของกรมสรรพากรก่อนใช้ยื่นจริง",
+    "ThaiESGX: เงินใหม่ (ซื้อ 1 พ.ค.–30 มิ.ย. 2568) ≤ 30% และ ≤ 300,000 · สับเปลี่ยนจาก LTF ปีแรก ≤ 300,000 — แยกจากเพดาน ThaiESG และไม่อยู่ในกลุ่มเกษียณ 500,000",
+    "SSF ลดหย่อนได้ถึงปีภาษี 2567 เท่านั้น",
+    "ประกันสังคมหักได้ตามที่จ่ายจริง — ไม่ใส่เพดานในไฟล์นี้"
+  ],
+  "brackets": [
+    { "upTo": 150000, "rate": 0 },
+    { "upTo": 300000, "rate": 0.05 },
+    { "upTo": 500000, "rate": 0.10 },
+    { "upTo": 750000, "rate": 0.15 },
+    { "upTo": 1000000, "rate": 0.20 },
+    { "upTo": 2000000, "rate": 0.25 },
+    { "upTo": 5000000, "rate": 0.30 },
+    { "upTo": null, "rate": 0.35 }
+  ],
+  "expenses": {
+    "salaryService": { "rate": 0.5, "cap": 100000 },
+    "other": { "rate": 0.6 }
+  },
+  "minimumTax": { "threshold": 1000000, "rate": 0.005, "exemptUpTo": 5000 },
+  "deductions": {
+    "personal": 60000,
+    "spouse": 60000,
+    "child": 30000,
+    "child2561": 60000,
+    "prenatal": 60000,
+    "parent": 30000,
+    "parentMax": 4,
+    "disabled": 60000,
+    "socialSecurity": null,
+    "lifeIns": 100000,
+    "healthIns": 25000,
+    "lifeHealth": 100000,
+    "parentsHealth": 15000,
+    "spouseLife": 10000,
+    "annuity": { "pct": 0.15, "cap": 200000, "fillLifeFirst": true },
+    "pvd": { "pct": 0.15, "cap": 500000 },
+    "gpf": { "pct": 0.30, "cap": 500000 },
+    "nsf": { "cap": 30000 },
+    "rmf": { "pct": 0.30, "cap": 500000 },
+    "ssf": null,
+    "retireGroup": 500000,
+    "thaiEsg": { "pct": 0.30, "cap": 300000 },
+    "thaiEsgxNew": { "pct": 0.30, "cap": 300000 },
+    "thaiEsgxLtf": { "cap": 300000 },
+    "homeLoan": 100000,
+    "homeBuild": { "per": 1000000, "amount": 10000, "cap": 100000 },
+    "eReceipt": 30000,
+    "eReceiptOtop": 20000,
+    "politic": 10000,
+    "donationEdu": { "mult": 2, "pct": 0.10 },
+    "donation": { "pct": 0.10 }
+  },
+  "deadlines": { "paper": "2026-03-31", "online": "2026-04-08" }
+}
