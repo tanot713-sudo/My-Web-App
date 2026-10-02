@@ -258,6 +258,80 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
 .ce-actions{display:flex;gap:var(--ome-sp-2);flex-wrap:wrap;justify-content:center}
 .fp-item .template-load{flex:1;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 
+/* ══ BI: การ์ด Project Control (ECharts/Gantt) + BI Studio + พาเลตต์/แผง Design ══ */
+.bi-pro-card{margin-top:var(--ome-card-gap);padding:var(--ome-card-pad);background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-card-r);box-shadow:var(--ome-shadow-1)}
+.bi-pro-head{display:flex;align-items:center;gap:var(--ome-sp-3);flex-wrap:wrap;margin-bottom:var(--ome-sp-3)}
+.bi-pro-head h2{flex:1;margin:0;font-size:var(--ome-fs-base)}
+.bi-kicker{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
+.bi-pro-actions{display:flex;gap:var(--ome-sp-3);align-items:center;flex-wrap:wrap}
+.bi-pro-actions label{display:flex;align-items:center;gap:6px;font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
+.bi-pro-actions select{height:30px;padding:0 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);color:var(--ome-text-1);font:inherit;font-size:var(--ome-fs-xs)}
+.bi-pro-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--ome-sp-3)}
+.bi-pro-panel{grid-column:span 6;position:relative;min-height:320px;padding:var(--ome-sp-3);background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg)}
+.bi-pro-panel.wide{grid-column:span 12;min-height:420px}
+.bi-pro-panel h3{margin-bottom:var(--ome-sp-2);font-size:var(--ome-fs-sm)}
+.bi-pro-chart{height:280px;width:100%}
+.bi-pro-panel.wide .bi-pro-chart{height:380px}
+.bi-echart-legacy{width:100%;height:100%}
+.bi-attention-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--ome-sp-2)}
+.bi-attention-card{padding:var(--ome-sp-2) var(--ome-sp-3);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-2)}
+.bi-attention-card .n{font-size:var(--ome-fs-xl);font-weight:700}
+.bi-attention-card .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+/* Gantt (frappe-gantt) — สีผูกกับโทเคน เปลี่ยนตามสว่าง/มืดเอง */
+.bi-gantt-wrap{min-height:380px;overflow:auto}
+.bi-gantt{min-width:880px}
+.bi-gantt .gantt-container,.bi-gantt{--g-bar-color:var(--ome-chart-1);--g-bar-border:var(--ome-chart-1);--g-progress-color:color-mix(in srgb,var(--ome-chart-1) 60%,var(--ome-text-1));--g-expected-progress:color-mix(in srgb,var(--ome-chart-1) 40%,var(--ome-surface-1));
+  --g-border-color:var(--ome-border);--g-row-border-color:var(--ome-border);--g-row-color:var(--ome-surface-1);--g-header-background:var(--ome-surface-1);--g-actions-background:var(--ome-surface-2);--g-popup-actions:var(--ome-surface-2);
+  --g-text-dark:var(--ome-text-1);--g-text-muted:var(--ome-text-2);--g-text-light:#FFFFFF;--g-tick-color:var(--ome-border);--g-tick-color-thick:var(--ome-border-strong);--g-arrow-color:var(--ome-text-3);
+  --g-today-highlight:var(--ome-err);--g-handle-color:var(--ome-text-2);--g-weekend-highlight-color:var(--ome-surface-2);--g-weekend-label-color:var(--ome-surface-2)}
+.bi-gantt .bar-label{font-size:10px;font-weight:600}
+.bi-gantt-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:var(--ome-sp-2)}
+.bi-gantt-toolbar button{height:28px;padding:0 12px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-pill);background:var(--ome-surface-1);color:var(--ome-text-2);font:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer}
+.bi-gantt-toolbar button.on{border-color:var(--ome-accent);background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
+/* BI Studio / นำเข้าจากแดชบอร์ด (<dialog id="dashboardMappingModal">) */
+.rd-studio{width:min(880px,calc(100vw - 24px));max-height:min(760px,calc(100dvh - 32px))}
+.rd-studio[open]{display:flex;flex-direction:column}
+.rd-studio .dialog-head{padding-bottom:var(--ome-sp-3);border-bottom:1px solid var(--ome-border)}
+.rd-studio .dialog-body{flex:1;min-height:300px;overflow:auto}
+.rd-studio .dialog-foot{padding-top:var(--ome-sp-3);border-top:1px solid var(--ome-border)}
+.bi-studio-tabs{padding:0 var(--ome-sp-3);background:var(--ome-surface-2)}
+.bi-role-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--ome-sp-3)}
+.bi-role-grid label{display:flex;flex-direction:column;gap:6px;font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
+.bi-role-grid :is(select,input),.bi-measure-row :is(input,select),.bi-page-row input[type=text],.bi-page-row .bp-name{width:100%;height:36px;padding:0 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);color:var(--ome-text-1);font:inherit;font-size:var(--ome-fs-sm)}
+.bi-role-grid :is(select,input):focus,.bi-measure-row :is(input,select):focus,.bp-name:focus{outline:none;border-color:var(--ome-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--ome-accent) 22%,transparent)}
+.bi-note{margin-top:var(--ome-sp-3);font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+.bi-toolbar{display:flex;align-items:center;gap:var(--ome-sp-2);margin-bottom:var(--ome-sp-3)}
+.bi-toolbar strong{flex:1}
+.bi-measures{display:flex;flex-direction:column;gap:var(--ome-sp-2)}
+.bi-measure-row{display:grid;grid-template-columns:1fr 1.5fr 140px 36px;gap:var(--ome-sp-2);align-items:center}
+.bi-check{display:flex;align-items:center;gap:var(--ome-sp-2);padding:var(--ome-sp-3) 0;font-size:var(--ome-fs-sm);font-weight:600}
+.bi-check input,.bi-import-item input,.bi-page-row input[type=checkbox]{accent-color:var(--ome-accent)}
+.bi-page-row{display:grid;grid-template-columns:1fr auto;gap:var(--ome-sp-3);align-items:center;margin-bottom:var(--ome-sp-2)}
+.bi-page-row label{display:flex;align-items:center;gap:6px;font-size:var(--ome-fs-xs)}
+.bi-import-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ome-sp-2)}
+.bi-import-item{display:flex;align-items:center;gap:var(--ome-sp-3);padding:var(--ome-sp-3);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);cursor:pointer}
+.bi-import-item:hover{border-color:var(--ome-accent);background:var(--ome-accent-soft)}
+.bi-import-item span{display:flex;flex-direction:column;gap:2px}
+.bi-import-item b{font-size:var(--ome-fs-xs)}
+.bi-import-item small{font-size:var(--ome-fs-xs);color:var(--ome-text-2);text-transform:capitalize}
+.bi-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--ome-sp-2);padding:var(--ome-sp-3)}
+.bi-detail-grid > div{padding:var(--ome-sp-3);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-2)}
+.bi-detail-grid span{display:block;margin-bottom:3px;font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+.bi-detail-grid b{font-size:var(--ome-fs-xs)}
+/* พาเลตต์คำสั่ง / แผง Design (แผ่นข้างขวา) */
+.rd-palette{width:min(560px,calc(100vw - 24px));margin-top:max(10vh,var(--ome-nav-h))}
+.rd-palette .dialog-body{padding-top:var(--ome-sp-4)}
+.rd-palette .input{margin-bottom:var(--ome-sp-3)}
+.rd-palette-list{max-height:55vh;overflow:auto}
+.rd-drawer{width:min(380px,92vw);height:100dvh;max-height:100dvh;margin:0 0 0 auto;border-radius:0}
+.rd-drawer[open]{display:flex;flex-direction:column}
+.rd-drawer .dialog-head{padding-bottom:var(--ome-sp-3);border-bottom:1px solid var(--ome-border)}
+.rd-drawer .dialog-body{flex:1;overflow:auto}
+.rd-drawer .field{margin-bottom:var(--ome-sp-4)}
+@media(max-width:900px){.bi-pro-panel,.bi-pro-panel.wide{grid-column:span 12}.bi-attention-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.bi-role-grid,.bi-import-grid{grid-template-columns:1fr}.bi-measure-row{grid-template-columns:1fr}.rd-studio{max-height:96dvh}}
+@media(max-width:520px){.bi-pro-chart{height:240px}.bi-pro-panel.wide .bi-pro-chart{height:300px}}
+
 /* ══ ป๊อปโอเวอร์ลอยจากปุ่ม (openPopover → #filterPopover) ══ */
 .filter-popover{position:fixed;z-index:var(--ome-z-drawer);width:240px;max-width:calc(100vw - 20px);padding:var(--ome-sp-3);
   background:var(--ome-surface-1);color:var(--ome-text-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3)}
@@ -809,72 +883,35 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 
 <style>
 /* Final BI Studio / semantic model UI */
-.bi-studio-host{position:fixed!important;inset:0!important;z-index:5000!important;background:rgba(15,23,42,.48);backdrop-filter:blur(5px);display:grid!important;place-items:center!important;padding:24px}
-.bi-studio{width:min(880px,96vw);max-height:min(760px,92vh);display:flex;flex-direction:column;background:#fff;border:1px solid #E5E7EB;border-radius:18px;box-shadow:0 24px 70px rgba(15,23,42,.24);overflow:hidden;font-family:'IBM Plex Sans',Arial,sans-serif}
-.bi-studio-head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid #EEF1F4}.bi-kicker{font-size:11px;color:#16A36A;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.bi-studio-head h2{margin:2px 0 0;font-size:20px}.bi-studio-sub{font-size:12px;color:#6B7280;margin-top:3px}.bi-close{width:34px;height:34px;border:1px solid #E5E7EB;background:#fff;border-radius:10px;font-size:20px;color:#64748B;cursor:pointer}.bi-studio-tabs{display:flex;gap:4px;padding:10px 14px;background:#F8FAFC;border-bottom:1px solid #EEF1F4;overflow:auto}.bi-studio-tabs button{border:0;background:transparent;padding:8px 12px;border-radius:9px;font:700 12px 'IBM Plex Sans',Arial;color:#64748B;cursor:pointer;white-space:nowrap}.bi-studio-tabs button.on{background:#fff;color:#0F172A;box-shadow:0 1px 3px rgba(15,23,42,.08)}.bi-studio-body{padding:20px;overflow:auto;min-height:300px}.bi-role-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.bi-role-grid label{display:flex;flex-direction:column;gap:6px;font:600 11px 'IBM Plex Sans',Arial;color:#64748B}.bi-role-grid select,.bi-role-grid input,.bi-measure-row input,.bi-measure-row select{height:38px;border:1px solid #DDE3EA;border-radius:10px;padding:0 10px;background:#fff;color:#111827;font:500 12px 'IBM Plex Sans',Arial}.bi-note{margin-top:14px;padding:12px 14px;border-radius:12px;background:#F8FAFC;color:#64748B;font-size:12px;line-height:1.6}.bi-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px}.bi-toolbar strong{flex:1}.bi-measures{display:flex;flex-direction:column;gap:8px}.bi-measure-row{display:grid;grid-template-columns:1fr 1.5fr 140px 80px;gap:8px;align-items:center}.bi-measure-row button{height:36px;border:1px solid #F1B8B8;background:#FFF5F5;color:#B91C1C;border-radius:9px;cursor:pointer}.bi-check{display:flex;align-items:center;gap:9px;padding:12px 0;font:600 13px 'IBM Plex Sans',Arial;color:#334155}.bi-page-row{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;margin-bottom:9px}.bi-quality{padding:18px;border-radius:14px;font:600 13px/1.8 'IBM Plex Sans',Arial}.bi-quality.ok{background:#ECFDF3;color:#047857}.bi-quality.warn{background:#FFF7ED;color:#9A3412}.bi-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px}.bi-detail-grid>div{padding:12px;border:1px solid #E5E7EB;border-radius:10px;background:#F8FAFC}.bi-detail-grid span{display:block;color:#64748B;font-size:10px;margin-bottom:3px}.bi-detail-grid b{font-size:12px;color:#0F172A}.bi-studio-foot{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid #EEF1F4;background:#FBFCFD}@media(max-width:720px){.bi-role-grid{grid-template-columns:1fr}.bi-measure-row{grid-template-columns:1fr}.bi-studio-host{padding:8px}.bi-studio{max-height:96vh}}
+
 /* Header hierarchy */
 
 /* keep utility pane one visual system */
 #utilityMenuPanel{border-radius:16px}
 </style>
 
-<style>.bi-import-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.bi-import-item{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #E5E7EB;border-radius:12px;background:#fff;cursor:pointer}.bi-import-item:hover{border-color:#16A36A;background:#F8FFFB}.bi-import-item span{display:flex;flex-direction:column;gap:2px}.bi-import-item b{font:700 12px 'IBM Plex Sans',Arial;color:#111827}.bi-import-item small{font:500 10px 'IBM Plex Sans',Arial;color:#64748B;text-transform:capitalize}@media(max-width:720px){.bi-import-grid{grid-template-columns:1fr}}</style>
+<style></style>
 <style id="final21-bi-enhancement">
 
 /* Gentelella/Flowbite-inspired application shell — restrained, not a theme replacement. */
-.bi-pro-card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh);padding:16px;margin-top:14px}
-.bi-pro-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
-.bi-pro-head h2{margin:0;font-size:15px;font-weight:800;letter-spacing:-.2px;flex:1}
-.bi-pro-head .bi-kicker{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.08em}
-.bi-pro-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.bi-pro-actions select,.bi-pro-actions button{font:inherit;font-size:11.5px;font-weight:700;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;padding:7px 10px;cursor:pointer}
-.bi-pro-actions button:hover,.bi-pro-actions select:hover{border-color:var(--bi-primary);color:var(--bi-primary)}
-.bi-pro-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
-.bi-pro-panel{grid-column:span 6;background:#FBFCFE;border:1px solid var(--line);border-radius:13px;padding:12px;min-height:320px;position:relative}
-.bi-pro-panel.wide{grid-column:span 12;min-height:420px}
-.bi-pro-panel h3{font-size:12.5px;font-weight:800;margin-bottom:8px;color:var(--bi-ink)}
-.bi-pro-chart{height:280px;width:100%}.bi-pro-panel.wide .bi-pro-chart{height:380px}
-.bi-gantt-wrap{min-height:380px;overflow:auto}.bi-gantt{min-width:880px}.bi-gantt-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.bi-gantt-toolbar button{font:inherit;font-size:11px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;cursor:pointer}.bi-gantt-toolbar button.on{background:var(--bi-primary);border-color:var(--bi-primary);color:#fff}
-.bi-gantt .bar-label{font-size:10px;font-weight:700}
-.bi-attention-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.bi-attention-card{padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}.bi-attention-card .n{font-size:22px;font-weight:800}.bi-attention-card .l{font-size:11px;color:var(--muted)}
-.bi-drawer{position:fixed;top:0;right:0;bottom:0;width:min(390px,92vw);background:#fff;box-shadow:-14px 0 38px rgba(16,24,40,.18);z-index:10010;transform:translateX(104%);transition:transform .22s ease;display:flex;flex-direction:column}.bi-drawer.open{transform:none}.bi-drawer-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.24);z-index:10009;opacity:0;pointer-events:none;transition:opacity .2s}.bi-drawer-backdrop.open{opacity:1;pointer-events:auto}.bi-drawer-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}.bi-drawer-head strong{flex:1;font-size:14px}.bi-drawer-close{border:1px solid var(--line);background:#fff;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:16px}.bi-drawer-body{padding:16px;overflow:auto}.bi-drawer-sec{margin-bottom:18px}.bi-drawer-sec h4{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}.bi-drawer-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.bi-drawer-item{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);background:#FBFCFE;border-radius:9px;padding:9px 10px;font-size:12px;font-weight:700}.bi-drawer-item button{border:0;background:transparent;color:var(--muted);cursor:pointer}.bi-drawer-item:hover{border-color:var(--bi-primary);color:var(--bi-primary)}
-.bi-command{position:fixed;inset:0;background:rgba(15,23,42,.32);z-index:10020;display:none;align-items:flex-start;justify-content:center;padding-top:10vh}.bi-command.open{display:flex}.bi-command-box{width:min(640px,92vw);background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(16,24,40,.24);overflow:hidden}.bi-command-input{width:100%;border:0;border-bottom:1px solid var(--line);padding:16px 18px;font:600 14px 'IBM Plex Sans',Arial,sans-serif;outline:none}.bi-command-list{max-height:55vh;overflow:auto;padding:8px}.bi-command-item{padding:11px 12px;border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:10px}.bi-command-item:hover{background:#F2F8F4;color:var(--bi-primary)}
-.bi-clean-file-title{display:flex!important;align-items:center;justify-content:center;flex-direction:column;text-align:center;width:100%;min-width:0}.bi-clean-file-title .title{font-size:16px;font-weight:800;line-height:1.25}.bi-clean-file-title .meta{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.3}
-.dashboard-command-left.bi-centered-title{flex:1 1 340px;display:flex;justify-content:center}.dashboard-command-left.bi-centered-title .dashboard-report-meta{width:100%;text-align:center}
-@media(max-width:900px){.bi-pro-panel,.bi-pro-panel.wide{grid-column:span 12}.bi-attention-grid{grid-template-columns:repeat(2,1fr)}.dashboard-command-left.bi-centered-title{flex-basis:100%}}
-@media(max-width:520px){.bi-attention-grid{grid-template-columns:1fr 1fr}.bi-pro-chart{height:240px}.bi-pro-panel.wide .bi-pro-chart{height:300px}}
+
 </style>
 
 
 <style id="final22-popup-ui">
 /* Final 22: universal white modal/popup surface and symmetric controls */
 
-.bi-command-box, .bi-drawer{background:#fff!important;color:#111827!important;}
-.app-modal-host .bi-studio,.bi-studio{background:#fff!important;border:1px solid #E5E7EB!important;border-radius:16px!important;box-shadow:0 24px 70px rgba(15,23,42,.18)!important;}
-.app-modal-host .bi-studio-head,.bi-studio-foot{background:#fff!important;}
-
-.bi-command{background:rgba(15,23,42,.28)!important;backdrop-filter:blur(2px);}
-.bi-command-box{background:#fff!important;border:1px solid #E5E7EB!important;}
-.bi-command-head{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid #EEF1F4;background:#fff;}
-.bi-command-head strong{flex:1;font:800 13px 'IBM Plex Sans',Arial,sans-serif;color:#111827;}
-.bi-command-close{width:30px;height:30px;border:1px solid #E5E7EB;background:#fff;color:#64748B;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font:700 18px/1 'IBM Plex Sans',Arial;}
-.bi-command-close:hover{background:#F8FAFC;color:#111827;border-color:#CBD5E1;}
-.bi-command-foot{display:flex;justify-content:flex-end;gap:8px;padding:10px 12px;border-top:1px solid #EEF1F4;background:#fff;}
-.bi-command-cancel{height:34px;padding:0 13px;border:1px solid #DDE3EA;border-radius:9px;background:#fff;color:#475569;font:700 11.5px 'IBM Plex Sans',Arial;cursor:pointer;}
-.bi-command-cancel:hover{border-color:#CBD5E1;background:#F8FAFC;}
-.bi-drawer, .bi-drawer-backdrop{font-family:'IBM Plex Sans',Arial,sans-serif;}
 /* Keep card action icons aligned as a group, never floating independently. */
 
 </style>
 
 <style id="final22-qa-ui">
 /* Universal popup surfaces: white, clean, consistent */
-.bi-command-box, .bi-studio, .bi-pro-panel, #dashboardProjectDetail .dashboard-project-drawer{background:#fff!important;}
+#dashboardProjectDetail .dashboard-project-drawer{background:#fff!important;}
 /* Consistent button hierarchy inside popups */
-.bi-command-head,.bi-command-foot,.bi-studio-head,.bi-studio-foot{background:#fff!important;}
+
 /* Prevent accidental invisible/zero-height command palette controls */
-.bi-command .bi-command-box{min-height:160px;}
-.bi-command input:focus{outline:2px solid rgba(30,158,90,.18);outline-offset:-2px;}
+
 /* Toolbar icon symmetry */
 
 /* White compact modal fallback used by dynamic popovers */
@@ -936,13 +973,8 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 </style>
 <style id="final23-ui">
 
-.bi-command{z-index:10050!important;}
 </style>
 <style id="final26-polish">
-  .app-modal-host .bi-studio{
-    background:#fff!important;color:#172033!important;border:1px solid #e2e8f0!important;
-    border-radius:16px!important;box-shadow:0 24px 70px rgba(15,23,42,.20)!important;
-  }
 
   #dashboardReportTitle,#dashboardReportMeta{text-align:center!important}
   
@@ -1526,7 +1558,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 
 </div>
 
-<div id="dashboardMappingModal" class="app-modal-host" style="display:none"></div>
+<dialog id="dashboardMappingModal" class="dialog rd-studio" aria-label="BI Studio"></dialog>
 <div id="dashboardProjectDetail" class="dashboard-project-detail" aria-hidden="true">
   <div class="dashboard-project-backdrop" data-close-detail></div>
   <aside class="dashboard-project-drawer">
