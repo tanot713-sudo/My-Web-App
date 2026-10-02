@@ -11,9 +11,23 @@
   var GANTT={scale:'month',zoom:1};
   var DESIGN_DEFAULTS={
     fontFamily:'Prompt',fontSize:13,headingSize:15,rowHeight:44,projectWidth:240, /* Stage 7 (ตามที่ผู้ใช้ขอ): เพิ่มความสูงต่อแถวเล็กน้อย (38→44) ให้แต่ละแถวใน Gantt มีช่องว่างหายใจมากขึ้น */
-    cardRadius:12,sectionGap:14,chartFontSize:11,cardPadding:14,actual:'#1C5CAB',plan:'#94A3B8',onTrack:'#16A34A',risk:'#F59E0B',delayed:'#DC2626',monitoring:'#64748B',today:'#DC2626',grid:'#E3E7EC',textColor:'#4B5763',
+    cardRadius:12,sectionGap:14,chartFontSize:11,cardPadding:14,actual:'',plan:'',onTrack:'',risk:'',delayed:'',monitoring:'',today:'',grid:'',textColor:'',
     barColors:{},title:'Project Control',attention:'Attention',gantt:'Project Gantt / Timeline',progress:'Progress vs Plan',status:'Project Health / Status',health:'Project Health',upcoming:'Milestones / Upcoming',forecast:'Forecast Finish',cost:'Cost / Value',trend:'Progress Trend'
   };
+  /* สีเริ่มต้นมาจากธีม (เปลี่ยนตามโหมดสว่าง/มืด); เก็บเฉพาะสีที่ผู้ใช้เลือกเอง */
+  var LEGACY_COLORS={actual:'#1c5cab',plan:'#94a3b8',onTrack:'#16a34a',risk:'#f59e0b',delayed:'#dc2626',monitoring:'#64748b',today:'#dc2626',grid:'#e3e7ec',textColor:'#4b5763'};
+  function P(){return window.TanotReportUtils.palette();}
+  function themeColor(k){
+    var c=P();
+    return {actual:c.series[0],plan:c.faint,onTrack:c.ok,risk:c.warn,delayed:c.err,monitoring:c.muted,today:c.err,grid:c.grid,textColor:c.muted}[k];
+  }
+  function isHex(c){return /^#[0-9a-fA-F]{6}$/.test(c||'');}
+  function dcol(d,k){return isHex(d[k])?d[k]:themeColor(k);}
+  function toHex(c){
+    if(isHex(c))return c.toLowerCase();
+    var m=String(c||'').match(/\d+/g)||[0,0,0];
+    return '#'+m.slice(0,3).map(function(x){return ('0'+(+x).toString(16)).slice(-2);}).join('');
+  }
   function getDesign(){
     try{
       var raw=localStorage.getItem(DESIGN_KEY);
@@ -21,22 +35,24 @@
         var old=localStorage.getItem('tanot.projectcontrol.final61.design')||localStorage.getItem('tanot.projectcontrol.final60.design')||localStorage.getItem('tanot.projectcontrol.final59.design')||localStorage.getItem('tanot.projectcontrol.final58.design')||localStorage.getItem('tanot.projectcontrol.final54.design')||localStorage.getItem('tanot.projectcontrol.final53.design')||localStorage.getItem('tanot.projectcontrol.final51.design');
         if(old){raw=old;localStorage.setItem(DESIGN_KEY,old);}
       }
-      return Object.assign({},DESIGN_DEFAULTS,JSON.parse(raw||'{}'));
+      var d=Object.assign({},DESIGN_DEFAULTS,JSON.parse(raw||'{}'));
+      Object.keys(LEGACY_COLORS).forEach(function(k){if(!isHex(d[k])||String(d[k]).toLowerCase()===LEGACY_COLORS[k])d[k]='';});
+      return d;
     }catch(e){return Object.assign({},DESIGN_DEFAULTS);}
   }
   function saveDesign(d){try{localStorage.setItem(DESIGN_KEY,JSON.stringify(d));}catch(e){}}
   function designTitle(k){return esc(getDesign()[k]||DESIGN_DEFAULTS[k]||'');}
-  function designVar(k){return 'var(--pc54-'+k+')';}
+  function designVar(k){return dcol(getDesign(),k);}
   function barColor(name){
     var d=getDesign(),m=d.barColors||{},c=m[text(name)];
-    return /^#[0-9a-fA-F]{6}$/.test(c||'')?c:d.actual;
+    return isHex(c)?c:dcol(d,'actual');
   }
   function safeColor(c,fallback){return /^#[0-9a-fA-F]{6}$/.test(c||'')?c:fallback;}
   function applyDesign53(){
     var d=getDesign(),r=document.documentElement;
     var font=d.fontFamily==='Prompt'?"'Prompt',Arial,sans-serif":d.fontFamily==='Sarabun'?"'Sarabun',Tahoma,sans-serif":d.fontFamily==='Arial'?'Arial,sans-serif':d.fontFamily==='Tahoma'?'Tahoma,sans-serif':"system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
     r.style.setProperty('--pc53-font',font);r.style.setProperty('--pc53-font-size',d.fontSize+'px');r.style.setProperty('--pc53-heading-size',d.headingSize+'px');r.style.setProperty('--pc53-row-height',d.rowHeight+'px');r.style.setProperty('--pc53-project-width',d.projectWidth+'px');r.style.setProperty('--pc53-card-radius',(d.cardRadius||12)+'px');r.style.setProperty('--pc53-section-gap',(d.sectionGap||14)+'px');r.style.setProperty('--pc53-chart-font-size',(d.chartFontSize||11)+'px');r.style.setProperty('--pc53-card-padding',(d.cardPadding||14)+'px');
-    ['actual','plan','onTrack','risk','delayed','monitoring','today'].forEach(function(k){r.style.setProperty('--pc54-'+k,d[k]);});r.style.setProperty('--pc54-grid',d.grid);r.style.setProperty('--pc54-textColor',d.textColor);
+    ['actual','plan','onTrack','risk','delayed','monitoring','today'].forEach(function(k){r.style.setProperty('--pc54-'+k,dcol(d,k));});r.style.setProperty('--pc54-grid',dcol(d,'grid'));r.style.setProperty('--pc54-textColor',dcol(d,'textColor'));
   }
 
   var raf=0, scheduled=false, lastSignature='', bootAttempts=0, bootTimer=0;
@@ -165,7 +181,7 @@
       var statusColor=hh[1]==='bad'?designVar('delayed'):hh[1]==='warn'?designVar('risk'):hh[1]==='info'?designVar('monitoring'):designVar('onTrack');
       var short=r.name.length>28?r.name.slice(0,27)+'…':r.name;
       out+='<text x="'+(left-8)+'" y="'+(y+12)+'" text-anchor="end" font-size="10" fill="'+designVar('textColor')+'"><title>'+esc(r.name)+'</title>'+esc(short)+'</text>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="10" rx="5" fill="#EEF1F4"/>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="10" rx="5" fill="'+P().surface2+'"/>';
       if(pl!=null)out+='<rect x="'+left+'" y="'+y+'" width="'+(barW*pl/100)+'" height="10" rx="5" fill="'+designVar('plan')+'" opacity=".45"/>';
       if(r.actual!=null)out+='<rect x="'+left+'" y="'+y+'" width="'+(barW*av/100)+'" height="10" rx="5" fill="'+designVar('actual')+'"/>';
       if(pl!=null){var px=left+barW*pl/100;out+=line(px,y-3,px,y+18,designVar('plan'),2);}
@@ -189,7 +205,7 @@
       var pct=(v[2]/total*100).toFixed(0);
       out+='<div class="f56-status-item"><div class="f56-status-top"><span><i style="background:'+v[3]+'"></i>'+v[1]+'</span><b>'+v[2]+'</b></div><div class="f56-status-track"><span style="width:'+pct+'%;background:'+v[3]+'"></span></div><small>'+pct+'% of projects</small></div>';
     });
-    out+='</div><div class="f56-status-message">'+(counts.bad?'🔴 '+counts.bad+' delayed project(s) require action.':counts.warn?'🟠 '+counts.warn+' project(s) are at risk.':'🟢 All projects are currently on track or completed.')+'</div>';
+    out+='</div><div class="f56-status-message">'+(counts.bad?counts.bad+' delayed project(s) require action.':counts.warn?counts.warn+' project(s) are at risk.':'All projects are currently on track or completed.')+'</div>';
     host.innerHTML=out;
   }
 
@@ -368,9 +384,9 @@
     var timeWidth=Math.max(860,ticks.length*minCell*zoom);
     var w=Math.max(left+right+timeWidth,1320), h=topAxis+data.length*rowH+bottom, pw=w-left-right;
     var out=svgOpen(w,h);
-    out+='<rect x="0" y="0" width="'+w+'" height="'+h+'" fill="#fff"/>';
-    out+='<rect x="0" y="0" width="'+left+'" height="'+h+'" fill="#fbfcfe"/>';
-    out+='<rect x="'+(w-right)+'" y="0" width="'+right+'" height="'+h+'" fill="#fbfcfe"/>';
+    out+='<rect x="0" y="0" width="'+w+'" height="'+h+'" fill="'+P().surface1+'"/>';
+    out+='<rect x="0" y="0" width="'+left+'" height="'+h+'" fill="'+P().surface1+'"/>';
+    out+='<rect x="'+(w-right)+'" y="0" width="'+right+'" height="'+h+'" fill="'+P().surface1+'"/>';
     // Axis: Year is one clean row. Quarter/Month/Week use two rows.
     var periods=[];
     ticks.forEach(function(t,i){
@@ -405,7 +421,7 @@
         var key=scale==='week'?p.t.getFullYear()+'-'+p.t.getMonth():String(p.t.getFullYear());
         if(!groups[key])groups[key]={x1:p.x,x2:p.x2,label:scale==='week'?p.t.toLocaleDateString('en-US',{month:'short',year:'numeric'}):String(p.t.getFullYear())}; else groups[key].x2=p.x2;
       });
-      Object.keys(groups).forEach(function(k){var g=groups[k],rx=Math.max(left,g.x1);out+='<rect x="'+rx+'" y="0" width="'+Math.max(0,g.x2-rx)+'" height="31" fill="#f8fafc"/><text x="'+((g.x1+g.x2)/2)+'" y="20" text-anchor="middle" font-size="11" font-weight="800" fill="'+designVar('textColor')+'">'+esc(g.label)+'</text>';});
+      Object.keys(groups).forEach(function(k){var g=groups[k],rx=Math.max(left,g.x1);out+='<rect x="'+rx+'" y="0" width="'+Math.max(0,g.x2-rx)+'" height="31" fill="'+P().surface2+'"/><text x="'+((g.x1+g.x2)/2)+'" y="20" text-anchor="middle" font-size="11" font-weight="800" fill="'+designVar('textColor')+'">'+esc(g.label)+'</text>';});
       periods.forEach(function(p){
         var gx=Math.max(left,p.x);
         out+=line(gx,31,gx,h-10,designVar('grid'),1);
@@ -420,7 +436,7 @@
     // Today marker
     var tx=left+pw*Math.max(0,Math.min(1,(today-min)/span));
     out+=line(tx,0,tx,h-8,designVar('today'),2,'5 4');
-    out+='<rect x="'+(tx-22)+'" y="3" width="44" height="16" rx="7" fill="'+designVar('today')+'"/><text x="'+tx+'" y="14" text-anchor="middle" font-size="8.5" font-weight="800" fill="#fff">Today</text>';
+    out+='<rect x="'+(tx-22)+'" y="3" width="44" height="16" rx="7" fill="'+designVar('today')+'"/><text x="'+tx+'" y="14" text-anchor="middle" font-size="8.5" font-weight="800" fill="'+P().onAccent+'">Today</text>';
     // Right data columns
     var colX=w-right;
     ['Actual','Plan','Δ','Status'].forEach(function(lbl,idx){out+='<text x="'+(colX+[28,75,120,175][idx])+'" y="52" text-anchor="middle" font-size="10" font-weight="800" fill="'+designVar('textColor')+'">'+lbl+'</text>';});
@@ -436,7 +452,7 @@
       var av=r.actual==null?0:Math.max(0,Math.min(100,r.actual)), pl=r.plan==null?null:Math.max(0,Math.min(100,r.plan));
       var actualW=Math.max(3,full*av/100), hh=health(r,today), status=hh[0], statusColor=hh[1]==='bad'?designVar('delayed'):hh[1]==='warn'?designVar('risk'):hh[1]==='info'?designVar('monitoring'):designVar('onTrack');
       var bc=barColor(r.name);
-      out+=line(0,y+rowH-1,w-8,y+rowH-1,'#eef2f6',1);
+      out+=line(0,y+rowH-1,w-8,y+rowH-1,P().surface2,1);
       // project label with colored marker and clipped text (clip-path = คอลัมน์ชื่อจริง กัน bar บังทับ)
       var cy=y+rowH/2, lns=nameLines[i], nameTspans;
       if(lns.length>1){
@@ -447,7 +463,7 @@
       out+='<g clip-path="url(#pc61NameClip)"><circle cx="14" cy="'+cy+'" r="4" fill="'+bc+'"/><text x="25" y="'+(cy+4)+'" font-size="'+nameFontSize+'" font-weight="600" fill="'+designVar('textColor')+'"><title>'+esc(r.name)+'</title>'+nameTspans+'</text></g>';
       var tip='Project: '+r.name+' | Start: '+fmt(s)+' | Finish: '+fmt(e)+' | Actual: '+(r.actual==null?'—':r.actual.toFixed(1)+'%')+' | Plan: '+(r.plan==null?'—':r.plan.toFixed(1)+'%')+' | Status: '+status;
       // Remaining/plan track is intentionally visible light blue-gray, never white.
-      out+='<rect x="'+x1+'" y="'+(y+barY)+'" width="'+full+'" height="'+barH+'" rx="7" fill="#DCE6F0"><title>'+esc(tip)+'</title></rect>';
+      out+='<rect x="'+x1+'" y="'+(y+barY)+'" width="'+full+'" height="'+barH+'" rx="7" fill="'+P().surface2+'"><title>'+esc(tip)+'</title></rect>';
       out+='<rect x="'+x1+'" y="'+(y+barY)+'" width="'+actualW+'" height="'+barH+'" rx="7" fill="'+bc+'"><title>'+esc(tip)+'</title></rect>';
       if(pl!=null){var px=x1+full*pl/100;out+=line(px,y+barY-3,px,y+barY+barH+3,designVar('plan'),2);}
       var delta=(r.actual!=null&&r.plan!=null)?r.actual-r.plan:null;
@@ -515,7 +531,7 @@
        .pc55-hero-note, panel-note ของ Gantt, .pc55-reading-tip, panel-note ของ Tracked Tasks,
        และแถบ footnote ท้ายหน้า */
     layout.innerHTML=
-      '<section class="project-control-hero"><div class="project-control-head"><div><h2>'+designTitle('title')+'</h2></div><button class="pc55-present" id="pc55Present" type="button">Presentation Mode</button><div class="mini" id="f53Updated">Project & schedule overview</div></div></section>'+
+      '<section class="project-control-hero"><div class="project-control-head"><div><h2>'+designTitle('title')+'</h2></div><div class="pc-hero-actions"><button class="btn sm" id="pc53Open" type="button">'+window.TanotReportUtils.icon('sliders-horizontal')+'<span>Project Design</span></button><button class="btn sm pc55-present" id="pc55Present" type="button">'+window.TanotReportUtils.icon('maximize-2')+'<span>Presentation Mode</span></button></div><div class="mini" id="f53Updated"></div></div></section>'+
       '<div class="project-control-kpis" id="f53Kpis"></div>'+
       '<section class="project-panel f56-insight-panel" id="f61InsightPanel"><div class="f56-insight-title">Executive Insight</div><div id="f56Insight"></div></section>'+
       /* Stage 7 (ตามที่ผู้ใช้ขอ): ที่ว่างสำหรับย้ายกราฟ 2 ตัวจาก Analytics ("Task Name ตามผลรวม WBS" /
@@ -524,9 +540,9 @@
       '<div class="dashboard-12-grid project-control-charts-row" id="projectControlChartsRow"></div>'+
       '<div class="project-control-main-grid">'+
         '<section class="project-panel full pc55-gantt-panel"><div class="pc55-panel-head"><div><h3>'+designTitle('gantt')+'</h3></div></div><div id="f53Gantt"></div></section>'+
-        '<section class="project-panel third"><h3>'+designTitle('status')+'</h3><div class="panel-note">Overview of all projects.</div><div id="f53Status"></div></section>'+
+        '<section class="project-panel third"><h3>'+designTitle('status')+'</h3><div id="f53Status"></div></section>'+
         '<section class="project-panel third"><h3>'+designTitle('upcoming')+'</h3><div id="f53Upcoming"></div></section>'+
-        '<section class="project-panel third" id="f53TrendPanel"><div class="pc58-panel-title-row"><div><h3>'+designTitle('trend')+'</h3><div class="panel-note">Actual vs plan trend.</div></div></div><div id="f53Trend"></div></section>'+
+        '<section class="project-panel third" id="f53TrendPanel"><div class="pc58-panel-title-row"><div><h3>'+designTitle('trend')+'</h3></div></div><div id="f53Trend"></div></section>'+
         /* Stage 4b (ตามที่ผู้ใช้ขอเพิ่ม): "รายการงานที่ติดตาม" ของ template — เดิมไม่มีแผงนี้เลย
            renderTaskTable() จะซ่อนแผงนี้อัตโนมัติถ้าไม่มีงานที่ต้องติดตาม (ตามที่ผู้ใช้ระบุว่าถ้าไม่มี
            ข้อมูลก็ไม่ต้องแสดง) */
@@ -555,7 +571,6 @@
     var layout=q('#projectControlLayout');
     if(layout) layout.classList.add('pc-override-hidden');
     qa('.project-control-hidden-source').forEach(function(e){ e.classList.remove('project-control-hidden-source'); });
-    var trig=q('.pc53-design-trigger'); if(trig) trig.classList.remove('pc53-show');
   }
 
   /* บั๊กเรื่องลำดับเวลาที่เจอตอนทดสอบสลับไฟล์หลายรอบ — ดูคอมเมนต์เต็มที่ __tdRevalidate ของ
@@ -592,7 +607,6 @@
     var others=qa('[id$="ControlLayout"]').filter(function(e){return e.id!=='projectControlLayout' && e.getAttribute('data-built')==='1' && e.className.indexOf('override-hidden')===-1;});
     if(others.length) return;
     if(!build())return;
-    var trig=q('.pc53-design-trigger'); if(trig) trig.classList.add('pc53-show');
     relocateAnalyticsCharts();
     var rows=data.rows,today=new Date();today.setHours(0,0,0,0);
     var av=rows.filter(function(r){return r.actual!=null}),pl=rows.filter(function(r){return r.plan!=null});
@@ -648,66 +662,66 @@
    ไม่เคยเช็ค state.domainOverride เลย (getData() ไม่มี activation gate ยอมรับข้อมูลตารางทั่วไปเสมอ) ทำให้
    เลือก Template อื่นแล้ว Project Control ก็ยังค้างแสดงอยู่ */
 #projectControlLayout.pc-override-hidden{display:none!important}
-#projectControlLayout .project-control-hero{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:0 4px 14px rgba(15,23,42,.04)}
+#projectControlLayout .project-control-hero{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:15px 16px;box-shadow:var(--ome-shadow-1)}
 #projectControlLayout .project-control-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
-#projectControlLayout .project-kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;box-shadow:0 3px 12px rgba(15,23,42,.04);min-width:0;position:relative}
-#projectControlLayout .project-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:4px;background:var(--brand)}
-#projectControlLayout .project-kpi.warn:after{background:var(--warn)}.project-kpi.bad:after{background:var(--err)}
+#projectControlLayout .project-kpi{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px 13px;box-shadow:var(--ome-shadow-1);min-width:0;position:relative}
+#projectControlLayout .project-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:var(--ome-radius-sm);background:var(--ome-accent)}
+#projectControlLayout .project-kpi.warn:after{background:var(--ome-warn)}.project-kpi.bad:after{background:var(--ome-err)}
 /* BUGFIX Stage 3: ปุ่ม "Presentation Mode" (.pc55-present) ไม่เคยมี CSS เลย ใช้ปุ่ม <button> ดีฟอลต์ของ
    เบราว์เซอร์ (กรอบเทาเหลี่ยม) ต่างจากปุ่มอื่นในหน้านี้ทั้งหมด ให้ทรงเดียวกับปุ่มอื่น (เช่น .f61-chip) */
-#projectControlLayout .pc55-present{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:7px 13px;font-family:var(--ui-font);font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap;flex:none}
-#projectControlLayout .pc55-present:hover{border-color:var(--brand);color:var(--brand-dk);background:var(--brand-sf)}
-#projectControlLayout .pc55-hero-note{font-size:11px;color:var(--muted);margin-top:2px}
-#projectControlLayout .project-kpi .pk-label{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.03em}.project-kpi .pk-value{font-size:25px;font-weight:850;line-height:1.1;margin-top:4px;color:var(--ink)}.project-kpi.good .pk-value{color:var(--ok)}.project-kpi.warn .pk-value{color:var(--warn)}.project-kpi.bad .pk-value{color:var(--err)}.project-kpi .pk-sub{font-size:9.5px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#projectControlLayout .project-panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px;min-width:0;box-shadow:0 4px 14px rgba(15,23,42,.045)}
-#projectControlLayout .project-panel h3{font-size:13px;margin:0 0 4px;font-weight:850;color:var(--ink)}.panel-note{font-size:9.5px;color:var(--muted);margin-bottom:7px}.pc55-reading-tip{font-size:9px;color:var(--muted);padding-top:3px;white-space:nowrap}
+#projectControlLayout .pc55-present{border:1px solid var(--ome-border);background:var(--ome-surface-1);color:var(--ome-text-1);border-radius:var(--ome-radius-md);padding:7px 13px;font-size:var(--ome-fs-xs);font-weight:700;cursor:pointer;white-space:nowrap;flex:none}
+#projectControlLayout .pc55-present:hover{border-color:var(--ome-accent);color:var(--ome-accent-strong);background:var(--ome-accent-soft)}
+#projectControlLayout .pc55-hero-note{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:2px}
+#projectControlLayout .project-kpi .pk-label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}.project-kpi .pk-value{font-size:var(--ome-fs-2xl);font-weight:700;line-height:1.1;margin-top:4px;color:var(--ome-text-1)}.project-kpi.good .pk-value{color:var(--ome-ok)}.project-kpi.warn .pk-value{color:var(--ome-warn)}.project-kpi.bad .pk-value{color:var(--ome-err)}.project-kpi .pk-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#projectControlLayout .project-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;min-width:0;box-shadow:var(--ome-shadow-1)}
+#projectControlLayout .project-panel h3{font-size:var(--ome-fs-sm);margin:0 0 4px;font-weight:700;color:var(--ome-text-1)}.panel-note{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-bottom:7px}.pc55-reading-tip{font-size:var(--ome-fs-xs);color:var(--ome-text-2);padding-top:3px;white-space:nowrap}
 #projectControlLayout .project-control-main-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}.project-control-main-grid>.full{grid-column:1/-1}.project-control-main-grid>.half{grid-column:span 6}.project-control-main-grid>.quarter{grid-column:span 3}
 /* Stage 6 (บั๊กที่เจอระหว่างทดสอบ — มีมาก่อนหน้านี้แล้ว ไม่เกี่ยวกับที่แก้รอบนี้): ".project-panel.third"
    (Project Health/Status | Milestones/Upcoming | Progress Trend) ไม่เคยมี CSS กำหนด grid-column เลย
    ทำให้ grid auto-placement วาง 3 กล่องนี้ลงคอลัมน์ละ 1/12 เท่านั้น (แคบเหลือ ~85px) เว้นพื้นที่ว่างขวามือ
    เกือบทั้งแถว กำหนด span 4 ให้ครบ 3 กล่อง = 12 คอลัมน์พอดี */
 .project-control-main-grid>.third{grid-column:span 4}
-#projectControlLayout .f56-insight-panel{border-left:3px solid var(--brand);padding:10px 13px}.f56-insight-title{font-size:11px;font-weight:850;margin-bottom:3px}.f56-insight-text{font-size:10px;color:var(--ink)}
+#projectControlLayout .f56-insight-panel{border-left:3px solid var(--ome-accent);padding:10px 13px}.f56-insight-title{font-size:var(--ome-fs-xs);font-weight:700;margin-bottom:3px}.f56-insight-text{font-size:var(--ome-fs-xs);color:var(--ome-text-1)}
 #projectControlLayout .f61-attention-compact{padding:9px 12px}.f61-attention-compact .project-control-head{display:flex;justify-content:space-between;align-items:center}.f61-attention-compact h3{margin:0}.f61-attention-compact:has(.mini:only-child){display:block}
-#projectControlLayout #f53Attention{font-size:9.5px}.project-attention-card{display:inline-flex!important;margin:4px 6px 0 0;padding:6px 8px!important;border-radius:8px!important}
-#projectControlLayout #f53Gantt{min-height:0}.f61-gantt-controls{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:7px 0 5px}.f61-filter-group,.f61-scale,.f61-zoom{display:flex;gap:4px;align-items:center}.f61-chip,.f61-scale button,.f61-zoom button{border:1px solid var(--line);background:var(--card);border-radius:7px;padding:5px 9px;font-size:9.5px;color:var(--ink);cursor:pointer}.f61-chip.active,.f61-scale button.active{background:var(--brand-sf);border-color:var(--brand);color:var(--brand-dk);font-weight:850}.f61-zoom span{font-size:9px;color:var(--muted);margin-right:2px}.f61-zoom button{min-width:29px}
+#projectControlLayout #f53Attention{font-size:var(--ome-fs-xs)}.project-attention-card{display:inline-flex!important;margin:4px 6px 0 0;padding:6px 8px!important;border-radius:8px!important}
+#projectControlLayout #f53Gantt{min-height:0}.f61-gantt-controls{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:7px 0 5px}.f61-filter-group,.f61-scale,.f61-zoom{display:flex;gap:4px;align-items:center}.f61-chip,.f61-scale button,.f61-zoom button{border:1px solid var(--ome-border);background:var(--ome-surface-1);border-radius:var(--ome-radius-sm);padding:5px 9px;font-size:var(--ome-fs-xs);color:var(--ome-text-1);cursor:pointer}.f61-chip.active,.f61-scale button.active{background:var(--ome-accent-soft);border-color:var(--ome-accent);color:var(--ome-accent-strong);font-weight:700}.f61-zoom span{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-right:2px}.f61-zoom button{min-width:29px}
 /* Stage 5 (ตามที่ผู้ใช้ขอ): ปรับ stat chip แถวสรุปเหนือ Gantt ให้สวยขึ้น — เว้นระยะมากขึ้น เพิ่มเงาเบาๆ
    และให้กล่อง "delayed"/"at risk" มีสีพื้นหลัง/ตัวเลขตามความหมายจริง แทนกล่องสีเทาเหมือนกันหมด */
 .f61-gantt-summary{display:flex;gap:8px;overflow:auto;margin:6px 0 8px}
-.f61-stat{min-width:74px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);box-shadow:0 2px 6px rgba(15,23,42,.04)}
-.f61-stat b{display:block;font-size:16px;font-weight:850;line-height:1.15;color:var(--ink)}
-.f61-stat span{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
-.f61-stat.bad{background:color-mix(in srgb, var(--err) 10%, var(--card));border-color:color-mix(in srgb, var(--err) 35%, var(--line))}
-.f61-stat.bad b{color:var(--err)}
-.f61-stat.warn{background:color-mix(in srgb, var(--warn) 12%, var(--card));border-color:color-mix(in srgb, var(--warn) 35%, var(--line))}
-.f61-stat.warn b{color:#9a6a00}
-.f61-stat.good b{color:var(--ok)}
+.f61-stat{min-width:74px;padding:8px 12px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);box-shadow:var(--ome-shadow-1)}
+.f61-stat b{display:block;font-size:var(--ome-fs-md);font-weight:700;line-height:1.15;color:var(--ome-text-1)}
+.f61-stat span{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
+.f61-stat.bad{background:color-mix(in srgb, var(--ome-err) 10%, var(--ome-surface-1));border-color:color-mix(in srgb, var(--ome-err) 35%, var(--ome-border))}
+.f61-stat.bad b{color:var(--ome-err)}
+.f61-stat.warn{background:color-mix(in srgb, var(--ome-warn) 12%, var(--ome-surface-1));border-color:color-mix(in srgb, var(--ome-warn) 35%, var(--ome-border))}
+.f61-stat.warn b{color:var(--ome-warn-ink)}
+.f61-stat.good b{color:var(--ome-ok)}
 .f61-overall{margin-left:auto;min-width:112px;display:flex;flex-direction:column;justify-content:center;gap:2px}
-.f61-gantt-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:8.5px;color:var(--muted);padding:5px 2px 0}.f61-gantt-legend span{display:inline-flex;align-items:center;gap:4px}.f61-gantt-legend i{display:inline-block;width:15px;height:6px;border-radius:5px}.f61-gantt-legend .actual{background:var(--pc54-actual)}.f61-gantt-legend .remaining{background:#DCE6F0}.f61-gantt-legend .today{width:2px;height:12px;background:var(--pc54-today)}
-#projectControlLayout .f61-gantt-scroll{height:min(500px,58vh);overflow:auto;overscroll-behavior:contain;scroll-behavior:auto;border:1px solid var(--line);border-radius:9px;background:var(--card);scrollbar-gutter:stable both-edges}
+.f61-gantt-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:var(--ome-fs-xs);color:var(--ome-text-2);padding:5px 2px 0}.f61-gantt-legend span{display:inline-flex;align-items:center;gap:4px}.f61-gantt-legend i{display:inline-block;width:15px;height:6px;border-radius:var(--ome-radius-sm)}.f61-gantt-legend .actual{background:var(--pc54-actual)}.f61-gantt-legend .remaining{background:var(--ome-info-soft)}.f61-gantt-legend .today{width:2px;height:12px;background:var(--pc54-today)}
+#projectControlLayout .f61-gantt-scroll{height:min(500px,58vh);overflow:auto;overscroll-behavior:contain;scroll-behavior:auto;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);scrollbar-gutter:stable both-edges}
 #projectControlLayout .f61-gantt-scroll{min-height:280px}
 #projectControlLayout .f61-gantt-scroll>svg{min-height:260px}
 #projectControlLayout .pc58-progress-scroll{overflow-y:auto!important;overflow-x:hidden!important}
 #projectControlLayout .f56-status-summary{overflow-y:auto!important;overflow-x:hidden!important}
-#projectControlLayout #f53Health{max-height:310px;overflow-y:auto;overflow-x:hidden;border:1px solid var(--line);border-radius:8px}
-#projectControlLayout .f56-health-header{position:sticky;top:0;z-index:2;background:var(--bg)}
+#projectControlLayout #f53Health{max-height:310px;overflow-y:auto;overflow-x:hidden;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md)}
+#projectControlLayout .f56-health-header{position:sticky;top:0;z-index:2;background:var(--ome-surface-0)}
 /* BUGFIX Stage 2: .f56-health-header/.f53-health-row/.f53-pill/.f56-positive/.f56-negative ไม่เคยมี
    CSS จัดคอลัมน์/รูปทรงเลย (มีแค่ position:sticky กับ min-height ที่เพิ่มทีหลัง) — ผลคือชื่อโปรเจกต์+
    สถานะ+ตัวเลขไหลรวมกันเป็นบรรทัดเดียวไม่มีช่องไฟ ให้เป็น grid 5 คอลัมน์ตาม header (Project/Status/
    Actual/Plan/Δ) และให้ .f53-pill เป็นทรงยาแคปซูลสีตามสถานะแบบเดียวกับ AMR O&M template */
-#projectControlLayout .f56-health-header{display:grid;grid-template-columns:1fr 88px 60px 60px 56px;gap:8px;align-items:center;padding:7px 10px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--line)}
+#projectControlLayout .f56-health-header{display:grid;grid-template-columns:1fr 88px 60px 60px 56px;gap:8px;align-items:center;padding:7px 10px;font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-2);border-bottom:1px solid var(--ome-border)}
 #projectControlLayout .f56-health-header span:not(:first-child){text-align:right}
-#projectControlLayout .f53-health-row{display:grid;grid-template-columns:1fr 88px 60px 60px 56px;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line);font-size:12px}
+#projectControlLayout .f53-health-row{display:grid;grid-template-columns:1fr 88px 60px 60px 56px;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs)}
 #projectControlLayout .f53-health-row:last-child{border-bottom:none}
-#projectControlLayout .f53-health-row b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
-#projectControlLayout .f53-health-row>span{text-align:right;font-family:var(--ui-font-mono);font-variant-numeric:tabular-nums;color:var(--ink)}
-#projectControlLayout .f53-pill{display:inline-flex;align-items:center;justify-content:center;font-family:var(--ui-font);font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
-#projectControlLayout .f53-pill.good{color:var(--ok);background:color-mix(in srgb, var(--ok) 15%, transparent)}
-#projectControlLayout .f53-pill.warn{color:#9a6a00;background:color-mix(in srgb, var(--warn) 26%, transparent)}
-#projectControlLayout .f53-pill.bad{color:var(--err);background:color-mix(in srgb, var(--err) 15%, transparent)}
-#projectControlLayout .f53-pill.info{color:var(--sky);background:color-mix(in srgb, var(--sky) 15%, transparent)}
-#projectControlLayout .f56-positive{color:var(--ok);font-weight:700}
-#projectControlLayout .f56-negative{color:var(--err);font-weight:700}
+#projectControlLayout .f53-health-row b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ome-text-1)}
+#projectControlLayout .f53-health-row>span{text-align:right;font-variant-numeric:tabular-nums;color:var(--ome-text-1)}
+#projectControlLayout .f53-pill{display:inline-flex;align-items:center;justify-content:center;font-size:var(--ome-fs-xs);font-weight:700;padding:3px 9px;border-radius:var(--ome-radius-pill);white-space:nowrap}
+#projectControlLayout .f53-pill.good{color:var(--ome-ok);background:color-mix(in srgb, var(--ome-ok) 15%, transparent)}
+#projectControlLayout .f53-pill.warn{color:var(--ome-warn-ink);background:color-mix(in srgb, var(--ome-warn) 26%, transparent)}
+#projectControlLayout .f53-pill.bad{color:var(--ome-err);background:color-mix(in srgb, var(--ome-err) 15%, transparent)}
+#projectControlLayout .f53-pill.info{color:var(--ome-info);background:color-mix(in srgb, var(--ome-info) 15%, transparent)}
+#projectControlLayout .f56-positive{color:var(--ome-ok);font-weight:700}
+#projectControlLayout .f56-negative{color:var(--ome-err);font-weight:700}
 #projectControlLayout #f53TrendPanel,#projectControlLayout #f53AnalysisPanel{min-height:250px}
 #projectControlLayout .pc58-analysis-list{max-height:135px}
 #projectControlLayout .f61-gantt-scroll>svg{display:block!important;max-width:none!important;min-width:1320px!important;width:auto!important}
@@ -715,39 +729,39 @@
    ก่อนที่เนื้อหายังสั้นกว่านี้ ตอนนี้เนื้อหา (4 แถวสถานะ + ข้อความสรุป) สูงกว่าที่กำหนดไว้แล้ว ทำให้เกิด
    scrollbar ที่ไม่จำเป็นและข้อความสรุปด้านล่างถูกตัดจนเหลือแค่เส้นบนสุด (ดูเหมือน "-") ปล่อยให้กล่องสูง
    ตามเนื้อหาจริงแทน */
-#projectControlLayout #f53Progress{height:220px;overflow:hidden}.pc58-progress-scroll{height:205px!important;border:1px solid var(--line)!important;border-radius:8px!important}.pc58-progress-scroll>svg{width:900px!important;max-width:none!important}.f56-status-summary{padding-right:3px}
-#projectControlLayout #f53Health{max-height:350px;overflow:auto;border-top:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:8px}.f56-health-header{position:sticky;top:0;z-index:3;background:var(--card)}.f53-health-row{min-height:34px!important}
+#projectControlLayout #f53Progress{height:220px;overflow:hidden}.pc58-progress-scroll{height:205px!important;border:1px solid var(--ome-border)!important;border-radius:8px!important}.pc58-progress-scroll>svg{width:900px!important;max-width:none!important}.f56-status-summary{padding-right:3px}
+#projectControlLayout #f53Health{max-height:350px;overflow:auto;border-top:1px solid var(--ome-border);border-bottom:1px solid var(--ome-border);border-radius:var(--ome-radius-md)}.f56-health-header{position:sticky;top:0;z-index:3;background:var(--ome-surface-1)}.f53-health-row{min-height:34px!important}
 /* Stage 7 (ตามที่ผู้ใช้ขอ): เดิมบีบ svg ให้ width:100% เสมอ ทำให้ยิ่งมีหลายแท่งยิ่งเล็กจนอ่านไม่ออก
    เปลี่ยนเป็นความกว้างคงที่ต่อแท่ง (กำหนดใน renderTrend) + ห่อด้วย scroll แนวนอนแทน เหมือนวิธีที่ใช้กับ
    Gantt — กล่องขนาดเท่าเดิม ตัวหนังสือใหญ่ขึ้น ถ้าแท่งเยอะ (โหมด Month) ให้เลื่อนดูส่วนที่เหลือแทน */
 #projectControlLayout .f53-trend-controls{margin-bottom:6px}
 #projectControlLayout .f53-trend-scroll{overflow-x:auto;overflow-y:hidden}
 #projectControlLayout .f53-trend-scroll>svg{display:block}
-#projectControlLayout .pc58-analysis-controls{display:flex;gap:6px;margin:0 0 7px}.pc58-analysis-controls label{display:flex;flex-direction:column;gap:3px;font-size:8px;color:var(--muted);font-weight:700}.pc58-analysis-controls select{border:1px solid var(--line);border-radius:7px;background:var(--card);padding:5px 7px;font-size:9px}.pc58-analysis-list{height:125px;overflow:auto;padding-right:3px}.pc58-analysis-row{display:grid;grid-template-columns:85px 1fr 40px;gap:6px;align-items:center;margin:6px 0;font-size:9px}.pc58-analysis-row span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pc58-analysis-row div{height:7px;background:var(--bg);border-radius:7px;overflow:hidden}.pc58-analysis-row i{display:block;height:100%;background:var(--pc54-actual);border-radius:7px}.pc58-analysis-row b{text-align:right;font-size:9px}.pc58-analysis-insight{font-size:8.5px;color:var(--muted);padding-top:5px;border-top:1px solid var(--line)}.pc61-analysis-quick{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.pc61-analysis-quick>div{border:1px solid var(--line);border-radius:7px;padding:5px 7px;display:grid;grid-template-columns:1fr auto;gap:1px 6px}.pc61-analysis-quick small{grid-column:1/-1;color:var(--muted);font-size:7.5px}.pc61-analysis-quick b{font-size:8.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pc61-analysis-quick strong{font-size:9px;color:var(--ok)}
+#projectControlLayout .pc58-analysis-controls{display:flex;gap:6px;margin:0 0 7px}.pc58-analysis-controls label{display:flex;flex-direction:column;gap:3px;font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700}.pc58-analysis-controls select{border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);padding:5px 7px;font-size:var(--ome-fs-xs)}.pc58-analysis-list{height:125px;overflow:auto;padding-right:3px}.pc58-analysis-row{display:grid;grid-template-columns:85px 1fr 40px;gap:6px;align-items:center;margin:6px 0;font-size:var(--ome-fs-xs)}.pc58-analysis-row span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pc58-analysis-row div{height:7px;background:var(--ome-surface-0);border-radius:var(--ome-radius-sm);overflow:hidden}.pc58-analysis-row i{display:block;height:100%;background:var(--pc54-actual);border-radius:var(--ome-radius-sm)}.pc58-analysis-row b{text-align:right;font-size:var(--ome-fs-xs)}.pc58-analysis-insight{font-size:var(--ome-fs-xs);color:var(--ome-text-2);padding-top:5px;border-top:1px solid var(--ome-border)}.pc61-analysis-quick{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.pc61-analysis-quick>div{border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);padding:5px 7px;display:grid;grid-template-columns:1fr auto;gap:1px 6px}.pc61-analysis-quick small{grid-column:1/-1;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}.pc61-analysis-quick b{font-size:var(--ome-fs-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pc61-analysis-quick strong{font-size:var(--ome-fs-xs);color:var(--ome-ok)}
 /* BUGFIX Stage 2b: .f53-list ("Milestones / Upcoming") มี CSS แค่บรรทัดเดียว เพียงพอสำหรับให้มีเส้นคั่น
    แต่ชื่อโครงการกับวันที่ตัวขนาด/น้ำหนักเท่ากันหมด แยกลำดับความสำคัญไม่ออก ปรับให้ชื่อเด่นกว่าและวันที่
    เป็นตัวเลข mono ชิดขวาเหมือนจุดอื่นในหน้านี้ */
 /* Stage 6 (ตามที่ผู้ใช้ขอ — เปลี่ยนใจจากรอบก่อนที่ให้เลื่อนซ้าย-ขวา): ให้ชื่องานยาวๆ ขึ้นบรรทัดที่ 2 ได้
    แทนการเลื่อน/ตัดคำ เพิ่มความสูงแถวให้พอรับ 2 บรรทัด และจัดวันที่ชิดขวาคงที่ */
-#projectControlLayout .f53-list{display:flex;align-items:flex-start;gap:14px;padding:11px 2px;border-bottom:1px solid var(--line);font-size:12px;min-height:44px}
+#projectControlLayout .f53-list{display:flex;align-items:flex-start;gap:14px;padding:11px 2px;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs);min-height:44px}
 #projectControlLayout .f53-list:last-child{border-bottom:none}
-#projectControlLayout .f53-list b{font-weight:600;color:var(--ink);white-space:normal;overflow-wrap:break-word;line-height:1.35;flex:1 1 auto;min-width:0}
-#projectControlLayout .f53-list span{font-family:var(--ui-font-mono);font-variant-numeric:tabular-nums;font-size:11px;color:var(--muted);white-space:nowrap;flex:none;margin-left:auto;padding-top:1px}
-#projectControlLayout .f53-forecast{display:grid;grid-template-columns:1fr 1fr;gap:9px 15px;padding-top:7px}.f53-forecast b{font-size:9px;color:var(--muted)}.f53-forecast strong{font-size:10px}
+#projectControlLayout .f53-list b{font-weight:600;color:var(--ome-text-1);white-space:normal;overflow-wrap:break-word;line-height:1.35;flex:1 1 auto;min-width:0}
+#projectControlLayout .f53-list span{font-variant-numeric:tabular-nums;font-size:var(--ome-fs-xs);color:var(--ome-text-2);white-space:nowrap;flex:none;margin-left:auto;padding-top:1px}
+#projectControlLayout .f53-forecast{display:grid;grid-template-columns:1fr 1fr;gap:9px 15px;padding-top:7px}.f53-forecast b{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}.f53-forecast strong{font-size:var(--ome-fs-xs)}
 /* Stage 4b: ตาราง "Tracked Tasks" — สไตล์อ้างอิงจาก template AMR O&M (table + status pill + bar-cell) */
 #projectControlLayout .table-wrap{overflow-x:auto}
-#projectControlLayout .table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px}
-#projectControlLayout .table-wrap thead th{text-align:left;font-weight:700;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;padding:0 10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
-#projectControlLayout .table-wrap tbody td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:middle}
+#projectControlLayout .table-wrap table{width:100%;border-collapse:collapse;font-size:var(--ome-fs-xs)}
+#projectControlLayout .table-wrap thead th{text-align:left;font-weight:700;color:var(--ome-text-2);font-size:var(--ome-fs-xs);padding:0 10px 8px;border-bottom:1px solid var(--ome-border);white-space:nowrap}
+#projectControlLayout .table-wrap tbody td{padding:9px 10px;border-bottom:1px solid var(--ome-border);color:var(--ome-text-1);vertical-align:middle}
 #projectControlLayout .table-wrap tbody tr:last-child td{border-bottom:none}
 /* Stage 6 (ตามที่ผู้ใช้ขอ): คอลัมน์ Due เดิมชิดขวา (text-align:right) แต่หัวตาราง "DUE" ชิดซ้ายเหมือนคอลัมน์
    อื่น ทำให้ตัวเลขวันที่เริ่มไม่ตรงแนวกับตัว D ของหัวคอลัมน์ เปลี่ยนเป็นชิดซ้ายให้ตรงกับหัวตาราง */
-#projectControlLayout .table-wrap td.num,#projectControlLayout .table-wrap th.num{text-align:left;font-family:var(--ui-font-mono);font-variant-numeric:tabular-nums}
-#projectControlLayout .table-wrap td.muted{color:var(--muted)}
+#projectControlLayout .table-wrap td.num,#projectControlLayout .table-wrap th.num{text-align:left;font-variant-numeric:tabular-nums}
+#projectControlLayout .table-wrap td.muted{color:var(--ome-text-2)}
 #projectControlLayout .bar-cell{display:flex;align-items:center;gap:8px;min-width:120px}
-#projectControlLayout .bar-track{flex:1;height:6px;border-radius:999px;background:var(--bg);overflow:hidden}
-#projectControlLayout .bar-fill{height:100%;border-radius:999px;background:var(--brand)}
-#projectControlLayout .bar-cell .pct{font-family:var(--ui-font-mono);font-size:11px;color:var(--muted);width:34px;text-align:right;flex-shrink:0}
+#projectControlLayout .bar-track{flex:1;height:6px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-0);overflow:hidden}
+#projectControlLayout .bar-fill{height:100%;border-radius:var(--ome-radius-pill);background:var(--ome-accent)}
+#projectControlLayout .bar-cell .pct{font-size:var(--ome-fs-xs);color:var(--ome-text-2);width:34px;text-align:right;flex-shrink:0}
 /* BUGFIX Stage 2b: .f56-status-item/.f56-status-top/.f56-status-track/.f56-status-message (สรุปย่อย
    "On Track/At Risk/Delayed/Monitoring" ในการ์ด "Project Health / Status" ตัวเล็กบนแดชบอร์ด) ไม่เคยมี
    CSS เลยเช่นกัน — สีของจุด/แถบมาจาก inline style ที่ JS ใส่ให้อยู่แล้ว (ถูกต้อง) แต่ไม่มี layout ใดๆ
@@ -755,28 +769,28 @@
    ซ้าย ตัวเลขขวา แล้วมีแถบ progress บางๆ ด้านล่าง) */
 #projectControlLayout .f56-status-summary{display:flex;flex-direction:column;gap:11px}
 #projectControlLayout .f56-status-item{display:flex;flex-direction:column;gap:5px}
-#projectControlLayout .f56-status-top{display:flex;align-items:center;justify-content:space-between;font-size:11.5px}
-#projectControlLayout .f56-status-top span{display:flex;align-items:center;gap:6px;color:var(--ink);font-weight:600}
+#projectControlLayout .f56-status-top{display:flex;align-items:center;justify-content:space-between;font-size:var(--ome-fs-xs)}
+#projectControlLayout .f56-status-top span{display:flex;align-items:center;gap:6px;color:var(--ome-text-1);font-weight:600}
 #projectControlLayout .f56-status-top span i{width:8px;height:8px;border-radius:50%;flex:none;display:inline-block}
-#projectControlLayout .f56-status-top b{font-family:var(--ui-font-mono);font-variant-numeric:tabular-nums;color:var(--ink);font-weight:700}
-#projectControlLayout .f56-status-track{height:6px;border-radius:999px;background:var(--bg);overflow:hidden}
-#projectControlLayout .f56-status-track span{display:block;height:100%;border-radius:999px}
-#projectControlLayout .f56-status-item small{font-size:10px;color:var(--muted)}
-#projectControlLayout .f56-status-message{margin-top:2px;padding-top:9px;border-top:1px solid var(--line);font-size:11px;color:var(--ink)}
-/* BUGFIX Stage 2: .f56-forecast-state เดิม color:#16A34A!important ตายตัว ทำให้ตัวหนังสือขึ้นเขียวเสมอ
+#projectControlLayout .f56-status-top b{font-variant-numeric:tabular-nums;color:var(--ome-text-1);font-weight:700}
+#projectControlLayout .f56-status-track{height:6px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-0);overflow:hidden}
+#projectControlLayout .f56-status-track span{display:block;height:100%;border-radius:var(--ome-radius-pill)}
+#projectControlLayout .f56-status-item small{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+#projectControlLayout .f56-status-message{margin-top:2px;padding-top:9px;border-top:1px solid var(--ome-border);font-size:var(--ome-fs-xs);color:var(--ome-text-1)}
+/* BUGFIX Stage 2: .f56-forecast-state เดิม color:var(--ome-ok-ink)!important ตายตัว ทำให้ตัวหนังสือขึ้นเขียวเสมอ
    ไม่ว่าค่าจริงจะเป็น "Ahead of target"/"Near target"/"At risk" ก็ตาม — เปลี่ยนเป็นสีปกติ แล้วให้ JS
    (ดูจุดที่ set forecastState ด้านบน) ใส่ class ตามสถานะจริงแทน */
-.f56-forecast-state{font-weight:800}
-.f56-forecast-state.good{color:var(--ok)!important}
-.f56-forecast-state.warn{color:#9a6a00!important}
-.f56-forecast-state.bad{color:var(--err)!important}
-#projectControlLayout .f53-empty{padding:30px 10px;text-align:center;color:var(--muted);font-size:10px}.project-control-footnote{font-size:8.5px;color:var(--muted)}
+.f56-forecast-state{font-weight:700}
+.f56-forecast-state.good{color:var(--ome-ok)!important}
+.f56-forecast-state.warn{color:var(--ome-warn-ink)!important}
+.f56-forecast-state.bad{color:var(--ome-err)!important}
+#projectControlLayout .f53-empty{padding:30px 10px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}.project-control-footnote{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
 /* Stage 5b (ตามที่ผู้ใช้ขอเพิ่ม): .f53-legend/.f53-actual/.f53-plan (ใช้ใต้กราฟ Progress Trend) ไม่เคยมี
    CSS เลย ทำให้ span เรียงติดกันไม่มีช่องไฟจนอ่านเป็น "ActualPlanaverage" ให้ layout แบบเดียวกับ
    .f61-gantt-legend (เว้นระยะ + เส้นสีสวอตช์สั้นๆ หน้าคำอธิบาย) */
-#projectControlLayout .f53-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:9px;color:var(--muted);padding:6px 2px 0}
+#projectControlLayout .f53-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:var(--ome-fs-xs);color:var(--ome-text-2);padding:6px 2px 0}
 #projectControlLayout .f53-legend span{display:inline-flex;align-items:center;gap:4px}
-#projectControlLayout .f53-legend i{display:inline-block;width:15px;height:6px;border-radius:5px;background:var(--muted)}
+#projectControlLayout .f53-legend i{display:inline-block;width:15px;height:6px;border-radius:var(--ome-radius-sm);background:var(--ome-text-2)}
 #projectControlLayout .f53-legend i.f53-actual{background:var(--pc54-actual)}
 #projectControlLayout .f53-legend i.f53-plan{background:var(--pc54-plan)}
 #projectControlLayout .f53-gantt-scroll{scroll-behavior:auto;overscroll-behavior:contain}
@@ -786,40 +800,44 @@
    12 คอลัมน์เดียวกับที่การ์ดกราฟใช้อยู่แล้ว (dash-span-6) เพื่อให้ตัวเลือกชนิดกราฟ/จัดกลุ่ม/รวมค่าที่ติดมา
    ด้วยยังทำงานและจัดวางถูกต้องเป๊ะเหมือนตอนอยู่ที่ Analytics */
 #projectControlLayout .project-control-charts-row{margin:0}
-.f61-chart-empty-note{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 20px;color:var(--muted);font-size:11.5px}
+.f61-chart-empty-note{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 20px;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
 .chart-wrap{position:relative}
 `;
     document.head.appendChild(s);
   }
   function initDesignUI53(){
     if(document.getElementById('pc53DesignPanel'))return;
-    var b=document.createElement('button');b.className='pc53-design-trigger';b.type='button';b.textContent='⚙ Project Design';
-    b.onclick=function(){document.getElementById('pc53DesignPanel').classList.add('open');fillDesign();};document.body.appendChild(b);
-    var p=document.createElement('div');p.id='pc53DesignPanel';p.innerHTML='<div class="pc53-panel-backdrop"></div><div class="pc53-panel"><div class="pc53-panel-head"><b>Project Control Design</b><button id="pc53Close">×</button></div><div class="pc53-grid">'+
+    document.addEventListener('click',function(e){
+      var ob=e.target.closest&&e.target.closest('#pc53Open');
+      if(ob){var dlg=document.getElementById('pc53DesignPanel');fillDesign();if(dlg&&!dlg.open)dlg.showModal();}
+    });
+    var p=document.createElement('dialog');p.id='pc53DesignPanel';p.className='dialog pc53-dialog';p.innerHTML='<div class="dialog-head"><h3>Project Control Design</h3><button id="pc53Close" class="btn ghost icon sm" type="button" aria-label="Close">'+window.TanotReportUtils.icon('x')+'</button></div><div class="dialog-body"><div class="pc53-grid">'+
       '<label>Font<select id="pc53Font"><option value="Prompt">Prompt (KPI style)</option><option value="system">System UI</option><option value="Sarabun">Sarabun</option><option value="Arial">Arial</option><option value="Tahoma">Tahoma</option></select></label>'+
       '<label>Font size<input id="pc53FontSize" type="number" min="9" max="20"></label><label>Heading size<input id="pc53Heading" type="number" min="10" max="24"></label><label>Chart font size<input id="pc53ChartFont" type="number" min="8" max="16"></label>'+
       '<label>Row height<input id="pc53Row" type="number" min="24" max="60"></label><label>Project name width<input id="pc53Project" type="number" min="140" max="360"></label>'+
       '<label>Card radius<input id="pc53Radius" type="number" min="6" max="24"></label><label>Section gap<input id="pc53Gap" type="number" min="6" max="24"></label><label>Card padding<input id="pc53Padding" type="number" min="8" max="24"></label>'+
-      '<label>Actual color<input id="pc53Actual" type="color"></label><label>Plan color<input id="pc53Plan" type="color"></label><label>On Track<input id="pc53OnTrack" type="color"></label><label>At Risk<input id="pc53Risk" type="color"></label><label>Delayed<input id="pc53Delayed" type="color"></label><label>Monitoring<input id="pc53Monitoring" type="color"></label><label>Today line<input id="pc53Today" type="color"></label>'+'<div class="wide pc60-bar-colors"><div class="pc60-subhead">Gantt bar colors — set a different color for each project</div><div id="pc60BarColors"></div></div>'+
+      '<label>Actual color<input id="pc53Actual" type="color"></label><label>Plan color<input id="pc53Plan" type="color"></label><label>On Track<input id="pc53OnTrack" type="color"></label><label>At Risk<input id="pc53Risk" type="color"></label><label>Delayed<input id="pc53Delayed" type="color"></label><label>Monitoring<input id="pc53Monitoring" type="color"></label><label>Today line<input id="pc53Today" type="color"></label>'+'<div class="wide pc60-bar-colors"><div class="pc60-subhead">Gantt bar colors</div><div id="pc60BarColors"></div></div>'+
       '<label class="wide">Dashboard title<input id="pc53Title"></label><label>Gantt title<input id="pc53Gantt"></label><label>Status title<input id="pc53Status"></label><label>Upcoming title<input id="pc53Upcoming"></label><label>Trend title<input id="pc53Trend"></label>'+
-      '</div><div class="pc53-actions"><button id="pc60ResetBars">Reset bar colors</button><button id="pc53Reset">Reset</button><button class="save" id="pc53Save">Save</button></div></div>';
+      '</div></div><div class="dialog-foot"><button class="btn" id="pc60ResetBars" type="button">Reset bar colors</button><button class="btn" id="pc53Reset" type="button">Reset</button><button class="btn primary" id="pc53Save" type="button">Save</button></div>';
+    qa('input:not([type=color])',p).forEach(function(e){e.classList.add('input');});qa('select',p).forEach(function(e){e.classList.add('select');});
     document.body.appendChild(p);
     function fillDesign(){
-      var d=getDesign();var map={pc53Font:'fontFamily',pc53FontSize:'fontSize',pc53Heading:'headingSize',pc53ChartFont:'chartFontSize',pc53Row:'rowHeight',pc53Project:'projectWidth',pc53Radius:'cardRadius',pc53Gap:'sectionGap',pc53Padding:'cardPadding',pc53Actual:'actual',pc53Plan:'plan',pc53OnTrack:'onTrack',pc53Risk:'risk',pc53Delayed:'delayed',pc53Monitoring:'monitoring',pc53Today:'today',pc54Grid:'grid',pc54Text:'textColor',pc53Title:'title',pc53Attention:'attention',pc53Gantt:'gantt',pc53Progress:'progress',pc53Status:'status',pc53Health:'health',pc53Upcoming:'upcoming',pc53Forecast:'forecast',pc53Cost:'cost',pc53Trend:'trend'};Object.keys(map).forEach(function(id){var e=document.getElementById(id);if(e)e.value=d[map[id]];});
+      var d=getDesign();var map={pc53Font:'fontFamily',pc53FontSize:'fontSize',pc53Heading:'headingSize',pc53ChartFont:'chartFontSize',pc53Row:'rowHeight',pc53Project:'projectWidth',pc53Radius:'cardRadius',pc53Gap:'sectionGap',pc53Padding:'cardPadding',pc53Actual:'actual',pc53Plan:'plan',pc53OnTrack:'onTrack',pc53Risk:'risk',pc53Delayed:'delayed',pc53Monitoring:'monitoring',pc53Today:'today',pc54Grid:'grid',pc54Text:'textColor',pc53Title:'title',pc53Attention:'attention',pc53Gantt:'gantt',pc53Progress:'progress',pc53Status:'status',pc53Health:'health',pc53Upcoming:'upcoming',pc53Forecast:'forecast',pc53Cost:'cost',pc53Trend:'trend'};Object.keys(map).forEach(function(id){var e=document.getElementById(id);if(e)e.value=(e.type==='color'?toHex(dcol(d,map[id])):d[map[id]]);});
       var box=document.getElementById('pc60BarColors');if(!box)return;
       var dat=getData(),rows=dat?dat.rows.filter(function(r){return r.start||r.end}):[];
       box.innerHTML=rows.length?rows.map(function(r){var c=barColor(r.name);return '<div class="pc60-bar-row"><span title="'+esc(r.name)+'">'+esc(r.name)+'</span><input class="pc60-bar-color" data-project="'+esc(r.name)+'" type="color" value="'+c+'"></div>';}).join(''):'<div class="mini">Load project data first to edit individual bar colors.</div>';
     }
     function readDesign(){
-      var d=getDesign(),map={pc53Font:'fontFamily',pc53FontSize:'fontSize',pc53Heading:'headingSize',pc53ChartFont:'chartFontSize',pc53Row:'rowHeight',pc53Project:'projectWidth',pc53Radius:'cardRadius',pc53Gap:'sectionGap',pc53Padding:'cardPadding',pc53Actual:'actual',pc53Plan:'plan',pc53OnTrack:'onTrack',pc53Risk:'risk',pc53Delayed:'delayed',pc53Monitoring:'monitoring',pc53Today:'today',pc54Grid:'grid',pc54Text:'textColor',pc53Title:'title',pc53Attention:'attention',pc53Gantt:'gantt',pc53Progress:'progress',pc53Status:'status',pc53Health:'health',pc53Upcoming:'upcoming',pc53Forecast:'forecast',pc53Cost:'cost',pc53Trend:'trend'};Object.keys(map).forEach(function(id){var e=document.getElementById(id);if(e)d[map[id]]=e.value;});
-      d.barColors=Object.assign({},d.barColors||{});qa('.pc60-bar-color').forEach(function(e){d.barColors[e.getAttribute('data-project')]=safeColor(e.value,d.actual);});
+      var d=getDesign(),map={pc53Font:'fontFamily',pc53FontSize:'fontSize',pc53Heading:'headingSize',pc53ChartFont:'chartFontSize',pc53Row:'rowHeight',pc53Project:'projectWidth',pc53Radius:'cardRadius',pc53Gap:'sectionGap',pc53Padding:'cardPadding',pc53Actual:'actual',pc53Plan:'plan',pc53OnTrack:'onTrack',pc53Risk:'risk',pc53Delayed:'delayed',pc53Monitoring:'monitoring',pc53Today:'today',pc54Grid:'grid',pc54Text:'textColor',pc53Title:'title',pc53Attention:'attention',pc53Gantt:'gantt',pc53Progress:'progress',pc53Status:'status',pc53Health:'health',pc53Upcoming:'upcoming',pc53Forecast:'forecast',pc53Cost:'cost',pc53Trend:'trend'};Object.keys(map).forEach(function(id){var e=document.getElementById(id);if(e){var v=e.value;if(e.type==='color'&&toHex(v)===toHex(themeColor(map[id])))v='';d[map[id]]=v;}});
+      d.barColors=Object.assign({},d.barColors||{});qa('.pc60-bar-color').forEach(function(e){d.barColors[e.getAttribute('data-project')]=safeColor(e.value,dcol(d,'actual'));});
       d.fontSize=+d.fontSize;d.headingSize=+d.headingSize;d.chartFontSize=+d.chartFontSize;d.rowHeight=+d.rowHeight;d.projectWidth=+d.projectWidth;d.cardRadius=+d.cardRadius;d.sectionGap=+d.sectionGap;d.cardPadding=+d.cardPadding;saveDesign(d);applyDesign53();schedule();
     }
-    p.querySelector('.pc53-panel-backdrop').onclick=function(){p.classList.remove('open')};document.getElementById('pc53Close').onclick=function(){p.classList.remove('open')};document.getElementById('pc53Save').onclick=function(){readDesign();p.classList.remove('open')};document.getElementById('pc60ResetBars').onclick=function(){var d=getDesign();d.barColors={};saveDesign(d);fillDesign();schedule();};document.getElementById('pc53Reset').onclick=function(){saveDesign(Object.assign({},DESIGN_DEFAULTS,{barColors:{}}));fillDesign();applyDesign53();schedule()};
+    p.addEventListener('click',function(e){if(e.target===p)p.close();});document.getElementById('pc53Close').onclick=function(){p.close()};document.getElementById('pc53Save').onclick=function(){readDesign();p.close()};document.getElementById('pc60ResetBars').onclick=function(){var d=getDesign();d.barColors={};saveDesign(d);fillDesign();schedule();};document.getElementById('pc53Reset').onclick=function(){saveDesign(Object.assign({},DESIGN_DEFAULTS,{barColors:{}}));fillDesign();applyDesign53();schedule()};
   }
 
   function init(){
     applyDesign53();
+    window.TanotReportUtils.onTheme(function(){applyDesign53();schedule();});
     injectCSS();
     initDesignUI53();
     schedule();
@@ -836,7 +854,7 @@
     bootRetry();
     document.addEventListener('click',function(e){
       var pb=e.target.closest&&e.target.closest('#pc55Present');
-      if(pb){document.body.classList.toggle('pc55-presentation');pb.textContent=document.body.classList.contains('pc55-presentation')?'Exit Presentation':'Presentation Mode';}
+      if(pb){document.body.classList.toggle('pc55-presentation');pb.querySelector('span').textContent=document.body.classList.contains('pc55-presentation')?'Exit Presentation':'Presentation Mode';}
 
       var b=e.target.closest&&e.target.closest('.dashboard-nav-btn');
       if(b&&(b.getAttribute('data-section-page')==='projects'||b.getAttribute('data-section')==='dashboardProjects'))setTimeout(schedule,80);
