@@ -158,7 +158,7 @@
       ]
     },
     { key: 'edu', area: 'edu', label: 'การศึกษา', icon: 'graduation-cap', href: 'area.html?a=edu', keywords: 'การศึกษา เรียน education', children: [
-        { key: 'review', label: 'ทบทวนวันนี้', icon: 'refresh-cw', href: soonHref('ทบทวนวันนี้'), status: 'soon', keywords: 'ทบทวน flashcard review' },
+        { key: 'review', label: 'ทบทวนวันนี้', icon: 'refresh-cw', href: 'review.html', keywords: 'ทบทวน flashcard review การ์ด xp วันติดต่อกัน streak เป้า' },
         { key: 'classroom', label: 'ห้องเรียน', icon: 'graduation-cap', children: [
             { key: 'classroom-law',         label: 'เรียนกฎหมาย', icon: 'scale', href: 'classroom-law.html', keywords: 'เรียนกฎหมาย เนติ' },
             { key: 'classroom-business',    label: 'ธุรกิจ', icon: 'briefcase', href: 'classroom-business.html', keywords: 'เรียนธุรกิจ business' },

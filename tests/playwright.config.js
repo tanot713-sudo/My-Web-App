@@ -59,5 +59,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8127/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // learn.spec.js: XP กลางซิงก์ 2 เครื่องผ่าน /api/sync ตัวจริง — แยกพอร์ตเพราะต้อง /__reset โดยไม่ชนกับ sync.spec.js ที่รันขนานกัน
+      command: 'node --no-warnings sync-server.mjs 8128',
+      cwd: __dirname,
+      url: 'http://localhost:8128/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

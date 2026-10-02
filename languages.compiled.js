@@ -294,44 +294,8 @@
     });
     return out;
   }
-  const DAY_MS = 864e5;
-  function fsrsRetrievability(elapsedDays, stability) {
-    if (!stability || stability <= 0) return 0;
-    return Math.pow(1 + elapsedDays / (9 * stability), -1);
-  }
   function fsrsSchedule(n, rating) {
-    const now = Date.now();
-    let difficulty = n.difficulty == null ? 5 : n.difficulty;
-    let stability = n.stability;
-    if (stability == null) {
-      const initStability = { 1: 0.5, 2: 1, 3: 3, 4: 7 };
-      stability = initStability[rating];
-      difficulty = 5 - (rating - 3);
-    } else {
-      const elapsedDays = Math.max((now - (n.lastReview || now)) / DAY_MS, 0);
-      const r = fsrsRetrievability(elapsedDays, stability);
-      if (rating === 1) {
-        stability = Math.max(stability * 0.5 * (1 - difficulty / 20), 0.5);
-        difficulty += 1;
-      } else {
-        const ratingMul = { 2: 0.5, 3: 1, 4: 1.6 }[rating];
-        const growth = 1 + (11 - difficulty) / 10 * (1 - r) * ratingMul;
-        stability = stability * Math.max(growth, 1.05);
-        difficulty += (rating - 3) * -0.5;
-      }
-    }
-    difficulty = Math.min(Math.max(difficulty, 1), 10);
-    const FSRS_RETENTION = 0.9;
-    const intervalDays = 9 * stability * (1 / FSRS_RETENTION - 1);
-    return {
-      stability,
-      difficulty,
-      reps: (n.reps || 0) + (rating > 1 ? 1 : 0),
-      lapses: (n.lapses || 0) + (rating === 1 ? 1 : 0),
-      lastReview: now,
-      dueAt: now + Math.max(intervalDays, 1 / 24) * DAY_MS,
-      srsIdx: rating === 1 ? -1 : (n.srsIdx || 0) + 1
-    };
+    return window.TanotFSRS.schedule(n, rating);
   }
   function loadSrs() {
     try {
@@ -709,6 +673,29 @@
       (cats[cat] || []).forEach((w, i) => out.push({ key: `${langId}::vocab-${cat}::${i}`, word: w.word, thai: w.thai }));
     });
     return out;
+  }
+  const facePoolCache = {};
+  function writeCardFaces(srs) {
+    const cards = {}, langs = {};
+    Object.keys(srs || {}).forEach((key) => {
+      const langId = key.split("::")[0];
+      if (!LANGS[langId]) return;
+      if (!facePoolCache[langId]) {
+        const m = {};
+        vocabPool(langId).forEach((it) => {
+          m[it.key] = [String(it.word || ""), String(it.thai || "")];
+        });
+        facePoolCache[langId] = m;
+      }
+      const f = facePoolCache[langId][key];
+      if (!f) return;
+      cards[key] = f;
+      langs[langId] = LANGS[langId].title;
+    });
+    try {
+      localStorage.setItem("tanot:learn:faces:lang", JSON.stringify({ v: 1, langs, cards }));
+    } catch (e) {
+    }
   }
   function dueVocab(langId, srs) {
     const now = Date.now();
@@ -2220,10 +2207,7 @@
         return;
       }
       setOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      (window.TanotFileReader
-        ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
-        : window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => (r.data.text || "").trim())
-      ).then((r) => {
+      (window.TanotFileReader ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE }) : window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => (r.data.text || "").trim())).then((r) => {
         const t = (r || "").trim();
         if (t) {
           setText((prev) => (prev ? prev + " " : "") + t);
@@ -2353,10 +2337,7 @@
         return;
       }
       setOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      (window.TanotFileReader
-        ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
-        : window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => (r.data.text || "").trim())
-      ).then((r) => {
+      (window.TanotFileReader ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE }) : window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => (r.data.text || "").trim())).then((r) => {
         const t = (r || "").trim();
         if (t) {
           setText((prev) => (prev ? prev + " " : "") + t);
@@ -2499,10 +2480,7 @@
         return;
       }
       setOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      (window.TanotFileReader
-        ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
-        : window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => (r.data.text || "").trim())
-      ).then((r) => {
+      (window.TanotFileReader ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE }) : window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => (r.data.text || "").trim())).then((r) => {
         const t = (r || "").trim();
         if (t) {
           setTyped((prev) => (prev ? prev + " " : "") + t);
@@ -2594,10 +2572,7 @@
         return;
       }
       setOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      (window.TanotFileReader
-        ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
-        : window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => (r.data.text || "").trim())
-      ).then((r) => {
+      (window.TanotFileReader ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(canvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE }) : window.Tesseract.recognize(canvasEl, "eng+tha").then((r) => (r.data.text || "").trim())).then((r) => {
         const t = (r || "").trim();
         if (t) {
           setTyped((prev) => (prev ? prev + " " : "") + t);
@@ -13253,6 +13228,17 @@
     useEffect(() => {
       lucide.createIcons();
     });
+    const xpPrevRef = useRef(xp);
+    const xpFromDriveRef = useRef(false);
+    useEffect(() => {
+      const gained = xp - xpPrevRef.current;
+      xpPrevRef.current = xp;
+      if (xpFromDriveRef.current) {
+        xpFromDriveRef.current = false;
+        return;
+      }
+      if (gained > 0 && window.LearnCore) window.LearnCore.award("lang", gained);
+    }, [xp]);
     useEffect(() => {
       saveXp(xp);
     }, [xp]);
@@ -13280,6 +13266,10 @@
       saveSrs(srs);
     }, [srs]);
     useEffect(() => {
+      const t = setTimeout(() => writeCardFaces(srs), 800);
+      return () => clearTimeout(t);
+    }, [srs]);
+    useEffect(() => {
       saveWriting(writing);
     }, [writing]);
     const updateNote = (text) => setNotes((n) => ({ ...n, [langId]: { ...n[langId] || {}, text, updatedAt: Date.now() } }));
@@ -13291,10 +13281,7 @@
         return;
       }
       setNoteOcrStatus("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D...");
-      (window.TanotFileReader
-        ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(noteCanvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE })
-        : window.Tesseract.recognize(noteCanvasEl, "eng+tha").then((r) => (r.data.text || "").trim())
-      ).then((r) => {
+      (window.TanotFileReader ? window.TanotFileReader.recognizeText(window.TanotFileReader.preprocessForOcr(noteCanvasEl), { psm: window.TanotFileReader.PSM_SINGLE_LINE }) : window.Tesseract.recognize(noteCanvasEl, "eng+tha").then((r) => (r.data.text || "").trim())).then((r) => {
         const t = (r || "").trim();
         if (t) {
           const prevText = notes[langId] && notes[langId].text || "";
@@ -13319,6 +13306,7 @@
         const mergedSrs = mergeSrs(remote == null ? void 0 : remote.srs, srs);
         const mergedWriting = mergeWriting(remote == null ? void 0 : remote.writing, writing);
         const mergedStreak = mergeStreak(remote == null ? void 0 : remote.streak, streak);
+        if (mergedXp !== xp) xpFromDriveRef.current = true;
         setXp(mergedXp);
         setProgress(mergedProgress);
         setNotes(mergedNotes);

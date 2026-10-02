@@ -1628,6 +1628,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     xp += XP_PER_EXERCISE;
     var trackJustCompleted = trackCompleted(track, progress);
     if (trackJustCompleted) xp += XP_PER_TRACK_BONUS;
+    if (window.LearnCore) window.LearnCore.award('music', XP_PER_EXERCISE + (trackJustCompleted ? XP_PER_TRACK_BONUS : 0));
     saveXp(xp);
     var streak = bumpStreak();
     var newBadges = checkAwardBadges(progress, streak);

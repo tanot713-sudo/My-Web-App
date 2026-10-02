@@ -67,6 +67,8 @@ jobs:
         run: npx playwright test electrical.spec.js
       - name: tax (กฎภาษีแยกปี + สูตรลดหย่อน/เพดานกลุ่มเกษียณ/บำนาญ เทียบตัวเลขคิดมือ + หน้า tax.html)
         run: npx playwright test tax.spec.js
+      - name: learn (fsrs.js เทียบโค้ดก่อนแยก, ย้าย XP เดิม, วันติดต่อกัน/วันพัก, ทบทวนวันนี้, ซิงก์ XP 2 เครื่อง)
+        run: npx playwright test learn.spec.js
       - name: data + pages (ซิงก์ D1, ย้ายข้อมูลจาก github.io, หน้าวันนี้/ค้นหาด่วน, ประกัน + /api/files)
         run: npx playwright test sync.spec.js migrate.spec.js today.spec.js insurance.spec.js
       - name: github-redirect (GitHub Pages แบบ redirect ไป pages.dev)

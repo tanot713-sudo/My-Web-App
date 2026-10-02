@@ -965,6 +965,18 @@
       } finally { internal--; }
     }).catch(function () { return []; });
   }
+  /* อ่านค่าล่าสุด → fn แก้ → เขียนทันที (ไม่ถือค่าเก่าค้างในหน่วยความจำ) — ใช้กับโมดูลกลางที่เขียนคีย์ของตัวเองจากหลายหน้า
+     (learn-core.js): ผ่าน setItem ที่ดักจับปกติ (ซิงก์/merge ครบ) แต่คืนสถานะ "หน้านี้ถือคีย์นี้" เป็นแบบก่อนเรียก
+     หน้าเลยไม่เด้งแถบรีโหลดเมื่อเครื่องอื่นเพิ่มแถวในคีย์นั้น · fn คืน undefined = ไม่เขียน */
+  function update(k, fn) {
+    var hadBase = k in pageBase, base = pageBase[k], hadRead = !!pageRead[k];
+    var next = fn(parse(lsGet(k)));
+    if (next === undefined) return next;
+    LS.setItem(k, JSON.stringify(next));
+    if (hadBase) pageBase[k] = base; else delete pageBase[k];
+    if (!hadRead) delete pageRead[k];
+    return next;
+  }
   // fn(keys) ถูกเรียกเมื่อข้อมูลใหม่มาจากเครื่องอื่น (tanot:data) หรือแท็บอื่นในเครื่องเดียวกันเขียน localStorage (storage) — คืนฟังก์ชันยกเลิก
   function onChange(fn) {
     function a(e) { fn((e.detail && e.detail.keys) || []); }
@@ -978,6 +990,7 @@
     enabled: ENABLED,
     read: readJSON,
     raw: readRaw,
+    update: update,
     readIdb: readIdb,
     onChange: onChange,
     status: function () { status.pending = Object.keys(dirtyMap()).length; return status; },

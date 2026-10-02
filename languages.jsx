@@ -382,46 +382,9 @@
             return out;
         }
 
-        // ── ระบบทวนคำศัพท์แบบเว้นช่วงเวลา (FSRS) — คัดลอกมาจาก classroom-law.js (คำนวณตรงตามต้นฉบับ
-        // ทุกจุด ไม่ปรับ logic) เอนจินตัวเดียวกับที่ใช้ทวนหัวข้อ/มาตราวิชานิติกรรมสัญญาอยู่แล้ว ใช้สูตร
-        // ความจำจริง R(t,S) = (1+t/(9S))⁻¹ ที่เป้าหมายการจำ 90% ทำให้ interval ทวนครั้งถัดไป = stability
-        // พอดี (ดูอนุพันธ์เต็มได้ในคอมเมนต์ classroom-law.js) ─────────────────────────────────
-        const DAY_MS = 86400000;
-        function fsrsRetrievability(elapsedDays, stability) {
-            if (!stability || stability <= 0) return 0;
-            return Math.pow(1 + elapsedDays / (9 * stability), -1);
-        }
-        function fsrsSchedule(n, rating) { // rating: 1=Again 2=Hard 3=Good 4=Easy
-            const now = Date.now();
-            let difficulty = n.difficulty == null ? 5 : n.difficulty;
-            let stability = n.stability;
-            if (stability == null) {
-                const initStability = { 1: 0.5, 2: 1, 3: 3, 4: 7 };
-                stability = initStability[rating];
-                difficulty = 5 - (rating - 3);
-            } else {
-                const elapsedDays = Math.max((now - (n.lastReview || now)) / DAY_MS, 0);
-                const r = fsrsRetrievability(elapsedDays, stability);
-                if (rating === 1) {
-                    stability = Math.max(stability * 0.5 * (1 - difficulty / 20), 0.5);
-                    difficulty += 1;
-                } else {
-                    const ratingMul = { 2: 0.5, 3: 1, 4: 1.6 }[rating];
-                    const growth = 1 + ((11 - difficulty) / 10) * (1 - r) * ratingMul;
-                    stability = stability * Math.max(growth, 1.05);
-                    difficulty += (rating - 3) * -0.5;
-                }
-            }
-            difficulty = Math.min(Math.max(difficulty, 1), 10);
-            const FSRS_RETENTION = 0.9;
-            const intervalDays = 9 * stability * (1 / FSRS_RETENTION - 1); // = stability พอดีที่เป้าหมาย 90%
-            return {
-                stability, difficulty,
-                reps: (n.reps || 0) + (rating > 1 ? 1 : 0), lapses: (n.lapses || 0) + (rating === 1 ? 1 : 0),
-                lastReview: now, dueAt: now + Math.max(intervalDays, 1 / 24) * DAY_MS,
-                srsIdx: rating === 1 ? -1 : (n.srsIdx || 0) + 1,
-            };
-        }
+        // ── ระบบทวนคำศัพท์แบบเว้นช่วงเวลา (FSRS) — ตัวคำนวณอยู่ใน fsrs.js (ไฟล์กลาง ใช้ร่วมกับห้องเรียนกฎหมาย
+        // และหน้าทบทวนวันนี้) languages.html โหลด fsrs.js ก่อนไฟล์นี้ ─────────────────────────────────
+        function fsrsSchedule(n, rating) { return window.TanotFSRS.schedule(n, rating); } // rating: 1=Again 2=Hard 3=Good 4=Easy
 
         // ── สโตร์การ์ดทวนคำศัพท์ (คีย์รูปแบบเดียวกับ wrongKey: `${langId}::${cat}::${idx}` — ภาษาจีน
         // ใช้ `lang-cn::script::${i}` ผูกกับ ZH_SCRIPT.characters[i] แทน) ─────────────────────
@@ -837,6 +800,26 @@
                 (cats[cat] || []).forEach((w, i) => out.push({ key: `${langId}::vocab-${cat}::${i}`, word: w.word, thai: w.thai }));
             });
             return out;
+        }
+        // หน้าการ์ด (คำ/ความหมาย) ของทุกการ์ดที่มีใน srs → tanot:learn:faces:lang (แคชในเครื่อง ไม่ซิงก์)
+        // ให้ review.html (ทบทวนวันนี้) แสดงการ์ดภาษาได้โดยไม่ต้องโหลดคลังคำศัพท์ทั้งหมดของหน้านี้
+        const facePoolCache = {};
+        function writeCardFaces(srs) {
+            const cards = {}, langs = {};
+            Object.keys(srs || {}).forEach(key => {
+                const langId = key.split('::')[0];
+                if (!LANGS[langId]) return;
+                if (!facePoolCache[langId]) {
+                    const m = {};
+                    vocabPool(langId).forEach(it => { m[it.key] = [String(it.word || ''), String(it.thai || '')]; });
+                    facePoolCache[langId] = m;
+                }
+                const f = facePoolCache[langId][key];
+                if (!f) return;
+                cards[key] = f;
+                langs[langId] = LANGS[langId].title;
+            });
+            try { localStorage.setItem('tanot:learn:faces:lang', JSON.stringify({ v: 1, langs, cards })); } catch (e) {}
         }
         function dueVocab(langId, srs) {
             const now = Date.now();
@@ -17006,6 +16989,16 @@
             const inputRef = useRef(null);
 
             useEffect(() => { lucide.createIcons(); });
+            // XP กลาง (learn-core.js): ส่งเฉพาะส่วนที่เพิ่มจากการฝึก (ไม่นับตอนโหลดค่าเดิม/รวมค่าจาก Drive)
+            // ต้องอยู่ก่อน effect ที่บันทึก xp — ให้ learn-core ถ่ายยอดเดิมก่อนคีย์เดิมรวม XP ก้อนนี้
+            const xpPrevRef = useRef(xp);
+            const xpFromDriveRef = useRef(false);
+            useEffect(() => {
+                const gained = xp - xpPrevRef.current;
+                xpPrevRef.current = xp;
+                if (xpFromDriveRef.current) { xpFromDriveRef.current = false; return; }
+                if (gained > 0 && window.LearnCore) window.LearnCore.award('lang', gained);
+            }, [xp]);
             useEffect(() => { saveXp(xp); }, [xp]);
             useEffect(() => { saveStreak(streak); }, [streak]);
             // นับ streak เมื่อ xp เพิ่มขึ้นจริง (มีการฝึกจริง) — ข้ามรอบแรกตอน mount (แค่โหลดค่าเดิม
@@ -17019,6 +17012,10 @@
             useEffect(() => { saveNotes(notes); }, [notes]);
             useEffect(() => { saveWrong(wrong); }, [wrong]);
             useEffect(() => { saveSrs(srs); }, [srs]);
+            useEffect(() => {
+                const t = setTimeout(() => writeCardFaces(srs), 800);
+                return () => clearTimeout(t);
+            }, [srs]);
             useEffect(() => { saveWriting(writing); }, [writing]);
 
             // merge (ไม่ replace ทั้งก้อน) เพื่อไม่ให้แก้ข้อความแล้วลบภาพลายมือที่บันทึกไว้ทิ้งไปโดยไม่ตั้งใจ (หรือกลับกัน)
@@ -17059,6 +17056,7 @@
                     const mergedWriting = mergeWriting(remote?.writing, writing);
                     const mergedStreak = mergeStreak(remote?.streak, streak);
 
+                    if (mergedXp !== xp) xpFromDriveRef.current = true;
                     setXp(mergedXp);
                     setProgress(mergedProgress);
                     setNotes(mergedNotes);

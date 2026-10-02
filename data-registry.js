@@ -29,6 +29,7 @@
     { key: 'tanot:invest:lottery:latest', kind: 'cache' },
     { key: 'tanot:invest:comm:lastKey', kind: 'cache' },
     { key: 'tanot:invest:news:lastChip', kind: 'cache' },
+    { prefix: 'tanot:learn:faces:', kind: 'cache' }, // หน้าการ์ดภาษาที่หน้าภาษาเขียนไว้ให้หน้าทบทวนวันนี้ — สร้างใหม่ได้ทุกครั้งที่เปิดหน้าภาษา
 
     // ── ค่าเฉพาะเครื่อง ──
     { prefix: 'ome:', kind: 'local' },
@@ -71,6 +72,9 @@
     { key: 'legal:drafts', kind: 'sync', mode: 'map' },
     { key: 'legal:checked', kind: 'sync', mode: 'map' },
     { key: 'tanot:tax:years', kind: 'sync', mode: 'map' }, // หน้าภาษี: แต่ละปีภาษีเป็นคนละ doc
+    { key: 'tanot:learn:xp', kind: 'sync', mode: 'list', idField: 'id' },     // learn-core.js: 1 แถวต่อ (วัน, เครื่อง, ที่มา)
+    { key: 'tanot:learn:legacy', kind: 'sync', mode: 'list', idField: 'id' }, // learn-core.js: ยอดเดิมของแต่ละหน้า เครื่องละแถว
+    { key: 'tanot:learn:settings', kind: 'sync' },                             // learn-core.js: เป้ารายวัน + วันพัก
 
     // ── ข้อมูลผู้ใช้อื่นๆ ทั้งก้อน ──
     { prefix: 'tanot:', kind: 'sync' },

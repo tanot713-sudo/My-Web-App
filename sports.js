@@ -1891,6 +1891,7 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
     xp += XP_PER_EXERCISE;
     var trackJustCompleted = trackCompleted(track, progress);
     if (trackJustCompleted) xp += XP_PER_TRACK_BONUS;
+    if (window.LearnCore) window.LearnCore.award('sports', XP_PER_EXERCISE + (trackJustCompleted ? XP_PER_TRACK_BONUS : 0));
     saveXp(xp);
     var streak = bumpStreak();
     var newBadges = checkAwardBadges(progress, streak);
