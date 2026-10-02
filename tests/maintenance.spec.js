@@ -639,6 +639,58 @@ test.describe('หน้า maintenance.html', () => {
     await A.ctx.close(); await B.ctx.close();
   });
 
+  test('B8 QR: ป้ายของอุปกรณ์ถอดภาพกลับได้ URL ที่มี #asset=<id> · "ถ่ายรูป QR" ด้วยไฟล์ PNG เปิดมุมมองอุปกรณ์นั้น · พิมพ์ป้ายตามตัวกรอง', async ({ browser }) => {
+    const { ctx, page, errors } = await newDevice(browser);
+    await openAsset(page, 'e1');
+    // QR ที่ render ในมุมมองอุปกรณ์ → ถอดด้วย jsQR
+    const decoded = await page.evaluate(async () => {
+      const svg = document.querySelector('.mnt-qrbox .qr svg').outerHTML.replace('<svg ', '<svg width="400" height="400" ');
+      return window.MntQR.decodeImage(new Blob([svg], { type: 'image/svg+xml' }));
+    });
+    expect(decoded).toMatch(/^http:\/\/localhost:8129\/maintenance\.html#asset=e1$/);
+    // วาดเป็น PNG เก็บไว้ใช้เป็นรูปถ่าย
+    const pngB64 = await page.evaluate(async () => {
+      const svg = document.querySelector('.mnt-qrbox .qr svg').outerHTML.replace('<svg ', '<svg width="400" height="400" ');
+      const img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' })); });
+      const cv = document.createElement('canvas'); cv.width = 400; cv.height = 400;
+      const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 400, 400); ctx.drawImage(img, 0, 0, 400, 400);
+      return cv.toDataURL('image/png').split(',')[1];
+    });
+    await page.evaluate(() => { location.hash = ''; });
+    await expect(page.locator('#listView')).toBeVisible();
+    await page.click('#aScan');
+    await expect(page.locator('#dlgScan')).toHaveAttribute('open', '');
+    // ไม่มีกล้องในเบราว์เซอร์ทดสอบ — ทางสำรองด้วยรูปถ่าย QR
+    await page.setInputFiles('#scanFile', { name: 'qr.png', mimeType: 'image/png', buffer: Buffer.from(pngB64, 'base64') });
+    await expect(page.locator('#dlgScan')).not.toHaveAttribute('open', '');
+    await expect(page.locator('#assetView')).toBeVisible();
+    await expect(page.locator('#assetView .head h2')).toContainText('RN05-ESC-01');
+    // พิมพ์รหัสเอง: ไม่พบ → ข้อความ แล้วพบ → เปิด
+    await page.evaluate(() => { location.hash = ''; });
+    await page.click('#aScan');
+    await page.fill('#scanCode', 'ไม่มีรหัสนี้');
+    await page.click('#scanGo');
+    await expect(page.locator('#scanMsg')).toContainText('ไม่พบ');
+    await page.fill('#scanCode', 'rn05-esc-01');
+    await page.click('#scanGo');
+    await expect(page.locator('#assetView .head h2')).toContainText('RN05-ESC-01');
+    // ไม่พบ id → empty state
+    await page.evaluate(() => { location.hash = '#asset=nope'; });
+    await expect(page.locator('#assetView')).toContainText('ไม่พบอุปกรณ์');
+    // พิมพ์ป้าย: มุมมองพิมพ์ 3×8 ต่อแผ่น QR + รหัสตัวใหญ่ + ชื่อ + สถานที่
+    await page.evaluate(() => { location.hash = ''; window.print = () => { window.__printed = document.getElementById('printArea').innerHTML; }; });
+    await page.click('#aPrint');
+    const html = await page.evaluate(() => window.__printed);
+    expect((html.match(/class="lbl"/g) || []).length).toBe(1);
+    expect(html).toContain('g3x8');
+    expect(html).toContain('RN05-ESC-01');
+    expect(html).toContain('<svg');
+    expect(html).toContain('RN05 บางซื่อ');
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+
   test('B9 ปีที่ล็อก: ฟอร์มรอบปี ปัจจุบัน−2 ปิดไว้ · registry ซิงก์เฉพาะปีปัจจุบัน ±1', async ({ browser }) => {
     const now = new Date('2028-02-10T10:00:00+07:00');
     const { ctx, page, errors } = await newDevice(browser, { now });
@@ -819,7 +871,7 @@ test.describe('นำเข้า/ส่งออก Excel', () => {
     await ctx.close();
   });
 
-  test('B8 report-dashboard?src=maintenance: โหลดข้อมูลเข้าทางเดียวกับอัปโหลดไฟล์ — คอลัมน์ตรงหัว WorkOrders จำนวนแถวตรง · URL ถูกล้าง query', async ({ browser }) => {
+  test('B10 report-dashboard?src=maintenance: โหลดข้อมูลเข้าทางเดียวกับอัปโหลดไฟล์ — คอลัมน์ตรงหัว WorkOrders จำนวนแถวตรง · URL ถูกล้าง query', async ({ browser }) => {
     const { ctx, page } = await newDevice(browser);
     const at = new Date('2026-11-10T10:00:00+07:00').getTime();
     await page.evaluate(async (at) => {

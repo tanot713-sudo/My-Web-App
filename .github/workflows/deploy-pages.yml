@@ -71,6 +71,8 @@ jobs:
         run: npx playwright test learn.spec.js
       - name: data + pages (ซิงก์ D1, ย้ายข้อมูลจาก github.io, หน้าวันนี้/ค้นหาด่วน, ประกัน + /api/files)
         run: npx playwright test sync.spec.js migrate.spec.js today.spec.js insurance.spec.js
+      - name: maintenance (mnt-calc.js known-answer, QR, หน้าบันทึกงานบำรุงรักษา — ออฟไลน์+รูป R2, ซิงก์ 2 เครื่อง, นำเข้า/ส่งออก Excel, report-dashboard)
+        run: npx playwright test maintenance.spec.js
       - name: github-redirect (GitHub Pages แบบ redirect ไป pages.dev)
         run: npx playwright test github-redirect.spec.js
       - name: Upload Playwright report
