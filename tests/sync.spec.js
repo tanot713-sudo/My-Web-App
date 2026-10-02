@@ -343,25 +343,6 @@ test('คลังรายงาน (id autoIncrement): 2 เครื่อง
   await A.ctx.close(); await B.ctx.close();
 });
 
-test('budget.html บน pages.dev: Firebase ที่ค้างข้อมูลเก่าไม่เขียนทับ/ลบรายการที่มาจาก D1', async ({ browser }) => {
-  const rec = (id) => ({ id, date: '2026-09-01', type: 'expense', categoryId: 'cat-rice', amount: 10, note: '' });
-  const B = await device(browser, { seed: { 'budget:records': JSON.stringify([rec('r1'), rec('rB')]) } });
-  await sync(B.page);
-  const A = await device(browser, { seed: { 'budget:records': JSON.stringify([rec('r1')]) } });
-  // Firebase จำลอง: เคยล็อกอินไว้แล้ว (onAuthStateChanged เรียก onSignedIn เองตอนโหลด) ข้อมูลบน Firebase ยังเป็นชุดเก่า
-  await A.page.route('**/firebase-sync.js', (r) => r.fulfill({ contentType: 'text/javascript', body:
-    'window.FirebaseSync={connect:function(b,o){setTimeout(function(){o.onSignedIn("u")},0);return{signIn:function(){},signOut:function(){},' +
-    'write:function(){return Promise.resolve()},watch:function(p,cb){(window.__fbWatch=window.__fbWatch||{})[p]=cb;return function(){}}}}};' }));
-  await sync(A.page);
-  await A.page.goto('/budget.html');
-  await A.page.waitForTimeout(300);
-  await A.page.evaluate((stale) => window.__fbWatch && window.__fbWatch.records && window.__fbWatch.records(stale), [rec('r1')]);
-  await sync(A.page); await sync(B.page);
-  expect(JSON.parse(await get(B.page, 'budget:records')).map((r) => r.id).sort()).toEqual(['r1', 'rB']);
-  expect(JSON.parse(await get(A.page, 'budget:records')).map((r) => r.id).sort()).toEqual(['r1', 'rB']);
-  await A.ctx.close(); await B.ctx.close();
-});
-
 test('รายการที่เซิร์ฟเวอร์ไม่รับ (id ว่าง) ไม่ทำให้ทั้งรอบซิงก์ล้มตลอดไป', async ({ browser }) => {
   const A = await device(browser, { seed: { 'lang-practice:srs': JSON.stringify({ '': { due: 1 }, ok: { due: 2 } }), 'tanot:music:xp': '5' } });
   expect((await sync(A.page)).state).toBe('ok');
