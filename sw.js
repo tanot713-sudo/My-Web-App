@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v580';
+const CACHE = 'ome-v581';
 const PRECACHE = [
   './',
   './index.html',
@@ -63,6 +63,12 @@ const PRECACHE = [
   './insurance.html',
   './insurance.js',
   './insurance-calc.js',
+  './maintenance.html',
+  './maintenance.js',
+  './mnt-calc.js',
+  './mnt-qr.js',
+  './vendor/qrcode-generator/qrcode.js',
+  './vendor/jsqr/jsQR.js',
   './cad.html',
   './cad.js',
   './cad3d.html',
