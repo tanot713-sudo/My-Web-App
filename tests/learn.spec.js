@@ -1,6 +1,8 @@
 // @ts-check
 // ROADMAP Phase 5 — ระบบการเรียนรวมศูนย์: fsrs.js (เทียบโค้ดก่อนแยก), learn-core.js (ย้าย XP เดิม/วันติดต่อกัน/วันพัก),
 // review.html (กองการ์ดรวม เขียนผลกลับที่เดิม) และซิงก์ XP 2 เครื่องไม่ทับกัน
+const fs = require('fs');
+const path = require('path');
 const { test, expect } = require('@playwright/test');
 const { prepare } = require('./helpers');
 const FS = require('../fsrs.js');
@@ -267,6 +269,151 @@ test('ทบทวนวันนี้: ไม่มีข้อมูล → e
   await expect(page.locator('#rvArea .empty')).toContainText('ทบทวนครบแล้ว 1 ใบ');
   const k = await page.evaluate(() => JSON.parse(localStorage.getItem('lang-practice:srs')).k);
   expect(k).toMatchObject({ stability: 0.5, difficulty: 7, lapses: 1, srsIdx: -1 }); // การ์ดใหม่ตอบ Again: 5 − (1 − 3)
+  expect(errors).toEqual([]);
+});
+
+/* ── ห้องเรียนวิศวกรรม: course-data → การ์ดทบทวน lbe:engineering:srs ── */
+const ENG_HTML = fs.readFileSync(path.join(__dirname, '..', 'classroom-engineering.html'), 'utf8');
+const ENG = JSON.parse(/<script id="course-data" type="application\/json">([\s\S]*?)<\/script>/.exec(ENG_HTML)[1]);
+// 13 สาขาเดิม — id และลำดับเป็นส่วนหนึ่งของคีย์การ์ด/ความคืบหน้าที่ผู้ใช้มีอยู่แล้ว ห้ามเปลี่ยน
+const ENG_OLD_IDS = ['civil-eng', 'electrical-eng', 'mechanical-eng', 'industrial-eng', 'chemical-eng', 'computer-eng', 'telecom-eng',
+  'environmental-eng', 'automotive-eng', 'aerospace-eng', 'mining-eng', 'petroleum-eng', 'biomedical-eng'];
+const engQ = (subj, topic, i) => ENG[subj].find((t) => t.id === topic).quiz[i];
+
+test('ห้องเรียนวิศวกรรม: course-data คง id เดิม + หมวดบำรุงรักษาระบบไฟฟ้า ข้อสอบรูปแบบถูกต้อง', () => {
+  expect(Object.keys(ENG)).toEqual(['engineering', 'elec-maint']);
+  expect(ENG.engineering.map((t) => t.id)).toEqual(ENG_OLD_IDS);
+  expect(ENG['elec-maint'].length).toBeGreaterThanOrEqual(10);
+  expect(ENG['elec-maint'].length).toBeLessThanOrEqual(12);
+  const ids = new Set();
+  for (const [subj, topics] of Object.entries(ENG)) {
+    for (const t of topics) {
+      expect(ids.has(t.id), t.id).toBe(false); // id ซ้ำข้ามหมวดไม่ได้ (คีย์ written ของหน้าไม่มีชื่อหมวด)
+      ids.add(t.id);
+      expect(t.id).toMatch(/^[a-z0-9-]+$/);
+      expect(t.title && t.overview).toBeTruthy();
+      expect(t.keyConcepts.length).toBeGreaterThanOrEqual(4);
+      expect(t.keyConcepts.length).toBeLessThanOrEqual(6);
+      if (subj === 'engineering') expect(t.quiz).toHaveLength(4);
+      else {
+        expect(t.lesson, t.id).toBeTruthy();
+        expect(t.quiz.length).toBeGreaterThanOrEqual(6);
+        expect(t.quiz.length).toBeLessThanOrEqual(8);
+      }
+      for (const q of t.quiz) {
+        expect(q.options, q.q).toHaveLength(4);
+        expect(new Set(q.options).size).toBe(4);
+        expect(Number.isInteger(q.answer) && q.answer >= 0 && q.answer < 4).toBe(true);
+      }
+    }
+  }
+});
+
+test('ทบทวนวันนี้: การ์ดวิศวะ (13 สาขา + บำรุงรักษาระบบไฟฟ้า) หน้าการ์ดจาก course-data ให้คะแนนแล้วเขียนกลับ lbe:engineering:srs', async ({ page }) => {
+  const t0 = NOW.getTime();
+  const srs0 = {
+    'elec-maint:grounding:4': { interval: 1, due: t0 - 2000 },
+    'engineering:electrical-eng:1': { interval: 7, due: t0 - 1000 },
+    'elec-maint:grounding:99': { interval: 3, due: t0 - 1 },      // ไม่มีข้อนี้ในคลัง → นับเป็น "ไปทำที่หน้าห้องเรียน"
+    'engineering:civil-eng:0': { interval: 3, due: t0 + DAY },     // ยังไม่ถึงกำหนด
+  };
+  const errors = await openWith(page, '/review.html', { 'lbe:engineering:srs': JSON.stringify(srs0) });
+  await expect(page.locator('#rvDue')).toContainText('3');
+  await expect(page.locator('#rvFilter')).toContainText('วิศวกรรม 3');
+  await expect(page.locator('.rv-more a[href="classroom-engineering.html"]')).toContainText('1');
+
+  // เรียงตามวันครบกำหนด: grounding:4 ก่อน
+  const g = engQ('elec-maint', 'grounding', 4), e = engQ('engineering', 'electrical-eng', 1);
+  const card = page.locator('#rvCard');
+  await expect(card.locator('.q')).toHaveText(g.q);
+  await expect(card.locator('.src')).toContainText('ระบบต่อลงดิน');
+  await card.click();
+  await expect(card.locator('.a')).toHaveText(g.options[g.answer]);
+  await page.locator('.rv-rate [data-r="1"]').click(); // Again → ถอยกลับ 1 วัน
+  await expect(card.locator('.q')).toHaveText(e.q);
+  await card.click();
+  await expect(card.locator('.a')).toHaveText(e.options[e.answer]);
+  await page.locator('.rv-rate [data-r="3"]').click(); // Good → 7 → 14 วัน
+  await expect(page.locator('#rvArea .empty')).toContainText('ทบทวนครบแล้ว 2 ใบ');
+
+  const srs = await page.evaluate(() => JSON.parse(localStorage.getItem('lbe:engineering:srs')));
+  expect(srs).toEqual({
+    ...srs0,
+    'elec-maint:grounding:4': LC.lbeNext(srs0['elec-maint:grounding:4'], false, t0),
+    'engineering:electrical-eng:1': LC.lbeNext(srs0['engineering:electrical-eng:1'], true, t0),
+  });
+  expect(srs['elec-maint:grounding:4']).toEqual({ interval: 1, due: t0 + DAY });
+  expect(srs['engineering:electrical-eng:1']).toEqual({ interval: 14, due: t0 + 14 * DAY });
+  expect((await summary(page)).todayBySrc).toEqual({ eng: 10 });
+  expect(errors).toEqual([]);
+});
+
+test('ห้องเรียนวิศวกรรม: แสดง 13 สาขา + หมวดบำรุงรักษาระบบไฟฟ้า เนื้อหาบทเรียน ทำแบบฝึกแล้วเข้าคิวทบทวน ข้อมูลเดิมยังใช้ได้', async ({ page }) => {
+  // React/ReactDOM/Babel ของหน้ามาจาก unpkg — ในเทสต์เสิร์ฟจาก tests/node_modules (รุ่นเดียวกับที่ unpkg ให้ตอนเขียนเทสต์)
+  const LOCAL = {
+    '/react@18/umd/react.production.min.js': 'react/umd/react.production.min.js',
+    '/react-dom@18/umd/react-dom.production.min.js': 'react-dom/umd/react-dom.production.min.js',
+    '/@babel/standalone/babel.min.js': '@babel/standalone/babel.min.js',
+  };
+  const t0 = NOW.getTime();
+  const oldSrs = { 'engineering:civil-eng:0': { interval: 3, due: t0 - 1 } };
+  const errors = await openWith(page, '/review.html', {});
+  await page.route('https://unpkg.com/**', (route) => {
+    const f = LOCAL[new URL(route.request().url()).pathname];
+    return f ? route.fulfill({ path: path.join(__dirname, 'node_modules', f), contentType: 'text/javascript' }) : route.abort('internetdisconnected');
+  });
+  // ข้อมูลเดิมของหน้า (ก่อนมีเนื้อหา): ความคืบหน้า/XP/คิวทบทวน
+  await page.evaluate((s) => {
+    localStorage.setItem('lbe:engineering:xp', '1300');
+    localStorage.setItem('lbe:engineering:completed', JSON.stringify({ 'engineering:civil-eng': true }));
+    localStorage.setItem('lbe:engineering:srs', JSON.stringify(s));
+  }, oldSrs);
+  await page.goto('/classroom-engineering.html', { waitUntil: 'load' });
+  await expect(page.locator('h1')).toContainText('ห้องเรียนวิศวกรรม');
+  await expect(page.getByText('(1300 XP)')).toBeVisible();
+
+  // สตรีม: 2 หมวด ความคืบหน้าเดิมยังนับ
+  const subjBtn = (label) => page.getByRole('button', { name: new RegExp('^' + label + ' \\d+/\\d+ หัวข้อ$') });
+  await expect(subjBtn('วิศวกรรม')).toContainText('1/13 หัวข้อ');
+  await expect(subjBtn('บำรุงรักษาระบบไฟฟ้า')).toContainText('0/' + ENG['elec-maint'].length + ' หัวข้อ');
+  // แท็บทบทวนนับคิวเดิม
+  await expect(page.locator('#root button', { hasText: 'ทบทวน' }).first()).toContainText('1');
+
+  // เปิดหมวดใหม่ → หัวข้อแรก แท็บสรุปเนื้อหา + บทเรียน
+  await subjBtn('บำรุงรักษาระบบไฟฟ้า').click();
+  const first = ENG['elec-maint'][0];
+  await expect(page.locator('main h3').first()).toContainText(first.title);
+  await expect(page.locator('main')).toContainText(first.overview);
+  await expect(page.locator('main .lesson h3').first()).toBeVisible();
+  // แถบหัวข้อมีครบทั้ง 2 หมวด
+  const aside = page.locator('aside');
+  for (const t of [...ENG.engineering, ...ENG['elec-maint']]) await expect(aside.getByRole('button', { name: t.title, exact: true })).toBeVisible();
+
+  // ทำแบบฝึกหัวข้อระบบต่อลงดิน 2 ข้อ: ถูก 1 ผิด 1
+  await aside.getByRole('button', { name: 'ระบบต่อลงดิน', exact: true }).click();
+  await page.getByRole('button', { name: 'แบบฝึกเขียนตอบ' }).click();
+  for (const [i, ok] of [[0, true], [1, false]]) {
+    const q = engQ('elec-maint', 'grounding', i);
+    await expect(page.locator('main h3')).toHaveText(q.q);
+    await page.locator('main textarea').fill('คำตอบทดสอบ');
+    await page.getByRole('button', { name: 'ส่งคำตอบ' }).click();
+    await expect(page.locator('main')).toContainText(q.options[q.answer]);
+    await page.getByRole('button', { name: ok ? 'ตอบถูก (+100 XP)' : 'ยังไม่ถูก' }).click();
+    await page.getByRole('button', { name: 'ข้อต่อไป' }).click();
+  }
+  await expect(page.getByText('(1400 XP)')).toBeVisible();
+  const srs = await page.evaluate(() => JSON.parse(localStorage.getItem('lbe:engineering:srs')));
+  expect(srs).toEqual({
+    ...oldSrs,
+    'elec-maint:grounding:0': { interval: 1, due: t0 + DAY },
+    'elec-maint:grounding:1': { interval: 1, due: t0 + DAY },
+  });
+  expect(await page.evaluate(() => localStorage.getItem('lbe:engineering:xp'))).toBe('1400');
+  expect((await summary(page)).todayBySrc).toEqual({ eng: 100 });
+
+  // ทบทวนในหน้า: การ์ดเดิมของสาขาเดิมได้หน้าการ์ดใหม่จาก course-data
+  await page.locator('#root button', { hasText: 'ทบทวน' }).first().click();
+  await expect(page.locator('#root h3')).toHaveText(engQ('engineering', 'civil-eng', 0).q);
   expect(errors).toEqual([]);
 });
 
