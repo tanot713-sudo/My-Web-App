@@ -12,14 +12,6 @@
 <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- ตามที่ผู้ใช้ขอ: เชื่อมกับธีม/ภาษากลางของเว็บ (กด ☰/⚙ แล้วเปลี่ยนได้เหมือนหน้าเครื่องมืออื่น) —
-     เดิมหน้านี้ไม่ได้โหลด theme.css/shell.js เลย เป็นหน้าเดียวที่แยกตัวออกจากระบบกลาง เพิ่มตรงนี้
-     ตามตำแหน่ง/ลำดับเดียวกับหน้าเครื่องมืออื่นทุกหน้า (เช่น excel.html) — ตัวแปรสี :root ของไฟล์นี้
-     ใช้ชื่อเดียวกับที่ theme.css คาดไว้อยู่แล้ว (--bg/--card/--ink/--muted/--line/--brand/--brand-dk/
-     --brand-sf/--sh) เพราะ theme.css มี selector [data-accent] body.ome-tool-page{--bg:var(--ome-bg);...}
-     ที่ remap ให้อัตโนมัติอยู่แล้ว (ทำไว้รองรับหน้าแบบนี้ตั้งแต่ต้น) ไม่ต้องแก้ CSS ภายในไฟล์นี้เพิ่ม
-     ยกเว้นฟอนต์ (ดู var(--ome-f) ที่ --ui-font/body ด้านล่าง) — ยังไม่เพิ่ม auth-gate.js เพราะเป็นคนละ
-     เรื่องกับธีม/ภาษา (ล็อกด้วยรหัสผ่าน) รบกวนยืนยันแยกอีกทีถ้าต้องการให้เพิ่มด้วย -->
 <script src="theme-boot.js"></script>
 <script src="data-registry.js"></script>
 <script src="tanot-data.js"></script>
@@ -28,41 +20,51 @@
 <!-- Gridstack.js — กริดลาก/ย่อ-ขยายกล่องเองสำหรับมุมมอง "กำหนดเอง" (MIT, ไม่มี dependency อื่น) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@12.6.0/dist/gridstack.min.css">
 <style>
+/* ── กรอบหน้า (ธีมกลาง v2: data-layout=tool) — .btn/.card/.chip/.tabs/.dropzone/.lang-toggle มาจาก theme.css ── */
+.rd-page{max-width:1320px}
+.wrap{max-width:1320px;margin:0 auto}
+.crumb-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:var(--ome-sp-3)}
+.crumb-row .crumb{margin-bottom:0}
+.rd-page .card{margin-top:var(--ome-card-gap)}
+.rd-page .page-head{margin-bottom:var(--ome-sp-3)}
+.rd-views{margin-top:var(--ome-card-gap)}
+.rd-views .tab{display:inline-flex;align-items:center;gap:6px}
+.rd-drill{margin-top:var(--ome-card-gap);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.card-head .mini{margin-left:auto}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px}
+#sheetChips{margin-top:var(--ome-sp-3)}
+.dropzone .btn{margin-top:var(--ome-sp-2)}
+.status{min-height:1.2em}
+.template-dl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:var(--ome-sp-2)}
+.template-dl-grid .btn{justify-content:flex-start}
+#resumeInfo{margin-bottom:var(--ome-sp-3)}
+.list-row .grow{min-width:0}
+.list-row .ractions{display:flex;gap:6px;flex-shrink:0}
+#headerCard .tbl-wrap{margin-bottom:var(--ome-sp-3)}
+.toolbar-row .status{margin:0 0 0 auto}
+.search-wrap{position:relative;flex:1 1 220px;min-width:160px}
+.search-wrap .ome-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ome-text-3);pointer-events:none}
+.search-wrap .input{height:30px;padding-left:34px;font-size:var(--ome-fs-xs);border-radius:var(--ome-radius-sm)}
+/* ── ชื่อตัวแปรสีเดิมที่โมดูลรายงานยังอ้างถึง — ชี้ไปโทเคนกลาง (ลบเมื่อโมดูลสุดท้ายย้ายเสร็จ) ── */
+body[data-layout]{--bg:var(--ome-surface-0);--card:var(--ome-surface-1);--ink:var(--ome-text-1);--muted:var(--ome-text-2);
+  --line:var(--ome-border);--brand:var(--ome-accent);--brand-dk:var(--ome-accent-strong);--brand-sf:var(--ome-accent-soft);
+  --sh:var(--ome-shadow-2);--ok:var(--ome-ok);--err:var(--ome-err);--warn:var(--ome-warn);--sky:var(--ome-info);
+  --navy:var(--ome-text-1);--navy2:var(--ome-text-2);--amber-sf:var(--ome-warn-soft);--sky-sf:var(--ome-info-soft);
+  --pc54-actual:var(--ome-accent);--pc54-today:var(--ome-err);--ui-font:var(--ome-f);--ui-font-mono:var(--ome-f);
+  --bi-primary:var(--ome-accent);--bi-ink:var(--ome-text-1);--bi-muted:var(--ome-text-2);--bi-line:var(--ome-border);--bi-bg:var(--ome-surface-0)}
+/* รีเซ็ตระยะขอบของหัวข้อ/ย่อหน้า/รายการในเนื้อหารายงาน (เดิมมี *{margin:0;padding:0} ทั้งหน้า) */
+.rd-page :where(h1,h2,h3,h4,p,ul,ol,dl,dd,figure,blockquote){margin:0}
+.rd-page :where(ul,ol){padding:0}
 /* ── โทนสี+ตัวอักษร: ปรับให้ใกล้เคียง AMR O&M Dashboard Templates (โทนน้ำเงิน-เทา, IBM Plex Sans/Mono)
    Stage 1 ของการ restyle — เปลี่ยนแค่ "ค่า" ของตัวแปรสี/ฟอนต์ที่ทั้งไฟล์ใช้อยู่แล้ว (--bg/--ink/--muted/
    --line/--brand ฯลฯ) ไม่เปลี่ยนชื่อตัวแปรหรือโครงสร้าง เพื่อให้ทุกจุดที่ใช้ var(...) อยู่แล้วเปลี่ยนตามกัน
    โดยไม่ต้องแก้ selector อื่นเพิ่ม — ขั้นถัดไป (ทรง KPI/สถานะ/ตาราง/Gantt ให้เหมือน template เป๊ะขึ้น) จะทำเป็น
    stage ถัดไปตามที่ตกลงกันไว้ */
-:root{--bg:#EEF1F4;--card:#FFFFFF;--ink:#101820;--muted:#4B5763;--line:#E3E7EC;
-  --brand:#1C5CAB;--brand-dk:#164A89;--brand-sf:#E5EEF9;
-  --navy:#1B2030;--navy2:#333D52;--amber:#F59E0B;--amber-sf:#FEF3E2;
-  --ok:#0CA30C;--sky:#2A78D6;--sky-sf:#EAF1FE;--err:#D03B3B;--warn:#E08700;
-  --sh:0 1px 2px rgba(16,24,32,.05),0 8px 24px -16px rgba(16,24,32,.20);
-  /* Stage 2: --pc54-actual/--pc54-today ถูก var()-อ้างอิงใน report-dashboard.final62.projectcontrol.js
-     (legend "Actual" swatch ของ Gantt + แถบกราฟใน Project Analysis) แต่ไม่เคยถูกกำหนดค่าไว้ที่ไหนเลยทั้ง
-     โปรเจกต์ — ทำให้ swatch/แถบกราฟจุดนั้นไม่มีสี (โปร่งใส) มาตลอด กำหนดให้ที่นี่ ผูกกับโทนน้ำเงินใหม่ */
-  --pc54-actual:var(--brand);--pc54-today:var(--err)}
-*{box-sizing:border-box;margin:0;padding:0}
+
 /* กันสกอลล์แนวนอนทั้งหน้าบนมือถือ — ลิ้นชัก/แผง off-canvas (Dashboard Design, Command Palette ฯลฯ)
    ใช้ position:fixed + transform เลื่อนออกนอกจอตอนปิด ซึ่งยังนับเป็นพื้นที่สกอลล์ได้ในบางเบราว์เซอร์
    แม้มองไม่เห็น ทำให้แกว่งซ้าย-ขวาได้ (rubber-band) เวลาปัดนิ้วบนจอมือถือ */
 html,body{overflow-x:hidden;max-width:100%}
-body.ome-tool-page{font-family:var(--ome-f,'IBM Plex Sans'),Arial, Helvetica, sans-serif;background:var(--bg);color:var(--ink);
-  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1320px;margin:0 auto}
-.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
-.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
-.crumb .sep{margin:0 7px;color:#C9CEDC}
-.head{display:flex;align-items:center;gap:14px;margin:12px 0 6px}
-.head-ic{width:52px;height:52px;border-radius:15px;flex-shrink:0;font-size:25px;
-  background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;display:grid;place-items:center;
-  box-shadow:0 8px 20px rgba(27,32,48,.28)}
-h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
-.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
-
-.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px;margin-top:14px;border:1px solid rgba(16,24,40,.03)}
-.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
 
 /* ── การ์ดสถิติด่วน (แรงบันดาลใจจากแถบสถิติของภาพตัวอย่าง — ตัวเลขใหญ่หนา + label เล็ก) ── */
 .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:14px}
@@ -74,7 +76,6 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .stat-tile .val{font-size:23px;font-weight:800;margin-top:5px;letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
 .stat-tile .val .unit{font-size:13px;font-weight:600;color:var(--muted);margin-left:2px}
 .stat-tile .sub{font-size:11px;color:var(--muted);margin-top:4px}
-
 
 /* ── Executive Dashboard / Global Filters ── */
 .dashboard-shell{display:flex;flex-direction:column;gap:14px}
@@ -131,49 +132,12 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
   background:var(--brand-sf);border:1.5px solid var(--brand);border-radius:12px;padding:10px 14px;margin-top:12px}
 .drill-banner span{font-size:13px;font-weight:700;color:var(--brand-dk)}
 
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
-  background:var(--card);border-radius:11px;padding:10px 16px;font-family:inherit;font-size:14px;font-weight:700;
-  color:var(--ink);cursor:pointer;transition:.15s;white-space:nowrap}
-.btn:hover:not(:disabled){border-color:var(--brand);color:var(--brand-dk)}
-.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 6px 16px rgba(30,158,90,.28)}
-.btn.primary:hover:not(:disabled){background:var(--brand-dk);border-color:var(--brand-dk);color:#fff}
-.btn.danger{background:var(--err);border-color:var(--err);color:#fff}
-.btn.danger:hover:not(:disabled){background:#C93F44;color:#fff}
-.btn.sm{padding:7px 12px;font-size:12.5px;border-radius:9px}
-.btn:disabled{opacity:.4;cursor:default;box-shadow:none}
-.template-dl-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:12px}
-.template-dl-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
-  border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:14px 8px;cursor:pointer;
-  font-family:inherit;color:var(--ink);transition:.15s;text-align:center}
-.template-dl-btn:hover{border-color:var(--brand);background:var(--brand-sf,rgba(30,158,90,.06));color:var(--brand-dk)}
-.template-dl-btn .ic{font-size:22px;line-height:1}
-.template-dl-btn .lb{font-size:12px;font-weight:700}
-.template-dl-btn .dl{font-size:9.5px;color:var(--muted);font-weight:600}
-@media(max-width:900px){.template-dl-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:560px){.template-dl-grid{grid-template-columns:repeat(2,1fr)}}
-.status{font-size:12.5px;color:var(--muted);margin-top:9px;min-height:1.2em}
-.status.err{color:var(--err)}
-.status.ok{color:var(--ok)}
-
 /* ── โซนอัปโหลด ── */
-.drop-zone{border:2px dashed #D6DAE3;border-radius:16px;padding:36px 16px;text-align:center;transition:.15s;background:linear-gradient(180deg,#FAFBFD,var(--card))}
-.drop-zone.drag{border-color:var(--brand);background:var(--brand-sf)}
-.drop-ic-wrap{width:60px;height:60px;border-radius:50%;background:var(--brand-sf);display:grid;place-items:center;margin:0 auto;font-size:26px}
-.drop-txt{font-size:13.5px;color:var(--muted);margin:12px 0 12px}
-.drop-hint{font-size:11.5px;color:var(--muted);margin-top:12px}
 
 /* ── ชิปเลือกชีต ── */
 .chip-row{display:flex;flex-wrap:wrap;gap:7px}
-.chip{font-family:inherit;font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:20px;
-  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
-.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
 
 /* ── สลับภาษาไทย/อังกฤษ ── */
-.crumb-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.lang-toggle{display:inline-flex;align-items:center;gap:2px;background:var(--line);border:none;border-radius:20px;
-  padding:3px;cursor:pointer;font-family:inherit;margin-top:14px}
-.lang-toggle span{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:16px;color:var(--muted);transition:.15s}
-.lang-toggle span.active{background:var(--card);color:var(--brand-dk);box-shadow:0 1px 3px rgba(24,31,54,.08)}
 
 /* ── ตาราง ── */
 .tbl-wrap{overflow-x:auto;margin-top:4px;max-width:100%;border-radius:12px}
@@ -252,8 +216,8 @@ h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
 .card-color-btn:hover{opacity:1;background:var(--bg)}
 .fp-range label.cc-checkrow{display:flex;align-items:center;gap:6px;font-weight:400}
 /* ลูกเล่นเล็กๆ: การ์ด/กล่องยกตัวขึ้นนิดๆ พร้อมเงาเข้มขึ้นตอน hover ให้ดูมีมิติ ไม่ใช่แผ่นแบนราบ */
-.card,.grid-stack-item-content{transition:transform .15s ease,box-shadow .15s ease}
-.card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(16,24,40,.09)}
+.grid-stack-item-content{transition:transform .15s ease,box-shadow .15s ease}
+
 .grid-stack-item-content:hover{box-shadow:0 8px 20px rgba(16,24,40,.12)}
 .add-widget-pick .fp-item{gap:10px}
 /* ── แถบตัวกรองที่ active ของตารางในแดชบอร์ด (แยกจากตัวกรองของแท็บแก้ไข) — เดิมเป็นแถวกรองตรึงอยู่
@@ -308,8 +272,6 @@ th .th-filter-btn.active{color:var(--brand)}
 .filter-popover .fp-actions .fp-link{font-family:inherit;font-size:11.5px;font-weight:700;color:var(--err);
   background:transparent;border:none;cursor:pointer;padding:4px 0}
 .filter-popover .fp-actions .fp-btns{display:flex;gap:6px;flex-wrap:wrap}
-.filter-popover .btn.ghost{background:transparent;border-color:var(--line);color:var(--muted)}
-.filter-popover .btn.ghost:hover{background:var(--bg);color:var(--ink)}
 
 /* Final 38 — centralized table color styling */
 .table-color-popover .scope-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0 10px}
@@ -532,25 +494,12 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
 .pager{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;flex-wrap:wrap}
 .pager span{font-size:12.5px;color:var(--muted)}
 
-.disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
-@media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:18px}}
-
 /* ── รายการรายงานที่บันทึกไว้ ── */
-.report-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-  padding:11px 4px;border-bottom:1px solid var(--line)}
-.report-row:last-child{border-bottom:none}
-.report-row .rname{font-size:14px;font-weight:700;color:var(--ink)}
-.report-row .rmeta{font-size:11.5px;color:var(--muted);margin-top:2px}
-.report-row .ractions{display:flex;gap:6px;flex-shrink:0}
-.reports-empty{font-size:13px;color:var(--muted);padding:8px 4px}
 
 /* ── โหมดพิมพ์: โชว์เฉพาะเนื้อหาที่กำลังดู ซ่อนปุ่ม/แถบเมนู ── */
 @media print{
-  .crumb,.lang-toggle,.chip-row,.toolbar-row,.pager,.btn,#uploadCard,#resumeCard,#reportsCard,#sheetCard,#headerCard,
-  .rowchk,.hdrchk,.rowdel,#hdrChk,.filter-row,.chart-ctrl-row,.dash-active-filters,
-  .th-filter-btn,#filterPopover{display:none!important}
-  body.ome-tool-page{padding:0;background:#fff}
-  .card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}
+  .chip-row, .toolbar-row, .pager, #uploadCard, #resumeCard, #reportsCard, #sheetCard, #headerCard, .rowchk, .hdrchk, .rowdel, #hdrChk, .filter-row, .chart-ctrl-row, .dash-active-filters, .th-filter-btn, #filterPopover{display:none!important}
+
 }
 
 /* Complete plan enhancement layer */
@@ -652,7 +601,6 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
   .timeline-inner{min-width:760px}
   .timeline-head,.timeline-row{grid-template-columns:210px 1fr}
 }
-
 
 /* ===== Final 6: Executive BI UI overhaul ===== */
 
@@ -764,9 +712,7 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 @media(max-width:850px){.widget-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pp-row{grid-template-columns:1fr}.pp-target{text-align:left}.pp-track-wrap{width:100%}}
 @media(max-width:520px){.widget-picker-grid{grid-template-columns:1fr}.widget-picker-dialog{padding:14px}.widget-picker-item{min-height:92px}.pp-row{padding:9px}}
 
-
 .timeline-today-label{position:absolute;top:2px;transform:translateX(-50%);font-size:8px;color:#DC2626;font-weight:800;white-space:nowrap}.timeline-today-line{position:absolute;top:0;bottom:0;width:1px;background:#DC2626;border-left:1px dashed #DC2626;opacity:.75;z-index:2;pointer-events:none}
-
 
 /* ── Excel-style full grid for editable data table ── */
 #dataTable{border-collapse:collapse;border-spacing:0;}
@@ -836,7 +782,6 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 @media(max-width:900px){.scada-progress-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.scada-progress-grid{grid-template-columns:1fr}}
 @media(max-width:560px){.scada-progress-kpis{grid-template-columns:1fr}.scada-task{grid-template-columns:105px minmax(0,1fr) 48px}}
 
-
 /* ── Final 14: cleaner command center + custom layout ── */
 .utility-hamburger{width:34px;height:34px;border:1px solid var(--line);background:var(--card);border-radius:9px;display:inline-flex;flex-direction:column;justify-content:center;gap:4px;padding:0 8px;cursor:pointer;flex:0 0 auto;box-shadow:0 1px 2px rgba(16,24,40,.04)}
 .utility-hamburger span{display:block;height:1.5px;background:var(--muted);border-radius:2px;width:100%}.utility-hamburger:hover{border-color:var(--brand);background:var(--brand-sf)}
@@ -851,7 +796,6 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 #customCanvasWrap{margin-top:10px}.custom-dashboard-shell .grid-stack{padding-bottom:20px}
 .widget-head .wt-label{font-family:'IBM Plex Sans',Arial,sans-serif}.widget-head button{opacity:.55}.widget-head button:hover{opacity:1}
 @media(max-width:700px){.utility-menu-panel{left:12px;right:12px;top:56px;width:auto}.utility-menu-section{grid-template-columns:1fr}.utility-hamburger{order:-1}}
-
 
 /* ── Final 18 polish: stable Custom lifecycle, semantic mapping, compact controls ── */
 .dashboard-side-pane{position:fixed;inset:0 0 0 auto;width:min(380px,92vw);background:var(--card);border-left:1px solid var(--line);box-shadow:-18px 0 44px rgba(16,24,40,.16);z-index:1000;transform:translateX(105%);transition:transform .2s ease;overflow:auto;padding:18px}
@@ -878,7 +822,7 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 .card-tools .card-color-btn:hover,.card-tools .widget-fullscreen:hover{opacity:1}
 
 /* Final19 UI polish */
-.head-sub{display:none!important}
+
 #dashboardCommandBar .dashboard-report-meta{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-width:260px}
 #dashboardCommandBar .dashboard-report-meta .title{width:100%;text-align:center;font-weight:800}
 #dashboardCommandBar .dashboard-report-meta .meta{width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere;line-height:1.35}
@@ -892,7 +836,6 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 #customView .custom-hidden-actions{display:none!important}
 #customView .grid-stack{margin-top:12px}
 #dashboardView .insight-item.generic{display:none}
-
 
 /* FINAL24 density must visibly affect dashboard layout */
 #dashboardView.density-compact{gap:9px}
@@ -912,9 +855,9 @@ body.presentation-mode{overflow:hidden}
 </style>
 <style>
 /* ===== Final 8: UI polish / Excel-like filtering / typography ===== */
-:root{--ui-font:var(--ome-f,'IBM Plex Sans'),Arial,Helvetica,sans-serif;--ui-font-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;}
-html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-page select,.ome-tool-page textarea,.ome-tool-page table{font-family:var(--ui-font)!important;}
-.ome-tool-page{font-family:var(--ui-font)!important;}
+
+html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, .ome-tool-page textarea, .ome-tool-page table{font-family:var(--ui-font)!important;}
+
 /* ── ตัวเลข/ค่า KPI ใช้ IBM Plex Mono (tabular figures) ให้เข้าชุดกับ template AMR O&M ── */
 .ome-tool-page .stat-tile .val,.ome-tool-page .risk-matrix td,.ome-tool-page .widget-body.wb-kpi .wt-val,
 .ome-tool-page td.num,.ome-tool-page th.num,.ome-tool-page .cellsel-summary b,.ome-tool-page .dh-table td,
@@ -1110,7 +1053,7 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
 
 <style>.bi-import-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.bi-import-item{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #E5E7EB;border-radius:12px;background:#fff;cursor:pointer}.bi-import-item:hover{border-color:#16A36A;background:#F8FFFB}.bi-import-item span{display:flex;flex-direction:column;gap:2px}.bi-import-item b{font:700 12px 'IBM Plex Sans',Arial;color:#111827}.bi-import-item small{font:500 10px 'IBM Plex Sans',Arial;color:#64748B;text-transform:capitalize}@media(max-width:720px){.bi-import-grid{grid-template-columns:1fr}}</style>
 <style id="final21-bi-enhancement">
-:root{--bi-primary:#1E9E5A;--bi-ink:#172033;--bi-muted:#667085;--bi-line:#E4E7EC;--bi-bg:#F6F8FB}
+
 /* Gentelella/Flowbite-inspired application shell — restrained, not a theme replacement. */
 .bi-pro-card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh);padding:16px;margin-top:14px}
 .bi-pro-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
@@ -1176,7 +1119,7 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
 
 <style id="final25-clean-ui">
 /* FINAL24: clean, centered dashboard header */
-.head-sub{display:none!important}
+
 .dashboard-command-bar,#dashboardCommandBar{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;align-items:center!important;gap:14px!important}
 .dashboard-command-left{justify-content:center!important;text-align:center!important;min-width:0!important}
 .dashboard-report-meta{display:flex!important;flex-direction:column!important;align-items:center!important;min-width:0!important}
@@ -1275,8 +1218,7 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
 .final12-style-popover .cs-grid select,.final12-style-popover .cs-grid input[type=number],.final12-style-popover .cs-grid input[type=color]{width:100%!important;height:35px!important;border:1px solid var(--line)!important;border-radius:8px!important;background:var(--bg)!important;color:var(--ink)!important;padding:5px 8px!important;}
 @media(max-width:520px){.final12-style-popover .cs-grid{grid-template-columns:1fr!important;}}
 /* Upload card breathing room */
-.drop-zone{padding-top:46px!important;padding-bottom:42px!important;}
-.drop-ic-wrap{margin-top:8px!important;margin-bottom:8px!important;}
+
 /* Calm card action icons: aligned in the header, small and muted. */
 .card .card-color-btn,.card .chart-style-btn{opacity:.55!important;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--card);border-radius:8px;}
 .card .card-color-btn:hover,.card .chart-style-btn:hover{opacity:1!important;background:var(--bg);}
@@ -1595,8 +1537,8 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
 }
 </style>
 </head>
-<body class="ome-tool-page" data-doctitle-key="docTitle">
-<div class="wrap">
+<body data-layout="tool" data-doctitle-key="docTitle">
+<div class="page rd-page">
 
   <div class="crumb-row">
     <nav class="crumb"><a href="index.html" data-i18n="crumbHome">หน้าหลัก</a><span class="sep">/</span><span data-i18n="crumbResp">งานที่รับผิดชอบ</span><span class="sep">/</span><span data-i18n="crumbPage">นำเสนอรายงาน</span></nav>
@@ -1605,13 +1547,9 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
     </button>
   </div>
 
-  <div class="head">
-    <div class="head-ic">📊</div>
-    <div>
-      <h1 data-i18n="pageTitle">นำเสนอรายงาน</h1>
-      
-    </div>
-  </div>
+  <header class="page-head">
+    <h1 data-i18n="pageTitle">นำเสนอรายงาน</h1>
+  </header>
 
   <div class="stat-row" id="statRow" style="display:none">
     <div class="stat-tile"><div class="lbl" data-i18n="statTotalLbl">รายการทั้งหมด</div><div class="val" id="statTotal">0 <span class="unit" data-i18n="unitRows">แถว</span></div></div>
@@ -1620,90 +1558,85 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
     <div class="stat-tile"><div class="lbl" data-i18n="statSelectedLbl">เลือกไว้</div><div class="val" id="statSelected">0 <span class="unit" data-i18n="unitRows">แถว</span></div></div>
   </div>
 
-  <div class="chip-row" id="viewTabs" style="display:none;margin-top:14px">
-    <button type="button" class="chip on" data-view="table" data-i18n="tabTable">📋 ตาราง (แก้ไข)</button>
-    <button type="button" class="chip" data-view="dashboard" data-i18n="tabDashboard">📊 แดชบอร์ด</button>
-    <button type="button" class="chip" data-view="custom" data-i18n="tabCustom">🧩 กำหนดเอง</button>
-  </div>
+  <nav class="tabs rd-views" id="viewTabs" role="tablist" style="display:none">
+    <button type="button" class="tab on" role="tab" aria-selected="true" data-view="table"><svg class="ome-icon"><use href="icons.svg#i-table"/></svg><span data-i18n="tabTable">ตาราง (แก้ไข)</span></button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-view="dashboard"><svg class="ome-icon"><use href="icons.svg#i-chart-column"/></svg><span data-i18n="tabDashboard">แดชบอร์ด</span></button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-view="custom"><svg class="ome-icon"><use href="icons.svg#i-layout-grid"/></svg><span data-i18n="tabCustom">กำหนดเอง</span></button>
+  </nav>
 
-  <div class="drill-banner" id="drillBanner" style="display:none">
+  <div class="callout info rd-drill" id="drillBanner" style="display:none">
     <span id="drillText"></span>
-    <button type="button" class="btn sm" id="drillClearBtn" data-i18n="drillClearBtn">✕ ล้างตัวกรองนี้</button>
+    <button type="button" class="btn sm" id="drillClearBtn"><svg class="ome-icon"><use href="icons.svg#i-x"/></svg><span data-i18n="drillClearBtn">ล้างตัวกรองนี้</span></button>
   </div>
 
   <div class="card" id="uploadCard">
-    <h2 data-i18n="uploadTitle">📤 อัปโหลดไฟล์</h2>
-    <div class="drop-zone" id="dropZone">
+    <div class="card-head"><h2 data-i18n="uploadTitle">อัปโหลดไฟล์</h2></div>
+    <div class="dropzone" id="dropZone" role="button" tabindex="0">
       <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden>
-      <div class="drop-ic-wrap">📁</div>
-      <div class="drop-txt" data-i18n="dropText">ลากไฟล์มาวางตรงนี้ หรือ</div>
+      <svg class="ome-icon"><use href="icons.svg#i-upload"/></svg>
+      <div class="dropzone-main" data-i18n="dropText">ลากไฟล์มาวางตรงนี้ หรือ</div>
       <label class="btn primary" id="pickBtn" for="fileInput" data-i18n="pickBtn">เลือกไฟล์</label>
-      <div class="drop-hint" data-i18n="dropHint">รองรับ .xlsx .xls .csv — ไฟล์ประมวลผลในเครื่องคุณทั้งหมด</div>
     </div>
     <div class="status" id="uploadStatus"></div>
   </div>
 
   <div class="card" id="templateDownloadCard">
-    <h2>📄 ดาวน์โหลดแม่แบบไฟล์เปล่า</h2>
-    <p class="mini">เลือกแม่แบบที่ตรงกับงานของคุณ แล้วกรอกข้อมูลลงในไฟล์นี้ก่อนอัปโหลดด้านบน</p>
+    <div class="card-head"><h2>ดาวน์โหลดแม่แบบไฟล์เปล่า</h2></div>
     <div class="template-dl-grid" id="templateDlGrid"></div>
   </div>
 
   <div class="card" id="resumeCard" style="display:none">
-    <h2 data-i18n="resumeTitle">💾 พบข้อมูลที่ทำค้างไว้</h2>
+    <div class="card-head"><h2 data-i18n="resumeTitle">พบข้อมูลที่ทำค้างไว้</h2></div>
     <p class="mini" id="resumeInfo"></p>
-    <div style="display:flex;gap:8px;margin-top:10px">
+    <div class="row">
       <button class="btn primary sm" id="resumeBtn" type="button" data-i18n="resumeBtn">ดำเนินการต่อ</button>
       <button class="btn sm" id="discardBtn" type="button" data-i18n="discardBtn">เริ่มใหม่</button>
     </div>
   </div>
 
   <div class="card" id="reportsCard" style="display:none">
-    <h2><span data-i18n="reportsTitle">📁 รายงานของฉัน</span> <span class="mini" id="reportsMeta" style="margin-left:auto"></span></h2>
-    <div id="reportsList"></div>
+    <div class="card-head"><h2 data-i18n="reportsTitle">รายงานของฉัน</h2><span class="badge" id="reportsMeta"></span></div>
+    <div class="list" id="reportsList"></div>
   </div>
 
   <div class="card" id="sheetCard" style="display:none">
-    <h2 data-i18n="sheetTitle">📑 เลือกชีต</h2>
-    <p class="mini" id="sheetModeHint"></p>
+    <div class="card-head"><h2 data-i18n="sheetTitle">เลือกชีต</h2></div>
     <div class="chip-row">
-      <button class="chip" id="sheetModeCombine" type="button" data-i18n="sheetModeCombine">📚 รวมทุกชีตเป็นตารางเดียว</button>
-      <button class="chip" id="sheetModeSingle" type="button" data-i18n="sheetModeSingle">📄 เลือกชีตเดียว</button>
+      <button type="button" class="chip" id="sheetModeCombine"><svg class="ome-icon"><use href="icons.svg#i-layers"/></svg><span data-i18n="sheetModeCombine">รวมทุกชีตเป็นตารางเดียว</span></button>
+      <button type="button" class="chip" id="sheetModeSingle"><svg class="ome-icon"><use href="icons.svg#i-file-spreadsheet"/></svg><span data-i18n="sheetModeSingle">เลือกชีตเดียว</span></button>
     </div>
     <div class="chip-row" id="sheetChips" style="display:none"></div>
   </div>
 
   <div class="card" id="headerCard" style="display:none">
-    <h2 data-i18n="headerTitle">🔤 เลือกแถวหัวตาราง</h2>
-    <p class="mini" data-i18n="headerHint">เลือกแถวหัวตาราง — ระบบจะเสนอแถวที่มี WBS / Task Name / Start / Finish / Actual / Plan ให้อัตโนมัติ</p>
+    <div class="card-head"><h2 data-i18n="headerTitle">เลือกแถวหัวตาราง</h2></div>
     <div class="tbl-wrap"><table id="headerPreviewTable"></table></div>
-    <button class="btn primary sm" id="confirmHeaderBtn" type="button" style="margin-top:10px" data-i18n="confirmHeaderBtn">ใช้แถวนี้เป็นหัวตาราง →</button>
+    <button class="btn primary sm" id="confirmHeaderBtn" type="button"><span data-i18n="confirmHeaderBtn">ใช้แถวนี้เป็นหัวตาราง</span><svg class="ome-icon"><use href="icons.svg#i-arrow-right"/></svg></button>
   </div>
 
   <div class="card" id="dataCard" style="display:none">
-    <h2><span data-i18n="dataTitle">📋 ข้อมูล</span> <span class="mini" id="dataMeta" style="margin-left:auto"></span></h2>
+    <div class="card-head"><h2 data-i18n="dataTitle">ข้อมูล</h2><span class="mini" id="dataMeta"></span></div>
     <div class="toolbar-row">
-      <div class="search-wrap"><span class="ic">🔍</span><input type="text" id="globalSearch" data-i18n-placeholder="searchPh" placeholder="ค้นหาทุกคอลัมน์…"></div>
-      <button class="btn sm" id="addRowBtn" type="button" data-i18n="addRowBtn">+ เพิ่มแถว</button>
-      <button class="btn sm" id="addColBtn" type="button" data-i18n="addColBtn">+ เพิ่มคอลัมน์</button>
-      <button class="btn sm" id="addFormulaColBtn" type="button" data-i18n="addFormulaColBtn">+ ƒx คอลัมน์สูตร</button>
-      <button class="btn sm" id="delSelBtn" type="button" disabled data-i18n="delSelBtn">🗑️ ลบที่เลือก</button>
-      <button class="btn sm" id="undoBtn" type="button" disabled data-i18n="undoBtn">↩️ เลิกทำ</button>
-      <button class="btn sm" id="redoBtn" type="button" disabled data-i18n="redoBtn">↪️ ทำซ้ำ</button>
+      <div class="search-wrap"><svg class="ome-icon"><use href="icons.svg#i-search"/></svg><input type="text" class="input" id="globalSearch" data-i18n-placeholder="searchPh" placeholder="ค้นหาทุกคอลัมน์…"></div>
+      <button class="btn sm" id="addRowBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-plus"/></svg><span data-i18n="addRowBtn">เพิ่มแถว</span></button>
+      <button class="btn sm" id="addColBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-plus"/></svg><span data-i18n="addColBtn">เพิ่มคอลัมน์</span></button>
+      <button class="btn sm" id="addFormulaColBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sigma"/></svg><span data-i18n="addFormulaColBtn">คอลัมน์สูตร</span></button>
+      <button class="btn sm" id="delSelBtn" type="button" disabled><svg class="ome-icon"><use href="icons.svg#i-trash-2"/></svg><span data-i18n="delSelBtn">ลบที่เลือก</span></button>
+      <button class="btn sm" id="undoBtn" type="button" disabled><svg class="ome-icon"><use href="icons.svg#i-undo-2"/></svg><span data-i18n="undoBtn">เลิกทำ</span></button>
+      <button class="btn sm" id="redoBtn" type="button" disabled><svg class="ome-icon"><use href="icons.svg#i-redo-2"/></svg><span data-i18n="redoBtn">ทำซ้ำ</span></button>
       <button class="btn sm" id="clearFilterBtn" type="button" data-i18n="clearFilterBtn">ล้างตัวกรอง</button>
-      <button class="btn sm" id="dataHealthBtn" type="button" data-i18n="dataHealthBtn">🩺 ตรวจสุขภาพข้อมูล</button>
-      <button class="btn sm" id="freezeColBtn" type="button" data-i18n="freezeColBtn">📌 ตรึงคอลัมน์</button>
-      <button class="btn sm" id="groupByBtn" type="button" data-i18n="groupByBtn">📊 จัดกลุ่ม</button>
+      <button class="btn sm" id="dataHealthBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-heart-pulse"/></svg><span data-i18n="dataHealthBtn">ตรวจสุขภาพข้อมูล</span></button>
+      <button class="btn sm" id="freezeColBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-pin"/></svg><span data-i18n="freezeColBtn">ตรึงคอลัมน์</span></button>
+      <button class="btn sm" id="groupByBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-list-tree"/></svg><span data-i18n="groupByBtn">จัดกลุ่ม</span></button>
     </div>
     <div class="toolbar-row">
-      <button class="btn sm" id="saveReportBtn" type="button" data-i18n="saveReportBtn">💾 บันทึกเป็นรายงาน</button>
-      <button class="btn sm" id="myReportsBtn" type="button" data-i18n="myReportsBtn">📁 รายงานของฉัน</button>
-      <button class="btn sm" id="exportXlsxBtn" type="button" data-i18n="exportXlsxBtn">⬇️ Excel</button>
-      <button class="btn sm" id="exportCsvBtn" type="button" data-i18n="exportCsvBtn">⬇️ CSV</button>
-      <button class="btn sm" id="newFileBtn" type="button" data-i18n="newFileBtn">📤 ไฟล์ใหม่</button>
-      <span class="status" id="saveStatus" style="margin-top:0;margin-left:auto"></span>
+      <button class="btn sm" id="saveReportBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-save"/></svg><span data-i18n="saveReportBtn">บันทึกเป็นรายงาน</span></button>
+      <button class="btn sm" id="myReportsBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-folder-open"/></svg><span data-i18n="myReportsBtn">รายงานของฉัน</span></button>
+      <button class="btn sm" id="exportXlsxBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="exportXlsxBtn">Excel</span></button>
+      <button class="btn sm" id="exportCsvBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="exportCsvBtn">CSV</span></button>
+      <button class="btn sm" id="newFileBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-upload"/></svg><span data-i18n="newFileBtn">ไฟล์ใหม่</span></button>
+      <span class="status" id="saveStatus"></span>
     </div>
-    
     <div class="table-edit-toolbar" id="tableEditToolbar">
       <span class="tool-label">Cell / Row / Column:</span>
       <button class="btn sm" id="cellStyleBtn" type="button">🎨 Style</button>
@@ -2107,17 +2040,17 @@ html,body,.ome-tool-page,.ome-tool-page button,.ome-tool-page input,.ome-tool-pa
 'use strict';
 function q(s,r){return (r||document).querySelector(s)}
 var TEMPLATES=[
-  {key:'maintenance',icon:'🛠️',label:'ซ่อมบำรุง',cols:['Work Order','Equipment No','Equipment Type','Downtime','Plan Finish','Actual Start','Actual End','Material Cost','Labor Cost','Status','Failure Mode','Work Order Type','Line']},
-  {key:'project',icon:'📁',label:'โครงการ',cols:['Project','Task','Customer','Owner','Start Date','End Date','Actual','Plan','SPI','Status','Cost','Duration']},
-  {key:'legal',icon:'⚖️',label:'กฎหมาย',cols:['Matter ID','Client','Practice Area','Attorney','Billable Hours','Amount Billed','Amount Collected','Status','Open Date','Close Date','Court Date','Role']},
-  {key:'risk',icon:'⚠️',label:'ความเสี่ยง',cols:['Risk Name','Risk Category','Severity','Likelihood','Risk Level','Mitigation','Residual','Reference','Status','Risk Owner','Identified Date','Closed Date']},
-  {key:'finance',icon:'💰',label:'รายรับ-รายจ่าย',cols:['Date','Income','Expense','Amount','Transaction Type','Category','Account','Description','Budget']},
-  {key:'reading',icon:'📚',label:'การอ่านหนังสือ',cols:['Book Title','Author','Start Date','Finish Date','Pages','Genre','Rating','Status']},
-  {key:'safety',icon:'🦺',label:'ความปลอดภัย',cols:['Incident Date','Incident Type','Severity','Department','Status','Due Date','Project','Finding']},
-  {key:'hr',icon:'👥',label:'บุคคล (HR)',cols:['Employee ID','Employee Name','Department','Position','Join Date','Exit Date','Employment Status','Employment Type','Training Status']},
-  {key:'itops',icon:'🖥️',label:'IT / DevOps',cols:['Ticket ID','System','Priority','Status','Opened Date','Closed Date','Assignee','Subject']},
-  {key:'kpidashboard',icon:'📊',label:'KPI Dashboard',cols:['KPI Name','Weight','Target','Actual','Min','Max','Frequency','Direction']},
-  {key:'organizational',icon:'🏢',label:'ผังองค์กร',cols:['Employee ID','Full Name','Nickname','Position','Job Level','Team','System','Work Site','Start Date','Manager ID','Manager Name','Date of Birth','Email','Phone','Gender']}
+  {key:'maintenance',icon:'wrench',label:'ซ่อมบำรุง',cols:['Work Order','Equipment No','Equipment Type','Downtime','Plan Finish','Actual Start','Actual End','Material Cost','Labor Cost','Status','Failure Mode','Work Order Type','Line']},
+  {key:'project',icon:'folder',label:'โครงการ',cols:['Project','Task','Customer','Owner','Start Date','End Date','Actual','Plan','SPI','Status','Cost','Duration']},
+  {key:'legal',icon:'scale',label:'กฎหมาย',cols:['Matter ID','Client','Practice Area','Attorney','Billable Hours','Amount Billed','Amount Collected','Status','Open Date','Close Date','Court Date','Role']},
+  {key:'risk',icon:'triangle-alert',label:'ความเสี่ยง',cols:['Risk Name','Risk Category','Severity','Likelihood','Risk Level','Mitigation','Residual','Reference','Status','Risk Owner','Identified Date','Closed Date']},
+  {key:'finance',icon:'wallet',label:'รายรับ-รายจ่าย',cols:['Date','Income','Expense','Amount','Transaction Type','Category','Account','Description','Budget']},
+  {key:'reading',icon:'book-open',label:'การอ่านหนังสือ',cols:['Book Title','Author','Start Date','Finish Date','Pages','Genre','Rating','Status']},
+  {key:'safety',icon:'shield',label:'ความปลอดภัย',cols:['Incident Date','Incident Type','Severity','Department','Status','Due Date','Project','Finding']},
+  {key:'hr',icon:'users',label:'บุคคล (HR)',cols:['Employee ID','Employee Name','Department','Position','Join Date','Exit Date','Employment Status','Employment Type','Training Status']},
+  {key:'itops',icon:'cpu',label:'IT / DevOps',cols:['Ticket ID','System','Priority','Status','Opened Date','Closed Date','Assignee','Subject']},
+  {key:'kpidashboard',icon:'chart-column',label:'KPI Dashboard',cols:['KPI Name','Weight','Target','Actual','Min','Max','Frequency','Direction']},
+  {key:'organizational',icon:'building-2',label:'ผังองค์กร',cols:['Employee ID','Full Name','Nickname','Position','Job Level','Team','System','Work Site','Start Date','Manager ID','Manager Name','Date of Birth','Email','Phone','Gender']}
 ];
 function csvEscape(v){ v=String(v==null?'':v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
 function downloadTemplate(t){
@@ -2133,8 +2066,8 @@ function init(){
   var grid=q('#templateDlGrid'); if(!grid||grid.getAttribute('data-built')==='1')return;
   grid.setAttribute('data-built','1');
   grid.innerHTML=TEMPLATES.map(function(t,i){
-    return '<button type="button" class="template-dl-btn" data-tpl-i="'+i+'">'+
-      '<span class="ic">'+t.icon+'</span><span class="lb">'+t.label+'</span><span class="dl">⬇ ดาวน์โหลด .csv</span></button>';
+    return '<button type="button" class="btn template-dl-btn" data-tpl-i="'+i+'">'+
+      '<svg class="ome-icon"><use href="icons.svg#i-'+t.icon+'"/></svg><span>'+t.label+'</span></button>';
   }).join('');
   [].forEach.call(grid.querySelectorAll('.template-dl-btn'),function(btn){
     btn.addEventListener('click',function(){ downloadTemplate(TEMPLATES[+btn.getAttribute('data-tpl-i')]); });
