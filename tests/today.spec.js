@@ -81,6 +81,47 @@ test('วันนี้: ไม่มีข้อมูล → empty state ท�
   await expect(page.locator('#stockBody .empty')).toBeVisible();
   await expect(page.locator('#filesBody .empty')).toBeVisible();
   await expect(page.locator('#reviewBody .big')).toContainText('0');
+  await expect(page.locator('#mntBody .empty')).toContainText('ยังไม่มีทะเบียนอุปกรณ์');
+  expect(errors).toEqual([]);
+});
+
+test('วันนี้: การ์ดงานบำรุงรักษา — เลยกำหนด/ถึงกำหนด/ทำแล้ว + ใบงานเปิด (อ่านจาก localStorage + IndexedDB)', async ({ page }) => {
+  const errors = await openToday(page, { withData: false });
+  await page.evaluate(() => {
+    const S = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+    const mk = (id, code, ph) => ({ id, code, name: 'บันไดเลื่อน', type: 'ESC', system: 'E&M', site: 's1', phase: { M3: ph }, status: 'active' });
+    // startMonth 2026-07: phase 1 → ก.ค./ต.ค. (ก.ค. ค้าง) · phase 3 → ก.ย. (ถึงกำหนดอยู่)
+    S('tanot:mnt:assets', [mk('e1', 'RN05-ESC-01', 1), mk('e2', 'RN05-ESC-02', 3), mk('e3', 'RN05-ESC-03', 3)]);
+    S('tanot:mnt:plans', [{ id: 'ESC|M3', type: 'ESC', typeName: 'บันไดเลื่อน', freq: 'M3', hours: 2, items: [{ id: 'i1', text: 'x', kind: 'check' }] }]);
+    S('tanot:mnt:settings', { v: 1, startMonth: '2026-07' });
+  });
+  await page.evaluate(() => new Promise((resolve, reject) => {
+    const open = (name, stores) => new Promise((res, rej) => {
+      const r = indexedDB.open(name, 1);
+      r.onupgradeneeded = () => stores.forEach((s) => r.result.createObjectStore(s, { keyPath: 'id' }));
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    });
+    const put = (db, store, rec) => new Promise((res, rej) => { const tx = db.transaction(store, 'readwrite'); tx.objectStore(store).put(rec); tx.oncomplete = res; tx.onerror = () => rej(tx.error); });
+    const at = new Date('2026-09-10T10:00:00+07:00').getTime();
+    Promise.all([open('tanot-mnt-2026', ['insp']), open('tanot-mnt', ['wo', 'woev'])]).then(async ([insp, wo]) => {
+      await put(insp, 'insp', { id: 's1|M3|2026-09|dx', site: 's1', freq: 'M3', period: '2026-09', dev: 'dx', by: 'ก', at, rows: { e3: { start: at, at, res: { i1: 'ok' }, note: '', photos: [], wo: null } } });
+      await put(wo, 'wo', { id: 'w1', no: 'CM-260915-AAA', kind: 'cm', asset: 'e1', site: 's1', reportedAt: at, priority: 'normal', symptom: 'x', dev: 'dx', createdAt: at });
+      await put(wo, 'wo', { id: 'w2', no: 'CM-260916-BBB', kind: 'cm', asset: 'e1', site: 's1', reportedAt: at, priority: 'normal', symptom: 'y', dev: 'dx', createdAt: at });
+      await put(wo, 'woev', { id: 'w2|a|dx', wo: 'w2', at: at + 1, dev: 'dx', set: { status: 'done' }, note: '', photos: [] });
+      insp.close(); wo.close(); resolve();
+    }, reject);
+  }));
+  await page.reload();
+  const mnt = page.locator('#mntBody');
+  await expect(mnt.locator('.list-row')).toHaveCount(2); // e3 ทำแล้ว ไม่ขึ้น
+  await expect(mnt).toContainText('เลยกำหนด 1');
+  await expect(mnt).toContainText('ถึงกำหนด 1');
+  await expect(mnt).toContainText('ใบงานเปิด 1'); // w2 ปิดแล้ว
+  await expect(mnt.locator('.list-row').first()).toContainText('RN05-ESC-01');
+  await expect(mnt.locator('.list-row').first()).toContainText('เลย 61 วัน');
+  await expect(mnt.locator('.list-row').first()).toHaveAttribute('href', 'maintenance.html#asset=e1');
+  await expect(mnt.locator('.list-row').nth(1)).toContainText('RN05-ESC-02');
+  await expect(mnt.locator('.list-row').nth(1)).toContainText('ภายใน 30 ก.ย.');
   expect(errors).toEqual([]);
 });
 

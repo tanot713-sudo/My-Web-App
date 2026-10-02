@@ -5,7 +5,9 @@
    การ์ดทบทวน/XP/วันติดต่อกันผ่าน learn-core.js (lang-practice:srs, lbe:<business|engineering>:srs, tanot-barprep/notes, tanot:learn:*
    + ยอดเดิมของหน้าเรียนต่างๆ — รายชื่อคีย์อยู่ใน LEGACY ของ learn-core.js), tanot:invest:thstock|globalstock + tanot:invest:cache:[us:]<sym>,
    tanot:word:autosave, tanot:sheet:autosave, tanot:cad:autosave, tanot-report-dashboard/reports (IndexedDB),
-   tanot:insurance:policies (รูปแบบกรมธรรม์ + การนับวันต่ออายุอยู่ใน insurance-calc.js — หน้านี้โหลดไฟล์นั้นด้วย)
+   tanot:insurance:policies (รูปแบบกรมธรรม์ + การนับวันต่ออายุอยู่ใน insurance-calc.js — หน้านี้โหลดไฟล์นั้นด้วย),
+   บันทึกงานบำรุงรักษา: tanot:mnt:assets|plans|settings + IndexedDB tanot-mnt-<ปีนี้>/insp, tanot-mnt-<ปีก่อน>/insp, tanot-mnt/wo|woev
+   (รูปแบบ + การคำนวณรอบ/ใบงานอยู่ใน mnt-calc.js — หน้านี้โหลดไฟล์นั้นด้วย)
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -243,6 +245,36 @@
     }).join('') + '</div>';
   }
 
+  /* ── งานบำรุงรักษา (เลยกำหนด/ถึงกำหนด + ใบสั่งงานที่เปิดอยู่) ── */
+  var mntToken = 0;
+  function renderMaintenance() {
+    var el = $('mntBody'), M = window.MntCalc, token = ++mntToken;
+    var assets = rd('tanot:mnt:assets', []), plans = rd('tanot:mnt:plans', []), settings = rd('tanot:mnt:settings', {});
+    if (!M || !isArr(assets) || !assets.length) { el.innerHTML = emptyHtml('wrench', 'ยังไม่มีทะเบียนอุปกรณ์', 'maintenance.html', 'บันทึกงานบำรุงรักษา'); return Promise.resolve(); }
+    var Y = new Date().getFullYear();
+    return Promise.all([rdIdb('tanot-mnt-' + Y, 'insp'), rdIdb('tanot-mnt-' + (Y - 1), 'insp'), rdIdb('tanot-mnt', 'wo'), rdIdb('tanot-mnt', 'woev')]).then(function (r) {
+      if (token !== mntToken) return;
+      var today = M.ymd(new Date()), done = M.doneIndex([].concat(r[0] || [], r[1] || []));
+      var list = M.dueList({ assets: assets, plans: isArr(plans) ? plans : [], settings: settings || {}, done: done, today: today, ahead: 0 });
+      var overdue = list.filter(function (x) { return x.state === 'overdue'; }), due = list.filter(function (x) { return x.state === 'due'; });
+      var evBy = {};
+      (r[3] || []).forEach(function (e) { (evBy[e.wo] = evBy[e.wo] || []).push(e); });
+      var openWo = (r[2] || []).filter(function (w) { var s = M.foldWo(w, evBy[w.id] || []).status; return s === 'open' || s === 'progress' || s === 'parts'; }).length;
+      if (!list.length && !openWo) { el.innerHTML = emptyHtml('circle-check', 'ไม่มีงานค้าง'); return; }
+      // รายการ: เลยกำหนดก่อน → ถึงกำหนด (M1 ขึ้นไปก่อนรายวัน/สัปดาห์ เพื่อไม่ให้งานรายวันกลบงานรอบยาว)
+      var rank = function (x) { return x.plan.freq === 'Daily' || x.plan.freq === 'Weekly' ? 1 : 0; };
+      var shown = overdue.concat(due.slice().sort(function (a, b) { return rank(a) - rank(b); })).slice(0, 5);
+      var b = function (cls, label, n) { return '<span class="badge ' + cls + '">' + label + ' ' + num(n) + '</span>'; };
+      el.innerHTML = '<div class="links">' + b(overdue.length ? 'err' : '', 'เลยกำหนด', overdue.length) + b(due.length ? 'warn' : '', 'ถึงกำหนด', due.length) + b(openWo ? 'info' : '', 'ใบงานเปิด', openWo) + '</div>' +
+        (shown.length ? '<div class="list">' + shown.map(function (x) {
+          var d = M.parseYmd(x.window.end), when = x.state === 'overdue' ? 'เลย ' + num(x.daysLate) + ' วัน' : 'ภายใน ' + d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+          return '<a class="list-row" href="maintenance.html#asset=' + encodeURIComponent(x.asset.id) + '"><span class="lead">' + icon('wrench') + '</span>' +
+            '<div class="grow"><div class="title">' + esc(x.asset.code + ' · ' + x.asset.name) + '</div><div class="meta">' + esc(M.FREQ_LABEL[x.plan.freq] + ' · ' + when) + '</div></div>' +
+            '<div class="right"><span class="badge ' + (x.state === 'overdue' ? 'err' : 'warn') + '">' + (x.state === 'overdue' ? 'เลยกำหนด' : 'ถึงกำหนด') + '</span></div></a>';
+        }).join('') + '</div>' : '');
+    }).catch(function () { if (token === mntToken) el.innerHTML = emptyHtml('wrench', 'อ่านข้อมูลบำรุงรักษาไม่ได้', 'maintenance.html', 'เปิดหน้าบำรุงรักษา'); });
+  }
+
   /* ── วาดทั้งหน้า ── */
   var rendering = false, again = false;
   function renderAll() {
@@ -253,6 +285,7 @@
     renderStocks();
     renderStreak();
     renderInsurance();
+    renderMaintenance();
     Promise.all([rdIdb('tanot-barprep', 'notes'), rdIdb('tanot-report-dashboard', 'reports', { last: 5 })]).then(function (r) {
       renderReview(dueCounts(r[0]));
       renderFiles(r[1]);
