@@ -26,6 +26,7 @@ const PAGES = [
   'invest-trade-journal.html',
   'electrical.html',
   'tax.html',
+  'insurance.html',
   'budget.html',
   'word.html',
   'excel.html',

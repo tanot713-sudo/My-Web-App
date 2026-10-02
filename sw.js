@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v574';
+const CACHE = 'ome-v575';
 const PRECACHE = [
   './',
   './index.html',
@@ -56,6 +56,9 @@ const PRECACHE = [
   './tax-rules/index.json',
   './tax-rules/2568.json',
   './tax-rules/2569.json',
+  './insurance.html',
+  './insurance.js',
+  './insurance-calc.js',
   './cad.html',
   './cad.js',
   './cad3d.html',

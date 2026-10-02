@@ -163,7 +163,7 @@ test.describe('ค้นหาด่วน (palette)', () => {
     await expect(page.locator('.ome-pal-row').first()).toContainText('ตรวจสอบเอกสาร'); // มาจาก keywords
     await page.fill('.ome-pal-input', 'excel');
     await expect(page.locator('.ome-pal-row').first()).toContainText('งาน Excel');
-    await page.fill('.ome-pal-input', 'สุขภาพ');
+    await page.fill('.ome-pal-input', 'หนังสือ');
     await expect(page.locator('.ome-pal-row').first()).toContainText('เร็วๆ นี้'); // หน้าที่ยังไม่ทำแสดงป้ายกำกับ
     await page.fill('.ome-pal-input', 'ไม่มีอะไรตรงกับคำนี้แน่นอน');
     await expect(page.locator('.ome-pal-empty')).toBeVisible();

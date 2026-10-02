@@ -3,7 +3,8 @@
    อ่านผ่าน TanotData.read / readIdb (tanot-data.js) แล้ววาดใหม่เมื่อข้อมูลเปลี่ยน (ซิงก์จากเครื่องอื่น / แท็บอื่น / เพิ่มด่วน)
    คีย์ที่อ่าน (รูปแบบต้องตรงกับหน้าเจ้าของข้อมูล): budget:records|budgets|categories, lang-practice:srs|streak, lbe:<business|engineering>:srs,
    tanot-barprep/notes (IndexedDB) + tanot:barprep:activity, tanot:invest:thstock|globalstock + tanot:invest:cache:[us:]<sym>,
-   tanot:word:autosave, tanot:sheet:autosave, tanot:cad:autosave, tanot-report-dashboard/reports (IndexedDB)
+   tanot:word:autosave, tanot:sheet:autosave, tanot:cad:autosave, tanot-report-dashboard/reports (IndexedDB),
+   tanot:insurance:policies (รูปแบบกรมธรรม์ + การนับวันต่ออายุอยู่ใน insurance-calc.js — หน้านี้โหลดไฟล์นั้นด้วย)
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -265,6 +266,25 @@
     }).join('') + '</div>';
   }
 
+  /* ── ต่ออายุประกัน (กรมธรรม์ที่ครบกำหนดภายใน 60 วัน รวมที่เลยกำหนด) ── */
+  function renderInsurance() {
+    var el = $('insBody'), IC = window.InsuranceCalc;
+    var list = rd('tanot:insurance:policies', []);
+    if (!IC || !isArr(list) || !list.length) { el.innerHTML = emptyHtml('shield', 'ยังไม่มีกรมธรรม์', 'insurance.html', 'เปิดหน้าประกัน'); return; }
+    var due = IC.renewals(list, new Date(), 60);
+    if (!due.length) { el.innerHTML = emptyHtml('shield', 'ไม่มีกรมธรรม์ที่ใกล้ต่ออายุ'); return; }
+    el.innerHTML = '<div class="list">' + due.slice(0, 6).map(function (r) {
+      var p = r.policy, d = r.days;
+      var title = [p.insurer, p.name].filter(Boolean).join(' · ') || IC.TYPES[p.type] || 'กรมธรรม์';
+      var badge = d < 0 ? '<span class="badge err">เลยกำหนด ' + num(-d) + ' วัน</span>'
+        : d === 0 ? '<span class="badge warn">วันนี้</span>'
+        : '<span class="badge ' + (d <= 30 ? 'warn' : 'info') + '">อีก ' + num(d) + ' วัน</span>';
+      return '<a class="list-row" href="insurance.html"><span class="lead">' + icon('shield') + '</span>' +
+        '<div class="grow"><div class="title">' + esc(title) + '</div><div class="meta">' + esc(IC.TYPES[p.type] || '') +
+        (p.premium ? ' · ' + baht(p.premium) : '') + '</div></div><div class="right">' + badge + '</div></a>';
+    }).join('') + '</div>';
+  }
+
   /* ── วาดทั้งหน้า ── */
   var rendering = false, again = false;
   function renderAll() {
@@ -274,6 +294,7 @@
     renderSpend();
     renderStocks();
     renderStreak();
+    renderInsurance();
     Promise.all([rdIdb('tanot-barprep', 'notes'), rdIdb('tanot-report-dashboard', 'reports', { last: 5 })]).then(function (r) {
       renderReview(dueCounts(r[0]));
       renderFiles(r[1]);
