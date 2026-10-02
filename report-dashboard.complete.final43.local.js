@@ -6079,7 +6079,8 @@
     openAddWidgetPicker: openAddWidgetPicker,
     openCondFormatPopover: openCondFormatPopover,
     setDrill: setDrill,
-    getCurrentView: function(){ return currentView; }
+    getCurrentView: function(){ return currentView; },
+    loadWorkbook: onWorkbookParsed // เส้นทางเดียวกับการอัปโหลดไฟล์ — ใช้โดย report-dashboard.mntsrc.js (เปิดข้อมูลบำรุงรักษาตรง)
   };
 
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', function(){ try { init(); } catch(e) { console.error(e); } }, {once:true}); } else { try { init(); } catch(e) { console.error(e); } }

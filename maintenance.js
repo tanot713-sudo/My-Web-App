@@ -1651,6 +1651,13 @@
     }).catch(function (err) { $('exMsg').textContent = err && err.message === 'offline' ? NEED_NET : ((err && err.message) || 'ส่งออกไม่สำเร็จ'); });
   });
 
+  $('exOpen').addEventListener('click', function () { // ส่งข้อมูลเข้า report-dashboard ผ่านทางเดียวกับอัปโหลดไฟล์ (report-dashboard.mntsrc.js)
+    var from = $('exFrom').value, to = $('exTo').value;
+    $('exMsg').textContent = '';
+    if (!from || !to || to < from) { $('exMsg').textContent = 'ช่วงวันที่ไม่ถูกต้อง'; return; }
+    location.href = 'report-dashboard.html?src=maintenance&from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to);
+  });
+
   /* ── ค่าตั้ง (tanot:mnt:settings) ── */
   function renderIoSettings() {
     var s = getSettings();

@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v586';
+const CACHE = 'ome-v587';
 const PRECACHE = [
   './',
   './index.html',
@@ -77,6 +77,7 @@ const PRECACHE = [
   './report-dashboard.utils.final43.js',
   './report-dashboard.performance.final43.js',
   './report-dashboard.complete.final43.local.js',
+  './report-dashboard.mntsrc.js',
   './report-dashboard.bi-plus.final43.js',
   './report-dashboard.final62.projectcontrol.js',
   './report-dashboard.safety.final1.js',

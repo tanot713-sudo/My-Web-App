@@ -819,6 +819,28 @@ test.describe('นำเข้า/ส่งออก Excel', () => {
     await ctx.close();
   });
 
+  test('B8 report-dashboard?src=maintenance: โหลดข้อมูลเข้าทางเดียวกับอัปโหลดไฟล์ — คอลัมน์ตรงหัว WorkOrders จำนวนแถวตรง · URL ถูกล้าง query', async ({ browser }) => {
+    const { ctx, page } = await newDevice(browser);
+    const at = new Date('2026-11-10T10:00:00+07:00').getTime();
+    await page.evaluate(async (at) => {
+      await window.__mnt.idbPut('tanot-mnt-2026', 'insp', { id: 's1|M3|2026-11|dx', site: 's1', freq: 'M3', period: '2026-11', dev: 'dx', by: 'สมชาย', at,
+        rows: { e1: { start: at - 60000, at, res: { i1: 'ok', i2: 28.4, i3: 'ng' }, note: '', photos: [], wo: null } } });
+      await window.__mnt.idbPut('tanot-mnt', 'wo', { id: 'w1', no: 'CM-261105-AAA', kind: 'cm', asset: 'e1', site: 's1', reportedAt: at - 86400000 * 5, priority: 'high', symptom: 'เสียงดัง', dev: 'dx', createdAt: at });
+      await window.__mnt.idbPut('tanot-mnt', 'woev', { id: 'w1|a|dx', wo: 'w1', at, dev: 'dx', set: { status: 'done', endAt: at, downtimeH: 4 }, note: '', photos: [] });
+    }, at);
+    // ไลบรารีกราฟจาก CDN ถูกบล็อกในเทสต์ — ตรวจที่ state เท่านั้น (SheetJS ใช้ไฟล์ในเครื่องแทน CDN)
+    await withXlsx(page);
+    await page.goto('/report-dashboard.html?src=maintenance&from=2026-01-01&to=2026-12-31');
+    await page.waitForFunction(() => window.TanotDashboard && window.TanotDashboard.getState().rows && window.TanotDashboard.getState().rows.length > 0, null, { timeout: 15000 });
+    const st = await page.evaluate(() => { const s = window.TanotDashboard.getState(); return { cols: s.columns.map((c) => c.label), rows: s.rows.length, file: s.fileName, sheet: s.activeSheet }; });
+    expect(st.cols).toEqual(C.WO_HEADERS);
+    expect(st.rows).toBe(2); // CM 1 + PM 1 (e1 M3 รอบ 2026-11)
+    expect(st.file).toBe('maintenance.xlsx');
+    expect(st.sheet).toBe('WorkOrders');
+    expect(page.url()).not.toContain('src=maintenance');
+    await ctx.close();
+  });
+
   test('B7 ส่งออก: ดาวน์โหลด 4 ชีต หัว WorkOrders ตรง จำนวนแถว PM/CM ตรงกับข้อมูลที่ seed', async ({ browser }) => {
     const { ctx, page, errors } = await newDevice(browser);
     await withXlsx(page);
