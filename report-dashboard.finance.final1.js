@@ -263,7 +263,6 @@
     host.innerHTML=out;
   }
 
-  var DONUT_PALETTE=['#1C5CAB','#0EA5E9','#94A3B8','#7C3AED','#F59E0B','#16A34A'];
   function donutChart(entries, centerLabel, fmtFn){
     fmtFn=fmtFn||function(v){return v;};
     var size=168, thick=24, r=(size-thick)/2, c=size/2, circ=2*Math.PI*r;
@@ -291,7 +290,7 @@
     if(!hasAccount){ sec&&sec.setAttribute('hidden',''); return; }
     sec&&sec.removeAttribute('hidden');
     var map={}; rows.forEach(function(r){ if(r.income) map[r.account]=(map[r.account]||0)+r.income; });
-    var entries=Object.keys(map).map(function(k,i){return [k,map[k],DONUT_PALETTE[i%DONUT_PALETTE.length]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
+    var entries=Object.keys(map).map(function(k,i){return [k,map[k],P().series[i%8]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
     host.innerHTML=entries.length?donutChart(entries,'รายรับรวม',function(v){return '฿'+Math.round(v/1000)+'k';}):'<div class="fn-empty">ไม่มีข้อมูล</div>';
   }
 

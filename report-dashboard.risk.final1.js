@@ -12,6 +12,7 @@
    ด้านบน (คูณกันแบบมาตรฐาน severity × likelihood) */
 (function(){
   'use strict';
+  function P(){return window.TanotReportUtils.palette();}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -72,7 +73,7 @@
   function sevTier(n){ return n>=5?'catastrophic':n===4?'critical':n>=2?'marginal':'negligible'; }
   var SEV_LABEL={catastrophic:'วิกฤต (Catastrophic)',critical:'ร้ายแรง (Critical)',marginal:'ปานกลาง (Marginal)',negligible:'เล็กน้อย (Negligible)'};
   function cellColor(score){
-    if(score>=15)return '#B91C1C'; if(score>=10)return '#DC2626'; if(score>=6)return '#F59E0B'; if(score>=3)return '#EAB308'; return '#65A30D';
+    if(score>=15)return P().err; if(score>=10)return P().err; if(score>=6)return P().warn; if(score>=3)return P().warn; return P().ok;
   }
   var PLAN_KW=['มีแผน','มีมาตรการ','has plan','planned','done','complete'];
   var NOPLAN_KW=['ยังไม่มีแผน','ไม่มีมาตรการ','no plan','pending','open'];
@@ -138,46 +139,45 @@
     if(q('#risk1-css'))return;
     var s=document.createElement('style');s.id='risk1-css';s.textContent=`
 #riskControlLayout{display:flex;flex-direction:column;gap:12px;margin-top:14px;font-family:var(--pc53-font,inherit)}
-#riskControlLayout .rk-hero{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--sh)}
-#riskControlLayout .rk-hero h2{font-size:16px;margin:0}
-#riskControlLayout .rk-hero .rk-sub{font-size:12px;color:var(--muted);margin-top:3px}
+#riskControlLayout .rk-hero{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:15px 16px;box-shadow:var(--ome-shadow-1)}
+#riskControlLayout .rk-hero h2{font-size:var(--ome-fs-md);margin:0}
+#riskControlLayout .rk-hero .rk-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px}
 #riskControlLayout .rk-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-#riskControlLayout .rk-kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;box-shadow:var(--sh);position:relative}
-#riskControlLayout .rk-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:4px;background:var(--ok)}
-#riskControlLayout .rk-kpi.warn:after{background:var(--warn)}#riskControlLayout .rk-kpi.bad:after{background:var(--err)}
-#riskControlLayout .rk-kpi .l{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-#riskControlLayout .rk-kpi .v{font-size:22px;font-weight:850;margin-top:4px;color:var(--ink)}
-#riskControlLayout .rk-kpi.warn .v{color:#B8720A}#riskControlLayout .rk-kpi.bad .v{color:var(--err)}
-#riskControlLayout .rk-kpi .s{font-size:9.5px;color:var(--muted);margin-top:4px}
-#riskControlLayout .rk-panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px;box-shadow:var(--sh)}
-#riskControlLayout .rk-panel h3{font-size:13px;margin:0 0 3px;font-weight:850}
-#riskControlLayout .rk-note{font-size:9.5px;color:var(--muted);margin-bottom:7px}
+#riskControlLayout .rk-kpi{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px 13px;box-shadow:var(--ome-shadow-1);position:relative}
+#riskControlLayout .rk-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:var(--ome-radius-sm);background:var(--ome-ok)}
+#riskControlLayout .rk-kpi.warn:after{background:var(--ome-warn)}#riskControlLayout .rk-kpi.bad:after{background:var(--ome-err)}
+#riskControlLayout .rk-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
+#riskControlLayout .rk-kpi .v{font-size:var(--ome-fs-xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
+#riskControlLayout .rk-kpi.warn .v{color:var(--ome-warn-ink)}#riskControlLayout .rk-kpi.bad .v{color:var(--ome-err)}
+#riskControlLayout .rk-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
+#riskControlLayout .rk-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
+#riskControlLayout .rk-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
 #riskControlLayout .rk-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
 #riskControlLayout .rk-grid>.half{grid-column:span 6}#riskControlLayout .rk-grid>.full{grid-column:1/-1}
-#riskControlLayout .rk-insight{border-left:3px solid var(--ok);padding:10px 13px;font-size:12px;color:var(--ink)}
+#riskControlLayout .rk-insight{border-left:3px solid var(--ome-ok);padding:10px 13px;font-size:var(--ome-fs-xs);color:var(--ome-text-1)}
 #riskControlLayout .rk-matrix{display:grid;grid-template-columns:60px repeat(5,1fr);gap:3px}
-#riskControlLayout .rk-matrix .ax{display:flex;align-items:center;justify-content:center;font-size:9.5px;color:var(--muted);font-weight:700}
-#riskControlLayout .rk-matrix .cell{border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;min-height:40px}
+#riskControlLayout .rk-matrix .ax{display:flex;align-items:center;justify-content:center;font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700}
+#riskControlLayout .rk-matrix .cell{border-radius:var(--ome-radius-sm);display:flex;align-items:center;justify-content:center;font-size:var(--ome-fs-sm);font-weight:700;color:var(--ome-on-accent);min-height:40px}
 #riskControlLayout .rk-status-row{display:flex;flex-direction:column;gap:8px}
-#riskControlLayout .rk-status-item{display:grid;grid-template-columns:120px 1fr 30px;align-items:center;gap:9px;font-size:11px}
+#riskControlLayout .rk-status-item{display:grid;grid-template-columns:120px 1fr 30px;align-items:center;gap:9px;font-size:var(--ome-fs-xs)}
 #riskControlLayout .rk-status-item .lab{display:flex;align-items:center;gap:6px;font-weight:700}
 #riskControlLayout .rk-status-item i{width:8px;height:8px;border-radius:50%;display:inline-block}
-#riskControlLayout .rk-track{height:7px;border-radius:6px;background:#eef1f4;overflow:hidden}
-#riskControlLayout .rk-track span{display:block;height:100%;border-radius:6px}
-#riskControlLayout .rk-empty{padding:24px 8px;text-align:center;color:var(--muted);font-size:11px}
+#riskControlLayout .rk-track{height:7px;border-radius:var(--ome-radius-sm);background:var(--ome-surface-2);overflow:hidden}
+#riskControlLayout .rk-track span{display:block;height:100%;border-radius:var(--ome-radius-sm)}
+#riskControlLayout .rk-empty{padding:24px 8px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
 #riskControlLayout svg text{font-family:var(--pc53-font,inherit)}
 #riskControlLayout .rk-trend-scroll{overflow-x:auto}
 #riskControlLayout .rk-table-wrap{overflow-x:auto}
-#riskControlLayout .rk-table{width:100%;border-collapse:collapse;font-size:11.5px;min-width:980px}
-#riskControlLayout .rk-table thead th{text-align:left;font-weight:800;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.03em;padding:0 10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
-#riskControlLayout .rk-table tbody td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:top}
+#riskControlLayout .rk-table{width:100%;border-collapse:collapse;font-size:var(--ome-fs-xs);min-width:980px}
+#riskControlLayout .rk-table thead th{text-align:left;font-weight:700;color:var(--ome-text-2);font-size:var(--ome-fs-xs);padding:0 10px 8px;border-bottom:1px solid var(--ome-border);white-space:nowrap}
+#riskControlLayout .rk-table tbody td{padding:9px 10px;border-bottom:1px solid var(--ome-border);color:var(--ome-text-1);vertical-align:top}
 #riskControlLayout .rk-table tbody tr:last-child td{border-bottom:none}
-#riskControlLayout .rk-sev{display:inline-flex;align-items:center;font-size:10px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap;color:#fff}
-#riskControlLayout .rk-sev.catastrophic{background:#7F1D1D}#riskControlLayout .rk-sev.critical{background:#DC2626}#riskControlLayout .rk-sev.marginal{background:#F59E0B}#riskControlLayout .rk-sev.negligible{background:#65A30D}
+#riskControlLayout .rk-sev{display:inline-flex;align-items:center;font-size:var(--ome-fs-xs);font-weight:700;padding:3px 9px;border-radius:var(--ome-radius-pill);white-space:nowrap;color:var(--ome-on-accent)}
+#riskControlLayout .rk-sev.catastrophic{background:var(--ome-err)}#riskControlLayout .rk-sev.critical{background:var(--ome-err)}#riskControlLayout .rk-sev.marginal{background:var(--ome-warn)}#riskControlLayout .rk-sev.negligible{background:var(--ome-ok)}
 #riskControlLayout .rk-donut-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
 #riskControlLayout .rk-donut-legend{display:flex;flex-direction:column;gap:10px;justify-content:center;flex:1;min-width:150px}
-#riskControlLayout .rk-donut-legend .row{display:flex;align-items:center;gap:8px;font-size:11.5px}
-#riskControlLayout .rk-donut-legend i{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none}
+#riskControlLayout .rk-donut-legend .row{display:flex;align-items:center;gap:8px;font-size:var(--ome-fs-xs)}
+#riskControlLayout .rk-donut-legend i{width:10px;height:10px;border-radius:var(--ome-radius-sm);display:inline-block;flex:none}
 #riskControlLayout.risk-override-hidden{display:none!important}
 .risk-hidden-source{display:none!important}
 @media(max-width:1100px){#riskControlLayout .rk-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}#riskControlLayout .rk-grid>.half{grid-column:1/-1}}
@@ -201,17 +201,16 @@
     if(layout.getAttribute('data-built')==='1')return true;
     layout.setAttribute('data-built','1');
     layout.innerHTML=
-      '<section class="rk-hero"><h2>⚠️ Risk Control</h2><div class="rk-sub" id="rkUpdated">ภาพรวมทะเบียนความเสี่ยง, Risk Matrix และสถานะมาตรการจัดการ</div></section>'+
+      '<section class="rk-hero"><h2>Risk Control</h2><div class="rk-sub" id="rkUpdated"></div></section>'+
       '<div class="rk-kpis" id="rkKpis"></div>'+
       '<section class="rk-panel rk-insight-panel"><h3>Executive Insight</h3><div id="rkInsight" class="rk-insight"></div></section>'+
       '<div class="rk-grid">'+
-        '<section class="rk-panel full"><h3>🔥 Risk Matrix (โอกาสเกิด × ความรุนแรง)</h3><div class="rk-note">ตัวเลขในช่อง = จำนวนความเสี่ยง · สีเข้ม = คะแนนความเสี่ยงสูง</div><div id="rkMatrix"></div></section>'+
-        '<section class="rk-panel full" id="rkTrendSection"><h3>แนวโน้มความเสี่ยงรายเดือน</h3><div class="rk-note">ระบุใหม่ vs ปิด/ควบคุมแล้ว</div><div id="rkTrend"></div></section>'+
-        '<section class="rk-panel half"><h3>ความเสี่ยงแยกตามประเภท</h3><div class="rk-note">จำนวนรายการต่อประเภท</div><div id="rkCategory"></div></section>'+
-        '<section class="rk-panel half"><h3>สถานะมาตรการจัดการ</h3><div class="rk-note">มีแผนแล้ว / ยังไม่มีแผน</div><div id="rkStatus"></div></section>'+
-        '<section class="rk-panel full"><h3>🗂 ทะเบียนความเสี่ยงแบบ JSA</h3><div class="rk-note">Job Safety Analysis — ระดับความเสี่ยง = ความรุนแรงไขว้กับความบ่อยที่เกิด</div><div id="rkJsa"></div></section>'+
-      '</div>'+
-      '<div class="mini" style="font-size:9px;color:var(--muted)">ตรวจพบจากคอลัมน์ ความเสี่ยง/ประเภท + ความรุนแรง/โอกาสเกิด ในไฟล์ที่อัปโหลด — Table ด้านล่างไม่ถูกแก้ไข</div>';
+        '<section class="rk-panel full"><h3>Risk Matrix (โอกาสเกิด × ความรุนแรง)</h3><div id="rkMatrix"></div></section>'+
+        '<section class="rk-panel full" id="rkTrendSection"><h3>แนวโน้มความเสี่ยงรายเดือน</h3><div id="rkTrend"></div></section>'+
+        '<section class="rk-panel half"><h3>ความเสี่ยงแยกตามประเภท</h3><div id="rkCategory"></div></section>'+
+        '<section class="rk-panel half"><h3>สถานะมาตรการจัดการ</h3><div id="rkStatus"></div></section>'+
+        '<section class="rk-panel full"><h3>ทะเบียนความเสี่ยงแบบ JSA</h3><div id="rkJsa"></div></section>'+
+      '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('risk-hidden-source');
     });
@@ -230,10 +229,10 @@
       html+='<div class="ax">'+impact+'</div>';
       for(var like=1;like<=5;like++){
         var cnt=matrix[impact-1][like-1], score=impact*like;
-        html+='<div class="cell" style="background:'+(cnt>0?cellColor(score):'#EEF1F4')+';color:'+(cnt>0?'#fff':'#c7cdd3')+'">'+(cnt||'')+'</div>';
+        html+='<div class="cell" style="background:'+(cnt>0?cellColor(score):P().surface2)+';color:'+(cnt>0?P().surface1:P().border)+'">'+(cnt||'')+'</div>';
       }
     }
-    html+='</div><div style="display:flex;font-size:9.5px;color:var(--muted);margin-top:4px"><div style="width:60px"></div><div style="flex:1;text-align:center">โอกาสเกิด (1=น้อย → 5=มาก) &nbsp;·&nbsp; แกนตั้ง = ความรุนแรง (1=น้อย → 5=มาก)</div></div>';
+    html+='</div>';
     host.innerHTML=html;
   }
 
@@ -252,18 +251,18 @@
     var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:'+w+'px;height:'+h+'px">';
     for(var t=0;t<=4;t++){
       var val=maxV*t/4, y=top+ph-ph*t/4;
-      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edf1" stroke-width="1"/>';
-      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#8a97a3">'+Math.round(val)+'</text>';
+      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="'+P().grid+'" stroke-width="1"/>';
+      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="'+P().faint+'">'+Math.round(val)+'</text>';
     }
     var stepX=pw/(keys.length-1||1);
-    [['n','#DC2626'],['c','#16A34A']].forEach(function(cat){
+    [['n',P().err],['c',P().ok]].forEach(function(cat){
       var pts=keys.map(function(k,i){var v=byMonth[k][cat[0]]||0; return (left+stepX*i)+','+(top+ph-ph*v/maxV);});
       out+='<path d="M'+pts.join(' L')+'" fill="none" stroke="'+cat[1]+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
-      keys.forEach(function(k,i){var v=byMonth[k][cat[0]]||0; out+='<circle cx="'+(left+stepX*i)+'" cy="'+(top+ph-ph*v/maxV)+'" r="3" fill="'+cat[1]+'" stroke="#fff" stroke-width="1.2"/>';});
+      keys.forEach(function(k,i){var v=byMonth[k][cat[0]]||0; out+='<circle cx="'+(left+stepX*i)+'" cy="'+(top+ph-ph*v/maxV)+'" r="3" fill="'+cat[1]+'" stroke="'+P().surface1+'" stroke-width="1.2"/>';});
     });
-    keys.forEach(function(k,i){ out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="#8a97a3">'+k+'</text>'; });
+    keys.forEach(function(k,i){ out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>'; });
     out+='</svg>';
-    host.innerHTML='<div class="rk-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;font-size:10.5px;color:var(--muted);margin-top:4px"><span>● <span style="color:#DC2626">ระบุใหม่</span></span><span>● <span style="color:#16A34A">ปิด/ควบคุมแล้ว</span></span></div>';
+    host.innerHTML='<div class="rk-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style=\"color:'+P().err+'\">● ระบุใหม่</span><span style=\"color:'+P().okInk+'\">● ปิด/ควบคุมแล้ว</span></div>';
   }
 
   // โดนัทชาร์ต — ตามที่ผู้ใช้ขอให้ใช้ที่จุด "ความเสี่ยงแยกตามประเภท"
@@ -277,22 +276,21 @@
       offset+=len;
     });
     var svg='<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" role="img" style="flex:none">'+segs+
-      '<circle cx="'+c+'" cy="'+c+'" r="'+(r-thick/2-3)+'" fill="#FFFFFF"/>'+
-      '<text x="'+c+'" y="'+(c-3)+'" text-anchor="middle" font-size="21" font-weight="850" fill="#101820">'+total+'</text>'+
-      '<text x="'+c+'" y="'+(c+16)+'" text-anchor="middle" font-size="9.5" fill="#4B5763">'+esc(centerLabel)+'</text>'+
+      '<circle cx="'+c+'" cy="'+c+'" r="'+(r-thick/2-3)+'" fill="'+P().surface1+'"/>'+
+      '<text x="'+c+'" y="'+(c-3)+'" text-anchor="middle" font-size="21" font-weight="850" fill="'+P().text+'">'+total+'</text>'+
+      '<text x="'+c+'" y="'+(c+16)+'" text-anchor="middle" font-size="9.5" fill="'+P().text+'">'+esc(centerLabel)+'</text>'+
     '</svg>';
     var legend='<div class="rk-donut-legend">'+entries.map(function(e){
       var pct=(e[1]/total*100).toFixed(0);
-      return '<div class="row"><i style="background:'+e[2]+'"></i><span style="flex:1">'+esc(e[0])+'</span><b>'+e[1]+'</b><span style="color:var(--muted);width:32px;text-align:right">'+pct+'%</span></div>';
+      return '<div class="row"><i style="background:'+e[2]+'"></i><span style="flex:1">'+esc(e[0])+'</span><b>'+e[1]+'</b><span style="color:var(--ome-text-3);width:32px;text-align:right">'+pct+'%</span></div>';
     }).join('')+'</div>';
     return '<div class="rk-donut-wrap">'+svg+legend+'</div>';
   }
 
-  var DONUT_PALETTE=['#1C5CAB','#7C3AED','#0EA5E9','#F59E0B','#94A3B8','#16A34A','#DC2626'];
   function renderCategory(rows){
     var host=q('#rkCategory'); if(!host)return;
     var map={}; rows.forEach(function(r){ map[r.riskCategory]=(map[r.riskCategory]||0)+1; });
-    var entries=Object.keys(map).map(function(k,i){return [k,map[k],DONUT_PALETTE[i%DONUT_PALETTE.length]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
+    var entries=Object.keys(map).map(function(k,i){return [k,map[k],P().series[i%8]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
     host.innerHTML=entries.length?donutChart(entries,'ความเสี่ยงทั้งหมด'):'<div class="rk-empty">ไม่มีข้อมูล</div>';
   }
 
@@ -301,7 +299,7 @@
     var withPlan=0,noPlan=0;
     rows.forEach(function(r){ if(planBucket(r.mitigation||r.status)==='plan')withPlan++; else noPlan++; });
     var total=Math.max(1,rows.length);
-    var vals=[['plan','มีแผนจัดการแล้ว',withPlan,'#16A34A'],['noplan','ยังไม่มีแผน',noPlan,'#F59E0B']];
+    var vals=[['plan','มีแผนจัดการแล้ว',withPlan,P().ok],['noplan','ยังไม่มีแผน',noPlan,P().warn]];
     var out='<div class="rk-status-row">';
     vals.forEach(function(v){
       var pct=(v[2]/total*100).toFixed(0);
@@ -326,8 +324,8 @@
         '<td><span class="rk-sev '+tier+'">'+esc(SEV_LABEL[tier])+'</span></td>'+
         '<td>'+esc(likeLabel)+'</td><td><b>'+r.level+'</b></td>'+
         '<td>'+esc(r.mitigation||'—')+'</td>'+
-        '<td style="color:var(--ok);font-weight:700">'+esc(r.residual||'—')+'</td>'+
-        '<td style="color:var(--muted);font-family:var(--ui-font-mono,monospace);white-space:nowrap">'+esc(r.refDoc||'—')+'</td></tr>';
+        '<td style="color:var(--ome-ok);font-weight:700">'+esc(r.residual||'—')+'</td>'+
+        '<td style="color:var(--ome-text-3);font-family:var(--ui-font-mono,monospace);white-space:nowrap">'+esc(r.refDoc||'—')+'</td></tr>';
     }).join('')+
     '</tbody></table></div>';
     host.innerHTML=html;
@@ -355,7 +353,7 @@
     var layout=injectLayout(); if(!layout)return;
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
-    layout.innerHTML='<section class="rk-panel"><h3>⚠️ Risk Control</h3>'+
+    layout.innerHTML='<section class="rk-panel"><h3>Risk Control</h3>'+
       '<div class="rk-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายทะเบียนความเสี่ยง (ต้องมีคอลัมน์ '+
       'ความเสี่ยง/ประเภท ร่วมกับ ความรุนแรง/โอกาสเกิด/ระดับความเสี่ยง) — ลองเลือก Template เป็น "Auto" '+
       'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
@@ -412,6 +410,7 @@
 
   function init(){
     injectCSS();
+    window.TanotReportUtils.onTheme(schedule);
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;
