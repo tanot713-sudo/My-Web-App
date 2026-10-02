@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ตารางคำนวณ | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#217346">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -23,149 +22,114 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/luckysheet@2.1.13/dist/css/luckysheet.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/luckysheet@2.1.13/dist/assets/iconfont/iconfont.css">
 <style>
-:root{--xl:var(--ome-brand);--xl-dk:var(--ome-brand-dk);--xl-sf:var(--ome-brand-sf);--sky-dk:#2563EB;
-  --f:'Prompt',system-ui,-apple-system,'Segoe UI',sans-serif}
-*{box-sizing:border-box}
-/* ใช้ฟอนต์ Prompt ทั้งหน้า (ตัวหนังสือ/หัวเรื่อง/ปุ่ม) ให้เหมือนหน้าเอกสาร (Word) — ไม่ใช่ฟอนต์ serif */
-body.ome-tool-page{margin:0;font-family:var(--f);color:var(--ink,#1F2733);-webkit-font-smoothing:antialiased}
-.wrap,.xl-head h1,.crumb,.xl-btn,.xlr-tab,.xl-status,.xl-hint,footer{font-family:var(--f)}
-.wrap{max-width:1320px;margin:0 auto;padding:0 18px 40px}
-.crumb-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 0 0;flex-wrap:wrap}
-.crumb{font-size:13px;color:var(--muted,#727C93)}
-.crumb a{color:var(--xl);text-decoration:none;font-weight:600}
-.crumb a:hover{text-decoration:underline}
-.crumb .sep{margin:0 8px;color:#C9CEDC}
-.lang-toggle{display:inline-flex;align-items:center;gap:2px;background:#E9EEF7;border:none;border-radius:20px;padding:3px;cursor:pointer;font-family:inherit}
-.lang-toggle span{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:16px;color:#727C93}
-.lang-toggle span.active{background:#fff;color:var(--xl);box-shadow:0 1px 3px rgba(24,31,54,.08)}
-.xl-head{display:flex;align-items:center;gap:15px;margin:14px 0 14px}
-.xl-head-ic{width:54px;height:54px;border-radius:15px;flex-shrink:0;background:linear-gradient(135deg,#2fbf71,#178a4e);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(23,138,78,.3)}
-.xl-head h1{font-size:23px;font-weight:800;letter-spacing:-.01em;line-height:1.3}
-.xl-filebar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;background:var(--card,#fff);border-radius:14px;box-shadow:var(--sh,0 2px 14px rgba(24,31,54,.06));padding:12px 14px;margin-bottom:12px}
-.xl-btn{display:inline-flex;align-items:center;gap:7px;border:1.5px solid var(--line,#E4E9F2);background:#fff;border-radius:11px;padding:9px 14px;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink,#1F2733);cursor:pointer;transition:.14s}
-.xl-btn:hover{border-color:var(--xl);color:var(--xl)}
-.xl-btn.primary{background:var(--xl);border-color:var(--xl);color:#fff}
-.xl-btn.primary:hover{background:var(--xl-dk);color:#fff}
-.xl-btn svg{width:15px;height:15px}
+/* กรอบหน้า (layout=app): หัว/ไฟล์/ริบบอนอยู่บน กริดเต็มพื้นที่ที่เหลือ — ตัวกริดเป็นของ Luckysheet ไม่แตะ */
+.xl-app{overflow-y:auto;overflow-x:hidden}
+.xl-top{flex:0 0 auto;display:flex;flex-direction:column;gap:var(--ome-sp-2);padding:var(--ome-sp-3) var(--ome-sp-4) 0}
+.xl-head{margin:0;gap:var(--ome-sp-3)}
+.xl-head-ic{width:22px;height:22px;color:var(--ome-accent-strong)}
+.xl-filebar .btn .ome-icon{width:15px;height:15px}
 .xl-sp{flex:1}
-.xl-status{font-size:13px;color:var(--muted,#727C93);font-weight:600;display:flex;align-items:center;gap:7px}
-.xl-status.err{color:#E5484D}
-.xl-status .spin{width:14px;height:14px;border:2px solid #cbd5e1;border-top-color:var(--xl);border-radius:50%;animation:xlspin .7s linear infinite}
-@keyframes xlspin{to{transform:rotate(360deg)}}
-.xl-sheetwrap{position:relative;background:var(--card,#fff);border-radius:14px;box-shadow:var(--sh,0 2px 14px rgba(24,31,54,.06));overflow:hidden;overscroll-behavior:contain}
+.xl-status{display:flex;align-items:center;gap:7px;margin:0;min-height:0;font-weight:600;max-width:100%}
+.xl-status.err{color:var(--ome-err-ink)}
+.xl-status .spinner{margin-right:0}
+.xl-sheetwrap{position:relative;flex:1 1 0;min-height:380px;margin:var(--ome-sp-3) var(--ome-sp-4) var(--ome-sp-4);background:var(--ome-surface-1);
+  border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);overflow:hidden;overscroll-behavior:contain}
 /* ความสูงกริดกำหนดเป็นพิกเซลจริงผ่าน JS (กันการวาดซ้ำตอนแถบ URL ของ Safari ขยับ); ค่านี้เป็นแค่ fallback */
-#luckysheet{width:100%;height:600px;min-height:360px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-.xl-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--card,#fff);color:var(--muted,#727C93);z-index:5}
-.xl-loading .spin{width:34px;height:34px;border:3px solid #dce3ee;border-top-color:var(--xl);border-radius:50%;animation:xlspin .8s linear infinite}
+#luckysheet{width:100%;height:600px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.xl-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--ome-surface-1);color:var(--ome-text-2);z-index:5}
+.xl-loading .spinner{width:34px;height:34px;border-width:3px}
 .xl-loading.hide{display:none}
-/* ── ริบบอนแบบ Excel ── */
-.xlr{background:var(--card,#fff);border-radius:14px;box-shadow:var(--sh,0 2px 14px rgba(24,31,54,.06));margin-bottom:12px;overflow:hidden}
+/* Luckysheet โหลด .btn แบบ bootstrap (ไม่อยู่ใน layer) มาทับปุ่มกลาง — คืนค่าปุ่มของหน้านี้ให้ตรงกับธีม */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 16px;border:1px solid var(--ome-border);
+  border-radius:var(--ome-radius-md);background:var(--ome-surface-1);color:var(--ome-text-1);font-size:var(--ome-fs-sm);font-weight:600;line-height:1}
+.btn:hover:not(:disabled){background:var(--ome-surface-2);border-color:var(--ome-border-strong);color:var(--ome-text-1)}
+.btn.sm{height:30px;padding:0 10px;gap:6px;font-size:var(--ome-fs-xs);border-radius:var(--ome-radius-sm)}
+.btn.primary,.btn.primary:hover:not(:disabled){background:var(--ome-accent);border-color:var(--ome-accent);color:var(--ome-on-accent)}
+.btn.primary:hover:not(:disabled){background:color-mix(in srgb, var(--ome-accent) 86%, var(--ome-text-1))}
+/* ── ริบบอนแบบ Excel (ปุ่มจริงของ Luckysheet ที่ย้ายเข้ามา) ── */
 .xlr[hidden]{display:none}
-.xlr-tabs{display:flex;gap:2px;padding:6px 8px 0;border-bottom:1px solid var(--line,#E4E9F2);overflow-x:auto}
-.xlr-tab{font-family:inherit;font-size:13.5px;font-weight:700;padding:9px 16px;border:none;background:none;color:#69728a;border-radius:9px 9px 0 0;cursor:pointer;white-space:nowrap}
-.xlr-tab.on{background:var(--xl-sf,#E7F3EC);color:var(--xl,#217346)}
-.xlr-panels{padding:9px 10px;min-height:52px}
+.xlr-panels{padding:6px 8px;min-height:50px}
 .xlr-panel{display:none;flex-wrap:wrap;align-items:center;gap:3px}
 .xlr-panel.on{display:flex}
-.xlr-sep{width:1px;height:26px;background:var(--line,#E4E9F2);margin:0 7px;display:inline-block;flex:0 0 auto}
 /* ปุ่ม Luckysheet ที่ย้ายเข้ามา — บังคับให้เรียงในแนวเดียวกัน (ยกเลิก float/absolute ของเดิม) */
 .xlr-panel .luckysheet-toolbar-button,.xlr-panel .luckysheet-toolbar-select,.xlr-panel .luckysheet-toolbar-menu-button,
 .xlr-panel [class*="luckysheet-toolbar"]{position:relative!important;top:auto!important;left:auto!important;float:none!important;
   display:inline-flex!important;align-items:center;vertical-align:middle;margin:1px 0!important}
 .xlr-panel .luckysheet-toolbar-select .luckysheet-toolbar-menu-button-caret{position:static!important}
+/* Luckysheet ตั้งสีไอคอน/ตัวหนังสือเป็น #333 ตายตัว → ในโหมดมืดมองไม่เห็นบนพื้นริบบอน ให้ตามสีตัวอักษรของธีม */
+.xlr-panel [class*="luckysheet"]{color:var(--ome-text-1)}
+[data-theme="dark"] .xlr-panel [class*="luckysheet-toolbar"]:hover{background-color:rgba(255,255,255,.1)}
 /* ซ่อนแถบเครื่องมือเดิมของ Luckysheet หลังย้ายปุ่มออกแล้ว (ตั้งใน JS ด้วย เพื่อคงการวัด layout ตอน init) */
 .luckysheet-wa-editor.xlr-moved{display:none!important}
-/* ช่องพิมพ์ native ซ้อนบนเซลล์ (แก้ปัญหา Luckysheet พิมพ์ไทยตัวหาย) */
+/* ช่องพิมพ์ native ซ้อนบนเซลล์ (แก้ปัญหา Luckysheet พิมพ์ไทยตัวหาย) — อยู่บนเซลล์ จึงใช้สีพื้นเดียวกับกริดเสมอ */
 #xlCellEditor{position:fixed;z-index:99999;display:none;box-sizing:border-box;margin:0;
-  border:2px solid var(--xl,#217346);border-radius:2px;padding:1px 4px;
+  border:2px solid var(--ome-accent);border-radius:2px;padding:1px 4px;
   font-family:'TH Sarabun New','Sarabun','Prompt',sans-serif;font-size:15px;line-height:1.35;
   background:#fff;color:#111;resize:none;outline:none;overflow:hidden;white-space:pre;min-width:82px;
-  box-shadow:0 3px 12px rgba(20,30,60,.22)}
-.xl-hint{font-size:12.5px;color:var(--muted,#9AA3B8);margin:10px 2px 0;line-height:1.7}
+  box-shadow:var(--ome-shadow-2)}
 /* ── วิเคราะห์ข้อมูล (Data Insights): สรุปอัตโนมัติ/รวมตัวสะกด/เส้นแนวโน้ม ── */
-.di-popover{position:fixed;z-index:99998;background:#fff;border:1px solid var(--line,#E4E9F2);border-radius:12px;
-  box-shadow:0 10px 34px rgba(20,30,60,.18);padding:14px 16px;font-family:var(--f);display:none;
-  width:320px;max-width:calc(100vw - 24px)}
+.di-popover{position:fixed;z-index:99998;background:var(--ome-surface-1);color:var(--ome-text-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);
+  box-shadow:var(--ome-shadow-3);padding:14px 16px;display:none;width:320px;max-width:calc(100vw - 24px)}
 .di-popover.wide{width:460px}
-.di-title{font-size:14.5px;font-weight:800;color:var(--ink,#1F2733);margin-bottom:10px}
+.di-title{font-size:var(--ome-fs-base);font-weight:700;margin-bottom:10px}
 .di-row{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
-.di-row label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted,#727C93);font-weight:600}
-.di-row select,.di-textarea,.di-fuzzy-canon{font-family:inherit;font-size:13px;padding:7px 9px;border-radius:8px;
-  border:1.5px solid var(--line,#E4E9F2);color:var(--ink,#1F2733);background:#fff}
+.di-row label{display:flex;flex-direction:column;gap:4px;font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600}
+.di-row select,.di-textarea,.di-fuzzy-canon{font:inherit;font-size:var(--ome-fs-sm);padding:7px 9px;border-radius:var(--ome-radius-sm);
+  border:1px solid var(--ome-border);color:var(--ome-text-1);background:var(--ome-surface-1)}
 .di-textarea{width:100%;line-height:1.7;resize:vertical;min-height:90px}
 .di-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
-.di-status{font-size:12px;font-weight:600;color:var(--xl,#178a4e);min-height:15px}
-.di-status.err{color:#E5484D}
-.di-empty{font-size:13px;color:var(--muted,#727C93);text-align:center;padding:14px 4px}
-.di-group{padding:9px 10px;background:#F6F8FA;border-radius:8px;margin-bottom:8px}
-.di-group-values{font-size:12.5px;color:var(--ink,#1F2733);margin-bottom:6px}
+.di-status{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-ok-ink);min-height:15px}
+.di-status.err{color:var(--ome-err-ink)}
+.di-empty{font-size:var(--ome-fs-sm);color:var(--ome-text-2);text-align:center;padding:14px 4px}
+.di-group{padding:9px 10px;background:var(--ome-surface-2);border-radius:var(--ome-radius-sm);margin-bottom:8px}
+.di-group-values{font-size:var(--ome-fs-xs);margin-bottom:6px}
 .di-group-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .di-group-row label{flex-direction:row!important;align-items:center;gap:6px;font-weight:400}
 .di-list{max-height:300px;overflow:auto;margin-bottom:8px}
 .di-chart-wrap{height:220px;margin:8px 0}
-footer{margin-top:30px;text-align:center;font-size:12.5px;color:#9AA3B8}
-footer a{color:var(--sky-dk);text-decoration:none;font-weight:600}
+.dialog p{margin:0}
 @media (max-width:640px){
-  .wrap{padding:0 10px 50px}
-  .xl-head h1{font-size:19px}
-  .xl-filebar{padding:9px;gap:6px}
-  .xl-btn{font-size:12.5px;padding:8px 11px}
-  #luckysheet{height:64vh;min-height:380px}
+  .xl-top{padding:var(--ome-sp-2) 10px 0}
+  .xl-sheetwrap{margin:var(--ome-sp-2) 10px var(--ome-sp-3);min-height:420px}
 }
 </style>
 </head>
-<body class="ome-tool-page" data-doctitle-key="docTitle">
-<div class="wrap">
-  <div class="crumb-row">
-    <nav class="crumb"><a href="area.html?a=work" data-i18n="crumbResp">งานที่รับผิดชอบ</a><span class="sep">/</span><span data-i18n="crumbSheet">ตารางคำนวณ</span></nav>
+<body data-layout="app" data-doctitle-key="docTitle">
+<main class="page xl-app">
+<div class="xl-top">
+  <div class="page-head xl-head">
+    <svg class="ome-icon xl-head-ic" aria-hidden="true"><use href="icons.svg#i-file-spreadsheet"/></svg>
+    <h1 data-i18n="pageTitle">ตารางคำนวณ</h1>
     <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
       <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
     </button>
   </div>
 
-  <div class="xl-head">
-    <div class="xl-head-ic">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-    </div>
-    <div><h1 data-i18n="pageTitle">ตารางคำนวณ: สร้างและแก้ไขสเปรดชีต (รองรับไฟล์ Excel .xlsx)</h1></div>
-  </div>
-
-  <div class="xl-filebar" id="fileBar">
-    <button class="xl-btn" id="newBtn" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-      <span data-i18n="newBtn">ไฟล์ใหม่</span>
-    </button>
-    <button class="xl-btn" id="importBtn" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
-      <span data-i18n="importBtn">นำเข้า Excel/CSV</span>
-    </button>
-    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
-    <button class="xl-btn primary" id="exportXlsxBtn" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
-      <span data-i18n="exportXlsxBtn">ดาวน์โหลด .xlsx</span>
-    </button>
-    <button class="xl-btn" id="exportCsvBtn" type="button"><span data-i18n="exportCsvBtn">ดาวน์โหลด .csv</span></button>
-    <button class="xl-btn" id="printBtn" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-      <span data-i18n="printBtn">พิมพ์ / PDF</span>
-    </button>
-    <button class="xl-btn" id="diFuzzyBtn" type="button"><span data-i18n="diFuzzyBtn">ตรวจตัวสะกด</span></button>
-    <button class="xl-btn" id="diSummaryBtn" type="button"><span data-i18n="diSummaryBtn">สรุปอัตโนมัติ</span></button>
-    <button class="xl-btn" id="diTrendBtn" type="button"><span data-i18n="diTrendBtn">เส้นแนวโน้ม</span></button>
+  <div class="toolbar xl-filebar" id="fileBar">
+    <button class="btn sm" id="newBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-plus"/></svg><span data-i18n="newBtn">ไฟล์ใหม่</span></button>
+    <button class="btn sm" id="importBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg><span data-i18n="importBtn">นำเข้า Excel/CSV</span></button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden>
+    <button class="btn sm primary" id="exportXlsxBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span data-i18n="exportXlsxBtn">ดาวน์โหลด .xlsx</span></button>
+    <button class="btn sm" id="exportCsvBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-down"/></svg><span data-i18n="exportCsvBtn">ดาวน์โหลด .csv</span></button>
+    <button class="btn sm" id="printBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-printer"/></svg><span data-i18n="printBtn">พิมพ์ / PDF</span></button>
+    <span class="sep"></span>
+    <button class="btn sm" id="diFuzzyBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-spell-check"/></svg><span data-i18n="diFuzzyBtn">ตรวจตัวสะกด</span></button>
+    <button class="btn sm" id="diSummaryBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-sparkles"/></svg><span data-i18n="diSummaryBtn">สรุปอัตโนมัติ</span></button>
+    <button class="btn sm" id="diTrendBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trending-up"/></svg><span data-i18n="diTrendBtn">เส้นแนวโน้ม</span></button>
     <span class="xl-sp"></span>
-    <span class="xl-status" id="statusMsg"><span data-i18n="autosaveReady">พร้อมใช้งาน</span></span>
+    <span class="status xl-status" id="statusMsg" role="status" aria-live="polite"><span data-i18n="autosaveReady">พร้อมใช้งาน</span></span>
   </div>
 
   <!-- ริบบอนแบบ Excel: ย้ายปุ่มจริงของ Luckysheet มาจัดเป็นแท็บ/กลุ่ม (ปุ่มยังทำงาน + เมนูเด้งถูกที่) -->
   <div class="xlr" id="xlRibbon" hidden>
-    <div class="xlr-tabs" id="xlrTabs">
-      <button class="xlr-tab on" type="button" data-rtab="home" data-i18n="rHome">หน้าแรก</button>
-      <button class="xlr-tab" type="button" data-rtab="insert" data-i18n="rInsert">แทรก</button>
-      <button class="xlr-tab" type="button" data-rtab="formulas" data-i18n="rFormulas">สูตร</button>
-      <button class="xlr-tab" type="button" data-rtab="data" data-i18n="rData">ข้อมูล</button>
-      <button class="xlr-tab" type="button" data-rtab="view" data-i18n="rView">มุมมอง</button>
+    <div class="tabs" id="xlrTabs" role="tablist">
+      <button class="tab on" type="button" role="tab" data-rtab="home" data-i18n="rHome">หน้าแรก</button>
+      <button class="tab" type="button" role="tab" data-rtab="insert" data-i18n="rInsert">แทรก</button>
+      <button class="tab" type="button" role="tab" data-rtab="formulas" data-i18n="rFormulas">สูตร</button>
+      <button class="tab" type="button" role="tab" data-rtab="data" data-i18n="rData">ข้อมูล</button>
+      <button class="tab" type="button" role="tab" data-rtab="view" data-i18n="rView">มุมมอง</button>
     </div>
-    <div class="xlr-panels" id="xlrPanels">
+    <div class="toolbar xlr-panels" id="xlrPanels">
       <div class="xlr-panel on" data-rpanel="home"></div>
       <div class="xlr-panel" data-rpanel="insert"></div>
       <div class="xlr-panel" data-rpanel="formulas"></div>
@@ -173,22 +137,31 @@ footer a{color:var(--sky-dk);text-decoration:none;font-weight:600}
       <div class="xlr-panel" data-rpanel="view"></div>
     </div>
   </div>
-
-  <!-- ช่องพิมพ์ของเราเอง (native) วางซ้อนบนเซลล์ตอนแก้ไข — รองรับไทย/ทุกภาษา 100% -->
-  <textarea id="xlCellEditor" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
-
-  <!-- ป็อปอัพกลางของฟีเจอร์ "วิเคราะห์ข้อมูล" (สรุปอัตโนมัติ/ตรวจตัวสะกด/เส้นแนวโน้ม) -->
-  <div class="di-popover" id="diPopover"></div>
-
-  <div class="xl-sheetwrap">
-    <div id="luckysheet"></div>
-    <div class="xl-loading" id="loading">
-      <div class="spin"></div>
-      <div data-i18n="loadingSheet">กำลังโหลดตารางคำนวณ…</div>
-    </div>
-  </div>
-
 </div>
+
+<div class="xl-sheetwrap">
+  <div id="luckysheet"></div>
+  <div class="xl-loading" id="loading">
+    <div class="spinner"></div>
+    <div data-i18n="loadingSheet">กำลังโหลดตารางคำนวณ…</div>
+  </div>
+</div>
+</main>
+
+<!-- ช่องพิมพ์ของเราเอง (native) วางซ้อนบนเซลล์ตอนแก้ไข — รองรับไทย/ทุกภาษา 100% -->
+<textarea id="xlCellEditor" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+
+<!-- ป็อปอัพกลางของฟีเจอร์ "วิเคราะห์ข้อมูล" (สรุปอัตโนมัติ/ตรวจตัวสะกด/เส้นแนวโน้ม) -->
+<div class="di-popover" id="diPopover"></div>
+
+<dialog class="dialog" id="confirmModal" aria-labelledby="confirmTitle">
+  <div class="dialog-head"><h2 id="confirmTitle" data-i18n="newBtn">ไฟล์ใหม่</h2></div>
+  <div class="dialog-body"><p id="confirmText"></p></div>
+  <div class="dialog-foot">
+    <button class="btn" id="confirmCancelBtn" type="button" data-i18n="modalCancel">ยกเลิก</button>
+    <button class="btn primary" id="confirmOkBtn" type="button" data-i18n="newBtn">ไฟล์ใหม่</button>
+  </div>
+</dialog>
 
 <!-- ไลบรารี: SheetJS (อ่าน/เขียน .xlsx/.csv), LuckyExcel (แปลง .xlsx→สเปรดชีต), Luckysheet (กริด/สูตร) -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>

@@ -31,6 +31,8 @@ const PAGES = [
   'budget.html',
   'word.html',
   'excel.html',
+  'cad.html',
+  'sim-objects.html',
   'classroom-law.html',
   'review.html',
   'music.html',

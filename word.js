@@ -58,17 +58,15 @@ function setUILang(lang) { try { localStorage.setItem(UI_LANG_KEY, lang); } catc
 var I18N = {
   th: {
     docTitle: 'เอกสาร | Tanot',
-    crumbResp: 'งานที่รับผิดชอบ', crumbWord: 'เอกสาร',
-    pageTitle: 'เอกสาร: พิมพ์และแก้ไขเอกสาร (รองรับไฟล์ Word .docx)',
-    pageDesc: 'พิมพ์เอกสารตั้งแต่หน้าว่าง หรือนำเข้าไฟล์ (.txt .docx .pdf .png .jpg) แล้วจัดรูปแบบด้วยเครื่องมือแบบ Word เต็มรูปแบบ — จัดหน้า, ตาราง, สัญลักษณ์, สารบัญ, เชิงอรรถ, หัว-ท้ายกระดาษ, พูดแล้วขึ้นข้อความ, ตรวจคำผิด แล้วดาวน์โหลดเป็น .docx — ทำงานในเบราว์เซอร์ของคุณทั้งหมด',
+    pageTitle: 'เอกสาร',
     newDocBtn: 'หน้าใหม่', importBtn: 'นำเข้าไฟล์', downloadBtn: 'ดาวน์โหลด .docx', printBtn: 'พิมพ์ / PDF',
     tabHome: 'หน้าแรก', tabInsert: 'แทรก', tabLayout: 'เค้าโครงหน้ากระดาษ', tabRefs: 'การอ้างอิง', tabReview: 'ตรวจทาน', tabView: 'มุมมอง',
     navPaneBtn: 'หน้าต่างนำทาง', navPaneTitle: 'การนำทาง', navHeadings: 'หัวข้อ', navPages: 'หน้า',
     navSearchPh: 'ค้นหาในเอกสาร', navPageX: 'หน้า {n}',
-    navEmptyHeadings: 'ยังไม่มีหัวข้อ — ใช้สไตล์ “หัวข้อ 1 / 2 / 3” กับข้อความเพื่อสร้างโครงเรื่อง แล้วหัวข้อจะมาโผล่ตรงนี้ให้กดข้ามไปได้',
+    navEmptyHeadings: 'ยังไม่มีหัวข้อ',
     navNoResult: 'ไม่พบหัวข้อที่ตรงกับคำค้น',
     secPortraitWord: 'ส่วนแนวตั้ง', secLandscapeWord: 'ส่วนแนวนอน',
-    secPortraitTitle: 'แทรกส่วนใหม่แบบแนวตั้ง (ขึ้นหน้าใหม่)', secLandscapeTitle: 'แทรกส่วนใหม่แบบแนวนอน (ขึ้นหน้าใหม่) — เช่น หน้าตารางกว้าง',
+    secPortraitTitle: 'แทรกส่วนใหม่แบบแนวตั้ง (ขึ้นหน้าใหม่)', secLandscapeTitle: 'แทรกส่วนใหม่แบบแนวนอน (ขึ้นหน้าใหม่)',
     secBreakPortrait: 'แบ่งส่วน • แนวตั้ง', secBreakLandscape: 'แบ่งส่วน • แนวนอน',
     secInserted: 'แทรกตัวแบ่งส่วนแล้ว — เนื้อหาหลังจากนี้จะเป็น{orient}',
     grpUndo: 'เลิกทำ', grpClipboard: 'คลิปบอร์ด', grpFont: 'แบบอักษร', grpParagraph: 'ย่อหน้า', grpStyles: 'สไตล์',
@@ -87,7 +85,6 @@ var I18N = {
     tocWord: 'สารบัญ', tocUpdateWord: 'อัปเดต', footnoteWord: 'เชิงอรรถ',
     runBtn: 'ตรวจคำผิด', speakWord: 'อ่านออกเสียง', dictateWord: 'พูดเป็นข้อความ', summarizeBtn: 'สรุปเนื้อหา', wordCountWord: 'จำนวนคำ',
     issuesFoundHeading: 'จุดที่พบ', applyFixBtn: 'แก้ไขทั้งหมดในเอกสาร', issueEmptyText: 'ไม่พบจุดที่ควรแก้',
-    issueHint: 'กด "ตรวจคำผิด" เพื่อดูจุดที่ควรแก้ที่นี่',
     headerTag: 'หัวกระดาษ', footerTag: 'ท้ายกระดาษ', footnotesHeading: 'เชิงอรรถ',
     wordsLabel: 'คำ', charsLabel: 'ตัวอักษร', autosaveIdle: 'พร้อมบันทึกอัตโนมัติ', autosaveSaved: 'บันทึกอัตโนมัติแล้ว',
     footerText: 'Tanot — งานที่รับผิดชอบ', creditsLink: 'เครดิต & ลิขสิทธิ์',
@@ -96,8 +93,7 @@ var I18N = {
     footnoteModalTitle: 'แทรกเชิงอรรถ', footnoteTextLabel: 'ข้อความเชิงอรรถ',
     headerWord: 'หัวกระดาษ', footerWord: 'ท้ายกระดาษ', pageNumWord: 'เลขหน้า',
     editHeaderTitle: 'แก้ไขหัวกระดาษ', editFooterTitle: 'แก้ไขท้ายกระดาษ', pageNumTitle: 'ใส่/เอาเลขหน้าออก (เฉพาะไฟล์ Word)', removeHFTitle: 'ลบหัว-ท้ายกระดาษ',
-    headerPh: 'หัวกระดาษ — แตะเพื่อพิมพ์ (เว้นว่างไว้ถ้าไม่ต้องการ)', footerPh: 'ท้ายกระดาษ — แตะเพื่อพิมพ์ (เว้นว่างไว้ถ้าไม่ต้องการ)',
-    pageNumNote: 'จะใส่เลขหน้าอัตโนมัติที่ท้ายกระดาษเมื่อดาวน์โหลดเป็นไฟล์ Word',
+    headerPh: 'หัวกระดาษ', footerPh: 'ท้ายกระดาษ',
     pageNumOn: 'เปิดใส่เลขหน้าที่ท้ายกระดาษ (จะปรากฏในไฟล์ Word)', pageNumOff: 'ปิดการใส่เลขหน้า',
     headerFooterRemoved: 'ลบหัว-ท้ายกระดาษแล้ว',
     symbolModalTitle: 'แทรกสัญลักษณ์', wordCountModalTitle: 'จำนวนคำ',
@@ -149,17 +145,15 @@ var I18N = {
   },
   en: {
     docTitle: 'Documents | Tanot',
-    crumbResp: 'Responsibilities', crumbWord: 'Documents',
-    pageTitle: 'Documents: Write & Edit (Word .docx compatible)',
-    pageDesc: 'Start typing from a blank page, or import a file (.txt .docx .pdf .png .jpg), then format it with full Word-like tools — page setup, tables, symbols, table of contents, footnotes, headers/footers, dictation, spell check, and download it as a .docx file — everything runs in your browser.',
+    pageTitle: 'Documents',
     newDocBtn: 'New Page', importBtn: 'Import File', downloadBtn: 'Download .docx', printBtn: 'Print / PDF',
     tabHome: 'Home', tabInsert: 'Insert', tabLayout: 'Layout', tabRefs: 'References', tabReview: 'Review', tabView: 'View',
     navPaneBtn: 'Navigation Pane', navPaneTitle: 'Navigation', navHeadings: 'Headings', navPages: 'Pages',
     navSearchPh: 'Search document', navPageX: 'Page {n}',
-    navEmptyHeadings: 'No headings yet — apply the “Heading 1 / 2 / 3” styles to text to build an outline, then your headings show up here to jump to.',
+    navEmptyHeadings: 'No headings yet',
     navNoResult: 'No headings match your search',
     secPortraitWord: 'Portrait section', secLandscapeWord: 'Landscape section',
-    secPortraitTitle: 'Insert a new portrait section (starts a new page)', secLandscapeTitle: 'Insert a new landscape section (starts a new page) — e.g. a wide table page',
+    secPortraitTitle: 'Insert a new portrait section (starts a new page)', secLandscapeTitle: 'Insert a new landscape section (starts a new page)',
     secBreakPortrait: 'Section break • Portrait', secBreakLandscape: 'Section break • Landscape',
     secInserted: 'Section break inserted — content after it is {orient}',
     grpUndo: 'Undo', grpClipboard: 'Clipboard', grpFont: 'Font', grpParagraph: 'Paragraph', grpStyles: 'Styles',
@@ -178,7 +172,6 @@ var I18N = {
     tocWord: 'Contents', tocUpdateWord: 'Update', footnoteWord: 'Footnote',
     runBtn: 'Check Spelling', speakWord: 'Read Aloud', dictateWord: 'Dictate', summarizeBtn: 'Summarize', wordCountWord: 'Word Count',
     issuesFoundHeading: 'Issues Found', applyFixBtn: 'Fix All in Document', issueEmptyText: 'No issues found',
-    issueHint: 'Click "Check Spelling" to see issues here',
     headerTag: 'Header', footerTag: 'Footer', footnotesHeading: 'Footnotes',
     wordsLabel: 'words', charsLabel: 'characters', autosaveIdle: 'Ready to autosave', autosaveSaved: 'Autosaved',
     footerText: 'Tanot — Responsibilities', creditsLink: 'Credits & licenses',
@@ -187,8 +180,7 @@ var I18N = {
     footnoteModalTitle: 'Insert Footnote', footnoteTextLabel: 'Footnote text',
     headerWord: 'Header', footerWord: 'Footer', pageNumWord: 'Page No.',
     editHeaderTitle: 'Edit header', editFooterTitle: 'Edit footer', pageNumTitle: 'Toggle page numbers (Word file only)', removeHFTitle: 'Remove header & footer',
-    headerPh: 'Header — tap to type (leave blank if not needed)', footerPh: 'Footer — tap to type (leave blank if not needed)',
-    pageNumNote: 'Page numbers will be added to the footer automatically when you download as a Word file',
+    headerPh: 'Header', footerPh: 'Footer',
     pageNumOn: 'Page numbers enabled in the footer (will appear in the Word file)', pageNumOff: 'Page numbers turned off',
     headerFooterRemoved: 'Header and footer removed',
     symbolModalTitle: 'Insert Symbol', wordCountModalTitle: 'Word Count',
@@ -681,7 +673,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   var $ = function (id) { return document.getElementById(id); };
   var editor = $('editor');
   var state = {
-    lang: 'th', matches: [], busy: false, speaking: false, dictating: false,
+    lang: 'th', matches: [], checked: false, busy: false, speaking: false, dictating: false,
     header: '', footer: '', pageNum: false,
     pageSize: 'A4', orientation: 'portrait', margins: 'normal'
   };
@@ -692,9 +684,9 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     newDocBtn: $('newDocBtn'), importBtn: $('importBtn'), downloadBtn: $('downloadBtn'), printBtn: $('printBtn'),
     runBtn: $('runBtn'), speakBtn: $('speakBtn'), dictateBtn: $('dictateBtn'), summarizeBtn: $('summarizeBtn'), wordCountBtn: $('wordCountBtn'),
     statusMsg: $('statusMsg'), issueCount: $('issueCount'), issueList: $('issueList'), issueEmpty: $('issueEmpty'),
-    issueHint: $('issueHint'), applyFixBtn: $('applyFixBtn'), langToggle: $('langToggle'),
+    applyFixBtn: $('applyFixBtn'), langToggle: $('langToggle'),
     wordCountEl: $('wordCount'), charCountEl: $('charCount'), autosaveStatusEl: $('autosaveStatus'),
-    modalBackdrop: $('modalBackdrop'),
+    confirmModal: $('confirmModal'), confirmText: $('confirmText'), confirmOkBtn: $('confirmOkBtn'), confirmCancelBtn: $('confirmCancelBtn'),
     linkModal: $('linkModal'), linkUrlInput: $('linkUrlInput'), linkOkBtn: $('linkOkBtn'), linkCancelBtn: $('linkCancelBtn'),
     tableModal: $('tableModal'), tableRowsInput: $('tableRowsInput'), tableColsInput: $('tableColsInput'),
     tableHeaderCheck: $('tableHeaderCheck'), tableOkBtn: $('tableOkBtn'), tableCancelBtn: $('tableCancelBtn'),
@@ -708,7 +700,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     symbolBtn: $('symbolBtn'), dateBtn: $('dateBtn'), pageBreakBtn: $('pageBreakBtn'),
     secPortraitBtn: $('secPortraitBtn'), secLandscapeBtn: $('secLandscapeBtn'),
     editHeaderBtn: $('editHeaderBtn'), editFooterBtn: $('editFooterBtn'), pageNumBtn: $('pageNumBtn'), removeHFBtn: $('removeHFBtn'),
-    docHeader: $('docHeader'), docFooter: $('docFooter'), pageNumNote: $('pageNumNote'),
+    docHeader: $('docHeader'), docFooter: $('docFooter'),
     tocBtn: $('tocBtn'), tocUpdateBtn: $('tocUpdateBtn'), footnoteBtn: $('footnoteBtn'),
     textColorInput: $('textColorInput'), textColorSwatch: $('textColorSwatch'),
     hiliteColorInput: $('hiliteColorInput'), hiliteColorSwatch: $('hiliteColorSwatch'),
@@ -725,12 +717,9 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     navHeadingsList: $('navHeadingsList'), navPagesList: $('navPagesList')
   };
 
-  var SPEAK_ICON = els.speakBtn.querySelector('svg').outerHTML;
-  var STOP_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
-  var MIC_ICON = els.dictateBtn.querySelector('svg').outerHTML;
-  var MIC_OFF_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
-  function setSpeakLabel(stop) { els.speakBtn.querySelector('svg').outerHTML = stop ? STOP_SVG : SPEAK_ICON; }
-  function setDictateLabel(stop) { els.dictateBtn.querySelector('svg').outerHTML = stop ? MIC_OFF_SVG : MIC_ICON; }
+  function setIcon(btn, name) { var u = btn.querySelector('use'); if (u) u.setAttribute('href', 'icons.svg#i-' + name); }
+  function setSpeakLabel(stop) { setIcon(els.speakBtn, stop ? 'square' : 'volume-2'); }
+  function setDictateLabel(stop) { setIcon(els.dictateBtn, stop ? 'mic-off' : 'mic'); }
 
   /* ── i18n ── */
   function applyStaticI18n() {
@@ -768,9 +757,9 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   }
 
   /* ── สลับแท็บ ribbon ── */
-  els.ribbonTabs.querySelectorAll('.wd-ribbon-tab').forEach(function (tab) {
+  els.ribbonTabs.querySelectorAll('.tab').forEach(function (tab) {
     tab.addEventListener('click', function () {
-      els.ribbonTabs.querySelectorAll('.wd-ribbon-tab').forEach(function (t2) { t2.classList.toggle('active', t2 === tab); });
+      els.ribbonTabs.querySelectorAll('.tab').forEach(function (t2) { t2.classList.toggle('on', t2 === tab); t2.setAttribute('aria-selected', t2 === tab ? 'true' : 'false'); });
       document.querySelectorAll('.wd-ribbon-panel').forEach(function (p) { p.classList.toggle('active', p.getAttribute('data-panel') === tab.getAttribute('data-tab')); });
     });
   });
@@ -844,17 +833,17 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   /* ── issue sidebar ── */
   function renderIssues() {
     els.issueCount.textContent = state.matches.length;
-    els.issueCount.classList.toggle('zero', state.matches.length === 0);
-    els.applyFixBtn.style.display = state.matches.length ? 'flex' : 'none';
-    els.issueEmpty.style.display = state.matches.length === 0 && els.issueHint.dataset.shown === '1' ? 'block' : 'none';
-    els.issueHint.style.display = els.issueHint.dataset.shown === '1' ? 'none' : 'block';
+    els.issueCount.classList.toggle('ok', state.matches.length === 0);
+    els.issueCount.classList.toggle('err', state.matches.length !== 0);
+    els.applyFixBtn.hidden = !state.matches.length;
+    els.issueEmpty.hidden = !(state.matches.length === 0 && state.checked);
     els.issueList.innerHTML = '';
     state.matches.forEach(function (m, i) {
       var item = document.createElement('div');
       item.className = 'wd-issue';
       var chipsHtml = (m.replacements || []).map(function (r, ri) { return '<button class="chip" data-mi="' + i + '" data-ri="' + ri + '" type="button">' + escapeHtml(r) + '</button>'; }).join('');
       var kind = issueKind(m.category);
-      var badgeHtml = kind === 'style' ? '<span class="kind-badge style">' + t('badgeStyle') + '</span>' : '<span class="kind-badge spelling">' + t('badgeSpelling') + '</span>';
+      var badgeHtml = kind === 'style' ? '<span class="badge info">' + t('badgeStyle') + '</span>' : '<span class="badge err">' + t('badgeSpelling') + '</span>';
       item.innerHTML = badgeHtml + '<div class="quote">"' + escapeHtml(m.matchedText) + '"</div><div class="msg">' + escapeHtml(m.message) + '</div>' + (chipsHtml ? '<div class="chips">' + chipsHtml + '</div>' : '');
       els.issueList.appendChild(item);
     });
@@ -899,7 +888,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
       var matches = await checkSpelling(text, lang.ltCode);
       matches.forEach(function (m) { m.matchedText = text.slice(m.offset, m.offset + m.length); });
       state.matches = matches;
-      els.issueHint.dataset.shown = '1';
+      state.checked = true;
       renderIssues();
       setStatus(t('checkedResult', { n: matches.length }));
     } catch (err) { setStatus(t('checkError', { msg: err.message }), true); }
@@ -908,12 +897,12 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   els.langSelect.addEventListener('change', function () { state.lang = els.langSelect.value; });
 
   /* ── ไฟล์ ── */
-  els.newDocBtn.addEventListener('click', function () {
-    if (!confirm(t('newDocConfirm'))) return;
+  els.newDocBtn.addEventListener('click', async function () {
+    if (!(await askConfirm(t('newDocConfirm')))) return;
     editor.innerHTML = '';
     ensureEditorHasBlocks(); // กันพิมพ์ตัวอักษรแรกในเอกสารใหม่โดยไม่กด Enter แล้วระบบจัดหน้ามองไม่เห็น (ดูคำอธิบายที่นิยามฟังก์ชัน)
     els.docHeader.textContent = ''; els.docFooter.textContent = '';
-    state.matches = []; els.issueHint.dataset.shown = '0';
+    state.matches = []; state.checked = false;
     state.header = ''; state.footer = ''; state.pageNum = false;
     renderIssues(); renderFootnotes(); updateHeaderFooterUI();
     try { localStorage.removeItem(AUTOSAVE_KEY); } catch (e) {}
@@ -958,6 +947,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     if (!extractText(editor).trim() && !els.docHeader.textContent.trim() && !els.docFooter.textContent.trim()) { setStatus(t('downloadEmpty'), true); return; }
     setStatus(t('pdfGenerating'), false, true);
     els.page.classList.add('wd-capturing');
+    document.body.classList.add('wd-cap');
     var SCALE = 2;
     try {
       /* จัดหน้าแบบ capture: หน้าต่อกันสนิท (ไม่มีช่องว่าง) + หัว-ท้ายสะท้อนทุกหน้า
@@ -999,6 +989,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
       setStatus(t('pdfError', { msg: e.message }), true);
     } finally {
       els.page.classList.remove('wd-capturing');
+      document.body.classList.remove('wd-cap');
       layoutPages(false);        /* กลับสู่มุมมองหน้าจอปกติ (มีช่องว่างระหว่างหน้า + ย่อพอดีจอ) */
     }
   }
@@ -1018,11 +1009,11 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   els.wordCountBtn.addEventListener('click', function () {
     var s = docStats();
     els.wordCountDetails.innerHTML =
-      '<div><strong>' + s.words + '</strong> — ' + t('wcWords') + '</div>' +
-      '<div><strong>' + s.charsWith + '</strong> — ' + t('wcCharsWith') + '</div>' +
-      '<div><strong>' + s.charsNo + '</strong> — ' + t('wcCharsNo') + '</div>' +
-      '<div><strong>' + s.paragraphs + '</strong> — ' + t('wcParagraphs') + '</div>' +
-      '<div><strong>' + s.footnotes + '</strong> — ' + t('wcFootnotes') + '</div>';
+      '<span>' + t('wcWords') + '</span><strong>' + s.words + '</strong>' +
+      '<span>' + t('wcCharsWith') + '</span><strong>' + s.charsWith + '</strong>' +
+      '<span>' + t('wcCharsNo') + '</span><strong>' + s.charsNo + '</strong>' +
+      '<span>' + t('wcParagraphs') + '</span><strong>' + s.paragraphs + '</strong>' +
+      '<span>' + t('wcFootnotes') + '</span><strong>' + s.footnotes + '</strong>';
     openModal(els.wordCountModal);
   });
   els.wordCountCloseBtn.addEventListener('click', closeModals);
@@ -1156,7 +1147,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   /* ── Dictate ── */
   function stopDictate(statusText) {
     state.dictating = false;
-    els.dictateBtn.classList.remove('active');
+    els.dictateBtn.classList.remove('on');
     setDictateLabel(false);
     els.dictateBtn.title = t('dictateBtnTitle');
     if (recognition) { try { recognition.stop(); } catch (e) {} }
@@ -1192,7 +1183,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     };
     recognition.onend = function () { if (state.dictating) { try { recognition.start(); } catch (e) {} } };
     state.dictating = true;
-    els.dictateBtn.classList.add('active');
+    els.dictateBtn.classList.add('on');
     setDictateLabel(true);
     els.dictateBtn.title = t('stopDictateTitle');
     setStatus(t('dictateListening'));
@@ -1200,7 +1191,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   });
 
   /* ── ริบบิ้น: คำสั่ง execCommand ทั่วไป ── */
-  document.querySelectorAll('.rb-btn[data-cmd]').forEach(function (btn) {
+  document.querySelectorAll('button[data-cmd]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       focusActive();
       document.execCommand(btn.dataset.cmd, false, null);
@@ -1377,7 +1368,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     if (!sel.anchorNode || !activeEditable.contains(sel.anchorNode)) return;
     Object.keys(STATE_CMDS).forEach(function (id) {
       var btn = $(id);
-      if (btn) { try { btn.classList.toggle('active', document.queryCommandState(STATE_CMDS[id])); } catch (e) {} }
+      if (btn) { try { btn.classList.toggle('on', document.queryCommandState(STATE_CMDS[id])); } catch (e) {} }
     });
   }
   document.addEventListener('selectionchange', updateToolbarState);
@@ -1385,19 +1376,30 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   editor.addEventListener('mouseup', updateToolbarState);
 
   /* ── modal ── */
-  function openModal(m) { els.modalBackdrop.classList.add('open'); m.classList.add('open'); }
-  function closeModals() {
-    els.modalBackdrop.classList.remove('open');
-    if (els.findReplaceModal.classList.contains('open')) clearFindHighlights();
-    [els.linkModal, els.tableModal, els.footnoteModal, els.symbolModal, els.wordCountModal, els.findReplaceModal].forEach(function (m) { m.classList.remove('open'); });
+  var MODALS = [els.linkModal, els.tableModal, els.footnoteModal, els.symbolModal, els.wordCountModal, els.findReplaceModal, els.confirmModal];
+  function openModal(m) { if (!m.open) m.showModal(); }
+  function closeModals() { MODALS.forEach(function (m) { if (m.open) m.close(); }); }
+  MODALS.forEach(function (m) {
+    m.addEventListener('click', function (e) { if (e.target === m) m.close(); });   /* กดนอกกล่อง = ปิด */
+    m.addEventListener('close', function () { if (m === els.findReplaceModal) clearFindHighlights(); });
+  });
+  function askConfirm(msg) {
+    return new Promise(function (resolve) {
+      var done = false;
+      function finish(v) { if (done) return; done = true; els.confirmOkBtn.onclick = els.confirmCancelBtn.onclick = els.confirmModal.onclose = null; if (els.confirmModal.open) els.confirmModal.close(); resolve(v); }
+      els.confirmText.textContent = msg;
+      els.confirmOkBtn.onclick = function () { finish(true); };
+      els.confirmCancelBtn.onclick = function () { finish(false); };
+      els.confirmModal.onclose = function () { finish(false); };
+      openModal(els.confirmModal);
+    });
   }
-  els.modalBackdrop.addEventListener('click', function (e) { if (e.target === els.modalBackdrop) closeModals(); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModals(); });
   function saveSelectionRange() {
     var sel = window.getSelection();
     savedRange = (sel.rangeCount && editor.contains(sel.anchorNode)) ? sel.getRangeAt(0).cloneRange() : null;
   }
   function restoreSelectionRange() {
+    closeModals();   /* dialog แบบ modal ทำให้ editor โฟกัสไม่ได้ (inert) — ปิดก่อนค่อยแทรกเนื้อหา */
     focusEditor();
     if (savedRange) { var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
   }
@@ -1511,8 +1513,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     els.docFooter.classList.toggle('wd-hf-empty', !els.docFooter.textContent.trim());
   }
   function updateHeaderFooterUI() {
-    els.pageNumBtn.classList.toggle('active', state.pageNum);
-    els.pageNumNote.classList.toggle('show', state.pageNum);
+    els.pageNumBtn.classList.toggle('on', state.pageNum);
     markHFEmpty();
     schedulePaginate();          /* หัว-ท้าย/เลขหน้าเปลี่ยน → วาด mirror ทุกหน้าใหม่ */
   }
@@ -1824,7 +1825,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   }
   function switchNavTab(tab) {
     navTab = tab;
-    els.navTabs.querySelectorAll('.wd-nav-tab').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-navtab') === tab); });
+    els.navTabs.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-navtab') === tab); b.setAttribute('aria-selected', b.getAttribute('data-navtab') === tab ? 'true' : 'false'); });
     els.navHeadingsList.hidden = tab !== 'headings';
     els.navPagesList.hidden = tab !== 'pages';
   }
@@ -1833,7 +1834,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     els.navPane.hidden = false;
     els.navBackdrop.hidden = false;
     document.querySelector('.wd-body').classList.add('nav-open');
-    els.navPaneBtn.classList.add('active');
+    els.navPaneBtn.classList.add('on');
     updateNav();
   }
   function closeNav() {
@@ -1841,13 +1842,13 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     els.navPane.hidden = true;
     els.navBackdrop.hidden = true;
     document.querySelector('.wd-body').classList.remove('nav-open');
-    els.navPaneBtn.classList.remove('active');
+    els.navPaneBtn.classList.remove('on');
   }
   function toggleNav() { navOpen ? closeNav() : openNav(); }
   els.navPaneBtn.addEventListener('click', toggleNav);
   els.navCloseBtn.addEventListener('click', closeNav);
   els.navBackdrop.addEventListener('click', closeNav);
-  els.navTabs.querySelectorAll('.wd-nav-tab').forEach(function (b) {
+  els.navTabs.querySelectorAll('.tab').forEach(function (b) {
     b.addEventListener('click', function () { switchNavTab(b.getAttribute('data-navtab')); });
   });
   els.navSearchInput.addEventListener('input', function () {
@@ -1869,11 +1870,11 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     });
   }
   var navSpyTimer = null;
-  window.addEventListener('scroll', function () {
+  document.addEventListener('scroll', function () {   /* capture: ที่เลื่อนคือกล่องกระดาษ/ทั้งหน้าในกรอบแอป ไม่ใช่ window */
     if (!navOpen) return;
     if (navSpyTimer) return;
     navSpyTimer = requestAnimationFrame(function () { navSpyTimer = null; highlightCurrentHeading(); });
-  }, { passive: true });
+  }, { passive: true, capture: true });
 
   /* ── สารบัญ ── */
   function slugify(s, i) { return 'h-' + i + '-' + (s || '').toLowerCase().replace(/[^a-z0-9ก-๛]+/g, '-').replace(/^-|-$/g, '').slice(0, 30); }

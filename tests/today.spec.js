@@ -221,9 +221,9 @@ test.describe('ค้นหาด่วน (palette)', () => {
     expect(errors).toEqual([]);
   });
 
-  test('ทำงานบนหน้าเดิมที่ยังไม่ย้ายธีม (word.html) + คำสั่งเพิ่มรายจ่ายเปิดกล่อง quick-add', async ({ page }) => {
+  test('ทำงานบนหน้าเดิมที่ยังไม่ย้ายธีม (report-dashboard.html) + คำสั่งเพิ่มรายจ่ายเปิดกล่อง quick-add', async ({ page }) => {
     const errors = await prepare(page);
-    await page.goto('/word.html', { waitUntil: 'load' });
+    await page.goto('/report-dashboard.html', { waitUntil: 'load' });
     await page.waitForSelector('nav.ome-nav');
     await page.keyboard.press('Control+k');
     await page.fill('.ome-pal-input', 'รายจ่าย');
