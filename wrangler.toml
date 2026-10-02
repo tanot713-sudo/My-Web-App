@@ -13,7 +13,7 @@ TEAM_DOMAIN = "tanot.cloudflareaccess.com"
 AI_DAILY_NEURONS = "10000"
 # Web Push (VAPID) — public key ใส่ที่นี่ได้ (ต้องตรงกับ workers/scheduler/wrangler.toml) · VAPID_PRIVATE_KEY เป็น Secret ใน dashboard เท่านั้น
 # สร้างคู่คีย์ในเครื่องตัวเอง: node workers/scheduler/gen-vapid.mjs — ว่างไว้ = ปุ่มเปิดการแจ้งเตือนขึ้นว่ายังไม่ได้ตั้งคีย์
-VAPID_PUBLIC_KEY = ""
+VAPID_PUBLIC_KEY = "BEyPSSA7UDCx9gDq6QXEdsrJI1LkkX855R-23Z-DYZJ7NKBmpXEDvUyM3xahJja8A1qurSEmWarnFRNsR-9_8CE"
 VAPID_SUBJECT = "mailto:tanot713@gmail.com"
 
 [[d1_databases]]
