@@ -391,7 +391,7 @@ async function newDevice(browser, { seed = true, sync = false, files = true, now
 const mnt = (page, fn, ...args) => page.evaluate(fn, ...args);
 const idbAll = (page, db, store) => page.evaluate(([d, s]) => window.__mnt.idbAll(d, s), [db, store]);
 async function openAsset(page, id) { await page.evaluate((id) => { location.hash = '#asset=' + id; }, id); await page.waitForSelector('#assetView [data-act="insp"]'); }
-async function fillInsp(page, { by = 'สมชาย', i1 = 'ok', i2 = 28.4, i3 = 'ng' } = {}) {
+async function fillInsp(page, { by = 'สมชาย', i1 = 'ok', i2 = 28.4, i3 = 'ok' } = {}) {
   await page.fill('#inspBy', by);
   if (i1) await page.click(`[data-res="${i1}"][data-item="i1"]`);
   if (i2 != null) await page.fill('[data-num="i2"]', String(i2));
@@ -428,7 +428,7 @@ test.describe('หน้า maintenance.html', () => {
     const dev = await page.evaluate(() => window.__mnt.deviceId());
     expect(docs[0].id).toBe('s1|M3|2026-11|' + dev);
     const row = docs[0].rows.e1;
-    expect(row.res).toEqual({ i1: 'ok', i2: 28.4, i3: 'ng' });
+    expect(row.res).toEqual({ i1: 'ok', i2: 28.4, i3: 'ok' });
     expect(row.photos).toHaveLength(1);
     expect(row.photos[0]).toMatchObject({ item: 'i3' });
     expect(row.photos[0].pending).toBeTruthy();
@@ -517,7 +517,7 @@ test.describe('หน้า maintenance.html', () => {
     for (const [d, by] of [[A, 'สมชาย'], [B, 'สมหญิง']]) {
       await openAsset(d.page, 'e1');
       await d.page.click('[data-act="insp"][data-freq="M3"]');
-      await fillInsp(d.page, { by, i3: 'ok' });
+      await fillInsp(d.page, { by });
       await d.page.click('#inspSave');
       await expect(d.page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
     }
@@ -533,6 +533,107 @@ test.describe('หน้า maintenance.html', () => {
       const st = await d.page.evaluate((docs) => { const C = window.MntCalc; return C.status({ id: 'e1' }, { freq: 'M3' }, '2026-11', C.doneIndex(docs), '2026-11-18'); }, docs);
       expect(st).toBe('done');
     }
+    expect(A.errors).toEqual([]);
+    expect(B.errors).toEqual([]);
+    await A.ctx.close(); await B.ctx.close();
+  });
+
+  test('B5 ข้อไม่ผ่าน → dialog สร้างใบสั่งงาน (อาการ = ข้อที่ไม่ผ่าน, fromInsp) → ใบงานผูกกับแถวตรวจและขึ้นในแท็บใบสั่งงาน', async ({ browser }) => {
+    const { ctx, page, errors } = await newDevice(browser);
+    await openAsset(page, 'e1');
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await fillInsp(page, { i3: 'ng' });
+    await page.click('#inspSave');
+    await expect(page.locator('#dlgWoNew')).toHaveAttribute('open', '');
+    await expect(page.locator('#wnSymptom')).toHaveValue('ตรวจหวีขั้นบันได');
+    await expect(page.locator('#wnAsset')).toBeDisabled();
+    await page.selectOption('#wnPrio', 'high');
+    await page.click('#formWoNew button[type="submit"]');
+    await expect(page.locator('#dlgWoNew')).not.toHaveAttribute('open', '');
+    await expect(page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+    const wos = await idbAll(page, 'tanot-mnt', 'wo');
+    expect(wos).toHaveLength(1);
+    const dev = await page.evaluate(() => window.__mnt.deviceId());
+    expect(wos[0]).toMatchObject({ kind: 'cm', asset: 'e1', site: 's1', priority: 'high', symptom: 'ตรวจหวีขั้นบันได', dev,
+      fromInsp: { year: 2026, id: 's1|M3|2026-11|' + dev, items: ['i3'] } });
+    expect(wos[0].no).toMatch(/^CM-261118-[0-9A-Z]{3}$/);
+    const docs = await idbAll(page, 'tanot-mnt-2026', 'insp');
+    expect(docs[0].rows.e1.wo).toBe(wos[0].id);
+    await page.click('[data-tab="wo"]');
+    await expect(page.locator('#wList .list-row')).toHaveCount(1);
+    await expect(page.locator('#wList .list-row')).toContainText('RN05-ESC-01');
+    await expect(page.locator('#wList .list-row')).toContainText('เปิด');
+    // ข้ามได้ (ไม่สร้างใบงาน) และตรวจซ้ำที่มีใบงานอยู่แล้วไม่ถามซ้ำ
+    await openAsset(page, 'e1');
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await page.click('#inspSave');
+    await expect(page.locator('#dlgWoNew')).toHaveAttribute('open', '');
+    await page.click('#wnSkip');
+    await expect(page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+    expect(await idbAll(page, 'tanot-mnt', 'wo')).toHaveLength(1);
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+
+  test('B4b 2 เครื่อง: ใบงานเดียวกัน A เปลี่ยนสถานะ + B เพิ่มบันทึก → เห็นทั้งสองอย่าง · แก้ asset เดียวกันพร้อมกัน → ฉบับหลังชนะ อีกฉบับอยู่ใน history()', async ({ browser }) => {
+    // เวลาเซิร์ฟเวอร์ตัดเวลาแก้ที่เกินอนาคต +5 นาที — ใช้นาฬิกาใกล้เวลาจริงตลอดเทสต์นี้
+    const t0 = Date.now();
+    const A = await newDevice(browser, { sync: true, now: new Date(t0) });
+    const B = await newDevice(browser, { sync: true, seed: false, now: new Date(t0) });
+    const sync = (p) => p.evaluate(() => window.TanotData.syncNow().then((s) => s.state));
+    expect(await sync(A.page)).toBe('ok');
+    expect(await sync(B.page)).toBe('ok');
+    await expect(B.page.locator('#aList .list-row')).toHaveCount(1);
+    // A แจ้งซ่อม → ซิงก์ให้ B
+    await A.page.click('[data-tab="wo"]');
+    await A.page.click('#wNew');
+    await A.page.fill('#wnAsset', 'RN05-ESC-01');
+    await A.page.fill('#wnSymptom', 'เสียงดัง');
+    await A.page.fill('#wnBy', 'สมชาย');
+    await A.page.click('#formWoNew button[type="submit"]');
+    await expect(A.page.locator('#wList .list-row')).toHaveCount(1);
+    expect(await sync(A.page)).toBe('ok');
+    expect(await sync(B.page)).toBe('ok');
+    await B.page.click('[data-tab="wo"]');
+    await expect(B.page.locator('#wList .list-row')).toHaveCount(1);
+    // ต่างคนต่างแก้ตอนยังไม่ซิงก์
+    await A.page.locator('#wList .list-row').click();
+    await A.page.selectOption('#woStatus', 'progress');
+    await A.page.fill('#woAssignee', 'ช่างเอ');
+    await A.page.click('#formWo button[type="submit"]');
+    await B.page.locator('#wList .list-row').click();
+    await B.page.fill('#woNote', 'ติดต่อผู้ขายอะไหล่แล้ว');
+    await B.page.click('#formWo button[type="submit"]');
+    for (const p of [A.page, B.page, A.page]) expect(await sync(p)).toBe('ok');
+    for (const d of [A, B]) {
+      const r = await d.page.evaluate(async () => {
+        const wos = await window.__mnt.idbAll('tanot-mnt', 'wo'), evs = await window.__mnt.idbAll('tanot-mnt', 'woev');
+        const f = window.MntCalc.foldWo(wos[0], evs);
+        return { n: wos.length, evs: evs.length, status: f.status, assignee: f.assignee, notes: f.notes.map((x) => x.note) };
+      });
+      expect(r).toEqual({ n: 1, evs: 2, status: 'progress', assignee: 'ช่างเอ', notes: ['ติดต่อผู้ขายอะไหล่แล้ว'] });
+    }
+    // แก้อุปกรณ์ตัวเดียวกันพร้อมกัน: B แก้ก่อน (ยังไม่ซิงก์) · A แก้ทีหลังแล้วซิงก์ก่อน → ฉบับของ A ชนะ ฉบับของ B อยู่ใน history ของ B
+    const rename = async (d, name) => {
+      await d.page.click('[data-tab="assets"]');
+      await d.page.locator('#aList .list-row[data-id="e1"] [data-act="edit"]').click();
+      await d.page.fill('#eName', name);
+      await d.page.click('#formAsset button[type="submit"]');
+      await expect(d.page.locator('#dlgAsset')).not.toHaveAttribute('open', '');
+    };
+    await B.page.clock.setFixedTime(t0 + 30000); // B แก้ก่อน
+    await A.page.clock.setFixedTime(t0 + 60000); // A แก้ทีหลัง
+    await rename(B, 'ฉบับ B');
+    await rename(A, 'ฉบับ A');
+    expect(await sync(A.page)).toBe('ok');
+    expect(await sync(B.page)).toBe('ok');
+    expect(await sync(A.page)).toBe('ok');
+    for (const d of [A, B]) {
+      const name = await d.page.evaluate(() => JSON.parse(localStorage.getItem('tanot:mnt:assets')).find((a) => a.id === 'e1').name);
+      expect(name).toBe('ฉบับ A');
+    }
+    const hist = await B.page.evaluate(() => window.TanotData.history());
+    expect(hist.some((h) => h.key === 'tanot:mnt:assets' && /ฉบับ B/.test(h.data))).toBe(true);
     expect(A.errors).toEqual([]);
     expect(B.errors).toEqual([]);
     await A.ctx.close(); await B.ctx.close();
@@ -627,6 +728,7 @@ test.describe('ปฏิทิน PM + compliance', () => {
     await expect(page.locator('#inspTitle')).toContainText('RN05-ESC-04');
     await page.click('[data-res="ng"][data-item="i1"]');
     await page.click('#inspSave');
+    await page.click('#wnSkip'); // ไม่ผ่าน → ถามสร้างใบงาน → ข้าม
     await expect(page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
     const docs = await idbAll(page, 'tanot-mnt-2026', 'insp');
     const mine = docs.filter((d) => d.dev !== 'dx');

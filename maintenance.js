@@ -200,7 +200,9 @@
   }
   $('tabs').addEventListener('click', function (e) {
     var b = e.target.closest('[data-tab]');
-    if (b) showTab(b.getAttribute('data-tab'));
+    if (!b) return;
+    if (/^#asset=/.test(location.hash)) { ui.tab = b.getAttribute('data-tab'); location.hash = ''; } // ออกจากมุมมองอุปกรณ์ (hashchange วาดต่อ)
+    showTab(b.getAttribute('data-tab'));
   });
 
   function anyDialogOpen() {
@@ -1253,6 +1255,276 @@
   };
   var badgeToken = 0;
 
+  /* ══════════ แท็บใบสั่งงาน ══════════
+     wo = header สร้างครั้งเดียว ไม่แก้อีก · woev = event ต่อท้ายอย่างเดียว (แต่ละเครื่องเขียนแต่ของตัวเอง) · สถานะปัจจุบัน = MntCalc.foldWo */
+  TABS.push({ id: 'wo', label: 'ใบสั่งงาน', icon: 'wrench' });
+  var WO_STATUS = { open: 'เปิด', progress: 'กำลังดำเนินการ', parts: 'รออะไหล่', done: 'เสร็จ', cancel: 'ยกเลิก' };
+  var WO_BADGE = { open: 'accent', progress: 'info', parts: 'warn', done: 'ok', cancel: '' };
+  var PRIO = { high: 'สูง', normal: 'ปกติ', low: 'ต่ำ' };
+  var woFilter = { status: 'active', site: '', prio: '' };
+  var woToken = 0;
+
+  function loadFolded() {
+    return loadWos().then(function (r) {
+      var by = {};
+      r.events.forEach(function (e) { (by[e.wo] = by[e.wo] || []).push(e); });
+      return r.wos.map(function (w) { return C.foldWo(w, by[w.id] || []); });
+    });
+  }
+  function isOpenWo(f) { return f.status === 'open' || f.status === 'progress' || f.status === 'parts'; }
+  renderers.openWoCounts = function () {
+    return loadFolded().then(function (list) {
+      var m = {};
+      list.forEach(function (f) { if (isOpenWo(f)) m[f.asset] = (m[f.asset] || 0) + 1; });
+      return m;
+    }).catch(function () { return {}; });
+  };
+  function ageText(f) {
+    var end = f.status === 'done' && f.endAt ? f.endAt : Date.now(), d = Math.max(0, Math.floor((end - f.reportedAt) / 86400000));
+    return d + ' วัน';
+  }
+  function woRow(f, assets, sites) {
+    var a = assets[f.asset];
+    return '<div class="list-row" data-wid="' + esc(f.id) + '"><div class="grow"><div class="title">' + esc(f.no) + ' · ' + esc(a ? a.code : '?') + '</div>' +
+      '<div class="meta">' + esc(f.symptom || '—') + '</div></div>' +
+      '<div class="end">' + (f.priority === 'high' ? '<span class="badge err">สูง</span>' : '') + '<span class="badge ' + (WO_BADGE[f.status] || '') + '">' + esc(WO_STATUS[f.status] || f.status) + '</span>' +
+      '<span class="badge">' + esc(ageText(f)) + '</span></div></div>';
+  }
+  function renderWo() {
+    var token = ++woToken, assets = {}, sites = getSites();
+    getAssets().forEach(function (a) { assets[a.id] = a; });
+    $('wfStatus').innerHTML = [['active', 'ที่ยังไม่ปิด'], ['', 'ทั้งหมด'], ['open', 'เปิด'], ['progress', 'กำลังดำเนินการ'], ['parts', 'รออะไหล่'], ['done', 'เสร็จ'], ['cancel', 'ยกเลิก']]
+      .map(function (o) { return opt(o[0], o[1], woFilter.status === o[0]); }).join('');
+    $('wfSite').innerHTML = opt('', 'ทุกสถานที่', !woFilter.site) + sites.map(function (s) { return opt(s.id, s.name, woFilter.site === s.id); }).join('');
+    $('wfPrio').innerHTML = opt('', 'ทุกระดับ', !woFilter.prio) + ['high', 'normal', 'low'].map(function (p) { return opt(p, PRIO[p], woFilter.prio === p); }).join('');
+    loadFolded().then(function (list) {
+      if (token !== woToken) return;
+      var rows = list.filter(function (f) {
+        if (woFilter.status === 'active' ? !isOpenWo(f) : woFilter.status && f.status !== woFilter.status) return false;
+        if (woFilter.site && f.site !== woFilter.site) return false;
+        if (woFilter.prio && f.priority !== woFilter.prio) return false;
+        return true;
+      }).sort(function (a, b) { return b.reportedAt - a.reportedAt; });
+      $('wList').innerHTML = !list.length ? '<div class="empty">' + icon('wrench') + '<p class="empty-title">ยังไม่มีใบสั่งงาน</p></div>'
+        : !rows.length ? '<div class="empty">' + icon('circle-check') + '<p>ไม่มีใบสั่งงานตามตัวกรอง</p></div>'
+        : '<div class="list">' + rows.map(function (f) { return woRow(f, assets, sites); }).join('') + '</div>';
+    });
+  }
+  renderers.wo = renderWo;
+  [['wfStatus', 'status'], ['wfSite', 'site'], ['wfPrio', 'prio']].forEach(function (p) {
+    $(p[0]).addEventListener('change', function () { woFilter[p[1]] = this.value; renderWo(); });
+  });
+  $('wList').addEventListener('click', function (e) {
+    var row = e.target.closest('[data-wid]');
+    if (row) openWo(row.getAttribute('data-wid'));
+  });
+
+  /* ── แจ้งซ่อม / สร้างจากข้อที่ไม่ผ่าน ── */
+  var woNew = null; // { offer: {…}|null, done: fn }
+  function fillAssetList() {
+    $('woAssetList').innerHTML = getAssets().filter(function (a) { return a.status !== 'retired'; }).map(function (a) { return '<option value="' + esc(a.code) + '">' + esc(a.name) + '</option>'; }).join('');
+  }
+  function openWoNew(asset, opts) {
+    opts = opts || {};
+    woNew = { offer: opts.offer || null, done: opts.done || null };
+    fillAssetList();
+    $('woNewTitle').textContent = opts.offer ? 'สร้างใบสั่งงานจากข้อที่ไม่ผ่าน' : 'แจ้งซ่อม';
+    $('wnAsset').value = asset ? asset.code : ''; $('wnAsset').disabled = !!opts.offer;
+    $('wnKind').value = 'cm'; $('wnPrio').value = 'normal';
+    $('wnSymptom').value = opts.symptom || '';
+    $('wnBy').value = getSettings().inspector || ui.by || '';
+    $('wnSkip').hidden = !opts.offer; $('wnMsg').textContent = '';
+    $('dlgWoNew').showModal();
+  }
+  renderers.offerWo = function (r, go) {
+    var a = r.snap.asset;
+    openWoNew(a, { symptom: r.ng.map(function (it) { return it.text; }).join('; '),
+      offer: { year: r.snap.year, docId: r.snap.docId, items: r.ng.map(function (it) { return it.id; }), assetId: a.id }, done: go });
+  };
+  function closeWoNew(skipped) {
+    var d = woNew && woNew.done;
+    woNew = null;
+    if ($('dlgWoNew').open) $('dlgWoNew').close();
+    renderCurrent();
+    if (d) d();
+  }
+  $('wnCancel').addEventListener('click', function () { closeWoNew(); });
+  $('wnSkip').addEventListener('click', function () { closeWoNew(true); });
+  $('dlgWoNew').addEventListener('cancel', function (e) { e.preventDefault(); closeWoNew(); });
+  $('formWoNew').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var code = $('wnAsset').value.trim(), a = getAssets().filter(function (x) { return norm(x.code) === norm(code); })[0];
+    if (!a) { $('wnMsg').textContent = 'ไม่พบรหัสอุปกรณ์นี้'; return; }
+    var symptom = $('wnSymptom').value.trim();
+    if (!symptom) { $('wnMsg').textContent = 'ใส่อาการ'; return; }
+    var now = Date.now(), offer = woNew && woNew.offer;
+    var wo = { id: C.uid('w'), no: C.woNo($('wnKind').value, now), kind: $('wnKind').value, asset: a.id, site: a.site, reportedAt: now, reportedBy: $('wnBy').value.trim(),
+      symptom: symptom, priority: $('wnPrio').value, fromInsp: offer ? { year: offer.year, id: offer.docId, items: offer.items } : null, dev: deviceId(), createdAt: now };
+    idbPut('tanot-mnt', 'wo', wo).then(function () {
+      if (!offer) return;
+      // เก็บ id ใบงานกลับในแถวของใบตรวจ
+      return idbUpdate(inspDbName(offer.year), 'insp', offer.docId, function (doc) {
+        if (!doc || !doc.rows[offer.assetId]) return undefined;
+        doc.rows[offer.assetId].wo = wo.id;
+        return doc;
+      });
+    }).then(function () {
+      toast('สร้างใบสั่งงาน ' + wo.no);
+      closeWoNew();
+    }).catch(function (err) { $('wnMsg').textContent = (err && err.message) || 'สร้างไม่สำเร็จ'; });
+  });
+  $('wNew').addEventListener('click', function () { openWoNew(null); });
+
+  /* ── รายละเอียด/แก้ไขใบสั่งงาน: บันทึก = 1 event ที่มีเฉพาะช่องที่เปลี่ยน ── */
+  var W = null; // { wo, f, parts, photos, evAt }
+  function msToLocal(ms) {
+    if (!ms) return '';
+    var d = new Date(ms), p2 = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()) + 'T' + p2(d.getHours()) + ':' + p2(d.getMinutes());
+  }
+  function localToMs(s) { if (!s) return null; var t = new Date(s).getTime(); return isNaN(t) ? null : t; }
+  function numField(id) { var v = $(id).value; return v === '' ? null : (isNaN(+v) ? null : +v); }
+  function openWo(id) {
+    loadWos().then(function (r) {
+      var wo = r.wos.filter(function (x) { return x.id === id; })[0];
+      if (!wo) return;
+      var f = C.foldWo(wo, r.events), a = assetById(wo.asset);
+      W = { wo: wo, f: f, asset: a, parts: JSON.parse(JSON.stringify(f.parts || [])), photos: [], events: r.events.filter(function (e) { return e.wo === id; }) };
+      $('woTitle').textContent = wo.no;
+      $('woMeta').textContent = [a ? a.code + ' · ' + a.name : '', siteName(wo.site), 'แจ้ง ' + new Date(wo.reportedAt).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }), wo.reportedBy].filter(Boolean).join(' · ');
+      $('woStatus').innerHTML = Object.keys(WO_STATUS).map(function (k) { return opt(k, WO_STATUS[k], f.status === k); }).join('');
+      $('woPrio').value = f.priority; $('woAssignee').value = f.assignee || ''; $('woSymptom').value = f.symptom || '';
+      $('woPlanFinish').value = f.planFinish || ''; $('woStart').value = msToLocal(f.startAt); $('woEnd').value = msToLocal(f.endAt);
+      $('woDown').value = f.downtimeH != null ? f.downtimeH : '';
+      $('woFailure').value = f.failureMode || ''; $('woCause').value = f.cause || ''; $('woAction').value = f.action || '';
+      $('woLabor').value = f.laborCost || ''; $('woOther').value = f.otherCost || ''; $('woNote').value = ''; $('woMsg').textContent = '';
+      renderParts(); renderWoPhotos(); renderTimeline();
+      $('dlgWo').showModal();
+    });
+  }
+  function matSum() { return W.parts.reduce(function (a, p) { return a + (+p.qty || 0) * (+p.unitCost || 0); }, 0); }
+  function renderParts() {
+    $('woParts').innerHTML = W.parts.map(function (p, i) {
+      return '<div class="mnt-item" data-i="' + i + '"><input type="text" class="input" data-f="name" value="' + esc(p.name) + '" placeholder="ชื่ออะไหล่" maxlength="120" aria-label="ชื่ออะไหล่">' +
+        '<div class="acts"><button class="btn sm icon ghost" type="button" data-a="rm" aria-label="ลบ">' + icon('trash-2') + '</button></div>' +
+        '<div class="row2"><input type="number" class="input" data-f="qty" value="' + (p.qty != null ? p.qty : '') + '" placeholder="จำนวน" step="any" min="0" aria-label="จำนวน">' +
+        '<input type="number" class="input" data-f="unitCost" value="' + (p.unitCost != null ? p.unitCost : '') + '" placeholder="ราคา/หน่วย" step="any" min="0" aria-label="ราคาต่อหน่วย"></div></div>';
+    }).join('');
+    $('woMat').textContent = 'ค่าอะไหล่ ฿' + num(matSum(), 2);
+  }
+  $('woPartAdd').addEventListener('click', function () { W.parts.push({ name: '', qty: 1, unitCost: 0 }); renderParts(); });
+  $('woParts').addEventListener('input', function (e) {
+    var row = e.target.closest('.mnt-item'), f = e.target.getAttribute('data-f');
+    if (!row || !f) return;
+    var p = W.parts[+row.getAttribute('data-i')];
+    p[f] = f === 'name' ? e.target.value : (e.target.value === '' ? null : +e.target.value);
+    $('woMat').textContent = 'ค่าอะไหล่ ฿' + num(matSum(), 2);
+  });
+  $('woParts').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-a="rm"]'), row = e.target.closest('.mnt-item');
+    if (b && row) { W.parts.splice(+row.getAttribute('data-i'), 1); renderParts(); }
+  });
+  $('woStatus').addEventListener('change', function () {
+    if (this.value !== 'done') return;
+    if (!$('woEnd').value) $('woEnd').value = msToLocal(Date.now());
+    if ($('woDown').value === '') { // แนะนำ downtime = เสร็จ − แจ้ง (ชม.) แก้ได้
+      var end = localToMs($('woEnd').value);
+      if (end) $('woDown').value = Math.max(0, Math.round((end - W.wo.reportedAt) / 360000) / 10);
+    }
+  });
+  function evPhotoHtml(p) {
+    var src = p.pending ? thumbUrls[p.pending] : (p.id && filesAvailable() && navigator.onLine !== false ? '/api/files?id=' + encodeURIComponent(p.id) : '');
+    return '<span class="insp-ph' + (p.pending ? ' pend' : '') + '">' + (src ? '<img alt="" src="' + esc(src) + '">' : icon('image')) + '</span>';
+  }
+  function renderWoPhotos() {
+    $('woPhotos').innerHTML = W.photos.map(function (p, i) { return evPhotoHtml(p).replace('</span>', '<button class="x" type="button" data-rmph="' + i + '" aria-label="ลบรูป">×</button></span>'); }).join('') +
+      (filesAvailable() ? '<button class="btn sm" type="button" id="woCam">' + icon('camera') + 'แนบรูป</button>' : '');
+  }
+  function renderTimeline() {
+    var evs = W.events.slice().sort(function (a, b) { return b.at - a.at; });
+    $('woTimeline').innerHTML = evs.length ? '<div class="list">' + evs.map(function (e) {
+      var set = e.set || {}, bits = [];
+      if (set.status) bits.push('สถานะ → ' + (WO_STATUS[set.status] || set.status));
+      if (set.assignee) bits.push('ผู้รับผิดชอบ ' + set.assignee);
+      if (set.parts) bits.push('อะไหล่ ' + set.parts.length + ' รายการ');
+      return '<div class="list-row"><div class="grow"><div class="title">' + esc(new Date(e.at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })) + '</div>' +
+        '<div class="meta" style="white-space:normal">' + esc([bits.join(' · '), e.note].filter(Boolean).join(' — ') || 'แก้ไข') + '</div>' +
+        ((e.photos || []).length ? '<div class="insp-photos" style="margin-top:4px">' + e.photos.map(evPhotoHtml).join('') + '</div>' : '') + '</div></div>';
+    }).join('') + '</div>' : '';
+  }
+  $('woPhotos').addEventListener('click', function (e) {
+    if (e.target.closest('#woCam')) { $('woFile').click(); return; }
+    var rm = e.target.closest('[data-rmph]');
+    if (rm) {
+      var p = W.photos.splice(+rm.getAttribute('data-rmph'), 1)[0];
+      if (p && p.pending) idbDelete(OUTBOX.db, 'q', p.pending).catch(function () {});
+      renderWoPhotos();
+    }
+  });
+  $('woFile').addEventListener('change', function () {
+    var files = Array.prototype.slice.call(this.files || []);
+    this.value = '';
+    if (!files.length || !W) return;
+    files.reduce(function (chain, f) {
+      return chain.then(function () {
+        return shrinkImage(f).then(function (blob) {
+          // เจ้าของ (id ของ event) ยังไม่รู้จนกดบันทึก — ใส่ placeholder แล้วแก้ตอนบันทึก; ธง draft กันตัวส่งหยิบไปก่อน
+          return addToOutbox(blob, (W.asset ? W.asset.code : 'wo') + '_' + W.wo.no + '_' + Date.now() + '.jpg', { db: 'tanot-mnt', store: 'woev', id: '' }, true)
+            .then(function (rec) { W.photos.push({ item: null, pending: rec.id }); });
+        }).catch(function (err) { $('woMsg').textContent = (err && err.message) || 'เพิ่มรูปไม่ได้'; });
+      });
+    }, Promise.resolve()).then(renderWoPhotos);
+  });
+  function closeWo() {
+    if (W) W.photos.forEach(function (p) { if (p.pending) idbDelete(OUTBOX.db, 'q', p.pending).catch(function () {}); });
+    if ($('dlgWo').open) $('dlgWo').close();
+  }
+  $('woClose').addEventListener('click', closeWo);
+  $('dlgWo').addEventListener('cancel', function () { if (W) W.photos.forEach(function (p) { if (p.pending) idbDelete(OUTBOX.db, 'q', p.pending).catch(function () {}); }); });
+  $('dlgWo').addEventListener('close', function () { W = null; renderCurrent(); });
+  $('formWo').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = W.f, set = {}, nv = {
+      status: $('woStatus').value, priority: $('woPrio').value, assignee: $('woAssignee').value.trim(), symptom: $('woSymptom').value.trim(),
+      planFinish: $('woPlanFinish').value, startAt: localToMs($('woStart').value), endAt: localToMs($('woEnd').value), downtimeH: numField('woDown'),
+      failureMode: $('woFailure').value.trim(), cause: $('woCause').value.trim(), action: $('woAction').value.trim(),
+      parts: W.parts.filter(function (p) { return String(p.name).trim(); }).map(function (p) { return { name: String(p.name).trim(), qty: +p.qty || 0, unitCost: +p.unitCost || 0 }; }),
+      laborCost: numField('woLabor') || 0, otherCost: numField('woOther') || 0
+    };
+    Object.keys(nv).forEach(function (k) {
+      var cur = f[k], v = nv[k];
+      if (JSON.stringify(cur == null ? '' : cur) !== JSON.stringify(v == null ? '' : v)) set[k] = v;
+    });
+    var note = $('woNote').value.trim(), photos = W.photos.slice();
+    if (!Object.keys(set).length && !note && !photos.length) { $('woMsg').textContent = 'ไม่มีการเปลี่ยนแปลง'; return; }
+    var at = Date.now(), dev = deviceId(), evId = W.wo.id + '|' + at.toString(36) + '|' + dev;
+    var ev = { id: evId, wo: W.wo.id, at: at, dev: dev, set: set, note: note, photos: photos };
+    // รูปของ event นี้: ใส่ id เจ้าของจริงแล้วปลดธงร่าง
+    Promise.all(photos.filter(function (p) { return p.pending; }).map(function (p) {
+      return idbUpdate(OUTBOX.db, 'q', p.pending, function (rec) { return rec ? Object.assign(rec, { owner: { db: 'tanot-mnt', store: 'woev', id: evId }, draft: false }) : undefined; });
+    })).then(function () { return idbPut('tanot-mnt', 'woev', ev); }).then(function () {
+      W.photos = []; // ส่งต่อให้ตัวส่งแล้ว — ปิดกล่องไม่ต้องลบ
+      toast('บันทึกแล้ว');
+      $('dlgWo').close();
+      flushOutbox(); updatePending();
+    }).catch(function (err) { $('woMsg').textContent = (err && err.message) || 'บันทึกไม่สำเร็จ'; });
+  });
+
+  /* ── ส่วนในมุมมองอุปกรณ์: ใบงานที่ยังเปิด + แจ้งซ่อม ── */
+  viewSections.push(function (a) {
+    return loadFolded().then(function (list) {
+      var open = list.filter(function (f) { return f.asset === a.id && isOpenWo(f); }).sort(function (x, y) { return y.reportedAt - x.reportedAt; });
+      return '<section class="card" data-sec="wo"><div class="card-head"><h2>ใบสั่งงาน</h2><button class="btn sm primary" type="button" data-act="wo-new">' + icon('wrench') + 'แจ้งซ่อม</button></div>' +
+        (open.length ? '<div class="list">' + open.map(function (f) { return woRow(f, {}, []).replace('data-wid', 'data-act="wo-open" data-wid'); }).join('') + '</div>' : '<div class="empty"><p>ไม่มีใบงานที่เปิดอยู่</p></div>') + '</section>';
+    }).catch(function () { return ''; });
+  });
+  var prevViewAction = renderers.viewAction;
+  renderers.viewAction = function (act, b, a) {
+    if (act === 'wo-new' && a) openWoNew(a);
+    else if (act === 'wo-open') openWo(b.getAttribute('data-wid'));
+    else if (prevViewAction) prevViewAction(act, b, a);
+  };
+
   /* ── เริ่มต้น ── */
   function setOffline() { $('offBadge').hidden = navigator.onLine !== false; }
   window.addEventListener('online', setOffline);
@@ -1271,6 +1543,6 @@
 
   window.__mnt = { // ให้เทสต์ใช้ (ไม่ใช่ API ของหน้า)
     deviceId: deviceId, idbAll: idbAll, idbGet: idbGet, idbPut: idbPut, idbDelete: idbDelete, openDb: openDb, readList: readList, upsert: upsert,
-    getSettings: getSettings, saveSettings: saveSettings, K: K, openInsp: openInsp, openBatch: openBatch, flushOutbox: flushOutbox, updatePending: updatePending
+    getSettings: getSettings, saveSettings: saveSettings, K: K, openInsp: openInsp, openBatch: openBatch, flushOutbox: flushOutbox, updatePending: updatePending, openWo: openWo
   };
 })();

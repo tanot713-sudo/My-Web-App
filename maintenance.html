@@ -165,6 +165,16 @@
         <div id="cBody" style="margin-top:var(--ome-sp-3)"></div>
         <details class="disclosure" id="cComp" style="margin-top:var(--ome-sp-3)"><summary>Compliance รายเดือน</summary><div class="disclosure-body" id="cCompBody"></div></details>
       </section>
+      <section id="tab-wo" role="tabpanel" aria-label="ใบสั่งงาน" hidden>
+        <div class="mnt-bar">
+          <select id="wfStatus" class="select" aria-label="สถานะ"></select>
+          <select id="wfSite" class="select" aria-label="สถานที่"></select>
+          <select id="wfPrio" class="select" aria-label="ความสำคัญ"></select>
+          <span class="grow"></span>
+          <button class="btn primary" type="button" id="wNew"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-wrench"/></svg>แจ้งซ่อม</button>
+        </div>
+        <div id="wList" style="margin-top:var(--ome-sp-3)"></div>
+      </section>
       <!-- @tabs: แท็บอื่นเพิ่มตามขั้นงาน -->
     </div>
 
@@ -301,6 +311,68 @@
     <div class="dialog-foot">
       <button class="btn" type="button" id="inspCancel">ปิด</button>
       <button class="btn primary" type="submit" id="inspSave">บันทึก</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="dialog mnt-dialog" id="dlgWoNew" aria-labelledby="woNewTitle">
+  <form method="dialog" id="formWoNew" novalidate>
+    <div class="dialog-head"><h2 id="woNewTitle">แจ้งซ่อม</h2></div>
+    <div class="dialog-body">
+      <div class="frow">
+        <div class="field"><label for="wnAsset">รหัสอุปกรณ์</label><input id="wnAsset" type="text" list="woAssetList" autocomplete="off"><datalist id="woAssetList"></datalist></div>
+        <div class="field"><label for="wnKind">ชนิดงาน</label><select id="wnKind"><option value="cm">ซ่อม (CM)</option><option value="pm">PM</option></select></div>
+        <div class="field"><label for="wnPrio">ความสำคัญ</label><select id="wnPrio"><option value="high">สูง</option><option value="normal" selected>ปกติ</option><option value="low">ต่ำ</option></select></div>
+      </div>
+      <div class="field"><label for="wnSymptom">อาการ</label><textarea id="wnSymptom" rows="3" maxlength="500"></textarea></div>
+      <div class="field"><label for="wnBy">ผู้แจ้ง</label><input id="wnBy" type="text" maxlength="80" autocomplete="off"></div>
+      <p class="mnt-msg" id="wnMsg" role="alert"></p>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn ghost" type="button" id="wnSkip" style="margin-right:auto" hidden>ข้าม</button>
+      <button class="btn" type="button" id="wnCancel">ยกเลิก</button>
+      <button class="btn primary" type="submit">สร้างใบสั่งงาน</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="dialog mnt-dialog insp-dlg" id="dlgWo" aria-labelledby="woTitle">
+  <form method="dialog" id="formWo" novalidate>
+    <div class="dialog-head insp-head"><h2 id="woTitle" class="t">ใบสั่งงาน</h2></div>
+    <div class="dialog-body">
+      <div class="muted" id="woMeta"></div>
+      <div class="frow">
+        <div class="field"><label for="woStatus">สถานะ</label><select id="woStatus"></select></div>
+        <div class="field"><label for="woPrio">ความสำคัญ</label><select id="woPrio"><option value="high">สูง</option><option value="normal">ปกติ</option><option value="low">ต่ำ</option></select></div>
+        <div class="field"><label for="woAssignee">ผู้รับผิดชอบ / ช่าง</label><input id="woAssignee" type="text" maxlength="80" autocomplete="off"></div>
+      </div>
+      <div class="field"><label for="woSymptom">อาการ</label><textarea id="woSymptom" rows="2" maxlength="500"></textarea></div>
+      <div class="frow">
+        <div class="field"><label for="woPlanFinish">กำหนดเสร็จ</label><input id="woPlanFinish" type="date"></div>
+        <div class="field"><label for="woStart">เริ่มงาน</label><input id="woStart" type="datetime-local"></div>
+        <div class="field"><label for="woEnd">เสร็จงาน</label><input id="woEnd" type="datetime-local"></div>
+        <div class="field"><label for="woDown">Downtime (ชม.)</label><input id="woDown" type="number" inputmode="decimal" min="0" step="any"></div>
+      </div>
+      <div class="field"><label for="woFailure">รูปแบบการเสีย</label><input id="woFailure" type="text" maxlength="200" autocomplete="off"></div>
+      <div class="field"><label for="woCause">สาเหตุ</label><textarea id="woCause" rows="2" maxlength="500"></textarea></div>
+      <div class="field"><label for="woAction">วิธีแก้</label><textarea id="woAction" rows="2" maxlength="500"></textarea></div>
+      <div class="field"><label>อะไหล่ที่ใช้</label>
+        <div class="mnt-items" id="woParts"></div>
+        <div class="row" style="justify-content:space-between"><button class="btn sm" type="button" id="woPartAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มอะไหล่</button><span class="muted" id="woMat"></span></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="woLabor">ค่าแรง (บาท)</label><input id="woLabor" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div class="field"><label for="woOther">ค่าใช้จ่ายอื่น (บาท)</label><input id="woOther" type="number" inputmode="decimal" min="0" step="any"></div>
+      </div>
+      <div class="field"><label for="woNote">บันทึก</label><textarea id="woNote" rows="2" maxlength="500"></textarea></div>
+      <div class="insp-photos" id="woPhotos"></div>
+      <input type="file" id="woFile" accept="image/*" capture="environment" hidden>
+      <div id="woTimeline"></div>
+      <p class="mnt-msg" id="woMsg" role="alert"></p>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn" type="button" id="woClose">ปิด</button>
+      <button class="btn primary" type="submit">บันทึก</button>
     </div>
   </form>
 </dialog>
