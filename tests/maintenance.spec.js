@@ -331,3 +331,25 @@ test.describe('mnt-calc.js (known-answer)', () => {
     expect(wb.SheetNames[0]).toBe('WorkOrders');
   });
 });
+
+/* ══════════ mnt-qr.js (สร้าง + ถอด QR ในเบราว์เซอร์) ══════════ */
+test.describe('mnt-qr.js', () => {
+  test('svg → ถอดกลับได้ URL เต็มที่มี #asset=<id> · parse รู้จัก #asset=, code, id', async ({ page }) => {
+    await prepare(page);
+    await page.goto('/soon.html');
+    for (const f of ['vendor/qrcode-generator/qrcode.js', 'vendor/jsqr/jsQR.js', 'mnt-qr.js']) await page.addScriptTag({ url: '/' + f });
+    const r = await page.evaluate(async () => {
+      const text = MntQR.url('e-abc123');
+      const svg = MntQR.svg(text, { cell: 6, margin: 4 }).replace('<svg ', '<svg width="400" height="400" ');
+      const out = await MntQR.decodeImage(new Blob([svg], { type: 'image/svg+xml' }));
+      const assets = [{ id: 'e-x1', code: 'BSS-ESC-01' }];
+      return { text, out, bySrc: MntQR.parse(out, assets), byCode: MntQR.parse('bss-esc-01', assets), byId: MntQR.parse('E-X1', assets), none: MntQR.parse('???', assets), modules: /viewBox="0 0 (\d+) /.exec(svg) };
+    });
+    expect(r.text).toMatch(/^http:\/\/localhost:\d+\/maintenance\.html#asset=e-abc123$/);
+    expect(r.out).toBe(r.text);
+    expect(r.bySrc).toBe('e-abc123');
+    expect(r.byCode).toBe('e-x1');
+    expect(r.byId).toBe('e-x1');
+    expect(r.none).toBeNull();
+  });
+});
