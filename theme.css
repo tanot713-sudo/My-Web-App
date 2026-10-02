@@ -607,22 +607,6 @@ body{padding-bottom:0!important}
 .ome-theme-swatch.sel{background:var(--ome-brand-sf);color:var(--ome-brand-dk);font-weight:700}
 .ome-theme-swatch.sel::after{content:'✓';margin-left:auto;font-size:12px;font-weight:700}
 
-/* ── รีแมปโทเคนพื้นผิวของหน้าเครื่องมือตามธีมที่เลือก (หน้าที่ยังไม่ย้ายใช้ตัวแปรชุดเดิม)
-   เดิมต้องระบุชื่อธีมทีละอันเพราะสี+ความสว่างผูกกันในตัวแปรเดียว (data-theme) ตอนนี้แยกเป็น
-   data-accent (สี) กับ data-theme (สว่าง/มืดล้วนๆ) แล้ว เลยรีแมปแค่ "มี data-accent อยู่ไหม
-   (สีอะไรก็ได้) หรือ data-theme=dark ไหม" ก็พอ — ไม่ต้องแจกแจงทีละชื่อสีอีกต่อไป (teal เริ่มต้น
-   ก็ set data-accent="teal" ไว้เหมือนกัน รีแมปแล้วได้ค่าเดิมเป๊ะ ไม่มีผลต่างจากไม่รีแมป) */
-[data-theme="dark"] body.ome-tool-page,
-[data-accent] body.ome-tool-page{
-  --bg:var(--ome-bg); --card:var(--ome-card); --ink:var(--ome-ink); --muted:var(--ome-muted);
-  --line:var(--ome-line); --brand:var(--ome-brand); --brand-dk:var(--ome-brand-dk);
-  --brand-sf:var(--ome-brand-sf); --sh:var(--ome-sh);
-}
-[data-theme="dark"] body.ome-tool-page code{background:#242B3B}
-[data-theme="dark"] body.ome-tool-page .track{background:#2A3040}
-[data-theme="dark"] body.ome-tool-page .dot{background:var(--ome-card);border-color:#3A4258}
-[data-theme="dark"] body.ome-tool-page .btn.ghost{background:var(--ome-card);color:var(--ome-ink)}
-
 /* ── หน้า React+Tailwind (classroom-business/engineering, languages.html, legal.html) ──────
    เดิม override เฉพาะ [data-theme="dark"] อย่างเดียว (hardcode ค่าสีเข้มของ mint ตรงๆ) พอมี
    สีธีมอื่นเพิ่ม (เฟส 4+) หน้าพวกนี้เลยไม่ขยับตามเลยทั้งโหมดสว่าง/มืด (ผู้ใช้แจ้งว่า "ภาษา/
@@ -811,17 +795,6 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
    ══════════════════════════════════════════════════════════════════ */
 
 /* นุ่ม (soft) — ไม่มีเส้นขอบ ใช้เงานุ่มแยกพื้นผิวแทน */
-[data-style="soft"] body.ome-tool-page .card,
-[data-style="soft"] body.ome-tool-page .kpi{
-  border-color:transparent!important;
-  box-shadow:0 1px 3px color-mix(in srgb, var(--ome-ink) 6%, transparent),
-    0 12px 32px color-mix(in srgb, var(--ome-ink) 9%, transparent)!important}
-[data-theme="dark"][data-style="soft"] body.ome-tool-page .card,
-[data-theme="dark"][data-style="soft"] body.ome-tool-page .kpi{
-  box-shadow:0 1px 3px rgba(0,0,0,.45), 0 12px 32px rgba(0,0,0,.4)!important}
-[data-style="soft"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
-  border-color:transparent!important;
-  background:color-mix(in srgb, var(--ome-bg) 65%, var(--ome-card))!important}
 [data-style="soft"] .ome-app-page .bg-white{border-color:transparent!important}
 [data-style="soft"] .ome-app-page .shadow-sm,
 [data-style="soft"] .ome-app-page .shadow-md,
@@ -830,11 +803,6 @@ body.ome-app-page .font-sans{font-family:var(--ome-f)!important}
     0 12px 32px color-mix(in srgb, var(--ome-ink) 9%, transparent)!important}
 
 /* เส้นขอบ (outline) — ไม่มีเงาเลย ใช้แค่เส้นขอบบางๆ แยกพื้นผิว */
-[data-style="outline"] body.ome-tool-page .card,
-[data-style="outline"] body.ome-tool-page .kpi{
-  background:var(--ome-card)!important;border:1.5px solid var(--ome-line)!important;box-shadow:none!important}
-[data-style="outline"] body.ome-tool-page .btn:not(.primary):not(.danger):not(.active){
-  background:transparent!important;border:1.5px solid var(--ome-line)!important;box-shadow:none!important}
 [data-style="outline"] .ome-app-page .bg-white{
   border-color:var(--ome-line)!important;box-shadow:none!important}
 

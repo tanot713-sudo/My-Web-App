@@ -35,7 +35,7 @@
 #sheetChips{margin-top:var(--ome-sp-3)}
 .dropzone .btn{margin-top:var(--ome-sp-2)}
 .status{min-height:1.2em}
-.template-dl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:var(--ome-sp-2)}
+.template-dl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(184px,1fr));gap:var(--ome-sp-2)}
 .template-dl-grid .btn{justify-content:flex-start}
 #resumeInfo{margin-bottom:var(--ome-sp-3)}
 .list-row .grow{min-width:0}
@@ -43,13 +43,6 @@
 
 .toolbar-row .status{margin:0 0 0 auto}
 
-/* ── ชื่อตัวแปรสีเดิมที่โมดูลรายงานยังอ้างถึง — ชี้ไปโทเคนกลาง (ลบเมื่อโมดูลสุดท้ายย้ายเสร็จ) ── */
-body[data-layout]{--bg:var(--ome-surface-0);--card:var(--ome-surface-1);--ink:var(--ome-text-1);--muted:var(--ome-text-2);
-  --line:var(--ome-border);--brand:var(--ome-accent);--brand-dk:var(--ome-accent-strong);--brand-sf:var(--ome-accent-soft);
-  --sh:var(--ome-shadow-2);--ok:var(--ome-ok);--err:var(--ome-err);--warn:var(--ome-warn);--sky:var(--ome-info);
-  --navy:var(--ome-text-1);--navy2:var(--ome-text-2);--amber-sf:var(--ome-warn-soft);--sky-sf:var(--ome-info-soft);
-  --pc54-actual:var(--ome-accent);--pc54-today:var(--ome-err);--ui-font:var(--ome-f);--ui-font-mono:var(--ome-f);
-  --bi-primary:var(--ome-accent);--bi-ink:var(--ome-text-1);--bi-muted:var(--ome-text-2);--bi-line:var(--ome-border);--bi-bg:var(--ome-surface-0)}
 /* รีเซ็ตระยะขอบของหัวข้อ/ย่อหน้า/รายการในเนื้อหารายงาน (เดิมมี *{margin:0;padding:0} ทั้งหน้า) */
 .rd-page :where(h1,h2,h3,h4,p,ul,ol,dl,dd,figure,blockquote){margin:0}
 .rd-page :where(ul,ol){padding:0}
@@ -782,13 +775,11 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 <style>
 /* ===== Final 8: UI polish / Excel-like filtering / typography ===== */
 
-html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, .ome-tool-page textarea, .ome-tool-page table{}
-
 /* ── ตัวเลข/ค่า KPI ใช้ IBM Plex Mono (tabular figures) ให้เข้าชุดกับ template AMR O&M ── */
-.ome-tool-page .stat-tile .val,.ome-tool-page .risk-matrix td,.ome-tool-page .widget-body.wb-kpi .wt-val,
-.ome-tool-page td.num,.ome-tool-page th.num,.ome-tool-page .cellsel-summary b,.ome-tool-page .dh-table td,
-.ome-tool-page .bg-opacity-val,.ome-tool-page .scada-progress-kpi .v,.ome-tool-page .project-kpi .pk-value,
-.ome-tool-page .project-attention-card .pa-value,.ome-tool-page .project-health-table td.num{
+.rd-page .stat-tile .val,.rd-page .risk-matrix td,.rd-page .widget-body.wb-kpi .wt-val,
+.rd-page td.num,.rd-page th.num,.rd-page .cellsel-summary b,.rd-page .dh-table td,
+.rd-page .bg-opacity-val,.rd-page .scada-progress-kpi .v,.rd-page .project-kpi .pk-value,
+.rd-page .project-attention-card .pa-value,.rd-page .project-health-table td.num{
   font-variant-numeric:tabular-nums;
 }
 /* Keep formula editor monospace */
@@ -815,15 +806,15 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 .scada-timeline-legend span{display:inline-flex;align-items:center;gap:5px}
 .scada-dot{width:9px;height:9px;border-radius:var(--ome-radius-sm);display:inline-block}
 .scada-actual{background:var(--ome-info)}.scada-plan{background:var(--ome-info-soft);border:1px solid var(--ome-info)}.scada-today{width:0;border-left:2px dashed var(--ome-err);border-radius:0;height:12px}
-.scada-timeline-board{overflow:auto;border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);background:var(--panel);max-height:560px}
+.scada-timeline-board{overflow:auto;border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);background:var(--ome-surface-1);max-height:560px}
 .sctl-wrap{min-width:1080px}
 .sctl-head,.sctl-row{display:grid;grid-template-columns:285px minmax(760px,1fr);align-items:center}
-.sctl-head{position:sticky;top:0;z-index:6;background:var(--panel);padding:9px 10px 10px;border-bottom:1px solid var(--ome-border)}
+.sctl-head{position:sticky;top:0;z-index:6;background:var(--ome-surface-1);padding:9px 10px 10px;border-bottom:1px solid var(--ome-border)}
 .sctl-label-col{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700}
 .sctl-axis{position:relative;height:24px}
 .sctl-mark{position:absolute;top:0;transform:translateX(-50%);font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;white-space:nowrap}
 .sctl-today-label{position:absolute;top:13px;transform:translateX(-50%);font-size:var(--ome-fs-xs);color:var(--ome-err);font-weight:700;white-space:nowrap}
-.sctl-row{min-height:60px;padding:5px 10px;border-bottom:1px solid var(--line-2);cursor:pointer}
+.sctl-row{min-height:60px;padding:5px 10px;border-bottom:1px solid var(--ome-border);cursor:pointer}
 .sctl-row:hover{background:var(--ome-surface-1)}
 .sctl-label{padding-right:14px;min-width:0}
 .sctl-label b{display:block;font-size:var(--ome-fs-xs);color:var(--ome-text-1);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -849,7 +840,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 .tl2-axis{position:relative;height:20px}
 .tl2-mark{position:absolute;top:0;transform:translateX(-50%);font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;white-space:nowrap}
 .tl2-today-label{position:absolute;top:14px;transform:translateX(-50%);font-size:var(--ome-fs-xs);color:var(--ome-err);font-weight:700;white-space:nowrap}
-.tl2-row{min-height:54px;border-bottom:1px solid var(--line-2);padding:4px 10px;cursor:pointer}
+.tl2-row{min-height:54px;border-bottom:1px solid var(--ome-border);padding:4px 10px;cursor:pointer}
 .tl2-row:hover{background:var(--ome-surface-1)}
 .tl2-label{padding-right:14px;min-width:0}
 .tl2-label b{display:block;font-size:var(--ome-fs-xs);color:var(--ome-text-1);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1169,15 +1160,15 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
        ตามแท็บที่เปิดอยู่ (table = ซ่อน, dashboard/custom = โชว์), ฟังก์ชัน export จับภาพจาก view ที่ active
        อยู่จริง ไม่ hardcode #dashboardView แล้ว -->
   <div class="toolbar-row utility-legacy-row" id="dashExportToolbar" style="display:none">
-    <button class="btn sm" id="exportImgBtn" type="button" data-i18n="exportImgBtn">📷 บันทึกเป็นรูปภาพ</button>
-    <button class="btn sm" id="exportExecutivePdfBtn" type="button" data-i18n="executivePdfBtn">📑 Executive PDF</button>
-    <button class="btn sm" id="exportPdfBtn" type="button" data-i18n="exportPdfBtn">📄 บันทึกเป็น PDF</button>
-    <button class="btn sm" id="exportHtmlBtn" type="button" data-i18n="exportHtmlBtn">📃 บันทึกเป็น HTML</button>
-    <button class="btn sm" id="printBtn" type="button" data-i18n="printBtn">🖨️ พิมพ์</button>
-    <button class="btn sm" id="autoSummaryBtn" type="button" data-i18n="autoSummaryBtn">📝 สรุปอัตโนมัติ</button>
+    <button class="btn sm" id="exportImgBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-image"/></svg><span data-i18n="exportImgBtn">บันทึกเป็นรูปภาพ</span></button>
+    <button class="btn sm" id="exportExecutivePdfBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-text"/></svg><span data-i18n="executivePdfBtn">Executive PDF</span></button>
+    <button class="btn sm" id="exportPdfBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-down"/></svg><span data-i18n="exportPdfBtn">บันทึกเป็น PDF</span></button>
+    <button class="btn sm" id="exportHtmlBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-code"/></svg><span data-i18n="exportHtmlBtn">บันทึกเป็น HTML</span></button>
+    <button class="btn sm" id="printBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-printer"/></svg><span data-i18n="printBtn">พิมพ์</span></button>
+    <button class="btn sm" id="autoSummaryBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-sparkles"/></svg><span data-i18n="autoSummaryBtn">สรุปอัตโนมัติ</span></button>
   </div>
   <div class="toolbar-row utility-legacy-row" id="dashBgToolbar" style="display:none">
-    <button class="btn sm" id="dashboardBgBtn" type="button" data-i18n="dashboardBgBtn">🎨 พื้นหลังแดชบอร์ด</button>
+    <button class="btn sm" id="dashboardBgBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-palette"/></svg><span data-i18n="dashboardBgBtn">พื้นหลังแดชบอร์ด</span></button>
   </div>
   <!-- ตามที่ผู้ใช้ขอ (ตัด icon ที่ไม่จำเป็นออก): เดิม #enterpriseToolbar ทั้งแถว (Presentation/Share
        Read-only/Save View/Saved Views/Auto Refresh/Versions/Audit Log/Dashboard Style/Data Mapping/
@@ -1300,7 +1291,6 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
       <div class="card" id="domainMatrixCard" style="display:none;margin-top:14px">
         <h2><span id="domainMatrixTitle" class="dashboard-title-editable" data-title-key="domainMatrixTitle"></span> <button class="card-color-btn btn ghost icon sm" type="button" data-role="domainMatrix" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
         <div class="tbl-wrap"><div id="domainMatrixWrap"></div></div>
-        <p class="mini" id="domainMatrixAxisNote"></p>
       </div>
       <div class="chart-grid">
         <div class="card" id="domainChart1Card" style="display:none">
@@ -2238,15 +2228,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     var wrap=document.createElement('div');wrap.id='projectControlLayout';wrap.className='project-control-layout';wrap.setAttribute('data-dashboard-section','dashboardProjects');
     anchor.parentNode.insertBefore(wrap,anchor);
     var hero=document.createElement('section');hero.className='project-control-hero';hero.id='projectControlHero';
-    hero.innerHTML='<div class="project-control-head"><h2>Project Control</h2><div class="mini" id="projectControlUpdated">Project & schedule overview</div></div>';
+    hero.innerHTML='<div class="project-control-head"><h2>Project Control</h2><div class="mini" id="projectControlUpdated"></div></div>';
     wrap.appendChild(hero);
     var kpis=document.createElement('div');kpis.className='project-control-kpis';kpis.id='projectControlKpis';wrap.appendChild(kpis);
-    var att=document.createElement('section');att.className='project-control-attention';att.innerHTML='<div class="project-control-head"><h2>⚠ Attention</h2><div class="mini">Click an item to focus the Project page</div></div><div class="project-attention-grid" id="projectAttentionGrid"></div>';wrap.appendChild(att);
+    var att=document.createElement('section');att.className='project-control-attention';att.innerHTML='<div class="project-control-head"><h2>Attention</h2></div><div class="project-attention-grid" id="projectAttentionGrid"></div>';wrap.appendChild(att);
     var main=document.createElement('div');main.className='project-control-main-grid';main.id='projectControlMainGrid';wrap.appendChild(main);
     var ganttSrc=q('#biProjectControlCard');
     if(ganttSrc){
       var panel=document.createElement('section');panel.className='project-panel full';panel.id='projectControlGanttPanel';
-      panel.innerHTML='<h3>Project Gantt / Timeline</h3><div class="panel-note">Actual progress is filled; the timeline shows Start, Finish, Today and schedule position.</div>';
+      panel.innerHTML='<h3>Project Gantt / Timeline</h3>';
       main.appendChild(panel);
       var ganttPanelSrc=q('#biGanttPanel');
       if(ganttPanelSrc){ panel.appendChild(ganttPanelSrc); }
@@ -2261,15 +2251,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     var stPanel=document.createElement('section');stPanel.className='project-panel half';stPanel.id='projectControlStatusPanelWrap';stPanel.innerHTML='<h3>Project Health / Status</h3><div id="projectControlStatusPanel"></div><div class="bi-pro-chart" id="projectControlStatusChart"></div>';main.appendChild(stPanel);
     if(statusSrc) stPanel.querySelector('#projectControlStatusPanel').appendChild(statusSrc);
     if(statusChart){stPanel.querySelector('#projectControlStatusChart').id='biStatusChart';statusChart.replaceWith(stPanel.querySelector('#biStatusChart'));}
-    var health=document.createElement('section');health.className='project-panel full';health.innerHTML='<h3>Project Health</h3><div class="panel-note">Schedule, progress and target health at a glance.</div><div class="project-health-wrap" id="projectHealthWrap"></div>';main.appendChild(health);
+    var health=document.createElement('section');health.className='project-panel full';health.innerHTML='<h3>Project Health</h3><div class="project-health-wrap" id="projectHealthWrap"></div>';main.appendChild(health);
     var mile=document.createElement('section');mile.className='project-panel third';mile.innerHTML='<h3>Milestones / Upcoming</h3><div class="project-upcoming-list" id="projectUpcomingList"></div>';main.appendChild(mile);
-    var forecast=document.createElement('section');forecast.className='project-panel third';forecast.innerHTML='<h3>Forecast Finish</h3><div class="panel-note">Estimated from current progress vs plan.</div><div class="project-forecast-box" id="projectForecastBox"></div>';main.appendChild(forecast);
+    var forecast=document.createElement('section');forecast.className='project-panel third';forecast.innerHTML='<h3>Forecast Finish</h3><div class="project-forecast-box" id="projectForecastBox"></div>';main.appendChild(forecast);
     var costSrc=q('#biCostChart');var trendSrc=q('#biTrendChart');
     var costPanel=document.createElement('section');costPanel.className='project-panel third';costPanel.id='projectControlCostPanel';costPanel.innerHTML='<h3>Cost / Value</h3><div class="bi-pro-chart" id="projectControlCostChart"></div>';main.appendChild(costPanel);
     if(costSrc){costPanel.querySelector('#projectControlCostChart').id='biCostChart';costSrc.replaceWith(costPanel.querySelector('#biCostChart'));}
     var trendPanel=document.createElement('section');trendPanel.className='project-panel';trendPanel.id='projectControlTrendPanel';trendPanel.innerHTML='<h3>Progress Trend</h3><div class="bi-pro-chart" id="projectControlTrendChart"></div>';main.appendChild(trendPanel);
     if(trendSrc){trendPanel.querySelector('#projectControlTrendChart').id='biTrendChart';trendSrc.replaceWith(trendPanel.querySelector('#biTrendChart'));}
-    var note=document.createElement('div');note.className='project-control-footnote';note.textContent='Use Filters to narrow the project set. Select a project or attention item to drill into details.';wrap.appendChild(note);
     // hide redundant legacy Project dashboard blocks to prevent duplicate visuals/gaps while retaining their DOM hooks
     ['#domainDashboardCard','#scadaProgressCard','#scadaTimelineCard','#projectSpecialGrid','#projectProgressCard'].forEach(function(sel){var e=q(sel);if(e)e.classList.add('project-control-hidden-source');});
     return wrap;

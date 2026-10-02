@@ -170,7 +170,6 @@
       rChartByCategory: 'จำนวนความเสี่ยงต่อประเภท', rChartByStatus: 'จำนวนความเสี่ยงต่อสถานะ',
       rChartByOwner: 'จำนวนความเสี่ยงต่อผู้รับผิดชอบ',
       rMatrixTitle: 'ตารางความเสี่ยง (โอกาสเกิด × ผลกระทบ)',
-      rMatrixAxisNote: 'แกนนอน = โอกาสเกิด (น้อย→มาก) · แกนตั้ง = ผลกระทบ (มาก→น้อย จากบนลงล่าง) · ตัวเลขในช่อง = จำนวนความเสี่ยง',
       domainFinanceOption: 'รายรับ-รายจ่าย', domainReadingOption: 'การอ่านหนังสือ',
       domainTitleFinance: 'แดชบอร์ดรายรับ-รายจ่าย', domainTitleReading: 'แดชบอร์ดการอ่านหนังสือ',
       domainNameFinance: 'รายรับ-รายจ่าย', domainNameReading: 'การอ่านหนังสือ',
@@ -360,7 +359,6 @@
       rChartByCategory: 'Risks by Category', rChartByStatus: 'Risks by Status',
       rChartByOwner: 'Risks by Owner',
       rMatrixTitle: 'Risk Matrix (Likelihood × Impact)',
-      rMatrixAxisNote: 'X-axis = Likelihood (low→high) · Y-axis = Impact (high→low, top to bottom) · numbers = risk count per cell',
       domainFinanceOption: 'Income/Expense', domainReadingOption: 'Reading Tracker',
       domainTitleFinance: 'Income/Expense Dashboard', domainTitleReading: 'Reading Dashboard',
       domainNameFinance: 'Income/Expense', domainNameReading: 'Reading',
@@ -1904,7 +1902,7 @@
       var thead2 = '<thead><tr>' + visCols.map(function (col) {
         var active = !!dt.filters[col.key];
         return '<th class="' + (col.type === 'number' ? 'num' : '') + '">' + escapeHtml(col.label) +
-          '<button type="button" class="th-filter-btn' + (active ? ' active' : '') + '" data-col="' + col.key + '" title="' + escapeAttr(t('filterIconTitle')) + '">🔽</button></th>';
+          '<button type="button" class="th-filter-btn' + (active ? ' active' : '') + '" data-col="' + col.key + '" title="' + escapeAttr(t('filterIconTitle')) + '">' + uiIcon('list-filter') + '</button></th>';
       }).join('') + '</tr></thead>';
       var tbody2 = '<tbody>' + shown.map(function (row) {
         return '<tr>' + visCols.map(function (col) {
@@ -1974,8 +1972,8 @@
     var activeCols = state.columns.filter(function (c) { return !!dt.filters[c.key]; });
     var html = activeCols.map(function (col) {
       return '<span class="filter-chip" data-col="' + col.key + '"><span>' + escapeHtml(filterChipLabel(col, dt.filters[col.key])) + '</span>' +
-        '<button type="button" class="chip-edit" data-col="' + col.key + '" title="' + escapeAttr(t('filterIconTitle')) + '">✎</button>' +
-        '<button type="button" class="chip-x" data-col="' + col.key + '" aria-label="✕">✕</button></span>';
+        '<button type="button" class="chip-edit" data-col="' + col.key + '" title="' + escapeAttr(t('filterIconTitle')) + '">' + uiIcon('pencil') + '</button>' +
+        '<button type="button" class="chip-x" data-col="' + col.key + '" aria-label="Remove filter">' + uiIcon('x') + '</button></span>';
     }).join('');
     html += '<button type="button" class="add-filter-btn" id="addFilterBtn">' + escapeHtml(t('addFilterBtn')) + '</button>';
     if (activeCols.length) html += '<button type="button" class="clear-filters-btn" id="clearAllFiltersBtn">' + escapeHtml(t('clearAllFiltersBtn')) + '</button>';
@@ -3926,7 +3924,7 @@
       var e2b = aggregateByCategory(rows, roles.owner.key, null);
       chart2 = { title: t('rChartByOwner'), labels: e2b.map(function (e) { return e[0]; }), data: e2b.map(function (e) { return e[1]; }) };
     }
-    return { title: t('domainTitleRisk'), tiles: tiles, chart1: chart1, chart2: chart2, matrix: matrixHtml ? { title: t('rMatrixTitle'), html: matrixHtml, axisNote: t('rMatrixAxisNote') } : null };
+    return { title: t('domainTitleRisk'), tiles: tiles, chart1: chart1, chart2: chart2, matrix: matrixHtml ? { title: t('rMatrixTitle'), html: matrixHtml } : null };
   }
 
   /* จัดกลุ่ม (หรือถ้าไม่มีคอลัมน์ตัวเลข — นับจำนวนแถว) แยกตามเดือน (yyyy-mm) เรียงตามเวลา — ใช้ร่วมกันกับ
@@ -4100,7 +4098,6 @@
       applyCardColor('domainMatrixCard', 'domainMatrix');
       $('domainMatrixTitle').textContent = built.matrix.title;
       $('domainMatrixWrap').innerHTML = built.matrix.html;
-      $('domainMatrixAxisNote').textContent = built.matrix.axisNote;
     } else {
       $('domainMatrixCard').style.display = 'none';
     }
@@ -5666,7 +5663,7 @@
       '.chart-wrap{position:relative;height:280px;margin-top:4px}' +
       '.foot{font-size:11.5px;color:var(--muted);text-align:center;margin-top:22px}' +
       '</style></head><body><div class="wrap">' +
-      '<h1>📊 ' + title + '</h1>' +
+      '<h1>' + title + '</h1>' +
       '<div class="sub">' + escapeHtml(t('exportedAt', { date: new Date().toLocaleString(locale()), n: state.rows.length.toLocaleString(locale()) })) + '</div>';
 
     if (showNum) html += '<div class="card"><h2>' + escapeHtml(t('numStatTitle')) + '</h2><div class="stat-row">' + $('numStatRow').innerHTML + '</div></div>';
@@ -5742,7 +5739,7 @@
       'table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}' +
       'th.num,td.num{text-align:right}.foot{font-size:11.5px;color:var(--muted);text-align:center;margin-top:22px}' +
       '</style></head><body><div class="wrap">' +
-      '<h1>🧩 ' + title + '</h1>' +
+      '<h1>' + title + '</h1>' +
       '<div class="sub">' + escapeHtml(t('exportedAt', { date: new Date().toLocaleString(locale()), n: state.rows.length.toLocaleString(locale()) })) + '</div>' +
       body +
       '<div class="foot">' + escapeHtml(t('exportedFooter')) + '</div></div>' +

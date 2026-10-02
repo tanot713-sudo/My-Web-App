@@ -474,7 +474,7 @@
         fmtDelta(pmc.delta,1,'pt vs เดือนก่อน',true)+'<div class="target">เป้าหมาย ≥ 95%</div></div>'+
       '<div class="mn-kpi-primary'+(availWarn?' warn':'')+'"><div class="l">'+avail.label+'</div><div class="v">'+(avail.value!=null?avail.value.toFixed(2)+'%':'—')+'</div>'+
         fmtDelta(avail.delta,2,'pt',true)+'<div class="target">เป้าหมาย ≥ 99.7%</div></div>'+
-      '<div class="mn-kpi-primary'+(backlogWarn?' warn':'')+'"><div class="l">Work Order ค้างดำเนินการ</div><div class="v">'+backlog.value+' <span style="font-size:11px;font-weight:700;color:var(--muted)">รายการ</span></div>'+
+      '<div class="mn-kpi-primary'+(backlogWarn?' warn':'')+'"><div class="l">Work Order ค้างดำเนินการ</div><div class="v">'+backlog.value+' <span style="font-size:11px;font-weight:700;color:var(--ome-text-2)">รายการ</span></div>'+
         fmtDelta(backlog.delta,0,' จากสัปดาห์ก่อน',false)+'<div class="target">SLA ปิดงานภายใน 72 ชม.</div></div>'+
       '<div class="mn-kpi-primary'+(mttrWarn?' warn':'')+'"><div class="l">MTTR เฉลี่ย</div><div class="v">'+(mttr.value!=null?mttr.value.toFixed(1)+' ชม.':'—')+'</div>'+
         fmtDelta(mttr.delta,1,'ชม.',false)+'<div class="target">เป้าหมาย ≤ 4 ชม.</div></div>';

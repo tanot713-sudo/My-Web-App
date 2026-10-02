@@ -325,7 +325,7 @@
         '<td>'+esc(likeLabel)+'</td><td><b>'+r.level+'</b></td>'+
         '<td>'+esc(r.mitigation||'—')+'</td>'+
         '<td style="color:var(--ome-ok);font-weight:700">'+esc(r.residual||'—')+'</td>'+
-        '<td style="color:var(--ome-text-3);font-family:var(--ui-font-mono,monospace);white-space:nowrap">'+esc(r.refDoc||'—')+'</td></tr>';
+        '<td style="color:var(--ome-text-3);font-family:ui-monospace,monospace;white-space:nowrap">'+esc(r.refDoc||'—')+'</td></tr>';
     }).join('')+
     '</tbody></table></div>';
     host.innerHTML=html;
