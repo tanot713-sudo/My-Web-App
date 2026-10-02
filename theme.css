@@ -270,6 +270,15 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 :where([data-layout]) .empty .ome-icon{width:36px;height:36px;color:var(--ome-text-3)}
 :where([data-layout]) .empty-title{font-size:var(--ome-fs-md);font-weight:700;color:var(--ome-text-1)}
 
+/* dropzone — โซนวาง/เลือกไฟล์ (div role=button; JS ของหน้าสลับ .over ตอนลากไฟล์เหนือโซน) */
+:where([data-layout]) .dropzone{display:block;padding:28px 16px;text-align:center;cursor:pointer;border:1.5px dashed var(--ome-border-strong);
+  border-radius:var(--ome-radius-lg);background:var(--ome-surface-2);transition:border-color var(--ome-dur-1),background var(--ome-dur-1)}
+:where([data-layout]) :is(.dropzone:hover,.dropzone.over){border-color:var(--ome-accent);background:var(--ome-accent-soft)}
+:where([data-layout]) .dropzone .ome-icon{display:block;width:30px;height:30px;margin:0 auto 6px;color:var(--ome-accent-strong)}
+:where([data-layout]) .dropzone-main{font-size:var(--ome-fs-sm);font-weight:700;overflow-wrap:anywhere}
+:where([data-layout]) .dropzone-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px}
+:where([data-layout]) .dropzone-sub:empty{display:none}
+
 /* toast — กล่องแจ้งผลชั่วคราว ใส่ใน .toast-region (มุมล่างกลาง) */
 :where([data-layout]) .toast-region{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);
   z-index:var(--ome-z-toast);display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;width:max-content;max-width:calc(100vw - 32px)}
@@ -601,25 +610,10 @@ body{padding-bottom:0!important}
   --line:var(--ome-line); --brand:var(--ome-brand); --brand-dk:var(--ome-brand-dk);
   --brand-sf:var(--ome-brand-sf); --sh:var(--ome-sh);
 }
-[data-theme="dark"] body.ome-tool-page .hero{
-  background:linear-gradient(120deg,#17222F 0%,#1D1B33 42%,#2A1B26 100%)}
-[data-theme="dark"] body.ome-tool-page .hero::after{background:rgba(255,255,255,.05)}
-[data-theme="dark"] body.ome-tool-page .drop{background:#171C28;border-color:#333B4E}
-[data-theme="dark"] body.ome-tool-page .drop.has{background:#14261E}
-[data-theme="dark"] body.ome-tool-page .note{background:#2A2415;color:#E8C88A;border-color:#4A3D1E}
-[data-theme="dark"] body.ome-tool-page .note.err{background:#301B1B;color:#F0A0A0;border-color:#573030}
-[data-theme="dark"] body.ome-tool-page .info{background:#1A2233;border-color:#2B3A57;color:#A9BEE4}
 [data-theme="dark"] body.ome-tool-page code{background:#242B3B}
 [data-theme="dark"] body.ome-tool-page .track{background:#2A3040}
 [data-theme="dark"] body.ome-tool-page .dot{background:var(--ome-card);border-color:#3A4258}
 [data-theme="dark"] body.ome-tool-page .btn.ghost{background:var(--ome-card);color:var(--ome-ink)}
-
-/* ── การ์ดต้อนรับ (.hero) ของสีเน้นที่ไม่ใช่ teal (ค่าเริ่มต้น) — ผสมสีอ่อนของแบรนด์สีนั้นแทน
-   gradient พาสเทลฟ้า/มินต์/ส้มที่แต่ละหน้า hardcode ไว้เอง ใช้ได้ทั้งโหมดสว่าง/มืด — specificity
-   สูงกว่า [data-theme="dark"] .hero ด้านบน เลยชนะเฉพาะตอนเลือกสีอื่น teal ยังได้ gradient เดิม */
-[data-accent]:not([data-accent="teal"]) body.ome-tool-page .hero{
-  background:linear-gradient(120deg, var(--ome-brand-sf) 0%, var(--ome-card) 55%, var(--ome-brand-sf) 100%);
-}
 
 /* ── หน้า React+Tailwind (classroom-business/engineering, languages.html, legal.html) ──────
    เดิม override เฉพาะ [data-theme="dark"] อย่างเดียว (hardcode ค่าสีเข้มของ mint ตรงๆ) พอมี

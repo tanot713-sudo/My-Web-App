@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>แปลงเสียง ↔ ข้อความ | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#12A594">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -18,167 +17,114 @@
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
 <style>
-:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
-  --brand:var(--ome-brand);--brand-dk:var(--ome-brand-dk);--brand-sf:var(--ome-brand-sf);
-  --amber:#F5A524;--ok:#17B26A;--err:#E5484D;--warn:#E08700;
-  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
-*{box-sizing:border-box;margin:0;padding:0}
-body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
-  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:780px;margin:0 auto}
-.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
-.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
-.crumb .sep{margin:0 7px;color:#C9CEDC}
-.head{display:flex;align-items:center;gap:12px;margin:12px 0 6px}
-.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:24px;
-  background:linear-gradient(135deg,#12A594,#3FCBB6);color:#fff;display:grid;place-items:center;
-  box-shadow:0 6px 18px rgba(18,165,148,.3)}
-h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
-.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
+/* เฉพาะหน้านี้ — ปุ่ม/การ์ด/ช่องกรอก/badge/สถานะ/toggle มาจาก theme.css (data-layout="tool") */
+.tts-page{max-width:780px}
+.tts-page .card > * + *{margin-top:var(--ome-sp-3)}
+.tts-page .card > h2{display:flex;align-items:center;gap:8px;margin:0;font-size:var(--ome-fs-md)}
+.tts-page .card > .frow + .frow{margin-top:var(--ome-sp-3)}
+.tts-page .frow.center{align-items:center}
+.tts-page .status{margin-top:var(--ome-sp-2)}
+.tts-page .field input[type=range]{height:auto;padding:0;border:0;background:transparent;accent-color:var(--ome-accent)}
+.tts-page .field input:focus-visible{outline-offset:2px}
+.tts-page .field input[type=file]{height:auto;padding:6px 8px}
+.tts-page .check{display:flex;align-items:center;gap:6px;cursor:pointer}
+.tts-page .check input{width:auto;flex:none;accent-color:var(--ome-accent)}
+.tts-page .char-count{font-size:var(--ome-fs-xs);color:var(--ome-text-2);text-align:right;margin-top:4px}
+.tts-page .range-val{margin-left:6px;color:var(--ome-accent-strong);font-weight:700}
+.tts-page .textarea[readonly]{background:var(--ome-surface-2)}
 
-.card{background:var(--card);border-radius:var(--ome-card-r);box-shadow:var(--sh);padding:var(--ome-card-pad);margin-top:var(--ome-card-gap)}
-.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
-.frow{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end}
-.field{display:flex;flex-direction:column;gap:4px;flex:1 1 150px;min-width:130px}
-.field label{font-size:12px;color:var(--muted);font-weight:600}
-textarea,select,input[type=number]{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:11px;
-  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none}
-textarea{resize:vertical;line-height:1.6}
-select{font-size:14px}
-input[type=range]{width:100%}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand)}
-[data-theme="dark"] textarea,[data-theme="dark"] select,[data-theme="dark"] input{background:#12151C}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
-  background:var(--card);border-radius:11px;padding:10px 15px;font-family:inherit;font-size:14px;font-weight:700;
-  color:var(--ink);cursor:pointer;transition:.15s;text-decoration:none}
-.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
-.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-.btn.primary:hover{background:var(--brand-dk);color:#fff}
-.btn.sm{padding:7px 11px;font-size:12.5px}
-.btn:disabled{opacity:.5;cursor:default}
-.status{font-size:12.5px;color:var(--muted);margin-top:9px;min-height:1.2em}
-.status.err{color:var(--err)}
-.status.ok{color:var(--ok)}
-
-.char-count{font-size:11.5px;color:var(--muted);text-align:right;margin-top:4px}
-.range-val{font-size:12px;color:var(--brand-dk);font-weight:700;margin-left:6px}
-
-.tts-player{margin-top:12px;padding:14px;background:var(--bg);border-radius:13px;display:none}
+.tts-player{display:none;padding:14px;background:var(--ome-surface-2);border-radius:var(--ome-radius-lg)}
 .tts-player audio{width:100%;margin-bottom:10px}
 .tts-player .dl-row{display:flex;gap:8px;flex-wrap:wrap}
 
-.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:7px;padding:2px 8px;margin-left:6px}
-.badge.robot{background:#FFF6E4;color:#8A6212}
-[data-theme="dark"] .badge.robot{background:#2A2415;color:#E8C88A}
-
-details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;list-style:none;
-  display:flex;align-items:center;gap:8px;user-select:none}
-details>summary::-webkit-details-marker{display:none}
-details>summary::before{content:'▸';color:var(--muted);transition:.15s}
-details[open]>summary::before{transform:rotate(90deg)}
-.details-body{padding:0 15px 15px;font-size:13.5px}
-.lesson h3{font-size:13.5px;font-weight:700;margin:12px 0 4px;color:var(--brand-dk)}
-.lesson p{font-size:13px;margin-bottom:4px;opacity:.92}
-
-.disc{font-size:12px;color:var(--muted);line-height:1.6;padding:14px 4px 4px}
-
-/* ── โหมดถอดเสียง (เบราว์เซอร์/คลาวด์) — แพทเทิร์นเดียวกับ ocr-toggle ของ doc-check-file.html ── */
-.asr-engine-row{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
-.asr-engine-label{font-size:12.5px;color:var(--muted);font-weight:600}
-.asr-toggle{display:inline-flex;align-items:center;gap:2px;background:var(--line);border:none;border-radius:20px;padding:2px}
-.asr-toggle span{font-size:12px;font-weight:700;padding:6px 12px;border-radius:16px;color:var(--muted);
-  cursor:pointer;transition:.15s}
-.asr-toggle span.active{background:var(--card);color:var(--brand-dk);box-shadow:0 1px 3px rgba(24,31,54,.08)}
-.asr-engine-note{display:none;font-size:12px;color:var(--muted);margin-top:6px;max-width:60ch;line-height:1.6}
+/* ── โหมดถอดเสียง (เบราว์เซอร์/คลาวด์) — ตัวสลับใช้ .lang-toggle กลาง ── */
+.asr-engine-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.asr-engine-label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600}
+.asr-engine-note{display:none;max-width:60ch}
 .asr-neuron-status{font-weight:700}
 </style>
 </head>
-<body class="ome-tool-page">
+<body data-layout="tool">
 <script src="auth-gate.js"></script>
 
-<div class="wrap">
+<main class="page tts-page">
 <nav class="crumb"><a href="index.html">หน้าหลัก</a><span class="sep">/</span>แปลงข้อความเป็นเสียง</nav>
-<div class="head">
-  <div>
-    <h1>แปลงเสียง ↔ ข้อความ</h1>
-  </div>
-</div>
+<div class="page-head"><h1>แปลงเสียง ↔ ข้อความ</h1></div>
 
+<div class="stack">
 <div class="card">
-  <h2>ข้อความ</h2>
-  <div class="frow" style="align-items:center;margin-bottom:10px">
-    <button class="btn sm" id="importFileBtn" type="button">แนบไฟล์</button>
+  <h2><svg class="ome-icon"><use href="icons.svg#i-file-text"/></svg>ข้อความ</h2>
+  <div class="frow center">
+    <button class="btn sm" id="importFileBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-upload"/></svg>แนบไฟล์</button>
     <input type="file" id="importFileInput" accept=".txt,.docx,.xlsx,.xls,.csv,.pptx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
-    <label class="mini" style="display:flex;align-items:center;gap:5px;margin:0;cursor:pointer">
-      <input type="checkbox" id="importOcrChk" checked style="width:auto;flex:none;accent-color:var(--brand)">
+    <label class="mini check">
+      <input type="checkbox" id="importOcrChk" checked>
       ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน (ช้ากว่าปกติ)
     </label>
   </div>
   <div class="status" id="importStatus"></div>
-  <textarea id="ttsText" rows="6" placeholder="พิมพ์หรือวางข้อความที่นี่ (ไทยหรืออังกฤษก็ได้) หรือกด แนบไฟล์ด้านบน" style="margin-top:8px"></textarea>
+  <textarea class="textarea" id="ttsText" rows="6" placeholder="พิมพ์หรือวางข้อความที่นี่ (ไทยหรืออังกฤษก็ได้) หรือกด แนบไฟล์ด้านบน"></textarea>
   <div class="char-count" id="ttsCharCount">0 ตัวอักษร</div>
 </div>
 
 <div class="card">
-  <h2>ฟังทันที (เสียงจากเบราว์เซอร์)</h2>
-  <div class="frow" style="margin-top:8px">
-    <div class="field" style="flex:2 1 220px"><label>เสียง</label>
+  <h2><svg class="ome-icon"><use href="icons.svg#i-volume-2"/></svg>ฟังทันที (เสียงจากเบราว์เซอร์)</h2>
+  <div class="frow">
+    <div class="field" style="flex:2 1 220px"><label for="wsVoice">เสียง</label>
       <select id="wsVoice"></select>
     </div>
-    <div class="field"><label>ความเร็ว <span class="range-val" id="wsRateVal">1.0x</span></label>
+    <div class="field"><label for="wsRate">ความเร็ว <span class="range-val" id="wsRateVal">1.0x</span></label>
       <input type="range" id="wsRate" min="0.5" max="2" step="0.1" value="1">
     </div>
   </div>
-  <div class="frow" style="margin-top:10px">
-    <button class="btn primary sm" id="wsPlayBtn" type="button">▶️ เล่น</button>
-    <button class="btn sm" id="wsPauseBtn" type="button">⏸ หยุดชั่วคราว</button>
-    <button class="btn sm" id="wsStopBtn" type="button">⏹ หยุด</button>
+  <div class="frow">
+    <button class="btn primary sm" id="wsPlayBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-play"/></svg>เล่น</button>
+    <button class="btn sm" id="wsPauseBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-pause"/></svg>หยุดชั่วคราว</button>
+    <button class="btn sm" id="wsStopBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-square"/></svg>หยุด</button>
   </div>
   <div class="status" id="wsStatus"></div>
 </div>
 
 <div class="card">
-  <h2>สร้างไฟล์เสียงดาวน์โหลดได้ (.wav / .mp3)<span class="badge robot">เสียง AI (MMS-TTS)</span></h2>
-  <div class="frow" style="margin-top:8px">
-    <div class="field"><label>ภาษา</label>
+  <h2><svg class="ome-icon"><use href="icons.svg#i-headphones"/></svg>สร้างไฟล์เสียงดาวน์โหลดได้ (.wav / .mp3)<span class="badge">เสียง AI (MMS-TTS)</span></h2>
+  <div class="frow">
+    <div class="field"><label for="dlLang">ภาษา</label>
       <select id="dlLang">
         <option value="th">ไทย</option>
         <option value="en">อังกฤษ</option>
       </select>
     </div>
-    <div class="field"><label>เสียง</label>
+    <div class="field"><label for="dlVoice">เสียง</label>
       <select id="dlVoice"></select>
     </div>
   </div>
-  <div class="frow" style="margin-top:10px">
-    <button class="btn primary sm" id="dlGenerateBtn" type="button">สร้างไฟล์เสียง</button>
+  <div class="frow">
+    <button class="btn primary sm" id="dlGenerateBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sparkles"/></svg>สร้างไฟล์เสียง</button>
   </div>
   <div class="status" id="dlStatus"></div>
   <div class="tts-player" id="dlPlayerWrap">
     <audio id="dlAudio" controls></audio>
     <div class="dl-row">
-      <a class="btn sm" id="dlWavLink" download="tts-output.wav">⬇️ ดาวน์โหลด .wav</a>
-      <a class="btn sm" id="dlMp3Link" download="tts-output.mp3">⬇️ ดาวน์โหลด .mp3</a>
+      <a class="btn sm" id="dlWavLink" download="tts-output.wav"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg>ดาวน์โหลด .wav</a>
+      <a class="btn sm" id="dlMp3Link" download="tts-output.mp3"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg>ดาวน์โหลด .mp3</a>
     </div>
   </div>
 </div>
 
 <div class="card">
-  <h2>เสียง/วิดีโอ → ข้อความ</h2>
-  <div class="frow" style="margin-top:8px">
-    <div class="field"><label>ไฟล์เสียง/วิดีโอ</label>
+  <h2><svg class="ome-icon"><use href="icons.svg#i-mic"/></svg>เสียง/วิดีโอ → ข้อความ</h2>
+  <div class="frow">
+    <div class="field"><label for="asrFile">ไฟล์เสียง/วิดีโอ</label>
       <input type="file" id="asrFile" accept="audio/*,video/*">
     </div>
-    <div class="field"><label>ภาษา</label>
+    <div class="field"><label for="asrLang">ภาษา</label>
       <select id="asrLang">
         <option value="auto">ตรวจจับอัตโนมัติ</option>
         <option value="thai">ไทย</option>
         <option value="english">อังกฤษ</option>
       </select>
     </div>
-    <div class="field" id="asrModelField"><label>ขนาดโมเดล</label>
+    <div class="field" id="asrModelField"><label for="asrModel">ขนาดโมเดล</label>
       <select id="asrModel">
         <option value="Xenova/whisper-tiny">เล็ก (เร็ว, ~75MB)</option>
         <option value="Xenova/whisper-base">กลาง (แม่นขึ้น, ~145MB)</option>
@@ -189,55 +135,40 @@ details[open]>summary::before{transform:rotate(90deg)}
   </div>
   <div class="asr-engine-row">
     <span class="asr-engine-label">ถอดเสียงด้วย</span>
-    <div class="asr-toggle" id="asrEngineToggle">
+    <div class="lang-toggle" id="asrEngineToggle">
       <span data-ae="local" class="active">ในเบราว์เซอร์ (ฟรี)</span>
       <span data-ae="cloud">คลาวด์ (แม่นกว่า)</span>
     </div>
   </div>
-  <div class="asr-engine-note" id="asrEngineNote">
+  <div class="mini asr-engine-note" id="asrEngineNote">
     <div class="asr-neuron-status" id="asrNeuronStatus"></div>
   </div>
-  <div class="frow" style="margin-top:10px">
-    <button class="btn primary sm" id="asrGoBtn" type="button">ถอดเสียงเป็นข้อความ</button>
+  <div class="frow">
+    <button class="btn primary sm" id="asrGoBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-mic"/></svg>ถอดเสียงเป็นข้อความ</button>
   </div>
   <div class="status" id="asrStatus"></div>
-  <div id="asrResultWrap" style="display:none;margin-top:12px">
-    <textarea id="asrResult" rows="6" readonly style="background:var(--bg)"></textarea>
-    <div class="frow" style="margin-top:8px">
-      <button class="btn sm" id="asrCopyBtn" type="button">คัดลอกข้อความ</button>
-      <button class="btn primary sm" id="meetingSumBtn" type="button">📝 สรุปประชุมด้วย AI</button>
-    </div>
-    <div class="status" id="meetingSumStatus"></div>
-    <div id="meetingSumWrap" style="display:none;margin-top:10px">
-      <textarea id="meetingSumResult" rows="10" readonly style="background:var(--bg)"></textarea>
-      <div class="frow" style="margin-top:8px">
-        <a class="btn primary sm" id="meetingDocxLink" download="สรุปประชุม.docx">⬇️ ดาวน์โหลดเป็น Word (.docx)</a>
+  <div id="asrResultWrap" style="display:none">
+    <div class="stack">
+      <textarea class="textarea" id="asrResult" rows="6" readonly></textarea>
+      <div class="frow">
+        <button class="btn sm" id="asrCopyBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-copy"/></svg>คัดลอกข้อความ</button>
+        <button class="btn primary sm" id="meetingSumBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sparkles"/></svg>สรุปประชุมด้วย AI</button>
+      </div>
+      <div class="status" id="meetingSumStatus"></div>
+      <div id="meetingSumWrap" style="display:none">
+        <div class="stack">
+          <textarea class="textarea" id="meetingSumResult" rows="10" readonly></textarea>
+          <div class="frow">
+            <a class="btn primary sm" id="meetingDocxLink" download="สรุปประชุม.docx"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg>ดาวน์โหลดเป็น Word (.docx)</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
-
-<details class="card lesson" style="box-shadow:var(--sh)">
-  <summary style="font-size:14px">เรียนรู้ / ความต่างของโหมดต่างๆ</summary>
-  <div class="details-body">
-    <h3>ทำไมมี 2 โหมด</h3>
-    <p>โหมด "ฟังทันที" ใช้เสียงที่เบราว์เซอร์/ระบบปฏิบัติการของคุณมีอยู่แล้ว ฟังลื่นและตอบสนองทันที แต่ไม่รับประกันว่าจะมีเสียงไทยติดตั้งไว้ทุกเครื่อง และดาวน์โหลดเป็นไฟล์ไม่ได้ (เพราะเสียงมาจากระบบปฏิบัติการโดยตรง หน้าเว็บเข้าถึงข้อมูลเสียงไม่ได้) ส่วนโหมด "สร้างไฟล์เสียง" ใช้โมเดล AI (MMS-TTS) ที่ดาวน์โหลดมารันในเบราว์เซอร์ ให้ไฟล์เสียงจริงที่ดาวน์โหลดเก็บไว้ฟังภายหลังได้ เหมาะกับงานอย่างแปลงข้อความที่สแกนจากหนังสือเป็นไฟล์เสียงไว้ฟัง</p>
-    <h3>wav กับ mp3 ต่างกันยังไง</h3>
-    <p>.wav เป็นไฟล์เสียงต้นฉบับไม่บีบอัด ไฟล์ใหญ่กว่ามาก คุณภาพเก็บครบทุกจุด ส่วน .mp3 บีบอัดให้ไฟล์เล็กลงมาก (เหมาะเก็บ/ส่งต่อ) โดยคุณภาพเสียงพูดแทบไม่ต่างกับหูฟังทั่วไป ทั้งสองแบบเปิดได้ปกติบนคอม/iPhone/iPad</p>
-    <h3>ทำไมเปลี่ยนมาใช้ MMS-TTS</h3>
-    <p>เดิมหน้านี้ใช้เครื่องมือสังเคราะห์เสียงแบบกฎ (eSpeak NG) ซึ่งรองรับภาษาไทยตามชื่อ แต่ทดสอบแล้วพบว่าการแปลงตัวอักษรไทยเป็นเสียง (phonemization) มีบั๊กจนออกเสียงฟังไม่รู้เรื่อง แม้จะปรับความเร็ว/พิทช์อย่างไรก็ไม่ช่วย และยืนยันแล้วว่าเป็นบั๊กที่ยังไม่ได้แก้ในซอร์สโค้ดต้นทางล่าสุด จึงเปลี่ยนมาใช้ MMS-TTS ของ Meta แทน ซึ่งเป็นโมเดล AI (ไม่ใช่กฎภาษาศาสตร์แบบเดิม) ที่ฝึกมากับเสียงพูดภาษาไทยจริงโดยเฉพาะ ให้เสียงที่ฟังรู้เรื่องและเป็นธรรมชาติกว่ามาก</p>
-    <h3>ถอดเสียงเป็นข้อความ (Whisper) ทำงานยังไง</h3>
-    <p>ใช้โมเดล AI ชื่อ Whisper (พัฒนาโดย OpenAI) ผ่านไลบรารี transformers.js รันด้วย WebAssembly ในเบราว์เซอร์คุณเอง ไม่ใช่ส่งเสียงไปประมวลผลที่เซิร์ฟเวอร์ไหน — ตัวไฟล์โมเดล (ไม่ใช่ไฟล์เสียงของคุณ) ต้องดาวน์โหลดจาก Hugging Face ครั้งแรกเท่านั้น เลือก "เล็ก" ถ้าอยากได้ผลเร็ว, "กลาง" ถ้าอยากได้ความแม่นยำสูงขึ้นแบบไม่ใหญ่มาก, "ใหญ่" ถ้าเสียงยาก/มีศัพท์เฉพาะเยอะและอยากได้ความแม่นยำสูง หรือ "ใหญ่มาก" ถ้าอยากได้ความแม่นยำสูงสุดและเครื่องแรงพอ (ไฟล์ใหญ่กว่า โหลด/รันช้ากว่าตามลำดับ — "ใหญ่มาก" อาจใช้เวลารันนานหลายนาทีหรือหนักเกินไปบนมือถือ/เครื่องสเปกต่ำ) — ภาษาไทยกับโมเดลขนาดเล็กมักแม่นยำน้อยกว่าภาษาอังกฤษ ถ้าผลลัพธ์เพี้ยนเยอะลองขยับไปโมเดลใหญ่ขึ้นดู</p>
-    <h3>แนบไฟล์แล้วนำเข้าข้อความทำงานยังไง</h3>
-    <p>รองรับ .txt, .docx (Word), .xlsx/.xls/.csv (Excel), .pptx (PowerPoint — เฉพาะรุ่นใหม่ ไฟล์ .ppt เก่าไม่รองรับ), .pdf และรูปภาพ — ทุกไฟล์อ่าน/แกะในเบราว์เซอร์คุณเองทั้งหมด ถ้าเป็นรูปภาพหรือ PDF ที่เป็นภาพสแกน (ไม่มีเลเยอร์ข้อความ) ระบบจะใช้ OCR (อ่านตัวอักษรจากภาพ) ให้อัตโนมัติถ้าเปิดตัวเลือกนี้ไว้ — อาจใช้เวลานานกว่าไฟล์ข้อความปกติ ข้อความที่ดึงได้จะเข้าไปแทนที่ในกล่องข้อความ ให้ตรวจทานแก้ไขก่อนสร้างเสียงได้เสมอ</p>
-    <h3>สรุปประชุมด้วย AI ทำงานยังไง แม่นแค่ไหน</h3>
-    <p>เอาข้อความที่ถอดเสียงได้ (ด้านบน) มาให้โมเดล AI ตัวเดียวกับที่ใช้สรุปข่าวหน้าลงทุนอ่านแล้วสรุปเป็นภาพรวม/ประเด็นสำคัญ/การตัดสินใจ/งานที่ต้องติดตาม — รันในเบราว์เซอร์คุณเองทั้งหมด ไม่ส่งข้อความออกไปที่ไหน ถ้าข้อความยาวมาก (เช่นประชุมยาวหลายชั่วโมง) จะถูกตัดเป็นช่วงๆ สรุปย่อยทีละช่วงก่อน แล้วค่อยรวมเป็นสรุปเดียวอีกที เพราะโมเดลขนาดเล็กที่รันในเบราว์เซอร์ได้อ่านข้อความยาวมากในครั้งเดียวไม่ไหว — ข้อจำกัดสำคัญที่ควรรู้: (1) <b>ไม่แยกว่าใครพูด</b> เพราะ Whisper ถอดได้แค่ "พูดว่าอะไร" ไม่ได้บอก "ใครพูด" (การแยกผู้พูด/speaker diarization ต้องใช้โมเดลอีกตัวแยกต่างหากที่ยังไม่ได้ทำในเครื่องมือนี้) (2) โมเดลที่ใช้เป็นโมเดลเล็กฟรีที่รันในเบราว์เซอร์ได้ ความแม่นยำในการสรุปภาษาไทยจึงสู้โมเดลใหญ่ระดับเซิร์ฟเวอร์ไม่ได้ ควรอ่านทวนสรุปก่อนใช้งานจริงเสมอ (3) ไม่รองรับ iPhone/iPad (เบราว์เซอร์มือถือรุ่นนี้รันโมเดล AI แบบนี้ไม่เสถียร) ใช้คอมพิวเตอร์แทน</p>
-    <h3>ข้อมูลส่งไปไหนบ้าง</h3>
-    <p>ไม่มีข้อความ/ไฟล์เสียง/ไฟล์ที่แนบของคุณถูกส่งออกจากเครื่องเลยไม่ว่าโหมดไหน (ยกเว้นถ้าเลือกโหมดถอดเสียง "คลาวด์" เอง ซึ่งเสียงจะถูกส่งไป Cloudflare ตามที่อธิบายไว้ในการ์ดด้านบน) — โหมดอื่นทั้งหมดประมวลผลในเบราว์เซอร์ล้วนๆ (มีแค่ "ตัวไลบรารี/โมเดล AI" ที่ต้องโหลดเข้ามาจาก CDN/Hugging Face ครั้งแรกเท่านั้น ไม่ใช่ไฟล์ของคุณที่ถูกส่งออกไป)</p>
-  </div>
-</details>
-
 </div>
+
+</main>
 
 <!-- หมายเหตุ: เดิม transformers.web.min.js มี bare module specifier 2 จุด (onnxruntime-common,
      onnxruntime-web/webgpu) ที่ต้องพึ่ง <script type="importmap"> ชี้ไปไฟล์จริงถึงจะ resolve ได้
