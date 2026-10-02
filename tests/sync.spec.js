@@ -121,6 +121,31 @@ test('เพิ่มรายการพร้อมกัน 2 เครื�
   await A.ctx.close(); await B.ctx.close();
 });
 
+test('กรมธรรม์ประกัน: 2 เครื่องเพิ่มพร้อมกันไม่ทับกัน (list) · สรุปเบี้ยลดหย่อนซิงก์เป็นก้อน · ไฟล์อ้างอิงติดไปกับกรมธรรม์', async ({ browser, request }) => {
+  const A = await device(browser);
+  const B = await device(browser);
+  const addPolicy = (p, rec) => p.evaluate((rec) => {
+    const a = JSON.parse(localStorage.getItem('tanot:insurance:policies') || '[]'); a.push(rec);
+    localStorage.setItem('tanot:insurance:policies', JSON.stringify(a));
+  }, rec);
+  await addPolicy(A.page, { id: 'pa', type: 'life', insurer: 'A', premium: 1, freq: 'year', files: [{ id: 'f1', name: 'a.pdf', size: 3, mime: 'application/pdf' }] });
+  await addPolicy(B.page, { id: 'pb', type: 'car', insurer: 'B', premium: 2, freq: 'year', files: [] });
+  await set(A.page, 'tanot:insurance:taxsummary', JSON.stringify({ v: 1, updatedAt: 1, years: {} }));
+  await sync(A.page); await sync(B.page); await sync(A.page);
+  const read = async (p) => JSON.parse(await get(p, 'tanot:insurance:policies')).sort((x, y) => (x.id > y.id ? 1 : -1));
+  expect((await read(A.page)).map((x) => x.id)).toEqual(['pa', 'pb']);
+  const onB = await read(B.page);
+  expect(onB.map((x) => x.id)).toEqual(['pa', 'pb']);
+  expect(onB[0].files[0]).toMatchObject({ id: 'f1', name: 'a.pdf' });
+  expect(await get(B.page, 'tanot:insurance:taxsummary')).toContain('"v":1');
+  // ลบจากเครื่อง B → เครื่อง A ลบตาม
+  await B.page.evaluate(() => localStorage.setItem('tanot:insurance:policies', JSON.stringify(JSON.parse(localStorage.getItem('tanot:insurance:policies')).filter((p) => p.id !== 'pa'))));
+  await sync(B.page); await sync(A.page);
+  expect((await read(A.page)).map((x) => x.id)).toEqual(['pb']);
+  expect([...A.errors, ...B.errors]).toEqual([]);
+  await A.ctx.close(); await B.ctx.close();
+});
+
 test('หน้าที่ถือข้อมูลเก่าในหน่วยความจำบันทึกทับ ไม่ลบรายการที่มาจากเครื่องอื่น (merge 3 ทาง)', async ({ browser }) => {
   const A = await device(browser, { seed: { 'lang-practice:srs': JSON.stringify({ a: 1 }), 'budget:records': JSON.stringify([{ id: 'r1' }]) } });
   await sync(A.page);

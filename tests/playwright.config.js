@@ -52,5 +52,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8126/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // insurance.spec.js: /api/files ตัวจริงบน R2 ตัวหลอก + D1 (SQLite) — แยกพอร์ตเพราะมี /__reset ที่ล้าง R2 ทั้งก้อน
+      command: 'node --no-warnings sync-server.mjs 8127',
+      cwd: __dirname,
+      url: 'http://localhost:8127/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });
