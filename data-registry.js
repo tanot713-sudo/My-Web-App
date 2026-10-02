@@ -45,6 +45,15 @@
     { key: 'tanot:elec:inputs', kind: 'local' }, // ค่าที่กรอกในเครื่องคำนวณไฟฟ้า — กระดาษทดของเครื่องนี้ ไม่ต้องซิงก์
     { key: 'tanot:tax:ui', kind: 'local' }, // ปี/แท็บที่เปิดค้างในหน้าภาษี
 
+    // ── บันทึกงานบำรุงรักษา (maintenance.html) — ต้องอยู่เหนือกฎ 'tanot:' ทั้งก้อนด้านล่าง ──
+    { key: 'tanot:mnt:device', kind: 'cache' }, // รหัสเครื่องสำหรับ id ใบตรวจ/event — ห้ามย้าย/สำรอง ไม่งั้นกู้ backup ลงอีกเครื่องแล้วรหัสชนกัน
+    { key: 'tanot:mnt:ui', kind: 'local' },
+    { key: 'tanot:mnt:draft', kind: 'local' },
+    { key: 'tanot:mnt:sites', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:mnt:assets', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:mnt:plans', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:mnt:settings', kind: 'sync' },
+
     // ── รายการที่เพิ่มได้จากหลายเครื่อง (แยกรายการย่อย) ──
     { key: 'tanot:insurance:policies', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'budget:records', kind: 'sync', mode: 'list', idField: 'id' },
@@ -93,8 +102,16 @@
     // (ซิงก์ได้เมื่อหน้าเปลี่ยนไปใช้ id ที่ไม่ซ้ำข้ามเครื่อง) ห้ามใส่ store แบบ autoIncrement ใน sync
     { db: 'tanot-report-dashboard', version: 2,
       stores: { current: { keyPath: 'id' }, reports: { keyPath: 'id', autoIncrement: true } }, sync: [] },
-    { db: 'tanot-sim3d', version: 1, stores: { models: { keyPath: 'id', autoIncrement: true } }, sync: [] } // ไฟล์ 3D ไบนารี — ย้าย/สำรองเท่านั้น
+    { db: 'tanot-sim3d', version: 1, stores: { models: { keyPath: 'id', autoIncrement: true } }, sync: [] }, // ไฟล์ 3D ไบนารี — ย้าย/สำรองเท่านั้น
+    // บันทึกงานบำรุงรักษา: ใบสั่งงาน = header ที่ไม่แก้ (wo) + event ต่อท้าย (woev) — ดู docs/maintenance-design.md หัวข้อ 3.2
+    { db: 'tanot-mnt', version: 1, stores: { wo: { keyPath: 'id' }, woev: { keyPath: 'id' } }, sync: ['wo', 'woev'] }
   ];
+  // ผลตรวจบำรุงรักษา: 1 ฐานข้อมูลต่อปีของรอบ — ซิงก์เฉพาะปีปัจจุบัน ±1 เพราะ tanot-data อ่านทั้ง store ทุกครั้งที่โหลดหน้า
+  // ปีที่เก่ากว่านั้นเป็นย้าย/สำรองเท่านั้น (ทั้ง 2 เครื่องมีครบแล้วตอนที่ยังเป็นปีปัจจุบัน) และหน้าเว็บล็อกให้แก้ไม่ได้
+  var MNT_Y = new Date().getFullYear();
+  for (var y = 2026; y <= MNT_Y + 1; y++) {
+    IDB.push({ db: 'tanot-mnt-' + y, version: 1, stores: { insp: { keyPath: 'id' } }, sync: y >= MNT_Y - 1 ? ['insp'] : [] });
+  }
 
   function ruleMatches(r, k) {
     if (r.key) return k === r.key;
