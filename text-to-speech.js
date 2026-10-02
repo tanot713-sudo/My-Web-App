@@ -46,10 +46,10 @@
      รองรับ .txt/.docx/.xlsx/.xls/.csv/.pptx/.pdf/รูปภาพ — ดูรายละเอียดการอ่านแต่ละชนิดไฟล์ใน
      file-reader.js (ไฟล์กลาง ใช้ร่วมกับหน้าอื่นได้ในอนาคต ไม่ผูกกับ UI ของหน้านี้โดยเฉพาะ) */
   function formatImportProgress(p) {
-    if (!p) return '⏳ กำลังอ่านไฟล์…';
-    if (p.stage === 'ocr') return '⏳ กำลังอ่านด้วย OCR หน้า/รูป ' + p.page + '/' + p.total + ' (อาจใช้เวลาสักครู่ต่อหน้า)…';
-    if (p.stage === 'pdf') return '⏳ กำลังอ่าน PDF หน้า ' + p.page + '/' + p.total + '…';
-    return '⏳ กำลังอ่านไฟล์…';
+    if (!p) return 'กำลังอ่านไฟล์…';
+    if (p.stage === 'ocr') return 'กำลังอ่านด้วย OCR หน้า/รูป ' + p.page + '/' + p.total + ' (อาจใช้เวลาสักครู่ต่อหน้า)…';
+    if (p.stage === 'pdf') return 'กำลังอ่าน PDF หน้า ' + p.page + '/' + p.total + '…';
+    return 'กำลังอ่านไฟล์…';
   }
   function importFileChange(e) {
     var file = e.target.files && e.target.files[0];
@@ -62,7 +62,7 @@
     }
     $('importFileBtn').disabled = true;
     $('importStatus').className = 'status';
-    $('importStatus').textContent = '⏳ กำลังอ่านไฟล์ ' + file.name + '…';
+    $('importStatus').textContent = 'กำลังอ่านไฟล์ ' + file.name + '…';
     window.TanotFileReader.readAnyFile(file, {
       ocr: $('importOcrChk').checked,
       onProgress: function (p) { $('importStatus').textContent = formatImportProgress(p); }
@@ -129,7 +129,7 @@
     if (!window.speechSynthesis) return;
     if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
       window.speechSynthesis.pause();
-      $('wsStatus').className = 'status'; $('wsStatus').textContent = '⏸ หยุดชั่วคราว';
+      $('wsStatus').className = 'status'; $('wsStatus').textContent = 'หยุดชั่วคราว';
     } else if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
       $('wsStatus').className = 'status ok'; $('wsStatus').textContent = 'กำลังเล่น…';
@@ -503,13 +503,13 @@
     $('dlGenerateBtn').disabled = true;
     $('dlStatus').className = 'status';
     $('dlStatus').textContent = lang === 'th'
-      ? '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกต้องดาวน์โหลดจาก Hugging Face — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…'
-      : '⏳ กำลังเตรียมโมเดลเสียง (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
+      ? 'กำลังเตรียมโมเดลเสียง (ครั้งแรกต้องดาวน์โหลดจาก Hugging Face — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…'
+      : 'กำลังเตรียมโมเดลเสียง (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
     var startedAt = Date.now();
     synthesizeMmsTtsChunksResponsive(chunks, modelId, function (p) {
       if (p && p.status === 'progress' && p.file) {
         var pct = p.progress != null ? Math.round(p.progress) : null;
-        $('dlStatus').textContent = '⏳ กำลังดาวน์โหลดโมเดล: ' + p.file + (pct != null ? (' (' + pct + '%)') : '');
+        $('dlStatus').textContent = 'กำลังดาวน์โหลดโมเดล: ' + p.file + (pct != null ? (' (' + pct + '%)') : '');
       }
     }, function (done, total) {
       /* นับความคืบหน้าหลังท่อนเสร็จ (ไม่ใช่ก่อนเริ่ม) — ใช้ตัวเลขเดียวกันคำนวณ ETA ได้ทั้งตอนรันขนาน
@@ -518,11 +518,11 @@
       var elapsed = (Date.now() - startedAt) / 1000;
       var etaTxt = (done > 0 && done < total) ? (' — ' + formatEta((elapsed / done) * (total - done))) : '';
       $('dlStatus').textContent = total > 1
-        ? '⏳ สร้างเสียงแล้ว ' + done + '/' + total + ' ท่อน' + etaTxt
-        : '⏳ กำลังสร้างเสียง… (อาจใช้เวลาถึงหลายนาทีถ้าเครื่องไม่แรงมาก)';
+        ? 'สร้างเสียงแล้ว ' + done + '/' + total + ' ท่อน' + etaTxt
+        : 'กำลังสร้างเสียง… (อาจใช้เวลาถึงหลายนาทีถ้าเครื่องไม่แรงมาก)';
     })
       .then(function (output) {
-        $('dlStatus').textContent = '⏳ กำลังประกอบไฟล์เสียง…';
+        $('dlStatus').textContent = 'กำลังประกอบไฟล์เสียง…';
         var wavBlob = float32ToWavBlob(output.audio, output.sampling_rate);
         var wavUrl = URL.createObjectURL(wavBlob);
         return wavBlob.arrayBuffer().then(function (buf) {
@@ -730,7 +730,7 @@
     var chunks = chunkPcm(pcm, sampleRate, 30);
     var texts = [];
     for (var i = 0; i < chunks.length; i++) {
-      $('asrStatus').textContent = '⏳ กำลังถอดเสียงผ่านคลาวด์… ท่อน ' + (i + 1) + '/' + chunks.length;
+      $('asrStatus').textContent = 'กำลังถอดเสียงผ่านคลาวด์… ท่อน ' + (i + 1) + '/' + chunks.length;
       var data = await transcribeChunkCloud(chunks[i], sampleRate, language);
       texts.push((data.text || '').trim());
       /* บันทึก Neurons จริงจาก response ถ้ามี (แม่นกว่าประมาณจากความยาวเสียงเอง) ไม่มีก็ใช้ค่าประมาณ
@@ -771,7 +771,7 @@
   }
   function proceedRunAsr(file, langOpt, engine) {
     if (engine === 'cloud') {
-      $('asrStatus').textContent = '⏳ กำลังถอดรหัสไฟล์เสียง…';
+      $('asrStatus').textContent = 'กำลังถอดรหัสไฟล์เสียง…';
       decodeFileToPcm(file)
         .then(function (pcm) { return runAsrCloud(pcm, langOpt); })
         .then(function (text) {
@@ -790,17 +790,17 @@
     }
 
     var modelId = $('asrModel').value;
-    $('asrStatus').textContent = '⏳ กำลังเตรียมโมเดล AI (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
+    $('asrStatus').textContent = 'กำลังเตรียมโมเดล AI (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
     var transcriberPromise = loadAsrPipeline(modelId, function (p) {
       if (p && p.status === 'progress' && p.file) {
         var pct = p.progress != null ? Math.round(p.progress) : null;
-        $('asrStatus').textContent = '⏳ กำลังดาวน์โหลดโมเดล: ' + p.file + (pct != null ? (' (' + pct + '%)') : '');
+        $('asrStatus').textContent = 'กำลังดาวน์โหลดโมเดล: ' + p.file + (pct != null ? (' (' + pct + '%)') : '');
       }
     });
     Promise.all([transcriberPromise, decodeFileToPcm(file)])
       .then(function (results) {
         var transcriber = results[0], pcm = results[1];
-        $('asrStatus').textContent = '⏳ กำลังถอดเสียงเป็นข้อความ…';
+        $('asrStatus').textContent = 'กำลังถอดเสียงเป็นข้อความ…';
         /* Whisper เทรนมาให้รับเสียงทีละ ≤30 วินาทีเท่านั้น — ถ้าไม่บอก chunk_length_s/stride_length_s
            ไฟล์เสียงที่ยาวกว่า 30 วินาทีจะถูกยัดเข้าโมเดลเป็นก้อนเดียวทั้งไฟล์ ทำให้โมเดล "หลอน"
            (hallucinate) ออกมาเป็นคำซ้ำๆ ไม่จบ (เจอจริง เช่น "นำ นำ นำ นำ..." ไม่หยุด) แก้โดยบอกให้ตัด
@@ -964,7 +964,7 @@
     meetingSumBusy = true;
     $('meetingSumBtn').disabled = true;
     $('meetingSumWrap').style.display = 'none';
-    setMeetingSumStatus(cloudOk ? '⏳ กำลังสรุปด้วย AI บนคลาวด์…' : '⏳ กำลังเตรียมโมเดล AI…', '');
+    setMeetingSumStatus(cloudOk ? 'กำลังสรุปด้วย AI บนคลาวด์…' : 'กำลังเตรียมโมเดล AI…', '');
 
     var chunks = chunkText(transcript, 1800);
 
@@ -972,7 +972,7 @@
     var summaryP = cloudOk
       ? cloudMeetingSummary(transcript).catch(function (err) {
           if (!AiClient.canFallback(err) || isIOS()) throw new Error(AiClient.friendlyMessage(err));
-          setMeetingSumStatus('☁️ ' + AiClient.friendlyMessage(err) + ' — สลับไปใช้โมเดลในเบราว์เซอร์แทน…', '');
+          setMeetingSumStatus(AiClient.friendlyMessage(err) + ' — สลับไปใช้โมเดลในเบราว์เซอร์แทน…', '');
           return localMeetingSummary(chunks);
         })
       : localMeetingSummary(chunks);
@@ -1005,7 +1005,7 @@
       var chunkSummaries = [];
       function summarizeNextChunk(i) {
         if (i >= chunks.length) return Promise.resolve();
-        setMeetingSumStatus('⏳ กำลังสรุปช่วงที่ ' + (i + 1) + '/' + chunks.length + '…', '');
+        setMeetingSumStatus('กำลังสรุปช่วงที่ ' + (i + 1) + '/' + chunks.length + '…', '');
         return runChatOnce(worker, [
           { role: 'system', content: MEETING_CHUNK_SYSTEM },
           { role: 'user', content: chunks[i] }
@@ -1016,7 +1016,7 @@
       }
       return summarizeNextChunk(0).then(function () {
         if (chunks.length === 1) return chunkSummaries[0];
-        setMeetingSumStatus('⏳ กำลังรวมเป็นสรุปฉบับเดียว…', '');
+        setMeetingSumStatus('กำลังรวมเป็นสรุปฉบับเดียว…', '');
         return runChatOnce(worker, [
           { role: 'system', content: MEETING_FINAL_SYSTEM },
           { role: 'user', content: chunkSummaries.join('\n\n') },
@@ -1041,14 +1041,14 @@
     var parts = chunkText(transcript, 12000), notes = [];
     function next(i) {
       if (i >= parts.length) return Promise.resolve();
-      setMeetingSumStatus('⏳ กำลังสรุปช่วงที่ ' + (i + 1) + '/' + parts.length + ' (คลาวด์)…', '');
+      setMeetingSumStatus('กำลังสรุปช่วงที่ ' + (i + 1) + '/' + parts.length + ' (คลาวด์)…', '');
       return AiClient.summarize({
         task: 'meeting-part', model: 'fast', maxTokens: 600,
         messages: [{ role: 'system', content: MEETING_CHUNK_SYSTEM }, { role: 'user', content: parts[i] }]
       }).then(function (r) { notes.push(stripLeakedInstructions(r.text)); return next(i + 1); });
     }
     return next(0).then(function () {
-      setMeetingSumStatus('⏳ กำลังรวมเป็นสรุปฉบับเดียว…', '');
+      setMeetingSumStatus('กำลังรวมเป็นสรุปฉบับเดียว…', '');
       return AiClient.summarize({
         task: 'meeting', maxTokens: 1000,
         messages: [{ role: 'system', content: MEETING_FINAL_SYSTEM }, { role: 'user', content: notes.join('\n\n') }, reminder]

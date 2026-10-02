@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ตรวจสอบเอกสารจากไฟล์ | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#12A594">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -18,143 +17,61 @@
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
 <style>
-:root{
-  --bg:#F6F7FB; --card:#FFFFFF; --ink:#1F2430; --muted:#727C93; --line:#EAEDF5;
-  --brand:var(--ome-brand); --brand-dk:var(--ome-brand-dk); --brand-sf:var(--ome-brand-sf);
-  --violet:#6C63D9; --amber:#F5A524; --rose:#EC5E8A; --sky:#3B9BEA;
-  --ok:#17B26A; --warn:#E08700; --err:#E5484D;
-  --f:'Prompt',system-ui,-apple-system,sans-serif;
-  --r:16px; --sh:0 1px 2px rgba(24,31,54,.05), 0 8px 24px rgba(24,31,54,.06);
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--f);background:var(--bg);color:var(--ink);
-  line-height:1.7;font-size:15px;font-weight:400;padding:0 20px 80px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1080px;margin:0 auto}
+/* เฉพาะหน้านี้ — ปุ่ม/การ์ด/ช่องกรอก/badge/chip/tabs/toolbar/dropzone/lang-toggle มาจาก theme.css (data-layout="tool") */
+.dc-page{max-width:1080px}
+.dc-page .crumb{margin-bottom:0}
+.crumb-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:var(--ome-sp-3)}
+.dc-page .tabs{width:fit-content;max-width:100%;margin-bottom:var(--ome-sp-4)}
+.dc-page a.tab{display:inline-flex;align-items:center;gap:6px;text-decoration:none}
 
-.crumb-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:24px 0 0;flex-wrap:wrap}
-.crumb{font-size:13px;color:var(--muted)}
-.crumb a{color:var(--brand);text-decoration:none;font-weight:500}
-.crumb a:hover{text-decoration:underline}
-.crumb span.sep{margin:0 8px;color:#C9CEDC}
-.lang-toggle{display:inline-flex;align-items:center;gap:2px;background:var(--line);border:none;border-radius:20px;
-  padding:3px;cursor:pointer;font-family:var(--f);flex-shrink:0}
-.lang-toggle span{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:16px;color:var(--muted);transition:.15s}
-.lang-toggle span.active{background:var(--card);color:var(--brand-dk);box-shadow:0 1px 3px rgba(24,31,54,.08)}
 
-/* ── หัวเรื่อง ── */
-.dc-head{display:flex;align-items:flex-start;gap:16px;margin-top:16px}
-.dc-head-icon{width:52px;height:52px;border-radius:16px;flex-shrink:0;
-  background:linear-gradient(135deg,var(--brand),#3FCBB7);color:#fff;
-  display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(18,165,148,.28)}
-.dc-head h1{font-size:clamp(21px,3.6vw,28px);font-weight:700;letter-spacing:-.01em}
-.dc-head p{margin-top:4px;color:var(--muted);max-width:64ch;font-size:14px}
-
-/* ── สลับหน้า: แนบไฟล์ / พิมพ์ข้อความเอง ── */
-.dc-mode-tabs{display:flex;gap:6px;margin-top:22px;background:var(--line);border-radius:12px;padding:4px;width:fit-content}
-.dc-mode-tab{font-family:var(--f);font-size:13.5px;font-weight:600;padding:9px 16px;border:none;border-radius:9px;
-  background:transparent;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:7px;
-  transition:.15s;text-decoration:none}
-.dc-mode-tab.active{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(24,31,54,.08)}
-
-/* ── โซนวางไฟล์ ── */
-.drop{border:2px dashed #D7DCEA;border-radius:18px;padding:44px 24px;text-align:center;
-  cursor:pointer;transition:.2s;background:#FBFCFF;margin-top:14px}
-.drop:hover,.drop.over{border-color:var(--brand);background:var(--brand-sf)}
-.drop:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
-.drop-icon{color:var(--brand);margin-bottom:12px}
-.drop-main{font-weight:600;font-size:16px}
-.drop-hint{font-size:13px;color:var(--muted);margin-top:6px}
-[data-theme="dark"] .drop{background:#171C28}
-[data-theme="dark"] .drop:hover,[data-theme="dark"] .drop.over{background:#14261E}
-
-/* ── เลือกวิธีอ่าน OCR รูปภาพ ── */
-.ocr-engine-row{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
-.ocr-engine-label{font-size:12.5px;color:var(--muted);font-weight:600}
-.ocr-toggle{display:inline-flex;align-items:center;gap:2px;background:var(--line);border:none;border-radius:20px;
-  padding:3px;cursor:pointer;font-family:var(--f)}
-.ocr-toggle span{font-size:12px;font-weight:700;padding:6px 12px;border-radius:16px;color:var(--muted);transition:.15s}
-.ocr-toggle span.active{background:var(--card);color:var(--brand-dk);box-shadow:0 1px 3px rgba(24,31,54,.08)}
-
-/* ── ป้ายประเภทจุดที่พบ ── */
-.kind-badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;margin-bottom:7px}
-.kind-badge.spelling{background:#FFE3EA;color:#B3325A}
-.kind-badge.style{background:#EDEBFB;color:#5B4FC7}
-[data-theme="dark"] .kind-badge.spelling{background:#3A2530;color:#F5A9BE}
-[data-theme="dark"] .kind-badge.style{background:#2A2650;color:#C4BEF0}
-
-/* ── แถบเครื่องมือหลังแนบไฟล์ ── */
-.dc-toolbar{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-top:20px;
-  background:var(--card);border-radius:14px;box-shadow:var(--sh);padding:14px 16px}
-.dc-file-chip{display:flex;align-items:center;gap:8px;background:var(--brand-sf);color:var(--brand-dk);
-  border-radius:10px;padding:7px 12px;font-size:13px;font-weight:600;max-width:220px}
+.dc-toolbar{display:none;margin-top:var(--ome-sp-4);padding:10px 12px}
+.dc-file-chip{height:auto;padding:5px 10px;gap:6px;max-width:240px;font-size:var(--ome-fs-xs)}
 .dc-file-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dc-file-chip button{background:none;border:none;color:var(--brand-dk);cursor:pointer;display:flex;
-  flex-shrink:0;opacity:.7}
+.dc-file-chip button{display:flex;flex-shrink:0;padding:0;border:0;background:none;color:inherit;cursor:pointer;opacity:.7}
 .dc-file-chip button:hover{opacity:1}
-.dc-lang-select{font-family:var(--f);font-size:13.5px;padding:9px 12px;border:1.5px solid var(--line);
-  border-radius:10px;background:var(--card);color:var(--ink);cursor:pointer}
-.dc-lang-select:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.dc-toolbar .select{width:auto}
 .dc-spacer{flex:1}
-.btn{font-family:var(--f);font-size:14px;font-weight:600;padding:10px 18px;border:1.5px solid var(--line);
-  border-radius:11px;cursor:pointer;background:var(--card);color:var(--ink);transition:.16s;
-  display:inline-flex;align-items:center;gap:7px}
-.btn:hover:not(:disabled){border-color:var(--brand);color:var(--brand-dk)}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn.primary{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 2px 8px rgba(18,165,148,.28)}
-.btn.primary:hover:not(:disabled){background:var(--brand-dk);color:#fff}
-.btn.icon-only{padding:10px;width:40px;justify-content:center}
 
-.dc-status{display:flex;align-items:center;gap:9px;margin-top:14px;font-size:13.5px;color:var(--brand-dk);font-weight:500;min-height:20px}
-.dc-status.err{color:var(--err)}
-.spinner{width:15px;height:15px;border-radius:50%;border:2px solid var(--brand-sf);border-top-color:var(--brand);
+.dc-status{display:flex;align-items:center;gap:9px;margin-top:var(--ome-sp-3);font-size:var(--ome-fs-sm);color:var(--ome-accent-strong);font-weight:500;min-height:20px}
+.dc-status.err{color:var(--ome-err-ink)}
+.spinner{width:15px;height:15px;border-radius:50%;border:2px solid var(--ome-accent-soft);border-top-color:var(--ome-accent);
   animation:spin .7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── layout สองคอลัมน์: เอกสาร | จุดที่พบ ── */
-.dc-workspace{display:none;grid-template-columns:1fr 320px;gap:18px;margin-top:16px;align-items:start}
-@media(max-width:820px){.dc-workspace{grid-template-columns:1fr}}
-
-.dc-pager{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.dc-pager .page-ind{font-size:13px;color:var(--muted);font-weight:500}
-
-.dc-viewer{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:28px}
-.dc-text{white-space:pre-wrap;line-height:2;font-size:15.5px;color:var(--ink)}
-.err-mark{background:transparent;color:var(--ink);cursor:pointer;transition:.15s;border-radius:3px;
-  border-bottom:2.5px solid var(--rose);padding-bottom:1px}
-.err-mark:hover{background:#FFE9EF}
-.err-mark.active{background:var(--rose);color:#fff;border-bottom-color:var(--rose)}
-[data-theme="dark"] .err-mark:hover{background:#3A2530}
+.dc-workspace{display:none;grid-template-columns:minmax(0,1fr) 320px;gap:var(--ome-sp-4);margin-top:var(--ome-sp-4);align-items:start}
+@media(max-width:820px){.dc-workspace{grid-template-columns:minmax(0,1fr)}}
+.dc-pager{display:flex;align-items:center;gap:10px;margin-bottom:var(--ome-sp-3)}
+.dc-pager .page-ind{font-size:var(--ome-fs-sm);color:var(--ome-text-2);font-weight:500}
+.dc-viewer{padding:var(--ome-sp-5)}
+.dc-text{white-space:pre-wrap;line-height:2;font-size:15.5px;margin:0}
+.err-mark{background:transparent;color:inherit;cursor:pointer;border-radius:3px;border-bottom:2.5px solid var(--ome-err);padding-bottom:1px;
+  transition:background var(--ome-dur-1)}
+.err-mark:hover{background:var(--ome-err-soft)}
+.err-mark.active{background:var(--ome-err);color:#fff}
 
 .dc-side{position:sticky;top:calc(var(--ome-nav-h,48px) + 16px)}
-.dc-side-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.dc-side-head h2{font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:8px}
-.dc-count{background:var(--rose);color:#fff;font-size:11.5px;font-weight:700;border-radius:20px;
-  padding:1px 8px;min-width:20px;text-align:center}
-.dc-count.zero{background:var(--ok)}
-.dc-fixall{width:100%;justify-content:center;margin-bottom:10px}
-.dc-issue{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;
-  margin-bottom:9px;cursor:pointer;transition:.15s}
-.dc-issue:hover{border-color:var(--rose)}
-.dc-issue.active{border-color:var(--rose);background:#FFF5F7}
-[data-theme="dark"] .dc-issue.active{background:#2A1B22}
-.dc-issue .quote{color:var(--rose);font-weight:700;font-size:13.5px}
-.dc-issue .msg{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.5}
+.dc-side-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--ome-sp-3)}
+.dc-side-head h2{display:flex;align-items:center;gap:8px;margin:0;font-size:var(--ome-fs-base)}
+.dc-count.zero{background:var(--ome-ok-soft);color:var(--ome-ok-ink)}
+.dc-fixall{width:100%;margin-bottom:var(--ome-sp-3)}
+.dc-issue{padding:12px 14px;margin-bottom:9px;cursor:pointer;border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);
+  background:var(--ome-surface-1);transition:border-color var(--ome-dur-1)}
+.dc-issue:hover{border-color:var(--ome-err)}
+.dc-issue.active{border-color:var(--ome-err);background:var(--ome-err-soft)}
+.dc-issue .badge{margin-bottom:7px}
+.dc-issue .quote{color:var(--ome-err-ink);font-weight:700;font-size:var(--ome-fs-sm)}
+.dc-issue .msg{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px;line-height:1.5}
 .dc-issue .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
-.dc-issue .chip{background:var(--brand-sf);color:var(--brand-dk);border:none;border-radius:8px;
-  padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--f)}
-.dc-issue .chip:hover{background:var(--brand);color:#fff}
-.dc-side-empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 12px}
-.dc-side-empty svg{color:var(--ok);margin-bottom:8px}
-
-.dc-empty-state{text-align:center;color:var(--muted);font-size:13.5px;padding:10px 20px 0}
-
-footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
-@media(max-width:600px){body{padding:0 14px 60px}.dc-viewer{padding:18px}.dc-toolbar{padding:12px}}
+.dc-side-empty{display:none;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-sm);padding:30px 12px}
+.dc-side-empty .ome-icon{display:block;width:30px;height:30px;margin:0 auto 8px;color:var(--ome-ok)}
+.dc-empty-state{text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-sm);padding:10px 20px 0}
+@media(max-width:600px){.dc-viewer{padding:var(--ome-sp-4)}}
 </style>
 </head>
-<body class="ome-tool-page" data-doctitle-key="docTitleFile">
+<body data-layout="tool" data-doctitle-key="docTitleFile">
 <script src="auth-gate.js"></script>
-<div class="wrap">
+<main class="page dc-page">
 <div class="crumb-row">
   <nav class="crumb"><a href="area.html?a=work" data-i18n="crumbResp">งานที่รับผิดชอบ</a><span class="sep">/</span><span data-i18n="crumbDocCheck">ตรวจสอบเอกสาร</span></nav>
   <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
@@ -162,59 +79,50 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   </button>
 </div>
 
-<div class="dc-head">
-  <div class="dc-head-icon">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-  </div>
-  <div>
-    <h1 data-i18n="pageTitleFile">ตรวจสอบเอกสาร: แนบไฟล์</h1>
-  </div>
-</div>
+<div class="page-head"><h1 data-i18n="pageTitleFile">ตรวจสอบเอกสาร: แนบไฟล์</h1></div>
 
-<div class="dc-mode-tabs" id="modeTabs">
-  <a class="dc-mode-tab" href="doc-check.html">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+<nav class="tabs" id="modeTabs">
+  <a class="tab" href="doc-check.html">
+    <svg class="ome-icon"><use href="icons.svg#i-pencil"/></svg>
     <span data-i18n="modeTabType">พิมพ์ข้อความเอง</span>
   </a>
-  <a class="dc-mode-tab active" href="doc-check-file.html">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95L10.13 17.13a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+  <a class="tab on" href="doc-check-file.html">
+    <svg class="ome-icon"><use href="icons.svg#i-upload"/></svg>
     <span data-i18n="modeTabFile">แนบไฟล์</span>
   </a>
-</div>
+</nav>
 
-<div class="drop" id="dropZone" tabindex="0" role="button" data-i18n-aria-label="dropZoneAriaLabel" aria-label="แนบไฟล์เอกสาร">
-  <svg class="drop-icon" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
-  <div class="drop-main" data-i18n="dropMain">ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์</div>
-  <div class="drop-hint" data-i18n="dropHint">รองรับ .txt · .docx · .pdf · .png · .jpg (สแกน/ภาพถ่ายใช้ OCR อ่านให้อัตโนมัติ)</div>
+<div class="dropzone" id="dropZone" tabindex="0" role="button" data-i18n-aria-label="dropZoneAriaLabel" aria-label="แนบไฟล์เอกสาร">
+  <svg class="ome-icon"><use href="icons.svg#i-upload"/></svg>
+  <div class="dropzone-main" data-i18n="dropMain">ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์</div>
 </div>
 <input type="file" id="fileInput" accept=".txt,.docx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
 
-<div class="ocr-engine-row">
-  <span class="ocr-engine-label" data-i18n="ocrEngineLabel">อ่านรูปภาพด้วย</span>
-  <div class="ocr-toggle" id="ocrEngineToggle">
+<div class="row" style="margin-top:var(--ome-sp-3)">
+  <span class="mini" data-i18n="ocrEngineLabel">อ่านรูปภาพด้วย</span>
+  <div class="lang-toggle" id="ocrEngineToggle">
     <span data-oe="tesseract" data-i18n="ocrEngineTesseract" class="active">ฟรี (ไทย/อังกฤษ)</span>
     <span data-oe="vision" data-i18n="ocrEngineVision">Claude Vision (แม่นยำกว่า ทุกภาษา)</span>
   </div>
 </div>
-<div class="dc-toolbar" id="toolbar">
-  <div class="dc-file-chip">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 3v6h6"/></svg>
+
+<div class="toolbar dc-toolbar" id="toolbar">
+  <div class="badge accent dc-file-chip">
+    <svg class="ome-icon"><use href="icons.svg#i-file-text"/></svg>
     <span id="fileChipName"></span>
     <button id="replaceFileBtn" type="button" data-i18n-title="replaceFileBtnTitleFile" data-i18n-aria-label="replaceFileBtnTitleFile" title="เปลี่ยนไฟล์" aria-label="เปลี่ยนไฟล์">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      <svg class="ome-icon"><use href="icons.svg#i-x"/></svg>
     </button>
   </div>
-  <select class="dc-lang-select" id="langSelect"></select>
+  <select class="select" id="langSelect" aria-label="Language"></select>
   <button class="btn primary" id="runBtn" type="button">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <svg class="ome-icon"><use href="icons.svg#i-search"/></svg>
     <span data-i18n="runBtn">ตรวจคำผิด</span>
   </button>
   <div class="dc-spacer"></div>
-  <button class="btn icon-only" id="speakBtn" type="button" data-i18n-title="speakBtnTitle" data-i18n-aria-label="speakBtnTitle" title="อ่านออกเสียงหน้านี้" aria-label="อ่านออกเสียงหน้านี้">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-  </button>
-  <button class="btn icon-only" id="downloadBtn" type="button" data-i18n-title="downloadBtnTitle" data-i18n-aria-label="downloadBtnTitle" title="ดาวน์โหลดไฟล์ที่แก้ไข" aria-label="ดาวน์โหลดไฟล์ที่แก้ไข">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+  <button class="btn icon" id="speakBtn" type="button" data-i18n-title="speakBtnTitle" data-i18n-aria-label="speakBtnTitle" title="อ่านออกเสียงหน้านี้" aria-label="อ่านออกเสียงหน้านี้"></button>
+  <button class="btn icon" id="downloadBtn" type="button" data-i18n-title="downloadBtnTitle" data-i18n-aria-label="downloadBtnTitle" title="ดาวน์โหลดไฟล์ที่แก้ไข" aria-label="ดาวน์โหลดไฟล์ที่แก้ไข">
+    <svg class="ome-icon"><use href="icons.svg#i-download"/></svg>
   </button>
 </div>
 
@@ -224,33 +132,33 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
   <div>
     <div class="dc-pager">
       <button class="btn" id="prevBtn" type="button">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        <svg class="ome-icon"><use href="icons.svg#i-chevron-left"/></svg>
         <span data-i18n="prevBtn">หน้าก่อน</span>
       </button>
       <span class="page-ind" id="pageIndicator"></span>
       <button class="btn" id="nextBtn" type="button">
         <span data-i18n="nextBtn">หน้าถัดไป</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        <svg class="ome-icon"><use href="icons.svg#i-chevron-right"/></svg>
       </button>
     </div>
-    <div class="dc-viewer"><p class="dc-text" id="docText"></p></div>
+    <div class="card dc-viewer"><p class="dc-text" id="docText"></p></div>
   </div>
 
   <aside class="dc-side">
     <div class="dc-side-head">
       <h2>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+        <svg class="ome-icon"><use href="icons.svg#i-triangle-alert"/></svg>
         <span data-i18n="issuesFoundHeading">จุดที่พบ</span>
       </h2>
-      <span class="dc-count" id="issueCount">0</span>
+      <span class="badge err dc-count" id="issueCount">0</span>
     </div>
     <button class="btn dc-fixall" id="applyFixBtn" type="button" style="display:none">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+      <svg class="ome-icon"><use href="icons.svg#i-check"/></svg>
       <span data-i18n="applyFixBtn">แก้ไขทั้งหมดในหน้านี้</span>
     </button>
     <div id="issueList"></div>
-    <div class="dc-side-empty" id="issueEmpty" style="display:none">
-      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg><br>
+    <div class="dc-side-empty" id="issueEmpty">
+      <svg class="ome-icon"><use href="icons.svg#i-circle-check"/></svg>
       <span data-i18n="issueEmptyText">ไม่พบจุดที่ควรแก้ในหน้านี้</span>
     </div>
   </aside>
@@ -258,7 +166,7 @@ footer{margin-top:36px;text-align:center;font-size:12.5px;color:#9AA3B8}
 
 <div class="dc-empty-state" id="emptyState" data-i18n="emptyStateFile">ยังไม่ได้แนบไฟล์ — เริ่มจากกล่องด้านบน</div>
 
-</div>
+</main>
 
 <script type="module">
 import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs';

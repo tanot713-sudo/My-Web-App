@@ -13,10 +13,10 @@
   var currentFile = null;
 
   function formatProgress(p) {
-    if (!p) return '⏳ กำลังอ่านไฟล์…';
-    if (p.stage === 'ocr') return '⏳ กำลังอ่านด้วย OCR หน้า/รูป ' + p.page + '/' + p.total + ' (อาจใช้เวลาสักครู่ต่อหน้า)…';
-    if (p.stage === 'pdf') return '⏳ กำลังอ่าน PDF หน้า ' + p.page + '/' + p.total + '…';
-    return '⏳ กำลังอ่านไฟล์…';
+    if (!p) return 'กำลังอ่านไฟล์…';
+    if (p.stage === 'ocr') return 'กำลังอ่านด้วย OCR หน้า/รูป ' + p.page + '/' + p.total + ' (อาจใช้เวลาสักครู่ต่อหน้า)…';
+    if (p.stage === 'pdf') return 'กำลังอ่าน PDF หน้า ' + p.page + '/' + p.total + '…';
+    return 'กำลังอ่านไฟล์…';
   }
 
   function updateCharCount() {
@@ -45,7 +45,7 @@
   function handleFile(file) {
     if (!file) return;
     currentFile = file;
-    $('dropMain').textContent = '' + file.name;
+    $('dropMain').textContent = file.name;
     $('dropSub').textContent = (file.size / 1024).toFixed(0) + ' KB — แตะเพื่อเลือกไฟล์อื่น';
     $('resultCard').style.display = 'none';
     actionStatus('', '');
@@ -54,7 +54,7 @@
       readStatus('โหลดตัวอ่านไฟล์ไม่สำเร็จ (อาจเป็นเพราะเน็ตช้า/ถูกบล็อก) ลองรีเฟรชหน้าใหม่', 'err');
       return;
     }
-    readStatus('⏳ กำลังอ่านไฟล์ ' + file.name + '…', '');
+    readStatus('กำลังอ่านไฟล์ ' + file.name + '…', '');
     window.TanotFileReader.readAnyFile(file, {
       ocr: $('ocrChk').checked,
       onProgress: function (p) { readStatus(formatProgress(p), ''); }
@@ -68,7 +68,7 @@
       updateCharCount();
       $('resultCard').style.display = '';
       $('splitPdfBtn').style.display = file.name.toLowerCase().endsWith('.pdf') ? '' : 'none';
-      readStatus('ดึงข้อความจาก ' + file.name + ' แล้ว (' + text.length + ' ตัวอักษร) — ตรวจทานก่อนนำไปใช้เสมอ', 'ok');
+      readStatus('ดึงข้อความจาก ' + file.name + ' แล้ว (' + text.length + ' ตัวอักษร)', 'ok');
     }).catch(function (err) {
       readStatus('อ่านไฟล์ไม่สำเร็จ: ' + (err && err.message ? err.message : err), 'err');
     });
@@ -83,7 +83,7 @@
       return;
     }
     $('splitPdfBtn').disabled = true;
-    actionStatus('⏳ กำลังแยกหน้า PDF…', '');
+    actionStatus('กำลังแยกหน้า PDF…', '');
     currentFile.arrayBuffer().then(function (bytes) {
       return window.PDFLib.PDFDocument.load(bytes);
     }).then(function (srcDoc) {

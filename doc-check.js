@@ -83,14 +83,12 @@ var I18N = {
     crumbResp: 'งานที่รับผิดชอบ',
     crumbDocCheck: 'ตรวจสอบเอกสาร',
     pageTitleType: 'ตรวจสอบเอกสาร: พิมพ์ข้อความเอง',
-    pageDescType: 'พิมพ์หรือวางข้อความที่ต้องการตรวจตรงนี้ เลือกภาษา แล้วให้ระบบตรวจคำผิด ไฮไลต์จุดที่ควรแก้ อ่านออกเสียง และดาวน์โหลดเป็นไฟล์ — ทำงานในเบราว์เซอร์ของคุณทั้งหมด',
     pageTitleFile: 'ตรวจสอบเอกสาร: แนบไฟล์',
     modeTabType: 'พิมพ์ข้อความเอง',
     modeTabFile: 'แนบไฟล์',
-    typeTextareaPlaceholder: 'พิมพ์หรือวางข้อความที่ต้องการตรวจตรงนี้ — เช่น ประโยคที่ไม่แน่ใจว่าเขียนถูกไหม หรืออยากให้แนะนำสำนวนที่เป็นทางการกว่านี้',
+    typeTextareaPlaceholder: 'พิมพ์หรือวางข้อความที่ต้องการตรวจ',
     useTypedTextBtn: 'ใช้ข้อความนี้',
     dropMain: 'ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์',
-    dropHint: 'รองรับ .txt · .docx · .pdf · .png · .jpg (สแกน/ภาพถ่ายใช้ OCR อ่านให้อัตโนมัติ)',
     dropZoneAriaLabel: 'แนบไฟล์เอกสาร',
     replaceFileBtnTitleType: 'เริ่มใหม่',
     replaceFileBtnTitleFile: 'เปลี่ยนไฟล์',
@@ -140,14 +138,12 @@ var I18N = {
     crumbResp: 'Responsibilities',
     crumbDocCheck: 'Document Check',
     pageTitleType: 'Document Check: Type Text',
-    pageDescType: 'Type or paste the text you want checked here, choose a language, then have the system check for spelling errors, highlight what should be fixed, read it aloud, and download it as a file — everything runs in your browser.',
     pageTitleFile: 'Document Check: Attach File',
     modeTabType: 'Type Text',
     modeTabFile: 'Attach File',
-    typeTextareaPlaceholder: 'Type or paste the text you want checked here — e.g. a sentence you\'re not sure is correct, or one you\'d like a more formal alternative for.',
+    typeTextareaPlaceholder: 'Type or paste the text you want checked',
     useTypedTextBtn: 'Use This Text',
     dropMain: 'Drag a file here, or click to choose one',
-    dropHint: 'Supports .txt · .docx · .pdf · .png · .jpg (scans/photos are read automatically with OCR)',
     dropZoneAriaLabel: 'Attach a document file',
     replaceFileBtnTitleType: 'Start Over',
     replaceFileBtnTitleFile: 'Change File',
@@ -412,8 +408,8 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
       typeTextarea = $('typeTextarea'), useTypedTextBtn = $('useTypedTextBtn'), langToggle = $('langToggle'),
       ocrEngineToggle = $('ocrEngineToggle');
 
-  var SPEAK_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
-  var STOP_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
+  var SPEAK_ICON = '<svg class="ome-icon"><use href="icons.svg#i-volume-2"/></svg>';
+  var STOP_ICON = '<svg class="ome-icon"><use href="icons.svg#i-square"/></svg>';
   speakBtn.innerHTML = SPEAK_ICON;
 
   /* ══ ภาษา UI (ไทย/อังกฤษ) — แปล element ที่มี data-i18n-* และสร้างตัวเลือกภาษาเอกสารใหม่ ══ */
@@ -526,8 +522,8 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
       }).join('');
       var kind = issueKind(m.category);
       var badgeHtml = kind === 'style'
-        ? '<span class="kind-badge style">' + t('badgeStyle') + '</span>'
-        : '<span class="kind-badge spelling">' + t('badgeSpelling') + '</span>';
+        ? '<span class="badge info">' + t('badgeStyle') + '</span>'
+        : '<span class="badge err">' + t('badgeSpelling') + '</span>';
       item.innerHTML = badgeHtml +
         '<div class="quote">"' + quoted.replace(/</g, '&lt;') + '"</div>' +
         '<div class="msg">' + m.message.replace(/</g, '&lt;') + '</div>' +
