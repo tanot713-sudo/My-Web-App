@@ -198,9 +198,70 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
   #numStatRow{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
+/* ══ มุมมอง "กำหนดเอง" (Gridstack) ══ */
+#customView{position:relative}
+.custom-tools-bar{display:flex;align-items:center;gap:var(--ome-sp-2);min-height:44px;padding:4px 2px 10px}
+.custom-tools-title{flex:1;font-size:var(--ome-fs-md);font-weight:700}
+.custom-tools-panel{position:fixed;top:0;right:0;width:min(360px,92vw);height:100dvh;padding:var(--ome-sp-4);overflow:auto;
+  background:var(--ome-surface-1);color:var(--ome-text-1);border-left:1px solid var(--ome-border);box-shadow:var(--ome-shadow-3);z-index:var(--ome-z-modal)}
+.custom-tools-panel[hidden]{display:none}
+.custom-tools-panel .utility-menu-section{grid-template-columns:1fr}
+.custom-tools-overlay{position:fixed;inset:0;background:rgba(11,18,35,.4);z-index:calc(var(--ome-z-modal) - 1)}
+.custom-hidden-actions{display:none!important}
+#customCanvasWrap{position:relative;margin-top:var(--ome-sp-3)}
+#customBgLayer{position:absolute;inset:0;z-index:-1;border-radius:var(--ome-radius-lg);pointer-events:none;background-position:center;transition:opacity var(--ome-dur-2)}
+.grid-stack{min-height:80px;padding-bottom:20px;border-radius:var(--ome-radius-lg)}
+.grid-stack-item-content{display:flex;flex-direction:column;overflow:hidden;background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-1)}
+.widget-head{display:flex;align-items:center;gap:4px;padding:6px 6px 6px 12px;border-bottom:1px solid var(--ome-border);cursor:grab;flex-shrink:0}
+.widget-head:active{cursor:grabbing}
+.widget-head .wt-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--ome-fs-xs);font-weight:700}
+.widget-head :is(.w-edit,.w-del){display:grid;place-items:center;width:26px;height:26px;padding:0;border:0;border-radius:var(--ome-radius-sm);background:transparent;color:var(--ome-text-3);cursor:pointer;flex-shrink:0}
+.widget-head :is(.w-edit,.w-del):hover{background:var(--ome-surface-2);color:var(--ome-text-1)}
+.widget-head .w-del:hover{background:var(--ome-err-soft);color:var(--ome-err-ink)}
+.widget-body{flex:1;min-height:0;padding:var(--ome-sp-3);overflow:auto;position:relative}
+.widget-body.wb-kpi{display:flex;flex-direction:column;justify-content:center;align-items:var(--kpi-align,flex-start);gap:4px;text-align:var(--widget-align,left)}
+.widget-body.wb-kpi .wt-val{font-size:var(--ome-fs-3xl);font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+.widget-body.wb-kpi .wt-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+.wt-snapshot-note{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-style:italic}
+.wt-target-row{margin-top:var(--ome-sp-2);width:100%}
+.wt-target-bar{height:6px;margin-bottom:4px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-2);overflow:hidden}
+.wt-target-fill{height:100%;border-radius:inherit;transition:width var(--ome-dur-3)}
+.wt-target-fill.good{background:var(--ome-ok)}
+.wt-target-fill.warn{background:var(--ome-warn)}
+.wt-target-fill.bad{background:var(--ome-err)}
+.wt-target-pct{font-size:var(--ome-fs-xs);font-weight:700}
+.wt-target-pct.good,.wt-compare-row.good{color:var(--ome-ok-ink)}
+.wt-target-pct.warn{color:var(--ome-warn-ink)}
+.wt-target-pct.bad,.wt-compare-row.bad{color:var(--ome-err-ink)}
+.wt-compare-row{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
+.wt-compare-label{font-weight:400}
+.widget-body.wb-chart{padding:var(--ome-sp-2)}
+.widget-body.wb-chart canvas{max-width:100%}
+.widget-body.wb-text{font-size:var(--ome-fs-base);line-height:1.6;white-space:pre-wrap;outline:none}
+.widget-body.wb-text:empty::before{content:attr(data-placeholder);color:var(--ome-text-3)}
+.widget-body.wb-table{display:flex;flex-direction:column;gap:6px;padding:var(--ome-sp-2)}
+.wtbl-search{width:100%;height:30px;padding:0 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);color:inherit;font:inherit;font-size:var(--ome-fs-xs);flex-shrink:0}
+.wtbl-search:focus{outline:none;border-color:var(--ome-accent)}
+.wtbl-tablewrap{flex:1;min-height:0;overflow:auto}
+.widget-body.wb-table table{font-size:var(--ome-fs-xs)}
+.widget-body.wb-table :is(th,td){padding:5px 9px}
+.widget-body.wb-table thead th{position:sticky;top:0;cursor:pointer}
+.widget-body.wb-table thead th.sorted{color:var(--ome-accent-strong)}
+.widget-body.wb-table :is(td.piv-total,th.piv-total){font-weight:700}
+.widget-body.wb-table tr.piv-total-row td{font-weight:700;border-top:2px solid var(--ome-border)}
+.wtbl-meta{font-size:var(--ome-fs-xs);color:var(--ome-text-2);flex-shrink:0}
+.custom-empty-state{min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--ome-sp-3);padding:var(--ome-sp-5);text-align:center;
+  border:1px dashed var(--ome-border-strong);border-radius:var(--ome-radius-lg);background:var(--ome-surface-2)}
+.custom-empty-state strong{font-size:var(--ome-fs-md)}
+.custom-empty-state .ce-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:var(--ome-radius-lg);background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
+.custom-empty-state .ce-icon .ome-icon{width:24px;height:24px}
+.ce-actions{display:flex;gap:var(--ome-sp-2);flex-wrap:wrap;justify-content:center}
+.fp-item .template-load{flex:1;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+
 /* ══ ป๊อปโอเวอร์ลอยจากปุ่ม (openPopover → #filterPopover) ══ */
 .filter-popover{position:fixed;z-index:var(--ome-z-drawer);width:240px;max-width:calc(100vw - 20px);padding:var(--ome-sp-3);
   background:var(--ome-surface-1);color:var(--ome-text-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3)}
+.filter-popover{max-height:calc(100dvh - 24px);overflow:auto}
 .filter-popover.wide{width:300px}
 .filter-popover.xwide{width:min(620px,calc(100vw - 20px))}
 .filter-popover :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),select,textarea){
@@ -210,6 +271,7 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
 .filter-popover :is(input,select,textarea):focus{outline:none;border-color:var(--ome-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--ome-accent) 22%,transparent)}
 .filter-popover input[type=color],.rd-dialog input[type=color]{width:42px;height:30px;padding:2px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);cursor:pointer}
 .filter-popover :is(input[type=checkbox],input[type=radio]){accent-color:var(--ome-accent);flex-shrink:0}
+.filter-popover label:has(> input[type=color]),.filter-popover label:has(> input[type=checkbox]){display:flex;align-items:center;gap:var(--ome-sp-2);font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
 .fp-title{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-1);margin-bottom:var(--ome-sp-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fp-search{margin-bottom:var(--ome-sp-2)}
 .fp-quick{display:flex;gap:var(--ome-sp-2);margin-bottom:6px}
@@ -436,67 +498,14 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 .risk-matrix td{font-weight:800;font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums}
 
 /* ── มุมมอง "กำหนดเอง" — Gridstack.js จัดตำแหน่ง/ย่อ-ขยายกล่องให้ ที่นี่แค่แต่งหน้าตากล่องให้เข้าธีมเว็บ ── */
-.grid-stack{margin-top:10px;min-height:80px;border-radius:14px;transition:background .15s}
+
 /* ชั้นพื้นหลังแยกต่างหาก อยู่หลังเนื้อหาเสมอ (z-index ติดลบ) ไม่กระทบการ์ด/กล่องด้านบน แม้ปรับความโปร่งใส
    หรือใส่รูป/ลวดลายก็ตาม — ต่างจากเดิมที่ทาสี/รูปตรงบนตัว container เนื้อหาเลย (ปรับความโปร่งใสไม่ได้เพราะ
    จะทำให้เนื้อหาด้านในโปร่งตามไปด้วย) */
-#customBgLayer{position:absolute;inset:0;z-index:-1;border-radius:14px;pointer-events:none;background-position:center;transition:opacity .15s}
-
-.grid-stack-item-content{background:var(--card);border-radius:14px;box-shadow:var(--sh);
-  border:1px solid rgba(16,24,40,.03);overflow:hidden;display:flex;flex-direction:column}
-.widget-head{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);
-  cursor:grab;flex-shrink:0}
-.widget-head:active{cursor:grabbing}
-.widget-head .wt-label{font-size:12px;font-weight:700;color:var(--ink);flex:1;overflow:hidden;
-  text-overflow:ellipsis;white-space:nowrap}
-.widget-head button{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:13px;
-  padding:2px 5px;border-radius:6px;flex-shrink:0}
-.widget-head button:hover{background:var(--bg);color:var(--ink)}
-.widget-body{flex:1;min-height:0;padding:10px;overflow:auto;position:relative}
-.widget-body.wb-kpi{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px}
-.widget-body.wb-kpi .wt-val{font-size:26px;font-weight:800;color:var(--ink);letter-spacing:-.01em;
-  font-variant-numeric:tabular-nums}
-.widget-body.wb-kpi .wt-sub{font-size:11.5px;color:var(--muted)}
-.wt-snapshot-note{font-size:10px;color:var(--muted);font-style:italic}
 
 /* ── กล่อง KPI: แถบเป้าหมาย + แถวเปรียบเทียบเดือนก่อน ── */
-.wt-target-row{margin-top:8px}
-.wt-target-bar{height:6px;border-radius:4px;background:var(--line);overflow:hidden;margin-bottom:4px}
-.wt-target-fill{height:100%;border-radius:4px;transition:width .25s}
-.wt-target-fill.good{background:var(--ok)}
-.wt-target-fill.warn{background:var(--warn)}
-.wt-target-fill.bad{background:var(--err)}
-.wt-target-pct{font-size:11px;font-weight:700}
-.wt-target-pct.good{color:var(--ok)}
-.wt-target-pct.warn{color:var(--warn)}
-.wt-target-pct.bad{color:var(--err)}
-.wt-compare-row{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;font-weight:600;color:var(--muted)}
-.wt-compare-row.good{color:var(--ok)}
-.wt-compare-row.bad{color:var(--err)}
-.wt-compare-arrow{font-size:10px}
-.wt-compare-label{color:var(--muted);font-weight:400;font-size:11px}
-.widget-body.wb-chart{padding:8px}
-.widget-body.wb-chart canvas{max-width:100%}
-.widget-body.wb-text{font-size:14px;line-height:1.6;color:var(--ink);white-space:pre-wrap;outline:none}
-.widget-body.wb-text:empty::before{content:attr(data-placeholder);color:var(--muted)}
-.widget-body.wb-table{display:flex;flex-direction:column;gap:6px;padding:8px}
-.widget-body.wb-table .wtbl-search{width:100%;padding:6px 9px;border:1px solid var(--line);border-radius:8px;
-  font-size:12px;background:var(--card);color:var(--ink);flex-shrink:0}
-.widget-body.wb-table .wtbl-tablewrap{flex:1;min-height:0;overflow:auto}
-.widget-body.wb-table table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
-.widget-body.wb-table th,.widget-body.wb-table td{padding:5px 9px;border-bottom:1px solid var(--line);text-align:left}
-.widget-body.wb-table thead th{position:sticky;top:0;background:var(--card);cursor:pointer;user-select:none}
-.widget-body.wb-table thead th.sorted{color:var(--brand-dk)}
-.widget-body.wb-table thead th .sort-ic{font-size:9px;margin-left:3px;color:var(--muted)}
-.widget-body.wb-table td.num,.widget-body.wb-table th.num{text-align:right}
-.widget-body.wb-table td.piv-total,.widget-body.wb-table th.piv-total{font-weight:800}
-.widget-body.wb-table tr.piv-total-row td{font-weight:800;border-top:2px solid var(--line)}
-.widget-body.wb-table .wtbl-meta{font-size:10.5px;color:var(--muted);flex-shrink:0}
 
 /* ลูกเล่นเล็กๆ: การ์ด/กล่องยกตัวขึ้นนิดๆ พร้อมเงาเข้มขึ้นตอน hover ให้ดูมีมิติ ไม่ใช่แผ่นแบนราบ */
-.grid-stack-item-content{transition:transform .15s ease,box-shadow .15s ease}
-
-.grid-stack-item-content:hover{box-shadow:0 8px 20px rgba(16,24,40,.12)}
 
 /* ── แถบตัวกรองที่ active ของตารางในแดชบอร์ด (แยกจากตัวกรองของแท็บแก้ไข) — เดิมเป็นแถวกรองตรึงอยู่
    ตลอดทีละคอลัมน์ (รกมากเมื่อคอลัมน์เยอะ) เปลี่ยนเป็น: กดปุ่ม 🔽 ที่หัวคอลัมน์ หรือ "+ ตัวกรอง" ที่นี่
@@ -619,15 +628,6 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 
 @media(max-width:950px){.dashboard-shell > #projectSpecialGrid > #projectStackedCard, .dashboard-shell > #projectSpecialGrid > #projectTimelineCard{grid-column:1/-1;}}
 
-.widget-body.wb-kpi.widget-align-left{text-align:left}
-.widget-body.wb-kpi.widget-align-center{text-align:center;align-items:center}
-.widget-body.wb-kpi.widget-align-right{text-align:right;align-items:flex-end}
-.widget-body.wb-kpi.widget-align-justify{text-align:justify;align-items:stretch}
-.widget-body.wb-chart.widget-align-left,.widget-body.wb-table.widget-align-left{text-align:left}
-.widget-body.wb-chart.widget-align-center,.widget-body.wb-table.widget-align-center{text-align:center}
-.widget-body.wb-chart.widget-align-right,.widget-body.wb-table.widget-align-right{text-align:right}
-.widget-body.wb-chart.widget-align-justify,.widget-body.wb-table.widget-align-justify{text-align:justify}
-
 #projectSpecialGrid.dashboard-12-grid{margin-top:4px}
 #projectSpecialGrid.dashboard-12-grid .card{margin-top:0}
 
@@ -642,21 +642,12 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 
 /* ===== Final 7: isolated resize handles / reliable custom picker / project target progress ===== */
 
-.widget-picker-modal{position:fixed;inset:0;z-index:2000;align-items:center;justify-content:center;padding:18px}
-.widget-picker-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.42);backdrop-filter:blur(4px)}
-.widget-picker-dialog{position:relative;width:min(640px,96vw);max-height:90vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 60px rgba(15,23,42,.24);padding:18px}
-.widget-picker-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.widget-picker-head h3{font-size:18px;line-height:1.25}
-.widget-picker-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.widget-picker-item{border:1px solid var(--line);background:var(--bg);border-radius:14px;padding:16px;text-align:left;cursor:pointer;font:inherit;display:flex;flex-direction:column;gap:7px;transition:.15s;min-height:120px}
-.widget-picker-item:hover,.widget-picker-item:focus{outline:none;border-color:var(--brand);background:var(--brand-sf);transform:translateY(-2px);box-shadow:0 8px 20px rgba(16,24,40,.08)}
-.widget-picker-item strong{font-size:24px}.widget-picker-item span{font-weight:800;color:var(--ink)}.widget-picker-item small{color:var(--muted);font-size:11px}.widget-picker-item.template{background:linear-gradient(180deg,var(--card),var(--bg))}
-.widget-picker-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .project-progress-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:-3px 0 10px}.project-progress-legend span{font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:5px}.pp-dot{width:9px;height:9px;border-radius:50%;display:inline-block}.pp-dot.ontrack{background:#22A06B}.pp-dot.near{background:#F59E0B}.pp-dot.behind{background:#3B82F6}.pp-dot.overdue{background:#DC2626}
 .project-progress-board{border:1px solid var(--line);border-radius:12px;overflow:auto;max-height:520px;background:var(--card)}
 .pp-row{display:grid;grid-template-columns:minmax(220px,2.2fr) minmax(360px,5fr) minmax(130px,1.3fr);gap:14px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
 .pp-row:last-child{border-bottom:0}.pp-row:hover{background:var(--bg)}.pp-name{min-width:0}.pp-name b{display:block;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pp-name small{display:block;color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.pp-track-wrap{position:relative;min-width:220px}.pp-track{position:relative;height:20px;background:#EEF2F6;border-radius:999px;overflow:visible}.pp-fill{position:absolute;left:0;top:0;height:100%;border-radius:999px;min-width:3px;transition:width .2s}.pp-fill.ontrack{background:#22A06B}.pp-fill.near{background:#F59E0B}.pp-fill.behind{background:#3B82F6}.pp-fill.overdue{background:#DC2626}.pp-expected{position:absolute;top:-4px;width:2px;height:28px;background:#334155;border-radius:2px;z-index:3}.pp-label{position:absolute;left:8px;top:2px;font-size:10px;line-height:16px;color:#fff;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.25);white-space:nowrap}.pp-target{font-size:10.5px;text-align:right;color:var(--muted);white-space:nowrap}.pp-target strong{display:block;color:var(--ink);font-size:11.5px}.pp-target .status{display:inline-flex;margin-top:2px;font-weight:800}.pp-target .status.near{color:#B45309}.pp-target .status.behind{color:#2563EB}.pp-target .status.ontrack{color:#15803D}.pp-target .status.overdue{color:#B91C1C}.pp-today-badge{font-size:9px;color:var(--muted);margin-top:4px}
-@media(max-width:850px){.widget-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pp-row{grid-template-columns:1fr}.pp-target{text-align:left}.pp-track-wrap{width:100%}}
-@media(max-width:520px){.widget-picker-grid{grid-template-columns:1fr}.widget-picker-dialog{padding:14px}.widget-picker-item{min-height:92px}.pp-row{padding:9px}}
+@media(max-width:850px){.pp-row{grid-template-columns:1fr}.pp-target{text-align:left}.pp-track-wrap{width:100%}}
+@media(max-width:520px){.pp-row{padding:9px}}
 
 .timeline-today-label{position:absolute;top:2px;transform:translateX(-50%);font-size:8px;color:#DC2626;font-weight:800;white-space:nowrap}.timeline-today-line{position:absolute;top:0;bottom:0;width:1px;background:#DC2626;border-left:1px dashed #DC2626;opacity:.75;z-index:2;pointer-events:none}
 
@@ -698,10 +689,6 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 /* Stage 5 (ตามที่ผู้ใช้ขอ): padding บน-ล่างของหัวกล่องเมนู hamburger เดิมไม่เท่ากัน (บน 6px / ล่าง 10px)
    ทำให้ "Dashboard Tools" ดูเหมือนถูกดันขึ้นชิดขอบบน ปรับให้เท่ากัน */
 
-.custom-dashboard-shell .toolbar-row{align-items:center}.custom-dashboard-shell .toolbar-row .btn{margin:0}.custom-dashboard-shell #customEmptyHint{display:none!important}
-#customCanvasWrap{margin-top:10px}.custom-dashboard-shell .grid-stack{padding-bottom:20px}
-.widget-head .wt-label{font-family:'IBM Plex Sans',Arial,sans-serif}.widget-head button{opacity:.55}.widget-head button:hover{opacity:1}
-
 /* ── Final 18 polish: stable Custom lifecycle, semantic mapping, compact controls ── */
 
 .data-map-table{width:100%;border-collapse:collapse;font-size:12px}
@@ -717,15 +704,6 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 /* card tool buttons sit in one compact tool group */
 
 /* Final19 UI polish */
-
-#customView .custom-tools-bar{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:var(--sh);position:relative;z-index:20}
-#customView .custom-tools-title{font-weight:800;color:var(--ink)}
-#customView .custom-tools-panel{position:absolute;top:52px;left:12px;width:300px;max-width:calc(100vw - 24px);background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-lg);padding:10px;z-index:300}
-#customView .utility-menu-section{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-#customView .utility-menu-item{min-height:38px;text-align:left;border:1px solid var(--line);border-radius:10px;background:#fbfbfc;color:var(--ink);font:600 12px 'IBM Plex Sans',Arial,sans-serif;padding:8px 10px;cursor:pointer}
-#customView .utility-menu-item:hover{background:var(--brand-sf);border-color:var(--brand);color:var(--brand-dk)}
-#customView .custom-hidden-actions{display:none!important}
-#customView .grid-stack{margin-top:12px}
 
 /* FINAL24 density must visibly affect dashboard layout */
 
@@ -751,8 +729,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 
 /* Text widget controls */
 .text-style-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.wb-text{text-align:left;}
-.wb-text[style*="justify"]{text-align:justify;}
+
 /* Remove low-value helper copy from normal view */
 #dashboardDensityHint, .chart-click-hint, [data-i18n="hintBarClick"], [data-i18n="hintLineClick"]{display:none!important;}
 /* Editable dashboard title */
@@ -760,14 +737,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 @media(max-width:760px){.text-style-grid{grid-template-columns:1fr;}}
 
 /* Final 10 — reliable text alignment editor + screenshot-style project timeline */
-.widget-body.wb-text-rich{display:flex;flex-direction:column;gap:6px;padding:8px;min-height:0}
-.wt-text-toolbar{display:flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--line);background:var(--bg);border-radius:8px;flex-shrink:0}
-.wt-align-btn{width:29px;height:27px;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:6px;cursor:pointer;font:700 13px 'IBM Plex Sans',Arial,sans-serif;display:inline-grid;place-items:center}
-.wt-align-btn:hover{background:var(--card);color:var(--ink);border-color:var(--line)}
-.wt-align-btn.on{background:var(--brand-sf);color:var(--brand-dk);border-color:var(--brand)}
-.wt-text-editor{flex:1;min-height:80px;overflow:auto;outline:none;white-space:pre-wrap;word-break:break-word;line-height:1.6;padding:8px;border-radius:8px}
-.wt-text-editor:empty::before{content:attr(data-placeholder);color:var(--muted)}
-.wt-text-editor:focus{box-shadow:inset 0 0 0 1px var(--brand)}
+
 /* SCADA Work Progress — timeline/Gantt presentation */
 .scada-timeline-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:0 2px 10px}
 .scada-timeline-legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:10.5px;color:var(--muted);font-weight:700}
@@ -829,12 +799,6 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 
 <style id="final15-ui-fixes">
 
-.custom-tools-bar{display:flex;align-items:center;gap:10px;position:relative;z-index:30;padding:4px 0 8px}
-.custom-tools-title{font-size:13px;font-weight:800;color:var(--ink)}
-.custom-tools-panel{position:absolute;left:0;top:48px;width:310px;max-width:calc(100vw - 24px);background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 48px rgba(16,24,40,.18);padding:10px;z-index:500}
-.custom-tools-panel .utility-menu-section{grid-template-columns:1fr 1fr}
-.custom-hidden-actions{display:none!important}
-
 /* Final 17 — Data Accuracy + Project Control polish */
 
 .data-map-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}.data-map-table th,.data-map-table td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:12px}.data-map-table th{background:var(--bg);font-weight:800}.data-map-table tr:last-child td{border-bottom:0}
@@ -884,9 +848,8 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 
 <style id="final22-popup-ui">
 /* Final 22: universal white modal/popup surface and symmetric controls */
-.app-modal-host,.widget-picker-modal{align-items:center!important;justify-content:center!important;}
-.app-modal-host[style*="display:none"],.app-modal-host[style*="display: none"],.widget-picker-modal[style*="display:none"],.widget-picker-modal[style*="display: none"]{display:none!important;}
-.app-modal-host > *, .widget-picker-modal > *, .bi-command-box, .bi-drawer{background:#fff!important;color:#111827!important;}
+
+.bi-command-box, .bi-drawer{background:#fff!important;color:#111827!important;}
 .app-modal-host .bi-studio,.bi-studio{background:#fff!important;border:1px solid #E5E7EB!important;border-radius:16px!important;box-shadow:0 24px 70px rgba(15,23,42,.18)!important;}
 .app-modal-host .bi-studio-head,.bi-studio-foot{background:#fff!important;}
 
@@ -901,20 +864,18 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 .bi-command-cancel:hover{border-color:#CBD5E1;background:#F8FAFC;}
 .bi-drawer, .bi-drawer-backdrop{font-family:'IBM Plex Sans',Arial,sans-serif;}
 /* Keep card action icons aligned as a group, never floating independently. */
-.card-head-actions,.widget-head-actions{display:inline-flex;align-items:center;gap:6px;margin-left:auto;}
 
 </style>
 
 <style id="final22-qa-ui">
 /* Universal popup surfaces: white, clean, consistent */
-.bi-command-box,.bi-studio,.bi-pro-panel,.widget-picker-modal>*,.app-modal-host>* ,#dashboardProjectDetail .dashboard-project-drawer{background:#fff!important;}
+.bi-command-box, .bi-studio, .bi-pro-panel, #dashboardProjectDetail .dashboard-project-drawer{background:#fff!important;}
 /* Consistent button hierarchy inside popups */
 .bi-command-head,.bi-command-foot,.bi-studio-head,.bi-studio-foot{background:#fff!important;}
 /* Prevent accidental invisible/zero-height command palette controls */
 .bi-command .bi-command-box{min-height:160px;}
 .bi-command input:focus{outline:2px solid rgba(30,158,90,.18);outline-offset:-2px;}
 /* Toolbar icon symmetry */
-.widget-head-actions, .card-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;}
 
 /* White compact modal fallback used by dynamic popovers */
 
@@ -945,16 +906,11 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 /* FINAL24: dashboard template/density feedback */
 #dashboardDensitySel.final25-changed,#dashboardTemplateSel.final25-changed{box-shadow:0 0 0 2px rgba(30,158,90,.16)}
 /* Keep widget utility icons subtle and aligned */
-.grid-stack-item-content .card-color-btn,.grid-stack-item-content .widget-head button{opacity:.55}
-.grid-stack-item-content:hover .card-color-btn,.grid-stack-item-content:hover .widget-head button{opacity:.85}
+
 </style>
 
 <style id="final25-custom-fix">
-#customView .custom-empty-state{min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#667085;text-align:center;border:1px dashed #D9E0E8;border-radius:16px;background:#FBFCFE;margin:12px 0;padding:28px;}
-#customView .custom-empty-state .ce-icon{width:48px;height:48px;border-radius:14px;background:#EAF7F0;color:#15803D;display:grid;place-items:center;font-size:22px;}
-#customView .custom-empty-state strong{font-size:16px;color:#172033;}
-#customView .custom-empty-state .ce-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
-.app-modal-host[hidden],.widget-picker-modal[hidden]{display:none!important;}
+
 </style>
 <style id="final12-polish">
 /* Final 12 UI: stable per-element alignment and cleaner popovers */
@@ -977,19 +933,13 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 <style id="final16-ui-fix">
 /* Final 16 — polished app dialogs/toasts and readable Dashboard widgets */
 
-.widget-picker-dialog{font-family:'IBM Plex Sans',Arial,sans-serif}.widget-picker-head h3,.widget-picker-head .mini,.widget-picker-foot,.widget-picker-item span,.widget-picker-item small{font-family:'IBM Plex Sans',Arial,sans-serif}.widget-picker-item{font-family:'IBM Plex Sans',Arial,sans-serif}.custom-dashboard-shell .grid-stack-item-content{font-family:'IBM Plex Sans',Arial,sans-serif}.custom-dashboard-shell .widget-body.wb-kpi{align-items:var(--kpi-align,flex-start);text-align:var(--widget-align,left)}
-
 </style>
 <style id="final23-ui">
-
-.custom-tools-bar{display:flex;align-items:center;gap:8px;}
-.custom-command-btn{margin-left:auto;}
 
 .bi-command{z-index:10050!important;}
 </style>
 <style id="final26-polish">
-  .app-modal-host .bi-studio,
-  .widget-picker-modal>div{
+  .app-modal-host .bi-studio{
     background:#fff!important;color:#172033!important;border:1px solid #e2e8f0!important;
     border-radius:16px!important;box-shadow:0 24px 70px rgba(15,23,42,.20)!important;
   }
@@ -1001,20 +951,11 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 <style id="final27-ui">
 
 /* unified clean Dashboard control spacing */
-.custom-tools-bar{align-items:center!important;gap:8px!important}.custom-tools-bar .btn{min-height:34px!important}.widget-head .widget-actions{display:flex!important;align-items:center!important;gap:4px!important}
+
 </style>
 
 <style id="final32-navigation-ui">
 /* Final 32 — working Dashboard page navigation + Custom side drawer */
-
-#customView{position:relative}
-.custom-tools-bar{position:relative;display:flex;align-items:center;gap:10px;padding:4px 2px 10px;min-height:44px}
-.custom-tools-title{font-size:14px;font-weight:800;color:var(--ink);flex:1}
-.custom-tools-panel{position:fixed;top:0;right:0;width:min(360px,92vw);height:100vh;background:#fff;border-left:1px solid var(--line);box-shadow:-14px 0 40px rgba(15,23,42,.16);z-index:10040;padding:16px;overflow:auto;display:block}
-.custom-tools-panel[hidden]{display:none!important}
-.custom-tools-panel .utility-menu-item{width:100%;justify-content:flex-start;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 12px;margin:4px 0;font:700 13px 'IBM Plex Sans',Arial,sans-serif;cursor:pointer}
-.custom-tools-panel .utility-menu-item:hover{border-color:var(--brand);background:var(--brand-sf);color:var(--brand-dk)}
-.custom-tools-overlay{position:fixed;inset:0;background:rgba(15,23,42,.28);z-index:10030}
 
 </style>
 
@@ -1553,18 +1494,18 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 
   <div id="customView" style="display:none" class="custom-dashboard-shell">
     <div class="custom-tools-bar">
-      <button type="button" class="utility-hamburger custom-tools-trigger" id="customToolsBtn" aria-label="Open custom dashboard tools" aria-expanded="false"><span></span><span></span><span></span></button>
-      <span class="custom-tools-title">Custom Dashboard</span><button type="button" class="btn sm icon-only custom-command-btn" id="customCommandPaletteBtn" aria-label="Quick actions" title="Quick actions">⌕</button>
+      <button type="button" class="btn ghost icon utility-hamburger custom-tools-trigger" id="customToolsBtn" aria-label="Open custom dashboard tools" aria-expanded="false"><svg class="ome-icon"><use href="icons.svg#i-menu"/></svg></button>
+      <span class="custom-tools-title">Custom Dashboard</span><button type="button" class="btn ghost icon sm custom-command-btn" id="customCommandPaletteBtn" aria-label="Quick actions" title="Quick actions"><svg class="ome-icon"><use href="icons.svg#i-search"/></svg></button>
       <div class="custom-tools-panel" id="customToolsPanel" hidden>
-        <div class="utility-menu-head"><strong>Custom Dashboard Tools</strong><button type="button" class="utility-menu-close" id="customToolsClose">×</button></div>
+        <div class="utility-menu-head"><strong>Custom Dashboard Tools</strong><button type="button" class="btn ghost icon sm" id="customToolsClose" aria-label="Close"><svg class="ome-icon"><use href="icons.svg#i-x"/></svg></button></div>
         <div class="utility-menu-section">
-          <button class="utility-menu-item" data-custom-trigger="customSaveLayoutBtn">💾 Save Layout</button>
-          <button class="utility-menu-item" data-custom-trigger="customTemplatesBtn">📚 My Templates</button>
-          <button class="utility-menu-item" data-custom-trigger="customDuplicateBtn">⧉ Duplicate</button>
-          <button class="utility-menu-item" data-custom-trigger="customClearBtn">🗑️ Clear Layout</button>
-          <button class="utility-menu-item" data-custom-trigger="addWidgetBtn">＋ Add Box</button>
-          <button class="utility-menu-item" data-custom-trigger="loadTemplateBtn">📥 From Dashboard</button>
-          <button class="utility-menu-item" data-custom-trigger="customBgBtn">🎨 Background</button>
+          <button type="button" class="btn utility-menu-item" data-custom-trigger="customSaveLayoutBtn"><svg class="ome-icon"><use href="icons.svg#i-save"/></svg><span>Save Layout</span></button>
+          <button type="button" class="btn utility-menu-item" data-custom-trigger="customTemplatesBtn"><svg class="ome-icon"><use href="icons.svg#i-folder-open"/></svg><span>My Templates</span></button>
+          <button type="button" class="btn utility-menu-item" data-custom-trigger="customDuplicateBtn"><svg class="ome-icon"><use href="icons.svg#i-copy"/></svg><span>Duplicate</span></button>
+          <button type="button" class="btn utility-menu-item" data-custom-trigger="customClearBtn"><svg class="ome-icon"><use href="icons.svg#i-trash-2"/></svg><span>Clear Layout</span></button>
+          <button type="button" class="btn utility-menu-item" data-custom-trigger="addWidgetBtn"><svg class="ome-icon"><use href="icons.svg#i-plus"/></svg><span>Add Box</span></button>
+          <button type="button" class="btn utility-menu-item" data-custom-trigger="loadTemplateBtn"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span>From Dashboard</span></button>
+          <button type="button" class="btn utility-menu-item" data-custom-trigger="customBgBtn"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg><span>Background</span></button>
         </div>
       </div>
     </div>
@@ -1589,7 +1530,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 <div id="dashboardProjectDetail" class="dashboard-project-detail" aria-hidden="true">
   <div class="dashboard-project-backdrop" data-close-detail></div>
   <aside class="dashboard-project-drawer">
-    <div class="dashboard-detail-head"><div><div class="mini">Project Detail</div><h3 id="dashboardDetailTitle">—</h3></div><button class="btn sm" id="dashboardDetailClose" type="button">✕</button></div>
+    <div class="dashboard-detail-head"><div><div class="mini">Project Detail</div><h3 id="dashboardDetailTitle">—</h3></div><button class="btn ghost icon sm" id="dashboardDetailClose" type="button" aria-label="Close"><svg class="ome-icon"><use href="icons.svg#i-x"/></svg></button></div>
     <div id="dashboardDetailBody"></div>
   </aside>
 </div>
@@ -1598,7 +1539,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
   <div class="wrap">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px">
       <div><strong id="presentationTitle">Dashboard Presentation</strong><div class="mini" id="presentationSub">Read-only presentation mode</div></div>
-      <button class="btn sm" id="exitPresentationBtn" type="button">✕ Exit</button>
+      <button class="btn sm" id="exitPresentationBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-x"/></svg><span>Exit</span></button>
     </div>
     <div id="presentationContent"></div>
   </div>
@@ -2116,7 +2057,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       if(grid && !grid.children.length){
         var empty=q('.custom-empty-state',grid);
         if(!empty){
-          var g=document.createElement('div');g.className='custom-empty-state';g.style.cssText='padding:28px;text-align:center';g.innerHTML='<strong>Custom Dashboard</strong><div class="mini" style="margin:6px 0 14px">Create your dashboard from a recommended Project Control layout or add widgets yourself.</div><div class="ce-actions" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button type="button" class="btn primary" id="f32AddWidget">＋ Add Widget</button><button type="button" class="btn" id="f32LoadDashboard">📥 Import from Dashboard</button></div>';grid.appendChild(g);
+          var g=document.createElement('div');g.className='custom-empty-state';g.innerHTML='<strong>Custom Dashboard</strong><div class="ce-actions"><button type="button" class="btn primary" id="f32AddWidget">'+window.TanotReportUtils.icon('plus')+'<span>Add Widget</span></button><button type="button" class="btn" id="f32LoadDashboard">'+window.TanotReportUtils.icon('download')+'<span>Import from Dashboard</span></button></div>';grid.appendChild(g);
           q('#f32AddWidget').addEventListener('click',function(){safeClick('addWidgetBtn')});
           q('#f32LoadDashboard').addEventListener('click',function(){safeClick('loadTemplateBtn')});
         }

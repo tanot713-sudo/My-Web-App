@@ -38,7 +38,6 @@
       unitRows: 'แถว', unitCols: 'คอลัมน์',
       tabTable: 'ตาราง (แก้ไข)', tabDashboard: 'แดชบอร์ด', tabCustom: 'กำหนดเอง',
       addWidgetBtn: 'เพิ่มกล่อง',
-      customEmptyHint: 'ลากมุมกล่องเพื่อย่อ-ขยาย ลากหัวกล่องเพื่อย้ายตำแหน่ง — เริ่มจากกด "เพิ่มกล่อง" ด้านบน',
       addWidgetPickTitle: 'เลือกชนิดกล่อง', wtKpi: 'ตัวเลข (KPI)', customTplMaintenance: 'แม่แบบ Maintenance', customTplExecutive: 'แม่แบบ Executive', wtChart: 'กราฟ', wtText: 'ข้อความ', wtTable: 'ตาราง',
       wtKpiLabel: 'กล่องตัวเลข', wtChartLabel: 'กล่องกราฟ', wtTextLabel: 'กล่องข้อความ', wtTableLabel: 'กล่องตาราง', wtSnapshotLabel: 'กล่องสแนปช็อต',
       wtEditTitle: 'แก้ไขกล่องนี้', wtRemoveTitle: 'ลบกล่องนี้',
@@ -229,7 +228,6 @@
       unitRows: 'rows', unitCols: 'columns',
       tabTable: 'Table (Edit)', tabDashboard: 'Dashboard', tabCustom: 'Custom',
       addWidgetBtn: 'Add Box',
-      customEmptyHint: 'Drag a corner to resize, drag the header to move — start by clicking "Add Box" above',
       addWidgetPickTitle: 'Choose a box type', wtKpi: 'Number (KPI)', customTplMaintenance: 'Maintenance Template', customTplExecutive: 'Executive Template', wtChart: 'Chart', wtText: 'Text', wtTable: 'Table',
       wtKpiLabel: 'Number box', wtChartLabel: 'Chart box', wtTextLabel: 'Text box', wtTableLabel: 'Table box', wtSnapshotLabel: 'Snapshot box',
       wtEditTitle: 'Edit this box', wtRemoveTitle: 'Remove this box',
@@ -4362,8 +4360,8 @@
   function widgetHtml(widget) {
     return '<div class="widget-head">' +
       '<span class="wt-label" data-widget-title="1">' + escapeHtml(widget.config.title || widgetTypeLabel(widget.type)) + '</span>' +
-      '<button type="button" class="w-edit" title="' + escapeAttr(t('wtEditTitle')) + '">⚙️</button>' +
-      '<button type="button" class="w-del" title="' + escapeAttr(t('wtRemoveTitle')) + '">✕</button>' +
+      '<button type="button" class="w-edit" title="' + escapeAttr(t('wtEditTitle')) + '" aria-label="' + escapeAttr(t('wtEditTitle')) + '">' + uiIcon('settings') + '</button>' +
+      '<button type="button" class="w-del" title="' + escapeAttr(t('wtRemoveTitle')) + '" aria-label="' + escapeAttr(t('wtRemoveTitle')) + '">' + uiIcon('x') + '</button>' +
       '</div><div class="widget-body"></div>';
   }
   function wireWidgetControls(widget, itemEl) {
@@ -4565,7 +4563,7 @@
   function showModalHost(host, cls){ if(!host)return; host.hidden=false; if(cls)host.className=cls; host.style.setProperty('display','grid','important'); }
   function renderCustomEmptyState(){
     var g=$('customGrid'); if(!g)return;
-    g.innerHTML='<div class="custom-empty-state"><div class="ce-icon">▦</div><strong>Custom Dashboard</strong><div class="mini">Build your own dashboard by adding widgets, templates, or importing blocks from Dashboard.</div><div class="ce-actions"><button type="button" class="btn primary ce-add">＋ Add Widget</button><button type="button" class="btn ce-load">📥 From Dashboard</button></div></div>';
+    g.innerHTML='<div class="custom-empty-state"><div class="ce-icon">'+uiIcon('layout-grid')+'</div><strong>Custom Dashboard</strong><div class="ce-actions"><button type="button" class="btn primary ce-add">'+uiIcon('plus')+'<span>Add Widget</span></button><button type="button" class="btn ce-load">'+uiIcon('download')+'<span>From Dashboard</span></button></div></div>';
     var trigger=$('customToolsBtn')||$('viewTabs');
     var a=g.querySelector('.ce-add'), l=g.querySelector('.ce-load');
     if(a)a.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();openAddWidgetPicker(trigger);});
@@ -4697,10 +4695,10 @@
       '<div class="fp-item" data-type="chart"><span>' + escapeHtml(t('wtChart')) + '</span></div>' +
       '<div class="fp-item" data-type="table"><span>' + escapeHtml(t('wtTable')) + '</span></div>' +
       '<div class="fp-item" data-type="text"><span>' + escapeHtml(t('wtText')) + '</span></div>' +
-      '<div class="fp-item" data-special="measure"><span>⚡ Measure KPI</span></div>' +
+      '<div class="fp-item" data-special="measure"><span>Measure KPI</span></div>' +
       '<div class="fp-item" data-template="maintenance"><span>' + escapeHtml(t('customTplMaintenance')) + '</span></div>' +
       '<div class="fp-item" data-template="executive"><span>' + escapeHtml(t('customTplExecutive')) + '</span></div>' +
-      '<div class="fp-item" data-template="project"><span>📊 Project Control</span></div>' +
+      '<div class="fp-item" data-template="project"><span>Project Control</span></div>' +
       '</div>';
     openPopover(html, anchorEl, function (el, close) {
       [].forEach.call(el.querySelectorAll('.fp-item'), function (item) {
@@ -5965,7 +5963,7 @@
       if(window.showBIToast)window.showBIToast(t('templateSaved'));
     });
   }
-  function renderCustomTemplateList(){var layouts=state.savedLayouts||[],html='<div class="fp-title">'+escapeHtml(t('customTemplates'))+'</div><div class="fp-list">';if(!layouts.length)html+='<div class="fp-empty">ยังไม่มี Template / No saved templates</div>';layouts.forEach(function(l,i){html+='<div class="fp-item" style="display:flex;align-items:center;gap:8px"><button type="button" class="template-load" data-layout-index="'+i+'" style="border:0;background:transparent;flex:1;text-align:left;cursor:pointer;font:inherit;color:inherit">'+escapeHtml(l.name)+'</button><button type="button" class="template-del" data-layout-index="'+i+'" title="Delete">🗑️</button></div>';});html+='</div>';openPopover(html,$('customToolsBtn')||$('viewTabs'),function(el,close){[].forEach.call(el.querySelectorAll('.template-load'),function(item){item.addEventListener('click',function(){var l=state.savedLayouts[+item.getAttribute('data-layout-index')];if(l){restoreCustomLayout(l.widgets);if(window.showBIToast)showBIToast(t('templateLoaded'));}close();});});[].forEach.call(el.querySelectorAll('.template-del'),function(item){item.addEventListener('click',function(e){e.stopPropagation();var i=+item.getAttribute('data-layout-index');whiteConfirm('Delete template', 'ลบ Template นี้ใช่หรือไม่?', function(){state.savedLayouts.splice(i,1);persistDebounced();renderCustomTemplateList();}, 'Delete', 'Cancel');});});});}
+  function renderCustomTemplateList(){var layouts=state.savedLayouts||[],html='<div class="fp-title">'+escapeHtml(t('customTemplates'))+'</div><div class="fp-list">';if(!layouts.length)html+='<div class="fp-empty">ยังไม่มี Template / No saved templates</div>';layouts.forEach(function(l,i){html+='<div class="fp-item"><button type="button" class="template-load" data-layout-index="'+i+'">'+escapeHtml(l.name)+'</button><button type="button" class="template-del btn ghost icon sm" data-layout-index="'+i+'" title="Delete" aria-label="Delete">'+uiIcon('trash-2')+'</button></div>';});html+='</div>';openPopover(html,$('customToolsBtn')||$('viewTabs'),function(el,close){[].forEach.call(el.querySelectorAll('.template-load'),function(item){item.addEventListener('click',function(){var l=state.savedLayouts[+item.getAttribute('data-layout-index')];if(l){restoreCustomLayout(l.widgets);if(window.showBIToast)showBIToast(t('templateLoaded'));}close();});});[].forEach.call(el.querySelectorAll('.template-del'),function(item){item.addEventListener('click',function(e){e.stopPropagation();var i=+item.getAttribute('data-layout-index');whiteConfirm('Delete template', 'ลบ Template นี้ใช่หรือไม่?', function(){state.savedLayouts.splice(i,1);persistDebounced();renderCustomTemplateList();}, 'Delete', 'Cancel');});});});}
   function duplicateCustomLayout(){if(!(state.customWidgets||[]).length){addCustomTemplate('executive');return;}var copy=cloneWidgets(state.customWidgets);state.customWidgets=(state.customWidgets||[]).concat(copy);persistDebounced();renderCustomView();}
   function clearCustomLayout(){if(!state.customWidgets.length)return;whiteConfirm('Clear custom layout','ล้าง Layout กำหนดเองทั้งหมดใช่หรือไม่?',function(){state.customWidgets=[];persistDebounced();renderCustomView();},'Clear','Cancel');}
   function exportExecutivePdf(){var C=window.jspdf&&window.jspdf.jsPDF;if(!C||!window.html2canvas){window.print();return;}var view=$('dashboardView');if(!view||view.style.display==='none'){notifyUser(t('exportNoData'),'error');return;}var old=state.dashboardViewMode;state.dashboardViewMode='executive';renderDashboard();withControlsHidden(function(){return window.html2canvas(view,{backgroundColor:'#F3F5F8',scale:2,useCORS:true});}).then(function(canvas){var pdf=new C({orientation:'portrait',unit:'mm',format:'a4'}),margin=12,pw=210,ph=297,contentW=pw-margin*2,contentH=ph-margin*2-12,scale=canvas.width/contentW,maxH=Math.floor(contentH*scale),sy=0,first=true;while(sy<canvas.height){var sh=Math.min(maxH,canvas.height-sy),c=document.createElement('canvas');c.width=canvas.width;c.height=sh;var ctx=c.getContext('2d');ctx.fillStyle='#F3F5F8';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(canvas,0,sy,canvas.width,sh,0,0,c.width,sh);if(!first)pdf.addPage();pdf.setFontSize(9);pdf.text(state.reportName||state.fileName||t('reportDefaultBase'),margin,8);pdf.addImage(c.toDataURL('image/jpeg',.9),'JPEG',margin,margin,contentW,sh/scale);sy+=sh;first=false;}pdf.save(exportFileBase()+'-Executive.pdf');}).finally(function(){state.dashboardViewMode=old;renderDashboard();});}
