@@ -14,6 +14,7 @@
    จังหวะปัจจุบัน + นับ streak เดือนที่อ่านต่อเนื่อง ทั้งสองอย่างคำนวณได้ตรงจากข้อมูลจริง */
 (function(){
   'use strict';
+  function P(){return window.TanotReportUtils.palette();}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -109,32 +110,31 @@
     if(q('#reading1-css'))return;
     var s=document.createElement('style');s.id='reading1-css';s.textContent=`
 #readingControlLayout{display:flex;flex-direction:column;gap:12px;margin-top:14px;font-family:var(--pc53-font,inherit)}
-#readingControlLayout .rd-hero{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--sh)}
-#readingControlLayout .rd-hero h2{font-size:16px;margin:0}
-#readingControlLayout .rd-hero .rd-sub{font-size:12px;color:var(--muted);margin-top:3px}
+#readingControlLayout .rd-hero{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:15px 16px;box-shadow:var(--ome-shadow-1)}
+#readingControlLayout .rd-hero h2{font-size:var(--ome-fs-md);margin:0}
+#readingControlLayout .rd-hero .rd-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px}
 #readingControlLayout .rd-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-#readingControlLayout .rd-kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;box-shadow:var(--sh);position:relative}
-#readingControlLayout .rd-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:4px;background:var(--ok)}
-#readingControlLayout .rd-kpi.warn:after{background:var(--warn)}
-#readingControlLayout .rd-kpi .l{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-#readingControlLayout .rd-kpi .v{font-size:22px;font-weight:850;margin-top:4px;color:var(--ink)}
-#readingControlLayout .rd-kpi.warn .v{color:#B8720A}
-#readingControlLayout .rd-kpi .s{font-size:9.5px;color:var(--muted);margin-top:4px}
-#readingControlLayout .rd-panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px;box-shadow:var(--sh)}
-#readingControlLayout .rd-panel h3{font-size:13px;margin:0 0 3px;font-weight:850}
-#readingControlLayout .rd-note{font-size:9.5px;color:var(--muted);margin-bottom:7px}
+#readingControlLayout .rd-kpi{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px 13px;box-shadow:var(--ome-shadow-1);position:relative}
+#readingControlLayout .rd-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:var(--ome-radius-sm);background:var(--ome-ok)}
+#readingControlLayout .rd-kpi.warn:after{background:var(--ome-warn)}
+#readingControlLayout .rd-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
+#readingControlLayout .rd-kpi .v{font-size:var(--ome-fs-xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
+#readingControlLayout .rd-kpi.warn .v{color:var(--ome-warn-ink)}
+#readingControlLayout .rd-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
+#readingControlLayout .rd-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
+#readingControlLayout .rd-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
 #readingControlLayout .rd-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
 #readingControlLayout .rd-grid>.half{grid-column:span 6}#readingControlLayout .rd-grid>.full{grid-column:1/-1}
-#readingControlLayout .rd-insight{border-left:3px solid var(--ok);padding:10px 13px;font-size:12px;color:var(--ink)}
+#readingControlLayout .rd-insight{border-left:3px solid var(--ome-ok);padding:10px 13px;font-size:var(--ome-fs-xs);color:var(--ome-text-1)}
 #readingControlLayout .rd-status-row{display:flex;flex-direction:column;gap:8px}
-#readingControlLayout .rd-status-item{display:grid;grid-template-columns:70px 1fr 30px;align-items:center;gap:9px;font-size:11px}
+#readingControlLayout .rd-status-item{display:grid;grid-template-columns:70px 1fr 30px;align-items:center;gap:9px;font-size:var(--ome-fs-xs)}
 #readingControlLayout .rd-status-item .lab{display:flex;align-items:center;gap:6px;font-weight:700}
 #readingControlLayout .rd-status-item i{width:8px;height:8px;border-radius:50%;display:inline-block}
-#readingControlLayout .rd-track{height:7px;border-radius:6px;background:#eef1f4;overflow:hidden}
-#readingControlLayout .rd-track span{display:block;height:100%;border-radius:6px}
-#readingControlLayout .rd-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px}
+#readingControlLayout .rd-track{height:7px;border-radius:var(--ome-radius-sm);background:var(--ome-surface-2);overflow:hidden}
+#readingControlLayout .rd-track span{display:block;height:100%;border-radius:var(--ome-radius-sm)}
+#readingControlLayout .rd-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs)}
 #readingControlLayout .rd-list:last-child{border-bottom:none}
-#readingControlLayout .rd-empty{padding:24px 8px;text-align:center;color:var(--muted);font-size:11px}
+#readingControlLayout .rd-empty{padding:24px 8px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
 #readingControlLayout svg text{font-family:var(--pc53-font,inherit)}
 #readingControlLayout .rd-trend-scroll{overflow-x:auto}
 #readingControlLayout.reading-override-hidden{display:none!important}
@@ -160,17 +160,16 @@
     if(layout.getAttribute('data-built')==='1')return true;
     layout.setAttribute('data-built','1');
     layout.innerHTML=
-      '<section class="rd-hero"><h2>📚 Reading Control</h2><div class="rd-sub" id="rdUpdated">ภาพรวมหนังสือที่อ่าน, แนวที่ชอบ และคะแนนรีวิว — รวมการติดตามหนังสือ/ตำรากฎหมายไว้ที่นี่ (นับเป็นแนวหนังสือหนึ่งตามปกติ)</div></section>'+
+      '<section class="rd-hero"><h2>Reading Control</h2><div class="rd-sub" id="rdUpdated"></div></section>'+
       '<div class="rd-kpis" id="rdKpis"></div>'+
       '<section class="rd-panel rd-insight-panel"><h3>Executive Insight</h3><div id="rdInsight" class="rd-insight"></div></section>'+
-      '<section class="rd-panel" id="rdPace"><h3>🎯 จังหวะการอ่าน</h3><div class="rd-note">คาดการณ์จากจังหวะปัจจุบัน + นับเดือนที่อ่านต่อเนื่อง (streak)</div><div id="rdPaceBody"></div></section>'+
+      '<section class="rd-panel" id="rdPace"><h3>จังหวะการอ่าน</h3><div id="rdPaceBody"></div></section>'+
       '<div class="rd-grid">'+
-        '<section class="rd-panel full"><h3>หนังสือที่อ่านจบรายเดือน</h3><div class="rd-note">จำนวนเล่มต่อเดือน</div><div id="rdTrend"></div></section>'+
-        '<section class="rd-panel half"><h3>แนวหนังสือที่อ่านมากที่สุด</h3><div class="rd-note">จำนวนเล่มต่อแนว</div><div id="rdGenre"></div></section>'+
-        '<section class="rd-panel half"><h3>การกระจายคะแนนรีวิว</h3><div class="rd-note">จำนวนเล่มต่อระดับดาว</div><div id="rdRating"></div></section>'+
-        '<section class="rd-panel full"><h3>หนังสือที่อ่านจบล่าสุด</h3><div class="rd-note">10 เล่มล่าสุด</div><div id="rdRecent"></div></section>'+
-      '</div>'+
-      '<div class="mini" style="font-size:9px;color:var(--muted)">ตรวจพบจากคอลัมน์ ชื่อหนังสือ + วันที่อ่านจบ/เริ่มอ่าน ในไฟล์ที่อัปโหลด — Table ด้านล่างไม่ถูกแก้ไข</div>';
+        '<section class="rd-panel full"><h3>หนังสือที่อ่านจบรายเดือน</h3><div id="rdTrend"></div></section>'+
+        '<section class="rd-panel half"><h3>แนวหนังสือที่อ่านมากที่สุด</h3><div id="rdGenre"></div></section>'+
+        '<section class="rd-panel half"><h3>การกระจายคะแนนรีวิว</h3><div id="rdRating"></div></section>'+
+        '<section class="rd-panel full"><h3>หนังสือที่อ่านจบล่าสุด</h3><div id="rdRecent"></div></section>'+
+      '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('reading-hidden-source');
     });
@@ -186,10 +185,10 @@
     var out=svgOpen(w,h);
     entries.forEach(function(e,i){
       var y=10+i*rowH, bw=Math.max(2,barW*e[1]/maxV);
-      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="#374151"><title>'+esc(e[0])+'</title>'+esc(e[0].length>16?e[0].slice(0,15)+'…':e[0])+'</text>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="#EEF1F4"/>';
+      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="'+P().text+'"><title>'+esc(e[0])+'</title>'+esc(e[0].length>16?e[0].slice(0,15)+'…':e[0])+'</text>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="'+P().surface2+'"/>';
       out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="16" rx="4" fill="'+color+'"/>';
-      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10.5" font-weight="700" fill="#172033">'+e[1]+'</text>';
+      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10.5" font-weight="700" fill="'+P().text+'">'+e[1]+'</text>';
     });
     out+='</svg>';
     return out;
@@ -208,13 +207,13 @@
     var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:'+w+'px;height:'+h+'px">';
     for(var t=0;t<=4;t++){
       var val=maxV*t/4, y=top+ph-ph*t/4;
-      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edf1" stroke-width="1"/>';
-      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#8a97a3">'+Math.round(val)+'</text>';
+      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="'+P().grid+'" stroke-width="1"/>';
+      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="'+P().faint+'">'+Math.round(val)+'</text>';
     }
     keys.forEach(function(k,i){
       var x=left+step*i+(step-bw)/2, v=byMonth[k], h2=ph*v/maxV;
-      out+='<rect x="'+x+'" y="'+(top+ph-h2)+'" width="'+bw+'" height="'+h2+'" fill="#7C3AED"/>';
-      out+='<text x="'+(x+bw/2)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="#8a97a3">'+k+'</text>';
+      out+='<rect x="'+x+'" y="'+(top+ph-h2)+'" width="'+bw+'" height="'+h2+'" fill="'+P().series[0]+'"/>';
+      out+='<text x="'+(x+bw/2)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>';
     });
     out+='</svg>';
     host.innerHTML='<div class="rd-trend-scroll">'+out+'</div>';
@@ -224,7 +223,7 @@
     var host=q('#rdGenre'); if(!host)return;
     var map={}; rows.forEach(function(r){ map[r.genre]=(map[r.genre]||0)+1; });
     var entries=Object.keys(map).map(function(k){return [k,map[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
-    host.innerHTML=barListHtml(entries,'#7C3AED');
+    host.innerHTML=barListHtml(entries,P().series[0]);
   }
 
   function renderRating(finished){
@@ -234,7 +233,7 @@
     var buckets={5:0,4:0,3:0,'≤2':0};
     rated.forEach(function(r){ var v=Math.round(r.rating); if(v>=5)buckets[5]++; else if(v===4)buckets[4]++; else if(v===3)buckets[3]++; else buckets['≤2']++; });
     var total=rated.length;
-    var vals=[['5','5 ดาว',buckets[5],'#16A34A'],['4','4 ดาว',buckets[4],'#0EA5E9'],['3','3 ดาว',buckets[3],'#F59E0B'],['2','≤2 ดาว',buckets['≤2'],'#DC2626']];
+    var vals=[['5','5 ดาว',buckets[5],P().ok],['4','4 ดาว',buckets[4],P().series[2]],['3','3 ดาว',buckets[3],P().warn],['2','≤2 ดาว',buckets['≤2'],P().err]];
     var out='<div class="rd-status-row">';
     vals.forEach(function(v){
       var pct=(v[2]/total*100).toFixed(0);
@@ -260,10 +259,10 @@
     var dateSpanDays=Math.max(1,Math.round((finished.reduce(function(m,r){return r.finishDate>m?r.finishDate:m;},finished[0].finishDate)-finished.reduce(function(m,r){return r.finishDate<m?r.finishDate:m;},finished[0].finishDate))/86400000));
     var pagesPerDay=totalPages>0?(totalPages/dateSpanDays).toFixed(0):null;
     host.innerHTML='<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">'+
-      '<div style="font-size:12px;color:var(--muted);white-space:nowrap">📖 ปีนี้อ่านจบแล้ว <b style="color:var(--ink)">'+yearBooks.length+' เล่ม</b></div>'+
-      '<div style="font-size:12px;color:var(--muted);white-space:nowrap">📈 คาดการณ์ทั้งปี <b style="color:var(--ink)">~'+projected+' เล่ม</b> ถ้ารักษาจังหวะนี้</div>'+
-      '<div style="font-size:12px;color:var(--muted);white-space:nowrap">🔥 อ่านต่อเนื่อง <b style="color:var(--ink)">'+streak+' เดือน</b></div>'+
-      (pagesPerDay?'<div style="font-size:12px;color:var(--muted);white-space:nowrap">⏱ เฉลี่ย <b style="color:var(--ink)">'+pagesPerDay+' หน้า/วัน</b></div>':'')+
+      '<div style="font-size:12px;color:var(--ome-text-2);white-space:nowrap">ปีนี้อ่านจบแล้ว <b style="color:var(--ome-text-1)">'+yearBooks.length+' เล่ม</b></div>'+
+      '<div style="font-size:12px;color:var(--ome-text-2);white-space:nowrap">คาดการณ์ทั้งปี <b style="color:var(--ome-text-1)">~'+projected+' เล่ม</b> ถ้ารักษาจังหวะนี้</div>'+
+      '<div style="font-size:12px;color:var(--ome-text-2);white-space:nowrap">อ่านต่อเนื่อง <b style="color:var(--ome-text-1)">'+streak+' เดือน</b></div>'+
+      (pagesPerDay?'<div style="font-size:12px;color:var(--ome-text-2);white-space:nowrap">เฉลี่ย <b style="color:var(--ome-text-1)">'+pagesPerDay+' หน้า/วัน</b></div>':'')+
     '</div>';
   }
 
@@ -291,7 +290,7 @@
     var layout=injectLayout(); if(!layout)return;
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
-    layout.innerHTML='<section class="rd-panel"><h3>📚 Reading Control</h3>'+
+    layout.innerHTML='<section class="rd-panel"><h3>Reading Control</h3>'+
       '<div class="rd-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายบันทึกการอ่านหนังสือ (ต้องมีคอลัมน์ '+
       'ชื่อหนังสือ ร่วมกับ วันที่อ่านจบ/เริ่มอ่าน) — ลองเลือก Template เป็น "Auto" หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
@@ -354,6 +353,7 @@
 
   function init(){
     injectCSS();
+    window.TanotReportUtils.onTheme(schedule);
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;
