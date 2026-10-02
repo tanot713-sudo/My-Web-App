@@ -44,6 +44,7 @@
     { key: 'tanot:tableSizes:v2', kind: 'local' },
     { key: 'tanot:elec:inputs', kind: 'local' }, // ค่าที่กรอกในเครื่องคำนวณไฟฟ้า — กระดาษทดของเครื่องนี้ ไม่ต้องซิงก์
     { key: 'tanot:tax:ui', kind: 'local' }, // ปี/แท็บที่เปิดค้างในหน้าภาษี
+    { prefix: 'tanot:push:', kind: 'cache' }, // tanot-push.js: ชุดการแจ้งเตือนที่เครื่องนี้ส่งขึ้น D1 ล่าสุด (hash) — สร้างใหม่ได้เสมอ ข้อมูลจริงอยู่ในตาราง reminders
 
     // ── บันทึกงานบำรุงรักษา (maintenance.html) — ต้องอยู่เหนือกฎ 'tanot:' ทั้งก้อนด้านล่าง ──
     { key: 'tanot:mnt:device', kind: 'cache' }, // รหัสเครื่องสำหรับ id ใบตรวจ/event — ห้ามย้าย/สำรอง ไม่งั้นกู้ backup ลงอีกเครื่องแล้วรหัสชนกัน

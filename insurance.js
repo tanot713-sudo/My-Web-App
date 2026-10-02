@@ -149,6 +149,8 @@
 
   function renderAll() {
     var list = load();
+    // วันต่ออายุ → การแจ้งเตือน (tanot-push.js ส่งเฉพาะเมื่อชุดเปลี่ยน · ทำงานเฉพาะ pages.dev)
+    if (window.TanotPush) window.TanotPush.setReminders('insurance', C.reminders(list, new Date()));
     renderKpis(list);
     renderTypeFilter(list);
     renderList(list);

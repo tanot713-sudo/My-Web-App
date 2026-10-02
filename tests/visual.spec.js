@@ -45,6 +45,7 @@ const PAGES = [
   'report-dashboard.html',
   'soon.html?label=demo',
   'credits.html',
+  'notifications.html',
   'area.html?a=work',
 ];
 const WIDTHS = [390, 1100];

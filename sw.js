@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v587';
+const CACHE = 'ome-v588';
 const PRECACHE = [
   './',
   './index.html',
@@ -190,6 +190,9 @@ const PRECACHE = [
   './drive-backup.js',
   './data.html',
   './data.js',
+  './notifications.html',
+  './notifications.js',
+  './tanot-push.js',
   './migrate.html',
   './migrate.js',
   './auth-gate.js',
@@ -324,4 +327,63 @@ self.addEventListener('fetch', (e) => {
       }))
     );
   }
+});
+
+/* ── Web Push (ROADMAP Phase 3) — ผู้ส่ง: Scheduler Worker / /api/push/test ผ่าน functions/_lib/webpush.js
+   payload = JSON { title, body, url (หน้าในเว็บนี้ เช่น 'insurance.html'), tag } ── */
+function notifyTarget(url) {
+  // เปิดได้เฉพาะหน้าใน scope ของเว็บนี้ — URL นอกโดเมน/รูปแบบแปลกกลับไปหน้าแรก
+  const base = self.registration.scope;
+  try {
+    const u = new URL(url || 'index.html', base);
+    if (u.origin === location.origin && u.href.indexOf(base) === 0) return u.href;
+  } catch (err) {}
+  return new URL('index.html', base).href;
+}
+
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data ? e.data.text() : '' }; }
+  const title = String(d.title || 'Tanot');
+  const opts = {
+    body: String(d.body || ''),
+    icon: new URL('icon-192.png', self.registration.scope).href,
+    badge: new URL('icon-192.png', self.registration.scope).href,
+    data: { url: notifyTarget(d.url) },
+    lang: 'th',
+  };
+  if (d.tag) { opts.tag = String(d.tag); opts.renotify = true; }
+  e.waitUntil(self.registration.showNotification(title, opts));
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const target = notifyTarget(e.notification.data && e.notification.data.url);
+  const path = new URL(target).pathname.replace(/\.html$/, '');
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    // หน้าเดียวกันเปิดค้างอยู่แล้ว (Pages ตัด .html ออกจาก URL ได้) → พาไป URL เป้าหมาย (hash อาจต่าง) แล้วโฟกัส
+    for (const c of list) {
+      if (new URL(c.url).pathname.replace(/\.html$/, '') !== path) continue;
+      const go = c.url === target || !c.navigate ? Promise.resolve(c) : c.navigate(target).then((n) => n || c, () => c);
+      return go.then((w) => (w.focus ? w.focus() : w));
+    }
+    return self.clients.openWindow(target);
+  }));
+});
+
+// เบราว์เซอร์ต่ออายุ/เปลี่ยน subscription เอง → แจ้งเซิร์ฟเวอร์ (ยังล็อกอิน Access อยู่ คุกกี้ไปกับคำขอ same-origin)
+self.addEventListener('pushsubscriptionchange', (e) => {
+  const old = e.oldSubscription;
+  const key = old && old.options && old.options.applicationServerKey;
+  e.waitUntil((e.newSubscription ? Promise.resolve(e.newSubscription)
+    : key ? self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }) : Promise.resolve(null)
+  ).then((sub) => {
+    const post = (path, body) => fetch('/api/push/' + path, {
+      method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    });
+    return Promise.all([
+      sub ? post('subscribe', { subscription: sub.toJSON(), device: 'ต่ออายุอัตโนมัติ' }) : null,
+      old && (!sub || old.endpoint !== sub.endpoint) ? post('unsubscribe', { endpoint: old.endpoint }) : null,
+    ]);
+  }).catch(() => {}));
 });

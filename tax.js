@@ -537,6 +537,8 @@
       if (!years.length) throw new Error('no rules');
       if (years.indexOf(ui.year) < 0) ui.year = C.defaultTaxYear(new Date(), years);
       rebuild();
+      // กำหนดยื่นทุกปีในไฟล์กฎ → การแจ้งเตือน (tanot-push.js ส่งเฉพาะเมื่อชุดเปลี่ยน · ทำงานเฉพาะ pages.dev)
+      if (window.TanotPush) window.TanotPush.setReminders('tax', C.reminders(rules, new Date()));
     }).catch(function () {
       $('txAlerts').innerHTML = callout('err', t('alertRules'));
       $('txAlerts').hidden = false;

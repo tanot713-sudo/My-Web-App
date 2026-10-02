@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>การแจ้งเตือน — Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="theme-boot.js"></script>
+<script src="data-registry.js"></script>
+<script src="tanot-data.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<script src="tanot-push.js" defer></script>
+<script src="notifications.js" defer></script>
+<style>
+.nt-msg:empty{display:none}
+.nt-msg{font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
+.nt-msg.err{color:var(--ome-err-ink)}
+.nt-msg.ok{color:var(--ome-ok-ink)}
+#ntList .title,#ntList .meta{white-space:normal}
+</style>
+</head>
+<body data-layout="tool">
+<script src="auth-gate.js"></script>
+<main class="page stack">
+  <div class="page-head"><h1>การแจ้งเตือน</h1></div>
+
+  <section class="card stack" id="ntDevice">
+    <div class="card-head"><h2>เครื่องนี้</h2></div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">สถานะ</div><div class="kpi-value" id="ntState">—</div></div>
+      <div class="kpi"><div class="kpi-label">เครื่องที่รับแจ้งเตือน</div><div class="kpi-value" id="ntSubs">—</div></div>
+      <div class="kpi"><div class="kpi-label">ส่งถึงเครื่องนี้ล่าสุด</div><div class="kpi-value" id="ntLast">—</div></div>
+    </div>
+    <div class="row">
+      <button type="button" class="btn primary" id="ntOn" hidden>เปิดการแจ้งเตือน</button>
+      <button type="button" class="btn" id="ntTest" hidden>ส่งทดสอบ</button>
+      <button type="button" class="btn ghost" id="ntOff" hidden>ปิดการแจ้งเตือน</button>
+    </div>
+    <div class="nt-msg" id="ntMsg" role="status"></div>
+  </section>
+
+  <section class="card stack" id="ntUpcoming">
+    <div class="card-head"><h2>กำหนดการ</h2><button type="button" class="btn sm" id="ntReload" hidden>รีเฟรช</button></div>
+    <div class="list" id="ntList"></div>
+  </section>
+</main>
+</body>
+</html>

@@ -273,7 +273,38 @@
     return best;
   }
 
+  /* ── การแจ้งเตือนกำหนดยื่น (tanot-push.js → ตาราง reminders scope 'tax') ──
+     rulesByYear = { ปี พ.ศ.: กฎของปีนั้น } · ใช้ deadlines.online ของทุกปี: ก่อน 30 / 7 / 1 วัน และวันสุดท้าย 08:00 เวลาไทย
+     วันที่อยู่ในไฟล์กฎเท่านั้น (ห้ามเขียนวันที่ใน JS) · เฉพาะเวลาที่ยังไม่ถึง */
+  var REMIND_LEADS = [30, 7, 1, 0];
+  var TH_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  function ymdParts(s) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ''));
+    return m ? [+m[1], +m[2] - 1, +m[3]] : null;
+  }
+  function thDate(p) { return p[2] + ' ' + TH_MONTHS[p[1]] + ' ' + (p[0] + 543); }
+  function reminders(rulesByYear, now) {
+    var t = (now || new Date()).getTime(), out = [];
+    Object.keys(rulesByYear || {}).forEach(function (y) {
+      var dl = rulesByYear[y] && rulesByYear[y].deadlines;
+      var on = dl && ymdParts(dl.online), paper = dl && ymdParts(dl.paper);
+      if (!on) return;
+      var body = 'ยื่นออนไลน์ภายใน ' + thDate(on) + (paper ? ' · แบบกระดาษ ' + thDate(paper) : '');
+      REMIND_LEADS.forEach(function (lead) {
+        var at = Date.UTC(on[0], on[1], on[2] - lead, 1, 0); // 08:00 น. เวลาไทย
+        if (at <= t) return;
+        out.push({
+          id: y + ':' + dl.online + ':' + lead,
+          title: lead ? 'ยื่นภาษีเงินได้ปี ' + y + ' — อีก ' + lead + ' วัน' : 'วันสุดท้ายยื่นภาษีเงินได้ปี ' + y,
+          body: body, url: 'tax.html', due_at: at, kind: 'push'
+        });
+      });
+    });
+    return out;
+  }
+
   return {
+    REMIND_LEADS: REMIND_LEADS, reminders: reminders,
     INCOME_KEYS: INCOME_KEYS, GROUPS: GROUPS, COUNT_KEYS: COUNT_KEYS, RETIRE_ORDER: RETIRE_ORDER,
     available: available, progressive: progressive, marginalRate: marginalRate, compute: compute, simulate: simulate, room: room, useful: useful,
     defaultTaxYear: defaultTaxYear
