@@ -67,7 +67,6 @@
 </style>
 </head>
 <body data-layout="tool" data-invest-key="commodities">
-<script src="auth-gate.js"></script>
 <main class="page">
 
   <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span>›</span><span data-i18n="pageTitle">ค่าเงิน &amp; วัตถุดิบ</span></nav>
@@ -179,21 +178,7 @@
   </div>
 </main>
 
-<!-- แคชผลสรุป AI ข้ามผู้ใช้ผ่าน Firebase (คำนวณครั้งเดียวต่อวันต่อโภคภัณฑ์ อ่านซ้ำได้ฟรี) — bare module
-     specifier ต้องใช้ import map ชี้ไปไฟล์ที่ฝังไว้ในเว็บเอง (vendor/firebase/) เหมือน budget.html -->
-<script type="importmap">
-{
-  "imports": {
-    "@firebase/app": "./vendor/firebase/app.js",
-    "@firebase/database": "./vendor/firebase/database.js",
-    "@firebase/util": "./vendor/firebase/util.js",
-    "@firebase/component": "./vendor/firebase/component.js",
-    "@firebase/logger": "./vendor/firebase/logger.js"
-  }
-}
-</script>
 <script src="ai-client.js"></script>
-<script src="ai-summary-cache.js"></script>
 <script src="invest-commodities.js" defer></script>
 </body>
 </html>

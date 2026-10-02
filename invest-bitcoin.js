@@ -1136,7 +1136,7 @@
 
     var isEn = getUILang() === 'en';
     var cacheLang = isEn ? 'en' : 'th';
-    var cache = cloud ? null : window.AiSummaryCache; // บน pages.dev แคชอยู่ที่ D1 (ai_cache) แทน Firebase
+    var cache = null; // แคชผลสรุปอยู่ที่ D1 (ai_cache) ฝั่งเซิร์ฟเวอร์
     (cache ? cache.read(AI_CACHE_PAGE, AI_CACHE_SYMBOL, cacheLang) : Promise.resolve(null)).then(function (hit) {
       if (hit) {
         $('aiSumOut').style.display = 'block'; $('aiSumOut').textContent = stripLeakedInstructions(hit.text);

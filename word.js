@@ -2059,11 +2059,6 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   renderIssues();
   updateCounts();
   editor.focus(); // ให้เห็นเคอร์เซอร์กะพริบพร้อมพิมพ์ได้ทันทีตั้งแต่เปิดหน้า ไม่ต้องคลิกก่อน
-  /* ถ้าเว็บนี้ยังไม่เคยปลดล็อกด่านรหัสผ่าน (auth-gate.js) ตอนที่บรรทัด .focus() ด้านบนรันอยู่ หน้าจอยัง
-     ถูกด่านรหัสผ่านบังอยู่เต็มจอ (z-index สูงกว่า) — โฟกัสที่ตั้งไว้ตอนนั้นอาจไม่ติดจริง เพราะกล่องพิมพ์ยัง
-     ไม่ได้แสดงผลจริงให้ผู้ใช้เห็น พอกรอกรหัสผ่านถูกแล้วด่านหายไป ก็ไม่มีอะไรมา focus() กล่องพิมพ์ให้ใหม่อีก
-     รอบ — ดัก event ที่ auth-gate.js ยิงมาตอนปลดล็อกสำเร็จ แล้ว focus() ซ้ำอีกที */
-  window.addEventListener('tanot:authed', function () { editor.focus(); });
   /* จัดหน้าอีกครั้งหลังฟอนต์โหลดเสร็จ (ความสูงบรรทัดเปลี่ยน → ตำแหน่งแบ่งหน้าแม่นขึ้น) */
   setTimeout(function () { try { layoutPages(false); } catch (e) {} }, 60);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { try { layoutPages(false); } catch (e) {} });

@@ -106,7 +106,6 @@
 </style>
 </head>
 <body data-layout="dashboard">
-<script src="auth-gate.js"></script>
 
 <main class="page mp-page">
   <div class="page-head"><h1>รายรับรายจ่าย</h1></div>
@@ -263,15 +262,6 @@
 
   <!-- ═══════════ Settings ═══════════ -->
   <section class="mp-view" id="view-settings">
-    <div class="card" id="fbSyncCard">
-      <h2><svg class="ome-icon"><use href="icons.svg#i-cloud"/></svg>ซิงก์เรียลไทม์ข้ามอุปกรณ์</h2>
-      <div class="mp-btn-row">
-        <button class="btn" id="syncConnectBtn" type="button">เชื่อมต่อ Google</button>
-        <button class="btn" id="syncDisconnectBtn" type="button" style="display:none">ยกเลิกการเชื่อมต่อ</button>
-      </div>
-      <div class="status" id="syncStatus"></div>
-    </div>
-
     <div class="card">
       <h2><svg class="ome-icon"><use href="icons.svg#i-save"/></svg>สำรอง / กู้คืนข้อมูล</h2>
       <div class="mp-btn-row">
@@ -298,22 +288,6 @@
 </dialog>
 <div class="toast-region" id="mpToasts" role="status" aria-live="polite"></div>
 
-<!-- ซิงก์เรียลไทม์ข้ามอุปกรณ์ผ่าน Firebase — bare module specifier ต้องใช้ import map ชี้ไปไฟล์
-     ที่ฝังไว้ในเว็บเอง (vendor/firebase/) เบราว์เซอร์ resolve เองไม่ได้เหมือน bundler -->
-<script type="importmap">
-{
-  "imports": {
-    "@firebase/app": "./vendor/firebase/app.js",
-    "@firebase/auth": "./vendor/firebase/auth.js",
-    "@firebase/database": "./vendor/firebase/database.js",
-    "@firebase/util": "./vendor/firebase/util.js",
-    "@firebase/component": "./vendor/firebase/component.js",
-    "@firebase/logger": "./vendor/firebase/logger.js",
-    "idb": "./vendor/firebase/idb.js"
-  }
-}
-</script>
-<script src="firebase-sync.js"></script>
 <script src="chart-theme.js"></script>
 <script>
 (function(){
@@ -348,65 +322,9 @@ if (!categories) { categories = DEFAULT_CATEGORIES.slice(); saveJSON(LS_CAT, cat
 var records = loadJSON(LS_REC, []);
 var budgets = loadJSON(LS_BUD, {});
 
-function persistCategories(){ saveJSON(LS_CAT, categories); fbSyncPush('categories', categories); }
-function persistRecords(){ saveJSON(LS_REC, records); fbSyncPush('records', records); }
-function persistBudgets(){ saveJSON(LS_BUD, budgets); fbSyncPush('budgets', budgets); }
-
-/* ══════════════════ ซิงก์เรียลไทม์ข้ามอุปกรณ์ (Firebase) ══════════════════
-   ไม่บังคับใช้ — ถ้าไม่เชื่อมต่อ ทุกอย่างทำงานเหมือนเดิม (localStorage เครื่องเดียว)
-   เมื่อเชื่อมต่อแล้ว persistCategories/persistRecords/persistBudgets จะดันข้อมูลขึ้น
-   Firebase ทุกครั้งที่บันทึก และรับข้อมูลจากอุปกรณ์อื่นผ่าน fbSync.watch() แบบเรียลไทม์ */
-var fbSync = null;
-var fbHandle = { categories: null, records: null, budgets: null };
-function fbSyncPush(subPath, value){
-  if (!fbHandle.connected) return;
-  fbHandle.suppress[subPath] = JSON.stringify(value);
-  fbSync.write(subPath, value).catch(function(e){ console.error('ซิงก์เขียนไม่สำเร็จ:', e); });
-}
-fbHandle.suppress = {};
-fbHandle.connected = false;
-function setSyncStatus(text, cls){
-  var el = document.getElementById('syncStatus');
-  el.textContent = text;
-  el.className = 'status' + (cls ? ' ' + cls : '');
-}
-function startFbWatch(subPath, applyFn){
-  fbSync.watch(subPath, function(remote){
-    if (remote == null) { fbSyncPush(subPath, subPath === 'records' ? records : subPath === 'budgets' ? budgets : categories); return; }
-    var json = JSON.stringify(remote);
-    if (fbHandle.suppress[subPath] === json) return; // ค่าที่เพิ่งเขียนเองสะท้อนกลับมา ไม่ต้อง apply ซ้ำ
-    applyFn(remote);
-  });
-}
-function initFirebaseSync(){
-  /* บน pages.dev ข้อมูลซิงก์ผ่าน D1 (tanot-data.js) แล้ว — Firebase ส่งทั้งก้อนที่อาจค้างของเก่ามาเขียนทับ
-     จะลบรายการที่มาจาก D1 ทิ้งทุกเครื่อง จึงใช้ Firebase เฉพาะบน GitHub Pages (ข้อมูลเดิมมากับการย้ายข้อมูล) */
-  if (window.TanotData && window.TanotData.enabled) { document.getElementById('fbSyncCard').style.display = 'none'; return; }
-  if (!window.FirebaseSync) { setSyncStatus('โหลดตัวซิงก์ไม่สำเร็จ — ลองรีเฟรชหน้า', 'err'); return; }
-  fbSync = window.FirebaseSync.connect('budget', {
-    onStatus: setSyncStatus,
-    onSignedIn: function(){
-      fbHandle.connected = true;
-      document.getElementById('syncConnectBtn').style.display = 'none';
-      document.getElementById('syncDisconnectBtn').style.display = '';
-      startFbWatch('categories', function(remote){ categories = remote; saveJSON(LS_CAT, categories); renderCategoryList(); renderDashboard(); });
-      startFbWatch('records', function(remote){ records = remote; saveJSON(LS_REC, records); renderDashboard(); renderHistory(); renderCalendar(); });
-      startFbWatch('budgets', function(remote){ budgets = remote; saveJSON(LS_BUD, budgets); renderBudgetTable(); renderDashboard(); });
-    },
-    onSignedOut: function(){
-      fbHandle.connected = false;
-      document.getElementById('syncConnectBtn').style.display = '';
-      document.getElementById('syncDisconnectBtn').style.display = 'none';
-    }
-  });
-}
-document.getElementById('syncConnectBtn').addEventListener('click', function(){
-  if (fbSync) fbSync.signIn();
-});
-document.getElementById('syncDisconnectBtn').addEventListener('click', function(){
-  if (fbSync) fbSync.signOut();
-});
-initFirebaseSync();
+function persistCategories(){ saveJSON(LS_CAT, categories); }
+function persistRecords(){ saveJSON(LS_REC, records); }
+function persistBudgets(){ saveJSON(LS_BUD, budgets); }
 
 function catById(id){ for (var i=0;i<categories.length;i++) if (categories[i].id===id) return categories[i]; return null; }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
