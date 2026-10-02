@@ -107,12 +107,11 @@
         { key: 'engineering', label: 'วิศวกรรม', icon: 'wrench', children: [
             { key: 'cad',         label: 'งานเขียนแบบ CAD (2D/3D)', icon: 'box', href: 'cad.html', keywords: 'cad เขียนแบบ แบบ drawing' },
             { key: 'est-cost',    label: 'ประเมินราคา PM/CM', icon: 'calculator', href: 'run.html?tool=est-cost', keywords: 'ประเมินราคา ประมาณราคา pm cm boq' },
-            { key: 'maintenance', label: 'บันทึกงานบำรุงรักษา', icon: 'clipboard-list', href: soonHref('บันทึกงานบำรุงรักษา'), status: 'soon', keywords: 'บำรุงรักษา maintenance log' },
+            { key: 'maintenance', label: 'บันทึกงานบำรุงรักษา', icon: 'clipboard-list', href: 'maintenance.html', keywords: 'บำรุงรักษา maintenance pm cm ใบสั่งงาน แจ้งซ่อม ตรวจเช็ก qr อุปกรณ์' },
             { key: 'electrical',  label: 'เครื่องคำนวณไฟฟ้า', icon: 'zap', href: 'electrical.html', keywords: 'ไฟฟ้า คำนวณ electrical แรงดันตก voltage drop ขนาดสาย ลัดวงจร short circuit คาปาซิเตอร์ pf ฉนวน pi dar กราวด์ หลักดิน ground กับดักฟ้าผ่า arrester bil' }
           ]
         },
         { key: 'reports', label: 'ข้อมูล/รายงาน', icon: 'chart-column', children: [
-            { key: 'data-collect',     label: 'รวบรวมข้อมูล', icon: 'folder-open', href: soonHref('รวบรวมข้อมูล'), status: 'soon', keywords: 'รวบรวมข้อมูล collect' },
             { key: 'report-dashboard', label: 'นำเสนอรายงาน', icon: 'chart-pie', href: 'report-dashboard.html', keywords: 'รายงาน report dashboard' }
           ]
         },

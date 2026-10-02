@@ -66,5 +66,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8128/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // maintenance.spec.js: ซิงก์ 2 เครื่อง + /api/files (R2 ตัวหลอก) ของบันทึกงานบำรุงรักษา — แยกพอร์ตเพราะมี /__reset
+      command: 'node --no-warnings sync-server.mjs 8129',
+      cwd: __dirname,
+      url: 'http://localhost:8129/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

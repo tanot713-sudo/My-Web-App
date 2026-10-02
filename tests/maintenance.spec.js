@@ -1,0 +1,940 @@
+// @ts-check
+// บันทึกงานบำรุงรักษา (maintenance.html / mnt-calc.js / mnt-qr.js) — ROADMAP Phase 6 การทำงาน P1 · docs/maintenance-design.md หัวข้อ 9
+const { test, expect } = require('@playwright/test');
+const path = require('path');
+const { prepare } = require('./helpers');
+
+const C = require(path.join(__dirname, '..', 'mnt-calc.js'));
+const SRV = 'http://localhost:8129';
+// ใช้ /__reset ล้าง D1+R2 ของเซิร์ฟเวอร์ 8129 — ห้ามให้ describe ต่างกลุ่มรันขนานกัน
+test.describe.configure({ mode: 'serial' });
+
+/* ══════════ A. mnt-calc.js (require ตรง, known-answer) ══════════ */
+test.describe('mnt-calc.js (known-answer)', () => {
+  const S = { startMonth: '2026-10' };
+
+  test('periodOf/window: Daily · Weekly เริ่มวันจันทร์ ข้ามปี · เดือน · กุมภาพันธ์อธิกสุรทิน', () => {
+    expect(C.periodOf('Daily', '2026-10-02')).toBe('2026-10-02');
+    expect(C.window('Daily', '2026-10-02')).toEqual({ start: '2026-10-02', end: '2026-10-02' });
+    // 2026-10-02 เป็นวันศุกร์ → จันทร์ 2026-09-28
+    expect(C.periodOf('Weekly', '2026-10-02')).toBe('2026-09-28');
+    expect(C.periodOf('Weekly', '2026-12-28')).toBe('2026-12-28');
+    expect(C.periodOf('Weekly', '2027-01-03')).toBe('2026-12-28'); // อาทิตย์ท้ายสัปดาห์
+    expect(C.window('Weekly', '2026-12-28')).toEqual({ start: '2026-12-28', end: '2027-01-03' });
+    for (const f of ['M1', 'M3', 'M6', 'Annually']) expect(C.periodOf(f, '2026-11-17')).toBe('2026-11');
+    expect(C.window('M3', '2026-11')).toEqual({ start: '2026-11-01', end: '2026-11-30' });
+    expect(C.window('M1', '2028-02')).toEqual({ start: '2028-02-01', end: '2028-02-29' });
+    expect(C.window('M1', '2027-02').end).toBe('2027-02-28');
+    expect(C.periodYear('2026-12')).toBe(2026);
+  });
+
+  test('dueMonths: M3 phase 2 · M6 phase 6 · รายปี phase 12 · ก่อน startMonth ไม่มีรอบ', () => {
+    expect(C.dueMonths('M3', 2, '2026-10', '2026-10', '2027-05')).toEqual(['2026-11', '2027-02', '2027-05']);
+    expect(C.dueMonths('M6', 6, '2026-10', '2026-10', '2028-12')).toEqual(['2027-03', '2027-09', '2028-03', '2028-09']);
+    expect(C.dueMonths('Annually', 12, '2026-10', '2026-10', '2028-12')).toEqual(['2027-09', '2028-09']);
+    expect(C.dueMonths('M1', 1, '2026-10', '2026-08', '2026-12')).toEqual(['2026-10', '2026-11', '2026-12']);
+    expect(C.dueMonths('M3', 1, '2026-10', '2026-01', '2026-09')).toEqual([]);
+    // เริ่มนับจากกลางรอบ
+    expect(C.dueMonths('M3', 2, '2026-10', '2027-01', '2027-12')).toEqual(['2027-02', '2027-05', '2027-08', '2027-11']);
+  });
+
+  test('assignPhases: ESC 4 ตัว M3 เท่ากัน → 1,2,3,1 · ผลคงที่ · ไม่แตะ phase ที่มีอยู่', () => {
+    const plans = [{ type: 'ESC', freq: 'M3', hours: 2 }];
+    const assets = ['e1', 'e2', 'e3', 'e4'].map((id) => ({ id, type: 'ESC', status: 'active', phase: {} }));
+    const r = C.assignPhases(assets, plans);
+    expect([r.e1.M3, r.e2.M3, r.e3.M3, r.e4.M3]).toEqual([1, 2, 3, 1]);
+    expect(C.assignPhases(assets, plans)).toEqual(r);
+    // ผสมชั่วโมง: ผลต้องเหมือนกันทุกครั้ง และเรียงตามชั่วโมงมาก→น้อย
+    const plans2 = [{ type: 'A', freq: 'M3', hours: 1 }, { type: 'B', freq: 'M3', hours: 5 }, { type: 'B', freq: 'M6', hours: 3 }];
+    const assets2 = [{ id: 'a1', type: 'A', phase: {} }, { id: 'b1', type: 'B', phase: {} }, { id: 'b2', type: 'B', phase: {} }];
+    const r2 = C.assignPhases(assets2, plans2);
+    expect(C.assignPhases(assets2.slice().reverse(), plans2)).toEqual(r2);
+    expect(r2.b1.M3).toBe(1); expect(r2.b2.M3).toBe(2); expect(r2.a1.M3).toBe(3);
+    // ไม่แตะที่มี phase แล้ว และนับเป็นภาระ
+    const assets3 = [{ id: 'e1', type: 'ESC', phase: { M3: 1 } }, { id: 'e2', type: 'ESC', phase: {} }];
+    const r3 = C.assignPhases(assets3, plans);
+    expect(r3.e1).toBeUndefined();
+    expect(r3.e2.M3).toBe(2);
+  });
+
+  const asset = (id, extra) => Object.assign({ id, code: id.toUpperCase(), type: 'ESC', site: 's1', status: 'active', phase: { M3: 2, M6: 1, Annually: 1 } }, extra);
+  const planM3 = { id: 'ESC|M3', type: 'ESC', freq: 'M3', hours: 2, items: [{ id: 'i1', text: 'ราวจับ', kind: 'check' }] };
+  const planD = { id: 'ESC|Daily', type: 'ESC', freq: 'Daily', hours: 0.2, items: [{ id: 'i1', text: 'เดินเครื่อง', kind: 'check' }] };
+  const planM1 = { id: 'ESC|M1', type: 'ESC', freq: 'M1', hours: 1, items: [{ id: 'i1', text: 'x', kind: 'check' }] };
+  const doc = (aid, freq, period, at, extra) => Object.assign({ id: 'd', site: 's1', freq, period, dev: 'A', by: 'ช่าง', at, rows: { [aid]: { start: at - 1000, at, res: { i1: 'ok' } } } }, extra);
+  const L = (s) => new Date(s + 'T12:00:00').getTime();
+
+  test('dueList ที่ today คงที่: due / overdue / upcoming / ทำช้าแล้วหาย / รายวันไม่ overdue / retired ไม่ขึ้น', () => {
+    const base = { assets: [asset('e1')], plans: [planM3, planD], settings: S, done: C.doneIndex([]), today: '2026-11-10', ahead: 7 };
+    // M3 phase 2 → ครบ 2026-11 (ถึงกำหนดอยู่) ; รายวันวันนี้ยังไม่ทำ · กลุ่ม due เรียงตามวันสิ้นสุดช่วง (รายวันก่อน)
+    let l = C.dueList(base);
+    expect(l.map((x) => [x.plan.freq, x.state, x.period])).toEqual([['Daily', 'due', '2026-11-10'], ['M3', 'due', '2026-11']]);
+    // ที่ 2027-01-10 → รอบพ.ย.ผ่านแล้วยังไม่ทำ = overdue; daysLate = 2027-01-10 − 2026-11-30 = 41
+    l = C.dueList(Object.assign({}, base, { today: '2027-01-10', plans: [planM3] }));
+    expect(l).toHaveLength(1);
+    expect(l[0]).toMatchObject({ state: 'overdue', period: '2026-11', daysLate: 41 });
+    // 2027-01-30: รอบ ก.พ. เริ่ม 2027-02-01 ภายใน 7 วัน → upcoming มาพร้อม overdue พ.ย. (เรียง overdue ก่อน)
+    l = C.dueList(Object.assign({}, base, { today: '2027-01-30', plans: [planM3] }));
+    expect(l.map((x) => [x.state, x.period])).toEqual([['overdue', '2026-11'], ['upcoming', '2027-02']]);
+    // ทำช้าแล้ว (บันทึกหลังช่วงจบ) = ไม่อยู่ในรายการ
+    const lateDone = C.doneIndex([doc('e1', 'M3', '2026-11', L('2027-01-05'))]);
+    l = C.dueList(Object.assign({}, base, { today: '2027-01-10', plans: [planM3], done: lateDone }));
+    expect(l).toEqual([]);
+    expect(C.status(asset('e1'), planM3, '2026-11', lateDone, '2027-01-10')).toBe('late-done');
+    // รายวันที่พลาดเมื่อวานไม่ขึ้นเป็น overdue
+    l = C.dueList(Object.assign({}, base, { plans: [planD], done: C.doneIndex([doc('e1', 'Daily', '2026-11-10', L('2026-11-10'))]) }));
+    expect(l).toEqual([]);
+    l = C.dueList(Object.assign({}, base, { plans: [planD], today: '2026-11-11', done: C.doneIndex([doc('e1', 'Daily', '2026-11-10', L('2026-11-10'))]) }));
+    expect(l.map((x) => x.state)).toEqual(['due']);
+    // retired ไม่ขึ้น
+    expect(C.dueList(Object.assign({}, base, { assets: [asset('e1', { status: 'retired' })] }))).toEqual([]);
+  });
+
+  test('doneIndex: 2 doc คนละเครื่องรอบเดียวกัน → เอา at ล่าสุด', () => {
+    const idx = C.doneIndex([
+      doc('e1', 'M3', '2026-11', L('2026-11-05'), { dev: 'A', by: 'ก' }),
+      doc('e1', 'M3', '2026-11', L('2026-11-20'), { dev: 'B', by: 'ข' }),
+    ]);
+    const d = idx.get('e1|M3|2026-11');
+    expect(d).toMatchObject({ dev: 'B', by: 'ข', late: false });
+    expect(d.at).toBe(L('2026-11-20'));
+    expect(C.doneIndex([doc('e1', 'M3', '2026-11', L('2026-12-01'))]).get('e1|M3|2026-11').late).toBe(true);
+  });
+
+  test('compliance: onTime / late / missed ของเดือนตัวอย่าง', () => {
+    const assets = [asset('e1', { phase: { M3: 2 } }), asset('e2', { phase: { M3: 2 } }), asset('e3', { phase: { M3: 2 } }), asset('e4', { phase: { M3: 2 } })];
+    const done = C.doneIndex([
+      doc('e1', 'M3', '2026-11', L('2026-11-12')),
+      { id: 'x', site: 's1', freq: 'M3', period: '2026-11', dev: 'A', by: '', at: L('2026-12-03'), rows: { e2: { start: 1, at: L('2026-12-03'), res: {} } } },
+    ]);
+    const o = { assets, plans: [planM3], settings: S, done, from: '2026-11-01', to: '2026-11-30', today: '2026-12-15', freqs: ['M3'] };
+    expect(C.compliance(o)).toEqual([{ month: '2026-11', site: 's1', freq: 'M3', due: 4, onTime: 1, late: 1, missed: 2 }]);
+    // รอบที่ยังไม่จบและยังไม่ทำไม่นับเป็นพลาด
+    expect(C.compliance(Object.assign({}, o, { today: '2026-11-20' }))[0]).toMatchObject({ due: 2, onTime: 1, late: 1, missed: 0 });
+  });
+
+  test('foldWo: event สลับลำดับ → ผลตาม at · at เท่ากันตัดด้วย dev · parts → matCost · note เรียงเวลา · cancel', () => {
+    const wo = { id: 'w1', no: 'CM-261002-AAA', kind: 'cm', asset: 'e1', site: 's1', reportedAt: 1000, priority: 'normal', symptom: 'เสียงดัง', createdAt: 1000 };
+    const ev = (id, at, dev, set, note, photos) => ({ id, wo: 'w1', at, dev, set, note, photos });
+    const events = [
+      ev('3', 3000, 'B', { status: 'done', endAt: 3000 }, 'เสร็จแล้ว'),
+      ev('1', 2000, 'A', { status: 'progress', assignee: 'สมชาย', parts: [{ name: 'สายพาน', qty: 2, unitCost: 150 }, { name: 'น็อต', qty: 10, unitCost: 3 }], laborCost: 500 }, 'เริ่มงาน', [{ item: null, id: 'f1' }]),
+      ev('2', 3000, 'A', { status: 'parts', cause: 'สายพานขาด' }),
+    ];
+    const f = C.foldWo(wo, events);
+    // at เท่ากัน (3000) ตัดสินด้วย dev: A ก่อน B → B ชนะ status = done
+    expect(f.status).toBe('done');
+    expect(f.cause).toBe('สายพานขาด');
+    expect(f.assignee).toBe('สมชาย');
+    expect(f.matCost).toBe(330);
+    expect(f.laborCost).toBe(500);
+    expect(f.notes.map((n) => n.note)).toEqual(['เริ่มงาน', 'เสร็จแล้ว']);
+    expect(f.photos).toHaveLength(1);
+    expect(f.symptom).toBe('เสียงดัง');
+    expect(C.foldWo(wo, events.slice().reverse())).toEqual(f);
+    const c = C.foldWo(wo, [ev('9', 5000, 'A', { status: 'cancel' })]);
+    expect(c.cancelled).toBe(true);
+    expect(C.foldWo(wo, [])).toMatchObject({ status: 'open', matCost: 0 });
+  });
+
+  test('splitChecklist: เลขนำหน้า / บูลเล็ต / บรรทัดว่าง / ;', () => {
+    expect(C.splitChecklist('1. ตรวจราวจับ\n2) ตรวจหวี\n- วัดกระแส\n• ทำความสะอาด\n\n   \n3.ตรวจเสียง; ตรวจน้ำมัน')).toEqual(
+      ['ตรวจราวจับ', 'ตรวจหวี', 'วัดกระแส', 'ทำความสะอาด', 'ตรวจเสียง', 'ตรวจน้ำมัน']);
+    expect(C.splitChecklist('')).toEqual([]);
+    expect(C.splitChecklist(null)).toEqual([]);
+  });
+
+  /* ชีตตามสัญญาคอลัมน์ของ generate_v5.load_input() (แถว 1–2 หัวตาราง ข้อมูลเริ่มแถว 3) */
+  function sheets(over) {
+    const eq = [['h'], ['h'],
+      ['RN05 บางซื่อ', 'E&M', 'บันไดเลื่อน', 'Escalator', 'ESC', 3, 2, ''],
+      ['RN05 บางซื่อ', 'E&M', 'ลิฟต์', 'Lift', 'LIFT', 1, 2, ''],
+      ['สถานีกลาง', 'E&M', 'บันไดเลื่อน', 'Escalator', 'ESC', 2, 2, '']];
+    const plan = [['h'], ['h'],
+      ['ESC', null, 0.5, null, 1, 2.5, 4, 8],
+      ['LIFT', null, null, 0.5, 1, null, 3, null],
+      ['ZZZ', null, null, null, 1, null, null, null]];
+    const activity = [['h'], ['h'],
+      ['ESC', null, null, 'M3', '1. ตรวจราวจับ\n2. วัดกระแสมอเตอร์', 'D', 2.5],
+      ['ESC', null, null, 'Daily', 'เดินเครื่อง', 'N', null]];
+    const route = [['h'], ['h'], ['RN05 บางซื่อ', 13.8, 100.54, 'C1', 1, null, null]];
+    const project = [['h'], ['h'], ['project_name', null, 'โครงการทดสอบ'], ['project_short_name', null, 'LN1']];
+    return Object.assign({ EQUIPMENT: eq, PM_PLAN: plan, PM_ACTIVITY: activity, ROUTE: route, PROJECT: project }, over || {});
+  }
+
+  test('fromEstCost: จำนวน/รหัส ABBR-CODE-NN/id คงที่/นำเข้าซ้ำ/qty ±/แผน edited/warning', () => {
+    const r1 = C.fromEstCost(sheets(), {});
+    expect(r1.sites.map((x) => [x.name, x.abbr])).toEqual([['RN05 บางซื่อ', 'RN05'], ['สถานีกลาง', 'S02']]);
+    expect(r1.sites[0]).toMatchObject({ lat: 13.8, lng: 100.54, circuit: 'C1', order: 1 });
+    expect(r1.assets.map((a) => a.code)).toEqual(['RN05-ESC-01', 'RN05-ESC-02', 'RN05-ESC-03', 'RN05-LIFT-01', 'S02-ESC-01', 'S02-ESC-02']);
+    expect(r1.report.added).toEqual({ sites: 2, assets: 6, plans: 9 }); // ESC 5 ความถี่ + LIFT 3 + ZZZ 1
+    expect(r1.settingsPatch).toEqual({ project: 'โครงการทดสอบ', line: 'LN1' });
+    const byId = Object.fromEntries(r1.plans.map((p) => [p.id, p]));
+    expect(Object.keys(byId).sort()).toEqual(['ESC|Annually', 'ESC|Daily', 'ESC|M1', 'ESC|M3', 'ESC|M6', 'LIFT|M1', 'LIFT|M6', 'LIFT|Weekly', 'ZZZ|M1'].sort());
+    expect(byId['ESC|M3']).toMatchObject({ hours: 2.5, shift: 'D', typeName: 'บันไดเลื่อน', edited: false });
+    expect(byId['ESC|M3'].items.map((i) => [i.id, i.text, i.kind])).toEqual([['i1', 'ตรวจราวจับ', 'check'], ['i2', 'วัดกระแสมอเตอร์', 'check']]);
+    expect(byId['ESC|Daily'].shift).toBe('N');
+    // ไม่มี PM_ACTIVITY ของแผนนั้น → ข้อเดียว = ชื่อแผน
+    expect(byId['LIFT|M1'].items).toHaveLength(1);
+    expect(byId['LIFT|M1'].items[0].text).toContain('ลิฟต์');
+    expect(r1.warnings.join('\n')).toMatch(/ZZZ/);
+    // id คงที่เมื่อรันซ้ำ และนำเข้าซ้ำไม่เพิ่ม
+    const r1b = C.fromEstCost(sheets(), {});
+    expect(r1b.assets.map((a) => a.id)).toEqual(r1.assets.map((a) => a.id));
+    const r2 = C.fromEstCost(sheets(), r1);
+    expect(r2.assets).toHaveLength(6);
+    expect(r2.report.added).toEqual({ sites: 0, assets: 0, plans: 0 });
+    expect(r2.report.missing).toBe(0);
+    // qty +1 เพิ่ม 1 ตัวต่อท้าย
+    const s3 = sheets(); s3.EQUIPMENT[2][5] = 4;
+    const r3 = C.fromEstCost(s3, r1);
+    expect(r3.assets).toHaveLength(7);
+    expect(r3.assets[6].code).toBe('RN05-ESC-04');
+    expect(r3.report.added.assets).toBe(1);
+    // qty −1 ตั้ง missing ไม่ลบ · เก็บ code/phase/ที่ผู้ใช้กรอกไว้
+    r1.assets[2].phase = { M3: 3 }; r1.assets[2].serial = 'SN-9'; r1.assets[2].code = 'ป้ายจริง-3';
+    const s4 = sheets(); s4.EQUIPMENT[2][5] = 2;
+    const r4 = C.fromEstCost(s4, r1);
+    expect(r4.assets).toHaveLength(6);
+    expect(r4.assets[2]).toMatchObject({ missing: true, code: 'ป้ายจริง-3', serial: 'SN-9', phase: { M3: 3 } });
+    expect(r4.report.missing).toBe(1);
+    // กลับมาอยู่ในไฟล์ → missing หาย
+    expect(C.fromEstCost(sheets(), r4).assets[2].missing).toBe(false);
+    // แผน edited ไม่ถูกทับ
+    const ed = JSON.parse(JSON.stringify(r1)); ed.plans.find((p) => p.id === 'ESC|M3').edited = true; ed.plans.find((p) => p.id === 'ESC|M3').hours = 9;
+    const s5 = sheets(); s5.PM_PLAN[2][5] = 7;
+    const r5 = C.fromEstCost(s5, ed);
+    expect(r5.plans.find((p) => p.id === 'ESC|M3').hours).toBe(9);
+    expect(r5.report.skipped).toEqual(['ESC|M3']);
+    // แผนไม่แก้ → ชั่วโมงใหม่ทับ, ข้อที่ข้อความเดิมคง id, ข้อใหม่ต่อเลข
+    const s6 = sheets(); s6.PM_PLAN[2][5] = 7; s6.PM_ACTIVITY[2][4] = '1. วัดกระแสมอเตอร์\n2. ตรวจน้ำมัน';
+    const r6 = C.fromEstCost(s6, r1);
+    const p6 = r6.plans.find((p) => p.id === 'ESC|M3');
+    expect(p6.hours).toBe(7);
+    expect(p6.items.map((i) => [i.id, i.text])).toEqual([['i2', 'วัดกระแสมอเตอร์'], ['i3', 'ตรวจน้ำมัน']]);
+    // ไม่มีชีต PM_ACTIVITY → ข้อเดียวต่อแผน + warning
+    const s7 = sheets(); delete s7.PM_ACTIVITY;
+    const r7 = C.fromEstCost(s7, {});
+    expect(r7.plans.every((p) => p.items.length === 1)).toBe(true);
+    expect(r7.warnings.join('\n')).toMatch(/PM_ACTIVITY/);
+    // ตัวย่อชนกัน → ต่อท้าย -2
+    const s8 = sheets(); s8.EQUIPMENT[4][0] = 'RN05 อีกแห่ง';
+    expect(C.fromEstCost(s8, {}).sites.map((x) => x.abbr)).toEqual(['RN05', 'RN05-2']);
+  });
+
+  test('reportRows: หัวคอลัมน์/ลำดับ/ค่า · ช่องว่าง · ผ่านตรรกะ roleCol และ scoreHeaderRow ของ report-dashboard', () => {
+    const XLSX = require('xlsx');
+    const sites = [{ id: 's1', name: 'RN05 บางซื่อ', abbr: 'RN05', lat: 13.8, lng: 100.5 }];
+    const assets = [asset('e1', { code: 'RN05-ESC-01', name: 'บันไดเลื่อน', system: 'E&M', phase: { M3: 2 } })];
+    const plans = [{ id: 'ESC|M3', type: 'ESC', typeName: 'บันไดเลื่อน', freq: 'M3', hours: 2, items: [{ id: 'i1', text: 'ตรวจราวจับ', kind: 'check' }, { id: 'i2', text: 'วัดกระแส', kind: 'num', unit: 'A' }] }];
+    const settings = { startMonth: '2026-10', line: 'LN1', project: 'ทดสอบ' };
+    const inspDocs = [{ id: 'd', site: 's1', freq: 'M3', period: '2026-11', dev: 'A', by: 'สมชาย', at: L('2026-12-02'),
+      rows: { e1: { start: L('2026-12-02') - 600000, at: L('2026-12-02'), res: { i1: 'ng', i2: 28.4 }, note: 'มีเสียง', photos: [{ item: 'i1', id: 'f' }] } } }];
+    const wos = [
+      { id: 'w1', no: 'CM-261105-AAA', kind: 'cm', asset: 'e1', site: 's1', reportedAt: L('2026-11-05'), priority: 'high', symptom: 'เสียงดัง', createdAt: 1 },
+      { id: 'w2', no: 'CM-261106-BBB', kind: 'cm', asset: 'e1', site: 's1', reportedAt: L('2026-11-06'), priority: 'normal', symptom: 'x', createdAt: 1 },
+      { id: 'w3', no: 'CM-261107-CCC', kind: 'cm', asset: 'e1', site: 's1', reportedAt: L('2026-11-07'), priority: 'low', symptom: 'y', createdAt: 1 },
+    ];
+    const woEvents = [
+      { id: 'w1|a|A', wo: 'w1', at: L('2026-11-06'), dev: 'A', set: { status: 'done', startAt: L('2026-11-06'), endAt: L('2026-11-07'), downtimeH: 5, failureMode: 'สายพาน', cause: 'ขาด', action: 'เปลี่ยน', assignee: 'ช่าง', parts: [{ name: 'สายพาน', qty: 2, unitCost: 100 }], laborCost: 300, otherCost: 50 } },
+      { id: 'w2|a|A', wo: 'w2', at: L('2026-11-07'), dev: 'A', set: { status: 'cancel' } },
+      { id: 'w3|a|A', wo: 'w3', at: L('2026-11-08'), dev: 'A', set: { status: 'parts', planFinish: '2026-11-20' } },
+    ];
+    const r = C.reportRows({ assets, sites, plans, settings, inspDocs, wos, woEvents, from: '2026-10-01', to: '2026-12-31', today: '2026-12-15' });
+    expect(r.headers).toEqual(['Work Order', 'Work Order Type', 'Equipment No', 'Equipment Type', 'Subsystem', 'Location', 'Line', 'Priority', 'Status',
+      'Failure Mode', 'Plan Start', 'Plan Finish', 'Actual Start', 'Actual End', 'Downtime (h)', 'Material Cost', 'Labor Cost', 'Other Cost', 'Assignee', 'Cause', 'Action']);
+    const H = (n) => r.headers.indexOf(n);
+    const byNo = Object.fromEntries(r.rows.map((x) => [x[0], x]));
+    expect(Object.keys(byNo).sort()).toEqual(['CM-261105-AAA', 'CM-261107-CCC', 'PM-RN05-ESC-01-M3-2026-11']);
+    const cm = byNo['CM-261105-AAA'];
+    expect(cm[H('Work Order Type')]).toBe('CM');
+    expect(cm[H('Status')]).toBe('เสร็จ');
+    expect(cm[H('Priority')]).toBe('สูง');
+    expect(cm[H('Material Cost')]).toBe(200);
+    expect(cm[H('Labor Cost')]).toBe(300);
+    expect(cm[H('Downtime (h)')]).toBe(5);
+    expect(cm[H('Line')]).toBe('LN1');
+    expect(cm[H('Location')]).toBe('RN05 บางซื่อ');
+    expect(cm[H('Actual End')]).toBeInstanceOf(Date);
+    expect(byNo['CM-261107-CCC'][H('Status')]).toBe('ล่าช้า'); // รออะไหล่แต่เลย planFinish
+    expect(byNo['CM-261107-CCC'][H('Failure Mode')]).toBeNull(); // ช่องว่างเป็นค่าว่าง
+    const pm = byNo['PM-RN05-ESC-01-M3-2026-11'];
+    expect(pm[H('Work Order Type')]).toBe('PM');
+    expect(pm[H('Status')]).toBe('เสร็จ ล่าช้า');
+    expect(pm[H('Failure Mode')]).toBe('ตรวจราวจับ');
+    expect(pm[H('Assignee')]).toBe('สมชาย');
+    expect(pm[H('Plan Start')]).toEqual(new Date(2026, 10, 1));
+    expect(pm[H('Plan Finish')]).toEqual(new Date(2026, 10, 30));
+    expect(r.inspections.rows).toHaveLength(2);
+    expect(r.inspections.rows[0].slice(6, 9)).toEqual(['ตรวจราวจับ', 'ไม่ผ่าน', null]);
+    expect(r.inspections.rows[1].slice(6, 10)).toEqual(['วัดกระแส', null, 28.4, 'A']);
+    expect(r.compliance.rows).toEqual([['2026-11', 'RN05 บางซื่อ', 'ราย 3 เดือน', 1, 0, 1, 0]]);
+    expect(r.assets.rows).toHaveLength(1);
+
+    /* ── ตรรกะของ report-dashboard (คัดลอกมาเพื่อกันหัวคอลัมน์ไม่ตรง) ──
+       roleCol / รายการคำ: report-dashboard.maintenance.final1.js บรรทัด 43–47, 96–111 (getData) · classifyWO บรรทัด 53–59
+       scoreHeaderRow / findBestAutoImport: report-dashboard.complete.final43.local.js บรรทัด ~723–756 */
+    const text = (v) => String(v == null ? '' : v).trim();
+    const roleCol = (st, words) => (st.columns || []).find((c) => { const n = text(c.label).toLowerCase(); return words.some((w) => n === w || n.indexOf(w) >= 0); }) || null;
+    const st = { columns: r.headers.map((h, i) => ({ key: i, label: h })) };
+    const roles = {
+      workorder: ['workorder', 'work order', 'ใบสั่งงาน', 'เลขที่งาน'], equipmentno: ['equipmentno', 'equipment no', 'equipment id', 'รหัสเครื่องจักร', 'รหัสอุปกรณ์'],
+      equipmenttype: ['equipmenttype', 'equipment type', 'ประเภทเครื่องจักร', 'ประเภทอุปกรณ์'], downtime: ['downtime', 'เวลาหยุด', 'หยุดทำงาน'],
+      planfinish: ['planfinish', 'plan finish', 'planworkfinish', 'กำหนดเสร็จ'], actstart: ['actworkstart', 'actualstart', 'actual start', 'เริ่มปฏิบัติงาน', 'เริ่มจริง'],
+      actend: ['actworkend', 'actualend', 'actual end', 'เสร็จปฏิบัติงาน', 'เสร็จจริง'], matcost: ['matcost', 'material cost', 'ค่าวัสดุ', 'ค่าอะไหล่'],
+      laborcost: ['laborcost', 'labourcost', 'labor cost', 'ค่าแรง'], status: ['status', 'สถานะ'], failuremode: ['failuremode', 'failure mode', 'อาการเสีย', 'สาเหตุเสีย', 'รูปแบบการเสีย'],
+      workordertype: ['work order type', 'wo type', 'maintenance type', 'ประเภทงาน', 'ประเภทการซ่อมบำรุง'], line: ['line', 'route', 'สาย', 'โครงการ'],
+    };
+    const want = { workorder: 'Work Order', equipmentno: 'Equipment No', equipmenttype: 'Equipment Type', downtime: 'Downtime (h)', planfinish: 'Plan Finish', actstart: 'Actual Start',
+      actend: 'Actual End', matcost: 'Material Cost', laborcost: 'Labor Cost', status: 'Status', failuremode: 'Failure Mode', workordertype: 'Work Order Type', line: 'Line' };
+    for (const k of Object.keys(roles)) expect(roleCol(st, roles[k]) && roleCol(st, roles[k]).label, 'role ' + k).toBe(want[k]);
+    const PM_KW = ['pm', 'preventive', 'planned', 'ตามแผน', 'ป้องกัน', 'บำรุงรักษาเชิงป้องกัน'];
+    const CM_KW = ['cm', 'corrective', 'breakdown', 'unplanned', 'ฉุกเฉิน', 'ซ่อมฉุกเฉิน', 'เสีย', 'ขัดข้อง'];
+    const classify = (a, b, c) => { const n = (text(a) + ' ' + text(b) + ' ' + text(c)).toLowerCase(); return CM_KW.some((k) => n.indexOf(k) >= 0) ? 'cm' : PM_KW.some((k) => n.indexOf(k) >= 0) ? 'pm' : 'other'; };
+    // ใช้เฉพาะ 'Work Order Type' (ตามที่หน้า report-dashboard ส่งให้ตัวจำแนกจากคอลัมน์นั้น) — ชนิดงานต้องแยก CM/PM ได้
+    expect(classify('CM', '', '')).toBe('cm');
+    expect(classify('PM', '', '')).toBe('pm');
+    // มีแถวที่มีวันที่ (actend/actstart/planfinish) ≥ 2
+    const dated = r.rows.filter((x) => x[H('Actual End')] || x[H('Actual Start')] || x[H('Plan Finish')]);
+    expect(dated.length).toBeGreaterThanOrEqual(2);
+
+    // workbook 4 ชีต: WorkOrders ต้องเป็นชีตที่ได้คะแนน ≥ 8 สูงสุด ชีตอื่นต่ำกว่า
+    const wb = XLSX.utils.book_new();
+    const add = (name, o) => XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([o.headers].concat(o.rows)), name);
+    add('WorkOrders', r); add('Inspections', r.inspections); add('Assets', r.assets); add('Compliance', r.compliance);
+    const norm = (v) => String(v == null ? '' : v).toLowerCase().replace(/[\s_\-\/\(\)\[\]\.:%]/g, '');
+    const score = (row) => {
+      const joined = row.map(norm).filter(Boolean).join('|'); let sc = 0;
+      if (/(^|\|)wbs($|\|)/.test(joined) || joined.indexOf('wbs') >= 0) sc += 4;
+      if (joined.indexOf('taskname') >= 0 || joined.indexOf('task') >= 0) sc += 4;
+      if (joined.indexOf('start') >= 0) sc += 3;
+      if (joined.indexOf('finish') >= 0 || joined.indexOf('end') >= 0) sc += 3;
+      if (joined.indexOf('actual') >= 0) sc += 3;
+      if (joined.indexOf('plan') >= 0) sc += 3;
+      if (joined.indexOf('spi') >= 0 || joined.indexOf('actualplan') >= 0) sc += 2;
+      if (joined.indexOf('duration') >= 0) sc += 1;
+      return sc;
+    };
+    const best = {};
+    for (const name of wb.SheetNames) {
+      const aoa = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: true, defval: null });
+      let b = -1;
+      for (let i = 0; i < Math.min(15, aoa.length); i++) {
+        let sc = score(aoa[i] || []), dc = 0;
+        for (let q = i + 1; q < Math.min(aoa.length, i + 8); q++) if ((aoa[q] || []).some((v) => v !== null && v !== undefined && v !== '')) dc++;
+        b = Math.max(b, sc + Math.min(3, dc));
+      }
+      best[name] = b;
+    }
+    expect(best.WorkOrders).toBeGreaterThanOrEqual(8);
+    for (const n of ['Inspections', 'Assets', 'Compliance']) expect(best[n], n).toBeLessThan(best.WorkOrders);
+    expect(wb.SheetNames[0]).toBe('WorkOrders');
+  });
+});
+
+/* ══════════ mnt-qr.js (สร้าง + ถอด QR ในเบราว์เซอร์) ══════════ */
+test.describe('mnt-qr.js', () => {
+  test('svg → ถอดกลับได้ URL เต็มที่มี #asset=<id> · parse รู้จัก #asset=, code, id', async ({ page }) => {
+    await prepare(page);
+    await page.goto('/soon.html');
+    for (const f of ['vendor/qrcode-generator/qrcode.js', 'vendor/jsqr/jsQR.js', 'mnt-qr.js']) await page.addScriptTag({ url: '/' + f });
+    const r = await page.evaluate(async () => {
+      const text = MntQR.url('e-abc123');
+      const svg = MntQR.svg(text, { cell: 6, margin: 4 }).replace('<svg ', '<svg width="400" height="400" ');
+      const out = await MntQR.decodeImage(new Blob([svg], { type: 'image/svg+xml' }));
+      const assets = [{ id: 'e-x1', code: 'BSS-ESC-01' }];
+      return { text, out, bySrc: MntQR.parse(out, assets), byCode: MntQR.parse('bss-esc-01', assets), byId: MntQR.parse('E-X1', assets), none: MntQR.parse('???', assets), modules: /viewBox="0 0 (\d+) /.exec(svg) };
+    });
+    expect(r.text).toMatch(/^http:\/\/localhost:\d+\/maintenance\.html#asset=e-abc123$/);
+    expect(r.out).toBe(r.text);
+    expect(r.bySrc).toBe('e-abc123');
+    expect(r.byCode).toBe('e-x1');
+    expect(r.byId).toBe('e-x1');
+    expect(r.none).toBeNull();
+  });
+});
+
+/* ══════════ B. หน้า maintenance.html (Playwright · เซิร์ฟเวอร์ 8129 = sync.js + files.js ตัวจริง) ══════════ */
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+const NOW = new Date('2026-11-18T10:00:00+07:00');
+
+// ข้อมูลตั้งต้น: 1 สถานที่, 1 อุปกรณ์ (ESC), แผน M3 3 ข้อ (ผ่าน/ไม่ผ่าน · วัดกระแส · ผ่าน/ไม่ผ่าน) — ครบรอบ M3 เดือน 2026-11
+function seedData() {
+  if (sessionStorage.getItem('mnt-seeded')) return;
+  sessionStorage.setItem('mnt-seeded', '1');
+  localStorage.setItem('tanot:mnt:sites', JSON.stringify([{ id: 's1', name: 'RN05 บางซื่อ', abbr: 'RN05', lat: 13.8, lng: 100.54, updatedAt: 1 }]));
+  localStorage.setItem('tanot:mnt:assets', JSON.stringify([
+    { id: 'e1', code: 'RN05-ESC-01', name: 'บันไดเลื่อน', type: 'ESC', system: 'E&M', site: 's1', phase: { M3: 2 }, status: 'active', updatedAt: 1 },
+  ]));
+  localStorage.setItem('tanot:mnt:plans', JSON.stringify([
+    { id: 'ESC|M3', type: 'ESC', typeName: 'บันไดเลื่อน', freq: 'M3', hours: 2, shift: 'D', edited: false, updatedAt: 1,
+      items: [{ id: 'i1', text: 'ตรวจราวจับ', kind: 'check' }, { id: 'i2', text: 'วัดกระแสมอเตอร์', kind: 'num', unit: 'A', min: null, max: 32 }, { id: 'i3', text: 'ตรวจหวีขั้นบันได', kind: 'check' }] },
+  ]));
+  localStorage.setItem('tanot:mnt:settings', JSON.stringify({ v: 1, startMonth: '2026-10', project: 'ทดสอบ', line: 'LN1', inspector: '', labelSize: '3x8' }));
+}
+async function newDevice(browser, { seed = true, sync = false, files = true, now = NOW, offline = false } = {}) {
+  const ctx = await browser.newContext({ baseURL: SRV });
+  await ctx.addInitScript(({ sync, files }) => {
+    window.TANOT_NO_RELOAD_BAR = true;
+    if (files) window.TANOT_FILES = { enabled: true };
+    if (sync) window.TANOT_SYNC = { enabled: true, initialDelay: 600000, interval: 1e9 };
+  }, { sync, files });
+  if (seed) await ctx.addInitScript(seedData);
+  const page = await ctx.newPage();
+  const errors = await prepare(page);
+  await page.clock.setFixedTime(now);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/maintenance.html');
+  await page.waitForSelector('nav.ome-nav');
+  return { ctx, page, errors };
+}
+const mnt = (page, fn, ...args) => page.evaluate(fn, ...args);
+const idbAll = (page, db, store) => page.evaluate(([d, s]) => window.__mnt.idbAll(d, s), [db, store]);
+async function openAsset(page, id) { await page.evaluate((id) => { location.hash = '#asset=' + id; }, id); await page.waitForSelector('#assetView [data-act="insp"]'); }
+async function fillInsp(page, { by = 'สมชาย', i1 = 'ok', i2 = 28.4, i3 = 'ok' } = {}) {
+  await page.fill('#inspBy', by);
+  if (i1) await page.click(`[data-res="${i1}"][data-item="i1"]`);
+  if (i2 != null) await page.fill('[data-num="i2"]', String(i2));
+  if (i3) await page.click(`[data-res="${i3}"][data-item="i3"]`);
+}
+async function attach(page, item, name = 'a.png') {
+  const [fc] = await Promise.all([page.waitForEvent('filechooser'), page.click(`[data-cam="${item}"]`)]);
+  await fc.setFiles({ name, mimeType: 'image/png', buffer: PNG });
+  await expect(page.locator(`[data-ph="${item}"] .insp-ph`)).toHaveCount(1);
+}
+
+test.describe('หน้า maintenance.html', () => {
+  test.beforeEach(async ({ request }) => { await request.get(SRV + '/__reset'); });
+
+  test('B1+B2 ออฟไลน์: ตรวจ + แนบรูป → บันทึก → reload ยังอยู่ (pending) → ออนไลน์รูปขึ้น R2 → ลบรูปแล้ว DELETE', async ({ browser, request }) => {
+    const { ctx, page, errors } = await newDevice(browser);
+    await openAsset(page, 'e1');
+    await ctx.setOffline(true);
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await expect(page.locator('#dlgInsp')).toHaveAttribute('open', '');
+    await expect(page.locator('#inspPeriod')).toHaveValue('2026-11');
+    // ข้อค่าที่วัดเกินเกณฑ์ → เตือนทันที
+    await fillInsp(page, { i2: 40 });
+    await expect(page.locator('[data-warn="i2"]')).toContainText('สูงกว่าเกณฑ์');
+    await page.fill('[data-num="i2"]', '28.4');
+    await expect(page.locator('[data-warn="i2"]')).toHaveText('');
+    await attach(page, 'i3');
+    await page.click('#inspSave');
+    await expect(page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+
+    let docs = await idbAll(page, 'tanot-mnt-2026', 'insp');
+    expect(docs).toHaveLength(1);
+    expect(docs[0]).toMatchObject({ site: 's1', freq: 'M3', period: '2026-11', by: 'สมชาย' });
+    const dev = await page.evaluate(() => window.__mnt.deviceId());
+    expect(docs[0].id).toBe('s1|M3|2026-11|' + dev);
+    const row = docs[0].rows.e1;
+    expect(row.res).toEqual({ i1: 'ok', i2: 28.4, i3: 'ok' });
+    expect(row.photos).toHaveLength(1);
+    expect(row.photos[0]).toMatchObject({ item: 'i3' });
+    expect(row.photos[0].pending).toBeTruthy();
+    let q = await idbAll(page, 'tanot-mnt-outbox', 'q');
+    expect(q).toHaveLength(1);
+    expect(q[0]).toMatchObject({ op: 'upload', draft: false });
+    await expect(page.locator('#pendBadge')).toContainText('รอส่งรูป 1');
+
+    // reload (ปิดออฟไลน์ แต่ /api/files ยังเข้าไม่ได้) → ผลยังอยู่ รูปยัง pending
+    await ctx.setOffline(false);
+    await page.route('**/api/files**', (r) => r.abort('internetdisconnected'));
+    await page.reload();
+    await page.waitForSelector('nav.ome-nav');
+    docs = await idbAll(page, 'tanot-mnt-2026', 'insp');
+    expect(docs[0].rows.e1.photos[0].pending).toBeTruthy();
+    expect(await idbAll(page, 'tanot-mnt-outbox', 'q')).toHaveLength(1);
+
+    // กลับออนไลน์ → ตัวส่งอัปโหลด → PhotoRef เปลี่ยนเป็น {id,...} และ outbox ว่าง
+    await page.unroute('**/api/files**');
+    await page.evaluate(() => window.__mnt.flushOutbox());
+    await expect.poll(async () => (await idbAll(page, 'tanot-mnt-outbox', 'q')).length).toBe(0);
+    docs = await idbAll(page, 'tanot-mnt-2026', 'insp');
+    const ref = docs[0].rows.e1.photos[0];
+    expect(ref.pending).toBeUndefined();
+    expect(ref).toMatchObject({ item: 'i3', mime: 'image/jpeg' });
+    expect(ref.id).toBeTruthy();
+    const got = await request.get(SRV + '/api/files?id=' + encodeURIComponent(ref.id));
+    expect(got.ok()).toBe(true);
+    const bytes = await got.body();
+    expect(bytes.length).toBe(ref.size);
+    expect([bytes[0], bytes[1]]).toEqual([0xff, 0xd8]); // JPEG (ย่อ/แปลงในหน้าก่อนส่ง)
+    expect(Object.keys(await (await request.get(SRV + '/__files')).json())).toHaveLength(1);
+
+    // ลบรูป → บันทึก → DELETE ถูกเรียก (รูปหายจาก R2)
+    await openAsset(page, 'e1');
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await expect(page.locator('[data-ph="i3"] .insp-ph')).toHaveCount(1);
+    await page.click('[data-ph="i3"] [data-rmph]');
+    await page.click('#inspSave');
+    await expect(page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+    await expect.poll(async () => Object.keys(await (await request.get(SRV + '/__files')).json()).length).toBe(0);
+    expect((await idbAll(page, 'tanot-mnt-2026', 'insp'))[0].rows.e1.photos).toEqual([]);
+    expect(await idbAll(page, 'tanot-mnt-outbox', 'q')).toEqual([]);
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+
+  test('B3 ร่างฟอร์ม: กรอกครึ่งหนึ่ง → reload → กู้ร่างได้ · บันทึกแล้วร่างหาย', async ({ browser }) => {
+    const { ctx, page, errors } = await newDevice(browser);
+    await openAsset(page, 'e1');
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await fillInsp(page, { i2: null, i3: null });
+    await page.waitForTimeout(700); // debounce 400 ms
+    await page.reload();
+    await page.waitForSelector('nav.ome-nav');
+    await openAsset(page, 'e1');
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await expect(page.locator('#inspDraftBar')).toBeVisible();
+    await expect(page.locator('[data-res="ok"][data-item="i1"]')).toHaveAttribute('aria-pressed', 'false'); // ยังไม่กู้ = ฟอร์มว่าง
+    await page.click('#inspDraftRestore');
+    await expect(page.locator('[data-res="ok"][data-item="i1"]')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#inspBy')).toHaveValue('สมชาย');
+    // ข้อที่ยังไม่ตรวจ → บันทึกไม่ได้
+    await page.click('#inspSave');
+    await expect(page.locator('#inspMsg')).toContainText('ยังไม่ได้ตรวจ 1 ข้อ');
+    await page.click('[data-res="ok"][data-item="i3"]');
+    await page.fill('[data-num="i2"]', '12');
+    await page.click('#inspSave');
+    await expect(page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+    const drafts = await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:mnt:draft')));
+    expect(drafts.items).toEqual({});
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await expect(page.locator('#inspDraftBar')).toBeHidden();
+    await expect(page.locator('[data-res="ok"][data-item="i1"]')).toHaveAttribute('aria-pressed', 'true'); // ค่าที่บันทึกไว้เติมกลับ
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+
+  test('B4a 2 เครื่อง: ตรวจอุปกรณ์เดียวกันรอบเดียวกันตอนออฟไลน์ → ซิงก์ → ทั้ง 2 doc อยู่ทั้ง 2 เครื่อง สถานะรอบ = ทำแล้ว', async ({ browser }) => {
+    const A = await newDevice(browser, { sync: true });
+    expect((await A.page.evaluate(() => window.TanotData.syncNow().then((s) => s.state)))).toBe('ok');
+    const B = await newDevice(browser, { sync: true, seed: false });
+    await B.page.evaluate(() => window.TanotData.syncNow());
+    await expect(B.page.locator('#aList .list-row')).toHaveCount(1);
+    await A.ctx.setOffline(true); await B.ctx.setOffline(true); // ตรวจตอนออฟไลน์ทั้งคู่
+    for (const [d, by] of [[A, 'สมชาย'], [B, 'สมหญิง']]) {
+      await openAsset(d.page, 'e1');
+      await d.page.click('[data-act="insp"][data-freq="M3"]');
+      await fillInsp(d.page, { by });
+      await d.page.click('#inspSave');
+      await expect(d.page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+    }
+    await A.ctx.setOffline(false); await B.ctx.setOffline(false);
+    const sync = (p) => p.evaluate(() => window.TanotData.syncNow().then((s) => s.state));
+    expect(await sync(A.page)).toBe('ok');
+    expect(await sync(B.page)).toBe('ok');
+    expect(await sync(A.page)).toBe('ok');
+    for (const d of [A, B]) {
+      const docs = await idbAll(d.page, 'tanot-mnt-2026', 'insp');
+      expect(docs.map((x) => x.by).sort()).toEqual(['สมชาย', 'สมหญิง']);
+      expect(new Set(docs.map((x) => x.id)).size).toBe(2);
+      const st = await d.page.evaluate((docs) => { const C = window.MntCalc; return C.status({ id: 'e1' }, { freq: 'M3' }, '2026-11', C.doneIndex(docs), '2026-11-18'); }, docs);
+      expect(st).toBe('done');
+    }
+    expect(A.errors).toEqual([]);
+    expect(B.errors).toEqual([]);
+    await A.ctx.close(); await B.ctx.close();
+  });
+
+  test('B5 ข้อไม่ผ่าน → dialog สร้างใบสั่งงาน (อาการ = ข้อที่ไม่ผ่าน, fromInsp) → ใบงานผูกกับแถวตรวจและขึ้นในแท็บใบสั่งงาน', async ({ browser }) => {
+    const { ctx, page, errors } = await newDevice(browser);
+    await openAsset(page, 'e1');
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await fillInsp(page, { i3: 'ng' });
+    await page.click('#inspSave');
+    await expect(page.locator('#dlgWoNew')).toHaveAttribute('open', '');
+    await expect(page.locator('#wnSymptom')).toHaveValue('ตรวจหวีขั้นบันได');
+    await expect(page.locator('#wnAsset')).toBeDisabled();
+    await page.selectOption('#wnPrio', 'high');
+    await page.click('#formWoNew button[type="submit"]');
+    await expect(page.locator('#dlgWoNew')).not.toHaveAttribute('open', '');
+    await expect(page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+    const wos = await idbAll(page, 'tanot-mnt', 'wo');
+    expect(wos).toHaveLength(1);
+    const dev = await page.evaluate(() => window.__mnt.deviceId());
+    expect(wos[0]).toMatchObject({ kind: 'cm', asset: 'e1', site: 's1', priority: 'high', symptom: 'ตรวจหวีขั้นบันได', dev,
+      fromInsp: { year: 2026, id: 's1|M3|2026-11|' + dev, items: ['i3'] } });
+    expect(wos[0].no).toMatch(/^CM-261118-[0-9A-Z]{3}$/);
+    const docs = await idbAll(page, 'tanot-mnt-2026', 'insp');
+    expect(docs[0].rows.e1.wo).toBe(wos[0].id);
+    await page.click('[data-tab="wo"]');
+    await expect(page.locator('#wList .list-row')).toHaveCount(1);
+    await expect(page.locator('#wList .list-row')).toContainText('RN05-ESC-01');
+    await expect(page.locator('#wList .list-row')).toContainText('เปิด');
+    // ข้ามได้ (ไม่สร้างใบงาน) และตรวจซ้ำที่มีใบงานอยู่แล้วไม่ถามซ้ำ
+    await openAsset(page, 'e1');
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await page.click('#inspSave');
+    await expect(page.locator('#dlgWoNew')).toHaveAttribute('open', '');
+    await page.click('#wnSkip');
+    await expect(page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+    expect(await idbAll(page, 'tanot-mnt', 'wo')).toHaveLength(1);
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+
+  test('B4b 2 เครื่อง: ใบงานเดียวกัน A เปลี่ยนสถานะ + B เพิ่มบันทึก → เห็นทั้งสองอย่าง · แก้ asset เดียวกันพร้อมกัน → ฉบับหลังชนะ อีกฉบับอยู่ใน history()', async ({ browser }) => {
+    // เวลาเซิร์ฟเวอร์ตัดเวลาแก้ที่เกินอนาคต +5 นาที — ใช้นาฬิกาใกล้เวลาจริงตลอดเทสต์นี้
+    const t0 = Date.now();
+    const A = await newDevice(browser, { sync: true, now: new Date(t0) });
+    const B = await newDevice(browser, { sync: true, seed: false, now: new Date(t0) });
+    const sync = (p) => p.evaluate(() => window.TanotData.syncNow().then((s) => s.state));
+    expect(await sync(A.page)).toBe('ok');
+    expect(await sync(B.page)).toBe('ok');
+    await expect(B.page.locator('#aList .list-row')).toHaveCount(1);
+    // A แจ้งซ่อม → ซิงก์ให้ B
+    await A.page.click('[data-tab="wo"]');
+    await A.page.click('#wNew');
+    await A.page.fill('#wnAsset', 'RN05-ESC-01');
+    await A.page.fill('#wnSymptom', 'เสียงดัง');
+    await A.page.fill('#wnBy', 'สมชาย');
+    await A.page.click('#formWoNew button[type="submit"]');
+    await expect(A.page.locator('#wList .list-row')).toHaveCount(1);
+    expect(await sync(A.page)).toBe('ok');
+    expect(await sync(B.page)).toBe('ok');
+    await B.page.click('[data-tab="wo"]');
+    await expect(B.page.locator('#wList .list-row')).toHaveCount(1);
+    // ต่างคนต่างแก้ตอนยังไม่ซิงก์
+    await A.page.locator('#wList .list-row').click();
+    await A.page.selectOption('#woStatus', 'progress');
+    await A.page.fill('#woAssignee', 'ช่างเอ');
+    await A.page.click('#formWo button[type="submit"]');
+    await B.page.locator('#wList .list-row').click();
+    await B.page.fill('#woNote', 'ติดต่อผู้ขายอะไหล่แล้ว');
+    await B.page.click('#formWo button[type="submit"]');
+    for (const p of [A.page, B.page, A.page]) expect(await sync(p)).toBe('ok');
+    for (const d of [A, B]) {
+      const r = await d.page.evaluate(async () => {
+        const wos = await window.__mnt.idbAll('tanot-mnt', 'wo'), evs = await window.__mnt.idbAll('tanot-mnt', 'woev');
+        const f = window.MntCalc.foldWo(wos[0], evs);
+        return { n: wos.length, evs: evs.length, status: f.status, assignee: f.assignee, notes: f.notes.map((x) => x.note) };
+      });
+      expect(r).toEqual({ n: 1, evs: 2, status: 'progress', assignee: 'ช่างเอ', notes: ['ติดต่อผู้ขายอะไหล่แล้ว'] });
+    }
+    // แก้อุปกรณ์ตัวเดียวกันพร้อมกัน: B แก้ก่อน (ยังไม่ซิงก์) · A แก้ทีหลังแล้วซิงก์ก่อน → ฉบับของ A ชนะ ฉบับของ B อยู่ใน history ของ B
+    const rename = async (d, name) => {
+      await d.page.click('[data-tab="assets"]');
+      await d.page.locator('#aList .list-row[data-id="e1"] [data-act="edit"]').click();
+      await d.page.fill('#eName', name);
+      await d.page.click('#formAsset button[type="submit"]');
+      await expect(d.page.locator('#dlgAsset')).not.toHaveAttribute('open', '');
+    };
+    await B.page.clock.setFixedTime(t0 + 30000); // B แก้ก่อน
+    await A.page.clock.setFixedTime(t0 + 60000); // A แก้ทีหลัง
+    await rename(B, 'ฉบับ B');
+    await rename(A, 'ฉบับ A');
+    expect(await sync(A.page)).toBe('ok');
+    expect(await sync(B.page)).toBe('ok');
+    expect(await sync(A.page)).toBe('ok');
+    for (const d of [A, B]) {
+      const name = await d.page.evaluate(() => JSON.parse(localStorage.getItem('tanot:mnt:assets')).find((a) => a.id === 'e1').name);
+      expect(name).toBe('ฉบับ A');
+    }
+    const hist = await B.page.evaluate(() => window.TanotData.history());
+    expect(hist.some((h) => h.key === 'tanot:mnt:assets' && /ฉบับ B/.test(h.data))).toBe(true);
+    expect(A.errors).toEqual([]);
+    expect(B.errors).toEqual([]);
+    await A.ctx.close(); await B.ctx.close();
+  });
+
+  test('B8 QR: ป้ายของอุปกรณ์ถอดภาพกลับได้ URL ที่มี #asset=<id> · "ถ่ายรูป QR" ด้วยไฟล์ PNG เปิดมุมมองอุปกรณ์นั้น · พิมพ์ป้ายตามตัวกรอง', async ({ browser }) => {
+    const { ctx, page, errors } = await newDevice(browser);
+    await openAsset(page, 'e1');
+    // QR ที่ render ในมุมมองอุปกรณ์ → ถอดด้วย jsQR
+    const decoded = await page.evaluate(async () => {
+      const svg = document.querySelector('.mnt-qrbox .qr svg').outerHTML.replace('<svg ', '<svg width="400" height="400" ');
+      return window.MntQR.decodeImage(new Blob([svg], { type: 'image/svg+xml' }));
+    });
+    expect(decoded).toMatch(/^http:\/\/localhost:8129\/maintenance\.html#asset=e1$/);
+    // วาดเป็น PNG เก็บไว้ใช้เป็นรูปถ่าย
+    const pngB64 = await page.evaluate(async () => {
+      const svg = document.querySelector('.mnt-qrbox .qr svg').outerHTML.replace('<svg ', '<svg width="400" height="400" ');
+      const img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' })); });
+      const cv = document.createElement('canvas'); cv.width = 400; cv.height = 400;
+      const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 400, 400); ctx.drawImage(img, 0, 0, 400, 400);
+      return cv.toDataURL('image/png').split(',')[1];
+    });
+    await page.evaluate(() => { location.hash = ''; });
+    await expect(page.locator('#listView')).toBeVisible();
+    await page.click('#aScan');
+    await expect(page.locator('#dlgScan')).toHaveAttribute('open', '');
+    // ไม่มีกล้องในเบราว์เซอร์ทดสอบ — ทางสำรองด้วยรูปถ่าย QR
+    await page.setInputFiles('#scanFile', { name: 'qr.png', mimeType: 'image/png', buffer: Buffer.from(pngB64, 'base64') });
+    await expect(page.locator('#dlgScan')).not.toHaveAttribute('open', '');
+    await expect(page.locator('#assetView')).toBeVisible();
+    await expect(page.locator('#assetView .head h2')).toContainText('RN05-ESC-01');
+    // พิมพ์รหัสเอง: ไม่พบ → ข้อความ แล้วพบ → เปิด
+    await page.evaluate(() => { location.hash = ''; });
+    await page.click('#aScan');
+    await page.fill('#scanCode', 'ไม่มีรหัสนี้');
+    await page.click('#scanGo');
+    await expect(page.locator('#scanMsg')).toContainText('ไม่พบ');
+    await page.fill('#scanCode', 'rn05-esc-01');
+    await page.click('#scanGo');
+    await expect(page.locator('#assetView .head h2')).toContainText('RN05-ESC-01');
+    // ไม่พบ id → empty state
+    await page.evaluate(() => { location.hash = '#asset=nope'; });
+    await expect(page.locator('#assetView')).toContainText('ไม่พบอุปกรณ์');
+    // พิมพ์ป้าย: มุมมองพิมพ์ 3×8 ต่อแผ่น QR + รหัสตัวใหญ่ + ชื่อ + สถานที่
+    await page.evaluate(() => { location.hash = ''; window.print = () => { window.__printed = document.getElementById('printArea').innerHTML; }; });
+    await page.click('#aPrint');
+    const html = await page.evaluate(() => window.__printed);
+    expect((html.match(/class="lbl"/g) || []).length).toBe(1);
+    expect(html).toContain('g3x8');
+    expect(html).toContain('RN05-ESC-01');
+    expect(html).toContain('<svg');
+    expect(html).toContain('RN05 บางซื่อ');
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+
+  test('B9 ปีที่ล็อก: ฟอร์มรอบปี ปัจจุบัน−2 ปิดไว้ · registry ซิงก์เฉพาะปีปัจจุบัน ±1', async ({ browser }) => {
+    const now = new Date('2028-02-10T10:00:00+07:00');
+    const { ctx, page, errors } = await newDevice(browser, { now });
+    const sync = await page.evaluate(() => ({
+      y2026: window.TanotRegistry.idbSynced('tanot-mnt-2026', 'insp'), y2027: window.TanotRegistry.idbSynced('tanot-mnt-2027', 'insp'),
+      y2028: window.TanotRegistry.idbSynced('tanot-mnt-2028', 'insp'), y2029: window.TanotRegistry.idbSynced('tanot-mnt-2029', 'insp'),
+    }));
+    expect(sync).toEqual({ y2026: false, y2027: true, y2028: true, y2029: true });
+    await page.evaluate(() => window.__mnt.idbPut('tanot-mnt-2026', 'insp', { id: 's1|M3|2026-11|dold', site: 's1', freq: 'M3', period: '2026-11', dev: 'dold', by: 'เก่า', at: 1,
+      rows: { e1: { start: 1, at: 1, res: { i1: 'ok', i2: 10, i3: 'ok' }, note: '', photos: [], wo: null } } }));
+    await openAsset(page, 'e1');
+    await page.evaluate(() => window.__mnt.openInsp('e1', 'M3', '2026-11'));
+    await expect(page.locator('#dlgInsp')).toHaveAttribute('open', '');
+    await expect(page.locator('#inspLock')).toBeVisible();
+    await expect(page.locator('#inspSave')).toBeDisabled();
+    await expect(page.locator('[data-res="ok"][data-item="i1"]')).toBeDisabled();
+    await expect(page.locator('[data-num="i2"]')).toBeDisabled();
+    await expect(page.locator('#inspBy')).toBeDisabled();
+    // รอบปีปัจจุบัน (2028) ใช้ได้ปกติ
+    await page.evaluate(() => window.__mnt.openInsp('e1', 'M3', '2028-02'));
+    await expect(page.locator('#inspSave')).toBeEnabled();
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+});
+
+test.describe('ปฏิทิน PM + compliance', () => {
+  test.beforeEach(async ({ request }) => { await request.get(SRV + '/__reset'); });
+
+  function seedCal() {
+    if (sessionStorage.getItem('mnt-seeded')) return;
+    sessionStorage.setItem('mnt-seeded', '1');
+    const items = [{ id: 'i1', text: 'ตรวจราวจับ', kind: 'check' }];
+    localStorage.setItem('tanot:mnt:sites', JSON.stringify([{ id: 's1', name: 'RN05 บางซื่อ', abbr: 'RN05', updatedAt: 1 }, { id: 's2', name: 'สถานีกลาง', abbr: 'S02', updatedAt: 1 }]));
+    const mk = (id, code, site, ph) => ({ id, code, name: 'บันไดเลื่อน', type: 'ESC', system: 'E&M', site, phase: { M3: ph }, status: 'active', updatedAt: 1 });
+    localStorage.setItem('tanot:mnt:assets', JSON.stringify([mk('e1', 'RN05-ESC-01', 's1', 2), mk('e2', 'RN05-ESC-02', 's1', 1), mk('e3', 'RN05-ESC-03', 's1', 2), mk('e4', 'RN05-ESC-04', 's1', 1), mk('e5', 'S02-ESC-01', 's2', 2)]));
+    localStorage.setItem('tanot:mnt:plans', JSON.stringify([{ id: 'ESC|M3', type: 'ESC', typeName: 'บันไดเลื่อน', freq: 'M3', hours: 2, shift: '', edited: false, items, updatedAt: 1 }]));
+    localStorage.setItem('tanot:mnt:settings', JSON.stringify({ v: 1, startMonth: '2026-10', project: '', line: '', inspector: '', labelSize: '3x8' }));
+    localStorage.setItem('tanot:mnt:ui', JSON.stringify({ tab: 'calendar', status: 'active' }));
+  }
+
+  test('กลุ่มเลยกำหนด/ถึงกำหนด/ทั้งเดือน + ป้ายงานค้างในรายการอุปกรณ์ + ตรวจทั้งสถานที่ลงใบตรวจรอบเดียวกัน + compliance', async ({ browser }) => {
+    const ctx = await browser.newContext({ baseURL: SRV });
+    await ctx.addInitScript(() => { window.TANOT_NO_RELOAD_BAR = true; });
+    await ctx.addInitScript(seedCal);
+    const page = await ctx.newPage();
+    const errors = await prepare(page);
+    await page.clock.setFixedTime(NOW); // 2026-11-18 · M3 phase 1 = ต.ค. (เลยกำหนด) · phase 2 = พ.ย. (ถึงกำหนด)
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/maintenance.html');
+    await page.waitForSelector('#cBody .card');
+    // e3 ตรวจแล้วตรงเวลาของรอบ พ.ย.
+    await page.evaluate(() => window.__mnt.idbPut('tanot-mnt-2026', 'insp', { id: 's1|M3|2026-11|dx', site: 's1', freq: 'M3', period: '2026-11', dev: 'dx', by: 'ก', at: new Date('2026-11-10T10:00:00+07:00').getTime(),
+      rows: { e3: { start: 1, at: new Date('2026-11-10T10:00:00+07:00').getTime(), res: { i1: 'ok' }, note: '', photos: [], wo: null } } }));
+    await page.reload();
+    await page.waitForSelector('#cBody .card');
+    const grp = (n) => page.locator(`[data-group="${n}"] .list-row`);
+    await expect(grp('เลยกำหนด')).toHaveCount(2); // e2, e4 (ต.ค. จบไปแล้ว ไม่ได้ทำ)
+    await expect(grp('เลยกำหนด').first()).toContainText('เลยกำหนด 18 วัน');
+    await expect(grp('ถึงกำหนด')).toHaveCount(2); // e1, e5 (พ.ย.)
+    await expect(grp('ทั้งเดือน')).toHaveCount(3); // e1, e3 (ทำแล้ว), e5
+    await expect(page.locator('[data-group="ทั้งเดือน"]')).toContainText('ตรวจแล้ว');
+    // compliance 12 เดือน: ครบกำหนด 3 (e2,e4 พลาด + e3 ตรงเวลา)
+    await expect(page.locator('[data-k="due"]')).toHaveText('3');
+    await expect(page.locator('[data-k="ontime"]')).toHaveText('33.3%');
+    await expect(page.locator('[data-k="missed"]')).toHaveText('66.7%');
+
+    // ป้ายงานค้างในแท็บอุปกรณ์
+    await page.click('[data-tab="assets"]');
+    await expect(page.locator('#aList .list-row[data-id="e2"]')).toContainText('เลยกำหนด 1');
+    await expect(page.locator('#aList .list-row[data-id="e1"]')).toContainText('ถึงกำหนด 1');
+    await expect(page.locator('#aList .list-row[data-id="e3"]')).not.toContainText('กำหนด');
+
+    // ตรวจทั้งสถานที่ (s1 · M3): รอบเก่าสุด 2026-10 = e2, e4 → ลงใบตรวจรอบเดียวกัน
+    await page.click('[data-tab="calendar"]');
+    await page.selectOption('#cSite', 's1');
+    await page.selectOption('#cFreq', 'M3');
+    await page.click('#cBatch');
+    await expect(page.locator('#dlgInsp')).toHaveAttribute('open', '');
+    await expect(page.locator('#inspPos')).toHaveText('1 / 2');
+    await expect(page.locator('#inspPeriod')).toBeDisabled();
+    await expect(page.locator('#inspTitle')).toContainText('RN05-ESC-02');
+    await page.fill('#inspBy', 'สมชาย');
+    await page.click('[data-res="ok"][data-item="i1"]');
+    await page.click('#inspSave');
+    await expect(page.locator('#inspPos')).toHaveText('2 / 2');
+    await expect(page.locator('#inspTitle')).toContainText('RN05-ESC-04');
+    await page.click('[data-res="ng"][data-item="i1"]');
+    await page.click('#inspSave');
+    await page.click('#wnSkip'); // ไม่ผ่าน → ถามสร้างใบงาน → ข้าม
+    await expect(page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+    const docs = await idbAll(page, 'tanot-mnt-2026', 'insp');
+    const mine = docs.filter((d) => d.dev !== 'dx');
+    expect(mine).toHaveLength(1);
+    expect(mine[0].period).toBe('2026-10');
+    expect(Object.keys(mine[0].rows).sort()).toEqual(['e2', 'e4']);
+    await expect(page.locator('[data-group="เลยกำหนด"]')).toHaveCount(0); // ทำช้าแล้ว = หายจากงานค้าง
+    await expect(page.locator('[data-k="late"]')).toHaveText('66.7%');
+    await expect(page.locator('[data-k="missed"]')).toHaveText('0%');
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+});
+
+test.describe('นำเข้า/ส่งออก Excel', () => {
+  const XLSX = require('xlsx');
+  const XLSX_CDN = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+  const XLSX_LOCAL = path.join(__dirname, 'node_modules', 'xlsx', 'dist', 'xlsx.full.min.js');
+  test.beforeEach(async ({ request }) => { await request.get(SRV + '/__reset'); });
+
+  // ไฟล์ input ของ est-cost ตามสัญญาคอลัมน์ในเอกสารหัวข้อ 1.1 (5 ชีต, 2 สถานี, 3 ประเภท)
+  function estCostBuffer(over = {}) {
+    const wb = XLSX.utils.book_new();
+    const add = (n, rows) => XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), n);
+    const eq = over.eq || [['RN05 บางซื่อ', 'E&M', 'บันไดเลื่อน', 'Escalator', 'ESC', 3, 2, ''], ['RN05 บางซื่อ', 'E&M', 'ลิฟต์', 'Lift', 'LIFT', 1, 2, ''],
+      ['สถานีกลาง', 'E&M', 'บันไดเลื่อน', 'Escalator', 'ESC', 2, 2, ''], ['สถานีกลาง', 'E&M', 'ประตูกั้นชานชาลา', 'PSD', 'PSD', 2, 2, '']];
+    add('EQUIPMENT', [['EQUIPMENT'], ['location', 'system', 'name_th', 'name_en', 'code', 'qty', 'workers', 'old_code']].concat(eq));
+    add('PM_PLAN', [['PM_PLAN'], ['code', '', 'Daily', 'Weekly', 'M1', 'M3', 'M6', 'Annually'],
+      ['ESC', null, 0.5, null, null, 2.5, null, null], ['LIFT', null, null, null, 1, null, 3, null], ['PSD', null, null, 1, null, null, null, 8]]);
+    add('PM_ACTIVITY', [['PM_ACTIVITY'], ['code', '', '', 'freq', 'text', 'shift', 'hr'], ['ESC', null, null, 'M3', '1. ตรวจราวจับ\n2. วัดกระแสมอเตอร์', 'D', null]]);
+    add('ROUTE', [['ROUTE'], ['name', 'lat', 'lng', 'circuit', 'order', 'km', 'min'], ['RN05 บางซื่อ', 13.8, 100.54, 'C1', 1, null, null], ['สถานีกลาง', 13.75, 100.5, 'C1', 2, null, null]]);
+    add('PROJECT', [['PROJECT'], ['key', '', 'value'], ['project_name', null, 'โครงการทดสอบ'], ['project_short_name', null, 'LN1']]);
+    return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  }
+  async function withXlsx(page) { await page.route(XLSX_CDN, (r) => r.fulfill({ path: XLSX_LOCAL, contentType: 'application/javascript' })); }
+
+  test('B6 นำเข้า: จำนวนอุปกรณ์/แผน/รายการตรวจตรง · เติม settings · นำเข้าซ้ำไม่เพิ่มซ้ำ · ไฟล์ผิดไม่เขียนอะไร', async ({ browser }) => {
+    const { ctx, page, errors } = await newDevice(browser, { seed: false });
+    await withXlsx(page);
+    await page.click('[data-tab="io"]');
+    // ไฟล์ที่ไม่ใช่ input ของ est-cost → error ไม่เขียนอะไร
+    const bad = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(bad, XLSX.utils.aoa_to_sheet([['x']]), 'Sheet1');
+    await page.setInputFiles('#ioFile', { name: 'bad.xlsx', mimeType: 'application/octet-stream', buffer: XLSX.write(bad, { type: 'buffer', bookType: 'xlsx' }) });
+    await expect(page.locator('#ioMsg')).toContainText('EQUIPMENT');
+    await expect(page.locator('#ioGo')).toBeDisabled();
+    expect(await page.evaluate(() => localStorage.getItem('tanot:mnt:assets'))).toBeNull();
+
+    await page.setInputFiles('#ioFile', { name: 'input.xlsx', mimeType: 'application/octet-stream', buffer: estCostBuffer() });
+    await expect(page.locator('[data-pv="counts"]')).toContainText('อุปกรณ์ใหม่ 8');
+    await expect(page.locator('[data-pv="counts"]')).toContainText('สถานที่ใหม่ 2');
+    await expect(page.locator('[data-pv="counts"]')).toContainText('แผนใหม่ 6');
+    expect(await page.evaluate(() => localStorage.getItem('tanot:mnt:assets'))).toBeNull(); // พรีวิวยังไม่เขียน
+    await page.click('#ioGo');
+    const ls = () => page.evaluate(() => ({ sites: JSON.parse(localStorage.getItem('tanot:mnt:sites')), assets: JSON.parse(localStorage.getItem('tanot:mnt:assets')),
+      plans: JSON.parse(localStorage.getItem('tanot:mnt:plans')), settings: JSON.parse(localStorage.getItem('tanot:mnt:settings')) }));
+    let d = await ls();
+    expect(d.sites.map((s) => s.abbr)).toEqual(['RN05', 'S02']);
+    expect(d.assets).toHaveLength(8);
+    expect(d.assets.map((a) => a.code).sort()).toEqual(['RN05-ESC-01', 'RN05-ESC-02', 'RN05-ESC-03', 'RN05-LIFT-01', 'S02-ESC-01', 'S02-ESC-02', 'S02-PSD-01', 'S02-PSD-02']);
+    expect(d.plans).toHaveLength(6);
+    expect(d.plans.reduce((n, p) => n + p.items.length, 0)).toBe(7); // ESC|M3 = 2 ข้อ ที่เหลือ 1 ข้อ
+    expect(d.plans.find((p) => p.id === 'ESC|M3').items.map((i) => i.text)).toEqual(['ตรวจราวจับ', 'วัดกระแสมอเตอร์']);
+    expect(d.settings).toMatchObject({ project: 'โครงการทดสอบ', line: 'LN1' });
+    expect(d.settings.startMonth).toMatch(/^\d{4}-\d{2}$/);
+    // เดือนที่ครบรอบแจกให้อุปกรณ์ใหม่ (ESC M3 ห้าตัวกระจาย 1..3)
+    const esc = d.assets.filter((a) => a.type === 'ESC').map((a) => a.phase.M3).sort();
+    expect(esc.every((p) => p >= 1 && p <= 3)).toBe(true);
+    for (const ph of [1, 2, 3]) expect(esc.filter((p) => p === ph).length).toBeLessThanOrEqual(2); // กระจายไม่กองเดือนเดียว
+    expect(d.assets.filter((a) => a.type === 'PSD').every((a) => a.phase.Annually >= 1 && a.phase.Annually <= 12)).toBe(true);
+
+    // นำเข้าซ้ำ: ไม่เพิ่ม ไม่ลบ
+    const before = JSON.stringify(d.assets.map((a) => [a.id, a.code, a.phase]));
+    await page.setInputFiles('#ioFile', { name: 'input.xlsx', mimeType: 'application/octet-stream', buffer: estCostBuffer() });
+    await expect(page.locator('[data-pv="counts"]')).toContainText('อุปกรณ์ใหม่ 0');
+    await page.click('#ioGo');
+    d = await ls();
+    expect(d.assets).toHaveLength(8);
+    expect(JSON.stringify(d.assets.map((a) => [a.id, a.code, a.phase]))).toBe(before);
+    // qty ของ LIFT 1 → 0 : ตั้ง 'ไม่อยู่ในไฟล์' ไม่ลบ
+    const less = estCostBuffer({ eq: [['RN05 บางซื่อ', 'E&M', 'บันไดเลื่อน', 'Escalator', 'ESC', 3, 2, ''], ['สถานีกลาง', 'E&M', 'บันไดเลื่อน', 'Escalator', 'ESC', 2, 2, ''], ['สถานีกลาง', 'E&M', 'ประตูกั้นชานชาลา', 'PSD', 'PSD', 2, 2, '']] });
+    await page.setInputFiles('#ioFile', { name: 'input.xlsx', mimeType: 'application/octet-stream', buffer: less });
+    await expect(page.locator('[data-pv="counts"]')).toContainText('ไม่อยู่ในไฟล์ 1');
+    await page.click('#ioGo');
+    d = await ls();
+    expect(d.assets).toHaveLength(8);
+    expect(d.assets.find((a) => a.code === 'RN05-LIFT-01').missing).toBe(true);
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+
+  test('B10 report-dashboard?src=maintenance: โหลดข้อมูลเข้าทางเดียวกับอัปโหลดไฟล์ — คอลัมน์ตรงหัว WorkOrders จำนวนแถวตรง · URL ถูกล้าง query', async ({ browser }) => {
+    const { ctx, page } = await newDevice(browser);
+    const at = new Date('2026-11-10T10:00:00+07:00').getTime();
+    await page.evaluate(async (at) => {
+      await window.__mnt.idbPut('tanot-mnt-2026', 'insp', { id: 's1|M3|2026-11|dx', site: 's1', freq: 'M3', period: '2026-11', dev: 'dx', by: 'สมชาย', at,
+        rows: { e1: { start: at - 60000, at, res: { i1: 'ok', i2: 28.4, i3: 'ng' }, note: '', photos: [], wo: null } } });
+      await window.__mnt.idbPut('tanot-mnt', 'wo', { id: 'w1', no: 'CM-261105-AAA', kind: 'cm', asset: 'e1', site: 's1', reportedAt: at - 86400000 * 5, priority: 'high', symptom: 'เสียงดัง', dev: 'dx', createdAt: at });
+      await window.__mnt.idbPut('tanot-mnt', 'woev', { id: 'w1|a|dx', wo: 'w1', at, dev: 'dx', set: { status: 'done', endAt: at, downtimeH: 4 }, note: '', photos: [] });
+    }, at);
+    // ไลบรารีกราฟจาก CDN ถูกบล็อกในเทสต์ — ตรวจที่ state เท่านั้น (SheetJS ใช้ไฟล์ในเครื่องแทน CDN)
+    await withXlsx(page);
+    await page.goto('/report-dashboard.html?src=maintenance&from=2026-01-01&to=2026-12-31');
+    await page.waitForFunction(() => window.TanotDashboard && window.TanotDashboard.getState().rows && window.TanotDashboard.getState().rows.length > 0, null, { timeout: 15000 });
+    const st = await page.evaluate(() => { const s = window.TanotDashboard.getState(); return { cols: s.columns.map((c) => c.label), rows: s.rows.length, file: s.fileName, sheet: s.activeSheet }; });
+    expect(st.cols).toEqual(C.WO_HEADERS);
+    expect(st.rows).toBe(2); // CM 1 + PM 1 (e1 M3 รอบ 2026-11)
+    expect(st.file).toBe('maintenance.xlsx');
+    expect(st.sheet).toBe('WorkOrders');
+    expect(page.url()).not.toContain('src=maintenance');
+    await ctx.close();
+  });
+
+  test('B7 ส่งออก: ดาวน์โหลด 4 ชีต หัว WorkOrders ตรง จำนวนแถว PM/CM ตรงกับข้อมูลที่ seed', async ({ browser }) => {
+    const { ctx, page, errors } = await newDevice(browser);
+    await withXlsx(page);
+    const at = new Date('2026-11-10T10:00:00+07:00').getTime();
+    await page.evaluate(async (at) => {
+      await window.__mnt.idbPut('tanot-mnt-2026', 'insp', { id: 's1|M3|2026-11|dx', site: 's1', freq: 'M3', period: '2026-11', dev: 'dx', by: 'สมชาย', at,
+        rows: { e1: { start: at - 60000, at, res: { i1: 'ok', i2: 28.4, i3: 'ng' }, note: 'x', photos: [], wo: null } } });
+      await window.__mnt.idbPut('tanot-mnt', 'wo', { id: 'w1', no: 'CM-261105-AAA', kind: 'cm', asset: 'e1', site: 's1', reportedAt: at - 86400000 * 5, priority: 'high', symptom: 'เสียงดัง', dev: 'dx', createdAt: at });
+      await window.__mnt.idbPut('tanot-mnt', 'woev', { id: 'w1|a|dx', wo: 'w1', at, dev: 'dx', set: { status: 'done', endAt: at, downtimeH: 4, parts: [{ name: 'สายพาน', qty: 2, unitCost: 100 }], laborCost: 300 }, note: '', photos: [] });
+      await window.__mnt.idbPut('tanot-mnt', 'wo', { id: 'w2', no: 'CM-261106-BBB', kind: 'cm', asset: 'e1', site: 's1', reportedAt: at, priority: 'normal', symptom: 'ยกเลิก', dev: 'dx', createdAt: at });
+      await window.__mnt.idbPut('tanot-mnt', 'woev', { id: 'w2|a|dx', wo: 'w2', at: at + 1, dev: 'dx', set: { status: 'cancel' }, note: '', photos: [] });
+    }, at);
+    await page.click('[data-tab="io"]');
+    await page.fill('#exFrom', '2026-01-01');
+    await page.fill('#exTo', '2026-12-31');
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#exGo')]);
+    expect(dl.suggestedFilename()).toBe('maintenance_LN1_2026-11-18.xlsx');
+    const file = test.info().outputPath('out.xlsx');
+    await dl.saveAs(file);
+    const wb = XLSX.readFile(file, { cellDates: true });
+    expect(wb.SheetNames).toEqual(['WorkOrders', 'Inspections', 'Assets', 'Compliance']);
+    const wo = XLSX.utils.sheet_to_json(wb.Sheets.WorkOrders, { header: 1, defval: null });
+    expect(wo[0]).toEqual(C.WO_HEADERS);
+    expect(wo[0].slice(0, 3)).toEqual(['Work Order', 'Work Order Type', 'Equipment No']);
+    const body = wo.slice(1);
+    expect(body.filter((r) => r[1] === 'CM')).toHaveLength(1); // ใบที่ยกเลิกไม่ส่งออก
+    expect(body.filter((r) => r[1] === 'PM')).toHaveLength(1); // e1 M3 ครบรอบ 2026-11 เดียวในช่วงนี้
+    const cm = body.find((r) => r[1] === 'CM'), pm = body.find((r) => r[1] === 'PM');
+    expect(cm[0]).toBe('CM-261105-AAA');
+    expect(cm[wo[0].indexOf('Material Cost')]).toBe(200);
+    expect(cm[wo[0].indexOf('Status')]).toBe('เสร็จ');
+    expect(pm[0]).toBe('PM-RN05-ESC-01-M3-2026-11');
+    expect(pm[wo[0].indexOf('Failure Mode')]).toBe('ตรวจหวีขั้นบันได');
+    expect(pm[wo[0].indexOf('Plan Start')]).toBeInstanceOf(Date);
+    expect(XLSX.utils.sheet_to_json(wb.Sheets.Inspections, { header: 1 })).toHaveLength(1 + 3);
+    expect(XLSX.utils.sheet_to_json(wb.Sheets.Assets, { header: 1 })).toHaveLength(2);
+    expect(XLSX.utils.sheet_to_json(wb.Sheets.Compliance, { header: 1 }).slice(1)).toEqual([['2026-11', 'RN05 บางซื่อ', 'ราย 3 เดือน', 1, 1, 0, 0]]);
+    // ช่วงวันที่ผิด → ไม่ดาวน์โหลด
+    await page.fill('#exTo', '2025-01-01');
+    await page.click('#exGo');
+    await expect(page.locator('#exMsg')).toContainText('ช่วงวันที่ไม่ถูกต้อง');
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+});

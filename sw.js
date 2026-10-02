@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v578';
+const CACHE = 'ome-v587';
 const PRECACHE = [
   './',
   './index.html',
@@ -63,6 +63,12 @@ const PRECACHE = [
   './insurance.html',
   './insurance.js',
   './insurance-calc.js',
+  './maintenance.html',
+  './maintenance.js',
+  './mnt-calc.js',
+  './mnt-qr.js',
+  './vendor/qrcode-generator/qrcode.js',
+  './vendor/jsqr/jsQR.js',
   './cad.html',
   './cad.js',
   './cad3d.html',
@@ -71,6 +77,7 @@ const PRECACHE = [
   './report-dashboard.utils.final43.js',
   './report-dashboard.performance.final43.js',
   './report-dashboard.complete.final43.local.js',
+  './report-dashboard.mntsrc.js',
   './report-dashboard.bi-plus.final43.js',
   './report-dashboard.final62.projectcontrol.js',
   './report-dashboard.safety.final1.js',
