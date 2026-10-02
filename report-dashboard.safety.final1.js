@@ -7,6 +7,7 @@
 */
 (function(){
   'use strict';
+  function P(){return window.TanotReportUtils.palette();}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -114,40 +115,39 @@
     if(q('#safety1-css'))return;
     var s=document.createElement('style');s.id='safety1-css';s.textContent=`
 #safetyControlLayout{display:flex;flex-direction:column;gap:12px;margin-top:14px;font-family:var(--pc53-font,inherit)}
-#safetyControlLayout .sf-hero{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--sh)}
-#safetyControlLayout .sf-hero h2{font-size:16px;margin:0}
-#safetyControlLayout .sf-hero .sf-sub{font-size:12px;color:var(--muted);margin-top:3px}
+#safetyControlLayout .sf-hero{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:15px 16px;box-shadow:var(--ome-shadow-1)}
+#safetyControlLayout .sf-hero h2{font-size:var(--ome-fs-md);margin:0}
+#safetyControlLayout .sf-hero .sf-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px}
 #safetyControlLayout .sf-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
 #safetyControlLayout .sf-pyramid{display:flex;flex-direction:column;align-items:center;gap:2px}
-#safetyControlLayout .sf-pyramid-legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:9.5px;color:var(--muted);margin-top:6px}
+#safetyControlLayout .sf-pyramid-legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:6px}
 #safetyControlLayout .sf-pyramid-legend span{display:inline-flex;align-items:center;gap:5px}
-#safetyControlLayout .sf-pyramid-legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
-#safetyControlLayout .sf-kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;box-shadow:var(--sh);position:relative}
-#safetyControlLayout .sf-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:4px;background:var(--ok)}
-#safetyControlLayout .sf-kpi.warn:after{background:var(--warn)}#safetyControlLayout .sf-kpi.bad:after{background:var(--err)}
-#safetyControlLayout .sf-kpi .l{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-#safetyControlLayout .sf-kpi .v{font-size:24px;font-weight:850;margin-top:4px;color:var(--ink)}
-#safetyControlLayout .sf-kpi.warn .v{color:#B8720A}#safetyControlLayout .sf-kpi.bad .v{color:var(--err)}
-#safetyControlLayout .sf-kpi .s{font-size:9.5px;color:var(--muted);margin-top:4px}
-#safetyControlLayout .sf-panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px;box-shadow:var(--sh)}
-#safetyControlLayout .sf-panel h3{font-size:13px;margin:0 0 3px;font-weight:850}
-#safetyControlLayout .sf-note{font-size:9.5px;color:var(--muted);margin-bottom:7px}
+#safetyControlLayout .sf-pyramid-legend i{width:10px;height:10px;border-radius:var(--ome-radius-sm);display:inline-block}
+#safetyControlLayout .sf-kpi{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px 13px;box-shadow:var(--ome-shadow-1);position:relative}
+#safetyControlLayout .sf-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:var(--ome-radius-sm);background:var(--ome-ok)}
+#safetyControlLayout .sf-kpi.warn:after{background:var(--ome-warn)}#safetyControlLayout .sf-kpi.bad:after{background:var(--ome-err)}
+#safetyControlLayout .sf-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
+#safetyControlLayout .sf-kpi .v{font-size:var(--ome-fs-2xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
+#safetyControlLayout .sf-kpi.warn .v{color:var(--ome-warn-ink)}#safetyControlLayout .sf-kpi.bad .v{color:var(--ome-err)}
+#safetyControlLayout .sf-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
+#safetyControlLayout .sf-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
+#safetyControlLayout .sf-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
 #safetyControlLayout .sf-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
 #safetyControlLayout .sf-grid>.half{grid-column:span 6}#safetyControlLayout .sf-grid>.full{grid-column:1/-1}
-#safetyControlLayout .sf-insight{border-left:3px solid var(--ok);padding:10px 13px;font-size:12px;color:var(--ink)}
+#safetyControlLayout .sf-insight{border-left:3px solid var(--ome-ok);padding:10px 13px;font-size:var(--ome-fs-xs);color:var(--ome-text-1)}
 #safetyControlLayout .sf-status-row{display:flex;flex-direction:column;gap:8px}
-#safetyControlLayout .sf-status-item{display:grid;grid-template-columns:96px 1fr 30px;align-items:center;gap:9px;font-size:11px}
+#safetyControlLayout .sf-status-item{display:grid;grid-template-columns:96px 1fr 30px;align-items:center;gap:9px;font-size:var(--ome-fs-xs)}
 #safetyControlLayout .sf-status-item .lab{display:flex;align-items:center;gap:6px;font-weight:700}
 #safetyControlLayout .sf-status-item i{width:8px;height:8px;border-radius:50%;display:inline-block}
-#safetyControlLayout .sf-track{height:7px;border-radius:6px;background:#eef1f4;overflow:hidden}
-#safetyControlLayout .sf-track span{display:block;height:100%;border-radius:6px}
+#safetyControlLayout .sf-track{height:7px;border-radius:var(--ome-radius-sm);background:var(--ome-surface-2);overflow:hidden}
+#safetyControlLayout .sf-track span{display:block;height:100%;border-radius:var(--ome-radius-sm)}
 #safetyControlLayout .sf-attention{display:flex;flex-direction:column;gap:6px;max-height:230px;overflow:auto}
-#safetyControlLayout .sf-att-card{border-radius:9px;padding:8px 10px;font-size:11px;border-left:3px solid var(--err);background:#FDEEEE}
-#safetyControlLayout .sf-att-card.warn{border-left-color:var(--warn);background:#FEF6EA}
-#safetyControlLayout .sf-att-card b{display:block;font-size:11.5px;margin-bottom:2px}
-#safetyControlLayout .sf-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px}
+#safetyControlLayout .sf-att-card{border-radius:var(--ome-radius-md);padding:8px 10px;font-size:var(--ome-fs-xs);border-left:3px solid var(--ome-err);background:var(--ome-err-soft)}
+#safetyControlLayout .sf-att-card.warn{border-left-color:var(--ome-warn);background:var(--ome-warn-soft)}
+#safetyControlLayout .sf-att-card b{display:block;font-size:var(--ome-fs-xs);margin-bottom:2px}
+#safetyControlLayout .sf-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs)}
 #safetyControlLayout .sf-list:last-child{border-bottom:none}
-#safetyControlLayout .sf-empty{padding:24px 8px;text-align:center;color:var(--muted);font-size:11px}
+#safetyControlLayout .sf-empty{padding:24px 8px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
 #safetyControlLayout svg text{font-family:var(--pc53-font,inherit)}
 #safetyControlLayout .sf-trend-scroll{overflow-x:auto}
 #safetyControlLayout.safety-override-hidden{display:none!important}
@@ -177,18 +177,17 @@
     if(layout.getAttribute('data-built')==='1')return true;
     layout.setAttribute('data-built','1');
     layout.innerHTML=
-      '<section class="sf-hero"><h2>🛡 Safety &amp; HSE Control</h2><div class="sf-sub" id="sfUpdated">ภาพรวมอุบัติเหตุ, Near-miss และสถานะการแก้ไขตามมาตรฐาน ISO 45001/14001</div></section>'+
+      '<section class="sf-hero"><h2>Safety &amp; HSE Control</h2><div class="sf-sub" id="sfUpdated"></div></section>'+
       '<div class="sf-kpis" id="sfKpis"></div>'+
       '<section class="sf-panel sf-insight-panel"><h3>Executive Insight</h3><div id="sfInsight" class="sf-insight"></div></section>'+
       '<div class="sf-grid">'+
-        '<section class="sf-panel full"><h3>แนวโน้มเหตุการณ์รายเดือน</h3><div class="sf-note">Near-miss / First-aid / Lost-time</div><div id="sfTrend"></div></section>'+
-        '<section class="sf-panel half"><h3>เหตุการณ์แยกตามหน่วยงาน</h3><div class="sf-note">จำนวนรายการต่อแผนก</div><div id="sfByDept"></div></section>'+
-        '<section class="sf-panel half"><h3>Safety Pyramid</h3><div class="sf-note">สัดส่วน Near-miss : First-aid : Lost-time (Heinrich\'s Triangle)</div><div id="sfPyramid"></div></section>'+
-        '<section class="sf-panel half"><h3>Action Status</h3><div class="sf-note">สถานะการปิดประเด็นทั้งหมด</div><div id="sfStatus"></div></section>'+
-        '<section class="sf-panel half"><h3>⚠ ต้องติดตามด่วน</h3><div class="sf-note">ค้าง/เลยกำหนด หรือ Lost-time</div><div id="sfAttention"></div></section>'+
-        '<section class="sf-panel full"><h3>รายการล่าสุด</h3><div class="sf-note">10 รายการล่าสุด</div><div id="sfRecent"></div></section>'+
-      '</div>'+
-      '<div class="mini" style="font-size:9px;color:var(--muted)">ตรวจพบจากคอลัมน์ วันที่เกิดเหตุ + ประเภท/ความรุนแรง ในไฟล์ที่อัปโหลด — Table ด้านล่างไม่ถูกแก้ไข</div>';
+        '<section class="sf-panel full"><h3>แนวโน้มเหตุการณ์รายเดือน</h3><div id="sfTrend"></div></section>'+
+        '<section class="sf-panel half"><h3>เหตุการณ์แยกตามหน่วยงาน</h3><div id="sfByDept"></div></section>'+
+        '<section class="sf-panel half"><h3>Safety Pyramid</h3><div id="sfPyramid"></div></section>'+
+        '<section class="sf-panel half"><h3>Action Status</h3><div id="sfStatus"></div></section>'+
+        '<section class="sf-panel half"><h3>ต้องติดตามด่วน</h3><div id="sfAttention"></div></section>'+
+        '<section class="sf-panel full"><h3>รายการล่าสุด</h3><div id="sfRecent"></div></section>'+
+      '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('safety-hidden-source');
     });
@@ -221,21 +220,21 @@
     var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:'+w+'px;height:'+h+'px">';
     for(var t=0;t<=4;t++){
       var val=maxV*t/4, y=top+ph-ph*t/4;
-      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edf1" stroke-width="1"/>';
-      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#8a97a3">'+Math.round(val)+'</text>';
+      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="'+P().grid+'" stroke-width="1"/>';
+      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="'+P().faint+'">'+Math.round(val)+'</text>';
     }
     var stepX=pw/(keys.length-1||1);
-    var cats=[['nearmiss','#2D7FF0'],['firstaid','#F59E0B'],['losttime','#DC2626']];
+    var cats=[['nearmiss',P().info],['firstaid',P().warn],['losttime',P().err]];
     cats.forEach(function(cat){
       var pts=keys.map(function(k,i){var v=byMonth[k][cat[0]]; return (left+stepX*i)+','+(top+ph-ph*v/maxV);});
       out+='<path d="M'+pts.join(' L')+'" fill="none" stroke="'+cat[1]+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
-      keys.forEach(function(k,i){var v=byMonth[k][cat[0]]; out+='<circle cx="'+(left+stepX*i)+'" cy="'+(top+ph-ph*v/maxV)+'" r="3" fill="'+cat[1]+'" stroke="#fff" stroke-width="1.2"/>';});
+      keys.forEach(function(k,i){var v=byMonth[k][cat[0]]; out+='<circle cx="'+(left+stepX*i)+'" cy="'+(top+ph-ph*v/maxV)+'" r="3" fill="'+cat[1]+'" stroke="'+P().surface1+'" stroke-width="1.2"/>';});
     });
     keys.forEach(function(k,i){
-      out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="#8a97a3">'+k+'</text>';
+      out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>';
     });
     out+='</svg>';
-    host.innerHTML='<div class="sf-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;font-size:10.5px;color:var(--muted);margin-top:4px"><span>● <span style="color:#2D7FF0">Near-miss</span></span><span>● <span style="color:#F59E0B">First-aid</span></span><span>● <span style="color:#DC2626">Lost-time</span></span></div>';
+    host.innerHTML='<div class="sf-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span>● <span style="color:'+P().info+'">Near-miss</span></span><span>● <span style="color:'+P().warn+'">First-aid</span></span><span>● <span style="color:'+P().err+'">Lost-time</span></span></div>';
   }
 
   function renderByDept(rows){
@@ -248,10 +247,10 @@
     var out=svgOpen(w,h);
     entries.forEach(function(e,i){
       var y=10+i*rowH, bw=Math.max(2,barW*e[1]/maxV);
-      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="#374151"><title>'+esc(e[0])+'</title>'+esc(e[0].length>16?e[0].slice(0,15)+'…':e[0])+'</text>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="#EEF1F4"/>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="16" rx="4" fill="#2D7FF0"/>';
-      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10.5" font-weight="700" fill="#172033">'+e[1]+'</text>';
+      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="'+P().text+'"><title>'+esc(e[0])+'</title>'+esc(e[0].length>16?e[0].slice(0,15)+'…':e[0])+'</text>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="'+P().surface2+'"/>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="16" rx="4" fill="'+P().info+'"/>';
+      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10.5" font-weight="700" fill="'+P().text+'">'+e[1]+'</text>';
     });
     out+='</svg>';
     host.innerHTML=out;
@@ -268,7 +267,7 @@
       if(r.due && r.due<today && b!=='closed') overdue++;
     });
     var total=Math.max(1,rows.length);
-    var vals=[['closed','ปิดแล้ว',counts.closed,'#16A34A'],['open','ระหว่างแก้ไข',counts.open,'#F59E0B'],['other','อื่นๆ/ไม่ระบุ',counts.other+counts.unknown,'#94A3B8'],['overdue','เลยกำหนด',overdue,'#DC2626']];
+    var vals=[['closed','ปิดแล้ว',counts.closed,P().ok],['open','ระหว่างแก้ไข',counts.open,P().warn],['other','อื่นๆ/ไม่ระบุ',counts.other+counts.unknown,P().faint],['overdue','เลยกำหนด',overdue,P().err]];
     var out='<div class="sf-status-row">';
     vals.forEach(function(v){
       var pct=(v[2]/total*100).toFixed(0);
@@ -290,7 +289,7 @@
     var total=c.nearmiss+c.firstaid+c.losttime;
     if(!total){host.innerHTML='<div class="sf-empty">ไม่มีข้อมูลเพียงพอสำหรับพีระมิดความปลอดภัย</div>';return;}
     var W=300,H=190,apexPad=6;
-    var tiers=[['nearmiss','Near-miss',c.nearmiss,'#2D7FF0'],['firstaid','First-aid',c.firstaid,'#F59E0B'],['losttime','Lost-time',c.losttime,'#DC2626']];
+    var tiers=[['nearmiss','Near-miss',c.nearmiss,P().info],['firstaid','First-aid',c.firstaid,P().warn],['losttime','Lost-time',c.losttime,P().err]];
     // ความสูงแต่ละชั้นแปรผันตามสัดส่วน แต่กันชั้นที่มีข้อมูลไม่ให้แคบจนมองไม่เห็น (ขั้นต่ำ 22px)
     var minH=22, raw=tiers.map(function(t){return t[2]/total*H;});
     var extra=0; raw=raw.map(function(h){ if(h>0&&h<minH){extra+=minH-h;return minH;} return h; });
@@ -308,8 +307,8 @@
       var wBottom=widthAt(yb), wTop=widthAt(yt);
       var xL_b=(W-wBottom)/2, xR_b=xL_b+wBottom, xL_t=(W-wTop)/2, xR_t=xL_t+wTop;
       var svgYBottom=H-yb+5, svgYTop=H-yt+5; // แปลงเป็นพิกัด SVG (0=บน, ค่ามากขึ้น=ลงล่าง)
-      out+='<polygon points="'+xL_b+','+svgYBottom+' '+xR_b+','+svgYBottom+' '+xR_t+','+svgYTop+' '+xL_t+','+svgYTop+'" fill="'+t[3]+'" stroke="#fff" stroke-width="1.5"/>';
-      out+='<text x="'+(W/2)+'" y="'+((svgYBottom+svgYTop)/2+4)+'" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">'+t[2]+'</text>';
+      out+='<polygon points="'+xL_b+','+svgYBottom+' '+xR_b+','+svgYBottom+' '+xR_t+','+svgYTop+' '+xL_t+','+svgYTop+'" fill="'+t[3]+'" stroke="'+P().surface1+'" stroke-width="1.5"/>';
+      out+='<text x="'+(W/2)+'" y="'+((svgYBottom+svgYTop)/2+4)+'" text-anchor="middle" font-size="12" font-weight="800" fill="'+P().onAccent+'">'+t[2]+'</text>';
       cursor=yt;
     });
     out+='</svg>';
@@ -355,7 +354,7 @@
     var layout=injectLayout(); if(!layout)return;
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
-    layout.innerHTML='<section class="sf-panel"><h3>🛡 Safety &amp; HSE Control</h3>'+
+    layout.innerHTML='<section class="sf-panel"><h3>Safety &amp; HSE Control</h3>'+
       '<div class="sf-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายบันทึกความปลอดภัย (ต้องมีคอลัมน์วันที่เกิดเหตุ '+
       'และอย่างน้อยหนึ่งใน ประเภทเหตุการณ์/ความรุนแรง) — ลองเลือก Template เป็น "Auto" '+
       'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
@@ -431,6 +430,7 @@
 
   function init(){
     injectCSS();
+    window.TanotReportUtils.onTheme(schedule);
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;

@@ -57,5 +57,39 @@
     /* body = ทั้งกล่อง (รวมส่วนท้ายปุ่ม) เพื่อให้ ui.body.querySelector('[data-apply]') หาปุ่มท้ายกล่องเจอ */
     return { el: dlg, close: close, body: dlg };
   }
-  w.TanotReportUtils = { clone: clone, clamp: clamp, unique: unique, median: median, esc: esc, icon: icon, toast: toast, modal: modal };
+
+  /* ── จานสีสำหรับกราฟ SVG ที่โมดูลรายงานวาดเอง ──
+     แอตทริบิวต์ fill/stroke ของ SVG ที่ใส่ var(--x) จะหายสีตอน html2canvas แปลง SVG เป็นรูป จึงต้องใส่ค่า rgb ที่คำนวณแล้ว
+     (อ่านจากโทเคน --ome-*) และวาดใหม่เมื่อธีมเปลี่ยน — โมดูลเรียก palette() ตอนวาด และ onTheme(schedule) */
+  var FALLBACK = { series: ['#2A78D6', '#EB6834', '#1BAF7A', '#EDA100', '#E87BA4', '#008300', '#4A3AA7', '#E34948'],
+    grid: '#E6E9F2', axis: '#727C93', text: '#1F2430', muted: '#727C93', faint: '#A3AABB', surface1: '#FFFFFF', surface2: '#F2F4F9', border: '#EAEDF5',
+    ok: '#17B26A', warn: '#E08700', err: '#E5484D', info: '#3B9BEA', okSoft: '#E4F6EC', warnSoft: '#FCF0DE', errSoft: '#FCE9EA', infoSoft: '#E6F1FC',
+    okInk: '#0F7C4A', warnInk: '#935B00', errInk: '#B3282D', infoInk: '#1E6BB0', accent: '#12A594', onAccent: '#FFFFFF' };
+  var probe = null, cnv = null, pal = null;
+  function token(name) {
+    try {
+      if (!probe) { probe = document.createElement('span'); probe.style.display = 'none'; document.body.appendChild(probe); cnv = document.createElement('canvas'); cnv.width = cnv.height = 1; }
+      var ctx = cnv.getContext('2d', { willReadFrequently: true });
+      probe.style.color = 'var(' + name + ')';
+      var css = getComputedStyle(probe).color;
+      ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = css; ctx.fillRect(0, 0, 1, 1);
+      var d = ctx.getImageData(0, 0, 1, 1).data;
+      return d[3] === 255 ? 'rgb(' + d[0] + ',' + d[1] + ',' + d[2] + ')' : 'rgba(' + d[0] + ',' + d[1] + ',' + d[2] + ',' + (d[3] / 255).toFixed(3) + ')';
+    } catch (e) { return null; }
+  }
+  function palette() {
+    if (pal) return pal;
+    var t = null; try { t = window.OmeChartTheme && window.OmeChartTheme.get(); } catch (e) {}
+    if (!t || !document.body) return FALLBACK;
+    function tk(n, k) { return token(n) || FALLBACK[k]; }
+    pal = { series: t.series, grid: t.grid, axis: t.axis, text: t.text, muted: t.textMuted, faint: tk('--ome-text-3', 'faint'), surface1: t.surface, surface2: tk('--ome-surface-2', 'surface2'), border: t.border,
+      ok: tk('--ome-ok', 'ok'), warn: tk('--ome-warn', 'warn'), err: tk('--ome-err', 'err'), info: tk('--ome-info', 'info'),
+      okSoft: tk('--ome-ok-soft', 'okSoft'), warnSoft: tk('--ome-warn-soft', 'warnSoft'), errSoft: tk('--ome-err-soft', 'errSoft'), infoSoft: tk('--ome-info-soft', 'infoSoft'),
+      okInk: tk('--ome-ok-ink', 'okInk'), warnInk: tk('--ome-warn-ink', 'warnInk'), errInk: tk('--ome-err-ink', 'errInk'), infoInk: tk('--ome-info-ink', 'infoInk'), accent: t.accent, onAccent: tk('--ome-on-accent', 'onAccent') };
+    return pal;
+  }
+  var themeHooks = [];
+  function onTheme(fn) { themeHooks.push(fn); }
+  if (window.OmeChartTheme) window.OmeChartTheme.onChange(function () { pal = null; themeHooks.forEach(function (f) { try { f(); } catch (e) {} }); });
+  w.TanotReportUtils = { clone: clone, clamp: clamp, unique: unique, median: median, esc: esc, icon: icon, toast: toast, modal: modal, palette: palette, onTheme: onTheme };
 })(window);
