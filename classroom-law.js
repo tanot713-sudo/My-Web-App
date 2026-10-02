@@ -8,6 +8,7 @@
   'use strict';
 
   function $(id) { return document.getElementById(id); }
+  function icon(name) { return '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + name + '"/></svg>'; }
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -971,22 +972,22 @@
       '<button class="btn primary sm" id="clTtsPlaylistBtn" type="button">เล่นทั้งวิชาต่อเนื่อง</button></div>' +
       '<div class="ttsbar-controls" id="clTtsControls" style="display:none">' +
       '<span class="ttsbar-now" id="clTtsNow"></span>' +
-      '<button class="btn sm" id="clTtsPrev" type="button">⏮ ก่อนหน้า</button>' +
-      '<button class="btn sm" id="clTtsPauseBtn" type="button">⏸ พัก</button>' +
-      '<button class="btn sm" id="clTtsNext" type="button">⏭ ถัดไป</button>' +
-      '<button class="btn sm" id="clTtsStopBtn" type="button">⏹ หยุด</button></div>' +
+      '<button class="btn sm" id="clTtsPrev" type="button">' + icon('chevron-left') + ' ก่อนหน้า</button>' +
+      '<button class="btn sm" id="clTtsPauseBtn" type="button">' + icon('pause') + ' พัก</button>' +
+      '<button class="btn sm" id="clTtsNext" type="button">ถัดไป ' + icon('chevron-right') + '</button>' +
+      '<button class="btn sm" id="clTtsStopBtn" type="button">' + icon('square') + ' หยุด</button></div>' +
       (!window.speechSynthesis ? '<p class="mini" style="margin-top:6px">เบราว์เซอร์นี้ไม่รองรับเสียงอ่านสด (Web Speech API) — ลองเปิดด้วย Chrome</p>' : '') +
       '</div>';
 
     function renderPart(p, i, openIt) {
       var isRead = !!readMap[p.title];
       var noteText = noteMap[p.title] || '';
-      return '<details class="lesson" id="lpart-' + i + '"' + (openIt ? ' open' : '') + '>' +
+      return '<details class="lesson disclosure" id="lpart-' + i + '"' + (openIt ? ' open' : '') + '>' +
         '<summary><span class="lsum-txt">' + esc(p.title) + '</span>' +
         '<button type="button" class="tts-playbtn" data-ttsplay="' + i + '">ฟัง</button>' +
         '<button type="button" class="lnote-btn' + (noteText ? ' has' : '') + '" data-lnotebtn="' + i + '">โน้ต' + (noteText ? '' : '') + '</button>' +
         '<label class="lread"><input type="checkbox" data-lread="' + i + '"' + (isRead ? ' checked' : '') + '> อ่านแล้ว</label></summary>' +
-        '<div class="details-body">' + mdToHtml(p.md) +
+        '<div class="disclosure-body prose">' + mdToHtml(p.md) +
         '<div class="lnote-wrap" id="lnotewrap-' + i + '" style="display:' + (noteText ? '' : 'none') + '">' +
         '<textarea class="lnote-ta" data-lnotearea="' + i + '" placeholder="จดโน้ตส่วนตัวของหัวข้อนี้ — เช่น จุดที่ยังไม่แม่น หรือคำถามที่จะไปถามอาจารย์">' +
         esc(noteText) + '</textarea></div>' +
@@ -1100,7 +1101,7 @@
     }
     var entry = LESSON_CONTENT[subject.id];
     if (!entry || !entry.parts || !entry.parts.length) return;
-    if (status) status.textContent = '⏳ กำลังสร้างไฟล์ PDF… (อาจใช้เวลาสักครู่ถ้าเนื้อหายาว)';
+    if (status) status.textContent = 'กำลังสร้างไฟล์ PDF… (อาจใช้เวลาสักครู่ถ้าเนื้อหายาว)';
     var wrap = document.createElement('div');
     wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;color:#1F2430;' +
       'padding:36px;font-family:Prompt,sans-serif;box-sizing:border-box';
@@ -1219,7 +1220,7 @@
     if (!ttsState) { controls.style.display = 'none'; return; }
     controls.style.display = '';
     var nowEl = $('clTtsNow'); if (nowEl) nowEl.textContent = 'กำลังอ่าน: ' + ttsState.label;
-    var pauseBtn = $('clTtsPauseBtn'); if (pauseBtn) pauseBtn.textContent = ttsState.paused ? '▶️ เล่นต่อ' : '⏸ พัก';
+    var pauseBtn = $('clTtsPauseBtn'); if (pauseBtn) pauseBtn.innerHTML = ttsState.paused ? icon('play') + ' เล่นต่อ' : icon('pause') + ' พัก';
     var prevBtn = $('clTtsPrev'), nextBtn = $('clTtsNext');
     if (prevBtn) prevBtn.style.display = ttsState.playlist ? '' : 'none';
     if (nextBtn) nextBtn.style.display = ttsState.playlist ? '' : 'none';
@@ -1608,13 +1609,13 @@
       '</div>';
 
     function renderItem(item, i) {
-      return '<details class="lesson examq" id="exq-' + i + '"><summary><span class="lsum-txt">ข้อ ' + (i + 1) + '. ' +
+      return '<details class="lesson examq disclosure" id="exq-' + i + '"><summary><span class="lsum-txt">ข้อ ' + (i + 1) + '. ' +
         esc(item.q.length > 60 ? item.q.slice(0, 60) + '…' : item.q) + '</span>' +
         (window.speechSynthesis ? '<button type="button" class="tts-playbtn" data-ttsexam="' + i + '">ฟังโจทย์</button>' : '') +
         '</summary>' +
-        '<div class="details-body">' + mdToHtml('**โจทย์**\n\n' + item.q) +
-        '<details style="margin-top:8px"><summary>ดูแนวคำตอบ</summary>' +
-        '<div class="details-body">' + mdToHtml(item.a) + '</div></details>' +
+        '<div class="disclosure-body">' + mdToHtml('**โจทย์**\n\n' + item.q) +
+        '<details class="disclosure" style="margin-top:8px"><summary>ดูแนวคำตอบ</summary>' +
+        '<div class="disclosure-body prose">' + mdToHtml(item.a) + '</div></details>' +
         '</div></details>';
     }
 
@@ -1740,15 +1741,14 @@
     var idxs = mockState.idxs, list = mockState.list;
     var reviewHtml = idxs.map(function (qi, n) {
       var item = list[qi];
-      return '<details class="lesson"><summary>ข้อ ' + (n + 1) + '. ' +
+      return '<details class="lesson disclosure"><summary>ข้อ ' + (n + 1) + '. ' +
         esc(item.q.length > 60 ? item.q.slice(0, 60) + '…' : item.q) + '</summary>' +
-        '<div class="details-body">' + mdToHtml('**โจทย์**\n\n' + item.q) +
-        '<details style="margin-top:8px"><summary>ดูแนวคำตอบ</summary><div class="details-body">' +
+        '<div class="disclosure-body">' + mdToHtml('**โจทย์**\n\n' + item.q) +
+        '<details class="disclosure" style="margin-top:8px"><summary>ดูแนวคำตอบ</summary><div class="disclosure-body prose">' +
         mdToHtml(item.a) + '</div></details></div></details>';
     }).join('');
     $('clMockArea').innerHTML =
-      '<div class="verdict-box go">ทำครบ ' + idxs.length + ' ข้อ ใช้เวลาไป ' + fmtMmSs(elapsedMs) + '</div>' +
-      '<p class="mini" style="margin:10px 0">ลองเทียบคำตอบที่เขียน/คิดไว้กับแนวคำตอบด้านล่าง แล้วประเมินตัวเองตามจริง</p>' +
+      '<div class="callout ok">ทำครบ ' + idxs.length + ' ข้อ ใช้เวลาไป ' + fmtMmSs(elapsedMs) + '</div>' +
       reviewHtml +
       '<div class="frow" style="margin-top:14px"><button class="btn sm" id="clMockAgain" type="button">ทำชุดใหม่</button></div>';
     logActivity('mockexam');
@@ -1794,7 +1794,7 @@
     var area = $('clDrillArea');
     if (!area) return;
     area.innerHTML = (d && d.total)
-      ? '<div class="verdict-box ' + (d.correct / d.total >= 0.7 ? 'go' : 'warn') + '">ทำไป ' + d.total + ' ข้อ ตอบถูก ' + d.correct + ' ข้อ (' + Math.round(d.correct / d.total * 100) + '%)</div>'
+      ? '<div class="callout ' + (d.correct / d.total >= 0.7 ? 'ok' : 'warn') + '">ทำไป ' + d.total + ' ข้อ ตอบถูก ' + d.correct + ' ข้อ (' + Math.round(d.correct / d.total * 100) + '%)</div>'
       : '';
     if (d && d.total) logActivity('drill');
   }
@@ -1920,17 +1920,19 @@
   /* ══════════════════ กล่องยืนยัน/แจ้งเตือนของเว็บเอง (แทน confirm()/alert() ของเบราว์เซอร์) ══════════════════ */
   function showModal(opts) {
     return new Promise(function (resolve) {
-      var backdrop = $('bpModalBackdrop');
+      var dlg = $('bpModal');
       $('bpModalTitle').textContent = opts.title || '';
       $('bpModalMsg').textContent = opts.message || '';
       var btnsEl = $('bpModalBtns');
       btnsEl.innerHTML = '';
+      var cancelVal = opts.cancelValue !== undefined ? opts.cancelValue : null;
       var done = false;
       function close(val) {
         if (done) return;
         done = true;
-        backdrop.classList.remove('open');
-        backdrop.onclick = null;
+        dlg.onclick = null;
+        dlg.oncancel = null;
+        if (dlg.open) dlg.close();
         resolve(val);
       }
       (opts.buttons || []).forEach(function (b) {
@@ -1941,8 +1943,9 @@
         btn.addEventListener('click', function () { close(b.value); });
         btnsEl.appendChild(btn);
       });
-      backdrop.onclick = function (e) { if (e.target === backdrop) close(opts.cancelValue !== undefined ? opts.cancelValue : null); };
-      backdrop.classList.add('open');
+      dlg.onclick = function (e) { if (e.target === dlg) close(cancelVal); };
+      dlg.oncancel = function (e) { e.preventDefault(); close(cancelVal); };
+      dlg.showModal();
     });
   }
   function bpConfirm(message, title) {
@@ -2074,11 +2077,10 @@
     return out;
   }
   function careerBoxHtml(title, icon, r) {
-    var bg = r.verdict === 'go' ? '#E9F9F0' : r.verdict === 'warn' ? '#FFF6E4' : '#FDECEC';
-    var fg = r.verdict === 'go' ? '#0B7F52' : r.verdict === 'warn' ? '#8A6212' : '#B23838';
+    var cls = r.verdict === 'go' ? 'ok' : r.verdict === 'warn' ? 'warn' : 'err';
     var items = r.met.map(function (m) { return '<li>' + esc(m) + '</li>'; })
-      .concat(r.missing.map(function (m) { return '<li>◻️ ' + esc(m) + '</li>'; })).join('');
-    return '<div class="career-box" style="background:' + bg + ';color:' + fg + '">' +
+      .concat(r.missing.map(function (m) { return '<li>' + esc(m) + '</li>'; })).join('');
+    return '<div class="career-box callout ' + cls + '">' +
       '<div class="ttl">' + icon + ' ' + title + '</div><ul>' + items + '</ul></div>';
   }
   function doCareerEval() {
@@ -2092,9 +2094,9 @@
     DriveSync.scheduleSync();
     var r = evalCareer(o);
     $('bpCareerResult').innerHTML =
-      careerBoxHtml('ผู้พิพากษา', '', r.judge) +
-      careerBoxHtml('อัยการ', '', r.prosecutor) +
-      careerBoxHtml('ทนายความ (Law Firm)', '', r.lawyer);
+      careerBoxHtml('ผู้พิพากษา', icon('scale'), r.judge) +
+      careerBoxHtml('อัยการ', icon('landmark'), r.prosecutor) +
+      careerBoxHtml('ทนายความ (Law Firm)', icon('briefcase'), r.lawyer);
   }
   function loadCareerIntoForm() {
     var o = {};
@@ -2333,8 +2335,8 @@
       g.items.map(function (n) {
         return '<li class="note-item" data-id="' + n.id + '">' +
           '<div class="hd"><span></span>' +
-          '<span class="note-actions"><button class="note-edit" data-edit="' + n.id + '" aria-label="แก้ไขโน้ต">✏️</button>' +
-          '<button class="note-del" data-del="' + n.id + '" aria-label="ลบโน้ต">🗑</button></span></div>' +
+          '<span class="note-actions"><button class="note-edit" data-edit="' + n.id + '" aria-label="แก้ไขโน้ต">' + icon('pencil') + '</button>' +
+          '<button class="note-del" data-del="' + n.id + '" aria-label="ลบโน้ต">' + icon('trash-2') + '</button></span></div>' +
           '<div class="txt"><b>' + esc(n.q) + '</b>' + (n.a ? '<br>' + esc(n.a) : '') + '</div>' +
           '<div class="meta">ทบทวนรอบถัดไป: ' + new Date(n.dueAt).toLocaleDateString('th-TH') + '</div>' +
         '</li>';
@@ -2545,7 +2547,7 @@
         '<td>' + esc(w.subj) + '</td>' +
         '<td>' + fmtClock(w.elapsedSec).replace('+', '') + ' / ' + w.minutes + ' นาที</td>' +
         '<td>' + passed + '/3</td>' +
-        '<td><button class="note-del" data-wdel="' + w.id + '">🗑</button></td></tr>';
+        '<td><button class="note-del" data-wdel="' + w.id + '" aria-label="ลบ">' + icon('trash-2') + '</button></td></tr>';
     }).join('');
     Array.prototype.forEach.call(tbody.querySelectorAll('[data-wdel]'), function (b) {
       b.addEventListener('click', function () { deleteWriting(b.dataset.wdel); });
@@ -2657,18 +2659,18 @@
       var url = URL.createObjectURL(f);
       var img = $('bpOcrPreview'); img.src = url; img.style.display = '';
       var status = $('bpOcrStatus');
-      status.className = 'status'; status.textContent = '⏳ กำลังแปลงข้อความ (OCR)… อาจใช้เวลาสักครู่';
+      status.className = 'status'; status.textContent = 'กำลังแปลงข้อความ (OCR)… อาจใช้เวลาสักครู่';
       if (!window.Tesseract) { status.className = 'status err'; status.textContent = 'โหลดตัวแปลงข้อความไม่สำเร็จ ลองรีเฟรชหน้าแล้วลองใหม่'; return; }
       /* ใช้ TanotFileReader.readImageFile() (file-reader.js) แทนเรียก Tesseract ตรงๆ — เตรียมภาพก่อน
          OCR (ขยายภาพเล็ก, ยืดคอนทราสต์, แปลงขาวดำด้วย Otsu, เคารพ EXIF orientation) ช่วยให้อ่านแม่นขึ้น */
       var ocrPromise = window.TanotFileReader
         ? window.TanotFileReader.readImageFile(f, { onProgress: function () {
-            status.textContent = '⏳ กำลังแปลงข้อความ (OCR)… อาจใช้เวลาสักครู่';
+            status.textContent = 'กำลังแปลงข้อความ (OCR)… อาจใช้เวลาสักครู่';
           } })
         : window.Tesseract.recognize(f, 'tha+eng', {
             logger: function (m) {
               if (m.status === 'recognizing text') {
-                status.textContent = '⏳ กำลังแปลงข้อความ… ' + Math.round((m.progress || 0) * 100) + '%';
+                status.textContent = 'กำลังแปลงข้อความ… ' + Math.round((m.progress || 0) * 100) + '%';
               }
             }
           }).then(function (result) { return (result.data && result.data.text) || ''; });
@@ -2772,14 +2774,14 @@
       status.textContent = 'ยังไม่ได้เชื่อมต่อ Google Drive — กดปุ่ม "เชื่อมต่อ Google Drive" ในการ์ดด้านล่างก่อน';
       return;
     }
-    status.className = 'status'; status.textContent = '⏳ กำลังค้นโฟลเดอร์ย่อย…';
+    status.className = 'status'; status.textContent = 'กำลังค้นโฟลเดอร์ย่อย…';
     var folders;
     DriveSync.ensureFolder().then(function (folderId) {
       return listSubfoldersRecursive(folderId, 4);
     }).then(function (f) {
       folders = f;
       renderUploadFolderOptions(folders);
-      status.textContent = '⏳ กำลังโหลดรายชื่อไฟล์จาก ' + folders.length + ' โฟลเดอร์…';
+      status.textContent = 'กำลังโหลดรายชื่อไฟล์จาก ' + folders.length + ' โฟลเดอร์…';
       return Promise.all(folders.map(function (fo) {
         var q = encodeURIComponent("'" + fo.id + "' in parents and mimeType!='" + FOLDER_MIME + "' and trashed=false");
         return DriveSync.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name,mimeType,webViewLink,modifiedTime)')
@@ -2849,7 +2851,7 @@
           return Promise.resolve();
         }
         var f = list[i++];
-        status.className = 'status'; status.textContent = '⏳ กำลังอัปโหลด (' + i + '/' + list.length + '): ' + f.name;
+        status.className = 'status'; status.textContent = 'กำลังอัปโหลด (' + i + '/' + list.length + '): ' + f.name;
         return uploadOneFile(f, parentId).then(next);
       }
       return next();
@@ -2861,7 +2863,7 @@
 
   function extractFromDriveFile(fileId, mime, name) {
     var status = $('bpDriveListStatus');
-    status.className = 'status'; status.textContent = '⏳ กำลังดึงไฟล์ "' + name + '"…';
+    status.className = 'status'; status.textContent = 'กำลังดึงไฟล์ "' + name + '"…';
     DriveSync.authFetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media')
       .then(function (r) { if (!r.ok) throw new Error('ดึงไฟล์ไม่สำเร็จ (' + r.status + ')'); return r.arrayBuffer(); })
       .then(function (buf) {
@@ -3206,7 +3208,7 @@
     }).join('');
   }
   var SRS_LABELS = ['ใหม่', 'สั้น (<2วัน)', '2-5 วัน', '5-10 วัน', '10-20 วัน', '20 วัน+'];
-  var SRS_COLORS = ['#C9CEDC', '#F5A524', '#3B9BEA', '#6C63D9', '#12A594', '#17B26A'];
+  var SRS_COLORS = ['var(--ome-text-3)', 'var(--ome-chart-4)', 'var(--ome-chart-1)', 'var(--ome-chart-7)', 'var(--ome-chart-3)', 'var(--ome-chart-6)'];
   /* จัดกลุ่มการ์ดตาม stability (ความเสถียรของความจำ, วัน) จากโมเดล FSRS แทนขั้นบันไดเดิม
      การ์ดที่ยังไม่เคยถูกทบทวนด้วย FSRS (stability เป็น null — รวมถึงการ์ดเก่าจากระบบขั้นบันได
      ที่ยังไม่ผ่านการทบทวนรอบใหม่) จัดเป็น "ใหม่" ไปก่อน จะได้ค่า stability จริงหลังทบทวนครั้งแรก */

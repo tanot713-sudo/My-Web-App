@@ -335,7 +335,7 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
       item.type = 'button';
       item.className = 'tt-lesson' + (i === state.lessonIndex && !state.sprintMode ? ' active' : '') + (unlocked ? '' : ' locked');
       var best = progress[progressKey(track.id, i)];
-      item.innerHTML = '<span class="tt-lesson-title">' + (unlocked ? '' : '🔒 ') + (i + 1) + '. ' + lesson.title + '</span>' +
+      item.innerHTML = '<span class="tt-lesson-title">' + (unlocked ? '' : '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-lock"/></svg>') + (i + 1) + '. ' + lesson.title + '</span>' +
         (best ? '<span class="tt-lesson-best">' + Math.round(best.wpm) + ' ' + t('statsWpm') + '</span>' : '');
       item.addEventListener('click', function () {
         if (unlocked) selectLesson(i);
@@ -478,7 +478,7 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
 
   /* คอนเฟตตี้เล็กๆ ตอนจบการฝึก — ทำเองล้วนๆ ด้วย CSS animation ไม่พึ่งไลบรารีภายนอก
      (สอดคล้องกับเว็บนี้ที่ปกติไม่โหลด asset หนักเกินจำเป็น) */
-  var CONFETTI_COLORS = ['#4F46E5', '#EC4899', '#17B76A', '#F5A524', '#3B9BEA'];
+  var CONFETTI_COLORS = ['var(--ome-chart-1)', 'var(--ome-chart-2)', 'var(--ome-chart-3)', 'var(--ome-chart-4)', 'var(--ome-chart-5)'];
   function spawnConfetti() {
     if (!confettiLayer) return;
     confettiLayer.innerHTML = '';

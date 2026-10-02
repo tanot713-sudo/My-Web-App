@@ -227,8 +227,8 @@ function buildScaleDisplayHtml(degree) {
     var style = 'display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;' +
       'margin:3px;font-weight:800;font-size:16px;' +
       (isTarget
-        ? 'background:linear-gradient(135deg,var(--mx),var(--mx2));color:#fff;box-shadow:0 4px 10px rgba(124,58,237,.3);'
-        : 'background:var(--card);border:1.5px solid var(--line);color:var(--ink);');
+        ? 'background:var(--ome-accent);color:var(--ome-on-accent);'
+        : 'background:var(--ome-surface-1);border:1.5px solid var(--ome-border);color:var(--ome-text-1);');
     return '<span style="' + style + '">' + label + '</span>';
   }).join('');
   return '<div style="display:flex;flex-wrap:wrap;justify-content:center;padding:14px 0">' + items + '</div>';
@@ -308,7 +308,7 @@ function buildPianoSvg(highlightSlots) {
   for (var i = 0; i < PIANO_WHITE_KEYS; i++) {
     var isHi = highlightSlots.indexOf(i) !== -1;
     whiteRects += '<rect x="' + (i * whiteW) + '" y="0" width="' + whiteW + '" height="' + whiteH + '" ' +
-      'fill="' + (isHi ? 'var(--mx)' : '#FAFAFA') + '" stroke="#B8BEC9" stroke-width="1.5"/>';
+      'fill="' + (isHi ? 'var(--ome-accent)' : '#FAFAFA') + '" stroke="#B8BEC9" stroke-width="1.5"/>';
   }
   var blackRects = '';
   for (var j = 0; j < PIANO_WHITE_KEYS; j++) {
@@ -348,12 +348,12 @@ function buildGuitarChordSvg(pattern) {
   pattern.forEach(function (v, i) {
     var x = sx(i);
     if (v === 'x') {
-      marks += '<text x="' + x + '" y="18" font-size="15" font-weight="800" text-anchor="middle" fill="#B3325A">×</text>';
+      marks += '<text x="' + x + '" y="18" font-size="15" font-weight="800" text-anchor="middle" fill="var(--ome-err)">×</text>';
     } else if (v === 0) {
-      marks += '<circle cx="' + x + '" cy="14" r="6" fill="none" stroke="#0F7A4E" stroke-width="2"/>';
+      marks += '<circle cx="' + x + '" cy="14" r="6" fill="none" stroke="var(--ome-ok)" stroke-width="2"/>';
     } else {
       var dy = nutY + (v - 0.5) * fretSpacing;
-      marks += '<circle cx="' + x + '" cy="' + dy + '" r="8" fill="var(--mx)"/>';
+      marks += '<circle cx="' + x + '" cy="' + dy + '" r="8" fill="var(--ome-accent)"/>';
     }
   });
 
@@ -384,12 +384,12 @@ function buildUkuleleChordSvg(pattern) {
   pattern.forEach(function (v, i) {
     var x = sx(i);
     if (v === 'x') {
-      marks += '<text x="' + x + '" y="18" font-size="15" font-weight="800" text-anchor="middle" fill="#B3325A">×</text>';
+      marks += '<text x="' + x + '" y="18" font-size="15" font-weight="800" text-anchor="middle" fill="var(--ome-err)">×</text>';
     } else if (v === 0) {
-      marks += '<circle cx="' + x + '" cy="14" r="6" fill="none" stroke="#0F7A4E" stroke-width="2"/>';
+      marks += '<circle cx="' + x + '" cy="14" r="6" fill="none" stroke="var(--ome-ok)" stroke-width="2"/>';
     } else {
       var dy = nutY + (v - 0.5) * fretSpacing;
-      marks += '<circle cx="' + x + '" cy="' + dy + '" r="8" fill="var(--mx)"/>';
+      marks += '<circle cx="' + x + '" cy="' + dy + '" r="8" fill="var(--ome-accent)"/>';
     }
   });
 
@@ -584,8 +584,8 @@ function buildProgressionDisplayHtml(position) {
     var style = 'display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;' +
       'margin:3px;font-weight:800;font-size:16px;' +
       (isTarget
-        ? 'background:linear-gradient(135deg,var(--mx),var(--mx2));color:#fff;box-shadow:0 4px 10px rgba(124,58,237,.3);'
-        : 'background:var(--card);border:1.5px solid var(--line);color:var(--ink);');
+        ? 'background:var(--ome-accent);color:var(--ome-on-accent);'
+        : 'background:var(--ome-surface-1);border:1.5px solid var(--ome-border);color:var(--ome-text-1);');
     return '<span style="' + style + '">' + label + '</span>';
   }).join('');
   return '<div style="display:flex;flex-wrap:wrap;justify-content:center;padding:10px 0">' + items + '</div>' +
@@ -1574,7 +1574,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
         var b = document.createElement('div');
         b.className = 'mx-badge' + (earned.indexOf(def.id) !== -1 ? ' earned' : '');
         b.textContent = def.icon;
-        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : ' 🔒');
+        b.title = badgeLabel(def);
         badgeRowEl.appendChild(b);
       });
     }
@@ -1593,7 +1593,12 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     var item = toastQueueState.shift();
     var el = document.createElement('div');
     el.className = 'mx-toast';
-    el.textContent = item.icon + ' ' + item.text;
+    if (item.icon === '⭐') {
+      el.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-star"/></svg>';
+      el.appendChild(document.createTextNode(item.text));
+    } else {
+      el.textContent = item.icon + ' ' + item.text;
+    }
     if (toastWrap) toastWrap.appendChild(el);
     setTimeout(function () {
       el.classList.add('leaving');
@@ -1601,7 +1606,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     }, 2200);
   }
 
-  var CONFETTI_COLORS = ['#7C3AED', '#DB2777', '#17B76A', '#F5A524', '#3B9BEA'];
+  var CONFETTI_COLORS = ['var(--ome-chart-1)', 'var(--ome-chart-2)', 'var(--ome-chart-3)', 'var(--ome-chart-4)', 'var(--ome-chart-5)'];
   function spawnConfetti() {
     if (!confettiLayer) return;
     confettiLayer.innerHTML = '';
@@ -1709,7 +1714,9 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'mx-item' + (i === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
-      btn.textContent = (passed ? '✅ ' : unlocked ? (item.kind === 'reading' ? '📖 ' : '🎵 ') : '🔒 ') + itemLabel(track, item, i);
+      btn.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' +
+        (passed ? 'circle-check' : unlocked ? (item.kind === 'reading' ? 'book-open' : 'music') : 'lock') + '"/></svg>';
+      btn.appendChild(document.createTextNode(itemLabel(track, item, i)));
       btn.addEventListener('click', function () {
         if (unlocked) selectItem(i);
         else showLockMsg();

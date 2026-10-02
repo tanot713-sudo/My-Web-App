@@ -30,7 +30,7 @@ var I18N = {
     notesLabel: 'บันทึกของฉัน (เห็นเฉพาะคุณ)', notesPlaceholder: 'จดโน้ตส่วนตัวเกี่ยวกับบทเรียนนี้ได้ที่นี่…', notesSaved: 'บันทึกแล้ว',
     convBtn: 'แปลงหน่วยตวง', convTitle: 'ตัวแปลงหน่วยตวง',
     convVolume: 'ปริมาตร', convWeight: 'น้ำหนัก (โดยประมาณ — ขึ้นกับความหนาแน่นของวัตถุดิบจริง)', convTemp: 'อุณหภูมิ',
-    timerStart: '▶ เริ่ม', timerPause: '⏸ พัก', timerReset: 'รีเซ็ต', timerDone: '⏰ หมดเวลา!'
+    timerStart: 'เริ่ม', timerPause: 'พัก', timerReset: 'รีเซ็ต', timerDone: 'หมดเวลา!'
   },
   en: {
     pageTitle: 'Learn Cooking', crumbResp: 'Responsibilities', crumbCooking: 'Learn Cooking',
@@ -46,7 +46,7 @@ var I18N = {
     notesLabel: 'My notes (private to you)', notesPlaceholder: 'Jot down personal notes about this lesson here…', notesSaved: 'Saved',
     convBtn: 'Unit converter', convTitle: 'Unit Converter',
     convVolume: 'Volume', convWeight: 'Weight (approximate — depends on the actual ingredient\'s density)', convTemp: 'Temperature',
-    timerStart: '▶ Start', timerPause: '⏸ Pause', timerReset: 'Reset', timerDone: '⏰ Time\'s up!'
+    timerStart: 'Start', timerPause: 'Pause', timerReset: 'Reset', timerDone: 'Time\'s up!'
   }
 };
 function t(key, vars) {
@@ -638,7 +638,7 @@ function beep() {
 var timerRegistry = {};
 function timerWidgetHtml(id, presetMin, labelTh, labelEn) {
   return '<div class="ck-timer" data-timer-id="' + id + '" data-preset="' + presetMin + '">' +
-    '<span class="ck-timer-label">⏱ ' + (getUILang() === 'en' ? labelEn : labelTh) + '</span>' +
+    '<span class="ck-timer-label">' + (getUILang() === 'en' ? labelEn : labelTh) + '</span>' +
     '<span class="ck-timer-display" id="tmDisp-' + id + '">' + String(presetMin).padStart(2, '0') + ':00</span>' +
     '<button type="button" class="ck-timer-btn" data-act="start" data-timer="' + id + '">' + t('timerStart') + '</button>' +
     '<button type="button" class="ck-timer-btn" data-act="reset" data-timer="' + id + '">' + t('timerReset') + '</button>' +
@@ -789,7 +789,7 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
         var b = document.createElement('div');
         b.className = 'ck-badge' + (earned.indexOf(def.id) !== -1 ? ' earned' : '');
         b.textContent = def.icon;
-        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : ' 🔒');
+        b.title = badgeLabel(def);
         badgeRowEl.appendChild(b);
       });
     }
@@ -808,7 +808,12 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
     var item = toastQueueState.shift();
     var el = document.createElement('div');
     el.className = 'ck-toast';
-    el.textContent = item.icon + ' ' + item.text;
+    if (item.icon === '⭐') {
+      el.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-star"/></svg>';
+      el.appendChild(document.createTextNode(item.text));
+    } else {
+      el.textContent = item.icon + ' ' + item.text;
+    }
     if (toastWrap) toastWrap.appendChild(el);
     setTimeout(function () {
       el.classList.add('leaving');
@@ -816,7 +821,7 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
     }, 2200);
   }
 
-  var CONFETTI_COLORS = ['#EA580C', '#DC2626', '#F59E0B', '#16A34A', '#0EA5E9'];
+  var CONFETTI_COLORS = ['var(--ome-chart-1)', 'var(--ome-chart-2)', 'var(--ome-chart-3)', 'var(--ome-chart-4)', 'var(--ome-chart-5)'];
   function spawnConfetti() {
     if (!confettiLayer) return;
     confettiLayer.innerHTML = '';
@@ -916,7 +921,9 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'ck-item' + (i === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
-      btn.textContent = (passed ? '✅ ' : unlocked ? '📖 ' : '🔒 ') + itemLabel(track, item);
+      btn.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' +
+        (passed ? 'circle-check' : unlocked ? 'book-open' : 'lock') + '"/></svg>';
+      btn.appendChild(document.createTextNode(itemLabel(track, item)));
       btn.addEventListener('click', function () {
         if (unlocked) selectItem(i);
         else showLockMsg();

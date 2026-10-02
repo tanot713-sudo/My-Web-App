@@ -5,13 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>เรียนกฎหมาย | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#12A594">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="theme-boot.js"></script>
 <script src="data-registry.js"></script>
 <script src="tanot-data.js"></script>
@@ -20,291 +19,185 @@
 <!-- Google Identity Services — สำหรับซิงก์โน้ต/ฟลashcard ขึ้น Google Drive ส่วนตัว (ไม่บังคับ) -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
-  --brand:var(--ome-brand);--brand-dk:var(--ome-brand-dk);--brand-sf:var(--ome-brand-sf);
-  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--sky:#3B9BEA;--err:#E5484D;--warn:#E08700;--violet:#6C63D9;
-  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
-*{box-sizing:border-box;margin:0;padding:0}
-body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
-  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:880px;margin:0 auto}
-.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
-.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
-.crumb .sep{margin:0 7px;color:#C9CEDC}
-.head{display:flex;align-items:center;gap:12px;margin:12px 0 6px}
-.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:26px;
-  background:linear-gradient(135deg,#12A594,#3FCBB6);color:#fff;display:grid;place-items:center;
-  box-shadow:0 6px 18px rgba(18,165,148,.3)}
-h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
-.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
-
-.card{background:var(--card);border-radius:var(--ome-card-r);box-shadow:var(--sh);padding:var(--ome-card-pad);margin-top:var(--ome-card-gap)}
-.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.lhd-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.mini{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
-.frow{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end}
-.field{display:flex;flex-direction:column;gap:4px;flex:1 1 130px;min-width:120px}
-.field label{font-size:12px;color:var(--muted);font-weight:600}
-.field .unit{font-size:11px;color:var(--muted);font-weight:500}
-input[type=number],input[type=text],input[type=date],textarea{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:11px;
-  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none}
-textarea{resize:vertical;line-height:1.6}
-select{font-family:inherit;font-size:14px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--line);
-  background:var(--bg);color:var(--ink);width:100%}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand)}
-input[readonly]{opacity:.75;cursor:default}
-[data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{background:#12151C}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);
-  background:var(--card);border-radius:11px;padding:10px 15px;font-family:inherit;font-size:14px;font-weight:700;
-  color:var(--ink);cursor:pointer;transition:.15s}
-.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
-.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-.btn.primary:hover{background:var(--brand-dk);color:#fff}
-.btn.sm{padding:7px 11px;font-size:12.5px}
-.btn:disabled{opacity:.5;cursor:default}
-.status{font-size:12.5px;color:var(--muted);margin-top:9px;min-height:1.2em}
-.status.err{color:var(--err)}
-.status.ok{color:var(--ok)}
-
+/* เฉพาะหน้านี้ — ปุ่ม/การ์ด/ช่องกรอก/ตาราง/chip/callout/dialog มาจาก theme.css (data-layout="reader") */
+.cl-page{max-width:880px}
+.cl-page .card > * + *{margin-top:var(--ome-sp-3)}
+.cl-page .card > h2,.cl-page .card-head h2{display:flex;align-items:center;gap:8px;margin:0;font-size:var(--ome-fs-base)}
+.cl-page .card .lhd-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.cl-page .frow > .field{flex:1 1 130px;min-width:120px}
+.cl-page .field .unit{font-size:11px;color:var(--ome-text-2);font-weight:500}
+.cl-page .mini{margin:0}
+.cl-page :is(.status,.mini):empty{display:none}
+.cl-page .status{margin-top:0}
+.cl-page .view{display:flex;flex-direction:column;gap:var(--ome-card-gap)}
 .drive-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .drive-row .status{margin-top:0}
+.cl-page mark{background:color-mix(in srgb, var(--ome-warn) 28%, transparent);color:inherit;padding:0 3px;border-radius:3px}
+.cl-page code{background:var(--ome-surface-2);padding:1px 5px;border-radius:var(--ome-radius-sm)}
+.cl-page details.disclosure{margin-top:var(--ome-sp-3)}
 
-details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;list-style:none;
-  display:flex;align-items:center;gap:8px;user-select:none}
-details>summary::-webkit-details-marker{display:none}
-details>summary::before{content:'▸';color:var(--muted);transition:.15s}
-details[open]>summary::before{transform:rotate(90deg)}
-.details-body{padding:0 15px 15px;font-size:13.5px}
-.lesson h2{font-size:15px;font-weight:800;margin:16px 0 6px;color:var(--ink)}
-.lesson h3{font-size:13.5px;font-weight:700;margin:12px 0 4px;color:var(--brand-dk)}
-.lesson h4{font-size:13px;font-weight:700;margin:10px 0 3px;color:var(--ink)}
-.lesson p{font-size:13px;margin-bottom:4px;opacity:.92}
-.lesson ul,.lesson ol{margin:2px 0 6px 18px;font-size:13px}
-.lesson li{margin-bottom:4px}
-.lesson code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:12px}
-.lesson mark{background:#FFF1B8;color:#5A4200;padding:0 3px;border-radius:3px}
-[data-theme="dark"] .lesson mark{background:#4A3D1E;color:#E8C88A}
-.lesson-src{font-size:11.5px;color:var(--muted);border-top:1px dashed var(--line);margin-top:10px;padding-top:8px}
-
-/* ── สารบัญ chip + progress bar + checklist "อ่านแล้ว" ของสรุปเนื้อหาบทเรียน ── */
-.lchips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
-.lchip{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 12px;font-family:inherit;
-  font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;transition:.15s}
-.lchip:hover{border-color:var(--brand);color:var(--brand-dk)}
-.lchip.done{background:var(--brand-sf);border-color:var(--brand);color:var(--brand-dk)}
-.lprog{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.lprog-bar{flex:1 1 auto;height:8px;border-radius:99px;background:var(--bg);overflow:hidden}
-.lprog-fill{height:100%;background:linear-gradient(90deg,var(--brand),#3FCBB6);border-radius:99px;transition:width .2s}
-.lprog-txt{font-size:11.5px;color:var(--muted);font-weight:700;white-space:nowrap;flex-shrink:0}
-.lgroup-hd{font-size:12px;font-weight:800;color:var(--brand-dk);text-transform:uppercase;letter-spacing:.03em;
-  margin:18px 0 6px;padding-bottom:4px;border-bottom:2px solid var(--brand-sf)}
-.lgroup-hd:first-child{margin-top:0}
-details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
+/* ── สรุปเนื้อหาบทเรียน (reader) ── */
+.lesson > .disclosure-body{padding-top:4px}
+.lesson-src{font-size:var(--ome-fs-xs);color:var(--ome-text-2);border-top:1px dashed var(--ome-border);margin-top:10px;padding-top:8px}
+.lchips{display:flex;flex-wrap:wrap;gap:7px}
+.lprog{display:flex;align-items:center;gap:10px}
+.lprog-bar{flex:1 1 auto;height:8px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-2);overflow:hidden}
+.lprog-fill{height:100%;background:var(--ome-accent);border-radius:inherit;transition:width var(--ome-dur-2)}
+.lprog-txt{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600;white-space:nowrap;flex-shrink:0}
+.lgroup-hd,.exgroup-hd{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-accent-strong);letter-spacing:.03em;
+  margin:18px 0 6px;padding-bottom:4px;border-bottom:2px solid var(--ome-accent-soft)}
+.lgroup-hd:first-child,.exgroup-hd:first-child{margin-top:0}
+details.lesson > summary{justify-content:space-between;flex-wrap:wrap;padding-top:6px;padding-bottom:6px}
 .lsum-txt{flex:1 1 auto;min-width:0}
-.lread{flex-shrink:0;display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--muted);
-  cursor:pointer;user-select:none}
+.lread{flex-shrink:0;display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--ome-text-2);cursor:pointer;user-select:none}
 .lread input{width:14px;height:14px;cursor:pointer}
-.lnote-btn{flex-shrink:0;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:4px 9px;
-  font-family:inherit;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer}
-.lnote-btn:hover{border-color:var(--brand);color:var(--brand-dk)}
-.lnote-btn.has{background:var(--brand-sf);border-color:var(--brand);color:var(--brand-dk)}
-.lnote-wrap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
-.lnote-ta{width:100%;min-height:70px;font-size:13px}
-
-/* ── แถบเสียงอ่าน (TTS) บนสุดของสรุปเนื้อหาบทเรียน ── */
-.ttsbar{background:var(--bg);border-radius:12px;padding:10px 12px;margin-bottom:14px}
+.lnote-btn,.tts-playbtn{flex-shrink:0;border:1px solid var(--ome-border);background:var(--ome-surface-2);border-radius:var(--ome-radius-sm);
+  padding:4px 9px;font-size:11px;font-weight:600;color:var(--ome-text-2);cursor:pointer}
+.lnote-btn:hover,.tts-playbtn:hover{border-color:var(--ome-accent);color:var(--ome-accent-strong)}
+.lnote-btn.has{background:var(--ome-accent-soft);border-color:var(--ome-accent);color:var(--ome-accent-strong)}
+.lnote-wrap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--ome-border)}
+.lnote-ta{min-height:70px}
+.ttsbar{background:var(--ome-surface-2);border-radius:var(--ome-radius-md);padding:10px 12px}
 .ttsbar-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.ttsbar-voice{flex:2 1 200px;min-width:0;font-size:12.5px;padding:8px 9px}
-.ttsbar-rate{flex:0 1 78px;font-size:12.5px;padding:8px 6px}
-.ttsbar-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--line)}
-.ttsbar-now{font-size:12px;font-weight:700;color:var(--brand-dk);flex:1 1 100%}
-.tts-playbtn{flex-shrink:0;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:4px 9px;
-  font-family:inherit;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer}
-.tts-playbtn:hover{border-color:var(--brand);color:var(--brand-dk)}
+.ttsbar select{width:auto;height:32px}
+.ttsbar-voice{flex:2 1 200px;min-width:0}
+.ttsbar-rate{flex:0 1 78px}
+.ttsbar-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--ome-border)}
+.ttsbar-now{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-accent-strong);flex:1 1 100%}
 
-/* ── ค้นหา/กรอง + จัดกลุ่มตามหัวข้อ ของการ์ดข้อสอบตัวอย่าง ── */
-.exsearch{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+/* ── ค้นหา/ข้อสอบตัวอย่าง/mock/drill ── */
+.exsearch{display:flex;gap:8px;flex-wrap:wrap}
 .exsearch input[type=text]{flex:1 1 200px}
 .exsearch select{flex:0 1 190px}
-.exgroup-hd{font-size:12px;font-weight:800;color:var(--brand-dk);text-transform:uppercase;letter-spacing:.03em;
-  margin:18px 0 6px;padding-bottom:4px;border-bottom:2px solid var(--brand-sf)}
-.exgroup-hd:first-child{margin-top:0}
-.exempty{font-size:13px;color:var(--muted);padding:10px 2px}
+.exempty,.note-empty{font-size:var(--ome-fs-sm);color:var(--ome-text-2);padding:8px 2px}
+.mock-hd{display:flex;justify-content:space-between;align-items:center}
+.mock-timer{font-size:var(--ome-fs-lg);font-weight:700;color:var(--ome-accent-strong);font-variant-numeric:tabular-nums}
+.mock-progress{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600}
+.drill-card{background:var(--ome-surface-2);border-radius:var(--ome-radius-lg);padding:16px;text-align:center}
+.drill-scenario{font-size:var(--ome-fs-base);font-weight:600;line-height:1.6;margin-bottom:14px}
+.drill-ans{font-size:var(--ome-fs-base);color:var(--ome-accent-strong);font-weight:700;display:none;margin-bottom:6px}
+.drill-why{font-size:var(--ome-fs-xs);color:var(--ome-text-2);display:none}
+.drill-card.show :is(.drill-ans,.drill-why){display:block}
+.drill-progress{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:10px}
+.drill-score{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-accent-strong)}
+.refres-item{border-bottom:1px solid var(--ome-border);padding:10px 0}
+.refres-item:last-child{border-bottom:0}
+.refres-loc{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-accent-strong);margin-bottom:3px}
+.refres-snip{font-size:var(--ome-fs-sm);line-height:1.6}
 
-/* ── ข้อสอบจำลอง (Mock Exam) ── */
-.mock-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.mock-timer{font-size:18px;font-weight:800;color:var(--brand-dk);font-variant-numeric:tabular-nums}
-.mock-progress{font-size:12.5px;color:var(--muted);font-weight:700}
-.mock-q{font-size:13.5px}
-
-/* ── ฝึกจำเลขมาตรา (Drill) ── */
-.drill-card{background:var(--bg);border-radius:14px;padding:16px;margin-top:12px;text-align:center}
-.drill-scenario{font-size:14px;font-weight:600;line-height:1.6;margin-bottom:14px}
-.drill-ans{font-size:14px;color:var(--brand-dk);font-weight:700;display:none;margin-bottom:6px}
-.drill-why{font-size:12.5px;color:var(--muted);display:none}
-.drill-card.show .drill-ans,.drill-card.show .drill-why{display:block}
-.drill-progress{font-size:12px;color:var(--muted);margin-top:10px}
-.drill-score{font-size:12.5px;font-weight:700;color:var(--brand-dk)}
-
-/* ── ค้นหามาตรา/ฎีกา รวมทุกวิชา ── */
-.refres-item{border-bottom:1px solid var(--line);padding:10px 0}
-.refres-item:last-child{border-bottom:none}
-.refres-loc{font-size:11.5px;font-weight:700;color:var(--brand-dk);margin-bottom:3px}
-.refres-snip{font-size:13px;line-height:1.6}
-.refres-snip mark{background:#FFF1B8;color:#5A4200;padding:0 3px;border-radius:3px}
-[data-theme="dark"] .refres-snip mark{background:#4A3D1E;color:#E8C88A}
-
-.verdict-box{border-radius:13px;padding:14px 16px;font-size:14px;font-weight:600;line-height:1.5}
-.verdict-box.go{background:#E9F9F0;color:#0B7F52}
-.verdict-box.no{background:#FDECEC;color:#B23838}
-.verdict-box.warn{background:#FFF6E4;color:#8A6212}
-[data-theme="dark"] .verdict-box.go{background:#14261E;color:#5EDCAB}
-[data-theme="dark"] .verdict-box.no{background:#301B1B;color:#F0A0A0}
-[data-theme="dark"] .verdict-box.warn{background:#2A2415;color:#E8C88A}
-
-.disc{font-size:12px;color:var(--muted);line-height:1.6;padding:14px 4px 4px}
-
-/* ── กล่องยืนยัน/แจ้งเตือนของเว็บเอง (แทน confirm()/alert() ของเบราว์เซอร์) ── */
-.bp-modal-backdrop{position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:300;
-  display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.15s;padding:20px}
-.bp-modal-backdrop.open{opacity:1;pointer-events:auto}
-.bp-modal{background:var(--card);border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.25);
-  padding:20px;max-width:360px;width:100%;transform:translateY(8px);transition:.15s}
-.bp-modal-backdrop.open .bp-modal{transform:translateY(0)}
-.bp-modal-title{font-size:15.5px;font-weight:800;margin-bottom:6px}
-.bp-modal-msg{font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:16px;white-space:pre-line}
-.bp-modal-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
-
-/* ── hamburger pane เฉพาะหน้านี้ (แยกจาก drawer เมนูหลักของเว็บ) ── */
-.clhb-toggle{width:38px;height:38px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);
-  font-size:18px;cursor:pointer;flex-shrink:0;display:grid;place-items:center;color:var(--ink)}
-.clhb-toggle:hover{border-color:var(--brand);color:var(--brand-dk)}
-.clhb-backdrop{position:fixed;inset:0;background:rgba(15,20,30,.4);z-index:250;opacity:0;pointer-events:none;transition:.18s}
+/* ── เมนูข้างของหน้า (แยกจากลิ้นชักเมนูหลักของเว็บ) ── */
+.clhb-backdrop{position:fixed;inset:0;background:rgba(11,18,35,.45);z-index:var(--ome-z-drawer);opacity:0;pointer-events:none;transition:opacity var(--ome-dur-2)}
 .clhb-backdrop.open{opacity:1;pointer-events:auto}
-.clhb-panel{position:fixed;top:0;left:0;bottom:0;width:270px;max-width:82vw;background:var(--card);z-index:260;
-  box-shadow:4px 0 24px rgba(24,31,54,.15);transform:translateX(-100%);transition:.2s;overflow-y:auto;padding:16px 0}
+.clhb-panel{position:fixed;top:0;left:0;bottom:0;width:270px;max-width:82vw;background:var(--ome-surface-1);z-index:calc(var(--ome-z-drawer) + 1);
+  box-shadow:var(--ome-shadow-3);transform:translateX(-100%);transition:transform var(--ome-dur-2);overflow-y:auto;padding:16px 0}
 .clhb-panel.open{transform:translateX(0)}
-.clhb-hd{font-size:15px;font-weight:800;padding:4px 18px 14px;border-bottom:1px solid var(--line);margin-bottom:6px}
-.clhb-group-hd{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;
-  padding:14px 18px 4px}
-.clhb-list{list-style:none}
-.clhb-list a{display:block;padding:9px 18px;font-size:13.5px;font-weight:600;color:var(--ink);text-decoration:none;
-  border-left:3px solid transparent}
-.clhb-list a:hover{background:var(--bg)}
-.clhb-list a.active{background:var(--brand-sf);color:var(--brand-dk);border-left-color:var(--brand)}
-.clhb-list a .sub{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:1px}
+.clhb-panel:not(.open){box-shadow:none;visibility:hidden;transition:transform var(--ome-dur-2),visibility 0s var(--ome-dur-2)}
+.clhb-hd{font-size:var(--ome-fs-md);font-weight:700;padding:4px 18px 14px;border-bottom:1px solid var(--ome-border);margin-bottom:6px}
+.clhb-group-hd{font-size:11px;font-weight:700;color:var(--ome-text-2);letter-spacing:.04em;padding:14px 18px 4px}
+.clhb-list{list-style:none;margin:0;padding:0}
+.clhb-list a{display:block;padding:9px 18px;font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-1);text-decoration:none;border-left:3px solid transparent}
+.clhb-list a:hover{background:var(--ome-surface-2)}
+.clhb-list a.active{background:var(--ome-accent-soft);color:var(--ome-accent-strong);border-left-color:var(--ome-accent)}
+.clhb-list a .sub{display:block;font-size:11px;color:var(--ome-text-2);font-weight:500;margin-top:1px}
 
-/* ── การ์ดเป้าหมาย 3 สาย ── */
+/* ── เป้าหมาย / สนามสอบ / เช็กเส้นทาง ── */
 .goal-row{display:flex;flex-wrap:wrap;gap:10px}
-.goal-chip{flex:1 1 200px;background:var(--bg);border-radius:13px;padding:12px 14px;display:flex;gap:10px;align-items:center}
-.goal-chip .ic{font-size:22px}
-.goal-chip b{font-size:13.5px;display:block}
-.goal-chip span.sub{font-size:11.5px;color:var(--muted)}
-
-/* ── สนามสอบ / นับถอยหลัง ── */
-.exam-card{border:1px solid var(--line);border-radius:14px;padding:14px 15px;margin-top:10px}
+.goal-chip{flex:1 1 200px;background:var(--ome-surface-2);border-radius:var(--ome-radius-lg);padding:12px 14px;display:flex;gap:10px;align-items:center}
+.goal-chip .ome-icon{width:22px;height:22px;color:var(--ome-accent-strong)}
+.goal-chip b{font-size:var(--ome-fs-sm);display:block}
+.goal-chip span.sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+.exam-card{border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:14px 15px;margin-top:10px}
 .exam-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.exam-hd .name{font-weight:800;font-size:14.5px;display:flex;align-items:center;gap:8px}
-.exam-cd{font-size:12.5px;font-weight:700;padding:5px 11px;border-radius:9px;background:var(--brand-sf);color:var(--brand-dk);white-space:nowrap}
-.exam-cd.past{background:var(--bg);color:var(--muted)}
-.exam-cd.unset{background:var(--bg);color:var(--muted)}
-.exam-dates{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:12.5px;color:var(--muted)}
-.exam-dates b{color:var(--ink)}
+.exam-hd .name{font-weight:700;display:flex;align-items:center;gap:8px}
+.exam-cd{font-size:var(--ome-fs-xs);font-weight:700;padding:5px 11px;border-radius:var(--ome-radius-md);background:var(--ome-accent-soft);color:var(--ome-accent-strong);white-space:nowrap}
+.exam-cd:is(.past,.unset){background:var(--ome-surface-2);color:var(--ome-text-2)}
+.exam-dates{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+.exam-dates b{color:var(--ome-text-1)}
 .exam-edit{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .exam-edit .field{flex:1 1 140px;min-width:130px}
-.exam-prep{margin-top:10px;font-size:12.5px}
-.exam-prep summary{cursor:pointer;font-weight:700;color:var(--brand-dk)}
+.exam-prep{margin-top:10px;font-size:var(--ome-fs-xs)}
+.exam-prep summary{cursor:pointer;font-weight:700;color:var(--ome-accent-strong)}
 .exam-prep ul{margin:6px 0 0 18px}
-.exam-prep li{margin-bottom:3px}
-.exam-prep li.ban{color:var(--err)}
-[data-theme="dark"] .exam-prep li.ban{color:#F0A0A0}
-.exam-link{font-size:12px;font-weight:700;color:var(--brand-dk);text-decoration:none}
-
-/* ── เช็กเส้นทาง 3 สายอาชีพ ── */
-.career-result{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:14px}
-.career-box{border-radius:13px;padding:14px 15px}
-.career-box .ttl{font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;margin-bottom:6px}
-.career-box ul{margin:6px 0 0 16px;font-size:12.5px}
+.exam-prep li.ban{color:var(--ome-err-ink)}
+.exam-link{font-size:var(--ome-fs-xs);font-weight:700;text-decoration:none}
+.career-result{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.career-result:empty{display:none}
+.career-box{padding:14px 15px;font-weight:400}
+.career-box .ttl{font-weight:700;display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.career-box ul{margin:6px 0 0;padding-left:18px;font-size:var(--ome-fs-xs)}
 .career-box li{margin-bottom:3px}
 
 /* ── โน้ต + flashcard ── */
-.note-list{list-style:none;margin-top:12px}
-.note-item{border-bottom:1px solid var(--line);padding:10px 0}
-.note-item:last-child{border-bottom:none}
+.note-list{list-style:none;margin:12px 0 0;padding:0}
+.note-item{border-bottom:1px solid var(--ome-border);padding:10px 0}
+.note-item:last-child{border-bottom:0}
 .note-item .hd{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-.note-item .tag{font-size:11px;font-weight:700;color:var(--brand-dk);background:var(--brand-sf);border-radius:7px;padding:1px 8px}
-.note-item .txt{font-size:13px;margin-top:4px;white-space:pre-wrap}
-.note-item .meta{font-size:11px;color:var(--muted);margin-top:4px}
-.note-actions{display:flex;gap:10px;flex-shrink:0}
-.note-del{background:none;border:none;color:var(--err);cursor:pointer;font-size:14px;flex-shrink:0}
-.note-edit{background:none;border:none;color:var(--brand-dk);cursor:pointer;font-size:14px;flex-shrink:0}
-.note-empty{font-size:13px;color:var(--muted);padding:8px 0}
-.note-group-hd{display:flex;align-items:center;gap:8px;padding:12px 0 6px;border-top:2px solid var(--line)}
-.note-group-hd:first-child{border-top:none;padding-top:0}
+.note-item .tag{font-size:11px;font-weight:700;color:var(--ome-accent-strong);background:var(--ome-accent-soft);border-radius:var(--ome-radius-sm);padding:1px 8px}
+.note-item .txt{font-size:var(--ome-fs-sm);margin-top:4px;white-space:pre-wrap}
+.note-item .meta{font-size:11px;color:var(--ome-text-2);margin-top:4px}
+.note-actions{display:flex;gap:6px;flex-shrink:0}
+.note-edit,.note-del{display:inline-grid;place-items:center;width:28px;height:28px;border:0;border-radius:var(--ome-radius-sm);background:transparent;cursor:pointer;flex-shrink:0}
+.note-edit{color:var(--ome-accent-strong)}
+.note-del{color:var(--ome-err)}
+.note-edit:hover,.note-del:hover{background:var(--ome-surface-2)}
+.note-group-hd{display:flex;align-items:center;gap:8px;padding:12px 0 6px;border-top:2px solid var(--ome-border)}
+.note-group-hd:first-child{border-top:0;padding-top:0}
 .note-group-hd .mini{margin:0;flex:1}
-.note-del-all{background:none;border:1px solid var(--err);color:var(--err);border-radius:7px;padding:3px 9px;font-size:11.5px;cursor:pointer;flex-shrink:0}
-
-.flash-card{background:var(--bg);border-radius:14px;padding:24px 18px;text-align:center;margin-top:12px;min-height:120px;
+.note-del-all{background:none;border:1px solid var(--ome-err);color:var(--ome-err-ink);border-radius:var(--ome-radius-sm);padding:3px 9px;font-size:11.5px;cursor:pointer;flex-shrink:0}
+.flash-card{background:var(--ome-surface-2);border-radius:var(--ome-radius-lg);padding:24px 18px;text-align:center;margin-top:12px;min-height:120px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer}
-.flash-card .q{font-size:15px;font-weight:700}
-.flash-card .a{font-size:14px;color:var(--brand-dk);display:none}
+.flash-card .q{font-size:var(--ome-fs-md);font-weight:700}
+.flash-card .a{font-size:var(--ome-fs-base);color:var(--ome-accent-strong);display:none}
 .flash-card.show .a{display:block}
-.flash-card .hint{font-size:11.5px;color:var(--muted)}
+.flash-card .hint{font-size:11.5px;color:var(--ome-text-2)}
 .flash-btns{display:flex;gap:8px;justify-content:center;margin-top:10px}
-.flash-progress{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
-.flash-btns .btn{flex:1 1 0;min-width:0;padding:9px 4px;font-size:12px}
-.fsrs-again{border-color:var(--err);color:var(--err)}
-.fsrs-again:hover{background:var(--err);color:#fff}
-.fsrs-hard{border-color:var(--warn);color:var(--warn)}
-.fsrs-hard:hover{background:var(--warn);color:#fff}
-.fsrs-good{border-color:var(--sky);color:var(--sky)}
-.fsrs-good:hover{background:var(--sky);color:#fff}
-.fsrs-easy{border-color:var(--ok);color:var(--ok)}
-.fsrs-easy:hover{background:var(--ok);color:#fff}
+.flash-btns .btn{flex:1 1 0;min-width:0;padding:0 4px}
+.flash-progress{font-size:var(--ome-fs-xs);color:var(--ome-text-2);text-align:center;margin-top:8px}
+:where([data-layout]) .btn.fsrs-again{border-color:var(--ome-err);color:var(--ome-err-ink)}
+:where([data-layout]) .btn.fsrs-hard{border-color:var(--ome-warn);color:var(--ome-warn-ink)}
+:where([data-layout]) .btn.fsrs-good{border-color:var(--ome-info);color:var(--ome-info-ink)}
+:where([data-layout]) .btn.fsrs-easy{border-color:var(--ome-ok);color:var(--ome-ok-ink)}
+.btn.fsrs-again:hover:not(:disabled){background:var(--ome-err-soft)}
+.btn.fsrs-hard:hover:not(:disabled){background:var(--ome-warn-soft)}
+.btn.fsrs-good:hover:not(:disabled){background:var(--ome-info-soft)}
+.btn.fsrs-easy:hover:not(:disabled){background:var(--ome-ok-soft)}
 
 /* ── ฝึกเขียนตอบจับเวลา ── */
-.timer-box{text-align:center;padding:16px;background:var(--bg);border-radius:14px;margin-top:12px}
-.timer-num{font-size:34px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.timer-num.warn{color:var(--warn)}
-.timer-num.over{color:var(--err)}
-.chk-list{list-style:none;margin:12px 0 0;padding:0}
-.chk-list li{display:flex;gap:9px;align-items:flex-start;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--line)}
-.chk-list li:last-child{border-bottom:none}
+.timer-box{text-align:center;padding:16px;background:var(--ome-surface-2);border-radius:var(--ome-radius-lg);margin-top:12px}
+.timer-num{font-size:34px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.timer-num.warn{color:var(--ome-warn-ink)}
+.timer-num.over{color:var(--ome-err-ink)}
+.chk-list .mnum{font-weight:700;color:var(--ome-accent-strong);flex-shrink:0}
+.chk-list .msnip{color:var(--ome-text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chk-list li label{display:flex;gap:8px;align-items:flex-start;cursor:pointer;width:100%}
 .chk-list li label input{margin-top:3px;flex-shrink:0}
-.chk-list .mnum{font-weight:700;color:var(--brand-dk);flex-shrink:0}
-.chk-list .msnip{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wr-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
-.wr-table th,.wr-table td{padding:7px 6px;text-align:left;border-bottom:1px solid var(--line)}
-.wr-table th{color:var(--muted);font-weight:600;font-size:11.5px}
+.ocr-drop{display:block;border:1.5px dashed var(--ome-border-strong);border-radius:var(--ome-radius-lg);padding:20px;text-align:center;font-size:var(--ome-fs-sm);color:var(--ome-text-2);cursor:pointer}
+.ocr-preview{max-width:100%;max-height:220px;border-radius:var(--ome-radius-md);display:none}
 
-/* ── OCR ── */
-.ocr-drop{border:1.5px dashed var(--line);border-radius:14px;padding:20px;text-align:center;font-size:13px;color:var(--muted)}
-.ocr-preview{max-width:100%;max-height:220px;border-radius:10px;margin-top:10px;display:none}
-
-/* ── สถิติกราฟการเรียน (dashboard) ── */
-.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px}
-.stat-box{background:var(--bg);border-radius:13px;padding:13px 14px}
-.stat-box .num{font-size:22px;font-weight:800;color:var(--brand-dk)}
-.stat-box .lbl{font-size:11.5px;color:var(--muted);margin-top:2px}
-.bar-chart{margin-top:12px}
-.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12.5px}
-.bar-row .lbl{width:110px;flex-shrink:0;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar-row .track{flex:1;background:var(--bg);border-radius:6px;height:16px;overflow:hidden;display:flex}
-.bar-row .fill{background:var(--brand);height:100%;border-radius:6px 0 0 6px;min-width:2px}
-.bar-row .val{width:34px;text-align:right;flex-shrink:0;font-weight:700;color:var(--ink)}
-.srs-track{display:flex;border-radius:8px;overflow:hidden;height:22px;margin-top:8px}
-.srs-seg{display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:#fff;min-width:2px}
-.srs-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:11px;color:var(--muted)}
+/* ── สถิติ (dashboard) ── */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat-box{background:var(--ome-surface-2);border-radius:var(--ome-radius-lg);padding:13px 14px}
+.stat-box .num{font-size:var(--ome-fs-xl);font-weight:700;color:var(--ome-accent-strong)}
+.stat-box .lbl{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:2px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:var(--ome-fs-xs)}
+.bar-row .lbl{width:110px;flex-shrink:0;color:var(--ome-text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-row .track{flex:1;background:var(--ome-surface-2);border-radius:var(--ome-radius-sm);height:16px;overflow:hidden;display:flex}
+.bar-row .fill{background:var(--ome-chart-1);height:100%;border-radius:var(--ome-radius-sm) 0 0 var(--ome-radius-sm);min-width:2px}
+.bar-row .val{width:34px;text-align:right;flex-shrink:0;font-weight:700}
+.srs-track{display:flex;border-radius:var(--ome-radius-md);overflow:hidden;height:22px}
+.srs-seg{display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:#FFFFFF;text-shadow:0 1px 1px rgba(0,0,0,.35);min-width:2px}
+.srs-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--ome-text-2)}
 .srs-legend span{display:inline-flex;align-items:center;gap:4px}
 .srs-legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
-.act-graph{display:flex;align-items:flex-end;gap:2px;height:44px;margin-top:12px}
-.act-bar{flex:1;background:var(--brand);border-radius:2px 2px 0 0;min-width:2px;min-height:3px}
-.act-graph-lbl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-top:4px}
+.act-graph{display:flex;align-items:flex-end;gap:2px;height:44px}
+.act-bar{flex:1;background:var(--ome-chart-1);border-radius:2px 2px 0 0;min-width:2px;min-height:3px}
+.act-graph-lbl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ome-text-2);margin-top:4px}
+
+.bp-modal-msg{white-space:pre-line;color:var(--ome-text-2)}
+.bp-modal-title{font-size:var(--ome-fs-md);font-weight:700}
 </style>
 </head>
-<body class="ome-tool-page">
+<body data-layout="reader">
 <script src="auth-gate.js"></script>
 
 <div class="clhb-backdrop" id="clHbBackdrop"></div>
@@ -324,14 +217,11 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
   </ul>
 </nav>
 
-<div class="wrap">
+<main class="page cl-page">
 <nav class="crumb"><a href="index.html">หน้าหลัก</a><span class="sep">/</span>เรียนกฎหมาย</nav>
-<div class="head">
-  <button class="clhb-toggle" id="clHbToggle" type="button" aria-label="เปิดเมนู">☰</button>
-  <div>
-    <h1>เรียนกฎหมาย</h1>
-    <div class="head-sub">โน้ต + flashcard ทบทวน + ฝึกเขียนตอบจับเวลา + นับถอยหลังสนามสอบ + ซิงก์ Drive ส่วนตัว</div>
-  </div>
+<div class="page-head">
+  <button class="btn icon" id="clHbToggle" type="button" aria-label="เปิดเมนู"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-menu"/></svg></button>
+  <h1>เรียนกฎหมาย</h1>
 </div>
 
 <!-- ══════════════════ สถิติกราฟการเรียน (หน้าแรกที่เปิดเข้ามาเจอ) ══════════════════ -->
@@ -342,18 +232,15 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
   </div>
   <div class="card">
     <h2>จำนวนโน้ตต่อวิชา</h2>
-    <p class="mini">เห็นทันทีว่าวิชาไหนมีเนื้อหาเยอะ/น้อยเทียบกัน</p>
     <div class="bar-chart" id="clSubjBars"></div>
   </div>
   <div class="card">
     <h2>ความก้าวหน้าการทบทวน (SRS)</h2>
-    <p class="mini">สัดส่วนโน้ตตามขั้นบันไดทบทวน — ยิ่งอยู่ขั้นท้ายๆ มาก ยิ่งจำได้มั่นคง</p>
     <div class="srs-track" id="clSrsTrack"></div>
     <div class="srs-legend" id="clSrsLegend"></div>
   </div>
   <div class="card">
     <h2>กิจกรรม 30 วันล่าสุด</h2>
-    <p class="mini">รวมการเพิ่มโน้ต + ทบทวน flashcard + ฝึกเขียนตอบ ต่อวัน</p>
     <div class="act-graph" id="clActGraph"></div>
     <div class="act-graph-lbl"><span id="clActFrom"></span><span id="clActTo"></span></div>
   </div>
@@ -369,22 +256,19 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
   <div class="card">
     <h2>เป้าหมาย 3 สายอาชีพ</h2>
     <div class="goal-row">
-      <div class="goal-chip"><span class="ic"></span><div><b>ผู้พิพากษา</b><span class="sub">สอบผู้ช่วยผู้พิพากษา (ก.ต.)</span></div></div>
-      <div class="goal-chip"><span class="ic"></span><div><b>อัยการ</b><span class="sub">สอบอัยการผู้ช่วย (ก.อ.)</span></div></div>
-      <div class="goal-chip"><span class="ic"></span><div><b>ทนายความ (Law Firm)</b><span class="sub">ตั๋วทนายความ (สภาทนายความ)</span></div></div>
+      <div class="goal-chip"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-scale"/></svg><div><b>ผู้พิพากษา</b><span class="sub">สอบผู้ช่วยผู้พิพากษา (ก.ต.)</span></div></div>
+      <div class="goal-chip"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-landmark"/></svg><div><b>อัยการ</b><span class="sub">สอบอัยการผู้ช่วย (ก.อ.)</span></div></div>
+      <div class="goal-chip"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-briefcase"/></svg><div><b>ทนายความ (Law Firm)</b><span class="sub">ตั๋วทนายความ (สภาทนายความ)</span></div></div>
     </div>
-    <p class="mini">ทั้ง 3 สายต้องผ่าน "เนติบัณฑิต" เป็นพื้นฐานร่วมกัน (หรือมีวุฒินิติศาสตร์ที่เข้าเกณฑ์) ก่อนแยกเส้นทางเฉพาะสาย — ดูรายละเอียดเกณฑ์แต่ละสายในการ์ด "เช็กเส้นทาง" ด้านล่าง</p>
   </div>
 
   <div class="card">
-    <h2>⏳ สนามสอบ &amp; นับถอยหลัง</h2>
-    <p class="mini">เว็บราชการ/สภาวิชาชีพไทยไม่มี API ให้ดึงวันสอบอัตโนมัติ — กรอก/แก้วันที่เองจากประกาศทางการล่าสุด (มีลิงก์กำกับทุกสนาม) ระบบจะนับถอยหลังให้จากวันที่คุณกรอก</p>
+    <h2><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-clock"/></svg> สนามสอบ &amp; นับถอยหลัง</h2>
     <div id="bpExamList"></div>
   </div>
 
   <div class="card">
     <h2>เช็กเส้นทาง 3 สายอาชีพ</h2>
-    <p class="mini">กรอกคุณสมบัติปัจจุบันของคุณ ระบบจะประเมินว่าตอนนี้เข้าเกณฑ์สมัครสนามไหนได้แล้ว และยังขาดอะไรของแต่ละสาย</p>
     <div class="frow">
       <div class="field"><label>เนติบัณฑิตแล้วหรือยัง</label>
         <select id="bpNeti"><option value="no">ยังไม่จบ</option><option value="yes">จบแล้ว</option></select>
@@ -399,21 +283,19 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
         <select id="bpLawyer"><option value="no">ยังไม่มี</option><option value="yes">มีแล้ว</option></select>
       </div>
     </div>
-    <button class="btn primary sm" id="bpCareerBtn" type="button" style="margin-top:12px">ประเมินเส้นทาง</button>
+    <div><button class="btn primary sm" id="bpCareerBtn" type="button">ประเมินเส้นทาง</button></div>
     <div class="career-result" id="bpCareerResult"></div>
-    <p class="mini" style="margin-top:10px">เกณฑ์จริงมีรายละเอียดปลีกย่อยเยอะกว่านี้และเปลี่ยนได้ตามระเบียบ ก.ต./ก.อ./สภาทนายความแต่ละปี ผลประเมินนี้เป็นแนวทางคร่าวๆ ไม่ใช่การยืนยันสิทธิ์สมัครสอบจริง ต้องเช็กกับประกาศทางการอีกครั้งเสมอ</p>
   </div>
 </div>
 
 <!-- ══════════════════ โน้ตทั้งหมด / รายวิชา (ใช้ร่วมกัน — ต่างกันแค่ตัวกรองวิชา) ══════════════════ -->
 <div class="view" id="viewNotes" style="display:none">
 
-  <!-- ══════════════════ ค้นหามาตรา/ฎีกา รวมทุกวิชา (ไม่ผูกกับวิชาที่เลือก — เห็นตลอด) ══════════════════ -->
+  <!-- ค้นหามาตรา/ฎีกา รวมทุกวิชา (ไม่ผูกกับวิชาที่เลือก — เห็นตลอด) -->
   <div class="card">
     <h2>ค้นหามาตรา/ฎีกา (ทุกวิชา)</h2>
-    <p class="mini" style="margin-bottom:10px">พิมพ์เลขมาตรา (เช่น <code>150</code>) หรือเลขฎีกา/คำสำคัญ (เช่น <code>747/2544</code>, <code>กลฉ้อฉล</code>) — ระบบค้นทุกจุดในสรุปเนื้อหาบทเรียนและข้อสอบตัวอย่างของทุกวิชาที่มีอยู่ในเว็บให้ทันที มีประโยชน์มากตอนอ่านทวนใกล้สอบ</p>
     <input type="text" id="clRefSearch" placeholder="เช่น มาตรา 150, หรือ 747/2544, หรือ กลฉ้อฉล">
-    <div id="clRefResults" style="margin-top:10px"></div>
+    <div id="clRefResults"></div>
   </div>
 
   <div class="card" id="clNotesTitleCard" style="display:none">
@@ -421,26 +303,23 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
     <p class="mini" id="clSubjFull"></p>
   </div>
 
-  <!-- ══════════════════ สรุปเนื้อหาบทเรียน (เนื้อหากฎหมายจริง ต่อวิชา — ทยอยเพิ่มทีละวิชา) ══════════════════ -->
+  <!-- สรุปเนื้อหาบทเรียน (เนื้อหากฎหมายจริง ต่อวิชา — ทยอยเพิ่มทีละวิชา) -->
   <div class="card" id="clLessonCard" style="display:none">
-    <div class="lhd-row"><h2 style="margin-bottom:0">สรุปเนื้อหาบทเรียน</h2>
-      <button class="btn sm" id="clExportPdf" type="button">Export PDF ทั้งวิชา</button></div>
-    <p class="mini" id="clExportPdfStatus" style="margin:4px 0 6px"></p>
-    <p class="mini" style="margin-bottom:10px">สรุปช่วยทบทวนเบื้องต้น เขียนจากความรู้ทั่วไป ไม่ใช่ตัวบทกฎหมายที่อัปเดตล่าสุดแบบเรียลไทม์ กฎหมายมีการแก้ไขเพิ่มเติมได้ ต้องตรวจทานกับตัวบทจริง/หนังสือเรียนที่ใช้สอบก่อนเชื่อ 100% เสมอ</p>
+    <div class="lhd-row"><h2>สรุปเนื้อหาบทเรียน</h2>
+      <button class="btn sm" id="clExportPdf" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg> Export PDF ทั้งวิชา</button></div>
+    <p class="mini" id="clExportPdfStatus"></p>
     <div id="clLessonBody"></div>
   </div>
 
-  <!-- ══════════════════ ข้อสอบตัวอย่าง (แยกจากสรุปเนื้อหาบทเรียนโดยตั้งใจ — ตามที่ผู้ใช้ขอ) ══════════════════ -->
+  <!-- ข้อสอบตัวอย่าง (แยกจากสรุปเนื้อหาบทเรียนโดยตั้งใจ — ตามที่ผู้ใช้ขอ) -->
   <div class="card" id="clExamCard" style="display:none">
     <h2>ข้อสอบตัวอย่าง</h2>
-    <p class="mini" style="margin-bottom:10px">โจทย์+แนวคำตอบตัวอย่าง เขียนขึ้นเพื่อฝึกทำความเข้าใจ ไม่ใช่ข้อสอบจริง/ธงคำตอบทางการ ลองวินิจฉัยเองก่อนกดดูเฉลยเสมอ</p>
     <div id="clExamBody"></div>
   </div>
 
-  <!-- ══════════════════ ข้อสอบจำลอง (Mock Exam) — สุ่มจากธนาคารข้อสอบด้านบน จับเวลาเอง ══════════════════ -->
+  <!-- ข้อสอบจำลอง (Mock Exam) — สุ่มจากธนาคารข้อสอบด้านบน จับเวลาเอง -->
   <div class="card" id="clMockCard" style="display:none">
     <h2>ข้อสอบจำลอง (Mock Exam)</h2>
-    <p class="mini" style="margin-bottom:10px">สุ่มโจทย์จากธนาคารข้อสอบตัวอย่างของวิชานี้ จับเวลาเอง ทำครบทุกข้อแล้วค่อยเปิดแนวคำตอบเทียบทีเดียว เหมือนจำลองสถานการณ์สอบจริง (ต่างจากข้อสอบตัวอย่างด้านบนที่เปิดเฉลยดูได้เลยทีละข้อ)</p>
     <div class="frow" id="clMockSetup">
       <div class="field" style="flex:1 1 120px"><label>จำนวนข้อ</label>
         <input type="number" id="clMockCount" value="5" min="1" max="30">
@@ -452,11 +331,10 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
     <div id="clMockArea"></div>
   </div>
 
-  <!-- ══════════════════ ฝึกจำเลขมาตรา (drill สั้นๆ) — ต่างจาก mock exam ตรงเป็นชุดสั้น ทำซ้ำได้หลายรอบ ══════════════════ -->
+  <!-- ฝึกจำเลขมาตรา (drill สั้นๆ) -->
   <div class="card" id="clDrillCard" style="display:none">
     <h2>ฝึกจำเลขมาตรา (Drill)</h2>
-    <p class="mini" style="margin-bottom:10px">โจทย์สถานการณ์สั้นๆ ทายว่าเป็นมาตราอะไร ตอบเร็ว เช็กเร็ว ทำได้หลายรอบต่อวัน เหมาะฝึกความไวก่อนสอบ</p>
-    <button class="btn primary sm" id="clDrillStart" type="button">เริ่ม Drill</button>
+    <div><button class="btn primary sm" id="clDrillStart" type="button">เริ่ม Drill</button></div>
     <div id="clDrillArea"></div>
   </div>
 
@@ -470,20 +348,20 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
         <input type="text" id="bpNoteQ" placeholder="เช่น มาตรา 420 ว่าด้วยเรื่องอะไร">
       </div>
     </div>
-    <div class="field" style="margin-top:8px"><label>คำตอบ/เนื้อหา (ด้านหลังการ์ด)</label>
+    <div class="field"><label>คำตอบ/เนื้อหา (ด้านหลังการ์ด)</label>
       <textarea id="bpNoteA" rows="3" placeholder="สรุปหลักกฎหมาย/เนื้อหาโน้ต"></textarea>
     </div>
-    <div class="frow" style="margin-top:8px">
-      <button class="btn primary sm" id="bpNoteAdd" type="button">+ บันทึกโน้ต/การ์ด</button>
+    <div class="row">
+      <button class="btn primary sm" id="bpNoteAdd" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg> บันทึกโน้ต/การ์ด</button>
       <button class="btn sm" id="bpNoteCancelEdit" type="button" style="display:none">ยกเลิกการแก้ไข</button>
     </div>
 
-    <div style="margin-top:14px" id="bpAutoFlashWrap">
+    <div id="bpAutoFlashWrap">
       <button class="btn sm" id="bpAutoFlash" type="button">สร้าง flashcard จากคำที่ขีดเน้นในบทเรียน (วิชานี้)</button>
       <div class="status" id="bpAutoFlashStatus"></div>
     </div>
 
-    <div style="margin-top:16px">
+    <div class="row">
       <button class="btn sm" id="bpReviewBtn" type="button">เริ่มทบทวนวันนี้ (FSRS)</button>
       <span class="mini" id="bpReviewCount"></span>
     </div>
@@ -493,7 +371,7 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
   </div>
 
   <div class="card">
-    <h2>⏱️ ฝึกเขียนตอบจับเวลา</h2>
+    <h2><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-clock"/></svg> ฝึกเขียนตอบจับเวลา</h2>
     <div class="frow">
       <div class="field"><label>วิชา</label>
         <input type="text" id="bpWrSubj" placeholder="เช่น กฎหมายอาญา">
@@ -502,12 +380,12 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
         <input type="number" id="bpWrMin" value="15" min="1">
       </div>
     </div>
-    <div class="field" style="margin-top:8px"><label>โจทย์ (พิมพ์เอง หรือวางจากที่เตรียมไว้)</label>
+    <div class="field"><label>โจทย์ (พิมพ์เอง หรือวางจากที่เตรียมไว้)</label>
       <textarea id="bpWrPrompt" rows="2" placeholder="วางโจทย์ข้อสอบที่จะฝึกตอบ"></textarea>
     </div>
-    <div class="frow" style="margin-top:8px">
-      <button class="btn primary sm" id="bpWrStart" type="button">▶️ เริ่มจับเวลา</button>
-      <button class="btn sm" id="bpWrStop" type="button" disabled>⏹ หยุด</button>
+    <div class="row">
+      <button class="btn primary sm" id="bpWrStart" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-play"/></svg> เริ่มจับเวลา</button>
+      <button class="btn sm" id="bpWrStop" type="button" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-square"/></svg> หยุด</button>
     </div>
     <div class="timer-box" id="bpWrTimerBox" style="display:none">
       <div class="timer-num" id="bpWrTimerNum">--:--</div>
@@ -515,34 +393,35 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
       <ul class="chk-list" id="bpWrChecklist" style="text-align:left"></ul>
       <button class="btn primary sm" id="bpWrSave" type="button" style="margin-top:10px">บันทึกผลฝึก</button>
     </div>
-    <table class="wr-table" id="bpWrTable" style="display:none">
-      <thead><tr><th>วันที่</th><th>วิชา</th><th>เวลาที่ใช้</th><th>เช็กลิสต์ผ่าน</th><th></th></tr></thead>
-      <tbody id="bpWrTbody"></tbody>
-    </table>
+    <div class="table-wrap" id="bpWrTable" style="display:none">
+      <table class="table">
+        <thead><tr><th>วันที่</th><th>วิชา</th><th>เวลาที่ใช้</th><th>เช็กลิสต์ผ่าน</th><th></th></tr></thead>
+        <tbody id="bpWrTbody"></tbody>
+      </table>
+    </div>
     <p class="note-empty" id="bpWrEmpty">ยังไม่มีประวัติการฝึกเขียนตอบ</p>
   </div>
 
   <div class="card">
     <h2>นำเข้าข้อความ → ตรวจทาน → บันทึกโน้ต</h2>
-    <p class="mini">ถ่ายรูปหน้าเอกสาร หรือกด "แยกข้อความ" จากไฟล์ใน Drive (การ์ด "เครื่องมือรวม") — ระบบแปลงข้อความให้อัตโนมัติแต่ <b>ต้องตรวจทานก่อนบันทึกเสมอ</b> โดยเฉพาะตัวเลขมาตรา/เลขที่ฎีกาที่ผิดแล้วอันตราย ถ่ายในที่แสงสว่างสม่ำเสมอ ไม่เอียง ไม่มีเงา จะช่วยให้แม่นยำขึ้นมาก · ถ้าเป็นตัวบทกฎหมายทั้งฉบับ (มีหลายมาตรา) ใช้ปุ่ม "แบ่งเป็นรายมาตรา" ด้านล่างแทนการบันทึกเป็นก้อนเดียว จะได้การ์ดท่องทีละมาตราสำหรับทบทวนแบบ Flashcard</p>
     <label class="ocr-drop" for="bpOcrFile" id="bpOcrDrop">แตะเพื่อถ่ายรูป/เลือกรูปหน้าเอกสาร</label>
     <input type="file" id="bpOcrFile" accept="image/*" capture="environment" style="display:none">
     <img id="bpOcrPreview" class="ocr-preview" alt="ตัวอย่างรูปที่เลือก">
     <div class="status" id="bpOcrStatus"></div>
-    <div class="frow" style="margin-top:10px" id="bpOcrEditWrap" style="display:none">
+    <div class="frow" id="bpOcrEditWrap" style="display:none">
       <div class="field" style="flex:1 1 160px"><label>วิชา/หมวด (สำหรับบันทึกเป็นโน้ต)</label>
         <input type="text" id="bpOcrSubj" placeholder="เช่น เนติภาค 1 ปี 2568">
       </div>
     </div>
-    <textarea id="bpOcrText" rows="6" placeholder="ข้อความที่แปลงได้จะขึ้นตรงนี้ — แก้ไข/ตรวจทานก่อนบันทึก" style="margin-top:8px;display:none"></textarea>
-    <div class="frow" style="margin-top:8px">
+    <textarea id="bpOcrText" rows="6" placeholder="ข้อความที่แปลงได้จะขึ้นตรงนี้ — แก้ไข/ตรวจทานก่อนบันทึก" style="display:none"></textarea>
+    <div class="row">
       <button class="btn primary sm" id="bpOcrSave" type="button" style="display:none">บันทึกเป็นโน้ตเดียว</button>
       <button class="btn sm" id="bpMatraSplitBtn" type="button" style="display:none">แบ่งเป็นรายมาตรา</button>
     </div>
-    <div id="bpMatraSplitWrap" style="display:none;margin-top:10px">
+    <div id="bpMatraSplitWrap" style="display:none">
       <p class="mini" id="bpMatraSplitStatus"></p>
       <ul class="chk-list" id="bpMatraList"></ul>
-      <div class="frow" style="margin-top:8px">
+      <div class="row" style="margin-top:8px">
         <button class="btn primary sm" id="bpMatraSaveBtn" type="button">บันทึกมาตราที่เลือกเป็นโน้ตแยก</button>
         <button class="btn sm" id="bpMatraCancelBtn" type="button">ยกเลิก</button>
       </div>
@@ -554,26 +433,21 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 <div class="view" id="viewTools" style="display:none">
   <div class="card">
     <h2>ไฟล์ในโฟลเดอร์ Drive ของฉัน</h2>
-    <p class="mini">ไฟล์ที่คุณอัปโหลดไว้แล้วในโฟลเดอร์ <b>เนติ-ตั๋วทนาย-อัยการ-ผู้พิพากษา</b> (เช่น ธงคำตอบที่สแกน/ถ่ายไว้) — ต้องเชื่อมต่อ Google Drive ก่อน (การ์ดด้านล่าง) รายการนี้อ่านจากโฟลเดอร์ส่วนตัวของคุณเท่านั้น ไม่มีใครอื่นเห็น</p>
-    <button class="btn sm" id="bpDriveListBtn" type="button">โหลดรายชื่อไฟล์จาก Drive</button>
+    <div><button class="btn sm" id="bpDriveListBtn" type="button">โหลดรายชื่อไฟล์จาก Drive</button></div>
     <div class="status" id="bpDriveListStatus"></div>
     <ul class="note-list" id="bpDriveFileList"></ul>
 
-    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
-      <p class="mini" style="margin-bottom:8px"><b>อัปโหลดไฟล์เข้า Drive ผ่านแอปนี้โดยตรง</b> (จำเป็น เพราะสิทธิ์ที่แอปขอไว้เห็นได้เฉพาะไฟล์ที่อัปโหลดผ่านแอปเท่านั้น ไม่เห็นไฟล์ที่ลากเข้า Drive เองจากเว็บ Google)</p>
-      <div class="field" style="max-width:260px">
-        <label>อัปโหลดเข้าโฟลเดอร์ไหน</label>
-        <select id="bpUploadTargetFolder"><option value="">(โฟลเดอร์หลัก)</option></select>
-      </div>
-      <label class="ocr-drop" for="bpUploadFiles" id="bpUploadDrop" style="margin-top:8px">แตะเพื่อเลือกไฟล์อัปโหลด (เลือกได้หลายไฟล์พร้อมกัน)</label>
-      <input type="file" id="bpUploadFiles" multiple style="display:none">
-      <div class="status" id="bpUploadStatus"></div>
+    <div class="field" style="max-width:260px">
+      <label>อัปโหลดเข้าโฟลเดอร์ไหน</label>
+      <select id="bpUploadTargetFolder"><option value="">(โฟลเดอร์หลัก)</option></select>
     </div>
+    <label class="ocr-drop" for="bpUploadFiles" id="bpUploadDrop">แตะเพื่อเลือกไฟล์อัปโหลด (เลือกได้หลายไฟล์พร้อมกัน)</label>
+    <input type="file" id="bpUploadFiles" multiple style="display:none">
+    <div class="status" id="bpUploadStatus"></div>
   </div>
 
   <div class="card">
     <h2>ซิงก์ Google Drive ส่วนตัว</h2>
-    <p class="mini">โน้ต/flashcard/ประวัติฝึกเขียนตอบ/ผลประเมินเส้นทางอาชีพ จะถูกสำรองไว้ในโฟลเดอร์ Drive ของคุณเอง (<b>เนติ-ตั๋วทนาย-อัยการ-ผู้พิพากษา</b>) ไม่ผ่านเซิร์ฟเวอร์ใดๆ ของเรา — ไม่เชื่อมต่อก็ใช้งานได้ปกติ ข้อมูลจะเก็บในเครื่องนี้อย่างเดียว (IndexedDB/localStorage)</p>
     <div class="drive-row">
       <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
@@ -582,44 +456,21 @@ details.lesson>summary{justify-content:space-between;flex-wrap:wrap}
 
   <div class="card">
     <h2>ล้างข้อมูลเก่า</h2>
-    <div class="frow" style="align-items:center">
+    <div class="row">
       <button class="btn sm" id="bpCleanNotesBtn" type="button">ล้างคำที่ไม่ต้องการออกจากโน้ตที่มีอยู่แล้ว</button>
       <span class="mini" id="bpCleanNotesStatus"></span>
     </div>
-    <p class="mini">ใช้อันนี้ถ้าโน้ตที่แยกไว้ก่อนหน้ายังมีคำอย่าง "สำนักงานคณะกรรมการกฤษฎีกา" หรือเลขหน้าปนอยู่ (เช่นแยกไว้ก่อนที่ระบบจะตัดคำพวกนี้ให้อัตโนมัติ) กดครั้งเดียวล้างทุกโน้ตที่มีอยู่ในเครื่องนี้เลย</p>
-    <p class="mini" id="bpStorageInfo" style="margin-top:8px"></p>
-  </div>
-
-  <details class="card lesson" style="box-shadow:var(--sh)">
-    <summary style="font-size:14px">เรียนรู้ / เกี่ยวกับเครื่องมือนี้</summary>
-    <div class="details-body">
-      <h3>ทำไมไม่มีเนื้อหาข้อสอบ/ธงคำตอบให้พร้อมในนี้</h3>
-      <p>"คำถามพร้อมธงคำตอบ" ของเนติบัณฑิตยสภาเป็นสิ่งพิมพ์ลิขสิทธิ์ที่ขายจริง เว็บนี้จะไม่ฝัง/แจกจ่ายเนื้อหาที่มีลิขสิทธิ์คนอื่นในตัวโค้ดของเว็บ (ซึ่งจะเห็นได้จากทุกคนที่เข้าเว็บ) — แต่การเก็บสำเนาที่คุณซื้อไว้ใน Google Drive ส่วนตัวของคุณเองเพื่อใช้ศึกษาไม่ใช่ปัญหา (เข้าข่ายข้อยกเว้นเพื่อการศึกษาส่วนตัวตามกฎหมายลิขสิทธิ์) ใช้การ์ด "ไฟล์ในโฟลเดอร์ Drive ของฉัน" เปิดดู/แยกข้อความจากไฟล์ที่คุณอัปโหลดไว้แล้วได้เลย หรือถ่ายรูปสดผ่าน "นำเข้าข้อความ" ก็ได้</p>
-      <h3>ทำไมวันสอบต้องกรอกเอง</h3>
-      <p>เว็บศาลยุติธรรม/อัยการสูงสุด/สภาทนายความ/เนติบัณฑิตยสภา ไม่มี API สาธารณะให้ดึงวันที่อัตโนมัติ ต้องอัปเดตเองจากประกาศจริงทุกรอบ ระบบมีลิงก์ตรงไปหน้าประกาศให้กดเช็กได้เสมอ</p>
-      <h3>Flashcard ทบทวนยังไง</h3>
-      <p>ใช้ระบบเว้นระยะแบบขั้นบันได — การ์ดที่ตอบถูกจะเลื่อนไปทบทวนห่างขึ้นเรื่อยๆ (1 วัน → 3 → 7 → 14 → 30) ตอบผิดจะรีเซ็ตกลับมาทบทวนพรุ่งนี้ทันที ช่วยเน้นเวลาไปกับจุดที่ยังไม่แม่นจริงๆ</p>
-      <h3>ฝึกเขียนตอบจับเวลาทำไมสำคัญ</h3>
-      <p>ข้อสอบทั้งเนติ/อัยการ/ผู้พิพากษาเป็นข้อเขียนอัตนัยล้วนที่ต้องอ้างมาตรา+ฎีกาให้แม่นภายในเวลาจำกัด อ่านเข้าใจอย่างเดียวไม่พอ ต้องฝึกเขียนจริงให้ทันเวลาด้วย</p>
-      <h3>ทำไมแยกวิชาเป็นพาเนล</h3>
-      <p>เพื่อไม่ให้โน้ต/ฝึกเขียน/ทบทวนของหลายวิชาปนกันจนสับสน — เข้าพาเนลวิชาไหน เครื่องมือทั้งหมดในนั้นจะกรอง/บันทึกเฉพาะวิชานั้นให้อัตโนมัติ ส่วน "โน้ตทั้งหมด" ไว้ดูภาพรวมทุกวิชารวมกัน</p>
-      <h3>ข้อมูลเก็บที่ไหน</h3>
-      <p>สมุดโน้ตเก็บใน IndexedDB ของเบราว์เซอร์นี้ (โควตาใหญ่กว่า localStorage มาก) ส่วนข้อมูลอื่น (วันสอบ/ผลประเมินเส้นทาง/ประวัติฝึกเขียน) เก็บใน localStorage — เชื่อมต่อ Google Drive ส่วนตัวได้ถ้าต้องการสำรอง/ใช้ข้ามอุปกรณ์ ไม่มีข้อมูลของคุณผ่านเซิร์ฟเวอร์ของเว็บนี้เลย</p>
-    </div>
-  </details>
-
-  <div class="disc">เครื่องมือนี้ช่วยจัดระเบียบการเตรียมสอบเท่านั้น ไม่ใช่แหล่งเนื้อหากฎหมายที่สมบูรณ์หรือคำรับรองว่าจะสอบผ่าน เกณฑ์คุณสมบัติ/วันสอบ/ระเบียบห้องสอบต้องยึดตามประกาศทางการล่าสุดของแต่ละหน่วยงานเป็นหลักเสมอ · ข้อมูลที่กรอกเก็บในเครื่องคุณเท่านั้น (สำรองขึ้น Google Drive ส่วนตัวได้ถ้าเลือกเชื่อมต่อ)</div>
-</div>
-
-</div>
-
-<div class="bp-modal-backdrop" id="bpModalBackdrop">
-  <div class="bp-modal" id="bpModal" role="dialog" aria-modal="true">
-    <div class="bp-modal-title" id="bpModalTitle"></div>
-    <div class="bp-modal-msg" id="bpModalMsg"></div>
-    <div class="bp-modal-btns" id="bpModalBtns"></div>
+    <p class="mini" id="bpStorageInfo"></p>
   </div>
 </div>
+
+</main>
+
+<dialog class="dialog" id="bpModal">
+  <div class="dialog-head"><h2 class="bp-modal-title" id="bpModalTitle"></h2></div>
+  <div class="dialog-body"><div class="bp-modal-msg" id="bpModalMsg"></div></div>
+  <div class="dialog-foot" id="bpModalBtns"></div>
+</dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="file-reader.js"></script>
