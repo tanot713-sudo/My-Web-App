@@ -9,6 +9,7 @@
 */
 (function(){
   'use strict';
+  function P(){return window.TanotReportUtils.palette();}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -148,69 +149,68 @@
     if(q('#mnt1-css'))return;
     var s=document.createElement('style');s.id='mnt1-css';s.textContent=`
 #mntControlLayout{display:flex;flex-direction:column;gap:12px;margin-top:14px}
-#mntControlLayout .mn-hero{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--sh)}
+#mntControlLayout .mn-hero{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:15px 16px;box-shadow:var(--ome-shadow-1)}
 #mntControlLayout .mn-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
-#mntControlLayout .mn-hero h2{font-size:16px;margin:0}
-#mntControlLayout .mn-hero .mn-sub{font-size:12px;color:var(--muted);margin-top:3px}
+#mntControlLayout .mn-hero h2{font-size:var(--ome-fs-md);margin:0}
+#mntControlLayout .mn-hero .mn-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px}
 /* ตามที่ผู้ใช้ขอ (เทียบ template): แถบ badge "รอบข้อมูล"/"อัปเดตล่าสุด" ที่หัวการ์ด */
-#mntControlLayout .mn-badges{display:flex;gap:8px;flex-wrap:wrap;flex:none}
-#mntControlLayout .mn-badge{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:10.5px;color:var(--ink);white-space:nowrap}
+#mntControlLayout .mn-badges{display:flex;gap:8px;flex-wrap:wrap;flex:0 1 auto;min-width:0;max-width:100%}
+#mntControlLayout .mn-badge{background:var(--ome-surface-0);border:1px solid var(--ome-border);border-radius:var(--ome-radius-pill);padding:5px 11px;font-size:var(--ome-fs-xs);color:var(--ome-text-1);white-space:nowrap}
 /* KPI แถวหลัก (4 ตัวหลักตาม template: PM Compliance/Availability/Backlog/MTTR) ให้เด่นกว่าแถวรอง */
 #mntControlLayout .mn-kpis-primary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-#mntControlLayout .mn-kpi-primary{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--sh);position:relative}
-#mntControlLayout .mn-kpi-primary:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:4px;background:var(--ok)}
-#mntControlLayout .mn-kpi-primary.warn:after{background:var(--warn)}#mntControlLayout .mn-kpi-primary.bad:after{background:var(--err)}
-#mntControlLayout .mn-kpi-primary .l{font-size:10.5px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-#mntControlLayout .mn-kpi-primary .v{font-size:25px;font-weight:850;margin-top:5px;color:var(--ink)}
-#mntControlLayout .mn-kpi-primary .delta{font-size:10.5px;font-weight:700;margin-top:5px}
-#mntControlLayout .mn-kpi-primary .delta.up{color:var(--ok)}#mntControlLayout .mn-kpi-primary .delta.down{color:var(--err)}
-#mntControlLayout .mn-kpi-primary .target{font-size:9.5px;color:var(--muted);margin-top:3px}
+#mntControlLayout .mn-kpi-primary{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:13px 15px;box-shadow:var(--ome-shadow-1);position:relative}
+#mntControlLayout .mn-kpi-primary:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:var(--ome-radius-sm);background:var(--ome-ok)}
+#mntControlLayout .mn-kpi-primary.warn:after{background:var(--ome-warn)}#mntControlLayout .mn-kpi-primary.bad:after{background:var(--ome-err)}
+#mntControlLayout .mn-kpi-primary .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
+#mntControlLayout .mn-kpi-primary .v{font-size:var(--ome-fs-2xl);font-weight:700;margin-top:5px;color:var(--ome-text-1)}
+#mntControlLayout .mn-kpi-primary .delta{font-size:var(--ome-fs-xs);font-weight:700;margin-top:5px}
+#mntControlLayout .mn-kpi-primary .delta.up{color:var(--ome-ok)}#mntControlLayout .mn-kpi-primary .delta.down{color:var(--ome-err)}
+#mntControlLayout .mn-kpi-primary .target{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px}
 #mntControlLayout .mn-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
-#mntControlLayout .mn-kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;box-shadow:var(--sh);position:relative}
-#mntControlLayout .mn-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:4px;background:var(--ok)}
-#mntControlLayout .mn-kpi.warn:after{background:var(--warn)}#mntControlLayout .mn-kpi.bad:after{background:var(--err)}
-#mntControlLayout .mn-kpi .l{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-#mntControlLayout .mn-kpi .v{font-size:22px;font-weight:850;margin-top:4px;color:var(--ink)}
-#mntControlLayout .mn-kpi.warn .v{color:#B8720A}#mntControlLayout .mn-kpi.bad .v{color:var(--err)}
-#mntControlLayout .mn-kpi .s{font-size:9.5px;color:var(--muted);margin-top:4px}
-#mntControlLayout .mn-panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px;box-shadow:var(--sh)}
-#mntControlLayout .mn-panel h3{font-size:13px;margin:0 0 3px;font-weight:850}
+#mntControlLayout .mn-kpi{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px 13px;box-shadow:var(--ome-shadow-1);position:relative}
+#mntControlLayout .mn-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:var(--ome-radius-sm);background:var(--ome-ok)}
+#mntControlLayout .mn-kpi.warn:after{background:var(--ome-warn)}#mntControlLayout .mn-kpi.bad:after{background:var(--ome-err)}
+#mntControlLayout .mn-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
+#mntControlLayout .mn-kpi .v{font-size:var(--ome-fs-xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
+#mntControlLayout .mn-kpi.warn .v{color:var(--ome-warn-ink)}#mntControlLayout .mn-kpi.bad .v{color:var(--ome-err)}
+#mntControlLayout .mn-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
+#mntControlLayout .mn-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
+#mntControlLayout .mn-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
 #mntControlLayout .mn-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-#mntControlLayout .mn-note{font-size:9.5px;color:var(--muted);margin-bottom:7px}
 #mntControlLayout .mn-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
 #mntControlLayout .mn-grid>.half{grid-column:span 6}#mntControlLayout .mn-grid>.full{grid-column:1/-1}
-#mntControlLayout .mn-insight{border-left:3px solid var(--ok);padding:10px 13px;font-size:12px;color:var(--ink)}
+#mntControlLayout .mn-insight{border-left:3px solid var(--ome-ok);padding:10px 13px;font-size:var(--ome-fs-xs);color:var(--ome-text-1)}
 #mntControlLayout .mn-status-row{display:flex;flex-direction:column;gap:8px}
-#mntControlLayout .mn-status-item{display:grid;grid-template-columns:96px 1fr 30px;align-items:center;gap:9px;font-size:11px}
+#mntControlLayout .mn-status-item{display:grid;grid-template-columns:96px 1fr 30px;align-items:center;gap:9px;font-size:var(--ome-fs-xs)}
 #mntControlLayout .mn-status-item .lab{display:flex;align-items:center;gap:6px;font-weight:700}
 #mntControlLayout .mn-status-item i{width:8px;height:8px;border-radius:50%;display:inline-block}
-#mntControlLayout .mn-track{height:7px;border-radius:6px;background:#eef1f4;overflow:hidden}
-#mntControlLayout .mn-track span{display:block;height:100%;border-radius:6px}
-#mntControlLayout .mn-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px}
+#mntControlLayout .mn-track{height:7px;border-radius:var(--ome-radius-sm);background:var(--ome-surface-2);overflow:hidden}
+#mntControlLayout .mn-track span{display:block;height:100%;border-radius:var(--ome-radius-sm)}
+#mntControlLayout .mn-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs)}
 #mntControlLayout .mn-list:last-child{border-bottom:none}
-#mntControlLayout .mn-empty{padding:24px 8px;text-align:center;color:var(--muted);font-size:11px}
+#mntControlLayout .mn-empty{padding:24px 8px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
 #mntControlLayout .mn-trend-scroll{overflow-x:auto}
 /* ปุ่มสลับมุมมอง (Year/Month ของ Project Control ใช้ class คนละชื่อ — ทำแยกของตัวเองให้ชัดเจนว่าเป็นของ
    Maintenance โดยเฉพาะ) ใช้กับ "Downtime แยกตามกลุ่มอุปกรณ์/เครื่องจักร" */
 #mntControlLayout .mn-toggle{display:flex;gap:6px}
-#mntControlLayout .mn-toggle button{border:1px solid var(--line);background:var(--card);color:var(--muted);font-family:var(--ui-font);font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:7px;cursor:pointer}
-#mntControlLayout .mn-toggle button.active{background:var(--brand-sf);color:var(--brand-dk);border-color:var(--brand)}
+#mntControlLayout .mn-toggle button{border:1px solid var(--ome-border);background:var(--ome-surface-1);color:var(--ome-text-2);font-size:var(--ome-fs-xs);font-weight:700;padding:4px 10px;border-radius:var(--ome-radius-sm);cursor:pointer}
+#mntControlLayout .mn-toggle button.active{background:var(--ome-accent-soft);color:var(--ome-accent-strong);border-color:var(--ome-accent)}
 /* ตาราง "อุปกรณ์ที่ต้องเฝ้าระวัง" — เรียงตาม Downtime สะสม พร้อม pill สถานะ */
-#mntControlLayout .mn-watch-head{display:grid;grid-template-columns:1fr 110px 90px 100px;gap:10px;padding:0 2px 6px;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);border-bottom:1px solid var(--line)}
-#mntControlLayout .mn-watch-row{display:grid;grid-template-columns:1fr 110px 90px 100px;gap:10px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line);font-size:11.5px}
+#mntControlLayout .mn-watch-head{display:grid;grid-template-columns:1fr 110px 90px 100px;gap:10px;padding:0 2px 6px;font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-2);border-bottom:1px solid var(--ome-border)}
+#mntControlLayout .mn-watch-row{display:grid;grid-template-columns:1fr 110px 90px 100px;gap:10px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs)}
 #mntControlLayout .mn-watch-row:last-child{border-bottom:none}
-#mntControlLayout .mn-watch-row b{font-weight:700;color:var(--ink)}
-#mntControlLayout .mn-watch-row span.muted{color:var(--muted);font-size:10.5px}
-#mntControlLayout .mn-watch-row .num{font-family:var(--ui-font-mono);font-variant-numeric:tabular-nums;text-align:right}
-#mntControlLayout .mn-pill{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+#mntControlLayout .mn-watch-row b{font-weight:700;color:var(--ome-text-1)}
+#mntControlLayout .mn-watch-row span.muted{color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
+#mntControlLayout .mn-watch-row .num{font-variant-numeric:tabular-nums;text-align:right}
+#mntControlLayout .mn-pill{display:inline-flex;align-items:center;gap:5px;font-size:var(--ome-fs-xs);font-weight:700;padding:3px 9px;border-radius:var(--ome-radius-pill);white-space:nowrap}
 #mntControlLayout .mn-pill:before{content:'';width:6px;height:6px;border-radius:50%;display:inline-block}
-#mntControlLayout .mn-pill.watch{color:#B8720A;background:color-mix(in srgb, var(--warn) 20%, transparent)}#mntControlLayout .mn-pill.watch:before{background:var(--warn)}
-#mntControlLayout .mn-pill.ok{color:var(--ok);background:color-mix(in srgb, var(--ok) 15%, transparent)}#mntControlLayout .mn-pill.ok:before{background:var(--ok)}
-#mntControlLayout .mn-pill.parts{color:var(--err);background:color-mix(in srgb, var(--err) 15%, transparent)}#mntControlLayout .mn-pill.parts:before{background:var(--err)}
+#mntControlLayout .mn-pill.watch{color:var(--ome-warn-ink);background:color-mix(in srgb, var(--ome-warn) 20%, transparent)}#mntControlLayout .mn-pill.watch:before{background:var(--ome-warn)}
+#mntControlLayout .mn-pill.ok{color:var(--ome-ok);background:color-mix(in srgb, var(--ome-ok) 15%, transparent)}#mntControlLayout .mn-pill.ok:before{background:var(--ome-ok)}
+#mntControlLayout .mn-pill.parts{color:var(--ome-err);background:color-mix(in srgb, var(--ome-err) 15%, transparent)}#mntControlLayout .mn-pill.parts:before{background:var(--ome-err)}
 /* กราฟเส้นหลายสี "PM Compliance รายเดือน แยกตามสาย" */
-#mntControlLayout .mn-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:9.5px;color:var(--muted);padding:6px 2px 0}
+#mntControlLayout .mn-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:var(--ome-fs-xs);color:var(--ome-text-2);padding:6px 2px 0}
 #mntControlLayout .mn-legend span{display:inline-flex;align-items:center;gap:5px}
-#mntControlLayout .mn-legend i{width:14px;height:3px;border-radius:3px;display:inline-block}
+#mntControlLayout .mn-legend i{width:14px;height:3px;border-radius:var(--ome-radius-sm);display:inline-block}
 #mntControlLayout.mnt-override-hidden{display:none!important}
 .mnt-hidden-source{display:none!important}
 @media(max-width:1100px){#mntControlLayout .mn-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}#mntControlLayout .mn-kpis-primary{grid-template-columns:repeat(2,minmax(0,1fr))}#mntControlLayout .mn-grid>.half{grid-column:1/-1}}
@@ -242,19 +242,18 @@
        Compliance แยกตามสาย (ซ่อนอัตโนมัติถ้าไม่มีคอลัมน์ "สาย"), และเปลี่ยนรายการ "งานเลยกำหนด" เป็น
        ตารางเฝ้าระวังเรียงตาม Downtime สะสมพร้อมสถานะ */
     layout.innerHTML=
-      '<section class="mn-hero"><div class="mn-hero-top"><div><h2>🔧 Maintenance Control</h2><div class="mn-sub" id="mnUpdated">ภาพรวมงานซ่อมบำรุง PM/CM, Downtime และต้นทุนตามเครื่องจักร</div></div><div class="mn-badges" id="mnBadges"></div></div></section>'+
+      '<section class="mn-hero"><div class="mn-hero-top"><div><h2>Maintenance Control</h2><div class="mn-sub" id="mnUpdated"></div></div><div class="mn-badges" id="mnBadges"></div></div></section>'+
       '<div class="mn-kpis-primary" id="mnKpisPrimary"></div>'+
       '<div class="mn-kpis" id="mnKpis"></div>'+
       '<section class="mn-panel"><h3>Executive Insight</h3><div id="mnInsight" class="mn-insight"></div></section>'+
       '<div class="mn-grid">'+
-        '<section class="mn-panel full"><h3>Downtime รายเดือน</h3><div class="mn-note">ชั่วโมงหยุดทำงานรวมต่อเดือน</div><div id="mnTrend"></div></section>'+
-        '<section class="mn-panel full" id="mnPmByLinePanel"><h3>PM Compliance รายเดือน แยกตามสาย</h3><div class="mn-note">% งานตามแผนที่เสร็จตรงเวลา แยกตามสาย/โครงการ</div><div id="mnPmByLine"></div></section>'+
-        '<section class="mn-panel half"><h3>Work Order รายเดือน: PM vs CM</h3><div class="mn-note">จำนวนใบงานต่อเดือน</div><div id="mnPmCm"></div></section>'+
-        '<section class="mn-panel half"><h3>สถานะงานซ่อมบำรุง</h3><div class="mn-note">PM Compliance / งานเลยกำหนด</div><div id="mnStatus"></div></section>'+
-        '<section class="mn-panel full"><div class="mn-panel-head"><h3>Downtime แยกตามกลุ่มอุปกรณ์</h3><div class="mn-toggle" id="mnByEquipToggle"></div></div><div class="mn-note" id="mnByEquipNote">Top 8 อันดับ Downtime สูงสุด</div><div id="mnByEquip"></div></section>'+
-        '<section class="mn-panel full"><h3>🔍 อุปกรณ์ที่ต้องเฝ้าระวัง</h3><div class="mn-note">เรียงตาม Downtime สะสมสูงสุด</div><div id="mnWatchlist"></div></section>'+
-      '</div>'+
-      '<div class="mini" style="font-size:9px;color:var(--muted)">ตรวจพบจากคอลัมน์ รหัสเครื่องจักร + Downtime/วันที่ปฏิบัติงาน ในไฟล์ที่อัปโหลด — Table ด้านล่างไม่ถูกแก้ไข</div>';
+        '<section class="mn-panel full"><h3>Downtime รายเดือน</h3><div id="mnTrend"></div></section>'+
+        '<section class="mn-panel full" id="mnPmByLinePanel"><h3>PM Compliance รายเดือน แยกตามสาย</h3><div id="mnPmByLine"></div></section>'+
+        '<section class="mn-panel half"><h3>Work Order รายเดือน: PM vs CM</h3><div id="mnPmCm"></div></section>'+
+        '<section class="mn-panel half"><h3>สถานะงานซ่อมบำรุง</h3><div id="mnStatus"></div></section>'+
+        '<section class="mn-panel full"><div class="mn-panel-head"><h3>Downtime แยกตามกลุ่มอุปกรณ์</h3><div class="mn-toggle" id="mnByEquipToggle"></div></div><div id="mnByEquip"></div></section>'+
+        '<section class="mn-panel full"><h3>อุปกรณ์ที่ต้องเฝ้าระวัง</h3><div id="mnWatchlist"></div></section>'+
+      '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('mnt-hidden-source');
     });
@@ -285,13 +284,13 @@
     var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:'+w+'px;height:'+h+'px">';
     for(var t=0;t<=4;t++){
       var val=maxV*t/4, y=top+ph-ph*t/4;
-      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edf1" stroke-width="1"/>';
-      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#8a97a3">'+Math.round(val)+'</text>';
+      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="'+P().grid+'" stroke-width="1"/>';
+      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="'+P().faint+'">'+Math.round(val)+'</text>';
     }
     keys.forEach(function(k,i){
       var v=byMonth[k], x=left+step*i+(step-bw)/2, bh=ph*v/maxV, y=top+ph-bh;
-      out+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="3" fill="#F59E0B"/>';
-      out+='<text x="'+(x+bw/2)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="#8a97a3">'+k+'</text>';
+      out+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="3" fill="'+P().warn+'"/>';
+      out+='<text x="'+(x+bw/2)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>';
     });
     out+='</svg>';
     host.innerHTML='<div class="mn-trend-scroll">'+out+'</div>';
@@ -311,8 +310,6 @@
       var key=mode==='type'?(r.equipmenttype||'(ไม่ระบุประเภท)'):r.equipmentno;
       map[key]=(map[key]||0)+r.downtime;
     });
-    var noteEl=q('#mnByEquipNote');
-    if(noteEl)noteEl.textContent=mode==='type'?'Top 8 อันดับ Downtime สูงสุด (รวมตามประเภทเครื่องจักร)':'Top 8 อันดับ Downtime สูงสุด (รายเครื่องจักร)';
     var entries=Object.keys(map).map(function(k){return [k,map[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
     if(!entries.length){host.innerHTML='<div class="mn-empty">ไม่มีข้อมูล Downtime</div>';return;}
     var w=900,rowH=28,h=14+entries.length*rowH,left=210,right=50,barW=w-left-right;
@@ -320,10 +317,10 @@
     var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:100%;height:'+h+'px">';
     entries.forEach(function(e,i){
       var y=10+i*rowH, bw=Math.max(2,barW*e[1]/maxV);
-      out+='<text x="'+(left-10)+'" y="'+(y+14)+'" text-anchor="end" font-size="11.5" fill="#374151"><title>'+esc(e[0])+'</title>'+esc(e[0].length>24?e[0].slice(0,23)+'…':e[0])+'</text>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="17" rx="4" fill="#EEF1F4"/>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="17" rx="4" fill="#DC2626"/>';
-      out+='<text x="'+(left+bw+8)+'" y="'+(y+14)+'" font-size="11.5" font-weight="700" fill="#172033">'+e[1].toFixed(1)+'</text>';
+      out+='<text x="'+(left-10)+'" y="'+(y+14)+'" text-anchor="end" font-size="11.5" fill="'+P().text+'"><title>'+esc(e[0])+'</title>'+esc(e[0].length>24?e[0].slice(0,23)+'…':e[0])+'</text>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="17" rx="4" fill="'+P().surface2+'"/>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="17" rx="4" fill="'+P().err+'"/>';
+      out+='<text x="'+(left+bw+8)+'" y="'+(y+14)+'" font-size="11.5" font-weight="700" fill="'+P().text+'">'+e[1].toFixed(1)+'</text>';
     });
     out+='</svg>';
     host.innerHTML=out;
@@ -348,9 +345,9 @@
     var cmCount=rows.filter(function(r){return classifyWO(r.workordertype,r.failuremode,r.status)==='cm';}).length;
     var total=Math.max(1,rows.length);
     var vals=[
-      ['pm','PM Compliance',pmCompliance!=null?pmCompliance.toFixed(0)+'%':'—',pmCompliance!=null?pmCompliance:0,'#16A34A'],
-      ['cm','งาน CM (ฉุกเฉิน)',cmCount,cmCount/total*100,'#F59E0B'],
-      ['late','เลยกำหนด',late,late/total*100,'#DC2626']
+      ['pm','PM Compliance',pmCompliance!=null?pmCompliance.toFixed(0)+'%':'—',pmCompliance!=null?pmCompliance:0,P().ok],
+      ['cm','งาน CM (ฉุกเฉิน)',cmCount,cmCount/total*100,P().warn],
+      ['late','เลยกำหนด',late,late/total*100,P().err]
     ];
     var out='<div class="mn-status-row">';
     vals.forEach(function(v){
@@ -504,23 +501,23 @@
     var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:'+w+'px;height:'+h+'px">';
     for(var t=0;t<=4;t++){
       var val=maxV*t/4, y=top+ph-ph*t/4;
-      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edf1" stroke-width="1"/>';
-      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#8a97a3">'+Math.round(val)+'</text>';
+      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="'+P().grid+'" stroke-width="1"/>';
+      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="'+P().faint+'">'+Math.round(val)+'</text>';
     }
     keys.forEach(function(k,i){
       var g=byMonth[k], x=left+step*i+(step-bw)/2;
       var pmH=ph*g.pm/maxV, cmH=ph*g.cm/maxV;
-      out+='<rect x="'+x+'" y="'+(top+ph-pmH)+'" width="'+bw+'" height="'+pmH+'" fill="#4285F4"/>';
-      out+='<rect x="'+x+'" y="'+(top+ph-pmH-cmH)+'" width="'+bw+'" height="'+cmH+'" fill="#EA4285"/>';
-      out+='<text x="'+(x+bw/2)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="#8a97a3">'+k+'</text>';
+      out+='<rect x="'+x+'" y="'+(top+ph-pmH)+'" width="'+bw+'" height="'+pmH+'" fill="'+P().info+'"/>';
+      out+='<rect x="'+x+'" y="'+(top+ph-pmH-cmH)+'" width="'+bw+'" height="'+cmH+'" fill="'+P().series[4]+'"/>';
+      out+='<text x="'+(x+bw/2)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>';
     });
-    out+='</svg><div class="mn-legend"><span><i style="background:#4285F4"></i>PM (แผน)</span><span><i style="background:#EA4285"></i>CM (เหตุขัดข้อง)</span></div>';
+    out+='</svg><div class="mn-legend"><span><i style="background:'+P().info+'"></i>PM (แผน)</span><span><i style="background:'+P().series[4]+'"></i>CM (เหตุขัดข้อง)</span></div>';
     host.innerHTML='<div class="mn-trend-scroll">'+out+'</div>';
   }
 
   /* g) PM Compliance รายเดือน แยกตามสาย — ต้องมีคอลัมน์ "สาย/โครงการ" ในไฟล์ที่อัปโหลด ถ้าไม่มีให้ซ่อน
      แผงนี้ทั้งหมด (ไม่ใช่โชว์ว่างเปล่า) เพราะข้อมูลไม่มีมิตินี้จริงๆ */
-  var PMLINE_COLORS=['#F4B400','#34A853','#EA4285','#4285F4','#9C27B0','#00BCD4'];
+  function pmLineColors(){var p=P();return [p.warn,p.ok,p.series[4],p.info,p.series[0],p.series[2]];}
   function renderPmByLine(rows){
     var panel=q('#mnPmByLinePanel'), host=q('#mnPmByLine');
     var lines=[]; rows.forEach(function(r){ if(r.line&&lines.indexOf(r.line)<0)lines.push(r.line); });
@@ -544,15 +541,15 @@
     var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:'+w+'px;height:'+h+'px">';
     for(var t=0;t<=4;t++){
       var val=100*t/4, y=top+ph-ph*t/4;
-      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edf1" stroke-width="1"/>';
-      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#8a97a3">'+val+'%</text>';
+      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="'+P().grid+'" stroke-width="1"/>';
+      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="'+P().faint+'">'+val+'%</text>';
     }
     months.forEach(function(k,i){
-      out+='<text x="'+(left+step*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="9.5" fill="#8a97a3">'+k+'</text>';
+      out+='<text x="'+(left+step*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="9.5" fill="'+P().faint+'">'+k+'</text>';
     });
     var legend='<div class="mn-legend">';
     lines.forEach(function(line,li){
-      var color=PMLINE_COLORS[li%PMLINE_COLORS.length];
+      var color=pmLineColors()[li%6];
       var pts=months.map(function(k,i){
         var cell=(byLineMonth[line]||{})[k];
         var pct=cell&&cell.total?(cell.done/cell.total*100):null;
@@ -623,7 +620,7 @@
     var layout=injectLayout(); if(!layout)return;
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
-    layout.innerHTML='<section class="mn-panel"><h3>🔧 Maintenance Control</h3>'+
+    layout.innerHTML='<section class="mn-panel"><h3>Maintenance Control</h3>'+
       '<div class="mn-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายงานซ่อมบำรุง (ต้องมีคอลัมน์รหัสเครื่องจักร '+
       'และอย่างน้อยหนึ่งใน Downtime/วันที่เริ่ม-เสร็จปฏิบัติงาน) — ลองเลือก Template เป็น "Auto" '+
       'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
@@ -690,6 +687,7 @@
 
   function init(){
     injectCSS();
+    window.TanotReportUtils.onTheme(schedule);
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;
