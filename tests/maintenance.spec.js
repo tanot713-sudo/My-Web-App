@@ -353,3 +353,213 @@ test.describe('mnt-qr.js', () => {
     expect(r.none).toBeNull();
   });
 });
+
+/* ══════════ B. หน้า maintenance.html (Playwright · เซิร์ฟเวอร์ 8129 = sync.js + files.js ตัวจริง) ══════════ */
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+const NOW = new Date('2026-11-18T10:00:00+07:00');
+
+// ข้อมูลตั้งต้น: 1 สถานที่, 1 อุปกรณ์ (ESC), แผน M3 3 ข้อ (ผ่าน/ไม่ผ่าน · วัดกระแส · ผ่าน/ไม่ผ่าน) — ครบรอบ M3 เดือน 2026-11
+function seedData() {
+  if (sessionStorage.getItem('mnt-seeded')) return;
+  sessionStorage.setItem('mnt-seeded', '1');
+  localStorage.setItem('tanot:mnt:sites', JSON.stringify([{ id: 's1', name: 'RN05 บางซื่อ', abbr: 'RN05', lat: 13.8, lng: 100.54, updatedAt: 1 }]));
+  localStorage.setItem('tanot:mnt:assets', JSON.stringify([
+    { id: 'e1', code: 'RN05-ESC-01', name: 'บันไดเลื่อน', type: 'ESC', system: 'E&M', site: 's1', phase: { M3: 2 }, status: 'active', updatedAt: 1 },
+  ]));
+  localStorage.setItem('tanot:mnt:plans', JSON.stringify([
+    { id: 'ESC|M3', type: 'ESC', typeName: 'บันไดเลื่อน', freq: 'M3', hours: 2, shift: 'D', edited: false, updatedAt: 1,
+      items: [{ id: 'i1', text: 'ตรวจราวจับ', kind: 'check' }, { id: 'i2', text: 'วัดกระแสมอเตอร์', kind: 'num', unit: 'A', min: null, max: 32 }, { id: 'i3', text: 'ตรวจหวีขั้นบันได', kind: 'check' }] },
+  ]));
+  localStorage.setItem('tanot:mnt:settings', JSON.stringify({ v: 1, startMonth: '2026-10', project: 'ทดสอบ', line: 'LN1', inspector: '', labelSize: '3x8' }));
+}
+async function newDevice(browser, { seed = true, sync = false, files = true, now = NOW, offline = false } = {}) {
+  const ctx = await browser.newContext({ baseURL: SRV });
+  await ctx.addInitScript(({ sync, files }) => {
+    window.TANOT_NO_RELOAD_BAR = true;
+    if (files) window.TANOT_FILES = { enabled: true };
+    if (sync) window.TANOT_SYNC = { enabled: true, initialDelay: 600000, interval: 1e9 };
+  }, { sync, files });
+  if (seed) await ctx.addInitScript(seedData);
+  const page = await ctx.newPage();
+  const errors = await prepare(page);
+  await page.clock.setFixedTime(now);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/maintenance.html');
+  await page.waitForSelector('nav.ome-nav');
+  return { ctx, page, errors };
+}
+const mnt = (page, fn, ...args) => page.evaluate(fn, ...args);
+const idbAll = (page, db, store) => page.evaluate(([d, s]) => window.__mnt.idbAll(d, s), [db, store]);
+async function openAsset(page, id) { await page.evaluate((id) => { location.hash = '#asset=' + id; }, id); await page.waitForSelector('#assetView [data-act="insp"]'); }
+async function fillInsp(page, { by = 'สมชาย', i1 = 'ok', i2 = 28.4, i3 = 'ng' } = {}) {
+  await page.fill('#inspBy', by);
+  if (i1) await page.click(`[data-res="${i1}"][data-item="i1"]`);
+  if (i2 != null) await page.fill('[data-num="i2"]', String(i2));
+  if (i3) await page.click(`[data-res="${i3}"][data-item="i3"]`);
+}
+async function attach(page, item, name = 'a.png') {
+  const [fc] = await Promise.all([page.waitForEvent('filechooser'), page.click(`[data-cam="${item}"]`)]);
+  await fc.setFiles({ name, mimeType: 'image/png', buffer: PNG });
+  await expect(page.locator(`[data-ph="${item}"] .insp-ph`)).toHaveCount(1);
+}
+
+test.describe('หน้า maintenance.html', () => {
+  test.beforeEach(async ({ request }) => { await request.get(SRV + '/__reset'); });
+
+  test('B1+B2 ออฟไลน์: ตรวจ + แนบรูป → บันทึก → reload ยังอยู่ (pending) → ออนไลน์รูปขึ้น R2 → ลบรูปแล้ว DELETE', async ({ browser, request }) => {
+    const { ctx, page, errors } = await newDevice(browser);
+    await openAsset(page, 'e1');
+    await ctx.setOffline(true);
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await expect(page.locator('#dlgInsp')).toHaveAttribute('open', '');
+    await expect(page.locator('#inspPeriod')).toHaveValue('2026-11');
+    // ข้อค่าที่วัดเกินเกณฑ์ → เตือนทันที
+    await fillInsp(page, { i2: 40 });
+    await expect(page.locator('[data-warn="i2"]')).toContainText('สูงกว่าเกณฑ์');
+    await page.fill('[data-num="i2"]', '28.4');
+    await expect(page.locator('[data-warn="i2"]')).toHaveText('');
+    await attach(page, 'i3');
+    await page.click('#inspSave');
+    await expect(page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+
+    let docs = await idbAll(page, 'tanot-mnt-2026', 'insp');
+    expect(docs).toHaveLength(1);
+    expect(docs[0]).toMatchObject({ site: 's1', freq: 'M3', period: '2026-11', by: 'สมชาย' });
+    const dev = await page.evaluate(() => window.__mnt.deviceId());
+    expect(docs[0].id).toBe('s1|M3|2026-11|' + dev);
+    const row = docs[0].rows.e1;
+    expect(row.res).toEqual({ i1: 'ok', i2: 28.4, i3: 'ng' });
+    expect(row.photos).toHaveLength(1);
+    expect(row.photos[0]).toMatchObject({ item: 'i3' });
+    expect(row.photos[0].pending).toBeTruthy();
+    let q = await idbAll(page, 'tanot-mnt-outbox', 'q');
+    expect(q).toHaveLength(1);
+    expect(q[0]).toMatchObject({ op: 'upload', draft: false });
+    await expect(page.locator('#pendBadge')).toContainText('รอส่งรูป 1');
+
+    // reload (ปิดออฟไลน์ แต่ /api/files ยังเข้าไม่ได้) → ผลยังอยู่ รูปยัง pending
+    await ctx.setOffline(false);
+    await page.route('**/api/files**', (r) => r.abort('internetdisconnected'));
+    await page.reload();
+    await page.waitForSelector('nav.ome-nav');
+    docs = await idbAll(page, 'tanot-mnt-2026', 'insp');
+    expect(docs[0].rows.e1.photos[0].pending).toBeTruthy();
+    expect(await idbAll(page, 'tanot-mnt-outbox', 'q')).toHaveLength(1);
+
+    // กลับออนไลน์ → ตัวส่งอัปโหลด → PhotoRef เปลี่ยนเป็น {id,...} และ outbox ว่าง
+    await page.unroute('**/api/files**');
+    await page.evaluate(() => window.__mnt.flushOutbox());
+    await expect.poll(async () => (await idbAll(page, 'tanot-mnt-outbox', 'q')).length).toBe(0);
+    docs = await idbAll(page, 'tanot-mnt-2026', 'insp');
+    const ref = docs[0].rows.e1.photos[0];
+    expect(ref.pending).toBeUndefined();
+    expect(ref).toMatchObject({ item: 'i3', mime: 'image/jpeg' });
+    expect(ref.id).toBeTruthy();
+    const got = await request.get(SRV + '/api/files?id=' + encodeURIComponent(ref.id));
+    expect(got.ok()).toBe(true);
+    const bytes = await got.body();
+    expect(bytes.length).toBe(ref.size);
+    expect([bytes[0], bytes[1]]).toEqual([0xff, 0xd8]); // JPEG (ย่อ/แปลงในหน้าก่อนส่ง)
+    expect(Object.keys(await (await request.get(SRV + '/__files')).json())).toHaveLength(1);
+
+    // ลบรูป → บันทึก → DELETE ถูกเรียก (รูปหายจาก R2)
+    await openAsset(page, 'e1');
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await expect(page.locator('[data-ph="i3"] .insp-ph')).toHaveCount(1);
+    await page.click('[data-ph="i3"] [data-rmph]');
+    await page.click('#inspSave');
+    await expect(page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+    await expect.poll(async () => Object.keys(await (await request.get(SRV + '/__files')).json()).length).toBe(0);
+    expect((await idbAll(page, 'tanot-mnt-2026', 'insp'))[0].rows.e1.photos).toEqual([]);
+    expect(await idbAll(page, 'tanot-mnt-outbox', 'q')).toEqual([]);
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+
+  test('B3 ร่างฟอร์ม: กรอกครึ่งหนึ่ง → reload → กู้ร่างได้ · บันทึกแล้วร่างหาย', async ({ browser }) => {
+    const { ctx, page, errors } = await newDevice(browser);
+    await openAsset(page, 'e1');
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await fillInsp(page, { i2: null, i3: null });
+    await page.waitForTimeout(700); // debounce 400 ms
+    await page.reload();
+    await page.waitForSelector('nav.ome-nav');
+    await openAsset(page, 'e1');
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await expect(page.locator('#inspDraftBar')).toBeVisible();
+    await expect(page.locator('[data-res="ok"][data-item="i1"]')).toHaveAttribute('aria-pressed', 'false'); // ยังไม่กู้ = ฟอร์มว่าง
+    await page.click('#inspDraftRestore');
+    await expect(page.locator('[data-res="ok"][data-item="i1"]')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#inspBy')).toHaveValue('สมชาย');
+    // ข้อที่ยังไม่ตรวจ → บันทึกไม่ได้
+    await page.click('#inspSave');
+    await expect(page.locator('#inspMsg')).toContainText('ยังไม่ได้ตรวจ 1 ข้อ');
+    await page.click('[data-res="ok"][data-item="i3"]');
+    await page.fill('[data-num="i2"]', '12');
+    await page.click('#inspSave');
+    await expect(page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+    const drafts = await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:mnt:draft')));
+    expect(drafts.items).toEqual({});
+    await page.click('[data-act="insp"][data-freq="M3"]');
+    await expect(page.locator('#inspDraftBar')).toBeHidden();
+    await expect(page.locator('[data-res="ok"][data-item="i1"]')).toHaveAttribute('aria-pressed', 'true'); // ค่าที่บันทึกไว้เติมกลับ
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+
+  test('B4a 2 เครื่อง: ตรวจอุปกรณ์เดียวกันรอบเดียวกันตอนออฟไลน์ → ซิงก์ → ทั้ง 2 doc อยู่ทั้ง 2 เครื่อง สถานะรอบ = ทำแล้ว', async ({ browser }) => {
+    const A = await newDevice(browser, { sync: true });
+    expect((await A.page.evaluate(() => window.TanotData.syncNow().then((s) => s.state)))).toBe('ok');
+    const B = await newDevice(browser, { sync: true, seed: false });
+    await B.page.evaluate(() => window.TanotData.syncNow());
+    await expect(B.page.locator('#aList .list-row')).toHaveCount(1);
+    await A.ctx.setOffline(true); await B.ctx.setOffline(true); // ตรวจตอนออฟไลน์ทั้งคู่
+    for (const [d, by] of [[A, 'สมชาย'], [B, 'สมหญิง']]) {
+      await openAsset(d.page, 'e1');
+      await d.page.click('[data-act="insp"][data-freq="M3"]');
+      await fillInsp(d.page, { by, i3: 'ok' });
+      await d.page.click('#inspSave');
+      await expect(d.page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+    }
+    await A.ctx.setOffline(false); await B.ctx.setOffline(false);
+    const sync = (p) => p.evaluate(() => window.TanotData.syncNow().then((s) => s.state));
+    expect(await sync(A.page)).toBe('ok');
+    expect(await sync(B.page)).toBe('ok');
+    expect(await sync(A.page)).toBe('ok');
+    for (const d of [A, B]) {
+      const docs = await idbAll(d.page, 'tanot-mnt-2026', 'insp');
+      expect(docs.map((x) => x.by).sort()).toEqual(['สมชาย', 'สมหญิง']);
+      expect(new Set(docs.map((x) => x.id)).size).toBe(2);
+      const st = await d.page.evaluate((docs) => { const C = window.MntCalc; return C.status({ id: 'e1' }, { freq: 'M3' }, '2026-11', C.doneIndex(docs), '2026-11-18'); }, docs);
+      expect(st).toBe('done');
+    }
+    expect(A.errors).toEqual([]);
+    expect(B.errors).toEqual([]);
+    await A.ctx.close(); await B.ctx.close();
+  });
+
+  test('B9 ปีที่ล็อก: ฟอร์มรอบปี ปัจจุบัน−2 ปิดไว้ · registry ซิงก์เฉพาะปีปัจจุบัน ±1', async ({ browser }) => {
+    const now = new Date('2028-02-10T10:00:00+07:00');
+    const { ctx, page, errors } = await newDevice(browser, { now });
+    const sync = await page.evaluate(() => ({
+      y2026: window.TanotRegistry.idbSynced('tanot-mnt-2026', 'insp'), y2027: window.TanotRegistry.idbSynced('tanot-mnt-2027', 'insp'),
+      y2028: window.TanotRegistry.idbSynced('tanot-mnt-2028', 'insp'), y2029: window.TanotRegistry.idbSynced('tanot-mnt-2029', 'insp'),
+    }));
+    expect(sync).toEqual({ y2026: false, y2027: true, y2028: true, y2029: true });
+    await page.evaluate(() => window.__mnt.idbPut('tanot-mnt-2026', 'insp', { id: 's1|M3|2026-11|dold', site: 's1', freq: 'M3', period: '2026-11', dev: 'dold', by: 'เก่า', at: 1,
+      rows: { e1: { start: 1, at: 1, res: { i1: 'ok', i2: 10, i3: 'ok' }, note: '', photos: [], wo: null } } }));
+    await openAsset(page, 'e1');
+    await page.evaluate(() => window.__mnt.openInsp('e1', 'M3', '2026-11'));
+    await expect(page.locator('#dlgInsp')).toHaveAttribute('open', '');
+    await expect(page.locator('#inspLock')).toBeVisible();
+    await expect(page.locator('#inspSave')).toBeDisabled();
+    await expect(page.locator('[data-res="ok"][data-item="i1"]')).toBeDisabled();
+    await expect(page.locator('[data-num="i2"]')).toBeDisabled();
+    await expect(page.locator('#inspBy')).toBeDisabled();
+    // รอบปีปัจจุบัน (2028) ใช้ได้ปกติ
+    await page.evaluate(() => window.__mnt.openInsp('e1', 'M3', '2028-02'));
+    await expect(page.locator('#inspSave')).toBeEnabled();
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+});

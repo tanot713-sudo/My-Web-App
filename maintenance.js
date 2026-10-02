@@ -74,10 +74,10 @@
   var ui = (function () {
     var v = {};
     try { v = JSON.parse(localStorage.getItem(K.ui)) || {}; } catch (e) {}
-    return { tab: v.tab || 'assets', site: v.site || '', system: v.system || '', type: v.type || '', status: v.status || 'active', q: '' };
+    return { tab: v.tab || 'assets', site: v.site || '', system: v.system || '', type: v.type || '', status: v.status === '' ? '' : (v.status || 'active'), by: v.by || '', q: '' };
   })();
   function saveUi() {
-    try { localStorage.setItem(K.ui, JSON.stringify({ tab: ui.tab, site: ui.site, system: ui.system, type: ui.type, status: ui.status })); } catch (e) {}
+    try { localStorage.setItem(K.ui, JSON.stringify({ tab: ui.tab, site: ui.site, system: ui.system, type: ui.type, status: ui.status, by: ui.by })); } catch (e) {}
   }
 
   /* ── IndexedDB (สคีมามาจาก registry) ── */
@@ -638,6 +638,503 @@
   }
   window.addEventListener('hashchange', route);
 
+  /* ══════════ รูป: ย่อ + คิวส่ง R2 (outbox) ══════════ */
+  function idbUpdate(name, store, id, fn) { // อ่าน→แก้→เขียนใน transaction เดียว (fn(rec|null) → rec ใหม่ | undefined = ไม่เขียน)
+    return openDb(name).then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction(store, 'readwrite'), os = tx.objectStore(store), out;
+        var g = os.get(id);
+        g.onsuccess = function () {
+          out = fn(g.result || null);
+          if (out) os.put(out);
+        };
+        tx.oncomplete = function () { resolve(out); };
+        tx.onerror = function () { reject(tx.error); };
+        tx.onabort = function () { reject(tx.error); };
+      });
+    });
+  }
+  function shrinkImage(file) { // ด้านยาว ≤ 1600px, JPEG 0.8 (แปลง HEIC/PNG ไปด้วย)
+    function draw(src, w, h) {
+      var k = Math.min(1, 1600 / Math.max(w, h)), cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(w * k)); cv.height = Math.max(1, Math.round(h * k));
+      var ctx = cv.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(src, 0, 0, cv.width, cv.height);
+      return new Promise(function (resolve, reject) {
+        cv.toBlob(function (b) { b ? resolve(b) : reject(new Error('แปลงรูปไม่ได้')); }, 'image/jpeg', 0.8);
+      });
+    }
+    function viaImg() {
+      return new Promise(function (resolve, reject) {
+        var u = URL.createObjectURL(file), img = new Image();
+        img.onload = function () { URL.revokeObjectURL(u); draw(img, img.naturalWidth, img.naturalHeight).then(resolve, reject); };
+        img.onerror = function () { URL.revokeObjectURL(u); reject(new Error('เปิดรูปไม่ได้')); };
+        img.src = u;
+      });
+    }
+    if (window.createImageBitmap) {
+      return createImageBitmap(file, { imageOrientation: 'from-image' }).then(function (bmp) {
+        return draw(bmp, bmp.width, bmp.height).then(function (b) { if (bmp.close) bmp.close(); return b; });
+      }).catch(function () { return viaImg(); });
+    }
+    return viaImg();
+  }
+  var thumbUrls = {}; // outbox id → blob URL
+  function addToOutbox(blob, name, owner, isDraft) {
+    var rec = { id: C.uid('p'), op: 'upload', blob: blob, name: name, mime: 'image/jpeg', owner: owner, tries: 0, createdAt: Date.now(), draft: !!isDraft };
+    thumbUrls[rec.id] = URL.createObjectURL(blob);
+    return idbPut(OUTBOX.db, 'q', rec).then(function () { return rec; });
+  }
+  function queueDelete(fileId) {
+    return idbPut(OUTBOX.db, 'q', { id: C.uid('p'), op: 'delete', fileId: fileId, tries: 0, createdAt: Date.now(), draft: false });
+  }
+  function outboxCount() { return idbAll(OUTBOX.db, 'q').then(function (l) { return l.filter(function (r) { return !r.draft; }).length; }).catch(function () { return 0; }); }
+
+  function photoListOf(doc, owner) {
+    return owner.store === 'insp' ? (doc.rows && doc.rows[owner.asset] && doc.rows[owner.asset].photos) : doc.photos;
+  }
+  function hasPending(doc, owner, pendingId) {
+    return (photoListOf(doc, owner) || []).some(function (p) { return p && p.pending === pendingId; });
+  }
+  function patchPhotoRef(doc, owner, pendingId, ref) { // true = พบและแก้แล้ว
+    var list = photoListOf(doc, owner), found = false;
+    (list || []).forEach(function (p, i) {
+      if (p && p.pending === pendingId) { list[i] = Object.assign({ item: p.item }, ref); found = true; }
+    });
+    return found;
+  }
+  var flushing = false;
+  function flushOutbox() {
+    if (flushing || !filesAvailable() || navigator.onLine === false) return Promise.resolve();
+    flushing = true;
+    return idbAll(OUTBOX.db, 'q').then(function (items) {
+      items.sort(function (a, b) { return a.createdAt - b.createdAt; });
+      var chain = Promise.resolve(), stop = false;
+      items.forEach(function (it) {
+        chain = chain.then(function () {
+          if (stop) return;
+          if (it.draft) { // ร่างที่ไม่มีใครกลับมาเปิดเกิน 7 วัน = ทิ้ง
+            if (Date.now() - it.createdAt > 7 * 86400000) return idbDelete(OUTBOX.db, 'q', it.id);
+            return;
+          }
+          if (it.op === 'delete') {
+            return fetch('/api/files?id=' + encodeURIComponent(it.fileId), { method: 'DELETE', credentials: 'same-origin' }).then(function (r) {
+              if (r.ok || r.status === 404) return idbDelete(OUTBOX.db, 'q', it.id);
+              return idbPut(OUTBOX.db, 'q', Object.assign(it, { tries: it.tries + 1 }));
+            }).catch(function () { stop = true; });
+          }
+          return idbGet(it.owner.db, it.owner.store, it.owner.id).then(function (doc) {
+            if (!doc || !hasPending(doc, it.owner, it.id)) return idbDelete(OUTBOX.db, 'q', it.id); // เจ้าของไม่อยู่แล้ว — ไม่ต้องส่ง
+            return fetch('/api/files?ns=maintenance&ref=' + encodeURIComponent(it.owner.id) + '&name=' + encodeURIComponent(it.name), {
+              method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': it.mime || 'image/jpeg' }, body: it.blob
+            }).then(function (r) {
+              return r.json().catch(function () { return {}; }).then(function (j) {
+                if (!r.ok || !j.id) {
+                  var perm = r.status >= 400 && r.status < 500 && [401, 403, 408, 429].indexOf(r.status) === -1;
+                  if (perm && it.tries >= 7) return idbDelete(OUTBOX.db, 'q', it.id);
+                  return idbPut(OUTBOX.db, 'q', Object.assign(it, { tries: it.tries + 1 }));
+                }
+                var ref = { id: j.id, name: j.name, size: j.size, mime: j.mime };
+                return idbUpdate(it.owner.db, it.owner.store, it.owner.id, function (d) { return d && patchPhotoRef(d, it.owner, it.id, ref) ? d : undefined; })
+                  .then(function () { return idbDelete(OUTBOX.db, 'q', it.id); }).then(function () {
+                    if (thumbUrls[it.id]) { URL.revokeObjectURL(thumbUrls[it.id]); delete thumbUrls[it.id]; }
+                  });
+              });
+            });
+          }).catch(function () { stop = true; }); // ออฟไลน์/เครือข่ายล้ม — ไม่นับ tries รอรอบหน้า
+        });
+      });
+      return chain;
+    }).catch(function () {}).then(function () { flushing = false; updatePending(); });
+  }
+  function updatePending() {
+    outboxCount().then(function (n) {
+      var b = $('pendBadge');
+      if (!b) return;
+      b.hidden = !n; b.textContent = 'รอส่งรูป ' + n;
+    });
+  }
+  window.addEventListener('online', function () { flushOutbox(); });
+  setInterval(function () { if (document.visibilityState === 'visible') flushOutbox(); }, 60000);
+
+  /* ══════════ ร่างฟอร์มตรวจ (localStorage local: tanot:mnt:draft) ══════════ */
+  function readDrafts() {
+    try { var v = JSON.parse(localStorage.getItem(K.draft)); return v && v.items ? v : { v: 1, items: {} }; } catch (e) { return { v: 1, items: {} }; }
+  }
+  function writeDrafts(d) {
+    var keys = Object.keys(d.items);
+    if (keys.length > 40) keys.sort(function (a, b) { return d.items[a].savedAt - d.items[b].savedAt; }).slice(0, keys.length - 40).forEach(function (k) { delete d.items[k]; });
+    try { localStorage.setItem(K.draft, JSON.stringify(d)); } catch (e) {}
+  }
+  function draftKey(aid, freq, period) { return aid + '|' + freq + '|' + period; }
+
+  /* ══════════ ฟอร์มตรวจเช็ก ══════════ */
+  var F = null;      // สถานะฟอร์มที่เปิดอยู่
+  var batch = null;  // { assets: [id…], i, freq, period }
+  var draftTimer = null;
+  var photoTarget = null; // item id | '' (รูปรวม)
+  var STATE_LABEL = { done: 'ตรวจแล้ว', 'late-done': 'ตรวจช้า', overdue: 'เลยกำหนด', due: 'ถึงกำหนด', upcoming: 'ยังไม่ถึง' };
+  var STATE_BADGE = { done: 'ok', 'late-done': 'warn', overdue: 'err', due: 'accent', upcoming: '' };
+  function cssId(id) { return window.CSS && CSS.escape ? CSS.escape(id) : id; }
+
+  function periodLabel(freq, period) {
+    if (freq === 'Daily') return dateTh(period);
+    if (freq === 'Weekly') { var w = C.window('Weekly', period); return 'สัปดาห์ ' + dateTh(w.start) + ' – ' + dateTh(w.end); }
+    var d = C.parseYmd(period + '-01');
+    return d ? d.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' }) : period;
+  }
+  /* รอบที่เลือกได้ของอุปกรณ์×แผน: รอบที่ครบกำหนดย้อนหลังจนถึงวันนี้ (ไม่มีรอบเลย = รอบปัจจุบันเพื่อให้ฟอร์มใช้ได้เสมอ) */
+  function periodOptions(asset, plan, settings, done) {
+    var t = today(), look = plan.freq === 'Daily' ? C.addDays(t, -30) : plan.freq === 'Weekly' ? C.addDays(t, -84) : C.addMonths(t.slice(0, 7), -24) + '-01';
+    var list = C.periods(asset, plan, settings, look, t);
+    if (!list.length) list = [C.periodOf(plan.freq, t)];
+    return list.map(function (p) { return { period: p, state: C.status(asset, plan, p, done, t) }; });
+  }
+  function defaultPeriod(opts, freq) {
+    var cur = C.periodOf(freq, today());
+    if (freq !== 'Daily' && freq !== 'Weekly') {
+      var od = opts.filter(function (o) { return o.state === 'overdue'; })[0];
+      if (od) return od.period;
+    }
+    if (opts.some(function (o) { return o.period === cur; })) return cur;
+    return opts.length ? opts[opts.length - 1].period : cur;
+  }
+  function planFreqsOf(asset, plans) { return C.FREQS.filter(function (f) { return planOf(asset.type, f, plans); }); }
+
+  function openInsp(assetId, freq, period, batchCtx) {
+    var asset = assetById(assetId);
+    if (!asset) return Promise.resolve();
+    batch = batchCtx || null;
+    return loadAllInsp().then(function (docs) {
+      var plans = getPlans(), freqs = planFreqsOf(asset, plans);
+      if (!freqs.length) { toast('อุปกรณ์นี้ยังไม่มีแผน PM', 'err'); return; }
+      var f = freqs.indexOf(freq) !== -1 ? freq : freqs[0];
+      F = { asset: asset, freq: f, period: '', docs: docs, plans: plans, photos: [], res: {}, note: '', by: '', start: 0, removed: [], draft: null };
+      $('inspFreq').innerHTML = freqs.map(function (x) { return opt(x, C.FREQ_LABEL[x], x === f); }).join('');
+      return loadForm(period || null).then(function () { if (F && !$('dlgInsp').open) $('dlgInsp').showModal(); }); // เปิดกล่องหลังโหลดเสร็จ — กันพิมพ์ทับค่าที่กำลังโหลด
+    });
+  }
+  function currentDoneIdx() { return C.doneIndex(F.docs); }
+
+  /* โหลดข้อมูลของ (อุปกรณ์, ความถี่, รอบ) ลงฟอร์ม: ใบตรวจเดิมของเครื่องนี้ → ค่าตั้งต้น · ร่างที่ค้าง → แสดงแถบถามกู้ */
+  function loadForm(periodWanted) {
+    var asset = F.asset, plan = planOf(asset.type, F.freq, F.plans), settings = getSettings(), done = currentDoneIdx();
+    F.plan = plan;
+    var opts = periodOptions(asset, plan, settings, done);
+    var per = periodWanted || defaultPeriod(opts, F.freq);
+    if (!opts.some(function (o) { return o.period === per; })) opts.push({ period: per, state: C.status(asset, plan, per, done, today()) });
+    opts.sort(function (a, b) { return a.period < b.period ? -1 : 1; });
+    F.period = per;
+    $('inspPeriod').innerHTML = opts.map(function (o) {
+      return opt(o.period, periodLabel(F.freq, o.period) + (o.state === 'done' || o.state === 'late-done' ? ' ✓' : o.state === 'overdue' ? ' ⚠' : ''), o.period === per);
+    }).join('');
+    $('inspFreq').value = F.freq;
+    F.site = asset.site; F.year = C.periodYear(per); F.locked = lockedYear(F.year);
+    F.docId = C.inspId(F.site, F.freq, per, deviceId());
+    $('inspMsg').textContent = '';
+    var token = F.token = (F.token || 0) + 1;
+    return idbGet(inspDbName(F.year), 'insp', F.docId).then(function (doc) {
+      if (!F || F.token !== token) return;
+      F.doc = doc;
+      var row = doc && doc.rows && doc.rows[asset.id];
+      F.res = row && row.res ? JSON.parse(JSON.stringify(row.res)) : {};
+      F.note = row ? row.note || '' : '';
+      F.photos = row && row.photos ? JSON.parse(JSON.stringify(row.photos)) : [];
+      F.start = row && row.start ? row.start : Date.now();
+      F.wo = row && row.wo ? row.wo : null;
+      F.by = (doc && doc.by) || getSettings().inspector || ui.by || '';
+      F.removed = [];
+      var other = F.docs.filter(function (d) { return d.id !== F.docId && d.site === F.site && d.freq === F.freq && d.period === per && d.rows && d.rows[asset.id]; })[0];
+      F.otherDone = other ? { by: other.by, at: other.rows[asset.id].at } : null;
+      var dr = readDrafts().items[draftKey(asset.id, F.freq, per)];
+      F.draft = dr || null;
+      $('inspDraftBar').hidden = !dr || F.locked;
+      renderInsp();
+    });
+  }
+
+  function numWarn(it, v) {
+    if (v == null || v === '' || isNaN(+v)) return '';
+    if (it.min != null && +v < it.min) return 'ต่ำกว่าเกณฑ์ (' + it.min + ')';
+    if (it.max != null && +v > it.max) return 'สูงกว่าเกณฑ์ (' + it.max + ')';
+    return '';
+  }
+  function camBtn(item, label) {
+    return filesAvailable() && !F.locked
+      ? '<button class="btn sm' + (label ? '' : ' icon') + '" type="button" data-cam="' + esc(item) + '"' + (label ? '' : ' aria-label="ถ่ายรูป"') + '>' + icon('camera') + (label || '') + '</button>' : '';
+  }
+  function photosHtml(item) { // item '' = รูปรวม
+    return F.photos.map(function (p, i) { return { p: p, i: i }; }).filter(function (x) { return (x.p.item || '') === item; }).map(function (x) {
+      var p = x.p, src = '', cls = 'insp-ph';
+      if (p.pending) { cls += ' pend'; src = thumbUrls[p.pending] || ''; }
+      else if (filesAvailable() && navigator.onLine !== false) src = '/api/files?id=' + encodeURIComponent(p.id);
+      return '<span class="' + cls + '" data-pi="' + x.i + '">' + (src ? '<img alt="" src="' + esc(src) + '">' : icon('image')) +
+        (F.locked ? '' : '<button class="x" type="button" data-rmph="' + x.i + '" aria-label="ลบรูป">×</button>') + '</span>';
+    }).join('');
+  }
+  function itemHtml(it) {
+    var r = F.res[it.id], dis = F.locked ? ' disabled' : '', body;
+    if (it.kind === 'num') {
+      body = '<div class="ctl"><input type="number" class="input" inputmode="decimal" step="any" data-num="' + esc(it.id) + '" value="' + (r != null && r !== '' ? esc(r) : '') + '"' + dis + ' aria-label="' + esc(it.text) + '">' +
+        (it.unit ? '<span class="unit">' + esc(it.unit) + '</span>' : '') + '</div>';
+    } else {
+      body = '<div class="ctl"><div class="segmented" role="group" aria-label="' + esc(it.text) + '">' +
+        [['ok', 'ผ่าน', 'yes'], ['ng', 'ไม่ผ่าน', 'no'], ['na', 'ไม่มี', '']].map(function (o) {
+          return '<button type="button" data-res="' + o[0] + '" data-item="' + esc(it.id) + '" class="' + (r === o[0] ? 'on ' + o[2] : '') + '" aria-pressed="' + (r === o[0]) + '"' + dis + '>' + o[1] + '</button>';
+        }).join('') + '</div></div>';
+    }
+    return '<div class="insp-item' + (r === 'ng' ? ' ng' : '') + '" data-iid="' + esc(it.id) + '"><div class="q">' + esc(it.text) + '</div>' + body +
+      '<div class="insp-warn" data-warn="' + esc(it.id) + '">' + esc(it.kind === 'num' ? numWarn(it, r) : '') + '</div>' +
+      '<div class="insp-photos" data-ph="' + esc(it.id) + '">' + photosHtml(it.id) + camBtn(it.id) + '</div></div>';
+  }
+  function renderInsp() {
+    var a = F.asset, plan = F.plan;
+    $('inspTitle').textContent = a.code + ' · ' + a.name;
+    $('inspLock').hidden = !F.locked;
+    $('inspBy').value = F.by; $('inspBy').disabled = F.locked;
+    $('inspNote').value = F.note; $('inspNote').disabled = F.locked;
+    $('inspFreq').disabled = !!batch; $('inspPeriod').disabled = !!batch;
+    $('inspSave').disabled = F.locked;
+    var st = C.status(a, plan, F.period, currentDoneIdx(), today());
+    $('inspState').innerHTML = '<span class="badge ' + (STATE_BADGE[st] || '') + '">' + STATE_LABEL[st] + '</span>' +
+      (F.otherDone ? '<span class="badge info">ตรวจแล้วจากเครื่องอื่น' + (F.otherDone.by ? ' (' + esc(F.otherDone.by) + ')' : '') + '</span>' : '') +
+      (F.doc && F.doc.rows && F.doc.rows[a.id] ? '<span class="meta">บันทึกล่าสุด ' + esc(new Date(F.doc.rows[a.id].at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })) + '</span>' : '');
+    $('inspItems').innerHTML = plan.items.map(itemHtml).join('');
+    $('inspGenPhotos').innerHTML = photosHtml('') + camBtn('', 'รูปรวม');
+    $('inspNav').hidden = !batch;
+    if (batch) {
+      $('inspPos').textContent = (batch.i + 1) + ' / ' + batch.assets.length;
+      $('inspPrev').disabled = batch.i === 0;
+      $('inspNext').textContent = batch.i === batch.assets.length - 1 ? 'เสร็จสิ้น' : 'ถัดไป';
+    }
+    $('inspSave').textContent = batch && batch.i < batch.assets.length - 1 ? 'บันทึกแล้วถัดไป' : 'บันทึก';
+    fillPendingThumbs();
+  }
+  function rerenderPhotos() {
+    if (!F) return;
+    F.plan.items.forEach(function (it) {
+      var box = document.querySelector('[data-ph="' + cssId(it.id) + '"]');
+      if (box) box.innerHTML = photosHtml(it.id) + camBtn(it.id);
+    });
+    $('inspGenPhotos').innerHTML = photosHtml('') + camBtn('', 'รูปรวม');
+  }
+  function fillPendingThumbs() { // ร่างที่กู้จากรอบก่อน: blob อยู่ใน outbox
+    F.photos.forEach(function (p) {
+      if (p.pending && !thumbUrls[p.pending]) {
+        idbGet(OUTBOX.db, 'q', p.pending).then(function (rec) {
+          if (rec && rec.blob && !thumbUrls[p.pending]) { thumbUrls[p.pending] = URL.createObjectURL(rec.blob); rerenderPhotos(); }
+        }).catch(function () {});
+      }
+    });
+  }
+
+  /* ร่าง: เก็บทุกการเปลี่ยน (debounce 400 ms) — iOS ปิด PWA ที่อยู่เบื้องหลังบ่อย */
+  function scheduleDraft() {
+    if (F && F.locked) return;
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(saveDraft, 400);
+  }
+  function saveDraft() {
+    clearTimeout(draftTimer); draftTimer = null;
+    if (!F || F.locked || !F.plan || !$('dlgInsp').open) return;
+    var d = readDrafts();
+    d.items[draftKey(F.asset.id, F.freq, F.period)] = { by: F.by, res: F.res, note: F.note, photos: F.photos, start: F.start, savedAt: Date.now() };
+    writeDrafts(d);
+  }
+  function dropDraft(aid, freq, period) {
+    var d = readDrafts(), key = draftKey(aid, freq, period);
+    if (d.items[key]) { delete d.items[key]; writeDrafts(d); }
+  }
+
+  $('inspFreq').addEventListener('change', function () { saveDraft(); F.freq = this.value; loadForm(null); });
+  $('inspPeriod').addEventListener('change', function () { saveDraft(); loadForm(this.value); });
+  $('inspBy').addEventListener('input', function () { F.by = this.value; scheduleDraft(); });
+  $('inspNote').addEventListener('input', function () { F.note = this.value; scheduleDraft(); });
+  $('inspItems').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-res]');
+    if (b && !F.locked) {
+      var id = b.getAttribute('data-item'), v = b.getAttribute('data-res');
+      if (F.res[id] === v) delete F.res[id]; else F.res[id] = v;
+      var it = document.querySelector('.insp-item[data-iid="' + cssId(id) + '"]');
+      if (it) {
+        it.classList.toggle('ng', F.res[id] === 'ng');
+        Array.prototype.forEach.call(it.querySelectorAll('[data-res]'), function (x) {
+          var k = x.getAttribute('data-res'), on = k === F.res[id];
+          x.className = on ? 'on ' + (k === 'ok' ? 'yes' : k === 'ng' ? 'no' : '') : ''; x.setAttribute('aria-pressed', String(on));
+        });
+      }
+      scheduleDraft();
+      return;
+    }
+    handlePhotoClick(e);
+  });
+  $('inspItems').addEventListener('input', function (e) {
+    var id = e.target.getAttribute('data-num');
+    if (id == null || F.locked) return;
+    var v = e.target.value === '' ? null : parseFloat(e.target.value);
+    if (v == null || isNaN(v)) delete F.res[id]; else F.res[id] = v;
+    var it = F.plan.items.filter(function (x) { return x.id === id; })[0], w = document.querySelector('[data-warn="' + cssId(id) + '"]');
+    if (w && it) w.textContent = numWarn(it, v);
+    scheduleDraft();
+  });
+  $('inspGenPhotos').addEventListener('click', handlePhotoClick);
+  function handlePhotoClick(e) {
+    var cam = e.target.closest('[data-cam]');
+    if (cam) { photoTarget = cam.getAttribute('data-cam'); $('inspFile').click(); return; }
+    var rm = e.target.closest('[data-rmph]');
+    if (rm && !F.locked) removePhoto(+rm.getAttribute('data-rmph'));
+  }
+  $('inspFile').addEventListener('change', function () {
+    var files = Array.prototype.slice.call(this.files || []), target = photoTarget || '';
+    this.value = '';
+    if (!files.length || !F || F.locked) return;
+    $('inspMsg').textContent = '';
+    files.reduce(function (chain, f) {
+      return chain.then(function () {
+        return shrinkImage(f).then(function (blob) {
+          var owner = { db: inspDbName(F.year), store: 'insp', id: F.docId, asset: F.asset.id };
+          return addToOutbox(blob, F.asset.code + '_' + (target || 'all') + '_' + Date.now() + '.jpg', owner, true).then(function (rec) {
+            F.photos.push({ item: target || null, pending: rec.id });
+          });
+        }).catch(function (err) { $('inspMsg').textContent = (err && err.message) || 'เพิ่มรูปไม่ได้'; });
+      });
+    }, Promise.resolve()).then(function () { rerenderPhotos(); saveDraft(); });
+  });
+  function removePhoto(i) {
+    var p = F.photos[i];
+    if (!p) return;
+    F.photos.splice(i, 1);
+    if (p.pending) idbDelete(OUTBOX.db, 'q', p.pending).catch(function () {});
+    else if (p.id) F.removed.push(p.id); // ลบจาก R2 จริงตอนกดบันทึก
+    rerenderPhotos();
+    scheduleDraft();
+  }
+
+  $('inspDraftRestore').addEventListener('click', function () {
+    var d = F.draft;
+    if (!d) return;
+    F.res = d.res || {}; F.note = d.note || ''; F.photos = d.photos || []; F.by = d.by || F.by; F.start = d.start || F.start;
+    $('inspDraftBar').hidden = true;
+    renderInsp();
+  });
+  $('inspDraftDrop').addEventListener('click', function () {
+    var keep = {};
+    F.photos.forEach(function (p) { if (p.pending) keep[p.pending] = true; });
+    ((F.draft && F.draft.photos) || []).forEach(function (p) { if (p.pending && !keep[p.pending]) idbDelete(OUTBOX.db, 'q', p.pending).catch(function () {}); });
+    dropDraft(F.asset.id, F.freq, F.period);
+    F.draft = null;
+    $('inspDraftBar').hidden = true;
+  });
+
+  $('inspCancel').addEventListener('click', function () { saveDraft(); $('dlgInsp').close(); });
+  $('dlgInsp').addEventListener('cancel', function () { saveDraft(); });
+  $('dlgInsp').addEventListener('close', function () { clearTimeout(draftTimer); F = null; batch = null; renderCurrent(); });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') saveDraft(); });
+  window.addEventListener('pagehide', saveDraft);
+
+  /* บันทึก: อ่าน→แก้→เขียนใบตรวจรอบ (สถานที่×ความถี่×รอบ×เครื่อง) ของฐานข้อมูลปีของรอบ */
+  function saveInsp() {
+    if (!F || F.locked) return Promise.resolve(null);
+    var a = F.asset, miss = F.plan.items.filter(function (it) { return it.kind !== 'num' && !F.res[it.id]; });
+    if (miss.length) { $('inspMsg').textContent = 'ยังไม่ได้ตรวจ ' + miss.length + ' ข้อ'; return Promise.resolve(null); }
+    if (!String(F.by).trim()) { $('inspMsg').textContent = 'ใส่ชื่อผู้ตรวจ'; return Promise.resolve(null); }
+    var now = Date.now(), res = {}, keepPending = {};
+    F.plan.items.forEach(function (it) {
+      var v = F.res[it.id];
+      res[it.id] = it.kind === 'num' ? (v == null || v === '' || isNaN(+v) ? null : +v) : v;
+    });
+    F.photos.forEach(function (p) { if (p.pending) keepPending[p.pending] = true; });
+    var snap = { site: F.site, freq: F.freq, period: F.period, docId: F.docId, year: F.year, by: String(F.by).trim(), note: F.note,
+      photos: F.photos.slice(), start: F.start, wo: F.wo, removed: F.removed.slice(), asset: a, items: F.plan.items };
+    return idbUpdate(inspDbName(snap.year), 'insp', snap.docId, function (doc) {
+      doc = doc || { id: snap.docId, site: snap.site, freq: snap.freq, period: snap.period, dev: deviceId(), by: '', at: 0, rows: {} };
+      doc.by = snap.by; doc.at = now;
+      doc.rows[a.id] = { start: snap.start, at: now, res: res, note: snap.note, photos: snap.photos, wo: snap.wo };
+      return doc;
+    }).then(function () {
+      ui.by = snap.by; saveUi();
+      // รูปที่บันทึกแล้ว: ปลดจากสถานะร่าง ให้ตัวส่งเอาไปส่งได้
+      return Promise.all(Object.keys(keepPending).map(function (pid) {
+        return idbUpdate(OUTBOX.db, 'q', pid, function (rec) { return rec ? Object.assign(rec, { draft: false }) : undefined; });
+      })).then(function () { return Promise.all(snap.removed.map(queueDelete)); });
+    }).then(function () {
+      dropDraft(a.id, snap.freq, snap.period);
+      return loadAllInsp();
+    }).then(function (docs) {
+      if (F) F.docs = docs;
+      flushOutbox(); updatePending();
+      return { ng: snap.items.filter(function (it) { return res[it.id] === 'ng'; }), snap: snap, res: res };
+    });
+  }
+  function afterSave(r) {
+    toast('บันทึกแล้ว');
+    var go = function () {
+      if (batch && batch.i < batch.assets.length - 1) { batch.i++; loadBatchAsset(); }
+      else $('dlgInsp').close();
+    };
+    if (r.ng.length && renderers.offerWo) renderers.offerWo(r, go); else go();
+  }
+  $('formInsp').addEventListener('submit', function (e) {
+    e.preventDefault();
+    saveInsp().then(function (r) { if (r) afterSave(r); }).catch(function (err) { $('inspMsg').textContent = (err && err.message) || 'บันทึกไม่สำเร็จ'; });
+  });
+
+  /* ตรวจทั้งสถานที่: ไล่ฟอร์มทีละตัวที่ครบรอบ (รอบเดียวกัน) บันทึกลงใบตรวจรอบเดียวกัน */
+  function loadBatchAsset() {
+    var asset = assetById(batch.assets[batch.i]);
+    if (!asset || !F) return;
+    F.asset = asset; F.freq = batch.freq; F.plans = getPlans();
+    loadForm(batch.period);
+  }
+  $('inspPrev').addEventListener('click', function () { if (batch && batch.i > 0) { saveDraft(); batch.i--; loadBatchAsset(); } });
+  $('inspNext').addEventListener('click', function () {
+    if (!batch) return;
+    saveDraft();
+    if (batch.i < batch.assets.length - 1) { batch.i++; loadBatchAsset(); } else $('dlgInsp').close();
+  });
+  function openBatch(siteId, freq) {
+    return loadAllInsp().then(function (docs) {
+      var items = C.dueList({ assets: getAssets().filter(function (a) { return a.site === siteId; }), plans: getPlans(), settings: getSettings(),
+        done: C.doneIndex(docs), today: today(), ahead: 0 }).filter(function (x) { return x.plan.freq === freq && x.state !== 'upcoming'; });
+      if (!items.length) { toast('ไม่มีอุปกรณ์ที่ครบรอบ', 'err'); return; }
+      var per = items.map(function (x) { return x.period; }).sort()[0];
+      var ids = items.filter(function (x) { return x.period === per; }).map(function (x) { return x.asset.id; });
+      return openInsp(ids[0], freq, per, { assets: ids, i: 0, freq: freq, period: per });
+    });
+  }
+
+  /* ── ส่วนในมุมมองอุปกรณ์: รอบที่ครบ/ค้าง + ผลตรวจล่าสุด ── */
+  viewSections.push(function (a) {
+    var plans = getPlans(), freqs = planFreqsOf(a, plans), settings = getSettings();
+    if (!freqs.length) return '';
+    return loadAllInsp().then(function (docs) {
+      var done = C.doneIndex(docs), t = today();
+      var rows = freqs.map(function (f) {
+        var plan = planOf(a.type, f, plans), opts = periodOptions(a, plan, settings, done), per = defaultPeriod(opts, f);
+        var st = C.status(a, plan, per, done, t);
+        return '<div class="list-row"><div class="grow"><div class="title">' + esc(C.FREQ_LABEL[f]) + '</div><div class="meta">' + esc(periodLabel(f, per)) + '</div></div>' +
+          '<div class="end"><span class="badge ' + (STATE_BADGE[st] || '') + '">' + STATE_LABEL[st] + '</span>' +
+          '<button class="btn sm primary" type="button" data-act="insp" data-freq="' + f + '" data-period="' + esc(per) + '">' + icon('clipboard-check') + 'ตรวจเช็ก</button></div></div>';
+      }).join('');
+      var hist = [];
+      docs.forEach(function (d) { if (d.rows && d.rows[a.id]) hist.push({ d: d, r: d.rows[a.id] }); });
+      hist.sort(function (x, y) { return y.r.at - x.r.at; });
+      var hh = hist.slice(0, 10).map(function (h) {
+        var ng = Object.keys(h.r.res || {}).filter(function (k) { return h.r.res[k] === 'ng'; }).length;
+        return '<div class="list-row"><div class="grow"><div class="title">' + esc(C.FREQ_LABEL[h.d.freq]) + ' · ' + esc(periodLabel(h.d.freq, h.d.period)) + '</div>' +
+          '<div class="meta">' + esc(new Date(h.r.at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })) + (h.d.by ? ' · ' + esc(h.d.by) : '') + '</div></div>' +
+          '<div class="end">' + (ng ? '<span class="badge err">ไม่ผ่าน ' + ng + '</span>' : '<span class="badge ok">ผ่าน</span>') + '</div></div>';
+      }).join('');
+      return '<section class="card" data-sec="insp"><div class="card-head"><h2>ตรวจเช็ก</h2></div><div class="list">' + rows + '</div></section>' +
+        (hh ? '<section class="card" data-sec="hist"><div class="card-head"><h2>ผลตรวจล่าสุด</h2></div><div class="list">' + hh + '</div></section>' : '');
+    });
+  });
+  renderers.viewAction = function (act, b, a) {
+    if (act === 'insp' && a) openInsp(a.id, b.getAttribute('data-freq'), b.getAttribute('data-period'));
+  };
+  window.addEventListener('load', function () { flushOutbox(); updatePending(); });
+
   /* ── เริ่มต้น ── */
   function setOffline() { $('offBadge').hidden = navigator.onLine !== false; }
   window.addEventListener('online', setOffline);
@@ -656,6 +1153,6 @@
 
   window.__mnt = { // ให้เทสต์ใช้ (ไม่ใช่ API ของหน้า)
     deviceId: deviceId, idbAll: idbAll, idbGet: idbGet, idbPut: idbPut, idbDelete: idbDelete, openDb: openDb, readList: readList, upsert: upsert,
-    getSettings: getSettings, saveSettings: saveSettings, K: K
+    getSettings: getSettings, saveSettings: saveSettings, K: K, openInsp: openInsp, openBatch: openBatch, flushOutbox: flushOutbox, updatePending: updatePending
   };
 })();
