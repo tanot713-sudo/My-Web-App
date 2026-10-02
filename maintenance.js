@@ -1525,6 +1525,159 @@
     else if (prevViewAction) prevViewAction(act, b, a);
   };
 
+  /* ══════════ แท็บนำเข้า/ส่งออก ══════════
+     นำเข้า = อ่านไฟล์ input ของ est-cost ที่ผู้ใช้เลือก (อ่านอย่างเดียว ไม่แก้ไฟล์ ไม่แตะ tool/est-cost) · ส่งออก = ชีต WorkOrders ฯลฯ (7.2)
+     SheetJS โหลดแบบ lazy จาก CDN เดียวกับ report-dashboard (ใช้แคชร่วม) เฉพาะที่นี่ — ส่วนที่ต้องใช้ออฟไลน์ (QR) ไม่พึ่ง CDN */
+  TABS.push({ id: 'io', label: 'นำเข้า/ส่งออก', icon: 'file-spreadsheet' });
+  var XLSX_URL = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'; // SheetJS (Apache-2.0)
+  var xlsxPromise = null;
+  function loadXlsx() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    if (!xlsxPromise) {
+      xlsxPromise = new Promise(function (resolve, reject) {
+        var el = document.createElement('script');
+        el.src = XLSX_URL;
+        el.onload = function () { window.XLSX ? resolve(window.XLSX) : reject(new Error('SheetJS')); };
+        el.onerror = function () { xlsxPromise = null; reject(new Error('offline')); };
+        document.head.appendChild(el);
+      });
+    }
+    return xlsxPromise;
+  }
+  var NEED_NET = 'ต้องต่อเน็ตเพื่ออ่าน/เขียนไฟล์ Excel';
+
+  var io = { sheets: null, overwrite: {}, name: '' };
+  function snapshotExisting() { return JSON.parse(JSON.stringify({ sites: getSites(), assets: getAssets(), plans: getPlans() })); }
+  function computeImport() {
+    var ex = snapshotExisting();
+    ex.plans.forEach(function (p) { if (io.overwrite[p.id]) p.edited = false; });
+    return C.fromEstCost(io.sheets, ex);
+  }
+  function renderIoPreview() {
+    var box = $('ioPreview');
+    if (!io.sheets) { box.innerHTML = ''; $('ioGo').disabled = true; return; }
+    var r = computeImport(), a = r.report.added, u = r.report.updated;
+    var skipped = r.report.skipped.concat(Object.keys(io.overwrite).filter(function (k) { return io.overwrite[k]; }));
+    skipped = skipped.filter(function (v, i) { return skipped.indexOf(v) === i; });
+    var b = function (label, n, cls) { return '<span class="badge ' + (cls || '') + '">' + esc(label) + ' ' + num(n) + '</span>'; };
+    box.innerHTML = '<div class="row" style="flex-wrap:wrap;gap:6px" data-pv="counts">' +
+      b('สถานที่ใหม่', a.sites, a.sites ? 'ok' : '') + b('อุปกรณ์ใหม่', a.assets, a.assets ? 'ok' : '') + b('แผนใหม่', a.plans, a.plans ? 'ok' : '') +
+      b('แก้ไข', u.sites + u.assets + u.plans, u.sites + u.assets + u.plans ? 'info' : '') + b('ไม่อยู่ในไฟล์', r.report.missing, r.report.missing ? 'warn' : '') +
+      b('ข้าม (แผนที่แก้เอง)', r.report.skipped.length, r.report.skipped.length ? 'warn' : '') + '</div>' +
+      (skipped.length ? '<div class="stack" style="margin-top:8px">' + skipped.map(function (id) {
+        return '<label class="check" style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ow="' + esc(id) + '"' + (io.overwrite[id] ? ' checked' : '') + ' style="width:auto;height:auto"> ทับแผน ' + esc(id) + '</label>';
+      }).join('') + '</div>' : '') +
+      (r.warnings.length ? '<div class="callout warn" style="margin-top:8px"><ul style="margin:0;padding-left:18px">' + r.warnings.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul></div>' : '');
+    $('ioGo').disabled = false;
+  }
+  $('ioFile').addEventListener('change', function () {
+    var f = this.files && this.files[0];
+    $('ioMsg').textContent = ''; io.sheets = null; io.overwrite = {}; renderIoPreview();
+    if (!f) return;
+    loadXlsx().then(function (X) {
+      return f.arrayBuffer().then(function (buf) {
+        var wb = X.read(buf, { type: 'array' }), sheets = {};
+        ['EQUIPMENT', 'PM_PLAN', 'PM_ACTIVITY', 'ROUTE', 'PROJECT'].forEach(function (n) {
+          if (wb.Sheets[n]) sheets[n] = X.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: null });
+        });
+        if (!sheets.EQUIPMENT || !sheets.PM_PLAN) { $('ioMsg').textContent = 'ไม่ใช่ไฟล์ input ของ est-cost (ต้องมีชีต EQUIPMENT และ PM_PLAN)'; return; }
+        io.sheets = sheets; io.name = f.name;
+        renderIoPreview();
+      });
+    }).catch(function (err) { $('ioMsg').textContent = err && err.message === 'offline' ? NEED_NET : 'อ่านไฟล์ไม่ได้'; });
+  });
+  $('ioPreview').addEventListener('change', function (e) {
+    var id = e.target.getAttribute('data-ow');
+    if (id == null) return;
+    io.overwrite[id] = e.target.checked;
+    renderIoPreview();
+  });
+  $('ioGo').addEventListener('click', function () {
+    if (!io.sheets) return;
+    var existingIds = {};
+    getAssets().forEach(function (a) { existingIds[a.id] = true; });
+    var r = computeImport(); // คำนวณใหม่จากข้อมูลสดตอนกด (ไม่ใช้ผลพรีวิวที่อาจเก่า)
+    // เดือนที่ครบรอบ: เฉพาะอุปกรณ์ใหม่
+    var ph = C.assignPhases(r.assets, r.plans);
+    r.assets.forEach(function (a) { if (!existingIds[a.id] && ph[a.id]) a.phase = Object.assign({}, a.phase, ph[a.id]); });
+    writeList(K.sites, r.sites); writeList(K.assets, r.assets); writeList(K.plans, r.plans);
+    var st = getSettings(), changed = false;
+    if (!st.startMonth) { st.startMonth = today().slice(0, 7); changed = true; }
+    if (!st.project && r.settingsPatch.project) { st.project = r.settingsPatch.project; changed = true; }
+    if (!st.line && r.settingsPatch.line) { st.line = r.settingsPatch.line; changed = true; }
+    if (changed) saveSettings(st);
+    toast('นำเข้าแล้ว: อุปกรณ์ใหม่ ' + r.report.added.assets + ' · แผนใหม่ ' + r.report.added.plans);
+    io.sheets = null; io.overwrite = {}; $('ioFile').value = '';
+    renderIoPreview(); renderIoSettings();
+  });
+
+  /* ── ส่งออก ── */
+  var exFreqs = C.PM_FREQS_DEFAULT.slice();
+  function renderExFreqs() {
+    $('exFreqs').innerHTML = C.FREQS.map(function (f) {
+      return '<button type="button" data-f="' + f + '" aria-pressed="' + (exFreqs.indexOf(f) !== -1) + '">' + esc(C.FREQ_LABEL[f]) + '</button>';
+    }).join('');
+  }
+  $('exFreqs').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-f]');
+    if (!b) return;
+    var f = b.getAttribute('data-f'), i = exFreqs.indexOf(f);
+    if (i === -1) exFreqs.push(f); else exFreqs.splice(i, 1);
+    renderExFreqs();
+  });
+  function fileSafe(s) { return String(s || '').replace(/[\\/:*?"<>|\s]+/g, '_').replace(/^_+|_+$/g, ''); }
+  function buildReport(from, to, pmFreqs) {
+    return Promise.all([loadAllInsp(), loadWos()]).then(function (r) {
+      var docs = r[0].filter(function (d) { var w = C.window(d.freq, d.period); return w.end >= from && w.start <= to; });
+      return C.reportRows({ assets: getAssets(), sites: getSites(), plans: getPlans(), settings: getSettings(), inspDocs: r[0], wos: r[1].wos, woEvents: r[1].events,
+        from: from, to: to, pmFreqs: pmFreqs, today: today(), inspExport: docs });
+    });
+  }
+  $('exGo').addEventListener('click', function () {
+    var from = $('exFrom').value, to = $('exTo').value;
+    $('exMsg').textContent = '';
+    if (!from || !to || to < from) { $('exMsg').textContent = 'ช่วงวันที่ไม่ถูกต้อง'; return; }
+    if (!exFreqs.length) { $('exMsg').textContent = 'เลือกความถี่อย่างน้อยหนึ่งอย่าง'; return; }
+    Promise.all([loadXlsx(), buildReport(from, to, exFreqs.slice())]).then(function (r) {
+      var X = r[0], rep = r[1], wb = X.utils.book_new();
+      [['WorkOrders', rep], ['Inspections', rep.inspections], ['Assets', rep.assets], ['Compliance', rep.compliance]].forEach(function (p) {
+        var ws = X.utils.aoa_to_sheet([p[1].headers].concat(p[1].rows), { cellDates: true });
+        Object.keys(ws).forEach(function (k) { if (k[0] !== '!' && ws[k].t === 'd') ws[k].z = 'yyyy-mm-dd hh:mm'; });
+        X.utils.book_append_sheet(wb, ws, p[0]);
+      });
+      var st = getSettings();
+      X.writeFile(wb, 'maintenance_' + (fileSafe(st.line || st.project) || 'all') + '_' + today() + '.xlsx');
+      toast('ส่งออกแล้ว');
+    }).catch(function (err) { $('exMsg').textContent = err && err.message === 'offline' ? NEED_NET : ((err && err.message) || 'ส่งออกไม่สำเร็จ'); });
+  });
+
+  /* ── ค่าตั้ง (tanot:mnt:settings) ── */
+  function renderIoSettings() {
+    var s = getSettings();
+    if (document.activeElement !== $('stStart')) $('stStart').value = s.startMonth || '';
+    if (document.activeElement !== $('stInspector')) $('stInspector').value = s.inspector || '';
+    if (document.activeElement !== $('stProject')) $('stProject').value = s.project || '';
+    if (document.activeElement !== $('stLine')) $('stLine').value = s.line || '';
+    $('stLabel').innerHTML = [['3x8', '3 × 8'], ['2x5', '2 × 5']].map(function (o) {
+      return '<button type="button" data-l="' + o[0] + '" aria-pressed="' + (s.labelSize === o[0]) + '">' + o[1] + '</button>';
+    }).join('');
+  }
+  function setSetting(k, v) { var s = getSettings(); if (s[k] === v) return; s[k] = v; saveSettings(s); } // อ่านสด→แก้ช่องเดียว→เขียน
+  $('stStart').addEventListener('change', function () { setSetting('startMonth', this.value); });
+  $('stInspector').addEventListener('change', function () { setSetting('inspector', this.value.trim()); });
+  $('stProject').addEventListener('change', function () { setSetting('project', this.value.trim()); });
+  $('stLine').addEventListener('change', function () { setSetting('line', this.value.trim()); });
+  $('stLabel').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-l]');
+    if (b) { setSetting('labelSize', b.getAttribute('data-l')); renderIoSettings(); }
+  });
+  renderers.io = function () {
+    var t = today();
+    if (!$('exFrom').value) $('exFrom').value = t.slice(0, 4) + '-01-01';
+    if (!$('exTo').value) $('exTo').value = t;
+    renderExFreqs(); renderIoSettings(); renderIoPreview();
+  };
+
   /* ── เริ่มต้น ── */
   function setOffline() { $('offBadge').hidden = navigator.onLine !== false; }
   window.addEventListener('online', setOffline);

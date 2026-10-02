@@ -175,6 +175,39 @@
         </div>
         <div id="wList" style="margin-top:var(--ome-sp-3)"></div>
       </section>
+      <section id="tab-io" role="tabpanel" aria-label="นำเข้า/ส่งออก" hidden>
+        <div class="stack">
+          <section class="card" id="ioImport">
+            <div class="card-head"><h2>นำเข้าจาก est-cost</h2></div>
+            <div class="field"><label for="ioFile">ไฟล์ input (.xlsx)</label><input id="ioFile" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></div>
+            <p class="mnt-msg" id="ioMsg" role="alert"></p>
+            <div id="ioPreview"></div>
+            <div class="row" style="margin-top:var(--ome-sp-3)"><button class="btn primary" type="button" id="ioGo" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg>นำเข้า</button></div>
+          </section>
+          <section class="card" id="ioExport">
+            <div class="card-head"><h2>ส่งออก Excel</h2></div>
+            <div class="frow">
+              <div class="field"><label for="exFrom">ตั้งแต่</label><input id="exFrom" type="date"></div>
+              <div class="field"><label for="exTo">ถึง</label><input id="exTo" type="date"></div>
+            </div>
+            <div class="field" style="margin-top:var(--ome-sp-3)"><label>ความถี่ที่รวมในแถว PM</label><div class="segmented" id="exFreqs" role="group" aria-label="ความถี่"></div></div>
+            <p class="mnt-msg" id="exMsg" role="alert"></p>
+            <div class="row" style="margin-top:var(--ome-sp-3)"><button class="btn primary" type="button" id="exGo"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg>ส่งออก</button></div>
+          </section>
+          <section class="card" id="ioSettings">
+            <div class="card-head"><h2>ค่าตั้ง</h2></div>
+            <div class="frow">
+              <div class="field"><label for="stStart">เดือนเริ่มสัญญา</label><input id="stStart" type="month"></div>
+              <div class="field"><label for="stInspector">ผู้ตรวจเริ่มต้น</label><input id="stInspector" type="text" maxlength="80" autocomplete="off"></div>
+            </div>
+            <div class="frow" style="margin-top:var(--ome-sp-3)">
+              <div class="field"><label for="stProject">โครงการ</label><input id="stProject" type="text" maxlength="120" autocomplete="off"></div>
+              <div class="field"><label for="stLine">สาย (Line)</label><input id="stLine" type="text" maxlength="60" autocomplete="off"></div>
+            </div>
+            <div class="field" style="margin-top:var(--ome-sp-3)"><label>ขนาดป้าย QR ต่อแผ่น A4</label><div class="segmented" id="stLabel" role="group" aria-label="ขนาดป้าย"></div></div>
+          </section>
+        </div>
+      </section>
       <!-- @tabs: แท็บอื่นเพิ่มตามขั้นงาน -->
     </div>
 

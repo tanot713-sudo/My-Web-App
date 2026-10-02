@@ -505,7 +505,7 @@
     });
 
     var inspRows = [];
-    inspDocs.slice().sort(function (x, y) { return x.at - y.at; }).forEach(function (doc) {
+    (o.inspExport || inspDocs).slice().sort(function (x, y) { return x.at - y.at; }).forEach(function (doc) { // inspExport = ใบตรวจเฉพาะช่วงที่ส่งออก (ชีต Inspections) · สถานะรอบ PM ใช้ inspDocs ทั้งหมด
       var st = siteBy[doc.site];
       Object.keys(doc.rows || {}).forEach(function (aid) {
         var r = doc.rows[aid], a = assetBy[aid];

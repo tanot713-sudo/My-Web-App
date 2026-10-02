@@ -742,3 +742,125 @@ test.describe('ปฏิทิน PM + compliance', () => {
     await ctx.close();
   });
 });
+
+test.describe('นำเข้า/ส่งออก Excel', () => {
+  const XLSX = require('xlsx');
+  const XLSX_CDN = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+  const XLSX_LOCAL = path.join(__dirname, 'node_modules', 'xlsx', 'dist', 'xlsx.full.min.js');
+  test.beforeEach(async ({ request }) => { await request.get(SRV + '/__reset'); });
+
+  // ไฟล์ input ของ est-cost ตามสัญญาคอลัมน์ในเอกสารหัวข้อ 1.1 (5 ชีต, 2 สถานี, 3 ประเภท)
+  function estCostBuffer(over = {}) {
+    const wb = XLSX.utils.book_new();
+    const add = (n, rows) => XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), n);
+    const eq = over.eq || [['RN05 บางซื่อ', 'E&M', 'บันไดเลื่อน', 'Escalator', 'ESC', 3, 2, ''], ['RN05 บางซื่อ', 'E&M', 'ลิฟต์', 'Lift', 'LIFT', 1, 2, ''],
+      ['สถานีกลาง', 'E&M', 'บันไดเลื่อน', 'Escalator', 'ESC', 2, 2, ''], ['สถานีกลาง', 'E&M', 'ประตูกั้นชานชาลา', 'PSD', 'PSD', 2, 2, '']];
+    add('EQUIPMENT', [['EQUIPMENT'], ['location', 'system', 'name_th', 'name_en', 'code', 'qty', 'workers', 'old_code']].concat(eq));
+    add('PM_PLAN', [['PM_PLAN'], ['code', '', 'Daily', 'Weekly', 'M1', 'M3', 'M6', 'Annually'],
+      ['ESC', null, 0.5, null, null, 2.5, null, null], ['LIFT', null, null, null, 1, null, 3, null], ['PSD', null, null, 1, null, null, null, 8]]);
+    add('PM_ACTIVITY', [['PM_ACTIVITY'], ['code', '', '', 'freq', 'text', 'shift', 'hr'], ['ESC', null, null, 'M3', '1. ตรวจราวจับ\n2. วัดกระแสมอเตอร์', 'D', null]]);
+    add('ROUTE', [['ROUTE'], ['name', 'lat', 'lng', 'circuit', 'order', 'km', 'min'], ['RN05 บางซื่อ', 13.8, 100.54, 'C1', 1, null, null], ['สถานีกลาง', 13.75, 100.5, 'C1', 2, null, null]]);
+    add('PROJECT', [['PROJECT'], ['key', '', 'value'], ['project_name', null, 'โครงการทดสอบ'], ['project_short_name', null, 'LN1']]);
+    return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  }
+  async function withXlsx(page) { await page.route(XLSX_CDN, (r) => r.fulfill({ path: XLSX_LOCAL, contentType: 'application/javascript' })); }
+
+  test('B6 นำเข้า: จำนวนอุปกรณ์/แผน/รายการตรวจตรง · เติม settings · นำเข้าซ้ำไม่เพิ่มซ้ำ · ไฟล์ผิดไม่เขียนอะไร', async ({ browser }) => {
+    const { ctx, page, errors } = await newDevice(browser, { seed: false });
+    await withXlsx(page);
+    await page.click('[data-tab="io"]');
+    // ไฟล์ที่ไม่ใช่ input ของ est-cost → error ไม่เขียนอะไร
+    const bad = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(bad, XLSX.utils.aoa_to_sheet([['x']]), 'Sheet1');
+    await page.setInputFiles('#ioFile', { name: 'bad.xlsx', mimeType: 'application/octet-stream', buffer: XLSX.write(bad, { type: 'buffer', bookType: 'xlsx' }) });
+    await expect(page.locator('#ioMsg')).toContainText('EQUIPMENT');
+    await expect(page.locator('#ioGo')).toBeDisabled();
+    expect(await page.evaluate(() => localStorage.getItem('tanot:mnt:assets'))).toBeNull();
+
+    await page.setInputFiles('#ioFile', { name: 'input.xlsx', mimeType: 'application/octet-stream', buffer: estCostBuffer() });
+    await expect(page.locator('[data-pv="counts"]')).toContainText('อุปกรณ์ใหม่ 8');
+    await expect(page.locator('[data-pv="counts"]')).toContainText('สถานที่ใหม่ 2');
+    await expect(page.locator('[data-pv="counts"]')).toContainText('แผนใหม่ 6');
+    expect(await page.evaluate(() => localStorage.getItem('tanot:mnt:assets'))).toBeNull(); // พรีวิวยังไม่เขียน
+    await page.click('#ioGo');
+    const ls = () => page.evaluate(() => ({ sites: JSON.parse(localStorage.getItem('tanot:mnt:sites')), assets: JSON.parse(localStorage.getItem('tanot:mnt:assets')),
+      plans: JSON.parse(localStorage.getItem('tanot:mnt:plans')), settings: JSON.parse(localStorage.getItem('tanot:mnt:settings')) }));
+    let d = await ls();
+    expect(d.sites.map((s) => s.abbr)).toEqual(['RN05', 'S02']);
+    expect(d.assets).toHaveLength(8);
+    expect(d.assets.map((a) => a.code).sort()).toEqual(['RN05-ESC-01', 'RN05-ESC-02', 'RN05-ESC-03', 'RN05-LIFT-01', 'S02-ESC-01', 'S02-ESC-02', 'S02-PSD-01', 'S02-PSD-02']);
+    expect(d.plans).toHaveLength(6);
+    expect(d.plans.reduce((n, p) => n + p.items.length, 0)).toBe(7); // ESC|M3 = 2 ข้อ ที่เหลือ 1 ข้อ
+    expect(d.plans.find((p) => p.id === 'ESC|M3').items.map((i) => i.text)).toEqual(['ตรวจราวจับ', 'วัดกระแสมอเตอร์']);
+    expect(d.settings).toMatchObject({ project: 'โครงการทดสอบ', line: 'LN1' });
+    expect(d.settings.startMonth).toMatch(/^\d{4}-\d{2}$/);
+    // เดือนที่ครบรอบแจกให้อุปกรณ์ใหม่ (ESC M3 ห้าตัวกระจาย 1..3)
+    const esc = d.assets.filter((a) => a.type === 'ESC').map((a) => a.phase.M3).sort();
+    expect(esc.every((p) => p >= 1 && p <= 3)).toBe(true);
+    for (const ph of [1, 2, 3]) expect(esc.filter((p) => p === ph).length).toBeLessThanOrEqual(2); // กระจายไม่กองเดือนเดียว
+    expect(d.assets.filter((a) => a.type === 'PSD').every((a) => a.phase.Annually >= 1 && a.phase.Annually <= 12)).toBe(true);
+
+    // นำเข้าซ้ำ: ไม่เพิ่ม ไม่ลบ
+    const before = JSON.stringify(d.assets.map((a) => [a.id, a.code, a.phase]));
+    await page.setInputFiles('#ioFile', { name: 'input.xlsx', mimeType: 'application/octet-stream', buffer: estCostBuffer() });
+    await expect(page.locator('[data-pv="counts"]')).toContainText('อุปกรณ์ใหม่ 0');
+    await page.click('#ioGo');
+    d = await ls();
+    expect(d.assets).toHaveLength(8);
+    expect(JSON.stringify(d.assets.map((a) => [a.id, a.code, a.phase]))).toBe(before);
+    // qty ของ LIFT 1 → 0 : ตั้ง 'ไม่อยู่ในไฟล์' ไม่ลบ
+    const less = estCostBuffer({ eq: [['RN05 บางซื่อ', 'E&M', 'บันไดเลื่อน', 'Escalator', 'ESC', 3, 2, ''], ['สถานีกลาง', 'E&M', 'บันไดเลื่อน', 'Escalator', 'ESC', 2, 2, ''], ['สถานีกลาง', 'E&M', 'ประตูกั้นชานชาลา', 'PSD', 'PSD', 2, 2, '']] });
+    await page.setInputFiles('#ioFile', { name: 'input.xlsx', mimeType: 'application/octet-stream', buffer: less });
+    await expect(page.locator('[data-pv="counts"]')).toContainText('ไม่อยู่ในไฟล์ 1');
+    await page.click('#ioGo');
+    d = await ls();
+    expect(d.assets).toHaveLength(8);
+    expect(d.assets.find((a) => a.code === 'RN05-LIFT-01').missing).toBe(true);
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+
+  test('B7 ส่งออก: ดาวน์โหลด 4 ชีต หัว WorkOrders ตรง จำนวนแถว PM/CM ตรงกับข้อมูลที่ seed', async ({ browser }) => {
+    const { ctx, page, errors } = await newDevice(browser);
+    await withXlsx(page);
+    const at = new Date('2026-11-10T10:00:00+07:00').getTime();
+    await page.evaluate(async (at) => {
+      await window.__mnt.idbPut('tanot-mnt-2026', 'insp', { id: 's1|M3|2026-11|dx', site: 's1', freq: 'M3', period: '2026-11', dev: 'dx', by: 'สมชาย', at,
+        rows: { e1: { start: at - 60000, at, res: { i1: 'ok', i2: 28.4, i3: 'ng' }, note: 'x', photos: [], wo: null } } });
+      await window.__mnt.idbPut('tanot-mnt', 'wo', { id: 'w1', no: 'CM-261105-AAA', kind: 'cm', asset: 'e1', site: 's1', reportedAt: at - 86400000 * 5, priority: 'high', symptom: 'เสียงดัง', dev: 'dx', createdAt: at });
+      await window.__mnt.idbPut('tanot-mnt', 'woev', { id: 'w1|a|dx', wo: 'w1', at, dev: 'dx', set: { status: 'done', endAt: at, downtimeH: 4, parts: [{ name: 'สายพาน', qty: 2, unitCost: 100 }], laborCost: 300 }, note: '', photos: [] });
+      await window.__mnt.idbPut('tanot-mnt', 'wo', { id: 'w2', no: 'CM-261106-BBB', kind: 'cm', asset: 'e1', site: 's1', reportedAt: at, priority: 'normal', symptom: 'ยกเลิก', dev: 'dx', createdAt: at });
+      await window.__mnt.idbPut('tanot-mnt', 'woev', { id: 'w2|a|dx', wo: 'w2', at: at + 1, dev: 'dx', set: { status: 'cancel' }, note: '', photos: [] });
+    }, at);
+    await page.click('[data-tab="io"]');
+    await page.fill('#exFrom', '2026-01-01');
+    await page.fill('#exTo', '2026-12-31');
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#exGo')]);
+    expect(dl.suggestedFilename()).toBe('maintenance_LN1_2026-11-18.xlsx');
+    const file = test.info().outputPath('out.xlsx');
+    await dl.saveAs(file);
+    const wb = XLSX.readFile(file, { cellDates: true });
+    expect(wb.SheetNames).toEqual(['WorkOrders', 'Inspections', 'Assets', 'Compliance']);
+    const wo = XLSX.utils.sheet_to_json(wb.Sheets.WorkOrders, { header: 1, defval: null });
+    expect(wo[0]).toEqual(C.WO_HEADERS);
+    expect(wo[0].slice(0, 3)).toEqual(['Work Order', 'Work Order Type', 'Equipment No']);
+    const body = wo.slice(1);
+    expect(body.filter((r) => r[1] === 'CM')).toHaveLength(1); // ใบที่ยกเลิกไม่ส่งออก
+    expect(body.filter((r) => r[1] === 'PM')).toHaveLength(1); // e1 M3 ครบรอบ 2026-11 เดียวในช่วงนี้
+    const cm = body.find((r) => r[1] === 'CM'), pm = body.find((r) => r[1] === 'PM');
+    expect(cm[0]).toBe('CM-261105-AAA');
+    expect(cm[wo[0].indexOf('Material Cost')]).toBe(200);
+    expect(cm[wo[0].indexOf('Status')]).toBe('เสร็จ');
+    expect(pm[0]).toBe('PM-RN05-ESC-01-M3-2026-11');
+    expect(pm[wo[0].indexOf('Failure Mode')]).toBe('ตรวจหวีขั้นบันได');
+    expect(pm[wo[0].indexOf('Plan Start')]).toBeInstanceOf(Date);
+    expect(XLSX.utils.sheet_to_json(wb.Sheets.Inspections, { header: 1 })).toHaveLength(1 + 3);
+    expect(XLSX.utils.sheet_to_json(wb.Sheets.Assets, { header: 1 })).toHaveLength(2);
+    expect(XLSX.utils.sheet_to_json(wb.Sheets.Compliance, { header: 1 }).slice(1)).toEqual([['2026-11', 'RN05 บางซื่อ', 'ราย 3 เดือน', 1, 1, 0, 0]]);
+    // ช่วงวันที่ผิด → ไม่ดาวน์โหลด
+    await page.fill('#exTo', '2025-01-01');
+    await page.click('#exGo');
+    await expect(page.locator('#exMsg')).toContainText('ช่วงวันที่ไม่ถูกต้อง');
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+});
