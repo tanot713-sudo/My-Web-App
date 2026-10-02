@@ -3,6 +3,7 @@
 */
 (function(){
   'use strict';
+  function P(){return window.TanotReportUtils.palette();}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -97,32 +98,31 @@
     if(q('#hr1-css'))return;
     var s=document.createElement('style');s.id='hr1-css';s.textContent=`
 #hrControlLayout{display:flex;flex-direction:column;gap:12px;margin-top:14px}
-#hrControlLayout .hr-hero{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--sh)}
-#hrControlLayout .hr-hero h2{font-size:16px;margin:0}
-#hrControlLayout .hr-hero .hr-sub{font-size:12px;color:var(--muted);margin-top:3px}
+#hrControlLayout .hr-hero{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:15px 16px;box-shadow:var(--ome-shadow-1)}
+#hrControlLayout .hr-hero h2{font-size:var(--ome-fs-md);margin:0}
+#hrControlLayout .hr-hero .hr-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px}
 #hrControlLayout .hr-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-#hrControlLayout .hr-kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;box-shadow:var(--sh);position:relative}
-#hrControlLayout .hr-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:4px;background:var(--ok)}
-#hrControlLayout .hr-kpi.warn:after{background:var(--warn)}#hrControlLayout .hr-kpi.bad:after{background:var(--err)}
-#hrControlLayout .hr-kpi .l{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-#hrControlLayout .hr-kpi .v{font-size:24px;font-weight:850;margin-top:4px;color:var(--ink)}
-#hrControlLayout .hr-kpi.warn .v{color:#B8720A}#hrControlLayout .hr-kpi.bad .v{color:var(--err)}
-#hrControlLayout .hr-kpi .s{font-size:9.5px;color:var(--muted);margin-top:4px}
-#hrControlLayout .hr-panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px;box-shadow:var(--sh)}
-#hrControlLayout .hr-panel h3{font-size:13px;margin:0 0 3px;font-weight:850}
-#hrControlLayout .hr-note{font-size:9.5px;color:var(--muted);margin-bottom:7px}
+#hrControlLayout .hr-kpi{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px 13px;box-shadow:var(--ome-shadow-1);position:relative}
+#hrControlLayout .hr-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:var(--ome-radius-sm);background:var(--ome-ok)}
+#hrControlLayout .hr-kpi.warn:after{background:var(--ome-warn)}#hrControlLayout .hr-kpi.bad:after{background:var(--ome-err)}
+#hrControlLayout .hr-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
+#hrControlLayout .hr-kpi .v{font-size:var(--ome-fs-2xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
+#hrControlLayout .hr-kpi.warn .v{color:var(--ome-warn-ink)}#hrControlLayout .hr-kpi.bad .v{color:var(--ome-err)}
+#hrControlLayout .hr-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
+#hrControlLayout .hr-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
+#hrControlLayout .hr-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
 #hrControlLayout .hr-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
 #hrControlLayout .hr-grid>.half{grid-column:span 6}#hrControlLayout .hr-grid>.full{grid-column:1/-1}
-#hrControlLayout .hr-insight{border-left:3px solid var(--ok);padding:10px 13px;font-size:12px;color:var(--ink)}
+#hrControlLayout .hr-insight{border-left:3px solid var(--ome-ok);padding:10px 13px;font-size:var(--ome-fs-xs);color:var(--ome-text-1)}
 #hrControlLayout .hr-status-row{display:flex;flex-direction:column;gap:8px}
-#hrControlLayout .hr-status-item{display:grid;grid-template-columns:110px 1fr 30px;align-items:center;gap:9px;font-size:11px}
+#hrControlLayout .hr-status-item{display:grid;grid-template-columns:110px 1fr 30px;align-items:center;gap:9px;font-size:var(--ome-fs-xs)}
 #hrControlLayout .hr-status-item .lab{display:flex;align-items:center;gap:6px;font-weight:700}
 #hrControlLayout .hr-status-item i{width:8px;height:8px;border-radius:50%;display:inline-block}
-#hrControlLayout .hr-track{height:7px;border-radius:6px;background:#eef1f4;overflow:hidden}
-#hrControlLayout .hr-track span{display:block;height:100%;border-radius:6px}
-#hrControlLayout .hr-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px}
+#hrControlLayout .hr-track{height:7px;border-radius:var(--ome-radius-sm);background:var(--ome-surface-2);overflow:hidden}
+#hrControlLayout .hr-track span{display:block;height:100%;border-radius:var(--ome-radius-sm)}
+#hrControlLayout .hr-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs)}
 #hrControlLayout .hr-list:last-child{border-bottom:none}
-#hrControlLayout .hr-empty{padding:24px 8px;text-align:center;color:var(--muted);font-size:11px}
+#hrControlLayout .hr-empty{padding:24px 8px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
 #hrControlLayout .hr-trend-scroll{overflow-x:auto}
 #hrControlLayout.hr-override-hidden{display:none!important}
 .hr-hidden-source{display:none!important}
@@ -150,16 +150,15 @@
     if(layout.getAttribute('data-built')==='1')return true;
     layout.setAttribute('data-built','1');
     layout.innerHTML=
-      '<section class="hr-hero"><h2>👥 HR Control</h2><div class="hr-sub" id="hrUpdated">ภาพรวมกำลังคน, การรับเข้า-ออก และความครบถ้วนของการอบรม</div></section>'+
+      '<section class="hr-hero"><h2>HR Control</h2><div class="hr-sub" id="hrUpdated"></div></section>'+
       '<div class="hr-kpis" id="hrKpis"></div>'+
       '<section class="hr-panel"><h3>Executive Insight</h3><div id="hrInsight" class="hr-insight"></div></section>'+
       '<div class="hr-grid">'+
-        '<section class="hr-panel full"><h3>แนวโน้มรับเข้า-ออกรายเดือน</h3><div class="hr-note">New hires vs exits</div><div id="hrTrend"></div></section>'+
-        '<section class="hr-panel half"><h3>Headcount แยกตามแผนก</h3><div class="hr-note">พนักงานที่ยัง Active</div><div id="hrByDept"></div></section>'+
-        '<section class="hr-panel half"><h3>สถานะการอบรม</h3><div class="hr-note">ความครบถ้วนของการอบรมพนักงาน</div><div id="hrTraining"></div></section>'+
-        '<section class="hr-panel full"><h3>พนักงานออกล่าสุด</h3><div class="hr-note">10 รายการล่าสุด</div><div id="hrRecent"></div></section>'+
-      '</div>'+
-      '<div class="mini" style="font-size:9px;color:var(--muted)">ตรวจพบจากคอลัมน์ วันที่เริ่มงาน + แผนก/ตำแหน่ง ในไฟล์ที่อัปโหลด — Table ด้านล่างไม่ถูกแก้ไข</div>';
+        '<section class="hr-panel full"><h3>แนวโน้มรับเข้า-ออกรายเดือน</h3><div id="hrTrend"></div></section>'+
+        '<section class="hr-panel half"><h3>Headcount แยกตามแผนก</h3><div id="hrByDept"></div></section>'+
+        '<section class="hr-panel half"><h3>สถานะการอบรม</h3><div id="hrTraining"></div></section>'+
+        '<section class="hr-panel full"><h3>พนักงานออกล่าสุด</h3><div id="hrRecent"></div></section>'+
+      '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('hr-hidden-source');
     });
@@ -192,20 +191,20 @@
     var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:'+w+'px;height:'+h+'px">';
     for(var t=0;t<=4;t++){
       var val=maxV*t/4, y=top+ph-ph*t/4;
-      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edf1" stroke-width="1"/>';
-      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#8a97a3">'+Math.round(val)+'</text>';
+      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="'+P().grid+'" stroke-width="1"/>';
+      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="'+P().faint+'">'+Math.round(val)+'</text>';
     }
     var stepX=pw/(keys.length-1||1);
-    [['hire','#16A34A'],['exit','#DC2626']].forEach(function(cat){
+    [['hire',P().ok],['exit',P().err]].forEach(function(cat){
       var pts=keys.map(function(k,i){var v=byMonth[k][cat[0]]; return (left+stepX*i)+','+(top+ph-ph*v/maxV);});
       out+='<path d="M'+pts.join(' L')+'" fill="none" stroke="'+cat[1]+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
-      keys.forEach(function(k,i){var v=byMonth[k][cat[0]]; out+='<circle cx="'+(left+stepX*i)+'" cy="'+(top+ph-ph*v/maxV)+'" r="3" fill="'+cat[1]+'" stroke="#fff" stroke-width="1.2"/>';});
+      keys.forEach(function(k,i){var v=byMonth[k][cat[0]]; out+='<circle cx="'+(left+stepX*i)+'" cy="'+(top+ph-ph*v/maxV)+'" r="3" fill="'+cat[1]+'" stroke="'+P().surface1+'" stroke-width="1.2"/>';});
     });
     keys.forEach(function(k,i){
-      out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="#8a97a3">'+k+'</text>';
+      out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>';
     });
     out+='</svg>';
-    host.innerHTML='<div class="hr-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;font-size:10.5px;color:var(--muted);margin-top:4px"><span>● <span style="color:#16A34A">New Hires</span></span><span>● <span style="color:#DC2626">Exits</span></span></div>';
+    host.innerHTML='<div class="hr-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style="color:'+P().okInk+'">● New Hires</span><span style="color:'+P().err+'">● Exits</span></div>';
   }
 
   function renderByDept(rows){
@@ -218,10 +217,10 @@
     var out=svgOpen(w,h);
     entries.forEach(function(e,i){
       var y=10+i*rowH, bw=Math.max(2,barW*e[1]/maxV);
-      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="#374151"><title>'+esc(e[0])+'</title>'+esc(e[0].length>16?e[0].slice(0,15)+'…':e[0])+'</text>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="#EEF1F4"/>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="16" rx="4" fill="#7C3AED"/>';
-      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10.5" font-weight="700" fill="#172033">'+e[1]+'</text>';
+      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="'+P().text+'"><title>'+esc(e[0])+'</title>'+esc(e[0].length>16?e[0].slice(0,15)+'…':e[0])+'</text>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="'+P().surface2+'"/>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="16" rx="4" fill="'+P().series[0]+'"/>';
+      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10.5" font-weight="700" fill="'+P().text+'">'+e[1]+'</text>';
     });
     out+='</svg>';
     host.innerHTML=out;
@@ -233,7 +232,7 @@
     var counts={done:0,pending:0,other:0,unknown:0};
     active.forEach(function(r){var b=trainStatus(r.training); counts[b]=(counts[b]||0)+1;});
     var total=Math.max(1,active.length);
-    var vals=[['done','อบรมครบแล้ว',counts.done,'#16A34A'],['pending','ยังไม่ครบ',counts.pending,'#F59E0B'],['other','ไม่ระบุ',counts.other+counts.unknown,'#94A3B8']];
+    var vals=[['done','อบรมครบแล้ว',counts.done,P().ok],['pending','ยังไม่ครบ',counts.pending,P().warn],['other','ไม่ระบุ',counts.other+counts.unknown,P().border]];
     var out='<div class="hr-status-row">';
     vals.forEach(function(v){
       var pct=(v[2]/total*100).toFixed(0);
@@ -270,7 +269,7 @@
     var layout=injectLayout(); if(!layout)return;
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
-    layout.innerHTML='<section class="hr-panel"><h3>👥 HR Control</h3>'+
+    layout.innerHTML='<section class="hr-panel"><h3>HR Control</h3>'+
       '<div class="hr-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายข้อมูลพนักงาน (ต้องมีคอลัมน์วันที่เริ่มงาน '+
       'และอย่างน้อยหนึ่งใน แผนก/ตำแหน่ง) — ลองเลือก Template เป็น "Auto" '+
       'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
@@ -333,6 +332,7 @@
 
   function init(){
     injectCSS();
+    window.TanotReportUtils.onTheme(schedule);
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;
