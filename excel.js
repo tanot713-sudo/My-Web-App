@@ -13,12 +13,10 @@
   var I18N = {
     th: {
       docTitle: 'ตารางคำนวณ | Tanot',
-      crumbResp: 'งานที่รับผิดชอบ', crumbSheet: 'ตารางคำนวณ',
-      pageTitle: 'ตารางคำนวณ: สร้างและแก้ไขสเปรดชีต (รองรับไฟล์ Excel .xlsx)',
-      newBtn: 'ไฟล์ใหม่', importBtn: 'นำเข้า Excel/CSV', exportXlsxBtn: 'ดาวน์โหลด .xlsx',
+      pageTitle: 'ตารางคำนวณ',
+      modalCancel: 'ยกเลิก', newBtn: 'ไฟล์ใหม่', importBtn: 'นำเข้า Excel/CSV', exportXlsxBtn: 'ดาวน์โหลด .xlsx',
       exportCsvBtn: 'ดาวน์โหลด .csv', printBtn: 'พิมพ์ / PDF',
       loadingSheet: 'กำลังโหลดตารางคำนวณ…',
-      toolHint: 'เครื่องมือครบชุด (แถบด้านบน): ฟอนต์ · สี/พื้น · เส้นขอบ · จัดชิด · ผสานเซลล์ · รูปแบบตัวเลข (฿, %, วันที่) · สูตร/ฟังก์ชัน · เรียง/กรอง · ตรึงแถว-คอลัมน์ · กราฟ · ตารางสรุป (Pivot) · จัดรูปแบบตามเงื่อนไข · ตรวจสอบข้อมูล (dropdown) · ค้นหา/แทนที่ · หลายชีต (แท็บล่าง) — ทำงานในเบราว์เซอร์ทั้งหมด ไฟล์ไม่ถูกส่งขึ้นเซิร์ฟเวอร์',
       footerText: 'Tanot — งานที่รับผิดชอบ', creditsLink: 'เครดิต & ลิขสิทธิ์',
       rHome: 'หน้าแรก', rInsert: 'แทรก', rFormulas: 'สูตร', rData: 'ข้อมูล', rView: 'มุมมอง',
       autosaveReady: 'พร้อมใช้งาน', autosaveSaving: 'กำลังบันทึก…', autosaveSaved: 'บันทึกอัตโนมัติแล้ว',
@@ -33,10 +31,10 @@
       newDone: 'เริ่มไฟล์ใหม่แล้ว',
       libError: 'โหลดตารางคำนวณไม่สำเร็จ — ตรวจการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้าอีกครั้ง',
       sheetName: 'ชีต1',
-      diFuzzyBtn: 'ตรวจตัวสะกด', diFuzzyTitle: 'ตรวจหาค่าที่สะกดต่างกันแต่อาจหมายถึงสิ่งเดียวกัน (เช่น "กรุงเทพ"/"กรุงเทพฯ")',
+      diFuzzyBtn: 'ตรวจตัวสะกด', diFuzzyTitle: 'ตรวจตัวสะกด',
       diFuzzyPickCol: 'เลือกคอลัมน์:', diFuzzyNone: 'ไม่พบตัวสะกดที่คล้ายกันในคอลัมน์นี้',
       diFuzzyMergeInto: 'รวมเป็น:', diFuzzyMergeBtn: 'รวม', diCloseBtn: 'ปิด',
-      diSummaryBtn: 'สรุปอัตโนมัติ', diSummaryTitle: 'สรุปอัตโนมัติ (คำนวณจากข้อมูลจริงในชีตนี้)',
+      diSummaryBtn: 'สรุปอัตโนมัติ', diSummaryTitle: 'สรุปอัตโนมัติ',
       diCopyBtn: 'คัดลอก', diCopied: 'คัดลอกแล้ว!', diCopyFail: 'คัดลอกไม่สำเร็จ ลองเลือกข้อความเองแล้วกด Ctrl+C',
       diTotalRows: 'ข้อมูลทั้งหมด {n} แถว ({m} คอลัมน์ นับจากแถวหัวตาราง)',
       diColSum: '{col} รวมทั้งหมด {sum}',
@@ -50,12 +48,10 @@
     },
     en: {
       docTitle: 'Spreadsheet | Tanot',
-      crumbResp: 'Responsibilities', crumbSheet: 'Spreadsheet',
-      pageTitle: 'Spreadsheet: Create & Edit (Excel .xlsx compatible)',
-      newBtn: 'New File', importBtn: 'Import Excel/CSV', exportXlsxBtn: 'Download .xlsx',
+      pageTitle: 'Spreadsheet',
+      modalCancel: 'Cancel', newBtn: 'New File', importBtn: 'Import Excel/CSV', exportXlsxBtn: 'Download .xlsx',
       exportCsvBtn: 'Download .csv', printBtn: 'Print / PDF',
       loadingSheet: 'Loading spreadsheet…',
-      toolHint: 'Full toolbar (top bar): font · color/fill · borders · align · merge cells · number formats (฿, %, date) · formulas/functions · sort/filter · freeze rows-columns · charts · pivot tables · conditional formatting · data validation (dropdown) · find/replace · multiple sheets (bottom tabs) — all in your browser; files are never uploaded.',
       footerText: 'Tanot — Responsibilities', creditsLink: 'Credits & licenses',
       rHome: 'Home', rInsert: 'Insert', rFormulas: 'Formulas', rData: 'Data', rView: 'View',
       autosaveReady: 'Ready', autosaveSaving: 'Saving…', autosaveSaved: 'Autosaved',
@@ -70,10 +66,10 @@
       newDone: 'Started a new file',
       libError: 'Couldn\'t load the spreadsheet — check your connection and refresh the page.',
       sheetName: 'Sheet1',
-      diFuzzyBtn: 'Check spelling', diFuzzyTitle: 'Find values spelled differently that likely mean the same thing (e.g. "Bangkok"/"BKK")',
+      diFuzzyBtn: 'Check spelling', diFuzzyTitle: 'Check spelling',
       diFuzzyPickCol: 'Column:', diFuzzyNone: 'No similar spellings found in this column',
       diFuzzyMergeInto: 'Merge into:', diFuzzyMergeBtn: 'Merge', diCloseBtn: 'Close',
-      diSummaryBtn: 'Auto Summary', diSummaryTitle: 'Auto Summary (computed from this sheet’s real data)',
+      diSummaryBtn: 'Auto Summary', diSummaryTitle: 'Auto Summary',
       diCopyBtn: 'Copy', diCopied: 'Copied!', diCopyFail: 'Copy failed — try selecting the text and pressing Ctrl+C',
       diTotalRows: 'Total of {n} rows ({m} columns, counting the header row).',
       diColSum: '{col} totals {sum}.',
@@ -103,7 +99,8 @@
     ribbon: $('xlRibbon'), ribTabs: $('xlrTabs'), ribPanels: $('xlrPanels'), cellEditor: $('xlCellEditor'),
     newBtn: $('newBtn'), importBtn: $('importBtn'), fileInput: $('fileInput'),
     exportXlsxBtn: $('exportXlsxBtn'), exportCsvBtn: $('exportCsvBtn'), printBtn: $('printBtn'),
-    diFuzzyBtn: $('diFuzzyBtn'), diSummaryBtn: $('diSummaryBtn'), diTrendBtn: $('diTrendBtn'), diPopover: $('diPopover')
+    diFuzzyBtn: $('diFuzzyBtn'), diSummaryBtn: $('diSummaryBtn'), diTrendBtn: $('diTrendBtn'), diPopover: $('diPopover'),
+    confirmModal: $('confirmModal'), confirmText: $('confirmText'), confirmOkBtn: $('confirmOkBtn'), confirmCancelBtn: $('confirmCancelBtn')
   };
 
   /* ── ความสูงกริดคงที่ (พิกเซล) กันอาการกระตุกบนมือถือ ──
@@ -116,9 +113,9 @@
     var vw = window.innerWidth, vh = window.innerHeight;
     if (!force && vw === lastVW && Math.abs(vh - lastVH) < 120) return;  /* เพิกเฉยการขยับเล็กจากแถบ URL */
     lastVW = vw; lastVH = vh;
-    /* ตารางสูง ~70% ของจอ (ไม่กินทั้งหน้า) เพื่อให้เลื่อน "หน้า" ดูภาพรวมได้เวลาไม่ได้แตะบนตาราง;
-       ตรึงเป็นพิกเซล + เมินการขยับเล็กของแถบ URL กันกระตุกบน iOS */
-    var h = Math.min(760, Math.max(340, Math.round(vh * 0.70)));
+    /* กริดเต็มกรอบที่เหลือของหน้า (.xl-sheetwrap = flex:1) ตรึงเป็นพิกเซล + เมินการขยับเล็กของแถบ URL กันกระตุกบน iOS */
+    var wrap = els.grid.parentElement;
+    var h = Math.max(340, (wrap && wrap.clientHeight) || Math.round(vh * 0.70));
     els.grid.style.height = h + 'px';
     /* เรียก resize ได้ "เฉพาะเมื่อสร้างเวิร์กบุ๊กแล้ว" — ถ้าเรียกก่อน create ครั้งแรก
        Luckysheet จะอ่านตำแหน่งของชีตที่ยังไม่มี → error "reading 'left'" → ค้าง Loading… บน iOS */
@@ -137,7 +134,7 @@
   function setStatus(msg, isErr, spin) {
     els.statusMsg.innerHTML = '';
     els.statusMsg.classList.toggle('err', !!isErr);
-    if (spin) { var s = document.createElement('span'); s.className = 'spin'; els.statusMsg.appendChild(s); }
+    if (spin) { var s = document.createElement('span'); s.className = 'spinner'; els.statusMsg.appendChild(s); }
     if (msg) els.statusMsg.appendChild(document.createTextNode(msg));
   }
 
@@ -353,7 +350,7 @@
           seen[id] = 1; frag.appendChild(item); added++;
         });
         if (added) {
-          if (panel.children.length) { var sep = document.createElement('span'); sep.className = 'xlr-sep'; panel.appendChild(sep); }
+          if (panel.children.length) { var sep = document.createElement('span'); sep.className = 'sep'; panel.appendChild(sep); }
           panel.appendChild(frag);
         }
       });
@@ -373,11 +370,11 @@
     })();
   }
   function switchRibbonTab(tab) {
-    els.ribTabs.querySelectorAll('.xlr-tab').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-rtab') === tab); });
+    els.ribTabs.querySelectorAll('.tab').forEach(function (b) { var on = b.getAttribute('data-rtab') === tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
     els.ribPanels.querySelectorAll('.xlr-panel').forEach(function (p) { p.classList.toggle('on', p.getAttribute('data-rpanel') === tab); });
   }
   if (els.ribTabs) {
-    els.ribTabs.querySelectorAll('.xlr-tab').forEach(function (b) {
+    els.ribTabs.querySelectorAll('.tab').forEach(function (b) {
       b.addEventListener('click', function () { switchRibbonTab(b.getAttribute('data-rtab')); });
     });
   }
@@ -649,7 +646,7 @@
   }
   function renderDiEmpty(el, anchorEl, close, titleKey, msgKey) {
     el.innerHTML = '<div class="di-title">' + escapeHtml(t(titleKey)) + '</div><div class="di-empty">' + escapeHtml(t(msgKey)) + '</div>' +
-      '<div class="di-actions"><span></span><button type="button" class="xl-btn" id="diCloseBtn">' + escapeHtml(t('diCloseBtn')) + '</button></div>';
+      '<div class="di-actions"><span></span><button type="button" class="btn sm" id="diCloseBtn">' + escapeHtml(t('diCloseBtn')) + '</button></div>';
     el.querySelector('#diCloseBtn').addEventListener('click', close);
     positionDiPopover(el, anchorEl);
   }
@@ -695,7 +692,7 @@
       var text = buildGridSummaryText(model);
       el.innerHTML = '<div class="di-title">' + escapeHtml(t('diSummaryTitle')) + '</div>' +
         '<textarea class="di-textarea" id="diText" readonly></textarea>' +
-        '<div class="di-actions"><span class="di-status" id="diStatus"></span><button type="button" class="xl-btn" id="diCopyBtn">' + escapeHtml(t('diCopyBtn')) + '</button></div>';
+        '<div class="di-actions"><span class="di-status" id="diStatus"></span><button type="button" class="btn sm" id="diCopyBtn">' + escapeHtml(t('diCopyBtn')) + '</button></div>';
       el.querySelector('#diText').value = text;
       positionDiPopover(el, anchorEl);
       el.querySelector('#diCopyBtn').addEventListener('click', function () {
@@ -787,7 +784,7 @@
               return '<div class="di-group"><div class="di-group-values">' + valuesHtml + '</div>' +
                 '<div class="di-group-row"><label style="flex-direction:row;align-items:center">' + escapeHtml(t('diFuzzyMergeInto')) +
                 ' <select class="di-fuzzy-canon" data-gidx="' + gi + '">' + optsHtml + '</select></label>' +
-                '<button type="button" class="xl-btn di-fuzzy-merge-btn" data-gidx="' + gi + '">' + escapeHtml(t('diFuzzyMergeBtn')) + '</button></div></div>';
+                '<button type="button" class="btn sm di-fuzzy-merge-btn" data-gidx="' + gi + '">' + escapeHtml(t('diFuzzyMergeBtn')) + '</button></div></div>';
             }).join('');
         el.querySelector('.di-list').innerHTML = listHtml;
         [].forEach.call(el.querySelectorAll('.di-fuzzy-merge-btn'), function (btn) {
@@ -804,7 +801,7 @@
         '<div class="di-row"><label>' + escapeHtml(t('diFuzzyPickCol')) +
         '<select class="di-fuzzy-col">' + eligibleCols.map(function (c) { return '<option value="' + c.index + '">' + escapeHtml(c.label) + '</option>'; }).join('') + '</select></label></div>' +
         '<div class="di-list"></div>' +
-        '<div class="di-actions"><span></span><button type="button" class="xl-btn" id="diCloseBtn">' + escapeHtml(t('diCloseBtn')) + '</button></div>';
+        '<div class="di-actions"><span></span><button type="button" class="btn sm" id="diCloseBtn">' + escapeHtml(t('diCloseBtn')) + '</button></div>';
       el.querySelector('.di-fuzzy-col').addEventListener('change', function () { renderGroups(+this.value); });
       el.querySelector('#diCloseBtn').addEventListener('click', close);
       renderGroups(eligibleCols[0].index);
@@ -843,7 +840,7 @@
         '<label>' + escapeHtml(t('diTrendYLbl')) + '<select class="di-trend-y">' + numCols.map(function (c) { return '<option value="' + c.index + '">' + escapeHtml(c.label) + '</option>'; }).join('') + '</select></label>' +
         '</div>' +
         '<div class="di-chart-wrap"><canvas id="diTrendCanvas"></canvas></div>' +
-        '<div class="di-actions"><span></span><button type="button" class="xl-btn" id="diCloseBtn">' + escapeHtml(t('diCloseBtn')) + '</button></div>';
+        '<div class="di-actions"><span></span><button type="button" class="btn sm" id="diCloseBtn">' + escapeHtml(t('diCloseBtn')) + '</button></div>';
       function draw() {
         var xIdx = +el.querySelector('.di-trend-x').value, yIdx = +el.querySelector('.di-trend-y').value;
         var pairs = model.rows.map(function (r) { return [r[xIdx] == null ? '' : String(r[xIdx]), r[yIdx]]; })
@@ -877,8 +874,20 @@
   }
 
   /* ── wiring ── */
-  els.newBtn.addEventListener('click', function () {
-    if (!confirm(t('newConfirm'))) return;
+  function askConfirm(msg) {
+    return new Promise(function (resolve) {
+      var m = els.confirmModal, done = false;
+      function finish(v) { if (done) return; done = true; els.confirmOkBtn.onclick = els.confirmCancelBtn.onclick = m.onclose = null; if (m.open) m.close(); resolve(v); }
+      els.confirmText.textContent = msg;
+      els.confirmOkBtn.onclick = function () { finish(true); };
+      els.confirmCancelBtn.onclick = function () { finish(false); };
+      m.onclose = function () { finish(false); };
+      m.addEventListener('click', function (e) { if (e.target === m) finish(false); }, { once: true });
+      m.showModal();
+    });
+  }
+  els.newBtn.addEventListener('click', async function () {
+    if (!(await askConfirm(t('newConfirm')))) return;
     try { localStorage.removeItem(AUTOSAVE_KEY); } catch (e) {}
     createSheet(defaultData());
     setStatus(t('newDone'));

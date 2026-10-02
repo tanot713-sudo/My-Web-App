@@ -185,6 +185,12 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 :where([data-layout]) .btn.icon{width:38px;padding:0}
 :where([data-layout]) .btn.sm.icon{width:30px}
 :where([data-layout]) .btn.lg.icon{width:46px}
+:where([data-layout]) .btn:is(.on,.active,[aria-pressed="true"]):not(.primary):not(.danger){background:var(--ome-accent-soft);border-color:var(--ome-accent);color:var(--ome-accent-strong)}
+:where([data-layout]) .btn.ghost:is(.on,.active,[aria-pressed="true"]){border-color:transparent}
+:where([data-layout]) .btn:focus-visible,:where([data-layout]) .tab:focus-visible,:where([data-layout]) .chip:focus-visible{outline:2px solid var(--ome-accent);outline-offset:1px}
+:where([data-layout]) .spinner{display:inline-block;width:14px;height:14px;border-radius:50%;flex-shrink:0;
+  border:2px solid var(--ome-accent-soft);border-top-color:var(--ome-accent);animation:ome-spin .7s linear infinite}
+@keyframes ome-spin{to{transform:rotate(360deg)}}
 
 /* การ์ด — style flat มีเส้นขอบ+เงาบาง, soft ไม่มีขอบ+เงานุ่ม, outline ขอบอย่างเดียว */
 :where([data-layout]) .card{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-card-r);

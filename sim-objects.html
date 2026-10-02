@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>จำลองสิ่งของ 3D — จัดผัง/วางอุปกรณ์ | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#12A594">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -18,223 +17,170 @@
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
 <style>
-:root{--bg:#F6F7FB;--card:#FFFFFF;--ink:#1F2430;--muted:#727C93;--line:#EAEDF5;
-  --brand:var(--ome-brand);--brand-dk:var(--ome-brand-dk);--brand-sf:var(--ome-brand-sf);
-  --amber:#F5A524;--ok:#17B26A;--rose:#EC5E8A;--sky:#3B9BEA;--err:#E5484D;--warn:#E08700;--violet:#6C63D9;
-  --sh:0 1px 2px rgba(24,31,54,.05),0 8px 24px rgba(24,31,54,.06)}
-*{box-sizing:border-box;margin:0;padding:0}
-body.ome-tool-page{font-family:var(--ome-f);background:var(--bg);color:var(--ink);
-  line-height:1.65;font-size:15px;padding:0 18px 90px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1080px;margin:0 auto}
-.crumb{font-size:13px;color:var(--muted);padding:16px 0 0}
-.crumb a{color:var(--brand-dk);text-decoration:none;font-weight:600}
-.crumb .sep{margin:0 7px;color:#C9CEDC}
-.head{display:flex;align-items:center;gap:14px;margin:12px 0 6px}
-.head-ic{width:50px;height:50px;border-radius:14px;flex-shrink:0;font-size:26px;
-  background:linear-gradient(135deg,#12A594,#3FCBB6);color:#fff;display:grid;place-items:center;
-  box-shadow:0 6px 18px rgba(18,165,148,.3)}
-h1{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
-.head-sub{font-size:13px;color:var(--muted);margin-top:2px}
+/* กรอบหน้า (layout=app): แถบเครื่องมือ + วิวพอร์ต 3D ยืดเต็มพื้นที่ซ้าย, คลังของ/วัตถุที่เลือกเลื่อนแยกทางขวา — ตัวฉาก 3D (สีพื้น/วัตถุ) ไม่ผูกกับธีม */
+.s3-top{flex:0 0 auto;padding:var(--ome-sp-3) var(--ome-sp-4) 0}
+.s3-top .page-head{margin-bottom:0}
+.s3-head-ic{width:22px;height:22px;color:var(--ome-accent-strong)}
+.s3-work{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:var(--ome-sp-3);padding:var(--ome-sp-3) var(--ome-sp-4) var(--ome-sp-4)}
+.s3-stage{min-height:0;min-width:0;display:flex;flex-direction:column;margin:0;--ome-card-pad:12px}
+.s3-aside{min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:var(--ome-sp-3)}
+.s3-aside > .card{flex-shrink:0;margin:0}
+.card h2{display:flex;align-items:center;gap:8px;margin:0 0 var(--ome-sp-3);font-size:var(--ome-fs-base)}
 
-.card{background:var(--card);border-radius:var(--ome-card-r);box-shadow:var(--sh);padding:var(--ome-card-pad);margin-top:var(--ome-card-gap)}
-.card h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1.5px solid var(--line);
-  background:var(--card);border-radius:11px;padding:8px 13px;font-family:inherit;font-size:13px;font-weight:700;
-  color:var(--ink);cursor:pointer;transition:.15s;white-space:nowrap}
-.btn:hover{border-color:var(--brand);color:var(--brand-dk)}
-.btn.sm{padding:7px 11px;font-size:12.5px}
-.btn.active{background:var(--brand);border-color:var(--brand);color:#fff}
-
-/* ── การ์ดวิวพอร์ต 3D ── */
-.s3-card{padding:14px}
-.s3-toolbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:10px}
+.s3-toolbar{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2);justify-content:space-between;align-items:center;margin-bottom:var(--ome-sp-2);flex-shrink:0}
 .s3-tb-group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.s3-check{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);font-weight:600;cursor:pointer;user-select:none}
-.s3-check input{cursor:pointer}
-.s3-viewport{position:relative;width:100%;height:520px;border-radius:12px;overflow:hidden;
-  background:#E7ECF4;border:1px solid var(--line);touch-action:none}
+.s3-tb-group .btn .ome-icon{width:15px;height:15px}
+.s3-check{display:flex;align-items:center;gap:5px;font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600;cursor:pointer;user-select:none}
+.s3-check input{cursor:pointer;accent-color:var(--ome-accent)}
+.s3-viewport{position:relative;width:100%;flex:1 1 0;min-height:320px;border-radius:var(--ome-radius-md);overflow:hidden;
+  background:#E7ECF4;border:1px solid var(--ome-border);touch-action:none}
 .s3-viewport canvas{display:block;width:100%;height:100%}
 .s3-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  color:#6B7690;font-size:13.5px;font-weight:600;text-align:center;padding:20px;pointer-events:none}
-.s3-savebar{margin-top:9px;font-size:12px;color:var(--muted);text-align:center;transition:color .2s}
-.s3-savebar.flash{color:var(--brand-dk);font-weight:700}
-@media(max-width:600px){.s3-viewport{height:360px}}
+  color:#6B7690;font-size:var(--ome-fs-sm);font-weight:600;text-align:center;padding:20px;pointer-events:none}
+.s3-savebar{margin-top:var(--ome-sp-2);min-height:1.3em;font-size:12px;color:var(--ome-accent-strong);font-weight:700;text-align:right;flex-shrink:0}
+.s3-csg-hint{display:none;background:var(--ome-accent-soft);color:var(--ome-accent-strong);border-radius:var(--ome-radius-md);padding:8px 12px;
+  font-size:var(--ome-fs-xs);font-weight:600;margin-bottom:var(--ome-sp-2);text-align:center;flex-shrink:0}
 
-.s3-panels{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
-@media(max-width:760px){.s3-panels{grid-template-columns:1fr}}
-
-.s3-cat-group-h{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:12px 0 6px}
+.s3-cat-group-h{font-size:11.5px;font-weight:700;color:var(--ome-text-2);text-transform:uppercase;letter-spacing:.03em;margin:12px 0 6px}
 .s3-cat-group-h:first-child{margin-top:0}
 .s3-catalog-row{display:flex;flex-wrap:wrap;gap:7px}
 .s3-cat-btn{display:flex;flex-direction:column;align-items:center;gap:3px;width:64px;padding:8px 4px;
-  border-radius:11px;border:1.5px solid var(--line);background:var(--bg);cursor:pointer;
-  font-family:inherit;color:var(--ink);transition:.15s}
-.s3-cat-btn:hover{border-color:var(--brand);color:var(--brand-dk)}
-.s3-cat-btn .ic{font-size:20px}
+  border-radius:var(--ome-radius-md);border:1px solid var(--ome-border);background:var(--ome-surface-2);cursor:pointer;
+  font:inherit;color:var(--ome-text-1);transition:border-color var(--ome-dur-1),color var(--ome-dur-1)}
+.s3-cat-btn:hover{border-color:var(--ome-accent);color:var(--ome-accent-strong)}
+.s3-cat-btn .ic{display:grid;place-items:center;height:22px}
+.s3-cat-btn .ic .ome-icon{width:22px;height:22px}
 .s3-cat-btn .lb{font-size:10.5px;font-weight:600;text-align:center;line-height:1.2}
 
-.s3-insp-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.s3-insp-row{display:flex;align-items:center;justify-content:space-between;gap:var(--ome-sp-2);padding:8px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-sm)}
 .s3-insp-row:last-child{border-bottom:none}
-.s3-insp-row .lbl{color:var(--muted);font-weight:700;flex-shrink:0}
-.s3-nudge{display:flex;gap:4px}
-.s3-nudge button{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);
-  cursor:pointer;font-size:14px;color:var(--ink);font-family:inherit}
-.s3-nudge button:hover{border-color:var(--brand);color:var(--brand-dk)}
-.s3-color-row{display:flex;gap:7px;flex-wrap:wrap;padding:9px 0 2px}
-.s3-swatch{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
-.s3-swatch.active{border-color:var(--ink);box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--ink)}
-.s3-insp-empty{font-size:13px;color:var(--muted);padding:4px 0}
-.s3-insp-row .lbl.mini-note{font-weight:500;color:var(--muted);line-height:1.6}
-.s3-size-val{font-size:12.5px;font-weight:700;color:var(--ink)}
-.s3-size-row{display:flex;gap:6px;align-items:center;padding:6px 0}
-.s3-size-row select{font-family:inherit;font-size:12.5px;padding:7px 6px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
-.s3-size-row input[type=number]{font-family:inherit;font-size:13px;padding:7px 8px;border-radius:8px;border:1.5px solid var(--line);
-  background:var(--bg);color:var(--ink);width:80px;-webkit-appearance:none}
-.s3-size-row input[type=range]{accent-color:var(--brand)}
-.s3-nudge{flex-wrap:wrap}
+.s3-insp-row .lbl{color:var(--ome-text-2);font-weight:700;flex-shrink:0}
+.s3-nudge{display:flex;gap:4px;flex-wrap:wrap}
+.s3-nudge button{width:32px;height:32px;border-radius:var(--ome-radius-sm);border:1px solid var(--ome-border);background:var(--ome-surface-1);
+  cursor:pointer;color:var(--ome-text-1);font:inherit;display:inline-grid;place-items:center;padding:0}
+.s3-nudge button:hover{border-color:var(--ome-accent);color:var(--ome-accent-strong)}
+.s3-nudge button .ome-icon{width:15px;height:15px}
 .s3-nudge button[data-scale]{width:auto;padding:0 8px;font-size:11.5px;font-weight:700}
-.s3-nudge .btn.sm{width:auto;height:auto}
+.s3-nudge .btn.sm{width:auto;padding:0 10px}
+.s3-color-row{display:flex;gap:7px;flex-wrap:wrap;padding:9px 0 2px}
+.s3-swatch{width:24px;height:24px;border-radius:50%;border:2px solid var(--ome-border);cursor:pointer;padding:0}
+.s3-swatch.active{border-color:var(--ome-text-1);box-shadow:0 0 0 2px var(--ome-surface-1),0 0 0 3.5px var(--ome-text-1)}
+.s3-insp-empty{font-size:var(--ome-fs-sm);color:var(--ome-text-2);padding:4px 0}
+.s3-insp-row .lbl.mini-note{font-weight:500;line-height:1.6}
+.s3-size-val{font-size:var(--ome-fs-xs);font-weight:700}
+.s3-size-row{display:flex;gap:6px;align-items:center;padding:6px 0}
+.s3-size-row select{font:inherit;font-size:var(--ome-fs-xs);height:32px;padding:0 8px;border-radius:var(--ome-radius-sm);border:1px solid var(--ome-border);background:var(--ome-surface-1);color:var(--ome-text-1)}
+.s3-size-row input[type=number]{font:inherit;font-size:var(--ome-fs-sm);height:32px;padding:0 8px;border-radius:var(--ome-radius-sm);border:1px solid var(--ome-border);
+  background:var(--ome-surface-1);color:var(--ome-text-1);width:80px;-webkit-appearance:none}
+.s3-size-row :is(select,input[type=number]):focus{outline:none;border-color:var(--ome-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--ome-accent) 22%, transparent)}
+.s3-size-row input[type=range]{accent-color:var(--ome-accent)}
 
 .s3-mymodel-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
 .s3-mymodel-row{position:relative}
-.s3-mymodel-del{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);
-  background:var(--card);color:var(--err);font-size:11px;cursor:pointer;display:grid;place-items:center;line-height:1}
-.s3-upload-btn{width:100%;justify-content:center;border-style:dashed}
-.s3-upload-btn:disabled{opacity:.55;cursor:default}
-.s3-upload-status{font-size:12px;color:var(--brand-dk);font-weight:600;text-align:center;
-  padding:8px 4px 2px;line-height:1.5}
-.s3-csg-hint{display:none;background:var(--brand-sf);color:var(--brand-dk);border-radius:10px;padding:8px 12px;
-  font-size:12.5px;font-weight:600;margin-bottom:8px;text-align:center}
+.s3-mymodel-del{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:1px solid var(--ome-border);
+  background:var(--ome-surface-1);color:var(--ome-err);cursor:pointer;display:grid;place-items:center;padding:0}
+.s3-mymodel-del .ome-icon{width:11px;height:11px}
+.s3-upload-btn{width:100%;border-style:dashed}
+.s3-upload-status{display:flex;align-items:center;justify-content:center;gap:8px;font-size:var(--ome-fs-xs);color:var(--ome-accent-strong);font-weight:600;
+  padding:8px 4px 2px;line-height:1.5;text-align:center}
+.dialog-body{white-space:pre-line;color:var(--ome-text-2);font-size:var(--ome-fs-sm);line-height:1.6}
 
-/* ── กล่องยืนยัน/แจ้งเตือนของเว็บเอง (แทน confirm()/alert() ของเบราว์เซอร์) ── */
-.s3-modal-backdrop{position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:300;
-  display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.15s;padding:20px}
-.s3-modal-backdrop.open{opacity:1;pointer-events:auto}
-.s3-modal{background:var(--card);border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.25);
-  padding:20px;max-width:360px;width:100%;transform:translateY(8px);transition:.15s}
-.s3-modal-backdrop.open .s3-modal{transform:translateY(0)}
-.s3-modal-title{font-size:15.5px;font-weight:800;margin-bottom:6px}
-.s3-modal-msg{font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:16px;white-space:pre-line}
-.s3-modal-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
-
-details{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-details>summary{cursor:pointer;padding:12px 15px;font-weight:700;font-size:13.5px;list-style:none;
-  display:flex;align-items:center;gap:8px;user-select:none}
-details>summary::-webkit-details-marker{display:none}
-details>summary::before{content:'▸';color:var(--muted)}
-details[open]>summary::before{transform:rotate(90deg)}
-.details-body{padding:0 15px 15px;font-size:13px}
-.lesson h3{font-size:13.5px;font-weight:700;margin:12px 0 4px;color:var(--brand-dk)}
-.lesson h3:first-child{margin-top:0}
-.lesson p{font-size:13px;margin-bottom:4px;opacity:.92}
-
-.disc{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.7;text-align:center}
-@media(max-width:600px){body.ome-tool-page{padding:0 12px 70px}h1{font-size:18px}}
+/* จอแคบ (≤1000px): ทั้งหน้าเลื่อนเป็นหน้าเดียว คลังของ/วัตถุที่เลือกเรียงใต้วิวพอร์ต */
+@media(max-width:1000px){
+  .s3-app{overflow-y:auto;overflow-x:hidden}
+  .s3-work{display:block;flex:none}
+  .s3-stage{display:block}
+  .s3-viewport{flex:none;height:min(62vh,520px)}
+  .s3-aside{overflow:visible;margin-top:var(--ome-sp-3)}
+}
+@media(max-width:600px){
+  .s3-top{padding:var(--ome-sp-2) 10px 0}
+  .s3-work{padding:var(--ome-sp-2) 10px var(--ome-sp-3)}
+  .s3-viewport{height:min(58vh,420px)}
+}
 </style>
 </head>
-<body class="ome-tool-page">
-<div class="wrap">
-
-<nav class="crumb"><a href="index.html">หน้าหลัก</a><span class="sep">/</span>จำลองสิ่งของ 3D</nav>
-<div class="head">
-  <div>
+<body data-layout="app">
+<main class="page s3-app">
+<div class="s3-top">
+  <div class="page-head">
+    <svg class="ome-icon s3-head-ic" aria-hidden="true"><use href="icons.svg#i-cuboid"/></svg>
     <h1>จำลองสิ่งของ 3D</h1>
-    <div class="head-sub">จัดผัง/วางเฟอร์นิเจอร์และอุปกรณ์ก่อสร้างแบบ 3 มิติ</div>
   </div>
 </div>
 
-<div class="card s3-card">
-  <div class="s3-toolbar">
-    <div class="s3-tb-group">
-      <button class="btn sm" data-view="persp" type="button">มุม 3D</button>
-      <button class="btn sm" data-view="top" type="button">บนลงล่าง</button>
-      <button class="btn sm" data-view="front" type="button">ด้านหน้า</button>
-      <button class="btn sm" data-view="side" type="button">ด้านข้าง</button>
+<div class="s3-work">
+  <div class="card s3-stage">
+    <div class="toolbar s3-toolbar">
+      <div class="s3-tb-group">
+        <button class="btn sm" data-view="persp" type="button">มุม 3D</button>
+        <button class="btn sm" data-view="top" type="button">บนลงล่าง</button>
+        <button class="btn sm" data-view="front" type="button">ด้านหน้า</button>
+        <button class="btn sm" data-view="side" type="button">ด้านข้าง</button>
+      </div>
+      <div class="s3-tb-group">
+        <label class="s3-check"><input type="checkbox" id="s3Snap" checked> Snap 0.5 ม.</label>
+        <button class="btn sm" id="s3Shot" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-camera"/></svg>บันทึกภาพ</button>
+        <button class="btn sm" id="s3Clear" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg>ล้างทั้งหมด</button>
+      </div>
     </div>
-    <div class="s3-tb-group">
-      <label class="s3-check"><input type="checkbox" id="s3Snap" checked> Snap 0.5 ม.</label>
-      <button class="btn sm" id="s3Shot" type="button">บันทึกภาพ</button>
-      <button class="btn sm" id="s3Clear" type="button">ล้างทั้งหมด</button>
+    <div class="toolbar s3-toolbar">
+      <div class="s3-tb-group">
+        <button class="btn sm" id="s3XformToggle" type="button">ลากปรับ</button>
+        <button class="btn sm active" type="button" data-xmode="translate"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-move"/></svg>ย้าย</button>
+        <button class="btn sm" type="button" data-xmode="rotate"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-cw"/></svg>หมุน</button>
+        <button class="btn sm" type="button" data-xmode="scale"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-scaling"/></svg>สเกล</button>
+      </div>
+      <div class="s3-tb-group">
+        <button class="btn sm" id="s3CsgStart" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-combine"/></svg>ตัด/รวม 2 ชิ้น</button>
+        <button class="btn sm" id="s3CsgCancel" type="button">ยกเลิกโหมด</button>
+        <button class="btn sm" id="s3ExportAll" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg>รวม .stl ทั้งผัง</button>
+        <span id="s3ArSlot"></span>
+      </div>
+    </div>
+    <div class="s3-csg-hint" id="s3CsgHint"></div>
+    <div id="s3Viewport" class="s3-viewport">
+      <div class="s3-loading" id="s3Loading">กำลังโหลด 3D…</div>
+    </div>
+    <div class="s3-savebar" id="s3SaveBar" role="status"></div>
+  </div>
+
+  <div class="s3-aside">
+    <div class="card" id="s3InspectorCard" style="display:none">
+      <h2>วัตถุที่เลือก</h2>
+      <div id="s3InspectorBody"></div>
+    </div>
+
+    <div class="card">
+      <h2>คลังของสำเร็จรูป</h2>
+      <div id="s3CatalogProc"></div>
+    </div>
+
+    <div class="card">
+      <h2>โมเดลของฉัน</h2>
+      <div id="s3CatalogModels"></div>
     </div>
   </div>
-  <div class="s3-toolbar">
-    <div class="s3-tb-group">
-      <button class="btn sm" id="s3XformToggle" type="button">ลากปรับ</button>
-      <button class="btn sm active" type="button" data-xmode="translate">ย้าย</button>
-      <button class="btn sm" type="button" data-xmode="rotate">หมุน</button>
-      <button class="btn sm" type="button" data-xmode="scale">⤢ สเกล</button>
-    </div>
-    <div class="s3-tb-group">
-      <button class="btn sm" id="s3CsgStart" type="button">ตัด/รวม 2 ชิ้น</button>
-      <button class="btn sm" id="s3CsgCancel" type="button">ยกเลิกโหมด</button>
-      <button class="btn sm" id="s3ExportAll" type="button">รวม .stl ทั้งผัง</button>
-      <span id="s3ArSlot"></span>
-    </div>
-  </div>
-  <div class="s3-csg-hint" id="s3CsgHint"></div>
-  <div id="s3Viewport" class="s3-viewport">
-    <div class="s3-loading" id="s3Loading">กำลังโหลด 3D…</div>
-  </div>
-  <div class="s3-savebar" id="s3SaveBar">บันทึกอัตโนมัติในเครื่องนี้แล้ว</div>
 </div>
+</main>
 
-<div class="s3-panels">
-  <div class="card">
-    <h2>โมเดลของฉัน (นำเข้าจากไฟล์สแกน)</h2>
-    <div id="s3CatalogModels"></div>
-  </div>
-
-  <div class="card" id="s3InspectorCard" style="display:none">
-    <h2>วัตถุที่เลือก</h2>
-    <div id="s3InspectorBody"></div>
-  </div>
-</div>
-
-<div class="card">
-  <h2>คลังของสำเร็จรูป — คลิกเพื่อวาง</h2>
-  <div id="s3CatalogProc"></div>
-</div>
-
-<details>
-  <summary>เรียนรู้ / วิธีใช้</summary>
-  <div class="details-body lesson">
-    <h3>วิธีใช้เบื้องต้น</h3>
-    <p>คลิกไอคอนในคลังของ (สำเร็จรูป หรือโมเดลของฉัน) เพื่อวางวัตถุลงในผัง 3D จากนั้นคลิกที่วัตถุในภาพเพื่อเลือก แล้วใช้ปุ่มลูกศรในกล่อง "วัตถุที่เลือก" เพื่อขยับ/หมุน หรือลากเมาส์บนภาพเพื่อหมุนกล้องดูรอบๆ (บนมือถือใช้นิ้วลากได้เหมือนกัน)</p>
-    <h3>เอาโมเดลที่สแกนจากของจริงเข้ามาใช้ยังไง</h3>
-    <p>1) ถ่ายรูปวัตถุจริงรอบๆ 20-100+ รูปด้วยแอปฟรีอย่าง <b>KIRI Engine</b> แล้ว export เป็นไฟล์ .glb (ปิดตัวเลือกบีบอัดแบบ Draco ถ้ามี) &nbsp;2) ถ้าต้องแต่งรายละเอียด/ลบตำหนิเพิ่มเติม ใช้ <b>Blender</b> (ฟรี) &nbsp;3) กด "⬆️ อัปโหลดโมเดล" ในการ์ด "โมเดลของฉัน" เลือกไฟล์ที่ได้ (.glb .gltf .obj .ply .stl .fbx) — ไฟล์จะถูกเก็บไว้ในเครื่องนี้เท่านั้น (IndexedDB) ไม่ถูกส่งไปที่ไหน (ไฟล์ใหญ่หรือไฟล์ .fbx อาจใช้เวลาแปลงหลายวินาทีและหน้าจออาจไม่ตอบสนองชั่วขณะระหว่างนั้น ไม่ใช่อาการค้าง รอจนขึ้นข้อความเสร็จได้เลย)</p>
-    <h3>ปรับขนาดให้ตรงกับที่ต้องการ</h3>
-    <p>ในกล่อง "วัตถุที่เลือก" กรอกขนาดเป้าหมายเป็นเซนติเมตร (เลือกได้ว่าจะล็อกตามความสูง/กว้าง/ลึก) ระบบจะคำนวณสเกลให้รักษาสัดส่วนเดิมเสมอ หรือใช้ปุ่ม －10%/＋10% ปรับเร็วๆ ก็ได้ กด "ลากปรับ" เพื่อสลับไปใช้มือจับลากขยับ/หมุน/สเกลบนภาพแทนปุ่มก็ได้เช่นกัน</p>
-    <h3>ตัด/เจาะ/รวมสองชิ้นเป็นก้อนเดียว</h3>
-    <p>กด "ตัด/รวม 2 ชิ้น" แล้วคลิกวัตถุฐานก่อน ตามด้วยวัตถุที่จะใช้ตัด/รวม ระบบจะถามว่าจะลบส่วนที่ทับซ้อนออก (ตัด/เจาะรู) หรือรวมเป็นก้อนเดียว (union, สำคัญสำหรับพิมพ์ 3D ที่ต้องการชิ้นทึบชิ้นเดียว) ใช้ได้เฉพาะวัตถุที่เป็นเรขาคณิตชิ้นเดียวภายใน (โมเดลนำเข้าส่วนใหญ่เป็นแบบนี้อยู่แล้ว)</p>
-    <h3>ลดความละเอียด (โพลีกอน) สำหรับเอาไปใช้ในเกม</h3>
-    <p>โมเดลที่สแกนมามักมีรายละเอียดเยอะเกินไปสำหรับเกม เลื่อนแถบ "ลดความละเอียด" ในกล่องวัตถุที่เลือกเพื่อลดจำนวนสามเหลี่ยมโดยรักษารูปทรงไว้ ปรับกลับไป 100% ได้เสมอเพราะระบบเก็บต้นฉบับไว้ให้</p>
-    <h3>ส่งออกไปใช้งานต่อ</h3>
-    <p>ปุ่ม ".glb" ในกล่องวัตถุที่เลือก เอาไปใช้ในโปรแกรมทำเกมได้เลย (แนะนำ <b>Godot</b> ฟรี 100% หรือ Unity) ปุ่ม ".stl" (หรือ "รวม .stl ทั้งผัง" เพื่อรวมทุกชิ้นเป็นไฟล์เดียว) เอาไปเปิดในโปรแกรม slicer อย่าง <b>PrusaSlicer</b>/<b>Cura</b> (ฟรี มีระบบซ่อมโมเดลอัตโนมัติในตัวถ้าไฟล์สแกนมีรูรั่ว) ก่อนพิมพ์ 3D จริง</p>
-    <h3>ดูตัวจริงผ่าน AR</h3>
-    <p>ถ้าอุปกรณ์รองรับ (ส่วนใหญ่คือ Android ที่รองรับ ARCore) จะมีปุ่ม "ดูใน AR" ขึ้นในแถบเครื่องมือ กดแล้วเปิดกล้องวางโมเดลที่ปรับขนาดแล้วซ้อนในพื้นที่จริงได้ ช่วยเช็คขนาดก่อนสั่งพิมพ์จริง</p>
-    <h3>Snap คืออะไร</h3>
-    <p>เมื่อเปิด Snap ไว้ ตำแหน่งวัตถุจะถูกปัดให้ลงกริดทีละ 0.5 เมตรเสมอ ช่วยให้จัดวางเป็นแนวตรง/ชิดผนังได้ง่ายขึ้น ปิดได้ถ้าต้องการขยับละเอียดกว่านั้น</p>
-    <h3>ทำไมของสำเร็จรูปเป็นทรงเรขาคณิตพื้นฐาน</h3>
-    <p>วัตถุในคลังสำเร็จรูปสร้างจากทรงพื้นฐาน (กล่อง/ทรงกระบอก/กรวย) ในโค้ดล้วนๆ เพื่อให้เว็บโหลดเร็ว ไม่ต้องพึ่งพาแหล่งข้อมูลอื่น และแก้ไขสี/ขนาดได้อิสระ — สัดส่วนเป็นค่าประมาณ ไม่ใช่ขนาดจริงตามมาตรฐานสินค้า</p>
-  </div>
-</details>
-
-<p class="disc">เป็นเครื่องมือร่างผัง/สเก็ตช์คร่าวๆ ไม่ใช่ซอฟต์แวร์ออกแบบงานก่อสร้างมืออาชีพหรือโปรแกรมแต่งโมเดล 3D เต็มรูปแบบ ขนาด/สัดส่วนเป็นค่าประมาณ ไม่ควรใช้แทนแบบก่อสร้างจริงหรือแบบที่ต้องใช้ยื่นขออนุญาต · ตำแหน่ง/ขนาดที่จัดไว้เก็บในเครื่องคุณเท่านั้น (localStorage) ไฟล์โมเดลที่อัปโหลดเก็บในเครื่องเช่นกัน (IndexedDB) ไม่ถูกอัปโหลดขึ้นที่ไหน</p>
-
-</div>
-
-<div class="s3-modal-backdrop" id="s3ModalBackdrop">
-  <div class="s3-modal" id="s3Modal" role="dialog" aria-modal="true">
-    <div class="s3-modal-title" id="s3ModalTitle"></div>
-    <div class="s3-modal-msg" id="s3ModalMsg"></div>
-    <div class="s3-modal-btns" id="s3ModalBtns"></div>
-  </div>
-</div>
+<dialog class="dialog" id="s3Modal" aria-labelledby="s3ModalTitle">
+  <div class="dialog-head"><h2 id="s3ModalTitle"></h2></div>
+  <div class="dialog-body" id="s3ModalMsg"></div>
+  <div class="dialog-foot" id="s3ModalBtns"></div>
+</dialog>
 
 <script src="vendor/gsap.min.js"></script>
 <script type="importmap">
 {"imports":{"three":"./vendor/three/three.module.min.js","three/addons/":"./vendor/three/jsm/"}}
 </script>
 <script type="module" src="sim-objects.js"></script>
+<script>
+/* วิวพอร์ต 3D ยืดตามพื้นที่ที่เหลือ — เมื่อกล่องเปลี่ยนขนาด ให้ sim-objects.js วัดและวาดใหม่ผ่าน resize ปกติ */
+(function () {
+  var vp = document.getElementById('s3Viewport');
+  if (vp && window.ResizeObserver) new ResizeObserver(function () { window.dispatchEvent(new Event('resize')); }).observe(vp);
+})();
+</script>
 </body>
 </html>

@@ -1360,7 +1360,7 @@
     if (!state.constraints.length) { constraintsList.innerHTML = '<div class="cad-props-note">' + t('constraintEmpty') + '</div>'; return; }
     constraintsList.innerHTML = state.constraints.map(function (c) {
       return '<div class="cad-layer-row" data-cid="' + c.id + '"><span style="flex:1">' + constraintRowLabel(c) + '</span>' +
-        '<button type="button" class="cad-layer-icon" data-act="delcon">🗑️</button></div>';
+        '<button type="button" class="cad-layer-icon" data-act="delcon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg></button></div>';
     }).join('');
     Array.prototype.forEach.call(constraintsList.querySelectorAll('[data-act="delcon"]'), function (btn) {
       btn.addEventListener('click', function () {
