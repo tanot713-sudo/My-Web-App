@@ -1135,6 +1135,124 @@
   };
   window.addEventListener('load', function () { flushOutbox(); updatePending(); });
 
+  /* ══════════ แท็บปฏิทิน PM + compliance ══════════ */
+  TABS.push({ id: 'calendar', label: 'ปฏิทิน PM', icon: 'calendar-clock' });
+  var calMonth = today().slice(0, 7);
+  var calToken = 0;
+
+  function stateBadge(st, daysLate) {
+    return '<span class="badge ' + (STATE_BADGE[st] || '') + '">' + STATE_LABEL[st] + (st === 'overdue' && daysLate ? ' ' + num(daysLate) + ' วัน' : '') + '</span>';
+  }
+  function calRow(x, sn) {
+    var meta = [C.FREQ_LABEL[x.plan.freq], periodLabel(x.plan.freq, x.period)].filter(Boolean).join(' · ');
+    return '<div class="list-row" data-aid="' + esc(x.asset.id) + '" data-freq="' + x.plan.freq + '" data-period="' + esc(x.period) + '">' +
+      '<div class="grow"><div class="title">' + esc(x.asset.code) + ' · ' + esc(x.asset.name) + '</div><div class="meta">' + esc(meta) + '</div></div>' +
+      '<div class="end">' + stateBadge(x.state, x.daysLate) + '</div></div>';
+  }
+  function calGroup(title, items, sites, open, badgeCls) {
+    if (!items.length) return '';
+    var bySite = {}, order = [];
+    items.forEach(function (x) { if (!bySite[x.asset.site]) { bySite[x.asset.site] = []; order.push(x.asset.site); } bySite[x.asset.site].push(x); });
+    order.sort(function (a, b) { return siteName(a, sites) < siteName(b, sites) ? -1 : 1; });
+    return '<section class="card" data-group="' + esc(title) + '"><div class="card-head"><h2>' + esc(title) + '</h2><span class="badge ' + (badgeCls || '') + '">' + num(items.length) + '</span></div>' +
+      order.map(function (sid) {
+        var list = bySite[sid];
+        return '<details class="disclosure"' + (open && list.length <= 20 ? ' open' : '') + ' style="margin-top:8px"><summary>' + esc(siteName(sid, sites) || '—') + ' <span class="badge">' + num(list.length) + '</span></summary>' +
+          '<div class="disclosure-body"><div class="list">' + list.map(calRow).join('') + '</div></div></details>';
+      }).join('') + '</section>';
+  }
+  function monthItems(assets, plans, settings, done, month) {
+    var from = month + '-01', to = C.ymd(new Date(+month.slice(0, 4), +month.slice(5, 7), 0)), t = today(), out = [], byType = {};
+    plans.forEach(function (p) { (byType[p.type] = byType[p.type] || []).push(p); });
+    assets.forEach(function (a) {
+      if (a.status === 'retired') return;
+      (byType[a.type] || []).forEach(function (plan) {
+        if (plan.freq === 'Daily' || plan.freq === 'Weekly') return; // รายวัน/สัปดาห์: ดูที่กลุ่ม "ถึงกำหนด"
+        C.periods(a, plan, settings, from, to).forEach(function (p) {
+          var st = C.status(a, plan, p, done, t);
+          out.push({ asset: a, plan: plan, period: p, window: C.window(plan.freq, p), state: st, daysLate: st === 'overdue' ? C.daysBetween(C.window(plan.freq, p).end, t) : 0 });
+        });
+      });
+    });
+    out.sort(function (x, y) { return x.asset.code < y.asset.code ? -1 : x.asset.code > y.asset.code ? 1 : C.FREQS.indexOf(x.plan.freq) - C.FREQS.indexOf(y.plan.freq); });
+    return out;
+  }
+  function pct(n, d) { return d ? Math.round(n * 1000 / d) / 10 + '%' : '—'; }
+
+  function renderCalendar() {
+    var token = ++calToken;
+    var assets = getAssets(), plans = getPlans(), settings = getSettings(), sites = getSites();
+    $('cMonth').value = calMonth;
+    var freqs = C.FREQS.filter(function (f) { return plans.some(function (p) { return p.freq === f; }); });
+    var bs = $('cSite').value, bf = $('cFreq').value;
+    $('cSite').innerHTML = sites.map(function (s) { return opt(s.id, s.name, s.id === bs); }).join('');
+    $('cFreq').innerHTML = freqs.map(function (f) { return opt(f, C.FREQ_LABEL[f], f === bf); }).join('');
+    $('cBatch').disabled = !sites.length || !freqs.length;
+    if (!assets.length || !plans.length) {
+      $('cKpi').innerHTML = '';
+      $('cBody').innerHTML = '<div class="empty">' + icon('calendar-clock') + '<p class="empty-title">' + (assets.length ? 'ยังไม่มีแผน PM' : 'ยังไม่มีอุปกรณ์') + '</p></div>';
+      $('cCompBody').innerHTML = '';
+      return;
+    }
+    loadAllInsp().then(function (docs) {
+      if (token !== calToken) return;
+      var done = C.doneIndex(docs), t = today();
+      var due = C.dueList({ assets: assets, plans: plans, settings: settings, done: done, today: t, ahead: 7 });
+      var g = { overdue: [], due: [], upcoming: [] };
+      due.forEach(function (x) { g[x.state].push(x); });
+      var mi = monthItems(assets, plans, settings, done, calMonth);
+      var yr = C.addMonths(t.slice(0, 7), -11) + '-01';
+      var comp = C.compliance({ assets: assets, plans: plans, settings: settings, done: done, from: yr, to: C.ymd(new Date(+t.slice(0, 4), +t.slice(5, 7), 0)), today: t }); // นับตามเดือนที่ช่วงรอบจบ → ถึงสิ้นเดือนนี้
+      var tot = comp.reduce(function (a, c) { a.due += c.due; a.onTime += c.onTime; a.late += c.late; a.missed += c.missed; return a; }, { due: 0, onTime: 0, late: 0, missed: 0 });
+      $('cKpi').innerHTML =
+        '<div class="kpi"><div class="kpi-label">ตรงเวลา 12 เดือน</div><div class="kpi-value" data-k="ontime">' + pct(tot.onTime, tot.due) + '</div></div>' +
+        '<div class="kpi"><div class="kpi-label">ทำช้า</div><div class="kpi-value" data-k="late">' + pct(tot.late, tot.due) + '</div></div>' +
+        '<div class="kpi"><div class="kpi-label">พลาด</div><div class="kpi-value dn" data-k="missed">' + pct(tot.missed, tot.due) + '</div></div>' +
+        '<div class="kpi"><div class="kpi-label">รอบที่ครบกำหนด</div><div class="kpi-value" data-k="due">' + num(tot.due) + '</div></div>';
+      $('cBody').innerHTML = calGroup('เลยกำหนด', g.overdue, sites, true, 'err') + calGroup('ถึงกำหนด', g.due, sites, true, 'accent') +
+        calGroup('ภายใน 7 วัน', g.upcoming, sites, false, '') + calGroup('ทั้งเดือน', mi, sites, false, '') ||
+        '<div class="empty">' + icon('circle-check') + '<p class="empty-title">ไม่มีงานค้าง</p></div>';
+      // compliance รายเดือน (รวมทุกสถานที่/ความถี่)
+      var byM = {};
+      comp.forEach(function (c) { var m = byM[c.month] || (byM[c.month] = { due: 0, onTime: 0, late: 0, missed: 0 }); m.due += c.due; m.onTime += c.onTime; m.late += c.late; m.missed += c.missed; });
+      $('cCompBody').innerHTML = Object.keys(byM).length
+        ? '<div class="table-wrap"><table class="table right"><thead><tr><th>เดือน</th><th>ครบกำหนด</th><th>ตรงเวลา</th><th>ช้า</th><th>พลาด</th></tr></thead><tbody>' +
+          Object.keys(byM).sort().map(function (m) {
+            var x = byM[m];
+            return '<tr><td>' + esc(periodLabel('M1', m)) + '</td><td>' + num(x.due) + '</td><td>' + num(x.onTime) + ' (' + pct(x.onTime, x.due) + ')</td><td>' + num(x.late) + '</td><td>' + num(x.missed) + '</td></tr>';
+          }).join('') + '</tbody></table></div>'
+        : '<div class="empty"><p>ยังไม่มีรอบที่ครบกำหนด</p></div>';
+    });
+  }
+  renderers.calendar = renderCalendar;
+  $('cMonth').addEventListener('change', function () { if (this.value) { calMonth = this.value; renderCalendar(); } });
+  $('cBody').addEventListener('click', function (e) {
+    var row = e.target.closest('.list-row[data-aid]');
+    if (row) openInsp(row.getAttribute('data-aid'), row.getAttribute('data-freq'), row.getAttribute('data-period'));
+  });
+  $('cBatch').addEventListener('click', function () { if ($('cSite').value && $('cFreq').value) openBatch($('cSite').value, $('cFreq').value); });
+
+  /* ── ป้ายงานค้างในรายการอุปกรณ์ (เลยกำหนด/ถึงกำหนด + ใบสั่งงานที่เปิดอยู่) ── */
+  renderers.afterAssets = function (rows) {
+    if (!rows.length) return;
+    var token = ++badgeToken;
+    Promise.all([loadAllInsp(), renderers.openWoCounts ? renderers.openWoCounts() : Promise.resolve({})]).then(function (r) {
+      if (token !== badgeToken) return;
+      var due = C.dueList({ assets: rows, plans: getPlans(), settings: getSettings(), done: C.doneIndex(r[0]), today: today(), ahead: 0 }), by = {};
+      due.forEach(function (x) { var b = by[x.asset.id] || (by[x.asset.id] = { overdue: 0, due: 0 }); if (x.state === 'overdue') b.overdue++; else if (x.state === 'due') b.due++; });
+      rows.forEach(function (a) {
+        var el = document.querySelector('[data-badge="' + cssId(a.id) + '"]');
+        if (!el) return;
+        var b = by[a.id] || { overdue: 0, due: 0 }, wo = r[1][a.id] || 0, parts = [];
+        if (b.overdue) parts.push('<span class="badge err">เลยกำหนด ' + b.overdue + '</span>');
+        if (b.due) parts.push('<span class="badge accent">ถึงกำหนด ' + b.due + '</span>');
+        if (wo) parts.push('<span class="badge warn">ใบงาน ' + wo + '</span>');
+        if (parts.length) el.outerHTML = '<span data-badge="' + esc(a.id) + '" style="display:contents">' + parts.join('') + '</span>';
+      });
+    });
+  };
+  var badgeToken = 0;
+
   /* ── เริ่มต้น ── */
   function setOffline() { $('offBadge').hidden = navigator.onLine !== false; }
   window.addEventListener('online', setOffline);

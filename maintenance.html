@@ -153,6 +153,18 @@
           </details>
         </div>
       </section>
+      <section id="tab-calendar" role="tabpanel" aria-label="ปฏิทิน PM" hidden>
+        <div class="mnt-bar">
+          <input id="cMonth" class="input" type="month" aria-label="เดือน" style="width:auto">
+          <span class="grow"></span>
+          <select id="cSite" class="select" aria-label="สถานที่"></select>
+          <select id="cFreq" class="select" aria-label="ความถี่"></select>
+          <button class="btn primary" type="button" id="cBatch"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-clipboard-check"/></svg>ตรวจทั้งสถานที่</button>
+        </div>
+        <div class="kpi-grid" id="cKpi" style="margin-top:var(--ome-sp-3)"></div>
+        <div id="cBody" style="margin-top:var(--ome-sp-3)"></div>
+        <details class="disclosure" id="cComp" style="margin-top:var(--ome-sp-3)"><summary>Compliance รายเดือน</summary><div class="disclosure-body" id="cCompBody"></div></details>
+      </section>
       <!-- @tabs: แท็บอื่นเพิ่มตามขั้นงาน -->
     </div>
 

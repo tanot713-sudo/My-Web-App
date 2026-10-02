@@ -563,3 +563,80 @@ test.describe('หน้า maintenance.html', () => {
     await ctx.close();
   });
 });
+
+test.describe('ปฏิทิน PM + compliance', () => {
+  test.beforeEach(async ({ request }) => { await request.get(SRV + '/__reset'); });
+
+  function seedCal() {
+    if (sessionStorage.getItem('mnt-seeded')) return;
+    sessionStorage.setItem('mnt-seeded', '1');
+    const items = [{ id: 'i1', text: 'ตรวจราวจับ', kind: 'check' }];
+    localStorage.setItem('tanot:mnt:sites', JSON.stringify([{ id: 's1', name: 'RN05 บางซื่อ', abbr: 'RN05', updatedAt: 1 }, { id: 's2', name: 'สถานีกลาง', abbr: 'S02', updatedAt: 1 }]));
+    const mk = (id, code, site, ph) => ({ id, code, name: 'บันไดเลื่อน', type: 'ESC', system: 'E&M', site, phase: { M3: ph }, status: 'active', updatedAt: 1 });
+    localStorage.setItem('tanot:mnt:assets', JSON.stringify([mk('e1', 'RN05-ESC-01', 's1', 2), mk('e2', 'RN05-ESC-02', 's1', 1), mk('e3', 'RN05-ESC-03', 's1', 2), mk('e4', 'RN05-ESC-04', 's1', 1), mk('e5', 'S02-ESC-01', 's2', 2)]));
+    localStorage.setItem('tanot:mnt:plans', JSON.stringify([{ id: 'ESC|M3', type: 'ESC', typeName: 'บันไดเลื่อน', freq: 'M3', hours: 2, shift: '', edited: false, items, updatedAt: 1 }]));
+    localStorage.setItem('tanot:mnt:settings', JSON.stringify({ v: 1, startMonth: '2026-10', project: '', line: '', inspector: '', labelSize: '3x8' }));
+    localStorage.setItem('tanot:mnt:ui', JSON.stringify({ tab: 'calendar', status: 'active' }));
+  }
+
+  test('กลุ่มเลยกำหนด/ถึงกำหนด/ทั้งเดือน + ป้ายงานค้างในรายการอุปกรณ์ + ตรวจทั้งสถานที่ลงใบตรวจรอบเดียวกัน + compliance', async ({ browser }) => {
+    const ctx = await browser.newContext({ baseURL: SRV });
+    await ctx.addInitScript(() => { window.TANOT_NO_RELOAD_BAR = true; });
+    await ctx.addInitScript(seedCal);
+    const page = await ctx.newPage();
+    const errors = await prepare(page);
+    await page.clock.setFixedTime(NOW); // 2026-11-18 · M3 phase 1 = ต.ค. (เลยกำหนด) · phase 2 = พ.ย. (ถึงกำหนด)
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/maintenance.html');
+    await page.waitForSelector('#cBody .card');
+    // e3 ตรวจแล้วตรงเวลาของรอบ พ.ย.
+    await page.evaluate(() => window.__mnt.idbPut('tanot-mnt-2026', 'insp', { id: 's1|M3|2026-11|dx', site: 's1', freq: 'M3', period: '2026-11', dev: 'dx', by: 'ก', at: new Date('2026-11-10T10:00:00+07:00').getTime(),
+      rows: { e3: { start: 1, at: new Date('2026-11-10T10:00:00+07:00').getTime(), res: { i1: 'ok' }, note: '', photos: [], wo: null } } }));
+    await page.reload();
+    await page.waitForSelector('#cBody .card');
+    const grp = (n) => page.locator(`[data-group="${n}"] .list-row`);
+    await expect(grp('เลยกำหนด')).toHaveCount(2); // e2, e4 (ต.ค. จบไปแล้ว ไม่ได้ทำ)
+    await expect(grp('เลยกำหนด').first()).toContainText('เลยกำหนด 18 วัน');
+    await expect(grp('ถึงกำหนด')).toHaveCount(2); // e1, e5 (พ.ย.)
+    await expect(grp('ทั้งเดือน')).toHaveCount(3); // e1, e3 (ทำแล้ว), e5
+    await expect(page.locator('[data-group="ทั้งเดือน"]')).toContainText('ตรวจแล้ว');
+    // compliance 12 เดือน: ครบกำหนด 3 (e2,e4 พลาด + e3 ตรงเวลา)
+    await expect(page.locator('[data-k="due"]')).toHaveText('3');
+    await expect(page.locator('[data-k="ontime"]')).toHaveText('33.3%');
+    await expect(page.locator('[data-k="missed"]')).toHaveText('66.7%');
+
+    // ป้ายงานค้างในแท็บอุปกรณ์
+    await page.click('[data-tab="assets"]');
+    await expect(page.locator('#aList .list-row[data-id="e2"]')).toContainText('เลยกำหนด 1');
+    await expect(page.locator('#aList .list-row[data-id="e1"]')).toContainText('ถึงกำหนด 1');
+    await expect(page.locator('#aList .list-row[data-id="e3"]')).not.toContainText('กำหนด');
+
+    // ตรวจทั้งสถานที่ (s1 · M3): รอบเก่าสุด 2026-10 = e2, e4 → ลงใบตรวจรอบเดียวกัน
+    await page.click('[data-tab="calendar"]');
+    await page.selectOption('#cSite', 's1');
+    await page.selectOption('#cFreq', 'M3');
+    await page.click('#cBatch');
+    await expect(page.locator('#dlgInsp')).toHaveAttribute('open', '');
+    await expect(page.locator('#inspPos')).toHaveText('1 / 2');
+    await expect(page.locator('#inspPeriod')).toBeDisabled();
+    await expect(page.locator('#inspTitle')).toContainText('RN05-ESC-02');
+    await page.fill('#inspBy', 'สมชาย');
+    await page.click('[data-res="ok"][data-item="i1"]');
+    await page.click('#inspSave');
+    await expect(page.locator('#inspPos')).toHaveText('2 / 2');
+    await expect(page.locator('#inspTitle')).toContainText('RN05-ESC-04');
+    await page.click('[data-res="ng"][data-item="i1"]');
+    await page.click('#inspSave');
+    await expect(page.locator('#dlgInsp')).not.toHaveAttribute('open', '');
+    const docs = await idbAll(page, 'tanot-mnt-2026', 'insp');
+    const mine = docs.filter((d) => d.dev !== 'dx');
+    expect(mine).toHaveLength(1);
+    expect(mine[0].period).toBe('2026-10');
+    expect(Object.keys(mine[0].rows).sort()).toEqual(['e2', 'e4']);
+    await expect(page.locator('[data-group="เลยกำหนด"]')).toHaveCount(0); // ทำช้าแล้ว = หายจากงานค้าง
+    await expect(page.locator('[data-k="late"]')).toHaveText('66.7%');
+    await expect(page.locator('[data-k="missed"]')).toHaveText('0%');
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
+});
