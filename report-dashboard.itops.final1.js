@@ -3,6 +3,7 @@
 */
 (function(){
   'use strict';
+  function P(){return window.TanotReportUtils.palette();}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -98,33 +99,32 @@
     if(q('#it1-css'))return;
     var s=document.createElement('style');s.id='it1-css';s.textContent=`
 #itControlLayout{display:flex;flex-direction:column;gap:12px;margin-top:14px}
-#itControlLayout .it-hero{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--sh)}
-#itControlLayout .it-hero h2{font-size:16px;margin:0}
-#itControlLayout .it-hero .it-sub{font-size:12px;color:var(--muted);margin-top:3px}
+#itControlLayout .it-hero{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:15px 16px;box-shadow:var(--ome-shadow-1)}
+#itControlLayout .it-hero h2{font-size:var(--ome-fs-md);margin:0}
+#itControlLayout .it-hero .it-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px}
 #itControlLayout .it-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-#itControlLayout .it-kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;box-shadow:var(--sh);position:relative}
-#itControlLayout .it-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:4px;background:var(--ok)}
-#itControlLayout .it-kpi.warn:after{background:var(--warn)}#itControlLayout .it-kpi.bad:after{background:var(--err)}
-#itControlLayout .it-kpi .l{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-#itControlLayout .it-kpi .v{font-size:24px;font-weight:850;margin-top:4px;color:var(--ink)}
-#itControlLayout .it-kpi.warn .v{color:#B8720A}#itControlLayout .it-kpi.bad .v{color:var(--err)}
-#itControlLayout .it-kpi .s{font-size:9.5px;color:var(--muted);margin-top:4px}
-#itControlLayout .it-panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px;box-shadow:var(--sh)}
-#itControlLayout .it-panel h3{font-size:13px;margin:0 0 3px;font-weight:850}
-#itControlLayout .it-note{font-size:9.5px;color:var(--muted);margin-bottom:7px}
+#itControlLayout .it-kpi{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px 13px;box-shadow:var(--ome-shadow-1);position:relative}
+#itControlLayout .it-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:var(--ome-radius-sm);background:var(--ome-ok)}
+#itControlLayout .it-kpi.warn:after{background:var(--ome-warn)}#itControlLayout .it-kpi.bad:after{background:var(--ome-err)}
+#itControlLayout .it-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
+#itControlLayout .it-kpi .v{font-size:var(--ome-fs-2xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
+#itControlLayout .it-kpi.warn .v{color:var(--ome-warn-ink)}#itControlLayout .it-kpi.bad .v{color:var(--ome-err)}
+#itControlLayout .it-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
+#itControlLayout .it-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
+#itControlLayout .it-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
 #itControlLayout .it-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
 #itControlLayout .it-grid>.half{grid-column:span 6}#itControlLayout .it-grid>.full{grid-column:1/-1}
-#itControlLayout .it-insight{border-left:3px solid var(--ok);padding:10px 13px;font-size:12px;color:var(--ink)}
+#itControlLayout .it-insight{border-left:3px solid var(--ome-ok);padding:10px 13px;font-size:var(--ome-fs-xs);color:var(--ome-text-1)}
 #itControlLayout .it-status-row{display:flex;flex-direction:column;gap:8px}
-#itControlLayout .it-status-item{display:grid;grid-template-columns:96px 1fr 30px;align-items:center;gap:9px;font-size:11px}
+#itControlLayout .it-status-item{display:grid;grid-template-columns:96px 1fr 30px;align-items:center;gap:9px;font-size:var(--ome-fs-xs)}
 #itControlLayout .it-status-item .lab{display:flex;align-items:center;gap:6px;font-weight:700}
 #itControlLayout .it-status-item i{width:8px;height:8px;border-radius:50%;display:inline-block}
-#itControlLayout .it-track{height:7px;border-radius:6px;background:#eef1f4;overflow:hidden}
-#itControlLayout .it-track span{display:block;height:100%;border-radius:6px}
-#itControlLayout .it-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px}
+#itControlLayout .it-track{height:7px;border-radius:var(--ome-radius-sm);background:var(--ome-surface-2);overflow:hidden}
+#itControlLayout .it-track span{display:block;height:100%;border-radius:var(--ome-radius-sm)}
+#itControlLayout .it-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs)}
 #itControlLayout .it-list:last-child{border-bottom:none}
-#itControlLayout .it-list .age{font-weight:800;color:var(--err)}
-#itControlLayout .it-empty{padding:24px 8px;text-align:center;color:var(--muted);font-size:11px}
+#itControlLayout .it-list .age{font-weight:700;color:var(--ome-err)}
+#itControlLayout .it-empty{padding:24px 8px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
 #itControlLayout .it-trend-scroll{overflow-x:auto}
 #itControlLayout.it-override-hidden{display:none!important}
 .it-hidden-source{display:none!important}
@@ -152,16 +152,15 @@
     if(layout.getAttribute('data-built')==='1')return true;
     layout.setAttribute('data-built','1');
     layout.innerHTML=
-      '<section class="it-hero"><h2>🖥 IT / DevOps Control</h2><div class="it-sub" id="itUpdated">ภาพรวม Ticket, เวลาแก้ไขปัญหา และความสำคัญของงาน</div></section>'+
+      '<section class="it-hero"><h2>IT / DevOps Control</h2><div class="it-sub" id="itUpdated"></div></section>'+
       '<div class="it-kpis" id="itKpis"></div>'+
       '<section class="it-panel"><h3>Executive Insight</h3><div id="itInsight" class="it-insight"></div></section>'+
       '<div class="it-grid">'+
-        '<section class="it-panel full"><h3>Ticket เปิด vs ปิดรายเดือน</h3><div class="it-note">Opened vs Closed</div><div id="itTrend"></div></section>'+
-        '<section class="it-panel half"><h3>Ticket แยกตามระบบ</h3><div class="it-note">จำนวนต่อระบบ/บริการ</div><div id="itBySystem"></div></section>'+
-        '<section class="it-panel half"><h3>สัดส่วนตาม Priority</h3><div class="it-note">Critical / High / Medium / Low</div><div id="itPriority"></div></section>'+
-        '<section class="it-panel full"><h3>⚠ Ticket ค้างนานสุด</h3><div class="it-note">เรียงตามอายุ Ticket (วัน)</div><div id="itOldest"></div></section>'+
-      '</div>'+
-      '<div class="mini" style="font-size:9px;color:var(--muted)">ตรวจพบจากคอลัมน์ วันที่แจ้ง + ระบบ/ความสำคัญ ในไฟล์ที่อัปโหลด — Table ด้านล่างไม่ถูกแก้ไข</div>';
+        '<section class="it-panel full"><h3>Ticket เปิด vs ปิดรายเดือน</h3><div id="itTrend"></div></section>'+
+        '<section class="it-panel half"><h3>Ticket แยกตามระบบ</h3><div id="itBySystem"></div></section>'+
+        '<section class="it-panel half"><h3>สัดส่วนตาม Priority</h3><div id="itPriority"></div></section>'+
+        '<section class="it-panel full"><h3>Ticket ค้างนานสุด</h3><div id="itOldest"></div></section>'+
+      '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('it-hidden-source');
     });
@@ -194,20 +193,20 @@
     var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:'+w+'px;height:'+h+'px">';
     for(var t=0;t<=4;t++){
       var val=maxV*t/4, y=top+ph-ph*t/4;
-      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edf1" stroke-width="1"/>';
-      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#8a97a3">'+Math.round(val)+'</text>';
+      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="'+P().grid+'" stroke-width="1"/>';
+      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="'+P().faint+'">'+Math.round(val)+'</text>';
     }
     var stepX=pw/(keys.length-1||1);
-    [['open','#DC2626'],['close','#16A34A']].forEach(function(cat){
+    [['open',P().err],['close',P().ok]].forEach(function(cat){
       var pts=keys.map(function(k,i){var v=byMonth[k][cat[0]]; return (left+stepX*i)+','+(top+ph-ph*v/maxV);});
       out+='<path d="M'+pts.join(' L')+'" fill="none" stroke="'+cat[1]+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
-      keys.forEach(function(k,i){var v=byMonth[k][cat[0]]; out+='<circle cx="'+(left+stepX*i)+'" cy="'+(top+ph-ph*v/maxV)+'" r="3" fill="'+cat[1]+'" stroke="#fff" stroke-width="1.2"/>';});
+      keys.forEach(function(k,i){var v=byMonth[k][cat[0]]; out+='<circle cx="'+(left+stepX*i)+'" cy="'+(top+ph-ph*v/maxV)+'" r="3" fill="'+cat[1]+'" stroke="'+P().surface1+'" stroke-width="1.2"/>';});
     });
     keys.forEach(function(k,i){
-      out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="#8a97a3">'+k+'</text>';
+      out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>';
     });
     out+='</svg>';
-    host.innerHTML='<div class="it-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;font-size:10.5px;color:var(--muted);margin-top:4px"><span>● <span style="color:#DC2626">Opened</span></span><span>● <span style="color:#16A34A">Closed</span></span></div>';
+    host.innerHTML='<div class="it-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style=\"color:'+P().err+'\">● Opened</span><span style=\"color:'+P().okInk+'\">● Closed</span></div>';
   }
 
   function renderBySystem(rows){
@@ -220,10 +219,10 @@
     var out=svgOpen(w,h);
     entries.forEach(function(e,i){
       var y=10+i*rowH, bw=Math.max(2,barW*e[1]/maxV);
-      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="#374151"><title>'+esc(e[0])+'</title>'+esc(e[0].length>16?e[0].slice(0,15)+'…':e[0])+'</text>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="#EEF1F4"/>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="16" rx="4" fill="#0EA5E9"/>';
-      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10.5" font-weight="700" fill="#172033">'+e[1]+'</text>';
+      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="'+P().text+'"><title>'+esc(e[0])+'</title>'+esc(e[0].length>16?e[0].slice(0,15)+'…':e[0])+'</text>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="'+P().surface2+'"/>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="16" rx="4" fill="'+P().series[0]+'"/>';
+      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10.5" font-weight="700" fill="'+P().text+'">'+e[1]+'</text>';
     });
     out+='</svg>';
     host.innerHTML=out;
@@ -234,7 +233,7 @@
     var counts={critical:0,high:0,medium:0,low:0,unknown:0};
     rows.forEach(function(r){counts[priorityBucket(r.priority)]++;});
     var total=Math.max(1,rows.length);
-    var vals=[['critical','Critical',counts.critical,'#DC2626'],['high','High',counts.high,'#F59E0B'],['medium','Medium',counts.medium+counts.unknown,'#0EA5E9'],['low','Low',counts.low,'#94A3B8']];
+    var vals=[['critical','Critical',counts.critical,P().err],['high','High',counts.high,P().warn],['medium','Medium',counts.medium+counts.unknown,P().series[2]],['low','Low',counts.low,P().faint]];
     var out='<div class="it-status-row">';
     vals.forEach(function(v){
       var pct=(v[2]/total*100).toFixed(0);
@@ -271,7 +270,7 @@
     var layout=injectLayout(); if(!layout)return;
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
-    layout.innerHTML='<section class="it-panel"><h3>🖥 IT / DevOps Control</h3>'+
+    layout.innerHTML='<section class="it-panel"><h3>IT / DevOps Control</h3>'+
       '<div class="it-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่าย Ticket log (ต้องมีคอลัมน์วันที่แจ้ง '+
       'และอย่างน้อยหนึ่งใน ระบบ/ความสำคัญ/เลขที่ Ticket) — ลองเลือก Template เป็น "Auto" '+
       'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
@@ -333,6 +332,7 @@
 
   function init(){
     injectCSS();
+    window.TanotReportUtils.onTheme(schedule);
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;
