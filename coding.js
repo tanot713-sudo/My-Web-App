@@ -887,7 +887,7 @@ function setUILang(l) { try { localStorage.setItem(UI_LANG_KEY, l); } catch (e) 
 var I18N = {
   th: {
     pageTitle: 'การเขียนโค้ด', crumbResp: 'งานที่รับผิดชอบ', crumbCoding: 'การเขียนโค้ด',
-    conceptLabel: 'คำอธิบาย', runBtn: '▶ รัน', running: 'กำลังรัน…',
+    conceptLabel: 'คำอธิบาย', runBtn: 'รัน', running: 'กำลังรัน…',
     outputLabel: 'ผลลัพธ์ (console.log)', previewLabel: 'พรีวิว', testsLabel: 'ผลตรวจ',
     noOutput: '(ยังไม่มีผลลัพธ์ — ลองกดรันดู)', timeoutMsg: 'โค้ดรันนานเกินไป (อาจมีลูปไม่รู้จบ) — ระบบหยุดให้แล้ว ลองตรวจสอบเงื่อนไขการวนซ้ำดูอีกครั้ง',
     allPassed: 'ผ่านหมดทุกข้อ! ปลดล็อกข้อถัดไปแล้ว', notAllPassed: 'ยังไม่ผ่านครบทุกข้อ ลองแก้โค้ดแล้วรันใหม่อีกครั้ง',
@@ -900,7 +900,7 @@ var I18N = {
   },
   en: {
     pageTitle: 'Coding', crumbResp: 'Responsibilities', crumbCoding: 'Coding',
-    conceptLabel: 'Explanation', runBtn: '▶ Run', running: 'Running…',
+    conceptLabel: 'Explanation', runBtn: 'Run', running: 'Running…',
     outputLabel: 'Output (console.log)', previewLabel: 'Preview', testsLabel: 'Test Results',
     noOutput: '(No output yet — try clicking Run)', timeoutMsg: 'Your code took too long to run (possibly an infinite loop) — it was stopped automatically. Check your loop condition.',
     allPassed: 'All tests passed! Next exercise unlocked.', notAllPassed: "Not all tests passed yet — fix your code and run again.",
@@ -1081,7 +1081,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
         var b = document.createElement('div');
         b.className = 'cx-badge' + (earned.indexOf(def.id) !== -1 ? ' earned' : '');
         b.textContent = def.icon;
-        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : ' 🔒');
+        b.title = badgeLabel(def);
         badgeRowEl.appendChild(b);
       });
     }
@@ -1102,7 +1102,12 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
     var item = toastQueueState.shift();
     var el = document.createElement('div');
     el.className = 'cx-toast';
-    el.textContent = item.icon + ' ' + item.text;
+    if (item.icon === '⭐') {
+      el.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-star"/></svg>';
+      el.appendChild(document.createTextNode(item.text));
+    } else {
+      el.textContent = item.icon + ' ' + item.text;
+    }
     if (toastWrap) toastWrap.appendChild(el);
     setTimeout(function () {
       el.classList.add('leaving');
@@ -1111,7 +1116,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
   }
 
   /* confetti — ก็อปแพทเทิร์นจาก typing.js (spawnConfetti) ปรับสีให้เข้าธีมฟ้า-ฟ้าอมเขียวของหน้านี้ */
-  var CONFETTI_COLORS = ['#2563EB', '#06B6D4', '#17B76A', '#F5A524', '#EC4899'];
+  var CONFETTI_COLORS = ['var(--ome-chart-1)', 'var(--ome-chart-2)', 'var(--ome-chart-3)', 'var(--ome-chart-4)', 'var(--ome-chart-5)'];
   function spawnConfetti() {
     if (!confettiLayer) return;
     confettiLayer.innerHTML = '';
@@ -1223,7 +1228,8 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
       var item = document.createElement('button');
       item.type = 'button';
       item.className = 'cx-item' + (idx === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
-      item.textContent = (passed ? '✅ ' : unlocked ? '' : '🔒 ') + (idx) + '. ' + ex.title;
+      if (passed || !unlocked) item.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + (passed ? 'circle-check' : 'lock') + '"/></svg>';
+      item.appendChild(document.createTextNode((idx) + '. ' + ex.title));
       item.addEventListener('click', function () {
         if (unlocked) selectItem(idx);
         else showLockMsg();
@@ -1359,7 +1365,8 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
     results.forEach(function (r) {
       var row = document.createElement('div');
       row.className = 'cx-test-row ' + (r.pass ? 'pass' : 'fail');
-      row.textContent = (r.pass ? '✔ ' : '✘ ') + r.label;
+      row.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + (r.pass ? 'circle-check' : 'circle-x') + '"/></svg>';
+      row.appendChild(document.createTextNode(r.label));
       testsList.appendChild(row);
     });
   }

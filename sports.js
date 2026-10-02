@@ -1837,7 +1837,7 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
         var b = document.createElement('div');
         b.className = 'sp-badge' + (earned.indexOf(def.id) !== -1 ? ' earned' : '');
         b.textContent = def.icon;
-        b.title = badgeLabel(def) + (earned.indexOf(def.id) !== -1 ? '' : ' 🔒');
+        b.title = badgeLabel(def);
         badgeRowEl.appendChild(b);
       });
     }
@@ -1856,7 +1856,12 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
     var item = toastQueueState.shift();
     var el = document.createElement('div');
     el.className = 'sp-toast';
-    el.textContent = item.icon + ' ' + item.text;
+    if (item.icon === '⭐') {
+      el.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-star"/></svg>';
+      el.appendChild(document.createTextNode(item.text));
+    } else {
+      el.textContent = item.icon + ' ' + item.text;
+    }
     if (toastWrap) toastWrap.appendChild(el);
     setTimeout(function () {
       el.classList.add('leaving');
@@ -1864,7 +1869,7 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
     }, 2200);
   }
 
-  var CONFETTI_COLORS = ['#16A34A', '#F97316', '#17B76A', '#F5A524', '#3B9BEA'];
+  var CONFETTI_COLORS = ['var(--ome-chart-1)', 'var(--ome-chart-2)', 'var(--ome-chart-3)', 'var(--ome-chart-4)', 'var(--ome-chart-5)'];
   function spawnConfetti() {
     if (!confettiLayer) return;
     confettiLayer.innerHTML = '';
@@ -1967,7 +1972,9 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'sp-item' + (i === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
-      btn.textContent = (passed ? '✅ ' : unlocked ? '📖 ' : '🔒 ') + itemLabel(track, item);
+      btn.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' +
+        (passed ? 'circle-check' : unlocked ? 'book-open' : 'lock') + '"/></svg>';
+      btn.appendChild(document.createTextNode(itemLabel(track, item)));
       btn.addEventListener('click', function () {
         if (unlocked) selectItem(i);
         else showLockMsg();
