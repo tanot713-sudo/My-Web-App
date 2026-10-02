@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v577';
+const CACHE = 'ome-v578';
 const PRECACHE = [
   './',
   './index.html',
@@ -20,6 +20,10 @@ const PRECACHE = [
   './soon.html',
   './classroom-law.html',
   './classroom-law.js',
+  './fsrs.js',
+  './learn-core.js',
+  './review.html',
+  './review.js',
   './bar-prep.html',
   './classroom-business.html',
   './classroom-engineering.html',

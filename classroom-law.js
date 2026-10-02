@@ -2376,55 +2376,9 @@
     var n = dueNotes().length;
     $('bpReviewCount').textContent = n ? ' — วันนี้มี ' + n + ' การ์ดที่ถึงกำหนดทบทวน' : ' — วันนี้ไม่มีการ์ดค้างทบทวน';
   }
-  /* ══════════════════ ตารางทบทวน — โมเดล FSRS (Free Spaced Repetition Scheduler) ══════════════════
-     แทนขั้นบันไดตายตัวเดิม ([1,3,7,14,30] วัน) ด้วยโมเดล stability (ความเสถียรของความจำ หน่วยเป็นวัน)
-     + difficulty (ความยากของการ์ด 1=ง่ายสุด, 10=ยากสุด) ต่อการ์ด และคำนวณช่วงเวลาทบทวนถัดไปจาก
-     "retrievability" ตามสูตร forgetting curve จริงของ FSRS: R(t,S) = (1 + t/(9·S))⁻¹
-     ตั้งเป้าความจำ (desired retention) ไว้ที่ 90% ซึ่งพอดีทำให้ interval (วัน) = stability พอดี
-     (แก้สมการ R(t,S)=0.9 หา t จะได้ t = 9·S·(1/0.9 − 1) = S) — สูตรอัปเดต stability/difficulty
-     ด้านล่างเป็นสูตรแบบย่อที่ออกแบบให้ทำงานถูกต้องและตอบสนองตามความยาก/คะแนนจริงที่ให้ ไม่ใช่การอ้างว่า
-     ตรงกับค่าพารามิเตอร์ต้นฉบับที่ทีม FSRS optimize มาจากข้อมูลรีวิวนับล้านครั้งใน Anki 100%
-     (ของจริงต้องมีข้อมูลสะสมจำนวนมากมาปรับพารามิเตอร์เฉพาะผู้ใช้) แต่ยังคงกลไกหลักของ FSRS ไว้ครบ:
-     ประเมิน stability/difficulty แยกต่อการ์ด และคำนวณช่วงทบทวนจากกราฟลืมจริงแทนขั้นบันไดคงที่เดิม */
-  var FSRS_RETENTION = 0.9;
-  var FSRS_RATING_LABEL = { 1: 'Again (ลืมสนิท)', 2: 'Hard (จำได้ยาก)', 3: 'Good (จำได้)', 4: 'Easy (จำง่ายมาก)' };
-  function fsrsRetrievability(elapsedDays, stability) {
-    if (!stability || stability <= 0) return 0;
-    return Math.pow(1 + elapsedDays / (9 * stability), -1);
-  }
-  /* คำนวณค่า stability/difficulty ใหม่ของการ์ด n หลังตอบด้วย rating (1-4) แล้วคืนค่าฟิลด์ที่อัปเดต */
-  function fsrsSchedule(n, rating) {
-    var now = Date.now();
-    var difficulty = n.difficulty == null ? 5 : n.difficulty;
-    var stability = n.stability;
-    if (stability == null) {
-      /* การ์ดใหม่ (หรือการ์ดเก่าจากระบบขั้นบันไดที่ยังไม่เคยผ่าน FSRS) — ตั้งค่าเริ่มต้นตามคะแนนแรก */
-      var initStability = { 1: 0.5, 2: 1, 3: 3, 4: 7 };
-      stability = initStability[rating];
-      difficulty = 5 - (rating - 3); // Again→6, Hard→5.5(ปัด), Good→5, Easy→4 (เก็บช่วง 1-10)
-    } else {
-      var elapsedDays = Math.max((now - (n.lastReview || now)) / DAY_MS, 0);
-      var r = fsrsRetrievability(elapsedDays, stability);
-      if (rating === 1) {
-        /* ลืม (lapse) — stability หดตัวลง ยิ่งการ์ดยากยิ่งหดมาก ห้ามต่ำกว่า 0.5 วัน */
-        stability = Math.max(stability * 0.5 * (1 - difficulty / 20), 0.5);
-        difficulty += 1;
-      } else {
-        var ratingMul = { 2: 0.5, 3: 1, 4: 1.6 }[rating];
-        /* ยิ่งตอบตอนใกล้ลืม (retrievability ต่ำ) ยิ่งได้ผลตอกย้ำความจำมาก (spacing effect) การ์ดง่ายโตเร็วกว่า */
-        var growth = 1 + ((11 - difficulty) / 10) * (1 - r) * ratingMul;
-        stability = stability * Math.max(growth, 1.05);
-        difficulty += (rating - 3) * -0.5;
-      }
-    }
-    difficulty = Math.min(Math.max(difficulty, 1), 10);
-    var intervalDays = 9 * stability * (1 / FSRS_RETENTION - 1); // = stability พอดีที่ retention 90%
-    return {
-      stability: stability, difficulty: difficulty,
-      reps: (n.reps || 0) + (rating > 1 ? 1 : 0), lapses: (n.lapses || 0) + (rating === 1 ? 1 : 0),
-      lastReview: now, dueAt: now + Math.max(intervalDays, 1 / 24) * DAY_MS, srsIdx: rating === 1 ? -1 : (n.srsIdx || 0) + 1
-    };
-  }
+  /* ══════════════════ ตารางทบทวน — โมเดล FSRS ══════════════════
+     ตัวคำนวณอยู่ใน fsrs.js (ไฟล์กลาง ใช้ร่วมกับหน้าภาษาและหน้าทบทวนวันนี้) — ชื่อฟังก์ชันเดิมคงไว้ให้โค้ดส่วนอื่นเรียกได้เหมือนเดิม */
+  function fsrsSchedule(n, rating) { return window.TanotFSRS.schedule(n, rating); }
   var reviewQueue = [], reviewIdx = 0;
   function startReview() {
     reviewQueue = dueNotes();
@@ -2442,8 +2396,7 @@
     var n = reviewQueue[reviewIdx];
     area.innerHTML =
       '<div class="flash-card" id="bpFlashCard"><div class="q">' + esc(n.q) + '</div>' +
-      '<div class="a">' + esc(n.a || '(ไม่มีเนื้อหาเพิ่มเติม)') + '</div>' +
-      '<div class="hint">แตะการ์ดเพื่อดูคำตอบ แล้วให้คะแนนความจำตามจริง</div></div>' +
+      '<div class="a">' + esc(n.a || '(ไม่มีเนื้อหาเพิ่มเติม)') + '</div></div>' +
       '<div class="flash-btns">' +
         '<button class="btn sm fsrs-again" id="bpFlashAgain" type="button">Again</button>' +
         '<button class="btn sm fsrs-hard" id="bpFlashHard" type="button">Hard</button>' +
@@ -2467,6 +2420,7 @@
       rec.lapses = upd.lapses; rec.lastReview = upd.lastReview; rec.dueAt = upd.dueAt; rec.srsIdx = upd.srsIdx;
       saveNotes(notes);
       logActivity('review');
+      if (window.LearnCore) window.LearnCore.award('law', window.LearnCore.XP_PER_REVIEW);
     }
     reviewIdx++;
     renderReviewCard();

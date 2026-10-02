@@ -69,8 +69,9 @@
 
     <script id="course-data" type="application/json">{"engineering": [{"id": "civil-eng", "title": "วิศวกรรมโยธา"}, {"id": "electrical-eng", "title": "วิศวกรรมไฟฟ้า"}, {"id": "mechanical-eng", "title": "วิศวกรรมเครื่องกล"}, {"id": "industrial-eng", "title": "วิศวกรรมอุตสาหการ"}, {"id": "chemical-eng", "title": "วิศวกรรมเคมี"}, {"id": "computer-eng", "title": "วิศวกรรมคอมพิวเตอร์"}, {"id": "telecom-eng", "title": "วิศวกรรมโทรคมนาคม"}, {"id": "environmental-eng", "title": "วิศวกรรมสิ่งแวดล้อม"}, {"id": "automotive-eng", "title": "วิศวกรรมยานยนต์"}, {"id": "aerospace-eng", "title": "วิศวกรรมการบินและอวกาศ"}, {"id": "mining-eng", "title": "วิศวกรรมเหมืองแร่"}, {"id": "petroleum-eng", "title": "วิศวกรรมปิโตรเลียม"}, {"id": "biomedical-eng", "title": "วิศวกรรมชีวการแพทย์"}]}</script>
 
+    <script src="learn-core.js"></script>
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect, useMemo, useRef } = React;
         const COURSE = JSON.parse(document.getElementById('course-data').textContent);
 
         // ไอคอน lucide ต้องห่อใน span ที่ React เป็นเจ้าของ — ไม่งั้นตอน lucide แทนที่ <i> ด้วย <svg>
@@ -150,12 +151,6 @@
             });
             return out;
         }
-
-        const ANNOUNCEMENTS = [
-            { date: 'วันนี้', text: 'ใหม่! ระบบทบทวนแบบเว้นช่วง (spaced repetition) — ข้อที่ตอบผิดจะวนกลับมาถามซ้ำในจังหวะที่ช่วยให้จำได้ยาว ดูการ์ด "ทบทวนวันนี้" ด้านล่าง' },
-            { date: 'ใหม่', text: 'โหมดสอบรวม — สุ่มข้อสอบข้ามหลายหัวข้อ จับเวลา และเก็บสถิติคะแนนไว้ดูพัฒนาการ' },
-            { date: 'เคล็ดลับ', text: 'โน้ตรองรับ Markdown แล้ว: # หัวข้อ, **ตัวหนา**, *เอียง*, ==ไฮไลต์==, - รายการ — กด "ดูตัวอย่าง" ในแท็บโน้ตเพื่อดูผลลัพธ์' },
-        ];
 
         // ── คลังข้อสอบรวม (เฉพาะข้อที่มีเฉลย) ใช้ทั้งโหมดทบทวนและสอบรวม ─────────
         const QUESTION_BANK = [];
@@ -366,6 +361,16 @@
             const [notesQuery, setNotesQuery] = useState('');
 
             useEffect(() => { lucide.createIcons(); });
+            // XP กลาง (learn-core.js): ส่งเฉพาะส่วนที่เพิ่มจากการฝึกในหน้านี้ (ไม่นับตอนโหลดค่าเดิม/รวมค่าจาก Drive)
+            // ต้องอยู่ก่อน effect ที่บันทึก xp — ให้ learn-core ถ่ายยอดเดิมก่อนคีย์เดิมรวม XP ก้อนนี้
+            const xpPrevRef = useRef(xp);
+            const xpFromDriveRef = useRef(false);
+            useEffect(() => {
+                const gained = xp - xpPrevRef.current;
+                xpPrevRef.current = xp;
+                if (xpFromDriveRef.current) { xpFromDriveRef.current = false; return; }
+                if (gained > 0 && window.LearnCore) window.LearnCore.award('eng', gained);
+            }, [xp]);
             useEffect(() => { saveXp(xp); }, [xp]);
             useEffect(() => { saveWritten(written); }, [written]);
             useEffect(() => { saveCompleted(completed); }, [completed]);
@@ -425,6 +430,7 @@
                     const mergedSrs = mergeSrs(remote?.srs, srs);
                     const mergedExams = mergeExams(remote?.exams, exams);
 
+                    if (mergedXp !== xp) xpFromDriveRef.current = true;
                     setXp(mergedXp);
                     setCompleted(mergedCompleted);
                     setWritten(mergedWritten);
@@ -676,17 +682,6 @@
                                         </div>
                                     )}
                                 </div>
-                                <div className="bg-white rounded-xl border border-slate-200 p-5">
-                                    <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Bookmark /> ประกาศ</h3>
-                                    <div className="space-y-4">
-                                        {ANNOUNCEMENTS.map((a, i) => (
-                                            <div key={i} className="text-sm">
-                                                <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">{a.date}</div>
-                                                <p className="text-slate-600 leading-relaxed">{a.text}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -697,17 +692,12 @@
                                 <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
                                     {revList.length === 0 ? (
                                         <>
-                                            <h2 className="text-xl font-bold text-slate-800 mb-2">ยังไม่มีข้อครบกำหนดทบทวน</h2>
-                                            <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-                                                ทุกข้อที่ตอบในแท็บ "งานเรียน" หรือ "สอบรวม" จะเข้าคิวทบทวนอัตโนมัติ<br/>
-                                                ตอบถูก → รอบถัดไปห่างขึ้น (1 → 3 → 7 → 14 → 30 วัน), ตอบผิด → กลับมาถามพรุ่งนี้
-                                            </p>
+                                            <h2 className="text-xl font-bold text-slate-800 mb-8">ยังไม่มีข้อครบกำหนดทบทวน</h2>
                                         </>
                                     ) : (
                                         <>
                                             <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-5"><Trophy /></div>
-                                            <h2 className="text-xl font-bold text-slate-800 mb-2">ทบทวนครบ {revList.length} ข้อแล้ว!</h2>
-                                            <p className="text-sm text-slate-500 mb-8">ข้อที่ตอบถูกจะกลับมาอีกครั้งในรอบที่ห่างขึ้น ช่วยให้จำได้ยาวขึ้นเรื่อยๆ</p>
+                                            <h2 className="text-xl font-bold text-slate-800 mb-8">ทบทวนครบ {revList.length} ข้อแล้ว!</h2>
                                         </>
                                     )}
                                     <button onClick={() => setView('stream')} className="px-6 py-3 bg-secondary text-white font-bold rounded-xl text-sm">กลับหน้าสตรีม</button>
@@ -756,11 +746,7 @@
                         <div className="max-w-2xl mx-auto p-4 sm:p-6">
                             {examList.length === 0 ? (
                                 <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
-                                    <h2 className="text-xl font-bold text-slate-800 mb-2">สอบรวม</h2>
-                                    <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-                                        สุ่มข้อสอบข้ามทุกหัวข้อที่มีเฉลย ({QUESTION_BANK.length} ข้อในคลัง) จับเวลา และเก็บสถิติคะแนน<br/>
-                                        ข้อที่ตอบผิดจะเข้าคิวทบทวนอัตโนมัติ
-                                    </p>
+                                    <h2 className="text-xl font-bold text-slate-800 mb-8">สอบรวม</h2>
                                     <div className="flex gap-3 justify-center mb-8">
                                         <button onClick={() => startExam(10)} className="px-6 py-3 bg-secondary text-white font-bold rounded-xl text-sm">เริ่มสอบ 10 ข้อ</button>
                                         <button onClick={() => startExam(20)} className="px-6 py-3 bg-primary text-white font-bold rounded-xl text-sm">เริ่มสอบ 20 ข้อ</button>

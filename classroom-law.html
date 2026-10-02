@@ -149,7 +149,6 @@ details.lesson > summary{justify-content:space-between;flex-wrap:wrap;padding-to
 .flash-card .q{font-size:var(--ome-fs-md);font-weight:700}
 .flash-card .a{font-size:var(--ome-fs-base);color:var(--ome-accent-strong);display:none}
 .flash-card.show .a{display:block}
-.flash-card .hint{font-size:11.5px;color:var(--ome-text-2)}
 .flash-btns{display:flex;gap:8px;justify-content:center;margin-top:10px}
 .flash-btns .btn{flex:1 1 0;min-width:0;padding:0 4px}
 .flash-progress{font-size:var(--ome-fs-xs);color:var(--ome-text-2);text-align:center;margin-top:8px}
@@ -482,6 +481,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dis
 <!-- ใช้สร้างไฟล์ Export PDF ต่อวิชา (ตัวเดียวกับที่ word.html/excel.html ใช้อยู่แล้ว) -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="fsrs.js" defer></script>
+<script src="learn-core.js" defer></script>
 <script src="classroom-law.js" defer></script>
 </body>
 </html>

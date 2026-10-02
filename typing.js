@@ -187,6 +187,8 @@ function progressKey(trackId, lessonIdx) { return trackId + '::' + lessonIdx; }
    เหมาะสมต่างกันมากระหว่างคนละคน/คนละภาษา (พิมพ์ไทยมักช้ากว่าอังกฤษโดยธรรมชาติเพราะตัวอักษร/
    วรรณยุกต์ซับซ้อนกว่า) แต่ความแม่นยำเป็นมาตรฐานเดียวที่ยุติธรรมกับทุก track */
 var UNLOCK_MIN_ACC = 75;
+var TYPING_XP_LESSON = 5;
+var TYPING_XP_SPRINT = 10;
 function isUnlocked(track, idx, progress) {
   if (idx === 0) return true;
   var prev = progress[progressKey(track.id, idx - 1)];
@@ -576,6 +578,10 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     var minutes = (Date.now() - state.startTime) / 60000;
     var wpm = minutes > 0 ? (state.keystrokes / 5) / minutes : 0;
     var acc = state.keystrokes > 0 ? ((state.keystrokes - state.mistakes) / state.keystrokes) * 100 : 100;
+    // XP กลาง (learn-core.js): จบรอบที่แม่นพอปลดล็อกบทถัดไป / จบรอบจับเวลา — หน้านี้ไม่มี XP ของตัวเอง
+    if (window.LearnCore && state.keystrokes > 0 && (state.sprintMode || acc >= UNLOCK_MIN_ACC)) {
+      window.LearnCore.award('typing', state.sprintMode ? TYPING_XP_SPRINT : TYPING_XP_LESSON);
+    }
 
     if (state.sprintMode) {
       var sprintBest = loadSprintBest();

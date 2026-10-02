@@ -59,7 +59,7 @@ test('วันนี้: รวมข้อมูลทุกด้านจา
   // ทบทวน: ภาษา 2 + ธุรกิจ 1 (ใบที่ยังไม่ถึงกำหนดไม่นับ)
   await expect(page.locator('#reviewBody .big')).toContainText('3');
   await expect(page.locator('#reviewBody')).toContainText('ภาษา 2');
-  await expect(page.locator('#reviewBody a.btn')).toHaveAttribute('href', 'languages.html');
+  await expect(page.locator('#reviewBody a.btn')).toHaveAttribute('href', 'review.html');
   // วันติดต่อกัน: ฝึกล่าสุดเมื่อวาน → ยังนับต่อ แต่ยังไม่ได้ฝึกวันนี้
   await expect(page.locator('#streakBody .big')).toContainText('5');
   await expect(page.locator('#streakBody')).toContainText('ยังไม่ได้ฝึกวันนี้');

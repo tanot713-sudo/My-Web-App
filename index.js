@@ -1,8 +1,9 @@
 /* ══════════════════════════════════════════════════════════════════
    หน้า "วันนี้" (ROADMAP Phase 3) — แดชบอร์ดรวมข้อมูลจากทุกด้าน อ่านอย่างเดียว ไม่ยิงเครือข่ายเอง
    อ่านผ่าน TanotData.read / readIdb (tanot-data.js) แล้ววาดใหม่เมื่อข้อมูลเปลี่ยน (ซิงก์จากเครื่องอื่น / แท็บอื่น / เพิ่มด่วน)
-   คีย์ที่อ่าน (รูปแบบต้องตรงกับหน้าเจ้าของข้อมูล): budget:records|budgets|categories, lang-practice:srs|streak, lbe:<business|engineering>:srs,
-   tanot-barprep/notes (IndexedDB) + tanot:barprep:activity, tanot:invest:thstock|globalstock + tanot:invest:cache:[us:]<sym>,
+   คีย์ที่อ่าน (รูปแบบต้องตรงกับหน้าเจ้าของข้อมูล): budget:records|budgets|categories,
+   การ์ดทบทวน/XP/วันติดต่อกันผ่าน learn-core.js (lang-practice:srs, lbe:<business|engineering>:srs, tanot-barprep/notes, tanot:learn:*
+   + ยอดเดิมของหน้าเรียนต่างๆ — รายชื่อคีย์อยู่ใน LEGACY ของ learn-core.js), tanot:invest:thstock|globalstock + tanot:invest:cache:[us:]<sym>,
    tanot:word:autosave, tanot:sheet:autosave, tanot:cad:autosave, tanot-report-dashboard/reports (IndexedDB),
    tanot:insurance:policies (รูปแบบกรมธรรม์ + การนับวันต่ออายุอยู่ใน insurance-calc.js — หน้านี้โหลดไฟล์นั้นด้วย)
    ══════════════════════════════════════════════════════════════════ */
@@ -21,7 +22,6 @@
   function num(n, d) { return (Math.round(n * Math.pow(10, d || 0)) / Math.pow(10, d || 0)).toLocaleString('th-TH', { maximumFractionDigits: d || 0 }); }
   function baht(n) { return '฿' + num(n, n % 1 ? 2 : 0); }
   function pad2(n) { return String(n).padStart(2, '0'); }
-  function ymd(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
   function isArr(v) { return Array.isArray(v); }
   function emptyHtml(ic, text, href, label) {
     return '<div class="empty">' + icon(ic) + '<p>' + esc(text) + '</p>' +
@@ -101,86 +101,44 @@
     el.innerHTML = html;
   }
 
-  /* ── การ์ดทบทวน + วันติดต่อกัน ── */
-  var REVIEW_SOURCES = [
-    { key: 'lang', label: 'ภาษา', href: 'languages.html' },
-    { key: 'law', label: 'กฎหมาย', href: 'classroom-law.html' },
-    { key: 'biz', label: 'ธุรกิจ', href: 'classroom-business.html' },
-    { key: 'eng', label: 'วิศวกรรม', href: 'classroom-engineering.html' }
-  ];
-  function countDue(map, field, now) {
-    var n = 0;
-    if (!map || typeof map !== 'object') return 0;
-    Object.keys(map).forEach(function (k) { var r = map[k]; if (r && typeof r === 'object' && Number(r[field]) <= now) n++; });
-    return n;
-  }
+  /* ── การ์ดทบทวน + วันติดต่อกัน (learn-core.js — XP/วันติดต่อกัน/เป้ารายวันชุดเดียวทั้งเว็บ) ── */
+  var LC = window.LearnCore;
+  var REVIEW_SOURCES = ['lang', 'law', 'biz', 'eng'];
   function dueCounts(lawNotes) {
-    var now = Date.now();
-    var law = 0;
-    (lawNotes || []).forEach(function (n) { if (n && Number(n.dueAt) <= now) law++; });
-    return {
-      lang: countDue(rd('lang-practice:srs', {}), 'dueAt', now),
-      law: law,
-      biz: countDue(rd('lbe:business:srs', {}), 'due', now),
-      eng: countDue(rd('lbe:engineering:srs', {}), 'due', now)
-    };
+    return LC ? LC.dueCounts(lawNotes) : { lang: 0, law: 0, biz: 0, eng: 0 };
   }
   function renderReview(counts) {
-    var total = 0, top = null;
-    REVIEW_SOURCES.forEach(function (s) {
-      total += counts[s.key];
-      if (counts[s.key] > 0 && (!top || counts[s.key] > counts[top.key])) top = s;
-    });
+    var total = 0;
+    REVIEW_SOURCES.forEach(function (k) { total += counts[k]; });
     var html = '<div class="big">' + num(total) + ' <small>ใบ</small></div>';
     if (!total) {
       $('reviewBody').innerHTML = html + '<div class="sub">ไม่มีการ์ดค้างทบทวน</div>';
       return;
     }
-    html += '<div class="links">' + REVIEW_SOURCES.filter(function (s) { return counts[s.key] > 0; }).map(function (s) {
-      return '<a class="badge accent" href="' + s.href + '">' + esc(s.label) + ' ' + num(counts[s.key]) + '</a>';
+    html += '<div class="links">' + REVIEW_SOURCES.filter(function (k) { return counts[k] > 0; }).map(function (k) {
+      return '<a class="badge accent" href="' + LC.SOURCES[k].href + '">' + esc(LC.SOURCES[k].label) + ' ' + num(counts[k]) + '</a>';
     }).join('') + '</div>';
-    html += '<a class="btn primary" href="' + top.href + '">ทบทวน</a>';
+    html += '<a class="btn primary" href="review.html">ทบทวน</a>';
     $('reviewBody').innerHTML = html;
   }
 
-  function runLength(days, from) {
-    var n = 0, d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
-    while (days[ymd(d)]) { n++; d.setDate(d.getDate() - 1); }
-    return n;
-  }
-  function longestRun(days) {
-    var keys = Object.keys(days).sort(), best = 0, cur = 0, prev = null;
-    keys.forEach(function (k) {
-      var p = k.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]);
-      if (prev && Math.round((d - prev) / 86400000) === 1) cur++; else cur = 1;
-      if (cur > best) best = cur;
-      prev = d;
-    });
-    return best;
-  }
   function renderStreak() {
-    var today = new Date(), y = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
-    var tKey = ymd(today), yKey = ymd(y);
-    // ภาษา: บันทึกวันติดต่อกันไว้เอง (นับต่อได้ถ้าฝึกล่าสุดคือวันนี้หรือเมื่อวาน)
-    var ls = rd('lang-practice:streak', null) || {};
-    var langCount = (ls.lastDate === tKey || ls.lastDate === yKey) ? (Number(ls.count) || 0) : 0;
-    // ห้องเรียนกฎหมาย: มีแต่บันทึกกิจกรรม — นับวันที่มีกิจกรรมต่อเนื่องเอง
-    var act = rd('tanot:barprep:activity', []);
-    var days = {};
-    if (isArr(act)) act.forEach(function (a) { if (a && a.ts) days[ymd(new Date(a.ts))] = 1; });
-    var actCount = days[tKey] ? runLength(days, today) : (days[yKey] ? runLength(days, y) : 0);
-    var count = Math.max(langCount, actCount);
-    var doneToday = ls.lastDate === tKey || !!days[tKey];
-    var longest = Math.max(Number(ls.longest) || 0, longestRun(days), count);
-
-    if (!count && !doneToday) {
+    if (!LC) return;
+    var s = LC.summary(), st = s.streak;
+    var pct = Math.min(100, s.goal ? Math.round(s.todayXp / s.goal * 100) : 0);
+    var goal = '<div class="sub">XP วันนี้ ' + num(s.todayXp) + ' / ' + num(s.goal) + '</div>' +
+      '<div class="bar' + (s.goalMet ? ' ok' : '') + '"><i style="width:' + pct + '%"></i></div>';
+    if (!st.count && !st.doneToday) {
       $('streakBody').innerHTML = '<div class="stat">' + icon('flame') + '<div class="big">0 <small>วัน</small></div></div>' +
-        '<span class="badge warn">ยังไม่ได้ฝึกวันนี้</span>';
+        '<span class="badge warn">ยังไม่ได้ฝึกวันนี้</span>' + goal;
       return;
     }
-    $('streakBody').innerHTML = '<div class="stat">' + icon('flame', 'flame') + '<div class="big">' + num(count) + ' <small>วัน</small></div></div>' +
-      '<div><span class="badge ' + (doneToday ? 'ok' : 'warn') + '">' + (doneToday ? 'ฝึกวันนี้แล้ว' : 'ยังไม่ได้ฝึกวันนี้') + '</span></div>' +
-      (longest > count ? '<div class="sub">สูงสุด ' + num(longest) + ' วัน</div>' : '');
+    var extra = [];
+    if (st.longest > st.count) extra.push('สูงสุด ' + num(st.longest) + ' วัน');
+    if (st.restUsed) extra.push('พัก ' + num(st.restUsed) + ' วัน');
+    $('streakBody').innerHTML = '<div class="stat">' + icon('flame', 'flame') + '<div class="big">' + num(st.count) + ' <small>วัน</small></div></div>' +
+      '<div><span class="badge ' + (st.doneToday ? 'ok' : 'warn') + '">' + (st.doneToday ? 'ฝึกวันนี้แล้ว' : 'ยังไม่ได้ฝึกวันนี้') + '</span></div>' +
+      (extra.length ? '<div class="sub">' + esc(extra.join(' · ')) + '</div>' : '') + goal;
   }
 
   /* ── หุ้นที่ติดตาม (พอร์ตของหน้าหุ้นไทย/ต่างประเทศ + ราคาล่าสุดจากแคชของหน้าเหล่านั้น) ── */
@@ -331,6 +289,7 @@
 
   renderAll();
   window.addEventListener('tanot:quickadd', renderSoon);
+  window.addEventListener('tanot:learn', renderSoon);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') renderSoon(); });
   if (TD && TD.onChange) TD.onChange(renderSoon);
 })();
