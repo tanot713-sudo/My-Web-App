@@ -40,11 +40,9 @@
 #resumeInfo{margin-bottom:var(--ome-sp-3)}
 .list-row .grow{min-width:0}
 .list-row .ractions{display:flex;gap:6px;flex-shrink:0}
-#headerCard .tbl-wrap{margin-bottom:var(--ome-sp-3)}
+
 .toolbar-row .status{margin:0 0 0 auto}
-.search-wrap{position:relative;flex:1 1 220px;min-width:160px}
-.search-wrap .ome-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ome-text-3);pointer-events:none}
-.search-wrap .input{height:30px;padding-left:34px;font-size:var(--ome-fs-xs);border-radius:var(--ome-radius-sm)}
+
 /* ── ชื่อตัวแปรสีเดิมที่โมดูลรายงานยังอ้างถึง — ชี้ไปโทเคนกลาง (ลบเมื่อโมดูลสุดท้ายย้ายเสร็จ) ── */
 body[data-layout]{--bg:var(--ome-surface-0);--card:var(--ome-surface-1);--ink:var(--ome-text-1);--muted:var(--ome-text-2);
   --line:var(--ome-border);--brand:var(--ome-accent);--brand-dk:var(--ome-accent-strong);--brand-sf:var(--ome-accent-soft);
@@ -55,6 +53,97 @@ body[data-layout]{--bg:var(--ome-surface-0);--card:var(--ome-surface-1);--ink:va
 /* รีเซ็ตระยะขอบของหัวข้อ/ย่อหน้า/รายการในเนื้อหารายงาน (เดิมมี *{margin:0;padding:0} ทั้งหน้า) */
 .rd-page :where(h1,h2,h3,h4,p,ul,ol,dl,dd,figure,blockquote){margin:0}
 .rd-page :where(ul,ol){padding:0}
+
+/* ══ ตาราง (ฐานของทุกตารางในหน้านี้ + ตารางข้อมูลแท็บ "ตาราง") ══ */
+:where(.rd-page) :where(table){width:100%;border-collapse:collapse;font-size:var(--ome-fs-sm)}
+:where(.rd-page) :where(th,td){padding:9px 10px;text-align:left;border-bottom:1px solid var(--ome-border);white-space:nowrap}
+:where(.rd-page) :where(th){font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2);background:var(--ome-surface-2);user-select:none}
+:where(.rd-page) :where(td.num){text-align:right;font-variant-numeric:tabular-nums}
+:where(.rd-page) :where(tbody tr:hover td){background:color-mix(in srgb,var(--ome-surface-2) 60%,transparent)}
+.sort-ic{display:inline-flex;vertical-align:middle;margin-left:3px;color:var(--ome-text-3)}
+.sort-ic .ome-icon{width:13px;height:13px}
+th.sorted .sort-ic{color:var(--ome-accent)}
+.tbl-wrap{overflow-x:auto;max-width:100%;border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);background:var(--ome-surface-1)}
+#headerCard .tbl-wrap{margin-bottom:var(--ome-sp-3)}
+tr.hdr-pick{cursor:pointer}
+tr.hdr-pick:hover td{background:var(--ome-accent-soft)}
+tr.hdr-pick.on td{background:var(--ome-accent-soft);font-weight:700}
+.tbl-empty{font-size:var(--ome-fs-sm);color:var(--ome-text-2);padding:16px 4px;text-align:center}
+.rowchk,.hdrchk{cursor:pointer;width:15px;height:15px;accent-color:var(--ome-accent)}
+.pager{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:var(--ome-sp-3);flex-wrap:wrap}
+.pager span{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+
+/* แถบเครื่องมือเหนือตาราง */
+.toolbar-row{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2);align-items:center;margin-bottom:var(--ome-sp-3)}
+.toolbar-row .status{margin:0 0 0 auto}
+.search-wrap{position:relative;flex:1 1 220px;min-width:160px}
+.search-wrap .ome-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ome-text-3);pointer-events:none}
+.search-wrap .input{height:30px;padding-left:34px;font-size:var(--ome-fs-xs);border-radius:var(--ome-radius-sm)}
+@media(max-width:600px){
+  .toolbar-row .btn{flex:1 1 calc(50% - 4px)}
+  .toolbar-row .search-wrap{flex-basis:100%}
+  .toolbar-row .status{flex-basis:100%;margin-left:0;text-align:center}
+}
+
+/* ตารางข้อมูล #dataTable — หัวคอลัมน์มี 3 ช่องเครื่องมือชิดขวา: ตัวกรอง / ลำดับ / ลบ */
+#dataTableWrap{position:relative}
+#dataTable{table-layout:fixed;min-width:max-content;font-size:var(--ome-fs-sm)}
+#dataTable :is(th,td){position:relative;border:1px solid var(--ome-border);background-clip:padding-box}
+#dataTable td{height:var(--tbl-row-height,auto);background:var(--ome-surface-1)}
+#dataTable tbody tr:hover td{background:color-mix(in srgb,var(--ome-surface-2) 70%,var(--ome-surface-1))}
+#dataTable th[data-col]{min-width:96px;padding:0 84px 0 10px;height:40px;overflow:visible;background:var(--ome-surface-2)}
+#dataTable th[data-col] .th-label{display:inline-block;max-width:calc(100% - 4px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;cursor:text}
+#dataTable td[data-col]{min-width:96px}
+#dataTable thead tr.filter-row{display:none}
+#dataTable th[data-col] .th-tools{position:absolute;right:50px;top:50%;transform:translateY(-50%);display:inline-flex;z-index:22}
+#dataTable th[data-col] .sort-ic{position:absolute;right:28px;top:50%;transform:translateY(-50%);width:20px;height:20px;margin:0;justify-content:center;align-items:center;pointer-events:none}
+#dataTable th[data-col] .col-del{position:absolute;right:4px;top:50%;transform:translateY(-50%);z-index:30}
+#dataTable th[data-col]::after{content:"";position:absolute;right:75px;top:9px;bottom:9px;width:1px;background:var(--ome-border);pointer-events:none}
+.th-fbtn,.col-del,.rowdel button,.cf-rule-del,.group-toggle{display:inline-grid;place-items:center;width:24px;height:24px;padding:0;border:1px solid transparent;border-radius:var(--ome-radius-sm);
+  background:transparent;color:var(--ome-text-3);cursor:pointer}
+.th-fbtn{border-color:var(--ome-border);background:var(--ome-surface-1);color:var(--ome-text-2)}
+.th-fbtn:hover,.th-fbtn.active{border-color:var(--ome-accent);color:var(--ome-accent-strong);background:var(--ome-accent-soft)}
+.col-del:hover,.rowdel button:hover,.cf-rule-del:hover{color:var(--ome-err-ink);background:var(--ome-err-soft)}
+.group-toggle:hover{background:var(--ome-surface-2);color:var(--ome-text-1)}
+th .col-fx{border:0;background:var(--ome-accent-soft);color:var(--ome-accent-strong);cursor:pointer;font-size:var(--ome-fs-xs);font-weight:700;font-style:italic;padding:1px 6px;border-radius:var(--ome-radius-sm);margin-right:5px;vertical-align:middle}
+th .col-fx:hover{background:var(--ome-accent);color:var(--ome-on-accent)}
+th .col-fx.err{background:var(--ome-err-soft);color:var(--ome-err-ink)}
+#dataTable .col-grip{position:absolute;right:-2px;top:0;bottom:0;width:6px;cursor:col-resize;z-index:8}
+#dataTable .col-grip:hover{background:color-mix(in srgb,var(--ome-accent) 25%,transparent)}
+#dataTable .row-grip{position:absolute;left:0;right:0;bottom:-4px;height:8px;cursor:row-resize;z-index:9}
+td.rowdel{text-align:center;width:44px;padding:0}
+td.num .cell-in{text-align:right;font-variant-numeric:tabular-nums}
+td .cell-in{width:100%;min-width:70px;min-height:28px;padding:4px 6px;border:0;outline:0;border-radius:var(--ome-radius-sm);background:transparent;color:inherit;font:inherit;box-sizing:border-box}
+td .cell-in:focus{background:var(--ome-surface-1);box-shadow:inset 0 0 0 2px var(--ome-accent)}
+td textarea.cell-in{display:block;height:28px;line-height:1.4;resize:none;overflow:hidden}
+td.formula-cell{background:var(--ome-surface-2)}
+td.formula-cell .cell-in{cursor:default;color:var(--ome-text-2)}
+/* โหมดเส้นตาราง (ปุ่ม Gridlines) */
+#dataTable.grid-none :is(th,td){border-color:transparent}
+#dataTable.grid-horizontal :is(th,td){border-left-color:transparent;border-right-color:transparent}
+#dataTable.grid-vertical :is(th,td){border-top-color:transparent;border-bottom-color:transparent}
+/* เลือกเซลล์ + เติมอัตโนมัติ */
+.cellsel-box{position:absolute;border:2px solid var(--ome-accent);pointer-events:none;box-sizing:border-box;z-index:2}
+.cellsel-fillpreview{position:absolute;border:1.5px dashed var(--ome-accent-strong);pointer-events:none;box-sizing:border-box;z-index:2}
+.cellsel-handle{position:absolute;width:8px;height:8px;background:var(--ome-accent);border:1.5px solid var(--ome-surface-1);border-radius:1px;cursor:crosshair;z-index:3;transform:translate(-50%,-50%);
+  padding:11px;background-clip:content-box;touch-action:none;user-select:none}
+td.cellsel-in{background:var(--ome-accent-soft)}
+body.cellsel-dragging{user-select:none}
+.cellsel-autofill-btn{position:absolute;display:grid;place-items:center;width:22px;height:22px;padding:0;border-radius:50%;background:var(--ome-surface-1);border:1.5px solid var(--ome-accent);color:var(--ome-accent-strong);cursor:pointer;z-index:4;box-shadow:var(--ome-shadow-2)}
+.cellsel-autofill-btn:hover{background:var(--ome-accent-soft)}
+.cellsel-autofill-btn .ome-icon{width:12px;height:12px}
+.cellsel-summary{display:flex;flex-wrap:wrap;gap:5px 18px;margin-top:var(--ome-sp-2);padding:8px 14px;background:var(--ome-surface-2);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+.cellsel-summary[hidden]{display:none}
+.cellsel-summary b{color:var(--ome-text-1);margin-left:5px;font-variant-numeric:tabular-nums}
+/* ตรึงคอลัมน์ / จัดกลุ่ม */
+.freeze-sticky{position:sticky;z-index:3;background:var(--ome-surface-1)}
+thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
+.freeze-sticky.freeze-sticky-last{box-shadow:2px 0 5px color-mix(in srgb,var(--ome-text-1) 12%,transparent)}
+.group-row td{background:var(--ome-accent-soft);font-weight:600;padding:8px 10px;white-space:nowrap}
+.group-toggle{margin-right:6px}
+.group-name{color:var(--ome-text-1)}
+.group-count{color:var(--ome-text-2);font-weight:500;margin-left:8px;font-size:var(--ome-fs-xs)}
+.group-subtotal{color:var(--ome-accent-strong);font-weight:700;margin-left:16px;font-size:var(--ome-fs-xs)}
 /* ── โทนสี+ตัวอักษร: ปรับให้ใกล้เคียง AMR O&M Dashboard Templates (โทนน้ำเงิน-เทา, IBM Plex Sans/Mono)
    Stage 1 ของการ restyle — เปลี่ยนแค่ "ค่า" ของตัวแปรสี/ฟอนต์ที่ทั้งไฟล์ใช้อยู่แล้ว (--bg/--ink/--muted/
    --line/--brand ฯลฯ) ไม่เปลี่ยนชื่อตัวแปรหรือโครงสร้าง เพื่อให้ทุกจุดที่ใช้ var(...) อยู่แล้วเปลี่ยนตามกัน
@@ -140,7 +229,7 @@ html,body{overflow-x:hidden;max-width:100%}
 /* ── สลับภาษาไทย/อังกฤษ ── */
 
 /* ── ตาราง ── */
-.tbl-wrap{overflow-x:auto;margin-top:4px;max-width:100%;border-radius:12px}
+
 .tbl-wrap.dash{max-height:440px;overflow-y:auto}
 .tbl-wrap.dash thead th{position:sticky;top:0;background:var(--card);z-index:1}
 .tbl-wrap.dash td.piv-total,.tbl-wrap.dash th.piv-total{font-weight:800;background:#F8F9FB}
@@ -281,86 +370,33 @@ th .th-filter-btn.active{color:var(--brand)}
 .table-color-popover .color-field{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--muted)}
 .table-color-popover input[type=color]{width:42px;height:30px;padding:1px;border:1px solid var(--line);border-radius:7px;background:#fff;cursor:pointer}
 .table-color-popover .scope-note{font-size:10.5px;color:var(--muted);margin:5px 0 10px;line-height:1.45}
-#dataTable .th-label{cursor:text}
 
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 /* หัวคอลัมน์กึ่งกลางเสมอ (ไม่ผูกกับชนิดข้อมูล) — คอลัมน์ตัวเลข/วันที่มีแถวตัวกรองด้านล่างกว้างกว่าคอลัมน์
    ข้อความ (ช่องต่ำสุด-สูงสุด 2 ช่อง เทียบกับช่องกรองช่องเดียว) ถ้าป้ายชื่อคอลัมน์ชิดซ้ายเหมือนเดิมจะดูเอียง
    ไปทางซ้ายของคอลัมน์กว้างๆ ให้ความรู้สึกจัดวางไม่สมมาตร กึ่งกลางทำให้แต่ละหัวคอลัมน์สมดุลอยู่กลางคอลัมน์
    ของตัวเองเสมอไม่ว่าคอลัมน์จะกว้างแค่ไหน */
-th{color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.02em;
-  background:#F8F9FB;position:sticky;top:0;cursor:pointer;user-select:none;text-align:center}
-td.num{text-align:right;font-variant-numeric:tabular-nums}
-th .sort-ic{opacity:.35;margin-left:3px;font-size:10px}
-th.sorted .sort-ic{opacity:1;color:var(--brand)}
-tbody tr:hover td{background:#FAFBFD}
-tr.hdr-pick{cursor:pointer}
-tr.hdr-pick:hover td{background:var(--brand-sf)}
-tr.hdr-pick.on td{background:var(--brand-sf);font-weight:700}
-td input.cell-in{width:100%;min-width:70px;font-family:inherit;font-size:13px;padding:4px 6px;border-radius:6px;
-  border:1.5px solid transparent;background:transparent;color:var(--ink)}
-td input.cell-in:focus{outline:none;border-color:var(--brand);background:var(--card)}
-.rowchk,.hdrchk{cursor:pointer;width:15px;height:15px;accent-color:var(--brand)}
-td.rowdel{text-align:center}
-.rowdel button{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px}
-.rowdel button:hover{background:var(--bg);color:var(--err)}
-th .th-label{cursor:text}
-th .col-del{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:12px;
-  padding:1px 4px;border-radius:6px;margin-left:2px;vertical-align:middle}
-th .col-del:hover{background:var(--card);color:var(--err)}
-#dataTableWrap{position:relative}
-.cellsel-box{position:absolute;border:2px solid var(--brand);pointer-events:none;box-sizing:border-box;z-index:2}
-.cellsel-fillpreview{position:absolute;border:1.5px dashed var(--brand-dk);pointer-events:none;box-sizing:border-box;z-index:2}
-.cellsel-handle{position:absolute;width:8px;height:8px;background:var(--brand);border:1.5px solid var(--card);
-  border-radius:1px;cursor:crosshair;z-index:3;transform:translate(-50%,-50%);
-  /* ขยายพื้นที่แตะจริงให้ใหญ่พอสำหรับนิ้ว (padding ดันกรอบ hit-area ให้กว้างขึ้นโดยสีพื้นหลังยังทาแค่
-     เนื้อในเดิม 8x8px ผ่าน background-clip — ภาพที่เห็นเหมือนเดิมทุกอย่าง แค่แตะแม่นขึ้น) */
-  padding:11px;background-clip:content-box;touch-action:none;-webkit-user-select:none;user-select:none}
-td.cellsel-in{background:var(--brand-sf)}
+
+.hdrchk{cursor:pointer;width:15px;height:15px;accent-color:var(--brand)}
+
 /* ระหว่างลากเลือกหลายเซลล์ (ข้ามเซลล์แรกไปแล้ว) ปิดการเลือกข้อความทั่วทั้งหน้าไว้ชั่วคราว กันเห็นแถบไฮไลต์
    ข้อความค้างเป็นภาพหลอนระหว่างลากเมาส์ผ่านเซลล์อื่นๆ ต่อไป */
-body.cellsel-dragging{user-select:none;-webkit-user-select:none}
+
 /* ปุ่ม "ตัวเลือกเติมอัตโนมัติ" ลอยที่มุมพื้นที่เพิ่งเติม — ทางเลือกใช้ได้ทั้งเมาส์/สัมผัสแทนปุ่ม Ctrl
    (ซึ่งอุปกรณ์สัมผัสอย่างแท็บเล็ต/มือถือไม่มีคีย์บอร์ดให้กดเลย) */
-.cellsel-autofill-btn{position:absolute;width:22px;height:22px;border-radius:50%;background:var(--card);
-  border:1.5px solid var(--brand);font-size:12px;line-height:1;cursor:pointer;z-index:4;padding:0;
-  box-shadow:0 1px 4px rgba(16,24,40,.18);display:flex;align-items:center;justify-content:center}
-.cellsel-autofill-btn:hover{background:var(--brand-sf)}
-.tbl-empty{font-size:13px;color:var(--muted);padding:16px 4px;text-align:center}
 
 /* ── ตรึงคอลัมน์ (Freeze pane) — ตรึงได้ตั้งแต่ 1 ถึง N คอลัมน์ข้อมูลจริงจากซ้าย (ไม่รวมคอลัมน์ checkbox
    ที่มาก่อนหน้าเสมอ ปล่อยให้เลื่อนลับซ้ายจอไปตามปกติ พอเลื่อนพ้นแล้วคอลัมน์ที่ตรึงไว้ชุดแรกก็จะโผล่มาชิดขอบ
    ซ้ายพอดี) ต่างจากตรึงคอลัมน์เดียวเดิมตรงที่ความกว้างแต่ละคอลัมน์ไม่เท่ากัน จึงคำนวณ offset สะสมด้วย JS
    (ฟังก์ชัน applyFreezeOffsets) แล้วใส่เป็น inline style ให้คลาส .freeze-sticky แทนการใช้ nth-child คงที่ */
-.freeze-sticky{position:sticky;z-index:3;background:var(--card)}
-thead .freeze-sticky{z-index:4;background:#F8F9FB}
-.filter-row .freeze-sticky{background:#F8F9FB}
-.freeze-sticky.freeze-sticky-last{box-shadow:2px 0 5px rgba(16,24,40,.08)}
-#freezeColBtn.active,#groupByBtn.active{background:var(--brand-sf);border-color:var(--brand);color:var(--brand-dk)}
+
+#groupByBtn.active{background:var(--brand-sf);border-color:var(--brand);color:var(--brand-dk)}
 
 /* ── จัดกลุ่มแถว + ยอดรวมย่อย (Group by / Subtotal) ── */
-.group-row td{background:var(--brand-sf);font-weight:600;padding:8px 10px;white-space:nowrap}
-.group-toggle{border:none;background:transparent;color:var(--brand-dk);cursor:pointer;font-size:11px;
-  padding:2px 6px;margin-right:6px;border-radius:5px}
-.group-toggle:hover{background:rgba(0,0,0,.06)}
-.group-name{color:var(--ink)}
-.group-count{color:var(--muted);font-weight:500;margin-left:8px;font-size:12px}
-.group-subtotal{color:var(--brand-dk);font-weight:700;margin-left:16px;font-size:12.5px}
 
 /* ── แถบสรุปค่าที่เลือก (แบบ Excel status bar) — โผล่เฉพาะตอนลากเลือกมากกว่า 1 เซลล์ ── */
-.cellsel-summary{display:flex;flex-wrap:wrap;gap:5px 18px;margin-top:8px;padding:8px 14px;
-  background:var(--bg);border:1px solid var(--line);border-radius:10px;font-size:12.5px;color:var(--muted)}
-.cellsel-summary[hidden]{display:none}
-.cellsel-summary b{color:var(--ink);font-weight:800;margin-left:5px;font-variant-numeric:tabular-nums}
 
 /* ── คอลัมน์สูตรคำนวณ (Calculated Column) ── */
-th .col-fx{border:none;background:var(--brand-sf);color:var(--brand-dk);cursor:pointer;font-size:10.5px;
-  font-weight:800;font-style:italic;padding:1px 5px;border-radius:6px;margin-right:4px;vertical-align:middle}
-th .col-fx:hover{background:var(--brand);color:#fff}
-th .col-fx.err{background:#FDE8E8;color:var(--err)}
-td.formula-cell{background:var(--bg)}
-td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
+
 .fc-label{font-size:11px;color:var(--muted);font-weight:700;display:block;margin:8px 0 4px}
 .fc-label:first-of-type{margin-top:0}
 .fc-formula{width:100%;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;
@@ -375,9 +411,7 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
 .fc-hint{font-size:11px;color:var(--muted);line-height:1.7;margin-bottom:8px}
 
 /* ── จัดรูปแบบตามเงื่อนไข (Conditional Formatting) ── */
-.filter-cell{display:flex;align-items:center;gap:4px}
-.filter-cell .filter-range{flex:1;min-width:0}
-.filter-cell .filter-in{flex:1;min-width:0}
+
 .cf-btn{flex-shrink:0;border:none;background:transparent;cursor:pointer;font-size:12px;padding:2px 3px;
   border-radius:5px;opacity:.5;line-height:1}
 .cf-btn:hover{opacity:1;background:var(--bg)}
@@ -461,18 +495,13 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
 .toolbar-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
 /* ข้อความคำอธิบายท้ายแถวปุ่ม (เช่น "ลากมุมกล่อง...") ให้ตกลงบรรทัดใหม่เสมอ แทนที่จะเบียดต่อท้ายปุ่มสุดท้าย
    ดูไม่สมมาตร โดยเฉพาะตอนจอแคบที่ปุ่มขึ้นบรรทัดใหม่กันเองอยู่แล้ว */
-.toolbar-row > .mini{flex-basis:100%;margin-top:2px}
+
 /* ตอนแคปหน้าจอเป็นรูป/PDF (html2canvas) — สลับคลาสนี้ชั่วคราวเพื่อซ่อนแถบเครื่องมือ/ตัวเลือก/ตัวกรอง
    ที่กดไม่ได้อยู่แล้วในภาพนิ่ง ไม่ให้ติดไปในรายงานที่ export ออกไป (ต่างจาก @media print ด้านล่างที่ใช้กับ
    ปุ่ม "พิมพ์" ของเบราว์เซอร์เท่านั้น ไม่ครอบคลุม html2canvas ซึ่งแคป DOM สดไม่ผ่าน print stylesheet) */
-.hide-controls .toolbar-row,.hide-controls .chart-ctrl-row,.hide-controls .dash-active-filters,
-.hide-controls .th-filter-btn,.hide-controls #filterPopover{display:none!important}
-.search-wrap{position:relative;flex:1 1 200px;min-width:160px}
-.search-wrap .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);pointer-events:none}
-.toolbar-row input[type=text]{font-family:inherit;font-size:13.5px;padding:10px 12px 10px 32px;border-radius:10px;
-  border:1.5px solid var(--line);background:var(--bg);color:var(--ink);width:100%;-webkit-appearance:none}
-.toolbar-row input:focus{outline:none;border-color:var(--brand)}
-[data-theme="dark"] .toolbar-row input,[data-theme="dark"] td input.cell-in:focus{background:#12151C}
+.hide-controls .toolbar-row, .hide-controls .chart-ctrl-row, .hide-controls .dash-active-filters, .hide-controls #filterPopover{display:none!important}
+
+[data-theme="dark"] td input.cell-in:focus{background:#12151C}
 /* จอแคบ: ปุ่มในแถบเครื่องมือความยาวไม่เท่ากัน พอ wrap ตามธรรมชาติแล้วมักเหลือปุ่มเดี่ยวลอยเล็กๆ ท้ายแถว
    (เช่น "จัดกลุ่ม" ค้างอยู่คนเดียวทั้งแถว) ดูไม่สมมาตร — บังคับให้ปุ่มกว้างประมาณครึ่งแถว (2 ปุ่ม/แถว) ด้วย
    flex-basis แทน ถ้าเหลือปุ่มเดียวท้ายสุด flex-grow จะดันให้ขยายเต็มแถวแทนที่จะลอยเล็กๆ ชิดซ้าย */
@@ -483,16 +512,8 @@ td.formula-cell input.cell-in{cursor:default;color:var(--muted)}
 }
 
 /* ── แถวกรองต่อคอลัมน์ ── */
-.filter-in{width:100%;min-width:66px;font-family:inherit;font-size:11.5px;padding:5px 7px;border-radius:7px;
-  border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
-.filter-in:focus{outline:none;border-color:var(--brand)}
-.filter-row td{background:#F8F9FB;padding:6px 8px}
-.filter-range{display:flex;gap:3px}
-.filter-range input{width:50%;min-width:0}
 
 /* ── ตัวแบ่งหน้า ── */
-.pager{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;flex-wrap:wrap}
-.pager span{font-size:12.5px;color:var(--muted)}
 
 /* ── รายการรายงานที่บันทึกไว้ ── */
 
@@ -540,27 +561,7 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 @media(max-width:560px){.enterprise-meta{grid-template-columns:1fr}.enterprise-mini-grid{grid-template-columns:1fr}}
 
 /* ===== Final 4: modern editor controls / resize / typography ===== */
-.table-edit-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;
-  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(248,250,252,.98));border:1px solid var(--line);
-  border-radius:12px;box-shadow:0 2px 8px rgba(16,24,40,.04)}
-.table-edit-toolbar .tool-label{font-size:11.5px;font-weight:800;color:var(--muted)}
-.table-edit-toolbar .btn.active{background:var(--brand-sf);border-color:var(--brand);color:var(--brand-dk)}
-#dataTable{--tbl-font-size:13px;--tbl-row-pad-y:9px;font-size:var(--tbl-font-size)}
-#dataTable th,#dataTable td{position:relative}
-#dataTable td{height:var(--tbl-row-height,auto)}
-#dataTable td .cell-in{font-size:inherit}
-#dataTable td textarea.cell-in{display:block;min-height:28px;height:28px;line-height:1.35;padding:4px 6px;resize:none;overflow:hidden}
-#dataTable td.wrap-on textarea.cell-in,#dataTable td.wrap-on input.cell-in{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
-#dataTable td.wrap-on textarea.cell-in{overflow:auto;height:auto}
-#dataTable td.wrap-off textarea.cell-in{white-space:nowrap;overflow:hidden;text-overflow:clip}
-.col-resize-grip{position:absolute;top:0;right:-3px;width:7px;height:100%;cursor:col-resize;z-index:8}
-.col-resize-grip:hover,.col-resize-grip.dragging{background:var(--brand);opacity:.35}
-.row-resize-grip{position:absolute;left:0;bottom:-3px;width:100%;height:7px;cursor:row-resize;z-index:7}
-.row-resize-grip:hover,.row-resize-grip.dragging{background:var(--brand);opacity:.28}
-.row-height-indicator{position:fixed;z-index:1000;pointer-events:none;padding:3px 7px;border-radius:7px;
-  background:#111827;color:#fff;font-size:10px;font-weight:800;box-shadow:0 4px 12px rgba(0,0,0,.18)}
-.col-width-indicator{position:fixed;z-index:1000;pointer-events:none;padding:3px 7px;border-radius:7px;
-  background:#111827;color:#fff;font-size:10px;font-weight:800;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+
 .cell-style-popover{width:300px}
 .cell-style-popover .cs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .cell-style-popover label{font-size:11px;font-weight:700;color:var(--muted)}
@@ -596,8 +597,7 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 [data-theme="dark"] .table-edit-toolbar{background:linear-gradient(180deg,#171C28,#12151C)}
 [data-theme="dark"] .timeline-row:hover{background:#171C28}
 @media(max-width:700px){
-  .table-edit-toolbar{align-items:stretch}
-  .table-edit-toolbar .btn{flex:1 1 auto}
+
   .timeline-inner{min-width:760px}
   .timeline-head,.timeline-row{grid-template-columns:210px 1fr}
 }
@@ -672,15 +672,7 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 @media(max-width:620px){#dashboardCommandBar{position:relative;top:auto}.dashboard-report-meta{min-width:100%}.dashboard-shell .stat-row.dashboard-kpi-row{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-detail-grid{grid-template-columns:1fr}.dashboard-command-right{width:100%}.dashboard-mode-group{flex:1}.dashboard-mode-btn{flex:1}.dashboard-density-field{margin-left:auto}}
 
 /* ===== Final 5: isolated resize zones + dashboard typography/colors ===== */
-#dataTable{table-layout:fixed;min-width:max-content}
-#dataTable th[data-col]{min-width:78px}
-#dataTable td[data-col]{min-width:78px}
-#dataTable .col-resize-grip{right:0;width:5px;z-index:30;pointer-events:auto;background:transparent}
-#dataTable .col-resize-grip:hover,#dataTable .col-resize-grip.dragging{background:var(--brand);opacity:.45}
-#dataTable .row-resize-grip{height:5px;bottom:-1px;z-index:30;pointer-events:auto;background:transparent}
-#dataTable .row-resize-grip:hover,#dataTable .row-resize-grip.dragging{background:var(--brand);opacity:.45}
-#dataTable td[data-col] .cell-in{max-width:100%;box-sizing:border-box}
-#dataTable td.wrap-on .cell-in{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+
 .dashboard-font-preview{font-size:11px;color:var(--muted);padding:7px 9px;border:1px dashed var(--line);border-radius:8px}
 .chart-style-popover{width:min(430px,calc(100vw - 20px))}
 .chart-color-list{max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:9px;padding:5px}
@@ -690,12 +682,7 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 .chart-color-row input[type=color]{width:42px;height:28px;padding:2px;border:1px solid var(--line);border-radius:7px;background:var(--card)}
 
 /* ===== Final 7: isolated resize handles / reliable custom picker / project target progress ===== */
-#dataTable .col-resize-grip{right:-2px;width:9px;z-index:40;pointer-events:auto;background:transparent;border-right:2px solid transparent;cursor:col-resize;touch-action:none}
-#dataTable .col-resize-grip:hover,#dataTable .col-resize-grip:active,#dataTable .col-resize-grip.dragging{background:rgba(30,158,90,.10);border-right-color:var(--brand)}
-#dataTable .rowdel{position:relative;padding-right:26px}
-#dataTable .row-resize-grip{position:absolute;right:3px;bottom:-4px;width:20px;height:10px;display:flex;align-items:center;justify-content:center;z-index:40;color:var(--muted);font-size:12px;font-weight:800;line-height:1;cursor:row-resize;background:var(--card);border:1px solid var(--line);border-radius:5px;touch-action:none;user-select:none}
-#dataTable .row-resize-grip:hover,#dataTable .row-resize-grip:active,#dataTable .row-resize-grip.dragging{color:var(--brand-dk);border-color:var(--brand);background:var(--brand-sf)}
-#dataTable tbody tr[data-id]{transition:background .12s}
+
 .widget-picker-modal{position:fixed;inset:0;z-index:2000;align-items:center;justify-content:center;padding:18px}
 .widget-picker-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.42);backdrop-filter:blur(4px)}
 .widget-picker-dialog{position:relative;width:min(640px,96vw);max-height:90vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 60px rgba(15,23,42,.24);padding:18px}
@@ -715,32 +702,13 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 .timeline-today-label{position:absolute;top:2px;transform:translateX(-50%);font-size:8px;color:#DC2626;font-weight:800;white-space:nowrap}.timeline-today-line{position:absolute;top:0;bottom:0;width:1px;background:#DC2626;border-left:1px dashed #DC2626;opacity:.75;z-index:2;pointer-events:none}
 
 /* ── Excel-style full grid for editable data table ── */
-#dataTable{border-collapse:collapse;border-spacing:0;}
-#dataTable th,#dataTable td{
-  border:1px solid #D9DEE8 !important;
-  border-right-color:#D9DEE8 !important;
-  border-bottom-color:#D9DEE8 !important;
-  background-clip:padding-box;
-}
-#dataTable thead th{border-top:1px solid #D9DEE8 !important;}
-#dataTable thead th:first-child,#dataTable tbody td:first-child{border-left:1px solid #D9DEE8 !important;}
-#dataTable tbody tr:last-child td{border-bottom:1px solid #D9DEE8 !important;}
-#dataTable .filter-row th{border-top:1px solid #D9DEE8 !important;border-bottom:1px solid #D9DEE8 !important;}
-#dataTable td input.cell-in{border:1px solid #9AA3B2;background:#fff;}
-#dataTable td input.cell-in:focus{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-sf);}
-[data-theme="dark"] #dataTable th,[data-theme="dark"] #dataTable td{border-color:#303744 !important;}
-[data-theme="dark"] #dataTable td input.cell-in{background:#12151C;border-color:#566173;color:#fff;}
 
 /* Full grid for dashboard/data preview tables as well */
-#headerPreviewTable,#dashTable{border-collapse:collapse;border-spacing:0;}
-#headerPreviewTable th,#headerPreviewTable td,#dashTable th,#dashTable td{border:1px solid var(--line) !important;}
-#headerPreviewTable thead th,#dashTable thead th{border-top:1px solid var(--line) !important;}
+#dashTable{border-collapse:collapse;border-spacing:0;}
+#dashTable th, #dashTable td{border:1px solid var(--line) !important;}
+#dashTable thead th{border-top:1px solid var(--line) !important;}
 
 /* Excel-style gridline toggle */
-#dataTable.gridlines-off thead th,#dataTable.gridlines-off tbody td{border-right-color:transparent!important;border-bottom-color:transparent!important;}
-#dataTable.gridlines-off thead tr:first-child th:first-child,#dataTable.gridlines-off tbody td:first-child{border-left-color:transparent!important;}
-#dataTable.gridlines-off thead tr:first-child th{border-top-color:transparent!important;}
-#gridLinesBtn.active{background:#F2F8F4;border-color:#B7E0C4;color:#157A44;}
 
 /* ===== Final 9: cleaner dashboard chrome + SCADA progress template ===== */
 .dashboard-shell-card h2{display:flex;align-items:center;gap:7px;min-width:0}
@@ -809,7 +777,7 @@ body.readonly-mode #viewTabs{pointer-events:none;opacity:.65}
 .data-map-table th{background:var(--bg);font-weight:800;text-align:left}
 .data-map-table select{width:100%;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--card);font:inherit;padding:4px 7px}
 .header-auto-note{margin:8px 0 0;padding:8px 10px;border:1px solid rgba(30,158,90,.25);background:var(--brand-sf);border-radius:9px;color:var(--brand-dk);font-size:12px;font-weight:700}
-.table-grid-mode-note{font-size:11px;color:var(--muted);margin-left:auto}
+
 /* KPI alignment is explicit on the value element, overriding legacy numeric/text alignment rules. */
 .stat-tile .val,.stat-tile .lbl,.stat-tile .sub{display:block;text-align:var(--widget-align,left)}
 .dashboard-kpi-row .stat-tile,.scada-progress-kpi{text-align:var(--widget-align,left)}
@@ -867,34 +835,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 }
 /* Keep formula editor monospace */
 .fc-formula,.formula-cell input{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;}
-#dataTable{table-layout:fixed;min-width:max-content;}
-#dataTable thead th,#dataTable tbody td{border-right:1px solid #EEF1F5;border-bottom:1px solid #E7EBF0;}
-#dataTable thead tr:first-child th[data-col]{position:relative;padding-left:10px;padding-right:48px;}
-#dataTable thead tr:first-child th[data-col] .th-label{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;}
-#dataTable thead tr:first-child th[data-col] .sort-ic{position:absolute;right:28px;top:50%;transform:translateY(-50%);font-size:9px;opacity:.35;}
-#dataTable thead tr:first-child th[data-col] .col-del{position:absolute;right:6px;top:50%;transform:translateY(-50%);margin:0;width:16px;height:16px;padding:0;display:grid;place-items:center;color:#98A2B3;background:transparent;border-radius:5px;}
-#dataTable thead tr:first-child th[data-col] .col-del:hover{color:#D92D20;background:#FEECEC;}
-#dataTable thead tr:first-child th[data-col] .col-fx{margin-right:5px;vertical-align:middle;}
-#dataTable tbody td{background:#fff;}
-#dataTable tbody tr:nth-child(even) td{background:#FCFDFE;}
-#dataTable tbody tr:hover td{background:#F7FAFC;}
-#dataTable td .cell-in{border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;min-height:28px;}
-#dataTable td .cell-in:focus{background:#fff!important;box-shadow:inset 0 0 0 2px var(--brand)!important;border-radius:5px!important;}
-#dataTable td textarea.cell-in{resize:none;overflow:hidden;line-height:1.45;}
-#dataTable .filter-row td{border-right:1px solid #EEF1F5;background:#F8FAFC;}
-#dataTable .filter-cell{display:flex;align-items:center;gap:4px;}
-#dataTable .filter-cell .filter-range{display:grid;grid-template-columns:1fr 1fr;gap:4px;min-width:0;flex:1;}
-#dataTable .filter-in{height:29px;padding:5px 8px;border:1px solid #D9DEE8!important;border-radius:6px!important;background:#fff!important;font:12px 'IBM Plex Sans',Arial,sans-serif!important;box-shadow:none!important;}
-#dataTable .filter-in:focus{border-color:#98A2B3!important;box-shadow:0 0 0 2px rgba(37,99,235,.10)!important;}
-#dataTable .cf-btn{width:22px;height:22px;display:grid;place-items:center;padding:0;margin:0;opacity:.35;color:#667085;}
-#dataTable .cf-btn:hover{opacity:.8;background:#EEF2F6;}
-#dataTable .main-filter-btn{width:23px;height:23px;border:1px solid #D9DEE8;background:#fff;color:#667085;border-radius:6px;display:grid;place-items:center;font-size:11px;cursor:pointer;padding:0;flex:0 0 auto;}
-#dataTable .main-filter-btn:hover,#dataTable .main-filter-btn.active{color:#175CD3;border-color:#84CAFF;background:#EFF8FF;}
-#dataTable .main-filter-toolbar{display:flex;align-items:center;gap:4px;}
-#dataTable .row-resize-grip{opacity:0;transition:opacity .12s;}
-#dataTable tbody tr:hover .row-resize-grip,#dataTable .row-resize-grip.dragging{opacity:1;}
-#dataTable .col-resize-grip{right:-4px;width:9px!important;background:transparent!important;border:0!important;}
-#dataTable .col-resize-grip:hover,#dataTable .col-resize-grip.dragging{background:rgba(37,99,235,.10)!important;border-right:2px solid #2563EB!important;}
+
 /* Excel-like filter popup */
 .filter-popover.excel-filter{width:300px;padding:10px;border-radius:10px;}
 .excel-filter .ef-title{font-size:12px;font-weight:700;padding:3px 2px 8px;border-bottom:1px solid #EAECF0;margin-bottom:8px;}
@@ -1150,12 +1091,7 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 .final25-dbfilter-launch:hover{border-color:var(--brand);color:var(--brand-dk);background:var(--brand-sf)}
 .final25-dbfilter-summary{font-size:11px;color:var(--muted);margin-left:8px;vertical-align:middle}
 /* FINAL24: table filter row hidden. Header filter buttons only. */
-#dataTable thead tr.filter-row{display:none!important}
-#dataTable thead th.final25-filterable{position:relative}
-.final25-th-actions{display:inline-flex;align-items:center;gap:4px;margin-left:6px;vertical-align:middle}
-.final25-filter-btn{width:22px;height:22px;padding:0;border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:6px;display:inline-grid;place-items:center;font:700 11px/1 inherit;cursor:pointer}
-.final25-filter-btn:hover{border-color:var(--brand);color:var(--brand-dk);background:var(--brand-sf)}
-.final25-filter-btn.active{color:var(--brand);border-color:var(--brand);background:var(--brand-sf)}
+
 /* FINAL24: clean white modal */
 .final25-modal-backdrop{position:fixed;inset:0;z-index:5000;background:rgba(15,23,42,.38);display:grid;place-items:center;padding:18px}
 .final25-modal{width:min(520px,calc(100vw - 28px));max-height:min(720px,calc(100vh - 36px));background:#fff;color:#111827;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 24px 70px rgba(15,23,42,.22);display:flex;flex-direction:column;overflow:hidden}
@@ -1304,126 +1240,17 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
 
 <style id="final40-column-header-actions">
 /* FINAL40 — clearly separated header actions: Filter / Sort / Delete / Resize */
-#dataTable thead tr:first-child th[data-col]{
-  position:relative!important;
-  padding-left:10px!important;
-  padding-right:82px!important;
-  overflow:visible;
-}
-#dataTable thead tr:first-child th[data-col] .th-label{
-  display:inline-block!important;
-  max-width:calc(100% - 4px)!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-  white-space:nowrap!important;
-  vertical-align:middle!important;
-}
+
 /* Filter button: dedicated slot */
-#dataTable thead tr:first-child th[data-col] .final25-th-actions{
-  position:absolute!important;
-  right:48px!important;
-  top:50%!important;
-  transform:translateY(-50%)!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  width:24px!important;
-  height:24px!important;
-  margin:0!important;
-  z-index:22!important;
-}
-#dataTable thead tr:first-child th[data-col] .final25-filter-btn{
-  width:24px!important;
-  height:24px!important;
-  padding:0!important;
-  margin:0!important;
-  display:grid!important;
-  place-items:center!important;
-  border:1px solid var(--line)!important;
-  border-radius:7px!important;
-  background:var(--card)!important;
-  color:var(--muted)!important;
-  font-size:11px!important;
-  line-height:1!important;
-  cursor:pointer!important;
-}
-#dataTable thead tr:first-child th[data-col] .final25-filter-btn:hover,
-#dataTable thead tr:first-child th[data-col] .final25-filter-btn.active{
-  border-color:var(--brand)!important;
-  color:var(--brand-dk)!important;
-  background:var(--brand-sf)!important;
-}
+
 /* Sort indicator: its own fixed slot, never touching the delete button */
-#dataTable thead tr:first-child th[data-col] .sort-ic{
-  position:absolute!important;
-  right:27px!important;
-  top:50%!important;
-  transform:translateY(-50%)!important;
-  width:18px!important;
-  height:20px!important;
-  display:grid!important;
-  place-items:center!important;
-  margin:0!important;
-  padding:0!important;
-  font-size:11px!important;
-  line-height:1!important;
-  z-index:20!important;
-  pointer-events:none!important;
-  opacity:.55;
-}
+
 /* Delete button: dedicated far-right slot */
-#dataTable thead tr:first-child th[data-col] .col-del{
-  position:absolute!important;
-  right:3px!important;
-  top:50%!important;
-  transform:translateY(-50%)!important;
-  width:22px!important;
-  height:22px!important;
-  margin:0!important;
-  padding:0!important;
-  display:grid!important;
-  place-items:center!important;
-  z-index:30!important;
-  border:1px solid transparent!important;
-  border-radius:7px!important;
-  background:transparent!important;
-  color:#98A2B3!important;
-  font-size:13px!important;
-  line-height:1!important;
-  cursor:pointer!important;
-}
-#dataTable thead tr:first-child th[data-col] .col-del:hover{
-  color:#D92D20!important;
-  background:#FEECEC!important;
-  border-color:#F6C6C6!important;
-}
+
 /* Resize grip must stay behind the three header action hit-areas */
-#dataTable .final25-col-grip{
-  right:-2px!important;
-  width:6px!important;
-  z-index:8!important;
-}
-#dataTable thead tr:first-child th[data-col] .final25-col-grip{
-  top:0!important;
-  bottom:0!important;
-}
+
 /* Slight visual divider before the action cluster */
-#dataTable thead tr:first-child th[data-col]::after{
-  content:"";
-  position:absolute;
-  right:73px;
-  top:7px;
-  bottom:7px;
-  width:1px;
-  background:var(--line);
-  opacity:.8;
-  pointer-events:none;
-}
-@media(max-width:900px){
-  #dataTable thead tr:first-child th[data-col]{
-    padding-right:78px!important;
-  }
-}
+
 </style>
 
 <style id="final45-projectcontrol-fix">
@@ -1637,18 +1464,16 @@ html, body, .ome-tool-page button, .ome-tool-page input, .ome-tool-page select, 
       <button class="btn sm" id="newFileBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-upload"/></svg><span data-i18n="newFileBtn">ไฟล์ใหม่</span></button>
       <span class="status" id="saveStatus"></span>
     </div>
-    <div class="table-edit-toolbar" id="tableEditToolbar">
-      <span class="tool-label">Cell / Row / Column:</span>
-      <button class="btn sm" id="cellStyleBtn" type="button">🎨 Style</button>
-      <button class="btn sm" id="cellColorBtn" type="button">🎨 สี</button>
-      <button class="btn sm" id="condFormatToolbarBtn" type="button">▥ Conditional</button>
-      <button class="btn sm" id="wrapSelectionBtn" type="button">↩ Wrap Text</button>
-      <button class="btn sm" id="nowrapSelectionBtn" type="button">↔ No Wrap</button>
-      <button class="btn sm" id="boldSelectionBtn" type="button">B Bold</button>
-      <button class="btn sm" id="autoFitColumnBtn" type="button">↔ Auto Fit Column</button>
-      <button class="btn sm" id="autoFitRowBtn" type="button">↕ Auto Fit Row</button>
-      <button class="btn sm active" id="gridLinesBtn" type="button" aria-pressed="true">▦ Gridlines: On</button>
-      <span class="mini" id="tableSizeHint">Double-click column header / row to Auto Fit</span>
+    <div class="toolbar-row" id="tableEditToolbar">
+      <button class="btn sm" id="cellStyleBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-type"/></svg><span>Style</span></button>
+      <button class="btn sm" id="cellColorBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg><span>สี</span></button>
+      <button class="btn sm" id="condFormatToolbarBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sliders-horizontal"/></svg><span>Conditional</span></button>
+      <button class="btn sm" id="wrapSelectionBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-wrap-text"/></svg><span>Wrap Text</span></button>
+      <button class="btn sm" id="nowrapSelectionBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-arrow-right"/></svg><span>No Wrap</span></button>
+      <button class="btn sm" id="boldSelectionBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-bold"/></svg><span>Bold</span></button>
+      <button class="btn sm" id="autoFitColumnBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-arrow-left-right"/></svg><span>Auto Fit Column</span></button>
+      <button class="btn sm" id="autoFitRowBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-move-vertical"/></svg><span>Auto Fit Row</span></button>
+      <button class="btn sm active" id="gridLinesBtn" type="button" aria-pressed="true"><svg class="ome-icon"><use href="icons.svg#i-grid-3x3"/></svg><span>Gridlines: All</span></button>
     </div>
 <div class="tbl-wrap" id="dataTableWrap"><table id="dataTable"></table></div>
     <div id="dataEmpty" class="tbl-empty" style="display:none" data-i18n="dataEmptyTxt">ไม่พบแถวที่ตรงกับตัวกรอง</div>
@@ -2205,9 +2030,9 @@ function upgradeTable(){
   var table=q('#dataTable');if(!table)return;
   qa('thead tr:first-child th[data-col]',table).forEach(function(th){
     if(th.getAttribute('data-f24-ready')==='1')return;
-    var key=th.getAttribute('data-col');th.classList.add('final25-filterable');
-    var actions=document.createElement('span');actions.className='final25-th-actions';
-    var fb=document.createElement('button');fb.type='button';fb.className='final25-filter-btn';fb.title='Filter';fb.textContent='▼';
+    var key=th.getAttribute('data-col');th.classList.add('th-filterable');
+    var actions=document.createElement('span');actions.className='th-tools';
+    var fb=document.createElement('button');fb.type='button';fb.className='th-fbtn';fb.title='Filter';fb.innerHTML='<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-filter"/></svg>';
     var st=S();if(st&&st.filters&&st.filters[key])fb.classList.add('active');
     fb.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();mainTableFilter(key,fb)});
     actions.appendChild(fb);
@@ -2221,8 +2046,8 @@ function upgradeSizing(){
   qa('th[data-col]',head).forEach(function(th){
     var savedW=saved.cols&&saved.cols[th.getAttribute('data-col')];
     if(savedW){var sw=+savedW;th.style.width=sw+'px';th.style.minWidth=sw+'px';qa('tr',table).forEach(function(r){var ci=Array.from(head.children).indexOf(th);if(ci>=0&&r.children[ci]){r.children[ci].style.width=sw+'px';r.children[ci].style.minWidth=sw+'px'}})}
-    if(!th.querySelector('.final25-col-grip')){
-      var grip=document.createElement('span');grip.className='final25-col-grip';grip.style.cssText='position:absolute;right:-3px;top:0;bottom:0;width:8px;cursor:col-resize;z-index:8';
+    if(!th.querySelector('.col-grip')){
+      var grip=document.createElement('span');grip.className='col-grip';grip.style.cssText='position:absolute;right:-3px;top:0;bottom:0;width:8px;cursor:col-resize;z-index:8';
       grip.addEventListener('mousedown',function(e){e.preventDefault();e.stopPropagation();var startX=e.clientX,startW=th.getBoundingClientRect().width;function mv(ev){var w=Math.max(72,startW+(ev.clientX-startX));th.style.width=w+'px';th.style.minWidth=w+'px';qa('tr',table).forEach(function(r){var c=Array.from(r.children).indexOf(th);if(c>=0&&r.children[c]){r.children[c].style.width=w+'px';r.children[c].style.minWidth=w+'px'}})}function up(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);try{var all=JSON.parse(localStorage.getItem('tanot:tableSizes:v2')||'{}');var bucket=all[(S()&&S().fileName)||'__unsaved__']||{cols:{},rows:{}};bucket.cols[th.getAttribute('data-col')]=Math.round(th.getBoundingClientRect().width);all[(S()&&S().fileName)||'__unsaved__']=bucket;localStorage.setItem('tanot:tableSizes:v2',JSON.stringify(all))}catch(err){}persist();}document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up)});
       grip.addEventListener('dblclick',function(e){e.preventDefault();e.stopPropagation();var cells=qa('tr',table);var idx=Array.from(head.children).indexOf(th);var max=String(th.textContent||'').length*8+42;cells.slice(0,Math.min(cells.length,120)).forEach(function(r){if(r.children[idx])max=Math.max(max,String(r.children[idx].textContent||r.children[idx].querySelector('input')?.value||'').length*7+30)});max=Math.min(520,Math.max(86,max));th.style.width=max+'px';th.style.minWidth=max+'px';cells.forEach(function(r){if(r.children[idx]){r.children[idx].style.width=max+'px';r.children[idx].style.minWidth=max+'px'}});persist()});
       th.appendChild(grip);
@@ -2230,8 +2055,8 @@ function upgradeSizing(){
   });
   // Row grips
   qa('tbody tr[data-id]',table).forEach(function(tr){
-    if(tr.querySelector('.final25-row-grip'))return;
-    var g=document.createElement('span');g.className='final25-row-grip';g.style.cssText='position:absolute;left:0;right:0;bottom:-4px;height:8px;cursor:row-resize;z-index:9';
+    if(tr.querySelector('.row-grip'))return;
+    var g=document.createElement('span');g.className='row-grip';g.style.cssText='position:absolute;left:0;right:0;bottom:-4px;height:8px;cursor:row-resize;z-index:9';
     var savedH=saved.rows&&saved.rows[tr.getAttribute('data-id')];if(savedH)tr.style.height=savedH+'px';
     tr.style.position='relative';g.addEventListener('mousedown',function(e){e.preventDefault();e.stopPropagation();var sy=e.clientY,sh=tr.getBoundingClientRect().height;function mv(ev){tr.style.height=Math.max(28,sh+(ev.clientY-sy))+'px'}function up(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);try{var all=JSON.parse(localStorage.getItem('tanot:tableSizes:v2')||'{}');var st=S();var bucket=all[(st&&st.fileName)||'__unsaved__']||{cols:{},rows:{}};bucket.rows[tr.getAttribute('data-id')]=Math.round(tr.getBoundingClientRect().height);all[(st&&st.fileName)||'__unsaved__']=bucket;localStorage.setItem('tanot:tableSizes:v2',JSON.stringify(all))}catch(err){}persist()}document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up)});g.addEventListener('dblclick',function(e){e.preventDefault();e.stopPropagation();var h=28;Array.from(tr.children).forEach(function(td){h=Math.max(h,Math.min(180,(String(td.textContent||td.querySelector('input')?.value||'').length/35+1)*18))});tr.style.height=h+'px';persist()});tr.appendChild(g);
   });
@@ -2425,7 +2250,7 @@ function autoFitRows(){
 }
 function applyGridMode(mode){
   var table=q('#dataTable'),st=S();if(!table)return;mode=mode||'all';table.classList.remove('grid-none','grid-horizontal','grid-vertical','grid-all');table.classList.add('grid-'+mode);
-  var label=q('#gridLinesBtn');if(label){label.textContent='▦ Gridlines: '+({none:'None',horizontal:'Horizontal',vertical:'Vertical',all:'All'}[mode]||'All')}
+  var label=q('#gridLinesBtn span');if(label){label.textContent='Gridlines: '+({none:'None',horizontal:'Horizontal',vertical:'Vertical',all:'All'}[mode]||'All')}
   try{localStorage.setItem('tanot:gridlines:'+((st&&st.fileName)||'__global__'),mode)}catch(e){}
 }
 function initTableToolbar(){

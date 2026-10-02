@@ -1090,6 +1090,8 @@
   /* ══════════════════ format/escape ══════════════════ */
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function escapeAttr(s) { return escapeHtml(s); }
+  /* ไอคอน Lucide จาก icons.svg — ใช้ใน HTML ที่ JS สร้างเอง (ปุ่ม/หัวตาราง) แทน emoji */
+  function uiIcon(name) { return '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + name + '"/></svg>'; }
   function cellEditValue(v, type) {
     if (v === null || v === undefined) return '';
     if (type === 'date' && v instanceof Date && !isNaN(v)) return v.toISOString().slice(0, 10);
@@ -1272,7 +1274,7 @@
             '<select class="cf-rule-op">' + ops.map(function (o) { return '<option value="' + o[0] + '"' + (r.op === o[0] ? ' selected' : '') + '>' + escapeHtml(o[1]) + '</option>'; }).join('') + '</select>' +
             '<input type="text" class="cf-rule-val" value="' + escapeAttr(r.val || '') + '">' +
             '<input type="color" class="cf-rule-color" value="' + escapeAttr(r.color || '#FDE68A') + '">' +
-            '<button type="button" class="cf-rule-del" title="' + escapeAttr(t('cfRuleDel')) + '">✕</button>' +
+            '<button type="button" class="cf-rule-del" title="' + escapeAttr(t('cfRuleDel')) + '">' + uiIcon('x') + '</button>' +
             '</div>';
         }).join('') : '<div class="cf-rule-empty">' + escapeHtml(t('cfNoRules')) + '</div>';
         [].forEach.call(el.querySelectorAll('.cf-rule-row'), function (rowEl) {
@@ -1683,14 +1685,14 @@
       '<th style="width:30px"><input type="checkbox" class="hdrchk" id="hdrChk"></th>' +
       state.columns.map(function (col) {
         var sorted = state.sortCol === col.key;
-        var ic = sorted ? (state.sortDir === 'asc' ? '▲' : '▼') : '↕';
+        var ic = uiIcon(sorted ? (state.sortDir === 'asc' ? 'chevron-up' : 'chevron-down') : 'arrow-up-down');
         var fxBtn = col.formula ? '<button type="button" class="col-fx' + (col.formulaError ? ' err' : '') + '" data-col="' + col.key +
           '" title="' + escapeAttr(col.formulaError ? (t('fcErrorTitlePrefix') + col.formulaError) : t('fcEditTitle')) + '">ƒx</button>' : '';
         return '<th class="' + (col.type === 'number' ? 'num' : '') + (sorted ? ' sorted' : '') + '" data-col="' + col.key + '">' +
           fxBtn +
           '<span class="th-label" data-col="' + col.key + '" title="' + escapeAttr(t('dblclickRenameHint')) + '">' + escapeHtml(col.label) + '</span>' +
           '<span class="sort-ic">' + ic + '</span>' +
-          '<button type="button" class="col-del" data-col="' + col.key + '" title="' + escapeAttr(t('delColTitle')) + '">✕</button></th>';
+          '<button type="button" class="col-del" data-col="' + col.key + '" title="' + escapeAttr(t('delColTitle')) + '" aria-label="' + escapeAttr(t('delColTitle')) + '">' + uiIcon('x') + '</button></th>';
       }).join('') +
       '<th style="width:34px"></th>' +
       '</tr><tr class="filter-row">' +
@@ -1730,7 +1732,7 @@
           return '<td class="' + (col.type === 'number' ? 'num' : '') + (col.formula ? ' formula-cell' : '') + '" data-id="' + row.__id + '" data-col="' + col.key + '"' + cellCfStyle(col, row, cfRanges) + '><input class="cell-in" type="' + inputType +
             '" data-id="' + row.__id + '" data-col="' + col.key + '" value="' + escapeAttr(v) + '"' + (col.type === 'number' ? ' step="any"' : '') + (col.formula ? ' readonly tabindex="-1"' : '') + '></td>';
         }).join('') +
-        '<td class="rowdel"><button type="button" class="del1" data-id="' + row.__id + '" title="' + escapeAttr(t('delRowTitle')) + '">✕</button></td>' +
+        '<td class="rowdel"><button type="button" class="del1" data-id="' + row.__id + '" title="' + escapeAttr(t('delRowTitle')) + '" aria-label="' + escapeAttr(t('delRowTitle')) + '">' + uiIcon('x') + '</button></td>' +
         '</tr>';
     }
     /* จัดกลุ่ม (Group by + Subtotal) — เมื่อเปิดใช้งาน แสดงข้อมูลที่ผ่านตัวกรอง/เรียงแล้ว "ทั้งหมด" โดยไม่
@@ -1766,7 +1768,7 @@
           if (nums.length) subVal = nums.reduce(function (a, b) { return a + b; }, 0);
         }
         tbody += '<tr class="group-row"><td colspan="' + (state.columns.length + 2) + '">' +
-          '<button type="button" class="group-toggle" data-gkey="' + escapeAttr(g.key) + '">' + (collapsed ? '▶' : '▼') + '</button>' +
+          '<button type="button" class="group-toggle" data-gkey="' + escapeAttr(g.key) + '">' + uiIcon(collapsed ? 'chevron-right' : 'chevron-down') + '</button>' +
           '<b class="group-name">' + escapeHtml(g.key) + '</b>' +
           '<span class="group-count">' + g.rows.length.toLocaleString(locale()) + ' ' + escapeHtml(t('unitRows')) + '</span>' +
           (subVal != null ? '<span class="group-subtotal">' + escapeHtml(t('groupSubtotalLbl')) + ' ' + escapeHtml(subCol.label) + ' ' + subVal.toLocaleString(locale(), { maximumFractionDigits: 2 }) + '</span>' : '') +
@@ -2260,7 +2262,7 @@
     [].forEach.call($('dataTable').querySelectorAll('thead tr:first-child th[data-col]'), function (th) {
       var sortTimer = null;
       th.addEventListener('click', function (e) {
-        if (e.target.closest('.th-label,.col-del,.col-fx,.final25-filter-btn,.final25-th-actions,.final25-col-grip')) return;
+        if (e.target.closest('.th-label,.col-del,.col-fx,.th-fbtn,.th-tools,.col-grip')) return;
         if (sortTimer) clearTimeout(sortTimer);
         sortTimer = setTimeout(function () {
           var key = th.getAttribute('data-col');
@@ -3277,7 +3279,7 @@
     btn.type = 'button';
     btn.className = 'cellsel-autofill-btn';
     btn.title = t('autoFillOptionsHint');
-    btn.textContent = '⚙️';
+    btn.innerHTML = uiIcon('settings');
     btn.style.left = ((b.right - wrapRect.left) + wrap.scrollLeft - 4) + 'px';
     btn.style.top = ((b.bottom - wrapRect.top) + wrap.scrollTop - 4) + 'px';
     btn.addEventListener('click', function (e) { e.stopPropagation(); openAutoFillOptionsPopover(btn); });
@@ -3288,8 +3290,8 @@
     var op = lastFillOp;
     var html = '<div class="fp-title">' + escapeHtml(t('autoFillOptionsTitle')) + '</div>' +
       '<div class="fp-list">' +
-      '<div class="fp-item" data-mode="series"><span>📈 ' + escapeHtml(t('autoFillSeriesOpt')) + '</span></div>' +
-      '<div class="fp-item" data-mode="copy"><span>🔁 ' + escapeHtml(t('autoFillCopyOpt')) + '</span></div>' +
+      '<div class="fp-item" data-mode="series"><span>' + escapeHtml(t('autoFillSeriesOpt')) + '</span></div>' +
+      '<div class="fp-item" data-mode="copy"><span>' + escapeHtml(t('autoFillCopyOpt')) + '</span></div>' +
       '</div>';
     openPopover(html, anchorEl, function (el, close) {
       [].forEach.call(el.querySelectorAll('.fp-item'), function (item) {
