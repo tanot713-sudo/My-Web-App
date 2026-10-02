@@ -782,48 +782,10 @@
 #projectControlLayout .f53-gantt-scroll{scroll-behavior:auto;overscroll-behavior:contain}
 @media(max-width:1100px){#projectControlLayout .project-control-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.project-control-main-grid>.quarter{grid-column:span 6}.project-control-main-grid>.third{grid-column:span 6}}
 @media(max-width:700px){#projectControlLayout .project-control-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.project-control-main-grid>.quarter,.project-control-main-grid>.half,.project-control-main-grid>.third{grid-column:1/-1}.f61-gantt-controls{justify-content:flex-start}}
-/* Stage 7 (ตามที่ผู้ใช้ขอ): ปุ่มไอคอนล้วนบนหัวการ์ดกราฟ (ขยายเต็มจอ/ปรับสีการ์ด/ปรับสีกราฟ) เปลี่ยนจาก
-   กรอบเหลี่ยมทึบเดิมเป็นทรง "liquid glass" — พื้นหลังโปร่งแสง เบลอด้านหลัง (backdrop-filter) ขอบสีขาว
-   จางๆ เงานุ่มๆ ไม่ใช่แค่ #projectControlLayout เพราะปุ่มพวกนี้ใช้ร่วมกันทุกการ์ดกราฟทั้งแอป ไม่ใช่แค่
-   2 กราฟที่ย้ายมา ให้หน้าตาสม่ำเสมอกันทั้งหมด */
-.widget-fullscreen,.card-color-btn,.chart-style-btn{
-  background:rgba(255,255,255,.55)!important;border:1px solid rgba(255,255,255,.65)!important;
-  -webkit-backdrop-filter:blur(10px) saturate(180%)!important;backdrop-filter:blur(10px) saturate(180%)!important;
-  box-shadow:0 2px 10px rgba(16,24,40,.10),inset 0 1px 0 rgba(255,255,255,.7)!important;
-  border-radius:10px!important;color:var(--muted)!important;opacity:1!important;
-  transition:transform .15s ease,box-shadow .15s ease;
-}
-.widget-fullscreen:hover,.card-color-btn:hover,.chart-style-btn:hover{
-  transform:translateY(-1px);box-shadow:0 4px 14px rgba(16,24,40,.14),inset 0 1px 0 rgba(255,255,255,.8)!important;
-}
-:root:not([data-theme="light"]) .widget-fullscreen,:root:not([data-theme="light"]) .card-color-btn,:root:not([data-theme="light"]) .chart-style-btn{
-  background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.16)!important;
-  box-shadow:0 2px 10px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12)!important;
-}
-[data-theme="dark"] .widget-fullscreen,[data-theme="dark"] .card-color-btn,[data-theme="dark"] .chart-style-btn{
-  background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.16)!important;
-  box-shadow:0 2px 10px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12)!important;
-}
-/* Stage 7 (ตามที่ผู้ใช้ขอ): ตัดกล่องโดนัท "สัดส่วนจำนวนรายการตาม..." ออกจาก Analytics ไปเลย */
-#pieChartCard{display:none!important}
-/* Stage 7 (บั๊กที่ยืนยันแล้ว): ปุ่ม "Presentation Mode" toggle คลาส pc55-presentation บน body มาตั้งแต่
-   ต้น แต่ไม่เคยมี CSS ตอบสนองอะไรเลย กดแล้วเลยดูเหมือนไม่ทำงาน — ให้ซ่อนแถบเครื่องมือ/ตัวกรอง/แท็บ
-   ด้านบนที่ไม่จำเป็นตอนนำเสนอ เหลือแค่เนื้อหา Project Control เต็มพื้นที่ */
-body.pc55-presentation #dashboardCommandBar,
-body.pc55-presentation .dashboard-filter-card,
-body.pc55-presentation #dashboardNav{display:none!important}
-body.pc55-presentation #projectControlLayout{margin-top:0}
 /* Stage 7 (ตามที่ผู้ใช้ขอ): แถวใหม่สำหรับกราฟ Analytics 2 ตัวที่ย้ายมาไว้ใน Project Control — ใช้ grid
    12 คอลัมน์เดียวกับที่การ์ดกราฟใช้อยู่แล้ว (dash-span-6) เพื่อให้ตัวเลือกชนิดกราฟ/จัดกลุ่ม/รวมค่าที่ติดมา
    ด้วยยังทำงานและจัดวางถูกต้องเป๊ะเหมือนตอนอยู่ที่ Analytics */
 #projectControlLayout .project-control-charts-row{margin:0}
-/* Stage 8 (ตามที่ผู้ใช้ขอ): ตอนกด Fullscreen เบราว์เซอร์ใส่พื้นหลังดำ (::backdrop ค่าเริ่มต้นของ UA) ให้พื้น
-   ที่ว่างรอบๆ element ที่ขยายเต็มจอ เปลี่ยนเป็นสีพื้นหลังเดียวกับแอป (สว่าง) แทน และเปิด scroll ไว้เผื่อ
-   เนื้อหาสูงกว่าจอ */
-#dashboardView:fullscreen,#dashboardView:-webkit-full-screen,
-.card:fullscreen,.card:-webkit-full-screen{background:var(--bg)!important;overflow:auto!important}
-#dashboardView::backdrop,.card::backdrop{background:var(--bg)!important}
-#dashboardView:-webkit-full-screen::-webkit-scrollbar,.card:-webkit-full-screen::-webkit-scrollbar{width:10px}
 .f61-chart-empty-note{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 20px;color:var(--muted);font-size:11.5px}
 .chart-wrap{position:relative}
 `;

@@ -197,7 +197,6 @@
       barChartTitleWithNum: '{cat} ตามผลรวม {num}', barChartTitleCount: 'จำนวนรายการตาม {cat}',
       lineChartTitleWithNum: 'แนวโน้ม {num} ตามเวลา ({date})', lineChartTitleCount: 'จำนวนรายการตามเวลา ({date})',
       pieChartTitleTpl: 'สัดส่วนจำนวนรายการตาม {cat}',
-      hintBarClick: 'แตะกราฟเพื่อกรองตารางเฉพาะกลุ่มนั้น', hintLineClick: 'แตะกราฟเพื่อกรองตารางเฉพาะช่วงนั้น',
       dashTableTitle: 'ตารางข้อมูล',
       /* Stage 6 (ตามที่ผู้ใช้ขอ): ตัดข้อความ "· แก้ไขข้อมูลได้ที่แท็บ..." ท้ายบรรทัดออก เหลือแค่จำนวนแถว */
       dashTableMetaFull: '{n} แถว',
@@ -389,7 +388,6 @@
       barChartTitleWithNum: '{cat} by total {num}', barChartTitleCount: 'Row count by {cat}',
       lineChartTitleWithNum: '{num} trend over time ({date})', lineChartTitleCount: 'Row count over time ({date})',
       pieChartTitleTpl: 'Row count breakdown by {cat}',
-      hintBarClick: 'Tap the chart to filter the table to that group', hintLineClick: 'Tap the chart to filter the table to that period',
       dashTableTitle: 'Data Table',
       dashTableMetaFull: '{n} rows',
       dashTableMetaCapped: 'Showing {shown} of {total} rows',
@@ -1061,6 +1059,8 @@
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function escapeAttr(s) { return escapeHtml(s); }
   /* ไอคอน Lucide จาก icons.svg — ใช้ใน HTML ที่ JS สร้างเอง (ปุ่ม/หัวตาราง) แทน emoji */
+  /* พื้นหลังของภาพ/PDF ที่ส่งออก = พื้นหลังหน้าตามธีมที่กำลังใช้ */
+  function exportBackground() { try { return getComputedStyle(document.body).backgroundColor || '#FFFFFF'; } catch (e) { return '#FFFFFF'; } }
   function uiIcon(name) { return '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + name + '"/></svg>'; }
   function cellEditValue(v, type) {
     if (v === null || v === undefined) return '';
@@ -3289,7 +3289,22 @@
   /* ══════════════════ มุมมองแดชบอร์ด (Stage 2) — สรุปตัวเลข + กราฟอัตโนมัติ ══════════════════
      ใช้ state.rows ทั้งหมดเสมอ (ไม่ผูกกับตัวกรอง/คำค้นของมุมมองตาราง) เพื่อไม่ต้องอธิบายเพิ่มว่าทำไม
      ตัวเลขสรุปดู "ไม่ครบ" — เชื่อมกับตัวกรองเป็นของ stage ถัดไป */
-  var CHART_COLORS = ['#1E9E5A', '#1B2030', '#F59E0B', '#3B82F6', '#EC5E8A', '#8B5CF6', '#0EA5A5', '#EF4444', '#84CC16', '#64748B'];
+  /* สีกราฟทั้งหมดมาจาก chart-theme.js (โทเคน --ome-chart-*) และวาดใหม่เมื่อสลับสว่าง/มืด/สีเน้น — ห้ามฮาร์ดโค้ดสีซีรีส์
+     fallback ใช้เฉพาะตอน chart-theme.js โหลดไม่ขึ้น */
+  var CHART_FALLBACK = { series: ['#2A78D6', '#EB6834', '#1BAF7A', '#EDA100', '#E87BA4', '#008300', '#4A3AA7', '#E34948'],
+    grid: '#E6E9F2', axis: '#727C93', text: '#1F2430', textMuted: '#727C93', surface: '#FFFFFF', border: '#EAEDF5', up: '#17B26A', down: '#E5484D', accent: '#12A594' };
+  function chartTheme() {
+    var th = null;
+    try { th = window.OmeChartTheme && window.OmeChartTheme.get(); } catch (e) {}
+    if (th && window.Chart && window.OmeChartTheme.chartjs) window.OmeChartTheme.chartjs(window.Chart);
+    return th || CHART_FALLBACK;
+  }
+  /* สีต่อชิ้นของกราฟวงกลม/โดนัท: 8 สีแรกตามลำดับ, เกิน 8 ชิ้น 7 สีแรกคงเดิม ที่เหลือ (รวม "อื่นๆ") เป็นสีกลาง ไม่วนสีซ้ำ */
+  function categoricalColors(n) {
+    var th = chartTheme(), out = [];
+    for (var i = 0; i < n; i++) out.push(n <= 8 || i < 7 ? th.series[i % 8] : th.axis);
+    return out;
+  }
   var charts = { bar: null, line: null, pie: null, domain1: null, domain2: null };
   var MAX_CHART_CATS = 8;
 
@@ -3366,16 +3381,17 @@
   /* ── เลือกชนิดกราฟเองได้ต่อการ์ด (แท่งแนวตั้ง/แนวนอน/เส้น/วงกลม/โดนัท) — ข้อมูลชุดเดียวกัน (labels+data)
      วาดเป็นชนิดไหนก็ได้ทั้งนั้น จึงใช้ตัวสร้าง config กลางตัวเดียวให้ทั้ง 3 การ์ด แทนที่จะผูกตายตัวว่า
      การ์ดไหนต้องเป็นกราฟแท่ง/เส้น/วงกลมเท่านั้นเหมือนเดิม */
-  var CHART_TYPE_ICON = { bar: '📊', barH: '📊', line: '📈', pie: '🥧', doughnut: '🥧' };
-  function hexToRgba(hex, alpha) {
-    var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  function hexToRgba(c, alpha) {
+    if (c.charAt(0) !== '#') { var m = c.match(/[\d.]+/g); return m ? 'rgba(' + m[0] + ',' + m[1] + ',' + m[2] + ',' + alpha + ')' : c; }
+    var r = parseInt(c.slice(1, 3), 16), g = parseInt(c.slice(3, 5), 16), b = parseInt(c.slice(5, 7), 16);
     return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
   }
   function buildChartConfig(chartType, labels, data, singleColor) {
+    var th = chartTheme();
     if (chartType === 'pie' || chartType === 'doughnut') {
       return {
         type: chartType,
-        data: { labels: labels, datasets: [{ data: data, backgroundColor: CHART_COLORS, borderWidth: 0 }] },
+        data: { labels: labels, datasets: [{ data: data, backgroundColor: categoricalColors(labels.length), borderColor: th.surface, borderWidth: 2 }] },
         options: { responsive: true, maintainAspectRatio: false,
           plugins: { legend: { position: 'right', labels: { boxWidth: 11, font: { size: 11 } } } } }
       };
@@ -3385,7 +3401,7 @@
         type: 'line',
         data: { labels: labels, datasets: [{ data: data, borderColor: singleColor, backgroundColor: hexToRgba(singleColor, .12), fill: true, tension: .3, pointRadius: 3 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true, grid: { color: '#EEF0F4' } }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true } } } }
+          scales: { y: { beginAtZero: true, grid: { color: th.grid } }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true } } } }
       };
     }
     var horiz = chartType === 'barH'; // Chart.js ตัวเดียว 'bar' สลับแนวตั้ง/แนวนอนด้วย indexAxis
@@ -3396,8 +3412,8 @@
         /* แท่งแนวตั้ง: แกน X เดิมไม่มี ticks กำหนดเลย ชื่อยาวๆ (เช่นชื่องานเต็มประโยคแบบ TOR) เลยล้นทับกัน
            อ่านไม่ออก ตัดคำที่แกนให้สั้นลง ชื่อเต็มยังเห็นได้ตอนชี้เมาส์ (tooltip ค่าเริ่มต้นใช้ label เต็ม) */
         scales: horiz
-          ? { x: { beginAtZero: true, grid: { color: '#EEF0F4' } }, y: { grid: { display: false } } }
-          : { y: { beginAtZero: true, grid: { color: '#EEF0F4' } }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, callback: function(v){ var s=this.getLabelForValue(v); return s.length>16 ? s.slice(0,15)+'…' : s; } } } } }
+          ? { x: { beginAtZero: true, grid: { color: th.grid } }, y: { grid: { display: false } } }
+          : { y: { beginAtZero: true, grid: { color: th.grid } }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, callback: function(v){ var s=this.getLabelForValue(v); return s.length>16 ? s.slice(0,15)+'…' : s; } } } } }
     };
   }
 
@@ -3436,7 +3452,7 @@
     cfg.data.datasets.push({
       label: t('trendlineDatasetLabel'),
       data: allLabels.map(function (_, i) { return reg.slope * i + reg.intercept; }),
-      borderColor: '#9CA3AF', borderDash: [6, 4], borderWidth: 2, pointRadius: 0, fill: false, tension: 0
+      borderColor: chartTheme().axis, borderDash: [6, 4], borderWidth: 2, pointRadius: 0, fill: false, tension: 0
     });
     cfg.options.plugins.legend.display = true;
     return cfg;
@@ -3619,7 +3635,7 @@
       });
     });
   }
-  function cardColorAccent(role) { return (state.cardColors[role] && state.cardColors[role].accent) || '#1E9E5A'; }
+  function cardColorAccent(role) { return (state.cardColors[role] && state.cardColors[role].accent) || chartTheme().series[0]; }
   function applyCardColor(elId, role) {
     var el = $(elId);
     if (!el) return;
@@ -3872,7 +3888,7 @@
       likLevels.forEach(function (likVal, likIdx) {
         var cnt = counts[String(likVal) + '|' + String(impVal)] || 0;
         var frac = ((likIdx + 1) * (impRankIdx + 1)) / (nLik * nImp);
-        var bg = frac >= 0.66 ? 'rgba(229,72,77,.55)' : frac >= 0.33 ? 'rgba(245,158,11,.5)' : 'rgba(30,158,90,.35)';
+        var bg = frac >= 0.66 ? 'color-mix(in srgb,var(--ome-err) 45%,transparent)' : frac >= 0.33 ? 'color-mix(in srgb,var(--ome-warn) 45%,transparent)' : 'color-mix(in srgb,var(--ome-ok) 30%,transparent)';
         html += '<td style="background:' + bg + '">' + (cnt || '') + '</td>';
       });
       html += '</tr>';
@@ -4165,7 +4181,7 @@
     }
     return out;
   }
-  function widgetAccent(cfg) { return (cfg.style && cfg.style.accent) || '#1E9E5A'; }
+  function widgetAccent(cfg) { return (cfg.style && cfg.style.accent) || chartTheme().series[0]; }
   /* คอลัมน์เป้าหมาย/แถบความคืบหน้า + แถวเปรียบเทียบเดือนก่อน ต่อยอดจากกล่อง KPI เดิม — เป็นส่วนเสริม
      ไม่บังคับ (cfg.target/cfg.compareDateColKey เป็น undefined ได้ตามปกติสำหรับกล่อง KPI เดิมที่มีอยู่แล้ว
      ก่อนฟีเจอร์นี้ ทำงานเหมือนเดิมทุกประการถ้าไม่ได้ตั้งค่าอะไรเพิ่ม) */
@@ -5292,7 +5308,7 @@
       fillSelect($('pieCatSel'), catCols, pieCat.key);
       $('pieTypeSel').value = pieType;
       var pieEntries = aggregateByCategory(rows, pieCat.key, null);
-      $('pieChartTitle').textContent = CHART_TYPE_ICON[pieType] + ' ' + t('pieChartTitleTpl', { cat: pieCat.label });
+      $('pieChartTitle').textContent = t('pieChartTitleTpl', { cat: pieCat.label });
       var pieCfg = buildChartConfig(pieType, pieEntries.map(function (e) { return e[0]; }), pieEntries.map(function (e) { return e[1]; }), cardColorAccent('pie'));
       pieCfg.options.onClick = function (evt, els) {
         if (!els || !els.length) return;
@@ -5574,7 +5590,7 @@
   function exportDashboardImage() {
     if (typeof window.html2canvas === 'undefined') { notifyUser(t('exportLibFail'),'error'); return; }
     withControlsHidden(function () {
-      return window.html2canvas(activeExportViewEl(), { backgroundColor: '#F3F5F8', scale: 2 });
+      return window.html2canvas(activeExportViewEl(), { backgroundColor: exportBackground(), scale: 2 });
     }).then(function (canvas) {
       canvas.toBlob(function (blob) { if (blob) downloadBlob(blob, exportFileBase() + '.png'); });
     });
@@ -5584,7 +5600,7 @@
     var jsPDFctor = window.jspdf && window.jspdf.jsPDF;
     if (!jsPDFctor || !window.html2canvas) { window.print(); return; }
     withControlsHidden(function () {
-      return window.html2canvas(activeExportViewEl(), { backgroundColor: '#F3F5F8', scale: 2 });
+      return window.html2canvas(activeExportViewEl(), { backgroundColor: exportBackground(), scale: 2 });
     }).then(function (canvas) {
       var pw = 210, ph = 297; // A4 แนวตั้ง (mm)
       var pdf = new jsPDFctor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -5592,7 +5608,7 @@
       while (sy < canvas.height - 1) {
         var sh = Math.min(pageHpx, canvas.height - sy);
         var c2 = document.createElement('canvas'); c2.width = canvas.width; c2.height = sh;
-        var ctx = c2.getContext('2d'); ctx.fillStyle = '#F3F5F8'; ctx.fillRect(0, 0, c2.width, sh);
+        var ctx = c2.getContext('2d'); ctx.fillStyle = exportBackground(); ctx.fillRect(0, 0, c2.width, sh);
         ctx.drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh);
         if (!first) pdf.addPage('a4', 'portrait');
         pdf.addImage(c2.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pw, sh / pxPerMm);
@@ -5608,7 +5624,7 @@
   function cleanChartConfigForExport(c) {
     if (!c) return null;
     var opts = (c.config && c.config.options) || {};
-    return {
+    var out = {
       type: c.config.type,
       data: JSON.parse(JSON.stringify(c.config.data)),
       options: {
@@ -5618,6 +5634,10 @@
         scales: opts.scales ? JSON.parse(JSON.stringify(opts.scales)) : undefined
       }
     };
+    /* ไฟล์ export เป็นหน้า HTML สว่างของตัวเอง (สไตล์ในไฟล์) ไม่ตามธีมของหน้านี้ — เส้นกริด/ขอบชิ้นวงกลมที่มาจากธีมมืดจึงต้องแทนด้วยสีสว่างตายตัวตรงนี้ที่เดียว */
+    Object.keys(out.options.scales || {}).forEach(function (k) { var g = out.options.scales[k].grid; if (g && g.color) g.color = '#EEF0F4'; });
+    if (out.type === 'pie' || out.type === 'doughnut') out.data.datasets.forEach(function (d) { d.borderColor = '#FFFFFF'; });
+    return out;
   }
   function buildDashboardHtmlDoc() {
     var title = escapeHtml(exportFileBase());
@@ -5836,6 +5856,11 @@
       b.addEventListener('click', function () { setView(b.getAttribute('data-view')); });
     });
     $('drillClearBtn').addEventListener('click', clearDrill);
+    /* สีกราฟเปลี่ยนตามสว่าง/มืด/สีเน้น → วาดมุมมองที่เปิดอยู่ใหม่ */
+    if (window.OmeChartTheme) window.OmeChartTheme.onChange(function () {
+      if (!state.rows.length) return;
+      if (currentView === 'dashboard') renderDashboard(); else if (currentView === 'custom') renderCustomView();
+    });
     $('barTypeSel').addEventListener('change', function () { state.chartType.slot1 = this.value; renderDashboard(); });
     $('barCatSel').addEventListener('change', function () { state.chartChoice.barCat = this.value; renderDashboard(); });
     $('barNumSel').addEventListener('change', function () { state.chartChoice.barNum = this.value; renderDashboard(); });
