@@ -109,6 +109,11 @@
     { key: 'tanot:invest:gsblottery', kind: 'sync', mode: 'list', idField: 'ts' },
     { key: 'tanot:invest:baaclottery', kind: 'sync', mode: 'list', idField: 'ts' },
     { key: 'tanot:invest:bizplan', kind: 'sync', mode: 'list', idField: 'ts' },
+    // ── ยุบรวมหน้าลงทุน (docs/invest-consolidation-design.md 3.2): ui = แท็บ/ช่วงกราฟล่าสุดต่อเครื่อง · nav = NAV ล่าสุดที่ผู้ใช้กรอกต่อกองทุน (1 กองทุน = 1 doc)
+    //    · networth = snapshot มูลค่าสินทรัพย์วันละแถว (id = วันที่เวลาไทย — 2 เครื่องเขียนวันเดียวกัน = แถวเดียว) ──
+    { key: 'tanot:invest:ui', kind: 'local' },
+    { key: 'tanot:invest:nav', kind: 'sync', mode: 'map' },
+    { key: 'tanot:invest:networth', kind: 'sync', mode: 'list', idField: 'd' },
     { key: 'lang-practice:srs', kind: 'sync', mode: 'map' },
     { key: 'lang-practice:progress', kind: 'sync', mode: 'map' },
     { key: 'lang-practice:notes', kind: 'sync', mode: 'map' },

@@ -91,6 +91,8 @@ jobs:
         run: npx playwright test typing.spec.js
       - name: books (books-calc.js known-answer — Open Library ปลอม ส่งเฉพาะคำค้น, ชั้นหนังสือ/บันทึกการอ่าน/สถิติรายสัปดาห์/เป้าปี, ไฮไลต์ → การ์ด → review.html ให้คะแนนเขียนกลับ, XP แหล่ง books + ยอด legacy เดิมไม่เปลี่ยน, ซิงก์ 2 เครื่อง)
         run: npx playwright test books.spec.js
+      - name: invest (invest-calc.js เทียบฟังก์ชันเดิมของหน้าลงทุนทุกหลัก, มูลค่าสินทรัพย์ลงทุน known-answer + snapshot รายวันเวลาไทย, สมุดเทรดรวม, หน้าลงทุนที่ยุบรวมแล้วใช้ /api/proxy เท่านั้น, คีย์ข้อมูลผู้ใช้เดิมไม่เปลี่ยน, หน้า redirect, ซิงก์ 2 เครื่อง)
+        run: npx playwright test invest.spec.js
       - name: github-redirect (GitHub Pages แบบ redirect ไป pages.dev)
         run: npx playwright test github-redirect.spec.js
       - name: Upload Playwright report

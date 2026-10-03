@@ -4,6 +4,7 @@
 // และ known-answer ของมูลค่าสินทรัพย์/วันที่ไทย/snapshot/สมุดเทรด
 const { test, expect } = require('@playwright/test');
 const path = require('path');
+const { prepare } = require('./helpers');
 
 const C = require(path.join(__dirname, '..', 'invest-calc.js'));
 const O = require('./fixtures/invest-original.js');
@@ -501,5 +502,204 @@ test.describe('known-answer: สมุดเทรดรวม', () => {
     expect(C.journalStats([])).toEqual({ n: 0, wins: 0, losses: 0, winRate: 0, total: 0, avgWin: 0, avgLoss: 0, expectancy: 0 });
     // pl = 0 นับเป็นไม่ชนะ (เหมือน renderJournal เดิม)
     expect(C.journalStats([{ pl: 0 }]).wins).toBe(0);
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   หน้า (Playwright) — ส่วนที่ 2: invest-core.js + หน้าข่าว (ขั้น 2)
+   ═══════════════════════════════════════════════════════════════════ */
+const FORBIDDEN_HOSTS = /allorigins|codetabs|cors\.eu\.org|cors\.workers\.dev|cors\.lol|rss2json|tanot-cors-proxy/;
+const FONT_HOSTS = /^fonts\.(googleapis|gstatic)\.com$/;
+
+/** เก็บชื่อโฮสต์ของทุกคำขอที่ออกนอก localhost (ที่ prepare() บล็อกไว้) */
+function trackExternal(page) {
+  const hosts = [];
+  page.on('request', (r) => {
+    const u = new URL(r.url());
+    if (u.hostname === 'localhost' || u.hostname === '127.0.0.1' || u.protocol === 'data:' || u.protocol === 'blob:') return;
+    hosts.push(u.hostname);
+  });
+  return hosts;
+}
+/** จำลอง /api/proxy ของเว็บ: handler(urlปลายทาง) คืน {status, body, contentType} หรือ null = 502 */
+async function mockProxy(page, handler) {
+  const seen = [];
+  await page.addInitScript(() => { window.TANOT_PROXY = { enabled: true }; });
+  await page.route('**/api/proxy?*', (route) => {
+    const target = new URL(route.request().url()).searchParams.get('url');
+    seen.push(target);
+    const r = handler(target);
+    if (!r) return route.fulfill({ status: 502, body: 'down' });
+    return route.fulfill({ status: r.status || 200, contentType: r.contentType || 'application/json', body: typeof r.body === 'string' ? r.body : JSON.stringify(r.body) });
+  });
+  return seen;
+}
+function rssXml(items) {
+  return '<?xml version="1.0"?><rss><channel>' + items.map((i) => `<item><title>${i.title}</title><link>${i.link}</link><pubDate>${i.pub}</pubDate><source>${i.src}</source></item>`).join('') + '</channel></rss>';
+}
+function yahooChart(n, base) {
+  const t0 = 1767225600;
+  const ts = Array.from({ length: n }, (_, i) => t0 + i * 86400);
+  const mk = (f) => Array.from({ length: n }, (_, i) => +(base + i * 0.1 + f).toFixed(2));
+  return { chart: { result: [{ timestamp: ts, meta: { regularMarketPrice: base + n * 0.1, previousClose: base + n * 0.1 - 0.5 },
+    indicators: { quote: [{ open: mk(0), high: mk(0.5), low: mk(-0.5), close: mk(0.1), volume: ts.map((_, i) => 1000 + i) }] } }] } };
+}
+const NEWS_ITEMS = [{ title: 'ตลาดหุ้นไทยปิดบวก', link: 'https://example.com/a', pub: 'Fri, 02 Oct 2026 08:00:00 GMT', src: 'สำนักข่าว A' }, { title: 'SET พุ่ง <b>แรง</b>', link: 'https://example.com/b', pub: 'Fri, 02 Oct 2026 07:00:00 GMT', src: 'B' }];
+
+test.describe('invest-core + หน้าข่าว', () => {
+  test('ข่าวผ่าน /api/proxy เท่านั้น: แสดงรายการ + เขียนแคช newscache:q: + ไม่ออกโฮสต์อื่น + มีแถบหมวดย่อย', async ({ page }) => {
+    const errors = await prepare(page);
+    const hosts = trackExternal(page);
+    const seen = await mockProxy(page, (u) => (u.startsWith('https://news.google.com/rss/search') ? { contentType: 'application/xml', body: rssXml(NEWS_ITEMS) } : null));
+    await page.clock.setFixedTime(new Date('2026-10-03T03:00:00Z'));
+    await page.goto('/invest-news.html');
+    await expect(page.locator('.news-item')).toHaveCount(2);
+    await expect(page.locator('.news-item').first()).toContainText('ตลาดหุ้นไทยปิดบวก');
+    await expect(page.locator('.news-item .src').first()).toHaveText('สำนักข่าว A');
+    // หัวข้อที่มี HTML ในข้อความต้องไม่กลายเป็นแท็กจริง
+    await expect(page.locator('.news-item b')).toHaveCount(0);
+    expect(seen.length).toBe(1);
+    expect(decodeURIComponent(seen[0])).toContain('q=');
+    const key = 'tanot:invest:newscache:q:ตลาดหุ้นไทย OR SET Index';
+    const cached = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)), key);
+    expect(cached.items).toHaveLength(2);
+    // แถบหมวดย่อยแถวเดียว: ภาพรวม + หน้าลงทุน และหน้านี้ active
+    await expect(page.locator('#ivSubRow a').first()).toHaveText('ภาพรวม');
+    await expect(page.locator('#ivSubRow a.on')).toHaveText('ข่าวหุ้น');
+    expect(hosts.filter((h) => !FONT_HOSTS.test(h))).toEqual([]);
+    expect(hosts.filter((h) => FORBIDDEN_HOSTS.test(h))).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test('ข่าว: ดึงไม่ได้แต่มีแคช = ใช้ที่บันทึกไว้ · ไม่มีแคช = ลิงก์ค้นเอง (ไม่ใช่ error แข็ง)', async ({ page }) => {
+    const errors = await prepare(page);
+    await mockProxy(page, () => null);
+    await page.addInitScript(() => {
+      localStorage.setItem('tanot:invest:newscache:q:ตลาดหุ้นไทย OR SET Index', JSON.stringify({ ts: Date.now() - 5 * 3600e3, items: [{ title: 'ข่าวเก่าที่บันทึกไว้', link: 'https://example.com/x', pubDate: '', source: 'S' }] }));
+    });
+    await page.goto('/invest-news.html');
+    await expect(page.locator('.news-item')).toHaveCount(1);
+    await expect(page.locator('#srcBadge')).toContainText('ใช้ข่าวที่บันทึกไว้');
+    // เปลี่ยนชิปที่ไม่มีแคช → ข้อความ + ลิงก์ Google News
+    await page.locator('.chip[data-key="econ"]').click();
+    await expect(page.locator('.news-empty a')).toHaveAttribute('href', /news\.google\.com\/search/);
+    expect(errors.filter((e) => !/502|Failed to load resource/.test(e))).toEqual([]);
+  });
+
+  test('InvestCore: series/quote/fx/ทองไทย/กลัว-โลภ เขียนแคชตามชื่อเดิม · ดึงไม่ได้ = คืนแคช stale · ไม่มีแคช = reject', async ({ page }) => {
+    await prepare(page);
+    const hosts = trackExternal(page);
+    let down = false;
+    const seen = await mockProxy(page, (u) => {
+      if (down) return null;
+      if (/finance\.yahoo\.com\/v8\/finance\/chart\/THB%3DX|chart\/THB=X/.test(u)) return { body: { chart: { result: [{ meta: { regularMarketPrice: 36.1 }, indicators: { quote: [{ close: [36, 36.1] }] } }] } } };
+      if (/range=1y/.test(u)) return { body: yahooChart(40, 30) };
+      if (/range=5d/.test(u)) return { body: yahooChart(5, 100) };
+      if (/chnwt\.dev/.test(u)) return { body: { response: { update_date: 'x', update_time: 'y', price: { gold_bar: { buy: '42,000.00', sell: '42,100.00' }, gold: { buy: '41,000.00', sell: '41,500.00' } } } } };
+      if (/alternative\.me/.test(u)) return { body: { data: [{ value: '61', value_classification: 'Greed', timestamp: '1' }] } };
+      return null;
+    });
+    await page.goto('/invest-news.html');
+    await page.waitForFunction(() => window.InvestCore);
+    const r = await page.evaluate(async () => {
+      const IC = window.InvestCore, out = {};
+      out.series = (await IC.series('PTT.BK')).series.closes.length;
+      out.us = (await IC.series('AAPL')).series.closes.length;
+      out.quote = await IC.quote('BTC-USD', { force: true });
+      out.fx = await IC.fx('USD');
+      out.gold = await IC.thaiGold();
+      out.fng = await IC.fng();
+      out.keys = ['tanot:invest:cache:PTT', 'tanot:invest:cache:us:AAPL', 'tanot:invest:cache:q:BTC-USD', 'tanot:invest:fxcache', 'tanot:invest:cache:gold:th', 'tanot:invest:cache:fng'].map((k) => [k, !!localStorage.getItem(k)]);
+      out.shape = Object.keys(JSON.parse(localStorage.getItem('tanot:invest:cache:PTT'))).sort();
+      out.qshape = Object.keys(JSON.parse(localStorage.getItem('tanot:invest:cache:q:BTC-USD'))).sort();
+      return out;
+    });
+    expect(r.series).toBe(40); expect(r.us).toBe(40);
+    expect(r.quote).toMatchObject({ stale: false }); expect(r.quote.spark.length).toBe(5);
+    expect(r.fx).toMatchObject({ rate: 36.1, stale: false });
+    expect(r.gold).toMatchObject({ barBuyPrice: 42100, barSellPrice: 42000, jewelrySellPrice: 41000, stale: false });
+    expect(r.fng).toMatchObject({ value: 61, classification: 'Greed', stale: false });
+    expect(r.keys.every(([, ok]) => ok), JSON.stringify(r.keys)).toBe(true);
+    expect(r.shape).toEqual(['c', 'h', 'l', 'o', 't', 'ts', 'v']); expect(r.qshape).toEqual(['prev', 'price', 'spark', 'ts']);
+    // ทองไทยลองตรงก่อน (ถูกบล็อก) แล้วค่อย proxy
+    expect(hosts).toContain('api.chnwt.dev'); expect(hosts).toContain('api.alternative.me');
+    expect(hosts.filter((h) => FORBIDDEN_HOSTS.test(h))).toEqual([]);
+    expect(seen.some((u) => /chnwt\.dev/.test(u))).toBe(true);
+    // เซิร์ฟเวอร์ล่ม → แคชเดิมพร้อม stale · สัญลักษณ์ที่ไม่เคยมีแคช → reject
+    down = true;
+    const r2 = await page.evaluate(async () => {
+      const IC = window.InvestCore, out = {};
+      out.series = (await IC.series('PTT.BK')).stale;
+      out.quote = (await IC.quote('BTC-USD', { force: true })).stale;
+      out.fx = (await IC.fx('USD', { force: true })).stale;
+      out.gold = (await IC.thaiGold({ force: true })).stale;
+      out.fng = (await IC.fng({ force: true })).stale;
+      out.noCache = await IC.series('ZZZZ.BK').then(() => 'ok', () => 'rejected');
+      out.noFx = (localStorage.removeItem('tanot:invest:fxcache'), await IC.fx('USD', { force: true }).then(() => 'ok', () => 'rejected'));
+      return out;
+    });
+    expect(r2).toEqual({ series: true, quote: true, fx: true, gold: true, fng: true, noCache: 'rejected', noFx: 'rejected' });
+  });
+
+  test('ล้างแคชเก่า: แคชที่ไม่ใช้แล้วหาย · คีย์ข้อมูลผู้ใช้ไม่หายสักคีย์ · ทำครั้งเดียวต่อเครื่อง', async ({ page }) => {
+    await prepare(page);
+    await mockProxy(page, () => null);
+    const USER = {
+      'tanot:invest:thstock': [{ sym: 'PTT', shares: 1, cost: 1, ts: 1 }], 'tanot:invest:thjournal': [{ sym: 'A', en: 1, ex: 2, sh: 1, pl: 1, ts: 2 }],
+      'tanot:invest:globalstock': [{ sym: 'AAPL', shares: 1, cost: 1, ts: 3 }], 'tanot:invest:globaljournal': [], 'tanot:invest:btc': [{ qty: 1, cost: 1, ts: 4 }], 'tanot:invest:btcjournal': [],
+      'tanot:invest:gold': [{ type: 'bar', unit: 'baht', amt: 1, price: 1, weight: 1, ts: 5 }], 'tanot:invest:thaifund': [{ fund: 'K', cat: 'rmf', amt: 1, nav: 1, units: 1, ts: 6 }],
+      'tanot:invest:thaifund:birthyear': '1990', 'tanot:invest:spfund': [], 'tanot:invest:govbond': [], 'tanot:invest:gsblottery': [], 'tanot:invest:gsblottery:tiers': { unitPrice: '100' },
+      'tanot:invest:baaclottery': [], 'tanot:invest:baaclottery:tiers': {}, 'tanot:invest:bizplan': [], 'tanot:invest:portfolio': { cash: 1, startCash: 1, holdings: [], tx: [] },
+      'tanot:invest:lottery:spins': [], 'tanot:invest:lottery:budget': '100', 'tanot:invest:hub:watch:thai': ['PTT'], 'tanot:invest:hub:history': [{ d: '2026-10-01', v: 1 }],
+      'tanot:invest:driveConnected': '1', 'tanot:invest:gold:driveConnected': '1', 'tanot:aiChat:noBigModel': '1', 'tanot:market:live-config:v1': { provider: 'yahoo', apiKey: 'k' },
+    };
+    const OLD = ['tanot:invest:cache:hub:q:bk:PTT', 'tanot:invest:cache:hub:fng', 'tanot:invest:cache:comm:q:CL=F', 'tanot:invest:newscache:PTT', 'tanot:invest:newscache:us:AAPL', 'tanot:invest:newscache:hub:ปันผล',
+      'tanot:invest:cache:comm:thaigold', 'tanot:invest:cache:btc:fng', 'tanot:invest:cache:gold:dxy', 'tanot:invest:cache:gold:tnx'];
+    const KEEP_CACHE = ['tanot:invest:newscache:q:x', 'tanot:invest:cache:PTT', 'tanot:invest:cache:us:AAPL', 'tanot:invest:cache:gold:th', 'tanot:invest:fxcache', 'tanot:invest:cache:comm:s:CL=F'];
+    await page.addInitScript(([user, old, keep]) => {
+      if (localStorage.getItem('tanot:invest:ui')) return; // ครั้งเดียว: โหลดซ้ำไม่ seed ทับ
+      Object.entries(user).forEach(([k, v]) => localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v)));
+      old.concat(keep).forEach((k) => localStorage.setItem(k, '{"ts":1}'));
+    }, [USER, OLD, KEEP_CACHE]);
+    await page.goto('/invest-news.html');
+    await page.waitForFunction(() => window.InvestCore && JSON.parse(localStorage.getItem('tanot:invest:ui') || '{}').cleaned === 1);
+    const after = await page.evaluate(() => Object.fromEntries(Object.keys(localStorage).map((k) => [k, localStorage.getItem(k)])));
+    for (const k of OLD) expect(after[k], k).toBeUndefined();
+    for (const k of KEEP_CACHE) expect(after[k], k).toBeDefined();
+    for (const [k, v] of Object.entries(USER)) expect(after[k], k).toBe(typeof v === 'string' ? v : JSON.stringify(v));
+    // รอบสอง: แคชเก่าที่โผล่มาใหม่ไม่ถูกลบซ้ำ (ธงตั้งแล้ว)
+    await page.evaluate(() => localStorage.setItem('tanot:invest:cache:hub:fng', '{"ts":2}'));
+    await page.reload();
+    await page.waitForFunction(() => window.InvestCore);
+    expect(await page.evaluate(() => localStorage.getItem('tanot:invest:cache:hub:fng'))).toBe('{"ts":2}');
+  });
+
+  test('คีย์ใหม่อยู่ใน registry: ui = local, nav = sync map, networth = sync list (id d) · แคชเป็น cache', async ({ page }) => {
+    await prepare(page);
+    await page.goto('/invest-news.html');
+    const c = await page.evaluate(() => ['tanot:invest:ui', 'tanot:invest:nav', 'tanot:invest:networth', 'tanot:invest:cache:q:PTT.BK', 'tanot:invest:newscache:q:x', 'tanot:market:live-config:v1'].map((k) => [k, window.TanotRegistry.classify(k)]));
+    expect(c[0][1]).toMatchObject({ kind: 'local' });
+    expect(c[1][1]).toMatchObject({ kind: 'sync', mode: 'map' });
+    expect(c[2][1]).toMatchObject({ kind: 'sync', mode: 'list', idField: 'd' });
+    expect(c[3][1].kind).toBe('cache'); expect(c[4][1].kind).toBe('cache'); expect(c[5][1].kind).toBe('local');
+  });
+
+  test('proxy.js: api.chnwt.dev อยู่ใน allowlist · โฮสต์นอกรายการยัง 403 (ไม่เป็น open proxy)', async () => {
+    // functions/api/proxy.js เป็น ESM แต่ไม่มี package.json type=module — รันซอร์สจริงด้วย Function โดยตัดคำว่า export
+    const src = require('fs').readFileSync(path.join(__dirname, '..', 'functions', 'api', 'proxy.js'), 'utf8').replace('export async function onRequestGet', 'async function onRequestGet');
+    const realFetch = globalThis.fetch;
+    const calls = [];
+    globalThis.fetch = async (u) => { calls.push(String(u)); return new Response('{"ok":1}', { status: 200, headers: { 'Content-Type': 'application/json' } }); };
+    const onRequestGet = new Function(src + '; return onRequestGet;')();
+    try {
+      const ok = await onRequestGet({ request: new Request('https://x.pages.dev/api/proxy?url=' + encodeURIComponent('https://api.chnwt.dev/thai-gold-api/latest')) });
+      expect(ok.status).toBe(200); expect(calls).toEqual(['https://api.chnwt.dev/thai-gold-api/latest']);
+      for (const bad of ['https://api.allorigins.win/raw', 'https://evil.example/x', 'http://api.chnwt.dev/x']) {
+        const r = await onRequestGet({ request: new Request('https://x.pages.dev/api/proxy?url=' + encodeURIComponent(bad)) });
+        expect(r.status, bad).toBe(403);
+      }
+      expect(calls.length).toBe(1);
+    } finally { globalThis.fetch = realFetch; }
   });
 });
