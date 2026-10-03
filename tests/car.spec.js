@@ -26,6 +26,12 @@ test.describe('car-calc.js (known-answer)', () => {
     expect(K.inspectRequired({ year: 2019 }, '2027-03-01')).toBe(true);
     expect(K.inspectRequired({}, '2027-03-01')).toBe(false);
     expect(K.inspectRequired({ year: 2010 }, 'ไม่ใช่วัน')).toBe(false);
+    // รถจักรยานยนต์: เกิน 5 ปี (ปีรุ่น 2021 ปี 2026 = 5 ปี ยังไม่ต้อง; ปี 2027 ต้อง) · ไม่ระบุประเภท = รถยนต์
+    expect(K.inspectRequired({ type: 'motorcycle', year: 2021 }, '2026-12-31')).toBe(false);
+    expect(K.inspectRequired({ type: 'motorcycle', year: 2021 }, '2027-01-01')).toBe(true);
+    expect(K.inspectRequired({ type: 'car', year: 2021 }, '2027-01-01')).toBe(false);
+    expect(K.inspectAfter({})).toBe(7);
+    expect(K.inspectAfter({ type: 'motorcycle' })).toBe(5);
   });
 
   test('inspectOk: รถต้องตรวจ ใบตรวจต้องไม่หมดก่อนวันครบกำหนดภาษี · รถใหม่ไม่ต้อง', () => {

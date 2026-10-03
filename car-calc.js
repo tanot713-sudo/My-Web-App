@@ -3,7 +3,7 @@
    car.html / index.js (การ์ด "รถ") ใช้ไฟล์นี้ร่วมกัน — ห้ามมีสูตรวันครบกำหนด/นัดเข้าศูนย์/กฎ ตรอ. ของตัวเองที่อื่น
 
    รถ (localStorage['tanot:car:vehicles'] = array, sync mode 'list' idField 'id'):
-     { id, plate, province, make, model, year (ปี ค.ศ. ที่จดทะเบียนครั้งแรก/ปีรุ่น), odometer (กม. ล่าสุด), odometerAt 'YYYY-MM-DD',
+     { id, type ('car' | 'motorcycle' — ไม่มี = car), plate, province, make, model, year (ปี ค.ศ. ที่จดทะเบียนครั้งแรก/ปีรุ่น), odometer (กม. ล่าสุด), odometerAt 'YYYY-MM-DD',
        actDue (พ.ร.บ. หมดอายุ), taxDue (ภาษีประจำปีครบกำหนด), insuranceDue (ประกันภาคสมัครใจหมดอายุ — ใช้เมื่อไม่เชื่อมกรมธรรม์),
        insurancePolicyId? (กรมธรรม์ประเภทรถใน tanot:insurance:policies — อ่านอย่างเดียว), inspectDue (ใบตรวจสภาพ ตรอ. หมดอายุ),
        note, files: [{ id, name, size, mime }] (R2 ผ่าน /api/files?ns=car) }
@@ -11,7 +11,7 @@
      { id, vehicleId, date, odometer, items (ข้อความ), cost (บาท), nextKm?, nextDate? (อย่างใดถึงก่อน), budgetId? (แถวใน budget:records), note }
    วันที่เป็น 'YYYY-MM-DD' เวลาท้องถิ่น · เวลาแจ้งเตือน 08:00 เวลาไทย (Date.UTC ตรงๆ ไม่ขึ้นกับ timezone เครื่อง)
 
-   กฎ ตรอ.: รถอายุเกิน 7 ปีนับจากปีจดทะเบียนครั้งแรก ต้องมีใบตรวจสภาพที่ยังไม่หมดอายุ ณ วันต่อภาษี (ค่าเริ่มต้นของกฎอยู่ที่ INSPECT_AFTER_YEARS)
+   กฎ ตรอ.: รถยนต์อายุเกิน 7 ปี / รถจักรยานยนต์อายุเกิน 5 ปี นับจากปีจดทะเบียนครั้งแรก ต้องมีใบตรวจสภาพที่ยังไม่หมดอายุ ณ วันต่อภาษี (INSPECT_AFTER)
    ══════════════════════════════════════════════════════════════════ */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
@@ -19,7 +19,11 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  var INSPECT_AFTER_YEARS = 7;
+  var INSPECT_AFTER = { car: 7, motorcycle: 5 };
+  var INSPECT_AFTER_YEARS = INSPECT_AFTER.car; // คงไว้ให้โค้ดเดิมที่อ้างค่านี้
+  var TYPES = { car: 'รถยนต์', motorcycle: 'รถจักรยานยนต์' };
+  function vType(v) { return v && v.type === 'motorcycle' ? 'motorcycle' : 'car'; }
+  function inspectAfter(v) { return INSPECT_AFTER[vType(v)]; }
   var REMIND_LEADS = [30, 7, 0];
   var SERVICE_LEADS = [7, 0];
   var SOON_DAYS = 30, SOON_KM = 1000;
@@ -59,10 +63,10 @@
     if (!y || y < 1900 || !d) return null;
     return d.getFullYear() - y;
   }
-  /** รถต้องตรวจสภาพ ณ วัน onDate หรือไม่: อายุเกิน 7 ปี (ปี onDate − ปีจดทะเบียน > 7) */
+  /** รถต้องตรวจสภาพ ณ วัน onDate หรือไม่: อายุเกินเกณฑ์ตามประเภท (รถยนต์ 7 ปี, รถจักรยานยนต์ 5 ปี — ปี onDate − ปีจดทะเบียน > เกณฑ์) */
   function inspectRequired(v, onDate) {
     var a = ageYears(v, onDate);
-    return a !== null && a > INSPECT_AFTER_YEARS;
+    return a !== null && a > inspectAfter(v);
   }
   /** ใบตรวจสภาพใช้ต่อภาษีได้หรือไม่ ณ วันต่อภาษี (taxDue): ต้องมีและไม่หมดก่อนวันนั้น */
   function inspectOk(v) {
@@ -207,7 +211,7 @@
   }
 
   return {
-    KINDS: KINDS, REMIND_LEADS: REMIND_LEADS, SERVICE_LEADS: SERVICE_LEADS, INSPECT_AFTER_YEARS: INSPECT_AFTER_YEARS,
+    KINDS: KINDS, REMIND_LEADS: REMIND_LEADS, SERVICE_LEADS: SERVICE_LEADS, INSPECT_AFTER_YEARS: INSPECT_AFTER_YEARS, INSPECT_AFTER: INSPECT_AFTER, TYPES: TYPES, vType: vType, inspectAfter: inspectAfter,
     FALLBACK_CATS: FALLBACK_CATS,
     parseDate: parseDate, ymd: ymd, daysUntil: daysUntil, thDate: thDate, plateKey: plateKey, title: title,
     ageYears: ageYears, inspectRequired: inspectRequired, inspectOk: inspectOk,

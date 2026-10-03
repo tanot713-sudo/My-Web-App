@@ -117,7 +117,7 @@
     });
     if (C.inspectRequired(v, v.taxDue || C.ymd(now)) && !C.inspectOk(v)) {
       rows.push('<div class="list-row" data-kind="inspect-need"><span class="lead">' + icon('wrench') + '</span>' +
-        '<div class="grow"><div class="title">ต้องตรวจสภาพ (ตรอ.) ก่อนต่อภาษี</div><div class="meta">รถอายุเกิน ' + C.INSPECT_AFTER_YEARS + ' ปี' + (v.inspectDue ? ' · ใบตรวจหมดก่อนวันครบกำหนดภาษี' : ' · ยังไม่มีใบตรวจ') + '</div></div>' +
+        '<div class="grow"><div class="title">ต้องตรวจสภาพ (ตรอ.) ก่อนต่อภาษี</div><div class="meta">' + C.TYPES[C.vType(v)] + 'อายุเกิน ' + C.inspectAfter(v) + ' ปี' + (v.inspectDue ? ' · ใบตรวจหมดก่อนวันครบกำหนดภาษี' : ' · ยังไม่มีใบตรวจ') + '</div></div>' +
         '<div class="end"><span class="badge warn">ต้องตรวจ</span></div></div>');
     }
     return rows.join('');
@@ -150,7 +150,7 @@
     if (!vehicles.length) { $('vehicles').innerHTML = '<section class="card"><div class="empty">' + icon('car') + '<p>ยังไม่มีรถ</p></div></section>'; return; }
     var pols = policies();
     $('vehicles').innerHTML = vehicles.map(function (v) {
-      var meta = [[v.make, v.model].filter(Boolean).join(' '), v.year ? 'ปี ' + v.year : '', C.currentOdometer(v, services) ? num(C.currentOdometer(v, services)) + ' กม.' : ''].filter(Boolean).join(' · ');
+      var meta = [C.vType(v) === 'motorcycle' ? C.TYPES.motorcycle : '', [v.make, v.model].filter(Boolean).join(' '), v.year ? 'ปี ' + v.year : '', C.currentOdometer(v, services) ? num(C.currentOdometer(v, services)) + ' กม.' : ''].filter(Boolean).join(' · ');
       var nFiles = Array.isArray(v.files) ? v.files.length : 0;
       var dl = deadlineRows(v, pols, now);
       return '<section class="card car-vehicle" data-vid="' + esc(v.id) + '">' +
@@ -189,6 +189,7 @@
     if (!Array.isArray(rec.files)) rec.files = [];
     V = { rec: rec, isNew: isNew, added: [], removed: [] };
     $('vTitle').textContent = isNew ? 'เพิ่มรถ' : 'แก้ไขรถ';
+    $('vType').value = C.vType(rec);
     $('vPlate').value = rec.plate || '';
     $('vProv').value = rec.province || '';
     $('vMake').value = rec.make || '';
@@ -214,6 +215,7 @@
   }
   function readVehicle() {
     var r = V.rec, n;
+    r.type = $('vType').value === 'motorcycle' ? 'motorcycle' : 'car';
     r.plate = $('vPlate').value.trim();
     r.province = $('vProv').value.trim();
     r.make = $('vMake').value.trim();
