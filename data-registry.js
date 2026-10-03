@@ -70,6 +70,11 @@
     { key: 'tanot:health:ranges', kind: 'sync', mode: 'map' },
     { key: 'tanot:health:settings', kind: 'sync' },
 
+    // ── ทำอาหาร stage 2 (cooking-plan.js) — สูตร 1 แถว · แผน 1 สัปดาห์ 1 แถว · รายการซื้อของ 1 รายการ 1 แถว + แถวติ๊ก/ราคาแยกรายเครื่อง ──
+    // (ไม่ยุ่งกับ tanot:cooking:xp|streak|badges|progress|notes ของบทเรียนเดิม)
+    { key: 'tanot:cooking:recipes', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:cooking:plans', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:cooking:shopping', kind: 'sync', mode: 'list', idField: 'id' },
     // ── คลังใบเสร็จ (receipts.html) — 1 ใบเสร็จ = 1 แถว · taxsummary = ยอดป้ายลดหย่อนต่อปีที่หน้าภาษีอ่าน (เขียนใหม่จากรายการได้เสมอ) ──
     { key: 'tanot:receipts:items', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:receipts:taxsummary', kind: 'sync' },
