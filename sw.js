@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v601';
+const CACHE = 'ome-v603';
 const PRECACHE = [
   './',
   './index.html',
@@ -70,6 +70,9 @@ const PRECACHE = [
   './receipts.html',
   './receipts.js',
   './receipts-calc.js',
+  './car.html',
+  './car.js',
+  './car-calc.js',
   './compare.html',
   './compare.js',
   './compare-calc.js',

@@ -115,5 +115,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8135/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // car.spec.js: บันทึกรถ — /api/files (ns car) + /api/push/reminders ตัวจริง + ซิงก์ 2 เครื่อง — แยกพอร์ตเพราะมี /__reset
+      command: 'node --no-warnings sync-server.mjs 8136',
+      cwd: __dirname,
+      url: 'http://localhost:8136/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });
