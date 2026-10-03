@@ -8,7 +8,7 @@
    tanot:insurance:policies (รูปแบบกรมธรรม์ + การนับวันต่ออายุอยู่ใน insurance-calc.js — หน้านี้โหลดไฟล์นั้นด้วย),
    บันทึกงานบำรุงรักษา: tanot:mnt:assets|plans|settings + IndexedDB tanot-mnt-<ปีนี้>/insp, tanot-mnt-<ปีก่อน>/insp, tanot-mnt/wo|woev
    (รูปแบบ + การคำนวณรอบ/ใบงานอยู่ใน mnt-calc.js — หน้านี้โหลดไฟล์นั้นด้วย),
-   สุขภาพ: tanot:health:vitals|meds|intake|ranges (รูปแบบ + ช่วงปกติ + ตารางกินยาอยู่ใน health-calc.js — หน้านี้โหลดไฟล์นั้นด้วย)
+   สุขภาพ: tanot:health:vitals|meds|intake|ranges|workouts|settings (รูปแบบ + ช่วงปกติ + ตารางกินยาอยู่ใน health-calc.js — หน้านี้โหลดไฟล์นั้นด้วย)
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -279,8 +279,8 @@
   /* ── สุขภาพ (ค่าล่าสุด + ยาที่ยังไม่ได้กินวันนี้) ── */
   function renderHealth() {
     var el = $('healthBody'), HC = window.HealthCalc;
-    var vitals = rd('tanot:health:vitals', []), meds = rd('tanot:health:meds', []);
-    if (!HC || (!isArr(vitals) || !vitals.length) && (!isArr(meds) || !meds.length)) { el.innerHTML = emptyHtml('heart-pulse', 'ยังไม่มีข้อมูลสุขภาพ', 'health.html', 'เปิดหน้าสุขภาพ'); return; }
+    var vitals = rd('tanot:health:vitals', []), meds = rd('tanot:health:meds', []), workouts = rd('tanot:health:workouts', []);
+    if (!HC || (!isArr(vitals) || !vitals.length) && (!isArr(meds) || !meds.length) && (!isArr(workouts) || !workouts.length)) { el.innerHTML = emptyHtml('heart-pulse', 'ยังไม่มีข้อมูลสุขภาพ', 'health.html', 'เปิดหน้าสุขภาพ'); return; }
     var s = HC.summary(isArr(vitals) ? vitals : [], isArr(meds) ? meds : [], rd('tanot:health:intake', []), Date.now());
     var ranges = rd('tanot:health:ranges', {});
     var chips = HC.GROUPS.map(function (g) {
@@ -300,6 +300,10 @@
           '<div class="meta">' + d.time + ' น.' + (d.med.dose ? ' · ' + esc(d.med.dose) : '') + '</div></div>' +
           (d.late ? '<div class="right"><span class="badge warn">เลยเวลา</span></div>' : '') + '</a>';
       }).join('') + '</div>';
+    }
+    if (isArr(workouts) && workouts.length) {
+      var ws = HC.workoutSummary(workouts, rd('tanot:health:settings', {}), Date.now());
+      html += '<div class="sub" data-h="workout">ออกกำลังกายสัปดาห์นี้ ' + num(ws.weekMinutes, 1) + ' / ' + num(ws.goal) + ' นาที</div>';
     }
     el.innerHTML = html;
   }

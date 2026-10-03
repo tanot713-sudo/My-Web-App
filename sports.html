@@ -160,6 +160,15 @@
   .sp-instructions svg>*,.sp-instructions svg>.sp-arrow-line,.sp-instructions svg>.sp-arrow-head{
     animation:none!important;transform:none!important;stroke-dashoffset:0!important}
 }
+.sp-log{margin-top:var(--ome-sp-4)}
+.sp-log .card-head{margin-bottom:var(--ome-sp-3)}
+.sp-log-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:var(--ome-sp-3);align-items:end}
+.sp-log-form .actions{display:flex;gap:8px;flex-wrap:wrap}
+.sp-log-msg{color:var(--ome-err-ink);font-size:var(--ome-fs-sm);margin:var(--ome-sp-2) 0 0}
+.sp-log-msg:empty{display:none}
+.sp-log-list{margin-top:var(--ome-sp-4)}
+.sp-log-list .list-row .end{display:flex;align-items:center;gap:8px;flex-shrink:0}
+[hidden]{display:none !important}
 </style>
 </head>
 <body data-layout="reader">
@@ -215,9 +224,30 @@
   </div>
 </div>
 
+<section class="card sp-log" id="logCard" aria-labelledby="logTitle">
+  <div class="card-head"><h2 id="logTitle" data-log="logTitle">บันทึกออกกำลังกาย</h2></div>
+  <form class="sp-log-form" id="logForm" novalidate>
+    <div class="field"><label for="logKind" data-log="logKind">กิจกรรม</label><select id="logKind" class="select"></select></div>
+    <div class="field" id="logNameRow" hidden><label for="logName" data-log="logName">ชื่อกิจกรรม</label><input id="logName" type="text" maxlength="40" autocomplete="off"></div>
+    <div class="field"><label for="logAt" data-log="logAt">วันเวลา</label><input id="logAt" type="datetime-local"></div>
+    <div class="field"><label for="logMin" data-log="logMin">นาที</label><input id="logMin" type="number" inputmode="decimal" step="any" min="0"></div>
+    <div class="field" id="logDistRow" hidden><label for="logDist" data-log="logDist">ระยะทาง (กม.)</label><input id="logDist" type="number" inputmode="decimal" step="any" min="0"></div>
+    <div class="field"><label for="logKcal" data-log="logKcal">kcal</label><input id="logKcal" type="number" inputmode="decimal" step="any" min="0"></div>
+    <div class="actions">
+      <button class="btn primary" type="submit" id="logSave"><span data-log="logSave">บันทึก</span></button>
+      <button class="btn" type="button" id="logCancel" hidden data-log="logCancel">ยกเลิก</button>
+      <button class="btn danger" type="button" id="logDel" hidden data-log="logDel">ลบ</button>
+    </div>
+  </form>
+  <p class="sp-log-msg" id="logMsg" role="alert"></p>
+  <div class="sp-log-list" id="logList"></div>
+</section>
+
 <div class="sp-toast-wrap" id="toastWrap"></div>
 </main>
 <script src="learn-core.js"></script>
+<script src="health-calc.js"></script>
 <script src="sports.js"></script>
+<script src="sports-log.js"></script>
 </body>
 </html>
