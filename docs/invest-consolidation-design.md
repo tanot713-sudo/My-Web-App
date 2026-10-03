@@ -148,7 +148,7 @@
 6. สแกนเนอร์เขียน series แบบไม่มี `o/v` ทับแคชของหน้าหุ้นไทย
 7. ภาษีในหน้ากองทุนไทยใช้ขั้นบันได/เพดาน/กฎ ESG ที่ฝังใน JS (ขัด CLAUDE.md ที่ให้ตัวเลขภาษีอยู่ใน `tax-rules/*.json`)
 8. โค้ดตายของแคชสรุป AI จากยุค Firebase (`var cache = null`) ใน 4 ไฟล์
-9. หน้าทองให้มูลค่าทองรูปพรรณด้วยราคารับซื้อทองแท่ง (ควรใช้ราคารับซื้อทองรูปพรรณ)
+9. หน้าทองให้มูลค่าทองรูปพรรณด้วยราคารับซื้อทองแท่ง (ควรใช้ราคารับซื้อทองรูปพรรณ) และแปลงกรัมเป็นบาททองคำด้วย 15.244 ทุกชนิด (`GRAM_PER_BAHT` ใน `invest-gold.js`) — ทองรูปพรรณ 1 บาท = 15.16 กรัม ส่วน 15.244 เป็นของทองแท่ง → ใช้ค่าตามชนิด
 
 ---
 
@@ -406,7 +406,7 @@ cleanupLegacyCache()    // หัวข้อ 3.5
 | 1 | `stockTh` | `thstock` รวมตาม `sym` | Σ`shares` | Σ`shares×cost` | ราคาแคชล่าสุด `XXX.BK` → `cur` ของแถวล่าสุดที่มี → ต้นทุนเฉลี่ย | THB |
 | 2 | `stockUs` | `globalstock` รวมตาม `sym` | Σ`shares` | Σ`shares×cost` | แคช `XXX` → `cur` → ต้นทุนเฉลี่ย | USD |
 | 3 | `crypto` | `btc` | Σ`qty` | Σ`qty×cost` | แคช `BTC-USD` → `cur` → ต้นทุนเฉลี่ย | USD |
-| 4 | `gold` | `gold` แยก `type` | Σ น้ำหนักบาททองคำ (`unit === 'gram'` → `weight / 15.244`) | Σ`amt` | ทองแท่ง: `barSellPrice` (ราคาร้านรับซื้อ) · รูปพรรณ: `jewelrySellPrice` จาก `cache:gold:th` → ต้นทุน | THB |
+| 4 | `gold` | `gold` แยก `type` | Σ น้ำหนักบาททองคำ (`unit === 'gram'` → ทองแท่ง `weight / 15.244`, ทองรูปพรรณ `weight / 15.16` — `InvestCalc.GRAM_PER_BAHT = {bar: 15.244, jewelry: 15.16}`) | Σ`amt` | ทองแท่ง: `barSellPrice` (ราคาร้านรับซื้อ) · รูปพรรณ: `jewelrySellPrice` จาก `cache:gold:th` → ต้นทุน | THB |
 | 5 | `fundTh` | `thaifund` รวมตาม `fund` | Σ`units` | Σ`amt` | `nav['th:'+fund].nav` → ต้นทุน | THB |
 | 6 | `fundGlobal` | `spfund` รวมตาม `cls` | Σ`units` | Σ`amt` | `nav['global:'+cls].nav` → ต้นทุน | THB |
 | 7 | `bond` | `govbond` ที่ `maturity` > วันนี้ (เวลาไทย) | — | `face` | ไม่มีราคาตลาด → `face` | THB |
@@ -437,7 +437,7 @@ byClass[c] = {value, cost, n}
 - `globalstock`: `[{sym:'AAPL', shares:3, cost:150, ts:4}]` · `cache:q:AAPL` = `{ts: now, price: 200}`
 - `btc`: `[{qty:0.01, cost:60000, ts:5}]` · `cache:q:BTC-USD` = `{ts: now, price: 100000}`
 - `fxcache` = `{ts: now, rate: 36.5}`
-- `gold`: `[{type:'bar', unit:'baht', amt:40000, price:40000, weight:1, ts:6}, {type:'jewelry', unit:'gram', amt:21000, price:2755.18, weight:7.622, ts:7}]` · `cache:gold:th` = `{barSellPrice: 42000, jewelrySellPrice: 41000, ts: now}`
+- `gold`: `[{type:'bar', unit:'baht', amt:40000, price:40000, weight:1, ts:6}, {type:'jewelry', unit:'gram', amt:21000, price:2770.45, weight:7.58, ts:7}]` · `cache:gold:th` = `{barSellPrice: 42000, jewelrySellPrice: 41000, ts: now}`
 - `thaifund`: `[{fund:'K-RMF', cat:'rmf', amt:10000, nav:10, units:1000, ts:8}]` · `nav` = `{'th:K-RMF': {nav: 11, d:'2026-10-02'}}`
 - `spfund`: `[{cls:'สะสมมูลค่า', amt:5000, nav:20, units:250, ts:9}]` (ไม่มี NAV)
 - `govbond`: `[{name:'LB30', purchDate:'2025-01-01', maturity:'2030-01-01', face:100000, coupon:3, freq:2, ts:10}, {name:'LB26', purchDate:'2024-01-01', maturity:'2026-01-01', face:50000, coupon:2.5, freq:2, ts:11}]`
@@ -451,7 +451,7 @@ byClass[c] = {value, cost, n}
 | stockTh | 39,350 | 40,000 | PTT 300×34.5 = 10,350 (market) · AOT 500×58 = 29,000 (manual) |
 | stockUs | 21,900 | 16,425 | 3×200×36.5 · 450×36.5 |
 | crypto | 36,500 | 21,900 | 0.01×100000×36.5 · 600×36.5 |
-| gold | 62,500 | 61,000 | แท่ง 1×42,000 · รูปพรรณ 7.622/15.244 = 0.5 × 41,000 = 20,500 |
+| gold | 62,500 | 61,000 | แท่ง 1×42,000 · รูปพรรณ 7.58/15.16 = 0.5 × 41,000 = 20,500 |
 | fundTh | 11,000 | 10,000 | 1000×11 |
 | fundGlobal | 5,000 | 5,000 | ต้นทุน (src cost) |
 | bond | 100,000 | 100,000 | LB26 ครบกำหนดแล้ว ไม่นับ |
