@@ -172,6 +172,14 @@ async function openPage(page, p, o = {}) {
   return { errors, log };
 }
 const store = (page, k) => page.evaluate((key) => JSON.parse(localStorage.getItem(key) || 'null'), k);
+// ปุ่มลบในกล่องแก้ไข → กล่องยืนยันของเว็บ (tanotConfirm, <dialog>) ไม่ใช่ window.confirm
+async function confirmDelete(page, ok = true) {
+  await page.click('#delBtn');
+  const box = page.locator('dialog:has(.dialog-msg)');
+  await expect(box.locator('.dialog-msg')).toContainText('ลบใบเสร็จนี้');
+  await box.locator(ok ? '.btn.danger' : '.btn:not(.danger)').click();
+  await expect(box).toHaveCount(0);
+}
 const AI_FULL = JSON.stringify({ store: 'ร้านเอ', date: '2026-09-15', total: 1070, vat: 70, taxId: '0105512345678', fullInvoice: true, items: [{ name: 'หูฟัง', amount: 1000 }] });
 
 test.describe('หน้า receipts.html', () => {
@@ -420,8 +428,7 @@ test.describe('หน้า receipts.html', () => {
     // ลบใบเสร็จ → reminders ชุดใหม่ไม่มี
     await page.selectOption('#fTag', 'all'); await page.selectOption('#fYear', '');
     await page.locator('#listBody .list-row', { hasText: 'iStudio' }).locator('[data-act="edit"]').click();
-    page.once('dialog', (d) => d.accept());
-    await page.click('#delBtn');
+    await confirmDelete(page);
     await expect.poll(() => log.posts.filter((p) => p.scope === 'receipts').pop().items.length).toBe(0);
     expect(errors).toEqual([]);
   });
@@ -502,8 +509,11 @@ test.describe('หน้า receipts.html', () => {
 
     log.del.length = 0;
     await row.locator('[data-act="edit"]').click();
-    page.once('dialog', (d) => d.accept());
-    await page.click('#delBtn');
+    await confirmDelete(page, false); // ยกเลิก = ไม่ลบอะไร กล่องแก้ไขยังเปิดอยู่
+    await expect(page.locator('#dlg')).toHaveAttribute('open', '');
+    expect(log.del).toHaveLength(0);
+    expect(await store(page, 'tanot:receipts:items')).toHaveLength(1);
+    await confirmDelete(page);
     await expect(page.locator('#listBody')).toContainText('ยังไม่มีใบเสร็จ');
     await expect.poll(() => log.del.length).toBe(1);
     await expect.poll(async () => (await (await request.get(SRV + '/__files')).json()).length).toBe(0);
@@ -580,9 +590,11 @@ test.describe('ซิงก์ 2 เครื่อง', () => {
     }
 
     // ลบที่เครื่อง A → เครื่อง B เห็นหาย
+    // นาฬิกาในเทสต์ถูกตรึงที่ NOW — ซิงก์เป็น last-write-wins ตาม updated_at (= Date.now() ของเครื่อง) ถ้าไม่ขยับเวลา tombstone ของ A
+    // จะได้เวลาเท่ากับแถวที่ B สร้าง แล้วเซิร์ฟเวอร์ตัดสินด้วยชื่อ device ที่สุ่ม (A แพ้ครึ่งหนึ่ง → แถวถูกส่งกลับมาทั้ง 2 เครื่อง)
+    await A.page.clock.setFixedTime(new Date(NOW.getTime() + 60000));
     await A.page.locator('#listBody .list-row', { hasText: 'ร้านเครื่อง B' }).locator('[data-act="edit"]').click();
-    A.page.once('dialog', (d) => d.accept());
-    await A.page.click('#delBtn');
+    await confirmDelete(A.page);
     for (let i = 0; i < 2; i++) { await sync(A.page); await sync(B.page); }
     expect((await store(B.page, 'tanot:receipts:items')).map((r) => r.store)).toEqual(['ร้านเครื่อง A']);
     await A.ctx.close(); await B.ctx.close();

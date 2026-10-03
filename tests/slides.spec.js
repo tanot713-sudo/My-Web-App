@@ -241,15 +241,15 @@ test.describe('หน้า slides.html — สร้างจากโครง
     await page.locator('#preview .sl-card').nth(1).locator('select').selectOption('');
     expect(await page.inputValue('#outline')).not.toContain('@layout');
     // ธีม
-    const bgOf = () => page.locator('#preview .sl-s').nth(1).evaluate((e) => getComputedStyle(e).backgroundColor);
-    expect(await bgOf()).toBe('rgb(255, 255, 255)');
+    // toHaveCSS หาองค์ประกอบใหม่ทุกครั้งที่ลอง — ตัวอย่างถูกวาดใหม่ทั้งชุด (innerHTML) evaluate บน element เดิมอาจได้ตัวที่หลุดจากหน้าแล้ว (ค่า "")
+    await expect(page.locator('#preview .sl-s').nth(1)).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     await page.click('#themeSeg [data-theme="dark"]');
-    expect(await bgOf()).toBe('rgb(21, 26, 38)');
+    await expect(page.locator('#preview .sl-s').nth(1)).toHaveCSS('background-color', 'rgb(21, 26, 38)');
     await expect(page.locator('#themeSeg [data-theme="dark"]')).toHaveAttribute('aria-pressed', 'true');
     // สีเน้นของสไลด์ตามสีเน้นของเว็บ
     await page.click('#themeSeg [data-theme="accent"]');
     const acc = await page.evaluate(() => { const s = document.createElement('i'); s.style.color = 'var(--ome-accent)'; document.body.appendChild(s); return getComputedStyle(s).color; });
-    expect(await page.locator('#preview .sl-s').first().evaluate((e) => getComputedStyle(e).backgroundColor)).toBe(acc);
+    await expect(page.locator('#preview .sl-s').first()).toHaveCSS('background-color', acc);
     // ตั้งชื่อ + บันทึกอัตโนมัติ
     await page.fill('#deckName', 'ประชุมไตรมาส');
     await expect.poll(async () => (await stored(page))[0] && (await stored(page))[0].name).toBe('ประชุมไตรมาส');

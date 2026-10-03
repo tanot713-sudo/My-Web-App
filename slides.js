@@ -315,7 +315,8 @@
   var pvTimer = null;
   function renderPreviewSoon() { if (pvTimer) clearTimeout(pvTimer); pvTimer = setTimeout(renderPreview, 120); }
   function renderPreview() {
-    pvTimer = null;
+    // วาดทันทีแล้ว = ยกเลิกรอบหน่วงที่ค้างอยู่ (ไม่งั้นอีก 120ms จะวาดซ้ำแทนที่ DOM ทั้งชุด — dropdown/โฟกัสในตัวอย่างหลุด)
+    if (pvTimer) { clearTimeout(pvTimer); pvTimer = null; }
     var box = $('preview');
     if (!cur) { box.innerHTML = ''; return; }
     var model = currentModel(), parsed = SC.parseOutline(cur.outline);
@@ -381,8 +382,7 @@
   $('preview').addEventListener('change', function (e) {
     var sel = e.target.closest('select[data-act="layout"]'), card = e.target.closest('.sl-card');
     if (!sel || !card || !cur) return;
-    $('outline').value = SC.setDirective($('outline').value, +card.getAttribute('data-i'), 'layout', sel.value);
-    onOutline();
+    setOutline(SC.setDirective($('outline').value, +card.getAttribute('data-i'), 'layout', sel.value)); // เลือกครั้งเดียว ไม่ใช่การพิมพ์ — วาดทันที ไม่ต้องหน่วง
   });
 
   /* ── รูปต่อสไลด์ ── */
