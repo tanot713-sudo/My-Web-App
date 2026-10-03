@@ -59,6 +59,9 @@
     // ── เปรียบเทียบข้อมูล (compare.html) — เฉพาะงานให้คะแนนใบเสนอราคา (1 งาน = 1 แถว) · ไฟล์ที่เทียบในแท็บตาราง/เอกสารไม่เก็บ ──
     { key: 'tanot:compare:quotes', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:compare:ui', kind: 'local' },
+    // ── งาน PowerPoint (slides.html) — 1 ชุดสไลด์ = 1 แถว (โครงเรื่อง+ธีม+ref รูปใน R2 ไม่มีไบนารี) · ui = ชุดที่เปิด/มุมมองต่อเครื่อง
+    { key: 'tanot:slides:decks', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:slides:ui', kind: 'local' },
     { key: 'tanot:health:vitals', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:checkups', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:meds', kind: 'sync', mode: 'list', idField: 'id' },

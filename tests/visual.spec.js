@@ -31,6 +31,7 @@ const PAGES = [
   'receipts.html',
   'maintenance.html',
   'compare.html',
+  'slides.html',
   'budget.html',
   'word.html',
   'excel.html',
