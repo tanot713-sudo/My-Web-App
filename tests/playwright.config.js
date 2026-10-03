@@ -122,5 +122,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8136/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // books.spec.js: หนังสือ — Open Library ปลอม + การ์ดเข้า review.html + ซิงก์ 2 เครื่อง — แยกพอร์ตเพราะมี /__reset
+      command: 'node --no-warnings sync-server.mjs 8137',
+      cwd: __dirname,
+      url: 'http://localhost:8137/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

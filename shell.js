@@ -166,7 +166,7 @@
           ]
         },
         { key: 'language', label: 'ภาษา', icon: 'languages', href: 'languages.html', keywords: 'ภาษา language อังกฤษ จีน ญี่ปุ่น' },
-        { key: 'books',    label: 'หนังสือ', icon: 'book-open', href: soonHref('หนังสือ'), status: 'soon', keywords: 'หนังสือ book' }
+        { key: 'books',    label: 'หนังสือ', icon: 'book-open', href: 'books.html', keywords: 'หนังสือ book อ่าน ชั้นหนังสือ ไฮไลต์ open library' }
       ]
     },
     { key: 'hobby', area: 'hobby', label: 'งานอดิเรก/ทักษะ', icon: 'music', href: 'area.html?a=hobby', keywords: 'งานอดิเรก ทักษะ hobby', children: [

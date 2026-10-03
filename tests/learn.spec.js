@@ -99,7 +99,7 @@ const LEGACY_TOTAL = 500 + 300 + 120 + 40 + 60;
 test('legacySnapshot/compute: รวมยอดเดิม + ค่าต่ำสุดข้ามเครื่อง + วันติดต่อกันค่าสูงสุด', () => {
   const get = (k) => (k in LEGACY_SEED ? LEGACY_SEED[k] : null);
   const snap = LC.legacySnapshot(get);
-  expect(snap.xp).toEqual({ law: 0, lang: 500, biz: 300, eng: 0, music: 120, sports: 40, cooking: 0, coding: 60, typing: 0 });
+  expect(snap.xp).toEqual({ law: 0, lang: 500, biz: 300, eng: 0, music: 120, sports: 40, cooking: 0, coding: 60, typing: 0, books: 0 });
   expect(snap.streak.music).toEqual({ count: 7, longest: 7, lastDate: ymd(NOW_DAY(2)) });
   expect(snap.streak.law).toEqual({ count: 2, longest: 2, lastDate: ymd(NOW_DAY(2)) });
   const sum = LC.compute([], [snap], {}, NOW.getTime());

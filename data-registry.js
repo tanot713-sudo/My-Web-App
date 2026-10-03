@@ -83,6 +83,14 @@
     { key: 'tanot:car:vehicles', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:car:services', kind: 'sync', mode: 'list', idField: 'id' },
 
+    // ── หนังสือ (books.html) — 1 เล่ม/1 บันทึกการอ่าน/1 ไฮไลต์/1 การ์ดทบทวน = 1 แถว · ui = local ──
+    { key: 'tanot:books:items', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:books:logs', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:books:notes', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:books:cards', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:books:settings', kind: 'sync' },
+    { key: 'tanot:books:ui', kind: 'local' },
+
     // ── รายการที่เพิ่มได้จากหลายเครื่อง (แยกรายการย่อย) ──
     { key: 'tanot:insurance:policies', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'budget:records', kind: 'sync', mode: 'list', idField: 'id' },
