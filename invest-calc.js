@@ -863,6 +863,19 @@
   /* กรัม → บาททองคำ: ทองแท่ง 15.244 · ทองรูปพรรณ 15.16 */
   var GRAM_PER_BAHT = { bar: 15.244, jewelry: 15.16 };
   var STALE_MS = 3 * 86400000;
+  /* ป้ายชื่อประเภท/แถวสำหรับหน้าที่แสดงมูลค่าสินทรัพย์ (หน้าวันนี้ + หน้าภาพรวม) — ใช้ร่วมกันที่เดียว */
+  var CLASS_LABELS = {
+    th: { stockTh: 'หุ้นไทย', stockUs: 'หุ้นต่างประเทศ', crypto: 'คริปโต', gold: 'ทอง', fundTh: 'กองทุนไทย', fundGlobal: 'กองทุนต่างประเทศ', bond: 'พันธบัตร', savingsLottery: 'สลากออมสิน/ธ.ก.ส.', bar: 'ทองแท่ง', jewelry: 'ทองรูปพรรณ' },
+    en: { stockTh: 'Thai stocks', stockUs: 'Global stocks', crypto: 'Crypto', gold: 'Gold', fundTh: 'Thai funds', fundGlobal: 'Global funds', bond: 'Gov. bonds', savingsLottery: 'Savings lottery', bar: 'Gold bar', jewelry: 'Gold jewelry' }
+  };
+  function classLabel(cls, lang) { return (CLASS_LABELS[lang] || CLASS_LABELS.th)[cls] || cls; }
+  /* ชื่อแถวที่แสดง: หุ้น = ชื่อย่อ · ทอง = ทองแท่ง/รูปพรรณ · BTC · กองทุนต่างประเทศ = S&P 500 + ชนิด · อื่นๆ = ชื่อที่ผู้ใช้ตั้ง */
+  function rowLabel(r, lang) {
+    if (r.cls === 'gold') return classLabel(r.key, lang);
+    if (r.cls === 'crypto') return 'Bitcoin';
+    if (r.cls === 'fundGlobal') return 'S&P 500 · ' + r.key;
+    return r.label || r.key || classLabel(r.cls, lang);
+  }
   var P = 'tanot:invest:';
 
   /* คีย์ series cache ตามสัญลักษณ์ Yahoo (หัวข้อ 3.5 — คงชื่อเดิมทุกตัว) */
@@ -1041,7 +1054,7 @@
     parseDrawText: parseDrawText, DATE_OVERRIDES: DATE_OVERRIDES, candidateDrawDates: candidateDrawDates, drawsInWindow: drawsInWindow,
     frequencyTable: frequencyTable, digitPositionFrequency: digitPositionFrequency, checkTicket: checkTicket,
     JOURNAL_KEYS: JOURNAL_KEYS, journalRows: journalRows, journalStats: journalStats,
-    thaiDate: thaiDate, CLASSES: CLASSES, GRAM_PER_BAHT: GRAM_PER_BAHT, STALE_MS: STALE_MS,
+    thaiDate: thaiDate, CLASS_LABELS: CLASS_LABELS, classLabel: classLabel, rowLabel: rowLabel, CLASSES: CLASSES, GRAM_PER_BAHT: GRAM_PER_BAHT, STALE_MS: STALE_MS,
     seriesKey: seriesKey, quoteKey: quoteKey, FX_KEY: FX_KEY, GOLD_TH_KEY: GOLD_TH_KEY, NAV_KEY: NAV_KEY,
     collectPrices: collectPrices, netWorth: netWorth, snapshotRow: snapshotRow, shouldWriteSnapshot: shouldWriteSnapshot
   };

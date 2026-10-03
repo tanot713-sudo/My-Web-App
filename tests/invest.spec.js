@@ -703,3 +703,146 @@ test.describe('invest-core + หน้าข่าว', () => {
     } finally { globalThis.fetch = realFetch; }
   });
 });
+
+/* ═══════════════════════════════════════════════════════════════════
+   หน้า (Playwright) — ส่วนที่ 3: การ์ด "สินทรัพย์ลงทุน" บนหน้าวันนี้ + snapshot (ขั้น 3, หัวข้อ 8.1 ข้อ 8)
+   ═══════════════════════════════════════════════════════════════════ */
+test.describe('การ์ดสินทรัพย์ลงทุน (หน้าวันนี้)', () => {
+  /** เปิดหน้าวันนี้ด้วยข้อมูลตัวอย่าง 6.4 ณ NOW (10:00 เวลาไทย) */
+  async function open(page, { withFx = true, init } = {}) {
+    const errors = await prepare(page);
+    const s = sample();
+    await page.addInitScript((payload) => {
+      if (localStorage.getItem('__seeded')) return; // โหลดซ้ำ/รีโหลดไม่ seed ทับ
+      const S = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+      Object.keys(payload.data).forEach((k) => S('tanot:invest:' + k, payload.data[k]));
+      Object.keys(payload.store).forEach((k) => { if (payload.withFx || k !== 'tanot:invest:fxcache') S(k, payload.store[k]); });
+      S('tanot:invest:portfolio', { cash: 1000000, startCash: 1000000, holdings: [{ sym: 'PTT', shares: 1000, avgCost: 30 }], tx: [] });
+      if (payload.init) Object.keys(payload.init).forEach((k) => S(k, payload.init[k]));
+      localStorage.setItem('__seeded', '1');
+    }, { data: s.data, store: s.store, withFx, init });
+    await page.clock.setFixedTime(new Date(NOW));
+    await page.goto('/index.html', { waitUntil: 'load' });
+    await page.waitForSelector('nav.ome-nav');
+    return errors;
+  }
+  const nwRows = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('tanot:invest:networth') || '[]'));
+
+  test('ยอดรวม ฿296,250 · P/L +฿21,925 (7.99%) · แถวละประเภท · เขียน snapshot 1 แถวของวันนี้ (เวลาไทย)', async ({ page }) => {
+    const errors = await open(page);
+    const inv = page.locator('#investBody');
+    await expect(inv.locator('[data-i=total]')).toHaveText('฿296,250');
+    await expect(inv.locator('[data-i=pl]')).toContainText('+฿21,925');
+    await expect(inv.locator('[data-i=pl]')).toContainText('7.99%');
+    await expect(inv.locator('[data-i=nofx]')).toHaveCount(0);
+    // แถบสัดส่วน 8 ประเภท + รายการสูงสุด 4 แถวเรียงตามมูลค่า
+    await expect(inv.locator('.alloc > i')).toHaveCount(8);
+    await expect(inv.locator('.list-row')).toHaveCount(4);
+    await expect(inv.locator('.list-row').first()).toContainText('LB30'); // ฿100,000
+    await expect(inv.locator('.list-row').nth(1)).toContainText('ทองแท่ง'); // ฿42,000
+    await expect(inv.locator('.list-row').first()).toHaveAttribute('href', 'invest-gov-bond.html');
+    // snapshot: 1 แถว d = 2026-10-03 (10:00 ไทย) พร้อม parts ครบ 8 ประเภท
+    const rows = await nwRows(page);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ d: '2026-10-03', v: 296250, c: 274325, fx: 36.5 });
+    expect(Object.keys(rows[0].parts)).toEqual(C.CLASSES);
+    // เปิดซ้ำวันเดียวกัน (ค่าเท่าเดิม) ไม่เพิ่มแถว
+    await page.reload(); await page.waitForSelector('#investBody [data-i=total]');
+    expect(await nwRows(page)).toHaveLength(1);
+    expect(errors).toEqual([]);
+  });
+
+  test('พอร์ตจำลองไม่ถูกนับ (เปลี่ยนเงินสมมติแล้วยอดไม่ขยับ)', async ({ page }) => {
+    await open(page, { init: { 'tanot:invest:portfolio': { cash: 99999999, startCash: 1, holdings: [{ sym: 'PTT', shares: 99999, avgCost: 1 }], tx: [] } } });
+    await expect(page.locator('#investBody [data-i=total]')).toHaveText('฿296,250');
+  });
+
+  test('ไม่มีอัตราแลกเปลี่ยน → ฿237,850 + ป้ายเตือน ไม่เดาอัตรา · snapshot บันทึกยอดที่นับได้ fx = null', async ({ page }) => {
+    await open(page, { withFx: false });
+    await expect(page.locator('#investBody [data-i=total]')).toHaveText('฿237,850');
+    await expect(page.locator('#investBody [data-i=nofx]')).toContainText('ไม่รวมสินทรัพย์ USD');
+    const rows = await nwRows(page);
+    expect(rows[0]).toMatchObject({ d: '2026-10-03', v: 237850, c: 236000, fx: null });
+  });
+
+  test('เปลี่ยนแปลง 30 วัน: เทียบแถว snapshot ล่าสุดที่เก่า ≥ 30 วัน · แถวเก่าไม่ถูกแตะ/ลบ', async ({ page }) => {
+    const old = [{ d: '2026-08-20', v: 200000, c: 190000, parts: {}, fx: 36, n: 8, ts: 1 }, { d: '2026-09-03', v: 250000, c: 240000, parts: {}, fx: 36, n: 8, ts: 2 }, { d: '2026-09-20', v: 280000, c: 260000, parts: {}, fx: 36, n: 8, ts: 3 }];
+    await open(page, { init: { 'tanot:invest:networth': old } });
+    // 3 ต.ค. − 30 วัน = 3 ก.ย. → ใช้แถว 2026-09-03 (250,000) → +18.5%
+    await expect(page.locator('#investBody [data-i=change]')).toContainText('+18.5%');
+    const rows = await nwRows(page);
+    expect(rows).toHaveLength(4);
+    expect(rows.slice(0, 3)).toEqual(old);
+    expect(rows[3].d).toBe('2026-10-03');
+  });
+
+  test('วันเดียวกัน: ค่าเปลี่ยน ≥ 0.1% แต่ห่างไม่ถึง 1 ชม. ไม่เขียน · ครบ 1 ชม. เขียนทับแถวเดิม (ไม่เพิ่มแถว)', async ({ page }) => {
+    // แถววันนี้เขียนไว้เมื่อ 30 นาทีก่อนด้วยมูลค่าต่างไป 1%
+    const prev = { d: '2026-10-03', v: 293000, c: 274325, parts: {}, fx: 36.5, n: 8, ts: NOW - 1800000 };
+    await open(page, { init: { 'tanot:invest:networth': [prev] } });
+    await expect(page.locator('#investBody [data-i=total]')).toHaveText('฿296,250');
+    expect(await nwRows(page)).toEqual([prev]);
+    // ผ่านไป 2 ชม. → เขียนทับแถว d เดิม
+    await page.clock.setFixedTime(new Date(NOW + 2 * 3600e3));
+    await page.reload(); await page.waitForSelector('#investBody [data-i=total]');
+    const rows = await nwRows(page);
+    expect(rows).toHaveLength(1); expect(rows[0].v).toBe(296250); expect(rows[0].ts).toBe(NOW + 2 * 3600e3);
+  });
+
+  test('ไม่มีสินทรัพย์ → empty state ไม่เขียน snapshot', async ({ page }) => {
+    const errors = await prepare(page);
+    await page.clock.setFixedTime(new Date(NOW));
+    await page.goto('/index.html'); await page.waitForSelector('nav.ome-nav');
+    await expect(page.locator('#investBody .empty')).toContainText('ยังไม่มีสินทรัพย์ลงทุน');
+    expect(await page.evaluate(() => localStorage.getItem('tanot:invest:networth'))).toBeNull();
+    expect(errors).toEqual([]);
+  });
+});
+
+/* ═══ ซิงก์ 2 เครื่อง (เซิร์ฟเวอร์ 8138 มี /__reset — ทั้งกลุ่มรันต่อเนื่อง) ═══ */
+const SRV = 'http://localhost:8138';
+test.describe('ซิงก์ 2 เครื่อง', () => {
+  test.describe.configure({ mode: 'serial' });
+  test.beforeEach(async ({ request }) => { await request.get(SRV + '/__reset'); });
+  const sync = (p) => p.evaluate(() => window.TanotData.syncNow().then((s) => s.state));
+  const store = (page, k) => page.evaluate((key) => JSON.parse(localStorage.getItem(key) || 'null'), k);
+  async function device(browser, p, { data, caches, nowMs }) {
+    const ctx = await browser.newContext({ baseURL: SRV });
+    const page = await ctx.newPage();
+    const errors = await prepare(page);
+    await page.addInitScript(({ data, caches }) => {
+      window.TANOT_SYNC = { enabled: true, initialDelay: 60000, interval: 1e9 };
+      if (localStorage.getItem('__seeded')) return;
+      Object.keys(data).forEach((k) => localStorage.setItem(k, JSON.stringify(data[k])));
+      Object.keys(caches || {}).forEach((k) => localStorage.setItem(k, JSON.stringify(caches[k])));
+      localStorage.setItem('__seeded', '1');
+    }, { data, caches });
+    await page.clock.setFixedTime(new Date(nowMs));
+    await page.goto(p, { waitUntil: 'load' });
+    await page.waitForSelector('nav.ome-nav');
+    return { ctx, page, errors };
+  }
+
+  test('snapshot วันเดียวกันจาก 2 เครื่อง = 1 แถว (เครื่องที่เขียนทีหลังชนะ) · ข้อมูลหุ้นรวมกันได้', async ({ browser }) => {
+    const s = sample();
+    const base = { 'tanot:invest:thstock': s.data.thstock };
+    // A มีราคาตลาดในแคช (PTT 34.5) · B ไม่มีแคช (ใช้ต้นทุน) → ยอดต่างกัน
+    const A = await device(browser, '/index.html', { data: base, caches: { 'tanot:invest:cache:PTT': { ts: NOW, c: [30, 31, 32, 34.5] } }, nowMs: NOW });
+    const B = await device(browser, '/index.html', { data: base, caches: {}, nowMs: NOW + 120000 });
+    await expect(A.page.locator('#investBody [data-i=total]')).toBeVisible(); await expect(B.page.locator('#investBody [data-i=total]')).toBeVisible();
+    const ra = await store(A.page, 'tanot:invest:networth'), rb = await store(B.page, 'tanot:invest:networth');
+    expect(ra).toHaveLength(1); expect(rb).toHaveLength(1);
+    expect(ra[0].d).toBe('2026-10-03'); expect(rb[0].d).toBe('2026-10-03');
+    expect(ra[0].v).not.toBe(rb[0].v);
+    for (let i = 0; i < 2; i++) { await sync(A.page); await sync(B.page); }
+    for (const d of [A, B]) {
+      const rows = await store(d.page, 'tanot:invest:networth');
+      expect(rows, 'หนึ่งแถวต่อวัน').toHaveLength(1);
+      expect(rows[0].d).toBe('2026-10-03');
+      expect(rows[0].v).toBe(rb[0].v); // B เขียนทีหลัง (นาฬิกาเดินหน้า 2 นาที)
+      expect((await store(d.page, 'tanot:invest:thstock')).length).toBe(3);
+    }
+    for (const d of [A, B]) expect(d.errors).toEqual([]);
+    await A.ctx.close(); await B.ctx.close();
+  });
+});

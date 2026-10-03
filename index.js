@@ -1,9 +1,10 @@
 /* ══════════════════════════════════════════════════════════════════
    หน้า "วันนี้" (ROADMAP Phase 3) — แดชบอร์ดรวมข้อมูลจากทุกด้าน อ่านอย่างเดียว ไม่ยิงเครือข่ายเอง
+   (ข้อยกเว้นเดียวที่ตั้งใจ: การ์ด "สินทรัพย์ลงทุน" เขียน snapshot มูลค่าวันละแถวลง tanot:invest:networth ด้วย TanotData.update — localStorage คีย์เดียว ไม่ยิงเน็ต)
    อ่านผ่าน TanotData.read / readIdb (tanot-data.js) แล้ววาดใหม่เมื่อข้อมูลเปลี่ยน (ซิงก์จากเครื่องอื่น / แท็บอื่น / เพิ่มด่วน)
    คีย์ที่อ่าน (รูปแบบต้องตรงกับหน้าเจ้าของข้อมูล): budget:records|budgets|categories,
    การ์ดทบทวน/XP/วันติดต่อกันผ่าน learn-core.js (lang-practice:srs, lbe:<business|engineering>:srs, tanot-barprep/notes, tanot:learn:*
-   + ยอดเดิมของหน้าเรียนต่างๆ — รายชื่อคีย์อยู่ใน LEGACY ของ learn-core.js), tanot:invest:thstock|globalstock + tanot:invest:cache:[us:]<sym>,
+   + ยอดเดิมของหน้าเรียนต่างๆ — รายชื่อคีย์อยู่ใน LEGACY ของ learn-core.js), สินทรัพย์ลงทุน: tanot:invest:thstock|globalstock|btc|gold|thaifund|spfund|govbond|gsblottery|baaclottery + nav + แคชราคา/อัตราแลกเปลี่ยน/ทองไทย (ชื่อคีย์ + สูตรมูลค่าอยู่ใน invest-calc.js — หน้านี้โหลดไฟล์นั้นด้วย) + tanot:invest:networth (snapshot),
    tanot:word:autosave, tanot:sheet:autosave, tanot:cad:autosave, tanot-report-dashboard/reports (IndexedDB),
    tanot:insurance:policies (รูปแบบกรมธรรม์ + การนับวันต่ออายุอยู่ใน insurance-calc.js — หน้านี้โหลดไฟล์นั้นด้วย),
    บันทึกงานบำรุงรักษา: tanot:mnt:assets|plans|settings + IndexedDB tanot-mnt-<ปีนี้>/insp, tanot-mnt-<ปีก่อน>/insp, tanot-mnt/wo|woev
@@ -146,52 +147,85 @@
       (extra.length ? '<div class="sub">' + esc(extra.join(' · ')) + '</div>' : '') + goal;
   }
 
-  /* ── หุ้นที่ติดตาม (พอร์ตของหน้าหุ้นไทย/ต่างประเทศ + ราคาล่าสุดจากแคชของหน้าเหล่านั้น) ── */
-  var STOCK_MARKETS = [
-    { key: 'tanot:invest:thstock', cache: 'tanot:invest:cache:', cur: '฿', tag: 'TH', href: 'invest-thai-stock.html', unit: 'หุ้น' },
-    { key: 'tanot:invest:globalstock', cache: 'tanot:invest:cache:us:', cur: '$', tag: 'US', href: 'invest-global-stock.html', unit: 'หุ้น' }
-  ];
-  function lastPrice(cacheKey) {
-    var c = rd(cacheKey, null);
-    if (!c || !isArr(c.c) || !c.c.length) return null;
-    var closes = c.c, last = Number(closes[closes.length - 1]), prev = closes.length > 1 ? Number(closes[closes.length - 2]) : NaN;
-    if (!isFinite(last)) return null;
-    return { price: last, day: isFinite(prev) && prev > 0 ? (last / prev - 1) * 100 : null, ts: Number(c.ts) || 0 };
+  /* ── สินทรัพย์ลงทุน (หัวข้อ 6 ของ docs/invest-consolidation-design.md) — มูลค่ารวมจากทุกคีย์ลงทุนของผู้ใช้ + ราคาจากแคชที่หน้าลงทุนเขียนไว้ ──
+     ขอบเขต = สินทรัพย์ลงทุนเท่านั้น (ไม่มีเงินฝาก/หนี้ ไม่นับพอร์ตจำลอง) · สูตรทั้งหมดอยู่ใน InvestCalc.netWorth ── */
+  var IC = window.InvestCalc;
+  var NW_KEY = 'tanot:invest:networth';
+  var INV_KEYS = { thstock: 'thstock', globalstock: 'globalstock', btc: 'btc', gold: 'gold', thaifund: 'thaifund', spfund: 'spfund', govbond: 'govbond', gsblottery: 'gsblottery', baaclottery: 'baaclottery' };
+  function pctHtml(p, label, d) {
+    if (p == null || !isFinite(p)) return '';
+    return '<span class="' + (p >= 0 ? 'up' : 'down') + '">' + (p >= 0 ? '+' : '−') + num(Math.abs(p), d == null ? 1 : d) + '%' + (label || '') + '</span>';
   }
-  function pctHtml(p, label) {
-    if (p == null) return '';
-    return '<span class="' + (p >= 0 ? 'up' : 'down') + '">' + (p >= 0 ? '+' : '−') + num(Math.abs(p), 1) + '%' + (label || '') + '</span>';
+  function plHtml(v, withSign) {
+    return '<span class="' + (v >= 0 ? 'up' : 'down') + '">' + (v >= 0 ? '+' : '−') + '฿' + num(Math.abs(v), 0) + '</span>';
   }
-  function renderStocks() {
-    var holdings = [];
-    STOCK_MARKETS.forEach(function (m) {
-      var pf = rd(m.key, []), agg = {};
-      if (!isArr(pf)) return;
-      pf.forEach(function (h) {
-        if (!h || !h.sym) return;
-        var a = agg[h.sym] || (agg[h.sym] = { shares: 0, cost: 0 });
-        a.shares += Number(h.shares) || 0;
-        a.cost += (Number(h.shares) || 0) * (Number(h.cost) || 0);
+  function readInvest() {
+    var data = {};
+    Object.keys(INV_KEYS).forEach(function (k) { var v = rd('tanot:invest:' + INV_KEYS[k], []); data[k] = isArr(v) ? v : []; });
+    return data;
+  }
+  /* snapshot รายวัน: เขียนเมื่อยังไม่มีแถวของวันนั้น (เวลาไทย) หรือมูลค่าเปลี่ยน ≥ 0.1% และห่างจากครั้งก่อน ≥ 1 ชม. · ไม่ลบแถวเก่า */
+  function writeSnapshot(nw, now) {
+    var row = IC.snapshotRow(nw, now);
+    var list = rd(NW_KEY, []);
+    if (!isArr(list)) list = [];
+    var prev = null;
+    list.forEach(function (r) { if (r && r.d === row.d) prev = r; });
+    if (!IC.shouldWriteSnapshot(prev, row, now)) return list;
+    if (TD && TD.update) {
+      return TD.update(NW_KEY, function (cur) {
+        cur = isArr(cur) ? cur : [];
+        var hit = -1;
+        cur.forEach(function (r, i) { if (r && r.d === row.d) hit = i; });
+        if (hit >= 0) cur[hit] = row; else cur.push(row);
+        return cur;
       });
-      Object.keys(agg).forEach(function (sym) {
-        var a = agg[sym];
-        holdings.push({ m: m, sym: sym, shares: a.shares, cost: a.cost, q: lastPrice(m.cache + sym) });
-      });
-    });
-    var el = $('stockBody');
-    if (!holdings.length) { el.innerHTML = emptyHtml('trending-up', 'ยังไม่มีหุ้นในพอร์ต', 'invest-thai-stock.html', 'เปิดหน้าหุ้น'); return; }
-    holdings.sort(function (a, b) { return b.cost - a.cost; });
-    el.innerHTML = '<div class="list">' + holdings.slice(0, 6).map(function (h) {
-      var avg = h.shares ? h.cost / h.shares : 0;
-      var pl = h.q && avg > 0 ? (h.q.price / avg - 1) * 100 : null;
-      var old = h.q && h.q.ts && Date.now() - h.q.ts > 86400000 * 1.5;
-      return '<a class="list-row" href="' + h.m.href + '"><span class="lead">' + h.m.tag + '</span>' +
-        '<div class="grow"><div class="title">' + esc(h.sym) + '</div><div class="meta">' + num(h.shares) + ' ' + h.m.unit + ' · ทุน ' + h.m.cur + num(avg, 2) + '</div></div>' +
-        '<div class="right">' + (h.q
-          ? '<div class="price">' + h.m.cur + num(h.q.price, 2) + '</div><div class="meta">' + pctHtml(h.q.day, ' วัน') + (pl != null ? ' · P/L ' + pctHtml(pl) : '') +
-            (old ? ' · ณ ' + new Date(h.q.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : '') + '</div>'
-          : '<div class="meta">ยังไม่มีราคา</div>') + '</div></a>';
+    }
+    return list;
+  }
+  function renderInvest() {
+    var el = $('investBody');
+    if (!IC) { el.innerHTML = ''; return; }
+    var data = readInvest(), now = Date.now();
+    var prices = IC.collectPrices(function (k) { return rd(k, null); }, data);
+    var nw = IC.netWorth(data, prices, prices.fx, now);
+    var any = nw.rows.length > 0;
+    if (!any) { el.innerHTML = emptyHtml('trending-up', 'ยังไม่มีสินทรัพย์ลงทุน', 'invest.html', 'เปิดหน้าการลงทุน'); return; }
+    var hist = writeSnapshot(nw, now);
+    /* เปลี่ยนแปลงเทียบ snapshot ≥ 30 วันก่อน (แถวล่าสุดที่เก่าถึงเกณฑ์) */
+    var cutoff = IC.thaiDate(now - 30 * 86400000), base = null;
+    (isArr(hist) ? hist : []).forEach(function (r) { if (r && typeof r.d === 'string' && r.d <= cutoff && isFinite(r.v) && r.v > 0 && (!base || r.d > base.d)) base = r; });
+    var change = base && nw.n > 0 ? (nw.total / base.v - 1) * 100 : null;
+
+    var html = '<div class="big" data-i="total">฿' + num(nw.total, 0) + '</div>';
+    var sub = [];
+    if (nw.cost > 0) sub.push('<span data-i="pl">P/L ' + plHtml(nw.pl) + ' (' + pctHtml(nw.plPct, '', 2) + ')</span>');
+    if (change != null) sub.push('<span data-i="change">30 วัน ' + pctHtml(change) + '</span>');
+    if (sub.length) html += '<div class="sub">' + sub.join(' · ') + '</div>';
+
+    var warn = [];
+    if (nw.missingFx) warn.push('<span class="badge warn" data-i="nofx">ไม่รวมสินทรัพย์ USD (ยังไม่มีอัตราแลกเปลี่ยน)</span>');
+    if (nw.stale) {
+      var old = nw.rows.filter(function (r) { return r.stale && r.priceTs; }).sort(function (a, b) { return a.priceTs - b.priceTs; })[0];
+      if (old) warn.push('<span class="badge warn" data-i="stale">ราคา ณ ' + new Date(old.priceTs).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) + '</span>');
+    }
+    if (warn.length) html += '<div class="links">' + warn.join('') + '</div>';
+    var parts = IC.CLASSES.filter(function (c) { return nw.byClass[c].value > 0; });
+    if (parts.length && nw.total > 0) {
+      html += '<div class="alloc" role="img" aria-label="สัดส่วนตามประเภท">' + parts.map(function (c) {
+        return '<i style="width:' + (nw.byClass[c].value / nw.total * 100).toFixed(2) + '%;background:var(--ome-chart-' + (IC.CLASSES.indexOf(c) + 1) + ')" title="' + esc(IC.classLabel(c, 'th')) + '"></i>';
+      }).join('') + '</div><div class="alloc-legend">' + parts.map(function (c) {
+        return '<span><i style="background:var(--ome-chart-' + (IC.CLASSES.indexOf(c) + 1) + ')"></i>' + esc(IC.classLabel(c, 'th')) + ' ' + num(nw.byClass[c].value / nw.total * 100, 0) + '%</span>';
+      }).join('') + '</div>';
+    }
+    var top = nw.rows.filter(function (r) { return r.valueThb != null; }).sort(function (a, b) { return b.valueThb - a.valueThb; }).slice(0, 4);
+    html += '<div class="list">' + top.map(function (r) {
+      var p = r.costThb > 0 ? (r.valueThb / r.costThb - 1) * 100 : null;
+      return '<a class="list-row" href="' + esc(r.href) + '"><div class="grow"><div class="title">' + esc(IC.rowLabel(r, 'th')) + '</div>' +
+        '<div class="meta">' + esc(IC.classLabel(r.cls, 'th')) + (r.stale && r.priceTs ? ' · ราคา ณ ' + new Date(r.priceTs).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : '') + '</div></div>' +
+        '<div class="right"><div class="price">฿' + num(r.valueThb, 0) + '</div><div class="meta">' + (p != null ? pctHtml(p) : '') + '</div></div></a>';
     }).join('') + '</div>';
+    el.innerHTML = html;
   }
 
   /* ── ไฟล์ล่าสุด ── */
@@ -352,7 +386,7 @@
     rendering = true;
     renderHead();
     renderSpend();
-    renderStocks();
+    renderInvest();
     renderStreak();
     renderInsurance();
     renderMaintenance();
