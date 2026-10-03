@@ -1465,8 +1465,8 @@ test.describe('แท็บ #paper (พอร์ตจำลอง)', () => {
     expect((await state(page)).cash).toBe(123456);
     await page.click('#resetBtn');
     await page.locator('dialog.dialog .btn.danger').click();
+    await expect(page.locator('#holdEmpty')).toBeVisible(); // ยืนยันเป็น promise — รอให้หน้าวาดใหม่ก่อนอ่านคีย์ (เดิมอ่านทันทีเลยสุ่มพลาด)
     expect(await state(page)).toEqual({ cash: 1000000, startCash: 1000000, holdings: [], tx: [] });
-    await expect(page.locator('#holdEmpty')).toBeVisible();
     await expect(page.locator('#driveConnectBtn')).toHaveCount(0);
   });
   test('เริ่มจากไม่มีคีย์: ค่าเริ่มต้น 1,000,000 และไม่เขียนคีย์จนกว่าจะทำรายการ', async ({ page }) => {
@@ -1795,5 +1795,108 @@ test.describe('หน้าทอง invest-gold.html', () => {
     await openGold(page, '#markets');
     await page.goto('/invest-gold.html'); await page.waitForSelector('nav.ome-nav');
     await expect(page.locator('#goldTabs [data-tab="markets"]')).toHaveAttribute('aria-selected', 'true');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   หน้า (Playwright) — ส่วนที่ 9: Bitcoin (ขั้น 10)
+   ═══════════════════════════════════════════════════════════════════ */
+test.describe('หน้า Bitcoin invest-bitcoin.html', () => {
+  const PF = [{ qty: 0.05, cost: 60000, ts: 5, cur: 62000, extra: 'keep' }, { qty: 0.1, cost: 55000, ts: 8 }];
+  const BJ = [{ en: 60000, ex: 65000, qty: 0.1, pl: 500, ts: 11 }];
+  async function openBtc(page, { ai = false } = {}) {
+    const errors = await prepare(page);
+    const hosts = trackExternal(page);
+    const seen = await mockProxy(page, (u) => {
+      const d = decodeURIComponent(u);
+      if (/alternative\.me/.test(d)) return { body: { data: [{ value: '72', value_classification: 'Greed', timestamp: '1' }] } };
+      if (/THB=X|THB%3DX/.test(d)) return { body: { chart: { result: [{ meta: { regularMarketPrice: 36 }, indicators: { quote: [{ close: [36] }] } }] } } };
+      if (/range=1y/.test(d)) return { body: yahooChart(120, 60000) };
+      return null;
+    });
+    await page.addInitScript(([pf, bj, ai]) => {
+      if (ai) window.TANOT_AI = { enabled: true };
+      if (localStorage.getItem('__seeded')) return;
+      localStorage.setItem('tanot:invest:btc', JSON.stringify(pf)); localStorage.setItem('tanot:invest:btcjournal', JSON.stringify(bj));
+      localStorage.setItem('__seeded', '1');
+    }, [PF, BJ, ai]);
+    await page.clock.setFixedTime(new Date(NOW));
+    await page.goto('/invest-bitcoin.html');
+    await page.waitForSelector('nav.ome-nav');
+    return { errors, hosts, seen };
+  }
+  const get = (page, k) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), k);
+
+  test('ดึงราคา → ไฟจราจร/กราฟ/กลัว-โลภ · แคชชื่อเดิม · ไม่มีสมุดเทรด/Expectancy/Drive · ลิงก์ไปสมุดเทรด #btc · ไม่ออกเน็ตนอกที่อนุญาต', async ({ page }) => {
+    const { errors, hosts, seen } = await openBtc(page);
+    await expect(page.locator('#fngNum')).toHaveText('72');
+    await page.click('#fetchBtn');
+    await expect(page.locator('#lightCard')).toBeVisible();
+    await expect(page.locator('#chartCard')).toBeVisible();
+    await expect(page.locator('#price')).not.toHaveValue('');
+    expect(seen.some((u) => /BTC-USD/.test(decodeURIComponent(u)))).toBe(true);
+    const cache = await get(page, 'tanot:invest:cache:btc:BTC-USD');
+    expect(cache.c.length).toBeGreaterThan(60);
+    expect((await get(page, 'tanot:invest:cache:fng')).value).toBe(72);
+    await expect(page.locator('#jBox, #jAdd, #eBtn, #driveConnectBtn, #marketSettingsPanel')).toHaveCount(0);
+    await expect(page.locator('#journalLink')).toHaveAttribute('href', 'invest-trade-journal.html#btc');
+    expect(await page.evaluate(() => [...document.scripts].some((s) => /accounts\.google\.com/.test(s.src)))).toBe(false);
+    expect(hosts.filter((h) => !/^fonts\.|^api\.alternative\.me$/.test(h))).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test('พอร์ต: แถวเดิมครบ · เพิ่ม/แก้ราคา/ลบด้วย ts ตรงรูปแบบเดิม · btcjournal ไม่ถูกแตะ', async ({ page }) => {
+    await openBtc(page);
+    await expect(page.locator('#pfBox tr[data-ts]')).toHaveCount(2);
+    await page.fill('#pfQty', '0.02'); await page.fill('#pfCost', '70000'); await page.click('#pfAdd');
+    const rows = await get(page, 'tanot:invest:btc');
+    expect(rows.slice(0, 2)).toEqual(PF);
+    expect(Object.keys(rows[2]).sort()).toEqual(['cost', 'qty', 'ts']);
+    expect(rows[2]).toMatchObject({ qty: 0.02, cost: 70000 });
+    await page.locator('#pfBox tr[data-ts="' + rows[2].ts + '"] .pf-price').fill('71000');
+    expect((await get(page, 'tanot:invest:btc'))[2].cur).toBe(71000);
+    await expect(page.locator('#pfBox tr[data-ts="' + rows[2].ts + '"] .pf-pl')).toContainText('+$20');
+    await page.locator('#pfBox tr[data-ts="' + rows[2].ts + '"] .pf-del').click();
+    expect(await get(page, 'tanot:invest:btc')).toEqual(PF);
+    expect(await get(page, 'tanot:invest:btcjournal')).toEqual(BJ);
+  });
+
+  test('ควรขายไหม: ดึงชุดราคา → คำตัดสิน + 4 ระดับ · ราคาปัจจุบันบันทึกลงแถวเดิม', async ({ page }) => {
+    await openBtc(page);
+    await page.locator('#pfBox tr[data-ts="8"] .pf-sell').click();
+    await expect(page.locator('#pfBox tr[data-sr="8"] .sell-verdict')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('#pfBox tr[data-sr="8"] .sell-levels li')).toHaveCount(4);
+    expect((await get(page, 'tanot:invest:btc')).find((r) => r.ts === 8).cur).toBeGreaterThan(0);
+  });
+
+  test('คุมเงิน/เช็กลิสต์/DCA/ตัวอย่างกราฟ ตรง InvestCalc (BTC เศษส่วน เสี่ยง ≤ 1%)', async ({ page }) => {
+    await openBtc(page);
+    await page.click('#demoBtn');
+    await expect(page.locator('#chartSource')).toContainText('ข้อมูลตัวอย่าง');
+    await page.fill('#entry', '50000'); await page.fill('#stop', '47500'); await page.fill('#riskPct', '1'); await page.fill('#capital', '10000'); await page.click('#calcBtn');
+    const r = C.riskCalc.btc({ capital: 10000, riskPct: 1, entry: 50000, stop: 47500, comm: 0.25, resistance: NaN });
+    await expect(page.locator('#riskHeadline')).toContainText(r.qty.toFixed(6));
+    await expect(page.locator('#riskKv')).toContainText('$' + Math.round(r.riskUsd));
+    await page.click('#saveBtn');
+    expect((await get(page, 'tanot:invest:btc')).length).toBe(3);
+    await page.click('#chkForm .yn-btn[data-val="yes"]'); await page.click('#checkBtn');
+    await expect(page.locator('#chkList li')).toHaveCount(7);
+    await expect(page.locator('#chkList')).toContainText('spot');
+    const d = C.simulateDCA(100, +(await page.inputValue('#dcaStart')), 15, 60);
+    await page.click('#dcaBtn');
+    await expect(page.locator('#dcaValue')).toHaveText('$' + Math.round(d.value).toLocaleString('en-US'));
+  });
+
+  test('ตัวแปลงเป็นบาท: ดึงอัตรา → ≈ ฿ ใน headline · อัตราเก็บที่ fxcache เดิม', async ({ page }) => {
+    await openBtc(page);
+    await page.click('#demoBtn');
+    await page.locator('details:has(#fxRate) summary').click();
+    await page.click('#fxFetchBtn');
+    await expect(page.locator('#fxRate')).toHaveValue('36.00');
+    expect((await get(page, 'tanot:invest:fxcache')).rate).toBe(36);
+    await page.check('#fxShowChk');
+    await page.fill('#capital', '10000'); await page.fill('#entry', '50000'); await page.fill('#stop', '47500'); await page.click('#calcBtn');
+    await expect(page.locator('#riskHeadline .fx-sub')).toContainText('฿');
   });
 });

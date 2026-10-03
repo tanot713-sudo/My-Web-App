@@ -166,16 +166,18 @@
     return toSeries(daysAgoDates(nums.length, now), opens, highs, lows, nums, vols);
   }
   /* ตัวอย่างฝึกอ่านกราฟ (สุ่มแบบกำหนด seed — ผลคงที่) */
-  function demoData(startPrice, now) {
+  function demoData(startPrice, now, kind) {
+    /* kind 'btc' = พารามิเตอร์เดิมของหน้า Bitcoin (ผันผวนกว่าหุ้น) · ไม่ระบุ = หุ้น (ค่าเดิม) */
+    var P = kind === 'btc' ? { drift: 0.0006, vol: 0.06, wick: 0.02, v0: 2e4, v1: 8e4 } : { drift: 0.0004, vol: 0.032, wick: 0.012, v0: 2e6, v1: 8e6 };
     var n = 252, opens = [], highs = [], lows = [], closes = [], vols = [];
     var seed = 20240117, rnd = function () { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
     var price = startPrice || 32, i;
     for (i = 0; i < n; i++) {
-      var ret = 0.0004 + (rnd() - 0.5) * 0.032, open = price, close = Math.max(1, open * (1 + ret));
+      var ret = P.drift + (rnd() - 0.5) * P.vol, open = price, close = Math.max(1, open * (1 + ret));
       opens.push(+open.toFixed(2)); closes.push(+close.toFixed(2));
-      highs.push(+(Math.max(open, close) * (1 + rnd() * 0.012)).toFixed(2));
-      lows.push(+(Math.min(open, close) * (1 - rnd() * 0.012)).toFixed(2));
-      vols.push(Math.round(2e6 + rnd() * 8e6)); price = close;
+      highs.push(+(Math.max(open, close) * (1 + rnd() * P.wick)).toFixed(2));
+      lows.push(+(Math.min(open, close) * (1 - rnd() * P.wick)).toFixed(2));
+      vols.push(Math.round(P.v0 + rnd() * P.v1)); price = close;
     }
     return toSeries(daysAgoDates(n, now), opens, highs, lows, closes, vols);
   }
