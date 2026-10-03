@@ -195,6 +195,17 @@
     if (closes.length < 5) throw new Error('short');
     return toSeries(times, opens, highs, lows, closes, vols);
   }
+  /* ราคาปิดล่าสุดที่ใช้ได้ของแท่งรายวัน (ซื้อย้อนหลังในพอร์ตจำลอง) → {price, ts ms} */
+  function parseHistoricalClose(j) {
+    var res = j && j.chart && j.chart.result && j.chart.result[0];
+    var closes = res && res.indicators && res.indicators.quote && res.indicators.quote[0] && res.indicators.quote[0].close;
+    var ts = res && res.timestamp;
+    if (!closes || !ts || !closes.length) throw new Error('no historical data');
+    for (var i = closes.length - 1; i >= 0; i--) {
+      if (closes[i] != null && isFinite(closes[i])) return { price: closes[i], ts: ts[i] * 1000 };
+    }
+    throw new Error('no valid close');
+  }
   /* quote ย่อ: ราคา + ปิดก่อนหน้า + sparkline (ปิดรายวัน) จาก chart?range=5d */
   function parseQuoteLite(j) {
     var res = j && j.chart && j.chart.result && j.chart.result[0];
@@ -1041,7 +1052,7 @@
     sma: sma, smaSeries: smaSeries, emaSeries: emaSeries, emaLast: emaLast, rsi: rsi, rsiSeries: rsiSeries, macd: macd,
     bollinger: bollinger, atr: atr, supRes: supRes, adx: adx, psar: psar,
     toSeries: toSeries, daysAgoDates: daysAgoDates, parsePaste: parsePaste, demoData: demoData,
-    parseYahoo: parseYahoo, parseQuoteLite: parseQuoteLite, parseFxRate: parseFxRate, parseGoldTH: parseGoldTH, parseFng: parseFng,
+    parseYahoo: parseYahoo, parseQuoteLite: parseQuoteLite, parseHistoricalClose: parseHistoricalClose, parseFxRate: parseFxRate, parseGoldTH: parseGoldTH, parseFng: parseFng,
     analyzeSeries: analyzeSeries, analyzeSimple: analyzeSimple, sellVerdict: sellVerdict,
     riskCalc: riskCalc, checklist: checklist, checklistVerdict: checklistVerdict,
     simulateDCA: simulateDCA, simulateFund: simulateFund, fundPlan: fundPlan, DRAWDOWN_TIERS: DRAWDOWN_TIERS, drawdown: drawdown,

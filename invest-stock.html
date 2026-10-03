@@ -103,6 +103,24 @@
 .news-list li{padding:6px 0;border-top:1px dashed var(--ome-border);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .news-list a,.news-search-link{color:var(--ome-accent-strong);font-weight:600}
 .news-date{font-size:var(--ome-fs-xs);white-space:nowrap}
+.s50wrap{max-height:520px;overflow-y:auto;border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg)}
+.s50wrap .table{border:0}
+.s50wrap thead th{position:sticky;top:0;z-index:1}
+.s50wrap tbody tr{cursor:pointer}
+.s50wrap th.c-sym,.s50wrap td.c-sym{text-align:left}
+.s50wrap th.c-sig,.s50wrap td.c-sig{text-align:center}
+.s50wrap th.c-num,.s50wrap td:not(.c-sym):not(.c-sig){text-align:right}
+.s50wrap td.c-sym{font-weight:700;color:var(--ome-accent-strong)}
+.s50wrap .up,.up{color:var(--ome-ok-ink);font-weight:700}.s50wrap .dn,.dn{color:var(--ome-err-ink);font-weight:700}
+.sigdot{display:inline-block;width:8px;height:8px;border-radius:50%}
+.sigdot.green{background:var(--ome-ok)}.sigdot.yellow{background:var(--ome-warn)}.sigdot.red{background:var(--ome-err)}
+@media(max-width:520px){ .s50wrap th.c-chg,.s50wrap td.c-chg{display:none} }
+.lbl-row{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.cash-edit-row{display:flex;flex-direction:column;gap:6px}
+.cash-edit-row[hidden]{display:none}
+#panelPaper .table th:not(:first-child),#panelPaper .table td:not(:first-child){text-align:right}
+#panelPaper .table td.up{color:var(--ome-ok-ink);font-weight:700}#panelPaper .table td.dn{color:var(--ome-err-ink);font-weight:700}
+.tbl-empty{color:var(--ome-text-2);padding:16px 4px;text-align:center}
 </style>
 </head>
 <body data-layout="tool" data-invest-key="stock">
@@ -299,10 +317,98 @@
 
   </div><!-- /panelAnalysis -->
 
+  <!-- ═══ #scan: สแกนเนอร์ SET50 / หุ้นดังสหรัฐฯ ═══ -->
+  <div class="tabpanel stack" id="panelScan" hidden>
+    <div class="card">
+      <div class="stack">
+        <div class="row">
+          <div class="segmented" id="scanSeg" role="group"><button type="button" data-set="th" aria-pressed="true" data-i18n="mkTh">SET50</button><button type="button" data-set="us" aria-pressed="false" data-i18n="mkUs">หุ้นดังสหรัฐฯ</button></div>
+          <button class="btn primary" id="scanBtn" type="button" data-i18n="scanBtn">หาหุ้นน่าสนใจ</button>
+          <label class="row"><input type="checkbox" id="greenOnly"> <span data-i18n="greenOnlyLabel">เฉพาะไฟเขียว</span></label>
+          <span class="status" id="scanStatus" style="margin:0"></span>
+        </div>
+        <div class="s50wrap">
+          <table class="table">
+            <thead><tr>
+              <th class="c-sym" data-i18n="thSym">หลักทรัพย์</th><th class="c-num" data-i18n="thLast">ล่าสุด</th>
+              <th class="c-num c-chg" data-i18n="thChg">+/−</th><th class="c-num" data-i18n="thPct">%</th><th class="c-sig" data-i18n="thSig">สัญญาณ</th>
+            </tr></thead>
+            <tbody id="scanBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ #paper: พอร์ตจำลอง (เงินสมมติ — ไม่นับรวมในมูลค่าสินทรัพย์ลงทุน) ═══ -->
+  <div class="tabpanel stack" id="panelPaper" hidden>
+    <div class="card">
+      <div class="stack">
+        <div class="kpi-grid">
+          <div class="kpi">
+            <div class="lbl-row"><span class="kpi-label" data-i18n="lblCash">เงินสดคงเหลือ</span><button class="btn sm ghost" id="cashEditBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-pencil"/></svg><span data-i18n="editCashBtn">แก้ไข</span></button></div>
+            <div class="kpi-value" id="sCash">—</div>
+            <div class="cash-edit-row" id="cashEditRow" hidden>
+              <input type="number" id="cashEditInput" inputmode="decimal" class="input">
+              <div class="row">
+                <button class="btn sm primary" id="cashEditSave" type="button" data-i18n="saveBtn">บันทึก</button>
+                <button class="btn sm" id="cashEditCancel" type="button" data-i18n="cancelBtn">ยกเลิก</button>
+              </div>
+            </div>
+          </div>
+          <div class="kpi"><span class="kpi-label" data-i18n="lblHoldVal">มูลค่าหุ้นที่ถือ</span><span class="kpi-value" id="sHoldVal">—</span></div>
+          <div class="kpi"><span class="kpi-label" data-i18n="lblTotal">มูลค่าพอร์ตรวม</span><span class="kpi-value" id="sTotal">—</span></div>
+          <div class="kpi"><span class="kpi-label" data-i18n="lblPl">กำไร/ขาดทุนรวม</span><span class="kpi-value" id="sPl">—</span><span class="kpi-delta" id="sPlPct"></span></div>
+        </div>
+        <div><button class="btn sm" id="resetBtn" type="button" data-i18n="resetBtn">เริ่มพอร์ตใหม่</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="tradeTitle">ซื้อ / ขายหุ้น</h2>
+      <div class="stack">
+        <div><div class="segmented" id="tradeTabs">
+          <button class="on" data-tab="buy" type="button" data-i18n="tabBuy">ซื้อ</button>
+          <button data-tab="sell" type="button" data-i18n="tabSell">ขาย</button>
+        </div></div>
+        <div id="buyPane">
+          <div class="frow">
+            <div class="field"><label for="buySym" data-i18n="lblSym">ชื่อย่อหุ้น</label><input type="text" id="buySym" placeholder="เช่น PTT" data-i18n-placeholder="phSym" autocomplete="off" spellcheck="false"></div>
+            <div class="field"><label for="buyShares" data-i18n="lblShares">จำนวนหุ้น</label><input type="number" id="buyShares" inputmode="numeric" placeholder="เช่น 100" data-i18n-placeholder="phShares"></div>
+            <div class="field"><label for="buyDate" data-i18n="lblBuyDate">วันที่ซื้อ (ย้อนหลังได้)</label><input type="date" id="buyDate"></div>
+            <button class="btn primary" id="buyBtn" type="button" data-i18n="buyBtn">ดึงราคา + ซื้อ</button>
+          </div>
+        </div>
+        <div id="sellPane" style="display:none">
+          <div class="frow">
+            <div class="field" style="flex:2 1 180px"><label for="sellSym" data-i18n="lblSellSym">หุ้นที่ถือ</label><select id="sellSym"></select></div>
+            <div class="field"><label for="sellShares" data-i18n="lblShares">จำนวนหุ้น</label><input type="number" id="sellShares" inputmode="numeric" placeholder="เช่น 100" data-i18n-placeholder="phShares"></div>
+            <button class="btn danger" id="sellBtn" type="button" data-i18n="sellBtn">ดึงราคา + ขาย</button>
+          </div>
+        </div>
+        <div class="status" id="tradeStatus" style="margin:0"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2 data-i18n="holdTitle">หุ้นที่ถือ</h2><button class="btn sm" id="refreshBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-refresh-cw"/></svg><span data-i18n="refreshBtn">รีเฟรชราคา</span></button></div>
+      <div class="table-wrap"><table class="table" id="holdTable"></table></div>
+      <div id="holdEmpty" class="tbl-empty" data-i18n="holdEmpty">ยังไม่มีหุ้นในพอร์ต</div>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="txTitle">ประวัติการซื้อขาย</h2>
+      <div class="table-wrap"><table class="table" id="txTable"></table></div>
+      <div id="txEmpty" class="tbl-empty" data-i18n="txEmpty">ยังไม่มีรายการ</div>
+    </div>
+  </div>
+
 </main>
 
 <script src="invest-calc.js" defer></script>
 <script src="invest-core.js" defer></script>
 <script src="invest-stock.js" defer></script>
+<script src="invest-scan.js" defer></script>
+<script src="invest-paper.js" defer></script>
 </body>
 </html>

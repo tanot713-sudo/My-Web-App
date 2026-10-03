@@ -18,7 +18,7 @@
     us: { key: 'us', pf: 'globalstock', suffix: '', ccy: 'USD', cur: '$', live: 'us', aiTask: 'stock:globalstock', risk: 'us', chk: 'us',
       defSym: 'AAPL', capital: 10000, comm: 0.2, commMin: 0, newsQ: function (s) { return s + ' stock'; } }
   };
-  var market = 'th', M = MARKETS.th;
+  var market = 'th', M = MARKETS.th, curTab = 'th';
 
     var COMPANY_INFO = {
     ADVANC: { name: 'แอดวานซ์ อินโฟร์ เซอร์วิส (เอไอเอส)', sector: 'ICT/สื่อสาร', business: 'ผู้ให้บริการเครือข่ายโทรศัพท์เคลื่อนที่รายใหญ่ที่สุดของไทย รวมถึงบรอดแบนด์และดิจิทัลเซอร์วิส' },
@@ -179,6 +179,108 @@
     'Reply using only the 4-section structure above, starting directly with "Overview:" — no preamble.';
 
 
+  var US_COMPANY_INFO = {
+    AAPL: { name: 'Apple', sector: 'เทคโนโลยี', business: 'ผู้ผลิต iPhone/Mac/iPad และระบบนิเวศบริการดิจิทัล (App Store, iCloud) บริษัทที่มีมูลค่าตลาดสูงที่สุดแห่งหนึ่งของโลก' },
+    MSFT: { name: 'Microsoft', sector: 'เทคโนโลยี', business: 'ซอฟต์แวร์องค์กร (Windows, Office 365) และธุรกิจคลาวด์ Azure รายใหญ่อันดับต้นของโลก' },
+    GOOGL: { name: 'Alphabet (Google)', sector: 'เทคโนโลยี', business: 'เจ้าของ Google Search, YouTube, Android และธุรกิจโฆษณาออนไลน์/คลาวด์คอมพิวติ้ง' },
+    AMZN: { name: 'Amazon', sector: 'เทคโนโลยี', business: 'อีคอมเมิร์ซรายใหญ่ที่สุดของโลก บวกธุรกิจคลาวด์คอมพิวติ้ง AWS ที่ทำกำไรสูง' },
+    META: { name: 'Meta Platforms', sector: 'เทคโนโลยี', business: 'เจ้าของ Facebook, Instagram, WhatsApp รายได้หลักจากโฆษณาดิจิทัล' },
+    NVDA: { name: 'Nvidia', sector: 'เทคโนโลยี', business: 'ผู้ผลิตชิปกราฟิก/ชิปประมวลผล AI รายใหญ่ที่สุด ครองตลาดฮาร์ดแวร์ฝึกโมเดล AI' },
+    TSLA: { name: 'Tesla', sector: 'เทคโนโลยี', business: 'ผู้ผลิตรถยนต์ไฟฟ้าและระบบกักเก็บพลังงาน/โซลาร์เซลล์' },
+    AVGO: { name: 'Broadcom', sector: 'เทคโนโลยี', business: 'ผู้ผลิตชิปเซมิคอนดักเตอร์/อุปกรณ์เครือข่าย และซอฟต์แวร์องค์กร' },
+    AMD: { name: 'Advanced Micro Devices', sector: 'เทคโนโลยี', business: 'ผู้ผลิตชิปประมวลผล CPU/GPU คู่แข่งหลักของ Intel และ Nvidia' },
+    CRM: { name: 'Salesforce', sector: 'เทคโนโลยี', business: 'ซอฟต์แวร์บริหารความสัมพันธ์ลูกค้า (CRM) บนคลาวด์รายใหญ่' },
+    JPM: { name: 'JPMorgan Chase', sector: 'การเงิน/ธนาคาร', business: 'ธนาคารพาณิชย์และวาณิชธนกิจรายใหญ่ที่สุดของสหรัฐฯ ตามสินทรัพย์' },
+    BAC: { name: 'Bank of America', sector: 'การเงิน/ธนาคาร', business: 'ธนาคารพาณิชย์รายใหญ่ของสหรัฐฯ ให้บริการทั้งลูกค้ารายย่อยและองค์กร' },
+    V: { name: 'Visa', sector: 'การเงิน/ธนาคาร', business: 'เครือข่ายประมวลผลการชำระเงินด้วยบัตรรายใหญ่ที่สุดของโลก' },
+    MA: { name: 'Mastercard', sector: 'การเงิน/ธนาคาร', business: 'เครือข่ายประมวลผลการชำระเงินด้วยบัตร คู่แข่งหลักของ Visa' },
+    GS: { name: 'Goldman Sachs', sector: 'การเงิน/ธนาคาร', business: 'วาณิชธนกิจชั้นนำ เน้นธุรกิจซื้อขายหลักทรัพย์และบริหารสินทรัพย์' },
+    MS: { name: 'Morgan Stanley', sector: 'การเงิน/ธนาคาร', business: 'วาณิชธนกิจ เน้นธุรกิจบริหารความมั่งคั่งและตลาดทุน' },
+    JNJ: { name: 'Johnson & Johnson', sector: 'สุขภาพ', business: 'ยา เวชภัณฑ์ และอุปกรณ์การแพทย์ครบวงจร' },
+    UNH: { name: 'UnitedHealth Group', sector: 'สุขภาพ', business: 'บริษัทประกันสุขภาพรายใหญ่ที่สุดของสหรัฐฯ และธุรกิจบริการสุขภาพ Optum' },
+    PFE: { name: 'Pfizer', sector: 'สุขภาพ', business: 'บริษัทยาและวัคซีนรายใหญ่ระดับโลก' },
+    ABBV: { name: 'AbbVie', sector: 'สุขภาพ', business: 'บริษัทยา เน้นกลุ่มยาภูมิคุ้มกันบำบัดและมะเร็ง' },
+    LLY: { name: 'Eli Lilly', sector: 'สุขภาพ', business: 'บริษัทยา เด่นด้านยาเบาหวาน/ลดน้ำหนัก (กลุ่ม GLP-1) เติบโตเร็วในช่วงหลัง' },
+    PG: { name: 'Procter & Gamble', sector: 'สินค้าอุปโภคบริโภคจำเป็น', business: 'สินค้าอุปโภคในครัวเรือน (Pampers, Gillette, Tide ฯลฯ) แบรนด์ทั่วโลก' },
+    KO: { name: 'Coca-Cola', sector: 'สินค้าอุปโภคบริโภคจำเป็น', business: 'ผู้ผลิตเครื่องดื่มรายใหญ่ระดับโลก เจ้าของแบรนด์ Coca-Cola' },
+    PEP: { name: 'PepsiCo', sector: 'สินค้าอุปโภคบริโภคจำเป็น', business: 'ธุรกิจเครื่องดื่ม (Pepsi) และขนมขบเคี้ยว (Lay\'s, Quaker)' },
+    WMT: { name: 'Walmart', sector: 'สินค้าอุปโภคบริโภคจำเป็น', business: 'เชนค้าปลีก/ซูเปอร์เซ็นเตอร์รายใหญ่ที่สุดของโลกตามรายได้' },
+    COST: { name: 'Costco', sector: 'สินค้าอุปโภคบริโภคจำเป็น', business: 'ธุรกิจค้าปลีกแบบสมาชิก (membership warehouse) ขายส่งราคาถูก' },
+    MCD: { name: "McDonald's", sector: 'สินค้าฟุ่มเฟือย/ค้าปลีก', business: 'เชนอาหารจานด่วนแฟรนไชส์รายใหญ่ที่สุดของโลก' },
+    NKE: { name: 'Nike', sector: 'สินค้าฟุ่มเฟือย/ค้าปลีก', business: 'แบรนด์รองเท้า/เครื่องแต่งกายกีฬารายใหญ่ที่สุดของโลก' },
+    SBUX: { name: 'Starbucks', sector: 'สินค้าฟุ่มเฟือย/ค้าปลีก', business: 'เชนร้านกาแฟรายใหญ่ที่สุดของโลก' },
+    HD: { name: 'Home Depot', sector: 'สินค้าฟุ่มเฟือย/ค้าปลีก', business: 'เชนค้าปลีกวัสดุก่อสร้าง/ตกแต่งบ้านรายใหญ่ที่สุดของสหรัฐฯ' },
+    DIS: { name: 'Disney', sector: 'สินค้าฟุ่มเฟือย/ค้าปลีก', business: 'ธุรกิจสื่อ/บันเทิง สวนสนุก และสตรีมมิง (Disney+)' },
+    NFLX: { name: 'Netflix', sector: 'สินค้าฟุ่มเฟือย/ค้าปลีก', business: 'บริการสตรีมมิงวิดีโอรายใหญ่ที่สุดของโลก' },
+    XOM: { name: 'ExxonMobil', sector: 'พลังงาน', business: 'บริษัทน้ำมัน/ก๊าซครบวงจรรายใหญ่ของสหรัฐฯ' },
+    CVX: { name: 'Chevron', sector: 'พลังงาน', business: 'บริษัทน้ำมัน/ก๊าซครบวงจรรายใหญ่ของสหรัฐฯ' },
+    COP: { name: 'ConocoPhillips', sector: 'พลังงาน', business: 'ธุรกิจสำรวจและผลิตปิโตรเลียม (น้ำมัน/ก๊าซ)' },
+    BA: { name: 'Boeing', sector: 'อุตสาหกรรม', business: 'ผู้ผลิตเครื่องบินพาณิชย์และอากาศยานทางทหารรายใหญ่ของโลก' },
+    CAT: { name: 'Caterpillar', sector: 'อุตสาหกรรม', business: 'ผู้ผลิตเครื่องจักรก่อสร้าง/เหมืองแร่รายใหญ่ของโลก' },
+    GE: { name: 'General Electric', sector: 'อุตสาหกรรม', business: 'กลุ่มอุตสาหกรรม เน้นเครื่องยนต์อากาศยานและพลังงาน' },
+    UPS: { name: 'United Parcel Service', sector: 'อุตสาหกรรม', business: 'ธุรกิจขนส่งพัสดุ/โลจิสติกส์รายใหญ่ของโลก' },
+    HON: { name: 'Honeywell', sector: 'อุตสาหกรรม', business: 'กลุ่มอุตสาหกรรม ครอบคลุมการบิน อาคารอัตโนมัติ และวัสดุ' }
+  };
+  var US_SECTOR_FACTORS = {
+    'เทคโนโลยี': ['มูลค่าหุ้นมักตั้งราคาด้วยความคาดหวังการเติบโตสูง อ่อนไหวกับทิศทางดอกเบี้ยสหรัฐฯ (Fed)', 'การแข่งขันด้าน AI/นวัตกรรมเปลี่ยนเร็ว งบวิจัยพัฒนาสูงต่อเนื่อง'],
+    'การเงิน/ธนาคาร': ['ผลประกอบการอ่อนไหวกับดอกเบี้ยนโยบาย Fed และคุณภาพสินเชื่อ', 'กฎเกณฑ์กำกับดูแลธนาคารสหรัฐฯ (Fed/FDIC) มีผลโดยตรง'],
+    'สุขภาพ': ['ขึ้นกับผลทดลองยา/การอนุมัติจาก FDA และการหมดสิทธิบัตร (patent cliff)', 'นโยบายราคายา/ประกันสุขภาพของรัฐบาลสหรัฐฯ มีผลต่อรายได้'],
+    'สินค้าอุปโภคบริโภคจำเป็น': ['อ่อนไหวกับต้นทุนวัตถุดิบและค่าเงินดอลลาร์ (รายได้ส่วนหนึ่งมาจากต่างประเทศ)', 'มักเป็นหุ้นตั้งรับ (defensive) ผันผวนน้อยกว่ากลุ่มเทคโนโลยี'],
+    'สินค้าฟุ่มเฟือย/ค้าปลีก': ['ยอดขายอ่อนไหวกับกำลังซื้อผู้บริโภคสหรัฐฯ และฤดูกาลจับจ่าย', 'ต้นทุนแรงงาน/ค่าเช่าและการแข่งขันอีคอมเมิร์ซกดดันมาร์จิ้น'],
+    'พลังงาน': ['กำไรผันผวนตามราคาน้ำมัน/ก๊าซในตลาดโลก', 'นโยบายพลังงาน/สิ่งแวดล้อมของสหรัฐฯ มีผลต่อการลงทุนระยะยาว'],
+    'อุตสาหกรรม': ['รายได้ผูกกับวัฏจักรเศรษฐกิจโลกและการลงทุนโครงสร้างพื้นฐาน', 'อ่อนไหวกับภาษีนำเข้า/ห่วงโซ่อุปทานระหว่างประเทศ']
+  };
+  var US_COMPANY_INFO_EN = {
+    AAPL: { name: 'Apple', sector: 'Technology', business: 'Maker of iPhone/Mac/iPad and the digital services ecosystem (App Store, iCloud); one of the most valuable companies in the world' },
+    MSFT: { name: 'Microsoft', sector: 'Technology', business: 'Enterprise software (Windows, Office 365) and the Azure cloud business, among the largest in the world' },
+    GOOGL: { name: 'Alphabet (Google)', sector: 'Technology', business: 'Owner of Google Search, YouTube, Android, and the online advertising/cloud computing business' },
+    AMZN: { name: 'Amazon', sector: 'Technology', business: "The world's largest e-commerce company, plus the highly profitable AWS cloud computing business" },
+    META: { name: 'Meta Platforms', sector: 'Technology', business: 'Owner of Facebook, Instagram, WhatsApp; revenue mainly from digital advertising' },
+    NVDA: { name: 'Nvidia', sector: 'Technology', business: 'The largest maker of graphics/AI processing chips, dominating the AI model training hardware market' },
+    TSLA: { name: 'Tesla', sector: 'Technology', business: 'Maker of electric vehicles and energy storage/solar systems' },
+    AVGO: { name: 'Broadcom', sector: 'Technology', business: 'Maker of semiconductor chips/networking equipment and enterprise software' },
+    AMD: { name: 'Advanced Micro Devices', sector: 'Technology', business: "Maker of CPU/GPU processing chips, Intel and Nvidia's main competitor" },
+    CRM: { name: 'Salesforce', sector: 'Technology', business: 'Major cloud-based customer relationship management (CRM) software' },
+    JPM: { name: 'JPMorgan Chase', sector: 'Finance/Banking', business: "The largest US commercial and investment bank by assets" },
+    BAC: { name: 'Bank of America', sector: 'Finance/Banking', business: 'Major US commercial bank serving both retail and corporate customers' },
+    V: { name: 'Visa', sector: 'Finance/Banking', business: "The world's largest card payment processing network" },
+    MA: { name: 'Mastercard', sector: 'Finance/Banking', business: "A card payment processing network, Visa's main competitor" },
+    GS: { name: 'Goldman Sachs', sector: 'Finance/Banking', business: 'Leading investment bank focused on securities trading and asset management' },
+    MS: { name: 'Morgan Stanley', sector: 'Finance/Banking', business: 'Investment bank focused on wealth management and capital markets' },
+    JNJ: { name: 'Johnson & Johnson', sector: 'Healthcare', business: 'Full-line pharmaceuticals, medicines, and medical devices' },
+    UNH: { name: 'UnitedHealth Group', sector: 'Healthcare', business: 'The largest US health insurer, plus the Optum health services business' },
+    PFE: { name: 'Pfizer', sector: 'Healthcare', business: 'Global-scale pharmaceutical and vaccine company' },
+    ABBV: { name: 'AbbVie', sector: 'Healthcare', business: 'Pharmaceutical company focused on immunology and oncology drugs' },
+    LLY: { name: 'Eli Lilly', sector: 'Healthcare', business: 'Pharmaceutical company known for diabetes/weight-loss drugs (GLP-1 class), growing rapidly in recent years' },
+    PG: { name: 'Procter & Gamble', sector: 'Consumer Staples', business: 'Household consumer goods (Pampers, Gillette, Tide, etc.), globally recognized brands' },
+    KO: { name: 'Coca-Cola', sector: 'Consumer Staples', business: 'Global-scale beverage maker, owner of the Coca-Cola brand' },
+    PEP: { name: 'PepsiCo', sector: 'Consumer Staples', business: "Beverage business (Pepsi) and snack foods (Lay's, Quaker)" },
+    WMT: { name: 'Walmart', sector: 'Consumer Staples', business: 'The largest retail/supercenter chain in the world by revenue' },
+    COST: { name: 'Costco', sector: 'Consumer Staples', business: 'Membership warehouse retail business selling at low wholesale prices' },
+    MCD: { name: "McDonald's", sector: 'Consumer Discretionary/Retail', business: "The world's largest fast-food franchise chain" },
+    NKE: { name: 'Nike', sector: 'Consumer Discretionary/Retail', business: "The world's largest sportswear/footwear brand" },
+    SBUX: { name: 'Starbucks', sector: 'Consumer Discretionary/Retail', business: "The world's largest coffeehouse chain" },
+    HD: { name: 'Home Depot', sector: 'Consumer Discretionary/Retail', business: 'The largest home improvement/building materials retail chain in the US' },
+    DIS: { name: 'Disney', sector: 'Consumer Discretionary/Retail', business: 'Media/entertainment, theme parks, and streaming (Disney+) business' },
+    NFLX: { name: 'Netflix', sector: 'Consumer Discretionary/Retail', business: "The world's largest video streaming service" },
+    XOM: { name: 'ExxonMobil', sector: 'Energy', business: 'Major integrated US oil/gas company' },
+    CVX: { name: 'Chevron', sector: 'Energy', business: 'Major integrated US oil/gas company' },
+    COP: { name: 'ConocoPhillips', sector: 'Energy', business: 'Petroleum (oil/gas) exploration and production business' },
+    BA: { name: 'Boeing', sector: 'Industrials', business: 'Major global manufacturer of commercial and military aircraft' },
+    CAT: { name: 'Caterpillar', sector: 'Industrials', business: 'Major global maker of construction/mining machinery' },
+    GE: { name: 'General Electric', sector: 'Industrials', business: 'Industrial group focused on aircraft engines and power' },
+    UPS: { name: 'United Parcel Service', sector: 'Industrials', business: 'Major global parcel delivery/logistics business' },
+    HON: { name: 'Honeywell', sector: 'Industrials', business: 'Industrial group spanning aerospace, building automation, and materials' }
+  };
+  var US_SECTOR_FACTORS_EN = {
+    'Technology': ['Valuations are usually priced with high growth expectations, sensitive to the direction of US interest rates (the Fed)', 'AI/innovation competition changes fast, with continuously high R&D spending'],
+    'Finance/Banking': ["Earnings are sensitive to Fed policy rates and loan quality", "US bank regulation (Fed/FDIC) has a direct effect"],
+    'Healthcare': ['Depends on drug trial results/FDA approvals and patent cliffs', "US government drug pricing/health insurance policy affects revenue"],
+    'Consumer Staples': ['Sensitive to input costs and the dollar (part of revenue comes from overseas)', 'Usually defensive stocks, less volatile than the technology sector'],
+    'Consumer Discretionary/Retail': ['Sales are sensitive to US consumer spending power and shopping seasons', 'Labor/rent costs and e-commerce competition pressure margins'],
+    'Energy': ['Profit swings with global oil/gas prices', 'US energy/environmental policy affects long-term investment'],
+    'Industrials': ['Revenue is tied to the global economic cycle and infrastructure investment', 'Sensitive to import tariffs/international supply chains']
+  };
   var DICT = {
  "th": {
   "whyTitleDefault": "เหตุผลของสัญญาณ",
@@ -1000,7 +1102,7 @@
     if (!buildChart(s)) setStatus(t('chartLibFail'), 'err');
     updatePriceFx();
   }
-  function companyOf(sym) { return market === 'th' ? getCompanyInfo(sym) : null; }
+  function companyOf(sym) { return getCompanyInfo(sym); }
   function updateStockHead(sym) {
     $('shead').style.display = 'flex';
     $('stkSym').textContent = sym;
@@ -1196,13 +1298,17 @@
   }
 
   /* ══ ข้อมูลบริษัท (SET50) ══ */
-  function getCompanyInfo(sym) { return (IC.getLang() === 'en' ? COMPANY_INFO_EN : COMPANY_INFO)[sym]; }
+  function companyTables() {
+    return market === 'th' ? { th: COMPANY_INFO, en: COMPANY_INFO_EN, fth: SECTOR_FACTORS, fen: SECTOR_FACTORS_EN }
+      : { th: US_COMPANY_INFO, en: US_COMPANY_INFO_EN, fth: US_SECTOR_FACTORS, fen: US_SECTOR_FACTORS_EN };
+  }
+  function getCompanyInfo(sym) { var T = companyTables(); return (IC.getLang() === 'en' ? T.en : T.th)[sym]; }
   function companyInfoUrl(sym) { return 'https://www.google.com/search?q=' + encodeURIComponent(sym + ' บริษัท ทำธุรกิจอะไร'); }
   function companyInfoHtml(sym) {
-    var c = getCompanyInfo(sym);
+    var c = getCompanyInfo(sym), T = companyTables();
     if (!c) return '<div class="company-card"><div class="cname">' + t('noCompanyInfo') + '</div><div class="cbiz">' + t('companyInfoFallback', { url: companyInfoUrl(sym), sym: esc(sym) }) + '</div></div>';
-    var cTh = COMPANY_INFO[sym];
-    var factors = (IC.getLang() === 'en' ? SECTOR_FACTORS_EN[c.sector] : SECTOR_FACTORS[cTh.sector]) || [];
+    var cTh = T.th[sym];
+    var factors = (IC.getLang() === 'en' ? T.fen[c.sector] : T.fth[cTh.sector]) || [];
     var html = '<div class="company-card"><span class="cname">' + c.name + '</span><span class="badge accent csector">' + c.sector + '</span><div class="cbiz">' + c.business + '</div>';
     if (factors.length) html += '<ul class="creminders">' + factors.map(function (f) { return '<li>' + f + '</li>'; }).join('') + '</ul>';
     return html + '</div>';
@@ -1336,10 +1442,10 @@
           sellCell.innerHTML = '<div class="sell-detail"><div class="sell-verdict ' + v.cls + '">' + t(SELL_KEY[v.code]) +
             '<br><span class="sub">' + t('sellLatestPrice', { price: fmt(price) }) + (r.stale ? t('sellSavedAge', { age: cacheAgeText(r.cachedAt) }) : '') +
             t('sellCostLabel', { cost: fmt(h.cost) }) + (pl >= 0 ? t('sellProfit') : t('sellLoss')) + money0(Math.abs(pl)) + fxSpan(pl) + ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 1) + '%)</span>' +
-            sellLevelsHtml(v.levels, a) + '</div>' + (market === 'th' ? companyInfoHtml(h.sym) : '') + '<div class="news-block"></div></div>';
+            sellLevelsHtml(v.levels, a) + '</div>' + companyInfoHtml(h.sym) + '<div class="news-block"></div></div>';
           renderNewsBlock(sellCell.querySelector('.news-block'), h.sym, false);
         }, function () {
-          sellCell.innerHTML = '<div class="sell-detail"><div class="callout warn">' + t('sellFetchFail', { sym: esc(h.sym) }) + '</div>' + (market === 'th' ? companyInfoHtml(h.sym) : '') + '</div>';
+          sellCell.innerHTML = '<div class="sell-detail"><div class="callout warn">' + t('sellFetchFail', { sym: esc(h.sym) }) + '</div>' + companyInfoHtml(h.sym) + '</div>';
         });
       });
       upd();
@@ -1364,7 +1470,20 @@
     setStatus('', ''); applyStaticI18n(); renderPf(); startLive();
   }
   function onMarketTab(key, first) {
-    if (key !== 'th' && key !== 'us') return;
+    var isStock = key === 'th' || key === 'us';
+    curTab = key;
+    $('panelAnalysis').hidden = !isStock; $('panelScan').hidden = key !== 'scan'; $('panelPaper').hidden = key !== 'paper';
+    $('crumbHere').textContent = t(key === 'th' ? 'tabTh' : key === 'us' ? 'tabUs' : key === 'scan' ? 'tabScan' : 'tabPaper');
+    if (!isStock) {
+      IC.live.stop();
+      /* invest-scan.js / invest-paper.js โหลดหลังไฟล์นี้ (defer ตามลำดับ) — รอจนทุกสคริปต์พร้อมก่อนเปิดแท็บ */
+      var openLater = function () {
+        if (curTab === 'scan' && window.InvestScan) window.InvestScan.init(market);
+        if (curTab === 'paper' && window.InvestPaper) window.InvestPaper.init();
+      };
+      if (document.readyState === 'complete') openLater(); else window.addEventListener('load', openLater);
+      return;
+    }
     market = key; M = MARKETS[key];
     resetForMarket();
     var q = new URLSearchParams(location.search).get('sym');
@@ -1407,11 +1526,11 @@
 
     window.addEventListener('beforeunload', IC.live.stop);
     IC.tabs({ el: $('stockTabs'), page: 'stock', def: 'th', t: t,
-      tabs: [{ key: 'th', labelKey: 'tabTh' }, { key: 'us', labelKey: 'tabUs' }],
+      tabs: [{ key: 'th', labelKey: 'tabTh' }, { key: 'us', labelKey: 'tabUs' }, { key: 'scan', labelKey: 'tabScan' }, { key: 'paper', labelKey: 'tabPaper' }],
       onShow: onMarketTab });
     IC.onLang(function () {
       applyStaticI18n(); IC.subnav($('ivSubRow'), 'stock');
-      $('crumbHere').textContent = t(market === 'th' ? 'tabTh' : 'tabUs');
+      $('crumbHere').textContent = t(curTab === 'th' ? 'tabTh' : curTab === 'us' ? 'tabUs' : curTab === 'scan' ? 'tabScan' : 'tabPaper');
       if ($('shead').style.display === 'flex' && $('stkSym').textContent) updateStockHead(lastSource && lastSource.kind === 'demo' ? t('sampleWord') : $('stkSym').textContent);
       if (lastSeries) useSeries(lastSeries);
       renderPf();

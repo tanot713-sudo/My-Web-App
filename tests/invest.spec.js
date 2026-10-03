@@ -1134,6 +1134,8 @@ test.describe('สมุดเทรด ซิงก์ 2 เครื่อง'
 const STUBS = {
   'invest-thai-stock.html': 'invest-stock.html#th',
   'invest-global-stock.html': 'invest-stock.html#us',
+  'invest-set50-scanner.html': 'invest-stock.html#scan',
+  'invest-portfolio.html': 'invest-stock.html#paper',
 };
 test.describe('หน้า redirect ของ URL เดิม', () => {
   for (const [from, to] of Object.entries(STUBS)) {
@@ -1314,5 +1316,159 @@ test.describe('หน้าหุ้น invest-stock.html', () => {
     await fetchSym(p2, 'PTT');
     await expect(p2.locator('#aiSumCard')).toBeHidden();
     await p2.close();
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   หน้า (Playwright) — ส่วนที่ 7: แท็บ #scan (SET50 + US) และ #paper (ขั้น 7)
+   ═══════════════════════════════════════════════════════════════════ */
+test('InvestCalc.parseHistoricalClose: ราคาปิดล่าสุดที่ใช้ได้ ข้าม null', () => {
+  const j = { chart: { result: [{ timestamp: [1, 2, 3], indicators: { quote: [{ close: [10, 11, null] }] } }] } };
+  expect(C.parseHistoricalClose(j)).toEqual({ price: 11, ts: 2000 });
+  expect(() => C.parseHistoricalClose({ chart: { result: [{ timestamp: [1], indicators: { quote: [{ close: [null] }] } }] } })).toThrow();
+  expect(() => C.parseHistoricalClose({})).toThrow();
+});
+
+test.describe('แท็บ #scan', () => {
+  async function openScan(page, hash = '#scan') {
+    const errors = await prepare(page);
+    const seen = await mockProxy(page, (u) => {
+      const m = /chart\/([^?]+)\?range=1y/.exec(decodeURIComponent(u));
+      if (!m) return null;
+      const sym = m[1];
+      // PTT.BK ขาขึ้นแรงๆ → น่าจะเขียว ; AOT.BK ขาลง → ไม่เขียว ; ที่เหลือแกว่ง
+      const n = 120, ts = Array.from({ length: n }, (_, i) => 1767225600 + i * 86400);
+      const close = ts.map((_, i) => sym === 'PTT.BK' ? 30 + i * 0.05 : sym === 'AOT.BK' ? 60 - i * 0.1 : 100 + Math.sin(i / 5) * 3);
+      const q = { open: close, high: close.map((c) => c + 0.3), low: close.map((c) => c - 0.3), close, volume: close.map(() => 1000) };
+      return { body: { chart: { result: [{ timestamp: ts, meta: {}, indicators: { quote: [q] } }] } } };
+    });
+    await page.clock.setFixedTime(new Date(NOW));
+    await page.goto('/invest-stock.html' + hash);
+    await page.waitForSelector('nav.ome-nav');
+    return { errors, seen };
+  }
+  test('SET50 50 แถว · สแกน → เติมราคา/สัญญาณ + เรียงเขียวขึ้นก่อน + กรองเฉพาะเขียว · เขียนแคชหุ้นไทยครบทุกฟิลด์', async ({ page }) => {
+    const { errors, seen } = await openScan(page);
+    await expect(page.locator('#panelScan')).toBeVisible(); await expect(page.locator('#panelAnalysis')).toBeHidden();
+    await expect(page.locator('#scanBody tr')).toHaveCount(50);
+    await page.click('#scanBtn');
+    await expect(page.locator('#scanStatus')).toContainText('สแกนสำเร็จ 50/50', { timeout: 30000 });
+    expect(seen.filter((u) => /range=1y/.test(u)).length).toBe(50);
+    const first = page.locator('#scanBody tr').first();
+    await expect(first).toHaveAttribute('data-light', 'green');
+    await expect(page.locator('#scanBody tr[data-sym="PTT"]')).toContainText('+');
+    const cache = await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:invest:cache:PTT')));
+    expect(Object.keys(cache).sort()).toEqual(['c', 'h', 'l', 'o', 't', 'ts', 'v']);
+    await page.check('#greenOnly');
+    const visible = await page.locator('#scanBody tr:visible').evaluateAll((trs) => trs.map((t) => t.getAttribute('data-light')));
+    expect(visible.length).toBeGreaterThan(0); expect(visible.every((l) => l === 'green')).toBe(true);
+    await page.uncheck('#greenOnly');
+    await page.locator('#scanBody tr[data-sym="PTT"]').click();
+    await page.waitForURL(/invest-stock\.html\?sym=PTT#th$/);
+    await expect(page.locator('#sym')).toHaveValue('PTT');
+    expect(errors.filter((e) => !/502|Failed to load resource|ERR_/.test(e))).toEqual([]);
+  });
+  test('สลับเป็นหุ้นดังสหรัฐฯ: 40 แถว สแกนด้วยสัญลักษณ์ไม่มี .BK · คลิกไป #us', async ({ page }) => {
+    const { seen } = await openScan(page);
+    await page.click('#scanSeg [data-set="us"]');
+    await expect(page.locator('#scanBody tr')).toHaveCount(40);
+    await page.click('#scanBtn');
+    await expect(page.locator('#scanStatus')).toContainText('สแกนสำเร็จ 40/40', { timeout: 30000 });
+    expect(seen.some((u) => /chart\/AAPL\?range=1y/.test(decodeURIComponent(u)))).toBe(true);
+    expect(await page.evaluate(() => !!localStorage.getItem('tanot:invest:cache:us:AAPL'))).toBe(true);
+    await page.locator('#scanBody tr[data-sym="AAPL"]').click();
+    await page.waitForURL(/invest-stock\.html\?sym=AAPL#us$/);
+  });
+  test('ไม่มีเน็ต/พร็อกซีล่ม: แสดงแถวจากแคชที่มี ไม่ error แข็ง · ยกเลิกสแกนได้', async ({ page }) => {
+    const errors = await prepare(page);
+    await mockProxy(page, () => null);
+    await page.addInitScript(() => { localStorage.setItem('tanot:invest:cache:PTT', JSON.stringify({ ts: Date.now(), t: ['a', 'b', 'c', 'd', 'e'], o: [1, 2, 3, 4, 5], h: [2, 3, 4, 5, 6], l: [1, 1, 2, 3, 4], c: [1, 2, 3, 4, 5], v: [1, 1, 1, 1, 1] })); });
+    await page.goto('/invest-stock.html#scan');
+    await expect(page.locator('#scanBody tr[data-sym="PTT"]')).toContainText('5.00');
+    await page.click('#scanBtn'); await page.click('#scanBtn'); // กดซ้ำ = หยุด
+    await expect(page.locator('#scanBtn')).toHaveText('หาหุ้นน่าสนใจ', { timeout: 15000 });
+    expect(errors.filter((e) => !/502|Failed to load resource|ERR_/.test(e))).toEqual([]);
+  });
+});
+
+test.describe('แท็บ #paper (พอร์ตจำลอง)', () => {
+  const PAPER = { cash: 900000, startCash: 1000000, holdings: [{ sym: 'PTT', shares: 1000, avgCost: 30 }], tx: [{ ts: 1700000000000, type: 'buy', sym: 'PTT', shares: 1000, price: 30, amount: 30000 }], extra: 'keep' };
+  async function openPaper(page, { seed = true, price = 40 } = {}) {
+    const errors = await prepare(page);
+    const seen = await mockProxy(page, (u) => {
+      const d = decodeURIComponent(u);
+      if (/period1=/.test(d)) return { body: { chart: { result: [{ timestamp: [1760000000, 1760086400], indicators: { quote: [{ close: [35, null] }] } }] } } };
+      if (/range=5d/.test(d)) return { body: { chart: { result: [{ meta: { regularMarketPrice: price, previousClose: price - 1 }, indicators: { quote: [{ close: [price] }] } }] } } };
+      return null;
+    });
+    await page.addInitScript(([seed, p]) => { if (seed && !localStorage.getItem('__s')) { localStorage.setItem('tanot:invest:portfolio', JSON.stringify(p)); localStorage.setItem('__s', '1'); } }, [seed, PAPER]);
+    await page.clock.setFixedTime(new Date(NOW));
+    await page.goto('/invest-stock.html#paper');
+    await page.waitForSelector('nav.ome-nav');
+    return { errors, seen };
+  }
+  const state = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('tanot:invest:portfolio')));
+  test('แสดงพอร์ตเดิมจากคีย์เดิม · ซื้อที่ราคาจริง → เงินสด/ต้นทุนเฉลี่ย/ประวัติ เขียนทั้งก้อนรูปแบบเดิม คงฟิลด์อื่น', async ({ page }) => {
+    const { errors } = await openPaper(page);
+    await expect(page.locator('#sCash')).toHaveText('฿900,000');
+    await expect(page.locator('#holdTable tbody tr')).toHaveCount(1);
+    await page.fill('#buySym', 'ptt'); await page.fill('#buyShares', '500'); await page.click('#buyBtn');
+    await expect(page.locator('#tradeStatus')).toContainText('ซื้อ PTT 500 หุ้น');
+    const s = await state(page);
+    expect(s.cash).toBe(900000 - 500 * 40);
+    expect(s.holdings).toEqual([{ sym: 'PTT', shares: 1500, avgCost: (1000 * 30 + 500 * 40) / 1500 }]);
+    expect(s.tx[0]).toMatchObject({ type: 'buy', sym: 'PTT', shares: 500, price: 40, amount: 20000 }); expect(s.tx).toHaveLength(2);
+    expect(s.extra).toBe('keep'); expect(s.startCash).toBe(1000000);
+    // ขาย → กำไรที่รับรู้
+    await page.click('#tradeTabs [data-tab="sell"]');
+    await page.selectOption('#sellSym', 'PTT'); await page.fill('#sellShares', '300'); await page.click('#sellBtn');
+    await expect(page.locator('#tradeStatus')).toContainText('ขาย PTT 300 หุ้น');
+    const s2 = await state(page);
+    expect(s2.holdings[0].shares).toBe(1200);
+    expect(s2.tx[0]).toMatchObject({ type: 'sell', shares: 300, price: 40 }); expect(s2.tx[0].realizedPl).toBeCloseTo((40 - s.holdings[0].avgCost) * 300, 6);
+    expect(s2.cash).toBe(s.cash + 300 * 40);
+    await expect(page.locator('#txTable tbody tr')).toHaveCount(3);
+    expect(errors.filter((e) => !/502|Failed to load resource|ERR_/.test(e))).toEqual([]);
+  });
+  test('เงินสดไม่พอ = ไม่ซื้อ · ซื้อย้อนหลังใช้ราคาปิดวันนั้น · วันในอนาคตไม่ได้ · ซื้อไม่สำเร็จเมื่อดึงราคาไม่ได้', async ({ page }) => {
+    await openPaper(page);
+    await page.fill('#buySym', 'PTT'); await page.fill('#buyShares', '100000'); await page.click('#buyBtn');
+    await expect(page.locator('#tradeStatus')).toContainText('เงินสดไม่พอ');
+    expect((await state(page)).cash).toBe(900000);
+    await page.fill('#buyShares', '10'); await page.fill('#buyDate', '2026-10-05'); await page.click('#buyBtn');
+    await expect(page.locator('#tradeStatus')).toContainText('อนาคต');
+    await page.fill('#buyDate', '2026-10-01'); await page.click('#buyBtn');
+    await expect(page.locator('#tradeStatus')).toContainText('ราคาปิดวันที่');
+    const s = await state(page);
+    expect(s.tx[0]).toMatchObject({ price: 35, shares: 10, ts: 1760000000 * 1000 }); // ใช้แท่งล่าสุดที่ close ไม่ null
+  });
+  test('อ่านสดหลังรอราคา: อีกแท็บแก้เงินสด/ถือหุ้นระหว่างรอ → ผลซื้อไม่ทับของเขา', async ({ page }) => {
+    await openPaper(page);
+    await page.route('**/api/proxy?*', async (route) => {
+      // หน่วงตอบ แล้วให้ "อีกแท็บ" เขียนพอร์ตก่อนคำตอบมาถึง
+      await page.evaluate(() => { const k = 'tanot:invest:portfolio', s = JSON.parse(localStorage.getItem(k)); s.cash = 800000; s.holdings.push({ sym: 'AOT', shares: 10, avgCost: 60 }); localStorage.setItem(k, JSON.stringify(s)); });
+      await route.fallback();
+    });
+    await page.fill('#buySym', 'SCB'); await page.fill('#buyShares', '100'); await page.click('#buyBtn');
+    await expect(page.locator('#tradeStatus')).toContainText('ซื้อ SCB');
+    const s = await state(page);
+    expect(s.cash).toBe(800000 - 100 * 40);
+    expect(s.holdings.map((h) => h.sym).sort()).toEqual(['AOT', 'PTT', 'SCB']);
+  });
+  test('แก้เงินสด · เริ่มพอร์ตใหม่ (ยืนยัน) · ไม่มีสำรอง Drive/โหมด embed', async ({ page }) => {
+    await openPaper(page);
+    await page.click('#cashEditBtn'); await page.fill('#cashEditInput', '123456'); await page.click('#cashEditSave');
+    await expect(page.locator('#sCash')).toHaveText('฿123,456');
+    expect((await state(page)).cash).toBe(123456);
+    await page.click('#resetBtn');
+    await page.locator('dialog.dialog .btn.danger').click();
+    expect(await state(page)).toEqual({ cash: 1000000, startCash: 1000000, holdings: [], tx: [] });
+    await expect(page.locator('#holdEmpty')).toBeVisible();
+    await expect(page.locator('#driveConnectBtn')).toHaveCount(0);
+  });
+  test('เริ่มจากไม่มีคีย์: ค่าเริ่มต้น 1,000,000 และไม่เขียนคีย์จนกว่าจะทำรายการ', async ({ page }) => {
+    await openPaper(page, { seed: false });
+    await expect(page.locator('#sCash')).toHaveText('฿1,000,000');
+    expect(await page.evaluate(() => localStorage.getItem('tanot:invest:portfolio'))).toBeNull();
   });
 });
