@@ -976,3 +976,153 @@ test.describe('หน้าภาพรวม invest.html', () => {
     expect(errors).toEqual([]);
   });
 });
+
+/* ═══════════════════════════════════════════════════════════════════
+   หน้า (Playwright) — ส่วนที่ 5: สมุดเทรดรวม (ขั้น 5, หัวข้อ 3.3)
+   ═══════════════════════════════════════════════════════════════════ */
+const JN = {
+  'tanot:invest:thjournal': [{ sym: 'PTT', en: 30, ex: 33, sh: 100, pl: 300, ts: 3, extra: 'keep-me' }, { sym: 'AOT', en: 60, ex: 55, sh: 100, pl: -500, ts: 1 }],
+  'tanot:invest:globaljournal': [{ sym: 'AAPL', en: 100, ex: 110, sh: 2, pl: 20, ts: 2 }],
+  'tanot:invest:btcjournal': [{ en: 60000, ex: 66000, qty: 0.01, pl: 60, ts: 4 }, { en: 70000, ex: 69000, qty: 0.01, pl: -10, ts: 5 }],
+};
+test.describe('สมุดเทรดรวม', () => {
+  async function openJournal(page, hash = '', { fx = false } = {}) {
+    const errors = await prepare(page);
+    await page.addInitScript(([jn, fx]) => {
+      if (localStorage.getItem('__seeded')) return;
+      Object.keys(jn).forEach((k) => localStorage.setItem(k, JSON.stringify(jn[k])));
+      if (fx) localStorage.setItem('tanot:invest:fxcache', JSON.stringify({ ts: Date.now(), rate: 36.5 }));
+      localStorage.setItem('__seeded', '1');
+    }, [JN, fx]);
+    await page.goto('/invest-trade-journal.html' + hash, { waitUntil: 'load' });
+    await page.waitForSelector('nav.ome-nav');
+    return errors;
+  }
+  const get = (page, k) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), k);
+
+  test('#all: รวม 5 ไม้ · P/L แยกสกุล · ≈ บาทเมื่อมีอัตรา · แท็บเดี่ยว: สถิติในสกุลของตลาดนั้น + คาดหวัง/ไม้', async ({ page }) => {
+    const errors = await openJournal(page, '', { fx: true });
+    await expect(page.locator('#jBox tbody tr')).toHaveCount(5);
+    await expect(page.locator('[data-k=n]')).toHaveText('5');
+    await expect(page.locator('[data-k=win]')).toHaveText('60%'); // 3 ชนะ (300, 20, 60) จาก 5
+    await expect(page.locator('[data-k=plthb]')).toHaveText('−฿200');
+    await expect(page.locator('[data-k=plusd]')).toHaveText('+$70');
+    await expect(page.locator('[data-k=approx]')).toContainText('฿2,355'); // −200 + 70 × 36.5
+    await page.locator('#jTabs [data-tab="th"]').click();
+    await expect(page).toHaveURL(/#th$/);
+    await expect(page.locator('#jBox tbody tr')).toHaveCount(2);
+    await expect(page.locator('[data-k=pl]')).toHaveText('−฿200');
+    await expect(page.locator('[data-k=exp]')).toContainText('−฿100'); // 0.5×300 − 0.5×500
+    await page.locator('#jTabs [data-tab="btc"]').click();
+    await expect(page.locator('#jBox tbody tr')).toHaveCount(2);
+    await expect(page.locator('#jBox tbody tr').first()).toContainText('BTC');
+    await expect(page.locator('[data-k=pl]')).toHaveText('+$50');
+    expect(errors).toEqual([]);
+  });
+
+  test('ไม่มีอัตรา USD/THB → ไม่แสดงบรรทัดรวมเป็นบาท', async ({ page }) => {
+    await openJournal(page);
+    await expect(page.locator('[data-k=plusd]')).toBeVisible();
+    await expect(page.locator('[data-k=approx]')).toHaveCount(0);
+  });
+
+  test('เพิ่มไม้แต่ละตลาด: เขียนรูปแบบเดิมของคีย์นั้นตรงตัว · แถวเดิมไม่ถูกแตะ (ฟิลด์แปลกปลอมคงอยู่) · BTC ไม่มี sym', async ({ page }) => {
+    await openJournal(page, '#all');
+    const add = async (market, sym, en, ex, qty) => {
+      await page.selectOption('#jMarket', market);
+      if (sym) await page.fill('#jSym', sym);
+      await page.fill('#jEntry', en); await page.fill('#jExit', ex); await page.fill('#jQty', qty);
+      await page.click('#jAdd');
+    };
+    await add('th', 'ptt', '34', '36', '300');
+    await add('us', 'msft', '400', '390', '2');
+    await add('btc', '', '60000', '63000', '0.5');
+    const th = await get(page, 'tanot:invest:thjournal'), us = await get(page, 'tanot:invest:globaljournal'), btc = await get(page, 'tanot:invest:btcjournal');
+    expect(th.slice(0, 2)).toEqual(JN['tanot:invest:thjournal']);
+    expect(us.slice(0, 1)).toEqual(JN['tanot:invest:globaljournal']);
+    expect(btc.slice(0, 2)).toEqual(JN['tanot:invest:btcjournal']);
+    expect(Object.keys(th[2]).sort()).toEqual(['en', 'ex', 'pl', 'sh', 'sym', 'ts']);
+    expect(th[2]).toMatchObject({ sym: 'PTT', en: 34, ex: 36, sh: 300, pl: 600 });
+    expect(Object.keys(us[1]).sort()).toEqual(['en', 'ex', 'pl', 'sh', 'sym', 'ts']);
+    expect(us[1]).toMatchObject({ sym: 'MSFT', pl: -20 });
+    expect(Object.keys(btc[2]).sort()).toEqual(['en', 'ex', 'pl', 'qty', 'ts']); // ไม่มี sym
+    expect(btc[2]).toMatchObject({ en: 60000, ex: 63000, qty: 0.5, pl: 1500 });
+    for (const r of [th[2], us[1], btc[2]]) expect(Number.isInteger(r.ts) && r.ts > 1e12).toBe(true);
+    await expect(page.locator('#jBox tbody tr')).toHaveCount(8);
+  });
+
+  test('ฟอร์ม: ค่าเริ่ม = แท็บที่เปิด (#all → หุ้นไทย) · BTC ซ่อนช่องชื่อ · ข้อมูลไม่ครบ = ไม่บันทึก', async ({ page }) => {
+    await openJournal(page, '#us');
+    await expect(page.locator('#jMarket')).toHaveValue('us');
+    await page.goto('/invest-trade-journal.html#btc');
+    await expect(page.locator('#jMarket')).toHaveValue('btc'); await expect(page.locator('#jSymField')).toBeHidden();
+    await page.goto('/invest-trade-journal.html#all');
+    await expect(page.locator('#jMarket')).toHaveValue('th');
+    await page.fill('#jEntry', '10');
+    await page.click('#jAdd');
+    await expect(page.locator('dialog.dialog')).toBeVisible();
+    await page.locator('dialog.dialog .btn').click();
+    expect((await get(page, 'tanot:invest:thjournal')).length).toBe(2);
+  });
+
+  test('ลบด้วย ts ในคีย์ต้นทาง: แถวที่โผล่จากอีกเครื่องระหว่างนั้นไม่ถูกลบผิดแถว · ไม่มีปุ่ม Drive', async ({ page }) => {
+    await openJournal(page);
+    await expect(page.locator('#driveConnectBtn')).toHaveCount(0);
+    // อีกเครื่องเพิ่มไม้ใหม่เข้าคีย์เดียวกัน "หลังจากหน้านี้วาดแล้ว" (ลำดับแถวในหน่วยความจำของหน้าเก่าเลื่อน)
+    await page.evaluate(() => {
+      const k = 'tanot:invest:thjournal', a = JSON.parse(localStorage.getItem(k));
+      a.unshift({ sym: 'NEW', en: 1, ex: 2, sh: 1, pl: 1, ts: 99 });
+      localStorage.setItem(k, JSON.stringify(a));
+    });
+    await page.locator('#jBox tbody tr[data-ts="1"] .jdel').click(); // ลบ AOT (ts 1)
+    const th = await get(page, 'tanot:invest:thjournal');
+    expect(th.map((r) => r.ts)).toEqual([99, 3]);
+    expect(th[1].extra).toBe('keep-me');
+    // ลบแถวใน us ไม่กระทบ th
+    await page.locator('#jBox tbody tr[data-key="globaljournal"] .jdel').click();
+    expect(await get(page, 'tanot:invest:globaljournal')).toEqual([]);
+    expect((await get(page, 'tanot:invest:thjournal')).length).toBe(2);
+  });
+});
+
+test.describe('สมุดเทรด ซิงก์ 2 เครื่อง', () => {
+  test.describe.configure({ mode: 'serial' });
+  test.beforeEach(async ({ request }) => { await request.get('http://localhost:8138/__reset'); });
+  test('A ลบไม้ (ตาม ts) ขณะ B เพิ่มไม้ใหม่ → ทั้งสองเครื่องได้ผลเดียวกัน และแถวที่ลบไม่กลับมา', async ({ browser }) => {
+    const SRV = 'http://localhost:8138';
+    const sync = (p) => p.evaluate(() => window.TanotData.syncNow().then((s) => s.state));
+    const store = (page, k) => page.evaluate((key) => JSON.parse(localStorage.getItem(key) || 'null'), k);
+    async function dev(nowMs) {
+      const ctx = await browser.newContext({ baseURL: SRV });
+      const page = await ctx.newPage();
+      const errors = await prepare(page);
+      await page.addInitScript((jn) => {
+        window.TANOT_SYNC = { enabled: true, initialDelay: 60000, interval: 1e9 };
+        if (localStorage.getItem('__seeded')) return;
+        Object.keys(jn).forEach((k) => localStorage.setItem(k, JSON.stringify(jn[k])));
+        localStorage.setItem('__seeded', '1');
+      }, JN);
+      await page.clock.setFixedTime(new Date(nowMs));
+      await page.goto('/invest-trade-journal.html'); await page.waitForSelector('nav.ome-nav');
+      return { ctx, page, errors };
+    }
+    const A = await dev(NOW), B = await dev(NOW);
+    for (let i = 0; i < 2; i++) { await sync(A.page); await sync(B.page); }
+    // A ลบ AOT (ts 1) ที่เวลาหลังสุด · B เพิ่มไม้ BTC ใหม่ผ่าน UI
+    await A.page.clock.setFixedTime(new Date(NOW + 120000));
+    await A.page.locator('#jBox tbody tr[data-ts="1"] .jdel').click();
+    await B.page.clock.setFixedTime(new Date(NOW + 60000));
+    await B.page.selectOption('#jMarket', 'btc');
+    await B.page.fill('#jEntry', '100'); await B.page.fill('#jExit', '110'); await B.page.fill('#jQty', '2');
+    await B.page.click('#jAdd');
+    for (let i = 0; i < 3; i++) { await sync(A.page); await sync(B.page); }
+    for (const d of [A, B]) {
+      expect((await store(d.page, 'tanot:invest:thjournal')).map((r) => r.ts)).toEqual([3]);
+      const btc = await store(d.page, 'tanot:invest:btcjournal');
+      expect(btc.length).toBe(3); expect(btc.map((r) => r.pl)).toContain(20);
+      await expect(d.page.locator('#jBox tbody tr')).toHaveCount(5); // วาดใหม่เองโดยไม่ต้องรีโหลด: th 1 + us 1 + btc 3
+    }
+    for (const d of [A, B]) expect(d.errors).toEqual([]);
+    await A.ctx.close(); await B.ctx.close();
+  });
+});
