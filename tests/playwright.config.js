@@ -101,5 +101,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8133/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // slides.spec.js: งาน PowerPoint — /api/files (ns slides) + ซิงก์ 2 เครื่อง — แยกพอร์ตเพราะมี /__reset
+      command: 'node --no-warnings sync-server.mjs 8134',
+      cwd: __dirname,
+      url: 'http://localhost:8134/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

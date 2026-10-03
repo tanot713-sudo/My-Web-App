@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>งาน PowerPoint | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="theme-boot.js"></script>
+<script src="data-registry.js"></script>
+<script src="tanot-data.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<script src="ai-client.js"></script>
+<script src="slides-calc.js" defer></script>
+<script src="file-reader.js" defer></script>
+<script src="slides.js" defer></script>
+<style>
+@page{size:13.333in 7.5in;margin:0}
+[hidden]{display:none !important}
+/* ── กรอบหน้า (layout=app): หัว/แถบปุ่มอยู่บน, 3 แผงเลื่อนแยก (รายการ | โครงเรื่อง | ตัวอย่าง) ── */
+.sl-app{position:relative}
+.sl-top{flex-shrink:0;display:flex;flex-direction:column;gap:var(--ome-sp-2);padding:var(--ome-sp-3) var(--ome-sp-4) 0;background:var(--ome-surface-0)}
+.sl-head{margin:0;gap:var(--ome-sp-3)}
+.sl-head-icon{width:22px;height:22px;color:var(--ome-accent-strong)}
+.sl-bar{flex-wrap:wrap;gap:6px}
+.sl-bar .btn .ome-icon{width:15px;height:15px}
+.sl-bar .sl-name{width:240px;max-width:100%;height:32px}
+.sl-spacer{flex:1}
+.sl-msg{margin:0;min-height:1.2em}
+.sl-msg.err{color:var(--ome-err-ink)}
+.sl-tabs{display:none}
+.sl-body{flex:1;min-height:0;display:grid;grid-template-columns:240px minmax(0,1fr) minmax(0,1.15fr);gap:var(--ome-sp-4);padding:var(--ome-sp-3) var(--ome-sp-4) var(--ome-sp-4)}
+.sl-pane{min-height:0;min-width:0;overflow:auto}
+@media (max-width:1100px){
+  .sl-top{padding:var(--ome-sp-2) 10px 0}
+  .sl-tabs{display:flex}
+  .sl-body{display:flex;flex-direction:column;padding:var(--ome-sp-2) 10px var(--ome-sp-3)}
+  .sl-body > .sl-pane{display:none}
+  .sl-body[data-view="list"] > .sl-list,.sl-body[data-view="outline"] > .sl-edit{display:flex;flex:1}
+  .sl-body[data-view="preview"] > .sl-prev{display:block;flex:1}
+  .sl-bar .sl-name{width:100%}
+}
+.sl-list,.sl-edit{display:flex;flex-direction:column;gap:var(--ome-sp-2);padding:var(--ome-sp-3)}
+.sl-list{overflow:auto}
+.sl-list .sl-q{display:flex;gap:6px}
+.sl-list .sl-q .input{flex:1;min-width:0;height:32px}
+.sl-decks{display:flex;flex-direction:column;gap:4px;overflow:auto}
+.sl-deck{display:flex;align-items:center;gap:4px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1)}
+.sl-deck.on{border-color:var(--ome-accent);background:var(--ome-accent-soft)}
+.sl-deck .pick{flex:1;min-width:0;text-align:left;font:inherit;color:var(--ome-text-1);background:none;border:0;cursor:pointer;padding:8px 10px}
+.sl-deck .pick b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-deck .pick span{display:block;font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+.sl-deck .btn.icon{width:28px;height:28px;padding:0}
+.sl-deck .btn .ome-icon{width:14px;height:14px}
+.sl-edit textarea{flex:1;min-height:260px;resize:none;tab-size:2;line-height:1.6}
+.sl-empty{margin:auto;text-align:center}
+/* ── ตัวอย่าง ── */
+.sl-prev{padding-right:4px}
+.sl-card{margin-bottom:var(--ome-sp-3);border-radius:var(--ome-radius-lg);padding:6px;border:1px solid transparent}
+.sl-card.on{border-color:var(--ome-accent);background:var(--ome-accent-soft)}
+.sl-card-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.sl-card-head .select{width:auto;height:28px;font-size:var(--ome-fs-xs);padding:0 6px;max-width:100%}
+.sl-card-head .btn.icon{width:28px;height:28px;padding:0}
+.sl-card-head .btn .ome-icon{width:14px;height:14px}
+.sl-s{position:relative;width:100%;aspect-ratio:16/9;container-type:inline-size;overflow:hidden;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);
+  font-family:'Prompt','Leelawadee UI',Tahoma,sans-serif;cursor:pointer;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sl-sh{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden}
+.sl-p{line-height:1.3;overflow-wrap:anywhere;position:relative}
+.sl-p.b{padding-left:1.15em}
+.sl-p.b::before{content:'•';position:absolute;left:0}
+.sl-p.b.l1{padding-left:2.4em}
+.sl-p.b.l1::before{content:'–';left:1.2em}
+.sl-p.l1:not(.b){padding-left:1.2em}
+.sl-img{position:absolute;box-sizing:border-box;display:flex;align-items:center;justify-content:center}
+.sl-img img{max-width:100%;max-height:100%;object-fit:contain}
+.sl-img.ph{border:1.5px dashed currentColor;opacity:.5;font-size:3cqw}
+.sl-tbl{width:100%;border-collapse:collapse}
+.sl-tbl td{padding:.5cqw .9cqw;vertical-align:middle;overflow-wrap:anywhere}
+/* ── โหมดนำเสนอ ── */
+.sl-stage{position:fixed;inset:0;z-index:99999;background:#000;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none}
+.sl-stage .sl-s{width:min(100vw,calc(100dvh * 16 / 9));border:0;border-radius:0;cursor:default}
+.sl-stage-bar{position:absolute;top:8px;right:8px;display:flex;gap:6px;opacity:.0;transition:opacity .2s}
+.sl-stage:hover .sl-stage-bar,.sl-stage:focus-within .sl-stage-bar{opacity:.85}
+.sl-stage-bar .btn{background:rgba(0,0,0,.55);color:#fff;border-color:rgba(255,255,255,.3)}
+.sl-stage-num{position:absolute;left:12px;bottom:8px;color:#fff;opacity:.45;font-size:13px}
+/* ── dialog ── */
+.dialog .field + .field{margin-top:var(--ome-sp-3)}
+.dialog.wide{width:min(720px,calc(100vw - 32px))}
+.dialog textarea{min-height:140px}
+.sl-ai-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:var(--ome-sp-2)}
+.sl-ai-st{margin:0;font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
+.sl-ai-st.err{color:var(--ome-err-ink)}
+/* ── พิมพ์ / PDF: เฉพาะสไลด์ทุกหน้า 16:9 ── */
+#printArea{display:none}
+@media print{
+  body{height:auto !important;overflow:visible !important;display:block !important;background:#fff}
+  body > *:not(#printArea){display:none !important}
+  #printArea{display:block}
+  #printArea .sl-s{width:13.333in;height:7.5in;aspect-ratio:auto;border:0;border-radius:0;break-after:page;page-break-after:always;cursor:default}
+}
+</style>
+</head>
+<body data-layout="app">
+<main class="page sl-app">
+<div class="sl-top">
+  <div class="page-head sl-head">
+    <svg class="ome-icon sl-head-icon" aria-hidden="true"><use href="icons.svg#i-presentation"/></svg>
+    <h1>งาน PowerPoint</h1>
+  </div>
+
+  <div class="toolbar sl-bar" id="bar">
+    <input class="input sl-name" id="deckName" type="text" maxlength="120" aria-label="ชื่อชุดสไลด์" placeholder="ชื่อชุดสไลด์" autocomplete="off">
+    <div class="segmented" id="themeSeg" role="group" aria-label="ธีมสไลด์"></div>
+    <button class="btn sm" id="aiBtn" type="button" hidden><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-sparkles"/></svg><span>ร่างด้วย AI</span></button>
+    <button class="btn sm" id="importBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-paperclip"/></svg><span>นำเข้าไฟล์</span></button>
+    <input type="file" id="importFile" accept=".txt,.docx" hidden>
+    <span class="sl-spacer"></span>
+    <button class="btn sm" id="presentBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-play"/></svg><span>นำเสนอ</span></button>
+    <button class="btn sm primary" id="pptxBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span>.pptx</span></button>
+    <button class="btn sm" id="pdfBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-printer"/></svg><span>PDF</span></button>
+  </div>
+
+  <div class="tabs sl-tabs" id="viewTabs" role="tablist">
+    <button class="tab" type="button" role="tab" data-view="list">ชุดสไลด์</button>
+    <button class="tab" type="button" role="tab" data-view="outline">โครงเรื่อง</button>
+    <button class="tab" type="button" role="tab" data-view="preview">ตัวอย่าง</button>
+  </div>
+  <p class="status sl-msg" id="msg" role="status" aria-live="polite"></p>
+</div>
+
+<div class="sl-body" id="body" data-view="outline">
+  <aside class="sl-pane sl-list card" id="listPane" aria-label="ชุดสไลด์">
+    <div class="sl-q">
+      <input class="input" id="deckQ" type="search" aria-label="ค้นหาชุดสไลด์" placeholder="ค้นหา" autocomplete="off">
+      <button class="btn sm primary icon" id="newBtn" type="button" aria-label="ชุดสไลด์ใหม่" title="ชุดสไลด์ใหม่"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg></button>
+    </div>
+    <div class="sl-decks" id="decks"></div>
+  </aside>
+
+  <section class="sl-pane sl-edit card" id="editPane" aria-label="โครงเรื่อง">
+    <textarea class="textarea" id="outline" aria-label="โครงเรื่อง" spellcheck="false" autocapitalize="off"></textarea>
+    <div class="empty sl-empty" id="emptyBox" hidden>
+      <svg class="ome-icon" aria-hidden="true" style="width:32px;height:32px"><use href="icons.svg#i-presentation"/></svg>
+      <p>ยังไม่มีชุดสไลด์</p>
+      <button class="btn primary" id="emptyNew" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span>ชุดสไลด์ใหม่</span></button>
+    </div>
+  </section>
+
+  <section class="sl-pane sl-prev" id="previewPane" aria-label="ตัวอย่างสไลด์">
+    <div id="preview"></div>
+  </section>
+</div>
+</main>
+
+<input type="file" id="imgFile" accept="image/*" hidden>
+<div id="printArea" aria-hidden="true"></div>
+<div class="sl-stage" id="stage" role="dialog" aria-label="โหมดนำเสนอ" tabindex="-1" hidden>
+  <div id="stageSlide"></div>
+  <div class="sl-stage-bar"><button class="btn sm icon" id="stageClose" type="button" aria-label="ปิด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></div>
+  <div class="sl-stage-num" id="stageNum"></div>
+</div>
+
+<dialog class="dialog wide" id="aiDlg" aria-labelledby="aiDlg-t">
+  <div class="dialog-head"><h2 id="aiDlg-t">ร่างโครงเรื่องด้วย AI</h2></div>
+  <div class="dialog-body">
+    <div class="field"><label for="aiSrc">ข้อความต้นฉบับ</label><textarea class="textarea" id="aiSrc" spellcheck="false"></textarea></div>
+    <div class="sl-ai-row">
+      <button class="btn sm" id="aiFileBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-paperclip"/></svg><span>เลือกไฟล์</span></button>
+      <input type="file" id="aiFile" accept=".txt,.docx" hidden>
+      <button class="btn sm primary" id="aiRun" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-sparkles"/></svg><span>สร้างโครงเรื่อง</span></button>
+      <button class="btn sm" id="aiStop" type="button" hidden>หยุด</button>
+      <span class="sl-ai-st" id="aiSt" role="status" aria-live="polite"></span>
+    </div>
+    <div class="field"><label for="aiOut">โครงเรื่องที่ได้</label><textarea class="textarea" id="aiOut" spellcheck="false"></textarea></div>
+  </div>
+  <div class="dialog-foot">
+    <button class="btn" id="aiClose" type="button">ปิด</button>
+    <button class="btn" id="aiAppend" type="button" disabled>ต่อท้าย</button>
+    <button class="btn primary" id="aiApply" type="button" disabled>ใช้แทนที่โครงเรื่อง</button>
+  </div>
+</dialog>
+</body>
+</html>

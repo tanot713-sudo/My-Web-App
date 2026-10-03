@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v597';
+const CACHE = 'ome-v598';
 const PRECACHE = [
   './',
   './index.html',
@@ -73,6 +73,10 @@ const PRECACHE = [
   './compare.html',
   './compare.js',
   './compare-calc.js',
+  './slides.html',
+  './slides.js',
+  './slides-calc.js',
+  './vendor/pptxgenjs/pptxgen.bundle.js',
   './health.html',
   './health.js',
   './health-calc.js',

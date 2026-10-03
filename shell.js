@@ -98,7 +98,7 @@
         { key: 'documents', label: 'เอกสาร', icon: 'folder', children: [
             { key: 'word',         label: 'งาน Word', icon: 'file-text', href: 'word.html', keywords: 'word เอกสาร docx' },
             { key: 'excel',        label: 'งาน Excel', icon: 'file-spreadsheet', href: 'excel.html', keywords: 'excel ตาราง xlsx' },
-            { key: 'powerpoint',   label: 'งาน PowerPoint', icon: 'presentation', href: soonHref('งาน PowerPoint'), status: 'soon', keywords: 'powerpoint สไลด์ นำเสนอ pptx' },
+            { key: 'powerpoint',   label: 'งาน PowerPoint', icon: 'presentation', href: 'slides.html', keywords: 'powerpoint สไลด์ นำเสนอ pptx' },
             { key: 'extract-text', label: 'ดึงข้อความออกจากเอกสาร', icon: 'copy', href: 'extract-text.html', keywords: 'ocr ดึงข้อความ pdf' },
             { key: 'doc-check',    label: 'ตรวจสอบเอกสาร', icon: 'circle-check', href: 'doc-check.html', keywords: 'ตรวจเอกสาร สะกด ไวยากรณ์ proofread' },
             { key: 'data-compare', label: 'เปรียบเทียบข้อมูล', icon: 'arrow-up-down', href: 'compare.html', keywords: 'เปรียบเทียบ diff compare เทียบ ใบเสนอราคา ให้คะแนน จัดซื้อ' }
