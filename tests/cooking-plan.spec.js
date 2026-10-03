@@ -463,6 +463,8 @@ test.describe('ซิงก์ 2 เครื่อง', () => {
     await line(A.page, 'หมูสับ').locator('.cp-price').fill('180'); await line(A.page, 'หมูสับ').locator('.cp-price').blur();
     await line(B.page, 'กระเทียม').locator('input[type=checkbox]').check();
     await line(B.page, 'กระเทียม').locator('.cp-price').fill('25'); await line(B.page, 'กระเทียม').locator('.cp-price').blur();
+    // นาฬิกาในเทสต์ถูกตรึง — ขยับเวลาของ B ให้การแก้ราคาครั้งหลังใหม่กว่าของ A จริง (ช่องใหม่สุดชนะตามเวลา ไม่งั้นเสมอแล้วตัดสินด้วยรหัสเครื่องที่สุ่ม)
+    await B.page.clock.setFixedTime(new Date(NOW.getTime() + 60000));
     await line(B.page, 'หมูสับ').locator('.cp-price').fill('185'); await line(B.page, 'หมูสับ').locator('.cp-price').blur(); // B แก้ราคาทีหลัง → ชนะ
     for (let i = 0; i < 3; i++) { await sync(A.page); await sync(B.page); }
     for (const d of [A, B]) {
