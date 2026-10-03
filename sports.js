@@ -1820,6 +1820,7 @@ if (typeof document !== 'undefined' && document.getElementById('sportsRoot')) {
     renderTrackMenu();
     renderItemList();
     selectItem(state.itemIndex);
+    if (window.SportsLog) window.SportsLog.render();
   }
 
   function renderGamifyBar() {

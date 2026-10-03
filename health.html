@@ -63,6 +63,10 @@
 .hl-file{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);font-size:var(--ome-fs-sm)}
 .hl-file a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ome-text-1)}
 .hl-file .sz{color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
+.hl-work{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:var(--ome-sp-4)}
+@media (max-width:820px){.hl-work{grid-template-columns:1fr}}
+.hl-bar{height:8px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-2);overflow:hidden;margin:var(--ome-sp-2) 0 var(--ome-sp-3)}
+.hl-bar span{display:block;height:100%;width:0;background:var(--ome-accent);border-radius:inherit}
 .hl-ranges{display:grid;grid-template-columns:minmax(0,1fr) 90px 90px;gap:8px;align-items:center}
 .hl-ranges input{min-width:0}
 [hidden]{display:none !important}
@@ -112,6 +116,18 @@
     <section class="card span-6" aria-labelledby="hHist">
       <div class="card-head"><h2 id="hHist">ประวัติบันทึก</h2></div>
       <div class="hl-list" id="vList"></div>
+    </section>
+
+    <section class="card span-12" aria-labelledby="hWork">
+      <div class="card-head"><h2 id="hWork">ออกกำลังกาย</h2><a class="btn sm" href="sports.html#logCard"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>บันทึก</a></div>
+      <div class="hl-work">
+        <div>
+          <div class="row" style="justify-content:space-between"><div class="kpi-value" id="wkValue">—</div><span id="wkBadge"></span></div>
+          <div class="hl-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="wkBar"><span id="wkFill"></span></div>
+          <div class="hl-chart" id="wkChart"></div>
+        </div>
+        <div class="hl-list" id="wkList"></div>
+      </div>
     </section>
 
     <section class="card span-12" aria-labelledby="hChk">
@@ -186,6 +202,7 @@
     <div class="dialog-head"><h2 id="setTitle">ตั้งค่า</h2></div>
     <div class="dialog-body">
       <label class="check"><input type="checkbox" id="sHide">ซ่อนชื่อยาในแจ้งเตือน</label>
+      <div class="field"><label for="sGoal">เป้าออกกำลังกายต่อสัปดาห์ (นาที)</label><input id="sGoal" type="number" inputmode="numeric" min="10" step="1"></div>
       <div class="field">
         <label>ช่วงปกติ (ต่ำสุด – สูงสุด)</label>
         <div class="hl-ranges" id="rangeRows"></div>

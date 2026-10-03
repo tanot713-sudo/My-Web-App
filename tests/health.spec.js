@@ -58,6 +58,42 @@ test.describe('health-calc.js (known-answer)', () => {
     expect(H.cleanCheckup({ date: '2026-09-01', results: [{ name: 'FBS', value: '95', unit: 'mg/dL', hi: '100' }] }, 'z').rec.results[0]).toEqual({ name: 'FBS', value: 95, unit: 'mg/dL', lo: null, hi: 100 });
   });
 
+  test('ออกกำลังกาย: kcal ประมาณ MET×กก.×ชม. · cleanWorkout · สัปดาห์เริ่มวันจันทร์ (เวลาไทย) · workoutSummary', () => {
+    expect(H.estimateKcal('run', 30, 70)).toBe(343); // 9.8 × 70 × 0.5
+    expect(H.estimateKcal('yoga', 60, 60)).toBe(150);
+    expect(H.estimateKcal('run', 30, null)).toBeNull();
+    expect(H.latestWeight([{ id: 'a', at: 1, weight: 70 }, { id: 'b', at: 2, hr: 60 }])).toBe(70);
+    const at0 = new Date('2026-09-30T06:00:00+07:00').getTime();
+    expect(H.cleanWorkout({ kindKey: 'run', at: at0, minutes: '30', distanceKm: '5' }, 'u1', { weightKg: 70 }).rec).toEqual({ id: 'sports:u1', at: at0, date: '2026-09-30', kind: 'วิ่ง', minutes: 30, source: 'sports', ref: 'u1', distanceKm: 5, kcal: 343 });
+    expect(H.cleanWorkout({ kindKey: 'run', at: at0, minutes: '30' }, 'u1', {}).rec.kcal).toBeUndefined(); // ไม่มีน้ำหนัก = เว้นว่าง
+    expect(H.cleanWorkout({ kindKey: 'run', at: at0, minutes: '30', kcal: '250' }, 'u1', { weightKg: 70 }).rec.kcal).toBe(250); // กรอกเองชนะ
+    expect(H.cleanWorkout({ kindKey: 'weights', at: at0, minutes: '40', distanceKm: '9' }, 'u2', {}).rec.distanceKm).toBeUndefined(); // กิจกรรมที่ไม่มีระยะ
+    expect(H.cleanWorkout({ kindKey: 'other', name: ' เทนนิส ', at: at0, minutes: '60' }, 'u3', {}).rec.kind).toBe('เทนนิส');
+    expect(H.cleanWorkout({ kindKey: 'other', name: '', at: at0, minutes: '60' }, 'u3', {}).error).toBe('name');
+    expect(H.cleanWorkout({ kindKey: 'run', at: at0, minutes: '0' }, 'u1', {}).error).toBe('minutes');
+    expect(H.cleanWorkout({ kindKey: 'run', at: 0, minutes: '10' }, 'u1', {}).error).toBe('at');
+    expect(H.cleanWorkout({ kindKey: 'x', at: at0, minutes: '10' }, 'u1', {}).error).toBe('kind');
+    // 23:30 น. เวลาไทยของวันอาทิตย์ 27 ก.ย. ยังเป็นสัปดาห์ก่อนหน้า (จันทร์ 21)
+    expect(H.cleanWorkout({ kindKey: 'walk', at: new Date('2026-09-27T23:30:00+07:00').getTime(), minutes: '10' }, 'u4', {}).rec.date).toBe('2026-09-27');
+    expect(H.weekStart('2026-09-27')).toBe('2026-09-21');
+    expect(H.weekStart('2026-09-28')).toBe('2026-09-28');
+    expect(H.weekStart('2026-09-30')).toBe('2026-09-28');
+    const ws = [
+      { id: 'a', at: NOW_MS - 1000, date: '2026-09-30', minutes: 40 },
+      { id: 'b', at: NOW_MS - 2 * D, date: '2026-09-28', minutes: 60 },
+      { id: 'c', at: NOW_MS - 3 * D, date: '2026-09-27', minutes: 30 },
+      { id: 'd', at: NOW_MS - 20 * D, date: '2026-09-10', minutes: 25.5 },
+    ];
+    const sum = H.workoutSummary(ws, null, NOW_MS, 4, 2);
+    expect(sum.goal).toBe(150);
+    expect(sum.weekMinutes).toBe(100);
+    expect(sum.pct).toBe(67);
+    expect(sum.weeks.map((w) => [w.start, w.minutes])).toEqual([['2026-09-07', 25.5], ['2026-09-14', 0], ['2026-09-21', 30], ['2026-09-28', 100]]);
+    expect(sum.recent.map((w) => w.id)).toEqual(['a', 'b']);
+    expect(H.workoutSummary(ws, { workoutGoal: 200 }, NOW_MS).goal).toBe(200);
+    expect(H.workoutGoal({ workoutGoal: 5 })).toBe(150);
+  });
+
   test('ตารางกินยา: ช่วง start..end, มื้อของวัน, id ตายตัว, ค้างวันนี้', () => {
     const m1 = { id: 'm1', name: 'A', times: ['20:00', '08:00', '8:00'], start: '2026-09-01', end: '' };
     const m2 = { id: 'm2', name: 'B', times: ['07:00'], start: '2026-10-05', end: '2026-10-09' };
@@ -109,13 +145,13 @@ test.describe('health-calc.js (known-answer)', () => {
 
 /* ══════════ หน้าเว็บ ══════════ */
 const D = 86400000;
-function seedData({ vitals, meds, checkups, intake, settings } = {}) {
-  return ({ vitals, meds, checkups, intake, settings }) => {
+function seedData() {
+  return ({ vitals, meds, checkups, intake, settings, workouts }) => {
     if (sessionStorage.getItem('seeded')) return;
     sessionStorage.setItem('seeded', '1');
     const S = (k, v) => v && localStorage.setItem(k, JSON.stringify(v));
     S('tanot:health:vitals', vitals); S('tanot:health:meds', meds); S('tanot:health:checkups', checkups);
-    S('tanot:health:intake', intake); S('tanot:health:settings', settings);
+    S('tanot:health:intake', intake); S('tanot:health:settings', settings); S('tanot:health:workouts', workouts);
   };
 }
 async function openPage(page, p, { data, theme = 'light', width = 1100, files = false, push = false, sync = false, noClock = false } = {}) {
@@ -410,5 +446,175 @@ test.describe('ซิงก์ 2 เครื่อง', () => {
     // หน้าอีกเครื่องวาดใหม่เองโดยไม่ต้องโหลดซ้ำ
     await expect(A.page.locator('#vList .list-row')).toHaveCount(2);
     await A.ctx.close(); await B.ctx.close();
+  });
+});
+
+test.describe('บันทึกออกกำลังกาย: หน้ากีฬา → หน้าสุขภาพ/วันนี้', () => {
+  test.use({ baseURL: SRV });
+  test.beforeEach(async ({ request }) => { await request.get(SRV + '/__reset'); });
+
+  const store = (page, k) => page.evaluate((k) => JSON.parse(localStorage.getItem(k) || 'null'), k);
+  const sportsXp = async (page) => ((await store(page, 'tanot:learn:xp')) || []).filter((r) => r.src === 'sports');
+  const log = async (page, { kind, min, dist, kcal, name }) => {
+    await page.selectOption('#logKind', kind);
+    if (name != null) await page.fill('#logName', name);
+    await page.fill('#logMin', String(min));
+    if (dist != null) await page.fill('#logDist', String(dist));
+    if (kcal != null) await page.fill('#logKcal', String(kcal));
+    await page.click('#logSave');
+  };
+
+  test('บันทึกใหม่ → แถวใน tanot:health:workouts (id ตายตัว) · kcal ประมาณจากน้ำหนักล่าสุด · XP 1 ครั้ง · แก้ไม่ได้ XP ซ้ำ · ลบแล้วหาย · ไม่แตะคีย์เดิมของกีฬา', async ({ page }) => {
+    const { errors } = await openPage(page, '/sports.html', { data: { vitals: [{ id: 'v1', at: NOW_MS - D, weight: 70 }] }, width: 390 });
+    await expect(page.locator('#logAt')).toHaveValue('2026-09-30T10:30');
+    await expect(page.locator('#logDistRow')).toBeHidden();
+    await page.selectOption('#logKind', 'run');
+    await expect(page.locator('#logDistRow')).toBeVisible();
+    await page.selectOption('#logKind', 'weights');
+    await expect(page.locator('#logDistRow')).toBeHidden();
+    await page.selectOption('#logKind', 'other');
+    await expect(page.locator('#logNameRow')).toBeVisible();
+
+    await page.click('#logSave');
+    await expect(page.locator('#logMsg')).toContainText('ชื่อกิจกรรม');
+    await page.fill('#logName', 'เทนนิส'); await page.fill('#logMin', '60'); await page.click('#logSave');
+    await expect(page.locator('#logList .list-row')).toHaveCount(1);
+    await expect(page.locator('#logList .list-row').first()).toContainText('เทนนิส');
+
+    await log(page, { kind: 'run', min: 30, dist: 5 });
+    const rows = page.locator('#logList .list-row');
+    await expect(rows).toHaveCount(2);
+    let ws = await store(page, 'tanot:health:workouts');
+    expect(ws).toHaveLength(2);
+    const run = ws.find((w) => w.kind === 'วิ่ง');
+    expect(run).toMatchObject({ at: NOW_MS, date: '2026-09-30', minutes: 30, distanceKm: 5, kcal: 343, source: 'sports' });
+    expect(run.id).toBe('sports:' + run.ref);
+    expect(ws.find((w) => w.kind === 'เทนนิส').kcal).toBe(280); // 4 MET × 70 × 1 ชม.
+    expect(await sportsXp(page)).toHaveLength(1);
+    expect(await sportsXp(page).then((r) => r[0].xp)).toBe(20); // 2 บันทึก × 10
+
+    // แก้ = เขียนทับแถวเดิม ไม่ได้ XP เพิ่ม · kcal ที่กรอกเองชนะ
+    await rows.filter({ hasText: 'วิ่ง' }).click();
+    await expect(page.locator('#logMin')).toHaveValue('30');
+    await expect(page.locator('#logDel')).toBeVisible();
+    await page.fill('#logMin', '45'); await page.fill('#logKcal', '400');
+    await page.click('#logSave');
+    await expect(rows).toHaveCount(2);
+    ws = await store(page, 'tanot:health:workouts');
+    expect(ws).toHaveLength(2);
+    expect(ws.find((w) => w.id === run.id)).toMatchObject({ minutes: 45, kcal: 400, ref: run.ref });
+    expect((await sportsXp(page))[0].xp).toBe(20);
+
+    // ไม่แตะคีย์เดิมของหน้ากีฬา
+    for (const k of ['tanot:sports:xp', 'tanot:sports:streak', 'tanot:sports:progress', 'tanot:sports:badges']) expect(await store(page, k)).toBeNull();
+
+    // ขึ้นหน้าสุขภาพ + หน้าวันนี้
+    await page.goto('/health.html');
+    await page.waitForSelector('nav.ome-nav');
+    await expect(page.locator('#wkValue')).toContainText('105 / 150');
+    await expect(page.locator('#wkList .list-row')).toHaveCount(2);
+    await expect(page.locator('#wkList')).toContainText('วิ่ง');
+    await expect(page.locator('#wkList')).toContainText('45 นาที · 5 กม. · 400 kcal');
+    await expect(page.locator('#wkChart svg')).toHaveAttribute('data-weeks', '8');
+    await page.goto('/index.html');
+    await expect(page.locator('#healthBody [data-h="workout"]')).toContainText('ออกกำลังกายสัปดาห์นี้ 105 / 150 นาที');
+
+    // ลบ
+    await page.goto('/sports.html');
+    await page.waitForSelector('nav.ome-nav');
+    page.once('dialog', (d) => d.accept());
+    await page.locator('#logList .list-row').filter({ hasText: 'วิ่ง' }).click();
+    await page.click('#logDel');
+    await expect(page.locator('#logList .list-row')).toHaveCount(1);
+    ws = await store(page, 'tanot:health:workouts');
+    expect(ws.map((w) => w.kind)).toEqual(['เทนนิส']);
+    await page.goto('/health.html');
+    await expect(page.locator('#wkValue')).toContainText('60 / 150');
+    await expect(page.locator('#wkList')).not.toContainText('วิ่ง');
+    expect(errors).toEqual([]);
+  });
+
+  test('ไม่มีน้ำหนักในหน้าสุขภาพ → kcal เว้นว่าง (ไม่เดา)', async ({ page }) => {
+    const { errors } = await openPage(page, '/sports.html');
+    await log(page, { kind: 'swim', min: 30, dist: 1 });
+    await expect(page.locator('#logList .list-row')).toHaveCount(1);
+    const ws = await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:health:workouts')));
+    expect(ws).toHaveLength(1);
+    expect('kcal' in ws[0]).toBe(false);
+    await expect(page.locator('#logList .list-row').first()).not.toContainText('kcal');
+    expect(errors).toEqual([]);
+  });
+
+  test('เป้าต่อสัปดาห์ตั้งค่าได้ · ถึงเป้าแล้วขึ้นป้าย · สัปดาห์เก่าไม่นับ', async ({ page }) => {
+    const ws = [
+      { id: 'sports:a', at: NOW_MS - 1000, date: '2026-09-30', kind: 'วิ่ง', minutes: 100, source: 'sports', ref: 'a' },
+      { id: 'sports:b', at: NOW_MS - 10 * D, date: '2026-09-20', kind: 'เดิน', minutes: 300, source: 'sports', ref: 'b' },
+    ];
+    const { errors } = await openPage(page, '/health.html', { data: { workouts: ws } });
+    await expect(page.locator('#wkValue')).toContainText('100 / 150');
+    await expect(page.locator('#wkBadge .badge')).toHaveCount(0);
+    await page.click('#setBtn');
+    await expect(page.locator('#sGoal')).toHaveValue('150');
+    await page.fill('#sGoal', '90');
+    await page.click('#setForm button[type="submit"]');
+    await expect(page.locator('#wkValue')).toContainText('100 / 90');
+    await expect(page.locator('#wkBadge .badge.ok')).toBeVisible();
+    expect((await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:health:settings')))).workoutGoal).toBe(90);
+    expect(errors).toEqual([]);
+  });
+
+  test('ซิงก์ 2 เครื่อง: บันทึกคนละรายการไม่ทับกัน · แก้แล้วซิงก์ไม่เกิดแถวซ้ำ · ลบแล้วหายทั้งสองเครื่อง', async ({ browser }) => {
+    const mk = async () => {
+      const ctx = await browser.newContext({ baseURL: SRV });
+      const page = await ctx.newPage();
+      const o = await openPage(page, '/sports.html', { sync: true });
+      return { ctx, page, errors: o.errors };
+    };
+    const A = await mk(), B = await mk();
+    const sync = (p) => p.evaluate(() => window.TanotData.syncNow().then((s) => s.state));
+    const all = async (d) => (await d.page.evaluate(() => JSON.parse(localStorage.getItem('tanot:health:workouts') || '[]')));
+    await log(A.page, { kind: 'run', min: 30, dist: 4 });
+    await log(B.page, { kind: 'yoga', min: 50 });
+    for (let i = 0; i < 2; i++) { await sync(A.page); await sync(B.page); }
+    for (const d of [A, B]) {
+      const ws = await all(d);
+      expect(ws.map((w) => w.kind).sort()).toEqual(['วิ่ง', 'โยคะ']);
+      expect(new Set(ws.map((w) => w.id)).size).toBe(2);
+    }
+    await expect(A.page.locator('#logList .list-row')).toHaveCount(2); // วาดใหม่เองโดยไม่ต้องโหลดซ้ำ
+
+    // A แก้รายการวิ่ง → B ได้ค่าใหม่ ไม่เกิดแถวที่ 3 (นาฬิกาในเทสต์ถูกตรึง — ขยับเวลาให้การแก้ใหม่กว่าเดิม เพราะซิงก์ last-write-wins ตามเวลา)
+    await A.page.clock.setFixedTime(new Date(NOW_MS + 60000));
+    await A.page.locator('#logList .list-row').filter({ hasText: 'วิ่ง' }).click();
+    await A.page.fill('#logMin', '35');
+    await A.page.click('#logSave');
+    for (let i = 0; i < 2; i++) { await sync(A.page); await sync(B.page); }
+    for (const d of [A, B]) {
+      const ws = await all(d);
+      expect(ws).toHaveLength(2);
+      expect(ws.find((w) => w.kind === 'วิ่ง').minutes).toBe(35);
+    }
+
+    // B ลบโยคะ → A หาย
+    await B.page.clock.setFixedTime(new Date(NOW_MS + 120000));
+    B.page.once('dialog', (x) => x.accept());
+    await B.page.locator('#logList .list-row').filter({ hasText: 'โยคะ' }).click();
+    await B.page.click('#logDel');
+    for (let i = 0; i < 2; i++) { await sync(B.page); await sync(A.page); }
+    for (const d of [A, B]) expect((await all(d)).map((w) => w.kind)).toEqual(['วิ่ง']);
+    for (const d of [A, B]) expect(d.errors).toEqual([]);
+    await A.ctx.close(); await B.ctx.close();
+  });
+
+  test('มือถือ 390px: หน้าสุขภาพ (การ์ดออกกำลังกาย) + หน้ากีฬา ไม่ล้นแนวนอน ทั้งสองธีม', async ({ page }) => {
+    const ws = [{ id: 'sports:a', at: NOW_MS - 1000, date: '2026-09-30', kind: 'วิ่ง', minutes: 100, kcal: 800, distanceKm: 10, source: 'sports', ref: 'a' }];
+    for (const theme of ['light', 'dark']) {
+      for (const p of ['/health.html', '/sports.html']) {
+        const { errors } = await openPage(page, p, { data: { workouts: ws }, theme, width: 390 });
+        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        expect(overflow, theme + ' ' + p).toBeLessThanOrEqual(1);
+        expect(errors).toEqual([]);
+      }
+    }
   });
 });

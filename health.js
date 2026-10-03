@@ -12,7 +12,7 @@
   var TD = window.TanotData;
   var K = {
     vitals: 'tanot:health:vitals', checkups: 'tanot:health:checkups', meds: 'tanot:health:meds',
-    intake: 'tanot:health:intake', ranges: 'tanot:health:ranges', settings: 'tanot:health:settings'
+    intake: 'tanot:health:intake', workouts: 'tanot:health:workouts', ranges: 'tanot:health:ranges', settings: 'tanot:health:settings'
   };
   var MAX_FILE = 15 * 1024 * 1024;
   var VIEW_LIMIT = 30;
@@ -197,6 +197,42 @@
     }).join('') + '</div>';
   }
 
+  /* ── ออกกำลังกาย (สรุปจาก HealthCalc.workoutSummary · แถวเขียนโดยหน้ากีฬา) ── */
+  function weekBarsHtml(weeks, goal) {
+    var th = window.OmeChartTheme ? window.OmeChartTheme.get() : null;
+    if (!th) return '';
+    var W = 640, H = 220, L = 46, R = 14, T = 12, B = 30, iw = W - L - R, ih = H - T - B;
+    var top = Math.max(goal, Math.max.apply(null, weeks.map(function (w) { return w.minutes; }))) * 1.12;
+    function Y(v) { return T + (top - v) / top * ih; }
+    var bw = iw / weeks.length, g = '';
+    niceTicks(0, top, 4).forEach(function (t) {
+      g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(t) + '" y2="' + Y(t) + '" stroke="' + th.grid + '" stroke-width="1"/>' +
+        '<text x="' + (L - 6) + '" y="' + (Y(t) + 4) + '" text-anchor="end" font-size="11" fill="' + th.textMuted + '">' + num(t) + '</text>';
+    });
+    weeks.forEach(function (w, i) {
+      var x = L + i * bw + bw * 0.2, h = w.minutes / top * ih;
+      g += '<rect x="' + x.toFixed(1) + '" y="' + (T + ih - h).toFixed(1) + '" width="' + (bw * 0.6).toFixed(1) + '" height="' + Math.max(h, 0).toFixed(1) + '" rx="3" fill="' + th.series[0] + '"><title>' + esc('สัปดาห์ ' + ymdTh(w.start) + ' · ' + num(w.minutes, 1) + ' นาที') + '</title></rect>' +
+        '<text x="' + (x + bw * 0.3).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="' + th.textMuted + '">' + esc(new Date(HC.ictAt(w.start, 12, 0)).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })) + '</text>';
+    });
+    g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(goal) + '" y2="' + Y(goal) + '" stroke="' + th.axis + '" stroke-width="1.5" stroke-dasharray="5 4"/>' +
+      '<text x="' + (W - R) + '" y="' + (Y(goal) - 5) + '" text-anchor="end" font-size="11" fill="' + th.textMuted + '">เป้า ' + num(goal) + '</text>';
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc('นาทีออกกำลังกายต่อสัปดาห์ เป้า ' + goal + ' นาที') + '" data-weeks="' + weeks.length + '">' + g + '</svg>';
+  }
+  function renderWorkouts(workouts, settings) {
+    var s = HC.workoutSummary(workouts, settings, Date.now(), 8, 8);
+    $('wkValue').innerHTML = num(s.weekMinutes, 1) + ' / ' + num(s.goal) + '<small>นาที สัปดาห์นี้</small>';
+    $('wkBadge').innerHTML = s.weekMinutes >= s.goal ? '<span class="badge ok">ถึงเป้าแล้ว</span>' : '';
+    $('wkBar').setAttribute('aria-valuenow', Math.min(100, s.pct));
+    $('wkFill').style.width = Math.min(100, s.pct) + '%';
+    $('wkChart').innerHTML = weekBarsHtml(s.weeks, s.goal);
+    $('wkList').innerHTML = s.recent.length ? '<div class="list">' + s.recent.map(function (w) {
+      var parts = [num(w.minutes, 1) + ' นาที'];
+      if (w.distanceKm != null) parts.push(num(w.distanceKm, 2) + ' กม.');
+      if (w.kcal != null) parts.push(num(w.kcal) + ' kcal');
+      return '<div class="list-row"><span class="lead">' + icon('dumbbell') + '</span><div class="grow"><div class="title">' + esc(w.kind) + '</div><div class="meta">' + esc(ymdTh(w.date) + ' · ' + parts.join(' · ')) + '</div></div></div>';
+    }).join('') + '</div>' : '<div class="empty">' + icon('dumbbell') + '<p>ยังไม่มีบันทึก</p></div>';
+  }
+
   /* ── ยา ── */
   function renderMeds(meds, intake) {
     var now = Date.now(), today = HC.ictDate(now), doses = HC.todayDoses(meds, intake, now);
@@ -249,6 +285,7 @@
     renderVitals(vitals, ranges);
     renderMeds(meds, intake);
     renderCheckups(checkups);
+    renderWorkouts(loadList(K.workouts), settings);
     // กินยา → การแจ้งเตือน (tanot-push.js ส่งเฉพาะเมื่อชุดเปลี่ยน · ทำงานเฉพาะ pages.dev)
     if (window.TanotPush) window.TanotPush.setReminders('health', HC.reminders(meds, settings, Date.now()));
   }
@@ -516,6 +553,7 @@
   function openSettings() {
     var ranges = loadObj(K.ranges);
     $('sHide').checked = HC.hideNames(loadObj(K.settings));
+    $('sGoal').value = HC.workoutGoal(loadObj(K.settings));
     $('rangeRows').innerHTML = RANGE_KEYS.map(function (k) {
       var r = HC.rangeOf(k, ranges), m = HC.METRICS[k];
       return '<span>' + esc(m.label) + ' <small>' + esc(m.unit) + '</small></span>' +
@@ -531,6 +569,8 @@
     e.preventDefault();
     var st = loadObj(K.settings);
     st.hideMedNames = $('sHide').checked;
+    var goal = Number($('sGoal').value);
+    if (goal >= 10 && goal <= 3000) { if (Math.round(goal) === HC.DEFAULT_WORKOUT_GOAL) delete st.workoutGoal; else st.workoutGoal = Math.round(goal); }
     saveJson(K.settings, st);
     var ranges = loadObj(K.ranges);
     RANGE_KEYS.forEach(function (k) {

@@ -12,7 +12,8 @@
                            id กำหนดตายตัวจากสามอย่างนั้น: 2 เครื่องกดกินพร้อมกัน = แถวเดียวกัน (ไม่ซ้ำ) · เอาออก = ลบแถว
      tanot:health:ranges   map                { sys|dia|hr|glu|waist|weight: { lo, hi } } เฉพาะค่าที่ผู้ใช้แก้ (ว่าง = ใช้ค่าเริ่มต้นด้านล่าง)
      tanot:health:settings blob               { hideMedNames: true (ค่าเริ่มต้น) }
-     tanot:health:workouts list idField 'id'  จุดเชื่อมสำหรับหน้ากีฬา (ยังไม่มีใครเขียน — ดู CLAUDE.md หัวข้อ Health)
+     tanot:health:workouts list idField 'id'  { id 'sports:<uid>', at (ms), date 'YYYY-MM-DD' (เวลาไทย), kind (ชื่อกิจกรรม), minutes, kcal?, distanceKm?, source 'sports', ref? }
+                           หน้ากีฬา (sports-log.js) เป็นคนเขียน — 1 การออกกำลังกาย = 1 แถว id ตายตัว · เป้าต่อสัปดาห์เก็บใน settings.workoutGoal (นาที, ค่าเริ่มต้น 150)
 
    "วัน" ของยา/การแจ้งเตือนนับตามเวลาไทย (UTC+7) เหมือน functions/_lib/reminders.js
    ช่วงอ้างอิงเริ่มต้นเป็นค่าทั่วไปของผู้ใหญ่ (ไม่ใช่คำวินิจฉัย) — ผู้ใช้แก้เองได้ในหน้า
@@ -298,6 +299,105 @@
     return out;
   }
 
+  /* ── ออกกำลังกาย (แถวเขียนโดยหน้ากีฬา · หน้าสุขภาพ/หน้าวันนี้อ่านสรุป) ──
+     MET = ค่าประมาณทั่วไปจาก Compendium of Physical Activities (กิจกรรมความหนักปานกลาง) · kcal ≈ MET × น้ำหนัก (กก.) × ชั่วโมง */
+  var WORKOUT_KINDS = [
+    { key: 'run', th: 'วิ่ง', en: 'Running', met: 9.8, dist: true },
+    { key: 'walk', th: 'เดิน', en: 'Walking', met: 3.5, dist: true },
+    { key: 'bike', th: 'ปั่นจักรยาน', en: 'Cycling', met: 7.5, dist: true },
+    { key: 'swim', th: 'ว่ายน้ำ', en: 'Swimming', met: 6, dist: true },
+    { key: 'weights', th: 'เวท', en: 'Weights', met: 3.5, dist: false },
+    { key: 'yoga', th: 'โยคะ', en: 'Yoga', met: 2.5, dist: false },
+    { key: 'football', th: 'ฟุตบอล', en: 'Football', met: 7, dist: false },
+    { key: 'badminton', th: 'แบดมินตัน', en: 'Badminton', met: 5.5, dist: false },
+    { key: 'other', th: 'อื่นๆ', en: 'Other', met: 4, dist: false }
+  ];
+  var DEFAULT_WORKOUT_GOAL = 150; // นาที/สัปดาห์ (WHO — ผู้ใหญ่ ความหนักปานกลาง)
+  function workoutKind(key) { for (var i = 0; i < WORKOUT_KINDS.length; i++) if (WORKOUT_KINDS[i].key === key) return WORKOUT_KINDS[i]; return null; }
+  /** หา kind จากชื่อที่เก็บในแถว (ชื่อไทยหรืออังกฤษของกิจกรรมมาตรฐาน) — ไม่ตรง = null (กิจกรรมพิมพ์เอง) */
+  function workoutKindByName(name) {
+    var n = String(name || '').trim().toLowerCase();
+    for (var i = 0; i < WORKOUT_KINDS.length; i++) {
+      var k = WORKOUT_KINDS[i];
+      if (k.key !== 'other' && (k.th.toLowerCase() === n || k.en.toLowerCase() === n)) return k;
+    }
+    return null;
+  }
+  /** kcal ประมาณ (ปัดเป็นจำนวนเต็ม) · null ถ้าไม่มีน้ำหนัก/นาที */
+  function estimateKcal(kindKey, minutes, weightKg) {
+    var k = workoutKind(kindKey), m = numOrNull(minutes), w = numOrNull(weightKg);
+    if (!k || !(m > 0) || !(w > 0)) return null;
+    return Math.round(k.met * w * m / 60);
+  }
+  /** น้ำหนักล่าสุดจากสัญญาณชีพ (กก.) หรือ null */
+  function latestWeight(vitals) { var c = compare(vitals, 'weight'); return c ? c.last.v : null; }
+  function workoutGoal(settings) {
+    var g = numOrNull(settings && settings.workoutGoal);
+    return g != null && g >= 10 && g <= 3000 ? Math.round(g) : DEFAULT_WORKOUT_GOAL;
+  }
+
+  /** raw = { kindKey, name (เมื่อ other), at, minutes, distanceKm, kcal } · opts.weightKg ใช้ประมาณ kcal เมื่อไม่ได้กรอก
+      → { rec } หรือ { error: 'kind'|'name'|'at'|'minutes'|'distance'|'kcal' } */
+  function cleanWorkout(raw, uid, opts) {
+    var k = workoutKind(raw.kindKey);
+    if (!k) return { error: 'kind' };
+    var kind = k.th;
+    if (k.key === 'other') {
+      kind = String(raw.name || '').trim().slice(0, 40);
+      if (!kind) return { error: 'name' };
+    }
+    var at = Number(raw.at);
+    if (!(at > 0)) return { error: 'at' };
+    var minutes = numOrNull(raw.minutes);
+    if (!(minutes > 0) || minutes > 1440) return { error: 'minutes' };
+    minutes = Math.round(minutes * 10) / 10;
+    var rec = { id: 'sports:' + uid, at: at, date: ictDate(at), kind: kind, minutes: minutes, source: 'sports', ref: String(uid) };
+    var dist = k.dist ? numOrNull(raw.distanceKm) : null;
+    if (dist != null) {
+      if (!(dist > 0) || dist > 1000) return { error: 'distance' };
+      rec.distanceKm = Math.round(dist * 100) / 100;
+    }
+    var kcal = numOrNull(raw.kcal);
+    if (kcal != null) {
+      if (!(kcal > 0) || kcal > 20000) return { error: 'kcal' };
+      rec.kcal = Math.round(kcal);
+    } else {
+      var est = estimateKcal(k.key, minutes, opts && opts.weightKg);
+      if (est != null) rec.kcal = est;
+    }
+    return { rec: rec };
+  }
+
+  /** วันจันทร์ของสัปดาห์ที่ ymd อยู่ (เวลาไทย) 'YYYY-MM-DD' */
+  function weekStart(ymd) {
+    var t = ictAt(ymd, 12, 0);
+    if (isNaN(t)) return '';
+    var dow = new Date(t + ICT_MS).getUTCDay(); // 0 = อาทิตย์
+    return ictDate(t - ((dow + 6) % 7) * DAY_MS);
+  }
+  function workoutDate(w) { return w && /^\d{4}-\d{2}-\d{2}$/.test(w.date || '') ? w.date : (w && w.at ? ictDate(Number(w.at)) : ''); }
+
+  /** สรุปออกกำลังกาย: { goal, weekMinutes, pct (0–100+), weeks: [{ start, minutes, count }] (เก่า→ใหม่ n สัปดาห์ รวมสัปดาห์นี้), recent: [แถวล่าสุด] } */
+  function workoutSummary(workouts, settings, nowMs, nWeeks, nRecent) {
+    nWeeks = nWeeks || 8;
+    var goal = workoutGoal(settings), cur = weekStart(ictDate(nowMs)), by = {};
+    var rows = (workouts || []).filter(function (w) { return w && w.id && Number(w.minutes) > 0; });
+    rows.forEach(function (w) {
+      var ws = weekStart(workoutDate(w));
+      if (!ws) return;
+      var b = by[ws] || (by[ws] = { minutes: 0, count: 0 });
+      b.minutes += Number(w.minutes); b.count++;
+    });
+    var weeks = [];
+    for (var i = nWeeks - 1; i >= 0; i--) {
+      var s = ictDate(ictAt(cur, 12, 0) - i * 7 * DAY_MS), b = by[s];
+      weeks.push({ start: s, minutes: b ? Math.round(b.minutes * 10) / 10 : 0, count: b ? b.count : 0 });
+    }
+    var wm = weeks[weeks.length - 1].minutes;
+    var recent = rows.slice().sort(function (a, b) { return Number(b.at) - Number(a.at) || (a.id < b.id ? -1 : 1); }).slice(0, nRecent || 10);
+    return { goal: goal, weekMinutes: wm, pct: Math.round(wm / goal * 100), weeks: weeks, recent: recent };
+  }
+
   /* ── สรุปสำหรับหน้าวันนี้ ── */
   /** { latest: { key: { v, at } }, pending: [มื้อที่ยังไม่ได้กินวันนี้], total, taken } */
   function summary(vitals, meds, intake, nowMs) {
@@ -317,6 +417,8 @@
     cleanCheckup: cleanCheckup, labStatus: labStatus, labNames: labNames, labSeries: labSeries,
     ictDate: ictDate, ictAt: ictAt, parseTime: parseTime, cleanTimes: cleanTimes,
     cleanMed: cleanMed, activeOn: activeOn, intakeId: intakeId, dosesOn: dosesOn, todayDoses: todayDoses, makeIntake: makeIntake,
-    hideNames: hideNames, reminders: reminders, summary: summary
+    hideNames: hideNames, reminders: reminders, summary: summary,
+    WORKOUT_KINDS: WORKOUT_KINDS, DEFAULT_WORKOUT_GOAL: DEFAULT_WORKOUT_GOAL, workoutKind: workoutKind, workoutKindByName: workoutKindByName,
+    estimateKcal: estimateKcal, latestWeight: latestWeight, workoutGoal: workoutGoal, cleanWorkout: cleanWorkout, weekStart: weekStart, workoutSummary: workoutSummary
   };
 });

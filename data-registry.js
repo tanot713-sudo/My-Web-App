@@ -60,7 +60,7 @@
     { key: 'tanot:health:checkups', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:meds', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:intake', kind: 'sync', mode: 'list', idField: 'id' },
-    { key: 'tanot:health:workouts', kind: 'sync', mode: 'list', idField: 'id' }, // จุดเชื่อมหน้ากีฬา (ยังไม่มีใครเขียน)
+    { key: 'tanot:health:workouts', kind: 'sync', mode: 'list', idField: 'id' }, // หน้ากีฬา (sports-log.js) เขียน
     { key: 'tanot:health:ranges', kind: 'sync', mode: 'map' },
     { key: 'tanot:health:settings', kind: 'sync' },
 
