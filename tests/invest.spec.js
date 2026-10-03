@@ -2002,3 +2002,61 @@ test.describe('หน้าสลาก invest-lottery.html', () => {
     expect(errors).toEqual([]);
   });
 });
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   หน้า (Playwright) — ส่วนที่ 11: พันธบัตร + แผนธุรกิจ (ขั้น 12)
+   ═══════════════════════════════════════════════════════════════════ */
+test.describe('หน้าพันธบัตร invest-gov-bond.html', () => {
+  const BONDS = [{ name: 'LB30', purchDate: '2025-01-01', maturity: '2030-01-01', face: 100000, coupon: 3, freq: 2, ts: 10, extra: 'keep' }, { name: 'LB26', purchDate: '2024-01-01', maturity: '2026-01-01', face: 50000, coupon: 2.5, freq: 2, ts: 11 }];
+  async function openBond(page) {
+    const errors = await prepare(page);
+    const hosts = trackExternal(page);
+    await page.addInitScript((b) => { if (localStorage.getItem('__s')) return; localStorage.setItem('tanot:invest:govbond', JSON.stringify(b)); localStorage.setItem('__s', '1'); }, BONDS);
+    await page.clock.setFixedTime(new Date(NOW));
+    await page.goto('/invest-gov-bond.html'); await page.waitForSelector('nav.ome-nav');
+    return { errors, hosts };
+  }
+  const get = (page, k) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), k);
+  test('สมุดเดิมครบ + ตารางดอกเบี้ย · YTM ตรง InvestCalc · เพิ่ม/ลบด้วย ts รูปแบบเดิม · ไม่ออกเน็ต', async ({ page }) => {
+    const { errors, hosts } = await openBond(page);
+    await expect(page.locator('#lgBox .log-group-hd')).toHaveCount(2);
+    await page.fill('#bfFace', '100000'); await page.fill('#bfCoupon', '3'); await page.selectOption('#bfFreq', '2'); await page.fill('#bfPrice', '98000'); await page.fill('#bfYears', '5'); await page.click('#bfCalcBtn');
+    const y = C.solveYTM(98000, 100000, 3, 2, 5);
+    await expect(page.locator('#bfYtm')).toHaveText(y.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%');
+    await page.click('#cmpBtn'); await expect(page.locator('#cmpOut')).toBeVisible();
+    const before = await get(page, 'tanot:invest:govbond');
+    await page.fill('#lgName', 'ใหม่'); await page.fill('#lgPurchDate', '2026-10-01'); await page.fill('#lgMaturity', '2028-10-01'); await page.click('#lgAdd');
+    const after = await get(page, 'tanot:invest:govbond');
+    expect(after.slice(0, 2)).toEqual(before);
+    expect(Object.keys(after[2]).sort()).toEqual(['coupon', 'face', 'freq', 'maturity', 'name', 'purchDate', 'ts']);
+    await page.locator('#lgBox .log-del[data-ts="' + after[2].ts + '"]').click();
+    expect(await get(page, 'tanot:invest:govbond')).toEqual(before);
+    expect(hosts.filter((h) => !/^fonts\./.test(h))).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+});
+
+test.describe('หน้าแผนธุรกิจ invest-business.html', () => {
+  const PLANS = [{ name: 'ขายขนม', startup: 20000, fixed: 5000, price: 50, varCost: 20, vol: 300, profitPerUnit: 30, breakevenUnits: 166.7, paybackMonths: 2.3, monthlyProfitAtVol: 4000, ts: 21, extra: 'keep' }];
+  test('บันทึกไอเดียเดิมครบ · จุดคุ้มทุนตรงสูตร · เพิ่ม/ลบด้วย ts รูปแบบเดิม · เช็กลิสต์ทำงาน', async ({ page }) => {
+    const errors = await prepare(page);
+    await page.addInitScript((p) => { if (localStorage.getItem('__s')) return; localStorage.setItem('tanot:invest:bizplan', JSON.stringify(p)); localStorage.setItem('__s', '1'); }, PLANS);
+    await page.goto('/invest-business.html'); await page.waitForSelector('nav.ome-nav');
+    await expect(page.locator('#bzLogBox tbody tr')).toHaveCount(1);
+    await page.fill('#bzStartup', '30000'); await page.fill('#bzFixed', '6000'); await page.fill('#bzPrice', '100'); await page.fill('#bzVar', '40'); await page.fill('#bzVol', '200'); await page.click('#bzCalcBtn');
+    await expect(page.locator('#bzBreakeven')).toContainText('100'); // 6000 ÷ (100−40)
+    await expect(page.locator('#bzProfitUnit')).toContainText('60');
+    const before = JSON.parse(await page.evaluate(() => localStorage.getItem('tanot:invest:bizplan')));
+    await page.fill('#bzIdeaName', 'ไอเดียใหม่'); await page.click('#bzAddBtn');
+    const after = JSON.parse(await page.evaluate(() => localStorage.getItem('tanot:invest:bizplan')));
+    expect(after[0]).toEqual(before[0]);
+    expect(Object.keys(after[1]).sort()).toEqual(['breakevenUnits', 'fixed', 'monthlyProfitAtVol', 'name', 'paybackMonths', 'price', 'profitPerUnit', 'startup', 'ts', 'varCost', 'vol']);
+    expect(after[1]).toMatchObject({ name: 'ไอเดียใหม่', startup: 30000, breakevenUnits: 100, monthlyProfitAtVol: 6000 });
+    await page.locator('#bzLogBox .log-del[data-ts="' + after[1].ts + '"]').click();
+    expect(JSON.parse(await page.evaluate(() => localStorage.getItem('tanot:invest:bizplan')))).toEqual(before);
+    await page.click('#bzChkBtn');
+    await expect(page.locator('#bzChkResult')).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+});

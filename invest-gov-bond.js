@@ -1,11 +1,13 @@
 /* ══════════════════════════════════════════════════════════════════
    Tanot — พันธบัตรรัฐบาล · คำนวณผลตอบแทน (YTM) + ตารางจ่ายดอกเบี้ย + เทียบเงินฝากประจำ
    หมายเหตุ: ไม่มีราคา/ผลตอบแทนตลาดสด (ไม่มี API ฟรีไม่ต้องขอ key) — กรอกข้อมูลเองทั้งหมด
+   ยุบรวมหน้าลงทุน ขั้น 12: ใช้ InvestCore/InvestCalc (สูตร YTM/ตารางดอกเบี้ย/เทียบเงินฝากย้ายไป InvestCalc ตรงตัว) · สมุด tanot:invest:govbond
+   รูปแบบเดิม อ่านสด→แก้→เขียน ลบด้วย ts (เดิมใช้ดัชนี) · วาดใหม่เองตอน TanotData.onChange
    ตัวช่วยคิด ไม่ใช่คำแนะนำการลงทุนหรือคำแนะนำภาษี
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
-
+  var IC = window.InvestCore, Calc = window.InvestCalc;
   var $ = function (id) { return document.getElementById(id); };
   var LOG_KEY = 'tanot:invest:govbond';
 
@@ -14,10 +16,7 @@
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
   function baht(n) { return '฿' + fmt0(n); }
 
-  /* ══════ ระบบสองภาษา (ไทย/อังกฤษ) — ตามธรรมเนียมเดียวกับ invest-gold.js ══════ */
-  var UI_LANG_KEY = 'ome:lang';
-  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
-  var I18N = {
+  var L = IC.i18n({
     th: {
       delTitle: 'ลบ',
       navInvest: 'การลงทุน', pageTitleShort: 'พันธบัตรรัฐบาล',
@@ -82,91 +81,12 @@
       alertBondName: 'Enter the bond name/series', alertDates: 'Enter valid purchase and maturity dates',
       alertMaturityOrder: 'The maturity date must be after the purchase date', alertFaceCoupon: 'Enter a valid face value and interest rate'
     }
-  };
-  function t(key, vars) {
-    var s = (I18N[getUILang()] || I18N.th)[key];
-    if (s == null) s = (I18N.th[key] != null ? I18N.th[key] : key);
-    if (vars) { for (var k in vars) { s = s.split('{' + k + '}').join(vars[k]); } }
-    return s;
-  }
-  function applyStaticI18n() {
-    [].forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
-    [].forEach.call(document.querySelectorAll('[data-i18n-html]'), function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
-    [].forEach.call(document.querySelectorAll('[data-i18n-placeholder]'), function (el) { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
-  }
+  });
+  var t = L.t;
+  function applyStaticI18n() { L.apply(); }
 
-  /* ── ราคาปัจจุบัน (present value) ของพันธบัตร ณ อัตราคิดลดต่องวด ──── */
-  function bondPV(couponPerPeriod, face, nPeriods, ratePerPeriod) {
-    var pv = 0, i;
-    for (i = 1; i <= nPeriods; i++) {
-      pv += couponPerPeriod / Math.pow(1 + ratePerPeriod, i);
-    }
-    pv += face / Math.pow(1 + ratePerPeriod, nPeriods);
-    return pv;
-  }
-
-  /* ── หาผลตอบแทนแท้จริงจนครบกำหนด (Yield To Maturity) ด้วย bisection ──
-     แก้สมการ: ราคาที่ซื้อ = PV(ดอกเบี้ยที่เหลือทั้งหมด + เงินต้นคืนวันครบกำหนด)
-     คืนค่าเป็น % ต่อปีแบบ nominal (ทบเท่าจำนวนงวด/ปีที่จ่ายจริง — ธรรมเนียมตลาดตราสารหนี้) */
-  function solveYTM(price, face, couponRatePct, freq, years) {
-    var nPeriods = Math.round(freq * years);
-    if (!(nPeriods > 0) || !isFinite(price) || price <= 0 || !isFinite(face) || face <= 0) return NaN;
-    var couponPerPeriod = face * (couponRatePct / 100) / freq;
-
-    function f(rPerPeriod) { return bondPV(couponPerPeriod, face, nPeriods, rPerPeriod) - price; }
-
-    var lo = -0.5, hi = 2;
-    var fLo = f(lo), fHi = f(hi), tries = 0;
-    while (fLo * fHi > 0 && tries < 10) { hi *= 2; fHi = f(hi); tries++; }
-    if (fLo * fHi > 0 || !isFinite(fLo) || !isFinite(fHi)) return NaN;
-
-    var mid = lo, iter;
-    for (iter = 0; iter < 100; iter++) {
-      mid = (lo + hi) / 2;
-      var fMid = f(mid);
-      if (Math.abs(fMid) < 1e-7 || (hi - lo) < 1e-12) break;
-      if ((fLo < 0) === (fMid < 0)) { lo = mid; fLo = fMid; } else { hi = mid; fHi = fMid; }
-    }
-    return mid * freq * 100;
-  }
-
-  /* ── บวกเดือนแบบกันวันที่ overflow (เช่น 31 ม.ค. + 1 เดือน ต้อง clamp เป็นสิ้นเดือน ก.พ.) ── */
-  function addMonths(date, months) {
-    var d = new Date(date.getTime());
-    var day = d.getDate();
-    d.setDate(1);
-    d.setMonth(d.getMonth() + months);
-    var lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-    d.setDate(Math.min(day, lastDay));
-    return d;
-  }
-  function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
-  function parseYMD(s) {
-    if (!s) return null;
-    var p = s.split('-'); var d = new Date(+p[0], +p[1] - 1, +p[2]);
-    return isFinite(d.getTime()) ? d : null;
-  }
-
-  /* ── สร้างตารางจ่ายดอกเบี้ยตั้งแต่วันซื้อจนครบกำหนด ──
-     คืนอาเรย์ {date, coupon, principal, total} เรียงตามเวลา งวดสุดท้ายรวมเงินต้นคืนด้วยเสมอ */
-  function couponSchedule(purchaseDate, maturityDate, freq, face, couponRatePct) {
-    var rows = [];
-    if (!purchaseDate || !maturityDate || !(maturityDate > purchaseDate) || !(freq > 0)) return rows;
-    var stepMonths = 12 / freq;
-    var couponAmt = face * (couponRatePct / 100) / freq;
-    var d = addMonths(purchaseDate, stepMonths), guard = 0;
-    while (d <= maturityDate && guard < 2000) {
-      var isLast = sameDay(d, maturityDate);
-      rows.push({ date: d, coupon: couponAmt, principal: isLast ? face : 0, total: couponAmt + (isLast ? face : 0) });
-      if (isLast) break;
-      d = addMonths(d, stepMonths);
-      guard++;
-    }
-    if (!rows.length || !sameDay(rows[rows.length - 1].date, maturityDate)) {
-      rows.push({ date: new Date(maturityDate.getTime()), coupon: 0, principal: face, total: face });
-    }
-    return rows;
-  }
+  /* สูตรล้วนอยู่ใน InvestCalc (ย้ายตรงตัวจากไฟล์เดิม) */
+  var solveYTM = Calc.solveYTM, parseYMD = Calc.parseYMD, couponSchedule = Calc.couponSchedule, compareDeposit = Calc.compareDeposit;
 
   /* ── คำนวณผลตอบแทนพันธบัตร ── */
   var lastCalc = null;
@@ -198,14 +118,6 @@
   }
 
   /* ── เทียบกับเงินฝากประจำ ── */
-  function compareDeposit(principal, years, bondAnnualCoupon, depositRatePct) {
-    var bondGross = bondAnnualCoupon * years;
-    var bondAfterTax = bondGross * (1 - 0.15);
-    var depGross = principal * (depositRatePct / 100) * years;
-    var depAfterTax = depGross * (1 - 0.15);
-    return { principal: principal, years: years, bondGross: bondGross, bondAfterTax: bondAfterTax, depGross: depGross, depAfterTax: depAfterTax };
-  }
-
   function doCompare() {
     if (!lastCalc) { alert(t('alertCalcFirst')); return; }
     var depRate = num($('cmpDepRate').value);
@@ -223,8 +135,8 @@
   }
 
   /* ── สมุดพันธบัตรของฉัน (localStorage) ─────────────────────────── */
-  function loadLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch (e) { return []; } }
-  function saveLog(a) { try { localStorage.setItem(LOG_KEY, JSON.stringify(a)); } catch (e) {} }
+  function loadLog() { var a = IC.lsJson(LOG_KEY); return Array.isArray(a) ? a : []; }
+  function editLog(fn) { var a = loadLog(); fn(a); IC.lsSet(LOG_KEY, a); }
 
   var FREQ_KEY = { 1: 'freq1', 2: 'freq2', 4: 'freq4Short' };
   function freqLabel(freq) { var k = FREQ_KEY[freq]; return k ? t(k) : ''; }
@@ -237,9 +149,10 @@
     if (!purchDate || !maturity) { alert(t('alertDates')); return; }
     if (!(maturity > purchDate)) { alert(t('alertMaturityOrder')); return; }
     if (!isFinite(face) || face <= 0 || !isFinite(coupon) || coupon < 0) { alert(t('alertFaceCoupon')); return; }
-    var log = loadLog();
-    log.push({ name: name, purchDate: $('lgPurchDate').value, maturity: $('lgMaturity').value, face: face, coupon: coupon, freq: freq, ts: Date.now() });
-    saveLog(log);
+    editLog(function (log) {
+      var ts = Date.now(); while (log.some(function (r) { return r && r.ts === ts; })) ts++;
+      log.push({ name: name, purchDate: $('lgPurchDate').value, maturity: $('lgMaturity').value, face: face, coupon: coupon, freq: freq, ts: ts });
+    });
     $('lgName').value = ''; $('lgFace').value = 100000; $('lgCoupon').value = 3;
     $('lgPurchDate').value = ''; $('lgMaturity').value = '';
     renderLog();
@@ -251,11 +164,11 @@
     if (!log.length) { box.innerHTML = '<div class="log-empty">' + t('lgEmptyDefault') + '</div>'; return; }
     var today = new Date();
     var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThName') + '</th><th>' + t('logThFace') + '</th><th>' + t('logThCoupon') + '</th><th>' + t('logThMaturity') + '</th><th></th></tr></thead><tbody>';
-    log.forEach(function (r, i) {
+    log.forEach(function (r) {
       html += '<tr><td>' + parseYMD(r.purchDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
         '<td>' + r.name + '</td><td>' + baht(r.face) + '</td><td>' + fmt(r.coupon, 2) + '%</td>' +
         '<td>' + parseYMD(r.maturity).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
-        '<td><button class="btn sm ghost icon log-del" aria-label="' + t('delTitle') + '" data-i="' + i + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
+        '<td><button class="btn sm ghost icon log-del" type="button" aria-label="' + t('delTitle') + '" data-ts="' + r.ts + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
     html += '</tbody></table></div>';
 
@@ -275,7 +188,11 @@
 
     box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('.log-del'), function (b) {
-      b.addEventListener('click', function () { var log = loadLog(); log.splice(+b.getAttribute('data-i'), 1); saveLog(log); renderLog(); });
+      b.addEventListener('click', function () {
+        var ts = +b.getAttribute('data-ts');
+        editLog(function (a) { for (var i = a.length - 1; i >= 0; i--) if (a[i] && a[i].ts === ts) a.splice(i, 1); });
+        renderLog(); renderBondNameList();
+      });
     });
   }
 
@@ -292,22 +209,20 @@
 
   function init() {
     applyStaticI18n();
+    IC.subnav($('ivSubRow'), 'gov-bond');
     $('bfCalcBtn').addEventListener('click', doCalc);
     $('cmpBtn').addEventListener('click', doCompare);
     $('lgAdd').addEventListener('click', addLog);
     renderLog();
     renderBondNameList();
     doCalc(); /* แสดงผลตั้งต้นทันที */
+    IC.onLang(function () {
+      applyStaticI18n(); IC.subnav($('ivSubRow'), 'gov-bond');
+      doCalc();
+      if ($('cmpOut').style.display !== 'none') doCompare();
+      renderLog();
+    });
+    if (window.TanotData && window.TanotData.onChange) window.TanotData.onChange(function () { renderLog(); renderBondNameList(); });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
-
-  window.omeApplyLang = function () {
-    applyStaticI18n();
-    doCalc();
-    if ($('cmpOut').style.display !== 'none') doCompare();
-    renderLog();
-  };
-
-  window.__govbond = { solveYTM: solveYTM, bondPV: bondPV, couponSchedule: couponSchedule, compareDeposit: compareDeposit, addMonths: addMonths };
+  init();
 })();

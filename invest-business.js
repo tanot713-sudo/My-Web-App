@@ -2,12 +2,13 @@
    Tanot — ลงทุนทำธุรกิจ (รายได้เสริม/ธุรกิจส่วนตัว)
    • เครื่องคำนวณจุดคุ้มทุน (breakeven) + ระยะเวลาคืนทุน
    • เช็กลิสต์ "พร้อมเริ่มหรือยัง?" (เงินสำรอง/สัญญาจ้าง/เวลา/ทุน/ใบอนุญาต)
-   • บันทึกไอเดียที่กำลังพิจารณาไว้เทียบกัน เก็บใน localStorage
+   • บันทึกไอเดียที่กำลังพิจารณาไว้เทียบกัน — tanot:invest:bizplan รูปแบบเดิม อ่านสด→แก้→เขียน ลบด้วย ts (เดิมใช้ดัชนี) · วาดใหม่เองตอน TanotData.onChange
+   (ยุบรวมหน้าลงทุน ขั้น 12: ย้ายมาใช้ InvestCore — ภาษา/แถบหมวดย่อย/เขียนคีย์)
    หมายเหตุ: ตัวช่วยคิด ไม่ใช่คำแนะนำการลงทุนหรือกฎหมาย
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
-
+  var IC = window.InvestCore;
   var $ = function (id) { return document.getElementById(id); };
   var LOG_KEY = 'tanot:invest:bizplan';
   var MARGIN_OK = 1.2; /* เผื่อกันชนอย่างน้อย ~20% เหนือจุดคุ้มทุนถึงจะถือว่า "เขียว" */
@@ -18,12 +19,10 @@
   function baht(n) { return '฿' + fmt0(n); }
 
   /* ══════ ระบบสองภาษา (ไทย/อังกฤษ) — ตามธรรมเนียมเดียวกับ invest-gold.js ══════ */
-  var UI_LANG_KEY = 'ome:lang';
-  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   /* L(): เลือกค่าตามภาษาปัจจุบันจาก object รูปแบบ {th:'...', en:'...'} — ใช้กับข้อมูลไอเดีย/เครื่องมือ
      ที่เป็นเนื้อหาโครงสร้างซ้อน (ไม่ใช่ UI string แบน) จึงสะดวกกว่าใส่ใน I18N dict ตรงๆ */
-  function L(o) { return (o && (o[getUILang()] || o.th)) || ''; }
-  var I18N = {
+  function L(o) { return (o && (o[IC.getLang()] || o.th)) || ''; }
+  var BZ = IC.i18n({
     th: {
       delTitle: 'ลบ',
       navInvest: 'การลงทุน', pageTitleShort: 'ลงทุนทำธุรกิจ',
@@ -106,18 +105,9 @@
       chkGo: 'Ready to start per the criteria — passed every item (still no guarantee of success)',
       toolGetFrom: 'Get it from: {get}'
     }
-  };
-  function t(key, vars) {
-    var s = (I18N[getUILang()] || I18N.th)[key];
-    if (s == null) s = (I18N.th[key] != null ? I18N.th[key] : key);
-    if (vars) { for (var k in vars) { s = s.split('{' + k + '}').join(vars[k]); } }
-    return s;
-  }
-  function applyStaticI18n() {
-    [].forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
-    [].forEach.call(document.querySelectorAll('[data-i18n-html]'), function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
-    [].forEach.call(document.querySelectorAll('[data-i18n-placeholder]'), function (el) { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
-  }
+  });
+  var t = BZ.t;
+  function applyStaticI18n() { BZ.apply(); }
 
   /* ── ไอเดียอ้างอิง: รายละเอียดเครื่องมือครบวงจร (list ↔ detail แยกหน้าจอในการ์ดเดียวกัน) ──
      title/tagline และแต่ละ tool.name/why/get เป็น {th, en} — ใช้ L() เลือกตามภาษา ── */
@@ -438,24 +428,28 @@
   }
 
   /* ── บันทึกไอเดียที่กำลังพิจารณา (localStorage) ── */
-  function loadLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch (e) { return []; } }
-  function saveLog(a) { try { localStorage.setItem(LOG_KEY, JSON.stringify(a)); } catch (e) {} }
+  function loadLog() { var a = IC.lsJson(LOG_KEY); return Array.isArray(a) ? a : []; }
+  function editLog(fn) { var a = loadLog(); fn(a); IC.lsSet(LOG_KEY, a); }
 
   function renderLog() {
     var log = loadLog(), box = $('bzLogBox');
     if (!log.length) { box.innerHTML = '<div class="log-empty">' + t('logEmptyDefault') + '</div>'; return; }
     var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('logThIdea') + '</th><th>' + t('logThStartup') + '</th><th>' + t('logThBreakeven') + '</th><th>' + t('logThPayback') + '</th><th>' + t('logThProjected') + '</th><th></th></tr></thead><tbody>';
-    log.forEach(function (r, i) {
+    log.forEach(function (r) {
       html += '<tr><td>' + r.name + '</td><td>' + baht(r.startup) + '</td>' +
         '<td>' + (isFinite(r.breakevenUnits) ? fmt(r.breakevenUnits, 1) : '—') + '</td>' +
         '<td>' + (isFinite(r.paybackMonths) ? fmt(r.paybackMonths, 1) : '—') + '</td>' +
         '<td class="' + (r.monthlyProfitAtVol >= 0 ? 'up' : 'dn') + '">' + (isFinite(r.monthlyProfitAtVol) ? ((r.monthlyProfitAtVol >= 0 ? '+' : '−') + baht(Math.abs(r.monthlyProfitAtVol))) : '—') + '</td>' +
-        '<td><button class="btn sm ghost icon log-del" aria-label="' + t('delTitle') + '" data-i="' + i + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
+        '<td><button class="btn sm ghost icon log-del" type="button" aria-label="' + t('delTitle') + '" data-ts="' + r.ts + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
     html += '</tbody></table></div>';
     box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('.log-del'), function (b) {
-      b.addEventListener('click', function () { var log = loadLog(); log.splice(+b.getAttribute('data-i'), 1); saveLog(log); renderLog(); });
+      b.addEventListener('click', function () {
+        var ts = +b.getAttribute('data-ts');
+        editLog(function (a) { for (var i = a.length - 1; i >= 0; i--) if (a[i] && a[i].ts === ts) a.splice(i, 1); });
+        renderLog();
+      });
     });
   }
 
@@ -466,13 +460,14 @@
     if (!isFinite(price) || price <= 0) { alert(t('alertPriceInCalc')); return; }
     var o = { startup: num($('bzStartup').value) || 0, fixed: num($('bzFixed').value) || 0, price: price, varCost: num($('bzVar').value) || 0, vol: num($('bzVol').value) };
     var r = computeBreakeven(o);
-    var log = loadLog();
-    log.push({
-      name: name, startup: o.startup, fixed: o.fixed, price: o.price, varCost: o.varCost, vol: o.vol,
-      profitPerUnit: r.profitPerUnit, breakevenUnits: r.breakevenUnits, paybackMonths: r.paybackMonths, monthlyProfitAtVol: r.monthlyProfitAtVol,
-      ts: Date.now()
+    editLog(function (log) {
+      var ts = Date.now(); while (log.some(function (x) { return x && x.ts === ts; })) ts++;
+      log.push({
+        name: name, startup: o.startup, fixed: o.fixed, price: o.price, varCost: o.varCost, vol: o.vol,
+        profitPerUnit: r.profitPerUnit, breakevenUnits: r.breakevenUnits, paybackMonths: r.paybackMonths, monthlyProfitAtVol: r.monthlyProfitAtVol,
+        ts: ts
+      });
     });
-    saveLog(log);
     $('bzIdeaName').value = '';
     renderLog();
   }
@@ -503,18 +498,18 @@
     $('bzAddBtn').addEventListener('click', addIdea);
     renderLog();
     doCalc(); /* แสดงผลตั้งต้นทันที */
+    IC.subnav($('ivSubRow'), 'business');
+    IC.onLang(function () {
+      applyStaticI18n(); IC.subnav($('ivSubRow'), 'business');
+      renderIdeaList();
+      if (curIdeaId) showIdeaDetail(curIdeaId);
+      doCalc();
+      if ($('bzChkResult').style.display !== 'none') doChecklist();
+      renderLog();
+    });
+    if (window.TanotData && window.TanotData.onChange) window.TanotData.onChange(function () { renderLog(); });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
-
-  window.omeApplyLang = function () {
-    applyStaticI18n();
-    renderIdeaList();
-    if (curIdeaId) showIdeaDetail(curIdeaId);
-    doCalc();
-    if ($('bzChkResult').style.display !== 'none') doChecklist();
-    renderLog();
-  };
+  init();
 
   window.__biz = { computeBreakeven: computeBreakeven };
 })();
