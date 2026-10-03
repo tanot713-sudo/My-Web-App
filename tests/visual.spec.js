@@ -12,8 +12,6 @@ const PAGES = [
   'invest-bitcoin.html',
   'invest-fund.html',
   'invest-gov-bond.html',
-  'invest-gsb-lottery.html',
-  'invest-baac-lottery.html',
   'invest-lottery.html',
   'invest-news.html',
   'invest-business.html',

@@ -1139,6 +1139,8 @@ const STUBS = {
   'invest-thai-fund.html': 'invest-fund.html#th',
   'invest-global-fund.html': 'invest-fund.html#global',
   'invest-commodities.html': 'invest-gold.html#markets',
+  'invest-gsb-lottery.html': 'invest-lottery.html#gsb',
+  'invest-baac-lottery.html': 'invest-lottery.html#baac',
 };
 test.describe('หน้า redirect ของ URL เดิม', () => {
   for (const [from, to] of Object.entries(STUBS)) {
@@ -1898,5 +1900,105 @@ test.describe('หน้า Bitcoin invest-bitcoin.html', () => {
     await page.check('#fxShowChk');
     await page.fill('#capital', '10000'); await page.fill('#entry', '50000'); await page.fill('#stop', '47500'); await page.click('#calcBtn');
     await expect(page.locator('#riskHeadline .fx-sub')).toContainText('฿');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   หน้า (Playwright) — ส่วนที่ 10: สลาก #gsb #baac #govt (ขั้น 11)
+   ═══════════════════════════════════════════════════════════════════ */
+test.describe('หน้าสลาก invest-lottery.html', () => {
+  const GSB = [{ name: 'ออมสิน 3 ปี', purchDate: '2025-01-01', maturity: '2028-01-01', unitPrice: 100, units: 200, drawFreq: '16', evPerDraw: 0.5, results: { '2025-02-16': 300 }, ts: 12, extra: 'keep' }];
+  const BAAC = [{ name: 'ธ.ก.ส. 2 ปี', purchDate: '2026-01-01', maturity: '2028-01-01', unitPrice: 100, units: 50, drawFreq: '1,16', evPerDraw: 0, results: {}, ts: 13 }];
+  const TIERS_GSB = { unitPrice: '100', units: '200', purchDate: '2026-10-03', maturity: '2027-10-03', drawFreq: '16', guarRate: '0.5', taxExempt: true, tiers: [{ label: 'ที่ 1', amount: 1000, winners: 10, totalUnits: 1000 }, { label: 'ที่ 2', amount: 100, winners: 100, totalUnits: 1000 }] };
+  async function openLottery(page, hash = '', { seed = true } = {}) {
+    const errors = await prepare(page);
+    const hosts = trackExternal(page);
+    await page.addInitScript(([g, b, ts, seed]) => {
+      if (localStorage.getItem('__seeded')) return;
+      if (seed) {
+        localStorage.setItem('tanot:invest:gsblottery', JSON.stringify(g)); localStorage.setItem('tanot:invest:baaclottery', JSON.stringify(b));
+        localStorage.setItem('tanot:invest:gsblottery:tiers', JSON.stringify(ts));
+      }
+      localStorage.setItem('__seeded', '1');
+    }, [GSB, BAAC, TIERS_GSB, seed]);
+    await page.clock.setFixedTime(new Date(NOW));
+    await page.goto('/invest-lottery.html' + hash);
+    await page.waitForSelector('nav.ome-nav');
+    return { errors, hosts };
+  }
+  const get = (page, k) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), k);
+
+  test('ไม่มี hash → #govt (สลากกินแบ่ง) · แท็บออมสิน/ธ.ก.ส. ไม่สร้างแผงและไม่ยิงเน็ต', async ({ page }) => {
+    const { errors, hosts } = await openLottery(page);
+    await expect(page.locator('#lotteryTabs [data-tab="govt"]')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#panelGovt')).toBeVisible();
+    await expect(page.locator('#panelSavings')).toBeHidden();
+    await expect(page.locator('#panelSavings .card')).toHaveCount(0);
+    await expect(page.locator('#ltLoadBtn')).toBeVisible();
+    expect(hosts.filter((h) => !/^fonts\./.test(h))).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test('#gsb: สมุดเดิมครบ · ค่าฟอร์มจากคีย์ :tiers · คำนวณ EV ตรง InvestCalc · เพิ่ม/บันทึกผล/ลบด้วย ts รูปแบบเดิม', async ({ page }) => {
+    const { errors } = await openLottery(page, '#gsb');
+    await expect(page.locator('#lotteryTabs [data-tab="gsb"]')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#gbGuarRate')).toHaveValue('0.5');
+    await expect(page.locator('#tierBox tr[data-ti]')).toHaveCount(2);
+    await expect(page.locator('#lgBox .log-group-hd')).toHaveText('ออมสิน 3 ปี');
+    await page.click('#gbCalcBtn');
+    const tiers = TIERS_GSB.tiers, drawsN = C.drawSchedule(new Date(2026, 9, 3), new Date(2027, 9, 3), [16]).length;
+    const ev = C.evPerUnitPerDraw(tiers);
+    await expect(page.locator('#gbDrawCount')).toHaveText(String(drawsN));
+    await expect(page.locator('#gbEvUnit')).toHaveText('฿' + Math.round(ev).toLocaleString('th-TH'));
+    const res = C.totalExpectedReturn(20000, 0.5, (new Date(2027, 9, 3) - new Date(2026, 9, 3)) / (365.25 * 86400000), tiers, 200, drawsN, true);
+    await expect(page.locator('#gbTotalReturn')).toHaveText('฿' + Math.round(res.totalNet).toLocaleString('th-TH'));
+    await page.fill('#cmpDepRate', '1.5'); await page.click('#cmpBtn');
+    await expect(page.locator('#cmpOut')).toBeVisible();
+    // บันทึก state ลงคีย์ :tiers รูปแบบเดิม
+    const st = await get(page, 'tanot:invest:gsblottery:tiers');
+    expect(Object.keys(st).sort()).toEqual(['drawFreq', 'guarRate', 'maturity', 'purchDate', 'taxExempt', 'tiers', 'unitPrice', 'units']);
+    // สมุด: เพิ่ม → ฟิลด์ตรงเดิม · บันทึกผลงวดที่ผ่านแล้ว → results ของแถวนั้น · ลบด้วย ts
+    const before = await get(page, 'tanot:invest:gsblottery');
+    await page.fill('#lgName', 'ใหม่'); await page.fill('#lgPurchDate', '2026-01-01'); await page.fill('#lgMaturity', '2027-01-01'); await page.click('#lgAdd');
+    const after = await get(page, 'tanot:invest:gsblottery');
+    expect(after[0]).toEqual(before[0]);
+    expect(Object.keys(after[1]).sort()).toEqual(['drawFreq', 'evPerDraw', 'maturity', 'name', 'purchDate', 'results', 'ts', 'unitPrice', 'units']);
+    const inp = page.locator('#lgBox .draw-input[data-ts="' + after[1].ts + '"]').first();
+    await inp.fill('250'); await inp.blur();
+    const withRes = await get(page, 'tanot:invest:gsblottery');
+    expect(Object.values(withRes[1].results)).toEqual([250]);
+    expect(withRes[0]).toEqual(before[0]);
+    await page.locator('#lgBox .log-del[data-ts="' + after[1].ts + '"]').click();
+    expect(await get(page, 'tanot:invest:gsblottery')).toEqual(before);
+    expect(errors).toEqual([]);
+  });
+
+  test('#baac: ใช้คีย์ของ ธ.ก.ส. แยกจากออมสิน · สลับแท็บแล้วฟอร์ม/สมุดเปลี่ยนตามชนิด · ข้อความเฉพาะชนิด', async ({ page }) => {
+    await openLottery(page, '#gsb');
+    await expect(page.locator('#lgBox .log-group-hd')).toHaveText('ออมสิน 3 ปี');
+    await page.click('#lotteryTabs [data-tab="baac"]');
+    expect(new URL(page.url()).hash).toBe('#baac');
+    await expect(page.locator('#lgBox .log-group-hd')).toHaveText('ธ.ก.ส. 2 ปี');
+    await expect(page.locator('#gbGuarRate')).toHaveValue('0.1'); // ธ.ก.ส. ไม่มีค่าฟอร์มที่บันทึกไว้ = ค่าเริ่มต้น
+    await expect(page.locator('h1')).toContainText('ธ.ก.ส.');
+    await page.fill('#gbPurchDate', '2026-10-03'); await page.fill('#gbMaturity', '2027-10-03');
+    await page.fill('#tierBox tr[data-ti="0"] .t-amount', '500'); await page.fill('#tierBox tr[data-ti="0"] .t-winners', '1'); await page.fill('#tierBox tr[data-ti="0"] .t-total', '100');
+    await page.click('#gbCalcBtn');
+    expect((await get(page, 'tanot:invest:baaclottery:tiers')).tiers[0]).toMatchObject({ amount: 500, winners: 1, totalUnits: 100 });
+    expect((await get(page, 'tanot:invest:gsblottery:tiers')).guarRate).toBe('0.5'); // ของออมสินไม่ถูกแตะ
+    await page.click('#lotteryTabs [data-tab="gsb"]');
+    await expect(page.locator('#lgBox .log-group-hd')).toHaveText('ออมสิน 3 ปี');
+    await expect(page.locator('#gbGuarRate')).toHaveValue('0.5');
+  });
+
+  test('#govt เปิดครั้งแรก: ตรวจเลข/สุ่มเลข/ช่วงย้อนหลังทำงาน · สุ่มเลขเขียนคีย์เดิม', async ({ page }) => {
+    const { errors } = await openLottery(page, '#govt');
+    await expect(page.locator('#ltRangeNote')).toBeAttached();
+    await page.click('#ltSpinBtn');
+    await expect(page.locator('#ltSpinDerived')).toBeVisible({ timeout: 10000 });
+    const spins = await get(page, 'tanot:invest:lottery:spins');
+    expect(spins.length).toBe(1); expect(spins[0].n).toMatch(/^\d{6}$/);
+    expect(errors).toEqual([]);
   });
 });

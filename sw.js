@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v614';
+const CACHE = 'ome-v615';
 const PRECACHE = [
   './',
   './index.html',
@@ -165,11 +165,10 @@ const PRECACHE = [
   './invest-gov-bond.html',
   './invest-gov-bond.js',
   './invest-gsb-lottery.html',
-  './invest-gsb-lottery.js',
   './invest-baac-lottery.html',
-  './invest-baac-lottery.js',
   './invest-lottery.html',
   './invest-lottery.js',
+  './invest-savings-lottery.js',
   './sim-objects.html',
   './sim-objects.js',
   './vendor/lightweight-charts.standalone.js',
