@@ -108,9 +108,9 @@
 
   /* ── การ์ดทบทวน + วันติดต่อกัน (learn-core.js — XP/วันติดต่อกัน/เป้ารายวันชุดเดียวทั้งเว็บ) ── */
   var LC = window.LearnCore;
-  var REVIEW_SOURCES = ['lang', 'law', 'biz', 'eng'];
+  var REVIEW_SOURCES = ['lang', 'law', 'biz', 'eng', 'books'];
   function dueCounts(lawNotes) {
-    return LC ? LC.dueCounts(lawNotes) : { lang: 0, law: 0, biz: 0, eng: 0 };
+    return LC ? LC.dueCounts(lawNotes) : { lang: 0, law: 0, biz: 0, eng: 0, books: 0 };
   }
   function renderReview(counts) {
     var total = 0;

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>หนังสือ | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="theme-boot.js"></script>
+<script src="data-registry.js"></script>
+<script src="tanot-data.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<script src="books-calc.js" defer></script>
+<script src="learn-core.js" defer></script>
+<script src="books.js" defer></script>
+<style>
+.bk-page{max-width:980px}
+.bk-page .page-head{align-items:center}
+.bk-page .page-head h1{flex:1;margin:0}
+.bk-page > * + *{margin-top:var(--ome-sp-4)}
+.bk-page .kpi-value small{font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2);margin-left:4px}
+.bk-bar{height:8px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-2);overflow:hidden}
+.bk-bar > i{display:block;height:100%;border-radius:inherit;background:var(--ome-accent)}
+.bk-bar.ok > i{background:var(--ome-ok)}
+.bk-book{display:flex;gap:var(--ome-sp-3);padding:var(--ome-sp-3) 0}
+.bk-book + .bk-book{border-top:1px solid var(--ome-border)}
+.bk-cover{position:relative;flex:0 0 64px;width:64px;height:92px;border-radius:var(--ome-radius-sm);background:var(--ome-surface-2);
+  border:1px solid var(--ome-border);display:grid;place-items:center;color:var(--ome-text-3);overflow:hidden}
+.bk-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.bk-cover .ome-icon{width:24px;height:24px}
+.bk-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.bk-title{font-weight:700;font-size:var(--ome-fs-md);overflow-wrap:anywhere}
+.bk-meta{color:var(--ome-text-2);font-size:var(--ome-fs-sm);overflow-wrap:anywhere}
+.bk-stars{color:var(--ome-warn);letter-spacing:1px}
+.bk-review{font-size:var(--ome-fs-sm);white-space:pre-wrap;overflow-wrap:anywhere}
+.bk-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.bk-chart{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;align-items:end;height:140px}
+.bk-col{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%;font-size:11px;color:var(--ome-text-2)}
+.bk-col i{display:block;width:100%;max-width:36px;min-height:2px;border-radius:4px 4px 0 0;background:var(--ome-accent)}
+.bk-col.cur i{background:var(--ome-ok)}
+.bk-col b{font-weight:600;color:var(--ome-text-1)}
+.bk-note{padding:var(--ome-sp-3) 0;display:flex;flex-direction:column;gap:6px}
+.bk-note + .bk-note{border-top:1px solid var(--ome-border)}
+.bk-quote{white-space:pre-wrap;overflow-wrap:anywhere;border-left:3px solid var(--ome-accent);padding-left:10px}
+.bk-sr{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.bk-hit{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:6px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);
+  background:var(--ome-surface-0);color:var(--ome-text-1);cursor:pointer;font:inherit}
+.bk-hit:hover,.bk-hit:focus-visible{border-color:var(--ome-accent)}
+.bk-hit .bk-cover{flex-basis:36px;width:36px;height:52px}
+.bk-hit .bk-cover .ome-icon{width:16px;height:16px}
+.bk-dialog{width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
+.bk-dialog .dialog-body > * + *{margin-top:var(--ome-sp-3)}
+.bk-msg{color:var(--ome-text-2);font-size:var(--ome-fs-sm)}
+.bk-msg:empty{display:none}
+.bk-msg.err{color:var(--ome-err-ink)}
+.bk-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bk-tools .grow{flex:1}
+[hidden]{display:none !important}
+@media (max-width:480px){.bk-cover{flex-basis:52px;width:52px;height:76px}}
+</style>
+</head>
+<body data-layout="reader">
+<main class="page bk-page">
+  <div class="page-head">
+    <h1>หนังสือ</h1>
+    <button class="btn primary" type="button" id="addBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มหนังสือ</button>
+  </div>
+
+  <div class="tabs" role="tablist" id="tabs">
+    <button class="tab" type="button" role="tab" data-tab="shelf" aria-selected="true">ชั้นหนังสือ</button>
+    <button class="tab" type="button" role="tab" data-tab="stats" aria-selected="false">สถิติ</button>
+    <button class="tab" type="button" role="tab" data-tab="notes" aria-selected="false">ไฮไลต์</button>
+  </div>
+
+  <section id="paneShelf" class="card">
+    <div class="bk-tools"><div class="segmented" id="shelfSeg" role="group" aria-label="ชั้น"></div></div>
+    <div id="shelf"></div>
+  </section>
+
+  <section id="paneStats" hidden class="stack">
+    <div class="kpi-grid" id="kpis"></div>
+    <div class="card">
+      <div class="card-head"><h2>หน้าต่อสัปดาห์</h2></div>
+      <div class="bk-chart" id="chart" role="img" aria-label="หน้าต่อสัปดาห์ 8 สัปดาห์ล่าสุด"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>เป้าหนังสือปีนี้</h2><select id="goalSel" class="select" aria-label="เป้าเล่มต่อปี"></select></div>
+      <div id="goalBox"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>บันทึกการอ่าน</h2></div>
+      <div class="list" id="logList"></div>
+    </div>
+  </section>
+
+  <section id="paneNotes" hidden class="card">
+    <div class="bk-tools">
+      <select id="noteBook" class="select grow" aria-label="หนังสือ"></select>
+      <button class="btn" type="button" id="addNote"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-highlighter"/></svg>เพิ่มไฮไลต์</button>
+    </div>
+    <div id="noteList"></div>
+  </section>
+</main>
+
+<dialog class="dialog bk-dialog" id="bdlg" aria-labelledby="bTitleH">
+  <form method="dialog" id="bform" novalidate>
+    <div class="dialog-head"><h2 id="bTitleH">หนังสือ</h2></div>
+    <div class="dialog-body">
+      <div id="searchBox">
+        <div class="field"><label for="sQ">ค้นหาหนังสือ (Open Library)</label>
+          <div class="row"><input id="sQ" type="search" maxlength="120" autocomplete="off" style="flex:1"><button class="btn" type="button" id="sGo"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-search"/></svg>ค้นหา</button></div>
+        </div>
+        <p class="bk-msg" id="sMsg" role="status"></p>
+        <div class="bk-sr" id="sRes"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="bTitle">ชื่อหนังสือ</label><input id="bTitle" type="text" maxlength="200" autocomplete="off"></div>
+        <div class="field"><label for="bAuthor">ผู้แต่ง</label><input id="bAuthor" type="text" maxlength="200" autocomplete="off"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="bStatus">ชั้น</label><select id="bStatus" class="select"><option value="want">อยากอ่าน</option><option value="reading">กำลังอ่าน</option><option value="done">อ่านจบ</option></select></div>
+        <div class="field"><label for="bPages">จำนวนหน้า</label><input id="bPages" type="number" inputmode="numeric" min="0" step="1"></div>
+        <div class="field"><label for="bCur">อ่านถึงหน้า</label><input id="bCur" type="number" inputmode="numeric" min="0" step="1"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="bStart">วันเริ่ม</label><input id="bStart" type="date"></div>
+        <div class="field"><label for="bEnd">วันจบ</label><input id="bEnd" type="date"></div>
+        <div class="field"><label for="bRating">คะแนน</label><select id="bRating" class="select"></select></div>
+      </div>
+      <div class="field"><label for="bReview">รีวิวสั้น</label><textarea id="bReview" rows="3" maxlength="1000"></textarea></div>
+      <p class="bk-msg err" id="bMsg" role="alert"></p>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn danger" type="button" id="bDel" style="margin-right:auto">ลบ</button>
+      <button class="btn" type="button" id="bCancel">ยกเลิก</button>
+      <button class="btn primary" type="submit" id="bSave">บันทึก</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="dialog bk-dialog" id="ldlg" aria-labelledby="lTitleH">
+  <form method="dialog" id="lform" novalidate>
+    <div class="dialog-head"><h2 id="lTitleH">บันทึกการอ่าน</h2></div>
+    <div class="dialog-body">
+      <div class="frow">
+        <div class="field"><label for="lDate">วันที่</label><input id="lDate" type="date"></div>
+        <div class="field"><label for="lPages">อ่านกี่หน้า</label><input id="lPages" type="number" inputmode="numeric" min="0" step="1"></div>
+        <div class="field"><label for="lMin">กี่นาที</label><input id="lMin" type="number" inputmode="numeric" min="0" step="1"></div>
+      </div>
+      <div class="field"><label for="lTo">อ่านถึงหน้า</label><input id="lTo" type="number" inputmode="numeric" min="0" step="1"></div>
+      <p class="bk-msg err" id="lMsg" role="alert"></p>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn" type="button" id="lCancel">ยกเลิก</button>
+      <button class="btn primary" type="submit">บันทึก</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="dialog bk-dialog" id="ndlg" aria-labelledby="nTitleH">
+  <form method="dialog" id="nform" novalidate>
+    <div class="dialog-head"><h2 id="nTitleH">ไฮไลต์</h2></div>
+    <div class="dialog-body">
+      <div class="frow">
+        <div class="field"><label for="nBookSel">หนังสือ</label><select id="nBookSel" class="select"></select></div>
+        <div class="field"><label for="nPage">หน้า</label><input id="nPage" type="number" inputmode="numeric" min="0" step="1"></div>
+      </div>
+      <div class="field"><label for="nText">ข้อความ / โน้ต</label><textarea id="nText" rows="5" maxlength="2000"></textarea></div>
+      <div class="field"><label for="nQ">คำถามหน้าการ์ด (ไม่บังคับ)</label><input id="nQ" type="text" maxlength="300" autocomplete="off"></div>
+      <p class="bk-msg err" id="nMsg" role="alert"></p>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn" type="button" id="nCancel">ยกเลิก</button>
+      <button class="btn primary" type="submit">บันทึก</button>
+    </div>
+  </form>
+</dialog>
+</body>
+</html>

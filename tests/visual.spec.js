@@ -49,6 +49,7 @@ const PAGES = [
   'cooking.html',
   'coding.html',
   'typing.html',
+  'books.html',
   'doc-check.html',
   'doc-check-file.html',
   'extract-text.html',
@@ -58,6 +59,7 @@ const PAGES = [
   'credits.html',
   'notifications.html',
   'area.html?a=work',
+  'area.html?a=edu',
 ];
 const WIDTHS = [390, 1100];
 const THEMES = ['light', 'dark'];
@@ -65,7 +67,8 @@ const THEMES = ['light', 'dark'];
 for (const p of PAGES) {
   for (const w of WIDTHS) {
     for (const theme of THEMES) {
-      const name = `${p.split('?')[0].replace('.html', '')}-${w}-${theme}.png`;
+      const area = /^area\.html\?a=(?!work$)(\w+)/.exec(p); // area.html?a=work ใช้ชื่อเดิม (baseline เดิม) — หมวดอื่นต่อท้ายชื่อหมวด
+      const name = `${p.split('?')[0].replace('.html', '')}${area ? '-' + area[1] : ''}-${w}-${theme}.png`;
       test(`visual: ${name}`, async ({ page }) => {
         await prepare(page, { theme });
         // หน้าแรกแสดงวันที่/นาฬิกา — ตรึงเวลาไว้ ไม่งั้น baseline เปลี่ยนทุกวัน

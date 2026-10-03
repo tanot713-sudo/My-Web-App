@@ -38,7 +38,8 @@
     sports:  { area: 'hobby', label: 'กีฬา',      href: 'sports.html',                icon: 'dumbbell' },
     cooking: { area: 'hobby', label: 'ทำอาหาร',   href: 'cooking.html',               icon: 'chef-hat' },
     coding:  { area: 'hobby', label: 'เขียนโค้ด',  href: 'coding.html',                icon: 'code' },
-    typing:  { area: 'hobby', label: 'พิมพ์ดีด',   href: 'typing.html',                icon: 'keyboard' }
+    typing:  { area: 'hobby', label: 'พิมพ์ดีด',   href: 'typing.html',                icon: 'keyboard' },
+    books:   { area: 'edu',   label: 'หนังสือ',   href: 'books.html',                 icon: 'book-open' }
   };
   var SRC_ORDER = Object.keys(SOURCES);
 
@@ -217,6 +218,11 @@
     Object.keys(map).forEach(function (k) { var r = map[k]; if (r && typeof r === 'object' && Number(r[field]) <= now) n++; });
     return n;
   }
+  function countDueList(rows, field, now) {
+    var n = 0;
+    (rows || []).forEach(function (r) { if (r && typeof r === 'object' && Number(r[field]) <= now) n++; });
+    return n;
+  }
   // ระบบขั้นบันไดของห้องเรียนธุรกิจ/วิศวะ (ตรงกับ nextSrs ในหน้านั้น): ถูก → 1→3→7→14→30 วัน, ผิด → 1 วัน
   var LBE_STEPS = [1, 3, 7, 14, 30];
   function lbeNext(prev, correct, now) {
@@ -322,7 +328,8 @@
       law: law,
       lang: countDue(read('lang-practice:srs', {}), 'dueAt', now),
       biz: countDue(read('lbe:business:srs', {}), 'due', now),
-      eng: countDue(read('lbe:engineering:srs', {}), 'due', now)
+      eng: countDue(read('lbe:engineering:srs', {}), 'due', now),
+      books: countDueList(list('tanot:books:cards'), 'dueAt', now)
     };
   }
   function lawNotes() {
