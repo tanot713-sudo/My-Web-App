@@ -2,7 +2,7 @@
    GET  → { items: [...] } รายการที่ยังไม่ถึง/วันนี้ (เวลาไทย) เรียงตามเวลา
    POST { scope, items: [{ id, title, body, url, due_at, kind: 'push'|'digest', repeat }] }
         → แทนที่ทั้ง scope (ลบรายการเดิมที่ไม่อยู่ใน items) → { scope, total, changed, removed, dropped }
-   scope ที่ใช้อยู่: insurance (insurance-calc.js), tax (tax-calc.js), maintenance (mnt-calc.js), receipts (receipts-calc.js) */
+   scope ที่ใช้อยู่: insurance (insurance-calc.js), tax (tax-calc.js), maintenance (mnt-calc.js), receipts (receipts-calc.js), car (car-calc.js) */
 import { json, guard, readJson, replaceScope } from '../../_lib/push.js';
 import { ictDayStart } from '../../_lib/reminders.js';
 

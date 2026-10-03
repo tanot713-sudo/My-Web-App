@@ -79,6 +79,10 @@
     { key: 'tanot:receipts:items', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:receipts:taxsummary', kind: 'sync' },
 
+    // ── บันทึกรถ (car.html) — 1 คัน = 1 แถว · 1 ครั้งเข้าศูนย์/ซ่อม = 1 แถว (ผูกรถด้วย vehicleId) ──
+    { key: 'tanot:car:vehicles', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:car:services', kind: 'sync', mode: 'list', idField: 'id' },
+
     // ── รายการที่เพิ่มได้จากหลายเครื่อง (แยกรายการย่อย) ──
     { key: 'tanot:insurance:policies', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'budget:records', kind: 'sync', mode: 'list', idField: 'id' },

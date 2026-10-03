@@ -9,6 +9,7 @@
    บันทึกงานบำรุงรักษา: tanot:mnt:assets|plans|settings + IndexedDB tanot-mnt-<ปีนี้>/insp, tanot-mnt-<ปีก่อน>/insp, tanot-mnt/wo|woev
    (รูปแบบ + การคำนวณรอบ/ใบงานอยู่ใน mnt-calc.js — หน้านี้โหลดไฟล์นั้นด้วย),
    คลังใบเสร็จ: tanot:receipts:items (รูปแบบใบเสร็จ + วันหมดประกันสินค้าอยู่ใน receipts-calc.js — หน้านี้โหลดไฟล์นั้นด้วย; การ์ดซ่อนไว้จนกว่าจะมีใบเสร็จที่ระบุประกัน),
+   บันทึกรถ: tanot:car:vehicles|services (+ tanot:insurance:policies อ่านจับกรมธรรม์รถ; รูปแบบ + กำหนดต่ออายุ/นัดเข้าศูนย์อยู่ใน car-calc.js — หน้านี้โหลดไฟล์นั้นด้วย; การ์ดซ่อนไว้จนกว่าจะมีกำหนดภายใน 60 วัน),
    สุขภาพ: tanot:health:vitals|meds|intake|ranges|workouts|settings (รูปแบบ + ช่วงปกติ + ตารางกินยาอยู่ใน health-calc.js — หน้านี้โหลดไฟล์นั้นด้วย)
    ══════════════════════════════════════════════════════════════════ */
 (function () {
@@ -265,6 +266,23 @@
     }).join('') + '</div>';
   }
 
+  /* ── รถ (พ.ร.บ./ภาษี/ประกัน/ตรอ./นัดเข้าศูนย์ ที่ถึงกำหนดภายใน 60 วัน รวมที่เลยกำหนด) — การ์ดโผล่เมื่อมีรายการอย่างน้อยหนึ่งรายการ ── */
+  function renderCar() {
+    var card = $('carCard'), el = $('carBody'), CC = window.CarCalc;
+    var vehicles = rd('tanot:car:vehicles', []), services = rd('tanot:car:services', []);
+    var due = CC && isArr(vehicles) ? CC.dueList(vehicles, isArr(services) ? services : [], rd('tanot:insurance:policies', []), new Date(), 60) : [];
+    card.hidden = !due.length;
+    if (!due.length) return;
+    el.innerHTML = '<div class="list">' + due.slice(0, 6).map(function (x) {
+      var d = x.days, badge = x.kind === 'service' && !x.date ? (x.service.state === 'overdue' ? '<span class="badge err">ถึงกำหนดตามไมล์</span>' : '<span class="badge warn">ใกล้ถึง</span>') : d < 0 ? '<span class="badge err">เลยกำหนด ' + num(-d) + ' วัน</span>'
+        : d === 0 ? '<span class="badge warn">วันนี้</span>'
+        : '<span class="badge ' + (d <= 30 ? 'warn' : 'info') + '">อีก ' + num(d) + ' วัน</span>';
+      return '<a class="list-row" href="car.html"><span class="lead">' + icon(x.kind === 'insurance' ? 'shield' : x.kind === 'service' || x.kind === 'inspect' ? 'wrench' : 'car') + '</span>' +
+        '<div class="grow"><div class="title">' + esc(x.label + ' · ' + CC.title(x.vehicle)) + '</div><div class="meta">' + esc(x.date ? CC.thDate(CC.parseDate(x.date)) : (x.service && x.service.nextKm ? 'ที่ ' + num(x.service.nextKm) + ' กม.' : '')) + '</div></div>' +
+        '<div class="right">' + badge + '</div></a>';
+    }).join('') + '</div>';
+  }
+
   /* ── งานบำรุงรักษา (เลยกำหนด/ถึงกำหนด + ใบสั่งงานที่เปิดอยู่) ── */
   var mntToken = 0;
   function renderMaintenance() {
@@ -340,6 +358,7 @@
     renderMaintenance();
     renderHealth();
     renderWarranty();
+    renderCar();
     Promise.all([rdIdb('tanot-barprep', 'notes'), rdIdb('tanot-report-dashboard', 'reports', { last: 5 })]).then(function (r) {
       renderReview(dueCounts(r[0]));
       renderFiles(r[1]);

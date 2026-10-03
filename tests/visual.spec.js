@@ -29,6 +29,7 @@ const PAGES = [
   'insurance.html',
   'health.html',
   'receipts.html',
+  'car.html',
   'maintenance.html',
   'compare.html',
   'slides.html',

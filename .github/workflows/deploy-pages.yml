@@ -85,6 +85,8 @@ jobs:
         run: npx playwright test slides.spec.js
       - name: cooking-plan (cooking-plan-calc.js known-answer — รวมวัตถุดิบ/แปลงหน่วย/ปรับจำนวนที่, แผนสัปดาห์ → รายการซื้อของ, ติ๊ก 2 เครื่องพร้อมกันไม่หาย, ส่ง budget ไม่ซ้ำ, AI ปลอมแยกสูตรและไม่เรียก /api/ocr, XP ครั้งเดียวต่อมื้อ, คีย์เดิมของบทเรียนไม่ถูกแตะ)
         run: npx playwright test cooking-plan.spec.js
+      - name: car (car-calc.js known-answer — กำหนดต่ออายุ/ตรอ. รถเกิน 7 ปี/นัดเข้าศูนย์ไมล์หรือเวลา/reminders ถูกวัน, หน้าบันทึกรถ, ส่ง budget ไม่ซ้ำ, ไฟล์ R2, อ่านกรมธรรม์รถอย่างเดียว, การ์ดหน้าวันนี้, ซิงก์ 2 เครื่อง)
+        run: npx playwright test car.spec.js
       - name: typing (ผังแป้นเกษมณีทั้ง 2 ชั้นเทียบตารางในคอมเมนต์, อักษรของบทชั้น Shift ต้องอยู่ในผัง, พิมพ์จบบท th-shift-letters ด้วย event.key + XP, ไฮไลต์ Shift ฝั่งตรงข้ามมือ, เตือนแป้นไม่ใช่ภาษาไทย, บทเดิม/ความคืบหน้าเดิมไม่เปลี่ยน)
         run: npx playwright test typing.spec.js
       - name: github-redirect (GitHub Pages แบบ redirect ไป pages.dev)
