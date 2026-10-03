@@ -94,5 +94,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8132/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // compare.spec.js: ใบเสนอราคา — /api/files (ns compare) + ซิงก์ 2 เครื่อง — แยกพอร์ตเพราะมี /__reset
+      command: 'node --no-warnings sync-server.mjs 8133',
+      cwd: __dirname,
+      url: 'http://localhost:8133/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

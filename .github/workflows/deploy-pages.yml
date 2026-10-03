@@ -79,6 +79,8 @@ jobs:
         run: npx playwright test health.spec.js
       - name: receipts (receipts-calc.js known-answer, อ่านใบเสร็จฟรี Tesseract+AI ปลอม — ไม่เรียก /api/ocr ถ้าไม่กดปุ่ม Claude, ส่งเข้า budget ไม่ซ้ำ, ประกันสินค้า+reminders, ป้ายภาษี → หน้าภาษี, ไฟล์ R2, ซิงก์ 2 เครื่อง)
         run: npx playwright test receipts.spec.js
+      - name: compare (compare-calc.js known-answer — diff ตาราง/ข้อความไทย/คะแนนราคา, หน้าเทียบตาราง xlsx 2 ไฟล์ + ส่งออก, เทียบ docx, ใบเสนอราคา + ไฟล์ R2 + ซิงก์ 2 เครื่อง, 20,000 แถว)
+        run: npx playwright test compare.spec.js
       - name: github-redirect (GitHub Pages แบบ redirect ไป pages.dev)
         run: npx playwright test github-redirect.spec.js
       - name: Upload Playwright report

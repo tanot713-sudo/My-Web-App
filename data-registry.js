@@ -56,6 +56,9 @@
     { key: 'tanot:mnt:settings', kind: 'sync' },
 
     // ── สุขภาพ (health.html) — 1 การบันทึก = 1 แถว · intake id = ยา|วัน|เวลา (กดกินพร้อมกัน 2 เครื่อง = แถวเดียวกัน) ──
+    // ── เปรียบเทียบข้อมูล (compare.html) — เฉพาะงานให้คะแนนใบเสนอราคา (1 งาน = 1 แถว) · ไฟล์ที่เทียบในแท็บตาราง/เอกสารไม่เก็บ ──
+    { key: 'tanot:compare:quotes', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:compare:ui', kind: 'local' },
     { key: 'tanot:health:vitals', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:checkups', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:meds', kind: 'sync', mode: 'list', idField: 'id' },
