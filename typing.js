@@ -1,37 +1,64 @@
 /* ══════════════════════════════════════════════════════════════════
    Tanot — typing.js
    สอนพิมพ์สัมผัส (touch typing) ไทย/อังกฤษ: บทเรียนไล่ระดับ (แถวกลาง → คีย์บอร์ดเต็ม →
-   คำศัพท์ → ประโยค) วัดความเร็ว (WPM) และความแม่นยำแบบ real-time พร้อมคีย์บอร์ดเสมือน
+   คำศัพท์ → ประโยค → แป้น Shift) วัดความเร็ว (WPM) และความแม่นยำแบบ real-time พร้อมคีย์บอร์ดเสมือน
    ไฮไลต์ปุ่มที่ต้องกดถัดไป — ประมวลผลทั้งหมดในเบราว์เซอร์ ไม่มีอะไรถูกอัปโหลดขึ้นเซิร์ฟเวอร์
 
-   ⚠️ ขอบเขตสำคัญของบทเรียนภาษาไทย: ใช้เฉพาะตัวอักษรที่อยู่ "แป้นไม่กด Shift" ของผังแป้นพิมพ์
-   เกษมณี (Kedmanee) เท่านั้น — แป้น Shift ของผังนี้มีอักษร/สระ/วรรณยุกต์อีกชุดหนึ่ง (เช่น โ ศ ษ ฮ
-   ฯลฯ) ซึ่งไม่ได้ตรวจทานตำแหน่งละเอียดพอจะยืนยันความถูกต้อง 100% จึงตัดออกจากขอบเขตเฟสนี้
-   ไปก่อน (กันสอนข้อมูลผิดเรื่องตำแหน่งแป้นซึ่งเป็นเรื่องที่ตรวจสอบได้ง่ายถ้าพลาด) — คำศัพท์ที่เลือก
-   มาทั้งหมดในไฟล์นี้ตรวจสอบแล้วว่าประกอบด้วยตัวอักษรที่ไม่ต้องกด Shift ล้วนๆ
+   ขอบเขต: ผังแป้นพิมพ์ไทยเกษมณี (Kedmanee, มอก. 820-2538) ครบทั้ง 2 ชั้น (ไม่กด Shift / กด Shift)
+   คู่กับผัง QWERTY ชั้นเดียวกัน — บทเรียนเดิมทุกบท (id ขึ้นต้น en-home … th-sentences) ใช้เฉพาะชั้นไม่กด
+   Shift และไม่ถูกแก้เลย ส่วนบทชั้น Shift เป็น track ใหม่ (`en-shift*`, `th-shift-*`, ตั้ง `shift: true`)
+   ความคืบหน้าผูกกับ `<trackId>::<ลำดับบท>` จึงห้ามเปลี่ยน id/ลำดับบทที่มีอยู่แล้ว เพิ่มได้เฉพาะต่อท้าย
+
+   ตรวจคำตอบจาก "ตัวอักษรที่ได้จริง" (ค่าในช่องพิมพ์ / event.key) ไม่ใช้ keyCode — ใช้ได้ไม่ว่าเครื่องตั้งแป้นไทย
+   เกษมณีหรือสลับภาษาผ่าน IME; ถ้าบทภาษาไทยได้ตัวอักษรละติน (event.key) จะขึ้นสถานะเตือนสั้นๆ ว่าแป้นไม่ใช่ภาษาไทย
+
+   ผังแป้นทั้งสองชั้น (ตรวจทานได้ที่นี่ — tests/typing.spec.js อ่านตารางนี้เทียบกับ KB_ROWS ทุกปุ่ม)
+   รูปแบบ: R<แถว> <ชั้น>: ตามลำดับปุ่มซ้าย→ขวา คั่นด้วยช่องว่าง (อักขระผสม เช่น ุ ็ แสดงเดี่ยวๆ ได้)
+   R1 en  : ` 1 2 3 4 5 6 7 8 9 0 - =
+   R1 EN^ : ~ ! @ # $ % ^ & * ( ) _ +
+   R1 th  : _ ๅ / - ภ ถ ุ ึ ค ต จ ข ช
+   R1 TH^ : % + ๑ ๒ ๓ ๔ ู ฿ ๕ ๖ ๗ ๘ ๙
+   R2 en  : q w e r t y u i o p [ ] \
+   R2 EN^ : Q W E R T Y U I O P { } |
+   R2 th  : ๆ ไ ำ พ ะ ั ี ร น ย บ ล ฃ
+   R2 TH^ : ๐ " ฎ ฑ ธ ํ ๊ ณ ฯ ญ ฐ , ฅ
+   R3 en  : a s d f g h j k l ; '
+   R3 EN^ : A S D F G H J K L : "
+   R3 th  : ฟ ห ก ด เ ้ ่ า ส ว ง
+   R3 TH^ : ฤ ฆ ฏ โ ฌ ็ ๋ ษ ศ ซ .
+   R4 en  : z x c v b n m , . /
+   R4 EN^ : Z X C V B N M < > ?
+   R4 th  : ผ ป แ อ ิ ื ท ม ใ ฝ
+   R4 TH^ : ( ) ฉ ฮ ฺ ์ ? ฒ ฬ ฦ
+   (ตัวที่มักสลับ: ฃ ฅ ฦ ๅ ฯ — ฃ ๅ อยู่ชั้นไม่กด Shift · ฅ ฯ ฦ อยู่ชั้น Shift · เลขไทย ๑–๙ อยู่ชั้น Shift ของปุ่ม 2–0 - =
+   ส่วน ๐ อยู่ชั้น Shift ของปุ่ม q)
    ══════════════════════════════════════════════════════════════════ */
 (function () {
 'use strict';
 
 /* ══════════════════════════════════════════════════════════════════
    ผังแป้นพิมพ์ (สำหรับวาดคีย์บอร์ดเสมือน + หาตำแหน่งปุ่มที่ต้องกดถัดไป)
-   แต่ละปุ่ม = [en, th] (อักษรที่ได้เมื่อกดแป้นนี้แบบไม่กด Shift)
+   แต่ละปุ่ม = [en, th, enShift, thShift] — สองตัวแรกคืออักษรที่ได้เมื่อไม่กด Shift (ลำดับเดิม ห้ามสลับ
+   เพราะโค้ดเก่าอ่าน key[0]/key[1]) สองตัวหลังคืออักษรเมื่อกด Shift ค้าง · ตรงกับตารางในคอมเมนต์หัวไฟล์
    ══════════════════════════════════════════════════════════════════ */
 var KB_ROWS = [
-  [['`','_'],['1','ๅ'],['2','/'],['3','-'],['4','ภ'],['5','ถ'],['6','ุ'],['7','ึ'],['8','ค'],['9','ต'],['0','จ'],['-','ข'],['=','ช']],
-  [['q','ๆ'],['w','ไ'],['e','ำ'],['r','พ'],['t','ะ'],['y','ั'],['u','ี'],['i','ร'],['o','น'],['p','ย'],['[','บ'],[']','ล']],
-  [['a','ฟ'],['s','ห'],['d','ก'],['f','ด'],['g','เ'],['h','้'],['j','่'],['k','า'],['l','ส'],[';','ว'],["'",'ง']],
-  [['z','ผ'],['x','ป'],['c','แ'],['v','อ'],['b','ิ'],['n','ื'],['m','ท'],[',','ม'],['.','ใ'],['/','ฝ']]
+  [['`','_','~','%'],['1','ๅ','!','+'],['2','/','@','๑'],['3','-','#','๒'],['4','ภ','$','๓'],['5','ถ','%','๔'],['6','ุ','^','ู'],['7','ึ','&','฿'],['8','ค','*','๕'],['9','ต','(','๖'],['0','จ',')','๗'],['-','ข','_','๘'],['=','ช','+','๙']],
+  [['q','ๆ','Q','๐'],['w','ไ','W','"'],['e','ำ','E','ฎ'],['r','พ','R','ฑ'],['t','ะ','T','ธ'],['y','ั','Y','ํ'],['u','ี','U','๊'],['i','ร','I','ณ'],['o','น','O','ฯ'],['p','ย','P','ญ'],['[','บ','{','ฐ'],[']','ล','}',','],['\\','ฃ','|','ฅ']],
+  [['a','ฟ','A','ฤ'],['s','ห','S','ฆ'],['d','ก','D','ฏ'],['f','ด','F','โ'],['g','เ','G','ฌ'],['h','้','H','็'],['j','่','J','๋'],['k','า','K','ษ'],['l','ส','L','ศ'],[';','ว',':','ซ'],["'",'ง','"','.']],
+  [['z','ผ','Z','('],['x','ป','X',')'],['c','แ','C','ฉ'],['v','อ','V','ฮ'],['b','ิ','B','ฺ'],['n','ื','N','์'],['m','ท','M','?'],[',','ม','<','ฒ'],['.','ใ','>','ฬ'],['/','ฝ','?','ฦ']]
 ];
-var HOME_COLS = { 2: [0,1,2,3,8,9,10] }; /* แถวที่ 3 (index 2) คือแถวกลาง — คอลัมน์ a s d f ; ' ก็ยังนับ แต่ปุ่มบ้านจริงๆ คือ a s d f j k l ; (ดูด้านล่าง) */
 var HOME_KEYS_EN = ['a','s','d','f','j','k','l',';'];
 
-/* ตารางย้อนกลับ: อักษร -> ตำแหน่งปุ่ม {r,c} — ใช้หาว่าอักษรถัดไปที่ต้องพิมพ์อยู่ปุ่มไหน */
-function buildCharMap(layoutIdx) {
+/* ตารางย้อนกลับ: อักษร -> ตำแหน่งปุ่ม {r,c,shift} — ใช้หาว่าอักษรถัดไปที่ต้องพิมพ์อยู่ปุ่มไหนและต้องกด Shift ไหม
+   (ใส่ชั้นไม่กด Shift ก่อน ไม่ทับตัวที่มีอยู่แล้ว — tests/typing.spec.js ยืนยันว่าไม่มีอักษรซ้ำข้ามชั้น) */
+function buildCharMap(baseIdx) {
   var map = {};
-  KB_ROWS.forEach(function (row, r) {
-    row.forEach(function (key, c) {
-      map[key[layoutIdx]] = { r: r, c: c };
+  [false, true].forEach(function (shift) {
+    KB_ROWS.forEach(function (row, r) {
+      row.forEach(function (key, c) {
+        var ch = key[baseIdx + (shift ? 2 : 0)];
+        if (!(ch in map)) map[ch] = { r: r, c: c, shift: shift };
+      });
     });
   });
   map[' '] = { space: true };
@@ -66,6 +93,9 @@ function fingerFor(r, c) {
   if (c === 3 || c === 4) return 'li'; if (c === 5 || c === 6) return 'ri';
   if (c === 7) return 'rm'; return c === 8 ? 'rr' : 'rp';
 }
+/* มือที่กดปุ่ม (l/r) และฝั่งปุ่ม Shift ที่ต้องกด — ตามหลักพิมพ์สัมผัสใช้ Shift ฝั่งตรงข้ามกับมือที่กดอักษร */
+function handOf(r, c) { return fingerFor(r, c).charAt(0); }
+function shiftSideFor(r, c) { return handOf(r, c) === 'l' ? 'r' : 'l'; }
 var FINGER_NAMES = {
   lp: { th: 'ก้อยซ้าย', en: 'Left Pinky' }, lr: { th: 'นางซ้าย', en: 'Left Ring' },
   lm: { th: 'กลางซ้าย', en: 'Left Middle' }, li: { th: 'ชี้ซ้าย', en: 'Left Index' },
@@ -162,6 +192,74 @@ var TRACKS = [
       { title: 'ประโยคที่ 4', text: 'ครอบครัวของฉันชอบไปเที่ยวทะเลกันทุกปี' },
       { title: 'ประโยคที่ 5', text: 'อย่าลืมวางนิ้วบนแป้นกลางแล้วมองจอ ไม่ต้องมองแป้นพิมพ์' }
     ]
+  },
+  {
+    id: 'en-shift', lang: 'en', shift: true, label: 'Shift (อังกฤษ)', labelEn: 'Shift Keys (English)',
+    desc: '',
+    lessons: [
+      { title: 'ตัวใหญ่ มือซ้าย', text: 'Sam Ted Eve Ada Fred Greg Bart Cara Dave Zara' },
+      { title: 'ตัวใหญ่ มือขวา', text: 'Kim Lily Paul Joy Holly Molly Neil Jill Uma Owen' },
+      { title: 'ตัวใหญ่ ผสม', text: 'Mary and John met Paul in London and Paris' },
+      { title: 'เครื่องหมาย ! @ # $ %', text: 'Wow! #1 $50 100% me@mail.com' },
+      { title: 'เครื่องหมาย ( ) : " ?', text: 'Note: (ok) "Yes" or "No"?' },
+      { title: 'เครื่องหมายอื่นๆ', text: 'Tom & Jerry: A+ * a_b {x} <y> a|b ~z ^w' }
+    ]
+  },
+  {
+    id: 'en-shift-sentences', lang: 'en', shift: true, label: 'Shift: ประโยค (อังกฤษ)', labelEn: 'Shift Sentences (English)',
+    desc: '',
+    lessons: [
+      { title: 'ประโยคที่ 1', text: 'Hello! My name is Anna, and I live in Bangkok.' },
+      { title: 'ประโยคที่ 2', text: 'Do you know where Tom works? He works in London.' },
+      { title: 'ประโยคที่ 3', text: 'Wow! Thank you very much, Professor Smith.' },
+      { title: 'ประโยคที่ 4', text: 'She said, "Practice makes perfect," and smiled.' },
+      { title: 'ประโยคที่ 5', text: 'Email me at Jane@Example.com by 5:30 PM (Monday).' }
+    ]
+  },
+  {
+    id: 'th-shift-letters', lang: 'th', shift: true, label: 'Shift: อักษร (ไทย)', labelEn: 'Shift Letters (Thai)',
+    desc: '',
+    lessons: [
+      { title: 'ศ ซ โ', text: 'ศาล ศอก ศาลา ซอง ซอย ซื้อ โรง โลก โมง โกง' },
+      { title: 'ธ ฉ ฮ', text: 'ธง ธนู ธาตุ ฉาก ฉัน ฉลาด ฮา ฮีโร่ ธุรกิจ' },
+      { title: 'ณ ญ ษ ฤ', text: 'คุณ เณร หญิง หญ้า ปัญญา ปรัชญา บุญ ญาติ พิษ ฤษี' },
+      { title: 'สระ ็ ู', text: 'เด็ก เล็ก เห็น เป็น ก็ ดู ครู หมู ผู้ชาย ผู้หญิง' },
+      { title: 'วรรณยุกต์ ๊ ๋ และ ์', text: 'โต๊ะ ก๋วยเตี๋ยว ศิลป์ จันทร์ ฟิล์ม ซอฟต์แวร์ โทรทัศน์' },
+      { title: 'ตัวที่ใช้น้อย', text: 'ฆ่า ฆ้อง ฌาน กฎ ฎีกา ปฏิทิน มณฑล บัณฑิต ผู้เฒ่า กีฬา นาฬิกา จุฬา ฤดู ฤทธิ์ ฐาน ฐานะ' },
+      { title: 'อักษรโบราณ ฃ ฅ ฦ', text: 'ฃ ฅ ฦ ฃ ฅ ฦ ฃ ฅ ฦ' }
+    ]
+  },
+  {
+    id: 'th-shift-numbers', lang: 'th', shift: true, label: 'Shift: เลขไทย/เครื่องหมาย', labelEn: 'Shift Numbers (Thai)',
+    desc: '',
+    lessons: [
+      { title: 'เลขไทย ๑–๕', text: '๑ ๒ ๓ ๔ ๕ ๑๒ ๒๓ ๓๔ ๔๕ ๕๑ ๑๒๓ ๓๔๕' },
+      { title: 'เลขไทย ๖–๙ และ ๐', text: '๖ ๗ ๘ ๙ ๐ ๖๗ ๗๘ ๘๙ ๙๐ ๐๖ ๖๗๘ ๘๙๐' },
+      { title: 'ตัวเลขในชีวิตจริง', text: 'ราคา ๑๒๕ บาท ปี ๒๕๖๙ ๑๐ คน ๓๐ นาที ๕๐๐ กรัม ๗๗ จังหวัด' },
+      { title: 'เครื่องหมาย', text: 'กรุงเทพฯ ลด ๕๐% ราคา ฿๙๙ (รวมภาษี) "สวัสดี" ใช่ไหม? ๑ + ๑ ได้ ๒' }
+    ]
+  },
+  {
+    id: 'th-shift-words', lang: 'th', shift: true, label: 'Shift: คำศัพท์ (ไทย)', labelEn: 'Shift Words (Thai)',
+    desc: '',
+    lessons: [
+      { title: 'คำศัพท์ชุด 1', text: 'ศาลา ศาสนา ศึกษา ศิลปะ ศูนย์ ศัพท์ ศรี ศักดิ์' },
+      { title: 'คำศัพท์ชุด 2', text: 'ธนาคาร ธรรมชาติ ธุรกิจ ธงชาติ ฉบับ ฉลาด ฉลอง โรงเรียน โรงพยาบาล โทรศัพท์' },
+      { title: 'คำศัพท์ชุด 3', text: 'ซื้อของ ซักผ้า ซุปไก่ ผู้ใหญ่ หญิงสาว คุณครู ปัญหา สุขภาพ' },
+      { title: 'คำศัพท์ชุด 4', text: 'วิทยาศาสตร์ คอมพิวเตอร์ อินเทอร์เน็ต ซอฟต์แวร์ โทรทัศน์ เครื่องมือ' }
+    ]
+  },
+  {
+    id: 'th-shift-sentences', lang: 'th', shift: true, label: 'Shift: ประโยค (ไทย)', labelEn: 'Shift Sentences (Thai)',
+    desc: '',
+    lessons: [
+      { title: 'ประโยคที่ 1', text: 'ครูศิลปะสอนเด็กวาดรูปที่ศาลา' },
+      { title: 'ประโยคที่ 2', text: 'คุณครูให้นักเรียนศึกษาธรรมชาติรอบโรงเรียน' },
+      { title: 'ประโยคที่ 3', text: 'เด็กๆ ชอบเล่นกีฬาและดูโทรทัศน์ตอนเย็น' },
+      { title: 'ประโยคที่ 4', text: 'ผู้เฒ่าเล่าว่าฤดูฝนปีนี้ฝนตกหนักมาก' },
+      { title: 'ประโยคที่ 5', text: 'ธนาคารเปิดทำการเวลา ๘.๓๐ น. ถึง ๑๖.๓๐ น.' },
+      { title: 'ประโยคที่ 6', text: 'เขาถามว่า "ไปด้วยกันไหม?" แล้วเราก็ยิ้ม' }
+    ]
   }
 ];
 
@@ -203,7 +301,7 @@ var SPRINT_SECONDS = 60;
 function buildSprintText(lang) {
   var words = [];
   TRACKS.forEach(function (tr) {
-    if (tr.lang !== lang || tr.id.indexOf('-words') === -1) return;
+    if (tr.shift || tr.lang !== lang || tr.id.indexOf('-words') === -1) return; /* ชุดคำของรอบจับเวลาไม่รวมบทชั้น Shift */
     tr.lessons.forEach(function (l) { words = words.concat(l.text.split(/\s+/).filter(Boolean)); });
   });
   var pool = [];
@@ -247,7 +345,7 @@ var I18N = {
     statsWpm: 'คำ/นาที', statsAcc: 'ความแม่นยำ', statsTime: 'เวลา',
     resultTitle: 'จบบทเรียนแล้ว!', resultWpm: 'ความเร็ว', resultAcc: 'ความแม่นยำ', resultBest: 'สถิติที่ดีที่สุด',
     btnRetry: 'ฝึกซ้ำ', btnNext: 'บทถัดไป', btnRestartHint: 'พิมพ์เพื่อเริ่มบทเรียน',
-    thaiKbHint: 'อย่าลืมสลับคีย์บอร์ดเป็นภาษาไทยก่อนเริ่มพิมพ์',
+    thaiKbWarn: 'แป้นพิมพ์ยังไม่ใช่ภาษาไทย (เกษมณี)',
     clickToFocus: 'คลิกที่นี่เพื่อเริ่มพิมพ์',
     lockedMsg: 'บทนี้ยังไม่ปลดล็อก — ทำบทก่อนหน้าให้ความแม่นยำอย่างน้อย ' + UNLOCK_MIN_ACC + '% ก่อน',
     fingerLabel: 'นิ้ว', showFingerColors: 'แสดงสีโซนนิ้ว',
@@ -261,7 +359,7 @@ var I18N = {
     statsWpm: 'WPM', statsAcc: 'Accuracy', statsTime: 'Time',
     resultTitle: 'Lesson complete!', resultWpm: 'Speed', resultAcc: 'Accuracy', resultBest: 'Best score',
     btnRetry: 'Retry', btnNext: 'Next Lesson', btnRestartHint: 'Start typing to begin',
-    thaiKbHint: 'Remember to switch your keyboard to Thai before you start typing',
+    thaiKbWarn: 'Keyboard is not set to Thai (Kedmanee)',
     clickToFocus: 'Click here to start typing',
     lockedMsg: 'This lesson is locked — complete the previous one with at least ' + UNLOCK_MIN_ACC + '% accuracy first',
     fingerLabel: 'Finger', showFingerColors: 'Show finger color zones',
@@ -291,7 +389,7 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
       resultWpmEl = $('resultWpm'), resultAccEl = $('resultAcc'), resultBestEl = $('resultBest'),
       retryBtn = $('retryBtn'), nextBtn = $('nextBtn'), practiceArea = $('practiceArea'),
       langToggle = $('langToggle'), trackDesc = $('trackDesc'), focusHint = $('focusHint'),
-      thaiKbHint = $('thaiKbHint'), fingerHint = $('fingerHint'), fingerLegend = $('fingerLegend'),
+      thaiKbWarn = $('thaiKbWarn'), fingerHint = $('fingerHint'), fingerLegend = $('fingerLegend'),
       fingerColorToggle = $('fingerColorToggle'), sprintEnBtn = $('sprintEnBtn'), sprintThBtn = $('sprintThBtn'),
       lockMsg = $('lockMsg'), statTimeLabel = $('statTimeLabel'), resultTitleEl = $('resultTitleEl'),
       resultBestLabel = $('resultBestLabel'), progressFill = $('progressFill'), trackProgress = $('trackProgress'),
@@ -303,6 +401,9 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     startTime: null, keystrokes: 0, mistakes: 0, finished: false, timerId: null,
     sprintMode: false, sprintLang: null, sprintCountdownId: null
   };
+
+  /* สถานะเตือนว่าแป้นของเครื่องไม่ใช่ภาษาไทย — ขึ้นเฉพาะเมื่อบทภาษาไทยได้ตัวอักษรละตินจริงๆ */
+  function setKbWarn(on) { if (thaiKbWarn) thaiKbWarn.style.display = on ? 'flex' : 'none'; }
 
   function applyI18n() {
     document.documentElement.lang = getUILang();
@@ -361,7 +462,6 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     renderTrackProgress();
     var track = trackById(trackId);
     trackDesc.textContent = track.desc;
-    thaiKbHint.style.display = track.lang === 'th' ? 'flex' : 'none';
     startLesson();
   }
 
@@ -386,6 +486,7 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     state.mistakes = 0;
     state.finished = false;
     hiddenInput.value = '';
+    setKbWarn(false);
     resultPanel.style.display = 'none';
     resultPanel.classList.remove('show');
     if (confettiLayer) confettiLayer.innerHTML = '';
@@ -474,8 +575,11 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     var map = lang === 'th' ? TH_CHAR_MAP : EN_CHAR_MAP;
     var pos = map[ch];
     if (!pos || pos.space) return;
-    var keyEl = kbEl.querySelector('.tt-key[data-r="' + pos.r + '"][data-c="' + pos.c + '"]');
-    if (keyEl) { keyEl.classList.add('pressed'); setTimeout(function () { keyEl.classList.remove('pressed'); }, 100); }
+    var els = [kbEl.querySelector('.tt-key[data-r="' + pos.r + '"][data-c="' + pos.c + '"]')];
+    if (pos.shift) els.push(kbEl.querySelector('.tt-shift[data-shift="' + shiftSideFor(pos.r, pos.c) + '"]'));
+    els.forEach(function (el) {
+      if (el) { el.classList.add('pressed'); setTimeout(function () { el.classList.remove('pressed'); }, 100); }
+    });
   }
 
   /* คอนเฟตตี้เล็กๆ ตอนจบการฝึก — ทำเองล้วนๆ ด้วย CSS animation ไม่พึ่งไลบรารีภายนอก
@@ -495,12 +599,35 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     }
   }
 
+  /* ปุ่ม Shift ซ้าย/ขวา — ก้อยซ้าย/ก้อยขวา (สีโซนนิ้วเดียวกับปุ่มข้างเคียง) */
+  function makeShiftKey(side, showFingers) {
+    var el = document.createElement('div');
+    el.className = 'tt-key tt-shift' + (showFingers ? ' f-' + (side === 'l' ? 'lp' : 'rp') : '');
+    el.dataset.shift = side;
+    el.textContent = 'Shift';
+    return el;
+  }
+
+  /* สลับป้ายอักษรบนทุกปุ่มระหว่างชั้นปกติกับชั้น Shift (ใช้ตอนอักษรถัดไปต้องกด Shift) */
+  function setShiftLayer(lang, on) {
+    if (kbEl.classList.contains('shifted') === on && kbEl.dataset.lang === lang) return;
+    var idx = (lang === 'th' ? 1 : 0) + (on ? 2 : 0);
+    kbEl.querySelectorAll('.tt-key[data-r]').forEach(function (k) {
+      k.textContent = KB_ROWS[k.dataset.r][k.dataset.c][idx];
+    });
+    kbEl.classList.toggle('shifted', on);
+    kbEl.dataset.lang = lang;
+  }
+
   function renderKeyboard(lang) {
     kbEl.innerHTML = '';
+    kbEl.classList.remove('shifted');
+    kbEl.dataset.lang = lang;
     var showFingers = getFingerColorsOn();
     KB_ROWS.forEach(function (row, r) {
       var rowEl = document.createElement('div');
       rowEl.className = 'tt-kbrow';
+      if (r === 3) rowEl.appendChild(makeShiftKey('l', showFingers));
       row.forEach(function (key, c) {
         var keyEl = document.createElement('div');
         var isHome = r === 2 && HOME_KEYS_EN.indexOf(key[0]) !== -1;
@@ -509,6 +636,7 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
         keyEl.textContent = key[lang === 'th' ? 1 : 0];
         rowEl.appendChild(keyEl);
       });
+      if (r === 3) rowEl.appendChild(makeShiftKey('r', showFingers));
       kbEl.appendChild(rowEl);
     });
     var spaceRow = document.createElement('div');
@@ -536,8 +664,9 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
   function highlightNextKey(lang) {
     kbEl.querySelectorAll('.tt-key').forEach(function (k) { k.classList.remove('next'); });
     var nextChar = state.target[hiddenInput.value.length];
-    if (nextChar === undefined) { if (fingerHint) fingerHint.textContent = ''; return; }
+    if (nextChar === undefined) { setShiftLayer(lang, false); if (fingerHint) fingerHint.textContent = ''; return; }
     if (nextChar === ' ') {
+      setShiftLayer(lang, false);
       var sp = kbEl.querySelector('.tt-space');
       if (sp) sp.classList.add('next');
       if (fingerHint) fingerHint.textContent = t('fingerLabel') + ': ' + FINGER_NAMES.thumb[getUILang()];
@@ -545,10 +674,19 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     }
     var map = lang === 'th' ? TH_CHAR_MAP : EN_CHAR_MAP;
     var pos = map[nextChar];
-    if (!pos || pos.space) { if (fingerHint) fingerHint.textContent = ''; return; }
+    if (!pos || pos.space) { setShiftLayer(lang, false); if (fingerHint) fingerHint.textContent = ''; return; }
+    setShiftLayer(lang, pos.shift);
     var keyEl = kbEl.querySelector('.tt-key[data-r="' + pos.r + '"][data-c="' + pos.c + '"]');
     if (keyEl) keyEl.classList.add('next');
-    if (fingerHint) fingerHint.textContent = t('fingerLabel') + ': ' + FINGER_NAMES[fingerFor(pos.r, pos.c)][getUILang()];
+    var hint = t('fingerLabel') + ': ' + FINGER_NAMES[fingerFor(pos.r, pos.c)][getUILang()];
+    if (pos.shift) {
+      /* Shift ฝั่งตรงข้ามกับมือที่กดอักษร */
+      var side = shiftSideFor(pos.r, pos.c);
+      var shiftEl = kbEl.querySelector('.tt-shift[data-shift="' + side + '"]');
+      if (shiftEl) shiftEl.classList.add('next');
+      hint += ' + Shift ' + FINGER_NAMES[side === 'l' ? 'lp' : 'rp'][getUILang()];
+    }
+    if (fingerHint) fingerHint.textContent = hint;
   }
 
   function liveStats() {
@@ -643,6 +781,7 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
       state.charStatus[i] = val[i] === state.target[i] ? 'correct' : 'wrong';
     }
     for (var j = val.length; j < state.target.length; j++) state.charStatus[j] = 'pending';
+    if (newlyTypedIndex !== -1 && currentLang() === 'th' && /[A-Za-z]/.test(val[newlyTypedIndex])) setKbWarn(true);
     /* เอฟเฟกต์กดปุ่ม — โชว์เฉพาะตอนพิมพ์ถูก (ตัวที่พิมพ์ผิดมีจุดสังเกตอยู่แล้วคือตัวอักษรขึ้นแดง) */
     if (newlyTypedIndex !== -1 && val[newlyTypedIndex] === state.target[newlyTypedIndex]) {
       pulseKey(currentLang(), val[newlyTypedIndex]);
@@ -653,6 +792,15 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     liveStats();
 
     if (val.length === state.target.length) finishAttempt();
+  });
+
+  /* ตรวจจาก event.key (ตัวอักษรที่ได้จริง ไม่ใช่ keyCode): บทไทยแต่ได้ตัวละติน = แป้นเครื่องไม่ใช่ภาษาไทย */
+  hiddenInput.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    var k = e.key;
+    if (!k || k.length !== 1 || currentLang() !== 'th') return;
+    if (/[A-Za-z]/.test(k)) setKbWarn(true);
+    else if (/[\u0E00-\u0E7F]/.test(k)) setKbWarn(false);
   });
 
   practiceArea.addEventListener('click', function () { hiddenInput.focus(); });
@@ -711,6 +859,6 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { TRACKS: TRACKS, KB_ROWS: KB_ROWS };
+  module.exports = { TRACKS: TRACKS, KB_ROWS: KB_ROWS, EN_CHAR_MAP: EN_CHAR_MAP, TH_CHAR_MAP: TH_CHAR_MAP, fingerFor: fingerFor, shiftSideFor: shiftSideFor, buildSprintText: buildSprintText };
 }
 })();

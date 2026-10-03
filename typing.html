@@ -107,6 +107,9 @@
 :is(.f-lp,.f-lr,.f-lm,.f-li,.f-ri,.f-rm,.f-rr,.f-rp){background:color-mix(in srgb, var(--z) 18%, var(--ome-surface-1));color:color-mix(in srgb, var(--z) 70%, var(--ome-text-1))}
 .tt-key.next{background:var(--ome-accent);color:var(--ome-on-accent);border-color:var(--ome-accent);transform:scale(1.08)}
 .tt-key.tt-space{width:220px}
+.tt-key.tt-shift{width:56px;font-size:var(--ome-fs-xs)}
+.tt-keyboard.shifted .tt-key:not(.tt-shift):not(.next){font-weight:700}
+@media(max-width:760px){.tt-key{width:30px;height:30px}.tt-key.tt-shift{width:50px}.tt-key.tt-space{width:200px}}
 @media(max-width:600px){.tt-keyboard{display:none}}
 
 .tt-finger-hint{text-align:center;font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-accent-strong);min-height:1.4em;margin-top:8px}
@@ -157,7 +160,7 @@
   <div class="tt-track-progress-bar"><div class="tt-track-progress-fill" id="trackProgressFill"></div></div>
   <span class="tt-track-progress-label" id="trackProgressLabel"></span>
 </div>
-<div class="tt-thai-hint" id="thaiKbHint" data-i18n="thaiKbHint">อย่าลืมสลับคีย์บอร์ดเป็นภาษาไทยก่อนเริ่มพิมพ์</div>
+<div class="tt-thai-hint" id="thaiKbWarn" role="status" data-i18n="thaiKbWarn">แป้นพิมพ์ยังไม่ใช่ภาษาไทย (เกษมณี)</div>
 
 <div class="tt-toolbar-row">
   <button class="tt-sprint-btn" id="sprintEnBtn" type="button" data-i18n="sprintEn">ทดสอบจับเวลา 60 วิ (อังกฤษ)</button>
