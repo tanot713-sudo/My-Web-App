@@ -8,6 +8,7 @@
    tanot:insurance:policies (รูปแบบกรมธรรม์ + การนับวันต่ออายุอยู่ใน insurance-calc.js — หน้านี้โหลดไฟล์นั้นด้วย),
    บันทึกงานบำรุงรักษา: tanot:mnt:assets|plans|settings + IndexedDB tanot-mnt-<ปีนี้>/insp, tanot-mnt-<ปีก่อน>/insp, tanot-mnt/wo|woev
    (รูปแบบ + การคำนวณรอบ/ใบงานอยู่ใน mnt-calc.js — หน้านี้โหลดไฟล์นั้นด้วย),
+   คลังใบเสร็จ: tanot:receipts:items (รูปแบบใบเสร็จ + วันหมดประกันสินค้าอยู่ใน receipts-calc.js — หน้านี้โหลดไฟล์นั้นด้วย; การ์ดซ่อนไว้จนกว่าจะมีใบเสร็จที่ระบุประกัน),
    สุขภาพ: tanot:health:vitals|meds|intake|ranges|workouts|settings (รูปแบบ + ช่วงปกติ + ตารางกินยาอยู่ใน health-calc.js — หน้านี้โหลดไฟล์นั้นด้วย)
    ══════════════════════════════════════════════════════════════════ */
 (function () {
@@ -246,6 +247,24 @@
     }).join('') + '</div>';
   }
 
+  /* ── ประกันสินค้าใกล้หมด (ภายใน 60 วัน) — การ์ดโผล่เมื่อมีใบเสร็จที่ระบุประกันอย่างน้อยหนึ่งใบ ── */
+  function renderWarranty() {
+    var card = $('warCard'), el = $('warBody'), RC = window.ReceiptsCalc;
+    var list = rd('tanot:receipts:items', []);
+    var withWar = RC && isArr(list) ? list.filter(function (r) { return r && RC.warrantyEnd(r); }) : [];
+    card.hidden = !withWar.length;
+    if (!withWar.length) return;
+    var due = RC.expiring(withWar, new Date(), 60);
+    if (!due.length) { el.innerHTML = emptyHtml('shield', 'ไม่มีประกันสินค้าที่ใกล้หมด'); return; }
+    el.innerHTML = '<div class="list">' + due.slice(0, 6).map(function (x) {
+      var r = x.receipt, d = x.days;
+      var badge = d === 0 ? '<span class="badge warn">วันนี้</span>' : '<span class="badge ' + (d <= 30 ? 'warn' : 'info') + '">อีก ' + num(d) + ' วัน</span>';
+      return '<a class="list-row" href="receipts.html"><span class="lead">' + icon('receipt') + '</span>' +
+        '<div class="grow"><div class="title">' + esc(RC.warrantyLabel(r)) + '</div><div class="meta">' + esc([r.store, 'หมด ' + RC.thDate(x.end)].filter(Boolean).join(' · ')) + '</div></div>' +
+        '<div class="right">' + badge + '</div></a>';
+    }).join('') + '</div>';
+  }
+
   /* ── งานบำรุงรักษา (เลยกำหนด/ถึงกำหนด + ใบสั่งงานที่เปิดอยู่) ── */
   var mntToken = 0;
   function renderMaintenance() {
@@ -320,6 +339,7 @@
     renderInsurance();
     renderMaintenance();
     renderHealth();
+    renderWarranty();
     Promise.all([rdIdb('tanot-barprep', 'notes'), rdIdb('tanot-report-dashboard', 'reports', { last: 5 })]).then(function (r) {
       renderReview(dueCounts(r[0]));
       renderFiles(r[1]);

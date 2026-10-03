@@ -153,7 +153,7 @@
           ]
         },
         { key: 'health',   label: 'สุขภาพ', icon: 'heart-pulse', href: 'health.html', keywords: 'สุขภาพ health น้ำหนัก ความดัน ชีพจร น้ำตาล รอบเอว ผลตรวจ แล็บ ยา อาหารเสริม เตือนกินยา วิตามิน' },
-        { key: 'receipts', label: 'คลังใบเสร็จ/ประกันสินค้า', icon: 'receipt', href: soonHref('คลังใบเสร็จ/ประกันสินค้า'), status: 'soon', keywords: 'ใบเสร็จ ประกันสินค้า warranty receipt' }
+        { key: 'receipts', label: 'คลังใบเสร็จ/ประกันสินค้า', icon: 'receipt', href: 'receipts.html', keywords: 'ใบเสร็จ ประกันสินค้า warranty receipt คลังใบเสร็จ รับประกัน e-receipt ลดหย่อน บริจาค ocr' }
       ]
     },
     { key: 'edu', area: 'edu', label: 'การศึกษา', icon: 'graduation-cap', href: 'area.html?a=edu', keywords: 'การศึกษา เรียน education', children: [

@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v595';
+const CACHE = 'ome-v596';
 const PRECACHE = [
   './',
   './index.html',
@@ -67,6 +67,9 @@ const PRECACHE = [
   './insurance.html',
   './insurance.js',
   './insurance-calc.js',
+  './receipts.html',
+  './receipts.js',
+  './receipts-calc.js',
   './health.html',
   './health.js',
   './health-calc.js',
