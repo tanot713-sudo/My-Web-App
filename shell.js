@@ -134,8 +134,9 @@
             { key: 'tax',       label: 'การจ่ายภาษี', icon: 'landmark', href: 'tax.html', keywords: 'ภาษี tax ภาษีเงินได้ ลดหย่อน ภงด rmf ssf thaiesg ประกัน บำนาญ income tax deduction' },
             { key: 'insurance', label: 'ประกัน', icon: 'shield', href: 'insurance.html', keywords: 'ประกัน insurance กรมธรรม์ เบี้ยประกัน ต่ออายุ ลดหย่อน ประกันชีวิต ประกันสุขภาพ ประกันรถ ประกันบ้าน' },
             { key: 'invest', label: 'การลงทุน', icon: 'trending-up', href: 'invest.html', keywords: 'ลงทุน invest หุ้น', children: [
-                { key: 'global-stock', label: 'หุ้นต่างประเทศ',  href: 'invest-global-stock.html' },
-                { key: 'thai-stock',   label: 'หุ้นไทย',          href: 'invest-thai-stock.html' },
+                { key: 'stock',        label: 'หุ้น',              href: 'invest-stock.html#th', keywords: 'หุ้น stock set us หุ้นไทย หุ้นต่างประเทศ nasdaq',
+                  tabs: [ { key: 'thai-stock', label: 'หุ้นไทย', hash: 'th', keywords: 'หุ้นไทย set' },
+                          { key: 'global-stock', label: 'หุ้นต่างประเทศ', hash: 'us', keywords: 'หุ้นนอก us nasdaq' } ] },
                 { key: 'gold',         label: 'ทองคำ',            href: 'invest-gold.html' },
                 { key: 'commodities',  label: 'ค่าเงิน & วัตถุดิบ', href: 'invest-commodities.html' },
                 { key: 'news',         label: 'ข่าวหุ้น',          href: 'invest-news.html' },

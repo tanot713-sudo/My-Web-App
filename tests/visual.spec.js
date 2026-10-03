@@ -8,8 +8,6 @@ const { prepare } = require('./helpers');
 const PAGES = [
   'index.html',
   'invest.html',
-  'invest-thai-stock.html',
-  'invest-global-stock.html',
   'invest-gold.html',
   'invest-bitcoin.html',
   'invest-commodities.html',

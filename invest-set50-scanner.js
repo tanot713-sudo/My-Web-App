@@ -180,7 +180,7 @@
     SET50.forEach(function (sym) {
       var tr = document.createElement('tr'); tr.setAttribute('data-sym', sym);
       fillRow(tr, sym, dataFromSeries(loadCache(sym)));
-      tr.addEventListener('click', function () { location.href = 'invest-thai-stock.html?sym=' + encodeURIComponent(sym); });
+      tr.addEventListener('click', function () { location.href = 'invest-stock.html?sym=' + encodeURIComponent(sym) + '#th'; });
       body.appendChild(tr); s50Rows[sym] = tr;
     });
     applyGreenFilter();
