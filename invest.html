@@ -23,38 +23,25 @@
 .layout > .stack{min-width:0}
 .page-head{align-items:center}
 .page-head h1{flex:1 1 auto}
-.hero-search{display:flex;align-items:center;gap:9px;height:42px;flex:1 1 320px;max-width:420px;padding:0 14px;position:relative;
-  background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);color:var(--ome-text-2)}
-.hero-search:focus-within{border-color:var(--ome-accent)}
-.hero-search input{border:0;outline:0;background:transparent;color:var(--ome-text-1);font:inherit;font-size:var(--ome-fs-sm);width:100%}
-.hero-search input::placeholder{color:var(--ome-text-3)}
-.hero-search-hint{position:absolute;left:0;top:48px;width:100%;padding:6px;font-size:var(--ome-fs-xs);z-index:var(--ome-z-popover);display:none;
-  background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);box-shadow:var(--ome-shadow-2)}
-.hero-search-hint.on{display:block}
-.hero-search-hint a{display:block;padding:7px 9px;border-radius:var(--ome-radius-sm);color:var(--ome-text-1);text-decoration:none}
-.hero-search-hint a:hover{background:var(--ome-surface-2)}
-
+.page-head .btn{flex-shrink:0}
 .kpi-grid{grid-template-columns:repeat(4,1fr)}
 .kpi-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .kpi-ic{display:grid;place-items:center;width:36px;height:36px;border-radius:var(--ome-radius-md);background:var(--ome-accent-soft);color:var(--ome-accent-strong);flex-shrink:0}
 .kpi-value{font-variant-numeric:tabular-nums}
-
-.card-head a,.card-head .lnk,.empty-hint .lnk{font-size:var(--ome-fs-xs);color:var(--ome-accent-strong);text-decoration:none;font-weight:700;white-space:nowrap;background:none;border:0;cursor:pointer;font-family:inherit;padding:0}
+.kpi-value.up,.kpi-delta.up{color:var(--ome-ok-ink)}
+.kpi-value.dn,.kpi-delta.dn{color:var(--ome-err-ink)}
+.card-head a,.card-head .lnk{font-size:var(--ome-fs-xs);color:var(--ome-accent-strong);text-decoration:none;font-weight:700;white-space:nowrap;background:none;border:0;cursor:pointer;font-family:inherit;padding:0}
 .card-head-meta{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
 .empty-hint{font-size:var(--ome-fs-sm);color:var(--ome-text-2);text-align:center;padding:18px 10px;line-height:1.7;margin:0}
 .chartwrap{width:100%;overflow-x:auto}
 .chartwrap svg{display:block;width:100%;height:auto;min-width:420px}
-
 .tickergrid{display:grid;grid-template-columns:repeat(6,1fr);gap:9px}
-.ticker{border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px;background:var(--ome-surface-2)}
-.ticker.js-open-tool{cursor:pointer}
-.ticker.js-open-tool:hover{border-color:var(--ome-accent)}
+.ticker{border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px;background:var(--ome-surface-2);display:block;color:inherit;text-decoration:none}
+a.ticker:hover{border-color:var(--ome-accent)}
 .ticker b{display:block;font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-2)}
 .ticker .px{display:block;font-size:var(--ome-fs-base);font-weight:700;margin:5px 0 2px;font-variant-numeric:tabular-nums}
 .ticker .chg{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-2)}
 .ticker .chg.up{color:var(--ome-ok-ink)}.ticker .chg.dn{color:var(--ome-err-ink)}
-.live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ome-ok);margin-right:5px}
-.mkt-refresh{margin-left:8px}
 .mkt-refresh.spin .ome-icon{animation:mktspin .7s linear infinite}
 @keyframes mktspin{to{transform:rotate(360deg)}}
 .mkt-group + .mkt-group{margin-top:16px;padding-top:16px;border-top:1px solid var(--ome-border)}
@@ -69,29 +56,18 @@
 .gp-check.on{background:var(--ome-accent-soft);border-color:var(--ome-accent);color:var(--ome-accent-strong)}
 .gp-check input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
 .gp-actions{display:flex;gap:10px;align-items:center}
-
-.table .sym{display:flex;align-items:center;gap:9px;font-weight:600}
+.table tbody tr[data-href]{cursor:pointer}
+.table tbody tr[data-href]:hover{background:var(--ome-surface-2)}
+.table .sym{font-weight:600}
+.table .sym small{display:block;font-weight:400;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
 .table .pl.up{color:var(--ome-ok-ink);font-weight:600}.table .pl.dn{color:var(--ome-err-ink);font-weight:600}
+.table .src{font-size:var(--ome-fs-xs);color:var(--ome-text-2);white-space:nowrap}
 .alloc{display:grid;grid-template-columns:128px 1fr;gap:18px;align-items:center}
 .alloc svg{width:100%}
 .allocrow{display:flex;justify-content:space-between;font-size:var(--ome-fs-sm);padding:6px 0}
 .allocrow .k{display:flex;align-items:center;gap:8px;font-weight:500}
 .allocrow .k i{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .allocrow .v{font-weight:700;font-variant-numeric:tabular-nums}
-.scorebox{display:flex;align-items:center;gap:16px}
-.scorebox p{margin:0;font-size:var(--ome-fs-sm);color:var(--ome-text-2);line-height:1.65}
-.ring{width:76px;height:76px;border-radius:50%;background:conic-gradient(var(--ome-ok) 0 var(--score,0%),var(--ome-border) 0);display:grid;place-items:center;flex-shrink:0}
-.ring b{width:60px;height:60px;border-radius:50%;background:var(--ome-surface-1);display:grid;place-items:center;font-size:var(--ome-fs-xl);font-weight:700}
-.quick{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.qbtn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);background:var(--ome-surface-2);
-  font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-1);text-decoration:none}
-.qbtn:hover{border-color:var(--ome-accent)}
-.qbtn .ome-icon{width:22px;height:22px;color:var(--ome-accent-strong)}
-.tasks .task{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid var(--ome-border)}
-.tasks .task:last-child{border:0}
-.taskic{display:grid;place-items:center;width:30px;height:30px;border-radius:var(--ome-radius-md);background:var(--ome-accent-soft);color:var(--ome-accent-strong);flex-shrink:0}
-.task b{display:block;font-size:var(--ome-fs-sm);font-weight:600}
-.task span{display:block;font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:1px}
 .newsitem{padding:10px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-sm)}
 .newsitem:last-child{border:0}
 .newsitem a{font-weight:600;text-decoration:none;color:var(--ome-text-1)}
@@ -103,36 +79,6 @@
 .fng-bar{position:relative;height:8px;border-radius:5px;margin:14px 0 4px;background:linear-gradient(90deg,var(--ome-err),var(--ome-warn),var(--ome-ok))}
 .fng-marker{position:absolute;top:-3px;width:14px;height:14px;border-radius:50%;background:var(--ome-surface-1);border:3px solid var(--ome-text-1);transform:translateX(-50%);left:0;transition:left var(--ome-dur-3)}
 .fng-scale{display:flex;justify-content:space-between;font-size:10px;color:var(--ome-text-2)}
-
-.ai-fab{position:fixed;left:20px;bottom:20px;width:54px;height:54px;border-radius:50%;border:none;background:var(--ome-accent);color:var(--ome-on-accent);
-  box-shadow:var(--ome-shadow-3);display:grid;place-items:center;cursor:grab;touch-action:none;z-index:80}
-.ai-fab .ome-icon{width:26px;height:26px}
-.ai-fab:active{cursor:grabbing;transform:scale(.94)}
-.ai-panel{position:fixed;left:20px;bottom:84px;width:min(320px,calc(100vw - 40px));background:var(--ome-surface-1);border:1px solid var(--ome-border);
-  border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3);padding:15px;z-index:81;display:flex;flex-direction:column;gap:10px}
-.ai-panel[hidden]{display:none}
-.ai-panel-head{display:flex;align-items:center;justify-content:space-between}
-.ai-panel-head b{font-size:var(--ome-fs-sm);font-weight:700}
-.ai-panel .ans{font-size:var(--ome-fs-xs);line-height:1.6;background:var(--ome-surface-2);border-radius:var(--ome-radius-md);padding:10px;display:none}
-.ai-panel .ans.on{display:block}
-
-/* ป๊อปอัพเครื่องมือ — เปิดหน้าเครื่องมือในกรอบลอยเต็มจอ เหนือ nav (--ome-z-nav) และวิดเจ็ตแชท */
-.tool-modal-overlay{position:fixed;inset:0;background:rgba(11,18,35,.5);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:26px 16px;overflow-y:auto}
-.tool-modal-overlay[hidden]{display:none}
-.tool-modal-box{position:relative;width:min(860px,100%);background:var(--ome-surface-1);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3);overflow:hidden;margin:auto}
-.tool-modal-close{position:absolute;top:10px;right:10px;z-index:2}
-.tool-modal-box iframe{display:block;width:100%;border:0;min-height:200px}
-@media(min-width:601px){
-  .tool-modal-overlay{padding:0}
-  .tool-modal-box{width:100%;height:100vh;max-width:100%;border-radius:0;box-shadow:none;margin:0}
-  .tool-modal-box iframe{height:100%!important}
-}
-@media(max-width:600px){.tool-modal-overlay{padding:0}.tool-modal-box{border-radius:0;min-height:100vh}}
-
-/* แถบนำทางภาพรวม: หมวดย่อยของแต่ละกลุ่มสลับด้วย .on (หน้าอื่นมีแถวเดียว จึงแสดงตลอด) */
-.subnav-sub{display:none}
-.subnav-sub.on{display:block}
-
 @media(max-width:920px){
   .layout{grid-template-columns:1fr}
   .kpi-grid{grid-template-columns:repeat(2,1fr)}
@@ -146,48 +92,41 @@
 </head>
 <body data-layout="dashboard" data-invest-key="hub">
 
-<nav class="subnav" id="ivNav">
-  <div class="subnav-groups" id="ivGroups">
-    <button class="on" type="button" data-group="overview" data-i18n="navOverview">ภาพรวม</button>
-    <button type="button" data-group="market" data-i18n="navMarket">ตลาด &amp; สินทรัพย์</button>
-    <button type="button" data-group="lottery" data-i18n="navLottery">สลาก &amp; พันธบัตร</button>
-    <button type="button" data-group="news" data-i18n="navNews">ข่าว &amp; ธุรกิจ</button>
-  </div>
-  <div class="subnav-sub" id="ivSub-market"><div class="subnav-row" id="ivSubRow-market"></div></div>
-  <div class="subnav-sub" id="ivSub-lottery"><div class="subnav-row" id="ivSubRow-lottery"></div></div>
-  <div class="subnav-sub" id="ivSub-news"><div class="subnav-row" id="ivSubRow-news"></div></div>
-</nav>
+<nav class="subnav" id="ivNav"><div class="subnav-sub"><div class="subnav-row" id="ivSubRow"></div></div></nav>
 
 <main class="page">
   <div class="page-head">
     <h1 data-i18n="heroTitle">การลงทุน</h1>
-    <label class="hero-search">
-      <svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-search"/></svg>
-      <input type="text" id="heroSearch" data-i18n-placeholder="heroSearchPh" placeholder="ค้นหาสินทรัพย์ ticker หรือหมวด เช่น PTT, ทองคำ, Bitcoin..." autocomplete="off">
-      <div class="hero-search-hint" id="heroSearchHint"></div>
-    </label>
+    <button type="button" id="refreshBtn" class="btn sm"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-refresh-cw"/></svg><span data-i18n="refreshBtn">รีเฟรชราคา</span></button>
   </div>
 
   <section class="kpi-grid">
-    <div class="kpi"><div class="kpi-top"><span class="kpi-label" data-i18n="kpiValueLbl">มูลค่าพอร์ตรวม</span><span class="kpi-ic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-wallet"/></svg></span></div>
-      <div class="kpi-value" id="kValue">฿0</div><div class="kpi-delta" id="kValueSub" data-i18n="kValueSubEmpty">ยังไม่มีข้อมูลพอร์ต</div></div>
-    <div class="kpi"><div class="kpi-top"><span class="kpi-label" data-i18n="kpiPlLbl">กำไร/ขาดทุนสะสม</span><span class="kpi-ic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trending-up"/></svg></span></div>
-      <div class="kpi-value" id="kPl">+฿0</div><div class="kpi-delta" id="kPlSub">—</div></div>
-    <div class="kpi"><div class="kpi-top"><span class="kpi-label" data-i18n="kpiHealthLbl">Portfolio Health</span><span class="kpi-ic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-heart-pulse"/></svg></span></div>
-      <div class="kpi-value" id="kHealth">—</div><div class="kpi-delta" id="kHealthSub" data-i18n="kHealthSubWait">รอข้อมูล</div></div>
-    <div class="kpi"><div class="kpi-top"><span class="kpi-label" data-i18n="kpiCashLbl">เงินสดในพอร์ต</span><span class="kpi-ic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-piggy-bank"/></svg></span></div>
-      <div class="kpi-value" id="kCash">฿0</div><div class="kpi-delta" id="kCashSub">0% ของพอร์ต</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label" data-i18n="kpiValueLbl">สินทรัพย์ลงทุน</span><span class="kpi-ic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-wallet"/></svg></span></div>
+      <div class="kpi-value" id="kValue">฿0</div><div class="kpi-delta" id="kValueSub"></div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label" data-i18n="kpiPlLbl">กำไร/ขาดทุนเทียบต้นทุน</span><span class="kpi-ic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trending-up"/></svg></span></div>
+      <div class="kpi-value" id="kPl">—</div><div class="kpi-delta" id="kPlSub">—</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label" data-i18n="kpiChangeLbl">เปลี่ยนแปลง 30 วัน</span><span class="kpi-ic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-chart-line"/></svg></span></div>
+      <div class="kpi-value" id="kChange">—</div><div class="kpi-delta" id="kChangeSub"></div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label" data-i18n="kpiCountLbl">จำนวนรายการ</span><span class="kpi-ic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-layers"/></svg></span></div>
+      <div class="kpi-value" id="kCount">0</div><div class="kpi-delta" id="kCountSub"></div></div>
   </section>
+  <div id="warnRow" class="row" style="margin-top:var(--ome-sp-3);flex-wrap:wrap;gap:6px"></div>
 
   <div class="layout">
     <div class="stack">
       <section class="card" id="chartCard">
-        <div class="card-head"><h2 data-i18n="chartTitle">มูลค่าพอร์ตของคุณ</h2></div>
+        <div class="card-head"><h2 data-i18n="chartTitle">มูลค่าสินทรัพย์ลงทุน</h2>
+          <div class="segmented" id="rangeSeg" role="group"><button type="button" data-r="30d">30 วัน</button><button type="button" data-r="90d">90 วัน</button><button type="button" data-r="1y">1 ปี</button><button type="button" data-r="all" data-i18n="rangeAll">ทั้งหมด</button></div></div>
         <div id="chartBody"></div>
       </section>
 
       <section class="card">
-        <div class="card-head"><h2><span class="live" id="tkLive"></span><span data-i18n="marketTitle">ตลาด</span></h2><span class="card-head-meta" id="tkStatus" data-i18n="marketLoading">กำลังโหลด…</span><button type="button" id="marketRefreshBtn" class="btn sm ghost icon mkt-refresh" data-i18n-title="marketRefreshTitle" data-i18n-aria-label="marketRefreshTitle" title="รีเฟรชราคาทั้งหมด" aria-label="รีเฟรชราคาทั้งหมด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-refresh-cw"/></svg></button></div>
+        <div class="card-head"><h2 data-i18n="assetsTitle">สินทรัพย์ทั้งหมด</h2></div>
+        <div id="assetsBody"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><h2 data-i18n="marketTitle">ตลาด</h2><span class="card-head-meta" id="tkStatus"></span></div>
         <div class="mkt-group">
           <div class="mkt-head"><b data-i18n="groupThai">หุ้นไทย</b><button class="btn sm ghost icon gear-btn" type="button" data-group="thai" data-i18n-aria-label="gearLabel" aria-label="เลือกสัญลักษณ์ที่แสดง"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-settings"/></svg></button></div>
           <div class="tickergrid" id="mkGrid-thai"></div>
@@ -204,38 +143,12 @@
           <div class="gear-panel" id="gearPanel-commod" hidden></div>
         </div>
       </section>
-
-      <section class="card">
-        <div class="card-head"><h2 data-i18n="assetsTitle">สินทรัพย์ในพอร์ต</h2><a href="invest-portfolio.html" class="js-open-tool" data-tool-url="invest-portfolio.html" data-i18n="assetsAdd">เพิ่มสินทรัพย์</a></div>
-        <div id="assetsBody"></div>
-      </section>
-
-      <section class="card">
-        <div class="card-head"><h2 data-i18n="quickTitle">เครื่องมือด่วน</h2></div>
-        <div class="quick">
-          <a class="qbtn" href="#riskCard"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-shield"/></svg><span data-i18n="quickRisk">วิเคราะห์ความเสี่ยง</span></a>
-          <a class="qbtn" href="invest-business.html"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-briefcase"/></svg><span data-i18n="quickPlan">สร้างแผนลงทุน</span></a>
-        </div>
-      </section>
     </div>
 
     <aside class="stack">
-      <section class="card" id="riskCard">
-        <div class="card-head"><h2 data-i18n="healthTitle">Portfolio Health</h2></div>
-        <div class="scorebox">
-          <div class="ring" id="healthRing"><b id="healthScore">—</b></div>
-          <p id="healthText" data-i18n="healthEmpty">เพิ่มสินทรัพย์ในพอร์ตก่อนเพื่อดูคะแนนสุขภาพพอร์ต</p>
-        </div>
-      </section>
-
       <section class="card">
-        <div class="card-head"><h2 data-i18n="allocTitle">สัดส่วนสินทรัพย์</h2></div>
+        <div class="card-head"><h2 data-i18n="allocTitle">สัดส่วนตามประเภท</h2></div>
         <div id="allocBody"></div>
-      </section>
-
-      <section class="card tasks">
-        <div class="card-head"><h2 data-i18n="tasksTitle">รายการที่ต้องทำ</h2></div>
-        <div id="tasksBody"></div>
       </section>
 
       <section class="card">
@@ -257,787 +170,8 @@
 
 </main>
 
-<!-- ป๊อปอัพเครื่องมือ — โหลดหน้าเครื่องมือ (พอร์ตจำลอง/ค่าเงิน & วัตถุดิบ ฯลฯ) ในกรอบลอย แทนการเปลี่ยนหน้า -->
-<div class="tool-modal-overlay" id="toolModalOverlay" hidden>
-  <div class="tool-modal-box">
-    <button class="btn sm icon tool-modal-close" id="toolModalClose" type="button" data-i18n-aria-label="toolClose" aria-label="ปิด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button>
-    <iframe id="toolModalFrame" src="about:blank" data-i18n-title="toolFrameTitle" title="เครื่องมือ"></iframe>
-  </div>
-</div>
-
-<!-- AI ผู้ช่วยการลงทุน — ไอคอนลอยลากวางตำแหน่งได้ ตอบจากข้อมูลพอร์ตจริงในเครื่อง -->
-<button class="ai-fab" id="aiFab" type="button" data-i18n-aria-label="aiFabLabel" aria-label="เปิด AI ผู้ช่วยการลงทุน" aria-expanded="false"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-bot"/></svg></button>
-<div class="ai-panel" id="aiPanel" hidden>
-  <div class="ai-panel-head"><b data-i18n="aiTitle">AI ผู้ช่วยการลงทุน</b><button class="btn sm ghost icon" id="aiPanelClose" type="button" data-i18n-aria-label="toolClose" aria-label="ปิด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></div>
-  <input class="input" id="aiInput" data-i18n-placeholder="aiInputPh" placeholder="พิมพ์คำถาม...">
-  <div><button class="btn primary" id="aiAsk" type="button" data-i18n="aiAskBtn">วิเคราะห์</button></div>
-  <div class="ans" id="aiAns"></div>
-</div>
-
-<script>
-(function () {
-  'use strict';
-  var OWN_PROXY = /\.pages\.dev$/.test(location.hostname) ? '/api/proxy?url=' : 'https://tanot-cors-proxy.tanot713.workers.dev/?url=';
-  var $ = function (id) { return document.getElementById(id); };
-  var N = function (v) { var n = Number(v); return Number.isFinite(n) ? n : 0; };
-  function money(v) { var n = N(v); return (n < 0 ? '-฿' : '฿') + Math.abs(n).toLocaleString('th-TH', { maximumFractionDigits: 0 }); }
-  function pct(v, d) { d = d == null ? 1 : d; return (N(v) >= 0 ? '+' : '') + N(v).toFixed(d) + '%'; }
-  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-
-  /* ══ ภาษา UI (ไทย/English) — จุดกลางเดียวทั้งเว็บคือ localStorage 'ome:lang' (ดู shell.js: window.OME_LANG)
-     แต่ตอนสคริปต์นี้เริ่มทำงาน shell.js (โหลดแบบ defer) อาจยังไม่ทำงานเสร็จ (เหมือนที่ window.INVEST_CATS
-     ต้อง waitCats() รอ) เลยอ่านคีย์เดียวกันตรงๆ เองแทนที่จะพึ่ง window.OME_LANG — รูปแบบเดียวกับที่ word.js/
-     cad.js ทำไว้แล้ว (I18N dict + t() + window.omeApplyLang ให้เมนูตั้งค่ากลางเรียกตอนสลับภาษา) ══ */
-  var UI_LANG_KEY = 'ome:lang';
-  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
-  var I18N = {
-    th: {
-      navOverview: 'ภาพรวม', navMarket: 'ตลาด & สินทรัพย์', navLottery: 'สลาก & พันธบัตร', navNews: 'ข่าว & ธุรกิจ',
-      heroTitle: 'การลงทุน', heroSearchPh: 'ค้นหาสินทรัพย์ ticker หรือหมวด เช่น PTT, ทองคำ, Bitcoin...',
-      kpiValueLbl: 'มูลค่าพอร์ตรวม', kpiPlLbl: 'กำไร/ขาดทุนสะสม', kpiHealthLbl: 'Portfolio Health', kpiCashLbl: 'เงินสดในพอร์ต',
-      kValueSubEmpty: 'ยังไม่มีข้อมูลพอร์ต — กด "เพิ่มรายการ"', kValueSubN: '{n} สินทรัพย์ · {live} ราคาสด',
-      kPlSubDash: '—', kPlSubPct: '{pct} จากต้นทุน', kCashSubPct: '{pct}% ของพอร์ต', kHealthSubWait: 'รอข้อมูล',
-      chartTitle: 'มูลค่าพอร์ตของคุณ',      chartEmpty: 'บันทึกมูลค่าพอร์ตของวันนี้แล้ว — กลับมาเปิดหน้านี้อีกครั้งวันหลังเพื่อดูกราฟแนวโน้ม (เก็บย้อนหลังสูงสุด 30 วัน)',
-      marketTitle: 'ตลาด', marketLoading: 'กำลังโหลด…', marketRefreshTitle: 'รีเฟรชราคาทั้งหมด',
-      marketLive: '{live}/{n} ราคาล่าสุด', marketNoLive: 'ยังดึงราคาไม่ได้ — แสดงจากแคชหรือรอใหม่ภายหลัง',
-      groupThai: 'หุ้นไทย', groupGlobal: 'หุ้นต่างประเทศ & Bitcoin', groupCommod: 'โภคภัณฑ์',
-      gearLabel: 'เลือกสัญลักษณ์ที่แสดง', commodSeeAll: 'ดูทั้งหมด →', tickerEmpty: 'ยังไม่ได้เลือกสัญลักษณ์ — กด ⚙ เพื่อเพิ่ม',
-      gpExtraPh: 'เพิ่มเอง เช่น KTB, OR (คั่นด้วยจุลภาค)', gpSave: 'บันทึก', gpReset: 'ใช้ค่าเริ่มต้น',
-      assetsTitle: 'สินทรัพย์ในพอร์ต', assetsAdd: 'เพิ่มสินทรัพย์', assetsAddInline: '"พอร์ตของฉัน"',
-      assetsEmpty: 'ยังไม่มีสินทรัพย์ในพอร์ต — ไปที่ {link} เพื่อบันทึกรายการซื้อ-ขายหุ้นด้วยเงินสมมติ',
-      thAsset: 'สินทรัพย์', thValue: 'มูลค่า', thShare: 'สัดส่วน', thPl: 'P/L', unitShare: 'หุ้น',
-      quickTitle: 'เครื่องมือด่วน', quickRisk: 'วิเคราะห์ความเสี่ยง', quickPlan: 'สร้างแผนลงทุน',
-      healthTitle: 'Portfolio Health', healthEmpty: 'เพิ่มสินทรัพย์ในพอร์ตก่อนเพื่อดูคะแนนสุขภาพพอร์ต',
-      healthGood: 'โครงสร้างพอร์ตกระจายตัวดี (สินทรัพย์ใหญ่สุดคือ {sym} {pct}%)',
-      healthBad: 'สัดส่วน {sym} สูงถึง {pct}% ของพอร์ต ควรพิจารณากระจายเพิ่ม',
-      allocTitle: 'สัดส่วนสินทรัพย์', allocEmpty: 'ยังไม่มีข้อมูลสัดส่วนสินทรัพย์', allocCash: 'เงินสด', allocOther: 'อื่นๆ',
-      tasksTitle: 'รายการที่ต้องทำ',
-      taskEmptyT: 'ยังไม่มีสินทรัพย์ในพอร์ต', taskEmptyS: 'เริ่มที่ "พอร์ตของฉัน" เพื่อบันทึกรายการแรก',
-      taskConcT: 'พอร์ตกระจุกตัวสูง', taskConcS: 'พิจารณาปรับสมดุลพอร์ตให้กระจายขึ้น',
-      taskCashT: 'เงินสดเหลือเยอะ', taskCashS: 'ยังไม่ได้ลงทุนกว่าครึ่งของพอร์ต',
-      taskReviewT: 'กำหนดรอบทบทวนพอร์ต', taskReviewS: 'แนะนำทบทวนทุก 3 เดือน',
-      newsTitle: 'ข่าวหุ้นล่าสุด', newsSeeAll: 'ดูทั้งหมด →', newsLoading: 'กำลังโหลดข่าว…', newsError: 'ดึงข่าวไม่ได้ตอนนี้ — ลองใหม่ภายหลัง',
-      fngTitle: 'ดัชนีความกลัว-โลภ (คริปโต)', fngLoading: 'กำลังโหลด…', fngError: 'ดึงข้อมูลไม่ได้ตอนนี้',
-      fngCached: 'ค่าที่บันทึกไว้', fngExtremeFear: 'กลัวสุดขีด', fngFear: 'กลัว', fngNeutral: 'เป็นกลาง', fngGreed: 'โลภ', fngExtremeGreed: 'โลภสุดขีด',
-      toolClose: 'ปิด', toolFrameTitle: 'เครื่องมือ',
-      aiFabLabel: 'เปิด AI ผู้ช่วยการลงทุน', aiTitle: 'AI ผู้ช่วยการลงทุน',
-      aiInputPh: 'พิมพ์คำถาม...', aiAskBtn: 'วิเคราะห์',
-      aiNoData: 'ยังไม่มีข้อมูลในพอร์ตเลยครับ — ลองไปที่ "พอร์ตของฉัน" เพื่อบันทึกรายการซื้อขายก่อน แล้วกลับมาถามใหม่ได้',
-      aiRisk: 'คะแนน Portfolio Health ตอนนี้ {score}/100 — สินทรัพย์ที่ถือมากสุดคือ {sym} ({pct}% ของพอร์ต)',
-      aiBiggest: 'สินทรัพย์ที่มูลค่าสูงสุดในพอร์ตคือ {sym} มูลค่า {value}',
-      aiTotal: 'มูลค่าพอร์ตรวมตอนนี้ {total} (เงินสด {cash} + สินทรัพย์ {invested})',
-      aiFallback: 'ลองถามเช่น "พอร์ตใหญ่แค่ไหน", "อะไรใหญ่ที่สุด" หรือ "ความเสี่ยงเป็นยังไง" ได้ครับ — ระบบตอบจากข้อมูลจริงในพอร์ตของคุณเท่านั้น ไม่ส่งข้อมูลออกจากเครื่อง',
-      candSET: 'ดัชนี SET', candADVANC: 'ADVANC (AIS)', candPTT: 'PTT', candCPALL: 'CPALL (7-Eleven)', candDELTA: 'DELTA', candBDMS: 'BDMS (รพ.กรุงเทพ)',
-      candKBANK: 'KBANK', candSCB: 'SCB', candAOT: 'AOT (สนามบิน)', candBBL: 'BBL', candSCC: 'SCC (ปูนซิเมนต์ไทย)', candTRUE: 'TRUE',
-      candGULF: 'GULF', candBANPU: 'BANPU', candIVL: 'IVL', candTOP: 'TOP', candPTTEP: 'PTTEP', candCPF: 'CPF', candBH: 'BH (รพ.บำรุงราษฎร์)', candHMPRO: 'HMPRO',
-      candAAPL: 'Apple', candMSFT: 'Microsoft', candGOOGL: 'Google (Alphabet)', candAMZN: 'Amazon', candNVDA: 'NVIDIA', candMETA: 'Meta', candTSLA: 'Tesla',
-      'candBTC-USD': 'Bitcoin', 'candETH-USD': 'Ethereum',
-      'candGC=F': 'ทองคำ', 'candSI=F': 'เงิน (Silver)', 'candCL=F': 'น้ำมัน WTI', 'candBZ=F': 'น้ำมันดิบ Brent', 'candNG=F': 'ก๊าซธรรมชาติ',
-      'candHG=F': 'ทองแดง', 'candHRC=F': 'เหล็ก (HRC)', 'candSB=F': 'น้ำตาลทราย', 'candKC=F': 'กาแฟ', 'candZR=F': 'ข้าว (Rough Rice)', 'candDX-Y.NYB': 'ดัชนีดอลลาร์'
-    },
-    en: {
-      navOverview: 'Overview', navMarket: 'Markets & Assets', navLottery: 'Lottery & Bonds', navNews: 'News & Business',
-      heroTitle: 'Investing', heroSearchPh: 'Search assets, ticker or category e.g. PTT, gold, Bitcoin...',
-      kpiValueLbl: 'Total Portfolio Value', kpiPlLbl: 'Total P/L', kpiHealthLbl: 'Portfolio Health', kpiCashLbl: 'Cash in Portfolio',
-      kValueSubEmpty: 'No portfolio data yet — tap "Add"', kValueSubN: '{n} assets · {live} live prices',
-      kPlSubDash: '—', kPlSubPct: '{pct} from cost', kCashSubPct: '{pct}% of portfolio', kHealthSubWait: 'Waiting for data',
-      chartTitle: 'Your Portfolio Value',      chartEmpty: 'Today’s portfolio value is saved — come back another day to see the trend chart (keeps up to 30 days)',
-      marketTitle: 'Market', marketLoading: 'Loading…', marketRefreshTitle: 'Refresh all prices',
-      marketLive: '{live}/{n} latest prices', marketNoLive: 'Couldn’t fetch prices yet — showing cache, try again later',
-      groupThai: 'Thai Stocks', groupGlobal: 'Global Stocks & Bitcoin', groupCommod: 'Commodities',
-      gearLabel: 'Choose symbols to show', commodSeeAll: 'See all →', tickerEmpty: 'No symbols selected — tap ⚙ to add',
-      gpExtraPh: 'Add your own, e.g. KTB, OR (comma-separated)', gpSave: 'Save', gpReset: 'Reset to default',
-      assetsTitle: 'Assets in Portfolio', assetsAdd: 'Add Asset', assetsAddInline: '"My Portfolio"',
-      assetsEmpty: 'No assets in your portfolio yet — go to {link} to record buy/sell trades with simulated money',
-      thAsset: 'Asset', thValue: 'Value', thShare: 'Share', thPl: 'P/L', unitShare: 'shares',
-      quickTitle: 'Quick Tools', quickRisk: 'Analyze Risk', quickPlan: 'Build Investment Plan',
-      healthTitle: 'Portfolio Health', healthEmpty: 'Add assets to your portfolio first to see its health score',
-      healthGood: 'Well-diversified portfolio (largest holding is {sym} at {pct}%)',
-      healthBad: '{sym} makes up {pct}% of your portfolio — consider diversifying more',
-      allocTitle: 'Asset Allocation', allocEmpty: 'No allocation data yet', allocCash: 'Cash', allocOther: 'Other',
-      tasksTitle: 'To-Do',
-      taskEmptyT: 'No assets in portfolio yet', taskEmptyS: 'Start at "My Portfolio" to record your first trade',
-      taskConcT: 'Portfolio is highly concentrated', taskConcS: 'Consider rebalancing for more diversity',
-      taskCashT: 'Lots of cash left idle', taskCashS: 'Less than half your portfolio is invested',
-      taskReviewT: 'Set a portfolio review schedule', taskReviewS: 'Recommended: review every 3 months',
-      newsTitle: 'Latest Stock News', newsSeeAll: 'See all →', newsLoading: 'Loading news…', newsError: 'Couldn’t fetch news right now — try again later',
-      fngTitle: 'Fear & Greed Index (Crypto)', fngLoading: 'Loading…', fngError: 'Couldn’t fetch data right now',
-      fngCached: 'Cached value', fngExtremeFear: 'Extreme Fear', fngFear: 'Fear', fngNeutral: 'Neutral', fngGreed: 'Greed', fngExtremeGreed: 'Extreme Greed',
-      toolClose: 'Close', toolFrameTitle: 'Tool',
-      aiFabLabel: 'Open AI investing assistant', aiTitle: 'AI Investing Assistant',
-      aiInputPh: 'Type a question...', aiAskBtn: 'Analyze',
-      aiNoData: 'There’s no portfolio data yet — go to "My Portfolio" to record a trade first, then come back and ask again',
-      aiRisk: 'Your Portfolio Health score is {score}/100 — your largest holding is {sym} ({pct}% of portfolio)',
-      aiBiggest: 'Your largest holding by value is {sym}, worth {value}',
-      aiTotal: 'Your total portfolio value is {total} (cash {cash} + assets {invested})',
-      aiFallback: 'Try asking things like "how big is my portfolio", "what’s my biggest holding" or "how risky is it" — answers come only from your real local portfolio data, nothing is sent anywhere',
-      candSET: 'SET Index', candADVANC: 'ADVANC (AIS)', candPTT: 'PTT', candCPALL: 'CPALL (7-Eleven)', candDELTA: 'DELTA', candBDMS: 'BDMS (Bangkok Hospital)',
-      candKBANK: 'KBANK', candSCB: 'SCB', candAOT: 'AOT (Airports of Thailand)', candBBL: 'BBL', candSCC: 'SCC (Siam Cement)', candTRUE: 'TRUE',
-      candGULF: 'GULF', candBANPU: 'BANPU', candIVL: 'IVL', candTOP: 'TOP', candPTTEP: 'PTTEP', candCPF: 'CPF', candBH: 'BH (Bumrungrad Hospital)', candHMPRO: 'HMPRO',
-      candAAPL: 'Apple', candMSFT: 'Microsoft', candGOOGL: 'Google (Alphabet)', candAMZN: 'Amazon', candNVDA: 'NVIDIA', candMETA: 'Meta', candTSLA: 'Tesla',
-      'candBTC-USD': 'Bitcoin', 'candETH-USD': 'Ethereum',
-      'candGC=F': 'Gold', 'candSI=F': 'Silver', 'candCL=F': 'WTI Crude Oil', 'candBZ=F': 'Brent Crude Oil', 'candNG=F': 'Natural Gas',
-      'candHG=F': 'Copper', 'candHRC=F': 'Steel (HRC)', 'candSB=F': 'Sugar', 'candKC=F': 'Coffee', 'candZR=F': 'Rough Rice', 'candDX-Y.NYB': 'Dollar Index'
-    }
-  };
-  function t(key, vars) {
-    var s = (I18N[getUILang()] || I18N.th)[key]; if (s == null) s = I18N.th[key] || key;
-    if (vars) Object.keys(vars).forEach(function (k) { s = s.split('{' + k + '}').join(vars[k]); });
-    return s;
-  }
-  function applyStaticI18n() {
-    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
-    document.querySelectorAll('[data-i18n-aria-label]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria-label'))); });
-    document.querySelectorAll('[data-i18n-title]').forEach(function (el) { el.title = t(el.getAttribute('data-i18n-title')); });
-  }
-
-  /* ══ พอร์ตจริงจาก "พอร์ตจำลอง" (tanot:invest:portfolio) — แหล่งเดียวกับที่ invest-portfolio.html ใช้ ══ */
-  var PKEY = 'tanot:invest:portfolio';
-  function loadPortfolio() {
-    try {
-      var s = JSON.parse(localStorage.getItem(PKEY));
-      if (s && isFinite(s.cash) && Array.isArray(s.holdings)) return s;
-    } catch (e) {}
-    return { cash: 0, startCash: 0, holdings: [] };
-  }
-  var portfolio = loadPortfolio();
-  var holdings = portfolio.holdings.filter(function (h) { return N(h.shares) > 0; });
-
-  /* ══ สินทรัพย์จากหน้าอื่นๆ (หุ้นไทย/หุ้นนอก/Bitcoin) — แต่ละหน้ามีลิสต์ถือครองของตัวเอง
-     คนละไฟล์กับ "พอร์ตจำลอง" ข้างบน (คนละจุดประสงค์ ไม่ได้ผูก cash/ซื้อขายเหมือนกัน)
-     ที่นี่แค่ "ดึงมาโชว์รวม" ในตาราง "สินทรัพย์ในพอร์ต" เท่านั้น ไม่ยุ่งกับข้อมูลเดิมของหน้านั้นๆ เลย —
-     ราคาที่ใช้คือ "ราคาล่าสุดที่หน้านั้นเคยบันทึกไว้" (ไม่ได้ดึงราคาสดซ้ำจากที่นี่ กันงานซ้ำซ้อน/รกเกิน) ══ */
-  function loadExternalHoldings() {
-    var out = [];
-    try {
-      (JSON.parse(localStorage.getItem('tanot:invest:thstock')) || []).forEach(function (h) {
-        if (N(h.shares) > 0) out.push({ sym: String(h.sym || '').toUpperCase(), shares: N(h.shares), avgCost: N(h.cost), cur: h.cur, currency: 'THB', icon: 'TH', unit: 'หุ้น' });
-      });
-    } catch (e) {}
-    try {
-      (JSON.parse(localStorage.getItem('tanot:invest:globalstock')) || []).forEach(function (h) {
-        if (N(h.shares) > 0) out.push({ sym: String(h.sym || '').toUpperCase(), shares: N(h.shares), avgCost: N(h.cost), cur: h.cur, currency: 'USD', icon: 'GL', unit: 'หุ้น' });
-      });
-    } catch (e) {}
-    try {
-      (JSON.parse(localStorage.getItem('tanot:invest:btc')) || []).forEach(function (h) {
-        if (N(h.qty) > 0) out.push({ sym: 'BTC', shares: N(h.qty), avgCost: N(h.cost), cur: h.cur, currency: 'USD', icon: '₿', unit: 'BTC' });
-      });
-    } catch (e) {}
-    return out;
-  }
-  var externalHoldings = loadExternalHoldings();
-  var usdThbRate = 36; /* ค่าเริ่มต้นเผื่อดึงไม่ได้ — อัปเดตจริงถ้าดึง THB=X สำเร็จ (ดู loadUsdThbRate) */
-  function loadUsdThbRate() {
-    if (!externalHoldings.some(function (h) { return h.currency === 'USD'; })) return Promise.resolve(); /* ไม่มีสินทรัพย์สกุล USD ไม่ต้องดึง */
-    return loadOneQuote('THB=X', '', 0, 'px:THB=X').then(function (q) { if (isFinite(q.price)) usdThbRate = q.price; }).catch(function () {});
-  }
-
-  /* ══ Live Market Data Gateway — เส้นทางหลัก ถ้าผู้ใช้ตั้งค่าไว้แล้วในหน้าหุ้นไทย/หุ้นนอก/Bitcoin
-     (คีย์ localStorage เดียวกัน ใช้ร่วมกันทุกหน้า) เชื่อถือได้กว่า CORS-proxy ฟรีมาก
-     ย่อมาจาก invest-thai-stock.js เฉพาะส่วนดึงราคา ไม่รวม UI ตั้งค่า (ตั้งค่าที่หน้าหุ้นไทยแทน) ══ */
-  var LIVE_CFG_KEY = 'tanot:market:live-config:v1';
-  function liveCfg() {
-    var d = { provider: 'gateway', gateway: '', apiKey: '', interval: 5 };
-    try { var x = JSON.parse(localStorage.getItem(LIVE_CFG_KEY) || '{}'); Object.keys(d).forEach(function (k) { if (x[k] != null) d[k] = x[k]; }); } catch (e) {}
-    return d;
-  }
-  function fetchJson(url, timeoutMs) {
-    var ctrl = ('AbortController' in window) ? new AbortController() : null;
-    var to = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs || 6000) : null;
-    return fetch(url, Object.assign({ headers: { 'Accept': 'application/json' } }, ctrl ? { signal: ctrl.signal } : {}))
-      .then(function (r) { if (to) clearTimeout(to); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
-  }
-  function normalizeLiveQuote(j) {
-    var q = j && (j.quote || j.data || j.result || j); q = q && (q.data || q.quote || q);
-    var price = Number(q && (q.price != null ? q.price : (q.close != null ? q.close : q.last)));
-    if (!isFinite(price)) throw new Error('quote price missing');
-    var prev = Number(q.previous_close != null ? q.previous_close : (q.prev_close != null ? q.prev_close : q.previousClose));
-    return { price: price, prevClose: prev };
-  }
-  function fetchLiveQuote(sym, c) {
-    if (c.provider === 'gateway') {
-      var base = (c.gateway || '').replace(/\/$/, ''); if (!base) return Promise.reject(new Error('gateway not configured'));
-      return fetchJson(base + '/quote?symbol=' + encodeURIComponent(sym)).then(normalizeLiveQuote);
-    }
-    if (c.provider === 'twelvedata') {
-      if (!c.apiKey) return Promise.reject(new Error('Twelve Data API key missing'));
-      return fetchJson('https://api.twelvedata.com/quote?symbol=' + encodeURIComponent(sym) + '&exchange=SET&apikey=' + encodeURIComponent(c.apiKey))
-        .then(function (j) { if (j && j.status === 'error') throw new Error(j.message || 'Twelve Data error'); return normalizeLiveQuote(j); });
-    }
-    return Promise.reject(new Error('live gateway not configured'));
-  }
-
-  /* ── ราคาสำรอง (.BK ผ่าน CORS-proxy chain — รูปแบบเดียวกับ invest-thai-stock.js/invest-portfolio.js) ── */
-  function fetchOne(url, timeoutMs, parser) {
-    var ctrl = ('AbortController' in window) ? new AbortController() : null;
-    var to = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs || 8000) : null;
-    return fetch(url, ctrl ? { signal: ctrl.signal } : undefined)
-      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.text(); })
-      .then(function (t) { if (to) clearTimeout(to); return parser(t); });
-  }
-  /* หมายเหตุ (แก้บั๊ก "ราคาสินทรัพย์บางตัวไม่ขึ้น/หน้าหนวง"): corsproxy.io เปลี่ยนไปเรียกเก็บ API key
-     แล้ว ทุกคำขอฟรีได้ 401 ทันที — ตัดออก เพิ่มพร็อกซีสำรองอีก 2 ตัวแทนให้สายสำรองยังยาวพอ (พร็อกซี CORS
-     สาธารณะฟรีล้มหายตายจากกันเรื่อยๆ ตามธรรมชาติของบริการฟรี ไม่มีใครควบคุมได้ 100%) เหมือนที่แก้ไปแล้วใน
-     invest-news.js/invest-thai-stock.js ฯลฯ */
-  function proxyTries(base, offset) {
-    var enc = encodeURIComponent(base);
-    var tries = [
-      { url: OWN_PROXY + enc },
-      { url: 'https://api.allorigins.win/raw?url=' + enc },
-      { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
-      { url: 'https://cors.eu.org/' + base },
-      { url: 'https://test.cors.workers.dev/?' + base },
-      { url: 'https://api.cors.lol/?url=' + enc },
-      { url: base }
-    ];
-    offset = ((offset || 0) % tries.length + tries.length) % tries.length;
-    return tries.slice(offset).concat(tries.slice(0, offset));
-  }
-  function parseQuoteLite(t) {
-    var j = JSON.parse(t), res = j && j.chart && j.chart.result && j.chart.result[0], meta = res && res.meta;
-    if (!meta || !isFinite(meta.regularMarketPrice)) throw new Error('no meta');
-    return { price: meta.regularMarketPrice, prevClose: meta.previousClose };
-  }
-  function quoteCacheKey(sym) { return 'tanot:invest:cache:hub:q:' + sym; }
-  function loadQuoteCache(sym) { try { var o = JSON.parse(localStorage.getItem(quoteCacheKey(sym))); return (o && isFinite(o.price)) ? o : null; } catch (e) { return null; } }
-  function saveQuoteCache(sym, q) { try { localStorage.setItem(quoteCacheKey(sym), JSON.stringify({ ts: Date.now(), price: q.price, prevClose: q.prevClose })); } catch (e) {} }
-  function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
-  /* ตลาดปิดแน่ๆ ช่วงไหนบ้าง (เดา “คร่าวๆ” พอกันยิง fetch เปล่าๆ ตอนรู้อยู่แล้วว่าราคาไม่ขยับ
-     ไม่ได้เช็คปฏิทินวันหยุดจริง — คริปโต/ฟิวเจอร์สเทรดต่อเนื่องเกือบตลอด เลยข้ามการเช็คนี้ไปเลย) */
-  function marketLikelyOpen(sym, suffix) {
-    var isContinuous = /-USD$/.test(sym) || /=F$/.test(sym) || sym === 'DX-Y.NYB';
-    if (isContinuous) return true;
-    var now = new Date(), day = now.getDay(); /* 0=อาทิตย์, 6=เสาร์ (เวลาเครื่องผู้ใช้ — พอเป็นตัวกันหยาบๆ) */
-    if (day === 0 || day === 6) return false;
-    if (suffix === '.BK') { var thaiHour = (now.getUTCHours() + 7) % 24; return thaiHour >= 9 && thaiHour < 17; }
-    return true; /* หุ้นนอกวันธรรมดา — ไม่เช็คชั่วโมงละเอียดเพราะตลาดโลกคาบเกี่ยวกันหลายโซนเวลา */
-  }
-  function loadOneQuote(sym, suffix, offset, cacheSym, force) {
-    var cached = loadQuoteCache(cacheSym), fresh = cached && (Date.now() - cached.ts < 3600 * 1000);
-    if (fresh && !force) return Promise.resolve(cached);
-    /* มีค่าที่เคยดึงได้อยู่แล้ว + ตอนนี้ตลาดปิดแน่ๆ (เช่น เสาร์-อาทิตย์) — ใช้ค่าล่าสุดที่มีเลย ไม่ต้องยิงจริง
-       ราคาปิดวันศุกร์ก็คือราคาล่าสุดจริงๆ อยู่ดี ไม่ใช่ข้อมูลเก่าที่ผิด แค่ยังไม่มีข้อมูลใหม่กว่านี้ให้ดึง
-       (กดปุ่มรีเฟรชเองข้ามเงื่อนไขนี้ได้ — force=true แปลว่าผู้ใช้ตั้งใจลองจริงๆ) */
-    if (cached && !force && !marketLikelyOpen(sym, suffix)) return Promise.resolve(cached);
-    function viaProxyChain() {
-      var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + suffix + '?range=5d&interval=1d';
-      var tries = proxyTries(base, offset), i = 0;
-      function next() {
-        if (i >= tries.length) return cached ? Promise.resolve(cached) : Promise.reject(new Error('fail'));
-        return fetchOne(tries[i++].url, 7000, parseQuoteLite).catch(next);
-      }
-      return next();
-    }
-    var attempt;
-    if (suffix === '.BK') { /* หุ้นไทย — ลอง Live Gateway ก่อนถ้าตั้งค่าไว้แล้ว (เหมือนหน้าหุ้นไทย/บิตคอยน์/หุ้นนอก) */
-      var c = liveCfg();
-      attempt = (c.provider === 'gateway' || c.provider === 'twelvedata') ? fetchLiveQuote(sym, c).catch(viaProxyChain) : viaProxyChain();
-    } else {
-      attempt = viaProxyChain();
-    }
-    return attempt.then(function (q) { saveQuoteCache(cacheSym, q); return q; }, function (e) { if (cached) return cached; throw e; });
-  }
-  function loadQuote(sym, offset) { return loadOneQuote(sym, '.BK', offset, 'bk:' + sym); } /* ราคาถือครองในพอร์ต — ใช้แคชร่วมกับการ์ด "หุ้นไทย" ถ้าสัญลักษณ์ตรงกัน */
-
-  /* ══ กลุ่มตลาดย่อยในการ์ด "ตลาด" — หุ้นไทย / หุ้นต่างประเทศ & Bitcoin / โภคภัณฑ์
-     ผู้ใช้กดไอคอนฟันเฟืองเลือกสัญลักษณ์ที่อยากให้แสดงเองได้ต่อกลุ่ม (บันทึกใน localStorage)
-     ถ้ายังไม่เคยปรับ กลุ่ม "หุ้นไทย" จะเอาหุ้นที่ถืออยู่ในพอร์ตขึ้นก่อนแล้วเติมจากค่าเริ่มต้น เหมือนเดิม
-     ส่วนหุ้นต่างประเทศ/โภคภัณฑ์ ไม่มี .BK ต่อท้าย (ticker ตรงจาก Yahoo Finance) — ถ่านหิน/ยางพารา/ปาล์ม/
-     มันสำปะหลัง/ค่าระวางเรือ ยังไม่มีในตัวเลือก เพราะยังไม่พบ ticker สาธารณะฟรีที่มั่นใจได้ (เหมือนหน้า
-     ค่าเงิน & วัตถุดิบ) ══ */
-  var MARKET_GROUPS = {
-    thai: {
-      suffix: '.BK', defaultSyms: ['SET', 'ADVANC', 'PTT', 'CPALL', 'DELTA', 'BDMS'], allowCustom: true,
-      candidates: { SET: 'ดัชนี SET', ADVANC: 'ADVANC (AIS)', PTT: 'PTT', CPALL: 'CPALL (7-Eleven)', DELTA: 'DELTA', BDMS: 'BDMS (รพ.กรุงเทพ)',
-        KBANK: 'KBANK', SCB: 'SCB', AOT: 'AOT (สนามบิน)', BBL: 'BBL', SCC: 'SCC (ปูนซิเมนต์ไทย)', TRUE: 'TRUE',
-        GULF: 'GULF', BANPU: 'BANPU', IVL: 'IVL', TOP: 'TOP', PTTEP: 'PTTEP', CPF: 'CPF', BH: 'BH (รพ.บำรุงราษฎร์)', HMPRO: 'HMPRO' }
-    },
-    global: {
-      suffix: '', defaultSyms: ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'BTC-USD'],
-      candidates: { AAPL: 'Apple', MSFT: 'Microsoft', GOOGL: 'Google (Alphabet)', AMZN: 'Amazon', NVDA: 'NVIDIA', META: 'Meta', TSLA: 'Tesla', 'BTC-USD': 'Bitcoin', 'ETH-USD': 'Ethereum' }
-    },
-    commod: {
-      suffix: '', defaultSyms: ['GC=F', 'SI=F', 'CL=F', 'NG=F', 'HRC=F', 'HG=F'],
-      candidates: { 'GC=F': 'ทองคำ', 'SI=F': 'เงิน (Silver)', 'CL=F': 'น้ำมัน WTI', 'BZ=F': 'น้ำมันดิบ Brent', 'NG=F': 'ก๊าซธรรมชาติ',
-        'HG=F': 'ทองแดง', 'HRC=F': 'เหล็ก (HRC)', 'SB=F': 'น้ำตาลทราย', 'KC=F': 'กาแฟ', 'ZR=F': 'ข้าว (Rough Rice)', 'DX-Y.NYB': 'ดัชนีดอลลาร์' }
-    }
-  };
-  function watchKey(g) { return 'tanot:invest:hub:watch:' + g; }
-  function loadCustomWatch(g) {
-    try { var v = JSON.parse(localStorage.getItem(watchKey(g))); if (Array.isArray(v) && v.length) return v; } catch (e) {}
-    return null;
-  }
-  function saveCustomWatch(g, syms) { try { localStorage.setItem(watchKey(g), JSON.stringify(syms)); } catch (e) {} }
-  function clearCustomWatch(g) { try { localStorage.removeItem(watchKey(g)); } catch (e) {} }
-  function groupSymbols(g) {
-    var custom = loadCustomWatch(g);
-    if (custom) return custom;
-    if (g === 'thai') {
-      var syms = holdings.map(function (h) { return String(h.sym).toUpperCase(); });
-      var out = syms.slice(0, 6);
-      MARKET_GROUPS.thai.defaultSyms.forEach(function (s) { if (out.length < 6 && out.indexOf(s) < 0) out.push(s); });
-      return out;
-    }
-    return MARKET_GROUPS[g].defaultSyms;
-  }
-  var marketQuotes = { thai: {}, global: {}, commod: {} };
-  var INDEX_SYMS = ['SET']; /* ดัชนี ไม่ใช่หุ้นบริษัท — เปิดป๊อปอัพดูรายละเอียดหุ้นรายตัวไม่ได้ */
-  function renderMarketGroup(g) {
-    var syms = groupSymbols(g), grid = $('mkGrid-' + g), quotes = marketQuotes[g];
-    /* ตอนนี้เปิดป๊อปอัพดูรายละเอียดได้เฉพาะ "หุ้นไทย" ก่อน (ทำหน้านี้ให้เสร็จสมบูรณ์แล้วค่อยขยายกลุ่มอื่นทีหลัง) */
-    grid.innerHTML = syms.length ? syms.map(function (s) {
-      var q = quotes[s];
-      var clickable = g === 'thai' && INDEX_SYMS.indexOf(s) < 0;
-      var chg = q && isFinite(q.prevClose) && q.prevClose ? (q.price / q.prevClose - 1) * 100 : NaN;
-      return '<div class="ticker' + (clickable ? ' js-open-tool' : '') + '"' + (clickable ? ' data-tool-url="invest-thai-stock.html?sym=' + encodeURIComponent(s) + '"' : '') + '><b>' + esc(s) + '</b><span class="px">' + (q ? N(q.price).toLocaleString('th-TH', { maximumFractionDigits: 2 }) : '—') + '</span>' +
-        '<span class="chg ' + (isFinite(chg) ? (chg >= 0 ? 'up' : 'dn') : '') + '">' + (isFinite(chg) ? pct(chg, 2) : '—') + '</span></div>';
-    }).join('') : '<p class="empty-hint">' + esc(t('tickerEmpty')) + '</p>';
-    if (g === 'thai') {
-      var live = syms.filter(function (s) { return quotes[s]; }).length;
-      $('tkLive').className = 'live' + (live ? ' on' : '');
-      $('tkStatus').textContent = live ? t('marketLive', { live: live, n: syms.length }) : t('marketNoLive');
-    }
-  }
-  function loadMarketGroup(g, force) {
-    var syms = groupSymbols(g), suffix = MARKET_GROUPS[g].suffix;
-    /* หน่วงจุดเริ่มของแต่ละสัญลักษณ์เล็กน้อย กันยิงเข้า CORS-proxy เดียวกันพร้อมกันจนโดน rate-limit (429) เอง */
-    return Promise.all(syms.map(function (s, i) {
-      return delay(i * 260).then(function () { return loadOneQuote(s, suffix, i, (suffix ? 'bk:' : 'px:') + s, force); }).then(function (q) { marketQuotes[g][s] = q; }).catch(function () {});
-    })).then(function () { renderMarketGroup(g); });
-  }
-  function loadAllMarkets(force) { return Promise.all(['thai', 'global', 'commod'].map(function (g) { return loadMarketGroup(g, force); })); }
-
-  /* ══ ดัชนีความกลัว-โลภ (alternative.me, best-effort — เหมือน invest-bitcoin.js) ══
-     เป็นดัชนีอารมณ์ตลาดคริปโตเท่านั้น ไม่ใช่ของหุ้นไทย/หุ้นนอก — ใส่ไว้เป็นบริบทประกอบเพิ่มเติม
-     ในคอลัมน์ขวาที่ว่าง ไม่ใช่สัญญาณเข้า-ออก */
-  var FNG_KEY_OF = { 'Extreme Fear': 'fngExtremeFear', 'Fear': 'fngFear', 'Neutral': 'fngNeutral', 'Greed': 'fngGreed', 'Extreme Greed': 'fngExtremeGreed' };
-  function parseFng(t) {
-    var j = JSON.parse(t), d = j && j.data && j.data[0];
-    if (!d || !isFinite(parseInt(d.value, 10))) throw new Error('no data');
-    return { value: parseInt(d.value, 10), classification: d.value_classification };
-  }
-  function fetchFng() {
-    var base = 'https://api.alternative.me/fng/?limit=1&format=json', enc = encodeURIComponent(base);
-    var tries = [
-      base, /* ลองตรงก่อน — API นี้เปิด CORS */
-      OWN_PROXY + enc,
-      'https://api.allorigins.win/raw?url=' + enc,
-      'https://api.codetabs.com/v1/proxy/?quest=' + enc,
-      'https://cors.eu.org/' + base,
-      'https://test.cors.workers.dev/?' + base,
-      'https://api.cors.lol/?url=' + enc,
-    ];
-    var i = 0;
-    function next() { if (i >= tries.length) return Promise.reject(new Error('fail')); return fetchOne(tries[i++], 7000, parseFng).catch(next); }
-    return next();
-  }
-  function fngCacheKey() { return 'tanot:invest:cache:hub:fng'; }
-  function saveFngCache(o) { try { localStorage.setItem(fngCacheKey(), JSON.stringify({ ts: Date.now(), value: o.value, classification: o.classification })); } catch (e) {} }
-  function loadFngCache() { try { var o = JSON.parse(localStorage.getItem(fngCacheKey())); return (o && isFinite(o.value)) ? o : null; } catch (e) { return null; } }
-  var lastFng = null; /* เก็บค่าล่าสุดที่แสดงไว้ (ไม่ใช่แค่ที่แคช) ไว้ re-render ตอนสลับภาษา โดยไม่ต้องดึงใหม่ */
-  function renderFng(value, classification, cached) {
-    lastFng = { value: value, classification: classification, cached: cached };
-    $('fngNum').textContent = value;
-    $('fngLabel').textContent = t(FNG_KEY_OF[classification] || 'fngNeutral') + ' (' + value + '/100)';
-    $('fngMarker').style.left = Math.max(0, Math.min(100, value)) + '%';
-    if (cached) { $('fngBadge').style.display = 'inline'; $('fngBadge').textContent = t('fngCached'); }
-  }
-  function loadFng() {
-    fetchFng().then(function (o) {
-      saveFngCache(o);
-      renderFng(o.value, o.classification, false);
-    }, function () {
-      var c = loadFngCache();
-      if (c) renderFng(c.value, c.classification, true);
-      else $('fngLabel').textContent = t('fngError');
-    });
-  }
-
-  /* ── กดฟันเฟืองต่อกลุ่มตลาด — เลือกจากรายชื่อยอดนิยม (checkbox) แทนพิมพ์เอง
-     ("หุ้นไทย" มีช่อง "เพิ่มเอง" เสริมด้วย เพราะหุ้นไทยเลือกได้มากกว่ารายการยอดนิยมที่ใส่ไว้) ── */
-  [].forEach.call(document.querySelectorAll('.gear-btn'), function (btn) {
-    var g = btn.getAttribute('data-group'), panel = $('gearPanel-' + g), meta = MARKET_GROUPS[g];
-    btn.addEventListener('click', function () {
-      var open = panel.hidden;
-      document.querySelectorAll('.gear-panel').forEach(function (p) { p.hidden = true; });
-      if (!open) return;
-      panel.hidden = false;
-      var current = groupSymbols(g);
-      var candKeys = Object.keys(meta.candidates);
-      var extra = current.filter(function (s) { return candKeys.indexOf(s) < 0; });
-      panel.innerHTML =
-        '<div class="gp-check-grid">' + candKeys.map(function (s) {
-          var on = current.indexOf(s) >= 0;
-          return '<label class="gp-check' + (on ? ' on' : '') + '"><input type="checkbox" value="' + esc(s) + '"' + (on ? ' checked' : '') + '> ' + esc(t('cand' + s)) + '</label>';
-        }).join('') + '</div>' +
-        (meta.allowCustom ? '<input type="text" class="input gp-extra" value="' + esc(extra.join(', ')) + '" placeholder="' + esc(t('gpExtraPh')) + '" spellcheck="false">' : '') +
-        '<div class="gp-actions"><button type="button" class="btn primary sm gp-save">' + esc(t('gpSave')) + '</button><button type="button" class="btn ghost sm gp-reset">' + esc(t('gpReset')) + '</button></div>';
-      [].forEach.call(panel.querySelectorAll('.gp-check input'), function (c) {
-        c.addEventListener('change', function () { c.closest('.gp-check').classList.toggle('on', c.checked); });
-      });
-      panel.querySelector('.gp-save').addEventListener('click', function () {
-        var checked = [].map.call(panel.querySelectorAll('.gp-check input:checked'), function (c) { return c.value; });
-        var extraInput = panel.querySelector('.gp-extra');
-        var extraSyms = extraInput ? extraInput.value.split(',').map(function (s) { return s.trim().toUpperCase(); }).filter(Boolean) : [];
-        var syms = checked.concat(extraSyms.filter(function (s) { return checked.indexOf(s) < 0; }));
-        if (syms.length) saveCustomWatch(g, syms); else clearCustomWatch(g);
-        panel.hidden = true;
-        loadMarketGroup(g);
-      });
-      panel.querySelector('.gp-reset').addEventListener('click', function () {
-        clearCustomWatch(g);
-        panel.hidden = true;
-        loadMarketGroup(g);
-      });
-    });
-  });
-  document.addEventListener('click', function (e) {
-    if (e.target.closest('.gear-btn, .gear-panel')) return;
-    document.querySelectorAll('.gear-panel').forEach(function (p) { p.hidden = true; });
-  });
-
-  /* ── ราคาหุ้นที่ถือในพอร์ตจริง (แยกจากการ์ดตลาดด้านบนที่ผู้ใช้ปรับเองได้ — ต้องได้ราคาเสมอไม่ว่าจะ
-     ปรับการ์ด "หุ้นไทย" ไปโชว์สัญลักษณ์อื่นหรือไม่ก็ตาม ใช้แคชร่วมกันกับการ์ดหุ้นไทยผ่าน cacheSym เดียวกัน) ── */
-  var holdingQuotes = {};
-  function loadHoldingQuotes() {
-    var syms = holdings.map(function (h) { return String(h.sym).toUpperCase(); });
-    return Promise.all(syms.map(function (s, i) {
-      return delay(i * 260).then(function () { return loadQuote(s, i); }).then(function (q) { holdingQuotes[s] = q; }).catch(function () {});
-    }));
-  }
-
-  /* ── คำนวณพอร์ต ── */
-  function computePortfolio() {
-    var rows = [], invested = 0, cost = 0;
-    holdings.forEach(function (h) {
-      var sym = String(h.sym).toUpperCase(), q = holdingQuotes[sym], price = q ? q.price : N(h.avgCost);
-      var value = price * N(h.shares), basis = N(h.avgCost) * N(h.shares);
-      rows.push({ sym: sym, shares: N(h.shares), avgCost: N(h.avgCost), price: price, value: value, basis: basis, pl: basis ? (value - basis) / basis * 100 : 0, live: !!q, icon: 'TH', unit: 'หุ้น' });
-      invested += value; cost += basis;
-    });
-    /* สินทรัพย์จากหน้าหุ้นไทย/หุ้นนอก/Bitcoin (แยกไฟล์ ไม่ใช่ "พอร์ตจำลอง") — แปลงมูลค่า USD เป็นบาทด้วย usdThbRate */
-    externalHoldings.forEach(function (h) {
-      var fx = h.currency === 'USD' ? usdThbRate : 1;
-      var price = isFinite(h.cur) && h.cur > 0 ? N(h.cur) : N(h.avgCost);
-      var value = price * h.shares * fx, basis = N(h.avgCost) * h.shares * fx;
-      rows.push({ sym: h.sym, shares: h.shares, avgCost: h.avgCost, price: price, value: value, basis: basis, pl: basis ? (value - basis) / basis * 100 : 0, live: isFinite(h.cur) && h.cur > 0, icon: h.icon, unit: h.unit });
-      invested += value; cost += basis;
-    });
-    var cash = N(portfolio.cash), total = cash + invested;
-    return { rows: rows, cash: cash, invested: invested, total: total, cost: cost };
-  }
-
-  function renderKpis(p) {
-    $('kValue').textContent = money(p.total);
-    $('kValueSub').textContent = p.rows.length ? t('kValueSubN', { n: p.rows.length, live: p.rows.filter(function (r) { return r.live; }).length }) : t('kValueSubEmpty');
-    var totalCost = p.cash + p.cost;
-    /* startCash (เงินสมมติเริ่มต้นของ "พอร์ตจำลอง") แม่นกว่า totalCost เพราะรวมกำไร/ขาดทุนที่รับรู้แล้วจากการขายด้วย
-       แต่ใช้ได้เฉพาะตอนพอร์ตมีแค่สินทรัพย์จาก "พอร์ตจำลอง" เท่านั้น — ถ้ามีสินทรัพย์จากหน้าอื่นปนด้วย
-       (หุ้นไทย/หุ้นนอก/Bitcoin มินิลิสต์ ไม่เคยอยู่ใน startCash นี้) จะเทียบกับ totalCost แทนเพื่อไม่ให้เพี้ยน */
-    var plBase = (!externalHoldings.length && portfolio.startCash) ? portfolio.startCash : totalCost;
-    var pl = p.total - plBase;
-    var plPct = plBase ? pl / plBase * 100 : 0;
-    $('kPl').textContent = (pl >= 0 ? '+' : '') + money(pl);
-    $('kPl').className = 'kpi-value' + (p.rows.length ? (pl >= 0 ? ' up' : ' dn') : '');
-    $('kPlSub').textContent = p.rows.length ? t('kPlSubPct', { pct: pct(plPct, 2) }) : t('kPlSubDash');
-    $('kPlSub').className = 'kpi-delta' + (p.rows.length ? (pl >= 0 ? ' up' : ' down') : '');
-    $('kCash').textContent = money(p.cash);
-    $('kCashSub').textContent = t('kCashSubPct', { pct: (p.total ? (p.cash / p.total * 100) : 0).toFixed(1) });
-  }
-
-  function renderAssets(p) {
-    var body = $('assetsBody');
-    var linkBtn = '<button type="button" class="lnk js-open-tool" data-tool-url="invest-portfolio.html">' + esc(t('assetsAddInline')) + '</button>';
-    if (!p.rows.length) { body.innerHTML = '<p class="empty-hint">' + t('assetsEmpty', { link: linkBtn }) + '</p>'; return; }
-    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + esc(t('thAsset')) + '</th><th>' + esc(t('thValue')) + '</th><th>' + esc(t('thShare')) + '</th><th>' + esc(t('thPl')) + '</th></tr></thead><tbody>';
-    p.rows.slice().sort(function (a, b) { return b.value - a.value; }).forEach(function (r) {
-      html += '<tr><td><div class="sym"><span class="badge accent">' + esc(r.icon) + '</span>' + esc(r.sym) + ' · ' + r.shares.toLocaleString('th-TH') + ' ' + esc(r.unit === 'หุ้น' ? t('unitShare') : r.unit) + '</div></td>' +
-        '<td>' + money(r.value) + '</td><td>' + (p.total ? (r.value / p.total * 100).toFixed(1) : '0') + '%</td>' +
-        '<td class="pl ' + (r.pl >= 0 ? 'up' : 'dn') + '">' + pct(r.pl, 1) + '</td></tr>';
-    });
-    body.innerHTML = html + '</tbody></table></div>';
-  }
-
-  function renderAlloc(p) {
-    var body = $('allocBody');
-    var arr = p.rows.map(function (r) { return { label: r.sym, value: r.value }; });
-    if (p.cash > 0) arr.push({ label: t('allocCash'), value: p.cash });
-    arr = arr.filter(function (a) { return a.value > 0; }).sort(function (a, b) { return b.value - a.value; });
-    if (!arr.length) { body.innerHTML = '<p class="empty-hint">' + esc(t('allocEmpty')) + '</p>'; return; }
-    var top = arr.slice(0, 5), rest = arr.slice(5);
-    if (rest.length) top.push({ label: t('allocOther'), value: rest.reduce(function (s, x) { return s + x.value; }, 0) });
-    var C = window.OmeChartTheme.get(), colors = C.series.slice(0, 5).concat([C.axis]); /* สีชุดเดียวกับกราฟทั้งเว็บ (chart-theme.js) */
-    var total = top.reduce(function (s, x) { return s + x.value; }, 0) || 1, cur = 0;
-    var stops = top.map(function (a, i) { var pc = a.value / total * 100, s = cur; cur += pc; return colors[i % colors.length] + ' ' + s + '% ' + cur + '%'; });
-    var rows = top.map(function (a, i) { return '<div class="allocrow"><span class="k"><i style="background:' + colors[i % colors.length] + '"></i>' + esc(a.label) + '</span><span class="v">' + (a.value / total * 100).toFixed(1) + '%</span></div>'; }).join('');
-    body.innerHTML = '<div class="alloc"><svg viewBox="0 0 36 36" style="border-radius:50%;background:conic-gradient(' + stops.join(',') + ')"><circle cx="18" cy="18" r="11.5" fill="' + C.surface + '"/></svg><div>' + rows + '</div></div>';
-  }
-
-  function healthScore(p) {
-    if (!p.rows.length) return null;
-    var largest = Math.max.apply(null, p.rows.map(function (r) { return p.total ? r.value / p.total * 100 : 0; }));
-    var n = p.rows.length;
-    var score = 100 - Math.max(0, largest - 30) * 1.3 - Math.max(0, 4 - n) * 6;
-    return Math.max(0, Math.min(100, Math.round(score)));
-  }
-  function renderHealth(p) {
-    var s = healthScore(p);
-    if (s == null) { $('healthScore').textContent = '—'; $('healthText').textContent = t('healthEmpty'); return; }
-    $('healthScore').textContent = s;
-    $('healthRing').style.setProperty('--score', s + '%');
-    $('healthRing').style.background = 'conic-gradient(' + (s >= 70 ? 'var(--ome-ok)' : s >= 45 ? 'var(--ome-warn)' : 'var(--ome-err)') + ' ' + s + '%, var(--ome-border) 0)';
-    var largest = p.rows.slice().sort(function (a, b) { return b.value - a.value; })[0];
-    var largestPct = p.total ? (largest.value / p.total * 100).toFixed(0) : 0;
-    $('healthText').textContent = s >= 70
-      ? t('healthGood', { sym: largest.sym, pct: largestPct })
-      : t('healthBad', { sym: largest.sym, pct: largestPct });
-  }
-
-  function renderTasks(p) {
-    var tasks = [];
-    if (!p.rows.length) tasks.push(['plus', t('taskEmptyT'), t('taskEmptyS')]);
-    else {
-      var s = healthScore(p);
-      if (s != null && s < 60) tasks.push(['shield', t('taskConcT'), t('taskConcS')]);
-      if (p.total && p.cash / p.total > 0.5) tasks.push(['wallet', t('taskCashT'), t('taskCashS')]);
-    }
-    tasks.push(['check', t('taskReviewT'), t('taskReviewS')]);
-    $('tasksBody').innerHTML = tasks.slice(0, 4).map(function (t) {
-      return '<div class="task"><span class="taskic"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + t[0] + '"/></svg></span><div><b>' + esc(t[1]) + '</b><span>' + esc(t[2]) + '</span></div></div>';
-    }).join('');
-  }
-
-  /* ── กราฟมูลค่าพอร์ต — บันทึกสแนปช็อตอัตโนมัติวันละ 1 ครั้ง เก็บย้อนหลังสูงสุด 30 วัน ── */
-  var HKEY = 'tanot:invest:hub:history';
-  function todayStr() { return new Date().toISOString().slice(0, 10); }
-  function recordSnapshot(total) {
-    var hist = []; try { hist = JSON.parse(localStorage.getItem(HKEY)) || []; } catch (e) {}
-    var today = todayStr();
-    if (hist.length && hist[hist.length - 1].d === today) hist[hist.length - 1].v = total;
-    else hist.push({ d: today, v: total });
-    if (hist.length > 30) hist = hist.slice(-30);
-    try { localStorage.setItem(HKEY, JSON.stringify(hist)); } catch (e) {}
-    return hist;
-  }
-  function renderChart(hist) {
-    var body = $('chartBody');
-    if (hist.length < 2) { body.innerHTML = '<p class="empty-hint">' + esc(t('chartEmpty')) + '</p>'; return; }
-    var vals = hist.map(function (h) { return h.v; }), min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
-    var range = Math.max(1e-6, max - min), w = 620, h = 170, pad = 28;
-    var pts = hist.map(function (x, i) {
-      var px = pad + i / (hist.length - 1) * (w - pad * 2), py = pad + (1 - (x.v - min) / range) * (h - pad * 1.6);
-      return px.toFixed(1) + ',' + py.toFixed(1);
-    });
-    var last = hist[hist.length - 1], first = hist[0], up = last.v >= first.v, C = window.OmeChartTheme.get();
-    body.innerHTML = '<div class="chartwrap"><svg viewBox="0 0 ' + w + ' ' + (h + 22) + '" preserveAspectRatio="xMidYMid meet">' +
-      '<polyline points="' + pts.join(' ') + '" fill="none" stroke="' + (up ? C.up : C.down) + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '<text x="' + pad + '" y="' + (h + 18) + '" font-size="9" fill="' + C.axis + '" font-family="Prompt">' + esc(first.d.slice(5)) + '</text>' +
-      '<text x="' + (w - pad - 40) + '" y="' + (h + 18) + '" font-size="9" fill="' + C.axis + '" font-family="Prompt">' + esc(last.d.slice(5)) + '</text>' +
-      '</svg></div>';
-  }
-
-  /* ── ข่าวหุ้นล่าสุด (RSS + proxy chain — เดิมของ invest.html hub) ── */
-  function parseNewsRss(t) {
-    var xml = new DOMParser().parseFromString(t, 'text/xml');
-    if (xml.querySelector('parsererror')) throw new Error('parse error');
-    var items = [].slice.call(xml.querySelectorAll('item')).slice(0, 3).map(function (it) {
-      var title = it.querySelector('title'), link = it.querySelector('link');
-      return { title: title ? title.textContent : '', link: link ? link.textContent : '#' };
-    }).filter(function (n) { return n.title; });
-    if (!items.length) throw new Error('no items');
-    return items;
-  }
-  var NEWS_QUERY = 'ตลาดหุ้นไทย OR SET Index';
-  function newsCacheKey() { return 'tanot:invest:newscache:hub:' + NEWS_QUERY; }
-  function loadNewsCache() { try { var o = JSON.parse(localStorage.getItem(newsCacheKey())); return (o && o.items) ? o : null; } catch (e) { return null; } }
-  function renderNews(items) {
-    $('newsBody').innerHTML = items.map(function (n) {
-      return '<div class="newsitem"><a href="' + esc(n.link) + '" target="_blank" rel="noopener">' + esc(n.title) + '</a></div>';
-    }).join('');
-  }
-  var newsFailed = false; /* ไว้ให้ omeApplyLang รู้ว่าต้อง re-render ข้อความ error เป็นภาษาใหม่ไหม (ข่าวจริงที่ดึงได้
-    ไม่แปล — เป็นเนื้อหาภาษาไทยจาก RSS ตามเดิม แปลไม่ได้ในระดับนี้ นี่แค่ข้อความ "ดึงไม่ได้" ของตัวเว็บเอง) */
-  function renderNewsError() { $('newsBody').innerHTML = '<div class="newsitem"><span>' + esc(t('newsError')) + '</span></div>'; }
-  var cachedNews = loadNewsCache();
-  if (cachedNews) renderNews(cachedNews.items);
-  else {
-    var nBase = 'https://news.google.com/rss/search?q=' + encodeURIComponent(NEWS_QUERY) + '&hl=th&gl=TH&ceid=TH:th';
-    var nTries = proxyTries(nBase, 2), ni = 0;
-    (function next() {
-      if (ni >= nTries.length) { newsFailed = true; renderNewsError(); return; }
-      fetchOne(nTries[ni++].url, 7000, parseNewsRss).then(function (items) {
-        try { localStorage.setItem(newsCacheKey(), JSON.stringify({ ts: Date.now(), items: items })); } catch (e) {}
-        renderNews(items);
-      }, next);
-    })();
-  }
-
-  /* ── รวมทุกอย่างเข้าด้วยกัน ── */
-  function refreshAll() {
-    var p = computePortfolio();
-    renderKpis(p); renderAssets(p); renderAlloc(p); renderHealth(p); renderTasks(p);
-    renderChart(recordSnapshot(p.total));
-  }
-  applyStaticI18n();
-  refreshAll();
-  window.OmeChartTheme.onChange(refreshAll);
-  loadHoldingQuotes().then(refreshAll);
-  loadUsdThbRate().then(refreshAll);
-  loadAllMarkets();
-  loadFng();
-  /* ให้เมนูตั้งค่ากลาง (shell.js) เรียกตอนสลับภาษา — รูปแบบเดียวกับ word.js/cad.js ทุกอย่างที่นี่
-     re-render จากข้อมูลที่มีอยู่แล้วในเครื่อง ไม่ต้องดึงเน็ตซ้ำ (ราคาตลาด/FNG ใช้ค่าที่ดึงมาแล้ว) */
-  window.omeApplyLang = function () {
-    applyStaticI18n();
-    refreshAll();
-    ['thai', 'global', 'commod'].forEach(renderMarketGroup);
-    if (lastFng) renderFng(lastFng.value, lastFng.classification, lastFng.cached);
-    if (newsFailed) renderNewsError();
-  };
-  /* ปุ่มรีเฟรชด้วยมือ — โปรกซี CORS ฟรีที่ใช้ดึงราคาไม่เสถียร บางสัญลักษณ์อาจดึงไม่ได้ตอนโหลดหน้าแรก
-     (ไม่แคชค่า fail ไว้ จึงลองใหม่ทุกครั้งที่กด ส่วนตัวที่ดึงได้แล้วในชั่วโมงนี้จะเร็วเพราะอ่านจากแคช) */
-  $('marketRefreshBtn').addEventListener('click', function () {
-    var btn = this; btn.classList.add('spin');
-    loadAllMarkets(true).finally(function () { btn.classList.remove('spin'); });
-  });
-
-  /* ══ แถบนำทาง 2 ชั้น — สร้างหมวดย่อยจาก window.INVEST_CATS (ที่มาเดียวกับเมนูแฮมเบอร์เกอร์) ══ */
-  var GROUP_OF = { 'thai-stock': 'market', 'global-stock': 'market', 'thai-fund': 'market', 'global-fund': 'market', 'gold': 'market', 'bitcoin': 'market', 'commodities': 'market',
-    'gov-bond': 'lottery', 'lottery': 'lottery', 'gsb-lottery': 'lottery', 'baac-lottery': 'lottery', 'news': 'news', 'business': 'news' };
-  function waitCats(cb) { if (window.INVEST_CATS) cb(window.INVEST_CATS); else setTimeout(function () { waitCats(cb); }, 30); }
-  waitCats(function (CATS) {
-    CATS.forEach(function (c) {
-      var g = GROUP_OF[c.key]; if (!g) return;
-      var row = $('ivSubRow-' + g); if (!row) return;
-      var a = document.createElement('a'); a.href = c.page;
-      a.textContent = c.label;
-      row.appendChild(a);
-    });
-
-    /* ── ค้นหาด่วน — จับคู่กับหมวดจริงจาก INVEST_CATS ── */
-    var input = $('heroSearch'), hint = $('heroSearchHint');
-    function matches(q) {
-      q = q.trim().toLowerCase(); if (!q) return [];
-      return CATS.filter(function (c) { return c.label.toLowerCase().indexOf(q) >= 0 || c.key.toLowerCase().indexOf(q) >= 0; }).slice(0, 6);
-    }
-    input.addEventListener('input', function () {
-      var m = matches(input.value);
-      if (!m.length) { hint.classList.remove('on'); return; }
-      hint.innerHTML = m.map(function (c) { return '<a href="' + c.page + '">' + esc(c.label) + '</a>'; }).join('');
-      hint.classList.add('on');
-    });
-    input.addEventListener('keydown', function (e) {
-      if (e.key !== 'Enter') return;
-      var m = matches(input.value);
-      if (m.length) location.href = m[0].page;
-    });
-    document.addEventListener('click', function (e) { if (!e.target.closest('.hero-search')) hint.classList.remove('on'); });
-  });
-
-  var groupBtns = document.querySelectorAll('#ivGroups button[data-group]');
-  groupBtns.forEach(function (b) {
-    b.addEventListener('click', function () {
-      if (b.dataset.href) { location.href = b.dataset.href; return; }
-      groupBtns.forEach(function (x) { x.classList.toggle('on', x === b); });
-      document.querySelectorAll('.subnav-sub').forEach(function (s) { s.classList.remove('on'); });
-      var sub = $('ivSub-' + b.dataset.group);
-      if (sub) sub.classList.add('on');
-    });
-  });
-
-  /* ══ ป๊อปอัพเครื่องมือ — เปิดหน้าเครื่องมือ (พอร์ตจำลอง/ค่าเงิน & วัตถุดิบ ฯลฯ) ในกรอบลอยเลื่อนได้
-     แทนการเปลี่ยนหน้า ใช้ตัวเดียวร่วมกันทุกปุ่มผ่าน data-tool-url (?embed=1 ให้ shell.js ของหน้านั้น
-     ไม่สร้างแถบนำทาง/เมนูลิ้นชัก/วิดเจ็ตแชท/ฟุตเตอร์ซ้ำ — ข้อมูลยัง localStorage เดียวกัน same-origin
-     จึงอ่านความสูงจริงของ iframe มาปรับกรอบให้พอดีได้) ══ */
-  (function () {
-    var overlay = $('toolModalOverlay'), frame = $('toolModalFrame'), closeBtn = $('toolModalClose');
-    function isWideModal() { return window.innerWidth > 600; } /* ตรงกับ breakpoint ของ CSS ด้านบน */
-    function openToolModal(url) {
-      /* จอกว้าง: กล่องเป็นเต็มจอ (100vh) ตายตัวอยู่แล้วจาก CSS ให้ iframe เต็มไปเลยไม่ต้องรอวัดเนื้อหา
-         (กันอาการกระตุกโตขึ้นทีหลัง) ส่วนมือถือยังคงพฤติกรรมเดิม (เริ่ม 70vh แล้วค่อยวัดจริงตอนโหลดเสร็จ) */
-      frame.style.height = isWideModal() ? '100%' : '70vh';
-      frame.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'embed=1';
-      overlay.hidden = false;
-      overlay.scrollTop = 0; /* overlay เป็น element เดิมที่ใช้ซ้ำทุกครั้ง — ถ้าเลื่อนค้างจากรอบก่อน
-        เปิดใหม่จะโผล่กลางเนื้อหาเดิมแทนที่จะเริ่มจากบนสุด (การ์ดบนสุดโดนตัดครึ่ง) ต้องรีเซ็ตทุกครั้งที่เปิด */
-      document.documentElement.style.overflow = 'hidden';
-    }
-    function closeToolModal() {
-      overlay.hidden = true;
-      document.documentElement.style.overflow = '';
-      frame.src = 'about:blank';
-      /* ข้อมูลพอร์ต/ราคาอาจเปลี่ยนระหว่างเปิดป๊อปอัพ — โหลดค่าล่าสุดมาแสดงในหน้านี้ใหม่ */
-      portfolio = loadPortfolio();
-      holdings = portfolio.holdings.filter(function (h) { return N(h.shares) > 0; });
-      externalHoldings = loadExternalHoldings();
-      refreshAll();
-      loadHoldingQuotes().then(refreshAll);
-      loadUsdThbRate().then(refreshAll);
-    }
-    frame.addEventListener('load', function () {
-      if (frame.src === 'about:blank') return;
-      if (isWideModal()) return; /* จอกว้างเต็มจอตายตัวอยู่แล้ว (100% จาก CSS) ไม่ต้องวัด/ปรับความสูงเอง */
-      try {
-        var h = frame.contentWindow.document.documentElement.scrollHeight;
-        frame.style.height = Math.min(Math.max(h, 320), window.innerHeight * 0.86) + 'px';
-      } catch (e) {}
-    });
-    document.addEventListener('click', function (e) {
-      var trigger = e.target.closest('.js-open-tool');
-      if (trigger) { e.preventDefault(); openToolModal(trigger.dataset.toolUrl); return; }
-      if (e.target === overlay) closeToolModal();
-    });
-    closeBtn.addEventListener('click', closeToolModal);
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !overlay.hidden) closeToolModal(); });
-  })();
-
-  /* ══ AI ผู้ช่วยการลงทุน — ไอคอนลอยลากได้ + ตอบจากข้อมูลพอร์ตจริงในเครื่อง ══ */
-  (function () {
-    var fab = $('aiFab'), panel = $('aiPanel'), closeBtn = $('aiPanelClose');
-    var dragging = false, moved = false, offX = 0, offY = 0;
-    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
-    function setPos(x, y) {
-      var r = fab.getBoundingClientRect();
-      x = clamp(x, 8, window.innerWidth - r.width - 8); y = clamp(y, 8, window.innerHeight - r.height - 8);
-      fab.style.left = x + 'px'; fab.style.top = y + 'px'; fab.style.right = 'auto'; fab.style.bottom = 'auto';
-    }
-    function placePanel() {
-      var r = fab.getBoundingClientRect();
-      if (r.left < window.innerWidth / 2) { panel.style.left = r.left + 'px'; panel.style.right = 'auto'; }
-      else { panel.style.right = (window.innerWidth - r.right) + 'px'; panel.style.left = 'auto'; }
-      if (r.top > window.innerHeight / 2) { panel.style.bottom = (window.innerHeight - r.top + 10) + 'px'; panel.style.top = 'auto'; }
-      else { panel.style.top = (r.bottom + 10) + 'px'; panel.style.bottom = 'auto'; }
-    }
-    fab.addEventListener('pointerdown', function (e) { dragging = true; moved = false; var r = fab.getBoundingClientRect(); offX = e.clientX - r.left; offY = e.clientY - r.top; fab.setPointerCapture(e.pointerId); });
-    fab.addEventListener('pointermove', function (e) { if (!dragging) return; moved = true; setPos(e.clientX - offX, e.clientY - offY); if (!panel.hidden) placePanel(); });
-    fab.addEventListener('pointerup', function (e) {
-      dragging = false; fab.releasePointerCapture(e.pointerId);
-      if (!moved) { var open = panel.hidden; panel.hidden = !open; fab.setAttribute('aria-expanded', String(open)); if (open) placePanel(); }
-    });
-    closeBtn.addEventListener('click', function () { panel.hidden = true; fab.setAttribute('aria-expanded', 'false'); });
-    window.addEventListener('resize', function () { if (!panel.hidden) placePanel(); });
-
-    function answer(q) {
-      var p = computePortfolio();
-      if (!p.rows.length) return t('aiNoData');
-      if (/เสี่ยง|risk/i.test(q)) {
-        var s = healthScore(p), largest = p.rows.slice().sort(function (a, b) { return b.value - a.value; })[0];
-        return t('aiRisk', { score: s, sym: largest.sym, pct: p.total ? (largest.value / p.total * 100).toFixed(0) : 0 });
-      }
-      if (/ใหญ่|มากที่สุด|biggest|largest/i.test(q)) {
-        var top = p.rows.slice().sort(function (a, b) { return b.value - a.value; })[0];
-        return t('aiBiggest', { sym: top.sym, value: money(top.value) });
-      }
-      if (/ใหญ่แค่ไหน|มูลค่า|เท่าไหร่|เท่าไร|how big|value|worth/i.test(q)) return t('aiTotal', { total: money(p.total), cash: money(p.cash), invested: money(p.invested) });
-      return t('aiFallback');
-    }
-    $('aiAsk').addEventListener('click', function () {
-      var ans = $('aiAns'); ans.textContent = answer($('aiInput').value || ''); ans.classList.add('on');
-    });
-  })();
-})();
-</script>
+<script src="invest-calc.js" defer></script>
+<script src="invest-core.js" defer></script>
+<script src="invest-hub.js" defer></script>
 </body>
 </html>

@@ -846,3 +846,133 @@ test.describe('ซิงก์ 2 เครื่อง', () => {
     await A.ctx.close(); await B.ctx.close();
   });
 });
+
+/* ═══════════════════════════════════════════════════════════════════
+   หน้า (Playwright) — ส่วนที่ 4: หน้าภาพรวม invest.html (ขั้น 4, หัวข้อ 6.7)
+   ═══════════════════════════════════════════════════════════════════ */
+test.describe('หน้าภาพรวม invest.html', () => {
+  async function openHub(page, { withFx = true, init, proxy } = {}) {
+    const errors = await prepare(page);
+    const hosts = trackExternal(page);
+    const seen = proxy ? await mockProxy(page, proxy) : [];
+    const s = sample();
+    await page.addInitScript((payload) => {
+      if (localStorage.getItem('__seeded')) return;
+      const S = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+      Object.keys(payload.data).forEach((k) => S('tanot:invest:' + k, payload.data[k]));
+      Object.keys(payload.store).forEach((k) => { if (payload.withFx || k !== 'tanot:invest:fxcache') S(k, payload.store[k]); });
+      S('tanot:invest:portfolio', { cash: 1000000, startCash: 1000000, holdings: [{ sym: 'PTT', shares: 1000, avgCost: 30 }], tx: [] });
+      if (payload.init) Object.keys(payload.init).forEach((k) => S(k, payload.init[k]));
+      localStorage.setItem('__seeded', '1');
+    }, { data: s.data, store: s.store, withFx, init });
+    await page.clock.setFixedTime(new Date(NOW));
+    await page.goto('/invest.html', { waitUntil: 'load' });
+    await page.waitForSelector('nav.ome-nav');
+    return { errors, hosts, seen };
+  }
+
+  test('ยอดเดียวกับหน้าวันนี้ ฿296,250 · P/L · ตาราง 8+ แถวพร้อมแหล่งราคา · พอร์ตจำลองไม่นับ · ไม่มีฟีเจอร์ที่ตัดออก', async ({ page }) => {
+    const { errors } = await openHub(page);
+    await expect(page.locator('#kValue')).toHaveText('฿296,250');
+    await expect(page.locator('#kPl')).toHaveText('+฿21,925');
+    await expect(page.locator('#kPlSub')).toContainText('+7.99%');
+    await expect(page.locator('#kCount')).toHaveText('10'); // PTT AOT AAPL BTC แท่ง รูปพรรณ กองทุนไทย กองทุนต่างประเทศ LB30 สลาก
+    await expect(page.locator('#kCountSub')).toContainText('ครบกำหนดแล้ว 1');
+    const rows = page.locator('#assetsBody tbody tr');
+    await expect(rows).toHaveCount(10);
+    await expect(rows.first()).toContainText('LB30');
+    await expect(page.locator('#assetsBody tr', { hasText: 'AOT' })).toContainText('กรอกเอง');
+    await expect(page.locator('#assetsBody tr', { hasText: 'K-RMF' })).toContainText('กรอกเอง');
+    await expect(page.locator('#assetsBody tr', { hasText: 'สะสมมูลค่า' })).toContainText('ต้นทุน');
+    await expect(page.locator('#allocBody circle')).toHaveCount(8);
+    // ตัดแล้ว: AI ลอย, ป๊อปอัพ iframe, ช่องค้นหา, Health, รายการที่ต้องทำ, เครื่องมือด่วน
+    for (const sel of ['#aiFab', '#toolModalFrame', '#heroSearch', '#healthRing', '#tasksBody', '.qbtn', 'iframe']) await expect(page.locator(sel)).toHaveCount(0);
+    // แถวคลิกไปหน้าของสินทรัพย์
+    await page.locator('#assetsBody tr', { hasText: 'LB30' }).evaluate((tr) => tr.getAttribute('data-href')).then((h) => expect(h).toBe('invest-gov-bond.html'));
+    expect(errors).toEqual([]);
+    // หน้าวันนี้ยอดเดียวกัน
+    await page.goto('/index.html'); await page.waitForSelector('#investBody [data-i=total]');
+    await expect(page.locator('#investBody [data-i=total]')).toHaveText('฿296,250');
+  });
+
+  test('ไม่มี FX → ฿237,850 + ป้าย · ช่วงกราฟจำใน ui.chartRange · เขียน snapshot เดียวกับหน้าวันนี้', async ({ page }) => {
+    await openHub(page, { withFx: false, init: { 'tanot:invest:networth': [{ d: '2026-09-10', v: 200000, c: 190000, parts: {}, fx: 36, n: 8, ts: 1 }, { d: '2026-09-25', v: 220000, c: 190000, parts: {}, fx: 36, n: 8, ts: 2 }] } });
+    await expect(page.locator('#kValue')).toHaveText('฿237,850');
+    await expect(page.locator('[data-i=nofx]')).toBeVisible();
+    await expect(page.locator('#assetsBody tr', { hasText: 'AAPL' })).toContainText('ไม่มีอัตรา');
+    // กราฟ: ค่าเริ่ม 90 วัน = 3 จุด (09-10, 09-25, วันนี้) → มีเส้น · 30 วัน = ตัดแถว 09-10 ออก
+    await expect(page.locator('#chartBody polyline')).toHaveCount(1);
+    await page.locator('#rangeSeg [data-r="30d"]').click();
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:invest:ui')).chartRange)).toBe('30d');
+    await expect(page.locator('#rangeSeg [data-r="30d"]')).toHaveAttribute('aria-pressed', 'true');
+    const rows = await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:invest:networth')));
+    expect(rows.map((r) => r.d)).toEqual(['2026-09-10', '2026-09-25', '2026-10-03']);
+    await page.reload(); // จำช่วงที่เลือก
+    await expect(page.locator('#rangeSeg [data-r="30d"]')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('รีเฟรชราคา: ดึง quote ของทุกสินทรัพย์ที่ถือ + FX + ทองไทย ผ่าน /api/proxy แล้วยอดเปลี่ยนตามราคาสด · ไม่ออกโฮสต์อื่น', async ({ page }) => {
+    const { hosts, seen, errors } = await openHub(page, {
+      proxy: (u) => {
+        if (/chart\/PTT\.BK/.test(u)) return { body: yahooChart(5, 40) };       // ราคา ~40.5
+        if (/chart\/THB%3DX|chart\/THB=X/.test(u)) return { body: { chart: { result: [{ meta: { regularMarketPrice: 40 }, indicators: { quote: [{ close: [40] }] } }] } } };
+        if (/chnwt\.dev/.test(u)) return { body: { response: { update_date: 'x', update_time: 'y', price: { gold_bar: { buy: '50,000.00', sell: '50,100.00' }, gold: { buy: '45,000.00', sell: '45,500.00' } } } } };
+        if (/range=5d/.test(u)) return { body: yahooChart(5, 100) };
+        return null;
+      },
+    });
+    await page.click('#refreshBtn');
+    await expect(page.locator('#refreshBtn')).toBeEnabled();
+    await expect.poll(async () => (await page.locator('#assetsBody tr', { hasText: 'PTT' }).textContent()) || '').toContain('ตลาด');
+    // ทองใช้ราคาใหม่: แท่ง 1 × 50,000 + รูปพรรณ 0.5 × 45,000
+    const gold = await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:invest:cache:gold:th')));
+    expect(gold.barSellPrice).toBe(50000);
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:invest:fxcache')).rate)).toBe(40);
+    expect(seen.some((u) => /chart\/PTT\.BK/.test(u))).toBe(true);
+    expect(hosts.filter((h) => !FONT_HOSTS.test(h) && h !== 'api.chnwt.dev' && h !== 'api.alternative.me')).toEqual([]);
+    expect(hosts.filter((h) => FORBIDDEN_HOSTS.test(h))).toEqual([]);
+    expect(errors.filter((e) => !/502|Failed to load resource|ERR_/.test(e))).toEqual([]);
+  });
+
+  test('ตลาด 3 กลุ่ม: ใช้ราคาแคช/quote · ฟันเฟืองบันทึกคีย์ hub:watch:* เดิม · ลิงก์หุ้นไปหน้าใหม่ ?sym=', async ({ page }) => {
+    await openHub(page, { proxy: (u) => (/range=5d/.test(u) ? { body: yahooChart(5, 100) } : null) });
+    await expect(page.locator('#mkGrid-thai .ticker')).toHaveCount(6);
+    await expect(page.locator('#mkGrid-thai a.ticker').first()).toHaveAttribute('href', /invest-stock\.html\?sym=(PTT|AOT)#th/);
+    await page.locator('.gear-btn[data-group="global"]').click();
+    await page.locator('#gearPanel-global .gp-check', { hasText: 'Tesla' }).click();
+    await page.locator('#gearPanel-global .gp-save').click();
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:invest:hub:watch:global')));
+    expect(saved).toContain('TSLA');
+    await expect(page.locator('#mkGrid-global .ticker', { hasText: 'TSLA' })).toHaveCount(1);
+    // ข้อมูลเก่าที่ปล่อยไว้ไม่ถูกแตะ
+    expect(await page.evaluate(() => localStorage.getItem('tanot:invest:hub:history'))).toBeNull();
+  });
+
+  test('ข่าว 3 ข่าว + กลัว-โลภ ผ่าน core · คีย์ hub:history เดิมที่มีอยู่ไม่ถูกอ่าน/ลบ', async ({ page }) => {
+    const hist = [{ d: '2026-09-01', v: 1234567 }];
+    const { errors } = await openHub(page, {
+      init: { 'tanot:invest:hub:history': hist },
+      proxy: (u) => {
+        if (u.startsWith('https://news.google.com/rss/search')) return { contentType: 'application/xml', body: rssXml([1, 2, 3, 4].map((i) => ({ title: 'ข่าว ' + i, link: 'https://example.com/' + i, pub: 'Fri, 02 Oct 2026 08:00:00 GMT', src: 'S' }))) };
+        if (/alternative\.me/.test(u)) return { body: { data: [{ value: '25', value_classification: 'Fear', timestamp: '1' }] } };
+        return null;
+      },
+    });
+    await expect(page.locator('#newsBody .newsitem')).toHaveCount(3);
+    await expect(page.locator('#fngLabel')).toContainText('กลัว');
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:invest:hub:history')))).toEqual(hist);
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:invest:networth')).length)).toBe(1); // ไม่ต่อกราฟจาก hub:history
+    expect(errors.filter((e) => !/502|Failed to load resource|ERR_/.test(e))).toEqual([]);
+  });
+
+  test('ไม่มีสินทรัพย์ → empty state · 390px ไม่ล้นแนวนอน', async ({ page }) => {
+    const errors = await prepare(page);
+    await page.setViewportSize({ width: 390, height: 800 });
+    await page.clock.setFixedTime(new Date(NOW));
+    await page.goto('/invest.html'); await page.waitForSelector('nav.ome-nav');
+    await expect(page.locator('#assetsBody .empty-hint')).toContainText('ยังไม่มีสินทรัพย์ลงทุน');
+    await expect(page.locator('#kValue')).toHaveText('฿0');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+    expect(errors).toEqual([]);
+  });
+});
