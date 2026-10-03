@@ -273,7 +273,7 @@ test.describe('ไคลเอนต์', () => {
     expect(errors).toEqual([]);
     await ctx.close();
   });
-  test('คลาวด์ล่ม: คอมถอยไปโมเดลในเบราว์เซอร์ (สร้าง ai-chat-worker), iPhone แสดงข้อความและไม่ลองโหลดโมเดล', async ({ browser, request }) => {
+  test('คลาวด์ล่ม: หน้าลงทุนทั้งคอมและ iPhone แสดงข้อความ error และไม่สร้าง ai-chat-worker (ไม่ถอยไปโมเดลในเบราว์เซอร์)', async ({ browser, request }) => {
     const seed = () => {
       const n = 160, t = [], c = [];
       for (let i = 0; i < n; i++) { t.push(1700000000 + i * 86400); c.push(2000 + i * 0.8 + Math.sin(i / 5) * 12); }
@@ -291,13 +291,9 @@ test.describe('ไคลเอนต์', () => {
       await page.goto('/invest-gold.html');
       await expect(page.locator('#aiSumBtn')).toBeVisible({ timeout: 15000 });
       await page.locator('#aiSumBtn').click();
-      if (ua) {
-        await expect(page.locator('#aiSumStatus')).toContainText('AI request failed');
-        await page.waitForTimeout(500);
-        expect(workers.filter((u) => /ai-chat-worker/.test(u))).toEqual([]);
-      } else {
-        await expect.poll(() => workers.filter((u) => /ai-chat-worker/.test(u)).length, { timeout: 10000 }).toBeGreaterThan(0);
-      }
+      await expect(page.locator('#aiSumStatus')).toContainText('AI request failed');
+      await page.waitForTimeout(500);
+      expect(workers.filter((u) => /ai-chat-worker/.test(u))).toEqual([]);
       await ctx.close();
     }
   });

@@ -1138,6 +1138,7 @@ const STUBS = {
   'invest-portfolio.html': 'invest-stock.html#paper',
   'invest-thai-fund.html': 'invest-fund.html#th',
   'invest-global-fund.html': 'invest-fund.html#global',
+  'invest-commodities.html': 'invest-gold.html#markets',
 };
 test.describe('หน้า redirect ของ URL เดิม', () => {
   for (const [from, to] of Object.entries(STUBS)) {
@@ -1674,5 +1675,125 @@ test.describe('กองทุน ซิงก์ 2 เครื่อง', () =
     }
     for (const d of [A, B]) expect(d.errors).toEqual([]);
     await A.ctx.close(); await B.ctx.close();
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   หน้า (Playwright) — ส่วนที่ 8: ทอง #gold + ค่าเงิน & วัตถุดิบ #markets (ขั้น 9)
+   ═══════════════════════════════════════════════════════════════════ */
+test.describe('หน้าทอง invest-gold.html', () => {
+  const GOLD_TH = { response: { update_date: '3 ต.ค. 2569', update_time: '09:00', price: { gold_bar: { buy: '70,850', sell: '70,950' }, gold: { buy: '69,523', sell: '71,950' } } } };
+  const GLOG = [{ type: 'bar', unit: 'baht', amt: 40000, price: 40000, weight: 1, ts: 6, extra: 'keep' }, { type: 'jewelry', unit: 'gram', amt: 21000, price: 2770.45, weight: 7.58, ts: 7 }];
+  function proxy(u) {
+    if (/thai-gold-api/.test(u)) return { body: GOLD_TH };
+    if (/THB%3DX|THB=X/.test(decodeURIComponent(u)) || /JPY|CNY|EURUSD/.test(u)) return { body: yahooChart(120, 36) };
+    if (/range=1y/.test(u)) return { body: yahooChart(120, 2000) };
+    if (/range=5d/.test(u)) return { body: yahooChart(6, 100) };
+    return null;
+  }
+  async function openGold(page, hash = '#gold', { seed = true, ai = false } = {}) {
+    const errors = await prepare(page);
+    const hosts = trackExternal(page);
+    const seen = await mockProxy(page, proxy);
+    await page.addInitScript(([log, seed, ai]) => {
+      if (ai) window.TANOT_AI = { enabled: true };
+      if (localStorage.getItem('__seeded')) return;
+      if (seed) localStorage.setItem('tanot:invest:gold', JSON.stringify(log));
+      localStorage.setItem('__seeded', '1');
+    }, [GLOG, seed, ai]);
+    await page.clock.setFixedTime(new Date(NOW));
+    await page.goto('/invest-gold.html' + hash);
+    await page.waitForSelector('nav.ome-nav');
+    return { errors, hosts, seen };
+  }
+  const get = (page, k) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), k);
+
+  test('#gold: ราคาทองไทยจาก thai-gold-api เข้าช่อง + แคช cache:gold:th รูปแบบเดิม · ไฟจราจร GC=F · ไม่มีสัดส่วนทอง/Drive · ไม่ออกเน็ตนอกที่อนุญาต', async ({ page }) => {
+    const { errors, hosts, seen } = await openGold(page);
+    await expect(page.locator('#goldTabs [data-tab="gold"]')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#barBuy')).toHaveValue('70950.00');
+    await expect(page.locator('#barSell')).toHaveValue('70850.00');
+    await expect(page.locator('#jewelrySell')).toHaveValue('69523.00');
+    const th = await get(page, 'tanot:invest:cache:gold:th');
+    expect(th).toMatchObject({ barBuyPrice: 70950, barSellPrice: 70850, jewelryBuyPrice: 71950, jewelrySellPrice: 69523 });
+    await expect(page.locator('#gVerdict')).not.toHaveText('กำลังโหลด…');
+    await expect(page.locator('#gLight')).toHaveClass(/green|yellow|red/);
+    expect(seen.some((u) => /GC%3DF|GC=F/.test(u))).toBe(true);
+    await expect(page.locator('#alOut, #alBtn, #driveConnectBtn')).toHaveCount(0);
+    expect(await page.evaluate(() => [...document.scripts].some((s) => /accounts\.google\.com/.test(s.src)))).toBe(false);
+    expect(hosts.filter((h) => !/^fonts\.|^api\.chnwt\.dev$/.test(h))).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test('สมุดทอง: แถวเดิมแสดงถูก (แท่ง ใช้ราคารับซื้อแท่ง · รูปพรรณ 7.58 ก. ÷ 15.16 ใช้ราคารับซื้อรูปพรรณ) · เพิ่ม/ลบผ่าน UI ตรงรูปแบบเดิม', async ({ page }) => {
+    await openGold(page);
+    await expect(page.locator('#lgBox tbody tr')).toHaveCount(2);
+    // แท่ง 1 บาท × 70,850 = 70,850 (ต้นทุน 40,000) · รูปพรรณ 0.5 บาท × 69,523 = 34,762 (ต้นทุน 21,000)
+    await expect(page.locator('#lgBox .log-group-sub').first()).toContainText('฿70,850');
+    await expect(page.locator('#lgBox .log-group-sub').nth(1)).toContainText('฿34,762');
+    await expect(page.locator('#lgBox .log-group-sub').nth(1)).toContainText('0.5000 บาททองคำ');
+    const before = await get(page, 'tanot:invest:gold');
+    await page.selectOption('#lgType', 'jewelry'); await page.selectOption('#lgUnit', 'gram'); await page.fill('#lgAmt', '10000'); await page.fill('#lgPrice', '2500'); await page.click('#lgAdd');
+    const after = await get(page, 'tanot:invest:gold');
+    expect(after.slice(0, 2)).toEqual(before);
+    expect(Object.keys(after[2]).sort()).toEqual(['amt', 'price', 'ts', 'type', 'unit', 'weight']);
+    expect(after[2]).toMatchObject({ type: 'jewelry', unit: 'gram', amt: 10000, price: 2500, weight: 4 });
+    await page.locator('#lgBox .log-del[data-ts="' + after[2].ts + '"]').click();
+    expect(await get(page, 'tanot:invest:gold')).toEqual(before);
+  });
+
+  test('DCA/ตลาดย่อ/คุมเงิน/เช็กลิสต์ ตรง InvestCalc', async ({ page }) => {
+    await openGold(page);
+    await expect(page.locator('#dcaOut')).toBeVisible();
+    const r = C.simulateDCA(3000, 70950, 5, 120);
+    await expect(page.locator('#dcaValue')).toHaveText('฿' + Math.round(r.value).toLocaleString('th-TH'));
+    await page.fill('#gdAth', '100000'); await page.click('#gdBtn'); // 70,950 vs 100,000 → ย่อ 29% → ขั้น −20% (×1.5)
+    await expect(page.locator('#gdTranche .tr-box[data-dd="20"]')).toHaveClass(/on/);
+    await expect(page.locator('#gdOut')).toContainText('฿4,500');
+    await page.fill('#rcStop', '67000'); await page.click('#rcCalcBtn');
+    const res = C.riskCalc.gold({ capital: 300000, riskPct: 2, entry: 70950, stop: 67000 });
+    await expect(page.locator('#rcHeadline')).toContainText(res.qty.toFixed(4));
+    await page.click('#chkForm .yn-btn[data-val="yes"]'); await page.click('#checkBtn');
+    await expect(page.locator('#chkList li')).toHaveCount(7);
+    await expect(page.locator('#chkList')).toContainText('ซื้อทองจริง');
+  });
+
+  test('#markets: แท็บเปิดตาม hash · การ์ดสถิติ+16 สินทรัพย์ · cross คำนวณจาก 2 ticker · ทองไทยใช้ราคาเดียวกับแท็บทอง', async ({ page }) => {
+    const { errors, hosts } = await openGold(page, '#markets');
+    await expect(page.locator('#panel-markets')).toBeVisible(); await expect(page.locator('#panel-gold')).toBeHidden();
+    await expect(page.locator('#mk_statRow .stat-card')).toHaveCount(5);
+    await expect(page.locator('#mk_pillRow .pill')).toHaveCount(16);
+    await expect(page.locator('#mk_statRow .stat-card[data-key="goldbar"] .pr')).toHaveText('70,950');
+    await expect(page.locator('#mk_dName')).toHaveText('ทองคำ COMEX');
+    await expect(page.locator('#mk_vVerdict')).not.toHaveText('กำลังโหลด…', { timeout: 15000 });
+    await page.click('#mk_pillRow .pill[data-key="jpythb"]');
+    await expect(page.locator('#mk_dName')).toHaveText('เยนเทียบบาท');
+    await expect(page.locator('#mk_histTable tbody tr')).toHaveCount(30);
+    // cross: THB=X ÷ JPY=X × 100 ของแท่งสุดท้าย (ทั้งคู่ใช้ชุดเดียวกัน → 100)
+    await expect(page.locator('#mk_oClose')).toHaveText('100.000');
+    await page.click('#mk_pillRow .pill[data-key="goldjew"]');
+    await expect(page.locator('#mk_chartEmpty')).toContainText('ไม่มีข้อมูลย้อนหลัง');
+    expect(await page.evaluate(() => localStorage.getItem('tanot:invest:comm:lastKey'))).toBe('goldjew');
+    expect(hosts.filter((h) => !/^fonts\.|^api\.chnwt\.dev$/.test(h))).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test('#markets: คุมเงิน/เช็กลิสต์ตามหน่วยสินทรัพย์ · ไม่เรียก /api/ocr · สลับแท็บไม่เพิ่มประวัติ', async ({ page }) => {
+    await openGold(page, '#markets');
+    await expect(page.locator('#mk_vVerdict')).not.toHaveText('กำลังโหลด…', { timeout: 15000 });
+    await page.fill('#mk_rcStop', '1990'); await page.click('#mk_rcCalcBtn');
+    await expect(page.locator('#mk_rcHeadline')).toContainText('หน่วย');
+    await page.click('#mk_chkForm .yn-btn[data-val="no"]'); await page.click('#mk_checkBtn');
+    await expect(page.locator('#mk_chkList li')).toHaveCount(7);
+    await page.click('#goldTabs [data-tab="gold"]');
+    expect(new URL(page.url()).hash).toBe('#gold');
+    await expect(page.locator('#panel-gold')).toBeVisible();
+  });
+
+  test('แท็บเริ่มต้นเป็น #gold · จำแท็บล่าสุดเมื่อไม่มี hash', async ({ page }) => {
+    await openGold(page, '#markets');
+    await page.goto('/invest-gold.html'); await page.waitForSelector('nav.ome-nav');
+    await expect(page.locator('#goldTabs [data-tab="markets"]')).toHaveAttribute('aria-selected', 'true');
   });
 });

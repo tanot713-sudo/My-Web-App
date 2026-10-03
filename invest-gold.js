@@ -1,39 +1,36 @@
 /* ══════════════════════════════════════════════════════════════════
-   Tanot — ทองคำ (ราคาวันนี้ + วางแผนออมทอง)
-   • ราคาทองไทย (บาท/บาททองคำ) จาก thai-gold-api (community, MIT) best-effort หลายเส้นทาง
-   • ไฟจราจร "ถูก/แพงตอนนี้ไหม" ประเมินจากแนวโน้มราคาทองโลก (GC=F) เป็นตัวแทนทิศทาง
-   • วางแผนออมทอง (DCA) + เติมไม้ตอนราคาย่อ + สัดส่วนทองในพอร์ต
-   • สมุดทองของฉัน (แท่ง/รูปพรรณ, บาททองคำ/กรัม) เก็บใน localStorage + สำรอง Google Drive
-   • ปัจจัยที่มีผลต่อราคาทองคำ (ทางตรง/ทางอ้อม) — ตัวเลขสด 2 ตัว (DXY, ดอกเบี้ย 10 ปีสหรัฐฯ) ที่เหลือเป็นความรู้ทั่วไป
+   Tanot — ทองคำ (แท็บ #gold ของ invest-gold.html) — ยุบรวมหน้าลงทุน ขั้น 9 (docs/invest-consolidation-design.md หัวข้อ 2/3)
+   • ราคาทองไทย: InvestCore.thaiGold() (thai-gold-api, แคช tanot:invest:cache:gold:th รูปแบบเดิม) + กรอกเอง
+   • ไฟจราจร "ถูก/แพงตอนนี้ไหม": InvestCalc.analyzeSeries บนราคาทองโลก GC=F (InvestCore.series → แคช cache:gold:GC=F)
+   • คุมเงิน/เช็กลิสต์/DCA/ตลาดย่อ: InvestCalc.riskCalc.gold · checklist.gold · simulateDCA · drawdown
+   • สมุดทอง tanot:invest:gold {type,unit,amt,price,weight,ts} — รูปแบบเดิม · อ่านสด→แก้→เขียน · ลบด้วย ts
+     มูลค่า: ทองแท่ง = ราคารับซื้อทองแท่ง · รูปพรรณ = ราคารับซื้อรูปพรรณ · กรัม→บาททองคำ 15.244 (แท่ง) / 15.16 (รูปพรรณ) (InvestCalc.GRAM_PER_BAHT)
+   • สรุปด้วย AI: คลาวด์อย่างเดียว (task 'stock:gold') · ไม่มีสัดส่วนทอง/Google Drive แล้ว (ซิงก์ผ่าน D1)
    หมายเหตุ: ตัวช่วยคิด ไม่ใช่คำแนะนำการลงทุน
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
-  var OWN_PROXY = /\.pages\.dev$/.test(location.hostname) ? '/api/proxy?url=' : 'https://tanot-cors-proxy.tanot713.workers.dev/?url=';
-
+  var IC = window.InvestCore, Calc = window.InvestCalc;
   var $ = function (id) { return document.getElementById(id); };
   var LOG_KEY = 'tanot:invest:gold';
-  var GRAM_PER_BAHT = 15.244;
-  var lastGoldPlan = { pmt: 3000 };
-  var lastVerdictMode = 'real';
-  var lastAnalysis = null;
-  var gAnswers = { spotOnly: null };
+  var GRAM = Calc.GRAM_PER_BAHT;
+
+  var lastGoldPlan = { pmt: 3000 }, lastVerdictMode = 'real', lastAnalysis = null, gAnswers = { spotOnly: null };
+  var inited = false, curTab = 'gold', tabsCtl = null;
 
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
-  function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
+  function fmt(n, d) { return IC.fmt(n, d); }
   function fmt0(n) { return isFinite(n) ? Math.round(n).toLocaleString('th-TH') : '—'; }
   function baht(n) { if (!isFinite(n)) return '—'; var neg = n < 0; return (neg ? '−' : '') + '฿' + Math.round(Math.abs(n)).toLocaleString('th-TH'); }
-  function toBahtWeight(w, unit) { return unit === 'gram' ? w / GRAM_PER_BAHT : w; }
+  function esc(s) { return IC.esc(s); }
+  /* กรัม → บาททองคำ ตามชนิด (แท่ง 15.244 · รูปพรรณ 15.16) */
+  function toBahtWeight(w, unit, type) { return unit === 'gram' ? w / GRAM[type === 'jewelry' ? 'jewelry' : 'bar'] : w; }
 
-  /* ══════ ระบบแปลภาษา (i18n) — รูปแบบเดียวกับหน้าอื่นในโซนลงทุน ══════ */
-  var UI_LANG_KEY = 'ome:lang';
-  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
-  var I18N = {
+  var L = IC.i18n({
     th: {
-      delTitle: 'ลบ',
-      rcKvNote: 'หมายเหตุ',
-      crumbHome: 'การลงทุน', crumbHere: 'ทองคำ',
-      pageTitle: 'ทองคำ — ราคาวันนี้ + วางแผนออมทอง',
+      delTitle: 'ลบ', rcKvNote: 'หมายเหตุ',
+      crumbHome: 'การลงทุน', tabGold: 'ทองคำ', tabMarkets: 'ค่าเงิน & วัตถุดิบ',
+      pageTitle: 'ทองคำ — ราคาวันนี้ + วางแผนออมทอง', pageTitleMarkets: 'ค่าเงิน & วัตถุดิบ',
       priceTitle: 'ราคาทองวันนี้ (บาท/บาททองคำ)',
       barBuyLabel: 'ทองคำแท่ง — ราคาซื้อ', boughtUnit: '(คุณจ่าย)', barSellLabel: 'ทองคำแท่ง — ราคาขายคืน', receivedUnit: '(คุณได้รับ)',
       jewelryBuyLabel: 'ทองรูปพรรณ — ราคาซื้อ', jewelrySellLabel: 'ทองรูปพรรณ — ราคาขายคืน',
@@ -51,10 +48,6 @@
       ddTitle: 'ตลาดย่อ = โอกาสเติมทอง (ทางเลือก)', gdNowLabel: 'ราคาทองตอนนี้', gdNowPh: 'เติมจากราคาวันนี้อัตโนมัติ',
       gdAthLabel: 'จุดสูงสุดที่เคยเห็น (ATH)', gdAthPh: 'กรอกเอง', ddBtn: 'ดูคำแนะนำ',
       tr10m: 'ย่อเล็ก', tr20m: 'ย่อแรง', tr30m: 'ย่อหนักมาก',
-      allocTitle: 'สัดส่วนทองในพอร์ต',
-      alPortfolioLabel: 'มูลค่าพอร์ตรวมโดยประมาณ', alPortfolioPh: 'เช่น 300000', alGoldNowLabel: 'มูลค่าทองที่ถืออยู่ตอนนี้', alGoldNowPh: 'เติมจากสมุดทองอัตโนมัติ', alBtn: 'คำนวณสัดส่วน',
-      driveTitle: 'สำรองสมุดทองขึ้น Google Drive',
-      driveConnectBtn: 'เชื่อมต่อ Google Drive', driveConnectedBtn: 'เชื่อมต่อ Google Drive แล้ว',
       logTitle: 'สมุดทองของฉัน',
       lgTypeLabel: 'ชนิด', typeBar: 'ทองคำแท่ง', typeJewelry: 'ทองรูปพรรณ', lgUnitLabel: 'หน่วย',
       lgAmtLabel: 'เงินที่จ่าย', lgAmtPh: 'เช่น 35000', lgPriceLabel: 'ราคา/หน่วยที่ซื้อ', lgPricePh: 'เช่น 70950', lgAddBtn: 'เพิ่ม',
@@ -70,7 +63,6 @@
       factRecB: 'ความกลัวเศรษฐกิจถดถอย', factRecRest: ' — สัญญาณเศรษฐกิจอ่อนแอมักหนุนความต้องการถือสินทรัพย์ปลอดภัย',
       factVolB: 'ความผันผวนตลาดหุ้น', factVolRest: ' — ตลาดหุ้นผันผวน/ร่วงแรง มักมีเงินบางส่วนไหลเข้าทอง',
       factCcB: 'วิกฤตค่าเงิน/เงินทุนไหลออก', factCcRest: ' — ในประเทศตลาดเกิดใหม่ ทองมักเป็นที่พักเงินยามค่าเงินท้องถิ่นผันผวนหนัก',
-      ageJustNow: 'เมื่อสักครู่', ageMinsAgo: '{n} นาทีก่อน', ageHrsAgo: '{n} ชม.ก่อน', ageDaysAgo: '{n} วันก่อน',
       whyCheapRange: 'ราคาอยู่ช่วงถูกเทียบ 3 เดือน', whyExpensiveRange: 'ราคาอยู่ช่วงแพงเทียบ 3 เดือน',
       whyRsiLow: 'แรงขายเริ่มคลาย (RSI ต่ำ กำลังฟื้น)', whyRsiHigh: 'ราคาร้อนแรงเกินไป (RSI สูง เสี่ยงย่อ)',
       whyMomUp: 'โมเมนตัมเริ่มกลับเป็นบวก', whyMomDn: 'โมเมนตัมเริ่มอ่อนลง',
@@ -80,10 +72,10 @@
       whyCheapPct: 'ราคาอยู่ค่อนไปทางถูกของรอบ (~{pct}% ของช่วง ต่ำ→สูง)', whyExpensivePct: 'ราคาอยู่ค่อนไปทางแพงของรอบ (~{pct}% ของช่วง ต่ำ→สูง)', whyMidPct: 'ราคาอยู่กลางกรอบ (~{pct}% ของช่วง ต่ำ→สูง)',
       goldThFetching: 'กำลังดึงราคาทองวันนี้…', manualEnterAll: 'กำลังกรอกราคาเอง… กรอกให้ครบทั้ง 4 ช่องเพื่อใช้งาน',
       badgeManualText: 'กรอกเอง', manualUsedStatus: 'ใช้ราคาที่กรอกเองแล้ว', badgeManualUsedText: 'ใช้ราคาที่กรอกเอง',
-      fetchSuccess: 'ดึงราคาสำเร็จ', fetchRetrying: 'ดึงราคาไม่สำเร็จ กำลังลองอีกครั้ง… ({n}/{total})',
+      fetchSuccess: 'ดึงราคาสำเร็จ',
       badgeRealLive: 'ราคาสด', badgeRealLiveUpdated: ' · ปรับปรุง {date} {time}',
-      badgeStaleCache: 'ดึงสดไม่ได้ — ใช้ราคาที่บันทึกไว้ ({age})', statusStaleCache: 'ดึงสดไม่ได้ตอนนี้ (ลองแล้ว {n} ครั้ง) — ใช้ราคาที่บันทึกไว้',
-      statusFetchFailNoCache: 'ดึงราคาทองอัตโนมัติไม่ได้ตอนนี้ (ลองแล้ว {n} ครั้ง) — กรอกเองในช่องด้านบน หรือลองรีเฟรชอีกครั้ง',
+      badgeStaleCache: 'ดึงสดไม่ได้ — ใช้ราคาที่บันทึกไว้ ({age})', statusStaleCache: 'ดึงสดไม่ได้ตอนนี้ — ใช้ราคาที่บันทึกไว้',
+      statusFetchFailNoCache: 'ดึงราคาทองอัตโนมัติไม่ได้ตอนนี้ — กรอกเองในช่องด้านบน หรือลองรีเฟรชอีกครั้ง',
       badgeIntlTrend: 'แนวโน้มจากราคาทองคำโลก (GC=F)', badgeStaleSuffix: ' · ล่าสุด {age}', badgeDaysSuffix: ' · {days} วัน',
       badgeManualEval: 'ประเมินจากราคาที่กรอกเอง', badgeFetchFail: 'ดึงแนวโน้มราคาทองโลกไม่ได้ตอนนี้ — กรอกด้านล่างเพื่อประเมินเอง', gVerdictNoData: 'ยังไม่มีข้อมูล',
       detEma20: 'เส้นเฉลี่ย 20 วัน (EMA20)', detEma50: 'เส้นเฉลี่ย 50 วัน (EMA50)', detRsi: 'RSI (14)', detMacd: 'MACD histogram',
@@ -95,10 +87,6 @@
       ddNearAth: 'ตอนนี้ราคาใกล้จุดสูงสุด (ย่อ {dd}%) — ออมปกติเดือนละ {base} พอ ไม่ต้องเร่งเติม',
       ddNormal: 'ย่อลง <b>{dd}%</b> จากจุดสูงสุด — ยังถือว่าปกติ ออมตามแผนเดือนละ {base}',
       ddTierMsg: 'ย่อลง <b>{dd}%</b> จากจุดสูงสุด — ตามกฎที่ตั้งไว้ อาจเพิ่มเงินซื้อเดือนนี้เป็น <b>×{mult}</b> ≈ <b>{amt}</b> (ถ้ามีเงินสำรอง)',
-      alertPortfolio: 'กรอกมูลค่าพอร์ตรวมโดยประมาณก่อน',
-      allocLow: 'สัดส่วนทอง ≈ {pct}% ของพอร์ต — ต่ำกว่ากรอบทั่วไปที่มักพูดถึง (5–10%) หากอยากมีทองไว้กระจายความเสี่ยงมากขึ้น ค่อยๆ เพิ่มได้',
-      allocGood: 'สัดส่วนทอง ≈ {pct}% ของพอร์ต — อยู่ในกรอบที่นักลงทุนมือใหม่มักใช้เป็นแนวทาง (5–10%)',
-      allocHigh: 'สัดส่วนทอง ≈ {pct}% ของพอร์ต — สูงกว่ากรอบทั่วไป ทองไม่ให้ปันผล/ดอกเบี้ย ถือมากไปอาจฉุดผลตอบแทนระยะยาวของพอร์ตโดยรวม',
       lgGroupSummaryGold: 'รวมซื้อ {amt} · {weight} บาททองคำ (≈ {gram} กรัม) · ต้นทุนเฉลี่ย {avg}/บาททองคำ',
       lgGroupValueNow: ' · มูลค่าตอนนี้ {val} <b style="color:{color}">({sign}{pl}, {sign2}{pct}%)</b>',
       logThDate: 'วันที่', logThType: 'ชนิด', logThPaid: 'เงินที่จ่าย', logThPricePerUnit: 'ราคา/หน่วยที่ซื้อ', logThWeight: 'น้ำหนักที่ได้',
@@ -106,12 +94,8 @@
       alertAmtPrice: 'กรอกเงินที่จ่ายและราคา/หน่วยที่ซื้อให้ถูกต้อง', chipFetchFail: '— ดึงไม่ได้ตอนนี้',
       alertGPriceUsd: 'กรอกราคาทองโลกตอนนี้ก่อน', alertGHiLo: 'กรอกราคาสูงสุด/ต่ำสุดของรอบด้วยเพื่อประเมิน',
       aiSumTitle: 'สรุปราคาทองคำด้วย AI', aiSumBtn: 'สรุปให้หน่อย',
-      iosNotSupported: 'ฟีเจอร์นี้ (AI รันในเครื่อง) ยังไม่รองรับ iPhone/iPad ตอนนี้ — หน่วยความจำต่อแท็บของ Safari/iOS จำกัดเกินกว่าจะรันโมเดลได้อย่างเสถียร ลองใช้งานจากคอมพิวเตอร์แทนได้ครับ',
       needStockData: 'ยังไม่มีข้อมูลราคาให้สรุป — รอราคาทองโลกโหลด หรือกรอกเองแล้วประเมินก่อนนะครับ',
-      summarizing: 'กำลังสรุป… (ครั้งแรกอาจต้องโหลดโมเดล AI ~350MB ก่อน)', loadingModel: 'กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) {file} {pct}',
-      summarizeFail: 'สรุปไม่สำเร็จ ลองอีกครั้ง', summarizeFailWith: 'สรุปไม่สำเร็จ: {msg}', unknownReason: 'ไม่ทราบสาเหตุ',
-      memErrorMsg: 'โหลดโมเดล AI ไม่สำเร็จ เพราะหน่วยความจำที่เบราว์เซอร์เหลือให้ใช้ไม่พอ (มักเกิดถ้าเปิดแท็บ/โปรแกรมอื่นพร้อมกันเยอะ) ลองปิดแท็บ/โปรแกรมอื่นแล้วกดสรุปใหม่อีกครั้ง',
-      diskErrorMsg: 'บันทึกไฟล์โมเดล AI ไม่สำเร็จ เพราะพื้นที่จัดเก็บของเบราว์เซอร์สำหรับเว็บไซต์นี้เต็ม (คนละเรื่องกับโปรแกรม/แท็บอื่นที่เปิดอยู่) ลองล้างข้อมูลเว็บไซต์นี้ในเบราว์เซอร์ หรือเพิ่มพื้นที่ว่างในดิสก์แล้วลองใหม่',
+      summarizing: 'กำลังสรุป…', summarizeFail: 'สรุปไม่สำเร็จ ลองอีกครั้ง', summarizeFailWith: 'สรุปไม่สำเร็จ: {msg}',
       summarizeCached: 'ผลสรุปนี้คำนวณไว้แล้ว (โหลดจากแคช ไม่ต้องเรียก AI ใหม่)',
       ctxAsset: 'สินทรัพย์: ทองคำ (แนวโน้มราคาโลก USD/ออนซ์)', ctxLatestPrice: 'ราคาล่าสุด: {v} USD/ออนซ์', ctxVerdict: 'สัญญาณไฟจราจรที่คำนวณแล้ว: {v} ({why})',
       ctxPros: 'ปัจจัยหนุนที่ตรวจพบ: {v}', ctxCons: 'ปัจจัยเสี่ยงที่ตรวจพบ: {v}',
@@ -149,19 +133,12 @@
       chkSpotUnknown: 'ยืนยันก่อนว่าซื้อทองจริง ไม่ใช่สัญญาซื้อขายล่วงหน้า/มาร์จิ้น (กดปุ่มด้านบน)',
       checklistFail: 'ยังไม่ควรซื้อ — ติด {n} ข้อ ควรแก้ให้ครบก่อนซื้อ',
       checklistUnknown: 'ข้อมูลไม่พอประเมินครบ — กด "คำนวณ" ด้านบนและตอบคำถามก่อน',
-      checklistGo: 'ซื้อได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)',
-      driveConnectFailedAuto: 'เชื่อมต่ออัตโนมัติไม่สำเร็จ (อาจเพราะเบราว์เซอร์บล็อก cookie ข้ามโดเมน) — กดปุ่มเชื่อมต่ออีกครั้ง',
-      driveConnectFailed: 'เชื่อมต่อไม่สำเร็จ: {err}', driveLoadingGis: 'กำลังโหลด Google Identity Services… รออีก 2-3 วิแล้วลองใหม่', driveRequesting: 'กำลังขอสิทธิ์เชื่อมต่อ…',
-      driveErrSearchFolder: 'ค้นหาโฟลเดอร์ไม่สำเร็จ ({status})', driveErrCreateFolder: 'สร้างโฟลเดอร์ไม่สำเร็จ ({status})',
-      driveErrSearchFile: 'ค้นหาไฟล์ไม่สำเร็จ ({status})', driveErrDownload: 'ดาวน์โหลดไม่สำเร็จ ({status})', driveErrUpload: 'บันทึกขึ้น Drive ไม่สำเร็จ ({status})',
-      driveSyncing: 'กำลังซิงก์…', driveSyncedAt: 'ซิงก์กับ Google Drive แล้ว · {t}', driveLastSync: 'ซิงก์ล่าสุด {t}',
-      driveSessionExpired: 'เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', driveSyncFailed: 'ซิงก์ไม่สำเร็จ: {msg}'
+      checklistGo: 'ซื้อได้ตามแผน — ผ่านครบทุกข้อ (แต่ยังไม่การันตีกำไร ทำตามแผนและตัดขาดทุนเสมอ)'
     },
     en: {
-      delTitle: 'Delete',
-      rcKvNote: 'Note',
-      crumbHome: 'Investing', crumbHere: 'Gold',
-      pageTitle: "Gold — Today's Price + Savings Planner",
+      delTitle: 'Delete', rcKvNote: 'Note',
+      crumbHome: 'Investing', tabGold: 'Gold', tabMarkets: 'FX & Commodities',
+      pageTitle: "Gold — Today's Price + Savings Planner", pageTitleMarkets: 'FX & Commodities',
       priceTitle: "Today's Gold Price (baht/baht-weight)",
       barBuyLabel: 'Gold bar — buy price', boughtUnit: '(you pay)', barSellLabel: 'Gold bar — sell-back price', receivedUnit: '(you receive)',
       jewelryBuyLabel: 'Gold jewelry — buy price', jewelrySellLabel: 'Gold jewelry — sell-back price',
@@ -179,10 +156,6 @@
       ddTitle: 'Market dip = a chance to add gold (optional)', gdNowLabel: 'Gold price now', gdNowPh: "Auto-filled from today's price",
       gdAthLabel: 'All-time high (ATH) seen', gdAthPh: 'Enter yourself', ddBtn: 'Get recommendation',
       tr10m: 'Small dip', tr20m: 'Sharp dip', tr30m: 'Very heavy dip',
-      allocTitle: 'Gold Allocation in Your Portfolio',
-      alPortfolioLabel: 'Estimated total portfolio value', alPortfolioPh: 'e.g. 300000', alGoldNowLabel: 'Current gold holding value', alGoldNowPh: 'Auto-filled from your gold log', alBtn: 'Calculate Allocation',
-      driveTitle: 'Back Up Gold Log to Google Drive',
-      driveConnectBtn: 'Connect Google Drive', driveConnectedBtn: 'Google Drive connected',
       logTitle: 'My Gold Log',
       lgTypeLabel: 'Type', typeBar: 'Gold bar', typeJewelry: 'Gold jewelry', lgUnitLabel: 'Unit',
       lgAmtLabel: 'Amount paid', lgAmtPh: 'e.g. 35000', lgPriceLabel: 'Price/unit paid', lgPricePh: 'e.g. 70950', lgAddBtn: 'Add',
@@ -190,7 +163,7 @@
       factorsSummary: 'Factors That Affect the Gold Price', factDirectH: 'Direct factors',
       factRealB: 'Real interest rates', factRealRest: ' — gold pays no interest/dividends, so higher real rates make holding gold less attractive versus bonds',
       factUsdB: 'US dollar strength', factUsdRest: ' — gold is priced in dollars, a stronger dollar usually pushes the gold price down (inverse relationship)',
-      factTnxB: 'US 10-year treasury yield', factTnxRest: " — used as a rough gauge of interest-rate direction (not a direct real rate)",
+      factTnxB: 'US 10-year treasury yield', factTnxRest: ' — used as a rough gauge of interest-rate direction (not a direct real rate)',
       factCbB: 'Central bank gold reserve buying', factCbRest: ' — in recent years many countries (especially emerging markets) have continuously bought gold to build reserves, a long-term price support',
       factInfB: 'Inflation expectations', factInfRest: ' — gold is often viewed as an inflation hedge',
       factIndirectH: 'Indirect factors',
@@ -198,35 +171,30 @@
       factRecB: 'Recession fears', factRecRest: ' — weak economic signals usually boost demand for safe-haven assets',
       factVolB: 'Stock market volatility', factVolRest: ' — when stock markets are volatile/falling sharply, some money usually flows into gold',
       factCcB: 'Currency crises/capital outflows', factCcRest: ' — in emerging markets, gold is often a place to park money when the local currency is highly volatile',
-      ageJustNow: 'just now', ageMinsAgo: '{n} min ago', ageHrsAgo: '{n} hr ago', ageDaysAgo: '{n} days ago',
       whyCheapRange: 'Price is in the cheap part of the 3-month range', whyExpensiveRange: 'Price is in the expensive part of the 3-month range',
       whyRsiLow: 'Selling pressure easing (RSI low, starting to recover)', whyRsiHigh: 'Price is overheated (RSI high, risk of a pullback)',
       whyMomUp: 'Momentum is turning positive', whyMomDn: 'Momentum is weakening',
       whyUptrend: 'Still in an uptrend', whyDowntrend: 'Below the trend line (downtrend/consolidation)',
       whyBbLow: 'Price is touching the lower band (often a bounce point)', whyBbHigh: 'Price is hitting the upper band', whyNeutral: 'Price is in the middle of the range, no clear signal yet',
-      vInterestingGold: "Interesting — gold price is in a cheap zone relative to the trend", vCarefulGold: "Careful — gold price is expensive relative to the trend", vMidGold: 'Neutral — no standout opportunity yet',
+      vInterestingGold: 'Interesting — gold price is in a cheap zone relative to the trend', vCarefulGold: 'Careful — gold price is expensive relative to the trend', vMidGold: 'Neutral — no standout opportunity yet',
       whyCheapPct: 'Price is toward the cheap end of the range (~{pct}% of low→high)', whyExpensivePct: 'Price is toward the expensive end of the range (~{pct}% of low→high)', whyMidPct: 'Price is in the middle of the range (~{pct}% of low→high)',
       goldThFetching: "Fetching today's gold price…", manualEnterAll: 'Entering price manually… fill in all 4 fields to use this',
       badgeManualText: 'Entered manually', manualUsedStatus: 'Now using the manually entered price', badgeManualUsedText: 'Using manually entered price',
-      fetchSuccess: 'Fetched price successfully', fetchRetrying: 'Fetch failed, retrying… ({n}/{total})',
+      fetchSuccess: 'Fetched price successfully',
       badgeRealLive: 'Live price', badgeRealLiveUpdated: ' · updated {date} {time}',
-      badgeStaleCache: 'Live fetch failed — using saved price ({age})', statusStaleCache: 'Live fetch failed right now (tried {n} times) — using the saved price',
-      statusFetchFailNoCache: "Couldn't auto-fetch the gold price right now (tried {n} times) — enter it yourself in the fields above, or try refreshing again",
+      badgeStaleCache: 'Live fetch failed — using saved price ({age})', statusStaleCache: 'Live fetch failed right now — using the saved price',
+      statusFetchFailNoCache: "Couldn't auto-fetch the gold price right now — enter it yourself in the fields above, or try refreshing again",
       badgeIntlTrend: 'Trend from the global gold price (GC=F)', badgeStaleSuffix: ' · latest {age}', badgeDaysSuffix: ' · {days} days',
       badgeManualEval: 'Assessed from manually entered price', badgeFetchFail: "Couldn't fetch the global gold trend right now — enter it below to assess yourself", gVerdictNoData: 'No data yet',
       detEma20: '20-day MA (EMA20)', detEma50: '50-day MA (EMA50)', detRsi: 'RSI (14)', detMacd: 'MACD histogram',
       detSupport: 'Latest support', detResistance: 'Latest resistance', detAdx: 'Trend strength (ADX 14)', detAdxStrong: ' · strong', detAdxWeak: ' · weak', detNoData: '—',
-      alertStartPrice: 'Enter a valid starting gold price (or wait for today\'s price to load first, then try again)', alertPmt: 'Enter a valid monthly savings amount',
+      alertStartPrice: "Enter a valid starting gold price (or wait for today's price to load first, then try again)", alertPmt: 'Enter a valid monthly savings amount',
       dcaContribSub: '{amt} baht/month × {months} months', dcaWeightAltGram: '≈ {v} baht-weight', dcaWeightAltBaht: '≈ {v} grams',
       yrTableColYear: 'End of year', yrTableColContrib: 'Contributed', yrTableColWeight: 'Accumulated weight', yrTableColValue: 'Value', yrRowLabel: 'Year {n}',
       unitGramShort: ' g', unitBahtGoldShort: ' bw',
       ddNearAth: 'The price is currently near its all-time high (dip {dd}%) — a normal saving of {base}/month is enough, no need to add extra',
       ddNormal: 'Down <b>{dd}%</b> from the all-time high — still considered normal, save as planned at {base}/month',
       ddTierMsg: 'Down <b>{dd}%</b> from the all-time high — per the rule you set, consider increasing this month\'s purchase to <b>×{mult}</b> ≈ <b>{amt}</b> (if you have reserve funds)',
-      alertPortfolio: 'Enter an estimated total portfolio value first',
-      allocLow: 'Gold allocation ≈ {pct}% of the portfolio — below the commonly cited range (5–10%). If you want more diversification from gold, you can gradually increase it',
-      allocGood: 'Gold allocation ≈ {pct}% of the portfolio — within the range beginner investors commonly use as a guideline (5–10%)',
-      allocHigh: 'Gold allocation ≈ {pct}% of the portfolio — above the common range. Gold pays no dividends/interest, so holding too much may drag down the portfolio\'s long-term overall return',
       lgGroupSummaryGold: 'Total bought {amt} · {weight} baht-weight (≈ {gram} grams) · average cost {avg}/baht-weight',
       lgGroupValueNow: ' · current value {val} <b style="color:{color}">({sign}{pl}, {sign2}{pct}%)</b>',
       logThDate: 'Date', logThType: 'Type', logThPaid: 'Amount paid', logThPricePerUnit: 'Price/unit paid', logThWeight: 'Weight received',
@@ -234,12 +202,8 @@
       alertAmtPrice: 'Enter a valid amount paid and price/unit', chipFetchFail: '— could not fetch right now',
       alertGPriceUsd: 'Enter the current global gold price first', alertGHiLo: 'Enter the period high/low as well to assess',
       aiSumTitle: 'AI Gold Price Summary', aiSumBtn: 'Summarize It',
-      iosNotSupported: 'This feature (on-device AI) isn’t supported on iPhone/iPad yet — Safari/iOS per-tab memory is too limited to run the model reliably. Try from a computer instead',
       needStockData: 'No price data to summarize yet — wait for the global gold price to load, or enter it manually and assess first',
-      summarizing: 'Summarizing… (first time may need to download the ~350MB AI model)', loadingModel: 'Loading model (first time only) {file} {pct}',
-      summarizeFail: 'Summary failed, try again', summarizeFailWith: 'Summary failed: {msg}', unknownReason: 'unknown reason',
-      memErrorMsg: 'Failed to load the AI model because the browser doesn’t have enough free memory (usually from having many tabs/programs open at once). Try closing other tabs/programs and summarizing again',
-      diskErrorMsg: 'Failed to save the AI model file because this site’s browser storage is full (unrelated to other open tabs/programs). Try clearing this site’s data in your browser, or free up disk space, then try again',
+      summarizing: 'Summarizing…', summarizeFail: 'Summary failed, try again', summarizeFailWith: 'Summary failed: {msg}',
       summarizeCached: 'Already summarized (loaded from cache — no new AI call needed)',
       ctxAsset: 'Asset: Gold (global price trend, USD/oz)', ctxLatestPrice: 'Latest price: {v} USD/oz', ctxVerdict: 'Computed signal: {v} ({why})',
       ctxPros: 'Detected tailwinds: {v}', ctxCons: 'Detected risks: {v}',
@@ -277,294 +241,164 @@
       chkSpotUnknown: "Confirm first that you're buying real gold, not a futures contract/margin (press the button above)",
       checklistFail: 'Not ready to buy yet — {n} item(s) failed; fix them all before buying',
       checklistUnknown: 'Not enough information to fully assess — press "Calculate" above and answer the questions first',
-      checklistGo: 'Ready to buy per plan — passed every item (still no profit guarantee — follow the plan and always cut losses)',
-      driveConnectFailedAuto: "Automatic reconnect failed (possibly because the browser blocks cross-domain cookies) — click Connect again",
-      driveConnectFailed: 'Connect failed: {err}', driveLoadingGis: 'Loading Google Identity Services… wait a couple of seconds and try again', driveRequesting: 'Requesting connection permission…',
-      driveErrSearchFolder: 'Folder search failed ({status})', driveErrCreateFolder: 'Folder creation failed ({status})',
-      driveErrSearchFile: 'File search failed ({status})', driveErrDownload: 'Download failed ({status})', driveErrUpload: 'Saving to Drive failed ({status})',
-      driveSyncing: 'Syncing…', driveSyncedAt: 'Synced with Google Drive · {t}', driveLastSync: 'Last synced {t}',
-      driveSessionExpired: 'Session expired — click Connect Drive again', driveSyncFailed: 'Sync failed: {msg}'
+      checklistGo: 'Ready to buy per plan — passed every item (still no profit guarantee — follow the plan and always cut losses)'
     }
-  };
-  function t(key, vars) {
-    var s = (I18N[getUILang()] || I18N.th)[key];
-    if (s == null) s = I18N.th[key] || key;
-    if (vars) Object.keys(vars).forEach(function (k) { s = s.split('{' + k + '}').join(vars[k]); });
-    return s;
-  }
-  function applyStaticI18n() {
-    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
-    document.querySelectorAll('[data-i18n-html]').forEach(function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
-  }
+  });
+  var t = L.t;
 
-  /* ── อินดิเคเตอร์ (สูตรมาตรฐาน, ใช้ประเมินแนวโน้มราคาทองโลก GC=F — asset-agnostic) ── */
-  function sma(arr, n) {
-    if (arr.length < n) return NaN;
-    var s = 0; for (var i = arr.length - n; i < arr.length; i++) s += arr[i];
-    return s / n;
+  /* ── รหัสจาก InvestCalc → ข้อความ ── */
+  var WHY_KEY = { cheapRange: 'whyCheapRange', expensiveRange: 'whyExpensiveRange', rsiLow: 'whyRsiLow', rsiHigh: 'whyRsiHigh', momUp: 'whyMomUp', momDn: 'whyMomDn',
+    uptrend: 'whyUptrend', downtrend: 'whyDowntrend', bbLow: 'whyBbLow', bbHigh: 'whyBbHigh', neutral: 'whyNeutral' };
+  function whyText(code, a) {
+    if (code === 'cheapPct') return t('whyCheapPct', { pct: a.pct });
+    if (code === 'expensivePct') return t('whyExpensivePct', { pct: a.pct });
+    if (code === 'midPct') return t('whyMidPct', { pct: a.pct });
+    return t(WHY_KEY[code] || 'whyNeutral');
   }
-  function smaSeries(arr, n) {
-    var out = new Array(arr.length), i, s = 0;
-    for (i = 0; i < arr.length; i++) { s += arr[i]; if (i >= n) s -= arr[i - n]; if (i >= n - 1) out[i] = s / n; }
-    return out;
-  }
-  function emaSeries(arr, n) {
-    if (arr.length < n) return [];
-    var k = 2 / (n + 1), out = [], seed = 0, i;
-    for (i = 0; i < n; i++) seed += arr[i];
-    var prev = seed / n; out[n - 1] = prev;
-    for (i = n; i < arr.length; i++) { prev = arr[i] * k + prev * (1 - k); out[i] = prev; }
-    return out;
-  }
-  function emaLast(arr, n) { var e = emaSeries(arr, n); return e.length ? e[e.length - 1] : NaN; }
-
-  function rsi(arr, n) {
-    n = n || 14;
-    if (arr.length < n + 1) return NaN;
-    var gain = 0, loss = 0, i, ch;
-    for (i = 1; i <= n; i++) { ch = arr[i] - arr[i - 1]; if (ch >= 0) gain += ch; else loss -= ch; }
-    var ag = gain / n, al = loss / n;
-    for (i = n + 1; i < arr.length; i++) {
-      ch = arr[i] - arr[i - 1];
-      ag = (ag * (n - 1) + (ch > 0 ? ch : 0)) / n;
-      al = (al * (n - 1) + (ch < 0 ? -ch : 0)) / n;
-    }
-    if (al === 0) return 100;
-    return 100 - 100 / (1 + ag / al);
-  }
-
-  function macd(arr) {
-    if (arr.length < 26) return null;
-    var e12 = emaSeries(arr, 12), e26 = emaSeries(arr, 26), line = [], i;
-    for (i = 25; i < arr.length; i++) line.push(e12[i] - e26[i]);
-    if (line.length < 9) return { line: line[line.length - 1], signal: NaN, hist: NaN, histPrev: NaN };
-    var sig = emaSeries(line, 9), last = line.length - 1;
-    var hist = line[last] - sig[last];
-    var histPrev = (line.length >= 2 && sig[last - 1] != null) ? line[last - 1] - sig[last - 1] : NaN;
-    return { line: line[last], signal: sig[last], hist: hist, histPrev: histPrev };
-  }
-  function bollinger(arr, n, k) {
-    n = n || 20; k = k || 2;
-    if (arr.length < n) return null;
-    var mid = sma(arr, n), i, sum = 0;
-    for (i = arr.length - n; i < arr.length; i++) sum += (arr[i] - mid) * (arr[i] - mid);
-    var sd = Math.sqrt(sum / n);
-    return { mid: mid, upper: mid + k * sd, lower: mid - k * sd, sd: sd };
-  }
-  function atr(highs, lows, closes, n) {
-    n = n || 14;
-    if (closes.length < n + 1) return NaN;
-    var trs = [], i;
-    for (i = 1; i < closes.length; i++) trs.push(Math.max(highs[i] - lows[i], Math.abs(highs[i] - closes[i - 1]), Math.abs(lows[i] - closes[i - 1])));
-    var a = 0; for (i = 0; i < n; i++) a += trs[i]; a /= n;
-    for (i = n; i < trs.length; i++) a = (a * (n - 1) + trs[i]) / n;
-    return a;
-  }
-  function supRes(highs, lows, look) {
-    look = look || 20;
-    var hi = -Infinity, lo = Infinity, i, start = Math.max(0, highs.length - 1 - look);
-    for (i = start; i < highs.length - 1; i++) { if (highs[i] > hi) hi = highs[i]; if (lows[i] < lo) lo = lows[i]; }
-    return { support: isFinite(lo) ? lo : NaN, resistance: isFinite(hi) ? hi : NaN };
-  }
-  function adx(highs, lows, closes, n) {
-    n = n || 14;
-    if (closes.length < 2 * n + 1) return NaN;
-    var tr = [], pdm = [], ndm = [], i;
-    for (i = 1; i < closes.length; i++) {
-      var up = highs[i] - highs[i - 1], dn = lows[i - 1] - lows[i];
-      pdm.push(up > dn && up > 0 ? up : 0); ndm.push(dn > up && dn > 0 ? dn : 0);
-      tr.push(Math.max(highs[i] - lows[i], Math.abs(highs[i] - closes[i - 1]), Math.abs(lows[i] - closes[i - 1])));
-    }
-    function wilder(arr) { var out = [], s = 0, j; for (j = 0; j < n; j++) s += arr[j]; out[n - 1] = s; for (j = n; j < arr.length; j++) { s = s - s / n + arr[j]; out[j] = s; } return out; }
-    var trS = wilder(tr), pdmS = wilder(pdm), ndmS = wilder(ndm), dx = [];
-    for (i = n - 1; i < tr.length; i++) {
-      if (!trS[i]) { dx.push(0); continue; }
-      var pdi = 100 * pdmS[i] / trS[i], ndi = 100 * ndmS[i] / trS[i], sum = pdi + ndi;
-      dx.push(sum === 0 ? 0 : 100 * Math.abs(pdi - ndi) / sum);
-    }
-    if (dx.length < n) return NaN;
-    var a = 0; for (i = 0; i < n; i++) a += dx[i]; a /= n;
-    for (i = n; i < dx.length; i++) a = (a * (n - 1) + dx[i]) / n;
+  /* a = ผลของ Calc.analyzeSeries/analyzeSimple (รหัส) → ใส่ข้อความที่หน้าอ่าน (verdict/why/prosT/consT) */
+  function decorate(a) {
+    a.verdict = t(a.light === 'green' ? 'vInterestingGold' : a.light === 'red' ? 'vCarefulGold' : 'vMidGold');
+    a.whyCode = a.why;
+    a.why = whyText(a.whyCode, a);
+    a.prosT = (a.pros || []).map(function (c) { return whyText(c, a); });
+    a.consT = (a.cons || []).map(function (c) { return whyText(c, a); });
     return a;
   }
 
-  /* ── วิเคราะห์ (มีซีรีส์เต็ม) → ไฟจราจร ─────────────────────── */
-  function analyzeSeries(s) {
-    var c = s.closes, price = c[c.length - 1];
-    var ema20 = emaLast(c, 20), ema50 = emaLast(c, 50), r = rsi(c, 14);
-    var mac = macd(c), bb = bollinger(c, 20, 2), at = atr(s.highs, s.lows, c, 14);
-    var sr = supRes(s.highs, s.lows, 20);
-    var adxV = adx(s.highs, s.lows, c, 14);
-    var range = { hi: Math.max.apply(null, c), lo: Math.min.apply(null, c) };
-    var posRange = (price - range.lo) / Math.max(1e-9, range.hi - range.lo);
-    var posBB = bb ? (price - bb.lower) / Math.max(1e-9, bb.upper - bb.lower) : 0.5;
-    var uptrend = isFinite(ema50) ? price >= ema50 : (isFinite(ema20) ? price >= ema20 : true);
-    var momUp = mac && isFinite(mac.hist) && isFinite(mac.histPrev) ? mac.hist > mac.histPrev : false;
-    var momDn = mac && isFinite(mac.hist) && isFinite(mac.histPrev) ? mac.hist < mac.histPrev : false;
-
-    var score = 0, pros = [], cons = [];
-    if (posRange < 0.35) { score += 1; pros.push(t('whyCheapRange')); }
-    else if (posRange > 0.75) { score -= 1; cons.push(t('whyExpensiveRange')); }
-    if (isFinite(r)) {
-      if (r < 38) { score += 1; pros.push(t('whyRsiLow')); }
-      else if (r > 70) { score -= 1; cons.push(t('whyRsiHigh')); }
-    }
-    if (momUp) { score += 1; pros.push(t('whyMomUp')); }
-    else if (momDn) { score -= 1; cons.push(t('whyMomDn')); }
-    if (uptrend) { score += 1; pros.push(t('whyUptrend')); }
-    else { score -= 1; cons.push(t('whyDowntrend')); }
-    if (posBB < 0.2) { score += 0.5; pros.push(t('whyBbLow')); }
-    else if (posBB > 0.9) { score -= 0.5; cons.push(t('whyBbHigh')); }
-
-    var light, verdict;
-    if (score >= 2) { light = 'green'; verdict = t('vInterestingGold'); }
-    else if (score <= -1) { light = 'red'; verdict = t('vCarefulGold'); }
-    else { light = 'yellow'; verdict = t('vMidGold'); }
-    var why = (light === 'green' ? pros : light === 'red' ? cons : (pros.concat(cons)))[0] || t('whyNeutral');
-
-    /* จุดตัดขาดทุนที่แนะนำ (USD/ออนซ์ — อ้างอิงแนวโน้มราคาทองโลก) เอาไว้คำนวณ % ระยะห่างจากราคา
-       แล้วนำ % นั้นไปใช้กับราคาบาท/บาททองคำจริงที่ผู้ใช้จ่ายจริง (ไม่แปลงหน่วยตรงๆ เพราะไม่มีอัตราแปลงในหน้านี้) */
-    var stopByAtr = isFinite(at) ? price - 1.5 * at : NaN;
-    var stopBySup = isFinite(sr.support) ? sr.support * 0.99 : NaN;
-    var stop = NaN;
-    if (isFinite(stopBySup) && stopBySup < price) stop = stopBySup;
-    if (isFinite(stopByAtr) && stopByAtr < price && (!isFinite(stop) || stopByAtr > stop)) stop = stopByAtr;
-    if (!isFinite(stop) || stop <= 0) stop = price * 0.95;
-
-    return {
-      light: light, verdict: verdict, why: why, pros: pros, cons: cons, score: score,
-      price: price, resistance: sr.resistance, uptrend: uptrend, rsi: r, adx: adxV, suggestStop: stop,
-      det: { ema20: ema20, ema50: ema50, rsi: r, macdHist: mac ? mac.hist : NaN,
-             support: sr.support, resistance: sr.resistance, posRange: posRange, adx: adxV }
-    };
+  /* ── ราคาทองไทย (InvestCore.thaiGold) ── */
+  function setGoldThStatus(msg, cls) { var el = $('goldThStatus'); el.textContent = msg; el.className = 'status' + (cls ? ' ' + cls : ''); }
+  function fillGoldThFields(o) {
+    $('barBuy').value = o.barBuyPrice.toFixed(2);
+    $('barSell').value = o.barSellPrice.toFixed(2);
+    $('jewelryBuy').value = o.jewelryBuyPrice.toFixed(2);
+    $('jewelrySell').value = o.jewelrySellPrice.toFixed(2);
+    if (!$('dcaStart').value) $('dcaStart').value = o.barBuyPrice.toFixed(2);
+    if (!$('gdNow').value) $('gdNow').value = o.barBuyPrice.toFixed(2);
+    if (!$('rcEntry').value) $('rcEntry').value = o.barBuyPrice.toFixed(2);
+    if ($('dcaOut').style.display === 'none') doDCA(true);
+    renderGoldLog();
   }
-  function analyzeSimple(price, hi, lo) {
-    var pos = (price - lo) / Math.max(1e-9, hi - lo), pct = Math.round(pos * 100);
-    var light, verdict, why;
-    if (pos < 0.35) { light = 'green'; verdict = t('vInterestingGold'); why = t('whyCheapPct', { pct: pct }); }
-    else if (pos > 0.75) { light = 'red'; verdict = t('vCarefulGold'); why = t('whyExpensivePct', { pct: pct }); }
-    else { light = 'yellow'; verdict = t('vMidGold'); why = t('whyMidPct', { pct: pct }); }
-    return { light: light, verdict: verdict, why: why, pros: [], cons: [], price: price, resistance: hi, suggestStop: Math.min(lo, price * 0.95), det: { posRange: pos, support: lo, resistance: hi }, simple: true };
+  function onManualPriceInput() {
+    var b1 = num($('barBuy').value), b2 = num($('barSell').value), j1 = num($('jewelryBuy').value), j2 = num($('jewelrySell').value);
+    var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap';
+    if (![b1, b2, j1, j2].every(isFinite)) { badge.textContent = t('badgeManualText'); setGoldThStatus(t('manualEnterAll')); return; }
+    badge.textContent = t('badgeManualUsedText');
+    setGoldThStatus(t('manualUsedStatus'), 'ok');
+    if (!$('dcaStart').value) $('dcaStart').value = b1.toFixed(2);
+    if (!$('gdNow').value) $('gdNow').value = b1.toFixed(2);
+    if ($('dcaOut').style.display === 'none') doDCA(true);
+    renderGoldLog();
+  }
+  function runThaiFetch(force) {
+    setGoldThStatus(t('goldThFetching'));
+    $('goldThBadge').style.display = 'none';
+    IC.thaiGold({ force: !!force }).then(function (o) {
+      fillGoldThFields(o);
+      var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap ok';
+      if (o.stale) {
+        badge.textContent = t('badgeStaleCache', { age: IC.ago(o.ts) });
+        setGoldThStatus(t('statusStaleCache'), 'ok');
+      } else {
+        badge.textContent = t('badgeRealLive') + (o.updateDate ? t('badgeRealLiveUpdated', { date: o.updateDate, time: o.updateTime || '' }) : '');
+        setGoldThStatus(t('fetchSuccess'), 'ok');
+      }
+    }, function () {
+      var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap';
+      badge.textContent = t('badgeManualText');
+      setGoldThStatus(t('statusFetchFailNoCache'), 'err');
+    });
   }
 
-  /* ── ถ้าจะซื้อ ควรใส่เงินเท่าไร ตั้งขายที่ไหน (บาท/บาททองคำ) ──────────────
-     สัญญาณแนวโน้ม/RSI/แนวต้านมาจาก analyzeSeries() ที่วิ่งบนราคาทองโลก USD/oz
-     แต่คำนวณเงิน-ความเสี่ยงเป็นบาท/บาททองคำ (สิ่งที่ผู้ใช้จ่ายจริง) — หน้านี้ไม่มีอัตราแปลง USD↔บาท
-     จึงยืม "ระยะห่าง % จากราคา" ของฝั่ง USD มาประมาณค่าเทียบเคียงในฝั่งบาทแทนตรงๆ (ไม่แปลงหน่วยจริง) ── */
-  function riskCalc(o) {
-    var capital = o.capital, riskPct = o.riskPct, entry = o.entry, stop = o.stop;
-    var perUnit = entry - stop;
-    if (!(perUnit > 0)) return { error: t('rcErrStop') };
-    var riskBudget = capital * riskPct / 100;
-    var qty = riskBudget / perUnit, note = ''; /* ไม่ floor — ซื้อทองเป็นเศษบาททองคำได้ */
-    var cost = qty * entry;
-    if (cost > capital) {
-      var maxQty = capital / entry;
-      if (maxQty > 0) { qty = maxQty; cost = qty * entry; note = t('rcCapLimitedNote'); }
+  /* ── ไฟจราจรจากราคาทองโลก (GC=F) ── */
+  function setAiSumStatus(text, cls) { var el = $('aiSumStatus'); if (!el) return; el.textContent = text || ''; el.className = 'status' + (cls ? ' ' + cls : ''); }
+  function showGoldVerdict(a, meta) {
+    if (a) lastAnalysis = a;
+    var el = $('gSrcBadge');
+    if (meta.kind === 'real') {
+      el.className = 'badge wrap ok';
+      el.textContent = t('badgeIntlTrend') + (meta.stale ? t('badgeStaleSuffix', { age: IC.ago(meta.cachedAt) }) : '') + (meta.days ? t('badgeDaysSuffix', { days: meta.days }) : '');
+    } else if (meta.kind === 'manual') { el.className = 'badge wrap'; el.textContent = t('badgeManualEval'); }
+    else { el.className = 'badge wrap'; el.textContent = t('badgeFetchFail'); }
+    if (!a) {
+      $('gLight').className = 'light gray'; $('gBulb').textContent = ''; $('gBulb').style.background = 'var(--ome-text-3)';
+      $('gVerdict').textContent = t('gVerdictNoData'); $('gWhy').textContent = '';
+      $('gDetailsBox').style.display = 'none'; $('aiSumCard').style.display = 'none';
+      return;
     }
-    var rr = NaN;
-    if (isFinite(o.usdPrice) && o.usdPrice > 0 && isFinite(o.usdResistance) && o.usdResistance > o.usdPrice) {
-      var stopPct = perUnit / entry;
-      var approxUsdStop = o.usdPrice * (1 - stopPct);
-      if (approxUsdStop < o.usdPrice) rr = (o.usdResistance - o.usdPrice) / (o.usdPrice - approxUsdStop);
-    }
-    return { qty: qty, cost: cost, riskBaht: qty * perUnit, rr: rr, riskBudget: riskBudget, note: note };
+    var bulbColors = { green: 'var(--ome-ok)', yellow: 'var(--ome-warn)', red: 'var(--ome-err)' };
+    $('gLight').className = 'light ' + a.light;
+    $('gBulb').textContent = ''; $('gBulb').style.background = bulbColors[a.light] || 'var(--ome-text-3)';
+    $('gVerdict').textContent = a.verdict; $('gWhy').textContent = a.why;
+    if (a.det && !a.simple && isFinite(a.det.rsi)) {
+      var d = a.det, rows = [
+        [t('detEma20'), fmt(d.ema20) + ' USD'], [t('detEma50'), fmt(d.ema50) + ' USD'],
+        [t('detRsi'), fmt(d.rsi, 1)], [t('detMacd'), fmt(d.macdHist, 3)],
+        [t('detSupport'), fmt(d.support) + ' USD'], [t('detResistance'), fmt(d.resistance) + ' USD'],
+        [t('detAdx'), isFinite(d.adx) ? fmt(d.adx, 0) + (d.adx >= 20 ? t('detAdxStrong') : t('detAdxWeak')) : t('detNoData')]
+      ], html = '';
+      rows.forEach(function (r) { html += '<div class="k">' + esc(r[0]) + '</div><div class="v">' + esc(r[1]) + '</div>'; });
+      $('gDetKv').innerHTML = html; $('gDetailsBox').style.display = 'block';
+    } else { $('gDetailsBox').style.display = 'none'; }
+    $('aiSumCard').style.display = 'block';
+    $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = ''; setAiSumStatus('', '');
   }
+  var lastIntl = null;
+  function runIntlAnalysis() {
+    IC.series('GC=F').then(function (r) {
+      lastIntl = r;
+      lastVerdictMode = 'real';
+      showGoldVerdict(decorate(Calc.analyzeSeries(r.series, { psar: false })), { kind: 'real', stale: r.stale, cachedAt: r.cachedAt, days: r.series.closes.length });
+      $('gManualWrap').style.display = 'none';
+    }, function () {
+      lastIntl = null;
+      showGoldVerdict(null, { kind: 'fail' });
+      $('gManualWrap').style.display = 'block';
+    });
+  }
+
+  /* ── ถ้าจะซื้อ ควรใส่เงินเท่าไร (บาท/บาททองคำ) ── */
   function doCalc() {
     var capital = num($('rcCapital').value), riskPct = num($('rcRiskPct').value);
     var entry = num($('rcEntry').value), stop = num($('rcStop').value);
-    var box = $('rcResult');
-    box.style.display = 'block';
-    if (!isFinite(entry)) { $('rcHeadline').innerHTML = '<span style="color:var(--ome-err-ink)">' + t('rcErrNeedEntry') + '</span>'; $('rcKv').innerHTML = ''; return; }
+    $('rcResult').style.display = 'block';
+    if (!isFinite(entry)) { $('rcHeadline').innerHTML = '<span style="color:var(--ome-err-ink)">' + esc(t('rcErrNeedEntry')) + '</span>'; $('rcKv').innerHTML = ''; return; }
     if (!isFinite(stop)) {
-      stop = (lastAnalysis && isFinite(lastAnalysis.suggestStop) && isFinite(lastAnalysis.price) && lastAnalysis.price > 0)
-        ? entry * (lastAnalysis.suggestStop / lastAnalysis.price)
-        : entry * 0.95;
+      stop = (lastAnalysis && isFinite(lastAnalysis.suggestStop) && isFinite(lastAnalysis.price) && lastAnalysis.price > 0) ? entry * (lastAnalysis.suggestStop / lastAnalysis.price) : entry * 0.95;
       $('rcStop').value = stop.toFixed(2);
     }
     if (!isFinite(capital) || capital <= 0) { capital = 300000; $('rcCapital').value = capital; }
     if (!isFinite(riskPct) || riskPct <= 0) { riskPct = 2; $('rcRiskPct').value = riskPct; }
-
-    var res = riskCalc({
-      capital: capital, riskPct: riskPct, entry: entry, stop: stop,
-      usdPrice: lastAnalysis ? lastAnalysis.price : NaN,
-      usdResistance: lastAnalysis ? lastAnalysis.resistance : NaN
-    });
-    if (res.error) { $('rcHeadline').innerHTML = '<span style="color:var(--ome-err-ink)">' + res.error + '</span>'; $('rcKv').innerHTML = ''; return; }
+    var res = Calc.riskCalc.gold({ capital: capital, riskPct: riskPct, entry: entry, stop: stop,
+      usdPrice: lastAnalysis ? lastAnalysis.price : NaN, usdResistance: lastAnalysis ? lastAnalysis.resistance : NaN });
+    if (res.error) { $('rcHeadline').innerHTML = '<span style="color:var(--ome-err-ink)">' + esc(t('rcErrStop')) + '</span>'; $('rcKv').innerHTML = ''; return; }
     $('rcHeadline').innerHTML = t('rcQtyLine', { qty: fmt(res.qty, 4), cost: baht(res.cost) });
-    var kv = '';
-    kv += '<div class="k">' + t('rcKvIfWrong') + '</div><div class="v">' + baht(res.riskBaht) + '</div>';
-    kv += '<div class="k">' + t('rcKvStop') + '</div><div class="v">' + fmt(stop) + '</div>';
-    if (isFinite(res.rr)) kv += '<div class="k">' + t('rcKvRr') + '</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
-    if (res.note) kv += '<div class="k" style="color:var(--ome-warn-ink)">' + t('rcKvNote') + '</div><div class="v" style="color:var(--ome-warn-ink);font-size:var(--ome-fs-xs)">' + res.note + '</div>';
+    var kv = '<div class="k">' + esc(t('rcKvIfWrong')) + '</div><div class="v">' + baht(res.riskBaht) + '</div>';
+    kv += '<div class="k">' + esc(t('rcKvStop')) + '</div><div class="v">' + fmt(stop) + '</div>';
+    if (isFinite(res.rr)) kv += '<div class="k">' + esc(t('rcKvRr')) + '</div><div class="v">' + fmt(res.rr, 1) + ' : 1</div>';
+    if (res.note) kv += '<div class="k" style="color:var(--ome-warn-ink)">' + esc(t('rcKvNote')) + '</div><div class="v" style="color:var(--ome-warn-ink);font-size:var(--ome-fs-xs)">' + esc(t('rcCapLimitedNote')) + '</div>';
     $('rcKv').innerHTML = kv;
   }
 
-  /* ── เช็กลิสต์ก่อนซื้อ ─────────────────────────────────────────── */
-  function checklistChecks() {
-    var a = lastAnalysis, det = (a && a.det) ? a.det : {};
-    var entry = num($('rcEntry').value), stop = num($('rcStop').value), riskPct = num($('rcRiskPct').value);
-    var checks = [];
-    if (a && isFinite(det.ema20)) {
-      var up = isFinite(det.ema50) ? a.price >= det.ema50 : a.price >= det.ema20;
-      var adxTxt = isFinite(det.adx) ? t('chkAdxSuffix', { v: det.adx.toFixed(0), label: det.adx >= 20 ? t('chkAdxStrong') : t('chkAdxWeak') }) : '';
-      checks.push({ ok: up, txt: (up ? t('chkTrendUp') : t('chkTrendDn')) + adxTxt });
-      var over = (a.price - det.ema20) / det.ema20, notChase = over <= 0.05;
-      checks.push({ ok: notChase, txt: notChase ? t('chkNoChase') : t('chkChasing') });
-    } else {
-      checks.push({ ok: null, txt: t('chkTrendNeedData') });
-    }
-    if (a && isFinite(det.rsi)) checks.push({ ok: det.rsi < 70, txt: det.rsi < 70 ? t('chkRsiOk', { v: det.rsi.toFixed(0) }) : t('chkRsiHot', { v: det.rsi.toFixed(0) }) });
-    else checks.push({ ok: null, txt: t('chkRsiNeedData') });
-    var stopOk = isFinite(entry) && isFinite(stop) && stop < entry;
-    checks.push({ ok: stopOk, txt: stopOk ? t('chkStopSet') : t('chkStopUnset') });
-    checks.push({
-      ok: isFinite(riskPct) && riskPct <= 2,
-      txt: (isFinite(riskPct) && riskPct <= 2) ? t('chkRiskOk', { v: riskPct }) : t('chkRiskHigh', { v: isFinite(riskPct) ? riskPct + '%' : '-' })
-    });
-    if (a && stopOk && isFinite(a.resistance) && a.resistance > a.price && isFinite(a.price) && a.price > 0) {
-      var stopPct = (entry - stop) / entry;
-      var approxUsdStop = a.price * (1 - stopPct);
-      var rr = approxUsdStop < a.price ? (a.resistance - a.price) / (a.price - approxUsdStop) : NaN;
-      if (isFinite(rr)) {
-        var rrOk = rr >= 2;
-        checks.push({ ok: rrOk, txt: rrOk ? t('chkRrOk', { v: rr.toFixed(1) }) : t('chkRrLow', { v: rr.toFixed(1) }) });
-      } else {
-        checks.push({ ok: null, txt: t('chkRrNeedData') });
-      }
-    } else {
-      checks.push({ ok: null, txt: t('chkRrNeedData') });
-    }
-    var so = gAnswers.spotOnly;
-    checks.push({
-      ok: so === 'yes' ? true : so === 'no' ? false : null,
-      txt: so === 'yes' ? t('chkSpotYes') : so === 'no' ? t('chkSpotNo') : t('chkSpotUnknown')
-    });
-    return checks;
+  /* ── เช็กลิสต์ก่อนซื้อ ── */
+  var CHK_KEY = { trendUp: 'chkTrendUp', trendDn: 'chkTrendDn', noChase: 'chkNoChase', chasing: 'chkChasing', trendNeedData: 'chkTrendNeedData',
+    rsiOk: 'chkRsiOk', rsiHot: 'chkRsiHot', rsiNeedData: 'chkRsiNeedData', stopSet: 'chkStopSet', stopUnset: 'chkStopUnset', riskOk: 'chkRiskOk', riskHigh: 'chkRiskHigh',
+    rrOk: 'chkRrOk', rrLow: 'chkRrLow', rrNeedData: 'chkRrNeedData', spotYes: 'chkSpotYes', spotNo: 'chkSpotNo', spotUnknown: 'chkSpotUnknown' };
+  function chkText(c) {
+    var v = c.vars || {}, txt = t(CHK_KEY[c.code], { v: v.v });
+    if ((c.code === 'trendUp' || c.code === 'trendDn') && isFinite(v.adx)) txt += t('chkAdxSuffix', { v: Number(v.adx).toFixed(0), label: v.adxStrong ? t('chkAdxStrong') : t('chkAdxWeak') });
+    return txt;
   }
   function doChecklist() {
-    var checks = checklistChecks();
-    var fails = checks.filter(function (c) { return c.ok === false; }).length;
-    var unknowns = checks.filter(function (c) { return c.ok === null; }).length;
-    var box = $('checkResult'), v = $('checkVerdict');
-    if (fails > 0) { v.className = 'callout err'; v.textContent = t('checklistFail', { n: fails }); }
-    else if (unknowns > 0) { v.className = 'callout warn'; v.textContent = t('checklistUnknown'); }
-    else { v.className = 'callout ok'; v.textContent = t('checklistGo'); }
-    var html = '';
-    checks.forEach(function (c) {
-      var ic = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + (c.ok === true ? 'check' : c.ok === false ? 'x' : 'minus') + '"/></svg>';
-      html += '<li class="' + (c.ok === false ? 'fail' : 'pass') + '"><span class="ic">' + ic + '</span><span>' + c.txt + '</span></li>';
-    });
-    $('chkList').innerHTML = html;
-    box.style.display = 'block';
+    var checks = Calc.checklist.gold({ a: lastAnalysis && lastAnalysis.det ? lastAnalysis : null, entry: num($('rcEntry').value), stop: num($('rcStop').value), riskPct: num($('rcRiskPct').value), answer: gAnswers.spotOnly });
+    var v = Calc.checklistVerdict(checks), el = $('checkVerdict');
+    if (v.verdict === 'fail') { el.className = 'callout err'; el.textContent = t('checklistFail', { n: v.fails }); }
+    else if (v.verdict === 'unknown') { el.className = 'callout warn'; el.textContent = t('checklistUnknown'); }
+    else { el.className = 'callout ok'; el.textContent = t('checklistGo'); }
+    IC.renderChecklist($('chkList'), checks, chkText);
+    $('checkResult').style.display = 'block';
   }
 
-  /* ══════ สรุปราคาทองคำด้วย AI — ใช้ ai-chat-worker.js ตัวเดียวกับวิดเจ็ตแชทลอย (ai-chat-widget.js)
-     รันในเครื่องผู้ใช้เอง ไม่ส่งข้อมูลออกไปไหน แนวทาง "guided summarization" เดียวกับหน้าหุ้นไทย —
-     ป้อน "ตัวเลข/สัญญาณที่หน้านี้คำนวณไว้ให้แล้ว" (RSI/MACD/แนวรับ-แนวต้าน ฯลฯ จาก analyzeSeries()
-     ด้านบน) ตรงๆ ให้โมเดล กันโมเดลเล็กต้องมาคำนวณ/ตีความตัวเลขเอง (หน้านี้ไม่มีข่าวรายวันแบบหุ้นไทย
-     จึงไม่มีส่วนข่าวในบริบทที่ป้อน — สัญญาณเป็น USD/ออนซ์ตามที่ analyzeSeries() คำนวณไว้เดิม) ── */
+  /* ── สรุปด้วย AI (คลาวด์อย่างเดียว — task 'stock:gold') ── */
   var AI_SUMMARY_SYSTEM_PROMPT = 'คุณเป็นผู้ช่วยสรุปข้อมูลราคาทองคำให้นักลงทุนมือใหม่ชาวไทยฟัง จะได้รับตัวเลข/' +
     'สัญญาณทางเทคนิคที่คำนวณไว้ให้แล้วล่วงหน้า (ห้ามคำนวณหรือเดาตัวเลขเพิ่มเองเด็ดขาด ใช้เฉพาะตัวเลขที่ให้มา) ' +
     'หน้าที่ของคุณคือเรียบเรียงเป็นภาษาพูดที่เข้าใจง่าย ไม่ใช่ผู้แนะนำการลงทุน ' +
@@ -585,92 +419,11 @@
     'Never give buy/sell advice. Never predict future prices. Never add numbers or events not present in the data given.';
   var AI_SUMMARY_REMINDER_EN = 'Reminder: never give buy/sell advice, never predict future prices, never add numbers/events not present in the data given. ' +
     'Reply using only the 3-section structure above, starting directly with "Overview:" — no preamble.';
-
-  function isIOS() {
-    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) return true;
-    return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
-  }
-  /* โมเดลเล็ก (0.5B) บางครั้ง "พูดตาม" ข้อความ system/reminder ที่สั่งห้ามทำนี่นั่นออกมาเป็นเนื้อหาจริง
-     แทนที่จะทำตามคำสั่งเงียบๆ (เจอจริง: ตอบ "ห้ามให้คำแนะนำซื้อ/ขาย" เป็นบรรทัดแยกในคำตอบ) — กรองทิ้งบรรทัด
-     ที่ขึ้นต้นด้วย "ห้าม"/"Never" ออกก่อนแสดงผลและก่อนแคช เพราะไม่ใช่หัวข้อเนื้อหาจริงตามโครงสร้างที่กำหนด */
-  function stripLeakedInstructions(text) {
-    return (text || '').split('\n').filter(function (line) {
-      return !/^\s*(ห้าม|Never\b)/i.test(line);
-    }).join('\n').replace(/\n{3,}/g, '\n\n').trim();
-  }
-  function friendlyChatError(rawMessage) {
-    var msg = rawMessage || '';
-    if (/bad_alloc|Can't create a session|out of memory/i.test(msg)) return t('memErrorMsg');
-    if (/QuotaExceededError|quota.{0,20}exceeded|not enough.{0,10}(space|storage)|no space left/i.test(msg)) return t('diskErrorMsg');
-    return msg;
-  }
-
-  var aiSumChatWorker = null, aiSumWorkerRacePromise = null, aiSumJobSeq = 0, aiSumBusy = false;
-  function spawnProbedWorker(modelKind) {
-    return new Promise(function (resolve, reject) {
-      var w = new Worker('./ai-chat-worker.js', { type: 'module' });
-      var probeId = 'probe-' + modelKind + '-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-      function onMsg(e) {
-        var msg = e.data;
-        if (!msg || msg.jobId !== probeId || msg.type !== 'probe-result') return;
-        w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr);
-        if (msg.ok) resolve(w);
-        else { try { w.terminate(); } catch (err) {} reject(new Error(msg.message || 'probe failed')); }
-      }
-      function onErr(e) {
-        w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr);
-        try { w.terminate(); } catch (err) {}
-        reject(e);
-      }
-      w.addEventListener('message', onMsg);
-      w.addEventListener('error', onErr);
-      w.postMessage({ type: 'probe', jobId: probeId, modelId: modelKind });
-    });
-  }
-  /* คืน Promise<Worker> — เครื่องมี WebGPU+แรมพอ จะสร้าง worker แยกกันคนละตัวลองโมเดลใหญ่/เล็กพร้อมกัน
-     (คนละ WASM memory จริงๆ ไม่แชร์กัน ต่างจากที่เคยพังมาก่อน) ตัวไหนพร้อมก่อนก็ใช้ตัวนั้น ตัวใหญ่พัง
-     ไม่กระทบตัวเล็กเลยเพราะคนละ worker — ดูรายละเอียดที่คอมเมนต์หัวไฟล์ ai-chat-worker.js
-     ⚠️ 2026-09-19: จำผลไว้ใน localStorage ด้วยว่าโมเดลใหญ่เคยพังบนเบราว์เซอร์นี้ไหม (เจอจริงจากผู้ใช้ที่
-     navigator.gpu รายงานว่ารองรับแต่โหลดจริงพังทุกครั้ง) — ถ้าเคยพังแล้ว "ไม่ลองอีกเลย" ในครั้งถัดๆ ไป
-     กันไม่ให้เสียแบนด์วิดท์/ซีพียูไปกับการดาวน์โหลดโมเดลใหญ่ที่รู้อยู่แล้วว่าจะพังซ้ำๆ ทุกครั้งที่กดสรุป
-     ซึ่งทำให้โมเดลเล็ก (ตัวที่ใช้งานได้จริง) โหลดช้าลงไปด้วยเพราะแย่งแบนด์วิดท์กัน */
-  var AI_BIG_MODEL_BLOCKLIST_KEY = 'tanot:aiChat:noBigModel';
-  function getAiSumWorkerAsync() {
-    if (aiSumChatWorker) return Promise.resolve(aiSumChatWorker);
-    if (aiSumWorkerRacePromise) return aiSumWorkerRacePromise;
-    var mem = (typeof navigator !== 'undefined') ? navigator.deviceMemory : undefined;
-    var noBig = false;
-    try { noBig = localStorage.getItem(AI_BIG_MODEL_BLOCKLIST_KEY) === '1'; } catch (e) {}
-    var canTryBig = !noBig && typeof navigator !== 'undefined' && !!navigator.gpu && mem && mem >= 4;
-    var candidates;
-    if (canTryBig) {
-      var bigP = spawnProbedWorker('big').catch(function (err) {
-        try { localStorage.setItem(AI_BIG_MODEL_BLOCKLIST_KEY, '1'); } catch (e2) {}
-        throw err;
-      });
-      candidates = [bigP, spawnProbedWorker('small')];
-    } else {
-      candidates = [spawnProbedWorker('small')];
-    }
-    aiSumWorkerRacePromise = Promise.any(candidates).then(function (winner) {
-      aiSumChatWorker = winner; aiSumWorkerRacePromise = null;
-      candidates.forEach(function (p) { p.then(function (w) { if (w !== winner) { try { w.terminate(); } catch (err) {} } }, function () {}); });
-      return winner;
-    }, function () {
-      aiSumWorkerRacePromise = null;
-      var w = new Worker('./ai-chat-worker.js', { type: 'module' });
-      aiSumChatWorker = w;
-      return w;
-    });
-    return aiSumWorkerRacePromise;
-  }
-  function setAiSumStatus(text, cls) { var el = $('aiSumStatus'); if (!el) return; el.textContent = text || ''; el.className = 'status' + (cls ? ' ' + cls : ''); }
-
   function buildAiSumContext() {
     var a = lastAnalysis; if (!a) return null;
     var lines = [t('ctxAsset'), t('ctxLatestPrice', { v: fmt(a.price) }), t('ctxVerdict', { v: a.verdict, why: a.why })];
-    if (a.pros && a.pros.length) lines.push(t('ctxPros', { v: a.pros.join(', ') }));
-    if (a.cons && a.cons.length) lines.push(t('ctxCons', { v: a.cons.join(', ') }));
+    if (a.prosT && a.prosT.length) lines.push(t('ctxPros', { v: a.prosT.join(', ') }));
+    if (a.consT && a.consT.length) lines.push(t('ctxCons', { v: a.consT.join(', ') }));
     var d = a.det || {};
     if (isFinite(d.rsi)) lines.push(t('ctxRsi', { v: fmt(d.rsi, 1) }) + (d.rsi > 70 ? t('ctxRsiHigh') : d.rsi < 38 ? t('ctxRsiLow') : t('ctxRsiMid')));
     if (isFinite(d.macdHist)) lines.push(t('ctxMacd', { v: fmt(d.macdHist, 3) }) + (d.macdHist >= 0 ? t('ctxMacdPos') : t('ctxMacdNeg')));
@@ -680,740 +433,161 @@
     if (isFinite(d.adx)) lines.push(t('ctxAdx', { v: fmt(d.adx, 0) }) + (d.adx >= 20 ? t('ctxAdxStrong') : t('ctxAdxWeak')));
     return lines.join('\n');
   }
-
-  /* แคชผลสรุปผ่าน Firebase (ai-summary-cache.js) — ดูรายละเอียด/ข้อจำกัดที่ตั้งใจไว้ในไฟล์นั้น
-     (invest-global-stock.js เป็นหน้าแรกที่ทำ pattern นี้ ดูคอมเมนต์เต็มๆ ที่นั่น) — หน้านี้มีสินทรัพย์เดียว
-     (ทองคำโลก GC=F) จึงใช้คีย์คงที่ ไม่ต้องดึงสัญลักษณ์จากที่ไหน */
-  var AI_CACHE_PAGE = 'gold', AI_CACHE_SYMBOL = 'GC=F';
+  var aiBusy = false;
   function doAiSummary() {
-    if (aiSumBusy) return;
-    var cloud = !!(window.AiClient && AiClient.available());
-    if (!cloud && isIOS()) { setAiSumStatus(t('iosNotSupported'), 'err'); return; }
+    if (aiBusy) return;
     var ctx = buildAiSumContext();
     if (!ctx) { setAiSumStatus(t('needStockData'), 'err'); return; }
-
-    aiSumBusy = true;
-    $('aiSumBtn').disabled = true;
-    $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
+    aiBusy = true; $('aiSumBtn').disabled = true; $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
     setAiSumStatus(t('summarizing'), '');
-
-    var isEn = getUILang() === 'en';
-    var cacheLang = isEn ? 'en' : 'th';
-    var cache = null; // แคชผลสรุปอยู่ที่ D1 (ai_cache) ฝั่งเซิร์ฟเวอร์
-    (cache ? cache.read(AI_CACHE_PAGE, AI_CACHE_SYMBOL, cacheLang) : Promise.resolve(null)).then(function (hit) {
-      if (hit) {
-        $('aiSumOut').style.display = 'block'; $('aiSumOut').textContent = stripLeakedInstructions(hit.text);
-        setAiSumStatus(t('summarizeCached'), 'ok');
-        aiSumBusy = false; $('aiSumBtn').disabled = false;
-        return;
-      }
-      if (cloud) runCloudSummary(); else runLocalSummary();
-    });
-
-    var payloadMessages = [
-      { role: 'system', content: isEn ? AI_SUMMARY_SYSTEM_PROMPT_EN : AI_SUMMARY_SYSTEM_PROMPT },
+    var en = IC.getLang() === 'en', cached = false;
+    IC.summarize({ task: 'stock:gold', onResult: function (r) { cached = !!(r && r.cached); }, messages: [
+      { role: 'system', content: en ? AI_SUMMARY_SYSTEM_PROMPT_EN : AI_SUMMARY_SYSTEM_PROMPT },
       { role: 'user', content: ctx },
-      { role: 'system', content: isEn ? AI_SUMMARY_REMINDER_EN : AI_SUMMARY_REMINDER }
-    ];
-
-    /* คลาวด์ก่อน (Workers AI ผ่าน /api/ai/summarize — แคชใน D1) ถอยมารันโมเดลในเบราว์เซอร์เมื่อออฟไลน์/โควตาเต็ม/ล็อกอินหมดอายุ
-       (ไม่ถอยบน iPhone เพราะโมเดลในเครื่องรันไม่ได้) */
-    function runCloudSummary() {
-      AiClient.summarize({ task: 'stock:gold', messages: payloadMessages }).then(function (r) {
-        var finalText = stripLeakedInstructions(r.text);
-        if (!finalText) setAiSumStatus(t('summarizeFail'), 'err');
-        else {
-          $('aiSumOut').style.display = 'block'; $('aiSumOut').textContent = finalText;
-          setAiSumStatus(r.cached ? t('summarizeCached') : '', r.cached ? 'ok' : '');
-        }
-        aiSumBusy = false; $('aiSumBtn').disabled = false;
-      }, function (err) {
-        if (AiClient.canFallback(err) && !isIOS()) { runLocalSummary(); return; }
-        setAiSumStatus(t('summarizeFailWith', { msg: AiClient.friendlyMessage(err) }), 'err');
-        aiSumBusy = false; $('aiSumBtn').disabled = false;
-      });
-    }
-
-    function runLocalSummary() {
-      var jobId = ++aiSumJobSeq, replyText = '';
-      getAiSumWorkerAsync().then(function (w) {
-        if (jobId !== aiSumJobSeq) return; // มีคำขอใหม่กว่าแทรกมาระหว่างรอ worker พร้อม ทิ้งอันนี้ไป
-
-        function onMsg(e) {
-          var msg = e.data;
-          if (!msg || msg.jobId !== jobId) return;
-          if (msg.type === 'model-progress') {
-            var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
-            setAiSumStatus(t('loadingModel', { file: msg.file, pct: pct }), '');
-          } else if (msg.type === 'fallback') {
-            setAiSumStatus('' + msg.message, '');
-          } else if (msg.type === 'token') {
-            if (!replyText) { setAiSumStatus('', ''); $('aiSumOut').style.display = 'block'; }
-            replyText += msg.token;
-            $('aiSumOut').textContent = stripLeakedInstructions(replyText);
-          } else if (msg.type === 'done') {
-            cleanup();
-            var finalText = stripLeakedInstructions(replyText);
-            if (!finalText) setAiSumStatus(t('summarizeFail'), 'err');
-            else { $('aiSumOut').textContent = finalText; if (cache) cache.write(AI_CACHE_PAGE, AI_CACHE_SYMBOL, cacheLang, { text: finalText }); }
-            aiSumBusy = false; $('aiSumBtn').disabled = false;
-          } else if (msg.type === 'error') {
-            cleanup();
-            resetWorkerOnError();
-            $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
-            setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(msg.message) }), 'err');
-            aiSumBusy = false; $('aiSumBtn').disabled = false;
-          }
-        }
-        function onErr(e) {
-          cleanup();
-          resetWorkerOnError();
-          $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
-          setAiSumStatus(t('summarizeFailWith', { msg: friendlyChatError(e.message || t('unknownReason')) }), 'err');
-          aiSumBusy = false; $('aiSumBtn').disabled = false;
-        }
-        function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
-        function resetWorkerOnError() { try { w.terminate(); } catch (e) {} aiSumChatWorker = null; }
-        w.addEventListener('message', onMsg);
-        w.addEventListener('error', onErr);
-        w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages, maxNewTokens: 220 });
-      });
-    }
+      { role: 'system', content: en ? AI_SUMMARY_REMINDER_EN : AI_SUMMARY_REMINDER }
+    ] }).then(function (text) {
+      if (!text) setAiSumStatus(t('summarizeFail'), 'err');
+      else { $('aiSumOut').style.display = 'block'; $('aiSumOut').textContent = text; setAiSumStatus(cached ? t('summarizeCached') : '', cached ? 'ok' : ''); }
+    }, function (err) { setAiSumStatus(t('summarizeFailWith', { msg: IC.aiMessage(err) }), 'err'); })
+      .then(function () { aiBusy = false; $('aiSumBtn').disabled = false; });
   }
 
-  /* ── สร้างชุดข้อมูลจาก Yahoo (ใช้ GC=F เป็นตัวแทนราคาทองโลก) ── */
-  function daysAgoDates(n) {
-    var out = [], d = new Date(); d.setHours(0, 0, 0, 0);
-    for (var i = n - 1; i >= 0; i--) { var x = new Date(d); x.setDate(d.getDate() - i); out.push(x.toISOString().slice(0, 10)); }
-    return out;
-  }
-  function toSeries(times, opens, highs, lows, closes, volumes) {
-    var ohlc = [], i;
-    for (i = 0; i < times.length; i++) ohlc.push({ time: times[i], open: opens[i], high: highs[i], low: lows[i], close: closes[i] });
-    return { times: times, closes: closes, highs: highs, lows: lows, ohlc: ohlc };
-  }
-  function parseYahoo(j) {
-    var res = j && j.chart && j.chart.result && j.chart.result[0];
-    var ts = res && res.timestamp, q = res && res.indicators && res.indicators.quote && res.indicators.quote[0];
-    if (!ts || !q || !q.close) throw new Error('no data');
-    var times = [], opens = [], highs = [], lows = [], closes = [], vols = [], i;
-    for (i = 0; i < ts.length; i++) {
-      if (q.close[i] == null) continue;
-      times.push(new Date(ts[i] * 1000).toISOString().slice(0, 10));
-      opens.push(q.open[i] != null ? q.open[i] : q.close[i]);
-      highs.push(q.high[i] != null ? q.high[i] : q.close[i]);
-      lows.push(q.low[i] != null ? q.low[i] : q.close[i]);
-      closes.push(q.close[i]); vols.push(q.volume && q.volume[i] ? q.volume[i] : 0);
-    }
-    if (closes.length < 5) throw new Error('short');
-    return toSeries(times, opens, highs, lows, closes, vols);
-  }
-  function fetchOne(url, timeoutMs, parser) {
-    var ctrl = ('AbortController' in window) ? new AbortController() : null;
-    var to = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs || 8000) : null;
-    return fetch(url, ctrl ? { signal: ctrl.signal } : undefined)
-      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.text(); })
-      .then(function (t) { if (to) clearTimeout(to); return (parser || defaultYahooParser)(t); });
-  }
-  function defaultYahooParser(t) { return parseYahoo(JSON.parse(t)); }
-  function fetchPrice(sym) {
-    var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=1y&interval=1d';
-    var enc = encodeURIComponent(base);
-    var tries = [
-      { name: 'own', url: OWN_PROXY + enc },
-      { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + enc },
-      { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
-      { name: 'corseu', url: 'https://cors.eu.org/' + base },
-      { name: 'corsworkers', url: 'https://test.cors.workers.dev/?' + base },
-      { name: 'corslol', url: 'https://api.cors.lol/?url=' + enc },
-      { name: 'ตรง', url: base }
-    ];
-    var i = 0, best = null;
-    function next() {
-      if (i >= tries.length) return best ? Promise.resolve(best) : Promise.reject(new Error('all failed'));
-      var t = tries[i++];
-      return fetchOne(t.url).then(function (s) {
-        s.source = t.name;
-        if (!best || s.closes.length > best.closes.length) best = s;
-        if (best.closes.length >= 60) return best;
-        return next();
-      }, function () { return next(); });
-    }
-    return next();
-  }
-  function cacheKey(sym) { return 'tanot:invest:cache:gold:' + sym; }
-  function saveCache(sym, s) {
-    try {
-      var o = { ts: Date.now(), t: s.times, o: s.ohlc.map(function (b) { return b.open; }), h: s.highs, l: s.lows, c: s.closes };
-      localStorage.setItem(cacheKey(sym), JSON.stringify(o));
-    } catch (e) {}
-  }
-  function loadCache(sym) {
-    try {
-      var o = JSON.parse(localStorage.getItem(cacheKey(sym)));
-      if (!o || !o.c || o.c.length < 5) return null;
-      var s = toSeries(o.t, o.o, o.h, o.l, o.c); s.cachedAt = o.ts; return s;
-    } catch (e) { return null; }
-  }
-  function getSeries(sym) {
-    return fetchPrice(sym).then(function (s) {
-      saveCache(sym, s); return { series: s, stale: false };
-    }, function (e) {
-      var c = loadCache(sym);
-      if (c) return { series: c, stale: true, cachedAt: c.cachedAt };
-      throw e;
-    });
-  }
-  function cacheAgeText(ts) {
-    if (!ts) return '';
-    var mins = Math.round((Date.now() - ts) / 60000);
-    if (mins < 1) return t('ageJustNow');
-    if (mins < 60) return t('ageMinsAgo', { n: mins });
-    var hrs = Math.round(mins / 60);
-    if (hrs < 24) return t('ageHrsAgo', { n: hrs });
-    return t('ageDaysAgo', { n: Math.round(hrs / 24) });
-  }
-
-  /* ── ราคาทองไทย (thai-gold-api community project, MIT) ────────── */
-  function parseGoldTH(t) {
-    var j = JSON.parse(t), r = j && j.response;
-    if (!r || !r.price || !r.price.gold_bar || !r.price.gold) throw new Error('no data');
-    function n(s) { return parseFloat(String(s).replace(/,/g, '')); }
-    var bar = r.price.gold_bar, jew = r.price.gold;
-    /* ฟิลด์ API ตั้งชื่อมุมมองร้านทอง (sell=ร้านขาย/คุณซื้อ, buy=ร้านซื้อคืน/คุณขาย) — map เป็นมุมมองผู้ใช้ตรงๆ กันสับสน */
-    var out = {
-      barBuyPrice: n(bar.sell), barSellPrice: n(bar.buy),
-      jewelryBuyPrice: n(jew.sell), jewelrySellPrice: n(jew.buy),
-      updateDate: r.update_date, updateTime: r.update_time
-    };
-    var vals = [out.barBuyPrice, out.barSellPrice, out.jewelryBuyPrice, out.jewelrySellPrice], i;
-    for (i = 0; i < vals.length; i++) if (!isFinite(vals[i])) throw new Error('bad numbers');
-    return out;
-  }
-  function fetchGoldTH() {
-    var base = 'https://api.chnwt.dev/thai-gold-api/latest', enc = encodeURIComponent(base);
-    var tries = [
-      { url: base },
-      { url: OWN_PROXY + enc },
-      { url: 'https://api.allorigins.win/raw?url=' + enc },
-      { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
-      { url: 'https://cors.eu.org/' + base },
-      { url: 'https://test.cors.workers.dev/?' + base },
-      { url: 'https://api.cors.lol/?url=' + enc },
-    ];
-    var i = 0;
-    function next() {
-      if (i >= tries.length) return Promise.reject(new Error('all failed'));
-      return fetchOne(tries[i++].url, 7000, parseGoldTH).catch(next);
-    }
-    return next();
-  }
-  function goldThCacheKey() { return 'tanot:invest:cache:gold:th'; }
-  function saveGoldThCache(o) { try { var c = {}; for (var k in o) c[k] = o[k]; c.ts = Date.now(); localStorage.setItem(goldThCacheKey(), JSON.stringify(c)); } catch (e) {} }
-  function loadGoldThCache() { try { var o = JSON.parse(localStorage.getItem(goldThCacheKey())); return (o && isFinite(o.barBuyPrice)) ? o : null; } catch (e) { return null; } }
-
-  function setGoldThStatus(msg, cls) { var el = $('goldThStatus'); el.textContent = msg; el.className = 'status' + (cls ? ' ' + cls : ''); }
-  function fillGoldThFields(o) {
-    $('barBuy').value = o.barBuyPrice.toFixed(2);
-    $('barSell').value = o.barSellPrice.toFixed(2);
-    $('jewelryBuy').value = o.jewelryBuyPrice.toFixed(2);
-    $('jewelrySell').value = o.jewelrySellPrice.toFixed(2);
-    if (!$('dcaStart').value) $('dcaStart').value = o.barBuyPrice.toFixed(2);
-    if (!$('gdNow').value) $('gdNow').value = o.barBuyPrice.toFixed(2);
-    if (!$('rcEntry').value) $('rcEntry').value = o.barBuyPrice.toFixed(2);
-    if ($('dcaOut').style.display === 'none') doDCA();
-  }
-  var GOLD_TH_RETRIES = 2; /* จำนวนครั้งที่ลองดึงราคาสดทั้งหมด ก่อนตกไป cache/กรอกเอง */
-  var GOLD_TH_RETRY_DELAY = 2500; /* ms — เผื่อกรณี rate-limit ชั่วคราวของ API ชุมชน */
-  /* ── ผู้ใช้กรอกราคาทองไทยเองในช่อง (แทนที่จะรอดึงอัตโนมัติ) — ให้เห็นผลทันทีที่กรอก ── */
-  function onManualPriceInput() {
-    var b1 = num($('barBuy').value), b2 = num($('barSell').value), j1 = num($('jewelryBuy').value), j2 = num($('jewelrySell').value);
-    var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap';
-    if (![b1, b2, j1, j2].every(isFinite)) {
-      badge.textContent = t('badgeManualText');
-      setGoldThStatus(t('manualEnterAll'));
-      return;
-    }
-    badge.textContent = t('badgeManualUsedText');
-    setGoldThStatus(t('manualUsedStatus'), 'ok');
-    if (!$('dcaStart').value) $('dcaStart').value = b1.toFixed(2);
-    if (!$('gdNow').value) $('gdNow').value = b1.toFixed(2);
-    if ($('dcaOut').style.display === 'none') doDCA();
-    renderGoldLog(); /* ใช้ barSell ล่าสุดคำนวณมูลค่าสมุดทองใหม่ */
-  }
-
-  function runThaiFetch() {
-    setGoldThStatus(t('goldThFetching'));
-    $('goldThBadge').style.display = 'none';
-    attemptGoldTH(1);
-  }
-  function attemptGoldTH(tryNum) {
-    fetchGoldTH().then(function (o) {
-      saveGoldThCache(o);
-      fillGoldThFields(o);
-      var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap ok';
-      badge.textContent = t('badgeRealLive') + (o.updateDate ? t('badgeRealLiveUpdated', { date: o.updateDate, time: o.updateTime || '' }) : '');
-      setGoldThStatus(t('fetchSuccess'), 'ok');
-    }, function () {
-      if (tryNum < GOLD_TH_RETRIES) {
-        setGoldThStatus(t('fetchRetrying', { n: tryNum + 1, total: GOLD_TH_RETRIES }));
-        setTimeout(function () { attemptGoldTH(tryNum + 1); }, GOLD_TH_RETRY_DELAY);
-        return;
-      }
-      var c = loadGoldThCache();
-      if (c) {
-        fillGoldThFields(c);
-        var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap ok';
-        badge.textContent = t('badgeStaleCache', { age: cacheAgeText(c.ts) });
-        setGoldThStatus(t('statusStaleCache', { n: GOLD_TH_RETRIES }), 'ok');
-      } else {
-        var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap';
-        badge.textContent = t('badgeManualText');
-        setGoldThStatus(t('statusFetchFailNoCache', { n: GOLD_TH_RETRIES }), 'err');
-      }
-    });
-  }
-
-  /* ── ไฟจราจร "ถูก/แพงตอนนี้ไหม" จากแนวโน้มราคาทองโลก (GC=F) ──── */
-  function showGoldVerdict(a, meta) {
-    if (a) lastAnalysis = a;
-    var el = $('gSrcBadge');
-    if (meta.kind === 'real') {
-      el.className = 'badge wrap ok';
-      el.textContent = t('badgeIntlTrend') + (meta.stale ? t('badgeStaleSuffix', { age: cacheAgeText(meta.cachedAt) }) : '') + (meta.days ? t('badgeDaysSuffix', { days: meta.days }) : '');
-    } else if (meta.kind === 'manual') {
-      el.className = 'badge wrap';
-      el.textContent = t('badgeManualEval');
-    } else {
-      el.className = 'badge wrap';
-      el.textContent = t('badgeFetchFail');
-    }
-    if (!a) {
-      $('gLight').className = 'light gray';
-      $('gBulb').textContent = '';
-      $('gBulb').style.background = 'var(--ome-text-3)';
-      $('gVerdict').textContent = t('gVerdictNoData');
-      $('gWhy').textContent = '';
-      $('gDetailsBox').style.display = 'none';
-      $('aiSumCard').style.display = 'none';
-      return;
-    }
-    /* วาดวงกลมสีด้วย CSS แทน emoji 🟢🟡🔴 — บางอุปกรณ์/เบราว์เซอร์ไม่มีฟอนต์รองรับ
-       emoji วงกลมสี (โดยเฉพาะ 🟢/🟡 ที่เพิ่งเข้า Unicode ทีหลัง) แสดงเป็นกล่องว่างแทน
-       ซึ่งทำให้ไฟจราจร (จุดขายหลักของหน้านี้) สื่อความหมายไม่ได้เลย */
-    var bulbColors = { green: 'var(--ome-ok)', yellow: 'var(--ome-warn)', red: 'var(--ome-err)' };
-    $('gLight').className = 'light ' + a.light;
-    $('gBulb').textContent = '';
-    $('gBulb').style.background = bulbColors[a.light] || 'var(--ome-text-3)';
-    $('gVerdict').textContent = a.verdict;
-    $('gWhy').textContent = a.why;
-    if (a.det && !a.simple && isFinite(a.det.rsi)) {
-      var d = a.det, rows = [
-        [t('detEma20'), fmt(d.ema20) + ' USD'], [t('detEma50'), fmt(d.ema50) + ' USD'],
-        [t('detRsi'), fmt(d.rsi, 1)], [t('detMacd'), fmt(d.macdHist, 3)],
-        [t('detSupport'), fmt(d.support) + ' USD'], [t('detResistance'), fmt(d.resistance) + ' USD'],
-        [t('detAdx'), isFinite(d.adx) ? fmt(d.adx, 0) + (d.adx >= 20 ? t('detAdxStrong') : t('detAdxWeak')) : t('detNoData')]
-      ], html = '';
-      rows.forEach(function (r) { html += '<div class="k">' + r[0] + '</div><div class="v">' + r[1] + '</div>'; });
-      $('gDetKv').innerHTML = html;
-      $('gDetailsBox').style.display = 'block';
-    } else { $('gDetailsBox').style.display = 'none'; }
-
-    /* การ์ด "สรุปราคาทองคำด้วย AI" — โชว์เมื่อมีไฟจราจรจริง รีเซ็ตผลสรุปเก่าทิ้งทุกครั้งที่โหลดข้อมูลใหม่ */
-    $('aiSumCard').style.display = 'block';
-    $('aiSumOut').style.display = 'none'; $('aiSumOut').textContent = '';
-    setAiSumStatus('', '');
-  }
-  function runIntlAnalysis() {
-    getSeries('GC=F').then(function (r) {
-      var a = analyzeSeries(r.series);
-      lastVerdictMode = 'real';
-      showGoldVerdict(a, { kind: 'real', stale: r.stale, cachedAt: r.cachedAt, days: r.series.closes.length });
-      $('gManualWrap').style.display = 'none';
-    }, function () {
-      showGoldVerdict(null, { kind: 'fail' });
-      $('gManualWrap').style.display = 'block';
-    });
-  }
-
-  /* ── วางแผนออมทอง (DCA) — ปรับจากตัวจำลอง DCA ของหน้ากองทุน ให้ติดตาม "น้ำหนักทอง" แทนมูลค่ากองทุน ── */
-  function simulateGoldDCA(pmt, startPrice, annualPct, months) {
-    var rm = annualPct / 100 / 12;
-    var price = startPrice, weight = 0, contrib = 0, series = [];
-    for (var i = 0; i < months; i++) {
-      price = price * (1 + rm);
-      var w = pmt / price;
-      weight += w; contrib += pmt;
-      series.push({ month: i + 1, price: price, weight: weight, value: weight * price, contrib: contrib });
-    }
-    return { weight: weight, price: price, value: weight * price, contrib: contrib, series: series };
-  }
+  /* ── วางแผนออมทอง (DCA) ── */
   var lastGoldChart = null;
   function drawGoldChart(r) {
     lastGoldChart = r;
-    var s = r.series, W = 640, H = 220, pad = 8, n = s.length;
-    var val = [], con = [], i;
+    var s = r.series, W = 640, H = 220, pad = 8, n = s.length, val = [], con = [], i;
+    if (!n) return;
     for (i = 0; i < n; i++) { val.push(s[i].value); con.push(s[i].contrib); }
     var max = Math.max(val[n - 1], con[n - 1]) || 1;
-    var x = function (i) { return pad + i / Math.max(1, n - 1) * (W - 2 * pad); };
+    var x = function (k) { return pad + k / Math.max(1, n - 1) * (W - 2 * pad); };
     var y = function (v) { return pad + (1 - v / max) * (H - 2 * pad); };
-    function path(a) { var d = '', i; for (i = 0; i < a.length; i++) d += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(a[i]).toFixed(1) + ' '; return d; }
+    function path(a) { var d = '', k; for (k = 0; k < a.length; k++) d += (k ? 'L' : 'M') + x(k).toFixed(1) + ' ' + y(a[k]).toFixed(1) + ' '; return d; }
     var area = path(val) + 'L' + x(n - 1).toFixed(1) + ' ' + y(0).toFixed(1) + ' L' + x(0).toFixed(1) + ' ' + y(0).toFixed(1) + ' Z';
-    var svg = '';
-    var C = window.OmeChartTheme.get();
+    var C = window.OmeChartTheme.get(), svg = '';
     svg += '<path d="' + area + '" fill="' + C.series[3] + '" opacity="0.12"/>';
     svg += '<path d="' + path(con) + '" fill="none" stroke="' + C.axis + '" stroke-width="1.6" stroke-dasharray="5 3"/>';
     svg += '<path d="' + path(val) + '" fill="none" stroke="' + C.series[3] + '" stroke-width="2.4" stroke-linejoin="round"/>';
     $('dcaChart').innerHTML = svg;
   }
-  window.OmeChartTheme.onChange(function () { if (lastGoldChart && $('dcaOut').style.display !== 'none') drawGoldChart(lastGoldChart); });
   function dcaYearTable(r, unit) {
-    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('yrTableColYear') + '</th><th>' + t('yrTableColContrib') + '</th><th>' + t('yrTableColWeight') + '</th><th>' + t('yrTableColValue') + '</th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + esc(t('yrTableColYear')) + '</th><th>' + esc(t('yrTableColContrib')) + '</th><th>' + esc(t('yrTableColWeight')) + '</th><th>' + esc(t('yrTableColValue')) + '</th></tr></thead><tbody>';
     var yrs = Math.round(r.series.length / 12), i;
     for (i = 1; i <= yrs; i++) {
-      var idx = i * 12 - 1;
-      if (idx >= r.series.length) break;
-      var row = r.series[idx], w = unit === 'gram' ? row.weight * GRAM_PER_BAHT : row.weight;
-      html += '<tr><td>' + t('yrRowLabel', { n: i }) + '</td><td>' + baht(row.contrib) + '</td><td>' + fmt(w, 4) + (unit === 'gram' ? t('unitGramShort') : t('unitBahtGoldShort')) + '</td><td>' + baht(row.value) + '</td></tr>';
+      var idx = i * 12 - 1; if (idx >= r.series.length) break;
+      var row = r.series[idx], w = unit === 'gram' ? row.weight * GRAM.bar : row.weight;
+      html += '<tr><td>' + esc(t('yrRowLabel', { n: i })) + '</td><td>' + baht(row.contrib) + '</td><td>' + fmt(w, 4) + esc(unit === 'gram' ? t('unitGramShort') : t('unitBahtGoldShort')) + '</td><td>' + baht(row.value) + '</td></tr>';
     }
-    html += '</tbody></table></div>';
-    return html;
+    return html + '</tbody></table></div>';
   }
-  function doDCA() {
-    var pmt = num($('dcaPmt').value) || 0;
-    var startPrice = num($('dcaStart').value);
-    var years = num($('dcaYears').value) || 10;
-    var cagr = num($('dcaCagr').value);
-    var unit = $('dcaUnit').value;
+  function doDCA(silent) {
+    var pmt = num($('dcaPmt').value) || 0, startPrice = num($('dcaStart').value), years = num($('dcaYears').value) || 10, cagr = num($('dcaCagr').value), unit = $('dcaUnit').value;
     if (!isFinite(cagr)) { cagr = 5; $('dcaCagr').value = 5; }
-    if (!isFinite(startPrice) || startPrice <= 0) { alert(t('alertStartPrice')); return; }
-    if (pmt <= 0) { alert(t('alertPmt')); return; }
-    var months = Math.round(years * 12);
-    var r = simulateGoldDCA(pmt, startPrice, cagr, months);
+    if (!isFinite(startPrice) || startPrice <= 0) { if (!silent) alert(t('alertStartPrice')); return; }
+    if (pmt <= 0) { if (!silent) alert(t('alertPmt')); return; }
+    var months = Math.round(years * 12), r = Calc.simulateDCA(pmt, startPrice, cagr, months);
     $('dcaOut').style.display = 'block';
-
-    var weightDisplay = unit === 'gram' ? r.weight * GRAM_PER_BAHT : r.weight;
-    var altText = unit === 'gram' ? t('dcaWeightAltGram', { v: fmt(r.weight, 4) }) : t('dcaWeightAltBaht', { v: fmt(r.weight * GRAM_PER_BAHT, 2) });
-
+    var weightDisplay = unit === 'gram' ? r.weight * GRAM.bar : r.weight;
     $('dcaContrib').textContent = baht(r.contrib);
     $('dcaContribSub').textContent = t('dcaContribSub', { amt: fmt0(pmt), months: months });
-    $('dcaWeight').textContent = fmt(weightDisplay, 4) + (unit === 'gram' ? ' ' + t('unitGram').toLowerCase() : ' ' + t('unitBahtGold').toLowerCase());
-    $('dcaWeightSub').textContent = altText;
+    $('dcaWeight').textContent = fmt(weightDisplay, 4) + ' ' + t(unit === 'gram' ? 'unitGram' : 'unitBahtGold').toLowerCase();
+    $('dcaWeightSub').textContent = unit === 'gram' ? t('dcaWeightAltGram', { v: fmt(r.weight, 4) }) : t('dcaWeightAltBaht', { v: fmt(r.weight * GRAM.bar, 2) });
     $('dcaValue').textContent = baht(r.value);
     $('dcaGain').textContent = (r.value - r.contrib >= 0 ? '+' : '') + baht(r.value - r.contrib);
-
     drawGoldChart(r);
     $('dcaYrTable').innerHTML = dcaYearTable(r, unit);
     lastGoldPlan = { pmt: pmt };
   }
 
   /* ── ตลาดย่อ = โอกาสเติมทอง ── */
-  var TR = [{ dd: 10, x: 1.25 }, { dd: 20, x: 1.5 }, { dd: 30, x: 2 }];
   function doGoldDrawdown() {
-    var now = num($('gdNow').value), ath = num($('gdAth').value);
     var out = $('gdOut');
     [].forEach.call(document.querySelectorAll('#gdTranche .tr-box'), function (b) { b.classList.remove('on'); });
-    if (!isFinite(now) || !isFinite(ath) || ath <= 0) { out.style.display = 'none'; return; }
-    var dd = (1 - now / ath) * 100;
-    var base = lastGoldPlan.pmt || 3000;
-    var mult = 1, tier = null;
-    TR.forEach(function (t) { if (dd >= t.dd) { mult = t.x; tier = t; } });
-    if (tier) document.querySelector('#gdTranche .tr-box[data-dd="' + tier.dd + '"]').classList.add('on');
-    var msg;
-    if (dd < 1) msg = t('ddNearAth', { dd: fmt(Math.max(0, dd), 1), base: baht(base) });
-    else if (dd < 10) msg = t('ddNormal', { dd: fmt(dd, 1), base: baht(base) });
-    else msg = t('ddTierMsg', { dd: fmt(dd, 1), mult: mult, amt: baht(base * mult) });
-    out.innerHTML = msg;
-    out.style.display = 'block';
+    var r = Calc.drawdown(num($('gdNow').value), num($('gdAth').value));
+    if (!r) { out.style.display = 'none'; return; }
+    var base = lastGoldPlan.pmt || 3000, msg;
+    if (r.tier) document.querySelector('#gdTranche .tr-box[data-dd="' + r.tier.dd + '"]').classList.add('on');
+    if (r.zone === 'nearAth') msg = t('ddNearAth', { dd: fmt(Math.max(0, r.dd), 1), base: baht(base) });
+    else if (r.zone === 'normal') msg = t('ddNormal', { dd: fmt(r.dd, 1), base: baht(base) });
+    else msg = t('ddTierMsg', { dd: fmt(r.dd, 1), mult: r.mult, amt: baht(base * r.mult) });
+    out.innerHTML = msg; out.style.display = 'block';
   }
 
-  /* ── สัดส่วนทองในพอร์ต ── */
-  function doAllocation() {
-    var portfolio = num($('alPortfolio').value), goldNow = num($('alGoldNow').value);
-    var el = $('alOut');
-    if (!isFinite(portfolio) || portfolio <= 0) { el.className = 'callout warn'; el.textContent = t('alertPortfolio'); el.style.display = 'block'; return; }
-    if (!isFinite(goldNow) || goldNow < 0) goldNow = 0;
-    var pct = goldNow / portfolio * 100;
-    var cls, txt;
-    if (pct < 5) { cls = 'warn'; txt = t('allocLow', { pct: fmt(pct, 1) }); }
-    else if (pct <= 10) { cls = 'go'; txt = t('allocGood', { pct: fmt(pct, 1) }); }
-    else { cls = 'warn'; txt = t('allocHigh', { pct: fmt(pct, 1) }); }
-    el.className = 'callout ' + ({go:'ok',no:'err',warn:'warn'}[cls] || '');
-    el.innerHTML = txt;
-    el.style.display = 'block';
-  }
-
-  /* ── สมุดทองของฉัน ── */
-  function loadGoldLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch (e) { return []; } }
-  function saveGoldLog(a) { try { localStorage.setItem(LOG_KEY, JSON.stringify(a)); } catch (e) {} DriveSync.scheduleSync(); }
-
-  function updateAllocAuto(totalValue) {
-    var el = $('alGoldNow');
-    if (el && !el.value && totalValue > 0) el.value = Math.round(totalValue);
-  }
-
+  /* ── สมุดทองของฉัน (อ่านสด → แก้ → เขียน · ลบด้วย ts) ── */
+  function loadGoldLog() { var a = IC.lsJson(LOG_KEY); return Array.isArray(a) ? a : []; }
+  function editGoldLog(fn) { var a = loadGoldLog(); fn(a); IC.lsSet(LOG_KEY, a); }
   function renderGoldLog() {
     var log = loadGoldLog(), box = $('lgBox');
-    if (!log.length) { box.innerHTML = '<div class="log-empty">' + t('lgEmptyDefault') + '</div>'; updateAllocAuto(0); return; }
-
-    var barSellPrice = num($('barSell').value);
+    if (!log.length) { box.innerHTML = '<div class="log-empty">' + esc(t('lgEmptyDefault')) + '</div>'; return; }
+    /* ราคารับซื้อ (ที่คุณได้รับ) ของแต่ละชนิดจากช่องราคาด้านบน */
+    var sell = { bar: num($('barSell').value), jewelry: num($('jewelrySell').value) };
     var groups = { bar: { label: t('typeBar'), amt: 0, weight: 0 }, jewelry: { label: t('typeJewelry'), amt: 0, weight: 0 } };
     log.forEach(function (r) {
-      var g = groups[r.type] || groups.bar;
-      g.amt += r.amt; g.weight += toBahtWeight(r.weight, r.unit);
+      var key = r.type === 'jewelry' ? 'jewelry' : 'bar', g = groups[key];
+      g.amt += +r.amt || 0; g.weight += toBahtWeight(+r.weight || 0, r.unit, key);
     });
-
-    var html = '', totalValue = 0;
+    var html = '';
     ['bar', 'jewelry'].forEach(function (key) {
-      var g = groups[key];
-      if (g.weight <= 0) return;
-      var avg = g.weight > 0 ? g.amt / g.weight : NaN;
-      html += '<div class="log-group-hd">' + g.label + '</div>';
-      html += '<div class="log-group-sub">' + t('lgGroupSummaryGold', { amt: baht(g.amt), weight: fmt(g.weight, 4), gram: fmt(g.weight * GRAM_PER_BAHT, 2), avg: baht(avg) });
-      if (isFinite(barSellPrice)) {
-        var val = g.weight * barSellPrice, pl = val - g.amt, pct = g.amt > 0 ? pl / g.amt * 100 : 0;
-        totalValue += val;
+      var g = groups[key]; if (g.weight <= 0) return;
+      var avg = g.amt / g.weight;
+      html += '<div class="log-group-hd">' + esc(g.label) + '</div>';
+      html += '<div class="log-group-sub">' + esc(t('lgGroupSummaryGold', { amt: baht(g.amt), weight: fmt(g.weight, 4), gram: fmt(g.weight * GRAM[key], 2), avg: baht(avg) }));
+      if (isFinite(sell[key])) {
+        var val = g.weight * sell[key], pl = val - g.amt, pct = g.amt > 0 ? pl / g.amt * 100 : 0;
         html += t('lgGroupValueNow', { val: baht(val), color: pl >= 0 ? 'var(--ome-ok-ink)' : 'var(--ome-err-ink)', sign: pl >= 0 ? '+' : '−', pl: baht(Math.abs(pl)), sign2: pct >= 0 ? '+' : '', pct: fmt(pct, 1) });
       }
       html += '</div>';
     });
-
-    html += '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThType') + '</th><th>' + t('logThPaid') + '</th><th>' + t('logThPricePerUnit') + '</th><th>' + t('logThWeight') + '</th><th></th></tr></thead><tbody>';
-    log.forEach(function (r, i) {
-      var unitLabel = r.unit === 'gram' ? t('unitGramShort') : t('unitBahtGoldShort');
+    html += '<div class="table-wrap"><table class="table right"><thead><tr><th>' + esc(t('logThDate')) + '</th><th>' + esc(t('logThType')) + '</th><th>' + esc(t('logThPaid')) + '</th><th>' + esc(t('logThPricePerUnit')) + '</th><th>' + esc(t('logThWeight')) + '</th><th></th></tr></thead><tbody>';
+    log.forEach(function (r) {
       html += '<tr><td>' + new Date(r.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
-        '<td>' + (r.type === 'jewelry' ? t('typeJewelryShort') : t('typeBarShort')) + '</td><td>' + baht(r.amt) + '</td><td>' + fmt(r.price, 2) + '</td>' +
-        '<td>' + fmt(r.weight, 4) + unitLabel + '</td>' +
-        '<td><button class="btn sm ghost icon log-del" aria-label="' + t('delTitle') + '" data-i="' + i + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
+        '<td>' + esc(r.type === 'jewelry' ? t('typeJewelryShort') : t('typeBarShort')) + '</td><td>' + baht(r.amt) + '</td><td>' + fmt(r.price, 2) + '</td>' +
+        '<td>' + fmt(r.weight, 4) + esc(r.unit === 'gram' ? t('unitGramShort') : t('unitBahtGoldShort')) + '</td>' +
+        '<td><button class="btn sm ghost icon log-del" type="button" aria-label="' + esc(t('delTitle')) + '" data-ts="' + esc(r.ts) + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
-    html += '</tbody></table></div>';
-    box.innerHTML = html;
-    [].forEach.call(box.querySelectorAll('.log-del'), function (b) {
-      b.addEventListener('click', function () { var log = loadGoldLog(); log.splice(+b.getAttribute('data-i'), 1); saveGoldLog(log); renderGoldLog(); });
-    });
-    updateAllocAuto(totalValue);
+    box.innerHTML = html + '</tbody></table></div>';
   }
-
   function addGoldLog() {
-    var type = $('lgType').value, unit = $('lgUnit').value;
-    var amt = num($('lgAmt').value), price = num($('lgPrice').value);
+    var type = $('lgType').value, unit = $('lgUnit').value, amt = num($('lgAmt').value), price = num($('lgPrice').value);
     if (!isFinite(amt) || amt <= 0 || !isFinite(price) || price <= 0) { alert(t('alertAmtPrice')); return; }
-    var log = loadGoldLog();
-    log.push({ type: type, unit: unit, amt: amt, price: price, weight: amt / price, ts: Date.now() });
-    saveGoldLog(log);
+    editGoldLog(function (a) {
+      var ts = Date.now(); while (a.some(function (r) { return r && r.ts === ts; })) ts++;
+      a.push({ type: type, unit: unit, amt: amt, price: price, weight: amt / price, ts: ts });
+    });
     $('lgAmt').value = ''; $('lgPrice').value = '';
     renderGoldLog();
   }
 
-  /* ── ปัจจัยราคาทอง: ตัวเลขสด DXY / ดอกเบี้ย 10 ปีสหรัฐฯ (best-effort) ── */
-  function parseQuoteLite(t) {
-    var j = JSON.parse(t), res = j && j.chart && j.chart.result && j.chart.result[0];
-    var meta = res && res.meta;
-    if (!meta || !isFinite(meta.regularMarketPrice)) throw new Error('no meta');
-    return { price: meta.regularMarketPrice, prevClose: meta.previousClose };
-  }
-  function fetchQuoteLite(sym) {
-    var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=5d&interval=1d';
-    var enc = encodeURIComponent(base);
-    var tries = [
-      { url: OWN_PROXY + enc },
-      { url: 'https://api.allorigins.win/raw?url=' + enc },
-      { url: 'https://api.codetabs.com/v1/proxy/?quest=' + enc },
-      { url: 'https://cors.eu.org/' + base },
-      { url: 'https://test.cors.workers.dev/?' + base },
-      { url: 'https://api.cors.lol/?url=' + enc },
-      { url: base }
-    ];
-    var i = 0;
-    function next() {
-      if (i >= tries.length) return Promise.reject(new Error('fail'));
-      return fetchOne(tries[i++].url, 7000, parseQuoteLite).catch(next);
-    }
-    return next();
-  }
-  function quoteCacheKey(tag) { return 'tanot:invest:cache:gold:' + tag; }
-  function saveQuoteCache(tag, q) { try { localStorage.setItem(quoteCacheKey(tag), JSON.stringify({ ts: Date.now(), price: q.price, prevClose: q.prevClose })); } catch (e) {} }
-  function loadQuoteCache(tag) { try { var o = JSON.parse(localStorage.getItem(quoteCacheKey(tag))); return (o && isFinite(o.price)) ? o : null; } catch (e) { return null; } }
-  function renderFactorChip(id, sym, tag) {
+  /* ── ปัจจัยราคาทอง: DXY / ดอกเบี้ย 10 ปีสหรัฐฯ (quote ย่อ — แคช cache:q:*) ── */
+  function renderFactorChip(id, sym) {
     var el = $(id);
-    fetchQuoteLite(sym).then(function (q) {
-      saveQuoteCache(tag, q);
-      writeChip(q);
-    }, function () {
-      var c = loadQuoteCache(tag);
-      if (c) writeChip(c); else { el.textContent = t('chipFetchFail'); }
-    });
-    function writeChip(q) {
-      var pct = isFinite(q.prevClose) && q.prevClose ? (q.price / q.prevClose - 1) * 100 : NaN;
-      el.textContent = fmt(q.price, 2) + (isFinite(pct) ? (' (' + (pct >= 0 ? '+' : '') + fmt(pct, 2) + '%)') : '');
-    }
+    IC.quote(sym).then(function (q) {
+      var pct = isFinite(q.prev) && q.prev ? (q.price / q.prev - 1) * 100 : NaN;
+      el.textContent = fmt(q.price, 2) + (isFinite(pct) ? ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 2) + '%)' : '');
+    }, function () { el.textContent = t('chipFetchFail'); });
   }
 
-  /* ══════ สำรองสมุดทองขึ้น Google Drive (ไม่บังคับ) ══════ */
-  var DRIVE_CLIENT_ID = '497048581273-akpavakt6m34lhqbjf1irg3m8vl6u27u.apps.googleusercontent.com';
-  var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-  var DRIVE_FOLDER_NAME = 'OME_Progress';
-  var DRIVE_FILE_NAME = 'invest-gold-data.json';
-  var DRIVE_CONNECTED_KEY = 'tanot:invest:gold:driveConnected';
-  function nowTime() { return new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }); }
-
-  var DriveSync = {
-    tokenClient: null, accessToken: null, folderId: null, fileId: null,
-    connected: false, syncing: false, pending: false, timer: null,
-
-    setStatus: function (text, cls) {
-      var el = $('driveStatusTxt'); if (!el) return;
-      el.textContent = text; el.className = 'status' + (cls ? ' ' + cls : '');
-    },
-    setBtn: function () {
-      var b = $('driveConnectBtn'); if (!b) return;
-      b.textContent = this.connected ? t('driveConnectedBtn') : t('driveConnectBtn');
-    },
-    init: function () {
-      try { this.connected = localStorage.getItem(DRIVE_CONNECTED_KEY) === '1'; } catch (e) {}
-      this.setBtn();
-      var self = this;
-      (function wait() {
-        if (!window.google || !google.accounts || !google.accounts.oauth2) { setTimeout(wait, 300); return; }
-        self.tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: DRIVE_CLIENT_ID,
-          scope: DRIVE_SCOPE,
-          use_fedcm_for_prompt: true, // ลดโอกาสต้องกดยืนยันใหม่ทุกครั้งบนเบราว์เซอร์ที่บล็อก third-party cookie (เช่น Chrome รุ่นใหม่)
-          callback: function (resp) {
-            if (resp.error) {
-              self.setStatus(self.connected ? t('driveConnectFailedAuto') : t('driveConnectFailed', { err: resp.error }), 'err');
-              return;
-            }
-            self.accessToken = resp.access_token;
-            self.connected = true;
-            try { localStorage.setItem(DRIVE_CONNECTED_KEY, '1'); } catch (e) {}
-            self.setBtn();
-            self.firstSync();
-          }
-        });
-        if (self.connected) self.tokenClient.requestAccessToken({ prompt: '' });
-      })();
-    },
-    connect: function () {
-      if (!this.tokenClient) { this.setStatus(t('driveLoadingGis'), 'err'); return; }
-      this.setStatus(t('driveRequesting'), '');
-      this.tokenClient.requestAccessToken({ prompt: this.accessToken ? '' : 'consent' });
-    },
-    authFetch: function (url, opts) {
-      opts = opts || {}; opts.headers = opts.headers || {};
-      opts.headers.Authorization = 'Bearer ' + this.accessToken;
-      return fetch(url, opts);
-    },
-    ensureFolder: function () {
-      var self = this;
-      if (self.folderId) return Promise.resolve(self.folderId);
-      var q = encodeURIComponent("name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false");
-      return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error(t('driveErrSearchFolder', { status: r.status })); return r.json(); })
-        .then(function (data) {
-          if (data.files && data.files.length) { self.folderId = data.files[0].id; return self.folderId; }
-          return self.authFetch('https://www.googleapis.com/drive/v3/files', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
-          }).then(function (r) { if (!r.ok) throw new Error(t('driveErrCreateFolder', { status: r.status })); return r.json(); })
-            .then(function (d) { self.folderId = d.id; return self.folderId; });
-        });
-    },
-    findFile: function () {
-      var self = this;
-      if (self.fileId) return Promise.resolve(self.fileId);
-      var q = encodeURIComponent("name='" + DRIVE_FILE_NAME + "' and '" + self.folderId + "' in parents and trashed=false");
-      return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error(t('driveErrSearchFile', { status: r.status })); return r.json(); })
-        .then(function (data) { self.fileId = (data.files && data.files[0] && data.files[0].id) || null; return self.fileId; });
-    },
-    download: function () {
-      var self = this;
-      return self.authFetch('https://www.googleapis.com/drive/v3/files/' + self.fileId + '?alt=media')
-        .then(function (r) { if (!r.ok) throw new Error(t('driveErrDownload', { status: r.status })); return r.json(); });
-    },
-    upload: function (obj) {
-      var self = this;
-      var metadata = self.fileId ? {} : { name: DRIVE_FILE_NAME, parents: [self.folderId] };
-      var form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-      form.append('file', new Blob([JSON.stringify(obj)], { type: 'application/json' }));
-      var url = self.fileId
-        ? 'https://www.googleapis.com/upload/drive/v3/files/' + self.fileId + '?uploadType=multipart'
-        : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id';
-      return self.authFetch(url, { method: self.fileId ? 'PATCH' : 'POST', body: form })
-        .then(function (r) { if (!r.ok) throw new Error(t('driveErrUpload', { status: r.status })); return r.json(); })
-        .then(function (d) { if (d.id) self.fileId = d.id; return d; });
-    },
-    mergeByTs: function (a, b) {
-      var map = {};
-      (a || []).forEach(function (x) { if (x && x.ts != null) map[x.ts] = x; });
-      (b || []).forEach(function (x) { if (x && x.ts != null) map[x.ts] = x; });
-      var out = Object.keys(map).map(function (k) { return map[k]; });
-      out.sort(function (x, y) { return (x.ts || 0) - (y.ts || 0); });
-      return out;
-    },
-    firstSync: function () {
-      var self = this;
-      self.setStatus(t('driveSyncing'), '');
-      self.ensureFolder().then(function () { return self.findFile(); })
-        .then(function (fid) { return fid ? self.download() : null; })
-        .then(function (remote) {
-          var merged = self.mergeByTs(remote && remote.log, loadGoldLog());
-          try { localStorage.setItem(LOG_KEY, JSON.stringify(merged)); } catch (e) {}
-          renderGoldLog();
-          return self.upload({ log: merged, savedAt: new Date().toISOString() });
-        })
-        .then(function () { self.setStatus(t('driveSyncedAt', { t: nowTime() }), 'ok'); })
-        .catch(function (e) { self.setStatus('' + (e.message || e), 'err'); });
-    },
-    scheduleSync: function () {
-      var self = this;
-      if (!self.connected || !self.accessToken) return;
-      self.pending = true;
-      if (self.timer) clearTimeout(self.timer);
-      self.timer = setTimeout(function () { self.pushNow(); }, 1800);
-    },
-    pushNow: function () {
-      var self = this;
-      if (self.syncing) { self.pending = true; return; }
-      self.pending = false; self.syncing = true;
-      self.setStatus(t('driveSyncing'), '');
-      self.ensureFolder().then(function () { return self.findFile(); })
-        .then(function () { return self.upload({ log: loadGoldLog(), savedAt: new Date().toISOString() }); })
-        .then(function () { self.setStatus(t('driveLastSync', { t: nowTime() }), 'ok'); })
-        .catch(function (e) {
-          var msg = String(e && e.message || e);
-          if (msg.indexOf('401') !== -1 || msg.indexOf('403') !== -1) {
-            self.accessToken = null;
-            self.setStatus(t('driveSessionExpired'), 'err');
-          } else {
-            self.setStatus(t('driveSyncFailed', { msg: msg }), 'err');
-          }
-        })
-        .finally(function () {
-          self.syncing = false;
-          if (self.pending) self.scheduleSync();
-        });
-    }
-  };
-
-  /* ── init ───────────────────────────────────────────────────── */
-  function init() {
-    applyStaticI18n();
+  /* ── เริ่มแท็บทองครั้งแรกที่เปิด ── */
+  function initGold() {
+    if (inited) return; inited = true;
     ['barBuy', 'barSell', 'jewelryBuy', 'jewelrySell'].forEach(function (id) { $(id).addEventListener('input', onManualPriceInput); });
-    $('goldThRefresh').addEventListener('click', runThaiFetch);
+    $('goldThRefresh').addEventListener('click', function () { runThaiFetch(true); });
     $('gManualBtn').addEventListener('click', function () {
       var price = num($('gPriceUsd').value), hi = num($('gHiUsd').value), lo = num($('gLoUsd').value);
       if (!isFinite(price)) { alert(t('alertGPriceUsd')); return; }
       if (!isFinite(hi) || !isFinite(lo) || hi <= lo) { alert(t('alertGHiLo')); return; }
       lastVerdictMode = 'manual';
-      showGoldVerdict(analyzeSimple(price, hi, lo), { kind: 'manual' });
+      showGoldVerdict(decorate(Calc.analyzeSimple(price, hi, lo)), { kind: 'manual' });
     });
-    $('dcaBtn').addEventListener('click', doDCA);
+    $('dcaBtn').addEventListener('click', function () { doDCA(false); });
     $('gdBtn').addEventListener('click', doGoldDrawdown);
-    $('alBtn').addEventListener('click', doAllocation);
     $('lgAdd').addEventListener('click', addGoldLog);
+    $('lgBox').addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('.log-del'); if (!b) return;
+      var ts = +b.getAttribute('data-ts');
+      editGoldLog(function (a) { for (var i = a.length - 1; i >= 0; i--) if (a[i] && a[i].ts === ts) a.splice(i, 1); });
+      renderGoldLog();
+    });
     $('rcCalcBtn').addEventListener('click', doCalc);
     $('chkForm').addEventListener('click', function (e) {
       var btn = e.target.closest('.yn-btn'); if (!btn) return;
@@ -1424,38 +598,47 @@
     });
     $('checkBtn').addEventListener('click', doChecklist);
     $('aiSumBtn').addEventListener('click', doAiSummary);
-    $('driveConnectBtn') && $('driveConnectBtn').addEventListener('click', function () { DriveSync.connect(); });
-
+    window.OmeChartTheme.onChange(function () { if (lastGoldChart && $('dcaOut').style.display !== 'none') drawGoldChart(lastGoldChart); });
+    if (window.TanotData && window.TanotData.onChange) window.TanotData.onChange(function () { renderGoldLog(); });
     renderGoldLog();
-    runThaiFetch();
+    runThaiFetch(false);
     runIntlAnalysis();
-    renderFactorChip('dxyChip', 'DX-Y.NYB', 'dxy');
-    renderFactorChip('tnxChip', '^TNX', 'tnx');
-    DriveSync.init();
+    renderFactorChip('dxyChip', 'DX-Y.NYB');
+    renderFactorChip('tnxChip', '^TNX');
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
 
-  window.omeApplyLang = function () {
-    applyStaticI18n();
+  function syncHead() {
+    $('crumbHere').textContent = t(curTab === 'markets' ? 'tabMarkets' : 'tabGold');
+    $('pageTitle').textContent = t(curTab === 'markets' ? 'pageTitleMarkets' : 'pageTitle');
+    document.title = t(curTab === 'markets' ? 'tabMarkets' : 'tabGold') + ' | Tanot';
+  }
+  function onTab(key, first) {
+    curTab = key;
+    $('panel-gold').hidden = key !== 'gold'; $('panel-markets').hidden = key !== 'markets';
+    syncHead();
+    if (key === 'gold') { initGold(); return; }
+    /* invest-markets.js โหลดหลังไฟล์นี้ (defer ตามลำดับ) — รอจนทุกสคริปต์พร้อมก่อนเปิดแท็บ */
+    var openLater = function () { if (curTab === 'markets' && window.InvestMarkets) window.InvestMarkets.init(); };
+    if (document.readyState === 'complete') openLater(); else window.addEventListener('load', openLater);
+  }
+
+  tabsCtl = IC.tabs({ el: $('goldTabs'), page: 'gold', def: 'gold', t: t,
+    tabs: [{ key: 'gold', labelKey: 'tabGold' }, { key: 'markets', labelKey: 'tabMarkets' }], onShow: onTab });
+  IC.subnav($('ivSubRow'), 'gold');
+  L.apply();
+  IC.onLang(function () {
+    L.apply(); IC.subnav($('ivSubRow'), 'gold'); tabsCtl.rerender(); syncHead();
+    if (!inited) return;
     renderGoldLog();
     if (lastVerdictMode === 'manual') {
       var price = num($('gPriceUsd').value), hi = num($('gHiUsd').value), lo = num($('gLoUsd').value);
-      if (isFinite(price) && isFinite(hi) && isFinite(lo) && hi > lo) showGoldVerdict(analyzeSimple(price, hi, lo), { kind: 'manual' });
-    } else {
-      runIntlAnalysis();
+      if (isFinite(price) && isFinite(hi) && isFinite(lo) && hi > lo) showGoldVerdict(decorate(Calc.analyzeSimple(price, hi, lo)), { kind: 'manual' });
+    } else if (lastIntl) {
+      showGoldVerdict(decorate(Calc.analyzeSeries(lastIntl.series, { psar: false })), { kind: 'real', stale: lastIntl.stale, cachedAt: lastIntl.cachedAt, days: lastIntl.series.closes.length });
     }
-    if ($('dcaOut').style.display !== 'none') doDCA();
-    var gdOut = $('gdOut');
-    if (gdOut.style.display !== 'none') doGoldDrawdown();
-    var alOut = $('alOut');
-    if (alOut.style.display !== 'none') doAllocation();
+    if ($('dcaOut').style.display !== 'none') doDCA(true);
+    if ($('gdOut').style.display !== 'none') doGoldDrawdown();
     if ($('rcResult').style.display !== 'none') doCalc();
     if ($('checkResult').style.display !== 'none') doChecklist();
-    renderFactorChip('dxyChip', 'DX-Y.NYB', 'dxy');
-    renderFactorChip('tnxChip', '^TNX', 'tnx');
-    DriveSync.setBtn();
-  };
-
-  window.__gold = { simulateGoldDCA: simulateGoldDCA, analyzeSeries: analyzeSeries, analyzeSimple: analyzeSimple, parseGoldTH: parseGoldTH, parseYahoo: parseYahoo, toBahtWeight: toBahtWeight };
+  });
 })();

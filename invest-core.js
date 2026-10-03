@@ -396,11 +396,11 @@
   function stripLeaked(text) {
     return (text || '').split('\n').filter(function (line) { return !/^\s*(ห้าม|Never\b)/i.test(line); }).join('\n').replace(/\n{3,}/g, '\n\n').trim();
   }
-  /* task = ป้ายแคช D1 เดิม (stock:thaistock, stock:globalstock, stock:bitcoin, stock:gold, stock:commodities) → Promise<text> (ผ่าน stripLeaked แล้ว)
+  /* task = ป้ายแคช D1 เดิม (o.onResult(r) = เรียกกับผลดิบ {text, cached} ก่อนคืนข้อความ ไว้ให้หน้าบอก "จากแคช")  ·   (stock:thaistock, stock:globalstock, stock:bitcoin, stock:gold, stock:commodities) → Promise<text> (ผ่าน stripLeaked แล้ว)
      ไม่ใช่ pages.dev → reject code 'unavailable' · ล้มเหลว → reject (หน้าแสดง AiClient.friendlyMessage(err)) — ไม่ถอยไปโมเดลในเบราว์เซอร์ */
   function summarize(o) {
     if (!aiAvailable()) { var e = new Error(CORE.t('aiUnavailable')); e.code = 'unavailable'; return Promise.reject(e); }
-    return window.AiClient.summarize({ task: o.task, messages: o.messages }).then(function (r) { return stripLeaked(r.text); });
+    return window.AiClient.summarize({ task: o.task, messages: o.messages }).then(function (r) { if (o.onResult) o.onResult(r); return stripLeaked(r.text); });
   }
   function aiMessage(err) { return (window.AiClient && window.AiClient.friendlyMessage) ? window.AiClient.friendlyMessage(err) : ((err && err.message) || ''); }
 
