@@ -27,6 +27,7 @@ const PAGES = [
   'electrical.html',
   'tax.html',
   'insurance.html',
+  'health.html',
   'maintenance.html',
   'budget.html',
   'word.html',

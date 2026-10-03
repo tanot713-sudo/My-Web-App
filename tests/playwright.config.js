@@ -80,5 +80,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8130/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // health.spec.js: สุขภาพ — ซิงก์ 2 เครื่อง + /api/files (ns health) + /api/push/reminders ตัวจริง — แยกพอร์ตเพราะมี /__reset
+      command: 'node --no-warnings sync-server.mjs 8131',
+      cwd: __dirname,
+      url: 'http://localhost:8131/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

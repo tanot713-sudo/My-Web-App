@@ -2,12 +2,12 @@
    POST   /api/files?ns=<ns>&ref=<รหัสรายการเจ้าของ>&name=<ชื่อไฟล์>   body = ไบต์ของไฟล์ (Content-Type = mime)  → { id, name, size, mime }
    GET    /api/files?id=<id>                                          → ตัวไฟล์ (?download=1 บังคับดาวน์โหลด)
    DELETE /api/files?id=<id>                                          → { ok:true }  (ลบจาก R2 + ตั้ง deleted=1)
-   ns ที่รองรับ: insurance, maintenance (ต่อไปจะเพิ่ม receipts) · ชนิดไฟล์: PDF และรูปภาพ · ขนาดสูงสุด 15 MiB
+   ns ที่รองรับ: insurance, maintenance, health (ต่อไปจะเพิ่ม receipts) · ชนิดไฟล์: PDF และรูปภาพ · ขนาดสูงสุด 15 MiB
    ด่าน Access JWT อยู่ที่ _middleware.js แล้ว — ที่นี่ไม่เชื่อชื่อไฟล์/ชนิดจากผู้ใช้เกินจำเป็น:
    key ใน R2 สร้างจาก ns + uuid เอง (ไม่เอาชื่อไฟล์ไปต่อเป็นพาธ), ชนิดต้องอยู่ใน allowlist, ตอนส่งกลับใส่ nosniff + CSP sandbox */
 
 const MAX_BYTES = 15 * 1024 * 1024;
-const NAMESPACES = ['insurance', 'maintenance'];
+const NAMESPACES = ['insurance', 'maintenance', 'health'];
 const MIMES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'image/gif'];
 
 function json(status, body) {

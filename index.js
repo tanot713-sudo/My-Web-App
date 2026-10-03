@@ -7,7 +7,8 @@
    tanot:word:autosave, tanot:sheet:autosave, tanot:cad:autosave, tanot-report-dashboard/reports (IndexedDB),
    tanot:insurance:policies (รูปแบบกรมธรรม์ + การนับวันต่ออายุอยู่ใน insurance-calc.js — หน้านี้โหลดไฟล์นั้นด้วย),
    บันทึกงานบำรุงรักษา: tanot:mnt:assets|plans|settings + IndexedDB tanot-mnt-<ปีนี้>/insp, tanot-mnt-<ปีก่อน>/insp, tanot-mnt/wo|woev
-   (รูปแบบ + การคำนวณรอบ/ใบงานอยู่ใน mnt-calc.js — หน้านี้โหลดไฟล์นั้นด้วย)
+   (รูปแบบ + การคำนวณรอบ/ใบงานอยู่ใน mnt-calc.js — หน้านี้โหลดไฟล์นั้นด้วย),
+   สุขภาพ: tanot:health:vitals|meds|intake|ranges (รูปแบบ + ช่วงปกติ + ตารางกินยาอยู่ใน health-calc.js — หน้านี้โหลดไฟล์นั้นด้วย)
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -275,6 +276,34 @@
     }).catch(function () { if (token === mntToken) el.innerHTML = emptyHtml('wrench', 'อ่านข้อมูลบำรุงรักษาไม่ได้', 'maintenance.html', 'เปิดหน้าบำรุงรักษา'); });
   }
 
+  /* ── สุขภาพ (ค่าล่าสุด + ยาที่ยังไม่ได้กินวันนี้) ── */
+  function renderHealth() {
+    var el = $('healthBody'), HC = window.HealthCalc;
+    var vitals = rd('tanot:health:vitals', []), meds = rd('tanot:health:meds', []);
+    if (!HC || (!isArr(vitals) || !vitals.length) && (!isArr(meds) || !meds.length)) { el.innerHTML = emptyHtml('heart-pulse', 'ยังไม่มีข้อมูลสุขภาพ', 'health.html', 'เปิดหน้าสุขภาพ'); return; }
+    var s = HC.summary(isArr(vitals) ? vitals : [], isArr(meds) ? meds : [], rd('tanot:health:intake', []), Date.now());
+    var ranges = rd('tanot:health:ranges', {});
+    var chips = HC.GROUPS.map(function (g) {
+      var l = s.latest[g.fields[0]];
+      if (!l || (g.fields.length > 1 && !s.latest[g.fields[1]])) return '';
+      var bad = g.fields.some(function (f) { var st = HC.status(s.latest[f].v, HC.rangeOf(f, ranges)); return st === 'warn' || st === 'err'; });
+      var err = g.fields.some(function (f) { return HC.status(s.latest[f].v, HC.rangeOf(f, ranges)) === 'err'; });
+      return '<span class="badge ' + (err ? 'err' : bad ? 'warn' : '') + '" data-h="' + g.key + '">' + esc(g.label) + ' ' +
+        g.fields.map(function (f) { return num(s.latest[f].v, HC.METRICS[f].dec); }).join('/') + '</span>';
+    }).join('');
+    var html = chips ? '<div class="links">' + chips + '</div>' : '';
+    if (!s.total) html += '<div class="sub">วันนี้ไม่มียาที่ต้องกิน</div>';
+    else if (!s.pending.length) html += '<span class="badge ok">กินยาครบแล้ววันนี้</span>';
+    else {
+      html += '<div class="sub">ยาที่ยังไม่ได้กินวันนี้ ' + num(s.pending.length) + ' มื้อ</div><div class="list">' + s.pending.slice(0, 5).map(function (d) {
+        return '<a class="list-row" href="health.html"><span class="lead">' + icon('clock') + '</span><div class="grow"><div class="title">' + esc(d.med.name) + '</div>' +
+          '<div class="meta">' + d.time + ' น.' + (d.med.dose ? ' · ' + esc(d.med.dose) : '') + '</div></div>' +
+          (d.late ? '<div class="right"><span class="badge warn">เลยเวลา</span></div>' : '') + '</a>';
+      }).join('') + '</div>';
+    }
+    el.innerHTML = html;
+  }
+
   /* ── วาดทั้งหน้า ── */
   var rendering = false, again = false;
   function renderAll() {
@@ -286,6 +315,7 @@
     renderStreak();
     renderInsurance();
     renderMaintenance();
+    renderHealth();
     Promise.all([rdIdb('tanot-barprep', 'notes'), rdIdb('tanot-report-dashboard', 'reports', { last: 5 })]).then(function (r) {
       renderReview(dueCounts(r[0]));
       renderFiles(r[1]);
