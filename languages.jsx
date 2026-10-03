@@ -987,11 +987,6 @@
             return writingWorker;
         }
 
-        const ANNOUNCEMENTS = [
-            { date: 'วันนี้', text: 'ยินดีต้อนรับสู่ Language Practice — เลือกภาษาที่สนใจในแท็บ "ฝึกฝน" แล้วเริ่มพิมพ์คำแปลได้เลย' },
-            { date: 'เร็วๆ นี้', text: 'จะทยอยเพิ่มหมวดวลีใหม่ๆ และภาษาเพิ่มเติมเรื่อยๆ' },
-            { date: 'เคล็ดลับ', text: 'กดปุ่มลำโพงเพื่อฟังเสียงอ่านประโยคต้นฉบับ ช่วยจำสำเนียงได้ดีขึ้น' },
-        ];
 
         // ── Google Drive sync (ไม่บังคับ) — ซิงก์ XP/ความคืบหน้าข้ามอุปกรณ์ ──────────
         const DRIVE_CLIENT_ID = '497048581273-akpavakt6m34lhqbjf1irg3m8vl6u27u.apps.googleusercontent.com';
@@ -2310,7 +2305,7 @@
                             </div>
 
                             <div className="mt-6">
-                                <p className="text-xs text-gray-400 mb-2">จำตัวนี้ได้แค่ไหน? (กำหนดว่าจะเจอตัวนี้อีกครั้งเมื่อไหร่)</p>
+                                <p className="text-xs text-gray-400 mb-2">จำตัวนี้ได้แค่ไหน?</p>
                                 <div className="grid grid-cols-4 gap-2">
                                     <button onClick={() => rate(1)} className="py-2.5 rounded-xl font-bold text-xs bg-red-100 text-red-700">ลืมแล้ว</button>
                                     <button onClick={() => rate(2)} className="py-2.5 rounded-xl font-bold text-xs bg-orange-100 text-orange-700">ยาก</button>
@@ -2471,7 +2466,6 @@
                                             {langId === 'lang-mm' && MM_STROKE_PATHS[c.char] && <MmStrokeDiagram char={c.char} />}
                                             {langId === 'lang-kh' && KH_STROKE_PATHS[c.char] && <KhStrokeDiagram char={c.char} />}
                                             {langId === 'lang-la' && LA_STROKE_PATHS[c.char] && <LaStrokeDiagram char={c.char} />}
-                                            <p className="text-[11px] text-gray-400 mb-1.5">ลองลากเขียนตามในกรอบนี้ (ไม่มีระบบตรวจ ใช้ฝึกมือเฉยๆ)</p>
                                             <HandwritingCanvas height={140} />
                                         </>
                                     )}
@@ -2504,7 +2498,7 @@
                             )}
 
                             <div className="mt-6">
-                                <p className="text-xs text-gray-400 mb-2">จำตัวนี้ได้แค่ไหน? (กำหนดว่าจะเจอตัวนี้อีกครั้งเมื่อไหร่)</p>
+                                <p className="text-xs text-gray-400 mb-2">จำตัวนี้ได้แค่ไหน?</p>
                                 <div className="grid grid-cols-4 gap-2">
                                     <button onClick={() => rate(1)} className="py-2.5 rounded-xl font-bold text-xs bg-red-100 text-red-700">ลืมแล้ว</button>
                                     <button onClick={() => rate(2)} className="py-2.5 rounded-xl font-bold text-xs bg-orange-100 text-orange-700">ยาก</button>
@@ -2585,7 +2579,6 @@
             return (
                 <div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-1">แต่งประโยคภาษา{lang.title}อะไรก็ได้ แล้วให้ AI ช่วยตรวจ</h3>
-                    <p className="text-xs text-gray-400 mb-3">เขียนสั้นๆ 1-3 ประโยคก็พอ — AI จะช่วยแก้ไวยากรณ์และอธิบายจุดที่แก้ให้เป็นภาษาไทย</p>
 
                     <div className="flex rounded-full border border-gray-200 overflow-hidden w-fit mb-2">
                         <button type="button" onClick={() => setInputMode('type')} title="พิมพ์" aria-label="พิมพ์"
@@ -2605,7 +2598,6 @@
                                 <button type="button" onClick={runOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ</button>
                                 {ocrStatus && <span className="text-xs text-gray-400">{ocrStatus}</span>}
                             </div>
-                            <p className="text-[11px] text-gray-400 mt-1">รองรับเขียนด้วยนิ้ว/สไตลัส/Apple Pencil บน iPad — OCR แม่นสุดกับภาษาละติน/ไทย ภาษาอื่น (จีน/ญี่ปุ่น/เกาหลี/อาหรับ ฯลฯ) อาจอ่านไม่ออกหรือผิดเยอะ ควรตรวจทานเสมอ</p>
                             {text && <p className="text-xs text-gray-500 mt-2">ข้อความล่าสุด: "{text}"</p>}
                         </div>
                     )}
@@ -2638,7 +2630,7 @@
 
             useEffect(() => { setText(''); setChecked(null); setAiFeedback(''); setAiStatus(''); setInputMode('type'); setOcrStatus(''); }, [langId]);
 
-            if (!words.length) return <p className="text-sm text-gray-400">ยังไม่มีคำศัพท์ให้ทวนตอนนี้ — ลองไปฝึกโหมดอื่นก่อน คำจะเริ่มมีให้ทวนเมื่อครบกำหนด</p>;
+            if (!words.length) return <p className="text-sm text-gray-400">ยังไม่มีคำศัพท์ให้ทวนตอนนี้</p>;
 
             const runOcr = () => {
                 if (!canvasEl) return;
@@ -2726,7 +2718,6 @@
                                 <button type="button" onClick={runOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ</button>
                                 {ocrStatus && <span className="text-xs text-gray-400">{ocrStatus}</span>}
                             </div>
-                            <p className="text-[11px] text-gray-400 mt-1">รองรับเขียนด้วยนิ้ว/สไตลัส/Apple Pencil บน iPad — OCR แม่นสุดกับภาษาละติน/ไทย ภาษาอื่น (จีน/ญี่ปุ่น/เกาหลี/อาหรับ ฯลฯ) อาจอ่านไม่ออกหรือผิดเยอะ ควรตรวจทานเสมอ</p>
                             {text && <p className="text-xs text-gray-500 mt-2">ข้อความล่าสุด: "{text}"</p>}
                         </div>
                     )}
@@ -2816,7 +2807,6 @@
                                 <button type="button" onClick={runOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ</button>
                                 {ocrStatus && <span className="text-xs text-gray-400">{ocrStatus}</span>}
                             </div>
-                            <p className="text-[11px] text-gray-400 mt-1">รองรับเขียนด้วยนิ้ว/สไตลัส/Apple Pencil บน iPad — OCR แม่นสุดกับภาษาละติน/ไทย ภาษาอื่น (จีน/ญี่ปุ่น/เกาหลี/อาหรับ ฯลฯ) อาจอ่านไม่ออกหรือผิดเยอะ ควรตรวจทานเสมอ</p>
                             {typed && <p className="text-xs text-gray-500 mt-2">ข้อความล่าสุด: "{typed}"</p>}
                         </div>
                     )}
@@ -2941,7 +2931,6 @@
                                 <button type="button" onClick={runOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ</button>
                                 {ocrStatus && <span className="text-xs text-gray-400">{ocrStatus}</span>}
                             </div>
-                            <p className="text-[11px] text-gray-400 mt-1">รองรับเขียนด้วยนิ้ว/สไตลัส/Apple Pencil บน iPad — OCR แม่นสุดกับภาษาละติน/ไทย ภาษาอื่น (จีน/ญี่ปุ่น/เกาหลี/อาหรับ ฯลฯ) อาจอ่านไม่ออกหรือผิดเยอะ ควรตรวจทานเสมอ</p>
                             {typed && <p className="text-xs text-gray-500 mt-2">ข้อความล่าสุด: "{typed}"</p>}
                         </div>
                     )}
@@ -3343,12 +3332,6 @@
                                     </button>
                                 ))}
                             </div>
-                            <p className="text-xs text-gray-400 mt-5 leading-relaxed">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่สร้างจากคลังคำศัพท์ของเว็บนี้เอง ไม่ใช่ข้อสอบทางการที่หลุดออกมา —
-                                ข้อสอบจริงมีโจทย์ให้จับคู่รูปภาพหลายข้อ แต่เว็บนี้ไม่มีคลังรูปภาพ จึงแทนที่ด้วยโจทย์จับคู่ความหมายไทยแทน
-                                (ทดสอบทักษะเดียวกัน) เกณฑ์ผ่านทางการคือ 60% ทุกระดับ
-                                {examType === 'bct' && ' คำศัพท์ธุรกิจที่ใช้เป็นคำที่คิด/ตรวจสอบเองความหมายพื้นฐาน ยังไม่ได้ตรวจไขว้กับพจนานุกรมเหมือนคำ HSK'}
-                            </p>
                         </div>
                     </div>
                 );
@@ -4219,17 +4202,6 @@
                                     <div className="text-xs text-gray-500">ภาษาอังกฤษใช้ทำงาน (บริบทออฟฟิศ/ธุรกิจ) — Listening 100 + Reading 100 = 200 ข้อเต็ม ตามโครงสร้างจริง</div>
                                 </button>
                             </div>
-                            <p className="text-xs text-gray-400 mt-5 leading-relaxed">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด (บทสนทนา/บทพูด/บทความ/โจทย์ไวยากรณ์) ไม่ใช่ข้อสอบทางการที่หลุดออกมา
-                                ทั้ง IELTS และ TOEIC ไม่มีเกณฑ์ "ผ่าน/ตก" แบบ HSK (ให้คะแนนเป็น Band 0-9 และสเกล 10-990 ตามลำดับ)
-                                เว็บนี้เลยแสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) แทน ไม่ได้แปลงเป็น Band/สเกลทางการ<br />
-                                <b>IELTS</b>: มีครบ Listening + Reading + Writing Task 1 (สรุปข้อมูลจากตาราง แทนกราฟรูปภาพ) + Task 2
-                                + Speaking (โจทย์ฝึกพูด 3 ส่วนแบบข้อสอบจริง อัดเสียงฟังทวนได้ แต่ไม่มีระบบให้คะแนนการพูด)<br />
-                                <b>TOEIC</b>: จำนวนข้อครบ 200 ข้อตามโครงสร้างจริงทุก Part (Part1 ภาพ6/Part2 ถาม-ตอบ25/Part3 บทสนทนา39/
-                                Part4 บทพูด30/Part5 ไวยากรณ์30/Part6 เติมข้อความ16/Part7 อ่านจับใจความ54) — Part 1-4 (Listening) เสียงเล่น
-                                ให้อัตโนมัติทันทีที่เข้าโจทย์ กดฟังซ้ำได้ตลอด และ Part 7 ใช้บทความเดี่ยวล้วนแทนที่จะมีแบบจับคู่ 2-3 บทความเหมือนข้อสอบจริง
-                                (จำนวนข้อรวมเท่าของจริงเป๊ะ)
-                            </p>
                         </div>
                     </div>
                 );
@@ -4551,10 +4523,6 @@
 
                         {q.type === 'speaking-practice' && (
                             <>
-                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
-                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
-                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
-                                </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Part 1 — Introduction</p>
                                     {IELTS_SPEAKING.part1.map((p, i) => (
@@ -4866,20 +4834,11 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ JLPT N5 (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษาญี่ปุ่นขั้นพื้นฐานที่สุด — 4 วิชาตามโครงสร้างจริง</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ JLPT N5 (จำลอง)</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ N5</div>
                                 <div className="text-xs text-gray-500">文字・語彙 40 + 文法 31 + 読解 8 + 聴解 14 = 93 ข้อ</div>
                             </button>
-                            <p className="text-xs text-gray-400 leading-relaxed text-left">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา คำศัพท์ในหมวด文字・語彙
-                                อ้างอิงจากคลังคำศัพท์ JLPT ที่เปิดเผยสาธารณะ (OpenJLPT, CC BY-SA 4.0) JLPT จริงไม่มีเกณฑ์คะแนนดิบแบบนี้
-                                (ให้คะแนนแยกเป็นวิชา + มีเกณฑ์ผ่านขั้นต่ำต่อวิชาด้วย) เว็บนี้เลยแสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) แทน<br />
-                                <b>ความแตกต่างจากข้อสอบจริง</b>: 文法問題2 (ปกติเป็นแบบเรียงคำ 4 ชิ้นให้เป็นประโยค) แทนที่ด้วยโจทย์เติมคำ
-                                แบบเดียวกับ問題1 เพราะหน้านี้ยังไม่มี UI จัดเรียงคำ — 聴解 (ฟัง) แสดงบทพูดเป็นตัวอักษรคู่กับเสียงด้วย
-                                (ข้อสอบจริงมีแต่เสียงล้วน ไม่มีตัวอักษรให้อ่าน) เพื่อช่วยผู้เริ่มต้นตามทัน
-                            </p>
                         </div>
                     </div>
                 );
@@ -5331,20 +5290,11 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ TOPIK I (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษาเกาหลีขั้นต้น (TOPIK I ระดับ 1-2) — 2 วิชาตามโครงสร้างจริง</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ TOPIK I (จำลอง)</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ TOPIK I</div>
                                 <div className="text-xs text-gray-500">듣기 (ฟัง) 30 + 읽기 (อ่าน) 40 = 70 ข้อ ตามโครงสร้างจริง</div>
                             </button>
-                            <p className="text-xs text-gray-400 leading-relaxed text-left">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา จำนวนข้อรวมเท่าโครงสร้างจริง
-                                (ฟัง 30 + อ่าน 40 = 70) TOPIK I จริงให้คะแนนแยกเป็นคะแนนดิบต่อวิชาและมีเกณฑ์ผ่านขั้นต่ำตามระดับ (1/2) ไม่ใช่
-                                คะแนนรวมแบบนี้ เว็บนี้เลยแสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) แทน<br />
-                                <b>ความแตกต่างจากข้อสอบจริง</b>: 듣기 (ฟัง) แสดงบทพูดเป็นตัวอักษรคู่กับเสียงด้วย (ข้อสอบจริงมีแต่เสียงล้วน
-                                ฟังได้ครั้งเดียว ไม่มีตัวอักษรให้อ่านและฟังซ้ำได้) เพื่อช่วยผู้เริ่มต้นตามทัน — TOPIK I ไม่มีส่วนเขียน (TOPIK II
-                                ถึงจะมีส่วนเขียนเรียงความ ยังไม่รองรับตอนนี้)
-                            </p>
                         </div>
                     </div>
                 );
@@ -5790,22 +5740,11 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ Goethe-Zertifikat A1 (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษาเยอรมันขั้นต้น (A1 / Start Deutsch 1) — 4 ทักษะตามโครงสร้างจริง</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ Goethe-Zertifikat A1 (จำลอง)</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ Goethe A1</div>
                                 <div className="text-xs text-gray-500">Hören 15 + Lesen 15 + Schreiben 1 + Sprechen 1 ส่วน ตามโครงสร้างจริง</div>
                             </button>
-                            <p className="text-xs text-gray-400 leading-relaxed text-left">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา โครงสร้างยึดตามข้อมูลจริงจาก
-                                Goethe-Institut (Hören ~15 ข้อ/Lesen ~15 ข้อ/Schreiben/Sprechen น้ำหนักเท่ากันคนละ 20 คะแนน) เว็บนี้แสดงผลเป็น
-                                คะแนนดิบ (ถูกกี่ข้อ) สำหรับ Hören/Lesen เท่านั้น ไม่ใช่คะแนนทางการ<br />
-                                <b>ความแตกต่างจากข้อสอบจริง</b>: (1) Hören ของจริงมีข้อแบบ "ฟังแล้วเลือกรูปภาพ" ด้วย เว็บนี้ไม่มีคลังรูปภาพ
-                                จึงแทนที่ด้วยข้อฟังบทสนทนา/ประโยคแล้วเลือกคำตอบแทนทั้งหมด และแสดงบทพูดเป็นตัวอักษรคู่กับเสียง (ข้อสอบจริงมีแต่
-                                เสียงล้วน ฟังได้ครั้งเดียว) เพื่อช่วยผู้เริ่มต้นตามทัน (2) Schreiben ของจริงมี 2 ส่วน (กรอกฟอร์ม + เขียนข้อความสั้น)
-                                เว็บนี้มีเฉพาะส่วนเขียนข้อความสั้น ตรวจด้วย AI ให้คำแนะนำ ไม่ใช่คะแนนทางการ (3) Sprechen ไม่มีระบบให้คะแนนการพูด
-                                ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเองเท่านั้น
-                            </p>
                         </div>
                     </div>
                 );
@@ -6041,10 +5980,6 @@
 
                         {q.type === 'speaking-practice' && (
                             <>
-                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
-                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
-                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
-                                </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Teil 1 — Sich vorstellen</p>
                                     {DE_SPEAKING.part1.map((p, i) => (
@@ -6357,22 +6292,11 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ DELF A1 (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษาฝรั่งเศสขั้นต้น (A1) — 4 ทักษะตามโครงสร้างจริง</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ DELF A1 (จำลอง)</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ DELF A1</div>
                                 <div className="text-xs text-gray-500">Compréhension orale 15 + écrite 15 + Production écrite 1 + orale 1 ส่วน ตามโครงสร้างจริง</div>
                             </button>
-                            <p className="text-xs text-gray-400 leading-relaxed text-left">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา โครงสร้างยึดตามข้อมูลจริง
-                                (Compréhension orale/écrite/Production écrite/orale น้ำหนักเท่ากันคนละ 25 คะแนน ผ่านต้อง 50/100 และแต่ละส่วนต้อง
-                                ได้อย่างน้อย 5/25) เว็บนี้แสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) สำหรับ Compréhension เท่านั้น ไม่ใช่คะแนนทางการ<br />
-                                <b>ความแตกต่างจากข้อสอบจริง</b>: (1) ของจริงมีแค่ 4 คลิปเสียง/4 เอกสารสั้น (สั้นกว่านี้มาก) เว็บนี้ขยายเป็นชุดคำถามที่
-                                ใหญ่ขึ้นเพื่อให้ฝึกได้หลากหลายกว่า และแสดงบทพูดเป็นตัวอักษรคู่กับเสียง (ของจริงมีแต่เสียงล้วน ฟังได้ครั้งเดียว) เพื่อช่วย
-                                ผู้เริ่มต้นตามทัน (2) Production écrite ของจริงมี 2 ส่วน (กรอกฟอร์ม + เขียนบรรยายตัวเอง) เว็บนี้มีเฉพาะส่วนเขียนบรรยาย
-                                ตรวจด้วย AI ให้คำแนะนำ ไม่ใช่คะแนนทางการ (3) Production orale ไม่มีระบบให้คะแนนการพูด ใช้ฝึกออกเสียง/อัดเสียงซ้อม
-                                ตอบเองเท่านั้น
-                            </p>
                         </div>
                     </div>
                 );
@@ -6607,10 +6531,6 @@
 
                         {q.type === 'speaking-practice' && (
                             <>
-                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
-                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
-                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
-                                </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Partie 1 — Entretien dirigé</p>
                                     {FR_SPEAKING.part1.map((p, i) => (
@@ -6916,21 +6836,11 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ PLIDA A1 (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษาอิตาลีขั้นต้น (A1) — 4 ทักษะตามโครงสร้างจริง</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ PLIDA A1 (จำลอง)</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ PLIDA A1</div>
                                 <div className="text-xs text-gray-500">Ascolto 15 + Lettura 15 + Scrittura 1 + Parlato 1 ส่วน ตามโครงสร้างจริง</div>
                             </button>
-                            <p className="text-xs text-gray-400 leading-relaxed text-left">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา โครงสร้างยึดตามข้อมูลจริง
-                                (Ascolto/Lettura/Scrittura/Parlato แต่ละส่วนให้คะแนนแยกเป็นสัดส่วน 30 คะแนน ต้องได้อย่างน้อย 18/30 ทุกส่วนถึงจะ
-                                ผ่านการรับรอง) เว็บนี้แสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) สำหรับ Ascolto/Lettura เท่านั้น ไม่ใช่คะแนนทางการ<br />
-                                <b>ความแตกต่างจากข้อสอบจริง</b>: (1) Ascolto ของจริงฟังได้ 2 รอบ ใช้เวลา 20 นาที เว็บนี้ขยายเป็นชุดคำถามที่ใหญ่ขึ้น
-                                เพื่อให้ฝึกได้หลากหลายกว่า และแสดงบทพูดเป็นตัวอักษรคู่กับเสียงเพื่อช่วยผู้เริ่มต้นตามทัน (2) Lettura ของจริงใช้เวลา 30
-                                นาที เว็บนี้เพิ่มคำศัพท์/ไวยากรณ์เข้าไปด้วยเพื่อให้ฝึกได้ครอบคลุมกว่า (3) Scrittura ตรวจด้วย AI ให้คำแนะนำ ไม่ใช่คะแนน
-                                ทางการ (4) Parlato ไม่มีระบบให้คะแนนการพูด ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเองเท่านั้น
-                            </p>
                         </div>
                     </div>
                 );
@@ -7165,10 +7075,6 @@
 
                         {q.type === 'speaking-practice' && (
                             <>
-                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
-                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
-                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
-                                </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Parte 1 — Presentarsi</p>
                                     {IT_SPEAKING.part1.map((p, i) => (
@@ -7481,24 +7387,11 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ DELE A1 (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษาสเปนขั้นต้น (A1) — 4 ทักษะตามโครงสร้างจริง</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ DELE A1 (จำลอง)</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ DELE A1</div>
                                 <div className="text-xs text-gray-500">Comprensión auditiva 15 + de lectura 15 + Expresión escrita 1 + oral 1 ส่วน ตามโครงสร้างจริง</div>
                             </button>
-                            <p className="text-xs text-gray-400 leading-relaxed text-left">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา โครงสร้างยึดตามข้อมูลจริง
-                                (แบ่งเป็น 2 กลุ่ม — Grupo 1: Comprensión de lectura + Expresión escrita, Grupo 2: Comprensión auditiva +
-                                Expresión oral — แต่ละทักษะ 25 คะแนน รวม 100 คะแนน ต้องได้อย่างน้อย 30/50 ทั้งสองกลุ่มถึงจะผ่าน) เว็บนี้
-                                แสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) สำหรับ Comprensión auditiva/de lectura เท่านั้น ไม่ใช่คะแนนทางการ<br />
-                                <b>ความแตกต่างจากข้อสอบจริง</b>: (1) Comprensión auditiva ของจริงมี 4 ส่วน 25 ข้อ ใช้เวลา 25 นาที เว็บนี้
-                                ขยายเป็นชุดคำถามที่ใหญ่ขึ้นเพื่อให้ฝึกได้หลากหลายกว่า และแสดงบทพูดเป็นตัวอักษรคู่กับเสียงเพื่อช่วยผู้เริ่มต้น
-                                ตามทัน (2) Comprensión de lectura ของจริงมี 4 ส่วน 25 ข้อ ใช้เวลา 45 นาที เว็บนี้เพิ่มคำศัพท์/ไวยากรณ์เข้าไป
-                                ด้วยเพื่อให้ฝึกได้ครอบคลุมกว่า (3) Expresión escrita ของจริงมี 2 งาน (กรอกฟอร์ม + เขียนข้อความสั้น) เว็บนี้มี
-                                เฉพาะส่วนเขียนข้อความสั้น ตรวจด้วย AI ให้คำแนะนำ ไม่ใช่คะแนนทางการ (4) Expresión oral ไม่มีระบบให้คะแนนการพูด
-                                ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเองเท่านั้น
-                            </p>
                         </div>
                     </div>
                 );
@@ -7733,10 +7626,6 @@
 
                         {q.type === 'speaking-practice' && (
                             <>
-                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
-                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
-                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
-                                </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Parte 1 — Presentarse</p>
                                     {ES_SPEAKING.part1.map((p, i) => (
@@ -8052,25 +7941,11 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ CELPE-Bras (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">ฝึกภาษาโปรตุเกสบราซิลสไตล์ CELPE-Bras — โครงสร้างต่างจากภาษาอื่น</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ CELPE-Bras (จำลอง)</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มฝึก CELPE-Bras</div>
                                 <div className="text-xs text-gray-500">Compreensão 30 (แบบฝึกหัดเสริม) + Parte Escrita 1 + Parte Oral 1 ส่วน</div>
                             </button>
-                            <p className="text-xs text-gray-400 leading-relaxed text-left">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา
-                                <b>CELPE-Bras ของจริงมีโครงสร้างต่างจาก Goethe A1/DELF A1/PLIDA A1/DELE A1 ที่ทำมาก่อนหน้านี้อย่างมีนัยสำคัญ</b>:
-                                (1) ไม่มีระดับ A1 เลย ระดับต่ำสุดที่ได้ประกาศนียบัตรคือ Intermediário (ประมาณ B1)
-                                เพราะเน้นวัดสมรรถนะสื่อสารจริง ไม่ใช่ระดับเริ่มต้น (2) มีแค่ 2 ส่วน คือ Parte Escrita
-                                (เขียน 3 ชม. บูรณาการฟัง+อ่าน+เขียนเป็น 4 tarefas ไม่มีข้อสอบปรนัยแยกฟัง/อ่านต่างหาก)
-                                กับ Parte Oral (พูดสัมภาษณ์ 20 นาที บูรณาการฟัง+อ่าน+พูด) (3) การให้ระดับใช้ค่าที่ต่ำกว่า
-                                ระหว่าง 2 ส่วน ไม่ใช่ค่าเฉลี่ย<br />
-                                เว็บนี้จึงเพิ่มส่วน "Compreensão" (ฟัง+อ่าน) แบบปรนัยเป็น<b>แบบฝึกหัดเสริมที่ไม่มีในข้อสอบจริง</b>
-                                เพื่อให้ยังมีคะแนนดิบให้ฝึกเหมือนภาษาอื่น ส่วน Parte Escrita จำลองเป็นงานเขียนบูรณาการ
-                                (อ่าน/ฟังสถานการณ์ที่กำหนดแล้วเขียนตอบ) ตรวจด้วย AI ให้คำแนะนำ ไม่ใช่คะแนนทางการ และ
-                                Parte Oral ไม่มีระบบให้คะแนนการพูด ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเองเท่านั้น
-                            </p>
                         </div>
                     </div>
                 );
@@ -8305,10 +8180,6 @@
 
                         {q.type === 'speaking-practice' && (
                             <>
-                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
-                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
-                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
-                                </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Parte 1 — Apresentação pessoal</p>
                                     {PT_SPEAKING.part1.map((p, i) => (
@@ -8639,25 +8510,11 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ ТРКИ-1 / TORFL A1 (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษารัสเซียขั้นต้น (A1) — 5 ส่วนตามโครงสร้างจริง</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ ТРКИ-1 / TORFL A1 (จำลอง)</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ ТРКИ-1</div>
                                 <div className="text-xs text-gray-500">Лексика. Грамматика + Чтение + Аудирование + Письмо + Говорение ครบ 5 ส่วน ตามโครงสร้างจริง</div>
                             </button>
-                            <p className="text-xs text-gray-400 leading-relaxed text-left">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา โครงสร้างยึดตามข้อมูลจริง
-                                (5 ส่วนแยกกัน — Лексика. Грамматика 30 ข้อ/30 คะแนน, Чтение 20 ข้อ/20 คะแนน, Аудирование 15 ข้อ/
-                                15 คะแนน, Письмо 2 งาน/15 คะแนน, Говорение 4 งาน/20 คะแนน — สอบจริงแบ่งทำ 2 วัน และแต่ละส่วนต้อง
-                                ผ่านเกณฑ์ขั้นต่ำแยกกัน ไม่ใช่แค่คะแนนรวม) เว็บนี้แสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) สำหรับ Лексика.
-                                Грамматика/Чтение/Аудирование เท่านั้น ไม่ใช่คะแนนทางการ<br />
-                                <b>ความแตกต่างจากข้อสอบจริง</b>: (1) ของจริงแยกเป็น 3 ส่วนปรนัยที่มีจำนวนข้อมากกว่านี้มาก (30+20+15
-                                ข้อ) เว็บนี้ย่อชุดคำถามให้กระชับ แต่ยังคงแยก Лексика. Грамматика ออกจาก Чтение ตามโครงสร้างจริง
-                                (ต่างจาก DELE A1/PLIDA A1 ที่รวมไวยากรณ์เข้ากับการอ่าน) (2) Аудирование แสดงบทพูดเป็นตัวอักษรคู่กับ
-                                เสียงเพื่อช่วยผู้เริ่มต้นตามทัน (3) Письмо ของจริงมี 2 งาน (กรอกฟอร์ม + เขียนข้อความสั้น) เว็บนี้มี
-                                เฉพาะส่วนเขียนข้อความสั้น ตรวจด้วย AI ให้คำแนะนำ ไม่ใช่คะแนนทางการ (4) Говорение ไม่มีระบบให้คะแนน
-                                การพูด ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเองเท่านั้น
-                            </p>
                         </div>
                     </div>
                 );
@@ -8892,10 +8749,6 @@
 
                         {q.type === 'speaking-practice' && (
                             <>
-                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
-                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
-                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
-                                </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Часть 1 — Представиться</p>
                                     {RU_SPEAKING.part1.map((p, i) => (
@@ -9217,24 +9070,11 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ ALPT (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษาอาหรับขั้นต้น (เทียบ CEFR A1) — 5 ส่วนตามโครงสร้างจริง</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ ALPT (จำลอง)</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ ALPT</div>
                                 <div className="text-xs text-gray-500">Structure & Vocabulary + Reading + Listening + Writing + Speaking ครบ 5 ส่วน ตามโครงสร้างจริง</div>
                             </button>
-                            <p className="text-xs text-gray-400 leading-relaxed text-left">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา โครงสร้างยึดตามข้อมูลจริง
-                                (ALPT ของ Arab Academy วัด 5 ทักษะแยกกัน: Listening/Reading/Structure/Writing/Speaking แมปผลกับ CEFR
-                                A1-C2 ได้ และเป็นแบบ computer-adaptive คือโจทย์ปรับความยากตามคำตอบ ไม่ใช่จำนวนข้อตายตัวแบบตายตัว)
-                                เว็บนี้แสดงผลเป็นคะแนนดิบ (ถูกกี่ข้อ) สำหรับ Structure & Vocabulary/Reading/Listening เท่านั้น ไม่ใช่คะแนน
-                                ทางการหรือระดับ CEFR จริง<br />
-                                <b>ความแตกต่างจากข้อสอบจริง</b>: (1) ของจริงไม่มีจำนวนข้อตายตัว (ปรับตามความสามารถผู้สอบ) เว็บนี้ใช้จำนวน
-                                ข้อคงที่เพื่อให้ฝึกซ้ำได้ (2) ของจริงไม่มีหมวด "คำศัพท์" แยกต่างหาก เว็บนี้รวมเข้ากับ Structure เพราะเป็น
-                                ทักษะใกล้เคียงกัน (3) Listening แสดงบทพูดเป็นตัวอักษรคู่กับเสียงเพื่อช่วยผู้เริ่มต้นตามทัน (4) Writing ของจริง
-                                พิมพ์คำตอบเปิดกว้างและมีผู้ตรวจจริง เว็บนี้ตรวจด้วย AI ให้คำแนะนำ ไม่ใช่คะแนนทางการ (5) Speaking ของจริงสอบสด
-                                กับครูผู้สอน เว็บนี้ไม่มีระบบให้คะแนนการพูด ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเองเท่านั้น
-                            </p>
                         </div>
                     </div>
                 );
@@ -9469,10 +9309,6 @@
 
                         {q.type === 'speaking-practice' && (
                             <>
-                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
-                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
-                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
-                                </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Part 1 — التعريف بالنفس</p>
                                     {AR_SPEAKING.part1.map((p, i) => (
@@ -9791,24 +9627,11 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบ VLPT (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดระดับภาษาเวียดนามขั้นต้น (เทียบ CEFR A1) — 4 ส่วนตามโครงสร้างจริง</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ VLPT (จำลอง)</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ VLPT</div>
                                 <div className="text-xs text-gray-500">Nghe + Đọc + Viết + Nói ครบ 4 ส่วน ตามโครงสร้างจริง</div>
                             </button>
-                            <p className="text-xs text-gray-400 leading-relaxed text-left">
-                                หมายเหตุ: เป็นแบบทดสอบจำลองที่แต่งเนื้อหาเองทั้งหมด ไม่ใช่ข้อสอบทางการที่หลุดออกมา โครงสร้างยึดตามข้อมูลจริง
-                                (VLPT ของ VNU-USSH อิงตามกรอบความสามารถภาษาเวียดนามสำหรับชาวต่างชาติ 6 ระดับ เทียบเท่า CEFR A1-C2 —
-                                Nghe 55 ข้อ/60 นาที, Đọc 40 ข้อ/60 นาที, Viết 3 ส่วน [เติมคำ/ตอบจดหมาย/เรียงความ], Nói 3 ส่วน
-                                [ตอบคำถาม/สนทนาเลือกหัวข้อ/พูดหัวข้อทั่วไป] สอบพูดสดแยกห้องกับผู้สอบ) เว็บนี้แสดงผลเป็นคะแนนดิบ
-                                (ถูกกี่ข้อ) สำหรับ Nghe/Đọc เท่านั้น ไม่ใช่คะแนนทางการหรือระดับ CEFR จริง<br />
-                                <b>ความแตกต่างจากข้อสอบจริง</b>: (1) ของจริงมีจำนวนข้อมากกว่านี้มาก (55+40 ข้อ) เว็บนี้ย่อชุดคำถามให้
-                                กระชับ (2) Nghe แสดงบทพูดเป็นตัวอักษรคู่กับเสียงเพื่อช่วยผู้เริ่มต้นตามทัน (3) Viết ของจริงมี 3 ส่วน
-                                (เติมคำ/ตอบจดหมาย/เรียงความ) เว็บนี้มีเฉพาะส่วนเขียนข้อความสั้น ตรวจด้วย AI ให้คำแนะนำ ไม่ใช่คะแนนทางการ
-                                (4) Nói ของจริงสอบสดกับผู้สอบแยกห้อง เว็บนี้ไม่มีระบบให้คะแนนการพูด ใช้ฝึกออกเสียง/อัดเสียงซ้อมตอบเอง
-                                เท่านั้น
-                            </p>
                         </div>
                     </div>
                 );
@@ -10043,10 +9866,6 @@
 
                         {q.type === 'speaking-practice' && (
                             <>
-                                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-xs text-amber-700">
-                                    ส่วนนี้ไม่มีระบบให้คะแนนการพูด (เว็บนี้ยังไม่มีระบบประเมินคุณภาพการพูด) — ใช้ฝึกออกเสียง/
-                                    ซ้อมตอบเองได้ อัดเสียงแล้วฟังทวนได้ แต่ไม่ตรวจให้
-                                </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Phần 1 — Giới thiệu bản thân</p>
                                     {VN_SPEAKING.part1.map((p, i) => (
@@ -10285,8 +10104,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">แบบทดสอบความเข้าใจภาษาฮินดี</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดความเข้าใจพื้นฐาน — 2 ส่วน (ฟัง+อ่าน)</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">แบบทดสอบความเข้าใจภาษาฮินดี</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
                                 <div className="text-xs text-gray-500">सुनना (ฟัง) 14 + पढ़ना (อ่าน) 30 = 44 ข้อ</div>
@@ -10639,8 +10457,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">แบบทดสอบความเข้าใจภาษามาเลย์</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดความเข้าใจพื้นฐาน — 2 ส่วน (ฟัง+อ่าน)</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">แบบทดสอบความเข้าใจภาษามาเลย์</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
                                 <div className="text-xs text-gray-500">Mendengar (ฟัง) 14 + Membaca (อ่าน) 30 = 44 ข้อ</div>
@@ -10991,8 +10808,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">แบบทดสอบความเข้าใจภาษาพม่า</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดความเข้าใจพื้นฐาน — 2 ส่วน (ฟัง+อ่าน)</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">แบบทดสอบความเข้าใจภาษาพม่า</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
                                 <div className="text-xs text-gray-500">နားထောင်ခြင်း (ฟัง) 14 + ဖတ်ခြင်း (อ่าน) 30 = 44 ข้อ</div>
@@ -11341,8 +11157,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">แบบทดสอบความเข้าใจภาษาเขมร</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดความเข้าใจพื้นฐาน — 2 ส่วน (ฟัง+อ่าน)</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">แบบทดสอบความเข้าใจภาษาเขมร</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
                                 <div className="text-xs text-gray-500">ការស្តាប់ (ฟัง) 14 + ការអាន (อ่าน) 30 = 44 ข้อ</div>
@@ -11692,8 +11507,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">แบบทดสอบความเข้าใจภาษาลาว</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดความเข้าใจพื้นฐาน — 2 ส่วน (ฟัง+อ่าน)</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">แบบทดสอบความเข้าใจภาษาลาว</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
                                 <div className="text-xs text-gray-500">ການຟັง (ฟัง) 14 + ການອ່ານ (อ่าน) 30 = 44 ข้อ</div>
@@ -12055,8 +11869,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">แบบทดสอบความเข้าใจภาษาจีนกวางตุ้ง</h2>
-                            <p className="text-sm text-gray-500 mb-5">วัดความเข้าใจพื้นฐาน — 2 ส่วน (ฟัง+อ่าน)</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">แบบทดสอบความเข้าใจภาษาจีนกวางตุ้ง</h2>
                             <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
                                 <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
                                 <div className="text-xs text-gray-500">聽力 (ฟัง) 14 + 閱讀 (อ่าน) 30 = 44 ข้อ</div>
@@ -12684,8 +12497,7 @@
             if (passageIdx === null) {
                 return (
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-1">ฟังเรื่องสั้น</h3>
-                        <p className="text-xs text-gray-400 mb-4">เลือกเรื่องที่จะฟัง — ลองฟังก่อนแล้วค่อยดูคำแปล จะช่วยฝึกความเข้าใจได้ดีกว่า</p>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">ฟังเรื่องสั้น</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {passages.map((p, i) => (
                                 <button key={i} onClick={() => { setPassageIdx(i); setRevealedLines([]); setShowQuiz(false); setAnswers({}); setChecked(false); }}
@@ -12894,8 +12706,7 @@
 
             return (
                 <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-1">พูดตาม (Shadowing)</h3>
-                    <p className="text-xs text-gray-400 mb-4">ฟังต้นฉบับ แล้วลองพูดตามให้เหมือนที่สุด ระบบจะถอดเสียงที่พูดมาเทียบกับต้นฉบับให้</p>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">พูดตาม (Shadowing)</h3>
 
                     <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                         <div className="text-2xl font-bold text-gray-900 mb-1">{current.target}</div>
@@ -13400,8 +13211,7 @@
             if (passageIdx === null) {
                 return (
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-1">อ่านเรื่องยาว</h3>
-                        <p className="text-xs text-gray-400 mb-4">ลองอ่านให้เข้าใจก่อนค่อยเปิดคำแปล — การอ่านเนื้อหายาวๆ บ่อยๆ ช่วยให้จับความหมายจากบริบทได้เร็วขึ้น</p>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">อ่านเรื่องยาว</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {passages.map((p, i) => (
                                 <button key={i} onClick={() => { setPassageIdx(i); setRevealedLines([]); setShowQuiz(false); setAnswers({}); setChecked(false); }}
@@ -17242,7 +17052,6 @@
                             <div className="bg-brand text-white p-2 rounded-lg"><BookOpen /></div>
                             <div className="flex-1">
                                 <h1 className="font-bold text-lg tracking-tight">Language Practice</h1>
-                                <p className="text-xs text-gray-400">ข้อมูลจริงจาก Tanot</p>
                             </div>
                             <button onClick={() => setMobileNavOpen(false)} className="md:hidden p-1 text-gray-400 hover:text-gray-700" aria-label="ปิดเมนู"><CloseIcon /></button>
                         </div>
@@ -17368,7 +17177,6 @@
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam' || view === 'arexam' || view === 'vnexam' || view === 'myexam' || view === 'mmexam' || view === 'khexam' || view === 'laexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <HskIcon /> ข้อสอบ
-                                    <span className="hidden sm:inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
                                 </button>
                                 <button
                                     onClick={goListen}
@@ -17376,7 +17184,6 @@
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'listen' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <ListenIcon /> ฟัง-พูด
-                                    <span className="hidden sm:inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200 leading-none">จีน・อังกฤษ・ญี่ปุ่น・เกาหลี</span>
                                 </button>
                             </div>
                             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -17398,7 +17205,6 @@
                                 <div className="rounded-2xl bg-gradient-to-br from-brand to-[var(--ome-brand-dk)] p-6 sm:p-8 text-white shadow-lg">
                                     <p className="text-xs uppercase tracking-widest text-teal-100 mb-2">Language Practice</p>
                                     <h2 className="text-2xl font-bold mb-2">ฝึกภาษาแบบพิมพ์คำแปล</h2>
-                                    <p className="text-teal-50 text-sm max-w-xl">รวม {LANG_IDS.length} ภาษา {totalCategories} หมวดวลี ฝึกพิมพ์คำแปลเพื่อสะสม XP</p>
                                     <div className="mt-6 flex items-center gap-4 flex-wrap">
                                         <div className="flex-1 min-w-[200px] max-w-xs">
                                             <div className="flex justify-between text-xs text-teal-100 mb-1">
@@ -17432,8 +17238,7 @@
 
                                 {langId === 'lang-cn' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาจีน</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียนตัวอักษร ทำข้อสอบจำลอง และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาจีน</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <button onClick={() => goWriting('lang-cn')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17459,8 +17264,7 @@
 
                                 {langId === 'lang-en' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาอังกฤษ</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียน ทำข้อสอบจำลอง IELTS/TOEIC และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาอังกฤษ</h3>
                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                             <button onClick={() => goWriting('lang-en')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17492,8 +17296,7 @@
 
                                 {langId === 'lang-jp' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาญี่ปุ่น</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียนตัวอักษร ทำข้อสอบจำลอง JLPT N5 และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาญี่ปุ่น</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <button onClick={() => goWriting('lang-jp')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17519,8 +17322,7 @@
 
                                 {langId === 'lang-kr' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาเกาหลี</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกฮันกึล ทำข้อสอบจำลอง TOPIK I และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาเกาหลี</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <button onClick={() => goWriting('lang-kr')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17546,8 +17348,7 @@
 
                                 {langId === 'lang-yue' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาจีนกวางตุ้ง</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียนตัวอักษร ทำแบบทดสอบความเข้าใจ และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาจีนกวางตุ้ง</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <button onClick={() => goWriting('lang-yue')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17573,8 +17374,7 @@
 
                                 {langId === 'lang-de' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาเยอรมัน</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียนตัวอักษร ทำข้อสอบจำลอง Goethe-Zertifikat A1 และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาเยอรมัน</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <button onClick={() => goWriting('lang-de')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17600,8 +17400,7 @@
 
                                 {langId === 'lang-fr' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาฝรั่งเศส</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียนตัวอักษร ทำข้อสอบจำลอง DELF A1 และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาฝรั่งเศส</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <button onClick={() => goWriting('lang-fr')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17627,8 +17426,7 @@
 
                                 {langId === 'lang-it' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาอิตาลี</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียนตัวอักษร ทำข้อสอบจำลอง PLIDA A1 และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาอิตาลี</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <button onClick={() => goWriting('lang-it')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17654,8 +17452,7 @@
 
                                 {langId === 'lang-es' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาสเปน</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียนตัวอักษร ทำข้อสอบจำลอง DELE A1 และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาสเปน</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <button onClick={() => goWriting('lang-es')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17681,8 +17478,7 @@
 
                                 {langId === 'lang-pt' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาโปรตุเกส</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียนตัวอักษร ทำแบบฝึกสไตล์ CELPE-Bras และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาโปรตุเกส</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <button onClick={() => goWriting('lang-pt')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17708,8 +17504,7 @@
 
                                 {langId === 'lang-ru' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษารัสเซีย</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียนตัวอักษรซีริลลิก ทำข้อสอบจำลอง ТРКИ-1 / TORFL A1 และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษารัสเซีย</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <button onClick={() => goWriting('lang-ru')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17735,8 +17530,7 @@
 
                                 {langId === 'lang-in' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาฮินดี</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียนอักษรเทวนาครี ทำแบบทดสอบความเข้าใจภาษาฮินดี และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาฮินดี</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <button onClick={() => goWriting('lang-in')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17762,8 +17556,7 @@
 
                                 {langId === 'lang-ar' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาอาหรับ</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียนตัวอักษร ทำข้อสอบจำลอง ALPT และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาอาหรับ</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <button onClick={() => goWriting('lang-ar')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17789,8 +17582,7 @@
 
                                 {langId === 'lang-vn' && (
                                     <div className="bg-gradient-to-r from-brandLight to-white rounded-xl border border-brand/20 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาเวียดนาม</h3>
-                                        <p className="text-xs text-gray-400 mb-4">ฝึกเขียนตัวอักษร ทำข้อสอบจำลอง VLPT และฝึกฟัง-พูด-อ่าน โดยเฉพาะ</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><LanguagesSmallIcon /> ฟีเจอร์เสริมสำหรับภาษาเวียดนาม</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <button onClick={() => goWriting('lang-vn')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
@@ -17816,8 +17608,7 @@
 
                                 {Object.keys(wrong).length > 0 && (
                                     <div className="bg-white rounded-xl border border-gray-200 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2"><XCircle /> คำที่เคยตอบผิด ({Object.keys(wrong).length})</h3>
-                                        <p className="text-xs text-gray-400 mb-4">แตะเพื่อกลับไปฝึกคำนั้นซ้ำ — ตอบถูกเมื่อไหร่จะหายจากลิสต์นี้</p>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><XCircle /> คำที่เคยตอบผิด ({Object.keys(wrong).length})</h3>
                                         <div className="space-y-1">
                                             {Object.values(wrong)
                                                 .sort((a, b) => (b.count || 0) - (a.count || 0))
@@ -17838,7 +17629,7 @@
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 gap-6">
                                     <div className="bg-white rounded-xl border border-gray-200 p-5">
                                         <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><BookOpen /> หมวดที่ยังไม่เสร็จ</h3>
                                         {todoCategories.length === 0 ? (
@@ -17855,17 +17646,6 @@
                                             </div>
                                         )}
                                     </div>
-                                    <div className="bg-white rounded-xl border border-gray-200 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><Languages /> ประกาศ</h3>
-                                        <div className="space-y-4">
-                                            {ANNOUNCEMENTS.map((a, i) => (
-                                                <div key={i} className="text-sm">
-                                                    <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">{a.date}</div>
-                                                    <p className="text-gray-600 leading-relaxed">{a.text}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -17875,8 +17655,7 @@
                             <div className="w-full md:w-1/2 md:h-full border-b md:border-b-0 md:border-r border-gray-200 bg-gray-100 p-4 sm:p-6 md:overflow-y-auto">
                                 <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 min-h-full">
                                     <div className="border-b border-gray-200 pb-4 mb-4">
-                                        <h3 className="text-xl font-bold text-gray-900 mb-1">วลีสำหรับฝึก — {lang.title}</h3>
-                                        <p className="text-sm text-gray-500">คลิกหมวดหมู่เพื่อดูวลีทั้งหมด แล้วลองพิมพ์คำแปลในฝั่งขวา</p>
+                                        <h3 className="text-xl font-bold text-gray-900 mb-0">วลีสำหรับฝึก — {lang.title}</h3>
                                     </div>
 
                                     <div className="flex flex-wrap gap-2 mb-6">
@@ -17918,8 +17697,8 @@
                                                     className={`p-1.5 ${noteMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><PencilSmallIcon /></button>
                                             </div>
                                         </div>
-                                        <p className="text-xs text-gray-400 mb-2">
-                                            {notes[langId] ? `บันทึกล่าสุด ${new Date(notes[langId].updatedAt).toLocaleString('th-TH')}` : 'จดคำศัพท์ ไวยากรณ์ หรือเทคนิคจำที่อยากบันทึกไว้ — บันทึกอัตโนมัติ'}
+                                        <p className="text-xs text-gray-400 mb-2 min-h-[1rem]">
+                                            {notes[langId] ? `บันทึกล่าสุด ${new Date(notes[langId].updatedAt).toLocaleString('th-TH')}` : ''}
                                         </p>
                                         {noteMode === 'type' ? (
                                             <textarea
@@ -17937,7 +17716,6 @@
                                                     <button type="button" onClick={runNoteOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ เพิ่มต่อท้ายโน้ต</button>
                                                     {noteOcrStatus && <span className="text-xs text-gray-400">{noteOcrStatus}</span>}
                                                 </div>
-                                                <p className="text-[11px] text-gray-400 mt-1">รองรับเขียนด้วยนิ้ว/สไตลัส/Apple Pencil บน iPad — ภาพลายมือถูกบันทึกไว้เสมอ (สลับกลับมาดูได้) OCR แม่นสุดกับภาษาละติน/ไทย ภาษาอื่นอาจอ่านไม่ออกหรือผิดเยอะ</p>
                                             </div>
                                         )}
                                     </div>

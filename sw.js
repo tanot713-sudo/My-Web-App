@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v592';
+const CACHE = 'ome-v593';
 const PRECACHE = [
   './',
   './index.html',
@@ -26,10 +26,17 @@ const PRECACHE = [
   './review.js',
   './bar-prep.html',
   './classroom-business.html',
+  './classroom-business.compiled.js',
   './classroom-engineering.html',
+  './classroom-engineering.compiled.js',
   './languages.html',
   './languages.compiled.js',
   './legal.html',
+  './legal.compiled.js',
+  './react-pages.css',
+  './vendor/react/react.production.min.js',
+  './vendor/react/react-dom.production.min.js',
+  './vendor/lucide/lucide.min.js',
   './budget.html',
   './text-to-speech.html',
   './text-to-speech.js',

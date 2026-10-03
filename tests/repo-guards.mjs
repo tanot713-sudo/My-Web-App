@@ -2,11 +2,12 @@
 //  1. แก้ไฟล์ที่ sw.js เสิร์ฟแบบ cache-first แล้วต้อง bump CACHE  (เทียบกับ GUARD_BASE, ค่าเริ่มต้น origin/main)
 //  2. ทุกไฟล์ใน PRECACHE ต้องมีจริง
 //  3. ไม่มีไฟล์ที่ track ใหญ่เกิน 25 MiB (ลิมิตของ Cloudflare Pages)
-//  4. languages.compiled.js ต้องตรงกับที่ build จาก languages.jsx
+//  4. หน้า React 4 หน้า: *.compiled.js ตรงกับ *.jsx · react-pages.css ตรงกับ Tailwind · ไม่อ้าง CDN (Tailwind/unpkg/Babel)
 //  5. CDN/vendor ที่ใช้ต้องมีใน credits.html
 //  6. ห้ามมี package.json ที่ root (Pages จะรัน npm install ทุก build)
 //  7. ทุกหน้าที่ใช้ theme.css โหลด theme-boot.js ก่อน
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -45,32 +46,68 @@ const big = tracked.filter((f) => fs.existsSync(path.join(ROOT, f)) && fs.statSy
 if (big.length) fail('file-size', `เกิน 25 MiB: ${big.join(', ')}`);
 else ok('file-size', 'ไม่มีไฟล์เกิน 25 MiB');
 
-/* ── 4. languages.compiled.js ตรงกับ .jsx ── */
-try {
-  const { transformSync } = await import('esbuild');
-  const out = transformSync(read('languages.jsx'), {
-    loader: 'jsx', jsx: 'transform', jsxFactory: 'React.createElement', jsxFragment: 'React.Fragment',
-    target: 'es2019', format: 'iife',
-  }).code;
+/* ── 4. หน้า React 4 หน้า: *.compiled.js ตรงกับ .jsx, react-pages.css ตรงกับ Tailwind ต้นฉบับ, ไม่พึ่ง CDN ── */
+const REACT_PAGES = ['languages', 'legal', 'classroom-business', 'classroom-engineering'];
+{
   // เทียบโดยตัดช่องว่างทิ้ง: esbuild ต่างเวอร์ชันจัดรูปโค้ดต่างกันเล็กน้อยแต่ความหมายเหมือนกัน
   const squash = (t) => t.replace(/\s+/g, '');
-  if (squash(out) !== squash(read('languages.compiled.js'))) {
-    fail('languages-compiled', 'languages.compiled.js ไม่ตรงกับ languages.jsx — รัน ./build-languages.sh แล้ว commit คู่กัน');
-  } else ok('languages-compiled', 'ตรงกับ languages.jsx');
-} catch (e) {
-  if (e && e.code === 'ERR_MODULE_NOT_FOUND') warn('languages-compiled', 'ไม่มี esbuild (รัน npm install ใน tests/ ก่อน)');
-  else fail('languages-compiled', 'ตรวจไม่ได้: ' + e.message);
+  const REBUILD = 'รัน ./build-react.sh แล้ว commit ไฟล์ที่คอมไพล์คู่กัน';
+  try {
+    const { transformSync } = await import('esbuild');
+    for (const page of REACT_PAGES) {
+      const out = transformSync(read(`${page}.jsx`), {
+        loader: 'jsx', jsx: 'transform', jsxFactory: 'React.createElement', jsxFragment: 'React.Fragment',
+        target: 'es2019', format: 'iife',
+      }).code;
+      if (squash(out) !== squash(read(`${page}.compiled.js`))) fail('react-compiled', `${page}.compiled.js ไม่ตรงกับ ${page}.jsx — ${REBUILD}`);
+      else ok('react-compiled', `${page}.compiled.js ตรงกับ ${page}.jsx`);
+    }
+  } catch (e) {
+    if (e && e.code === 'ERR_MODULE_NOT_FOUND') warn('react-compiled', 'ไม่มี esbuild (รัน npm ci ใน tests/ ก่อน)');
+    else fail('react-compiled', 'ตรวจไม่ได้: ' + e.message);
+  }
+
+  const twBin = path.join(ROOT, 'tests/node_modules/.bin/tailwindcss');
+  if (!fs.existsSync(twBin)) warn('react-css', 'ไม่มี tailwindcss (รัน npm ci ใน tests/ ก่อน)');
+  else {
+    const tmp = path.join(os.tmpdir(), `react-pages-${process.pid}.css`);
+    try {
+      execFileSync(twBin, ['-c', 'tests/react-build/tailwind.config.js', '-i', 'tests/react-build/input.css', '-o', tmp, '--minify'],
+        { cwd: ROOT, stdio: 'pipe' });
+      if (squash(fs.readFileSync(tmp, 'utf8')) !== squash(read('react-pages.css'))) fail('react-css', `react-pages.css ไม่ตรงกับที่ Tailwind คอมไพล์จาก 4 หน้า — ${REBUILD}`);
+      else ok('react-css', 'react-pages.css ตรงกับต้นฉบับ');
+    } catch (e) {
+      fail('react-css', 'คอมไพล์ Tailwind ตรวจไม่ได้: ' + String(e.stderr || e.message).split('\n').slice(0, 3).join(' '));
+    } finally {
+      fs.rmSync(tmp, { force: true });
+    }
+  }
+
+  const bad = [];
+  for (const page of REACT_PAGES) {
+    for (const f of [`${page}.html`, `${page}.jsx`]) {
+      const m = read(f).match(/cdn\.tailwindcss\.com|unpkg\.com|@babel\/standalone|type="text\/babel"/);
+      if (m) bad.push(`${f} (${m[0]})`);
+    }
+    const h = read(`${page}.html`);
+    for (const need of ['href="react-pages.css"', 'src="vendor/react/react.production.min.js"', 'src="vendor/react/react-dom.production.min.js"', `src="${page}.compiled.js"`]) {
+      if (!h.includes(need)) bad.push(`${page}.html ไม่มี ${need}`);
+    }
+    if (!/<body data-layout="(tool|reader|app)"/.test(h)) bad.push(`${page}.html ไม่มี body[data-layout]`);
+  }
+  if (bad.length) fail('react-no-cdn', `หน้า React ต้องไม่พึ่ง Tailwind/Babel/unpkg ตอนรัน: ${bad.join('; ')}`);
+  else ok('react-no-cdn', '4 หน้าใช้ vendor/ + CSS/JS ที่คอมไพล์แล้ว ไม่มี CDN ของ Tailwind/React/Babel');
 }
 
 /* ── 5. credits.html ── */
 const credits = read('credits.html').toLowerCase();
 // ช่องโหว่เดิมที่มีอยู่ก่อนเพิ่มตัวตรวจ — รอเจ้าของเติมใน credits.html แล้วค่อยลบออกจากลิสต์นี้ (ห้ามเพิ่มรายการใหม่ที่นี่)
 const CREDITS_BASELINE = new Set([
-  'onnxruntime-web', 'opencascade.js', 'react', 'react-dom', '@babel/standalone', 'tailwindcss',
+  'onnxruntime-web', 'opencascade.js',
   'codemirror', 'hanzi-writer', '@k1low/hanzi-writer-data-jp', 'frappe-gantt', 'pyodide', 'luckyexcel', 'planegcs',
 ]);
 const used = new Set();
-for (const f of tracked.filter((f) => /^[^/]+\.(html|js|jsx)$/.test(f) && f !== 'languages.compiled.js')) {
+for (const f of tracked.filter((f) => /^[^/]+\.(html|js|jsx)$/.test(f) && !/\.compiled\.js$/.test(f))) {
   const text = read(f);
   for (const m of text.matchAll(/https:\/\/(?:cdn\.jsdelivr\.net\/npm|unpkg\.com)\/((?:@[\w.-]+\/)?[\w.-]+)/g)) used.add(m[1]);
   for (const m of text.matchAll(/https:\/\/cdn\.tailwindcss\.com/g)) used.add('tailwindcss');
