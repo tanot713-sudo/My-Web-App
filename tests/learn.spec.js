@@ -349,19 +349,9 @@ test('ทบทวนวันนี้: การ์ดวิศวะ (13 ส�
 });
 
 test('ห้องเรียนวิศวกรรม: แสดง 13 สาขา + หมวดบำรุงรักษาระบบไฟฟ้า เนื้อหาบทเรียน ทำแบบฝึกแล้วเข้าคิวทบทวน ข้อมูลเดิมยังใช้ได้', async ({ page }) => {
-  // React/ReactDOM/Babel ของหน้ามาจาก unpkg — ในเทสต์เสิร์ฟจาก tests/node_modules (รุ่นเดียวกับที่ unpkg ให้ตอนเขียนเทสต์)
-  const LOCAL = {
-    '/react@18/umd/react.production.min.js': 'react/umd/react.production.min.js',
-    '/react-dom@18/umd/react-dom.production.min.js': 'react-dom/umd/react-dom.production.min.js',
-    '/@babel/standalone/babel.min.js': '@babel/standalone/babel.min.js',
-  };
   const t0 = NOW.getTime();
   const oldSrs = { 'engineering:civil-eng:0': { interval: 3, due: t0 - 1 } };
   const errors = await openWith(page, '/review.html', {});
-  await page.route('https://unpkg.com/**', (route) => {
-    const f = LOCAL[new URL(route.request().url()).pathname];
-    return f ? route.fulfill({ path: path.join(__dirname, 'node_modules', f), contentType: 'text/javascript' }) : route.abort('internetdisconnected');
-  });
   // ข้อมูลเดิมของหน้า (ก่อนมีเนื้อหา): ความคืบหน้า/XP/คิวทบทวน
   await page.evaluate((s) => {
     localStorage.setItem('lbe:engineering:xp', '1300');

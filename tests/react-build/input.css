@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* เฉพาะที่ Tailwind ไม่มีให้ — สีทุกค่ามาจากโทเคน --ome-* */
+@layer base {
+  :root { --rp-fill-1: var(--ome-brand-dk); --rp-fill-2: var(--ome-brand); }
+  [data-theme="dark"] {
+    --rp-fill-1: color-mix(in srgb, var(--ome-brand) 62%, #000);
+    --rp-fill-2: color-mix(in srgb, var(--ome-brand) 78%, #000);
+  }
+  /* body[data-layout] ของ theme.css ตั้งสี/ระยะบรรทัดให้หัวข้อโดยตรง ซึ่งทับค่าที่สืบทอดมา (เช่น text-white บนการ์ดไล่สี)
+     — Tailwind ไม่ได้อยู่ใน @layer ของ theme.css จึงชนะ: ให้หัวข้อสืบทอดเหมือนเดิม */
+  h1, h2, h3, h4, h5, h6 { color: inherit; line-height: inherit; }
+  ::placeholder { color: var(--ome-text-3); }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background-color: var(--ome-line); border-radius: 10px; }
+}
+@layer utilities {
+  .animate-fade-in { animation: ome-fade-in .4s ease-out forwards; }
+  .animate-fade-in-up { animation: ome-fade-in-up .3s ease-out forwards; }
+}
+@keyframes ome-fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ome-fade-in-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* สไตล์พื้นผิว (data-style) — .bg-white คือพื้นการ์ด/แผงจริง; flat = ไม่มีกฎ */
+[data-style="soft"] .bg-white { border-color: transparent; }
+[data-style="soft"] .shadow-sm, [data-style="soft"] .shadow-md, [data-style="soft"] .shadow-lg {
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--ome-ink) 6%, transparent),
+    0 12px 32px color-mix(in srgb, var(--ome-ink) 9%, transparent);
+}
+[data-style="outline"] .bg-white { border-color: var(--ome-line); box-shadow: none; }

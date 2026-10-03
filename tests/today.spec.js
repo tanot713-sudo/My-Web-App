@@ -221,7 +221,7 @@ test.describe('ค้นหาด่วน (palette)', () => {
     expect(errors).toEqual([]);
   });
 
-  test('ทำงานบนหน้าเดิมที่ยังไม่ย้ายธีม (languages.html) + คำสั่งเพิ่มรายจ่ายเปิดกล่อง quick-add', async ({ page }) => {
+  test('ทำงานบนหน้า React (languages.html — Tailwind ที่คอมไพล์แล้ว) + คำสั่งเพิ่มรายจ่ายเปิดกล่อง quick-add', async ({ page }) => {
     const errors = await prepare(page);
     await page.goto('/languages.html', { waitUntil: 'load' });
     await page.waitForSelector('nav.ome-nav');

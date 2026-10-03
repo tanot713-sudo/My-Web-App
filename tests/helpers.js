@@ -30,8 +30,6 @@ function menuPages() {
 const KNOWN_NOISE = [
   // run.html ลอง /tools/tools.json ก่อนแล้ว fallback ไป /tool/tools.json โดยตั้งใจ (404 แรกเป็นปกติ)
   { re: /Failed to load resource.*404/, url: /\/tools\/tools\.json/ },
-  // languages.html ต้องใช้ React/ReactDOM จาก unpkg (UMD) — ปิดเน็ตแล้วโหลดไม่ได้เป็นธรรมชาติของหน้านี้
-  { re: /React is not defined|ReactDOM is not defined/, page: /languages\.html/ },
   // coding.html รันโค้ดผู้ใช้ใน iframe sandbox (ไม่มี allow-same-origin) ซึ่ง shell.js ในกรอบนั้นเข้าถึง serviceWorker ไม่ได้
   { re: /Failed to read the 'serviceWorker' property/, page: /coding\.html/ },
 ];

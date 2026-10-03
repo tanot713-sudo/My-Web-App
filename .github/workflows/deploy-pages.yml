@@ -52,7 +52,7 @@ jobs:
           cache: npm
           cache-dependency-path: tests/package-lock.json
       - run: npm ci
-      - name: repo-guards (bump CACHE / PRECACHE / ขนาดไฟล์ / languages.compiled.js / credits)
+      - name: repo-guards (bump CACHE / PRECACHE / ขนาดไฟล์ / JSX+Tailwind ของหน้า React ที่คอมไพล์แล้ว / credits)
         env:
           GUARD_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
         run: node repo-guards.mjs
