@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เปรียบเทียบข้อมูล | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="theme-boot.js"></script>
+<script src="data-registry.js"></script>
+<script src="tanot-data.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<script src="compare-calc.js" defer></script>
+<script src="file-reader.js" defer></script>
+<script src="compare.js" defer></script>
+<style>
+.cp-page{max-width:1180px}
+.cp-page .page-head h1{margin:0}
+.cp-page .stack > .card > * + *{margin-top:var(--ome-sp-3)}
+.cp-page .card-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cp-page .card-head h2{flex:1;margin:0;font-size:var(--ome-fs-md)}
+.cp-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ome-sp-4)}
+@media (max-width:760px){.cp-two{grid-template-columns:1fr}}
+.cp-two > .card > * + *{margin-top:var(--ome-sp-3)}
+.cp-fname{font-size:var(--ome-fs-sm);color:var(--ome-text-2);overflow-wrap:anywhere}
+.cp-check{display:flex;align-items:center;gap:6px;font-size:var(--ome-fs-sm);cursor:pointer}
+.cp-check input{width:auto;height:auto;accent-color:var(--ome-accent)}
+.cp-opts{display:flex;flex-wrap:wrap;gap:var(--ome-sp-3) var(--ome-sp-4);align-items:center}
+.cp-opts .tol{display:flex;align-items:center;gap:6px;font-size:var(--ome-fs-sm)}
+.cp-opts .tol input{width:90px}
+.cp-msg{margin:0;font-size:var(--ome-fs-sm);color:var(--ome-err-ink)}
+.cp-msg:empty{display:none}
+.cp-badges{display:flex;flex-wrap:wrap;gap:6px}
+.cp-map .table :is(th,td){white-space:normal}
+.cp-map select{min-width:140px;max-width:260px}
+.cp-map .dim{color:var(--ome-text-3)}
+.cp-grid .table td,.cp-grid .table th{max-width:280px;overflow:hidden;text-overflow:ellipsis}
+.cp-grid .table td.rn{color:var(--ome-text-2);font-variant-numeric:tabular-nums}
+.cp-grid td.chg{background:var(--ome-warn-soft)}
+.cp-grid td.chg del{color:var(--ome-err-ink);text-decoration:line-through}
+.cp-grid td.chg ins{color:var(--ome-ok-ink);text-decoration:none;font-weight:600}
+.cp-pager{display:flex;align-items:center;gap:8px;justify-content:flex-end;font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
+.cp-pager .sp{flex:1}
+/* diff ข้อความ */
+.cp-diff{border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);overflow:hidden;background:var(--ome-surface-1)}
+.cp-diff table{width:100%;border-collapse:collapse;table-layout:fixed;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Prompt",monospace;font-size:var(--ome-fs-sm)}
+.cp-diff td{padding:2px 8px;vertical-align:top;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55}
+.cp-diff td.ln{width:46px;text-align:right;color:var(--ome-text-3);user-select:none;font-variant-numeric:tabular-nums;padding-right:6px}
+.cp-diff td.sg{width:20px;text-align:center;color:var(--ome-text-2);user-select:none}
+.cp-diff td.del{background:var(--ome-err-soft)}
+.cp-diff td.add{background:var(--ome-ok-soft)}
+.cp-diff mark{background:transparent;border-radius:3px;font-weight:600}
+.cp-diff td.del mark{background:color-mix(in srgb,var(--ome-err) 28%,transparent);color:var(--ome-err-ink)}
+.cp-diff td.add mark{background:color-mix(in srgb,var(--ome-ok) 28%,transparent);color:var(--ome-ok-ink)}
+.cp-diff tr.cur td{outline:0;box-shadow:inset 3px 0 0 var(--ome-accent)}
+.cp-diff tr.fold td{background:var(--ome-surface-2);color:var(--ome-text-2);text-align:center;cursor:pointer;font-family:inherit;white-space:normal}
+.cp-diff tr.fold:hover td{color:var(--ome-text-1)}
+.cp-diff.split td.mid{width:1px;padding:0;background:var(--ome-border)}
+.cp-diffwrap{overflow-x:auto}
+textarea.cp-ta{min-height:220px;font-family:inherit;resize:vertical}
+/* ใบเสนอราคา */
+.cp-crit{display:grid;grid-template-columns:minmax(0,1fr) 110px auto auto;gap:8px;align-items:center}
+@media (max-width:640px){.cp-crit{grid-template-columns:minmax(0,1fr) 90px}.cp-crit .cp-check{grid-column:1}.cp-crit .rm{grid-column:2;justify-self:end}}
+.cp-bid .frow{margin-top:var(--ome-sp-3)}
+.cp-bid .head{display:flex;align-items:center;gap:8px}
+.cp-bid .head input{flex:1;font-weight:600}
+.cp-scores{display:flex;flex-wrap:wrap;gap:var(--ome-sp-3)}
+.cp-scores .field{flex:0 0 150px}
+.cp-files{display:flex;flex-direction:column;gap:6px;margin-top:var(--ome-sp-3)}
+.cp-file{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);font-size:var(--ome-fs-sm)}
+.cp-file a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ome-text-1)}
+.cp-rank .table td.num b{font-weight:700}
+.cp-rank tr.win td{background:var(--ome-ok-soft)}
+[hidden]{display:none !important}
+</style>
+</head>
+<body data-layout="tool">
+<main class="page cp-page">
+<nav class="crumb"><a href="area.html?a=work">งานที่รับผิดชอบ</a><span class="sep">/</span>เปรียบเทียบข้อมูล</nav>
+<div class="page-head"><h1>เปรียบเทียบข้อมูล</h1></div>
+
+<div class="tabs" id="tabs" role="tablist">
+  <button class="tab" type="button" role="tab" data-tab="table" aria-selected="true"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-spreadsheet"/></svg> เทียบตาราง</button>
+  <button class="tab" type="button" role="tab" data-tab="text" aria-selected="false"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-text"/></svg> เทียบเอกสาร</button>
+  <button class="tab" type="button" role="tab" data-tab="quotes" aria-selected="false"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-scale"/></svg> ให้คะแนนใบเสนอราคา</button>
+</div>
+
+<!-- ═══ 1. เทียบตาราง ═══ -->
+<section id="tab-table" role="tabpanel" aria-label="เทียบตาราง" class="stack" style="margin-top:var(--ome-sp-4)">
+  <div class="cp-two">
+    <div class="card" id="sideA">
+      <div class="card-head"><h2>ไฟล์ A</h2></div>
+      <div class="dropzone" id="dropA" role="button" tabindex="0"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg><div class="dropzone-main" id="dropAMain">เลือกไฟล์ A (.xlsx .xls .csv)</div></div>
+      <input type="file" id="fileA" accept=".xlsx,.xls,.csv" hidden>
+      <div class="frow">
+        <div class="field"><label for="sheetA">ชีต</label><select id="sheetA" class="select" disabled></select></div>
+        <div class="field" style="flex:0 0 120px"><label for="hdrA">แถวหัวตาราง</label><input id="hdrA" type="number" min="1" step="1" value="1" disabled></div>
+      </div>
+      <div class="cp-fname" id="infoA"></div>
+    </div>
+    <div class="card" id="sideB">
+      <div class="card-head"><h2>ไฟล์ B</h2></div>
+      <div class="dropzone" id="dropB" role="button" tabindex="0"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg><div class="dropzone-main" id="dropBMain">เลือกไฟล์ B (.xlsx .xls .csv)</div></div>
+      <input type="file" id="fileB" accept=".xlsx,.xls,.csv" hidden>
+      <div class="frow">
+        <div class="field"><label for="sheetB">ชีต</label><select id="sheetB" class="select" disabled></select></div>
+        <div class="field" style="flex:0 0 120px"><label for="hdrB">แถวหัวตาราง</label><input id="hdrB" type="number" min="1" step="1" value="1" disabled></div>
+      </div>
+      <div class="cp-fname" id="infoB"></div>
+    </div>
+  </div>
+  <p class="cp-msg" id="tMsg" role="alert"></p>
+
+  <div class="card" id="mapCard" hidden>
+    <div class="card-head"><h2>คอลัมน์</h2><div class="cp-badges" id="mapBadges"></div></div>
+    <div class="table-wrap cp-map"><table class="table" id="mapTable"><thead><tr><th>คีย์หลัก</th><th>คอลัมน์ใน A</th><th>จับคู่กับคอลัมน์ใน B</th><th>ไม่เทียบ</th></tr></thead><tbody id="mapBody"></tbody></table></div>
+    <div class="cp-opts">
+      <label class="cp-check"><input type="checkbox" id="optCase" checked> ไม่สนตัวพิมพ์ใหญ่เล็ก</label>
+      <label class="cp-check"><input type="checkbox" id="optTrim" checked> ตัดช่องว่างหัวท้าย</label>
+      <label class="tol">ตัวเลขคลาดเคลื่อนได้ ±<input id="optTol" type="number" min="0" step="any" value="0" inputmode="decimal" class="input"></label>
+      <span style="flex:1"></span>
+      <button class="btn primary" type="button" id="runTable" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-arrow-up-down"/></svg>เทียบ</button>
+    </div>
+  </div>
+
+  <div id="resBox" hidden class="stack">
+    <div class="kpi-grid" id="kpis"></div>
+    <div id="dupWarn"></div>
+    <div class="card">
+      <div class="card-head">
+        <div class="segmented" id="groupSeg" role="group" aria-label="กลุ่มผลลัพธ์"></div>
+        <span style="flex:1"></span>
+        <button class="btn" type="button" id="exportTable"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg>ส่งออก .xlsx</button>
+      </div>
+      <div class="table-wrap cp-grid"><table class="table" id="resTable"><thead id="resHead"></thead><tbody id="resBody"></tbody></table></div>
+      <div class="cp-pager" id="pager"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 2. เทียบเอกสาร ═══ -->
+<section id="tab-text" role="tabpanel" aria-label="เทียบเอกสาร" class="stack" style="margin-top:var(--ome-sp-4)" hidden>
+  <div class="cp-two">
+    <div class="card">
+      <div class="card-head"><h2>ข้อความ A</h2>
+        <button class="btn sm" type="button" data-pick="A"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-plus"/></svg>เลือกไฟล์</button>
+        <button class="btn sm ghost" type="button" data-clear="A">ล้าง</button></div>
+      <textarea class="textarea cp-ta" id="txtA" aria-label="ข้อความ A" spellcheck="false"></textarea>
+      <div class="cp-fname" id="txtInfoA"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>ข้อความ B</h2>
+        <button class="btn sm" type="button" data-pick="B"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-plus"/></svg>เลือกไฟล์</button>
+        <button class="btn sm ghost" type="button" data-clear="B">ล้าง</button></div>
+      <textarea class="textarea cp-ta" id="txtB" aria-label="ข้อความ B" spellcheck="false"></textarea>
+      <div class="cp-fname" id="txtInfoB"></div>
+    </div>
+  </div>
+  <input type="file" id="txtFile" accept=".txt,.docx,.pdf" hidden>
+  <p class="cp-msg" id="xMsg" role="alert"></p>
+  <div class="card">
+    <div class="cp-opts">
+      <label class="cp-check"><input type="checkbox" id="optSpace"> ไม่สนช่องว่าง</label>
+      <div class="segmented" id="viewSeg" role="group" aria-label="มุมมอง">
+        <button type="button" data-view="split" aria-pressed="true">ซ้าย-ขวา</button>
+        <button type="button" data-view="unified" aria-pressed="false">รวม</button>
+      </div>
+      <span style="flex:1"></span>
+      <button class="btn primary" type="button" id="runText"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-arrow-up-down"/></svg>เทียบ</button>
+    </div>
+  </div>
+  <div id="diffBox" hidden class="stack">
+    <div class="card">
+      <div class="card-head">
+        <div class="cp-badges" id="diffStats"></div>
+        <span style="flex:1"></span>
+        <span class="cp-fname" id="hunkPos"></span>
+        <button class="btn sm" type="button" id="prevHunk"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-chevron-up"/></svg>ก่อนหน้า</button>
+        <button class="btn sm" type="button" id="nextHunk"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-chevron-down"/></svg>ถัดไป</button>
+      </div>
+      <div class="cp-diffwrap"><div class="cp-diff" id="diffView"></div></div>
+      <div class="cp-pager" id="diffPager"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 3. ใบเสนอราคา ═══ -->
+<section id="tab-quotes" role="tabpanel" aria-label="ให้คะแนนใบเสนอราคา" class="stack" style="margin-top:var(--ome-sp-4)" hidden>
+  <div class="card">
+    <div class="frow">
+      <div class="field"><label for="jobSel">งานเปรียบเทียบราคา</label><select id="jobSel" class="select"></select></div>
+      <div class="field"><label for="jobName">ชื่องาน</label><input id="jobName" type="text" maxlength="120" autocomplete="off"></div>
+      <button class="btn" type="button" id="jobNew"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>งานใหม่</button>
+      <button class="btn danger" type="button" id="jobDel"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg>ลบงาน</button>
+    </div>
+  </div>
+  <p class="cp-msg" id="qMsg" role="alert"></p>
+  <div id="jobBody" class="stack" hidden>
+    <div class="card">
+      <div class="card-head"><h2>เกณฑ์ให้คะแนน</h2><span id="wTotal"></span>
+        <button class="btn sm" type="button" id="critAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มเกณฑ์</button></div>
+      <div class="stack" id="critList"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>ผู้เสนอราคา</h2>
+        <button class="btn sm" type="button" id="bidAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มผู้เสนอราคา</button></div>
+      <div class="stack" id="bidList"></div>
+    </div>
+    <div class="card cp-rank">
+      <div class="card-head"><h2>ผลจัดอันดับ</h2>
+        <button class="btn" type="button" id="exportQuote"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg>ส่งออก .xlsx</button></div>
+      <div id="rankBox"></div>
+    </div>
+  </div>
+  <input type="file" id="bidFile" accept="application/pdf,image/*" multiple hidden>
+</section>
+</main>
+</body>
+</html>

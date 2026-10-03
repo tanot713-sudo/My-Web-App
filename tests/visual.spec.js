@@ -30,6 +30,7 @@ const PAGES = [
   'health.html',
   'receipts.html',
   'maintenance.html',
+  'compare.html',
   'budget.html',
   'word.html',
   'excel.html',
