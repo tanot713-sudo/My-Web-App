@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>กองทุน | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#3B9BEA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="theme-boot.js"></script>
+<script src="data-registry.js"></script>
+<script src="tanot-data.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script>window.TANOT_NO_RELOAD_BAR = true;</script>
+<script src="shell.js" defer></script>
+<script src="chart-theme.js" defer></script>
+<style>
+.tabs{margin-bottom:var(--ome-sp-4)}
+.tabpanel[hidden]{display:none}
+.unit{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:500}
+.risk-scale{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.risk-seg{border-radius:var(--ome-radius-md);padding:8px 4px;text-align:center;color:var(--ome-text-1);font-size:var(--ome-fs-xs);font-weight:600;min-height:56px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.risk-seg .n{font-size:var(--ome-fs-base);font-weight:700}
+@media(max-width:520px){.risk-scale{grid-template-columns:repeat(4,1fr)}}
+.tax-line{display:flex;justify-content:space-between;gap:12px;font-size:var(--ome-fs-sm);padding:4px 0;border-bottom:1px dashed var(--ome-border)}
+.tax-line .v{font-weight:700;text-align:right}
+.tax-cap-note{font-size:var(--ome-fs-xs);color:var(--ome-warn-ink)}
+.nav-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 8px}
+.nav-row input{max-width:150px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+</style>
+</head>
+<body data-layout="tool" data-invest-key="fund">
+
+<nav class="subnav" id="ivNav"><div class="subnav-sub"><div class="subnav-row" id="ivSubRow"></div></div></nav>
+
+<main class="page">
+  <nav class="crumb"><a href="invest.html" data-i18n="crumbHome">การลงทุน</a><span>›</span><span id="crumbHere" data-i18n="tabTh">กองทุนไทย</span></nav>
+
+  <div class="page-head"><h1 id="pageTitle" data-i18n="pageTitleTh">กองทุนรวมไทย — วางแผน DCA + ประหยัดภาษี</h1></div>
+
+  <div class="tabs" id="fundTabs"></div>
+
+  <div class="stack tabpanel" id="panel-th" data-panel="th"></div>
+  <div class="stack tabpanel" id="panel-global" data-panel="global" hidden></div>
+</main>
+
+<script src="invest-calc.js" defer></script>
+<script src="tax-calc.js" defer></script>
+<script src="invest-core.js" defer></script>
+<script src="invest-fund.js" defer></script>
+</body>
+</html>

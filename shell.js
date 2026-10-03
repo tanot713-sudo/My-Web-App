@@ -146,8 +146,9 @@
                 { key: 'gov-bond',     label: 'พันธบัตรรัฐบาล',   href: 'invest-gov-bond.html' },
                 { key: 'gsb-lottery',  label: 'สลากออมสิน',       href: 'invest-gsb-lottery.html' },
                 { key: 'baac-lottery', label: 'สลาก ธ.ก.ส.',      href: 'invest-baac-lottery.html' },
-                { key: 'thai-fund',    label: 'กองทุนไทย',        href: 'invest-thai-fund.html' },
-                { key: 'global-fund',  label: 'กองทุนต่างประเทศ', href: 'invest-global-fund.html' },
+                { key: 'fund',         label: 'กองทุน',            href: 'invest-fund.html#th', keywords: 'กองทุน fund rmf ssf thai esg dca s&p500 กองทุนไทย กองทุนต่างประเทศ nav',
+                  tabs: [ { key: 'thai-fund', label: 'กองทุนไทย', hash: 'th', keywords: 'กองทุนไทย rmf ssf thai esg ลดหย่อนภาษี' },
+                          { key: 'global-fund', label: 'กองทุนต่างประเทศ', hash: 'global', keywords: 'กองทุนต่างประเทศ s&p500 สะสมมูลค่า ปันผล' } ] },
                 { key: 'bitcoin',      label: 'Bitcoin',          href: 'invest-bitcoin.html' },
                 { key: 'lottery',      label: 'สลากกินแบ่งรัฐบาล', href: 'invest-lottery.html' }
               ]

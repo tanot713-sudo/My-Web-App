@@ -1136,6 +1136,8 @@ const STUBS = {
   'invest-global-stock.html': 'invest-stock.html#us',
   'invest-set50-scanner.html': 'invest-stock.html#scan',
   'invest-portfolio.html': 'invest-stock.html#paper',
+  'invest-thai-fund.html': 'invest-fund.html#th',
+  'invest-global-fund.html': 'invest-fund.html#global',
 };
 test.describe('หน้า redirect ของ URL เดิม', () => {
   for (const [from, to] of Object.entries(STUBS)) {
@@ -1470,5 +1472,207 @@ test.describe('แท็บ #paper (พอร์ตจำลอง)', () => {
     await openPaper(page, { seed: false });
     await expect(page.locator('#sCash')).toHaveText('฿1,000,000');
     expect(await page.evaluate(() => localStorage.getItem('tanot:invest:portfolio'))).toBeNull();
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   หน้า (Playwright) — ส่วนที่ 7: หน้ากองทุน invest-fund.html (ขั้น 8)
+   ═══════════════════════════════════════════════════════════════════ */
+test.describe('หน้ากองทุน invest-fund.html', () => {
+  const TFUND = [
+    { fund: 'K-RMF', cat: 'rmf', amt: 10000, nav: 10, units: 1000, ts: Date.parse('2026-05-01T10:00:00+07:00'), extra: 'keep' },
+    { fund: 'Y-ESG', cat: 'esg', amt: 60000, nav: 10, units: 6000, ts: Date.parse('2026-06-01T10:00:00+07:00') },
+    { fund: 'Z-RMF', cat: 'rmf', amt: 99999, nav: 10, units: 9999.9, ts: Date.parse('2025-06-01T10:00:00+07:00') },
+  ];
+  const SPFUND = [{ cls: 'สะสมมูลค่า', amt: 5000, nav: 20, units: 250, ts: 9 }];
+  async function openFund(page, hash = '#th', { seed = true } = {}) {
+    const errors = await prepare(page);
+    const hosts = trackExternal(page);
+    await page.addInitScript(([th, sp, seed]) => {
+      if (localStorage.getItem('__seeded')) return;
+      if (seed) { localStorage.setItem('tanot:invest:thaifund', JSON.stringify(th)); localStorage.setItem('tanot:invest:spfund', JSON.stringify(sp)); }
+      localStorage.setItem('__seeded', '1');
+    }, [TFUND, SPFUND, seed]);
+    await page.clock.setFixedTime(new Date(NOW));
+    await page.goto('/invest-fund.html' + hash);
+    await page.waitForSelector('nav.ome-nav');
+    return { errors, hosts };
+  }
+  const get = (page, k) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), k);
+  const money = (n) => '฿' + Math.round(n).toLocaleString('en-US');
+
+  test('#th: แถวเดิมแสดงครบ · เพิ่มผ่าน UI ได้ชุดฟิลด์ตรงเดิม · ลบด้วย ts แล้วแถวเดิมอยู่ครบ · ไม่ออกเน็ตนอกที่อนุญาต', async ({ page }) => {
+    const { errors, hosts } = await openFund(page);
+    await expect(page.locator('#fundTabs [data-tab="th"]')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#th_lgBox .log-group-hd')).toHaveCount(3);
+    await expect(page.locator('#th_lgBox tbody tr')).toHaveCount(3);
+    const before = await get(page, 'tanot:invest:thaifund');
+    await page.fill('#th_lgFund', 'SCB-RMF'); await page.selectOption('#th_lgCat', 'rmf');
+    await page.fill('#th_lgAmt', '10000'); await page.fill('#th_lgNav', '12.5'); await page.click('#th_lgAdd');
+    await expect(page.locator('#th_lgBox tbody tr')).toHaveCount(4);
+    const after = await get(page, 'tanot:invest:thaifund');
+    expect(after.slice(0, 3)).toEqual(before);
+    expect(Object.keys(after[3]).sort()).toEqual(['amt', 'cat', 'fund', 'nav', 'ts', 'units']);
+    expect(after[3]).toMatchObject({ fund: 'SCB-RMF', cat: 'rmf', amt: 10000, nav: 12.5, units: 800 });
+    await page.locator('#th_lgBox .log-del[data-ts="' + after[3].ts + '"]').click();
+    expect(await get(page, 'tanot:invest:thaifund')).toEqual(before);
+    expect(hosts.filter((h) => !/^fonts\./.test(h))).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test('NAV ล่าสุด: พิมพ์แล้วบันทึกที่ tanot:invest:nav (th:<กองทุน>) + แสดงกำไร/ขาดทุน · ล้างช่อง = ลบคีย์ · ไม่แตะสมุดซื้อ', async ({ page }) => {
+    await openFund(page);
+    const before = await get(page, 'tanot:invest:thaifund');
+    expect(await get(page, 'tanot:invest:nav')).toBeNull();
+    await page.fill('#th_nav_K-RMF', '11');
+    const nav = await get(page, 'tanot:invest:nav');
+    expect(Object.keys(nav)).toEqual(['th:K-RMF']);
+    expect(nav['th:K-RMF']).toMatchObject({ nav: 11, d: '2026-10-03' });
+    expect(typeof nav['th:K-RMF'].ts).toBe('number');
+    await expect(page.locator('[data-pl="K-RMF"]')).toContainText('฿11,000'); // 1000 หน่วย × 11
+    await expect(page.locator('[data-pl="K-RMF"]')).toContainText('+฿1,000');
+    await page.fill('#th_nav_K-RMF', '');
+    expect(await get(page, 'tanot:invest:nav')).toEqual({});
+    expect(await get(page, 'tanot:invest:thaifund')).toEqual(before);
+    // เปิดใหม่ = ช่อง NAV กลับมาจากคีย์
+    await page.fill('#th_nav_Y-ESG', '10.5');
+    await page.reload(); await page.waitForSelector('nav.ome-nav');
+    await expect(page.locator('#th_nav_Y-ESG')).toHaveValue('10.5');
+  });
+
+  test('#global: แถว spfund เดิม · เพิ่ม/ลบผ่าน UI ตรงรูปแบบเดิม (cls ค่าไทยตายตัว) · NAV ของชนิดบันทึกที่ global:<ชนิด>', async ({ page }) => {
+    await openFund(page, '#global');
+    await expect(page.locator('#fundTabs [data-tab="global"]')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#gl_lgBox tbody tr')).toHaveCount(1);
+    await page.selectOption('#gl_lgClass', 'ปันผล'); await page.fill('#gl_lgAmt', '3000'); await page.fill('#gl_lgNav', '15'); await page.click('#gl_lgAdd');
+    const rows = await get(page, 'tanot:invest:spfund');
+    expect(rows[0]).toEqual(SPFUND[0]);
+    expect(Object.keys(rows[1]).sort()).toEqual(['amt', 'cls', 'nav', 'ts', 'units']);
+    expect(rows[1]).toMatchObject({ cls: 'ปันผล', amt: 3000, nav: 15, units: 200 });
+    await page.fill('#gl_nav_สะสมมูลค่า', '22');
+    expect((await get(page, 'tanot:invest:nav'))['global:สะสมมูลค่า']).toMatchObject({ nav: 22, d: '2026-10-03' });
+    await page.locator('#gl_lgBox .log-del[data-ts="' + rows[1].ts + '"]').click();
+    expect(await get(page, 'tanot:invest:spfund')).toEqual(SPFUND);
+  });
+
+  test('แผน DCA ตรง InvestCalc.fundPlan · ตลาดย่อใช้ drawdown เดิม (−20% → ×1.5)', async ({ page }) => {
+    await openFund(page);
+    const pl = C.fundPlan({ accM: 3000, divM: 3000, years: 10, cagr: 6, fee: 1.5, dy: 2.5 });
+    await expect(page.locator('#th_oValue')).toHaveText(money(pl.valueTotal));
+    await expect(page.locator('#th_oContrib')).toHaveText(money(pl.contribTotal));
+    await page.fill('#th_idxNow', '75'); await page.fill('#th_idxAth', '100'); await page.click('#th_ddBtn');
+    await expect(page.locator('#th_tranche .tr-box[data-dd="20"]')).toHaveClass(/on/);
+    await expect(page.locator('#th_ddOut')).toContainText('฿9,000'); // (3000+3000) × 1.5
+  });
+
+  test('การ์ดภาษี = TaxCalc.simulate ของปีเดียวกัน (กฎจาก tax-rules/*.json) · SSF ซ่อนเมื่อปีนั้นไม่มีสิทธิ', async ({ page }) => {
+    await openFund(page);
+    const T = require(path.join(__dirname, '..', 'tax-calc.js'));
+    const R69 = JSON.parse(require('fs').readFileSync(path.join(__dirname, '..', 'tax-rules', '2569.json'), 'utf8'));
+    await expect(page.locator('#txYear')).toHaveValue('2569');
+    await expect(page.locator('[data-row="ssf"]')).toBeHidden();
+    await page.fill('#txIncome', '1000000'); await page.fill('#txRmf', '100000'); await page.fill('#txEsg', '50000'); await page.fill('#txOther', '20000');
+    await page.click('#txBtn');
+    const r = T.simulate(R69, { salary: 1000000, gpf: 20000 }, { rmf: 100000, thaiEsg: 50000 });
+    expect(r.saved).toBeGreaterThan(0);
+    await expect(page.locator('#txBefore')).toHaveText(money(r.before.tax));
+    await expect(page.locator('#txAfter')).toHaveText(money(r.after.tax));
+    await expect(page.locator('#txSaved')).toHaveText(money(r.saved));
+    // แผนหลายปี: ปีแรก = เท่ากับ simulate ปีเดียวกัน
+    await page.locator('#txOut details summary').click();
+    await page.click('#txProjBtn');
+    await expect(page.locator('#txProjTable tbody tr').first()).toContainText(money(r.saved));
+    // ไม่มีเพดาน/ขั้นภาษีฝังในไฟล์ของหน้า
+    const src = require('fs').readFileSync(path.join(__dirname, '..', 'invest-fund.js'), 'utf8');
+    expect(src).not.toMatch(/\b(500000|300000|750000|2000000|5000000)\b/);
+  });
+
+  test('"ใช้ยอดจากสมุดซื้อปีนี้" เติม RMF/ESG ของปีภาษีที่เลือก · ปุ่มไป tax.html#sim เปิดแท็บ "ถ้าซื้อเพิ่ม"', async ({ page }) => {
+    await openFund(page);
+    await page.fill('#txIncome', '800000');
+    await page.click('#txFromLogBtn');
+    await expect(page.locator('#txRmf')).toHaveValue('10000');
+    await expect(page.locator('#txEsg')).toHaveValue('60000');
+    await page.click('#txSimLink');
+    await page.waitForURL(/tax(\.html)?#sim$/);
+    await expect(page.locator('#txTabs [data-tab="sim"]')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#txSim')).toBeVisible();
+  });
+
+  test('tax.html เติมยอดกองทุนจากการซื้อที่เพิ่มผ่านหน้ากองทุน · tax.html#sim เปิดแท็บ sim ตรงๆ', async ({ page }) => {
+    await openFund(page, '#th', { seed: false });
+    await page.fill('#th_lgFund', 'A-RMF'); await page.selectOption('#th_lgCat', 'rmf'); await page.fill('#th_lgAmt', '50000'); await page.fill('#th_lgNav', '10'); await page.click('#th_lgAdd');
+    await page.fill('#th_lgFund', 'B-ESG'); await page.selectOption('#th_lgCat', 'esg'); await page.fill('#th_lgAmt', '60000'); await page.fill('#th_lgNav', '10'); await page.click('#th_lgAdd');
+    await expect(page.locator('#th_lgBox tbody tr')).toHaveCount(2);
+    await page.goto('/tax.html'); await page.waitForSelector('#txKpi .kpi');
+    await expect(page.locator('#tx_rmf')).toHaveAttribute('placeholder', '50,000');
+    await expect(page.locator('#tx_thaiEsg')).toHaveAttribute('placeholder', '60,000');
+    await page.goto('/tax.html#sim'); await page.waitForSelector('#txKpi .kpi');
+    await expect(page.locator('#txTabs [data-tab="sim"]')).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('วันพร้อมขาย: ใช้ InvestCalc.eligibilityFor · ปีเกิด ค.ศ./พ.ศ. ให้ผลเดียวกัน · เก็บปีเกิดที่คีย์เดิม', async ({ page }) => {
+    await openFund(page);
+    // RMF ไม้แรก 2025 → ครบ 5 ปี 2030 · อายุ 55 (เกิด 1990) → 2045 · ESG ไม้แรก 2026 → +5 = 2031
+    await expect(page.locator('#elBox [data-cat="esg"]')).toContainText('1 ม.ค. 2031');
+    await expect(page.locator('#elBox [data-cat="rmf"]')).toContainText('1 ม.ค. 2030');
+    await page.fill('#elBirthYear', '1990');
+    await expect(page.locator('#elBox [data-cat="rmf"]')).toContainText('1 ม.ค. 2045');
+    expect(await page.evaluate(() => localStorage.getItem('tanot:invest:thaifund:birthyear'))).toBe('1990');
+    await page.fill('#elBirthYear', '2533');
+    await expect(page.locator('#elBox [data-cat="rmf"]')).toContainText('1 ม.ค. 2045');
+  });
+
+  test('แท็บ: hash เลือกแท็บ · ไม่มี hash ใช้แท็บล่าสุด · เปลี่ยนแท็บไม่เพิ่มประวัติ', async ({ page }) => {
+    await openFund(page, '#global');
+    await expect(page.locator('#panel-global')).toBeVisible(); await expect(page.locator('#panel-th')).toBeHidden();
+    await page.click('#fundTabs [data-tab="th"]');
+    expect(new URL(page.url()).hash).toBe('#th');
+    await page.goto('/invest-fund.html#global'); await page.waitForSelector('nav.ome-nav');
+    await page.goto('/invest-fund.html'); await page.waitForSelector('nav.ome-nav');
+    await expect(page.locator('#fundTabs [data-tab="global"]')).toHaveAttribute('aria-selected', 'true');
+  });
+});
+
+test.describe('กองทุน ซิงก์ 2 เครื่อง', () => {
+  test.describe.configure({ mode: 'serial' });
+  test.beforeEach(async ({ request }) => { await request.get('http://localhost:8138/__reset'); });
+  test('A ลบแถวซื้อ (ตาม ts) ขณะ B เพิ่มแถวใหม่ → ผลเดียวกัน · NAV ของ B ซิงก์ไป A', async ({ browser }) => {
+    const SRV = 'http://localhost:8138';
+    const sync = (p) => p.evaluate(() => window.TanotData.syncNow().then((s) => s.state));
+    const store = (page, k) => page.evaluate((key) => JSON.parse(localStorage.getItem(key) || 'null'), k);
+    const seedRows = [{ fund: 'K-RMF', cat: 'rmf', amt: 10000, nav: 10, units: 1000, ts: 1 }, { fund: 'Y-ESG', cat: 'esg', amt: 6000, nav: 10, units: 600, ts: 2 }];
+    async function dev(nowMs) {
+      const ctx = await browser.newContext({ baseURL: SRV });
+      const page = await ctx.newPage();
+      const errors = await prepare(page);
+      await page.addInitScript((rows) => {
+        window.TANOT_SYNC = { enabled: true, initialDelay: 60000, interval: 1e9 };
+        if (localStorage.getItem('__seeded')) return;
+        localStorage.setItem('tanot:invest:thaifund', JSON.stringify(rows)); localStorage.setItem('__seeded', '1');
+      }, seedRows);
+      await page.clock.setFixedTime(new Date(nowMs));
+      await page.goto('/invest-fund.html#th'); await page.waitForSelector('nav.ome-nav');
+      return { ctx, page, errors };
+    }
+    const A = await dev(NOW), B = await dev(NOW);
+    for (let i = 0; i < 2; i++) { await sync(A.page); await sync(B.page); }
+    await A.page.clock.setFixedTime(new Date(NOW + 120000));
+    await A.page.locator('#th_lgBox .log-del[data-ts="1"]').click();
+    await B.page.clock.setFixedTime(new Date(NOW + 60000));
+    await B.page.fill('#th_lgFund', 'NEW-SSF'); await B.page.selectOption('#th_lgCat', 'ssf'); await B.page.fill('#th_lgAmt', '5000'); await B.page.fill('#th_lgNav', '10'); await B.page.click('#th_lgAdd');
+    await B.page.fill('#th_nav_Y-ESG', '12');
+    for (let i = 0; i < 3; i++) { await sync(A.page); await sync(B.page); }
+    await B.page.evaluate(() => document.activeElement && document.activeElement.blur()); // ขณะโฟกัสช่อง NAV หน้าไม่วาดสมุดทับ
+    for (let i = 0; i < 2; i++) { await sync(A.page); await sync(B.page); }
+    for (const d of [A, B]) {
+      const rows = await store(d.page, 'tanot:invest:thaifund');
+      expect(rows.map((r) => r.fund).sort()).toEqual(['NEW-SSF', 'Y-ESG']);
+      expect((await store(d.page, 'tanot:invest:nav'))['th:Y-ESG']).toMatchObject({ nav: 12 });
+      await expect(d.page.locator('#th_lgBox tbody tr')).toHaveCount(2);
+    }
+    for (const d of [A, B]) expect(d.errors).toEqual([]);
+    await A.ctx.close(); await B.ctx.close();
   });
 });
