@@ -55,6 +55,15 @@
     { key: 'tanot:mnt:plans', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:mnt:settings', kind: 'sync' },
 
+    // ── สุขภาพ (health.html) — 1 การบันทึก = 1 แถว · intake id = ยา|วัน|เวลา (กดกินพร้อมกัน 2 เครื่อง = แถวเดียวกัน) ──
+    { key: 'tanot:health:vitals', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:health:checkups', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:health:meds', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:health:intake', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:health:workouts', kind: 'sync', mode: 'list', idField: 'id' }, // จุดเชื่อมหน้ากีฬา (ยังไม่มีใครเขียน)
+    { key: 'tanot:health:ranges', kind: 'sync', mode: 'map' },
+    { key: 'tanot:health:settings', kind: 'sync' },
+
     // ── รายการที่เพิ่มได้จากหลายเครื่อง (แยกรายการย่อย) ──
     { key: 'tanot:insurance:policies', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'budget:records', kind: 'sync', mode: 'list', idField: 'id' },

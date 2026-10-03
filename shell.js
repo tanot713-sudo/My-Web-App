@@ -152,7 +152,7 @@
             }
           ]
         },
-        { key: 'health',   label: 'สุขภาพ', icon: 'heart-pulse', href: soonHref('สุขภาพ'), status: 'soon', keywords: 'สุขภาพ health' },
+        { key: 'health',   label: 'สุขภาพ', icon: 'heart-pulse', href: 'health.html', keywords: 'สุขภาพ health น้ำหนัก ความดัน ชีพจร น้ำตาล รอบเอว ผลตรวจ แล็บ ยา อาหารเสริม เตือนกินยา วิตามิน' },
         { key: 'receipts', label: 'คลังใบเสร็จ/ประกันสินค้า', icon: 'receipt', href: soonHref('คลังใบเสร็จ/ประกันสินค้า'), status: 'soon', keywords: 'ใบเสร็จ ประกันสินค้า warranty receipt' }
       ]
     },

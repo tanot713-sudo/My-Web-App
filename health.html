@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>สุขภาพ | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="theme-boot.js"></script>
+<script src="data-registry.js"></script>
+<script src="tanot-data.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<script src="chart-theme.js" defer></script>
+<script src="health-calc.js" defer></script>
+<script src="tanot-push.js" defer></script>
+<script src="health.js" defer></script>
+<style>
+.hl-page .page-head{align-items:center}
+.hl-page .page-head h1{flex:1;margin:0}
+.hl-page .card > .card-head{margin-bottom:var(--ome-sp-3)}
+.hl-page .kpi-value small{font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2);margin-left:4px}
+.hl-page .kpi .row{justify-content:space-between;min-height:22px}
+.hl-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ome-sp-3)}
+.hl-form .wide{grid-column:1 / -1}
+.hl-form .actions{display:flex;gap:8px;flex-wrap:wrap}
+.hl-form .actions .grow{flex:1}
+.hl-msg{color:var(--ome-err-ink);font-size:var(--ome-fs-sm);margin:0}
+.hl-msg:empty{display:none}
+.hl-chart svg{display:block;width:100%;height:auto}
+.hl-chart .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:6px}
+.hl-chart .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:baseline}
+.hl-list .list-row .end{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.hl-list .list-row .meta{white-space:normal}
+.hl-list .vbadges{margin-top:4px}
+.hl-list .list-row.done .title{color:var(--ome-text-2);text-decoration:line-through}
+.hl-list .num{font-variant-numeric:tabular-nums}
+@media (max-width:640px){
+  .hl-list .list-row{flex-wrap:wrap}
+  .hl-list .list-row .end{width:100%;justify-content:flex-start;padding-left:48px}
+}
+.hl-sub{margin:var(--ome-sp-4) 0 var(--ome-sp-2);font-size:var(--ome-fs-sm);color:var(--ome-text-2);font-weight:600}
+.hl-dialog{width:min(620px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
+.hl-dialog .dialog-body > * + *{margin-top:var(--ome-sp-3)}
+.hl-dialog .check{display:flex;gap:8px;align-items:center;font-size:var(--ome-fs-sm)}
+.hl-dialog .check input{width:auto;height:auto}
+.hl-labs{display:flex;flex-direction:column;gap:8px}
+.hl-lab{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto;gap:6px;align-items:center}
+.hl-lab input{min-width:0;height:36px;padding:0 8px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);color:var(--ome-text-1);font-size:var(--ome-fs-sm);width:100%}
+@media (max-width:640px){
+  .hl-lab{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .hl-lab .nm{grid-column:1 / -1}
+  .hl-lab .rm{grid-column:4;justify-self:end}
+}
+.hl-times{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.hl-times .chip input{width:auto;height:auto;border:0;background:transparent;color:inherit;font:inherit;padding:0}
+.hl-files{display:flex;flex-direction:column;gap:6px}
+.hl-file{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);font-size:var(--ome-fs-sm)}
+.hl-file a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ome-text-1)}
+.hl-file .sz{color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
+.hl-ranges{display:grid;grid-template-columns:minmax(0,1fr) 90px 90px;gap:8px;align-items:center}
+.hl-ranges input{min-width:0}
+[hidden]{display:none !important}
+</style>
+</head>
+<body data-layout="dashboard">
+<main class="page hl-page">
+  <div class="page-head">
+    <h1>สุขภาพ</h1>
+    <button class="btn icon" type="button" id="setBtn" aria-label="ตั้งค่า"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-settings"/></svg></button>
+  </div>
+
+  <div class="grid">
+    <div class="kpi-grid span-12" id="kpis"></div>
+
+    <section class="card span-4" aria-labelledby="hVital">
+      <div class="card-head"><h2 id="hVital">บันทึกสัญญาณชีพ</h2></div>
+      <form class="hl-form" id="vForm" novalidate>
+        <div class="field wide"><label for="vAt">วันเวลา</label><input id="vAt" type="datetime-local"></div>
+        <div class="field"><label for="vWeight">น้ำหนัก (กก.)</label><input id="vWeight" type="number" inputmode="decimal" step="any" min="0"></div>
+        <div class="field"><label for="vWaist">รอบเอว (ซม.)</label><input id="vWaist" type="number" inputmode="decimal" step="any" min="0"></div>
+        <div class="field"><label for="vSys">ความดันตัวบน</label><input id="vSys" type="number" inputmode="decimal" step="any" min="0"></div>
+        <div class="field"><label for="vDia">ความดันตัวล่าง</label><input id="vDia" type="number" inputmode="decimal" step="any" min="0"></div>
+        <div class="field"><label for="vHr">ชีพจร (ครั้ง/นาที)</label><input id="vHr" type="number" inputmode="decimal" step="any" min="0"></div>
+        <div class="field"><label for="vGlu">น้ำตาล (mg/dL)</label><input id="vGlu" type="number" inputmode="decimal" step="any" min="0"></div>
+        <div class="field wide"><label for="vNote">บันทึก</label><input id="vNote" type="text" maxlength="200" autocomplete="off"></div>
+        <p class="hl-msg wide" id="vMsg" role="alert"></p>
+        <div class="actions wide">
+          <button class="btn primary grow" type="submit" id="vSave"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-save"/></svg><span>บันทึก</span></button>
+          <button class="btn" type="button" id="vCancel" hidden>ยกเลิก</button>
+          <button class="btn danger" type="button" id="vDel" hidden>ลบ</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card span-8" aria-labelledby="hTrend">
+      <div class="card-head"><h2 id="hTrend">แนวโน้ม</h2><select id="trendSel" class="select" aria-label="ค่าที่แสดง" style="width:auto;max-width:60%"></select></div>
+      <div class="hl-chart" id="chart"></div>
+    </section>
+
+    <section class="card span-6" aria-labelledby="hMeds">
+      <div class="card-head"><h2 id="hMeds">ยา/อาหารเสริม</h2><button class="btn sm" type="button" id="medAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่ม</button></div>
+      <div class="hl-list" id="medToday"></div>
+      <div class="hl-list" id="medList"></div>
+    </section>
+
+    <section class="card span-6" aria-labelledby="hHist">
+      <div class="card-head"><h2 id="hHist">ประวัติบันทึก</h2></div>
+      <div class="hl-list" id="vList"></div>
+    </section>
+
+    <section class="card span-12" aria-labelledby="hChk">
+      <div class="card-head"><h2 id="hChk">ผลตรวจสุขภาพประจำปี</h2><button class="btn sm" type="button" id="chkAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มผลตรวจ</button></div>
+      <div class="hl-list" id="chkList"></div>
+    </section>
+  </div>
+</main>
+
+<dialog class="dialog hl-dialog" id="chkDlg" aria-labelledby="chkTitle">
+  <form method="dialog" id="chkForm" novalidate>
+    <div class="dialog-head"><h2 id="chkTitle">ผลตรวจสุขภาพ</h2></div>
+    <div class="dialog-body">
+      <div class="frow">
+        <div class="field"><label for="cDate">วันที่ตรวจ</label><input id="cDate" type="date"></div>
+        <div class="field"><label for="cPlace">สถานที่</label><input id="cPlace" type="text" maxlength="80" autocomplete="off"></div>
+      </div>
+      <div class="field">
+        <label>รายการผลแล็บ</label>
+        <div class="hl-labs" id="labRows"></div>
+        <div class="row">
+          <select id="labPreset" class="select" aria-label="เพิ่มรายการที่พบบ่อย" style="width:auto"></select>
+          <button class="btn sm" type="button" id="labAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>แถวว่าง</button>
+        </div>
+      </div>
+      <div class="field"><label for="cNote">บันทึก</label><textarea id="cNote" rows="2" maxlength="300"></textarea></div>
+      <div class="field" id="cFilesRow" hidden>
+        <label>ไฟล์ผลตรวจ</label>
+        <div class="hl-files" id="cFiles"></div>
+        <div class="row"><button class="btn sm" type="button" id="cAttach"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg>แนบไฟล์</button></div>
+        <input type="file" id="cFileInput" accept="application/pdf,image/*" multiple hidden>
+      </div>
+      <p class="hl-msg" id="cMsg" role="alert"></p>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn danger" type="button" id="cDel" style="margin-right:auto">ลบ</button>
+      <button class="btn" type="button" id="cCancel">ยกเลิก</button>
+      <button class="btn primary" type="submit">บันทึก</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="dialog hl-dialog" id="medDlg" aria-labelledby="medTitle">
+  <form method="dialog" id="medForm" novalidate>
+    <div class="dialog-head"><h2 id="medTitle">ยา/อาหารเสริม</h2></div>
+    <div class="dialog-body">
+      <div class="frow">
+        <div class="field"><label for="mName">ชื่อ</label><input id="mName" type="text" maxlength="80" autocomplete="off"></div>
+        <div class="field"><label for="mDose">ขนาด</label><input id="mDose" type="text" maxlength="60" autocomplete="off"></div>
+      </div>
+      <div class="field">
+        <label>เวลาที่ต้องกิน</label>
+        <div class="hl-times" id="mTimes"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="mStart">วันเริ่ม</label><input id="mStart" type="date"></div>
+        <div class="field"><label for="mEnd">วันสิ้นสุด</label><input id="mEnd" type="date"></div>
+      </div>
+      <div class="field"><label for="mNote">บันทึก</label><textarea id="mNote" rows="2" maxlength="200"></textarea></div>
+      <p class="hl-msg" id="mMsg" role="alert"></p>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn danger" type="button" id="mDel" style="margin-right:auto">ลบ</button>
+      <button class="btn" type="button" id="mCancel">ยกเลิก</button>
+      <button class="btn primary" type="submit">บันทึก</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="dialog hl-dialog" id="setDlg" aria-labelledby="setTitle">
+  <form method="dialog" id="setForm" novalidate>
+    <div class="dialog-head"><h2 id="setTitle">ตั้งค่า</h2></div>
+    <div class="dialog-body">
+      <label class="check"><input type="checkbox" id="sHide">ซ่อนชื่อยาในแจ้งเตือน</label>
+      <div class="field">
+        <label>ช่วงปกติ (ต่ำสุด – สูงสุด)</label>
+        <div class="hl-ranges" id="rangeRows"></div>
+      </div>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn" type="button" id="sReset" style="margin-right:auto">คืนค่าเริ่มต้น</button>
+      <button class="btn" type="button" id="sCancel">ยกเลิก</button>
+      <button class="btn primary" type="submit">บันทึก</button>
+    </div>
+  </form>
+</dialog>
+</body>
+</html>
