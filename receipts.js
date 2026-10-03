@@ -547,15 +547,21 @@
     S = null;
   });
   $('delBtn').addEventListener('click', function () {
-    if (!S || !window.confirm('ลบใบเสร็จนี้และไฟล์แนบทั้งหมด? (รายการใน budget ที่สร้างแล้วจะไม่ถูกลบ)')) return;
-    var id = S.rec.id;
-    var orig = load().filter(function (x) { return x.id === id; })[0];
-    var ids = ((orig && orig.files) || []).map(function (f) { return f.id; }).concat(S.added);
-    S.added = [];
-    remove(id);
-    closeDialog();
-    deleteRemote(ids);
-    renderAll();
+    var st = S;
+    if (!st || st.busy) return;
+    st.busy = true;
+    window.tanotConfirm('ลบใบเสร็จนี้และไฟล์แนบทั้งหมด? (รายการใน budget ที่สร้างแล้วจะไม่ถูกลบ)', { danger: true, okLabel: 'ลบ' }).then(function (ok) {
+      st.busy = false;
+      if (!ok || S !== st) return; // กล่องถูกปิด/เปิดใบอื่นระหว่างรอยืนยัน
+      var id = st.rec.id;
+      var orig = load().filter(function (x) { return x.id === id; })[0];
+      var ids = ((orig && orig.files) || []).map(function (f) { return f.id; }).concat(st.added);
+      st.added = [];
+      remove(id);
+      closeDialog();
+      deleteRemote(ids);
+      renderAll();
+    });
   });
 
   /* ── ดูรูปเต็ม ── */
