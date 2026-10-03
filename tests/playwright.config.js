@@ -108,5 +108,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8134/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // cooking-plan.spec.js: ทำอาหาร stage 2 — /api/files (ns recipes) + ซิงก์ 2 เครื่อง (ติ๊กรายการซื้อของ) — แยกพอร์ตเพราะมี /__reset
+      command: 'node --no-warnings sync-server.mjs 8135',
+      cwd: __dirname,
+      url: 'http://localhost:8135/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });
