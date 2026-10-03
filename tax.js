@@ -6,6 +6,7 @@
      budget:records / budget:categories  → เงินได้ตามหมวด (type 'income', date 'YYYY-MM-DD') จับคู่หมวด → 40(1)/40(2)/40(8) ด้วย tanot:tax:catmap
      tanot:insurance:policies + InsuranceCalc.taxSummary (ถ้ามีหน้าประกัน) หรือ tanot:insurance:taxsummary { v:1, years:{ ค.ศ.: { raw } } }
      tanot:invest:thaifund               → ยอดซื้อ RMF/SSF/ThaiESG ในปี (cat 'rmf'|'ssf'|'esg', amt, ts)
+     tanot:receipts:taxsummary           → { v:1, years:{ ค.ศ.: { eReceipt, eReceiptOtop, politic, donationEdu, donation } } } ป้ายลดหย่อนจากคลังใบเสร็จ (เติมเฉพาะช่องที่กฎของปีนั้นไม่ใช่ null)
    ข้อมูลที่เขียน:
      tanot:tax:years  (sync map)  { '<ปี พ.ศ.>': { v: { ช่อง: 'ค่าที่พิมพ์' }, sim: { ช่อง: 'ซื้อเพิ่ม' } } } — ช่องว่าง = ใช้ค่าที่ดึงมา
      tanot:tax:catmap (sync blob) { categoryId: 'salary'|'service'|'other'|'none' }
@@ -18,7 +19,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var YEARS_KEY = 'tanot:tax:years', CATMAP_KEY = 'tanot:tax:catmap', UI_KEY = 'tanot:tax:ui';
   var REC_KEY = 'budget:records', CAT_KEY = 'budget:categories';
-  var INS_SUM_KEY = 'tanot:insurance:taxsummary', INS_POL_KEY = 'tanot:insurance:policies', FUND_KEY = 'tanot:invest:thaifund';
+  var INS_SUM_KEY = 'tanot:insurance:taxsummary', INS_POL_KEY = 'tanot:insurance:policies', FUND_KEY = 'tanot:invest:thaifund', RCPT_SUM_KEY = 'tanot:receipts:taxsummary';
 
   function rd(k, d) {
     if (TD && TD.read) return TD.read(k, d);
@@ -44,7 +45,7 @@
       f_thaiEsg: 'ThaiESG', f_thaiEsgxNew: 'ThaiESGX (เงินใหม่)', f_thaiEsgxLtf: 'ThaiESGX (สับเปลี่ยนจาก LTF)',
       f_homeLoan: 'ดอกเบี้ยเงินกู้ซื้อบ้าน', f_homeBuild: 'ค่าสร้างบ้านใหม่', f_eReceipt: 'Easy e-Receipt', f_eReceiptOtop: 'Easy e-Receipt (OTOP/วิสาหกิจชุมชน)',
       f_politic: 'บริจาคพรรคการเมือง', f_donationEdu: 'บริจาคการศึกษา/กีฬา/รพ.รัฐ', f_donation: 'บริจาคทั่วไป',
-      optNo: 'ไม่มี', optYes: 'มี', srcBudget: 'budget', srcIns: 'ประกัน', srcFund: 'กองทุน',
+      optNo: 'ไม่มี', optYes: 'มี', srcBudget: 'budget', srcIns: 'ประกัน', srcFund: 'กองทุน', srcReceipts: 'ใบเสร็จ',
       usedCap: 'หักได้ {v}', usedAnnuity: 'เติมโควตาประกันชีวิต {a} · กลุ่มเกษียณ {b}',
       catSalary: '40(1) เงินเดือน', catService: '40(2) รับจ้าง', catOther: '40(8) อื่นๆ', catNone: 'ไม่นับ', catEmpty: 'ยังไม่มีหมวดรายรับใน budget',
       kTax: 'ภาษีที่ต้องเสีย', kTaxSub: 'เฉลี่ย {e}% · ขั้นสูงสุด {m}%', kPay: 'ชำระเพิ่ม', kRefund: 'ได้คืน', kEven: 'หัก ณ ที่จ่ายพอดี',
@@ -75,7 +76,7 @@
       f_thaiEsg: 'ThaiESG', f_thaiEsgxNew: 'ThaiESGX (new money)', f_thaiEsgxLtf: 'ThaiESGX (switched from LTF)',
       f_homeLoan: 'Mortgage interest', f_homeBuild: 'New house construction', f_eReceipt: 'Easy e-Receipt', f_eReceiptOtop: 'Easy e-Receipt (OTOP/community)',
       f_politic: 'Political party donation', f_donationEdu: 'Education/sports/public hospital donation', f_donation: 'General donation',
-      optNo: 'No', optYes: 'Yes', srcBudget: 'budget', srcIns: 'insurance', srcFund: 'funds',
+      optNo: 'No', optYes: 'Yes', srcBudget: 'budget', srcIns: 'insurance', srcFund: 'funds', srcReceipts: 'receipts',
       usedCap: 'Deductible {v}', usedAnnuity: 'Fills life quota {a} · retirement group {b}',
       catSalary: '40(1) salary', catService: '40(2) service', catOther: '40(8) other', catNone: 'Exclude', catEmpty: 'No income categories in budget yet',
       kTax: 'Tax due', kTaxSub: 'Average {e}% · top bracket {m}%', kPay: 'To pay', kRefund: 'Refund', kEven: 'Withholding matches',
@@ -133,7 +134,7 @@
   var SIM_KEYS = ['rmf', 'thaiEsg', 'annuity', 'lifeIns', 'healthIns', 'parentsHealth', 'nsf', 'donationEdu', 'donation'];
   var CAT_TYPES = ['salary', 'service', 'other', 'none'];
   var CAT_LABEL = { salary: 'catSalary', service: 'catService', other: 'catOther', none: 'catNone' };
-  var SRC_LABEL = { budget: 'srcBudget', ins: 'srcIns', fund: 'srcFund' };
+  var SRC_LABEL = { budget: 'srcBudget', ins: 'srcIns', fund: 'srcFund', receipts: 'srcReceipts' };
 
   /* ══════ สถานะ ══════ */
   var years = [], rules = {}, ui = loadUi();
@@ -228,6 +229,15 @@
     return out;
   }
 
+  /* ป้ายลดหย่อนจากคลังใบเสร็จ { ช่อง: ยอด } ของปีนี้ — เฉพาะช่องที่กฎของปีนั้นยังมี (null = มาตรการหมดแล้ว ไม่เติม) */
+  var RCPT_FIELDS = ['eReceipt', 'eReceiptOtop', 'politic', 'donationEdu', 'donation'];
+  function receiptTags() {
+    var sum = rd(RCPT_SUM_KEY, null), yr = isObj(sum) && isObj(sum.years) ? sum.years[adYear()] : null, out = {};
+    if (!isObj(yr)) return out;
+    RCPT_FIELDS.forEach(function (k) { if (Number(yr[k]) > 0 && C.available(R(), k)) out[k] = Number(yr[k]); });
+    return out;
+  }
+
   /** ค่าที่ดึงมา { key: { v, src } } */
   function pulled() {
     var p = {}, b = budgetIncome();
@@ -240,6 +250,8 @@
     }
     var f = fundSums();
     set('rmf', f.rmf, 'fund'); set('ssf', f.ssf, 'fund'); set('thaiEsg', f.thaiEsg, 'fund');
+    var rt = receiptTags();
+    Object.keys(rt).forEach(function (k) { set(k, rt[k], 'receipts'); });
     p._cats = b.cats;
     return p;
   }
@@ -510,7 +522,7 @@
     });
     $('txSimClear').addEventListener('click', function () { var d = yearData(); d.sim = {}; saveYearData(d); render(); });
 
-    var RELEVANT = /^(budget:|tanot:insurance:|tanot:invest:thaifund$|tanot:tax:)/;
+    var RELEVANT = /^(budget:|tanot:insurance:|tanot:invest:thaifund$|tanot:receipts:|tanot:tax:)/;
     if (TD && TD.onChange) TD.onChange(function (keys) {
       if (!keys.length || keys.some(function (k) { return RELEVANT.test(k); })) render();
     });

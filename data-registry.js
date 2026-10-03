@@ -64,6 +64,10 @@
     { key: 'tanot:health:ranges', kind: 'sync', mode: 'map' },
     { key: 'tanot:health:settings', kind: 'sync' },
 
+    // ── คลังใบเสร็จ (receipts.html) — 1 ใบเสร็จ = 1 แถว · taxsummary = ยอดป้ายลดหย่อนต่อปีที่หน้าภาษีอ่าน (เขียนใหม่จากรายการได้เสมอ) ──
+    { key: 'tanot:receipts:items', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:receipts:taxsummary', kind: 'sync' },
+
     // ── รายการที่เพิ่มได้จากหลายเครื่อง (แยกรายการย่อย) ──
     { key: 'tanot:insurance:policies', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'budget:records', kind: 'sync', mode: 'list', idField: 'id' },

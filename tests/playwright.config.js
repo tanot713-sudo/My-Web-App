@@ -87,5 +87,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8131/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // receipts.spec.js: คลังใบเสร็จ — /api/files (ns receipts) + /api/push/reminders ตัวจริง + ซิงก์ 2 เครื่อง — แยกพอร์ตเพราะมี /__reset
+      command: 'node --no-warnings sync-server.mjs 8132',
+      cwd: __dirname,
+      url: 'http://localhost:8132/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });
