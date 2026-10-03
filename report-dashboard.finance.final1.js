@@ -13,6 +13,7 @@
    ไปเฉยๆ ไม่ error และไม่กุตัวเลขที่ไม่มีข้อมูลรองรับ */
 (function(){
   'use strict';
+  function P(){return window.TanotReportUtils.palette();}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -121,32 +122,31 @@
     if(q('#finance1-css'))return;
     var s=document.createElement('style');s.id='finance1-css';s.textContent=`
 #financeControlLayout{display:flex;flex-direction:column;gap:12px;margin-top:14px;font-family:var(--pc53-font,inherit)}
-#financeControlLayout .fn-hero{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--sh)}
-#financeControlLayout .fn-hero h2{font-size:16px;margin:0}
-#financeControlLayout .fn-hero .fn-sub{font-size:12px;color:var(--muted);margin-top:3px}
+#financeControlLayout .fn-hero{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:15px 16px;box-shadow:var(--ome-shadow-1)}
+#financeControlLayout .fn-hero h2{font-size:var(--ome-fs-md);margin:0}
+#financeControlLayout .fn-hero .fn-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px}
 #financeControlLayout .fn-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-#financeControlLayout .fn-kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;box-shadow:var(--sh);position:relative}
-#financeControlLayout .fn-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:4px;background:var(--ok)}
-#financeControlLayout .fn-kpi.warn:after{background:var(--warn)}#financeControlLayout .fn-kpi.bad:after{background:var(--err)}
-#financeControlLayout .fn-kpi .l{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-#financeControlLayout .fn-kpi .v{font-size:22px;font-weight:850;margin-top:4px;color:var(--ink)}
-#financeControlLayout .fn-kpi.warn .v{color:#B8720A}#financeControlLayout .fn-kpi.bad .v{color:var(--err)}
-#financeControlLayout .fn-kpi .s{font-size:9.5px;color:var(--muted);margin-top:4px}
-#financeControlLayout .fn-panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px;box-shadow:var(--sh)}
-#financeControlLayout .fn-panel h3{font-size:13px;margin:0 0 3px;font-weight:850}
-#financeControlLayout .fn-note{font-size:9.5px;color:var(--muted);margin-bottom:7px}
+#financeControlLayout .fn-kpi{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px 13px;box-shadow:var(--ome-shadow-1);position:relative}
+#financeControlLayout .fn-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:var(--ome-radius-sm);background:var(--ome-ok)}
+#financeControlLayout .fn-kpi.warn:after{background:var(--ome-warn)}#financeControlLayout .fn-kpi.bad:after{background:var(--ome-err)}
+#financeControlLayout .fn-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
+#financeControlLayout .fn-kpi .v{font-size:var(--ome-fs-xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
+#financeControlLayout .fn-kpi.warn .v{color:var(--ome-warn-ink)}#financeControlLayout .fn-kpi.bad .v{color:var(--ome-err)}
+#financeControlLayout .fn-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
+#financeControlLayout .fn-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
+#financeControlLayout .fn-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
 #financeControlLayout .fn-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
 #financeControlLayout .fn-grid>.half{grid-column:span 6}#financeControlLayout .fn-grid>.full{grid-column:1/-1}
-#financeControlLayout .fn-insight{border-left:3px solid var(--ok);padding:10px 13px;font-size:12px;color:var(--ink)}
-#financeControlLayout .fn-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px}
+#financeControlLayout .fn-insight{border-left:3px solid var(--ome-ok);padding:10px 13px;font-size:var(--ome-fs-xs);color:var(--ome-text-1)}
+#financeControlLayout .fn-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs)}
 #financeControlLayout .fn-list:last-child{border-bottom:none}
-#financeControlLayout .fn-empty{padding:24px 8px;text-align:center;color:var(--muted);font-size:11px}
+#financeControlLayout .fn-empty{padding:24px 8px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
 #financeControlLayout svg text{font-family:var(--pc53-font,inherit)}
 #financeControlLayout .fn-trend-scroll{overflow-x:auto}
 #financeControlLayout .fn-donut-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
 #financeControlLayout .fn-donut-legend{display:flex;flex-direction:column;gap:10px;justify-content:center;flex:1;min-width:150px}
-#financeControlLayout .fn-donut-legend .row{display:flex;align-items:center;gap:8px;font-size:11.5px}
-#financeControlLayout .fn-donut-legend i{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none}
+#financeControlLayout .fn-donut-legend .row{display:flex;align-items:center;gap:8px;font-size:var(--ome-fs-xs)}
+#financeControlLayout .fn-donut-legend i{width:10px;height:10px;border-radius:var(--ome-radius-sm);display:inline-block;flex:none}
 #financeControlLayout.finance-override-hidden{display:none!important}
 .finance-hidden-source{display:none!important}
 @media(max-width:1100px){#financeControlLayout .fn-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}#financeControlLayout .fn-grid>.half{grid-column:1/-1}}
@@ -170,17 +170,16 @@
     if(layout.getAttribute('data-built')==='1')return true;
     layout.setAttribute('data-built','1');
     layout.innerHTML=
-      '<section class="fn-hero"><h2>💰 Finance Control</h2><div class="fn-sub" id="fnUpdated">ภาพรวมรายรับ-รายจ่าย, กระแสเงินสด และหมวดค่าใช้จ่ายหลัก</div></section>'+
+      '<section class="fn-hero"><h2>Finance Control</h2><div class="fn-sub" id="fnUpdated"></div></section>'+
       '<div class="fn-kpis" id="fnKpis"></div>'+
       '<section class="fn-panel fn-insight-panel"><h3>Executive Insight</h3><div id="fnInsight" class="fn-insight"></div></section>'+
       '<div class="fn-grid">'+
-        '<section class="fn-panel full"><h3>แนวโน้มรายรับ-รายจ่ายรายเดือน</h3><div class="fn-note">Income vs Expense</div><div id="fnTrend"></div></section>'+
-        '<section class="fn-panel half" id="fnBudgetSection"><h3>งบประมาณเทียบรายจ่ายจริง</h3><div class="fn-note">เส้นดำ = งบที่ตั้งไว้ · แดง = เกินงบ, เขียว = ต่ำกว่างบ</div><div id="fnBudget"></div></section>'+
-        '<section class="fn-panel half" id="fnAccountSection"><h3>สัดส่วนรายรับตามช่องทาง</h3><div class="fn-note">ตามบัญชี/วิธีรับเงิน</div><div id="fnAccount"></div></section>'+
-        '<section class="fn-panel full"><h3>ยอดคงเหลือสะสม (Running Balance)</h3><div class="fn-note">กระแสเงินสดสุทธิสะสมทีละเดือน</div><div id="fnBalance"></div></section>'+
-        '<section class="fn-panel full"><h3>รายการล่าสุด</h3><div class="fn-note">10 รายการล่าสุด</div><div id="fnRecent"></div></section>'+
-      '</div>'+
-      '<div class="mini" style="font-size:9px;color:var(--muted)">ตรวจพบจากคอลัมน์ วันที่ + ยอดเงิน(รายรับ/รายจ่าย) ในไฟล์ที่อัปโหลด — Table ด้านล่างไม่ถูกแก้ไข</div>';
+        '<section class="fn-panel full"><h3>แนวโน้มรายรับ-รายจ่ายรายเดือน</h3><div id="fnTrend"></div></section>'+
+        '<section class="fn-panel half" id="fnBudgetSection"><h3>งบประมาณเทียบรายจ่ายจริง</h3><div id="fnBudget"></div></section>'+
+        '<section class="fn-panel half" id="fnAccountSection"><h3>สัดส่วนรายรับตามช่องทาง</h3><div id="fnAccount"></div></section>'+
+        '<section class="fn-panel full"><h3>ยอดคงเหลือสะสม (Running Balance)</h3><div id="fnBalance"></div></section>'+
+        '<section class="fn-panel full"><h3>รายการล่าสุด</h3><div id="fnRecent"></div></section>'+
+      '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('finance-hidden-source');
     });
@@ -192,21 +191,22 @@
   function trendSvg(seriesList,keys,fmtK){
     var perM=64,left=48,right=30,top=14,bottom=26,ph=170;
     var w=Math.max(400,left+right+(keys.length-1)*perM), h=top+ph+bottom, pw=w-left-right;
-    var maxV=1; seriesList.forEach(function(s){keys.forEach(function(k){maxV=Math.max(maxV,s.data[k]||0);});});
-    maxV=Math.ceil(maxV*1.15)||1;
+    var maxV=1,minV=0; seriesList.forEach(function(s){keys.forEach(function(k){var v=s.data[k]||0; maxV=Math.max(maxV,v); minV=Math.min(minV,v);});});
+    maxV=Math.ceil(maxV*1.15)||1; minV=minV<0?Math.floor(minV*1.15):0;
+    var span=(maxV-minV)||1;
     var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:'+w+'px;height:'+h+'px">';
     for(var t=0;t<=4;t++){
-      var val=maxV*t/4, y=top+ph-ph*t/4;
-      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edf1" stroke-width="1"/>';
-      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="9.5" fill="#8a97a3">'+(fmtK?Math.round(val/1000)+'k':Math.round(val))+'</text>';
+      var val=minV+span*t/4, y=top+ph-ph*t/4;
+      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="'+P().grid+'" stroke-width="1"/>';
+      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="9.5" fill="'+P().faint+'">'+(fmtK?Math.round(val/1000)+'k':Math.round(val))+'</text>';
     }
     var stepX=pw/(keys.length-1||1);
     seriesList.forEach(function(s){
-      var pts=keys.map(function(k,i){var v=s.data[k]||0; return (left+stepX*i)+','+(top+ph-ph*v/maxV);});
+      var pts=keys.map(function(k,i){var v=s.data[k]||0; return (left+stepX*i)+','+(top+ph-ph*(v-minV)/span);});
       out+='<path d="M'+pts.join(' L')+'" fill="none" stroke="'+s.color+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
-      keys.forEach(function(k,i){var v=s.data[k]||0; out+='<circle cx="'+(left+stepX*i)+'" cy="'+(top+ph-ph*v/maxV)+'" r="3" fill="'+s.color+'" stroke="#fff" stroke-width="1.2"/>';});
+      keys.forEach(function(k,i){var v=s.data[k]||0; out+='<circle cx="'+(left+stepX*i)+'" cy="'+(top+ph-ph*(v-minV)/span)+'" r="3" fill="'+s.color+'" stroke="'+P().surface1+'" stroke-width="1.2"/>';});
     });
-    keys.forEach(function(k,i){ out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="#8a97a3">'+k+'</text>'; });
+    keys.forEach(function(k,i){ out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>'; });
     out+='</svg>';
     return '<div class="fn-trend-scroll">'+out+'</div>';
   }
@@ -218,8 +218,8 @@
     var keys=Object.keys(byMonth).sort();
     if(keys.length<2){host.innerHTML='<div class="fn-empty">ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)</div>';return;}
     var incomeData={}, expenseData={}; keys.forEach(function(k){incomeData[k]=byMonth[k].income;expenseData[k]=byMonth[k].expense;});
-    host.innerHTML=trendSvg([{data:incomeData,color:'#16A34A'},{data:expenseData,color:'#DC2626'}],keys,true)+
-      '<div class="mini" style="display:flex;gap:14px;font-size:10.5px;color:var(--muted);margin-top:4px"><span>● <span style="color:#16A34A">รายรับ</span></span><span>● <span style="color:#DC2626">รายจ่าย</span></span></div>';
+    host.innerHTML=trendSvg([{data:incomeData,color:P().ok},{data:expenseData,color:P().err}],keys,true)+
+      '<div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style=\"color:'+P().okInk+'\">● รายรับ</span><span style=\"color:'+P().err+'\">● รายจ่าย</span></div>';
   }
 
   function renderBalance(rows){
@@ -229,7 +229,7 @@
     var keys=Object.keys(byMonth).sort();
     if(keys.length<2){host.innerHTML='<div class="fn-empty">ข้อมูลยังไม่พอ</div>';return;}
     var bal=0, running={}; keys.forEach(function(k){ bal+=byMonth[k]; running[k]=bal; });
-    host.innerHTML=trendSvg([{data:running,color:'#7C3AED'}],keys,true);
+    host.innerHTML=trendSvg([{data:running,color:P().series[0]}],keys,true);
   }
 
   function renderBudget(rows,hasBudget){
@@ -252,18 +252,17 @@
       var y=10+i*rowH, act=actual[k], bud=budget[k];
       var bw=Math.max(2,barW*act/maxV), budgetX=left+barW*bud/maxV;
       var over=act>bud;
-      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="#374151">'+esc(k.length>16?k.slice(0,15)+'…':k)+'</text>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="#EEF1F4"/>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="16" rx="4" fill="'+(over?'#DC2626':'#16A34A')+'"/>';
-      out+='<line x1="'+budgetX+'" x2="'+budgetX+'" y1="'+(y-3)+'" y2="'+(y+19)+'" stroke="#172033" stroke-width="2"/>';
+      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="'+P().text+'">'+esc(k.length>16?k.slice(0,15)+'…':k)+'</text>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="'+P().surface2+'"/>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="16" rx="4" fill="'+(over?P().err:P().ok)+'"/>';
+      out+='<line x1="'+budgetX+'" x2="'+budgetX+'" y1="'+(y-3)+'" y2="'+(y+19)+'" stroke="'+P().axis+'" stroke-width="2"/>';
       var diff=act-bud, diffTxt=(diff>=0?'+':'−')+'฿'+Math.abs(Math.round(diff/1000))+'k';
-      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10" font-weight="700" fill="'+(over?'#DC2626':'#16A34A')+'">'+diffTxt+' vs งบ</text>';
+      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10" font-weight="700" fill="'+(over?P().err:P().ok)+'">'+diffTxt+' vs งบ</text>';
     });
     out+='</svg>';
     host.innerHTML=out;
   }
 
-  var DONUT_PALETTE=['#1C5CAB','#0EA5E9','#94A3B8','#7C3AED','#F59E0B','#16A34A'];
   function donutChart(entries, centerLabel, fmtFn){
     fmtFn=fmtFn||function(v){return v;};
     var size=168, thick=24, r=(size-thick)/2, c=size/2, circ=2*Math.PI*r;
@@ -275,13 +274,13 @@
       offset+=len;
     });
     var svg='<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" role="img" style="flex:none">'+segs+
-      '<circle cx="'+c+'" cy="'+c+'" r="'+(r-thick/2-3)+'" fill="#FFFFFF"/>'+
-      '<text x="'+c+'" y="'+(c-3)+'" text-anchor="middle" font-size="19" font-weight="850" fill="#101820">'+esc(fmtFn(total))+'</text>'+
-      '<text x="'+c+'" y="'+(c+16)+'" text-anchor="middle" font-size="9.5" fill="#4B5763">'+esc(centerLabel)+'</text>'+
+      '<circle cx="'+c+'" cy="'+c+'" r="'+(r-thick/2-3)+'" fill="'+P().surface1+'"/>'+
+      '<text x="'+c+'" y="'+(c-3)+'" text-anchor="middle" font-size="19" font-weight="850" fill="'+P().text+'">'+esc(fmtFn(total))+'</text>'+
+      '<text x="'+c+'" y="'+(c+16)+'" text-anchor="middle" font-size="9.5" fill="'+P().text+'">'+esc(centerLabel)+'</text>'+
     '</svg>';
     var legend='<div class="fn-donut-legend">'+entries.map(function(e){
       var pct=(e[1]/total*100).toFixed(0);
-      return '<div class="row"><i style="background:'+e[2]+'"></i><span style="flex:1">'+esc(e[0])+'</span><b>'+esc(fmtFn(e[1]))+'</b><span style="color:var(--muted);width:32px;text-align:right">'+pct+'%</span></div>';
+      return '<div class="row"><i style="background:'+e[2]+'"></i><span style="flex:1">'+esc(e[0])+'</span><b>'+esc(fmtFn(e[1]))+'</b><span style="color:var(--ome-text-3);width:32px;text-align:right">'+pct+'%</span></div>';
     }).join('')+'</div>';
     return '<div class="fn-donut-wrap">'+svg+legend+'</div>';
   }
@@ -291,7 +290,7 @@
     if(!hasAccount){ sec&&sec.setAttribute('hidden',''); return; }
     sec&&sec.removeAttribute('hidden');
     var map={}; rows.forEach(function(r){ if(r.income) map[r.account]=(map[r.account]||0)+r.income; });
-    var entries=Object.keys(map).map(function(k,i){return [k,map[k],DONUT_PALETTE[i%DONUT_PALETTE.length]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
+    var entries=Object.keys(map).map(function(k,i){return [k,map[k],P().series[i%8]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
     host.innerHTML=entries.length?donutChart(entries,'รายรับรวม',function(v){return '฿'+Math.round(v/1000)+'k';}):'<div class="fn-empty">ไม่มีข้อมูล</div>';
   }
 
@@ -317,7 +316,7 @@
     var layout=injectLayout(); if(!layout)return;
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
-    layout.innerHTML='<section class="fn-panel"><h3>💰 Finance Control</h3>'+
+    layout.innerHTML='<section class="fn-panel"><h3>Finance Control</h3>'+
       '<div class="fn-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายรายการเงิน (ต้องมีคอลัมน์วันที่ '+
       'ร่วมกับ รายรับ/รายจ่าย/ยอดเงิน) — ลองเลือก Template เป็น "Auto" หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
@@ -364,7 +363,7 @@
     var recent=rows.slice().sort(function(a,b){return b.date-a.date;}).slice(0,10);
     q('#fnRecent').innerHTML=recent.length?recent.map(function(r){
       var isIncome=r.income>0;
-      return '<div class="fn-list"><b>'+esc(r.description||r.category)+'</b><span>'+(isIncome?'รายรับ':'รายจ่าย')+' · '+esc(r.category)+'</span><span style="color:'+(isIncome?'var(--ok)':'var(--err)')+';font-weight:700">'+(isIncome?'+':'-')+baht(isIncome?r.income:r.expense)+'</span></div>';
+      return '<div class="fn-list"><b>'+esc(r.description||r.category)+'</b><span>'+(isIncome?'รายรับ':'รายจ่าย')+' · '+esc(r.category)+'</span><span style="color:'+(isIncome?'var(--ome-ok)':'var(--ome-err)')+';font-weight:700">'+(isIncome?'+':'-')+baht(isIncome?r.income:r.expense)+'</span></div>';
     }).join(''):'<div class="fn-empty">ไม่มีข้อมูล</div>';
 
     var today=new Date();
@@ -379,6 +378,7 @@
 
   function init(){
     injectCSS();
+    window.TanotReportUtils.onTheme(schedule);
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;

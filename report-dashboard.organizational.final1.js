@@ -7,6 +7,7 @@
    คอลัมน์ "หัวหน้า/รหัสหัวหน้า" ในไฟล์ที่อัปโหลดแทน (ตามที่ผู้ใช้เลือกไว้ตอนคุยกัน) */
 (function(){
   'use strict';
+  function P(){return window.TanotReportUtils.palette();}
   var raf=0, scheduled=false, bootAttempts=0;
   var MSHOW=false, PIISHOW=false, curId=null;
   function q(s,r){return (r||document).querySelector(s)}
@@ -39,13 +40,14 @@
 
   /* =============== palette (คงที่ต่อ session เดียว ไม่ผูกกับ ORG hardcode แบบต้นฉบับ — สุ่ม/ไล่ตามลำดับ
      ทีมที่เจอจริงในไฟล์ที่อัปโหลด) =============== */
-  var PAL={blue:'#2F6BF0',green:'#1FA85C',amber:'#F5A623',purple:'#7C5CF5',teal:'#12B5A6',pink:'#EC4899',
-    orange:'#F97316',cyan:'#0EA5E9',rose:'#E11D48',lime:'#65A30D',indigo:'#4F46E5',red:'#EF3B41'};
-  var SERIES=[PAL.blue,PAL.green,PAL.amber,PAL.purple,PAL.teal,PAL.pink,PAL.orange,PAL.cyan,PAL.rose,PAL.lime,PAL.indigo];
-  function tint(h,a){var n=parseInt((h||'#94A3B8').slice(1),16);return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';}
-  function shade(h){var n=parseInt((h||'#94A3B8').slice(1),16),r=Math.round((n>>16&255)*.72),
-    g=Math.round((n>>8&255)*.72),b=Math.round((n&255)*.72);
-    return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);}
+  function seriesCol(i){var s=P().series;return s[i%s.length];}
+  function rgbOf(c){
+    c=String(c||'');
+    if(c.charAt(0)==='#'){var n=parseInt(c.slice(1),16);return [n>>16&255,n>>8&255,n&255];}
+    var m=c.match(/\d+/g);return m?m.slice(0,3).map(Number):[148,163,184];
+  }
+  function tint(c,a){var v=rgbOf(c);return 'rgba('+v[0]+','+v[1]+','+v[2]+','+a+')';}
+  function shade(c){var v=rgbOf(c);return 'rgb('+v.map(function(x){return Math.round(x*.72);}).join(',')+')';}
   function initials(n){var p=text(n).split(/\s+/);return ((p[0]||'').charAt(0)+((p[1]||'').charAt(0)||'')).toUpperCase()||'?';}
 
   function getData(){
@@ -112,84 +114,82 @@
     if(q('#org1-css'))return;
     var s=document.createElement('style');s.id='org1-css';s.textContent=`
 #organizationalLayout{display:flex;flex-direction:column;gap:12px;margin-top:14px}
-#organizationalLayout .org1-hero{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--sh)}
-#organizationalLayout .org1-hero h2{font-size:16px;margin:0}
-#organizationalLayout .org1-hero .org1-sub{font-size:12px;color:var(--muted);margin-top:3px}
+#organizationalLayout .org1-hero{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:15px 16px;box-shadow:var(--ome-shadow-1)}
+#organizationalLayout .org1-hero h2{font-size:var(--ome-fs-md);margin:0}
+#organizationalLayout .org1-hero .org1-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px}
 #organizationalLayout .org1-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-#organizationalLayout .org1-kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;box-shadow:var(--sh);position:relative}
-#organizationalLayout .org1-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:4px;background:var(--brand)}
-#organizationalLayout .org1-kpi .l{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-#organizationalLayout .org1-kpi .v{font-size:24px;font-weight:850;margin-top:4px;color:var(--ink)}
-#organizationalLayout .org1-kpi .s{font-size:9.5px;color:var(--muted);margin-top:4px}
-#organizationalLayout .org1-panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px;box-shadow:var(--sh)}
-#organizationalLayout .org1-panel h3{font-size:13px;margin:0 0 3px;font-weight:850}
-#organizationalLayout .org1-note{font-size:9.5px;color:var(--muted);margin-bottom:7px}
+#organizationalLayout .org1-kpi{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px 13px;box-shadow:var(--ome-shadow-1);position:relative}
+#organizationalLayout .org1-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:var(--ome-radius-sm);background:var(--ome-accent)}
+#organizationalLayout .org1-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
+#organizationalLayout .org1-kpi .v{font-size:var(--ome-fs-2xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
+#organizationalLayout .org1-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
+#organizationalLayout .org1-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
+#organizationalLayout .org1-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
+#organizationalLayout .org1-note{font-size:var(--ome-fs-xs);color:var(--ome-text-3);margin-bottom:7px}
 #organizationalLayout .org1-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
 #organizationalLayout .org1-grid>.half{grid-column:span 6}#organizationalLayout .org1-grid>.full{grid-column:1/-1}
-#organizationalLayout .org1-empty{padding:24px 8px;text-align:center;color:var(--muted);font-size:11px}
+#organizationalLayout .org1-empty{padding:24px 8px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
 #organizationalLayout.org1-override-hidden{display:none!important}
 .org1-hidden-source{display:none!important}
 /* directory cards */
 #organizationalLayout .org1-dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
-#organizationalLayout .org1-pc{background:var(--bg);border:1px solid var(--line);border-radius:13px;padding:14px 10px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s}
-#organizationalLayout .org1-pc:hover{transform:translateY(-2px);box-shadow:var(--sh)}
-#organizationalLayout .org1-avc{width:56px;height:56px;border-radius:50%;margin:0 auto 8px;display:grid;place-items:center;font-weight:800;color:#fff;font-size:17px}
-#organizationalLayout .org1-pc .nm{font-size:11.5px;font-weight:700;color:var(--ink);line-height:1.3}
-#organizationalLayout .org1-pc .rl{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.3}
-#organizationalLayout .org1-pc .tm{display:inline-block;margin-top:7px;font-size:9.5px;font-weight:700;padding:2.5px 7px;border-radius:6px}
+#organizationalLayout .org1-pc{background:var(--ome-surface-0);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:14px 10px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s}
+#organizationalLayout .org1-pc:hover{transform:translateY(-2px);box-shadow:var(--ome-shadow-1)}
+#organizationalLayout .org1-avc,#org1Mdl .org1-avc{width:56px;height:56px;border-radius:50%;margin:0 auto 8px;display:grid;place-items:center;font-weight:700;color:#fff;font-size:var(--ome-fs-lg)}
+#organizationalLayout .org1-pc .nm{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-1);line-height:1.3}
+#organizationalLayout .org1-pc .rl{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px;line-height:1.3}
+#organizationalLayout .org1-pc .tm{display:inline-block;margin-top:7px;font-size:var(--ome-fs-xs);font-weight:700;padding:2.5px 7px;border-radius:var(--ome-radius-sm)}
 /* org tree (generic recursive, works at any depth) */
 #organizationalLayout .org1-ocwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:12px 8px 16px}
 #organizationalLayout .org1-tree{width:fit-content;min-width:100%;display:flex;justify-content:center}
 #organizationalLayout .org1-tree ul{display:flex;justify-content:center;position:relative;padding:20px 0 0;margin:0;list-style:none}
 #organizationalLayout .org1-tree li{position:relative;padding:20px 8px 0;list-style:none;display:flex;flex-direction:column;align-items:center}
-#organizationalLayout .org1-tree li::before,#organizationalLayout .org1-tree li::after{content:'';position:absolute;top:0;right:50%;border-top:2px solid var(--line);width:50%;height:20px}
-#organizationalLayout .org1-tree li::after{right:auto;left:50%;border-left:2px solid var(--line)}
+#organizationalLayout .org1-tree li::before,#organizationalLayout .org1-tree li::after{content:'';position:absolute;top:0;right:50%;border-top:2px solid var(--ome-border);width:50%;height:20px}
+#organizationalLayout .org1-tree li::after{right:auto;left:50%;border-left:2px solid var(--ome-border)}
 #organizationalLayout .org1-tree li:only-child::before,#organizationalLayout .org1-tree li:only-child::after{display:none}
 #organizationalLayout .org1-tree li:first-child::before{border:0}
 #organizationalLayout .org1-tree li:last-child::after{border:0}
-#organizationalLayout .org1-tree li:last-child::before{border-right:2px solid var(--line);border-radius:0 8px 0 0}
-#organizationalLayout .org1-tree li:first-child::after{border-radius:8px 0 0 0}
+#organizationalLayout .org1-tree li:last-child::before{border-right:2px solid var(--ome-border);border-radius:0 8px 0 0}
+#organizationalLayout .org1-tree li:first-child::after{border-radius:var(--ome-radius-md) 0 0 0}
 #organizationalLayout .org1-tree>ul>li{padding-top:0}
 #organizationalLayout .org1-tree>ul>li::before,#organizationalLayout .org1-tree>ul>li::after{display:none}
-#organizationalLayout .org1-onode{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:8px 12px;min-width:150px;text-align:center;box-shadow:var(--sh);cursor:pointer}
-#organizationalLayout .org1-onode .r{font-size:9.5px;font-weight:700;color:var(--muted);letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#organizationalLayout .org1-onode .n{font-size:12px;font-weight:700;margin-top:2px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#organizationalLayout .org1-onode .t{font-size:9.5px;color:var(--muted);margin-top:1px}
+#organizationalLayout .org1-onode{background:var(--ome-surface-1);border:1.5px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:8px 12px;min-width:150px;text-align:center;box-shadow:var(--ome-shadow-1);cursor:pointer}
+#organizationalLayout .org1-onode .r{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#organizationalLayout .org1-onode .n{font-size:var(--ome-fs-xs);font-weight:700;margin-top:2px;color:var(--ome-text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#organizationalLayout .org1-onode .t{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:1px}
 #organizationalLayout .org1-onode.top{color:#fff;min-width:170px}
 #organizationalLayout .org1-onode.top .r,#organizationalLayout .org1-onode.top .n{color:#fff}
 /* horizontal bars (reused pattern from other domain modules) */
 #organizationalLayout .org1-hbars{display:flex;flex-direction:column;gap:7px}
 #organizationalLayout .org1-hbrow{display:grid;grid-template-columns:minmax(76px,32%) 1fr 28px;gap:8px;align-items:center;cursor:pointer}
-#organizationalLayout .org1-hb-l{font-size:11px;font-weight:600;color:var(--muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#organizationalLayout .org1-hb-t{height:20px;border-radius:7px;background:var(--bg);overflow:hidden}
-#organizationalLayout .org1-hb-t span{display:block;height:100%;border-radius:7px}
-#organizationalLayout .org1-hb-v{font-size:11.5px;font-weight:700}
+#organizationalLayout .org1-hb-l{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#organizationalLayout .org1-hb-t{height:20px;border-radius:var(--ome-radius-sm);background:var(--ome-surface-0);overflow:hidden}
+#organizationalLayout .org1-hb-t span{display:block;height:100%;border-radius:var(--ome-radius-sm)}
+#organizationalLayout .org1-hb-v{font-size:var(--ome-fs-xs);font-weight:700}
 /* employee table */
-#organizationalLayout .org1-tbl-wrap{overflow:auto;border-radius:12px;border:1px solid var(--line)}
-#organizationalLayout table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
-#organizationalLayout thead th{background:var(--bg);color:var(--muted);font-weight:700;font-size:10.5px;text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none}
-#organizationalLayout thead th:hover{color:var(--ink)}
-#organizationalLayout thead th.srt{color:var(--brand)}
-#organizationalLayout tbody td{padding:8px 10px;border-bottom:1px solid var(--line);color:var(--muted)}
+#organizationalLayout .org1-tbl-wrap{overflow:auto;border-radius:var(--ome-radius-lg);border:1px solid var(--ome-border)}
+#organizationalLayout table{width:100%;border-collapse:collapse;font-size:var(--ome-fs-xs);white-space:nowrap}
+#organizationalLayout thead th{background:var(--ome-surface-0);color:var(--ome-text-2);font-weight:700;font-size:var(--ome-fs-xs);text-align:left;padding:9px 10px;border-bottom:1px solid var(--ome-border);cursor:pointer;user-select:none}
+#organizationalLayout thead th:hover{color:var(--ome-text-1)}
+#organizationalLayout thead th.srt{color:var(--ome-accent)}
+#organizationalLayout tbody td{padding:8px 10px;border-bottom:1px solid var(--ome-border);color:var(--ome-text-2)}
 #organizationalLayout tbody tr{cursor:pointer}
-#organizationalLayout tbody tr:hover td{background:var(--bg)}
+#organizationalLayout tbody tr:hover td{background:var(--ome-surface-0)}
 #organizationalLayout tbody tr:last-child td{border-bottom:0}
-#organizationalLayout td.b{color:var(--ink);font-weight:600}
-#organizationalLayout .org1-pill{display:inline-block;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:7px}
+#organizationalLayout td.b{color:var(--ome-text-1);font-weight:600}
+#organizationalLayout .org1-pill{display:inline-block;font-size:var(--ome-fs-xs);font-weight:600;padding:3px 8px;border-radius:var(--ome-radius-sm)}
 /* profile modal */
-#org1Mdl{display:none;position:fixed;inset:0;z-index:4200;background:rgba(16,24,40,.5);align-items:center;justify-content:center;padding:16px}
-#org1Mdl.on{display:flex}
-#org1Mbox{background:var(--card);border-radius:18px;width:100%;max-width:400px;max-height:90vh;overflow:auto;box-shadow:0 30px 70px rgba(16,24,40,.32);position:relative}
+#org1Mdl{width:min(400px,calc(100vw - 32px));max-height:90vh;overflow:auto}
 #org1Mtop{padding:26px 18px 20px;text-align:center;color:#fff}
-#org1Mtop .org1-avc{width:96px;height:96px;font-size:30px;margin:0 auto 12px;border:4px solid rgba(255,255,255,.36)}
-#org1Mtop h2{margin:0;font-size:17px;font-weight:700;color:#fff}
-#org1Mtop p{margin:3px 0 0;font-size:11.5px;opacity:.9;color:#fff}
+#org1Mtop .org1-avc{width:96px;height:96px;font-size:var(--ome-fs-3xl);margin:0 auto 12px;border:4px solid rgba(255,255,255,.36)}
+#org1Mtop h2{margin:0;font-size:var(--ome-fs-lg);font-weight:700;color:#fff}
+#org1Mtop p{margin:3px 0 0;font-size:var(--ome-fs-sm);opacity:.9;color:#fff}
 #org1Mbody{padding:4px 16px 16px}
-#organizationalLayout .org1-mr,#org1Mbody .org1-mr{display:flex;gap:10px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:12px}
+#organizationalLayout .org1-mr,#org1Mbody .org1-mr{display:flex;gap:10px;padding:8px 2px;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs)}
 #org1Mbody .org1-mr:last-child{border-bottom:0}
-#org1Mbody .org1-mr .l{width:96px;color:var(--muted);font-weight:500;flex:none}
-#org1Mbody .org1-mr .v{color:var(--ink);font-weight:600;word-break:break-word}
-#org1Mclose{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:9px;border:0;background:rgba(255,255,255,.22);color:#fff;cursor:pointer;font-size:16px;line-height:1}
+#org1Mbody .org1-mr .l{width:96px;color:var(--ome-text-2);font-weight:500;flex:none}
+#org1Mbody .org1-mr .v{color:var(--ome-text-1);font-weight:600;word-break:break-word}
+#org1Mclose{position:absolute;top:10px;right:10px;background:color-mix(in srgb,var(--ome-surface-1) 22%,transparent);border-color:transparent;color:var(--ome-on-accent)}
 #org1Mbody .org1-reveal{margin-top:10px;width:100%;justify-content:center}
 @media(max-width:1100px){#organizationalLayout .org1-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}#organizationalLayout .org1-grid>.half{grid-column:1/-1}}
 @media(max-width:700px){#organizationalLayout .org1-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -209,30 +209,29 @@
 
   function injectModal(){
     if(q('#org1Mdl'))return;
-    var d=document.createElement('div'); d.id='org1Mdl';
-    d.innerHTML='<div id="org1Mbox"><button id="org1Mclose" type="button">×</button><div id="org1Mtop"></div><div id="org1Mbody"></div></div>';
+    var d=document.createElement('dialog'); d.id='org1Mdl'; d.className='dialog';
+    d.innerHTML='<button id="org1Mclose" class="btn icon sm" type="button" aria-label="Close">'+window.TanotReportUtils.icon('x')+'</button><div id="org1Mtop"></div><div id="org1Mbody"></div>';
     d.addEventListener('click',function(e){ if(e.target===d) closeM(); });
     document.body.appendChild(d);
     q('#org1Mclose').addEventListener('click',closeM);
   }
-  function closeM(){ var d=q('#org1Mdl'); if(d) d.classList.remove('on'); }
+  function closeM(){ var d=q('#org1Mdl'); if(d&&d.open) d.close(); }
 
   function build(){
     var layout=injectLayout(); if(!layout)return false;
     if(layout.getAttribute('data-built')==='1')return true;
     layout.setAttribute('data-built','1');
     layout.innerHTML=
-      '<section class="org1-hero"><h2>🏢 Organizational Dashboard</h2><div class="org1-sub" id="org1Updated">Workforce overview, org chart, and employee directory</div></section>'+
+      '<section class="org1-hero"><h2>Organizational Dashboard</h2><div class="org1-sub" id="org1Updated"></div></section>'+
       '<div class="org1-kpis" id="org1Kpis"></div>'+
       '<div id="org1TreeSection"></div>'+
       '<div class="org1-grid">'+
-        '<section class="org1-panel half"><h3>Headcount by Team</h3><div class="org1-note">Click a bar to filter the table below</div><div id="org1ByTeam"></div></section>'+
-        '<section class="org1-panel half" id="org1BySiteCard"><h3>Headcount by Site</h3><div class="org1-note">Work locations</div><div id="org1BySite"></div></section>'+
-        '<section class="org1-panel full" id="org1ByLevelCard"><h3 id="org1ByLevelTitle">Headcount by Level</h3><div class="org1-note">Job level / position mix</div><div id="org1ByLevel"></div></section>'+
+        '<section class="org1-panel half"><h3>Headcount by Team</h3><div id="org1ByTeam"></div></section>'+
+        '<section class="org1-panel half" id="org1BySiteCard"><h3>Headcount by Site</h3><div id="org1BySite"></div></section>'+
+        '<section class="org1-panel full" id="org1ByLevelCard"><h3 id="org1ByLevelTitle">Headcount by Level</h3><div id="org1ByLevel"></div></section>'+
       '</div>'+
-      '<section class="org1-panel"><h3>👥 Employee Directory</h3><div class="org1-note">Click a card to view full profile</div><div class="org1-dir-grid" id="org1Dir"></div></section>'+
-      '<section class="org1-panel"><h3>📋 All Employees</h3><div class="org1-note" id="org1TblNote"></div><div class="org1-tbl-wrap" id="org1Tbl"></div></section>'+
-      '<div class="mini" style="font-size:9px;color:var(--muted)">Detected from a Name column plus Team/Position/Manager in the uploaded file — the Table tab is not affected</div>';
+      '<section class="org1-panel"><h3>Employee Directory</h3><div class="org1-dir-grid" id="org1Dir"></div></section>'+
+      '<section class="org1-panel"><h3>All Employees</h3><div class="org1-note" id="org1TblNote"></div><div class="org1-tbl-wrap" id="org1Tbl"></div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('org1-hidden-source');
     });
@@ -249,7 +248,7 @@
     if(!items.length){ host.innerHTML='<div class="org1-empty">No data</div>'; return; }
     var max=Math.max.apply(null,items.map(function(i){return i.value;}))||1;
     host.innerHTML='<div class="org1-hbars">'+items.map(function(it,i){
-      var col=it.color||SERIES[i%SERIES.length];
+      var col=it.color||seriesCol(i);
       var active=FILTER_KEY===opts.fk&&FILTER_VAL===it.label;
       return '<div class="org1-hbrow" data-fk="'+esc(opts.fk||'')+'" data-fv="'+esc(it.label)+'" title="'+esc(it.label)+': '+it.value+'">'+
         '<div class="org1-hb-l">'+esc(it.label)+'</div>'+
@@ -287,9 +286,9 @@
     return { roots:roots, childrenOf:childrenOf, keyOf:keyOf };
   }
   function orgNode(r,cls){
-    var col=SERIES[Math.abs(hashStr(r.team))%SERIES.length];
+    var col=seriesCol(Math.abs(hashStr(r.team)));
     return '<div class="org1-onode'+(cls?' '+cls:'')+'" style="'+
-      (cls==='top'?'background:linear-gradient(135deg,'+col+','+shade(col)+')':'border-color:'+tint(col,.5))+'" data-emp="'+esc(r.id||r.name)+'">'+
+      (cls==='top'?'background:linear-gradient(135deg,'+shade(col)+','+shade(shade(col))+')':'border-color:'+tint(col,.5))+'" data-emp="'+esc(r.id||r.name)+'">'+
       '<div class="r">'+esc(r.position||r.level||'')+'</div>'+
       '<div class="n">'+esc(r.name)+'</div>'+
       '<div class="t">'+esc(r.team)+'</div></div>';
@@ -306,7 +305,7 @@
   function renderOrgTree(rows,hasManager){
     var host=q('#org1TreeSection'); if(!host)return;
     if(!hasManager){
-      host.innerHTML='<section class="org1-panel"><h3>🌳 Org Chart</h3>'+
+      host.innerHTML='<section class="org1-panel"><h3>Org Chart</h3>'+
         '<div class="org1-empty">Add a "Manager" or "Manager ID" column to your file to see the reporting-line tree here. '+
         'Showing headcount by team below instead.</div></section>';
       return;
@@ -314,8 +313,8 @@
     var forest=buildForest(rows);
     if(!forest.roots.length){ host.innerHTML=''; return; }
     var roots=forest.roots.slice(0,40); // sanity cap for very flat/broken manager data
-    host.innerHTML='<section class="org1-panel"><h3>🌳 Org Chart</h3>'+
-      '<div class="org1-note">Built from the Manager / Manager ID column — click a node to view the profile</div>'+
+    host.innerHTML='<section class="org1-panel"><h3>Org Chart</h3>'+
+      ''+
       '<div class="org1-ocwrap"><div class="org1-tree"><ul>'+
         roots.map(function(r){return renderTreeNode(r,forest,{},0);}).join('')+
       '</ul></div></div></section>';
@@ -333,9 +332,9 @@
     var host=q('#org1Dir'); if(!host)return;
     var shown=rows.slice(0,60);
     host.innerHTML=shown.map(function(r){
-      var col=SERIES[Math.abs(hashStr(r.team))%SERIES.length];
+      var col=seriesCol(Math.abs(hashStr(r.team)));
       return '<div class="org1-pc" data-emp="'+esc(r.id||r.name)+'">'+
-        '<div class="org1-avc" style="background:linear-gradient(150deg,'+col+','+shade(col)+')">'+esc(initials(r.name))+'</div>'+
+        '<div class="org1-avc" style="background:linear-gradient(150deg,'+shade(col)+','+shade(shade(col))+')">'+esc(initials(r.name))+'</div>'+
         '<div class="nm">'+esc(r.name)+'</div>'+
         '<div class="rl">'+esc(r.position||r.level||'')+'</div>'+
         '<span class="tm" style="background:'+tint(col,.14)+';color:'+col+'">'+esc(r.team)+'</span></div>';
@@ -347,7 +346,7 @@
   var TBL_COLS=[['id','ID'],['name','Name'],['position','Position'],['team','Team'],['site','Site'],['start','Start Date'],['svcM','Tenure']];
   function sortBy(k){ SORT.d=(SORT.k===k)?-SORT.d:1; SORT.k=k; schedule(); }
   function tblCell(r,k){
-    if(k==='team'){ var col=SERIES[Math.abs(hashStr(r.team))%SERIES.length];
+    if(k==='team'){ var col=seriesCol(Math.abs(hashStr(r.team)));
       return '<span class="org1-pill" style="background:'+tint(col,.14)+';color:'+col+'">'+esc(r.team)+'</span>'; }
     if(k==='start')return fmt(r.start);
     if(k==='svcM')return fyr(r.svcM);
@@ -371,33 +370,33 @@
     host.innerHTML='<table><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
     qa('th[data-k]',host).forEach(function(th){ th.addEventListener('click',function(){ sortBy(th.getAttribute('data-k')); }); });
     qa('tbody tr',host).forEach(function(tr){ tr.addEventListener('click',function(){ openM(tr.getAttribute('data-emp')); }); });
-    q('#org1TblNote').textContent=rows.length.toLocaleString()+' employee'+(rows.length===1?'':'s')+(FILTER_KEY?' · filtered by '+FILTER_KEY+' = '+FILTER_VAL+' (click the bar again to clear)':'');
+    q('#org1TblNote').textContent=rows.length.toLocaleString()+' employee'+(rows.length===1?'':'s')+(FILTER_KEY?' · filtered by '+FILTER_KEY+' = '+FILTER_VAL+'':'');
   }
 
   function openM(idOrName){
     var r=findEmp(idOrName); if(!r)return;
     curId=idOrName; MSHOW=false; drawM(r);
-    var d=q('#org1Mdl'); if(d) d.classList.add('on');
+    var d=q('#org1Mdl'); if(d&&!d.open) d.showModal();
   }
   function toggleM(){ MSHOW=!MSHOW; var r=findEmp(curId); if(r) drawM(r); }
   function drawM(r){
-    var col=SERIES[Math.abs(hashStr(r.team))%SERIES.length];
-    q('#org1Mtop').style.background='linear-gradient(150deg,'+col+','+shade(col)+')';
+    var col=seriesCol(Math.abs(hashStr(r.team)));
+    q('#org1Mtop').style.background='linear-gradient(150deg,'+shade(col)+','+shade(shade(col))+')';
     q('#org1Mtop').innerHTML='<div class="org1-avc" style="background:rgba(255,255,255,.22)">'+esc(initials(r.name))+'</div>'+
       '<h2>'+esc(r.name)+'</h2><p>'+esc(r.nick||r.position||'')+(r.nick&&r.position?' · '+esc(r.position):'')+'</p>';
     var rows=[];
-    if(r.id)rows.push(['ID','<b style="color:var(--ink)">'+esc(r.id)+'</b>']);
+    if(r.id)rows.push(['ID','<b style="color:var(--ome-text-1)">'+esc(r.id)+'</b>']);
     if(r.level && r.level!==r.position)rows.push(['Level',esc(r.level)]);
     rows.push(['Team',esc(r.team)]);
     if(r.system)rows.push(['System',esc(r.system)]);
     if(r.site)rows.push(['Site',esc(r.site)]);
     if(r._mgr)rows.push(['Reports To',esc(r._mgr.name)]);
-    if(r.start)rows.push(['Start Date',fmt(r.start)+' · <span style="color:var(--muted)">Tenure '+fyr(r.svcM)+'</span>']);
+    if(r.start)rows.push(['Start Date',fmt(r.start)+' · <span style="color:var(--ome-text-3)">Tenure '+fyr(r.svcM)+'</span>']);
     if(MSHOW){
       if(r.gender)rows.push(['Gender',esc(r.gender)]);
-      if(r.dob)rows.push(['Date of Birth',fmt(r.dob)+(r.ageM!=null?' · <span style="color:var(--muted)">Age '+fyr(r.ageM)+'</span>':'')]);
-      if(r.email)rows.push(['Email','<a href="mailto:'+esc(r.email)+'" style="color:var(--brand)">'+esc(r.email)+'</a>']);
-      if(r.phone)rows.push(['Phone','<a href="tel:'+esc(r.phone)+'" style="color:var(--brand)">'+esc(r.phone)+'</a>']);
+      if(r.dob)rows.push(['Date of Birth',fmt(r.dob)+(r.ageM!=null?' · <span style="color:var(--ome-text-3)">Age '+fyr(r.ageM)+'</span>':'')]);
+      if(r.email)rows.push(['Email','<a href="mailto:'+esc(r.email)+'" style="color:var(--ome-accent)">'+esc(r.email)+'</a>']);
+      if(r.phone)rows.push(['Phone','<a href="tel:'+esc(r.phone)+'" style="color:var(--ome-accent)">'+esc(r.phone)+'</a>']);
     }
     var hasHidden = !!(r.gender||r.dob||r.email||r.phone);
     q('#org1Mbody').innerHTML=rows.map(function(x){
@@ -426,7 +425,7 @@
     var layout=injectLayout(); if(!layout)return;
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
-    layout.innerHTML='<section class="org1-panel"><h3>🏢 Organizational Dashboard</h3>'+
+    layout.innerHTML='<section class="org1-panel"><h3>Organizational Dashboard</h3>'+
       '<div class="org1-empty">This file has no columns that look like employee/org data (needs a Name column '+
       'plus at least one of Team / Position / Manager) — try Template "Auto" or upload a file with these columns</div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
@@ -478,7 +477,7 @@
     renderDirectory(view);
     renderTable(view);
 
-    q('#org1Updated').textContent=rows.length.toLocaleString()+' employees · '+teams+' teams'+(data.hasManager?' · org chart from Manager column':'');
+    q('#org1Updated').textContent=rows.length.toLocaleString()+' employees · '+teams+' teams'+(data.hasManager?'':'');
   }
 
   function schedule(){
@@ -489,6 +488,7 @@
 
   function init(){
     injectCSS();
+    window.TanotReportUtils.onTheme(schedule);
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;

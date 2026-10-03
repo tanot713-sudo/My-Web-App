@@ -620,42 +620,49 @@
   }
 
   /* ── กล่องยืนยัน/แจ้งเตือนของเว็บเอง (แทน confirm()/alert() ของเบราว์เซอร์)
-     ใช้เพราะกล่อง confirm()/alert() ของเบราว์เซอร์เป็นกล่องของระบบปฏิบัติการ
-     (ดำ/เทา แล้วแต่เครื่อง) แต่งด้วย CSS จากเว็บไม่ได้เลยไม่ว่ากรณีไหน ทุกหน้า
-     เรียกใช้ผ่าน window.tanotConfirm(msg, opts) / window.tanotAlert(msg) แทน
-     confirm()/alert() ตรงๆ ได้เลย ทั้งคู่คืน Promise ══ */
+     ใช้ <dialog class="dialog"> + showModal() (คอมโพเนนต์กลางใน theme.css) แทนกล่องของระบบปฏิบัติการ
+     ที่แต่งด้วย CSS ไม่ได้ — Esc / คลิกนอกกล่อง = ยกเลิก (คืน false) ทุกหน้าเรียกผ่าน
+     window.tanotConfirm(msg, opts) / window.tanotAlert(msg) ได้เลย ทั้งคู่คืน Promise
+     หน้าที่ไม่มี data-layout (สไตล์ของ .dialog/.btn ยังไม่มี) ถอยไปใช้กล่องของเบราว์เซอร์ ══ */
+  var nativeConfirm = window.confirm && window.confirm.bind(window);
+  var nativeAlert = window.alert && window.alert.bind(window);
   function tanotModal(msg, buttons) {
     return new Promise(function (resolve) {
-      var overlay = document.createElement('div');
-      overlay.className = 'tanot-modal-overlay';
-      var box = document.createElement('div');
-      box.className = 'tanot-modal-box';
-      var p = document.createElement('div');
-      p.className = 'tanot-modal-msg';
-      p.textContent = msg;
-      box.appendChild(p);
-      var actions = document.createElement('div');
-      actions.className = 'tanot-modal-actions';
-      function done(value) {
-        if (!overlay.parentNode) return;
-        document.body.removeChild(overlay);
-        document.removeEventListener('keydown', onKey);
-        resolve(value);
+      if (!document.body.hasAttribute('data-layout') || typeof HTMLDialogElement === 'undefined') {
+        if (buttons.length > 1) resolve(nativeConfirm ? nativeConfirm(msg) : true);
+        else { if (nativeAlert) nativeAlert(msg); resolve(true); }
+        return;
       }
-      function onKey(e) { if (e.key === 'Escape') done(false); }
+      var dlg = document.createElement('dialog');
+      dlg.className = 'dialog';
+      dlg.setAttribute('aria-modal', 'true');
+      var body = document.createElement('div');
+      body.className = 'dialog-body';
+      var p = document.createElement('p');
+      p.className = 'dialog-msg';
+      p.textContent = msg;
+      body.appendChild(p);
+      var foot = document.createElement('div');
+      foot.className = 'dialog-foot';
+      var result = false;
       buttons.forEach(function (b) {
         var btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = b.cls || '';
+        btn.className = 'btn' + (b.cls ? ' ' + b.cls : '');
         btn.textContent = b.label;
-        btn.addEventListener('click', function () { done(b.value); });
-        actions.appendChild(btn);
+        btn.addEventListener('click', function () { result = b.value; dlg.close(); });
+        foot.appendChild(btn);
       });
-      box.appendChild(actions);
-      overlay.appendChild(box);
-      document.body.appendChild(overlay);
-      if (actions.lastChild) actions.lastChild.focus();
-      document.addEventListener('keydown', onKey);
+      dlg.appendChild(body);
+      dlg.appendChild(foot);
+      dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+      dlg.addEventListener('close', function () {
+        if (dlg.parentNode) dlg.parentNode.removeChild(dlg);
+        resolve(result);
+      });
+      document.body.appendChild(dlg);
+      dlg.showModal();
+      if (foot.lastChild) foot.lastChild.focus();
     });
   }
   window.tanotConfirm = function (msg, opts) {

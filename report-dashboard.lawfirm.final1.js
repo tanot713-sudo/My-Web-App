@@ -13,6 +13,7 @@
    (แพทเทิร์นเดียวกับ Safety/Maintenance/HR/IT Ops) */
 (function(){
   'use strict';
+  function P(){return window.TanotReportUtils.palette();}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -77,14 +78,21 @@
   var LF_ROLE_LABEL={plaintiff:'โจทก์',defendant:'จำเลย'};
   var LF_PLAINTIFF_KW=['plaintiff','โจทก์'];
   var LF_DEFENDANT_KW=['defendant','จำเลย'];
+  function lfMix(c1,c2,t){
+    var a=(c1.match(/\d+/g)||[0,0,0]).map(Number),b=(c2.match(/\d+/g)||[255,255,255]).map(Number);
+    return 'rgb('+[0,1,2].map(function(i){return Math.round(a[i]*t+b[i]*(1-t));}).join(',')+')';
+  }
   var LF_PHASES=[
-    {name:'เตรียมคดี',from:1,to:6,color:'#0B3D91'},
-    {name:'ยื่นฟ้อง/ให้การ',from:7,to:11,color:'#1F5AA6'},
-    {name:'ชั้นพยาน',from:12,to:19,color:'#3378C4'},
-    {name:'สืบพยาน/พิจารณา',from:20,to:24,color:'#5C9BD8'},
-    {name:'อุทธรณ์/ฎีกา',from:25,to:30,color:'#8FBCE6'},
-    {name:'บังคับคดี',from:31,to:37,color:'#BFD7ED'}
-  ];
+    {name:'เตรียมคดี',from:1,to:6,mix:1},
+    {name:'ยื่นฟ้อง/ให้การ',from:7,to:11,mix:0.82},
+    {name:'ชั้นพยาน',from:12,to:19,mix:0.64},
+    {name:'สืบพยาน/พิจารณา',from:20,to:24,mix:0.48},
+    {name:'อุทธรณ์/ฎีกา',from:25,to:30,mix:0.34},
+    {name:'บังคับคดี',from:31,to:37,mix:0.22}
+  ].map(function(p){
+    Object.defineProperty(p,'color',{get:function(){var c=P();return lfMix(c.accent,c.surface1,p.mix);}});
+    return p;
+  });
   function lfRoleOfStage(s){ return LF_ROLE_MAP[s]||'both'; }
   // role='plaintiff'/'defendant' (จากคอลัมน์ฝ่ายในไฟล์) หรือ falsy (ไม่มีคอลัมน์ฝ่าย/ค่าไม่แมตช์ — ในกรณีนี้
   // ถือว่าขั้นตอน "ทุกข้อ" ใช้ได้หมด ไม่กรองอะไรออก เหมือนพฤติกรรมเดิมก่อนแยกฝ่าย) — ห้ามใช้ 'both' เป็นค่า role
@@ -215,104 +223,103 @@
     if(q('#lawfirm1-css'))return;
     var s=document.createElement('style');s.id='lawfirm1-css';s.textContent=`
 #lawfirmControlLayout{display:flex;flex-direction:column;gap:12px;margin-top:14px;font-family:var(--pc53-font,inherit)}
-#lawfirmControlLayout .lf-hero{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--sh)}
-#lawfirmControlLayout .lf-hero h2{font-size:16px;margin:0}
-#lawfirmControlLayout .lf-hero .lf-sub{font-size:12px;color:var(--muted);margin-top:3px}
+#lawfirmControlLayout .lf-hero{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:15px 16px;box-shadow:var(--ome-shadow-1)}
+#lawfirmControlLayout .lf-hero h2{font-size:var(--ome-fs-md);margin:0}
+#lawfirmControlLayout .lf-hero .lf-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px}
 #lawfirmControlLayout .lf-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-#lawfirmControlLayout .lf-kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;box-shadow:var(--sh);position:relative}
-#lawfirmControlLayout .lf-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:4px;background:var(--ok)}
-#lawfirmControlLayout .lf-kpi.warn:after{background:var(--warn)}#lawfirmControlLayout .lf-kpi.bad:after{background:var(--err)}
-#lawfirmControlLayout .lf-kpi .l{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-#lawfirmControlLayout .lf-kpi .v{font-size:22px;font-weight:850;margin-top:4px;color:var(--ink)}
-#lawfirmControlLayout .lf-kpi.warn .v{color:#B8720A}#lawfirmControlLayout .lf-kpi.bad .v{color:var(--err)}
-#lawfirmControlLayout .lf-kpi .s{font-size:9.5px;color:var(--muted);margin-top:4px}
-#lawfirmControlLayout .lf-panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px;box-shadow:var(--sh)}
-#lawfirmControlLayout .lf-panel h3{font-size:13px;margin:0 0 3px;font-weight:850}
-#lawfirmControlLayout .lf-note{font-size:9.5px;color:var(--muted);margin-bottom:7px}
+#lawfirmControlLayout .lf-kpi{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px 13px;box-shadow:var(--ome-shadow-1);position:relative}
+#lawfirmControlLayout .lf-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:var(--ome-radius-sm);background:var(--ome-ok)}
+#lawfirmControlLayout .lf-kpi.warn:after{background:var(--ome-warn)}#lawfirmControlLayout .lf-kpi.bad:after{background:var(--ome-err)}
+#lawfirmControlLayout .lf-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
+#lawfirmControlLayout .lf-kpi .v{font-size:var(--ome-fs-xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
+#lawfirmControlLayout .lf-kpi.warn .v{color:var(--ome-warn-ink)}#lawfirmControlLayout .lf-kpi.bad .v{color:var(--ome-err)}
+#lawfirmControlLayout .lf-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
+#lawfirmControlLayout .lf-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
+#lawfirmControlLayout .lf-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
 #lawfirmControlLayout .lf-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
 #lawfirmControlLayout .lf-grid>.half{grid-column:span 6}#lawfirmControlLayout .lf-grid>.full{grid-column:1/-1}
-#lawfirmControlLayout .lf-insight{border-left:3px solid var(--ok);padding:10px 13px;font-size:12px;color:var(--ink)}
+#lawfirmControlLayout .lf-insight{border-left:3px solid var(--ome-ok);padding:10px 13px;font-size:var(--ome-fs-xs);color:var(--ome-text-1)}
 #lawfirmControlLayout .lf-status-row{display:flex;flex-direction:column;gap:8px}
-#lawfirmControlLayout .lf-status-item{display:grid;grid-template-columns:100px 1fr 30px;align-items:center;gap:9px;font-size:11px}
+#lawfirmControlLayout .lf-status-item{display:grid;grid-template-columns:100px 1fr 30px;align-items:center;gap:9px;font-size:var(--ome-fs-xs)}
 #lawfirmControlLayout .lf-status-item .lab{display:flex;align-items:center;gap:6px;font-weight:700}
 #lawfirmControlLayout .lf-status-item i{width:8px;height:8px;border-radius:50%;display:inline-block}
-#lawfirmControlLayout .lf-track{height:7px;border-radius:6px;background:#eef1f4;overflow:hidden}
-#lawfirmControlLayout .lf-track span{display:block;height:100%;border-radius:6px}
-#lawfirmControlLayout .lf-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px}
+#lawfirmControlLayout .lf-track{height:7px;border-radius:var(--ome-radius-sm);background:var(--ome-surface-2);overflow:hidden}
+#lawfirmControlLayout .lf-track span{display:block;height:100%;border-radius:var(--ome-radius-sm)}
+#lawfirmControlLayout .lf-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs)}
 #lawfirmControlLayout .lf-list:last-child{border-bottom:none}
-#lawfirmControlLayout .lf-empty{padding:24px 8px;text-align:center;color:var(--muted);font-size:11px}
+#lawfirmControlLayout .lf-empty{padding:24px 8px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
 #lawfirmControlLayout svg text{font-family:var(--pc53-font,inherit)}
 #lawfirmControlLayout .lf-trend-scroll{overflow-x:auto}
 #lawfirmControlLayout.lawfirm-override-hidden{display:none!important}
 .lawfirm-hidden-source{display:none!important}
 
 /* ── ความคืบหน้าคดี 37 ขั้นตอน (แทนที่แผงกำหนดนัดเดิม เมื่อไฟล์มีคอลัมน์ขั้นตอนครบพอ) ── */
-#lawfirmControlLayout .lg-overview{display:flex;align-items:center;gap:26px;flex-wrap:wrap;padding:4px 0 14px;border-bottom:1px solid var(--line);margin-bottom:14px}
+#lawfirmControlLayout .lg-overview{display:flex;align-items:center;gap:26px;flex-wrap:wrap;padding:4px 0 14px;border-bottom:1px solid var(--ome-border);margin-bottom:14px}
 #lawfirmControlLayout .lg-donut-wrap{position:relative;width:104px;height:104px;flex:none}
 #lawfirmControlLayout .lg-donut{width:100%;height:100%;border-radius:50%}
-#lawfirmControlLayout .lg-donut-hole{position:absolute;inset:14px;background:var(--card);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center}
-#lawfirmControlLayout .lg-donut-total{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink)}
-#lawfirmControlLayout .lg-donut-label{font-size:8.5px;color:var(--muted);margin-top:2px}
+#lawfirmControlLayout .lg-donut-hole{position:absolute;inset:14px;background:var(--ome-surface-1);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#lawfirmControlLayout .lg-donut-total{font-size:var(--ome-fs-lg);font-weight:700;font-variant-numeric:tabular-nums;line-height:1;color:var(--ome-text-1)}
+#lawfirmControlLayout .lg-donut-label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:2px}
 #lawfirmControlLayout .lg-donut-legend{display:flex;gap:18px;flex-wrap:wrap;flex:1}
-#lawfirmControlLayout .lg-dl-item{display:flex;align-items:center;gap:7px;font-size:11.5px}
-#lawfirmControlLayout .lg-dl-dot{width:10px;height:10px;border-radius:3px;flex:none}
-#lawfirmControlLayout .lg-dl-val{font-weight:800;font-variant-numeric:tabular-nums}
-#lawfirmControlLayout .lg-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:var(--muted);font-weight:600;margin-bottom:10px}
-#lawfirmControlLayout .lg-legend .sw{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:4px}
-#lawfirmControlLayout .lg-legend .sw.na{background-image:repeating-linear-gradient(45deg,#C7CFD7,#C7CFD7 2px,#EDF1F5 2px,#EDF1F5 4px)}
+#lawfirmControlLayout .lg-dl-item{display:flex;align-items:center;gap:7px;font-size:var(--ome-fs-xs)}
+#lawfirmControlLayout .lg-dl-dot{width:10px;height:10px;border-radius:var(--ome-radius-sm);flex:none}
+#lawfirmControlLayout .lg-dl-val{font-weight:700;font-variant-numeric:tabular-nums}
+#lawfirmControlLayout .lg-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600;margin-bottom:10px}
+#lawfirmControlLayout .lg-legend .sw{width:9px;height:9px;border-radius:var(--ome-radius-sm);display:inline-block;margin-right:4px}
+#lawfirmControlLayout .lg-legend .sw.na{background-image:repeating-linear-gradient(45deg,var(--ome-text-3),var(--ome-text-3) 2px,var(--ome-text-3) 2px,var(--ome-text-3) 4px)}
 #lawfirmControlLayout .lg-case-list{display:flex;flex-direction:column;gap:10px}
-#lawfirmControlLayout .lg-case{border:1px solid var(--line);border-radius:11px;padding:12px 14px}
+#lawfirmControlLayout .lg-case{border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:12px 14px}
 #lawfirmControlLayout .lg-case-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
 #lawfirmControlLayout .lg-id-wrap{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-#lawfirmControlLayout .lg-id{font-family:var(--pc53-mono,monospace);font-weight:700;font-size:12.5px;color:var(--brand-dk);background:var(--brand-sf);padding:3px 8px;border-radius:7px}
-#lawfirmControlLayout .lg-role{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;padding:3.5px 10px;border-radius:999px;white-space:nowrap}
-#lawfirmControlLayout .lg-role.plaintiff{background:var(--brand-sf);color:var(--brand-dk)}
-#lawfirmControlLayout .lg-role.defendant{background:#F1E9FB;color:#6D3FA6}
-#lawfirmControlLayout .lg-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
-#lawfirmControlLayout .lg-meta b{color:var(--ink);font-weight:600}
-#lawfirmControlLayout .lg-badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;padding:3.5px 10px;border-radius:999px;white-space:nowrap}
-#lawfirmControlLayout .lg-badge.ontrack{background:#E7F7E7;color:var(--ok)}
-#lawfirmControlLayout .lg-badge.late{background:#FBEAEA;color:var(--err)}
-#lawfirmControlLayout .lg-badge.ahead{background:var(--brand-sf);color:var(--brand)}
-#lawfirmControlLayout .lg-badge.finished{background:#EEF1F4;color:var(--muted)}
-#lawfirmControlLayout .lg-badge.unknown{background:#EEF1F4;color:var(--muted)}
+#lawfirmControlLayout .lg-id{font-family:var(--pc53-mono,monospace);font-weight:700;font-size:var(--ome-fs-xs);color:var(--ome-accent-strong);background:var(--ome-accent-soft);padding:3px 8px;border-radius:var(--ome-radius-sm)}
+#lawfirmControlLayout .lg-role{display:inline-flex;align-items:center;gap:5px;font-size:var(--ome-fs-xs);font-weight:700;padding:3.5px 10px;border-radius:var(--ome-radius-pill);white-space:nowrap}
+#lawfirmControlLayout .lg-role.plaintiff{background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
+#lawfirmControlLayout .lg-role.defendant{background:var(--ome-chart-7);color:var(--ome-chart-7)}
+#lawfirmControlLayout .lg-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+#lawfirmControlLayout .lg-meta b{color:var(--ome-text-1);font-weight:600}
+#lawfirmControlLayout .lg-badge{display:inline-flex;align-items:center;gap:5px;font-size:var(--ome-fs-xs);font-weight:700;padding:3.5px 10px;border-radius:var(--ome-radius-pill);white-space:nowrap}
+#lawfirmControlLayout .lg-badge.ontrack{background:var(--ome-ok-soft);color:var(--ome-ok)}
+#lawfirmControlLayout .lg-badge.late{background:var(--ome-err-soft);color:var(--ome-err)}
+#lawfirmControlLayout .lg-badge.ahead{background:var(--ome-accent-soft);color:var(--ome-accent)}
+#lawfirmControlLayout .lg-badge.finished{background:var(--ome-surface-2);color:var(--ome-text-2)}
+#lawfirmControlLayout .lg-badge.unknown{background:var(--ome-surface-2);color:var(--ome-text-2)}
 #lawfirmControlLayout .lg-badge .dot{width:5px;height:5px;border-radius:50%;background:currentColor}
 #lawfirmControlLayout .lg-track-wrap{position:relative}
-#lawfirmControlLayout .lg-track{display:flex;height:11px;border-radius:999px;overflow:hidden;background:#EDF1F5}
+#lawfirmControlLayout .lg-track{display:flex;height:11px;border-radius:var(--ome-radius-pill);overflow:hidden;background:var(--ome-surface-2)}
 #lawfirmControlLayout .lg-track .c{height:100%;flex:1 1 0}
-#lawfirmControlLayout .lg-track .c+.c{border-left:1px solid rgba(255,255,255,.65)}
-#lawfirmControlLayout .lg-track .c.na{background-image:repeating-linear-gradient(45deg,#C7CFD7,#C7CFD7 2px,#EDF1F5 2px,#EDF1F5 4px)}
+#lawfirmControlLayout .lg-track .c+.c{border-left:1px solid color-mix(in srgb,var(--ome-border) 65%,transparent)}
+#lawfirmControlLayout .lg-track .c.na{background-image:repeating-linear-gradient(45deg,var(--ome-text-3),var(--ome-text-3) 2px,var(--ome-text-3) 2px,var(--ome-text-3) 4px)}
 #lawfirmControlLayout .lg-marker{position:absolute;top:-16px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:1px}
-#lawfirmControlLayout .lg-marker .chip{font-size:8.5px;font-weight:700;color:#fff;background:var(--ink);padding:1px 5px;border-radius:4px;white-space:nowrap}
-#lawfirmControlLayout .lg-marker .pin{width:2px;height:7px;background:var(--ink);border-radius:2px}
-#lawfirmControlLayout .lg-caption{font-size:10.5px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-#lawfirmControlLayout .lg-phasechip{font-size:8.5px;font-weight:700;padding:1px 7px;border-radius:999px;color:#fff}
-#lawfirmControlLayout .lg-foot{display:flex;justify-content:flex-end;margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
-#lawfirmControlLayout .lg-detail-btn{display:inline-flex;align-items:center;gap:6px;border:1.3px solid var(--brand);background:#fff;color:var(--brand-dk);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer}
-#lawfirmControlLayout .lg-detail-btn:hover{background:var(--brand);color:#fff}
+#lawfirmControlLayout .lg-marker .chip{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-on-accent);background:var(--ome-text-1);padding:1px 5px;border-radius:var(--ome-radius-sm);white-space:nowrap}
+#lawfirmControlLayout .lg-marker .pin{width:2px;height:7px;background:var(--ome-text-1);border-radius:var(--ome-radius-sm)}
+#lawfirmControlLayout .lg-caption{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#lawfirmControlLayout .lg-phasechip{font-size:var(--ome-fs-xs);font-weight:700;padding:1px 7px;border-radius:var(--ome-radius-pill);color:var(--ome-on-accent)}
+#lawfirmControlLayout .lg-foot{display:flex;justify-content:flex-end;margin-top:10px;padding-top:9px;border-top:1px solid var(--ome-border)}
+#lawfirmControlLayout .lg-detail-btn{display:inline-flex;align-items:center;gap:6px;border:1.3px solid var(--ome-accent);background:var(--ome-surface-1);color:var(--ome-accent-strong);border-radius:var(--ome-radius-md);padding:6px 12px;font-size:var(--ome-fs-xs);font-weight:700;font-family:inherit;cursor:pointer}
+#lawfirmControlLayout .lg-detail-btn:hover{background:var(--ome-accent);color:var(--ome-on-accent)}
 /* modal (แนบตัวเองกับ body — ไม่ใช่ #lawfirmControlLayout — เพราะต้องลอยทับทั้งหน้าจอ) */
-.lg-modal-ov{position:fixed;inset:0;background:rgba(16,24,32,.45);z-index:9500;display:flex;align-items:center;justify-content:center;padding:24px}
-.lg-modal{background:var(--card);border-radius:16px;max-width:900px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.25)}
-.lg-modal-hero{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card);z-index:1}
-.lg-modal-hero .lg-cid{font-size:15px;font-weight:700;font-family:var(--pc53-mono,monospace)}
-.lg-modal-close{border:none;background:#F1F4F8;color:var(--muted);width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer;flex:none}
+.lg-modal-ov{position:fixed;inset:0;background:color-mix(in srgb,var(--ome-text-1) 45%,transparent);z-index:9500;display:flex;align-items:center;justify-content:center;padding:24px}
+.lg-modal{background:var(--ome-surface-1);border-radius:var(--ome-radius-lg);max-width:900px;width:100%;max-height:88vh;overflow:auto;box-shadow:var(--ome-shadow-1)}
+.lg-modal-hero{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--ome-border);position:sticky;top:0;background:var(--ome-surface-1);z-index:1}
+.lg-modal-hero .lg-cid{font-size:var(--ome-fs-md);font-weight:700;font-family:var(--pc53-mono,monospace)}
+.lg-modal-close{border:none;background:var(--ome-surface-2);color:var(--ome-text-2);width:28px;height:28px;border-radius:50%;font-size:var(--ome-fs-sm);cursor:pointer;flex:none}
 .lg-modal-body{padding:18px 20px}
 .lg-phase-block{margin-bottom:16px}
 .lg-phase-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-.lg-phase-head .ring{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8.5px;font-weight:700;flex:none;line-height:1.05;text-align:center}
-.lg-phase-head .name{font-size:12.5px;font-weight:700}
-.lg-phase-head .ptrack{flex:1;height:5px;border-radius:999px;background:#EEF1F4;overflow:hidden;max-width:150px}
-.lg-phase-head .pfill{height:100%;border-radius:999px}
-.lg-phase-head .ptxt{font-size:10px;color:var(--muted);font-weight:600}
+.lg-phase-head .ring{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ome-on-accent);font-size:var(--ome-fs-xs);font-weight:700;flex:none;line-height:1.05;text-align:center}
+.lg-phase-head .name{font-size:var(--ome-fs-xs);font-weight:700}
+.lg-phase-head .ptrack{flex:1;height:5px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-2);overflow:hidden;max-width:150px}
+.lg-phase-head .pfill{height:100%;border-radius:var(--ome-radius-pill)}
+.lg-phase-head .ptxt{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600}
 .lg-step-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
-.lg-step{display:flex;align-items:center;gap:8px;font-size:11.5px;padding:8px 10px;border-radius:9px;border:1px solid var(--line)}
-.lg-step.done{background:#E6F6EE;border-color:#CBEBD9;color:#0F5C3D}
-.lg-step.current{background:#FCF1DF;border-color:#F2D8A0;color:#7A4C08}
-.lg-step.pending{background:#F1F4F8;border-color:var(--line);color:#98A2AF}
-.lg-step.na{background:#F5F6F8;border-color:#F1F4F8;color:#B9C0C8;opacity:.75}
-.lg-step .ic{flex:none;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:#fff}
-.lg-step.done .ic{background:#0CA30C}.lg-step.current .ic{background:#E08700}.lg-step.pending .ic{background:#C7CFD7}.lg-step.na .ic{background:#D8DEE5;color:#8B95A0}
-.lg-step .natag{font-size:8.5px;font-weight:700;margin-left:auto;padding-left:6px;white-space:nowrap}
+.lg-step{display:flex;align-items:center;gap:8px;font-size:var(--ome-fs-xs);padding:8px 10px;border-radius:var(--ome-radius-md);border:1px solid var(--ome-border)}
+.lg-step.done{background:var(--ome-ok-soft);border-color:var(--ome-ok);color:var(--ome-ok-ink)}
+.lg-step.current{background:var(--ome-warn-soft);border-color:var(--ome-warn);color:var(--ome-warn-ink)}
+.lg-step.pending{background:var(--ome-surface-2);border-color:var(--ome-border);color:var(--ome-text-3)}
+.lg-step.na{background:var(--ome-surface-2);border-color:var(--ome-border);color:var(--ome-text-3);opacity:.75}
+.lg-step .ic{flex:none;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-on-accent)}
+.lg-step.done .ic{background:var(--ome-ok)}.lg-step.current .ic{background:var(--ome-warn)}.lg-step.pending .ic{background:var(--ome-border-strong)}.lg-step.na .ic{background:var(--ome-info-soft);color:var(--ome-text-2)}
+.lg-step .natag{font-size:var(--ome-fs-xs);font-weight:700;margin-left:auto;padding-left:6px;white-space:nowrap}
 @media(max-width:640px){.lg-step-grid{grid-template-columns:1fr}}
 
 @media(max-width:1100px){#lawfirmControlLayout .lf-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}#lawfirmControlLayout .lf-grid>.half{grid-column:1/-1}}
@@ -338,17 +345,16 @@
     if(layout.getAttribute('data-built')==='1')return true;
     layout.setAttribute('data-built','1');
     layout.innerHTML=
-      '<section class="lf-hero"><h2>⚖️ Law Firm Dashboard</h2><div class="lf-sub" id="lfUpdated">ภาพรวมคดี/งาน, Billable Hours, อัตราจัดเก็บเงิน และกำหนดนัดที่ใกล้ถึง</div></section>'+
+      '<section class="lf-hero"><h2>Law Firm Dashboard</h2><div class="lf-sub" id="lfUpdated"></div></section>'+
       '<div class="lf-kpis" id="lfKpis"></div>'+
       '<section class="lf-panel lf-insight-panel"><h3>Executive Insight</h3><div id="lfInsight" class="lf-insight"></div></section>'+
       '<div class="lf-grid">'+
-        '<section class="lf-panel full" id="lfTrendSection"><h3>เรียกเก็บ (Billed) vs จัดเก็บได้จริง (Collected)</h3><div class="lf-note">รายเดือน — ส่วนต่างคือ WIP/AR ค้างรับ</div><div id="lfTrend"></div></section>'+
-        '<section class="lf-panel half"><h3>คดี/งานแยกตามประเภท</h3><div class="lf-note">จำนวนคดีต่อ Practice Area</div><div id="lfPractice"></div></section>'+
-        '<section class="lf-panel half"><h3>สถานะคดี</h3><div class="lf-note">เปิดอยู่ / ปิดแล้ว / ระงับชั่วคราว</div><div id="lfStatus"></div></section>'+
-        '<section class="lf-panel full"><h3>Billable Hours ต่อทนายความ</h3><div class="lf-note">ชั่วโมงเรียกเก็บได้สะสม — ดู utilization ของแต่ละคน</div><div id="lfAttorney"></div></section>'+
-        '<section class="lf-panel full" id="lfDeadlineSection"><h3 id="lfDeadlineTitle">⚠ กำหนดนัด/เอกสารที่ใกล้ถึง</h3><div class="lf-note" id="lfDeadlineNote">เรียงตามวันที่ใกล้ที่สุด</div><div id="lfDeadlines"></div></section>'+
-      '</div>'+
-      '<div class="mini" style="font-size:9px;color:var(--muted)">ตรวจพบจากคอลัมน์ ทนายความ/ประเภทคดี + ชั่วโมงเรียกเก็บ/ยอดเรียกเก็บ ในไฟล์ที่อัปโหลด — Table ด้านล่างไม่ถูกแก้ไข</div>';
+        '<section class="lf-panel full" id="lfTrendSection"><h3>เรียกเก็บ (Billed) vs จัดเก็บได้จริง (Collected)</h3><div id="lfTrend"></div></section>'+
+        '<section class="lf-panel half"><h3>คดี/งานแยกตามประเภท</h3><div id="lfPractice"></div></section>'+
+        '<section class="lf-panel half"><h3>สถานะคดี</h3><div id="lfStatus"></div></section>'+
+        '<section class="lf-panel full"><h3>Billable Hours ต่อทนายความ</h3><div id="lfAttorney"></div></section>'+
+        '<section class="lf-panel full" id="lfDeadlineSection"><h3 id="lfDeadlineTitle">กำหนดนัด/เอกสารที่ใกล้ถึง</h3><div id="lfDeadlines"></div></section>'+
+      '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('lawfirm-hidden-source');
     });
@@ -379,20 +385,20 @@
     var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:'+w+'px;height:'+h+'px">';
     for(var t=0;t<=4;t++){
       var val=maxV*t/4, y=top+ph-ph*t/4;
-      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edf1" stroke-width="1"/>';
-      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="9.5" fill="#8a97a3">'+Math.round(val/1000)+'k</text>';
+      out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="'+P().grid+'" stroke-width="1"/>';
+      out+='<text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="9.5" fill="'+P().faint+'">'+Math.round(val/1000)+'k</text>';
     }
     var stepX=pw/(keys.length-1||1);
-    [['billed','#1C5CAB'],['collected','#16A34A']].forEach(function(cat){
+    [['billed',P().info],['collected',P().ok]].forEach(function(cat){
       var pts=keys.map(function(k,i){var v=byMonth[k][cat[0]]; return (left+stepX*i)+','+(top+ph-ph*v/maxV);});
       out+='<path d="M'+pts.join(' L')+'" fill="none" stroke="'+cat[1]+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
-      keys.forEach(function(k,i){var v=byMonth[k][cat[0]]; out+='<circle cx="'+(left+stepX*i)+'" cy="'+(top+ph-ph*v/maxV)+'" r="3" fill="'+cat[1]+'" stroke="#fff" stroke-width="1.2"/>';});
+      keys.forEach(function(k,i){var v=byMonth[k][cat[0]]; out+='<circle cx="'+(left+stepX*i)+'" cy="'+(top+ph-ph*v/maxV)+'" r="3" fill="'+cat[1]+'" stroke="'+P().surface1+'" stroke-width="1.2"/>';});
     });
     keys.forEach(function(k,i){
-      out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="#8a97a3">'+k+'</text>';
+      out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>';
     });
     out+='</svg>';
-    host.innerHTML='<div class="lf-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;font-size:10.5px;color:var(--muted);margin-top:4px"><span>● <span style="color:#1C5CAB">เรียกเก็บ (Billed)</span></span><span>● <span style="color:#16A34A">จัดเก็บได้จริง (Collected)</span></span></div>';
+    host.innerHTML='<div class="lf-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style=\"color:'+P().infoInk+'\">● เรียกเก็บ (Billed)</span><span style=\"color:'+P().okInk+'\">● จัดเก็บได้จริง (Collected)</span></div>';
   }
 
   function barListHtml(entries,color){
@@ -402,10 +408,10 @@
     var out=svgOpen(w,h);
     entries.forEach(function(e,i){
       var y=10+i*rowH, bw=Math.max(2,barW*e[1]/maxV);
-      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="#374151"><title>'+esc(e[0])+'</title>'+esc(e[0].length>16?e[0].slice(0,15)+'…':e[0])+'</text>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="#EEF1F4"/>';
+      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="'+P().text+'"><title>'+esc(e[0])+'</title>'+esc(e[0].length>16?e[0].slice(0,15)+'…':e[0])+'</text>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="'+P().surface2+'"/>';
       out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="16" rx="4" fill="'+color+'"/>';
-      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10.5" font-weight="700" fill="#172033">'+(Math.round(e[1]*10)/10).toLocaleString()+'</text>';
+      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10.5" font-weight="700" fill="'+P().text+'">'+(Math.round(e[1]*10)/10).toLocaleString()+'</text>';
     });
     out+='</svg>';
     return out;
@@ -415,14 +421,14 @@
     var host=q('#lfPractice'); if(!host)return;
     var map={}; rows.forEach(function(r){ map[r.practiceArea]=(map[r.practiceArea]||0)+1; });
     var entries=Object.keys(map).map(function(k){return [k,map[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
-    host.innerHTML=barListHtml(entries,'#1C5CAB');
+    host.innerHTML=barListHtml(entries,P().series[0]);
   }
 
   function renderAttorney(rows){
     var host=q('#lfAttorney'); if(!host)return;
     var map={}; rows.forEach(function(r){ map[r.attorney]=(map[r.attorney]||0)+r.billableHours; });
     var entries=Object.keys(map).map(function(k){return [k,map[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,10);
-    host.innerHTML=barListHtml(entries,'#7C3AED');
+    host.innerHTML=barListHtml(entries,P().series[0]);
   }
 
   function renderStatus(rows){
@@ -430,7 +436,7 @@
     var counts={open:0,closed:0,hold:0,other:0,unknown:0};
     rows.forEach(function(r){ var b=statusBucket(r.status); counts[b]=(counts[b]||0)+1; });
     var total=Math.max(1,rows.length);
-    var vals=[['open','เปิดอยู่ (Active)',counts.open+counts.unknown+counts.other,'#0EA5E9'],['closed','ปิดแล้ว',counts.closed,'#16A34A'],['hold','ระงับชั่วคราว',counts.hold,'#94A3B8']];
+    var vals=[['open','เปิดอยู่ (Active)',counts.open+counts.unknown+counts.other,P().info],['closed','ปิดแล้ว',counts.closed,P().ok],['hold','ระงับชั่วคราว',counts.hold,P().faint]];
     var out='<div class="lf-status-row">';
     vals.forEach(function(v){
       var pct=(v[2]/total*100).toFixed(0);
@@ -451,7 +457,7 @@
       if(!lfIsApplicable(s,role)) cls='na';
       else if(doneSteps.indexOf(s)>-1 || s<curStage.step) cls='';
       else cls='pending';
-      var bg = cls==='na' ? '' : (cls==='pending' ? '#EDF1F5' : lfPhaseOf(s).color);
+      var bg = cls==='na' ? '' : (cls==='pending' ? P().surface2 : lfPhaseOf(s).color);
       cells+='<div class="c'+(cls==='na'?' na':'')+'"'+(bg?' style="background:'+bg+'"':'')+'></div>';
     }
     var track='<div class="lg-track">'+cells+'</div>';
@@ -478,7 +484,7 @@
     var statusCount={ontrack:0,late:0,ahead:0};
     cases.forEach(function(c){ if(statusCount.hasOwnProperty(c.ev.status)) statusCount[c.ev.status]++; });
     var evaluable=statusCount.ontrack+statusCount.late+statusCount.ahead;
-    var STATUS_COLOR={ontrack:'#0CA30C',late:'#D03B3B',ahead:'#1C5CAB'};
+    var STATUS_COLOR={ontrack:P().ok,late:P().err,ahead:P().info};
     var donutHtml='';
     if(evaluable>0){
       var acc=0, stops='';
@@ -503,7 +509,7 @@
     var cardsHtml=sorted.map(function(c){
       var idx=cases.indexOf(c);
       var r=c.r, ev=c.ev, role=r.caseRole;
-      var roleHtml = role ? '<span class="lg-role '+role+'">'+(role==='plaintiff'?'⚔️':'🛡️')+' ฝ่าย'+LF_ROLE_LABEL[role]+'</span>' : '';
+      var roleHtml = role ? '<span class="lg-role '+role+'">'+(role==='plaintiff'?'':'')+' ฝ่าย'+LF_ROLE_LABEL[role]+'</span>' : '';
       var lab = ev.status==null ? ['ไม่มีข้อมูลแผน','unknown'] : LG_EVAL_LABEL[ev.status];
       return '<div class="lg-case">'+
         '<div class="lg-case-top"><div class="lg-id-wrap"><span class="lg-id">'+esc(r.matterId)+'</span>'+roleHtml+
@@ -539,9 +545,9 @@
     var ov=document.createElement('div'); ov.className='lg-modal-ov';
     ov.innerHTML='<div class="lg-modal">'+
       '<div class="lg-modal-hero"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="lg-cid">'+esc(r.matterId)+'</span>'+
-        (role?'<span class="lg-role '+role+'">'+(role==='plaintiff'?'⚔️':'🛡️')+' ฝ่าย'+LF_ROLE_LABEL[role]+'</span>':'')+
+        (role?'<span class="lg-role '+role+'">'+(role==='plaintiff'?'':'')+' ฝ่าย'+LF_ROLE_LABEL[role]+'</span>':'')+
         '<span class="lg-badge '+lab[1]+'"><span class="dot"></span>'+lab[0]+'</span></div>'+
-        '<button class="lg-modal-close" type="button" aria-label="ปิด">✕</button></div>'+
+        '<button class="lg-modal-close" type="button" aria-label="ปิด"></button></div>'+
       '<div class="lg-modal-body">'+phaseBlocks+'</div>'+
     '</div>';
     document.body.appendChild(ov);
@@ -572,7 +578,7 @@
     var layout=injectLayout(); if(!layout)return;
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
-    layout.innerHTML='<section class="lf-panel"><h3>⚖️ Law Firm Dashboard</h3>'+
+    layout.innerHTML='<section class="lf-panel"><h3>Law Firm Dashboard</h3>'+
       '<div class="lf-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายข้อมูลสำนักงานกฎหมาย (ต้องมีคอลัมน์ '+
       'ทนายความ/ประเภทคดี ร่วมกับ ชั่วโมงเรียกเก็บ/ยอดเรียกเก็บ) — ลองเลือก Template เป็น "Auto" '+
       'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
@@ -618,17 +624,15 @@
     renderTrend(rows); renderPractice(rows); renderStatus(rows); renderAttorney(rows);
 
     if(data.hasLitigation){
-      q('#lfDeadlineTitle').textContent='⚖️ ความคืบหน้าคดี (37 ขั้นตอนมาตรฐานคดีแพ่ง)';
-      q('#lfDeadlineNote').textContent='เรียงคดีล่าช้าก่อน · จุดหมุด = ตำแหน่งปัจจุบัน (นับเฉพาะขั้นตอนของฝ่ายนั้น) · ลายทแยง = ขั้นตอนที่ไม่เกี่ยวข้องกับฝ่ายนี้';
+      q('#lfDeadlineTitle').textContent='ความคืบหน้าคดี (37 ขั้นตอนมาตรฐานคดีแพ่ง)';
       renderLitigation(rows, today);
     } else {
-      q('#lfDeadlineTitle').textContent='⚠ กำหนดนัด/เอกสารที่ใกล้ถึง';
-      q('#lfDeadlineNote').textContent='เรียงตามวันที่ใกล้ที่สุด';
+      q('#lfDeadlineTitle').textContent='กำหนดนัด/เอกสารที่ใกล้ถึง';
       var deadlines=rows.filter(function(r){return r.dueDate && statusBucket(r.status)!=='closed';})
         .sort(function(a,b){return a.dueDate-b.dueDate;}).slice(0,8);
       q('#lfDeadlines').innerHTML=deadlines.length?deadlines.map(function(r){
         var days=Math.round((r.dueDate-today)/86400000);
-        var urgency=days<3?'color:var(--err);font-weight:800':days<7?'color:var(--warn);font-weight:700':'color:var(--muted)';
+        var urgency=days<3?'color:var(--ome-err);font-weight:800':days<7?'color:var(--ome-warn);font-weight:700':'color:var(--ome-text-3)';
         var label=days<0?'เลยกำหนดแล้ว '+Math.abs(days)+' วัน':days===0?'วันนี้':'อีก '+days+' วัน';
         return '<div class="lf-list"><b>'+esc(r.matterId)+(r.client?' · '+esc(r.client):'')+'</b><span>'+esc(r.practiceArea)+' · '+esc(r.attorney)+'</span><span style="'+urgency+'">'+label+'</span></div>';
       }).join(''):'<div class="lf-empty">ไม่มีกำหนดนัดที่ใกล้ถึง</div>';
@@ -645,6 +649,7 @@
 
   function init(){
     injectCSS();
+    window.TanotReportUtils.onTheme(schedule);
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;

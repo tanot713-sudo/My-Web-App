@@ -24,6 +24,7 @@
    (this domain didn't pre-exist like legal/risk/finance/reading did). */
 (function(){
   'use strict';
+  function P(){return window.TanotReportUtils.palette();}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -150,51 +151,50 @@
     if(q('#kpidashboard1-css'))return;
     var s=document.createElement('style');s.id='kpidashboard1-css';s.textContent=`
 #kpidashboardControlLayout{display:flex;flex-direction:column;gap:12px;margin-top:14px;font-family:var(--pc53-font,inherit)}
-#kpidashboardControlLayout .kd-hero{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--sh)}
-#kpidashboardControlLayout .kd-hero h2{font-size:16px;margin:0}
-#kpidashboardControlLayout .kd-hero .kd-sub{font-size:12px;color:var(--muted);margin-top:3px}
+#kpidashboardControlLayout .kd-hero{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:15px 16px;box-shadow:var(--ome-shadow-1)}
+#kpidashboardControlLayout .kd-hero h2{font-size:var(--ome-fs-md);margin:0}
+#kpidashboardControlLayout .kd-hero .kd-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px}
 #kpidashboardControlLayout .kd-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-#kpidashboardControlLayout .kd-kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;box-shadow:var(--sh);position:relative}
-#kpidashboardControlLayout .kd-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:4px;background:var(--ok)}
-#kpidashboardControlLayout .kd-kpi.warn:after{background:var(--warn)}
-#kpidashboardControlLayout .kd-kpi .l{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-#kpidashboardControlLayout .kd-kpi .v{font-size:22px;font-weight:850;margin-top:4px;color:var(--ink)}
-#kpidashboardControlLayout .kd-kpi .s{font-size:9.5px;color:var(--muted);margin-top:4px}
-#kpidashboardControlLayout .kd-panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px;box-shadow:var(--sh)}
-#kpidashboardControlLayout .kd-panel h3{font-size:13px;margin:0 0 3px;font-weight:850}
-#kpidashboardControlLayout .kd-note{font-size:9.5px;color:var(--muted);margin-bottom:7px}
+#kpidashboardControlLayout .kd-kpi{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px 13px;box-shadow:var(--ome-shadow-1);position:relative}
+#kpidashboardControlLayout .kd-kpi:after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:var(--ome-radius-sm);background:var(--ome-ok)}
+#kpidashboardControlLayout .kd-kpi.warn:after{background:var(--ome-warn)}
+#kpidashboardControlLayout .kd-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
+#kpidashboardControlLayout .kd-kpi .v{font-size:var(--ome-fs-xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
+#kpidashboardControlLayout .kd-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
+#kpidashboardControlLayout .kd-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
+#kpidashboardControlLayout .kd-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
 #kpidashboardControlLayout .kd-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
 #kpidashboardControlLayout .kd-grid>.half{grid-column:span 6}#kpidashboardControlLayout .kd-grid>.full{grid-column:1/-1}
-#kpidashboardControlLayout .kd-insight{border-left:3px solid var(--ok);padding:10px 13px;font-size:12px;color:var(--ink)}
-#kpidashboardControlLayout .kd-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px}
+#kpidashboardControlLayout .kd-insight{border-left:3px solid var(--ome-ok);padding:10px 13px;font-size:var(--ome-fs-xs);color:var(--ome-text-1)}
+#kpidashboardControlLayout .kd-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs)}
 #kpidashboardControlLayout .kd-list:last-child{border-bottom:none}
-#kpidashboardControlLayout .kd-empty{padding:24px 8px;text-align:center;color:var(--muted);font-size:11px}
+#kpidashboardControlLayout .kd-empty{padding:24px 8px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
 #kpidashboardControlLayout svg text{font-family:var(--pc53-font,inherit)}
 #kpidashboardControlLayout .kd-trend-scroll{overflow-x:auto}
 /* Scorecard */
 #kpidashboardControlLayout .kd-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:4px}
-#kpidashboardControlLayout .kd-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:10.5px;color:var(--muted);margin-bottom:12px}
+#kpidashboardControlLayout .kd-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-bottom:12px}
 #kpidashboardControlLayout .kd-legend span{display:inline-flex;align-items:center;gap:5px}
 #kpidashboardControlLayout .kd-legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
 #kpidashboardControlLayout .kd-summary-grid{display:grid;grid-template-columns:1fr 1.6fr;gap:10px;margin-bottom:12px}
-#kpidashboardControlLayout .kd-gauge-card,#kpidashboardControlLayout .kd-donut-card{background:var(--card);border-radius:13px;box-shadow:var(--sh);padding:14px 16px}
-#kpidashboardControlLayout .kd-gauge-card{border:2px solid var(--ok);display:flex;align-items:center;gap:12px}
-#kpidashboardControlLayout .kd-donut-card{border:1px solid var(--line)}
-#kpidashboardControlLayout .kd-grade-circle{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:850;font-size:12px;color:#fff}
+#kpidashboardControlLayout .kd-gauge-card,#kpidashboardControlLayout .kd-donut-card{background:var(--ome-surface-1);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-1);padding:14px 16px}
+#kpidashboardControlLayout .kd-gauge-card{border:2px solid var(--ome-ok);display:flex;align-items:center;gap:12px}
+#kpidashboardControlLayout .kd-donut-card{border:1px solid var(--ome-border)}
+#kpidashboardControlLayout .kd-grade-circle{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:var(--ome-fs-xs);color:var(--ome-on-accent)}
 #kpidashboardControlLayout .kd-table-wrap{overflow-x:auto}
-#kpidashboardControlLayout .kd-table{width:100%;border-collapse:collapse;font-size:11.5px;min-width:1120px}
-#kpidashboardControlLayout .kd-table thead th{text-align:left;font-weight:800;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.03em;padding:0 10px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-#kpidashboardControlLayout .kd-table tbody td{padding:14px 10px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:middle}
+#kpidashboardControlLayout .kd-table{width:100%;border-collapse:collapse;font-size:var(--ome-fs-xs);min-width:1120px}
+#kpidashboardControlLayout .kd-table thead th{text-align:left;font-weight:700;color:var(--ome-text-2);font-size:var(--ome-fs-xs);padding:0 10px 10px;border-bottom:1px solid var(--ome-border);white-space:nowrap}
+#kpidashboardControlLayout .kd-table tbody td{padding:14px 10px;border-bottom:1px solid var(--ome-border);color:var(--ome-text-1);vertical-align:middle}
 #kpidashboardControlLayout .kd-table tbody tr:last-child td{border-bottom:none}
-#kpidashboardControlLayout .kd-freq-pill{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--brand-sf,#E5EEF9);color:var(--brand-dk,#164A89);white-space:nowrap}
-#kpidashboardControlLayout .kd-status-pill{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
-#kpidashboardControlLayout .kd-status-pill.done{background:#E9F8EC;color:var(--ok)}
-#kpidashboardControlLayout .kd-status-pill.mjk{background:#FEF6EA;color:#B8720A}
-#kpidashboardControlLayout .kd-status-pill.bad{background:#FDECEC;color:var(--err)}
+#kpidashboardControlLayout .kd-freq-pill{display:inline-block;font-size:var(--ome-fs-xs);font-weight:700;padding:3px 10px;border-radius:var(--ome-radius-pill);background:var(--ome-accent-soft,var(--ome-info-soft));color:var(--ome-accent-strong,var(--ome-info-ink));white-space:nowrap}
+#kpidashboardControlLayout .kd-status-pill{display:inline-block;font-size:var(--ome-fs-xs);font-weight:700;padding:3px 10px;border-radius:var(--ome-radius-pill);white-space:nowrap}
+#kpidashboardControlLayout .kd-status-pill.done{background:var(--ome-ok-soft);color:var(--ome-ok)}
+#kpidashboardControlLayout .kd-status-pill.mjk{background:var(--ome-warn-soft);color:var(--ome-warn-ink)}
+#kpidashboardControlLayout .kd-status-pill.bad{background:var(--ome-err-soft);color:var(--ome-err)}
 #kpidashboardControlLayout .kd-gauge-row{position:relative;min-width:280px;padding-top:22px}
-#kpidashboardControlLayout .kd-gauge-row .track{height:6px;border-radius:6px;background:#eef1f4;position:relative}
-#kpidashboardControlLayout .kd-gauge-row .fill{position:absolute;left:0;top:0;height:100%;border-radius:6px}
-#kpidashboardControlLayout .kd-gauge-row .badge{position:absolute;top:-4px;transform:translateX(-50%);font-size:9.5px;font-weight:800;color:#fff;padding:2px 7px;border-radius:5px;white-space:nowrap}
+#kpidashboardControlLayout .kd-gauge-row .track{height:6px;border-radius:var(--ome-radius-sm);background:var(--ome-surface-2);position:relative}
+#kpidashboardControlLayout .kd-gauge-row .fill{position:absolute;left:0;top:0;height:100%;border-radius:var(--ome-radius-sm)}
+#kpidashboardControlLayout .kd-gauge-row .badge{position:absolute;top:-4px;transform:translateX(-50%);font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-on-accent);padding:2px 7px;border-radius:var(--ome-radius-sm);white-space:nowrap}
 #kpidashboardControlLayout.kpidashboard-override-hidden{display:none!important}
 .kpidashboard-hidden-source{display:none!important}
 @media(max-width:1100px){#kpidashboardControlLayout .kd-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}#kpidashboardControlLayout .kd-grid>.half{grid-column:1/-1}#kpidashboardControlLayout .kd-summary-grid{grid-template-columns:1fr}}
@@ -221,16 +221,15 @@
     if(layout.getAttribute('data-built')==='auto')return true;
     layout.setAttribute('data-built','auto');
     layout.innerHTML=
-      '<section class="kd-hero"><h2>📊 KPI Dashboard</h2><div class="kd-sub" id="kdUpdated">แดชบอร์ดสรุปอัตโนมัติสำหรับข้อมูลตารางที่ไม่เข้าข่าย template เฉพาะทางไหนเลย — ตรวจจับคอลัมน์ตัวเลข/วันที่/หมวดหมู่ที่น่าจะใช่เองอัตโนมัติ</div></section>'+
+      '<section class="kd-hero"><h2>KPI Dashboard</h2><div class="kd-sub" id="kdUpdated"></div></section>'+
       '<div class="kd-kpis" id="kdKpis"></div>'+
       '<section class="kd-panel kd-insight-panel"><h3>Executive Insight</h3><div id="kdInsight" class="kd-insight"></div></section>'+
       '<div class="kd-grid">'+
-        '<section class="kd-panel full" id="kdTrendSection"><h3>แนวโน้มตามเวลา</h3><div class="kd-note">ผลรวมคอลัมน์ตัวเลขต่อเดือน</div><div id="kdTrend"></div></section>'+
-        '<section class="kd-panel half" id="kdCatSection"><h3>แยกตามหมวดหมู่ที่เจอ</h3><div class="kd-note">Top ค่าที่พบบ่อยสุด</div><div id="kdCat"></div></section>'+
-        '<section class="kd-panel half"><h3>การกระจายค่าตัวเลข</h3><div class="kd-note">แบ่งช่วงคอลัมน์หลักเป็น 4 กลุ่ม</div><div id="kdDist"></div></section>'+
-        '<section class="kd-panel full"><h3>ตัวอย่างข้อมูลล่าสุด</h3><div class="kd-note">แถวล่าสุด</div><div id="kdRecent"></div></section>'+
-      '</div>'+
-      '<div class="mini" style="font-size:9px;color:var(--muted)">ตรวจจับคอลัมน์อัตโนมัติจากไฟล์ที่อัปโหลด — Table ด้านล่างไม่ถูกแก้ไข</div>';
+        '<section class="kd-panel full" id="kdTrendSection"><h3>แนวโน้มตามเวลา</h3><div id="kdTrend"></div></section>'+
+        '<section class="kd-panel half" id="kdCatSection"><h3>แยกตามหมวดหมู่ที่เจอ</h3><div id="kdCat"></div></section>'+
+        '<section class="kd-panel half"><h3>การกระจายค่าตัวเลข</h3><div id="kdDist"></div></section>'+
+        '<section class="kd-panel full"><h3>ตัวอย่างข้อมูลล่าสุด</h3><div id="kdRecent"></div></section>'+
+      '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('kpidashboard-hidden-source');
     });
@@ -244,10 +243,10 @@
     var out=svgOpen(w,h);
     entries.forEach(function(e,i){
       var y=10+i*rowH, bw=Math.max(2,barW*e[1]/maxV);
-      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="#374151"><title>'+esc(e[0])+'</title>'+esc(e[0].length>16?e[0].slice(0,15)+'…':e[0])+'</text>';
-      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="#EEF1F4"/>';
+      out+='<text x="'+(left-8)+'" y="'+(y+13)+'" text-anchor="end" font-size="10.5" fill="'+P().text+'"><title>'+esc(e[0])+'</title>'+esc(e[0].length>16?e[0].slice(0,15)+'…':e[0])+'</text>';
+      out+='<rect x="'+left+'" y="'+y+'" width="'+barW+'" height="16" rx="4" fill="'+P().surface2+'"/>';
       out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="16" rx="4" fill="'+color+'"/>';
-      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10.5" font-weight="700" fill="#172033">'+e[1]+'</text>';
+      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10.5" font-weight="700" fill="'+P().text+'">'+e[1]+'</text>';
     });
     out+='</svg>';
     return out;
@@ -288,8 +287,8 @@
         var maxV=Math.ceil(Math.max.apply(null,keys.map(function(k){return byMonth[k];}))*1.15)||1;
         var bw=Math.min(34,perM*0.55), step=pw/keys.length;
         var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:'+w+'px;height:'+h+'px">';
-        for(var t=0;t<=4;t++){ var val=maxV*t/4, y=top+ph-ph*t/4; out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edf1" stroke-width="1"/><text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#8a97a3">'+Math.round(val)+'</text>'; }
-        keys.forEach(function(k,i){ var x=left+step*i+(step-bw)/2, v=byMonth[k], h2=ph*v/maxV; out+='<rect x="'+x+'" y="'+(top+ph-h2)+'" width="'+bw+'" height="'+h2+'" fill="#1C5CAB"/><text x="'+(x+bw/2)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="#8a97a3">'+k+'</text>'; });
+        for(var t=0;t<=4;t++){ var val=maxV*t/4, y=top+ph-ph*t/4; out+='<line x1="'+left+'" x2="'+(w-right)+'" y1="'+y+'" y2="'+y+'" stroke="'+P().grid+'" stroke-width="1"/><text x="'+(left-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="'+P().faint+'">'+Math.round(val)+'</text>'; }
+        keys.forEach(function(k,i){ var x=left+step*i+(step-bw)/2, v=byMonth[k], h2=ph*v/maxV; out+='<rect x="'+x+'" y="'+(top+ph-h2)+'" width="'+bw+'" height="'+h2+'" fill="'+P().info+'"/><text x="'+(x+bw/2)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>'; });
         out+='</svg>';
         q('#kdTrend').innerHTML='<div class="kd-trend-scroll">'+out+'</div>';
       } else q('#kdTrend').innerHTML='<div class="kd-empty">ข้อมูลยังไม่พอสำหรับดูแนวโน้ม</div>';
@@ -299,7 +298,7 @@
     if(data.catCol){
       catSec&&catSec.removeAttribute('hidden');
       var entries=Object.keys(catMap).map(function(k){return [k,catMap[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
-      q('#kdCat').innerHTML=barListHtml(entries,'#1C5CAB');
+      q('#kdCat').innerHTML=barListHtml(entries,P().info);
     } else catSec&&catSec.setAttribute('hidden','');
 
     if(withVal.length){
@@ -313,7 +312,7 @@
         [qtr(1)+' – '+qtr(2),buckets[1]],
         [qtr(2)+' – '+qtr(3),buckets[2]],
         [qtr(3)+' – '+qtr(4),buckets[3]]
-      ],'#0EA5E9');
+      ],P().series[2]);
     } else q('#kdDist').innerHTML='<div class="kd-empty">ไม่มีคอลัมน์ตัวเลข</div>';
 
     var recent=(withDate.length?withDate.slice().sort(function(a,b){return b.date-a.date;}):rows).slice(0,10);
@@ -326,9 +325,13 @@
   }
 
   // ═══════════════ โหมด 2: KPI Scorecard ═══════════════
-  var GRADE_COLORS=['#DC2626','#F59E0B','#EAB308','#65A30D','#16A34A'];
+  function gradeColors(){
+    var c=P();
+    function mix(a,b,t){var x=a.match(/\d+/g).map(Number),y=b.match(/\d+/g).map(Number);return 'rgb('+[0,1,2].map(function(i){return Math.round(x[i]*t+y[i]*(1-t));}).join(',')+')';}
+    return [c.err,c.warn,mix(c.warn,c.ok,0.5),mix(c.ok,c.warn,0.75),c.ok];
+  }
   var GRADE_LABELS=['1 วิกฤต','2 ต้องปรับปรุง','3 ตามแผน','4 ดี','5 ดีเยี่ยม'];
-  function gradeColor(g){return GRADE_COLORS[Math.max(1,Math.min(5,Math.round(g)))-1];}
+  function gradeColor(g){return gradeColors()[Math.max(1,Math.min(5,Math.round(g)))-1];}
   // สูตรให้เกรด: % ของเป้าที่ทำได้จริง (achievement) — ไม่ใช้ตัวเลขที่เลือกเอง คำนวณจากข้อมูลล้วนๆ
   // achievement>=100% → 5, 95-99.9%→4, 85-94.9%→3, 70-84.9%→2, <70%→1
   function gradeFromAchievement(pct){
@@ -343,16 +346,16 @@
     var ap=pct(actual), tp=pct(target);
     var good=lowerIsBetter?actual<=target:actual>=target;
     var margin=Math.abs(max-min)*0.12;
-    var color=good?'#16A34A':(Math.abs(actual-target)<=margin?'#F59E0B':'#DC2626');
+    var color=good?P().ok:(Math.abs(actual-target)<=margin?P().warn:P().err);
     var fmtN=function(v){return (Math.round(v*10)/10).toLocaleString();};
     return '<div class="kd-gauge-row">'+
       '<div class="badge" style="left:'+ap+'%;background:'+color+'">'+fmtN(actual)+'</div>'+
       '<div class="track"><div class="fill" style="width:'+ap+'%;background:'+color+'"></div>'+
-      '<div style="position:absolute;left:'+tp+'%;top:-5px;width:2px;height:16px;background:#172033;transform:translateX(-1px)"></div></div>'+
+      '<div style="position:absolute;left:'+tp+'%;top:-5px;width:2px;height:16px;background:'+P().text+';transform:translateX(-1px)"></div></div>'+
       '<div style="position:relative;height:14px;margin-top:2px">'+
-        '<span style="position:absolute;left:0;font-size:8.5px;color:#8a97a3">'+fmtN(min)+'</span>'+
-        '<span style="position:absolute;left:'+tp+'%;transform:translateX(-50%);font-size:8.5px;font-weight:800;color:#172033;white-space:nowrap">🎯'+fmtN(target)+'</span>'+
-        '<span style="position:absolute;right:0;font-size:8.5px;color:#8a97a3">'+fmtN(max)+'</span>'+
+        '<span style="position:absolute;left:0;font-size:8.5px;color:'+P().muted+'">'+fmtN(min)+'</span>'+
+        '<span style="position:absolute;left:'+tp+'%;transform:translateX(-50%);font-size:8.5px;font-weight:800;color:'+P().text+';white-space:nowrap">'+fmtN(target)+'</span>'+
+        '<span style="position:absolute;right:0;font-size:8.5px;color:'+P().muted+'">'+fmtN(max)+'</span>'+
       '</div></div>';
   }
 
@@ -361,11 +364,10 @@
     if(layout.getAttribute('data-built')==='scorecard')return true;
     layout.setAttribute('data-built','scorecard');
     layout.innerHTML=
-      '<section class="kd-hero"><h2>🎯 KPI Scorecard</h2><div class="kd-sub" id="kdUpdated">เทียบผลจริงกับเป้าหมายที่ตั้งไว้ต่อตัวชี้วัด พร้อมเกรด 1-5 ตามเกณฑ์ % ที่ทำได้จากเป้า</div></section>'+
-      '<div class="kd-legend">'+GRADE_LABELS.map(function(l,i){return '<span><i style="background:'+GRADE_COLORS[i]+'"></i>'+l+'</span>';}).join('')+'</div>'+
+      '<section class="kd-hero"><h2>KPI Scorecard</h2><div class="kd-sub" id="kdUpdated"></div></section>'+
+      '<div class="kd-legend">'+GRADE_LABELS.map(function(l,i){return '<span><i style="background:'+gradeColors()[i]+'"></i>'+l+'</span>';}).join('')+'</div>'+
       '<div class="kd-summary-grid" id="kdScSummary"></div>'+
-      '<section class="kd-panel"><div id="kdScTable"></div></section>'+
-      '<div class="mini" style="font-size:9px;color:var(--muted)">ตรวจพบจากคอลัมน์ ตัวชี้วัด/เป้าหมาย/ผลจริง ในไฟล์ที่อัปโหลด — Table ด้านล่างไม่ถูกแก้ไข</div>';
+      '<section class="kd-panel"><div id="kdScTable"></div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('kpidashboard-hidden-source');
     });
@@ -379,20 +381,20 @@
       ? rows.reduce(function(s,r){return s+r.grade*r.weight;},0)/totalW
       : rows.reduce(function(s,r){return s+r.grade;},0)/rows.length;
     var gradeCounts=[0,0,0,0,0]; rows.forEach(function(r){gradeCounts[r.grade-1]++;});
-    var donutEntries=[5,4,3,2,1].map(function(g){return [GRADE_LABELS[g-1],gradeCounts[g-1],GRADE_COLORS[g-1]];}).filter(function(e){return e[1]>0;});
+    var donutEntries=[5,4,3,2,1].map(function(g){return [GRADE_LABELS[g-1],gradeCounts[g-1],gradeColors()[g-1]];}).filter(function(e){return e[1]>0;});
 
     var circ=2*Math.PI*38, offset=0, segs='';
     var totalCnt=donutEntries.reduce(function(s,e){return s+e[1];},0)||1;
     donutEntries.forEach(function(e){ var len=circ*(e[1]/totalCnt); segs+='<circle cx="56" cy="56" r="38" fill="none" stroke="'+e[2]+'" stroke-width="18" stroke-dasharray="'+len+' '+(circ-len)+'" stroke-dashoffset="'+(-offset)+'" transform="rotate(-90 56 56)"/>'; offset+=len; });
-    var donutSvg='<svg width="112" height="112" viewBox="0 0 112 112" role="img" style="flex:none">'+segs+'<circle cx="56" cy="56" r="27" fill="#FFFFFF"/><text x="56" y="60" text-anchor="middle" font-size="19" font-weight="850" fill="#101820">'+rows.length+'</text></svg>';
+    var donutSvg='<svg width="112" height="112" viewBox="0 0 112 112" role="img" style="flex:none">'+segs+'<circle cx="56" cy="56" r="27" fill="'+P().surface1+'"/><text x="56" y="60" text-anchor="middle" font-size="19" font-weight="850" fill="'+P().text+'">'+rows.length+'</text></svg>';
     var donutLegend='<div style="display:flex;flex-direction:column;gap:6px;justify-content:center;flex:1;min-width:150px">'+donutEntries.map(function(e){
       var pct=(e[1]/totalCnt*100).toFixed(0);
-      return '<div style="display:flex;align-items:center;gap:8px;font-size:11px"><i style="width:9px;height:9px;border-radius:2px;background:'+e[2]+';display:inline-block;flex:none"></i><span style="flex:1">'+esc(e[0])+'</span><b>'+e[1]+'</b><span style="color:var(--muted);width:30px;text-align:right">'+pct+'%</span></div>';
+      return '<div style="display:flex;align-items:center;gap:8px;font-size:11px"><i style="width:9px;height:9px;border-radius:2px;background:'+e[2]+';display:inline-block;flex:none"></i><span style="flex:1">'+esc(e[0])+'</span><b>'+e[1]+'</b><span style="color:var(--ome-text-3);width:30px;text-align:right">'+pct+'%</span></div>';
     }).join('')+'</div>';
 
     q('#kdScSummary').innerHTML=
-      '<div class="kd-gauge-card"><span class="kd-grade-circle" style="width:40px;height:40px;font-size:18px;background:'+gradeColor(Math.round(avgGrade))+'">'+avgGrade.toFixed(1)+'</span><div><div style="font-size:10.5px;color:var(--muted);font-weight:700">เกรดเฉลี่ย'+(totalW>0?'ถ่วงน้ำหนัก':'')+'</div><div style="font-size:11px;color:var(--muted);margin-top:2px">จาก '+rows.length+' ตัวชี้วัด'+(totalW>0?' รวมน้ำหนัก '+totalW+'%':'')+'</div></div></div>'+
-      '<div class="kd-donut-card"><div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:8px">Grade Distribution</div><div style="display:flex;align-items:center;gap:16px">'+donutSvg+donutLegend+'</div></div>';
+      '<div class="kd-gauge-card"><span class="kd-grade-circle" style="width:40px;height:40px;font-size:18px;background:'+gradeColor(Math.round(avgGrade))+'">'+avgGrade.toFixed(1)+'</span><div><div style="font-weight:700">เกรดเฉลี่ย'+(totalW>0?'ถ่วงน้ำหนัก':'')+'</div><div style="font-size:11px;color:var(--ome-text-3);margin-top:2px">จาก '+rows.length+' ตัวชี้วัด'+(totalW>0?' รวมน้ำหนัก '+totalW+'%':'')+'</div></div></div>'+
+      '<div class="kd-donut-card"><div style="font-weight:700;margin-bottom:8px">Grade Distribution</div><div style="display:flex;align-items:center;gap:16px">'+donutSvg+donutLegend+'</div></div>';
 
     var hasWeight=totalW>0, hasFreq=rows.some(function(r){return r.frequency;});
     var html='<div class="kd-table-wrap"><table class="kd-table"><thead><tr>'+
@@ -439,7 +441,7 @@
     var layout=injectLayout(); if(!layout)return;
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
-    layout.innerHTML='<section class="kd-panel"><h3>📊 KPI Dashboard</h3>'+
+    layout.innerHTML='<section class="kd-panel"><h3>KPI Dashboard</h3>'+
       '<div class="kd-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ตัวเลขให้สรุป (หรือถ้าต้องการ KPI Scorecard ต้องมีคอลัมน์ '+
       'ตัวชี้วัด + เป้าหมาย + ผลจริง) — ลองเลือก Template เป็น "Auto" หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
@@ -490,6 +492,7 @@
 
   function init(){
     injectCSS();
+    window.TanotReportUtils.onTheme(schedule);
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;
