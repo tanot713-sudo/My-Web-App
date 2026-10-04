@@ -1,4 +1,4 @@
-/* ตัวช่วยร่วมของ /api/ai/* (chat / summarize / embed / usage) — ไฟล์นี้ไม่ export onRequest* จึงไม่ใช่ route
+/* ตัวช่วยร่วมของ /api/ai/* (chat / summarize / embed / usage / image) — ไฟล์นี้ไม่ export onRequest* จึงไม่ใช่ route
    ทุก endpoint ใต้ /api/ อยู่หลัง _middleware.js (Cloudflare Access) อยู่แล้ว
 
    โควตา: Workers AI ฟรีวันละ 10,000 Neurons ใช้ร่วมกันทุกโมเดลรวม Whisper — นับที่ตาราง ai_usage (day เป็น UTC
@@ -11,7 +11,18 @@ export const MODELS = {
   main: { id: '@cf/aisingapore/gemma-sea-lion-v4-27b-it', inRate: 31909, outRate: 50455, noThink: false },
   fast: { id: '@cf/qwen/qwen3-30b-a3b-fp8', inRate: 4625, outRate: 68182, noThink: true },
   embed: { id: '@cf/baai/bge-m3', inRate: 1075, outRate: 0, noThink: false },
+  /* สร้างภาพ (/api/ai/image) — คิดเป็น Neurons ต่อภาพ ไม่ใช่ต่อโทเค็น · ราคา: https://developers.cloudflare.com/workers-ai/platform/pricing/
+     flux-1-schnell: 4.80 neurons ต่อ tile 512×512 + 9.60 ต่อ step (รับแค่ prompt+steps ≤8, ภาพออกขนาดคงที่ 1024×1024 ไม่มี width/height/seed)
+       https://developers.cloudflare.com/workers-ai/models/flux-1-schnell/
+     flux-2-klein-4b: 26.05 neurons ต่อ tile 512×512 ของภาพออก (+5.37 ต่อ tile ภาพอ้างอิงขาเข้า — เราไม่ส่ง) · input เป็น multipart (prompt, width, height, seed)
+       https://developers.cloudflare.com/workers-ai/models/flux-2-klein-4b/
+     (เลือก 4b ไม่ใช้ 9b: 9b คิด 1,363 neurons ต่อภาพ 1 MP ≈ 7 ภาพ/วันของโควตาฟรี)
+     ⚠️ ชื่อฟิลด์ multipart/ขนาดสูงสุดของ klein อ่านจาก schema ใน repo เอกสารของ Cloudflare ซึ่งระบุแค่ { multipart } ยังไม่ได้ยิงกับ Workers AI จริง
+     จึงใส่ margin ×IMAGE_MARGIN ให้คิดเผื่อสูงไว้ก่อน — ถ้าไม่ตรงให้แก้เฉพาะตารางนี้ที่เดียว */
+  imageFast: { id: '@cf/black-forest-labs/flux-1-schnell', perTile: 4.8, perStep: 9.6, steps: 4, sized: false, seed: false },
+  imageQuality: { id: '@cf/black-forest-labs/flux-2-klein-4b', perTile: 26.05, perStep: 0, steps: 0, sized: true, seed: true },
 };
+export const IMAGE_MARGIN = 1.25;
 export const DEFAULT_DAILY_NEURONS = 10000;
 export const WHISPER_NEURONS_PER_MINUTE = 46.63;
 
@@ -53,6 +64,12 @@ export function validateMessages(raw) {
   }
   if (chars > MAX_TOTAL_CHARS) return { error: 'messages too long (max ' + MAX_TOTAL_CHARS + ' chars)' };
   return { messages, chars };
+}
+
+/* Neurons ที่ประเมินต่อภาพ (ปัดขึ้น + margin) — tile = 512×512 ปัดขึ้นทั้งสองแกน */
+export function imageNeurons(model, width, height) {
+  const tiles = Math.ceil(width / 512) * Math.ceil(height / 512);
+  return Math.ceil((tiles * model.perTile + model.steps * model.perStep) * IMAGE_MARGIN * 100) / 100;
 }
 
 export function pickModel(name) { return name === 'fast' ? MODELS.fast : MODELS.main; }

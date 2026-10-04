@@ -62,6 +62,9 @@
     // ── งาน PowerPoint (slides.html) — 1 ชุดสไลด์ = 1 แถว (โครงเรื่อง+ธีม+ref รูปใน R2 ไม่มีไบนารี) · ui = ชุดที่เปิด/มุมมองต่อเครื่อง
     { key: 'tanot:slides:decks', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:slides:ui', kind: 'local' },
+    // ── สร้างภาพ (image-gen.html) — ข้อมูลกำกับภาพ 1 ภาพ = 1 แถว (ตัวภาพอยู่ใน R2 ผ่าน /api/files?ns=images) · ui = ตัวกรอง/ค่าที่เลือกต่อเครื่อง
+    { key: 'tanot:images:items', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:images:ui', kind: 'local' },
     { key: 'tanot:health:vitals', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:checkups', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:meds', kind: 'sync', mode: 'list', idField: 'id' },

@@ -2,12 +2,14 @@
    POST   /api/files?ns=<ns>&ref=<รหัสรายการเจ้าของ>&name=<ชื่อไฟล์>   body = ไบต์ของไฟล์ (Content-Type = mime)  → { id, name, size, mime }
    GET    /api/files?id=<id>                                          → ตัวไฟล์ (?download=1 บังคับดาวน์โหลด)
    DELETE /api/files?id=<id>                                          → { ok:true }  (ลบจาก R2 + ตั้ง deleted=1)
-   ns ที่รองรับ: insurance, maintenance, health, receipts, compare, slides, recipes, car · ชนิดไฟล์: PDF และรูปภาพ · ขนาดสูงสุด 15 MiB
+   ns ที่รองรับ: insurance, maintenance, health, receipts, compare, slides, recipes, car, images (ภาพจาก /api/ai/image) · ชนิดไฟล์: PDF และรูปภาพ · ขนาดสูงสุด 15 MiB
    ด่าน Access JWT อยู่ที่ _middleware.js แล้ว — ที่นี่ไม่เชื่อชื่อไฟล์/ชนิดจากผู้ใช้เกินจำเป็น:
    key ใน R2 สร้างจาก ns + uuid เอง (ไม่เอาชื่อไฟล์ไปต่อเป็นพาธ), ชนิดต้องอยู่ใน allowlist, ตอนส่งกลับใส่ nosniff + CSP sandbox */
 
+import { putFile } from '../_lib/files.js';
+
 const MAX_BYTES = 15 * 1024 * 1024;
-const NAMESPACES = ['insurance', 'maintenance', 'health', 'receipts', 'compare', 'slides', 'recipes', 'car'];
+const NAMESPACES = ['insurance', 'maintenance', 'health', 'receipts', 'compare', 'slides', 'recipes', 'car', 'images'];
 const MIMES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'image/gif'];
 
 function json(status, body) {
@@ -15,16 +17,6 @@ function json(status, body) {
     status,
     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
   });
-}
-
-function cleanName(s) {
-  // ตัดตัวควบคุม/ตัวคั่นพาธ และจำกัดความยาว — ใช้เป็นข้อความแสดงผลเท่านั้น ไม่เคยเป็นพาธ
-  const n = String(s || '').replace(/[\u0000-\u001f\u007f/\\]/g, '_').trim().slice(0, 200);
-  return n || 'file';
-}
-
-function hex(buf) {
-  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 function ready(env, request) {
@@ -53,20 +45,11 @@ export async function onRequestPost({ request, env }) {
   if (!bytes.byteLength) return json(400, { error: 'ไฟล์ว่าง' });
   if (bytes.byteLength > MAX_BYTES) return json(413, { error: 'ไฟล์ใหญ่เกิน 15 MB' });
 
-  const id = crypto.randomUUID();
-  const key = ns + '/' + id;
-  const name = cleanName(url.searchParams.get('name'));
-  const sha = hex(await crypto.subtle.digest('SHA-256', bytes));
-  await env.FILES.put(key, bytes, { httpMetadata: { contentType: mime } });
   try {
-    await env.DB.prepare(
-      'INSERT INTO files (id, r2_key, name, mime, size, sha256, ns, ref_id, created_at) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)'
-    ).bind(id, key, name, mime, bytes.byteLength, sha, ns, ref, Date.now()).run();
+    return json(200, await putFile(env, { ns, ref, name: url.searchParams.get('name'), mime, bytes }));
   } catch (e) {
-    await env.FILES.delete(key); // ไม่ให้มีไฟล์กำพร้าใน R2 ที่ไม่มีดัชนี
     return json(500, { error: 'บันทึกดัชนีไฟล์ไม่สำเร็จ' });
   }
-  return json(200, { id, name, size: bytes.byteLength, mime });
 }
 
 async function findRow(env, id) {

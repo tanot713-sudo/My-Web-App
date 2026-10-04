@@ -25,6 +25,7 @@ const PAGES = [
   'maintenance.html',
   'compare.html',
   'slides.html',
+  'image-gen.html',
   'budget.html',
   'word.html',
   'excel.html',

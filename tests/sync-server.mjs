@@ -27,6 +27,7 @@ const AI_ROUTES = {
   '/api/ai/summarize': await load('functions/api/ai/summarize.js'),
   '/api/ai/embed': await load('functions/api/ai/embed.js'),
   '/api/ai/usage': await load('functions/api/ai/usage.js'),
+  '/api/ai/image': await load('functions/api/ai/image.js'),
   '/api/asr': await load('functions/api/asr.js'),
 };
 
@@ -39,12 +40,21 @@ resetDb();
 
 // Workers AI ตัวหลอก: gemma (main) ตอบรูปแบบ { response } / สตรีม data:{"response"}, qwen (fast) ตอบรูปแบบ chat-completions + <think> เพื่อทดสอบตัวแปลงทั้ง 2 แบบ
 let aiMode = 'ok', aiLimit, aiLog = [];
+const PNG_1X1 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 const sse = (obj) => 'data: ' + JSON.stringify(obj) + '\n\n';
 const AI = {
   async run(model, input) {
     aiLog.push({ model, input });
     if (aiMode === 'down') throw new Error('upstream unavailable');
     if (aiMode === 'quota') throw new Error('4006: you have used up your daily free allocation of 10,000 neurons');
+    if (model.includes('flux')) {
+      // FLUX ตัวหลอก: schnell รับ JSON { prompt, steps }, klein รับ multipart — บันทึกฟิลด์ที่ได้รับลง aiLog แล้วตอบ PNG 1×1 เป็น base64
+      if (input.multipart) {
+        const fd = await new Response(input.multipart.body, { headers: { 'content-type': input.multipart.contentType } }).formData();
+        aiLog[aiLog.length - 1].fields = Object.fromEntries([...fd.entries()]);
+      }
+      return { image: PNG_1X1 };
+    }
     if (model.includes('bge-m3')) return { shape: [input.text.length, 8], data: input.text.map((t, i) => Array(8).fill((i + 1) / 10)) };
     const qwen = model.includes('qwen');
     if (input.stream) {
@@ -201,7 +211,7 @@ http.createServer(async (req, res) => {
     const fn = req.method === 'GET' ? mod.onRequestGet : req.method === 'POST' ? mod.onRequestPost : null;
     if (!fn) { res.statusCode = 405; res.end(); return; }
     try {
-      const out = await fn({ request, env: { DB, AI, AI_DAILY_NEURONS: aiLimit }, data: { user: { email: 'test' } } });
+      const out = await fn({ request, env: { DB, AI, FILES, AI_DAILY_NEURONS: aiLimit }, data: { user: { email: 'test' } } });
       res.statusCode = out.status;
       out.headers.forEach((v, k) => res.setHeader(k, v));
       if (!out.body) { res.end(); return; }
