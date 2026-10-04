@@ -8,6 +8,42 @@
   'use strict';
 
   var C = window.InsuranceCalc;
+
+  /* ── ข้อความ UI สองภาษา (i18n.js) — คีย์ 'insurance.*' · ป้ายประเภท/การจ่าย/หมวดลดหย่อนของ insurance-calc.js แปลที่นี่ตามรหัส ── */
+  var I18N = window.OME_I18N;
+  var TR = I18N ? I18N.scope('insurance', {
+    th: {
+      title: 'ประกัน | Tanot', h1: 'ประกัน', addPol: 'เพิ่มกรมธรรม์', hList: 'ทะเบียนกรมธรรม์', type: 'ประเภท', hTax: 'เบี้ยลดหย่อนภาษี', taxYear: 'ปีภาษี', insurer: 'บริษัทประกัน',
+      planName: 'ชื่อแผน', policyNo: 'เลขกรมธรรม์', insured: 'ผู้เอาประกัน / ทะเบียนรถ / ที่ตั้ง', sum: 'ทุนประกัน (บาท)', premium: 'เบี้ยต่องวด (บาท)', freq: 'การจ่าย',
+      start: 'วันเริ่มคุ้มครอง', renew: 'วันต่ออายุ / ครบกำหนดจ่าย', end: 'วันสิ้นสุด', taxCat: 'ลดหย่อนภาษี', long: 'สัญญา 10 ปีขึ้นไป', note: 'บันทึก', files: 'ไฟล์กรมธรรม์',
+      attach: 'แนบไฟล์', del: 'ลบ', cancel: 'ยกเลิก', save: 'บันทึก', kInForce: 'คุ้มครองอยู่', unitPol: 'ฉบับ', kPremium: 'เบี้ยปีนี้', kRenew: 'ต่ออายุใน 60 วัน',
+      kDed: 'ลดหย่อนภาษีปีนี้', ended: 'สิ้นสุดแล้ว', overdue: 'เลยกำหนด {n} วัน', dueToday: 'ครบกำหนดวันนี้', inDays: 'อีก {n} วัน', all: 'ทั้งหมด', 'type.life': 'ชีวิต',
+      'type.health': 'สุขภาพ', 'type.car': 'รถ', 'type.home': 'บ้าน', 'freq.year': 'รายปี', 'freq.half': 'ราย 6 เดือน', 'freq.quarter': 'รายไตรมาส', 'freq.month': 'รายเดือน',
+      'freq.single': 'จ่ายครั้งเดียว', 'tc.none': 'ไม่ใช้ลดหย่อน', 'tc.life': 'ประกันชีวิต', 'tc.spouseLife': 'ประกันชีวิตคู่สมรส', 'tc.health': 'ประกันสุขภาพ',
+      'tc.parentsHealth': 'ประกันสุขภาพบิดามารดา', 'tc.annuity': 'ประกันชีวิตแบบบำนาญ', noType: 'ไม่มีกรมธรรม์ประเภทนี้', none: 'ยังไม่มีกรมธรรม์', policy: 'กรมธรรม์',
+      sumIns: 'ทุน {amt}', attachments: 'ไฟล์แนบ', paid: 'จ่ายแล้ว', edit: 'แก้ไข', yearOpt: 'ปี {y}', noTax: 'ไม่มีเบี้ยที่ใช้ลดหย่อนในปีนี้', thCat: 'หมวด',
+      thPrem: 'เบี้ย', thCap: 'เพดาน', thDed: 'ลดหย่อนได้', total: 'รวม', addTitle: 'เพิ่มกรมธรรม์', editTitle: 'แก้ไขกรมธรรม์', errName: 'ใส่ชื่อบริษัทหรือชื่อแผนอย่างน้อยหนึ่งช่อง',
+      errDates: 'วันสิ้นสุดต้องไม่ก่อนวันเริ่มคุ้มครอง', confirmDel: 'ลบกรมธรรม์นี้และไฟล์แนบทั้งหมด?', onlyPdf: 'รองรับเฉพาะ PDF และรูปภาพ', tooBig: '{name} ใหญ่เกิน 15 MB',
+      uploadFail: 'อัปโหลดไม่สำเร็จ', uploadFailCode: 'อัปโหลดไม่สำเร็จ ({s})', rmFile: 'เอาไฟล์ออก'
+    },
+    en: {
+      title: 'Insurance | Tanot', h1: 'Insurance', addPol: 'Add policy', hList: 'Policy register', type: 'Type', hTax: 'Premiums for tax deduction', taxYear: 'Tax year',
+      insurer: 'Insurer', planName: 'Plan name', policyNo: 'Policy number', insured: 'Insured person / car plate / location', sum: 'Sum insured (THB)', premium: 'Premium per instalment (THB)',
+      freq: 'Payment frequency', start: 'Coverage start', renew: 'Renewal / payment due date', end: 'End date', taxCat: 'Tax deduction', long: 'Contract of 10 years or more',
+      note: 'Note', files: 'Policy files', attach: 'Attach file', del: 'Delete', cancel: 'Cancel', save: 'Save', kInForce: 'In force', unitPol: '', kPremium: 'Premiums this year',
+      kRenew: 'Renewing within 60 days', kDed: 'Tax deduction this year', ended: 'Ended', overdue: '{n} days overdue', dueToday: 'Due today', inDays: 'In {n} days',
+      all: 'All', 'type.life': 'Life', 'type.health': 'Health', 'type.car': 'Car', 'type.home': 'Home', 'freq.year': 'Yearly', 'freq.half': 'Every 6 months', 'freq.quarter': 'Quarterly',
+      'freq.month': 'Monthly', 'freq.single': 'One-off payment', 'tc.none': 'Not used for deduction', 'tc.life': 'Life insurance', 'tc.spouseLife': 'Spouse\'s life insurance',
+      'tc.health': 'Health insurance', 'tc.parentsHealth': 'Parents\' health insurance', 'tc.annuity': 'Annuity life insurance', noType: 'No policies of this type',
+      none: 'No policies yet', policy: 'Policy', sumIns: 'Sum insured {amt}', attachments: 'Attachments', paid: 'Paid', edit: 'Edit', yearOpt: 'Year {y}', noTax: 'No premiums used for deduction this year',
+      thCat: 'Category', thPrem: 'Premium', thCap: 'Cap', thDed: 'Deductible', total: 'Total', addTitle: 'Add policy', editTitle: 'Edit policy', errName: 'Enter an insurer or a plan name',
+      errDates: 'The end date must not be before the coverage start', confirmDel: 'Delete this policy and all attached files?', onlyPdf: 'Only PDF and images are supported',
+      tooBig: '{name} is larger than 15 MB', uploadFail: 'Upload failed', uploadFailCode: 'Upload failed ({s})', rmFile: 'Remove file'
+    }
+  }) : function () { return ''; };
+  function typeLabel(k) { return TR('type.' + k) || C.TYPES[k] || ''; }
+  function freqLabel(k) { return TR('freq.' + k) || C.FREQS[k] || ''; }
+  function taxCatLabel(k) { return TR('tc.' + k) || C.TAX_CATS[k] || ''; }
   var TD = window.TanotData;
   var KEY = 'tanot:insurance:policies';
   var SUMMARY_KEY = 'tanot:insurance:taxsummary';
@@ -17,11 +53,11 @@
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function icon(name) { return '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + name + '"/></svg>'; }
-  function num(n, d) { return (Number(n) || 0).toLocaleString('th-TH', { maximumFractionDigits: d == null ? 0 : d }); }
+  function num(n, d) { var v = Number(n) || 0, o = { maximumFractionDigits: d == null ? 0 : d }; return I18N ? I18N.number(v, o) : v.toLocaleString('th-TH', o); }
   function baht(n) { return '฿' + num(n, n % 1 ? 2 : 0); }
   function dateTh(s) {
     var d = C.parseDate(s);
-    return d ? d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    return d ? (I18N ? I18N.date(d, { day: 'numeric', month: 'short', year: 'numeric' }) : d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })) : '';
   }
   function filesAvailable() { return /\.pages\.dev$/.test(location.hostname) || !!(window.TANOT_FILES && window.TANOT_FILES.enabled); }
   function newId() {
@@ -65,23 +101,23 @@
     var soon = C.renewals(list, now, 60).length;
     var ded = C.taxSummary(list, y).ded.total;
     function k(label, value, unit) { return '<div class="kpi"><div class="kpi-label">' + label + '</div><div class="kpi-value">' + value + (unit ? '<small>' + unit + '</small>' : '') + '</div></div>'; }
-    $('kpis').innerHTML = k('คุ้มครองอยู่', num(live.length), 'ฉบับ') + k('เบี้ยปีนี้', baht(premium)) +
-      k('ต่ออายุใน 60 วัน', num(soon), 'ฉบับ') + k('ลดหย่อนภาษีปีนี้', baht(ded));
+    $('kpis').innerHTML = k(esc(TR('kInForce')), num(live.length), esc(TR('unitPol'))) + k(esc(TR('kPremium')), baht(premium)) +
+      k(esc(TR('kRenew')), num(soon), esc(TR('unitPol'))) + k(esc(TR('kDed')), baht(ded));
   }
 
   /* ── รายการ ── */
   function renewBadge(p, now) {
-    if (C.isEnded(p, now)) return '<span class="badge">สิ้นสุดแล้ว</span>';
+    if (C.isEnded(p, now)) return '<span class="badge">' + esc(TR('ended')) + '</span>';
     var d = C.daysUntil(p.renewDate, now);
     if (d === null) return '';
-    if (d < 0) return '<span class="badge err">เลยกำหนด ' + num(-d) + ' วัน</span>';
-    if (d === 0) return '<span class="badge warn">ครบกำหนดวันนี้</span>';
-    if (d <= 30) return '<span class="badge warn">อีก ' + num(d) + ' วัน</span>';
-    if (d <= 60) return '<span class="badge info">อีก ' + num(d) + ' วัน</span>';
+    if (d < 0) return '<span class="badge err">' + esc(TR('overdue', { n: num(-d) })) + '</span>';
+    if (d === 0) return '<span class="badge warn">' + esc(TR('dueToday')) + '</span>';
+    if (d <= 30) return '<span class="badge warn">' + esc(TR('inDays', { n: num(d) })) + '</span>';
+    if (d <= 60) return '<span class="badge info">' + esc(TR('inDays', { n: num(d) })) + '</span>';
     return '<span class="badge">' + esc(dateTh(p.renewDate)) + '</span>';
   }
   function renderTypeFilter(list) {
-    var opts = [['all', 'ทั้งหมด']].concat(Object.keys(C.TYPES).map(function (k) { return [k, C.TYPES[k]]; }));
+    var opts = [['all', TR('all')]].concat(Object.keys(C.TYPES).map(function (k) { return [k, typeLabel(k)]; }));
     $('typeFilter').innerHTML = opts.map(function (o) {
       var n = o[0] === 'all' ? list.length : list.filter(function (p) { return p.type === o[0]; }).length;
       return '<button type="button" data-type="' + o[0] + '" aria-pressed="' + (typeFilter === o[0]) + '">' + esc(o[1]) + ' ' + n + '</button>';
@@ -100,23 +136,23 @@
       return da - db;
     });
     if (!rows.length) {
-      $('listBody').innerHTML = '<div class="empty">' + icon('shield') + '<p>' + (list.length ? 'ไม่มีกรมธรรม์ประเภทนี้' : 'ยังไม่มีกรมธรรม์') + '</p></div>';
+      $('listBody').innerHTML = '<div class="empty">' + icon('shield') + '<p>' + esc(list.length ? TR('noType') : TR('none')) + '</p></div>';
       return;
     }
     $('listBody').innerHTML = '<div class="list">' + rows.map(function (p) {
-      var title = [p.insurer, p.name].filter(Boolean).join(' · ') || C.TYPES[p.type] || 'กรมธรรม์';
-      var meta = [C.TYPES[p.type], p.policyNo, p.insured, p.sumInsured ? 'ทุน ' + baht(p.sumInsured) : ''].filter(Boolean).join(' · ');
+      var title = [p.insurer, p.name].filter(Boolean).join(' · ') || typeLabel(p.type) || TR('policy');
+      var meta = [typeLabel(p.type), p.policyNo, p.insured, p.sumInsured ? TR('sumIns', { amt: baht(p.sumInsured) }) : ''].filter(Boolean).join(' · ');
       var nFiles = Array.isArray(p.files) ? p.files.length : 0;
       var canAdvance = !C.isEnded(p, now) && C.advanceRenewal(p);
       return '<div class="list-row" data-id="' + esc(p.id) + '">' +
         '<span class="lead">' + icon(ICONS[p.type] || 'shield') + '</span>' +
         '<div class="grow"><div class="title">' + esc(title) + '</div><div class="meta">' + esc(meta) + '</div></div>' +
         '<div class="end">' +
-          (p.premium ? '<div class="prem">' + baht(p.premium) + '<div class="meta">' + esc(C.FREQS[p.freq] || '') + '</div></div>' : '') +
+          (p.premium ? '<div class="amt">' + baht(p.premium) + '<div class="meta">' + esc(freqLabel(p.freq)) + '</div></div>' : '') +
           renewBadge(p, now) +
-          (nFiles ? '<span class="badge" title="ไฟล์แนบ">' + icon('file-text') + nFiles + '</span>' : '') +
-          (canAdvance ? '<button class="btn sm" type="button" data-act="advance">' + icon('check') + 'จ่ายแล้ว</button>' : '') +
-          '<button class="btn sm icon" type="button" data-act="edit" aria-label="แก้ไข">' + icon('pencil') + '</button>' +
+          (nFiles ? '<span class="badge" title="' + esc(TR('attachments')) + '">' + icon('file-text') + nFiles + '</span>' : '') +
+          (canAdvance ? '<button class="btn sm" type="button" data-act="advance">' + icon('check') + esc(TR('paid')) + '</button>' : '') +
+          '<button class="btn sm icon" type="button" data-act="edit" aria-label="' + esc(TR('edit')) + '">' + icon('pencil') + '</button>' +
         '</div></div>';
     }).join('') + '</div>';
   }
@@ -124,12 +160,15 @@
   /* ── เบี้ยลดหย่อนภาษี ── */
   function renderTax(list) {
     var sel = $('taxYear'), y = new Date().getFullYear();
-    if (!sel.options.length) {
+    var en = I18N && I18N.lang() === 'en';
+    if (sel.getAttribute('data-lang') !== (en ? 'en' : 'th')) {
+      sel.innerHTML = '';
       [y + 1, y, y - 1].forEach(function (yr) {
         var o = document.createElement('option');
-        o.value = yr; o.textContent = 'ปี ' + (yr + 543);
+        o.value = yr; o.textContent = TR('yearOpt', { y: en ? yr : yr + 543 });
         sel.appendChild(o);
       });
+      sel.setAttribute('data-lang', en ? 'en' : 'th');
     }
     sel.value = String(taxYear);
     var s = C.taxSummary(list, taxYear);
@@ -137,14 +176,14 @@
     var capText = { life: C.CAPS.life, health: C.CAPS.health, spouseLife: C.CAPS.spouseLife, parentsHealth: C.CAPS.parentsHealth, annuity: C.CAPS.annuity };
     var rows = order.filter(function (k) { return s.raw[k] > 0; });
     if (!rows.length) {
-      $('taxBody').innerHTML = '<div class="empty">' + icon('landmark') + '<p>ไม่มีเบี้ยที่ใช้ลดหย่อนในปีนี้</p></div>';
+      $('taxBody').innerHTML = '<div class="empty">' + icon('landmark') + '<p>' + esc(TR('noTax')) + '</p></div>';
       return;
     }
-    $('taxBody').innerHTML = '<div class="table-wrap"><table class="table"><thead><tr><th>หมวด</th><th class="num">เบี้ย</th><th class="num cap">เพดาน</th><th class="num">ลดหย่อนได้</th></tr></thead><tbody>' +
+    $('taxBody').innerHTML = '<div class="table-wrap"><table class="table"><thead><tr><th>' + esc(TR('thCat')) + '</th><th class="num">' + esc(TR('thPrem')) + '</th><th class="num cap">' + esc(TR('thCap')) + '</th><th class="num">' + esc(TR('thDed')) + '</th></tr></thead><tbody>' +
       rows.map(function (k) {
-        return '<tr data-cat="' + k + '"><td>' + esc(C.TAX_CATS[k]) + '</td><td class="num">' + baht(s.raw[k]) + '</td><td class="num cap">' + baht(capText[k]) + '</td><td class="num">' + baht(s.ded[k]) + '</td></tr>';
+        return '<tr data-cat="' + k + '"><td>' + esc(taxCatLabel(k)) + '</td><td class="num">' + baht(s.raw[k]) + '</td><td class="num cap">' + baht(capText[k]) + '</td><td class="num">' + baht(s.ded[k]) + '</td></tr>';
       }).join('') +
-      '<tr class="tot"><td>รวม</td><td></td><td class="cap"></td><td class="num" id="taxTotal">' + baht(s.ded.total) + '</td></tr></tbody></table></div>';
+      '<tr class="tot"><td>' + esc(TR('total')) + '</td><td></td><td class="cap"></td><td class="num" id="taxTotal">' + baht(s.ded.total) + '</td></tr></tbody></table></div>';
   }
 
   function renderAll() {
@@ -159,12 +198,13 @@
 
   /* ── กล่องเพิ่ม/แก้ไข ── */
   var dlg = $('dlg');
-  function fillSelect(id, map) {
-    $(id).innerHTML = Object.keys(map).map(function (k) { return '<option value="' + k + '">' + esc(map[k]) + '</option>'; }).join('');
+  function fillSelect(id, map, label) {
+    var cur = $(id).value;
+    $(id).innerHTML = Object.keys(map).map(function (k) { return '<option value="' + k + '">' + esc(label(k)) + '</option>'; }).join('');
+    if (cur) $(id).value = cur;
   }
-  fillSelect('fType', C.TYPES);
-  fillSelect('fFreq', C.FREQS);
-  fillSelect('fTaxCat', C.TAX_CATS);
+  function fillSelects() { fillSelect('fType', C.TYPES, typeLabel); fillSelect('fFreq', C.FREQS, freqLabel); fillSelect('fTaxCat', C.TAX_CATS, taxCatLabel); }
+  fillSelects();
 
   function syncTaxRows() {
     var type = $('fType').value;
@@ -184,10 +224,10 @@
     var files = (editing && editing.files) || [];
     $('filesRow').hidden = !filesAvailable();
     $('fileList').innerHTML = files.map(function (f) {
-      return '<div class="ins-file" data-fid="' + esc(f.id) + '">' + icon('file-text') +
+      return '<div class="file-row" data-fid="' + esc(f.id) + '">' + icon('file-text') +
         '<a href="/api/files?id=' + encodeURIComponent(f.id) + '" target="_blank" rel="noopener">' + esc(f.name) + '</a>' +
         '<span class="sz">' + num(f.size / 1024) + ' KB</span>' +
-        '<button class="btn sm icon ghost" type="button" data-rm="' + esc(f.id) + '" aria-label="เอาไฟล์ออก">' + icon('x') + '</button></div>';
+        '<button class="btn sm icon ghost" type="button" data-rm="' + esc(f.id) + '" aria-label="' + esc(TR('rmFile')) + '">' + icon('x') + '</button></div>';
     }).join('');
   }
 
@@ -196,7 +236,7 @@
     editing = p ? JSON.parse(JSON.stringify(p)) : { id: newId(), type: 'life', freq: 'year', taxCat: 'life', longTerm: true, files: [] };
     if (!Array.isArray(editing.files)) editing.files = [];
     addedFiles = []; removedFiles = [];
-    $('dlgTitle').textContent = isNew ? 'เพิ่มกรมธรรม์' : 'แก้ไขกรมธรรม์';
+    $('dlgTitle').textContent = isNew ? TR('addTitle') : TR('editTitle');
     $('fType').value = editing.type || 'life';
     $('fInsurer').value = editing.insurer || '';
     $('fName').value = editing.name || '';
@@ -234,12 +274,12 @@
   }
   function uploadOne(f) {
     var mime = mimeOf(f);
-    if (!mime) return Promise.reject(new Error('รองรับเฉพาะ PDF และรูปภาพ'));
-    if (f.size > MAX_FILE) return Promise.reject(new Error(f.name + ' ใหญ่เกิน 15 MB'));
+    if (!mime) return Promise.reject(new Error(TR('onlyPdf')));
+    if (f.size > MAX_FILE) return Promise.reject(new Error(TR('tooBig', { name: f.name })));
     return api('POST', 'ns=insurance&ref=' + encodeURIComponent(editing.id) + '&name=' + encodeURIComponent(f.name), { headers: { 'Content-Type': mime }, body: f })
       .then(function (r) {
         return r.json().catch(function () { return {}; }).then(function (j) {
-          if (!r.ok) throw new Error(j.error || 'อัปโหลดไม่สำเร็จ (' + r.status + ')');
+          if (!r.ok) throw new Error(j.error || TR('uploadFailCode', { s: r.status }));
           return j;
         });
       });
@@ -257,7 +297,7 @@
           editing.files.push({ id: j.id, name: j.name, size: j.size, mime: j.mime });
           addedFiles.push(j.id);
           renderFiles();
-        }).catch(function (e) { $('msg').textContent = e.message || 'อัปโหลดไม่สำเร็จ'; });
+        }).catch(function (e) { $('msg').textContent = e.message || TR('uploadFail'); });
       });
     }, Promise.resolve()).then(function () { $('attachBtn').disabled = false; });
   });
@@ -293,8 +333,8 @@
   $('form').addEventListener('submit', function (e) {
     e.preventDefault();
     var p = readForm();
-    if (!p.insurer && !p.name) { $('msg').textContent = 'ใส่ชื่อบริษัทหรือชื่อแผนอย่างน้อยหนึ่งช่อง'; return; }
-    if (p.startDate && p.endDate && p.endDate < p.startDate) { $('msg').textContent = 'วันสิ้นสุดต้องไม่ก่อนวันเริ่มคุ้มครอง'; return; }
+    if (!p.insurer && !p.name) { $('msg').textContent = TR('errName'); return; }
+    if (p.startDate && p.endDate && p.endDate < p.startDate) { $('msg').textContent = TR('errDates'); return; }
     var list = load();
     var i = list.findIndex(function (x) { return x.id === p.id; });
     if (i === -1) list.push(p); else list[i] = p;
@@ -311,7 +351,7 @@
     removedFiles = [];
   });
   $('delBtn').addEventListener('click', function () {
-    if (!editing || !window.confirm('ลบกรมธรรม์นี้และไฟล์แนบทั้งหมด?')) return;
+    if (!editing || !window.confirm(TR('confirmDel'))) return;
     var id = editing.id;
     var list = load();
     var orig = list.filter(function (x) { return x.id === id; })[0];
@@ -348,6 +388,12 @@
 
   writeSummary(load());
   renderAll();
+  /* สลับภาษาสด: ข้อความใน HTML แปลโดย i18n.js เอง — วาดส่วนที่ JS สร้างใหม่ + ตัวเลือกในกล่อง */
+  if (window.OME_LANG) window.OME_LANG.onChange(function () {
+    fillSelects();
+    if (!dlg.open) $('dlgTitle').textContent = TR('policy');
+    renderAll();
+  });
   if (TD && TD.onChange) TD.onChange(function () { if (!dlg.open) renderAll(); });
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && !dlg.open) renderAll(); });
 })();

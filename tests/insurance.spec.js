@@ -257,14 +257,14 @@ test.describe('หน้า insurance.html', () => {
     await page.locator('#listBody .list-row[data-id="p-life"] [data-act="edit"]').click();
     await expect(page.locator('#filesRow')).toBeVisible();
     await page.setInputFiles('#fileInput', pdf);
-    await expect(page.locator('#fileList .ins-file')).toHaveCount(1);
+    await expect(page.locator('#fileList .file-row')).toHaveCount(1);
     expect(await keys()).toHaveLength(1);
     await page.locator('#cancelBtn').click(); // ยกเลิก → ไฟล์กำพร้าถูกลบ
     await expect.poll(keys).toEqual([]);
 
     await page.locator('#listBody .list-row[data-id="p-life"] [data-act="edit"]').click();
     await page.setInputFiles('#fileInput', pdf);
-    await expect(page.locator('#fileList .ins-file')).toHaveCount(1);
+    await expect(page.locator('#fileList .file-row')).toHaveCount(1);
     await page.locator('#saveBtn').click();
     await expect(page.locator('#listBody .list-row[data-id="p-life"]')).toContainText('1'); // ป้ายจำนวนไฟล์
     const keptKeys = await keys();
@@ -277,7 +277,7 @@ test.describe('หน้า insurance.html', () => {
     // เอาออก: ยังไม่ลบจริงจนกว่าจะกดบันทึก
     await page.locator('#listBody .list-row[data-id="p-life"] [data-act="edit"]').click();
     await page.locator('#fileList [data-rm]').click();
-    await expect(page.locator('#fileList .ins-file')).toHaveCount(0);
+    await expect(page.locator('#fileList .file-row')).toHaveCount(0);
     expect(await keys()).toHaveLength(1);
     await page.locator('#saveBtn').click();
     await expect.poll(keys).toEqual([]);
@@ -293,7 +293,7 @@ test.describe('หน้า insurance.html', () => {
     await openPage(page, '/insurance.html', { files: true });
     await page.locator('#listBody .list-row[data-id="p-home"] [data-act="edit"]').click();
     await page.setInputFiles('#fileInput', { name: 'h.png', mimeType: 'image/png', buffer: Buffer.from('png') });
-    await expect(page.locator('#fileList .ins-file')).toHaveCount(1);
+    await expect(page.locator('#fileList .file-row')).toHaveCount(1);
     await page.locator('#saveBtn').click();
     expect(await (await request.get(SRV + '/__files')).json()).toHaveLength(1);
     page.once('dialog', (d) => d.accept());
