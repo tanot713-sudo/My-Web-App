@@ -191,6 +191,8 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 :where([data-layout]) .btn.ghost:hover:not(:disabled){background:var(--ome-surface-2);color:var(--ome-text-1)}
 :where([data-layout]) .btn.danger{background:var(--ome-err-fill);border-color:var(--ome-err-fill);color:var(--ome-on-err)}
 :where([data-layout]) .btn.danger:hover:not(:disabled){background:color-mix(in srgb, var(--ome-err-fill) 86%, #000)}
+/* โหมดมืด: พื้นปุ่มลบ (ต้องเข้มพอให้ตัวอักษรขาว ≥ 4.5) ต่างจากพื้นการ์ดแค่ ~2.95:1 — ขอบสีแดงสว่างให้ขอบ control ≥ 3:1 */
+[data-theme="dark"] :where([data-layout]) .btn.danger{border-color:var(--ome-err)}
 :where([data-layout]) .btn.sm{height:30px;padding:0 10px;gap:6px;font-size:var(--ome-fs-xs);border-radius:var(--ome-radius-sm)}
 :where([data-layout]) .btn.lg{height:46px;padding:0 22px;font-size:var(--ome-fs-md);border-radius:var(--ome-radius-lg)}
 :where([data-layout]) .btn.icon{width:38px;padding:0}
@@ -333,6 +335,28 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 :where([data-layout]) .list-row .grow{flex:1;min-width:0}
 :where([data-layout]) .list-row .title{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 :where([data-layout]) .list-row .meta{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+/* .end = กลุ่มป้าย/จำนวนเงิน/ปุ่มชิดขวาของแถว · จอ ≤ 640px ตัดลงบรรทัดใหม่ชิดซ้ายใต้ข้อความ (เยื้อง 48px = .lead 36 + ช่องว่าง 12) */
+:where([data-layout]) .list-row .end{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+:where([data-layout]) .list-row .amt{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+@media (max-width:640px){
+  :where([data-layout]) .list-row:has(> .end){flex-wrap:wrap}
+  :where([data-layout]) .list-row:has(> .end) > .end{width:100%;justify-content:flex-start;padding-left:48px}
+}
+
+/* ฟอร์มในกล่อง: .dialog-form (กว้างพอสำหรับฟอร์ม เลื่อนในกล่อง ช่องห่างกัน) · .check (ติ๊กในบรรทัด) · .form-msg (error ใต้ฟอร์ม)
+   .file-list > .file-row (ไฟล์แนบ: ลิงก์ + ขนาด + ปุ่มเอาออก) · .sub-head (หัวรองในการ์ด) · .kpi-value small (หน่วยท้ายตัวเลข) */
+:where([data-layout]) .dialog-form{width:min(600px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
+:where([data-layout]) .dialog-form .dialog-body > * + *{margin-top:var(--ome-sp-3)}
+:where([data-layout]) .check{display:flex;gap:8px;align-items:center;font-size:var(--ome-fs-sm)}
+:where([data-layout]) .check input{width:auto;height:auto}
+:where([data-layout]) .form-msg{margin:0;color:var(--ome-err-ink);font-size:var(--ome-fs-sm)}
+:where([data-layout]) .form-msg:empty{display:none}
+:where([data-layout]) .file-list{display:flex;flex-direction:column;gap:6px}
+:where([data-layout]) .file-row{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);font-size:var(--ome-fs-sm)}
+:where([data-layout]) .file-row a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ome-text-1)}
+:where([data-layout]) .file-row .sz{color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
+:where([data-layout]) .sub-head{margin:var(--ome-sp-4) 0 var(--ome-sp-2);font-size:var(--ome-fs-sm);color:var(--ome-text-2);font-weight:600}
+:where([data-layout]) .kpi-value small{font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2);margin-left:4px}
 
 /* callout — กล่องสรุปผล/แจ้งเตือนในหน้า (ok|warn|err|info) */
 :where([data-layout]) .callout{padding:12px 14px;border-radius:var(--ome-radius-md);background:var(--ome-surface-2);color:var(--ome-text-1);
@@ -633,41 +657,70 @@ body{padding-bottom:0!important}
 .ome-theme-swatch.sel{background:var(--ome-brand-sf);color:var(--ome-brand-dk);font-weight:700}
 .ome-theme-swatch.sel::after{content:'';margin-left:auto;width:9px;height:5px;border-left:2px solid currentColor;
   border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(-45deg)}
-.ome-settings-row .ome-switch{margin-left:auto;width:32px;height:18px;border-radius:999px;background:var(--ome-ctrl);position:relative;flex-shrink:0;
-  transition:background var(--ome-dur-1)}
-.ome-settings-row .ome-switch::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
-  background:var(--ome-card);transition:transform var(--ome-dur-1)}
-.ome-settings-row[aria-checked="true"] .ome-switch{background:var(--ome-brand)}
-.ome-settings-row[aria-checked="true"] .ome-switch::after{transform:translateX(14px)}
 
 /* ══════════════════════════════════════════════════════════════════
-   ภาพพื้นหลังรายหน้า — theme-boot.js ตั้ง html[data-bg="<กลุ่ม>"] ก่อนวาดจอ (แผนที่หน้า → กลุ่มอยู่ที่นั่นที่เดียว)
-   ชั้นหลังสุด: html::before = ภาพ (ชิดขวา, cover), html::after = scrim ไล่จาก --ome-surface-0 ซ้ายทึบ → ขวาโปร่ง
+   ภาพพื้นหลังรายหน้า — theme-boot.js ตั้ง html[data-bg="<กลุ่ม>"] + html[data-bg-level="soft|mid|strong"] ก่อนวาดจอ
+   (แผนที่หน้า → กลุ่มอยู่ที่นั่นที่เดียว; ระดับ "ปิด" = ไม่มี data-bg เลย)
+   ชั้นหลังสุด: html::before = ภาพ (ชิดขวา, cover, ฟิลเตอร์ --ome-bg-filter), html::after = scrim ไล่จาก --ome-surface-0
+   ซ้ายทึบ → ขวาโปร่ง ตามระดับ (--ome-bg-scrim-m = ที่ 40% ของความกว้าง, --ome-bg-scrim = ขอบขวา)
    ทั้งคู่ z-index:-1 จึงอยู่ใต้เนื้อหาทั้งหมดและไม่ดันเลย์เอาต์ (พื้นของ body ถูกยกไปวาดบน canvas ใต้ชั้นนี้
    เพราะ <html> ไม่มีพื้นของตัวเอง — ห้ามตั้ง background ให้ html) · โหลดเฉพาะไฟล์ของหน้า+ธีมนั้น
+   ตัวอักษรที่วางบนพื้นหน้าโดยตรง (หัวหน้า/breadcrumb/แถบแท็บ) ไม่พึ่ง scrim ทึบ — มีพื้นรอง --ome-plate (ด้านล่าง)
    · จอ ≤ 700px และหน้า data-layout="app"/"dashboard" = แถบหัวหน้าสูง --ome-bg-band ภาพจางเป็นสีพื้น (mask เฉพาะภาพ
-     scrim ไม่ mask — ไม่งั้นช่วงที่จางภาพจะโผล่เข้มกว่า scrim ที่ตั้งไว้)
+     scrim ไม่ mask — ไม่งั้นช่วงที่จางภาพจะโผล่เข้มกว่า scrim ที่ตั้งไว้) · จอแคบแถบสูง 300px เห็นภาพทั้งความสูง
    · เปลี่ยนภาพ = แทนไฟล์ assets/backgrounds/<กลุ่ม>-light.webp / -dark.webp อย่างเดียว
    ══════════════════════════════════════════════════════════════════ */
-html[data-bg]{--ome-bg-band:240px;--ome-bg-scrim:62%}
+/* ระดับ (สว่าง): soft = ค่าเดิมรอบ 1 · mid = ค่าเริ่มต้น · strong = ภาพชัดสุด */
+html[data-bg]{--ome-bg-band:280px;--ome-bg-pos-y:72%;--ome-bg-plate:82%;
+  --ome-bg-scrim-m:94%;--ome-bg-scrim:62%;--ome-bg-filter:none}
+html[data-bg-level="mid"]{--ome-bg-scrim-m:78%;--ome-bg-scrim:26%;--ome-bg-filter:saturate(1.25) contrast(1.05)}
+html[data-bg-level="strong"]{--ome-bg-scrim-m:62%;--ome-bg-scrim:6%;--ome-bg-filter:saturate(1.55) contrast(1.12);--ome-bg-plate:86%}
 html[data-bg][data-theme="dark"]{--ome-bg-scrim:45%}
+html[data-bg-level="mid"][data-theme="dark"]{--ome-bg-scrim-m:72%;--ome-bg-scrim:12%;--ome-bg-filter:saturate(1.3) brightness(1.7) contrast(1.05)}
+html[data-bg-level="strong"][data-theme="dark"]{--ome-bg-scrim-m:55%;--ome-bg-scrim:0%;--ome-bg-filter:saturate(1.5) brightness(2.2) contrast(1.1)}
 html[data-bg]::before,html[data-bg]::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none}
-html[data-bg]::before{background:var(--ome-surface-0) no-repeat right center/cover}
+html[data-bg]::before{background:var(--ome-surface-0) no-repeat right center/cover;filter:var(--ome-bg-filter)}
 html[data-bg]::after{background:linear-gradient(90deg,var(--ome-surface-0) 0%,
-  color-mix(in srgb, var(--ome-surface-0) 94%, transparent) 40%,
+  color-mix(in srgb, var(--ome-surface-0) var(--ome-bg-scrim-m), transparent) 40%,
   color-mix(in srgb, var(--ome-surface-0) var(--ome-bg-scrim,62%), transparent) 100%)}
 @media (max-width:700px){
-  /* จอแคบ ตัวอักษรวิ่งเต็มความกว้าง — scrim ฝั่งขวาทึบขึ้นให้ตัวอักษรบนแถบภาพผ่าน 4.5:1 */
-  html[data-bg]{--ome-bg-scrim:88%}
+  /* จอแคบ: แถบภาพหัวหน้า 300px (ภาพเห็นทั้งความสูง ชิดขวา) · scrim ฝั่งขวาทึบกว่าจอกว้างเพราะตัวอักษรวิ่งเต็มความกว้าง */
+  html[data-bg]{--ome-bg-band:300px;--ome-bg-scrim-m:90%;--ome-bg-scrim:88%}
+  html[data-bg-level="mid"]{--ome-bg-scrim-m:70%;--ome-bg-scrim:42%}
+  html[data-bg-level="strong"]{--ome-bg-scrim-m:55%;--ome-bg-scrim:18%}
   html[data-bg][data-theme="dark"]{--ome-bg-scrim:62%}
+  html[data-bg-level="mid"][data-theme="dark"]{--ome-bg-scrim-m:60%;--ome-bg-scrim:28%}
+  html[data-bg-level="strong"][data-theme="dark"]{--ome-bg-scrim-m:45%;--ome-bg-scrim:10%}
   html[data-bg]::before,html[data-bg]::after{position:absolute;bottom:auto;height:var(--ome-bg-band)}
   html[data-bg]::before{background-position:right top;
-    -webkit-mask-image:linear-gradient(#000 50%,transparent);mask-image:linear-gradient(#000 50%,transparent)}
+    -webkit-mask-image:linear-gradient(#000 75%,transparent);mask-image:linear-gradient(#000 75%,transparent)}
+  /* หัวหน้าสูงขึ้นให้ภาพในแถบเป็นจุดเด่นของหัวหน้า (ชื่อหน้าอยู่ล่างซ้าย ภาพอยู่ขวา) แทนที่จะถูกการ์ดทับหมด */
+  html[data-bg] .page > .page-head:first-child{min-height:112px;align-items:flex-end}
 }
 html[data-bg]:has(> body:is([data-layout="app"],[data-layout="dashboard"]))::before,
 html[data-bg]:has(> body:is([data-layout="app"],[data-layout="dashboard"]))::after{position:absolute;bottom:auto;height:var(--ome-bg-band)}
-html[data-bg]:has(> body:is([data-layout="app"],[data-layout="dashboard"]))::before{background-position:right top;
-  -webkit-mask-image:linear-gradient(#000 50%,transparent);mask-image:linear-gradient(#000 50%,transparent)}
+html[data-bg]:has(> body:is([data-layout="app"],[data-layout="dashboard"]))::before{background-position:right var(--ome-bg-pos-y);
+  -webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
+@media (max-width:700px){
+  html[data-bg]:has(> body:is([data-layout="app"],[data-layout="dashboard"]))::before{background-position:right top}
+}
+/* พื้นรองของตัวอักษรที่วางบนพื้นหน้าโดยตรง (ชื่อหน้า, breadcrumb, แถบแท็บ) — แผ่นโปร่งสี surface-0 + blur
+   แผ่นหุ้มเฉพาะตัวอักษร (ไม่ยืดเต็มความกว้าง ภาพจึงยังเห็นรอบๆ) และเยื้องออก 12px ด้วย margin ติดลบ
+   ตัวอักษรจึงไม่ขยับเทียบกับการ์ดด้านล่าง · ไม่ใช้ในการ์ด/dialog */
+html[data-bg] :is(.page-head > :is(h1,.head-text),.crumb,.tabs):not(.card *,.dialog *,dialog *){
+  background:color-mix(in srgb, var(--ome-surface-0) var(--ome-bg-plate), transparent);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  padding:4px 12px;margin-left:-12px;border-radius:var(--ome-radius-lg)}
+html[data-bg] .page-head > :is(h1,.head-text):not(.card *,.dialog *,dialog *){flex:0 1 auto;margin-right:auto}
+html[data-bg] .crumb:not(.card *,.dialog *,dialog *){width:fit-content;max-width:calc(100% + 12px)}
+/* ปุ่ม ghost ที่วางบนพื้นหน้าโดยตรง (ไม่มีพื้นของตัวเอง) — พื้นรองแบบเดียวกัน แต่ไม่เยื้องตำแหน่ง */
+html[data-bg] .btn.ghost:not(.card *,.dialog *,dialog *,.toolbar *){
+  background:color-mix(in srgb, var(--ome-surface-0) var(--ome-bg-plate), transparent);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+/* แถบแท็บเลื่อนแนวนอนได้ — ข้อความแท็บที่ล้นขอบขวาต้องยังอยู่บนพื้นรอง จึงขยายพื้นรองไปถึงขอบจอ (ชดเชย padding หน้า 16px) */
+html[data-bg] .tabs:not(.card *,.dialog *,dialog *){padding-block:0;margin-right:calc(-1 * var(--ome-sp-4));border-bottom-left-radius:0;border-bottom-right-radius:0}
+/* หน้า app (editor) ไม่มี padding ข้าง — ห้ามเยื้องออกนอกจอ (จะเกิดแถบเลื่อนแนวนอน) */
+html[data-bg] body[data-layout="app"] :is(.page-head > :is(h1,.head-text),.crumb,.tabs):not(.card *,.dialog *,dialog *){margin-left:0;margin-right:0}
 @media print{html[data-bg]::before,html[data-bg]::after{display:none}}
 html[data-bg="today"]::before{background-image:url(assets/backgrounds/today-light.webp)}
 html[data-bg="today"][data-theme="dark"]::before{background-image:url(assets/backgrounds/today-dark.webp)}

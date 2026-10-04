@@ -230,7 +230,8 @@
   }
 
   /* ── นับข้อความไทยใน UI ตอนโหมด EN ── */
-  var THAI = /[฀-๿]/;
+  /* อักษร/เลข/วรรณยุกต์ไทย — ไม่นับ ฿ (U+0E3F สัญลักษณ์เงินบาท ใช้ได้ในโหมด EN) */
+  var THAI = /[\u0E01-\u0E3E\u0E40-\u0E5B]/;
   function thaiInEn(opts) {
     opts = opts || {};
     var hits = [], seenEl = new Set();

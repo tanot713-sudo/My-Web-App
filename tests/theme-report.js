@@ -33,6 +33,8 @@ function build() {
     const part = JSON.parse(fs.readFileSync(path.join(PARTS, f), 'utf8'));
     const pg = pages[part.page] || (pages[part.page] = { configs: {}, totals: {} });
     pg.configs[part.key] = { config: part.config, metrics: part.metrics, samples: part.samples };
+    // ชุดที่รันที่ระดับภาพพื้นหลังอื่น (คีย์ลงท้าย @อ่อน/@ชัด) แสดงในรายละเอียด แต่ไม่รวมคะแนนหน้า/baseline
+    if (part.key.indexOf('@') >= 0) continue;
     for (const [k, v] of Object.entries(part.metrics)) pg.totals[k] = (pg.totals[k] || 0) + v;
   }
   const stat = loadStatic() || ((JSON.parse(fs.existsSync(BASELINE_FILE) ? fs.readFileSync(BASELINE_FILE, 'utf8') : '{}').static) || {});
@@ -111,6 +113,7 @@ function updateBaseline(rep, mode) {
   const rt = b.runtime || {};
   for (const pg of Object.values(rep.pages)) {
     for (const [key, c] of Object.entries(pg.configs)) {
+      if (key.indexOf('@') >= 0) continue;
       const old = rt[key] || {};
       const row = {};
       for (const [k, v] of Object.entries(c.metrics)) row[k] = mode === 'accept' || !b.runtime ? v : Math.min(old[k] == null ? 0 : old[k], v);

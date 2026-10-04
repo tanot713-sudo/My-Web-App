@@ -1,7 +1,7 @@
 /* theme-boot.js — ตั้งธีมก่อนวาดจอ (โหลดใน <head> แบบไม่ defer ก่อน theme.css) กันจอกะพริบ
    และเป็นที่เดียวที่เก็บค่าตั้งธีม: shell.js (แผงตั้งค่า) อ่าน/เขียนผ่าน window.OmeTheme
    ชุดคัดสรร: สีเน้น 5 · สไตล์พื้นผิว 3 · ฟอนต์ 2 — ค่าเดิมที่เคยเลือกไว้ถูกแปลงให้อัตโนมัติครั้งเดียว
-   + ภาพพื้นหลังรายหน้า (data-bg บน <html>, ปิดได้ด้วย 'ome:bg' = 'off') + <html lang> จาก 'ome:lang' */
+   + ภาพพื้นหลังรายหน้า (data-bg + data-bg-level บน <html>; 'ome:bg' = 'off' | 'soft' | 'mid' (ค่าเริ่มต้น) | 'strong') + <html lang> จาก 'ome:lang' */
 (function () {
   var doc = document.documentElement;
   function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -18,7 +18,8 @@
     teal: ['#FFFFFF', '#1F2536'], blue: ['#FFFFFF', '#202A3E'], violet: ['#FFFFFF', '#24203A'],
     orange: ['#FFFFFF', '#2C2219'], graphite: ['#FFFFFF', '#212125']
   };
-  var DEFAULTS = { accent: 'teal', style: 'flat', font: 'prompt', bg: 'on' };
+  var BG_LEVELS = ['off', 'soft', 'mid', 'strong'];
+  var DEFAULTS = { accent: 'teal', style: 'flat', font: 'prompt', bg: 'mid' };
 
   /* ── ภาพพื้นหลังรายหน้า: แผนที่ชื่อหน้า → กลุ่มภาพ (ที่เดียวของทั้งเว็บ) ──
      ภาพ = assets/backgrounds/<กลุ่ม>-light.webp / <กลุ่ม>-dark.webp — เปลี่ยนภาพได้ด้วยการแทนไฟล์อย่างเดียว
@@ -57,7 +58,9 @@
     accent: { mint: 'teal', coach: 'teal', skypastel: 'blue', crypto: 'blue', glass: 'blue',
       finset: 'violet', bubblegum: 'violet', construct: 'orange', flooks: 'orange', gymes: 'orange' },
     style: { glass: 'soft', neumorph: 'soft', clay: 'soft', mica: 'soft', aurora: 'soft', neubrutal: 'outline' },
-    font: { sarabun: 'ibmplex', notosans: 'ibmplex', kanit: 'prompt', mitr: 'prompt' }
+    font: { sarabun: 'ibmplex', notosans: 'ibmplex', kanit: 'prompt', mitr: 'prompt' },
+    /* รอบ 1 เก็บสวิตช์ on/off — รอบ 2 เป็น 4 ระดับ: on → กลาง, off → ปิด */
+    bg: { on: 'mid' }
   };
   /* เฟส 4 เคยเก็บสีไว้ใน 'ome:theme' (เช่น 'flooks') — ย้ายไป 'ome:accent' แล้วรีเซ็ตเป็นสว่าง */
   var legacy = read('ome:theme');
@@ -66,7 +69,7 @@
     write('ome:theme', 'light');
   }
   function valid(kind, v) {
-    if (kind === 'bg') return v === 'on' || v === 'off';
+    if (kind === 'bg') return BG_LEVELS.indexOf(v) >= 0;
     return kind === 'accent' ? ACCENTS.indexOf(v) >= 0 : kind === 'style' ? STYLES.indexOf(v) >= 0 : !!FONTS[v];
   }
   function get(kind) {
@@ -114,8 +117,9 @@
     doc.setAttribute('data-style', s.style);
     /* ภาพพื้นหลัง: CSS ใน theme.css เลือกไฟล์ -light/-dark ตาม data-theme เอง โหลดเฉพาะภาพของหน้านี้
        (?embed=1 = หน้าที่ฝังในป๊อปอัพ ไม่ใส่ภาพซ้อนกับหน้าแม่) */
-    var grp = s.bg === 'on' && !/[?&]embed=1(&|$)/.test(location.search) ? bgGroup() : null;
-    if (grp) doc.setAttribute('data-bg', grp); else doc.removeAttribute('data-bg');
+    var grp = s.bg !== 'off' && !/[?&]embed=1(&|$)/.test(location.search) ? bgGroup() : null;
+    if (grp) { doc.setAttribute('data-bg', grp); doc.setAttribute('data-bg-level', s.bg); }
+    else { doc.removeAttribute('data-bg'); doc.removeAttribute('data-bg-level'); }
     doc.style.setProperty('--ome-f', FONTS[s.font].family);
     if (s.font !== 'prompt') loadFont(FONTS[s.font].google);
     setBarColor(s.accent, s.theme);
@@ -129,7 +133,7 @@
   }
 
   window.OmeTheme = {
-    accents: ACCENTS, styles: STYLES, fonts: FONTS, bgGroups: BG_GROUPS,
+    accents: ACCENTS, styles: STYLES, fonts: FONTS, bgGroups: BG_GROUPS, bgLevels: BG_LEVELS,
     get: get, set: set, apply: apply, loadFont: loadFont, bgGroup: bgGroup,
     onChange: function (fn) { listeners.push(fn); }
   };

@@ -10,6 +10,8 @@
 //   ต่อหน้า (1100 สว่าง): crawl — กดแท็บ/segmented/toggle/ปุ่มเปิด dialog ที่ปลอดภัย แล้วต้องไม่มี console error /
 //     pageerror / request ไป /api (ไม่มี mock) → crawlErrors
 //   ต่อหน้า (ome:lang = en): thaiInEn — ข้อความไทยที่มองเห็นใน UI (ยกเว้น [data-i18n-skip])
+//   + bg-level: ทุกกลุ่มภาพ (หน้าตัวแทนกลุ่มละ 1) × 390/1100 × สว่าง/มืด × ระดับภาพพื้นหลัง "อ่อน" และ "ชัด" — ตัวอักษรบนภาพต้องไม่เกิน baseline
+//     ("กลาง" = ค่าเริ่มต้น อยู่ในชุด theme ด้านบนแล้ว) · ตั้ง THEME_AUDIT_BG=soft|mid|strong เพื่อรันชุดเต็มทั้งเว็บที่ระดับนั้น
 //   + สลับภาษาสดจากแผงตั้งค่า (หน้าที่มี window.omeApplyLang): ข้อความเปลี่ยนโดยไม่โหลดหน้าใหม่
 // ratchet: เทียบ tests/theme-baseline.json ช่อง "runtime" — ล้มเฉพาะตัวเลขที่ "เพิ่มขึ้น" (คีย์ใหม่ = baseline 0)
 // รายงาน: tests/theme-report/report.json + report.html + summary.md (ไม่ commit — CI อัปโหลดเป็น artifact)
@@ -27,6 +29,9 @@ const AXE_JS = require.resolve('axe-core/axe.min.js');
 const PARTS = path.join(__dirname, 'theme-report', 'parts');
 const BASELINE = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'theme-baseline.json'), 'utf8')); } catch (e) { return {}; } })();
 const UPDATING = !!process.env.THEME_AUDIT_UPDATE;
+// ระดับภาพพื้นหลังของชุดเต็ม (ไม่ตั้ง = ค่าเริ่มต้นของเว็บ "กลาง") — ผลลงรายงานต่อท้ายคีย์ด้วย @ระดับ แต่ตรวจกับ baseline เดียวกัน
+const BG = process.env.THEME_AUDIT_BG || '';
+const BG_SUFFIX = BG && BG !== 'mid' ? '@' + BG : '';
 
 test.describe.configure({ timeout: 120000 });
 
@@ -44,8 +49,10 @@ function ratchet(key, metrics, samples) {
   expect(worse, `${key} แย่ลงจาก tests/theme-baseline.json (ดู tests/theme-report/report.html)`).toEqual([]);
 }
 
-async function open(page, p, { theme, width, lang }) {
+async function open(page, p, { theme, width, lang, bg }) {
   const errors = await prepare(page, { theme });
+  const level = bg || BG;
+  if (level) await page.addInitScript((l) => { try { localStorage.setItem('ome:bg', l); } catch (e) {} }, level);
   if (lang) await page.addInitScript((l) => { try { localStorage.setItem('ome:lang', l); } catch (e) {} }, lang);
   await page.setViewportSize({ width, height: 800 });
   await page.clock.setFixedTime(new Date('2026-09-30T10:30:00+07:00'));
@@ -90,7 +97,7 @@ for (const p of PAGES) {
         const samples = { axe, contrast: res.contrast, controlBorder: res.controlBorder, nonCentral: res.nonCentral, targetSize: res.targetSize, textOnImage: toi };
         const metrics = {};
         for (const k of Object.keys(samples)) if (k !== 'targetSize' || width < 700) metrics[k] = samples[k].length;
-        writePart(key, p, { width, theme }, metrics, samples);
+        writePart(key + BG_SUFFIX, p, { width, theme, bg: BG || 'mid' }, metrics, samples);
         ratchet(key, metrics, samples);
       });
     }
@@ -138,6 +145,33 @@ for (const p of PAGES) {
     writePart(`${p}|en`, p, { lang: 'en' }, metrics, samples);
     ratchet(`${p}|en`, metrics, samples);
   });
+}
+
+/* ระดับภาพพื้นหลัง "อ่อน"/"ชัด" ทุกกลุ่มภาพ — ตัวอักษรบนภาพวัดจากพิกเซลจริง ต้องไม่เกิน baseline ของหน้าเดียวกัน (ไม่มี baseline = 0) */
+const BG_PAGES = (() => {
+  const boot = fs.readFileSync(path.join(__dirname, '..', 'theme-boot.js'), 'utf8');
+  const block = (boot.match(/var BG_GROUPS = \{([\s\S]*?)\n  \};/) || [])[1] || '';
+  const out = [];
+  for (const m of block.matchAll(/^\s*(\w+):\s*\[\s*'([^']+)'/gm)) out.push(m[2] + '.html');
+  out.push('invest-gold.html');
+  return out.filter((p) => PAGES.includes(p));
+})();
+for (const p of BG_PAGES) {
+  for (const level of ['soft', 'strong']) {
+    for (const width of [390, 1100]) {
+      for (const theme of ['light', 'dark']) {
+        test(`bg-level: ${p}|${width}|${theme}|${level}`, async ({ page }) => {
+          await open(page, p, { theme, width, bg: level });
+          expect(await page.evaluate(() => document.documentElement.getAttribute('data-bg-level'))).toBe(level);
+          const toi = await textOnImage(page);
+          const key = `${p}|${width}|${theme}`;
+          const base = ((BASELINE.runtime || {})[key] || {}).textOnImage || 0;
+          writePart(`${key}@${level}`, p, { width, theme, bg: level }, { textOnImage: toi.length }, { textOnImage: toi });
+          if (!UPDATING) expect(toi.slice(0, 6), `${key} ที่ระดับ ${level}: ตัวอักษรบนภาพแย่ลงจาก baseline (${base})`).toHaveLength(Math.min(toi.length, base));
+        });
+      }
+    }
+  }
 }
 
 /* สลับภาษาสดจากแผงตั้งค่า — หน้าที่รองรับแล้ว (มี window.omeApplyLang) ข้อความในหน้าต้องเปลี่ยนโดยไม่โหลดใหม่
