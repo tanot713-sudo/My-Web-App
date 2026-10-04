@@ -35,6 +35,15 @@
   function fireLang() { langListeners.forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.error(e); } }); }
   if (window.OME_LANG && window.OME_LANG.onChange) window.OME_LANG.onChange(fireLang);
   else window.omeApplyLang = fireLang; // สำรอง: ไม่มี i18n.js (ไม่เกิดบนหน้าจริง — ทุกหน้าโหลด i18n.js ใน <head>)
+  /* วันที่จาก thai-gold-api มาเป็นข้อความไทย "3 ต.ค. 2569" — โหมดอังกฤษแปลงเป็น "3 Oct 2026" (รูปแบบอื่น/ไทย = ข้อความเดิม) */
+  var TH_MON = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  function apiDate(str) {
+    if (getLang() !== 'en' || !str) return str;
+    var m = /^\s*(\d{1,2})\s+(\S+?)\s+(\d{4})\s*$/.exec(String(str)), mo = m ? TH_MON.indexOf(m[2]) : -1;
+    if (mo < 0) return str;
+    var y = +m[3]; if (y > 2400) y -= 543;
+    return dateFmt(new Date(y, mo, +m[1]), { day: 'numeric', month: 'short', year: 'numeric' });
+  }
   /* i18n(dict) → { t(key, vars), apply(root?) } — dict = { th: {...}, en: {...} } · data-i18n (ข้อความ) / data-i18n-html / data-i18n-placeholder */
   function i18n(dict) {
     function t(key, vars) {
@@ -451,6 +460,7 @@
       if (keys.indexOf(h) >= 0 && h !== cur) show(h, true);
     });
     cur = pick(); render(); show(cur, true);
+    onLang(render); // ป้ายแท็บเปลี่ยนตามภาษาทันที (หน้าไม่ต้องเรียก rerender เอง)
     return { show: function (k) { show(k, false); }, current: function () { return cur; }, rerender: function () { render(); } };
   }
 
@@ -464,6 +474,7 @@
 
   /* แถบหมวดย่อยของหน้าลงทุน: แถวเดียว ภาพรวม + ทุกหน้าใน window.INVEST_CATS · active = key ของหน้านี้ */
   function subnav(el, activeKey) {
+    var again = !!el._ivSubnav; el._ivSubnav = true; // หน้าเรียกซ้ำตอนสลับภาษา — ไม่ลงทะเบียน listener เพิ่ม (กันสะสม)
     function build() {
       var cats = window.INVEST_CATS || [];
       var html = '<a href="invest.html"' + (activeKey === 'overview' ? ' class="on" aria-current="page"' : '') + '>' + esc(CORE.t('overview')) + '</a>';
@@ -475,7 +486,7 @@
     }
     if (window.INVEST_CATS) build();
     else { var tries = 0; (function wait() { if (window.INVEST_CATS) build(); else if (tries++ < 100) setTimeout(wait, 30); })(); }
-    onLang(function () { if (window.INVEST_CATS) build(); });
+    if (!again) onLang(function () { if (window.INVEST_CATS) build(); });
   }
 
   /* เช็กลิสต์ — checks = ผลของ InvestCalc.checklist.* · textFn(item) → ข้อความของรายการ (หน้าแปลงรหัส → ข้อความเอง) */
@@ -518,7 +529,7 @@
   window.InvestCore = {
     num: num, fmt: fmt, money: money, pct: pct, esc: esc, ago: ago, newsDate: newsDate, delay: delay, rows: rows,
     lsJson: lsJson, lsSet: lsSet, getLang: getLang,
-    i18n: i18n, onLang: onLang, ui: ui, date: dateFmt,
+    i18n: i18n, onLang: onLang, ui: ui, date: dateFmt, apiDate: apiDate,
     proxied: proxied, netEnabled: netEnabled, fetchText: fetchText, dedupe: dedupe, sequence: sequence, marketLikelyOpen: marketLikelyOpen,
     series: series, loadSeries: loadSeries, quote: quote, fx: fx, thaiGold: thaiGold, fng: fng, news: news, parseNewsRss: parseNewsRss, newsSearchUrl: newsSearchUrl,
     seriesKey: seriesKey, quoteKey: quoteKey,

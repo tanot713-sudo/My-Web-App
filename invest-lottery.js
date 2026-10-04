@@ -551,7 +551,10 @@
   IC.subnav($('ivSubRow'), 'lottery');
   applyStaticI18n();
   [].forEach.call(document.querySelectorAll('[data-i18n="navInvest"]'), function (el) { el.textContent = t('navInvest'); });
-  IC.onLang(function () { IC.subnav($('ivSubRow'), 'lottery'); tabsCtl.rerender(); syncHead(); relangGovt(); });
+  IC.onLang(function () {
+    IC.subnav($('ivSubRow'), 'lottery'); syncHead(); relangGovt();
+    [].forEach.call(document.querySelectorAll('[data-i18n="navInvest"]'), function (el) { el.textContent = t('navInvest'); });
+  });
 
   window.__lottery = {
     parseDrawText: parseDrawText, candidateDrawDates: candidateDrawDates,

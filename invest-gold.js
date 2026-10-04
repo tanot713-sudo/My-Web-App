@@ -268,7 +268,10 @@
   }
 
   /* ── ราคาทองไทย (InvestCore.thaiGold) ── */
-  function setGoldThStatus(msg, cls) { var el = $('goldThStatus'); el.textContent = msg; el.className = 'status' + (cls ? ' ' + cls : ''); }
+  /* ข้อความสถานะ/ป้ายราคาทองไทย: ส่งเป็นฟังก์ชัน (แปลใหม่ตอนสลับภาษา) หรือข้อความตรงๆ */
+  var thStatusState = null, thBadgeFn = null;
+  function setGoldThStatus(msg, cls) { thStatusState = [msg, cls]; var el = $('goldThStatus'); el.textContent = typeof msg === 'function' ? msg() : msg; el.className = 'status' + (cls ? ' ' + cls : ''); }
+  function setThBadge(fn) { thBadgeFn = fn; $('goldThBadge').textContent = fn(); }
   function fillGoldThFields(o) {
     $('barBuy').value = o.barBuyPrice.toFixed(2);
     $('barSell').value = o.barSellPrice.toFixed(2);
@@ -283,31 +286,31 @@
   function onManualPriceInput() {
     var b1 = num($('barBuy').value), b2 = num($('barSell').value), j1 = num($('jewelryBuy').value), j2 = num($('jewelrySell').value);
     var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap';
-    if (![b1, b2, j1, j2].every(isFinite)) { badge.textContent = t('badgeManualText'); setGoldThStatus(t('manualEnterAll')); return; }
-    badge.textContent = t('badgeManualUsedText');
-    setGoldThStatus(t('manualUsedStatus'), 'ok');
+    if (![b1, b2, j1, j2].every(isFinite)) { setThBadge(function () { return t('badgeManualText'); }); setGoldThStatus(function () { return t('manualEnterAll'); }); return; }
+    setThBadge(function () { return t('badgeManualUsedText'); });
+    setGoldThStatus(function () { return t('manualUsedStatus'); }, 'ok');
     if (!$('dcaStart').value) $('dcaStart').value = b1.toFixed(2);
     if (!$('gdNow').value) $('gdNow').value = b1.toFixed(2);
     if ($('dcaOut').style.display === 'none') doDCA(true);
     renderGoldLog();
   }
   function runThaiFetch(force) {
-    setGoldThStatus(t('goldThFetching'));
+    setGoldThStatus(function () { return t('goldThFetching'); });
     $('goldThBadge').style.display = 'none';
     IC.thaiGold({ force: !!force }).then(function (o) {
       fillGoldThFields(o);
       var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap ok';
       if (o.stale) {
-        badge.textContent = t('badgeStaleCache', { age: IC.ago(o.ts) });
-        setGoldThStatus(t('statusStaleCache'), 'ok');
+        setThBadge(function () { return t('badgeStaleCache', { age: IC.ago(o.ts) }); });
+        setGoldThStatus(function () { return t('statusStaleCache'); }, 'ok');
       } else {
-        badge.textContent = t('badgeRealLive') + (o.updateDate ? t('badgeRealLiveUpdated', { date: o.updateDate, time: o.updateTime || '' }) : '');
-        setGoldThStatus(t('fetchSuccess'), 'ok');
+        setThBadge(function () { return t('badgeRealLive') + (o.updateDate ? t('badgeRealLiveUpdated', { date: IC.apiDate(o.updateDate), time: o.updateTime || '' }) : ''); });
+        setGoldThStatus(function () { return t('fetchSuccess'); }, 'ok');
       }
     }, function () {
       var badge = $('goldThBadge'); badge.style.display = 'inline-block'; badge.className = 'badge wrap';
-      badge.textContent = t('badgeManualText');
-      setGoldThStatus(t('statusFetchFailNoCache'), 'err');
+      setThBadge(function () { return t('badgeManualText'); });
+      setGoldThStatus(function () { return t('statusFetchFailNoCache'); }, 'err');
     });
   }
 
@@ -629,7 +632,9 @@
   IC.subnav($('ivSubRow'), 'gold');
   L.apply();
   IC.onLang(function () {
-    L.apply(); IC.subnav($('ivSubRow'), 'gold'); tabsCtl.rerender(); syncHead();
+    L.apply(); IC.subnav($('ivSubRow'), 'gold'); syncHead();
+    if (thStatusState) setGoldThStatus(thStatusState[0], thStatusState[1]);
+    if (thBadgeFn) setThBadge(thBadgeFn);
     if (!inited) return;
     renderGoldLog();
     if (lastVerdictMode === 'manual') {

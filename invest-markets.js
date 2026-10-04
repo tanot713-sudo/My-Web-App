@@ -495,7 +495,7 @@
       showVerdict(null);
       IC.thaiGold().then(function (g) {
         if (curKey !== key) return;
-        setDetailStatus(g.stale ? t('goldStale') : t('goldLiveToday') + (g.updateDate ? (' · ' + g.updateDate) : ''), 'real');
+        setDetailStatus(g.stale ? t('goldStale') : t('goldLiveToday') + (g.updateDate ? (' · ' + IC.apiDate(g.updateDate)) : ''), 'real');
         writeCard(a, g[a.field], NaN);
       }, function () { if (curKey === key) setDetailStatus(t('goldFail'), 'paste'); });
       return;

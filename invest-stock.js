@@ -912,6 +912,8 @@
     if (market !== 'th') { var d = DICT[IC.getLang()] || DICT.th; if (d[key + '_' + market] != null || DICT.th[key + '_' + market] != null) return L.t(key + '_' + market, vars); }
     return L.t(key, vars);
   }
+  /* ข้อความสถานะที่ต้องเปลี่ยนภาษาตามทันที: tl(key, vars) เก็บคีย์ไว้ แปลตอนแสดง/สลับภาษา */
+  function tl(key, vars) { return { toString: function () { return t(key, vars); } }; }
   function applyStaticI18n() {
     [].forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
     [].forEach.call(document.querySelectorAll('[data-i18n-html]'), function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
@@ -1082,7 +1084,8 @@
   }
 
   /* ══ ป้อนชุดข้อมูล → วิเคราะห์ + วาดกราฟ ══ */
-  function setStatus(msg, cls) { var el = $('fetchStatus'); el.textContent = msg; el.className = 'status' + (cls ? ' ' + cls : ''); }
+  var statusKeep = '', statusCls = '';
+  function setStatus(msg, cls) { statusKeep = msg; statusCls = cls; var el = $('fetchStatus'); el.textContent = String(msg == null ? '' : msg); el.className = 'status' + (cls ? ' ' + cls : ''); }
   function setSourceBadge(src, days) {
     var el = $('chartSource'); if (!el) return;
     if (src) lastSource = src; else src = lastSource;
@@ -1099,7 +1102,7 @@
     if (msg) setStatus(msg, cls);
     setSourceBadge(src, c.length);
     showAnalysis(analyze(s));
-    if (!buildChart(s)) setStatus(t('chartLibFail'), 'err');
+    if (!buildChart(s)) setStatus(tl('chartLibFail'), 'err');
     updatePriceFx();
   }
   function companyOf(sym) { return getCompanyInfo(sym); }
@@ -1151,7 +1154,7 @@
   function doAnalyze() {
     if (lastSeries) { useSeries(lastSeries); return; }
     var price = num($('price').value), hi = num($('hi').value), lo = num($('lo').value);
-    if (!isFinite(price)) { setStatus(t('enterPriceFirst'), 'err'); return; }
+    if (!isFinite(price)) { setStatus(tl('enterPriceFirst'), 'err'); return; }
     $('chartCard').style.display = 'none';
     if (isFinite(hi) && isFinite(lo) && hi > lo) showAnalysis(decorate(Calc.analyzeSimple(price, hi, lo)));
     else {
@@ -1162,10 +1165,13 @@
   }
 
   /* ══ Live (Gateway/Twelve Data) — ตั้งค่าในกล่องเดียวของ InvestCore ══ */
+  var liveUIArgs = null; // label/meta เป็นข้อความหรือฟังก์ชัน (ฟังก์ชัน = แปลใหม่ตอนสลับภาษา)
   function setLiveUI(kind, label, meta) {
+    liveUIArgs = [kind, label, meta];
     var dot = $('marketLiveDot'), title = $('marketLiveLabel'), m = $('marketLiveMeta');
     dot.className = 'market-live-dot ' + (kind === 'live' ? 'live' : kind === 'delay' ? 'delay' : '');
-    title.textContent = t('liveModePrefix') + label; m.textContent = meta || '';
+    var val = function (x) { return typeof x === 'function' ? x() : x; };
+    title.textContent = t('liveModePrefix') + val(label); m.textContent = val(meta) || '';
   }
   function curSym() { return ($('sym').value || '').trim().toUpperCase().replace(/\.BK$/, ''); }
   function applyLiveQuote(q) {
@@ -1175,16 +1181,16 @@
     var ch = isFinite(q.change) ? (q.change >= 0 ? '+' : '−') + Number(Math.abs(q.change)).toFixed(2) : '—';
     var pc = isFinite(q.pct) ? ' (' + (q.pct >= 0 ? '+' : '') + Number(q.pct).toFixed(2) + '%)' : '';
     var tm = q.timestamp ? new Date(q.timestamp).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—';
-    setLiveUI('live', t('liveReal'), q.source + ' · ' + ch + pc + ' · ' + t('updatedAt') + tm);
-    setStatus(t('latestPriceMsg', { price: Number(q.price).toFixed(2), source: q.source, time: tm }), 'ok');
+    setLiveUI('live', function () { return t('liveReal'); }, function () { return q.source + ' · ' + ch + pc + ' · ' + t('updatedAt') + tm; });
+    setStatus(tl('latestPriceMsg', { price: Number(q.price).toFixed(2), source: q.source, time: tm }), 'ok');
   }
   function startLive() {
     IC.live.stop();
     var c = IC.live.cfg();
-    if (c.provider === 'yahoo') { setLiveUI('', t('liveHistorical'), t('liveYahooMeta')); return; }
+    if (c.provider === 'yahoo') { setLiveUI('', function () { return t('liveHistorical'); }, function () { return t('liveYahooMeta'); }); return; }
     IC.live.start(curSym, M.live, applyLiveQuote, function (err) {
       var reason = err && err.message;
-      setLiveUI('delay', t('liveFallback'), reason ? (t('liveNoConn') + ' — ' + reason) : t('liveNoConn'));
+      setLiveUI('delay', function () { return t('liveFallback'); }, function () { return reason ? (t('liveNoConn') + ' — ' + reason) : t('liveNoConn'); });
     });
   }
   function refreshLive() {
@@ -1195,29 +1201,29 @@
 
   function doFetch() {
     var sym = curSym();
-    if (!sym) { setStatus(t('typeSymFirst'), 'err'); return; }
-    setStatus(t('fetchingData', { sym: sym })); $('fetchBtn').disabled = true;
+    if (!sym) { setStatus(tl('typeSymFirst'), 'err'); return; }
+    setStatus(tl('fetchingData', { sym: sym })); $('fetchBtn').disabled = true;
     updateStockHead(sym);
     var c = IC.live.cfg();
     var livePromise = c.provider === 'yahoo' ? Promise.reject(new Error('historical')) : IC.live.quote(sym, M.live);
     livePromise.then(function (q) {
       applyLiveQuote(q);
-      return getSeries(sym).then(function (r) { useSeries(r.series, t('liveFromMsg', { sym: sym, source: q.source, days: r.series.closes.length }), 'ok', { kind: 'real', label: sym }); showStockNews(sym); });
+      return getSeries(sym).then(function (r) { useSeries(r.series, tl('liveFromMsg', { sym: sym, source: q.source, days: r.series.closes.length }), 'ok', { kind: 'real', label: sym }); showStockNews(sym); });
     }).catch(function () {
       return getSeries(sym).then(function (r) {
         var s = r.series;
-        if (r.stale) useSeries(s, t('staleDataMsg', { age: cacheAgeText(r.cachedAt), days: s.closes.length }), 'ok', { kind: 'real', label: sym, stale: true, cachedAt: r.cachedAt });
-        else useSeries(s, t('histFromMsg', { source: 'Yahoo', days: s.closes.length }), 'ok', { kind: 'real', label: sym });
+        if (r.stale) useSeries(s, tl('staleDataMsg', { age: cacheAgeText(r.cachedAt), days: s.closes.length }), 'ok', { kind: 'real', label: sym, stale: true, cachedAt: r.cachedAt });
+        else useSeries(s, tl('histFromMsg', { source: 'Yahoo', days: s.closes.length }), 'ok', { kind: 'real', label: sym });
         showStockNews(sym);
       });
-    }).catch(function () { setStatus(t('notFoundMsg', { sym: sym }), 'err'); }).then(function () { $('fetchBtn').disabled = false; });
+    }).catch(function () { setStatus(tl('notFoundMsg', { sym: sym }), 'err'); }).then(function () { $('fetchBtn').disabled = false; });
   }
-  function doDemo() { $('stockNewsCard').style.display = 'none'; updateStockHead(t('sampleWord')); useSeries(Calc.demoData(M.key === 'us' ? 150 : 32), t('demoMsg'), 'ok', { kind: 'demo' }); }
+  function doDemo() { $('stockNewsCard').style.display = 'none'; updateStockHead(t('sampleWord')); useSeries(Calc.demoData(M.key === 'us' ? 150 : 32), tl('demoMsg'), 'ok', { kind: 'demo' }); }
   function doPaste() {
     var s = Calc.parsePaste($('pasteBox').value || '');
-    if (!s) { setStatus(t('pasteAtLeast5'), 'err'); return; }
+    if (!s) { setStatus(tl('pasteAtLeast5'), 'err'); return; }
     $('stockNewsCard').style.display = 'none';
-    useSeries(s, t('pastedMsg', { days: s.closes.length }), 'ok', { kind: 'paste' });
+    useSeries(s, tl('pastedMsg', { days: s.closes.length }), 'ok', { kind: 'paste' });
   }
 
   /* ══ อัตราแลกเปลี่ยน (เฉพาะ #us) — ≈ ฿ ในผลลัพธ์ ══ */
@@ -1240,7 +1246,9 @@
   }
 
   /* ══ ข่าวหุ้นตัวที่กำลังดู ══ */
+  var newsSym = null;
   function showStockNews(sym) {
+    newsSym = sym;
     $('stockNewsCard').style.display = 'block';
     $('stockNewsTitle').textContent = t('stockNewsWithSym', { sym: sym });
     $('oppdayRow').style.display = market === 'th' ? '' : 'none';
@@ -1342,7 +1350,7 @@
     var capital = num($('capital').value), riskPct = num($('riskPct').value);
     var entry = num($('entry').value), stop = num($('stop').value), comm = num($('comm').value), commMin = num($('commMin').value);
     if (!isFinite(entry)) entry = num($('price').value);
-    if (!isFinite(entry)) { setStatus(t('enterEntryFirst'), 'err'); return; }
+    if (!isFinite(entry)) { setStatus(tl('enterEntryFirst'), 'err'); return; }
     if (!isFinite(stop)) { stop = (lastAnalysis && isFinite(lastAnalysis.suggestStop)) ? lastAnalysis.suggestStop : entry * 0.95; $('stop').value = stop.toFixed(2); }
     if (!isFinite(capital) || capital <= 0) { capital = M.capital; $('capital').value = capital; }
     if (!isFinite(riskPct) || riskPct <= 0) { riskPct = 2; $('riskPct').value = riskPct; }
@@ -1454,7 +1462,7 @@
 
   /* ══ สลับตลาด (แท็บ #th / #us) ══ */
   function resetForMarket() {
-    IC.live.stop(); lastSeries = null; lastAnalysis = null; lastNewsItems = null; lastLive = null; lastSource = { kind: 'real' };
+    IC.live.stop(); lastSeries = null; lastAnalysis = null; lastNewsItems = null; newsSym = null; lastLive = null; lastSource = { kind: 'real' };
     destroyChart();
     ['shead'].forEach(function (id) { $(id).style.display = 'none'; });
     $('whyBox').hidden = true; $('aiSumCard').style.display = 'none'; $('stockNewsCard').style.display = 'none';
@@ -1531,6 +1539,9 @@
       onShow: onMarketTab });
     IC.onLang(function () {
       applyStaticI18n(); IC.subnav($('ivSubRow'), 'stock');
+      if (statusKeep) setStatus(statusKeep, statusCls);
+      if (liveUIArgs) setLiveUI(liveUIArgs[0], liveUIArgs[1], liveUIArgs[2]);
+      if (newsSym && $('stockNewsCard').style.display === 'block') showStockNews(newsSym);
       $('crumbHere').textContent = t(curTab === 'th' ? 'tabTh' : curTab === 'us' ? 'tabUs' : curTab === 'scan' ? 'tabScan' : 'tabPaper');
       if ($('shead').style.display === 'flex' && $('stkSym').textContent) updateStockHead(lastSource && lastSource.kind === 'demo' ? t('sampleWord') : $('stkSym').textContent);
       if (lastSeries) useSeries(lastSeries);
