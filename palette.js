@@ -51,6 +51,17 @@
             hay: norm(n.label + ' ' + (n.keywords || '') + ' ' + trail.join(' '))
           });
         }
+        /* แท็บของหน้า (n.tabs) = รายการค้นหาเพิ่ม พาไปแท็บนั้นตรงๆ (ค้น "ออมสิน" แล้วเข้า invest-lottery.html#gsb) */
+        if (n.href && n.tabs) {
+          var base = n.href.split('#')[0];
+          n.tabs.forEach(function (tb) {
+            out.push({
+              id: 'tab:' + tb.key, kind: 'page', label: tb.label, icon: ic, href: base + '#' + tb.hash, soon: false,
+              group: trail.concat(n.label).join(' › '),
+              hay: norm(tb.label + ' ' + (tb.keywords || '') + ' ' + n.label + ' ' + trail.join(' '))
+            });
+          });
+        }
         if (n.children) walk(n.children, trail.concat(n.label), ic);
       });
     })(window.OME_MENU || [], [], null);

@@ -2060,3 +2060,79 @@ test.describe('หน้าแผนธุรกิจ invest-business.html', ()
     expect(errors).toEqual([]);
   });
 });
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   เมนู + ค้นหาด่วน + แคชเก่า (ขั้น 13)
+   ═══════════════════════════════════════════════════════════════════ */
+test.describe('เมนูการลงทุน 9 รายการ + แท็บ + palette', () => {
+  test('invest.children = 9 รายการตามลำดับ · มี tabs ตามที่ออกแบบ · INVEST_CATS คงรูปแบบ {key,label,icon,page}', async ({ page }) => {
+    await prepare(page);
+    await page.goto('/invest.html'); await page.waitForSelector('nav.ome-nav');
+    const info = await page.evaluate(() => {
+      let inv = null; (function f(ns) { ns.forEach((n) => { if (n.key === 'invest') inv = n; else if (n.children) f(n.children); }); })(window.OME_MENU);
+      return { keys: inv.children.map((c) => c.key), tabs: Object.fromEntries(inv.children.filter((c) => c.tabs).map((c) => [c.key, c.tabs.map((x) => x.hash)])), href: inv.children.map((c) => c.href), cats: window.INVEST_CATS.map((c) => Object.keys(c).sort().join(',')) };
+    });
+    expect(info.keys).toEqual(['stock', 'fund', 'gold', 'bitcoin', 'gov-bond', 'lottery', 'journal', 'news', 'business']);
+    expect(info.tabs).toEqual({ stock: ['th', 'us', 'scan', 'paper'], fund: ['th', 'global'], gold: ['gold', 'markets'], lottery: ['gsb', 'baac', 'govt'] });
+    expect(new Set(info.cats)).toEqual(new Set(['icon,key,label,page']));
+    for (const h of info.href) expect(require('fs').existsSync(path.join(__dirname, '..', h.split('#')[0]))).toBe(true);
+    // ไม่ลิงก์ไปหน้า redirect เดิม
+    for (const h of info.href) expect(Object.keys(STUBS)).not.toContain(h.split('#')[0]);
+  });
+  test('หน้าที่มีแท็บ: เมนู active เมื่อ path ตรงโดยไม่สน hash (invest-stock.html#us ยังไฮไลต์ "หุ้น")', async ({ page }) => {
+    await prepare(page);
+    await page.goto('/invest-stock.html#us'); await page.waitForSelector('nav.ome-nav');
+    const active = await page.evaluate(() => [...document.querySelectorAll('.ome-menu-link.active')].map((a) => a.textContent.trim()));
+    expect(active).toContain('หุ้น');
+    await page.goto('/invest-lottery.html#baac'); await page.waitForSelector('nav.ome-nav');
+    expect(await page.evaluate(() => [...document.querySelectorAll('.ome-menu-link.active')].map((a) => a.textContent.trim()))).toContain('สลาก');
+  });
+  test('ค้นหาด่วน: พิมพ์ "ออมสิน" → แท็บสลากออมสิน → Enter ไป invest-lottery.html#gsb', async ({ page }) => {
+    await prepare(page);
+    await page.goto('/index.html'); await page.waitForSelector('nav.ome-nav');
+    await page.keyboard.press('Control+k');
+    await page.fill('.ome-pal-input', 'ออมสิน');
+    await expect(page.locator('.ome-pal-row').first()).toContainText('สลากออมสิน');
+    await page.keyboard.press('Enter');
+    await page.waitForURL(/invest-lottery(\.html)?#gsb$/);
+    await expect(page.locator('#lotteryTabs [data-tab="gsb"]')).toHaveAttribute('aria-selected', 'true');
+  });
+  test('ล้างแคชเก่าตอนโหลดหน้าลงทุน: แคช hub/comm/btc:fng หายครั้งเดียว · คีย์ข้อมูลผู้ใช้ไม่หายสักคีย์', async ({ page }) => {
+    await prepare(page);
+    const USER = { 'tanot:invest:thstock': [{ sym: 'PTT', shares: 1, cost: 1, ts: 1 }], 'tanot:invest:gold': [{ type: 'bar', unit: 'baht', amt: 1, price: 1, weight: 1, ts: 2 }], 'tanot:invest:portfolio': { cash: 1, startCash: 1, holdings: [], tx: [] }, 'tanot:invest:hub:history': [1], 'tanot:invest:nav': { 'th:X': { nav: 1 } } };
+    await page.addInitScript((u) => {
+      if (localStorage.getItem('__s')) return;
+      Object.keys(u).forEach((k) => localStorage.setItem(k, JSON.stringify(u[k])));
+      ['tanot:invest:cache:hub:q:bk:PTT', 'tanot:invest:cache:comm:q:CL=F', 'tanot:invest:cache:btc:fng', 'tanot:invest:cache:gold:dxy', 'tanot:invest:newscache:PTT', 'tanot:invest:cache:comm:thaigold'].forEach((k) => localStorage.setItem(k, '{"ts":1}'));
+      localStorage.setItem('tanot:invest:newscache:q:PTT', '{"ts":1,"items":[]}'); // รูปแบบใหม่ ต้องอยู่
+      localStorage.setItem('__s', '1');
+    }, USER);
+    await page.goto('/invest-news.html'); await page.waitForSelector('nav.ome-nav');
+    const left = await page.evaluate(() => Object.keys(localStorage).filter((k) => /cache/.test(k)));
+    expect(left).toEqual(['tanot:invest:newscache:q:PTT']);
+    for (const k of Object.keys(USER)) expect(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), k)).toEqual(USER[k]);
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:invest:ui')).cleaned)).toBe(1);
+  });
+});
+
+
+test.describe('ไม่ออกเน็ตนอกที่อนุญาต (ทั้ง 10 หน้า + ทุกแท็บ)', () => {
+  const PAGES = ['invest.html', 'invest-stock.html#th', 'invest-stock.html#us', 'invest-stock.html#scan', 'invest-stock.html#paper', 'invest-fund.html#th', 'invest-fund.html#global',
+    'invest-gold.html#gold', 'invest-gold.html#markets', 'invest-bitcoin.html', 'invest-gov-bond.html', 'invest-lottery.html#gsb', 'invest-lottery.html#baac', 'invest-lottery.html#govt',
+    'invest-trade-journal.html#all', 'invest-news.html', 'invest-business.html'];
+  test('ทุกหน้า/แท็บ: ไม่มี host proxy สาธารณะ/rss2json/tanot-cors-proxy และไม่เรียก /api/ocr', async ({ page }) => {
+    await prepare(page);
+    const hosts = trackExternal(page), ocr = [];
+    page.on('request', (r) => { if (/\/api\/ocr/.test(r.url())) ocr.push(r.url()); });
+    await mockProxy(page, () => null);
+    await page.clock.setFixedTime(new Date(NOW));
+    for (const p of PAGES) {
+      await page.goto('/' + p); await page.waitForSelector('nav.ome-nav');
+      await page.waitForTimeout(400);
+    }
+    expect(hosts.filter((h) => FORBIDDEN_HOSTS.test(h))).toEqual([]);
+    expect(hosts.filter((h) => !FONT_HOSTS.test(h) && !/^(api\.chnwt\.dev|api\.alternative\.me|raw\.githubusercontent\.com|openlibrary\.org)$/.test(h))).toEqual([]);
+    expect(ocr).toEqual([]);
+  });
+});
