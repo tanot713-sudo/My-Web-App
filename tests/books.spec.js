@@ -348,7 +348,8 @@ test.describe('ซิงก์ 2 เครื่อง', () => {
       await expect(d.page.locator('[data-bid]')).toHaveCount(2); // วาดใหม่เองโดยไม่ต้องโหลดซ้ำ
     }
 
-    // เครื่อง B บันทึกการอ่านเล่มของเครื่อง A และเขียนไฮไลต์
+    // เครื่อง B บันทึกการอ่านเล่มของเครื่อง A และเขียนไฮไลต์ — เดินนาฬิกา B ก่อน ไม่งั้น updated_at เท่ากับตอน A สร้างเล่ม แล้วผลขึ้นกับชื่อ device ที่สุ่ม
+    await B.page.clock.setFixedTime(new Date(NOW.getTime() + 60000));
     await B.page.locator('[data-bid]', { hasText: 'เล่มจากเครื่อง A' }).locator('[data-act="log"]').click();
     await B.page.fill('#lPages', '15'); await B.page.click('#ldlg button[type=submit]');
     await B.page.click('[data-tab="notes"]'); await B.page.click('#addNote');
