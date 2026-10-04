@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>สลากกินแบ่งรัฐบาล — สถิติย้อนหลัง + ตรวจหวย + สุ่มเลข | Tanot</title>
+<title>สลาก — สถิติย้อนหลัง + ตรวจหวย + สุ่มเลข | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#6C63D9">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,6 +16,7 @@
 <script src="data-registry.js"></script>
 <script src="tanot-data.js"></script>
 <link rel="stylesheet" href="theme.css">
+<script>window.TANOT_NO_RELOAD_BAR = true;</script>
 <script src="shell.js" defer></script>
 <style>
 .progress-bar{height:8px;border-radius:var(--ome-radius-sm);background:var(--ome-surface-2);overflow:hidden}
@@ -37,17 +38,26 @@
 .reel-digit.landed{border-color:var(--ome-chart-7);background:var(--ome-accent-soft);transition:border-color var(--ome-dur-3),background var(--ome-dur-3)}
 .spin-derived{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .spin-derived .kpi{min-width:110px;text-align:center}
+.tabs{margin-bottom:var(--ome-sp-4)}
+.tabpanel[hidden]{display:none}
+.tier-table td{text-align:left}
+.draw-input{width:92px}
 </style>
 </head>
 <body data-layout="tool" data-invest-key="lottery">
+
+<nav class="subnav" id="ivNav"><div class="subnav-sub"><div class="subnav-row" id="ivSubRow"></div></div></nav>
+
 <main class="page">
+  <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span>›</span><span id="crumbHere">สลากกินแบ่งรัฐบาล</span></nav>
 
+  <div class="page-head"><h1 id="pageTitleEl">สลากกินแบ่งรัฐบาล — สถิติย้อนหลัง + ตรวจหวย + สุ่มเลข 6 หลัก</h1></div>
 
-  <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span>›</span><span data-i18n="pageTitleShort">สลากกินแบ่งรัฐบาล</span></nav>
+  <div class="tabs" id="lotteryTabs"></div>
 
-  <div class="page-head"><h1 data-i18n="pageTitle">สลากกินแบ่งรัฐบาล — สถิติย้อนหลัง + ตรวจหวย + สุ่มเลข 6 หลัก</h1></div>
+  <div class="stack tabpanel" id="panelSavings" hidden></div>
 
-  <div class="stack">
+  <div class="stack tabpanel" id="panelGovt" hidden>
 
   <!-- ดึงข้อมูลย้อนหลัง -->
   <div class="card">
@@ -127,6 +137,9 @@
   </div>
 </main>
 
+<script src="invest-calc.js" defer></script>
+<script src="invest-core.js" defer></script>
 <script src="invest-lottery.js" defer></script>
+<script src="invest-savings-lottery.js" defer></script>
 </body>
 </html>

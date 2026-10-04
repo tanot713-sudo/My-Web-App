@@ -15,12 +15,12 @@
 <script src="data-registry.js"></script>
 <script src="tanot-data.js"></script>
 <link rel="stylesheet" href="theme.css">
+<script>window.TANOT_NO_RELOAD_BAR = true;</script>
 <script src="shell.js" defer></script>
 <!-- Lightweight Charts (TradingView) — Apache-2.0 : กราฟแท่งเทียน (โฮสต์เองในเว็บ ใช้ออฟไลน์ได้) -->
 <script src="vendor/lightweight-charts.standalone.js" defer></script>
 <script src="chart-theme.js" defer></script>
-<!-- Google Identity Services — สำหรับสำรองพอร์ต/สมุดเทรดขึ้น Google Drive (ไม่บังคับ) -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="ai-client.js"></script>
 <style>
 .actions{display:flex;gap:8px;flex-wrap:wrap}
 .unit{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:500}
@@ -77,9 +77,10 @@
 </style>
 </head>
 <body data-layout="tool" data-invest-key="bitcoin">
+
+<nav class="subnav" id="ivNav"><div class="subnav-sub"><div class="subnav-row" id="ivSubRow"></div></div></nav>
+
 <main class="page">
-
-
   <nav class="crumb"><a href="invest.html" data-i18n="navInvest">การลงทุน</a><span>›</span>Bitcoin</nav>
 
   <div class="page-head"><h1 data-i18n="pageTitle">Bitcoin — ตัวช่วยเข้า/ออก + ออม</h1></div>
@@ -103,20 +104,6 @@
       <button class="btn sm" id="marketSettings" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-settings"/></svg><span data-i18n="marketSettingsBtn">ตั้งค่าข้อมูลตลาด</span></button>
     </div>
     <div class="status" id="fetchStatus"></div>
-    <div class="market-settings" id="marketSettingsPanel" hidden>
-      <div class="market-settings-title" data-i18n="marketSettingsTitle">ข้อมูลตลาดแบบสด</div>
-      <div class="frow">
-        <div class="field"><label for="marketProvider" data-i18n="marketProviderLbl">แหล่งข้อมูล</label><select id="marketProvider"><option value="gateway" data-i18n="marketProviderGateway">Tanot Data Gateway (แนะนำ)</option><option value="twelvedata" data-i18n="marketProviderTwelve">Twelve Data</option><option value="yahoo" data-i18n="marketProviderYahoo">Yahoo / ย้อนหลัง</option></select></div>
-        <div class="field"><label for="marketGateway" data-i18n="marketGatewayLbl">Gateway URL</label><input id="marketGateway" type="url" placeholder="https://your-api.example.com/api/market"></div>
-      </div>
-      <div class="frow">
-        <div class="field"><label for="marketApiKey"><span>Twelve Data API Key</span> <span class="unit" data-i18n="marketApiKeyNote">(เก็บในเครื่องเท่านั้น)</span></label>
-          <input id="marketApiKey" type="password" autocomplete="off" placeholder="ใส่เมื่อมี API key" data-i18n-placeholder="marketApiKeyPh"></div>
-        <div class="field"><label for="marketInterval" data-i18n="marketIntervalLbl">รีเฟรชทุก</label>
-          <select id="marketInterval"><option value="5" data-i18n="marketInterval5">5 วินาที</option><option value="10" data-i18n="marketInterval10">10 วินาที</option><option value="30" data-i18n="marketInterval30">30 วินาที</option></select></div>
-      </div>
-      <div class="actions"><button class="btn primary sm" id="marketSave" type="button" data-i18n="marketSaveBtn">บันทึกการตั้งค่า</button><button class="btn sm" id="marketClear" type="button" data-i18n="marketClearBtn">ล้าง API Key</button></div>
-    </div>
     <div class="actions">
       <button class="btn" id="fetchBtn" type="button" data-i18n="fetchBtn">ลองดึงราคา</button>
       <button class="btn primary" id="analyzeBtn" type="button" data-i18n="analyzeBtn">ประเมินให้หน่อย</button>
@@ -223,6 +210,7 @@
     <div class="actions">
       <button class="btn primary" id="calcBtn" type="button" data-i18n="calcBtn">คำนวณ</button>
       <button class="btn" id="saveBtn" type="button" style="display:none" data-i18n="saveToPfBtn">บันทึกเข้าพอร์ต</button>
+      <a class="btn ghost" id="journalLink" href="invest-trade-journal.html#btc" data-i18n="journalLinkBtn">สมุดเทรด</a>
     </div>
 
     <div class="result" id="riskResult">
@@ -246,15 +234,6 @@
     </div>
   </div>
 
-  <!-- สำรองขึ้น Google Drive -->
-  <div class="card">
-    <h2 data-i18n="driveTitle">สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2>
-    <div class="row">
-      <button class="btn sm" id="driveConnectBtn" type="button" data-i18n="driveConnectBtn">เชื่อมต่อ Google Drive</button>
-      <span class="status" id="driveStatusTxt" style="margin:0"></span>
-    </div>
-  </div>
-
   <!-- พอร์ต -->
   <div class="card">
     <h2 data-i18n="pfTitle">พอร์ต Bitcoin ของฉัน</h2>
@@ -264,31 +243,6 @@
       <button class="btn sm" id="pfAdd" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="pfAddBtn">เพิ่มเข้าพอร์ต</span></button>
     </div>
     <div id="pfBox"><div class="pf-empty" data-i18n="pfEmptyDefault">ยังไม่มี BTC ในพอร์ต</div></div>
-  </div>
-
-  <!-- สมุดเทรด + สถิติ -->
-  <div class="card">
-    <h2 data-i18n="jTitle">สมุดเทรด + สถิติ (ดู "ฝีมือ" ตัวเอง)</h2>
-    <div class="frow">
-      <div class="field"><label data-i18n="lblJEntry">ราคาเข้า</label><input type="number" id="jEntry" inputmode="decimal" step="0.01"></div>
-      <div class="field"><label data-i18n="lblJExit">ราคาออก</label><input type="number" id="jExit" inputmode="decimal" step="0.01"></div>
-      <div class="field"><label data-i18n="lblJQty">จำนวน BTC</label><input type="number" id="jQty" inputmode="decimal" step="0.000001"></div>
-      <button class="btn sm" id="jAdd" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="jAddBtn">บันทึก</span></button>
-    </div>
-    <div id="jStats" class="kpi-grid" style="display:none"></div>
-    <div id="jBox"></div>
-  </div>
-
-  <!-- Expectancy -->
-  <div class="card">
-    <h2 data-i18n="eTitle">ระบบเทรดของคุณ "กำไรระยะยาว" ไหม?</h2>
-    <div class="frow">
-      <div class="field"><label data-i18n="lblEWin">อัตราชนะ <span class="unit" data-i18n="unitPctWin">(% ของไม้ที่ชนะ)</span></label><input type="number" id="eWin" inputmode="decimal" value="45"></div>
-      <div class="field"><label data-i18n="lblEWinR">กำไรเฉลี่ยตอนชนะ <span class="unit" data-i18n="unitRMultiple">(เท่าของความเสี่ยง R)</span></label><input type="number" id="eWinR" inputmode="decimal" step="0.1" value="2"></div>
-      <div class="field"><label data-i18n="lblELossR">ขาดทุนเฉลี่ยตอนแพ้ <span class="unit">(R)</span></label><input type="number" id="eLossR" inputmode="decimal" step="0.1" value="1"></div>
-      <button class="btn sm" id="eBtn" type="button" data-i18n="calcBtn">คำนวณ</button>
-    </div>
-    <div id="eResult" class="callout" style="display:none"></div>
   </div>
 
   <!-- ออม Bitcoin แบบ DCA -->
@@ -323,7 +277,8 @@
   </div>
 </main>
 
-<script src="ai-client.js"></script>
+<script src="invest-calc.js" defer></script>
+<script src="invest-core.js" defer></script>
 <script src="invest-bitcoin.js" defer></script>
 </body>
 </html>

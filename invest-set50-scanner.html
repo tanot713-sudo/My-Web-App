@@ -2,74 +2,11 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>สแกนเนอร์ SET50 | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="theme-boot.js"></script>
-<script src="data-registry.js"></script>
-<script src="tanot-data.js"></script>
-<link rel="stylesheet" href="theme.css">
-<script src="shell.js" defer></script>
-<style>
-.s50wrap{max-height:520px;overflow-y:auto;border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg)}
-.s50wrap .table{border:0}
-.s50wrap thead th{position:sticky;top:0;z-index:1}
-.s50wrap tbody tr{cursor:pointer}
-th.c-sym,td.c-sym{text-align:left}
-th.c-sig,td.c-sig{text-align:center}
-th.c-num,td:not(.c-sym):not(.c-sig){text-align:right}
-td.c-sym{font-weight:700;color:var(--ome-accent-strong)}
-.up{color:var(--ome-ok-ink);font-weight:700}.dn{color:var(--ome-err-ink);font-weight:700}
-.sigdot{display:inline-block;width:8px;height:8px;border-radius:50%}
-.sigdot.green{background:var(--ome-ok)}.sigdot.yellow{background:var(--ome-warn)}.sigdot.red{background:var(--ome-err)}
-@media(max-width:520px){ th.c-chg,td.c-chg{display:none} }
-</style>
+<meta http-equiv="refresh" content="0; url=invest-stock.html#scan">
+<script>location.replace('invest-stock.html' + location.search + '#scan');</script>
 </head>
-<body data-layout="tool" data-invest-key="thai-stock">
-
-<nav class="subnav">
-  <div class="subnav-groups" id="ivGroups">
-    <button data-g="overview" type="button" data-i18n="navOverview">ภาพรวม</button>
-    <button data-g="portfolio" data-href="invest-portfolio.html" type="button" data-i18n="navMyPortfolio">พอร์ตของฉัน</button>
-    <button class="on" data-g="market" type="button" data-i18n="navMarket">ตลาด &amp; สินทรัพย์</button>
-    <button data-g="lottery" type="button" data-i18n="navLottery">สลาก &amp; พันธบัตร</button>
-    <button data-g="news" type="button" data-i18n="navNews">ข่าว &amp; ธุรกิจ</button>
-  </div>
-  <div class="subnav-sub" id="sub-market"><div class="subnav-row" id="ivSubRow-market"></div></div>
-</nav>
-
-<main class="page">
-  <nav class="crumb"><a href="invest.html" data-i18n="crumbHome">การลงทุน</a><span>›</span><a href="invest-thai-stock.html" data-i18n="crumbThaiStock">หุ้นไทย</a><span>›</span><b data-i18n="crumbHere">สแกนเนอร์ SET50</b></nav>
-
-  <div class="page-head"><h1 data-i18n="pageTitle">สแกนเนอร์ SET50</h1></div>
-
-  <div class="card">
-    <div class="stack">
-      <div class="row">
-        <button class="btn primary" id="scanBtn" type="button" data-i18n="scanBtn">หาหุ้นน่าสนใจ</button>
-        <label class="row"><input type="checkbox" id="greenOnly"> <span data-i18n="greenOnlyLabel">เฉพาะไฟเขียว</span></label>
-        <span class="status" id="scanStatus" style="margin:0"></span>
-      </div>
-      <div class="s50wrap">
-        <table class="table">
-          <thead><tr>
-            <th class="c-sym" data-i18n="thSym">หลักทรัพย์</th><th class="c-num" data-i18n="thLast">ล่าสุด</th>
-            <th class="c-num c-chg" data-i18n="thChg">+/−</th><th class="c-num" data-i18n="thPct">%</th><th class="c-sig" data-i18n="thSig">สัญญาณ</th>
-          </tr></thead>
-          <tbody id="s50Body"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-</main>
-
-<script src="invest-set50-scanner.js" defer></script>
-</body>
+<body><a href="invest-stock.html#scan">สแกนเนอร์ SET50</a></body>
 </html>

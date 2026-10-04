@@ -16,6 +16,12 @@
   function hrefMatches(href) {
     return href === HERE_FULL || href === HERE || href === HERE_HASH || href === HERE_FULL_HASH;
   }
+  /* รายการเมนูที่มีแท็บ (n.tabs) ถือว่า active เมื่อ path ตรง ไม่สน hash (เปิด invest-stock.html#us แล้วเมนู "หุ้น" (#th) ยังไฮไลต์) */
+  function nodeMatches(n) {
+    if (!n.href) return false;
+    if (hrefMatches(n.href)) return true;
+    return !!n.tabs && n.href.split('#')[0].split('?')[0] === HERE;
+  }
   function soonHref(label) { return 'soon.html?label=' + encodeURIComponent(label); }
 
   /* ── โหมดฝังในป๊อปอัพ (?embed=1) — เปิดหน้าเดิมในกรอบลอยจากหน้าอื่น (เช่น invest.html) โดยไม่โหลด
@@ -134,20 +140,26 @@
             { key: 'tax',       label: 'การจ่ายภาษี', icon: 'landmark', href: 'tax.html', keywords: 'ภาษี tax ภาษีเงินได้ ลดหย่อน ภงด rmf ssf thaiesg ประกัน บำนาญ income tax deduction' },
             { key: 'insurance', label: 'ประกัน', icon: 'shield', href: 'insurance.html', keywords: 'ประกัน insurance กรมธรรม์ เบี้ยประกัน ต่ออายุ ลดหย่อน ประกันชีวิต ประกันสุขภาพ ประกันรถ ประกันบ้าน' },
             { key: 'invest', label: 'การลงทุน', icon: 'trending-up', href: 'invest.html', keywords: 'ลงทุน invest หุ้น', children: [
-                { key: 'global-stock', label: 'หุ้นต่างประเทศ',  href: 'invest-global-stock.html' },
-                { key: 'thai-stock',   label: 'หุ้นไทย',          href: 'invest-thai-stock.html' },
-                { key: 'gold',         label: 'ทองคำ',            href: 'invest-gold.html' },
-                { key: 'commodities',  label: 'ค่าเงิน & วัตถุดิบ', href: 'invest-commodities.html' },
-                { key: 'news',         label: 'ข่าวหุ้น',          href: 'invest-news.html' },
-                { key: 'portfolio',    label: 'พอร์ตจำลอง',        href: 'invest-portfolio.html' },
-                { key: 'business',     label: 'ลงทุนทำธุรกิจ',    href: 'invest-business.html' },
+                { key: 'stock',        label: 'หุ้น',              href: 'invest-stock.html#th', keywords: 'หุ้น stock set us หุ้นไทย หุ้นต่างประเทศ nasdaq',
+                  tabs: [ { key: 'thai-stock', label: 'หุ้นไทย', hash: 'th', keywords: 'หุ้นไทย set' },
+                          { key: 'global-stock', label: 'หุ้นต่างประเทศ', hash: 'us', keywords: 'หุ้นนอก us nasdaq' },
+                          { key: 'set50-scanner', label: 'สแกนเนอร์หุ้น', hash: 'scan', keywords: 'สแกน set50 scanner' },
+                          { key: 'portfolio', label: 'พอร์ตจำลอง', hash: 'paper', keywords: 'พอร์ตจำลอง ฝึกเทรด paper' } ] },
+                { key: 'fund',         label: 'กองทุน',            href: 'invest-fund.html#th', keywords: 'กองทุน fund rmf ssf thai esg dca s&p500 กองทุนไทย กองทุนต่างประเทศ nav',
+                  tabs: [ { key: 'thai-fund', label: 'กองทุนไทย', hash: 'th', keywords: 'กองทุนไทย rmf ssf thai esg ลดหย่อนภาษี' },
+                          { key: 'global-fund', label: 'กองทุนต่างประเทศ', hash: 'global', keywords: 'กองทุนต่างประเทศ s&p500 สะสมมูลค่า ปันผล' } ] },
+                { key: 'gold',         label: 'ทอง & สินค้าโภคภัณฑ์', href: 'invest-gold.html#gold', keywords: 'ทอง gold ทองคำ ค่าเงิน วัตถุดิบ สินค้าโภคภัณฑ์ น้ำมัน commodities fx บาทดอลลาร์',
+                  tabs: [ { key: 'gold-price', label: 'ทองคำ', hash: 'gold', keywords: 'ทอง ทองคำ gold ราคาทอง ออมทอง' },
+                          { key: 'commodities', label: 'ค่าเงิน & วัตถุดิบ', hash: 'markets', keywords: 'ค่าเงิน วัตถุดิบ น้ำมัน commodities fx ดอลลาร์' } ] },
+                { key: 'bitcoin',      label: 'คริปโต (Bitcoin)', href: 'invest-bitcoin.html', keywords: 'bitcoin btc คริปโต crypto บิตคอยน์ กลัวโลภ' },
                 { key: 'gov-bond',     label: 'พันธบัตรรัฐบาล',   href: 'invest-gov-bond.html' },
-                { key: 'gsb-lottery',  label: 'สลากออมสิน',       href: 'invest-gsb-lottery.html' },
-                { key: 'baac-lottery', label: 'สลาก ธ.ก.ส.',      href: 'invest-baac-lottery.html' },
-                { key: 'thai-fund',    label: 'กองทุนไทย',        href: 'invest-thai-fund.html' },
-                { key: 'global-fund',  label: 'กองทุนต่างประเทศ', href: 'invest-global-fund.html' },
-                { key: 'bitcoin',      label: 'Bitcoin',          href: 'invest-bitcoin.html' },
-                { key: 'lottery',      label: 'สลากกินแบ่งรัฐบาล', href: 'invest-lottery.html' }
+                { key: 'lottery',      label: 'สลาก',              href: 'invest-lottery.html#gsb', keywords: 'สลาก lottery สลากออมสิน สลาก ธ.ก.ส. สลากกินแบ่ง ล็อตเตอรี่ หวย ตรวจหวย ค่าคาดหวัง',
+                  tabs: [ { key: 'gsb-lottery', label: 'สลากออมสิน', hash: 'gsb', keywords: 'สลากออมสิน gsb ค่าคาดหวัง ev' },
+                          { key: 'baac-lottery', label: 'สลาก ธ.ก.ส.', hash: 'baac', keywords: 'สลาก ธ.ก.ส. baac ค่าคาดหวัง ev' },
+                          { key: 'govt-lottery', label: 'สลากกินแบ่งรัฐบาล', hash: 'govt', keywords: 'สลากกินแบ่ง หวย ตรวจหวย สุ่มเลข สถิติ' } ] },
+                { key: 'journal',      label: 'สมุดเทรด',          href: 'invest-trade-journal.html#all', keywords: 'สมุดเทรด journal เทรด สถิติ อัตราชนะ expectancy ผลเทรด' },
+                { key: 'news',         label: 'ข่าวหุ้น',          href: 'invest-news.html' },
+                { key: 'business',     label: 'ลงทุนทำธุรกิจ',    href: 'invest-business.html' }
               ]
             }
           ]
@@ -213,7 +225,7 @@
   function findActivePath(nodes, path) {
     for (var i = 0; i < nodes.length; i++) {
       var n = nodes[i];
-      if (n.href && hrefMatches(n.href)) { path.push(n); return true; }
+      if (nodeMatches(n)) { path.push(n); return true; }
       if (n.children && findActivePath(n.children, path)) { path.push(n); return true; }
     }
     return false;
@@ -223,7 +235,7 @@
 
   function renderMenuNodes(nodes, container, depth) {
     nodes.forEach(function (n) {
-      var isActive = !!n.href && hrefMatches(n.href);
+      var isActive = nodeMatches(n);
       var isAncestorOfActive = activePath.indexOf(n) !== -1 && !isActive;
       var row = document.createElement('div');
       row.className = 'ome-menu-row';

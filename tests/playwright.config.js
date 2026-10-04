@@ -129,5 +129,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8137/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // invest.spec.js: ยุบรวมหน้าลงทุน — ซิงก์ 2 เครื่อง (snapshot มูลค่าสินทรัพย์/สมุดเทรด) — แยกพอร์ตเพราะมี /__reset
+      command: 'node --no-warnings sync-server.mjs 8138',
+      cwd: __dirname,
+      url: 'http://localhost:8138/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

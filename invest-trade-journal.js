@@ -1,102 +1,136 @@
 /* ══════════════════════════════════════════════════════════════════
-   Tanot — สมุดเทรด + สถิติ (แยกออกมาจากหน้าหุ้นไทยเดิม)
-   ใช้ InvestDrive (invest-drivesync.js) สำหรับอ่าน/เขียน + สำรองขึ้น Google Drive ร่วมกับพอร์ตหุ้นไทย
+   Tanot — สมุดเทรดรวม (ยุบรวมหน้าลงทุน ขั้น 5, docs/invest-consolidation-design.md หัวข้อ 3.3)
+   อ่านคีย์เดิม 3 คีย์ (thjournal / globaljournal / btcjournal) แล้ว normalize ด้วย InvestCalc.journalRows — ไม่มีคีย์ใหม่ ไม่ย้ายข้อมูล
+   • แท็บ #all #th #us #btc (InvestCore.tabs) — #all นับไม้/อัตราชนะรวม, P/L แยกสกุล (฿ และ $) + ≈ ฿ ถ้ามีอัตรา USD/THB
+   • เพิ่มไม้เขียน "รูปแบบเดิมของคีย์นั้นตรงตัว": th/us {sym,en,ex,sh,pl,ts} · btc {en,ex,qty,pl,ts} (ไม่มี sym เหมือนเดิม)
+   • เขียนคีย์แบบ อ่านสด → แก้ → เขียน ทุกครั้ง ไม่ถืออาร์เรย์ค้าง · ลบ = กรองด้วย ts ในคีย์ต้นทางของแถวนั้นเท่านั้น (ไม่ใช้ดัชนี)
+   • ไม่มีสำรอง Google Drive แล้ว (ใช้ drive-backup.js + ซิงก์ D1)
    หมายเหตุ: ตัวช่วยคิด ไม่ใช่คำแนะนำการลงทุน
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
+  var IC = window.InvestCore, Calc = window.InvestCalc;
   var $ = function (id) { return document.getElementById(id); };
-  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
-  function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
-  function fmt0(n) { return isFinite(n) ? Math.round(n).toLocaleString('th-TH') : '—'; }
+  var esc = IC.esc, P = 'tanot:invest:';
+  var TABS = ['all', 'th', 'us', 'btc'];
 
-  var loadJn = window.InvestDrive.loadJn, saveJn = window.InvestDrive.saveJn, DriveSync = window.InvestDrive.DriveSync;
-
-  /* ══════ ระบบแปลภาษา (i18n) — รูปแบบเดียวกับหน้าอื่นในโซนลงทุน ══════ */
-  var UI_LANG_KEY = 'ome:lang';
-  function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
-  var I18N = {
+  var L = IC.i18n({
     th: {
-      navOverview: 'ภาพรวม', navMyPortfolio: 'พอร์ตของฉัน', navMarket: 'ตลาด & สินทรัพย์', navLottery: 'สลาก & พันธบัตร', navNews: 'ข่าว & ธุรกิจ',
-      crumbHome: 'การลงทุน', crumbThaiStock: 'หุ้นไทย', crumbHere: 'สมุดเทรด',
-      pageTitle: 'สมุดเทรด + สถิติ',
-      jSymLabel: 'หุ้น', jEntryLabel: 'ราคาเข้า', jExitLabel: 'ราคาออก', jSharesLabel: 'จำนวนหุ้น', jAddBtn: 'บันทึกไม้', jDelTitle: 'ลบ',
-      driveTitle: 'สำรองพอร์ต + สมุดเทรดขึ้น Google Drive',
-      alertJournalFields: 'กรอกราคาเข้า ราคาออก และจำนวนหุ้นให้ครบ', jSymFallback: 'หุ้น',
+      crumbHome: 'การลงทุน', crumbHere: 'สมุดเทรด', pageTitle: 'สมุดเทรด + สถิติ',
+      tabAll: 'ทั้งหมด', tabTh: 'หุ้นไทย', tabUs: 'หุ้นต่างประเทศ', tabBtc: 'Bitcoin',
+      jMarketLabel: 'ตลาด', mTh: 'หุ้นไทย', mUs: 'หุ้นต่างประเทศ', mBtc: 'Bitcoin',
+      jSymLabel: 'หุ้น', jEntryLabel: 'ราคาเข้า', jExitLabel: 'ราคาออก', jSharesLabel: 'จำนวนหุ้น', jQtyBtcLabel: 'จำนวน BTC', jAddBtn: 'บันทึกไม้', jDelTitle: 'ลบ',
+      alertJournalFields: 'กรอกราคาเข้า ราคาออก และจำนวนให้ครบ', jSymFallback: 'หุ้น',
       jEmptyDefault: 'ยังไม่มีไม้ที่บันทึก',
-      jStatCount: 'จำนวนไม้', jStatWinRate: 'อัตราชนะ', jStatTotalPl: 'กำไร/ขาดทุนรวม', jStatExpectancy: 'คาดหวัง/ไม้',
-      jThSym: 'หุ้น', jThEntry: 'เข้า', jThExit: 'ออก', jThShares: 'จำนวน', jThResult: 'ผล'
+      jStatCount: 'จำนวนไม้', jStatWinRate: 'อัตราชนะ', jStatTotalPl: 'กำไร/ขาดทุนรวม', jStatExpectancy: 'คาดหวัง/ไม้', jStatPlThb: 'กำไร/ขาดทุนรวม (฿)', jStatPlUsd: 'กำไร/ขาดทุนรวม ($)', jStatApprox: '≈ รวมเป็นบาท {v}',
+      jThMarket: 'ตลาด', jThSym: 'สินทรัพย์', jThEntry: 'เข้า', jThExit: 'ออก', jThQty: 'จำนวน', jThResult: 'ผล'
     },
     en: {
-      navOverview: 'Overview', navMyPortfolio: 'My Portfolio', navMarket: 'Markets & Assets', navLottery: 'Lottery & Bonds', navNews: 'News & Business',
-      crumbHome: 'Investing', crumbThaiStock: 'Thai Stocks', crumbHere: 'Trade Journal',
-      pageTitle: 'Trade Journal + Stats',
-      jSymLabel: 'Stock', jEntryLabel: 'Entry price', jExitLabel: 'Exit price', jSharesLabel: 'Shares', jAddBtn: 'Log Trade', jDelTitle: 'Delete',
-      driveTitle: 'Back up Portfolio + Trade Journal to Google Drive',
-      alertJournalFields: 'Please fill in entry price, exit price, and share count', jSymFallback: 'Stock',
+      crumbHome: 'Investing', crumbHere: 'Trade Journal', pageTitle: 'Trade Journal + Stats',
+      tabAll: 'All', tabTh: 'Thai stocks', tabUs: 'Global stocks', tabBtc: 'Bitcoin',
+      jMarketLabel: 'Market', mTh: 'Thai stocks', mUs: 'Global stocks', mBtc: 'Bitcoin',
+      jSymLabel: 'Stock', jEntryLabel: 'Entry price', jExitLabel: 'Exit price', jSharesLabel: 'Shares', jQtyBtcLabel: 'BTC amount', jAddBtn: 'Log Trade', jDelTitle: 'Delete',
+      alertJournalFields: 'Please fill in entry price, exit price and quantity', jSymFallback: 'Stock',
       jEmptyDefault: 'No trades logged yet',
-      jStatCount: 'Trades', jStatWinRate: 'Win rate', jStatTotalPl: 'Total P/L', jStatExpectancy: 'Expectancy/trade',
-      jThSym: 'Stock', jThEntry: 'Entry', jThExit: 'Exit', jThShares: 'Shares', jThResult: 'Result'
+      jStatCount: 'Trades', jStatWinRate: 'Win rate', jStatTotalPl: 'Total P/L', jStatExpectancy: 'Expectancy/trade', jStatPlThb: 'Total P/L (฿)', jStatPlUsd: 'Total P/L ($)', jStatApprox: '≈ {v} in baht',
+      jThMarket: 'Market', jThSym: 'Asset', jThEntry: 'Entry', jThExit: 'Exit', jThQty: 'Qty', jThResult: 'Result'
     }
-  };
-  function t(key, vars) {
-    var s = (I18N[getUILang()] || I18N.th)[key];
-    if (s == null) s = I18N.th[key] || key;
-    if (vars) Object.keys(vars).forEach(function (k) { s = s.split('{' + k + '}').join(vars[k]); });
-    return s;
-  }
-  function applyStaticI18n() {
-    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
-  }
-
-  function addJournal() {
-    var sym = ($('jSym').value || '').trim().toUpperCase() || t('jSymFallback');
-    var en = num($('jEntry').value), ex = num($('jExit').value), sh = num($('jShares').value);
-    if (!isFinite(en) || !isFinite(ex) || !isFinite(sh) || sh <= 0) { alert(t('alertJournalFields')); return; }
-    var jn = loadJn(); jn.push({ sym: sym, en: en, ex: ex, sh: sh, pl: (ex - en) * sh, ts: Date.now() });
-    saveJn(jn); $('jEntry').value = ''; $('jExit').value = ''; $('jShares').value = ''; renderJournal();
-  }
-  function renderJournal() {
-    var jn = loadJn(), box = $('jBox'), stats = $('jStats');
-    if (!jn.length) { box.innerHTML = '<div class="empty">' + t('jEmptyDefault') + '</div>'; stats.style.display = 'none'; return; }
-    var wins = jn.filter(function (r) { return r.pl > 0; }), losses = jn.filter(function (r) { return r.pl <= 0; });
-    var total = jn.reduce(function (s, r) { return s + r.pl; }, 0);
-    var winRate = wins.length / jn.length * 100;
-    var avgWin = wins.length ? wins.reduce(function (s, r) { return s + r.pl; }, 0) / wins.length : 0;
-    var avgLoss = losses.length ? Math.abs(losses.reduce(function (s, r) { return s + r.pl; }, 0) / losses.length) : 0;
-    var expBaht = (winRate / 100) * avgWin - (1 - winRate / 100) * avgLoss;
-    stats.style.display = 'grid';
-    stats.innerHTML =
-      '<div class="kpi"><span class="kpi-label">' + t('jStatCount') + '</span><span class="kpi-value">' + jn.length + '</span></div>' +
-      '<div class="kpi"><span class="kpi-label">' + t('jStatWinRate') + '</span><span class="kpi-value">' + winRate.toFixed(0) + '%</span></div>' +
-      '<div class="kpi"><span class="kpi-label">' + t('jStatTotalPl') + '</span><span class="kpi-value ' + (total >= 0 ? 'pl-up' : 'pl-dn') + '">' + (total >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(total)) + '</span></div>' +
-      '<div class="kpi"><span class="kpi-label">' + t('jStatExpectancy') + '</span><span class="kpi-value ' + (expBaht >= 0 ? 'pl-up' : 'pl-dn') + '">' + (expBaht >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(expBaht)) + '</span></div>';
-    var html = '<div class="table-wrap"><table class="table"><thead><tr><th>' + t('jThSym') + '</th><th class="num">' + t('jThEntry') + '</th><th class="num">' + t('jThExit') + '</th><th class="num">' + t('jThShares') + '</th><th class="num">' + t('jThResult') + '</th><th></th></tr></thead><tbody>';
-    jn.slice().reverse().forEach(function (r, ri) {
-      var idx = jn.length - 1 - ri;
-      html += '<tr><td>' + r.sym + '</td><td class="num">' + fmt(r.en) + '</td><td class="num">' + fmt(r.ex) + '</td><td class="num">' + fmt0(r.sh) + '</td>' +
-        '<td class="num ' + (r.pl >= 0 ? 'pl-up' : 'pl-dn') + '">' + (r.pl >= 0 ? '+' : '−') + '฿' + fmt0(Math.abs(r.pl)) + '</td>' +
-        '<td class="num"><button class="btn sm ghost icon jdel" aria-label="' + t('jDelTitle') + '" data-i="' + idx + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
-    });
-    html += '</tbody></table></div>'; box.innerHTML = html;
-    [].forEach.call(box.querySelectorAll('.jdel'), function (b) { b.addEventListener('click', function () { var jn2 = loadJn(); jn2.splice(+b.getAttribute('data-i'), 1); saveJn(jn2); renderJournal(); }); });
-  }
-
-  applyStaticI18n();
-  $('jAdd').addEventListener('click', addJournal);
-  $('driveConnectBtn').addEventListener('click', function () { DriveSync.connect(); });
-  DriveSync.onJnChange(renderJournal);
-  renderJournal();
-  DriveSync.init();
-
-  var groupBtns = document.querySelectorAll('#ivGroups button');
-  groupBtns.forEach(function (b) {
-    b.addEventListener('click', function () { if (b.dataset.href) location.href = b.dataset.href; });
   });
+  var t = L.t;
+  var tab = 'all', tabsCtl = null;
 
-  window.omeApplyLang = function () {
-    applyStaticI18n();
-    DriveSync.setBtn();
-    renderJournal();
-  };
+  /* ── อ่านสด (ไม่ถือค้าง) ── */
+  function load(key) { try { var a = JSON.parse(localStorage.getItem(P + key)); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function rowsAll() { return Calc.journalRows(load('thjournal'), load('globaljournal'), load('btcjournal')); }
+  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
+  function money(n, ccy, d) { return IC.money(n, ccy, d == null ? 0 : d); }
+  function signed(n, ccy) { return (n >= 0 ? '+' : '−') + money(Math.abs(n), ccy); }
+  function usdThb() { var o = IC.lsJson(P + 'fxcache'); return (o && isFinite(o.rate) && o.rate > 0) ? +o.rate : null; }
+
+  function renderStats(rows) {
+    var el = $('jStats');
+    if (!rows.length) { el.style.display = 'none'; return; }
+    var s = Calc.journalStats(rows), cls = function (v) { return v >= 0 ? 'pl-up' : 'pl-dn'; };
+    var html = '<div class="kpi"><span class="kpi-label">' + esc(t('jStatCount')) + '</span><span class="kpi-value" data-k="n">' + s.n + '</span></div>' +
+      '<div class="kpi"><span class="kpi-label">' + esc(t('jStatWinRate')) + '</span><span class="kpi-value" data-k="win">' + s.winRate.toFixed(0) + '%</span></div>';
+    if (tab === 'all') {
+      var thb = 0, usd = 0, hasThb = false, hasUsd = false;
+      rows.forEach(function (r) { if (r.ccy === 'THB') { thb += r.pl; hasThb = true; } else { usd += r.pl; hasUsd = true; } });
+      if (hasThb) html += '<div class="kpi"><span class="kpi-label">' + esc(t('jStatPlThb')) + '</span><span class="kpi-value ' + cls(thb) + '" data-k="plthb">' + signed(thb, 'THB') + '</span></div>';
+      if (hasUsd) {
+        var fx = usdThb(), approx = fx && hasThb ? thb + usd * fx : (fx ? usd * fx : null);
+        html += '<div class="kpi"><span class="kpi-label">' + esc(t('jStatPlUsd')) + '</span><span class="kpi-value ' + cls(usd) + '" data-k="plusd">' + signed(usd, 'USD') + '</span>' +
+          (fx && hasThb ? '<div class="kpi-sub" data-k="approx">' + esc(t('jStatApprox', { v: signed(approx, 'THB') })) + '</div>' : '') + '</div>';
+      }
+    } else {
+      var ccy = rows[0].ccy;
+      html += '<div class="kpi"><span class="kpi-label">' + esc(t('jStatTotalPl')) + '</span><span class="kpi-value ' + cls(s.total) + '" data-k="pl">' + signed(s.total, ccy) + '</span></div>' +
+        '<div class="kpi"><span class="kpi-label">' + esc(t('jStatExpectancy')) + '</span><span class="kpi-value ' + cls(s.expectancy) + '" data-k="exp">' + signed(s.expectancy, ccy) + '</span></div>';
+    }
+    el.innerHTML = html; el.style.display = 'grid';
+  }
+  var MK = { th: 'mTh', us: 'mUs', btc: 'mBtc' };
+  function render() {
+    var all = rowsAll();
+    var rows = tab === 'all' ? all : all.filter(function (r) { return r.market === tab; });
+    var box = $('jBox');
+    renderStats(rows);
+    if (!rows.length) { box.innerHTML = '<div class="empty">' + esc(t('jEmptyDefault')) + '</div>'; return; }
+    var list = rows.slice().sort(function (a, b) { return b.ts - a.ts; });
+    var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + esc(t('jThMarket')) + '</th><th>' + esc(t('jThSym')) + '</th><th class="num">' + esc(t('jThEntry')) + '</th><th class="num">' + esc(t('jThExit')) + '</th><th class="num">' + esc(t('jThQty')) + '</th><th class="num">' + esc(t('jThResult')) + '</th><th></th></tr></thead><tbody>';
+    list.forEach(function (r) {
+      html += '<tr data-key="' + r.key + '" data-ts="' + r.ts + '"><td><span class="mk">' + esc(t(MK[r.market])) + '</span></td><td>' + esc(r.sym) + '</td><td class="num">' + IC.fmt(r.entry) + '</td><td class="num">' + IC.fmt(r.exit) + '</td><td class="num">' + IC.fmt(r.qty, r.market === 'btc' ? 6 : 0) + '</td>' +
+        '<td class="num ' + (r.pl >= 0 ? 'pl-up' : 'pl-dn') + '">' + signed(r.pl, r.ccy) + '</td>' +
+        '<td class="num"><button class="btn sm ghost icon jdel" type="button" aria-label="' + esc(t('jDelTitle')) + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
+    });
+    box.innerHTML = html + '</tbody></table></div>';
+  }
+
+  /* ── เพิ่ม/ลบ: อ่านสด → แก้ → เขียน ── */
+  function uniqueTs(list) { var ts = Date.now(); while (list.some(function (r) { return r && r.ts === ts; })) ts++; return ts; }
+  function addTrade() {
+    var market = $('jMarket').value, en = num($('jEntry').value), ex = num($('jExit').value), q = num($('jQty').value);
+    if (!isFinite(en) || !isFinite(ex) || !isFinite(q) || q <= 0) { (window.tanotAlert || window.alert)(t('alertJournalFields')); return; }
+    var key = P + Calc.JOURNAL_KEYS[market], list = load(Calc.JOURNAL_KEYS[market]), ts = uniqueTs(list), row;
+    if (market === 'btc') row = { en: en, ex: ex, qty: q, pl: (ex - en) * q, ts: ts };
+    else row = { sym: ($('jSym').value || '').trim().toUpperCase() || t('jSymFallback'), en: en, ex: ex, sh: q, pl: (ex - en) * q, ts: ts };
+    list.push(row);
+    try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) {}
+    $('jEntry').value = ''; $('jExit').value = ''; $('jQty').value = '';
+    render();
+  }
+  $('jBox').addEventListener('click', function (e) {
+    var b = e.target.closest('.jdel'); if (!b) return;
+    var tr = b.closest('tr'), name = tr.getAttribute('data-key'), ts = Number(tr.getAttribute('data-ts'));
+    var key = P + name, list = load(name).filter(function (r) { return !(r && r.ts === ts); });
+    try { localStorage.setItem(key, JSON.stringify(list)); } catch (err) {}
+    render();
+  });
+  $('jAdd').addEventListener('click', addTrade);
+
+  /* ── ฟอร์ม: ตลาดเริ่มต้น = แท็บที่เปิด (#all → หุ้นไทย) · BTC ไม่มีช่องชื่อและใช้หน่วย BTC ── */
+  function syncForm() {
+    var m = $('jMarket').value;
+    $('jSymField').style.display = m === 'btc' ? 'none' : '';
+    $('jQtyLabel').setAttribute('data-i18n', m === 'btc' ? 'jQtyBtcLabel' : 'jSharesLabel');
+    $('jQtyLabel').textContent = t(m === 'btc' ? 'jQtyBtcLabel' : 'jSharesLabel');
+    $('jSym').placeholder = m === 'us' ? 'AAPL' : 'PTT';
+    $('jEntry').placeholder = m === 'btc' ? '60000' : m === 'us' ? '150.25' : '34.75';
+    $('jQty').placeholder = m === 'btc' ? '0.01' : '300';
+  }
+  $('jMarket').addEventListener('change', syncForm);
+
+  function onTab(key) {
+    tab = key;
+    $('jMarket').value = key === 'all' ? 'th' : key;
+    syncForm(); render();
+  }
+  tabsCtl = IC.tabs({ el: $('jTabs'), page: 'journal', def: 'all', t: t,
+    tabs: [{ key: 'all', labelKey: 'tabAll' }, { key: 'th', labelKey: 'tabTh' }, { key: 'us', labelKey: 'tabUs' }, { key: 'btc', labelKey: 'tabBtc' }],
+    onShow: onTab });
+
+  IC.subnav($('ivSubRow'), 'journal');
+  L.apply(); syncForm();
+  IC.onLang(function () { L.apply(); IC.subnav($('ivSubRow'), 'journal'); tabsCtl.rerender(); syncForm(); render(); });
+  if (window.TanotData && window.TanotData.onChange) window.TanotData.onChange(function () { render(); });
 })();

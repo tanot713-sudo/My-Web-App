@@ -537,8 +537,9 @@
 
   function init() {
     applyStaticI18n();
-    showTab(ui.tab);
+    showTab(/^#sim$/.test(location.hash) ? 'sim' : ui.tab); // tax.html#sim = แท็บ "ถ้าซื้อเพิ่ม" (ลิงก์จาก invest-fund.html)
     bind();
+    window.addEventListener('hashchange', function () { if (/^#sim$/.test(location.hash)) showTab('sim'); else if (/^#calc$/.test(location.hash)) showTab('calc'); });
     getJSON('tax-rules/index.json').then(function (idx) {
       var ys = (idx && idx.years || []).filter(function (y) { return isFinite(y); });
       return Promise.all(ys.map(function (y) {

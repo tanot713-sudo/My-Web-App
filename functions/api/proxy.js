@@ -6,6 +6,7 @@ const ALLOWED_HOSTS = new Set([
   'query2.finance.yahoo.com',
   'news.google.com',
   'api.alternative.me',
+  'api.chnwt.dev', // thai-gold-api (ราคาทองไทย) — ฝั่งเบราว์เซอร์ลองตรงก่อนเพราะ API เปิด CORS เอง แล้วค่อยมาทางนี้
 ]);
 
 function text(status, body) {

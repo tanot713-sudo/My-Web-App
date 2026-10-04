@@ -63,12 +63,15 @@ test('วันนี้: รวมข้อมูลทุกด้านจา
   // วันติดต่อกัน: ฝึกล่าสุดเมื่อวาน → ยังนับต่อ แต่ยังไม่ได้ฝึกวันนี้
   await expect(page.locator('#streakBody .big')).toContainText('5');
   await expect(page.locator('#streakBody')).toContainText('ยังไม่ได้ฝึกวันนี้');
-  // หุ้น: PTT รวมสองล็อต ทุนเฉลี่ย 33.33, AOT ไม่มีราคาแคช, AAPL เป็นตลาด US
-  const stock = page.locator('#stockBody');
-  await expect(stock.locator('.list-row')).toHaveCount(3);
-  await expect(stock).toContainText('฿34.5');
-  await expect(stock).toContainText('ยังไม่มีราคา');
-  await expect(stock).toContainText('$190');
+  // สินทรัพย์ลงทุน: PTT รวมสองล็อตด้วยราคาแคช 34.5 (10,350) + AOT ไม่มีแคช = ต้นทุน (30,000) · AAPL เป็น USD แต่ไม่มีอัตราแลกเปลี่ยนในแคช → ไม่นับ + ป้ายเตือน (ห้ามเดาอัตรา)
+  const inv = page.locator('#investBody');
+  await expect(inv.locator('[data-i=total]')).toHaveText('฿40,350');
+  await expect(inv.locator('[data-i=pl]')).toContainText('+฿350');
+  await expect(inv.locator('[data-i=nofx]')).toBeVisible();
+  await expect(inv.locator('.list-row')).toHaveCount(2);
+  await expect(inv.locator('.list-row').first()).toContainText('AOT');
+  await expect(inv.locator('.list-row').nth(1)).toContainText('PTT');
+  await expect(inv.locator('.list-row').nth(1)).toContainText('฿10,350');
   // ไฟล์ล่าสุด
   await expect(page.locator('#filesBody')).toContainText('สรุปประชุมโครงการปรับปรุงระบบไฟฟ้า');
   await expect(page.locator('#filesBody')).toContainText('Excel ฉบับร่าง');
@@ -78,7 +81,7 @@ test('วันนี้: รวมข้อมูลทุกด้านจา
 test('วันนี้: ไม่มีข้อมูล → empty state ทุกการ์ด ไม่มี error', async ({ page }) => {
   const errors = await openToday(page, { withData: false });
   await expect(page.locator('#spendBody .empty')).toBeVisible();
-  await expect(page.locator('#stockBody .empty')).toBeVisible();
+  await expect(page.locator('#investBody .empty')).toBeVisible();
   await expect(page.locator('#filesBody .empty')).toBeVisible();
   await expect(page.locator('#reviewBody .big')).toContainText('0');
   await expect(page.locator('#mntBody .empty')).toContainText('ยังไม่มีทะเบียนอุปกรณ์');
@@ -152,7 +155,7 @@ test('วันนี้: อ่านรายงานล่าสุดจา
 test('วันนี้: 390px ไม่ล้นแนวนอน ทั้งสว่าง/มืด', async ({ page }) => {
   for (const theme of ['light', 'dark']) {
     await openToday(page, { theme, width: 390 });
-    await page.waitForSelector('#stockBody .list-row');
+    await page.waitForSelector('#investBody .list-row');
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, theme).toBeLessThanOrEqual(1);
   }

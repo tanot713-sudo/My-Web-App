@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ทองคำ — ราคาวันนี้ + วางแผนออมทอง | Tanot</title>
+<title>ทอง &amp; สินค้าโภคภัณฑ์ | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,10 +15,11 @@
 <script src="data-registry.js"></script>
 <script src="tanot-data.js"></script>
 <link rel="stylesheet" href="theme.css">
+<script>window.TANOT_NO_RELOAD_BAR = true;</script>
 <script src="shell.js" defer></script>
+<script src="vendor/lightweight-charts.standalone.js" defer></script>
 <script src="chart-theme.js" defer></script>
-<!-- Google Identity Services — สำหรับสำรองสมุดทองขึ้น Google Drive (ไม่บังคับ) -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="ai-client.js"></script>
 <style>
 #gManualWrap{border-top:1px dashed var(--ome-border);padding-top:12px}
 #gManualWrap > * + *{margin-top:12px}
@@ -29,18 +30,63 @@
 .factors ul{margin:2px 0 6px 18px;padding:0}
 .factors li{margin-bottom:6px}
 .factors li .badge{margin-left:6px}
+.tabs{margin-bottom:var(--ome-sp-4)}
+.tabpanel[hidden]{display:none}
+.ic:empty{display:none}
+.detail-title{display:flex;align-items:center;gap:9px}
+.unit{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:500}
+/* #markets */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px}
+.stat-card{background:var(--ome-surface-2);border:1.5px solid transparent;border-radius:var(--ome-radius-lg);padding:12px 13px;text-align:left;font-family:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+.stat-card:hover{border-color:var(--ome-border)}
+.stat-card.on{background:var(--ome-accent-soft);border-color:var(--ome-accent)}
+.stat-card .nm{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2);margin-top:2px;line-height:1.3}
+.stat-card .pr{font-size:var(--ome-fs-md);font-weight:700;margin-top:3px}
+.stat-card .pr.na{color:var(--ome-text-2);font-weight:600;font-size:var(--ome-fs-xs)}
+.stat-card .chg{font-size:var(--ome-fs-xs);font-weight:700}
+.stat-card .chg.up{color:var(--ome-ok-ink)}
+.stat-card .chg.dn{color:var(--ome-err-ink)}
+.stat-card .chg.flat{color:var(--ome-text-2)}
+.stat-card .spark{display:block;width:100%;height:22px;margin-top:5px}
+.stat-card .spark svg{width:100%;height:100%;display:block}
+.stat-card .pr,.stat-card .chg,.ohlc-box .v{font-variant-numeric:tabular-nums}
+.pill-row{display:flex;flex-direction:column;gap:10px}
+.pill-group-lbl{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600;display:block;margin-bottom:6px}
+.pill-group-row{display:flex;flex-wrap:wrap;gap:7px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:var(--ome-radius-pill);border:1px solid var(--ome-border);background:var(--ome-surface-1);color:var(--ome-text-2);font-family:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer}
+.pill:hover{color:var(--ome-text-1);border-color:var(--ome-border-strong)}
+.pill.on{background:var(--ome-accent-soft);border-color:var(--ome-accent);color:var(--ome-accent-strong)}
+.detail-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}
+.detail-title .nm{font-size:var(--ome-fs-md);font-weight:700}
+.detail-title .unit{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600}
+.ohlc-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:8px}
+.ohlc-box{background:var(--ome-surface-2);border-radius:var(--ome-radius-md);padding:8px 10px}
+.ohlc-box .k{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600}
+.ohlc-box .v{font-size:var(--ome-fs-base);font-weight:700;margin-top:2px}
+.ohlc-box .v.up{color:var(--ome-ok-ink)}
+.ohlc-box .v.dn{color:var(--ome-err-ink)}
+.lw-chart{width:100%;height:260px}
+.chart-empty{font-size:var(--ome-fs-sm);color:var(--ome-text-2);padding:26px 4px;text-align:center}
+.hist-table{white-space:nowrap}
+.hist-table td.hi{color:var(--ome-ok-ink)}
+.hist-table td.lo{color:var(--ome-err-ink)}
+.hist-table td.chg.up{color:var(--ome-ok-ink);font-weight:700}
+.hist-table td.chg.dn{color:var(--ome-err-ink);font-weight:700}
+.sw-up{background:var(--ome-chart-up)}.sw-dn{background:var(--ome-chart-down)}
 </style>
 </head>
 <body data-layout="tool" data-invest-key="gold">
+
+<nav class="subnav" id="ivNav"><div class="subnav-sub"><div class="subnav-row" id="ivSubRow"></div></div></nav>
+
 <main class="page">
+  <nav class="crumb"><a href="invest.html" data-i18n="crumbHome">การลงทุน</a><span>›</span><span id="crumbHere" data-i18n="tabGold">ทองคำ</span></nav>
 
+  <div class="page-head"><h1 id="pageTitle" data-i18n="pageTitle">ทองคำ — ราคาวันนี้ + วางแผนออมทอง</h1></div>
 
-  <nav class="crumb"><a href="invest.html" data-i18n="crumbHome">การลงทุน</a><span>›</span><span data-i18n="crumbHere">ทองคำ</span></nav>
+  <div class="tabs" id="goldTabs"></div>
 
-  <div class="page-head"><h1 data-i18n="pageTitle">ทองคำ — ราคาวันนี้ + วางแผนออมทอง</h1></div>
-
-  <div class="stack">
-
+  <div class="stack tabpanel" id="panel-gold" data-panel="gold">
   <!-- ราคาทองวันนี้ -->
   <div class="card">
     <h2 data-i18n="priceTitle">ราคาทองวันนี้ (บาท/บาททองคำ)</h2>
@@ -168,26 +214,6 @@
     </div>
   </div>
 
-  <!-- สัดส่วนทองในพอร์ต -->
-  <div class="card">
-    <h2 data-i18n="allocTitle">สัดส่วนทองในพอร์ต</h2>
-    <div class="frow">
-      <div class="field"><label><span data-i18n="alPortfolioLabel">มูลค่าพอร์ตรวมโดยประมาณ</span> <span class="unit" data-i18n="unitBaht">(บาท)</span></label><input type="number" id="alPortfolio" inputmode="numeric" data-i18n-placeholder="alPortfolioPh" placeholder="เช่น 300000"></div>
-      <div class="field"><label><span data-i18n="alGoldNowLabel">มูลค่าทองที่ถืออยู่ตอนนี้</span> <span class="unit" data-i18n="unitBaht">(บาท)</span></label><input type="number" id="alGoldNow" inputmode="numeric" data-i18n-placeholder="alGoldNowPh" placeholder="เติมจากสมุดทองอัตโนมัติ"></div>
-      <button class="btn sm" id="alBtn" type="button" data-i18n="alBtn">คำนวณสัดส่วน</button>
-    </div>
-    <div id="alOut" class="callout" style="display:none"></div>
-  </div>
-
-  <!-- สำรองขึ้น Google Drive -->
-  <div class="card">
-    <h2 data-i18n="driveTitle">สำรองสมุดทองขึ้น Google Drive</h2>
-    <div class="row">
-      <button class="btn sm" id="driveConnectBtn" type="button" data-i18n="driveConnectBtn">เชื่อมต่อ Google Drive</button>
-      <span class="status" id="driveStatusTxt" style="margin:0"></span>
-    </div>
-  </div>
-
   <!-- สมุดทองของฉัน -->
   <div class="card">
     <h2 data-i18n="logTitle">สมุดทองของฉัน</h2>
@@ -227,9 +253,13 @@
 
 
   </div>
+
+  <div class="stack tabpanel" id="panel-markets" data-panel="markets" hidden></div>
 </main>
 
-<script src="ai-client.js"></script>
+<script src="invest-calc.js" defer></script>
+<script src="invest-core.js" defer></script>
 <script src="invest-gold.js" defer></script>
+<script src="invest-markets.js" defer></script>
 </body>
 </html>

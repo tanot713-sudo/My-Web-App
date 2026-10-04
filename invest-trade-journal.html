@@ -15,59 +15,47 @@
 <script src="data-registry.js"></script>
 <script src="tanot-data.js"></script>
 <link rel="stylesheet" href="theme.css">
+<script>window.TANOT_NO_RELOAD_BAR = true;</script>
 <script src="shell.js" defer></script>
-<!-- Google Identity Services — สำหรับสำรองพอร์ต/สมุดเทรดขึ้น Google Drive (ไม่บังคับ) -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 .kpi-grid{margin-bottom:var(--ome-sp-4)}
 .pl-up{color:var(--ome-ok-ink)}.pl-dn{color:var(--ome-err-ink)}
 .empty{padding:8px 0;font-size:var(--ome-fs-sm)}
+.kpi-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:2px}
+.mk{display:inline-block;font-size:var(--ome-fs-xs);font-weight:700;padding:1px 8px;border-radius:var(--ome-radius-pill);background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
 </style>
 </head>
-<body data-layout="tool" data-invest-key="thai-stock">
+<body data-layout="tool" data-invest-key="journal">
 
-<nav class="subnav">
-  <div class="subnav-groups" id="ivGroups">
-    <button data-href="invest.html" type="button" data-i18n="navOverview">ภาพรวม</button>
-    <button data-href="invest-portfolio.html" type="button" data-i18n="navMyPortfolio">พอร์ตของฉัน</button>
-    <button class="on" data-href="invest-thai-stock.html" type="button" data-i18n="navMarket">ตลาด &amp; สินทรัพย์</button>
-    <button data-href="invest.html" type="button" data-i18n="navLottery">สลาก &amp; พันธบัตร</button>
-    <button data-href="invest.html" type="button" data-i18n="navNews">ข่าว &amp; ธุรกิจ</button>
-  </div>
-</nav>
+<nav class="subnav" id="ivNav"><div class="subnav-sub"><div class="subnav-row" id="ivSubRow"></div></div></nav>
 
 <main class="page">
-  <nav class="crumb"><a href="invest.html" data-i18n="crumbHome">การลงทุน</a><span>›</span><a href="invest-thai-stock.html" data-i18n="crumbThaiStock">หุ้นไทย</a><span>›</span><b data-i18n="crumbHere">สมุดเทรด</b></nav>
+  <nav class="crumb"><a href="invest.html" data-i18n="crumbHome">การลงทุน</a><span>›</span><b data-i18n="crumbHere">สมุดเทรด</b></nav>
 
   <div class="page-head"><h1 data-i18n="pageTitle">สมุดเทรด + สถิติ</h1></div>
 
   <div class="stack">
+  <div class="tabs" id="jTabs"></div>
   <div class="card">
     <div class="stack">
       <div id="jStats" class="kpi-grid" style="display:none"></div>
       <div class="frow">
-        <div class="field"><label for="jSym" data-i18n="jSymLabel">หุ้น</label><input id="jSym" placeholder="PTT" spellcheck="false"></div>
+        <div class="field"><label for="jMarket" data-i18n="jMarketLabel">ตลาด</label><select id="jMarket"><option value="th" data-i18n="mTh">หุ้นไทย</option><option value="us" data-i18n="mUs">หุ้นต่างประเทศ</option><option value="btc" data-i18n="mBtc">Bitcoin</option></select></div>
+        <div class="field" id="jSymField"><label for="jSym" data-i18n="jSymLabel">หุ้น</label><input id="jSym" placeholder="PTT" spellcheck="false"></div>
         <div class="field"><label for="jEntry" data-i18n="jEntryLabel">ราคาเข้า</label><input id="jEntry" inputmode="decimal" placeholder="34.75"></div>
         <div class="field"><label for="jExit" data-i18n="jExitLabel">ราคาออก</label><input id="jExit" inputmode="decimal" placeholder="36.30"></div>
-        <div class="field"><label for="jShares" data-i18n="jSharesLabel">จำนวนหุ้น</label><input id="jShares" inputmode="numeric" placeholder="300"></div>
+        <div class="field"><label for="jQty" id="jQtyLabel" data-i18n="jSharesLabel">จำนวนหุ้น</label><input id="jQty" inputmode="decimal" placeholder="300"></div>
       </div>
       <div><button class="btn primary" id="jAdd" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="jAddBtn">บันทึกไม้</span></button></div>
       <div id="jBox"></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-head"><h2 data-i18n="driveTitle">สำรองพอร์ต + สมุดเทรดขึ้น Google Drive</h2></div>
-    <div class="row">
-      <button class="btn" id="driveConnectBtn" type="button" data-i18n="driveConnectBtn">เชื่อมต่อ Google Drive</button>
-      <span class="status" id="driveStatusTxt" style="margin:0"></span>
     </div>
   </div>
   </div>
 
 </main>
 
-<script src="invest-drivesync.js" defer></script>
+<script src="invest-calc.js" defer></script>
+<script src="invest-core.js" defer></script>
 <script src="invest-trade-journal.js" defer></script>
 </body>
 </html>

@@ -46,6 +46,8 @@
   function getUILang() { try { return localStorage.getItem(UI_LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   var I18N = {
     th: {
+      tabGsb: 'สลากออมสิน', tabBaac: 'สลาก ธ.ก.ส.', tabGovt: 'สลากกินแบ่งรัฐบาล',
+      titleGsb: 'สลากออมสิน — คำนวณค่าคาดหวัง (EV) เงินรางวัล + ติดตามผลจับรางวัล', titleBaac: 'สลาก ธ.ก.ส. — คำนวณค่าคาดหวัง (EV) เงินรางวัล + ติดตามผลจับรางวัล',
       navInvest: 'การลงทุน', pageTitleShort: 'สลากกินแบ่งรัฐบาล',
       pageTitle: 'สลากกินแบ่งรัฐบาล — สถิติย้อนหลัง + ตรวจหวย + สุ่มเลข 6 หลัก',
       loadTitle: 'ดึงข้อมูลย้อนหลัง', lblWindow: 'ช่วงย้อนหลัง',
@@ -77,6 +79,8 @@
       spinHistTitle: 'ประวัติการสุ่มล่าสุด', thTime: 'เวลา', thNum: 'เลข'
     },
     en: {
+      tabGsb: 'GSB Savings Lottery', tabBaac: 'BAAC Savings Lottery', tabGovt: 'Government Lottery',
+      titleGsb: 'GSB Savings Lottery — Expected Value (EV) Calculator + Draw Result Tracker', titleBaac: 'BAAC Savings Lottery — Expected Value (EV) Calculator + Draw Result Tracker',
       navInvest: 'Investing', pageTitleShort: 'Government Lottery',
       pageTitle: 'Government Lottery — Historical Stats + Ticket Checker + Number Randomizer',
       loadTitle: 'Fetch Historical Data', lblWindow: 'Lookback period',
@@ -114,10 +118,12 @@
     if (vars) { for (var k in vars) { s = s.split('{' + k + '}').join(vars[k]); } }
     return s;
   }
+  /* เฉพาะแท็บสลากกินแบ่ง (#panelGovt) — แท็บสลากออมสิน/ธ.ก.ส. มีพจนานุกรมของตัวเอง */
   function applyStaticI18n() {
-    [].forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
-    [].forEach.call(document.querySelectorAll('[data-i18n-html]'), function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
-    [].forEach.call(document.querySelectorAll('[data-i18n-placeholder]'), function (el) { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+    var root = $('panelGovt');
+    [].forEach.call(root.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    [].forEach.call(root.querySelectorAll('[data-i18n-html]'), function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+    [].forEach.call(root.querySelectorAll('[data-i18n-placeholder]'), function (el) { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -512,15 +518,40 @@
     renderFrequency();
     renderSpinHistory();
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
-
-  window.omeApplyLang = function () {
+  /* เปิดครั้งแรกที่เข้าแท็บ #govt (ไม่ยิงเน็ต/ไม่วาดอะไรถ้าไม่ได้เปิดแท็บนี้) */
+  var govtInited = false;
+  function initGovt() { if (govtInited) return; govtInited = true; init(); }
+  function relangGovt() {
+    if (!govtInited) return;
     applyStaticI18n();
     renderFrequency();
     renderSpinHistory();
     if ($('ltRangeNote').textContent) renderRangeNote(currentWindowRange().fromDate);
-  };
+  }
+
+  /* ── ตัวควบคุมหน้า: แท็บ #gsb · #baac · #govt (ค่าเริ่ม govt เพราะ URL เดิมไม่มี hash = สลากกินแบ่ง) ── */
+  var IC = window.InvestCore, curTab = 'govt', tabsCtl = null;
+  var T_KEY = { gsb: ['tabGsb', 'titleGsb'], baac: ['tabBaac', 'titleBaac'], govt: ['tabGovt', 'pageTitle'] };
+  function syncHead() {
+    $('crumbHere').textContent = t(T_KEY[curTab][0]);
+    $('pageTitleEl').textContent = t(T_KEY[curTab][1]);
+    document.title = t(T_KEY[curTab][0]) + ' | Tanot';
+  }
+  function onTab(key) {
+    curTab = key;
+    $('panelSavings').hidden = key === 'govt'; $('panelGovt').hidden = key !== 'govt';
+    syncHead();
+    if (key === 'govt') { initGovt(); return; }
+    /* invest-savings-lottery.js โหลดหลังไฟล์นี้ (defer ตามลำดับ) — รอจนทุกสคริปต์พร้อมก่อนเปิดแท็บ */
+    var openLater = function () { if (curTab === key && window.InvestSavings) window.InvestSavings.open(key); };
+    if (document.readyState === 'complete') openLater(); else window.addEventListener('load', openLater);
+  }
+  tabsCtl = IC.tabs({ el: $('lotteryTabs'), page: 'lottery', def: 'govt', t: t,
+    tabs: [{ key: 'gsb', labelKey: 'tabGsb' }, { key: 'baac', labelKey: 'tabBaac' }, { key: 'govt', labelKey: 'tabGovt' }], onShow: onTab });
+  IC.subnav($('ivSubRow'), 'lottery');
+  applyStaticI18n();
+  [].forEach.call(document.querySelectorAll('[data-i18n="navInvest"]'), function (el) { el.textContent = t('navInvest'); });
+  IC.onLang(function () { IC.subnav($('ivSubRow'), 'lottery'); tabsCtl.rerender(); syncHead(); relangGovt(); });
 
   window.__lottery = {
     parseDrawText: parseDrawText, candidateDrawDates: candidateDrawDates,
