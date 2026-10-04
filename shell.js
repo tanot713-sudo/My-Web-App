@@ -147,7 +147,8 @@
             { key: 'powerpoint',   label: 'งาน PowerPoint', labelEn: 'PowerPoint', icon: 'presentation', href: 'slides.html', keywords: 'powerpoint สไลด์ นำเสนอ pptx' },
             { key: 'extract-text', label: 'ดึงข้อความออกจากเอกสาร', labelEn: 'Extract text from documents', icon: 'copy', href: 'extract-text.html', keywords: 'ocr ดึงข้อความ pdf' },
             { key: 'doc-check',    label: 'ตรวจสอบเอกสาร', labelEn: 'Document check', icon: 'circle-check', href: 'doc-check.html', keywords: 'ตรวจเอกสาร สะกด ไวยากรณ์ proofread' },
-            { key: 'data-compare', label: 'เปรียบเทียบข้อมูล', labelEn: 'Compare data', icon: 'arrow-up-down', href: 'compare.html', keywords: 'เปรียบเทียบ diff compare เทียบ ใบเสนอราคา ให้คะแนน จัดซื้อ' }
+            { key: 'data-compare', label: 'เปรียบเทียบข้อมูล', labelEn: 'Compare data', icon: 'arrow-up-down', href: 'compare.html', keywords: 'เปรียบเทียบ diff compare เทียบ ใบเสนอราคา ให้คะแนน จัดซื้อ' },
+            { key: 'tts', label: 'แปลงเสียง ↔ ข้อความ', labelEn: 'Speech ↔ text', icon: 'mic', href: 'text-to-speech.html', keywords: 'เสียง ข้อความ tts asr whisper ถอดเสียง อ่านออกเสียง' }
           ]
         },
         { key: 'engineering', label: 'วิศวกรรม', labelEn: 'Engineering', icon: 'wrench', children: [
@@ -170,8 +171,7 @@
             { key: 'legal-prayer',        label: 'ร่างคำขอท้ายฟ้อง', labelEn: 'Draft a prayer for relief', icon: 'scale', href: 'legal.html#prayer', keywords: 'คำขอท้ายฟ้อง กฎหมาย' },
             { key: 'legal-police-report', label: 'ร่างเพื่อนำไปแจ้งความ', labelEn: 'Draft a police report', icon: 'scale', href: 'legal.html#police-report', keywords: 'แจ้งความ ตำรวจ กฎหมาย' }
           ]
-        },
-        { key: 'tts', label: 'แปลงเสียง ↔ ข้อความ', labelEn: 'Speech ↔ text', icon: 'mic', href: 'text-to-speech.html', keywords: 'เสียง ข้อความ tts asr whisper ถอดเสียง อ่านออกเสียง' }
+        }
       ]
     },
     { key: 'life', area: 'life', label: 'ชีวิตประจำวัน', labelEn: 'Daily life', icon: 'wallet', href: 'area.html?a=life', keywords: 'ชีวิตประจำวัน life', children: [
@@ -348,7 +348,8 @@
     var logo = document.createElement('a');
     logo.className = 'ome-nav-logo';
     logo.href = BASE + 'index.html';
-    logo.innerHTML = '<span class="dot">T</span><span class="txt">Tanot</span>';
+    logo.setAttribute('aria-label', 'Tanot'); // บนจอแคบซ่อนข้อความ — ชื่อลิงก์ต้องไม่หายไป · ตัว T ในกรอบเป็นโลโก้ตกแต่ง
+    logo.innerHTML = '<span class="dot" aria-hidden="true">T</span><span class="txt">Tanot</span>';
     nav.appendChild(logo);
 
     var right = document.createElement('div');
@@ -841,7 +842,29 @@
     });
   }
 
+  /* ── จำว่าเปิดหน้าไหนล่าสุดเมื่อไร (local, ไม่ซิงก์ — registry: tanot:nav:last) — ใช้กับ "เรียนต่อ" บนหน้าแรกและแถว "ใช้ล่าสุด" ของหน้าหมวด
+     บันทึกเฉพาะหน้าที่อยู่ใน MENU (ไม่นับ index/area/soon/404 และโหมดฝังป๊อปอัพ) · คีย์ = ชื่อไฟล์หน้า ไม่รวม hash/query */
+  function recordOpen() {
+    if (isEmbedded()) return;
+    try {
+      var page = /\.[a-z]+$/i.test(HERE) ? HERE : HERE + '.html'; // Cloudflare Pages ตัด .html ออกจาก URL (x.html → /x)
+      var known = false;
+      (function walk(nodes) {
+        nodes.forEach(function (n) {
+          if (n.href && n.href.split('#')[0].split('?')[0] === page && !/^(index|area|soon)\.html$/.test(page)) known = true;
+          if (n.children) walk(n.children);
+        });
+      })(MENU);
+      if (!known) return;
+      var m = JSON.parse(localStorage.getItem('tanot:nav:last') || 'null');
+      if (!m || typeof m !== 'object' || Array.isArray(m)) m = {};
+      m[page] = Date.now();
+      localStorage.setItem('tanot:nav:last', JSON.stringify(m));
+    } catch (e) {}
+  }
+
   function initShellChrome() {
+    recordOpen();
     if (!isEmbedded()) { buildNav(); buildFooter(); } /* ในป๊อปอัพ ไม่ต้องมีแถบนำทาง/เมนูลิ้นชัก/ฟุตเตอร์ซ้ำ */
     registerSW();
   }

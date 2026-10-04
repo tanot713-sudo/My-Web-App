@@ -142,6 +142,32 @@
     out.updatedAt = Number(p.updatedAt) || 0;
     return out;
   }
+  /** กด "ทำแล้ว"/ยกเลิก ของช่อง (แก้ plan ตรงๆ) → { gave } หรือ null (ช่องว่าง) · gave = true เมื่อควรให้ XP (ครั้งแรกของมื้อนั้น — awarded เก็บถาวร ยกเลิกแล้วกดใหม่ไม่ให้ซ้ำ)
+      cooking-plan.js (หน้าแผน) และหน้าแรกเรียกฟังก์ชันนี้ร่วมกัน */
+  function toggleDone(plan, slot, now) {
+    if (!plan || !plan.slots || !plan.slots[slot]) return null;
+    plan.done = plan.done || {}; plan.awarded = plan.awarded || {};
+    var gave = false;
+    if (plan.done[slot]) delete plan.done[slot];
+    else {
+      plan.done[slot] = now;
+      if (!plan.awarded[slot]) { plan.awarded[slot] = now; gave = true; }
+    }
+    plan.updatedAt = now;
+    return { gave: gave };
+  }
+  /** มื้อของวันที่ nowMs (เวลาไทย) จากแผนสัปดาห์นั้น → { week, plan, slots:[{ slot, meal, recipe|null, servings, done }] } · recipe = จาก recipes (effectiveRecipes) */
+  function todayMeals(plans, recipes, nowMs) {
+    var week = weekStart(nowMs), ymd = ymdOf(nowMs), day = Math.round((utcDayMs(ymd) - utcDayMs(week)) / DAY);
+    var row = null;
+    (plans || []).forEach(function (r) { if (r && r.id === planId(week)) row = r; });
+    var plan = cleanPlan(row, week), by = {};
+    (recipes || []).forEach(function (r) { if (r && r.id) by[r.id] = r; });
+    return { week: week, plan: plan, ymd: ymd, slots: MEALS.map(function (m) {
+      var k = slotKey(day, m.key), s = plan.slots[k];
+      return { slot: k, meal: m.key, recipe: s ? (by[s.recipeId] || null) : null, servings: s ? s.servings : 0, planned: !!s, done: !!plan.done[k] };
+    }) };
+  }
   // คัดลอกสัปดาห์ก่อน: เติมเฉพาะช่องที่ยังว่าง (ไม่ทับของที่ใส่ไว้แล้ว) · ไม่ก๊อป "ทำแล้ว" · ข้ามสูตรที่ไม่มีแล้ว
   function copyPrev(prev, cur, recipes) {
     var ids = {};
@@ -339,7 +365,7 @@
     unitInfo: unitInfo, normName: normName, displayUnit: displayUnit,
     ymdOf: ymdOf, addDays: addDays, weekStart: weekStart, weekDays: weekDays, planId: planId, shopId: shopId, slotKey: slotKey, allSlots: allSlots, validSlot: validSlot,
     cleanIngredient: cleanIngredient, cleanRecipe: cleanRecipe, recipeMatches: recipeMatches, allTags: allTags,
-    emptyPlan: emptyPlan, cleanPlan: cleanPlan, copyPrev: copyPrev, fillRandom: fillRandom,
+    emptyPlan: emptyPlan, cleanPlan: cleanPlan, toggleDone: toggleDone, todayMeals: todayMeals, copyPrev: copyPrev, fillRandom: fillRandom,
     aggregate: aggregate, lineId: lineId,
     tickRowId: tickRowId, isTickRow: isTickRow, setField: setField, mergeLines: mergeLines, cleanPrice: cleanPrice, shoppingView: shoppingView, newShopping: newShopping,
     defaultCategory: defaultCategory, budgetId: budgetId, budgetRecord: budgetRecord,

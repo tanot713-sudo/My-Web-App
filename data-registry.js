@@ -44,6 +44,11 @@
     { key: 'tanot:tableSizes:v2', kind: 'local' },
     { key: 'tanot:elec:inputs', kind: 'local' }, // ค่าที่กรอกในเครื่องคำนวณไฟฟ้า — กระดาษทดของเครื่องนี้ ไม่ต้องซิงก์
     { key: 'tanot:tax:ui', kind: 'local' }, // ปี/แท็บที่เปิดค้างในหน้าภาษี
+    // ── หน้าแรก/หน้าหมวด (รอบ 3): nav:last = วันที่เปิดแต่ละหน้าล่าสุดของเครื่องนี้ (shell.js เขียน — ใช้กับ "เรียนต่อ" และ "ใช้ล่าสุด") · home:layout = จัดหน้าแรกของเครื่องนี้ ·
+    //    home:cache = ยอดรวมบท/วลีที่ดึงจากหน้าของวิชา (ดึงใหม่ได้เสมอ) ──
+    { key: 'tanot:nav:last', kind: 'local' },
+    { key: 'tanot:home:layout', kind: 'local' },
+    { key: 'tanot:home:cache', kind: 'cache' },
     { prefix: 'tanot:push:', kind: 'cache' }, // tanot-push.js: ชุดการแจ้งเตือนที่เครื่องนี้ส่งขึ้น D1 ล่าสุด (hash) — สร้างใหม่ได้เสมอ ข้อมูลจริงอยู่ในตาราง reminders
 
     // ── บันทึกงานบำรุงรักษา (maintenance.html) — ต้องอยู่เหนือกฎ 'tanot:' ทั้งก้อนด้านล่าง ──

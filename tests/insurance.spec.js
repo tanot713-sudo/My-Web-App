@@ -317,27 +317,30 @@ test.describe('หน้า insurance.html', () => {
   });
 });
 
-test.describe('หน้าวันนี้: การ์ดต่ออายุประกัน', () => {
+test.describe('หน้าวันนี้: ต่ออายุประกันใน "ต้องทำวันนี้"', () => {
   test.use({ baseURL: SRV });
 
-  test('แสดงเฉพาะที่ครบกำหนดใน 60 วัน (รวมเลยกำหนด) เรียงใกล้สุด', async ({ page }) => {
+  test('ขึ้นเฉพาะที่ครบกำหนดใน 30 วัน (รวมเลยกำหนด) เรียงตามความเร่ง', async ({ page }) => {
     const errors = await openPage(page, '/index.html');
-    const rows = page.locator('#insBody .list-row');
-    await expect(rows).toHaveCount(3);
-    await expect(rows.nth(0)).toContainText('เลยกำหนด 5 วัน');
-    await expect(rows.nth(1)).toContainText('อีก 10 วัน');
+    await page.waitForSelector('#todoBody > *');
+    const rows = page.locator('#todoBody .todo-row[data-kind="ins"]');
+    await expect(rows).toHaveCount(2); // 51 วันไม่ขึ้น
+    await expect(rows.nth(0).locator('.pill')).toHaveText('เลย 5 วัน');
+    await expect(rows.nth(0)).toHaveAttribute('data-urg', 'err');
+    await expect(rows.nth(1).locator('.pill')).toHaveText('อีก 10 วัน');
     await expect(rows.nth(1)).toContainText('฿30,000');
-    await expect(rows.nth(2)).toContainText('อีก 51 วัน');
-    await expect(page.locator('#insBody')).not.toContainText('ทิพยประกันภัย');
+    await expect(page.locator('#todoBody')).not.toContainText('ทิพยประกันภัย');
+    await expect(rows.nth(0).locator('a')).toHaveAttribute('href', 'insurance.html');
     expect(errors).toEqual([]);
   });
 
-  test('ไม่มีกรมธรรม์: ลิงก์ไปหน้าประกัน · มีแต่ไม่ใกล้ถึง: ข้อความว่าง', async ({ page }) => {
+  test('ไม่มีกรมธรรม์/มีแต่ไม่ใกล้ถึง: ไม่ขึ้นรายการ ("ไม่มีเรื่องค้าง")', async ({ page }) => {
     await openPage(page, '/index.html', { withData: false });
-    await expect(page.locator('#insBody .empty a')).toHaveAttribute('href', 'insurance.html');
+    await page.waitForSelector('#todoBody > *');
+    await expect(page.locator('#todoBody .todo-none')).toBeVisible();
     await page.evaluate(() => localStorage.setItem('tanot:insurance:policies', JSON.stringify([{ id: 'x', type: 'home', insurer: 'ไกล', premium: 1, freq: 'year', renewDate: '2027-06-01' }])));
     await page.reload();
-    await page.waitForSelector('nav.ome-nav');
-    await expect(page.locator('#insBody')).toContainText('ไม่มีกรมธรรม์ที่ใกล้ต่ออายุ');
+    await page.waitForSelector('#todoBody > *');
+    await expect(page.locator('#todoBody .todo-none')).toBeVisible();
   });
 });

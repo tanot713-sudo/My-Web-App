@@ -266,6 +266,161 @@
     return hits;
   }
 
+  /* ══ กฎตรวจมือถือ (รอบ 3) — เรียกที่ viewport แคบ (390 / 360) ═══════════════════════════════
+     mobileFont     ข้อความเนื้อหา < 14px · ข้อความรอง/ป้ายเล็ก/ปุ่ม < 12px · h1 > 28px · h2 > 22px
+     mobileOverflow ตัวหน้าเลื่อนแนวนอน หรือ element ที่เลยขอบจอ (ยกเว้นอยู่ใน container ที่ overflow-x เป็น auto/scroll/hidden เอง)
+     mobileClip     ข้อความถูกตัด (scrollWidth > clientWidth ใน container ที่ overflow ไม่ visible) โดยไม่มี ellipsis และไม่มี title/aria-label
+     mobileCrowd    เป้ากด 2 อันที่ขอบห่างกัน < 8px (ยกเว้นลิงก์ในบรรทัด, ตัวควบคุมที่ติดกันโดยออกแบบ (.segmented/.lang-toggle), แถวกว้าง ≥ 60% ของจอและสูง ≥ 44px เรียงซ้อนกัน)
+     mobileAlign    พี่น้อง (.card, .grid > *, .list-row, .tile, .kpi, .todo-row) ที่เรียงซ้อนแล้วขอบซ้าย/ขวาไม่ตรง (> 2px)
+                    หรือเรียงแถวเดียวกันแล้วกว้างไม่เท่ากัน (> 2px) / แถวที่สองยื่นพ้นขอบแถวแรก
+     ข้อความใน shell (nav/ลิ้นชัก/ฟุตเตอร์) ไม่นับ เว้นแต่ opts.shell = true (ใช้กับหน้าแรกหน้าเดียว) */
+  var BODY_MIN = 14, SMALL_MIN = 12, H1_MAX = 28, H2_MAX = 22, GAP_MIN = 8, ALIGN_TOL = 2;
+  var SECONDARY = 'small,sub,sup,.meta,.sub,.badge,.muted,figcaption,caption,th,time,.sz,.hint,.pill,.tag,.alloc-legend,.cat-row,.kv .k,.strip-cell .k,.strip-cell .s,.meter-row .val,.dotcol small,.tile-desc,.todo-sub,.ome-footer *';
+  var CONTROLS = 'button,.btn,input,select,textarea,summary,[role=tab],[role=button],.tab,.chip,.segmented *,.lang-toggle *,.tabs *';
+  var SCROLL_OV = /auto|scroll|hidden|clip/;
+
+  function skipShell(el, opts) { return !(opts && opts.shell) && !!el.closest(SHELL); }
+  function textElements(opts) {
+    var out = [], seen = new Set();
+    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (var t = walker.nextNode(); t; t = walker.nextNode()) {
+      if (!/\S/.test(t.nodeValue)) continue;
+      var el = t.parentElement;
+      if (!el || seen.has(el) || el.closest('script,style,noscript,svg,canvas,option,[data-audit-skip]')) continue;
+      seen.add(el);
+      if (!visible(el) || skipShell(el, opts)) continue;
+      out.push(el);
+    }
+    return out;
+  }
+  function mobileFont(opts) {
+    var bad = [];
+    textElements(opts).forEach(function (el) {
+      var px = parseFloat(getComputedStyle(el).fontSize), tag = el.tagName;
+      var kind = tag === 'H1' ? 'h1' : tag === 'H2' ? 'h2' : (el.matches(CONTROLS) || el.closest(CONTROLS.split(',').slice(0, 5).join(','))) ? 'small' : el.matches(SECONDARY) || el.closest(SECONDARY) ? 'small' : 'body';
+      var fail = (kind === 'h1' && px > H1_MAX) || (kind === 'h2' && px > H2_MAX) || (kind === 'body' && px < BODY_MIN) || ((kind === 'small') && px < SMALL_MIN);
+      if (!fail && (kind === 'h1' || kind === 'h2') && px < BODY_MIN) fail = true;
+      if (fail) bad.push({ sel: selector(el), text: snippet(el), kind: kind, px: +px.toFixed(1) });
+    });
+    return bad;
+  }
+  function insideScroller(el) {
+    for (var n = el.parentElement; n && n !== document.body && n !== document.documentElement; n = n.parentElement) {
+      var cs = getComputedStyle(n);
+      if (SCROLL_OV.test(cs.overflowX)) return true;
+    }
+    return false;
+  }
+  function mobileOverflow(opts) {
+    var bad = [], vw = window.innerWidth, reported = new Set();
+    if (document.documentElement.scrollWidth > vw + 1) bad.push({ sel: 'html', text: 'หน้าเลื่อนแนวนอน scrollWidth ' + document.documentElement.scrollWidth + ' > ' + vw });
+    var all = document.body.querySelectorAll('*');
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.closest('script,style,svg,option,[data-audit-skip]') || skipShell(el, opts) || !visible(el)) continue;
+      var cs = getComputedStyle(el);
+      if (cs.position === 'fixed' || cs.display === 'contents') continue;
+      var r = el.getBoundingClientRect();
+      if (!(r.right > vw + 1 || r.left < -1)) continue;
+      if (insideScroller(el)) continue;
+      if (el.parentElement && reported.has(el.parentElement)) continue;
+      reported.add(el);
+      bad.push({ sel: selector(el), text: snippet(el), w: Math.round(r.width), left: Math.round(r.left), right: Math.round(r.right) });
+      if (bad.length >= 60) break;
+    }
+    return bad;
+  }
+  function mobileClip(opts) {
+    var bad = [];
+    textElements(opts).forEach(function (el) {
+      if (el.matches('input,select,textarea')) return;
+      var cs = getComputedStyle(el);
+      if (cs.display === 'inline') return;
+      var clipX = SCROLL_OV.test(cs.overflowX) && cs.overflowX !== 'auto' && cs.overflowX !== 'scroll' && el.scrollWidth > el.clientWidth + 1;
+      var lc = cs.webkitLineClamp && cs.webkitLineClamp !== 'none';
+      var clipY = !lc && /hidden|clip/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 1 && el.clientHeight > 0;
+      if (!clipX && !clipY) return;
+      var ellipsis = cs.textOverflow === 'ellipsis' || lc;
+      var titled = !!(el.getAttribute('title') || el.getAttribute('aria-label') || el.closest('[title],[aria-label]'));
+      if (ellipsis || titled) return;
+      bad.push({ sel: selector(el), text: snippet(el), w: el.clientWidth, sw: el.scrollWidth, h: el.clientHeight, sh: el.scrollHeight });
+    });
+    return bad;
+  }
+  var TAP = 'button,a[href],input:not([type=hidden]),select,textarea,summary,[role=button],[role=tab],[role=switch],[role=checkbox]';
+  function rectGap(a, b) {
+    var dx = Math.max(0, Math.max(a.left, b.left) - Math.min(a.right, b.right));
+    var dy = Math.max(0, Math.max(a.top, b.top) - Math.min(a.bottom, b.bottom));
+    return Math.hypot(dx, dy);
+  }
+  function mobileCrowd(opts) {
+    var bad = [], vw = window.innerWidth, items = [];
+    document.querySelectorAll(TAP).forEach(function (el) {
+      if (items.length >= 500 || !visible(el) || skipShell(el, opts) || el.closest('.ome-ai-fab')) return; // ปุ่ม AI ลอยทับเนื้อหาตามตำแหน่งเลื่อน — ไม่นับ
+      if (el.tagName === 'A' && !el.matches('.btn,.tile,.list-row,.tab,.chip,[role=button]') && getComputedStyle(el).display === 'inline') return; // ลิงก์ในบรรทัด
+      var r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) return;
+      items.push({ el: el, r: r });
+    });
+    function row(x) { return x.r.width >= vw * 0.6 && x.r.height >= 44; }
+    var seen = new Set();
+    for (var i = 0; i < items.length; i++) {
+      for (var j = i + 1; j < items.length; j++) {
+        var a = items[i], b = items[j];
+        if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
+        if (rectGap(a.r, b.r) >= GAP_MIN) continue;
+        if (row(a) && row(b)) continue;
+        var grp = a.el.closest('.segmented,.lang-toggle');
+        if (grp && grp === b.el.closest('.segmented,.lang-toggle')) continue;
+        var lab = (a.el.closest('label') && a.el.closest('label') === b.el.closest('label')); // ช่องติ๊ก + ข้อความของมันเอง
+        if (lab) continue;
+        var k = selector(a.el) + ' ↔ ' + selector(b.el);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        bad.push({ sel: k, text: snippet(a.el) + ' | ' + snippet(b.el), gap: +rectGap(a.r, b.r).toFixed(1) });
+        if (bad.length >= 60) return bad;
+      }
+    }
+    return bad;
+  }
+  var ALIGN_SEL = '.card,.grid > *,.list-row,.tile,.kpi,.todo-row';
+  function mobileAlign(opts) {
+    var bad = [], byParent = new Map();
+    document.querySelectorAll(ALIGN_SEL).forEach(function (el) {
+      if (!visible(el) || skipShell(el, opts) || !el.parentElement) return;
+      var list = byParent.get(el.parentElement); if (!list) byParent.set(el.parentElement, list = []);
+      if (list.indexOf(el) < 0) list.push(el);
+    });
+    byParent.forEach(function (kids, parent) {
+      if (kids.length < 2) return;
+      var rects = kids.map(function (el) { return { el: el, r: el.getBoundingClientRect() }; });
+      var rows = [];
+      rects.slice().sort(function (a, b) { return a.r.top - b.r.top || a.r.left - b.r.left; }).forEach(function (x) {
+        var last = rows[rows.length - 1];
+        if (last && x.r.top < last.bottom - 1) { last.items.push(x); last.bottom = Math.max(last.bottom, x.r.bottom); }
+        else rows.push({ items: [x], bottom: x.r.bottom });
+      });
+      var maxCols = Math.max.apply(null, rows.map(function (r) { return r.items.length; }));
+      var ref = null;
+      rows.forEach(function (row) {
+        var its = row.items.slice().sort(function (a, b) { return a.r.left - b.r.left; });
+        if (its.length > 1) {
+          var w0 = its[0].r.width;
+          its.forEach(function (x) { if (Math.abs(x.r.width - w0) > ALIGN_TOL) bad.push({ sel: selector(x.el), text: snippet(x.el), kind: 'width', w: Math.round(x.r.width), expect: Math.round(w0) }); });
+        }
+        var l = its[0].r.left, r = Math.max.apply(null, its.map(function (x) { return x.r.right; }));
+        if (!ref) { ref = { l: l, r: r, full: its.length === maxCols }; return; }
+        var offL = Math.abs(l - ref.l) > ALIGN_TOL, offR = its.length === maxCols && ref.full && Math.abs(r - ref.r) > ALIGN_TOL;
+        if (offL || offR) bad.push({ sel: selector(its[0].el), text: snippet(its[0].el), kind: 'edge', left: Math.round(l), right: Math.round(r), expectLeft: Math.round(ref.l), expectRight: Math.round(ref.r) });
+      });
+    });
+    return bad.slice(0, 60);
+  }
+  function mobile(opts) {
+    opts = opts || {};
+    return { mobileFont: mobileFont(opts), mobileOverflow: mobileOverflow(opts), mobileClip: mobileClip(opts), mobileCrowd: mobileCrowd(opts), mobileAlign: mobileAlign(opts) };
+  }
+
   /* ── ตัวกดสำรวจ (crawler) — หาเฉพาะแท็บ/segmented/toggle/ปุ่มเปิด dialog ที่ปลอดภัย ── */
   /* ข้ามปุ่มที่อาจทำลายข้อมูล/ส่งออกนอก/ใช้เน็ต-ไมค์-กล้อง/บันทึกข้อมูล (ข้อความ + aria-label + title) */
   var DANGER = /ลบ|ล้าง|รีเซ็ต|ส่ง|ซิงก์|ออก|นำเข้า|อัปโหลด|ดาวน์โหลด|พิมพ์|บันทึก|ยืนยัน|ตกลง|บันทึกเสียง|อัดเสียง|ไมค์|กล้อง|สแกน|ฟัง|อ่านออกเสียง|เล่น|เริ่ม|หยุด|สร้าง|สรุป|ถาม|แปล|อ่าน|ค้นหา|AI|delete|remove|reset|clear|sync|send|import|export|upload|download|print|save|confirm|log ?out|sign ?out|record|mic|camera|scan|listen|speak|play|start|stop|generate|summar|ask|translate|search|ocr/i;
@@ -297,5 +452,5 @@
   }
 
   window.__tanotAudit = { audit: audit, textOnPage: textOnPage, sampleOnImage: sampleOnImage, thaiInEn: thaiInEn,
-    crawlCandidates: crawlCandidates, closeOverlays: closeOverlays };
+    crawlCandidates: crawlCandidates, closeOverlays: closeOverlays, mobile: mobile };
 })();

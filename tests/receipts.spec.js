@@ -433,27 +433,32 @@ test.describe('หน้า receipts.html', () => {
     expect(errors).toEqual([]);
   });
 
-  test('การ์ดหน้าวันนี้ "ประกันสินค้าใกล้หมด": ซ่อนเมื่อไม่มีใบเสร็จที่ระบุประกัน · แสดงเฉพาะที่หมดภายใน 60 วัน', async ({ page }) => {
+  test('หน้าวันนี้ "ต้องทำวันนี้": ไม่มีใบเสร็จที่ระบุประกัน = ไม่ขึ้น · ขึ้นเฉพาะที่หมดภายใน 30 วัน เรียงใกล้สุดก่อน', async ({ page }) => {
+    const war = (p) => p.locator('#todoBody .todo-row[data-kind="war"]');
     await openPage(page, '/index.html');
-    await expect(page.locator('#warCard')).toBeHidden();
+    await page.waitForSelector('#todoBody > *');
+    await expect(war(page)).toHaveCount(0);
     const p2 = await page.context().newPage();
     const items = [
-      { id: 'a', store: 'iStudio', date: '2025-11-20', warrantyMonths: 12, warrantyProduct: 'โน้ตบุ๊ก' }, // 51 วัน
+      { id: 'a', store: 'iStudio', date: '2025-11-20', warrantyMonths: 12, warrantyProduct: 'โน้ตบุ๊ก' }, // 51 วัน — ยังไม่ขึ้น
       { id: 'b', store: 'Big C', date: '2025-10-05', warrantyMonths: 12, warrantyProduct: 'พัดลม' },     // 5 วัน
+      { id: 'f', store: 'Power Buy', date: '2025-10-25', warrantyMonths: 12, warrantyProduct: 'ทีวี' },   // 25 วัน
       { id: 'c', store: 'Home Pro', date: '2026-01-01', warrantyMonths: 36, warrantyProduct: 'ตู้เย็น' }, // ไกล
       { id: 'd', store: 'Old', date: '2024-01-01', warrantyMonths: 12, warrantyProduct: 'หมดแล้ว' },
     ];
     await openPage(p2, '/index.html', { data: { items } });
-    await expect(p2.locator('#warCard')).toBeVisible();
-    const rows = p2.locator('#warBody .list-row');
+    await p2.waitForSelector('#todoBody > *');
+    const rows = war(p2);
     await expect(rows).toHaveCount(2);
     await expect(rows.nth(0)).toContainText('พัดลม');
-    await expect(rows.nth(0)).toContainText('อีก 5 วัน');
-    await expect(rows.nth(1)).toContainText('โน้ตบุ๊ก');
-    await expect(rows.nth(1)).toContainText('อีก 51 วัน');
+    await expect(rows.nth(0).locator('.pill')).toHaveText('อีก 5 วัน');
+    await expect(rows.nth(1)).toContainText('ทีวี');
+    await expect(rows.nth(1).locator('.pill')).toHaveText('อีก 25 วัน');
+    await expect(p2.locator('#todoBody')).not.toContainText('โน้ตบุ๊ก');
     const p3 = await page.context().newPage();
-    await openPage(p3, '/index.html', { data: { items: [items[2]] } });
-    await expect(p3.locator('#warBody')).toContainText('ไม่มีประกันสินค้าที่ใกล้หมด');
+    await openPage(p3, '/index.html', { data: { items: [items[3]] } });
+    await p3.waitForSelector('#todoBody > *');
+    await expect(war(p3)).toHaveCount(0);
   });
 
   test('ป้ายลดหย่อนภาษี → สรุปต่อปี → หน้าภาษีเติมช่องที่ตรงกัน (พิมพ์ทับได้) · ปีที่กฎเป็น null ไม่เติม', async ({ page }) => {

@@ -1,6 +1,7 @@
 // รวมผลของ theme-audit.spec.js (tests/theme-report/parts/*.json) เป็นรายงาน — globalTeardown ของ playwright.config.js
 //   tests/theme-report/report.json · report.html (เปิดในเบราว์เซอร์ได้เลย) · summary.md (ตาราง 15 หน้าที่แย่ที่สุด)
 // THEME_AUDIT_UPDATE=1 → ลดค่า "runtime" ใน tests/theme-baseline.json ตามผลจริง (ลดอย่างเดียว)
+// THEME_AUDIT_UPDATE=seed → เติมเฉพาะตัวชี้วัด/คีย์ที่ยังไม่มีใน baseline (เพิ่มกฎใหม่) ไม่แตะค่าเดิม
 // THEME_AUDIT_UPDATE=accept → ตั้งค่า runtime ตามผลจริงทั้งหมด (ครั้งแรก / ตั้งใจยอมให้เพิ่ม — ต้องมีเหตุผลใน PR)
 // รันเองได้: node tests/theme-report.js
 const fs = require('fs');
@@ -9,13 +10,14 @@ const path = require('path');
 const DIR = path.join(__dirname, 'theme-report');
 const PARTS = path.join(DIR, 'parts');
 const BASELINE_FILE = path.join(__dirname, 'theme-baseline.json');
-const COLS = ['axe', 'contrast', 'controlBorder', 'textOnImage', 'nonCentral', 'targetSize', 'crawlErrors', 'thaiInEn'];
+const COLS = ['axe', 'contrast', 'controlBorder', 'textOnImage', 'nonCentral', 'targetSize', 'mobileFont', 'mobileOverflow', 'mobileClip', 'mobileCrowd', 'mobileAlign', 'crawlErrors', 'thaiInEn'];
 const LABEL = {
   axe: 'axe คอนทราสต์', contrast: 'ตัวอักษรบน control', controlBorder: 'ขอบ control', textOnImage: 'ตัวอักษรบนภาพ',
-  nonCentral: 'ไม่ใช้คอมโพเนนต์กลาง', targetSize: 'เป้ากด < 40px', crawlErrors: 'error ตอนกดสำรวจ', thaiInEn: 'ไทยหลุดในโหมด EN',
+  nonCentral: 'ไม่ใช้คอมโพเนนต์กลาง', targetSize: 'เป้ากด < 40px',
+  mobileFont: 'มือถือ: ตัวอักษรเล็ก/หัวข้อใหญ่', mobileOverflow: 'มือถือ: ล้นจอ', mobileClip: 'มือถือ: ข้อความถูกตัด', mobileCrowd: 'มือถือ: เป้ากดชิด < 8px', mobileAlign: 'มือถือ: กล่องไม่เรียงตรง', crawlErrors: 'error ตอนกดสำรวจ', thaiInEn: 'ไทยหลุดในโหมด EN',
   hardcodedColors: 'สี hex ในหน้า', customButtons: 'ปุ่มนิยามเอง',
 };
-const WEIGHT = { axe: 1, contrast: 1, controlBorder: 1, textOnImage: 2, nonCentral: 0.5, targetSize: 0.5, crawlErrors: 5, hardcodedColors: 0.25, customButtons: 2 };
+const WEIGHT = { axe: 1, contrast: 1, controlBorder: 1, textOnImage: 2, nonCentral: 0.5, targetSize: 0.5, mobileFont: 0.5, mobileOverflow: 1, mobileClip: 1, mobileCrowd: 0.5, mobileAlign: 0.5, crawlErrors: 5, hardcodedColors: 0.25, customButtons: 2 };
 
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
@@ -92,7 +94,7 @@ code{font-size:12px;word-break:break-all}section{margin-top:28px}summary{cursor:
 }
 
 function summary(rep, n = 15) {
-  const cols = ['axe', 'contrast', 'controlBorder', 'textOnImage', 'nonCentral', 'targetSize', 'crawlErrors', 'hardcodedColors', 'customButtons', 'thaiInEn'];
+  const cols = ['axe', 'contrast', 'controlBorder', 'textOnImage', 'nonCentral', 'targetSize', 'mobileFont', 'mobileOverflow', 'mobileClip', 'mobileCrowd', 'mobileAlign', 'crawlErrors', 'hardcodedColors', 'customButtons', 'thaiInEn'];
   let md = `| # | หน้า | คะแนน | ${cols.map((c) => LABEL[c]).join(' | ')} |\n|---|---|---:|${cols.map(() => '---:').join('|')}|\n`;
   rep.ranked.slice(0, n).forEach((p, i) => {
     const pg = rep.pages[p];
@@ -116,7 +118,8 @@ function updateBaseline(rep, mode) {
       if (key.indexOf('@') >= 0) continue;
       const old = rt[key] || {};
       const row = {};
-      for (const [k, v] of Object.entries(c.metrics)) row[k] = mode === 'accept' || !b.runtime ? v : Math.min(old[k] == null ? 0 : old[k], v);
+      // seed = ตั้งเฉพาะตัวชี้วัดที่ยังไม่มีใน baseline (ใช้ตอนเพิ่มกฎใหม่) · ตัวที่มีอยู่แล้วคงเดิม
+      for (const [k, v] of Object.entries(c.metrics)) row[k] = mode === 'seed' ? (old[k] == null ? v : old[k]) : mode === 'accept' || !b.runtime ? v : Math.min(old[k] == null ? 0 : old[k], v);
       rt[key] = row;
     }
   }

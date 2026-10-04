@@ -79,3 +79,34 @@ for (const p of PAGES) {
     }
   }
 }
+
+/* หน้าแรก (มีข้อมูลครบทุกแหล่ง) และหน้าหมวดที่มี "ใช้ล่าสุด" — ทั้งหน้า (fullPage) เพราะโครงสร้างอยู่ทั้งความยาวหน้า
+   ข้อมูลจาก tests/home-fixtures.js (นาฬิกาตรึง พุธ 30 ก.ย. 2569 10:30) */
+const { seedFull, NOW, NOW_MS } = require('./home-fixtures');
+for (const w of WIDTHS) {
+  for (const theme of THEMES) {
+    test(`visual: index-data-${w}-${theme}.png`, async ({ page }) => {
+      await prepare(page, { theme });
+      await page.addInitScript(seedFull);
+      await page.clock.setFixedTime(NOW);
+      await page.setViewportSize({ width: w, height: 800 });
+      await page.goto('/index.html', { waitUntil: 'load' });
+      await page.waitForSelector('nav.ome-nav');
+      await page.waitForSelector('#studyList [data-p]'); // ยอดรวมบทจากหน้าวิชา (ดึงครั้งแรก)
+      await page.evaluate(() => document.fonts && document.fonts.ready);
+      await page.waitForTimeout(800);
+      await expect(page).toHaveScreenshot(`index-data-${w}-${theme}.png`, { fullPage: true, caret: 'hide' });
+    });
+    test(`visual: area-work-latest-${w}-${theme}.png`, async ({ page }) => {
+      await prepare(page, { theme });
+      await page.addInitScript((n) => localStorage.setItem('tanot:nav:last', JSON.stringify(n)), { 'word.html': NOW_MS - 3600e3, 'legal.html': NOW_MS - 7200e3, 'text-to-speech.html': NOW_MS - 60e3, 'cad.html': NOW_MS - 86400e3 });
+      await page.clock.setFixedTime(NOW);
+      await page.setViewportSize({ width: w, height: 800 });
+      await page.goto('/area.html?a=work', { waitUntil: 'load' });
+      await page.waitForSelector('#latestRow .tile');
+      await page.evaluate(() => document.fonts && document.fonts.ready);
+      await page.waitForTimeout(500);
+      await expect(page).toHaveScreenshot(`area-work-latest-${w}-${theme}.png`, { fullPage: true, caret: 'hide' });
+    });
+  }
+}

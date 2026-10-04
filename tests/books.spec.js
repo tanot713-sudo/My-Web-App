@@ -302,7 +302,7 @@ test.describe('หน้า books.html', () => {
     await expect(page.locator('#rvCard')).toContainText('ถึงรอบ');
     await expect(page.locator('#rvProgress, .rv-progress')).toContainText('เหลือ 1');
     await page.goto('/index.html'); await page.waitForSelector('nav.ome-nav');
-    await expect(page.locator('#reviewBody')).toContainText('หนังสือ 1');
+    await expect(page.locator('#todoBody .todo-row[data-kind="review"]')).toContainText('ทบทวนหนังสือ 1 ใบ');
     expect(errors).toEqual([]);
   });
 

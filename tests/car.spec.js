@@ -422,24 +422,27 @@ test.describe('หน้า car.html', () => {
     expect(errors).toEqual([]);
   });
 
-  test('การ์ด "รถ" หน้าวันนี้: ซ่อนเมื่อไม่มีกำหนดภายใน 60 วัน · แสดงรายการใกล้สุดก่อน (พ.ร.บ./เข้าศูนย์/ภาษี)', async ({ page }) => {
+  test('หน้าวันนี้ "ต้องทำวันนี้": ไม่มีรถ/ไกลเกิน 30 วัน = ไม่ขึ้น · ขึ้นรายการใกล้สุดก่อน (พ.ร.บ./เข้าศูนย์) ภาษีที่อีก 46 วันยังไม่ขึ้น', async ({ page }) => {
+    const todo = (p) => p.locator('#todoBody .todo-row[data-kind="car"]');
     await openPage(page, '/index.html');
-    await expect(page.locator('#carCard')).toBeHidden();
+    await page.waitForSelector('#todoBody > *');
+    await expect(todo(page)).toHaveCount(0);
     const p1 = await page.context().newPage();
     await openPage(p1, '/index.html', { data: { vehicles: [Object.assign({}, V1, { taxDue: '2027-03-01', actDue: '2027-03-01', insuranceDue: '2027-03-01' })] } });
-    await expect(p1.locator('#carCard')).toBeHidden(); // ไกลเกิน 60 วัน
+    await p1.waitForSelector('#todoBody > *');
+    await expect(todo(p1)).toHaveCount(0); // ไกลเกิน 30 วัน
     const p2 = await page.context().newPage();
     const { errors } = await openPage(p2, '/index.html', { data: { vehicles: [V1], services: [S1] } });
-    await expect(p2.locator('#carCard')).toBeVisible();
-    const rows = p2.locator('#carBody .list-row');
-    await expect(rows).toHaveCount(3);
+    await p2.waitForSelector('#todoBody > *');
+    const rows = todo(p2);
+    await expect(rows).toHaveCount(2); // ภาษีรถ 46 วัน ไม่ขึ้น
     await expect(rows.nth(0)).toContainText('พ.ร.บ.');
-    await expect(rows.nth(0)).toContainText('อีก 5 วัน');
+    await expect(rows.nth(0).locator('.pill')).toHaveText('อีก 5 วัน');
+    await expect(rows.nth(0)).toHaveAttribute('data-urg', 'warn');
     await expect(rows.nth(1)).toContainText('เข้าศูนย์');
-    await expect(rows.nth(1)).toContainText('อีก 20 วัน');
-    await expect(rows.nth(2)).toContainText('ภาษีรถประจำปี');
-    await expect(rows.nth(2)).toContainText('อีก 46 วัน');
-    await expect(rows.nth(0)).toHaveAttribute('href', 'car.html');
+    await expect(rows.nth(1).locator('.pill')).toHaveText('อีก 20 วัน');
+    await expect(p2.locator('#todoBody')).not.toContainText('ภาษีรถประจำปี');
+    await expect(rows.nth(0).locator('a')).toHaveAttribute('href', 'car.html');
     expect(errors).toEqual([]);
   });
 
