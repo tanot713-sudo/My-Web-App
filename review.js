@@ -67,7 +67,7 @@
   var deck = { cards: [], missing: {} };
   var rated = {};       // การ์ดที่ตอบไปแล้วในรอบนี้ (src|id) — กันโผล่ซ้ำระหว่างรอเขียนเสร็จ
   var ratedCount = 0;
-  var filter = 'all';
+  var filter = DECK_SRC.indexOf(location.hash.slice(1)) >= 0 ? location.hash.slice(1) : 'all'; // review.html#lang = เริ่มที่กองของวิชานั้น (ปุ่มทบทวนต่อวิชาบนหน้าแรก)
   var shown = false;
 
   function dueMap(key, field, now) {

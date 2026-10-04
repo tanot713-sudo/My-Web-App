@@ -302,7 +302,7 @@ test.describe('หน้า books.html', () => {
     await expect(page.locator('#rvCard')).toContainText('ถึงรอบ');
     await expect(page.locator('#rvProgress, .rv-progress')).toContainText('เหลือ 1');
     await page.goto('/index.html'); await page.waitForSelector('nav.ome-nav');
-    await expect(page.locator('#reviewBody')).toContainText('หนังสือ 1');
+    await expect(page.locator('#todoBody .todo-row[data-kind="review"]')).toContainText('ทบทวนหนังสือ 1 ใบ');
     expect(errors).toEqual([]);
   });
 
@@ -320,7 +320,7 @@ test.describe('หน้า books.html', () => {
     expect((await store(page, 'tanot:books:notes')).map((b) => b.id)).toEqual(['n2']);
     expect((await store(page, 'tanot:books:cards')).map((b) => b.id)).toEqual(['card-n2']);
     const o = await openPage(page, '/area.html?a=edu');
-    await expect(page.locator('a.tile', { hasText: 'หนังสือ' })).toHaveAttribute('href', /books\.html$/);
+    await expect(page.locator('#areaGroups a.tile', { hasText: 'หนังสือ' })).toHaveAttribute('href', /books\.html$/);
     expect(errors.concat(o.errors)).toEqual([]);
   });
 });

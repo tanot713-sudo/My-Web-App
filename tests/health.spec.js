@@ -394,22 +394,27 @@ test.describe('หน้าวันนี้: การ์ดสุขภาพ
   test.use({ baseURL: SRV });
   test.beforeEach(async ({ request }) => { await request.get(SRV + '/__reset'); });
 
-  test('ค่าล่าสุด + ยาที่ยังไม่ได้กินวันนี้ (ที่กินแล้วไม่นับ, ยาหมดอายุไม่นับ)', async ({ page }) => {
+  test('ค่าล่าสุด (การ์ดสุขภาพ) + ยาที่ถึงเวลาแล้วยังไม่ได้กินขึ้น "ต้องทำวันนี้" (ที่กินแล้ว/ยังไม่ถึงเวลา/ยาหมดอายุไม่ขึ้น)', async ({ page }) => {
     const { errors } = await openPage(page, '/index.html', { data: { vitals: VITALS, meds: MEDS, intake: [{ id: 'm1|2026-09-30|08:00', med: 'm1', date: '2026-09-30', time: '08:00', at: 1 }] } });
+    await page.waitForSelector('#todoBody > *');
     const el = page.locator('#healthBody');
-    await expect(el).toContainText('น้ำหนัก 71.2');
-    await expect(el).toContainText('ความดัน 150/95');
+    await expect(el.locator('[data-h="weight"]')).toContainText('71.2');
+    await expect(el.locator('[data-h="bp"]')).toContainText('150/95');
     await expect(el.locator('[data-h="bp"]')).toHaveClass(/err/);
-    await expect(el).toContainText('ยาที่ยังไม่ได้กินวันนี้ 2 มื้อ'); // m2 07:00 + m1 20:00 (m1 08:00 กินแล้ว, m3 หมดอายุ)
-    await expect(el.locator('.list-row')).toHaveCount(2);
-    await expect(el.locator('.list-row').first()).toContainText('วิตามินซี');
-    await expect(el.locator('.list-row').first()).toContainText('เลยเวลา');
+    // m2 07:00 ถึงเวลาแล้ว (10:30) ยังไม่กิน = ขึ้น · m1 08:00 กินแล้ว · m1 20:00 ยังไม่ถึงเวลา · m3 หมดอายุ
+    const meds = page.locator('#todoBody .todo-row[data-kind="med"]');
+    await expect(meds).toHaveCount(1);
+    await expect(meds.first()).toContainText('วิตามินซี');
+    await expect(meds.first()).toContainText('07:00 น.');
+    await expect(meds.first().locator('.pill')).toHaveText('ถึงเวลา');
     expect(errors).toEqual([]);
   });
 
-  test('กินครบแล้ว / ไม่มีข้อมูล', async ({ page, browser }) => {
+  test('กินครบแล้ว (ไม่มียาค้างในรายการ) / ไม่มีข้อมูล', async ({ page, browser }) => {
     await openPage(page, '/index.html', { data: { meds: [MEDS[0]], intake: [{ id: 'm1|2026-09-30|08:00' }, { id: 'm1|2026-09-30|20:00' }] } });
-    await expect(page.locator('#healthBody .badge.ok')).toContainText('กินยาครบแล้ว');
+    await page.waitForSelector('#todoBody > *');
+    await expect(page.locator('#todoBody .todo-row[data-kind="med"]')).toHaveCount(0);
+    await expect(page.locator('#todoBody .todo-none')).toBeVisible();
     const p2 = await (await browser.newContext({ baseURL: SRV })).newPage();
     await openPage(p2, '/index.html', {});
     await expect(p2.locator('#healthBody .empty a')).toHaveAttribute('href', 'health.html');

@@ -34,6 +34,7 @@ description: กฎการออกแบบ UI ของเว็บ Tanot (r
 - กล่อง: `.card` + `.card-head` · `.kpi-grid`/`.kpi` · `.list`/`.list-row` · `.table-wrap`/`.table` (`.num` = ชิดขวา+tabular-nums) · `.callout` · `.kv` · `details.disclosure`
 - แถวรายการ: `.list-row` มี `.lead` (ไอคอน) · `.grow` (`.title` + `.meta`) · **`.end`** (ป้าย/จำนวนเงิน/ปุ่มชิดขวา — จอ ≤ 640px ตัดลงบรรทัดใหม่เอง) · `.amt` (จำนวนเงินชิดขวา) — ห้ามเขียน `.xxx-list .list-row .end` เอง
 - ฟอร์มใน dialog: `<dialog class="dialog dialog-form">` (กว้าง 600px + เลื่อนในกล่อง + ระยะระหว่างช่อง) · `label.check` (กล่องติ๊กในบรรทัด) · `.form-msg` (ข้อความ error ใต้ฟอร์ม `role="alert"` ว่าง = ซ่อน) · `.file-list` > `.file-row` (`a` + `.sz` + ปุ่มเอาออก) · `.sub-head` (หัวรองในการ์ด) · `.kpi-value small` (หน่วยท้ายตัวเลข KPI)
+- แดชบอร์ดรวม/หน้าหมวด (รอบ 3): `.pill` (ป้ายสถานะตามความเร่ง `.err/.warn/.info/.ok` กว้างขั้นต่ำเท่ากัน) · `.meter` (+ `.ok/.warn/.err`, `.sm`) + `.meter-row`/`.meter-list` · `.card.fill` + `.card-fill-body` + `.card-foot` (กล่องคู่ที่ใส่ `margin-top:auto` ให้ส่วนท้ายชิดล่างเท่ากัน; ใส่ใน `.grid` + `.span-6` ซึ่ง stretch สูงเท่ากันที่ ≥ 900px) · `.strip` (`.two/.three/.four`) > `.strip-cell` (`.k/.v/.s`) · `.dots` > `.dotcol` > `.dot.done/.rest/.miss/.today` · `.spark` (SVG เส้นเล็ก path.spark-area/.spark-line + i.spark-dot สีจาก `--ome-chart-1`) · `.list.plain` (+ `.cols-2`) · `.todo-row` (`.pill` | `.grow` | `.end`) · `.empty.compact` (ข้อความชวนเริ่ม 1 บรรทัด + ปุ่มเดียว จัดกลางแนวตั้งในกล่อง) · hub: `.tile.row` + `.tile-ic` + `.tile-text`, `.tile-group` ใน `.tile-cols`, `.tile-latest`
 - เลือก/สลับ: `.tabs`/`.tab` · `.segmented > button` · `.chip` · `.lang-toggle` · `.subnav`
 - อื่นๆ: `.badge` · `.empty` · `.toolbar` · `.dropzone` · `.spinner` · `.status` · `.crumb` · `<dialog class="dialog">`
 - JS กลาง: `tanotConfirm(msg, {danger})` · `tanotConfirmDelete(what)` · `tanotAlert(msg)` · `tanotToast(msg, 'ok'|'err')`
@@ -108,7 +109,30 @@ npx playwright test theme-audit.spec.js                  # runtime: axe คอ�
   - ตั้งใจให้เพิ่ม (หายาก ต้องเขียนเหตุผลใน PR): `--accept` / `THEME_AUDIT_UPDATE=accept`
 - ภาพ baseline เปลี่ยน → `npm run test:update` แล้วเปิดดูด้วยตา 390/1100 × สว่าง/มืด
 
-## 8. ขั้นตอนแก้ 1 หน้า (checklist — จากรอบ 2: index, budget, health, car, receipts, insurance)
+## 8. มือถือ (กฎตรวจรอบ 3 — ใช้ทุกรอบหลังจากนี้)
+
+ตรวจที่ **390px** ทุกหน้า และ **360px** เฉพาะหน้าที่แก้ในรอบนั้น (`NARROW_360` ใน `theme-audit.spec.js` — เพิ่มชื่อหน้าทุกรอบ) ทั้งสว่าง/มืด · 6 ตัวชี้วัด (ratchet + รายงานแบบเดียวกับกฎเดิม; หน้าที่แก้ในรอบนั้นต้องเป็น 0):
+
+| ตัวชี้วัด | ผิดเมื่อ |
+|---|---|
+| `mobileFont` | ข้อความเนื้อหา (p, li, td, label, span ในเนื้อหา) < **14px** · ข้อความรอง/ป้าย/ปุ่ม < **12px** · h1 > **28px** · h2 > **22px** |
+| `mobileOverflow` | ตัวหน้าเลื่อนแนวนอน หรือ element เลยขอบจอ (ยกเว้นอยู่ใน container ที่ตั้ง `overflow-x:auto/scroll/hidden` เอง เช่น `.table-wrap`, `pre`) |
+| `mobileClip` | ข้อความถูกตัด (`scrollWidth > clientWidth` ในกล่องที่ overflow ไม่ visible) โดยไม่มี `text-overflow:ellipsis` ที่ตั้งใจ และไม่มี `title`/`aria-label` · **และตัวเลขที่ถูกตัดกลางตัวข้ามบรรทัด** (เช่น "118/7 \| 6" — ตรวจด้วย `Range.getClientRects` ของแต่ละก้อนตัวเลข ต้องอยู่บรรทัดเดียว) |
+| `mobileRowBreak` | ปุ่มท้ายแถว (`.list-row`/`.todo-row` ที่มี `.end`) ตกลงไปอยู่ใต้เนื้อหา — ปุ่มต้องอยู่บรรทัดเดียวกับเนื้อหา ชิดขวา |
+| `mobileCrowd` | เป้ากด 2 อันขอบห่างกัน < **8px** (ไม่นับ: ปุ่ม AI ลอย, ลิงก์ในบรรทัด, ตัวควบคุมติดกันโดยออกแบบ `.segmented`/`.lang-toggle`, แถวกว้าง ≥ 60% ของจอและสูง ≥ 44px เรียงซ้อนกัน) — เสริมกฎเป้ากด ≥ 40px เดิม (`targetSize`) |
+| `mobileAlign` | พี่น้อง `.card` / `.grid > *` / `.list-row` / `.tile` / `.kpi` / `.todo-row` ที่เรียงซ้อนแล้วขอบซ้าย-ขวาไม่ตรง (> 2px) หรือวางแถวเดียวกันแล้วกว้างไม่เท่ากัน (> 2px) |
+
+ขนาดตัวอักษรที่ใช้ (token มีให้แล้ว — อย่า hardcode px): **เนื้อหา 15px** (`--ome-fs-base`) · **ข้อความรอง 13–13.5px** (`--ome-fs-sm` 13.5; `--ome-fs-xs` 12.5 ใช้กับป้าย/หัวคอลัมน์เท่านั้น) · **ต่ำสุด 12px** (ไม่มีข้อความที่อ่านได้ต่ำกว่านี้ — `.badge` 12px คือเพดานล่าง) · **หัวข้อบนจอแคบ h1 22–24px, h2 ≤ 20px**
+- **ตัวเลข + หน่วยห้ามขาดกลางตัว**: ห่อก้อนตัวเลขด้วย `<span class="n">118/76</span> <small>mmHg</small>` (`.n` = `white-space:nowrap`) — หน่วยขึ้นบรรทัดใหม่ทั้งก้อนได้ · **ห้ามใช้ `overflow-wrap:anywhere` กับตัวเลข** (ตัวการที่ทำให้ขาดกลางตัว) · ตัวเลขใหญ่ใน `.strip-cell .v` ลดขนาดด้วย `clamp()`/container query และถ้ายาวเกินช่อง ให้เรียงช่องเป็นแถว (`.strip.three.long`) ไม่ใช่ตัด/ล้น
+- **แถวรายการที่มีปุ่มท้าย (หน้าแรก/กล่องที่ใช้ `.list.plain` และ `.todo-row`)**: ปุ่มอยู่บรรทัดเดียวกับเนื้อหาชิดขวาเสมอ (คอลัมน์ `[เนื้อหา minmax(0,1fr)] [ปุ่ม auto]`, ไม่ `flex-wrap`) ข้อความตัดบรรทัดในคอลัมน์ของมันเอง · pill สถานะอยู่บรรทัดบนของข้อความ (`grid-template-areas:"pill act" "body act"`) · ปุ่มบนมือถือใช้ขนาด sm (สูง 32px) แต่พื้นที่กดต้อง ≥ 40px ด้วย `::after{content:"";position:absolute;inset:-5px -2px}` (ตัวตรวจ `targetSize` นับขนาด `::after` ให้) · ข้อความรองในแถวที่ต้องคุมความสูง: `.meta.one` (บรรทัดเดียว ellipsis) + `title` ของเต็ม + `data-i18n-skip` ถ้าเป็นข้อมูลบทเรียน
+- **ความยาวหน้า**: หน้าแรก 390px ตอนมีข้อมูล seed ชุด `tests/home-fixtures.js` ต้อง ≤ 3,200px (`home.spec.js` ตรวจ) — รายการยาวให้ตัดแสดงก่อน + ปุ่ม "ดูทั้งหมด (n)" กางในที่ (`.todo-toggle`) แทนการเรียงยาว
+- ตัวเลขใหญ่ (`.big`, `.kpi-value`) ไม่ใช่หัวข้อ แต่ที่ 360px ต้องไม่ทำให้ล้นกล่อง — ลดขนาดด้วย `clamp()` + `white-space:nowrap` ไม่ใช่ปล่อยให้ล้น/ขาด
+- กล่องที่มีปุ่มหลายอัน: ระยะระหว่างปุ่ม ≥ 8px (`gap:var(--ome-sp-2)` ขึ้นไป) · แถวรายการที่มีปุ่มท้าย (`.list-row .end`) ตัดลงบรรทัดใหม่เองที่ ≤ 640px — ห้ามบีบปุ่มให้ชิดกัน
+- จอแคบวางเป็นคอลัมน์เดียว: การ์ดพี่น้องต้องกว้างเท่ากัน ขอบซ้าย-ขวาตรงกัน (อย่าใช้ `align-self:flex-start`/`width:fit-content` กับ `.card`)
+- รันเฉพาะส่วนมือถือของหน้าเดียว: เปิดหน้าที่ viewport 390/360 แล้วเรียก `window.__tanotAudit.mobile({shell:false})` (ฉีด `tests/theme-audit-page.js`) — คืน sample ของทั้ง 6 ตัวชี้วัดพร้อม selector
+- เพิ่มกฎใหม่ในอนาคต: เติม baseline เฉพาะตัวชี้วัดที่ยังไม่มีด้วย `THEME_AUDIT_UPDATE=seed npx playwright test theme-audit.spec.js` (ไม่แตะค่าเดิม)
+
+## 9. ขั้นตอนแก้ 1 หน้า (checklist — จากรอบ 2: index, budget, health, car, receipts, insurance · ขั้น "มือถือ" เพิ่มรอบ 3)
 
 ทำตามลำดับ ทีละหน้า แล้ว commit แยกต่อหน้า:
 1. **ดูตัวเลขของหน้า**: `tests/theme-report/report.html` (หรือ `node` อ่าน `report.json` → `pages['x.html'].configs[...].samples`) — ตัวตรวจ runtime วัดหน้าที่ "ว่าง" เท่านั้น จึงต้องตรวจหน้าที่มีข้อมูลและกล่องที่เปิดอยู่ด้วย: seed `localStorage` แล้วเรียก `window.__tanotAudit.audit()` (ฉีด `tests/theme-audit-page.js`) ที่ 390/1100 × สว่าง/มืด ในทุกสถานะ (ลิสต์มีข้อมูล, dialog ทุกใบ, แท็บทุกอัน)
@@ -118,5 +142,6 @@ npx playwright test theme-audit.spec.js                  # runtime: axe คอ�
 5. **ตรวจภาษา**: เปิดหน้าด้วย `ome:lang=en` + ข้อมูลตัวอย่าง เปิดทุกกล่อง/แท็บ แล้วไล่หา text node ภาษาไทยที่มองเห็น (ไม่รวมข้อมูลผู้ใช้) ต้องเหลือ 0 · สลับ en→th→en จากแผงตั้งค่าโดยไม่โหลดหน้าใหม่ — หน้าเปลี่ยนทันที (รวมกราฟ/รายการ/ตัวเลือก)
 6. **รัน spec ของหน้านั้น** (ปรับ selector ที่เปลี่ยนคลาสแล้ว — ปรับให้ตรวจพฤติกรรมเดิม ห้ามลบเทสต์), `today.spec.js` ถ้าหน้านั้นมีการ์ดในหน้าวันนี้, `smoke.spec.js`
 7. **ตัวตรวจ**: `node repo-guards.mjs` → `npx playwright test theme-audit.spec.js` → ลด baseline (`node theme-guards.mjs --update`, `THEME_AUDIT_UPDATE=1 …`) — ตัวเลขลดอย่างเดียว
-8. **visual**: `npm run test:update -- -g "<หน้า>"` แล้วเปิดดูภาพ 390/1100 × สว่าง/มืด ด้วยตา · bump `CACHE` ใน `sw.js`
-9. ในรายงาน PR: ตารางตัวเลขก่อน/หลัง + เหตุผลรายจุดของค่าที่ยังไม่เป็น 0 (เช่น ปุ่มที่ไลบรารีสร้าง)
+8. **มือถือ** (รอบ 3): เพิ่มหน้านี้ใน `NARROW_360` ของ `theme-audit.spec.js` แล้วดู 6 ตัวชี้วัด `mobile*` ที่ 390 และ 360 × สว่าง/มืด ทั้งตอนว่างและตอนมีข้อมูล (seed) + ทุกกล่อง/แท็บที่เปิดอยู่ — แก้จนเป็น 0 (ขนาดตัวอักษร/ระยะ/การเรียงตามหัวข้อ 8) · เปิดดูภาพ 390/360 ด้วยตา
+9. **visual**: `npm run test:update -- -g "<หน้า>"` แล้วเปิดดูภาพ 390/1100 × สว่าง/มืด ด้วยตา · bump `CACHE` ใน `sw.js`
+10. ในรายงาน PR: ตารางตัวเลขก่อน/หลัง **ต้องมีคอลัมน์มือถือ** (`mobileFont/Overflow/Clip/Crowd/Align/RowBreak` ที่ 390 และ 360 + ความสูงหน้าที่ 390 ถ้าเป็นหน้ายาว) + เหตุผลรายจุดของค่าที่ยังไม่เป็น 0 (เช่น ปุ่มที่ไลบรารีสร้าง)

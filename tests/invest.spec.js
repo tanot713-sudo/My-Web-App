@@ -735,12 +735,10 @@ test.describe('การ์ดสินทรัพย์ลงทุน (หน
     await expect(inv.locator('[data-i=pl]')).toContainText('+฿21,925');
     await expect(inv.locator('[data-i=pl]')).toContainText('7.99%');
     await expect(inv.locator('[data-i=nofx]')).toHaveCount(0);
-    // แถบสัดส่วน 8 ประเภท + รายการสูงสุด 4 แถวเรียงตามมูลค่า
-    await expect(inv.locator('.alloc > i')).toHaveCount(8);
-    await expect(inv.locator('.list-row')).toHaveCount(4);
-    await expect(inv.locator('.list-row').first()).toContainText('LB30'); // ฿100,000
-    await expect(inv.locator('.list-row').nth(1)).toContainText('ทองแท่ง'); // ฿42,000
-    await expect(inv.locator('.list-row').first()).toHaveAttribute('href', 'invest-gov-bond.html');
+    // หน้าแรกแบบใหม่: ไม่มีแถบสัดส่วน/รายการสูงสุดแล้ว (อยู่ที่หน้าการลงทุน) · มี snapshot แถวเดียว → ยังไม่มีกราฟ 30 วัน/เปลี่ยนแปลงวันนี้
+    await expect(inv.locator('.alloc')).toHaveCount(0);
+    await expect(inv.locator('.spark')).toHaveCount(0);
+    await expect(inv.locator('[data-i=today]')).toHaveCount(0);
     // snapshot: 1 แถว d = 2026-10-03 (10:00 ไทย) พร้อม parts ครบ 8 ประเภท
     const rows = await nwRows(page);
     expect(rows).toHaveLength(1);
@@ -793,7 +791,7 @@ test.describe('การ์ดสินทรัพย์ลงทุน (หน
     const errors = await prepare(page);
     await page.clock.setFixedTime(new Date(NOW));
     await page.goto('/index.html'); await page.waitForSelector('nav.ome-nav');
-    await expect(page.locator('#investBody .empty')).toContainText('ยังไม่มีสินทรัพย์ลงทุน');
+    await expect(page.locator('#investBody .empty.compact')).toContainText('ยังไม่มีสินทรัพย์ลงทุน');
     expect(await page.evaluate(() => localStorage.getItem('tanot:invest:networth'))).toBeNull();
     expect(errors).toEqual([]);
   });

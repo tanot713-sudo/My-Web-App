@@ -398,6 +398,17 @@
     return { goal: goal, weekMinutes: wm, pct: Math.round(wm / goal * 100), weeks: weeks, recent: recent };
   }
 
+  /** การเปลี่ยนของค่า key ภายใน days วันก่อนการวัดล่าสุด → { last, base, delta, days } หรือ null (ไม่มีค่า / มีค่าเดียวในช่วงนั้น)
+      base = การวัดที่เก่าที่สุดในช่วง [ล่าสุด − days, ล่าสุด] · days = ระยะจริงระหว่าง base กับ last (ปัดเป็นวัน) */
+  function change(vitals, key, days) {
+    var s = series(vitals, key);
+    if (!s.length) return null;
+    var last = s[s.length - 1], from = last.at - (days || 30) * DAY_MS, base = null;
+    for (var i = 0; i < s.length; i++) if (s[i].at >= from) { base = s[i]; break; }
+    if (!base || base === last) return null;
+    return { last: last.v, base: base.v, delta: Math.round((last.v - base.v) * 100) / 100, days: Math.round((last.at - base.at) / DAY_MS) };
+  }
+
   /* ── สรุปสำหรับหน้าวันนี้ ── */
   /** { latest: { key: { v, at } }, pending: [มื้อที่ยังไม่ได้กินวันนี้], total, taken } */
   function summary(vitals, meds, intake, nowMs) {
@@ -419,6 +430,6 @@
     cleanMed: cleanMed, activeOn: activeOn, intakeId: intakeId, dosesOn: dosesOn, todayDoses: todayDoses, makeIntake: makeIntake,
     hideNames: hideNames, reminders: reminders, summary: summary,
     WORKOUT_KINDS: WORKOUT_KINDS, DEFAULT_WORKOUT_GOAL: DEFAULT_WORKOUT_GOAL, workoutKind: workoutKind, workoutKindByName: workoutKindByName,
-    estimateKcal: estimateKcal, latestWeight: latestWeight, workoutGoal: workoutGoal, cleanWorkout: cleanWorkout, weekStart: weekStart, workoutSummary: workoutSummary
+    estimateKcal: estimateKcal, latestWeight: latestWeight, change: change, workoutGoal: workoutGoal, cleanWorkout: cleanWorkout, weekStart: weekStart, workoutSummary: workoutSummary
   };
 });

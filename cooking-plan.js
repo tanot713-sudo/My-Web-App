@@ -360,13 +360,9 @@
     upd(K_PLAN, function (rows) {
       var id = CP.planId(S.week), i = rows.findIndex(function (x) { return x && x.id === id; });
       var plan = CP.cleanPlan(i >= 0 ? rows[i] : null, S.week);
-      if (!plan.slots[k]) return undefined;
-      if (plan.done[k]) delete plan.done[k];
-      else {
-        plan.done[k] = Date.now();
-        if (!plan.awarded[k]) { plan.awarded[k] = Date.now(); gave = true; } // XP ครั้งเดียวต่อมื้อ
-      }
-      plan.updatedAt = Date.now();
+      var res = CP.toggleDone(plan, k, Date.now()); // ตรรกะ "ทำแล้ว" + XP ครั้งเดียวต่อมื้ออยู่ใน cooking-plan-calc.js (หน้าแรกใช้ร่วมกัน)
+      if (!res) return undefined;
+      gave = res.gave;
       if (i === -1) rows.push(plan); else rows[i] = plan;
       return rows;
     });

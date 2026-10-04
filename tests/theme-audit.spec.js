@@ -6,6 +6,13 @@
 //     controlBorder  — ขอบ input/select/ปุ่ม outline/segmented ≥ 3:1 กับพื้นข้างๆ (WCAG 1.4.11)
 //     nonCentral     — ปุ่ม/ช่องกรอกที่ไม่ได้ใช้คอมโพเนนต์กลาง (.btn/.tab/.chip/.field … ใน theme.css)
 //     targetSize     — (390px) เป้ากด < 40px
+//     มือถือ (รอบ 3; ที่ 390 ทุกหน้า + 360 เฉพาะหน้าที่แก้ในรอบนั้น = NARROW_360 ด้านล่าง; นิยามอยู่หัวส่วน "กฎตรวจมือถือ" ใน theme-audit-page.js):
+//       mobileFont     — เนื้อหา < 14px · ข้อความรอง/ป้าย/ปุ่ม < 12px · h1 > 28px · h2 > 22px
+//       mobileOverflow — ตัวหน้าเลื่อนแนวนอน / element เลยขอบจอ
+//       mobileClip     — ข้อความถูกตัดโดยไม่มี ellipsis/title + ตัวเลขที่ถูกตัดกลางตัวข้ามบรรทัด
+//       mobileCrowd    — เป้ากด 2 อันห่างกัน < 8px
+//       mobileRowBreak — ปุ่มท้ายแถว (.list-row/.todo-row) ตกลงไปอยู่ใต้เนื้อหา
+//       mobileAlign    — กล่อง/การ์ดพี่น้องขอบซ้าย-ขวาไม่ตรง หรือกว้างไม่เท่ากันในแถวเดียวกัน (> 2px)
 //     textOnImage    — ตัวอักษรบนพื้นหน้าโดยตรงทับภาพพื้นหลัง (data-bg) < 4.5:1 วัดจากพิกเซลจริง
 //   ต่อหน้า (1100 สว่าง): crawl — กดแท็บ/segmented/toggle/ปุ่มเปิด dialog ที่ปลอดภัย แล้วต้องไม่มี console error /
 //     pageerror / request ไป /api (ไม่มี mock) → crawlErrors
@@ -17,6 +24,7 @@
 // รายงาน: tests/theme-report/report.json + report.html + summary.md (ไม่ commit — CI อัปโหลดเป็น artifact)
 //   สร้างโดย theme-report.js (globalTeardown) จากไฟล์ย่อยใน tests/theme-report/parts/
 // อัปเดต baseline หลังแก้หน้า: THEME_AUDIT_UPDATE=1 npx playwright test theme-audit.spec.js  (ลดลงอย่างเดียว)
+//   เพิ่มกฎใหม่ (เติมเฉพาะตัวชี้วัดที่ยังไม่มี ไม่แตะค่าเดิม): THEME_AUDIT_UPDATE=seed …
 //   ตั้งตามค่าจริง (ครั้งแรก/ตั้งใจ): THEME_AUDIT_UPDATE=accept …
 const { test, expect } = require('@playwright/test');
 const fs = require('fs');
@@ -24,6 +32,9 @@ const path = require('path');
 const { menuPages, prepare } = require('./helpers');
 
 const PAGES = menuPages();
+// หน้าที่ตรวจที่ 360px เพิ่มจาก 390 (หน้าที่แก้ในรอบนั้น — เพิ่มชื่อหน้าที่นี่ทุกรอบ) · index.html ตรวจรวม shell (nav/ฟุตเตอร์) ด้วย
+const NARROW_360 = (p) => p === 'index.html' || /^area\.html/.test(p);
+const WITH_SHELL = (p) => p === 'index.html';
 const AUDIT_JS = path.join(__dirname, 'theme-audit-page.js');
 const AXE_JS = require.resolve('axe-core/axe.min.js');
 const PARTS = path.join(__dirname, 'theme-report', 'parts');
@@ -77,7 +88,7 @@ async function textOnImage(page) {
 }
 
 for (const p of PAGES) {
-  for (const width of [390, 1100]) {
+  for (const width of NARROW_360(p) ? [360, 390, 1100] : [390, 1100]) {
     for (const theme of ['light', 'dark']) {
       const key = `${p}|${width}|${theme}`;
       test(`theme: ${key}`, async ({ page }) => {
@@ -95,6 +106,7 @@ for (const p of PAGES) {
         });
         const toi = await textOnImage(page);
         const samples = { axe, contrast: res.contrast, controlBorder: res.controlBorder, nonCentral: res.nonCentral, targetSize: res.targetSize, textOnImage: toi };
+        if (width < 700) Object.assign(samples, await page.evaluate((o) => window.__tanotAudit.mobile(o), { shell: WITH_SHELL(p) }));
         const metrics = {};
         for (const k of Object.keys(samples)) if (k !== 'targetSize' || width < 700) metrics[k] = samples[k].length;
         writePart(key + BG_SUFFIX, p, { width, theme, bg: BG || 'mid' }, metrics, samples);

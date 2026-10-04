@@ -251,6 +251,7 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 :where([data-layout]) .chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--ome-border-strong);
   border-radius:var(--ome-radius-pill);background:var(--ome-surface-1);color:var(--ome-text-2);font-size:var(--ome-fs-sm);
   font-weight:600;cursor:pointer;white-space:nowrap}
+:where([data-layout]) a.chip{text-decoration:none}
 :where([data-layout]) .chip:hover{color:var(--ome-text-1);border-color:var(--ome-text-2)}
 :where([data-layout]) :is(.chip[aria-pressed="true"],.chip.on){background:var(--ome-accent-soft);border-color:var(--ome-accent);color:var(--ome-accent-strong)}
 
@@ -495,7 +496,7 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 
 /* เป้ากดบนจอแคบ ≥ 40px (theme-audit วัดที่ 390px) — ขนาด sm/ไอคอนบนจอใหญ่ยังเล็กเท่าเดิม */
 @media (max-width:700px){
-  :where([data-layout]) :is(.btn,.btn.sm){height:40px}
+  :where([data-layout]) :is(.btn,.btn.sm){height:40px;min-width:40px}
   :where([data-layout]) :is(.btn.icon,.btn.sm.icon){width:40px}
   :where([data-layout]) :is(.chip,.segmented > button){height:40px}
   :where([data-layout]) :is(.input,.select,.field input:not([type=checkbox]):not([type=radio]):not([type=range]),.field select){height:40px}
@@ -505,6 +506,125 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 [data-style="soft"] :where([data-layout]) :is(.card,.kpi,.list,.table-wrap,.toolbar){border-color:transparent;box-shadow:var(--ome-shadow-2)}
 [data-style="soft"] :where([data-layout]) .btn:not(.primary):not(.danger):not(.ghost){border-color:transparent;background:var(--ome-surface-2)}
 [data-style="outline"] :where([data-layout]) :is(.card,.kpi,.list,.table-wrap,.toolbar){box-shadow:none;border-width:1.5px}
+
+/* ══ รอบ 3 — คอมโพเนนต์ของหน้าแรก/แดชบอร์ดรวม (ใช้กับหน้าอื่นได้) ═══════════════════════════════
+   .pill        ป้ายสถานะตามความเร่ง (.err/.warn/.info/.ok/.accent) กว้างขั้นต่ำเท่ากัน — เรียงตรงกันในรายการ (ต่างจาก .badge ที่ตามเนื้อหา)
+   .meter       แถบสัดส่วน (.ok/.warn/.err, .sm) · .meter-row = ชื่อ + ค่า + แถบ · .meter-list = กองของ .meter-row
+   .card.fill   การ์ดเนื้อหา flex column — ส่วนท้ายที่ใส่ .card-foot ชิดล่างเสมอ (กล่องคู่ที่สูงเท่ากันจบระดับเดียวกัน) · .card-fill-body = พื้นที่เนื้อหาที่ขยายเต็ม
+   .strip       แถวช่องสถิติ (.two/.three/.four) ของ .strip-cell > .k/.v/.s — ที่ ≤ 900px .four เป็น 2×2, ที่ ≤ 520px .three เรียงเป็นแถว
+   .dots        จุดสถานะรายวัน (.dot.done/.rest/.miss/.today) + ป้ายวันใต้จุด
+   .spark       กราฟเส้นเล็ก (SVG preserveAspectRatio=none: path.spark-area + path.spark-line + i.spark-dot ตำแหน่ง %) สีจาก --ome-chart-1
+   .list.plain  .list ที่ไม่มีกรอบ/พื้น (อยู่ในการ์ด) · .list.plain.cols-2 = 2 คอลัมน์เท่ากันที่ ≥ 900px
+   .todo-row    แถว "ต้องทำ": .pill | .grow(.title + .meta) | .end(ปุ่มทำทันที) — ที่ ≤ 640px ปุ่มลงบรรทัดใหม่
+   .empty.compact  สถานะว่างย่อ: 1 บรรทัด + ปุ่มเดียว จัดกลางแนวตั้งในกล่อง */
+:where([data-layout]) .pill{display:inline-flex;align-items:center;justify-content:center;min-width:76px;height:26px;padding:0 10px;
+  border-radius:var(--ome-radius-pill);background:var(--ome-surface-2);color:var(--ome-text-2);font-size:12.5px;font-weight:700;white-space:nowrap;flex-shrink:0}
+:where([data-layout]) .pill.accent{background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
+:where([data-layout]) .pill.ok{background:var(--ome-ok-soft);color:var(--ome-ok-ink)}
+:where([data-layout]) .pill.warn{background:var(--ome-warn-soft);color:var(--ome-warn-ink)}
+:where([data-layout]) .pill.err{background:var(--ome-err-soft);color:var(--ome-err-ink)}
+:where([data-layout]) .pill.info{background:var(--ome-info-soft);color:var(--ome-info-ink)}
+
+:where([data-layout]) .meter{height:8px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-2);overflow:hidden}
+:where([data-layout]) .meter.sm{height:6px}
+:where([data-layout]) .meter > i{display:block;height:100%;border-radius:inherit;background:var(--ome-accent)}
+:where([data-layout]) .meter.ok > i{background:var(--ome-ok)}
+:where([data-layout]) .meter.warn > i{background:var(--ome-warn)}
+:where([data-layout]) .meter.err > i{background:var(--ome-err)}
+:where([data-layout]) .meter-list{display:flex;flex-direction:column;gap:var(--ome-sp-3)}
+:where([data-layout]) .meter-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:baseline;font-size:var(--ome-fs-base)}
+:where([data-layout]) .meter-row .name{font-weight:600;overflow-wrap:anywhere}
+:where([data-layout]) .meter-row .val{font-size:var(--ome-fs-sm);color:var(--ome-text-2);font-variant-numeric:tabular-nums;text-align:right}
+:where([data-layout]) .meter-row .meter{grid-column:1 / -1}
+
+:where([data-layout]) .card.fill{display:flex;flex-direction:column;gap:var(--ome-sp-3);min-width:0}
+:where([data-layout]) .card.fill[hidden]{display:none}
+:where([data-layout]) .card.fill > .card-head{margin-bottom:0}
+:where([data-layout]) .card-fill-body{display:flex;flex-direction:column;gap:var(--ome-sp-3);flex:1;min-width:0}
+:where([data-layout]) .card-fill-body > .card-foot{margin-top:auto}
+:where([data-layout]) .empty.compact{padding:var(--ome-sp-4) 0;gap:var(--ome-sp-2)}
+:where([data-layout]) .empty.compact p{margin:0}
+:where([data-layout]) .empty.compact .ome-icon{width:28px;height:28px}
+:where([data-layout]) .card-fill-body > .empty.compact{flex:1;justify-content:center}
+
+:where([data-layout]) .strip{display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:var(--ome-sp-3)}
+:where([data-layout]) .strip.two{--cols:2}
+:where([data-layout]) .strip.three{--cols:3}
+:where([data-layout]) .strip.four{--cols:4}
+:where([data-layout]) .strip-cell{display:flex;flex-direction:column;align-items:flex-start;gap:var(--ome-sp-1);min-width:0;padding:var(--ome-sp-3);
+  background:var(--ome-surface-2);border-radius:var(--ome-radius-md)}
+:where([data-layout]) .strip-cell .k{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
+:where([data-layout]) .strip{container-type:inline-size}
+:where([data-layout]) .strip-cell .v{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:5px;font-size:var(--ome-fs-xl);font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums;white-space:nowrap}
+:where([data-layout]) .strip.three .v{font-size:clamp(14px, 6cqw, 18px)}
+/* ตัวเลข/หน่วย: .n = ก้อนที่ห้ามตัดกลางตัว (118/76, ฿24,940) — หน่วยที่ตามมาขึ้นบรรทัดใหม่ทั้งก้อนได้ */
+:where([data-layout]) .n{white-space:nowrap}
+:where([data-layout]) .strip-cell .v small{font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2)}
+:where([data-layout]) .strip-cell .v .ome-icon{align-self:center}
+:where([data-layout]) .strip-cell .v.warn{color:var(--ome-warn-ink)}
+:where([data-layout]) .strip-cell .v.err,:where([data-layout]) .strip-cell .v.down{color:var(--ome-err-ink)}
+:where([data-layout]) .strip-cell .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);min-height:1.5em}
+:where([data-layout]) .strip-cell > .meter{align-self:stretch;margin-top:auto}
+:where([data-layout]) .strip-cell > .btn{margin-top:auto}
+@media (max-width:900px){:where([data-layout]) .strip.four{--cols:2}}
+@media (max-width:700px){
+  :where([data-layout]) .strip{gap:var(--ome-sp-2)}
+  :where([data-layout]) .strip-cell{padding:var(--ome-sp-2) 10px}
+  /* .long = ตัวเลขยาวเกินกว่าจะอยู่ช่องละ 1/3 (หลักแสนขึ้นไป) → เรียงเป็นแถว ป้ายซ้าย ค่าขวา — ตัวเลขห้ามขาด/ล้น */
+  :where([data-layout]) .strip.three.long{--cols:1}
+  :where([data-layout]) .strip.three.long .strip-cell{flex-direction:row;align-items:baseline;justify-content:space-between}
+}
+
+:where([data-layout]) .dots{display:flex;justify-content:space-between;gap:2px;align-self:stretch}
+:where([data-layout]) .dotcol{display:flex;flex-direction:column;align-items:center;gap:var(--ome-sp-1);flex:1;min-width:0}
+:where([data-layout]) .dotcol small{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
+:where([data-layout]) .dot{display:block;box-sizing:border-box;width:16px;height:16px;border-radius:50%;border:2px solid var(--ome-border-strong);background:transparent}
+:where([data-layout]) .dot.done{background:var(--ome-accent);border-color:var(--ome-accent)}
+:where([data-layout]) .dot.rest{background:var(--ome-accent-soft);border-color:var(--ome-accent)}
+:where([data-layout]) .dot.today{border-color:var(--ome-accent);border-style:dashed}
+
+:where([data-layout]) .spark{position:relative;height:64px}
+:where([data-layout]) .spark svg{display:block;width:100%;height:100%;overflow:visible}
+:where([data-layout]) .spark-line{fill:none;stroke:var(--ome-chart-1);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+:where([data-layout]) .spark-area{fill:color-mix(in srgb, var(--ome-chart-1) 14%, transparent);stroke:none}
+:where([data-layout]) .spark-dot{position:absolute;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--ome-chart-1);box-shadow:0 0 0 3px var(--ome-surface-1)}
+
+:where([data-layout]) .list.plain{background:transparent;border:0;border-radius:0;box-shadow:none;overflow:visible}
+:where([data-layout]) .list.plain .list-row{padding-left:0;padding-right:0}
+:where([data-layout]) .list-row .grow > .meter{margin-top:6px}
+:where([data-layout]) .row-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--ome-sp-2)}
+:where([data-layout]) .row-head .title{min-width:0}
+:where([data-layout]) .list-row .meta.one{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* จอแคบ: แถวรายการที่มีปุ่มท้ายในกล่อง (.list.plain) ปุ่มอยู่บรรทัดเดียวกันชิดขวา ข้อความตัดบรรทัดในคอลัมน์ของมันเอง · ปุ่มเล็กแต่พื้นที่กด ≥ 40px (::after ล่องหน) */
+@media (max-width:640px){
+  :where([data-layout]) .list.plain .list-row:has(> .end){flex-wrap:nowrap;gap:var(--ome-sp-2)}
+  :where([data-layout]) .list.plain .list-row:has(> .end) > .end{width:auto;padding-left:0;flex-wrap:nowrap;justify-content:flex-end}
+  :where([data-layout]) .list.plain .list-row{min-height:48px;padding-top:var(--ome-sp-2);padding-bottom:var(--ome-sp-2)}
+  :where([data-layout]) .list.plain .list-row .lead{width:32px;height:32px}
+  :where([data-layout]) :is(.todo-row,.list.plain .list-row) .btn:not(.icon){height:32px;position:relative}
+  :where([data-layout]) :is(.todo-row,.list.plain .list-row) .btn:not(.icon)::after{content:"";position:absolute;inset:-5px -2px}
+}
+@media (min-width:900px){
+  :where([data-layout]) .list.plain.cols-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--ome-sp-6)}
+  :where([data-layout]) .list.plain.cols-2 > .list-row:nth-child(2){border-top-width:0}
+}
+
+:where([data-layout]) .todo-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"pill body act";align-items:center;gap:var(--ome-sp-3);
+  padding:var(--ome-sp-3) 0;border-top:1px solid var(--ome-border)}
+:where([data-layout]) .todo-row > .pill{grid-area:pill}
+:where([data-layout]) .todo-row > .grow{grid-area:body;min-width:0}
+:where([data-layout]) .todo-row > .end{grid-area:act}
+:where([data-layout]) .todo-row:first-child{border-top:0}
+:where([data-layout]) .todo-row .title{font-weight:600;overflow-wrap:anywhere}
+:where([data-layout]) .todo-row .meta{font-size:var(--ome-fs-sm);color:var(--ome-text-2);overflow-wrap:anywhere}
+:where([data-layout]) .todo-row .end{display:flex;align-items:center;gap:var(--ome-sp-2)}
+/* จอแคบ: ปุ่มอยู่บรรทัดเดียวกับเนื้อหา ชิดขวาเสมอ (คอลัมน์ [เนื้อหา 1fr][ปุ่ม auto]) — pill อยู่บรรทัดบนของข้อความ ไม่ตกลงไปใต้เนื้อหา */
+@media (max-width:640px){
+  :where([data-layout]) .todo-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"pill act" "body act";gap:var(--ome-sp-1) var(--ome-sp-3);padding:10px 0}
+  :where([data-layout]) .todo-row > .pill{justify-self:start}
+}
+:where([data-layout]) .todo-toggle{margin-top:var(--ome-sp-2);align-self:flex-start}
+:where([data-layout]) .todo-none{display:flex;align-items:center;gap:var(--ome-sp-2);color:var(--ome-text-2)}
 }
 
 /* ══ layouts — body[data-layout] ตามประเภทหน้า, เนื้อหาหลักอยู่ใน .page ══════════════════ */
@@ -529,7 +649,7 @@ body[data-layout="app"]{height:100dvh;display:flex;flex-direction:column;overflo
 
 /* dashboard — KPI + กราฟ บนกริด 12 คอลัมน์ (.span-3/4/6/8/12) มือถือเหลือคอลัมน์เดียว */
 [data-layout="dashboard"] .page{max-width:1280px}
-[data-layout="dashboard"] .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--ome-card-gap)}
+[data-layout="dashboard"] .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--ome-card-gap);align-items:stretch}
 [data-layout="dashboard"] .grid > *{grid-column:span 12}
 @media (min-width:900px){
   [data-layout="dashboard"] .grid > .span-3{grid-column:span 3}
@@ -550,6 +670,28 @@ body[data-layout="app"]{height:100dvh;display:flex;flex-direction:column;overflo
 [data-layout="hub"] .tile-meta{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
 [data-layout="hub"] .tile .badge{align-self:flex-start}
 [data-layout="hub"] .tile.soon{opacity:.6}
+/* หน้าหมวด (area.html): ไทล์แบบแถว (ไอคอน 32px ซ้าย + ชื่อ + คำอธิบายสั้นถ้ามี) สูง ≥ 48px · กลุ่ม = กล่องวางเป็นคอลัมน์ (CSS columns ไม่ทิ้งที่ว่าง: 3 / 2 / 1) · แถว "ใช้ล่าสุด" 4 ไทล์ */
+[data-layout="hub"] .tile.row{flex-direction:row;align-items:center;gap:12px;min-height:48px;padding:8px 10px;background:transparent;border:0;box-shadow:none;border-radius:var(--ome-radius-md)}
+[data-layout="hub"] .tile.row:hover{background:var(--ome-surface-2)}
+/* soon: จางด้วยสีตัวอักษรรอง + ไอคอนจาง (ไม่ใช้ opacity ทั้งไทล์ — ตัวอักษรต้องยังผ่าน 4.5:1) */
+[data-layout="hub"] .tile.row.soon{opacity:1}
+[data-layout="hub"] .tile.row.soon .tile-title{color:var(--ome-text-2);font-weight:500}
+[data-layout="hub"] .tile.row.soon .tile-ic{opacity:.5}
+[data-layout="hub"] .tile-ic{display:grid;place-items:center;width:32px;height:32px;border-radius:var(--ome-radius-md);background:var(--ome-accent-soft);color:var(--ome-accent-strong);flex-shrink:0}
+[data-layout="hub"] .tile-ic .ome-icon{width:18px;height:18px}
+[data-layout="hub"] .tile-text{flex:1;min-width:0;display:flex;flex-direction:column}
+[data-layout="hub"] .tile-desc{font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
+[data-layout="hub"] .tile.row .badge{align-self:center;margin-left:auto}
+[data-layout="hub"] .tile-cols{columns:3;column-gap:var(--ome-card-gap)}
+[data-layout="hub"] .tile-group{break-inside:avoid;margin:0 0 var(--ome-card-gap);padding:var(--ome-sp-3)}
+[data-layout="hub"] .tile-group > h2{margin:0;padding:var(--ome-sp-1) 10px var(--ome-sp-2);font-size:var(--ome-fs-md)}
+[data-layout="hub"] .tile-latest{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--ome-sp-3)}
+[data-layout="hub"] .tile-latest .tile.row{background:var(--ome-surface-1);border:1px solid var(--ome-border);box-shadow:var(--ome-shadow-1)}
+[data-layout="hub"] .tile-latest .tile.row:hover{border-color:var(--ome-accent)}
+[data-layout="hub"] .area-sec > h2{margin:0 0 var(--ome-sp-3);font-size:var(--ome-fs-md)}
+@media (max-width:1000px){[data-layout="hub"] .tile-cols{columns:2}}
+@media (max-width:900px){[data-layout="hub"] .tile-latest{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){[data-layout="hub"] .tile-cols{columns:1}}
 [data-style="soft"] [data-layout="hub"] .tile{border-color:transparent;box-shadow:var(--ome-shadow-2)}
 }
 
@@ -576,10 +718,10 @@ body{padding-bottom:0!important}
   color:var(--ome-ink);cursor:pointer;display:grid;place-items:center;flex-shrink:0}
 .ome-hamburger:hover{background:var(--ome-bg)}
 .ome-nav-logo{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--ome-ink);
-  text-decoration:none;margin-left:6px;font-size:14.5px;flex:1;min-width:0}
+  text-decoration:none;margin-left:6px;margin-right:4px;font-size:14.5px;flex:1;min-width:0}
 .ome-nav-logo .dot{width:22px;height:22px;border-radius:7px;background:var(--ome-brand);
-  color:var(--ome-on-accent);display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0}
-.ome-nav-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+  color:var(--ome-on-accent);display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0}
+.ome-nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
 /* ปุ่มไอคอนบน nav = ghost (ไม่มีกรอบ ไอคอนสี --ome-muted ≥ 4.5 คือสิ่งที่บอกว่าเป็นปุ่ม) */
 .ome-theme-btn{width:36px;height:36px;border-radius:9px;border:0;
   background:transparent;color:var(--ome-muted);cursor:pointer;display:grid;

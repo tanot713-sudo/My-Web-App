@@ -161,8 +161,9 @@ test('ย้าย XP เดิมจากหลายหน้า: ยอด�
   const after = await page.evaluate((keys) => keys.map((k) => localStorage.getItem(k)), Object.keys(LEGACY_SEED));
   expect(after).toEqual(Object.keys(LEGACY_SEED).map((k) => (k === 'tanot:music:xp' ? '999' : LEGACY_SEED[k])));
   // การ์ดวันนี้บนหน้าแรก
-  await expect(page.locator('#streakBody')).toContainText('XP วันนี้ 42 / 50');
-  await expect(page.locator('#streakBody')).toContainText('ฝึกวันนี้แล้ว');
+  await expect(page.locator('#learnBody [data-l=xp]')).toContainText('42');
+  await expect(page.locator('#learnBody [data-l=xp]')).toContainText('/ 50');
+  await expect(page.locator('#learnBody .dots .dot').last()).toHaveClass(/done/); // ฝึกวันนี้แล้ว
   expect(errors).toEqual([]);
 });
 
