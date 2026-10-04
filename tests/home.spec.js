@@ -317,7 +317,8 @@ test.describe('หน้าแรก: ข้อมูลครบ', () => {
     reqs.length = 0;
     await page.reload(); await page.waitForSelector('[data-lang="lang-en"] [data-p]');
     expect(reqs).toEqual([]); // แคชใหม่ (< 14 วัน)
-    // ดึงไม่ได้ (ออฟไลน์/404): ไม่มีแคช → แถวแสดงจำนวนวลี ไม่มี %
+    // ดึงไม่ได้ (ออฟไลน์/404): ไม่มีแคช → แถวแสดงจำนวนวลี ไม่มี % (ปิดหน้าแรกก่อน — ไม่งั้นมันเห็นแคชหายแล้วดึงใหม่กลับมาเขียนทับ)
+    await page.close();
     const p2 = await context.newPage();
     await p2.addInitScript(() => { const f = window.fetch; window.fetch = (u, o) => (/languages\.html/.test(String(u)) ? Promise.reject(new TypeError('offline')) : f(u, o)); });
     const errors = await openHome(p2, { overrides: { 'tanot:home:cache': null } });
@@ -502,11 +503,11 @@ test.describe('หน้าแรก: จัดหน้าแรก (ซ่อ�
     expect(errors).toEqual([]);
   });
 
-  test('ค่าที่เก็บเสียหาย/แปลก → ใช้ค่าเริ่มต้น ไม่พัง · คีย์เป็น local (ไม่ซิงก์)', async ({ page }) => {
+  test('ค่าที่เก็บเสียหาย/แปลก → ใช้ค่าเริ่มต้น ไม่พัง · nav:last = cache · layout = local (ไม่ซิงก์)', async ({ page }) => {
     const errors = await openHome(page, { overrides: { 'tanot:home:layout': { order: 'x', hidden: ['nope'] } } });
     await expect(page.locator('#boxTodo')).toBeVisible();
     const reg = await page.evaluate(() => ({ nav: TanotRegistry.classify('tanot:nav:last'), layout: TanotRegistry.classify('tanot:home:layout'), cache: TanotRegistry.classify('tanot:home:cache') }));
-    expect(reg.nav.kind).toBe('local'); expect(reg.layout.kind).toBe('local'); expect(reg.cache.kind).toBe('cache');
+    expect(reg.nav.kind).toBe('cache'); expect(reg.layout.kind).toBe('local'); expect(reg.cache.kind).toBe('cache');
     expect(errors).toEqual([]);
   });
 });
