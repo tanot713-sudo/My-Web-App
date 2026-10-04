@@ -201,7 +201,7 @@
   function fmt(n, d) { d = d == null ? 2 : d; return isFinite(n) ? n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
   function baht(n) { return '฿' + fmt0(n); }
   function pct(n, d) { return isFinite(n) ? fmt(n, d == null ? 3 : d) + '%' : '—'; }
-  var parseYMD = Calc.parseYMD, ymd = Calc.ymd, thaiDate = Calc.fmtThaiDate, parseDrawDays = Calc.parseDrawDays, drawSchedule = Calc.drawSchedule;
+  var parseYMD = Calc.parseYMD, ymd = Calc.ymd, thaiDate = function (d) { return IC.date(d, { day: 'numeric', month: 'short', year: '2-digit' }); }, parseDrawDays = Calc.parseDrawDays, drawSchedule = Calc.drawSchedule;
   var FREQ_KEY = { '16': 'freqOnce', '1,16': 'freqTwice' };
   function freqLabel(freq) { return t(FREQ_KEY[freq] || 'freqOnce'); }
 

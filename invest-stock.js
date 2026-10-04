@@ -1473,6 +1473,7 @@
     var isStock = key === 'th' || key === 'us';
     curTab = key;
     $('panelAnalysis').hidden = !isStock; $('panelScan').hidden = key !== 'scan'; $('panelPaper').hidden = key !== 'paper';
+    if (!isStock) applyStaticI18n(); // เปิดหน้าที่แท็บสแกน/พอร์ตจำลองตรงๆ: ข้อความคงที่ของหน้า (ลิงก์ crumb ฯลฯ) ยังไม่ถูกแปลตามภาษา
     $('crumbHere').textContent = t(key === 'th' ? 'tabTh' : key === 'us' ? 'tabUs' : key === 'scan' ? 'tabScan' : 'tabPaper');
     if (!isStock) {
       IC.live.stop();

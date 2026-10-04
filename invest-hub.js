@@ -21,7 +21,7 @@
       kpiValueLbl: 'สินทรัพย์ลงทุน', kpiPlLbl: 'กำไร/ขาดทุนเทียบต้นทุน', kpiChangeLbl: 'เปลี่ยนแปลง 30 วัน', kpiCountLbl: 'จำนวนรายการ',
       kValueEmpty: 'ยังไม่มีสินทรัพย์ลงทุน', kPlSub: '{pct} จากต้นทุน ฿{cost}', kChangeNone: 'ยังไม่มีข้อมูลย้อนหลังครบ 30 วัน', kChangeSub: 'เทียบ {d}', kCountSub: 'ครบกำหนดแล้ว {n} รายการ (ไม่นับ)',
       warnNoFx: 'ไม่รวมสินทรัพย์ USD (ยังไม่มีอัตราแลกเปลี่ยน)', warnStale: 'ราคา ณ {d}',
-      chartTitle: 'มูลค่าสินทรัพย์ลงทุน', rangeAll: 'ทั้งหมด', chartEmpty: 'บันทึกมูลค่าของวันนี้แล้ว — กลับมาเปิดอีกครั้งวันหลังเพื่อดูกราฟแนวโน้ม',
+      chartTitle: 'มูลค่าสินทรัพย์ลงทุน', range30d: '30 วัน', range90d: '90 วัน', range1y: '1 ปี', rangeAll: 'ทั้งหมด', chartEmpty: 'บันทึกมูลค่าของวันนี้แล้ว — กลับมาเปิดอีกครั้งวันหลังเพื่อดูกราฟแนวโน้ม',
       assetsTitle: 'สินทรัพย์ทั้งหมด', assetsEmpty: 'ยังไม่มีสินทรัพย์ลงทุน — เริ่มบันทึกได้ที่หน้าหุ้น กองทุน ทอง Bitcoin พันธบัตร หรือสลาก',
       thAsset: 'สินทรัพย์', thQty: 'จำนวน', thValue: 'มูลค่า ฿', thShare: 'สัดส่วน', thPl: 'P/L', thSrc: 'แหล่งราคา',
       srcMarket: 'ตลาด', srcManual: 'กรอกเอง', srcCost: 'ต้นทุน', srcAsOf: 'ณ {d}', noFxCell: 'ไม่มีอัตรา',
@@ -47,7 +47,7 @@
       kpiValueLbl: 'Investment assets', kpiPlLbl: 'P/L vs cost', kpiChangeLbl: '30-day change', kpiCountLbl: 'Holdings',
       kValueEmpty: 'No investment assets yet', kPlSub: '{pct} on cost ฿{cost}', kChangeNone: 'Less than 30 days of history', kChangeSub: 'vs {d}', kCountSub: '{n} matured (not counted)',
       warnNoFx: 'USD assets excluded (no exchange rate yet)', warnStale: 'Prices as of {d}',
-      chartTitle: 'Investment assets value', rangeAll: 'All', chartEmpty: 'Today’s value is saved — come back another day to see the trend',
+      chartTitle: 'Investment assets value', range30d: '30 days', range90d: '90 days', range1y: '1 year', rangeAll: 'All', chartEmpty: 'Today’s value is saved — come back another day to see the trend',
       assetsTitle: 'All assets', assetsEmpty: 'No investment assets yet — start from the stocks, funds, gold, Bitcoin, bonds or lottery pages',
       thAsset: 'Asset', thQty: 'Qty', thValue: 'Value ฿', thShare: 'Share', thPl: 'P/L', thSrc: 'Price source',
       srcMarket: 'Market', srcManual: 'Manual', srcCost: 'Cost', srcAsOf: 'as of {d}', noFxCell: 'No rate',
@@ -75,7 +75,7 @@
   function lang() { return IC.getLang(); }
   function baht(n) { return (n < 0 ? '−฿' : '฿') + Math.abs(n).toLocaleString('th-TH', { maximumFractionDigits: 0 }); }
   function pctText(p, d) { return (p >= 0 ? '+' : '−') + Math.abs(p).toFixed(d == null ? 1 : d) + '%'; }
-  function dateShort(ts) { return new Date(ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }); }
+  function dateShort(ts) { return IC.date(new Date(ts), { day: 'numeric', month: 'short' }); }
   function readData() {
     var data = {};
     KEYS.forEach(function (k) { var v = rd('tanot:invest:' + k, []); data[k] = Array.isArray(v) ? v : []; });

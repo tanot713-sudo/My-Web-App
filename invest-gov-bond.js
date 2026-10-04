@@ -165,9 +165,9 @@
     var today = new Date();
     var html = '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('logThDate') + '</th><th>' + t('logThName') + '</th><th>' + t('logThFace') + '</th><th>' + t('logThCoupon') + '</th><th>' + t('logThMaturity') + '</th><th></th></tr></thead><tbody>';
     log.forEach(function (r) {
-      html += '<tr><td>' + parseYMD(r.purchDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
+      html += '<tr><td>' + IC.date(parseYMD(r.purchDate), { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
         '<td>' + r.name + '</td><td>' + baht(r.face) + '</td><td>' + fmt(r.coupon, 2) + '%</td>' +
-        '<td>' + parseYMD(r.maturity).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
+        '<td>' + IC.date(parseYMD(r.maturity), { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
         '<td><button class="btn sm ghost icon log-del" type="button" aria-label="' + t('delTitle') + '" data-ts="' + r.ts + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });
     html += '</tbody></table></div>';
@@ -179,8 +179,8 @@
       html += '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('schedThDate') + '</th><th>' + t('schedThAmt') + '</th><th>' + t('schedThStatus') + '</th></tr></thead><tbody>';
       sched.forEach(function (row) {
         var got = row.date <= today;
-        html += '<tr><td>' + row.date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
-          '<td>' + baht(row.total) + (row.principal ? ' <span style="color:var(--ome-text-2);font-size:11px">' + t('principalIncluded') + '</span>' : '') + '</td>' +
+        html += '<tr><td>' + IC.date(row.date, { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
+          '<td>' + baht(row.total) + (row.principal ? ' <span style="color:var(--ome-text-2);font-size:var(--ome-fs-xs)">' + t('principalIncluded') + '</span>' : '') + '</td>' +
           '<td><span class="badge ' + (got ? 'ok">' + t('statusGot') : '">' + t('statusWait')) + '</span></td></tr>';
       });
       html += '</tbody></table></div>';

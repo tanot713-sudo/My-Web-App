@@ -74,7 +74,7 @@
 .fng-gauge{flex:1 1 220px;min-width:180px}
 .fng-bar{height:10px;border-radius:6px;background:linear-gradient(90deg,var(--ome-err),var(--ome-warn),var(--ome-ok));position:relative}
 .fng-marker{position:absolute;top:-4px;width:3px;height:18px;background:var(--ome-text-1);border-radius:2px;transform:translateX(-1.5px)}
-.fng-scale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ome-text-2);margin-top:4px}
+.fng-scale{display:flex;justify-content:space-between;font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
 </style>
 </head>
 <body data-layout="tool" data-invest-key="bitcoin">
@@ -226,7 +226,7 @@
     <h2 data-i18n="checklistTitle">ตรวจก่อนเข้าไม้ — ควรซื้อไหม?</h2>
     <div id="chkForm">
       <div class="yn-row" data-key="noLeverage"><span data-i18n="chkNoLeverage">ยืนยันว่าเทรด spot เท่านั้น ไม่ใช้เลเวอเรจ/มาร์จิ้น</span>
-        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
+        <div class="segmented yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
     </div>
     <div><button class="btn" id="checkBtn" type="button" data-i18n="checkBtn">ตรวจเช็กลิสต์</button></div>
     <div id="checkResult" style="display:none">

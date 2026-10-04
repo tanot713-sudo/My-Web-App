@@ -7,7 +7,9 @@
 // เป้า = 0 ทุกตัวชี้วัด (ไม่ใช้ ratchet) — ยกเว้นรายการใน ALLOW ที่ต้องมีเหตุผล
 const { test, expect } = require('@playwright/test');
 const path = require('path');
+const fs = require('fs');
 const { prepare } = require('./helpers');
+const DUMP = process.env.INVEST_AUDIT_DUMP || ''; // ตั้ง = เขียนผลทุกจุดลงโฟลเดอร์นี้แทนการล้มเทสต์ (ไว้ไล่แก้)
 
 const AUDIT_JS = path.join(__dirname, 'theme-audit-page.js');
 const AXE_JS = require.resolve('axe-core/axe.min.js');
@@ -108,7 +110,7 @@ async function open(page, target, { theme, width, lang }) {
 /** ข้อความไทยที่มองเห็นทุกจุด (ไม่จำกัดชนิด element) — ยกเว้น data-i18n-skip และข้อมูลผู้ใช้ที่ seed */
 async function thaiAnywhere(page) {
   return page.evaluate((userRe) => {
-    const THAI = /[฀-๿]/, re = new RegExp(userRe);
+    const THAI = /[\u0E00-\u0E3E\u0E40-\u0E7F]/, re  /* ไม่นับ ฿ (U+0E3F) */ = new RegExp(userRe);
     const out = [], seen = new Set();
     const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     for (let t = w.nextNode(); t; t = w.nextNode()) {
@@ -117,7 +119,7 @@ async function thaiAnywhere(page) {
       if (!p || p.closest('script,style,noscript,option,[data-i18n-skip],.ome-nav,nav.ome-nav,footer.ome-footer,.ome-ai-fab,.ome-ai-panel')) continue;
       const r = p.getBoundingClientRect(), cs = getComputedStyle(p);
       if (!(r.width > 0 && r.height > 0) || cs.visibility === 'hidden' || cs.display === 'none') continue;
-      if (re.test(t.nodeValue)) continue;
+      if (re.test(t.nodeValue) || t.nodeValue.trim() === 'ไทย') continue; // 'ไทย' = ชื่อภาษาบนปุ่มสลับภาษา
       if (seen.has(p)) continue;
       seen.add(p);
       out.push((p.id ? '#' + p.id : p.tagName.toLowerCase() + (p.className && typeof p.className === 'string' ? '.' + p.className.trim().split(/\s+/)[0] : '')) + ' → ' + t.nodeValue.trim().slice(0, 40));
@@ -151,6 +153,7 @@ for (const target of TARGETS) {
         if (width < 700) { samples.targetSize = res.targetSize; Object.assign(samples, await page.evaluate(() => window.__tanotAudit.mobile({ shell: false }))); }
         const bad = {};
         Object.keys(samples).forEach((k) => { if (samples[k].length) bad[k] = samples[k].slice(0, 8); });
+        if (DUMP) { fs.mkdirSync(DUMP, { recursive: true }); fs.writeFileSync(path.join(DUMP, `${target[0]}|${width}|${theme}`.replace(/[^\w.|-]/g, '_') + '.json'), JSON.stringify(samples)); return; }
         expect(bad, `${target[0]} ${width} ${theme}`).toEqual({});
         expect(errors, 'console errors').toEqual([]);
       });
@@ -159,7 +162,52 @@ for (const target of TARGETS) {
 
   test(`invest-data lang: ${target[0]}`, async ({ page }) => {
     await open(page, target, { theme: 'light', width: 1100, lang: 'en' });
-    expect(await thaiAnywhere(page)).toEqual([]);
+    const th = await thaiAnywhere(page);
+    if (DUMP) { fs.mkdirSync(DUMP, { recursive: true }); fs.writeFileSync(path.join(DUMP, `${target[0]}|lang`.replace(/[^\w.|-]/g, '_') + '.json'), JSON.stringify(th)); return; }
+    expect(th).toEqual([]);
+  });
+
+  test(`invest-data explore: ${target[0]}`, async ({ page }) => {
+    // กดทุกปุ่มที่ไม่ทำลายข้อมูล (2 รอบ รอบ 2 กรอกช่องว่างด้วยตัวเลขก่อน เพื่อให้ปุ่ม "เพิ่ม/คำนวณ" ทำงานจริง) ในโหมด EN —
+    // ข้อความไทยที่โผล่ในกล่อง/toast/ข้อความสถานะ/ผลลัพธ์ต้องเป็น 0 และห้ามมี console error
+    const errors = await open(page, target, { theme: 'light', width: 1100, lang: 'en' });
+    const hits = new Set();
+    const collect = async () => { (await thaiAnywhere(page)).forEach((h) => hits.add(h)); };
+    const start = new URL(page.url()).pathname;
+    for (let round = 0; round < 2; round++) {
+      if (round === 1) {
+        await page.evaluate(() => document.querySelectorAll('input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden])').forEach((el) => {
+          if (!el.offsetParent || el.value) return;
+          const ty = el.getAttribute('type') || 'text';
+          el.value = ty === 'number' ? '10' : ty === 'date' ? '2026-10-01' : /^(sym|.*Sym)$/.test(el.id) ? 'PTT' : 'A';
+          el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true }));
+        }));
+      }
+      const ids = await page.evaluate(() => {
+        const bad = /ลบ|ล้าง|รีเซ็ต|delete|remove|clear|reset|wipe|erase|logout|sign ?out/i;
+        const out = []; let n = 0;
+        document.querySelectorAll('button,summary,[role=tab],.chip,.tab').forEach((el) => {
+          if (el.closest('.ome-nav,nav.ome-nav,footer.ome-footer,.ome-ai-fab,.ome-ai-panel,dialog:not([open])') || el.disabled) return;
+          const r = el.getBoundingClientRect(); if (!(r.width > 0 && r.height > 0)) return;
+          if (bad.test([el.innerText, el.getAttribute('aria-label'), el.getAttribute('title'), el.id, el.className].join(' '))) return;
+          el.setAttribute('data-ex', String(++n)); out.push(n);
+        });
+        return out;
+      });
+      for (const id of ids.slice(0, 120)) {
+        const loc = page.locator(`[data-ex="${id}"]`);
+        try { if (!(await loc.isVisible())) continue; await loc.click({ timeout: 1200 }); } catch (e) { continue; }
+        await page.waitForTimeout(120);
+        if (new URL(page.url()).pathname !== start) { await page.goBack().catch(() => {}); await page.waitForTimeout(300); continue; }
+        await collect();
+        await page.evaluate(() => { document.querySelectorAll('dialog[open]').forEach((d) => { try { d.close(); } catch (e) {} }); });
+        await page.keyboard.press('Escape').catch(() => {});
+      }
+    }
+    const th = [...hits];
+    if (DUMP) { fs.mkdirSync(DUMP, { recursive: true }); fs.writeFileSync(path.join(DUMP, `${target[0]}|explore`.replace(/[^\w.|-]/g, '_') + '.json'), JSON.stringify(th.concat(errors.map((e) => 'ERR ' + e)))); return; }
+    expect(th).toEqual([]);
+    expect(errors).toEqual([]);
   });
 
   test(`invest-data chart theme: ${target[0]}`, async ({ page }) => {

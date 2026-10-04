@@ -50,6 +50,7 @@
       tr10m: 'ย่อเล็ก', tr20m: 'ย่อแรง', tr30m: 'ย่อหนักมาก',
       logTitle: 'สมุดทองของฉัน',
       lgTypeLabel: 'ชนิด', typeBar: 'ทองคำแท่ง', typeJewelry: 'ทองรูปพรรณ', lgUnitLabel: 'หน่วย',
+      barBuyPh: 'เช่น 70950', barSellPh: 'เช่น 70850', jewelryBuyPh: 'เช่น 71950', jewelrySellPh: 'เช่น 69523',
       lgAmtLabel: 'เงินที่จ่าย', lgAmtPh: 'เช่น 35000', lgPriceLabel: 'ราคา/หน่วยที่ซื้อ', lgPricePh: 'เช่น 70950', lgAddBtn: 'เพิ่ม',
       lgEmptyDefault: 'ยังไม่มีรายการ',
       factorsSummary: 'ปัจจัยที่มีผลต่อราคาทองคำ', factDirectH: 'ปัจจัยทางตรง',
@@ -158,6 +159,7 @@
       tr10m: 'Small dip', tr20m: 'Sharp dip', tr30m: 'Very heavy dip',
       logTitle: 'My Gold Log',
       lgTypeLabel: 'Type', typeBar: 'Gold bar', typeJewelry: 'Gold jewelry', lgUnitLabel: 'Unit',
+      barBuyPh: 'e.g. 70950', barSellPh: 'e.g. 70850', jewelryBuyPh: 'e.g. 71950', jewelrySellPh: 'e.g. 69523',
       lgAmtLabel: 'Amount paid', lgAmtPh: 'e.g. 35000', lgPriceLabel: 'Price/unit paid', lgPricePh: 'e.g. 70950', lgAddBtn: 'Add',
       lgEmptyDefault: 'No entries yet',
       factorsSummary: 'Factors That Affect the Gold Price', factDirectH: 'Direct factors',
@@ -540,7 +542,7 @@
     });
     html += '<div class="table-wrap"><table class="table right"><thead><tr><th>' + esc(t('logThDate')) + '</th><th>' + esc(t('logThType')) + '</th><th>' + esc(t('logThPaid')) + '</th><th>' + esc(t('logThPricePerUnit')) + '</th><th>' + esc(t('logThWeight')) + '</th><th></th></tr></thead><tbody>';
     log.forEach(function (r) {
-      html += '<tr><td>' + new Date(r.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
+      html += '<tr><td>' + IC.date(new Date(r.ts), { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
         '<td>' + esc(r.type === 'jewelry' ? t('typeJewelryShort') : t('typeBarShort')) + '</td><td>' + baht(r.amt) + '</td><td>' + fmt(r.price, 2) + '</td>' +
         '<td>' + fmt(r.weight, 4) + esc(r.unit === 'gram' ? t('unitGramShort') : t('unitBahtGoldShort')) + '</td>' +
         '<td><button class="btn sm ghost icon log-del" type="button" aria-label="' + esc(t('delTitle')) + '" data-ts="' + esc(r.ts) + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';

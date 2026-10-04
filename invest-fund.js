@@ -328,7 +328,7 @@
     });
     html += '<div class="table-wrap"><table class="table right"><thead><tr><th>' + esc(t('logThDate')) + '</th><th>' + esc(t(m.group === 'fund' ? 'logThFund' : 'logThClass')) + '</th><th>' + esc(t('logThAmt')) + '</th><th>' + esc(t('logThNav')) + '</th><th>' + esc(t('logThUnits')) + '</th><th></th></tr></thead><tbody>';
     log.forEach(function (r) {
-      html += '<tr><td>' + new Date(r.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
+      html += '<tr><td>' + IC.date(new Date(r.ts), { day: 'numeric', month: 'short', year: '2-digit' }) + '</td>' +
         '<td>' + esc(m.group === 'fund' ? r.fund : classLabel(r.cls)) + '</td><td>' + baht(r.amt) + '</td><td>' + fmt(r.nav, 4) + '</td><td>' + fmt(r.units, 4) + '</td>' +
         '<td><button class="btn sm ghost icon log-del" type="button" aria-label="' + esc(t('delTitle')) + '" data-ts="' + esc(r.ts) + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></td></tr>';
     });

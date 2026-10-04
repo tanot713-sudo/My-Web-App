@@ -24,7 +24,7 @@
 .layout > .stack{min-width:0}
 .page-head{align-items:center}
 .page-head h1{flex:1 1 auto}
-.page-head .btn{flex-shrink:0}
+.page-head > :not(h1){flex-shrink:0}
 .kpi-grid{grid-template-columns:repeat(4,1fr)}
 .kpi-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .kpi-ic{display:grid;place-items:center;width:36px;height:36px;border-radius:var(--ome-radius-md);background:var(--ome-accent-soft);color:var(--ome-accent-strong);flex-shrink:0}
@@ -79,7 +79,7 @@ a.ticker:hover{border-color:var(--ome-accent)}
 .fng-label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600;margin-top:2px}
 .fng-bar{position:relative;height:8px;border-radius:5px;margin:14px 0 4px;background:linear-gradient(90deg,var(--ome-err),var(--ome-warn),var(--ome-ok))}
 .fng-marker{position:absolute;top:-3px;width:14px;height:14px;border-radius:50%;background:var(--ome-surface-1);border:3px solid var(--ome-text-1);transform:translateX(-50%);left:0;transition:left var(--ome-dur-3)}
-.fng-scale{display:flex;justify-content:space-between;font-size:10px;color:var(--ome-text-2)}
+.fng-scale{display:flex;justify-content:space-between;font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
 @media(max-width:920px){
   .layout{grid-template-columns:1fr}
   .kpi-grid{grid-template-columns:repeat(2,1fr)}
@@ -117,7 +117,7 @@ a.ticker:hover{border-color:var(--ome-accent)}
     <div class="stack">
       <section class="card" id="chartCard">
         <div class="card-head"><h2 data-i18n="chartTitle">มูลค่าสินทรัพย์ลงทุน</h2>
-          <div class="segmented" id="rangeSeg" role="group"><button type="button" data-r="30d">30 วัน</button><button type="button" data-r="90d">90 วัน</button><button type="button" data-r="1y">1 ปี</button><button type="button" data-r="all" data-i18n="rangeAll">ทั้งหมด</button></div></div>
+          <div class="segmented" id="rangeSeg" role="group"><button type="button" data-r="30d" data-i18n="range30d">30 วัน</button><button type="button" data-r="90d" data-i18n="range90d">90 วัน</button><button type="button" data-r="1y" data-i18n="range1y">1 ปี</button><button type="button" data-r="all" data-i18n="rangeAll">ทั้งหมด</button></div></div>
         <div id="chartBody"></div>
       </section>
 

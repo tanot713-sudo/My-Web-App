@@ -263,7 +263,7 @@
     GROUPS.forEach(function (g) {
       var items = ASSETS.filter(function (a) { return a.group === g.key; });
       pillHtml += '<div class="pill-group"><span class="pill-group-lbl">' + esc(t(g.labelKey)) + '</span><div class="pill-group-row">' +
-        items.map(function (a) { return '<button type="button" class="pill" data-key="' + a.key + '"><span class="ic">' + a.icon + '</span>' + esc(assetLabel(a)) + '</button>'; }).join('') + '</div></div>';
+        items.map(function (a) { return '<button type="button" class="chip" data-key="' + a.key + '"><span class="ic">' + a.icon + '</span>' + esc(assetLabel(a)) + '</button>'; }).join('') + '</div></div>';
     });
     E('pillRow').innerHTML = pillHtml;
     /* ทยอยยิงเฉพาะ 5 ตัวในแถวสถิติ (ตัวอื่นดึงตอนกดเลือก) กัน proxy โดน rate-limit */
@@ -324,7 +324,7 @@
     var rows = '', i;
     for (i = n - 1; i >= Math.max(0, n - HIST_DAYS); i--) {
       var bar = ohlcAt(s, i), prevClose = i > 0 ? s.closes[i - 1] : bar.open, chg = bar.close - prevClose, pct = prevClose ? chg / prevClose * 100 : NaN;
-      rows += '<tr><td>' + new Date(bar.time).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) + '</td><td>' + fmt(bar.open, a.dp) + '</td>' +
+      rows += '<tr><td>' + IC.date(new Date(bar.time), { day: 'numeric', month: 'short', year: 'numeric' }) + '</td><td>' + fmt(bar.open, a.dp) + '</td>' +
         '<td class="hi">' + fmt(bar.high, a.dp) + '</td><td class="lo">' + fmt(bar.low, a.dp) + '</td><td>' + fmt(bar.close, a.dp) + '</td>' +
         '<td class="chg ' + (chg > 0 ? 'up' : chg < 0 ? 'dn' : '') + '">' + (chg >= 0 ? '+' : '') + fmt(chg, a.dp) + (isFinite(pct) ? ' (' + (pct >= 0 ? '+' : '') + fmt(pct, 2) + '%)' : '') + '</td></tr>';
     }
@@ -478,7 +478,7 @@
     var switching = curKey !== key;
     curKey = key;
     try { localStorage.setItem(LAST_KEY, key); } catch (e) {}
-    [].forEach.call(document.querySelectorAll('#panel-markets .stat-card, #panel-markets .pill'), function (el) { el.classList.toggle('on', el.getAttribute('data-key') === key); });
+    [].forEach.call(document.querySelectorAll('#panel-markets .stat-card, #panel-markets .chip'), function (el) { el.classList.toggle('on', el.getAttribute('data-key') === key); });
     E('dIcon').textContent = a.icon; E('dName').textContent = assetLabel(a); E('dUnit').textContent = assetUnit(a);
     E('ohlcRow').style.display = 'none'; fullData = null;
     E('vLight').className = 'light gray'; E('vBulb').style.background = 'var(--ome-text-3)';
@@ -528,7 +528,7 @@
     L.apply(panel);
     buildGrid();
     panel.addEventListener('click', function (e) {
-      var b = e.target.closest && e.target.closest('.stat-card, .pill');
+      var b = e.target.closest && e.target.closest('.stat-card, .chip');
       if (b && panel.contains(b)) selectAsset(b.getAttribute('data-key'));
     });
     [].forEach.call(panel.querySelectorAll('#mk_tfGroup .tf'), function (b) { b.addEventListener('click', function () { applyTF(+b.getAttribute('data-tf')); }); });

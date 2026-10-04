@@ -26,6 +26,8 @@
   function lsJson(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v)); return true; } catch (e) { return false; } }
   function getLang() { return lsGet('ome:lang') === 'en' ? 'en' : 'th'; }
+  /* วันที่/เวลาตามภาษา — ใช้ตัวจัดรูปแบบกลางของ i18n.js (ไทย = พ.ศ. th-TH, อังกฤษ = en-GB) · ไม่มี i18n.js = ไทยแบบเดิม */
+  function dateFmt(d, opts) { var I = window.OME_I18N; if (I && I.date) return I.date(d, opts); return d.toLocaleDateString('th-TH', opts); }
 
   /* ═══ ภาษา (ไทย/English) — อ่าน ome:lang จุดกลางเดียว + window.omeApplyLang ร่วม (shell.js เรียกตอนสลับภาษา) ═══ */
   var langListeners = [];
@@ -44,6 +46,8 @@
       [].forEach.call(root.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
       [].forEach.call(root.querySelectorAll('[data-i18n-html]'), function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
       [].forEach.call(root.querySelectorAll('[data-i18n-placeholder]'), function (el) { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
+      [].forEach.call(root.querySelectorAll('[data-i18n-aria-label]'), function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria-label'))); });
+      [].forEach.call(root.querySelectorAll('[data-i18n-title]'), function (el) { el.setAttribute('title', t(el.getAttribute('data-i18n-title'))); });
     }
     return { t: t, apply: apply };
   }
@@ -276,7 +280,7 @@
     if (mins < 60) return mins <= 1 ? CORE.t('agoNow') : CORE.t('agoMin', { n: mins });
     var hrs = Math.round(mins / 60);
     if (hrs < 24) return CORE.t('agoHr', { n: hrs });
-    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: hrs > 24 * 300 ? '2-digit' : undefined });
+    return dateFmt(d, { day: 'numeric', month: 'short', year: hrs > 24 * 300 ? '2-digit' : undefined });
   }
 
   /* ═══ Live Gateway / Twelve Data (เก็บไว้ตามที่เจ้าของเลือก — คีย์เดิม tanot:market:live-config:v1 เก็บในเครื่องเท่านั้น) ═══ */
@@ -512,7 +516,7 @@
   window.InvestCore = {
     num: num, fmt: fmt, money: money, pct: pct, esc: esc, ago: ago, newsDate: newsDate, delay: delay, rows: rows,
     lsJson: lsJson, lsSet: lsSet, getLang: getLang,
-    i18n: i18n, onLang: onLang, ui: ui,
+    i18n: i18n, onLang: onLang, ui: ui, date: dateFmt,
     proxied: proxied, netEnabled: netEnabled, fetchText: fetchText, dedupe: dedupe, sequence: sequence, marketLikelyOpen: marketLikelyOpen,
     series: series, loadSeries: loadSeries, quote: quote, fx: fx, thaiGold: thaiGold, fng: fng, news: news, parseNewsRss: parseNewsRss, newsSearchUrl: newsSearchUrl,
     seriesKey: seriesKey, quoteKey: quoteKey,
