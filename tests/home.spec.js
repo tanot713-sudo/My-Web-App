@@ -180,6 +180,9 @@ test.describe('home-calc.js (known-answer)', () => {
 test.describe('หน้าแรก: ข้อมูลครบ', () => {
   test('ต้องทำวันนี้: รวมทุกแหล่ง เรียง err → warn → info · ป้ายสถานะตามความเร่ง · ปุ่มทำทันที', async ({ page }) => {
     const errors = await openHome(page);
+    await expect(todo(page)).toHaveCount(8); // จอกว้างแสดง 8 ก่อนกาง
+    await page.locator('.todo-toggle').click();
+    await expect(todo(page)).toHaveCount(10);
     const kinds = await todo(page).evaluateAll((els) => els.map((e) => e.getAttribute('data-kind') + ':' + e.getAttribute('data-urg')));
     // err: PM เลยกำหนด + งบน้ำมันเกิน · warn: ข้าว 92% + ยา + PM ถึงกำหนด · info: ทบทวน (ภาษา 2/ธุรกิจ 1) + พ.ร.บ. อีก 5 วัน(warn) + ประกัน/ประกันสินค้า 10/15 วัน
     expect(kinds.filter((k) => k.endsWith(':err')).length).toBe(2);
@@ -623,6 +626,127 @@ test.describe('หน้าแรก: ภาษา', () => {
     await expect(page.locator('#hTodo')).toHaveText('To do today');
     await expect(page.locator('#hSpend')).toHaveText("This month's money");
     expect(await page.evaluate(() => window.__noReload)).toBe(1);
+  });
+});
+
+test.describe('หน้าแรก: มือถือไม่รก (รีวิว PR #43) — แถวปุ่มท้ายบรรทัดเดียว · ตัดรายการ 5/8 + ดูทั้งหมด · ตัวเลขไม่ขาด · ความสูง ≤ 3,200px', () => {
+  test('ต้องทำวันนี้: มือถือ 5 แถว / จอกว้าง 8 แถว + "ดูทั้งหมด (n)" กางในที่ · น้อยกว่าเกณฑ์ไม่มีปุ่ม · EN', async ({ page }) => {
+    await openHome(page, { width: 390 });
+    await expect(todo(page)).toHaveCount(5);
+    await expect(page.locator('#todoCount')).toHaveText('10 เรื่อง'); // นับทั้งหมด ไม่ใช่เฉพาะที่แสดง
+    const tg = page.locator('.todo-toggle');
+    await expect(tg).toHaveText('ดูทั้งหมด (10)');
+    await expect(tg).toHaveAttribute('aria-expanded', 'false');
+    // 5 แรกต้องเป็นตามความเร่ง (err ก่อน)
+    expect(await todo(page).evaluateAll((e) => e.slice(0, 2).map((x) => x.getAttribute('data-urg')))).toEqual(['err', 'err']);
+    await tg.click();
+    await expect(todo(page)).toHaveCount(10);
+    await expect(tg).toHaveText('แสดงน้อยลง'); await expect(tg).toHaveAttribute('aria-expanded', 'true');
+    await tg.click();
+    await expect(todo(page)).toHaveCount(5);
+    // กางค้างไว้ → ข้อมูลเปลี่ยน (วาดใหม่) แล้วยังกางอยู่
+    await tg.click();
+    await page.evaluate(() => { window.dispatchEvent(new CustomEvent('tanot:data', { detail: { keys: ['budget:records'] } })); });
+    await page.waitForTimeout(500);
+    await expect(todo(page)).toHaveCount(10);
+    // ปรับขนาดเป็นจอกว้าง: เกณฑ์ 8 (กางอยู่ = ทั้งหมด) · ปิดแล้วเหลือ 8
+    await tg.click();
+    await page.setViewportSize({ width: 1100, height: 900 });
+    await expect(todo(page)).toHaveCount(8);
+    // น้อยกว่าเกณฑ์ = ไม่มีปุ่ม
+    const p2 = await page.context().newPage();
+    await openHome(p2, { width: 390, overrides: { 'tanot:insurance:policies': null, 'tanot:car:vehicles': null, 'tanot:receipts:items': null, 'tanot:mnt:assets': null, 'budget:budgets': null, 'lang-practice:srs': null } });
+    await expect(p2.locator('.todo-toggle')).toHaveCount(0);
+    // EN
+    const p3 = await page.context().newPage();
+    await openHome(p3, { width: 390, lang: 'en' });
+    await expect(p3.locator('.todo-toggle')).toHaveText('View all (10)');
+  });
+
+  for (const width of [390, 360]) {
+    test(`${width}px: ปุ่มท้ายแถว "บรรทัดเดียวกับเนื้อหา" ชิดขวาเสมอ (ต้องทำ/เรียนต่อ/เมนู/ติดตาม) · pill อยู่บนข้อความ · พื้นที่กดปุ่ม ≥ 40px`, async ({ page }) => {
+      await openHome(page, { width });
+      await page.waitForSelector('#studyList [data-p]');
+      await page.locator('.todo-toggle').click(); // กางให้ครบ — ทุกแถวต้องผ่าน
+      const rowsSel = '#todoBody .todo-row, #studyList .list-row, #mealList .list-row, #investBody .list-row';
+      const res = await page.locator(rowsSel).evaluateAll((rows) => rows.map((row) => {
+        const end = [].find.call(row.children, (c) => c.classList.contains('end')), body = [].find.call(row.children, (c) => c.classList.contains('grow'));
+        const r = row.getBoundingClientRect();
+        if (!end || !body) return { ok: true, why: 'no end' };
+        const e = end.getBoundingClientRect(), b = body.getBoundingClientRect();
+        const pill = row.querySelector(':scope > .pill'), pr = pill && pill.getBoundingClientRect();
+        const btn = end.querySelector('.btn'), hit = btn ? getComputedStyle(btn, '::after') : null;
+        return {
+          sameLine: e.top < b.bottom - 1 && e.bottom > b.top + 1,       // ปุ่มคาบเกี่ยวช่วงเดียวกับเนื้อหา ไม่ตกใต้
+          flushRight: Math.abs(e.right - r.right) <= 3,                 // ชิดขวาของแถว
+          pillAbove: pill ? pr.bottom <= b.top + 1 : true,              // pill อยู่บนข้อความ
+          small: btn ? btn.getBoundingClientRect().height <= 33 : true, // ปุ่มขนาด sm
+          hit: btn && hit.content !== 'none' ? Math.min(parseFloat(hit.height), Math.max(parseFloat(hit.width), btn.getBoundingClientRect().width)) >= 40 : true,
+          text: row.textContent.trim().slice(0, 30),
+        };
+      }));
+      expect(res.length).toBeGreaterThan(15);
+      for (const r of res) { expect(r.sameLine, r.text).toBe(true); expect(r.flushRight, r.text).toBe(true); expect(r.pillAbove, r.text).toBe(true); expect(r.small, r.text).toBe(true); expect(r.hit, r.text).toBe(true); }
+    });
+
+    test(`${width}px: เงินเดือนนี้ = 3 ช่องแนวนอนเท่ากัน ตัวเลขไม่ขาด/ไม่ล้น · เลขหลักล้านเรียงเป็นแถว (ยังไม่ขาด) · ความดัน/น้ำหนักไม่ขาดกลางตัวเลข`, async ({ page }) => {
+      await openHome(page, { width });
+      const measure = (pg) => pg.locator('#spendBody .strip-cell').evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(), v = e.querySelector('.v'), vr = v.getBoundingClientRect(); return { top: Math.round(r.top), w: Math.round(r.width), vh: Math.round(vr.height), over: v.scrollWidth - v.clientWidth, vRight: vr.right, cRight: r.right }; }));
+      let cells = await measure(page);
+      expect(new Set(cells.map((c) => c.top)).size).toBe(1); // ปกติ: 3 ช่องแถวเดียว
+      expect(Math.max(...cells.map((c) => c.w)) - Math.min(...cells.map((c) => c.w))).toBeLessThanOrEqual(1);
+      for (const c of cells) { expect(c.vh, 'ตัวเลขบรรทัดเดียว').toBeLessThan(30); expect(c.over).toBeLessThanOrEqual(1); expect(c.vRight).toBeLessThanOrEqual(c.cRight + 1); }
+      // หลักล้าน: ไม่ขาด ไม่ล้น (เรียงเป็นแถว)
+      const p2 = await page.context().newPage();
+      await openHome(p2, { width, overrides: { 'budget:records': [{ id: 'i', date: '2026-09-01', type: 'income', categoryId: 'cat-salary', amount: 1234567.5 }, { id: 'e', date: '2026-09-02', type: 'expense', categoryId: 'cat-rice', amount: 1000000 }] } });
+      await expect(p2.locator('#spendBody .strip')).toHaveClass(/long/);
+      cells = await measure(p2);
+      for (const c of cells) { expect(c.vh, 'ตัวเลขบรรทัดเดียว').toBeLessThan(30); expect(c.over).toBeLessThanOrEqual(1); expect(c.vRight).toBeLessThanOrEqual(c.cRight + 1); }
+      await expect(p2.locator('[data-s=income]')).toHaveText('฿1,234,567.5');
+      // ความดัน/น้ำหนัก: ก้อนตัวเลข (.n) อยู่บรรทัดเดียว
+      const lines = await page.locator('#healthBody [data-h=bp] .n, #healthBody [data-h=weight] .n').evaluateAll((els) => els.map((el) => { const r = document.createRange(); r.selectNodeContents(el); return new Set([...r.getClientRects()].map((q) => Math.round(q.top))).size; }));
+      expect(lines).toEqual([1, 1]);
+      expect(await page.locator('[data-h=bp] .n').textContent()).toBe('118/76');
+    });
+
+    test(`${width}px: เรียนต่อ — วิชาละ ≤ 2 บรรทัด (ชื่อ+% บรรทัดแรก · บทล่าสุด 1 บรรทัดตัด ellipsis พร้อม title · แถบบาง)`, async ({ page }) => {
+      await openHome(page, { width });
+      await page.waitForSelector('#studyList [data-p]');
+      const rows = await page.locator('#studyList .list-row').evaluateAll((els) => els.map((e) => {
+        const head = e.querySelector('.row-head'), meta = e.querySelector('.meta.one'), m = e.querySelector('.meter'), cs = getComputedStyle(meta);
+        return { h: Math.round(e.getBoundingClientRect().height), headH: Math.round(head.getBoundingClientRect().height), metaH: Math.round(meta.getBoundingClientRect().height), ellipsis: cs.textOverflow === 'ellipsis' && cs.whiteSpace === 'nowrap', title: !!meta.getAttribute('title'), meterH: m ? Math.round(m.getBoundingClientRect().height) : 0,
+          pctSameLine: !e.querySelector('[data-p]') || Math.abs(e.querySelector('[data-p]').getBoundingClientRect().top - head.getBoundingClientRect().top) < 8, name: e.getAttribute('data-src') };
+      }));
+      expect(rows.length).toBe(7);
+      for (const r of rows) { expect(r.h, r.name).toBeLessThanOrEqual(78); expect(r.headH, r.name).toBeLessThan(30); expect(r.metaH, r.name).toBeLessThan(24); expect(r.ellipsis, r.name).toBe(true); expect(r.title, r.name).toBe(true); expect(r.pctSameLine, r.name).toBe(true); if (r.meterH) expect(r.meterH, r.name).toBeLessThanOrEqual(6); }
+    });
+  }
+
+  test('ความสูงหน้า 390px ตอนมี seed ชุดเดิม ≤ 3,200px (เดิม ~4,966) และ 360px ไม่เกิน 3,300px · ว่าง ≤ 1,800px', async ({ page, browser }) => {
+    await openHome(page, { width: 390 });
+    await page.waitForSelector('#studyList [data-p]');
+    const h390 = await page.evaluate(() => document.documentElement.scrollHeight);
+    expect(h390, 'scrollHeight 390px').toBeLessThanOrEqual(3200);
+    const p2 = await page.context().newPage();
+    await openHome(p2, { width: 360 });
+    await p2.waitForSelector('#studyList [data-p]');
+    expect(await p2.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(3300);
+    const p3 = await (await browser.newContext()).newPage(); // context ใหม่ — ไม่ใช้ storage ที่ seed ไว้
+    await openHome(p3, { width: 390, data: false });
+    expect(await p3.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(1800);
+  });
+
+  test('กฎตรวจใหม่จับของจริง: ตัวเลขถูกตัดกลางตัว (mobileClip) + ปุ่มท้ายแถวตกใต้เนื้อหา (mobileRowBreak) · ของที่ถูกต้องไม่ถูกนับ', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await page.setContent(`<body style="margin:0;font:16px sans-serif">
+      <div style="width:44px;overflow-wrap:anywhere;font-weight:700">118/76 mmHg</div>
+      <div style="width:44px;white-space:nowrap">118/76</div>
+      <div class="list-row" style="display:flex;flex-wrap:wrap;width:300px"><div class="grow" style="width:280px">ข้อความ</div><div class="end"><button>เปิด</button></div></div>
+      <div class="list-row" style="display:flex;width:300px"><div class="grow">ข้อความ</div><div class="end"><button>เปิด</button></div></div></body>`);
+    await page.addScriptTag({ path: AUDIT_JS });
+    const r = await page.evaluate(() => window.__tanotAudit.mobile({}));
+    expect(r.mobileClip.filter((x) => x.kind === 'numberBreak').map((x) => x.token)).toEqual(['118/76']);
+    expect(r.mobileRowBreak).toHaveLength(1);
   });
 });
 

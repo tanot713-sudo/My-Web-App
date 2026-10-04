@@ -21,7 +21,7 @@
     th: {
       title: 'Tanot — วันนี้', morning: 'สวัสดีตอนเช้า', afternoon: 'สวัสดีตอนบ่าย', evening: 'สวัสดีตอนเย็น',
       qExpense: 'รายจ่าย', qIncome: 'รายรับ', qReview: 'ทบทวน', qSearch: 'ค้นหา', qLayout: 'จัดหน้าแรก',
-      hTodo: 'ต้องทำวันนี้', todoNone: 'ไม่มีเรื่องค้าง', todoCount: '{n} เรื่อง',
+      hTodo: 'ต้องทำวันนี้', todoNone: 'ไม่มีเรื่องค้าง', todoCount: '{n} เรื่อง', todoAll: 'ดูทั้งหมด ({n})', todoLess: 'แสดงน้อยลง',
       hSpend: 'เงินเดือนนี้', lBudget: 'รายรับรายจ่าย', income: 'รายรับ', expense: 'รายจ่าย', balance: 'คงเหลือ', emptySpend: 'ยังไม่มีรายการเดือนนี้', openBudget: 'เปิดรายรับรายจ่าย',
       unknownCat: 'ไม่ทราบหมวดหมู่', usedPct: 'ใช้ไป {pct}% ของงบ', budgetOf: '{spent} / {budget}', shareOf: '{pct}% ของรายจ่าย',
       hStock: 'พอร์ตลงทุน', lInvest: 'การลงทุน', emptyInvest: 'ยังไม่มีสินทรัพย์ลงทุน', openInvest: 'เปิดหน้าการลงทุน', changeToday: 'วันนี้', change30: '30 วัน',
@@ -54,7 +54,7 @@
     en: {
       title: 'Tanot — Today', morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening',
       qExpense: 'Expense', qIncome: 'Income', qReview: 'Review', qSearch: 'Search', qLayout: 'Customise home',
-      hTodo: 'To do today', todoNone: 'Nothing pending', todoCount: '{n} items',
+      hTodo: 'To do today', todoNone: 'Nothing pending', todoCount: '{n} items', todoAll: 'View all ({n})', todoLess: 'Show less',
       hSpend: "This month's money", lBudget: 'Income & expenses', income: 'Income', expense: 'Expenses', balance: 'Balance', emptySpend: 'No entries this month', openBudget: 'Open income & expenses',
       unknownCat: 'Unknown category', usedPct: '{pct}% of budget used', budgetOf: '{spent} / {budget}', shareOf: '{pct}% of spending',
       hStock: 'Investment portfolio', lInvest: 'Investing', emptyInvest: 'No investment assets yet', openInvest: 'Open investing', changeToday: 'Today', change30: '30 days',
@@ -138,7 +138,8 @@
     if (!s.any) { el.innerHTML = emptyHtml('wallet', T('emptySpend'), 'budget.html', T('openBudget')); return; }
     var catName = {};
     cats.forEach(function (c) { if (c) catName[c.id] = I18N ? I18N.catName(c) : c.name; });
-    var html = '<div class="strip three">' +
+    var vals = [baht(s.income), baht(s.expense), baht(Math.abs(s.balance))], long = Math.max.apply(null, vals.map(function (x) { return x.length; })) > 8; // ยาวเกิน ฿xxx,xxx → เรียงแถวบนมือถือ
+    var html = '<div class="strip three' + (long ? ' long' : '') + '">' +
       '<div class="strip-cell"><span class="k">' + esc(T('income')) + '</span><span class="v" data-s="income">' + baht(s.income) + '</span></div>' +
       '<div class="strip-cell"><span class="k">' + esc(T('expense')) + '</span><span class="v" data-s="expense">' + baht(s.expense) + '</span></div>' +
       '<div class="strip-cell"><span class="k">' + esc(T('balance')) + '</span><span class="v ' + (s.balance < 0 ? 'down' : '') + '" data-s="balance">' + (s.balance < 0 ? '−' : '') + baht(Math.abs(s.balance)) + '</span></div></div>';
@@ -288,10 +289,12 @@
     else if (r.done) info.push(T('doneN', { n: num(r.done) }));
     else if ((sum.bySrc[r.src] || 0) > 0) info.push(T('xpN', { n: num(sum.bySrc[r.src]) }));
     if (r.lastOpen) info.push(T('openedAt', { when: ago(r.lastOpen) }));
+    var metaText = info.join(' · ');
     return '<div class="list-row" data-src="' + r.src + '"' + (r.langId ? ' data-lang="' + esc(r.langId) + '"' : '') + '><span class="lead">' + icon(S.icon) + '</span>' +
-      '<div class="grow"><div class="title" data-i18n-skip>' + esc(title) + '</div><div class="meta">' + esc(info.join(' · ')) + '</div>' +
-      (r.pct != null ? meterHtml(r.pct, '', title) : '') + '</div>' +
-      '<div class="end">' + (r.pct != null ? '<span class="amt" data-p>' + r.pct + '%</span>' : '') + '<a class="btn sm" href="' + esc(href) + '">' + esc(T('cont')) + '</a></div></div>';
+      '<div class="grow"><div class="row-head"><span class="title" data-i18n-skip>' + esc(title) + '</span>' + (r.pct != null ? '<span class="amt" data-p>' + r.pct + '%</span>' : '') + '</div>' +
+      '<div class="meta one" data-i18n-skip title="' + esc(metaText) + '">' + esc(metaText) + '</div>' +
+      (r.pct != null ? meterHtml(r.pct, 'sm', title) : '') + '</div>' +
+      '<div class="end"><a class="btn sm" href="' + esc(href) + '">' + esc(T('cont')) + '</a></div></div>';
   }
   function renderLearn() {
     var el = $('learnBody');
@@ -304,12 +307,12 @@
     var pct = Math.min(100, sum.goal ? Math.round(sum.todayXp / sum.goal * 100) : 0);
     var dots = HM.weekDots(sum.recent, st), wd = I18N ? I18N.weekdays('short') : ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
     var html = '<div class="strip four" data-l="strip">' +
-      '<div class="strip-cell"><span class="k">' + esc(T('streak')) + '</span><span class="v" data-l="streak">' + icon('flame', st.count ? 'flame' : '') + ' ' + num(st.count) + ' <small>' + esc(T('days')) + '</small></span></div>' +
+      '<div class="strip-cell"><span class="k">' + esc(T('streak')) + '</span><span class="v" data-l="streak">' + icon('flame', st.count ? 'flame' : '') + '<span class="n">' + num(st.count) + '</span> <small>' + esc(T('days')) + '</small></span></div>' +
       '<div class="strip-cell"><span class="k">' + esc(T('week7')) + '</span><span class="dots" data-l="dots">' + dots.map(function (d) {
         var dt = new Date(d.d + 'T00:00:00');
         return '<span class="dotcol"><i class="dot ' + d.state + '" role="img" aria-label="' + esc(T('dot.' + d.state)) + '" title="' + esc(T('dot.' + d.state)) + '"></i><small>' + esc(wd[dt.getDay()]) + '</small></span>';
       }).join('') + '</span></div>' +
-      '<div class="strip-cell"><span class="k">' + esc(T('xpToday')) + '</span><span class="v" data-l="xp">' + num(sum.todayXp) + ' <small>/ ' + num(sum.goal) + '</small></span>' + meterHtml(pct, sum.goalMet ? 'ok' : '', T('xpToday')) + '</div>' +
+      '<div class="strip-cell"><span class="k">' + esc(T('xpToday')) + '</span><span class="v" data-l="xp"><span class="n">' + num(sum.todayXp) + '</span> <small>/ ' + num(sum.goal) + '</small></span>' + meterHtml(pct, sum.goalMet ? 'ok' : '', T('xpToday')) + '</div>' +
       '<div class="strip-cell"><span class="k">' + esc(T('cardsDue')) + '</span><span class="v" data-l="due">' + num(total) + '</span><a class="btn sm primary" href="review.html">' + esc(T('review')) + '</a></div></div>';
     if (st2.rows.length) html += '<div class="list plain cols-2" id="studyList">' + st2.rows.map(function (r) { return rowHtml(r, sum); }).join('') + '</div>';
     el.innerHTML = html;
@@ -327,9 +330,9 @@
     var cls = function (f) { var st = HC.status(s.latest[f].v, HC.rangeOf(f, ranges)); return st === 'err' ? 'err' : st === 'warn' ? 'warn' : ''; };
     var bpCls = s.latest.sys && s.latest.dia ? (cls('sys') === 'err' || cls('dia') === 'err' ? 'err' : cls('sys') || cls('dia')) : '';
     var html = '<div class="strip two">' +
-      '<div class="strip-cell"><span class="k">' + esc(T('weight')) + '</span><span class="v" data-h="weight">' + (w ? num(w.v, HC.METRICS.weight.dec) + ' <small>' + esc(T('kg')) + '</small>' : '—') + '</span>' +
+      '<div class="strip-cell"><span class="k">' + esc(T('weight')) + '</span><span class="v" data-h="weight">' + (w ? '<span class="n">' + num(w.v, HC.METRICS.weight.dec) + '</span> <small>' + esc(T('kg')) + '</small>' : '—') + '</span>' +
       '<span class="s" data-h="weightChange">' + (wc ? esc(T('weightChange', { d: (wc.delta > 0 ? '+' : wc.delta < 0 ? '−' : '') + num(Math.abs(wc.delta), 1) })) : '') + '</span></div>' +
-      '<div class="strip-cell"><span class="k">' + esc(T('bp')) + '</span><span class="v ' + bpCls + '" data-h="bp">' + (s.latest.sys && s.latest.dia ? num(s.latest.sys.v) + '/' + num(s.latest.dia.v) + ' <small>mmHg</small>' : '—') + '</span><span class="s"></span></div></div>';
+      '<div class="strip-cell"><span class="k">' + esc(T('bp')) + '</span><span class="v ' + bpCls + '" data-h="bp">' + (s.latest.sys && s.latest.dia ? '<span class="n">' + num(s.latest.sys.v) + '/' + num(s.latest.dia.v) + '</span> <small>mmHg</small>' : '—') + '</span><span class="s"></span></div></div>';
     var ws = HC.workoutSummary(workouts, rd('tanot:health:settings', {}), Date.now());
     html += '<div class="card-foot" data-h="workout"><div class="sub">' + esc(T('workout', { a: num(ws.weekMinutes, 1), b: num(ws.goal) })) + '</div>' +
       meterHtml(Math.min(100, ws.pct), ws.weekMinutes >= ws.goal ? 'ok' : '', T('workoutAria')) + '</div>';
@@ -453,12 +456,19 @@
     return '<div class="todo-row" data-kind="' + t.kind + '" data-urg="' + t.urgency + '"><span class="pill ' + t.urgency + '">' + esc(t.pill) + '</span>' +
       '<div class="grow"><div class="title" data-i18n-skip>' + esc(t.title) + '</div>' + (t.meta ? '<div class="meta" data-i18n-skip>' + esc(t.meta) + '</div>' : '') + '</div><div class="end">' + act + '</div></div>';
   }
+  /* แสดง 5 รายการแรก (ตามความเร่ง) บนมือถือ / 8 บนจอกว้าง แล้วปุ่ม "ดูทั้งหมด (n)" กางเพิ่มในที่ */
+  var todoOpen = false, todoCtx = null, wideMq = window.matchMedia ? window.matchMedia('(min-width: 900px)') : null;
+  function todoLimit() { return wideMq && wideMq.matches ? 8 : 5; }
   function renderTodo(ctx) {
-    var items = collectTodos(ctx), el = $('todoBody'), badge = $('todoCount');
+    if (ctx) todoCtx = ctx;
+    if (!todoCtx) return;
+    var items = collectTodos(todoCtx), el = $('todoBody'), badge = $('todoCount'), limit = todoLimit();
     badge.hidden = !items.length;
     badge.textContent = items.length ? T('todoCount', { n: num(items.length) }) : '';
-    el.innerHTML = items.length ? '<div class="list plain todo-list">' + items.map(todoRowHtml).join('') + '</div>'
-      : '<div class="todo-none">' + icon('circle-check') + '<span>' + esc(T('todoNone')) + '</span></div>';
+    if (!items.length) { el.innerHTML = '<div class="todo-none">' + icon('circle-check') + '<span>' + esc(T('todoNone')) + '</span></div>'; return; }
+    var more = items.length > limit, shown = more && !todoOpen ? items.slice(0, limit) : items;
+    el.innerHTML = '<div class="list plain todo-list">' + shown.map(todoRowHtml).join('') + '</div>' +
+      (more ? '<button class="btn ghost sm todo-toggle" type="button" data-act="todo-toggle" aria-expanded="' + todoOpen + '">' + esc(todoOpen ? T('todoLess') : T('todoAll', { n: num(items.length) })) + '</button>' : '');
   }
 
   /* ── งาน PM (IndexedDB): เลยกำหนด/ถึงกำหนด ── */
@@ -551,6 +561,7 @@
     if (!b) return;
     if (b.getAttribute('data-act') === 'take') { takeDose(b.getAttribute('data-med'), b.getAttribute('data-time')); renderAll(); }
     else if (b.getAttribute('data-act') === 'cook') { cookSlot(b.getAttribute('data-slot')); renderAll(); }
+    else if (b.getAttribute('data-act') === 'todo-toggle') { todoOpen = !todoOpen; renderTodo(); }
   });
 
   var qaLoading = null;
@@ -569,6 +580,7 @@
   }
 
   renderAll();
+  if (wideMq && wideMq.addEventListener) wideMq.addEventListener('change', function () { renderTodo(); });
   if (window.OME_LANG) window.OME_LANG.onChange(function () { renderAll(); if ($('layoutDialog').open) renderLayoutDialog(); });
   window.addEventListener('tanot:quickadd', renderSoon);
   window.addEventListener('tanot:learn', renderSoon);

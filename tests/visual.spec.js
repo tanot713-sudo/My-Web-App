@@ -83,8 +83,20 @@ for (const p of PAGES) {
 /* หน้าแรก (มีข้อมูลครบทุกแหล่ง) และหน้าหมวดที่มี "ใช้ล่าสุด" — ทั้งหน้า (fullPage) เพราะโครงสร้างอยู่ทั้งความยาวหน้า
    ข้อมูลจาก tests/home-fixtures.js (นาฬิกาตรึง พุธ 30 ก.ย. 2569 10:30) */
 const { seedFull, NOW, NOW_MS } = require('./home-fixtures');
-for (const w of WIDTHS) {
+for (const w of [...WIDTHS, 360]) {
   for (const theme of THEMES) {
+    if (w === 360) { // 360px: หน้าแรกอย่างเดียว (ตอนว่างและตอนมีข้อมูล) — กฎมือถือรอบ 3 ตรวจที่ 360 ด้วย
+      test(`visual: index-360-${theme}.png`, async ({ page }) => {
+        await prepare(page, { theme });
+        await page.clock.setFixedTime(NOW);
+        await page.setViewportSize({ width: 360, height: 800 });
+        await page.goto('/index.html', { waitUntil: 'load' });
+        await page.waitForSelector('nav.ome-nav');
+        await page.evaluate(() => document.fonts && document.fonts.ready);
+        await page.waitForTimeout(800);
+        await expect(page).toHaveScreenshot(`index-360-${theme}.png`, { fullPage: true, caret: 'hide' });
+      });
+    }
     test(`visual: index-data-${w}-${theme}.png`, async ({ page }) => {
       await prepare(page, { theme });
       await page.addInitScript(seedFull);

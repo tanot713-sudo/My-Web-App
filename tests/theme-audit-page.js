@@ -160,8 +160,11 @@
       if (opts.mobile && !el.matches('.segmented')) {
         var rect = el.getBoundingClientRect();
         var isTextLink = tag === 'a' && !el.matches('.btn');
-        if (!isTextLink && Math.min(rect.width, rect.height) < 39.5) {
-          out.targetSize.push({ sel: sel, text: snippet(el), w: Math.round(rect.width), h: Math.round(rect.height) });
+        /* พื้นที่กดจริง = กล่องของตัวเองหรือ ::after ล่องหนที่ขยายออก (ปุ่มเล็กในแถว) — ใช้ค่าที่ใหญ่กว่า */
+        var pcs = getComputedStyle(el, '::after'), pw = pcs.position === 'absolute' && pcs.content !== 'none' ? parseFloat(pcs.width) : 0, ph = pcs.position === 'absolute' && pcs.content !== 'none' ? parseFloat(pcs.height) : 0;
+        var hw = Math.max(rect.width, pw || 0), hh = Math.max(rect.height, ph || 0);
+        if (!isTextLink && Math.min(hw, hh) < 39.5) {
+          out.targetSize.push({ sel: sel, text: snippet(el), w: Math.round(hw), h: Math.round(hh) });
         }
       }
     }
@@ -270,7 +273,9 @@
      mobileFont     ข้อความเนื้อหา < 14px · ข้อความรอง/ป้ายเล็ก/ปุ่ม < 12px · h1 > 28px · h2 > 22px
      mobileOverflow ตัวหน้าเลื่อนแนวนอน หรือ element ที่เลยขอบจอ (ยกเว้นอยู่ใน container ที่ overflow-x เป็น auto/scroll/hidden เอง)
      mobileClip     ข้อความถูกตัด (scrollWidth > clientWidth ใน container ที่ overflow ไม่ visible) โดยไม่มี ellipsis และไม่มี title/aria-label
+                    + ตัวเลขที่ถูกตัดกลางตัวข้ามบรรทัด (Range.getClientRects ของก้อนตัวเลขมากกว่า 1 บรรทัด เช่น "118/7 | 6")
      mobileCrowd    เป้ากด 2 อันที่ขอบห่างกัน < 8px (ยกเว้นลิงก์ในบรรทัด, ตัวควบคุมที่ติดกันโดยออกแบบ (.segmented/.lang-toggle), แถวกว้าง ≥ 60% ของจอและสูง ≥ 44px เรียงซ้อนกัน)
+     mobileRowBreak ปุ่มท้ายแถว (.list-row/.todo-row ที่มี .end) ตกลงไปอยู่ใต้เนื้อหา (ปุ่มต้องอยู่บรรทัดเดียวกันชิดขวา)
      mobileAlign    พี่น้อง (.card, .grid > *, .list-row, .tile, .kpi, .todo-row) ที่เรียงซ้อนแล้วขอบซ้าย/ขวาไม่ตรง (> 2px)
                     หรือเรียงแถวเดียวกันแล้วกว้างไม่เท่ากัน (> 2px) / แถวที่สองยื่นพ้นขอบแถวแรก
      ข้อความใน shell (nav/ลิ้นชัก/ฟุตเตอร์) ไม่นับ เว้นแต่ opts.shell = true (ใช้กับหน้าแรกหน้าเดียว) */
@@ -345,6 +350,29 @@
       if (ellipsis || titled) return;
       bad.push({ sel: selector(el), text: snippet(el), w: el.clientWidth, sw: el.scrollWidth, h: el.clientHeight, sh: el.scrollHeight });
     });
+    return bad.concat(numberBreaks(opts));
+  }
+  /* ตัวเลขที่ถูกตัดกลางตัวข้ามบรรทัด (เช่น "118/7 | 6", "฿24,9 | 40") — ดูจาก Range.getClientRects ของแต่ละก้อนตัวเลขในข้อความ: มากกว่า 1 บรรทัด = ผิด
+     แก้ด้วย white-space:nowrap ที่ก้อนตัวเลข (.n) ให้หน่วยขึ้นบรรทัดใหม่ทั้งก้อน · นับรวมใน mobileClip */
+  var NUM_TOKEN = /[฿$€£]?\d[\d.,:\/%]*\d%?|[฿$€£]?\d/g;
+  function numberBreaks(opts) {
+    var bad = [], walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT), n = 0;
+    for (var t = walker.nextNode(); t && n < 600; t = walker.nextNode()) {
+      var txt = t.nodeValue;
+      if (!/\d/.test(txt)) continue;
+      var el = t.parentElement;
+      if (!el || el.closest('script,style,noscript,svg,canvas,option,textarea,[data-audit-skip]') || !visible(el) || skipShell(el, opts)) continue;
+      NUM_TOKEN.lastIndex = 0;
+      var m;
+      while ((m = NUM_TOKEN.exec(txt)) && n < 600) {
+        n++;
+        var r = document.createRange();
+        r.setStart(t, m.index); r.setEnd(t, m.index + m[0].length);
+        var rects = [].filter.call(r.getClientRects(), function (q) { return q.width > 0.5 && q.height > 0.5; }), tops = [];
+        rects.forEach(function (q) { if (!tops.some(function (y) { return Math.abs(y - q.top) < q.height * 0.5; })) tops.push(q.top); });
+        if (tops.length > 1) { bad.push({ sel: selector(el), text: snippet(el), kind: 'numberBreak', token: m[0], lines: tops.length }); break; }
+      }
+    }
     return bad;
   }
   var TAP = 'button,a[href],input:not([type=hidden]),select,textarea,summary,[role=button],[role=tab],[role=switch],[role=checkbox]';
@@ -416,9 +444,22 @@
     });
     return bad.slice(0, 60);
   }
+  /* ปุ่มท้ายแถว (.list-row / .todo-row ที่มี .end) ตกลงไปอยู่ใต้เนื้อหา = ผิด — ปุ่มต้องอยู่บรรทัดเดียวกับเนื้อหา ชิดขวา (นับ 1 ต่อแถว) */
+  function mobileRowBreak(opts) {
+    var bad = [];
+    document.querySelectorAll('.list-row,.todo-row').forEach(function (row) {
+      if (!visible(row) || skipShell(row, opts)) return;
+      var end = [].filter.call(row.children, function (c) { return c.classList.contains('end'); })[0];
+      var content = [].filter.call(row.children, function (c) { return c.classList.contains('grow'); })[0];
+      if (!end || !content || !end.offsetWidth || !content.offsetWidth) return;
+      var e = end.getBoundingClientRect(), c = content.getBoundingClientRect();
+      if (e.top >= c.bottom - 1) bad.push({ sel: selector(row), text: snippet(row), endTop: Math.round(e.top), contentBottom: Math.round(c.bottom) });
+    });
+    return bad.slice(0, 60);
+  }
   function mobile(opts) {
     opts = opts || {};
-    return { mobileFont: mobileFont(opts), mobileOverflow: mobileOverflow(opts), mobileClip: mobileClip(opts), mobileCrowd: mobileCrowd(opts), mobileAlign: mobileAlign(opts) };
+    return { mobileFont: mobileFont(opts), mobileOverflow: mobileOverflow(opts), mobileClip: mobileClip(opts), mobileCrowd: mobileCrowd(opts), mobileAlign: mobileAlign(opts), mobileRowBreak: mobileRowBreak(opts) };
   }
 
   /* ── ตัวกดสำรวจ (crawler) — หาเฉพาะแท็บ/segmented/toggle/ปุ่มเปิด dialog ที่ปลอดภัย ── */

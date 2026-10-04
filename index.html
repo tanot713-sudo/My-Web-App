@@ -32,12 +32,34 @@
 .head-text .muted{margin:0;font-size:var(--ome-fs-sm)}
 .head-text h1{margin:0}
 .quick{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2);margin-bottom:var(--ome-sp-4)}
-.home-big{font-size:var(--ome-fs-3xl);font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.home-big{font-size:var(--ome-fs-3xl);font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sub .n{white-space:nowrap}
 .sub{font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
 .up{color:var(--ome-ok-ink)}
 .down{color:var(--ome-err-ink)}
 .ome-icon.flame{color:var(--ome-warn)}
 .home-foot .row{gap:var(--ome-sp-2)}
+/* มือถือ: กระชับระยะ (หน้ายาวเกินไป) — ค่าเฉพาะหน้านี้ */
+@media (max-width:700px){
+  .page{padding-top:var(--ome-sp-4)}
+  .page-head{margin-bottom:var(--ome-sp-3)}
+  .quick{gap:var(--ome-sp-2);margin-bottom:var(--ome-sp-3)}
+  .quick .btn{padding:0 10px;gap:6px}
+  .quick #qaSearch{padding:0;width:40px}
+  .quick #qaSearch .lbl,.quick #qaReview .ic{display:none}
+  /* "ไม่อยู่บนหน้าแรก": ป้าย + ปุ่มจัดหน้าแรกบรรทัดบน · ลิงก์ลงบรรทัดถัดไป */
+  .home-foot .row{row-gap:var(--ome-sp-2)}
+  .home-foot #hMore{order:1}
+  .home-foot .spacer{order:2}
+  .home-foot #qaLayout{order:3}
+  .home-foot #moreLinks{order:4;flex-basis:100%}
+  #homeGrid{gap:var(--ome-sp-3)}
+  #homeGrid .card.fill{padding:14px;gap:var(--ome-sp-2)}
+  #homeGrid .card-fill-body{gap:var(--ome-sp-2)}
+  #investBody .spark{height:44px}
+  @media (max-width:380px){.quick .btn{padding:0 8px}}
+  .home-big{font-size:var(--ome-fs-2xl)}
+}
 .home-foot .lead-label{font-size:var(--ome-fs-base);color:var(--ome-text-2);font-weight:600}
 </style>
 </head>
@@ -53,8 +75,8 @@
   <div class="quick">
     <button class="btn primary" type="button" id="qaExpense"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="today.qExpense">รายจ่าย</span></button>
     <button class="btn" type="button" id="qaIncome"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="today.qIncome">รายรับ</span></button>
-    <a class="btn" href="review.html" id="qaReview"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-refresh-cw"/></svg><span data-i18n="today.qReview">ทบทวน</span><span class="badge accent" id="qaReviewN">0</span></a>
-    <button class="btn" type="button" id="qaSearch"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-search"/></svg><span data-i18n="today.qSearch">ค้นหา</span></button>
+    <a class="btn" href="review.html" id="qaReview"><svg class="ome-icon ic" aria-hidden="true"><use href="icons.svg#i-refresh-cw"/></svg><span data-i18n="today.qReview">ทบทวน</span><span class="badge accent" id="qaReviewN">0</span></a>
+    <button class="btn" type="button" id="qaSearch" data-i18n-attr="aria-label:today.qSearch" aria-label="ค้นหา"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-search"/></svg><span class="lbl" data-i18n="today.qSearch">ค้นหา</span></button>
   </div>
 
   <div class="grid" id="homeGrid">

@@ -554,8 +554,11 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 :where([data-layout]) .strip-cell{display:flex;flex-direction:column;align-items:flex-start;gap:var(--ome-sp-1);min-width:0;padding:var(--ome-sp-3);
   background:var(--ome-surface-2);border-radius:var(--ome-radius-md)}
 :where([data-layout]) .strip-cell .k{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
-:where([data-layout]) .strip-cell .v{display:flex;align-items:baseline;gap:5px;font-size:var(--ome-fs-xl);font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-:where([data-layout]) .strip.three .v{font-size:var(--ome-fs-lg)}
+:where([data-layout]) .strip{container-type:inline-size}
+:where([data-layout]) .strip-cell .v{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:5px;font-size:var(--ome-fs-xl);font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums;white-space:nowrap}
+:where([data-layout]) .strip.three .v{font-size:clamp(14px, 6cqw, 18px)}
+/* ตัวเลข/หน่วย: .n = ก้อนที่ห้ามตัดกลางตัว (118/76, ฿24,940) — หน่วยที่ตามมาขึ้นบรรทัดใหม่ทั้งก้อนได้ */
+:where([data-layout]) .n{white-space:nowrap}
 :where([data-layout]) .strip-cell .v small{font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2)}
 :where([data-layout]) .strip-cell .v .ome-icon{align-self:center}
 :where([data-layout]) .strip-cell .v.warn{color:var(--ome-warn-ink)}
@@ -564,9 +567,12 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 :where([data-layout]) .strip-cell > .meter{align-self:stretch;margin-top:auto}
 :where([data-layout]) .strip-cell > .btn{margin-top:auto}
 @media (max-width:900px){:where([data-layout]) .strip.four{--cols:2}}
-@media (max-width:520px){
-  :where([data-layout]) .strip.three{--cols:1}
-  :where([data-layout]) .strip.three .strip-cell{flex-direction:row;align-items:baseline;justify-content:space-between}
+@media (max-width:700px){
+  :where([data-layout]) .strip{gap:var(--ome-sp-2)}
+  :where([data-layout]) .strip-cell{padding:var(--ome-sp-2) 10px}
+  /* .long = ตัวเลขยาวเกินกว่าจะอยู่ช่องละ 1/3 (หลักแสนขึ้นไป) → เรียงเป็นแถว ป้ายซ้าย ค่าขวา — ตัวเลขห้ามขาด/ล้น */
+  :where([data-layout]) .strip.three.long{--cols:1}
+  :where([data-layout]) .strip.three.long .strip-cell{flex-direction:row;align-items:baseline;justify-content:space-between}
 }
 
 :where([data-layout]) .dots{display:flex;justify-content:space-between;gap:2px;align-self:stretch}
@@ -586,21 +592,38 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 :where([data-layout]) .list.plain{background:transparent;border:0;border-radius:0;box-shadow:none;overflow:visible}
 :where([data-layout]) .list.plain .list-row{padding-left:0;padding-right:0}
 :where([data-layout]) .list-row .grow > .meter{margin-top:6px}
+:where([data-layout]) .row-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--ome-sp-2)}
+:where([data-layout]) .row-head .title{min-width:0}
+:where([data-layout]) .list-row .meta.one{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* จอแคบ: แถวรายการที่มีปุ่มท้ายในกล่อง (.list.plain) ปุ่มอยู่บรรทัดเดียวกันชิดขวา ข้อความตัดบรรทัดในคอลัมน์ของมันเอง · ปุ่มเล็กแต่พื้นที่กด ≥ 40px (::after ล่องหน) */
+@media (max-width:640px){
+  :where([data-layout]) .list.plain .list-row:has(> .end){flex-wrap:nowrap;gap:var(--ome-sp-2)}
+  :where([data-layout]) .list.plain .list-row:has(> .end) > .end{width:auto;padding-left:0;flex-wrap:nowrap;justify-content:flex-end}
+  :where([data-layout]) .list.plain .list-row{min-height:48px;padding-top:var(--ome-sp-2);padding-bottom:var(--ome-sp-2)}
+  :where([data-layout]) .list.plain .list-row .lead{width:32px;height:32px}
+  :where([data-layout]) :is(.todo-row,.list.plain .list-row) .btn:not(.icon){height:32px;position:relative}
+  :where([data-layout]) :is(.todo-row,.list.plain .list-row) .btn:not(.icon)::after{content:"";position:absolute;inset:-5px -2px}
+}
 @media (min-width:900px){
   :where([data-layout]) .list.plain.cols-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--ome-sp-6)}
   :where([data-layout]) .list.plain.cols-2 > .list-row:nth-child(2){border-top-width:0}
 }
 
-:where([data-layout]) .todo-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:var(--ome-sp-3);
+:where([data-layout]) .todo-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"pill body act";align-items:center;gap:var(--ome-sp-3);
   padding:var(--ome-sp-3) 0;border-top:1px solid var(--ome-border)}
+:where([data-layout]) .todo-row > .pill{grid-area:pill}
+:where([data-layout]) .todo-row > .grow{grid-area:body;min-width:0}
+:where([data-layout]) .todo-row > .end{grid-area:act}
 :where([data-layout]) .todo-row:first-child{border-top:0}
 :where([data-layout]) .todo-row .title{font-weight:600;overflow-wrap:anywhere}
 :where([data-layout]) .todo-row .meta{font-size:var(--ome-fs-sm);color:var(--ome-text-2);overflow-wrap:anywhere}
 :where([data-layout]) .todo-row .end{display:flex;align-items:center;gap:var(--ome-sp-2)}
+/* จอแคบ: ปุ่มอยู่บรรทัดเดียวกับเนื้อหา ชิดขวาเสมอ (คอลัมน์ [เนื้อหา 1fr][ปุ่ม auto]) — pill อยู่บรรทัดบนของข้อความ ไม่ตกลงไปใต้เนื้อหา */
 @media (max-width:640px){
-  :where([data-layout]) .todo-row{grid-template-columns:auto minmax(0,1fr)}
-  :where([data-layout]) .todo-row .end{grid-column:2}
+  :where([data-layout]) .todo-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"pill act" "body act";gap:var(--ome-sp-1) var(--ome-sp-3);padding:10px 0}
+  :where([data-layout]) .todo-row > .pill{justify-self:start}
 }
+:where([data-layout]) .todo-toggle{margin-top:var(--ome-sp-2);align-self:flex-start}
 :where([data-layout]) .todo-none{display:flex;align-items:center;gap:var(--ome-sp-2);color:var(--ome-text-2)}
 }
 
