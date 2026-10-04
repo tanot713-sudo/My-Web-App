@@ -1,0 +1,168 @@
+// @ts-check
+// ตัวตรวจธีม + ภาษา แบบ runtime (งานแก้ธีม รอบ 1) — ทุกหน้าในเมนู ด้วย storage จำลอง + ปิดเน็ตแบบ smoke.spec.js
+//   ต่อหน้า × 390/1100 × สว่าง/มืด:
+//     axe            — axe-core เฉพาะกฎ color-contrast (จำนวน node ที่ไม่ผ่าน)
+//     contrast       — ตัวอักษรบนปุ่ม/แท็บ/ช่องกรอกที่มองเห็น ≥ 4.5:1 (ตัวใหญ่ ≥ 3:1)
+//     controlBorder  — ขอบ input/select/ปุ่ม outline/segmented ≥ 3:1 กับพื้นข้างๆ (WCAG 1.4.11)
+//     nonCentral     — ปุ่ม/ช่องกรอกที่ไม่ได้ใช้คอมโพเนนต์กลาง (.btn/.tab/.chip/.field … ใน theme.css)
+//     targetSize     — (390px) เป้ากด < 40px
+//     textOnImage    — ตัวอักษรบนพื้นหน้าโดยตรงทับภาพพื้นหลัง (data-bg) < 4.5:1 วัดจากพิกเซลจริง
+//   ต่อหน้า (1100 สว่าง): crawl — กดแท็บ/segmented/toggle/ปุ่มเปิด dialog ที่ปลอดภัย แล้วต้องไม่มี console error /
+//     pageerror / request ไป /api (ไม่มี mock) → crawlErrors
+//   ต่อหน้า (ome:lang = en): thaiInEn — ข้อความไทยที่มองเห็นใน UI (ยกเว้น [data-i18n-skip])
+//   + สลับภาษาสดจากแผงตั้งค่า (หน้าที่มี window.omeApplyLang): ข้อความเปลี่ยนโดยไม่โหลดหน้าใหม่
+// ratchet: เทียบ tests/theme-baseline.json ช่อง "runtime" — ล้มเฉพาะตัวเลขที่ "เพิ่มขึ้น" (คีย์ใหม่ = baseline 0)
+// รายงาน: tests/theme-report/report.json + report.html + summary.md (ไม่ commit — CI อัปโหลดเป็น artifact)
+//   สร้างโดย theme-report.js (globalTeardown) จากไฟล์ย่อยใน tests/theme-report/parts/
+// อัปเดต baseline หลังแก้หน้า: THEME_AUDIT_UPDATE=1 npx playwright test theme-audit.spec.js  (ลดลงอย่างเดียว)
+//   ตั้งตามค่าจริง (ครั้งแรก/ตั้งใจ): THEME_AUDIT_UPDATE=accept …
+const { test, expect } = require('@playwright/test');
+const fs = require('fs');
+const path = require('path');
+const { menuPages, prepare } = require('./helpers');
+
+const PAGES = menuPages();
+const AUDIT_JS = path.join(__dirname, 'theme-audit-page.js');
+const AXE_JS = require.resolve('axe-core/axe.min.js');
+const PARTS = path.join(__dirname, 'theme-report', 'parts');
+const BASELINE = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'theme-baseline.json'), 'utf8')); } catch (e) { return {}; } })();
+const UPDATING = !!process.env.THEME_AUDIT_UPDATE;
+
+test.describe.configure({ timeout: 120000 });
+
+const slug = (s) => s.replace(/[^\w.-]+/g, '_').slice(0, 120);
+function writePart(key, page, config, metrics, samples) {
+  fs.mkdirSync(PARTS, { recursive: true });
+  fs.writeFileSync(path.join(PARTS, slug(key) + '.json'), JSON.stringify({ key, page, config, metrics, samples }));
+}
+/** ratchet: ล้มเมื่อเกิน baseline (ยังไม่มี runtime baseline เลย = ข้าม เพื่อสร้างครั้งแรก) */
+function ratchet(key, metrics, samples) {
+  if (UPDATING || !BASELINE.runtime) return;
+  const base = BASELINE.runtime[key] || {};
+  const worse = Object.keys(metrics).filter((k) => metrics[k] > (base[k] || 0))
+    .map((k) => `${k}: ${base[k] || 0} → ${metrics[k]}\n    ${(samples[k] || []).slice(0, 6).map((s) => JSON.stringify(s)).join('\n    ')}`);
+  expect(worse, `${key} แย่ลงจาก tests/theme-baseline.json (ดู tests/theme-report/report.html)`).toEqual([]);
+}
+
+async function open(page, p, { theme, width, lang }) {
+  const errors = await prepare(page, { theme });
+  if (lang) await page.addInitScript((l) => { try { localStorage.setItem('ome:lang', l); } catch (e) {} }, lang);
+  await page.setViewportSize({ width, height: 800 });
+  await page.clock.setFixedTime(new Date('2026-09-30T10:30:00+07:00'));
+  await page.goto('/' + p, { waitUntil: 'load' });
+  await page.waitForSelector('nav.ome-nav', { timeout: 30000 });
+  await page.evaluate(() => document.fonts && document.fonts.ready);
+  await page.waitForTimeout(400);
+  await page.addScriptTag({ path: AUDIT_JS });
+  return errors;
+}
+
+async function textOnImage(page) {
+  const hasBg = await page.evaluate(() => document.documentElement.hasAttribute('data-bg'));
+  if (!hasBg) return [];
+  const items = await page.evaluate(() => window.__tanotAudit.textOnPage());
+  if (!items.length) return [];
+  await page.addStyleTag({ content: '*,*::before,*::after{color:transparent!important;text-shadow:none!important;caret-color:transparent!important}' +
+    'html::before,html::after{color:initial!important} svg,img,canvas,video,input,select,textarea{visibility:hidden!important} ::placeholder{color:transparent!important}' });
+  const buf = await page.screenshot({ animations: 'disabled' });
+  const dpr = await page.evaluate(() => window.devicePixelRatio || 1);
+  return page.evaluate(([url, its, d]) => window.__tanotAudit.sampleOnImage(url, its, d), ['data:image/png;base64,' + buf.toString('base64'), items, dpr]);
+}
+
+for (const p of PAGES) {
+  for (const width of [390, 1100]) {
+    for (const theme of ['light', 'dark']) {
+      const key = `${p}|${width}|${theme}`;
+      test(`theme: ${key}`, async ({ page }) => {
+        await open(page, p, { theme, width });
+        const res = await page.evaluate((m) => window.__tanotAudit.audit({ mobile: m }), width < 700);
+        await page.addScriptTag({ path: AXE_JS });
+        const axe = await page.evaluate(async () => {
+          const r = await window.axe.run(document, { runOnly: { type: 'rule', values: ['color-contrast'] }, resultTypes: ['violations'] });
+          const out = [];
+          (r.violations || []).forEach((v) => v.nodes.forEach((n) => {
+            const d = (n.any && n.any[0] && n.any[0].data) || {};
+            out.push({ sel: (n.target || []).join(' '), ratio: d.contrastRatio, fg: d.fgColor, bg: d.bgColor, need: d.expectedContrastRatio });
+          }));
+          return out;
+        });
+        const toi = await textOnImage(page);
+        const samples = { axe, contrast: res.contrast, controlBorder: res.controlBorder, nonCentral: res.nonCentral, targetSize: res.targetSize, textOnImage: toi };
+        const metrics = {};
+        for (const k of Object.keys(samples)) if (k !== 'targetSize' || width < 700) metrics[k] = samples[k].length;
+        writePart(key, p, { width, theme }, metrics, samples);
+        ratchet(key, metrics, samples);
+      });
+    }
+  }
+
+  test(`crawl: ${p}`, async ({ page }) => {
+    const apiCalls = [];
+    await page.route('**/api/**', (route) => { apiCalls.push(route.request().method() + ' ' + new URL(route.request().url()).pathname); return route.abort(); });
+    const errors = await open(page, p, { theme: 'light', width: 1100 });
+    const startPath = new URL(page.url()).pathname;
+    const clicked = [];
+    const t0 = Date.now();
+    for (let round = 0; round < 2 && Date.now() - t0 < 25000; round++) {
+      const cands = await page.evaluate(() => window.__tanotAudit ? window.__tanotAudit.crawlCandidates() : []);
+      if (!cands.length) break;
+      for (const c of cands.slice(0, 60)) {
+        if (Date.now() - t0 > 25000) break;
+        const loc = page.locator(`[data-audit-crawl="${c.id}"]`);
+        try {
+          if (!(await loc.isVisible())) continue;
+          await loc.click({ timeout: 1500 });
+          clicked.push(c.text || c.sel);
+        } catch (e) { continue; }
+        await page.waitForTimeout(120);
+        if (new URL(page.url()).pathname !== startPath) { // ไม่ควรเกิด (ข้ามลิงก์แล้ว) — กลับหน้าเดิมแล้วหยุด
+          errors.push('crawl: ' + (c.text || c.sel) + ' พาไปหน้า ' + page.url());
+          break;
+        }
+        const n = await page.evaluate(() => window.__tanotAudit.closeOverlays());
+        if (!n && await page.locator('[role=dialog]:visible, .ome-pal:not([hidden])').count()) await page.keyboard.press('Escape');
+      }
+    }
+    const samples = { crawlErrors: errors.concat(apiCalls.map((a) => 'request ไม่มี mock: ' + a)).map((e) => ({ text: String(e).slice(0, 300) })) };
+    const metrics = { crawlErrors: samples.crawlErrors.length };
+    writePart(`${p}|crawl`, p, { crawl: clicked.length }, metrics, samples);
+    ratchet(`${p}|crawl`, metrics, samples);
+  });
+
+  test(`lang: ${p}`, async ({ page }) => {
+    await open(page, p, { theme: 'light', width: 1100, lang: 'en' });
+    const hits = await page.evaluate(() => window.__tanotAudit.thaiInEn());
+    expect(await page.evaluate(() => document.documentElement.lang)).toBe('en');
+    const samples = { thaiInEn: hits };
+    const metrics = { thaiInEn: hits.length };
+    writePart(`${p}|en`, p, { lang: 'en' }, metrics, samples);
+    ratchet(`${p}|en`, metrics, samples);
+  });
+}
+
+/* สลับภาษาสดจากแผงตั้งค่า — หน้าที่รองรับแล้ว (มี window.omeApplyLang) ข้อความในหน้าต้องเปลี่ยนโดยไม่โหลดใหม่
+   + ส่วนกลาง (เมนู/แผงตั้งค่า) เปลี่ยนทุกหน้า */
+for (const p of PAGES) {
+  test(`lang switch: ${p}`, async ({ page }) => {
+    await open(page, p, { theme: 'light', width: 1100, lang: 'th' });
+    const supported = await page.evaluate(() => typeof window.omeApplyLang === 'function');
+    await page.waitForLoadState('networkidle').catch(() => {});
+    const before = await page.evaluate(() => { window.__noReload = 1; return window.__tanotAudit.thaiInEn({ excludeShell: true }).length; });
+    await page.click('#omeGearBtn');
+    await page.locator('.ome-settings-panel .ome-settings-row').filter({ hasText: 'ภาษา' }).click();
+    await page.click('.ome-settings-panel [data-lang-id="en"]');
+    await expect.poll(() => page.evaluate(() => document.documentElement.lang)).toBe('en');
+    expect(await page.evaluate(() => window.__noReload), 'ไม่โหลดหน้าใหม่').toBe(1);
+    await expect(page.locator('.ome-settings-panel .ome-settings-row').first()).toHaveText('Accent colour');
+    expect(await page.getAttribute('.ome-hamburger', 'aria-label')).toBe('Open menu');
+    if (supported) {
+      // หน้าบางหน้าวาดใหม่แบบ async หลังสลับภาษา — รอได้ถึง 5 วินาที (เครื่อง CI ช้า)
+      await expect.poll(() => page.evaluate(() => window.__tanotAudit.thaiInEn({ excludeShell: true }).length),
+        { message: `ข้อความไทยในหน้าต้องลดลงหลังสลับเป็น EN (ก่อนสลับ ${before})`, timeout: 5000 }).toBeLessThan(Math.max(before, 1));
+    }
+    // สลับกลับไทยได้
+    await page.click('.ome-settings-panel [data-lang-id="th"]');
+    await expect.poll(() => page.evaluate(() => document.documentElement.lang)).toBe('th');
+    await expect(page.locator('.ome-settings-panel .ome-settings-row').first()).toHaveText('เลือกธีมเว็บ');
+  });
+}

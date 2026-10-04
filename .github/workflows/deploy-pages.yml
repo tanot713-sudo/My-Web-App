@@ -61,6 +61,15 @@ jobs:
         run: npx playwright test smoke.spec.js
       - name: visual (เทียบ baseline)
         run: npx playwright test visual.spec.js
+      - name: theme-audit (คอนทราสต์ axe + control + ตัวอักษรบนภาพพื้นหลัง, เป้ากด 390px, กดสำรวจไม่มี error, ไทยหลุดโหมด EN, สลับภาษาสด — ratchet เทียบ theme-baseline.json)
+        run: npx playwright test theme-audit.spec.js
+      - name: Upload theme report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: theme-report
+          path: tests/theme-report
+          if-no-files-found: ignore
       - name: ai (/api/ai/* + ai-client + วิดเจ็ตแชท/หน้าสรุป บน Workers AI ตัวหลอก)
         run: npx playwright test ai.spec.js
       - name: electrical (สูตรเครื่องคำนวณไฟฟ้าเทียบตัวอย่างที่รู้คำตอบ + หน้า electrical.html)
