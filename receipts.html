@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>คลังใบเสร็จ | Tanot</title>
+<title data-i18n="receipts.title">คลังใบเสร็จ | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -23,37 +23,18 @@
 <script src="receipts.js" defer></script>
 <style>
 .rc-page{max-width:1080px}
-.rc-page .page-head{align-items:center}
-.rc-page .page-head h1{flex:1;margin:0}
 .rc-page .stack > .card > .card-head{margin-bottom:var(--ome-sp-3)}
 .rc-page .kpi-value{font-size:var(--ome-fs-xl)}
-.rc-page .kpi-value small{font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2);margin-left:4px}
 .rc-filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:var(--ome-sp-3)}
 .rc-filter .input{flex:1 1 200px;min-width:0}
 .rc-filter .select{width:auto;flex:0 1 auto}
 .rc-list .list-row .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rc-list .list-row .end{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
-.rc-list .list-row .amt{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
-@media (max-width:640px){
-  .rc-list .list-row{flex-wrap:wrap}
-  .rc-list .list-row .end{width:100%;justify-content:flex-start;padding-left:48px}
-}
-.rc-dialog{width:min(600px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
-.rc-dialog .dialog-body > * + *{margin-top:var(--ome-sp-3)}
-.rc-dialog .check{display:flex;gap:8px;align-items:center;font-size:var(--ome-fs-sm)}
-.rc-dialog .check input{width:auto;height:auto}
 .rc-pick{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .rc-read{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:30px}
 .rc-read .msg{font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
 .rc-read .msg:empty{display:none}
 .rc-dialog .field.warn :is(input,select,textarea){border-color:var(--ome-warn);background:var(--ome-warn-soft)}
 .rc-dialog .field.warn label .badge{margin-left:6px}
-.rc-files{display:flex;flex-direction:column;gap:6px}
-.rc-file{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);font-size:var(--ome-fs-sm)}
-.rc-file a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ome-text-1)}
-.rc-file .sz{color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
-.rc-msg{color:var(--ome-err-ink);font-size:var(--ome-fs-sm)}
-.rc-msg:empty{display:none}
 .rc-view{width:min(860px,calc(100vw - 16px));max-height:calc(100dvh - 16px);overflow:auto}
 .rc-view .dialog-body{display:flex;flex-direction:column;gap:var(--ome-sp-3)}
 .rc-view img{display:block;max-width:100%;height:auto;border-radius:var(--ome-radius-md);margin:0 auto}
@@ -63,8 +44,8 @@
 <body data-layout="tool">
 <main class="page rc-page">
   <div class="page-head">
-    <h1>คลังใบเสร็จ</h1>
-    <button class="btn primary" type="button" id="addBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มใบเสร็จ</button>
+    <h1 data-i18n="receipts.h1">คลังใบเสร็จ</h1>
+    <button class="btn primary" type="button" id="addBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="receipts.addRec">เพิ่มใบเสร็จ</span></button>
   </div>
 
   <div class="stack">
@@ -72,27 +53,27 @@
 
     <section class="card" aria-labelledby="hList">
       <div class="card-head">
-        <h2 id="hList">ใบเสร็จ</h2>
+        <h2 id="hList" data-i18n="receipts.hList">ใบเสร็จ</h2>
       </div>
       <div class="rc-filter">
-        <input class="input" type="search" id="fQ" placeholder="ค้นหาร้าน/สินค้า" aria-label="ค้นหา" autocomplete="off">
-        <select class="select" id="fYear" aria-label="ปี"></select>
-        <select class="select" id="fTag" aria-label="ป้ายภาษี"></select>
-        <button class="btn sm" type="button" id="fWar" aria-pressed="false">มีประกัน</button>
+        <input class="input" type="search" id="fQ" placeholder="ค้นหาร้าน/สินค้า" aria-label="ค้นหา" data-i18n-attr="placeholder:receipts.phSearch,aria-label:receipts.search" autocomplete="off">
+        <select class="select" id="fYear" aria-label="ปี" data-i18n-attr="aria-label:receipts.year"></select>
+        <select class="select" id="fTag" aria-label="ป้ายภาษี" data-i18n-attr="aria-label:receipts.taxTag"></select>
+        <button class="btn sm" type="button" id="fWar" aria-pressed="false" data-i18n="receipts.withWar">มีประกัน</button>
       </div>
       <div class="rc-list" id="listBody"></div>
     </section>
   </div>
 </main>
 
-<dialog class="dialog rc-dialog" id="dlg" aria-labelledby="dlgTitle">
+<dialog class="dialog dialog-form rc-dialog" id="dlg" aria-labelledby="dlgTitle">
   <form method="dialog" id="form" novalidate>
     <div class="dialog-head"><h2 id="dlgTitle">ใบเสร็จ</h2></div>
     <div class="dialog-body">
       <div class="rc-pick">
-        <button class="btn sm" type="button" id="camBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-camera"/></svg>ถ่ายรูป</button>
-        <button class="btn sm" type="button" id="fileBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg>เลือกไฟล์</button>
-        <button class="btn sm" type="button" id="claudeBtn" hidden disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-sparkles"/></svg>อ่านด้วย Claude</button>
+        <button class="btn sm" type="button" id="camBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-camera"/></svg><span data-i18n="receipts.cam">ถ่ายรูป</span></button>
+        <button class="btn sm" type="button" id="fileBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg><span data-i18n="receipts.file">เลือกไฟล์</span></button>
+        <button class="btn sm" type="button" id="claudeBtn" hidden disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-sparkles"/></svg><span data-i18n="receipts.readClaude">อ่านด้วย Claude</span></button>
         <input type="file" id="camInput" accept="image/*" capture="environment" hidden>
         <input type="file" id="fileInput" accept="application/pdf,image/*" multiple hidden>
       </div>
@@ -100,42 +81,42 @@
         <span class="badge" id="srcBadge" hidden></span>
         <span class="msg" id="readMsg" role="status"></span>
       </div>
-      <div class="rc-files" id="fileList"></div>
+      <div class="file-list" id="fileList"></div>
 
       <div class="frow">
-        <div class="field" data-f="store"><label for="fStore">ร้าน</label><input id="fStore" type="text" maxlength="120" autocomplete="off"></div>
-        <div class="field" data-f="date"><label for="fDate">วันที่</label><input id="fDate" type="date"></div>
+        <div class="field" data-f="store"><label for="fStore" data-i18n="receipts.store">ร้าน</label><input id="fStore" type="text" maxlength="120" autocomplete="off"></div>
+        <div class="field" data-f="date"><label for="fDate" data-i18n="receipts.date">วันที่</label><input id="fDate" type="date"></div>
       </div>
       <div class="frow">
-        <div class="field" data-f="total"><label for="fTotal">ยอดรวม (บาท)</label><input id="fTotal" type="number" inputmode="decimal" min="0" step="any"></div>
-        <div class="field"><label for="fVat">VAT (บาท)</label><input id="fVat" type="number" inputmode="decimal" min="0" step="any"></div>
-        <div class="field"><label for="fTaxId">เลขผู้เสียภาษีผู้ขาย</label><input id="fTaxId" type="text" inputmode="numeric" maxlength="17" autocomplete="off"></div>
+        <div class="field" data-f="total"><label for="fTotal" data-i18n="receipts.total">ยอดรวม (บาท)</label><input id="fTotal" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div class="field"><label for="fVat" data-i18n="receipts.vat">VAT (บาท)</label><input id="fVat" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div class="field"><label for="fTaxId" data-i18n="receipts.taxId">เลขผู้เสียภาษีผู้ขาย</label><input id="fTaxId" type="text" inputmode="numeric" maxlength="17" autocomplete="off"></div>
       </div>
-      <label class="check"><input type="checkbox" id="fFull">ใบกำกับภาษีเต็มรูป / e-Tax</label>
-      <div class="field"><label for="fItems">รายการสินค้า</label><textarea id="fItems" rows="3" maxlength="3000"></textarea></div>
+      <label class="check"><input type="checkbox" id="fFull"><span data-i18n="receipts.full">ใบกำกับภาษีเต็มรูป / e-Tax</span></label>
+      <div class="field"><label for="fItems" data-i18n="receipts.items">รายการสินค้า</label><textarea id="fItems" rows="3" maxlength="3000"></textarea></div>
       <div class="frow">
-        <div class="field"><label for="fProduct">สินค้าที่มีประกัน</label><input id="fProduct" type="text" maxlength="120" autocomplete="off"></div>
-        <div class="field"><label for="fMonths">ประกัน (เดือน)</label><input id="fMonths" type="number" inputmode="numeric" min="0" max="600" step="1"></div>
-        <div class="field"><label for="fEnd">วันหมดประกัน</label><input id="fEnd" type="text" readonly tabindex="-1"></div>
+        <div class="field"><label for="fProduct" data-i18n="receipts.product">สินค้าที่มีประกัน</label><input id="fProduct" type="text" maxlength="120" autocomplete="off"></div>
+        <div class="field"><label for="fMonths" data-i18n="receipts.months">ประกัน (เดือน)</label><input id="fMonths" type="number" inputmode="numeric" min="0" max="600" step="1"></div>
+        <div class="field"><label for="fEnd" data-i18n="receipts.warEnd">วันหมดประกัน</label><input id="fEnd" type="text" readonly tabindex="-1"></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="fTag2">ป้ายลดหย่อนภาษี</label><select id="fTag2"></select></div>
-        <div class="field"><label for="fCat">หมวดรายจ่าย</label><select id="fCat"></select></div>
+        <div class="field"><label for="fTag2" data-i18n="receipts.tag2">ป้ายลดหย่อนภาษี</label><select id="fTag2"></select></div>
+        <div class="field"><label for="fCat" data-i18n="receipts.cat">หมวดรายจ่าย</label><select id="fCat"></select></div>
       </div>
-      <div class="field"><label for="fNote">บันทึก</label><textarea id="fNote" rows="2" maxlength="500"></textarea></div>
-      <p class="rc-msg" id="msg" role="alert"></p>
+      <div class="field"><label for="fNote" data-i18n="receipts.note">บันทึก</label><textarea id="fNote" rows="2" maxlength="500"></textarea></div>
+      <p class="form-msg" id="msg" role="alert"></p>
     </div>
     <div class="dialog-foot">
-      <button class="btn danger" type="button" id="delBtn" style="margin-right:auto">ลบ</button>
-      <button class="btn" type="button" id="budgetBtn">บันทึกเป็นรายจ่าย</button>
-      <button class="btn" type="button" id="cancelBtn">ยกเลิก</button>
-      <button class="btn primary" type="submit" id="saveBtn">บันทึก</button>
+      <button class="btn danger" type="button" id="delBtn" style="margin-right:auto" data-i18n="receipts.del">ลบ</button>
+      <button class="btn" type="button" id="budgetBtn" data-i18n="receipts.toBudget">บันทึกเป็นรายจ่าย</button>
+      <button class="btn" type="button" id="cancelBtn" data-i18n="receipts.cancel">ยกเลิก</button>
+      <button class="btn primary" type="submit" id="saveBtn" data-i18n="receipts.save">บันทึก</button>
     </div>
   </form>
 </dialog>
 
 <dialog class="dialog rc-view" id="viewDlg" aria-labelledby="viewTitle">
-  <div class="dialog-head"><h2 id="viewTitle">ใบเสร็จ</h2><button class="btn sm icon ghost" type="button" id="viewClose" aria-label="ปิด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></div>
+  <div class="dialog-head"><h2 id="viewTitle">ใบเสร็จ</h2><button class="btn sm icon ghost" type="button" id="viewClose" aria-label="ปิด" data-i18n-attr="aria-label:receipts.close"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></div>
   <div class="dialog-body" id="viewBody"></div>
 </dialog>
 </body>
