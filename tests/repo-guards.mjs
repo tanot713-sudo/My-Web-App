@@ -6,6 +6,10 @@
 //  5. CDN/vendor ที่ใช้ต้องมีใน credits.html
 //  6. ห้ามมี package.json ที่ root (Pages จะรัน npm install ทุก build)
 //  7. ทุกหน้าที่ใช้ theme.css โหลด theme-boot.js ก่อน
+//  9. ทุกหน้าโหลด i18n.js ต่อจาก tanot-data.js (ระบบภาษากลาง)
+// 10. ไอคอนแอป: ทุกหน้าลิงก์ apple-touch-icon.png + favicon-32.png, manifest มี any/maskable แยกกัน, ไฟล์มีจริง
+// 11. ภาพพื้นหลังรายหน้า: ทุกกลุ่มใน theme-boot.js มีไฟล์ -light/-dark.webp และกฎใน theme.css
+// 12. ตัวตรวจธีม static (theme-guards.mjs): สี hex/ปุ่มนิยามเองต่อหน้าห้ามเพิ่มจาก tests/theme-baseline.json
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -144,6 +148,73 @@ else ok('credits', `${used.size} ไลบรารีมีใน credits.html 
   });
   if (bad.length) fail('tanot-data', `ไม่มี data-registry.js + tanot-data.js ต่อจาก theme-boot.js: ${bad.join(', ')}`);
   else ok('tanot-data', 'ทุกหน้าโหลด tanot-data.js ใน <head>');
+}
+
+/* ── 9. i18n.js ต่อจาก tanot-data.js ── */
+{
+  const bad = tracked.filter((f) => /^[^/]+\.html$/.test(f)).filter((f) => {
+    const h = read(f);
+    return h.includes('<script src="tanot-data.js"></script>') && !h.includes('<script src="tanot-data.js"></script>\n<script src="i18n.js"></script>');
+  });
+  if (bad.length) fail('i18n', `ไม่มี <script src="i18n.js"></script> ต่อจาก tanot-data.js: ${bad.join(', ')}`);
+  else ok('i18n', 'ทุกหน้าโหลด i18n.js ใน <head>');
+}
+
+/* ── 10. ไอคอนแอป ── */
+{
+  const bad = [];
+  for (const f of ['apple-touch-icon.png', 'favicon-32.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png']) {
+    if (!fs.existsSync(path.join(ROOT, f))) bad.push(`ไม่มีไฟล์ ${f}`);
+  }
+  for (const f of tracked.filter((f) => /^[^/]+\.html$/.test(f))) {
+    const h = read(f);
+    if (!h.includes('href="theme.css"')) continue;
+    if (!h.includes('<link rel="apple-touch-icon" href="apple-touch-icon.png">')) bad.push(`${f}: ไม่มี apple-touch-icon.png`);
+    if (!h.includes('<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">')) bad.push(`${f}: ไม่มี favicon-32.png`);
+    if (/favicon\.svg/.test(h)) bad.push(`${f}: ยังอ้าง favicon.svg`);
+  }
+  try {
+    const man = JSON.parse(read('manifest.json'));
+    for (const ic of man.icons || []) {
+      if (!fs.existsSync(path.join(ROOT, ic.src))) bad.push(`manifest: ไม่มีไฟล์ ${ic.src}`);
+      if (/\s/.test(ic.purpose || '')) bad.push(`manifest: ${ic.src} purpose "${ic.purpose}" — ใช้ any/maskable แยกไอคอน`);
+    }
+    const purposes = (man.icons || []).map((i) => i.purpose);
+    if (!purposes.includes('any') || !purposes.includes('maskable')) bad.push('manifest: ต้องมีไอคอน purpose any และ maskable');
+  } catch (e) { bad.push('อ่าน manifest.json ไม่ได้: ' + e.message); }
+  if (bad.length) fail('icons', bad.join('; '));
+  else ok('icons', 'ทุกหน้าลิงก์ไอคอนครบ + manifest any/maskable');
+}
+
+/* ── 11. ภาพพื้นหลังรายหน้า ── */
+{
+  const boot = read('theme-boot.js');
+  const block = (boot.match(/var BG_GROUPS = \{([\s\S]*?)\n  \};/) || [])[1] || '';
+  const groups = [...block.matchAll(/^\s*(\w+):/gm)].map((m) => m[1]).concat(['invest']);
+  const css = read('theme.css');
+  const bad = [];
+  if (!block) bad.push('อ่าน BG_GROUPS จาก theme-boot.js ไม่ได้');
+  for (const g of groups) {
+    for (const t of ['light', 'dark']) {
+      const f = `assets/backgrounds/${g}-${t}.webp`;
+      if (!fs.existsSync(path.join(ROOT, f))) bad.push(`ไม่มีไฟล์ ${f}`);
+      if (!css.includes(`url(${f})`)) bad.push(`theme.css ไม่มีกฎของ ${f}`);
+    }
+  }
+  if (bad.length) fail('backgrounds', bad.join('; '));
+  else ok('backgrounds', `${groups.length} กลุ่มภาพมีไฟล์ light/dark + กฎใน theme.css`);
+}
+
+/* ── 12. ตัวตรวจธีม static (ratchet) ── */
+{
+  const tg = await import('./theme-guards.mjs');
+  const cur = tg.collectStatic();
+  tg.writeStaticReport(cur);
+  const worse = tg.compareStatic(cur, tg.loadBaseline());
+  if (worse.length) {
+    fail('theme-static', 'แย่ลงจาก tests/theme-baseline.json (ใช้ var(--ome-*)/คอมโพเนนต์กลางแทน — ดู .claude/skills/tanot-design): ' +
+      worse.map((w) => `${w.page} ${w.metric} ${w.base}→${w.now}${w.detail ? ' (' + w.detail + ')' : ''}`).join('; '));
+  } else ok('theme-static', `${Object.keys(cur).length} หน้าไม่แย่ลงจาก baseline (สี hex / ปุ่มนิยามเอง)`);
 }
 
 /* ── 1. bump CACHE ── */

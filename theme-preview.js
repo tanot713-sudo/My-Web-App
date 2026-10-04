@@ -1,7 +1,7 @@
 /* theme-preview.js — หน้าตัวอย่างธีม v2: เลือกฟอนต์/สีเน้น/พื้นผิว/โหมด (บันทึกเป็นค่าทั้งเว็บผ่าน OmeTheme) */
 (function () {
   var T = window.OmeTheme;
-  var ACCENT_SWATCH = { teal: '#12A594', blue: '#3D7CF4', violet: '#7C6FEA', orange: '#E8743B', graphite: '#3F3F46' };
+  var ACCENT_SWATCH = { teal: '#0F8475', blue: '#2D6EE6', violet: '#6A5AE0', orange: '#C4500F', graphite: '#3F3F46' };
   var ACCENT_LABEL = { teal: 'เขียวน้ำทะเล', blue: 'น้ำเงิน', violet: 'ม่วง', orange: 'ส้ม', graphite: 'เทาเข้ม' };
   var ICONS = ['house', 'wallet', 'trending-up', 'chart-line', 'file-text', 'file-spreadsheet', 'graduation-cap',
     'book-open', 'scale', 'languages', 'heart-pulse', 'music', 'dumbbell', 'chef-hat', 'code', 'keyboard',

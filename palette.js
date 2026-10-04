@@ -1,7 +1,8 @@
 /* ══════════════════════════════════════════════════════════════════
    Tanot palette — ค้นหาด่วน (Ctrl/⌘+K หรือปุ่มค้นหาบน nav) ROADMAP Phase 3
    shell.js โหลดไฟล์นี้ตอนใช้ครั้งแรก (window.openOmePalette) — ค้นหาเมนูจาก window.OME_MENU (นิยามที่ shell.js ที่เดียว)
-   + คำสั่ง (เพิ่มรายจ่าย/รายรับ, สลับโหมดสว่าง/มืด) — คำค้นไทย/อังกฤษ ใช้ label + keywords + ชื่อกลุ่ม
+   + คำสั่ง (เพิ่มรายจ่าย/รายรับ, สลับโหมดสว่าง/มืด) — คำค้นไทย/อังกฤษ ใช้ label + labelEn + keywords + ชื่อกลุ่ม
+   ข้อความของ palette เอง (OME_I18N ns 'palette') และป้ายเมนูแสดงตามภาษา แต่ค้นได้ทั้งคำไทยและอังกฤษเสมอ
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -10,6 +11,20 @@
   var BASE = location.pathname.replace(/[^/]*$/, '');
   var RECENT_KEY = 'ome:palette:recent';
   var MAX_RESULTS = 30;
+
+  var I18N = window.OME_I18N || null;
+  var TH = {
+    title: 'ค้นหา', placeholder: 'ค้นหาเมนู หน้า หรือคำสั่ง', results: 'ผลการค้นหา', empty: 'ไม่พบผลลัพธ์',
+    soon: 'เร็วๆ นี้', cmd: 'คำสั่ง', secCmd: 'คำสั่ง', secRecent: 'เปิดล่าสุด', secAreas: 'หมวดหลัก',
+    addExpense: 'เพิ่มรายจ่าย', addIncome: 'เพิ่มรายรับ', toggleTheme: 'สลับโหมดสว่าง/มืด'
+  };
+  if (I18N) I18N.add('palette', { th: TH, en: {
+    title: 'Search', placeholder: 'Search menus, pages or commands', results: 'Search results', empty: 'No results',
+    soon: 'Coming soon', cmd: 'Command', secCmd: 'Commands', secRecent: 'Recently opened', secAreas: 'Main areas',
+    addExpense: 'Add expense', addIncome: 'Add income', toggleTheme: 'Toggle light/dark mode'
+  } });
+  function t(k) { return I18N ? I18N.t('palette.' + k) : TH[k]; }
+  function L(n) { return I18N ? I18N.label(n) : n.label; }
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function norm(s) { return String(s || '').toLowerCase().replace(/\s+/g, ''); }
@@ -46,9 +61,9 @@
         var ic = n.icon || inheritedIcon;
         if (n.href) {
           out.push({
-            id: 'page:' + n.key, kind: 'page', label: n.label, icon: ic, href: n.href, soon: n.status === 'soon',
-            group: trail.join(' › '),
-            hay: norm(n.label + ' ' + (n.keywords || '') + ' ' + trail.join(' '))
+            id: 'page:' + n.key, kind: 'page', label: L(n), icon: ic, href: n.href, soon: n.status === 'soon',
+            group: trail.map(L).join(' › '),
+            hay: norm(n.label + ' ' + (n.labelEn || '') + ' ' + (n.keywords || '') + ' ' + trail.map(both).join(' '))
           });
         }
         /* แท็บของหน้า (n.tabs) = รายการค้นหาเพิ่ม พาไปแท็บนั้นตรงๆ (ค้น "ออมสิน" แล้วเข้า invest-lottery.html#gsb) */
@@ -56,25 +71,26 @@
           var base = n.href.split('#')[0];
           n.tabs.forEach(function (tb) {
             out.push({
-              id: 'tab:' + tb.key, kind: 'page', label: tb.label, icon: ic, href: base + '#' + tb.hash, soon: false,
-              group: trail.concat(n.label).join(' › '),
-              hay: norm(tb.label + ' ' + (tb.keywords || '') + ' ' + n.label + ' ' + trail.join(' '))
+              id: 'tab:' + tb.key, kind: 'page', label: L(tb), icon: ic, href: base + '#' + tb.hash, soon: false,
+              group: trail.concat(n).map(L).join(' › '),
+              hay: norm(tb.label + ' ' + (tb.labelEn || '') + ' ' + (tb.keywords || '') + ' ' + both(n) + ' ' + trail.map(both).join(' '))
             });
           });
         }
-        if (n.children) walk(n.children, trail.concat(n.label), ic);
+        if (n.children) walk(n.children, trail.concat(n), ic);
       });
     })(window.OME_MENU || [], [], null);
     return out;
   }
+  function both(n) { return n.label + ' ' + (n.labelEn || ''); }
   function commandItems() {
     var OT = window.OmeTheme;
     return [
-      { id: 'cmd:add-expense', kind: 'cmd', label: 'เพิ่มรายจ่าย', icon: 'plus', group: '',
+      { id: 'cmd:add-expense', kind: 'cmd', label: t('addExpense'), icon: 'plus', group: '',
         hay: norm('เพิ่มรายจ่าย บันทึกรายจ่าย ใช้จ่าย จ่ายเงิน expense add spend'), run: quickAdd('expense') },
-      { id: 'cmd:add-income', kind: 'cmd', label: 'เพิ่มรายรับ', icon: 'plus', group: '',
+      { id: 'cmd:add-income', kind: 'cmd', label: t('addIncome'), icon: 'plus', group: '',
         hay: norm('เพิ่มรายรับ บันทึกรายรับ รายได้ เงินเข้า income add'), run: quickAdd('income') },
-      { id: 'cmd:theme', kind: 'cmd', label: 'สลับโหมดสว่าง/มืด', icon: 'moon', group: '',
+      { id: 'cmd:theme', kind: 'cmd', label: t('toggleTheme'), icon: 'moon', group: '',
         hay: norm('สลับโหมด สว่าง มืด ธีม dark light theme'),
         run: function () { if (OT) OT.set('theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); } }
     ];
@@ -122,11 +138,16 @@
     root.className = 'ome-pal';
     root.hidden = true;
     root.innerHTML =
-      '<div class="ome-pal-box" role="dialog" aria-modal="true" aria-label="ค้นหา">' +
+      '<div class="ome-pal-box" role="dialog" aria-modal="true" data-i18n-attr="aria-label:palette.title">' +
       '<div class="ome-pal-search">' + icon('search') +
       '<input class="ome-pal-input" type="text" role="combobox" aria-expanded="true" aria-controls="omePalList" aria-autocomplete="list" ' +
-      'autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ค้นหาเมนู หน้า หรือคำสั่ง" aria-label="ค้นหา"></div>' +
-      '<ul class="ome-pal-list" id="omePalList" role="listbox" aria-label="ผลการค้นหา"></ul></div>';
+      'autocomplete="off" autocapitalize="off" spellcheck="false" data-i18n-attr="placeholder:palette.placeholder,aria-label:palette.title"></div>' +
+      '<ul class="ome-pal-list" id="omePalList" role="listbox" data-i18n-attr="aria-label:palette.results"></ul></div>';
+    var box = root.firstChild;
+    box.setAttribute('aria-label', t('title'));
+    root.querySelector('.ome-pal-input').setAttribute('placeholder', t('placeholder'));
+    root.querySelector('.ome-pal-input').setAttribute('aria-label', t('title'));
+    root.querySelector('.ome-pal-list').setAttribute('aria-label', t('results'));
     document.body.appendChild(root);
     input = root.querySelector('.ome-pal-input');
     list = root.querySelector('.ome-pal-list');
@@ -149,8 +170,8 @@
       '<span class="ome-pal-ic">' + icon(it.icon) + '</span>' +
       '<span class="ome-pal-main"><span class="ome-pal-label">' + esc(it.label) + '</span>' +
       (it.group ? '<span class="ome-pal-group">' + esc(it.group) + '</span>' : '') + '</span>' +
-      (it.soon ? '<span class="ome-pal-tag">เร็วๆ นี้</span>' : '') +
-      (it.kind === 'cmd' ? '<span class="ome-pal-tag">คำสั่ง</span>' : '') + '</li>';
+      (it.soon ? '<span class="ome-pal-tag">' + esc(t('soon')) + '</span>' : '') +
+      (it.kind === 'cmd' ? '<span class="ome-pal-tag">' + esc(t('cmd')) + '</span>' : '') + '</li>';
   }
 
   function render() {
@@ -159,7 +180,7 @@
     if (found) {
       shown = found;
       html = found.map(rowHtml).join('');
-      if (!found.length) html = '<li class="ome-pal-empty" role="presentation">ไม่พบผลลัพธ์</li>';
+      if (!found.length) html = '<li class="ome-pal-empty" role="presentation">' + esc(t('empty')) + '</li>';
     } else {
       // ยังไม่พิมพ์: คำสั่ง → ที่เปิดล่าสุด → หมวดหลัก
       var byId = {}; items.forEach(function (it) { byId[it.id] = it; });
@@ -167,9 +188,9 @@
       var recents = loadRecent().map(function (id) { return byId[id]; }).filter(function (it) { return it && it.kind === 'page'; });
       var areas = items.filter(function (it) { return it.kind === 'page' && /^(home|work|life|edu|hobby|settings)$/.test(it.id.slice(5)) && recents.indexOf(it) === -1; });
       shown = []; html = '';
-      [['คำสั่ง', cmds], ['เปิดล่าสุด', recents], ['หมวดหลัก', areas]].forEach(function (sec) {
+      [[t('secCmd'), cmds], [t('secRecent'), recents], [t('secAreas'), areas]].forEach(function (sec) {
         if (!sec[1].length) return;
-        html += '<li class="ome-pal-sec" role="presentation">' + sec[0] + '</li>';
+        html += '<li class="ome-pal-sec" role="presentation">' + esc(sec[0]) + '</li>';
         sec[1].forEach(function (it) { html += rowHtml(it, shown.length); shown.push(it); });
       });
     }
@@ -211,6 +232,7 @@
   function open() {
     if (isOpen) { input.focus(); return; }
     if (!root) build();
+    else if (I18N) I18N.apply(root); // ภาษาอาจเปลี่ยนตั้งแต่เปิดครั้งก่อน
     items = commandItems().concat(pageItems());
     isOpen = true;
     prevFocus = document.activeElement;

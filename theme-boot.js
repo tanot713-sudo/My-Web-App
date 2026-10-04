@@ -1,6 +1,7 @@
 /* theme-boot.js — ตั้งธีมก่อนวาดจอ (โหลดใน <head> แบบไม่ defer ก่อน theme.css) กันจอกะพริบ
    และเป็นที่เดียวที่เก็บค่าตั้งธีม: shell.js (แผงตั้งค่า) อ่าน/เขียนผ่าน window.OmeTheme
-   ชุดคัดสรร: สีเน้น 5 · สไตล์พื้นผิว 3 · ฟอนต์ 2 — ค่าเดิมที่เคยเลือกไว้ถูกแปลงให้อัตโนมัติครั้งเดียว */
+   ชุดคัดสรร: สีเน้น 5 · สไตล์พื้นผิว 3 · ฟอนต์ 2 — ค่าเดิมที่เคยเลือกไว้ถูกแปลงให้อัตโนมัติครั้งเดียว
+   + ภาพพื้นหลังรายหน้า (data-bg บน <html>, ปิดได้ด้วย 'ome:bg' = 'off') + <html lang> จาก 'ome:lang' */
 (function () {
   var doc = document.documentElement;
   function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -14,10 +15,42 @@
   };
   /* สีแถบเบราว์เซอร์ (theme-color) = สีพื้น nav (--ome-card) ของแต่ละสีเน้น [สว่าง, มืด] */
   var BAR = {
-    teal: ['#FFFFFF', '#1B2030'], blue: ['#FFFFFF', '#1C2536'], violet: ['#FFFFFF', '#201D33'],
-    orange: ['#FFFFFF', '#281F15'], graphite: ['#FFFFFF', '#1C1C1F']
+    teal: ['#FFFFFF', '#1F2536'], blue: ['#FFFFFF', '#202A3E'], violet: ['#FFFFFF', '#24203A'],
+    orange: ['#FFFFFF', '#2C2219'], graphite: ['#FFFFFF', '#212125']
   };
-  var DEFAULTS = { accent: 'teal', style: 'flat', font: 'prompt' };
+  var DEFAULTS = { accent: 'teal', style: 'flat', font: 'prompt', bg: 'on' };
+
+  /* ── ภาพพื้นหลังรายหน้า: แผนที่ชื่อหน้า → กลุ่มภาพ (ที่เดียวของทั้งเว็บ) ──
+     ภาพ = assets/backgrounds/<กลุ่ม>-light.webp / <กลุ่ม>-dark.webp — เปลี่ยนภาพได้ด้วยการแทนไฟล์อย่างเดียว
+     หน้าที่ไม่อยู่ในแผนที่ = ไม่มีภาพ · invest*.html ทุกหน้าใช้กลุ่ม invest (ดู bgGroup) */
+  var BG_GROUPS = {
+    today: ['index'],
+    documents: ['word', 'excel', 'slides', 'extract-text', 'doc-check', 'doc-check-file', 'compare'],
+    engineering: ['cad', 'electrical', 'maintenance', 'run'],
+    report: ['report-dashboard'],
+    law: ['legal', 'classroom-law'],
+    money: ['budget', 'tax', 'insurance', 'receipts'],
+    health: ['health'],
+    car: ['car'],
+    education: ['review', 'classroom-business', 'classroom-engineering', 'books', 'languages'],
+    music: ['music'],
+    sports: ['sports'],
+    cooking: ['cooking'],
+    coding: ['coding', 'typing'],
+    settings: ['notifications', 'data', 'credits', 'area', 'soon', 'image-gen']
+  };
+  var BG_OF = {};
+  for (var g in BG_GROUPS) for (var gi = 0; gi < BG_GROUPS[g].length; gi++) BG_OF[BG_GROUPS[g][gi]] = g;
+  /* ชื่อหน้า (ไม่มี .html) จาก path — Pages ตัด .html ออกจาก URL ได้ และ "/" = index */
+  function pageName(pathname) {
+    var f = String(pathname || '').split('/').pop() || 'index';
+    return f.replace(/\.html?$/, '') || 'index';
+  }
+  function bgGroup(pathname) {
+    var n = pageName(pathname == null ? location.pathname : pathname);
+    if (/^invest(-|$)/.test(n)) return 'invest';
+    return BG_OF.hasOwnProperty(n) ? BG_OF[n] : null;
+  }
 
   /* ── แปลงค่าเดิม ── */
   var OLD = {
@@ -33,6 +66,7 @@
     write('ome:theme', 'light');
   }
   function valid(kind, v) {
+    if (kind === 'bg') return v === 'on' || v === 'off';
     return kind === 'accent' ? ACCENTS.indexOf(v) >= 0 : kind === 'style' ? STYLES.indexOf(v) >= 0 : !!FONTS[v];
   }
   function get(kind) {
@@ -42,7 +76,7 @@
       return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
     var v = read('ome:' + kind);
-    if (OLD[kind][v]) { v = OLD[kind][v]; write('ome:' + kind, v); }
+    if (OLD[kind] && OLD[kind][v]) { v = OLD[kind][v]; write('ome:' + kind, v); }
     return valid(kind, v) ? v : DEFAULTS[kind];
   }
 
@@ -74,10 +108,14 @@
 
   var listeners = [];
   function apply() {
-    var s = { theme: get('theme'), accent: get('accent'), style: get('style'), font: get('font') };
+    var s = { theme: get('theme'), accent: get('accent'), style: get('style'), font: get('font'), bg: get('bg') };
     doc.setAttribute('data-theme', s.theme);
     doc.setAttribute('data-accent', s.accent);
     doc.setAttribute('data-style', s.style);
+    /* ภาพพื้นหลัง: CSS ใน theme.css เลือกไฟล์ -light/-dark ตาม data-theme เอง โหลดเฉพาะภาพของหน้านี้
+       (?embed=1 = หน้าที่ฝังในป๊อปอัพ ไม่ใส่ภาพซ้อนกับหน้าแม่) */
+    var grp = s.bg === 'on' && !/[?&]embed=1(&|$)/.test(location.search) ? bgGroup() : null;
+    if (grp) doc.setAttribute('data-bg', grp); else doc.removeAttribute('data-bg');
     doc.style.setProperty('--ome-f', FONTS[s.font].family);
     if (s.font !== 'prompt') loadFont(FONTS[s.font].google);
     setBarColor(s.accent, s.theme);
@@ -91,9 +129,13 @@
   }
 
   window.OmeTheme = {
-    accents: ACCENTS, styles: STYLES, fonts: FONTS,
-    get: get, set: set, apply: apply, loadFont: loadFont,
+    accents: ACCENTS, styles: STYLES, fonts: FONTS, bgGroups: BG_GROUPS,
+    get: get, set: set, apply: apply, loadFont: loadFont, bgGroup: bgGroup,
     onChange: function (fn) { listeners.push(fn); }
   };
   apply();
+
+  /* ภาษา: ตั้ง <html lang> ก่อนวาดจอ (i18n.js ดูแลการสลับ/คำแปลต่อ) — อ่าน 'ome:lang' ตรงนี้ได้เพราะเป็นค่าเดียวกับ OME_LANG */
+  var lang = read('ome:lang');
+  doc.setAttribute('lang', lang === 'en' ? 'en' : 'th');
 })();

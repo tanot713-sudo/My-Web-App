@@ -13,6 +13,9 @@ module.exports = defineConfig({
   workers: process.env.CI ? 2 : undefined,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
+  // ตัวตรวจธีม (theme-audit.spec.js) เขียนผลย่อยลง theme-report/parts → รวมเป็นรายงานตอนจบ (ไม่มีผลกับ spec อื่น)
+  globalSetup: './theme-report-setup.js',
+  globalTeardown: './theme-report.js',
   // baseline อยู่ใน tests/__screenshots__ (commit เข้า repo) — ชื่อไฟล์ไม่ผูกกับ OS เพราะ CI/เครื่องเจ้าของใช้ Linux Chromium เหมือนกัน
   snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: 'disabled' } },

@@ -14,7 +14,8 @@
   var BASE = '/My-Web-App/';
   var MAP = { 'excel-work': 'excel.html', 'word-work': 'word.html' };
   var m = (location.pathname || '').match(/\/(excel-work|word-work)\/?$/);
-  document.write('<script src="' + BASE + 'theme-boot.js"><\/script><link rel="stylesheet" href="' + BASE + 'theme.css">');
+  document.write('<script src="' + BASE + 'theme-boot.js"><\/script><link rel="stylesheet" href="' + BASE + 'theme.css">' +
+    '<link rel="icon" href="' + BASE + 'favicon-32.png" type="image/png" sizes="32x32"><link rel="apple-touch-icon" href="' + BASE + 'apple-touch-icon.png">');
   location.replace(BASE + (m ? MAP[m[1]] : ''));
 })();
 </script>
@@ -22,9 +23,21 @@
 <body data-layout="tool">
 <main class="page">
   <div class="empty">
-    <h1 class="empty-title">ไม่พบหน้านี้ — กำลังพากลับ</h1>
-    <a class="btn" href="/My-Web-App/">หน้าหลัก Tanot</a>
+    <h1 class="empty-title" id="nfTitle">ไม่พบหน้านี้ — กำลังพากลับ</h1>
+    <a class="btn" id="nfHome" href="/My-Web-App/">หน้าหลัก Tanot</a>
   </div>
 </main>
+<script>
+/* หน้านี้ไม่โหลด i18n.js (เสิร์ฟจากพาธไหนก็ได้) — เลือกข้อความจาก 'ome:lang' ตรงๆ */
+(function () {
+  var en = false;
+  try { en = localStorage.getItem('ome:lang') === 'en'; } catch (e) {}
+  if (!en) return;
+  document.documentElement.lang = 'en';
+  document.title = 'Page not found | Tanot';
+  document.getElementById('nfTitle').textContent = 'Page not found — taking you back';
+  document.getElementById('nfHome').textContent = 'Tanot home';
+})();
+</script>
 </body>
 </html>
