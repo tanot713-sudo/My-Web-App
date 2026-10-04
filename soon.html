@@ -7,13 +7,14 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
 <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="theme-boot.js"></script>
 <script src="data-registry.js"></script>
 <script src="tanot-data.js"></script>
+<script src="i18n.js"></script>
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
 <style>
@@ -25,14 +26,34 @@
   <div class="empty soon-note">
     <svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-clock"/></svg>
     <h1 class="empty-title" id="soonLabel">—</h1>
-    <p>รอ update เร็วๆ นี้</p>
+    <p data-i18n="soon.wait">รอ update เร็วๆ นี้</p>
   </div>
 </main>
 <script>
 (function () {
   'use strict';
+  var I18N = window.OME_I18N;
+  if (I18N) I18N.add('soon', { th: { wait: 'รอ update เร็วๆ นี้', thisArea: 'หมวดนี้', title: 'รอ update เร็วๆ นี้' },
+    en: { wait: 'Coming in a future update', thisArea: 'This section', title: 'Coming soon' } });
   var m = (location.search || '').match(/[?&]label=([^&]+)/);
-  document.getElementById('soonLabel').textContent = m ? decodeURIComponent(m[1]) : 'หมวดนี้';
+  var label = m ? decodeURIComponent(m[1]) : '';
+  /* ป้ายอังกฤษ = labelEn ของรายการเมนูที่ลิงก์มาหน้านี้ (OME_MENU จาก shell.js ซึ่ง defer — รอ DOMContentLoaded) */
+  function node() {
+    var here = 'soon.html' + location.search, hit = null;
+    (function walk(ns) { (ns || []).forEach(function (n) { if (n.href === here) hit = n; walk(n.children); }); })(window.OME_MENU);
+    return hit;
+  }
+  function render() {
+    var n = node();
+    var text = n && I18N ? I18N.label(n) : (label || (I18N ? I18N.t('soon.thisArea') : 'หมวดนี้'));
+    document.getElementById('soonLabel').textContent = text;
+    document.title = (I18N ? I18N.t('soon.title') : 'รอ update เร็วๆ นี้') + ' | Tanot';
+  }
+  document.getElementById('soonLabel').textContent = label || 'หมวดนี้';
+  document.addEventListener('DOMContentLoaded', function () {
+    render();
+    if (window.OME_LANG && window.OME_LANG.onChange) window.OME_LANG.onChange(render);
+  });
 })();
 </script>
 </body>

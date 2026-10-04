@@ -49,27 +49,64 @@
   /* ── ธีม: ค่าและการตั้งค่าอยู่ที่ theme-boot.js (window.OmeTheme) ซึ่งตั้ง data-theme/accent/style
      + ฟอนต์ไว้ก่อนวาดจอแล้ว ที่นี่เก็บแค่ป้ายชื่อสำหรับแผงตั้งค่า ── */
   var OT = window.OmeTheme;
+  /* ── ข้อความของ shell ทั้งหมด (ไทย/อังกฤษ) — ผ่าน OME_I18N (i18n.js) · ป้ายเมนูอยู่ใน MENU (label/labelEn) ── */
+  var I18N = window.OME_I18N || null;
+  if (I18N) I18N.add('shell', {
+    th: {
+      mainNav: 'เมนูหลัก Tanot', openMenu: 'เปิดเมนู', closeMenu: 'ปิดเมนู', menu: 'เมนู Tanot', expand: 'ขยาย {label}',
+      search: 'ค้นหา (Ctrl+K)', themeToggle: 'สลับโหมดสว่าง/มืด', settings: 'ตั้งค่า',
+      accent: 'เลือกธีมเว็บ', style: 'ประเภทธีม', lang: 'ภาษา', font: 'ตัวอักษร', bg: 'ภาพพื้นหลัง',
+      clearData: 'ล้างข้อมูล', help: 'Help', credits: 'เครดิต & ลิขสิทธิ์',
+      'accent.teal': 'เขียวน้ำทะเล (ปกติ)', 'accent.blue': 'น้ำเงิน', 'accent.violet': 'ม่วง', 'accent.orange': 'ส้ม', 'accent.graphite': 'เทาเข้ม',
+      'style.flat': 'เรียบ (ปกติ)', 'style.soft': 'นุ่ม', 'style.outline': 'เส้นขอบ',
+      'font.prompt': 'Prompt (ปกติ)', 'font.ibmplex': 'IBM Plex Sans Thai',
+      ok: 'ตกลง', cancel: 'ยกเลิก', del: 'ลบ', confirmDelete: 'ลบ{what}?', confirmDeleteGeneric: 'ลบรายการนี้?', soon: 'เร็วๆ นี้'
+    },
+    en: {
+      mainNav: 'Tanot main menu', openMenu: 'Open menu', closeMenu: 'Close menu', menu: 'Tanot menu', expand: 'Expand {label}',
+      search: 'Search (Ctrl+K)', themeToggle: 'Toggle light/dark mode', settings: 'Settings',
+      accent: 'Accent colour', style: 'Surface style', lang: 'Language', font: 'Font', bg: 'Background image',
+      clearData: 'Clear data', help: 'Help', credits: 'Credits & licenses',
+      'accent.teal': 'Teal (default)', 'accent.blue': 'Blue', 'accent.violet': 'Violet', 'accent.orange': 'Orange', 'accent.graphite': 'Graphite',
+      'style.flat': 'Flat (default)', 'style.soft': 'Soft', 'style.outline': 'Outline',
+      'font.prompt': 'Prompt (default)', 'font.ibmplex': 'IBM Plex Sans Thai',
+      ok: 'OK', cancel: 'Cancel', del: 'Delete', confirmDelete: 'Delete {what}?', confirmDeleteGeneric: 'Delete this item?', soon: 'Coming soon'
+    }
+  });
+  /* หน้าที่ไม่ได้โหลด i18n.js (ไม่ควรมี — repo-guards ตรวจ) ยังแสดงภาษาไทยได้ */
+  var TH_FALLBACK = { ok: 'ตกลง', cancel: 'ยกเลิก', del: 'ลบ', confirmDeleteGeneric: 'ลบรายการนี้?', confirmDelete: 'ลบ{what}?' };
+  function t(key, vars) {
+    if (I18N) return I18N.t('shell.' + key, vars);
+    var v = TH_FALLBACK[key] || '';
+    return vars ? v.replace(/\{(\w+)\}/g, function (m, n) { return vars[n] != null ? vars[n] : m; }) : v;
+  }
+  function L(n) { return I18N ? I18N.label(n) : n.label; }
+  /* ใส่ข้อความ + data-ome-t (ไม่ใช่ data-i18n — หน้าเดิมวน [data-i18n] ทั้งหน้าด้วยพจนานุกรมตัวเอง) ให้แปลใหม่ตอนสลับภาษา */
+  function i18nText(el, key) { el.setAttribute('data-ome-t', 'shell.' + key); el.textContent = t(key); return el; }
+  function i18nAttr(el, attr, key) {
+    var cur = el.getAttribute('data-i18n-attr');
+    el.setAttribute('data-i18n-attr', (cur ? cur + ',' : '') + attr + ':shell.' + key);
+    el.setAttribute(attr, t(key));
+    return el;
+  }
+  function icon(name, size) {
+    return '<svg class="ome-icon" width="' + (size || 16) + '" height="' + (size || 16) + '" aria-hidden="true"><use href="' + BASE + 'icons.svg#i-' + name + '"/></svg>';
+  }
+
   var ACCENTS = [
-    { id: 'teal',     label: 'เขียวน้ำทะเล (ปกติ)', swatch: '#12A594' },
-    { id: 'blue',     label: 'น้ำเงิน',            swatch: '#3D7CF4' },
-    { id: 'violet',   label: 'ม่วง',               swatch: '#7C6FEA' },
-    { id: 'orange',   label: 'ส้ม',                swatch: '#E8743B' },
-    { id: 'graphite', label: 'เทาเข้ม',            swatch: '#3F3F46' }
+    { id: 'teal',     swatch: '#0F8475' },
+    { id: 'blue',     swatch: '#2D6EE6' },
+    { id: 'violet',   swatch: '#6A5AE0' },
+    { id: 'orange',   swatch: '#C4500F' },
+    { id: 'graphite', swatch: '#3F3F46' }
   ];
-  var STYLES = [
-    { id: 'flat',    label: 'เรียบ (ปกติ)' },
-    { id: 'soft',    label: 'นุ่ม' },
-    { id: 'outline', label: 'เส้นขอบ' }
-  ];
-  var FONTS = [
-    { id: 'prompt',  label: 'Prompt (ปกติ)' },
-    { id: 'ibmplex', label: 'IBM Plex Sans Thai' }
-  ];
+  var STYLES = [{ id: 'flat' }, { id: 'soft' }, { id: 'outline' }];
+  var FONTS = [{ id: 'prompt' }, { id: 'ibmplex' }];
   function themeGet(kind) { return OT ? OT.get(kind) : (kind === 'theme' ? 'light' : ''); }
   function themeSet(kind, v) { if (OT) OT.set(kind, v); }
   function syncThemeBtn() {
     var btn = document.getElementById('omeThemeBtn');
-    if (btn) btn.textContent = themeGet('theme') === 'dark' ? '☀️' : '🌙';
+    if (btn) btn.innerHTML = icon(themeGet('theme') === 'dark' ? 'sun' : 'moon');
   }
   if (OT) OT.onChange(syncThemeBtn);
 
@@ -80,127 +117,128 @@
      ที่นี่ ('ome:lang') แต่ละไฟล์เครื่องมือ (ดู commit ที่แก้พร้อมกัน) ชี้ LANG_KEY ของตัวเอง
      มาที่คีย์นี้แทน และ expose window.omeApplyLang ไว้ให้จุดกลางนี้เรียกตอนสลับจากเมนูตั้งค่า
      (ปุ่มสลับภาษาเดิมของแต่ละหน้ายังใช้ได้ปกติ แค่เขียน/อ่านคีย์เดียวกันแล้ว) */
+  /* ตั้งแต่งานแก้ธีม+ภาษารอบ 1: OME_LANG ย้ายไปอยู่ใน i18n.js (onChange หลาย listener + event 'ome:langchange'
+     + ยังเรียก window.omeApplyLang ของหน้าเดิม) — ที่นี่เหลือตัวสำรองเผื่อหน้าที่ยังไม่โหลด i18n.js */
   function getUILangGlobal() {
-    try {
-      var v = localStorage.getItem('ome:lang');
-      if (v === 'en' || v === 'th') return v;
-    } catch (e) {}
-    return 'th';
+    if (window.OME_LANG) return window.OME_LANG.get();
+    try { return localStorage.getItem('ome:lang') === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; }
   }
   function setUILangGlobal(lang) {
+    if (window.OME_LANG) { window.OME_LANG.set(lang); return; }
     try { localStorage.setItem('ome:lang', lang); } catch (e) {}
     if (typeof window.omeApplyLang === 'function') window.omeApplyLang();
   }
-  window.OME_LANG = { get: getUILangGlobal, set: setUILangGlobal };
+  if (!window.OME_LANG) window.OME_LANG = { get: getUILangGlobal, set: setUILangGlobal, onChange: function () { return function () {}; } };
 
   /* ── โครงสร้างเมนูทั้งเว็บ — จัดตาม 4 ด้านของชีวิต (ROADMAP 0d) ────────────
      ชั้นบนสุด = ด้าน (area: today/work/life/edu/hobby/settings) แต่ละด้านมี href ไปหน้า area.html?a=<area>
      key ไม่ซ้ำกัน, href = ลิงก์ไปหน้านั้น (ไม่ใส่ = เป็นแค่หมวดหมู่ให้กดขยาย), children = รายการย่อย
+     label = ป้ายไทย, labelEn = ป้ายอังกฤษ (ทุกรายการต้องมี — OME_I18N.label() เลือกตามภาษา, palette ค้นได้ทั้งคู่)
      icon = ชื่อไอคอนใน icons.svg (ไม่ใส่ตัว "i-"), keywords = คำค้นไทย/อังกฤษ (ไว้ใช้กับ palette.js Phase 3),
      status = 'soon' สำหรับหน้าที่ยังไม่ทำ (ไม่ใส่ = พร้อมใช้) — อ่านโดย area.html และ tests/helpers.js */
   var MENU = [
-    { key: 'home', area: 'today', label: 'วันนี้', icon: 'house', href: 'index.html', keywords: 'หน้าแรก home today วันนี้' },
-    { key: 'work', area: 'work', label: 'งาน', icon: 'briefcase', href: 'area.html?a=work', keywords: 'งาน work ทำงาน', children: [
-        { key: 'documents', label: 'เอกสาร', icon: 'folder', children: [
-            { key: 'word',         label: 'งาน Word', icon: 'file-text', href: 'word.html', keywords: 'word เอกสาร docx' },
-            { key: 'excel',        label: 'งาน Excel', icon: 'file-spreadsheet', href: 'excel.html', keywords: 'excel ตาราง xlsx' },
-            { key: 'powerpoint',   label: 'งาน PowerPoint', icon: 'presentation', href: 'slides.html', keywords: 'powerpoint สไลด์ นำเสนอ pptx' },
-            { key: 'extract-text', label: 'ดึงข้อความออกจากเอกสาร', icon: 'copy', href: 'extract-text.html', keywords: 'ocr ดึงข้อความ pdf' },
-            { key: 'doc-check',    label: 'ตรวจสอบเอกสาร', icon: 'circle-check', href: 'doc-check.html', keywords: 'ตรวจเอกสาร สะกด ไวยากรณ์ proofread' },
-            { key: 'data-compare', label: 'เปรียบเทียบข้อมูล', icon: 'arrow-up-down', href: 'compare.html', keywords: 'เปรียบเทียบ diff compare เทียบ ใบเสนอราคา ให้คะแนน จัดซื้อ' }
+    { key: 'home', area: 'today', label: 'วันนี้', labelEn: 'Today', icon: 'house', href: 'index.html', keywords: 'หน้าแรก home today วันนี้' },
+    { key: 'work', area: 'work', label: 'งาน', labelEn: 'Work', icon: 'briefcase', href: 'area.html?a=work', keywords: 'งาน work ทำงาน', children: [
+        { key: 'documents', label: 'เอกสาร', labelEn: 'Documents', icon: 'folder', children: [
+            { key: 'word',         label: 'งาน Word', labelEn: 'Word', icon: 'file-text', href: 'word.html', keywords: 'word เอกสาร docx' },
+            { key: 'excel',        label: 'งาน Excel', labelEn: 'Excel', icon: 'file-spreadsheet', href: 'excel.html', keywords: 'excel ตาราง xlsx' },
+            { key: 'powerpoint',   label: 'งาน PowerPoint', labelEn: 'PowerPoint', icon: 'presentation', href: 'slides.html', keywords: 'powerpoint สไลด์ นำเสนอ pptx' },
+            { key: 'extract-text', label: 'ดึงข้อความออกจากเอกสาร', labelEn: 'Extract text from documents', icon: 'copy', href: 'extract-text.html', keywords: 'ocr ดึงข้อความ pdf' },
+            { key: 'doc-check',    label: 'ตรวจสอบเอกสาร', labelEn: 'Document check', icon: 'circle-check', href: 'doc-check.html', keywords: 'ตรวจเอกสาร สะกด ไวยากรณ์ proofread' },
+            { key: 'data-compare', label: 'เปรียบเทียบข้อมูล', labelEn: 'Compare data', icon: 'arrow-up-down', href: 'compare.html', keywords: 'เปรียบเทียบ diff compare เทียบ ใบเสนอราคา ให้คะแนน จัดซื้อ' }
           ]
         },
-        { key: 'engineering', label: 'วิศวกรรม', icon: 'wrench', children: [
-            { key: 'cad',         label: 'งานเขียนแบบ CAD (2D/3D)', icon: 'box', href: 'cad.html', keywords: 'cad เขียนแบบ แบบ drawing' },
-            { key: 'est-cost',    label: 'ประเมินราคา PM/CM', icon: 'calculator', href: 'run.html?tool=est-cost', keywords: 'ประเมินราคา ประมาณราคา pm cm boq' },
-            { key: 'maintenance', label: 'บันทึกงานบำรุงรักษา', icon: 'clipboard-list', href: 'maintenance.html', keywords: 'บำรุงรักษา maintenance pm cm ใบสั่งงาน แจ้งซ่อม ตรวจเช็ก qr อุปกรณ์' },
-            { key: 'electrical',  label: 'เครื่องคำนวณไฟฟ้า', icon: 'zap', href: 'electrical.html', keywords: 'ไฟฟ้า คำนวณ electrical แรงดันตก voltage drop ขนาดสาย ลัดวงจร short circuit คาปาซิเตอร์ pf ฉนวน pi dar กราวด์ หลักดิน ground กับดักฟ้าผ่า arrester bil' }
+        { key: 'engineering', label: 'วิศวกรรม', labelEn: 'Engineering', icon: 'wrench', children: [
+            { key: 'cad',         label: 'งานเขียนแบบ CAD (2D/3D)', labelEn: 'CAD drawing (2D/3D)', icon: 'box', href: 'cad.html', keywords: 'cad เขียนแบบ แบบ drawing' },
+            { key: 'est-cost',    label: 'ประเมินราคา PM/CM', labelEn: 'PM/CM cost estimate', icon: 'calculator', href: 'run.html?tool=est-cost', keywords: 'ประเมินราคา ประมาณราคา pm cm boq' },
+            { key: 'maintenance', label: 'บันทึกงานบำรุงรักษา', labelEn: 'Maintenance log', icon: 'clipboard-list', href: 'maintenance.html', keywords: 'บำรุงรักษา maintenance pm cm ใบสั่งงาน แจ้งซ่อม ตรวจเช็ก qr อุปกรณ์' },
+            { key: 'electrical',  label: 'เครื่องคำนวณไฟฟ้า', labelEn: 'Electrical calculator', icon: 'zap', href: 'electrical.html', keywords: 'ไฟฟ้า คำนวณ electrical แรงดันตก voltage drop ขนาดสาย ลัดวงจร short circuit คาปาซิเตอร์ pf ฉนวน pi dar กราวด์ หลักดิน ground กับดักฟ้าผ่า arrester bil' }
           ]
         },
-        { key: 'reports', label: 'ข้อมูล/รายงาน', icon: 'chart-column', children: [
-            { key: 'report-dashboard', label: 'นำเสนอรายงาน', icon: 'chart-pie', href: 'report-dashboard.html', keywords: 'รายงาน report dashboard' }
+        { key: 'reports', label: 'ข้อมูล/รายงาน', labelEn: 'Data & reports', icon: 'chart-column', children: [
+            { key: 'report-dashboard', label: 'นำเสนอรายงาน', labelEn: 'Report dashboard', icon: 'chart-pie', href: 'report-dashboard.html', keywords: 'รายงาน report dashboard' }
           ]
         },
-        { key: 'legal', label: 'กฎหมาย', icon: 'scale', children: [
-            { key: 'legal-plaint',        label: 'ร่างคำฟ้อง', icon: 'scale', href: 'legal.html#plaint', keywords: 'คำฟ้อง กฎหมาย ฟ้อง' },
-            { key: 'legal-answer',        label: 'ร่างคำให้การ', icon: 'scale', href: 'legal.html#answer', keywords: 'คำให้การ กฎหมาย' },
-            { key: 'legal-petition',      label: 'ร่างคำขอ', icon: 'scale', href: 'legal.html#petition', keywords: 'คำขอ กฎหมาย' },
-            { key: 'legal-statement',     label: 'ร่างคำแถลง', icon: 'scale', href: 'legal.html#statement', keywords: 'คำแถลง กฎหมาย' },
-            { key: 'legal-counterclaim',  label: 'ร่างฟ้องแย้ง', icon: 'scale', href: 'legal.html#counterclaim', keywords: 'ฟ้องแย้ง กฎหมาย' },
-            { key: 'legal-prayer',        label: 'ร่างคำขอท้ายฟ้อง', icon: 'scale', href: 'legal.html#prayer', keywords: 'คำขอท้ายฟ้อง กฎหมาย' },
-            { key: 'legal-police-report', label: 'ร่างเพื่อนำไปแจ้งความ', icon: 'scale', href: 'legal.html#police-report', keywords: 'แจ้งความ ตำรวจ กฎหมาย' }
+        { key: 'legal', label: 'กฎหมาย', labelEn: 'Law', icon: 'scale', children: [
+            { key: 'legal-plaint',        label: 'ร่างคำฟ้อง', labelEn: 'Draft a plaint', icon: 'scale', href: 'legal.html#plaint', keywords: 'คำฟ้อง กฎหมาย ฟ้อง' },
+            { key: 'legal-answer',        label: 'ร่างคำให้การ', labelEn: 'Draft an answer', icon: 'scale', href: 'legal.html#answer', keywords: 'คำให้การ กฎหมาย' },
+            { key: 'legal-petition',      label: 'ร่างคำขอ', labelEn: 'Draft a petition', icon: 'scale', href: 'legal.html#petition', keywords: 'คำขอ กฎหมาย' },
+            { key: 'legal-statement',     label: 'ร่างคำแถลง', labelEn: 'Draft a statement', icon: 'scale', href: 'legal.html#statement', keywords: 'คำแถลง กฎหมาย' },
+            { key: 'legal-counterclaim',  label: 'ร่างฟ้องแย้ง', labelEn: 'Draft a counterclaim', icon: 'scale', href: 'legal.html#counterclaim', keywords: 'ฟ้องแย้ง กฎหมาย' },
+            { key: 'legal-prayer',        label: 'ร่างคำขอท้ายฟ้อง', labelEn: 'Draft a prayer for relief', icon: 'scale', href: 'legal.html#prayer', keywords: 'คำขอท้ายฟ้อง กฎหมาย' },
+            { key: 'legal-police-report', label: 'ร่างเพื่อนำไปแจ้งความ', labelEn: 'Draft a police report', icon: 'scale', href: 'legal.html#police-report', keywords: 'แจ้งความ ตำรวจ กฎหมาย' }
           ]
         },
-        { key: 'tts', label: 'แปลงเสียง ↔ ข้อความ', icon: 'mic', href: 'text-to-speech.html', keywords: 'เสียง ข้อความ tts asr whisper ถอดเสียง อ่านออกเสียง' }
+        { key: 'tts', label: 'แปลงเสียง ↔ ข้อความ', labelEn: 'Speech ↔ text', icon: 'mic', href: 'text-to-speech.html', keywords: 'เสียง ข้อความ tts asr whisper ถอดเสียง อ่านออกเสียง' }
       ]
     },
-    { key: 'life', area: 'life', label: 'ชีวิตประจำวัน', icon: 'wallet', href: 'area.html?a=life', keywords: 'ชีวิตประจำวัน life', children: [
-        { key: 'money', label: 'การเงิน', icon: 'coins', children: [
-            { key: 'finance',   label: 'รายรับรายจ่าย', icon: 'wallet', href: 'budget.html', keywords: 'รายรับ รายจ่าย งบ budget' },
-            { key: 'tax',       label: 'การจ่ายภาษี', icon: 'landmark', href: 'tax.html', keywords: 'ภาษี tax ภาษีเงินได้ ลดหย่อน ภงด rmf ssf thaiesg ประกัน บำนาญ income tax deduction' },
-            { key: 'insurance', label: 'ประกัน', icon: 'shield', href: 'insurance.html', keywords: 'ประกัน insurance กรมธรรม์ เบี้ยประกัน ต่ออายุ ลดหย่อน ประกันชีวิต ประกันสุขภาพ ประกันรถ ประกันบ้าน' },
-            { key: 'invest', label: 'การลงทุน', icon: 'trending-up', href: 'invest.html', keywords: 'ลงทุน invest หุ้น', children: [
-                { key: 'stock',        label: 'หุ้น',              href: 'invest-stock.html#th', keywords: 'หุ้น stock set us หุ้นไทย หุ้นต่างประเทศ nasdaq',
-                  tabs: [ { key: 'thai-stock', label: 'หุ้นไทย', hash: 'th', keywords: 'หุ้นไทย set' },
-                          { key: 'global-stock', label: 'หุ้นต่างประเทศ', hash: 'us', keywords: 'หุ้นนอก us nasdaq' },
-                          { key: 'set50-scanner', label: 'สแกนเนอร์หุ้น', hash: 'scan', keywords: 'สแกน set50 scanner' },
-                          { key: 'portfolio', label: 'พอร์ตจำลอง', hash: 'paper', keywords: 'พอร์ตจำลอง ฝึกเทรด paper' } ] },
-                { key: 'fund',         label: 'กองทุน',            href: 'invest-fund.html#th', keywords: 'กองทุน fund rmf ssf thai esg dca s&p500 กองทุนไทย กองทุนต่างประเทศ nav',
-                  tabs: [ { key: 'thai-fund', label: 'กองทุนไทย', hash: 'th', keywords: 'กองทุนไทย rmf ssf thai esg ลดหย่อนภาษี' },
-                          { key: 'global-fund', label: 'กองทุนต่างประเทศ', hash: 'global', keywords: 'กองทุนต่างประเทศ s&p500 สะสมมูลค่า ปันผล' } ] },
-                { key: 'gold',         label: 'ทอง & สินค้าโภคภัณฑ์', href: 'invest-gold.html#gold', keywords: 'ทอง gold ทองคำ ค่าเงิน วัตถุดิบ สินค้าโภคภัณฑ์ น้ำมัน commodities fx บาทดอลลาร์',
-                  tabs: [ { key: 'gold-price', label: 'ทองคำ', hash: 'gold', keywords: 'ทอง ทองคำ gold ราคาทอง ออมทอง' },
-                          { key: 'commodities', label: 'ค่าเงิน & วัตถุดิบ', hash: 'markets', keywords: 'ค่าเงิน วัตถุดิบ น้ำมัน commodities fx ดอลลาร์' } ] },
-                { key: 'bitcoin',      label: 'คริปโต (Bitcoin)', href: 'invest-bitcoin.html', keywords: 'bitcoin btc คริปโต crypto บิตคอยน์ กลัวโลภ' },
-                { key: 'gov-bond',     label: 'พันธบัตรรัฐบาล',   href: 'invest-gov-bond.html' },
-                { key: 'lottery',      label: 'สลาก',              href: 'invest-lottery.html#gsb', keywords: 'สลาก lottery สลากออมสิน สลาก ธ.ก.ส. สลากกินแบ่ง ล็อตเตอรี่ หวย ตรวจหวย ค่าคาดหวัง',
-                  tabs: [ { key: 'gsb-lottery', label: 'สลากออมสิน', hash: 'gsb', keywords: 'สลากออมสิน gsb ค่าคาดหวัง ev' },
-                          { key: 'baac-lottery', label: 'สลาก ธ.ก.ส.', hash: 'baac', keywords: 'สลาก ธ.ก.ส. baac ค่าคาดหวัง ev' },
-                          { key: 'govt-lottery', label: 'สลากกินแบ่งรัฐบาล', hash: 'govt', keywords: 'สลากกินแบ่ง หวย ตรวจหวย สุ่มเลข สถิติ' } ] },
-                { key: 'journal',      label: 'สมุดเทรด',          href: 'invest-trade-journal.html#all', keywords: 'สมุดเทรด journal เทรด สถิติ อัตราชนะ expectancy ผลเทรด' },
-                { key: 'news',         label: 'ข่าวหุ้น',          href: 'invest-news.html' },
-                { key: 'business',     label: 'ลงทุนทำธุรกิจ',    href: 'invest-business.html' }
+    { key: 'life', area: 'life', label: 'ชีวิตประจำวัน', labelEn: 'Daily life', icon: 'wallet', href: 'area.html?a=life', keywords: 'ชีวิตประจำวัน life', children: [
+        { key: 'money', label: 'การเงิน', labelEn: 'Money', icon: 'coins', children: [
+            { key: 'finance',   label: 'รายรับรายจ่าย', labelEn: 'Income & expenses', icon: 'wallet', href: 'budget.html', keywords: 'รายรับ รายจ่าย งบ budget' },
+            { key: 'tax',       label: 'การจ่ายภาษี', labelEn: 'Income tax', icon: 'landmark', href: 'tax.html', keywords: 'ภาษี tax ภาษีเงินได้ ลดหย่อน ภงด rmf ssf thaiesg ประกัน บำนาญ income tax deduction' },
+            { key: 'insurance', label: 'ประกัน', labelEn: 'Insurance', icon: 'shield', href: 'insurance.html', keywords: 'ประกัน insurance กรมธรรม์ เบี้ยประกัน ต่ออายุ ลดหย่อน ประกันชีวิต ประกันสุขภาพ ประกันรถ ประกันบ้าน' },
+            { key: 'invest', label: 'การลงทุน', labelEn: 'Investing', icon: 'trending-up', href: 'invest.html', keywords: 'ลงทุน invest หุ้น', children: [
+                { key: 'stock',        label: 'หุ้น', labelEn: 'Stocks',              href: 'invest-stock.html#th', keywords: 'หุ้น stock set us หุ้นไทย หุ้นต่างประเทศ nasdaq',
+                  tabs: [ { key: 'thai-stock', label: 'หุ้นไทย', labelEn: 'Thai stocks', hash: 'th', keywords: 'หุ้นไทย set' },
+                          { key: 'global-stock', label: 'หุ้นต่างประเทศ', labelEn: 'Global stocks', hash: 'us', keywords: 'หุ้นนอก us nasdaq' },
+                          { key: 'set50-scanner', label: 'สแกนเนอร์หุ้น', labelEn: 'Stock scanner', hash: 'scan', keywords: 'สแกน set50 scanner' },
+                          { key: 'portfolio', label: 'พอร์ตจำลอง', labelEn: 'Paper portfolio', hash: 'paper', keywords: 'พอร์ตจำลอง ฝึกเทรด paper' } ] },
+                { key: 'fund',         label: 'กองทุน', labelEn: 'Funds',            href: 'invest-fund.html#th', keywords: 'กองทุน fund rmf ssf thai esg dca s&p500 กองทุนไทย กองทุนต่างประเทศ nav',
+                  tabs: [ { key: 'thai-fund', label: 'กองทุนไทย', labelEn: 'Thai funds', hash: 'th', keywords: 'กองทุนไทย rmf ssf thai esg ลดหย่อนภาษี' },
+                          { key: 'global-fund', label: 'กองทุนต่างประเทศ', labelEn: 'Global funds', hash: 'global', keywords: 'กองทุนต่างประเทศ s&p500 สะสมมูลค่า ปันผล' } ] },
+                { key: 'gold',         label: 'ทอง & สินค้าโภคภัณฑ์', labelEn: 'Gold & commodities', href: 'invest-gold.html#gold', keywords: 'ทอง gold ทองคำ ค่าเงิน วัตถุดิบ สินค้าโภคภัณฑ์ น้ำมัน commodities fx บาทดอลลาร์',
+                  tabs: [ { key: 'gold-price', label: 'ทองคำ', labelEn: 'Gold', hash: 'gold', keywords: 'ทอง ทองคำ gold ราคาทอง ออมทอง' },
+                          { key: 'commodities', label: 'ค่าเงิน & วัตถุดิบ', labelEn: 'FX & commodities', hash: 'markets', keywords: 'ค่าเงิน วัตถุดิบ น้ำมัน commodities fx ดอลลาร์' } ] },
+                { key: 'bitcoin',      label: 'คริปโต (Bitcoin)', labelEn: 'Crypto (Bitcoin)', href: 'invest-bitcoin.html', keywords: 'bitcoin btc คริปโต crypto บิตคอยน์ กลัวโลภ' },
+                { key: 'gov-bond',     label: 'พันธบัตรรัฐบาล', labelEn: 'Government bonds',   href: 'invest-gov-bond.html' },
+                { key: 'lottery',      label: 'สลาก', labelEn: 'Lottery & savings bonds',              href: 'invest-lottery.html#gsb', keywords: 'สลาก lottery สลากออมสิน สลาก ธ.ก.ส. สลากกินแบ่ง ล็อตเตอรี่ หวย ตรวจหวย ค่าคาดหวัง',
+                  tabs: [ { key: 'gsb-lottery', label: 'สลากออมสิน', labelEn: 'GSB savings lottery', hash: 'gsb', keywords: 'สลากออมสิน gsb ค่าคาดหวัง ev' },
+                          { key: 'baac-lottery', label: 'สลาก ธ.ก.ส.', labelEn: 'BAAC savings lottery', hash: 'baac', keywords: 'สลาก ธ.ก.ส. baac ค่าคาดหวัง ev' },
+                          { key: 'govt-lottery', label: 'สลากกินแบ่งรัฐบาล', labelEn: 'Government lottery', hash: 'govt', keywords: 'สลากกินแบ่ง หวย ตรวจหวย สุ่มเลข สถิติ' } ] },
+                { key: 'journal',      label: 'สมุดเทรด', labelEn: 'Trade journal',          href: 'invest-trade-journal.html#all', keywords: 'สมุดเทรด journal เทรด สถิติ อัตราชนะ expectancy ผลเทรด' },
+                { key: 'news',         label: 'ข่าวหุ้น', labelEn: 'Market news',          href: 'invest-news.html' },
+                { key: 'business',     label: 'ลงทุนทำธุรกิจ', labelEn: 'Business plan',    href: 'invest-business.html' }
               ]
             }
           ]
         },
-        { key: 'health',   label: 'สุขภาพ', icon: 'heart-pulse', href: 'health.html', keywords: 'สุขภาพ health น้ำหนัก ความดัน ชีพจร น้ำตาล รอบเอว ผลตรวจ แล็บ ยา อาหารเสริม เตือนกินยา วิตามิน' },
-        { key: 'receipts', label: 'คลังใบเสร็จ/ประกันสินค้า', icon: 'receipt', href: 'receipts.html', keywords: 'ใบเสร็จ ประกันสินค้า warranty receipt คลังใบเสร็จ รับประกัน e-receipt ลดหย่อน บริจาค ocr' },
-        { key: 'car', label: 'บันทึกรถ', icon: 'car', href: 'car.html', keywords: 'รถ บันทึกรถ car พ.ร.บ. ภาษีรถ ประกันรถ ตรอ. ตรวจสภาพ เข้าศูนย์ เปลี่ยนน้ำมันเครื่อง ซ่อมบำรุง เลขไมล์ ทะเบียนรถ' }
+        { key: 'health',   label: 'สุขภาพ', labelEn: 'Health', icon: 'heart-pulse', href: 'health.html', keywords: 'สุขภาพ health น้ำหนัก ความดัน ชีพจร น้ำตาล รอบเอว ผลตรวจ แล็บ ยา อาหารเสริม เตือนกินยา วิตามิน' },
+        { key: 'receipts', label: 'คลังใบเสร็จ/ประกันสินค้า', labelEn: 'Receipts & warranties', icon: 'receipt', href: 'receipts.html', keywords: 'ใบเสร็จ ประกันสินค้า warranty receipt คลังใบเสร็จ รับประกัน e-receipt ลดหย่อน บริจาค ocr' },
+        { key: 'car', label: 'บันทึกรถ', labelEn: 'Car log', icon: 'car', href: 'car.html', keywords: 'รถ บันทึกรถ car พ.ร.บ. ภาษีรถ ประกันรถ ตรอ. ตรวจสภาพ เข้าศูนย์ เปลี่ยนน้ำมันเครื่อง ซ่อมบำรุง เลขไมล์ ทะเบียนรถ' }
       ]
     },
-    { key: 'edu', area: 'edu', label: 'การศึกษา', icon: 'graduation-cap', href: 'area.html?a=edu', keywords: 'การศึกษา เรียน education', children: [
-        { key: 'review', label: 'ทบทวนวันนี้', icon: 'refresh-cw', href: 'review.html', keywords: 'ทบทวน flashcard review การ์ด xp วันติดต่อกัน streak เป้า' },
-        { key: 'classroom', label: 'ห้องเรียน', icon: 'graduation-cap', children: [
-            { key: 'classroom-law',         label: 'เรียนกฎหมาย', icon: 'scale', href: 'classroom-law.html', keywords: 'เรียนกฎหมาย เนติ' },
-            { key: 'classroom-business',    label: 'ธุรกิจ', icon: 'briefcase', href: 'classroom-business.html', keywords: 'เรียนธุรกิจ business' },
-            { key: 'classroom-engineering', label: 'วิศวกรรม', icon: 'wrench', href: 'classroom-engineering.html', keywords: 'เรียนวิศวกรรม engineering' }
+    { key: 'edu', area: 'edu', label: 'การศึกษา', labelEn: 'Education', icon: 'graduation-cap', href: 'area.html?a=edu', keywords: 'การศึกษา เรียน education', children: [
+        { key: 'review', label: 'ทบทวนวันนี้', labelEn: 'Review today', icon: 'refresh-cw', href: 'review.html', keywords: 'ทบทวน flashcard review การ์ด xp วันติดต่อกัน streak เป้า' },
+        { key: 'classroom', label: 'ห้องเรียน', labelEn: 'Classrooms', icon: 'graduation-cap', children: [
+            { key: 'classroom-law',         label: 'เรียนกฎหมาย', labelEn: 'Law', icon: 'scale', href: 'classroom-law.html', keywords: 'เรียนกฎหมาย เนติ' },
+            { key: 'classroom-business',    label: 'ธุรกิจ', labelEn: 'Business', icon: 'briefcase', href: 'classroom-business.html', keywords: 'เรียนธุรกิจ business' },
+            { key: 'classroom-engineering', label: 'วิศวกรรม', labelEn: 'Engineering', icon: 'wrench', href: 'classroom-engineering.html', keywords: 'เรียนวิศวกรรม engineering' }
           ]
         },
-        { key: 'language', label: 'ภาษา', icon: 'languages', href: 'languages.html', keywords: 'ภาษา language อังกฤษ จีน ญี่ปุ่น' },
-        { key: 'books',    label: 'หนังสือ', icon: 'book-open', href: 'books.html', keywords: 'หนังสือ book อ่าน ชั้นหนังสือ ไฮไลต์ open library' }
+        { key: 'language', label: 'ภาษา', labelEn: 'Languages', icon: 'languages', href: 'languages.html', keywords: 'ภาษา language อังกฤษ จีน ญี่ปุ่น' },
+        { key: 'books',    label: 'หนังสือ', labelEn: 'Books', icon: 'book-open', href: 'books.html', keywords: 'หนังสือ book อ่าน ชั้นหนังสือ ไฮไลต์ open library' }
       ]
     },
-    { key: 'hobby', area: 'hobby', label: 'งานอดิเรก/ทักษะ', icon: 'music', href: 'area.html?a=hobby', keywords: 'งานอดิเรก ทักษะ hobby', children: [
-        { key: 'music',  label: 'เรียนดนตรี', icon: 'music', href: 'music.html', keywords: 'ดนตรี music' },
-        { key: 'sports', label: 'เรียนกีฬา', icon: 'dumbbell', href: 'sports.html', keywords: 'กีฬา sports' },
-        { key: 'cooking', label: 'เรียนทำอาหาร', icon: 'chef-hat', href: 'cooking.html', keywords: 'ทำอาหาร cooking' },
-        { key: 'coding', label: 'การเขียนโค้ด', icon: 'code', href: 'coding.html', keywords: 'โค้ด code programming' },
-        { key: 'image-gen', label: 'สร้างภาพ', icon: 'image', href: 'image-gen.html', keywords: 'ภาพ รูป ai image generate พื้นหลัง ไอคอน' },
-        { key: 'typing', label: 'สอนพิมพ์', icon: 'keyboard', href: 'typing.html', keywords: 'พิมพ์ดีด typing' },
-        { key: 'games',  label: 'เกมที่เล่น', icon: 'gamepad-2', href: soonHref('เกมที่เล่น'), status: 'soon', keywords: 'เกม game' },
-        { key: '3d-sim', label: 'จำลอง 3D', icon: 'box', children: [
-            { key: '3d-objects', label: 'จำลองสิ่งของ', icon: 'box', href: 'sim-objects.html', keywords: '3d จำลอง สิ่งของ three' },
-            { key: '3d-people',  label: 'จำลองคน', icon: 'user', href: soonHref('จำลองคน 3D'), status: 'soon', keywords: '3d คน' }
+    { key: 'hobby', area: 'hobby', label: 'งานอดิเรก/ทักษะ', labelEn: 'Hobbies & skills', icon: 'music', href: 'area.html?a=hobby', keywords: 'งานอดิเรก ทักษะ hobby', children: [
+        { key: 'music',  label: 'เรียนดนตรี', labelEn: 'Music', icon: 'music', href: 'music.html', keywords: 'ดนตรี music' },
+        { key: 'sports', label: 'เรียนกีฬา', labelEn: 'Sports', icon: 'dumbbell', href: 'sports.html', keywords: 'กีฬา sports' },
+        { key: 'cooking', label: 'เรียนทำอาหาร', labelEn: 'Cooking', icon: 'chef-hat', href: 'cooking.html', keywords: 'ทำอาหาร cooking' },
+        { key: 'coding', label: 'การเขียนโค้ด', labelEn: 'Coding', icon: 'code', href: 'coding.html', keywords: 'โค้ด code programming' },
+        { key: 'image-gen', label: 'สร้างภาพ', labelEn: 'Image generator', icon: 'image', href: 'image-gen.html', keywords: 'ภาพ รูป ai image generate พื้นหลัง ไอคอน' },
+        { key: 'typing', label: 'สอนพิมพ์', labelEn: 'Typing', icon: 'keyboard', href: 'typing.html', keywords: 'พิมพ์ดีด typing' },
+        { key: 'games',  label: 'เกมที่เล่น', labelEn: 'Games', icon: 'gamepad-2', href: soonHref('เกมที่เล่น'), status: 'soon', keywords: 'เกม game' },
+        { key: '3d-sim', label: 'จำลอง 3D', labelEn: '3D simulation', icon: 'box', children: [
+            { key: '3d-objects', label: 'จำลองสิ่งของ', labelEn: 'Object simulator', icon: 'box', href: 'sim-objects.html', keywords: '3d จำลอง สิ่งของ three' },
+            { key: '3d-people',  label: 'จำลองคน', labelEn: 'People simulator', icon: 'user', href: soonHref('จำลองคน 3D'), status: 'soon', keywords: '3d คน' }
           ]
         }
       ]
     },
-    { key: 'settings', area: 'settings', label: 'ตั้งค่า/ข้อมูล', icon: 'settings', href: 'area.html?a=settings', keywords: 'ตั้งค่า ข้อมูล settings', children: [
-        { key: 'data', label: 'ข้อมูลและการซิงก์', icon: 'refresh-cw', href: 'data.html', keywords: 'ซิงก์ สำรอง backup restore sync ข้อมูล drive' },
-        { key: 'notifications', label: 'การแจ้งเตือน', icon: 'bell', href: 'notifications.html', keywords: 'แจ้งเตือน เตือน notification push reminder' },
-        { key: 'migrate', label: 'ย้ายข้อมูลจาก github.io', icon: 'download', href: 'migrate.html', keywords: 'ย้ายข้อมูล migrate github import' },
-        { key: 'credits', label: 'เครดิต & ลิขสิทธิ์', icon: 'info', href: 'credits.html', keywords: 'เครดิต ลิขสิทธิ์ credits license' }
+    { key: 'settings', area: 'settings', label: 'ตั้งค่า/ข้อมูล', labelEn: 'Settings & data', icon: 'settings', href: 'area.html?a=settings', keywords: 'ตั้งค่า ข้อมูล settings', children: [
+        { key: 'data', label: 'ข้อมูลและการซิงก์', labelEn: 'Data & sync', icon: 'refresh-cw', href: 'data.html', keywords: 'ซิงก์ สำรอง backup restore sync ข้อมูล drive' },
+        { key: 'notifications', label: 'การแจ้งเตือน', labelEn: 'Notifications', icon: 'bell', href: 'notifications.html', keywords: 'แจ้งเตือน เตือน notification push reminder' },
+        { key: 'migrate', label: 'ย้ายข้อมูลจาก github.io', labelEn: 'Move data from github.io', icon: 'download', href: 'migrate.html', keywords: 'ย้ายข้อมูล migrate github import' },
+        { key: 'credits', label: 'เครดิต & ลิขสิทธิ์', labelEn: 'Credits & licenses', icon: 'info', href: 'credits.html', keywords: 'เครดิต ลิขสิทธิ์ credits license' }
       ]
     }
   ];
@@ -245,12 +283,13 @@
         var a = document.createElement('a');
         a.className = 'ome-menu-link' + (isActive ? ' active' : '');
         a.href = BASE + n.href;
-        a.innerHTML = (n.icon ? '<svg class="ome-icon ome-menu-ic" aria-hidden="true"><use href="' + BASE + 'icons.svg#i-' + n.icon + '"/></svg>' : '') + '<span>' + n.label + '</span>';
+        a.innerHTML = (n.icon ? '<svg class="ome-icon ome-menu-ic" aria-hidden="true"><use href="' + BASE + 'icons.svg#i-' + n.icon + '"/></svg>' : '') + '<span></span>';
+        a.lastChild.textContent = L(n);
         row.appendChild(a);
       } else {
         var cat = document.createElement('div');
         cat.className = 'ome-menu-cat';
-        cat.textContent = n.label;
+        cat.textContent = L(n);
         row.appendChild(cat);
       }
 
@@ -259,8 +298,9 @@
         var toggle = document.createElement('button');
         toggle.type = 'button';
         toggle.className = 'ome-menu-toggle';
-        toggle.setAttribute('aria-label', 'ขยาย ' + n.label);
-        toggle.innerHTML = '▸';
+        toggle.setAttribute('aria-label', t('expand', { label: L(n) }));
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.innerHTML = icon('chevron-right', 14);
         row.appendChild(toggle);
 
         childrenWrap = document.createElement('div');
@@ -268,11 +308,12 @@
         renderMenuNodes(n.children, childrenWrap, depth + 1);
 
         var startOpen = isAncestorOfActive;
-        if (startOpen) { toggle.classList.add('open'); childrenWrap.classList.add('open'); }
+        if (startOpen) { toggle.classList.add('open'); childrenWrap.classList.add('open'); toggle.setAttribute('aria-expanded', 'true'); }
 
         toggle.addEventListener('click', function () {
           var open = childrenWrap.classList.toggle('open');
           toggle.classList.toggle('open', open);
+          toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
         });
 
         /* กดชื่อหมวดที่ไม่มีลิงก์ (เช่น "ชีวิตประจำวัน"/"ห้องเรียน") ก็ขยาย/ยุบได้เหมือนกดลูกศร */
@@ -293,12 +334,12 @@
   function buildNav() {
     var nav = document.createElement('nav');
     nav.className = 'ome-nav';
-    nav.setAttribute('aria-label', 'เมนูหลัก Tanot');
+    i18nAttr(nav, 'aria-label', 'mainNav');
 
     var hamburger = document.createElement('button');
     hamburger.type = 'button';
     hamburger.className = 'ome-hamburger';
-    hamburger.setAttribute('aria-label', 'เปิดเมนู');
+    i18nAttr(hamburger, 'aria-label', 'openMenu');
     hamburger.innerHTML = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>';
     nav.appendChild(hamburger);
 
@@ -314,7 +355,7 @@
     searchBtn.id = 'omeSearchBtn';
     searchBtn.type = 'button';
     searchBtn.className = 'ome-theme-btn';
-    searchBtn.setAttribute('aria-label', 'ค้นหา (Ctrl+K)');
+    i18nAttr(searchBtn, 'aria-label', 'search');
     searchBtn.setAttribute('aria-haspopup', 'dialog');
     searchBtn.innerHTML = '<svg class="ome-icon" width="16" height="16" aria-hidden="true"><use href="' + BASE + 'icons.svg#i-search"/></svg>';
     searchBtn.addEventListener('click', function () { openPalette(); });
@@ -322,8 +363,9 @@
     var themeBtn = document.createElement('button');
     themeBtn.id = 'omeThemeBtn';
     themeBtn.className = 'ome-theme-btn';
-    themeBtn.setAttribute('aria-label', 'สลับโหมดสว่าง/มืด');
-    themeBtn.textContent = themeGet('theme') === 'dark' ? '☀️' : '🌙';
+    themeBtn.type = 'button';
+    i18nAttr(themeBtn, 'aria-label', 'themeToggle');
+    themeBtn.innerHTML = icon(themeGet('theme') === 'dark' ? 'sun' : 'moon');
     themeBtn.addEventListener('click', function () {
       themeSet('theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
     });
@@ -332,8 +374,11 @@
     var gearBtn = document.createElement('button');
     gearBtn.id = 'omeGearBtn';
     gearBtn.className = 'ome-theme-btn';
-    gearBtn.setAttribute('aria-label', 'ตั้งค่า');
-    gearBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+    gearBtn.type = 'button';
+    i18nAttr(gearBtn, 'aria-label', 'settings');
+    gearBtn.setAttribute('aria-haspopup', 'true');
+    gearBtn.setAttribute('aria-expanded', 'false');
+    gearBtn.innerHTML = icon('settings');
     right.appendChild(gearBtn);
 
     nav.appendChild(right);
@@ -349,7 +394,7 @@
     var themeRow = document.createElement('button');
     themeRow.type = 'button';
     themeRow.className = 'ome-settings-row';
-    themeRow.innerHTML = '<span>เลือกธีมเว็บ</span>';
+    themeRow.appendChild(i18nText(document.createElement('span'), 'accent'));
     settingsPanel.appendChild(themeRow);
 
     var swatchWrap = document.createElement('div');
@@ -366,7 +411,8 @@
       sw.type = 'button';
       sw.className = 'ome-theme-swatch';
       sw.setAttribute('data-accent-id', ac.id);
-      sw.innerHTML = '<span class="dot" style="background:' + ac.swatch + '"></span><span>' + ac.label + '</span>';
+      sw.innerHTML = '<span class="dot" style="background:' + ac.swatch + '"></span>';
+      sw.appendChild(i18nText(document.createElement('span'), 'accent.' + ac.id));
       sw.addEventListener('click', function () {
         themeSet('accent', ac.id);
         markSelectedSwatch();
@@ -382,7 +428,7 @@
     var styleRow = document.createElement('button');
     styleRow.type = 'button';
     styleRow.className = 'ome-settings-row';
-    styleRow.innerHTML = '<span>ประเภทธีม</span>';
+    styleRow.appendChild(i18nText(document.createElement('span'), 'style'));
     settingsPanel.appendChild(styleRow);
 
     var styleWrap = document.createElement('div');
@@ -399,7 +445,7 @@
       sw.type = 'button';
       sw.className = 'ome-theme-swatch';
       sw.setAttribute('data-style-id', st.id);
-      sw.innerHTML = '<span>' + st.label + '</span>';
+      sw.appendChild(i18nText(document.createElement('span'), 'style.' + st.id));
       sw.addEventListener('click', function () {
         themeSet('style', st.id);
         markSelectedStyle();
@@ -417,7 +463,7 @@
     var langRow = document.createElement('button');
     langRow.type = 'button';
     langRow.className = 'ome-settings-row';
-    langRow.innerHTML = '<span>ภาษา</span>';
+    langRow.appendChild(i18nText(document.createElement('span'), 'lang'));
     settingsPanel.appendChild(langRow);
 
     var langWrap = document.createElement('div');
@@ -453,7 +499,7 @@
     var fontRow = document.createElement('button');
     fontRow.type = 'button';
     fontRow.className = 'ome-settings-row';
-    fontRow.innerHTML = '<span>ตัวอักษร</span>';
+    fontRow.appendChild(i18nText(document.createElement('span'), 'font'));
     settingsPanel.appendChild(fontRow);
 
     var fontWrap = document.createElement('div');
@@ -470,7 +516,9 @@
       sw.type = 'button';
       sw.className = 'ome-theme-swatch';
       sw.setAttribute('data-font-id', f.id);
-      sw.innerHTML = '<span style="font-family:' + (OT ? OT.fonts[f.id].family : 'inherit') + '">' + f.label + '</span>';
+      var fl = i18nText(document.createElement('span'), 'font.' + f.id);
+      fl.style.fontFamily = OT ? OT.fonts[f.id].family : 'inherit';
+      sw.appendChild(fl);
       sw.addEventListener('click', function () {
         themeSet('font', f.id);
         markSelectedFont();
@@ -488,9 +536,24 @@
     });
     settingsPanel.appendChild(fontWrap);
 
+    /* สวิตช์ "ภาพพื้นหลัง" (ค่าเริ่มต้น = เปิด) — เก็บที่ OmeTheme ('ome:bg') แบบเดียวกับค่าธีมอื่น */
+    var bgRow = document.createElement('button');
+    bgRow.type = 'button';
+    bgRow.className = 'ome-settings-row';
+    bgRow.setAttribute('role', 'switch');
+    bgRow.appendChild(i18nText(document.createElement('span'), 'bg'));
+    var bgSw = document.createElement('span');
+    bgSw.className = 'ome-switch';
+    bgSw.setAttribute('aria-hidden', 'true');
+    bgRow.appendChild(bgSw);
+    function markBg() { bgRow.setAttribute('aria-checked', themeGet('bg') === 'off' ? 'false' : 'true'); }
+    markBg();
+    bgRow.addEventListener('click', function () { themeSet('bg', themeGet('bg') === 'off' ? 'on' : 'off'); markBg(); });
+    settingsPanel.appendChild(bgRow);
+
     var SETTINGS_ROWS = [
-      { label: 'ล้างข้อมูล' },
-      { label: 'Help', divider: true }
+      { key: 'clearData' },
+      { key: 'help', divider: true }
     ];
     SETTINGS_ROWS.forEach(function (r) {
       if (r.divider) {
@@ -501,16 +564,15 @@
       var row = document.createElement('button');
       row.type = 'button';
       row.className = 'ome-settings-row';
-      row.innerHTML = '<span>' + r.label + '</span>';
+      row.appendChild(i18nText(document.createElement('span'), r.key));
       settingsPanel.appendChild(row);
     });
     document.body.appendChild(settingsPanel);
 
-    function openSettings() { settingsPanel.classList.add('open'); }
-    function closeSettings() { settingsPanel.classList.remove('open'); }
+    function closeSettings() { settingsPanel.classList.remove('open'); gearBtn.setAttribute('aria-expanded', 'false'); }
     gearBtn.addEventListener('click', function (e) {
       e.stopPropagation();
-      settingsPanel.classList.toggle('open');
+      gearBtn.setAttribute('aria-expanded', settingsPanel.classList.toggle('open') ? 'true' : 'false');
     });
     document.addEventListener('click', function (e) {
       if (!settingsPanel.contains(e.target) && e.target !== gearBtn) closeSettings();
@@ -524,7 +586,7 @@
     var drawer = document.createElement('div');
     drawer.className = 'ome-drawer';
     drawer.setAttribute('role', 'dialog');
-    drawer.setAttribute('aria-label', 'เมนู Tanot');
+    i18nAttr(drawer, 'aria-label', 'menu');
 
     var head = document.createElement('div');
     head.className = 'ome-drawer-head';
@@ -532,8 +594,8 @@
     var closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'ome-drawer-close';
-    closeBtn.setAttribute('aria-label', 'ปิดเมนู');
-    closeBtn.textContent = '✕';
+    i18nAttr(closeBtn, 'aria-label', 'closeMenu');
+    closeBtn.innerHTML = icon('x', 18);
     head.appendChild(closeBtn);
     drawer.appendChild(head);
 
@@ -541,6 +603,21 @@
     menu.className = 'ome-menu';
     renderMenuNodes(MENU, menu, 0);
     drawer.appendChild(menu);
+    /* สลับภาษา: ข้อความที่มี data-ome-t/data-i18n-attr แปลเองผ่าน OME_I18N.apply — เมนูวาดใหม่ทั้งชุด (คงกลุ่มที่กางไว้) */
+    if (window.OME_LANG && window.OME_LANG.onChange) window.OME_LANG.onChange(function () {
+      var open = [];
+      menu.querySelectorAll('.ome-menu-children').forEach(function (c, i) { if (c.classList.contains('open')) open.push(i); });
+      menu.innerHTML = '';
+      renderMenuNodes(MENU, menu, 0);
+      var kids = menu.querySelectorAll('.ome-menu-children');
+      open.forEach(function (i) {
+        if (!kids[i]) return;
+        kids[i].classList.add('open');
+        var tg = kids[i].previousElementSibling && kids[i].previousElementSibling.querySelector('.ome-menu-toggle');
+        if (tg) { tg.classList.add('open'); tg.setAttribute('aria-expanded', 'true'); }
+      });
+      markSelectedLang();
+    });
 
     document.body.appendChild(backdrop);
     document.body.appendChild(drawer);
@@ -563,7 +640,7 @@
     footer.className = 'ome-footer';
     var a = document.createElement('a');
     a.href = BASE + 'credits.html';
-    a.textContent = 'เครดิต & ลิขสิทธิ์';
+    i18nText(a, 'credits');
     footer.appendChild(a);
     document.body.appendChild(footer);
     stickFooter(footer);
@@ -682,13 +759,43 @@
   window.tanotConfirm = function (msg, opts) {
     opts = opts || {};
     return tanotModal(msg, [
-      { label: opts.cancelLabel || 'ยกเลิก', value: false },
-      { label: opts.okLabel || 'ตกลง', value: true, cls: opts.danger ? 'danger' : 'primary' }
+      { label: opts.cancelLabel || t('cancel'), value: false },
+      { label: opts.okLabel || t('ok'), value: true, cls: opts.danger ? 'danger' : 'primary' }
     ]);
   };
   window.tanotAlert = function (msg, opts) {
     opts = opts || {};
-    return tanotModal(msg, [{ label: opts.okLabel || 'ตกลง', value: true, cls: 'primary' }]);
+    return tanotModal(msg, [{ label: opts.okLabel || t('ok'), value: true, cls: 'primary' }]);
+  };
+  /* ยืนยันการลบกลาง — what = ชื่อสิ่งที่จะลบ (ข้อความตามภาษาของผู้เรียก) ไม่ใส่ = "ลบรายการนี้?" */
+  window.tanotConfirmDelete = function (what, opts) {
+    opts = opts || {};
+    return window.tanotConfirm(opts.message || (what ? t('confirmDelete', { what: what }) : t('confirmDeleteGeneric')),
+      { danger: true, okLabel: opts.okLabel || t('del'), cancelLabel: opts.cancelLabel });
+  };
+  /* toast กลาง — <div class="toast-region"> + .toast ของ theme.css (kind: 'ok' | 'err') · ข้อความตามภาษาของผู้เรียก */
+  var toastTimer = 0;
+  window.tanotToast = function (msg, opts) {
+    opts = typeof opts === 'string' ? { kind: opts } : (opts || {});
+    var region = document.querySelector('.toast-region');
+    if (!region) {
+      region = document.createElement('div');
+      region.className = 'toast-region';
+      region.setAttribute('role', 'status');
+      region.setAttribute('aria-live', 'polite');
+      document.body.appendChild(region);
+    }
+    region.innerHTML = '';
+    var el = document.createElement('div');
+    el.className = 'toast' + (opts.kind === 'ok' || opts.kind === 'err' ? ' ' + opts.kind : '');
+    if (opts.kind === 'ok' || opts.kind === 'err') el.innerHTML = icon(opts.kind === 'ok' ? 'circle-check' : 'circle-alert');
+    var span = document.createElement('span');
+    span.textContent = msg;
+    el.appendChild(span);
+    region.appendChild(el);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, opts.kind === 'err' ? 4200 : 2600);
+    return el;
   };
 
   /* ── ค้นหาด่วน (palette.js) — โหลดตอนใช้ครั้งแรกเท่านั้น ไม่ให้ทุกหน้าแบกโค้ดค้นหาไว้เปล่าๆ ──

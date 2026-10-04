@@ -448,13 +448,21 @@
     return { show: function (k) { show(k, false); }, current: function () { return cur; }, rerender: function () { render(); } };
   }
 
+  /* ป้ายหมวดตามภาษา — INVEST_CATS คงรูปแบบ {key,label,icon,page} เดิม จึงหา labelEn จากรายการเดียวกันใน OME_MENU */
+  function catLabel(c) {
+    var I = window.OME_I18N, hit = null;
+    if (!I) return c.label;
+    (function f(ns) { (ns || []).forEach(function (n) { if (n.key === c.key && n.href === c.page) hit = n; f(n.children); }); })(window.OME_MENU);
+    return hit ? I.label(hit) : c.label;
+  }
+
   /* แถบหมวดย่อยของหน้าลงทุน: แถวเดียว ภาพรวม + ทุกหน้าใน window.INVEST_CATS · active = key ของหน้านี้ */
   function subnav(el, activeKey) {
     function build() {
       var cats = window.INVEST_CATS || [];
       var html = '<a href="invest.html"' + (activeKey === 'overview' ? ' class="on" aria-current="page"' : '') + '>' + esc(CORE.t('overview')) + '</a>';
       cats.forEach(function (c) {
-        html += '<a href="' + esc(c.page) + '"' + (c.key === activeKey ? ' class="on" aria-current="page"' : '') + '>' + esc(c.label) + '</a>';
+        html += '<a href="' + esc(c.page) + '"' + (c.key === activeKey ? ' class="on" aria-current="page"' : '') + '>' + esc(catLabel(c)) + '</a>';
       });
       el.innerHTML = html;
       var on = el.querySelector('a.on'); if (on && on.scrollIntoView && el.scrollWidth > el.clientWidth) { try { el.scrollLeft = Math.max(0, on.offsetLeft - 40); } catch (e) {} }

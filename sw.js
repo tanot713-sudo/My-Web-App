@@ -5,7 +5,11 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v617';
+const CACHE = 'ome-v618';
+/* ภาพพื้นหลังรายหน้า (assets/backgrounds/) — แคชแยกที่ไม่ถูกล้างตอน bump CACHE (ภาพไม่ต้องโหลดใหม่ทุกรอบ deploy)
+   ไม่ precache ทั้ง 30 ไฟล์: โหลดตอนเปิดหน้าที่ใช้ภาพนั้นครั้งแรก แล้วเสิร์ฟจากแคชก่อน + เช็คของใหม่เบื้องหลัง
+   (stale-while-revalidate) — แทนไฟล์ภาพบนเว็บแล้วเครื่องเดิมได้ภาพใหม่ในการเปิดครั้งถัดไป */
+const BG_CACHE = 'ome-bg-v1';
 const PRECACHE = [
   './',
   './index.html',
@@ -227,7 +231,10 @@ const PRECACHE = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  './favicon.svg'
+  './icon-maskable-512.png',
+  './apple-touch-icon.png',
+  './favicon-32.png',
+  './i18n.js'
 ];
 
 self.addEventListener('install', (e) => {
@@ -241,7 +248,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== BG_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -294,7 +301,7 @@ async function handleRedirectedNavigation(req, redirectRes) {
     'align-items:center;justify-content:center;flex-wrap:wrap;padding:10px 16px calc(10px + env(safe-area-inset-bottom));' +
     'background:#1B2030;color:#E6EAF2;font:600 13px/1.4 Prompt,system-ui,sans-serif;box-shadow:0 -4px 16px rgba(0,0,0,.25)">' +
     '<span>เซสชันหมดอายุ — กำลังแสดงหน้าจากแคช</span>' +
-    '<a href="' + escapeHtml(relogin.href) + '" style="color:#fff;background:#12A594;padding:6px 14px;border-radius:999px;' +
+    '<a href="' + escapeHtml(relogin.href) + '" style="color:#fff;background:#0F8475;padding:6px 14px;border-radius:999px;' +
     'text-decoration:none">เข้าสู่ระบบใหม่</a></div>';
   let html = await cached.text();
   const i = html.lastIndexOf('</body>');
@@ -329,6 +336,18 @@ self.addEventListener('fetch', (e) => {
 
   // ลิงก์ "เข้าสู่ระบบใหม่" จากแถบเซสชันหมดอายุ — ปล่อยให้เบราว์เซอร์ตาม redirect ไปหน้าล็อกอินเอง
   if (req.mode === 'navigate' && url.searchParams.has(RELOGIN_PARAM)) return;
+
+  if (url.pathname.indexOf('/assets/backgrounds/') !== -1) {
+    e.respondWith(caches.open(BG_CACHE).then((c) => c.match(req).then((hit) => {
+      const net = fetch(req).then((res) => {
+        if (res.ok && res.type === 'basic') c.put(req, res.clone());
+        return res;
+      });
+      if (hit) { e.waitUntil(net.catch(() => {})); return hit; }
+      return net;
+    })));
+    return;
+  }
 
   const isHTML = req.mode === 'navigate' || /\.html$/.test(url.pathname) || url.pathname.endsWith('/');
   if (isHTML) {

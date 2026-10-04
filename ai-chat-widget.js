@@ -93,8 +93,9 @@
      อัตโนมัติตาม data-theme โดยไม่ต้องกำหนด token สีเองซ้ำแบบหน้าเครื่องมือทั่วไป) ────────────────── */
   var css = ''
     + '.ome-ai-fab{position:fixed;right:16px;bottom:16px;width:56px;height:56px;border-radius:50%;'
-    + 'background:var(--ome-brand);color:#fff;border:none;font-size:25px;cursor:pointer;z-index:170;'
-    + 'display:grid;place-items:center;box-shadow:0 8px 22px rgba(18,165,148,.4);font-family:var(--ome-f)}'
+    + 'background:var(--ome-brand);color:var(--ome-on-accent);border:none;font-size:25px;cursor:pointer;z-index:170;'
+    + 'display:grid;place-items:center;box-shadow:var(--ome-shadow-2);font-family:var(--ome-f)}'
+    + '.ome-ai-fab .ome-icon{width:24px;height:24px}'
     + '.ome-ai-fab:hover{filter:brightness(1.06)}'
     + '.ome-ai-panel{position:fixed;right:16px;bottom:82px;width:360px;max-width:92vw;height:520px;'
     + 'max-height:72vh;background:var(--ome-card);border-radius:16px;box-shadow:0 14px 40px rgba(0,0,0,.22);'
@@ -117,7 +118,7 @@
     + '.ome-ai-row.me{justify-content:flex-end}'
     + '.ome-ai-bubble{max-width:82%;padding:9px 12px;border-radius:13px;font-size:13.5px;line-height:1.55;'
     + 'white-space:pre-wrap;word-break:break-word;color:var(--ome-ink)}'
-    + '.ome-ai-row.me .ome-ai-bubble{background:var(--ome-brand);color:#fff;border-bottom-right-radius:4px}'
+    + '.ome-ai-row.me .ome-ai-bubble{background:var(--ome-brand);color:var(--ome-on-accent);border-bottom-right-radius:4px}'
     + '.ome-ai-row.bot .ome-ai-bubble{background:var(--ome-bg);border:1px solid var(--ome-line);border-bottom-left-radius:4px}'
     + '.ome-ai-status{font-size:11.5px;color:var(--ome-muted);padding:2px 14px;min-height:1.3em;flex-shrink:0}'
     + '.ome-ai-status.err{color:var(--ome-err)}'
@@ -129,9 +130,9 @@
     + '.ome-ai-inputrow textarea:focus{outline:none;border-color:var(--ome-brand)}'
     + '.ome-ai-btn{border:none;border-radius:10px;cursor:pointer;font-size:15px;flex-shrink:0;'
     + 'width:38px;height:38px;display:grid;place-items:center;background:var(--ome-bg);color:var(--ome-ink)}'
-    + '.ome-ai-btn.send{background:var(--ome-brand);color:#fff;width:auto;padding:0 14px;font-size:13.5px;font-weight:700}'
+    + '.ome-ai-btn.send{background:var(--ome-brand);color:var(--ome-on-accent);width:auto;padding:0 14px;font-size:13.5px;font-weight:700}'
     + '.ome-ai-btn:disabled{opacity:.5;cursor:default}'
-    + '.ome-ai-btn.mic.recording{background:var(--ome-err);color:#fff;animation:ome-ai-pulse 1.1s infinite}'
+    + '.ome-ai-btn.mic.recording{background:var(--ome-err-fill);color:var(--ome-on-err);animation:ome-ai-pulse 1.1s infinite}'
     + '@keyframes ome-ai-pulse{0%,100%{opacity:1}50%{opacity:.55}}'
     + '.ome-ai-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap}'
     + '.ome-ai-speak-lbl{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ome-muted);cursor:pointer}'
@@ -146,27 +147,39 @@
   document.head.appendChild(styleEl);
 
   /* ── DOM ────────────────────────────────────────────────────────── */
+  /* ข้อความของวิดเจ็ต (ไทย/อังกฤษ) ผ่าน OME_I18N — data-ome-t/data-i18n-attr แปลใหม่เองตอนสลับภาษา */
+  var I18N = window.OME_I18N || null;
+  if (I18N) I18N.add('aichat', {
+    th: { title: 'ผู้ช่วย AI ถาม-ตอบ', close: 'ปิด', mic: 'เปิดไมค์คุย', placeholder: 'พิมพ์คำถาม…', send: 'ส่ง',
+      speak: 'พูดคำตอบด้วยเสียง', summarize: 'สรุปหน้านี้', newChat: 'เริ่มแชทใหม่' },
+    en: { title: 'AI assistant', close: 'Close', mic: 'Talk with microphone', placeholder: 'Type a question…', send: 'Send',
+      speak: 'Read answers aloud', summarize: 'Summarize this page', newChat: 'New chat' }
+  });
+  function tx(k, th) { return I18N ? I18N.t('aichat.' + k) : th; }
   var fab = document.createElement('button');
-  fab.className = 'ome-ai-fab'; fab.type = 'button'; fab.title = 'ผู้ช่วย AI ถาม-ตอบ';
-  fab.textContent = '💬';
+  fab.className = 'ome-ai-fab'; fab.type = 'button';
+  fab.setAttribute('data-i18n-attr', 'title:aichat.title,aria-label:aichat.title');
+  fab.title = tx('title', 'ผู้ช่วย AI ถาม-ตอบ');
+  fab.setAttribute('aria-label', fab.title);
+  fab.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="' + location.pathname.replace(/[^/]*$/, '') + 'icons.svg#i-message-circle"/></svg>';
 
   var panel = document.createElement('div');
   panel.className = 'ome-ai-panel';
   panel.innerHTML =
-    '<div class="ome-ai-head"><b>ผู้ช่วย AI ถาม-ตอบ</b><button class="ome-ai-close" type="button" title="ปิด">✕</button></div>' +
+    '<div class="ome-ai-head"><b data-ome-t="aichat.title">ผู้ช่วย AI ถาม-ตอบ</b><button class="ome-ai-close" type="button" title="ปิด" data-i18n-attr="title:aichat.close,aria-label:aichat.close" aria-label="ปิด">✕</button></div>' +
     '<div class="ome-ai-log"></div>' +
     '<div class="ome-ai-status"></div>' +
     '<div class="ome-ai-inputwrap">' +
       '<div class="ome-ai-inputrow">' +
-        '<button class="ome-ai-btn mic" type="button" title="เปิดไมค์คุย">🎤</button>' +
-        '<textarea rows="1" placeholder="พิมพ์คำถาม… (Enter ส่ง, Shift+Enter ขึ้นบรรทัดใหม่)"></textarea>' +
-        '<button class="ome-ai-btn send" type="button">ส่ง</button>' +
+        '<button class="ome-ai-btn mic" type="button" title="เปิดไมค์คุย" aria-label="เปิดไมค์คุย" data-i18n-attr="title:aichat.mic,aria-label:aichat.mic">🎤</button>' +
+        '<textarea rows="1" placeholder="พิมพ์คำถาม…" data-i18n-attr="placeholder:aichat.placeholder"></textarea>' +
+        '<button class="ome-ai-btn send" type="button" data-ome-t="aichat.send">ส่ง</button>' +
       '</div>' +
       '<div class="ome-ai-foot">' +
-        '<label class="ome-ai-speak-lbl"><input type="checkbox">พูดคำตอบด้วยเสียง</label>' +
+        '<label class="ome-ai-speak-lbl"><input type="checkbox"><span data-ome-t="aichat.speak">พูดคำตอบด้วยเสียง</span></label>' +
         '<div class="ome-ai-footbtns">' +
-          '<button class="ome-ai-sumbtn" type="button" title="สรุปเนื้อหาหน้านี้">สรุปหน้านี้</button>' +
-          '<button class="ome-ai-newbtn" type="button">เริ่มแชทใหม่</button>' +
+          '<button class="ome-ai-sumbtn" type="button" data-ome-t="aichat.summarize">สรุปหน้านี้</button>' +
+          '<button class="ome-ai-newbtn" type="button" data-ome-t="aichat.newChat">เริ่มแชทใหม่</button>' +
         '</div>' +
       '</div>' +
     '</div>';

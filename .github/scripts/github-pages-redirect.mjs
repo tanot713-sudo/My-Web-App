@@ -7,7 +7,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const TARGET = 'https://my-web-app-5w2.pages.dev';
-export const KEEP = ['migrate-export.html', 'migrate-export.js', 'theme-boot.js', 'data-registry.js', 'tanot-data.js', 'theme.css', 'favicon.svg'];
+export const KEEP = ['migrate-export.html', 'migrate-export.js', 'theme-boot.js', 'data-registry.js', 'tanot-data.js', 'i18n.js', 'theme.css', 'favicon-32.png', 'apple-touch-icon.png'];
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
