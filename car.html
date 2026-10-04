@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>บันทึกรถ | Tanot</title>
+<title data-i18n="car.title">บันทึกรถ | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -22,41 +22,23 @@
 <script src="car.js" defer></script>
 <style>
 .car-page{max-width:1080px}
-.car-page .page-head{align-items:center}
-.car-page .page-head h1{flex:1;margin:0}
 .car-page .stack > .card > .card-head{margin-bottom:var(--ome-sp-3)}
 .car-page .kpi-value{font-size:var(--ome-fs-xl)}
-.car-page .kpi-value small{font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2);margin-left:4px}
 .car-vehicle{display:flex;flex-direction:column;gap:var(--ome-sp-3)}
 .car-vhead{display:flex;align-items:center;gap:var(--ome-sp-3);flex-wrap:wrap}
 .car-vhead .grow{flex:1;min-width:0}
 .car-vhead .title{font-weight:700;font-size:var(--ome-fs-lg)}
 .car-vhead .meta,.car-dl .meta{color:var(--ome-text-2);font-size:var(--ome-fs-sm)}
 .car-vhead .end{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.car-dl .list-row .end{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
-@media (max-width:640px){
-  .car-dl .list-row{flex-wrap:wrap}
-  .car-dl .list-row .end{width:100%;justify-content:flex-start;padding-left:48px}
-}
-.car-sub{font-weight:600;font-size:var(--ome-fs-sm);color:var(--ome-text-2);margin:var(--ome-sp-2) 0 var(--ome-sp-1)}
-.car-svc .list-row .end{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
 .car-svc .list-row .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.car-dialog{width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
-.car-dialog .dialog-body > * + *{margin-top:var(--ome-sp-3)}
-.car-files{display:flex;flex-direction:column;gap:6px}
-.car-file{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);font-size:var(--ome-fs-sm)}
-.car-file a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ome-text-1)}
-.car-file .sz{color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
-.car-msg{color:var(--ome-err-ink);font-size:var(--ome-fs-sm)}
-.car-msg:empty{display:none}
 [hidden]{display:none !important}
 </style>
 </head>
 <body data-layout="tool">
 <main class="page car-page">
   <div class="page-head">
-    <h1>บันทึกรถ</h1>
-    <button class="btn primary" type="button" id="addBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มรถ</button>
+    <h1 data-i18n="car.h1">บันทึกรถ</h1>
+    <button class="btn primary" type="button" id="addBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="car.addCar">เพิ่มรถ</span></button>
   </div>
 
   <div class="stack">
@@ -65,76 +47,76 @@
   </div>
 </main>
 
-<dialog class="dialog car-dialog" id="vdlg" aria-labelledby="vTitle">
+<dialog class="dialog dialog-form" id="vdlg" aria-labelledby="vTitle">
   <form method="dialog" id="vform" novalidate>
     <div class="dialog-head"><h2 id="vTitle">รถ</h2></div>
     <div class="dialog-body">
       <div class="frow">
-        <div class="field"><label for="vType">ประเภท</label><select id="vType" class="select"><option value="car">รถยนต์</option><option value="motorcycle">รถจักรยานยนต์</option></select></div>
-        <div class="field"><label for="vPlate">ทะเบียน</label><input id="vPlate" type="text" maxlength="20" autocomplete="off"></div>
-        <div class="field"><label for="vProv">จังหวัด</label><input id="vProv" type="text" maxlength="40" autocomplete="off"></div>
+        <div class="field"><label for="vType" data-i18n="car.type">ประเภท</label><select id="vType" class="select"><option value="car" data-i18n="car.typeCar">รถยนต์</option><option value="motorcycle" data-i18n="car.typeMoto">รถจักรยานยนต์</option></select></div>
+        <div class="field"><label for="vPlate" data-i18n="car.plate">ทะเบียน</label><input id="vPlate" type="text" maxlength="20" autocomplete="off"></div>
+        <div class="field"><label for="vProv" data-i18n="car.prov">จังหวัด</label><input id="vProv" type="text" maxlength="40" autocomplete="off"></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="vMake">ยี่ห้อ</label><input id="vMake" type="text" maxlength="40" autocomplete="off"></div>
-        <div class="field"><label for="vModel">รุ่น</label><input id="vModel" type="text" maxlength="60" autocomplete="off"></div>
-        <div class="field"><label for="vYear">ปีจดทะเบียน (ค.ศ.)</label><input id="vYear" type="number" inputmode="numeric" min="1950" max="2100" step="1"></div>
+        <div class="field"><label for="vMake" data-i18n="car.make">ยี่ห้อ</label><input id="vMake" type="text" maxlength="40" autocomplete="off"></div>
+        <div class="field"><label for="vModel" data-i18n="car.model">รุ่น</label><input id="vModel" type="text" maxlength="60" autocomplete="off"></div>
+        <div class="field"><label for="vYear" data-i18n="car.year">ปีจดทะเบียน (ค.ศ.)</label><input id="vYear" type="number" inputmode="numeric" min="1950" max="2100" step="1"></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="vOdo">เลขไมล์ล่าสุด (กม.)</label><input id="vOdo" type="number" inputmode="numeric" min="0" step="any"></div>
-        <div class="field"><label for="vOdoAt">วันที่อ่านเลขไมล์</label><input id="vOdoAt" type="date"></div>
+        <div class="field"><label for="vOdo" data-i18n="car.odo">เลขไมล์ล่าสุด (กม.)</label><input id="vOdo" type="number" inputmode="numeric" min="0" step="any"></div>
+        <div class="field"><label for="vOdoAt" data-i18n="car.odoAt">วันที่อ่านเลขไมล์</label><input id="vOdoAt" type="date"></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="vAct">พ.ร.บ. หมดอายุ</label><input id="vAct" type="date"></div>
-        <div class="field"><label for="vTax">ภาษีรถครบกำหนด</label><input id="vTax" type="date"></div>
+        <div class="field"><label for="vAct" data-i18n="car.act">พ.ร.บ. หมดอายุ</label><input id="vAct" type="date"></div>
+        <div class="field"><label for="vTax" data-i18n="car.tax">ภาษีรถครบกำหนด</label><input id="vTax" type="date"></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="vIns">ประกันภาคสมัครใจ หมดอายุ</label><input id="vIns" type="date"></div>
-        <div class="field" id="vPolRow" hidden><label for="vPol">กรมธรรม์ในหน้าประกัน</label><select id="vPol"></select></div>
+        <div class="field"><label for="vIns" data-i18n="car.ins">ประกันภาคสมัครใจ หมดอายุ</label><input id="vIns" type="date"></div>
+        <div class="field" id="vPolRow" hidden><label for="vPol" data-i18n="car.pol">กรมธรรม์ในหน้าประกัน</label><select id="vPol"></select></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="vInspect">ใบตรวจสภาพ (ตรอ.) หมดอายุ</label><input id="vInspect" type="date"></div>
+        <div class="field"><label for="vInspect" data-i18n="car.inspect">ใบตรวจสภาพ (ตรอ.) หมดอายุ</label><input id="vInspect" type="date"></div>
       </div>
-      <div class="field"><label for="vNote">บันทึก</label><textarea id="vNote" rows="2" maxlength="500"></textarea></div>
+      <div class="field"><label for="vNote" data-i18n="car.note">บันทึก</label><textarea id="vNote" rows="2" maxlength="500"></textarea></div>
       <div class="field" id="vFilesRow" hidden>
-        <label>เล่มทะเบียน / ใบเสร็จ</label>
-        <div class="car-files" id="vFileList"></div>
-        <div class="row"><button class="btn sm" type="button" id="vAttach"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg>แนบไฟล์</button></div>
+        <label data-i18n="car.regBook">เล่มทะเบียน / ใบเสร็จ</label>
+        <div class="file-list" id="vFileList"></div>
+        <div class="row"><button class="btn sm" type="button" id="vAttach"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg><span data-i18n="car.attach">แนบไฟล์</span></button></div>
         <input type="file" id="vFileInput" accept="application/pdf,image/*" multiple hidden>
       </div>
-      <p class="car-msg" id="vMsg" role="alert"></p>
+      <p class="form-msg" id="vMsg" role="alert"></p>
     </div>
     <div class="dialog-foot">
-      <button class="btn danger" type="button" id="vDel" style="margin-right:auto">ลบ</button>
-      <button class="btn" type="button" id="vCancel">ยกเลิก</button>
-      <button class="btn primary" type="submit" id="vSave">บันทึก</button>
+      <button class="btn danger" type="button" id="vDel" style="margin-right:auto" data-i18n="car.del">ลบ</button>
+      <button class="btn" type="button" id="vCancel" data-i18n="car.cancel">ยกเลิก</button>
+      <button class="btn primary" type="submit" id="vSave" data-i18n="car.save">บันทึก</button>
     </div>
   </form>
 </dialog>
 
-<dialog class="dialog car-dialog" id="sdlg" aria-labelledby="sTitle">
+<dialog class="dialog dialog-form" id="sdlg" aria-labelledby="sTitle">
   <form method="dialog" id="sform" novalidate>
-    <div class="dialog-head"><h2 id="sTitle">เข้าศูนย์ / ซ่อมบำรุง</h2></div>
+    <div class="dialog-head"><h2 id="sTitle" data-i18n="car.svcTitle">เข้าศูนย์ / ซ่อมบำรุง</h2></div>
     <div class="dialog-body">
       <div class="frow">
-        <div class="field"><label for="sDate">วันที่</label><input id="sDate" type="date"></div>
-        <div class="field"><label for="sOdo">เลขไมล์ (กม.)</label><input id="sOdo" type="number" inputmode="numeric" min="0" step="any"></div>
+        <div class="field"><label for="sDate" data-i18n="car.date">วันที่</label><input id="sDate" type="date"></div>
+        <div class="field"><label for="sOdo" data-i18n="car.sOdo">เลขไมล์ (กม.)</label><input id="sOdo" type="number" inputmode="numeric" min="0" step="any"></div>
       </div>
-      <div class="field"><label for="sItems">รายการ</label><textarea id="sItems" rows="3" maxlength="600"></textarea></div>
+      <div class="field"><label for="sItems" data-i18n="car.items">รายการ</label><textarea id="sItems" rows="3" maxlength="600"></textarea></div>
       <div class="frow">
-        <div class="field"><label for="sCost">ค่าใช้จ่าย (บาท)</label><input id="sCost" type="number" inputmode="decimal" min="0" step="any"></div>
-        <div class="field"><label for="sCat">หมวดรายจ่าย</label><select id="sCat"></select></div>
+        <div class="field"><label for="sCost" data-i18n="car.cost">ค่าใช้จ่าย (บาท)</label><input id="sCost" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div class="field"><label for="sCat" data-i18n="car.cat">หมวดรายจ่าย</label><select id="sCat"></select></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="sNextKm">นัดครั้งถัดไป ที่เลขไมล์</label><input id="sNextKm" type="number" inputmode="numeric" min="0" step="any"></div>
-        <div class="field"><label for="sNextDate">หรือวันที่</label><input id="sNextDate" type="date"></div>
+        <div class="field"><label for="sNextKm" data-i18n="car.nextKm">นัดครั้งถัดไป ที่เลขไมล์</label><input id="sNextKm" type="number" inputmode="numeric" min="0" step="any"></div>
+        <div class="field"><label for="sNextDate" data-i18n="car.nextDate">หรือวันที่</label><input id="sNextDate" type="date"></div>
       </div>
-      <p class="car-msg" id="sMsg" role="alert"></p>
+      <p class="form-msg" id="sMsg" role="alert"></p>
     </div>
     <div class="dialog-foot">
-      <button class="btn danger" type="button" id="sDel" style="margin-right:auto">ลบ</button>
-      <button class="btn" type="button" id="sCancel">ยกเลิก</button>
-      <button class="btn" type="button" id="sBudget">บันทึกเป็นรายจ่าย</button>
-      <button class="btn primary" type="submit" id="sSave">บันทึก</button>
+      <button class="btn danger" type="button" id="sDel" style="margin-right:auto" data-i18n="car.del">ลบ</button>
+      <button class="btn" type="button" id="sCancel" data-i18n="car.cancel">ยกเลิก</button>
+      <button class="btn" type="button" id="sBudget" data-i18n="car.toBudget">บันทึกเป็นรายจ่าย</button>
+      <button class="btn primary" type="submit" id="sSave" data-i18n="car.save">บันทึก</button>
     </div>
   </form>
 </dialog>

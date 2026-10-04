@@ -287,7 +287,7 @@ test.describe('หน้า car.html', () => {
     const r2 = async () => (await (await request.get(SRV + '/__files')).json());
     await page.locator('[data-act="edit-car"]').click();
     await page.setInputFiles('#vFileInput', [IMG, Object.assign({}, IMG, { name: 'receipt.png' })]);
-    await expect(page.locator('#vFileList .car-file')).toHaveCount(2);
+    await expect(page.locator('#vFileList .file-row')).toHaveCount(2);
     expect(log.post.every((u) => u.includes('ns=car') && u.includes('ref=v2'))).toBe(true);
     expect((await r2()).length).toBe(2);
     // ยกเลิกกล่อง → ไฟล์ที่เพิ่งแนบถูกลบ
@@ -298,7 +298,7 @@ test.describe('หน้า car.html', () => {
     // แนบ + บันทึก → อยู่ในรถ · เอาออกทีหลัง = ลบจริงตอนบันทึก
     await page.locator('[data-act="edit-car"]').click();
     await page.setInputFiles('#vFileInput', IMG);
-    await expect(page.locator('#vFileList .car-file')).toHaveCount(1);
+    await expect(page.locator('#vFileList .file-row')).toHaveCount(1);
     await page.click('#vSave');
     const files = (await store(page, 'tanot:car:vehicles'))[0].files;
     expect(files).toHaveLength(1);
@@ -314,7 +314,7 @@ test.describe('หน้า car.html', () => {
     // ลบรถ → ไฟล์ทั้งหมดถูกลบ
     await page.locator('[data-act="edit-car"]').click();
     await page.setInputFiles('#vFileInput', IMG);
-    await expect(page.locator('#vFileList .car-file')).toHaveCount(1);
+    await expect(page.locator('#vFileList .file-row')).toHaveCount(1);
     await page.click('#vSave');
     expect(await r2()).toHaveLength(1);
     await page.locator('[data-act="edit-car"]').click();
