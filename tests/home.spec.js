@@ -703,7 +703,7 @@ test.describe('หน้าหมวด: ใช้ล่าสุด + กลุ
     expect(await soon.count()).toBeGreaterThanOrEqual(2);
     for (const el of await soon.all()) {
       await expect(el.locator('.badge')).toHaveText('เร็วๆ นี้');
-      expect(await el.evaluate((e) => parseFloat(getComputedStyle(e).opacity))).toBeLessThan(1);
+      expect(await el.locator('.tile-ic').evaluate((e) => parseFloat(getComputedStyle(e).opacity))).toBeLessThan(1); // จางที่ไอคอน + สีชื่อรอง (ตัวอักษรยังผ่าน 4.5:1)
     }
     for (const g of await page.locator('#areaGroups > .tile-group').all()) {
       const flags = await g.locator('.tile').evaluateAll((els) => els.map((e) => e.classList.contains('soon')));

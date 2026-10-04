@@ -650,6 +650,10 @@ body[data-layout="app"]{height:100dvh;display:flex;flex-direction:column;overflo
 /* หน้าหมวด (area.html): ไทล์แบบแถว (ไอคอน 32px ซ้าย + ชื่อ + คำอธิบายสั้นถ้ามี) สูง ≥ 48px · กลุ่ม = กล่องวางเป็นคอลัมน์ (CSS columns ไม่ทิ้งที่ว่าง: 3 / 2 / 1) · แถว "ใช้ล่าสุด" 4 ไทล์ */
 [data-layout="hub"] .tile.row{flex-direction:row;align-items:center;gap:12px;min-height:48px;padding:8px 10px;background:transparent;border:0;box-shadow:none;border-radius:var(--ome-radius-md)}
 [data-layout="hub"] .tile.row:hover{background:var(--ome-surface-2)}
+/* soon: จางด้วยสีตัวอักษรรอง + ไอคอนจาง (ไม่ใช้ opacity ทั้งไทล์ — ตัวอักษรต้องยังผ่าน 4.5:1) */
+[data-layout="hub"] .tile.row.soon{opacity:1}
+[data-layout="hub"] .tile.row.soon .tile-title{color:var(--ome-text-2);font-weight:500}
+[data-layout="hub"] .tile.row.soon .tile-ic{opacity:.5}
 [data-layout="hub"] .tile-ic{display:grid;place-items:center;width:32px;height:32px;border-radius:var(--ome-radius-md);background:var(--ome-accent-soft);color:var(--ome-accent-strong);flex-shrink:0}
 [data-layout="hub"] .tile-ic .ome-icon{width:18px;height:18px}
 [data-layout="hub"] .tile-text{flex:1;min-width:0;display:flex;flex-direction:column}
