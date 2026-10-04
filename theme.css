@@ -403,6 +403,11 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 @media (max-width:700px){
   body[data-invest-key]{--ome-fs-xs:14px;--ome-fs-sm:14px}
   body[data-invest-key] :is(.tabs,.subnav-row,.subnav-groups){gap:var(--ome-sp-2)}
+  body[data-invest-key] .segmented > button{white-space:nowrap}
+  body[data-invest-key] .card-head{flex-wrap:wrap;gap:var(--ome-sp-2)}
+  /* ตารางกว้างเลื่อนแนวนอนใน .table-wrap — คอลัมน์แรก (ชื่อสินทรัพย์/วันที่) ตรึงซ้ายให้รู้ว่าแถวไหน */
+  body[data-invest-key] .table-wrap .table :is(th,td):first-child{position:sticky;left:0;z-index:1;background:var(--ome-surface-1)}
+  body[data-invest-key] .table-wrap .table th:first-child{background:var(--ome-surface-2)}
 }
 
 /* .stat-card — การ์ดสรุปตัวเลขที่กดเลือกได้ (invest-gold #markets) */
