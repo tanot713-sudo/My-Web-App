@@ -1,0 +1,241 @@
+/* ══════════════════════════════════════════════════════════════════
+   Tanot — สร้างภาพ (image-gen.html)
+   สร้างภาพด้วย Workers AI (FLUX) ผ่าน POST /api/ai/image (AiClient.image) — ฝั่งเซิร์ฟเวอร์ต่อท้าย prompt ตาม preset, เก็บภาพลง R2 (ns images)
+   ข้อมูลกำกับภาพ 1 ภาพ = 1 แถวใน localStorage['tanot:images:items'] (sync list idField id):
+     { id (= id ไฟล์ใน R2), preset, mode, model:'fast'|'quality', modelId, seed|null, prompt (ที่ผู้ใช้พิมพ์), fullPrompt (ที่ส่งเข้าโมเดล),
+       name, mime, w, h, createdAt (ms) }
+   เขียนด้วย TanotData.update (อ่านสด → แก้ → เขียน) · ตัวกรอง/ค่าที่เลือกล่าสุดอยู่ที่ 'tanot:images:ui' (local)
+   ══════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  var TD = window.TanotData, AI = window.AiClient;
+  var K = { items: 'tanot:images:items', ui: 'tanot:images:ui' };
+  var PRESET_TH = { background: 'พื้นหลัง', icon: 'ไอคอน', free: 'อิสระ' };
+  var MODEL_TH = { fast: 'เร็ว', quality: 'คุณภาพ' };
+  var MODE_TH = { light: 'สว่าง', dark: 'มืด' };
+  var state = { preset: 'background', mode: 'light', model: 'fast', count: 1, filter: 'all', busy: false, openId: null };
+
+  function $(id) { return document.getElementById(id); }
+  function icon(n) { return '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + n + '"/></svg>'; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fileUrl(id, dl) { return '/api/files?id=' + encodeURIComponent(id) + (dl ? '&download=1' : ''); }
+
+  /* ── storage ── */
+  function readItems() {
+    var a = TD ? TD.read(K.items, []) : [];
+    return Array.isArray(a) ? a : [];
+  }
+  function addItem(row) {
+    TD.update(K.items, function (a) {
+      a = Array.isArray(a) ? a : [];
+      return a.filter(function (x) { return x && x.id !== row.id; }).concat([row]);
+    });
+  }
+  function removeItem(id) {
+    TD.update(K.items, function (a) { return (Array.isArray(a) ? a : []).filter(function (x) { return x && x.id !== id; }); });
+  }
+  function loadUi() {
+    try {
+      var u = JSON.parse(localStorage.getItem(K.ui) || '{}') || {};
+      if (['background', 'icon', 'free'].indexOf(u.preset) >= 0) state.preset = u.preset;
+      if (['light', 'dark', 'both'].indexOf(u.mode) >= 0) state.mode = u.mode;
+      if (u.model === 'fast' || u.model === 'quality') state.model = u.model;
+      if (u.count >= 1 && u.count <= 4) state.count = u.count | 0;
+      if (['all', 'background', 'icon', 'free'].indexOf(u.filter) >= 0) state.filter = u.filter;
+    } catch (e) {}
+  }
+  function saveUi() {
+    try { localStorage.setItem(K.ui, JSON.stringify({ preset: state.preset, mode: state.mode, model: state.model, count: state.count, filter: state.filter })); } catch (e) {}
+  }
+
+  /* ── toast ── */
+  function toast(msg, kind) {
+    var box = $('toasts');
+    var t = document.createElement('div');
+    t.className = 'toast' + (kind ? ' ' + kind : '');
+    t.innerHTML = (kind === 'err' ? icon('circle-alert') : '') + '<span>' + esc(msg) + '</span>';
+    box.appendChild(t);
+    setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 5000);
+  }
+  function errText(e) {
+    if (e && e.code === 'quota') return 'โควตา AI ฟรีของวันนี้เต็มแล้ว (รีเซ็ต 07:00 น. เวลาไทย)';
+    if (e && e.code === 'unavailable') return 'สร้างภาพได้เฉพาะบน pages.dev';
+    return AI ? AI.friendlyMessage(e) : 'ผิดพลาด';
+  }
+
+  /* ── ปุ่มตัวเลือก ── */
+  function syncSeg(id, val) {
+    Array.prototype.forEach.call($(id).querySelectorAll('button'), function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === String(val)));
+    });
+  }
+  function renderControls() {
+    syncSeg('preset', state.preset); syncSeg('mode', state.mode); syncSeg('model', state.model);
+    syncSeg('count', state.count); syncSeg('filter', state.filter);
+    $('modeBox').hidden = state.preset !== 'background';
+    $('genBtn').disabled = state.busy;
+    $('trBtn').disabled = state.busy;
+  }
+  function bindSeg(id, key, num) {
+    $(id).addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-v]');
+      if (!b || state.busy && id !== 'filter') return;
+      var v = b.getAttribute('data-v');
+      state[key] = num ? Number(v) : v;
+      saveUi(); renderControls();
+      if (key === 'filter') renderGrid();
+    });
+  }
+
+  /* ── โควตา ── */
+  function num(n) { return (Number(n) || 0).toLocaleString('th-TH', { maximumFractionDigits: 0 }); }
+  function loadQuota() {
+    if (!AI || !AI.available()) { $('quotaTxt').innerHTML = '<b>–</b>'; return Promise.resolve(); }
+    return AI.usage().then(function (u) {
+      var pct = u.limit ? Math.min(100, Math.round((u.used / u.limit) * 100)) : 0;
+      $('quotaTxt').innerHTML = 'ใช้ไป <b>' + num(u.used) + '</b> · เหลือ <b>' + num(u.remaining) + '</b> / ' + num(u.limit);
+      var bar = $('quotaBar');
+      bar.className = 'ig-bar' + (pct >= 100 ? ' err' : pct >= 80 ? ' warn' : '');
+      bar.firstElementChild.style.width = pct + '%';
+    }).catch(function () { /* โควตาโหลดไม่ได้ไม่ต้องรบกวนผู้ใช้ — แถบคงค่าเดิม */ });
+  }
+
+  /* ── แปลเป็นอังกฤษ ── */
+  function translate() {
+    var text = $('prompt').value.trim();
+    if (!text) { toast('พิมพ์คำสั่งก่อน', 'err'); return; }
+    if (!AI || !AI.available()) { toast(errText({ code: 'unavailable' }), 'err'); return; }
+    state.busy = true; renderControls();
+    AI.chat({
+      model: 'fast', maxTokens: 400, temperature: 0.2,
+      messages: [
+        { role: 'system', content: 'You translate image-generation prompts into natural English. Output only the English translation, no quotes, no notes.' },
+        { role: 'user', content: text }
+      ]
+    }).then(function (r) {
+      var out = String(r.text || '').trim().replace(/^["“]+|["”]+$/g, '');
+      if (out) $('prompt').value = out.slice(0, 1500);
+      loadQuota();
+    }).catch(function (e) { toast(errText(e), 'err'); })
+      .then(function () { state.busy = false; renderControls(); });
+  }
+
+  /* ── สร้างภาพ ── */
+  function jobs() {
+    var modes = state.preset !== 'background' ? ['light'] : state.mode === 'both' ? ['light', 'dark'] : [state.mode];
+    var out = [];
+    for (var i = 0; i < state.count; i++) modes.forEach(function (m) { out.push(m); });
+    return out;
+  }
+  function generate() {
+    var prompt = $('prompt').value.trim();
+    if (!prompt) { toast('พิมพ์คำสั่งก่อน', 'err'); return; }
+    if (!AI || !AI.available()) { toast(errText({ code: 'unavailable' }), 'err'); return; }
+    var list = jobs(), done = 0;
+    state.busy = true; renderControls();
+    function next() {
+      if (done >= list.length) return Promise.resolve();
+      $('genTxt').textContent = 'กำลังสร้าง ' + (done + 1) + '/' + list.length;
+      return AI.image({ prompt: prompt, preset: state.preset, mode: list[done], model: state.model }).then(function (r) {
+        addItem({
+          id: r.id, preset: r.preset, mode: r.preset === 'background' ? r.mode : null, model: state.model, modelId: r.model, seed: r.seed,
+          prompt: prompt, fullPrompt: r.prompt, name: r.name, mime: r.mime, w: r.width, h: r.height, createdAt: Date.now()
+        });
+        done++;
+        renderGrid();
+        return loadQuota().then(next);
+      });
+    }
+    next().then(function () {
+      toast('สร้างภาพแล้ว ' + done + ' ภาพ', 'ok');
+    }, function (e) {
+      toast((done ? 'สร้างได้ ' + done + ' ภาพ แล้วหยุด: ' : '') + errText(e), 'err');
+      loadQuota();
+    }).then(function () {
+      state.busy = false; $('genTxt').textContent = 'สร้างภาพ'; renderControls();
+    });
+  }
+
+  /* ── คลังภาพ ── */
+  function sorted() {
+    return readItems().filter(function (x) { return x && x.id; })
+      .filter(function (x) { return state.filter === 'all' || x.preset === state.filter; })
+      .sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+  }
+  function renderGrid() {
+    var items = sorted();
+    $('empty').hidden = items.length > 0;
+    $('grid').innerHTML = items.map(function (x) {
+      return '<button type="button" class="ig-item" data-id="' + esc(x.id) + '" aria-label="' + esc(PRESET_TH[x.preset] || '') + ' ' + esc(x.prompt || '') + '">' +
+        '<img loading="lazy" alt="" src="' + fileUrl(x.id) + '"><span class="badge">' + esc(PRESET_TH[x.preset] || x.preset) + (x.mode ? ' · ' + esc(MODE_TH[x.mode] || '') : '') + '</span></button>';
+    }).join('');
+    if (state.openId && !readItems().some(function (x) { return x && x.id === state.openId; })) closeView();
+  }
+  function findItem(id) {
+    var a = readItems();
+    for (var i = 0; i < a.length; i++) if (a[i] && a[i].id === id) return a[i];
+    return null;
+  }
+  function openView(id) {
+    var x = findItem(id);
+    if (!x) return;
+    state.openId = id;
+    $('vImg').src = fileUrl(id);
+    $('vImg').alt = x.prompt || '';
+    $('vPrompt').textContent = x.fullPrompt || x.prompt || '';
+    var d = new Date(x.createdAt || 0);
+    $('vMeta').textContent = [PRESET_TH[x.preset], x.mode ? MODE_TH[x.mode] : '', MODEL_TH[x.model] || '', x.w && x.h ? x.w + '×' + x.h : '',
+      'seed ' + (x.seed == null ? '–' : x.seed), isNaN(d) ? '' : d.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })].filter(Boolean).join(' · ');
+    $('vDl').href = fileUrl(id, true);
+    $('vDl').setAttribute('download', x.name || 'image');
+    var dlg = $('view');
+    if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+  }
+  function closeView() {
+    state.openId = null;
+    var dlg = $('view');
+    if (dlg.close) dlg.close(); else dlg.removeAttribute('open');
+  }
+  function again() {
+    var x = findItem(state.openId);
+    if (!x) return;
+    $('prompt').value = x.prompt || '';
+    if (PRESET_TH[x.preset]) state.preset = x.preset;
+    if (x.mode) state.mode = x.mode;
+    if (x.model === 'fast' || x.model === 'quality') state.model = x.model;
+    saveUi(); renderControls(); closeView();
+    $('prompt').focus();
+  }
+  function del() {
+    var id = state.openId, x = findItem(id);
+    if (!x) return;
+    window.tanotConfirm('ลบภาพนี้?', { okLabel: 'ลบ', danger: true }).then(function (ok) {
+      if (!ok) return;
+      fetch(fileUrl(id), { method: 'DELETE', credentials: 'same-origin', redirect: 'manual' }).then(function (res) {
+        // 404 = ไฟล์หายไปแล้ว (ลบจากอีกเครื่อง) — ลบรายการต่อได้ · ข้อผิดพลาดอื่นเก็บรายการไว้ไม่ให้เหลือไฟล์กำพร้าใน R2
+        if (!res.ok && res.status !== 404) throw new Error('HTTP ' + res.status);
+        removeItem(id); closeView(); renderGrid();
+        toast('ลบภาพแล้ว', 'ok');
+      }).catch(function () { toast('ลบไม่สำเร็จ ตรวจสอบการเชื่อมต่อแล้วลองใหม่', 'err'); });
+    });
+  }
+
+  function init() {
+    loadUi();
+    $('prompt').value = '';
+    bindSeg('preset', 'preset'); bindSeg('mode', 'mode'); bindSeg('model', 'model'); bindSeg('count', 'count', true); bindSeg('filter', 'filter');
+    $('genBtn').addEventListener('click', generate);
+    $('trBtn').addEventListener('click', translate);
+    $('grid').addEventListener('click', function (e) {
+      var b = e.target.closest('.ig-item');
+      if (b) openView(b.getAttribute('data-id'));
+    });
+    $('vClose').addEventListener('click', closeView);
+    $('vAgain').addEventListener('click', again);
+    $('vDel').addEventListener('click', del);
+    $('view').addEventListener('close', function () { state.openId = null; });
+    if (TD && TD.onChange) TD.onChange(function (keys) { if (!keys.length || keys.indexOf(K.items) >= 0) renderGrid(); });
+    renderControls(); renderGrid(); loadQuota();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();

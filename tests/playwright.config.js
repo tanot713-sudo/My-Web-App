@@ -136,5 +136,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8138/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // image-gen.spec.js: /api/ai/image ตัวจริง + FLUX ตัวหลอก + R2 ตัวหลอก — แยกพอร์ตเพราะมี /__reset
+      command: 'node --no-warnings sync-server.mjs 8139',
+      cwd: __dirname,
+      url: 'http://localhost:8139/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

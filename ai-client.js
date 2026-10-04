@@ -170,8 +170,15 @@
     return json('/api/ocr', { imageBase64: opts.imageBase64, mediaType: opts.mediaType, prompt: opts.prompt }, { signal: opts.signal, timeoutMs: 120000 });
   }
 
+  /* image({ prompt, preset:'background'|'icon'|'free', mode:'light'|'dark', model:'fast'|'quality', seed?, signal })
+     → { id, name, mime, size, model, seed, neurons, width, height, preset, mode, prompt } — ภาพถูกเก็บใน R2 (ns images) แล้ว ดึงด้วย /api/files?id= */
+  function image(opts) {
+    return json('/api/ai/image', { prompt: opts.prompt, preset: opts.preset, mode: opts.mode, model: opts.model, seed: opts.seed },
+      { signal: opts.signal, timeoutMs: 120000 });
+  }
+
   window.AiClient = {
     available: available, canFallback: canFallback, friendlyMessage: friendlyMessage, Error: AiError,
-    chat: chat, summarize: summarize, embed: embed, usage: usage, asr: asr, ocr: ocr, pcmToWavBase64: pcmToWavBase64
+    chat: chat, summarize: summarize, embed: embed, usage: usage, asr: asr, ocr: ocr, image: image, pcmToWavBase64: pcmToWavBase64
   };
 })();

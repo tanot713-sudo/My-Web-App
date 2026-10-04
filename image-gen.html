@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>สร้างภาพ | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="theme-boot.js"></script>
+<script src="data-registry.js"></script>
+<script src="tanot-data.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script src="ai-client.js"></script>
+<script src="shell.js" defer></script>
+<script src="image-gen.js" defer></script>
+<style>
+.ig-page{max-width:980px}
+.ig-page .page-head h1{margin:0}
+.ig-page > * + *{margin-top:var(--ome-sp-4)}
+.ig-quota{display:flex;flex-direction:column;gap:6px}
+.ig-quota-row{display:flex;justify-content:space-between;gap:8px;font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
+.ig-quota-row b{color:var(--ome-text-1)}
+.ig-bar{height:8px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-2);overflow:hidden}
+.ig-bar > i{display:block;height:100%;border-radius:inherit;background:var(--ome-accent);width:0}
+.ig-bar.warn > i{background:var(--ome-warn)}
+.ig-bar.err > i{background:var(--ome-err)}
+.ig-form > * + *{margin-top:var(--ome-sp-3)}
+.ig-form textarea{width:100%;min-height:96px;resize:vertical}
+.ig-opts{display:flex;flex-wrap:wrap;gap:var(--ome-sp-3) var(--ome-sp-4)}
+.ig-opt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ig-opt > span{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
+.ig-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ig-acts .grow{flex:1}
+.ig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--ome-sp-3)}
+.ig-item{position:relative;display:block;width:100%;padding:0;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);
+  overflow:hidden;background:var(--ome-surface-2);cursor:pointer;aspect-ratio:1/1;color:inherit}
+.ig-item:hover,.ig-item:focus-visible{border-color:var(--ome-accent)}
+.ig-item img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--ome-surface-2)}
+.ig-item .badge{position:absolute;left:6px;bottom:6px}
+.ig-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ig-dialog{width:min(760px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
+.ig-dialog .dialog-body > * + *{margin-top:var(--ome-sp-3)}
+.ig-big{display:block;width:100%;max-height:60dvh;object-fit:contain;border-radius:var(--ome-radius-md);background:var(--ome-surface-2)}
+.ig-prompt{white-space:pre-wrap;overflow-wrap:anywhere;font-size:var(--ome-fs-sm)}
+.ig-meta{color:var(--ome-text-2);font-size:var(--ome-fs-sm);overflow-wrap:anywhere}
+[hidden]{display:none !important}
+@media (max-width:480px){.ig-grid{grid-template-columns:repeat(2,1fr)}.ig-opt .segmented{max-width:100%}}
+</style>
+</head>
+<body data-layout="tool">
+<main class="page ig-page">
+  <div class="page-head"><h1>สร้างภาพ</h1></div>
+
+  <section class="card ig-quota" id="quota" aria-live="polite">
+    <div class="ig-quota-row"><span>โควตา AI วันนี้</span><span id="quotaTxt"><b>–</b></span></div>
+    <div class="ig-bar" id="quotaBar"><i></i></div>
+  </section>
+
+  <section class="card ig-form">
+    <div class="field">
+      <label for="prompt">คำสั่ง</label>
+      <textarea id="prompt" maxlength="1500" rows="4" autocomplete="off"></textarea>
+    </div>
+    <div class="ig-opts">
+      <div class="ig-opt"><span id="lPreset">แบบ</span>
+        <div class="segmented" id="preset" role="group" aria-labelledby="lPreset">
+          <button type="button" data-v="background">พื้นหลัง</button><button type="button" data-v="icon">ไอคอน</button><button type="button" data-v="free">อิสระ</button>
+        </div></div>
+      <div class="ig-opt" id="modeBox"><span id="lMode">โหมด</span>
+        <div class="segmented" id="mode" role="group" aria-labelledby="lMode">
+          <button type="button" data-v="light">สว่าง</button><button type="button" data-v="dark">มืด</button><button type="button" data-v="both">ทั้งคู่</button>
+        </div></div>
+      <div class="ig-opt"><span id="lModel">โมเดล</span>
+        <div class="segmented" id="model" role="group" aria-labelledby="lModel">
+          <button type="button" data-v="fast">เร็ว</button><button type="button" data-v="quality">คุณภาพ</button>
+        </div></div>
+      <div class="ig-opt"><span id="lCount">จำนวน</span>
+        <div class="segmented" id="count" role="group" aria-labelledby="lCount">
+          <button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button>
+        </div></div>
+    </div>
+    <div class="ig-acts">
+      <button class="btn" type="button" id="trBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-languages"/></svg>แปลเป็นอังกฤษ</button>
+      <span class="grow"></span>
+      <button class="btn primary" type="button" id="genBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-sparkles"/></svg><span id="genTxt">สร้างภาพ</span></button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>คลังภาพ</h2></div>
+    <div class="ig-tools">
+      <div class="segmented" id="filter" role="group" aria-label="กรอง">
+        <button type="button" data-v="all">ทั้งหมด</button><button type="button" data-v="background">พื้นหลัง</button><button type="button" data-v="icon">ไอคอน</button><button type="button" data-v="free">อิสระ</button>
+      </div>
+    </div>
+    <div class="ig-grid" id="grid" style="margin-top:var(--ome-sp-3)"></div>
+    <div class="empty" id="empty" hidden>ยังไม่มีภาพ</div>
+  </section>
+</main>
+
+<dialog class="dialog ig-dialog" id="view" aria-labelledby="vTitle">
+  <div class="dialog-head"><h2 id="vTitle">ภาพ</h2><button class="btn icon ghost" type="button" id="vClose" aria-label="ปิด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></div>
+  <div class="dialog-body">
+    <img class="ig-big" id="vImg" alt="">
+    <div class="ig-prompt" id="vPrompt"></div>
+    <div class="ig-meta" id="vMeta"></div>
+  </div>
+  <div class="dialog-foot">
+    <button class="btn danger" type="button" id="vDel" style="margin-right:auto"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg>ลบ</button>
+    <button class="btn" type="button" id="vAgain"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-ccw"/></svg>สร้างซ้ำแบบนี้</button>
+    <a class="btn primary" id="vDl" href="#" download><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg>ดาวน์โหลด</a>
+  </div>
+</dialog>
+
+<div class="toast-region" id="toasts" role="status" aria-live="polite"></div>
+</body>
+</html>

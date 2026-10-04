@@ -186,6 +186,7 @@
         { key: 'sports', label: 'เรียนกีฬา', icon: 'dumbbell', href: 'sports.html', keywords: 'กีฬา sports' },
         { key: 'cooking', label: 'เรียนทำอาหาร', icon: 'chef-hat', href: 'cooking.html', keywords: 'ทำอาหาร cooking' },
         { key: 'coding', label: 'การเขียนโค้ด', icon: 'code', href: 'coding.html', keywords: 'โค้ด code programming' },
+        { key: 'image-gen', label: 'สร้างภาพ', icon: 'image', href: 'image-gen.html', keywords: 'ภาพ รูป ai image generate พื้นหลัง ไอคอน' },
         { key: 'typing', label: 'สอนพิมพ์', icon: 'keyboard', href: 'typing.html', keywords: 'พิมพ์ดีด typing' },
         { key: 'games',  label: 'เกมที่เล่น', icon: 'gamepad-2', href: soonHref('เกมที่เล่น'), status: 'soon', keywords: 'เกม game' },
         { key: '3d-sim', label: 'จำลอง 3D', icon: 'box', children: [
