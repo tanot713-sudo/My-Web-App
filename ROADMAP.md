@@ -84,7 +84,18 @@
    - ตัวตรวจ: `tests/theme-guards.mjs` (static ใน repo-guards) + `tests/theme-audit.spec.js` (axe/คอนทราสต์/ขอบ/คอมโพเนนต์กลาง/เป้ากด/ตัวอักษรบนภาพ/click crawler/ไทยหลุดโหมด EN/สลับภาษาสด) — ratchet `tests/theme-baseline.json`, รายงาน artifact `theme-report` ใน CI
    - ระบบภาษากลาง `i18n.js` (`OME_LANG.onChange` หลาย listener + `ome:langchange`, `OME_I18N` แบบประกาศ + `t()` + วันที่/ตัวเลข/เงินตามภาษา) — 15 หน้าเดิมที่มี `omeApplyLang` ทำงานเหมือนเดิม · แปลส่วนที่ใช้ร่วม: เมนูทั้งหมด (`labelEn`), nav, แผงตั้งค่า, palette (ค้นได้ทั้งไทย/อังกฤษ), `area`/`soon`/`404`, กล่องยืนยันลบ/toast กลาง, ปุ่มวิดเจ็ต AI
    - skill `.claude/skills/tanot-design/SKILL.md` (token, คอมโพเนนต์, layout, พื้นหลัง, i18n, กฎกันหน้าตา "แบบ AI", วิธีรันตัวตรวจ)
-2. ⏳ **รอบ 2+ — แก้หน้าตามรายงาน** (`tests/theme-report/report.html` จาก CI artifact): เริ่มจาก 15 หน้าที่คะแนนแย่สุด (ตารางใน PR รอบ 1) — ทั้งธีม (สี hex → token, ปุ่ม/ช่องกรอกของหน้าเอง → คอมโพเนนต์กลาง, ขอบ control, เป้ากด, ตัวอักษร `--ome-text-3` ที่ต้องอ่าน) และภาษา (`OME_I18N.add` + `data-i18n` ต่อหน้า, ย้ายพจนานุกรมเดิมของ 15 หน้ามาใช้ระบบกลาง, `data-i18n-skip` ที่เนื้อหา) · ทุกรอบลด baseline ใน PR เดียวกัน (`THEME_AUDIT_UPDATE=1` / `theme-guards.mjs --update`)
+2. ✅ **รอบ 2 — ภาพพื้นหลังชัดขึ้น + 6 หน้าที่ใช้บ่อย (ต้นแบบ)** (2026-10-04, PR รอตรวจ):
+   - ภาพพื้นหลัง: scrim ไม่ทึบทั้งแผ่นแล้ว — ชื่อหน้า/breadcrumb/แถบแท็บ/ปุ่ม ghost นอกการ์ดมี "พื้นรอง" โปร่ง + blur ของตัวเอง (`--ome-bg-plate`) · **ตัวเลือก "ความเข้มภาพพื้นหลัง" 4 ระดับ ปิด/อ่อน/กลาง (ค่าเริ่มต้น)/ชัด** แทนสวิตช์ (`ome:bg`, `html[data-bg-level]`, ค่าเดิม on → กลาง) คุม scrim + ฟิลเตอร์ภาพแยกสว่าง/มืด/จอแคบ · จอแคบแถบภาพ 300px เห็นภาพทั้งความสูง · ตัวตรวจ `bg-level:` ทดสอบทุกกลุ่มภาพที่ระดับอ่อน/ชัด (+ `THEME_AUDIT_BG` รันชุดเต็มที่ระดับเดียว) · ตัวตรวจภาษาไม่นับ ฿ เป็นภาษาไทย
+   - 6 หน้า index · budget · health · car · receipts · insurance: แปลอังกฤษครบ (HTML + JS: toast/confirm/ข้อความว่าง/หัวคอลัมน์/ตัวเลือก select/ชื่อเดือน-วัน/หมวดตั้งต้น) สลับภาษาสดจากแผงตั้งค่าไม่โหลดใหม่ · ไม่แตะรูปแบบข้อมูลซิงก์ · `budget.html` ใช้ `tanotConfirm`/`tanotToast` กลางแทนกล่อง/toast ของตัวเอง + escape ชื่อหมวด/โน้ต
+   - `i18n.js` เพิ่ม `scope(ns, dict)` (add + T ผูก ns), `months()`/`weekdays()`, `catName(cat)` (หมวด budget ตั้งต้นแปลตอนแสดง)
+   - คอมโพเนนต์กลางใหม่ใน `theme.css` (ยกจาก 4 หน้าที่เขียนซ้ำกัน): `.list-row .end`/`.amt`, `.dialog-form`, `.check`, `.form-msg`, `.file-list > .file-row`, `.sub-head`, `.kpi-value small` · ปุ่มลบโหมดมืดมีขอบ ≥ 3:1
+   - skill `tanot-design` เพิ่มหัวข้อ 8 "ขั้นตอนแก้ 1 หน้า" (checklist สำหรับรอบ 3+)
+3. ⏳ **รอบ 3+ — ลำดับถัดไป** (ทำตามหัวข้อ 8 ของ skill ทีละกลุ่ม · ตัวเลขต่อหน้าอยู่ในตารางของ PR รอบ 2 / `tests/theme-report/report.html`):
+   1. ลงทุน — `invest*.html` ทั้ง 10 หน้า (ใช้ `InvestCore.i18n` เดิม → ย้ายเข้า `OME_I18N`)
+   2. เอกสาร — word · excel · slides · extract-text · doc-check · doc-check-file · compare · documents · text-to-speech
+   3. cad · report-dashboard · electrical · maintenance · tax (ตัวเลขหนักสุดของกลุ่ม: cad nonCentral 92 / เป้ากด 112)
+   4. การศึกษา/งานอดิเรก — classroom-law · classroom-business · classroom-engineering · review · books · cooking · music · sports · coding · typing · image-gen · notifications · data · credits · area
+   5. ปิดท้าย — languages (คะแนนแย่สุดของทั้งเว็บ: nonCentral 212 / ไทยหลุด EN 95) · legal · sim-objects · theme-preview
 
 ## Phase 3 — หน้าแรก "วันนี้" + ค้นหาด่วน (M)
 **สถานะ (2026-09-30, PR รอตรวจ):** ✅ `index.html` + `index.js` (`data-layout="dashboard"`) · ✅ `palette.js` + `quick-add.js` · ✅ API อ่านใน `tanot-data.js` (`TanotData.read/raw/readIdb/onChange`) · ✅ `tests/today.spec.js` · ✅ Web Push (VAPID) + การแจ้งเตือน (2026-10-02, PR รอตรวจ — ดูหัวข้อ Web Push ด้านล่าง) · **ยังไม่ทำ:** นัดหมายบนหน้าวันนี้ (ยังไม่มีข้อมูลต้นทาง) · ✅ การ์ดสุขภาพ (2026-10-03)

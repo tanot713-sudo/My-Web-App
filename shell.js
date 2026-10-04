@@ -55,7 +55,8 @@
     th: {
       mainNav: 'เมนูหลัก Tanot', openMenu: 'เปิดเมนู', closeMenu: 'ปิดเมนู', menu: 'เมนู Tanot', expand: 'ขยาย {label}',
       search: 'ค้นหา (Ctrl+K)', themeToggle: 'สลับโหมดสว่าง/มืด', settings: 'ตั้งค่า',
-      accent: 'เลือกธีมเว็บ', style: 'ประเภทธีม', lang: 'ภาษา', font: 'ตัวอักษร', bg: 'ภาพพื้นหลัง',
+      accent: 'เลือกธีมเว็บ', style: 'ประเภทธีม', lang: 'ภาษา', font: 'ตัวอักษร', bg: 'ความเข้มภาพพื้นหลัง',
+      'bg.off': 'ปิด', 'bg.soft': 'อ่อน', 'bg.mid': 'กลาง (ปกติ)', 'bg.strong': 'ชัด',
       clearData: 'ล้างข้อมูล', help: 'Help', credits: 'เครดิต & ลิขสิทธิ์',
       'accent.teal': 'เขียวน้ำทะเล (ปกติ)', 'accent.blue': 'น้ำเงิน', 'accent.violet': 'ม่วง', 'accent.orange': 'ส้ม', 'accent.graphite': 'เทาเข้ม',
       'style.flat': 'เรียบ (ปกติ)', 'style.soft': 'นุ่ม', 'style.outline': 'เส้นขอบ',
@@ -65,7 +66,8 @@
     en: {
       mainNav: 'Tanot main menu', openMenu: 'Open menu', closeMenu: 'Close menu', menu: 'Tanot menu', expand: 'Expand {label}',
       search: 'Search (Ctrl+K)', themeToggle: 'Toggle light/dark mode', settings: 'Settings',
-      accent: 'Accent colour', style: 'Surface style', lang: 'Language', font: 'Font', bg: 'Background image',
+      accent: 'Accent colour', style: 'Surface style', lang: 'Language', font: 'Font', bg: 'Background image intensity',
+      'bg.off': 'Off', 'bg.soft': 'Light', 'bg.mid': 'Medium (default)', 'bg.strong': 'Vivid',
       clearData: 'Clear data', help: 'Help', credits: 'Credits & licenses',
       'accent.teal': 'Teal (default)', 'accent.blue': 'Blue', 'accent.violet': 'Violet', 'accent.orange': 'Orange', 'accent.graphite': 'Graphite',
       'style.flat': 'Flat (default)', 'style.soft': 'Soft', 'style.outline': 'Outline',
@@ -536,20 +538,35 @@
     });
     settingsPanel.appendChild(fontWrap);
 
-    /* สวิตช์ "ภาพพื้นหลัง" (ค่าเริ่มต้น = เปิด) — เก็บที่ OmeTheme ('ome:bg') แบบเดียวกับค่าธีมอื่น */
+    /* แถว "ความเข้มภาพพื้นหลัง" — 4 ระดับ ปิด/อ่อน/กลาง(ค่าเริ่มต้น)/ชัด เก็บที่ OmeTheme ('ome:bg') แบบเดียวกับค่าธีมอื่น
+       (theme-boot.js ตั้ง html[data-bg-level] ให้ theme.css คุม scrim/ฟิลเตอร์ของภาพ) */
     var bgRow = document.createElement('button');
     bgRow.type = 'button';
     bgRow.className = 'ome-settings-row';
-    bgRow.setAttribute('role', 'switch');
     bgRow.appendChild(i18nText(document.createElement('span'), 'bg'));
-    var bgSw = document.createElement('span');
-    bgSw.className = 'ome-switch';
-    bgSw.setAttribute('aria-hidden', 'true');
-    bgRow.appendChild(bgSw);
-    function markBg() { bgRow.setAttribute('aria-checked', themeGet('bg') === 'off' ? 'false' : 'true'); }
-    markBg();
-    bgRow.addEventListener('click', function () { themeSet('bg', themeGet('bg') === 'off' ? 'on' : 'off'); markBg(); });
     settingsPanel.appendChild(bgRow);
+
+    var bgWrap = document.createElement('div');
+    bgWrap.className = 'ome-theme-swatches';
+    function markBg() {
+      var cur = themeGet('bg');
+      var nodes = bgWrap.querySelectorAll('.ome-theme-swatch');
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].classList.toggle('sel', nodes[i].getAttribute('data-bg-id') === cur);
+      }
+    }
+    (OT && OT.bgLevels ? OT.bgLevels : ['off', 'soft', 'mid', 'strong']).forEach(function (lv) {
+      var sw = document.createElement('button');
+      sw.type = 'button';
+      sw.className = 'ome-theme-swatch';
+      sw.setAttribute('data-bg-id', lv);
+      sw.appendChild(i18nText(document.createElement('span'), 'bg.' + lv));
+      sw.addEventListener('click', function () { themeSet('bg', lv); markBg(); });
+      bgWrap.appendChild(sw);
+    });
+    markBg();
+    bgRow.addEventListener('click', function () { bgWrap.classList.toggle('open'); });
+    settingsPanel.appendChild(bgWrap);
 
     var SETTINGS_ROWS = [
       { key: 'clearData' },

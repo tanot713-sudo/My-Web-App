@@ -211,7 +211,7 @@ test.describe('หน้า receipts.html', () => {
     expect(log.ocr).toHaveLength(0);
 
     // ไฟล์ที่ส่งเป็นรูปย่อ JPEG ใน R2 ns receipts
-    await expect(page.locator('#fileList .rc-file')).toHaveCount(1);
+    await expect(page.locator('#fileList .file-row')).toHaveCount(1);
     await expect(page.locator('#fileList')).toContainText('bill.jpg');
     const keys = await (await request.get(SRV + '/__files')).json();
     expect(keys).toHaveLength(1);
@@ -486,7 +486,7 @@ test.describe('หน้า receipts.html', () => {
     const { log } = await openPage(page, '/receipts.html', { chat: AI_FULL, ocrText: 'x' });
     await page.click('#addBtn');
     await page.setInputFiles('#fileInput', IMG);
-    await expect(page.locator('#fileList .rc-file')).toHaveCount(1);
+    await expect(page.locator('#fileList .file-row')).toHaveCount(1);
     await expect.poll(async () => (await (await request.get(SRV + '/__files')).json()).length).toBe(1);
     // ยกเลิก → ไฟล์กำพร้าถูกลบ
     await page.click('#cancelBtn');
@@ -495,7 +495,7 @@ test.describe('หน้า receipts.html', () => {
 
     await page.click('#addBtn');
     await page.setInputFiles('#fileInput', IMG);
-    await expect(page.locator('#fileList .rc-file')).toHaveCount(1);
+    await expect(page.locator('#fileList .file-row')).toHaveCount(1);
     await page.click('#budgetBtn'); // บันทึก + ส่งเข้า budget
     const row = page.locator('#listBody .list-row');
     await expect(row).toHaveCount(1);
@@ -525,7 +525,7 @@ test.describe('หน้า receipts.html', () => {
     const { log } = await openPage(page, '/receipts.html', { chat: AI_FULL, ocrText: 'x' });
     await page.click('#addBtn');
     await page.setInputFiles('#fileInput', IMG);
-    await expect(page.locator('#fileList .rc-file')).toHaveCount(1);
+    await expect(page.locator('#fileList .file-row')).toHaveCount(1);
     await page.click('#saveBtn');
     await page.locator('#listBody [data-act="edit"]').click();
     await page.locator('#fileList [data-rm]').click();

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>รายรับรายจ่าย | Tanot</title>
+<title data-i18n="budget.title">รายรับรายจ่าย | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
 <style>
-/* เฉพาะหน้านี้ — ปุ่ม/การ์ด/ช่องกรอก/ตาราง/KPI/tabs/dialog/toast มาจาก theme.css (data-layout="dashboard") */
+/* เฉพาะหน้านี้ — ปุ่ม/การ์ด/ช่องกรอก/ตาราง/KPI/tabs/dialog/toast มาจาก theme.css (data-layout="dashboard") · ยืนยัน/แจ้งผล = tanotConfirm/tanotToast ของ shell.js */
 .mp-page{max-width:960px}
 .mp-page .tabs{margin-bottom:var(--ome-sp-4)}
 .mp-page a.tab{display:inline-flex;align-items:center;gap:6px;text-decoration:none}
@@ -34,7 +34,7 @@
 /* ── โดนัท/คำอธิบายสี ── */
 .mp-donut-wrap{display:flex;align-items:center;gap:var(--ome-sp-5);flex-wrap:wrap}
 .mp-donut{width:130px;height:130px;border-radius:50%;flex-shrink:0;background:var(--ome-surface-2);
-  -webkit-mask:radial-gradient(circle,transparent 38px,#000 39px);mask:radial-gradient(circle,transparent 38px,#000 39px)}
+  -webkit-mask:radial-gradient(circle,transparent 38px,black 39px);mask:radial-gradient(circle,transparent 38px,black 39px)}
 .mp-donut-legend{flex:1;min-width:160px;display:flex;flex-direction:column;gap:9px}
 .mp-leg-item{display:flex;align-items:center;gap:9px;font-size:var(--ome-fs-sm)}
 .mp-leg-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
@@ -101,7 +101,7 @@
 #catColor{padding:3px;cursor:pointer;width:64px}
 .mp-cat-add .frow > .field.narrow{flex:0 0 auto}
 .mp-cat-add .frow > .field{flex-basis:200px}
-.mp-cat-add .frow > .btn{align-self:flex-end}
+.mp-cat-add .frow > button{align-self:flex-end}
 .mp-budget-bar .select{width:auto;flex:1 1 110px}
 .mp-btn-row{display:flex;gap:var(--ome-sp-3);flex-wrap:wrap}
 </style>
@@ -109,57 +109,57 @@
 <body data-layout="dashboard">
 
 <main class="page mp-page">
-  <div class="page-head"><h1>รายรับรายจ่าย</h1></div>
+  <div class="page-head"><h1 data-i18n="budget.h1">รายรับรายจ่าย</h1></div>
 
   <nav class="tabs" id="mpTabs" aria-label="Money Planner">
-    <a class="tab" href="#dashboard" data-view="dashboard"><svg class="ome-icon"><use href="icons.svg#i-chart-pie"/></svg>ภาพรวม</a>
-    <a class="tab" href="#calendar" data-view="calendar"><svg class="ome-icon"><use href="icons.svg#i-calendar"/></svg>ปฏิทิน</a>
-    <a class="tab" href="#record" data-view="record"><svg class="ome-icon"><use href="icons.svg#i-plus"/></svg>บันทึก</a>
-    <a class="tab" href="#categories" data-view="categories"><svg class="ome-icon"><use href="icons.svg#i-tag"/></svg>หมวดหมู่</a>
-    <a class="tab" href="#budget" data-view="budget"><svg class="ome-icon"><use href="icons.svg#i-piggy-bank"/></svg>งบประมาณ</a>
-    <a class="tab" href="#settings" data-view="settings"><svg class="ome-icon"><use href="icons.svg#i-settings"/></svg>ตั้งค่า</a>
+    <a class="tab" href="#dashboard" data-view="dashboard"><svg class="ome-icon"><use href="icons.svg#i-chart-pie"/></svg><span data-i18n="budget.tDash">ภาพรวม</span></a>
+    <a class="tab" href="#calendar" data-view="calendar"><svg class="ome-icon"><use href="icons.svg#i-calendar"/></svg><span data-i18n="budget.tCal">ปฏิทิน</span></a>
+    <a class="tab" href="#record" data-view="record"><svg class="ome-icon"><use href="icons.svg#i-plus"/></svg><span data-i18n="budget.tRec">บันทึก</span></a>
+    <a class="tab" href="#categories" data-view="categories"><svg class="ome-icon"><use href="icons.svg#i-tag"/></svg><span data-i18n="budget.tCat">หมวดหมู่</span></a>
+    <a class="tab" href="#budget" data-view="budget"><svg class="ome-icon"><use href="icons.svg#i-piggy-bank"/></svg><span data-i18n="budget.tBud">งบประมาณ</span></a>
+    <a class="tab" href="#settings" data-view="settings"><svg class="ome-icon"><use href="icons.svg#i-settings"/></svg><span data-i18n="budget.tSet">ตั้งค่า</span></a>
   </nav>
 
   <!-- ═══════════ Dashboard ═══════════ -->
   <section class="mp-view" id="view-dashboard">
     <div class="mp-dash-bar">
-      <select class="select" id="dashMonth" aria-label="เดือน"></select>
+      <select class="select" id="dashMonth" aria-label="เดือน" data-i18n-attr="aria-label:budget.month"></select>
       <span class="badge" id="dashYear"></span>
     </div>
 
     <div class="kpi-grid">
       <div class="kpi">
-        <span class="kpi-label"><svg class="ome-icon" style="color:var(--ome-chart-1)"><use href="icons.svg#i-trending-up"/></svg>รายรับรวม</span>
+        <span class="kpi-label"><svg class="ome-icon" style="color:var(--ome-chart-1)"><use href="icons.svg#i-trending-up"/></svg><span data-i18n="budget.kIn">รายรับรวม</span></span>
         <span class="kpi-value" id="sumIncome">฿0</span>
       </div>
       <div class="kpi">
-        <span class="kpi-label"><svg class="ome-icon" style="color:var(--ome-chart-2)"><use href="icons.svg#i-trending-down"/></svg>รายจ่ายรวม</span>
+        <span class="kpi-label"><svg class="ome-icon" style="color:var(--ome-chart-2)"><use href="icons.svg#i-trending-down"/></svg><span data-i18n="budget.kEx">รายจ่ายรวม</span></span>
         <span class="kpi-value" id="sumExpense">฿0</span>
       </div>
       <div class="kpi">
-        <span class="kpi-label"><svg class="ome-icon"><use href="icons.svg#i-wallet"/></svg>คงเหลือสุทธิ</span>
+        <span class="kpi-label"><svg class="ome-icon"><use href="icons.svg#i-wallet"/></svg><span data-i18n="budget.kBal">คงเหลือสุทธิ</span></span>
         <span class="kpi-value" id="sumBalance">฿0</span>
       </div>
     </div>
 
     <div class="grid">
       <div class="card span-6">
-        <div class="card-head"><h2><svg class="ome-icon"><use href="icons.svg#i-chart-pie"/></svg>สัดส่วนรายรับ</h2></div>
+        <div class="card-head"><h2><svg class="ome-icon"><use href="icons.svg#i-chart-pie"/></svg><span data-i18n="budget.hIncShare">สัดส่วนรายรับ</span></h2></div>
         <div id="donutIncome"></div>
       </div>
       <div class="card span-6">
-        <div class="card-head"><h2><svg class="ome-icon"><use href="icons.svg#i-chart-pie"/></svg>สัดส่วนรายจ่าย</h2></div>
+        <div class="card-head"><h2><svg class="ome-icon"><use href="icons.svg#i-chart-pie"/></svg><span data-i18n="budget.hExpShare">สัดส่วนรายจ่าย</span></h2></div>
         <div id="donutExpense"></div>
       </div>
       <div class="card span-6">
-        <div class="card-head"><h2><svg class="ome-icon"><use href="icons.svg#i-piggy-bank"/></svg>งบประมาณคงเหลือ</h2></div>
+        <div class="card-head"><h2><svg class="ome-icon"><use href="icons.svg#i-piggy-bank"/></svg><span data-i18n="budget.hRemain">งบประมาณคงเหลือ</span></h2></div>
         <div id="budgetRemain"></div>
       </div>
       <div class="card span-6">
-        <div class="card-head"><h2><svg class="ome-icon"><use href="icons.svg#i-chart-column"/></svg>แนวโน้มรายรับ-รายจ่าย ตลอดปี</h2></div>
+        <div class="card-head"><h2><svg class="ome-icon"><use href="icons.svg#i-chart-column"/></svg><span data-i18n="budget.hTrend">แนวโน้มรายรับ-รายจ่าย ตลอดปี</span></h2></div>
         <div class="mp-trend-legend">
-          <span class="sw"><i id="trendSwIn"></i>รายรับ</span>
-          <span class="sw"><i id="trendSwEx"></i>รายจ่าย</span>
+          <span class="sw"><i id="trendSwIn"></i><span data-i18n="budget.income">รายรับ</span></span>
+          <span class="sw"><i id="trendSwEx"></i><span data-i18n="budget.expense">รายจ่าย</span></span>
         </div>
         <div class="mp-trend" id="trendChart"></div>
       </div>
@@ -169,9 +169,9 @@
   <!-- ═══════════ Calendar ═══════════ -->
   <section class="mp-view" id="view-calendar">
     <div class="mp-cal-head">
-      <button class="btn icon" id="calPrev" aria-label="เดือนก่อนหน้า" type="button"><svg class="ome-icon"><use href="icons.svg#i-chevron-left"/></svg></button>
+      <button class="btn icon" id="calPrev" aria-label="เดือนก่อนหน้า" data-i18n-attr="aria-label:budget.prevMonth" type="button"><svg class="ome-icon"><use href="icons.svg#i-chevron-left"/></svg></button>
       <div class="mp-cal-label" id="calLabel">กรกฎาคม 2569</div>
-      <button class="btn icon" id="calNext" aria-label="เดือนถัดไป" type="button"><svg class="ome-icon"><use href="icons.svg#i-chevron-right"/></svg></button>
+      <button class="btn icon" id="calNext" aria-label="เดือนถัดไป" data-i18n-attr="aria-label:budget.nextMonth" type="button"><svg class="ome-icon"><use href="icons.svg#i-chevron-right"/></svg></button>
     </div>
     <div class="card"><div class="mp-cal-grid" id="calGrid"></div></div>
     <div class="card mp-day-detail" id="dayDetail" style="display:none"></div>
@@ -179,63 +179,63 @@
 
   <!-- ═══════════ Record entry ═══════════ -->
   <section class="mp-view" id="view-record">
-    <button class="btn primary lg" id="toggleAddForm" type="button"><svg class="ome-icon"><use href="icons.svg#i-plus"/></svg>บันทึกรายการใหม่</button>
+    <button class="btn primary lg" id="toggleAddForm" type="button"><svg class="ome-icon"><use href="icons.svg#i-plus"/></svg><span data-i18n="budget.newEntry">บันทึกรายการใหม่</span></button>
 
     <div id="entryForm" style="display:none">
       <div class="stack">
         <div class="stack" id="entryRows"></div>
         <div class="mp-btn-row">
-          <button class="btn" id="addEntryRow" type="button"><svg class="ome-icon"><use href="icons.svg#i-plus"/></svg>เพิ่มช่องกรอก</button>
-          <button class="btn primary" id="saveAllEntries" type="button"><svg class="ome-icon"><use href="icons.svg#i-save"/></svg>บันทึกทั้งหมด</button>
+          <button class="btn" id="addEntryRow" type="button"><svg class="ome-icon"><use href="icons.svg#i-plus"/></svg><span data-i18n="budget.addRow">เพิ่มช่องกรอก</span></button>
+          <button class="btn primary" id="saveAllEntries" type="button"><svg class="ome-icon"><use href="icons.svg#i-save"/></svg><span data-i18n="budget.saveAll">บันทึกทั้งหมด</span></button>
         </div>
       </div>
     </div>
 
     <div class="card">
       <div class="card-head mp-table-hd">
-        <h2><svg class="ome-icon"><use href="icons.svg#i-history"/></svg>ประวัติรายการล่าสุด</h2>
-        <button class="btn sm" id="toggleFilter" type="button"><svg class="ome-icon"><use href="icons.svg#i-filter"/></svg>ตัวกรอง</button>
+        <h2><svg class="ome-icon"><use href="icons.svg#i-history"/></svg><span data-i18n="budget.hHist">ประวัติรายการล่าสุด</span></h2>
+        <button class="btn sm" id="toggleFilter" type="button"><svg class="ome-icon"><use href="icons.svg#i-filter"/></svg><span data-i18n="budget.filter">ตัวกรอง</span></button>
       </div>
       <div class="mp-filter-panel" id="filterPanel">
         <div class="frow">
-          <select class="select" id="filterType" aria-label="ประเภท">
-            <option value="">ทุกประเภท</option>
-            <option value="income">รายรับ</option>
-            <option value="expense">รายจ่าย</option>
+          <select class="select" id="filterType" aria-label="ประเภท" data-i18n-attr="aria-label:budget.type">
+            <option value="" data-i18n="budget.allTypes">ทุกประเภท</option>
+            <option value="income" data-i18n="budget.income">รายรับ</option>
+            <option value="expense" data-i18n="budget.expense">รายจ่าย</option>
           </select>
-          <select class="select" id="filterCategory" aria-label="หมวดหมู่"><option value="">ทุกหมวดหมู่</option></select>
-          <input class="input" type="month" id="filterMonth" aria-label="เดือน">
+          <select class="select" id="filterCategory" aria-label="หมวดหมู่" data-i18n-attr="aria-label:budget.thCat"><option value="" data-i18n="budget.allCats">ทุกหมวดหมู่</option></select>
+          <input class="input" type="month" id="filterMonth" aria-label="เดือน" data-i18n-attr="aria-label:budget.month">
         </div>
       </div>
       <div class="table-wrap">
         <table class="table">
-          <thead><tr><th>วันที่</th><th>หมวดหมู่</th><th>รายละเอียด</th><th class="num">จำนวนเงิน</th><th></th></tr></thead>
+          <thead><tr><th data-i18n="budget.thDate">วันที่</th><th data-i18n="budget.thCat">หมวดหมู่</th><th data-i18n="budget.thDetail">รายละเอียด</th><th class="num" data-i18n="budget.thAmount">จำนวนเงิน</th><th></th></tr></thead>
           <tbody id="historyBody"></tbody>
         </table>
       </div>
-      <div class="empty" id="historyEmpty" style="display:none"><svg class="ome-icon"><use href="icons.svg#i-receipt"/></svg>ยังไม่มีรายการ</div>
+      <div class="empty" id="historyEmpty" style="display:none"><svg class="ome-icon"><use href="icons.svg#i-receipt"/></svg><span data-i18n="budget.noEntries">ยังไม่มีรายการ</span></div>
     </div>
   </section>
 
   <!-- ═══════════ Categories ═══════════ -->
   <section class="mp-view" id="view-categories">
     <div class="card mp-cat-add">
-      <h2><svg class="ome-icon"><use href="icons.svg#i-plus"/></svg>เพิ่มหมวดหมู่</h2>
+      <h2><svg class="ome-icon"><use href="icons.svg#i-plus"/></svg><span data-i18n="budget.hAddCat">เพิ่มหมวดหมู่</span></h2>
       <div class="frow">
-        <div class="field"><label for="catName">ชื่อหมวดหมู่</label><input id="catName" placeholder="เช่น ค่าน้ำ, เงินเดือน"></div>
-        <div class="field"><label for="catType">ประเภท</label>
-          <select id="catType"><option value="expense">รายจ่าย</option><option value="income">รายรับ</option></select>
+        <div class="field"><label for="catName" data-i18n="budget.catName">ชื่อหมวดหมู่</label><input id="catName" placeholder="เช่น ค่าน้ำ, เงินเดือน" data-i18n-attr="placeholder:budget.phCat"></div>
+        <div class="field"><label for="catType" data-i18n="budget.type">ประเภท</label>
+          <select id="catType"><option value="expense" data-i18n="budget.expense">รายจ่าย</option><option value="income" data-i18n="budget.income">รายรับ</option></select>
         </div>
-        <div class="field narrow"><label for="catColor">สี</label><input type="color" id="catColor" value="#4F6EF5"></div>
-        <button class="btn primary" id="saveCategory" type="button">บันทึก</button>
+        <div class="field narrow"><label for="catColor" data-i18n="budget.color">สี</label><input type="color" id="catColor" value="#4F6EF5"></div>
+        <button class="btn primary" id="saveCategory" type="button" data-i18n="budget.save">บันทึก</button>
       </div>
     </div>
 
     <div class="card">
-      <h2><svg class="ome-icon"><use href="icons.svg#i-tag"/></svg>รายการหมวดหมู่</h2>
+      <h2><svg class="ome-icon"><use href="icons.svg#i-tag"/></svg><span data-i18n="budget.hCatList">รายการหมวดหมู่</span></h2>
       <div class="tabs" id="catTabs" role="tablist">
-        <button class="tab on" role="tab" aria-selected="true" data-type="income" type="button">รายรับ</button>
-        <button class="tab" role="tab" aria-selected="false" data-type="expense" type="button">รายจ่าย</button>
+        <button class="tab on" role="tab" aria-selected="true" data-type="income" type="button" data-i18n="budget.income">รายรับ</button>
+        <button class="tab" role="tab" aria-selected="false" data-type="expense" type="button" data-i18n="budget.expense">รายจ่าย</button>
       </div>
       <div id="catList"></div>
     </div>
@@ -244,19 +244,19 @@
   <!-- ═══════════ Budget ═══════════ -->
   <section class="mp-view" id="view-budget">
     <div class="frow mp-budget-bar">
-      <select class="select" id="budgetMonth" aria-label="เดือน"></select>
-      <select class="select" id="budgetYear" aria-label="ปี"></select>
-      <button class="btn" id="copyPrevMonth" type="button"><svg class="ome-icon"><use href="icons.svg#i-copy"/></svg>คัดลอกเดือนก่อน</button>
+      <select class="select" id="budgetMonth" aria-label="เดือน" data-i18n-attr="aria-label:budget.month"></select>
+      <select class="select" id="budgetYear" aria-label="ปี" data-i18n-attr="aria-label:budget.year"></select>
+      <button class="btn" id="copyPrevMonth" type="button"><svg class="ome-icon"><use href="icons.svg#i-copy"/></svg><span data-i18n="budget.copyPrev">คัดลอกเดือนก่อน</span></button>
     </div>
     <div class="card">
       <div class="table-wrap">
         <table class="table">
-          <thead><tr><th>หมวดหมู่</th><th class="num">งบประมาณ</th><th class="num">ใช้จริง</th><th class="num">คงเหลือ</th></tr></thead>
+          <thead><tr><th data-i18n="budget.thCat">หมวดหมู่</th><th class="num" data-i18n="budget.thBudget">งบประมาณ</th><th class="num" data-i18n="budget.thActual">ใช้จริง</th><th class="num" data-i18n="budget.thRemain">คงเหลือ</th></tr></thead>
           <tbody id="budgetBody"></tbody>
         </table>
       </div>
       <div class="mp-btn-row" style="margin-top:var(--ome-sp-4)">
-        <button class="btn primary" id="saveBudget" type="button"><svg class="ome-icon"><use href="icons.svg#i-save"/></svg>บันทึกงบประมาณ</button>
+        <button class="btn primary" id="saveBudget" type="button"><svg class="ome-icon"><use href="icons.svg#i-save"/></svg><span data-i18n="budget.saveBudget">บันทึกงบประมาณ</span></button>
       </div>
     </div>
   </section>
@@ -264,30 +264,20 @@
   <!-- ═══════════ Settings ═══════════ -->
   <section class="mp-view" id="view-settings">
     <div class="card">
-      <h2><svg class="ome-icon"><use href="icons.svg#i-save"/></svg>สำรอง / กู้คืนข้อมูล</h2>
+      <h2><svg class="ome-icon"><use href="icons.svg#i-save"/></svg><span data-i18n="budget.hBackup">สำรอง / กู้คืนข้อมูล</span></h2>
       <div class="mp-btn-row">
-        <button class="btn" id="exportData" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg>ส่งออกไฟล์สำรอง</button>
-        <button class="btn" id="importDataBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-upload"/></svg>นำเข้าไฟล์สำรอง</button>
+        <button class="btn" id="exportData" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="budget.export">ส่งออกไฟล์สำรอง</span></button>
+        <button class="btn" id="importDataBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-upload"/></svg><span data-i18n="budget.import">นำเข้าไฟล์สำรอง</span></button>
         <input type="file" id="importDataInput" accept="application/json" style="display:none">
       </div>
     </div>
 
     <div class="card">
-      <h2><svg class="ome-icon"><use href="icons.svg#i-triangle-alert"/></svg>จัดการข้อมูล</h2>
-      <button class="btn danger" id="clearAllData" type="button"><svg class="ome-icon"><use href="icons.svg#i-trash-2"/></svg>ล้างข้อมูลทั้งหมด</button>
+      <h2><svg class="ome-icon"><use href="icons.svg#i-triangle-alert"/></svg><span data-i18n="budget.hManage">จัดการข้อมูล</span></h2>
+      <button class="btn danger" id="clearAllData" type="button"><svg class="ome-icon"><use href="icons.svg#i-trash-2"/></svg><span data-i18n="budget.clearAll">ล้างข้อมูลทั้งหมด</span></button>
     </div>
   </section>
 </main>
-
-<dialog class="dialog" id="mpDialog">
-  <div class="dialog-head"><h2 id="mpDialogTitle">ยืนยัน</h2></div>
-  <div class="dialog-body" id="mpDialogMsg"></div>
-  <div class="dialog-foot">
-    <button class="btn" id="mpDialogCancel" type="button">ยกเลิก</button>
-    <button class="btn primary" id="mpDialogOk" type="button">ตกลง</button>
-  </div>
-</dialog>
-<div class="toast-region" id="mpToasts" role="status" aria-live="polite"></div>
 
 <script src="chart-theme.js"></script>
 <script>
@@ -295,6 +285,43 @@
 'use strict';
 
 /* ══════════════════ ข้อมูล ══════════════════ */
+/* ── ข้อความ UI สองภาษา (i18n.js) — คีย์ 'budget.*' · ชื่อหมวดตั้งต้นแปลตอนแสดงเท่านั้น (OME_I18N.catName) ข้อมูลใน storage ไม่เปลี่ยน ── */
+var I18N = window.OME_I18N;
+var TR = I18N.scope('budget', {
+  th: {
+      title: 'รายรับรายจ่าย | Tanot', h1: 'รายรับรายจ่าย', tDash: 'ภาพรวม', tCal: 'ปฏิทิน', tRec: 'บันทึก', tCat: 'หมวดหมู่', tBud: 'งบประมาณ', tSet: 'ตั้งค่า',
+    month: 'เดือน', year: 'ปี', kIn: 'รายรับรวม', kEx: 'รายจ่ายรวม', kBal: 'คงเหลือสุทธิ', hIncShare: 'สัดส่วนรายรับ', hExpShare: 'สัดส่วนรายจ่าย', hRemain: 'งบประมาณคงเหลือ',
+    hTrend: 'แนวโน้มรายรับ-รายจ่าย ตลอดปี', income: 'รายรับ', expense: 'รายจ่าย', prevMonth: 'เดือนก่อนหน้า', nextMonth: 'เดือนถัดไป', newEntry: 'บันทึกรายการใหม่',
+    addRow: 'เพิ่มช่องกรอก', saveAll: 'บันทึกทั้งหมด', hHist: 'ประวัติรายการล่าสุด', filter: 'ตัวกรอง', type: 'ประเภท', allTypes: 'ทุกประเภท', allCats: 'ทุกหมวดหมู่',
+    thDate: 'วันที่', thCat: 'หมวดหมู่', thDetail: 'รายละเอียด', thAmount: 'จำนวนเงิน', noEntries: 'ยังไม่มีรายการ', hAddCat: 'เพิ่มหมวดหมู่', catName: 'ชื่อหมวดหมู่',
+    phCat: 'เช่น ค่าน้ำ, เงินเดือน', color: 'สี', save: 'บันทึก', hCatList: 'รายการหมวดหมู่', noCats: 'ยังไม่มีหมวดหมู่นี้', copyPrev: 'คัดลอกเดือนก่อน', thBudget: 'งบประมาณ',
+    thActual: 'ใช้จริง', thRemain: 'คงเหลือ', saveBudget: 'บันทึกงบประมาณ', budgetOf: 'งบประมาณ {name}', hBackup: 'สำรอง / กู้คืนข้อมูล', export: 'ส่งออกไฟล์สำรอง',
+    import: 'นำเข้าไฟล์สำรอง', hManage: 'จัดการข้อมูล', clearAll: 'ล้างข้อมูลทั้งหมด', noDataMonth: 'ยังไม่มีข้อมูลเดือนนี้', others: 'อื่นๆ', unknownCat: 'ไม่ทราบหมวดหมู่',
+    noBudgetMonth: 'ยังไม่มีการตั้งงบประมาณเดือนนี้', yearLbl: 'พ.ศ. {y}', incTitle: 'รายรับ {v}', expTitle: 'รายจ่าย {v}', dayHead: 'รายการวันที่ {d}', noDay: 'ไม่มีรายการวันนี้',
+    newBadge: 'รายการใหม่', rmRow: 'ลบแถวนี้', fDate: 'วันที่', fAmt: 'จำนวนเงิน', phNote: 'รายละเอียดเพิ่มเติม (ไม่บังคับ)', details: 'รายละเอียด', del: 'ลบ',
+    delCat: 'ลบหมวดหมู่', confirmDelEntry: 'ลบรายการนี้ใช่หรือไม่?', confirmDelCat: 'ลบหมวดหมู่นี้ใช่หรือไม่? รายการเดิมที่ใช้หมวดหมู่นี้จะยังอยู่', confirmClear: 'ล้างข้อมูลทั้งหมดจริงหรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้',
+    clearOk: 'ล้างข้อมูล', confirmImport: 'นำเข้าข้อมูลจะแทนที่ข้อมูลปัจจุบันทั้งหมด ดำเนินการต่อหรือไม่?', importOk: 'นำเข้า', noPrevBudget: 'ไม่มีงบประมาณของเดือนก่อนหน้าให้คัดลอก',
+    cleared: 'ล้างข้อมูลเรียบร้อยแล้ว', imported: 'นำเข้าข้อมูลเรียบร้อยแล้ว', badFile: 'ไฟล์ไม่ถูกต้อง: {msg}'
+  },
+  en: {
+      title: 'Income & expenses | Tanot', h1: 'Income & expenses', tDash: 'Overview', tCal: 'Calendar', tRec: 'Log', tCat: 'Categories', tBud: 'Budget', tSet: 'Settings',
+    month: 'Month', year: 'Year', kIn: 'Total income', kEx: 'Total expenses', kBal: 'Net balance', hIncShare: 'Income breakdown', hExpShare: 'Expense breakdown',
+    hRemain: 'Budget remaining', hTrend: 'Income & expense trend this year', income: 'Income', expense: 'Expenses', prevMonth: 'Previous month', nextMonth: 'Next month',
+    newEntry: 'Add new entries', addRow: 'Add another row', saveAll: 'Save all', hHist: 'Recent entries', filter: 'Filters', type: 'Type', allTypes: 'All types',
+    allCats: 'All categories', thDate: 'Date', thCat: 'Category', thDetail: 'Details', thAmount: 'Amount', noEntries: 'No entries yet', hAddCat: 'Add category',
+    catName: 'Category name', phCat: 'e.g. Water bill, Salary', color: 'Colour', save: 'Save', hCatList: 'Category list', noCats: 'No categories of this type yet',
+    copyPrev: 'Copy last month', thBudget: 'Budget', thActual: 'Actual', thRemain: 'Remaining', saveBudget: 'Save budget', budgetOf: 'Budget for {name}', hBackup: 'Back up / restore data',
+    export: 'Export backup', import: 'Import backup', hManage: 'Manage data', clearAll: 'Clear all data', noDataMonth: 'No data this month', others: 'Others',
+    unknownCat: 'Unknown category', noBudgetMonth: 'No budget set for this month', yearLbl: 'Year {y}', incTitle: 'Income {v}', expTitle: 'Expenses {v}', dayHead: 'Entries for {d}',
+    noDay: 'No entries on this day', newBadge: 'New entry', rmRow: 'Remove this row', fDate: 'Date', fAmt: 'Amount', phNote: 'More details (optional)', details: 'Details',
+    del: 'Delete', delCat: 'Delete category', confirmDelEntry: 'Delete this entry?', confirmDelCat: 'Delete this category? Existing entries that use it are kept.',
+    confirmClear: 'Clear all data? This cannot be undone.', clearOk: 'Clear data', confirmImport: 'Importing will replace all current data. Continue?', importOk: 'Import',
+    noPrevBudget: 'There is no budget from last month to copy', cleared: 'Data cleared', imported: 'Data imported', badFile: 'Invalid file: {msg}'
+  }
+});
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
+function catName(c){ return I18N.catName(c); }
+var enLang = function(){ return I18N.lang() === 'en'; };
 var LS_CAT = 'budget:categories', LS_REC = 'budget:records', LS_BUD = 'budget:budgets';
 
 function loadJSON(key, fallback){
@@ -329,11 +356,13 @@ function persistBudgets(){ saveJSON(LS_BUD, budgets); }
 
 function catById(id){ for (var i=0;i<categories.length;i++) if (categories[i].id===id) return categories[i]; return null; }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
-function fmtMoney(n){ n = Math.round((n||0)*100)/100; return '฿' + n.toLocaleString('th-TH', {minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits:2}); }
-var THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-var THAI_MONTHS_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-var THAI_DOW = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
-function beYear(y){ return y + 543; }
+function fmtMoney(n){ n = Math.round((n||0)*100)/100; return '฿' + I18N.number(n, {minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits:2}); }
+function fmtInt(n){ return I18N.number(Math.round(n)); }
+/* ชื่อเดือน/วันตามภาษา (Intl ผ่าน i18n.js) · ปี: ไทย = พ.ศ., อังกฤษ = ค.ศ. */
+function monthsLong(){ return I18N.months('long'); }
+function monthsShort(){ return I18N.months('short'); }
+function dowShort(){ return I18N.weekdays('short'); }
+function beYear(y){ return enLang() ? y : y + 543; }
 function monthKey(y,m){ return y + '-' + String(m+1).padStart(2,'0'); }
 function todayYMD(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
@@ -341,37 +370,14 @@ function todayYMD(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMo
 var $ = function(s,ctx){ return (ctx||document).querySelector(s); };
 var $$ = function(s,ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(s)); };
 
-var VIEW_TITLES = {
-  dashboard: 'ภาพรวม', calendar: 'ปฏิทินรายรับ-จ่าย', record: 'บันทึกรายการ',
-  categories: 'จัดการหมวดหมู่', budget: 'ตั้งงบประมาณ', settings: 'ตั้งค่าระบบ'
-};
+var VIEW_TITLES = { dashboard: 1, calendar: 1, record: 1, categories: 1, budget: 1, settings: 1 };
 
-/* ── กล่องยืนยัน (<dialog>) + toast แจ้งผล — แทน confirm()/alert() ของเบราว์เซอร์ ── */
-var dlg = $('#mpDialog');
-var dlgResolve = null;
+/* ── ยืนยัน/แจ้งผล = กล่องกลางของ shell.js (tanotConfirm / tanotToast) ── */
 function askConfirm(msg, opts){
   opts = opts || {};
-  return new Promise(function(resolve){
-    $('#mpDialogTitle').textContent = opts.title || 'ยืนยัน';
-    $('#mpDialogMsg').textContent = msg;
-    $('#mpDialogOk').textContent = opts.okLabel || 'ตกลง';
-    $('#mpDialogOk').className = 'btn ' + (opts.danger ? 'danger' : 'primary');
-    dlgResolve = resolve;
-    dlg.showModal();
-  });
+  return window.tanotConfirm(msg, { danger: !!opts.danger, okLabel: opts.okLabel });
 }
-function closeDlg(ok){ var r = dlgResolve; dlgResolve = null; if (dlg.open) dlg.close(); if (r) r(ok); }
-$('#mpDialogOk').addEventListener('click', function(){ closeDlg(true); });
-$('#mpDialogCancel').addEventListener('click', function(){ closeDlg(false); });
-dlg.addEventListener('cancel', function(e){ e.preventDefault(); closeDlg(false); });
-function toast(msg, kind){
-  var el = document.createElement('div');
-  el.className = 'toast' + (kind ? ' ' + kind : '');
-  el.innerHTML = '<svg class="ome-icon"><use href="icons.svg#i-' + (kind === 'err' ? 'circle-alert' : 'circle-check') + '"/></svg>';
-  el.appendChild(document.createTextNode(msg));
-  $('#mpToasts').appendChild(el);
-  setTimeout(function(){ el.remove(); }, 3200);
-}
+function toast(msg, kind){ window.tanotToast(msg, kind || 'ok'); }
 
 function setView(name){
   if (!VIEW_TITLES[name]) name = 'dashboard';
@@ -395,11 +401,11 @@ window.addEventListener('hashchange', function(){ setView(location.hash.slice(1)
 var dashYear, dashMonth; // 0-indexed month
 (function initDashMonth(){ var d=new Date(); dashYear=d.getFullYear(); dashMonth=d.getMonth(); })();
 
-function fillMonthSelect(sel, onChangeYear){
+function fillMonthSelect(sel){
   sel.innerHTML = '';
   for (var m=0;m<12;m++){
     var opt = document.createElement('option');
-    opt.value = m; opt.textContent = THAI_MONTHS[m];
+    opt.value = m; opt.textContent = monthsLong()[m];
     sel.appendChild(opt);
   }
 }
@@ -420,13 +426,13 @@ function chartColors(){
 function renderDonut(containerId, items, total){
   var el = $('#' + containerId);
   if (!items.length || total <= 0){
-    el.innerHTML = '<div class="empty"><svg class="ome-icon"><use href="icons.svg#i-chart-pie"/></svg>ยังไม่มีข้อมูลเดือนนี้</div>';
+    el.innerHTML = '<div class="empty"><svg class="ome-icon"><use href="icons.svg#i-chart-pie"/></svg>' + esc(TR('noDataMonth')) + '</div>';
     return;
   }
   var cc = chartColors();
   if (items.length > 8){
     var rest = items.slice(7).reduce(function(s,it){ return s + it.amount; }, 0);
-    items = items.slice(0, 7).concat([{name: 'อื่นๆ', amount: rest, other: true}]);
+    items = items.slice(0, 7).concat([{name: TR('others'), amount: rest, other: true}]);
   }
   var acc = 0, stops = [];
   items.forEach(function(it, i){
@@ -438,7 +444,7 @@ function renderDonut(containerId, items, total){
   var legend = items.map(function(it){
     var pct = Math.round(it.amount/total*100);
     return '<div class="mp-leg-item"><span class="mp-leg-dot" style="background:'+it.color+'"></span>' +
-      '<span class="mp-leg-name">'+it.name+'</span><span class="mp-leg-amt">'+fmtMoney(it.amount)+' ('+pct+'%)</span></div>';
+      '<span class="mp-leg-name">'+esc(it.name)+'</span><span class="mp-leg-amt">'+fmtMoney(it.amount)+' ('+pct+'%)</span></div>';
   }).join('');
   el.innerHTML = '<div class="mp-donut-wrap">' +
     '<div class="mp-donut" style="background:conic-gradient(' + stops.join(',') + ')"></div>' +
@@ -454,7 +460,7 @@ function groupByCategory(recs){
   var out = [];
   Object.keys(map).forEach(function(id){
     var c = catById(id);
-    out.push({name: c ? c.name : 'ไม่ทราบหมวดหมู่', color: c ? c.color : '#999', amount: map[id]});
+    out.push({name: c ? catName(c) : TR('unknownCat'), color: c ? c.color : 'var(--ome-text-3)', amount: map[id]});
   });
   out.sort(function(a,b){ return b.amount - a.amount; });
   return out;
@@ -468,7 +474,7 @@ function renderDashboard(){
     monthSel.addEventListener('change', function(){ dashMonth = Number(monthSel.value); renderDashboard(); });
   }
   monthSel.value = dashMonth;
-  $('#dashYear').textContent = 'พ.ศ. ' + beYear(dashYear);
+  $('#dashYear').textContent = TR('yearLbl', { y: beYear(dashYear) });
 
   var monthRecs = recordsForMonth(dashYear, dashMonth);
   var inc = monthRecs.filter(function(r){ return r.type === 'income'; });
@@ -489,7 +495,7 @@ function renderDashboard(){
   var bKeys = Object.keys(bMap).filter(function(k){ return Number(bMap[k]) > 0; });
   var remainEl = $('#budgetRemain');
   if (!bKeys.length){
-    remainEl.innerHTML = '<div class="empty"><svg class="ome-icon"><use href="icons.svg#i-piggy-bank"/></svg>ยังไม่มีการตั้งงบประมาณเดือนนี้</div>';
+    remainEl.innerHTML = '<div class="empty"><svg class="ome-icon"><use href="icons.svg#i-piggy-bank"/></svg>' + esc(TR('noBudgetMonth')) + '</div>';
   } else {
     var actualByCategory = {};
     exp.forEach(function(r){ actualByCategory[r.categoryId] = (actualByCategory[r.categoryId]||0) + Number(r.amount||0); });
@@ -499,7 +505,7 @@ function renderDashboard(){
       var remain = budget - actual;
       var pct = budget > 0 ? Math.min(100, Math.round(actual/budget*100)) : 0;
       return '<div class="mp-budget-row"><span class="mp-dot" style="background:'+c.color+'"></span>' +
-        '<span class="name">'+c.name+'</span>' +
+        '<span class="name">'+esc(catName(c))+'</span>' +
         '<span class="bar'+(pct>=100?' over':'')+'"><i style="width:'+pct+'%"></i></span>' +
         '<span class="val '+(remain<0?'dn':'up')+'">'+fmtMoney(remain)+'</span></div>';
     }).join('');
@@ -522,9 +528,9 @@ function renderDashboard(){
   trendEl.innerHTML = monthTotals.map(function(t,i){
     var ih = Math.round(t.i/maxVal*100), eh = Math.round(t.e/maxVal*100);
     return '<div class="mp-trend-col"><div class="mp-trend-bars">' +
-      '<b style="height:'+ih+'%;background:'+cc.series[0]+'" title="รายรับ '+fmtMoney(t.i)+'"></b>' +
-      '<b style="height:'+eh+'%;background:'+cc.series[1]+'" title="รายจ่าย '+fmtMoney(t.e)+'"></b>' +
-      '</div><div class="mp-trend-mo">'+THAI_MONTHS_SHORT[i]+'</div></div>';
+      '<b style="height:'+ih+'%;background:'+cc.series[0]+'" title="'+esc(TR('incTitle', {v: fmtMoney(t.i)}))+'"></b>' +
+      '<b style="height:'+eh+'%;background:'+cc.series[1]+'" title="'+esc(TR('expTitle', {v: fmtMoney(t.e)}))+'"></b>' +
+      '</div><div class="mp-trend-mo">'+monthsShort()[i]+'</div></div>';
   }).join('');
 }
 
@@ -533,10 +539,10 @@ var calYear, calMonth, calSelectedDate = null;
 (function initCal(){ var d=new Date(); calYear=d.getFullYear(); calMonth=d.getMonth(); })();
 
 function renderCalendar(){
-  $('#calLabel').textContent = THAI_MONTHS[calMonth] + ' ' + beYear(calYear);
+  $('#calLabel').textContent = monthsLong()[calMonth] + ' ' + beYear(calYear);
   var grid = $('#calGrid');
   grid.innerHTML = '';
-  THAI_DOW.forEach(function(d,i){
+  dowShort().forEach(function(d,i){
     var el = document.createElement('div');
     el.className = 'mp-cal-dow' + (i===0?' sun':'');
     el.textContent = d;
@@ -562,8 +568,8 @@ function renderCalendar(){
     var amts = byDate[ymd];
     var amtsHtml = '';
     if (amts){
-      if (amts.i) amtsHtml += '<span class="up">+'+Math.round(amts.i).toLocaleString('th-TH')+'</span>';
-      if (amts.e) amtsHtml += '<span class="dn">-'+Math.round(amts.e).toLocaleString('th-TH')+'</span>';
+      if (amts.i) amtsHtml += '<span class="up">+'+fmtInt(amts.i)+'</span>';
+      if (amts.e) amtsHtml += '<span class="dn">-'+fmtInt(amts.e)+'</span>';
     }
     cell.innerHTML = '<span class="num">'+day+'</span><span class="amts">'+amtsHtml+'</span>';
     cell.addEventListener('click', function(ymd2){ return function(){ calSelectedDate = ymd2; renderCalendar(); showDayDetail(ymd2); }; }(ymd));
@@ -580,15 +586,15 @@ function showDayDetail(ymd){
   var box = $('#dayDetail');
   box.style.display = 'block';
   var d = new Date(ymd+'T00:00:00');
-  var head = '<h2>รายการวันที่ ' + d.getDate() + ' ' + THAI_MONTHS[d.getMonth()] + ' ' + beYear(d.getFullYear()) + '</h2>';
+  var head = '<h2>' + esc(TR('dayHead', { d: d.getDate() + ' ' + monthsLong()[d.getMonth()] + ' ' + beYear(d.getFullYear()) })) + '</h2>';
   if (!dayRecs.length){
-    box.innerHTML = head + '<div class="empty" style="padding:14px 0">ไม่มีรายการวันนี้</div>';
+    box.innerHTML = head + '<div class="empty" style="padding:14px 0">' + esc(TR('noDay')) + '</div>';
     return;
   }
   var rows = dayRecs.map(function(r){
     var c = catById(r.categoryId);
-    return '<tr><td><span class="cat-pill"><i class="mp-dot" style="background:'+(c?c.color:'var(--ome-text-3)')+'"></i>'+(c?c.name:'-')+'</span></td>' +
-      '<td>'+(r.note||'-')+'</td><td class="num '+(r.type==='income'?'up':'dn')+'">'+(r.type==='income'?'+':'-')+fmtMoney(Math.abs(r.amount)).slice(1)+'</td></tr>';
+    return '<tr><td><span class="cat-pill"><i class="mp-dot" style="background:'+(c?c.color:'var(--ome-text-3)')+'"></i>'+(c?esc(catName(c)):'-')+'</span></td>' +
+      '<td>'+esc(r.note||'-')+'</td><td class="num '+(r.type==='income'?'up':'dn')+'">'+(r.type==='income'?'+':'-')+fmtMoney(Math.abs(r.amount)).slice(1)+'</td></tr>';
   }).join('');
   box.innerHTML = head + '<div class="table-wrap"><table class="table"><tbody>' + rows + '</tbody></table></div>';
 }
@@ -604,15 +610,15 @@ function makeEntryRow(){
   wrap.className = 'card mp-entry-row';
   wrap.dataset.rowId = id;
   wrap.innerHTML =
-    '<span class="badge accent">รายการใหม่</span>' +
-    (entryRowCount>1 ? '<button class="rm btn ghost icon sm" type="button" aria-label="ลบแถวนี้"><svg class="ome-icon"><use href="icons.svg#i-x"/></svg></button>' : '') +
+    '<span class="badge accent" data-i18n="budget.newBadge">'+esc(TR('newBadge'))+'</span>' +
+    (entryRowCount>1 ? '<button class="rm btn ghost icon sm" type="button" aria-label="'+esc(TR('rmRow'))+'" data-i18n-attr="aria-label:budget.rmRow"><svg class="ome-icon"><use href="icons.svg#i-x"/></svg></button>' : '') +
     '<div class="frow">' +
-    '<div class="field"><label>วันที่</label><input class="f-date" type="date" value="'+todayYMD()+'"></div>' +
-    '<div class="field"><label>ประเภท</label><select class="f-type"><option value="expense">รายจ่าย</option><option value="income">รายรับ</option></select></div>' +
-    '<div class="field"><label>หมวดหมู่</label><select class="f-cat"></select></div>' +
-    '<div class="field"><label>จำนวนเงิน</label><input class="f-amt" type="number" step="0.01" min="0" placeholder="0.00"></div>' +
+    '<div class="field"><label data-i18n="budget.fDate">'+esc(TR('fDate'))+'</label><input class="f-date" type="date" value="'+todayYMD()+'"></div>' +
+    '<div class="field"><label data-i18n="budget.type">'+esc(TR('type'))+'</label><select class="f-type"><option value="expense" data-i18n="budget.expense">'+esc(TR('expense'))+'</option><option value="income" data-i18n="budget.income">'+esc(TR('income'))+'</option></select></div>' +
+    '<div class="field"><label data-i18n="budget.thCat">'+esc(TR('thCat'))+'</label><select class="f-cat"></select></div>' +
+    '<div class="field"><label data-i18n="budget.fAmt">'+esc(TR('fAmt'))+'</label><input class="f-amt" type="number" step="0.01" min="0" placeholder="0.00"></div>' +
     '</div>' +
-    '<div class="field"><input class="f-note" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)" aria-label="รายละเอียด"></div>';
+    '<div class="field"><input class="f-note" placeholder="'+esc(TR('phNote'))+'" aria-label="'+esc(TR('details'))+'" data-i18n-attr="placeholder:budget.phNote,aria-label:budget.details"></div>';
   var rm = wrap.querySelector('.rm');
   if (rm) rm.addEventListener('click', function(){ wrap.remove(); });
   var typeSel = wrap.querySelector('.f-type');
@@ -620,7 +626,7 @@ function makeEntryRow(){
   function refreshCatOptions(){
     var t = typeSel.value;
     var list = t === 'income' ? incomeCats : expenseCats;
-    catSel.innerHTML = list.map(function(c){ return '<option value="'+c.id+'">'+c.name+'</option>'; }).join('');
+    catSel.innerHTML = list.map(function(c){ return '<option value="'+esc(c.id)+'">'+esc(catName(c))+'</option>'; }).join('');
   }
   typeSel.addEventListener('change', refreshCatOptions);
   refreshCatOptions();
@@ -662,8 +668,10 @@ $('#saveAllEntries').addEventListener('click', function(){
 var filterState = { type:'', category:'', month:'' };
 function populateFilterCategories(){
   var sel = $('#filterCategory');
-  sel.innerHTML = '<option value="">ทุกหมวดหมู่</option>' +
-    categories.map(function(c){ return '<option value="'+c.id+'">'+c.name+'</option>'; }).join('');
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">'+esc(TR('allCats'))+'</option>' +
+    categories.map(function(c){ return '<option value="'+esc(c.id)+'">'+esc(catName(c))+'</option>'; }).join('');
+  sel.value = cur;
 }
 $('#toggleFilter').addEventListener('click', function(){ $('#filterPanel').classList.toggle('open'); });
 $('#filterType').addEventListener('change', function(e){ filterState.type = e.target.value; renderHistory(); });
@@ -684,17 +692,17 @@ function renderHistory(){
   $('#historyEmpty').style.display = 'none';
   body.innerHTML = list.slice(0,200).map(function(r){
     var c = catById(r.categoryId);
-    return '<tr><td>'+r.date+'</td>' +
-      '<td><span class="cat-pill"><i class="mp-dot" style="background:'+(c?c.color:'var(--ome-text-3)')+'"></i>'+(c?c.name:'-')+'</span></td>' +
-      '<td>'+(r.note||'-')+'</td>' +
+    return '<tr><td>'+esc(r.date)+'</td>' +
+      '<td><span class="cat-pill"><i class="mp-dot" style="background:'+(c?c.color:'var(--ome-text-3)')+'"></i>'+(c?esc(catName(c)):'-')+'</span></td>' +
+      '<td>'+esc(r.note||'-')+'</td>' +
       '<td class="num '+(r.type==='income'?'up':'dn')+'">'+(r.type==='income'?'+':'-')+fmtMoney(Math.abs(r.amount)).slice(1)+'</td>' +
       '<td><div class="actions">' +
-        '<button class="del btn ghost icon sm" data-id="'+r.id+'" type="button" aria-label="ลบ"><svg class="ome-icon"><use href="icons.svg#i-trash-2"/></svg></button>' +
+        '<button class="del btn ghost icon sm" data-id="'+esc(r.id)+'" type="button" aria-label="'+esc(TR('del'))+'"><svg class="ome-icon"><use href="icons.svg#i-trash-2"/></svg></button>' +
       '</div></td></tr>';
   }).join('');
   $$('#historyBody .del').forEach(function(btn){
     btn.addEventListener('click', function(){
-      askConfirm('ลบรายการนี้ใช่หรือไม่?', {danger: true, okLabel: 'ลบ'}).then(function(ok){
+      askConfirm(TR('confirmDelEntry'), {danger: true, okLabel: TR('del')}).then(function(ok){
         if (!ok) return;
         records = records.filter(function(r){ return r.id !== btn.dataset.id; });
         persistRecords();
@@ -733,15 +741,15 @@ $('#saveCategory').addEventListener('click', function(){
 function renderCategoryList(){
   var list = categories.filter(function(c){ return c.type === catTab; });
   var el = $('#catList');
-  if (!list.length){ el.innerHTML = '<div class="empty"><svg class="ome-icon"><use href="icons.svg#i-tag"/></svg>ยังไม่มีหมวดหมู่นี้</div>'; return; }
+  if (!list.length){ el.innerHTML = '<div class="empty"><svg class="ome-icon"><use href="icons.svg#i-tag"/></svg>' + esc(TR('noCats')) + '</div>'; return; }
   el.innerHTML = '<div class="list" style="margin-top:var(--ome-sp-3)">' + list.map(function(c){
-    return '<div class="list-row"><span class="mp-dot" style="background:'+c.color+';width:14px;height:14px"></span>' +
-      '<span class="grow">'+c.name+'</span>' +
-      '<button class="del btn ghost icon sm" data-id="'+c.id+'" type="button" aria-label="ลบหมวดหมู่"><svg class="ome-icon"><use href="icons.svg#i-trash-2"/></svg></button></div>';
+    return '<div class="list-row"><span class="mp-dot" style="background:'+esc(c.color)+';width:14px;height:14px"></span>' +
+      '<span class="grow">'+esc(catName(c))+'</span>' +
+      '<button class="del btn ghost icon sm" data-id="'+esc(c.id)+'" type="button" aria-label="'+esc(TR('delCat'))+'"><svg class="ome-icon"><use href="icons.svg#i-trash-2"/></svg></button></div>';
   }).join('') + '</div>';
   $$('#catList .del').forEach(function(btn){
     btn.addEventListener('click', function(){
-      askConfirm('ลบหมวดหมู่นี้ใช่หรือไม่? รายการเดิมที่ใช้หมวดหมู่นี้จะยังอยู่', {danger: true, okLabel: 'ลบ'}).then(function(ok){
+      askConfirm(TR('confirmDelCat'), {danger: true, okLabel: TR('del')}).then(function(ok){
         if (!ok) return;
         categories = categories.filter(function(c){ return c.id !== btn.dataset.id; });
         persistCategories();
@@ -755,17 +763,21 @@ function renderCategoryList(){
 var budgetSelYear, budgetSelMonth;
 (function initBudgetSel(){ var d=new Date(); budgetSelYear=d.getFullYear(); budgetSelMonth=d.getMonth(); })();
 
+function fillYearSelect(ySel){
+  var curY = new Date().getFullYear();
+  ySel.innerHTML = '';
+  for (var y=curY-1; y<=curY+1; y++){
+    var opt = document.createElement('option'); opt.value = y; opt.textContent = beYear(y);
+    ySel.appendChild(opt);
+  }
+}
 function renderBudgetTable(){
   var mSel = $('#budgetMonth'), ySel = $('#budgetYear');
   if (!mSel.dataset.init){
     fillMonthSelect(mSel);
     mSel.dataset.init = '1';
     mSel.addEventListener('change', function(){ budgetSelMonth = Number(mSel.value); renderBudgetTable(); });
-    var curY = new Date().getFullYear();
-    for (var y=curY-1; y<=curY+1; y++){
-      var opt = document.createElement('option'); opt.value = y; opt.textContent = beYear(y);
-      ySel.appendChild(opt);
-    }
+    fillYearSelect(ySel);
     ySel.dataset.init = '1';
     ySel.addEventListener('change', function(){ budgetSelYear = Number(ySel.value); renderBudgetTable(); });
   }
@@ -782,8 +794,8 @@ function renderBudgetTable(){
     var b = Number(bMap[c.id]) || 0;
     var a = actual[c.id] || 0;
     var remain = b - a;
-    return '<tr><td><span class="cat-pill"><i class="mp-dot" style="background:'+c.color+'"></i>'+c.name+'</span></td>' +
-      '<td class="num"><input class="input mp-bin" type="number" min="0" step="1" data-cat="'+c.id+'" value="'+(b||0)+'" aria-label="งบประมาณ '+c.name+'"></td>' +
+    return '<tr><td><span class="cat-pill"><i class="mp-dot" style="background:'+esc(c.color)+'"></i>'+esc(catName(c))+'</span></td>' +
+      '<td class="num"><input class="input mp-bin" type="number" min="0" step="1" data-cat="'+esc(c.id)+'" value="'+(b||0)+'" aria-label="'+esc(TR('budgetOf', {name: catName(c)}))+'"></td>' +
       '<td class="num">'+fmtMoney(a)+'</td>' +
       '<td class="num '+(remain<0?'dn':'up')+'" style="font-weight:700">'+fmtMoney(remain)+'</td></tr>';
   }).join('');
@@ -793,7 +805,7 @@ $('#copyPrevMonth').addEventListener('click', function(){
   if (pm < 0) { pm = 11; py--; }
   var prevKey = monthKey(py, pm);
   var curKey = monthKey(budgetSelYear, budgetSelMonth);
-  if (!budgets[prevKey]) { toast('ไม่มีงบประมาณของเดือนก่อนหน้าให้คัดลอก', 'err'); return; }
+  if (!budgets[prevKey]) { toast(TR('noPrevBudget'), 'err'); return; }
   budgets[curKey] = Object.assign({}, budgets[prevKey]);
   persistBudgets();
   renderBudgetTable();
@@ -810,14 +822,14 @@ $('#saveBudget').addEventListener('click', function(){
 
 /* ══════════════════ ตั้งค่า ══════════════════ */
 $('#clearAllData').addEventListener('click', function(){
-  askConfirm('ล้างข้อมูลทั้งหมดจริงหรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้', {danger: true, okLabel: 'ล้างข้อมูล'}).then(function(ok){
+  askConfirm(TR('confirmClear'), {danger: true, okLabel: TR('clearOk')}).then(function(ok){
     if (!ok) return;
     categories = DEFAULT_CATEGORIES.slice();
     records = [];
     budgets = {};
     persistCategories(); persistRecords(); persistBudgets();
     setView(location.hash.slice(1) || 'dashboard');
-    toast('ล้างข้อมูลเรียบร้อยแล้ว');
+    toast(TR('cleared'));
   });
 });
 $('#exportData').addEventListener('click', function(){
@@ -837,15 +849,15 @@ $('#importDataInput').addEventListener('change', function(e){
   reader.onload = function(){
     var data;
     try { data = JSON.parse(reader.result); }
-    catch(err) { toast('ไฟล์ไม่ถูกต้อง: ' + err.message, 'err'); e.target.value = ''; return; }
-    askConfirm('นำเข้าข้อมูลจะแทนที่ข้อมูลปัจจุบันทั้งหมด ดำเนินการต่อหรือไม่?', {okLabel: 'นำเข้า'}).then(function(ok){
+    catch(err) { toast(TR('badFile', {msg: err.message}), 'err'); e.target.value = ''; return; }
+    askConfirm(TR('confirmImport'), {okLabel: TR('importOk')}).then(function(ok){
       if (ok) {
         categories = Array.isArray(data.categories) ? data.categories : categories;
         records = Array.isArray(data.records) ? data.records : records;
         budgets = data.budgets && typeof data.budgets === 'object' ? data.budgets : budgets;
         persistCategories(); persistRecords(); persistBudgets();
         setView(location.hash.slice(1) || 'dashboard');
-        toast('นำเข้าข้อมูลเรียบร้อยแล้ว');
+        toast(TR('imported'));
       }
       e.target.value = '';
     });
@@ -855,6 +867,14 @@ $('#importDataInput').addEventListener('change', function(e){
 
 /* ══════════════════ เริ่มต้น ══════════════════ */
 setView(location.hash.slice(1) || 'dashboard');
+/* สลับภาษาสด: ข้อความใน HTML แปลโดย i18n.js เอง — ที่นี่วาดส่วนที่ JS สร้าง (ตัวเลือกเดือน/ปี, ทุกมุมมอง) ใหม่ */
+I18N && window.OME_LANG && window.OME_LANG.onChange(function(){
+  var dm = $('#dashMonth'), bm = $('#budgetMonth'), by = $('#budgetYear');
+  if (dm.dataset.init){ fillMonthSelect(dm); dm.value = dashMonth; }
+  if (bm.dataset.init){ fillMonthSelect(bm); bm.value = budgetSelMonth; fillYearSelect(by); by.value = budgetSelYear; }
+  I18N.apply(document);
+  setView(location.hash.slice(1) || 'dashboard');
+});
 if (window.OmeChartTheme) window.OmeChartTheme.onChange(function(){
   if ($('#view-dashboard').classList.contains('active')) renderDashboard();
 });

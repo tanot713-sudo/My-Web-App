@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tanot — วันนี้</title>
+<title data-i18n="today.title">Tanot — วันนี้</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -70,59 +70,59 @@
   </header>
 
   <div class="quick">
-    <button class="btn primary" type="button" id="qaExpense"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>รายจ่าย</button>
-    <button class="btn" type="button" id="qaIncome"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>รายรับ</button>
+    <button class="btn primary" type="button" id="qaExpense"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="today.qExpense">รายจ่าย</span></button>
+    <button class="btn" type="button" id="qaIncome"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="today.qIncome">รายรับ</span></button>
     <a class="btn" href="word.html"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-text"/></svg>Word</a>
     <a class="btn" href="excel.html"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-spreadsheet"/></svg>Excel</a>
-    <button class="btn" type="button" id="qaSearch"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-search"/></svg>ค้นหา</button>
-    <button class="btn ghost" type="button" id="qaMenu"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-menu"/></svg>เมนูทั้งหมด</button>
+    <button class="btn" type="button" id="qaSearch"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-search"/></svg><span data-i18n="today.qSearch">ค้นหา</span></button>
+    <button class="btn ghost" type="button" id="qaMenu"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-menu"/></svg><span data-i18n="today.qMenu">เมนูทั้งหมด</span></button>
   </div>
 
   <div class="grid">
     <section class="card span-6" aria-labelledby="hSpend">
-      <div class="card-head"><h2 id="hSpend">ใช้จ่ายเดือนนี้</h2><a class="btn ghost sm" href="budget.html">รายรับรายจ่าย</a></div>
+      <div class="card-head"><h2 id="hSpend" data-i18n="today.hSpend">ใช้จ่ายเดือนนี้</h2><a class="btn ghost sm" href="budget.html" data-i18n="today.lBudget">รายรับรายจ่าย</a></div>
       <div class="card-body" id="spendBody"></div>
     </section>
 
     <section class="card span-3" aria-labelledby="hReview">
-      <div class="card-head"><h2 id="hReview">ทบทวนวันนี้</h2></div>
+      <div class="card-head"><h2 id="hReview" data-i18n="today.hReview">ทบทวนวันนี้</h2></div>
       <div class="card-body" id="reviewBody"></div>
     </section>
 
     <section class="card span-3" aria-labelledby="hStreak">
-      <div class="card-head"><h2 id="hStreak">ติดต่อกัน</h2></div>
+      <div class="card-head"><h2 id="hStreak" data-i18n="today.hStreak">ติดต่อกัน</h2></div>
       <div class="card-body" id="streakBody"></div>
     </section>
 
     <section class="card span-6" aria-labelledby="hStock">
-      <div class="card-head"><h2 id="hStock">สินทรัพย์ลงทุน</h2><a class="btn ghost sm" href="invest.html">การลงทุน</a></div>
+      <div class="card-head"><h2 id="hStock" data-i18n="today.hStock">สินทรัพย์ลงทุน</h2><a class="btn ghost sm" href="invest.html" data-i18n="today.lInvest">การลงทุน</a></div>
       <div class="card-body" id="investBody"></div>
     </section>
 
     <section class="card span-6" aria-labelledby="hFiles">
-      <div class="card-head"><h2 id="hFiles">ไฟล์ล่าสุด</h2></div>
+      <div class="card-head"><h2 id="hFiles" data-i18n="today.hFiles">ไฟล์ล่าสุด</h2></div>
       <div id="filesBody"></div>
     </section>
 
     <section class="card span-6" aria-labelledby="hIns">
-      <div class="card-head"><h2 id="hIns">ต่ออายุประกัน</h2><a class="btn ghost sm" href="insurance.html">ประกัน</a></div>
+      <div class="card-head"><h2 id="hIns" data-i18n="today.hIns">ต่ออายุประกัน</h2><a class="btn ghost sm" href="insurance.html" data-i18n="today.lIns">ประกัน</a></div>
       <div id="insBody"></div>
     </section>
 
     <section class="card span-6" aria-labelledby="hMnt">
-      <div class="card-head"><h2 id="hMnt">งานบำรุงรักษา</h2><a class="btn ghost sm" href="maintenance.html">บำรุงรักษา</a></div>
+      <div class="card-head"><h2 id="hMnt" data-i18n="today.hMnt">งานบำรุงรักษา</h2><a class="btn ghost sm" href="maintenance.html" data-i18n="today.lMnt">บำรุงรักษา</a></div>
       <div class="card-body" id="mntBody"></div>
     </section>
     <section class="card span-6" aria-labelledby="hHealth">
-      <div class="card-head"><h2 id="hHealth">สุขภาพ</h2><a class="btn ghost sm" href="health.html">สุขภาพ</a></div>
+      <div class="card-head"><h2 id="hHealth" data-i18n="today.hHealth">สุขภาพ</h2><a class="btn ghost sm" href="health.html" data-i18n="today.hHealth">สุขภาพ</a></div>
       <div class="card-body" id="healthBody"></div>
     </section>
     <section class="card span-6" aria-labelledby="hWar" id="warCard" hidden>
-      <div class="card-head"><h2 id="hWar">ประกันสินค้าใกล้หมด</h2><a class="btn ghost sm" href="receipts.html">คลังใบเสร็จ</a></div>
+      <div class="card-head"><h2 id="hWar" data-i18n="today.hWar">ประกันสินค้าใกล้หมด</h2><a class="btn ghost sm" href="receipts.html" data-i18n="today.lWar">คลังใบเสร็จ</a></div>
       <div class="card-body" id="warBody"></div>
     </section>
     <section class="card span-6" aria-labelledby="hCar" id="carCard" hidden>
-      <div class="card-head"><h2 id="hCar">รถ</h2><a class="btn ghost sm" href="car.html">บันทึกรถ</a></div>
+      <div class="card-head"><h2 id="hCar" data-i18n="today.hCar">รถ</h2><a class="btn ghost sm" href="car.html" data-i18n="today.lCar">บันทึกรถ</a></div>
       <div class="card-body" id="carBody"></div>
     </section>
   </div>

@@ -285,7 +285,7 @@ test.describe('หน้า health.html', () => {
     await expect(row1.locator('[data-f="hi"]')).toHaveValue('5.6'); // ช่วงอ้างอิงเริ่มต้น แก้ได้
     await row1.locator('[data-f="value"]').fill('5.2');
     await page.setInputFiles('#cFileInput', { name: 'lab.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 ผลตรวจ') });
-    await expect(page.locator('#cFiles .hl-file')).toHaveCount(1);
+    await expect(page.locator('#cFiles .file-row')).toHaveCount(1);
     expect(await (await request.get(SRV + '/__files')).json()).toHaveLength(1);
     await page.click('#chkForm button[type="submit"]');
     const r = page.locator('#chkList .list-row');

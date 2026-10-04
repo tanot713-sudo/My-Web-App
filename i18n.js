@@ -17,6 +17,9 @@
      · data-i18n-skip = พื้นที่ที่ไม่ต้องแปล (เนื้อหาบทเรียน/ข้อมูลผู้ใช้/ข่าว/ชื่อเฉพาะ) — ตัวตรวจภาษาใน
        tests/theme-audit.spec.js ข้ามพื้นที่นี้
      · label(node) — ป้ายเมนูตามภาษา (node.labelEn เมื่อเป็น en)
+     · scope(ns, {th,en}) — add() แล้วคืนฟังก์ชัน T(key, vars) ที่ผูกกับ ns (ใช้ใน JS ของหน้า: var T = OME_I18N.scope('mypage', {...}))
+     · months(style) / weekdays(style) — ชื่อเดือน (index 0 = ม.ค.) / ชื่อวัน (index 0 = อาทิตย์) ตามภาษา style = 'long' | 'short'
+     · catName(cat) — ชื่อหมวด budget: หมวดตั้งต้นที่ผู้ใช้ไม่ได้แก้ชื่อแปลตามภาษา · หมวดที่ผู้ใช้ตั้ง/แก้เองคืนชื่อเดิม (ข้อมูลไม่เปลี่ยน แปลเฉพาะตอนแสดง)
      · date(d, opts) / number(n, opts) / money(n, opts) — th = พ.ศ. (th-TH) / en = ค.ศ. (en-GB) */
 (function () {
   'use strict';
@@ -159,5 +162,34 @@
     return get() === 'en' && node.labelEn ? node.labelEn : node.label;
   }
 
-  window.OME_I18N = { add: add, t: t, has: has, apply: apply, lang: get, date: date, number: number, money: money, label: label };
+  function scope(ns, d) {
+    add(ns, d);
+    return function (key, vars) { return t(ns + '.' + key, vars); };
+  }
+  /* ชื่อเดือน/วันจาก Intl ตามภาษา — th = ม.ค./มกราคม, อา./อาทิตย์ · en = Jan/January, Sun/Sunday */
+  function months(style) {
+    var f = new Intl.DateTimeFormat(locale(), { month: style || 'long' }), out = [];
+    for (var i = 0; i < 12; i++) out.push(f.format(new Date(2026, i, 15)));
+    return out;
+  }
+  function weekdays(style) {
+    var f = new Intl.DateTimeFormat(locale(), { weekday: style || 'short' }), out = [];
+    for (var i = 0; i < 7; i++) out.push(f.format(new Date(2026, 9, 4 + i))); // 2026-10-04 เป็นวันอาทิตย์
+    return out;
+  }
+  /* หมวด budget ตั้งต้น (id + ชื่อไทยเดิมที่ budget.html เขียนลง storage) → ชื่ออังกฤษ */
+  var DEFAULT_CATS = {
+    'cat-salary': ['เงินเดือน', 'Salary'], 'cat-other-income': ['รายได้อื่นๆ', 'Other income'], 'cat-water': ['ค่าน้ำ', 'Water bill'],
+    'cat-cigarette': ['ค่าบุหรี่', 'Cigarettes'], 'cat-alcohol': ['ค่าเหล้า', 'Alcohol'], 'cat-rice': ['ค่าข้าว', 'Meals'],
+    'cat-m150': ['ค่าเครื่องดื่ม M-150', 'Energy drinks (M-150)'], 'cat-personal': ['ซื้อของใช้ส่วนตัว', 'Personal items'],
+    'cat-fuel': ['เติมน้ำมัน', 'Fuel'], 'cat-ice': ['ค่าน้ำแข็ง', 'Ice'], 'cat-parts': ['ค่าอะไหล่', 'Parts'], 'cat-shopping': ['Shopping', 'Shopping']
+  };
+  function catName(cat) {
+    if (!cat) return '';
+    var d = DEFAULT_CATS[cat.id];
+    return d && get() === 'en' && cat.name === d[0] ? d[1] : cat.name;
+  }
+
+  window.OME_I18N = { add: add, t: t, has: has, apply: apply, lang: get, date: date, number: number, money: money, label: label,
+    scope: scope, months: months, weekdays: weekdays, catName: catName };
 })();

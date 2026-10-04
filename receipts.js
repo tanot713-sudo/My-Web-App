@@ -15,6 +15,43 @@
   window.TANOT_NO_RELOAD_BAR = true; // วาดใหม่เองเมื่อ TanotData.onChange — ห้ามรีเซ็ตช่องในฟอร์มที่กำลังกรอก
 
   var C = window.ReceiptsCalc;
+
+  /* ── ข้อความ UI สองภาษา (i18n.js) — คีย์ 'receipts.*' · ป้ายลดหย่อนของ receipts-calc.js แปลที่นี่ตามรหัส ── */
+  var I18N = window.OME_I18N;
+  var TR = I18N ? I18N.scope('receipts', {
+    th: {
+      title: 'คลังใบเสร็จ | Tanot', h1: 'คลังใบเสร็จ', addRec: 'เพิ่มใบเสร็จ', hList: 'ใบเสร็จ', phSearch: 'ค้นหาร้าน/สินค้า', search: 'ค้นหา', year: 'ปี', taxTag: 'ป้ายภาษี',
+      withWar: 'มีประกัน', cam: 'ถ่ายรูป', file: 'เลือกไฟล์', readClaude: 'อ่านด้วย Claude', store: 'ร้าน', date: 'วันที่', total: 'ยอดรวม (บาท)', vat: 'VAT (บาท)',
+      taxId: 'เลขผู้เสียภาษีผู้ขาย', full: 'ใบกำกับภาษีเต็มรูป / e-Tax', items: 'รายการสินค้า', product: 'สินค้าที่มีประกัน', months: 'ประกัน (เดือน)', warEnd: 'วันหมดประกัน',
+      tag2: 'ป้ายลดหย่อนภาษี', cat: 'หมวดรายจ่าย', note: 'บันทึก', del: 'ลบ', toBudget: 'บันทึกเป็นรายจ่าย', cancel: 'ยกเลิก', save: 'บันทึก', close: 'ปิด', receipt: 'ใบเสร็จ',
+      kRec: 'ใบเสร็จ', unitRec: 'ใบ', kYear: 'ยอดปีนี้', kWar: 'ประกันใกล้หมด', unitItems: 'รายการ', kTax: 'ป้ายลดหย่อนปีนี้', allYears: 'ทุกปี', yearOpt: 'ปี {y}',
+      allTags: 'ทุกป้าย', 'tag.none': 'ไม่ลดหย่อน', 'tag.eReceipt': 'Easy e-Receipt', 'tag.eReceiptOtop': 'e-Receipt OTOP/วิสาหกิจชุมชน', 'tag.donation': 'เงินบริจาคทั่วไป',
+      'tag.donationEdu': 'บริจาคการศึกษา/กีฬา/รพ.รัฐ', 'tag.politic': 'บริจาคพรรคการเมือง', warExpired: 'หมดประกันแล้ว', warToday: 'ประกันหมดวันนี้', warIn: 'ประกันอีก {n} วัน',
+      warUntil: 'ประกันถึง {d}', noMatch: 'ไม่พบใบเสร็จที่ตรงกับตัวกรอง', none: 'ยังไม่มีใบเสร็จ', sentBudget: 'ส่งเข้า budget', viewFull: 'ดูรูปเต็ม', edit: 'แก้ไข',
+      check: 'ตรวจสอบ', free: 'ฟรี', addTitle: 'เพิ่มใบเสร็จ', editTitle: 'แก้ไขใบเสร็จ', rmFile: 'เอาไฟล์ออก', sentDone: 'ส่งเข้า budget แล้ว', reading: 'กำลังอ่านใบเสร็จ…',
+      autoFail: 'อ่านอัตโนมัติไม่ได้ — กรอกเอง', claudeReading: 'Claude กำลังอ่าน…', claudeBad: 'Claude ตอบกลับในรูปแบบที่อ่านไม่ได้', convertImg: 'แปลงรูปไม่ได้',
+      openImg: 'เปิดรูปไม่ได้', readImg: 'อ่านรูปไม่ได้', openFile: 'เปิดไฟล์ไม่ได้', onlyPdf: 'รองรับเฉพาะ PDF และรูปภาพ', tooBig: '{name} ใหญ่เกิน 15 MB', uploadFail: 'อัปโหลดไม่สำเร็จ',
+      uploadFailCode: 'อัปโหลดไม่สำเร็จ ({s})', errStore: 'ใส่ชื่อร้านหรือยอดรวมอย่างน้อยหนึ่งช่อง', errTotal: 'ใส่ยอดรวมก่อนบันทึกเป็นรายจ่าย', confirmDel: 'ลบใบเสร็จนี้และไฟล์แนบทั้งหมด? (รายการใน budget ที่สร้างแล้วจะไม่ถูกลบ)'
+    },
+    en: {
+      title: 'Receipts | Tanot', h1: 'Receipts', addRec: 'Add receipt', hList: 'Receipts', phSearch: 'Search store / product', search: 'Search', year: 'Year',
+      taxTag: 'Tax tag', withWar: 'With warranty', cam: 'Take photo', file: 'Choose file', readClaude: 'Read with Claude', store: 'Store', date: 'Date', total: 'Total (THB)',
+      vat: 'VAT (THB)', taxId: 'Seller\'s tax ID', full: 'Full tax invoice / e-Tax', items: 'Items', product: 'Product under warranty', months: 'Warranty (months)',
+      warEnd: 'Warranty ends', tag2: 'Tax-deduction tag', cat: 'Expense category', note: 'Note', del: 'Delete', toBudget: 'Save as expense', cancel: 'Cancel',
+      save: 'Save', close: 'Close', receipt: 'Receipt', kRec: 'Receipts', unitRec: '', kYear: 'Total this year', kWar: 'Warranties expiring soon', unitItems: '',
+      kTax: 'Tax-tagged this year', allYears: 'All years', yearOpt: 'Year {y}', allTags: 'All tags', 'tag.none': 'No deduction', 'tag.eReceipt': 'Easy e-Receipt',
+      'tag.eReceiptOtop': 'e-Receipt OTOP / community enterprise', 'tag.donation': 'General donation', 'tag.donationEdu': 'Donation: education / sports / public hospital',
+      'tag.politic': 'Political party donation', warExpired: 'Warranty expired', warToday: 'Warranty ends today', warIn: 'Warranty: {n} days left', warUntil: 'Warranty until {d}',
+      noMatch: 'No receipts match the filters', none: 'No receipts yet', sentBudget: 'Sent to budget', viewFull: 'View full image', edit: 'Edit', check: 'Check',
+      free: 'Free', addTitle: 'Add receipt', editTitle: 'Edit receipt', rmFile: 'Remove file', sentDone: 'Sent to budget', reading: 'Reading the receipt…', autoFail: 'Could not read it automatically — please fill it in',
+      claudeReading: 'Claude is reading…', claudeBad: 'Claude\'s reply could not be understood', convertImg: 'Could not convert the image', openImg: 'Could not open the image',
+      readImg: 'Could not read the image', openFile: 'Could not open the file', onlyPdf: 'Only PDF and images are supported', tooBig: '{name} is larger than 15 MB',
+      uploadFail: 'Upload failed', uploadFailCode: 'Upload failed ({s})', errStore: 'Enter a store name or a total', errTotal: 'Enter a total before saving as an expense',
+      confirmDel: 'Delete this receipt and all attached files? (Budget entries already created are kept.)'
+    }
+  }) : function () { return ''; };
+  function catName(c) { return I18N ? I18N.catName(c) : c.name; }
+  function tagLabel(k) { return TR('tag.' + k) || C.TAX_TAGS[k]; }
   var TD = window.TanotData;
   var KEY = 'tanot:receipts:items';
   var SUMMARY_KEY = 'tanot:receipts:taxsummary';
@@ -34,7 +71,7 @@
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function icon(name) { return '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + name + '"/></svg>'; }
-  function num(n, d) { return (Number(n) || 0).toLocaleString('th-TH', { maximumFractionDigits: d == null ? 0 : d }); }
+  function num(n, d) { var v = Number(n) || 0, o = { maximumFractionDigits: d == null ? 0 : d }; return I18N ? I18N.number(v, o) : v.toLocaleString('th-TH', o); }
   function baht(n) { return '฿' + num(n, n % 1 ? 2 : 0); }
   function filesAvailable() { return /\.pages\.dev$/.test(location.hostname) || !!(window.TANOT_FILES && window.TANOT_FILES.enabled); }
   function aiAvailable() { return !!(window.AiClient && window.AiClient.available()); }
@@ -98,25 +135,27 @@
   var S = null; // สถานะของกล่องที่เปิดอยู่
 
   /* ── หน้าหลัก ── */
-  function dateTh(s) { return C.thDate(s); }
+  function dateTh(s) { var d = C.parseDate(s); return d ? (I18N ? I18N.date(d, { day: 'numeric', month: 'short', year: 'numeric' }) : C.thDate(s)) : ''; }
   function renderKpis(list) {
     var now = new Date(), y = now.getFullYear();
     var yearTotal = list.reduce(function (s, r) { return C.receiptYear(r) === y ? s + (Number(r.total) || 0) : s; }, 0);
     var tax = C.taxSummary(list).years[y] || {};
     var taxTotal = C.TAX_FIELDS.reduce(function (s, k) { return s + (tax[k] || 0); }, 0);
     function k(label, value, unit) { return '<div class="kpi"><div class="kpi-label">' + label + '</div><div class="kpi-value">' + value + (unit ? '<small>' + unit + '</small>' : '') + '</div></div>'; }
-    $('kpis').innerHTML = k('ใบเสร็จ', num(list.length), 'ใบ') + k('ยอดปีนี้', baht(yearTotal)) +
-      k('ประกันใกล้หมด', num(C.expiring(list, now, 60).length), 'รายการ') + k('ป้ายลดหย่อนปีนี้', baht(taxTotal));
+    $('kpis').innerHTML = k(esc(TR('kRec')), num(list.length), esc(TR('unitRec'))) + k(esc(TR('kYear')), baht(yearTotal)) +
+      k(esc(TR('kWar')), num(C.expiring(list, now, 60).length), esc(TR('unitItems'))) + k(esc(TR('kTax')), baht(taxTotal));
   }
   function renderFilters(list) {
     var ys = C.years(list), ysel = $('fYear'), cur = flt.year;
-    var want = '<option value="">ทุกปี</option>' + ys.map(function (y) { return '<option value="' + y + '">ปี ' + (y + 543) + '</option>'; }).join('');
+    var want = '<option value="">' + esc(TR('allYears')) + '</option>' + ys.map(function (y) { return '<option value="' + y + '">' + esc(TR('yearOpt', { y: I18N && I18N.lang() === 'en' ? y : y + 543 })) + '</option>'; }).join('');
     if (ysel.getAttribute('data-sig') !== want) { ysel.innerHTML = want; ysel.setAttribute('data-sig', want); }
     if (cur && ys.indexOf(+cur) === -1) { flt.year = ''; }
     ysel.value = flt.year;
     var tsel = $('fTag');
-    if (!tsel.options.length) {
-      tsel.innerHTML = '<option value="all">ทุกป้าย</option>' + Object.keys(C.TAX_TAGS).map(function (k) { return '<option value="' + k + '">' + esc(C.TAX_TAGS[k]) + '</option>'; }).join('');
+    var tsig = I18N ? I18N.lang() : 'th';
+    if (tsel.getAttribute('data-sig') !== tsig) {
+      tsel.innerHTML = '<option value="all">' + esc(TR('allTags')) + '</option>' + Object.keys(C.TAX_TAGS).map(function (k) { return '<option value="' + k + '">' + esc(tagLabel(k)) + '</option>'; }).join('');
+      tsel.setAttribute('data-sig', tsig);
     }
     tsel.value = flt.tag;
     $('fWar').setAttribute('aria-pressed', String(flt.warranty));
@@ -126,18 +165,18 @@
     if (!end) return '';
     var d = C.daysUntil(end, now);
     if (d === null) return '';
-    if (d < 0) return '<span class="badge" data-b="war">หมดประกันแล้ว</span>';
-    if (d === 0) return '<span class="badge warn" data-b="war">ประกันหมดวันนี้</span>';
-    if (d <= 30) return '<span class="badge warn" data-b="war">ประกันอีก ' + num(d) + ' วัน</span>';
-    if (d <= 60) return '<span class="badge info" data-b="war">ประกันอีก ' + num(d) + ' วัน</span>';
-    return '<span class="badge" data-b="war">ประกันถึง ' + esc(dateTh(end)) + '</span>';
+    if (d < 0) return '<span class="badge" data-b="war">' + esc(TR('warExpired')) + '</span>';
+    if (d === 0) return '<span class="badge warn" data-b="war">' + esc(TR('warToday')) + '</span>';
+    if (d <= 30) return '<span class="badge warn" data-b="war">' + esc(TR('warIn', { n: num(d) })) + '</span>';
+    if (d <= 60) return '<span class="badge info" data-b="war">' + esc(TR('warIn', { n: num(d) })) + '</span>';
+    return '<span class="badge" data-b="war">' + esc(TR('warUntil', { d: dateTh(end) })) + '</span>';
   }
   function renderList(list) {
     var now = new Date();
     var rows = list.filter(function (r) { return C.matches(r, flt); });
     rows.sort(function (a, b) { return String(b.date || '').localeCompare(String(a.date || '')) || (b.createdAt || 0) - (a.createdAt || 0); });
     if (!rows.length) {
-      $('listBody').innerHTML = '<div class="empty">' + icon('receipt') + '<p>' + (list.length ? 'ไม่พบใบเสร็จที่ตรงกับตัวกรอง' : 'ยังไม่มีใบเสร็จ') + '</p></div>';
+      $('listBody').innerHTML = '<div class="empty">' + icon('receipt') + '<p>' + esc(list.length ? TR('noMatch') : TR('none')) + '</p></div>';
       return;
     }
     $('listBody').innerHTML = '<div class="list">' + rows.map(function (r) {
@@ -145,14 +184,14 @@
       var nFiles = Array.isArray(r.files) ? r.files.length : 0;
       return '<div class="list-row" data-id="' + esc(r.id) + '">' +
         '<span class="lead">' + icon('receipt') + '</span>' +
-        '<div class="grow"><div class="title">' + esc(r.store || 'ใบเสร็จ') + '</div><div class="meta">' + esc(meta) + '</div></div>' +
+        '<div class="grow"><div class="title">' + esc(r.store || TR('receipt')) + '</div><div class="meta">' + esc(meta) + '</div></div>' +
         '<div class="end">' +
           (r.total ? '<div class="amt">' + baht(r.total) + '</div>' : '') +
-          (r.taxTag && r.taxTag !== 'none' && C.TAX_TAGS[r.taxTag] ? '<span class="badge accent" data-b="tax">' + esc(C.TAX_TAGS[r.taxTag]) + '</span>' : '') +
+          (r.taxTag && r.taxTag !== 'none' && C.TAX_TAGS[r.taxTag] ? '<span class="badge accent" data-b="tax">' + esc(tagLabel(r.taxTag)) + '</span>' : '') +
           warrantyBadge(r, now) +
-          (r.budgetId ? '<span class="badge ok" data-b="budget">' + icon('check') + 'ส่งเข้า budget</span>' : '') +
-          (nFiles ? '<button class="btn sm icon" type="button" data-act="view" aria-label="ดูรูปเต็ม">' + icon('eye') + '</button>' : '') +
-          '<button class="btn sm icon" type="button" data-act="edit" aria-label="แก้ไข">' + icon('pencil') + '</button>' +
+          (r.budgetId ? '<span class="badge ok" data-b="budget">' + icon('check') + esc(TR('sentBudget')) + '</span>' : '') +
+          (nFiles ? '<button class="btn sm icon" type="button" data-act="view" aria-label="' + esc(TR('viewFull')) + '">' + icon('eye') + '</button>' : '') +
+          '<button class="btn sm icon" type="button" data-act="edit" aria-label="' + esc(TR('edit')) + '">' + icon('pencil') + '</button>' +
         '</div></div>';
     }).join('') + '</div>';
   }
@@ -167,10 +206,12 @@
 
   /* ── กล่องเพิ่ม/แก้ไข ── */
   var dlg = $('dlg');
-  function fillSelect(id, map) {
-    $(id).innerHTML = Object.keys(map).map(function (k) { return '<option value="' + k + '">' + esc(map[k]) + '</option>'; }).join('');
+  function fillTag2() {
+    var cur = $('fTag2').value;
+    $('fTag2').innerHTML = Object.keys(C.TAX_TAGS).map(function (k) { return '<option value="' + k + '">' + esc(tagLabel(k)) + '</option>'; }).join('');
+    if (cur) $('fTag2').value = cur;
   }
-  fillSelect('fTag2', C.TAX_TAGS);
+  fillTag2();
 
   function itemsToText(items) {
     return (items || []).map(function (i) { return i.name + (i.amount != null ? '  ' + i.amount : ''); }).join('\n');
@@ -186,7 +227,7 @@
     if (!f) return;
     f.classList.toggle('warn', !!on);
     var lab = f.querySelector('label'), b = lab.querySelector('.badge');
-    if (on && !b) { b = document.createElement('span'); b.className = 'badge warn'; b.textContent = 'ตรวจสอบ'; lab.appendChild(b); }
+    if (on && !b) { b = document.createElement('span'); b.className = 'badge warn'; b.textContent = TR('check'); lab.appendChild(b); }
     if (!on && b) b.remove();
   }
   function clearWarns() { ['store', 'date', 'total'].forEach(function (n) { setWarn(n, false); }); }
@@ -198,7 +239,7 @@
   function showSource(src) {
     var b = $('srcBadge');
     b.hidden = !src;
-    b.textContent = src === 'claude' ? 'Claude' : src === 'free' ? 'ฟรี' : '';
+    b.textContent = src === 'claude' ? 'Claude' : src === 'free' ? TR('free') : '';
     b.className = 'badge' + (src === 'claude' ? ' accent' : '');
     b.setAttribute('data-src', src || '');
     $('readRow').hidden = !src && !$('readMsg').textContent;
@@ -221,7 +262,7 @@
 
   function fillCats(sel) {
     var cats = budgetCats();
-    $('fCat').innerHTML = cats.map(function (c) { return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>'; }).join('');
+    $('fCat').innerHTML = cats.map(function (c) { return '<option value="' + esc(c.id) + '">' + esc(catName(c)) + '</option>'; }).join('');
     var pick = sel && cats.some(function (c) { return c.id === sel; }) ? sel : (cats.filter(function (c) { return c.id === 'cat-shopping'; })[0] || cats[0]).id;
     $('fCat').value = pick;
   }
@@ -229,16 +270,16 @@
   function renderFiles() {
     var files = (S && S.rec.files) || [];
     $('fileList').innerHTML = files.map(function (f) {
-      return '<div class="rc-file" data-fid="' + esc(f.id) + '">' + icon(/^image\//.test(f.mime) ? 'image' : 'file-text') +
+      return '<div class="file-row" data-fid="' + esc(f.id) + '">' + icon(/^image\//.test(f.mime) ? 'image' : 'file-text') +
         '<a href="/api/files?id=' + encodeURIComponent(f.id) + '" target="_blank" rel="noopener">' + esc(f.name) + '</a>' +
         '<span class="sz">' + num(f.size / 1024) + ' KB</span>' +
-        '<button class="btn sm icon ghost" type="button" data-rm="' + esc(f.id) + '" aria-label="เอาไฟล์ออก">' + icon('x') + '</button></div>';
+        '<button class="btn sm icon ghost" type="button" data-rm="' + esc(f.id) + '" aria-label="' + esc(TR('rmFile')) + '">' + icon('x') + '</button></div>';
     }).join('');
   }
   function updateBudgetBtn() {
     var b = $('budgetBtn'), done = !!(S && S.rec.budgetId);
     b.disabled = done;
-    b.innerHTML = done ? icon('check') + 'ส่งเข้า budget แล้ว' : 'บันทึกเป็นรายจ่าย';
+    b.innerHTML = done ? icon('check') + esc(TR('sentDone')) : esc(TR('toBudget'));
   }
 
   function openDialog(r) {
@@ -249,7 +290,7 @@
     };
     var rec = S.rec;
     if (!Array.isArray(rec.files)) rec.files = [];
-    $('dlgTitle').textContent = isNew ? 'เพิ่มใบเสร็จ' : 'แก้ไขใบเสร็จ';
+    $('dlgTitle').textContent = isNew ? TR('addTitle') : TR('editTitle');
     $('fStore').value = rec.store || '';
     $('fDate').value = rec.date || '';
     $('fTotal').value = rec.total || '';
@@ -296,14 +337,14 @@
       ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
       ctx.drawImage(src, 0, 0, cv.width, cv.height);
       return new Promise(function (resolve, reject) {
-        cv.toBlob(function (b) { b ? resolve(b) : reject(new Error('แปลงรูปไม่ได้')); }, 'image/jpeg', 0.8);
+        cv.toBlob(function (b) { b ? resolve(b) : reject(new Error(TR('convertImg'))); }, 'image/jpeg', 0.8);
       });
     }
     function viaImg() {
       return new Promise(function (resolve, reject) {
         var u = URL.createObjectURL(file), img = new Image();
         img.onload = function () { URL.revokeObjectURL(u); draw(img, img.naturalWidth, img.naturalHeight).then(resolve, reject); };
-        img.onerror = function () { URL.revokeObjectURL(u); reject(new Error('เปิดรูปไม่ได้')); };
+        img.onerror = function () { URL.revokeObjectURL(u); reject(new Error(TR('openImg'))); };
         img.src = u;
       });
     }
@@ -318,7 +359,7 @@
     return api('POST', 'ns=receipts&ref=' + encodeURIComponent(st.rec.id) + '&name=' + encodeURIComponent(name), { headers: { 'Content-Type': mime }, body: blob })
       .then(function (r) {
         return r.json().catch(function () { return {}; }).then(function (j) {
-          if (!r.ok) throw new Error(j.error || 'อัปโหลดไม่สำเร็จ (' + r.status + ')');
+          if (!r.ok) throw new Error(j.error || TR('uploadFailCode', { s: r.status }));
           return j;
         });
       });
@@ -396,7 +437,7 @@
     if (!st.autoRead) return Promise.resolve();
     st.autoRead = false; st.reading = true; updateClaudeBtn();
     var token = ++st.token;
-    setReadMsg('กำลังอ่านใบเสร็จ…');
+    setReadMsg(TR('reading'));
     var p = String(text || '').trim().length >= 20 ? Promise.resolve(text) : ocrFree(st.imgBlob);
     return p.then(extract).then(function (f) {
       if (S !== st || token !== st.token) return;
@@ -406,7 +447,7 @@
       setReadMsg('');
     }).catch(function () {
       if (S !== st || token !== st.token) return;
-      setReadMsg('อ่านอัตโนมัติไม่ได้ — กรอกเอง');
+      setReadMsg(TR('autoFail'));
     }).then(function () { if (S === st) { st.reading = false; updateClaudeBtn(); } });
   }
 
@@ -414,7 +455,7 @@
     return new Promise(function (resolve, reject) {
       var fr = new FileReader();
       fr.onload = function () { resolve(String(fr.result).split(',')[1] || ''); };
-      fr.onerror = function () { reject(new Error('อ่านรูปไม่ได้')); };
+      fr.onerror = function () { reject(new Error(TR('readImg'))); };
       fr.readAsDataURL(blob);
     });
   }
@@ -424,13 +465,13 @@
     if (!st || !st.imgBlob || st.reading) return;
     st.reading = true; updateClaudeBtn();
     var token = ++st.token;
-    setReadMsg('Claude กำลังอ่าน…');
+    setReadMsg(TR('claudeReading'));
     blobToBase64(st.imgBlob).then(function (b64) {
       return window.AiClient.ocr({ imageBase64: b64, mediaType: 'image/jpeg', prompt: C.CLAUDE_PROMPT });
     }).then(function (r) {
       if (S !== st || token !== st.token) return;
       var f = C.parseFields(r && r.text);
-      if (!f) { setReadMsg('Claude ตอบกลับในรูปแบบที่อ่านไม่ได้'); return; }
+      if (!f) { setReadMsg(TR('claudeBad')); return; }
       applyFields(f, true);
       st.rec.source = 'claude';
       showSource('claude');
@@ -443,11 +484,11 @@
 
   function handleFile(file, st) {
     var mime = mimeOf(file), isPdf = mime === 'application/pdf';
-    if (!isPdf && !/^image\//.test(mime)) { $('msg').textContent = 'รองรับเฉพาะ PDF และรูปภาพ'; return Promise.resolve(); }
-    if (isPdf && file.size > MAX_FILE) { $('msg').textContent = file.name + ' ใหญ่เกิน 15 MB'; return Promise.resolve(); }
+    if (!isPdf && !/^image\//.test(mime)) { $('msg').textContent = TR('onlyPdf'); return Promise.resolve(); }
+    if (isPdf && file.size > MAX_FILE) { $('msg').textContent = TR('tooBig', { name: file.name }); return Promise.resolve(); }
     var prep = isPdf ? Promise.resolve({ blob: file, mime: mime, name: file.name }) :
       shrinkImage(file).then(function (b) { return { blob: b, mime: 'image/jpeg', name: jpgName(file.name) }; }, function () {
-        return file.size <= MAX_FILE ? { blob: file, mime: mime, name: file.name } : Promise.reject(new Error('เปิดรูปไม่ได้'));
+        return file.size <= MAX_FILE ? { blob: file, mime: mime, name: file.name } : Promise.reject(new Error(TR('openImg')));
       });
     return prep.then(function (p) {
       var reading = isPdf ? pdfRead(file).then(function (r) { return startAutoRead(st, r.text, r.image); }, function () { return startAutoRead(st, '', null); }) :
@@ -458,9 +499,9 @@
         st.rec.files.push({ id: j.id, name: j.name, size: j.size, mime: j.mime });
         st.added.push(j.id);
         renderFiles();
-      }).catch(function (e) { $('msg').textContent = e.message || 'อัปโหลดไม่สำเร็จ'; });
+      }).catch(function (e) { $('msg').textContent = e.message || TR('uploadFail'); });
       return Promise.all([reading, up]);
-    }).catch(function (e) { $('msg').textContent = e.message || 'เปิดไฟล์ไม่ได้'; });
+    }).catch(function (e) { $('msg').textContent = e.message || TR('openFile'); });
   }
   function onPick(input) {
     var files = Array.prototype.slice.call(input.files || []);
@@ -502,7 +543,7 @@
     return r;
   }
   function validate(r) {
-    if (!r.store && !r.total) return 'ใส่ชื่อร้านหรือยอดรวมอย่างน้อยหนึ่งช่อง';
+    if (!r.store && !r.total) return TR('errStore');
     return '';
   }
   function finishSave() {
@@ -524,7 +565,7 @@
   $('budgetBtn').addEventListener('click', function () {
     if (!S || S.busy) return;
     var r = readForm(), bad = validate(r);
-    if (!(r.total > 0)) bad = bad || 'ใส่ยอดรวมก่อนบันทึกเป็นรายจ่าย';
+    if (!(r.total > 0)) bad = bad || TR('errTotal');
     if (bad) { $('msg').textContent = bad; return; }
     S.busy = true;
     var cur = load().filter(function (x) { return x.id === r.id; })[0];
@@ -533,7 +574,7 @@
     upd(REC_KEY, function (list) {
       list = Array.isArray(list) ? list : [];
       if (list.some(function (x) { return x && x.id === bid; })) return undefined;
-      list.push({ id: bid, date: r.date, type: 'expense', categoryId: r.categoryId, amount: r.total, note: r.store || 'ใบเสร็จ' });
+      list.push({ id: bid, date: r.date, type: 'expense', categoryId: r.categoryId, amount: r.total, note: r.store || TR('receipt') });
       return list;
     });
     upsert(r);
@@ -550,7 +591,7 @@
     var st = S;
     if (!st || st.busy) return;
     st.busy = true;
-    window.tanotConfirm('ลบใบเสร็จนี้และไฟล์แนบทั้งหมด? (รายการใน budget ที่สร้างแล้วจะไม่ถูกลบ)', { danger: true, okLabel: 'ลบ' }).then(function (ok) {
+    window.tanotConfirm(TR('confirmDel'), { danger: true, okLabel: TR('del') }).then(function (ok) {
       st.busy = false;
       if (!ok || S !== st) return; // กล่องถูกปิด/เปิดใบอื่นระหว่างรอยืนยัน
       var id = st.rec.id;
@@ -567,7 +608,7 @@
   /* ── ดูรูปเต็ม ── */
   var viewDlg = $('viewDlg');
   function openView(r) {
-    $('viewTitle').textContent = r.store || 'ใบเสร็จ';
+    $('viewTitle').textContent = r.store || TR('receipt');
     $('viewBody').innerHTML = (r.files || []).map(function (f) {
       var src = '/api/files?id=' + encodeURIComponent(f.id);
       return /^image\//.test(f.mime) ? '<img src="' + src + '" alt="' + esc(f.name) + '">' :
@@ -593,6 +634,14 @@
 
   writeSummary(load());
   renderAll();
+  /* สลับภาษาสด: ข้อความใน HTML แปลโดย i18n.js เอง — วาดส่วนที่ JS สร้างใหม่ (ลิสต์/ตัวกรอง/ตัวเลือกป้ายภาษี/ปุ่มส่งเข้า budget) */
+  if (window.OME_LANG) window.OME_LANG.onChange(function () {
+    fillTag2(); updateBudgetBtn();
+    var cat = $('fCat').value; if (S) { fillCats(cat); }
+    if (!dlg.open) $('dlgTitle').textContent = TR('receipt');
+    $('fYear').setAttribute('data-sig', '');
+    renderAll();
+  });
   if (TD && TD.onChange) TD.onChange(function () { if (!dlg.open) renderAll(); });
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && !dlg.open) renderAll(); });
 })();
