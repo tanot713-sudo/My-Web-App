@@ -29,10 +29,12 @@
   /* วันที่/เวลาตามภาษา — ใช้ตัวจัดรูปแบบกลางของ i18n.js (ไทย = พ.ศ. th-TH, อังกฤษ = en-GB) · ไม่มี i18n.js = ไทยแบบเดิม */
   function dateFmt(d, opts) { var I = window.OME_I18N; if (I && I.date) return I.date(d, opts); return d.toLocaleDateString('th-TH', opts); }
 
-  /* ═══ ภาษา (ไทย/English) — อ่าน ome:lang จุดกลางเดียว + window.omeApplyLang ร่วม (shell.js เรียกตอนสลับภาษา) ═══ */
+  /* ═══ ภาษา (ไทย/English) — อ่าน ome:lang จุดกลางเดียว · ฟังการสลับผ่าน OME_LANG.onChange (i18n.js) — ทั้งจากแผงตั้งค่าและหน้าที่เขียนคีย์เอง ═══ */
   var langListeners = [];
   function onLang(fn) { langListeners.push(fn); }
-  window.omeApplyLang = function () { langListeners.forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.error(e); } }); };
+  function fireLang() { langListeners.forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.error(e); } }); }
+  if (window.OME_LANG && window.OME_LANG.onChange) window.OME_LANG.onChange(fireLang);
+  else window.omeApplyLang = fireLang; // สำรอง: ไม่มี i18n.js (ไม่เกิดบนหน้าจริง — ทุกหน้าโหลด i18n.js ใน <head>)
   /* i18n(dict) → { t(key, vars), apply(root?) } — dict = { th: {...}, en: {...} } · data-i18n (ข้อความ) / data-i18n-html / data-i18n-placeholder */
   function i18n(dict) {
     function t(key, vars) {

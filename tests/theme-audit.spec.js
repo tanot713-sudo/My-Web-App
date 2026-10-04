@@ -191,7 +191,7 @@ for (const p of BG_PAGES) {
 for (const p of PAGES) {
   test(`lang switch: ${p}`, async ({ page }) => {
     await open(page, p, { theme: 'light', width: 1100, lang: 'th' });
-    const supported = await page.evaluate(() => typeof window.omeApplyLang === 'function');
+    const supported = await page.evaluate(() => typeof window.omeApplyLang === 'function' || !!window.InvestCore); // InvestCore ฟัง OME_LANG.onChange เอง (ไม่มี omeApplyLang แล้ว)
     await page.waitForLoadState('networkidle').catch(() => {});
     const before = await page.evaluate(() => { window.__noReload = 1; return window.__tanotAudit.thaiInEn({ excludeShell: true }).length; });
     await page.click('#omeGearBtn');

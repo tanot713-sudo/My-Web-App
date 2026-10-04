@@ -93,7 +93,9 @@ async function open(page, target, { theme, width, lang }) {
     if (u.startsWith('https://news.google.com/rss/search')) return route.fulfill({ contentType: 'application/xml', body: RSS });
     if (/THB%3DX|THB=X/.test(u)) return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ chart: { result: [{ meta: { regularMarketPrice: 36 }, indicators: { quote: [{ close: [36] }] } }] } }) });
     if (/finance\.yahoo|query1|query2/.test(u)) return route.fulfill({ contentType: 'application/json', body: JSON.stringify(yahooChart(120, /AAPL|NVDA/.test(u) ? 150 : /BTC/.test(u) ? 60000 : /GC=F|XAU/.test(u) ? 2400 : 32)) });
-    return route.fulfill({ status: 502, body: 'down' });
+    if (/api\.chnwt\.dev/.test(u)) return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ response: { update_date: '3 ต.ค. 2569', update_time: '09:00', price: { gold_bar: { buy: '70,850', sell: '70,950' }, gold: { buy: '69,523', sell: '71,950' } } } }) });
+    if (/alternative\.me/.test(u)) return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: [{ value: '30', value_classification: 'Fear', timestamp: '1759449600' }] }) });
+    return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
   });
   await page.setViewportSize({ width, height: 800 });
   await page.clock.setFixedTime(new Date(NOW));
@@ -207,6 +209,19 @@ for (const target of TARGETS) {
     const th = [...hits];
     if (DUMP) { fs.mkdirSync(DUMP, { recursive: true }); fs.writeFileSync(path.join(DUMP, `${target[0]}|explore`.replace(/[^\w.|-]/g, '_') + '.json'), JSON.stringify(th.concat(errors.map((e) => 'ERR ' + e)))); return; }
     expect(th).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test(`invest-data live switch: ${target[0]}`, async ({ page }) => {
+    // th → en → th จาก OME_LANG.set โดยไม่โหลดหน้าใหม่ (ฟังผ่าน OME_LANG.onChange ที่ InvestCore): en ไทยหลุด 0, กลับไทยแล้วข้อความไทยกลับมา
+    const errors = await open(page, target, { theme: 'light', width: 1100, lang: 'th' });
+    await page.evaluate(() => { window.__noReload = 1; window.OME_LANG.set('en'); });
+    await page.waitForTimeout(900);
+    expect(await thaiAnywhere(page), 'หลังสลับเป็น EN').toEqual([]);
+    await page.evaluate(() => window.OME_LANG.set('th'));
+    await page.waitForTimeout(900);
+    expect(await page.evaluate(() => /[\u0E01-\u0E3A\u0E40-\u0E4E]/.test(document.querySelector('main, .page, body').innerText)), 'กลับไทย').toBe(true);
+    expect(await page.evaluate(() => window.__noReload)).toBe(1);
     expect(errors).toEqual([]);
   });
 
