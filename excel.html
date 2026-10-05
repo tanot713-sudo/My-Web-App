@@ -41,9 +41,11 @@
 .xl-loading .spinner{width:34px;height:34px;border-width:3px}
 .xl-loading.hide{display:none}
 /* Luckysheet โหลด .btn แบบ bootstrap (ไม่อยู่ใน layer) มาทับปุ่มกลาง — คืนค่าปุ่มของหน้านี้ให้ตรงกับธีม */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 16px;border:1px solid var(--ome-border);
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 16px;border:1px solid var(--ome-border-strong);
   border-radius:var(--ome-radius-md);background:var(--ome-surface-1);color:var(--ome-text-1);font-size:var(--ome-fs-sm);font-weight:600;line-height:1}
-.btn:hover:not(:disabled){background:var(--ome-surface-2);border-color:var(--ome-border-strong);color:var(--ome-text-1)}
+.btn:hover:not(:disabled){background:var(--ome-surface-2);border-color:var(--ome-text-2);color:var(--ome-text-1)}
+.btn:focus,.btn.focus{color:var(--ome-text-1)}
+.btn.primary:focus,.btn.primary.focus{color:var(--ome-on-accent)}
 .btn.sm{height:30px;padding:0 10px;gap:6px;font-size:var(--ome-fs-xs);border-radius:var(--ome-radius-sm)}
 .btn.primary,.btn.primary:hover:not(:disabled){background:var(--ome-accent);border-color:var(--ome-accent);color:var(--ome-on-accent)}
 .btn.primary:hover:not(:disabled){background:color-mix(in srgb, var(--ome-accent) 86%, var(--ome-text-1))}
@@ -75,8 +77,7 @@
 .di-title{font-size:var(--ome-fs-base);font-weight:700;margin-bottom:10px}
 .di-row{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
 .di-row label{display:flex;flex-direction:column;gap:4px;font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600}
-.di-row select,.di-textarea,.di-fuzzy-canon{font:inherit;font-size:var(--ome-fs-sm);padding:7px 9px;border-radius:var(--ome-radius-sm);
-  border:1px solid var(--ome-border);color:var(--ome-text-1);background:var(--ome-surface-1)}
+.di-row select{height:36px;padding:0 9px}
 .di-textarea{width:100%;line-height:1.7;resize:vertical;min-height:90px}
 .di-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
 .di-status{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-ok-ink);min-height:15px}
@@ -89,6 +90,16 @@
 .di-list{max-height:300px;overflow:auto;margin-bottom:8px}
 .di-chart-wrap{height:220px;margin:8px 0}
 .dialog p{margin:0}
+@media (max-width:700px){
+  .btn,.btn.sm{height:40px}
+  .di-row select{height:40px}
+  .xl-filebar .xl-sp{display:none}
+  /* ริบบอนเลื่อนแนวนอนแถวเดียว — ปุ่มของ Luckysheet ห่างกัน ≥ 8px */
+  .xlr-panels{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .xlr-panel{flex-wrap:nowrap;gap:var(--ome-sp-2)}
+  .xlr-panel > *{flex:0 0 auto}
+  .xlr-panel .luckysheet-toolbar-button,.xlr-panel .luckysheet-toolbar-select,.xlr-panel .luckysheet-toolbar-menu-button{min-height:40px!important;min-width:40px;box-sizing:border-box;justify-content:center}
+}
 @media (max-width:640px){
   .xl-top{padding:var(--ome-sp-2) 10px 0}
   .xl-sheetwrap{margin:var(--ome-sp-2) 10px var(--ome-sp-3);min-height:420px}
@@ -101,7 +112,7 @@
   <div class="page-head xl-head">
     <svg class="ome-icon xl-head-ic" aria-hidden="true"><use href="icons.svg#i-file-spreadsheet"/></svg>
     <h1 data-i18n="pageTitle">ตารางคำนวณ</h1>
-    <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
+    <button class="lang-toggle" id="langToggle" type="button" data-i18n-skip data-i18n-attr="aria-label:lang.toggle" aria-label="สลับภาษา">
       <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
     </button>
   </div>
@@ -140,7 +151,7 @@
   </div>
 </div>
 
-<div class="xl-sheetwrap">
+<div class="xl-sheetwrap" data-doc-area>
   <div id="luckysheet"></div>
   <div class="xl-loading" id="loading">
     <div class="spinner"></div>
