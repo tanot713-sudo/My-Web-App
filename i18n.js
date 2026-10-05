@@ -38,6 +38,7 @@
   function notify(lang, fromSet) {
     doc.setAttribute('lang', lang);
     applyAll();
+    renderLive();
     listeners.slice().forEach(function (fn) {
       try { fn(lang); } catch (e) { if (window.console) console.error(e); }
     });
@@ -139,6 +140,23 @@
   function applyAll() { if (document.body) apply(document); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyAll);
 
+  /* ข้อความที่สร้างจากสถานะ (บรรทัดสถานะ/จำนวนตัวอักษร/ข้อความแจ้งที่ค้างบนจอ) แปลสดตอนสลับภาษา:
+     live(el, fn) — fn() คืนข้อความตามภาษาปัจจุบัน แล้ววาดซ้ำเองทุกครั้งที่สลับ · live(el, null) = หยุดตาม (ข้อความที่ตั้งเองต่อจากนี้ไม่ถูกทับ)
+     หน้าที่ฟังการสลับด้วย OME_LANG.onChange เองแล้วตั้ง window.OME_PAGE_LIVE_LANG = true (ตัวตรวจ "สลับภาษาสด" ใช้ธงนี้) */
+  var liveEls = [];
+  function live(el, fn) {
+    if (!el) return;
+    var i = liveEls.indexOf(el);
+    if (!fn) { el.__omeLive = null; if (i >= 0) liveEls.splice(i, 1); return; }
+    el.__omeLive = fn;
+    if (i < 0) liveEls.push(el);
+    el.textContent = fn();
+  }
+  function renderLive() {
+    liveEls = liveEls.filter(function (el) { return el.__omeLive && el.isConnected; });
+    liveEls.forEach(function (el) { try { el.textContent = el.__omeLive(); } catch (e) {} });
+  }
+
   /* ── จัดรูปแบบตามภาษา — th = พ.ศ. (ปฏิทินพุทธของ th-TH) / en = ค.ศ. ── */
   function locale() { return get() === 'en' ? 'en-GB' : 'th-TH'; }
   function date(d, opts) {
@@ -190,6 +208,7 @@
     return d && get() === 'en' && cat.name === d[0] ? d[1] : cat.name;
   }
 
+  add('lang', { th: { toggle: 'สลับภาษา' }, en: { toggle: 'Switch language' } }); /* aria-label ของปุ่ม .lang-toggle ทุกหน้า */
   window.OME_I18N = { add: add, t: t, has: has, apply: apply, lang: get, date: date, number: number, money: money, label: label,
-    scope: scope, months: months, weekdays: weekdays, catName: catName };
+    scope: scope, months: months, weekdays: weekdays, catName: catName, live: live };
 })();

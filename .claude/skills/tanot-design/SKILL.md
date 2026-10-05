@@ -77,6 +77,8 @@ OME_I18N.catName(cat)                              // ชื่อหมวด b
 - HTML: `<h2 data-i18n="mypage.title">หัวข้อ</h2>` · `<input data-i18n-attr="placeholder:mypage.q,aria-label:mypage.q">` — แปลใหม่เองตอนสลับ (`OME_I18N.apply(root)` หลังวาด DOM ใหม่) และแตะเฉพาะคีย์ที่ `add()` แล้ว
 - ส่วนกลาง (shell/palette/วิดเจ็ต AI) ใช้ `data-ome-t` แทน `data-i18n` เพราะ 15 หน้าเดิม (word, excel, cad, doc-check, electrical, tax, report-dashboard, music, sports, cooking, coding, typing, invest-*) วน `[data-i18n]` ทั้งหน้าด้วยพจนานุกรมของตัวเอง — หน้าเหล่านี้ยังใช้ `window.omeApplyLang` ได้เหมือนเดิม (OME_LANG.set เรียกให้)
 - JS สร้าง HTML เอง: ทุกข้อความผ่าน `T('key')` (รวม toast/confirm/ข้อความว่าง/หัวคอลัมน์/ตัวเลือกใน select/aria-label/title) แล้วลงทะเบียน `OME_LANG.onChange(fn)` ให้วาดส่วนนั้นใหม่ — กล่องที่เปิดค้างอยู่ไม่ต้องวาดใหม่ · ป้ายที่มาจากไฟล์ `*-calc.js` (ชนิดกรมธรรม์ ความถี่ ฯลฯ) แปลที่หน้าตามรหัสโดยไม่แก้ calc (known-answer test ผูกกับค่าไทยเดิม) · ค่าที่เก็บลง storage ห้ามเปลี่ยนตามภาษา แปลเฉพาะตอนแสดง
+- **ข้อความสถานะ/ข้อความแจ้งที่ค้างบนจอ** (บรรทัดสถานะ, จำนวนตัวอักษร, error ของการอ่านไฟล์): ตั้งผ่าน `OME_I18N.live(el, fn)` — `fn()` คืนข้อความตามภาษาปัจจุบัน แล้ววาดซ้ำเองตอนสลับภาษาสด (`live(el, null)` = เลิกตาม) · error จาก `file-reader.js` พก key (`err.frKey`) → ใช้ `TanotFileReader.errorText(err)` ในฟังก์ชันที่ส่งให้ `live` (ห้ามเก็บ `err.message` ที่แปลแล้วไว้) · หน้าที่มีพจนานุกรมเดิม (word/excel/doc-check) จำ `t()` ล่าสุดใน `setStatus` แล้วแปลซ้ำ (`refreshStatus`)
+- **ฟังการสลับภาษา**: หน้าใหม่/ที่ย้ายแล้วใช้ `OME_LANG.onChange(fn)` เท่านั้น (ไม่กำหนด `window.omeApplyLang` เอง) + ปุ่มสลับของหน้าเรียก `OME_LANG.set(next)` + ตั้ง `window.OME_PAGE_LIVE_LANG = true` (ตัวตรวจ "สลับภาษาสด" ใช้ธงนี้) · `aria-label` ของ `.lang-toggle` ใช้ `data-i18n-attr="aria-label:lang.toggle"` + `data-i18n-skip` (ชื่อภาษา "ไทย" คือชื่อเฉพาะ) · **ภาษาของ UI แยกจากภาษาของเนื้อหา**: ตัวเลือกภาษาตรวจคำผิด/OCR/ถอดเสียง/เสียงอ่าน, prompt ที่ส่ง AI, ไฟล์ที่ส่งออก (docx/xlsx/pptx) ไม่เปลี่ยนตาม `ome:lang` — สลับ UI แล้วค่าที่ผู้ใช้เลือกไว้ต้องคงเดิม (`docs-audit.spec.js` ตรวจ)
 - `฿` (U+0E3F) ไม่นับเป็นภาษาไทยในตัวตรวจ (สัญลักษณ์สกุลเงิน)
 - เมนูใหม่ใน `shell.js` ต้องมีทั้ง `label` และ `labelEn`
 - แปลเฉพาะ UI (ปุ่ม ป้าย หัวข้อ เมนู ข้อความแจ้ง placeholder) — เนื้อหาบทเรียน/ตัวบทกฎหมาย/ข้อมูลผู้ใช้/ข่าว/ชื่อเฉพาะ ใส่ `data-i18n-skip` ที่กล่องที่ครอบ
@@ -102,6 +104,7 @@ npx playwright test theme-audit.spec.js                  # runtime: axe คอ�
                                                          # เป้ากด 390px, ตัวอักษรบนภาพพื้นหลัง, กดสำรวจไม่มี error, ไทยหลุดโหมด EN, สลับภาษาสด
 ```
 - รายงาน: `tests/theme-report/report.html` (เปิดในเบราว์เซอร์ — ตารางต่อหน้า + selector + ค่าคอนทราสต์ของทุกจุด), `report.json`, `summary.md` (15 หน้าที่แย่ที่สุด) — ไม่ commit (CI อัปโหลดเป็น artifact `theme-report`)
+- **ตอนมีข้อมูล**: ตัวตรวจแยกต่อกลุ่ม (เป้า = 0 ไม่ใช้ ratchet) — ลงทุน `invest-audit.spec.js` · เอกสาร `docs-audit.spec.js` (word/excel/slides/extract-text/doc-check/doc-check-file/compare/text-to-speech: seed ข้อมูล + mock `/api` ทุกตัว + CDN → `tests/node_modules` (luckysheet ฯลฯ) · เปิดทุกแท็บ/dialog/ผลลัพธ์ × 360/390/1100 × สว่าง/มืด · EN ไทยหลุด 0 · สลับสด th→en→th) — `DOCS_AUDIT_ONLY=<regex หน้า>` เลือกหน้า · `DOCS_AUDIT_DUMP=<โฟลเดอร์>` เขียนผลทุกจุดแทนการล้ม (⚠️ เทสต์ "live switch" ยังล้มจริงในโหมดนี้) · `DOCS_AUDIT_NOALLOW=1` ดูจุดที่ `ALLOW` ซ่อนไว้ (ปุ่ม/ช่องที่ Luckysheet สร้างเอง) · modal/ลิ้นชัก/ป็อปอัพที่ทับหน้าจะวัดเฉพาะในกล่อง
 - ratchet: `tests/theme-baseline.json` — CI ล้มเฉพาะเมื่อตัวเลขของหน้า/ชุดไหน **เพิ่มขึ้น**; หน้าใหม่ต้องเป็น 0
 - แก้หน้าแล้วตัวเลขลด → อัปเดต baseline ใน PR เดียวกัน:
   - static: `node theme-guards.mjs --update`
@@ -110,6 +113,8 @@ npx playwright test theme-audit.spec.js                  # runtime: axe คอ�
 - ภาพ baseline เปลี่ยน → `npm run test:update` แล้วเปิดดูด้วยตา 390/1100 × สว่าง/มืด
 
 ## 8. มือถือ (กฎตรวจรอบ 3 — ใช้ทุกรอบหลังจากนี้)
+
+**กฎมือถือเป็นของกลางตั้งแต่รอบ 5** (`theme.css` บล็อก `@media (max-width:700px)` ท้ายกลุ่ม "จังหวะแนวตั้งภายในการ์ด"): ทุก `body[data-layout]` ได้ `--ome-fs-xs/sm` = 14px, ช่องว่างของ `.tabs/.subnav-*/.card-head/.toolbar` ≥ 8px, `.segmented > button` ไม่ตัดบรรทัด, ตารางใน `.table-wrap` ตรึงคอลัมน์แรก, `.lang-toggle` สูง ≥ 40px · **พื้นที่แก้เอกสารของหน้า app/เนื้อหาที่ผู้ใช้แก้ใส่ `data-doc-area`** (กระดาษของ word, กริดของ excel, ภาพสไลด์ `.sl-s`): ในกล่องนั้นคืนค่า token เดิม และตัวตรวจ `mobileFont` ไม่นับ (ขนาดตัวอักษรเป็นส่วนของไฟล์ ไม่ใช่กรอบหน้า)
 
 ตรวจที่ **390px** ทุกหน้า และ **360px** เฉพาะหน้าที่แก้ในรอบนั้น (`NARROW_360` ใน `theme-audit.spec.js` — เพิ่มชื่อหน้าทุกรอบ) ทั้งสว่าง/มืด · 6 ตัวชี้วัด (ratchet + รายงานแบบเดียวกับกฎเดิม; หน้าที่แก้ในรอบนั้นต้องเป็น 0):
 
