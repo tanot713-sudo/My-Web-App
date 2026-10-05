@@ -189,6 +189,7 @@ var I18N = {
   }
 };
 
+var lastT = null; /* t() ล่าสุด — setStatus จำคีย์ไว้เพื่อแปลข้อความสถานะใหม่ตอนสลับภาษาสด */
 function t(key, vars) {
   var lang = getUILang();
   var str = (I18N[lang] && I18N[lang][key]) || I18N.th[key] || key;
@@ -197,6 +198,7 @@ function t(key, vars) {
       str = str.replace('{' + k + '}', vars[k]);
     });
   }
+  lastT = { key: key, vars: vars, str: str };
   return str;
 }
 
@@ -467,16 +469,19 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
   langSelect.value = state.lang;
 
   if (langToggle) {
-    langToggle.addEventListener('click', function () {
-      setUILang(getUILang() === 'en' ? 'th' : 'en');
-      applyStaticI18n();
-      buildLangOptions();
-      render();
-    });
+    langToggle.addEventListener('click', function () { OME_LANG.set(getUILang() === 'en' ? 'th' : 'en'); });
   }
-  window.omeApplyLang = function () { applyStaticI18n(); buildLangOptions(); render(); };
+  /* ฟังการสลับภาษากลาง (ทั้งปุ่มในหน้านี้และแผงตั้งค่า) — ภาษา UI แยกจากภาษาของเอกสาร (state.lang ใช้ตรวจคำผิด) */
+  OME_LANG.onChange(function () { applyStaticI18n(); buildLangOptions(); render(); refreshStatus(); });
+  window.OME_PAGE_LIVE_LANG = true;
 
+  var statusRef = null;
+  function refreshStatus() {
+    var node = statusRef && statusMsg.lastChild;
+    if (node && node.nodeType === 3) node.nodeValue = t(statusRef.key, statusRef.vars);
+  }
   function setStatus(msg, isErr, showSpinner) {
+    statusRef = msg && lastT && lastT.str === msg ? { key: lastT.key, vars: lastT.vars } : null;
     statusMsg.innerHTML = '';
     statusMsg.classList.toggle('err', !!isErr);
     if (showSpinner) { var s = document.createElement('span'); s.className = 'spinner'; statusMsg.appendChild(s); }
@@ -501,7 +506,7 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
     nextBtn.disabled = state.pageIndex >= state.pages.length - 1;
 
     if (!hasFile) return;
-    fileChipName.textContent = state.filename;
+    fileChipName.textContent = state.filenameKey ? t(state.filenameKey) : state.filename;
     pageIndicator.textContent = t('pageIndicator', { cur: state.pageIndex + 1, total: state.pages.length });
     renderHighlightedText(docText, currentText(), currentMatches(), state.activeMatch, function (i) {
       state.activeMatch = i; render();
@@ -557,8 +562,8 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
     render();
   }
 
-  function loadPages(pages, label) {
-    state.filename = label;
+  function loadPages(pages, label, labelKey) {
+    state.filename = label; state.filenameKey = labelKey || '';
     state.pages = pages;
     state.correctedPages = pages.slice();
     state.pageIndex = 0;
@@ -613,7 +618,7 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
       var text = typeTextarea.value;
       if (!text.trim()) { typeTextarea.focus(); return; }
       var pages = splitIntoPages(text);
-      loadPages(pages, t('typedTextLabel'));
+      loadPages(pages, t('typedTextLabel'), 'typedTextLabel');
       setStatus(t('typedTextUsed', { n: pages.length }));
       render();
     });
