@@ -381,13 +381,25 @@
     var dy = Math.max(0, Math.max(a.top, b.top) - Math.min(a.bottom, b.bottom));
     return Math.hypot(dx, dy);
   }
+  /* ถูกขอบของกล่องเลื่อนในกล่องโต้ตอบ (dialog / .dialog-body) ตัดอยู่ทั้งหมดหรือบางส่วน — ตำแหน่งขึ้นกับว่าเลื่อนไปที่ไหน ไม่นับว่า "ชิดกัน"
+     กับปุ่มหัว/ท้ายกล่องที่อยู่นอกพื้นที่เลื่อน (ตัวที่เลื่อนมาเห็นครบแล้วยังวัดตามปกติ) */
+  function cutOffInDialog(el, r) {
+    for (var p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+      if (!p.matches('dialog,.dialog-body')) continue;
+      var cs = getComputedStyle(p);
+      if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue;
+      var pr = p.getBoundingClientRect();
+      if (r.top < pr.top - 1 || r.bottom > pr.bottom + 1 || r.left < pr.left - 1 || r.right > pr.right + 1) return true;
+    }
+    return false;
+  }
   function mobileCrowd(opts) {
     var bad = [], vw = window.innerWidth, items = [];
     document.querySelectorAll(TAP).forEach(function (el) {
       if (items.length >= 500 || !visible(el) || skipShell(el, opts) || el.closest('.ome-ai-fab')) return; // ปุ่ม AI ลอยทับเนื้อหาตามตำแหน่งเลื่อน — ไม่นับ
       if (el.tagName === 'A' && !el.matches('.btn,.tile,.list-row,.tab,.chip,[role=button]') && getComputedStyle(el).display === 'inline') return; // ลิงก์ในบรรทัด
       var r = el.getBoundingClientRect();
-      if (r.width < 2 || r.height < 2) return;
+      if (r.width < 2 || r.height < 2 || cutOffInDialog(el, r)) return;
       items.push({ el: el, r: r });
     });
     function row(x) { return x.r.width >= vw * 0.6 && x.r.height >= 44; }
