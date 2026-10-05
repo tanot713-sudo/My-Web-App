@@ -10,7 +10,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var STORE_KEY = 'tanot:elec:inputs';
 
-  /* ══════ ระบบสองภาษา (ไทย/อังกฤษ) — คีย์กลาง 'ome:lang' + window.omeApplyLang ตามธรรมเนียม shell.js ══════ */
+  /* ══════ ระบบสองภาษา (ไทย/อังกฤษ) — คีย์กลาง 'ome:lang' + OME_LANG.onChange (i18n.js) ══════ */
   function getUILang() { try { return localStorage.getItem('ome:lang') === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   var I18N = {
     th: {
@@ -440,7 +440,8 @@
       var rho = E.wenner(val('gWa'), val('gWr'));
       if (rho > 0) { $('gRho').value = Math.round(rho * 10) / 10; renderGnd(); save(); }
     });
-    window.omeApplyLang = function () { applyStaticI18n(); renderAll(); };
+    window.OME_PAGE_LIVE_LANG = true;
+    window.OME_LANG.onChange(function () { applyStaticI18n(); renderAll(); });
   }
 
   function onEdit(e) {

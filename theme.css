@@ -407,6 +407,7 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
   body[data-layout] [data-doc-area]{--ome-fs-xs:12.5px;--ome-fs-sm:13.5px}
   body[data-layout] :is(.tabs,.subnav-row,.subnav-groups){gap:var(--ome-sp-2)}
   body[data-layout] .segmented > button{white-space:nowrap}
+  body[data-layout] :is(sub,sup){font-size:max(12px,.8em);line-height:0} /* ตัวห้อย/ตัวยกในสูตร (uk, Ires ฯลฯ) ไม่เล็กกว่า 12px */
   body[data-layout] .card-head{flex-wrap:wrap;gap:var(--ome-sp-2)}
   body[data-layout] .toolbar{gap:var(--ome-sp-2)}
   /* ตารางกว้างเลื่อนแนวนอนใน .table-wrap — คอลัมน์แรก (ชื่อสินทรัพย์/วันที่) ตรึงซ้ายให้รู้ว่าแถวไหน */
