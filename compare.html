@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>เปรียบเทียบข้อมูล | Tanot</title>
+<title data-i18n="cp.title">เปรียบเทียบข้อมูล | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -40,7 +40,7 @@
 .cp-badges{display:flex;flex-wrap:wrap;gap:6px}
 .cp-map .table :is(th,td){white-space:normal}
 .cp-map select{min-width:140px;max-width:260px}
-.cp-map .dim{color:var(--ome-text-3)}
+.cp-map .dim{color:var(--ome-text-2);font-style:italic}
 .cp-grid .table td,.cp-grid .table th{max-width:280px;overflow:hidden;text-overflow:ellipsis}
 .cp-grid .table td.rn{color:var(--ome-text-2);font-variant-numeric:tabular-nums}
 .cp-grid td.chg{background:var(--ome-warn-soft)}
@@ -52,13 +52,13 @@
 .cp-diff{border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);overflow:hidden;background:var(--ome-surface-1)}
 .cp-diff table{width:100%;border-collapse:collapse;table-layout:fixed;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Prompt",monospace;font-size:var(--ome-fs-sm)}
 .cp-diff td{padding:2px 8px;vertical-align:top;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55}
-.cp-diff td.ln{width:46px;text-align:right;color:var(--ome-text-3);user-select:none;font-variant-numeric:tabular-nums;padding-right:6px}
+.cp-diff td.ln{width:46px;text-align:right;color:var(--ome-text-2);user-select:none;font-variant-numeric:tabular-nums;padding-right:6px}
 .cp-diff td.sg{width:20px;text-align:center;color:var(--ome-text-2);user-select:none}
 .cp-diff td.del{background:var(--ome-err-soft)}
 .cp-diff td.add{background:var(--ome-ok-soft)}
 .cp-diff mark{background:transparent;border-radius:3px;font-weight:600}
-.cp-diff td.del mark{background:color-mix(in srgb,var(--ome-err) 28%,transparent);color:var(--ome-err-ink)}
-.cp-diff td.add mark{background:color-mix(in srgb,var(--ome-ok) 28%,transparent);color:var(--ome-ok-ink)}
+.cp-diff td.del mark{background:color-mix(in srgb,var(--ome-err) 14%,transparent);color:var(--ome-err-ink)}
+.cp-diff td.add mark{background:color-mix(in srgb,var(--ome-ok) 8%,transparent);color:var(--ome-ok-ink)}
 .cp-diff tr.cur td{outline:0;box-shadow:inset 3px 0 0 var(--ome-accent)}
 .cp-diff tr.fold td{background:var(--ome-surface-2);color:var(--ome-text-2);text-align:center;cursor:pointer;font-family:inherit;white-space:normal}
 .cp-diff tr.fold:hover td{color:var(--ome-text-1)}
@@ -83,35 +83,35 @@ textarea.cp-ta{min-height:220px;font-family:inherit;resize:vertical}
 </head>
 <body data-layout="tool">
 <main class="page cp-page">
-<nav class="crumb"><a href="area.html?a=work">งานที่รับผิดชอบ</a><span class="sep">/</span>เปรียบเทียบข้อมูล</nav>
-<div class="page-head"><h1>เปรียบเทียบข้อมูล</h1></div>
+<nav class="crumb"><a href="area.html?a=work" data-i18n="cp.crumb">งานที่รับผิดชอบ</a><span class="sep">/</span><span data-i18n="cp.h1">เปรียบเทียบข้อมูล</span></nav>
+<div class="page-head"><h1 data-i18n="cp.h1">เปรียบเทียบข้อมูล</h1></div>
 
 <div class="tabs" id="tabs" role="tablist">
-  <button class="tab" type="button" role="tab" data-tab="table" aria-selected="true"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-spreadsheet"/></svg> เทียบตาราง</button>
-  <button class="tab" type="button" role="tab" data-tab="text" aria-selected="false"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-text"/></svg> เทียบเอกสาร</button>
-  <button class="tab" type="button" role="tab" data-tab="quotes" aria-selected="false"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-scale"/></svg> ให้คะแนนใบเสนอราคา</button>
+  <button class="tab" type="button" role="tab" data-tab="table" aria-selected="true"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-spreadsheet"/></svg> <span data-i18n="cp.tabTable">เทียบตาราง</span></button>
+  <button class="tab" type="button" role="tab" data-tab="text" aria-selected="false"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-text"/></svg> <span data-i18n="cp.tabText">เทียบเอกสาร</span></button>
+  <button class="tab" type="button" role="tab" data-tab="quotes" aria-selected="false"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-scale"/></svg> <span data-i18n="cp.tabQuotes">ให้คะแนนใบเสนอราคา</span></button>
 </div>
 
 <!-- ═══ 1. เทียบตาราง ═══ -->
-<section id="tab-table" role="tabpanel" aria-label="เทียบตาราง" class="stack" style="margin-top:var(--ome-sp-4)">
+<section id="tab-table" role="tabpanel" data-i18n-attr="aria-label:cp.tabTable" aria-label="เทียบตาราง" class="stack" style="margin-top:var(--ome-sp-4)">
   <div class="cp-two">
     <div class="card" id="sideA">
-      <div class="card-head"><h2>ไฟล์ A</h2></div>
-      <div class="dropzone" id="dropA" role="button" tabindex="0"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg><div class="dropzone-main" id="dropAMain">เลือกไฟล์ A (.xlsx .xls .csv)</div></div>
+      <div class="card-head"><h2 data-i18n="cp.fileA">ไฟล์ A</h2></div>
+      <div class="dropzone" id="dropA" role="button" tabindex="0"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg><div class="dropzone-main" id="dropAMain" data-i18n="cp.pickA">เลือกไฟล์ A (.xlsx .xls .csv)</div></div>
       <input type="file" id="fileA" accept=".xlsx,.xls,.csv" hidden>
       <div class="frow">
-        <div class="field"><label for="sheetA">ชีต</label><select id="sheetA" class="select" disabled></select></div>
-        <div class="field" style="flex:0 0 120px"><label for="hdrA">แถวหัวตาราง</label><input id="hdrA" type="number" min="1" step="1" value="1" disabled></div>
+        <div class="field"><label for="sheetA" data-i18n="cp.sheet">ชีต</label><select id="sheetA" class="select" disabled></select></div>
+        <div class="field" style="flex:0 0 120px"><label for="hdrA" data-i18n="cp.hdrRow">แถวหัวตาราง</label><input id="hdrA" type="number" min="1" step="1" value="1" disabled></div>
       </div>
       <div class="cp-fname" id="infoA"></div>
     </div>
     <div class="card" id="sideB">
-      <div class="card-head"><h2>ไฟล์ B</h2></div>
-      <div class="dropzone" id="dropB" role="button" tabindex="0"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg><div class="dropzone-main" id="dropBMain">เลือกไฟล์ B (.xlsx .xls .csv)</div></div>
+      <div class="card-head"><h2 data-i18n="cp.fileB">ไฟล์ B</h2></div>
+      <div class="dropzone" id="dropB" role="button" tabindex="0"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg><div class="dropzone-main" id="dropBMain" data-i18n="cp.pickB">เลือกไฟล์ B (.xlsx .xls .csv)</div></div>
       <input type="file" id="fileB" accept=".xlsx,.xls,.csv" hidden>
       <div class="frow">
-        <div class="field"><label for="sheetB">ชีต</label><select id="sheetB" class="select" disabled></select></div>
-        <div class="field" style="flex:0 0 120px"><label for="hdrB">แถวหัวตาราง</label><input id="hdrB" type="number" min="1" step="1" value="1" disabled></div>
+        <div class="field"><label for="sheetB" data-i18n="cp.sheet">ชีต</label><select id="sheetB" class="select" disabled></select></div>
+        <div class="field" style="flex:0 0 120px"><label for="hdrB" data-i18n="cp.hdrRow">แถวหัวตาราง</label><input id="hdrB" type="number" min="1" step="1" value="1" disabled></div>
       </div>
       <div class="cp-fname" id="infoB"></div>
     </div>
@@ -119,14 +119,14 @@ textarea.cp-ta{min-height:220px;font-family:inherit;resize:vertical}
   <p class="cp-msg" id="tMsg" role="alert"></p>
 
   <div class="card" id="mapCard" hidden>
-    <div class="card-head"><h2>คอลัมน์</h2><div class="cp-badges" id="mapBadges"></div></div>
-    <div class="table-wrap cp-map"><table class="table" id="mapTable"><thead><tr><th>คีย์หลัก</th><th>คอลัมน์ใน A</th><th>จับคู่กับคอลัมน์ใน B</th><th>ไม่เทียบ</th></tr></thead><tbody id="mapBody"></tbody></table></div>
+    <div class="card-head"><h2 data-i18n="cp.columns">คอลัมน์</h2><div class="cp-badges" id="mapBadges"></div></div>
+    <div class="table-wrap cp-map"><table class="table" id="mapTable"><thead><tr><th data-i18n="cp.thKey">คีย์หลัก</th><th data-i18n="cp.thColA">คอลัมน์ใน A</th><th data-i18n="cp.thMatchB">จับคู่กับคอลัมน์ใน B</th><th data-i18n="cp.thSkip">ไม่เทียบ</th></tr></thead><tbody id="mapBody"></tbody></table></div>
     <div class="cp-opts">
-      <label class="cp-check"><input type="checkbox" id="optCase" checked> ไม่สนตัวพิมพ์ใหญ่เล็ก</label>
-      <label class="cp-check"><input type="checkbox" id="optTrim" checked> ตัดช่องว่างหัวท้าย</label>
-      <label class="tol">ตัวเลขคลาดเคลื่อนได้ ±<input id="optTol" type="number" min="0" step="any" value="0" inputmode="decimal" class="input"></label>
+      <label class="cp-check"><input type="checkbox" id="optCase" checked> <span data-i18n="cp.optCase">ไม่สนตัวพิมพ์ใหญ่เล็ก</span></label>
+      <label class="cp-check"><input type="checkbox" id="optTrim" checked> <span data-i18n="cp.optTrim">ตัดช่องว่างหัวท้าย</span></label>
+      <label class="tol"><span data-i18n="cp.optTol">ตัวเลขคลาดเคลื่อนได้ ±</span><input id="optTol" type="number" min="0" step="any" value="0" inputmode="decimal" class="input"></label>
       <span style="flex:1"></span>
-      <button class="btn primary" type="button" id="runTable" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-arrow-up-down"/></svg>เทียบ</button>
+      <button class="btn primary" type="button" id="runTable" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-arrow-up-down"/></svg><span data-i18n="cp.run">เทียบ</span></button>
     </div>
   </div>
 
@@ -135,9 +135,9 @@ textarea.cp-ta{min-height:220px;font-family:inherit;resize:vertical}
     <div id="dupWarn"></div>
     <div class="card">
       <div class="card-head">
-        <div class="segmented" id="groupSeg" role="group" aria-label="กลุ่มผลลัพธ์"></div>
+        <div class="segmented" id="groupSeg" role="group" data-i18n-attr="aria-label:cp.groupLabel" aria-label="กลุ่มผลลัพธ์"></div>
         <span style="flex:1"></span>
-        <button class="btn" type="button" id="exportTable"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg>ส่งออก .xlsx</button>
+        <button class="btn" type="button" id="exportTable"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span data-i18n="cp.exportXlsx">ส่งออก .xlsx</span></button>
       </div>
       <div class="table-wrap cp-grid"><table class="table" id="resTable"><thead id="resHead"></thead><tbody id="resBody"></tbody></table></div>
       <div class="cp-pager" id="pager"></div>
@@ -146,20 +146,20 @@ textarea.cp-ta{min-height:220px;font-family:inherit;resize:vertical}
 </section>
 
 <!-- ═══ 2. เทียบเอกสาร ═══ -->
-<section id="tab-text" role="tabpanel" aria-label="เทียบเอกสาร" class="stack" style="margin-top:var(--ome-sp-4)" hidden>
+<section id="tab-text" role="tabpanel" data-i18n-attr="aria-label:cp.tabText" aria-label="เทียบเอกสาร" class="stack" style="margin-top:var(--ome-sp-4)" hidden>
   <div class="cp-two">
     <div class="card">
-      <div class="card-head"><h2>ข้อความ A</h2>
-        <button class="btn sm" type="button" data-pick="A"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-plus"/></svg>เลือกไฟล์</button>
-        <button class="btn sm ghost" type="button" data-clear="A">ล้าง</button></div>
-      <textarea class="textarea cp-ta" id="txtA" aria-label="ข้อความ A" spellcheck="false"></textarea>
+      <div class="card-head"><h2 data-i18n="cp.textA">ข้อความ A</h2>
+        <button class="btn sm" type="button" data-pick="A"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-plus"/></svg><span data-i18n="cp.chooseFile">เลือกไฟล์</span></button>
+        <button class="btn sm ghost" type="button" data-clear="A" data-i18n="cp.clear">ล้าง</button></div>
+      <textarea class="textarea cp-ta" id="txtA" data-i18n-attr="aria-label:cp.textA" aria-label="ข้อความ A" spellcheck="false"></textarea>
       <div class="cp-fname" id="txtInfoA"></div>
     </div>
     <div class="card">
-      <div class="card-head"><h2>ข้อความ B</h2>
-        <button class="btn sm" type="button" data-pick="B"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-plus"/></svg>เลือกไฟล์</button>
-        <button class="btn sm ghost" type="button" data-clear="B">ล้าง</button></div>
-      <textarea class="textarea cp-ta" id="txtB" aria-label="ข้อความ B" spellcheck="false"></textarea>
+      <div class="card-head"><h2 data-i18n="cp.textB">ข้อความ B</h2>
+        <button class="btn sm" type="button" data-pick="B"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-file-plus"/></svg><span data-i18n="cp.chooseFile">เลือกไฟล์</span></button>
+        <button class="btn sm ghost" type="button" data-clear="B" data-i18n="cp.clear">ล้าง</button></div>
+      <textarea class="textarea cp-ta" id="txtB" data-i18n-attr="aria-label:cp.textB" aria-label="ข้อความ B" spellcheck="false"></textarea>
       <div class="cp-fname" id="txtInfoB"></div>
     </div>
   </div>
@@ -167,13 +167,13 @@ textarea.cp-ta{min-height:220px;font-family:inherit;resize:vertical}
   <p class="cp-msg" id="xMsg" role="alert"></p>
   <div class="card">
     <div class="cp-opts">
-      <label class="cp-check"><input type="checkbox" id="optSpace"> ไม่สนช่องว่าง</label>
-      <div class="segmented" id="viewSeg" role="group" aria-label="มุมมอง">
-        <button type="button" data-view="split" aria-pressed="true">ซ้าย-ขวา</button>
-        <button type="button" data-view="unified" aria-pressed="false">รวม</button>
+      <label class="cp-check"><input type="checkbox" id="optSpace"> <span data-i18n="cp.optSpace">ไม่สนช่องว่าง</span></label>
+      <div class="segmented" id="viewSeg" role="group" data-i18n-attr="aria-label:cp.viewLabel" aria-label="มุมมอง">
+        <button type="button" data-view="split" aria-pressed="true" data-i18n="cp.viewSplit">ซ้าย-ขวา</button>
+        <button type="button" data-view="unified" aria-pressed="false" data-i18n="cp.viewUnified">รวม</button>
       </div>
       <span style="flex:1"></span>
-      <button class="btn primary" type="button" id="runText"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-arrow-up-down"/></svg>เทียบ</button>
+      <button class="btn primary" type="button" id="runText"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-arrow-up-down"/></svg><span data-i18n="cp.run">เทียบ</span></button>
     </div>
   </div>
   <div id="diffBox" hidden class="stack">
@@ -182,8 +182,8 @@ textarea.cp-ta{min-height:220px;font-family:inherit;resize:vertical}
         <div class="cp-badges" id="diffStats"></div>
         <span style="flex:1"></span>
         <span class="cp-fname" id="hunkPos"></span>
-        <button class="btn sm" type="button" id="prevHunk"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-chevron-up"/></svg>ก่อนหน้า</button>
-        <button class="btn sm" type="button" id="nextHunk"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-chevron-down"/></svg>ถัดไป</button>
+        <button class="btn sm" type="button" id="prevHunk"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-chevron-up"/></svg><span data-i18n="cp.prev">ก่อนหน้า</span></button>
+        <button class="btn sm" type="button" id="nextHunk"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-chevron-down"/></svg><span data-i18n="cp.next">ถัดไป</span></button>
       </div>
       <div class="cp-diffwrap"><div class="cp-diff" id="diffView"></div></div>
       <div class="cp-pager" id="diffPager"></div>
@@ -192,30 +192,30 @@ textarea.cp-ta{min-height:220px;font-family:inherit;resize:vertical}
 </section>
 
 <!-- ═══ 3. ใบเสนอราคา ═══ -->
-<section id="tab-quotes" role="tabpanel" aria-label="ให้คะแนนใบเสนอราคา" class="stack" style="margin-top:var(--ome-sp-4)" hidden>
+<section id="tab-quotes" role="tabpanel" data-i18n-attr="aria-label:cp.tabQuotes" aria-label="ให้คะแนนใบเสนอราคา" class="stack" style="margin-top:var(--ome-sp-4)" hidden>
   <div class="card">
     <div class="frow">
-      <div class="field"><label for="jobSel">งานเปรียบเทียบราคา</label><select id="jobSel" class="select"></select></div>
-      <div class="field"><label for="jobName">ชื่องาน</label><input id="jobName" type="text" maxlength="120" autocomplete="off"></div>
-      <button class="btn" type="button" id="jobNew"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>งานใหม่</button>
-      <button class="btn danger" type="button" id="jobDel"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg>ลบงาน</button>
+      <div class="field"><label for="jobSel" data-i18n="cp.jobSel">งานเปรียบเทียบราคา</label><select id="jobSel" class="select"></select></div>
+      <div class="field"><label for="jobName" data-i18n="cp.jobName">ชื่องาน</label><input id="jobName" type="text" maxlength="120" autocomplete="off"></div>
+      <button class="btn" type="button" id="jobNew"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="cp.jobNew">งานใหม่</span></button>
+      <button class="btn danger" type="button" id="jobDel"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg><span data-i18n="cp.jobDel">ลบงาน</span></button>
     </div>
   </div>
   <p class="cp-msg" id="qMsg" role="alert"></p>
   <div id="jobBody" class="stack" hidden>
     <div class="card">
-      <div class="card-head"><h2>เกณฑ์ให้คะแนน</h2><span id="wTotal"></span>
-        <button class="btn sm" type="button" id="critAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มเกณฑ์</button></div>
+      <div class="card-head"><h2 data-i18n="cp.criteria">เกณฑ์ให้คะแนน</h2><span id="wTotal"></span>
+        <button class="btn sm" type="button" id="critAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="cp.critAdd">เพิ่มเกณฑ์</span></button></div>
       <div class="stack" id="critList"></div>
     </div>
     <div class="card">
-      <div class="card-head"><h2>ผู้เสนอราคา</h2>
-        <button class="btn sm" type="button" id="bidAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มผู้เสนอราคา</button></div>
+      <div class="card-head"><h2 data-i18n="cp.bidders">ผู้เสนอราคา</h2>
+        <button class="btn sm" type="button" id="bidAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="cp.bidAdd">เพิ่มผู้เสนอราคา</span></button></div>
       <div class="stack" id="bidList"></div>
     </div>
     <div class="card cp-rank">
-      <div class="card-head"><h2>ผลจัดอันดับ</h2>
-        <button class="btn" type="button" id="exportQuote"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg>ส่งออก .xlsx</button></div>
+      <div class="card-head"><h2 data-i18n="cp.ranking">ผลจัดอันดับ</h2>
+        <button class="btn" type="button" id="exportQuote"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span data-i18n="cp.exportXlsx">ส่งออก .xlsx</span></button></div>
       <div id="rankBox"></div>
     </div>
   </div>
