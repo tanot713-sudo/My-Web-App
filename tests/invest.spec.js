@@ -1763,16 +1763,16 @@ test.describe('หน้าทอง invest-gold.html', () => {
     const { errors, hosts } = await openGold(page, '#markets');
     await expect(page.locator('#panel-markets')).toBeVisible(); await expect(page.locator('#panel-gold')).toBeHidden();
     await expect(page.locator('#mk_statRow .stat-card')).toHaveCount(5);
-    await expect(page.locator('#mk_pillRow .pill')).toHaveCount(16);
+    await expect(page.locator('#mk_pillRow .chip')).toHaveCount(16);
     await expect(page.locator('#mk_statRow .stat-card[data-key="goldbar"] .pr')).toHaveText('70,950');
     await expect(page.locator('#mk_dName')).toHaveText('ทองคำ COMEX');
     await expect(page.locator('#mk_vVerdict')).not.toHaveText('กำลังโหลด…', { timeout: 15000 });
-    await page.click('#mk_pillRow .pill[data-key="jpythb"]');
+    await page.click('#mk_pillRow .chip[data-key="jpythb"]');
     await expect(page.locator('#mk_dName')).toHaveText('เยนเทียบบาท');
     await expect(page.locator('#mk_histTable tbody tr')).toHaveCount(30);
     // cross: THB=X ÷ JPY=X × 100 ของแท่งสุดท้าย (ทั้งคู่ใช้ชุดเดียวกัน → 100)
     await expect(page.locator('#mk_oClose')).toHaveText('100.000');
-    await page.click('#mk_pillRow .pill[data-key="goldjew"]');
+    await page.click('#mk_pillRow .chip[data-key="goldjew"]');
     await expect(page.locator('#mk_chartEmpty')).toContainText('ไม่มีข้อมูลย้อนหลัง');
     expect(await page.evaluate(() => localStorage.getItem('tanot:invest:comm:lastKey'))).toBe('goldjew');
     expect(hosts.filter((h) => !/^fonts\.|^api\.chnwt\.dev$/.test(h))).toEqual([]);

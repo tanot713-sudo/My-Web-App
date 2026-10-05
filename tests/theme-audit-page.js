@@ -87,7 +87,7 @@
   }
 
   var SHELL = '.ome-nav,.ome-drawer,.ome-settings-panel,.ome-footer,.ome-pal,.ome-qa,.ome-ai-fab,.ome-ai-panel';
-  var CENTRAL_BTN = '.btn,.tab,.chip,.list-row,.tile,.dropzone,.lang-toggle,.segmented > *,.subnav-groups button,.subnav-row a,details.disclosure > summary';
+  var CENTRAL_BTN = '.btn,.tab,.chip,.list-row,.tile,.dropzone,.lang-toggle,.stat-card,.segmented > *,.subnav-groups button,.subnav-row a,details.disclosure > summary';
   var CENTRAL_INPUT = '.input,.select,.textarea,.field input,.field select,.field textarea';
   var SKIP_INPUT = /^(checkbox|radio|range|file|color|hidden|image)$/;
 

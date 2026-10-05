@@ -39,7 +39,7 @@
     var m = d.getMonth() + 1, day = d.getDate();
     return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
   }
-  function thaiDate(d) { return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }); }
+  function thaiDate(d) { return IC.date(d, { day: 'numeric', month: 'short', year: '2-digit' }); }
 
   /* ══════ ระบบสองภาษา (ไทย/อังกฤษ) — ตามธรรมเนียมเดียวกับ invest-gold.js ══════ */
   var UI_LANG_KEY = 'ome:lang';
@@ -495,7 +495,7 @@
     var html = '<div class="log-group-hd">' + t('spinHistTitle') + '</div>' +
       '<div class="table-wrap"><table class="table right"><thead><tr><th>' + t('thTime') + '</th><th>' + t('thNum') + '</th></tr></thead><tbody>';
     list.forEach(function (r) {
-      html += '<tr><td>' + new Date(r.ts).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + '</td><td>' + r.n + '</td></tr>';
+      html += '<tr><td>' + IC.date(new Date(r.ts), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + '</td><td>' + r.n + '</td></tr>';
     });
     html += '</tbody></table></div>';
     el.innerHTML = html;
@@ -551,7 +551,10 @@
   IC.subnav($('ivSubRow'), 'lottery');
   applyStaticI18n();
   [].forEach.call(document.querySelectorAll('[data-i18n="navInvest"]'), function (el) { el.textContent = t('navInvest'); });
-  IC.onLang(function () { IC.subnav($('ivSubRow'), 'lottery'); tabsCtl.rerender(); syncHead(); relangGovt(); });
+  IC.onLang(function () {
+    IC.subnav($('ivSubRow'), 'lottery'); syncHead(); relangGovt();
+    [].forEach.call(document.querySelectorAll('[data-i18n="navInvest"]'), function (el) { el.textContent = t('navInvest'); });
+  });
 
   window.__lottery = {
     parseDrawText: parseDrawText, candidateDrawDates: candidateDrawDates,

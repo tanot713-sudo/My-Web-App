@@ -33,7 +33,7 @@ const { menuPages, prepare } = require('./helpers');
 
 const PAGES = menuPages();
 // หน้าที่ตรวจที่ 360px เพิ่มจาก 390 (หน้าที่แก้ในรอบนั้น — เพิ่มชื่อหน้าที่นี่ทุกรอบ) · index.html ตรวจรวม shell (nav/ฟุตเตอร์) ด้วย
-const NARROW_360 = (p) => p === 'index.html' || /^area\.html/.test(p);
+const NARROW_360 = (p) => p === 'index.html' || /^area\.html/.test(p) || /^invest(-[a-z-]+)?\.html/.test(p); // รอบ 4: ตระกูลลงทุน
 const WITH_SHELL = (p) => p === 'index.html';
 const AUDIT_JS = path.join(__dirname, 'theme-audit-page.js');
 const AXE_JS = require.resolve('axe-core/axe.min.js');
@@ -191,7 +191,7 @@ for (const p of BG_PAGES) {
 for (const p of PAGES) {
   test(`lang switch: ${p}`, async ({ page }) => {
     await open(page, p, { theme: 'light', width: 1100, lang: 'th' });
-    const supported = await page.evaluate(() => typeof window.omeApplyLang === 'function');
+    const supported = await page.evaluate(() => typeof window.omeApplyLang === 'function' || !!window.InvestCore); // InvestCore ฟัง OME_LANG.onChange เอง (ไม่มี omeApplyLang แล้ว)
     await page.waitForLoadState('networkidle').catch(() => {});
     const before = await page.evaluate(() => { window.__noReload = 1; return window.__tanotAudit.thaiInEn({ excludeShell: true }).length; });
     await page.click('#omeGearBtn');

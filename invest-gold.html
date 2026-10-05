@@ -37,26 +37,11 @@
 .detail-title{display:flex;align-items:center;gap:9px}
 .unit{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:500}
 /* #markets */
+.ohlc-box .v{font-variant-numeric:tabular-nums}
 .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px}
-.stat-card{background:var(--ome-surface-2);border:1.5px solid transparent;border-radius:var(--ome-radius-lg);padding:12px 13px;text-align:left;font-family:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:3px}
-.stat-card:hover{border-color:var(--ome-border)}
-.stat-card.on{background:var(--ome-accent-soft);border-color:var(--ome-accent)}
-.stat-card .nm{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2);margin-top:2px;line-height:1.3}
-.stat-card .pr{font-size:var(--ome-fs-md);font-weight:700;margin-top:3px}
-.stat-card .pr.na{color:var(--ome-text-2);font-weight:600;font-size:var(--ome-fs-xs)}
-.stat-card .chg{font-size:var(--ome-fs-xs);font-weight:700}
-.stat-card .chg.up{color:var(--ome-ok-ink)}
-.stat-card .chg.dn{color:var(--ome-err-ink)}
-.stat-card .chg.flat{color:var(--ome-text-2)}
-.stat-card .spark{display:block;width:100%;height:22px;margin-top:5px}
-.stat-card .spark svg{width:100%;height:100%;display:block}
-.stat-card .pr,.stat-card .chg,.ohlc-box .v{font-variant-numeric:tabular-nums}
 .pill-row{display:flex;flex-direction:column;gap:10px}
 .pill-group-lbl{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600;display:block;margin-bottom:6px}
-.pill-group-row{display:flex;flex-wrap:wrap;gap:7px}
-.pill{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:var(--ome-radius-pill);border:1px solid var(--ome-border);background:var(--ome-surface-1);color:var(--ome-text-2);font-family:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer}
-.pill:hover{color:var(--ome-text-1);border-color:var(--ome-border-strong)}
-.pill.on{background:var(--ome-accent-soft);border-color:var(--ome-accent);color:var(--ome-accent-strong)}
+.pill-group-row{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2)}
 .detail-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}
 .detail-title .nm{font-size:var(--ome-fs-md);font-weight:700}
 .detail-title .unit{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600}
@@ -93,12 +78,12 @@
     <h2 data-i18n="priceTitle">ราคาทองวันนี้ (บาท/บาททองคำ)</h2>
     <div class="badge wrap" id="goldThBadge" style="display:none"></div>
     <div class="frow">
-      <div class="field"><label><span data-i18n="barBuyLabel">ทองคำแท่ง — ราคาซื้อ</span> <span class="unit" data-i18n="boughtUnit">(คุณจ่าย)</span></label><input type="number" id="barBuy" inputmode="decimal" step="0.01" placeholder="เช่น 70950"></div>
-      <div class="field"><label><span data-i18n="barSellLabel">ทองคำแท่ง — ราคาขายคืน</span> <span class="unit" data-i18n="receivedUnit">(คุณได้รับ)</span></label><input type="number" id="barSell" inputmode="decimal" step="0.01" placeholder="เช่น 70850"></div>
+      <div class="field"><label><span data-i18n="barBuyLabel">ทองคำแท่ง — ราคาซื้อ</span> <span class="unit" data-i18n="boughtUnit">(คุณจ่าย)</span></label><input type="number" id="barBuy" inputmode="decimal" step="0.01" placeholder="เช่น 70950" data-i18n-placeholder="barBuyPh"></div>
+      <div class="field"><label><span data-i18n="barSellLabel">ทองคำแท่ง — ราคาขายคืน</span> <span class="unit" data-i18n="receivedUnit">(คุณได้รับ)</span></label><input type="number" id="barSell" inputmode="decimal" step="0.01" placeholder="เช่น 70850" data-i18n-placeholder="barSellPh"></div>
     </div>
     <div class="frow">
-      <div class="field"><label><span data-i18n="jewelryBuyLabel">ทองรูปพรรณ — ราคาซื้อ</span> <span class="unit" data-i18n="boughtUnit">(คุณจ่าย)</span></label><input type="number" id="jewelryBuy" inputmode="decimal" step="0.01" placeholder="เช่น 71950"></div>
-      <div class="field"><label><span data-i18n="jewelrySellLabel">ทองรูปพรรณ — ราคาขายคืน</span> <span class="unit" data-i18n="receivedUnit">(คุณได้รับ)</span></label><input type="number" id="jewelrySell" inputmode="decimal" step="0.01" placeholder="เช่น 69523"></div>
+      <div class="field"><label><span data-i18n="jewelryBuyLabel">ทองรูปพรรณ — ราคาซื้อ</span> <span class="unit" data-i18n="boughtUnit">(คุณจ่าย)</span></label><input type="number" id="jewelryBuy" inputmode="decimal" step="0.01" placeholder="เช่น 71950" data-i18n-placeholder="jewelryBuyPh"></div>
+      <div class="field"><label><span data-i18n="jewelrySellLabel">ทองรูปพรรณ — ราคาขายคืน</span> <span class="unit" data-i18n="receivedUnit">(คุณได้รับ)</span></label><input type="number" id="jewelrySell" inputmode="decimal" step="0.01" placeholder="เช่น 69523" data-i18n-placeholder="jewelrySellPh"></div>
     </div>
     <div class="status" id="goldThStatus" data-i18n="goldThStatusDefault">กำลังดึงราคาทองวันนี้…</div>
     <div><button class="btn sm" id="goldThRefresh" type="button" data-i18n="refreshPriceBtn">รีเฟรชราคา</button></div>
@@ -118,7 +103,7 @@
     </details>
     <div id="gManualWrap" style="display:none">
       <div class="frow">
-        <div class="field"><label><span data-i18n="gPriceUsdLabel">ราคาทองโลกตอนนี้</span> <span class="unit" data-i18n="unitUsdOz">(USD/ออนซ์)</span></label><input type="number" id="gPriceUsd" inputmode="decimal" step="0.01" placeholder="เช่น 2650"></div>
+        <div class="field"><label><span data-i18n="gPriceUsdLabel">ราคาทองโลกตอนนี้</span> <span class="unit" data-i18n="unitUsdOz">(USD/ออนซ์)</span></label><input type="number" id="gPriceUsd" inputmode="decimal" step="0.01" placeholder="เช่น 2650" data-i18n-placeholder="gPriceUsdPh"></div>
         <div class="field"><label><span data-i18n="gHiUsdLabel">สูงสุดของรอบ</span> <span class="unit" data-i18n="unitUsdOz">(USD/ออนซ์)</span></label><input type="number" id="gHiUsd" inputmode="decimal" step="0.01"></div>
         <div class="field"><label><span data-i18n="gLoUsdLabel">ต่ำสุดของรอบ</span> <span class="unit" data-i18n="unitUsdOz">(USD/ออนซ์)</span></label><input type="number" id="gLoUsd" inputmode="decimal" step="0.01"></div>
       </div>
@@ -157,7 +142,7 @@
     <h2 data-i18n="checklistTitle">เช็กลิสต์ก่อนซื้อ — ควรซื้อไหม?</h2>
     <div id="chkForm">
       <div class="yn-row" data-key="spotOnly"><span data-i18n="chkSpotOnly">ยืนยันว่าซื้อทองจริง (ทองคำแท่ง/รูปพรรณ) ไม่ใช่สัญญาซื้อขายล่วงหน้า/มาร์จิ้น</span>
-        <div class="yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
+        <div class="segmented yn-btns"><button class="yn-btn" data-val="yes" type="button" data-i18n="ynYes">ใช่</button><button class="yn-btn" data-val="no" type="button" data-i18n="ynNo">ยัง</button></div></div>
     </div>
     <div><button class="btn" id="checkBtn" type="button" data-i18n="checkBtn">ตรวจเช็กลิสต์</button></div>
     <div id="checkResult" style="display:none">

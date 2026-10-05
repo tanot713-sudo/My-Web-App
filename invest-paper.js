@@ -203,7 +203,7 @@
       if (noCash != null) { setTradeStatus(t('errNoCash', { cost: baht(cost), cash: baht(noCash) }), 'err'); return; }
       $('buySym').value = ''; $('buyShares').value = ''; if ($('buyDate')) $('buyDate').value = '';
       setTradeStatus(t('buySuccess', { sym: sym, shares: fmt0(shares), price: fmt(price), cost: baht(cost),
-        backdated: backdated ? t('buySuccessBackdatedSuffix', { date: new Date(txTs).toLocaleDateString('th-TH') }) : '' }), 'ok');
+        backdated: backdated ? t('buySuccessBackdatedSuffix', { date: IC.date(new Date(txTs), { day: 'numeric', month: 'numeric', year: 'numeric' }) }) : '' }), 'ok');
       renderAll();
     }, function () {
       $('buyBtn').disabled = false;
@@ -274,7 +274,7 @@
     var rows = '<thead><tr><th>' + t('thTxDate') + '</th><th>' + t('thTxType') + '</th><th>' + t('thTxSym') + '</th><th>' + t('thTxShares') + '</th><th>' + t('thTxPrice') + '</th><th>' + t('thTxAmt') + '</th><th>' + t('thTxPl') + '</th></tr></thead><tbody>';
     /* เรียงตามเวลาจริงเสมอ (รายการซื้อย้อนหลังอาจถูกเพิ่มทีหลัง) */
     s.tx.slice().sort(function (a, b) { return b.ts - a.ts; }).slice(0, 100).forEach(function (tx) {
-      var dateTxt = new Date(tx.ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + ' ' + new Date(tx.ts).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      var dateTxt = IC.date(new Date(tx.ts), { day: 'numeric', month: 'short', year: '2-digit' }) + ' ' + new Date(tx.ts).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
       rows += '<tr><td>' + dateTxt + '</td><td><span class="badge ' + (tx.type === 'buy' ? 'ok' : 'err') + '">' + (tx.type === 'buy' ? t('txTypeBuy') : t('txTypeSell')) + '</span></td>' +
         '<td>' + esc(tx.sym) + '</td><td>' + fmt0(tx.shares) + '</td><td>' + fmt(tx.price) + '</td><td>' + baht(tx.amount) + '</td>' +
         '<td class="' + (tx.realizedPl > 0 ? 'up' : tx.realizedPl < 0 ? 'dn' : '') + '">' + (tx.type === 'sell' && isFinite(tx.realizedPl) ? (tx.realizedPl >= 0 ? '+' : '') + baht(tx.realizedPl) : '—') + '</td></tr>';

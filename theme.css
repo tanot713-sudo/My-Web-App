@@ -398,6 +398,32 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 :where([data-invest-key]) .card > * + *{margin-top:var(--ome-sp-3)}
 :where([data-invest-key]) .card > h2{display:flex;align-items:center;gap:8px;margin:0}
 :where([data-invest-key]) :is(.card > h2,.card-head h2){font-size:var(--ome-fs-base)}
+/* มือถือ (รอบ 4): ข้อความเนื้อหา ≥ 14px — ยกขนาด xs/sm เป็น 14px เฉพาะกลุ่มลงทุน (ข้อความรองคงเป็น .badge/th/.meta ที่ตัวตรวจยอมให้ ≥ 12px
+   ผ่าน token เดียวกัน จึงไม่ต้องแก้ทีละคลาส) · แท็บ/แถบหมวด/ชิปเว้น ≥ 8px (เสริมกฎ mobileCrowd) */
+@media (max-width:700px){
+  body[data-invest-key]{--ome-fs-xs:14px;--ome-fs-sm:14px}
+  body[data-invest-key] :is(.tabs,.subnav-row,.subnav-groups){gap:var(--ome-sp-2)}
+  body[data-invest-key] .segmented > button{white-space:nowrap}
+  body[data-invest-key] .card-head{flex-wrap:wrap;gap:var(--ome-sp-2)}
+  /* ตารางกว้างเลื่อนแนวนอนใน .table-wrap — คอลัมน์แรก (ชื่อสินทรัพย์/วันที่) ตรึงซ้ายให้รู้ว่าแถวไหน */
+  body[data-invest-key] .table-wrap .table :is(th,td):first-child{position:sticky;left:0;z-index:1;background:var(--ome-surface-1)}
+  body[data-invest-key] .table-wrap .table th:first-child{background:var(--ome-surface-2)}
+}
+
+/* .stat-card — การ์ดสรุปตัวเลขที่กดเลือกได้ (invest-gold #markets) */
+:where([data-layout]) .stat-card{background:var(--ome-surface-2);border:1.5px solid transparent;border-radius:var(--ome-radius-lg);padding:12px 13px;text-align:left;font-family:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+:where([data-layout]) .stat-card:hover{border-color:var(--ome-border)}
+:where([data-layout]) .stat-card.on{background:var(--ome-accent-soft);border-color:var(--ome-accent)}
+:where([data-layout]) .stat-card .nm{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2);margin-top:2px;line-height:1.3}
+:where([data-layout]) .stat-card .pr{font-size:var(--ome-fs-md);font-weight:700;margin-top:3px}
+:where([data-layout]) .stat-card .pr.na{color:var(--ome-text-2);font-weight:600;font-size:var(--ome-fs-xs)}
+:where([data-layout]) .stat-card .chg{font-size:var(--ome-fs-xs);font-weight:700}
+:where([data-layout]) .stat-card .chg.up{color:var(--ome-ok-ink)}
+:where([data-layout]) .stat-card .chg.dn{color:var(--ome-err-ink)}
+:where([data-layout]) .stat-card .chg.flat{color:var(--ome-text-2)}
+:where([data-layout]) .stat-card .spark{display:block;width:100%;height:22px;margin-top:5px}
+:where([data-layout]) .stat-card .spark svg{width:100%;height:100%;display:block}
+:where([data-layout]) .stat-card :is(.pr,.chg){font-variant-numeric:tabular-nums}
 
 /* up/dn — ตัวเลขขึ้น/ลง (เขียว/แดง) */
 :where([data-layout]) .up{color:var(--ome-ok-ink)}
@@ -499,6 +525,7 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
   :where([data-layout]) :is(.btn,.btn.sm){height:40px;min-width:40px}
   :where([data-layout]) :is(.btn.icon,.btn.sm.icon){width:40px}
   :where([data-layout]) :is(.chip,.segmented > button){height:40px}
+  :where([data-layout]) .segmented > button{min-width:40px}
   :where([data-layout]) :is(.input,.select,.field input:not([type=checkbox]):not([type=radio]):not([type=range]),.field select){height:40px}
 }
 
