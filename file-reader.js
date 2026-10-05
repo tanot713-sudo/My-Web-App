@@ -11,6 +11,37 @@
    pdfjsLib (window.pdfjsLib), mammoth (window.mammoth), Tesseract (window.Tesseract),
    XLSX/SheetJS (window.XLSX), JSZip (window.JSZip) — ถ้าไลบรารีที่ต้องใช้ยังไม่โหลด
    (เช่น เน็ตช้า/ถูกบล็อก) จะโยน error ข้อความชัดเจนแทนที่จะพังเงียบๆ */
+
+/* error ของไฟล์นี้พก key ไว้ (err.frKey/frVars) — หน้าที่แสดงข้อความค้างบนจอเรียก TanotFileReader.errorText(err) เพื่อแปลซ้ำตามภาษาปัจจุบันตอนสลับภาษาสด */
+function frError(key, vars) { var e = new Error(FR_T(key, vars)); e.frKey = key; e.frVars = vars; return e; }
+function frErrorText(err) { return err && err.frKey ? FR_T(err.frKey, err.frVars) : (err && err.message ? err.message : String(err)); }
+
+/* ข้อความที่ผู้ใช้เห็น (error + ตัวแทนหน้าที่อ่านไม่ได้/หัวชีต/สไลด์ในข้อความที่ดึงได้) — ภาษาตาม UI ตอนอ่านไฟล์ (ไม่เกี่ยวกับภาษาของเนื้อหาในไฟล์) */
+var FR_T = (window.OME_I18N ? window.OME_I18N.scope : function (ns, d) { return function (k, v) { return d.th[k].replace(/\{(\w+)\}/g, function (m, n) { return v && v[n] != null ? v[n] : m; }); }; })('fr', {
+  th: {
+    libFail: 'โหลดไลบรารีสำหรับอ่านไฟล์ชนิดนี้ไม่สำเร็จ ({name}) — เช็คอินเทอร์เน็ตแล้วลองรีเฟรชหน้าใหม่',
+    sheet: 'ชีต: {name}',
+    noSlides: 'ไม่พบสไลด์ในไฟล์นี้ (อาจไม่ใช่ไฟล์ .pptx ที่ถูกต้อง)',
+    slideNum: 'สไลด์ {n}',
+    slideEmpty: ' (ไม่มีข้อความ)',
+    scanned: '(หน้า {n}: ดูเหมือนเป็นภาพสแกน ไม่มีเลเยอร์ข้อความ — เปิด "ใช้ OCR" แล้วลองใหม่ถ้าต้องการอ่านหน้านี้ด้วย)',
+    ocrNone: '(หน้า {n}: OCR อ่านแล้วแต่ไม่พบข้อความ)',
+    ppt: 'ไฟล์ .ppt (PowerPoint รุ่นเก่า) ไม่รองรับ — เปิดไฟล์ใน PowerPoint แล้ว "บันทึกเป็น" ชนิด .pptx ก่อน',
+    unsupported: 'ไม่รองรับไฟล์ชนิดนี้ — รองรับ .txt/.docx/.xlsx/.xls/.csv/.pptx/.pdf/รูปภาพ'
+  },
+  en: {
+    libFail: 'Could not load the library needed to read this file type ({name}) — check your connection and reload the page',
+    sheet: 'Sheet: {name}',
+    noSlides: 'No slides found in this file (it may not be a valid .pptx)',
+    slideNum: 'Slide {n}',
+    slideEmpty: ' (no text)',
+    scanned: '(Page {n}: looks like a scanned image with no text layer — turn on "Use OCR" and try again to read this page)',
+    ocrNone: '(Page {n}: OCR ran but found no text)',
+    ppt: '.ppt files (old PowerPoint) are not supported — open the file in PowerPoint and "Save as" .pptx first',
+    unsupported: 'This file type is not supported — supported: .txt/.docx/.xlsx/.xls/.csv/.pptx/.pdf/images'
+  }
+});
+
 (function () {
 'use strict';
 
@@ -132,7 +163,7 @@ function preprocessForOcr(srcCanvas) {
 
 function requireLib(globalName, humanName) {
   if (!window[globalName]) {
-    throw new Error('โหลดไลบรารีสำหรับอ่านไฟล์ชนิดนี้ไม่สำเร็จ (' + humanName + ') — เช็คอินเทอร์เน็ตแล้วลองรีเฟรชหน้าใหม่');
+    throw frError('libFail', { name: humanName });
   }
   return window[globalName];
 }
@@ -198,7 +229,7 @@ async function readXlsxFile(file) {
     var lines = rows.map(function (row) {
       return row.map(function (cell) { return String(cell).trim(); }).filter(Boolean).join(' ');
     }).filter(Boolean);
-    if (lines.length) sections.push('ชีต: ' + name + '\n' + lines.join('\n'));
+    if (lines.length) sections.push(FR_T('sheet', { name: name }) + '\n' + lines.join('\n'));
   });
   return sections.join('\n\n').trim();
 }
@@ -217,7 +248,7 @@ async function readPptxFile(file) {
       var nb = parseInt(b.match(/slide(\d+)\.xml/)[1], 10);
       return na - nb;
     });
-  if (!slideNames.length) throw new Error('ไม่พบสไลด์ในไฟล์นี้ (อาจไม่ใช่ไฟล์ .pptx ที่ถูกต้อง)');
+  if (!slideNames.length) throw frError('noSlides');
   var parts = [];
   for (var i = 0; i < slideNames.length; i++) {
     var xml = await zip.file(slideNames[i]).async('text');
@@ -229,7 +260,7 @@ async function readPptxFile(file) {
       if (t) texts.push(t);
     }
     var slideText = texts.join(' ').replace(/\s+/g, ' ').trim();
-    parts.push('สไลด์ ' + (i + 1) + (slideText ? ': ' + slideText : ' (ไม่มีข้อความ)'));
+    parts.push(FR_T('slideNum', { n: i + 1 }) + (slideText ? ': ' + slideText : FR_T('slideEmpty')));
   }
   return parts.join('\n\n').trim();
 }
@@ -250,7 +281,7 @@ async function readPdfFile(file, opts) {
     var text = content.items.map(function (it) { return it.str; }).join(' ').replace(/\s+/g, ' ').trim();
     if (text && !isGarbledText(text)) { parts.push(text); continue; }
 
-    if (!opts.ocr) { parts.push('(หน้า ' + i + ': ดูเหมือนเป็นภาพสแกน ไม่มีเลเยอร์ข้อความ — เปิด "ใช้ OCR" แล้วลองใหม่ถ้าต้องการอ่านหน้านี้ด้วย)'); continue; }
+    if (!opts.ocr) { parts.push(FR_T('scanned', { n: i })); continue; }
 
     if (opts.onProgress) opts.onProgress({ stage: 'ocr', page: i, total: doc.numPages });
     requireLib('Tesseract', 'Tesseract.js'); // แค่เช็คว่าโหลดแล้ว — ตัวจริงเรียกผ่าน recognizeText()
@@ -262,7 +293,7 @@ async function readPdfFile(file, opts) {
     var ctx = canvas.getContext('2d');
     await page.render({ canvasContext: ctx, viewport: viewport }).promise;
     var ocrText = await recognizeText(preprocessForOcr(canvas), { psm: PSM_AUTO });
-    parts.push(ocrText || ('(หน้า ' + i + ': OCR อ่านแล้วแต่ไม่พบข้อความ)'));
+    parts.push(ocrText || FR_T('ocrNone', { n: i }));
   }
   return parts.join('\n\n').trim();
 }
@@ -293,15 +324,16 @@ function readAnyFile(file, opts) {
   else if (name.endsWith('.docx')) promise = readDocxFile(file);
   else if (name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.csv')) promise = readXlsxFile(file);
   else if (name.endsWith('.pptx')) promise = readPptxFile(file);
-  else if (name.endsWith('.ppt')) return Promise.reject(new Error('ไฟล์ .ppt (PowerPoint รุ่นเก่า) ไม่รองรับ — เปิดไฟล์ใน PowerPoint แล้ว "บันทึกเป็น" ชนิด .pptx ก่อน'));
+  else if (name.endsWith('.ppt')) return Promise.reject(frError('ppt'));
   else if (name.endsWith('.pdf')) promise = readPdfFile(file, opts);
   else if (/\.(png|jpe?g|webp|bmp)$/.test(name)) promise = readImageFile(file, opts);
-  else return Promise.reject(new Error('ไม่รองรับไฟล์ชนิดนี้ — รองรับ .txt/.docx/.xlsx/.xls/.csv/.pptx/.pdf/รูปภาพ'));
+  else return Promise.reject(frError('unsupported'));
   return promise.then(fixSpacedThaiIfNeeded);
 }
 
 window.TanotFileReader = {
   ACCEPT_ATTR: ACCEPT_ATTR,
+  errorText: frErrorText,
   readAnyFile: readAnyFile,
   readTxtFile: readTxtFile,
   readDocxFile: readDocxFile,

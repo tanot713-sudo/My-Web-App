@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>แปลงเสียง ↔ ข้อความ | Tanot</title>
+<title data-i18n="tts.title">แปลงเสียง ↔ ข้อความ | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -48,118 +48,118 @@
 <body data-layout="tool">
 
 <main class="page tts-page">
-<nav class="crumb"><a href="index.html">หน้าหลัก</a><span class="sep">/</span>แปลงข้อความเป็นเสียง</nav>
-<div class="page-head"><h1>แปลงเสียง ↔ ข้อความ</h1></div>
+<nav class="crumb"><a href="index.html" data-i18n="tts.crumbHome">หน้าหลัก</a><span class="sep">/</span><span data-i18n="tts.crumb">แปลงข้อความเป็นเสียง</span></nav>
+<div class="page-head"><h1 data-i18n="tts.h1">แปลงเสียง ↔ ข้อความ</h1></div>
 
 <div class="stack">
 <div class="card">
-  <h2><svg class="ome-icon"><use href="icons.svg#i-file-text"/></svg>ข้อความ</h2>
+  <h2><svg class="ome-icon"><use href="icons.svg#i-file-text"/></svg><span data-i18n="tts.cardText">ข้อความ</span></h2>
   <div class="frow center">
-    <button class="btn sm" id="importFileBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-upload"/></svg>แนบไฟล์</button>
+    <button class="btn sm" id="importFileBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-upload"/></svg><span data-i18n="tts.attach">แนบไฟล์</span></button>
     <input type="file" id="importFileInput" accept=".txt,.docx,.xlsx,.xls,.csv,.pptx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
     <label class="mini check">
       <input type="checkbox" id="importOcrChk" checked>
-      ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน (ช้ากว่าปกติ)
+      <span data-i18n="tts.useOcr">ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน (ช้ากว่าปกติ)</span>
     </label>
   </div>
   <div class="status" id="importStatus"></div>
-  <textarea class="textarea" id="ttsText" rows="6" placeholder="พิมพ์หรือวางข้อความที่นี่ (ไทยหรืออังกฤษก็ได้) หรือกด แนบไฟล์ด้านบน"></textarea>
-  <div class="char-count" id="ttsCharCount">0 ตัวอักษร</div>
+  <textarea class="textarea" id="ttsText" rows="6" data-i18n-attr="placeholder:tts.textPh,aria-label:tts.textLabel" aria-label="ข้อความ" placeholder="พิมพ์หรือวางข้อความที่นี่ (ไทยหรืออังกฤษก็ได้) หรือกด แนบไฟล์ด้านบน"></textarea>
+  <div class="char-count" id="ttsCharCount"></div>
 </div>
 
 <div class="card">
-  <h2><svg class="ome-icon"><use href="icons.svg#i-volume-2"/></svg>ฟังทันที (เสียงจากเบราว์เซอร์)</h2>
+  <h2><svg class="ome-icon"><use href="icons.svg#i-volume-2"/></svg><span data-i18n="tts.cardLive">ฟังทันที (เสียงจากเบราว์เซอร์)</span></h2>
   <div class="frow">
-    <div class="field" style="flex:2 1 220px"><label for="wsVoice">เสียง</label>
+    <div class="field" style="flex:2 1 220px"><label for="wsVoice" data-i18n="tts.voice">เสียง</label>
       <select id="wsVoice"></select>
     </div>
-    <div class="field"><label for="wsRate">ความเร็ว <span class="range-val" id="wsRateVal">1.0x</span></label>
+    <div class="field"><label for="wsRate"><span data-i18n="tts.rate">ความเร็ว</span> <span class="range-val" id="wsRateVal">1.0x</span></label>
       <input type="range" id="wsRate" min="0.5" max="2" step="0.1" value="1">
     </div>
   </div>
   <div class="frow">
-    <button class="btn primary sm" id="wsPlayBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-play"/></svg>เล่น</button>
-    <button class="btn sm" id="wsPauseBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-pause"/></svg>หยุดชั่วคราว</button>
-    <button class="btn sm" id="wsStopBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-square"/></svg>หยุด</button>
+    <button class="btn primary sm" id="wsPlayBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-play"/></svg><span data-i18n="tts.play">เล่น</span></button>
+    <button class="btn sm" id="wsPauseBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-pause"/></svg><span data-i18n="tts.pause">หยุดชั่วคราว</span></button>
+    <button class="btn sm" id="wsStopBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-square"/></svg><span data-i18n="tts.stop">หยุด</span></button>
   </div>
   <div class="status" id="wsStatus"></div>
 </div>
 
 <div class="card">
-  <h2><svg class="ome-icon"><use href="icons.svg#i-headphones"/></svg>สร้างไฟล์เสียงดาวน์โหลดได้ (.wav / .mp3)<span class="badge">เสียง AI (MMS-TTS)</span></h2>
+  <h2><svg class="ome-icon"><use href="icons.svg#i-headphones"/></svg><span data-i18n="tts.cardMake">สร้างไฟล์เสียงดาวน์โหลดได้ (.wav / .mp3)</span><span class="badge" data-i18n="tts.badgeAi">เสียง AI (MMS-TTS)</span></h2>
   <div class="frow">
-    <div class="field"><label for="dlLang">ภาษา</label>
+    <div class="field"><label for="dlLang" data-i18n="tts.lang">ภาษา</label>
       <select id="dlLang">
-        <option value="th">ไทย</option>
-        <option value="en">อังกฤษ</option>
+        <option value="th" data-i18n="tts.langTh">ไทย</option>
+        <option value="en" data-i18n="tts.langEn">อังกฤษ</option>
       </select>
     </div>
-    <div class="field"><label for="dlVoice">เสียง</label>
+    <div class="field"><label for="dlVoice" data-i18n="tts.voice">เสียง</label>
       <select id="dlVoice"></select>
     </div>
   </div>
   <div class="frow">
-    <button class="btn primary sm" id="dlGenerateBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sparkles"/></svg>สร้างไฟล์เสียง</button>
+    <button class="btn primary sm" id="dlGenerateBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sparkles"/></svg><span data-i18n="tts.make">สร้างไฟล์เสียง</span></button>
   </div>
   <div class="status" id="dlStatus"></div>
   <div class="tts-player" id="dlPlayerWrap">
     <audio id="dlAudio" controls></audio>
     <div class="dl-row">
-      <a class="btn sm" id="dlWavLink" download="tts-output.wav"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg>ดาวน์โหลด .wav</a>
-      <a class="btn sm" id="dlMp3Link" download="tts-output.mp3"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg>ดาวน์โหลด .mp3</a>
+      <a class="btn sm" id="dlWavLink" download="tts-output.wav"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tts.dlWav">ดาวน์โหลด .wav</span></a>
+      <a class="btn sm" id="dlMp3Link" download="tts-output.mp3"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tts.dlMp3">ดาวน์โหลด .mp3</span></a>
     </div>
   </div>
 </div>
 
 <div class="card">
-  <h2><svg class="ome-icon"><use href="icons.svg#i-mic"/></svg>เสียง/วิดีโอ → ข้อความ</h2>
+  <h2><svg class="ome-icon"><use href="icons.svg#i-mic"/></svg><span data-i18n="tts.cardAsr">เสียง/วิดีโอ → ข้อความ</span></h2>
   <div class="frow">
-    <div class="field"><label for="asrFile">ไฟล์เสียง/วิดีโอ</label>
+    <div class="field"><label for="asrFile" data-i18n="tts.asrFile">ไฟล์เสียง/วิดีโอ</label>
       <input type="file" id="asrFile" accept="audio/*,video/*">
     </div>
-    <div class="field"><label for="asrLang">ภาษา</label>
+    <div class="field"><label for="asrLang" data-i18n="tts.lang">ภาษา</label>
       <select id="asrLang">
-        <option value="auto">ตรวจจับอัตโนมัติ</option>
-        <option value="thai">ไทย</option>
-        <option value="english">อังกฤษ</option>
+        <option value="auto" data-i18n="tts.asrAuto">ตรวจจับอัตโนมัติ</option>
+        <option value="thai" data-i18n="tts.langTh">ไทย</option>
+        <option value="english" data-i18n="tts.langEn">อังกฤษ</option>
       </select>
     </div>
-    <div class="field" id="asrModelField"><label for="asrModel">ขนาดโมเดล</label>
+    <div class="field" id="asrModelField"><label for="asrModel" data-i18n="tts.modelSize">ขนาดโมเดล</label>
       <select id="asrModel">
-        <option value="Xenova/whisper-tiny">เล็ก (เร็ว, ~75MB)</option>
-        <option value="Xenova/whisper-base">กลาง (แม่นขึ้น, ~145MB)</option>
-        <option value="Xenova/whisper-small">ใหญ่ (แม่นขึ้นมาก, ~250MB, โหลด/รันช้ากว่า)</option>
-        <option value="Xenova/whisper-medium">ใหญ่มาก (แม่นสุด, ~750MB-1GB, โหลด/รันช้ามาก อาจหนักเกินไปสำหรับมือถือ/เครื่องสเปกต่ำ)</option>
+        <option value="Xenova/whisper-tiny" data-i18n="tts.mTiny">เล็ก (เร็ว, ~75MB)</option>
+        <option value="Xenova/whisper-base" data-i18n="tts.mBase">กลาง (แม่นขึ้น, ~145MB)</option>
+        <option value="Xenova/whisper-small" data-i18n="tts.mSmall">ใหญ่ (แม่นขึ้นมาก, ~250MB, โหลด/รันช้ากว่า)</option>
+        <option value="Xenova/whisper-medium" data-i18n="tts.mMedium">ใหญ่มาก (แม่นสุด, ~750MB-1GB, โหลด/รันช้ามาก อาจหนักเกินไปสำหรับมือถือ/เครื่องสเปกต่ำ)</option>
       </select>
     </div>
   </div>
   <div class="asr-engine-row">
-    <span class="asr-engine-label">ถอดเสียงด้วย</span>
+    <span class="asr-engine-label" data-i18n="tts.engineLabel">ถอดเสียงด้วย</span>
     <div class="lang-toggle" id="asrEngineToggle">
-      <span data-ae="local" class="active">ในเบราว์เซอร์ (ฟรี)</span>
-      <span data-ae="cloud">คลาวด์ (แม่นกว่า)</span>
+      <span data-ae="local" class="active" data-i18n="tts.engineLocal">ในเบราว์เซอร์ (ฟรี)</span>
+      <span data-ae="cloud" data-i18n="tts.engineCloud">คลาวด์ (แม่นกว่า)</span>
     </div>
   </div>
   <div class="mini asr-engine-note" id="asrEngineNote">
     <div class="asr-neuron-status" id="asrNeuronStatus"></div>
   </div>
   <div class="frow">
-    <button class="btn primary sm" id="asrGoBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-mic"/></svg>ถอดเสียงเป็นข้อความ</button>
+    <button class="btn primary sm" id="asrGoBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-mic"/></svg><span data-i18n="tts.asrGo">ถอดเสียงเป็นข้อความ</span></button>
   </div>
   <div class="status" id="asrStatus"></div>
   <div id="asrResultWrap" style="display:none">
     <div class="stack">
       <textarea class="textarea" id="asrResult" rows="6" readonly></textarea>
       <div class="frow">
-        <button class="btn sm" id="asrCopyBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-copy"/></svg>คัดลอกข้อความ</button>
-        <button class="btn primary sm" id="meetingSumBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sparkles"/></svg>สรุปประชุมด้วย AI</button>
+        <button class="btn sm" id="asrCopyBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-copy"/></svg><span data-i18n="tts.copy">คัดลอกข้อความ</span></button>
+        <button class="btn primary sm" id="meetingSumBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sparkles"/></svg><span data-i18n="tts.sumMeeting">สรุปประชุมด้วย AI</span></button>
       </div>
       <div class="status" id="meetingSumStatus"></div>
       <div id="meetingSumWrap" style="display:none">
         <div class="stack">
           <textarea class="textarea" id="meetingSumResult" rows="10" readonly></textarea>
           <div class="frow">
-            <a class="btn primary sm" id="meetingDocxLink" download="สรุปประชุม.docx"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg>ดาวน์โหลดเป็น Word (.docx)</a>
+            <a class="btn primary sm" id="meetingDocxLink" download="สรุปประชุม.docx"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tts.dlDocx">ดาวน์โหลดเป็น Word (.docx)</span></a>
           </div>
         </div>
       </div>

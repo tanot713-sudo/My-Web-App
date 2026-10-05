@@ -9,6 +9,83 @@
 
   function $(id) { return document.getElementById(id); }
 
+  var T = OME_I18N.scope('tts', {
+    th: {
+      title: 'แปลงเสียง ↔ ข้อความ | Tanot', crumbHome: 'หน้าหลัก', crumb: 'แปลงข้อความเป็นเสียง', h1: 'แปลงเสียง ↔ ข้อความ',
+      cardText: 'ข้อความ', attach: 'แนบไฟล์', useOcr: 'ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน (ช้ากว่าปกติ)',
+      textPh: 'พิมพ์หรือวางข้อความที่นี่ (ไทยหรืออังกฤษก็ได้) หรือกด แนบไฟล์ด้านบน', textLabel: 'ข้อความ',
+      cardLive: 'ฟังทันที (เสียงจากเบราว์เซอร์)', voice: 'เสียง', rate: 'ความเร็ว', play: 'เล่น', pause: 'หยุดชั่วคราว', stop: 'หยุด',
+      cardMake: 'สร้างไฟล์เสียงดาวน์โหลดได้ (.wav / .mp3)', badgeAi: 'เสียง AI (MMS-TTS)', lang: 'ภาษา', langTh: 'ไทย', langEn: 'อังกฤษ', make: 'สร้างไฟล์เสียง', dlWav: 'ดาวน์โหลด .wav', dlMp3: 'ดาวน์โหลด .mp3',
+      cardAsr: 'เสียง/วิดีโอ → ข้อความ', asrFile: 'ไฟล์เสียง/วิดีโอ', asrAuto: 'ตรวจจับอัตโนมัติ', modelSize: 'ขนาดโมเดล',
+      mTiny: 'เล็ก (เร็ว, ~75MB)', mBase: 'กลาง (แม่นขึ้น, ~145MB)', mSmall: 'ใหญ่ (แม่นขึ้นมาก, ~250MB, โหลด/รันช้ากว่า)', mMedium: 'ใหญ่มาก (แม่นสุด, ~750MB-1GB, โหลด/รันช้ามาก อาจหนักเกินไปสำหรับมือถือ/เครื่องสเปกต่ำ)',
+      engineLabel: 'ถอดเสียงด้วย', engineLocal: 'ในเบราว์เซอร์ (ฟรี)', engineCloud: 'คลาวด์ (แม่นกว่า)', asrGo: 'ถอดเสียงเป็นข้อความ', copy: 'คัดลอกข้อความ', sumMeeting: 'สรุปประชุมด้วย AI', dlDocx: 'ดาวน์โหลดเป็น Word (.docx)',
+      chars: '{n} ตัวอักษร', reading: 'กำลังอ่านไฟล์…', readingOcr: 'กำลังอ่านด้วย OCR หน้า/รูป {page}/{total} (อาจใช้เวลาสักครู่ต่อหน้า)…', readingPdf: 'กำลังอ่าน PDF หน้า {page}/{total}…',
+      noReader: 'โหลดตัวอ่านไฟล์ไม่สำเร็จ (อาจเป็นเพราะเน็ตช้า/ถูกบล็อก) ลองรีเฟรชหน้าใหม่', readingFile: 'กำลังอ่านไฟล์ {name}…', noText: 'ไม่พบข้อความในไฟล์นี้',
+      imported: 'นำเข้าข้อความจาก {name} แล้ว ({n} ตัวอักษร) — ตรวจทานก่อนกด "สร้างไฟล์เสียง" ได้', readFail: 'อ่านไฟล์ไม่สำเร็จ: {msg}',
+      noWebSpeech: '(เบราว์เซอร์นี้ไม่รองรับ Web Speech API)', noVoices: '(ยังไม่พบเสียง — บางเบราว์เซอร์โหลดช้า ลองรอสักครู่)', defaultVoice: ' — ค่าเริ่มต้น',
+      typeFirst: 'พิมพ์ข้อความก่อน', playing: 'กำลังเล่น…', played: 'เล่นจบแล้ว', playFail: 'เล่นไม่สำเร็จ: {msg}', paused: 'หยุดชั่วคราว',
+      v_default: 'ค่าเริ่มต้น', v_podcast: 'หญิง (โทนพอดแคสต์)', v_female: 'หญิง (ทั่วไป)', v_male: 'ชาย (ทั่วไป)',
+      etaFew: 'อีกไม่กี่วินาที', etaSec: 'อีกประมาณ {s} วินาที', etaMin: 'อีกประมาณ {m} นาที', etaMinSec: 'อีกประมาณ {m} นาที {s} วินาที',
+      emptyAfterFilter: 'ข้อความหลังตัดอักขระที่โมเดลไม่รู้จักออกแล้วว่างเปล่า ลองพิมพ์เป็นภาษาไทยดู',
+      prepTh: 'กำลังเตรียมโมเดลเสียง (ครั้งแรกต้องดาวน์โหลดจาก Hugging Face — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…',
+      prepEn: 'กำลังเตรียมโมเดลเสียง (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…',
+      dlModel: 'กำลังดาวน์โหลดโมเดล: {file}', dlModelPct: 'กำลังดาวน์โหลดโมเดล: {file} ({pct}%)', chunksDone: 'สร้างเสียงแล้ว {done}/{total} ท่อน', creating: 'กำลังสร้างเสียง… (อาจใช้เวลาถึงหลายนาทีถ้าเครื่องไม่แรงมาก)',
+      assembling: 'กำลังประกอบไฟล์เสียง…', made: 'สร้างไฟล์เสียงเสร็จแล้ว — เล่นฟังหรือดาวน์โหลดได้ด้านล่าง', makeFail: 'สร้างไฟล์เสียงไม่สำเร็จ: {msg} [model={model}, dtype={dtype}]',
+      dtypeDefault: 'ดีฟอลต์ของเบราว์เซอร์ (มักเป็น q8)', cantDecode: 'ถอดเสียงจากไฟล์นี้ไม่ได้ — ลองไฟล์เสียง/วิดีโอชนิดอื่น (mp3/wav/mp4/webm)',
+      noAudioCtx: 'เบราว์เซอร์นี้ไม่รองรับ Web Audio API สำหรับแปลงเป็น mp3', wavFail: 'ถอดรหัสไฟล์ .wav ไม่สำเร็จ', noAudioData: 'ไม่ได้ข้อมูลเสียงกลับมา', noWorker: 'สร้าง Web Worker ไม่ได้',
+      neuronUse: 'ใช้ไปแล้ววันนี้ {used} / {limit} Neurons (เหลือฟรี ~{hours} ชม.เสียง)',
+      costConfirm: 'เสียงไฟล์นี้ยาว ~{min} นาที ต้องใช้ ~{need} Neurons แต่วันนี้เหลือโควตาฟรีแค่ {left} Neurons (ใช้ไปแล้ว {used}/{limit}) — ส่วนที่เกิน ~{over} Neurons จะมีค่าใช้จ่ายจริง (~${cost}) กดตกลงเพื่อทำต่อ หรือยกเลิกเพื่อหยุด',
+      cancelledQuota: 'ยกเลิกแล้ว (เกินโควตาฟรีวันนี้)', cloudChunk: 'กำลังถอดเสียงผ่านคลาวด์… ท่อน {i}/{n}', pickAudio: 'เลือกไฟล์เสียง/วิดีโอก่อน',
+      longConfirm: 'ไฟล์นี้ยาว ~{min} นาที การถอดเสียงไฟล์ยาวขนาดนี้บนมือถืออาจทำให้เบราว์เซอร์ค้างหรือแครชกลางทาง (หน่วยความจำจำกัดกว่าคอม) แนะนำให้ใช้คอมพิวเตอร์แทน หรือตัดไฟล์ให้สั้นลงก่อน — กดตกลงถ้าต้องการลองต่อบนมือถือนี้เลย',
+      cancelled: 'ยกเลิกแล้ว', decoding: 'กำลังถอดรหัสไฟล์เสียง…', doneCloud: 'ถอดเสียงเสร็จแล้ว (คลาวด์)', doneEmpty: 'ถอดเสียงเสร็จแต่ไม่พบคำพูดในไฟล์นี้', asrFail: 'ถอดเสียงไม่สำเร็จ: {msg}',
+      prepAsr: 'กำลังเตรียมโมเดล AI (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…', transcribing: 'กำลังถอดเสียงเป็นข้อความ…', asrDone: 'ถอดเสียงเสร็จแล้ว', copied: 'คัดลอกข้อความแล้ว',
+      noTranscript: 'ยังไม่มีข้อความที่ถอดเสียงไว้', noIos: 'โหมดนี้ไม่รองรับบน iPhone/iPad (เบราว์เซอร์มือถือรุ่นนี้รันโมเดล AI แบบนี้ไม่เสถียร) — ใช้คอมพิวเตอร์แทน', noDocx: 'โหลดไลบรารีสร้างไฟล์ Word ไม่สำเร็จ ลองรีเฟรชหน้านี้ใหม่',
+      sumCloud: 'กำลังสรุปด้วย AI บนคลาวด์…', sumLocalPrep: 'กำลังเตรียมโมเดล AI…', sumFallback: '{msg} — สลับไปใช้โมเดลในเบราว์เซอร์แทน…', sumEmpty: 'สรุปไม่สำเร็จ ไม่ได้คำตอบจากโมเดล', sumDone: 'สรุปเสร็จแล้ว ตรวจทานก่อนดาวน์โหลดได้เลย', sumFail: 'สรุปไม่สำเร็จ: {msg}',
+      sumPart: 'กำลังสรุปช่วงที่ {i}/{n}…', sumMerge: 'กำลังรวมเป็นสรุปฉบับเดียว…', sumPartCloud: 'กำลังสรุปช่วงที่ {i}/{n} (คลาวด์)…'
+    },
+    en: {
+      title: 'Speech ↔ text | Tanot', crumbHome: 'Home', crumb: 'Text to speech', h1: 'Speech ↔ text',
+      cardText: 'Text', attach: 'Attach file', useOcr: 'Use OCR on scanned pages/images (slower)',
+      textPh: 'Type or paste text here (Thai or English), or use Attach file above', textLabel: 'Text',
+      cardLive: 'Listen now (browser voice)', voice: 'Voice', rate: 'Speed', play: 'Play', pause: 'Pause', stop: 'Stop',
+      cardMake: 'Create a downloadable audio file (.wav / .mp3)', badgeAi: 'AI voice (MMS-TTS)', lang: 'Language', langTh: 'Thai', langEn: 'English', make: 'Create audio file', dlWav: 'Download .wav', dlMp3: 'Download .mp3',
+      cardAsr: 'Audio/video → text', asrFile: 'Audio/video file', asrAuto: 'Auto-detect', modelSize: 'Model size',
+      mTiny: 'Small (fast, ~75MB)', mBase: 'Medium (more accurate, ~145MB)', mSmall: 'Large (much more accurate, ~250MB, slower to load/run)', mMedium: 'Extra large (most accurate, ~750MB-1GB, very slow to load/run — may be too heavy for phones/low-end devices)',
+      engineLabel: 'Transcribe with', engineLocal: 'In browser (free)', engineCloud: 'Cloud (more accurate)', asrGo: 'Transcribe to text', copy: 'Copy text', sumMeeting: 'Summarize meeting with AI', dlDocx: 'Download as Word (.docx)',
+      chars: '{n} characters', reading: 'Reading file…', readingOcr: 'Reading with OCR, page/image {page}/{total} (may take a moment per page)…', readingPdf: 'Reading PDF page {page}/{total}…',
+      noReader: 'Could not load the file reader (slow or blocked network?). Try reloading the page', readingFile: 'Reading {name}…', noText: 'No text found in this file',
+      imported: 'Imported text from {name} ({n} characters) — review it before pressing "Create audio file"', readFail: 'Could not read the file: {msg}',
+      noWebSpeech: '(This browser does not support the Web Speech API)', noVoices: '(No voices found yet — some browsers load slowly, wait a moment)', defaultVoice: ' — default',
+      typeFirst: 'Type some text first', playing: 'Playing…', played: 'Finished playing', playFail: 'Playback failed: {msg}', paused: 'Paused',
+      v_default: 'Default', v_podcast: 'Female (podcast tone)', v_female: 'Female (general)', v_male: 'Male (general)',
+      etaFew: 'a few seconds left', etaSec: 'about {s} seconds left', etaMin: 'about {m} min left', etaMinSec: 'about {m} min {s} s left',
+      emptyAfterFilter: 'Nothing is left after removing characters the model does not know. Try typing in Thai',
+      prepTh: 'Preparing the voice model (the first time it downloads from Hugging Face — later runs are faster because it is cached)…',
+      prepEn: 'Preparing the voice model (the first time it may download tens of MB from Hugging Face — later runs are faster because it is cached)…',
+      dlModel: 'Downloading model: {file}', dlModelPct: 'Downloading model: {file} ({pct}%)', chunksDone: 'Generated {done}/{total} segments', creating: 'Generating audio… (may take several minutes on a slow device)',
+      assembling: 'Assembling the audio file…', made: 'Audio file ready — play it or download it below', makeFail: 'Could not create the audio file: {msg} [model={model}, dtype={dtype}]',
+      dtypeDefault: 'browser default (usually q8)', cantDecode: 'Could not decode this file — try another audio/video type (mp3/wav/mp4/webm)',
+      noAudioCtx: 'This browser does not support the Web Audio API needed to convert to mp3', wavFail: 'Could not decode the .wav file', noAudioData: 'No audio data came back', noWorker: 'Could not create a Web Worker',
+      neuronUse: 'Used today {used} / {limit} Neurons (~{hours} h of audio left free)',
+      costConfirm: 'This audio is ~{min} min long and needs ~{need} Neurons, but only {left} Neurons of the free quota are left today ({used}/{limit} used) — the extra ~{over} Neurons will cost real money (~${cost}). Press OK to continue or Cancel to stop',
+      cancelledQuota: 'Cancelled (over today\'s free quota)', cloudChunk: 'Transcribing in the cloud… segment {i}/{n}', pickAudio: 'Choose an audio/video file first',
+      longConfirm: 'This file is ~{min} min long. Transcribing something this long on a phone may freeze or crash the browser (less memory than a computer). We recommend a computer, or trimming the file first — press OK to try anyway on this phone',
+      cancelled: 'Cancelled', decoding: 'Decoding the audio file…', doneCloud: 'Transcription finished (cloud)', doneEmpty: 'Transcription finished but no speech was found in this file', asrFail: 'Transcription failed: {msg}',
+      prepAsr: 'Preparing the AI model (the first time it may download tens of MB from Hugging Face — later runs are faster because it is cached)…', transcribing: 'Transcribing to text…', asrDone: 'Transcription finished', copied: 'Text copied',
+      noTranscript: 'There is no transcribed text yet', noIos: 'This mode is not supported on iPhone/iPad (mobile browsers cannot run this AI model reliably) — use a computer instead', noDocx: 'Could not load the Word file library. Try reloading this page',
+      sumCloud: 'Summarizing with AI in the cloud…', sumLocalPrep: 'Preparing the AI model…', sumFallback: '{msg} — switching to the in-browser model…', sumEmpty: 'Could not summarize — the model returned no answer', sumDone: 'Summary ready — review it before downloading', sumFail: 'Summary failed: {msg}',
+      sumPart: 'Summarizing part {i}/{n}…', sumMerge: 'Merging into one summary…', sumPartCloud: 'Summarizing part {i}/{n} (cloud)…'
+    }
+  });
+  /* บรรทัดสถานะ: st(id, fn, cls?) — fn คืนข้อความตามภาษาปัจจุบัน (วาดซ้ำเองตอนสลับภาษา) · fn=null ล้างข้อความ */
+  function st(id, fn, cls) {
+    var el = $(id); if (!el) return;
+    if (cls !== undefined) el.className = 'status' + (cls ? ' ' + cls : '');
+    OME_I18N.live(el, typeof fn === 'function' ? fn : null);
+    if (typeof fn !== 'function') el.textContent = fn || '';
+  }
+  function errText(e) { return window.TanotFileReader && TanotFileReader.errorText ? TanotFileReader.errorText(e) : (e && e.message ? e.message : String(e)); }
+
   /* ══════════════════ ตั้งค่า path ไฟล์ WASM ของ onnxruntime-web (ใช้ร่วมกันทั้ง TTS/ASR) ══════════════════
      แก้บั๊ก 2 ชั้นที่เจอจริงในโปรดักชัน:
      1) ตั้ง wasmPaths เป็น string เฉยๆ ('./vendor/transformers/') ทำให้ path ที่เบราว์เซอร์ขอจริง
@@ -39,17 +116,17 @@
 
   /* ══════════════════ ตัวนับตัวอักษร ══════════════════ */
   function updateCharCount() {
-    $('ttsCharCount').textContent = $('ttsText').value.length + ' ตัวอักษร';
+    OME_I18N.live($('ttsCharCount'), function () { return T('chars', { n: OME_I18N.number($('ttsText').value.length) }); });
   }
 
   /* ══════════════════ แนบไฟล์ → นำเข้าข้อความ (file-reader.js) ══════════════════
      รองรับ .txt/.docx/.xlsx/.xls/.csv/.pptx/.pdf/รูปภาพ — ดูรายละเอียดการอ่านแต่ละชนิดไฟล์ใน
      file-reader.js (ไฟล์กลาง ใช้ร่วมกับหน้าอื่นได้ในอนาคต ไม่ผูกกับ UI ของหน้านี้โดยเฉพาะ) */
   function formatImportProgress(p) {
-    if (!p) return 'กำลังอ่านไฟล์…';
-    if (p.stage === 'ocr') return 'กำลังอ่านด้วย OCR หน้า/รูป ' + p.page + '/' + p.total + ' (อาจใช้เวลาสักครู่ต่อหน้า)…';
-    if (p.stage === 'pdf') return 'กำลังอ่าน PDF หน้า ' + p.page + '/' + p.total + '…';
-    return 'กำลังอ่านไฟล์…';
+    if (!p) return T('reading');
+    if (p.stage === 'ocr') return T('readingOcr', { page: p.page, total: p.total });
+    if (p.stage === 'pdf') return T('readingPdf', { page: p.page, total: p.total });
+    return T('reading');
   }
   function importFileChange(e) {
     var file = e.target.files && e.target.files[0];
@@ -57,29 +134,29 @@
     if (!file) return;
     if (!window.TanotFileReader) {
       $('importStatus').className = 'status err';
-      $('importStatus').textContent = 'โหลดตัวอ่านไฟล์ไม่สำเร็จ (อาจเป็นเพราะเน็ตช้า/ถูกบล็อก) ลองรีเฟรชหน้าใหม่';
+      st('importStatus', function () { return T('noReader'); });
       return;
     }
     $('importFileBtn').disabled = true;
     $('importStatus').className = 'status';
-    $('importStatus').textContent = 'กำลังอ่านไฟล์ ' + file.name + '…';
+    st('importStatus', function () { return T('readingFile', { name: file.name }); });
     window.TanotFileReader.readAnyFile(file, {
       ocr: $('importOcrChk').checked,
-      onProgress: function (p) { $('importStatus').textContent = formatImportProgress(p); }
+      onProgress: function (p) { st('importStatus', function () { return formatImportProgress(p); }); }
     }).then(function (text) {
       text = (text || '').trim();
       if (!text) {
         $('importStatus').className = 'status err';
-        $('importStatus').textContent = 'ไม่พบข้อความในไฟล์นี้';
+        st('importStatus', function () { return T('noText'); });
         return;
       }
       $('ttsText').value = text;
       updateCharCount();
       $('importStatus').className = 'status ok';
-      $('importStatus').textContent = 'นำเข้าข้อความจาก ' + file.name + ' แล้ว (' + text.length + ' ตัวอักษร) — ตรวจทานก่อนกด "สร้างไฟล์เสียง" ได้';
+      st('importStatus', function () { return T('imported', { name: file.name, n: text.length }); });
     }).catch(function (err) {
       $('importStatus').className = 'status err';
-      $('importStatus').textContent = 'อ่านไฟล์ไม่สำเร็จ: ' + (err && err.message ? err.message : err);
+      st('importStatus', function () { return T('readFail', { msg: errText(err) }); });
     }).finally(function () {
       $('importFileBtn').disabled = false;
     });
@@ -93,35 +170,37 @@
   }
   function renderWsVoiceOptions() {
     var sel = $('wsVoice');
+    var keep = sel.value;
     if (!window.speechSynthesis) {
-      sel.innerHTML = '<option value="">(เบราว์เซอร์นี้ไม่รองรับ Web Speech API)</option>';
+      sel.innerHTML = '<option value="">' + T('noWebSpeech') + '</option>';
       $('wsPlayBtn').disabled = true;
       return;
     }
     if (!wsVoices.length) {
-      sel.innerHTML = '<option value="">(ยังไม่พบเสียง — บางเบราว์เซอร์โหลดช้า ลองรอสักครู่)</option>';
+      sel.innerHTML = '<option value="">' + T('noVoices') + '</option>';
       return;
     }
     sel.innerHTML = wsVoices.map(function (v, i) {
-      return '<option value="' + i + '">' + v.name + ' (' + v.lang + ')' + (v.default ? ' — ค่าเริ่มต้น' : '') + '</option>';
+      return '<option value="' + i + '">' + v.name + ' (' + v.lang + ')' + (v.default ? T('defaultVoice') : '') + '</option>';
     }).join('');
     var defaultIdx = wsVoices.findIndex(function (v) { return v.default; });
-    if (defaultIdx >= 0) sel.value = String(defaultIdx);
+    if (keep !== '' && wsVoices[+keep]) sel.value = keep;
+    else if (defaultIdx >= 0) sel.value = String(defaultIdx);
   }
   function wsPlay() {
     var text = $('ttsText').value;
-    if (!text.trim()) { $('wsStatus').className = 'status err'; $('wsStatus').textContent = 'พิมพ์ข้อความก่อน'; return; }
+    if (!text.trim()) { $('wsStatus').className = 'status err'; st('wsStatus', function () { return T('typeFirst'); }); return; }
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(text);
     var idx = parseInt($('wsVoice').value, 10);
     if (wsVoices[idx]) { u.voice = wsVoices[idx]; u.lang = wsVoices[idx].lang; }
     u.rate = parseFloat($('wsRate').value) || 1;
-    u.onstart = function () { $('wsStatus').className = 'status ok'; $('wsStatus').textContent = 'กำลังเล่น…'; };
-    u.onend = function () { $('wsStatus').className = 'status'; $('wsStatus').textContent = 'เล่นจบแล้ว'; };
+    u.onstart = function () { $('wsStatus').className = 'status ok'; st('wsStatus', function () { return T('playing'); }); };
+    u.onend = function () { $('wsStatus').className = 'status'; st('wsStatus', function () { return T('played'); }); };
     u.onerror = function (e) {
       if (e && e.error === 'interrupted') return; // ผู้ใช้กดหยุด/เล่นใหม่เอง ไม่ใช่ข้อผิดพลาดจริง
-      $('wsStatus').className = 'status err'; $('wsStatus').textContent = 'เล่นไม่สำเร็จ: ' + (e && e.error);
+      $('wsStatus').className = 'status err'; st('wsStatus', function () { return T('playFail', { msg: e && e.error }); });
     };
     window.speechSynthesis.speak(u);
   }
@@ -129,15 +208,15 @@
     if (!window.speechSynthesis) return;
     if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
       window.speechSynthesis.pause();
-      $('wsStatus').className = 'status'; $('wsStatus').textContent = 'หยุดชั่วคราว';
+      $('wsStatus').className = 'status'; st('wsStatus', function () { return T('paused'); });
     } else if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
-      $('wsStatus').className = 'status ok'; $('wsStatus').textContent = 'กำลังเล่น…';
+      $('wsStatus').className = 'status ok'; st('wsStatus', function () { return T('playing'); });
     }
   }
   function wsStop() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
-    $('wsStatus').className = 'status'; $('wsStatus').textContent = '';
+    $('wsStatus').className = 'status'; st('wsStatus', null);
   }
 
   /* ══════════════════ โหมด 2: สร้างไฟล์เสียง (MMS-TTS ผ่าน transformers.js → wav → mp3) ══════════════════
@@ -188,7 +267,7 @@
     return loadTtsPipeline(modelId, onProgress).then(function (synthesizer) {
       return synthesizer(text);
     }).then(function (output) {
-      if (!output || !output.audio || !output.audio.length) throw new Error('ไม่ได้ข้อมูลเสียงกลับมา');
+      if (!output || !output.audio || !output.audio.length) throw new Error(T('noAudioData'));
       return output;
     });
   }
@@ -307,7 +386,7 @@
   function synthesizeMmsTtsChunksInWorkerPool(chunks, modelId, onModelProgress, onProgress) {
     return new Promise(function (resolve, reject) {
       var pool = getTtsWorkerPool();
-      if (!pool.length) { reject(new Error('สร้าง Web Worker ไม่ได้')); return; }
+      if (!pool.length) { reject(new Error(T('noWorker'))); return; }
       var jobId = ++ttsJobSeq;
       var total = chunks.length;
       var results = new Array(total);
@@ -393,7 +472,7 @@
   function wavBytesToMp3Blob(wavBytes) {
     return new Promise(function (resolve, reject) {
       var AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) { reject(new Error('เบราว์เซอร์นี้ไม่รองรับ Web Audio API สำหรับแปลงเป็น mp3')); return; }
+      if (!AudioCtx) { reject(new Error(T('noAudioCtx'))); return; }
       var audioCtx = new AudioCtx();
       var ab = wavBytes.buffer.slice(wavBytes.byteOffset, wavBytes.byteOffset + wavBytes.byteLength);
       audioCtx.decodeAudioData(ab, function (audioBuffer) {
@@ -417,7 +496,7 @@
           resolve(new Blob(mp3Chunks, { type: 'audio/mpeg' }));
         } catch (e) { reject(e); }
         finally { audioCtx.close(); }
-      }, function (err) { audioCtx.close(); reject(err || new Error('ถอดรหัสไฟล์ .wav ไม่สำเร็จ')); });
+      }, function (err) { audioCtx.close(); reject(err || new Error(T('wavFail'))); });
     });
   }
   var lastWavUrl = null, lastMp3Url = null;
@@ -432,19 +511,20 @@
   }
   var TTS_VOICES = {
     th: [
-      { id: 'Tanotfin/mms-tts-2081-onnx', label: 'ค่าเริ่มต้น' },
-      { id: 'phlebotomy1996/mms-thai-female-podcast-spk0', label: 'หญิง (โทนพอดแคสต์)' },
-      { id: 'Tanotfin/mms-tts-2081-FM-onnx', label: 'หญิง (ทั่วไป)' },
-      { id: 'Tanotfin/mms-tts-2081-M-onnx', label: 'ชาย (ทั่วไป)' }
+      { id: 'Tanotfin/mms-tts-2081-onnx', label: 'ค่าเริ่มต้น', k: 'v_default' },
+      { id: 'phlebotomy1996/mms-thai-female-podcast-spk0', label: 'หญิง (โทนพอดแคสต์)', k: 'v_podcast' },
+      { id: 'Tanotfin/mms-tts-2081-FM-onnx', label: 'หญิง (ทั่วไป)', k: 'v_female' },
+      { id: 'Tanotfin/mms-tts-2081-M-onnx', label: 'ชาย (ทั่วไป)', k: 'v_male' }
     ],
     en: [
-      { id: 'Xenova/mms-tts-eng', label: 'ค่าเริ่มต้น' }
+      { id: 'Xenova/mms-tts-eng', label: 'ค่าเริ่มต้น', k: 'v_default' }
     ]
   };
   function renderVoiceOptions() {
-    var lang = $('dlLang').value;
+    var lang = $('dlLang').value, keep = $('dlVoice').value;
     var voices = TTS_VOICES[lang] || TTS_VOICES.th;
-    $('dlVoice').innerHTML = voices.map(function (v) { return '<option value="' + v.id + '">' + v.label + '</option>'; }).join('');
+    $('dlVoice').innerHTML = voices.map(function (v) { return '<option value="' + v.id + '">' + T(v.k) + '</option>'; }).join('');
+    if (keep) $('dlVoice').value = keep;
   }
 
   /* ══════════════════ ปรับข้อความก่อนส่งเข้าโมเดลเสียงไทย (Tanotfin/mms-tts-2081-onnx) ══════════════════
@@ -485,44 +565,44 @@
   /* แปลงวินาทีเป็นข้อความอ่านง่าย ใช้โชว์เวลาที่เหลือโดยประมาณ (ETA) ระหว่างสร้างเสียง */
   function formatEta(sec) {
     sec = Math.max(0, Math.round(sec));
-    if (sec < 5) return 'อีกไม่กี่วินาที';
-    if (sec < 60) return 'อีกประมาณ ' + sec + ' วินาที';
+    if (sec < 5) return T('etaFew');
+    if (sec < 60) return T('etaSec', { s: sec });
     var m = Math.floor(sec / 60), s = sec % 60;
-    return 'อีกประมาณ ' + m + ' นาที' + (s > 0 ? ' ' + s + ' วินาที' : '');
+    return s > 0 ? T('etaMinSec', { m: m, s: s }) : T('etaMin', { m: m });
   }
   function generateDownloadable() {
     var rawText = $('ttsText').value;
-    if (!rawText.trim()) { $('dlStatus').className = 'status err'; $('dlStatus').textContent = 'พิมพ์ข้อความก่อน'; return; }
+    if (!rawText.trim()) { $('dlStatus').className = 'status err'; st('dlStatus', function () { return T('typeFirst'); }); return; }
     var lang = $('dlLang').value;
     var modelId = $('dlVoice').value;
     var chunks = splitIntoTtsChunks(rawText);
     if (lang === 'th') {
       chunks = chunks.map(normalizeForThaiTts).filter(Boolean);
-      if (!chunks.length) { $('dlStatus').className = 'status err'; $('dlStatus').textContent = 'ข้อความหลังตัดอักขระที่โมเดลไม่รู้จักออกแล้วว่างเปล่า ลองพิมพ์เป็นภาษาไทยดู'; return; }
+      if (!chunks.length) { $('dlStatus').className = 'status err'; st('dlStatus', function () { return T('emptyAfterFilter'); }); return; }
     }
     $('dlGenerateBtn').disabled = true;
     $('dlStatus').className = 'status';
-    $('dlStatus').textContent = lang === 'th'
-      ? 'กำลังเตรียมโมเดลเสียง (ครั้งแรกต้องดาวน์โหลดจาก Hugging Face — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…'
-      : 'กำลังเตรียมโมเดลเสียง (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
+    st('dlStatus', function () { return T(lang === 'th' ? 'prepTh' : 'prepEn'); });
     var startedAt = Date.now();
     synthesizeMmsTtsChunksResponsive(chunks, modelId, function (p) {
       if (p && p.status === 'progress' && p.file) {
         var pct = p.progress != null ? Math.round(p.progress) : null;
-        $('dlStatus').textContent = 'กำลังดาวน์โหลดโมเดล: ' + p.file + (pct != null ? (' (' + pct + '%)') : '');
+        st('dlStatus', function () { return pct != null ? T('dlModelPct', { file: p.file, pct: pct }) : T('dlModel', { file: p.file }); });
       }
     }, function (done, total) {
       /* นับความคืบหน้าหลังท่อนเสร็จ (ไม่ใช่ก่อนเริ่ม) — ใช้ตัวเลขเดียวกันคำนวณ ETA ได้ทั้งตอนรันขนาน
          หลาย Worker พร้อมกันและตอน fallback รันทีละท่อนในหน้าเว็บตรงๆ เพราะเป็นอัตราความเร็วรวมจริง
          ไม่ผูกกับว่ามีกี่ Worker ทำงานอยู่ */
       var elapsed = (Date.now() - startedAt) / 1000;
-      var etaTxt = (done > 0 && done < total) ? (' — ' + formatEta((elapsed / done) * (total - done))) : '';
-      $('dlStatus').textContent = total > 1
-        ? 'สร้างเสียงแล้ว ' + done + '/' + total + ' ท่อน' + etaTxt
-        : 'กำลังสร้างเสียง… (อาจใช้เวลาถึงหลายนาทีถ้าเครื่องไม่แรงมาก)';
+      var eta = (done > 0 && done < total) ? (elapsed / done) * (total - done) : null;
+      st('dlStatus', function () {
+        return total > 1
+          ? T('chunksDone', { done: done, total: total }) + (eta != null ? ' — ' + formatEta(eta) : '')
+          : T('creating');
+      });
     })
       .then(function (output) {
-        $('dlStatus').textContent = 'กำลังประกอบไฟล์เสียง…';
+        st('dlStatus', function () { return T('assembling'); });
         var wavBlob = float32ToWavBlob(output.audio, output.sampling_rate);
         var wavUrl = URL.createObjectURL(wavBlob);
         return wavBlob.arrayBuffer().then(function (buf) {
@@ -530,7 +610,7 @@
             var mp3Url = URL.createObjectURL(mp3Blob);
             showResult(wavUrl, mp3Url);
             $('dlStatus').className = 'status ok';
-            $('dlStatus').textContent = 'สร้างไฟล์เสียงเสร็จแล้ว — เล่นฟังหรือดาวน์โหลดได้ด้านล่าง';
+            st('dlStatus', function () { return T('made'); });
           });
         });
       })
@@ -539,9 +619,8 @@
         /* ใส่ modelId + dtype ที่ใช้จริงต่อท้าย error เสมอ (เพิ่มเข้ามาเพื่อวินิจฉัยปัญหา cache เก่า
            ค้าง vs. ปัญหาโมเดลจริง — ถ้า error หน้าเว็บบอก dtype ไม่ตรงกับที่โค้ดล่าสุดควรใช้ แปลว่า
            browser/service worker ยังไม่ได้โหลดโค้ดใหม่จริง ไม่ใช่โมเดลพัง) */
-        var usedDtype = TTS_DTYPE_OVERRIDES[modelId] || 'ดีฟอลต์ของเบราว์เซอร์ (มักเป็น q8)';
-        $('dlStatus').textContent = 'สร้างไฟล์เสียงไม่สำเร็จ: ' + (e && e.message ? e.message : e)
-          + ' [model=' + modelId + ', dtype=' + usedDtype + ']';
+        var usedDtype = TTS_DTYPE_OVERRIDES[modelId] || null;
+        st('dlStatus', function () { return T('makeFail', { msg: errText(e), model: modelId, dtype: usedDtype || T('dtypeDefault') }); });
       })
       .finally(function () { $('dlGenerateBtn').disabled = false; });
   }
@@ -579,7 +658,7 @@
         return resampleTo16kMono(audioBuffer);
       }, function () {
         ctx.close();
-        throw new Error('ถอดเสียงจากไฟล์นี้ไม่ได้ — ลองไฟล์เสียง/วิดีโอชนิดอื่น (mp3/wav/mp4/webm)');
+        throw new Error(T('cantDecode'));
       });
     });
   }
@@ -646,8 +725,9 @@
   function updateNeuronStatusUI() {
     var el = $('asrNeuronStatus');
     if (!el) return;
-    el.textContent = 'ใช้ไปแล้ววันนี้ ' + Math.round(getNeuronUsage()) + ' / ' + DAILY_NEURON_LIMIT + ' Neurons (เหลือฟรี ~' +
-      (remainingNeurons() / NEURONS_PER_AUDIO_MINUTE / 60).toFixed(1) + ' ชม.เสียง)';
+    OME_I18N.live(el, function () {
+      return T('neuronUse', { used: Math.round(getNeuronUsage()), limit: DAILY_NEURON_LIMIT, hours: (remainingNeurons() / NEURONS_PER_AUDIO_MINUTE / 60).toFixed(1) });
+    });
   }
 
   /* แปลง PCM Float32 (16kHz mono ที่ decodeFileToPcm/resampleTo16kMono ให้มาอยู่แล้ว) เป็น base64
@@ -719,18 +799,15 @@
          ไม่เสียเงินอยู่แล้ว เสียเฉพาะส่วนเกิน) */
       var overageNeurons = estimatedNeurons - remainingNeurons();
       var estCost = (overageNeurons / 1000 * 0.011).toFixed(3);
-      var proceed = window.confirm(
-        'เสียงไฟล์นี้ยาว ~' + totalMinutes.toFixed(1) + ' นาที ต้องใช้ ~' + Math.round(estimatedNeurons) + ' Neurons ' +
-        'แต่วันนี้เหลือโควตาฟรีแค่ ' + Math.round(remainingNeurons()) + ' Neurons (ใช้ไปแล้ว ' + Math.round(getNeuronUsage()) + '/' + DAILY_NEURON_LIMIT + ') — ' +
-        'ส่วนที่เกิน ~' + Math.round(overageNeurons) + ' Neurons จะมีค่าใช้จ่ายจริง (~$' + estCost + ') กดตกลงเพื่อทำต่อ หรือยกเลิกเพื่อหยุด'
-      );
-      if (!proceed) throw new Error('ยกเลิกแล้ว (เกินโควตาฟรีวันนี้)');
+      var proceed = window.confirm(T('costConfirm', { min: totalMinutes.toFixed(1), need: Math.round(estimatedNeurons), left: Math.round(remainingNeurons()),
+        used: Math.round(getNeuronUsage()), limit: DAILY_NEURON_LIMIT, over: Math.round(overageNeurons), cost: estCost }));
+      if (!proceed) throw new Error(T('cancelledQuota'));
     }
 
     var chunks = chunkPcm(pcm, sampleRate, 30);
     var texts = [];
     for (var i = 0; i < chunks.length; i++) {
-      $('asrStatus').textContent = 'กำลังถอดเสียงผ่านคลาวด์… ท่อน ' + (i + 1) + '/' + chunks.length;
+      (function (idx) { st('asrStatus', function () { return T('cloudChunk', { i: idx + 1, n: chunks.length }); }); })(i);
       var data = await transcribeChunkCloud(chunks[i], sampleRate, language);
       texts.push((data.text || '').trim());
       /* บันทึก Neurons จริงจาก response ถ้ามี (แม่นกว่าประมาณจากความยาวเสียงเอง) ไม่มีก็ใช้ค่าประมาณ
@@ -746,7 +823,7 @@
   function runAsr() {
     var fileInput = $('asrFile');
     var file = fileInput.files && fileInput.files[0];
-    if (!file) { $('asrStatus').className = 'status err'; $('asrStatus').textContent = 'เลือกไฟล์เสียง/วิดีโอก่อน'; return; }
+    if (!file) { $('asrStatus').className = 'status err'; st('asrStatus', function () { return T('pickAudio'); }); return; }
     var langOpt = $('asrLang').value;
     var engine = getAsrEngine();
     $('asrGoBtn').disabled = true;
@@ -760,47 +837,44 @@
     getMediaDuration(file).then(function (durSec) {
       var mins = durSec ? Math.round(durSec / 60) : null;
       if (mins && mins > 45) {
-        var proceed = window.confirm(
-          'ไฟล์นี้ยาว ~' + mins + ' นาที การถอดเสียงไฟล์ยาวขนาดนี้บนมือถืออาจทำให้เบราว์เซอร์ค้างหรือแครชกลางทาง ' +
-          '(หน่วยความจำจำกัดกว่าคอม) แนะนำให้ใช้คอมพิวเตอร์แทน หรือตัดไฟล์ให้สั้นลงก่อน — กดตกลงถ้าต้องการลองต่อบนมือถือนี้เลย'
-        );
-        if (!proceed) { $('asrGoBtn').disabled = false; $('asrStatus').textContent = 'ยกเลิกแล้ว'; return; }
+        var proceed = window.confirm(T('longConfirm', { min: mins }));
+        if (!proceed) { $('asrGoBtn').disabled = false; st('asrStatus', function () { return T('cancelled'); }); return; }
       }
       proceedRunAsr(file, langOpt, engine);
     });
   }
   function proceedRunAsr(file, langOpt, engine) {
     if (engine === 'cloud') {
-      $('asrStatus').textContent = 'กำลังถอดรหัสไฟล์เสียง…';
+      st('asrStatus', function () { return T('decoding'); });
       decodeFileToPcm(file)
         .then(function (pcm) { return runAsrCloud(pcm, langOpt); })
         .then(function (text) {
           $('asrResult').value = text;
           $('asrResultWrap').style.display = 'block';
           $('asrStatus').className = 'status ok';
-          $('asrStatus').textContent = text ? 'ถอดเสียงเสร็จแล้ว (คลาวด์)' : 'ถอดเสียงเสร็จแต่ไม่พบคำพูดในไฟล์นี้';
+          st('asrStatus', function () { return text ? T('doneCloud') : T('doneEmpty'); });
           updateNeuronStatusUI();
         })
         .catch(function (e) {
           $('asrStatus').className = 'status err';
-          $('asrStatus').textContent = 'ถอดเสียงไม่สำเร็จ: ' + (e && e.message ? e.message : e);
+          st('asrStatus', function () { return T('asrFail', { msg: errText(e) }); });
         })
         .finally(function () { $('asrGoBtn').disabled = false; });
       return;
     }
 
     var modelId = $('asrModel').value;
-    $('asrStatus').textContent = 'กำลังเตรียมโมเดล AI (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…';
+    st('asrStatus', function () { return T('prepAsr'); });
     var transcriberPromise = loadAsrPipeline(modelId, function (p) {
       if (p && p.status === 'progress' && p.file) {
         var pct = p.progress != null ? Math.round(p.progress) : null;
-        $('asrStatus').textContent = 'กำลังดาวน์โหลดโมเดล: ' + p.file + (pct != null ? (' (' + pct + '%)') : '');
+        st('asrStatus', function () { return pct != null ? T('dlModelPct', { file: p.file, pct: pct }) : T('dlModel', { file: p.file }); });
       }
     });
     Promise.all([transcriberPromise, decodeFileToPcm(file)])
       .then(function (results) {
         var transcriber = results[0], pcm = results[1];
-        $('asrStatus').textContent = 'กำลังถอดเสียงเป็นข้อความ…';
+        st('asrStatus', function () { return T('transcribing'); });
         /* Whisper เทรนมาให้รับเสียงทีละ ≤30 วินาทีเท่านั้น — ถ้าไม่บอก chunk_length_s/stride_length_s
            ไฟล์เสียงที่ยาวกว่า 30 วินาทีจะถูกยัดเข้าโมเดลเป็นก้อนเดียวทั้งไฟล์ ทำให้โมเดล "หลอน"
            (hallucinate) ออกมาเป็นคำซ้ำๆ ไม่จบ (เจอจริง เช่น "นำ นำ นำ นำ..." ไม่หยุด) แก้โดยบอกให้ตัด
@@ -819,11 +893,11 @@
         $('asrResult').value = text.trim();
         $('asrResultWrap').style.display = 'block';
         $('asrStatus').className = 'status ok';
-        $('asrStatus').textContent = text.trim() ? 'ถอดเสียงเสร็จแล้ว' : 'ถอดเสียงเสร็จแต่ไม่พบคำพูดในไฟล์นี้';
+        st('asrStatus', function () { return text.trim() ? T('asrDone') : T('doneEmpty'); });
       })
       .catch(function (e) {
         $('asrStatus').className = 'status err';
-        $('asrStatus').textContent = 'ถอดเสียงไม่สำเร็จ: ' + (e && e.message ? e.message : e);
+        st('asrStatus', function () { return T('asrFail', { msg: errText(e) }); });
       })
       .finally(function () { $('asrGoBtn').disabled = false; });
   }
@@ -831,7 +905,7 @@
     var text = $('asrResult').value;
     if (!text) return;
     navigator.clipboard.writeText(text).then(function () {
-      $('asrStatus').className = 'status ok'; $('asrStatus').textContent = 'คัดลอกข้อความแล้ว';
+      $('asrStatus').className = 'status ok'; st('asrStatus', function () { return T('copied'); });
     }).catch(function () {
       $('asrResult').select();
       document.execCommand('copy');
@@ -949,22 +1023,24 @@
 
   function setMeetingSumStatus(text, cls) {
     var el = $('meetingSumStatus'); if (!el) return;
-    el.textContent = text || ''; el.className = 'status' + (cls ? ' ' + cls : '');
+    OME_I18N.live(el, typeof text === 'function' ? text : null);
+    if (typeof text !== 'function') el.textContent = text || '';
+    el.className = 'status' + (cls ? ' ' + cls : '');
   }
 
   var meetingSumBusy = false;
   function doMeetingSummary() {
     if (meetingSumBusy) return;
     var transcript = ($('asrResult').value || '').trim();
-    if (!transcript) { setMeetingSumStatus('ยังไม่มีข้อความที่ถอดเสียงไว้', 'err'); return; }
+    if (!transcript) { setMeetingSumStatus(function () { return T('noTranscript'); }, 'err'); return; }
     var cloudOk = !!(window.AiClient && AiClient.available());
-    if (!cloudOk && isIOS()) { setMeetingSumStatus('โหมดนี้ไม่รองรับบน iPhone/iPad (เบราว์เซอร์มือถือรุ่นนี้รันโมเดล AI แบบนี้ไม่เสถียร) — ใช้คอมพิวเตอร์แทน', 'err'); return; }
-    if (typeof window.docx === 'undefined') { setMeetingSumStatus('โหลดไลบรารีสร้างไฟล์ Word ไม่สำเร็จ ลองรีเฟรชหน้านี้ใหม่', 'err'); return; }
+    if (!cloudOk && isIOS()) { setMeetingSumStatus(function () { return T('noIos'); }, 'err'); return; }
+    if (typeof window.docx === 'undefined') { setMeetingSumStatus(function () { return T('noDocx'); }, 'err'); return; }
 
     meetingSumBusy = true;
     $('meetingSumBtn').disabled = true;
     $('meetingSumWrap').style.display = 'none';
-    setMeetingSumStatus(cloudOk ? 'กำลังสรุปด้วย AI บนคลาวด์…' : 'กำลังเตรียมโมเดล AI…', '');
+    setMeetingSumStatus(function () { return cloudOk ? T('sumCloud') : T('sumLocalPrep'); }, '');
 
     var chunks = chunkText(transcript, 1800);
 
@@ -972,17 +1048,17 @@
     var summaryP = cloudOk
       ? cloudMeetingSummary(transcript).catch(function (err) {
           if (!AiClient.canFallback(err) || isIOS()) throw new Error(AiClient.friendlyMessage(err));
-          setMeetingSumStatus(AiClient.friendlyMessage(err) + ' — สลับไปใช้โมเดลในเบราว์เซอร์แทน…', '');
+          setMeetingSumStatus(function () { return T('sumFallback', { msg: AiClient.friendlyMessage(err) }); }, '');
           return localMeetingSummary(chunks);
         })
       : localMeetingSummary(chunks);
 
     summaryP.then(function (finalSummary) {
       finalSummary = (finalSummary || '').trim();
-      if (!finalSummary) { setMeetingSumStatus('สรุปไม่สำเร็จ ไม่ได้คำตอบจากโมเดล', 'err'); return; }
+      if (!finalSummary) { setMeetingSumStatus(function () { return T('sumEmpty'); }, 'err'); return; }
       $('meetingSumResult').value = finalSummary;
       $('meetingSumWrap').style.display = 'block';
-      setMeetingSumStatus('สรุปเสร็จแล้ว ตรวจทานก่อนดาวน์โหลดได้เลย', 'ok');
+      setMeetingSumStatus(function () { return T('sumDone'); }, 'ok');
       return buildMeetingDocxBlob(finalSummary, transcript).then(function (blob) {
         var link = $('meetingDocxLink');
         if (link.dataset.prevUrl) URL.revokeObjectURL(link.dataset.prevUrl);
@@ -991,7 +1067,7 @@
         link.dataset.prevUrl = url;
       });
     }).catch(function (e) {
-      setMeetingSumStatus('สรุปไม่สำเร็จ: ' + (e && e.message ? e.message : e), 'err');
+      setMeetingSumStatus(function () { return T('sumFail', { msg: errText(e) }); }, 'err');
     }).finally(function () {
       meetingSumBusy = false;
       $('meetingSumBtn').disabled = false;
@@ -1005,7 +1081,7 @@
       var chunkSummaries = [];
       function summarizeNextChunk(i) {
         if (i >= chunks.length) return Promise.resolve();
-        setMeetingSumStatus('กำลังสรุปช่วงที่ ' + (i + 1) + '/' + chunks.length + '…', '');
+        (function (idx) { setMeetingSumStatus(function () { return T('sumPart', { i: idx + 1, n: chunks.length }); }, ''); })(i);
         return runChatOnce(worker, [
           { role: 'system', content: MEETING_CHUNK_SYSTEM },
           { role: 'user', content: chunks[i] }
@@ -1016,7 +1092,7 @@
       }
       return summarizeNextChunk(0).then(function () {
         if (chunks.length === 1) return chunkSummaries[0];
-        setMeetingSumStatus('กำลังรวมเป็นสรุปฉบับเดียว…', '');
+        setMeetingSumStatus(function () { return T('sumMerge'); }, '');
         return runChatOnce(worker, [
           { role: 'system', content: MEETING_FINAL_SYSTEM },
           { role: 'user', content: chunkSummaries.join('\n\n') },
@@ -1041,14 +1117,14 @@
     var parts = chunkText(transcript, 12000), notes = [];
     function next(i) {
       if (i >= parts.length) return Promise.resolve();
-      setMeetingSumStatus('กำลังสรุปช่วงที่ ' + (i + 1) + '/' + parts.length + ' (คลาวด์)…', '');
+      (function (idx) { setMeetingSumStatus(function () { return T('sumPartCloud', { i: idx + 1, n: parts.length }); }, ''); })(i);
       return AiClient.summarize({
         task: 'meeting-part', model: 'fast', maxTokens: 600,
         messages: [{ role: 'system', content: MEETING_CHUNK_SYSTEM }, { role: 'user', content: parts[i] }]
       }).then(function (r) { notes.push(stripLeakedInstructions(r.text)); return next(i + 1); });
     }
     return next(0).then(function () {
-      setMeetingSumStatus('กำลังรวมเป็นสรุปฉบับเดียว…', '');
+      setMeetingSumStatus(function () { return T('sumMerge'); }, '');
       return AiClient.summarize({
         task: 'meeting', maxTokens: 1000,
         messages: [{ role: 'system', content: MEETING_FINAL_SYSTEM }, { role: 'user', content: notes.join('\n\n') }, reminder]
@@ -1094,6 +1170,9 @@
 
   /* ══════════════════ init ══════════════════ */
   function init() {
+    window.OME_PAGE_LIVE_LANG = true;
+    /* สลับภาษาสด: ข้อความใน HTML แปลผ่าน data-i18n · บรรทัดสถานะผ่าน OME_I18N.live · เหลือส่วนที่ JS สร้างเอง (ตัวเลือกเสียง) — ภาษาของเสียง/ถอดเสียง (ไทย/อังกฤษ) เป็นตัวเลือกเนื้อหา ไม่เกี่ยวกับภาษา UI */
+    OME_LANG.onChange(function () { renderVoiceOptions(); renderWsVoiceOptions(); });
     $('ttsText').addEventListener('input', updateCharCount);
     updateCharCount();
     $('importFileBtn').addEventListener('click', function () { $('importFileInput').click(); });

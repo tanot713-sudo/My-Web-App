@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ดึงข้อความออกจากเอกสาร | Tanot</title>
+<title data-i18n="ex.title">ดึงข้อความออกจากเอกสาร | Tanot</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -32,33 +32,33 @@
 <body data-layout="tool">
 
 <main class="page ex-page">
-<nav class="crumb"><a href="area.html?a=work">งานที่รับผิดชอบ</a><span class="sep">/</span>ดึงข้อความออกจากเอกสาร</nav>
-<div class="page-head"><h1>ดึงข้อความออกจากเอกสาร</h1></div>
+<nav class="crumb"><a href="area.html?a=work" data-i18n="ex.crumb">งานที่รับผิดชอบ</a><span class="sep">/</span><span data-i18n="ex.h1">ดึงข้อความออกจากเอกสาร</span></nav>
+<div class="page-head"><h1 data-i18n="ex.h1">ดึงข้อความออกจากเอกสาร</h1></div>
 
 <div class="stack">
 <div class="card">
-  <h2><svg class="ome-icon"><use href="icons.svg#i-upload"/></svg>แนบไฟล์</h2>
+  <h2><svg class="ome-icon"><use href="icons.svg#i-upload"/></svg><span data-i18n="ex.attach">แนบไฟล์</span></h2>
   <div class="dropzone" id="drop" role="button" tabindex="0">
     <svg class="ome-icon"><use href="icons.svg#i-file-text"/></svg>
-    <div class="dropzone-main" id="dropMain">แตะเพื่อเลือกไฟล์ หรือลากไฟล์มาวางตรงนี้</div>
+    <div class="dropzone-main" id="dropMain" data-i18n="ex.dropMain">แตะเพื่อเลือกไฟล์ หรือลากไฟล์มาวางตรงนี้</div>
     <div class="dropzone-sub" id="dropSub"></div>
   </div>
   <input type="file" id="fileInput" accept=".txt,.docx,.xlsx,.xls,.csv,.pptx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
   <label class="mini check">
     <input type="checkbox" id="ocrChk" checked>
-    ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน
+    <span data-i18n="ex.ocr">ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน</span>
   </label>
   <div class="status" id="readStatus"></div>
 </div>
 
 <div class="card" id="resultCard" style="display:none">
-  <h2><svg class="ome-icon"><use href="icons.svg#i-file-text"/></svg>ข้อความที่ดึงได้</h2>
-  <textarea class="textarea" id="resultText" rows="12" placeholder="ข้อความที่ดึงได้จะขึ้นตรงนี้"></textarea>
-  <div class="char-count" id="charCount">0 ตัวอักษร</div>
+  <h2><svg class="ome-icon"><use href="icons.svg#i-file-text"/></svg><span data-i18n="ex.result">ข้อความที่ดึงได้</span></h2>
+  <textarea class="textarea" id="resultText" rows="12" data-i18n-attr="placeholder:ex.resultPh,aria-label:ex.result" aria-label="ข้อความที่ดึงได้" placeholder="ข้อความที่ดึงได้จะขึ้นตรงนี้"></textarea>
+  <div class="char-count" id="charCount"></div>
   <div class="dl-row">
-    <button class="btn primary sm" id="copyBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-copy"/></svg>คัดลอกข้อความ</button>
-    <button class="btn sm" id="downloadTxtBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg>ดาวน์โหลด .txt</button>
-    <button class="btn sm" id="splitPdfBtn" type="button" style="display:none"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg>แยกหน้า PDF (.zip)</button>
+    <button class="btn primary sm" id="copyBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-copy"/></svg><span data-i18n="ex.copy">คัดลอกข้อความ</span></button>
+    <button class="btn sm" id="downloadTxtBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="ex.dlTxt">ดาวน์โหลด .txt</span></button>
+    <button class="btn sm" id="splitPdfBtn" type="button" style="display:none"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="ex.split">แยกหน้า PDF (.zip)</span></button>
   </div>
   <div class="status" id="actionStatus"></div>
 </div>

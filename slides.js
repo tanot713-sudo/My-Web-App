@@ -20,10 +20,48 @@
   var MAX_IMG = 1600;
 
   function $(id) { return document.getElementById(id); }
+
+  var T = OME_I18N.scope('sl', {
+    th: {
+      title: 'งาน PowerPoint | Tanot', h1: 'งาน PowerPoint', deckName: 'ชื่อชุดสไลด์', themeLabel: 'ธีมสไลด์', aiDraft: 'ร่างด้วย AI', import: 'นำเข้าไฟล์', present: 'นำเสนอ',
+      tabList: 'ชุดสไลด์', tabOutline: 'โครงเรื่อง', tabPreview: 'ตัวอย่าง', searchDecks: 'ค้นหาชุดสไลด์', search: 'ค้นหา', newDeck: 'ชุดสไลด์ใหม่', noDeck: 'ยังไม่มีชุดสไลด์',
+      previewLabel: 'ตัวอย่างสไลด์', stage: 'โหมดนำเสนอ', close: 'ปิด', aiTitle: 'ร่างโครงเรื่องด้วย AI', aiSrc: 'ข้อความต้นฉบับ', aiFile: 'เลือกไฟล์', aiRun: 'สร้างโครงเรื่อง',
+      aiStop: 'หยุด', aiOut: 'โครงเรื่องที่ได้', aiAppend: 'ต่อท้าย', aiApply: 'ใช้แทนที่โครงเรื่อง',
+      deckDefault: 'ชุดสไลด์', deckN: 'ชุดสไลด์ {n}', copySuffix: '(สำเนา)', starter: '# ชื่อเรื่อง\nผู้นำเสนอ · วันที่\n\n# หัวข้อที่ 1\n- ประเด็นที่ 1\n- ประเด็นที่ 2\n  - รายละเอียด',
+      needNet: 'ต้องต่อเน็ตเพื่อโหลดไลบรารี (โหลดไม่สำเร็จ)', imgReadFail: 'อ่านรูปนี้ไม่ได้', imgShrinkFail: 'ย่อรูปไม่สำเร็จ',
+      uploadFail: 'อัปโหลดรูปไม่สำเร็จ — จะลองใหม่เมื่อออนไลน์ ({msg})', slidesCount: '{n} สไลด์', dup: 'ทำซ้ำ', del: 'ลบ',
+      delConfirm: 'ลบชุด "{name}" และรูปที่ไม่มีชุดอื่นใช้?', slideLayout: 'แบบสไลด์ {n}', auto: 'อัตโนมัติ · {name}', addImg: 'แทรกรูป', rmImg: 'เอารูปออก',
+      notes: 'โน้ต', notesTitle: 'มีโน้ตผู้บรรยาย', tooBig15: '{name} ใหญ่เกิน 15 MB', imgFail: 'แทรกรูปไม่สำเร็จ',
+      onlyTxtDocx: 'รองรับเฉพาะ .txt และ .docx', tooBig: '{name} ใหญ่เกินไป', noReader: 'โหลดตัวอ่านไฟล์ไม่สำเร็จ', readFail: 'อ่านไฟล์ไม่สำเร็จ', reading: 'กำลังอ่าน {name}…',
+      aiChars: '{name} · {n} ตัวอักษร', aiPasteFirst: 'วางข้อความก่อน', aiDrafting: 'กำลังร่าง…', aiStopped: 'หยุดแล้ว',
+      building: 'กำลังสร้างไฟล์…', exportedMissing: 'ส่งออกแล้ว แต่ใส่รูปไม่ได้ {n} รูป', exportFail: 'ส่งออกไม่สำเร็จ: {msg}',
+      layout_cover: 'หน้าปก', layout_bullets: 'หัวข้อ + bullet', layout_two: '2 คอลัมน์', layout_image: 'รูป + ข้อความ', layout_table: 'ตาราง', layout_section: 'หัวข้อตอน',
+      theme_light: 'สว่าง', theme_dark: 'มืด', theme_accent: 'สีเน้น', theme_plain: 'เรียบ'
+    },
+    en: {
+      title: 'Presentations | Tanot', h1: 'Presentations', deckName: 'Deck name', themeLabel: 'Slide theme', aiDraft: 'Draft with AI', import: 'Import file', present: 'Present',
+      tabList: 'Decks', tabOutline: 'Outline', tabPreview: 'Preview', searchDecks: 'Search decks', search: 'Search', newDeck: 'New deck', noDeck: 'No decks yet',
+      previewLabel: 'Slide preview', stage: 'Presentation mode', close: 'Close', aiTitle: 'Draft an outline with AI', aiSrc: 'Source text', aiFile: 'Choose file', aiRun: 'Create outline',
+      aiStop: 'Stop', aiOut: 'Generated outline', aiAppend: 'Append', aiApply: 'Replace outline',
+      deckDefault: 'Deck', deckN: 'Deck {n}', copySuffix: '(copy)', starter: '# Title\nPresenter · Date\n\n# Topic 1\n- Point 1\n- Point 2\n  - Detail',
+      needNet: 'An internet connection is needed to load the library (load failed)', imgReadFail: 'Could not read this image', imgShrinkFail: 'Could not resize the image',
+      uploadFail: 'Image upload failed — will retry when online ({msg})', slidesCount: '{n} slides', dup: 'Duplicate', del: 'Delete',
+      delConfirm: 'Delete deck "{name}" and images no other deck uses?', slideLayout: 'Slide {n} layout', auto: 'Auto · {name}', addImg: 'Insert image', rmImg: 'Remove image',
+      notes: 'Notes', notesTitle: 'Has speaker notes', tooBig15: '{name} is larger than 15 MB', imgFail: 'Could not insert the image',
+      onlyTxtDocx: 'Only .txt and .docx are supported', tooBig: '{name} is too large', noReader: 'Could not load the file reader', readFail: 'Could not read the file', reading: 'Reading {name}…',
+      aiChars: '{name} · {n} characters', aiPasteFirst: 'Paste some text first', aiDrafting: 'Drafting…', aiStopped: 'Stopped',
+      building: 'Building the file…', exportedMissing: 'Exported, but {n} image(s) could not be included', exportFail: 'Export failed: {msg}',
+      layout_cover: 'Cover', layout_bullets: 'Title + bullets', layout_two: '2 columns', layout_image: 'Image + text', layout_table: 'Table', layout_section: 'Section title',
+      theme_light: 'Light', theme_dark: 'Dark', theme_accent: 'Accent', theme_plain: 'Plain'
+    }
+  });
+  function layoutName(l) { return T('layout_' + l.id) || l.name; }
+  function themeName(t) { return T('theme_' + t.id) || t.name; }
+  function deckTitle(d) { var t = SC.deckTitle(d); return !d.name && t === 'ชุดสไลด์ใหม่' ? T('newDeck') : t; }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function icon(name) { return '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + name + '"/></svg>'; }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
-  function dstr(ms) { var d = new Date(ms); return d.getDate() + '/' + (d.getMonth() + 1) + '/' + (d.getFullYear() + 543 - 2500); }
+  function dstr(ms) { return OME_I18N.date(ms, { day: 'numeric', month: 'numeric', year: '2-digit' }); }
   function filesAvailable() { return /\.pages\.dev$/.test(location.hostname) || !!(window.TANOT_FILES && window.TANOT_FILES.enabled); }
   function newId() {
     if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -37,8 +75,9 @@
     document.body.appendChild(a); a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   }
-  function setMsg(t, err) { var m = $('msg'); m.textContent = t || ''; m.classList.toggle('err', !!err); }
-  var NEED_NET = 'ต้องต่อเน็ตเพื่อโหลดไลบรารี (โหลดไม่สำเร็จ)';
+  /* ข้อความสถานะ: ส่งฟังก์ชันได้ (วาดซ้ำเองเมื่อสลับภาษา) หรือข้อความดิบ (เช่น error จากระบบ) */
+  function setMsg(t, err) { var m = $('msg'); OME_I18N.live(m, typeof t === 'function' ? t : null); if (typeof t !== 'function') m.textContent = t || ''; m.classList.toggle('err', !!err); }
+  function needNet() { return T('needNet'); }
 
   var loading = {};
   function loadScript(url, ready) {
@@ -108,11 +147,10 @@
   }
   function scheduleSave() { if (saveTimer) clearTimeout(saveTimer); saveTimer = setTimeout(function () { saveNow(); readDecks(); renderList(); }, 350); }
 
-  var STARTER = '# ชื่อเรื่อง\nผู้นำเสนอ · วันที่\n\n# หัวข้อที่ 1\n- ประเด็นที่ 1\n- ประเด็นที่ 2\n  - รายละเอียด';
-  function newDeckRec() {
+    function newDeckRec() {
     var now = Date.now(), d = SC.newDeck(newId(), now);
-    d.name = 'ชุดสไลด์ ' + (decks.length + 1);
-    d.outline = STARTER;
+    d.name = T('deckN', { n: decks.length + 1 });
+    d.outline = T('starter');
     return d;
   }
 
@@ -161,7 +199,7 @@
     return new Promise(function (resolve, reject) {
       var url = URL.createObjectURL(file), im = new Image();
       im.onload = function () { URL.revokeObjectURL(url); resolve(im); };
-      im.onerror = function () { URL.revokeObjectURL(url); reject(new Error('อ่านรูปนี้ไม่ได้')); };
+      im.onerror = function () { URL.revokeObjectURL(url); reject(new Error(T('imgReadFail'))); };
       im.src = url;
     });
   }
@@ -173,7 +211,7 @@
       var c = document.createElement('canvas'); c.width = w; c.height = h;
       var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.drawImage(im, 0, 0, w, h);
       return new Promise(function (resolve, reject) {
-        c.toBlob(function (b) { b ? resolve({ blob: b, w: w, h: h }) : reject(new Error('ย่อรูปไม่สำเร็จ')); }, 'image/jpeg', 0.8);
+        c.toBlob(function (b) { b ? resolve({ blob: b, w: w, h: h }) : reject(new Error(T('imgShrinkFail'))); }, 'image/jpeg', 0.8);
       });
     });
   }
@@ -200,7 +238,7 @@
               saveList(fresh);
               if (cur && cur.id === rec.deckId && cur.images[rec.key]) cur.images[rec.key] = fd.images[rec.key];
               return obxDel(rec.id);
-            }).catch(function (e) { setMsg('อัปโหลดรูปไม่สำเร็จ — จะลองใหม่เมื่อออนไลน์ (' + (e.message || '') + ')', true); });
+            }).catch(function (e) { setMsg(function () { return T('uploadFail', { msg: e.message || '' }); }, true); });
         });
       }, Promise.resolve());
     }).catch(function () {}).then(function () { flushing = false; renderPreview(); });
@@ -212,9 +250,9 @@
     var rows = decks.filter(function (d) { return SC.matches(d, query); });
     $('decks').innerHTML = rows.map(function (d) {
       return '<div class="sl-deck' + (cur && cur.id === d.id ? ' on' : '') + '" data-id="' + esc(d.id) + '">' +
-        '<button class="pick" type="button"><b>' + esc(SC.deckTitle(d)) + '</b><span>' + SC.slideCount(d) + ' สไลด์ · ' + dstr(d.updatedAt) + '</span></button>' +
-        '<button class="btn ghost sm icon" type="button" data-act="dup" aria-label="ทำซ้ำ" title="ทำซ้ำ">' + icon('copy') + '</button>' +
-        '<button class="btn ghost sm icon" type="button" data-act="del" aria-label="ลบ" title="ลบ">' + icon('trash-2') + '</button></div>';
+        '<button class="btn ghost pick" type="button"><b>' + esc(deckTitle(d)) + '</b><span>' + T('slidesCount', { n: SC.slideCount(d) }) + ' · ' + dstr(d.updatedAt) + '</span></button>' +
+        '<button class="btn ghost sm icon" type="button" data-act="dup" aria-label="' + T('dup') + '" title="' + T('dup') + '">' + icon('copy') + '</button>' +
+        '<button class="btn ghost sm icon" type="button" data-act="del" aria-label="' + T('del') + '" title="' + T('del') + '">' + icon('trash-2') + '</button></div>';
     }).join('');
   }
 
@@ -246,13 +284,14 @@
     var src = decks.filter(function (d) { return d.id === id; })[0];
     if (!src) return;
     var c = SC.dupDeck(src, newId(), Date.now());
+    if (OME_LANG.get() === 'en') c.name = ((src.name || T('deckDefault')) + ' ' + T('copySuffix')).slice(0, 120);
     upsert(c); readDecks(); pickDeck(c.id); renderAll();
   }
   function delDeck(id) {
     saveNow(); readDecks();
     var d = decks.filter(function (x) { return x.id === id; })[0];
     if (!d) return;
-    window.tanotConfirm('ลบชุด "' + SC.deckTitle(d) + '" และรูปที่ไม่มีชุดอื่นใช้?', { danger: true, okLabel: 'ลบ' }).then(function (ok) {
+    window.tanotConfirm(T('delConfirm', { name: deckTitle(d) }), { danger: true, okLabel: T('del') }).then(function (ok) {
       if (!ok) return;
       if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
       var others = loadList().filter(function (x) { return x.id !== id; });
@@ -269,7 +308,7 @@
   /* ══════════ ธีม ══════════ */
   function renderTheme() {
     $('themeSeg').innerHTML = SC.THEMES.map(function (t) {
-      return '<button type="button" data-theme="' + t.id + '" aria-pressed="' + (!!cur && cur.theme === t.id) + '">' + esc(t.name) + '</button>';
+      return '<button type="button" data-theme="' + t.id + '" aria-pressed="' + (!!cur && cur.theme === t.id) + '">' + esc(themeName(t)) + '</button>';
     }).join('');
   }
   $('themeSeg').addEventListener('click', function (e) {
@@ -308,7 +347,7 @@
     return '';
   }
   function slideHtml(sl, deck, model, attrs) {
-    return '<div class="sl-s"' + (attrs || '') + ' style="background:#' + sl.bg + '">' + sl.shapes.map(function (sh) { return shapeHtml(sh, deck, model); }).join('') + '</div>';
+    return '<div class="sl-s" data-doc-area' + (attrs || '') + ' style="background:#' + sl.bg + '">' + sl.shapes.map(function (sh) { return shapeHtml(sh, deck, model); }).join('') + '</div>';
   }
   function currentModel() { return SC.buildModel(cur, { accent: readAccent() }); }
 
@@ -320,17 +359,17 @@
     var box = $('preview');
     if (!cur) { box.innerHTML = ''; return; }
     var model = currentModel(), parsed = SC.parseOutline(cur.outline);
-    var layoutOpts = SC.LAYOUTS.map(function (l) { return [l.id, l.name]; });
+    var layoutOpts = SC.LAYOUTS.map(function (l) { return [l.id, layoutName(l)]; });
     box.innerHTML = model.slides.map(function (sl, i) {
       var ps = parsed.slides[i], lo = SC.layoutOf(ps, i);
-      var sel = '<select class="select" data-act="layout" aria-label="แบบสไลด์ ' + (i + 1) + '"><option value=""' + (lo.auto ? ' selected' : '') + '>อัตโนมัติ · ' +
-        esc(SC.LAYOUTS.filter(function (l) { return l.id === lo.id; })[0].name) + '</option>' + layoutOpts.map(function (o) {
+      var sel = '<select class="select" data-act="layout" aria-label="' + esc(T('slideLayout', { n: i + 1 })) + '"><option value=""' + (lo.auto ? ' selected' : '') + '>' +
+        esc(T('auto', { name: layoutName(SC.LAYOUTS.filter(function (l) { return l.id === lo.id; })[0]) })) + '</option>' + layoutOpts.map(function (o) {
           return '<option value="' + o[0] + '"' + (!lo.auto && lo.id === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
         }).join('') + '</select>';
       return '<div class="sl-card" data-i="' + i + '"><div class="sl-card-head"><span class="badge">' + (i + 1) + '</span>' + sel +
-        '<button class="btn sm icon" type="button" data-act="img" aria-label="แทรกรูป" title="แทรกรูป">' + icon('image') + '</button>' +
-        (ps.image ? '<button class="btn sm icon" type="button" data-act="noimg" aria-label="เอารูปออก" title="เอารูปออก">' + icon('x') + '</button>' : '') +
-        (ps.notes ? '<span class="badge info" title="มีโน้ตผู้บรรยาย">โน้ต</span>' : '') + '</div>' +
+        '<button class="btn sm icon" type="button" data-act="img" aria-label="' + T('addImg') + '" title="' + T('addImg') + '">' + icon('image') + '</button>' +
+        (ps.image ? '<button class="btn sm icon" type="button" data-act="noimg" aria-label="' + T('rmImg') + '" title="' + T('rmImg') + '">' + icon('x') + '</button>' : '') +
+        (ps.notes ? '<span class="badge info" title="' + T('notesTitle') + '">' + T('notes') + '</span>' : '') + '</div>' +
         slideHtml(sl, cur, model, ' data-act="go"') + '</div>';
     }).join('');
     markCaretSlide();
@@ -411,7 +450,7 @@
     this.value = '';
     if (!f || !cur || idx < 0) return;
     setMsg('');
-    if (f.size > MAX_FILE) { setMsg(f.name + ' ใหญ่เกิน 15 MB', true); return; }
+    if (f.size > MAX_FILE) { setMsg(T('tooBig15', { name: f.name }), true); return; }
     var deck = cur;
     shrinkImage(f).then(function (r) {
       if (cur !== deck) return;
@@ -425,18 +464,18 @@
         onOutline(); saveNow(); renderPreview();
         flushOutbox();
       });
-    }).catch(function (e) { setMsg((e && e.message) || 'แทรกรูปไม่สำเร็จ', true); });
+    }).catch(function (e) { setMsg((e && e.message) || T('imgFail'), true); });
   });
 
   /* ══════════ นำเข้าไฟล์ / ข้อความ ══════════ */
   function readTextFile(f) {
     var n = f.name.toLowerCase();
-    if (!/\.(txt|docx)$/.test(n)) return Promise.reject(new Error('รองรับเฉพาะ .txt และ .docx'));
-    if (f.size > MAX_FILE) return Promise.reject(new Error(f.name + ' ใหญ่เกินไป'));
-    if (!window.TanotFileReader) return Promise.reject(new Error('โหลดตัวอ่านไฟล์ไม่สำเร็จ'));
+    if (!/\.(txt|docx)$/.test(n)) return Promise.reject(new Error(T('onlyTxtDocx')));
+    if (f.size > MAX_FILE) return Promise.reject(new Error(T('tooBig', { name: f.name })));
+    if (!window.TanotFileReader) return Promise.reject(new Error(T('noReader')));
     var pre = n.endsWith('.docx') ? loadScript(MAMMOTH_URL, function () { return !!window.mammoth; }) : Promise.resolve();
     return pre.then(function () { return window.TanotFileReader.readAnyFile(f, { ocr: false }); }).catch(function (e) {
-      throw new Error(e && (e.message === 'offline' || e.message === 'lib') ? NEED_NET : (e && e.message) || 'อ่านไฟล์ไม่สำเร็จ');
+      throw new Error(e && (e.message === 'offline' || e.message === 'lib') ? needNet() : (e && e.message) || T('readFail'));
     });
   }
   $('importBtn').addEventListener('click', function () { $('importFile').click(); });
@@ -444,7 +483,7 @@
     var f = this.files && this.files[0];
     this.value = '';
     if (!f) return;
-    setMsg('กำลังอ่าน ' + f.name + '…');
+    setMsg(function () { return T('reading', { name: f.name }); });
     readTextFile(f).then(function (text) {
       if (!cur) createDeck();
       var add = SC.textToOutline(text), old = $('outline').value.trim();
@@ -459,7 +498,7 @@
   function setAiBusy(b) {
     $('aiRun').disabled = b; $('aiStop').hidden = !b; $('aiFileBtn').disabled = b;
   }
-  function aiSt(t, err) { var s = $('aiSt'); s.textContent = t || ''; s.classList.toggle('err', !!err); }
+  function aiSt(t, err) { var s = $('aiSt'); OME_I18N.live(s, typeof t === 'function' ? t : null); if (typeof t !== 'function') s.textContent = t || ''; s.classList.toggle('err', !!err); }
   function aiOutChanged() { var has = !!$('aiOut').value.trim(); $('aiApply').disabled = !has; $('aiAppend').disabled = !has; }
   $('aiOut').addEventListener('input', aiOutChanged);
 
@@ -476,15 +515,15 @@
     var f = this.files && this.files[0];
     this.value = '';
     if (!f) return;
-    aiSt('กำลังอ่าน ' + f.name + '…');
-    readTextFile(f).then(function (t) { $('aiSrc').value = t; aiSt(f.name + ' · ' + t.length.toLocaleString('en-US') + ' ตัวอักษร'); })
+    aiSt(function () { return T('reading', { name: f.name }); });
+    readTextFile(f).then(function (t) { $('aiSrc').value = t; aiSt(function () { return T('aiChars', { name: f.name, n: OME_I18N.number(t.length) }); }); })
       .catch(function (e) { aiSt(e.message, true); });
   });
   $('aiRun').addEventListener('click', function () {
     var src = $('aiSrc').value.trim();
-    if (!src) { aiSt('วางข้อความก่อน', true); return; }
+    if (!src) { aiSt(function () { return T('aiPasteFirst'); }, true); return; }
     aiCtl = new AbortController();
-    setAiBusy(true); aiSt('กำลังร่าง…'); $('aiOut').value = ''; aiOutChanged();
+    setAiBusy(true); aiSt(function () { return T('aiDrafting'); }); $('aiOut').value = ''; aiOutChanged();
     AiClient.chat({
       messages: SC.aiMessages(src), model: 'main', maxTokens: 2048, temperature: 0.4, signal: aiCtl.signal,
       onToken: function (piece, full) { $('aiOut').value = full; }
@@ -492,7 +531,7 @@
       $('aiOut').value = SC.cleanOutline(r.text);
       aiSt('');
     }).catch(function (e) {
-      if (e && e.code === 'abort') { $('aiOut').value = SC.cleanOutline($('aiOut').value); aiSt('หยุดแล้ว'); }
+      if (e && e.code === 'abort') { $('aiOut').value = SC.cleanOutline($('aiOut').value); aiSt(function () { return T('aiStopped'); }); }
       else aiSt(AiClient.friendlyMessage(e), true);
     }).then(function () { aiCtl = null; setAiBusy(false); aiOutChanged(); });
   });
@@ -561,7 +600,7 @@
   function exportPptx() {
     if (!cur) return;
     saveNow();
-    var btn = $('pptxBtn'); btn.disabled = true; setMsg('กำลังสร้างไฟล์…');
+    var btn = $('pptxBtn'); btn.disabled = true; setMsg(function () { return T('building'); });
     var deck = JSON.parse(JSON.stringify(cur)), model = SC.buildModel(deck, { accent: readAccent() });
     var keys = [];
     model.slides.forEach(function (s) { s.shapes.forEach(function (sh) { if (sh.k === 'image' && keys.indexOf(sh.key) < 0) keys.push(sh.key); }); });
@@ -576,7 +615,7 @@
     }).then(function () {
       var pptx = new window.PptxGenJS();
       pptx.layout = 'LAYOUT_WIDE';
-      pptx.title = SC.deckTitle(deck);
+      pptx.title = deckTitle(deck);
       pptx.theme = { headFontFace: model.font, bodyFontFace: model.font };
       model.slides.forEach(function (sl) {
         var s = pptx.addSlide();
@@ -586,11 +625,11 @@
       });
       return pptx.write({ outputType: 'blob', compression: true });
     }).then(function (blob) {
-      download(blob, safeName(SC.deckTitle(deck)) + '.pptx');
+      download(blob, safeName(deckTitle(deck)) + '.pptx');
       var missing = keys.filter(function (k) { return !imgs[k]; }).length;
-      setMsg(missing ? 'ส่งออกแล้ว แต่ใส่รูปไม่ได้ ' + missing + ' รูป' : '', !!missing);
+      setMsg(missing ? function () { return T('exportedMissing', { n: missing }); } : '', !!missing);
     }).catch(function (e) {
-      setMsg(e && (e.message === 'offline' || e.message === 'lib') ? NEED_NET : 'ส่งออกไม่สำเร็จ: ' + ((e && e.message) || ''), true);
+      setMsg(e && (e.message === 'offline' || e.message === 'lib') ? function () { return needNet(); } : function () { return T('exportFail', { msg: (e && e.message) || '' }); }, true);
     }).then(function () { btn.disabled = false; });
   }
   $('pptxBtn').addEventListener('click', exportPptx);
@@ -720,6 +759,8 @@
   window.addEventListener('pagehide', saveNow);
 
   /* ══════════ เริ่มต้น ══════════ */
+  window.OME_PAGE_LIVE_LANG = true;
+  OME_LANG.onChange(function () { renderList(); renderTheme(); renderPreview(); }); /* ข้อความอื่นแปลผ่าน data-i18n / OME_I18N.live */
   readDecks();
   pickDeck(ui.deckId);
   renderAll();

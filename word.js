@@ -232,10 +232,12 @@ var I18N = {
   }
 };
 
+var lastT = null; /* t() ล่าสุด — setStatus จำคีย์ไว้เพื่อแปลข้อความสถานะใหม่ตอนสลับภาษาสด */
 function t(key, vars) {
   var lang = getUILang();
   var str = (I18N[lang] && I18N[lang][key]) || I18N.th[key] || key;
   if (vars) Object.keys(vars).forEach(function (k) { str = str.replace('{' + k + '}', vars[k]); });
+  lastT = { key: key, vars: vars, str: str };
   return str;
 }
 function langLabel(l) { return getUILang() === 'en' ? l.labelEn : l.label; }
@@ -764,7 +766,14 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     });
   });
 
+  var statusRef = null;
+  function refreshStatus() {
+    if (!statusRef) return;
+    var node = els.statusMsg.lastChild;
+    if (node && node.nodeType === 3) node.nodeValue = t(statusRef.key, statusRef.vars);
+  }
   function setStatus(msg, isErr, showSpinner) {
+    statusRef = msg && lastT && lastT.str === msg ? { key: lastT.key, vars: lastT.vars } : null;
     els.statusMsg.innerHTML = '';
     els.statusMsg.classList.toggle('err', !!isErr);
     if (showSpinner) { var s = document.createElement('span'); s.className = 'spinner'; els.statusMsg.appendChild(s); }
@@ -1494,7 +1503,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
       row.split(' ').filter(function (s) { return s && s !== '' ? true : !!s; }).forEach(function (sym) {
         if (!sym) return;
         var b = document.createElement('button');
-        b.type = 'button';
+        b.type = 'button'; b.className = 'btn sm';
         b.textContent = sym;
         b.addEventListener('click', function () { restoreSelectionRange(); document.execCommand('insertText', false, sym); scheduleAutosave(); setStatus(t('symbolInserted')); });
         wrap.appendChild(b);
@@ -1780,7 +1789,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
       var lv = headingLevel(el);
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'wd-nav-item wd-nav-lv' + lv;
+      btn.className = 'btn ghost sm wd-nav-item wd-nav-lv' + lv;
       btn.textContent = text;
       btn.title = text;
       btn.setAttribute('data-nav-idx', idx);
@@ -1799,7 +1808,7 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
     for (var k = 0; k < lastPageCount; k++) {
       (function (idx) {
         var btn = document.createElement('button');
-        btn.type = 'button'; btn.className = 'wd-nav-item wd-nav-lv1';
+        btn.type = 'button'; btn.className = 'btn ghost sm wd-nav-item wd-nav-lv1';
         btn.textContent = t('navPageX', { n: idx + 1 });
         btn.addEventListener('click', function () {
           var frame = els.pageBg.children[idx];
@@ -2046,14 +2055,13 @@ if (typeof document !== 'undefined' && document.getElementById('editor')) {
   buildLangOptions();
   els.langSelect.value = state.lang;
   if (els.langToggle) {
-    els.langToggle.addEventListener('click', function () {
-      setUILang(getUILang() === 'en' ? 'th' : 'en');
-      applyStaticI18n(); buildLangOptions(); renderIssues(); renderFootnotes(); updateHeaderFooterUI();
-    });
+    els.langToggle.addEventListener('click', function () { OME_LANG.set(getUILang() === 'en' ? 'th' : 'en'); });
   }
-  window.omeApplyLang = function () {
-    applyStaticI18n(); buildLangOptions(); renderIssues(); renderFootnotes(); updateHeaderFooterUI();
-  };
+  /* ฟังการสลับภาษากลาง (ทั้งปุ่มในหน้านี้และแผงตั้งค่า) — ภาษา UI (ปุ่ม/เมนู) แยกจากภาษาของเอกสาร (state.lang ใช้ตรวจคำผิด/อ่านออกเสียง) */
+  OME_LANG.onChange(function () {
+    applyStaticI18n(); buildLangOptions(); renderIssues(); renderFootnotes(); updateHeaderFooterUI(); refreshStatus();
+  });
+  window.OME_PAGE_LIVE_LANG = true;
   applyPageSetup();
   updateHeaderFooterUI();
   renderFootnotes();

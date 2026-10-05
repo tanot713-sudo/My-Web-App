@@ -84,9 +84,11 @@
   };
   function getUILang() { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   function setUILang(l) { try { localStorage.setItem(LANG_KEY, l); } catch (e) {} }
+  var lastT = null; /* t() ล่าสุด — setStatus จำคีย์ไว้เพื่อแปลข้อความสถานะใหม่ตอนสลับภาษาสด */
   function t(key, vars) {
     var s = (I18N[getUILang()] && I18N[getUILang()][key]) || (I18N.th[key]) || key;
     if (vars) Object.keys(vars).forEach(function (k) { s = s.replace('{' + k + '}', vars[k]); });
+    lastT = { key: key, vars: vars, str: s };
     return s;
   }
   var $ = function (id) { return document.getElementById(id); };
@@ -131,7 +133,13 @@
     document.querySelectorAll('[data-i18n-title]').forEach(function (el) { el.title = t(el.getAttribute('data-i18n-title')); });
     if (els.langToggle) els.langToggle.querySelectorAll('span').forEach(function (s) { s.classList.toggle('active', s.getAttribute('data-lt') === lang); });
   }
+  var statusRef = null;
+  function refreshStatus() {
+    var node = statusRef && els.statusMsg.lastChild;
+    if (node && node.nodeType === 3) node.nodeValue = t(statusRef.key, statusRef.vars);
+  }
   function setStatus(msg, isErr, spin) {
+    statusRef = msg && lastT && lastT.str === msg ? { key: lastT.key, vars: lastT.vars } : null;
     els.statusMsg.innerHTML = '';
     els.statusMsg.classList.toggle('err', !!isErr);
     if (spin) { var s = document.createElement('span'); s.className = 'spinner'; els.statusMsg.appendChild(s); }
@@ -691,7 +699,7 @@
       el.classList.add('wide');
       var text = buildGridSummaryText(model);
       el.innerHTML = '<div class="di-title">' + escapeHtml(t('diSummaryTitle')) + '</div>' +
-        '<textarea class="di-textarea" id="diText" readonly></textarea>' +
+        '<textarea class="textarea di-textarea" id="diText" readonly></textarea>' +
         '<div class="di-actions"><span class="di-status" id="diStatus"></span><button type="button" class="btn sm" id="diCopyBtn">' + escapeHtml(t('diCopyBtn')) + '</button></div>';
       el.querySelector('#diText').value = text;
       positionDiPopover(el, anchorEl);
@@ -783,7 +791,7 @@
               var valuesHtml = g.values.map(function (v) { return escapeHtml(v) + ' (' + g.freq[v].toLocaleString(locale()) + ')'; }).join(', ');
               return '<div class="di-group"><div class="di-group-values">' + valuesHtml + '</div>' +
                 '<div class="di-group-row"><label style="flex-direction:row;align-items:center">' + escapeHtml(t('diFuzzyMergeInto')) +
-                ' <select class="di-fuzzy-canon" data-gidx="' + gi + '">' + optsHtml + '</select></label>' +
+                ' <select class="select di-fuzzy-canon" data-gidx="' + gi + '">' + optsHtml + '</select></label>' +
                 '<button type="button" class="btn sm di-fuzzy-merge-btn" data-gidx="' + gi + '">' + escapeHtml(t('diFuzzyMergeBtn')) + '</button></div></div>';
             }).join('');
         el.querySelector('.di-list').innerHTML = listHtml;
@@ -799,7 +807,7 @@
       }
       el.innerHTML = '<div class="di-title">' + escapeHtml(t('diFuzzyTitle')) + '</div>' +
         '<div class="di-row"><label>' + escapeHtml(t('diFuzzyPickCol')) +
-        '<select class="di-fuzzy-col">' + eligibleCols.map(function (c) { return '<option value="' + c.index + '">' + escapeHtml(c.label) + '</option>'; }).join('') + '</select></label></div>' +
+        '<select class="select di-fuzzy-col">' + eligibleCols.map(function (c) { return '<option value="' + c.index + '">' + escapeHtml(c.label) + '</option>'; }).join('') + '</select></label></div>' +
         '<div class="di-list"></div>' +
         '<div class="di-actions"><span></span><button type="button" class="btn sm" id="diCloseBtn">' + escapeHtml(t('diCloseBtn')) + '</button></div>';
       el.querySelector('.di-fuzzy-col').addEventListener('change', function () { renderGroups(+this.value); });
@@ -836,8 +844,8 @@
       var chartInst = null;
       el.innerHTML = '<div class="di-title">' + escapeHtml(t('diTrendTitle')) + '</div>' +
         '<div class="di-row">' +
-        '<label>' + escapeHtml(t('diTrendXLbl')) + '<select class="di-trend-x">' + model.cols.map(function (c) { return '<option value="' + c.index + '">' + escapeHtml(c.label) + '</option>'; }).join('') + '</select></label>' +
-        '<label>' + escapeHtml(t('diTrendYLbl')) + '<select class="di-trend-y">' + numCols.map(function (c) { return '<option value="' + c.index + '">' + escapeHtml(c.label) + '</option>'; }).join('') + '</select></label>' +
+        '<label>' + escapeHtml(t('diTrendXLbl')) + '<select class="select di-trend-x">' + model.cols.map(function (c) { return '<option value="' + c.index + '">' + escapeHtml(c.label) + '</option>'; }).join('') + '</select></label>' +
+        '<label>' + escapeHtml(t('diTrendYLbl')) + '<select class="select di-trend-y">' + numCols.map(function (c) { return '<option value="' + c.index + '">' + escapeHtml(c.label) + '</option>'; }).join('') + '</select></label>' +
         '</div>' +
         '<div class="di-chart-wrap"><canvas id="diTrendCanvas"></canvas></div>' +
         '<div class="di-actions"><span></span><button type="button" class="btn sm" id="diCloseBtn">' + escapeHtml(t('diCloseBtn')) + '</button></div>';
@@ -878,7 +886,7 @@
     return new Promise(function (resolve) {
       var m = els.confirmModal, done = false;
       function finish(v) { if (done) return; done = true; els.confirmOkBtn.onclick = els.confirmCancelBtn.onclick = m.onclose = null; if (m.open) m.close(); resolve(v); }
-      els.confirmText.textContent = msg;
+      els.confirmText.textContent = msg; els.confirmText.setAttribute('data-confirm-key', msg === t('newConfirm') ? 'newConfirm' : '');
       els.confirmOkBtn.onclick = function () { finish(true); };
       els.confirmCancelBtn.onclick = function () { finish(false); };
       m.onclose = function () { finish(false); };
@@ -905,12 +913,14 @@
   if (els.diSummaryBtn) els.diSummaryBtn.addEventListener('click', function () { openSummaryPopover(els.diSummaryBtn); });
   if (els.diTrendBtn) els.diTrendBtn.addEventListener('click', function () { openTrendPopover(els.diTrendBtn); });
   if (els.langToggle) {
-    els.langToggle.addEventListener('click', function () {
-      setUILang(getUILang() === 'en' ? 'th' : 'en');
-      applyStaticI18n();
-    });
+    els.langToggle.addEventListener('click', function () { OME_LANG.set(getUILang() === 'en' ? 'th' : 'en'); });
   }
-  window.omeApplyLang = function () { applyStaticI18n(); };
+  /* ฟังการสลับภาษากลาง (ทั้งปุ่มในหน้านี้และแผงตั้งค่า) — ภาษา UI ไม่เกี่ยวกับภาษาของเนื้อหาในตาราง */
+  OME_LANG.onChange(function () {
+    applyStaticI18n(); refreshStatus();
+    var ck = els.confirmText.getAttribute('data-confirm-key'); if (ck && els.confirmModal.open) els.confirmText.textContent = t(ck);
+  });
+  window.OME_PAGE_LIVE_LANG = true;
 
   /* ── init ── */
   var rsz = null;

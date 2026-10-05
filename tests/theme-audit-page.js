@@ -291,7 +291,7 @@
     for (var t = walker.nextNode(); t; t = walker.nextNode()) {
       if (!/\S/.test(t.nodeValue)) continue;
       var el = t.parentElement;
-      if (!el || seen.has(el) || el.closest('script,style,noscript,svg,canvas,option,[data-audit-skip]')) continue;
+      if (!el || seen.has(el) || el.closest('script,style,noscript,svg,canvas,option,[data-audit-skip],[data-doc-area]')) continue;
       seen.add(el);
       if (!visible(el) || skipShell(el, opts)) continue;
       out.push(el);

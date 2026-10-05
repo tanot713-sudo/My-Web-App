@@ -27,10 +27,9 @@
 
 
 .dc-toolbar{display:none;margin-top:var(--ome-sp-4);padding:10px 12px}
-.dc-file-chip{height:auto;padding:5px 10px;gap:6px;max-width:240px;font-size:var(--ome-fs-xs)}
+.dc-file-chip{height:auto;padding:0 0 0 10px;gap:4px;max-width:260px;font-size:var(--ome-fs-xs)}
 .dc-file-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dc-file-chip button{display:flex;flex-shrink:0;padding:0;border:0;background:none;color:inherit;cursor:pointer;opacity:.7}
-.dc-file-chip button:hover{opacity:1}
+.dc-file-chip button{color:inherit;flex-shrink:0}
 .dc-toolbar .select{width:auto}
 .dc-spacer{flex:1}
 
@@ -74,7 +73,7 @@
 <main class="page dc-page">
 <div class="crumb-row">
   <nav class="crumb"><a href="area.html?a=work" data-i18n="crumbResp">งานที่รับผิดชอบ</a><span class="sep">/</span><span data-i18n="crumbDocCheck">ตรวจสอบเอกสาร</span></nav>
-  <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
+  <button class="lang-toggle" id="langToggle" type="button" data-i18n-skip data-i18n-attr="aria-label:lang.toggle" aria-label="สลับภาษา">
     <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
   </button>
 </div>
@@ -110,7 +109,7 @@
   <div class="badge accent dc-file-chip">
     <svg class="ome-icon"><use href="icons.svg#i-file-text"/></svg>
     <span id="fileChipName"></span>
-    <button id="replaceFileBtn" type="button" data-i18n-title="replaceFileBtnTitleFile" data-i18n-aria-label="replaceFileBtnTitleFile" title="เปลี่ยนไฟล์" aria-label="เปลี่ยนไฟล์">
+    <button class="btn ghost sm icon" id="replaceFileBtn" type="button" data-i18n-title="replaceFileBtnTitleFile" data-i18n-aria-label="replaceFileBtnTitleFile" title="เปลี่ยนไฟล์" aria-label="เปลี่ยนไฟล์">
       <svg class="ome-icon"><use href="icons.svg#i-x"/></svg>
     </button>
   </div>

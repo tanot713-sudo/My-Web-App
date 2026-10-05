@@ -84,8 +84,8 @@
 .wd-nav > .tabs .tab{flex:1;height:36px;padding:0 4px;font-size:var(--ome-fs-xs)}
 .wd-nav-list{overflow-y:auto;padding:8px 6px 14px;flex:1}
 .wd-nav-list[hidden]{display:none}
-.wd-nav-item{display:block;width:100%;text-align:left;font:inherit;font-size:var(--ome-fs-sm);color:var(--ome-text-1);background:none;border:0;cursor:pointer;
-  padding:6px 10px;border-radius:var(--ome-radius-sm);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wd-nav-list .btn.wd-nav-item{display:block;width:100%;height:auto;min-height:32px;text-align:left;font-weight:400;font-size:var(--ome-fs-sm);color:var(--ome-text-1);
+  padding:6px 10px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wd-nav-item:hover{background:var(--ome-surface-2)}
 .wd-nav-item.active{background:var(--ome-accent-soft);color:var(--ome-accent-strong);font-weight:600}
 .wd-nav-lv1{font-weight:600}
@@ -197,9 +197,7 @@
 .dialog-foot{flex-wrap:wrap}
 #wordCountDetails strong{font-size:var(--ome-fs-md)}
 .wd-sym-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;max-height:260px;overflow-y:auto}
-.wd-sym-grid button{font:inherit;font-size:18px;padding:6px 0;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);
-  background:var(--ome-surface-1);color:var(--ome-text-1);cursor:pointer}
-.wd-sym-grid button:hover{background:var(--ome-accent-soft);border-color:var(--ome-accent)}
+.wd-sym-grid .btn{font-size:18px;padding:0;min-width:0;width:100%}
 .wd-sym-grid + .wd-sym-grid{margin-top:var(--ome-sp-2)}
 
 /* ── ตอนสร้างไฟล์ PDF เอง (html2canvas): หน้าต่อกันสนิท ซ่อนหัว-ท้ายที่แก้ไขได้ แล้วใช้หัว-ท้ายที่สะท้อนทุกหน้าแทน ── */
@@ -230,22 +228,25 @@ body.wd-cap{height:auto;overflow:visible;display:block}
 @media screen and (max-width:640px){
   .wd-top{padding:var(--ome-sp-2) 10px 0}
   .wd-body{padding:var(--ome-sp-2) 10px var(--ome-sp-3)}
-  .wd-filebar{padding:6px;gap:6px}
-  .wd-ribbon{overflow-x:visible;padding:8px}
-  .wd-ribbon-panel.active{display:flex;flex:1 1 100%;flex-wrap:wrap;gap:6px;align-items:center;min-width:0}
-  .wd-rgroup,.wd-rgroup.col,.wd-rgroup-row{display:contents}
-  .wd-ribbon .btn.sm{height:42px;border-color:var(--ome-border)}
-  .wd-ribbon .btn.sm.icon{width:42px}
-  .wd-ribbon .select{height:42px;font-size:var(--ome-fs-sm)}
-  .wd-ribbon .font-select{flex:1 1 44%;min-width:0;width:auto}
-  .wd-ribbon .style-select{flex:1 1 42%;min-width:0;width:auto}
-  .wd-ribbon .select{max-width:100%}
+  .wd-filebar{padding:6px;gap:var(--ome-sp-2)}
+  /* ริบบิ้นเลื่อนแนวนอนแถวเดียว (แทนการตัดบรรทัดสูงหลายแถว) — ปุ่มเป้ากด 40px ห่างกัน 8px */
+  .wd-ribbon{overflow-x:auto;padding:8px;-webkit-overflow-scrolling:touch}
+  .wd-ribbon-panel{gap:var(--ome-sp-2)}
+  .wd-rgroup,.wd-rgroup.col,.wd-rgroup-row{gap:var(--ome-sp-2)}
+  .wd-nav-search .input,.wd-nav > .tabs .tab{height:40px}
+  .wd-nav-list .btn.wd-nav-item{min-height:44px}
+  .wd-issue .chip{height:40px}
+  .wd-issue .chips{gap:var(--ome-sp-2)}
+  .wd-rgroup{padding:2px var(--ome-sp-3)}
+  .wd-ribbon .select{height:40px;font-size:var(--ome-fs-sm)}
   .wd-ribbon .size-select{width:74px}
+  .wd-ribbon .btn.sm.icon{width:40px}
+  .wd-lang-select{height:40px}
   .wd-lbl{min-width:0}
   .wd-tabs .tab{padding:0 12px;font-size:var(--ome-fs-xs)}
   .wd-page-wrap{overflow-x:hidden;padding:12px 4px}
   .dialog-foot .btn{flex:1 1 calc(50% - 4px)}
-  .wd-sym-grid{grid-template-columns:repeat(8,1fr)}
+  .wd-sym-grid{grid-template-columns:repeat(5,1fr);gap:var(--ome-sp-2)}
 }
 </style>
 </head>
@@ -255,7 +256,7 @@ body.wd-cap{height:auto;overflow:visible;display:block}
   <div class="page-head wd-head">
     <svg class="ome-icon wd-head-icon" aria-hidden="true"><use href="icons.svg#i-file-text"/></svg>
     <h1 data-i18n="pageTitle">เอกสาร</h1>
-    <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
+    <button class="lang-toggle" id="langToggle" type="button" data-i18n-skip data-i18n-attr="aria-label:lang.toggle" aria-label="สลับภาษา">
       <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
     </button>
   </div>
@@ -336,7 +337,7 @@ body.wd-cap{height:auto;overflow:visible;display:block}
       <button class="btn ghost sm icon" id="navCloseBtn" type="button" aria-label="ปิด" data-i18n-aria-label="modalClose"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button>
     </div>
     <div class="wd-nav-search">
-      <input class="input" type="search" id="navSearchInput" data-i18n-placeholder="navSearchPh" placeholder="ค้นหาในเอกสาร" autocomplete="off" aria-label="ค้นหาในเอกสาร">
+      <input class="input" type="search" id="navSearchInput" data-i18n-placeholder="navSearchPh" data-i18n-aria-label="navSearchPh" placeholder="ค้นหาในเอกสาร" autocomplete="off" aria-label="ค้นหาในเอกสาร">
     </div>
     <div class="tabs" id="navTabs" role="tablist">
       <button class="tab on" type="button" role="tab" data-navtab="headings" data-i18n="navHeadings">หัวข้อ</button>
@@ -346,7 +347,7 @@ body.wd-cap{height:auto;overflow:visible;display:block}
     <div class="wd-nav-list" id="navPagesList" data-navpanel="pages" hidden></div>
   </aside>
   <div class="wd-nav-backdrop" id="navBackdrop" hidden></div>
-  <div class="wd-page-wrap">
+  <div class="wd-page-wrap" data-doc-area>
    <div class="wd-page-scale" id="pageScale">
     <div class="wd-page" id="page">
       <div class="wd-pagebg" id="pageBg" aria-hidden="true"></div>
