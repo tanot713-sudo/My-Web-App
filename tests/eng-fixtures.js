@@ -173,9 +173,68 @@ function maintenance(h) {
   };
 }
 
+/* ───────── ประเมินราคา PM/CM (run.html?tool=est-cost) ───────── */
+// Pyodide / Google Identity / Drive API ปลอมทั้งหมด — ไม่โหลด Python จริง ไม่ออกเน็ต (อ่านไฟล์ tool/est-cost จากเซิร์ฟเวอร์ในเครื่อง)
+const RUN_INIT = `
+window.__pyOut = null; window.__pyFail = false;
+window.loadPyodide = async () => ({
+  setStdout(o) { window.__pyOut = o.batched; }, setStderr() {},
+  loadPackage: async () => {}, pyimport: () => ({ install: async () => {} }),
+  FS: { writeFile() {}, readFile: () => new Uint8Array(2048) },
+  runPythonAsync: async (code) => {
+    if (code.indexOf('tool_run.check(') >= 0) { ['⚠️ row 12: hours missing', '❌ code ZZZ unknown', 'checked'].forEach((l) => window.__pyOut && window.__pyOut(l)); return; }
+    if (code.indexOf('tool_run.run(') >= 0) {
+      if (window.__pyFail) throw new Error('Traceback: boom');
+      ['reading input', '✅ estimate written', '⚠️ 2 assets skipped'].forEach((l) => window.__pyOut && window.__pyOut(l));
+      return { toJs: () => ['/home/pyodide/out/estimate_v5.xlsx', '/home/pyodide/out/route_map.svg', '/home/pyodide/out/summary.pdf'], destroy() {} };
+    }
+    if (code.indexOf('tool_run.compare(') >= 0) return { toJs: () => [
+      { code: 'ESC-01', name: 'Escalator', current_hours: 120, history_avg_hours: 80, deviation_pct: 50, history_n: 3, flag: true },
+      { code: 'LIFT-01', name: 'Lift', current_hours: 60, history_avg_hours: 58, deviation_pct: 3.4, history_n: 3, flag: false }], destroy() {} };
+  }
+});
+window.google = { accounts: { oauth2: { initTokenClient: (cfg) => ({ requestAccessToken: () => setTimeout(() => cfg.callback({ access_token: 'tok' }), 10) }) } } };
+`;
+function runPage(h) {
+  const { dom, settle, closeAll } = h;
+  const XLSX = (() => { try { return require('xlsx'); } catch (e) { return null; } })();
+  const xl = () => { const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['a', 'b'], [1, 2]]), 'EQUIPMENT'); return Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })); };
+  return {
+    page: 'run.html?tool=est-cost',
+    init: RUN_INIT,
+    route: async (page) => {
+      await page.route('https://www.googleapis.com/**', (route) => {
+        const u = decodeURIComponent(route.request().url());
+        if (route.request().method() === 'POST') return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ id: 'u1', name: 'x', webViewLink: '' }) });
+        if (/alt=media/.test(u)) return route.fulfill({ body: 'x' });
+        if (/mimeType='application\/vnd.google-apps.folder'/.test(u)) return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ files: [{ id: 'F1', name: 'AMR_EstCost' }] }) });
+        if (/key='kind' and value='estcost_input'/.test(u)) return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ files: [{ id: 'h1', name: 'old1.xlsx', modifiedTime: '2026-09-01T03:00:00Z' }, { id: 'h2', name: 'old2.xlsx', modifiedTime: '2026-08-01T03:00:00Z' }] }) });
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ files: [
+          { id: 'h1', name: 'input_2026-09.xlsx', modifiedTime: '2026-09-01T03:00:00Z', properties: { kind: 'estcost_input' } },
+          { id: 'h3', name: 'estimate_v5.xlsx', modifiedTime: '2026-09-01T03:10:00Z', properties: { kind: 'estcost_output' } },
+          { id: 'h4', name: 'misc.bin', modifiedTime: '2026-08-20T03:10:00Z', properties: {} }] }) });
+      });
+    },
+    wait: async (p) => { await p.waitForFunction(() => /Ready|พร้อมใช้งาน/.test(document.getElementById('status').textContent), null, { timeout: 15000 }).catch(() => {}); await settle(p, 400); },
+    states: [
+      ['base', async () => {}],
+      ['wrong-ext', async (p) => { await p.setInputFiles('#file', { name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('x') }); await settle(p, 300); }],
+      ['file-chosen', async (p) => { await p.setInputFiles('#file', { name: 'input_est_cost_2026.xlsx', mimeType: 'application/octet-stream', buffer: xl() }); await settle(p, 400); }],
+      ['check', async (p) => { await dom(p, '#check'); await settle(p, 500); }],
+      ['run-done', async (p) => { await dom(p, '#run'); await p.waitForSelector('#result.show .list-row', { timeout: 8000 }).catch(() => {}); await settle(p, 800); }],
+      ['drive-ready', async (p) => { await p.evaluate(() => window.initDrive && window.initDrive()); await settle(p, 300); }],
+      ['drive-upload', async (p) => { await dom(p, '#driveBtn'); await settle(p, 900); }],
+      ['compare', async (p) => { await dom(p, '#cmpBtn'); await settle(p, 1200); }],
+      ['history', async (p) => { await dom(p, '#histBtn'); await settle(p, 900); }],
+      ['history-use', async (p) => { await dom(p, '[data-act="use"]'); await settle(p, 700); }],
+      ['run-fail', async (p) => { await p.evaluate(() => { window.__pyFail = true; }); await dom(p, '#run'); await settle(p, 900); }]
+    ]
+  };
+}
+
 const ALLOW = [];
 
 function targets(h) {
-  return [tax(h), electrical(h), maintenance(h)];
+  return [tax(h), electrical(h), maintenance(h), runPage(h)];
 }
 module.exports = { targets, ALLOW, NOW };

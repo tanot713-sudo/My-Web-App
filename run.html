@@ -21,13 +21,13 @@
 code{background:var(--ome-surface-2);padding:2px 6px;border-radius:var(--ome-radius-sm)}
 .card > .card-head{margin-bottom:0}
 .status{text-align:center;font-size:var(--ome-fs-sm);color:var(--ome-text-2);margin:0}
-.status:empty,.drop-hint:empty,.drive-status:empty{display:none}
+.status:empty,.drive-status:empty{display:none}
 
 /* แถบสถานะขั้นตอน */
 .line{position:relative;padding:8px 0 0}
 .track,.track-fill{position:absolute;top:20px;height:4px;border-radius:var(--ome-radius-sm)}
 .track{left:7%;right:7%;background:var(--ome-surface-2);border:1px solid var(--ome-border)}
-.track-fill{left:7%;width:0;background:linear-gradient(90deg,var(--ome-info),var(--ome-accent));transition:width var(--ome-dur-3) var(--ome-ease)}
+.track-fill{left:7%;width:0;background:var(--ome-accent);transition:width var(--ome-dur-3) var(--ome-ease)}
 .stations{display:flex;justify-content:space-between;position:relative}
 .stn{flex:1;text-align:center}
 .stn .dot{width:16px;height:16px;border-radius:50%;background:var(--ome-surface-1);border:3px solid var(--ome-border-strong);
@@ -37,42 +37,32 @@ code{background:var(--ome-surface-2);padding:2px 6px;border-radius:var(--ome-rad
 .stn.done .dot{border-color:var(--ome-ok);background:var(--ome-ok)}
 .stn.fail .dot{border-color:var(--ome-err);background:var(--ome-err)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.stn-label{font-size:11.5px;color:var(--ome-text-2)}
+.stn-label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);line-height:1.3;overflow-wrap:anywhere}
 .stn.on .stn-label,.stn.done .stn-label{color:var(--ome-text-1);font-weight:600}
 @media(prefers-reduced-motion:reduce){.stn.on .dot::after{animation:none}.track-fill{transition:none}}
-@media(max-width:600px){.stn-label{font-size:10px}.track,.track-fill{left:9%;right:9%}}
+@media(max-width:600px){.stn{min-width:0;padding:0 2px}.track,.track-fill{left:9%;right:9%}}
 
-/* ช่องวางไฟล์ */
-.drop{border:2px dashed var(--ome-border-strong);border-radius:var(--ome-radius-lg);padding:40px 24px;text-align:center;
-  cursor:pointer;transition:var(--ome-dur-2);background:var(--ome-surface-2)}
-.drop:hover,.drop.over{border-color:var(--ome-accent);background:var(--ome-accent-soft)}
-.drop:focus-visible{outline:3px solid var(--ome-accent);outline-offset:3px}
-.drop.has{border-style:solid;border-color:var(--ome-ok);background:var(--ome-ok-soft)}
-.drop .ome-icon{width:40px;height:40px;color:var(--ome-accent-strong);margin-bottom:10px}
-.drop-main{font-weight:600;font-size:var(--ome-fs-md)}
-.drop-hint{font-size:var(--ome-fs-sm);color:var(--ome-text-2);margin-top:6px}
+/* ช่องวางไฟล์: .dropzone กลาง (theme.css) — เหลือสถานะเลือกไฟล์แล้ว */
+.dropzone.has{border-style:solid;border-color:var(--ome-ok-ink);background:var(--ome-ok-soft)}
 .file-name{color:var(--ome-accent-strong);word-break:break-all;font-weight:500}
 
 /* บันทึกการทำงาน (เทอร์มินัลสีเข้มทั้งสองโหมด) */
-.log{font-family:var(--ome-font-mono);font-size:12.5px;line-height:1.7;background:#1B2030;color:#C2CBDD;
+.log{font-family:var(--ome-font-mono);font-size:var(--ome-fs-sm);line-height:1.7;background:var(--ome-surface-2);color:var(--ome-text-1);border:1px solid var(--ome-border);
   padding:18px 20px;border-radius:var(--ome-radius-lg);max-height:320px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
-.log:empty::before{content:'รอเริ่มทำงาน…';color:#5D6884}
-.log .ok{color:#5EE0A4}.log .warn{color:#F5C35C}.log .err{color:#FF8A87}.log .dim{color:#7C87A3}
+.log:empty::before{content:attr(data-empty);color:var(--ome-text-2)}
+.log .ok{color:var(--ome-ok-ink)}.log .warn{color:var(--ome-warn-ink)}.log .err{color:var(--ome-err-ink)}.log .dim{color:var(--ome-text-2)}
 
 .result{display:none}.result.show{display:block}
 .drive-row{padding-top:var(--ome-sp-4);border-top:1px solid var(--ome-border)}
 .drive-status{font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
 .drive-status.ok{color:var(--ome-ok-ink);font-weight:600}
 .drive-status.err{color:var(--ome-err-ink);font-weight:600}
-.list-row .lead{font-size:10px;font-weight:700}
+.list-row .lead{font-size:var(--ome-fs-xs);font-weight:700}
 .list-row .grow > span{display:block}
 .list-row .title{word-break:break-all;white-space:normal}
 .table tr.flag td{background:var(--ome-err-soft);color:var(--ome-err-ink)}
 .table tr.flag td:nth-child(5){font-weight:700}
-.note{border-radius:var(--ome-radius-lg);padding:15px 18px;font-size:var(--ome-fs-sm);
-  background:var(--ome-warn-soft);color:var(--ome-warn-ink);border:1px solid var(--ome-warn)}
-.note.err{background:var(--ome-err-soft);color:var(--ome-err-ink);border-color:var(--ome-err)}
-.note strong{display:block;margin-bottom:4px;font-weight:600}
+.callout strong{display:block;margin-bottom:4px;font-weight:600}
 </style>
 </head>
 <body data-layout="tool">
@@ -84,57 +74,57 @@ code{background:var(--ome-surface-2);padding:2px 6px;border-radius:var(--ome-rad
 <div class="line" aria-hidden="true">
   <div class="track"></div><div class="track-fill" id="fill"></div>
   <div class="stations">
-    <div class="stn" data-s="0"><div class="dot"></div><div class="stn-label">เตรียมระบบ</div></div>
-    <div class="stn" data-s="1"><div class="dot"></div><div class="stn-label">โหลดสูตร</div></div>
-    <div class="stn" data-s="2"><div class="dot"></div><div class="stn-label">อ่านข้อมูล</div></div>
-    <div class="stn" data-s="3"><div class="dot"></div><div class="stn-label">คำนวณ</div></div>
-    <div class="stn" data-s="4"><div class="dot"></div><div class="stn-label">เขียนไฟล์</div></div>
-    <div class="stn" data-s="5"><div class="dot"></div><div class="stn-label">เสร็จ</div></div>
+    <div class="stn" data-s="0"><div class="dot"></div><div class="stn-label" data-i18n="run.st0">เตรียมระบบ</div></div>
+    <div class="stn" data-s="1"><div class="dot"></div><div class="stn-label" data-i18n="run.st1">โหลดสูตร</div></div>
+    <div class="stn" data-s="2"><div class="dot"></div><div class="stn-label" data-i18n="run.st2">อ่านข้อมูล</div></div>
+    <div class="stn" data-s="3"><div class="dot"></div><div class="stn-label" data-i18n="run.st3">คำนวณ</div></div>
+    <div class="stn" data-s="4"><div class="dot"></div><div class="stn-label" data-i18n="run.st4">เขียนไฟล์</div></div>
+    <div class="stn" data-s="5"><div class="dot"></div><div class="stn-label" data-i18n="run.st5">เสร็จ</div></div>
   </div>
 </div>
 <p class="status" id="status" role="status" aria-live="polite">กำลังเตรียมระบบ…</p>
 
 <section class="card stack">
-  <div class="card-head"><h2>ไฟล์ข้อมูล</h2></div>
-  <div class="drop" id="drop" tabindex="0" role="button" aria-label="เลือกไฟล์ข้อมูล">
+  <div class="card-head"><h2 data-i18n="run.cardData">ไฟล์ข้อมูล</h2></div>
+  <div class="dropzone" id="drop" tabindex="0" role="button" aria-label="เลือกไฟล์ข้อมูล" data-i18n-attr="aria-label:run.dropAria">
     <svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg>
-    <div class="drop-main" id="dropMain">ลากไฟล์มาวาง หรือคลิกเพื่อเลือก</div>
-    <div class="drop-hint" id="dropHint"></div>
+    <div class="dropzone-main" id="dropMain" data-i18n="run.dropMain">ลากไฟล์มาวาง หรือคลิกเพื่อเลือก</div>
+    <div class="dropzone-sub" id="dropHint"></div>
   </div>
   <input type="file" id="file" hidden>
   <div class="row">
     <button class="btn primary" id="run" disabled>
       <svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-play"/></svg>
-      <span id="runLabel">สร้างเอกสาร</span>
+      <span id="runLabel" data-i18n="run.runLabel">สร้างเอกสาร</span>
     </button>
-    <button class="btn" id="check" disabled hidden>ตรวจข้อมูลก่อน</button>
+    <button class="btn" id="check" disabled hidden data-i18n="run.check">ตรวจข้อมูลก่อน</button>
   </div>
 </section>
 
 <section class="card stack" id="cmpCard" hidden>
-  <div class="card-head"><h2>เทียบกับข้อมูลเก่า</h2></div>
-  <div class="row"><button class="btn" id="cmpBtn" disabled>ค้นหา &amp; เทียบกับข้อมูลเก่า</button></div>
+  <div class="card-head"><h2 data-i18n="run.cardCmp">เทียบกับข้อมูลเก่า</h2></div>
+  <div class="row"><button class="btn" id="cmpBtn" disabled data-i18n="run.cmpBtn">ค้นหา &amp; เทียบกับข้อมูลเก่า</button></div>
   <div class="drive-status" id="cmpStatus"></div>
   <div id="cmpResult"></div>
 </section>
 
 <section class="card stack" id="histCard" hidden>
-  <div class="card-head"><h2>ประวัติใน Google Drive</h2></div>
-  <div class="row"><button class="btn" id="histBtn">โหลดประวัติ</button></div>
+  <div class="card-head"><h2 data-i18n="run.cardHist">ประวัติใน Google Drive</h2></div>
+  <div class="row"><button class="btn" id="histBtn" data-i18n="run.histBtn">โหลดประวัติ</button></div>
   <div class="drive-status" id="histStatus"></div>
   <div id="histList"></div>
 </section>
 
-<section class="card stack"><div class="card-head"><h2>บันทึกการทำงาน</h2></div><div class="log" id="log"></div></section>
+<section class="card stack"><div class="card-head"><h2 data-i18n="run.cardLog">บันทึกการทำงาน</h2></div><div class="log" id="log" data-i18n-skip data-empty="รอเริ่มทำงาน…" data-i18n-attr="data-empty:run.logEmpty"></div></section>
 
 <section class="card stack result" id="result">
-  <div class="card-head"><h2>ไฟล์ที่ได้</h2></div>
+  <div class="card-head"><h2 data-i18n="run.cardFiles">ไฟล์ที่ได้</h2></div>
   <div id="files"></div>
   <div class="drive-row" id="driveRow" hidden>
     <div class="row">
       <button class="btn" id="driveBtn">
         <svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-cloud"/></svg>
-        <span id="driveBtnLabel">บันทึกไฟล์ขึ้น Google Drive</span>
+        <span id="driveBtnLabel" data-i18n="run.driveBtn">บันทึกไฟล์ขึ้น Google Drive</span>
       </button>
       <span class="drive-status" id="driveStatus"></span>
     </div>
@@ -162,12 +152,192 @@ async function loadManifest(){
       if (r.ok){ TOOLBASE = BASE + d; return await r.json(); }
     }catch(e){ /* ลองตัวถัดไป */ }
   }
-  throw new Error('ไม่พบ tools.json — ลองแล้วที่: ' + tried.join(' , '));
+  throw new Error(T('noManifest', { tried: tried.join(' , ') }));
 }
 
 const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
 const HOME = '/home/pyodide';
 const NOCACHE = '?v=' + Date.now();   // กันเบราว์เซอร์/CDN ใช้ไฟล์เก่า
+// ภาษา: พจนานุกรม th/en (ns 'run') — HTML ใช้ data-i18n="run.<คีย์>" · ผลจาก Python (บันทึกการทำงานจาก tool_run.py) และชื่อ/คำอธิบายเครื่องมือใน tools.json เป็นเนื้อหา ไม่แปล
+const T = OME_I18N.scope('run', {
+  th: {
+    title: 'กำลังโหลด…',
+    st0: 'เตรียมระบบ',
+    st1: 'โหลดสูตร',
+    st2: 'อ่านข้อมูล',
+    st3: 'คำนวณ',
+    st4: 'เขียนไฟล์',
+    st5: 'เสร็จ',
+    statusInit: 'กำลังเตรียมระบบ…',
+    cardData: 'ไฟล์ข้อมูล',
+    dropAria: 'เลือกไฟล์ข้อมูล',
+    dropMain: 'ลากไฟล์มาวาง หรือคลิกเพื่อเลือก',
+    runLabel: 'สร้างเอกสาร',
+    check: 'ตรวจข้อมูลก่อน',
+    cardCmp: 'เทียบกับข้อมูลเก่า',
+    cmpBtn: 'ค้นหา & เทียบกับข้อมูลเก่า',
+    cardHist: 'ประวัติใน Google Drive',
+    histBtn: 'โหลดประวัติ',
+    cardLog: 'บันทึกการทำงาน',
+    logEmpty: 'รอเริ่มทำงาน…',
+    cardFiles: 'ไฟล์ที่ได้',
+    driveBtn: 'บันทึกไฟล์ขึ้น Google Drive',
+    noManifest: 'ไม่พบ tools.json — ลองแล้วที่: {tried}',
+    noTool: 'ไม่พบเครื่องมือ',
+    toolHint: 'ตรวจว่ามีไฟล์ {code} และมีรายการ id นี้อยู่ — ',
+    stopped: 'หยุดทำงาน',
+    logPy: 'โหลด Python runtime (ครั้งแรกใช้เวลาสักครู่)…',
+    logInstall: 'ติดตั้ง {p}…',
+    logInstallFail: 'ติดตั้ง {p} ไม่สำเร็จ: {m}',
+    stFormulas: 'กำลังโหลดสูตรคำนวณ…',
+    loadFail: 'โหลด {f} ไม่ได้ (HTTP {s}) — ตรวจว่าไฟล์อยู่ใน {d}',
+    optMissing: 'ไม่มีไฟล์เสริม {f} — ทำงานต่อได้ แต่ข้อความไทยในภาพอาจไม่สวย',
+    optSkip: 'ข้ามไฟล์เสริม {f}',
+    ready: 'พร้อมใช้งาน',
+    stReady: 'พร้อมใช้งาน — เลือกไฟล์ข้อมูล',
+    stPrepFail: 'เตรียมระบบไม่สำเร็จ',
+    wrongExt: 'ต้องเป็นไฟล์ {ext} เท่านั้น',
+    logCheck: 'ตรวจ {f}',
+    stRead: 'กำลังอ่านข้อมูล…',
+    stCalc: 'กำลังคำนวณ…',
+    stWrite: 'กำลังเขียนไฟล์…',
+    noOutput: 'ไม่มีไฟล์ผลลัพธ์ — ดูรายละเอียดในบันทึกการทำงาน',
+    mainFile: ' · ไฟล์หลัก',
+    stDone: 'สร้างเอกสารเสร็จแล้ว',
+    stRunFail: 'สร้างเอกสารไม่สำเร็จ',
+    runFailHint: 'ดูรายละเอียดในบันทึกการทำงานด้านบน แล้วแก้ไฟล์ข้อมูลก่อนลองใหม่',
+    gisFail: 'โหลด Google Identity Services ไม่สำเร็จ',
+    authFail: 'เชื่อมต่อไม่สำเร็จ: {e}',
+    folderFindFail: 'ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP {s})',
+    folderMakeFail: 'สร้างโฟลเดอร์ไม่สำเร็จ (HTTP {s})',
+    uploadFail: 'อัปโหลด {n} ไม่สำเร็จ (HTTP {s})',
+    noFilesYet: 'ยังไม่มีไฟล์ให้บันทึก — สร้างเอกสารก่อน',
+    connecting: 'กำลังเชื่อมต่อโฟลเดอร์…',
+    uploading: 'กำลังอัปโหลด ({i}/{n}) {name}…',
+    uploaded: 'บันทึกขึ้น Google Drive แล้ว {n} ไฟล์ (โฟลเดอร์ "{folder}")',
+    noDrive: 'ยังไม่ได้ตั้งค่า Google Drive สำหรับเครื่องมือนี้',
+    histFindFail: 'ค้นหาไฟล์เก่าไม่สำเร็จ (HTTP {s})',
+    dlFail: 'ดาวน์โหลดไฟล์เก่าไม่สำเร็จ (HTTP {s})',
+    cmpNone: 'เทียบกับไฟล์เก่า {n} ไฟล์แล้ว — ไม่พบรหัสอุปกรณ์ที่ตรงกันในประวัติ',
+    cmpSome: 'เทียบกับไฟล์เก่า {n} ไฟล์ — พบอุปกรณ์ที่มีประวัติ {r} รายการ',
+    cmpFlagged: ', ผิดปกติ {f} รายการ (ต่างจากค่าเฉลี่ยเก่าเกิน 25%)',
+    cmpClean: ', ไม่พบความผิดปกติ',
+    thCode: 'รหัส',
+    thName: 'ชื่ออุปกรณ์',
+    thHoursNow: 'ชม./ปี (ไฟล์นี้)',
+    thHoursOld: 'ชม./ปี เฉลี่ยเก่า',
+    thDiff: 'ต่าง',
+    thOldN: 'จำนวนไฟล์เก่า',
+    pickFirst: 'เลือกไฟล์ข้อมูลก่อน',
+    notReady: 'ระบบยังไม่พร้อม รอสักครู่แล้วลองใหม่',
+    cmpSearching: 'กำลังค้นหาไฟล์เก่าใน Google Drive…',
+    cmpNoOld: 'ยังไม่มีไฟล์ข้อมูลเก่าใน Drive ให้เทียบ (จะมีข้อมูลหลังบันทึกไฟล์ input ขึ้น Drive ในครั้งต่อๆ ไป)',
+    cmpLoadingOld: 'กำลังโหลดไฟล์เก่า ({i}/{n}) {name}…',
+    cmpRunning: 'กำลังเปรียบเทียบ…',
+    histFail: 'โหลดประวัติไม่สำเร็จ (HTTP {s})',
+    histEmpty: 'ยังไม่มีไฟล์ในโฟลเดอร์ "{folder}" — บันทึกผลการรันขึ้น Drive ก่อน แล้วประวัติจะโผล่ที่นี่',
+    histCount: 'ไฟล์ล่าสุด {n} รายการในโฟลเดอร์ "{folder}"',
+    thFile: 'ไฟล์',
+    thKind: 'ชนิด',
+    thSavedAt: 'บันทึกเมื่อ',
+    kindInput: 'ไฟล์ข้อมูล',
+    kindOutput: 'ผลลัพธ์',
+    dl: 'ดาวน์โหลด',
+    useAsInput: 'ใช้เป็นไฟล์ตั้งต้น',
+    fromDrive: ' · จาก Google Drive',
+    histLoading: 'กำลังโหลดประวัติ…',
+    histUsed: 'ตั้ง "{name}" เป็นไฟล์ข้อมูลแล้ว'
+  },
+  en: {
+    title: 'Loading…',
+    st0: 'Prepare',
+    st1: 'Load formulas',
+    st2: 'Read data',
+    st3: 'Calculate',
+    st4: 'Write files',
+    st5: 'Done',
+    statusInit: 'Preparing the system…',
+    cardData: 'Data file',
+    dropAria: 'Choose a data file',
+    dropMain: 'Drag a file here, or click to choose',
+    runLabel: 'Create documents',
+    check: 'Check data first',
+    cardCmp: 'Compare with old data',
+    cmpBtn: 'Search & compare with old data',
+    cardHist: 'History in Google Drive',
+    histBtn: 'Load history',
+    cardLog: 'Activity log',
+    logEmpty: 'Waiting to start…',
+    cardFiles: 'Output files',
+    driveBtn: 'Save files to Google Drive',
+    noManifest: 'tools.json not found — tried: {tried}',
+    noTool: 'Tool not found',
+    toolHint: 'Check that {code} exists and contains this id — ',
+    stopped: 'Stopped',
+    logPy: 'Loading the Python runtime (the first time takes a moment)…',
+    logInstall: 'Installing {p}…',
+    logInstallFail: 'Could not install {p}: {m}',
+    stFormulas: 'Loading formulas…',
+    loadFail: 'Could not load {f} (HTTP {s}) — check that the file is in {d}',
+    optMissing: 'Optional file {f} is missing — continuing, but Thai text in the image may look off',
+    optSkip: 'Skipped optional file {f}',
+    ready: 'Ready',
+    stReady: 'Ready — choose a data file',
+    stPrepFail: 'Could not prepare the system',
+    wrongExt: 'Only {ext} files are accepted',
+    logCheck: 'Checking {f}',
+    stRead: 'Reading data…',
+    stCalc: 'Calculating…',
+    stWrite: 'Writing files…',
+    noOutput: 'No output files — see the activity log for details',
+    mainFile: ' · main file',
+    stDone: 'Documents created',
+    stRunFail: 'Could not create the documents',
+    runFailHint: 'See the activity log above, fix the data file, then try again',
+    gisFail: 'Could not load Google Identity Services',
+    authFail: 'Could not connect: {e}',
+    folderFindFail: 'Could not look up the folder (HTTP {s})',
+    folderMakeFail: 'Could not create the folder (HTTP {s})',
+    uploadFail: 'Could not upload {n} (HTTP {s})',
+    noFilesYet: 'No files to save yet — create the documents first',
+    connecting: 'Connecting to the folder…',
+    uploading: 'Uploading ({i}/{n}) {name}…',
+    uploaded: 'Saved {n} file(s) to Google Drive (folder "{folder}")',
+    noDrive: 'Google Drive is not set up for this tool',
+    histFindFail: 'Could not look up old files (HTTP {s})',
+    dlFail: 'Could not download the old file (HTTP {s})',
+    cmpNone: 'Compared with {n} old file(s) — no matching equipment codes in the history',
+    cmpSome: 'Compared with {n} old file(s) — {r} equipment item(s) with history found',
+    cmpFlagged: ', {f} abnormal (more than 25% off the old average)',
+    cmpClean: ', no abnormalities found',
+    thCode: 'Code',
+    thName: 'Equipment name',
+    thHoursNow: 'h/year (this file)',
+    thHoursOld: 'h/year (old avg.)',
+    thDiff: 'Diff',
+    thOldN: 'Old files',
+    pickFirst: 'Choose a data file first',
+    notReady: 'The system is not ready yet — wait a moment and try again',
+    cmpSearching: 'Searching for old files in Google Drive…',
+    cmpNoOld: 'There are no old data files in Drive to compare (they will appear after you save input files to Drive in later runs)',
+    cmpLoadingOld: 'Loading old file ({i}/{n}) {name}…',
+    cmpRunning: 'Comparing…',
+    histFail: 'Could not load the history (HTTP {s})',
+    histEmpty: 'No files in the folder "{folder}" yet — save a run to Drive first and the history will appear here',
+    histCount: 'Latest {n} item(s) in the folder "{folder}"',
+    thFile: 'File',
+    thKind: 'Type',
+    thSavedAt: 'Saved at',
+    kindInput: 'Data file',
+    kindOutput: 'Output',
+    dl: 'Download',
+    useAsInput: 'Use as input file',
+    fromDrive: ' · from Google Drive',
+    histLoading: 'Loading the history…',
+    histUsed: 'Set "{name}" as the data file'
+  }
+});
+const L = (key, vars) => () => T(key, vars); // ข้อความสถานะที่ค้างบนจอ: คืนฟังก์ชันให้ OME_I18N.live วาดซ้ำตอนสลับภาษา
 const $ = id => document.getElementById(id);
 const logEl = $('log');
 let pyodide = null, tool = null, ready = false, inBytes = null, inName = null;
@@ -190,39 +360,47 @@ function stage(n, state){
   });
   $('fill').style.width = (n/5*88) + '%';
 }
-const setStatus = t => $('status').textContent = t;
-function fail(title, msg){
+const setStatus = v => OME_I18N.live($('status'), typeof v === 'function' ? v : () => v); // v = ฟังก์ชันคืนข้อความตามภาษา (L('คีย์')) หรือข้อความเฉยๆ
+function fail(title, msg){ // title/msg = ข้อความ หรือฟังก์ชันคืนข้อความ (L('คีย์')) ให้แปลสดตอนสลับภาษา
   const n = document.createElement('div');
-  n.className = 'note err';
-  n.innerHTML = '<strong>' + esc(title) + '</strong>' + esc(msg);
+  n.className = 'callout err';
+  const st = document.createElement('strong'), sp = document.createElement('span');
+  n.append(st, sp);
+  OME_I18N.live(st, typeof title === 'function' ? title : () => title);
+  OME_I18N.live(sp, typeof msg === 'function' ? msg : () => msg);
   $('result').classList.add('show'); $('files').innerHTML = '';
   $('files').appendChild(n);
 }
 
 async function boot(){
+  window.OME_PAGE_LIVE_LANG = true; // ข้อความสถานะ/ชื่อเครื่องมือแปลสดผ่าน OME_I18N.live · ข้อความสถิตผ่าน data-i18n
+  OME_I18N.live($('title'), L('title')); setStatus(L('statusInit'));
   const id = new URLSearchParams(location.search).get('tool');
   try{
     const cfg = await loadManifest();
     tool = cfg.tools.find(t => t.id === id) || cfg.tools[0];
-    if (!tool) throw new Error('ไม่พบเครื่องมือ');
+    if (!tool) throw new Error(T('noTool'));
   }catch(e){
-    $('title').textContent = 'ไม่พบเครื่องมือ';
+    OME_I18N.live($('title'), L('noTool'));
     $('desc').hidden = false;
-    $('desc').innerHTML = 'ตรวจว่ามีไฟล์ <code>tools.json</code> และมีรายการ id นี้อยู่ — ' + esc(e.message);
-    setStatus('หยุดทำงาน'); stage(0,'fail'); return;
+    OME_I18N.live($('desc'), null);
+    $('desc').innerHTML = T('toolHint', { code: '<code>tools.json</code>' }) + esc(e.message);
+    setStatus(L('stopped')); stage(0,'fail'); return;
   }
 
   driveExtrasAllowed = (tool.id === 'est-cost');
   applyDriveVisibility();
 
-  document.title = tool.name + ' | AMR Asia';
-  $('title').textContent = tool.name;
+  // ชื่อเครื่องมือมาจาก tools.json (name / nameEn) — เป็นเนื้อหาที่เจ้าของตั้งเอง ไม่มี nameEn = ใช้ชื่อไทย
+  const toolName = () => (OME_LANG.get() === 'en' && tool.nameEn) || tool.name;
+  const showName = () => { document.title = toolName() + ' | AMR Asia'; OME_I18N.live($('title'), toolName); };
+  showName(); OME_LANG.onChange(showName);
   $('file').accept = tool.accept || '';
   if (tool.hasCheck) $('check').hidden = false;
 
   try{
     stage(0);
-    log('โหลด Python runtime (ครั้งแรกใช้เวลาสักครู่)…', 'dim');
+    log(T('logPy'), 'dim');
     pyodide = await loadPyodide({indexURL: PYODIDE});
     pyodide.setStdout({batched: pyline});
     pyodide.setStderr({batched: t => log(t,'err')});
@@ -232,19 +410,19 @@ async function boot(){
       const mp = pyodide.pyimport('micropip');
       for (const p of tool.packages){
         try{
-          log('ติดตั้ง ' + p + '…', 'dim');
+          log(T('logInstall', { p }), 'dim');
           await mp.install(p);
         }catch(e){
-          log('ติดตั้ง ' + p + ' ไม่สำเร็จ: ' + (e.message || e), 'warn');
+          log(T('logInstallFail', { p, m: e.message || e }), 'warn');
         }
       }
     }
 
-    stage(1); setStatus('กำลังโหลดสูตรคำนวณ…');
+    stage(1); setStatus(L('stFormulas'));
     // ไฟล์ที่ขาดไม่ได้ — โมดูล Python และ template
     for (const f of [...(tool.modules||[]), ...(tool.assets||[])]){
       const r = await fetch(TOOLBASE + tool.dir + f + NOCACHE);
-      if (!r.ok) throw new Error('โหลด ' + f + ' ไม่ได้ (HTTP ' + r.status + ') — ตรวจว่าไฟล์อยู่ใน ' + TOOLBASE + tool.dir);
+      if (!r.ok) throw new Error(T('loadFail', { f, s: r.status, d: TOOLBASE + tool.dir }));
       pyodide.FS.writeFile(HOME + '/' + f, new Uint8Array(await r.arrayBuffer()));
     }
     // ไฟล์เสริม (เช่น ฟอนต์) — ขาดได้ แค่เตือน ไม่หยุดทำงาน
@@ -252,20 +430,20 @@ async function boot(){
       try{
         const r = await fetch(TOOLBASE + tool.dir + f + NOCACHE);
         if (r.ok) pyodide.FS.writeFile(HOME + '/' + f, new Uint8Array(await r.arrayBuffer()));
-        else log('ไม่มีไฟล์เสริม ' + f + ' — ทำงานต่อได้ แต่ข้อความไทยในภาพอาจไม่สวย', 'warn');
-      }catch(e){ log('ข้ามไฟล์เสริม ' + f, 'dim'); }
+        else log(T('optMissing', { f }), 'warn');
+      }catch(e){ log(T('optSkip', { f }), 'dim'); }
     }
     await pyodide.runPythonAsync(
       'import sys, os\nos.chdir("' + HOME + '")\nsys.path.insert(0, "' + HOME + '")\nimport tool_run\n');
 
     ready = true; stage(1,'done');
-    setStatus('พร้อมใช้งาน — เลือกไฟล์ข้อมูล');
-    log('พร้อมใช้งาน', 'ok');
+    setStatus(L('stReady'));
+    log(T('ready'), 'ok');
     enable();
   }catch(e){
-    stage(0,'fail'); setStatus('เตรียมระบบไม่สำเร็จ');
+    stage(0,'fail'); setStatus(L('stPrepFail'));
     log(String(e.message || e), 'err');
-    fail('เตรียมระบบไม่สำเร็จ', String(e.message || e));
+    fail(L('stPrepFail'), String(e.message || e));
   }
 }
 function enable(){
@@ -284,12 +462,13 @@ fileInput.addEventListener('change', e=>{ if(e.target.files[0]) take(e.target.fi
 async function take(f){
   const ext = (tool.accept || '').toLowerCase();
   if (ext && !f.name.toLowerCase().endsWith(ext)){
-    $('dropHint').textContent = 'ต้องเป็นไฟล์ ' + ext + ' เท่านั้น'; return;
+    OME_I18N.live($('dropHint'), L('wrongExt', { ext })); return;
   }
   inName = f.name; inBytes = new Uint8Array(await f.arrayBuffer());
   drop.classList.add('has');
+  $('dropMain').removeAttribute('data-i18n'); // ชื่อไฟล์ไม่ถูกแปลทับตอนสลับภาษา
   $('dropMain').innerHTML = '<span class="file-name">' + esc(f.name) + '</span>';
-  $('dropHint').textContent = (f.size/1024).toFixed(0) + ' KB';
+  OME_I18N.live($('dropHint'), null); $('dropHint').textContent = (f.size/1024).toFixed(0) + ' KB';
   enable();
   updateCmpBtnState();
 }
@@ -297,7 +476,7 @@ async function take(f){
 $('check').addEventListener('click', async ()=>{
   logEl.innerHTML = '';
   pyodide.FS.writeFile(HOME + '/' + inName, inBytes);
-  log('ตรวจ ' + inName, 'dim');
+  log(T('logCheck', { f: inName }), 'dim');
   try{
     await pyodide.runPythonAsync(
       'import importlib, tool_run\nimportlib.reload(tool_run)\n' +
@@ -313,9 +492,9 @@ $('run').addEventListener('click', async ()=>{
   logEl.innerHTML = ''; $('result').classList.remove('show'); $('files').innerHTML = '';
   try{
     pyodide.FS.writeFile(HOME + '/' + inName, inBytes);
-    stage(2); setStatus('กำลังอ่านข้อมูล…');
+    stage(2); setStatus(L('stRead'));
     await new Promise(r=>setTimeout(r,40));
-    stage(3); setStatus('กำลังคำนวณ…');
+    stage(3); setStatus(L('stCalc'));
     await new Promise(r=>setTimeout(r,40));
 
     const res = await pyodide.runPythonAsync(
@@ -325,9 +504,9 @@ $('run').addEventListener('click', async ()=>{
       'os.makedirs("' + HOME + '/out", exist_ok=True)\n' +
       'tool_run.run(' + JSON.stringify(inName) + ', "' + HOME + '/out")\n');
 
-    stage(4); setStatus('กำลังเขียนไฟล์…');
+    stage(4); setStatus(L('stWrite'));
     const paths = res.toJs(); res.destroy();
-    if (!paths || !paths.length) throw new Error('ไม่มีไฟล์ผลลัพธ์ — ดูรายละเอียดในบันทึกการทำงาน');
+    if (!paths || !paths.length) throw new Error(T('noOutput'));
 
     const list = document.createElement('div');
     list.className = 'list';
@@ -347,17 +526,17 @@ $('run').addEventListener('click', async ()=>{
       a.innerHTML = '<span class="lead">' + esc(ext.toUpperCase()) + '</span>' +
         '<span class="grow"><span class="title">' + esc(name) + '</span>' +
         '<span class="meta">' + (data.length/1024).toFixed(0) + ' KB' +
-        (i===0 ? ' · ไฟล์หลัก' : '') + '</span></span>';
+        (i===0 ? T('mainFile') : '') + '</span></span>';
       list.appendChild(a);
       if (i===0) setTimeout(()=>a.click(), 350);
     });
     stage(5,'done'); $('fill').style.width='88%';
-    setStatus('สร้างเอกสารเสร็จแล้ว'); $('result').classList.add('show');
+    setStatus(L('stDone')); $('result').classList.add('show');
     driveSetStatus('');
   }catch(e){
-    stage(3,'fail'); setStatus('สร้างเอกสารไม่สำเร็จ');
+    stage(3,'fail'); setStatus(L('stRunFail'));
     log(String(e.message || e), 'err');
-    fail('สร้างเอกสารไม่สำเร็จ', 'ดูรายละเอียดในบันทึกการทำงานด้านบน แล้วแก้ไฟล์ข้อมูลก่อนลองใหม่');
+    fail(L('stRunFail'), L('runFailHint'));
   }finally{ $('run').disabled = false; $('check').disabled = false; }
 });
 
@@ -378,16 +557,17 @@ const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 let driveTokenClient = null, driveAccessToken = null, driveFolderId = null, driveAuthPurpose = null;
 let pendingUpload = [];   // [{name, blob, kind}] — เติมทุกครั้งที่สร้างเอกสารเสร็จ (ไฟล์ input + output)
 
+const setLive = (el, v) => OME_I18N.live(el, typeof v === 'function' ? v : () => v);
 function driveSetStatus(text, cls){
   const el = $('driveStatus');
   if (!el) return;
-  el.textContent = text;
+  setLive(el, text);
   el.className = 'drive-status' + (cls ? ' ' + cls : '');
 }
 function cmpSetStatus(text, cls){
   const el = $('cmpStatus');
   if (!el) return;
-  el.textContent = text;
+  setLive(el, text);
   el.className = 'drive-status' + (cls ? ' ' + cls : '');
 }
 function updateCmpBtnState(){
@@ -415,7 +595,7 @@ function initDrive(){
   driveReady = true;
   applyDriveVisibility();
   if (!window.google || !google.accounts || !google.accounts.oauth2){
-    driveSetStatus('โหลด Google Identity Services ไม่สำเร็จ', 'err');
+    driveSetStatus(L('gisFail'), 'err');
     $('driveBtn').disabled = true;
     return;
   }
@@ -425,7 +605,7 @@ function initDrive(){
     callback: async (resp) => {
       const purpose = driveAuthPurpose; driveAuthPurpose = null;
       if (resp.error){
-        (purpose === 'compare' ? cmpSetStatus : purpose === 'history' ? histSetStatus : driveSetStatus)('เชื่อมต่อไม่สำเร็จ: ' + resp.error, 'err');
+        (purpose === 'compare' ? cmpSetStatus : purpose === 'history' ? histSetStatus : driveSetStatus)(L('authFail', { e: resp.error }), 'err');
         return;
       }
       driveAccessToken = resp.access_token;
@@ -443,7 +623,7 @@ async function ensureDriveFolder(){
   const listRes = await fetch(
     `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
     { headers: { Authorization: 'Bearer ' + driveAccessToken } });
-  if (!listRes.ok) throw new Error('ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP ' + listRes.status + ')');
+  if (!listRes.ok) throw new Error(T('folderFindFail', { s: listRes.status }));
   const listData = await listRes.json();
   if (listData.files && listData.files.length){
     driveFolderId = listData.files[0].id;
@@ -454,7 +634,7 @@ async function ensureDriveFolder(){
     headers: { Authorization: 'Bearer ' + driveAccessToken, 'Content-Type': 'application/json' },
     body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
   });
-  if (!createRes.ok) throw new Error('สร้างโฟลเดอร์ไม่สำเร็จ (HTTP ' + createRes.status + ')');
+  if (!createRes.ok) throw new Error(T('folderMakeFail', { s: createRes.status }));
   const createData = await createRes.json();
   driveFolderId = createData.id;
   return driveFolderId;
@@ -469,26 +649,26 @@ async function uploadFileToDrive(name, blob, folderId, kind){
   const res = await fetch(
     'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',
     { method: 'POST', headers: { Authorization: 'Bearer ' + driveAccessToken }, body: form });
-  if (!res.ok) throw new Error('อัปโหลด ' + name + ' ไม่สำเร็จ (HTTP ' + res.status + ')');
+  if (!res.ok) throw new Error(T('uploadFail', { n: name, s: res.status }));
   return res.json();
 }
 
 async function uploadPendingToDrive(){
   if (!pendingUpload.length){
-    driveSetStatus('ยังไม่มีไฟล์ให้บันทึก — สร้างเอกสารก่อน', 'err');
+    driveSetStatus(L('noFilesYet'), 'err');
     return;
   }
   $('driveBtn').disabled = true;
-  driveSetStatus('กำลังเชื่อมต่อโฟลเดอร์…', '');
+  driveSetStatus(L('connecting'), '');
   try{
     const folderId = await ensureDriveFolder();
     let done = 0;
     for (const item of pendingUpload){
-      driveSetStatus(`กำลังอัปโหลด (${done + 1}/${pendingUpload.length}) ${item.name}…`, '');
+      driveSetStatus(L('uploading', { i: done + 1, n: pendingUpload.length, name: item.name }), '');
       await uploadFileToDrive(item.name, item.blob, folderId, item.kind);
       done++;
     }
-    driveSetStatus(`บันทึกขึ้น Google Drive แล้ว ${done} ไฟล์ (โฟลเดอร์ "${DRIVE_FOLDER_NAME}")`, 'ok');
+    driveSetStatus(L('uploaded', { n: done, folder: DRIVE_FOLDER_NAME }), 'ok');
   }catch(e){
     driveSetStatus('' + (e.message || e), 'err');
   }finally{
@@ -497,8 +677,8 @@ async function uploadPendingToDrive(){
 }
 
 $('driveBtn')?.addEventListener('click', () => {
-  if (!driveTokenClient){ driveSetStatus('ยังไม่ได้ตั้งค่า Google Drive สำหรับเครื่องมือนี้', 'err'); return; }
-  if (!pendingUpload.length){ driveSetStatus('ยังไม่มีไฟล์ให้บันทึก — สร้างเอกสารก่อน', 'err'); return; }
+  if (!driveTokenClient){ driveSetStatus(L('noDrive'), 'err'); return; }
+  if (!pendingUpload.length){ driveSetStatus(L('noFilesYet'), 'err'); return; }
   driveAuthPurpose = 'upload';
   driveTokenClient.requestAccessToken({ prompt: driveAccessToken ? '' : 'consent' });
 });
@@ -515,7 +695,7 @@ async function listHistoryInputFiles(folderId){
   const res = await fetch(
     `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc&pageSize=20`,
     { headers: { Authorization: 'Bearer ' + driveAccessToken } });
-  if (!res.ok) throw new Error('ค้นหาไฟล์เก่าไม่สำเร็จ (HTTP ' + res.status + ')');
+  if (!res.ok) throw new Error(T('histFindFail', { s: res.status }));
   const data = await res.json();
   return data.files || [];
 }
@@ -524,23 +704,22 @@ async function downloadDriveFileBytes(fileId){
   const res = await fetch(
     `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
     { headers: { Authorization: 'Bearer ' + driveAccessToken } });
-  if (!res.ok) throw new Error('ดาวน์โหลดไฟล์เก่าไม่สำเร็จ (HTTP ' + res.status + ')');
+  if (!res.ok) throw new Error(T('dlFail', { s: res.status }));
   return new Uint8Array(await res.arrayBuffer());
 }
 
+let lastCmp = null;
 function renderCompare(rows, fileCount){
+  lastCmp = { rows, fileCount };
   if (!rows || !rows.length){
-    cmpSetStatus(`เทียบกับไฟล์เก่า ${fileCount} ไฟล์แล้ว — ไม่พบรหัสอุปกรณ์ที่ตรงกันในประวัติ`, '');
+    cmpSetStatus(L('cmpNone', { n: fileCount }), '');
     $('cmpResult').innerHTML = '';
     return;
   }
   const flagged = rows.filter(r => r.flag).length;
-  cmpSetStatus(
-    `เทียบกับไฟล์เก่า ${fileCount} ไฟล์ — พบอุปกรณ์ที่มีประวัติ ${rows.length} รายการ` +
-    (flagged ? `, ผิดปกติ ${flagged} รายการ (ต่างจากค่าเฉลี่ยเก่าเกิน 25%)` : ', ไม่พบความผิดปกติ'),
-    flagged ? 'err' : 'ok');
+  cmpSetStatus(() => T('cmpSome', { n: fileCount, r: rows.length }) + (flagged ? T('cmpFlagged', { f: flagged }) : T('cmpClean')), flagged ? 'err' : 'ok');
   let html = '<div class="table-wrap"><table class="table"><thead><tr>' +
-    '<th>รหัส</th><th>ชื่ออุปกรณ์</th><th>ชม./ปี (ไฟล์นี้)</th><th>ชม./ปี เฉลี่ยเก่า</th><th>ต่าง</th><th>จำนวนไฟล์เก่า</th>' +
+    '<th>' + T('thCode') + '</th><th>' + T('thName') + '</th><th>' + T('thHoursNow') + '</th><th>' + T('thHoursOld') + '</th><th>' + T('thDiff') + '</th><th>' + T('thOldN') + '</th>' +
     '</tr></thead><tbody>';
   rows.forEach(r => {
     html += `<tr class="${r.flag ? 'flag' : ''}">` +
@@ -553,29 +732,29 @@ function renderCompare(rows, fileCount){
 }
 
 async function runCompare(){
-  if (!inBytes){ cmpSetStatus('เลือกไฟล์ข้อมูลก่อน', 'err'); return; }
-  if (!ready){ cmpSetStatus('ระบบยังไม่พร้อม รอสักครู่แล้วลองใหม่', 'err'); return; }
+  if (!inBytes){ cmpSetStatus(L('pickFirst'), 'err'); return; }
+  if (!ready){ cmpSetStatus(L('notReady'), 'err'); return; }
   $('cmpBtn').disabled = true;
   $('cmpResult').innerHTML = '';
-  cmpSetStatus('กำลังค้นหาไฟล์เก่าใน Google Drive…', '');
+  cmpSetStatus(L('cmpSearching'), '');
   try{
     const folderId = await ensureDriveFolder();
     const files = await listHistoryInputFiles(folderId);
     if (!files.length){
-      cmpSetStatus('ยังไม่มีไฟล์ข้อมูลเก่าใน Drive ให้เทียบ (จะมีข้อมูลหลังบันทึกไฟล์ input ขึ้น Drive ในครั้งต่อๆ ไป)', '');
+      cmpSetStatus(L('cmpNoOld'), '');
       return;
     }
     pyodide.FS.writeFile(HOME + '/' + inName, inBytes);
     const histArgs = [];
     for (let n = 0; n < files.length; n++){
       const f = files[n];
-      cmpSetStatus(`กำลังโหลดไฟล์เก่า (${n + 1}/${files.length}) ${f.name}…`, '');
+      cmpSetStatus(L('cmpLoadingOld', { i: n + 1, n: files.length, name: f.name }), '');
       const bytes = await downloadDriveFileBytes(f.id);
       const fsPath = HOME + '/hist_' + n + '.xlsx';
       pyodide.FS.writeFile(fsPath, bytes);
       histArgs.push([f.name, fsPath]);
     }
-    cmpSetStatus('กำลังเปรียบเทียบ…', '');
+    cmpSetStatus(L('cmpRunning'), '');
     const res = await pyodide.runPythonAsync(
       'import importlib, tool_run\nimportlib.reload(tool_run)\n' +
       'tool_run.compare(' + JSON.stringify(inName) + ', ' + JSON.stringify(histArgs) + ')\n');
@@ -590,12 +769,14 @@ async function runCompare(){
 }
 
 $('cmpBtn')?.addEventListener('click', () => {
-  if (!inBytes){ cmpSetStatus('เลือกไฟล์ข้อมูลก่อน', 'err'); return; }
-  if (!driveTokenClient){ cmpSetStatus('ยังไม่ได้ตั้งค่า Google Drive สำหรับเครื่องมือนี้', 'err'); return; }
+  if (!inBytes){ cmpSetStatus(L('pickFirst'), 'err'); return; }
+  if (!driveTokenClient){ cmpSetStatus(L('noDrive'), 'err'); return; }
   if (driveAccessToken){ runCompare(); return; }
   driveAuthPurpose = 'compare';
   driveTokenClient.requestAccessToken({ prompt: 'consent' });
 });
+
+OME_LANG.onChange(() => { if (lastCmp) renderCompare(lastCmp.rows, lastCmp.fileCount); renderHistList(); }); // ตาราง/ข้อความที่วาดไว้แล้ว วาดใหม่ตามภาษา
 
 // ── ประวัติการรันจาก Google Drive ──────────────────────────────────────────
 let histFiles = [];
@@ -603,7 +784,7 @@ let histFiles = [];
 function histSetStatus(text, cls){
   const el = $('histStatus');
   if (!el) return;
-  el.textContent = text;
+  setLive(el, text);
   el.className = 'drive-status' + (cls ? ' ' + cls : '');
 }
 
@@ -614,33 +795,38 @@ async function fetchHistoryFiles(){
   const res = await fetch(
     `https://www.googleapis.com/drive/v3/files?q=${q}&orderBy=modifiedTime desc&pageSize=30&fields=files(id,name,modifiedTime,properties)`,
     { headers: { Authorization: 'Bearer ' + driveAccessToken } });
-  if (!res.ok) throw new Error('โหลดประวัติไม่สำเร็จ (HTTP ' + res.status + ')');
+  if (!res.ok) throw new Error(T('histFail', { s: res.status }));
   return (await res.json()).files || [];
+}
+
+function renderHistList(){
+  if (!histFiles.length) return;
+  let html = '<div class="table-wrap"><table class="table"><thead><tr><th>' + T('thFile') + '</th><th>' + T('thKind') + '</th><th>' + T('thSavedAt') + '</th><th></th></tr></thead><tbody>';
+  histFiles.forEach((f, i) => {
+    const kind = f.properties && f.properties.kind;
+    const badge = kind === 'estcost_input' ? T('kindInput') : kind === 'estcost_output' ? T('kindOutput') : '—';
+    html += `<tr><td>${esc(f.name)}</td><td>${badge}</td>` +
+      `<td>${OME_I18N.date(new Date(f.modifiedTime), { dateStyle: 'short', timeStyle: 'short' })}</td><td>` +
+      `<button class="hist-act btn sm" data-act="dl" data-i="${i}">${T('dl')}</button>` +
+      (kind === 'estcost_input' ? ` <button class="hist-act btn sm" data-act="use" data-i="${i}">${T('useAsInput')}</button>` : '') +
+      `</td></tr>`;
+  });
+  html += '</tbody></table></div>';
+  $('histList').innerHTML = html;
 }
 
 async function renderHistory(){
   $('histBtn').disabled = true;
-  histSetStatus('กำลังโหลดประวัติ…', '');
+  histSetStatus(L('histLoading'), '');
   try{
     histFiles = await fetchHistoryFiles();
     if (!histFiles.length){
-      histSetStatus('ยังไม่มีไฟล์ในโฟลเดอร์ "' + DRIVE_FOLDER_NAME + '" — บันทึกผลการรันขึ้น Drive ก่อน แล้วประวัติจะโผล่ที่นี่', '');
+      histSetStatus(L('histEmpty', { folder: DRIVE_FOLDER_NAME }), '');
       $('histList').innerHTML = '';
       return;
     }
-    histSetStatus(`ไฟล์ล่าสุด ${histFiles.length} รายการในโฟลเดอร์ "${DRIVE_FOLDER_NAME}"`, 'ok');
-    let html = '<div class="table-wrap"><table class="table"><thead><tr><th>ไฟล์</th><th>ชนิด</th><th>บันทึกเมื่อ</th><th></th></tr></thead><tbody>';
-    histFiles.forEach((f, i) => {
-      const kind = f.properties && f.properties.kind;
-      const badge = kind === 'estcost_input' ? 'ไฟล์ข้อมูล' : kind === 'estcost_output' ? 'ผลลัพธ์' : '—';
-      html += `<tr><td>${esc(f.name)}</td><td>${badge}</td>` +
-        `<td>${new Date(f.modifiedTime).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}</td><td>` +
-        `<button class="hist-act btn sm" data-act="dl" data-i="${i}">ดาวน์โหลด</button>` +
-        (kind === 'estcost_input' ? ` <button class="hist-act btn sm" data-act="use" data-i="${i}">ใช้เป็นไฟล์ตั้งต้น</button>` : '') +
-        `</td></tr>`;
-    });
-    html += '</tbody></table></div>';
-    $('histList').innerHTML = html;
+    histSetStatus(L('histCount', { n: histFiles.length, folder: DRIVE_FOLDER_NAME }), 'ok');
+    renderHistList();
   }catch(e){
     histSetStatus('' + (e.message || e), 'err');
   }finally{
@@ -649,7 +835,7 @@ async function renderHistory(){
 }
 
 $('histBtn')?.addEventListener('click', () => {
-  if (!driveTokenClient){ histSetStatus('ยังไม่ได้ตั้งค่า Google Drive สำหรับเครื่องมือนี้', 'err'); return; }
+  if (!driveTokenClient){ histSetStatus(L('noDrive'), 'err'); return; }
   if (driveAccessToken){ renderHistory(); return; }
   driveAuthPurpose = 'history';
   driveTokenClient.requestAccessToken({ prompt: 'consent' });
@@ -671,11 +857,12 @@ $('histList')?.addEventListener('click', async (ev) => {
     }else{
       inName = f.name; inBytes = bytes;
       drop.classList.add('has');
+      $('dropMain').removeAttribute('data-i18n');
       $('dropMain').innerHTML = '<span class="file-name">' + esc(f.name) + '</span>';
-      $('dropHint').textContent = (bytes.length / 1024).toFixed(0) + ' KB · จาก Google Drive';
+      OME_I18N.live($('dropHint'), () => (bytes.length / 1024).toFixed(0) + ' KB' + T('fromDrive'));
       enable();
       updateCmpBtnState();
-      histSetStatus('ตั้ง "' + f.name + '" เป็นไฟล์ข้อมูลแล้ว', 'ok');
+      histSetStatus(L('histUsed', { name: f.name }), 'ok');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }catch(e){
