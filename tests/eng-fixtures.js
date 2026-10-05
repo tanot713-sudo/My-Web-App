@@ -232,9 +232,123 @@ function runPage(h) {
   };
 }
 
+/* ───────── CAD 2D + 3D (cad.html) ───────── */
+const CAD_SEED = {
+  'tanot:cad:autosave': {
+    entities: [
+      { id: 'r1', type: 'rect', layer: '0', p1: { x: 100, y: 100 }, p2: { x: 500, y: 400 } },
+      { id: 'c1', type: 'circle', layer: 'L1', center: { x: 800, y: 300 }, radius: 120 },
+      { id: 'l1', type: 'line', layer: 'L1', p1: { x: 100, y: 600 }, p2: { x: 700, y: 600 } },
+      { id: 'pl1', type: 'polyline', layer: 'L2', points: [{ x: 900, y: 500 }, { x: 1100, y: 500 }, { x: 1100, y: 700 }, { x: 900, y: 650 }], closed: true },
+      { id: 'a1', type: 'arc', layer: '0', center: { x: 1000, y: 150 }, radius: 100, startAngle: 0, endAngle: Math.PI },
+      { id: 't1', type: 'text', layer: '0', p: { x: 100, y: 700 }, text: 'Title A', height: 40 },
+      { id: 'd1', type: 'dim', layer: 'L2', p1: { x: 100, y: 100 }, p2: { x: 500, y: 100 }, offset: -60, textHeight: 3, arrowSize: 2.5 },
+      { id: 'rd1', type: 'raddim', layer: 'L2', center: { x: 800, y: 300 }, radius: 120, angle: 0.8, textHeight: 3, arrowSize: 2.5 },
+      { id: 'h1', type: 'hatch', layer: '0', points: [{ x: 150, y: 150 }, { x: 450, y: 150 }, { x: 450, y: 350 }, { x: 150, y: 350 }], spacing: 20, angle: 0.785 },
+      { id: 'ld1', type: 'leader', layer: '0', p1: { x: 1000, y: 250 }, p2: { x: 1100, y: 350 }, text: 'Note', height: 30 }
+    ],
+    layers: {
+      '0': { name: 'เลเยอร์ 0', color: null, visible: true, locked: false },
+      L1: { name: 'Walls', color: '#c0392b', visible: true, locked: false },
+      F1: { name: 'Annotation', isFolder: true, collapsed: false, visible: true, locked: false },
+      L2: { name: 'Dims', color: '#2e86c1', visible: true, locked: true, parentId: 'F1' }
+    },
+    layerOrder: ['0', 'L1', 'F1', 'L2'], activeLayer: '0', layerSeq: 3,
+    view: { cx: 600, cy: 400, scale: 0.5 }, dimStyle: { textHeight: 3, arrowSize: 2.5, centerMarkSize: 4 },
+    constraints: [{ id: 'k1', type: 'horizontal', entities: ['l1'], value: null }, { id: 'k2', type: 'equal', entities: ['c1', 'c1'], value: null }]
+  },
+  // ขั้นตอน 3 มิติ (OpenCascade โหลดจาก CDN ไม่ได้ตอนออฟไลน์ → ป้ายผิดพลาดบนวิว; รายการขั้นตอน/แผงคุณสมบัติยังแสดงตามข้อมูล)
+  'tanot:cad3d:steps': [
+    { op: 'add', kind: 'box', dims: { x: 100, y: 80, z: 40 }, pos: { x: 0, y: 0, z: 0 }, suppressed: false },
+    { op: 'cut', kind: 'cylinder', dims: { r: 20, h: 60 }, pos: { x: 10, y: 10, z: 0 }, suppressed: false },
+    { op: 'union', kind: 'sketch', dims: { profile: { label: 'สี่เหลี่ยม 400×300 มม.', points: [{ x: 100, y: 100 }, { x: 500, y: 100 }, { x: 500, y: 400 }, { x: 100, y: 400 }], entityId: 'r1' }, sourceEntityId: 'r1', plane: 'top', mode: 'extrude', height: 20, axis: 'x', angle: 360 }, pos: { x: 0, y: 0, z: 40 }, suppressed: true }
+  ]
+};
+function cad(h) {
+  const { dom, settle, closeAll, val, sel } = h;
+  const wclick = async (p, wx, wy, shift) => {
+    const pt = await p.evaluate(([wx, wy]) => { const v = document.getElementById('cadViewport'); v.scrollIntoView({ block: 'center' }); const r = v.getBoundingClientRect(); return { x: r.left + r.width / 2 + (wx - 600) * 0.5, y: r.top + r.height / 2 - (wy - 400) * 0.5 }; }, [wx, wy]);
+    if (shift) await p.keyboard.down('Shift');
+    await p.mouse.click(pt.x, pt.y);
+    if (shift) await p.keyboard.up('Shift');
+    await settle(p, 200);
+  };
+  const esc = async (p) => { await p.keyboard.press('Escape'); await settle(p, 100); };
+  // จอ ≤ 980px แผงขวาเป็นลิ้นชัก (ปุ่ม #panelsBtn) — จอกว้างไม่มีปุ่มนี้ (ไม่ต้องทำอะไร)
+  const drawer = async (p, open) => {
+    const vis = await p.evaluate(() => { const b = document.getElementById('panelsBtn'); return !!b && getComputedStyle(b).display !== 'none'; });
+    if (!vis) return;
+    await p.evaluate((open) => { const d = document.getElementById('cadDrawer'); if (d.classList.contains('open') !== open) document.getElementById(open ? 'panelsBtn' : 'drawerCloseBtn').click(); }, open);
+    await settle(p, 450);
+  };
+  const reset = async (p) => { await p.evaluate(() => { const e = document.getElementById('panel2d'); if (e) e.scrollTop = 0; window.scrollTo(0, 0); }); };
+  return {
+    page: 'cad.html',
+    seed: CAD_SEED,
+    init: 'window.TANOT_FILES = { enabled: true };',
+    user: /Title A|Note|Walls|Annotation|Dims/,
+    overlay: '#cadDrawer.open, .cad-dropdown-menu:not([hidden])',
+    ignoreErrors: /opencascade|Failed to fetch dynamically imported module|cad3d\]/i,
+    states: [
+      ['base', async (p) => { await settle(p, 500); }],
+      ['menu-file', async (p) => { await dom(p, '#fileMenuBtn'); await settle(p, 200); }],
+      ['menu-edit', async (p) => { await dom(p, '#editMenuBtn'); await settle(p, 200); }],
+      ['menu-view', async (p) => { await dom(p, '#viewMenuBtn'); await settle(p, 200); }],
+      ['menus-closed', async (p) => { await dom(p, '#viewMenuBtn'); await settle(p, 200); }],
+      ['select-rect', async (p) => { await wclick(p, 300, 100); await reset(p); }],
+      ['drawer-props', async (p) => { await drawer(p, true); }],
+      ['drawer-layers', async (p) => { await dom(p, '#layerAddBtn'); await dom(p, '#layerAddFolderBtn'); await settle(p, 300); }],
+      ['drawer-constraint', async (p) => { await dom(p, '#toolConstraintBtn'); await sel(p, '#constraintTypeSel', 'distance'); await settle(p, 300); }],
+      ['drawer-plot', async (p) => { await sel(p, '#plotPaperSel', 'A3'); await sel(p, '#plotOrientSel', 'landscape'); await sel(p, '#plotScaleSel', '50'); await settle(p, 200); }],
+      ['drawer-closed', async (p) => { await drawer(p, false); await dom(p, '#toolSelectBtn'); await settle(p, 200); }],
+      ['select-circle', async (p) => { await wclick(p, 920, 300); await reset(p); }],
+      ['select-arc', async (p) => { await wclick(p, 929, 221); await reset(p); await drawer(p, true); }],
+      ['select-poly', async (p) => { await drawer(p, false); await wclick(p, 1000, 500); await reset(p); await drawer(p, true); }],
+      ['select-dim', async (p) => { await drawer(p, false); await wclick(p, 300, 40); await reset(p); await drawer(p, true); }],
+      ['select-leader', async (p) => { await drawer(p, false); await wclick(p, 1050, 300); await reset(p); await drawer(p, true); }],
+      ['layer-delete-confirm', async (p) => { await dom(p, '#layersList [data-lid="L1"] [data-act="delete"]'); await settle(p, 400); }],
+      ['layer-delete-closed', async (p) => { await closeAll(p); await drawer(p, false); await settle(p, 200); }],
+      ['alert-pdf-lib', async (p) => { await dom(p, '#plotGenerateBtn'); await settle(p, 500); }],
+      ['alert-closed', async (p) => { await closeAll(p); await settle(p, 200); }],
+      ['select-text', async (p) => { await wclick(p, 130, 715); await reset(p); }],
+      ['select-multi', async (p) => { await wclick(p, 400, 600, true); await reset(p); }],
+      ['tool-array-rect', async (p) => { await dom(p, '#toolArrayRectBtn'); await settle(p, 300); }],
+      ['tool-array-polar', async (p) => { await dom(p, '#toolArrayPolarBtn'); await settle(p, 300); }],
+      ['tool-line-pending', async (p) => { await dom(p, '#toolLineBtn'); await wclick(p, 300, 500); await reset(p); }],
+      ['tool-polyline', async (p) => { await esc(p); await dom(p, '#toolPolylineBtn'); await wclick(p, 200, 520); await wclick(p, 260, 560); await reset(p); }],
+      ['tool-text', async (p) => { await esc(p); await dom(p, '#toolTextBtn'); await wclick(p, 700, 700); await reset(p); }],
+      ['tool-hatch', async (p) => { await esc(p); await dom(p, '#toolHatchBtn'); await wclick(p, 300, 250); await reset(p); }],
+      ['tool-block', async (p) => { await esc(p); await dom(p, '#toolBlockBtn'); await wclick(p, 600, 500); await reset(p); }],
+      ['tool-fillet', async (p) => { await esc(p); await dom(p, '#toolFilletBtn'); await settle(p, 300); }],
+      ['tool-dim', async (p) => { await esc(p); await dom(p, '#toolDimBtn'); await wclick(p, 100, 100); await reset(p); }],
+      ['tool-leader-list', async (p) => { await esc(p); await dom(p, '#toolLeaderBtn'); await settle(p, 300); }],
+      ['drawer-options', async (p) => { await drawer(p, true); }],
+      ['drawer-closed-2', async (p) => { await drawer(p, false); await esc(p); }],
+      ['confirm-clear', async (p) => { await dom(p, '#fileMenuBtn'); await dom(p, '#clearAllBtn'); await settle(p, 400); }],
+      ['confirm-closed', async (p) => { await closeAll(p); await settle(p, 200); }],
+      ['tab-3d', async (p) => { await dom(p, '#tabBtn3d'); await settle(p, 800); }],
+      ['3d-steps', async (p) => { await settle(p, 800); }],
+      ['3d-step-edit', async (p) => { await dom(p, '#stepsList [data-act="edit"][data-idx="1"]'); await settle(p, 400); }],
+      ['3d-step-edit-cancel', async (p) => { await dom(p, '#cancelEditBtn'); await settle(p, 300); }],
+      ['3d-step-toggle', async (p) => { await dom(p, '#stepsList [data-act="toggle"][data-idx="2"]'); await settle(p, 300); }],
+      ['3d-step-delete-confirm', async (p) => { await dom(p, '#stepsList [data-act="delete"][data-idx="1"]'); await settle(p, 400); }],
+      ['3d-confirm-closed', async (p) => { await closeAll(p); await settle(p, 200); }],
+      ['3d-cylinder', async (p) => { await sel(p, '#shapeKindSel', 'cylinder'); await settle(p, 250); }],
+      ['3d-sphere', async (p) => { await sel(p, '#shapeKindSel', 'sphere'); await settle(p, 250); }],
+      ['3d-sketch', async (p) => { await sel(p, '#shapeKindSel', 'sketch'); await settle(p, 400); }],
+      ['3d-sketch-advanced', async (p) => { await p.evaluate(() => { document.getElementById('sketchAdvanced').open = true; }); await sel(p, '#sketchModeSel', 'revolve'); await settle(p, 300); }],
+      ['3d-live-sketch', async (p) => { await dom(p, '#startLiveSketchBtn'); await settle(p, 500); }],
+      ['3d-live-sketch-circle', async (p) => { await dom(p, '#sketchToolCircleBtn'); await settle(p, 250); }],
+      ['3d-live-sketch-poly', async (p) => { await dom(p, '#sketchToolPolylineBtn'); await settle(p, 250); }],
+      ['3d-live-sketch-cancel', async (p) => { await dom(p, '#sketchCancelBtn'); await settle(p, 300); }],
+      ['3d-materials', async (p) => { await dom(p, '[data-material="steel"]'); await settle(p, 300); }]
+    ]
+  };
+}
+
 const ALLOW = [];
 
 function targets(h) {
-  return [tax(h), electrical(h), maintenance(h), runPage(h)];
+  return [tax(h), electrical(h), maintenance(h), runPage(h), cad(h)];
 }
 module.exports = { targets, ALLOW, NOW };

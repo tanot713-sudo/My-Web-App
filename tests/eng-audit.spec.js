@@ -34,8 +34,8 @@ async function closeAll(page) {
   });
   await page.keyboard.press('Escape').catch(() => {});
 }
-const val = async (page, sel, v) => { await page.fill(sel, String(v)); };
-const sel = async (page, s, v) => { await page.selectOption(s, String(v)).catch(() => {}); };
+const val = async (page, sel, v) => { await page.fill(sel, String(v), { timeout: 4000 }); };
+const sel = async (page, s, v) => { await page.selectOption(s, String(v), { timeout: 4000 }).catch(() => {}); };
 
 /* ───────── เป้าหมาย: หน้า + ข้อมูลตั้งต้น + สถานะที่เปิด (สะสมต่อกัน) ───────── */
 const TARGETS = F.targets({ dom, settle, closeAll, val, sel, NOW });
@@ -115,13 +115,16 @@ async function thaiAnywhere(page, t) {
 async function measure(page, width, withAxe, t) {
   // dialog แบบ modal เปิดอยู่ = วัดเฉพาะในกล่อง (หน้าหลังกล่องใช้งานไม่ได้ ไม่ควรนับซ้อน/ชิดกับของในกล่อง)
   const modal = await page.evaluate((over) => {
-    const overlay = over && [...document.querySelectorAll(over)].some((x) => getComputedStyle(x).display !== 'none' && x.getBoundingClientRect().width > 0 && getComputedStyle(x).position === 'fixed');
+    // ลิ้นชัก/แผงลอยที่ทับหน้า (t.overlay = selector) เปิดอยู่ = วัดเฉพาะในแผงนั้น
+    const sels = over ? over.split(',').map((x) => x.trim()) : [];
+    const ov = sels.map((x) => document.querySelector(x)).find((e) => e && e.checkVisibility && e.checkVisibility({ visibilityProperty: true }) && e.getBoundingClientRect().width > 0);
+    const overlay = !!ov;
     const dlgs = [...document.querySelectorAll('dialog[open]')];
     if (!dlgs.length && !overlay) return false;
     // กล่องซ้อนกัน (เช่น กล่องยืนยันบนกล่องฟอร์ม) = วัดเฉพาะกล่องบนสุด (ท้ายสุดในเอกสาร) — กล่องข้างใต้ผู้ใช้กดไม่ได้
     dlgs.slice(0, -1).forEach((d) => d.setAttribute('data-audit-under', ''));
     const st = document.createElement('style'); st.id = 'audit-modal-style';
-    st.textContent = dlgs.length ? 'body > *:not(dialog[open]),dialog[data-audit-under]{visibility:hidden !important}' : ((over || '') + '{visibility:visible !important}');
+    st.textContent = dlgs.length ? 'body *{visibility:hidden !important}dialog[open]:not([data-audit-under]),dialog[open]:not([data-audit-under]) *{visibility:visible !important}' : ('body *{visibility:hidden !important}' + sels.map((x) => x + ',' + x + ' *').join(',') + '{visibility:visible !important}');
     document.head.appendChild(st); return true;
   }, t.overlay || '');
   try { return await measureInner(page, width, withAxe); }
@@ -144,6 +147,9 @@ async function measureInner(page, width, withAxe) {
   return samples;
 }
 
+/** error ที่รู้สาเหตุของหน้านั้น (เช่น CDN ที่ถูกบล็อกตอนออฟไลน์) กรองด้วย t.ignoreErrors — ใส่เหตุผลกำกับที่ fixture */
+const errs = (errors, t) => errors.filter((e) => !(t.ignoreErrors && t.ignoreErrors.test(e)));
+
 test.describe.configure({ timeout: 300000 });
 
 for (const t of TARGETS) {
@@ -154,18 +160,20 @@ for (const t of TARGETS) {
         const errors = await open(page, t, { theme, width });
         const bad = {}, uniq = {};
         for (const [name, fn] of t.states) {
+          const t0 = Date.now();
           try { await fn(page, width); } catch (e) { errors.push(`state ${name}: ${String(e.message).split('\n')[0]}`); }
           await settle(page, 200);
           const s = await measure(page, width, true, t);
+          if (process.env.ENG_AUDIT_TRACE) console.log(`[trace] ${t.page}|${width}|${theme} ${name} ${Date.now() - t0}ms`);
           Object.keys(s).forEach((k) => {
             const arr = s[k].filter((x) => !allowed(t.page, k, x));
             arr.forEach((x) => { (uniq[k] = uniq[k] || new Set()).add(String((x && (x.sel || x.s)) || JSON.stringify(x))); });
             if (arr.length) (bad[k] = bad[k] || []).push(...arr.slice(0, 6).map((x) => Object.assign({ state: name }, x)));
           });
         }
-        if (DUMP) { fs.mkdirSync(DUMP, { recursive: true }); fs.writeFileSync(path.join(DUMP, `${t.page}|${width}|${theme}`.replace(/[^\w.|-]/g, '_') + '.json'), JSON.stringify({ bad, counts: Object.fromEntries(Object.keys(uniq).map((k) => [k, uniq[k].size])), errors })); return; }
+        if (DUMP) { fs.mkdirSync(DUMP, { recursive: true }); fs.writeFileSync(path.join(DUMP, `${t.page}|${width}|${theme}`.replace(/[^\w.|-]/g, '_') + '.json'), JSON.stringify({ bad, counts: Object.fromEntries(Object.keys(uniq).map((k) => [k, uniq[k].size])), errors: errs(errors, t) })); return; }
         expect(bad, `${t.page} ${width} ${theme}`).toEqual({});
-        expect(errors, 'console errors').toEqual([]);
+        expect(errs(errors, t), 'console errors').toEqual([]);
       });
     }
   }
@@ -180,9 +188,9 @@ for (const t of TARGETS) {
       (await thaiAnywhere(page, t)).forEach((h) => hits.add(name + ': ' + h));
     }
     const th = [...hits];
-    if (DUMP) { fs.mkdirSync(DUMP, { recursive: true }); fs.writeFileSync(path.join(DUMP, `${t.page}|lang`.replace(/[^\w.|-]/g, '_') + '.json'), JSON.stringify(th.concat(errors.map((e) => 'ERR ' + e)))); return; }
+    if (DUMP) { fs.mkdirSync(DUMP, { recursive: true }); fs.writeFileSync(path.join(DUMP, `${t.page}|lang`.replace(/[^\w.|-]/g, '_') + '.json'), JSON.stringify(th.concat(errs(errors, t).map((e) => 'ERR ' + e)))); return; }
     expect(th).toEqual([]);
-    expect(errors).toEqual([]);
+    expect(errs(errors, t)).toEqual([]);
   });
 
   test(`eng-data live switch: ${t.page}`, async ({ page }) => {
@@ -201,6 +209,6 @@ for (const t of TARGETS) {
     expect(await page.evaluate(() => /[ก-ฺเ-๎]/.test((document.querySelector('main, .page, body') || document.body).innerText)), 'กลับไทย').toBe(true);
     if (t.liveCheck) await t.liveCheck(page, 'th');
     expect(await page.evaluate(() => window.__noReload)).toBe(1);
-    expect(errors).toEqual([]);
+    expect(errs(errors, t)).toEqual([]);
   });
 }

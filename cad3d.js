@@ -84,6 +84,307 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   var OCC_BASE = 'https://cdn.jsdelivr.net/npm/opencascade.js@' + OCC_VERSION + '/dist/';
 
   var $ = function (id) { return document.getElementById(id); };
+  /* ภาษา: พจนานุกรม th/en ของแผง 3 มิติ (ns 'cad3d' ระบบกลาง OME_I18N) — HTML ใช้ data-ome-t="cad3d.<คีย์>" · ข้อมูลที่เก็บ (steps, ป้ายเส้นขอบใน profile) ไม่เปลี่ยนตามภาษา แปลเฉพาะตอนแสดง */
+  var T = OME_I18N.scope('cad3d', {
+    th: {
+    h1: '1) เพิ่มรูปทรงพื้นฐาน',
+    kindLbl: 'ชนิดรูปทรง',
+    optBox: 'กล่อง (Box)',
+    optCylinder: 'ทรงกระบอก (Cylinder)',
+    optSphere: 'ทรงกลม (Sphere)',
+    optSketch: 'จากภาพร่าง 2 มิติ (Extrude/Revolve)',
+    dimX: 'กว้าง X (มม.)',
+    dimY: 'ลึก Y (มม.)',
+    dimZ: 'สูง Z (มม.)',
+    radius: 'รัศมี (มม.)',
+    profileLbl: 'เส้นขอบจากแบบ 2 มิติ',
+    reload: 'โหลดใหม่',
+    liveSketch: 'ร่างภาพใหม่ตรงนี้',
+    height: 'สูง (มม.)',
+    advanced: 'ตัวเลือกเพิ่มเติม (ระนาบ/วิธีขึ้นรูป)',
+    planeLbl: 'ระนาบร่าง',
+    planeTop: 'ระนาบบน (Top)',
+    planeFront: 'ระนาบหน้า (Front)',
+    planeRight: 'ระนาบข้าง (Right)',
+    planePickedNone: 'หน้าที่เลือกเอง (ยังไม่ได้เลือก)',
+    pickFace: 'เลือกหน้าจากชิ้นงาน',
+    modeLbl: 'วิธีขึ้นรูป',
+    modeExtrude: 'อัดขึ้นตรง (Extrude)',
+    modeRevolve: 'หมุนรอบแกน (Revolve)',
+    axisLbl: 'แกนหมุน',
+    axisX: 'แกน X',
+    axisY: 'แกน Y',
+    angleLbl: 'มุมหมุน (°)',
+    axisWarn: 'เส้นขอบนี้อยู่คร่อมแกนหมุน (มีทั้งฝั่งบวกและฝั่งลบของแกน) หมุนแล้วจะซ้อนทับตัวเอง สร้างเป็นทรงตันไม่ได้ — ย้ายภาพร่างในแท็บ "ร่างภาพ 2 มิติ" ให้อยู่ฝั่งเดียวของแกนก่อน หรือเปลี่ยนแกนหมุน',
+    posX: 'ตำแหน่ง X (มม.)',
+    posY: 'ตำแหน่ง Y (มม.)',
+    posZ: 'ตำแหน่ง Z (มม.)',
+    opLbl: 'วิธีรวมกับชิ้นงานหลัก',
+    opUnion: 'รวม (Union)',
+    opCut: 'ตัดออก (Cut)',
+    opIntersect: 'ส่วนร่วม (Intersect)',
+    addShape: 'วางเป็นชิ้นงานหลัก',
+    cancelEdit: 'ยกเลิกแก้ไข',
+    h2: '2) ลำดับขั้นตอนของชิ้นงาน',
+    undoStep: 'ย้อนขั้นตอนล่าสุด',
+    resetAll: 'เริ่มใหม่ทั้งหมด',
+    h3: '3) มุมมอง 3 มิติ',
+    overlayIdle: 'เพิ่มรูปทรงแรกด้านบนเพื่อเริ่มสร้างชิ้นงาน',
+    sketchRect: 'สี่เหลี่ยม',
+    sketchCircle: 'วงกลม',
+    sketchPoly: 'เส้นหลายจุด',
+    sketchFinish: 'เสร็จ (ปิดรูป)',
+    cancel: 'ยกเลิก',
+    hintRect1: 'คลิกมุมแรกของสี่เหลี่ยม',
+    h4: '4) คุณสมบัติขั้นสูงและวัสดุ',
+    propObject: 'วัตถุ',
+    propVolume: 'ปริมาตร',
+    propArea: 'พื้นที่ผิว',
+    propMaterial: 'วัสดุ',
+    matAluminum: 'อะลูมิเนียม',
+    propPos: 'ตำแหน่ง XYZ',
+    propDims: 'ขนาด (L×W×H)',
+    propColor: 'สี',
+    propReflect: 'การสะท้อน',
+    propQuality: 'คุณภาพการแสดงผล',
+    qLow: 'ต่ำ',
+    qMed: 'ปานกลาง',
+    qHigh: 'สูง',
+    propWeight: 'น้ำหนักโดยประมาณ',
+    matTitle: 'คลังวัสดุ',
+    matAluminumDesc: 'ความหนาแน่น 2.70 ก./ซม.³ • น้ำหนักเบา ทนการกัดกร่อนได้ดี',
+    matSteel: 'เหล็กกล้า',
+    matSteelDesc: 'ความหนาแน่น 7.85 ก./ซม.³ • แข็งแรงสูง แต่มีน้ำหนักมาก',
+    matWood: 'ไม้โอ๊ก',
+    matWoodDesc: 'ความหนาแน่น 0.75 ก./ซม.³ • เบา ไม่นำไฟฟ้า',
+    matGlass: 'กระจก',
+    matGlassDesc: 'ความหนาแน่น 2.50 ก./ซม.³ • โปร่งแสง เปราะแตกง่าย',
+    matPlastic: 'พลาสติก ABS',
+    matPlasticDesc: 'ความหนาแน่น 1.05 ก./ซม.³ • ขึ้นรูปง่าย น้ำหนักเบามาก',
+    h5: '5) ส่งออกไฟล์',
+    objComposite: 'รูปทรงประกอบ ({n} ขั้นตอน)',
+    unitMm: 'มม.',
+    unitCm3: 'ซม.³',
+    unitCm2: 'ซม.²',
+    unitKg: 'กก.',
+    unitG: 'ก.',
+    kSketchFrom: 'จากภาพร่าง 2 มิติ',
+    overlayBuilding: 'กำลังสร้างรูปทรง 3 มิติ...',
+    overlayKernel: 'กำลังโหลดเคอร์เนล 3 มิติ (OpenCascade) จากอินเทอร์เน็ต — ครั้งแรกอาจใช้เวลาสักครู่ตามความเร็วอินเทอร์เน็ต...',
+    overlayError: 'สร้างรูปทรง 3 มิติไม่สำเร็จ — {msg} (ดูรายละเอียดเพิ่มเติมใน console ของเบราว์เซอร์)',
+    profRect: 'สี่เหลี่ยม {w}×{d} มม.',
+    profCircle: 'วงกลม R{r} มม.',
+    profPoly: 'พอลีไลน์ปิด ({n} จุด)',
+    profLive: 'ร่างในวิว 3 มิติ: {x}',
+    profLivePoly: 'เส้นหลายจุดปิดรูป ({n} จุด)',
+    noProfiles: '(ไม่พบเส้นขอบปิด — วาดในหน้างานเขียนแบบ CAD ก่อน)',
+    profileMissing: 'ไม่พบเส้นขอบเดิม — กรุณาเลือกใหม่',
+    axisZ: 'แกน Z',
+    saveEdit: 'บันทึกการแก้ไข',
+    addToMain: 'รวมเข้ากับชิ้นงานหลัก',
+    kBox: 'กล่อง',
+    kCylinder: 'ทรงกระบอก',
+    kSphere: 'ทรงกลม',
+    kSketch: 'ภาพร่าง 2 มิติ',
+    oAdd: 'เริ่มจาก',
+    oUnion: 'รวมกับ',
+    oCut: 'ตัดออกด้วย',
+    oIntersect: 'หาส่วนร่วมกับ',
+    stepText: '{op}{kind} {dims}{pos}{edit}',
+    dimsBoxTxt: '{x}×{y}×{z} มม.',
+    dimsCylTxt: 'R{r} × สูง {h} มม.',
+    dimsSphTxt: 'R{r} มม.',
+    dimsRevolve: '(หมุนรอบแกน{axis} {angle}°)',
+    dimsExtrude: '(อัดขึ้นตรงสูง {h} มม.)',
+    onPlane: ' บน{plane}',
+    planePickedFace: 'หน้าที่เลือกเอง (Picked Face)',
+    noSteps: 'ยังไม่มีขั้นตอน',
+    atPos: ' ที่ตำแหน่ง ({x}, {y}, {z})',
+    editingTag: '(กำลังแก้ไข)',
+    tipEnable: 'เปิดใช้งานขั้นตอนนี้',
+    tipSuppress: 'ปิดใช้งานชั่วคราว (ไม่ลบ)',
+    tipEdit: 'แก้ไขขั้นตอนนี้',
+    tipDelete: 'ลบขั้นตอนนี้',
+    exportStepFail: 'ส่งออก STEP ไม่สำเร็จ — ดูรายละเอียดใน console ของเบราว์เซอร์',
+    exportGlbFail: 'ส่งออก GLB ไม่สำเร็จ',
+    pickedSelN: 'หน้าที่เลือกเอง (เลือกแล้ว — {n} เหลี่ยม)',
+    pickedSel: 'หน้าที่เลือกเอง (เลือกแล้ว)',
+    noMeshForPick: 'ยังไม่มีชิ้นงาน 3 มิติให้เลือกหน้า — สร้างรูปทรงอย่างน้อย 1 ขั้นตอนก่อน',
+    pickHint: 'คลิกที่หน้าเรียบของชิ้นงานด้านล่าง (กด Esc เพื่อยกเลิก)',
+    pickMiss: 'ไม่โดนชิ้นงาน — ลองคลิกใหม่อีกครั้ง (กด Esc เพื่อยกเลิก)',
+    pickFail1: 'อ่านหน้านี้ไม่สำเร็จ — ลองคลิกจุดอื่น (กด Esc เพื่อยกเลิก)',
+    pickFail2: 'อ่านหน้านี้ไม่สำเร็จ — ลองคลิกจุดอื่นบนหน้าเดียวกัน (กด Esc เพื่อยกเลิก)',
+    hintRect2: 'คลิกมุมตรงข้ามเพื่อจบรูป',
+    hintCircle1: 'คลิกจุดศูนย์กลางวงกลม',
+    hintCircle2: 'คลิกอีกจุดเพื่อกำหนดรัศมี',
+    hintPoly3: 'คลิกจุดถัดไป (วางแล้ว {n} จุด, ต้องอย่างน้อย 3 จุด)',
+    hintPolyN: 'คลิกจุดถัดไป หรือกด "เสร็จ" เพื่อปิดรูป (วางแล้ว {n} จุด)',
+    rectSmall: 'สี่เหลี่ยมเล็กเกินไป — ลองคลิกใหม่',
+    radiusSmall: 'รัศมีเล็กเกินไป — ลองคลิกใหม่',
+    polyMin: 'ต้องมีอย่างน้อย 3 จุดจึงจะปิดเป็นรูปได้',
+    parallelView: 'มุมมองนี้ขนานกับระนาบร่างพอดี มองไม่เห็นจุดตัด — หมุนมุมมองแล้วลองใหม่',
+    needProfile: 'กรุณาเลือกเส้นขอบปิดจากแบบ 2 มิติก่อน (หรือกด "โหลดใหม่" ถ้าเพิ่งวาดเพิ่ม)',
+    straddle: 'เส้นขอบที่เลือกอยู่คร่อมแกนหมุน (มีทั้งฝั่งบวกและฝั่งลบของแกน{axis}) หมุนแล้วจะซ้อนทับตัวเอง สร้างเป็นทรงตันไม่ได้ — กรุณาย้ายภาพร่างในแท็บ "ร่างภาพ 2 มิติ" ให้อยู่ฝั่งเดียวของแกนก่อน หรือเปลี่ยนแกนหมุน',
+    cfReset: 'เริ่มใหม่ทั้งหมด? ขั้นตอนทั้งหมดที่สร้างไว้จะถูกลบ',
+    cfDelStep: 'ลบขั้นตอนที่ {n}? (ขั้นตอนถัดไปจะต่อกันใหม่ตามลำดับที่เหลือ ผลลัพธ์อาจเปลี่ยนไปถ้าลบขั้นตอนกลางๆ)',
+    noClosedYet: 'ยังไม่พบเส้นขอบปิดที่วาดไว้ — วาดสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดในแท็บ "ร่างภาพ 2 มิติ" ก่อน แล้วลองกด "ยืดเป็น 3 มิติ" อีกครั้ง'
+    },
+    en: {
+    h1: '1) Add a base shape',
+    kindLbl: 'Shape type',
+    optBox: 'Box',
+    optCylinder: 'Cylinder',
+    optSphere: 'Sphere',
+    optSketch: 'From a 2D sketch (Extrude/Revolve)',
+    dimX: 'Width X (mm)',
+    dimY: 'Depth Y (mm)',
+    dimZ: 'Height Z (mm)',
+    radius: 'Radius (mm)',
+    profileLbl: 'Outline from the 2D drawing',
+    reload: 'Reload',
+    liveSketch: 'Sketch here',
+    height: 'Height (mm)',
+    advanced: 'More options (plane / method)',
+    planeLbl: 'Sketch plane',
+    planeTop: 'Top plane',
+    planeFront: 'Front plane',
+    planeRight: 'Right plane',
+    planePickedNone: 'Picked face (none yet)',
+    pickFace: 'Pick a face from the part',
+    modeLbl: 'Method',
+    modeExtrude: 'Extrude',
+    modeRevolve: 'Revolve',
+    axisLbl: 'Revolve axis',
+    axisX: 'X axis',
+    axisY: 'Y axis',
+    angleLbl: 'Revolve angle (°)',
+    axisWarn: 'This outline straddles the revolve axis (it has both positive and negative sides), so revolving it would overlap itself and cannot make a solid. Move the sketch in the "2D sketch" tab to one side of the axis, or change the axis',
+    posX: 'Position X (mm)',
+    posY: 'Position Y (mm)',
+    posZ: 'Position Z (mm)',
+    opLbl: 'Combine with the main part',
+    opUnion: 'Union',
+    opCut: 'Cut',
+    opIntersect: 'Intersect',
+    addShape: 'Place as main part',
+    cancelEdit: 'Cancel editing',
+    h2: '2) Part feature steps',
+    undoStep: 'Undo last step',
+    resetAll: 'Start over',
+    h3: '3) 3D view',
+    overlayIdle: 'Add the first shape above to start building the part',
+    sketchRect: 'Rectangle',
+    sketchCircle: 'Circle',
+    sketchPoly: 'Polyline',
+    sketchFinish: 'Done (close shape)',
+    cancel: 'Cancel',
+    hintRect1: 'Click the first corner of the rectangle',
+    h4: '4) Properties and materials',
+    propObject: 'Object',
+    propVolume: 'Volume',
+    propArea: 'Surface area',
+    propMaterial: 'Material',
+    matAluminum: 'Aluminium',
+    propPos: 'Position XYZ',
+    propDims: 'Size (L×W×H)',
+    propColor: 'Colour',
+    propReflect: 'Reflectivity',
+    propQuality: 'Render quality',
+    qLow: 'Low',
+    qMed: 'Medium',
+    qHigh: 'High',
+    propWeight: 'Approx. weight',
+    matTitle: 'Material library',
+    matAluminumDesc: 'Density 2.70 g/cm³ • Light, good corrosion resistance',
+    matSteel: 'Steel',
+    matSteelDesc: 'Density 7.85 g/cm³ • Very strong but heavy',
+    matWood: 'Oak',
+    matWoodDesc: 'Density 0.75 g/cm³ • Light, non-conductive',
+    matGlass: 'Glass',
+    matGlassDesc: 'Density 2.50 g/cm³ • Translucent, brittle',
+    matPlastic: 'ABS plastic',
+    matPlasticDesc: 'Density 1.05 g/cm³ • Easy to mould, very light',
+    h5: '5) Export files',
+    objComposite: 'Composite shape ({n} steps)',
+    unitMm: 'mm',
+    unitCm3: 'cm³',
+    unitCm2: 'cm²',
+    unitKg: 'kg',
+    unitG: 'g',
+    kSketchFrom: 'From a 2D sketch',
+    overlayBuilding: 'Building the 3D shape…',
+    overlayKernel: 'Loading the 3D kernel (OpenCascade) from the internet — the first time can take a while depending on your connection…',
+    overlayError: 'Could not build the 3D shape — {msg} (see the browser console for details)',
+    profRect: 'Rectangle {w}×{d} mm',
+    profCircle: 'Circle R{r} mm',
+    profPoly: 'Closed polyline ({n} points)',
+    profLive: 'Sketched in 3D view: {x}',
+    profLivePoly: 'Closed polyline ({n} points)',
+    noProfiles: '(No closed outline found — draw one on the CAD page first)',
+    profileMissing: 'Original outline not found — please choose again',
+    axisZ: 'Z axis',
+    saveEdit: 'Save changes',
+    addToMain: 'Add to the main part',
+    kBox: 'Box',
+    kCylinder: 'Cylinder',
+    kSphere: 'Sphere',
+    kSketch: '2D sketch',
+    oAdd: 'Start from',
+    oUnion: 'Union with',
+    oCut: 'Cut by',
+    oIntersect: 'Intersect with',
+    stepText: '{op} {kind} {dims}{pos}{edit}',
+    dimsBoxTxt: '{x}×{y}×{z} mm',
+    dimsCylTxt: 'R{r} × height {h} mm',
+    dimsSphTxt: 'R{r} mm',
+    dimsRevolve: '(revolve about {axis} axis {angle}°)',
+    dimsExtrude: '(extrude height {h} mm)',
+    onPlane: ' on {plane}',
+    planePickedFace: 'Picked face',
+    noSteps: 'No steps yet',
+    atPos: ' at ({x}, {y}, {z})',
+    editingTag: '(editing)',
+    tipEnable: 'Enable this step',
+    tipSuppress: 'Disable temporarily (keep it)',
+    tipEdit: 'Edit this step',
+    tipDelete: 'Delete this step',
+    exportStepFail: 'STEP export failed — see the browser console for details',
+    exportGlbFail: 'GLB export failed',
+    pickedSelN: 'Picked face (selected — {n} triangles)',
+    pickedSel: 'Picked face (selected)',
+    noMeshForPick: 'There is no 3D part to pick a face from — create at least one step first',
+    pickHint: 'Click a flat face of the part below (Esc to cancel)',
+    pickMiss: 'Missed the part — click again (Esc to cancel)',
+    pickFail1: 'Could not read this face — try another point (Esc to cancel)',
+    pickFail2: 'Could not read this face — try another point on the same face (Esc to cancel)',
+    hintRect2: 'Click the opposite corner to finish',
+    hintCircle1: 'Click the circle centre',
+    hintCircle2: 'Click another point to set the radius',
+    hintPoly3: 'Click the next point ({n} placed, at least 3 needed)',
+    hintPolyN: 'Click the next point, or press "Done" to close the shape ({n} placed)',
+    rectSmall: 'Rectangle too small — click again',
+    radiusSmall: 'Radius too small — click again',
+    polyMin: 'At least 3 points are needed to close a shape',
+    parallelView: 'This view is exactly parallel to the sketch plane, so there is no intersection — rotate the view and try again',
+    needProfile: 'Please choose a closed outline from the 2D drawing first (or press "Reload" if you just drew one)',
+    straddle: 'The selected outline straddles the revolve axis (it has both positive and negative sides of the {axis} axis), so revolving it would overlap itself and cannot make a solid — move the sketch in the "2D sketch" tab to one side of the axis, or change the revolve axis',
+    cfReset: 'Start over? All the steps you created will be deleted',
+    cfDelStep: 'Delete step {n}? (The following steps will be re-chained, and the result may change if you delete a middle step)',
+    noClosedYet: 'No closed outline has been drawn yet — draw a rectangle / circle / closed polyline in the "2D sketch" tab first, then press "Extrude to 3D" again'
+    }
+  });
+  var live = function (el, fn) { OME_I18N.live(el, fn); }; // ข้อความที่ค้างบนจอ แปลสดตอนสลับภาษา
+  var L = function (key, vars) { return function () { return T(key, vars); }; };
+  /* ป้ายเส้นขอบที่ cad3d สร้าง (เก็บในข้อมูลเป็นไทยตายตัว — profilesEqual เทียบทั้งก้อน) → ข้อความตามภาษาตอนแสดง */
+  function profileText(label) {
+    var m;
+    if ((m = /^ร่างในวิว 3 มิติ: ([\s\S]+)$/.exec(label))) return T('profLive', { x: profileText(m[1]) });
+    if ((m = /^สี่เหลี่ยม (\d+)×(\d+) มม\.$/.exec(label))) return T('profRect', { w: m[1], d: m[2] });
+    if ((m = /^วงกลม R(\d+) มม\.$/.exec(label))) return T('profCircle', { r: m[1] });
+    if ((m = /^พอลีไลน์ปิด \((\d+) จุด\)$/.exec(label))) return T('profPoly', { n: m[1] });
+    if ((m = /^เส้นหลายจุดปิดรูป \((\d+) จุด\)$/.exec(label))) return T('profLivePoly', { n: m[1] });
+    return label;
+  }
 
   var state = {
     steps: [], oc: null, lastShape: null, lastStlBytes: null, material: 'aluminum', lastMeshProps: null,
@@ -397,13 +698,13 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
      ความหนาแน่นเป็นค่าจริงของวัสดุ (ก./ซม.³) ใช้คูณกับปริมาตรจริงที่คำนวณได้ข้างบนเพื่อประมาณน้ำหนัก —
      ไม่ใช่ตัวเลขสมมติ ส่วนสี/ความเป็นโลหะ/ความหยาบผิวปรับให้พอเห็นความต่างของวัสดุบนพื้นผิว render จริง */
   var MATERIALS = {
-    aluminum: { label: 'อะลูมิเนียม', density: 2.70, color: 0xC7CCD4, metalness: 0.75, roughness: 0.35, desc: 'ความหนาแน่น 2.70 ก./ซม.³ • น้ำหนักเบา ทนการกัดกร่อนได้ดี' },
-    steel: { label: 'เหล็กกล้า', density: 7.85, color: 0x7B828D, metalness: 0.85, roughness: 0.30, desc: 'ความหนาแน่น 7.85 ก./ซม.³ • แข็งแรงสูง แต่มีน้ำหนักมาก' },
-    wood: { label: 'ไม้โอ๊ก', density: 0.75, color: 0xB07D43, metalness: 0.0, roughness: 0.75, desc: 'ความหนาแน่น 0.75 ก./ซม.³ • เบา ไม่นำไฟฟ้า' },
-    glass: { label: 'กระจก', density: 2.50, color: 0xA9D8DE, metalness: 0.0, roughness: 0.05, transparent: true, opacity: 0.55, desc: 'ความหนาแน่น 2.50 ก./ซม.³ • โปร่งแสง เปราะแตกง่าย' },
-    plastic: { label: 'พลาสติก ABS', density: 1.05, color: 0x3F6FD1, metalness: 0.05, roughness: 0.45, desc: 'ความหนาแน่น 1.05 ก./ซม.³ • ขึ้นรูปง่าย น้ำหนักเบามาก' }
+    aluminum: { labelKey: 'matAluminum', density: 2.70, color: 0xC7CCD4, metalness: 0.75, roughness: 0.35 },
+    steel: { labelKey: 'matSteel', density: 7.85, color: 0x7B828D, metalness: 0.85, roughness: 0.30 },
+    wood: { labelKey: 'matWood', density: 0.75, color: 0xB07D43, metalness: 0.0, roughness: 0.75 },
+    glass: { labelKey: 'matGlass', density: 2.50, color: 0xA9D8DE, metalness: 0.0, roughness: 0.05, transparent: true, opacity: 0.55 },
+    plastic: { labelKey: 'matPlastic', density: 1.05, color: 0x3F6FD1, metalness: 0.05, roughness: 0.45 }
   };
-  var SHAPE_KIND_LABEL = { box: 'กล่อง (Box)', cylinder: 'ทรงกระบอก (Cylinder)', sphere: 'ทรงกลม (Sphere)', sketch: 'จากภาพร่าง 2 มิติ' };
+  var SHAPE_KIND_KEY = { box: 'optBox', cylinder: 'optCylinder', sphere: 'optSphere', sketch: 'kSketchFrom' };
   function applyMaterialToMesh() {
     if (!mesh || !mesh.material) return;
     var m = MATERIALS[state.material] || MATERIALS.aluminum;
@@ -423,29 +724,29 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     var cap = RENDER_QUALITY_RATIO[quality] || RENDER_QUALITY_RATIO.medium;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, cap));
   }
-  function fmtNum(n, d) { return n.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function fmtNum(n, d) { return OME_I18N.number(n, { minimumFractionDigits: d, maximumFractionDigits: d }); }
   function updatePropsPanel3D() {
     var objEl = $('c3PropObject'), volEl = $('c3PropVolume'), areaEl = $('c3PropArea'), matEl = $('c3PropMaterialName'),
       posEl = $('c3PropPosition'), dimsEl = $('c3PropDims'), wEl = $('c3PropWeight');
     if (!volEl) return;
     var m = MATERIALS[state.material] || MATERIALS.aluminum;
-    matEl.textContent = m.label;
+    matEl.textContent = T(m.labelKey);
     objEl.textContent = state.steps.length === 0 ? '–' :
-      state.steps.length === 1 ? (SHAPE_KIND_LABEL[state.steps[0].kind] || state.steps[0].kind) :
-      'รูปทรงประกอบ (' + state.steps.length + ' ขั้นตอน)';
+      state.steps.length === 1 ? (SHAPE_KIND_KEY[state.steps[0].kind] ? T(SHAPE_KIND_KEY[state.steps[0].kind]) : state.steps[0].kind) :
+      T('objComposite', { n: state.steps.length });
     var basePos = state.steps.length ? state.steps[0].pos : null;
-    posEl.textContent = basePos ? (fmtNum(basePos.x, 0) + ', ' + fmtNum(basePos.y, 0) + ', ' + fmtNum(basePos.z, 0) + ' มม.') : '–';
+    posEl.textContent = basePos ? (fmtNum(basePos.x, 0) + ', ' + fmtNum(basePos.y, 0) + ', ' + fmtNum(basePos.z, 0) + ' ' + T('unitMm')) : '–';
     var mp = state.lastMeshProps;
     if (!mp) {
       volEl.textContent = '–'; areaEl.textContent = '–'; dimsEl.textContent = '–'; wEl.textContent = '–';
       return;
     }
     var volCm3 = mp.volume / 1000, areaCm2 = mp.area / 100;
-    volEl.textContent = fmtNum(volCm3, 1) + ' ซม.³';
-    areaEl.textContent = fmtNum(areaCm2, 1) + ' ซม.²';
-    dimsEl.textContent = fmtNum(mp.bbox.w, 1) + ' × ' + fmtNum(mp.bbox.d, 1) + ' × ' + fmtNum(mp.bbox.h, 1) + ' มม.';
+    volEl.textContent = fmtNum(volCm3, 1) + ' ' + T('unitCm3');
+    areaEl.textContent = fmtNum(areaCm2, 1) + ' ' + T('unitCm2');
+    dimsEl.textContent = fmtNum(mp.bbox.w, 1) + ' × ' + fmtNum(mp.bbox.d, 1) + ' × ' + fmtNum(mp.bbox.h, 1) + ' ' + T('unitMm');
     var weightG = volCm3 * m.density;
-    wEl.textContent = weightG >= 1000 ? (fmtNum(weightG / 1000, 2) + ' กก.') : (fmtNum(weightG, 1) + ' ก.');
+    wEl.textContent = weightG >= 1000 ? (fmtNum(weightG / 1000, 2) + ' ' + T('unitKg')) : (fmtNum(weightG, 1) + ' ' + T('unitG'));
   }
 
   /* ══════════════════ ฉาก 3 มิติ (three.js, แพตเทิร์นเดียวกับ sim-objects.js) ══════════════════ */
@@ -640,11 +941,11 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   }
 
   /* ══════════════════ overlay (loading/idle/error) ══════════════════ */
-  function setOverlay(mode, text) {
-    if (mode === 'hidden') { overlayEl.hidden = true; return; }
+  function setOverlay(mode, text) { // text = ฟังก์ชันคืนข้อความตามภาษา (L('คีย์')) — แปลสดตอนสลับภาษา
+    if (mode === 'hidden') { overlayEl.hidden = true; live(overlayTextEl, null); return; }
     overlayEl.hidden = false;
     spinnerEl.style.display = mode === 'loading' ? '' : 'none';
-    overlayTextEl.textContent = text;
+    live(overlayTextEl, text);
     overlayTextEl.className = mode === 'error' ? 'c3-error' : '';
   }
   function setExportEnabled(on) {
@@ -660,13 +961,13 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     updateStepsUI();
     if (!state.steps.length) {
       if (mesh) { scene.remove(mesh); mesh = null; }
-      setOverlay('idle', 'เพิ่มรูปทรงแรกด้านบนเพื่อเริ่มสร้างชิ้นงาน');
+      setOverlay('idle', L('overlayIdle'));
       setExportEnabled(false);
       state.lastMeshProps = null;
       updatePropsPanel3D();
       return;
     }
-    setOverlay('loading', state.oc ? 'กำลังสร้างรูปทรง 3 มิติ...' : 'กำลังโหลดเคอร์เนล 3 มิติ (OpenCascade) จากอินเทอร์เน็ต — ครั้งแรกอาจใช้เวลาสักครู่ตามความเร็วอินเทอร์เน็ต...');
+    setOverlay('loading', L(state.oc ? 'overlayBuilding' : 'overlayKernel'));
     loadOC().then(function (oc) {
       if (myToken !== rebuildToken) return;
       state.oc = oc;
@@ -689,7 +990,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     }).catch(function (err) {
       if (myToken !== rebuildToken) return;
       console.error('[cad3d] สร้างรูปทรงไม่สำเร็จ:', err);
-      setOverlay('error', 'สร้างรูปทรง 3 มิติไม่สำเร็จ — ' + (err && err.message ? err.message : String(err)) + ' (ดูรายละเอียดเพิ่มเติมใน console ของเบราว์เซอร์)');
+      setOverlay('error', L('overlayError', { msg: err && err.message ? err.message : String(err) }));
       setExportEnabled(false);
       state.lastMeshProps = null;
       updatePropsPanel3D();
@@ -760,11 +1061,11 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     loadedProfiles = read2DProfiles().concat(liveSketchProfiles);
     var sel = $('sketchProfileSel');
     if (!loadedProfiles.length) {
-      sel.innerHTML = '<option value="">(ไม่พบเส้นขอบปิด — วาดในหน้างานเขียนแบบ CAD ก่อน)</option>';
+      sel.innerHTML = '<option value="">' + T('noProfiles') + '</option>';
       sel.disabled = true;
     } else {
       sel.disabled = false;
-      sel.innerHTML = loadedProfiles.map(function (p, i) { return '<option value="' + i + '">' + p.label + '</option>'; }).join('');
+      sel.innerHTML = loadedProfiles.map(function (p, i) { return '<option value="' + i + '">' + profileText(p.label) + '</option>'; }).join('');
       sel.value = String(loadedProfiles.length - 1);
     }
     rebuildPreview();
@@ -780,9 +1081,9 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   /* Stage 10c: axis 'x'/'y' หมายถึงแกนที่ 1/2 ของ profile เอง (ดูหมายเหตุที่ axisVectorForPlane) ไม่ใช่
      แกนโลกตรงๆ — ป้ายกำกับใน dropdown เลยต้องเปลี่ยนไปตามระนาบที่เลือกเพื่อไม่ให้ผู้ใช้งง (ค่า value ของ
      option ไม่ต้องเปลี่ยน แค่ label ที่โชว์) */
-  var AXIS_LABELS_BY_PLANE = { top: ['แกน X', 'แกน Y'], front: ['แกน X', 'แกน Z'], right: ['แกน Y', 'แกน Z'] };
+  var AXIS_LABELS_BY_PLANE = { top: ['axisX', 'axisY'], front: ['axisX', 'axisZ'], right: ['axisY', 'axisZ'] };
   function updateAxisOptionLabels() {
-    var labels = AXIS_LABELS_BY_PLANE[$('sketchPlaneSel').value] || AXIS_LABELS_BY_PLANE.top;
+    var labels = (AXIS_LABELS_BY_PLANE[$('sketchPlaneSel').value] || AXIS_LABELS_BY_PLANE.top).map(function (k) { return T(k); });
     var opts = $('sketchAxisSel').options;
     opts[0].textContent = labels[0];
     opts[1].textContent = labels[1];
@@ -820,11 +1121,11 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     var hasActive = state.steps.some(function (s) { return !s.suppressed; });
     if (editingIndex !== null) {
       opWrap.hidden = isBaseStepIndex(editingIndex);
-      addShapeBtn.textContent = 'บันทึกการแก้ไข';
+      addShapeBtn.textContent = T('saveEdit');
       $('cancelEditBtn').hidden = false;
     } else {
       opWrap.hidden = !hasActive;
-      addShapeBtn.textContent = hasActive ? 'รวมเข้ากับชิ้นงานหลัก' : 'วางเป็นชิ้นงานหลัก';
+      addShapeBtn.textContent = hasActive ? T('addToMain') : T('addShape');
       $('cancelEditBtn').hidden = true;
     }
     $('undoStepBtn').disabled = !state.steps.length;
@@ -832,34 +1133,36 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   }
 
   /* ══════════════════ รายการขั้นตอน (Stage 10b: feature tree แก้ย้อนหลังได้) ══════════════════ */
-  var KIND_LABEL = { box: 'กล่อง', cylinder: 'ทรงกระบอก', sphere: 'ทรงกลม', sketch: 'ภาพร่าง 2 มิติ' };
-  var OP_LABEL = { add: 'เริ่มจาก', union: 'รวมกับ', cut: 'ตัดออกด้วย', intersect: 'หาส่วนร่วมกับ' };
-  var PLANE_LABEL = { top: 'ระนาบบน (Top)', front: 'ระนาบหน้า (Front)', right: 'ระนาบข้าง (Right)' };
+  var KIND_KEY = { box: 'kBox', cylinder: 'kCylinder', sphere: 'kSphere', sketch: 'kSketch' };
+  var OP_KEY = { add: 'oAdd', union: 'oUnion', cut: 'oCut', intersect: 'oIntersect' };
+  var PLANE_KEY = { top: 'planeTop', front: 'planeFront', right: 'planeRight' };
   /* Stage 10d: step.dims.plane อาจเป็นอ็อบเจกต์ฐาน (หน้าที่เลือกเอง) แทน string เดิม — แสดงป้ายกำกับ
      พิเศษแทนการเทียบ string ตรงๆ */
-  function planeLabelFor(plane) { return isPlaneObject(plane) ? 'หน้าที่เลือกเอง (Picked Face)' : (PLANE_LABEL[plane] || PLANE_LABEL.top); }
+  function planeLabelFor(plane) { return isPlaneObject(plane) ? T('planePickedFace') : T(PLANE_KEY[plane] || PLANE_KEY.top); }
   function dimsLabel(step) {
-    if (step.kind === 'box') return step.dims.x + '×' + step.dims.y + '×' + step.dims.z + ' มม.';
-    if (step.kind === 'cylinder') return 'R' + step.dims.r + ' × สูง ' + step.dims.h + ' มม.';
+    if (step.kind === 'box') return T('dimsBoxTxt', { x: step.dims.x, y: step.dims.y, z: step.dims.z });
+    if (step.kind === 'cylinder') return T('dimsCylTxt', { r: step.dims.r, h: step.dims.h });
     if (step.kind === 'sketch') {
-      var planeTxt = ' บน' + planeLabelFor(step.dims.plane);
+      var planeTxt = T('onPlane', { plane: planeLabelFor(step.dims.plane) });
       return (step.dims.mode === 'revolve'
-        ? '(หมุนรอบแกน' + step.dims.axis.toUpperCase() + ' ' + step.dims.angle + '°)'
-        : '(อัดขึ้นตรงสูง ' + step.dims.height + ' มม.)') + planeTxt;
+        ? T('dimsRevolve', { axis: step.dims.axis.toUpperCase(), angle: step.dims.angle })
+        : T('dimsExtrude', { h: step.dims.height })) + planeTxt;
     }
-    return 'R' + step.dims.r + ' มม.';
+    return T('dimsSphTxt', { r: step.dims.r });
   }
   function updateStepsUI() {
     var list = $('stepsList');
-    if (!state.steps.length) { list.innerHTML = '<div class="hint">ยังไม่มีขั้นตอน</div>'; return; }
+    if (!state.steps.length) { list.innerHTML = '<div class="hint">' + T('noSteps') + '</div>'; return; }
     list.innerHTML = state.steps.map(function (s, i) {
-      var p = s.pos, posTxt = (p.x || p.y || p.z) ? (' ที่ตำแหน่ง (' + p.x + ', ' + p.y + ', ' + p.z + ')') : '';
-      var editTag = i === editingIndex ? ' <b class="c3-editing-tag">(กำลังแก้ไข)</b>' : '';
+      var p = s.pos, posTxt = (p.x || p.y || p.z) ? T('atPos', { x: p.x, y: p.y, z: p.z }) : '';
+      var editTag = i === editingIndex ? ' <b class="c3-editing-tag">' + T('editingTag') + '</b>' : '';
+      var ic = function (n) { return '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + n + '"/></svg>'; };
+      var tipToggle = s.suppressed ? T('tipEnable') : T('tipSuppress');
       return '<div class="c3-step-row' + (s.suppressed ? ' c3-step-suppressed' : '') + '">' +
-        '<b>' + (i + 1) + '.</b><span>' + OP_LABEL[s.op] + KIND_LABEL[s.kind] + ' ' + dimsLabel(s) + posTxt + editTag + '</span>' +
-        '<button class="btn sm icon-only" type="button" data-act="toggle" data-idx="' + i + '" title="' + (s.suppressed ? 'เปิดใช้งานขั้นตอนนี้' : 'ปิดใช้งานชั่วคราว (ไม่ลบ)') + '">' + (s.suppressed ? '' : '') + '</button>' +
-        '<button class="btn sm icon-only" type="button" data-act="edit" data-idx="' + i + '" title="แก้ไขขั้นตอนนี้">✏️</button>' +
-        '<button class="btn sm icon-only" type="button" data-act="delete" data-idx="' + i + '" title="ลบขั้นตอนนี้">🗑️</button>' +
+        '<b>' + (i + 1) + '.</b><span>' + T('stepText', { op: T(OP_KEY[s.op]), kind: T(KIND_KEY[s.kind]), dims: dimsLabel(s), pos: posTxt, edit: editTag }) + '</span>' +
+        '<button class="btn ghost sm icon" type="button" data-act="toggle" data-idx="' + i + '" title="' + tipToggle + '" aria-label="' + tipToggle + '">' + ic(s.suppressed ? 'eye-off' : 'eye') + '</button>' +
+        '<button class="btn ghost sm icon" type="button" data-act="edit" data-idx="' + i + '" title="' + T('tipEdit') + '" aria-label="' + T('tipEdit') + '">' + ic('pencil') + '</button>' +
+        '<button class="btn ghost sm icon" type="button" data-act="delete" data-idx="' + i + '" title="' + T('tipDelete') + '" aria-label="' + T('tipDelete') + '">' + ic('trash-2') + '</button>' +
       '</div>';
     }).join('');
   }
@@ -894,7 +1197,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
         sel.value = String(matchIdx);
       } else if (loadedProfiles.length) { // มีโปรไฟล์อื่นอยู่ แต่ตัวเดิมของขั้นตอนนี้หาไม่เจอในนั้น
         var opt = document.createElement('option');
-        opt.value = ''; opt.textContent = 'ไม่พบเส้นขอบเดิม — กรุณาเลือกใหม่';
+        opt.value = ''; opt.textContent = T('profileMissing');
         sel.insertBefore(opt, sel.firstChild);
         sel.value = '';
       } // ถ้า loadedProfiles ว่างเปล่าอยู่แล้ว refreshProfileList() ใส่ placeholder ที่สื่อความหมายเดียวกันไว้ให้แล้ว
@@ -939,7 +1242,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
       downloadBlob(new Uint8Array(data), 'tanot-model.step', 'application/step');
     } catch (err) {
       console.error('[cad3d] ส่งออก STEP ไม่สำเร็จ:', err);
-      alert('ส่งออก STEP ไม่สำเร็จ — ดูรายละเอียดใน console ของเบราว์เซอร์');
+      alert(T('exportStepFail'));
     }
   }
   function exportStl() {
@@ -950,14 +1253,16 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     if (!mesh) return;
     new GLTFExporter().parse(mesh, function (result) {
       downloadBlob(new Uint8Array(result), 'tanot-model.glb', 'model/gltf-binary');
-    }, function (err) { console.error('[cad3d] ส่งออก GLB ไม่สำเร็จ:', err); alert('ส่งออก GLB ไม่สำเร็จ'); }, { binary: true });
+    }, function (err) { console.error('[cad3d] ส่งออก GLB ไม่สำเร็จ:', err); alert(T('exportGlbFail')); }, { binary: true });
   }
 
   /* ══════════════════ Stage 10d: เลือกหน้าจริงของชิ้นงานเพื่อร่างบนหน้านั้น ══════════════════ */
+  var pickedTriCount = 0;
   function markPickedPlaneAvailable(triCount) {
     var opt = $('pickedPlaneOption');
     opt.disabled = false;
-    opt.textContent = 'หน้าที่เลือกเอง' + (triCount ? (' (เลือกแล้ว — ' + triCount + ' เหลี่ยม)') : ' (เลือกแล้ว)');
+    pickedTriCount = triCount || 0;
+    opt.textContent = pickedTriCount ? T('pickedSelN', { n: pickedTriCount }) : T('pickedSel');
   }
   /* ระนาบที่เลือกเองไม่รองรับ "หมุนรอบแกน" (ดูหมายเหตุ Stage 10d ที่หัวไฟล์) — สลับตัวเลือกโหมด/ปิดใช้งาน
      ตัวเลือก revolve ให้ตรงกับระนาบที่เลือกอยู่ตอนนี้ทุกครั้งที่เปลี่ยนระนาบ */
@@ -971,18 +1276,18 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     rebuildPreview();
   }
   function enterPickMode() {
-    if (!mesh) { alert('ยังไม่มีชิ้นงาน 3 มิติให้เลือกหน้า — สร้างรูปทรงอย่างน้อย 1 ขั้นตอนก่อน'); return; }
+    if (!mesh) { alert(T('noMeshForPick')); return; }
     if (liveSketchActive) exitLiveSketch(); // คนละโหมดกัน ห้ามเปิดพร้อมกัน (Stage 11)
     pickMode = true;
     viewportEl.classList.add('c3-pick-cursor');
     controls.enabled = false; // กันไม่ให้ลาก orbit ทับการคลิกเลือกหน้า
-    $('pickFaceStatus').textContent = 'คลิกที่หน้าเรียบของชิ้นงานด้านล่าง (กด Esc เพื่อยกเลิก)';
+    live($('pickFaceStatus'), L('pickHint'));
   }
   function exitPickMode() {
     pickMode = false;
     viewportEl.classList.remove('c3-pick-cursor');
     controls.enabled = true;
-    $('pickFaceStatus').textContent = '';
+    live($('pickFaceStatus'), null); $('pickFaceStatus').textContent = '';
   }
   var pickDownPos = null;
   function onViewportPointerDown(e) { pickDownPos = { x: e.clientX, y: e.clientY }; }
@@ -999,13 +1304,13 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     var ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
     raycaster.setFromCamera(ndc, camera);
     var hits = raycaster.intersectObject(mesh, false);
-    if (!hits.length) { $('pickFaceStatus').textContent = 'ไม่โดนชิ้นงาน — ลองคลิกใหม่อีกครั้ง (กด Esc เพื่อยกเลิก)'; return; }
+    if (!hits.length) { live($('pickFaceStatus'), L('pickMiss')); return; }
     var hit = hits[0];
-    if (typeof hit.faceIndex !== 'number') { $('pickFaceStatus').textContent = 'อ่านหน้านี้ไม่สำเร็จ — ลองคลิกจุดอื่น (กด Esc เพื่อยกเลิก)'; return; }
+    if (typeof hit.faceIndex !== 'number') { live($('pickFaceStatus'), L('pickFail1')); return; }
     var positions = mesh.geometry.attributes.position.array;
     // มุม tolerance ~3° (cos(3°)≈0.9986) และระยะ tolerance 0.05mm — พอสำหรับความคลาดเคลื่อนของการ mesh จริง
     var coplanar = findCoplanarTriangles(positions, hit.faceIndex, 0.9986, 0.05);
-    if (!coplanar) { $('pickFaceStatus').textContent = 'อ่านหน้านี้ไม่สำเร็จ — ลองคลิกจุดอื่นบนหน้าเดียวกัน (กด Esc เพื่อยกเลิก)'; return; }
+    if (!coplanar) { live($('pickFaceStatus'), L('pickFail2')); return; }
     pickedPlaneBasis = buildPlaneBasisFromNormal(coplanar.normal, { x: hit.point.x, y: hit.point.y, z: hit.point.z });
     markPickedPlaneAvailable(coplanar.triangles.length);
     $('sketchPlaneSel').value = 'picked';
@@ -1026,7 +1331,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
      (สี่เหลี่ยม/วงกลม/เส้นหลายจุดปิดรูป) ไม่มี snap ยึดจุด/เส้นเดิม ไม่มีเครื่องมือมิติ (dimension) บังคับ
      ขนาดเป๊ะๆ ตอนวาด ไม่รองรับส่วนโค้ง/สปไลน์ ไม่รองรับแก้ไขจุดที่วางไปแล้ว (ผิดต้องกด "ยกเลิก" แล้วเริ่ม
      ใหม่ทั้งรูป) — ขยายเป็นสเตจถัดไปได้ตามความจำเป็นจริง ไม่ต่างจากแนวทางเดิมของ Stage 9/10 ในไฟล์นี้ */
-  var LIVE_SKETCH_TOOL_LABEL = { rect: 'สี่เหลี่ยม', circle: 'วงกลม', polyline: 'เส้นหลายจุด' };
+  var liveHintKey = null; // คีย์ข้อความเตือนที่ค้างอยู่ (null = ข้อความแนะนำตามเครื่องมือ/จำนวนจุด)
   function activeSketchPlaneValue() {
     var v = $('sketchPlaneSel').value;
     return (v === 'picked' && pickedPlaneBasis) ? pickedPlaneBasis : v;
@@ -1069,15 +1374,14 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     }
     if (liveSketchPts.length) group.add(new THREE.Points(new THREE.BufferGeometry().setFromPoints(worldPtsFromUV(liveSketchPts)), ptMat));
   }
-  function updateLiveSketchHint(customMsg) {
+  function updateLiveSketchHint(customKey) { // customKey = คีย์ข้อความเตือน (เช่น 'rectSmall') · ไม่ใส่ = ข้อความแนะนำตามเครื่องมือ
     var el = $('c3SketchHint');
     if (!el) return;
-    if (customMsg) { el.textContent = customMsg; return; }
-    if (liveSketchTool === 'rect') el.textContent = liveSketchPts.length === 0 ? 'คลิกมุมแรกของสี่เหลี่ยม' : 'คลิกมุมตรงข้ามเพื่อจบรูป';
-    else if (liveSketchTool === 'circle') el.textContent = liveSketchPts.length === 0 ? 'คลิกจุดศูนย์กลางวงกลม' : 'คลิกอีกจุดเพื่อกำหนดรัศมี';
-    else el.textContent = liveSketchPts.length < 3
-      ? ('คลิกจุดถัดไป (วางแล้ว ' + liveSketchPts.length + ' จุด, ต้องอย่างน้อย 3 จุด)')
-      : ('คลิกจุดถัดไป หรือกด "เสร็จ" เพื่อปิดรูป (วางแล้ว ' + liveSketchPts.length + ' จุด)');
+    if (customKey) { live(el, L(customKey)); return; }
+    var n = liveSketchPts.length;
+    if (liveSketchTool === 'rect') live(el, L(n === 0 ? 'hintRect1' : 'hintRect2'));
+    else if (liveSketchTool === 'circle') live(el, L(n === 0 ? 'hintCircle1' : 'hintCircle2'));
+    else live(el, L(n < 3 ? 'hintPoly3' : 'hintPolyN', { n: n }));
   }
   /* ยิง Raycaster จากตำแหน่งเมาส์ตัดกับ "ระนาบร่าง" จริง (THREE.Plane จาก origin+normal ที่ล็อกไว้ตอนเริ่ม
      ร่าง) แล้วแปลงจุดที่ตัดกันกลับเป็นพิกัด (u,v) ผ่าน unmapPlanePoint() — คืน null ถ้าเมาส์ชี้ขนานกับระนาบ
@@ -1119,22 +1423,22 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     var a = liveSketchPts[0], b = liveSketchPts[1];
     var x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
     var w = x1 - x0, d = y1 - y0;
-    if (w < 0.5 || d < 0.5) { liveSketchPts = []; clearLiveSketchPreview(); updateLiveSketchHint('สี่เหลี่ยมเล็กเกินไป — ลองคลิกใหม่'); return; }
+    if (w < 0.5 || d < 0.5) { liveSketchPts = []; clearLiveSketchPreview(); updateLiveSketchHint('rectSmall'); return; }
     commitLiveSketchProfile({ label: 'ร่างในวิว 3 มิติ: สี่เหลี่ยม ' + w.toFixed(0) + '×' + d.toFixed(0) + ' มม.', points: [{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }] });
   }
   function finishCircleShape() {
     var c = liveSketchPts[0], p = liveSketchPts[1];
     var r = Math.hypot(p.x - c.x, p.y - c.y);
-    if (r < 0.5) { liveSketchPts = []; clearLiveSketchPreview(); updateLiveSketchHint('รัศมีเล็กเกินไป — ลองคลิกใหม่'); return; }
+    if (r < 0.5) { liveSketchPts = []; clearLiveSketchPreview(); updateLiveSketchHint('radiusSmall'); return; }
     commitLiveSketchProfile({ label: 'ร่างในวิว 3 มิติ: วงกลม R' + r.toFixed(0) + ' มม.', circle: { cx: c.x, cy: c.y, r: r } });
   }
   function finishPolylineShape() {
-    if (liveSketchTool !== 'polyline' || liveSketchPts.length < 3) { updateLiveSketchHint('ต้องมีอย่างน้อย 3 จุดจึงจะปิดเป็นรูปได้'); return; }
+    if (liveSketchTool !== 'polyline' || liveSketchPts.length < 3) { updateLiveSketchHint('polyMin'); return; }
     commitLiveSketchProfile({ label: 'ร่างในวิว 3 มิติ: เส้นหลายจุดปิดรูป (' + liveSketchPts.length + ' จุด)', points: liveSketchPts.map(function (p) { return { x: p.x, y: p.y }; }) });
   }
   function handleLiveSketchClick(clientX, clientY) {
     var uv = liveSketchRayHit(clientX, clientY);
-    if (!uv) { updateLiveSketchHint('มุมมองนี้ขนานกับระนาบร่างพอดี มองไม่เห็นจุดตัด — หมุนมุมมองแล้วลองใหม่'); return; }
+    if (!uv) { updateLiveSketchHint('parallelView'); return; }
     liveSketchPts.push(uv);
     if (liveSketchTool === 'rect' && liveSketchPts.length === 2) finishRectShape();
     else if (liveSketchTool === 'circle' && liveSketchPts.length === 2) finishCircleShape();
@@ -1232,9 +1536,9 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     });
     addShapeBtn.addEventListener('click', function () {
       var f = readForm();
-      if (f.kind === 'sketch' && !f.dims.profile) { alert('กรุณาเลือกเส้นขอบปิดจากแบบ 2 มิติก่อน (หรือกด "โหลดใหม่" ถ้าเพิ่งวาดเพิ่ม)'); return; }
+      if (f.kind === 'sketch' && !f.dims.profile) { alert(T('needProfile')); return; }
       if (f.kind === 'sketch' && f.dims.mode === 'revolve' && revolveAxisStraddle(f.dims.profile, f.dims.axis)) {
-        alert('เส้นขอบที่เลือกอยู่คร่อมแกนหมุน (มีทั้งฝั่งบวกและฝั่งลบของแกน' + f.dims.axis.toUpperCase() + ') หมุนแล้วจะซ้อนทับตัวเอง สร้างเป็นทรงตันไม่ได้ — กรุณาย้ายภาพร่างในแท็บ "ร่างภาพ 2 มิติ" ให้อยู่ฝั่งเดียวของแกนก่อน หรือเปลี่ยนแกนหมุน');
+        alert(T('straddle', { axis: f.dims.axis.toUpperCase() }));
         return;
       }
       if (editingIndex !== null) {
@@ -1255,7 +1559,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
       saveSteps(); updateAddUI(); rebuildAndRender();
     });
     $('resetBtn').addEventListener('click', async function () {
-      if (!(await window.tanotConfirm('เริ่มใหม่ทั้งหมด? ขั้นตอนทั้งหมดที่สร้างไว้จะถูกลบ'))) return;
+      if (!(await window.tanotConfirm(T('cfReset')))) return;
       state.steps = []; editingIndex = null; saveSteps(); updateAddUI(); rebuildAndRender();
     });
     /* Event delegation เดียวจับทั้ง 3 ปุ่มต่อแถว (แก้ไข/ลบ/ปิดใช้งานชั่วคราว) แทนการผูก listener ทีละแถว
@@ -1271,7 +1575,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
         state.steps[idx].suppressed = !state.steps[idx].suppressed;
         saveSteps(); updateAddUI(); rebuildAndRender();
       } else if (act === 'delete') {
-        if (!(await window.tanotConfirm('ลบขั้นตอนที่ ' + (idx + 1) + '? (ขั้นตอนถัดไปจะต่อกันใหม่ตามลำดับที่เหลือ ผลลัพธ์อาจเปลี่ยนไปถ้าลบขั้นตอนกลางๆ)'))) return;
+        if (!(await window.tanotConfirm(T('cfDelStep', { n: idx + 1 })))) return;
         state.steps.splice(idx, 1);
         if (editingIndex === idx) editingIndex = null;
         else if (editingIndex !== null && editingIndex > idx) editingIndex--;
@@ -1317,6 +1621,14 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
        ("hidden" attribute = display:none) ค่า clientWidth/Height ของ viewport เป็น 0 ทำให้ resize()
        ตอน boot() ข้ามการตั้งขนาด renderer ไป (ดู resize() ด้านบน) พอผู้ใช้กดสลับมาแท็บนี้จริง หน้า cad.html
        จะยิง custom event นี้ให้ resize() คำนวณขนาดใหม่จากขนาดจริงของ viewport ที่เพิ่งโผล่ */
+    /* สลับภาษาสด: ข้อความสถิตแปลโดย i18n.js (data-ome-t) แล้ว — ที่เหลือคือข้อความที่หน้านี้สร้างเอง วาดใหม่ให้ตรงภาษา */
+    OME_LANG.onChange(function () {
+      updatePropsPanel3D(); updateStepsUI(); updateAddUI(); updateAxisOptionLabels();
+      var sel = $('sketchProfileSel');
+      if (sel && !sel.disabled && sel.options.length === loadedProfiles.length) Array.prototype.forEach.call(sel.options, function (o, i) { o.textContent = profileText(loadedProfiles[i].label); });
+      else if (sel && !loadedProfiles.length) { sel.innerHTML = '<option value="">' + T('noProfiles') + '</option>'; }
+      if (!$('pickedPlaneOption').disabled) markPickedPlaneAvailable(pickedTriCount);
+    });
     window.addEventListener('cad3d:tabshown', resize);
     window.addEventListener('cad3d:tabshown', syncSketchProfilesFromLatest2D);
 
@@ -1339,7 +1651,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
       if (loadedProfiles.length) {
         addShapeBtn.click();
       } else {
-        alert('ยังไม่พบเส้นขอบปิดที่วาดไว้ — วาดสี่เหลี่ยม/วงกลม/พอลีไลน์ปิดในแท็บ "ร่างภาพ 2 มิติ" ก่อน แล้วลองกด "ยืดเป็น 3 มิติ" อีกครั้ง');
+        alert(T('noClosedYet'));
       }
     });
 
