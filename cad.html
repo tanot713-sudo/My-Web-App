@@ -209,6 +209,7 @@
 
 /* จอแคบ (≤980px): แถบเครื่องมือเป็นแถวเดียวเลื่อนแนวนอน → วิวพอร์ตยืดเต็มพื้นที่ที่เหลือ → แผงขวาเป็นลิ้นชักเปิด-ปิดได้ (ไม่ทับวิวพอร์ตถาวร) */
 @media(max-width:980px){
+  .cad-layer-row{gap:8px}
   .cad-workspace{flex-direction:column;overflow:hidden;gap:var(--ome-sp-2);padding:var(--ome-sp-2) var(--ome-sp-3) var(--ome-sp-3)}
   .cad-side-left{width:100%;flex:none;overflow:visible}
   .cad-side-left > .card{position:relative;display:flex;align-items:center;gap:var(--ome-sp-3);padding:var(--ome-sp-2);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
