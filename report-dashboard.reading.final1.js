@@ -15,6 +15,8 @@
 (function(){
   'use strict';
   function P(){return window.TanotReportUtils.palette();}
+  /* ภาษาหน้า (OME_LANG กลาง) — ข้อความไทย/อังกฤษคู่กัน, โครงแผงสร้างใหม่เมื่อสลับภาษา (ดู init) */
+  function L(th,en){return (window.OME_LANG&&window.OME_LANG.get&&window.OME_LANG.get()==='en')?en:th;}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -92,10 +94,10 @@
       var fd=date(c.finishdate?r[c.finishdate.key]:null), sd=date(c.startdate?r[c.startdate.key]:null);
       return {
         raw:r, i:i,
-        booktitle: c.booktitle?text(r[c.booktitle.key]):('หนังสือ #'+(i+1)),
+        booktitle: c.booktitle?text(r[c.booktitle.key]):(L('หนังสือ #','Book #')+(i+1)),
         finishDate: fd, startDate: sd,
         pages: c.pages?num(r[c.pages.key]):null,
-        genre: c.genre?text(r[c.genre.key])||'(ไม่ระบุ)':'(ไม่ระบุ)',
+        genre: c.genre?text(r[c.genre.key])||L('(ไม่ระบุ)','(unspecified)'):L('(ไม่ระบุ)','(unspecified)'),
         rating: c.rating?num(r[c.rating.key]):null,
         author: c.author?text(r[c.author.key]):'',
         status: c.status?text(r[c.status.key]):'',
@@ -163,12 +165,12 @@
       '<section class="rd-hero"><h2>Reading Control</h2><div class="rd-sub" id="rdUpdated"></div></section>'+
       '<div class="rd-kpis" id="rdKpis"></div>'+
       '<section class="rd-panel rd-insight-panel"><h3>Executive Insight</h3><div id="rdInsight" class="rd-insight"></div></section>'+
-      '<section class="rd-panel" id="rdPace"><h3>จังหวะการอ่าน</h3><div id="rdPaceBody"></div></section>'+
+      '<section class="rd-panel" id="rdPace"><h3>'+L('จังหวะการอ่าน','Reading pace')+'</h3><div id="rdPaceBody"></div></section>'+
       '<div class="rd-grid">'+
-        '<section class="rd-panel full"><h3>หนังสือที่อ่านจบรายเดือน</h3><div id="rdTrend"></div></section>'+
-        '<section class="rd-panel half"><h3>แนวหนังสือที่อ่านมากที่สุด</h3><div id="rdGenre"></div></section>'+
-        '<section class="rd-panel half"><h3>การกระจายคะแนนรีวิว</h3><div id="rdRating"></div></section>'+
-        '<section class="rd-panel full"><h3>หนังสือที่อ่านจบล่าสุด</h3><div id="rdRecent"></div></section>'+
+        '<section class="rd-panel full"><h3>'+L('หนังสือที่อ่านจบรายเดือน','Books finished per month')+'</h3><div id="rdTrend"></div></section>'+
+        '<section class="rd-panel half"><h3>'+L('แนวหนังสือที่อ่านมากที่สุด','Most-read genres')+'</h3><div id="rdGenre"></div></section>'+
+        '<section class="rd-panel half"><h3>'+L('การกระจายคะแนนรีวิว','Rating distribution')+'</h3><div id="rdRating"></div></section>'+
+        '<section class="rd-panel full"><h3>'+L('หนังสือที่อ่านจบล่าสุด','Recently finished books')+'</h3><div id="rdRecent"></div></section>'+
       '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('reading-hidden-source');
@@ -179,7 +181,7 @@
   function svgOpen(w,h){return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:100%;height:'+h+'px">';}
 
   function barListHtml(entries,color){
-    if(!entries.length)return '<div class="rd-empty">ไม่มีข้อมูล</div>';
+    if(!entries.length)return '<div class="rd-empty">'+L('ไม่มีข้อมูล','No data')+'</div>';
     var w=460,rowH=26,h=14+entries.length*rowH,left=118,right=34,barW=w-left-right;
     var maxV=Math.max.apply(null,entries.map(function(e){return e[1];}))||1;
     var out=svgOpen(w,h);
@@ -198,7 +200,7 @@
     var host=q('#rdTrend'); if(!host)return;
     var byMonth={}; finished.forEach(function(r){ var k=monthKey(r.finishDate); byMonth[k]=(byMonth[k]||0)+1; });
     var keys=Object.keys(byMonth).sort();
-    if(keys.length<2){host.innerHTML='<div class="rd-empty">ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)</div>';return;}
+    if(keys.length<2){host.innerHTML='<div class="rd-empty">'+L('ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)','Not enough data for a trend (at least 2 months needed)')+'</div>';return;}
     var perM=64,left=40,right=30,top=14,bottom=26,ph=170;
     var w=Math.max(400,left+right+keys.length*perM), h=top+ph+bottom, pw=w-left-right;
     var maxV=1; keys.forEach(function(k){maxV=Math.max(maxV,byMonth[k]);});
@@ -229,11 +231,11 @@
   function renderRating(finished){
     var host=q('#rdRating'); if(!host)return;
     var rated=finished.filter(function(r){return r.rating!=null;});
-    if(!rated.length){host.innerHTML='<div class="rd-empty">ไม่มีข้อมูลคะแนนรีวิว</div>';return;}
+    if(!rated.length){host.innerHTML='<div class="rd-empty">'+L('ไม่มีข้อมูลคะแนนรีวิว','No rating data')+'</div>';return;}
     var buckets={5:0,4:0,3:0,'≤2':0};
     rated.forEach(function(r){ var v=Math.round(r.rating); if(v>=5)buckets[5]++; else if(v===4)buckets[4]++; else if(v===3)buckets[3]++; else buckets['≤2']++; });
     var total=rated.length;
-    var vals=[['5','5 ดาว',buckets[5],P().ok],['4','4 ดาว',buckets[4],P().series[2]],['3','3 ดาว',buckets[3],P().warn],['2','≤2 ดาว',buckets['≤2'],P().err]];
+    var vals=[['5','5 '+L('ดาว','stars'),buckets[5],P().ok],['4','4 '+L('ดาว','stars'),buckets[4],P().series[2]],['3','3 '+L('ดาว','stars'),buckets[3],P().warn],['2','≤2 '+L('ดาว','stars'),buckets['≤2'],P().err]];
     var out='<div class="rd-status-row">';
     vals.forEach(function(v){
       var pct=(v[2]/total*100).toFixed(0);
@@ -245,7 +247,7 @@
 
   function renderPace(finished){
     var host=q('#rdPaceBody'); if(!host)return;
-    if(!finished.length){host.innerHTML='<div class="rd-empty">ยังไม่มีหนังสือที่อ่านจบ</div>';return;}
+    if(!finished.length){host.innerHTML='<div class="rd-empty">'+L('ยังไม่มีหนังสือที่อ่านจบ','No finished books yet')+'</div>';return;}
     var now=new Date();
     var yearBooks=finished.filter(function(r){return r.finishDate.getFullYear()===now.getFullYear();});
     // streak: นับเดือนต่อเนื่องที่มีอย่างน้อย 1 เล่ม ไล่ย้อนจากเดือนล่าสุดที่มีข้อมูล
@@ -259,10 +261,10 @@
     var dateSpanDays=Math.max(1,Math.round((finished.reduce(function(m,r){return r.finishDate>m?r.finishDate:m;},finished[0].finishDate)-finished.reduce(function(m,r){return r.finishDate<m?r.finishDate:m;},finished[0].finishDate))/86400000));
     var pagesPerDay=totalPages>0?(totalPages/dateSpanDays).toFixed(0):null;
     host.innerHTML='<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">'+
-      '<div style="font-size:12px;color:var(--ome-text-2);white-space:nowrap">ปีนี้อ่านจบแล้ว <b style="color:var(--ome-text-1)">'+yearBooks.length+' เล่ม</b></div>'+
-      '<div style="font-size:12px;color:var(--ome-text-2);white-space:nowrap">คาดการณ์ทั้งปี <b style="color:var(--ome-text-1)">~'+projected+' เล่ม</b> ถ้ารักษาจังหวะนี้</div>'+
-      '<div style="font-size:12px;color:var(--ome-text-2);white-space:nowrap">อ่านต่อเนื่อง <b style="color:var(--ome-text-1)">'+streak+' เดือน</b></div>'+
-      (pagesPerDay?'<div style="font-size:12px;color:var(--ome-text-2);white-space:nowrap">เฉลี่ย <b style="color:var(--ome-text-1)">'+pagesPerDay+' หน้า/วัน</b></div>':'')+
+      '<div style="font-size:var(--ome-fs-xs);color:var(--ome-text-2);white-space:nowrap">'+L('ปีนี้อ่านจบแล้ว','Finished this year')+' <b style="color:var(--ome-text-1)">'+yearBooks.length+L(' เล่ม',' books')+'</b></div>'+
+      '<div style="font-size:var(--ome-fs-xs);color:var(--ome-text-2);white-space:nowrap">'+L('คาดการณ์ทั้งปี','Projected for the year')+' <b style="color:var(--ome-text-1)">~'+projected+L(' เล่ม',' books')+'</b>'+L(' ถ้ารักษาจังหวะนี้',' at this pace')+'</div>'+
+      '<div style="font-size:var(--ome-fs-xs);color:var(--ome-text-2);white-space:nowrap">'+L('อ่านต่อเนื่อง','Reading streak')+' <b style="color:var(--ome-text-1)">'+streak+L(' เดือน',' months')+'</b></div>'+
+      (pagesPerDay?'<div style="font-size:var(--ome-fs-xs);color:var(--ome-text-2);white-space:nowrap">'+L('เฉลี่ย','Average')+' <b style="color:var(--ome-text-1)">'+pagesPerDay+L(' หน้า/วัน',' pages/day')+'</b></div>':'')+
     '</div>';
   }
 
@@ -291,8 +293,8 @@
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
     layout.innerHTML='<section class="rd-panel"><h3>Reading Control</h3>'+
-      '<div class="rd-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายบันทึกการอ่านหนังสือ (ต้องมีคอลัมน์ '+
-      'ชื่อหนังสือ ร่วมกับ วันที่อ่านจบ/เริ่มอ่าน) — ลองเลือก Template เป็น "Auto" หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
+      '<div class="rd-empty">'+L('ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายบันทึกการอ่านหนังสือ (ต้องมีคอลัมน์ '+
+      'ชื่อหนังสือ ร่วมกับ วันที่อ่านจบ/เริ่มอ่าน) — ลองเลือก Template เป็น "Auto" หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้','This data has no reading-log columns (a book title column together with finish / start date is required) — try setting Template to "Auto" or upload data that has these columns')+'</div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('reading-hidden-source');
     });
@@ -324,14 +326,14 @@
     var monthsSpan=Object.keys(finished.reduce(function(m,r){m[monthKey(r.finishDate)]=1;return m;},{})).length||1;
 
     q('#rdKpis').innerHTML=
-      '<div class="rd-kpi"><div class="l">หนังสือที่อ่านจบ</div><div class="v">'+totalBooks+'</div><div class="s">เล่ม</div></div>'+
-      '<div class="rd-kpi"><div class="l">หน้ารวมที่อ่าน</div><div class="v">'+totalPages.toLocaleString()+'</div><div class="s">หน้า</div></div>'+
-      '<div class="rd-kpi"><div class="l">คะแนนเฉลี่ย</div><div class="v">'+(avgRating==null?'—':avgRating.toFixed(1)+' ★')+'</div><div class="s">จาก 5 ดาว</div></div>'+
-      '<div class="rd-kpi'+(currentlyReading?' warn':'')+'"><div class="l">กำลังอ่านอยู่</div><div class="v">'+currentlyReading+'</div><div class="s">เล่ม</div></div>'+
-      '<div class="rd-kpi"><div class="l">เฉลี่ย/เดือน</div><div class="v">'+(totalBooks/monthsSpan).toFixed(1)+'</div><div class="s">เล่มต่อเดือน</div></div>';
+      '<div class="rd-kpi"><div class="l">'+L('หนังสือที่อ่านจบ','Books finished')+'</div><div class="v">'+totalBooks+'</div><div class="s">'+L('เล่ม','books')+'</div></div>'+
+      '<div class="rd-kpi"><div class="l">'+L('หน้ารวมที่อ่าน','Total pages read')+'</div><div class="v">'+totalPages.toLocaleString()+'</div><div class="s">'+L('หน้า','pages')+'</div></div>'+
+      '<div class="rd-kpi"><div class="l">'+L('คะแนนเฉลี่ย','Average rating')+'</div><div class="v">'+(avgRating==null?'—':avgRating.toFixed(1)+' ★')+'</div><div class="s">'+L('จาก 5 ดาว','out of 5 stars')+'</div></div>'+
+      '<div class="rd-kpi'+(currentlyReading?' warn':'')+'"><div class="l">'+L('กำลังอ่านอยู่','Currently reading')+'</div><div class="v">'+currentlyReading+'</div><div class="s">'+L('เล่ม','books')+'</div></div>'+
+      '<div class="rd-kpi"><div class="l">'+L('เฉลี่ย/เดือน','Average per month')+'</div><div class="v">'+(totalBooks/monthsSpan).toFixed(1)+'</div><div class="s">'+L('เล่มต่อเดือน','books per month')+'</div></div>';
 
     var topGenre=(function(){var m={};finished.forEach(function(r){m[r.genre]=(m[r.genre]||0)+1;});var best=null;Object.keys(m).forEach(function(k){if(!best||m[k]>m[best])best=k;});return best;})();
-    q('#rdInsight').innerHTML='สถานะโดยรวม <b>อ่านสม่ำเสมอ</b> — อ่านจบไปแล้ว <b>'+totalBooks+' เล่ม</b> รวม <b>'+totalPages.toLocaleString()+' หน้า</b>'+(avgRating!=null?' คะแนนเฉลี่ย <b>'+avgRating.toFixed(1)+' ดาว</b>':'')+(topGenre?' แนวที่อ่านมากที่สุดคือ <b>'+esc(topGenre)+'</b>':'')+'.';
+    q('#rdInsight').innerHTML=L('สถานะโดยรวม <b>อ่านสม่ำเสมอ</b> — อ่านจบไปแล้ว <b>'+totalBooks+' เล่ม</b> รวม <b>'+totalPages.toLocaleString()+' หน้า</b>'+(avgRating!=null?' คะแนนเฉลี่ย <b>'+avgRating.toFixed(1)+' ดาว</b>':'')+(topGenre?' แนวที่อ่านมากที่สุดคือ <b>'+esc(topGenre)+'</b>':'')+'.','Overall status <b>reading steadily</b> — finished <b>'+totalBooks+' books</b>, <b>'+totalPages.toLocaleString()+' pages</b> in total'+(avgRating!=null?', average rating <b>'+avgRating.toFixed(1)+' stars</b>':'')+(topGenre?', most-read genre <b>'+esc(topGenre)+'</b>':'')+'.');
 
     renderPace(finished);
     renderTrend(finished); renderGenre(rows); renderRating(finished);
@@ -339,10 +341,10 @@
     var recent=finished.slice().sort(function(a,b){return b.finishDate-a.finishDate;}).slice(0,10);
     q('#rdRecent').innerHTML=recent.length?recent.map(function(r){
       return '<div class="rd-list"><b>'+esc(r.booktitle)+'</b><span>'+esc(r.author||'')+(r.author&&r.genre?' · ':'')+esc(r.genre)+'</span><span style="font-weight:700">'+stars(r.rating)+'</span></div>';
-    }).join(''):'<div class="rd-empty">ไม่มีข้อมูล</div>';
+    }).join(''):'<div class="rd-empty">'+L('ไม่มีข้อมูล','No data')+'</div>';
 
     var today=new Date();
-    q('#rdUpdated').textContent='รอบข้อมูลถึง '+fmt(today)+' · '+rows.length.toLocaleString()+' รายการ';
+    q('#rdUpdated').textContent=L('รอบข้อมูลถึง ','Data through ')+fmt(today)+' · '+rows.length.toLocaleString()+L(' รายการ',' items');
   }
 
   function schedule(){
@@ -354,6 +356,7 @@
   function init(){
     injectCSS();
     window.TanotReportUtils.onTheme(schedule);
+    if(window.OME_LANG&&window.OME_LANG.onChange)window.OME_LANG.onChange(function(){var l=document.getElementById('readingControlLayout');if(l)l.removeAttribute('data-built');schedule();});
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;

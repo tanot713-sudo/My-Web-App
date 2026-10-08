@@ -25,6 +25,9 @@
 (function(){
   'use strict';
   function P(){return window.TanotReportUtils.palette();}
+  /* ภาษาหน้า (OME_LANG กลาง) — ข้อความไทย/อังกฤษคู่กัน, โครงแผงสร้างใหม่เมื่อสลับภาษา (ดู init) */
+  function isEnL(){return !!(window.OME_LANG&&window.OME_LANG.get&&window.OME_LANG.get()==='en');}
+  function L(th,en){return (window.OME_LANG&&window.OME_LANG.get&&window.OME_LANG.get()==='en')?en:th;}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -141,7 +144,7 @@
         raw:r, i:i,
         date: dateCol?date(r[dateCol.col.key]):null,
         value: primaryNum?num(r[primaryNum.col.key]):null,
-        category: catCol?text(r[catCol.col.key])||'(ไม่ระบุ)':null
+        category: catCol?text(r[catCol.col.key])||L('(ไม่ระบุ)','(unspecified)'):null
       };
     });
     return {st:st, mode:'auto', rows:rows2, dateCol:dateCol, primaryNum:primaryNum, catCol:catCol, totalCols:(st.columns||[]).length};
@@ -188,9 +191,9 @@
 #kpidashboardControlLayout .kd-table tbody tr:last-child td{border-bottom:none}
 #kpidashboardControlLayout .kd-freq-pill{display:inline-block;font-size:var(--ome-fs-xs);font-weight:700;padding:3px 10px;border-radius:var(--ome-radius-pill);background:var(--ome-accent-soft,var(--ome-info-soft));color:var(--ome-accent-strong,var(--ome-info-ink));white-space:nowrap}
 #kpidashboardControlLayout .kd-status-pill{display:inline-block;font-size:var(--ome-fs-xs);font-weight:700;padding:3px 10px;border-radius:var(--ome-radius-pill);white-space:nowrap}
-#kpidashboardControlLayout .kd-status-pill.done{background:var(--ome-ok-soft);color:var(--ome-ok)}
+#kpidashboardControlLayout .kd-status-pill.done{background:var(--ome-ok-soft);color:var(--ome-ok-ink)}
 #kpidashboardControlLayout .kd-status-pill.mjk{background:var(--ome-warn-soft);color:var(--ome-warn-ink)}
-#kpidashboardControlLayout .kd-status-pill.bad{background:var(--ome-err-soft);color:var(--ome-err)}
+#kpidashboardControlLayout .kd-status-pill.bad{background:var(--ome-err-soft);color:var(--ome-err-ink)}
 #kpidashboardControlLayout .kd-gauge-row{position:relative;min-width:280px;padding-top:22px}
 #kpidashboardControlLayout .kd-gauge-row .track{height:6px;border-radius:var(--ome-radius-sm);background:var(--ome-surface-2);position:relative}
 #kpidashboardControlLayout .kd-gauge-row .fill{position:absolute;left:0;top:0;height:100%;border-radius:var(--ome-radius-sm)}
@@ -225,10 +228,10 @@
       '<div class="kd-kpis" id="kdKpis"></div>'+
       '<section class="kd-panel kd-insight-panel"><h3>Executive Insight</h3><div id="kdInsight" class="kd-insight"></div></section>'+
       '<div class="kd-grid">'+
-        '<section class="kd-panel full" id="kdTrendSection"><h3>แนวโน้มตามเวลา</h3><div id="kdTrend"></div></section>'+
-        '<section class="kd-panel half" id="kdCatSection"><h3>แยกตามหมวดหมู่ที่เจอ</h3><div id="kdCat"></div></section>'+
-        '<section class="kd-panel half"><h3>การกระจายค่าตัวเลข</h3><div id="kdDist"></div></section>'+
-        '<section class="kd-panel full"><h3>ตัวอย่างข้อมูลล่าสุด</h3><div id="kdRecent"></div></section>'+
+        '<section class="kd-panel full" id="kdTrendSection"><h3>'+L('แนวโน้มตามเวลา','Trend over time')+'</h3><div id="kdTrend"></div></section>'+
+        '<section class="kd-panel half" id="kdCatSection"><h3>'+L('แยกตามหมวดหมู่ที่เจอ','By detected category')+'</h3><div id="kdCat"></div></section>'+
+        '<section class="kd-panel half"><h3>'+L('การกระจายค่าตัวเลข','Value distribution')+'</h3><div id="kdDist"></div></section>'+
+        '<section class="kd-panel full"><h3>'+L('ตัวอย่างข้อมูลล่าสุด','Latest sample rows')+'</h3><div id="kdRecent"></div></section>'+
       '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('kpidashboard-hidden-source');
@@ -237,7 +240,7 @@
   }
 
   function barListHtml(entries,color){
-    if(!entries.length)return '<div class="kd-empty">ไม่มีข้อมูล</div>';
+    if(!entries.length)return '<div class="kd-empty">'+L('ไม่มีข้อมูล','No data')+'</div>';
     var w=460,rowH=26,h=14+entries.length*rowH,left=118,right=34,barW=w-left-right;
     var maxV=Math.max.apply(null,entries.map(function(e){return e[1];}))||1;
     var out=svgOpen(w,h);
@@ -265,16 +268,19 @@
     var completeness = totalCells?Math.round(filledCells/totalCells*100):100;
 
     q('#kdKpis').innerHTML=
-      '<div class="kd-kpi"><div class="l">Total Records</div><div class="v">'+rows.length.toLocaleString()+'</div><div class="s">แถวทั้งหมด</div></div>'+
-      (data.primaryNum?'<div class="kd-kpi"><div class="l">ผลรวม ('+esc(data.primaryNum.col.label)+')</div><div class="v">'+Math.round(total).toLocaleString()+'</div><div class="s">คอลัมน์ตัวเลขที่เจอ</div></div>':'')+
-      (data.primaryNum?'<div class="kd-kpi"><div class="l">ค่าเฉลี่ยต่อรายการ</div><div class="v">'+avg.toLocaleString(undefined,{maximumFractionDigits:1})+'</div><div class="s">Total ÷ Records</div></div>':'')+
-      (data.catCol?'<div class="kd-kpi"><div class="l">หมวดหมู่ที่ตรวจพบ</div><div class="v">'+catCount+'</div><div class="s">ค่าต่างกันในคอลัมน์ "'+esc(data.catCol.col.label)+'"</div></div>':'')+
-      '<div class="kd-kpi'+(completeness<90?' warn':'')+'"><div class="l">Data Completeness</div><div class="v">'+completeness+'%</div><div class="s">สัดส่วนช่องที่มีข้อมูล</div></div>';
+      '<div class="kd-kpi"><div class="l">Total Records</div><div class="v">'+rows.length.toLocaleString()+'</div><div class="s">'+L('แถวทั้งหมด','All rows')+'</div></div>'+
+      (data.primaryNum?'<div class="kd-kpi"><div class="l">'+L('ผลรวม','Total')+' ('+esc(data.primaryNum.col.label)+')</div><div class="v">'+Math.round(total).toLocaleString()+'</div><div class="s">'+L('คอลัมน์ตัวเลขที่เจอ','Detected numeric column')+'</div></div>':'')+
+      (data.primaryNum?'<div class="kd-kpi"><div class="l">'+L('ค่าเฉลี่ยต่อรายการ','Average per record')+'</div><div class="v">'+avg.toLocaleString(undefined,{maximumFractionDigits:1})+'</div><div class="s">Total ÷ Records</div></div>':'')+
+      (data.catCol?'<div class="kd-kpi"><div class="l">'+L('หมวดหมู่ที่ตรวจพบ','Detected categories')+'</div><div class="v">'+catCount+'</div><div class="s">'+L('ค่าต่างกันในคอลัมน์ "','Distinct values in column "')+esc(data.catCol.col.label)+'"</div></div>':'')+
+      '<div class="kd-kpi'+(completeness<90?' warn':'')+'"><div class="l">Data Completeness</div><div class="v">'+completeness+'%</div><div class="s">'+L('สัดส่วนช่องที่มีข้อมูล','Share of cells with data')+'</div></div>';
 
-    q('#kdInsight').innerHTML='ตรวจพบ'+(data.dateCol?'คอลัมน์วันที่ 1 คอลัมน์ ("'+esc(data.dateCol.col.label)+'"), ':'')+
+    q('#kdInsight').innerHTML=isEnL()?('Detected '+(data.dateCol?'1 date column ("'+esc(data.dateCol.col.label)+'"), ':'')+
+      (data.primaryNum?'1 numeric column ("'+esc(data.primaryNum.col.label)+'"), ':'')+
+      (data.catCol?'and 1 category column ("'+esc(data.catCol.col.label)+'") ':'')+
+      'out of <b>'+rows.length+'</b> rows — a summary dashboard was generated automatically. Data completeness <b>'+completeness+'%</b>'):('ตรวจพบ'+(data.dateCol?'คอลัมน์วันที่ 1 คอลัมน์ ("'+esc(data.dateCol.col.label)+'"), ':'')+
       (data.primaryNum?'คอลัมน์ตัวเลข 1 คอลัมน์ ("'+esc(data.primaryNum.col.label)+'"), ':'')+
       (data.catCol?'และคอลัมน์หมวดหมู่ 1 คอลัมน์ ("'+esc(data.catCol.col.label)+'") ':'')+
-      'จากทั้งหมด <b>'+rows.length+'</b> แถว — สร้างแดชบอร์ดสรุปให้อัตโนมัติ ข้อมูลครบถ้วน <b>'+completeness+'%</b>';
+      'จากทั้งหมด <b>'+rows.length+'</b> แถว — สร้างแดชบอร์ดสรุปให้อัตโนมัติ ข้อมูลครบถ้วน <b>'+completeness+'%</b>');
 
     var trendSec=q('#kdTrendSection');
     if(data.dateCol && data.primaryNum && withDate.length>=2){
@@ -291,7 +297,7 @@
         keys.forEach(function(k,i){ var x=left+step*i+(step-bw)/2, v=byMonth[k], h2=ph*v/maxV; out+='<rect x="'+x+'" y="'+(top+ph-h2)+'" width="'+bw+'" height="'+h2+'" fill="'+P().info+'"/><text x="'+(x+bw/2)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>'; });
         out+='</svg>';
         q('#kdTrend').innerHTML='<div class="kd-trend-scroll">'+out+'</div>';
-      } else q('#kdTrend').innerHTML='<div class="kd-empty">ข้อมูลยังไม่พอสำหรับดูแนวโน้ม</div>';
+      } else q('#kdTrend').innerHTML='<div class="kd-empty">'+L('ข้อมูลยังไม่พอสำหรับดูแนวโน้ม','Not enough data for a trend')+'</div>';
     } else trendSec&&trendSec.setAttribute('hidden','');
 
     var catSec=q('#kdCatSection');
@@ -313,15 +319,15 @@
         [qtr(2)+' – '+qtr(3),buckets[2]],
         [qtr(3)+' – '+qtr(4),buckets[3]]
       ],P().series[2]);
-    } else q('#kdDist').innerHTML='<div class="kd-empty">ไม่มีคอลัมน์ตัวเลข</div>';
+    } else q('#kdDist').innerHTML='<div class="kd-empty">'+L('ไม่มีคอลัมน์ตัวเลข','No numeric column')+'</div>';
 
     var recent=(withDate.length?withDate.slice().sort(function(a,b){return b.date-a.date;}):rows).slice(0,10);
     q('#kdRecent').innerHTML=recent.length?recent.map(function(r){
       return '<div class="kd-list"><b>'+(r.category?esc(r.category):'#'+(r.i+1))+'</b><span>'+(r.date?fmt(r.date):'')+'</span><span>'+(r.value!=null?r.value.toLocaleString():'')+'</span></div>';
-    }).join(''):'<div class="kd-empty">ไม่มีข้อมูล</div>';
+    }).join(''):'<div class="kd-empty">'+L('ไม่มีข้อมูล','No data')+'</div>';
 
     var today=new Date();
-    q('#kdUpdated').textContent='รอบข้อมูลถึง '+fmt(today)+' · '+rows.length.toLocaleString()+' แถว';
+    q('#kdUpdated').textContent=L('รอบข้อมูลถึง ','Data through ')+fmt(today)+' · '+rows.length.toLocaleString()+L(' แถว',' rows');
   }
 
   // ═══════════════ โหมด 2: KPI Scorecard ═══════════════
@@ -330,7 +336,7 @@
     function mix(a,b,t){var x=a.match(/\d+/g).map(Number),y=b.match(/\d+/g).map(Number);return 'rgb('+[0,1,2].map(function(i){return Math.round(x[i]*t+y[i]*(1-t));}).join(',')+')';}
     return [c.err,c.warn,mix(c.warn,c.ok,0.5),mix(c.ok,c.warn,0.75),c.ok];
   }
-  var GRADE_LABELS=['1 วิกฤต','2 ต้องปรับปรุง','3 ตามแผน','4 ดี','5 ดีเยี่ยม'];
+  function gradeLabels(){return [L('1 วิกฤต','1 Critical'),L('2 ต้องปรับปรุง','2 Needs improvement'),L('3 ตามแผน','3 On plan'),L('4 ดี','4 Good'),L('5 ดีเยี่ยม','5 Excellent')];}
   function gradeColor(g){return gradeColors()[Math.max(1,Math.min(5,Math.round(g)))-1];}
   // สูตรให้เกรด: % ของเป้าที่ทำได้จริง (achievement) — ไม่ใช้ตัวเลขที่เลือกเอง คำนวณจากข้อมูลล้วนๆ
   // achievement>=100% → 5, 95-99.9%→4, 85-94.9%→3, 70-84.9%→2, <70%→1
@@ -349,13 +355,13 @@
     var color=good?P().ok:(Math.abs(actual-target)<=margin?P().warn:P().err);
     var fmtN=function(v){return (Math.round(v*10)/10).toLocaleString();};
     return '<div class="kd-gauge-row">'+
-      '<div class="badge" style="left:'+ap+'%;background:'+color+'">'+fmtN(actual)+'</div>'+
+      '<div class="badge" style="left:'+ap+'%;background:'+color+';color:'+window.TanotReportUtils.onColor(color)+'">'+fmtN(actual)+'</div>'+
       '<div class="track"><div class="fill" style="width:'+ap+'%;background:'+color+'"></div>'+
       '<div style="position:absolute;left:'+tp+'%;top:-5px;width:2px;height:16px;background:'+P().text+';transform:translateX(-1px)"></div></div>'+
       '<div style="position:relative;height:14px;margin-top:2px">'+
-        '<span style="position:absolute;left:0;font-size:8.5px;color:'+P().muted+'">'+fmtN(min)+'</span>'+
-        '<span style="position:absolute;left:'+tp+'%;transform:translateX(-50%);font-size:8.5px;font-weight:800;color:'+P().text+';white-space:nowrap">'+fmtN(target)+'</span>'+
-        '<span style="position:absolute;right:0;font-size:8.5px;color:'+P().muted+'">'+fmtN(max)+'</span>'+
+        '<span style="position:absolute;left:0;font-size:var(--ome-fs-xs);color:'+P().muted+'">'+fmtN(min)+'</span>'+
+        '<span style="position:absolute;left:'+tp+'%;transform:translateX(-50%);font-size:var(--ome-fs-xs);font-weight:800;color:'+P().text+';white-space:nowrap">'+fmtN(target)+'</span>'+
+        '<span style="position:absolute;right:0;font-size:var(--ome-fs-xs);color:'+P().muted+'">'+fmtN(max)+'</span>'+
       '</div></div>';
   }
 
@@ -365,7 +371,7 @@
     layout.setAttribute('data-built','scorecard');
     layout.innerHTML=
       '<section class="kd-hero"><h2>KPI Scorecard</h2><div class="kd-sub" id="kdUpdated"></div></section>'+
-      '<div class="kd-legend">'+GRADE_LABELS.map(function(l,i){return '<span><i style="background:'+gradeColors()[i]+'"></i>'+l+'</span>';}).join('')+'</div>'+
+      '<div class="kd-legend">'+gradeLabels().map(function(l,i){return '<span><i style="background:'+gradeColors()[i]+'"></i>'+l+'</span>';}).join('')+'</div>'+
       '<div class="kd-summary-grid" id="kdScSummary"></div>'+
       '<section class="kd-panel"><div id="kdScTable"></div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
@@ -381,7 +387,7 @@
       ? rows.reduce(function(s,r){return s+r.grade*r.weight;},0)/totalW
       : rows.reduce(function(s,r){return s+r.grade;},0)/rows.length;
     var gradeCounts=[0,0,0,0,0]; rows.forEach(function(r){gradeCounts[r.grade-1]++;});
-    var donutEntries=[5,4,3,2,1].map(function(g){return [GRADE_LABELS[g-1],gradeCounts[g-1],gradeColors()[g-1]];}).filter(function(e){return e[1]>0;});
+    var donutEntries=[5,4,3,2,1].map(function(g){return [gradeLabels()[g-1],gradeCounts[g-1],gradeColors()[g-1]];}).filter(function(e){return e[1]>0;});
 
     var circ=2*Math.PI*38, offset=0, segs='';
     var totalCnt=donutEntries.reduce(function(s,e){return s+e[1];},0)||1;
@@ -389,32 +395,32 @@
     var donutSvg='<svg width="112" height="112" viewBox="0 0 112 112" role="img" style="flex:none">'+segs+'<circle cx="56" cy="56" r="27" fill="'+P().surface1+'"/><text x="56" y="60" text-anchor="middle" font-size="19" font-weight="850" fill="'+P().text+'">'+rows.length+'</text></svg>';
     var donutLegend='<div style="display:flex;flex-direction:column;gap:6px;justify-content:center;flex:1;min-width:150px">'+donutEntries.map(function(e){
       var pct=(e[1]/totalCnt*100).toFixed(0);
-      return '<div style="display:flex;align-items:center;gap:8px;font-size:11px"><i style="width:9px;height:9px;border-radius:2px;background:'+e[2]+';display:inline-block;flex:none"></i><span style="flex:1">'+esc(e[0])+'</span><b>'+e[1]+'</b><span style="color:var(--ome-text-3);width:30px;text-align:right">'+pct+'%</span></div>';
+      return '<div style="display:flex;align-items:center;gap:8px;font-size:var(--ome-fs-xs)"><i style="width:9px;height:9px;border-radius:2px;background:'+e[2]+';display:inline-block;flex:none"></i><span style="flex:1">'+esc(e[0])+'</span><b>'+e[1]+'</b><span style="color:var(--ome-text-2);width:30px;text-align:right">'+pct+'%</span></div>';
     }).join('')+'</div>';
 
     q('#kdScSummary').innerHTML=
-      '<div class="kd-gauge-card"><span class="kd-grade-circle" style="width:40px;height:40px;font-size:18px;background:'+gradeColor(Math.round(avgGrade))+'">'+avgGrade.toFixed(1)+'</span><div><div style="font-weight:700">เกรดเฉลี่ย'+(totalW>0?'ถ่วงน้ำหนัก':'')+'</div><div style="font-size:11px;color:var(--ome-text-3);margin-top:2px">จาก '+rows.length+' ตัวชี้วัด'+(totalW>0?' รวมน้ำหนัก '+totalW+'%':'')+'</div></div></div>'+
+      '<div class="kd-gauge-card"><span class="kd-grade-circle" style="width:40px;height:40px;font-size:18px;background:'+gradeColor(Math.round(avgGrade))+';color:'+window.TanotReportUtils.onColor(gradeColor(Math.round(avgGrade)))+'">'+avgGrade.toFixed(1)+'</span><div><div style="font-weight:700">'+L('เกรดเฉลี่ย'+(totalW>0?'ถ่วงน้ำหนัก':''),(totalW>0?'Weighted average':'Average')+' grade')+'</div><div style="font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:2px">'+L('จาก '+rows.length+' ตัวชี้วัด'+(totalW>0?' รวมน้ำหนัก '+totalW+'%':''),'From '+rows.length+' indicators'+(totalW>0?', total weight '+totalW+'%':''))+'</div></div></div>'+
       '<div class="kd-donut-card"><div style="font-weight:700;margin-bottom:8px">Grade Distribution</div><div style="display:flex;align-items:center;gap:16px">'+donutSvg+donutLegend+'</div></div>';
 
     var hasWeight=totalW>0, hasFreq=rows.some(function(r){return r.frequency;});
     var html='<div class="kd-table-wrap"><table class="kd-table"><thead><tr>'+
-      '<th>ตัวชี้วัด (KPI)</th>'+(hasWeight?'<th>น้ำหนัก</th>':'')+(hasFreq?'<th>ความถี่วัด</th>':'')+'<th>เป้าหมาย vs ผลจริง</th><th>เกรด</th><th>สถานะ</th>'+
+      '<th>'+L('ตัวชี้วัด (KPI)','Indicator (KPI)')+'</th>'+(hasWeight?'<th>'+L('น้ำหนัก','Weight')+'</th>':'')+(hasFreq?'<th>'+L('ความถี่วัด','Frequency')+'</th>':'')+'<th>'+L('เป้าหมาย vs ผลจริง','Target vs actual')+'</th><th>'+L('เกรด','Grade')+'</th><th>'+L('สถานะ','Status')+'</th>'+
     '</tr></thead><tbody>'+
     rows.map(function(r){
       var statusCls=r.grade>=4?'done':(r.grade===3?'mjk':'bad');
-      var statusTxt=r.grade>=4?'บรรลุเป้าหมาย':(r.grade===3?'ใกล้เป้าหมาย':'ต่ำกว่าเป้าหมาย');
+      var statusTxt=r.grade>=4?L('บรรลุเป้าหมาย','Target met'):(r.grade===3?L('ใกล้เป้าหมาย','Near target'):L('ต่ำกว่าเป้าหมาย','Below target'));
       return '<tr><td><b>'+esc(r.name)+'</b></td>'+
         (hasWeight?'<td style="font-weight:700">'+r.weight+'%</td>':'')+
         (hasFreq?'<td><span class="kd-freq-pill">'+esc(r.frequency||'—')+'</span></td>':'')+
         '<td>'+gaugeRowHtml(r.min,r.max,r.target,r.actual,r.lowerIsBetter)+'</td>'+
-        '<td><span class="kd-grade-circle" style="background:'+gradeColor(r.grade)+'">'+r.grade+'</span></td>'+
+        '<td><span class="kd-grade-circle" style="background:'+gradeColor(r.grade)+';color:'+window.TanotReportUtils.onColor(gradeColor(r.grade))+'">'+r.grade+'</span></td>'+
         '<td><span class="kd-status-pill '+statusCls+'">'+statusTxt+'</span></td></tr>';
     }).join('')+
     '</tbody></table></div>';
     q('#kdScTable').innerHTML=html;
 
     var today=new Date();
-    q('#kdUpdated').textContent='รอบข้อมูลถึง '+fmt(today)+' · '+rows.length+' ตัวชี้วัด';
+    q('#kdUpdated').textContent=L('รอบข้อมูลถึง ','Data through ')+fmt(today)+' · '+rows.length+L(' ตัวชี้วัด',' indicators');
   }
 
   function suppressLayout(){
@@ -442,8 +448,8 @@
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
     layout.innerHTML='<section class="kd-panel"><h3>KPI Dashboard</h3>'+
-      '<div class="kd-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ตัวเลขให้สรุป (หรือถ้าต้องการ KPI Scorecard ต้องมีคอลัมน์ '+
-      'ตัวชี้วัด + เป้าหมาย + ผลจริง) — ลองเลือก Template เป็น "Auto" หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
+      '<div class="kd-empty">'+L('ข้อมูลชุดนี้ไม่มีคอลัมน์ตัวเลขให้สรุป (หรือถ้าต้องการ KPI Scorecard ต้องมีคอลัมน์ '+
+      'ตัวชี้วัด + เป้าหมาย + ผลจริง) — ลองเลือก Template เป็น "Auto" หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้','This data has no numeric columns to summarise (a KPI scorecard needs indicator + target + actual columns) — try setting Template to "Auto" or upload data that has these columns')+'</div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('kpidashboard-hidden-source');
     });
@@ -493,6 +499,7 @@
   function init(){
     injectCSS();
     window.TanotReportUtils.onTheme(schedule);
+    if(window.OME_LANG&&window.OME_LANG.onChange)window.OME_LANG.onChange(function(){var l=document.getElementById('kpidashboardControlLayout');if(l)l.removeAttribute('data-built');schedule();});
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;

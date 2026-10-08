@@ -34,10 +34,10 @@
 .card-head .mini{margin-left:auto}
 .chip-row{display:flex;flex-wrap:wrap;gap:8px}
 #sheetChips{margin-top:var(--ome-sp-3)}
-.dropzone .btn{margin-top:var(--ome-sp-2)}
+.dropzone > button{margin-top:var(--ome-sp-2)}
 .status{min-height:1.2em}
 .template-dl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(184px,1fr));gap:var(--ome-sp-2)}
-.template-dl-grid .btn{justify-content:flex-start}
+.template-dl-grid > button{justify-content:flex-start}
 #resumeInfo{margin-bottom:var(--ome-sp-3)}
 .list-row .grow{min-width:0}
 .list-row .ractions{display:flex;gap:6px;flex-shrink:0}
@@ -95,16 +95,16 @@ html,body{overflow-x:clip;max-width:100%}
 .dashboard-shell-card .mini,.dashboard-shell-card .sub{font-size:var(--dash-font-size,var(--ome-fs-xs))}
 .dashboard-title-editable{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:text;border-radius:var(--ome-radius-sm);padding:1px 4px}
 .dashboard-title-editable:hover{background:var(--ome-surface-2)}
-.dashboard-shell-card h2 :is(.widget-fullscreen,.card-color-btn){flex:0 0 auto;margin-left:auto}
-.dashboard-shell-card h2 :is(.widget-fullscreen,.card-color-btn) ~ :is(.card-color-btn,.chart-style-btn){margin-left:0}
-.dashboard-shell-card h2 :is(.widget-fullscreen,.card-color-btn,.chart-style-btn){color:var(--ome-text-3)}
-.dashboard-shell-card h2 :is(.widget-fullscreen,.card-color-btn,.chart-style-btn):hover{color:var(--ome-text-1)}
+.dashboard-shell-card h2 :is(.widget-fullscreen,.card-color){flex:0 0 auto;margin-left:auto}
+.dashboard-shell-card h2 :is(.widget-fullscreen,.card-color) ~ :is(.card-color,.chart-style){margin-left:0}
+.dashboard-shell-card h2 :is(.widget-fullscreen,.card-color,.chart-style){color:var(--ome-text-2)}
+.dashboard-shell-card h2 :is(.widget-fullscreen,.card-color,.chart-style):hover{color:var(--ome-text-1)}
 #dashboardView.design-mode .dashboard-shell-card{outline:2px dashed color-mix(in srgb,var(--ome-accent) 55%,transparent);outline-offset:3px;cursor:pointer}
 #dashboardView.design-mode .dashboard-shell-card:hover{outline-color:var(--ome-accent);box-shadow:0 0 0 4px var(--ome-accent-soft)}
 #dashboardView:not(.design-mode) #domainDetectedHint{display:none}
 /* กราฟ */
 .chart-wrap{position:relative;height:280px;margin-top:4px}
-.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:var(--ome-card-gap);margin-top:var(--ome-card-gap)}
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(400px,100%),1fr));gap:var(--ome-card-gap);margin-top:var(--ome-card-gap)}
 .chart-grid .card{margin-top:0}
 .chart-ctrl-row{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2) var(--ome-sp-4);margin:0 0 var(--ome-sp-3)}
 .chart-ctrl-row label{display:flex;align-items:center;gap:6px;font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
@@ -127,13 +127,7 @@ html,body{overflow-x:clip;max-width:100%}
 .filter-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .filter-chip button{display:grid;place-items:center;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer;line-height:1}
 .filter-chip button:hover{background:color-mix(in srgb,var(--ome-accent) 22%,transparent)}
-.add-filter-btn,.clear-filters-btn{height:28px;padding:0 12px;border:1px dashed var(--ome-border-strong);border-radius:var(--ome-radius-pill);background:transparent;color:var(--ome-text-2);font:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer}
-.add-filter-btn:hover{border-color:var(--ome-accent);color:var(--ome-accent-strong)}
-.clear-filters-btn{border-style:solid;color:var(--ome-err-ink)}
-.clear-filters-btn:hover{background:var(--ome-err-soft)}
-th .th-filter-btn{display:inline-grid;place-items:center;width:22px;height:22px;margin-left:4px;padding:0;border:0;border-radius:var(--ome-radius-sm);background:transparent;color:var(--ome-text-3);cursor:pointer;vertical-align:middle}
-th .th-filter-btn:hover{background:var(--ome-surface-1);color:var(--ome-text-1)}
-th .th-filter-btn.active{color:var(--ome-accent)}
+.add-filter{border-style:dashed}
 /* กล่อง Focus / Attention Center */
 .dashboard-focus-body{min-height:245px;display:flex;flex-direction:column;gap:var(--ome-sp-2)}
 .dashboard-focus-row{display:grid;grid-template-columns:minmax(130px,1fr) minmax(110px,2fr) 56px;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--ome-border)}
@@ -188,7 +182,7 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
   .utility-menu-section{grid-template-columns:1fr}
   .dashboard-attention-grid{grid-template-columns:1fr}
   .chart-wrap{height:240px}
-  .chart-grid{grid-template-columns:1fr}
+  .chart-grid{grid-template-columns:minmax(0,1fr)}
   #numStatRow{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
@@ -209,9 +203,8 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
 .widget-head{display:flex;align-items:center;gap:4px;padding:6px 6px 6px 12px;border-bottom:1px solid var(--ome-border);cursor:grab;flex-shrink:0}
 .widget-head:active{cursor:grabbing}
 .widget-head .wt-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--ome-fs-xs);font-weight:700}
-.widget-head :is(.w-edit,.w-del){display:grid;place-items:center;width:26px;height:26px;padding:0;border:0;border-radius:var(--ome-radius-sm);background:transparent;color:var(--ome-text-3);cursor:pointer;flex-shrink:0}
-.widget-head :is(.w-edit,.w-del):hover{background:var(--ome-surface-2);color:var(--ome-text-1)}
 .widget-head .w-del:hover{background:var(--ome-err-soft);color:var(--ome-err-ink)}
+.widget-head :is(.w-edit,.w-del){flex-shrink:0}
 .widget-body{flex:1;min-height:0;padding:var(--ome-sp-3);overflow:auto;position:relative}
 .widget-body.wb-kpi{display:flex;flex-direction:column;justify-content:center;align-items:var(--kpi-align,flex-start);gap:4px;text-align:var(--widget-align,left)}
 .widget-body.wb-kpi .wt-val{font-size:var(--ome-fs-3xl);font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
@@ -232,10 +225,9 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
 .widget-body.wb-chart{padding:var(--ome-sp-2)}
 .widget-body.wb-chart canvas{max-width:100%}
 .widget-body.wb-text{font-size:var(--ome-fs-base);line-height:1.6;white-space:pre-wrap;outline:none}
-.widget-body.wb-text:empty::before{content:attr(data-placeholder);color:var(--ome-text-3)}
+.widget-body.wb-text:empty::before{content:attr(data-placeholder);color:var(--ome-text-2)}
 .widget-body.wb-table{display:flex;flex-direction:column;gap:6px;padding:var(--ome-sp-2)}
-.wtbl-search{width:100%;height:30px;padding:0 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);color:inherit;font:inherit;font-size:var(--ome-fs-xs);flex-shrink:0}
-.wtbl-search:focus{outline:none;border-color:var(--ome-accent)}
+.wtbl-search{width:100%;height:30px;padding:0 10px;font-size:var(--ome-fs-xs);flex-shrink:0}
 .wtbl-tablewrap{flex:1;min-height:0;overflow:auto}
 .widget-body.wb-table table{font-size:var(--ome-fs-xs)}
 .widget-body.wb-table :is(th,td){padding:5px 9px}
@@ -317,6 +309,7 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
 .rd-palette .dialog-body{padding-top:var(--ome-sp-4)}
 .rd-palette .input{margin-bottom:var(--ome-sp-3)}
 .rd-palette-list{max-height:55vh;overflow:auto}
+.rd-palette-list .list-row{border-top:0}
 .rd-drawer{width:min(380px,92vw);height:100dvh;max-height:100dvh;margin:0 0 0 auto;border-radius:0}
 .rd-drawer[open]{display:flex;flex-direction:column}
 .rd-drawer .dialog-head{padding-bottom:var(--ome-sp-3);border-bottom:1px solid var(--ome-border)}
@@ -333,11 +326,11 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
 .filter-popover.wide{width:300px}
 .filter-popover.xwide{width:min(620px,calc(100vw - 20px))}
 .filter-popover :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),select,textarea){
-  width:100%;height:32px;padding:0 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);
+  width:100%;height:32px;padding:0 10px;border:1px solid var(--ome-border-strong);border-radius:var(--ome-radius-sm);
   background:var(--ome-surface-1);color:var(--ome-text-1);font:inherit;font-size:var(--ome-fs-xs)}
 .filter-popover textarea{height:auto;padding:8px 10px}
 .filter-popover :is(input,select,textarea):focus{outline:none;border-color:var(--ome-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--ome-accent) 22%,transparent)}
-.filter-popover input[type=color],.rd-dialog input[type=color]{width:42px;height:30px;padding:2px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);cursor:pointer}
+.filter-popover input[type=color],.rd-dialog input[type=color]{width:42px;height:30px;padding:2px;border:1px solid var(--ome-border-strong);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);cursor:pointer}
 .filter-popover :is(input[type=checkbox],input[type=radio]){accent-color:var(--ome-accent);flex-shrink:0}
 .filter-popover label:has(> input[type=color]),.filter-popover label:has(> input[type=checkbox]){display:flex;align-items:center;gap:var(--ome-sp-2);font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
 .fp-title{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-1);margin-bottom:var(--ome-sp-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -357,12 +350,12 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
 .fp-popover-section + .fp-popover-section{margin-top:var(--ome-sp-3)}
 /* สีของตาราง / จัดรูปแบบตามเงื่อนไข / คอลัมน์สูตร */
 .table-color-popover .scope-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:var(--ome-sp-2) 0 var(--ome-sp-3)}
-.table-color-popover .scope-btn{height:30px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);color:var(--ome-text-1);font:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer}
-.table-color-popover .scope-btn.on{border-color:var(--ome-accent);background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
+.table-color-popover .scope-opt{height:30px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);color:var(--ome-text-1);font:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer}
+.table-color-popover .scope-opt.on{border-color:var(--ome-accent);background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
 .table-color-popover .color-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--ome-sp-2)}
 .table-color-popover .color-field{display:flex;align-items:center;gap:7px;font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2)}
 .color-swatch-row{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 var(--ome-sp-2)}
-.color-swatch{width:26px;height:26px;padding:0;border:1px solid var(--ome-border-strong);border-radius:var(--ome-radius-sm);cursor:pointer}
+.color-swatch{width:26px;min-width:26px;height:26px;padding:0}
 .color-swatch:hover{transform:scale(1.1)}
 .cf-panel{display:none}
 .cf-rule-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
@@ -373,8 +366,6 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
 .fc-label:first-of-type{margin-top:0}
 .fc-formula{font-family:var(--ome-font-mono);min-height:56px;resize:vertical}
 .fc-chips{display:flex;flex-wrap:wrap;gap:4px;margin:7px 0}
-.fc-chip{height:24px;padding:0 9px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-pill);background:var(--ome-surface-1);color:var(--ome-accent-strong);font:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer}
-.fc-chip:hover{background:var(--ome-accent-soft);border-color:var(--ome-accent)}
 .fc-error{font-size:var(--ome-fs-xs);color:var(--ome-err-ink);min-height:16px;margin-bottom:4px}
 /* ตรวจสุขภาพข้อมูล */
 .dh-empty{padding:16px 4px;text-align:center;font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
@@ -386,8 +377,6 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
 .dh-table :is(th,td):first-child{text-align:left}
 .dh-colname{text-align:left!important;font-weight:600;color:var(--ome-text-1)}
 .dh-fx-tag{margin-left:3px;padding:1px 5px;border-radius:var(--ome-radius-sm);background:var(--ome-accent-soft);color:var(--ome-accent-strong);font-size:var(--ome-fs-xs);font-weight:700;font-style:italic}
-.dh-trim-btn,.dh-fuzzy-btn{height:24px;padding:0 9px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);color:var(--ome-accent-strong);font:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer;white-space:nowrap}
-.dh-trim-btn:hover,.dh-fuzzy-btn:hover{background:var(--ome-accent-soft);border-color:var(--ome-accent)}
 .dh-dup-row,.dh-fuzzy-group{display:flex;align-items:center;justify-content:space-between;gap:var(--ome-sp-3);flex-wrap:wrap;padding:9px 10px;background:var(--ome-surface-2);border-radius:var(--ome-radius-sm);margin-bottom:6px}
 .dh-fuzzy-group{display:block}
 .dh-dup-msg{font-size:var(--ome-fs-sm)}
@@ -402,7 +391,7 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
 .as-status.err{color:var(--ome-err-ink)}
 /* พื้นหลังแดชบอร์ด / กำหนดเอง */
 .bg-mode-tabs{display:flex;gap:6px;margin-bottom:var(--ome-sp-2)}
-.bg-mode-tabs .bg-mode-btn{flex:1}
+.bg-mode-tabs .bg-mode{flex:1}
 .bg-pattern-grid{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2);margin:4px 0 var(--ome-sp-2)}
 .bg-pattern-swatch{width:44px;height:34px;padding:0;border:1px solid var(--ome-border-strong);border-radius:var(--ome-radius-sm);background-color:var(--ome-surface-1);cursor:pointer}
 .bg-pattern-swatch.on{outline:2px solid var(--ome-accent);outline-offset:1px}
@@ -421,8 +410,6 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
 .rd-dialog .field{margin-bottom:var(--ome-sp-3)}
 .rd-grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--ome-sp-3)}
 .rd-quick{display:flex;gap:var(--ome-sp-2);flex-wrap:wrap;margin:var(--ome-sp-2) 0 var(--ome-sp-3)}
-.rd-quick button{height:28px;padding:0 12px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-pill);background:var(--ome-surface-1);color:var(--ome-text-2);font:inherit;font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer}
-.rd-quick button:hover{border-color:var(--ome-accent);color:var(--ome-accent-strong);background:var(--ome-accent-soft)}
 .rd-check-list{border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);overflow:auto;max-height:240px}
 .rd-check-row{display:flex;align-items:center;gap:var(--ome-sp-2);padding:8px 10px;font-size:var(--ome-fs-xs);border-bottom:1px solid var(--ome-border);cursor:pointer}
 .rd-check-row:last-child{border-bottom:0}
@@ -436,7 +423,7 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
 :where(.rd-page) :where(th){font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2);background:var(--ome-surface-2);user-select:none}
 :where(.rd-page) :where(td.num){text-align:right;font-variant-numeric:tabular-nums}
 :where(.rd-page) :where(tbody tr:hover td){background:color-mix(in srgb,var(--ome-surface-2) 60%,transparent)}
-.sort-ic{display:inline-flex;vertical-align:middle;margin-left:3px;color:var(--ome-text-3)}
+.sort-ic{display:inline-flex;vertical-align:middle;margin-left:3px;color:var(--ome-text-2)}
 .sort-ic .ome-icon{width:13px;height:13px}
 th.sorted .sort-ic{color:var(--ome-accent)}
 .tbl-wrap{overflow-x:auto;max-width:100%;border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);background:var(--ome-surface-1)}
@@ -453,10 +440,10 @@ tr.hdr-pick.on td{background:var(--ome-accent-soft);font-weight:700}
 .toolbar-row{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2);align-items:center;margin-bottom:var(--ome-sp-3)}
 .toolbar-row .status{margin:0 0 0 auto}
 .search-wrap{position:relative;flex:1 1 220px;min-width:160px}
-.search-wrap .ome-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ome-text-3);pointer-events:none}
+.search-wrap .ome-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ome-text-2);pointer-events:none}
 .search-wrap .input{height:30px;padding-left:34px;font-size:var(--ome-fs-xs);border-radius:var(--ome-radius-sm)}
 @media(max-width:600px){
-  .toolbar-row .btn{flex:1 1 calc(50% - 4px)}
+  .toolbar-row > button{flex:1 1 calc(50% - 4px)}
   .toolbar-row .search-wrap{flex-basis:100%}
   .toolbar-row .status{flex-basis:100%;margin-left:0;text-align:center}
 }
@@ -467,30 +454,27 @@ tr.hdr-pick.on td{background:var(--ome-accent-soft);font-weight:700}
 #dataTable :is(th,td){position:relative;border:1px solid var(--ome-border);background-clip:padding-box}
 #dataTable td{height:var(--tbl-row-height,auto);background:var(--ome-surface-1)}
 #dataTable tbody tr:hover td{background:color-mix(in srgb,var(--ome-surface-2) 70%,var(--ome-surface-1))}
-#dataTable th[data-col]{min-width:96px;padding:0 84px 0 10px;height:40px;overflow:visible;background:var(--ome-surface-2)}
+#dataTable th[data-col]{min-width:96px;padding:0 100px 0 10px;height:40px;overflow:visible;background:var(--ome-surface-2)}
 #dataTable th[data-col] .th-label{display:inline-block;max-width:calc(100% - 4px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;cursor:text}
 #dataTable td[data-col]{min-width:96px}
 #dataTable thead tr.filter-row{display:none}
-#dataTable th[data-col] .th-tools{position:absolute;right:50px;top:50%;transform:translateY(-50%);display:inline-flex;z-index:22}
-#dataTable th[data-col] .sort-ic{position:absolute;right:28px;top:50%;transform:translateY(-50%);width:20px;height:20px;margin:0;justify-content:center;align-items:center;pointer-events:none}
+#dataTable th[data-col] .th-tools{position:absolute;right:66px;top:50%;transform:translateY(-50%);display:inline-flex;z-index:22}
+#dataTable th[data-col] .sort-ic{position:absolute;right:38px;top:50%;transform:translateY(-50%);width:20px;height:20px;margin:0;justify-content:center;align-items:center;pointer-events:none}
 #dataTable th[data-col] .col-del{position:absolute;right:4px;top:50%;transform:translateY(-50%);z-index:30}
-#dataTable th[data-col]::after{content:"";position:absolute;right:75px;top:9px;bottom:9px;width:1px;background:var(--ome-border);pointer-events:none}
-.th-fbtn, .col-del, .rowdel button, .group-toggle{display:inline-grid;place-items:center;width:24px;height:24px;padding:0;border:1px solid transparent;border-radius:var(--ome-radius-sm);
-  background:transparent;color:var(--ome-text-3);cursor:pointer}
-.th-fbtn{border-color:var(--ome-border);background:var(--ome-surface-1);color:var(--ome-text-2)}
-.th-fbtn:hover,.th-fbtn.active{border-color:var(--ome-accent);color:var(--ome-accent-strong);background:var(--ome-accent-soft)}
+#dataTable th[data-col]::after{content:"";position:absolute;right:96px;top:9px;bottom:9px;width:1px;background:var(--ome-border);pointer-events:none}
+.th-fbtn, .col-del, .rowdel button, .group-toggle, th .th-filter{width:28px;min-width:28px;height:28px;padding:0}
+.th-fbtn.active,.th-filter.active{color:var(--ome-accent-strong);background:var(--ome-accent-soft)}
 .col-del:hover, .rowdel button:hover{color:var(--ome-err-ink);background:var(--ome-err-soft)}
-.group-toggle:hover{background:var(--ome-surface-2);color:var(--ome-text-1)}
-th .col-fx{border:0;background:var(--ome-accent-soft);color:var(--ome-accent-strong);cursor:pointer;font-size:var(--ome-fs-xs);font-weight:700;font-style:italic;padding:1px 6px;border-radius:var(--ome-radius-sm);margin-right:5px;vertical-align:middle}
-th .col-fx:hover{background:var(--ome-accent);color:var(--ome-on-accent)}
-th .col-fx.err{background:var(--ome-err-soft);color:var(--ome-err-ink)}
+th .th-filter{margin-left:4px;vertical-align:middle}
+th .col-fx{font-style:italic;margin-right:5px;vertical-align:middle}
+th .col-fx.err{color:var(--ome-err-ink);background:var(--ome-err-soft)}
 #dataTable .col-grip{position:absolute;right:-2px;top:0;bottom:0;width:6px;cursor:col-resize;z-index:8}
 #dataTable .col-grip:hover{background:color-mix(in srgb,var(--ome-accent) 25%,transparent)}
 #dataTable .row-grip{position:absolute;left:0;right:0;bottom:-4px;height:8px;cursor:row-resize;z-index:9}
 td.rowdel{text-align:center;width:44px;padding:0}
 td.num .cell-in{text-align:right;font-variant-numeric:tabular-nums}
-td .cell-in{width:100%;min-width:70px;min-height:28px;padding:4px 6px;border:0;outline:0;border-radius:var(--ome-radius-sm);background:transparent;color:inherit;font:inherit;box-sizing:border-box}
-td .cell-in:focus{background:var(--ome-surface-1);box-shadow:inset 0 0 0 2px var(--ome-accent)}
+td .cell-in{width:100%;min-width:70px;height:30px;min-height:30px;padding:3px 6px;font-size:inherit;border-radius:var(--ome-radius-sm);box-sizing:border-box}
+
 td textarea.cell-in{display:block;height:28px;line-height:1.4;resize:none;overflow:hidden}
 td.formula-cell{background:var(--ome-surface-2)}
 td.formula-cell .cell-in{cursor:default;color:var(--ome-text-2)}
@@ -505,9 +489,9 @@ td.formula-cell .cell-in{cursor:default;color:var(--ome-text-2)}
   padding:11px;background-clip:content-box;touch-action:none;user-select:none}
 td.cellsel-in{background:var(--ome-accent-soft)}
 body.cellsel-dragging{user-select:none}
-.cellsel-autofill-btn{position:absolute;display:grid;place-items:center;width:22px;height:22px;padding:0;border-radius:50%;background:var(--ome-surface-1);border:1.5px solid var(--ome-accent);color:var(--ome-accent-strong);cursor:pointer;z-index:4;box-shadow:var(--ome-shadow-2)}
-.cellsel-autofill-btn:hover{background:var(--ome-accent-soft)}
-.cellsel-autofill-btn .ome-icon{width:12px;height:12px}
+.cellsel-autofill{position:absolute;display:grid;place-items:center;width:22px;height:22px;padding:0;border-radius:50%;background:var(--ome-surface-1);border:1.5px solid var(--ome-accent);color:var(--ome-accent-strong);cursor:pointer;z-index:4;box-shadow:var(--ome-shadow-2)}
+.cellsel-autofill:hover{background:var(--ome-accent-soft)}
+.cellsel-autofill .ome-icon{width:12px;height:12px}
 .cellsel-summary{display:flex;flex-wrap:wrap;gap:5px 18px;margin-top:var(--ome-sp-2);padding:8px 14px;background:var(--ome-surface-2);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
 .cellsel-summary[hidden]{display:none}
 .cellsel-summary b{color:var(--ome-text-1);margin-left:5px;font-variant-numeric:tabular-nums}
@@ -635,7 +619,7 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
    (เช่น "จัดกลุ่ม" ค้างอยู่คนเดียวทั้งแถว) ดูไม่สมมาตร — บังคับให้ปุ่มกว้างประมาณครึ่งแถว (2 ปุ่ม/แถว) ด้วย
    flex-basis แทน ถ้าเหลือปุ่มเดียวท้ายสุด flex-grow จะดันให้ขยายเต็มแถวแทนที่จะลอยเล็กๆ ชิดซ้าย */
 @media(max-width:600px){
-  .toolbar-row .btn{flex:1 1 calc(50% - 4px)}
+  .toolbar-row > button{flex:1 1 calc(50% - 4px)}
   .toolbar-row .search-wrap{flex-basis:100%}
   .toolbar-row .status{flex-basis:100%;margin-left:0!important;text-align:center}
 }
@@ -648,7 +632,7 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 
 /* ── โหมดพิมพ์: โชว์เฉพาะเนื้อหาที่กำลังดู ซ่อนปุ่ม/แถบเมนู ── */
 @media print{
-  .chip-row, .toolbar-row, .pager, #uploadCard, #resumeCard, #reportsCard, #sheetCard, #headerCard, .rowchk, .hdrchk, .rowdel, #hdrChk, .filter-row, .chart-ctrl-row, .dash-active-filters, .th-filter-btn, #filterPopover{display:none!important}
+  .chip-row, .toolbar-row, .pager, #uploadCard, #resumeCard, #reportsCard, #sheetCard, #headerCard, .rowchk, .hdrchk, .rowdel, #hdrChk, .filter-row, .chart-ctrl-row, .dash-active-filters, .th-filter, #filterPopover{display:none!important}
 
 }
 
@@ -680,8 +664,27 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 .stacked-legend span{display:inline-flex;align-items:center;gap:5px;font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
 .stacked-legend i{width:9px;height:9px;border-radius:var(--ome-radius-sm);display:inline-block}
 
+/* มือถือ ≤ 700px — เป้ากดทุกตัวในหน้า ≥ 40px (ตามกฎ mobile ของธีมกลาง): ช่อง/ปุ่มที่หน้านี้ย่อไว้บนจอกว้างกลับเป็นขนาดนิ้วกด */
 @media(max-width:700px){
-
+  .rd-page :is(.select,.input,.textarea){min-height:40px;height:40px}
+  .rd-page textarea.textarea{height:auto}
+  .filter-popover :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),select){height:40px}
+  .utility-menu-item{height:40px}
+  .th-fbtn,.col-del,.rowdel button,.group-toggle,th .th-filter,.color-swatch{width:40px;min-width:40px;height:40px}
+  #dataTable th[data-col]{height:52px;padding-right:112px}
+  #dataTable th[data-col] .col-del{right:2px}
+  #dataTable th[data-col] .sort-ic{right:44px;width:16px}
+  #dataTable th[data-col] .th-tools{right:62px}
+  #dataTable th[data-col]::after{right:106px}
+  td .cell-in{height:40px;min-height:40px}
+  .dashboard-shell-card h2,.widget-head{gap:8px}
+  .fp-list{display:flex;flex-direction:column;gap:8px;padding:8px}
+  .fp-list > button{width:100%;justify-content:flex-start;height:40px;min-height:40px}
+  .fp-list{margin-bottom:12px}
+  .fp-list:has(> button){max-height:none;overflow:visible}
+  .fp-actions{margin-top:8px}
+  #projectControlLayout :is(.f61-zoom,.f61-gantt-controls,.f61-scale,.f61-filter-group){gap:8px}
+  .color-swatch-row,.bg-mode-tabs,.utility-menu-section,.toolbar-row,.fc-chips,.rd-quick,.chip-row,.list-row .ractions{gap:8px}
   .timeline-inner{min-width:760px}
   .timeline-head,.timeline-row{grid-template-columns:210px 1fr}
 }
@@ -710,11 +713,11 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 .project-progress-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:-3px 0 10px}.project-progress-legend span{font-size:var(--ome-fs-xs);color:var(--ome-text-2);display:inline-flex;align-items:center;gap:5px}.pp-dot{width:9px;height:9px;border-radius:50%;display:inline-block}.pp-dot.ontrack{background:var(--ome-ok)}.pp-dot.near{background:var(--ome-warn)}.pp-dot.behind{background:var(--ome-info)}.pp-dot.overdue{background:var(--ome-err)}
 .project-progress-board{border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);overflow:auto;max-height:520px;background:var(--ome-surface-1)}
 .pp-row{display:grid;grid-template-columns:minmax(220px,2.2fr) minmax(360px,5fr) minmax(130px,1.3fr);gap:14px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--ome-border)}
-.pp-row:last-child{border-bottom:0}.pp-row:hover{background:var(--ome-surface-0)}.pp-name{min-width:0}.pp-name b{display:block;font-size:var(--ome-fs-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pp-name small{display:block;color:var(--ome-text-2);font-size:var(--ome-fs-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.pp-track-wrap{position:relative;min-width:220px}.pp-track{position:relative;height:20px;background:var(--ome-surface-2);border-radius:var(--ome-radius-pill);overflow:visible}.pp-fill{position:absolute;left:0;top:0;height:100%;border-radius:var(--ome-radius-pill);min-width:3px;transition:width .2s}.pp-fill.ontrack{background:var(--ome-ok)}.pp-fill.near{background:var(--ome-warn)}.pp-fill.behind{background:var(--ome-info)}.pp-fill.overdue{background:var(--ome-err)}.pp-expected{position:absolute;top:-4px;width:2px;height:28px;background:var(--ome-text-1);border-radius:var(--ome-radius-sm);z-index:3}.pp-label{position:absolute;left:8px;top:2px;font-size:var(--ome-fs-xs);line-height:16px;color:var(--ome-on-accent);font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.25);white-space:nowrap}.pp-target{font-size:var(--ome-fs-xs);text-align:right;color:var(--ome-text-2);white-space:nowrap}.pp-target strong{display:block;color:var(--ome-text-1);font-size:var(--ome-fs-xs)}.pp-target .status{display:inline-flex;margin-top:2px;font-weight:700}.pp-target .status.near{color:var(--ome-warn-ink)}.pp-target .status.behind{color:var(--ome-info)}.pp-target .status.ontrack{color:var(--ome-ok-ink)}.pp-target .status.overdue{color:var(--ome-err)}.pp-today-badge{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
+.pp-row:last-child{border-bottom:0}.pp-row:hover{background:var(--ome-surface-0)}.pp-name{min-width:0}.pp-name b{display:block;font-size:var(--ome-fs-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pp-name small{display:block;color:var(--ome-text-2);font-size:var(--ome-fs-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.pp-track-wrap{position:relative;min-width:220px}.pp-track{position:relative;height:20px;background:var(--ome-surface-2);border-radius:var(--ome-radius-pill);overflow:visible}.pp-fill{position:absolute;left:0;top:0;height:100%;border-radius:var(--ome-radius-pill);min-width:3px;transition:width .2s}.pp-fill.ontrack{background:var(--ome-ok)}.pp-fill.near{background:var(--ome-warn)}.pp-fill.behind{background:var(--ome-info)}.pp-fill.overdue{background:var(--ome-err)}.pp-expected{position:absolute;top:-4px;width:2px;height:28px;background:var(--ome-text-1);border-radius:var(--ome-radius-sm);z-index:3}.pp-label{position:absolute;left:8px;top:2px;font-size:var(--ome-fs-xs);line-height:16px;color:var(--ome-on-accent);font-weight:700;text-shadow:0 1px 2px color-mix(in srgb,var(--ome-text-1) 25%,transparent);white-space:nowrap}.pp-target{font-size:var(--ome-fs-xs);text-align:right;color:var(--ome-text-2);white-space:nowrap}.pp-target strong{display:block;color:var(--ome-text-1);font-size:var(--ome-fs-xs)}.pp-target .status{display:inline-flex;margin-top:2px;font-weight:700}.pp-target .status.near{color:var(--ome-warn-ink)}.pp-target .status.behind{color:var(--ome-info-ink)}.pp-target .status.ontrack{color:var(--ome-ok-ink)}.pp-target .status.overdue{color:var(--ome-err-ink)}.pp-today-badge{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
 @media(max-width:850px){.pp-row{grid-template-columns:1fr}.pp-target{text-align:left}.pp-track-wrap{width:100%}}
 @media(max-width:520px){.pp-row{padding:9px}}
 
-.timeline-today-label{position:absolute;top:2px;transform:translateX(-50%);font-size:var(--ome-fs-xs);color:var(--ome-err);font-weight:700;white-space:nowrap}.timeline-today-line{position:absolute;top:0;bottom:0;width:1px;background:var(--ome-err);border-left:1px dashed var(--ome-err);opacity:.75;z-index:2;pointer-events:none}
+.timeline-today-label{position:absolute;top:2px;transform:translateX(-50%);font-size:var(--ome-fs-xs);color:var(--ome-err-ink);font-weight:700;white-space:nowrap}.timeline-today-line{position:absolute;top:0;bottom:0;width:1px;background:var(--ome-err);border-left:1px dashed var(--ome-err);opacity:.75;z-index:2;pointer-events:none}
 
 /* ── Excel-style full grid for editable data table ── */
 
@@ -814,7 +817,7 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 .sctl-label-col{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700}
 .sctl-axis{position:relative;height:24px}
 .sctl-mark{position:absolute;top:0;transform:translateX(-50%);font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;white-space:nowrap}
-.sctl-today-label{position:absolute;top:13px;transform:translateX(-50%);font-size:var(--ome-fs-xs);color:var(--ome-err);font-weight:700;white-space:nowrap}
+.sctl-today-label{position:absolute;top:13px;transform:translateX(-50%);font-size:var(--ome-fs-xs);color:var(--ome-err-ink);font-weight:700;white-space:nowrap}
 .sctl-row{min-height:60px;padding:5px 10px;border-bottom:1px solid var(--ome-border);cursor:pointer}
 .sctl-row:hover{background:var(--ome-surface-1)}
 .sctl-label{padding-right:14px;min-width:0}
@@ -840,7 +843,7 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 .tl2-label-col{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
 .tl2-axis{position:relative;height:20px}
 .tl2-mark{position:absolute;top:0;transform:translateX(-50%);font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;white-space:nowrap}
-.tl2-today-label{position:absolute;top:14px;transform:translateX(-50%);font-size:var(--ome-fs-xs);color:var(--ome-err);font-weight:700;white-space:nowrap}
+.tl2-today-label{position:absolute;top:14px;transform:translateX(-50%);font-size:var(--ome-fs-xs);color:var(--ome-err-ink);font-weight:700;white-space:nowrap}
 .tl2-row{min-height:54px;border-bottom:1px solid var(--ome-border);padding:4px 10px;cursor:pointer}
 .tl2-row:hover{background:var(--ome-surface-1)}
 .tl2-label{padding-right:14px;min-width:0}
@@ -896,7 +899,7 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 
 <style id="final22-qa-ui">
 /* Universal popup surfaces: white, clean, consistent */
-#dashboardProjectDetail .dashboard-project-drawer{background:#fff!important;}
+#dashboardProjectDetail .dashboard-project-drawer{background:var(--ome-surface-0)!important;}
 /* Consistent button hierarchy inside popups */
 
 /* Prevent accidental invisible/zero-height command palette controls */
@@ -1044,7 +1047,7 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 
   <div class="crumb-row">
     <nav class="crumb"><a href="index.html" data-i18n="crumbHome">หน้าหลัก</a><span class="sep">/</span><span data-i18n="crumbResp">งานที่รับผิดชอบ</span><span class="sep">/</span><span data-i18n="crumbPage">นำเสนอรายงาน</span></nav>
-    <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
+    <button class="lang-toggle" id="langToggle" type="button" aria-label="สลับภาษา" data-i18n-skip>
       <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
     </button>
   </div>
@@ -1083,7 +1086,7 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
   </div>
 
   <div class="card" id="templateDownloadCard">
-    <div class="card-head"><h2>ดาวน์โหลดแม่แบบไฟล์เปล่า</h2></div>
+    <div class="card-head"><h2 id="templateDlTitle">ดาวน์โหลดแม่แบบไฟล์เปล่า</h2></div>
     <div class="template-dl-grid" id="templateDlGrid"></div>
   </div>
 
@@ -1141,7 +1144,7 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
     </div>
     <div class="toolbar-row" id="tableEditToolbar">
       <button class="btn sm" id="cellStyleBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-type"/></svg><span>Style</span></button>
-      <button class="btn sm" id="cellColorBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg><span>สี</span></button>
+      <button class="btn sm" id="cellColorBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg><span data-i18n="cellColorLbl">สี</span></button>
       <button class="btn sm" id="condFormatToolbarBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sliders-horizontal"/></svg><span>Conditional</span></button>
       <button class="btn sm" id="wrapSelectionBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-wrap-text"/></svg><span>Wrap Text</span></button>
       <button class="btn sm" id="nowrapSelectionBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-arrow-right"/></svg><span>No Wrap</span></button>
@@ -1185,7 +1188,7 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
       <button type="button" class="btn ghost icon utility-hamburger" id="utilityHamburgerBtn" aria-label="Open dashboard tools" aria-expanded="false"><svg class="ome-icon"><use href="icons.svg#i-menu"/></svg></button>
       <div class="dashboard-command-left">
         <div class="dashboard-report-meta">
-          <div class="title" id="dashboardReportTitle">Dashboard</div>
+          <div class="title" id="dashboardReportTitle" data-i18n-title="dashboardRenameTitle" title="คลิกเพื่อเปลี่ยนชื่อ Dashboard">Dashboard</div>
           <div class="meta" id="dashboardReportMeta">—</div>
         </div>
         <span id="dashboardDesignBadge" class="badge accent" style="display:none">Design Mode</span>
@@ -1286,32 +1289,32 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
         </select></label>
       </div>
       <div class="chart-ctrl-row" style="margin-top:-4px">
-        <button class="card-color-btn btn ghost icon sm" type="button" data-role="domainKpi" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button>
+        <button class="card-color btn ghost icon sm" type="button" data-role="domainKpi" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button>
       </div>
       <div class="stat-row" id="domainKpiRow"></div>
       <div class="card" id="domainMatrixCard" style="display:none;margin-top:14px">
-        <h2><span id="domainMatrixTitle" class="dashboard-title-editable" data-title-key="domainMatrixTitle"></span> <button class="card-color-btn btn ghost icon sm" type="button" data-role="domainMatrix" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
+        <h2><span id="domainMatrixTitle" class="dashboard-title-editable" data-title-key="domainMatrixTitle"></span> <button class="card-color btn ghost icon sm" type="button" data-role="domainMatrix" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
         <div class="tbl-wrap"><div id="domainMatrixWrap"></div></div>
       </div>
       <div class="chart-grid">
         <div class="card" id="domainChart1Card" style="display:none">
-          <h2><span id="domainChart1Title" class="dashboard-title-editable" data-title-key="domainChart1Title"></span> <button class="widget-fullscreen btn ghost icon sm" data-target="domainChart1Card" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color-btn btn ghost icon sm" type="button" data-role="domainChart1" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
+          <h2><span id="domainChart1Title" class="dashboard-title-editable" data-title-key="domainChart1Title"></span> <button class="widget-fullscreen btn ghost icon sm" data-target="domainChart1Card" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color btn ghost icon sm" type="button" data-role="domainChart1" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
           <div class="chart-wrap"><canvas id="domainChart1"></canvas></div>
         </div>
         <div class="card" id="domainChart2Card" style="display:none">
-          <h2><span id="domainChart2Title" class="dashboard-title-editable" data-title-key="domainChart2Title"></span> <button class="widget-fullscreen btn ghost icon sm" data-target="domainChart2Card" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color-btn btn ghost icon sm" type="button" data-role="domainChart2" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
+          <h2><span id="domainChart2Title" class="dashboard-title-editable" data-title-key="domainChart2Title"></span> <button class="widget-fullscreen btn ghost icon sm" data-target="domainChart2Card" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color btn ghost icon sm" type="button" data-role="domainChart2" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
           <div class="chart-wrap"><canvas id="domainChart2"></canvas></div>
         </div>
       </div>
     </div>
 
       <div class="card dashboard-shell-card dash-span-12 dashboard-section-anchor" id="scadaProgressCard" data-dashboard-section="dashboardProjects" style="display:none">
-        <h2><span id="scadaProgressTitle" class="dashboard-title-editable" data-title-key="scadaProgressTitle">SCADA Work Progress</span> <button class="widget-fullscreen btn ghost icon sm" data-target="scadaProgressCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color-btn btn ghost icon sm" type="button" data-role="scadaProgress" title="Customize card color" aria-label="Customize card color"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
+        <h2><span id="scadaProgressTitle" class="dashboard-title-editable" data-title-key="scadaProgressTitle">SCADA Work Progress</span> <button class="widget-fullscreen btn ghost icon sm" data-target="scadaProgressCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color btn ghost icon sm" type="button" data-role="scadaProgress" title="Customize card color" aria-label="Customize card color"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
         <div id="scadaProgressWrap"></div>
       </div>
 
       <div class="card dashboard-shell-card dash-span-12 dashboard-section-anchor" id="scadaTimelineCard" data-dashboard-section="dashboardProjects" style="display:none">
-        <h2><span id="scadaTimelineTitle" class="dashboard-title-editable" data-title-key="scadaTimelineTitle">SCADA Project Timeline</span> <button class="widget-fullscreen btn ghost icon sm" data-target="scadaTimelineCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color-btn btn ghost icon sm" type="button" data-role="scadaTimeline" title="Customize card color" aria-label="Customize card color"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
+        <h2><span id="scadaTimelineTitle" class="dashboard-title-editable" data-title-key="scadaTimelineTitle">SCADA Project Timeline</span> <button class="widget-fullscreen btn ghost icon sm" data-target="scadaTimelineCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color btn ghost icon sm" type="button" data-role="scadaTimeline" title="Customize card color" aria-label="Customize card color"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
         <div class="scada-timeline-toolbar">
           <span class="scada-timeline-legend"><span><i class="scada-dot scada-actual"></i>Actual</span><span><i class="scada-dot scada-plan"></i>Plan / Target</span><span><i class="scada-dot scada-today"></i>Today</span></span>
         </div>
@@ -1363,12 +1366,12 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 </div>
 
 <div class="card dashboard-shell-card dashboard-section-anchor" id="numStatCard" data-dashboard-section="dashboardOverview" style="display:none">
-      <h2><span data-i18n="numStatTitle">สรุปตัวเลข</span> <button class="card-color-btn btn ghost icon sm" type="button" data-role="numStat" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
+      <h2><span data-i18n="numStatTitle">สรุปตัวเลข</span> <button class="card-color btn ghost icon sm" type="button" data-role="numStat" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
       <div class="stat-row" id="numStatRow"></div>
     </div>
     <div class="chart-grid dashboard-12-grid dashboard-section-anchor" data-dashboard-section="dashboardAnalytics">
     <div class="card dashboard-shell-card dash-span-6" id="barChartCard" style="display:none">
-      <h2><span id="barChartTitle" class="dashboard-title-editable" data-title-key="barChartTitle">กราฟแท่ง</span> <button class="widget-fullscreen btn ghost icon sm" data-target="barChartCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color-btn btn ghost icon sm" type="button" data-role="bar" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button> <button class="card-color-btn chart-style-btn btn ghost icon sm" type="button" data-chart-style="bar" title="ปรับสีกราฟ" aria-label="ปรับสีกราฟ"><svg class="ome-icon"><use href="icons.svg#i-sliders-horizontal"/></svg></button></h2>
+      <h2><span id="barChartTitle" class="dashboard-title-editable" data-title-key="barChartTitle">กราฟแท่ง</span> <button class="widget-fullscreen btn ghost icon sm" data-target="barChartCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color btn ghost icon sm" type="button" data-role="bar" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button> <button class="card-color chart-style btn ghost icon sm" type="button" data-chart-style="bar" data-i18n-title="chartColorBtnTitle" title="ปรับสีกราฟ" aria-label="ปรับสีกราฟ"><svg class="ome-icon"><use href="icons.svg#i-sliders-horizontal"/></svg></button></h2>
       <div class="chart-ctrl-row">
         <label><span data-i18n="chartTypeLbl">ชนิดกราฟ</span> <select class="select" id="barTypeSel">
           <option value="bar" data-i18n="typeBar">แท่งแนวตั้ง</option><option value="barH" data-i18n="typeBarH">แท่งแนวนอน</option>
@@ -1380,7 +1383,7 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
       <div class="chart-wrap"><canvas id="barChart"></canvas></div>
     </div>
     <div class="card dashboard-shell-card dash-span-6" id="lineChartCard" style="display:none">
-      <h2><span id="lineChartTitle" class="dashboard-title-editable" data-title-key="lineChartTitle">แนวโน้มตามเวลา</span> <button class="widget-fullscreen btn ghost icon sm" data-target="lineChartCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color-btn btn ghost icon sm" type="button" data-role="line" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button> <button class="card-color-btn chart-style-btn btn ghost icon sm" type="button" data-chart-style="line" title="ปรับสีกราฟ" aria-label="ปรับสีกราฟ"><svg class="ome-icon"><use href="icons.svg#i-sliders-horizontal"/></svg></button></h2>
+      <h2><span id="lineChartTitle" class="dashboard-title-editable" data-title-key="lineChartTitle">แนวโน้มตามเวลา</span> <button class="widget-fullscreen btn ghost icon sm" data-target="lineChartCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color btn ghost icon sm" type="button" data-role="line" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button> <button class="card-color chart-style btn ghost icon sm" type="button" data-chart-style="line" data-i18n-title="chartColorBtnTitle" title="ปรับสีกราฟ" aria-label="ปรับสีกราฟ"><svg class="ome-icon"><use href="icons.svg#i-sliders-horizontal"/></svg></button></h2>
       <div class="chart-ctrl-row">
         <label><span data-i18n="chartTypeLbl">ชนิดกราฟ</span> <select class="select" id="lineTypeSel">
           <option value="line" data-i18n="typeLine">เส้น</option><option value="bar" data-i18n="typeBar">แท่งแนวตั้ง</option><option value="barH" data-i18n="typeBarH">แท่งแนวนอน</option>
@@ -1393,7 +1396,7 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
       <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
     </div>
     <div class="card dashboard-shell-card dash-span-6" id="pieChartCard" style="display:none">
-      <h2><span id="pieChartTitle" class="dashboard-title-editable" data-title-key="pieChartTitle">สัดส่วน</span> <button class="widget-fullscreen btn ghost icon sm" data-target="pieChartCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color-btn btn ghost icon sm" type="button" data-role="pie" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ฟ" aria-label="ปรับสีการ์ฟ"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button> <button class="card-color-btn chart-style-btn btn ghost icon sm" type="button" data-chart-style="pie" title="ปรับสีกราฟ" aria-label="ปรับสีกราฟ"><svg class="ome-icon"><use href="icons.svg#i-sliders-horizontal"/></svg></button></h2>
+      <h2><span id="pieChartTitle" class="dashboard-title-editable" data-title-key="pieChartTitle">สัดส่วน</span> <button class="widget-fullscreen btn ghost icon sm" data-target="pieChartCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button> <button class="card-color btn ghost icon sm" type="button" data-role="pie" data-i18n-title="cardColorBtnTitle" data-i18n-title="cardColorBtnTitle" title="ปรับสีการ์ดนี้" aria-label="ปรับสีการ์ดนี้"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button> <button class="card-color chart-style btn ghost icon sm" type="button" data-chart-style="pie" data-i18n-title="chartColorBtnTitle" title="ปรับสีกราฟ" aria-label="ปรับสีกราฟ"><svg class="ome-icon"><use href="icons.svg#i-sliders-horizontal"/></svg></button></h2>
       <div class="chart-ctrl-row">
         <label><span data-i18n="chartTypeLbl">ชนิดกราฟ</span> <select class="select" id="pieTypeSel">
           <option value="doughnut" data-i18n="typeDoughnut">โดนัท</option><option value="pie" data-i18n="typePie">วงกลม</option>
@@ -1405,16 +1408,16 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
     </div>
     </div>
     <div class="card dashboard-shell-card dash-span-6" id="dashboardFocusCard" style="display:none">
-      <h2><span id="dashboardFocusTitle">Focus</span><button class="widget-fullscreen btn ghost icon sm" data-target="dashboardFocusCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button><button class="card-color-btn btn ghost icon sm" type="button" data-role="focus" title="Customize" aria-label="Customize"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
+      <h2><span id="dashboardFocusTitle">Focus</span><button class="widget-fullscreen btn ghost icon sm" data-target="dashboardFocusCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button><button class="card-color btn ghost icon sm" type="button" data-role="focus" title="Customize" aria-label="Customize"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
       <div id="dashboardFocusBody" class="dashboard-focus-body"></div>
     </div>
     <div class="card dashboard-shell-card dash-span-12 dashboard-section-anchor" id="dashboardAttentionCard" data-dashboard-section="dashboardAnalytics" style="display:none">
-      <h2><span id="dashboardAttentionTitle">Attention Center</span><button class="widget-fullscreen btn ghost icon sm" data-target="dashboardAttentionCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button><button class="card-color-btn btn ghost icon sm" type="button" data-role="attention" title="Customize" aria-label="Customize"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
+      <h2><span id="dashboardAttentionTitle">Attention Center</span><button class="widget-fullscreen btn ghost icon sm" data-target="dashboardAttentionCard" type="button" aria-label="Fullscreen" title="Fullscreen"><svg class="ome-icon"><use href="icons.svg#i-maximize-2"/></svg></button><button class="card-color btn ghost icon sm" type="button" data-role="attention" title="Customize" aria-label="Customize"><svg class="ome-icon"><use href="icons.svg#i-palette"/></svg></button></h2>
       <div id="dashboardAttentionBody" class="dashboard-attention-grid"></div>
     </div>
     <div class="card dashboard-shell-card dashboard-section-anchor dash-span-12" id="dashTableCard" data-dashboard-section="dashboardDetails" style="display:none">
       <h2 data-i18n="dashTableTitle">ตารางข้อมูล</h2>
-      <div class="toolbar-row" style="margin-bottom:6px">
+      <div class="toolbar-row">
         <button class="btn sm" id="dashExportXlsxBtn" type="button" data-i18n="dashExportXlsxBtn">Excel</button>
         <button class="btn sm" id="dashExportCsvBtn" type="button" data-i18n="dashExportCsvBtn">CSV</button>
         <button class="btn sm" id="dashColsBtn" type="button" data-i18n="dashColsBtn">คอลัมน์</button>
@@ -1531,17 +1534,17 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 'use strict';
 function q(s,r){return (r||document).querySelector(s)}
 var TEMPLATES=[
-  {key:'maintenance',icon:'wrench',label:'ซ่อมบำรุง',cols:['Work Order','Equipment No','Equipment Type','Downtime','Plan Finish','Actual Start','Actual End','Material Cost','Labor Cost','Status','Failure Mode','Work Order Type','Line']},
-  {key:'project',icon:'folder',label:'โครงการ',cols:['Project','Task','Customer','Owner','Start Date','End Date','Actual','Plan','SPI','Status','Cost','Duration']},
-  {key:'legal',icon:'scale',label:'กฎหมาย',cols:['Matter ID','Client','Practice Area','Attorney','Billable Hours','Amount Billed','Amount Collected','Status','Open Date','Close Date','Court Date','Role']},
-  {key:'risk',icon:'triangle-alert',label:'ความเสี่ยง',cols:['Risk Name','Risk Category','Severity','Likelihood','Risk Level','Mitigation','Residual','Reference','Status','Risk Owner','Identified Date','Closed Date']},
-  {key:'finance',icon:'wallet',label:'รายรับ-รายจ่าย',cols:['Date','Income','Expense','Amount','Transaction Type','Category','Account','Description','Budget']},
-  {key:'reading',icon:'book-open',label:'การอ่านหนังสือ',cols:['Book Title','Author','Start Date','Finish Date','Pages','Genre','Rating','Status']},
-  {key:'safety',icon:'shield',label:'ความปลอดภัย',cols:['Incident Date','Incident Type','Severity','Department','Status','Due Date','Project','Finding']},
-  {key:'hr',icon:'users',label:'บุคคล (HR)',cols:['Employee ID','Employee Name','Department','Position','Join Date','Exit Date','Employment Status','Employment Type','Training Status']},
-  {key:'itops',icon:'cpu',label:'IT / DevOps',cols:['Ticket ID','System','Priority','Status','Opened Date','Closed Date','Assignee','Subject']},
-  {key:'kpidashboard',icon:'chart-column',label:'KPI Dashboard',cols:['KPI Name','Weight','Target','Actual','Min','Max','Frequency','Direction']},
-  {key:'organizational',icon:'building-2',label:'ผังองค์กร',cols:['Employee ID','Full Name','Nickname','Position','Job Level','Team','System','Work Site','Start Date','Manager ID','Manager Name','Date of Birth','Email','Phone','Gender']}
+  {key:'maintenance',icon:'wrench',labelEn:'Maintenance',label:'ซ่อมบำรุง',cols:['Work Order','Equipment No','Equipment Type','Downtime','Plan Finish','Actual Start','Actual End','Material Cost','Labor Cost','Status','Failure Mode','Work Order Type','Line']},
+  {key:'project',icon:'folder',labelEn:'Projects',label:'โครงการ',cols:['Project','Task','Customer','Owner','Start Date','End Date','Actual','Plan','SPI','Status','Cost','Duration']},
+  {key:'legal',icon:'scale',labelEn:'Legal',label:'กฎหมาย',cols:['Matter ID','Client','Practice Area','Attorney','Billable Hours','Amount Billed','Amount Collected','Status','Open Date','Close Date','Court Date','Role']},
+  {key:'risk',icon:'triangle-alert',labelEn:'Risk',label:'ความเสี่ยง',cols:['Risk Name','Risk Category','Severity','Likelihood','Risk Level','Mitigation','Residual','Reference','Status','Risk Owner','Identified Date','Closed Date']},
+  {key:'finance',icon:'wallet',labelEn:'Income & expenses',label:'รายรับ-รายจ่าย',cols:['Date','Income','Expense','Amount','Transaction Type','Category','Account','Description','Budget']},
+  {key:'reading',icon:'book-open',labelEn:'Reading',label:'การอ่านหนังสือ',cols:['Book Title','Author','Start Date','Finish Date','Pages','Genre','Rating','Status']},
+  {key:'safety',icon:'shield',labelEn:'Safety',label:'ความปลอดภัย',cols:['Incident Date','Incident Type','Severity','Department','Status','Due Date','Project','Finding']},
+  {key:'hr',icon:'users',labelEn:'People (HR)',label:'บุคคล (HR)',cols:['Employee ID','Employee Name','Department','Position','Join Date','Exit Date','Employment Status','Employment Type','Training Status']},
+  {key:'itops',icon:'cpu',labelEn:'IT / DevOps',label:'IT / DevOps',cols:['Ticket ID','System','Priority','Status','Opened Date','Closed Date','Assignee','Subject']},
+  {key:'kpidashboard',icon:'chart-column',labelEn:'KPI Dashboard',label:'KPI Dashboard',cols:['KPI Name','Weight','Target','Actual','Min','Max','Frequency','Direction']},
+  {key:'organizational',icon:'building-2',labelEn:'Org chart',label:'ผังองค์กร',cols:['Employee ID','Full Name','Nickname','Position','Job Level','Team','System','Work Site','Start Date','Manager ID','Manager Name','Date of Birth','Email','Phone','Gender']}
 ];
 function csvEscape(v){ v=String(v==null?'':v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
 function downloadTemplate(t){
@@ -1549,20 +1552,26 @@ function downloadTemplate(t){
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a');
-  a.href=url; a.download='แม่แบบ-'+t.label+'.csv';
+  a.href=url; a.download=(window.OME_LANG&&window.OME_LANG.get&&window.OME_LANG.get()==='en'?'template-'+t.labelEn:'แม่แบบ-'+t.label)+'.csv';
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(function(){URL.revokeObjectURL(url);},1000);
+}
+function isEn(){return !!(window.OME_LANG&&window.OME_LANG.get&&window.OME_LANG.get()==='en');}
+function build(){
+  var grid=q('#templateDlGrid'); if(!grid)return;
+  var title=q('#templateDlTitle'); if(title)title.textContent=isEn()?'Download blank templates':'ดาวน์โหลดแม่แบบไฟล์เปล่า';
+  grid.innerHTML=TEMPLATES.map(function(t,i){
+    return '<button type="button" class="btn template-dl-btn" data-tpl-i="'+i+'">'+
+      '<svg class="ome-icon"><use href="icons.svg#i-'+t.icon+'"/></svg><span>'+(isEn()?t.labelEn:t.label)+'</span></button>';
+  }).join('');
 }
 function init(){
   var grid=q('#templateDlGrid'); if(!grid||grid.getAttribute('data-built')==='1')return;
   grid.setAttribute('data-built','1');
-  grid.innerHTML=TEMPLATES.map(function(t,i){
-    return '<button type="button" class="btn template-dl-btn" data-tpl-i="'+i+'">'+
-      '<svg class="ome-icon"><use href="icons.svg#i-'+t.icon+'"/></svg><span>'+t.label+'</span></button>';
-  }).join('');
-  [].forEach.call(grid.querySelectorAll('.template-dl-btn'),function(btn){
-    btn.addEventListener('click',function(){ downloadTemplate(TEMPLATES[+btn.getAttribute('data-tpl-i')]); });
-  });
+  build();
+  grid.addEventListener('click',function(e){ var btn=e.target.closest&&e.target.closest('.template-dl-btn'); if(btn) downloadTemplate(TEMPLATES[+btn.getAttribute('data-tpl-i')]); });
+  /* ภาษากลาง: ชื่อแม่แบบเป็นส่วนของ UI — วาดใหม่เมื่อสลับภาษา (ชื่อไฟล์ที่ดาวน์โหลดตามภาษาที่เลือก) */
+  if(window.OME_LANG&&window.OME_LANG.onChange)window.OME_LANG.onChange(build);
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true});
 else init();
@@ -1620,7 +1629,7 @@ function dashboardFilterDialog(){
     '</select></div>'+
     '<div class="rd-grid2"><div class="field"><label>From</label><input class="input" id="f24From" type="date" value="'+esc(validHtmlDate(st.dashboardDateFrom))+'"></div>'+
     '<div class="field"><label>To</label><input class="input" id="f24To" type="date" value="'+esc(validHtmlDate(st.dashboardDateTo))+'"></div></div>';
-  if(dateCols.length)body+='<div class="rd-quick"><button type="button" data-q="month">This Month</button><button type="button" data-q="lastMonth">Last Month</button><button type="button" data-q="ytd">YTD</button><button type="button" data-q="all">All Time</button></div>';
+  if(dateCols.length)body+='<div class="rd-quick"><button type="button" class="btn sm" data-q="month">This Month</button><button type="button" class="btn sm" data-q="lastMonth">Last Month</button><button type="button" class="btn sm" data-q="ytd">YTD</button><button type="button" class="btn sm" data-q="all">All Time</button></div>';
   cats.forEach(function(c){
     var selected=(st.dashboardFilters[c.key]||[]); var vals=Array.from(new Set(st.rows.map(function(r){var v=r[c.key];return v==null?'':String(v)})));
     body+='<div class="field"><label>'+esc(c.label)+'</label><div class="rd-check-list" data-f24-col="'+esc(c.key)+'">'+
@@ -1663,7 +1672,7 @@ function mainTableFilter(key,anchor){
     var maxVal = f && typeof f === 'object' ? String(f.max||'') : '';
     body+='<div class="rd-grid2"><div class="field"><label>Minimum</label><input class="input f24-filter-min" type="'+(col.type==='date'?'date':'number')+'" value="'+esc(col.type==='date'?validHtmlDate(minVal):minVal)+'"></div><div class="field"><label>Maximum</label><input class="input f24-filter-max" type="'+(col.type==='date'?'date':'number')+'" value="'+esc(col.type==='date'?validHtmlDate(maxVal):maxVal)+'"></div></div>';
   }
-  body+='<div class="rd-quick"><button type="button" data-select="all">Select all</button><button type="button" data-select="none">Clear</button><button type="button" data-select="nonblank">Non-blank</button></div>'+
+  body+='<div class="rd-quick"><button type="button" class="btn sm" data-select="all">Select all</button><button type="button" class="btn sm" data-select="none">Clear</button><button type="button" class="btn sm" data-select="nonblank">Non-blank</button></div>'+
     '<div class="rd-check-list f24-value-list">'+vals.map(function(v){var sv=v==null?'':String(v);return '<label class="rd-check-row"><input type="checkbox" value="'+esc(sv)+'"'+(selectedSet.has(sv)?' checked':'')+'><span>'+esc(sv||'(blank)')+'</span></label>'}).join('')+'</div>';
   var ui=modal('Filter · '+col.label,body,'<button type="button" class="btn" data-clear>Clear filter</button><button type="button" class="btn" data-cancel>Cancel</button><button type="button" class="btn primary" data-apply>Apply</button>');
   if(!ui||!ui.body){return;}
@@ -1690,7 +1699,7 @@ function upgradeTable(){
     if(th.getAttribute('data-f24-ready')==='1')return;
     var key=th.getAttribute('data-col');th.classList.add('th-filterable');
     var actions=document.createElement('span');actions.className='th-tools';
-    var fb=document.createElement('button');fb.type='button';fb.className='th-fbtn';fb.title='Filter';fb.innerHTML='<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-filter"/></svg>';
+    var fb=document.createElement('button');fb.type='button';fb.className='btn sm ghost icon th-fbtn';fb.title='Filter';fb.innerHTML='<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-filter"/></svg>';
     var st=S();if(st&&st.filters&&st.filters[key])fb.classList.add('active');
     fb.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();mainTableFilter(key,fb)});
     actions.appendChild(fb);
@@ -1757,7 +1766,6 @@ function initHeaderTitle(){
   title.textContent=saved||title.textContent||'Dashboard';
   title.setAttribute('contenteditable','true');
   title.setAttribute('spellcheck','false');
-  title.setAttribute('title','คลิกเพื่อเปลี่ยนชื่อ Dashboard');
   title.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();title.blur();}});
   title.addEventListener('blur',function(){
     var v=title.textContent.replace(/\s+/g,' ').trim()||'Dashboard';
@@ -1874,8 +1882,8 @@ function colorColKey(st,col){return (st.fileName||'__unsaved__')+'|'+col}
 function selectedBounds(){var st=S(),sel=st&&st.cellSel,table=q('#dataTable');if(!st||!sel||!table)return null;var rows=qa('tbody tr[data-id]',table),ids=rows.map(function(r){return +r.getAttribute('data-id')});var a=ids.indexOf(+sel.id0),b=ids.indexOf(+sel.id1);if(a<0||b<0)return null;var keys=st.columns.map(function(c){return c.key}),c0=keys.indexOf(sel.col0),c1=keys.indexOf(sel.col1);if(c0<0||c1<0)return null;return{rMin:Math.min(a,b),rMax:Math.max(a,b),cMin:Math.min(c0,c1),cMax:Math.max(c0,c1),rowIds:ids,colKeys:keys}}
 function applyTableRowColColors(){var st=S();if(!st)return;var table=q('#dataTable');if(!table)return;var rp=getRowColorPrefs(),cp=getColColorPrefs(),p=getCellPrefs();qa('tbody tr[data-id]',table).forEach(function(tr){var id=tr.getAttribute('data-id'),rs=rp[colorRowKey(st,id)]||{};qa('td[data-col]',tr).forEach(function(td){var col=td.getAttribute('data-col'),cs=cp[colorColKey(st,col)]||{},cell=p[cellPrefKey(st,id,col)]||{};var bg=cell.background||rs.background||cs.background,fg=cell.color||rs.color||cs.color;if(bg)td.style.backgroundColor=bg;else td.style.removeProperty('background-color');if(fg)td.style.color=fg;else td.style.removeProperty('color');var inp=td.querySelector('input.cell-in');if(inp){if(fg)inp.style.color=fg;else inp.style.removeProperty('color')}})})}
 function applyScopedTableColors(scope,bg,fg){var st=S(),b=selectedBounds();if(!st||!b){toast('Select a cell, row, or column first');return false}var rp=getRowColorPrefs(),cp=getColColorPrefs(),p=getCellPrefs(),cells=getVisibleSelection();if(scope==='cell'){cells.forEach(function(td){var k=cellPrefKey(st,td.getAttribute('data-id'),td.getAttribute('data-col')),cur=p[k]||{};if(bg)cur.background=bg;if(fg)cur.color=fg;p[k]=cur});saveCellPrefs(p)}else if(scope==='row'){for(var r=b.rMin;r<=b.rMax;r++){var rk=colorRowKey(st,b.rowIds[r]),rc=rp[rk]||{};if(bg)rc.background=bg;if(fg)rc.color=fg;rp[rk]=rc}saveRowColorPrefs(rp)}else{for(var c=b.cMin;c<=b.cMax;c++){var ck=colorColKey(st,b.colKeys[c]),cc=cp[ck]||{};if(bg)cc.background=bg;if(fg)cc.color=fg;cp[ck]=cc}saveColColorPrefs(cp)}applyTableRowColColors();renderCellSelOverlay();persistDebounced();toast('Color applied');return true}
-function openTableColorPopover(anchorEl){var b=selectedBounds();if(!b){toast('Select a cell, row, or column first');return}var html='<div class="table-color-popover"><div class="fp-title">Cell / Row / Column Color</div><div class="scope-row"><button type="button" class="scope-btn on" data-scope="cell">Cell</button><button type="button" class="scope-btn" data-scope="row">Row</button><button type="button" class="scope-btn" data-scope="col">Column</button></div><div class="color-row"><label class="color-field"><span>Background</span><input type="color" class="tbl-bg" value="#FFFFFF"></label><label class="color-field"><span>Text</span><input type="color" class="tbl-fg" value="#111827"></label></div><div class="fp-actions"><button type="button" class="btn sm ghost tbl-reset">Reset</button><div class="fp-btns"><button type="button" class="btn sm ghost tbl-cancel">Cancel</button><button type="button" class="btn sm tbl-apply">Apply</button></div></div></div>';openPopover(html,anchorEl,function(el,close){[].forEach.call(el.querySelectorAll('.scope-btn'),function(btn){btn.addEventListener('click',function(){[].forEach.call(el.querySelectorAll('.scope-btn'),function(x){x.classList.remove('on')});btn.classList.add('on')})});el.querySelector('.tbl-apply').addEventListener('click',function(){applyScopedTableColors(el.querySelector('.scope-btn.on').getAttribute('data-scope'),el.querySelector('.tbl-bg').value,el.querySelector('.tbl-fg').value);close()});el.querySelector('.tbl-cancel').addEventListener('click',close);el.querySelector('.tbl-reset').addEventListener('click',function(){var sc=el.querySelector('.scope-btn.on').getAttribute('data-scope'),st=S(),bb=selectedBounds(),rp=getRowColorPrefs(),cp=getColColorPrefs(),p=getCellPrefs();if(!st||!bb)return;if(sc==='cell'){getVisibleSelection().forEach(function(td){delete p[cellPrefKey(st,td.getAttribute('data-id'),td.getAttribute('data-col'))]});saveCellPrefs(p)}else if(sc==='row'){for(var r=bb.rMin;r<=bb.rMax;r++)delete rp[colorRowKey(st,bb.rowIds[r])];saveRowColorPrefs(rp)}else{for(var c=bb.cMin;c<=bb.cMax;c++)delete cp[colorColKey(st,bb.colKeys[c])];saveColColorPrefs(cp)}applyTableRowColColors();renderCellSelOverlay();toast('Color reset');close()})})}
-function openCondFormatColumnPicker(anchorEl){var st=S();if(!st||!st.columns.length)return;var html='<div class="fp-title">Conditional formatting — choose column</div><div class="fp-list">'+st.columns.map(function(c){return '<button type="button" class="fp-item" data-col="'+escapeAttr(c.key)+'"><span>'+escapeHtml(c.label)+'</span></button>'}).join('')+'</div><div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm ghost" data-close>Cancel</button></div></div>';openPopover(html,anchorEl,function(el,close){[].forEach.call(el.querySelectorAll('[data-col]'),function(btn){btn.addEventListener('click',function(){var c=st.columns.filter(function(x){return x.key===btn.getAttribute('data-col')})[0];if(c){close();setTimeout(function(){openCondFormatPopover(c,anchorEl)},0)}})});el.querySelector('[data-close]').addEventListener('click',close)})}
+function openTableColorPopover(anchorEl){var b=selectedBounds();if(!b){toast('Select a cell, row, or column first');return}var html='<div class="table-color-popover"><div class="fp-title">Cell / Row / Column Color</div><div class="scope-row"><button type="button" class="scope-opt on" data-scope="cell">Cell</button><button type="button" class="scope-opt" data-scope="row">Row</button><button type="button" class="scope-opt" data-scope="col">Column</button></div><div class="color-row"><label class="color-field"><span>Background</span><input type="color" class="tbl-bg" value="#FFFFFF"></label><label class="color-field"><span>Text</span><input type="color" class="tbl-fg" value="#111827"></label></div><div class="fp-actions"><button type="button" class="btn sm ghost tbl-reset">Reset</button><div class="fp-btns"><button type="button" class="btn sm ghost tbl-cancel">Cancel</button><button type="button" class="btn sm tbl-apply">Apply</button></div></div></div>';openPopover(html,anchorEl,function(el,close){[].forEach.call(el.querySelectorAll('.scope-opt'),function(btn){btn.addEventListener('click',function(){[].forEach.call(el.querySelectorAll('.scope-opt'),function(x){x.classList.remove('on')});btn.classList.add('on')})});el.querySelector('.tbl-apply').addEventListener('click',function(){applyScopedTableColors(el.querySelector('.scope-opt.on').getAttribute('data-scope'),el.querySelector('.tbl-bg').value,el.querySelector('.tbl-fg').value);close()});el.querySelector('.tbl-cancel').addEventListener('click',close);el.querySelector('.tbl-reset').addEventListener('click',function(){var sc=el.querySelector('.scope-opt.on').getAttribute('data-scope'),st=S(),bb=selectedBounds(),rp=getRowColorPrefs(),cp=getColColorPrefs(),p=getCellPrefs();if(!st||!bb)return;if(sc==='cell'){getVisibleSelection().forEach(function(td){delete p[cellPrefKey(st,td.getAttribute('data-id'),td.getAttribute('data-col'))]});saveCellPrefs(p)}else if(sc==='row'){for(var r=bb.rMin;r<=bb.rMax;r++)delete rp[colorRowKey(st,bb.rowIds[r])];saveRowColorPrefs(rp)}else{for(var c=bb.cMin;c<=bb.cMax;c++)delete cp[colorColKey(st,bb.colKeys[c])];saveColColorPrefs(cp)}applyTableRowColColors();renderCellSelOverlay();toast('Color reset');close()})})}
+function openCondFormatColumnPicker(anchorEl){var st=S();if(!st||!st.columns.length)return;var html='<div class="fp-title">Conditional formatting — choose column</div><div class="fp-list">'+st.columns.map(function(c){return '<button type="button" class="btn sm ghost fp-item" data-col="'+escapeAttr(c.key)+'"><span>'+escapeHtml(c.label)+'</span></button>'}).join('')+'</div><div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn sm ghost" data-close>Cancel</button></div></div>';openPopover(html,anchorEl,function(el,close){[].forEach.call(el.querySelectorAll('[data-col]'),function(btn){btn.addEventListener('click',function(){var c=st.columns.filter(function(x){return x.key===btn.getAttribute('data-col')})[0];if(c){close();setTimeout(function(){openCondFormatPopover(c,anchorEl)},0)}})});el.querySelector('[data-close]').addEventListener('click',close)})}
 function openStyleModal(){
   var body='<div class="rd-grid2">'+
     '<div class="field"><label>Font</label><select id="f24font" class="select"><option>Arial</option><option>Calibri</option><option>Calibri Light</option><option>Tahoma</option><option>Times New Roman</option><option>TH Sarabun New</option><option>Angsana New</option><option>Cordia New</option></select></div>'+
@@ -2135,7 +2143,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .project-kpi .pk-label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
 .project-kpi .pk-value{font-size:var(--ome-fs-2xl);font-weight:700;line-height:1.2;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--ome-text-1)}
 .project-kpi .pk-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.project-kpi.good .pk-value{color:var(--ome-ok-ink)}.project-kpi.warn .pk-value{color:var(--ome-warn)}.project-kpi.bad .pk-value{color:var(--ome-err)}
+.project-kpi.good .pk-value{color:var(--ome-ok-ink)}.project-kpi.warn .pk-value{color:var(--ome-warn-ink)}.project-kpi.bad .pk-value{color:var(--ome-err-ink)}
 .project-control-attention{grid-column:span 12;background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-1);padding:14px 16px}
 .project-control-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .project-control-head h2{margin:0;font-size:var(--ome-fs-sm);font-weight:700}
@@ -2144,12 +2152,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .project-attention-card{border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;background:var(--ome-surface-0);min-width:0}
 /* Stage 9 (ตามที่ผู้ใช้ขอ): การ์ด Attention Center คลิกได้ (กรองตาราง) เพิ่ม cursor+hover ให้รู้ว่ากดได้ */
 /* Stage 9: บังคับให้ label/value/sub เรียงต่อกันแนวตั้งเสมอ กันความคลุมเครือของ layout เดิม */
-#dashboardAttentionBody .project-attention-card{cursor:pointer;transition:box-shadow .15s ease,border-color .15s ease;display:flex;flex-direction:column;gap:1px}
+#dashboardAttentionBody .project-attention-card{border:1.5px solid transparent;background:var(--ome-surface-2);cursor:pointer;transition:box-shadow .15s ease,border-color .15s ease;display:flex;flex-direction:column;gap:1px}
 #dashboardAttentionBody .project-attention-card:hover{border-color:var(--ome-accent);box-shadow:var(--ome-shadow-1)}
 .project-attention-card .pa-label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700}
 .project-attention-card .pa-value{font-size:var(--ome-fs-xl);font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
 .project-attention-card .pa-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.project-attention-card.good .pa-value{color:var(--ome-ok-ink)}.project-attention-card.warn .pa-value{color:var(--ome-warn)}.project-attention-card.bad .pa-value{color:var(--ome-err)}.project-attention-card.info .pa-value{color:var(--ome-info)}
+.project-attention-card.good .pa-value{color:var(--ome-ok-ink)}.project-attention-card.warn .pa-value{color:var(--ome-warn-ink)}.project-attention-card.bad .pa-value{color:var(--ome-err-ink)}.project-attention-card.info .pa-value{color:var(--ome-info-ink)}
 .project-control-main-grid{grid-column:span 12;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}
 .project-control-main-grid .project-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-1);padding:14px;min-width:0}
 .project-control-main-grid .project-panel.full{grid-column:span 12}.project-control-main-grid .project-panel.half{grid-column:span 6}.project-control-main-grid .project-panel.third{grid-column:span 4}

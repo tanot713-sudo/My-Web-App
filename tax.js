@@ -104,7 +104,8 @@
     document.documentElement.lang = getUILang();
     [].forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
     [].forEach.call(document.querySelectorAll('[data-i18n-attr]'), function (el) {
-      el.getAttribute('data-i18n-attr').split(',').forEach(function (pair) { var a = pair.split(':'); el.setAttribute(a[0], t(a[1])); });
+      // เฉพาะคีย์ที่อยู่ในพจนานุกรมของหน้านี้ — shell/ส่วนกลางก็ใช้ data-i18n-attr (คีย์ 'shell.…') และจัดการเอง
+      el.getAttribute('data-i18n-attr').split(',').forEach(function (pair) { var a = pair.split(':'); if (I18N.th[a[1]] != null) el.setAttribute(a[0], t(a[1])); });
     });
   }
 

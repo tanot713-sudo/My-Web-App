@@ -48,7 +48,7 @@
       cwTableModeLbl: 'รูปแบบตาราง', cwTableModePlain: 'ตารางข้อมูล', cwTableModePivot: 'Pivot Table',
       cwTableColsLbl: 'คอลัมน์ที่แสดง', cwTableSearchPh: 'ค้นหาในตาราง…', cwTableNoColsHint: 'เลือกอย่างน้อย 1 คอลัมน์',
       cwTableSortHint: 'คลิกหัวคอลัมน์เพื่อเรียงลำดับ',
-      cardColorBtnTitle: 'ปรับสีการ์ดนี้', cardColorTitle: 'ปรับสีการ์ด', cardBgColorLbl: 'สีพื้นหลัง',
+      cardColorBtnTitle: 'ปรับสีการ์ดนี้', chartColorBtnTitle: 'ปรับสีกราฟ', dashboardRenameTitle: 'คลิกเพื่อเปลี่ยนชื่อ Dashboard', cellColorLbl: 'สี', switchLangLbl: 'สลับภาษา', cardColorTitle: 'ปรับสีการ์ด', cardBgColorLbl: 'สีพื้นหลัง',
       cardAccentColorLbl: 'สีหลัก (กราฟ/ตัวเลข)', cardGradientLbl: 'ไล่เฉดสี', cardColorResetBtn: 'ล้างสี',
       moreColorsLbl: 'สีอื่นๆ', autoFillOptionsHint: 'ตัวเลือกเติมอัตโนมัติ', autoFillOptionsTitle: 'เลือกรูปแบบการเติม',
       autoFillSeriesOpt: 'ไล่ต่อเป็นลำดับ', autoFillCopyOpt: 'ทำซ้ำค่าเดิม',
@@ -237,7 +237,7 @@
       cwTableModeLbl: 'Table mode', cwTableModePlain: 'Data table', cwTableModePivot: 'Pivot Table',
       cwTableColsLbl: 'Columns to show', cwTableSearchPh: 'Search table…', cwTableNoColsHint: 'Select at least 1 column',
       cwTableSortHint: 'Click a column header to sort',
-      cardColorBtnTitle: 'Customize this card\'s color', cardColorTitle: 'Customize card color', cardBgColorLbl: 'Background color',
+      cardColorBtnTitle: 'Customize this card\'s color', chartColorBtnTitle: 'Customize chart colors', dashboardRenameTitle: 'Click to rename the dashboard', dashboardRankingLbl: 'Ranking', cellColorLbl: 'Color', switchLangLbl: 'Switch language', cardColorTitle: 'Customize card color', cardBgColorLbl: 'Background color',
       cardAccentColorLbl: 'Accent color (chart/number)', cardGradientLbl: 'Gradient', cardColorResetBtn: 'Reset',
       moreColorsLbl: 'More colors', autoFillOptionsHint: 'Auto Fill Options', autoFillOptionsTitle: 'Choose fill type',
       autoFillSeriesOpt: 'Continue series', autoFillCopyOpt: 'Repeat value',
@@ -415,9 +415,10 @@
     document.documentElement.lang = lang;
     document.title = t('docTitle');
     document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
-    document.querySelectorAll('[data-i18n-title]').forEach(function (el) { el.title = t(el.getAttribute('data-i18n-title')); });
+    document.querySelectorAll('[data-i18n-title]').forEach(function (el) { el.title = t(el.getAttribute('data-i18n-title')); if (el.hasAttribute('aria-label')) el.setAttribute('aria-label', el.title); });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
     var lt = $('langToggle');
+    if (lt) lt.setAttribute('aria-label', t('switchLangLbl'));
     if (lt) lt.querySelectorAll('span').forEach(function (s) { s.classList.toggle('active', s.getAttribute('data-lt') === lang); });
   }
 
@@ -436,7 +437,10 @@
       if (currentView === 'dashboard') renderDashboard(); else renderTable();
     }
   }
-  window.omeApplyLang = reapplyLangAndRerender;
+  /* ภาษากลาง (i18n.js): สลับจากปุ่ม #langToggle หรือเมนูตั้งค่าแล้วเรียกฟังก์ชันนี้ผ่าน OME_LANG.onChange — วาดใหม่สดไม่โหลดหน้า */
+  window.OME_PAGE_LIVE_LANG = true;
+  if (window.OME_LANG && window.OME_LANG.onChange) window.OME_LANG.onChange(reapplyLangAndRerender);
+  else window.omeApplyLang = reapplyLangAndRerender;
 
   var state = {
     fileName: null,
@@ -1203,10 +1207,10 @@
     if (!cf.rules) cf.rules = [];
     var html = '<div class="fp-title">' + escapeHtml(t('cfTitle', { col: col.label })) + '</div>' +
       '<div class="bg-mode-tabs" id="cfModeTabs">' +
-      '<button type="button" class="btn sm bg-mode-btn" data-mode="none">' + escapeHtml(t('cfModeNone')) + '</button>' +
-      (isNum ? '<button type="button" class="btn sm bg-mode-btn" data-mode="scale">' + escapeHtml(t('cfModeScale')) + '</button>' : '') +
-      (isNum ? '<button type="button" class="btn sm bg-mode-btn" data-mode="bar">' + escapeHtml(t('cfModeBar')) + '</button>' : '') +
-      '<button type="button" class="btn sm bg-mode-btn" data-mode="rules">' + escapeHtml(t('cfModeRules')) + '</button>' +
+      '<button type="button" class="btn sm bg-mode" data-mode="none">' + escapeHtml(t('cfModeNone')) + '</button>' +
+      (isNum ? '<button type="button" class="btn sm bg-mode" data-mode="scale">' + escapeHtml(t('cfModeScale')) + '</button>' : '') +
+      (isNum ? '<button type="button" class="btn sm bg-mode" data-mode="bar">' + escapeHtml(t('cfModeBar')) + '</button>' : '') +
+      '<button type="button" class="btn sm bg-mode" data-mode="rules">' + escapeHtml(t('cfModeRules')) + '</button>' +
       '</div>' +
       '<div id="cfPanelScale" class="cf-panel">' +
       '<label class="fc-label">' + escapeHtml(t('cfScaleLow')) + ' <input type="color" id="cfLow" value="' + escapeAttr(cf.low || '#FCA5A5') + '"></label>' +
@@ -1226,7 +1230,7 @@
     openPopover(html, anchorEl, function (el, close) {
       function setMode(m) {
         cf.mode = m;
-        [].forEach.call(el.querySelectorAll('.bg-mode-btn'), function (b) { b.classList.toggle('on', b.getAttribute('data-mode') === m); });
+        [].forEach.call(el.querySelectorAll('.bg-mode'), function (b) { b.classList.toggle('on', b.getAttribute('data-mode') === m); });
         el.querySelector('#cfPanelScale').style.display = m === 'scale' ? 'block' : 'none';
         el.querySelector('#cfPanelBar').style.display = m === 'bar' ? 'block' : 'none';
         el.querySelector('#cfPanelRules').style.display = m === 'rules' ? 'block' : 'none';
@@ -1253,7 +1257,7 @@
       }
       setMode(cf.mode || 'none');
       renderRules();
-      [].forEach.call(el.querySelectorAll('.bg-mode-btn'), function (b) { b.addEventListener('click', function () { setMode(b.getAttribute('data-mode')); }); });
+      [].forEach.call(el.querySelectorAll('.bg-mode'), function (b) { b.addEventListener('click', function () { setMode(b.getAttribute('data-mode')); }); });
       el.querySelector('#cfAddRuleBtn').addEventListener('click', function () { cf.rules.push({ op: isNum ? 'gt' : 'eq', val: '', color: '#FDE68A' }); renderRules(); });
       el.querySelector('#cfResetBtn').addEventListener('click', function () {
         delete state.condFormat[col.key];
@@ -1402,9 +1406,9 @@
           var s = colHealthStats(col);
           var isTextish = !col.formula && (col.type === 'text' || col.type === 'category');
           var trimBtn = isTextish
-            ? '<button type="button" class="dh-trim-btn" data-col="' + col.key + '" title="' + escapeAttr(t('dhTrimTitle')) + '">' + escapeHtml(t('dhTrimBtn')) + '</button>' : '';
+            ? '<button type="button" class="btn sm dh-trim" data-col="' + col.key + '" title="' + escapeAttr(t('dhTrimTitle')) + '">' + escapeHtml(t('dhTrimBtn')) + '</button>' : '';
           var fuzzyBtn = (isTextish && s.uniqueCount >= 2 && s.uniqueCount <= FUZZY_MAX_UNIQUE)
-            ? '<button type="button" class="dh-fuzzy-btn" data-col="' + col.key + '" title="' + escapeAttr(t('dhFuzzyTitle')) + '">' + escapeHtml(t('dhFuzzyBtn')) + '</button>' : '';
+            ? '<button type="button" class="btn sm dh-fuzzy" data-col="' + col.key + '" title="' + escapeAttr(t('dhFuzzyTitle')) + '">' + escapeHtml(t('dhFuzzyBtn')) + '</button>' : '';
           return '<tr><td class="dh-colname">' + escapeHtml(col.label) + (col.formula ? ' <span class="dh-fx-tag">ƒx</span>' : '') + '</td>' +
             '<td>' + s.blank.toLocaleString(locale()) + '</td>' +
             '<td>' + s.uniqueCount.toLocaleString(locale()) + '</td>' +
@@ -1425,10 +1429,10 @@
               '<button type="button" class="btn sm" id="dhDedupeBtn">' + escapeHtml(t('dhDedupeBtn', { n: dupIds.length })) + '</button>'
             : '<span class="dh-dup-msg ok">' + escapeHtml(t('dhNoDup')) + '</span>') + '</div>' +
           '<div class="fp-actions"><span></span><div class="fp-btns"><button type="button" class="btn ghost sm" id="dhCloseBtn">' + escapeHtml(t('dhCloseBtn')) + '</button></div></div>';
-        [].forEach.call(el.querySelectorAll('.dh-trim-btn'), function (btn) {
+        [].forEach.call(el.querySelectorAll('.dh-trim'), function (btn) {
           btn.addEventListener('click', function () { trimColumnWhitespace(btn.getAttribute('data-col')); refresh(); });
         });
-        [].forEach.call(el.querySelectorAll('.dh-fuzzy-btn'), function (btn) {
+        [].forEach.call(el.querySelectorAll('.dh-fuzzy'), function (btn) {
           btn.addEventListener('click', function () { refreshFuzzy(btn.getAttribute('data-col')); });
         });
         var dedupeBtn = el.querySelector('#dhDedupeBtn');
@@ -1613,7 +1617,7 @@
                                   // openPopover คำนวณตำแหน่งจากความกว้างตอน .xwide ยังไม่ถูกใส่)
       var text = buildAutoSummaryText();
       el.innerHTML = '<div class="fp-title">' + escapeHtml(t('autoSummaryTitle')) + '</div>' +
-        '<textarea class="as-textarea" id="asText" rows="5" readonly></textarea>' +
+        '<textarea class="textarea as-textarea" id="asText" rows="5" readonly></textarea>' +
         '<div class="fp-actions"><span class="as-status" id="asStatus"></span><div class="fp-btns">' +
         '<button type="button" class="btn sm" id="asCopyBtn">' + escapeHtml(t('autoSummaryCopyBtn')) + '</button></div></div>';
       el.querySelector('#asText').value = text;
@@ -1652,13 +1656,13 @@
       state.columns.map(function (col) {
         var sorted = state.sortCol === col.key;
         var ic = uiIcon(sorted ? (state.sortDir === 'asc' ? 'chevron-up' : 'chevron-down') : 'arrow-up-down');
-        var fxBtn = col.formula ? '<button type="button" class="col-fx' + (col.formulaError ? ' err' : '') + '" data-col="' + col.key +
+        var fxBtn = col.formula ? '<button type="button" class="btn sm ghost col-fx' + (col.formulaError ? ' err' : '') + '" data-col="' + col.key +
           '" title="' + escapeAttr(col.formulaError ? (t('fcErrorTitlePrefix') + col.formulaError) : t('fcEditTitle')) + '">ƒx</button>' : '';
         return '<th class="' + (col.type === 'number' ? 'num' : '') + (sorted ? ' sorted' : '') + '" data-col="' + col.key + '">' +
           fxBtn +
           '<span class="th-label" data-col="' + col.key + '">' + escapeHtml(col.label) + '</span>' +
           '<span class="sort-ic">' + ic + '</span>' +
-          '<button type="button" class="col-del" data-col="' + col.key + '" title="' + escapeAttr(t('delColTitle')) + '" aria-label="' + escapeAttr(t('delColTitle')) + '">' + uiIcon('x') + '</button></th>';
+          '<button type="button" class="btn sm ghost icon col-del" data-col="' + col.key + '" title="' + escapeAttr(t('delColTitle')) + '" aria-label="' + escapeAttr(t('delColTitle')) + '">' + uiIcon('x') + '</button></th>';
       }).join('') +
       '<th style="width:34px"></th>' +
       '</tr><tr class="filter-row">' +
@@ -1695,10 +1699,10 @@
           var inputType = inputTypeForCell(v, col.type);
           /* คอลัมน์สูตร: อ่านอย่างเดียว (readonly ไม่ใช่ disabled — ยังโฟกัส/เลือก/คัดลอกได้ปกติ แค่พิมพ์
              ทับค่าที่คำนวณเองไม่ได้ ค่าจะถูกคำนวณทับใหม่เสมอโดย recomputeFormulas() อยู่แล้วด้วย) */
-          return '<td class="' + (col.type === 'number' ? 'num' : '') + (col.formula ? ' formula-cell' : '') + '" data-id="' + row.__id + '" data-col="' + col.key + '"' + cellCfStyle(col, row, cfRanges) + '><input class="cell-in" type="' + inputType +
+          return '<td class="' + (col.type === 'number' ? 'num' : '') + (col.formula ? ' formula-cell' : '') + '" data-id="' + row.__id + '" data-col="' + col.key + '"' + cellCfStyle(col, row, cfRanges) + '><input class="input cell-in" type="' + inputType +
             '" data-id="' + row.__id + '" data-col="' + col.key + '" value="' + escapeAttr(v) + '"' + (col.type === 'number' ? ' step="any"' : '') + (col.formula ? ' readonly tabindex="-1"' : '') + '></td>';
         }).join('') +
-        '<td class="rowdel"><button type="button" class="del1" data-id="' + row.__id + '" title="' + escapeAttr(t('delRowTitle')) + '" aria-label="' + escapeAttr(t('delRowTitle')) + '">' + uiIcon('x') + '</button></td>' +
+        '<td class="rowdel"><button type="button" class="btn sm ghost icon del1" data-id="' + row.__id + '" title="' + escapeAttr(t('delRowTitle')) + '" aria-label="' + escapeAttr(t('delRowTitle')) + '">' + uiIcon('x') + '</button></td>' +
         '</tr>';
     }
     /* จัดกลุ่ม (Group by + Subtotal) — เมื่อเปิดใช้งาน แสดงข้อมูลที่ผ่านตัวกรอง/เรียงแล้ว "ทั้งหมด" โดยไม่
@@ -1734,7 +1738,7 @@
           if (nums.length) subVal = nums.reduce(function (a, b) { return a + b; }, 0);
         }
         tbody += '<tr class="group-row"><td colspan="' + (state.columns.length + 2) + '">' +
-          '<button type="button" class="group-toggle" data-gkey="' + escapeAttr(g.key) + '">' + uiIcon(collapsed ? 'chevron-right' : 'chevron-down') + '</button>' +
+          '<button type="button" class="btn sm ghost icon group-toggle" data-gkey="' + escapeAttr(g.key) + '">' + uiIcon(collapsed ? 'chevron-right' : 'chevron-down') + '</button>' +
           '<b class="group-name">' + escapeHtml(g.key) + '</b>' +
           '<span class="group-count">' + g.rows.length.toLocaleString(locale()) + ' ' + escapeHtml(t('unitRows')) + '</span>' +
           (subVal != null ? '<span class="group-subtotal">' + escapeHtml(t('groupSubtotalLbl')) + ' ' + escapeHtml(subCol.label) + ' ' + subVal.toLocaleString(locale(), { maximumFractionDigits: 2 }) + '</span>' : '') +
@@ -1902,7 +1906,7 @@
       var thead2 = '<thead><tr>' + visCols.map(function (col) {
         var active = !!dt.filters[col.key];
         return '<th class="' + (col.type === 'number' ? 'num' : '') + '">' + escapeHtml(col.label) +
-          '<button type="button" class="th-filter-btn' + (active ? ' active' : '') + '" data-col="' + col.key + '" title="' + escapeAttr(t('filterIconTitle')) + '">' + uiIcon('list-filter') + '</button></th>';
+          '<button type="button" class="btn sm ghost icon th-filter' + (active ? ' active' : '') + '" data-col="' + col.key + '" title="' + escapeAttr(t('filterIconTitle')) + '">' + uiIcon('list-filter') + '</button></th>';
       }).join('') + '</tr></thead>';
       var tbody2 = '<tbody>' + shown.map(function (row) {
         return '<tr>' + visCols.map(function (col) {
@@ -1914,7 +1918,7 @@
         }).join('') + '</tr>';
       }).join('') + '</tbody>';
       $('dashTable').innerHTML = thead2 + tbody2;
-      [].forEach.call($('dashTable').querySelectorAll('.th-filter-btn'), function (btn) {
+      [].forEach.call($('dashTable').querySelectorAll('.th-filter'), function (btn) {
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
           var col = state.columns.filter(function (c) { return c.key === btn.getAttribute('data-col'); })[0];
@@ -1975,8 +1979,8 @@
         '<button type="button" class="chip-edit" data-col="' + col.key + '" title="' + escapeAttr(t('filterIconTitle')) + '">' + uiIcon('pencil') + '</button>' +
         '<button type="button" class="chip-x" data-col="' + col.key + '" aria-label="Remove filter">' + uiIcon('x') + '</button></span>';
     }).join('');
-    html += '<button type="button" class="add-filter-btn" id="addFilterBtn">' + escapeHtml(t('addFilterBtn')) + '</button>';
-    if (activeCols.length) html += '<button type="button" class="clear-filters-btn" id="clearAllFiltersBtn">' + escapeHtml(t('clearAllFiltersBtn')) + '</button>';
+    html += '<button type="button" class="btn sm add-filter" id="addFilterBtn">' + escapeHtml(t('addFilterBtn')) + '</button>';
+    if (activeCols.length) html += '<button type="button" class="btn sm danger clear-filters" id="clearAllFiltersBtn">' + escapeHtml(t('clearAllFiltersBtn')) + '</button>';
     $('dashActiveFilters').innerHTML = html;
     [].forEach.call($('dashActiveFilters').querySelectorAll('.chip-x'), function (btn) {
       btn.addEventListener('click', function () {
@@ -2019,6 +2023,7 @@
     var el = $('filterPopover');
     el.className = 'filter-popover' + (wide ? ' wide' : '');
     el.innerHTML = innerHtml;
+    if (window.TanotReportUtils && window.TanotReportUtils.controls) window.TanotReportUtils.controls(el);
     el.style.display = 'block';
     positionPopover(el, anchorEl);
     var onDocClick = function (e) { if (!el.contains(e.target) && e.target !== anchorEl && !anchorEl.contains(e.target)) close(); };
@@ -2647,7 +2652,7 @@
   function openFormulaColumnPopover(existingCol, anchorEl) {
     var isNew = !existingCol;
     var chips = state.columns.filter(function (c) { return !c.formula; }).map(function (c) {
-      return '<button type="button" class="fc-chip" data-label="' + escapeAttr(c.label) + '">' + escapeHtml(c.label) + '</button>';
+      return '<button type="button" class="btn sm fc-chip" data-label="' + escapeAttr(c.label) + '">' + escapeHtml(c.label) + '</button>';
     }).join('');
     var html = '<div class="fp-title">' + escapeHtml(isNew ? t('fcAddTitle') : t('fcEditTitle')) + '</div>' +
       '<label class="fc-label">' + escapeHtml(t('fcNameLbl')) + '</label>' +
@@ -2765,7 +2770,7 @@
   }
   function renderCellSelOverlay(previewIdx) {
     var wrap = $('dataTableWrap');
-    [].forEach.call(wrap.querySelectorAll('.cellsel-box,.cellsel-handle,.cellsel-fillpreview,.cellsel-autofill-btn'), function (el) { el.remove(); });
+    [].forEach.call(wrap.querySelectorAll('.cellsel-box,.cellsel-handle,.cellsel-fillpreview,.cellsel-autofill'), function (el) { el.remove(); });
     [].forEach.call(wrap.querySelectorAll('td.cellsel-in'), function (td) { td.classList.remove('cellsel-in'); });
     if (!state.cellSel) { updateCellSelSummary(null); return; }
     var idx = cellSelToIndices(state.cellSel);
@@ -3236,7 +3241,7 @@
     var wrapRect = wrap.getBoundingClientRect(), b = tdB.getBoundingClientRect();
     var btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'cellsel-autofill-btn';
+    btn.className = 'cellsel-autofill';
     btn.title = t('autoFillOptionsHint');
     btn.innerHTML = uiIcon('settings');
     btn.style.left = ((b.right - wrapRect.left) + wrap.scrollLeft - 4) + 'px';
@@ -3615,7 +3620,7 @@
   var COLOR_SWATCHES = ['#E53935', '#FB8C00', '#FDD835', '#7CB342', '#00897B', '#1E88E5', '#3949AB', '#8E24AA', '#D81B60', '#6D4C41', '#9E9E9E', '#263238'];
   function colorSwatchRowHtml(rowClass) {
     return '<div class="color-swatch-row ' + rowClass + '">' + COLOR_SWATCHES.map(function (hex) {
-      return '<button type="button" class="color-swatch" data-hex="' + hex + '" style="background:' + hex + '" title="' + hex + '"></button>';
+      return '<button type="button" class="btn icon sm color-swatch" data-hex="' + hex + '" style="background:' + hex + '" title="' + hex + '" aria-label="' + hex + '"></button>';
     }).join('') + '</div>';
   }
   /* onPick(hex) รับค่า hex ที่แตะไป — ปล่อยให้ผู้เรียกตัดสินใจเองว่าจะ apply+ปิด popover ทันที (จุดที่
@@ -4319,7 +4324,7 @@
   }
   function renderTableWidget(bodyEl, cfg, widget) {
     var searchHtml = cfg.mode === 'pivot' ? '' :
-      '<input type="text" class="wtbl-search" placeholder="' + escapeAttr(t('cwTableSearchPh')) + '" value="' + escapeAttr(cfg.q || '') + '">';
+      '<input type="text" class="input wtbl-search" placeholder="' + escapeAttr(t('cwTableSearchPh')) + '" value="' + escapeAttr(cfg.q || '') + '">';
     bodyEl.innerHTML = searchHtml + '<div class="wtbl-tablewrap"></div>' + (cfg.mode === 'pivot' ? '' : '<div class="wtbl-meta"></div>');
     var searchEl = bodyEl.querySelector('.wtbl-search');
     if (searchEl) {
@@ -4357,8 +4362,8 @@
   function widgetHtml(widget) {
     return '<div class="widget-head">' +
       '<span class="wt-label" data-widget-title="1">' + escapeHtml(widget.config.title || widgetTypeLabel(widget.type)) + '</span>' +
-      '<button type="button" class="w-edit" title="' + escapeAttr(t('wtEditTitle')) + '" aria-label="' + escapeAttr(t('wtEditTitle')) + '">' + uiIcon('settings') + '</button>' +
-      '<button type="button" class="w-del" title="' + escapeAttr(t('wtRemoveTitle')) + '" aria-label="' + escapeAttr(t('wtRemoveTitle')) + '">' + uiIcon('x') + '</button>' +
+      '<button type="button" class="btn ghost icon sm w-edit" title="' + escapeAttr(t('wtEditTitle')) + '" aria-label="' + escapeAttr(t('wtEditTitle')) + '">' + uiIcon('settings') + '</button>' +
+      '<button type="button" class="btn ghost icon sm w-del" title="' + escapeAttr(t('wtRemoveTitle')) + '" aria-label="' + escapeAttr(t('wtRemoveTitle')) + '">' + uiIcon('x') + '</button>' +
       '</div><div class="widget-body"></div>';
   }
   function wireWidgetControls(widget, itemEl) {
@@ -4434,9 +4439,9 @@
     var mode = cur.mode || (cur.imageData ? 'image' : (cur.patternId ? 'pattern' : 'color'));
     return '<div class="fp-title">' + escapeHtml(t('cardColorTitle')) + '</div>' +
       '<div class="bg-mode-tabs">' +
-      '<button type="button" class="btn sm ghost bg-mode-btn' + (mode === 'color' ? ' on' : '') + '" data-mode="color">' + escapeHtml(t('bgModeColor')) + '</button>' +
-      '<button type="button" class="btn sm ghost bg-mode-btn' + (mode === 'pattern' ? ' on' : '') + '" data-mode="pattern">' + escapeHtml(t('bgModePattern')) + '</button>' +
-      '<button type="button" class="btn sm ghost bg-mode-btn' + (mode === 'image' ? ' on' : '') + '" data-mode="image">' + escapeHtml(t('bgModeImage')) + '</button>' +
+      '<button type="button" class="btn sm ghost bg-mode' + (mode === 'color' ? ' on' : '') + '" data-mode="color">' + escapeHtml(t('bgModeColor')) + '</button>' +
+      '<button type="button" class="btn sm ghost bg-mode' + (mode === 'pattern' ? ' on' : '') + '" data-mode="pattern">' + escapeHtml(t('bgModePattern')) + '</button>' +
+      '<button type="button" class="btn sm ghost bg-mode' + (mode === 'image' ? ' on' : '') + '" data-mode="image">' + escapeHtml(t('bgModeImage')) + '</button>' +
       '</div>' +
       '<div class="fp-range">' +
       '<div class="bg-mode-pane" data-pane="color"' + (mode !== 'color' ? ' hidden' : '') + '>' +
@@ -4475,11 +4480,11 @@
     var curMode = (readCfg().mode) || (readCfg().imageData ? 'image' : (readCfg().patternId ? 'pattern' : 'color'));
     function setMode(m) {
       curMode = m;
-      [].forEach.call(el.querySelectorAll('.bg-mode-btn'), function (b) { b.classList.toggle('on', b.getAttribute('data-mode') === m); });
+      [].forEach.call(el.querySelectorAll('.bg-mode'), function (b) { b.classList.toggle('on', b.getAttribute('data-mode') === m); });
       [].forEach.call(el.querySelectorAll('.bg-mode-pane'), function (p) { p.hidden = p.getAttribute('data-pane') !== m; });
       positionPopover(el, el.__anchorEl || el); // ความสูง popover เปลี่ยนไปตามโหมด ต้องจัดตำแหน่งใหม่กันล้นจอ
     }
-    [].forEach.call(el.querySelectorAll('.bg-mode-btn'), function (b) { b.addEventListener('click', function () { setMode(b.getAttribute('data-mode')); }); });
+    [].forEach.call(el.querySelectorAll('.bg-mode'), function (b) { b.addEventListener('click', function () { setMode(b.getAttribute('data-mode')); }); });
     function readForm() {
       var cfg = { mode: curMode, opacity: +el.querySelector('.' + prefix + '-opacity').value };
       if (curMode === 'color') { cfg.bg = el.querySelector('.' + prefix + '-bg').value; cfg.gradient = el.querySelector('.' + prefix + '-grad').checked; }
@@ -4600,7 +4605,7 @@
     // แทนที่จะเป็น innerHTML เหมือนเวอร์ชันก่อนหน้า — เนื้อหา content ที่เราส่งเป็น markup ที่เราสร้างเอง
     // (ไม่ใช่ข้อความจากผู้ใช้ดิบๆ) จึงต้อง override ให้ใส่เป็น innerHTML ตรงๆ ไม่งั้นกล่องจะโชว์โค้ด HTML เป็นตัวหนังสือ
     GridStack.renderCB = function (el, w) { el.innerHTML = w.content || ''; };
-    customGridInst = GridStack.init({ column: 12, cellHeight: 88, margin: 8, float: false, animate: false, handle: '.widget-head', disableOneColumnMode: false }, customGridEl);
+    customGridInst = GridStack.init({ column: 12, columnOpts: { breakpoints: [{ w: 700, c: 1 }] }, cellHeight: 88, margin: 8, float: false, animate: false, handle: '.widget-head' }, customGridEl);
     if (!customGridInst) {
       console.warn('Custom Dashboard: GridStack could not initialize; using fallback renderer.');
       renderCustomFallback();
@@ -5162,7 +5167,7 @@
 
     if (!tiles.length) { card.style.display = 'none'; return; }
     body.innerHTML = tiles.map(function (x, i) {
-      return '<div class="project-attention-card ' + x.c + '" data-attn-i="' + i + '" role="button" tabindex="0"><div class="pa-label">' + escapeHtml(x.l) + '</div><div class="pa-value">' + escapeHtml(String(x.v)) + '</div><div class="pa-sub">' + escapeHtml(x.s) + '</div></div>';
+      return '<div class="stat-card project-attention-card ' + x.c + '" data-attn-i="' + i + '" role="button" tabindex="0"><div class="pa-label">' + escapeHtml(x.l) + '</div><div class="pa-value">' + escapeHtml(String(x.v)) + '</div><div class="pa-sub">' + escapeHtml(x.s) + '</div></div>';
     }).join('');
     [].forEach.call(body.querySelectorAll('[data-attn-i]'), function (el) {
       var x = tiles[+el.getAttribute('data-attn-i')];
@@ -5806,12 +5811,10 @@
     applyStaticI18n();
     if ($('langToggle')) {
       $('langToggle').addEventListener('click', function () {
-        setUILang(getUILang() === 'en' ? 'th' : 'en');
-        /* ล้างตัวกรองจากคลิกกราฟ (drill) ทิ้งตอนสลับภาษา — ค่า "อื่นๆ"/"(ว่าง)" ที่เก็บไว้เป็นข้อความ
-           ภาษาเดิม จะไม่ตรงกับข้อความภาษาใหม่ที่ matchesDrill() สร้างใหม่อีกต่อไป กรองแล้วจะเงียบๆ ไม่เจอ
-           สักแถว — เคลียร์ทิ้งไปเลยชัดเจนกว่า (ย้ายไปรวมกับ reapplyLangAndRerender() แล้ว ใช้ร่วมกับ
-           เมนูตั้งค่าภาษากลางของเว็บ) */
-        reapplyLangAndRerender();
+        /* การล้างตัวกรองจากคลิกกราฟ (drill) ตอนสลับภาษาอยู่ใน reapplyLangAndRerender() — ค่า "อื่นๆ"/"(ว่าง)" ที่เก็บไว้เป็นภาษาเดิมจะไม่ตรงกับข้อความภาษาใหม่ */
+        var next = getUILang() === 'en' ? 'th' : 'en';
+        if (window.OME_LANG && window.OME_LANG.set) window.OME_LANG.set(next);
+        else { setUILang(next); reapplyLangAndRerender(); }
       });
     }
     $('fileInput').addEventListener('change', function () { handleFile($('fileInput').files[0]); });
@@ -5837,7 +5840,7 @@
     $('addColBtn').addEventListener('click', addColumn);
     $('addFormulaColBtn').addEventListener('click', function () { openFormulaColumnPopover(null, $('addFormulaColBtn')); });
     wireTableCopyPaste();
-    [].forEach.call(document.querySelectorAll('.card-color-btn'), function (btn) {
+    [].forEach.call(document.querySelectorAll('.card-color'), function (btn) {
       btn.addEventListener('click', function () { openCardColorPopover(btn.getAttribute('data-role'), btn, renderDashboard); });
     });
     $('delSelBtn').addEventListener('click', deleteSelected);

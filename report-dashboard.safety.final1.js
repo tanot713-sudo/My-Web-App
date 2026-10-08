@@ -8,6 +8,8 @@
 (function(){
   'use strict';
   function P(){return window.TanotReportUtils.palette();}
+  /* ภาษาหน้า (OME_LANG กลาง) — ข้อความไทย/อังกฤษคู่กัน, โครงแผงสร้างใหม่เมื่อสลับภาษา (ดู init) */
+  function L(th,en){return (window.OME_LANG&&window.OME_LANG.get&&window.OME_LANG.get()==='en')?en:th;}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -100,7 +102,7 @@
         raw:r, i:i, date:d,
         type: c.type?text(r[c.type.key]):'',
         severity: c.severity?text(r[c.severity.key]):'',
-        department: c.department?text(r[c.department.key])||'(ไม่ระบุ)':'(ไม่ระบุ)',
+        department: c.department?text(r[c.department.key])||L('(ไม่ระบุ)','(unspecified)'):L('(ไม่ระบุ)','(unspecified)'),
         status: c.status?text(r[c.status.key]):'',
         due: date(c.due?r[c.due.key]:null),
         project: c.project?text(r[c.project.key]):'',
@@ -128,7 +130,7 @@
 #safetyControlLayout .sf-kpi.warn:after{background:var(--ome-warn)}#safetyControlLayout .sf-kpi.bad:after{background:var(--ome-err)}
 #safetyControlLayout .sf-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
 #safetyControlLayout .sf-kpi .v{font-size:var(--ome-fs-2xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
-#safetyControlLayout .sf-kpi.warn .v{color:var(--ome-warn-ink)}#safetyControlLayout .sf-kpi.bad .v{color:var(--ome-err)}
+#safetyControlLayout .sf-kpi.warn .v{color:var(--ome-warn-ink)}#safetyControlLayout .sf-kpi.bad .v{color:var(--ome-err-ink)}
 #safetyControlLayout .sf-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
 #safetyControlLayout .sf-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
 #safetyControlLayout .sf-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
@@ -181,12 +183,12 @@
       '<div class="sf-kpis" id="sfKpis"></div>'+
       '<section class="sf-panel sf-insight-panel"><h3>Executive Insight</h3><div id="sfInsight" class="sf-insight"></div></section>'+
       '<div class="sf-grid">'+
-        '<section class="sf-panel full"><h3>แนวโน้มเหตุการณ์รายเดือน</h3><div id="sfTrend"></div></section>'+
-        '<section class="sf-panel half"><h3>เหตุการณ์แยกตามหน่วยงาน</h3><div id="sfByDept"></div></section>'+
+        '<section class="sf-panel full"><h3>'+L('แนวโน้มเหตุการณ์รายเดือน','Monthly incident trend')+'</h3><div id="sfTrend"></div></section>'+
+        '<section class="sf-panel half"><h3>'+L('เหตุการณ์แยกตามหน่วยงาน','Incidents by department')+'</h3><div id="sfByDept"></div></section>'+
         '<section class="sf-panel half"><h3>Safety Pyramid</h3><div id="sfPyramid"></div></section>'+
         '<section class="sf-panel half"><h3>Action Status</h3><div id="sfStatus"></div></section>'+
-        '<section class="sf-panel half"><h3>ต้องติดตามด่วน</h3><div id="sfAttention"></div></section>'+
-        '<section class="sf-panel full"><h3>รายการล่าสุด</h3><div id="sfRecent"></div></section>'+
+        '<section class="sf-panel half"><h3>'+L('ต้องติดตามด่วน','Needs urgent follow-up')+'</h3><div id="sfAttention"></div></section>'+
+        '<section class="sf-panel full"><h3>'+L('รายการล่าสุด','Latest records')+'</h3><div id="sfRecent"></div></section>'+
       '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('safety-hidden-source');
@@ -205,7 +207,7 @@
       byMonth[k][cls]++;
     });
     var keys=Object.keys(byMonth).sort();
-    if(keys.length<2){host.innerHTML='<div class="sf-empty">ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)</div>';return;}
+    if(keys.length<2){host.innerHTML='<div class="sf-empty">'+L('ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)','Not enough data for a trend (at least 2 months needed)')+'</div>';return;}
     /* บั๊กที่เจอ (จุดเดิมกับ Progress Trend ของ Project Control และ Downtime รายเดือนของ Maintenance):
        เดิมบีบกราฟให้กว้างคงที่ 900 แล้ว scale ลงด้วย width:100% เสมอ ยิ่งมีหลายเดือนยิ่งบีบจนเส้น/จุด/ป้าย
        เดือนเล็กจนอ่านไม่ออก เปลี่ยนเป็นความกว้างคงที่ต่อเดือน (ไม่บีบ) ห่อด้วย scroll แนวนอนแทน — เดือนน้อย
@@ -234,14 +236,14 @@
       out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>';
     });
     out+='</svg>';
-    host.innerHTML='<div class="sf-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span>● <span style="color:'+P().info+'">Near-miss</span></span><span>● <span style="color:'+P().warn+'">First-aid</span></span><span>● <span style="color:'+P().err+'">Lost-time</span></span></div>';
+    host.innerHTML='<div class="sf-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span>● <span style="color:'+P().infoInk+'">Near-miss</span></span><span>● <span style="color:'+P().warnInk+'">First-aid</span></span><span>● <span style="color:'+P().errInk+'">Lost-time</span></span></div>';
   }
 
   function renderByDept(rows){
     var host=q('#sfByDept'); if(!host)return;
     var map={}; rows.forEach(function(r){ map[r.department]=(map[r.department]||0)+1; });
     var entries=Object.keys(map).map(function(k){return [k,map[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
-    if(!entries.length){host.innerHTML='<div class="sf-empty">ไม่มีข้อมูลหน่วยงาน</div>';return;}
+    if(!entries.length){host.innerHTML='<div class="sf-empty">'+L('ไม่มีข้อมูลหน่วยงาน','No department data')+'</div>';return;}
     var w=460,rowH=26,h=14+entries.length*rowH,left=118,right=34,barW=w-left-right;
     var maxV=Math.max.apply(null,entries.map(function(e){return e[1];}))||1;
     var out=svgOpen(w,h);
@@ -267,7 +269,7 @@
       if(r.due && r.due<today && b!=='closed') overdue++;
     });
     var total=Math.max(1,rows.length);
-    var vals=[['closed','ปิดแล้ว',counts.closed,P().ok],['open','ระหว่างแก้ไข',counts.open,P().warn],['other','อื่นๆ/ไม่ระบุ',counts.other+counts.unknown,P().faint],['overdue','เลยกำหนด',overdue,P().err]];
+    var vals=[['closed',L('ปิดแล้ว','Closed'),counts.closed,P().ok],['open',L('ระหว่างแก้ไข','In progress'),counts.open,P().warn],['other',L('อื่นๆ/ไม่ระบุ','Other / unspecified'),counts.other+counts.unknown,P().faint],['overdue',L('เลยกำหนด','Overdue'),overdue,P().err]];
     var out='<div class="sf-status-row">';
     vals.forEach(function(v){
       var pct=(v[2]/total*100).toFixed(0);
@@ -287,7 +289,7 @@
     var c={nearmiss:0,firstaid:0,losttime:0};
     rows.forEach(function(r){ var k=classify(r.type,r.severity); if(c[k]!=null)c[k]++; });
     var total=c.nearmiss+c.firstaid+c.losttime;
-    if(!total){host.innerHTML='<div class="sf-empty">ไม่มีข้อมูลเพียงพอสำหรับพีระมิดความปลอดภัย</div>';return;}
+    if(!total){host.innerHTML='<div class="sf-empty">'+L('ไม่มีข้อมูลเพียงพอสำหรับพีระมิดความปลอดภัย','Not enough data for the safety pyramid')+'</div>';return;}
     var W=300,H=190,apexPad=6;
     var tiers=[['nearmiss','Near-miss',c.nearmiss,P().info],['firstaid','First-aid',c.firstaid,P().warn],['losttime','Lost-time',c.losttime,P().err]];
     // ความสูงแต่ละชั้นแปรผันตามสัดส่วน แต่กันชั้นที่มีข้อมูลไม่ให้แคบจนมองไม่เห็น (ขั้นต่ำ 22px)
@@ -355,9 +357,9 @@
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
     layout.innerHTML='<section class="sf-panel"><h3>Safety &amp; HSE Control</h3>'+
-      '<div class="sf-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายบันทึกความปลอดภัย (ต้องมีคอลัมน์วันที่เกิดเหตุ '+
+      '<div class="sf-empty">'+L('ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายบันทึกความปลอดภัย (ต้องมีคอลัมน์วันที่เกิดเหตุ '+
       'และอย่างน้อยหนึ่งใน ประเภทเหตุการณ์/ความรุนแรง) — ลองเลือก Template เป็น "Auto" '+
-      'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
+      'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้','This data has no safety-log columns (an incident-date column and at least one of incident type / severity are required) — try setting Template to "Auto" or upload data that has these columns')+'</div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('safety-hidden-source');
     });
@@ -395,15 +397,15 @@
     var ltiDaysClass=daysSinceLTI==null?'':daysSinceLTI<7?' bad':daysSinceLTI<30?' warn':'';
 
     q('#sfKpis').innerHTML=
-      '<div class="sf-kpi"><div class="l">Total Incidents</div><div class="v">'+rows.length+'</div><div class="s">รายการทั้งหมดที่บันทึก</div></div>'+
-      '<div class="sf-kpi'+(counts.nearmiss?'':' ')+'"><div class="l">Near-miss</div><div class="v">'+counts.nearmiss+'</div><div class="s">รายงานเชิงรุก</div></div>'+
-      '<div class="sf-kpi'+(counts.losttime?' bad':'')+'"><div class="l">Lost-time</div><div class="v">'+counts.losttime+'</div><div class="s">บาดเจ็บถึงขั้นหยุดงาน</div></div>'+
-      '<div class="sf-kpi'+ltiDaysClass+'"><div class="l">Days Since Last LTI</div><div class="v">'+(daysSinceLTI==null?'—':daysSinceLTI.toLocaleString())+'</div><div class="s">'+(daysSinceLTI==null?'ยังไม่มีบันทึก Lost-time':'วันปลอดอุบัติเหตุหยุดงาน')+'</div></div>'+
-      '<div class="sf-kpi'+(openCount?' warn':'')+'"><div class="l">Action ค้าง</div><div class="v">'+openCount+'</div><div class="s">ระหว่างดำเนินการ</div></div>'+
-      '<div class="sf-kpi'+(overdueCount?' bad':'')+'"><div class="l">เลยกำหนด</div><div class="v">'+overdueCount+'</div><div class="s">ต้องเร่งปิด</div></div>';
+      '<div class="sf-kpi"><div class="l">Total Incidents</div><div class="v">'+rows.length+'</div><div class="s">'+L('รายการทั้งหมดที่บันทึก','All recorded items')+'</div></div>'+
+      '<div class="sf-kpi'+(counts.nearmiss?'':' ')+'"><div class="l">Near-miss</div><div class="v">'+counts.nearmiss+'</div><div class="s">'+L('รายงานเชิงรุก','Proactive reports')+'</div></div>'+
+      '<div class="sf-kpi'+(counts.losttime?' bad':'')+'"><div class="l">Lost-time</div><div class="v">'+counts.losttime+'</div><div class="s">'+L('บาดเจ็บถึงขั้นหยุดงาน','Injuries causing lost time')+'</div></div>'+
+      '<div class="sf-kpi'+ltiDaysClass+'"><div class="l">Days Since Last LTI</div><div class="v">'+(daysSinceLTI==null?'—':daysSinceLTI.toLocaleString())+'</div><div class="s">'+(daysSinceLTI==null?L('ยังไม่มีบันทึก Lost-time','No lost-time record yet'):L('วันปลอดอุบัติเหตุหยุดงาน','days without a lost-time injury'))+'</div></div>'+
+      '<div class="sf-kpi'+(openCount?' warn':'')+'"><div class="l">'+L('Action ค้าง','Open actions')+'</div><div class="v">'+openCount+'</div><div class="s">'+L('ระหว่างดำเนินการ','In progress')+'</div></div>'+
+      '<div class="sf-kpi'+(overdueCount?' bad':'')+'"><div class="l">'+L('เลยกำหนด','Overdue')+'</div><div class="v">'+overdueCount+'</div><div class="s">'+L('ต้องเร่งปิด','Needs urgent closing')+'</div></div>';
 
-    var statusText=overdueCount?'ต้องเร่งดำเนินการ':openCount?'ติดตามใกล้ชิด':'อยู่ในเกณฑ์ปกติ';
-    q('#sfInsight').innerHTML='สถานะโดยรวม <b>'+statusText+'</b> — บันทึกทั้งหมด <b>'+rows.length+'</b> รายการ พบ Near-miss <b>'+counts.nearmiss+'</b>, Lost-time <b>'+counts.losttime+'</b>. '+(overdueCount?'มี <b>'+overdueCount+' รายการ</b> เลยกำหนดปิด ต้องติดตามด่วน.':'ไม่มีรายการที่เลยกำหนดปิดในขณะนี้.');
+    var statusText=overdueCount?L('ต้องเร่งดำเนินการ','Urgent action needed'):openCount?L('ติดตามใกล้ชิด','Monitor closely'):L('อยู่ในเกณฑ์ปกติ','Within normal range');
+    q('#sfInsight').innerHTML=L('สถานะโดยรวม <b>'+statusText+'</b> — บันทึกทั้งหมด <b>'+rows.length+'</b> รายการ พบ Near-miss <b>'+counts.nearmiss+'</b>, Lost-time <b>'+counts.losttime+'</b>. ','Overall status <b>'+statusText+'</b> — <b>'+rows.length+'</b> records in total, <b>'+counts.nearmiss+'</b> near-miss and <b>'+counts.losttime+'</b> lost-time. ')+(overdueCount?L('มี <b>'+overdueCount+' รายการ</b> เลยกำหนดปิด ต้องติดตามด่วน.','<b>'+overdueCount+' items</b> are past their due date and need urgent follow-up.'):L('ไม่มีรายการที่เลยกำหนดปิดในขณะนี้.','No items are past due right now.'));
 
     renderTrend(rows); renderByDept(rows); renderStatus(rows); renderPyramid(rows);
 
@@ -411,15 +413,15 @@
       .sort(function(a,b){return (a.due||a.date)-(b.due||b.date);}).slice(0,8);
     q('#sfAttention').innerHTML=attention.length?attention.map(function(r){
       var lt=classify(r.type,r.severity)==='losttime';
-      return '<div class="sf-att-card'+(lt?'':' warn')+'"><b>'+esc(r.project||r.department)+'</b>'+esc(r.finding||r.type||r.severity||'—')+(r.due?' · กำหนด '+fmt(r.due):'')+'</div>';
-    }).join(''):'<div class="sf-empty">ไม่มีรายการที่ต้องติดตามด่วน</div>';
+      return '<div class="sf-att-card'+(lt?'':' warn')+'"><b>'+esc(r.project||r.department)+'</b>'+esc(r.finding||r.type||r.severity||'—')+(r.due?L(' · กำหนด ',' · due ')+fmt(r.due):'')+'</div>';
+    }).join(''):'<div class="sf-empty">'+L('ไม่มีรายการที่ต้องติดตามด่วน','Nothing needs urgent follow-up')+'</div>';
 
     var recent=rows.slice().sort(function(a,b){return b.date-a.date;}).slice(0,10);
     q('#sfRecent').innerHTML=recent.length?recent.map(function(r){
       return '<div class="sf-list"><b>'+esc(r.department)+'</b><span>'+esc(r.type||r.severity||'—')+'</span><span>'+fmt(r.date)+'</span></div>';
-    }).join(''):'<div class="sf-empty">ไม่มีข้อมูล</div>';
+    }).join(''):'<div class="sf-empty">'+L('ไม่มีข้อมูล','No data')+'</div>';
 
-    q('#sfUpdated').textContent='รอบข้อมูลถึง '+fmt(today)+' · '+rows.length.toLocaleString()+' รายการ';
+    q('#sfUpdated').textContent=L('รอบข้อมูลถึง ','Data through ')+fmt(today)+' · '+rows.length.toLocaleString()+L(' รายการ',' items');
   }
 
   function schedule(){
@@ -431,6 +433,7 @@
   function init(){
     injectCSS();
     window.TanotReportUtils.onTheme(schedule);
+    if(window.OME_LANG&&window.OME_LANG.onChange)window.OME_LANG.onChange(function(){var l=document.getElementById('safetyControlLayout');if(l)l.removeAttribute('data-built');schedule();});
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;

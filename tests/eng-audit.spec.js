@@ -56,7 +56,9 @@ async function open(page, t, { theme, width, lang }) {
   // CDN → แพ็กเกจใน tests/node_modules (ไม่มีไฟล์ = ปล่อยให้ถูกบล็อกเหมือนออฟไลน์)
   await page.route(/https:\/\/cdn\.jsdelivr\.net\/npm\/.+/, (route) => {
     const m = /npm\/((?:@[^/]+\/)?[^@/]+)@[^/]+\/(.+?)(?:\?.*)?$/.exec(route.request().url());
-    const f = m && path.join(NM, m[1], m[2]);
+    let f = m && path.join(NM, m[1], m[2]);
+    // chart.js@4.4.4 ไม่มีไฟล์ chart.umd.min.js ในแพ็กเกจ npm (มีแต่ chart.umd.js) — ใช้ตัวไม่ย่อแทน
+    if (f && !fs.existsSync(f) && /\.min\.js$/.test(f)) f = f.replace(/\.min\.js$/, '.js');
     if (f && fs.existsSync(f) && fs.statSync(f).isFile()) {
       const ext = path.extname(f);
       return route.fulfill({ body: fs.readFileSync(f), contentType: ext === '.css' ? 'text/css' : ext === '.js' || ext === '.mjs' ? 'application/javascript' : 'application/octet-stream' });

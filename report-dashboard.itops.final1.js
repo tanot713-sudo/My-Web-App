@@ -4,6 +4,8 @@
 (function(){
   'use strict';
   function P(){return window.TanotReportUtils.palette();}
+  /* ภาษาหน้า (OME_LANG กลาง) — ข้อความไทย/อังกฤษคู่กัน, โครงแผงสร้างใหม่เมื่อสลับภาษา (ดู init) */
+  function L(th,en){return (window.OME_LANG&&window.OME_LANG.get&&window.OME_LANG.get()==='en')?en:th;}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -82,7 +84,7 @@
       return {
         raw:r,i:i,
         ticketId: c.ticketId?text(r[c.ticketId.key]):('#'+(i+1)),
-        system: c.system?text(r[c.system.key])||'(ไม่ระบุ)':'(ไม่ระบุ)',
+        system: c.system?text(r[c.system.key])||L('(ไม่ระบุ)','(unspecified)'):L('(ไม่ระบุ)','(unspecified)'),
         priority: c.priority?text(r[c.priority.key]):'',
         status: c.status?text(r[c.status.key]):'',
         opened: date(c.opened?r[c.opened.key]:null),
@@ -108,7 +110,7 @@
 #itControlLayout .it-kpi.warn:after{background:var(--ome-warn)}#itControlLayout .it-kpi.bad:after{background:var(--ome-err)}
 #itControlLayout .it-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
 #itControlLayout .it-kpi .v{font-size:var(--ome-fs-2xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
-#itControlLayout .it-kpi.warn .v{color:var(--ome-warn-ink)}#itControlLayout .it-kpi.bad .v{color:var(--ome-err)}
+#itControlLayout .it-kpi.warn .v{color:var(--ome-warn-ink)}#itControlLayout .it-kpi.bad .v{color:var(--ome-err-ink)}
 #itControlLayout .it-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
 #itControlLayout .it-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
 #itControlLayout .it-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
@@ -123,7 +125,7 @@
 #itControlLayout .it-track span{display:block;height:100%;border-radius:var(--ome-radius-sm)}
 #itControlLayout .it-list{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs)}
 #itControlLayout .it-list:last-child{border-bottom:none}
-#itControlLayout .it-list .age{font-weight:700;color:var(--ome-err)}
+#itControlLayout .it-list .age{font-weight:700;color:var(--ome-err-ink)}
 #itControlLayout .it-empty{padding:24px 8px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
 #itControlLayout .it-trend-scroll{overflow-x:auto}
 #itControlLayout.it-override-hidden{display:none!important}
@@ -156,10 +158,10 @@
       '<div class="it-kpis" id="itKpis"></div>'+
       '<section class="it-panel"><h3>Executive Insight</h3><div id="itInsight" class="it-insight"></div></section>'+
       '<div class="it-grid">'+
-        '<section class="it-panel full"><h3>Ticket เปิด vs ปิดรายเดือน</h3><div id="itTrend"></div></section>'+
-        '<section class="it-panel half"><h3>Ticket แยกตามระบบ</h3><div id="itBySystem"></div></section>'+
-        '<section class="it-panel half"><h3>สัดส่วนตาม Priority</h3><div id="itPriority"></div></section>'+
-        '<section class="it-panel full"><h3>Ticket ค้างนานสุด</h3><div id="itOldest"></div></section>'+
+        '<section class="it-panel full"><h3>'+L('Ticket เปิด vs ปิดรายเดือน','Monthly tickets: opened vs closed')+'</h3><div id="itTrend"></div></section>'+
+        '<section class="it-panel half"><h3>'+L('Ticket แยกตามระบบ','Tickets by system')+'</h3><div id="itBySystem"></div></section>'+
+        '<section class="it-panel half"><h3>'+L('สัดส่วนตาม Priority','Share by priority')+'</h3><div id="itPriority"></div></section>'+
+        '<section class="it-panel full"><h3>'+L('Ticket ค้างนานสุด','Longest-open tickets')+'</h3><div id="itOldest"></div></section>'+
       '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('it-hidden-source');
@@ -179,7 +181,7 @@
       if(r.closed){var ck=monthKey(r.closed); if(!byMonth[ck])byMonth[ck]={open:0,close:0}; byMonth[ck].close++;}
     });
     var keys=Object.keys(byMonth).sort();
-    if(keys.length<2){host.innerHTML='<div class="it-empty">ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)</div>';return;}
+    if(keys.length<2){host.innerHTML='<div class="it-empty">'+L('ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)','Not enough data for a trend (at least 2 months needed)')+'</div>';return;}
     /* บั๊กที่เจอ (จุดเดิมกับ Progress Trend ของ Project Control และ Downtime รายเดือนของ Maintenance/
        Safety/HR): เดิมบีบกราฟให้กว้างคงที่ 900 แล้ว scale ลงด้วย width:100% เสมอ ยิ่งมีหลายเดือนยิ่งบีบจน
        เส้น/จุด/ป้ายเดือนเล็กจนอ่านไม่ออก เปลี่ยนเป็นความกว้างคงที่ต่อเดือน (ไม่บีบ) ห่อด้วย scroll แนวนอน
@@ -206,14 +208,14 @@
       out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>';
     });
     out+='</svg>';
-    host.innerHTML='<div class="it-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style=\"color:'+P().err+'\">● Opened</span><span style=\"color:'+P().okInk+'\">● Closed</span></div>';
+    host.innerHTML='<div class="it-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style=\"color:'+P().errInk+'\">● Opened</span><span style=\"color:'+P().okInk+'\">● Closed</span></div>';
   }
 
   function renderBySystem(rows){
     var host=q('#itBySystem'); if(!host)return;
     var map={}; rows.forEach(function(r){ map[r.system]=(map[r.system]||0)+1; });
     var entries=Object.keys(map).map(function(k){return [k,map[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
-    if(!entries.length){host.innerHTML='<div class="it-empty">ไม่มีข้อมูลระบบ</div>';return;}
+    if(!entries.length){host.innerHTML='<div class="it-empty">'+L('ไม่มีข้อมูลระบบ','No system data')+'</div>';return;}
     var w=460,rowH=26,h=14+entries.length*rowH,left=118,right=34,barW=w-left-right;
     var maxV=Math.max.apply(null,entries.map(function(e){return e[1];}))||1;
     var out=svgOpen(w,h);
@@ -271,9 +273,9 @@
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
     layout.innerHTML='<section class="it-panel"><h3>IT / DevOps Control</h3>'+
-      '<div class="it-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่าย Ticket log (ต้องมีคอลัมน์วันที่แจ้ง '+
+      '<div class="it-empty">'+L('ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่าย Ticket log (ต้องมีคอลัมน์วันที่แจ้ง '+
       'และอย่างน้อยหนึ่งใน ระบบ/ความสำคัญ/เลขที่ Ticket) — ลองเลือก Template เป็น "Auto" '+
-      'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
+      'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้','This data has no ticket-log columns (an opened-date column and at least one of system / priority / ticket ID are required) — try setting Template to "Auto" or upload data that has these columns')+'</div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('it-hidden-source');
     });
@@ -304,24 +306,24 @@
     var maxAge=oldest.length?Math.round((today-oldest[0].opened)/86400000):0;
 
     q('#itKpis').innerHTML=
-      '<div class="it-kpi"><div class="l">Ticket ทั้งหมด</div><div class="v">'+rows.length+'</div><div class="s">รายการที่บันทึก</div></div>'+
-      '<div class="it-kpi'+(open.length?' warn':'')+'"><div class="l">Ticket เปิดอยู่</div><div class="v">'+open.length+'</div><div class="s">ยังไม่ปิด</div></div>'+
-      '<div class="it-kpi'+(critOpen?' bad':'')+'"><div class="l">Critical เปิดอยู่</div><div class="v">'+critOpen+'</div><div class="s">ต้องเร่งแก้ไข</div></div>'+
-      '<div class="it-kpi"><div class="l">Avg. Resolution</div><div class="v">'+(avgRes!=null?avgRes.toFixed(1):'—')+'</div><div class="s">วัน (เฉลี่ย)</div></div>'+
-      '<div class="it-kpi'+(maxAge>14?' bad':maxAge>7?' warn':'')+'"><div class="l">Ticket ค้างนานสุด</div><div class="v">'+maxAge+'</div><div class="s">วัน</div></div>';
+      '<div class="it-kpi"><div class="l">'+L('Ticket ทั้งหมด','All tickets')+'</div><div class="v">'+rows.length+'</div><div class="s">'+L('รายการที่บันทึก','Recorded items')+'</div></div>'+
+      '<div class="it-kpi'+(open.length?' warn':'')+'"><div class="l">'+L('Ticket เปิดอยู่','Open tickets')+'</div><div class="v">'+open.length+'</div><div class="s">'+L('ยังไม่ปิด','Not yet closed')+'</div></div>'+
+      '<div class="it-kpi'+(critOpen?' bad':'')+'"><div class="l">'+L('Critical เปิดอยู่','Open critical')+'</div><div class="v">'+critOpen+'</div><div class="s">'+L('ต้องเร่งแก้ไข','Needs urgent fix')+'</div></div>'+
+      '<div class="it-kpi"><div class="l">Avg. Resolution</div><div class="v">'+(avgRes!=null?avgRes.toFixed(1):'—')+'</div><div class="s">'+L('วัน (เฉลี่ย)','days (average)')+'</div></div>'+
+      '<div class="it-kpi'+(maxAge>14?' bad':maxAge>7?' warn':'')+'"><div class="l">'+L('Ticket ค้างนานสุด','Longest-open ticket')+'</div><div class="v">'+maxAge+'</div><div class="s">'+L('วัน','days')+'</div></div>';
 
-    var statusText=critOpen?'มี Critical ticket ค้างอยู่ ต้องเร่งแก้ไข':maxAge>14?'มี ticket ค้างนานเกินเกณฑ์':'อยู่ในเกณฑ์ปกติ';
-    q('#itInsight').innerHTML='สถานะโดยรวม <b>'+statusText+'</b> — ticket ทั้งหมด <b>'+rows.length+'</b> รายการ, เปิดอยู่ <b>'+open.length+'</b> รายการ, Avg. Resolution <b>'+(avgRes!=null?avgRes.toFixed(1)+' วัน':'ไม่ทราบ')+'</b>. '+(critOpen?'มี <b>'+critOpen+' รายการ Critical</b> ที่ยังไม่ปิด.':'ไม่มี Critical ticket ค้างอยู่ในขณะนี้.');
+    var statusText=critOpen?L('มี Critical ticket ค้างอยู่ ต้องเร่งแก้ไข','Critical tickets are open and need urgent fixing'):maxAge>14?L('มี ticket ค้างนานเกินเกณฑ์','Some tickets have been open too long'):L('อยู่ในเกณฑ์ปกติ','Within normal range');
+    q('#itInsight').innerHTML=L('สถานะโดยรวม <b>'+statusText+'</b> — ticket ทั้งหมด <b>'+rows.length+'</b> รายการ, เปิดอยู่ <b>'+open.length+'</b> รายการ, Avg. Resolution <b>'+(avgRes!=null?avgRes.toFixed(1)+' วัน':'ไม่ทราบ')+'</b>. ','Overall status <b>'+statusText+'</b> — <b>'+rows.length+'</b> tickets in total, <b>'+open.length+'</b> open, average resolution <b>'+(avgRes!=null?avgRes.toFixed(1)+' days':'unknown')+'</b>. ')+(critOpen?L('มี <b>'+critOpen+' รายการ Critical</b> ที่ยังไม่ปิด.','<b>'+critOpen+' critical</b> tickets are still open.'):L('ไม่มี Critical ticket ค้างอยู่ในขณะนี้.','No critical tickets are open right now.'));
 
     renderTrend(rows); renderBySystem(rows); renderPriority(rows);
 
     var top10=oldest.slice(0,10);
     q('#itOldest').innerHTML=top10.length?top10.map(function(r){
       var age=Math.round((today-r.opened)/86400000);
-      return '<div class="it-list"><b>'+esc(r.ticketId)+'</b><span>'+esc(r.system)+(r.subject?' · '+esc(r.subject):'')+'</span><span class="age">'+age+' วัน</span></div>';
-    }).join(''):'<div class="it-empty">ไม่มี Ticket ที่เปิดค้างอยู่</div>';
+      return '<div class="it-list"><b>'+esc(r.ticketId)+'</b><span>'+esc(r.system)+(r.subject?' · '+esc(r.subject):'')+'</span><span class="age">'+age+L(' วัน',' days')+'</span></div>';
+    }).join(''):'<div class="it-empty">'+L('ไม่มี Ticket ที่เปิดค้างอยู่','No open tickets')+'</div>';
 
-    q('#itUpdated').textContent='รอบข้อมูลถึง '+fmt(today)+' · '+rows.length.toLocaleString()+' รายการ';
+    q('#itUpdated').textContent=L('รอบข้อมูลถึง ','Data through ')+fmt(today)+' · '+rows.length.toLocaleString()+L(' รายการ',' items');
   }
 
   function schedule(){
@@ -333,6 +335,7 @@
   function init(){
     injectCSS();
     window.TanotReportUtils.onTheme(schedule);
+    if(window.OME_LANG&&window.OME_LANG.onChange)window.OME_LANG.onChange(function(){var l=document.getElementById('itControlLayout');if(l)l.removeAttribute('data-built');schedule();});
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;

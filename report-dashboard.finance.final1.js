@@ -14,6 +14,8 @@
 (function(){
   'use strict';
   function P(){return window.TanotReportUtils.palette();}
+  /* ภาษาหน้า (OME_LANG กลาง) — ข้อความไทย/อังกฤษคู่กัน, โครงแผงสร้างใหม่เมื่อสลับภาษา (ดู init) */
+  function L(th,en){return (window.OME_LANG&&window.OME_LANG.get&&window.OME_LANG.get()==='en')?en:th;}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -108,8 +110,8 @@
       }
       return {
         raw:r, i:i, date:d, income:inc, expense:exp,
-        category: c.category?text(r[c.category.key])||'(ไม่ระบุ)':'(ไม่ระบุ)',
-        account: c.account?text(r[c.account.key])||'(ไม่ระบุ)':'(ไม่ระบุ)',
+        category: c.category?text(r[c.category.key])||L('(ไม่ระบุ)','(unspecified)'):L('(ไม่ระบุ)','(unspecified)'),
+        account: c.account?text(r[c.account.key])||L('(ไม่ระบุ)','(unspecified)'):L('(ไม่ระบุ)','(unspecified)'),
         description: c.description?text(r[c.description.key]):'',
         budget: c.budget?num(r[c.budget.key]):null
       };
@@ -131,7 +133,7 @@
 #financeControlLayout .fn-kpi.warn:after{background:var(--ome-warn)}#financeControlLayout .fn-kpi.bad:after{background:var(--ome-err)}
 #financeControlLayout .fn-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
 #financeControlLayout .fn-kpi .v{font-size:var(--ome-fs-xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
-#financeControlLayout .fn-kpi.warn .v{color:var(--ome-warn-ink)}#financeControlLayout .fn-kpi.bad .v{color:var(--ome-err)}
+#financeControlLayout .fn-kpi.warn .v{color:var(--ome-warn-ink)}#financeControlLayout .fn-kpi.bad .v{color:var(--ome-err-ink)}
 #financeControlLayout .fn-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
 #financeControlLayout .fn-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
 #financeControlLayout .fn-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
@@ -174,11 +176,11 @@
       '<div class="fn-kpis" id="fnKpis"></div>'+
       '<section class="fn-panel fn-insight-panel"><h3>Executive Insight</h3><div id="fnInsight" class="fn-insight"></div></section>'+
       '<div class="fn-grid">'+
-        '<section class="fn-panel full"><h3>แนวโน้มรายรับ-รายจ่ายรายเดือน</h3><div id="fnTrend"></div></section>'+
-        '<section class="fn-panel half" id="fnBudgetSection"><h3>งบประมาณเทียบรายจ่ายจริง</h3><div id="fnBudget"></div></section>'+
-        '<section class="fn-panel half" id="fnAccountSection"><h3>สัดส่วนรายรับตามช่องทาง</h3><div id="fnAccount"></div></section>'+
-        '<section class="fn-panel full"><h3>ยอดคงเหลือสะสม (Running Balance)</h3><div id="fnBalance"></div></section>'+
-        '<section class="fn-panel full"><h3>รายการล่าสุด</h3><div id="fnRecent"></div></section>'+
+        '<section class="fn-panel full"><h3>'+L('แนวโน้มรายรับ-รายจ่ายรายเดือน','Monthly income and expense trend')+'</h3><div id="fnTrend"></div></section>'+
+        '<section class="fn-panel half" id="fnBudgetSection"><h3>'+L('งบประมาณเทียบรายจ่ายจริง','Budget vs actual spending')+'</h3><div id="fnBudget"></div></section>'+
+        '<section class="fn-panel half" id="fnAccountSection"><h3>'+L('สัดส่วนรายรับตามช่องทาง','Income by account')+'</h3><div id="fnAccount"></div></section>'+
+        '<section class="fn-panel full"><h3>'+L('ยอดคงเหลือสะสม (Running Balance)','Running balance')+'</h3><div id="fnBalance"></div></section>'+
+        '<section class="fn-panel full"><h3>'+L('รายการล่าสุด','Latest transactions')+'</h3><div id="fnRecent"></div></section>'+
       '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('finance-hidden-source');
@@ -216,10 +218,10 @@
     var byMonth={};
     rows.forEach(function(r){ var k=monthKey(r.date); if(!byMonth[k])byMonth[k]={income:0,expense:0}; byMonth[k].income+=r.income; byMonth[k].expense+=r.expense; });
     var keys=Object.keys(byMonth).sort();
-    if(keys.length<2){host.innerHTML='<div class="fn-empty">ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)</div>';return;}
+    if(keys.length<2){host.innerHTML='<div class="fn-empty">'+L('ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)','Not enough data for a trend (at least 2 months needed)')+'</div>';return;}
     var incomeData={}, expenseData={}; keys.forEach(function(k){incomeData[k]=byMonth[k].income;expenseData[k]=byMonth[k].expense;});
     host.innerHTML=trendSvg([{data:incomeData,color:P().ok},{data:expenseData,color:P().err}],keys,true)+
-      '<div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style=\"color:'+P().okInk+'\">● รายรับ</span><span style=\"color:'+P().err+'\">● รายจ่าย</span></div>';
+      '<div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style=\"color:'+P().okInk+'\">● '+L('รายรับ','Income')+'</span><span style=\"color:'+P().errInk+'\">● '+L('รายจ่าย','Expense')+'</span></div>';
   }
 
   function renderBalance(rows){
@@ -227,7 +229,7 @@
     var byMonth={};
     rows.forEach(function(r){ var k=monthKey(r.date); if(!byMonth[k])byMonth[k]=0; byMonth[k]+=(r.income-r.expense); });
     var keys=Object.keys(byMonth).sort();
-    if(keys.length<2){host.innerHTML='<div class="fn-empty">ข้อมูลยังไม่พอ</div>';return;}
+    if(keys.length<2){host.innerHTML='<div class="fn-empty">'+L('ข้อมูลยังไม่พอ','Not enough data')+'</div>';return;}
     var bal=0, running={}; keys.forEach(function(k){ bal+=byMonth[k]; running[k]=bal; });
     host.innerHTML=trendSvg([{data:running,color:P().series[0]}],keys,true);
   }
@@ -243,7 +245,7 @@
       if(r.budget!=null) budget[r.category]=Math.max(budget[r.category]||0,r.budget);
     });
     var cats=Object.keys(actual).filter(function(k){return budget[k]!=null;}).sort(function(a,b){return actual[b]-actual[a];}).slice(0,6);
-    if(!cats.length){host.innerHTML='<div class="fn-empty">ไม่มีข้อมูลงบประมาณต่อหมวดที่ใช้เทียบได้</div>';return;}
+    if(!cats.length){host.innerHTML='<div class="fn-empty">'+L('ไม่มีข้อมูลงบประมาณต่อหมวดที่ใช้เทียบได้','No per-category budget data to compare')+'</div>';return;}
     var w=460, rowH=30, left=140, right=44, barW=w-left-right;
     var h=14+cats.length*rowH;
     var maxV=Math.max.apply(null,cats.map(function(k){return Math.max(actual[k],budget[k]);}))||1;
@@ -257,7 +259,7 @@
       out+='<rect x="'+left+'" y="'+y+'" width="'+bw+'" height="16" rx="4" fill="'+(over?P().err:P().ok)+'"/>';
       out+='<line x1="'+budgetX+'" x2="'+budgetX+'" y1="'+(y-3)+'" y2="'+(y+19)+'" stroke="'+P().axis+'" stroke-width="2"/>';
       var diff=act-bud, diffTxt=(diff>=0?'+':'−')+'฿'+Math.abs(Math.round(diff/1000))+'k';
-      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10" font-weight="700" fill="'+(over?P().err:P().ok)+'">'+diffTxt+' vs งบ</text>';
+      out+='<text x="'+(left+bw+6)+'" y="'+(y+13)+'" font-size="10" font-weight="700" fill="'+(over?P().err:P().ok)+'">'+diffTxt+L(' vs งบ',' vs budget')+'</text>';
     });
     out+='</svg>';
     host.innerHTML=out;
@@ -280,7 +282,7 @@
     '</svg>';
     var legend='<div class="fn-donut-legend">'+entries.map(function(e){
       var pct=(e[1]/total*100).toFixed(0);
-      return '<div class="row"><i style="background:'+e[2]+'"></i><span style="flex:1">'+esc(e[0])+'</span><b>'+esc(fmtFn(e[1]))+'</b><span style="color:var(--ome-text-3);width:32px;text-align:right">'+pct+'%</span></div>';
+      return '<div class="row"><i style="background:'+e[2]+'"></i><span style="flex:1">'+esc(e[0])+'</span><b>'+esc(fmtFn(e[1]))+'</b><span style="color:var(--ome-text-2);width:32px;text-align:right">'+pct+'%</span></div>';
     }).join('')+'</div>';
     return '<div class="fn-donut-wrap">'+svg+legend+'</div>';
   }
@@ -291,7 +293,7 @@
     sec&&sec.removeAttribute('hidden');
     var map={}; rows.forEach(function(r){ if(r.income) map[r.account]=(map[r.account]||0)+r.income; });
     var entries=Object.keys(map).map(function(k,i){return [k,map[k],P().series[i%8]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
-    host.innerHTML=entries.length?donutChart(entries,'รายรับรวม',function(v){return '฿'+Math.round(v/1000)+'k';}):'<div class="fn-empty">ไม่มีข้อมูล</div>';
+    host.innerHTML=entries.length?donutChart(entries,L('รายรับรวม','Total income'),function(v){return '฿'+Math.round(v/1000)+'k';}):'<div class="fn-empty">'+L('ไม่มีข้อมูล','No data')+'</div>';
   }
 
   function suppressLayout(){
@@ -317,8 +319,8 @@
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
     layout.innerHTML='<section class="fn-panel"><h3>Finance Control</h3>'+
-      '<div class="fn-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายรายการเงิน (ต้องมีคอลัมน์วันที่ '+
-      'ร่วมกับ รายรับ/รายจ่าย/ยอดเงิน) — ลองเลือก Template เป็น "Auto" หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
+      '<div class="fn-empty">'+L('ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายรายการเงิน (ต้องมีคอลัมน์วันที่ '+
+      'ร่วมกับ รายรับ/รายจ่าย/ยอดเงิน) — ลองเลือก Template เป็น "Auto" หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้','This data has no money-transaction columns (a date column together with income / expense / amount is required) — try setting Template to "Auto" or upload data that has these columns')+'</div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('finance-hidden-source');
     });
@@ -349,25 +351,25 @@
     var srClass=savingsRate==null?'':savingsRate<0?' bad':savingsRate<10?' warn':'';
 
     q('#fnKpis').innerHTML=
-      '<div class="fn-kpi"><div class="l">รายรับรวม</div><div class="v">'+baht(totalIncome)+'</div><div class="s">'+monthsSpan+' เดือน</div></div>'+
-      '<div class="fn-kpi'+(totalExpense>totalIncome?' bad':'')+'"><div class="l">รายจ่ายรวม</div><div class="v">'+baht(totalExpense)+'</div><div class="s">'+monthsSpan+' เดือน</div></div>'+
-      '<div class="fn-kpi'+(net<0?' bad':'')+'"><div class="l">กระแสเงินสดสุทธิ</div><div class="v">'+baht(net)+'</div><div class="s">รายรับ − รายจ่าย</div></div>'+
-      '<div class="fn-kpi"><div class="l">รายจ่ายเฉลี่ย/เดือน</div><div class="v">'+baht(totalExpense/monthsSpan)+'</div><div class="s">เฉลี่ยสะสม</div></div>'+
-      '<div class="fn-kpi'+srClass+'"><div class="l">อัตราการออม</div><div class="v">'+(savingsRate==null?'—':savingsRate.toFixed(0)+'%')+'</div><div class="s">ของรายรับ</div></div>';
+      '<div class="fn-kpi"><div class="l">'+L('รายรับรวม','Total income')+'</div><div class="v">'+baht(totalIncome)+'</div><div class="s">'+monthsSpan+L(' เดือน',' months')+'</div></div>'+
+      '<div class="fn-kpi'+(totalExpense>totalIncome?' bad':'')+'"><div class="l">'+L('รายจ่ายรวม','Total expenses')+'</div><div class="v">'+baht(totalExpense)+'</div><div class="s">'+monthsSpan+L(' เดือน',' months')+'</div></div>'+
+      '<div class="fn-kpi'+(net<0?' bad':'')+'"><div class="l">'+L('กระแสเงินสดสุทธิ','Net cash flow')+'</div><div class="v">'+baht(net)+'</div><div class="s">'+L('รายรับ − รายจ่าย','Income − expenses')+'</div></div>'+
+      '<div class="fn-kpi"><div class="l">'+L('รายจ่ายเฉลี่ย/เดือน','Average monthly expenses')+'</div><div class="v">'+baht(totalExpense/monthsSpan)+'</div><div class="s">'+L('เฉลี่ยสะสม','Cumulative average')+'</div></div>'+
+      '<div class="fn-kpi'+srClass+'"><div class="l">'+L('อัตราการออม','Savings rate')+'</div><div class="v">'+(savingsRate==null?'—':savingsRate.toFixed(0)+'%')+'</div><div class="s">'+L('ของรายรับ','of income')+'</div></div>';
 
-    var statusText=net<0?'กระแสเงินสดติดลบ ต้องระวัง':'กระแสเงินสดเป็นบวก';
-    q('#fnInsight').innerHTML='สถานะโดยรวม <b>'+statusText+'</b> — รายรับรวม <b>'+baht(totalIncome)+'</b> รายจ่ายรวม <b>'+baht(totalExpense)+'</b> คงเหลือสุทธิ <b>'+baht(net)+'</b>'+(savingsRate!=null?' (อัตราการออม '+savingsRate.toFixed(0)+'%)':'')+'.';
+    var statusText=net<0?L('กระแสเงินสดติดลบ ต้องระวัง','Cash flow is negative — be careful'):L('กระแสเงินสดเป็นบวก','Cash flow is positive');
+    q('#fnInsight').innerHTML=L('สถานะโดยรวม <b>'+statusText+'</b> — รายรับรวม <b>'+baht(totalIncome)+'</b> รายจ่ายรวม <b>'+baht(totalExpense)+'</b> คงเหลือสุทธิ <b>'+baht(net)+'</b>'+(savingsRate!=null?' (อัตราการออม '+savingsRate.toFixed(0)+'%)':'')+'.','Overall status <b>'+statusText+'</b> — total income <b>'+baht(totalIncome)+'</b>, total expenses <b>'+baht(totalExpense)+'</b>, net balance <b>'+baht(net)+'</b>'+(savingsRate!=null?' (savings rate '+savingsRate.toFixed(0)+'%)':'')+'.');
 
     renderTrend(rows); renderBudget(rows,data.hasBudget); renderAccount(rows,data.hasAccount); renderBalance(rows);
 
     var recent=rows.slice().sort(function(a,b){return b.date-a.date;}).slice(0,10);
     q('#fnRecent').innerHTML=recent.length?recent.map(function(r){
       var isIncome=r.income>0;
-      return '<div class="fn-list"><b>'+esc(r.description||r.category)+'</b><span>'+(isIncome?'รายรับ':'รายจ่าย')+' · '+esc(r.category)+'</span><span style="color:'+(isIncome?'var(--ome-ok)':'var(--ome-err)')+';font-weight:700">'+(isIncome?'+':'-')+baht(isIncome?r.income:r.expense)+'</span></div>';
-    }).join(''):'<div class="fn-empty">ไม่มีข้อมูล</div>';
+      return '<div class="fn-list"><b>'+esc(r.description||r.category)+'</b><span>'+(isIncome?L('รายรับ','Income'):L('รายจ่าย','Expense'))+' · '+esc(r.category)+'</span><span style="color:'+(isIncome?'var(--ome-ok-ink)':'var(--ome-err-ink)')+';font-weight:700">'+(isIncome?'+':'-')+baht(isIncome?r.income:r.expense)+'</span></div>';
+    }).join(''):'<div class="fn-empty">'+L('ไม่มีข้อมูล','No data')+'</div>';
 
     var today=new Date();
-    q('#fnUpdated').textContent='รอบข้อมูลถึง '+fmt(today)+' · '+rows.length.toLocaleString()+' รายการ';
+    q('#fnUpdated').textContent=L('รอบข้อมูลถึง ','Data through ')+fmt(today)+' · '+rows.length.toLocaleString()+L(' รายการ',' items');
   }
 
   function schedule(){
@@ -379,6 +381,7 @@
   function init(){
     injectCSS();
     window.TanotReportUtils.onTheme(schedule);
+    if(window.OME_LANG&&window.OME_LANG.onChange)window.OME_LANG.onChange(function(){var l=document.getElementById('financeControlLayout');if(l)l.removeAttribute('data-built');schedule();});
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;

@@ -11,7 +11,13 @@
   "devDependencies": {
     "@playwright/test": "1.56.1",
     "axe-core": "4.13.0",
+    "chart.js": "4.4.4",
+    "echarts": "6.1.0",
     "esbuild": "0.28.2",
+    "frappe-gantt": "1.2.2",
+    "gridstack": "12.6.0",
+    "html2canvas": "1.4.1",
+    "jspdf": "2.5.2",
     "jszip": "3.10.1",
     "lucide": "1.49.0",
     "lucide-static": "1.49.0",

@@ -346,9 +346,156 @@ function cad(h) {
   };
 }
 
+/* ───────── รายงาน / Dashboard (report-dashboard.html) ───────── */
+// ไฟล์ xlsx สร้างตามหัวคอลัมน์ของแม่แบบแต่ละโมดูล (TEMPLATES ใน report-dashboard.html) ใส่ผ่าน #fileInput เหมือนผู้ใช้จริง
+const RD_D = (n) => new Date(Date.UTC(2026, 9, 3) - n * 86400000);
+function rdSheet(key) {
+  const pick = (a, i) => a[i % a.length];
+  const rows = [];
+  const N = 14;
+  const hdr = {
+    maintenance: ['Work Order', 'Equipment No', 'Equipment Type', 'Downtime', 'Plan Finish', 'Actual Start', 'Actual End', 'Material Cost', 'Labor Cost', 'Status', 'Failure Mode', 'Work Order Type', 'Line'],
+    project: ['Project', 'Task', 'Customer', 'Owner', 'Start Date', 'End Date', 'Actual', 'Plan', 'SPI', 'Status', 'Cost', 'Duration'],
+    legal: ['Matter ID', 'Client', 'Practice Area', 'Attorney', 'Billable Hours', 'Amount Billed', 'Amount Collected', 'Status', 'Open Date', 'Close Date', 'Court Date', 'Role'],
+    risk: ['Risk Name', 'Risk Category', 'Severity', 'Likelihood', 'Risk Level', 'Mitigation', 'Residual', 'Reference', 'Status', 'Risk Owner', 'Identified Date', 'Closed Date'],
+    finance: ['Date', 'Income', 'Expense', 'Amount', 'Transaction Type', 'Category', 'Account', 'Description', 'Budget'],
+    reading: ['Book Title', 'Author', 'Start Date', 'Finish Date', 'Pages', 'Genre', 'Rating', 'Status'],
+    safety: ['Incident Date', 'Incident Type', 'Severity', 'Department', 'Status', 'Due Date', 'Project', 'Finding'],
+    hr: ['Employee ID', 'Employee Name', 'Department', 'Position', 'Join Date', 'Exit Date', 'Employment Status', 'Employment Type', 'Training Status'],
+    itops: ['Ticket ID', 'System', 'Priority', 'Status', 'Opened Date', 'Closed Date', 'Assignee', 'Subject'],
+    kpidashboard: ['KPI Name', 'Weight', 'Target', 'Actual', 'Min', 'Max', 'Frequency', 'Direction'],
+    organizational: ['Employee ID', 'Full Name', 'Nickname', 'Position', 'Job Level', 'Team', 'System', 'Work Site', 'Start Date', 'Manager ID', 'Manager Name', 'Date of Birth', 'Email', 'Phone', 'Gender']
+  }[key];
+  for (let i = 0; i < N; i++) {
+    const st = pick(['Open', 'In Progress', 'Closed', 'Overdue'], i);
+    const r = {
+      maintenance: () => ['WO-' + (100 + i), 'EQ-' + (i % 5), pick(['Escalator', 'Lift', 'PSD', 'Pump'], i), (i % 4) * 2.5, RD_D(30 - i), RD_D(32 - i), RD_D(31 - i), 1200 + i * 150, 800 + i * 90, pick(['Closed', 'Open', 'In Progress'], i), pick(['Wear', 'Electrical', 'Jam'], i), pick(['PM', 'CM'], i), pick(['Line A', 'Line B'], i)],
+      project: () => ['Project ' + (i % 3), 'Task ' + i, pick(['ACME', 'Globex'], i), pick(['Somchai', 'Somsri'], i), RD_D(60 - i * 2), RD_D(20 - i), 40 + i * 4, 50 + i * 3, 0.7 + (i % 5) * 0.12, pick(['On track', 'Delayed', 'Done'], i), 10000 + i * 900, 10 + i],
+      legal: () => ['M-' + i, pick(['ACME', 'Globex', 'Initech'], i), pick(['Corporate', 'Litigation'], i), pick(['Anan', 'Boon'], i), 4 + i, 20000 + i * 1500, 15000 + i * 1000, pick(['Open', 'Closed', 'Pending'], i), RD_D(90 - i * 3), i % 3 ? null : RD_D(5), RD_D(-i), pick(['Lead', 'Associate'], i)],
+      risk: () => ['Risk ' + i, pick(['Operational', 'Financial', 'Safety'], i), (i % 5) + 1, ((i * 2) % 5) + 1, ((i % 5) + 1) * (((i * 2) % 5) + 1), 'Mitigation ' + i, (i % 4) + 1, 'REF-' + i, pick(['Open', 'Mitigated', 'Closed'], i), pick(['Nok', 'Mali'], i), RD_D(80 - i * 3), i % 3 ? null : RD_D(4)],
+      finance: () => [RD_D(i * 4), i % 2 ? 0 : 30000 + i * 500, i % 2 ? 2000 + i * 300 : 0, 2000 + i * 300, pick(['Income', 'Expense'], i), pick(['Salary', 'Food', 'Rent', 'Travel'], i), pick(['Bank A', 'Cash'], i), 'Item ' + i, 5000],
+      reading: () => ['Book ' + i, pick(['Author A', 'Author B'], i), RD_D(70 - i * 4), i % 4 ? RD_D(55 - i * 4) : null, 180 + i * 12, pick(['Novel', 'Science', 'History'], i), (i % 5) + 1, pick(['Reading', 'Finished'], i)],
+      safety: () => [RD_D(i * 5), pick(['Near miss', 'First aid', 'Property damage'], i), pick(['Low', 'Medium', 'High'], i), pick(['Ops', 'Maintenance'], i), pick(['Open', 'Closed'], i), RD_D(-3 - i), 'Project ' + (i % 3), 'Finding ' + i],
+      hr: () => ['E' + (100 + i), 'Employee ' + i, pick(['Ops', 'Finance', 'IT'], i), pick(['Engineer', 'Manager', 'Clerk'], i), RD_D(900 - i * 40), i % 7 ? null : RD_D(20), i % 7 ? 'Active' : 'Resigned', pick(['Full-time', 'Contract'], i), pick(['Done', 'Pending'], i)],
+      itops: () => ['T-' + (1000 + i), pick(['ERP', 'Mail', 'VPN'], i), pick(['P1', 'P2', 'P3'], i), pick(['Open', 'Closed', 'Pending'], i), RD_D(20 - i), i % 2 ? RD_D(10 - i / 2) : null, pick(['Ake', 'Bee'], i), 'Subject ' + i],
+      kpidashboard: () => ['KPI ' + i, 10 + (i % 3) * 5, 100, 60 + i * 3, 0, 120, pick(['Monthly', 'Quarterly'], i), pick(['Higher', 'Lower'], i)],
+      organizational: () => ['E' + (200 + i), 'Person ' + i, 'Nick' + i, pick(['Engineer', 'Manager', 'Director'], i), pick(['L1', 'L2', 'L3'], i), pick(['Team A', 'Team B'], i), pick(['E&M', 'Civil'], i), pick(['HQ', 'Site 1'], i), RD_D(900 - i * 30), i ? 'E200' : '', i ? 'Person 0' : '', RD_D(11000 + i * 90), 'p' + i + '@example.com', '08' + (10000000 + i), pick(['F', 'M'], i)]
+    }[key]();
+    rows.push(r);
+  }
+  return [hdr].concat(rows);
+}
+// คดีมีขั้นตอน 37 ข้อ (คอลัมน์ "N. …" = วันที่ทำเสร็จ, "Plan N" = จำนวนวันมาตรฐาน) → ปลุกตัวติดตามความคืบหน้าคดี + กล่องดูรายละเอียดขั้นตอน
+function rdLitigation() {
+  const stages = ['Intake', 'Facts', 'Notice', 'Plaint', 'Answer', 'Counterclaim', 'Filing', 'Pauper', 'Default', 'Mediation', 'Interim', 'Pre-trial'];
+  const hdr = ['Matter ID', 'Client', 'Practice Area', 'Attorney', 'Billable Hours', 'Amount Billed', 'Amount Collected', 'Status', 'Open Date', 'Court Date', 'Role']
+    .concat(stages.map((x, i) => (i + 1) + '. ' + x)).concat(stages.map((x, i) => 'Plan ' + (i + 1)));
+  const rows = [];
+  for (let i = 0; i < 6; i++) {
+    const done = 3 + i * 2;
+    rows.push(['L-' + i, ['ACME', 'Globex'][i % 2], ['Corporate', 'Litigation'][i % 2], ['Anan', 'Boon'][i % 2], 10 + i, 30000 + i * 2000, 20000 + i * 1500, ['Open', 'Closed'][i % 2], RD_D(200 - i * 10), RD_D(-5 - i), ['Plaintiff', 'Defendant', ''][i % 3]]
+      .concat(stages.map((x, k) => (k < done ? RD_D(190 - i * 10 - k * 8) : null))).concat(stages.map(() => 14)));
+  }
+  return [hdr].concat(rows);
+}
+function rdXlsx(XLSX, key) {
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(key === 'legal-lit' ? rdLitigation() : rdSheet(key), { cellDates: true }), 'Data');
+  return Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx', cellDates: true }));
+}
+function reportDashboard(h) {
+  const { dom, settle, closeAll } = h;
+  let XLSX = null; try { XLSX = require('xlsx'); } catch (e) {}
+  const upload = (key) => async (p) => {
+    await closeAll(p);
+    await p.setInputFiles('#fileInput', { name: key + '.xlsx', mimeType: 'application/octet-stream', buffer: rdXlsx(XLSX, key) });
+    await settle(p, 900);
+    if (await p.evaluate(() => { const b = document.getElementById('confirmHeaderBtn'); return !!(b && b.offsetParent); })) { await dom(p, '#confirmHeaderBtn'); await settle(p, 900); }
+    await p.waitForFunction(() => { const v = document.getElementById('dashboardView'); return v && v.offsetParent; }, null, { timeout: 12000 }).catch(() => {});
+    await settle(p, 900);
+    // ตรวจจับแม่แบบอัตโนมัติไม่เลือกโมดูลโดเมนให้ทุกชุดข้อมูล — ล็อกแม่แบบเป็นของโมดูลที่กำลังทดสอบ (ผู้ใช้ทำได้เองจากตัวเลือก "แม่แบบ")
+    await p.evaluate((k) => { const el = document.getElementById('domainOverrideSel'); if (el) { el.value = k; el.dispatchEvent(new Event('change', { bubbles: true })); } }, key === 'legal-lit' ? 'legal' : key);
+    await settle(p, 1000);
+  };
+  const states = [];
+  const section = (n) => async (p) => { await dom(p, `[data-section-page="${n}"]`); await settle(p, 500); };
+  const view = (n) => async (p) => { await closeAll(p); await dom(p, `#viewTabs [data-view="${n}"]`); await settle(p, 700); };
+  const menu = (trig) => async (p) => {
+    await closeAll(p); await view('dashboard')(p);
+    await dom(p, '#utilityHamburgerBtn'); await settle(p, 300);
+    await dom(p, `.utility-menu-item[data-trigger="${trig}"]`); await settle(p, 600);
+  };
+  ['maintenance', 'project', 'legal', 'legal-lit', 'risk', 'finance', 'reading', 'safety', 'hr', 'itops', 'kpidashboard', 'organizational'].forEach((k) => {
+    states.push(['dash-' + k, upload(k)]);
+    ['projects', 'analytics', 'details'].forEach((n) => states.push(['dash-' + k + '-' + n, section(n)]));
+    if (k === 'legal-lit') {
+      states.push(['legal-lit-detail', async (p) => { await closeAll(p); await dom(p, '[data-section-page="projects"]'); await settle(p, 600); await dom(p, '.lg-detail-btn'); await settle(p, 700); }]);
+      states.push(['legal-lit-detail-close', async (p) => { await dom(p, '.lg-modal-close'); await settle(p, 400); }]);
+    }
+    if (k === 'finance') {
+      states.push(['mode-analysis', async (p) => { await dom(p, '[data-dbmode="analysis"]'); await settle(p, 600); }]);
+      states.push(['mode-table', async (p) => { await dom(p, '[data-dbmode="table"]'); await settle(p, 600); }]);
+      states.push(['mode-exec', async (p) => { await dom(p, '[data-dbmode="executive"]'); await settle(p, 600); }]);
+      states.push(['utility-menu', async (p) => { await dom(p, '#utilityHamburgerBtn'); await settle(p, 500); }]);
+      ['bookmarkBtn', 'bookmarksBtn', 'versionBtn', 'auditBtn', 'dashboardStyleBtn', 'dashboardBgBtn', 'autoSummaryBtn'].forEach((t) => states.push(['menu-' + t, menu(t)]));
+      states.push(['dlg-filters', async (p) => { await closeAll(p); await dom(p, '#final25DbFilterBtn'); await settle(p, 500); }]);
+      states.push(['dlg-design', async (p) => { await closeAll(p); await dom(p, '#dashboardDesignBtn'); await settle(p, 500); }]);
+      states.push(['palette', async (p) => { await closeAll(p); await dom(p, '#commandPaletteBtn'); await settle(p, 500); }]);
+      states.push(['view-table', view('table')]);
+      ['addRowBtn', 'addColBtn', 'addFormulaColBtn', 'dataHealthBtn', 'freezeColBtn', 'groupByBtn', 'saveReportBtn'].forEach((b) => states.push(['table-' + b, async (p) => { await closeAll(p); await dom(p, '#' + b); await settle(p, 600); }]));
+      states.push(['view-custom', view('custom')]);
+      // กล่องแบบกำหนดเอง: ป๊อปโอเวอร์เพิ่มกล่อง → เพิ่มทุกชนิด (กล่อง KPI/กราฟ/ตาราง/ข้อความ + แม่แบบ) แล้วเปิดตั้งค่ากล่อง
+      const must = async (p, sel) => { if (!(await dom(p, sel))) throw new Error('ไม่พบ ' + sel); };
+      states.push(['custom-add-popover', async (p) => { await closeAll(p); await must(p, '#addWidgetBtn'); await settle(p, 500); }]);
+      ['kpi', 'chart', 'table', 'text'].forEach((k) => states.push(['custom-add-' + k, async (p) => {
+        if (!(await p.evaluate(() => !!document.querySelector('.add-widget-pick')))) await must(p, '#addWidgetBtn');
+        await settle(p, 300); await must(p, `.add-widget-pick [data-type="${k}"]`); await settle(p, 700);
+      }]));
+      states.push(['custom-add-template', async (p) => { await must(p, '#addWidgetBtn'); await settle(p, 300); await must(p, '.add-widget-pick [data-template="maintenance"]'); await settle(p, 1800); }]);
+      states.push(['custom-widget-config', async (p) => { await closeAll(p); await must(p, '#customView .grid-stack-item [data-act="edit"], #customView .cw-edit, #customView .grid-stack-item button'); await settle(p, 600); }]);
+      // ตาราง: เมนูตัวกรองของหัวคอลัมน์ + สี/จัดรูปแบบเซลล์
+      states.push(['table-col-filter', async (p) => { await closeAll(p); await view('table')(p); await must(p, '#dataTable .th-fbtn'); await settle(p, 500); }]);
+      states.push(['table-cell-color', async (p) => { await closeAll(p); await p.evaluate(() => { const c = document.querySelector('#dataTable td[data-col]'); if (c) c.click(); }); await must(p, '#cellColorBtn'); await settle(p, 500); }]);
+      states.push(['table-cell-style', async (p) => { await closeAll(p); await must(p, '#cellStyleBtn'); await settle(p, 500); }]);
+      states.push(['table-cond-format', async (p) => { await closeAll(p); await must(p, '#condFormatToolbarBtn'); await settle(p, 500); }]);
+    }
+  });
+  // ท้ายสุด (รีโหลดหน้า = ล้างสถานะในหน้า): บันทึกเป็นรายงาน → รีโหลดเห็นการ์ด "ทำค้างไว้"/"รายงานของฉัน" → ดำเนินการต่อ → ไฟล์หลายชีต (ตัวเลือกชีต/แถวหัวตาราง)
+  const must2 = async (p, sel) => { if (!(await dom(p, sel))) throw new Error('ไม่พบ ' + sel); };
+  states.push(['save-report', async (p) => {
+    await closeAll(p); await must2(p, '#saveReportBtn'); await settle(p, 500);
+    await p.fill('#whiteTextPromptInput', 'Report A', { timeout: 4000 }); await must2(p, '[data-wapply]'); await settle(p, 900);
+  }]);
+  states.push(['resume-cards', async (p) => {
+    await p.reload({ waitUntil: 'load' }); await p.waitForSelector('nav.ome-nav', { timeout: 30000 }); await settle(p, 1500);
+    await p.addScriptTag({ path: require('path').join(__dirname, 'theme-audit-page.js') }); // รีโหลด = ตัวตรวจในหน้าหาย ใส่ใหม่
+    if (!(await p.evaluate(() => { const c = document.getElementById('resumeCard'); return !!(c && c.offsetParent); }))) throw new Error('ไม่เห็นการ์ดทำค้างไว้');
+  }]);
+  const setTpl = async (p, v) => { await p.evaluate((k) => { const el = document.getElementById('domainOverrideSel'); if (el) { el.value = k; el.dispatchEvent(new Event('change', { bubbles: true })); } }, v); await settle(p, 900); };
+  states.push(['resume', async (p) => { await must2(p, '#resumeBtn'); await settle(p, 1500); await setTpl(p, 'organizational'); }]);
+  const multi = () => {
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Name', 'Qty'], ['A', 1], ['B', 2]]), 'Sheet A');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Name', 'Qty'], ['C', 3]]), 'Sheet B');
+    return Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+  };
+  states.push(['sheet-picker', async (p) => {
+    await p.setInputFiles('#fileInput', { name: 'multi.xlsx', mimeType: 'application/octet-stream', buffer: multi() }); await settle(p, 1200);
+  }]);
+  states.push(['sheet-single', async (p) => { await must2(p, '#sheetModeSingle'); await settle(p, 400); await must2(p, '#sheetChips .chip'); await settle(p, 900); await setTpl(p, 'none'); }]);
+  return {
+    page: 'report-dashboard.html',
+    overlay: '#filterPopover,#utilityMenuPanel,.lg-modal-ov',
+    seed: {},
+    init: 'window.TANOT_AI = { enabled: false };',
+    user: null,
+    states
+  };
+}
+
 const ALLOW = [];
 
 function targets(h) {
-  return [tax(h), electrical(h), maintenance(h), runPage(h), cad(h)];
+  return [tax(h), electrical(h), maintenance(h), runPage(h), cad(h), reportDashboard(h)];
 }
 module.exports = { targets, ALLOW, NOW };

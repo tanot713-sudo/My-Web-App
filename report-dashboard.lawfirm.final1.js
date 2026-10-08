@@ -14,6 +14,8 @@
 (function(){
   'use strict';
   function P(){return window.TanotReportUtils.palette();}
+  /* ภาษาหน้า (OME_LANG กลาง) — ข้อความไทย/อังกฤษคู่กัน, โครงแผงสร้างใหม่เมื่อสลับภาษา (ดู init) */
+  function L(th,en){return (window.OME_LANG&&window.OME_LANG.get&&window.OME_LANG.get()==='en')?en:th;}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -72,10 +74,12 @@
     "ขอทุเลาการบังคับคดี","คัดถ่ายคำเบิกความพยาน","วิเคราะห์คำพิพากษาก่อนอุทธรณ์","ค่าใช้จ่ายในชั้นอุทธรณ์","คำฟ้องอุทธรณ์และคำแก้อุทธรณ์","คำฟ้องฎีกา และคำแก้ฎีกา",
     "ออกคำบังคับ","ออกหมายบังคับคดี และตั้งเจ้าพนักงานบังคับคดี","ยึดหรือการอายัดทรัพย์","ขายทอดตลาด","ร้องขัดทรัพย์","ขอเฉลี่ยทรัพย์","ขอกันส่วน"
   ];
+  var LF_STAGE_NAMES_EN=["Interview client on the facts","Apply the facts to legal principles","Issue a demand notice","Draft the plaint","Draft the answer","Draft the answer with counterclaim","File the plaint or answer; pay court fees","Apply to sue as a pauper or for court-fee waiver","Default in filing the answer","Compromise or mediation","Apply for interim protection before judgment","Pre-trial conference (if any)","File the witness list (at least 7 days before trial)","Request summonses for documentary, personal and physical evidence","Submit evidence to the court and the parties","Prepare the case or rehearse witnesses before testimony","Review evidence before submitting to the court","Request to consolidate proceedings","Request for postponement","Hear the plaintiff's and defendant's witnesses","Examination, cross-examination, re-examination, leave to ask the court","Pay stamp duty on documents submitted to the court","Closing statement","Judgment hearing","Request stay of execution","Obtain copies of witness testimony","Analyse the judgment before appealing","Appeal-stage costs","Appeal and response to appeal","Supreme Court appeal and response","Issue the enforcement order","Issue writ of execution and appoint enforcement officer","Seize or attach assets","Auction","Third-party claim to seized assets","Claim a share of the proceeds","Claim a reserved share"];
+  function lfStageName(i){return L(LF_STAGE_NAMES[i],LF_STAGE_NAMES_EN[i]);}
   var LF_TOTAL_STAGES=37;
   // ยืนยันกับผู้ใช้แล้ว (7 ก.ย. 2569): เฉพาะ 4 ข้อนี้ผูกกับฝ่ายเดียว ที่เหลือ 33 ข้อใช้ร่วมกันทั้งสองฝ่าย
   var LF_ROLE_MAP={3:'plaintiff',4:'plaintiff',5:'defendant',6:'defendant',9:'defendant'};
-  var LF_ROLE_LABEL={plaintiff:'โจทก์',defendant:'จำเลย'};
+  function lfRoleLabel(r){return {plaintiff:L('โจทก์','Plaintiff'),defendant:L('จำเลย','Defendant')}[r];}
   var LF_PLAINTIFF_KW=['plaintiff','โจทก์'];
   var LF_DEFENDANT_KW=['defendant','จำเลย'];
   function lfMix(c1,c2,t){
@@ -83,13 +87,14 @@
     return 'rgb('+[0,1,2].map(function(i){return Math.round(a[i]*t+b[i]*(1-t));}).join(',')+')';
   }
   var LF_PHASES=[
-    {name:'เตรียมคดี',from:1,to:6,mix:1},
-    {name:'ยื่นฟ้อง/ให้การ',from:7,to:11,mix:0.82},
-    {name:'ชั้นพยาน',from:12,to:19,mix:0.64},
-    {name:'สืบพยาน/พิจารณา',from:20,to:24,mix:0.48},
-    {name:'อุทธรณ์/ฎีกา',from:25,to:30,mix:0.34},
-    {name:'บังคับคดี',from:31,to:37,mix:0.22}
+    {th:'เตรียมคดี',en:'Case preparation',from:1,to:6,mix:1},
+    {th:'ยื่นฟ้อง/ให้การ',en:'Filing / answer',from:7,to:11,mix:0.82},
+    {th:'ชั้นพยาน',en:'Evidence stage',from:12,to:19,mix:0.64},
+    {th:'สืบพยาน/พิจารณา',en:'Trial / hearing',from:20,to:24,mix:0.48},
+    {th:'อุทธรณ์/ฎีกา',en:'Appeal',from:25,to:30,mix:0.34},
+    {th:'บังคับคดี',en:'Enforcement',from:31,to:37,mix:0.22}
   ].map(function(p){
+    Object.defineProperty(p,'name',{get:function(){return L(p.th,p.en);}});
     Object.defineProperty(p,'color',{get:function(){var c=P();return lfMix(c.accent,c.surface1,p.mix);}});
     return p;
   });
@@ -197,8 +202,8 @@
         raw:r, i:i,
         matterId: c.matterId?text(r[c.matterId.key]):('M-'+(i+1)),
         client: c.client?text(r[c.client.key]):'',
-        practiceArea: c.practiceArea?text(r[c.practiceArea.key])||'(ไม่ระบุ)':'(ไม่ระบุ)',
-        attorney: c.attorney?text(r[c.attorney.key])||'(ไม่ระบุ)':'(ไม่ระบุ)',
+        practiceArea: c.practiceArea?text(r[c.practiceArea.key])||L('(ไม่ระบุ)','(unspecified)'):L('(ไม่ระบุ)','(unspecified)'),
+        attorney: c.attorney?text(r[c.attorney.key])||L('(ไม่ระบุ)','(unspecified)'):L('(ไม่ระบุ)','(unspecified)'),
         billableHours: c.billableHours?num(r[c.billableHours.key])||0:0,
         billed: c.billed?num(r[c.billed.key])||0:0,
         collected: c.collected?num(r[c.collected.key])||0:0,
@@ -232,7 +237,7 @@
 #lawfirmControlLayout .lf-kpi.warn:after{background:var(--ome-warn)}#lawfirmControlLayout .lf-kpi.bad:after{background:var(--ome-err)}
 #lawfirmControlLayout .lf-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
 #lawfirmControlLayout .lf-kpi .v{font-size:var(--ome-fs-xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
-#lawfirmControlLayout .lf-kpi.warn .v{color:var(--ome-warn-ink)}#lawfirmControlLayout .lf-kpi.bad .v{color:var(--ome-err)}
+#lawfirmControlLayout .lf-kpi.warn .v{color:var(--ome-warn-ink)}#lawfirmControlLayout .lf-kpi.bad .v{color:var(--ome-err-ink)}
 #lawfirmControlLayout .lf-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
 #lawfirmControlLayout .lf-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
 #lawfirmControlLayout .lf-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
@@ -278,8 +283,8 @@
 #lawfirmControlLayout .lg-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
 #lawfirmControlLayout .lg-meta b{color:var(--ome-text-1);font-weight:600}
 #lawfirmControlLayout .lg-badge{display:inline-flex;align-items:center;gap:5px;font-size:var(--ome-fs-xs);font-weight:700;padding:3.5px 10px;border-radius:var(--ome-radius-pill);white-space:nowrap}
-#lawfirmControlLayout .lg-badge.ontrack{background:var(--ome-ok-soft);color:var(--ome-ok)}
-#lawfirmControlLayout .lg-badge.late{background:var(--ome-err-soft);color:var(--ome-err)}
+#lawfirmControlLayout .lg-badge.ontrack{background:var(--ome-ok-soft);color:var(--ome-ok-ink)}
+#lawfirmControlLayout .lg-badge.late{background:var(--ome-err-soft);color:var(--ome-err-ink)}
 #lawfirmControlLayout .lg-badge.ahead{background:var(--ome-accent-soft);color:var(--ome-accent)}
 #lawfirmControlLayout .lg-badge.finished{background:var(--ome-surface-2);color:var(--ome-text-2)}
 #lawfirmControlLayout .lg-badge.unknown{background:var(--ome-surface-2);color:var(--ome-text-2)}
@@ -295,14 +300,12 @@
 #lawfirmControlLayout .lg-caption{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 #lawfirmControlLayout .lg-phasechip{font-size:var(--ome-fs-xs);font-weight:700;padding:1px 7px;border-radius:var(--ome-radius-pill);color:var(--ome-on-accent)}
 #lawfirmControlLayout .lg-foot{display:flex;justify-content:flex-end;margin-top:10px;padding-top:9px;border-top:1px solid var(--ome-border)}
-#lawfirmControlLayout .lg-detail-btn{display:inline-flex;align-items:center;gap:6px;border:1.3px solid var(--ome-accent);background:var(--ome-surface-1);color:var(--ome-accent-strong);border-radius:var(--ome-radius-md);padding:6px 12px;font-size:var(--ome-fs-xs);font-weight:700;font-family:inherit;cursor:pointer}
-#lawfirmControlLayout .lg-detail-btn:hover{background:var(--ome-accent);color:var(--ome-on-accent)}
 /* modal (แนบตัวเองกับ body — ไม่ใช่ #lawfirmControlLayout — เพราะต้องลอยทับทั้งหน้าจอ) */
 .lg-modal-ov{position:fixed;inset:0;background:color-mix(in srgb,var(--ome-text-1) 45%,transparent);z-index:9500;display:flex;align-items:center;justify-content:center;padding:24px}
 .lg-modal{background:var(--ome-surface-1);border-radius:var(--ome-radius-lg);max-width:900px;width:100%;max-height:88vh;overflow:auto;box-shadow:var(--ome-shadow-1)}
 .lg-modal-hero{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--ome-border);position:sticky;top:0;background:var(--ome-surface-1);z-index:1}
 .lg-modal-hero .lg-cid{font-size:var(--ome-fs-md);font-weight:700;font-family:var(--pc53-mono,monospace)}
-.lg-modal-close{border:none;background:var(--ome-surface-2);color:var(--ome-text-2);width:28px;height:28px;border-radius:50%;font-size:var(--ome-fs-sm);cursor:pointer;flex:none}
+
 .lg-modal-body{padding:18px 20px}
 .lg-phase-block{margin-bottom:16px}
 .lg-phase-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
@@ -315,8 +318,8 @@
 .lg-step{display:flex;align-items:center;gap:8px;font-size:var(--ome-fs-xs);padding:8px 10px;border-radius:var(--ome-radius-md);border:1px solid var(--ome-border)}
 .lg-step.done{background:var(--ome-ok-soft);border-color:var(--ome-ok);color:var(--ome-ok-ink)}
 .lg-step.current{background:var(--ome-warn-soft);border-color:var(--ome-warn);color:var(--ome-warn-ink)}
-.lg-step.pending{background:var(--ome-surface-2);border-color:var(--ome-border);color:var(--ome-text-3)}
-.lg-step.na{background:var(--ome-surface-2);border-color:var(--ome-border);color:var(--ome-text-3);opacity:.75}
+.lg-step.pending{background:var(--ome-surface-2);border-color:var(--ome-border);color:var(--ome-text-2)}
+.lg-step.na{background:var(--ome-surface-2);border-color:var(--ome-border);color:var(--ome-text-2)}
 .lg-step .ic{flex:none;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-on-accent)}
 .lg-step.done .ic{background:var(--ome-ok)}.lg-step.current .ic{background:var(--ome-warn)}.lg-step.pending .ic{background:var(--ome-border-strong)}.lg-step.na .ic{background:var(--ome-info-soft);color:var(--ome-text-2)}
 .lg-step .natag{font-size:var(--ome-fs-xs);font-weight:700;margin-left:auto;padding-left:6px;white-space:nowrap}
@@ -349,11 +352,11 @@
       '<div class="lf-kpis" id="lfKpis"></div>'+
       '<section class="lf-panel lf-insight-panel"><h3>Executive Insight</h3><div id="lfInsight" class="lf-insight"></div></section>'+
       '<div class="lf-grid">'+
-        '<section class="lf-panel full" id="lfTrendSection"><h3>เรียกเก็บ (Billed) vs จัดเก็บได้จริง (Collected)</h3><div id="lfTrend"></div></section>'+
-        '<section class="lf-panel half"><h3>คดี/งานแยกตามประเภท</h3><div id="lfPractice"></div></section>'+
-        '<section class="lf-panel half"><h3>สถานะคดี</h3><div id="lfStatus"></div></section>'+
-        '<section class="lf-panel full"><h3>Billable Hours ต่อทนายความ</h3><div id="lfAttorney"></div></section>'+
-        '<section class="lf-panel full" id="lfDeadlineSection"><h3 id="lfDeadlineTitle">กำหนดนัด/เอกสารที่ใกล้ถึง</h3><div id="lfDeadlines"></div></section>'+
+        '<section class="lf-panel full" id="lfTrendSection"><h3>'+L('เรียกเก็บ (Billed) vs จัดเก็บได้จริง (Collected)','Billed vs collected')+'</h3><div id="lfTrend"></div></section>'+
+        '<section class="lf-panel half"><h3>'+L('คดี/งานแยกตามประเภท','Matters by practice area')+'</h3><div id="lfPractice"></div></section>'+
+        '<section class="lf-panel half"><h3>'+L('สถานะคดี','Matter status')+'</h3><div id="lfStatus"></div></section>'+
+        '<section class="lf-panel full"><h3>'+L('Billable Hours ต่อทนายความ','Billable hours per attorney')+'</h3><div id="lfAttorney"></div></section>'+
+        '<section class="lf-panel full" id="lfDeadlineSection"><h3 id="lfDeadlineTitle">'+L('กำหนดนัด/เอกสารที่ใกล้ถึง','Upcoming court dates / documents')+'</h3><div id="lfDeadlines"></div></section>'+
       '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('lawfirm-hidden-source');
@@ -377,7 +380,7 @@
       byMonth[k].billed+=r.billed; byMonth[k].collected+=r.collected;
     });
     var keys=Object.keys(byMonth).sort();
-    if(keys.length<2){host.innerHTML='<div class="lf-empty">ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)</div>';return;}
+    if(keys.length<2){host.innerHTML='<div class="lf-empty">'+L('ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)','Not enough data for a trend (at least 2 months needed)')+'</div>';return;}
     var perM=64,left=48,right=30,top=14,bottom=26,ph=190;
     var w=Math.max(400,left+right+(keys.length-1)*perM), h=top+ph+bottom, pw=w-left-right;
     var maxV=1; keys.forEach(function(k){maxV=Math.max(maxV,byMonth[k].billed,byMonth[k].collected);});
@@ -398,11 +401,11 @@
       out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>';
     });
     out+='</svg>';
-    host.innerHTML='<div class="lf-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style=\"color:'+P().infoInk+'\">● เรียกเก็บ (Billed)</span><span style=\"color:'+P().okInk+'\">● จัดเก็บได้จริง (Collected)</span></div>';
+    host.innerHTML='<div class="lf-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style=\"color:'+P().infoInk+'\">● '+L('เรียกเก็บ (Billed)','Billed')+'</span><span style=\"color:'+P().okInk+'\">● '+L('จัดเก็บได้จริง (Collected)','Collected')+'</span></div>';
   }
 
   function barListHtml(entries,color){
-    if(!entries.length)return '<div class="lf-empty">ไม่มีข้อมูล</div>';
+    if(!entries.length)return '<div class="lf-empty">'+L('ไม่มีข้อมูล','No data')+'</div>';
     var w=460,rowH=26,h=14+entries.length*rowH,left=118,right=34,barW=w-left-right;
     var maxV=Math.max.apply(null,entries.map(function(e){return e[1];}))||1;
     var out=svgOpen(w,h);
@@ -436,7 +439,7 @@
     var counts={open:0,closed:0,hold:0,other:0,unknown:0};
     rows.forEach(function(r){ var b=statusBucket(r.status); counts[b]=(counts[b]||0)+1; });
     var total=Math.max(1,rows.length);
-    var vals=[['open','เปิดอยู่ (Active)',counts.open+counts.unknown+counts.other,P().info],['closed','ปิดแล้ว',counts.closed,P().ok],['hold','ระงับชั่วคราว',counts.hold,P().faint]];
+    var vals=[['open',L('เปิดอยู่ (Active)','Active'),counts.open+counts.unknown+counts.other,P().info],['closed',L('ปิดแล้ว','Closed'),counts.closed,P().ok],['hold',L('ระงับชั่วคราว','On hold'),counts.hold,P().faint]];
     var out='<div class="lf-status-row">';
     vals.forEach(function(v){
       var pct=(v[2]/total*100).toFixed(0);
@@ -464,12 +467,12 @@
     var pct=(curStage.step-0.5)/LF_TOTAL_STAGES*100;
     var marker='<div class="lg-marker" style="left:'+pct+'%"><span class="chip">'+curStage.idx+'/'+curStage.total+'</span><span class="pin"></span></div>';
     var ph=lfPhaseOf(curStage.step);
-    var caption='<div class="lg-caption"><span class="lg-phasechip" style="background:'+ph.color+'">'+esc(ph.name)+'</span>'+
-      '<span>ขั้นตอนที่ '+curStage.idx+'/'+curStage.total+(role?' (เฉพาะฝ่ายนี้)':'')+' — '+esc(LF_STAGE_NAMES[curStage.step-1])+'</span></div>';
+    var caption='<div class="lg-caption"><span class="lg-phasechip" style="background:color-mix(in srgb,'+ph.color+' 30%,var(--ome-surface-1));color:var(--ome-text-1);box-shadow:inset 0 0 0 1.5px '+ph.color+'">'+esc(ph.name)+'</span>'+
+      '<span>'+L('ขั้นตอนที่ ','Step ')+curStage.idx+'/'+curStage.total+(role?L(' (เฉพาะฝ่ายนี้)',' (this side only)'):'')+' — '+esc(lfStageName(curStage.step-1))+'</span></div>';
     return '<div class="lg-track-wrap">'+marker+track+'</div>'+caption;
   }
 
-  var LG_EVAL_LABEL={ontrack:['ตามแผน','ontrack'],late:['ล่าช้ากว่าแผน','late'],ahead:['เร็วกว่าแผน','ahead'],finished:['เสร็จสิ้นแล้ว','finished']};
+  function lgEvalLabel(k){return {ontrack:[L('ตามแผน','On plan'),'ontrack'],late:[L('ล่าช้ากว่าแผน','Behind plan'),'late'],ahead:[L('เร็วกว่าแผน','Ahead of plan'),'ahead'],finished:[L('เสร็จสิ้นแล้ว','Finished'),'finished']}[k];}
 
   function renderLitigation(allRows, today){
     var host=q('#lfDeadlines'); if(!host)return;
@@ -479,7 +482,7 @@
       return {r:r, ev:ev};
     });
     lgCases=cases;
-    if(!cases.length){ host.innerHTML='<div class="lf-empty">ไม่มีคดีที่เปิดอยู่</div>'; return; }
+    if(!cases.length){ host.innerHTML='<div class="lf-empty">'+L('ไม่มีคดีที่เปิดอยู่','No open matters')+'</div>'; return; }
     // ภาพรวม: นับเฉพาะคดีที่ประเมินได้ (มีทั้งวันที่เปิดคดี+ข้อมูลแผนครบ) ไม่รวม finished/unknown ในโดนัท
     var statusCount={ontrack:0,late:0,ahead:0};
     cases.forEach(function(c){ if(statusCount.hasOwnProperty(c.ev.status)) statusCount[c.ev.status]++; });
@@ -493,13 +496,13 @@
         stops+=(i?', ':'')+STATUS_COLOR[k]+' '+from.toFixed(2)+'% '+to.toFixed(2)+'%';
       });
       donutHtml='<div class="lg-overview"><div class="lg-donut-wrap"><div class="lg-donut" style="background:conic-gradient('+stops+')"></div>'+
-        '<div class="lg-donut-hole"><span class="lg-donut-total">'+evaluable+'</span><span class="lg-donut-label">คดีที่ประเมินได้</span></div></div>'+
+        '<div class="lg-donut-hole"><span class="lg-donut-total">'+evaluable+'</span><span class="lg-donut-label">'+L('คดีที่ประเมินได้','Assessable matters')+'</span></div></div>'+
         '<div class="lg-donut-legend">'+['ontrack','late','ahead'].map(function(k){
-          return '<div class="lg-dl-item"><span class="lg-dl-dot" style="background:'+STATUS_COLOR[k]+'"></span>'+LG_EVAL_LABEL[k][0]+' <span class="lg-dl-val">'+statusCount[k]+'</span></div>';
+          return '<div class="lg-dl-item"><span class="lg-dl-dot" style="background:'+STATUS_COLOR[k]+'"></span>'+lgEvalLabel(k)[0]+' <span class="lg-dl-val">'+statusCount[k]+'</span></div>';
         }).join('')+'</div></div>';
     }
     var legendHtml='<div class="lg-legend">'+LF_PHASES.map(function(p){return '<span><span class="sw" style="background:'+p.color+'"></span>'+esc(p.name)+'</span>';}).join('')+
-      '<span><span class="sw na"></span>ไม่เกี่ยวข้องกับฝ่ายนี้</span></div>';
+      '<span><span class="sw na"></span>'+L('ไม่เกี่ยวข้องกับฝ่ายนี้','Not applicable to this side')+'</span></div>';
     // เรียงคดีล่าช้าก่อน แล้วตามแผน แล้วเร็วกว่า แล้วไม่ทราบ/เสร็จสิ้น ท้ายสุด
     var RANK={late:0,ontrack:1,ahead:2,null:3,finished:4};
     var sorted=cases.slice().sort(function(a,b){
@@ -509,14 +512,14 @@
     var cardsHtml=sorted.map(function(c){
       var idx=cases.indexOf(c);
       var r=c.r, ev=c.ev, role=r.caseRole;
-      var roleHtml = role ? '<span class="lg-role '+role+'">'+(role==='plaintiff'?'':'')+' ฝ่าย'+LF_ROLE_LABEL[role]+'</span>' : '';
-      var lab = ev.status==null ? ['ไม่มีข้อมูลแผน','unknown'] : LG_EVAL_LABEL[ev.status];
+      var roleHtml = role ? '<span class="lg-role '+role+'">'+(role==='plaintiff'?'':'')+' '+L('ฝ่าย','Side: ')+lfRoleLabel(role)+'</span>' : '';
+      var lab = ev.status==null ? [L('ไม่มีข้อมูลแผน','No plan data'),'unknown'] : lgEvalLabel(ev.status);
       return '<div class="lg-case">'+
         '<div class="lg-case-top"><div class="lg-id-wrap"><span class="lg-id">'+esc(r.matterId)+'</span>'+roleHtml+
           '<div class="lg-meta">'+(r.client?'<span><b>'+esc(r.client)+'</b></span>':'')+'<span>'+esc(r.attorney)+'</span></div></div>'+
           '<span class="lg-badge '+lab[1]+'"><span class="dot"></span>'+lab[0]+'</span></div>'+
         lgGanttHtml(role, r.doneSteps, ev.cur)+
-        '<div class="lg-foot"><button class="lg-detail-btn" data-lg-idx="'+idx+'">ดูรายละเอียดขั้นตอน →</button></div>'+
+        '<div class="lg-foot"><button class="btn sm lg-detail" data-lg-idx="'+idx+'">'+L('ดูรายละเอียดขั้นตอน →','View step details →')+'</button></div>'+
       '</div>';
     }).join('');
     host.innerHTML=donutHtml+legendHtml+'<div class="lg-case-list">'+cardsHtml+'</div>';
@@ -531,23 +534,23 @@
       var doneCount=applicableInPhase.filter(function(s){return r.doneSteps.indexOf(s)>-1;}).length;
       var pct=applicableInPhase.length?Math.round(doneCount/applicableInPhase.length*100):0;
       return '<div class="lg-phase-block"><div class="lg-phase-head">'+
-        '<span class="ring" style="background:'+p.color+'">'+doneCount+'/'+applicableInPhase.length+'</span>'+
+        '<span class="ring" style="background:color-mix(in srgb,'+p.color+' 30%,var(--ome-surface-1));color:var(--ome-text-1);box-shadow:inset 0 0 0 1.5px '+p.color+'">'+doneCount+'/'+applicableInPhase.length+'</span>'+
         '<span class="name">'+esc(p.name)+'</span>'+
         '<div class="ptrack"><div class="pfill" style="width:'+pct+'%;background:'+p.color+'"></div></div>'+
         '<span class="ptxt">'+pct+'%</span></div>'+
         '<div class="lg-step-grid">'+stepsInPhase.map(function(s){
           var cls = !lfIsApplicable(s,role) ? 'na' : (r.doneSteps.indexOf(s)>-1 ? 'done' : (s===ev.cur.step ? 'current' : 'pending'));
           var icon = cls==='na' ? '–' : cls==='done' ? '✓' : cls==='current' ? '●' : s;
-          return '<div class="lg-step '+cls+'"><span class="ic">'+icon+'</span><span>'+s+'. '+esc(LF_STAGE_NAMES[s-1])+'</span>'+(cls==='na'?'<span class="natag">ไม่เกี่ยวข้องกับฝ่ายนี้</span>':'')+'</div>';
+          return '<div class="lg-step '+cls+'"><span class="ic">'+icon+'</span><span>'+s+'. '+esc(lfStageName(s-1))+'</span>'+(cls==='na'?'<span class="natag">'+L('ไม่เกี่ยวข้องกับฝ่ายนี้','Not applicable to this side')+'</span>':'')+'</div>';
         }).join('')+'</div></div>';
     }).join('');
-    var lab = ev.status==null ? ['ไม่มีข้อมูลแผน','unknown'] : LG_EVAL_LABEL[ev.status];
+    var lab = ev.status==null ? [L('ไม่มีข้อมูลแผน','No plan data'),'unknown'] : lgEvalLabel(ev.status);
     var ov=document.createElement('div'); ov.className='lg-modal-ov';
     ov.innerHTML='<div class="lg-modal">'+
       '<div class="lg-modal-hero"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="lg-cid">'+esc(r.matterId)+'</span>'+
-        (role?'<span class="lg-role '+role+'">'+(role==='plaintiff'?'':'')+' ฝ่าย'+LF_ROLE_LABEL[role]+'</span>':'')+
+        (role?'<span class="lg-role '+role+'">'+(role==='plaintiff'?'':'')+' '+L('ฝ่าย','Side: ')+lfRoleLabel(role)+'</span>':'')+
         '<span class="lg-badge '+lab[1]+'"><span class="dot"></span>'+lab[0]+'</span></div>'+
-        '<button class="lg-modal-close" type="button" aria-label="ปิด"></button></div>'+
+        '<button class="btn ghost icon sm lg-modal-close" type="button" aria-label="'+L('ปิด','Close')+'">'+window.TanotReportUtils.icon('x')+'</button></div>'+
       '<div class="lg-modal-body">'+phaseBlocks+'</div>'+
     '</div>';
     document.body.appendChild(ov);
@@ -579,9 +582,9 @@
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
     layout.innerHTML='<section class="lf-panel"><h3>Law Firm Dashboard</h3>'+
-      '<div class="lf-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายข้อมูลสำนักงานกฎหมาย (ต้องมีคอลัมน์ '+
+      '<div class="lf-empty">'+L('ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายข้อมูลสำนักงานกฎหมาย (ต้องมีคอลัมน์ '+
       'ทนายความ/ประเภทคดี ร่วมกับ ชั่วโมงเรียกเก็บ/ยอดเรียกเก็บ) — ลองเลือก Template เป็น "Auto" '+
-      'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
+      'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้','This data has no law-firm columns (an attorney / practice-area column together with billable hours / amount billed is required) — try setting Template to "Auto" or upload data that has these columns')+'</div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('lawfirm-hidden-source');
     });
@@ -612,33 +615,33 @@
     var crClass=collectionRate==null?'':collectionRate<80?' bad':collectionRate<90?' warn':'';
 
     q('#lfKpis').innerHTML=
-      '<div class="lf-kpi"><div class="l">Open Matters</div><div class="v">'+openMatters+'</div><div class="s">คดี/งานที่ยังเปิดอยู่</div></div>'+
-      '<div class="lf-kpi"><div class="l">Billable Hours</div><div class="v">'+Math.round(totalHours).toLocaleString()+'</div><div class="s">ชั่วโมงสะสมทั้งหมด</div></div>'+
-      '<div class="lf-kpi"><div class="l">ยอดเรียกเก็บ</div><div class="v">'+baht(totalBilled)+'</div><div class="s">สะสมทั้งหมด</div></div>'+
-      '<div class="lf-kpi"><div class="l">ยอดจัดเก็บได้จริง</div><div class="v">'+baht(totalCollected)+'</div><div class="s">สะสมทั้งหมด</div></div>'+
-      '<div class="lf-kpi'+crClass+'"><div class="l">Collection Rate</div><div class="v">'+(collectionRate==null?'—':collectionRate.toFixed(0)+'%')+'</div><div class="s">จัดเก็บได้ / เรียกเก็บ</div></div>';
+      '<div class="lf-kpi"><div class="l">Open Matters</div><div class="v">'+openMatters+'</div><div class="s">'+L('คดี/งานที่ยังเปิดอยู่','Matters still open')+'</div></div>'+
+      '<div class="lf-kpi"><div class="l">Billable Hours</div><div class="v">'+Math.round(totalHours).toLocaleString()+'</div><div class="s">'+L('ชั่วโมงสะสมทั้งหมด','Total cumulative hours')+'</div></div>'+
+      '<div class="lf-kpi"><div class="l">'+L('ยอดเรียกเก็บ','Amount billed')+'</div><div class="v">'+baht(totalBilled)+'</div><div class="s">'+L('สะสมทั้งหมด','Cumulative')+'</div></div>'+
+      '<div class="lf-kpi"><div class="l">'+L('ยอดจัดเก็บได้จริง','Amount collected')+'</div><div class="v">'+baht(totalCollected)+'</div><div class="s">'+L('สะสมทั้งหมด','Cumulative')+'</div></div>'+
+      '<div class="lf-kpi'+crClass+'"><div class="l">Collection Rate</div><div class="v">'+(collectionRate==null?'—':collectionRate.toFixed(0)+'%')+'</div><div class="s">'+L('จัดเก็บได้ / เรียกเก็บ','Collected / billed')+'</div></div>';
 
-    var statusText=collectionRate!=null&&collectionRate<80?'ต้องเร่งติดตามการจัดเก็บเงิน':openMatters>0?'มีคดีเปิดอยู่หลายรายการ':'อยู่ในเกณฑ์ปกติ';
-    q('#lfInsight').innerHTML='สถานะโดยรวม <b>'+statusText+'</b> — มี <b>'+openMatters+' คดี</b> ที่ยังเปิดอยู่ เรียกเก็บรวม <b>'+baht(totalBilled)+'</b>'+(collectionRate!=null?' Collection Rate <b>'+collectionRate.toFixed(0)+'%</b>':'')+'.';
+    var statusText=collectionRate!=null&&collectionRate<80?L('ต้องเร่งติดตามการจัดเก็บเงิน','Collections need urgent follow-up'):openMatters>0?L('มีคดีเปิดอยู่หลายรายการ','Several matters are open'):L('อยู่ในเกณฑ์ปกติ','Within normal range');
+    q('#lfInsight').innerHTML=L('สถานะโดยรวม <b>'+statusText+'</b> — มี <b>'+openMatters+' คดี</b> ที่ยังเปิดอยู่ เรียกเก็บรวม <b>'+baht(totalBilled)+'</b>'+(collectionRate!=null?' Collection Rate <b>'+collectionRate.toFixed(0)+'%</b>':'')+'.','Overall status <b>'+statusText+'</b> — <b>'+openMatters+' matters</b> are still open, total billed <b>'+baht(totalBilled)+'</b>'+(collectionRate!=null?', collection rate <b>'+collectionRate.toFixed(0)+'%</b>':'')+'.');
 
     renderTrend(rows); renderPractice(rows); renderStatus(rows); renderAttorney(rows);
 
     if(data.hasLitigation){
-      q('#lfDeadlineTitle').textContent='ความคืบหน้าคดี (37 ขั้นตอนมาตรฐานคดีแพ่ง)';
+      q('#lfDeadlineTitle').textContent=L('ความคืบหน้าคดี (37 ขั้นตอนมาตรฐานคดีแพ่ง)','Matter progress (37 standard civil-case steps)');
       renderLitigation(rows, today);
     } else {
-      q('#lfDeadlineTitle').textContent='กำหนดนัด/เอกสารที่ใกล้ถึง';
+      q('#lfDeadlineTitle').textContent=L('กำหนดนัด/เอกสารที่ใกล้ถึง','Upcoming court dates / documents');
       var deadlines=rows.filter(function(r){return r.dueDate && statusBucket(r.status)!=='closed';})
         .sort(function(a,b){return a.dueDate-b.dueDate;}).slice(0,8);
       q('#lfDeadlines').innerHTML=deadlines.length?deadlines.map(function(r){
         var days=Math.round((r.dueDate-today)/86400000);
-        var urgency=days<3?'color:var(--ome-err);font-weight:800':days<7?'color:var(--ome-warn);font-weight:700':'color:var(--ome-text-3)';
-        var label=days<0?'เลยกำหนดแล้ว '+Math.abs(days)+' วัน':days===0?'วันนี้':'อีก '+days+' วัน';
+        var urgency=days<3?'color:var(--ome-err-ink);font-weight:800':days<7?'color:var(--ome-warn-ink);font-weight:700':'color:var(--ome-text-2)';
+        var label=days<0?L('เลยกำหนดแล้ว '+Math.abs(days)+' วัน',Math.abs(days)+' days overdue'):days===0?L('วันนี้','Today'):L('อีก '+days+' วัน','In '+days+' days');
         return '<div class="lf-list"><b>'+esc(r.matterId)+(r.client?' · '+esc(r.client):'')+'</b><span>'+esc(r.practiceArea)+' · '+esc(r.attorney)+'</span><span style="'+urgency+'">'+label+'</span></div>';
-      }).join(''):'<div class="lf-empty">ไม่มีกำหนดนัดที่ใกล้ถึง</div>';
+      }).join(''):'<div class="lf-empty">'+L('ไม่มีกำหนดนัดที่ใกล้ถึง','No upcoming dates')+'</div>';
     }
 
-    q('#lfUpdated').textContent='รอบข้อมูลถึง '+fmt(today)+' · '+rows.length.toLocaleString()+' คดี/งาน';
+    q('#lfUpdated').textContent=L('รอบข้อมูลถึง ','Data through ')+fmt(today)+' · '+rows.length.toLocaleString()+L(' คดี/งาน',' matters');
   }
 
   function schedule(){
@@ -650,6 +653,7 @@
   function init(){
     injectCSS();
     window.TanotReportUtils.onTheme(schedule);
+    if(window.OME_LANG&&window.OME_LANG.onChange)window.OME_LANG.onChange(function(){var l=document.getElementById('lawfirmControlLayout');if(l)l.removeAttribute('data-built');schedule();});
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;
@@ -662,7 +666,7 @@
     document.addEventListener('click',function(e){
       var b=e.target.closest&&e.target.closest('.dashboard-nav-btn');
       if(b&&(b.getAttribute('data-section-page')==='projects'||b.getAttribute('data-section')==='dashboardProjects'))setTimeout(schedule,80);
-      var db=e.target.closest&&e.target.closest('.lg-detail-btn');
+      var db=e.target.closest&&e.target.closest('.lg-detail');
       if(db) lgOpenDetail(+db.getAttribute('data-lg-idx'));
     },true);
     document.addEventListener('change',function(){setTimeout(schedule,50);},true);
