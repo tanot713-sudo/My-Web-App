@@ -501,6 +501,7 @@
      mobileFabOverlap ปุ่มแชท AI ลอย (.ome-ai-fab) ทับ element ที่กดได้ เมื่อเลื่อนทุกตัวเลื่อนไปท้ายสุดแล้วบังคับให้ปุ่มโผล่ (ไม่พึ่งการซ่อนตอนเลื่อนลง)
                       → วัดว่า "เว้นที่ท้ายหน้า" ได้จริง (padding-bottom ของ body/.page ใน ai-chat-widget.js + theme.css)
      mobileInput      ช่องกรอก: font-size < 16px (iOS ซูมอัตโนมัติตอนแตะ) · type=text ที่ชื่อ/placeholder/label บอกว่าเป็นอีเมล/เบอร์โทร/จำนวนเงิน-ตัวเลข
+                      · placeholder ที่ยาวเกินช่อง (ถูกตัด) — ย่อข้อความ หรือขยายช่อง/ให้ช่องขึ้นบรรทัดเต็มบนจอแคบ
                       แต่ไม่มี type/inputmode ที่เหมาะ · email/tel/password/url ที่ไม่มี autocomplete
      mobileDialog     กล่องที่เปิดอยู่ (dialog/ลิ้นชัก/palette/เมนู role=dialog): ล้นขอบจอ · เนื้อหายาวแต่ไม่มีที่เลื่อนในกล่อง · ปุ่มท้ายกล่อง (.dialog-foot) ตกขอบ/ถูกตัด
      (ปิดด้วยปุ่ม/แตะนอกกล่อง/Esc ตรวจเป็นพฤติกรรมใน theme-audit.spec.js "dialogs:" เพราะต้องกดจริง) */
@@ -558,9 +559,18 @@
         else if (NUM_HINT.test(hint) && !/ชื่อ|name|หมายเหตุ|note|memo/i.test(hint)) bad.push({ sel: selector(el), text: snippet(el), kind: 'inputmode', expect: 'inputmode=decimal|numeric' });
       }
       if (/^(email|tel|password|url)$/.test(type) && !el.hasAttribute('autocomplete')) bad.push({ sel: selector(el), text: snippet(el), kind: 'autocomplete', type: type });
+      // placeholder ถูกตัด: ช่องว่าง (placeholder แสดงอยู่) ที่ข้อความ placeholder กว้างกว่าพื้นที่ในช่อง — ช่องกรอก 16px ทำให้ placeholder ยาวล้นง่าย
+      var ph = el.getAttribute('placeholder');
+      if (ph && !el.value) {
+        var cs = getComputedStyle(el);
+        PH_CTX.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+        var need = PH_CTX.measureText(ph).width, avail = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        if (need > avail + 0.5) bad.push({ sel: selector(el), text: ph.slice(0, 60), kind: 'placeholderClip', need: Math.round(need), avail: Math.round(avail) });
+      }
     });
     return bad;
   }
+  var PH_CTX = document.createElement('canvas').getContext('2d');
   function mobileDialog(opts) {
     var bad = [], vw = window.innerWidth, vh = window.innerHeight;
     document.querySelectorAll('dialog[open],[role=dialog]:not(dialog),.ome-drawer.open,.ome-pal:not([hidden]),.ome-settings-panel.open').forEach(function (d) {
