@@ -24,6 +24,7 @@
 .tp-font-prompt{font-family:'Prompt',system-ui,sans-serif}
 .tp-font-ibmplex{font-family:'IBM Plex Sans Thai',system-ui,sans-serif}
 .tp-sample h2{font-size:var(--ome-fs-2xl)}
+@media (max-width:700px){.tp-sample h2{font-size:var(--ome-fs-xl)}}
 .tp-sample .lead{font-size:var(--ome-fs-md);color:var(--ome-text-2)}
 .tp-sample .big{font-size:var(--ome-fs-3xl);font-weight:700;line-height:1.15}
 .tp-sample .weights span{display:inline-block;margin-right:12px}
@@ -36,30 +37,30 @@
 <main class="page stack">
 
   <div class="page-head">
-    <h1>ตัวอย่างธีม</h1>
-    <div class="segmented" id="tpTheme" role="group" aria-label="โหมด">
-      <button type="button" data-v="light">สว่าง</button>
-      <button type="button" data-v="dark">มืด</button>
+    <h1 data-i18n="tp.title">ตัวอย่างธีม</h1>
+    <div class="segmented" id="tpTheme" role="group" data-i18n-attr="aria-label:tp.mode" aria-label="โหมด">
+      <button type="button" data-v="light" data-i18n="tp.light">สว่าง</button>
+      <button type="button" data-v="dark" data-i18n="tp.dark">มืด</button>
     </div>
   </div>
 
   <div class="toolbar">
-    <div class="segmented" id="tpFont" role="group" aria-label="ฟอนต์">
+    <div class="segmented" id="tpFont" role="group" data-i18n-attr="aria-label:tp.font" aria-label="ฟอนต์">
       <button type="button" data-v="prompt">Prompt</button>
       <button type="button" data-v="ibmplex">IBM Plex Sans Thai</button>
     </div>
     <span class="sep"></span>
-    <div class="row" id="tpAccent" role="group" aria-label="สีเน้น"></div>
+    <div class="row" id="tpAccent" role="group" data-i18n-attr="aria-label:tp.accent" aria-label="สีเน้น"></div>
     <span class="sep"></span>
-    <div class="segmented" id="tpStyle" role="group" aria-label="พื้นผิว">
-      <button type="button" data-v="flat">เรียบ</button>
-      <button type="button" data-v="soft">นุ่ม</button>
-      <button type="button" data-v="outline">เส้นขอบ</button>
+    <div class="segmented" id="tpStyle" role="group" data-i18n-attr="aria-label:tp.style" aria-label="พื้นผิว">
+      <button type="button" data-v="flat" data-i18n="tp.flat">เรียบ</button>
+      <button type="button" data-v="soft" data-i18n="tp.soft">นุ่ม</button>
+      <button type="button" data-v="outline" data-i18n="tp.outline">เส้นขอบ</button>
     </div>
   </div>
 
   <section class="tp-fonts">
-    <article class="card tp-sample tp-font-prompt">
+    <article class="card tp-sample tp-font-prompt" data-i18n-skip>
       <div class="card-head"><span class="badge accent">Prompt</span></div>
       <h2>สรุปการเงินเดือนกันยายน</h2>
       <p class="lead">รายจ่ายรวม 18,450.75 บาท ต่ำกว่างบที่ตั้งไว้ 12%</p>
@@ -68,7 +69,7 @@
       <p class="weights"><span style="font-weight:300">บาง 300</span><span style="font-weight:400">ปกติ 400</span><span style="font-weight:500">กลาง 500</span><span style="font-weight:600">หนา 600</span><span style="font-weight:700">หนามาก 700</span></p>
       <div class="row"><button class="btn primary" type="button">บันทึก</button><button class="btn" type="button">ยกเลิก</button><span class="badge ok">สำเร็จ</span><span class="badge warn">ใกล้ครบกำหนด</span></div>
     </article>
-    <article class="card tp-sample tp-font-ibmplex">
+    <article class="card tp-sample tp-font-ibmplex" data-i18n-skip>
       <div class="card-head"><span class="badge accent">IBM Plex Sans Thai</span></div>
       <h2>สรุปการเงินเดือนกันยายน</h2>
       <p class="lead">รายจ่ายรวม 18,450.75 บาท ต่ำกว่างบที่ตั้งไว้ 12%</p>
@@ -80,55 +81,55 @@
   </section>
 
   <div class="kpi-grid">
-    <div class="kpi"><span class="kpi-label">รายรับ</span><span class="kpi-value">42,300</span><span class="kpi-delta up">▲ 8.1%</span></div>
-    <div class="kpi"><span class="kpi-label">รายจ่าย</span><span class="kpi-value">18,451</span><span class="kpi-delta down">▼ 3.4%</span></div>
-    <div class="kpi"><span class="kpi-label">เงินออม</span><span class="kpi-value">23,849</span><span class="kpi-delta">56% ของรายรับ</span></div>
-    <div class="kpi"><span class="kpi-label">การ์ดที่ต้องทบทวน</span><span class="kpi-value">17</span><span class="kpi-delta">วันติดกัน 12 วัน</span></div>
+    <div class="kpi"><span class="kpi-label" data-i18n="tp.kIncome">รายรับ</span><span class="kpi-value">42,300</span><span class="kpi-delta up">▲ 8.1%</span></div>
+    <div class="kpi"><span class="kpi-label" data-i18n="tp.kExpense">รายจ่าย</span><span class="kpi-value">18,451</span><span class="kpi-delta down">▼ 3.4%</span></div>
+    <div class="kpi"><span class="kpi-label" data-i18n="tp.kSaving">เงินออม</span><span class="kpi-value">23,849</span><span class="kpi-delta" data-i18n="tp.kSavingSub">56% ของรายรับ</span></div>
+    <div class="kpi"><span class="kpi-label" data-i18n="tp.kCards">การ์ดที่ต้องทบทวน</span><span class="kpi-value">17</span><span class="kpi-delta" data-i18n="tp.kStreak">วันติดกัน 12 วัน</span></div>
   </div>
 
   <section class="card">
     <div class="tabs" role="tablist" id="tpTabs">
-      <button class="tab" role="tab" aria-selected="true" type="button">ปุ่ม</button>
-      <button class="tab" role="tab" aria-selected="false" type="button">ฟอร์ม</button>
-      <button class="tab" role="tab" aria-selected="false" type="button">ตาราง</button>
+      <button class="tab" role="tab" aria-selected="true" type="button" data-i18n="tp.tabBtn">ปุ่ม</button>
+      <button class="tab" role="tab" aria-selected="false" type="button" data-i18n="tp.tabForm">ฟอร์ม</button>
+      <button class="tab" role="tab" aria-selected="false" type="button" data-i18n="tp.tabTable">ตาราง</button>
     </div>
     <div class="stack" style="padding-top:16px" data-panel="0">
       <div class="row">
-        <button class="btn primary" type="button"><svg class="ome-icon"><use href="icons.svg#i-plus"/></svg>เพิ่มรายการ</button>
-        <button class="btn" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg>ส่งออก</button>
-        <button class="btn ghost" type="button">ข้าม</button>
-        <button class="btn danger" type="button"><svg class="ome-icon"><use href="icons.svg#i-trash-2"/></svg>ลบ</button>
-        <button class="btn" type="button" disabled>ปิดใช้งาน</button>
+        <button class="btn primary" type="button"><svg class="ome-icon"><use href="icons.svg#i-plus"/></svg><span data-i18n="tp.add">เพิ่มรายการ</span></button>
+        <button class="btn" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tp.export">ส่งออก</span></button>
+        <button class="btn ghost" type="button" data-i18n="tp.skip">ข้าม</button>
+        <button class="btn danger" type="button"><svg class="ome-icon"><use href="icons.svg#i-trash-2"/></svg><span data-i18n="tp.delete">ลบ</span></button>
+        <button class="btn" type="button" disabled data-i18n="tp.disabled">ปิดใช้งาน</button>
       </div>
       <div class="row">
-        <button class="btn primary sm" type="button">เล็ก</button>
-        <button class="btn primary" type="button">กลาง</button>
-        <button class="btn primary lg" type="button">ใหญ่</button>
-        <button class="btn icon sm" type="button" aria-label="แก้ไข"><svg class="ome-icon"><use href="icons.svg#i-pencil"/></svg></button>
-        <button class="btn icon" type="button" aria-label="ค้นหา"><svg class="ome-icon"><use href="icons.svg#i-search"/></svg></button>
-        <button class="btn icon lg" type="button" aria-label="ตั้งค่า"><svg class="ome-icon"><use href="icons.svg#i-settings"/></svg></button>
+        <button class="btn primary sm" type="button" data-i18n="tp.small">เล็ก</button>
+        <button class="btn primary" type="button" data-i18n="tp.medium">กลาง</button>
+        <button class="btn primary lg" type="button" data-i18n="tp.large">ใหญ่</button>
+        <button class="btn icon sm" type="button" data-i18n-attr="aria-label:tp.edit" aria-label="แก้ไข"><svg class="ome-icon"><use href="icons.svg#i-pencil"/></svg></button>
+        <button class="btn icon" type="button" data-i18n-attr="aria-label:tp.search" aria-label="ค้นหา"><svg class="ome-icon"><use href="icons.svg#i-search"/></svg></button>
+        <button class="btn icon lg" type="button" data-i18n-attr="aria-label:tp.settings" aria-label="ตั้งค่า"><svg class="ome-icon"><use href="icons.svg#i-settings"/></svg></button>
       </div>
       <div class="row">
-        <button class="chip on" type="button" aria-pressed="true">ทั้งหมด</button>
-        <button class="chip" type="button" aria-pressed="false">อาหาร</button>
-        <button class="chip" type="button" aria-pressed="false">เดินทาง</button>
-        <span class="badge">ร่าง</span><span class="badge info">ข้อมูล</span><span class="badge err">ผิดพลาด</span>
+        <button class="chip on" type="button" aria-pressed="true" data-i18n="tp.all">ทั้งหมด</button>
+        <button class="chip" type="button" aria-pressed="false" data-i18n="tp.food">อาหาร</button>
+        <button class="chip" type="button" aria-pressed="false" data-i18n="tp.travel">เดินทาง</button>
+        <span class="badge" data-i18n="tp.draft">ร่าง</span><span class="badge info" data-i18n="tp.info">ข้อมูล</span><span class="badge err" data-i18n="tp.error">ผิดพลาด</span>
       </div>
     </div>
     <div class="stack" style="padding-top:16px" data-panel="1" hidden>
       <div class="frow">
-        <div class="field"><label for="tpA">รายการ</label><input id="tpA" type="text" placeholder="ค่ากาแฟ"></div>
-        <div class="field"><label for="tpB">จำนวนเงิน</label><input id="tpB" type="number" inputmode="decimal" placeholder="0.00"></div>
-        <div class="field"><label for="tpC">หมวด</label><select id="tpC"><option>อาหาร</option><option>เดินทาง</option><option>บ้าน</option></select></div>
+        <div class="field"><label for="tpA" data-i18n="tp.fItem">รายการ</label><input id="tpA" type="text" data-i18n-attr="placeholder:tp.phCoffee" placeholder="ค่ากาแฟ"></div>
+        <div class="field"><label for="tpB" data-i18n="tp.fAmount">จำนวนเงิน</label><input id="tpB" type="number" inputmode="decimal" placeholder="0.00"></div>
+        <div class="field"><label for="tpC" data-i18n="tp.fCat">หมวด</label><select id="tpC"><option data-i18n="tp.oFood">อาหาร</option><option data-i18n="tp.oTravel">เดินทาง</option><option data-i18n="tp.oHome">บ้าน</option></select></div>
       </div>
-      <div class="field invalid"><label for="tpD">วันที่</label><input id="tpD" type="text" value="31/02/2026"><span class="error">วันที่ไม่ถูกต้อง</span></div>
-      <div class="field"><label for="tpE">บันทึก</label><textarea id="tpE"></textarea></div>
+      <div class="field invalid"><label for="tpD" data-i18n="tp.fDate">วันที่</label><input id="tpD" type="text" value="31/02/2026"><span class="error" data-i18n="tp.badDate">วันที่ไม่ถูกต้อง</span></div>
+      <div class="field"><label for="tpE" data-i18n="tp.fNote">บันทึก</label><textarea id="tpE"></textarea></div>
     </div>
     <div style="padding-top:16px" data-panel="2" hidden>
       <div class="table-wrap">
         <table class="table">
-          <thead><tr><th>วันที่</th><th>รายการ</th><th>หมวด</th><th class="num">จำนวนเงิน</th></tr></thead>
-          <tbody>
+          <thead><tr><th data-i18n="tp.cDate">วันที่</th><th data-i18n="tp.cItem">รายการ</th><th data-i18n="tp.cCat">หมวด</th><th class="num" data-i18n="tp.cAmount">จำนวนเงิน</th></tr></thead>
+          <tbody data-i18n-skip>
             <tr><td>28 ก.ย.</td><td>ค่ากาแฟ</td><td><span class="badge">อาหาร</span></td><td class="num">65.00</td></tr>
             <tr><td>28 ก.ย.</td><td>ค่าทางด่วน</td><td><span class="badge">เดินทาง</span></td><td class="num">120.00</td></tr>
             <tr><td>29 ก.ย.</td><td>ค่าไฟฟ้า</td><td><span class="badge">บ้าน</span></td><td class="num">1,284.50</td></tr>
@@ -139,7 +140,7 @@
     </div>
   </section>
 
-  <div class="list">
+  <div class="list" data-i18n-skip>
     <a class="list-row" href="budget.html"><span class="lead"><svg class="ome-icon"><use href="icons.svg#i-wallet"/></svg></span><span class="grow"><span class="title">รายรับรายจ่าย</span><br><span class="meta">อัปเดต 5 นาทีที่แล้ว</span></span><svg class="ome-icon muted"><use href="icons.svg#i-chevron-right"/></svg></a>
     <a class="list-row" href="invest.html"><span class="lead"><svg class="ome-icon"><use href="icons.svg#i-trending-up"/></svg></span><span class="grow"><span class="title">การลงทุน</span><br><span class="meta">SET +0.8%</span></span><svg class="ome-icon muted"><use href="icons.svg#i-chevron-right"/></svg></a>
     <a class="list-row" href="classroom-law.html"><span class="lead"><svg class="ome-icon"><use href="icons.svg#i-scale"/></svg></span><span class="grow"><span class="title">ห้องเรียนกฎหมาย</span><br><span class="meta">ทบทวน 17 การ์ด</span></span><svg class="ome-icon muted"><use href="icons.svg#i-chevron-right"/></svg></a>
@@ -148,8 +149,8 @@
   <section class="card">
     <div class="empty">
       <svg class="ome-icon"><use href="icons.svg#i-folder-open"/></svg>
-      <span class="empty-title">ยังไม่มีไฟล์</span>
-      <div class="row"><button class="btn primary" type="button" id="tpToastBtn">แสดง toast</button><button class="btn" type="button" id="tpDialogBtn">เปิด dialog</button></div>
+      <span class="empty-title" data-i18n="tp.empty">ยังไม่มีไฟล์</span>
+      <div class="row"><button class="btn primary" type="button" id="tpToastBtn" data-i18n="tp.showToast">แสดง toast</button><button class="btn" type="button" id="tpDialogBtn" data-i18n="tp.showDialog">เปิด dialog</button></div>
     </div>
   </section>
 
@@ -160,9 +161,9 @@
 </main>
 
 <dialog class="dialog" id="tpDialog">
-  <div class="dialog-head"><h3>ลบรายการนี้?</h3></div>
-  <div class="dialog-body">ค่าไฟฟ้า 1,284.50 บาท</div>
-  <div class="dialog-foot"><button class="btn" type="button" data-close>ยกเลิก</button><button class="btn danger" type="button" data-close>ลบ</button></div>
+  <div class="dialog-head"><h3 data-i18n="tp.dlgTitle">ลบรายการนี้?</h3></div>
+  <div class="dialog-body" data-i18n="tp.dlgBody">ค่าไฟฟ้า 1,284.50 บาท</div>
+  <div class="dialog-foot"><button class="btn" type="button" data-close data-i18n="tp.cancel">ยกเลิก</button><button class="btn danger" type="button" data-close data-i18n="tp.delete">ลบ</button></div>
 </dialog>
 <div class="toast-region" id="tpToasts" aria-live="polite"></div>
 </body>
