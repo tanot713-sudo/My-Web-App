@@ -24,7 +24,7 @@
 <style>
 .imp-key,.dt-key{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--ome-fs-sm);word-break:break-all}
 .imp-pv{font-size:var(--ome-fs-sm);color:var(--ome-text-2);word-break:break-all;margin-top:4px}
-.imp-pv span{color:var(--ome-text-3)}
+.imp-pv span{color:var(--ome-text-2)}
 .imp-result.ok,.dt-ok{color:var(--ome-ok-ink)}
 .imp-result.err,.dt-err{color:var(--ome-err-ink)}
 .dt-status:empty,#dtDriveFiles:empty{display:none}
@@ -32,27 +32,27 @@
 </head>
 <body data-layout="tool">
 <main class="page stack">
-  <div class="page-head"><h1>ข้อมูลและการซิงก์</h1></div>
+  <div class="page-head"><h1 data-i18n="dt.title">ข้อมูลและการซิงก์</h1></div>
 
   <section class="card stack" id="dtSync">
-    <div class="card-head"><h2>ซิงก์</h2><button type="button" class="btn sm" id="dtSyncNow">ซิงก์ตอนนี้</button></div>
+    <div class="card-head"><h2 data-i18n="dt.sync">ซิงก์</h2><button type="button" class="btn sm" id="dtSyncNow" data-i18n="dt.syncNow">ซิงก์ตอนนี้</button></div>
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-label">สถานะ</div><div class="kpi-value" id="dtState">—</div></div>
-      <div class="kpi"><div class="kpi-label">ซิงก์ล่าสุด</div><div class="kpi-value" id="dtLast">—</div></div>
-      <div class="kpi"><div class="kpi-label">รอส่ง</div><div class="kpi-value" id="dtPending">—</div></div>
+      <div class="kpi"><div class="kpi-label" data-i18n="dt.state">สถานะ</div><div class="kpi-value" id="dtState">—</div></div>
+      <div class="kpi"><div class="kpi-label" data-i18n="dt.lastSync">ซิงก์ล่าสุด</div><div class="kpi-value" id="dtLast">—</div></div>
+      <div class="kpi"><div class="kpi-label" data-i18n="dt.pending">รอส่ง</div><div class="kpi-value" id="dtPending">—</div></div>
     </div>
     <div class="dt-status" id="dtSyncMsg" role="status"></div>
   </section>
 
   <section class="card stack">
-    <div class="card-head"><h2>สำรองข้อมูล</h2></div>
+    <div class="card-head"><h2 data-i18n="dt.backup">สำรองข้อมูล</h2></div>
     <div class="row">
-      <button type="button" class="btn primary" id="dtDriveBackup">สำรองขึ้น Google Drive</button>
-      <button type="button" class="btn" id="dtDriveList">กู้คืนจาก Google Drive</button>
-      <button type="button" class="btn" id="dtDownload">ดาวน์โหลดไฟล์</button>
-      <label class="btn" for="dtFile">นำเข้าจากไฟล์</label>
+      <button type="button" class="btn primary" id="dtDriveBackup" data-i18n="dt.driveBackup">สำรองขึ้น Google Drive</button>
+      <button type="button" class="btn" id="dtDriveList" data-i18n="dt.driveList">กู้คืนจาก Google Drive</button>
+      <button type="button" class="btn" id="dtDownload" data-i18n="dt.download">ดาวน์โหลดไฟล์</button>
+      <label class="btn" for="dtFile" data-i18n="dt.importFile">นำเข้าจากไฟล์</label>
       <input type="file" id="dtFile" accept="application/json,.json" hidden>
-      <a class="btn ghost" href="migrate.html">ย้ายข้อมูลจาก github.io</a>
+      <a class="btn ghost" href="migrate.html" data-i18n="dt.migrate">ย้ายข้อมูลจาก github.io</a>
     </div>
     <div class="dt-status" id="dtBackupMsg" role="status"></div>
     <div class="list" id="dtDriveFiles"></div>
@@ -61,7 +61,7 @@
   <section class="card stack" id="dtPlan" hidden></section>
 
   <section class="card stack" id="dtHistoryCard" hidden>
-    <div class="card-head"><h2>ค่าที่ถูกแทนด้วยข้อมูลจากเครื่องอื่น</h2></div>
+    <div class="card-head"><h2 data-i18n="dt.replaced">ค่าที่ถูกแทนด้วยข้อมูลจากเครื่องอื่น</h2></div>
     <div class="table-wrap"><table class="table"><tbody id="dtHistory"></tbody></table></div>
   </section>
 </main>

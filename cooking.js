@@ -583,19 +583,19 @@ function unitConverterHtml() {
   return '<div class="ck-conv">' +
     '<div class="ck-conv-title">' + t('convTitle') + '</div>' +
     '<div class="ck-conv-row"><span class="ck-conv-label">' + t('convVolume') + '</span>' +
-    '<input type="number" id="convVolIn" class="ck-conv-input" value="1" step="any">' +
-    '<select id="convVolFrom" class="ck-conv-select">' + opts(volOpts, 'cup') + '</select>' +
+    '<input type="number" id="convVolIn" class="input ck-conv-input" value="1" step="any">' +
+    '<select id="convVolFrom" class="select ck-conv-select">' + opts(volOpts, 'cup') + '</select>' +
     '<span class="ck-conv-eq">=</span>' +
     '<span id="convVolOut" class="ck-conv-out">240</span>' +
-    '<select id="convVolTo" class="ck-conv-select">' + opts(volOpts, 'ml') + '</select></div>' +
+    '<select id="convVolTo" class="select ck-conv-select">' + opts(volOpts, 'ml') + '</select></div>' +
     '<div class="ck-conv-row"><span class="ck-conv-label">' + t('convWeight') + '</span>' +
-    '<input type="number" id="convWIn" class="ck-conv-input" value="1" step="any">' +
-    '<select id="convWFrom" class="ck-conv-select">' + opts(wOpts, 'cup' === 'cup' ? 'g' : 'g') + '</select>' +
+    '<input type="number" id="convWIn" class="input ck-conv-input" value="1" step="any">' +
+    '<select id="convWFrom" class="select ck-conv-select">' + opts(wOpts, 'cup' === 'cup' ? 'g' : 'g') + '</select>' +
     '<span class="ck-conv-eq">=</span>' +
     '<span id="convWOut" class="ck-conv-out">0.035</span>' +
-    '<select id="convWTo" class="ck-conv-select">' + opts(wOpts, 'oz') + '</select></div>' +
+    '<select id="convWTo" class="select ck-conv-select">' + opts(wOpts, 'oz') + '</select></div>' +
     '<div class="ck-conv-row"><span class="ck-conv-label">' + t('convTemp') + '</span>' +
-    '<input type="number" id="convTIn" class="ck-conv-input" value="180" step="any">' +
+    '<input type="number" id="convTIn" class="input ck-conv-input" value="180" step="any">' +
     '<span class="ck-conv-unit-fixed">°C</span>' +
     '<span class="ck-conv-eq">=</span>' +
     '<span id="convTOut" class="ck-conv-out">356</span>' +
@@ -640,8 +640,8 @@ function timerWidgetHtml(id, presetMin, labelTh, labelEn) {
   return '<div class="ck-timer" data-timer-id="' + id + '" data-preset="' + presetMin + '">' +
     '<span class="ck-timer-label">' + (getUILang() === 'en' ? labelEn : labelTh) + '</span>' +
     '<span class="ck-timer-display" id="tmDisp-' + id + '">' + String(presetMin).padStart(2, '0') + ':00</span>' +
-    '<button type="button" class="ck-timer-btn" data-act="start" data-timer="' + id + '">' + t('timerStart') + '</button>' +
-    '<button type="button" class="ck-timer-btn" data-act="reset" data-timer="' + id + '">' + t('timerReset') + '</button>' +
+    '<button type="button" class="btn sm ck-timer-btn" data-act="start" data-timer="' + id + '">' + t('timerStart') + '</button>' +
+    '<button type="button" class="btn sm ck-timer-btn" data-act="reset" data-timer="' + id + '">' + t('timerReset') + '</button>' +
     '</div>';
 }
 function wireTimers(root) {
@@ -888,7 +888,7 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
       }
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'ck-track-menu-item' + (tr.id === state.trackId ? ' active' : '');
+      btn.className = 'btn ghost item ck-track-menu-item' + (tr.id === state.trackId ? ' active' : '');
       btn.textContent = pick(tr.label);
       btn.addEventListener('click', function () { selectTrack(tr.id); closeTrackMenu(); });
       trackMenuPanel.appendChild(btn);
@@ -896,13 +896,13 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
   }
 
   function closeTrackMenu() {
-    if (trackMenuBtn) trackMenuBtn.classList.remove('open');
+    if (trackMenuBtn) trackMenuBtn.classList.remove('open', 'on');
     if (trackMenuPanel) trackMenuPanel.classList.remove('open');
     if (trackMenuBtn) trackMenuBtn.setAttribute('aria-expanded', 'false');
   }
   function toggleTrackMenu() {
     var open = trackMenuPanel.classList.toggle('open');
-    trackMenuBtn.classList.toggle('open', open);
+    trackMenuBtn.classList.toggle('open', open); trackMenuBtn.classList.toggle('on', open);
     trackMenuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
   if (trackMenuBtn) trackMenuBtn.addEventListener('click', function (e) { e.stopPropagation(); toggleTrackMenu(); });
@@ -921,7 +921,8 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
       var passed = !!progress[progressKey(track.id, i)];
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'ck-item' + (i === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
+      btn.className = 'btn item ck-item' + (i === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
+      if (!unlocked) btn.setAttribute('aria-disabled', 'true');
       btn.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' +
         (passed ? 'circle-check' : unlocked ? 'book-open' : 'lock') + '"/></svg>';
       btn.appendChild(document.createTextNode(itemLabel(track, item)));
@@ -971,20 +972,23 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
   }
 
   /* โหมดดูทีละขั้นตอน — สลับการแสดงย่อหน้าทั้งหมด vs ทีละย่อหน้า */
+  /* ป้ายในภาพประกอบบทเรียนเป็นไทยล้วน (เนื้อหา) — ไม่นับเป็นข้อความ UI */
+  function diagramHtml(d) { return String(d).replace(/<svg(?![^>]*data-i18n-skip)/g, '<svg data-i18n-skip'); }
+
   function renderStepMode() {
     var track = trackById(state.trackId);
     var item = track.items[state.itemIndex];
     var paras = pick(item.body);
     if (state.stepMode) {
       instructionsBox.innerHTML = '<p>' + paras[state.stepIdx] + '</p>';
-      if (state.stepIdx === paras.length - 1 && item.diagram) instructionsBox.innerHTML += item.diagram;
+      if (state.stepIdx === paras.length - 1 && item.diagram) instructionsBox.innerHTML += diagramHtml(item.diagram);
       if (stepNav) stepNav.style.display = 'flex';
       if (stepOfEl) stepOfEl.textContent = t('stepOf', { n: state.stepIdx + 1, total: paras.length });
       if (stepPrevBtn) stepPrevBtn.disabled = state.stepIdx === 0;
       if (stepNextBtn) stepNextBtn.disabled = state.stepIdx === paras.length - 1;
     } else {
       instructionsBox.innerHTML = paras.map(function (p) { return '<p>' + p + '</p>'; }).join('');
-      if (item.diagram) instructionsBox.innerHTML += item.diagram;
+      if (item.diagram) instructionsBox.innerHTML += diagramHtml(item.diagram);
       if (stepNav) stepNav.style.display = 'none';
     }
     if (item.diagram && item.diagram.indexOf('unitConvWidget') !== -1) {
@@ -1016,7 +1020,7 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
       noteSaveTimer = setTimeout(function () {
         saveNoteFor(state.trackId, state.itemIndex, notesBox.value);
         if (notesSavedEl) {
-          notesSavedEl.textContent = t('notesSaved');
+          OME_I18N.live(notesSavedEl, function () { return t('notesSaved'); });
           notesSavedEl.style.opacity = '1';
           setTimeout(function () { notesSavedEl.style.opacity = '0'; }, 1400);
         }
@@ -1084,12 +1088,10 @@ if (typeof document !== 'undefined' && document.getElementById('cookingRoot')) {
   }
 
   if (langToggle) {
-    langToggle.addEventListener('click', function () {
-      setUILang(getUILang() === 'en' ? 'th' : 'en');
-      applyI18n();
-    });
+    langToggle.addEventListener('click', function () { OME_LANG.set(getUILang() === 'en' ? 'th' : 'en'); });
   }
-  window.omeApplyLang = applyI18n;
+  window.OME_PAGE_LIVE_LANG = true;
+  OME_LANG.onChange(applyI18n);
 
   applyI18n();
 }

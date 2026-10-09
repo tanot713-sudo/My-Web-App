@@ -1,0 +1,52 @@
+name: Update visual baselines
+
+# ภาพ baseline ของ tests/visual.spec.js ต้องสร้างบนเครื่องแบบเดียวกับ CI (ฟอนต์/Chromium ต่างกันแล้วภาพเพี้ยน)
+# วิธีใช้: ติดป้าย "update-snapshots" ที่ PR → job นี้สร้างภาพใหม่บน runner ของ GitHub แล้ว commit กลับเข้าแบรนช์ของ PR
+# แล้วถอดป้ายออกเอง · commit ที่ GITHUB_TOKEN push จะไม่สั่ง CI รอบใหม่ — push commit ถัดไป (หรือ commit ว่าง) เพื่อรันเทสต์ซ้ำ
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-visual-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  update:
+    if: github.event.label.name == 'update-snapshots' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Regenerate changed visual baselines
+        run: npx playwright test visual.spec.js --update-snapshots=changed --retries=0 || true
+      - name: Verify baselines now pass
+        run: npx playwright test visual.spec.js --retries=0
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add __screenshots__
+          if git diff --cached --quiet; then echo "no baseline changes"; exit 0; fi
+          git commit -m "tests: update visual baselines on CI runner (PR #${{ github.event.pull_request.number }})"
+          git push
+      - name: Remove label
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr edit ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --remove-label update-snapshots

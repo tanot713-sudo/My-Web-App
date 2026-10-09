@@ -206,12 +206,12 @@ test.describe('หน้า cooking.html', () => {
     await expect(page.locator('#planRoot')).toBeHidden();
     await page.click('#planTabs [data-mode="recipes"]');
     await expect(page.locator('#lessonsView')).toBeHidden();
-    await expect(page.locator('#cpList .list-row')).toHaveCount(12);
+    await expect(page.locator('#cpList .cp-recipe')).toHaveCount(12);
     await page.fill('#cpQ', 'ต้มยำ');
-    await expect(page.locator('#cpList .list-row')).toHaveCount(1);
+    await expect(page.locator('#cpList .cp-recipe')).toHaveCount(1);
     await page.fill('#cpQ', '');
     await page.selectOption('#cpTag', 'เผ็ด');
-    expect(await page.locator('#cpList .list-row').count()).toBeGreaterThan(1);
+    expect(await page.locator('#cpList .cp-recipe').count()).toBeGreaterThan(1);
     expect(await store(page, 'tanot:cooking:recipes')).toBeNull();
     await page.click('#planTabs [data-mode=""]');
     await expect(page.locator('#lessonsView')).toBeVisible();
@@ -236,7 +236,7 @@ test.describe('หน้า cooking.html', () => {
     await page.setInputFiles('#rPhotoInput', { name: 'a.png', mimeType: 'image/png', buffer: PNG });
     await expect(page.locator('#rPhotoImg')).toBeVisible();
     await page.click('#rSave');
-    await expect(page.locator('#cpList .list-row')).toHaveCount(13);
+    await expect(page.locator('#cpList .cp-recipe')).toHaveCount(13);
     const rows = await store(page, 'tanot:cooking:recipes');
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ name: 'ผัดผักรวม', servings: 2, tags: ['ผัก'] });
@@ -245,10 +245,10 @@ test.describe('หน้า cooking.html', () => {
     expect(await (await request.get(SRV + '/__files')).json()).toEqual(['recipes/' + rows[0].photo.id]);
 
     // ลบ → ลบไฟล์ใน R2 ด้วย
-    await page.locator('#cpList .list-row', { hasText: 'ผัดผักรวม' }).click();
+    await page.locator('#cpList .cp-recipe', { hasText: 'ผัดผักรวม' }).click();
     page.once('dialog', (d) => d.accept());
     await page.click('#rDel');
-    await expect(page.locator('#cpList .list-row')).toHaveCount(12);
+    await expect(page.locator('#cpList .cp-recipe')).toHaveCount(12);
     expect(await (await request.get(SRV + '/__files')).json()).toEqual([]);
     expect(log.del).toHaveLength(1);
     expect(log.ocr).toHaveLength(0);
@@ -264,24 +264,24 @@ test.describe('หน้า cooking.html', () => {
     await expect(page.locator('#rSteps')).toHaveValue('ต้มข้าว\nใส่น้ำ');
     await page.fill('#rName', 'ข้าวต้ม');
     await page.click('#rSave');
-    await expect(page.locator('#cpList .list-row')).toHaveCount(13);
+    await expect(page.locator('#cpList .cp-recipe')).toHaveCount(13);
     expect(log.ocr).toHaveLength(0);
 
-    await page.locator('#cpList .list-row', { hasText: 'ไข่เจียวหมูสับ' }).click();
+    await page.locator('#cpList .cp-recipe', { hasText: 'ไข่เจียวหมูสับ' }).click();
     await page.fill('#rName', 'ไข่เจียวฟู');
     await page.click('#rSave');
-    await expect(page.locator('#cpList .list-row', { hasText: 'ไข่เจียวฟู' })).toHaveCount(1);
-    await expect(page.locator('#cpList .list-row')).toHaveCount(13);
-    await page.locator('#cpList .list-row', { hasText: 'ต้มยำกุ้ง' }).click();
+    await expect(page.locator('#cpList .cp-recipe', { hasText: 'ไข่เจียวฟู' })).toHaveCount(1);
+    await expect(page.locator('#cpList .cp-recipe')).toHaveCount(13);
+    await page.locator('#cpList .cp-recipe', { hasText: 'ต้มยำกุ้ง' }).click();
     page.once('dialog', (d) => d.accept());
     await page.click('#rDel');
-    await expect(page.locator('#cpList .list-row')).toHaveCount(12);
+    await expect(page.locator('#cpList .cp-recipe')).toHaveCount(12);
     const rows = await store(page, 'tanot:cooking:recipes');
     expect(rows.filter((r) => r.id === 'seed-omelet')).toHaveLength(1);
     expect(rows.find((r) => r.id === 'seed-tomyum')).toMatchObject({ deleted: true });
     await page.reload();
     await page.waitForSelector('nav.ome-nav');
-    await expect(page.locator('#cpList .list-row')).toHaveCount(12); // ต้มยำกุ้งไม่โผล่กลับ
+    await expect(page.locator('#cpList .cp-recipe')).toHaveCount(12); // ต้มยำกุ้งไม่โผล่กลับ
   });
 
   test('แผนรายสัปดาห์: เลือกสูตร+จำนวนที่ต่อมื้อ · คัดลอกสัปดาห์ก่อน · สุ่มเติม · ไปรายการซื้อของ', async ({ page }) => {

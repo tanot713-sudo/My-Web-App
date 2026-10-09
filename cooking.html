@@ -61,40 +61,26 @@
 
 /* ── เมนูเลือกบทเรียน (แผงเลื่อนลง จัดกลุ่มตามหมวด) ── */
 .ck-track-menu{position:relative;margin-bottom:var(--ome-sp-4)}
-.ck-track-menu-btn{display:inline-flex;align-items:center;gap:10px;height:40px;padding:0 16px;border:1px solid var(--ome-border);
-  border-radius:var(--ome-radius-md);background:var(--ome-surface-1);color:var(--ome-text-1);font-size:var(--ome-fs-sm);font-weight:600;cursor:pointer;
-  transition:border-color var(--ome-dur-1),background var(--ome-dur-1)}
-.ck-track-menu-btn:hover{border-color:var(--ome-border-strong);background:var(--ome-surface-2)}
-.ck-track-menu-btn.open{border-color:var(--ome-accent);background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
+.ck-track-menu-toggle{gap:10px}
 .ck-hamburger-icon{display:flex;flex-direction:column;gap:3.5px;width:18px;flex-shrink:0}
 .ck-hamburger-icon span{display:block;height:2.3px;border-radius:2px;background:currentColor;transition:transform var(--ome-dur-2) var(--ome-ease),opacity var(--ome-dur-2)}
-.ck-track-menu-btn.open .ck-hamburger-icon span:nth-child(1){transform:translateY(5.8px) rotate(45deg)}
-.ck-track-menu-btn.open .ck-hamburger-icon span:nth-child(2){opacity:0}
-.ck-track-menu-btn.open .ck-hamburger-icon span:nth-child(3){transform:translateY(-5.8px) rotate(-45deg)}
+.ck-track-menu-toggle.open .ck-hamburger-icon span:nth-child(1){transform:translateY(5.8px) rotate(45deg)}
+.ck-track-menu-toggle.open .ck-hamburger-icon span:nth-child(2){opacity:0}
+.ck-track-menu-toggle.open .ck-hamburger-icon span:nth-child(3){transform:translateY(-5.8px) rotate(-45deg)}
 .ck-track-menu-panel{display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:var(--ome-z-popover);min-width:280px;
   max-width:min(420px,calc(100vw - 40px));max-height:70vh;overflow-y:auto;background:var(--ome-surface-1);
   border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3);padding:10px}
-.ck-track-menu-panel.open{display:block}
-.ck-track-group-label{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--ome-text-2);padding:10px 10px 6px}
-.ck-track-menu-item{display:block;width:100%;text-align:left;font-size:var(--ome-fs-sm);font-weight:600;padding:9px 12px;border:0;
-  border-radius:var(--ome-radius-md);background:transparent;color:var(--ome-text-1);cursor:pointer}
-.ck-track-menu-item:hover{background:var(--ome-surface-2)}
-.ck-track-menu-item.active{background:var(--ome-accent);color:var(--ome-on-accent)}
+.ck-track-menu-panel.open{display:flex;flex-direction:column;gap:var(--ome-sp-2)}
+.ck-track-group-label{font-size:var(--ome-fs-xs);font-weight:700;letter-spacing:.05em;color:var(--ome-text-2);padding:10px 10px 6px}
 
 /* ── แถบข้างรายการบทเรียน + พื้นที่เนื้อหา ── */
 .ck-layout{display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:start}
 @media(max-width:820px){.ck-layout{grid-template-columns:1fr}}
 @media(min-width:821px){.ck-sidebar{position:sticky;top:calc(var(--ome-nav-h) + 16px);max-height:calc(100vh - var(--ome-nav-h) - 32px);overflow-y:auto}}
-.ck-item-list{display:flex;flex-direction:column;gap:6px}
-.ck-item{display:flex;align-items:center;gap:8px;text-align:left;background:var(--ome-surface-1);border:1px solid var(--ome-border);
-  border-radius:var(--ome-radius-md);padding:10px 12px;cursor:pointer;font-size:var(--ome-fs-sm);color:var(--ome-text-1);
-  transition:border-color var(--ome-dur-1),background var(--ome-dur-1)}
+.ck-item-list{display:flex;flex-direction:column;gap:var(--ome-sp-2)}
+.ck-item{gap:8px}
 .ck-item .ome-icon{color:var(--ome-text-2)}
-.ck-item:hover{border-color:var(--ome-accent)}
-.ck-item.active{border-color:var(--ome-accent);background:var(--ome-accent-soft);color:var(--ome-accent-strong);font-weight:600}
 .ck-item.active .ome-icon{color:inherit}
-.ck-item.locked{opacity:.55;cursor:not-allowed}
-.ck-item.locked:hover{border-color:var(--ome-border)}
 .ck-lock-msg{display:none;background:var(--ome-warn-soft);color:var(--ome-warn-ink);border-radius:var(--ome-radius-md);padding:8px 12px;
   font-size:var(--ome-fs-xs);font-weight:600;margin-bottom:8px}
 .ck-main{position:relative;padding:22px}
@@ -114,13 +100,11 @@
 .ck-conv-panel{display:none;position:absolute;top:calc(100% + 8px);right:0;z-index:var(--ome-z-popover);width:min(360px,calc(100vw - 40px));
   background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3);padding:14px}
 .ck-conv-panel.open{display:block}
+@media(max-width:700px){.ck-conv-wrap{position:static}.ck-conv-panel{left:0;right:0;width:auto}}
 .ck-item-heading-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
 .ck-heading-tools{display:flex;gap:8px;flex-wrap:wrap}
-.ck-tool-btn{font-size:12px;font-weight:700;padding:6px 12px;border:1px solid var(--ome-border);
-  border-radius:var(--ome-radius-pill);cursor:pointer;background:var(--ome-surface-1);color:var(--ome-text-1);transition:border-color var(--ome-dur-1),color var(--ome-dur-1)}
-.ck-tool-btn:hover{border-color:var(--ome-accent);color:var(--ome-accent-strong)}
-.ck-step-nav{display:none;align-items:center;gap:10px;margin:6px 0 14px;padding:10px 12px;background:var(--ome-accent-soft);border-radius:var(--ome-radius-md)}
-.ck-step-nav .ck-step-of{font-size:12.5px;font-weight:700;color:var(--ome-accent-strong);flex:1;text-align:center}
+.ck-step-nav{display:none;align-items:center;gap:10px;margin:6px 0 14px;padding:10px 12px;background:var(--ome-surface-2);border-radius:var(--ome-radius-md)}
+.ck-step-nav .ck-step-of{font-size:var(--ome-fs-sm);font-weight:700;color:var(--ome-accent-strong);flex:1;text-align:center}
 /* ไดอะแกรม SVG เคลื่อนไหว — ห้ามใส่ opacity ใน keyframe (ทับ opacity="0.x" ของ presentation attribute) ใช้แค่ transform */
 .ck-instructions svg{overflow:visible}
 .ck-instructions svg>*{animation-fill-mode:both;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
@@ -152,29 +136,24 @@
   .ck-instructions svg>*,.ck-instructions svg>.ck-arrow-line,.ck-instructions svg>.ck-arrow-head{
     animation:none!important;transform:none!important;stroke-dashoffset:0!important}
 }
-.ck-timer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--ome-accent-soft);border:1px solid var(--ome-accent);
+.ck-timer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--ome-surface-2);border:1px solid var(--ome-accent);
   border-radius:var(--ome-radius-md);padding:10px 14px;margin:10px 0}
-.ck-timer-label{font-size:13px;font-weight:700;color:var(--ome-accent-strong);flex:1;min-width:120px}
+.ck-timer-label{font-size:var(--ome-fs-sm);font-weight:700;color:var(--ome-accent-strong);flex:1;min-width:120px}
 .ck-timer-display{font-size:18px;font-weight:800;color:var(--ome-text-1);font-variant-numeric:tabular-nums;min-width:56px}
-.ck-timer-btn{font-size:12px;font-weight:700;padding:6px 12px;border:1px solid var(--ome-accent);
-  border-radius:var(--ome-radius-md);cursor:pointer;background:var(--ome-surface-1);color:var(--ome-accent-strong)}
-.ck-timer-btn:hover{background:var(--ome-accent);color:var(--ome-on-accent)}
 .ck-conv{display:flex;flex-direction:column;gap:10px}
-.ck-conv-title{font-size:13.5px;font-weight:800;color:var(--ome-accent-strong);margin-bottom:2px}
-.ck-conv-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12.5px}
-.ck-conv-label{flex:1 1 100%;font-size:11.5px;color:var(--ome-text-2);font-weight:600}
-.ck-conv-input{width:64px;font-size:13px;padding:5px 7px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md)}
-.ck-conv-select{font-size:12px;padding:5px 4px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);color:var(--ome-text-1)}
+.ck-conv-title{font-size:var(--ome-fs-sm);font-weight:800;color:var(--ome-accent-strong);margin-bottom:2px}
+.ck-conv-row{display:flex;align-items:center;gap:var(--ome-sp-2);flex-wrap:wrap;font-size:var(--ome-fs-sm)}
+.ck-conv-label{flex:1 1 100%;font-size:var(--ome-fs-sm);color:var(--ome-text-2);font-weight:600}
+.ck-conv-input{width:84px}
+.ck-conv-select{width:auto;min-width:0}
 .ck-conv-eq{font-weight:800;color:var(--ome-text-2)}
 .ck-conv-out{font-weight:800;color:var(--ome-accent-strong);min-width:50px;text-align:center}
 .ck-conv-unit-fixed{font-weight:700;color:var(--ome-text-2)}
 .ck-notes{margin-top:16px}
 .ck-notes-label-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.ck-notes-label{font-size:12.5px;font-weight:700;color:var(--ome-text-2)}
-.ck-notes-saved{font-size:11.5px;font-weight:700;color:var(--ome-ok);opacity:0;transition:opacity .3s}
-.ck-notes-box{width:100%;min-height:64px;font-size:13px;padding:10px 12px;border:1px solid var(--ome-border);
-  border-radius:var(--ome-radius-md);background:var(--ome-surface-2);color:var(--ome-text-1);resize:vertical}
-.ck-notes-box:focus{outline:none;border-color:var(--ome-accent)}
+.ck-notes-label{font-size:var(--ome-fs-sm);font-weight:700;color:var(--ome-text-2)}
+.ck-notes-saved{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-ok);opacity:0;transition:opacity .3s}
+.ck-notes-box{min-height:64px}
 
 /* ── ทำอาหาร stage 2: สูตร/แผนสัปดาห์/รายการซื้อของ (cooking-plan.js) ── */
 .cp-tabs{margin-bottom:var(--ome-sp-4)}
@@ -182,9 +161,12 @@
 .cp-view[hidden]{display:none}
 .cp-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .cp-bar .grow{flex:1 1 180px;min-width:0}
-.cp-bar input[type=search],.cp-bar select{height:36px;padding:0 12px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);color:var(--ome-text-1);font:inherit;font-size:var(--ome-fs-sm);min-width:0;width:100%}
-.cp-bar select{width:auto}
-.cp-recipe{width:100%;text-align:left}
+.cp-bar .input,.cp-bar .select{min-width:0}
+.cp-bar .select{width:auto}
+.cp-recipe{gap:12px;padding:10px 12px}
+#cpList .list{display:flex;flex-direction:column;gap:var(--ome-sp-2)}
+#rPasteBox .field{margin:var(--ome-sp-2) 0}
+#rPasteBox .cp-bar{margin-top:var(--ome-sp-2)}
 .cp-thumb{width:44px;height:44px;border-radius:var(--ome-radius-md);object-fit:cover;flex-shrink:0;background:var(--ome-surface-2)}
 .cp-main{flex:1;min-width:0}
 .cp-name{font-weight:600}
@@ -197,25 +179,37 @@
 .cp-grid tbody th{white-space:nowrap;font-size:var(--ome-fs-sm)}
 .cp-grid tr.today th{color:var(--ome-accent-strong)}
 .cp-grid td{width:28%}
-.cp-cell{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
-.cp-cell .cp-pick{font:inherit;font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-1);background:none;border:0;padding:0;text-align:left;cursor:pointer}
-.cp-cell .cp-pick:hover{color:var(--ome-accent-strong)}
-.cp-cell.done .cp-pick{text-decoration:line-through;color:var(--ome-text-2)}
+.cp-cell{display:flex;flex-direction:column;gap:var(--ome-sp-2);align-items:flex-start}
+.cp-cell .cp-pick{justify-content:flex-start;padding:0 6px;margin-left:-6px;color:var(--ome-text-1);white-space:normal;height:auto;min-height:30px;text-align:left;line-height:1.35}
+.cp-cell.done .cp-pick{text-decoration:line-through}
 .cp-cell-actions{display:flex;gap:6px;flex-wrap:wrap}
+@media(max-width:700px){
+  /* ตาราง 7 วัน × 3 มื้อ → รายการตามวัน: แต่ละวันเป็นกล่อง หัวข้อวัน + 3 มื้อเรียงลง (ไม่เลื่อนข้าง) */
+  .cp-view .table-wrap{border:0;background:transparent;overflow:visible}
+  .cp-grid,.cp-grid tbody,.cp-grid tr,.cp-grid th,.cp-grid td{display:block;width:auto;min-width:0}
+  .cp-grid thead{display:none}
+  .cp-grid tr{margin-bottom:var(--ome-sp-3);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);background:var(--ome-surface-1);overflow:hidden}
+  .cp-grid tbody th{display:flex;align-items:baseline;gap:8px;padding:10px 12px;background:var(--ome-surface-2);border-top:0}
+  .cp-grid tbody th .cp-meta{margin-top:0}
+  .cp-grid td{display:grid;grid-template-columns:76px minmax(0,1fr);gap:8px;align-items:center;padding:8px 12px;border-top:1px solid var(--ome-border)}
+  .cp-grid td::before{content:attr(data-meal);font-size:var(--ome-fs-sm);color:var(--ome-text-2);font-weight:600}
+  .cp-cell{flex-direction:row;flex-wrap:wrap;align-items:center;gap:var(--ome-sp-2) var(--ome-sp-3)}
+  .cp-cell .cp-pick{min-height:40px}
+}
 .cp-group h3{font-size:var(--ome-fs-sm);margin:0 0 6px;color:var(--ome-text-2)}
 .cp-line{display:flex;align-items:center;gap:10px;min-height:48px}
 .cp-line input[type=checkbox]{width:20px;height:20px;flex-shrink:0;accent-color:var(--ome-accent)}
 .cp-line .cp-name{flex:1;min-width:0}
 .cp-line.checked .cp-name{text-decoration:line-through;color:var(--ome-text-2)}
-.cp-price{width:92px;height:34px;padding:0 8px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);color:var(--ome-text-1);font:inherit;font-size:var(--ome-fs-sm);text-align:right}
+.cp-price{width:96px;text-align:right}
 .cp-add{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
 .cp-add .field{flex:1 1 110px}
 .cp-total{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
 .cp-total strong{font-size:var(--ome-fs-lg)}
 .cp-dialog{width:min(640px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
 .cp-dialog .dialog-body > * + *{margin-top:var(--ome-sp-3)}
-.cp-ing{display:grid;grid-template-columns:minmax(0,2fr) 70px minmax(0,1fr) minmax(0,1fr) auto;gap:6px;margin-bottom:6px}
-.cp-ing :is(input,select){height:34px;padding:0 8px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);color:var(--ome-text-1);font:inherit;font-size:var(--ome-fs-sm);min-width:0;width:100%}
+.cp-ing{display:grid;grid-template-columns:minmax(0,2fr) 70px minmax(0,1fr) minmax(0,1fr) auto;gap:var(--ome-sp-2);margin-bottom:var(--ome-sp-2)}
+.cp-ing .input,.cp-ing .select{min-width:0}
 @media(max-width:520px){.cp-ing{grid-template-columns:minmax(0,1fr) 64px minmax(0,1fr) auto}.cp-ing .cp-ing-cat{grid-column:1 / 4}}
 .cp-msg{font-size:var(--ome-fs-sm);color:var(--ome-text-2);min-height:1.2em}
 .cp-msg.err{color:var(--ome-err-ink)}
@@ -227,7 +221,7 @@
 <main class="page ck-page" id="cookingRoot">
 <div class="crumb-row">
   <nav class="crumb"><a href="area.html?a=work" data-i18n="crumbResp">งานที่รับผิดชอบ</a><span class="sep">/</span><span data-i18n="crumbCooking">เรียนทำอาหาร</span></nav>
-  <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
+  <button class="lang-toggle" id="langToggle" type="button" data-i18n-skip data-i18n-attr="aria-label:lang.toggle" aria-label="Switch language / สลับภาษา">
     <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
   </button>
 </div>
@@ -254,14 +248,14 @@
 </div>
 
 <div class="ck-track-menu">
-  <button class="ck-track-menu-btn" id="trackMenuBtn" type="button" aria-haspopup="true" aria-expanded="false">
+  <button class="btn ck-track-menu-toggle" id="trackMenuBtn" type="button" aria-haspopup="true" aria-expanded="false">
     <span class="ck-hamburger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
     <span id="currentTrackLabel"></span>
   </button>
   <div class="ck-track-menu-panel" id="trackMenuPanel" role="menu"></div>
 
   <div class="ck-conv-wrap">
-    <button class="ck-track-menu-btn" id="convBtn" type="button" data-i18n="convBtn">แปลงหน่วยตวง</button>
+    <button class="btn ck-track-menu-toggle" id="convBtn" type="button" data-i18n="convBtn">แปลงหน่วยตวง</button>
     <div class="ck-conv-panel" id="convPanel"></div>
   </div>
 </div>
@@ -277,15 +271,15 @@
     <div class="ck-item-heading-row">
       <div class="ck-item-heading" id="itemHeading"></div>
       <div class="ck-heading-tools">
-        <button class="ck-tool-btn" id="speakBtn" type="button" data-i18n="speakBtn">อ่านออกเสียง</button>
-        <button class="ck-tool-btn" id="stepModeBtn" type="button" data-i18n="stepModeOn">ดูทีละขั้นตอน</button>
+        <button class="btn sm ck-tool-btn" id="speakBtn" type="button" data-i18n="speakBtn">อ่านออกเสียง</button>
+        <button class="btn sm ck-tool-btn" id="stepModeBtn" type="button" data-i18n="stepModeOn">ดูทีละขั้นตอน</button>
       </div>
     </div>
 
     <div class="ck-step-nav" id="stepNav">
-      <button class="ck-tool-btn" id="stepPrevBtn" type="button" data-i18n="stepPrev">ก่อนหน้า</button>
+      <button class="btn sm ck-tool-btn" id="stepPrevBtn" type="button" data-i18n="stepPrev">ก่อนหน้า</button>
       <span class="ck-step-of" id="stepOfEl"></span>
-      <button class="ck-tool-btn" id="stepNextBtn" type="button" data-i18n="stepNext">ถัดไป</button>
+      <button class="btn sm ck-tool-btn" id="stepNextBtn" type="button" data-i18n="stepNext">ถัดไป</button>
     </div>
 
     <div class="ck-instructions prose" id="instructionsBox"></div>
@@ -295,7 +289,7 @@
         <span class="ck-notes-label" data-i18n="notesLabel">บันทึกของฉัน (เห็นเฉพาะคุณ)</span>
         <span class="ck-notes-saved" id="notesSavedEl"></span>
       </div>
-      <textarea class="ck-notes-box" id="notesBox" rows="2"></textarea>
+      <textarea class="textarea ck-notes-box" id="notesBox" rows="2"></textarea>
     </div>
 
     <div class="ck-toolbar">

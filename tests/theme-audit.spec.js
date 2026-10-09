@@ -37,7 +37,8 @@ if (!PAGES.includes('doc-check-file.html')) PAGES.push('doc-check-file.html'); /
 const NARROW_360 = (p) => p === 'index.html' || /^area\.html/.test(p) || /^invest(-[a-z-]+)?\.html/.test(p) // รอบ 4: ตระกูลลงทุน
   || /^(word|excel|slides|extract-text|doc-check|doc-check-file|compare|text-to-speech)\.html$/.test(p) // รอบ 5: กลุ่มเอกสาร
   || /^(cad|electrical|maintenance|run|report-dashboard|tax)\.html(\?.*)?$/.test(p) // รอบ 6: วิศวกรรม/รายงาน/ภาษี (cad3d = redirect ไปแท็บ 3D ของ cad)
-  || /^(review|books|classroom-law|classroom-business|classroom-engineering)\.html$/.test(p); // รอบ 7A: การศึกษา
+  || /^(review|books|classroom-law|classroom-business|classroom-engineering)\.html$/.test(p) // รอบ 7A: การศึกษา
+  || /^(music|sports|cooking|coding|typing|image-gen|notifications|data|credits)\.html$/.test(p); // รอบ 7B: งานอดิเรก + ตั้งค่า
 const WITH_SHELL = (p) => p === 'index.html';
 const AUDIT_JS = path.join(__dirname, 'theme-audit-page.js');
 const AXE_JS = require.resolve('axe-core/axe.min.js');

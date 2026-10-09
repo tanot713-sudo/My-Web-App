@@ -29,14 +29,15 @@
     return !!err && ['unavailable', 'offline', 'network', 'auth', 'quota', 'upstream'].indexOf(err.code) >= 0;
   }
 
+  /* ข้อความ error ที่แสดงผู้ใช้ — ไทยเป็นค่าเริ่มต้น, มีอังกฤษเมื่อหน้าโหลด i18n.js (ทุกหน้าโหลด) */
+  var MSG = {
+    th: { offline: 'ไม่มีอินเทอร์เน็ต', network: 'ติดต่อเซิร์ฟเวอร์ไม่ได้', auth: 'เซสชันล็อกอินหมดอายุ — เปิดหน้านี้ใหม่เพื่อล็อกอินอีกครั้ง', quota: 'โควตา AI ฟรีของวันนี้เต็มแล้ว (รีเซ็ต 07:00 น. เวลาไทย)', other: 'AI ผิดพลาด' },
+    en: { offline: 'No internet connection', network: 'Could not reach the server', auth: 'Your login session expired — reopen this page to sign in again', quota: 'Today\'s free AI quota is used up (resets at 07:00 Thai time)', other: 'AI error' }
+  };
   function friendlyMessage(err) {
-    switch (err && err.code) {
-      case 'offline': return 'ไม่มีอินเทอร์เน็ต';
-      case 'network': return 'ติดต่อเซิร์ฟเวอร์ไม่ได้';
-      case 'auth': return 'เซสชันล็อกอินหมดอายุ — เปิดหน้านี้ใหม่เพื่อล็อกอินอีกครั้ง';
-      case 'quota': return 'โควตา AI ฟรีของวันนี้เต็มแล้ว (รีเซ็ต 07:00 น. เวลาไทย)';
-      default: return (err && err.message) || 'AI ผิดพลาด';
-    }
+    var en = window.OME_LANG && window.OME_LANG.get() === 'en', m = MSG[en ? 'en' : 'th'], c = err && err.code;
+    if (m[c] && c !== 'other') return m[c];
+    return (err && err.message) || m.other;
   }
 
   /* fetch ที่แปลงความล้มเหลวทุกแบบเป็น AiError — redirect:'manual' เพราะเซสชัน Access หมดอายุจะ 302 ไปหน้าล็อกอินข้ามโดเมน

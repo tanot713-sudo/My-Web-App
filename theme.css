@@ -198,6 +198,12 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 :where([data-layout]) .btn.icon{width:38px;padding:0}
 :where([data-layout]) .btn.sm.icon{width:30px}
 :where([data-layout]) .btn.lg.icon{width:46px}
+/* .btn.item — ปุ่มรายการเลือกบท/หมวด (เมนูบทเรียนของ music · sports · cooking · coding): ชิดซ้าย เต็มความกว้าง ตัดบรรทัดได้
+   .locked = ยังไม่ปลดล็อก (กดแล้วแสดงข้อความ ไม่ใช่ disabled) · สถานะเลือก = .on/.active ของ .btn */
+:where([data-layout]) .btn.item{width:100%;justify-content:flex-start;text-align:left;height:auto;min-height:40px;padding:8px 12px;
+  white-space:normal;line-height:1.4;font-weight:500}
+:where([data-layout]) .btn.item.locked{opacity:.7;cursor:not-allowed}
+:where([data-layout]) .btn.item:is(.on,.active){font-weight:600}
 :where([data-layout]) .btn:is(.on,.active,[aria-pressed="true"]):not(.primary):not(.danger){background:var(--ome-accent-soft);border-color:var(--ome-accent);color:var(--ome-accent-strong)}
 :where([data-layout]) .btn.ghost:is(.on,.active,[aria-pressed="true"]){border-color:transparent}
 :where([data-layout]) .btn:focus-visible,:where([data-layout]) .tab:focus-visible,:where([data-layout]) .chip:focus-visible{outline:2px solid var(--ome-accent);outline-offset:1px}

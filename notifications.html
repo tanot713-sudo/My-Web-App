@@ -30,25 +30,25 @@
 </head>
 <body data-layout="tool">
 <main class="page stack">
-  <div class="page-head"><h1>การแจ้งเตือน</h1></div>
+  <div class="page-head"><h1 data-i18n="nt.title">การแจ้งเตือน</h1></div>
 
   <section class="card stack" id="ntDevice">
-    <div class="card-head"><h2>เครื่องนี้</h2></div>
+    <div class="card-head"><h2 data-i18n="nt.device">เครื่องนี้</h2></div>
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-label">สถานะ</div><div class="kpi-value" id="ntState">—</div></div>
-      <div class="kpi"><div class="kpi-label">เครื่องที่รับแจ้งเตือน</div><div class="kpi-value" id="ntSubs">—</div></div>
-      <div class="kpi"><div class="kpi-label">ส่งถึงเครื่องนี้ล่าสุด</div><div class="kpi-value" id="ntLast">—</div></div>
+      <div class="kpi"><div class="kpi-label" data-i18n="nt.state">สถานะ</div><div class="kpi-value" id="ntState">—</div></div>
+      <div class="kpi"><div class="kpi-label" data-i18n="nt.subs">เครื่องที่รับแจ้งเตือน</div><div class="kpi-value" id="ntSubs">—</div></div>
+      <div class="kpi"><div class="kpi-label" data-i18n="nt.last">ส่งถึงเครื่องนี้ล่าสุด</div><div class="kpi-value" id="ntLast">—</div></div>
     </div>
     <div class="row">
-      <button type="button" class="btn primary" id="ntOn" hidden>เปิดการแจ้งเตือน</button>
-      <button type="button" class="btn" id="ntTest" hidden>ส่งทดสอบ</button>
-      <button type="button" class="btn ghost" id="ntOff" hidden>ปิดการแจ้งเตือน</button>
+      <button type="button" class="btn primary" id="ntOn" data-i18n="nt.on" hidden>เปิดการแจ้งเตือน</button>
+      <button type="button" class="btn" id="ntTest" data-i18n="nt.test" hidden>ส่งทดสอบ</button>
+      <button type="button" class="btn ghost" id="ntOff" data-i18n="nt.off" hidden>ปิดการแจ้งเตือน</button>
     </div>
     <div class="nt-msg" id="ntMsg" role="status"></div>
   </section>
 
   <section class="card stack" id="ntUpcoming">
-    <div class="card-head"><h2>กำหนดการ</h2><button type="button" class="btn sm" id="ntReload" hidden>รีเฟรช</button></div>
+    <div class="card-head"><h2 data-i18n="nt.upcoming">กำหนดการ</h2><button type="button" class="btn sm" id="ntReload" data-i18n="nt.reload" hidden>รีเฟรช</button></div>
     <div class="list" id="ntList"></div>
   </section>
 </main>

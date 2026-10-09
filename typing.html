@@ -27,19 +27,14 @@
 .tt-head-icon .ome-icon{width:24px;height:24px}
 .tt-page .page-head{margin-bottom:var(--ome-sp-4)}
 
-.tt-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
-.tt-tab{flex-shrink:0;height:36px;padding:0 14px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);
-  background:var(--ome-surface-1);color:var(--ome-text-2);font-size:var(--ome-fs-sm);font-weight:600;white-space:nowrap;cursor:pointer;
-  transition:border-color var(--ome-dur-1),color var(--ome-dur-1)}
-.tt-tab:hover{border-color:var(--ome-border-strong);color:var(--ome-text-1)}
-.tt-tab.active{background:var(--ome-accent);border-color:var(--ome-accent);color:var(--ome-on-accent)}
+.tt-tabs{margin-bottom:0}
 .tt-track-desc{font-size:var(--ome-fs-sm);color:var(--ome-text-2);margin-top:10px;line-height:1.6}
 .tt-track-desc:empty{display:none}
 
 .tt-track-progress{display:flex;align-items:center;gap:8px;margin-top:8px;max-width:320px}
 .tt-track-progress-bar{flex:1;height:6px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-2);overflow:hidden}
 .tt-track-progress-fill{height:100%;border-radius:inherit;background:var(--ome-accent);transition:width var(--ome-dur-3) var(--ome-ease);width:0%}
-.tt-track-progress-label{font-size:11.5px;font-weight:700;color:var(--ome-accent-strong);flex-shrink:0}
+.tt-track-progress-label{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-accent-strong);flex-shrink:0}
 
 .tt-thai-hint{display:none;align-items:center;gap:8px;background:var(--ome-warn-soft);color:var(--ome-warn-ink);border-radius:var(--ome-radius-md);
   padding:9px 14px;margin-top:10px;font-size:var(--ome-fs-sm);font-weight:600}
@@ -47,17 +42,11 @@
 .tt-layout{display:grid;grid-template-columns:220px 1fr;gap:18px;margin-top:16px;align-items:start}
 @media(max-width:760px){.tt-layout{grid-template-columns:1fr}}
 
-.tt-lesson-list{display:flex;flex-direction:column;gap:6px}
-.tt-lesson{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;background:var(--ome-surface-1);
-  border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:10px 12px;cursor:pointer;font-size:var(--ome-fs-sm);color:var(--ome-text-1);
-  transition:border-color var(--ome-dur-1),background var(--ome-dur-1)}
-.tt-lesson:hover{border-color:var(--ome-accent)}
-.tt-lesson.active{border-color:var(--ome-accent);background:var(--ome-accent-soft);color:var(--ome-accent-strong);font-weight:600}
+.tt-lesson-list{display:flex;flex-direction:column;gap:var(--ome-sp-2)}
+.tt-lesson{justify-content:space-between;gap:8px}
 .tt-lesson-title{display:inline-flex;align-items:center;gap:6px}
 .tt-lesson-title .ome-icon{color:var(--ome-text-2)}
-.tt-lesson-best{font-size:11px;color:var(--ome-ok-ink);font-weight:700;flex-shrink:0}
-.tt-lesson.locked{opacity:.55;cursor:not-allowed}
-.tt-lesson.locked:hover{border-color:var(--ome-border)}
+.tt-lesson-best{font-size:var(--ome-fs-xs);color:var(--ome-ok-ink);font-weight:700;flex-shrink:0}
 .tt-lock-msg{display:none;background:var(--ome-warn-soft);color:var(--ome-warn-ink);border-radius:var(--ome-radius-md);padding:8px 12px;
   font-size:var(--ome-fs-xs);font-weight:600;margin-bottom:8px}
 
@@ -65,7 +54,7 @@
 .tt-stats{display:flex;gap:26px;margin-bottom:18px;flex-wrap:wrap}
 .tt-stat{display:flex;flex-direction:column;gap:2px}
 .tt-stat b{font-size:22px;font-weight:700;color:var(--ome-accent-strong);font-variant-numeric:tabular-nums}
-.tt-stat span{font-size:11.5px;color:var(--ome-text-2);font-weight:600;letter-spacing:.03em}
+.tt-stat span{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600;letter-spacing:.03em}
 .tt-stats .tt-stat:first-child b{font-size:30px}
 
 .tt-progress-bar{height:5px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-2);overflow:hidden;margin-bottom:16px}
@@ -87,10 +76,11 @@
   color:var(--ome-text-2);pointer-events:none;backdrop-filter:blur(2px)}
 .tt-practice-area.done .tt-focus-hint{display:none}
 
-.tt-keyboard{margin-top:22px;display:flex;flex-direction:column;gap:6px;align-items:center}
-.tt-kbrow{display:flex;gap:5px}
-.tt-key{width:34px;height:34px;border-radius:var(--ome-radius-md);background:var(--ome-surface-2);border:1px solid var(--ome-border);
-  display:flex;align-items:center;justify-content:center;font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2);
+.tt-keyboard{margin-top:22px;display:flex;flex-direction:column;gap:6px;align-items:center;container-type:inline-size}
+/* คีย์บอร์ดเสมือน: แถวเต็มความกว้างกล่อง คีย์ยืด-หดเท่าๆ กัน (สูงสุด 34px) → ย่อทั้งชุดตามหน้าจอ ไม่ล้น ไม่ต้องเลื่อน */
+.tt-kbrow{display:flex;gap:5px;width:100%;justify-content:center}
+.tt-key{flex:1 1 0;min-width:0;max-width:34px;height:34px;border-radius:var(--ome-radius-md);background:var(--ome-surface-2);border:1px solid var(--ome-border);
+  display:flex;align-items:center;justify-content:center;font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2);overflow:hidden;
   transition:transform .1s,background .12s,color .12s;box-shadow:0 2px 0 var(--ome-border)}
 .tt-key.home{border-bottom:3px solid var(--ome-border-strong)}
 .tt-key.pressed{transform:translateY(2px) scale(.94);box-shadow:none}
@@ -105,23 +95,18 @@
 .f-rm{--z:var(--ome-chart-7)}
 .f-rr{--z:var(--ome-chart-5)}
 .f-rp{--z:var(--ome-text-2)}
-:is(.f-lp,.f-lr,.f-lm,.f-li,.f-ri,.f-rm,.f-rr,.f-rp){background:color-mix(in srgb, var(--z) 18%, var(--ome-surface-1));color:color-mix(in srgb, var(--z) 70%, var(--ome-text-1))}
+:is(.f-lp,.f-lr,.f-lm,.f-li,.f-ri,.f-rm,.f-rr,.f-rp){background:color-mix(in srgb, var(--z) 16%, var(--ome-surface-1));color:color-mix(in srgb, var(--z) 38%, var(--ome-text-1))}
 .tt-key.next{background:var(--ome-accent);color:var(--ome-on-accent);border-color:var(--ome-accent);transform:scale(1.08)}
-.tt-key.tt-space{width:220px}
-.tt-key.tt-shift{width:56px;font-size:var(--ome-fs-xs)}
+.tt-key.tt-space{flex:0 1 220px;max-width:220px}
+.tt-key.tt-shift{flex:2.2 1 0;max-width:56px;font-size:var(--ome-fs-xs)}
 .tt-keyboard.shifted .tt-key:not(.tt-shift):not(.next){font-weight:700}
-@media(max-width:760px){.tt-key{width:30px;height:30px}.tt-key.tt-shift{width:50px}.tt-key.tt-space{width:200px}}
-@media(max-width:600px){.tt-keyboard{display:none}}
+@media(max-width:600px){.tt-kbrow{gap:3px}.tt-keyboard{gap:4px}.tt-key{height:clamp(26px,8.2cqw,34px)}}
 
 .tt-finger-hint{text-align:center;font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-accent-strong);min-height:1.4em;margin-top:8px}
 .tt-flegend{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
-.tt-flegend-chip{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:var(--ome-radius-pill)}
-@media(max-width:600px){.tt-flegend{display:none}}
+.tt-flegend-chip{font-size:var(--ome-fs-xs);font-weight:700;padding:3px 9px;border-radius:var(--ome-radius-pill)}
 
 .tt-toolbar-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
-.tt-sprint-btn{height:34px;padding:0 13px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);
-  color:var(--ome-text-1);font-size:var(--ome-fs-xs);font-weight:600;cursor:pointer;transition:border-color var(--ome-dur-1),background var(--ome-dur-1)}
-.tt-sprint-btn:hover{border-color:var(--ome-accent);color:var(--ome-accent-strong)}
 .tt-finger-toggle{display:flex;align-items:center;gap:6px;font-size:var(--ome-fs-xs);color:var(--ome-text-2);cursor:pointer;margin-left:auto}
 .tt-finger-toggle input{accent-color:var(--ome-accent)}
 
@@ -145,7 +130,7 @@
 <main class="page tt-page" id="typingRoot">
 <div class="crumb-row">
   <nav class="crumb"><a href="area.html?a=work" data-i18n="crumbResp">งานที่รับผิดชอบ</a><span class="sep">/</span><span data-i18n="crumbTyping">สอนพิมพ์</span></nav>
-  <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
+  <button class="lang-toggle" id="langToggle" type="button" data-i18n-skip data-i18n-attr="aria-label:lang.toggle" aria-label="Switch language / สลับภาษา">
     <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
   </button>
 </div>
@@ -155,7 +140,7 @@
   <h1 data-i18n="pageTitle">สอนพิมพ์</h1>
 </div>
 
-<div class="tt-tabs" id="trackTabs"></div>
+<div class="tabs tt-tabs" id="trackTabs" role="tablist"></div>
 <div class="tt-track-desc" id="trackDesc"></div>
 <div class="tt-track-progress" id="trackProgress">
   <div class="tt-track-progress-bar"><div class="tt-track-progress-fill" id="trackProgressFill"></div></div>
@@ -164,8 +149,8 @@
 <div class="tt-thai-hint" id="thaiKbWarn" role="status" data-i18n="thaiKbWarn">แป้นพิมพ์ยังไม่ใช่ภาษาไทย (เกษมณี)</div>
 
 <div class="tt-toolbar-row">
-  <button class="tt-sprint-btn" id="sprintEnBtn" type="button" data-i18n="sprintEn">ทดสอบจับเวลา 60 วิ (อังกฤษ)</button>
-  <button class="tt-sprint-btn" id="sprintThBtn" type="button" data-i18n="sprintTh">ทดสอบจับเวลา 60 วิ (ไทย)</button>
+  <button class="btn sm tt-sprint-btn" id="sprintEnBtn" type="button" data-i18n="sprintEn">ทดสอบจับเวลา 60 วิ (อังกฤษ)</button>
+  <button class="btn sm tt-sprint-btn" id="sprintThBtn" type="button" data-i18n="sprintTh">ทดสอบจับเวลา 60 วิ (ไทย)</button>
   <label class="tt-finger-toggle"><input type="checkbox" id="fingerColorToggle"><span data-i18n="showFingerColors">แสดงสีโซนนิ้ว</span></label>
 </div>
 
@@ -185,13 +170,13 @@
     <div class="tt-progress-bar"><div class="tt-progress-fill" id="progressFill"></div></div>
 
     <div class="tt-practice-area" id="practiceArea">
-      <div class="tt-practice-text" id="practiceText"></div>
+      <div class="tt-practice-text" id="practiceText" data-i18n-skip></div>
       <input class="tt-hidden-input" id="hiddenInput" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
       <div class="tt-focus-hint" id="focusHint" data-i18n="clickToFocus">คลิกที่นี่เพื่อเริ่มพิมพ์</div>
     </div>
 
     <div class="tt-finger-hint" id="fingerHint"></div>
-    <div class="tt-keyboard" id="virtualKeyboard"></div>
+    <div class="tt-keyboard" id="virtualKeyboard" data-i18n-skip></div>
     <div class="tt-flegend" id="fingerLegend"></div>
 
     <div class="tt-result" id="resultPanel">

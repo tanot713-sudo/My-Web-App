@@ -1674,7 +1674,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       }
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'mx-track-menu-item' + (tr.id === state.trackId ? ' active' : '');
+      btn.className = 'btn ghost item mx-track-menu-item' + (tr.id === state.trackId ? ' active' : '');
       btn.textContent = pick(tr.label);
       btn.addEventListener('click', function () { selectTrack(tr.id); closeTrackMenu(); });
       trackMenuPanel.appendChild(btn);
@@ -1682,13 +1682,13 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
   }
 
   function closeTrackMenu() {
-    if (trackMenuBtn) trackMenuBtn.classList.remove('open');
+    if (trackMenuBtn) trackMenuBtn.classList.remove('open', 'on');
     if (trackMenuPanel) trackMenuPanel.classList.remove('open');
     if (trackMenuBtn) trackMenuBtn.setAttribute('aria-expanded', 'false');
   }
   function toggleTrackMenu() {
     var open = trackMenuPanel.classList.toggle('open');
-    trackMenuBtn.classList.toggle('open', open);
+    trackMenuBtn.classList.toggle('open', open); trackMenuBtn.classList.toggle('on', open);
     trackMenuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
   if (trackMenuBtn) {
@@ -1714,7 +1714,8 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       var passed = !!progress[progressKey(track.id, i)];
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'mx-item' + (i === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
+      btn.className = 'btn item mx-item' + (i === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
+      if (!unlocked) btn.setAttribute('aria-disabled', 'true');
       btn.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' +
         (passed ? 'circle-check' : unlocked ? (item.kind === 'reading' ? 'book-open' : 'music') : 'lock') + '"/></svg>';
       btn.appendChild(document.createTextNode(itemLabel(track, item, i)));
@@ -1896,7 +1897,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       item.options.forEach(function (opt) {
         var btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'mx-answer-btn wide';
+        btn.className = 'btn mx-answer-choice wide';
         btn.textContent = pick(opt.label);
         if (alreadyPassed) {
           btn.disabled = true;
@@ -1930,7 +1931,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     choices.forEach(function (choice) {
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'mx-answer-btn' + (isWide ? ' wide' : '');
+      btn.className = 'btn mx-answer-choice' + (isWide ? ' wide' : '');
       btn.textContent = isValueQuiz ? pick(NOTE_VALUE_LABELS[choice]) : isQualityQuiz ? pick(CHORD_QUALITY_LABELS[choice]) :
         isGuitarQuiz ? pick(GUITAR_CHORD_LABELS[choice]) : isUkuleleQuiz ? pick(UKULELE_CHORD_LABELS[choice]) :
         isPitchCompareQuiz ? pick(PITCH_COMPARE_LABELS[choice]) :
@@ -1988,12 +1989,10 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
   }
 
   if (langToggle) {
-    langToggle.addEventListener('click', function () {
-      setUILang(getUILang() === 'en' ? 'th' : 'en');
-      applyI18n();
-    });
+    langToggle.addEventListener('click', function () { OME_LANG.set(getUILang() === 'en' ? 'th' : 'en'); });
   }
-  window.omeApplyLang = applyI18n;
+  window.OME_PAGE_LIVE_LANG = true;
+  OME_LANG.onChange(applyI18n);
 
   applyI18n();
 }

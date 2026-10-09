@@ -143,8 +143,8 @@
   function renderRecipes() {
     var all = recipes(), tags = CP.allTags(all);
     root.innerHTML =
-      '<div class="cp-bar"><div class="grow"><input type="search" id="cpQ" placeholder="' + esc(L('search')) + '" value="' + esc(S.q) + '" aria-label="' + esc(L('search')) + '"></div>' +
-      '<select id="cpTag" aria-label="' + esc(L('tags')) + '"><option value="">' + esc(L('allTags')) + '</option>' + tags.map(function (t) { return '<option' + (t === S.tag ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join('') + '</select>' +
+      '<div class="cp-bar"><div class="grow"><input class="input" type="search" id="cpQ" placeholder="' + esc(L('search')) + '" value="' + esc(S.q) + '" aria-label="' + esc(L('search')) + '"></div>' +
+      '<select class="select" id="cpTag" aria-label="' + esc(L('tags')) + '"><option value="">' + esc(L('allTags')) + '</option>' + tags.map(function (t) { return '<option' + (t === S.tag ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join('') + '</select>' +
       '<button class="btn primary sm" type="button" data-act="add">' + esc(L('addRecipe')) + '</button>' +
       '<button class="btn sm" type="button" data-act="addPaste">' + esc(L('pasteRecipe')) + '</button></div>' +
       '<div id="cpList"></div>';
@@ -153,10 +153,10 @@
   function renderRecipeList() {
     var list = recipes().filter(function (r) { return CP.recipeMatches(r, S.q, S.tag); }).sort(function (a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; });
     $('cpList').innerHTML = list.length ? '<div class="list">' + list.map(function (r) {
-      return '<button class="list-row cp-recipe" type="button" data-act="edit" data-id="' + esc(r.id) + '">' +
+      return '<button class="btn item cp-recipe" type="button" data-act="edit" data-id="' + esc(r.id) + '">' +
         (r.photo ? '<img class="cp-thumb" alt="" loading="lazy" src="/api/files?id=' + encodeURIComponent(r.photo.id) + '">' : '') +
-        '<span class="cp-main"><span class="cp-name">' + esc(r.name) + '</span><span class="cp-meta"><span>' + r.servings + ' ' + esc(L('sv')) + '</span><span>' + esc(L('ingN', { n: r.ingredients.length })) + '</span>' +
-        (r.tags || []).map(function (t) { return '<span class="badge">' + esc(t) + '</span>'; }).join('') + '</span></span></button>';
+        '<span class="cp-main"><span class="cp-name" data-i18n-skip>' + esc(r.name) + '</span><span class="cp-meta"><span>' + r.servings + ' ' + esc(L('sv')) + '</span><span>' + esc(L('ingN', { n: r.ingredients.length })) + '</span>' +
+        (r.tags || []).map(function (t) { return '<span class="badge" data-i18n-skip>' + esc(t) + '</span>'; }).join('') + '</span></span></button>';
     }).join('') + '</div>' : '<div class="empty">' + esc(L('noRecipe')) + '</div>';
   }
 
@@ -164,11 +164,11 @@
   function ingRow(i) {
     i = i || { name: '', qty: '', unit: '', cat: 'other' };
     return '<div class="cp-ing">' +
-      '<input data-f="name" type="text" maxlength="120" placeholder="' + esc(L('ingName')) + '" aria-label="' + esc(L('ingName')) + '" value="' + esc(i.name) + '">' +
-      '<input data-f="qty" type="text" inputmode="decimal" placeholder="' + esc(L('ingQty')) + '" aria-label="' + esc(L('ingQty')) + '" value="' + esc(i.qty == null ? '' : i.qty) + '">' +
-      '<input data-f="unit" type="text" maxlength="40" placeholder="' + esc(L('ingUnit')) + '" aria-label="' + esc(L('ingUnit')) + '" value="' + esc(i.unit) + '">' +
-      '<select data-f="cat" class="cp-ing-cat" aria-label="cat">' + CP.CATS.map(function (c) { return '<option value="' + c.key + '"' + (c.key === i.cat ? ' selected' : '') + '>' + esc(pick2(c)) + '</option>'; }).join('') + '</select>' +
-      '<button class="btn sm ghost" type="button" data-rm aria-label="' + esc(L('rm')) + '">✕</button></div>';
+      '<input class="input" data-f="name" type="text" maxlength="120" placeholder="' + esc(L('ingName')) + '" aria-label="' + esc(L('ingName')) + '" value="' + esc(i.name) + '">' +
+      '<input class="input" data-f="qty" type="text" inputmode="decimal" placeholder="' + esc(L('ingQty')) + '" aria-label="' + esc(L('ingQty')) + '" value="' + esc(i.qty == null ? '' : i.qty) + '">' +
+      '<input class="input" data-f="unit" type="text" maxlength="40" placeholder="' + esc(L('ingUnit')) + '" aria-label="' + esc(L('ingUnit')) + '" value="' + esc(i.unit) + '">' +
+      '<select data-f="cat" class="select cp-ing-cat" aria-label="cat">' + CP.CATS.map(function (c) { return '<option value="' + c.key + '"' + (c.key === i.cat ? ' selected' : '') + '>' + esc(pick2(c)) + '</option>'; }).join('') + '</select>' +
+      '<button class="btn sm ghost icon" type="button" data-rm aria-label="' + esc(L('rm')) + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></div>';
   }
   function setIngs(list) { $('rIngs').innerHTML = (list && list.length ? list : [null]).map(ingRow).join(''); }
   function readIngs() {
@@ -303,12 +303,12 @@
     recipes().forEach(function (r) { byId[r.id] = r; });
     var head = '<thead><tr><th></th>' + CP.MEALS.map(function (m) { return '<th>' + esc(pick2(m)) + '</th>'; }).join('') + '</tr></thead>';
     var body = '<tbody>' + days.map(function (d, i) {
-      return '<tr' + (d === today ? ' class="today"' : '') + '><th scope="row">' + esc(L('days')[i]) + '<br><span class="cp-meta">' + esc(dayLabel(d)) + '</span></th>' +
+      return '<tr' + (d === today ? ' class="today"' : '') + '><th scope="row"><span class="cp-day">' + esc(L('days')[i]) + '</span><span class="cp-meta">' + esc(dayLabel(d)) + '</span></th>' +
         CP.MEALS.map(function (m) {
           var k = CP.slotKey(i, m.key), s = plan.slots[k], r = s && byId[s.recipeId];
-          if (!r) return '<td><button class="btn sm ghost" type="button" data-act="slot" data-slot="' + k + '" aria-label="' + esc(L('days')[i] + ' ' + pick2(m)) + '">' + esc(L('pick')) + '</button></td>';
+          if (!r) return '<td data-meal="' + esc(pick2(m)) + '"><button class="btn sm ghost" type="button" data-act="slot" data-slot="' + k + '" aria-label="' + esc(L('days')[i] + ' ' + pick2(m)) + '">' + esc(L('pick')) + '</button></td>';
           var done = !!plan.done[k];
-          return '<td><div class="cp-cell' + (done ? ' done' : '') + '" data-slot="' + k + '"><button class="cp-pick" type="button" data-act="slot" data-slot="' + k + '">' + esc(r.name) + '</button>' +
+          return '<td data-meal="' + esc(pick2(m)) + '"><div class="cp-cell' + (done ? ' done' : '') + '" data-slot="' + k + '"><button class="btn ghost sm cp-pick" type="button" data-act="slot" data-slot="' + k + '" data-i18n-skip>' + esc(r.name) + '</button>' +
             '<span class="cp-meta">' + s.servings + ' ' + esc(L('sv')) + '</span>' +
             '<div class="cp-cell-actions"><button class="btn sm' + (done ? '' : ' primary') + '" type="button" data-act="done" data-slot="' + k + '">' + esc(done ? L('undone') : L('done')) + '</button></div></div></td>';
         }).join('') + '</tr>';
@@ -410,22 +410,22 @@
       return '<div class="cp-group"><h3>' + esc(pick2(cat)) + '</h3><div class="list">' + g.lines.map(function (l) {
         return '<div class="list-row cp-line' + (l.checked ? ' checked' : '') + '" data-line="' + esc(l.id) + '">' +
           '<input type="checkbox" data-act="tick" aria-label="' + esc(l.name) + '"' + (l.checked ? ' checked' : '') + '>' +
-          '<span class="cp-name">' + esc(l.name) + (l.qty != null || l.unit ? ' <span class="cp-meta" style="display:inline">' + esc((l.qty != null ? numFmt(l.qty) : '') + (l.unit ? ' ' + l.unit : '')) + '</span>' : '') + '</span>' +
-          '<input class="cp-price" type="number" inputmode="decimal" min="0" step="any" data-act="price" placeholder="' + esc(L('price')) + '" aria-label="' + esc(L('price') + ' ' + l.name) + '" value="' + (l.price == null ? '' : l.price) + '">' +
-          '<button class="btn sm ghost" type="button" data-act="rmLine" aria-label="' + esc(L('rm') + ' ' + l.name) + '">✕</button></div>';
+          '<span class="cp-name" data-i18n-skip>' + esc(l.name) + (l.qty != null || l.unit ? ' <span class="cp-meta" style="display:inline">' + esc((l.qty != null ? numFmt(l.qty) : '') + (l.unit ? ' ' + l.unit : '')) + '</span>' : '') + '</span>' +
+          '<input class="input cp-price" type="number" inputmode="decimal" min="0" step="any" data-act="price" placeholder="' + esc(L('price')) + '" aria-label="' + esc(L('price') + ' ' + l.name) + '" value="' + (l.price == null ? '' : l.price) + '">' +
+          '<button class="btn sm ghost icon" type="button" data-act="rmLine" aria-label="' + esc(L('rm') + ' ' + l.name) + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></div>';
       }).join('') + '</div></div>';
     }).join('');
     root.innerHTML = weekNav(
       '<button class="btn sm" type="button" data-act="mkShop">' + esc(L('upShop')) + '</button>' +
       '<button class="btn sm danger" type="button" data-act="delShop">' + esc(L('delShop')) + '</button>') +
       '<div class="cp-meta" id="cpCounts">' + esc(L('counts', { c: view.checked, n: view.count })) + '</div>' + groups +
-      '<div class="cp-add"><div class="field"><label for="aName">' + esc(L('itemName')) + '</label><input id="aName" type="text" maxlength="120" autocomplete="off"></div>' +
-      '<div class="field" style="flex:0 1 80px"><label for="aQty">' + esc(L('ingQty')) + '</label><input id="aQty" type="text" inputmode="decimal"></div>' +
-      '<div class="field" style="flex:0 1 100px"><label for="aUnit">' + esc(L('ingUnit')) + '</label><input id="aUnit" type="text" maxlength="40"></div>' +
-      '<div class="field" style="flex:0 1 130px"><label for="aCat">' + esc(L('cat')) + '</label><select id="aCat">' + CP.CATS.map(function (c) { return '<option value="' + c.key + '"' + (c.key === 'other' ? ' selected' : '') + '>' + esc(pick2(c)) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="cp-add"><div class="field"><label for="aName">' + esc(L('itemName')) + '</label><input class="input" id="aName" type="text" maxlength="120" autocomplete="off"></div>' +
+      '<div class="field" style="flex:0 1 80px"><label for="aQty">' + esc(L('ingQty')) + '</label><input class="input" id="aQty" type="text" inputmode="decimal"></div>' +
+      '<div class="field" style="flex:0 1 100px"><label for="aUnit">' + esc(L('ingUnit')) + '</label><input class="input" id="aUnit" type="text" maxlength="40"></div>' +
+      '<div class="field" style="flex:0 1 130px"><label for="aCat">' + esc(L('cat')) + '</label><select class="select" id="aCat">' + CP.CATS.map(function (c) { return '<option value="' + c.key + '"' + (c.key === 'other' ? ' selected' : '') + '>' + esc(pick2(c)) + '</option>'; }).join('') + '</select></div>' +
       '<button class="btn" type="button" data-act="addItem">' + esc(L('addItem')) + '</button></div>' +
       '<div class="card cp-total"><div>' + esc(L('total')) + ' <strong id="cpTotal">' + esc(baht(view.total)) + '</strong></div>' +
-      '<div class="cp-bar"><select id="cpBcat" aria-label="' + esc(L('bCat')) + '">' + cats.map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === S.bcat ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select>' +
+      '<div class="cp-bar"><select class="select" id="cpBcat" aria-label="' + esc(L('bCat')) + '">' + cats.map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === S.bcat ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select>' +
       '<button class="btn primary" type="button" id="cpBudget" data-act="budget"' + (saved || !(view.total > 0) ? ' disabled' : '') + '>' + esc(saved ? L('bDone') : L('bSave')) + '</button></div></div>';
   }
   function isSaved(list) { return !!list.budgetId || rd(REC_KEY).some(function (r) { return r.id === CP.budgetId(list.id); }); }
@@ -552,8 +552,11 @@
   $('sRecipe').addEventListener('change', function () { var r = recipeById(this.value); if (r) $('sServ').value = r.servings; });
 
   window.addEventListener('hashchange', function () { if (modeFromHash() !== S.mode) { S.mode = modeFromHash(); render(); } });
-  var lt = $('langToggle');
-  if (lt) lt.addEventListener('click', function () { setTimeout(render, 0); });
+  window.OME_PAGE_LIVE_LANG = true;
+  OME_LANG.onChange(function () {
+    render();
+    if (SD) { var parts = SD.slot.split(':'), meal = CP.MEALS.filter(function (m) { return m.key === parts[1]; })[0]; $('sDlgTitle').textContent = L('slotTitle', { day: L('days')[+parts[0]] + ' ' + dayLabel(CP.weekDays(S.week)[+parts[0]]), meal: pick2(meal) }); }
+  });
   if (TD && TD.onChange) TD.onChange(function (keys) {
     if (!keys.length || keys.some(function (k) { return k === K_REC || k === K_PLAN || k === K_SHOP || k === REC_KEY || k === CAT_KEY; })) renderSoon();
   });
