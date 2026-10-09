@@ -152,5 +152,5 @@ npx playwright test theme-audit.spec.js                  # runtime: axe คอ�
 6. **รัน spec ของหน้านั้น** (ปรับ selector ที่เปลี่ยนคลาสแล้ว — ปรับให้ตรวจพฤติกรรมเดิม ห้ามลบเทสต์), `today.spec.js` ถ้าหน้านั้นมีการ์ดในหน้าวันนี้, `smoke.spec.js`
 7. **ตัวตรวจ**: `node repo-guards.mjs` → `npx playwright test theme-audit.spec.js` → ลด baseline (`node theme-guards.mjs --update`, `THEME_AUDIT_UPDATE=1 …`) — ตัวเลขลดอย่างเดียว
 8. **มือถือ** (รอบ 3): เพิ่มหน้านี้ใน `NARROW_360` ของ `theme-audit.spec.js` แล้วดู 6 ตัวชี้วัด `mobile*` ที่ 390 และ 360 × สว่าง/มืด ทั้งตอนว่างและตอนมีข้อมูล (seed) + ทุกกล่อง/แท็บที่เปิดอยู่ — แก้จนเป็น 0 (ขนาดตัวอักษร/ระยะ/การเรียงตามหัวข้อ 8) · เปิดดูภาพ 390/360 ด้วยตา
-9. **visual**: `npm run test:update -- -g "<หน้า>"` แล้วเปิดดูภาพ 390/1100 × สว่าง/มืด ด้วยตา · bump `CACHE` ใน `sw.js`
+9. **visual**: `npm run test:update -- -g "<หน้า>"` แล้วเปิดดูภาพ 390/1100 × สว่าง/มืด ด้วยตา — ถ้าเครื่องที่ทำงานเรนเดอร์ฟอนต์ไม่ตรง CI (visual ใน CI ล้มเฉพาะหน้าที่แก้) ให้ติดป้าย `update-snapshots` ที่ PR ให้ CI สร้างภาพเอง (`.github/workflows/update-visual.yml`) · bump `CACHE` ใน `sw.js`
 10. ในรายงาน PR: ตารางตัวเลขก่อน/หลัง **ต้องมีคอลัมน์มือถือ** (`mobileFont/Overflow/Clip/Crowd/Align/RowBreak` ที่ 390 และ 360 + ความสูงหน้าที่ 390 ถ้าเป็นหน้ายาว) + เหตุผลรายจุดของค่าที่ยังไม่เป็น 0 (เช่น ปุ่มที่ไลบรารีสร้าง)
